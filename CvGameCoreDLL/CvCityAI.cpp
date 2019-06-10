@@ -694,7 +694,7 @@ void CvCityAI::AI_chooseProduction()
 	int iMaxSettlers = 0;
 	if (!bFinancialTrouble)
 	{
-		iMaxSettlers= std::min((kPlayer.getNumCities() + 1) / 2, iNumAreaCitySites + iNumWaterAreaCitySites);
+		iMaxSettlers = std::min((kPlayer.getNumCities() + 1) / 2, iNumAreaCitySites + iNumWaterAreaCitySites);
 		if (bLandWar || bAssault)
 		{
 			iMaxSettlers = (iMaxSettlers + 2) / 3;

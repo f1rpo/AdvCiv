@@ -5830,7 +5830,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 				if (iCalcFoundValue > 0 || iStartingFoundValue > 0)
 				{
-					szTempBuffer.Format(L" (%d,%ds), thresh: %d",
+					szTempBuffer.Format(L" (%d,s:%d), thresh: %d",
 							iActualFoundValue, // advc.007: Swapped with iCalc
 							iStartingFoundValue,
 							// advc.007: thresh added

@@ -490,15 +490,11 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 {
 	PROFILE_FUNC();
 
-	CvUnit* pLoopUnit;
-	CvPlot* pUnitPlot;
-	bool bValid;
-	int iPass;
 	int iLoop;
 
 	if (!isHuman() || isOption(PLAYEROPTION_AUTO_PROMOTION))
 	{
-		for(pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+		for(CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 		{
 			pLoopUnit->AI_promote();
 		}
@@ -538,12 +534,12 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	// BETTER_BTS_AI_MOD: END
 
 	CvPlot* pLastUpgradePlot = NULL;
-	for (iPass = 0; iPass < 4; iPass++)
+	for (int iPass = 0; iPass < 4; iPass++)
 	{
-		for(pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+		for(CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 		{
 			bool bNoDisband = false;
-			bValid = false;
+			bool bValid = false;
 
 			switch (iPass)
 			{
@@ -551,12 +547,10 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				// BBAI note:  Effectively only for galleys, triremes, and ironclads ... unit types which are limited in
 				// what terrain they can operate in
 				if (AI_unitImpassableCount(pLoopUnit->getUnitType()) > 0)
-				{
 					bValid = true;
-				}
 				break;
-			case 1:
-				pUnitPlot = pLoopUnit->plot();
+			case 1: {
+				CvPlot* pUnitPlot = pLoopUnit->plot();
 				if (pUnitPlot->isCity())
 				{
 					if (pUnitPlot->getBestDefender(getID()) == pLoopUnit)
@@ -577,13 +571,11 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 					}
 				}
 				break;
+			}
 			case 2:
 				/* original BTS code
 				if (pLoopUnit->cargoSpace() > 0)
-				{
-					bValid = true;
-				} */
-
+					bValid = true;*/
 				// Only normal transports
 				if (pLoopUnit->cargoSpace() > 0 && pLoopUnit->specialCargo() == NO_SPECIALUNIT)
 				{
@@ -606,64 +598,60 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				break;
 			}
 
-			if (bValid)
+			if (!bValid)
+				continue; // advc.003
+
+			bool bKilled = false;
+			if (!bNoDisband)
 			{
-				bool bKilled = false;
-				if (!bNoDisband)
+				//if (pLoopUnit->canFight()) // original bts code
+				if (pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT) // K-Mod - bug fix for the rare case of a barb city spawning on top of an animal
 				{
-					//if (pLoopUnit->canFight()) // original bts code
-					if (pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT) // K-Mod - bug fix for the rare case of a barb city spawning on top of an animal
+					int iExp = pLoopUnit->getExperience();
+					CvCity* pPlotCity = pLoopUnit->plot()->getPlotCity();
+					if (pPlotCity != NULL && pPlotCity->getOwnerINLINE() == getID())
 					{
-						int iExp = pLoopUnit->getExperience();
-						CvCity* pPlotCity = pLoopUnit->plot()->getPlotCity();
-						if (pPlotCity != NULL && pPlotCity->getOwnerINLINE() == getID())
+						int iCityExp = 0;
+						iCityExp += pPlotCity->getFreeExperience();
+						iCityExp += pPlotCity->getDomainFreeExperience(pLoopUnit->getDomainType());
+						iCityExp += pPlotCity->getUnitCombatFreeExperience(pLoopUnit->getUnitCombatType());
+						if (iCityExp > 0)
 						{
-							int iCityExp = 0;
-							iCityExp += pPlotCity->getFreeExperience();
-							iCityExp += pPlotCity->getDomainFreeExperience(pLoopUnit->getDomainType());
-							iCityExp += pPlotCity->getUnitCombatFreeExperience(pLoopUnit->getUnitCombatType());
-							if (iCityExp > 0)
-							{
-								/*if ((iExp == 0) || (iExp < (iCityExp + 1) / 2))
-								{
-									/* original bts code
-									if ((pLoopUnit->getDomainType() != DOMAIN_LAND) || pLoopUnit->plot()->plotCount(PUF_isMilitaryHappiness, -1, -1, getID()) > 1)
-									{
-										if ((calculateUnitCost() > 0) && (AI_getPlotDanger( pLoopUnit->plot(), 2, false) == 0))
-										{										
-											pLoopUnit->kill(false);
-											bKilled = true;
-											pLastUpgradePlot = NULL;
-										}
-									}
-								} */
-								// K-Mod
-								if (iExp < iCityExp && GC.getGameINLINE().getGameTurn() - pLoopUnit->getGameTurnCreated() > 8)
-								{
-									int iDefenders = pLoopUnit->plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getID(), NO_TEAM, PUF_isCityAIType);
-									if (iDefenders > pPlotCity->AI_minDefenders() && !AI_getAnyPlotDanger(pLoopUnit->plot(), 2, false))
-									{
-										if (iCostPerMil > AI_maxUnitCostPerMil(pLoopUnit->area(), 100) + 2*iExp + 4*std::max(0, pPlotCity->AI_neededDefenders() - iDefenders))
-										{
-											if (gUnitLogLevel > 2)
-												logBBAI("    %S scraps %S, with %d exp, and %d / %d spending.", getCivilizationDescription(0), pLoopUnit->getName(0).GetCString(), iExp, iCostPerMil, AI_maxUnitCostPerMil(pLoopUnit->area(), 100));
-											pLoopUnit->scrap();
-											pLoopUnit->doDelayedDeath(); // I could have just done kill(), but who knows what extra work scrap() wants to do for us?
-											bKilled = true;
-											pLastUpgradePlot = NULL;
-											iCostPerMil = AI_unitCostPerMil(); // recalculate
-										}
+							/*if ((iExp == 0) || (iExp < (iCityExp + 1) / 2)) {
+								if ((pLoopUnit->getDomainType() != DOMAIN_LAND) || pLoopUnit->plot()->plotCount(PUF_isMilitaryHappiness, -1, -1, getID()) > 1) {
+									if ((calculateUnitCost() > 0) && (AI_getPlotDanger( pLoopUnit->plot(), 2, false) == 0)) {										
+										pLoopUnit->kill(false);
+										bKilled = true;
+										pLastUpgradePlot = NULL;
 									}
 								}
-								// K-Mod end
+							}*/
+							// K-Mod
+							if (iExp < iCityExp && GC.getGameINLINE().getGameTurn() - pLoopUnit->getGameTurnCreated() > 8)
+							{
+								int iDefenders = pLoopUnit->plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getID(), NO_TEAM, PUF_isCityAIType);
+								if (iDefenders > pPlotCity->AI_minDefenders() && !AI_getAnyPlotDanger(pLoopUnit->plot(), 2, false))
+								{
+									if (iCostPerMil > AI_maxUnitCostPerMil(pLoopUnit->area(), 100) + 2*iExp + 4*std::max(0, pPlotCity->AI_neededDefenders() - iDefenders))
+									{
+										if (gUnitLogLevel > 2)
+											logBBAI("    %S scraps %S, with %d exp, and %d / %d spending.", getCivilizationDescription(0), pLoopUnit->getName(0).GetCString(), iExp, iCostPerMil, AI_maxUnitCostPerMil(pLoopUnit->area(), 100));
+										pLoopUnit->scrap();
+										pLoopUnit->doDelayedDeath(); // I could have just done kill(), but who knows what extra work scrap() wants to do for us?
+										bKilled = true;
+										pLastUpgradePlot = NULL;
+										iCostPerMil = AI_unitCostPerMil(); // recalculate
+									}
+								}
 							}
+							// K-Mod end
 						}
 					}
 				}
-				if (!bKilled)
-				{
-					pLoopUnit->AI_upgrade(); // CAN DELETE UNIT!!!
-				}
+			}
+			if (!bKilled)
+			{
+				pLoopUnit->AI_upgrade(); // CAN DELETE UNIT!!!
 			}
 		}
 	}
