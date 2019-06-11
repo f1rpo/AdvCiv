@@ -923,7 +923,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		list = []
 		for i in range(numInfos):
 			item = getInfo(i)
-			if item:
+			# advc.004y: GraphicalOnly check added
+			if item and not item.isGraphicalOnly():
 				list.append((item.getDescription(), i))
 		if self.isSortLists() and not noSort:
 			list.sort()

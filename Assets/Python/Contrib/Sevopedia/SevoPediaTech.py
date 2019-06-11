@@ -49,12 +49,22 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		self.X_QUOTE_PANE = self.X_TECH_PANE
 		self.Y_QUOTE_PANE = self.Y_TECH_PANE + self.H_TECH_PANE + 10
 		self.W_QUOTE_PANE = self.top.R_PEDIA_PAGE - self.X_QUOTE_PANE
-		self.H_QUOTE_PANE = 110
+
+		# <advc.004y>
+		# Move some height settings up:
+		self.H_PREREQ_PANE = 124
+		self.H_BUILDING_PANE = self.H_PREREQ_PANE
+		self.H_UNIT_PANE = self.H_PREREQ_PANE
+		#self.H_SPECIAL_PANE = self.top.B_PEDIA_PAGE - self.Y_SPECIAL_PANE
+		# Instead use any extra space for the QUOTE_PANE
+		self.H_SPECIAL_PANE = self.H_BUILDING_PANE + self.H_UNIT_PANE + 10
+		# was 110
+		self.H_QUOTE_PANE = self.top.B_PEDIA_PAGE - self.H_SPECIAL_PANE - self.H_PREREQ_PANE - self.Y_QUOTE_PANE - 20
+		# </advc.004y>
 
 		self.X_PREREQ_PANE = self.X_TECH_PANE
 		self.Y_PREREQ_PANE = self.Y_QUOTE_PANE + self.H_QUOTE_PANE + 10
 		self.W_PREREQ_PANE = self.top.W_PEDIA_PAGE / 2 - 5
-		self.H_PREREQ_PANE = 124
 
 		self.X_LEADS_TO_PANE = self.X_PREREQ_PANE + self.W_PREREQ_PANE + 10
 		self.Y_LEADS_TO_PANE = self.Y_PREREQ_PANE
@@ -64,17 +74,14 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		self.X_SPECIAL_PANE = self.X_TECH_PANE
 		self.W_SPECIAL_PANE = self.W_PREREQ_PANE
 		self.Y_SPECIAL_PANE = self.Y_PREREQ_PANE + self.H_PREREQ_PANE + 10
-		self.H_SPECIAL_PANE = self.top.B_PEDIA_PAGE - self.Y_SPECIAL_PANE
 
 		self.X_UNIT_PANE = self.X_LEADS_TO_PANE
 		self.W_UNIT_PANE = self.W_LEADS_TO_PANE
 		self.Y_UNIT_PANE = self.Y_SPECIAL_PANE
-		self.H_UNIT_PANE = self.H_PREREQ_PANE
 
 		self.X_BUILDING_PANE = self.X_UNIT_PANE
 		self.W_BUILDING_PANE = self.W_UNIT_PANE
 		self.Y_BUILDING_PANE = self.Y_UNIT_PANE + self.H_UNIT_PANE + 10
-		self.H_BUILDING_PANE = self.H_PREREQ_PANE
 
 
 

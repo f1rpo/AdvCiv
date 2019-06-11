@@ -80,4 +80,24 @@
 		<Italian>Forme di governo e Religioni preferite</Italian>
 		<Spanish>Principio y religión favoritos</Spanish>
 	</TEXT>
+	<!-- advc.004y: To replace TXT_KEY_PEDIA_CATEGORY_IMPROVEMENT.
+		 I've kept the FrItSp translations from there. -->
+	<TEXT>
+		<Tag>TXT_KEY_PEDIA_IMPROVEMENT_YIELD</Tag>
+		<English>Improvement Yields</English>
+		<French>Am&#233;nagements</French>
+		<German>Gesteigerte Erträge</German>
+		<Italian>Miglioramenti</Italian>
+		<Spanish>Mejoras</Spanish>
+	</TEXT>
+	<!-- advc.004y: From CIV4GameTextInfos.xml. Only English and German
+		 changed. -->
+	<TEXT>
+		<Tag>TXT_KEY_PEDIA_BONUS_YIELDS</Tag>
+		<English>Bonus Resources</English>
+		<French>Rendement bonus</French>
+		<German>Bonusressourcen</German>
+		<Italian>Prodotti bonus</Italian>
+		<Spanish>Rendim. bonif.</Spanish>
+	</TEXT>
 </Civ4GameText>

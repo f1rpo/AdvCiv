@@ -33,9 +33,9 @@ class SevoPediaUnit:
 		# <advc.004y>
 		if bWideScreen:
 			self.W_UNIT_PANE = (self.W_UNIT_PANE * X_RESOLUTION) // 1024
+		self.H_UNIT_PANE = 175 # advc.002b: was 145
 		# </advc.004y>
-		self.H_UNIT_PANE = 145
-	
+
 		# advc.004y: Move the button and icon size settings up
 		self.ICON_SIZE = 64
 		# <advc.004y> Perhaps better not to enlarge the icon; use one size everyhwere in the game.
@@ -43,13 +43,14 @@ class SevoPediaUnit:
 		#	self.ICON_SIZE = 96 # </advc.004y>
 		self.BUTTON_SIZE = 64
 		self.PROMOTION_ICON_SIZE = 32
-	
+
 		# <advc.004y> ICON_SIZE as lower bound for icon frame
 		iIconFrameSize = max(100, self.ICON_SIZE)
 		self.W_ICON = iIconFrameSize # was 100
 		self.H_ICON = iIconFrameSize # was 100
+		# Divisor was 2; don't want the button to touch the unit stats.
+		self.X_ICON = self.X_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 4
 		# </advc.004y>
-		self.X_ICON = self.X_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 2
 		self.Y_ICON = self.Y_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 2
 
 		self.X_STATS_PANE = self.X_UNIT_PANE + 130
@@ -96,7 +97,18 @@ class SevoPediaUnit:
 		self.X_HISTORY_PANE = self.X_UNIT_PANE
 		self.Y_HISTORY_PANE = self.Y_SPECIAL_PANE + self.H_SPECIAL_PANE + 10
 		self.W_HISTORY_PANE = self.top.R_PEDIA_PAGE - self.X_HISTORY_PANE
-		self.H_HISTORY_PANE = self.top.B_PEDIA_PAGE - self.Y_HISTORY_PANE
+		#self.H_HISTORY_PANE = self.top.B_PEDIA_PAGE - self.Y_HISTORY_PANE
+		# <advc.004y> If there's space left, I want to use it for the SPECIAL_PANE.
+		self.H_HISTORY_PANE = 190
+		iSpaceLeft = self.top.B_PEDIA_PAGE - self.Y_HISTORY_PANE - self.H_HISTORY_PANE
+		if iSpaceLeft < 0:
+			self.H_HISTORY_PANE += iSpaceLeft
+		else:
+			self.H_SPECIAL_PANE += iSpaceLeft
+			# Need to update these as well (not nice)
+			self.H_PROMO_PANE += iSpaceLeft
+			self.Y_HISTORY_PANE += iSpaceLeft
+		# </advc.004y>
 
 
 
