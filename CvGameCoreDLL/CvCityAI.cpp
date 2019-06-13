@@ -2478,9 +2478,12 @@ void CvCityAI::AI_chooseProduction()
 		if (iPlotSettlerCount <= 0 && // advc.031b: Same condition as for "build settler 1"
 				iNumSettlers < iMaxSettlers)
 		{
-			FAssert(iSettlerPriority > 0); // advc.031b: "build settler 1" should have set it
 			if (!bFinancialTrouble && iAreaBestFoundValue > iMinFoundValue)
-			{
+			{	// <advc.031b>
+				if(iSettlerPriority <= 0) { // "build settler 1" may have already computed it
+					iSettlerPriority = AI_calculateSettlerPriority(iNumAreaCitySites,
+							iAreaBestFoundValue, iNumWaterAreaCitySites, iWaterAreaBestFoundValue);
+				} // </advc.031b>
 				if (AI_chooseUnit(UNITAI_SETTLE,
 						(iSettlerPriority * 3) / 2)) // advc.031b
 				{
