@@ -259,6 +259,9 @@ protected:
 	// <advc.001n> was void AI_cachePlayerCloseness(int)
 	int AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
 			bool bConstCache); // </advc.001n>
+	// <advc.031b>
+	int AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
+			int iWaterAreaSites, int iBestWaterAreaFoundValue) const; // </advc.031b>
 	void AI_updateWorkersNeededHere();
 
 	// added so under cheat mode we can call protected functions for testing

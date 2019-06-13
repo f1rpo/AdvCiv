@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvCityAI.h"
 #include "CvGamePlay.h"
+#include "WarAndPeaceAgent.h" // advc.031b (for trait checks)
 #include "CvMap.h"
 #include "CyCity.h"
 #include "CyArgsList.h"
@@ -700,6 +701,7 @@ void CvCityAI::AI_chooseProduction()
 			iMaxSettlers = (iMaxSettlers + 2) / 3;
 		}
 	}
+	int iSettlerPriority = 0; // advc.031b
 
 	bool bChooseWorker = false;
 
@@ -1536,9 +1538,9 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
-	if( !(bDefenseWar && iWarSuccessRating < -50) )
+	if (!(bDefenseWar && iWarSuccessRating < -50))
 	{
-		if ((iAreaBestFoundValue > iMinFoundValue) || (iWaterAreaBestFoundValue > iMinFoundValue))
+		if (iAreaBestFoundValue > iMinFoundValue || iWaterAreaBestFoundValue > iMinFoundValue)
 		{	/*  BBAI TODO: Needs logic to check for early settler builds,
 				settler builds in small cities, whether settler sea exists
 				for water area sites? */
@@ -1579,26 +1581,27 @@ void CvCityAI::AI_chooseProduction()
 					}
 				}
 			}
-			
-			if (iPlotSettlerCount == 0)
-			{
-				if ((iNumSettlers < iMaxSettlers))
-				{
-					if (AI_chooseUnit(UNITAI_SETTLE, bLandWar ? 50 : -1))
-					{
-						if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build settler 1", getName().GetCString());
 
-						if (kPlayer.getNumMilitaryUnits() <= kPlayer.getNumCities() + 1)
+			if (iPlotSettlerCount <= 0 && iNumSettlers < iMaxSettlers)
+			{
+				// <advc.031b> Store the result for "build settler 2"
+				iSettlerPriority = AI_calculateSettlerPriority(iNumAreaCitySites,
+						iAreaBestFoundValue, iNumWaterAreaCitySites, iWaterAreaBestFoundValue);
+				// </advc.031b>
+				if (AI_chooseUnit(UNITAI_SETTLE, //bLandWar ? 50 : -1))
+						// advc.031b: Replacing the above
+						iSettlerPriority * (bLandWar ? 1 : 2)))
+				{
+					if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build settler 1", getName().GetCString());
+					if (kPlayer.getNumMilitaryUnits() <= kPlayer.getNumCities() + 1)
+					{
+						if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
 						{
-							if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
-							{
-								if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build settler 1 extra quick defense", getName().GetCString());
-								return;
-							}
+							if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build settler 1 extra quick defense", getName().GetCString());
+							return;
 						}
-						
-						return;
 					}
+					return;
 				}
 			}
 		}
@@ -2472,17 +2475,17 @@ void CvCityAI::AI_chooseProduction()
 
 	if (bLandWar && !bDanger)
 	{
-		if (iNumSettlers < iMaxSettlers)
+		if (iPlotSettlerCount <= 0 && // advc.031b: Same condition as for "build settler 1"
+				iNumSettlers < iMaxSettlers)
 		{
-			if (!bFinancialTrouble)
+			FAssert(iSettlerPriority > 0); // advc.031b: "build settler 1" should have set it
+			if (!bFinancialTrouble && iAreaBestFoundValue > iMinFoundValue)
 			{
-				if (iAreaBestFoundValue > iMinFoundValue)
+				if (AI_chooseUnit(UNITAI_SETTLE,
+						(iSettlerPriority * 3) / 2)) // advc.031b
 				{
-					if (AI_chooseUnit(UNITAI_SETTLE))
-					{
-						if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build settler 2", getName().GetCString());
-						return;
-					}
+					if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build settler 2", getName().GetCString());
+					return;
 				}
 			}
 		}
@@ -2678,7 +2681,7 @@ void CvCityAI::AI_chooseProduction()
 				!bUnitExempt && g.getSorenRandNum(100, "AI Build Unit Production") < iBuildUnitProb ||
 				(isHuman() && getGameTurnFounded() == g.getGameTurn()))
 		{
-			if (AI_chooseUnit())
+			if (AI_chooseUnit()) // advc.031b (comment): Can train Settlers, but that rarely happens.
 			{
 				if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose unit by probability", getName().GetCString());
 				return;
@@ -2772,61 +2775,43 @@ void CvCityAI::AI_chooseProduction()
 
 UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAITypes* peBestUnitAI)
 {
-	CvArea* pWaterArea;
-	UnitTypes eUnit;
-	UnitTypes eBestUnit;
-	bool bWarPlan;
-	bool bDefense;
-	bool bLandWar;
-	bool bAssault;
-	bool bPrimaryArea;
-	bool bAreaAlone;
-	bool bFinancialTrouble;
-	bool bWarPossible;
-	bool bDanger;
-	int iHasMetCount;
-	int iMilitaryWeight;
-	int iCoastalCities = 0;
-	int iBestValue;
-	int iI;
-
 	if (peBestUnitAI != NULL)
-	{
 		*peBestUnitAI = NO_UNITAI;
-	}
 
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod
 
 	// BETTER_BTS_AI_MOD, City AI, 11/30/08, jdog5000: bNoImpassable=true
-	pWaterArea = waterArea(true);
+	CvArea* pWaterArea = waterArea(true);
 
-	bWarPlan = GET_PLAYER(getOwnerINLINE()).AI_isFocusWar(area()); // advc.105
+	bool bWarPlan = GET_PLAYER(getOwnerINLINE()).AI_isFocusWar(area()); // advc.105
 			//(GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
-	bDefense = (area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
+	bool bDefense = (area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
 	//bLandWar = (bDefense || (area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE) || (area()->getAreaAIType(getTeam()) == AREAAI_MASSING));
-	bLandWar = kOwner.AI_isLandWar(area()); // K-Mod
-	bAssault = (area()->getAreaAIType(getTeam()) == AREAAI_ASSAULT);
-	bPrimaryArea = kOwner.AI_isPrimaryArea(area());
-	bAreaAlone = kOwner.AI_isAreaAlone(area());
-	bFinancialTrouble = kOwner.AI_isFinancialTrouble();
-	bWarPossible = GET_TEAM(getTeam()).AI_isWarPossible();
-	bDanger = AI_isDanger();
+	bool bLandWar = kOwner.AI_isLandWar(area()); // K-Mod
+	bool bAssault = (area()->getAreaAIType(getTeam()) == AREAAI_ASSAULT);
+	bool bPrimaryArea = kOwner.AI_isPrimaryArea(area());
+	bool bAreaAlone = kOwner.AI_isAreaAlone(area());
+	bool bFinancialTrouble = kOwner.AI_isFinancialTrouble();
+	bool bWarPossible = GET_TEAM(getTeam()).AI_isWarPossible();
+	bool bDanger = AI_isDanger();
 
-	iHasMetCount = GET_TEAM(getTeam()).getHasMetCivCount(true);
-	iMilitaryWeight = kOwner.AI_militaryWeight(area());
+	int iHasMetCount = GET_TEAM(getTeam()).getHasMetCivCount(true);
+	int iMilitaryWeight = kOwner.AI_militaryWeight(area());
 	int iNumCitiesInArea = area()->getCitiesPerPlayer(getOwnerINLINE());
 
+	int iCoastalCities = 0;
 	if (pWaterArea != NULL)
-	{
 		iCoastalCities = kOwner.countNumCoastalCitiesByArea(pWaterArea);
-	}
 
 	int aiUnitAIVal[NUM_UNITAI_TYPES] = { 0 };
 
-	if (!bFinancialTrouble && ((bPrimaryArea) ? (kOwner.findBestFoundValue() > 0) : (area()->getBestFoundValue(getOwnerINLINE()) > 0)))
-	{
+	int foo=-1;
+	if (!bFinancialTrouble && (bPrimaryArea ?
+			//kOwner.findBestFoundValue() > 0 : area()->getBestFoundValue(getOwnerINLINE()) > 0
+			// <advc.003b>
+			kOwner.AI_getNumCitySites() > 0 :
+			kOwner.AI_getNumAreaCitySites(area()->getID(), foo) > 0)) // </advc.003b>
 		aiUnitAIVal[UNITAI_SETTLE]++;
-	}
 
 	aiUnitAIVal[UNITAI_WORKER] += kOwner.AI_neededWorkers(area());
 
@@ -2966,7 +2951,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	else
 	// K-Mod end
 	{
-		for (iI = 0; iI < NUM_UNITAI_TYPES; iI++)
+		for (int iI = 0; iI < NUM_UNITAI_TYPES; iI++)
 		{
 			if (kOwner.AI_unitAIDomainType((UnitAITypes)iI) == DOMAIN_SEA)
 			{
@@ -2986,8 +2971,8 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		}
 	}
 
-	aiUnitAIVal[UNITAI_SETTLE] *= ((bDanger) ? 8 : 12); // was ? 8 : 20
-	aiUnitAIVal[UNITAI_WORKER] *= ((bDanger) ? 2 : 7);
+	aiUnitAIVal[UNITAI_SETTLE] *= (bDanger ? 8 : 12); // was ? 8 : 20
+	aiUnitAIVal[UNITAI_WORKER] *= (bDanger ? 2 : 7);
 	aiUnitAIVal[UNITAI_ATTACK] *= 3;
 	aiUnitAIVal[UNITAI_ATTACK_CITY] *= 5; // K-Mod, up from *4
 	aiUnitAIVal[UNITAI_COLLATERAL] *= 5;
@@ -3035,7 +3020,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		aiUnitAIVal[UNITAI_DEFENSE_AIR] /= 4;
 	}
 	// K-Mod end
-	for (iI = 0; iI < NUM_UNITAI_TYPES; iI++)
+	for (int iI = 0; iI < NUM_UNITAI_TYPES; iI++)
 	{
 		if(aiUnitAIVal[iI] > 0) { /* advc.131: AIWeight would have the opposite
 									 effect on negative AIVal */
@@ -3048,39 +3033,30 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		aiUnitAIVal[UNITAI_PIRATE_SEA] = 0;
 		aiUnitAIVal[UNITAI_ICBM] = 0; // advc.143b
 	} // </advc.033>
-	iBestValue = 0;
-	eBestUnit = NO_UNIT;
+	int iBestValue = 0;
+	UnitTypes eBestUnit = NO_UNIT;
 
-	for (iI = 0; iI < NUM_UNITAI_TYPES; iI++)
+	for (int iI = 0; iI < NUM_UNITAI_TYPES; iI++)
 	{
-		if (aiUnitAIVal[iI] > 0)
+		if (aiUnitAIVal[iI] <= 0)
+			continue; // advc.003
+
+		if (bAsync)
+			aiUnitAIVal[iI] += GC.getASyncRand().get(iMilitaryWeight, "AI Best UnitAI ASYNC");
+		else aiUnitAIVal[iI] += GC.getGameINLINE().getSorenRandNum(iMilitaryWeight, "AI Best UnitAI");
+
+		if (aiUnitAIVal[iI] > iBestValue)
 		{
-			if (bAsync)
+			UnitTypes eUnit = AI_bestUnitAI(((UnitAITypes)iI), bAsync, eIgnoreAdvisor);
+			if (eUnit != NO_UNIT)
 			{
-				aiUnitAIVal[iI] += GC.getASyncRand().get(iMilitaryWeight, "AI Best UnitAI ASYNC");
-			}
-			else
-			{
-				aiUnitAIVal[iI] += GC.getGameINLINE().getSorenRandNum(iMilitaryWeight, "AI Best UnitAI");
-			}
-
-			if (aiUnitAIVal[iI] > iBestValue)
-			{
-				eUnit = AI_bestUnitAI(((UnitAITypes)iI), bAsync, eIgnoreAdvisor);
-
-				if (eUnit != NO_UNIT)
-				{
-					iBestValue = aiUnitAIVal[iI];
-					eBestUnit = eUnit;
-					if (peBestUnitAI != NULL)
-					{
-						*peBestUnitAI = ((UnitAITypes)iI);
-					}
-				}
+				iBestValue = aiUnitAIVal[iI];
+				eBestUnit = eUnit;
+				if (peBestUnitAI != NULL)
+					*peBestUnitAI = ((UnitAITypes)iI);
 			}
 		}
 	}
-
 	return eBestUnit;
 }
 
@@ -3092,8 +3068,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");
 
 	bool bGrowMore = false;
-	int const iFoodDiff =
-			foodDifference(true, true); // K-Mod
+	int const iFoodDiff = /* K-Mod: */ foodDifference(true, true);
 	if (iFoodDiff > 0) 
 	{
 		// BBAI NOTE: This is where small city worker and settler production is blocked
@@ -8657,6 +8632,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, int iOdds)
 					GC.getGameINLINE().getCurrentEra())
 				return false;
 		} // </advc.033>
+
 		/* original BBAI code
 		if( iOdds < 0 ||
 			getUnitProduction(eBestUnit) > 0 ||
@@ -8670,6 +8646,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, int iOdds)
 			pushOrder(ORDER_TRAIN, eBestUnit, eUnitAI);
 			return true;
 		}
+		//FAssert(eUnitAI != UNITAI_SETTLE); // advc.031b: To test how often Settlers are delayed due to low SettlerPriority
 	}
 
 	return false;
@@ -12558,6 +12535,34 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent)
 
 	return iTotalThreat;
 }
+
+/*  <advc.031b> Between 1 and 100 (not 0 b/c the caller should ensure that there
+	is at least one acceptable and reachable city site). Note that the result
+	is currently usually doubled and then used as the per-cent probability of
+	training a Settler, meaning that values greater than 50 get clamped. */
+int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
+		int iWaterAreaSites, int iBestWaterAreaFoundValue) const {
+
+	FAssert(iAreaSites + iWaterAreaSites > 0)
+	if(iAreaSites <= 0)
+		return 60; // Don't really want to pace AI colonization
+	int r = 19;
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iMinFoundValue = std::max(1, kOwner.AI_getMinFoundValue());
+	r += 9 * std::min(9, std::max(iBestAreaFoundValue, iBestWaterAreaFoundValue) /
+			iMinFoundValue);
+	CvTeam const& kTeam = GET_TEAM(getTeam());
+	CvGame const& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_ALWAYS_WAR))
+		r -= 10;
+	else if(g.isOption(GAMEOPTION_ALWAYS_PEACE) || // Can't expand through war
+			(kTeam.isAVassal() && !kTeam.isCapitulated()) ||
+			(getWPAI.isEnabled() && kOwner.warAndPeaceAI().getCache().hasProtectiveTrait()))
+		r += 15;
+	// Imperialistic trait? Awkward to check ...
+	// I don't think the number of sites should matter(?)
+	return std::min(100, r);
+} // </advc.031b>
 
 //Workers have/needed is not intended to be a strict
 //target but rather an indication.
