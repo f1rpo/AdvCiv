@@ -2698,6 +2698,10 @@ void CvGame::autoSave(bool bInitial) {
 		return; // </advc.135c>
 	CvEventReporter::getInstance().preAutoSave();
 	gDLL->getEngineIFace()->AutoSave(bInitial);
+	// BULL - AutoSave - start
+	if(bInitial)
+		gDLL->getPythonIFace()->callFunction(PYCivModule, "gameStartSave");
+	// BULL - AutoSave - end
 } // </advc.106l>
 
 void CvGame::testExtendedGame()
@@ -5565,6 +5569,7 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 	if (eNewValue == GAMESTATE_OVER)
 	{
 		CvEventReporter::getInstance().gameEnd();
+		gDLL->getPythonIFace()->callFunction(PYCivModule, "gameEndSave"); // BULL - AutoSave
 		// <advc.707>
 		if(isOption(GAMEOPTION_RISE_FALL))
 			m_pRiseFall->prepareForExtendedGame(); // </advc.707>
