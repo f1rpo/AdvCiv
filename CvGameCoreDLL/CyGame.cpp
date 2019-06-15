@@ -12,7 +12,7 @@
 #include "CyCity.h"
 #include "CyDeal.h"
 #include "CyReplayInfo.h"
-#include "CvReplayInfo.h"
+#include "CvDLLEngineIFaceBase.h" // BULL - AutoSave
 #include "CyPlot.h"
 
 CyGame::CyGame() : m_pGame(NULL)
@@ -1227,6 +1227,15 @@ void CyGame::doControl(int iControl)
 		m_pGame->doControl((ControlTypes) iControl);
 	}
 }
+// BULL - AutoSave - start
+void CyGame::saveGame(std::string szFileName) const
+{
+	// <advc> The BULL code had instead cast szFileName to a CvString&
+	static CvString szTmp;
+	szTmp = szFileName; // </advc>
+	gDLL->getEngineIFace()->SaveGame(szTmp, SAVEGAME_NORMAL);
+} // BULL - AutoSave - end
+
 // <advc.104>
 bool CyGame::useKModAI() {
 
