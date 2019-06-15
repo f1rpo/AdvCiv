@@ -2622,7 +2622,7 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 	bool bDummy;
 	// this means we can just use bWrap directly and it will update *pbWrap if need be.
 	bool& bWrap = pbWrap ? *pbWrap : bDummy;
-	std::set<int>& cycled_groups = GC.getGameINLINE().m_ActivePlayerCycledGroups; // for convenience
+	std::set<int>& cycled_groups = GC.getGameINLINE().getActivePlayerCycledGroups();
 	// K-Mod end
 
 	/* if (pbWrap != NULL)
@@ -22399,7 +22399,7 @@ void CvPlayer::setScoreboardExpanded(bool b) {
 			moved away. Can't click buttons that way. A higher delay than 1
 			(1/4 second) shouldn't be necessary. */
 		int const iDelay = 1;
-		GC.getGameINLINE().setScoreboardDirtyTimer(iDelay);
+		GC.getGameINLINE().setUpdateTimer(CvGame::UPDATE_SCORE_BOARD_DIRTY, iDelay);
 	}
 }
 

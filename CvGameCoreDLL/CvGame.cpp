@@ -402,27 +402,36 @@ void CvGame::regenerateMap()
 	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
 
 	cycleSelectionGroups_delayed(1, false);
+	// <advc.004j>
+	bool bShowDawn = (GC.getDefineINT("SHOW_DAWN_AFTER_REGEN") > 0 &&
+			// Somehow doesn't work with Adv. Start; Dawn screen doesn't appear.
+			(!isOption(GAMEOPTION_ADVANCED_START) || isOption(GAMEOPTION_SPAH)));
+	// </advc.004j>
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL)) {
 		m_pRiseFall->reset();
 		m_pRiseFall->init();
+		bShowDawn = false;
 	}
 	else { // </advc.700>
 		autoSave(true); // advc.106l
-		// <advc.004j> Somehow doesn't work with Adv. Start; DoM screen doesn't appear.
-		if(!isOption(GAMEOPTION_ADVANCED_START) || isOption(GAMEOPTION_SPAH))
-			showDawnOfMan();
-	} // </advc.004j>
+	} // <advc.004j>
+	if(bShowDawn)
+		showDawnOfMan(); // </advc.004j>
 	if (NO_PLAYER != getActivePlayer())
 	{
 		CvPlot* pPlot = GET_PLAYER(getActivePlayer()).getStartingPlot();
 		if (NULL != pPlot)
 		{
-			/*  advc (comment): This appears to have no effect. Perhaps the
-				camera can't be moved at this point. Would have to be done at some
-				later point I guess. Setting SelectionCamera_DIRTY_BIT doesn't
-				seem to help either. */
-			gDLL->getInterfaceIFace()->lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
+			//gDLL->getInterfaceIFace()->lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
+			/*  <advc.004j> ^Comment by EmperorFool (from BULL):
+				"This doesn't work until after the game has had time to update.
+				 Centering on the starting location is now done by MapFinder using
+				 BugUtil.delayCall()."
+				I'm going to use setUpdateTimer instead. Unless the Dawn screen
+				is shown b/c that focuses the camera anyway. */
+			if(!bShowDawn)
+				setUpdateTimer(UPDATE_LOOK_AT_STARTING_PLOT, 5); // </advc.004j>
 		}
 	}
 }
@@ -759,8 +768,9 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
 	b_mFPTestDone = false; // advc.003g
-	m_iFocusUpdateTimer = -1; // advc.001w
-	m_iScoreboardDirtyTimer = -1; // advc.085
+	// <advc.003r>
+	for(int i = 0; i < NUM_UPDATE_TIMER_TYPES; i++)
+		m_aiUpdateTimers[i] = -1; // </advc.003r>
 }
 
 
@@ -2435,29 +2445,15 @@ void CvGame::update()
 			the update when R&F is enabled. */
 		if(!isAITurn()) {
 			CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
-			// <advc.085> See CvPlayer::setScoreboardExpanded
-			if(m_iScoreboardDirtyTimer >= 0) {
-				if(m_iScoreboardDirtyTimer == 0) {
-					gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-					/*  For some strange reason, the HUD retains mouse focus after
-						expanding the scoreboard, and this is the only remedy I was
-						able to find (apart from CvInterface::makeInterfaceDirty,
-						which results in flickering). */
-					gDLL->getInterfaceIFace()->makeSelectionListDirty();
-				}
-				m_iScoreboardDirtyTimer--;
-			} // </advc.085>
-			// <advc.001w>
-			if(m_iFocusUpdateTimer >= 0) {
-				if(m_iFocusUpdateTimer == 0)
-					gDLL->getInterfaceIFace()->makeSelectionListDirty();
-				m_iFocusUpdateTimer--;
-			} // </advc.001w>
+			// <advc.003r>
+			for(int i = 0; i < NUM_UPDATE_TIMER_TYPES; i++)
+				handleUpdateTimer((UpdateTimerTypes)i); // </advc.003r>
 		}
 		if (getTurnSlice() == 0)
 		{	// <advc.700> Delay initial auto-save until RiseFall is initialized
 			bool bStartTurn = (getGameTurn() == getStartTurn()); // advc.004m
 			// I guess TurnSlice==0 already implies that it's the start turn (?)
+			FAssert(bStartTurn);
 			if((!bStartTurn || !isOption(GAMEOPTION_RISE_FALL)) // </advc.700>
 					&& m_iTurnLoadedFromSave != m_iElapsedGameTurns) // advc.044
 				autoSave(true); // advc.106l
@@ -2467,7 +2463,6 @@ void CvGame::update()
 				gDLL->getEngineIFace()->setResourceLayer(true);
 			// </advc.004m>
 		}
-
 		if (getNumGameTurnActive() == 0)
 		{
 			if (!isPbem() || !getPbemTurnSent())
@@ -4688,20 +4683,15 @@ void CvGame::setScoreDirty(bool bNewValue)
 	m_bScoreDirty = bNewValue;
 }
 
-// <advc.085>
-void CvGame::setScoreboardDirtyTimer(int iDelay) {
-
-	m_iScoreboardDirtyTimer = iDelay;
-} // </advc.085>
-
-// <advc.001w>
-void CvGame::setFocusUpdateTimer(int iDelay) {
-
-	// No need for this hack when there is no unit-cycling delay
-	if(getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
-		m_iFocusUpdateTimer = -1;
-	else m_iFocusUpdateTimer = iDelay;
-} // </advc.001w>
+// <advc.003r>
+void CvGame::setUpdateTimer(UpdateTimerTypes eTimerType, int iDelay) {
+	// <advc.001w>
+	if(eTimerType == UPDATE_MOUSE_FOCUS && getBugOptionBOOL("MainInterface__RapidUnitCycling", false)) {
+		// No need for this hack when there is no unit-cycling delay
+		iDelay = -1;
+	} // </advc.001w>
+	m_aiUpdateTimers[eTimerType] = iDelay;
+} // </advc.003r>
 
 
 bool CvGame::isCircumnavigated() const
@@ -7457,7 +7447,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 		}
 		if(!bCivArea) {
 			/*  BtS triples iTargetCities here. Want to make it era-based.
-				Important that the multiplier is small in the first four eras
+				Important that the multiplier is rather small in the first four eras
 				so that civs get a chance to settle small landmasses before
 				Barbarians appear there. Once there is a Barbarian city on a
 				small landmass, there may not be room for another city, and a
@@ -9063,6 +9053,39 @@ void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer) {
 				 GET_PLAYER(ePlayer).getName()), NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL,
 			(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 } // </advc.003g
+
+// <advc.003r>
+void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType) {
+
+	if(m_aiUpdateTimers[eTimerType] < 0)
+		return;
+
+	if(m_aiUpdateTimers[eTimerType] == 0) {
+		switch(eTimerType) {
+		// <advc.085> See CvPlayer::setScoreboardExpanded
+		case UPDATE_SCORE_BOARD_DIRTY:
+			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+			/*  For some strange reason, the HUD retains mouse focus after expanding
+				the scoreboard, and this is the only remedy I was able to find
+				(apart from CvInterface::makeInterfaceDirty, which results in flickering). */
+			gDLL->getInterfaceIFace()->makeSelectionListDirty();
+			break; // </advc.085>
+		// <advc.001w>
+		case UPDATE_MOUSE_FOCUS:
+			gDLL->getInterfaceIFace()->makeSelectionListDirty();
+			break; // </advc.001w>
+		// <advc.004j>
+		case UPDATE_LOOK_AT_STARTING_PLOT: {
+			CvPlot* pStartingPlot = GET_PLAYER(getActivePlayer()).getStartingPlot();
+			if(pStartingPlot != NULL)
+				gDLL->getInterfaceIFace()->lookAt(pStartingPlot->getPoint(), CAMERALOOKAT_NORMAL);
+			break;
+			} // </advc.004j>
+		default: FAssertMsg(false, "Unknown update timer type");
+		}
+	}
+	m_aiUpdateTimers[eTimerType]--;
+} // </advc.003r>
 
 void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, CvWString pszText, int iPlotX, int iPlotY, ColorTypes eColor)
 {
@@ -11182,3 +11205,9 @@ void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame) {
 
 	m_pHallOfFame = pHallOfFame;
 } // </advc.106i>
+
+// <advc.003>
+std::set<int>& CvGame::getActivePlayerCycledGroups() {
+
+	return m_ActivePlayerCycledGroups; // Was public; now protected.
+} // </advc.003>

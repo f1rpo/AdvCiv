@@ -366,7 +366,16 @@
 		<DefineName>WE_LOVE_THE_KING_POPULATION_MIN_POPULATION</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
-	
+
+	<!-- [advc.004j]
+		 If set to 1, the "Dawn of Civilization" popup (formerly "Dawn of Man")
+		 is shown again after regenerating the map. If set to 0 (BtS behavior),
+		 the popup is only shown after generating the initial map. -->
+	<Define>
+		<DefineName>SHOW_DAWN_AFTER_REGEN</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
 	<!-- [advc.004m]
 	     No clue how this is measured. Original value is 2200
 		 (GlobalDefines.xml), recommended: 4600. -->
