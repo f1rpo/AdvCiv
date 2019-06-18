@@ -108,17 +108,10 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 	int iHintsWidth = (1 << (m_iFracXExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_X) ? 0 : 1);
 	int iHintsHeight = (1 << (m_iFracYExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_Y) ? 0 : 1);
 	if (pbyHints != NULL)
-	{
 		FAssertMsg(iHintsLength == iHintsWidth*iHintsHeight, "pbyHints is the wrong size!")
-	}
-	/*  <advc.tsl> No easy way to let map scripts set this param because the code
-		that exposes CvFractal (and CvFractal::FracVals) is in the EXE. */
-	int iPolarHeight = 0;
-	if(GC.getInitCore().getMapScriptName().compare(L"Fractal") == 0) {
-		/*  A power of 2 probably has no advantage here, but 64 also happens to work
-			pretty well. The closer to 0 this is set, the wider the polar water bands. */
-		iPolarHeight = (1 << 6);
-	} // </advc.tsl>
+
+	int iPolarHeight = polarHeight(); // advc.tsl
+
 	for (int iPass = iSmooth; iPass >= 0; iPass--)
 	{
 		int iScreen = 0;  // This screens out already marked spots in m_aaiFrac[][];
@@ -417,3 +410,16 @@ int CvFractal::yieldX(int iBadX)  //  Assumes FRAC_WRAP_X is on.
 
 	return iBadX;
 }
+
+// <advc.tsl> Wrap this in a protected function so that subclasses can override it
+int CvFractal::polarHeight() {
+
+	/*  No easy way to let map scripts set this because the code that exposes
+		CvFractal (and CvFractal::FracVals) is in the EXE. */
+	if(GC.getInitCore().getMapScriptName().compare(L"Fractal") == 0) {
+		/*  A power of 2 probably has no advantage here, but 64 also happens to work
+			pretty well. The closer to 0 this is set, the wider the polar water bands. */
+		return (1 << 6);
+	}
+	return 0;
+} // </advc.tsl>

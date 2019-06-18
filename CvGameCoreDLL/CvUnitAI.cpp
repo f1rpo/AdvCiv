@@ -14038,7 +14038,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 						}
 						else if (iOurOffence > iEnemyDefence)
 						{
-							// dont' boost it by too much, otherwise human players will exploit us. :(
+							// don't boost it by too much, otherwise human players will exploit us. :(
 							int iCap = 100 + 100 * (6 - iPathTurns) / 5;
 							iValue *= std::min(iCap, 100 * iOurOffence / std::max(1, iEnemyDefence));
 							iValue /= 100;

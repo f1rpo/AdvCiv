@@ -3784,7 +3784,7 @@ int CvTeamAI::AI_getTotalWarOddsTimes100( ) const
 			iMilitaryVictoryFactor = 3; // Don't care about 2 vs. 3 vs. 4 here
 		else if(AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1))
 			iMilitaryVictoryFactor = 2;
-		return 100 * iMilitaryVictoryFactor +  20000 / std::max(iTotalWarRand, 1);
+		return 100 * iMilitaryVictoryFactor + 20000 / std::max(iTotalWarRand, 1);
 	} // </advc.104>
 
 	int iTotalWarThreshold;

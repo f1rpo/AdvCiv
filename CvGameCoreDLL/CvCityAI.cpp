@@ -11525,7 +11525,6 @@ void CvCityAI::AI_barbChooseProduction()
 
 	if (!bDanger && GC.getGameINLINE().getSorenRandNum(100, "AI Build Unit Production") > iBuildUnitProb)
 	{
-
 		int iBarbarianFlags = 0;
 		if( getPopulation() < 4 ) iBarbarianFlags |= BUILDINGFOCUS_FOOD;
 		iBarbarianFlags |= BUILDINGFOCUS_PRODUCTION;
