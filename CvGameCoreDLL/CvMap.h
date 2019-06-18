@@ -267,7 +267,7 @@ public: // advc.003: made several functions const
 #ifdef _USRDLL
 	inline int isPlotINLINE(int iX, int iY) const
 	{
-		return ((iX >= 0) && (iX < getGridWidthINLINE()) && (iY >= 0) && (iY < getGridHeightINLINE()));
+		return (iX >= 0 && iX < getGridWidthINLINE() && iY >= 0 && iY < getGridHeightINLINE());
 	}
 #endif
 	DllExport int numPlots() const; 																								// Exposed to Python
@@ -368,24 +368,25 @@ public: // advc.003: made several functions const
 #ifdef _USRDLL
 	inline CvPlot* plotByIndexINLINE(int iIndex) const
 	{
-		return (((iIndex >= 0) && (iIndex < (getGridWidthINLINE() * getGridHeightINLINE()))) ? &(m_pMapPlots[iIndex]) : NULL);
+		return ((iIndex >= 0 && iIndex < getGridWidthINLINE() * getGridHeightINLINE()) ?
+				&(m_pMapPlots[iIndex]) : NULL);
 	}
 #endif
 	DllExport CvPlot* plot(int iX, int iY) const;													// Exposed to Python
 #ifdef _USRDLL
 	__forceinline CvPlot* plotINLINE(int iX, int iY) const
 	{
-		if ((iX == INVALID_PLOT_COORD) || (iY == INVALID_PLOT_COORD))
+		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 		{
 			return NULL;
 		}
 		int iMapX = coordRange(iX, getGridWidthINLINE(), isWrapXINLINE());
 		int iMapY = coordRange(iY, getGridHeightINLINE(), isWrapYINLINE());
-		return ((isPlotINLINE(iMapX, iMapY)) ? &(m_pMapPlots[plotNumINLINE(iMapX, iMapY)]) : NULL);
+		return (isPlotINLINE(iMapX, iMapY) ? &(m_pMapPlots[plotNumINLINE(iMapX, iMapY)]) : NULL);
 	}
 	__forceinline CvPlot* plotSorenINLINE(int iX, int iY) const
 	{
-		if ((iX == INVALID_PLOT_COORD) || (iY == INVALID_PLOT_COORD))
+		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 		{
 			return NULL;
 		}

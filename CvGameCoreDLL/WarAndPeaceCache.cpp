@@ -1894,11 +1894,11 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		double baseTileScore = 1.0 / 3; // i.e. 1/6 of a resource tile
 		if(p.isRevealed(t.getID(), false)) {
 			// getBonusType ensures that we can see the resource
-			BonusTypes res = p.getBonusType(t.getID());
-			if(res != NO_BONUS && !t.isBonusObsolete(res))
+			if(p.getNonObsoleteBonusType(t.getID()) != NO_BONUS) {
 				// It's OK if we can't use it yet
-				//&& !t.isHasTech((TechTypes)GC.getBonusInfo(res).getTechCityTrade())
+				//&& !t.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechCityTrade())
 				baseTileScore = 2;
+			}
 			cultureTestPlot = pp;
 			// Skip tiles that are essentially unworkable
 			int yf = p.calculateNatureYield(YIELD_FOOD, t.getID()),
@@ -1941,7 +1941,8 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	maintCost /= 100.0;
 	/*  Add 1 as a conservative estimate of incr. civic upkeep and incr. maint.
 		in other cities. Address these increases more carefully in GreedForAssets. */
-	if(c.getOwnerINLINE() != cacheOwnerId) maintCost += 1;
+	if(c.getOwnerINLINE() != cacheOwnerId)
+		maintCost += 1;
 	// Inflation isn't applied by CvCity
 	maintCost *= inflationMultiplier;
 	/*  B/c it's not really at gpt scale (see comment on top), and to account for 
