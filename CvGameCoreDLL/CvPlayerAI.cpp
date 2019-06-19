@@ -3140,7 +3140,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
-	int iValue = 500;
+	int iValue = 480;
 	// <advc.040>
 	if(bFirstColony)
 		iValue += 55 * std::min(5, iUnrev); // </advc.040>
@@ -3823,6 +3823,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
 	// CITY_HOME_PLOT should have 0 value here, others could have negative values.
 	FAssert(aiPlotValues[NUM_CITY_PLOTS - 1] <= 0);
+	// Parameters for iTotalPlotVal[0]
+	double const maxMultPercent = 150;
+	double const minMultPercent = 50;
+	double const normalizMult = 1;
+	double const subtr = 29;
+	double const exp = std::log(maxMultPercent - minMultPercent) /
+			std::log(NUM_CITY_PLOTS - 1.0);
 	/*  advc.test:
 		iTotalPlotVal[0] is the value I'll add to iValue.
 		For comparison in the debugger:
@@ -3845,12 +3852,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			} // </advc.test>
 			if(k == 0) {
 				if(iPlotValue > 0) {
-					double const maxMultPercent = 150;
-					double const minMultPercent = 50;
-					double const normalizMult = 1.13;
-					double const subtr = 28;
-					double exp = std::log(maxMultPercent - minMultPercent) /
-							std::log(NUM_CITY_PLOTS - 1.0);
 					iPlotValue = std::max(iPlotValue / 3,
 							::round(std::max(0.0, iPlotValue - subtr) * 0.01 *
 							// Linearly decreasing multiplier:
@@ -4023,7 +4024,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					iSeaValue /= 100;
 				}
 				// Modify based on production (since the point is to build a navy)
-				double mult = (baseProduction + iSpecialProduction) / 18.0;
+				double mult = std::min(baseProduction + iSpecialProduction,
+						// Probably can't work high-production tiles when there is no food
+						4.0 * (1 + iGreen + iSpecialFoodPlus)) / 18.0;
 				mult = 0.7 * ::dRange(mult, 0.1, 2.0);
 				// That's the name of the .py file; not language-dependent.
 				if(GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
@@ -4560,7 +4563,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		// Discourage sites that offer nothing special
 		if(iResourceValue <= 0 && iSpecialFoodPlus <= 0 && iRiver < 4 &&
 				iUnrev < 5) // advc.040
-			iValue = ::round(0.65 * iValue); // </advc.031>
+			iValue = ::round(0.6 * iValue); // </advc.031>
 	}
 	if (!kSet.bStartingLoc
 			&& !isBarbarian()) // advc.303
@@ -4576,24 +4579,24 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	}
 // END OF BONUS COUNT CHECKS
 // ACCOUNT FOR BAD TILES
-	int subtr = (isBarbarian() ? 2 : (4 + iGreen + iSpecialFoodPlus)); // advc.303
+	int iSubtr = (isBarbarian() ? 2 : (4 + iGreen + iSpecialFoodPlus)); // advc.303
 	// <advc.040>
 	if(bFirstColony)
 		iBadTile += iUnrev / 2; // </advc.040>
 	// <advc.031>
-	iBadTile -= subtr;
+	iBadTile -= iSubtr;
 	if(iBadTile > 0) {
-		iValue -= ::round(std::pow((double)iBadTile, 1.25) *
+		iValue -= ::round(std::pow((double)iBadTile, 1.33) *
 				(35.0 + (kSet.bStartingLoc ?
 				50 : 0) + (iCities <= 0 ? 50 : 0))); // advc.108
 		iValue = std::max(0, iValue);
 	}
 // END OF BAD TILES
 // BAD HEALTH CHECK
-	int bonusHealth = 0;
+	int iBonusHealth = 0;
 	if(getCapitalCity() != NULL)
-		bonusHealth += getCapitalCity()->getBonusGoodHealth();
-	int iBadHealth = -iHealth/100 - bonusHealth -
+		iBonusHealth += getCapitalCity()->getBonusGoodHealth();
+	int iBadHealth = -iHealth/100 - iBonusHealth -
 			GC.getHandicapInfo(getHandicapType()).getHealthBonus();
 	if(iBadHealth >= -1) // I.e. can only grow once
 		iValue /= std::max(1, (3 - getCurrentEra() + iBadHealth));
@@ -26435,8 +26438,8 @@ int CvPlayerAI::AI_getMinFoundValue() const
 	iValue += (iNumCitiesPercent * getNumCities() * //60) / 100;
 			/*  advc.130v: We may not be paying much for cities, but our master
 				will have to pay as well. */
-			// advc.031: Also raise the MinFoundValue a bit overall (60->67)
-			(67 + (GET_TEAM(getTeam()).isCapitulated() ? 33 : 0))) / 100;
+			// advc.031: Also raise the MinFoundValue a bit overall (60->70)
+			(70 + (GET_TEAM(getTeam()).isCapitulated() ? 33 : 0))) / 100;
 	// K-Mod end
 	// advc.031:
 	iValue = ::round(iValue / std::min(1.0, 1.65 * AI_amortizationMultiplier(15)));
