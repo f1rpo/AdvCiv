@@ -3448,7 +3448,12 @@ void FairPlay::evaluate() {
 	double uMinus = 0;
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
-	int iTurnsRemaining = 100 - t - GC.getEraInfo(startEra).getStartPercent();
+	int iTargetTurn = 100;
+	// Allow earlier aggression on crowded maps
+	iTargetTurn = ::round(iTargetTurn *
+			((1 + 1.5 * (g.getRecommendedPlayers() /
+			(double)g.getCivPlayersEverAlive())) / 2.5));
+	int iTurnsRemaining = iTargetTurn - t - GC.getEraInfo(startEra).getStartPercent();
 	if(iTurnsRemaining > 0) {
 		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
 		if(gameEra != startEra) // The above only matters in the start era
