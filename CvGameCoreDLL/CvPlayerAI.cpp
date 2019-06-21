@@ -4291,8 +4291,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			different area. CvGame avoids settling uninhabited areas anyway.
 			(maybe I'm missing sth. here) */
 		if(pNearestCity == NULL)
-			pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER, NO_TEAM,
-					false);
+			pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER, NO_TEAM, false);
 		if(pNearestCity != NULL) {
 			iValue *= std::min(kSet.iBarbDiscouragedRange, plotDistance(iX, iY,
 					pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()));
@@ -4300,11 +4299,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 		/*if (pNearestCity)
 			iValue -= (std::max(0, (8 - plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()))) * 200);
-		else
-		{
+		else {
 			pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER, NO_TEAM, false);
-			if (pNearestCity != NULL)
-			{
+			if (pNearestCity != NULL) {
 				int iDistance = plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
 				iValue -= std::min(500 * iDistance, (8000 * iDistance) / GC.getMapINLINE().maxPlotDistance());
 			}
@@ -4499,34 +4496,28 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iValue /= 100;
 			// K-Mod end
 		}
-		else
-		{
+		/*  advc.031: I've come to think that this whole "stick to your continent"
+			block is a bad idea. */
+		/* (remove this comment delimiter to re-enable the modified BtS code)
+		else {
 			int iTeamAreaCities = GET_TEAM(getTeam()).countNumCitiesByArea(pArea);
-			/*  advc.040: Don't let a single rival city make all the difference.
-				Btw, the AI shouldn't magically know iTeamAreaCities. This entire
-				"stick to your continent" block should perhaps be removed. */
-			if(10*pArea->getNumCities() > 7*iTeamAreaCities)
 			//if (pArea->getNumCities() == iTeamAreaCities)
-			{	// advc.040: Why care about barb cities? And times 3/2 is huge.
-				/*iValue *= 3;
-				iValue /= 2;
-			}
-			else if (pArea->getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)))
-			{*/
-				iValue *= 5; // advc.031: was *=4 and /=3
-				iValue /= 4;
+			// advc.040: Don't let a single rival city make all the difference
+			if(7 * pArea->getNumCities() < 10 * iTeamAreaCities) {
+				// advc.040: Why care about Barbarian cities? And times 3/2 is huge.
+				//iValue *= 3; iValue /= 2;
+			//}
+			//else if (pArea->getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea))) {
+				iValue *= 5; iValue /= 4; // advc.031: was *4/3
 			}
 			else if (iTeamAreaCities > 0
-					/*  advc.040: One city isn't a good enough reason for
-						discriminating against new colonies */
-					&& AI_isPrimaryArea(pArea))
-			{
-				//iValue *= 5;
-				//iValue /= 4;
+					// advc.040: One city isn't a good enough reason for discriminating against new colonies
+					&& AI_isPrimaryArea(pArea)) {
+				//iValue *= 5; iValue /= 4;
 				; // advc.031: Instead reduce the value in the else branch
 			}
-			else iValue = ::round(iValue * 0.8); // advc.031
-		}
+			else iValue = ::round(iValue * 0.85); // advc.031
+		}*/
 	} // </advc.130v>
 // END OF AREA CHECKS
 // BONUS COUNT CHECKS
