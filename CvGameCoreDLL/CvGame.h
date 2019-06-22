@@ -120,7 +120,7 @@ public:
 	int countCivPlayersEverAlive() const;																// Exposed to Python
 	int countCivTeamsAlive() const;																			// Exposed to Python
 	int countCivTeamsEverAlive() const;																	// Exposed to Python
-	DllExport int countHumanPlayersAlive() const;																	// Exposed to Python
+	int countHumanPlayersAlive() const;																	// Exposed to Python
 	int countFreeTeamsAlive() const; // K-Mod
 	// advc.137: Replaces getDefaultPlayers for most purposes
 	int getRecommendedPlayers() const;
@@ -132,18 +132,18 @@ public:
 	int getNumFreeBonuses(BuildingTypes eBuilding) const;	// advc.003: const										// Exposed to Python
 
 	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python 
-	int calculateReligionPercent(ReligionTypes eReligion,						// Exposed to Python
+	int calculateReligionPercent(ReligionTypes eReligion,								// Exposed to Python
 			bool bIgnoreOtherReligions = false) const; // advc.115b
 	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python 
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
 	int goldenAgeLength() const;																					// Exposed to Python
-	int victoryDelay(VictoryTypes eVictory) const;							// Exposed to Python
-	int getImprovementUpgradeTime(ImprovementTypes eImprovement) const;		// Exposed to Python
+	int victoryDelay(VictoryTypes eVictory) const;										// Exposed to Python
+	int getImprovementUpgradeTime(ImprovementTypes eImprovement) const;					// Exposed to Python
 	double gameSpeedFactor() const; // advc.003
 
 	bool canTrainNukes() const;																		// Exposed to Python
-	DllExport EraTypes getCurrentEra() const;											// Exposed to Python
+	EraTypes getCurrentEra() const;														// Exposed to Python
 
 	DllExport TeamTypes getActiveTeam() const;																		// Exposed to Python
 	CivilizationTypes getActiveCivilizationType() const;								// Exposed to Python
@@ -255,7 +255,7 @@ public:
 		// <advc.127>
 		setAIAutoPlay(iNewValue, true);
 	}
-	void setAIAutoPlay(int iNewValue, bool changePlayerStatus); // </advc.127>
+	void setAIAutoPlay(int iNewValue, bool bChangePlayerStatus); // </advc.127>
 	void changeAIAutoPlay(int iChange,
 			bool bChangePlayerStatus = true); // advc.127
 	// <advc.003b>
@@ -348,7 +348,7 @@ public:
 	void setAITurn(bool b);
 	// </advc.106b>
 
-	DllExport HandicapTypes getHandicapType() const;
+	HandicapTypes getHandicapType() const;
 	void setHandicapType(HandicapTypes eHandicap);
 
 	HandicapTypes getAIHandicap() const; // advc.127
@@ -363,7 +363,7 @@ public:
 	void setBestLandUnit(UnitTypes eNewValue);
 
 	TeamTypes getWinner() const;																			// Exposed to Python
-	DllExport VictoryTypes getVictory() const;																	// Exposed to Python
+	VictoryTypes getVictory() const;																	// Exposed to Python
 	void setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory);		// Exposed to Python
 
 	DllExport GameStateTypes getGameState() const;																		// Exposed to Python
@@ -395,13 +395,13 @@ public:
 	void setTeamScore(TeamTypes eTeam, int iScore);
 
 	DllExport bool isOption(GameOptionTypes eIndex) const;																// Exposed to Python
-	DllExport void setOption(GameOptionTypes eIndex, bool bEnabled);
+	void setOption(GameOptionTypes eIndex, bool bEnabled);
 
 	DllExport bool isMPOption(MultiplayerOptionTypes eIndex) const;												// Exposed to Python
-	DllExport void setMPOption(MultiplayerOptionTypes eIndex, bool bEnabled);
+	void setMPOption(MultiplayerOptionTypes eIndex, bool bEnabled);
 
 	bool isForcedControl(ForceControlTypes eIndex) const;												// Exposed to Python
-	DllExport void setForceControl(ForceControlTypes eIndex, bool bEnabled);
+	void setForceControl(ForceControlTypes eIndex, bool bEnabled);
 	// advc.003:
 	bool canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const;
 

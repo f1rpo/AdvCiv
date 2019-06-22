@@ -130,28 +130,28 @@ public:
 	int getActionInfoIndex() const;
 	void setActionInfoIndex(int i);
 
-	DllExport int getHotKeyVal() const;
+	int getHotKeyVal() const;
 	void setHotKeyVal(int i);
-	DllExport int getHotKeyPriority() const;
+	int getHotKeyPriority() const;
 	void setHotKeyPriority(int i);
-	DllExport int getHotKeyValAlt() const;
+	int getHotKeyValAlt() const;
 	void setHotKeyValAlt(int i);
-	DllExport int getHotKeyPriorityAlt() const;
+	int getHotKeyPriorityAlt() const;
 	void setHotKeyPriorityAlt(int i);
 	int getOrderPriority() const;
 	void setOrderPriority(int i);
 
-	DllExport bool isAltDown() const;
+	bool isAltDown() const;
 	void setAltDown(bool b);
-	DllExport bool isShiftDown() const;
+	bool isShiftDown() const;
 	void setShiftDown(bool b);
-	DllExport bool isCtrlDown() const;
+	bool isCtrlDown() const;
 	void setCtrlDown(bool b);
-	DllExport bool isAltDownAlt() const;
+	bool isAltDownAlt() const;
 	void setAltDownAlt(bool b);
-	DllExport bool isShiftDownAlt() const;
+	bool isShiftDownAlt() const;
 	void setShiftDownAlt(bool b);
-	DllExport bool isCtrlDownAlt() const;
+	bool isCtrlDownAlt() const;
 	void setCtrlDownAlt(bool b);
 
 	const TCHAR* getHotKey() const;			// Exposed to Python
@@ -767,13 +767,13 @@ public:
 	void setSubType(ActionSubTypes eSubType);
 
 	// functions to replace the CvInfoBase calls
-	DllExport const TCHAR* getType() const;
+	const TCHAR* getType() const;
 	DllExport const wchar* getDescription() const;
 	const wchar* getCivilopedia() const;
 	DllExport const wchar* getHelp() const;
 	const wchar* getStrategy() const;
 	virtual const TCHAR* getButton() const;
-	DllExport const wchar* getTextKeyWide() const;
+	const wchar* getTextKeyWide() const;
 
 	// functions to replace the CvHotkey calls
 	int getActionInfoIndex() const;
@@ -2188,7 +2188,7 @@ public:
 	virtual void reset();
 
 	DllExport int getDefaultPlayerColor() const;				// Expose to Python
-	DllExport int getArtStyleType() const;				// Expose to Python
+	int getArtStyleType() const;				// Expose to Python
 	int getUnitArtStyleType() const;         // Expose to Python
 	int getNumCityNames() const;				// Expose to Python
 	int getNumLeaders() const;				// Exposed to Python - the number of leaders the Civ has, this is needed so that random leaders can be generated easily
@@ -2209,7 +2209,7 @@ public:
 	std::wstring pyGetAdjectiveKey() { return getAdjectiveKey(); }				// Exposed to Python
 
 	DllExport const TCHAR* getFlagTexture() const;
-	DllExport const TCHAR* getArtDefineTag() const;
+	const TCHAR* getArtDefineTag() const;
 	void setArtDefineTag(const TCHAR* szVal);
 	// Arrays
 
@@ -5842,7 +5842,7 @@ public:
 	CvMPOptionInfo();
 	virtual ~CvMPOptionInfo();
 
-	DllExport bool getDefault() const;
+	bool getDefault() const;
 
 	bool read(CvXMLLoadUtility* pXML);
 

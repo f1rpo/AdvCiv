@@ -356,7 +356,7 @@ public: // advc.003: made several functions const
 	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
 	int getNumCustomMapOptions() const;
-	DllExport CustomMapOptionTypes getCustomMapOption(int iOption);					// Exposed to Python
+	CustomMapOptionTypes getCustomMapOption(int iOption);											// Exposed to Python
 
 	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);

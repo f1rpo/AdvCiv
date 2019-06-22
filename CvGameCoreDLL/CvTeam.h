@@ -147,8 +147,7 @@ public:
 	void changeNumMembers(int iChange);
 
 	int getAliveCount() const; // advc.155: Exposed to Python
-	// advc.003f: inlined
-	DllExport inline int isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
+	inline int isAlive() const { return (m_iAliveCount > 0); } // advc.003f: inlined													// Exposed to Python
 	void changeAliveCount(int iChange);
 
 	int getEverAliveCount() const;
@@ -399,7 +398,7 @@ public:
 
 	void revealSurroundingPlots(CvPlot const& kCenter, int iRange) const; // advc.108
 
-	DllExport int countNumHumanGameTurnActive() const;
+	int countNumHumanGameTurnActive() const;
 	void setTurnActive(bool bNewValue, bool bTurn = true);
 	bool isTurnActive() const;
 

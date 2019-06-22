@@ -331,7 +331,7 @@ typedef std::vector<CvBattleRound> CvBattleRoundVector;		//!< Type declaration f
 class CvMissionDefinition
 {
 public:
-	DllExport CvMissionDefinition();
+	CvMissionDefinition();
 
 	DllExport MissionTypes getMissionType() const;
 	void setMissionType(MissionTypes missionType);

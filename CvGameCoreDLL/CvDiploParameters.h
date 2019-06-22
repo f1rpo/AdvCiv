@@ -37,7 +37,7 @@ public:
 	DllExport bool getAIContact() const;
 	DllExport void setPendingDelete(bool bPending);
 	DllExport bool getPendingDelete() const;
-	DllExport void setData(int iData);
+	void setData(int iData);
 	DllExport int getData() const;
 	DllExport void setHumanDiplo(bool bValue);
 	DllExport bool getHumanDiplo() const;
