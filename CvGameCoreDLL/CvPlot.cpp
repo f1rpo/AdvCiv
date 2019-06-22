@@ -3166,7 +3166,7 @@ void CvPlot::invalidateBorderDangerCache()
 PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureRange,
 		bool bOwnExclusiveRadius) const // advc.035
 {
-	PROFILE("CvPlot::calculateCulturalOwner()")
+	PROFILE("CvPlot::calculateCulturalOwner()");
 	int iI;
 	/*  advc.001: When a city is captured, the tiles in its culture range (but I
 		think not the city plot itself) are set to unowned for 2 turns. This leads
@@ -8326,7 +8326,7 @@ void CvPlot::setScriptData(const char* szNewValue)
 
 void CvPlot::doFeature()
 {
-	PROFILE("CvPlot::doFeature()")
+	PROFILE("CvPlot::doFeature()");
 
 	if (getFeatureType() != NO_FEATURE)
 	{

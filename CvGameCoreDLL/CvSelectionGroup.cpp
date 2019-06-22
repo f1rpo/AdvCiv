@@ -4213,7 +4213,7 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled());
 	// K-Mod end
 
-	PROFILE("CvSelectionGroup::generatePath()")
+	PROFILE("CvSelectionGroup::generatePath()");
 
 	if (pFromPlot == NULL || pToPlot == NULL)
 		return false;

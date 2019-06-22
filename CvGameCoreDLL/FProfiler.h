@@ -132,12 +132,12 @@ private:
 
 #define PROFILE_STACK_DUMP ;
 #endif
-#else
-#define PROFILE(name)				// Remove profiling code
-#define PROFILE_BEGIN(name)
-#define PROFILE_END()
-#define PROFILE_FUNC()
-#define PROFILE_STACK_DUMP ;
+#else // Remove profiling code		advc.006c: void(0) added
+#define PROFILE(name) (void)0
+#define PROFILE_BEGIN(name) (void)0
+#define PROFILE_END() (void)0
+#define PROFILE_FUNC() (void)0
+#define PROFILE_STACK_DUMP (void)0
 #endif
 
 

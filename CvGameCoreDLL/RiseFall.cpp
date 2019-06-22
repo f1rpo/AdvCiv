@@ -1315,7 +1315,7 @@ void RiseFall::handleCivSelection(PlayerTypes selectedCiv) {
 
 	int pos = getCurrentChapter();
 	if(pos < 0) {
-		FAssert(pos >= 0)
+		FAssert(pos >= 0);
 		return;
 	}
 	if(getCivChapter(selectedCiv) >= 0)

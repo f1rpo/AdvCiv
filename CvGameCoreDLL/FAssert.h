@@ -72,10 +72,11 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 	}
 // K-Mod end
 #else
-// FASSERT_ENABLE not defined
-#define FAssert( expr )
-#define FAssertMsg( expr, msg )
-#define FASSERT_BOUNDS(lower,upper,index,fnString) // K-Mod
+// FASSERT_ENABLE not defined		advc.006c: void(0) added
+#define FAssert( expr ) (void)0
+#define FAssertMsg( expr, msg ) (void)0
+// K-Mod:
+#define FASSERT_BOUNDS(lower,upper,index,fnString) (void)0
 
 #endif
 

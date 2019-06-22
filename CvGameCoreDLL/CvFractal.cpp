@@ -107,10 +107,10 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 
 	int iHintsWidth = (1 << (m_iFracXExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_X) ? 0 : 1);
 	int iHintsHeight = (1 << (m_iFracYExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_Y) ? 0 : 1);
-	if (pbyHints != NULL)
-		FAssertMsg(iHintsLength == iHintsWidth*iHintsHeight, "pbyHints is the wrong size!")
 
-	int iPolarHeight = polarHeight(); // advc.tsl
+	FAssertMsg(pbyHints == NULL || iHintsLength == iHintsWidth*iHintsHeight, "pbyHints is the wrong size!");
+
+	int const iPolarHeight = polarHeight(); // advc.tsl
 
 	for (int iPass = iSmooth; iPass >= 0; iPass--)
 	{

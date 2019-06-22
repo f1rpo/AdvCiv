@@ -14107,7 +14107,7 @@ void CvPlayer::doGold()
 		{
 			int iDisbandUnit = (getStrikeTurns() / 2); // XXX mod?
 			// advc.131: Can happen, but should be quite rare.
-			FAssert(isHuman())
+			FAssert(isHuman());
 			for (int iI = 0; iI < iDisbandUnit; iI++)
 			{
 				disbandUnit(true);

@@ -1056,7 +1056,7 @@ int CvCity::calculateBaseYieldRate(YieldTypes y) {
 // <advc.003> Code cut and pasted from CvPlot::doCulture; also refactored.
 void CvCity::doRevolt() {
 
-	PROFILE("CvCity::doRevolts()")
+	PROFILE("CvCity::doRevolts()");
 	// <advc.023>
 	double prDecr = probabilityOccupationDecrement();
 	if(::bernoulliSuccess(prDecr, "advc.023")) {

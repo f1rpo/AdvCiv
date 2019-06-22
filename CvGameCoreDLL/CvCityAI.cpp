@@ -12545,7 +12545,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent)
 int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
 		int iWaterAreaSites, int iBestWaterAreaFoundValue) const {
 
-	FAssert(iAreaSites + iWaterAreaSites > 0)
+	FAssert(iAreaSites + iWaterAreaSites > 0);
 	if(iAreaSites <= 0)
 		return 60; // Don't really want to pace AI colonization
 	int r = 19;

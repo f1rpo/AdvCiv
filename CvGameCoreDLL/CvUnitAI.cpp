@@ -10080,7 +10080,7 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 							&& (pLoopGroup->AI_getMissionAIType() != MISSIONAI_GUARD_CITY || !pLoopGroup->plot()->isCity() || pLoopGroup->plot()->plotCount(PUF_isMissionAIType, MISSIONAI_GUARD_CITY, -1, getOwnerINLINE()) > pLoopGroup->plot()->getPlotCity()->AI_minDefenders())
 							)
 						{
-							FAssert(!pPlot->isVisibleEnemyUnit(this))
+							FAssert(!pPlot->isVisibleEnemyUnit(this));
 							if (iOurImpassableCount > 0 || AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
 							{
 								int iTheirImpassableCount = 0;

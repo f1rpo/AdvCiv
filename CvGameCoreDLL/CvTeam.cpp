@@ -1131,7 +1131,7 @@ void CvTeam::processBuilding(BuildingTypes eBuilding, int iChange)
 
 void CvTeam::doTurn()
 {
-	PROFILE("CvTeam::doTurn()")
+	PROFILE("CvTeam::doTurn()");
 
 	FAssert(isAlive());
 	FAssert(countWarEnemies() == m_iMajorWarEnemies); // advc.003m
@@ -4585,7 +4585,7 @@ bool CvTeam::isVassal(TeamTypes eMaster) const  // advc.003: param was called eI
 void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 {
 	FASSERT_BOUNDS(0, MAX_CIV_TEAMS, eMaster, "CvTeam::setVassal");
-	FAssertMsg(!bNewValue || !GET_TEAM(eMaster).isAVassal(), "can't become a vassal of a vassal")
+	FAssertMsg(!bNewValue || !GET_TEAM(eMaster).isAVassal(), "can't become a vassal of a vassal");
 	bool bWasCapitulated = isCapitulated(); // advc.130v
 	/*  <advc.003> If this function is used for turning capitulated into
 		voluntary vassals at some point, then the code for processing this change
