@@ -106,11 +106,11 @@ public:
 	const wchar* getReplayName(uint uiForm = 0) const;
 	DllExport const wchar* getNameKey() const;																																	// Exposed to Python
 	DllExport const wchar* getCivilizationDescription(uint uiForm = 0) const;																		// Exposed to Python
-	DllExport const wchar* getCivilizationDescriptionKey() const;																								// Exposed to Python
-	DllExport const wchar* getCivilizationShortDescription(uint uiForm = 0) const;															// Exposed to Python 
-	DllExport const wchar* getCivilizationShortDescriptionKey() const;																					// Exposed to Python 
-	DllExport const wchar* getCivilizationAdjective(uint uiForm = 0) const;																			// Exposed to Python
-	DllExport const wchar* getCivilizationAdjectiveKey() const;																									// Exposed to Python
+	const wchar* getCivilizationDescriptionKey() const;																								// Exposed to Python
+	const wchar* getCivilizationShortDescription(uint uiForm = 0) const;															// Exposed to Python 
+	const wchar* getCivilizationShortDescriptionKey() const;																					// Exposed to Python 
+	const wchar* getCivilizationAdjective(uint uiForm = 0) const;																			// Exposed to Python
+	const wchar* getCivilizationAdjectiveKey() const;																									// Exposed to Python
 	DllExport CvWString getFlagDecal() const;																																		// Exposed to Python
 	DllExport bool isWhiteFlag() const;																																					// Exposed to Python
 	const wchar* getStateReligionName(uint uiForm = 0) const;																					// Exposed to Python
@@ -309,7 +309,7 @@ public:
 	bool isCivic(CivicTypes eCivic) const;																																// Exposed to Python
 	bool canDoCivics(CivicTypes eCivic) const;																														// Exposed to Python
 	bool canRevolution(CivicTypes* paeNewCivics) const;																					// Exposed to Python
-	DllExport void revolution(CivicTypes* paeNewCivics, bool bForce = false);												// Exposed to Python
+	void revolution(CivicTypes* paeNewCivics, bool bForce = false);												// Exposed to Python
 	int getCivicPercentAnger(CivicTypes eCivic, bool bIgnore = false) const;																										// Exposed to Python
 
 	bool canDoReligion(ReligionTypes eReligion) const;																										// Exposed to Python
@@ -705,7 +705,7 @@ public:
 	bool isMinorCiv() const;																																									// Exposed to Python			
 																																																			
 	DllExport bool isAlive() const { return m_bAlive; } // advc.003f																																	// Exposed to Python			
-	DllExport bool isEverAlive() const { return m_bEverAlive; }; // advc.003f																															// Exposed to Python			
+	bool isEverAlive() const { return m_bEverAlive; }; // advc.003f																															// Exposed to Python			
 	void setAlive(bool bNewValue);
 	void verifyAlive();
 
@@ -714,7 +714,7 @@ public:
 	void onTurnLogging() const; // K-Mod
 
 	bool isAutoMoves() const;
-	DllExport void setAutoMoves(bool bNewValue);
+	void setAutoMoves(bool bNewValue);
 	DllExport void setTurnActiveForPbem(bool bActive);
 
 	DllExport bool isPbemNewTurn() const;
@@ -726,7 +726,7 @@ public:
 	DllExport bool isTurnDone() const;
 
 	bool isExtendedGame() const;																																			// Exposed to Python					
-	DllExport void makeExtendedGame();																													
+	void makeExtendedGame();																													
 
 	bool isFoundedFirstCity() const;																																	// Exposed to Python					
 	void setFoundedFirstCity(bool bNewValue);																										
@@ -734,7 +734,7 @@ public:
 	bool isAnyGPPEver() const;		// (Exposed to Python)
 	void reportFirstGPP(); // </advc.078>
 
-	DllExport bool isStrike() const;																																	// Exposed to Python
+	bool isStrike() const;																																	// Exposed to Python
 	void setStrike(bool bNewValue);
 
 	DllExport PlayerTypes getID() const { return m_eID; } // advc.003f																								// Exposed to Python
@@ -750,7 +750,7 @@ public:
 	void setCurrentEra(EraTypes eNewValue);
 
 	ReligionTypes getLastStateReligion() const;
-	DllExport ReligionTypes getStateReligion() const;																									// Exposed to Python
+	ReligionTypes getStateReligion() const;																									// Exposed to Python
 	void setLastStateReligion(ReligionTypes eNewValue);																					// Exposed to Python
 
 	PlayerTypes getParent() const;
@@ -766,7 +766,7 @@ public:
 	DllExport int getPlayerTextColorR() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorG() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorB() const;																												// Exposed to Python
-	DllExport int getPlayerTextColorA() const;																												// Exposed to Python
+	int getPlayerTextColorA() const;																												// Exposed to Python
 	ColorTypes getPlayerTextColor() const; // advc.106
 
 	int getSeaPlotYield(YieldTypes eIndex) const;																											// Exposed to Python
@@ -823,11 +823,11 @@ public:
 	DllExport bool isOption(PlayerOptionTypes eIndex) const;																		// Exposed to Python
 	DllExport void setOption(PlayerOptionTypes eIndex, bool bNewValue);													// Exposed to Python
 
-	DllExport bool isLoyalMember(VoteSourceTypes eVoteSource) const;																		// Exposed to Python
-	DllExport void setLoyalMember(VoteSourceTypes eVoteSource, bool bNewValue);													// Exposed to Python
+	bool isLoyalMember(VoteSourceTypes eVoteSource) const;																		// Exposed to Python
+	void setLoyalMember(VoteSourceTypes eVoteSource, bool bNewValue);													// Exposed to Python
 
-	DllExport bool isPlayable() const;
-	DllExport void setPlayable(bool bNewValue);
+	bool isPlayable() const;
+	void setPlayable(bool bNewValue);
 
 	int getBonusExport(BonusTypes eIndex) const;																											// Exposed to Python
 	void changeBonusExport(BonusTypes eIndex, int iChange);
@@ -865,7 +865,7 @@ public:
 	int getBuildingClassCountPlusMaking(BuildingClassTypes eIndex) const;															// Exposed to Python
 
 	int getHurryCount(HurryTypes eIndex) const;																												// Exposed to Python
-	DllExport bool canHurry(HurryTypes eIndex) const;																									// Exposed to Python
+	bool canHurry(HurryTypes eIndex) const;																									// Exposed to Python
 	bool canPopRush() const;
 	bool canGoldRush() const; // advc.064b
 	void changeHurryCount(HurryTypes eIndex, int iChange);
@@ -898,13 +898,13 @@ public:
 	void changeUpkeepCount(UpkeepTypes eIndex, int iChange);
 
 	int getSpecialistValidCount(SpecialistTypes eIndex) const;
-	DllExport bool isSpecialistValid(SpecialistTypes eIndex) const;																		// Exposed to Python					
+	bool isSpecialistValid(SpecialistTypes eIndex) const;																		// Exposed to Python					
 	void changeSpecialistValidCount(SpecialistTypes eIndex, int iChange);
 
-	DllExport bool isResearchingTech(TechTypes eIndex) const;																					// Exposed to Python					
+	bool isResearchingTech(TechTypes eIndex) const;																					// Exposed to Python					
 	void setResearchingTech(TechTypes eIndex, bool bNewValue);
 
-	DllExport CivicTypes getCivics(CivicOptionTypes eIndex) const;																		// Exposed to Python					
+	CivicTypes getCivics(CivicOptionTypes eIndex) const;																		// Exposed to Python					
 	int getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy = false,													// Exposed to Python
 			int iExtraCities = 0) const; // advc.004b
 	int getCivicUpkeep(CivicTypes* paeCivics = NULL, bool bIgnoreAnarchy = false, 													// Exposed to Python					
@@ -929,12 +929,9 @@ public:
 
 	int findPathLength(TechTypes eTech, bool bCost = true) const;																			// Exposed to Python
 	int getQueuePosition(TechTypes eTech) const;																											// Exposed to Python
-	DllExport void clearResearchQueue();																												// Exposed to Python
-	DllExport bool pushResearch(TechTypes eTech, bool bClear = false) {													// Exposed to Python
-		// <advc.004x>
-		return pushResearch(eTech, bClear, true);
-	}
-	bool pushResearch(TechTypes eTech, bool bClear, bool bKillPopup); // </advc.004x>
+	void clearResearchQueue();																												// Exposed to Python
+	bool pushResearch(TechTypes eTech, bool bClear = false,																					// Exposed to Python
+			bool bKillPopup = true); // advc.004x
 	void popResearch(TechTypes eTech);																													// Exposed to Python
 	int getLengthResearchQueue() const;																																// Exposed to Python
 	CLLNode<TechTypes>* nextResearchQueueNode(CLLNode<TechTypes>* pNode) const;
@@ -962,18 +959,18 @@ public:
 	DllExport CvCity* getCity(int iID) const;																													// Exposed to Python					
 	CvCity* addCity();																																					
 	void deleteCity(int iID);																																		
-																																															
+
 	// unit iteration																																						
 	DllExport CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const;																// Exposed to Python					
 	DllExport CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python					
 	DllExport int getNumUnits() const;																																// Exposed to Python					
-	DllExport CvUnit* getUnit(int iID) const;																													// Exposed to Python					
+	CvUnit* getUnit(int iID) const;																													// Exposed to Python					
 	CvUnit* addUnit();																																					
 	void deleteUnit(int iID);
-																																															
+
 	// selection groups iteration																																
-	DllExport CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const;						// Exposed to Python					
-	DllExport CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const;							// Exposed to Python					
+	CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const;						// Exposed to Python					
+	CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const;							// Exposed to Python					
 	int getNumSelectionGroups() const;																																// Exposed to Python
 	CvSelectionGroup* getSelectionGroup(int iID) const;																								// Exposed to Python
 	CvSelectionGroup* addSelectionGroup();
@@ -994,7 +991,7 @@ public:
 	void showMissedMessages();
 	void clearMessages();
 	DllExport const CvMessageQueue& getGameMessages() const;
-	DllExport void expireMessages();
+	void expireMessages();
 	DllExport void addPopup(CvPopupInfo* pInfo, bool bFront = false);
 	void clearPopups();
 	DllExport CvPopupInfo* popFrontPopup();
@@ -1045,7 +1042,7 @@ public:
 	void resetTriggerFired(EventTriggerTypes eEventTrigger);
 	void trigger(EventTriggerTypes eEventTrigger);													// Exposed to Python
 	void trigger(const EventTriggeredData& kData);
-	DllExport void applyEvent(EventTypes eEvent, int iTriggeredId, bool bUpdateTrigger = true);
+	void applyEvent(EventTypes eEvent, int iTriggeredId, bool bUpdateTrigger = true);
 	bool canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const;
 	TechTypes getBestEventTech(EventTypes eEvent, PlayerTypes eOtherPlayer) const;
 	int getEventCost(EventTypes eEvent, PlayerTypes eOtherPlayer, bool bRandom) const;
@@ -1065,13 +1062,13 @@ public:
 	int getUnitExtraCost(UnitClassTypes eUnitClass) const;
 	void setUnitExtraCost(UnitClassTypes eUnitClass, int iCost);
 
-	DllExport bool splitEmpire(int iAreaId);
+	bool splitEmpire(int iAreaId);
 	bool canSplitEmpire() const;
 	bool canSplitArea(int iAreaId) const;
 	PlayerTypes getSplitEmpirePlayer(int iAreaId) const;
 	bool getSplitEmpireLeaders(CivLeaderArray& aLeaders) const;
 
-	DllExport void launch(VictoryTypes victoryType);
+	void launch(VictoryTypes victoryType);
 
 	bool hasShrine(ReligionTypes eReligion);
 	int getVotes(VoteTypes eVote, VoteSourceTypes eVoteSource) const;   // Exposed to Python
