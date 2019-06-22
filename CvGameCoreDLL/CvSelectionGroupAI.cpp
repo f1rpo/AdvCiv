@@ -138,7 +138,7 @@ bool CvSelectionGroupAI::AI_update()
 {
 	PROFILE_FUNC();
 
-	FAssert(getOwnerINLINE() != NO_PLAYER);
+	FAssert(getOwner() != NO_PLAYER);
 
 	if (!AI_isControlled())
 	{
@@ -155,12 +155,12 @@ bool CvSelectionGroupAI::AI_update()
 		AI_cancelGroupAttack(); // note: we haven't toggled the update flag, nor woken the group from sleep.
 	// K-Mod end
 
-	//FAssert(!(GET_PLAYER(getOwnerINLINE()).isAutoMoves())); // (no longer true in K-Mod)
+	//FAssert(!(GET_PLAYER(getOwner()).isAutoMoves())); // (no longer true in K-Mod)
 
 	//int iTempHack = 0; // XXX
 	// <advc.001y> Will keep this permanently as a fallback
 	int iAttempts = 0;
-	int iMaxAttempts = 6 * (GET_PLAYER(getOwnerINLINE()).getCurrentEra() + 1) +
+	int iMaxAttempts = 6 * (GET_PLAYER(getOwner()).getCurrentEra() + 1) +
 			::range(getNumUnits(), 4, 14);
 	// </advc.001y>
 	bool bDead = false;
@@ -317,10 +317,10 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 
 	CvUnit* pAttacker;
 
-	FAssert(getOwnerINLINE() != NO_PLAYER);
-	//if (pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), NULL, !bPotentialEnemy, bPotentialEnemy) == NULL)
+	FAssert(getOwner() != NO_PLAYER);
+	//if (pPlot->getBestDefender(NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy) == NULL)
 	// BETTER_BTS_AI_MOD, Efficiency, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
-	if (!pPlot->hasDefender(false, NO_PLAYER, getOwnerINLINE(), NULL, !bPotentialEnemy, bPotentialEnemy))
+	if (!pPlot->hasDefender(false, NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy))
 	{
 		return 100;
 	}
@@ -517,7 +517,7 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	compareRatio = AI_sumStrength(pPlot, eDomainType, bCheckCanAttack);
 	compareRatio *= 100;
 
-	PlayerTypes eOwner = getOwnerINLINE();
+	PlayerTypes eOwner = getOwner();
 	if (eOwner == NO_PLAYER)
 	{
 		eOwner = getHeadOwner();

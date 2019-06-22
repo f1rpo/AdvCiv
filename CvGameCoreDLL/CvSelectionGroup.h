@@ -156,13 +156,10 @@ public:
 	inline void setForceUpdate(bool bNewValue) { m_bForceUpdate = bNewValue; } // K-Mod made inline
 	// void doForceUpdate(); // K-Mod. (disabled. force update doesn't work the same way anymore.)
 
-	PlayerTypes getOwner() const;																															// Exposed to Python
-#ifdef _USRDLL
-	inline PlayerTypes getOwnerINLINE() const
-	{
-		return m_eOwner;
-	}
-#endif
+	/*PlayerTypes getOwner() const;
+	#ifdef _USRDLL*/ // advc.003f: The EXE doesn't call this, so no need for an external version.
+	inline PlayerTypes getOwner() const { return m_eOwner; }
+	//#endif
 	TeamTypes getTeam() const;																																					// Exposed to Python
 
 	ActivityTypes getActivityType() const;																															// Exposed to Python

@@ -132,7 +132,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	}
 	/*  Assume that the player starts in the middle, even if the AI starts with
 		more free tech. */
-	if(g.gameTurn() <= g.getStartTurn() && we.isAlive())
+	if(g.getGameTurn() <= g.getStartTurn() && we.isAlive())
 		ourRank = 1 + ourRivals / 2.0;
 	ourRank += 0.01; // Just to be explicit about rounding up
 	return std::make_pair<int,int>(::round(ourRank), ourRivals);

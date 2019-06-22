@@ -220,7 +220,8 @@ public:
 	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
 			PlayerTypes ePlayer1, PlayerTypes ePlayer2,
 			int iTurnsToCancel = -1); // advc.004w
-	void getDealString(CvWStringBuffer& szString, CvDeal& deal, PlayerTypes ePlayerPerspective = NO_PLAYER,
+	void getDealString(CvWStringBuffer& szString, /* advc.003: const */ CvDeal const& deal,
+			PlayerTypes ePlayerPerspective = NO_PLAYER,
 			bool bCancel = false); // advc.004w
 	void getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective = NO_PLAYER,
 			int iTurnsToCancel = -1); // advc.004w

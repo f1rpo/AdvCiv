@@ -89,6 +89,7 @@ CvGame::~CvGame()
 void CvGame::init(HandicapTypes eHandicap)
 {
 	int iI;
+	CvInitCore& ic = GC.getInitCore();
 
 	//--------------------------------
 	// Init saved data
@@ -100,8 +101,8 @@ void CvGame::init(HandicapTypes eHandicap)
 	m_voteSelections.init();
 	m_votesTriggered.init();
 
-	m_mapRand.init(GC.getInitCore().getMapRandSeed() % 73637381);
-	m_sorenRand.init(GC.getInitCore().getSyncRandSeed() % 52319761);
+	m_mapRand.init(ic.getMapRandSeed() % 73637381);
+	m_sorenRand.init(ic.getSyncRandSeed() % 52319761);
 
 	//--------------------------------
 	// Init non-saved data
@@ -118,8 +119,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	// Init other game data
 
 	// Turn off all MP options if it's a single player game
-	if (GC.getInitCore().getType() == GAME_SP_NEW ||
-		GC.getInitCore().getType() == GAME_SP_SCENARIO)
+	if (ic.getType() == GAME_SP_NEW || ic.getType() == GAME_SP_SCENARIO)
 	{
 		for (iI = 0; iI < NUM_MPOPTION_TYPES; ++iI)
 		{
@@ -141,13 +141,12 @@ void CvGame::init(HandicapTypes eHandicap)
 	if (isMPOption(MPOPTION_SHUFFLE_TEAMS))
 	{
 		int aiTeams[MAX_CIV_PLAYERS];
-
 		int iNumPlayers = 0;
 		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			if (GC.getInitCore().getSlotStatus((PlayerTypes)i) == SS_TAKEN)
+			if (ic.getSlotStatus((PlayerTypes)i) == SS_TAKEN)
 			{
-				aiTeams[iNumPlayers] = GC.getInitCore().getTeam((PlayerTypes)i);
+				aiTeams[iNumPlayers] = ic.getTeam((PlayerTypes)i);
 				++iNumPlayers;
 			}
 		}
@@ -167,9 +166,9 @@ void CvGame::init(HandicapTypes eHandicap)
 		iNumPlayers = 0;
 		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			if (GC.getInitCore().getSlotStatus((PlayerTypes)i) == SS_TAKEN)
+			if (ic.getSlotStatus((PlayerTypes)i) == SS_TAKEN)
 			{
-				GC.getInitCore().setTeam((PlayerTypes)i, (TeamTypes)aiTeams[iNumPlayers]);
+				ic.setTeam((PlayerTypes)i, (TeamTypes)aiTeams[iNumPlayers]);
 				++iNumPlayers;
 			}
 		}
@@ -191,7 +190,7 @@ void CvGame::init(HandicapTypes eHandicap)
 			}
 			szRandomPassword[iPasswordSize-1] = 0;
 
-			GC.getInitCore().setAdminPassword(szRandomPassword);
+			ic.setAdminPassword(szRandomPassword);
 		}
 	}
 
@@ -272,7 +271,7 @@ void CvGame::setInitialItems()
 	normalizeStartingPlots();
 	// <advc.030> Now that ice has been placed and normalization is through
 	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
-		GC.getMap().recalculateAreas();
+		GC.getMapINLINE().recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
 	setAIHandicap(); // advc.127
@@ -338,7 +337,7 @@ void CvGame::regenerateMap()
 		launchMainMenuPopup wants to disallow map regeneration once script data
 		has been set. */
 	setScriptData("");
-	for(int i = 0; i < m.numPlots(); ++i) {
+	for(int i = 0; i < m.numPlotsINLINE(); ++i) {
 		CvPlot* p = m.plotByIndexINLINE(i);
 		if(p != NULL) {
 			p->setScriptData("");
@@ -528,7 +527,7 @@ void CvGame::setStartTurnYear(int iTurn) {
 			iEstimateEndTurn += kSpeed.getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
 		setEstimateEndTurn(iEstimateEndTurn);
 
-		if (getEstimateEndTurn() > gameTurn())
+		if (getEstimateEndTurn() > getGameTurn())
 		{
 			bool bValid = false;
 			for (iI = 0; iI < GC.getNumVictoryInfos(); iI++)
@@ -544,10 +543,10 @@ void CvGame::setStartTurnYear(int iTurn) {
 			}
 
 			if (bValid)
-				setMaxTurns(getEstimateEndTurn() - gameTurn());
+				setMaxTurns(getEstimateEndTurn() - getGameTurn());
 		}
 	}
-	else setEstimateEndTurn(gameTurn() + getMaxTurns());
+	else setEstimateEndTurn(getGameTurn() + getMaxTurns());
 
 	setStartYear(GC.getDefineINT("START_YEAR"));
 }
@@ -944,7 +943,7 @@ void CvGame::initScenario() {
 			if(GET_PLAYER((PlayerTypes)i).getNumCities() > 0)
 				return;
 		}
-		GC.getMap().recalculateAreas();
+		GC.getMapINLINE().recalculateAreas();
 	} // </advc.030>
 }
 
@@ -1546,7 +1545,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc.003: style changes
 		// <advc.108>
 		int iBadFeatures = 0;
 		for(int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++) {
-			CvPlot* p = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
+			CvPlot* p = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
 			// Disregard inner ring
 			if(p == NULL || ::plotDistance(p, pStartingPlot) < 2 ||
 					p->getFeatureType() == NO_FEATURE)
@@ -3810,13 +3809,11 @@ int CvGame::getNumHumanPlayers()
 	return GC.getInitCore().getNumHumans();
 }
 
-int CvGame::getGameTurn()
-{
+
+int CvGame::getGameTurn() const {
+
 	return GC.getInitCore().getGameTurn();
-} // <advc.003> const replacement
-int CvGame::gameTurn() const {
-	return GC.getInitCore().getGameTurn();
-} // </advc.003>
+}
 
 
 void CvGame::setGameTurn(int iNewValue)
@@ -3852,7 +3849,7 @@ int CvGame::getTurnYear(int iGameTurn) /* advc.003: */ const
 int CvGame::getGameTurnYear() const // advc.003: const
 {
 	//return getTurnYear(getGameTurn()); // To work aorund non-const getGameTurn
-	return getTurnYear(gameTurn());
+	return getTurnYear(getGameTurn());
 }
 
 
@@ -3870,7 +3867,7 @@ void CvGame::incrementElapsedGameTurns()
 // <advc.251>
 int CvGame::AIHandicapAdjustment() const {
 
-	int iGameTurn = gameTurn();
+	int iGameTurn = getGameTurn();
 	int iVictoryDelayPercent = GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent();
 	if(iVictoryDelayPercent > 0)
 		iGameTurn = (iGameTurn * 100) / iVictoryDelayPercent;
@@ -4011,12 +4008,6 @@ void CvGame::setCutoffSlice(int iNewValue)
 void CvGame::changeCutoffSlice(int iChange)
 {
 	setCutoffSlice(getCutoffSlice() + iChange);
-}
-
-
-int CvGame::getTurnSlicesRemaining()
-{
-	return (getCutoffSlice() - getTurnSlice());
 }
 
 
@@ -4561,7 +4552,7 @@ int CvGame::calculateGwLandDefence(PlayerTypes ePlayer) const
 
 		if (pPlot->getFeatureType() != NO_FEATURE)
 		{
-			if (ePlayer == NO_PLAYER || ePlayer == pPlot->getOwner())
+			if (ePlayer == NO_PLAYER || ePlayer == pPlot->getOwnerINLINE())
 			{
 				iTotal += GC.getFeatureInfo(pPlot->getFeatureType()).getWarmingDefense();
 			}
@@ -5681,13 +5672,12 @@ void CvGame::setTeamScore(TeamTypes eTeam, int iScore)
 
 
 bool CvGame::isOption(GameOptionTypes eIndex) const
-{	//return GC.getInitCore().getOption(eIndex);
-	// <advc.003b>
+{	// <advc.003b>
 	if(eIndex < 0 || eIndex >= NUM_GAMEOPTION_TYPES) {
 		FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eIndex, "No such game option");
 		return false;
 	} // Use inline functions. Probably doesn't matter, but feels better.
-	return GC.getInitCoreINLINE().getOptions()[eIndex]; // </advc.003b>
+	return GC.getInitCore().getOptions()[eIndex]; // </advc.003b>
 }
 
 
@@ -7495,7 +7485,7 @@ void CvGame::createBarbarianUnits()
 			GC.getDefineINT("BARB_PEAK_PERCENT") < 35)
 		bAnimals = true;
 	// advc.300: Moved into new function
-	if (gameTurn() < getBarbarianStartTurn())
+	if (getGameTurn() < getBarbarianStartTurn())
 		bAnimals = true;
 
 	if (bAnimals)
@@ -7809,7 +7799,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 				if(eLoadUnit == NO_UNIT)
 					break;
 				CvUnit* pLoadUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(
-						eLoadUnit, pTransport->getX(), pTransport->getY(), eLoadAI);
+						eLoadUnit, pTransport->getX_INLINE(), pTransport->getY_INLINE(), eLoadAI);
 				/*  Don't set pTransport to UNITAI_ASSAULT_SEA -- that's for
 					medium-/large-scale invasions, and too laborious to adjust.
 					Instead add an unload routine to CvUnitAI::barbAttackSeaMove. */
@@ -7862,7 +7852,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 		if(eUnitType == NO_UNIT)
 			return r;
 		CvUnit* pNewUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(eUnitType,
-				pPlot->getX(), pPlot->getY(), eUnitAI);
+				pPlot->getX_INLINE(), pPlot->getY_INLINE(), eUnitAI);
 		if(pNewUnit != NULL && !pPlot->isWater())
 			r++;
 		// </advc.300>
@@ -8641,12 +8631,6 @@ int CvGame::getIndexAfterLastDeal()
 int CvGame::getNumDeals()
 {
 	return m_deals.getCount();
-}
-
-
- CvDeal* CvGame::getDeal(int iID)																		
-{
-	return m_deals.getAt(iID);
 }
 
 
@@ -9947,7 +9931,7 @@ void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYiel
 		m_aPlotExtraYields.push_back(kExtraYield);
 	}
 
-	CvPlot* pPlot = GC.getMapINLINE().plot(iX, iY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	if (NULL != pPlot)
 	{
 		pPlot->updateYield();
@@ -9965,7 +9949,7 @@ void CvGame::removePlotExtraYield(int iX, int iY)
 		}
 	}
 
-	CvPlot* pPlot = GC.getMapINLINE().plot(iX, iY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	if (NULL != pPlot)
 	{
 		pPlot->updateYield();
@@ -11042,7 +11026,7 @@ double CvGame::goodyHutEffectFactor(
 	// (or rather: the inverse of the gradient)
 	double gradient = std::pow(peakTurn - startTurn, exponent) / (peakMult - 1);
 	gradient = ::dRange(gradient, 1.0, 500.0);
-	double t = gameTurn();
+	double t = getGameTurn();
 	/*  Function through (startTurn, 1) and (peakTurn, peakMult)
 		[^that's assuming speedAdjust=false] */
 	double r = speedMultFinal * std::min(peakMult,

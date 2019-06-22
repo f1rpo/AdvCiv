@@ -550,7 +550,7 @@ void CvCityAI::AI_chooseProduction()
 		clearOrderQueue();
 	}
 
-	//if (GET_PLAYER(getOwner()).isAnarchy()) // original bts code
+	//if (GET_PLAYER(getOwnerINLINE()).isAnarchy()) // original bts code
 	if (isDisorder()) // K-Mod
 	{
 		return;
@@ -673,7 +673,7 @@ void CvCityAI::AI_chooseProduction()
 	CvArea* pWaterSettlerArea = pWaterArea;
 	if( pWaterSettlerArea == NULL )
 	{
-		pWaterSettlerArea = GC.getMap().findBiggestArea(true);
+		pWaterSettlerArea = GC.getMapINLINE().findBiggestArea(true);
 		if(pWaterSettlerArea != NULL && // advc.001: What if there is no water at all?
 				GET_PLAYER(getOwnerINLINE()).AI_totalWaterAreaUnitAIs(pWaterSettlerArea, UNITAI_SETTLER_SEA) == 0 )
 			pWaterSettlerArea = NULL;
@@ -3010,13 +3010,13 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	aiUnitAIVal[UNITAI_MISSILE_AIR] *= 15;
 
 	// K-Mod
-	if (GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
+	if (GET_PLAYER(getOwnerINLINE()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
 	{
 		aiUnitAIVal[UNITAI_ATTACK_CITY] *= 2;
 		aiUnitAIVal[UNITAI_ATTACK] *= 2;
 		aiUnitAIVal[UNITAI_ATTACK_AIR] *= 3;
 	}
-	if (GET_TEAM(getTeam()).AI_getRivalAirPower() <= 8 * GET_PLAYER(getOwner()).AI_totalAreaUnitAIs(area(), UNITAI_DEFENSE_AIR))
+	if (GET_TEAM(getTeam()).AI_getRivalAirPower() <= 8 * GET_PLAYER(getOwnerINLINE()).AI_totalAreaUnitAIs(area(), UNITAI_DEFENSE_AIR))
 	{
 		// unfortunately, I don't have an easy way to get the approximate power of our air defence units.
 		// So I'm just going to assume the power of each unit is around 12 - the power of a fighter plane.
@@ -3080,7 +3080,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 			/* original bts code
 			bGrowMore = ((getPopulation() < 3) && (AI_countGoodTiles(true, false, 100) >= getPopulation())); */
 			// K-Mod. We need to allow the starting city to build a worker at size 1.
-			bGrowMore = (eUnitAI != UNITAI_WORKER || GET_PLAYER(getOwner()).AI_totalAreaUnitAIs(area(), UNITAI_WORKER) > 0)
+			bGrowMore = (eUnitAI != UNITAI_WORKER || GET_PLAYER(getOwnerINLINE()).AI_totalAreaUnitAIs(area(), UNITAI_WORKER) > 0)
 				&& getPopulation() < 3 && AI_countGoodTiles(true, false, 100) >= getPopulation();
 			// K-Mod end
 			// <advc.052> Train Settler at size 2 if growth is slow in capital
@@ -4708,7 +4708,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
 					{
 						CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-						if ((iPlayer != getOwner()) && kLoopPlayer.isAlive())
+						if (iPlayer != getOwnerINLINE() && kLoopPlayer.isAlive())
 						{
 							iPlayerCount++;
 							if (kOwner.getStateReligion() == kLoopPlayer.getStateReligion())
@@ -6192,7 +6192,7 @@ int CvCityAI::AI_neededSeaWorkers()
 			if(!p->isWater())
 				continue;
 			BonusTypes eBonus = p->getNonObsoleteBonusType(getTeam());
-			if(eBonus != NO_BONUS && !GET_PLAYER(getOwner()).
+			if(eBonus != NO_BONUS && !GET_PLAYER(getOwnerINLINE()).
 					doesImprovementConnectBonus(p->getImprovementType(), eBonus))
 				iNeededSeaWorkers++;
 		}
@@ -6297,7 +6297,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	if(!GET_TEAM(getTeam()).AI_isWarPossible())
 		return iDefenders;
 
-	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE());
 	
 	if(hasActiveWorldWonder() || isCapital() || isHolyCity())
 	{
@@ -6309,7 +6309,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	/*  advc.300: When Barbarians are a big threat and civs aren't, free up units
 		for fog-busting (CvUnitAI::AI_guardCitySite) and guarding food bonuses. */
 	if(!kOwner.AI_isDefenseFocusOnBarbarians(area()->getID())) {
-		/*if (!GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
+		/*if (!GET_PLAYER(getOwnerINLINE()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			iDefenders += AI_neededFloatingDefenders();
 		else iDefenders += (AI_neededFloatingDefenders() + 2) / 4;*/
 		/*  <advc.139> Replacing the above. No functional change other than passing
@@ -6327,14 +6327,14 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 			iDefenders++;
 	}
 	
-	if (g.gameTurn() - getGameTurnAcquired() < 10)
+	if (g.getGameTurn() - getGameTurnAcquired() < 10)
 	{	/* original code
 		if (bOffenseWar) {
 			if (!hasActiveWorldWonder() && !isHolyCity()) {
 				iDefenders /= 2;
 				iDefenders = std::max(1, iDefenders);
 			}
-		} if (g.gameTurn() - getGameTurnAcquired() < 10) {
+		} if (g.getGameTurn() - getGameTurnAcquired() < 10) {
 			iDefenders = std::max(2, iDefenders);
 			if (AI_isDanger())
 				iDefenders ++;
@@ -6424,7 +6424,7 @@ int CvCityAI::AI_neededFloatingDefenders( /* <advc.139> */ bool bIgnoreEvac,
 	if(!bIgnoreEvac && AI_isEvacuating())
 		return 0; // </advc.139>
 	int r = m_iNeededFloatingDefenders;
-	if(m_iNeededFloatingDefendersCacheTurn != GC.getGameINLINE().gameTurn())
+	if(m_iNeededFloatingDefendersCacheTurn != GC.getGameINLINE().getGameTurn())
 		r = AI_calculateNeededFloatingDefenders(bConstCache); // advc.001n
 	return r;
 }
@@ -6443,7 +6443,7 @@ int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache)
 
 	if(!bConstCache) { // advc.001n
 		m_iNeededFloatingDefenders = iFloatingDefenders;
-		m_iNeededFloatingDefendersCacheTurn = GC.getGameINLINE().gameTurn();
+		m_iNeededFloatingDefendersCacheTurn = GC.getGameINLINE().getGameTurn();
 	}
 	return iFloatingDefenders; // advc.001n
 }
@@ -6609,7 +6609,7 @@ int CvCityAI::AI_culturePressureFactor() const
 	{
 		CvPlot* pLoopPlot = getCityIndexPlot(iI);
 
-		if (pLoopPlot != NULL && pLoopPlot->isWithinCultureRange(getOwner()))
+		if (pLoopPlot != NULL && pLoopPlot->isWithinCultureRange(getOwnerINLINE()))
 		{
 			for (int iP = 0; iP < MAX_CIV_PLAYERS; iP++)
 			{
@@ -6618,7 +6618,7 @@ int CvCityAI::AI_culturePressureFactor() const
 				{
 					int iForeignCulture = pLoopPlot->getCulture((PlayerTypes)iP);
 					// scale it by how it compares to our culture
-					iForeignCulture = 100 * iForeignCulture / std::max(1, iForeignCulture + pLoopPlot->getCulture(getOwner()));
+					iForeignCulture = 100 * iForeignCulture / std::max(1, iForeignCulture + pLoopPlot->getCulture(getOwnerINLINE()));
 					// lower the value if the foreign culture is not allowed take control of the plot
 					// lower the value if the foreign culture is not allowed to flip the city
 					iForeignCulture *= 2;
@@ -6929,7 +6929,7 @@ int CvCityAI::AI_clearFeatureValue(int iIndex)
 	}
 	if (GC.getGameINLINE().getGwEventTally() >= 0) // if GW Threshold has been reached
 	{
-		iValue += kFeatureInfo.getWarmingDefense() * (150 + 5 * GET_PLAYER(getOwner()).getGwPercentAnger()) / 100;
+		iValue += kFeatureInfo.getWarmingDefense() * (150 + 5 * GET_PLAYER(getOwnerINLINE()).getGwPercentAnger()) / 100;
 	}
 	// K-Mod end
 	
@@ -7636,7 +7636,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		}
 		//iHappyValue += std::max(0, (kPlot.getCityRadiusCount() - 1)) * ((iHappyValue > 0) ? iHappyLevel / 2 : 200);
 		// K-Mod
-		iHappyValue *= (kPlot.getPlayerCityRadiusCount(getOwner()) + 1);
+		iHappyValue *= (kPlot.getPlayerCityRadiusCount(getOwnerINLINE()) + 1);
 		iHappyValue /= 2;
 		//
 		iValue += iHappyValue * iHappiness;
@@ -10783,7 +10783,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 			{
 				pAdjacentPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
 
-				if ((pAdjacentPlot != NULL) && (pAdjacentPlot->getOwner() == getOwner()) && (pAdjacentPlot->isCityRadius()))
+				if ((pAdjacentPlot != NULL) && (pAdjacentPlot->getOwnerINLINE() == getOwnerINLINE()) && (pAdjacentPlot->isCityRadius()))
 				{
 					if (!pAdjacentPlot->isFreshWater())
 					{
@@ -10797,7 +10797,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 							for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
 							{
 								pAdjacentPlot2 = plotDirection(pAdjacentPlot->getX_INLINE(), pAdjacentPlot->getY_INLINE(), ((DirectionTypes)iJ));
-								if ((pAdjacentPlot2 != NULL) && (pAdjacentPlot2->getOwner() == getOwner()))
+								if ((pAdjacentPlot2 != NULL) && (pAdjacentPlot2->getOwnerINLINE() == getOwnerINLINE()))
 								{
 									eTempBonus = pAdjacentPlot2->getNonObsoleteBonusType(getTeam());
 									if (pAdjacentPlot->isIrrigated())
@@ -12631,7 +12631,7 @@ void CvCityAI::AI_updateWorkersNeededHere()
 			//by iterating groups and seeing if the plot target lands in this city
 			//but since this is only called once/turn i'm not sure it matters.
 			iWorkersHave += (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD));
-			iWorkersHave += pLoopPlot->plotCount(PUF_isUnitAIType, UNITAI_WORKER, -1, getOwner(), getTeam(), PUF_isNoMission, -1, -1);
+			iWorkersHave += pLoopPlot->plotCount(PUF_isUnitAIType, UNITAI_WORKER, -1, getOwnerINLINE(), getTeam(), PUF_isNoMission, -1, -1);
 			if (iI != CITY_HOME_PLOT)
 			{
 				if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT)

@@ -444,16 +444,16 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 
 	case BUTTONPOPUP_DETAILS:
 		{
+			CvInitCore& ic = GC.getInitCore();
 			// Civ details
-			PlayerTypes eID = GC.getInitCore().getActivePlayer();
-
-			CvWString szLeaderName = GC.getInitCore().getLeaderName(eID);
-			CvWString szCivDescription = GC.getInitCore().getCivDescription(eID);
-			CvWString szCivShortDesc = GC.getInitCore().getCivShortDesc(eID);
-			CvWString szCivAdjective = GC.getInitCore().getCivAdjective(eID);
+			PlayerTypes eID = ic.getActivePlayer();
+			CvWString szLeaderName = ic.getLeaderName(eID);
+			CvWString szCivDescription = ic.getCivDescription(eID);
+			CvWString szCivShortDesc = ic.getCivShortDesc(eID);
+			CvWString szCivAdjective = ic.getCivAdjective(eID);
 			CvWString szCivPassword = PASSWORD_DEFAULT;
-			CvString szEmail = GC.getInitCore().getEmail(eID);
-			CvString szSmtpHost = GC.getInitCore().getSmtpHost(eID);
+			CvString szEmail = ic.getEmail(eID);
+			CvString szSmtpHost = ic.getSmtpHost(eID);
 
 			if (pPopupReturn->getEditBoxString(0) && *(pPopupReturn->getEditBoxString(0)))
 			{
@@ -493,16 +493,16 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 				}
 			}
 
-			GC.getInitCore().setLeaderName(eID, szLeaderName);
-			GC.getInitCore().setCivDescription(eID, szCivDescription);
-			GC.getInitCore().setCivShortDesc(eID, szCivShortDesc);
-			GC.getInitCore().setCivAdjective(eID, szCivAdjective);
+			ic.setLeaderName(eID, szLeaderName);
+			ic.setCivDescription(eID, szCivDescription);
+			ic.setCivShortDesc(eID, szCivShortDesc);
+			ic.setCivAdjective(eID, szCivAdjective);
 			if (szCivPassword != PASSWORD_DEFAULT)
 			{
-				GC.getInitCore().setCivPassword(eID, szCivPassword);
+				ic.setCivPassword(eID, szCivPassword);
 			}
-			GC.getInitCore().setEmail(eID, szEmail);
-			GC.getInitCore().setSmtpHost(eID, szSmtpHost);
+			ic.setEmail(eID, szEmail);
+			ic.setSmtpHost(eID, szSmtpHost);
 			gDLL->sendPlayerInfo(eID);
 
 			if (g.isPbem() && pPopupReturn->getButtonClicked() == 0)
@@ -564,7 +564,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 				switch ((ControlTypes)info.getData1())
 				{
 				case CONTROL_WORLD_BUILDER:
-					gDLL->getInterfaceIFace()->setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
+					gDLL->getInterfaceIFace()->setWorldBuilder(!gDLL->GetWorldBuilderMode());
 					break;
 				case CONTROL_ADMIN_DETAILS:
 					gDLL->getInterfaceIFace()->showAdminDetails();
@@ -1306,7 +1306,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	switch (info.getData2())
 	{
 	case ORDER_TRAIN:
-		gDLL->getInterfaceIFace()->playGeneralSound(GC.getUnitInfo((UnitTypes)info.getData3()).getArtInfo(0, GET_PLAYER(pCity->getOwner()).getCurrentEra(), NO_UNIT_ARTSTYLE)->getTrainSound());
+		gDLL->getInterfaceIFace()->playGeneralSound(GC.getUnitInfo((UnitTypes)info.getData3()).getArtInfo(0, GET_PLAYER(pCity->getOwnerINLINE()).getCurrentEra(), NO_UNIT_ARTSTYLE)->getTrainSound());
 		break;
 
 	case ORDER_CONSTRUCT:
@@ -2212,7 +2212,8 @@ bool CvDLLButtonPopup::launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RETIRE").c_str(), NULL, MM_RETIRE, WIDGET_GENERAL, MM_RETIRE, 0, true, POPUP_LAYOUT_STRETCH, DLL_FONT_CENTER_JUSTIFY);
 	}
 
-	if ((GC.getGameINLINE().getElapsedGameTurns() == 0) && !(GC.getGameINLINE().isGameMultiPlayer()) && !(GC.getInitCore().getWBMapScript()))
+	if (GC.getGameINLINE().getElapsedGameTurns() == 0 &&
+			!GC.getGameINLINE().isGameMultiPlayer() && !GC.getInitCore().getWBMapScript())
 	{
 		// Don't allow if there has already been diplomacy
 		bool bShow = true;
@@ -2368,6 +2369,7 @@ bool CvDLLButtonPopup::launchPythonPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchDetailsPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
+	CvInitCore const& ic = GC.getInitCore();
 	if (!info.getOption1())
 	{
 		gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_POPUP_DETAILS_TITLE"));
@@ -2385,7 +2387,7 @@ bool CvDLLButtonPopup::launchDetailsPopup(CvPopup* pPopup, CvPopupInfo &info)
 		gDLL->getInterfaceIFace()->popupCreateEditBox(pPopup, GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivilizationAdjective(), WIDGET_GENERAL, gDLL->getText("TXT_KEY_MENU_CIV_ADJ"), 3, POPUP_LAYOUT_STRETCH, 0, MAX_PLAYERINFO_CHAR_COUNT);
 		gDLL->getInterfaceIFace()->popupAddSeparator(pPopup);
 	}
-	else if (!GC.getInitCore().getCivPassword(GC.getInitCore().getActivePlayer()).empty())
+	else if (!ic.getCivPassword(ic.getActivePlayer()).empty())
 	{
 		// the purpose of the popup with the option set to true is to ask for the civ password if it's not set
 		return false;
@@ -2399,13 +2401,13 @@ bool CvDLLButtonPopup::launchDetailsPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if ( (GC.getGameINLINE().isPitboss() || GC.getGameINLINE().isPbem()) && !info.getOption1() )
 	{
 		gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_POPUP_DETAILS_EMAIL"));
-		gDLL->getInterfaceIFace()->popupCreateEditBox(pPopup, CvWString(GC.getInitCore().getEmail(GC.getInitCore().getActivePlayer())), WIDGET_GENERAL, gDLL->getText("TXT_KEY_POPUP_DETAILS_EMAIL"), 5, POPUP_LAYOUT_STRETCH, 0, MAX_PLAYEREMAIL_CHAR_COUNT);
+		gDLL->getInterfaceIFace()->popupCreateEditBox(pPopup, CvWString(ic.getEmail(ic.getActivePlayer())), WIDGET_GENERAL, gDLL->getText("TXT_KEY_POPUP_DETAILS_EMAIL"), 5, POPUP_LAYOUT_STRETCH, 0, MAX_PLAYEREMAIL_CHAR_COUNT);
 		gDLL->getInterfaceIFace()->popupAddSeparator(pPopup);
 	}
 	if (GC.getGameINLINE().isPbem() && !info.getOption1())
 	{
 		gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_POPUP_DETAILS_SMTP"));
-		gDLL->getInterfaceIFace()->popupCreateEditBox(pPopup, CvWString(GC.getInitCore().getSmtpHost(GC.getInitCore().getActivePlayer())), WIDGET_GENERAL, gDLL->getText("TXT_KEY_POPUP_DETAILS_SMTP"), 6, POPUP_LAYOUT_STRETCH, 0, MAX_PLAYEREMAIL_CHAR_COUNT);
+		gDLL->getInterfaceIFace()->popupCreateEditBox(pPopup, CvWString(ic.getSmtpHost(ic.getActivePlayer())), WIDGET_GENERAL, gDLL->getText("TXT_KEY_POPUP_DETAILS_SMTP"), 6, POPUP_LAYOUT_STRETCH, 0, MAX_PLAYEREMAIL_CHAR_COUNT);
 		gDLL->getInterfaceIFace()->popupAddSeparator(pPopup);
 
 		if (GC.getGameINLINE().getPbemTurnSent())
@@ -2415,7 +2417,7 @@ bool CvDLLButtonPopup::launchDetailsPopup(CvPopup* pPopup, CvPopupInfo &info)
 	}
 
 	// Disable leader name edit box for internet games
-	if (GC.getInitCore().getMultiplayer() && gDLL->isFMPMgrPublic())
+	if (ic.getMultiplayer() && gDLL->isFMPMgrPublic())
 	{
 		gDLL->getInterfaceIFace()->popupEnableEditBox(pPopup, 0, false);
 	}
@@ -2657,7 +2659,7 @@ bool CvDLLButtonPopup::launchEventPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	if (kTrigger.isShowPlot())
 	{
-		CvPlot* pPlot = GC.getMapINLINE().plot(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
+		CvPlot* pPlot = GC.getMapINLINE().plotINLINE(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
 		if (NULL != pPlot)
 		{
 			gDLL->getEngineIFace()->addColoredPlot(pPlot->getX_INLINE(), pPlot->getY_INLINE(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);

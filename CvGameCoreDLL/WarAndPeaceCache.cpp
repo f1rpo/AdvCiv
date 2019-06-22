@@ -823,8 +823,8 @@ void WarAndPeaceCache::updateLatestTurnReachableBySea() {
 		// No pair means not reachable (by sea)
 		if(!c.canCurrentlyReachBySea())
 			continue;
-		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGameINLINE().gameTurn(),
-				c.getDistance());
+		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGameINLINE().
+				getGameTurn(), c.getDistance());
 	}
 }
 
@@ -991,7 +991,7 @@ void WarAndPeaceCache::updateTargetMissionCount(PlayerTypes civId) {
 		if(missionPlot == NULL)
 			missionPlot = selGroup->plot();
 		FAssert(missionPlot != NULL);
-		if(missionPlot->isOwned() && missionPlot->getOwner() == civId) {
+		if(missionPlot->isOwned() && missionPlot->getOwnerINLINE() == civId) {
 			r += selGroup->getNumUnits();
 			r += selGroup->getCargo();
 		}
@@ -1594,7 +1594,7 @@ PlayerTypes WarAndPeaceCache::City::cityOwner() const {
 
 	if(city() == NULL)
 		return NO_PLAYER;
-	return city()->getOwner();
+	return city()->getOwnerINLINE();
 }
 
 bool WarAndPeaceCache::City::isOwnCity() const {
@@ -1631,7 +1631,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 
 	// Our own cities have 0 distance from themselves
-	if(targetCity->getOwner() == cacheOwnerId) {
+	if(targetCity->getOwnerINLINE() == cacheOwnerId) {
 		distance = 0;
 		reachByLand = true;
 		reachBySea = true;
@@ -1916,7 +1916,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		CvPlot const& ctp = *cultureTestPlot; // Just for brevity
 		double cultureModifier = std::min(1.5, std::max(0.0,
 				2.0 * ctp.calculateCulturePercent(cacheOwnerId) +
-				ctp.calculateCulturePercent(c.getOwner()) +
+				ctp.calculateCulturePercent(c.getOwnerINLINE()) +
 				ctp.calculateCulturePercent(BARBARIAN_PLAYER)) / 100.0);
 		// <advc.035>
 		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && cultureModifier < 1)

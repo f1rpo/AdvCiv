@@ -158,8 +158,7 @@ public:
 	DllExport FMPIManager*& getFMPMgrPtr();
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
-	DllExport CvInitCore& getInitCore();
-	inline CvInitCore& getInitCoreINLINE() { return *m_initCore; } // advc.003b
+	DllExport inline CvInitCore& getInitCore() { return *m_initCore; } // advc.003b
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -172,8 +171,8 @@ public:
 	CvMap& getMapINLINE() { return *m_map; }				// inlined for perf reasons, do not use outside of dll
 	CvGameAI& getGameINLINE() { return *m_game; }			// inlined for perf reasons, do not use outside of dll
 #endif
-	DllExport CvMap& getMap();
-	DllExport CvGameAI& getGame();
+	DllExport CvMap& getMapExternal(); // advc.003f: Exported through .def file
+	DllExport CvGameAI& getGameExternal(); // advc.003f: Exported through .def file
 	DllExport CvGameAI *getGamePointer();
 	DllExport CvRandom& getASyncRand();
 	DllExport CMessageQueue& getMessageQueue();
@@ -684,9 +683,12 @@ public:
 	// THESE ARE READ-ONLY
 	//
 
-	DllExport FVariableSystem* getDefinesVarSystem();
-	// advc.003: Needed a const version
-	FVariableSystem const* getDefinesVarSystemINLINE() const { return m_VarSystem; }
+	DllExport FVariableSystem* getDefinesVarSystem()
+	// <advc.003> Need a const version
+	{	CvGlobals const& kThis = *this;
+		return const_cast<FVariableSystem*>(kThis.getDefinesVarSystem());
+	} FVariableSystem const* getDefinesVarSystem() const { return m_VarSystem; }
+	// </advc.003>
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****

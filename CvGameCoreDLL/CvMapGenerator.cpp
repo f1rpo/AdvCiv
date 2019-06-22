@@ -1005,7 +1005,7 @@ void CvMapGenerator::generateRandomMap()
 	generateTerrain();
 	/* advc.300: Already done in CvMap::calculateAreas, but when calculateAreas
 	   is called during map generation, tile yields aren't yet set. */
-	GC.getMap().computeShelves();
+	GC.getMapINLINE().computeShelves();
 }
 
 void CvMapGenerator::generatePlotTypes()

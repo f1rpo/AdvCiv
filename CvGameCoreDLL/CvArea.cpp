@@ -426,7 +426,7 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 
 	std::pair<int,int> r(0, 0);
 	CvMap const& kMap = GC.getMapINLINE();
-	for(int i = 0; i < kMap.numPlots(); i++) {
+	for(int i = 0; i < kMap.numPlotsINLINE(); i++) {
 		CvPlot* pPlot = kMap.plotByIndexINLINE(i);
 		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
 				|| !pPlot->isHabitable())

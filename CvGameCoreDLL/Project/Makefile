@@ -10,7 +10,7 @@
 
 # advc: Target 'DebugMem' added: an almost-Release build that is less likely than a
 # Debug build to obscure accesses to uninitialized memory.
-# YOURMOD2 and YOURLOGS (see under "Paths"). WX added to GLOBAL_CFLAGS.
+# YOURMOD2 and YOURLOGS (see under "Paths").
 # Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
 # CvGameCoreDLL.rc used only for final release.
 # devolution (Erik) has added the target 'Final_Release' with additional optimizations.
@@ -166,7 +166,7 @@ CUSTOM_LDFLAGS =
 FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 
 #### CFLAGS ####
-GLOBAL_CFLAGS=/GR /Gy /W3 /WX /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
+GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
 Debug_CFLAGS=/MD /Zi /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS)
 # (DebugMem: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
 DebugMem_CFLAGS=/MD /O2 /Zi /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)

@@ -579,7 +579,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	/*while (iCount < iTimeout) {
 		pTestPlot = plotSorenINLINE(GC.getGameINLINE().getSorenRandNum(getGridWidthINLINE(), "Rand Plot Width"), GC.getGameINLINE().getSorenRandNum(getGridHeightINLINE(), "Rand Plot Height"));*/
 	std::vector<CvPlot*> apLegalPlots;
-	for(int i = 0; i < numPlots(); i++) {
+	for(int i = 0; i < numPlotsINLINE(); i++) {
 		CvPlot* pTestPlot = plotByIndexINLINE(i);
 		if(pTestPlot == NULL)
 			continue; // </advc.304>
@@ -871,19 +871,19 @@ bool CvMap::findWater(CvPlot* pPlot, int iRange, bool bFreshWater)
 }
 
 
-bool CvMap::isPlot(int iX, int iY) const
+bool CvMap::isPlotExternal(int iX, int iY) const // advc.003f
 {
 	return isPlotINLINE(iX, iY);
 }
 
 
-int CvMap::numPlots() const																											 
+int CvMap::numPlotsExternal() const // advc.003f
 {
 	return numPlotsINLINE();
 }
 
 
-int CvMap::plotNum(int iX, int iY) const
+int CvMap::plotNumExternal(int iX, int iY) const // advc.003f
 {
 	return plotNumINLINE(iX, iY);
 }
@@ -957,7 +957,7 @@ int CvMap::maxPlotDistance() const
 		iWraps++;
 	if(isWrapYINLINE())
 		iWraps++;
-	CvWorldInfo const& kWorld = GC.getWorldInfo(worldSize());
+	CvWorldInfo const& kWorld = GC.getWorldInfo(getWorldSize());
 	double r = std::sqrt(kWorld.getGridWidth() * kWorld.getGridHeight() * civRatio *
 			seaLvlModifier) * 3.5 - 5 * iWraps;
 	return std::max(1, ::round(r)); // </advc.140>
@@ -975,13 +975,13 @@ int CvMap::maxMaintenanceDistance() const {
 	return ::round(1 + maxPlotDistance() * (10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
 } // </advc.140>
 
-int CvMap::getGridWidth() const
+int CvMap::getGridWidthExternal() const // advc.003f
 {
 	return getGridWidthINLINE();
 }
 
 
-int CvMap::getGridHeight() const
+int CvMap::getGridHeightExternal() const // advc.003f
 {
 	return getGridHeightINLINE();
 }
@@ -1037,24 +1037,24 @@ void CvMap::incrementNextRiverID()
 }
 
 
-bool CvMap::isWrapX()
+bool CvMap::isWrapXExternal() // advc.003f
 {
 	return isWrapXINLINE();
 }
 
 
-bool CvMap::isWrapY()
+bool CvMap::isWrapYExternal() // advc.003f
 {
 	return isWrapYINLINE();
 }
 
-bool CvMap::isWrap()
+bool CvMap::isWrapExternal() // advc.003f
 {
 	return isWrapINLINE();
 }
 
-// advc.003: const replacement for DLLExport getWorldSize
-WorldSizeTypes CvMap::worldSize() const
+// advc.003: const replacement for DllExport getWorldSize
+WorldSizeTypes CvMap::getWorldSize() const
 {
 	return GC.getInitCore().getWorldSize();
 }
@@ -1119,13 +1119,13 @@ void CvMap::changeNumBonusesOnLand(BonusTypes eIndex, int iChange)
 }
 
 
-CvPlot* CvMap::plotByIndex(int iIndex) const
+CvPlot* CvMap::plotByIndexExternal(int iIndex) const // advc.003f
 {
 	return plotByIndexINLINE(iIndex);
 }
 
 
-CvPlot* CvMap::plot(int iX, int iY) const
+CvPlot* CvMap::plotExternal(int iX, int iY) const // advc.003f
 {
 	return plotINLINE(iX, iY);
 }
@@ -1407,8 +1407,7 @@ void CvMap::calculateAreas_030() {
 	for(int pass = 0; pass <= 1; pass++) {
 		for(int i = 0; i < numPlotsINLINE(); i++) {
 			CvPlot& p = *plotByIndexINLINE(i);
-			if(pass == 0) { // No idea what this does; better do it only once.
-				gDLL->callUpdater();
+			if(pass == 0) {
 				/*  Second pass for impassables; can't handle
 					all-peak/ice areas otherwise. */
 				if(p.isImpassable())
@@ -1422,6 +1421,7 @@ void CvMap::calculateAreas_030() {
 			a.init(iArea, p.isWater());
 			p.setArea(iArea);
 			calculateAreas_DFS(p);
+			gDLL->callUpdater(); // Allow UI to update
 		}
 	}
 }
@@ -1507,8 +1507,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 			CvPlot& q = *pAdjacent;
 			/*  The two neighbors that p and q have in common if p and q are
 				diagonally adjacent: */
-			CvPlot* s = plot(p.getX_INLINE(), q.getY_INLINE());
-			CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
+			CvPlot* s = plotINLINE(p.getX_INLINE(), q.getY_INLINE());
+			CvPlot* t = plotINLINE(q.getX_INLINE(), p.getY_INLINE());
 			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
 					// For water tiles, orthogonal adjacency is unproblematic.

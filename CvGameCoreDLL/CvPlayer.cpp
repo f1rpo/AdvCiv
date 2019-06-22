@@ -1970,7 +1970,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			/*  Always reduce eOldOwner culture in the inner circle. Outer circle:
 				Only if tiles not worked by other cities of eOldOwner. */
 			if(dist > 1 && wc != NULL && wc->plot() != pCityPlot &&
-					wc->getOwner() != eOldOwner)
+					wc->getOwnerINLINE() != eOldOwner)
 				continue;
 			int convertedCulture = std::min(p.getCulture(eOldOwner) / 2,
 					2 * p.getCulture(getID()));
@@ -3101,7 +3101,7 @@ void CvPlayer::doTurn()  // advc.003: style changes
 		gDLL->getInterfaceIFace()->clearEventMessages();
 	// </advc.106b>
 
-	CvEventReporter::getInstance().beginPlayerTurn(g.gameTurn(), getID());
+	CvEventReporter::getInstance().beginPlayerTurn(g.getGameTurn(), getID());
 	/*  advc.127: Only needs to be true when Civ4lerts are checked, which is done
 		in response to beginPlayerTurn. */
 	m_bAutoPlayJustEnded = false;
@@ -5158,8 +5158,8 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 	CvGame const& g = GC.getGameINLINE();
 	int const iTrainHalved = (GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getTrainPercent() + 100) / 2;
-	bool bVeryEarlyGame = (100 * g.gameTurn() < 20 * iTrainHalved);
-	bool bVeryVeryEarlyGame = (100 * g.gameTurn() < 10 * iTrainHalved);
+	bool bVeryEarlyGame = (100 * g.getGameTurn() < 20 * iTrainHalved);
+	bool bVeryVeryEarlyGame = (100 * g.getGameTurn() < 10 * iTrainHalved);
 	if (goody.getExperience() > 0)
 	{
 		if (pUnit == NULL || !pUnit->canAcquirePromotionAny() ||
@@ -14943,7 +14943,7 @@ int CvPlayer::getEspionageMissionCostModifier(EspionageMissionTypes eMission, Pl
 		// K-Mod end
 
 		// Distance mod
-		int iDistance = GC.getMap().maxPlotDistance();
+		int iDistance = GC.getMapINLINE().maxPlotDistance();
 
 		CvCity* pOurCapital = getCapitalCity();
 		if (NULL != pOurCapital)
@@ -15289,7 +15289,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 				if (gUnitLogLevel >= 2 && !isHuman())
 				{
-					logBBAI("      Spy for player %d (%S) causes revolt in %S, owned by %S (%d)", getID(), getCivilizationDescription(0), pCity->getName().GetCString(), GET_PLAYER(pCity->getOwner()).getCivilizationDescription(0), pCity->getOwner() );
+					logBBAI("      Spy for player %d (%S) causes revolt in %S, owned by %S (%d)", getID(), getCivilizationDescription(0), pCity->getName().GetCString(), GET_PLAYER(pCity->getOwnerINLINE()).getCivilizationDescription(0), pCity->getOwnerINLINE() );
 				}
 			}
 		}
@@ -15547,7 +15547,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 		return;
 	}
 
-	CvPlot* pPlot = GC.getMap().plot(iX, iY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
 	if (0 == getNumCities())
 	{
@@ -16272,7 +16272,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 		// Need valid plot to found on if adding
 		if (bAdd)
 		{
-			if (!canFound(pPlot->getX(), pPlot->getY(), false))
+			if (!canFound(pPlot->getX_INLINE(), pPlot->getY_INLINE(), false))
 			{
 				return -1;
 			}
@@ -16638,9 +16638,9 @@ int CvPlayer::getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot* pP
 		int iPlotLoop = 0;
 		CvPlot* pPlot;
 
-		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlots(); iPlotLoop++)
+		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlotsINLINE(); iPlotLoop++)
 		{
-			pPlot = GC.getMapINLINE().plotByIndex(iPlotLoop);
+			pPlot = GC.getMapINLINE().plotByIndexINLINE(iPlotLoop);
 
 			if (pPlot->getRouteType() == eRoute)
 			{
@@ -16742,7 +16742,7 @@ int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, boo
 			return -1;
 		}
 	}
-	
+
 	// Tech requirement
 	for (int iBuildLoop = 0; iBuildLoop < GC.getNumBuildInfos(); iBuildLoop++)
 	{
@@ -16761,10 +16761,9 @@ int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, boo
 		int iPlotLoop = 0;
 		CvPlot* pPlot;
 
-		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlots(); iPlotLoop++)
+		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlotsINLINE(); iPlotLoop++)
 		{
-			pPlot = GC.getMapINLINE().plotByIndex(iPlotLoop);
-			
+			pPlot = GC.getMapINLINE().plotByIndexINLINE(iPlotLoop);
 			if (pPlot->getImprovementType() == eImprovement)
 			{
 				++iNumImprovements;
@@ -16950,9 +16949,9 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot) const
 	if (GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE") != 0)
 	{
 		int iPlotLoop = 0;
-		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlots(); iPlotLoop++)
+		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlotsINLINE(); iPlotLoop++)
 		{
-			CvPlot* pPlot = GC.getMapINLINE().plotByIndex(iPlotLoop);
+			CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(iPlotLoop);
 
 			if (pPlot->isRevealed(getTeam(), false))
 			{
@@ -18149,7 +18148,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 		bool bIncrementThreshold, bool bIncrementExperience, int iX, int iY)
 {
-	CvPlot* pPlot = GC.getMapINLINE().plot(iX, iY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	if (pPlot == NULL)
 	{
 		FAssertMsg(false, "Invalid plot in createGreatPeople()");
@@ -18201,7 +18200,7 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 		}
 	}
 	// <advc.106>
-	CvPlayer const& kGPOwner = GET_PLAYER(pPlot->getOwner());
+	CvPlayer const& kGPOwner = GET_PLAYER(pPlot->getOwnerINLINE());
 	// Use shorter message for replays
 	CvWString szReplayMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_REPLAY",
 			pGreatPeopleUnit->getReplayName().GetCString(),
@@ -18418,7 +18417,7 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 
 	if (bAnnounce)
 	{
-		CvPlot* pPlot = GC.getMapINLINE().plot(kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY);
+		CvPlot* pPlot = GC.getMapINLINE().plotINLINE(kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY);
 
 		if (!kTriggeredData.m_szGlobalText.empty())
 		{
@@ -18482,7 +18481,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 	{
 		pOtherPlayerCity = GET_PLAYER(eOtherPlayer).getCity(iOtherPlayerCityId);
 	}
-	CvPlot* pPlot = GC.getMapINLINE().plot(iPlotX, iPlotY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iPlotX, iPlotY);
 	CvUnit* pUnit = getUnit(iUnitId);
 
 	std::vector<CvPlot*> apPlots;
@@ -18914,7 +18913,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 
 		// python may change pTriggerData
 		pCity = getCity(pTriggerData->m_iCityId);
-		pPlot = GC.getMapINLINE().plot(pTriggerData->m_iPlotX, pTriggerData->m_iPlotY);
+		pPlot = GC.getMapINLINE().plotINLINE(pTriggerData->m_iPlotX, pTriggerData->m_iPlotY);
 		pUnit = getUnit(pTriggerData->m_iUnitId);
 		eOtherPlayer = pTriggerData->m_eOtherPlayer;
 		if (NO_PLAYER != eOtherPlayer)
@@ -21235,8 +21234,8 @@ bool CvPlayer::splitEmpire(int iAreaId)
 				gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)i, false,
 						GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_REVOLTEND",
 						MESSAGE_TYPE_MAJOR_EVENT,
-						szButton, NO_COLOR, bRev ? pNewCapital->getX() : -1,
-						bRev ? pNewCapital->getY() : -1);
+						szButton, NO_COLOR, bRev ? pNewCapital->getX_INLINE() : -1,
+						bRev ? pNewCapital->getY_INLINE() : -1);
 			}
 		}
 	} // </advc.127b>
@@ -21389,8 +21388,8 @@ void CvPlayer::launch(VictoryTypes eVictory)
 
 		if(pCapital != NULL && pCapital->isRevealed(kObs.getTeam(), false))
 		{
-			iPlotX = pCapital->getX();
-			iPlotY = pCapital->getY();
+			iPlotX = pCapital->getX_INLINE();
+			iPlotY = pCapital->getY_INLINE();
 		}
 		CvWString szBuffer(szMsg); // advc.106
 		if (kObs.getTeam() == getTeam())
@@ -22238,7 +22237,7 @@ bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer) {
 			for(CLLNode<TradeData>* pNode = d->getFirstTrades()->head();
 					pNode != NULL; pNode = d->getFirstTrades()->next(pNode)) {
 				if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) {
-					d->setInitialGameTurn(g.gameTurn());
+					d->setInitialGameTurn(g.getGameTurn());
 					return true; // Assume that there is at most 1 peace treaty
 				}
 			}
@@ -23392,8 +23391,8 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 					getButton() // </advc.004z>
 					: GC.getBonusInfo(eLoopBonus).getButton());
 
-			int x = pLoopPlot->getX();
-			int y = pLoopPlot->getY();
+			int x = pLoopPlot->getX_INLINE();
+			int y = pLoopPlot->getY_INLINE();
 			kData.m_Target = NiPoint2(m.plotXToPointX(x), m.plotYToPointY(y));
 			PlayerTypes eOwner = pLoopPlot->getRevealedOwner(getTeam(), true); 
 			if (eOwner == NO_PLAYER)
@@ -23463,7 +23462,7 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion, std::vect
 						// loop through the city's plots
 						for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 						{
-							CvPlot* pLoopPlot = plotCity(pLoopCity->getX(), pLoopCity->getY(), iJ);
+							CvPlot* pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iJ);
 							if (pLoopPlot != NULL)
 							{
 								// visibility query
@@ -23670,7 +23669,7 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const {
 
 	PROFILE_FUNC();
 	CvGame const& g = GC.getGameINLINE();
-	int iGameTurn = g.gameTurn();
+	int iGameTurn = g.getGameTurn();
 	int iTurnsPlayed = iGameTurn - g.getStartTurn();
 	iSamples = std::min(iSamples, iTurnsPlayed - 1);
 	std::vector<double> samples; // double for ::dMedian

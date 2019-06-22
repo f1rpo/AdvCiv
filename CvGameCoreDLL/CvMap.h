@@ -263,21 +263,21 @@ public: // advc.003: made several functions const
 	int getMapFractalFlags() const;																												// Exposed to Python
 	bool findWater(CvPlot* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
-	DllExport bool isPlot(int iX, int iY) const;																		// Exposed to Python
+	bool isPlotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline int isPlotINLINE(int iX, int iY) const
 	{
 		return (iX >= 0 && iX < getGridWidthINLINE() && iY >= 0 && iY < getGridHeightINLINE());
 	}
 #endif
-	DllExport int numPlots() const; 																								// Exposed to Python
+	int numPlotsExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline int numPlotsINLINE() const
 	{
 		return getGridWidthINLINE() * getGridHeightINLINE();
 	}
 #endif
-	int plotNum(int iX, int iY) const;																		// Exposed to Python
+	int plotNumExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline int plotNumINLINE(int iX, int iY) const
 	{
@@ -300,14 +300,14 @@ public: // advc.003: made several functions const
 	int maxStepDistance() const;																								// Exposed to Python
 	int maxMaintenanceDistance() const; // advc.140
 
-	DllExport int getGridWidth() const;																		// Exposed to Python
+	int getGridWidthExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline int getGridWidthINLINE() const
 	{
 		return m_iGridWidth;
 	}
 #endif
-	DllExport int getGridHeight() const;																	// Exposed to Python
+	int getGridHeightExternal() const; // advc.003f: Exported through .def file							// Exposed to Python																	// Exposed to Python
 #ifdef _USRDLL
 	inline int getGridHeightINLINE() const
 	{
@@ -326,32 +326,32 @@ public: // advc.003: made several functions const
 	int getNextRiverID() const;																									// Exposed to Python
 	void incrementNextRiverID();																					// Exposed to Python
 
-	DllExport bool isWrapX();																							// Exposed to Python
+	bool isWrapXExternal(); // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline bool isWrapXINLINE() const
 	{
 		return m_bWrapX;
 	}
 #endif
-	DllExport bool isWrapY();																							// Exposed to Python
+	bool isWrapYExternal(); // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline bool isWrapYINLINE() const
 	{
 		return m_bWrapY;
 	}
 #endif
-	DllExport bool isWrap();
+	bool isWrapExternal(); // advc.003f: Exported through .def file
 #ifdef _USRDLL
 	inline bool isWrapINLINE() const
 	{
 		return m_bWrapX || m_bWrapY;
 	}
 #endif
-	DllExport WorldSizeTypes getWorldSize() {															// Exposed to Python
-		// <advc.003> const replacement
-			return worldSize();
-	}
-	WorldSizeTypes worldSize() const; // </advc.003>
+	DllExport WorldSizeTypes getWorldSize()															// Exposed to Python
+	// <advc.003> Need a const version
+	{	CvMap const& kThis = *this;
+		return kThis.getWorldSize();
+	} WorldSizeTypes getWorldSize() const; // </advc.003>
 	ClimateTypes getClimate() const;																	// Exposed to Python
 	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
@@ -364,7 +364,7 @@ public: // advc.003: made several functions const
 	int getNumBonusesOnLand(BonusTypes eIndex) const;														// Exposed to Python
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
-	DllExport CvPlot* plotByIndex(int iIndex) const;											// Exposed to Python
+	CvPlot* plotByIndexExternal(int iIndex) const; // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	inline CvPlot* plotByIndexINLINE(int iIndex) const
 	{
@@ -372,7 +372,7 @@ public: // advc.003: made several functions const
 				&(m_pMapPlots[iIndex]) : NULL);
 	}
 #endif
-	DllExport CvPlot* plot(int iX, int iY) const;													// Exposed to Python
+	CvPlot* plotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
 #ifdef _USRDLL
 	__forceinline CvPlot* plotINLINE(int iX, int iY) const
 	{
@@ -393,7 +393,7 @@ public: // advc.003: made several functions const
 		return &(m_pMapPlots[plotNumINLINE(iX, iY)]);
 	}
 #endif
-	DllExport CvPlot* pointToPlot(float fX, float fY);
+	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
 
 	int getIndexAfterLastArea() const;														// Exposed to Python
 	int getNumAreas() const;																	// Exposed to Python

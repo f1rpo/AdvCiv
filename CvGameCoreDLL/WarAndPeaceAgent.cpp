@@ -479,7 +479,7 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 			}
 			CvMap const& m = GC.getMapINLINE();
 			// 12 turns for a Standard-size map, 9 on Small
-			int timeout = std::max(m.getGridWidth(), m.getGridHeight()) / 7;
+			int timeout = std::max(m.getGridWidthINLINE(), m.getGridHeightINLINE()) / 7;
 			// Checking missions is a bit costly, don't do it if timeout isn't near.
 			if(wpAge > timeout) {
 				// Akin to code in CvTeamAI::AI_endWarVal
@@ -2317,7 +2317,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	double prSuccess = 0.5 - we.AI_prDenyHelp();
 	// Can't use sync'd RNG here, but don't want the outcome to change after reload.
 	std::vector<long> inputs;
-	inputs.push_back(GC.getGameINLINE().gameTurn());
+	inputs.push_back(GC.getGameINLINE().getGameTurn());
 	inputs.push_back(tradeVal);
 	if(::hash(inputs, weId) < prSuccess)
 		return true;
@@ -2588,7 +2588,7 @@ double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) co
 	period /= 100;
 	if(g.getElapsedGameTurns() < period + 1)
 		return 0;
-	int turnNumber = g.gameTurn();
+	int turnNumber = g.getGameTurn();
 	CvPlayerAI& civ = GET_PLAYER(civId);
 	int pastPow = std::max(1, civ.getPowerHistory(turnNumber - 1 - period));
 	double delta = civ.getPowerHistory(turnNumber - 1) - pastPow;

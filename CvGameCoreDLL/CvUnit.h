@@ -450,14 +450,14 @@ public:
 	DllExport int getHotKeyNumber();																													// Exposed to Python
 	void setHotKeyNumber(int iNewValue);																											// Exposed to Python
 
-	DllExport int getX() const;																																// Exposed to Python
+	int getXExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
 #ifdef _USRDLL
 	inline int getX_INLINE() const
 	{
 		return m_iX;
 	}
 #endif
-	DllExport int getY() const;																																// Exposed to Python
+	int getYExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
 #ifdef _USRDLL
 	inline int getY_INLINE() const
 	{
@@ -658,7 +658,7 @@ public:
 	void setBlockading(bool bNewValue);
 	void collectBlockadeGold();
 
-	DllExport PlayerTypes getOwner() const;																									// Exposed to Python
+	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
 #ifdef _USRDLL
 	inline PlayerTypes getOwnerINLINE() const
 	{

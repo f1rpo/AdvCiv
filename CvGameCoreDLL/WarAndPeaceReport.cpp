@@ -47,7 +47,7 @@ void WarAndPeaceReport::writeToFile() {
 	ostringstream logFileName;
 	//if(g.isNetworkMultiPlayer()) // For OOS debugging on a single PC
 		//logFileName << (int)g.getActivePlayer() << "_";
-	logFileName << "uwai" << g.gameTurn() << ".log";
+	logFileName << "uwai" << g.getGameTurn() << ".log";
 	gDLL->logMsg(logFileName.str().c_str(), report, false, false);
 	report.clear();
 }

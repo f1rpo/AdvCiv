@@ -390,16 +390,16 @@ void CvStatistics::setLeader( PlayerTypes ePlayer, LeaderHeadTypes eLeader )
 //
 void CvStatistics::unitBuilt( CvUnit *pUnit )
 {
-	getPlayerRecord( pUnit->getOwner() )->unitBuilt( pUnit );
+	getPlayerRecord( pUnit->getOwnerINLINE() )->unitBuilt( pUnit );
 }
 void CvStatistics::unitKilled( CvUnit *pUnit, PlayerTypes eAttacker )
 {
 	getPlayerRecord( eAttacker )->unitKilled( pUnit );
-	getPlayerRecord( pUnit->getOwner() )->unitWasKilled( pUnit );
+	getPlayerRecord( pUnit->getOwnerINLINE() )->unitWasKilled( pUnit );
 }
 void CvStatistics::cityBuilt( CvCity *pCity )
 {
-	getPlayerRecord( pCity->getOwner() )->cityBuilt();
+	getPlayerRecord( pCity->getOwnerINLINE() )->cityBuilt();
 }
 void CvStatistics::cityRazed( CvCity * pCity, PlayerTypes ePlayer )
 {
@@ -407,7 +407,7 @@ void CvStatistics::cityRazed( CvCity * pCity, PlayerTypes ePlayer )
 }
 void CvStatistics::buildingBuilt( CvCity *pCity, BuildingTypes eBuilding )
 {
-	getPlayerRecord( pCity->getOwner() )->buildingBuilt(eBuilding);
+	getPlayerRecord( pCity->getOwnerINLINE() )->buildingBuilt(eBuilding);
 }
 void CvStatistics::religionFounded( ReligionTypes eReligion, PlayerTypes eFounder )
 {

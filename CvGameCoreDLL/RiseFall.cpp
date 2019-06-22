@@ -257,7 +257,7 @@ void RiseFall::retire() {
 		return;
 	CvGame& g = GC.getGameINLINE();
 	if(chapters[pos]->getRetireTurn() < 0) // Don't store multiple timestamps
-		chapters[pos]->setRetireTurn(g.gameTurn());
+		chapters[pos]->setRetireTurn(g.getGameTurn());
 	g.setAIAutoPlay(t);
 	/*  Don't do this. CvPlayer not yet loaded. No need either - plans already
 		abandoned at start of retirement. */
@@ -269,7 +269,7 @@ int RiseFall::getRetireTurns() const {
 	int pos = getCurrentChapter();
 	if(pos < 0)
 		return 0;
-	return chapters[pos]->getEndTurn() - GC.getGameINLINE().gameTurn() + 1;
+	return chapters[pos]->getEndTurn() - GC.getGameINLINE().getGameTurn() + 1;
 }
 
 bool RiseFall::hasRetired() const {
@@ -312,7 +312,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 	CvGame& g = GC.getGameINLINE();
 	if(g.getGameState() == GAMESTATE_EXTENDED)
 		return;
-	int gameTurn = g.gameTurn();
+	int gameTurn = g.getGameTurn();
 	// The chapter of civ 0 needs to be started at the end of the previous game turn
 	if(civId == BARBARIAN_PLAYER)
 		gameTurn++;
@@ -374,7 +374,7 @@ void RiseFall::atGameTurnStart() {
 		//centerCamera(g.getActivePlayer());
 		return;
 	}
-	int gameTurn = g.gameTurn();
+	int gameTurn = g.getGameTurn();
 	RFChapter& currentCh = *chapters[currentChPos];
 	if(currentCh.getStartTurn() >= gameTurn) {
 		FAssert(currentCh.getStartTurn() == gameTurn);
@@ -389,7 +389,7 @@ void RiseFall::atActiveTurnStart() {
 	if(pos < 0)
 		return; // Happens on turn 0 b/c not yet initialized
 	CvGame& g = GC.getGameINLINE();
-	int gameTurn = g.gameTurn();
+	int gameTurn = g.getGameTurn();
 	PlayerTypes activeId = g.getActivePlayer();
 	if(activeId == NO_PLAYER)
 		return;
@@ -916,7 +916,7 @@ void RiseFall::prepareForExtendedGame() {
 		chapters[pos]->setEndless(true);
 		/*  So that the game end turn gets shown as the score turn. The popup
 			that switches to extended game appears one turn after victory. */
-		chapters[pos]->setScored(GC.getGameINLINE().gameTurn() - 1);
+		chapters[pos]->setScored(GC.getGameINLINE().getGameTurn() - 1);
 		if(g.getAIAutoPlay()) {
 			abandonPlans(chapters[pos]->getCiv());
 			g.setAIAutoPlay(0);
@@ -956,7 +956,7 @@ bool RiseFall::launchDefeatPopup(CvPopup* popup, CvPopupInfo& info) {
 	else FAssert(false);
 	CvWString text = gDLL->getText("TXT_KEY_MISC_DEFEAT") + L"\n\n";
 	text += gDLL->getText("TXT_KEY_RF_DEFEAT", startTurn, startTurn -
-			GC.getGameINLINE().gameTurn());
+			GC.getGameINLINE().getGameTurn());
 	gDLL->getInterfaceIFace()->popupSetBodyString(popup, text);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(popup,
 			gDLL->getText("TXT_KEY_POPUP_EXIT_TO_MAIN_MENU"), NULL,
@@ -978,7 +978,7 @@ void RiseFall::handleDefeatPopup(int buttonClicked) {
 	}
 	CvGame const& g = GC.getGameINLINE();
 	// -1: Current turn already passed
-	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.gameTurn() - 1;
+	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.getGameTurn() - 1;
 	FAssert(interludeCountdown >= 0);
 	CvPlayer& h = GET_PLAYER(g.getActivePlayer());
 	h.setIsHuman(false);

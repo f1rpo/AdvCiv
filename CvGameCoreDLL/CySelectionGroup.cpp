@@ -215,7 +215,7 @@ int CySelectionGroup::getID()
 
 int /*PlayerTypes*/ CySelectionGroup::getOwner()
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getOwnerINLINE() : -1;
+	return m_pSelectionGroup ? m_pSelectionGroup->getOwner() : -1;
 }
 
 int /*TeamTypes*/ CySelectionGroup::getTeam()

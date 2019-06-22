@@ -78,7 +78,7 @@ void CvPlotGroup::addPlot(CvPlot* pPlot)
 
 	insertAtEndPlots(xy);
 
-	pPlot->setPlotGroup(getOwnerINLINE(), this);
+	pPlot->setPlotGroup(getOwner(), this);
 }
 
 
@@ -92,7 +92,7 @@ void CvPlotGroup::removePlot(CvPlot* pPlot)
 	{
 		if (GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY) == pPlot)
 		{
-			pPlot->setPlotGroup(getOwnerINLINE(), NULL);
+			pPlot->setPlotGroup(getOwner(), NULL);
 
 			pPlotNode = deletePlotsNode(pPlotNode); // can delete this PlotGroup...
 			break;
@@ -116,7 +116,7 @@ void CvPlotGroup::recalculatePlots()
 	PlayerTypes eOwner;
 	int iCount;
 
-	eOwner = getOwnerINLINE();
+	eOwner = getOwner();
 
 	pPlotNode = headPlotsNode();
 
@@ -190,12 +190,6 @@ void CvPlotGroup::setID(int iID)
 }
 
 
-PlayerTypes CvPlotGroup::getOwner() const
-{
-	return getOwnerINLINE();
-}
-
-
 int CvPlotGroup::getNumBonuses(BonusTypes eBonus) const
 {
 	FAssertMsg(eBonus >= 0, "eBonus is expected to be non-negative (invalid Index)");
@@ -233,7 +227,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 		CvCity* pCity = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
 		if (pCity != NULL)
 		{
-			if (pCity->getOwnerINLINE() == getOwnerINLINE())
+			if (pCity->getOwnerINLINE() == getOwner())
 			{
 				pCity->changeNumBonuses(eBonus, iChange);
 			}
@@ -251,7 +245,7 @@ void CvPlotGroup::verifyCityProduction() {
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL) {
 		CvCity* pCity = m.plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
-		if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
+		if (pCity != NULL && pCity->getOwnerINLINE() == getOwner())
 			pCity->verifyProduction();
 		pPlotNode = nextPlotsNode(pPlotNode);
 	}
@@ -272,7 +266,7 @@ CLLNode<XYCoords>* CvPlotGroup::deletePlotsNode(CLLNode<XYCoords>* pNode)
 
 	if (getLengthPlots() == 0)
 	{
-		GET_PLAYER(getOwnerINLINE()).deletePlotGroup(getID());
+		GET_PLAYER(getOwner()).deletePlotGroup(getID());
 	}
 
   return pPlotNode;

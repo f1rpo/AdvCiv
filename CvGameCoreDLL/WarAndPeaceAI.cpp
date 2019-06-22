@@ -106,7 +106,7 @@ int WarAndPeaceAI::maxSeaDist() const {
 	CvMap const& m = GC.getMapINLINE();
 	int r = 15;
 	// That's true for Large and Huge maps
-	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
+	if(m.getGridWidthINLINE() > 100 || m.getGridHeightINLINE() > 100)
 		r = 18;
 	if(!m.isWrapXINLINE() && !m.isWrapYINLINE())
 		r = (r * 6) / 5;

@@ -5897,7 +5897,7 @@ void CvDLLWidgetData::parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct,
 {
 	CvWString szTemp = szBuffer.getCString();
 	CvGame const& g = GC.getGameINLINE();
-	CvDeal* pDeal = g.getDealINLINE(widgetDataStruct.m_iData1);
+	CvDeal const* pDeal = g.getDeal(widgetDataStruct.m_iData1);
 	if (NULL != pDeal)
 	{
 		PlayerTypes eActivePlayer = g.getActivePlayer();
@@ -6253,7 +6253,7 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes eOwner)
 	// Unit cost (new city increases free units, Settler unit goes away)
 	iProjPreInfl += kOwner.calculateUnitCost(CvCity::initialPopulation(), -1);
 	// Unit supply (Settler unit goes away)
-	iProjPreInfl += kOwner.calculateUnitSupply(p.getOwner() == eOwner ? 0 : -1);
+	iProjPreInfl += kOwner.calculateUnitSupply(p.getOwnerINLINE() == eOwner ? 0 : -1);
 	// Inflation
 	int iCost = (iProjPreInfl * (kOwner.calculateInflationRate() + 100)) / 100;
 	// Difference from current expenses

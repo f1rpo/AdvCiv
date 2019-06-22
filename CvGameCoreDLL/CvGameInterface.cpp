@@ -63,15 +63,15 @@ void CvGame::updateColoredPlots()
 
 	// advc.003: (also removed unnecessary NULL checks after m.plotByIndex calls)
 	CvMap const& m = GC.getMapINLINE();
-
+	int iPlots = m.numPlotsINLINE();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
 	if(gDLL->getInterfaceIFace()->isShowYields()) { // advc.007
 		// City circles for debugging
 		if (isDebugMode())
 		{
-			for (int iPlotLoop = 0; iPlotLoop < m.numPlots(); iPlotLoop++)
+			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 			{
-				pLoopPlot = m.plotByIndex(iPlotLoop);
+				pLoopPlot = m.plotByIndexINLINE(iPlotLoop);
 				for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 				{
 					if( GET_PLAYER((PlayerTypes)iI).isAlive() )
@@ -88,9 +88,9 @@ void CvGame::updateColoredPlots()
 		// Plot improvement replacement circles for debugging
 		if (isDebugMode())
 		{
-			for (int iPlotLoop = 0; iPlotLoop < m.numPlots(); iPlotLoop++)
+			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 			{
-				pLoopPlot = m.plotByIndex(iPlotLoop);
+				pLoopPlot = m.plotByIndexINLINE(iPlotLoop);
 				CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
 				ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
 
@@ -116,9 +116,9 @@ void CvGame::updateColoredPlots()
 	// City circles when in Advanced Start
 	if (gDLL->getInterfaceIFace()->isInAdvancedStart())
 	{
-		for (int iPlotLoop = 0; iPlotLoop < m.numPlots(); iPlotLoop++)
+		for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 		{
-			pLoopPlot = m.plotByIndex(iPlotLoop);
+			pLoopPlot = m.plotByIndexINLINE(iPlotLoop);
 			if (GET_PLAYER(getActivePlayer()).getAdvancedStartCityCost(true, pLoopPlot) > 0)
 			{
 				bool bStartingPlot = false;
@@ -200,7 +200,7 @@ void CvGame::updateColoredPlots()
 			//if (gDLL->getInterfaceIFace()->canSelectionListFound())
 			if(pHeadSelectedUnit->canFound()) // advc.004h
 			{
-				for (iI = 0; iI < m.numPlotsINLINE(); iI++)
+				for (iI = 0; iI < iPlots; iI++)
 				{
 					pLoopPlot = m.plotByIndexINLINE(iI);
 					if (pLoopPlot->getOwnerINLINE() == pHeadSelectedUnit->getOwnerINLINE())
@@ -392,13 +392,9 @@ void CvGame::updateBlockadedPlots()
 
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_BLOCKADED);
 
-	int iNumPlots = GC.getMapINLINE().numPlots();
-	for (int i = 0; i < iNumPlots; ++i)
+	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); ++i)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndex(i);
-
-		FAssert(NULL != pLoopPlot);
-
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(i);
 		if (pLoopPlot->getBlockadedCount(getActiveTeam()) > 0 && pLoopPlot->isRevealed(getActiveTeam(), false))
 		{
 			NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_BLACK")).getColor());
@@ -717,12 +713,15 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 	else
 	{
 		CvPlot* pPlot = gDLL->getInterfaceIFace()->getLookAtPlot();
-		pNextSelectionGroup = GC.getMapINLINE().findSelectionGroup(((pPlot != NULL) ? pPlot->getX() : 0), ((pPlot != NULL) ? pPlot->getY() : 0), getActivePlayer(), true, bWorkers);
+		pNextSelectionGroup = GC.getMapINLINE().findSelectionGroup(
+				pPlot != NULL ? pPlot->getX_INLINE() : 0,
+				pPlot != NULL ? pPlot->getY_INLINE() : 0,
+				getActivePlayer(), true, bWorkers);
 	}
 
 	if (pNextSelectionGroup != NULL)
 	{
-		FAssert(pNextSelectionGroup->getOwnerINLINE() == getActivePlayer());
+		FAssert(pNextSelectionGroup->getOwner() == getActivePlayer());
 		FAssert(pNextSelectionGroup->getHeadUnit() != NULL); // K-Mod
 		gDLL->getInterfaceIFace()->selectUnit(pNextSelectionGroup->getHeadUnit(), bClear);
 	}
@@ -986,7 +985,8 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 		pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 	} */ // K-Mod has moved this to selectionListGameNetMessage.
 
-	selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, pPlot->getX(), pPlot->getY(), 0, false, bShift);
+	selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO,
+			pPlot->getX_INLINE(), pPlot->getY_INLINE(), 0, false, bShift);
 }
 
 
@@ -1096,8 +1096,8 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 							if (NULL != pInfo)
 							{
 								pInfo->setData1(eRivalTeam);
-								pInfo->setData2(pPlot->getX());
-								pInfo->setData3(pPlot->getY());
+								pInfo->setData2(pPlot->getX_INLINE());
+								pInfo->setData3(pPlot->getY_INLINE());
 								pInfo->setOption1(bShift);
 								pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
 								gDLL->getInterfaceIFace()->addPopup(pInfo);
@@ -2233,7 +2233,10 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 	if (pHeadSelectedUnit != NULL && !pHeadSelectedUnit->atPlot(pPlot))
 	{
 		gDLL->getFAStarIFace()->SetData(&GC.getInterfacePathFinder(), gDLL->getInterfaceIFace()->getSelectionList());
-		if ((pHeadSelectedUnit->getDomainType() == DOMAIN_AIR) || gDLL->getFAStarIFace()->GeneratePath(&GC.getInterfacePathFinder(), pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), pPlot->getX(), pPlot->getY(), false, MOVE_DECLARE_WAR, true))
+		if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR ||
+				gDLL->getFAStarIFace()->GeneratePath(&GC.getInterfacePathFinder(),
+				pHeadSelectedUnit->getX_INLINE(), pHeadSelectedUnit->getY_INLINE(),
+				pPlot->getX_INLINE(), pPlot->getY_INLINE(), false, MOVE_DECLARE_WAR, true))
 		{
 			if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR)
 			{
@@ -2441,7 +2444,7 @@ CvPlot* CvGame::getNewHighlightPlot() const
 		bOK = gDLL->getPythonIFace()->callFunction(PYScreensModule, "WorldBuilderGetHighlightPlot", argsList.makeFunctionArgs(), &coords);
 		if (bOK && coords.size())
 		{
-			pNewPlot = GC.getMap().plot(coords[0],coords[1]);
+			pNewPlot = GC.getMapINLINE().plotINLINE(coords[0],coords[1]);
 		}
 	}
 	else
@@ -3029,8 +3032,7 @@ void CvGame::handleCityPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, 
 		{
 			if (bShift)
 			{
-				selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_RALLY_PLOT,
-						pPlot->getX(), pPlot->getY());
+				selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_RALLY_PLOT, pPlot->getX_INLINE(), pPlot->getY_INLINE());
 			}
 			else
 			{

@@ -256,8 +256,8 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	GET_TEAM(getTeam()).changeNumCities(1);
 	g.changeNumCities(1);
 
-	setGameTurnFounded(g.gameTurn());
-	setGameTurnAcquired(g.gameTurn());
+	setGameTurnFounded(g.getGameTurn());
+	setGameTurnAcquired(g.getGameTurn());
 
 	changePopulation(
 		// advc.004b: No functional change, just needed the same thing elsewhere
@@ -5092,7 +5092,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	double eraFactor = 1 + std::pow((double)iEra, 1.3);
 	// To put a cap on the initial revolt chance in large cities:
 	pop = std::min(pop, 1.5 * eraFactor);
-	int iTimeOwned = g.gameTurn() - getGameTurnAcquired();
+	int iTimeOwned = g.getGameTurn() - getGameTurnAcquired();
 	double div = 0.75 * GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getGoldenAgePercent();
 	double timeRatio = std::min(1.0, iTimeOwned / div);
@@ -5376,16 +5376,17 @@ int CvCity::plotNum() const {
 	return GC.getMapINLINE().plotNumINLINE(m_iX, m_iY);
 } // </advc.104>
 
-int CvCity::getX() const
+// <advc.003f>
+int CvCity::getXExternal() const
 {
-	return m_iX;
+	return getX_INLINE();
 }
 
 
-int CvCity::getY() const
+int CvCity::getYExternal() const
 {
-	return m_iY;
-}
+	return getY_INLINE();
+} // </advc.003f>
 
 
 bool CvCity::at(int iX,  int iY) const
@@ -8238,11 +8239,11 @@ void CvCity::setLayoutDirty(bool bNewValue)
 	m_bLayoutDirty = bNewValue;
 }
 
-
-PlayerTypes CvCity::getOwner() const
+// <advc.003f>
+PlayerTypes CvCity::getOwnerExternal() const
 {
 	return getOwnerINLINE();
-}
+} // </advc.003f>
 
 
 PlayerTypes CvCity::getPreviousOwner() const
@@ -10060,7 +10061,7 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 			|| (eCulturalOwner == BARBARIAN_PLAYER &&
 			GC.getDefineINT("BARBS_REVOLT") <= 0) ||
 			(GET_PLAYER(getOwnerINLINE()).getCurrentEra() <= 0 &&
-			g.gameTurn() - getGameTurnFounded() <
+			g.getGameTurn() - getGameTurnFounded() <
 			(10 * GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getConstructPercent()) / 100)) // </advc.099c>
 		return 0;
@@ -11635,13 +11636,13 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 						if(!kMsgTarget.isAlive())
 							continue;
 						bool bRevealed = isRevealed(kMsgTarget.getTeam(), true);
-						bool bMet = TEAMREF(kMsgTarget.getID()).isHasMet(TEAMID(getOwner()));
+						bool bMet = TEAMREF(kMsgTarget.getID()).isHasMet(getTeam());
 						if(bRevealed /* advc.127: */ || kMsgTarget.isSpectator())
 							// <advc.008e>
 							szBuffer = gDLL->getText(::needsArticle(eIndex) ?
 									"TXT_KEY_MISC_WONDER_COMPLETED_CITY_THE" :
 									"TXT_KEY_MISC_WONDER_COMPLETED_CITY", // </advc.008e>
-									GET_PLAYER(getOwner()).getNameKey(),
+									GET_PLAYER(getOwnerINLINE()).getNameKey(),
 									GC.getBuildingInfo(eIndex).getTextKeyWide(),
 									getName().GetCString());
 						else if(bMet) {
@@ -11649,7 +11650,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 							szBuffer = gDLL->getText(::needsArticle(eIndex) ?
 									"TXT_KEY_MISC_WONDER_COMPLETED_THE" :
 									"TXT_KEY_MISC_WONDER_COMPLETED", // </advc.008e>
-									GET_PLAYER(getOwner()).getNameKey(),
+									GET_PLAYER(getOwnerINLINE()).getNameKey(),
 									GC.getBuildingInfo(eIndex).getTextKeyWide());
 						}
 						else { // <advc.008>
@@ -11869,7 +11870,7 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 int CvCity::getReligionGrip(ReligionTypes eReligion) const
 {
 	PROFILE_FUNC();
-	if (!GC.getGame().isReligionFounded(eReligion))
+	if (!GC.getGameINLINE().isReligionFounded(eReligion))
 		return 0;
 
 	int iScore = 0;
@@ -11898,7 +11899,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 		}
 	}
 
-	CvCity* pHolyCity = GC.getGame().getHolyCity(eReligion);
+	CvCity* pHolyCity = GC.getGameINLINE().getHolyCity(eReligion);
 	if (pHolyCity && isConnectedTo(pHolyCity))
 	{
 		if (pHolyCity->hasShrine(eReligion))
@@ -11908,8 +11909,8 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 		iScore += GC.getDefineINT("RELIGION_INFLUENCE_DISTANCE_WEIGHT") * (GC.getMapINLINE().maxPlotDistance() - iDistance) / GC.getMapINLINE().maxPlotDistance();
 	}
 
-	int iCurrentTurn = GC.getGame().getGameTurn();
-	int iTurnFounded = GC.getGame().getReligionGameTurnFounded(eReligion);
+	int iCurrentTurn = GC.getGameINLINE().getGameTurn();
+	int iTurnFounded = GC.getGameINLINE().getReligionGameTurnFounded(eReligion);
 	int iTimeScale = GC.getDefineINT("RELIGION_INFLUENCE_TIME_SCALE")*GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent()/100;
 	iScore += GC.getDefineINT("RELIGION_INFLUENCE_TIME_WEIGHT") * (iTurnFounded + iTimeScale) / (iCurrentTurn + iTimeScale);
 
@@ -12123,13 +12124,13 @@ int CvCity::getTradeRoutes() const
 {
 	/*  <advc.123e> 0 trade routes result in 0 profit from plundering; see
 		CvUnit::collectBlockadeGold */
-	if(getOwner() == BARBARIAN_PLAYER)
+	if(getOwnerINLINE() == BARBARIAN_PLAYER)
 		return 0; // </advc.123e>
 
 	int iTradeRoutes = GC.getGameINLINE().getTradeRoutes();
 	iTradeRoutes += GET_PLAYER(getOwnerINLINE()).getTradeRoutes();
 	// advc.310: Continental TR no longer included in player TR
-	iTradeRoutes += area()->getTradeRoutes(getOwner());
+	iTradeRoutes += area()->getTradeRoutes(getOwnerINLINE());
 	if (isCoastal())
 		iTradeRoutes += GET_PLAYER(getOwnerINLINE()).getCoastalTradeRoutes();
 	iTradeRoutes += getExtraTradeRoutes();
@@ -13332,7 +13333,7 @@ void CvCity::doReligion()
 
 	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 	{
-		if (GC.getGame().isReligionFounded((ReligionTypes)iI))
+		if (GC.getGameINLINE().isReligionFounded((ReligionTypes)iI))
 		{
 			if (isHasReligion((ReligionTypes)iI))
 			{

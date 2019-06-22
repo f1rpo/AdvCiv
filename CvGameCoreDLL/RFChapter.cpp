@@ -106,10 +106,10 @@ void RFChapter::setCiv(PlayerTypes playerId) {
 void RFChapter::start() {
 
 	CvGame const& g = GC.getGameINLINE();
-	FAssert(startTurn == g.gameTurn());
+	FAssert(startTurn == g.getGameTurn());
 	/*  This shouldn't do anything currently. (I.e. chapters start exactly as
 		planned, but could change in a future version.) */
-	startTurn = g.gameTurn();
+	startTurn = g.getGameTurn();
 	breakdown.atChapterStart(*this);
 }
 
@@ -123,7 +123,7 @@ void RFChapter::score() {
 	if(isScored())
 		return;
 	breakdown.update();
-	scoreTimestamp = GC.getGameINLINE().gameTurn();
+	scoreTimestamp = GC.getGameINLINE().getGameTurn();
 }
 
 void RFChapter::setScored(int turn) {

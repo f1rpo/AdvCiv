@@ -1884,7 +1884,7 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 
 			if (iNumVisibleUnits > iMaxNumUnits)
 			{
-				int iIndex = pLoopUnit->getUnitType() * MAX_PLAYERS + pLoopUnit->getOwner();
+				int iIndex = pLoopUnit->getUnitType() * MAX_PLAYERS + pLoopUnit->getOwnerINLINE();
 				if (aiUnitNumbers[iIndex] == 0)
 				{
 					++iCount;
@@ -2278,89 +2278,90 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 		{
 			szString.append(NEWLINE);
 			CvWString szTempBuffer;
+			CvPlayerAI const& kOwner = GET_PLAYER(pHeadGroup->getOwner());
 
 			//AI strategies
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_DAGGER))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER))
 			{
 				szTempBuffer.Format(L"Dagger, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			{
 				szTempBuffer.Format(L"Crush, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_ALERT1))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1))
 			{
 				szTempBuffer.Format(L"Alert1, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_ALERT2))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2))
 			{
 				szTempBuffer.Format(L"Alert2, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_TURTLE))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE))
 			{
 				szTempBuffer.Format(L"Turtle, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
 			{
 				szTempBuffer.Format(L"Last Stand, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
 			{
 				szTempBuffer.Format(L"FinalWar, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
 			{
 				szTempBuffer.Format(L"GetBetterUnits, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
 			{
 				szTempBuffer.Format(L"FastMovers, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
 			{
 				szTempBuffer.Format(L"LandBlitz, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
 			{
 				szTempBuffer.Format(L"AirBlitz, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_OWABWNW))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_OWABWNW))
 			{
 				szTempBuffer.Format(L"OWABWNW, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
 			{
 				szTempBuffer.Format(L"Production, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
 			{
 				szTempBuffer.Format(L"Missionary, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE))
 			{
 				szTempBuffer.Format(L"BigEspionage, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
 			{
 				szTempBuffer.Format(L"EconomyFocus, ");
 				szString.append(szTempBuffer);
 			}
-			if (GET_PLAYER(pHeadGroup->getOwner()).AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)) // K-Mod
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)) // K-Mod
 			{
 				szTempBuffer.Format(L"EspionageEconomy, ");
 				szString.append(szTempBuffer);
@@ -2385,14 +2386,14 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 			CvCity* pTargetCity = kArea.getTargetCity(pHeadGroup->getOwner());
 			if(pTargetCity != NULL) {
 				szString.append(CvWString::format(L"\nTarget City: %s (%d)",
-						pTargetCity->getName().c_str(), pTargetCity->getOwner()));
+						pTargetCity->getName().c_str(), pTargetCity->getOwnerINLINE()));
 			}
 			else szString.append(CvWString::format(L"\nTarget City: None"));
 
 			if(GC.shiftKey())
 			{	// advc.003: unused
 				/*int iBestTargetValue = (pTargetCity != NULL ?
-						GET_PLAYER(pHeadGroup->getOwner()).
+						GET_PLAYER(pHeadGroup->getOwnerINLINE()).
 						AI_targetCityValue(pTargetCity,false,true) : 0);*/
 				szString.append(CvWString::format(L"\n\nTarget City values:\n"));
 				for(int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
@@ -4751,7 +4752,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szMapName.begin(), ::toupper); // to upper case
 			std::wostringstream ssKey;
 			ssKey << L"TXT_KEY_" << szMapName << L"_" <<
-					pPlot->getX() << L"_" << pPlot->getY() << L"_BONUS_";
+					pPlot->getX_INLINE() << L"_" << pPlot->getY_INLINE() << L"_BONUS_";
 			CvWString szBonusName = GC.getBonusInfo(eBonus).getDescription();
 			std::transform(szBonusName.begin(), szBonusName.end(),
 					szBonusName.begin(), ::toupper);
@@ -4968,8 +4969,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		return;
 
 	bool bAlt = GC.altKey();
-	int x = kPlot.getX();
-	int y = kPlot.getY();
+	int x = kPlot.getX_INLINE();
+	int y = kPlot.getY_INLINE();
 	CvWString szTempBuffer;
 	CvGame const& g = GC.getGameINLINE();
 	bool bConstCache = g.isNetworkMultiPlayer(); // advc.001n
@@ -5114,7 +5115,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
 		}
 	}
-	else if (kPlot.getOwner() != NO_PLAYER)
+	else if (kPlot.getOwnerINLINE() != NO_PLAYER)
 	{
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwnerINLINE()); // advc.003
 		/* original code
@@ -5219,7 +5220,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				vecUnitAIs.push_back(UNITAI_ATTACK_CITY);
 				vecUnitAIs.push_back(UNITAI_COUNTER);
 			}
-			CvCity* pCloseCity = GC.getMapINLINE().findCity(x, y, kPlot.getOwner(), NO_TEAM, true);
+			CvCity* pCloseCity = GC.getMapINLINE().findCity(x, y, kPlot.getOwnerINLINE(), NO_TEAM, true);
 			if( pCloseCity != NULL ) {
 				for( uint iI = 0; iI < vecUnitAIs.size(); iI++ ) {
 					CvWString szTempString;
@@ -5305,8 +5306,8 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 	}*/
 
 	CvWString szTempBuffer;
-	int x = kPlot.getX();
-	int y = kPlot.getY();
+	int x = kPlot.getX_INLINE();
+	int y = kPlot.getY_INLINE();
 
 	if (kPlot.getPlotGroup(GC.getGameINLINE().getActivePlayer()) != NULL)
 	{
@@ -5759,7 +5760,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			}
 		}
 		
-		CvCity* pTargetCity = kPlot.area()->getTargetCity(kPlot.getOwner());
+		CvCity* pTargetCity = kPlot.area()->getTargetCity(kPlot.getOwnerINLINE());
 		if( pTargetCity )
 		{
 			szString.append(CvWString::format(L"\nTarget City: %s", pTargetCity->getName().c_str()));
@@ -5773,8 +5774,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 	bool bFirst = true;
 	// <advc.003>
-	int x = kPlot.getX();
-	int y = kPlot.getY(); // </advc.003>
+	int x = kPlot.getX_INLINE();
+	int y = kPlot.getY_INLINE(); // </advc.003>
 	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 	{
 		PlayerTypes ePlayer = (PlayerTypes)iI;
@@ -5801,7 +5802,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			int iNumAreaCitySites = kLoopPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iCitySiteBestValue);
 
 			if ((iActualFoundValue > 0 || iCalcFoundValue > 0 || iStartingFoundValue > 0)
-					|| ((kPlot.getOwner() == iI) && (iBestAreaFoundValue > 0)))
+					|| ((kPlot.getOwnerINLINE() == iI) && (iBestAreaFoundValue > 0)))
 			{
 				if (bFirst)
 				{
@@ -10008,7 +10009,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 			szBuffer.append(NEWLINE);
 			for (int iUnitAI = 0; iUnitAI < NUM_UNITAI_TYPES; iUnitAI++)
 			{
-				int iTempValue = GET_PLAYER(pCity->getOwner()).AI_unitValue(eUnit, (UnitAITypes)iUnitAI, pCity->area());
+				int iTempValue = GET_PLAYER(pCity->getOwnerINLINE()).AI_unitValue(eUnit, (UnitAITypes)iUnitAI, pCity->area());
 				if (iTempValue != 0)
 				{
 					CvWString szTempString;
@@ -15289,7 +15290,7 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 }
 
 
-void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal& deal, PlayerTypes ePlayerPerspective,
+void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal const& deal, PlayerTypes ePlayerPerspective,
 		bool bCancel) // advc.004w
 {
 	PlayerTypes ePlayer1 = deal.getFirstPlayer();
@@ -17838,7 +17839,7 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 
 	CvCity* pCity = kActivePlayer.getCity(pTriggeredData->m_iCityId);
 	CvCity* pOtherPlayerCity = NULL;
-	CvPlot* pPlot = GC.getMapINLINE().plot(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
 	CvUnit* pUnit = kActivePlayer.getUnit(pTriggeredData->m_iUnitId);
 
 	if (NO_PLAYER != pTriggeredData->m_eOtherPlayer)
@@ -19159,7 +19160,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			// K-Mod end
 
 			// Distance mod
-			int iDistance = GC.getMap().maxPlotDistance();
+			int iDistance = GC.getMapINLINE().maxPlotDistance();
 
 			CvCity* pOurCapital = kPlayer.getCapitalCity();
 			if (NULL != pOurCapital)
@@ -19906,7 +19907,7 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 		if (g.isMPOption(MPOPTION_TURN_TIMER))
 		{
 			// Get number of turn slices remaining until end-of-turn
-			int iTurnSlicesRemaining = g.turnSlicesRemaining();
+			int iTurnSlicesRemaining = g.getTurnSlicesRemaining();
 
 			if (iTurnSlicesRemaining > 0)
 			{

@@ -157,8 +157,11 @@ public:
 
 	DllExport void reviveActivePlayer();																		// Exposed to Python
 	DllExport int getNumHumanPlayers();													// Exposed to Python
-	DllExport int getGameTurn();																						// Exposed to Python
-	int gameTurn() const; // advc.003: const replacement for getGameTurn
+	DllExport int getGameTurn() 																		// Exposed to Python
+	// <advc.003> Need a const version
+	{	CvGame const& kThis = *this;
+		return kThis.getGameTurn();
+	} int getGameTurn() const; // </advc.003>
 	void setGameTurn(int iNewValue);															// Exposed to Python
 	void incrementGameTurn();
 	// <advc.003> const
@@ -196,10 +199,12 @@ public:
 	int getCutoffSlice() const;
 	void setCutoffSlice(int iNewValue);
 	void changeCutoffSlice(int iChange);
-
-	DllExport int getTurnSlicesRemaining();
-	// advc.003: const replacement
-	inline int turnSlicesRemaining() const { return getCutoffSlice() - getTurnSlice(); };
+	int getTurnSlicesRemaining()
+	// <advc.003> Need a const version
+	{	CvGame const& kThis = *this;
+		return kThis.getTurnSlicesRemaining();
+	} inline int getTurnSlicesRemaining() const { return getCutoffSlice() - getTurnSlice(); };
+	// </advc.003>
 	void resetTurnTimer();
 	void incrementTurnTimer(int iNumTurnSlices);
 	int getMaxTurnLen();
@@ -344,7 +349,7 @@ public:
 		Exported isAITurn to Python for that reason, though I'm actually
 		suppressing the Python event through CvGame::update now, so the
 		Python export is currently unused. */
-	bool isAITurn() const; // Exported to Python
+	bool isAITurn() const; // Exposed to Python
 	void setAITurn(bool b);
 	// </advc.106b>
 
@@ -470,25 +475,29 @@ public:
 	void setName(const TCHAR* szName);
 
 	// Script data needs to be a narrow string for pickling in Python
-	std::string getScriptData() const;																										// Exposed to Python	
-	void setScriptData(std::string szNewValue);																						// Exposed to Python	
-																																												
-	bool isDestroyedCityName(CvWString& szName) const;													
-	void addDestroyedCityName(const CvWString& szName);													
-																																												
-	bool isGreatPersonBorn(CvWString& szName) const;													
-	void addGreatPersonBornName(const CvWString& szName);													
+	std::string getScriptData() const;																										// Exposed to Python
+	void setScriptData(std::string szNewValue);																						// Exposed to Python
 
-	DllExport int getIndexAfterLastDeal();																								// Exposed to Python	
-	int getNumDeals();																													// Exposed to Python	
-	DllExport CvDeal* getDeal(int iID);																										// Exposed to Python	
-	// advc.003f: Inlined, but mainly I want a const version of the DLLExport above.
-	CvDeal* getDealINLINE(int iID) const { return m_deals.getAt(iID); }
-	CvDeal* addDeal();																													
-	void deleteDeal(int iID);																										
-	// iteration (advc.003: const)																																					
-	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const;													// Exposed to Python									
-	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const;														// Exposed to Python									
+	bool isDestroyedCityName(CvWString& szName) const;
+	void addDestroyedCityName(const CvWString& szName);
+
+	bool isGreatPersonBorn(CvWString& szName) const;
+	void addGreatPersonBornName(const CvWString& szName);
+
+	DllExport int getIndexAfterLastDeal();																								// Exposed to Python
+	int getNumDeals();																													// Exposed to Python
+	
+	DllExport CvDeal* getDeal(int iID)																			// Exposed to Python
+	// <advc.003> Need a const version
+	{	CvGame const& kThis = *this;
+		return const_cast<CvDeal*>(kThis.getDeal(iID));
+	} CvDeal const* getDeal(int iID) const { return m_deals.getAt(iID); } // </advc.003>
+
+	CvDeal* addDeal();
+	void deleteDeal(int iID);
+	// iteration (advc.003: const)
+	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const;													// Exposed to Python
+	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const;														// Exposed to Python
 	// <advc.072>
 	CvDeal* nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
 			TradeableItems eItemType, int iData = -1, bool bWidget = false);

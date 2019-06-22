@@ -69,9 +69,15 @@ public:
 	DllExport CLLNode<TradeData>* headSecondTradesNode() const;
 	const CLinkList<TradeData>* getSecondTrades() const;
 
-	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL);
+	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL)
+	// <advc.003> Need a const version
+	{
+		CvDeal const& kThis = *this;
+		return kThis.isCancelable();
+	} bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL) const;
+	// </advc.003>
 	bool isEverCancelable(PlayerTypes eByPlayer) const; // advc.130f
-	int turnsToCancel(PlayerTypes eByPlayer = NO_PLAYER);
+	int turnsToCancel(PlayerTypes eByPlayer = NO_PLAYER) /* advc.003: */ const;
 
 	static bool isAnnual(TradeableItems eItem);
 	DllExport static bool isDual(TradeableItems eItem, bool bExcludePeace = false);

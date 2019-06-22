@@ -1052,8 +1052,9 @@ class TerrainGenerator:
 		self.iDesertBottomPercent = max(0,int(100-iDesertPercent))
 		self.iPlainsTopPercent = 100
 		self.iPlainsBottomPercent = max(0,int(100-iDesertPercent-iPlainsPercent))
-		self.iMountainTopPercent = 75
-		self.iMountainBottomPercent = 60
+		# advc.003: Unused
+		#self.iMountainTopPercent = 75
+		#self.iMountainBottomPercent = 60
 
 		fSnowLatitude += self.gc.getClimateInfo(self.map.getClimate()).getSnowLatitudeChange()
 		fSnowLatitude = min(fSnowLatitude, 1.0)

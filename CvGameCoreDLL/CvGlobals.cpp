@@ -560,11 +560,6 @@ CvSetupData& CvGlobals::getSetupData()
 	return *m_setupData;
 }
 
-CvInitCore& CvGlobals::getInitCore()
-{
-	return *m_initCore;
-}
-
 CvInitCore& CvGlobals::getLoadedInitCore()
 {
 	return *m_loadedInitCore;
@@ -2679,11 +2674,6 @@ CvString const& CvGlobals::getCurrentXMLFile() const
 	return m_szCurrentXMLFile;
 }
 
-FVariableSystem* CvGlobals::getDefinesVarSystem()
-{
-	return m_VarSystem;
-}
-
 void CvGlobals::cacheGlobals()
 {
 	m_iEXTRA_YIELD = getDefineINT("EXTRA_YIELD"); // K-Mod
@@ -2885,7 +2875,7 @@ int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
 {
 	int iReturn = 0;
 
-	if( getDefinesVarSystemINLINE()->GetValue( szName, iReturn ) )
+	if( getDefinesVarSystem()->GetValue( szName, iReturn ) )
 	{
 		return iReturn;
 	}
@@ -2898,7 +2888,7 @@ int CvGlobals::getDefineINT( const char * szName ) const
 {
 	int iReturn = 0;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystemINLINE()->GetValue( szName, iReturn );
+			getDefinesVarSystem()->GetValue( szName, iReturn );
 	FAssert(bSuccess); // advc.003c
 	return iReturn;
 }
@@ -2907,7 +2897,7 @@ float CvGlobals::getDefineFLOAT( const char * szName ) const
 {
 	float fReturn = 0;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystemINLINE()->GetValue( szName, fReturn );
+			getDefinesVarSystem()->GetValue( szName, fReturn );
 	/*  advc.003c: The EXE queries CAMERA_MIN_DISTANCE during startup, which
 		fails but doesn't cause any problems. */
 	FAssert(bSuccess || std::strcmp("CAMERA_MIN_DISTANCE", szName) == 0);
@@ -2918,7 +2908,7 @@ const char * CvGlobals::getDefineSTRING( const char * szName ) const
 {
 	const char * szReturn = NULL;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystemINLINE()->GetValue( szName, szReturn );
+			getDefinesVarSystem()->GetValue( szName, szReturn );
 	FAssert(bSuccess); // advc.003c
 	return szReturn;
 }
@@ -3847,9 +3837,9 @@ int CvGlobals::getNumGlobeLayers() const { return NUM_GLOBE_LAYER_TYPES; }
 
 //
 // non-inline versions
-//
-CvMap& CvGlobals::getMap() { return *m_map; }
-CvGameAI& CvGlobals::getGame() { return *m_game; }
+// <advc.003f>
+CvMap& CvGlobals::getMapExternal() { return getMapINLINE(); }
+CvGameAI& CvGlobals::getGameExternal() { return getGameINLINE(); } // </advc.003f>
 CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
 
 int CvGlobals::getMaxCivPlayers() const

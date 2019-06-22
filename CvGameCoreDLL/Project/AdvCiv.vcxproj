@@ -281,6 +281,7 @@
   <ItemGroup>
     <None Include="..\FVariableSystem.inl" />
     <None Include="..\interfaceDirtyBits.inl" />
+    <None Include="CvGameCoreDLL.def" />
     <None Include="Makefile" />
     <None Include="Makefile.project" />
     <None Include="Makefile.settings" />

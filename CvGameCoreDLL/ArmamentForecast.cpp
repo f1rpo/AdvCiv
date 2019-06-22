@@ -596,7 +596,7 @@ CvArea* ArmamentForecast::getCapitalArea(PlayerTypes civId) const {
 	if(civId == NO_PLAYER)
 		civId = m.ourId();
 	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
-	return GC.getMap().getArea(capital->plot()->getArea());
+	return GC.getMapINLINE().getArea(capital->plot()->getArea());
 }
 
 AreaAITypes ArmamentForecast::getAreaAI(PlayerTypes civId) const {

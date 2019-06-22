@@ -1812,8 +1812,8 @@ bool CvPlot::canSeePlot(CvPlot *pPlot, TeamTypes eTeam, int iRange, DirectionTyp
 		return false;
 
 	//find displacement
-	int dx = pPlot->getX() - getX();
-	int dy = pPlot->getY() - getY();
+	int dx = pPlot->getX_INLINE() - getX_INLINE();
+	int dy = pPlot->getY_INLINE() - getY_INLINE();
 	CvMap const& m = GC.getMapINLINE();
 	dx = m.dxWrap(dx); //world wrap
 	dy = m.dyWrap(dy);
@@ -3425,7 +3425,7 @@ bool CvPlot::isCivUnitNearby(int iRadius) const {
 				CvUnit* pAnyUnit = pPlot->plotCheck(PUF_isVisible, BARBARIAN_PLAYER);
 				if(pAnyUnit == NULL)
 					continue;
-				if(pAnyUnit->getOwner() != BARBARIAN_PLAYER)
+				if(pAnyUnit->getOwnerINLINE() != BARBARIAN_PLAYER)
 					return true;
 			}
 		}
@@ -3443,20 +3443,20 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist,
 	CvMap const& m = GC.getMapINLINE();
 	// Process plots in a spiral pattern (for performance reasons)
 	for(int d = 1; d <= iMaxPlotDist; d++) {
-		int shortestDist = iMaxPlotDist + 1;
+		int iShortestDist = iMaxPlotDist + 1;
 		for(int dx = -d; dx <= d; dx++) {
 			for(int dy = -d; dy <= d; dy++) {
 				// Don't process plots repeatedly:
 				if(::abs(dx) < d && ::abs(dy) < d)
 					continue;
-				CvPlot* pPlot = m.plot(getX_INLINE() + dx, getY_INLINE() + dy);
+				CvPlot* pPlot = m.plotINLINE(getX_INLINE() + dx, getY_INLINE() + dy);
 				if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
 				if(p.isVisible(eObserver, false) || (bOnlyLand && p.isWater()) ||
 						(p.isOwned() && p.getOwnerINLINE() != BARBARIAN_PLAYER))
 					continue;
-				int plotDist = ::plotDistance(pPlot, this);
-				if(plotDist < shortestDist) {
-					shortestDist = plotDist;
+				int iPlotDist = ::plotDistance(pPlot, this);
+				if(iPlotDist < iShortestDist) {
+					iShortestDist = iPlotDist;
 					r = pPlot;
 				}
 			}
@@ -4108,13 +4108,13 @@ bool CvPlot::isImpassable() const
 }
 
 
-int CvPlot::getX() const
+int CvPlot::getXExternal() const
 {
 	return m_iX;
 }
 
 
-int CvPlot::getY() const
+int CvPlot::getYExternal() const
 {
 	return m_iY;
 }
@@ -4163,8 +4163,8 @@ int CvPlot::calculateLatitude() const
 int CvPlot::getFOWIndex() const
 {
 	CvMap const& m = GC.getMapINLINE(); // advc.003
-	return (((m.getGridHeight() - 1) - getY_INLINE()) *
-			m.getGridWidth() * LANDSCAPE_FOW_RESOLUTION * LANDSCAPE_FOW_RESOLUTION) +
+	return (((m.getGridHeightINLINE() - 1) - getY_INLINE()) *
+			m.getGridWidthINLINE() * LANDSCAPE_FOW_RESOLUTION * LANDSCAPE_FOW_RESOLUTION) +
 			(getX_INLINE() * LANDSCAPE_FOW_RESOLUTION);
 }
 
@@ -4797,7 +4797,7 @@ void CvPlot::setFlagDirty(bool bNewValue)
 }
 
 
-PlayerTypes CvPlot::getOwner() const
+PlayerTypes CvPlot::getOwnerExternal() const // advc.003f
 {
 	return getOwnerINLINE();
 }
@@ -4826,7 +4826,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		} // </advc.003>
 		/*  advc.101: Include pre-revolt owner in messages (sometimes not easy
 			to tell once the city has flipped, and in replays). */
-		const wchar* szOldOwnerDescr = GET_PLAYER(pOldCity->getOwner()).getCivilizationDescriptionKey();
+		const wchar* szOldOwnerDescr = GET_PLAYER(pOldCity->getOwnerINLINE()).getCivilizationDescriptionKey();
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_REVOLTED_JOINED", pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey(),
 				szOldOwnerDescr); // advc.101
 		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT,  ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
@@ -6654,7 +6654,7 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 		{
 			CyArgsList argsList;
 			argsList.add((int)eIndex);
-			argsList.add(getX()); argsList.add(getY());
+			argsList.add(getX_INLINE()); argsList.add(getY_INLINE());
 			gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &lResult);
 		}
 
@@ -7875,7 +7875,7 @@ void CvPlot::updateRiverSymbol(bool bForce, bool bAdjacent)
 			pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), affectedDirections[i]);
 			if (pAdjacentPlot != NULL)
 			{
-				gDLL->getEngineIFace()->ForceTreeOffsets(pAdjacentPlot->getX(), pAdjacentPlot->getY());
+				gDLL->getEngineIFace()->ForceTreeOffsets(pAdjacentPlot->getX_INLINE(), pAdjacentPlot->getY_INLINE());
 			}
 		}
 

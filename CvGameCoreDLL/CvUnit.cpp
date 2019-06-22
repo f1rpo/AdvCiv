@@ -161,7 +161,7 @@ void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOw
 		}
 	}
 
-	setGameTurnCreated(g.gameTurn());
+	setGameTurnCreated(g.getGameTurn());
 	g.incrementUnitCreatedCount(getUnitType());
 	g.incrementUnitClassCreatedCount((UnitClassTypes)m_pUnitInfo->getUnitClassType());
 	GET_TEAM(getTeam()).changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
@@ -593,8 +593,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 						szSound, // advc.004u
 						MESSAGE_TYPE_MAJOR_EVENT,
 						// <advc.004u> Indicate location on map
-						getButton(), eColor, bRev ? plot()->getX() : -1,
-						bRev ? plot()->getY() : -1, bRev, bRev);
+						getButton(), eColor, bRev ? plot()->getX_INLINE() : -1,
+						bRev ? plot()->getY_INLINE() : -1, bRev, bRev);
 						// </advc.004u>
 				}
 		}
@@ -818,7 +818,7 @@ void CvUnit::doTurn()
 // <advc.029>
 void CvUnit::doTurnPost() {
 
-	if(GC.getGameINLINE().gameTurn() > m_iLastReconTurn)
+	if(GC.getGameINLINE().getGameTurn() > m_iLastReconTurn)
 		setReconPlot(NULL);
 } // </advc.029>
 
@@ -2034,10 +2034,10 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const {
 	if(pCenter == NULL || !pCenter->isRevealed(TEAMID(getOwnerINLINE()), false) ||
 			(!atPlot(pCenter) && !canMoveInto(pCenter)) || !canFound(pCenter))
 		return;
-	ColorTypes eColor = (ColorTypes)GC.getPlayerColorInfo(GET_PLAYER(getOwner()).
+	ColorTypes eColor = (ColorTypes)GC.getPlayerColorInfo(GET_PLAYER(getOwnerINLINE()).
 			getPlayerColor()).getColorTypePrimary();
 	NiColorA const& color = GC.getColorInfo(eColor).getColor();
-	for(int i = 0; i < GC.getMapINLINE().numPlots(); i++) {
+	for(int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++) {
 		CvPlot const& kPlot = *GC.getMapINLINE().plotByIndexINLINE(i);
 		if(::plotDistance(pCenter, &kPlot) <= (iMode == 1 ? 1 : CITY_PLOTS_RADIUS)) {
 			gDLL->getEngineIFace()->fillAreaBorderPlot(kPlot.getX_INLINE(), kPlot.getY_INLINE(),
@@ -2986,12 +2986,11 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 	if (GC.getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK())
 	{
-		// Python Override
 		CyArgsList argsList;
-		argsList.add(getOwnerINLINE());	// Player ID
-		argsList.add(getID());	// Unit ID
-		argsList.add(pPlot->getX());	// Plot X
-		argsList.add(pPlot->getY());	// Plot Y
+		argsList.add(getOwnerINLINE());
+		argsList.add(getID());
+		argsList.add(pPlot->getX_INLINE());
+		argsList.add(pPlot->getY_INLINE());
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "unitCannotMoveInto", argsList.makeFunctionArgs(), &lResult);
 		if (lResult != 0)
@@ -5720,12 +5719,12 @@ bool CvUnit::destroy()
 				GET_PLAYER(getOwnerINLINE()).getCivilizationAdjective(), getNameKey());
 		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(),
 				false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO,
-				NULL, NO_COLOR, plot()->getX(), plot()->getY()); // advc.127b
+				NULL, NO_COLOR, plot()->getX_INLINE(), plot()->getY_INLINE()); // advc.127b
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_SPY_CAUGHT", getNameKey());
 		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
 				true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO,
-				NULL, NO_COLOR, plot()->getX(), plot()->getY()); // advc.127b
+				NULL, NO_COLOR, plot()->getX_INLINE(), plot()->getY_INLINE()); // advc.127b
 
 		if (plot()->isActiveVisible(false))
 		{
@@ -5984,8 +5983,8 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 		argsList.add(getOwnerINLINE());
 		argsList.add(getID());
 		argsList.add((int) eReligion);
-		argsList.add(pPlot->getX());
-		argsList.add(pPlot->getY());
+		argsList.add(pPlot->getX_INLINE());
+		argsList.add(pPlot->getY_INLINE());
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotSpreadReligion", argsList.makeFunctionArgs(), &lResult);
 		if (lResult > 0)
@@ -9594,7 +9593,7 @@ bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup
 		return false;
 	}
 	
-	if (pSelectionGroup->getOwnerINLINE() == NO_PLAYER)
+	if (pSelectionGroup->getOwner() == NO_PLAYER)
 	{
 		CvUnit* pHeadUnit = pSelectionGroup->getHeadUnit();
 
@@ -9608,7 +9607,7 @@ bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup
 	}
 	else
 	{
-		if (pSelectionGroup->getOwnerINLINE() != getOwnerINLINE())
+		if (pSelectionGroup->getOwner() != getOwnerINLINE())
 		{
 			return false;
 		}
@@ -9770,17 +9769,17 @@ void CvUnit::setHotKeyNumber(int iNewValue)
 	}
 }
 
-
-int CvUnit::getX() const
+// <advc.003f>
+int CvUnit::getXExternal() const
 {
-	return m_iX;
+	return getX_INLINE();
 }
 
 
-int CvUnit::getY() const
+int CvUnit::getYExternal() const
 {
-	return m_iY;
-}
+	return getY_INLINE();
+} // </advc.003f>
 
 
 void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool bCheckPlotVisible)
@@ -11371,10 +11370,11 @@ void CvUnit::collectBlockadeGold()
 }
 
 
-PlayerTypes CvUnit::getOwner() const
+PlayerTypes CvUnit::getOwnerExternal() const // advc.003f
 {
 	return getOwnerINLINE();
 }
+
 
 PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 {
@@ -11977,7 +11977,7 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	PromotionTypes ePrereq = (PromotionTypes)promotionInfo.getPrereqPromotion();
 	// Unit extra moves can currently only come from promotions
 	if(promotionInfo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
-			GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType()) > 0 &&
+			GET_PLAYER(getOwnerINLINE()).AI_unitImpassableCount(getUnitType()) > 0 &&
 			// Allow Morale
 			(ePrereq == NO_PROMOTION || !GC.getPromotionInfo(ePrereq).isLeader()))
 		return false; // </advc.124>
@@ -12773,7 +12773,7 @@ bool CvUnit::canRangeStrikeAt(const CvPlot* pPlot, int iX, int iY) const
 bool CvUnit::rangeStrike(int iX, int iY)
 {
 
-	CvPlot* pPlot = GC.getMapINLINE().plot(iX, iY);
+	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	if (pPlot == NULL) {
 		// advc.003: I don't think this should happen; assertion added.
 		FAssertMsg(pPlot != NULL, "Range strike off the map");
@@ -13425,11 +13425,11 @@ int CvUnit::getRenderPriority(UnitSubEntityTypes eUnitSubEntity, int iMeshGroupT
 {
 	if (eUnitSubEntity == UNIT_SUB_ENTITY_SIEGE_TOWER)
 	{
-		return (getOwner() * (GC.getNumUnitInfos() + 2) * UNIT_MAX_SUB_TYPES) + iMeshGroupType;
+		return (getOwnerINLINE() * (GC.getNumUnitInfos() + 2) * UNIT_MAX_SUB_TYPES) + iMeshGroupType;
 	}
 	else
 	{
-		return (getOwner() * (GC.getNumUnitInfos() + 2) * UNIT_MAX_SUB_TYPES) + m_eUnitType * UNIT_MAX_SUB_TYPES + iMeshGroupType;
+		return (getOwnerINLINE() * (GC.getNumUnitInfos() + 2) * UNIT_MAX_SUB_TYPES) + m_eUnitType * UNIT_MAX_SUB_TYPES + iMeshGroupType;
 	}
 }
 

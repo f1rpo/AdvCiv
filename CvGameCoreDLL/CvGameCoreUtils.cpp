@@ -163,7 +163,7 @@ void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r) {
 			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
 				continue;
 			// That's NULL if off the map
-			r[pos] = m.plot(r[0]->getX_INLINE() + dx, r[0]->getY_INLINE() + dy);
+			r[pos] = m.plotINLINE(r[0]->getX_INLINE() + dx, r[0]->getY_INLINE() + dy);
 			pos++;
 		}
 	}
@@ -1991,7 +1991,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				in continents w/o civ cities). */
 			CvUnit* pUnit = pToPlot->getUnitByIndex(0);
 			if(pUnit != NULL && !pUnit->isAnimal()) { // </advc.001>
-				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwnerINLINE()).
+				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).
 						AI_localDefenceStrength(pToPlot, NO_TEAM,
 						pSelectionGroup->getDomainType(), 0, true, false,
 						pSelectionGroup->isHuman());

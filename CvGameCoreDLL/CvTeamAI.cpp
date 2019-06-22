@@ -2142,7 +2142,7 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 		float techRatio = GET_PLAYER(getLeaderID()).getTechScore() /
 				((float)GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getTechScore() + 1);
 		CvGame const& g = GC.getGameINLINE();
-		float gameProgressFactor = (g.gameTurn() - g.getStartTurn()) /
+		float gameProgressFactor = (g.getGameTurn() - g.getStartTurn()) /
 				((float)g.getEstimateEndTurn() - g.getStartTurn());
 		gameProgressFactor = ::range(gameProgressFactor, 0.0f, 0.5f);
 		powerRatio = ::range(powerRatio, 1 - gameProgressFactor, 1 + gameProgressFactor);
@@ -2887,7 +2887,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 			double bound1 = (0.5 * getCurrentEra() + 1.5) * 0.75 * getNumCities();
 			double bound2 = (0.5 * getCurrentEra() + 1.5) * getNumCities();
 			if(iTheirAttackers < bound1 +
-					::hash(g.gameTurn()) * (bound2 - bound1))
+					::hash(g.getGameTurn()) * (bound2 - bound1))
 				return DENIAL_NEVER;
 			if(iSafePopulation / (getTotalPopulation() + 0.1) > 0.3)
 				return DENIAL_NEVER;
@@ -2947,7 +2947,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 		if (iVassalPower > 0.76*iAveragePower // K-Mod. (second condition already checked)
 				// <advc.112> Median condition; randomization when breaking free
 				|| (!isAtWar(eTeam) && iVassalPower > 0.76 * medianPow)) {
-			if(!isAVassal() || ::hash(g.gameTurn(),
+			if(!isAVassal() || ::hash(g.getGameTurn(),
 					getLeaderID()) < 0.1) // </advc.112>
 				return DENIAL_POWER_US;
 		}
@@ -3090,7 +3090,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 			std::max(10, getVassalPower()); // </advc.112>
 	double lossesThresh = GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR") / 100.0;
 	if(landRatio < 0.85 * lossesThresh || (landRatio < lossesThresh &&
-			::hash(g.gameTurn(), getLeaderID()) < 0.15))
+			::hash(g.getGameTurn(), getLeaderID()) < 0.15))
 		return DENIAL_POWER_YOUR_ENEMIES; // Denial type doesn't matter
 	// </advc.143> <advc.143b>
 	double nuked = 0;
@@ -6733,7 +6733,7 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea* pArea)
 	int iOtherTeamCities = 0;
 	/*  BETTER_BTS_AI_MOD, City AI, 01/15/09, jdog5000: START
 		(minor changes to BtS code) */
-	CvArea* pBiggestArea = GC.getMap().findBiggestArea(true);
+	CvArea* pBiggestArea = GC.getMapINLINE().findBiggestArea(true);
 	if (pBiggestArea == pArea)
 		return true;
 

@@ -1236,7 +1236,7 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 	}
 }
 
-bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason)
+bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason) const
 {	// <advc.001> Not really a bug, but you'd really expect this function to check this.
 	if(eByPlayer != NO_PLAYER && getFirstPlayer() != eByPlayer && getSecondPlayer() != eByPlayer)
 		return false; // </advc.001>
@@ -1261,13 +1261,13 @@ bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const {
 	return !isUncancelableVassalDeal(eByPlayer);
 } // </advc.130f>
 
-int CvDeal::turnsToCancel(PlayerTypes eByPlayer)
+int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 {	// <advc.034>
 	int len = GC.getPEACE_TREATY_LENGTH();
 	if(isDisengage())
 		len = std::min(GC.getDefineINT("DISENGAGE_LENGTH"), len);
 	return (getInitialGameTurn() + len - // </advc.034>
-			GC.getGameINLINE().gameTurn());
+			GC.getGameINLINE().getGameTurn());
 }
 
 // static

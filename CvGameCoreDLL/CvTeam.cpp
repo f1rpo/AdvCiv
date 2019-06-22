@@ -4171,8 +4171,8 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 	if(bShowMessage) {
 		FirstContactData fcData = *pData;
 		CvMap const& m = GC.getMapINLINE();
-		CvPlot const* pAt1 = m.plot(fcData.x1, fcData.y1);
-		CvPlot const* pAt2 = m.plot(fcData.x2, fcData.y2);
+		CvPlot const* pAt1 = m.plotINLINE(fcData.x1, fcData.y1);
+		CvPlot const* pAt2 = m.plotINLINE(fcData.x2, fcData.y2);
 		CvUnit const* pUnit1 = ::getUnit(fcData.u1);
 		CvUnit const* pUnit2 = ::getUnit(fcData.u2);
 		CvUnit const* pUnitMet = NULL;
@@ -6811,8 +6811,8 @@ bool CvTeam::isBonusRevealed(BonusTypes eBonus) const
 // <advc.108> Based on CvPlayer::initFreeUnits
 void CvTeam::revealSurroundingPlots(CvPlot const& kCenter, int iRange) const {
 
-	for(int i = 0; i < GC.getMapINLINE().numPlots(); i++) {
-		CvPlot& kPlot = *GC.getMapINLINE().plotByIndex(i);
+	for(int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++) {
+		CvPlot& kPlot = *GC.getMapINLINE().plotByIndexINLINE(i);
 		if(plotDistance(&kPlot, &kCenter) <= iRange)
 			kPlot.setRevealed(getID(), true, false, NO_TEAM, false);
 	}
