@@ -2,6 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "RFChapter.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 
 
 RFChapter::RFChapter() { reset(); }
@@ -102,7 +105,7 @@ void RFChapter::setCiv(PlayerTypes playerId) {
 
 void RFChapter::start() {
 
-	CvGame const& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	FAssert(startTurn == g.gameTurn());
 	/*  This shouldn't do anything currently. (I.e. chapters start exactly as
 		planned, but could change in a future version.) */
@@ -120,7 +123,7 @@ void RFChapter::score() {
 	if(isScored())
 		return;
 	breakdown.update();
-	scoreTimestamp = GC.getGame().getGameTurn();
+	scoreTimestamp = GC.getGameINLINE().gameTurn();
 }
 
 void RFChapter::setScored(int turn) {

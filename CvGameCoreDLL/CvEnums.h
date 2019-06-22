@@ -353,6 +353,7 @@ enum InterfaceDirtyBits // Exposed to Python
 	Domestic_Advisor_DIRTY_BIT,
 	Espionage_Advisor_DIRTY_BIT,
 	Advanced_Start_DIRTY_BIT,
+	Tech_Screen_DIRTY_BIT, // advc.068
 
 #ifdef _USRDLL
 	NUM_INTERFACE_DIRTY_BITS
@@ -555,7 +556,24 @@ enum WidgetTypes					// Exposed to Python
 	// K-Mod end
 	WIDGET_RF_CIV_CHOICE, // advc.706
 	WIDGET_LH_GLANCE, // advc.152
-
+	WIDGET_SHOW_REPLAY, // advc.106i
+	// BULL - Trade Denial - start
+	WIDGET_PEDIA_JUMP_TO_BONUS_TRADE,
+	WIDGET_PEDIA_JUMP_TO_TECH_TRADE,
+	// BULL - Trade Denial - end
+	WIDGET_TRADE_ROUTES, // BULL - Trade Hover - start
+	// BULL - Finance Advisor - start
+	WIDGET_HELP_FINANCE_DOMESTIC_TRADE,
+	WIDGET_HELP_FINANCE_FOREIGN_TRADE,
+	WIDGET_HELP_FINANCE_SPECIALISTS,
+	// BULL - Finance Advisor - end
+	WIDGET_LEADERHEAD_RELATIONS, // BULL - Leaderhead Relations
+	WIDGET_FOOD_MOD_HELP, // BULL - Food Rate Hover
+	// <advc.085>
+	WIDGET_EXPAND_SCORES,
+	WIDGET_POWER_RATIO,
+	WIDGET_GOLDEN_AGE,
+	WIDGET_ANARCHY, // </advc.085>
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
 #endif
@@ -601,7 +619,8 @@ enum ButtonPopupTypes			// Exposed to Python
 	BUTTONPOPUP_FOUND_RELIGION,
 	// <advc.706>
 	BUTTONPOPUP_RF_CHOOSECIV,
-	BUTTONPOPUP_RF_DEFEAT, // </advc.706>
+	BUTTONPOPUP_RF_DEFEAT,
+	BUTTONPOPUP_RF_RETIRE, // </advc.706>
 
 #ifdef _USRDLL
 	NUM_BUTTONPOPUP_TYPES
@@ -963,7 +982,11 @@ enum FontSymbols					// Exposed to Python
 	MAP_CHAR,
 	OCCUPATION_CHAR,
 	POWER_CHAR,
-
+	/*  <advc.002f> From BULL. Only using AIRPORT_CHAR so far, but need all of them
+		in order to be compatible with BULL's GameFont.tga */
+	CITIZEN_CHAR,
+	GREAT_GENERAL_CHAR,
+	AIRPORT_CHAR, // </advc.002f>
 #ifdef _USRDLL
 	MAX_NUM_SYMBOLS
 #endif
@@ -1101,6 +1124,7 @@ enum TaskTypes				// Exposed to Python
 	TASK_RALLY_PLOT,
 	TASK_CLEAR_RALLY_PLOT,
 	TASK_LIBERATE,
+	TASK_CEDE, // advc.122
 
 #ifdef _USRDLL
 	NUM_TASK_TYPES
@@ -1382,6 +1406,7 @@ enum ActivityTypes			// Exposed to Python
 	ACTIVITY_MISSION,
 	ACTIVITY_PATROL,
 	ACTIVITY_PLUNDER,
+	ACTIVITY_BOARDED, // advc.075
 
 #ifdef _USRDLL
 	NUM_ACTIVITY_TYPES
@@ -1456,6 +1481,8 @@ enum MissionTypes				// Exposed to Python
 	MISSION_DAMAGE,
 	MISSION_MULTI_SELECT,
 	MISSION_MULTI_DESELECT,
+
+	MISSION_SENTRY_HEAL, // advc.004l
 
 #ifdef _USRDLL
 	NUM_MISSION_TYPES
@@ -1869,9 +1896,11 @@ enum TradeableItems						// Exposed to Python
 	TRADE_PEACE_TREATY,
 
 #ifdef _USRDLL
-	NUM_BASIC_ITEMS,
-
-	TRADE_TECHNOLOGIES = NUM_BASIC_ITEMS,
+	/*NUM_BASIC_ITEMS,
+	TRADE_TECHNOLOGIES = NUM_BASIC_ITEMS,*/
+	// advc.003: Switch this so that TRADE_TECHNOLOGIES is shown in Visual Studio
+	TRADE_TECHNOLOGIES,
+	NUM_BASIC_ITEMS = TRADE_TECHNOLOGIES,
 #else
 	TRADE_TECHNOLOGIES,
 #endif
@@ -2553,6 +2582,7 @@ enum ActionSubTypes					// Exposed to Python
 #endif
 };
 
+// advc (caveat): Should add only to the end of this enum
 enum GameMessageTypes				// Exposed to Python
 {
 	GAMEMESSAGE_NETWORK_READY,
@@ -2649,7 +2679,9 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_LAUNCH_SPACESHIP,
 	GAMEMESSAGE_ADVANCED_START_ACTION,
 	GAMEMESSAGE_FOUND_RELIGION,
-	GAMEMESSAGE_MOD_NET_MESSAGE
+	GAMEMESSAGE_MOD_NET_MESSAGE,
+	GAMEMESSAGE_PUSH_MODIFIED_MISSION, // advc.011b
+	GAMEMESSAGE_FP_TEST, // advc.003g
 };
 
 enum PopupControlLayout		// Exposed to Python
@@ -2765,7 +2797,10 @@ enum GlobeLayerTypes
 	GLOBE_LAYER_CULTURE,
 
 #ifdef _USRDLL
-	NUM_GLOBE_LAYER_TYPES
+	NUM_GLOBE_LAYER_TYPES,
+	// <advc.004m>
+	NO_GLOBE_LAYER,
+	GLOBE_LAYER_UNKNOWN // </advc.004m>
 #endif
 };
 

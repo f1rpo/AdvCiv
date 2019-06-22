@@ -7,7 +7,7 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose, EmperorFool
-# see ReadMe for details
+# see ReadMe [advc: BUG help file] for details
 #
 
 from CvPythonExtensions import *
@@ -30,7 +30,7 @@ import SevoPediaImprovement
 import SevoPediaCivic
 import SevoPediaCivilization
 import SevoPediaLeader
-# import SevoPediaTrait
+import SevoPediaTrait # advc.004y: Restored
 import SevoPediaSpecialist
 import SevoPediaHistory
 import SevoPediaProject
@@ -74,13 +74,33 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.ITEM_LIST_ID	= "PediaMainItemList"
 		self.UPGRADES_GRAPH_ID	= "PediaMainUpgradesGraph"
 
-		self.X_SCREEN = 500
-		self.Y_SCREEN = 396
-		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
+		self.W_SCREEN = 1024
+		# <advc.004y>
+		self.bWideScreen = True
+		self.bFullScreen = True
+		if self.bFullScreen:
+			self.bWideScreen = True
+		self.HORIZONTAL_MARGIN = 30
+		# VERTICAL_MARGIN: Want the Advisor buttons to remain visible. BOTTOM_MARGIN could be 0, but I don't think asymmetrical margins look good.
+		self.TOP_MARGIN = 50
+		self.BOTTOM_MARGIN = 50
+		if self.bWideScreen:
+			self.W_SCREEN = max(self.W_SCREEN, self.getScreen().getXResolution() - 2 * self.HORIZONTAL_MARGIN)
+			if self.W_SCREEN <= 1024:
+				self.bWideScreen = False
+				self.bFullScreen = False
+		if self.bFullScreen:
+			self.H_SCREEN = max(self.H_SCREEN, self.getScreen().getYResolution() - self.BOTTOM_MARGIN - self.TOP_MARGIN)
+			if self.H_SCREEN <= 768:
+				self.bFullScreen = False
+		#self.X_SCREEN = 500 # now unused
+		#self.Y_SCREEN = 396 # unused to begin with
+		# </advc.004y>
 
 		self.H_PANEL = 55
-		self.BUTTON_SIZE = 64
+		# advc (tbd.): Increase these based on screen dimensions?
+		self.BUTTON_SIZE = 64 
 		self.BUTTON_COLUMNS = 9
 		self.ITEMS_MARGIN = 18
 		self.ITEMS_SEPARATION = 2
@@ -97,12 +117,21 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		self.X_CATEGORIES = 0
 		self.Y_CATEGORIES = (self.Y_TOP_PANEL + self.H_TOP_PANEL) - 4
-		self.W_CATEGORIES = 175
+		self.W_CATEGORIES = 182 # advc.002b: was 175
+		# <advc.004y>
+		if self.bWideScreen:
+			# Can't be much thinner than this or hover text will sometimes appear in the categories columns and sometimes (when the text box is too wide) in the items column
+			self.W_CATEGORIES = 230
+		# </advc.004y>
 		self.H_CATEGORIES = (self.Y_BOT_PANEL + 3) - self.Y_CATEGORIES
 
 		self.X_ITEMS = self.X_CATEGORIES + self.W_CATEGORIES + 2
 		self.Y_ITEMS = self.Y_CATEGORIES
 		self.W_ITEMS = 210
+		# <advc.004y>
+		if self.bWideScreen:
+			self.W_ITEMS = 230
+		# </advc.004y>
 		self.H_ITEMS = self.H_CATEGORIES
 
 		self.X_PEDIA_PAGE = self.X_ITEMS + self.W_ITEMS + 18
@@ -112,18 +141,21 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.W_PEDIA_PAGE = self.R_PEDIA_PAGE - self.X_PEDIA_PAGE
 		self.H_PEDIA_PAGE = self.B_PEDIA_PAGE - self.Y_PEDIA_PAGE
 
-		self.X_TITLE = self.X_SCREEN
+		self.X_TITLE = (self.W_SCREEN - 24) // 2 # advc.004y: was 500
 		self.Y_TITLE = 8
-		self.X_TOC = 75
-		self.Y_TOC = 730
-		self.X_INDEX = 210
-		self.Y_INDEX = 730
-		self.X_BACK = 510
-		self.Y_BACK = 730
-		self.X_NEXT = 645
-		self.Y_NEXT = 730
-		self.X_EXIT = 994
-		self.Y_EXIT = 730
+		# <advc.004y>
+		self.X_TOC = 45 # was 75
+		Y_FOOTER_CONTROLS = self.Y_BOT_PANEL + 16 # was 730
+		# </advc.004y>
+		self.Y_TOC = Y_FOOTER_CONTROLS
+		self.X_INDEX = self.X_TOC + 135 # advc.004y: was 210
+		self.Y_INDEX = Y_FOOTER_CONTROLS
+		self.X_BACK = (self.W_SCREEN - 4) // 2 # advc.004y: was 510
+		self.Y_BACK = Y_FOOTER_CONTROLS
+		self.X_NEXT = 133 + (self.W_SCREEN // 2) # advc.004y: was 645
+		self.Y_NEXT = Y_FOOTER_CONTROLS
+		self.X_EXIT = self.W_SCREEN - 30 # advc.004y: was 994
+		self.Y_EXIT = Y_FOOTER_CONTROLS
 
 		self.tab = None
 		self.iActivePlayer = -1
@@ -155,7 +187,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			SevoScreenEnums.PEDIA_IMPROVEMENTS	: self.placeImprovements,
 			SevoScreenEnums.PEDIA_CIVS		: self.placeCivs,
 			SevoScreenEnums.PEDIA_LEADERS		: self.placeLeaders,
-			# SevoScreenEnums.PEDIA_TRAITS		: self.placeTraits,
+			# advc.004y: Restored
+			SevoScreenEnums.PEDIA_TRAITS		: self.placeTraits,
 			SevoScreenEnums.PEDIA_CIVICS		: self.placeCivics,
 			SevoScreenEnums.PEDIA_RELIGIONS		: self.placeReligions,
 			SevoScreenEnums.PEDIA_CORPORATIONS	: self.placeCorporations,
@@ -185,7 +218,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			SevoScreenEnums.PEDIA_IMPROVEMENTS	: SevoPediaImprovement.SevoPediaImprovement(self),
 			SevoScreenEnums.PEDIA_CIVS		: SevoPediaCivilization.SevoPediaCivilization(self),
 			SevoScreenEnums.PEDIA_LEADERS		: self.pediaLeader,
-			# SevoScreenEnums.PEDIA_TRAITS		: SevoPediaTrait.SevoPediaTrait(self),
+			# advc.004y: Restored
+			SevoScreenEnums.PEDIA_TRAITS		: SevoPediaTrait.SevoPediaTrait(self),
 			SevoScreenEnums.PEDIA_CIVICS		: SevoPediaCivic.SevoPediaCivic(self),
 			SevoScreenEnums.PEDIA_RELIGIONS		: SevoPediaReligion.SevoPediaReligion(self),
 			SevoScreenEnums.PEDIA_CORPORATIONS	: SevoPediaCorporation.SevoPediaCorporation(self),
@@ -276,7 +310,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 	def determineNewConceptSubCategory(self, iItem):
 		info = gc.getNewConceptInfo(iItem)
-		BugUtil.debug("NewConcept itme %d is %s" % (iItem, info.getDescription()))
+		BugUtil.debug("NewConcept item %d is %s" % (iItem, info.getDescription()))
 		if (self.isTraitInfo(info)):
 			return SevoScreenEnums.PEDIA_TRAITS
 		if (self.isShortcutInfo(info)):
@@ -320,7 +354,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.tab = self.TAB_INDEX
 	
 	def setPediaCommonWidgets(self):
-		self.HEAD_TEXT = u"<font=4b>" + localText.getText("TXT_KEY_SEVOPEDIA_TITLE",      ())         + u"</font>"
+		# advc.004y: was TXT_KEY_SEVOPEDIA_TITLE
+		self.HEAD_TEXT = u"<font=4b>" + localText.getText("TXT_KEY_CIVILOPEDIA_TITLE",      ())         + u"</font>"
 		self.BACK_TEXT = u"<font=4>"  + localText.getText("TXT_KEY_PEDIA_SCREEN_BACK",    ()).upper() + u"</font>"
 		self.NEXT_TEXT = u"<font=4>"  + localText.getText("TXT_KEY_PEDIA_SCREEN_FORWARD", ()).upper() + u"</font>"
 		self.EXIT_TEXT = u"<font=4>"  + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT",    ()).upper() + u"</font>"
@@ -348,7 +383,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.szCategoryImprovements	= localText.getText("TXT_KEY_PEDIA_CATEGORY_IMPROVEMENT", ())
 		self.szCategoryCivs			= localText.getText("TXT_KEY_PEDIA_CATEGORY_CIV", ())
 		self.szCategoryLeaders		= localText.getText("TXT_KEY_PEDIA_CATEGORY_LEADER", ())
-		# self.szCategoryTraits		= localText.getText("TXT_KEY_PEDIA_TRAITS", ())
+		# advc.004y: Restored
+		self.szCategoryTraits		= localText.getText("TXT_KEY_PEDIA_TRAITS", ())
 		self.szCategoryCivics		= localText.getText("TXT_KEY_PEDIA_CATEGORY_CIVIC", ())
 		self.szCategoryReligions	= localText.getText("TXT_KEY_PEDIA_CATEGORY_RELIGION", ())
 		self.szCategoryCorporations	= localText.getText("TXT_KEY_CONCEPT_CORPORATIONS", ())
@@ -375,14 +411,15 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			["TERRAINS",	self.szCategoryImprovements],
 			["CIVS",	self.szCategoryCivs],
 			["CIVS",	self.szCategoryLeaders],
-			# ["CIVS",	self.szCategoryTraits],
+			# advc.004y: Restored (comment this out to remove traits)
+			["CIVS",	self.szCategoryTraits],
 			["CIVICS",	self.szCategoryCivics],
 			["CIVICS",	self.szCategoryReligions],
 			["CIVICS",	self.szCategoryCorporations],
 			["HINTS",	self.szCategoryConcepts],
 			["HINTS",	self.szCategoryConceptsNew],
 			["HINTS",	self.szCategoryHints],
-			# ["HINTS",	self.szCategoryShortcuts],
+			["HINTS",	self.szCategoryShortcuts], # advc.004y: Restored
 			]
 
 		self.categoryGraphics = {
@@ -405,7 +442,15 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo(self.INTERFACE_ART_INFO).getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		screen.addPanel(self.TOP_PANEL_ID, u"", u"", True, False, self.X_TOP_PANEL, self.Y_TOP_PANEL, self.W_TOP_PANEL, self.H_TOP_PANEL, PanelStyles.PANEL_STYLE_TOPBAR)
 		screen.addPanel(self.BOT_PANEL_ID, u"", u"", True, False, self.X_BOT_PANEL, self.Y_BOT_PANEL, self.W_BOT_PANEL, self.H_BOT_PANEL, PanelStyles.PANEL_STYLE_BOTTOMBAR)
-		screen.setDimensions(screen.centerX(0), screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
+		# <advc.004y>
+		X_SCREEN = self.HORIZONTAL_MARGIN
+		Y_SCREEN = self.BOTTOM_MARGIN
+		if not self.bWideScreen:
+			X_SCREEN = screen.centerX(0)
+		if not self.bFullScreen:
+			Y_SCREEN = screen.centerY(0)
+		# </advc.004y>
+		screen.setDimensions(X_SCREEN, Y_SCREEN, self.W_SCREEN, self.H_SCREEN)
 
 		screen.setText(self.HEAD_ID, "Background", self.HEAD_TEXT, CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL,      -1, -1)
 		screen.setText(self.BACK_ID, "Background", self.BACK_TEXT, CvUtil.FONT_LEFT_JUSTIFY,   self.X_BACK,  self.Y_BACK,  0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_PEDIA_BACK,    1, -1)
@@ -422,7 +467,14 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		screen.clearListBoxGFC(self.CATEGORY_LIST_ID)
 		for i, category in enumerate(self.categoryList):
 			graphic = self.categoryGraphics[category[0]]
-			screen.appendListBoxStringNoUpdate(self.CATEGORY_LIST_ID, graphic + category[1], WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MAIN + i + 1, 0, CvUtil.FONT_LEFT_JUSTIFY)
+			# <advc.002b> Prepend graphic only if there is room
+			szHeading = category[1]
+			iThresh = 16 # For English, 16 happens to be OK.
+			if gc.getGame().getCurrentLanguage() != 0:
+				iThresh = 15
+			if len(szHeading) <= iThresh:
+				szHeading = graphic + szHeading # </advc.002b>
+			screen.appendListBoxStringNoUpdate(self.CATEGORY_LIST_ID, szHeading, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MAIN + i + 1, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.updateListBox(self.CATEGORY_LIST_ID)
 
 
@@ -699,16 +751,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		i = 0
 		for item in self.list:
-			if (info == gc.getConceptInfo):
+			if info == gc.getConceptInfo:
 				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT
 				data2 = item[1]
-			elif (info == self.getNewConceptInfo):
-				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
-				data2 = item[1]
-			elif (info == self.getShortcutInfo):
-				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
-				data2 = item[1]
-			elif (info == self.getTraitInfo):
+			elif info == self.getNewConceptInfo or info == self.getShortcutInfo or info == self.getTraitInfo: # advc.003
 				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
 				data2 = item[1]
 			else:
@@ -877,7 +923,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		list = []
 		for i in range(numInfos):
 			item = getInfo(i)
-			if item:
+			# advc.004y: GraphicalOnly check added
+			if item and not item.isGraphicalOnly():
 				list.append((item.getDescription(), i))
 		if self.isSortLists() and not noSort:
 			list.sort()

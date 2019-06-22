@@ -24,51 +24,73 @@
 					get="isShowEra" set="setShowEra" dirtyBit="GameData" 
 					label="Display Era" 
 					help="When checked, the current era is displayed to the left of the research bar."/>
+			
+			<!-- advc.002k: New option. No need for a dirty-bit; the time
+				 display is constantly updated (I guess in case a clock is
+				 activated) -->
+			<list id="YearNotation" key="Year Notation" 
+					type="int" default="0" listType="string" 
+					values="AD Prefix|AD Postfix|Common Era" 
+					get="getYearNotation">
+				<choice id="ADPrefix" get="isADPrefix"/>
+				<choice id="ADPostfix" get="isADPostfix"/>
+				<choice id="CommonEra" get="isCommonEra"/>
+			</list>
+					
+			<!-- advc.067: New option -->
+			<option id="ShowGameEra" key="Show Game Era" 
+					type="boolean" default="False" 
+					get="isShowGameEra" dirtyBit="GameData"/>
+					
 			<option id="ShowEraColor" key="Show Reflect Era In Turn Color" 
 					type="boolean" default="False" 
 					get="isUseEraColor" set="setUseEraColor" dirtyBit="GameData" 
 					label="Use Era-Related Colors" 
 					help="When checked, the game date and era are displayed using a color for each era."/>
-			
+			<!-- advc.068: Tech_Screen added to dirty-bits. Colors changed;
+				 were RED, YELLOW, GREEN, CYAN, BLUE (too difficult to read
+				 on the blue interface), MAGENTA, WHITE.
+				 YIELD_FOOD is an orange; see init.xml. -->
 			<list   id="Color_ERA_ANCIENT" key="ERA_ANCIENT" 
-					type="color" default="COLOR_RED" 
-					get="getAncientEraColor" set="setAncientEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_YIELD_FOOD" 
+					get="getAncientEraColor" set="setAncientEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Ancient Era" 
 					help="Color to use for the Ancient era."/>
 			<list   id="Color_ERA_CLASSICAL" key="ERA_CLASSICAL" 
-					type="color" default="COLOR_YELLOW" 
-					get="getClassicalEraColor" set="setClassicalEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_HIGHLIGHT_TEXT" 
+					get="getClassicalEraColor" set="setClassicalEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Classical Era" 
 					help="Color to use for the Classical era."/>
 			<list   id="Color_ERA_MEDIEVAL" key="ERA_MEDIEVAL" 
-					type="color" default="COLOR_GREEN" 
-					get="getMedievalEraColor" set="setMedievalEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_UNIT_TEXT" 
+					get="getMedievalEraColor" set="setMedievalEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Medieval Era" 
 					help="Color to use for the Medieval era."/>
 			<list   id="Color_ERA_RENAISSANCE" key="ERA_RENAISSANCE" 
-					type="color" default="COLOR_CYAN" 
-					get="getRenaissanceEraColor" set="setRenaissanceEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_GREEN" 
+					get="getRenaissanceEraColor" set="setRenaissanceEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Renaissance Era" 
 					help="Color to use for the Renaissance era."/>
 			<list   id="Color_ERA_INDUSTRIAL" key="ERA_INDUSTRIAL" 
-					type="color" default="COLOR_BLUE" 
-					get="getIndustrialEraColor" set="setIndustrialEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_WARNING_TEXT" 
+					get="getIndustrialEraColor" set="setIndustrialEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Industrial Era" 
 					help="Color to use for the Industrial era."/>
 			<list   id="Color_ERA_MODERN" key="ERA_MODERN" 
-					type="color" default="COLOR_MAGENTA" 
-					get="getModernEraColor" set="setModernEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_BUILDING_TEXT" 
+					get="getModernEraColor" set="setModernEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Modern Era" 
 					help="Color to use for the Modern era."/>
 			<list   id="Color_ERA_FUTURE" key="ERA_FUTURE" 
-					type="color" default="COLOR_WHITE" 
-					get="getFutureEraColor" set="getFutureEraColor" dirtyBit="GameData" 
+					type="color" default="COLOR_MAGENTA" 
+					get="getFutureEraColor" set="getFutureEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Future Era" 
 					help="Color to use for the Future era."/>
 			<accessor get="getEraColor" set="setEraColor" args="era" id="Color_%s"/>
 			
+			<!-- advc.067: default was True -->
 			<option id="ShowTime" key="Show Game Clock" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isShowTime" set="setShowTime" dirtyBit="GameData" 
 					label="Clock" 
 					help="When checked, the real time is displayed."/>
@@ -77,34 +99,46 @@
 					get="isShowGameTurn" set="setShowGameTurn" dirtyBit="GameData" 
 					label="Completed Turns" 
 					help="When checked, the number of turns completed is displayed."/>
+			<!-- advc.067: default was False -->
 			<option id="ShowTotalTurns" key="Show Game Total Turns" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowTotalTurns" set="setShowTotalTurns" dirtyBit="GameData" 
 					label="Total Turns" 
 					help="When checked, the total turns in the game is displayed if Time Victory is enabled."/>
-			<option id="ShowCompletedPercent" key="Show Game Completed Percent" 
+			<!-- advc.067: removed -->
+			<!--option id="ShowCompletedPercent" key="Show Game Completed Percent" 
 					type="boolean" default="False" 
 					get="isShowPercentComplete" set="setShowPercentComplete" dirtyBit="GameData" 
 					label="Completed Percentage" 
-					help="When checked, the completed percentage is displayed if Time Victory is enabled."/>
+					help="When checked, the completed percentage is displayed if Time Victory is enabled."/-->
 			<option id="ShowDate" key="Show Turns" 
 					type="boolean" default="True" 
 					get="isShowDateGA" set="setShowDateGA" dirtyBit="GameData" 
 					label="Game Date and Golden Age Turns" 
 					help="When checked, the in-game date and turns left in a Golden Age are displayed."/>
-			
+
+			<!-- advc.067: default was False -->
 			<option id="AlternateText" key="Alternate Views" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isAlternateTimeText" set="setAlternateTimeText" dirtyBit="GameData" 
 					label="Alternate Game Clock" 
 					help="When checked, the game clock switches between two views: standard and alternate."/>
-			<list   id="AltTiming" key="Alternating Time" 
+			
+			<!-- advc.067: New setting -->
+			<list   id="PrimaryTiming" key="Primary Time" 
 					type="int" default="5" 
-					values="1, 2, 5, 10, 15, 30, 45, 60, 300, 600"
+					values="1, 2, 3, 5, 10, 60, 300, 600"
+					get="getPrimaryPeriod" dirtyBit="GameData"/>
+			<!-- advc.067: Added 3; removed 45; 60, 300, 600 now covered by
+				 PrimaryTiming.
+				 default was 5. -->
+			<list   id="AltTiming" key="Alternating Time" 
+					type="int" default="3" 
+					values="1, 2, 3, 5, 10, 15, 30"
 					get="getAlternatePeriod" set="setAlternatePeriod" dirtyBit="GameData" 
 					label="Period (in seconds)" 
 					help="Select the time each view of the game clock is displayed when alternating is enabled."/>
-			
+					
 			<option id="ShowAltTime" key="Alternate Show Game Clock" 
 					type="boolean" default="True" 
 					get="isShowAltTime" set="setShowAltTime" dirtyBit="GameData" 
@@ -115,16 +149,18 @@
 					get="isShowAltGameTurn" set="setShowAltGameTurn" dirtyBit="GameData" 
 					label="Completed Turns" 
 					help="When checked, the number of turns completed is displayed."/>
+			<!-- advc.067: default was False -->
 			<option id="ShowAltTotalTurns" key="Alternate Show Game Total Turns" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowAltTotalTurns" set="setShowAltTotalTurns" dirtyBit="GameData" 
 					label="Total Turns" 
 					help="When checked, the total turns in the game is displayed if Time Victory is enabled."/>
-			<option id="ShowAltCompletedPercent" key="Alternate Show Game Completed Percent" 
+			<!-- advc.067: removed -->
+			<!--option id="ShowAltCompletedPercent" key="Alternate Show Game Completed Percent" 
 					type="boolean" default="True" 
 					get="isShowAltPercentComplete" set="setShowAltPercentComplete" dirtyBit="GameData" 
 					label="Completed Percentage" 
-					help="When checked, the completed percentage is displayed if Time Victory is enabled."/>
+					help="When checked, the completed percentage is displayed if Time Victory is enabled."/-->
 			<option id="ShowAltDate" key="Alternate Show Turns" 
 					type="boolean" default="True" 
 					get="isShowAltDateGA" set="setShowAltDateGA" dirtyBit="GameData" 

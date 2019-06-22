@@ -3,12 +3,14 @@
 #ifndef INVASION_GRAPH_H
 #define INVASION_GRAPH_H
 
-#include "MilitaryAnalyst.h"
 #include "MilitaryBranch.h"
+#include "WarAndPeaceCache.h"
+#include "WarAndPeaceReport.h"
 #include <set>
 
 class MilitaryAnalyst;
 class SimulationStep;
+class CvArea;
 
 /* <advc.104>: New class. The invasion graph says who tries to invade whom.
    It's an analysis from the perspective of one civ ("we", the owner of
@@ -94,7 +96,6 @@ friend class Node;
 		 void clash(double armyPortion1, double armyPortion2);
 		 // For iterating over connected components
 		  bool isComponentDone() const;
-		  void setComponentDone(bool b);
 		 // Once simulation is finished:
 		  // Lost power minus shifted power
 		  double getLostPower(MilitaryBranchTypes mb) const;

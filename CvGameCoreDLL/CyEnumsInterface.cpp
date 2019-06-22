@@ -216,6 +216,8 @@ void CyEnumsPythonInterface()
 		.value("Domestic_Advisor_DIRTY_BIT", Domestic_Advisor_DIRTY_BIT)
 		.value("Espionage_Advisor_DIRTY_BIT", Espionage_Advisor_DIRTY_BIT)
 		.value("Advanced_Start_DIRTY_BIT", Advanced_Start_DIRTY_BIT)
+		// advc.068:
+		.value("Tech_Screen_DIRTY_BIT", Tech_Screen_DIRTY_BIT)
 		.value("NUM_INTERFACE_DIRTY_BITS", NUM_INTERFACE_DIRTY_BITS)
 		;
 
@@ -401,12 +403,30 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE", WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE)
 		// K-Mod end
 		.value("WIDGET_LH_GLANCE", WIDGET_LH_GLANCE) // advc.152
+		.value("WIDGET_SHOW_REPLAY", WIDGET_SHOW_REPLAY) // advc.106i
+		// BULL - Trade Denial - start
+		.value("WIDGET_PEDIA_JUMP_TO_BONUS_TRADE", WIDGET_PEDIA_JUMP_TO_BONUS_TRADE)
+		.value("WIDGET_PEDIA_JUMP_TO_TECH_TRADE", WIDGET_PEDIA_JUMP_TO_TECH_TRADE)
+		// BULL - Trade Denial - end
+		.value("WIDGET_TRADE_ROUTES", WIDGET_TRADE_ROUTES) // BULL - Trade Hover - start
+		// BULL - Finance Advisor - start
+		.value("WIDGET_HELP_FINANCE_DOMESTIC_TRADE", WIDGET_HELP_FINANCE_DOMESTIC_TRADE)
+		.value("WIDGET_HELP_FINANCE_FOREIGN_TRADE", WIDGET_HELP_FINANCE_FOREIGN_TRADE)
+		.value("WIDGET_HELP_FINANCE_SPECIALISTS", WIDGET_HELP_FINANCE_SPECIALISTS)
+		// BULL - Finance Advisor - end
+		// BULL - Leaderhead Relations:
+		.value("WIDGET_LEADERHEAD_RELATIONS", WIDGET_LEADERHEAD_RELATIONS)
+		// BULL - Food Rate Hover:
+		.value("WIDGET_FOOD_MOD_HELP", WIDGET_FOOD_MOD_HELP)
+		// <advc.085>
+		.value("WIDGET_EXPAND_SCORES", WIDGET_EXPAND_SCORES)
+		.value("WIDGET_POWER_RATIO", WIDGET_POWER_RATIO)
+		.value("WIDGET_GOLDEN_AGE", WIDGET_GOLDEN_AGE)
+		.value("WIDGET_ANARCHY", WIDGET_ANARCHY) // </advc.085>
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
-/*
-** K-Mod, 5/jan/11, karadoc
-** pollution flags
-*/
+	/*  K-Mod, 5/jan/11, karadoc
+		pollution flags */
 	python::enum_<int>("PollutionTypes")
 		.value("POLLUTION_POPULATION", POLLUTION_POPULATION)
 		.value("POLLUTION_BUILDINGS", POLLUTION_BUILDINGS)
@@ -415,9 +435,7 @@ void CyEnumsPythonInterface()
 
 		.value("POLLUTION_ALL", POLLUTION_ALL)
 		;
-/*
-** K-Mod end
-*/
+	// K-Mod end
 	python::enum_<ButtonPopupTypes>("ButtonPopupTypes")
 		.value("BUTTONPOPUP_TEXT", BUTTONPOPUP_TEXT)
 		.value("BUTTONPOPUP_MAIN_MENU", BUTTONPOPUP_MAIN_MENU)
@@ -693,6 +711,11 @@ void CyEnumsPythonInterface()
 		.value("MAP_CHAR", MAP_CHAR)
 		.value("OCCUPATION_CHAR", OCCUPATION_CHAR)
 		.value("POWER_CHAR", POWER_CHAR)
+		// <advc.002f>
+		.value("CITIZEN_CHAR", CITIZEN_CHAR)
+		.value("GREAT_GENERAL_CHAR", GREAT_GENERAL_CHAR)
+		.value("AIRPORT_CHAR", AIRPORT_CHAR)
+		// </advc.002f>
 		.value("MAX_NUM_SYMBOLS", MAX_NUM_SYMBOLS)
 		;
 
@@ -791,6 +814,7 @@ void CyEnumsPythonInterface()
 		.value("TASK_RALLY_PLOT", TASK_RALLY_PLOT)
 		.value("TASK_CLEAR_RALLY_PLOT", TASK_CLEAR_RALLY_PLOT)
 		.value("TASK_LIBERATE", TASK_LIBERATE)
+		.value("TASK_CEDE", TASK_CEDE) // advc.122
 		.value("NUM_TASK_TYPES", NUM_TASK_TYPES)
 		;
 
@@ -993,6 +1017,7 @@ void CyEnumsPythonInterface()
 		.value("ACTIVITY_MISSION", ACTIVITY_MISSION)
 		.value("ACTIVITY_PATROL", ACTIVITY_PATROL)
 		.value("ACTIVITY_PLUNDER", ACTIVITY_PLUNDER)
+		.value("ACTIVITY_BOARDED", ACTIVITY_BOARDED) // advc.075
 		.value("NUM_ACTIVITY_TYPES", NUM_ACTIVITY_TYPES)
 		;
 
@@ -1054,6 +1079,7 @@ void CyEnumsPythonInterface()
 		.value("MISSION_DAMAGE", MISSION_DAMAGE )
 		.value("MISSION_MULTI_SELECT", MISSION_MULTI_SELECT )
 		.value("MISSION_MULTI_DESELECT", MISSION_MULTI_DESELECT )
+		.value("MISSION_SENTRY_HEAL", MISSION_SENTRY_HEAL) // advc.004l
 		.value("NUM_MISSION_TYPES", NUM_MISSION_TYPES )
 		;
 
@@ -1869,6 +1895,9 @@ void CyEnumsPythonInterface()
 		.value("GAMEMESSAGE_ADVANCED_START_ACTION", GAMEMESSAGE_ADVANCED_START_ACTION)
 		.value("GAMEMESSAGE_FOUND_RELIGION", GAMEMESSAGE_FOUND_RELIGION)
 		.value("GAMEMESSAGE_MOD_NET_MESSAGE", GAMEMESSAGE_MOD_NET_MESSAGE)
+		// advc.011b: Not sure if anything breaks if I don't add this here
+		.value("GAMEMESSAGE_PUSH_MODIFIED_MISSION", GAMEMESSAGE_PUSH_MISSION)
+		.value("GAMEMESSAGE_PUSH_FP_TEST", GAMEMESSAGE_PUSH_MISSION) // advc.003g
 		;
 
 	python::enum_<PopupControlLayout>("PopupControlLayout")
@@ -1959,4 +1988,15 @@ void CyEnumsPythonInterface()
 		.value("ADVANCEDSTARTACTION_VISIBILITY", ADVANCEDSTARTACTION_VISIBILITY)
 		.value("ADVANCEDSTARTACTION_AUTOMATE", ADVANCEDSTARTACTION_AUTOMATE)
 		;
+	// <advc.004m>
+	python::enum_<GlobeLayerTypes>("GlobeLayerTypes")
+		.value("GLOBE_LAYER_STRATEGY", GLOBE_LAYER_STRATEGY)
+		.value("GLOBE_LAYER_TRADE", GLOBE_LAYER_TRADE)
+		.value("GLOBE_LAYER_UNIT", GLOBE_LAYER_UNIT)
+		.value("GLOBE_LAYER_RESOURCE", GLOBE_LAYER_RESOURCE)
+		.value("GLOBE_LAYER_RELIGION", GLOBE_LAYER_RELIGION)
+		.value("GLOBE_LAYER_CULTURE", GLOBE_LAYER_CULTURE)
+		.value("NUM_GLOBE_LAYER_TYPES", NUM_GLOBE_LAYER_TYPES)
+		.value("NO_GLOBE_LAYER", NUM_GLOBE_LAYER_TYPES)
+		; // </advc.004m>
 }

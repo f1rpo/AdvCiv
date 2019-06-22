@@ -2,8 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
+#include "CvInfos.h"
+#include "CvGamePlay.h"
+#include "RiseFall.h" // advc.706
 #include "CvDLLInterfaceIFaceBase.h"
-
 #include <iterator>
 
 using std::set;
@@ -18,6 +20,7 @@ AdvCiv4lert::AdvCiv4lert() {
 	/*  Set this to true in a subclass constructor in order to test or debug a
 		particular alert through AI Auto Play */
 	isDebug = false;
+	ownerId = NO_PLAYER;
 }
 
 void AdvCiv4lert::init(PlayerTypes ownerId) {
@@ -26,7 +29,7 @@ void AdvCiv4lert::init(PlayerTypes ownerId) {
 	reset();
 }
 
-void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) const {
+void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId) const {
 
 	if(isSilent)
 		return;
@@ -38,24 +41,20 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) con
 			(autoPlayJustEnded && GC.getGameINLINE().isDebugMode())));
 	if(!force && (GET_PLAYER(ownerId).isHumanDisabled() || autoPlayJustEnded))
 		return; // </advc.127>
-	CvGame& g = GC.getGame();
+	// <advc.706>
+	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
-		return;
-	int color = GC.getInfoTypeForString("COLOR_WHITE");
-	if(goodOrBad > 0)
-		color = GC.getInfoTypeForString("COLOR_GREEN");
-	else if(goodOrBad < 0)
-		color = GC.getInfoTypeForString("COLOR_RED");
+		return; // </advc.706>
 	bool arrows = (icon != NULL);
 	gDLL->getInterfaceIFace()->addHumanMessage(ownerId, false,
 			GC.getEVENT_MESSAGE_TIME(), s, NULL,
 			force ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
-			icon, (ColorTypes)color, x, y, arrows, arrows);
+			icon, (ColorTypes)colorId, x, y, arrows, arrows);
 }
 
 void AdvCiv4lert::check(bool silent) {
 
-	if(!isDebug && !GET_PLAYER(ownerId).isHuman()) {
+	if(ownerId == NO_PLAYER || (!isDebug && !GET_PLAYER(ownerId).isHuman())) {
 		/*  Normally no need to check during Auto Play. Wouldn't hurt, except
 			that the checks aren't super fast. */
 		return;
@@ -70,7 +69,7 @@ void AdvCiv4lert::check(bool silent) {
 void AdvCiv4lert::reset() {}
 
 // <advc.210a>
-WarTradeAlert::WarTradeAlert() : AdvCiv4lert() {}
+WarTradeAlert::WarTradeAlert() : AdvCiv4lert() { reset(); }
 
 void WarTradeAlert::reset() {
 
@@ -132,7 +131,10 @@ void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
 	CvTeam const& warTeam = GET_TEAM(warTeamId);
 	CvWString text = gDLL->getText((bTrade ? "TXT_KEY_CIV4LERTS_TRADE_WAR" :
 			"TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR"),
-			warTeam.getName().GetCString()) + L" ";
+			warTeam.getName().GetCString());
+	if(victims.size() > 1)
+		text += L":";
+	text += L" ";
 	for(size_t i = 0; i < victims.size(); i++) {
 		text += GET_TEAM(victims[i]).getName();
 		if(i != victims.size() - 1)
@@ -140,7 +142,9 @@ void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
 		else text += L".";
 	}
 	AdvCiv4lert::msg(text, NULL,
-			warTeam.getCapitalX(), warTeam.getCapitalY()); // advc.127b
+			// <advc.127b>
+			warTeam.getCapitalX(TEAMID(ownerId)),
+			warTeam.getCapitalY(TEAMID(ownerId))); // </advc.127b>
 } // </advc.210a>
 
 // <advc.210b>
@@ -166,16 +170,15 @@ void RevoltAlert::check() {
 			/*  Report only change in revolt chance OR change in occupation status;
 				the latter takes precedence. */
 			if(!couldPreviouslyRevolt && wasOccupation == c->isOccupation()) {
-				// Copied this from CvDLLWidgetData::parseNationalityHelp
 				wchar szTempBuffer[1024];
-				swprintf(szTempBuffer, L"%.2f", (float)(100 * pr));
+				swprintf(szTempBuffer, L"%.1f", (float)(100 * pr));
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_REVOLT", c->getName().
 						GetCString(), szTempBuffer),
 						NULL // icon works, but is too distracting
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						// red text (-1) also too distracting
-						0);
+						c->getX_INLINE(), c->getY_INLINE());
+						// red text also too distracting
+						//(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 			}
 		}
 #if 0 // Disabled: Message when revolt chance becomes 0
@@ -186,8 +189,7 @@ void RevoltAlert::check() {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT", c->getName().
 						GetCString()), NULL
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						1); // Important and rare enough to be shown in green
+						c->getX_INLINE(), c->getY_INLINE());
 		}
 #endif
 		if(c->isOccupation())
@@ -196,10 +198,9 @@ void RevoltAlert::check() {
 			anyway when it asks for orders. */
 		else if(wasOccupation && c->getNumOrdersQueued() > 0) {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_CITY_PACIFIED_ADVC", c->getName().
-						GetCString()), NULL
-						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						0);
+						GetCString()), NULL,
+						//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
+						c->getX_INLINE(), c->getY_INLINE());
 			/*  Pretend that revolt chance is 0 after occupation ends, so that
 				a spearate alert is fired on the next turn if it's actually not 0. */
 			updatedRevolt.erase(c->plotNum());
@@ -226,8 +227,8 @@ void BonusThirdPartiesAlert::reset() {
 void BonusThirdPartiesAlert::check() {
 
 	multiset<int> updatedDeals[MAX_CIV_PLAYERS];
-	CvGame& g = GC.getGame(); int dummy=-1;
-	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+	CvGame& g = GC.getGameINLINE(); int foo=-1;
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 		// This alert ignores trades of ownerId
 		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)
 			continue;

@@ -1,7 +1,10 @@
 // <advc.700> New class; see header file for description.
 
-#include "RFChapterScore.h"
 #include "CvGameCoreDLL.h"
+#include "RFChapterScore.h"
+#include "RiseFall.h"
+#include "RFChapter.h"
+#include "CvGamePlay.h"
 
 
 RFChapterScore::RFChapterScore() {
@@ -77,7 +80,7 @@ void RFChapterScore::atChapterStart(RFChapter const& rfc) {
 	chapter = &rfc;
 	/*  Sometimes updated before the start of the first chapter anyway, but 
 		not guaranteed. */
-	GC.getGame().updateScore(true);
+	GC.getGameINLINE().updateScore(true);
 	std::pair<int,int> rank_rivals = computeRank(true);
 	initialRank = rank_rivals.first;
 	initialRivals = rank_rivals.second;
@@ -92,7 +95,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	}
 	double ourRank = 1;
 	int ourRivals = 0;
-	CvGame const& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	CvPlayerAI const& we = GET_PLAYER(chapter->getCiv());
 	bool weVassal = we.isAVassal();
 	int ourVictStage = g.getRiseFall().victoryStage(we.getID());
@@ -150,12 +153,12 @@ void RFChapterScore::update() {
 
 	if(chapter == NULL || initialRank <= 0)
 		return;
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(chapter->isScored()) { // Freeze data upon scoring
 		updateString();
 		return;
 	}
-	GC.getGame().updateScore(); // Necessary when update triggered by elimination
+	GC.getGameINLINE().updateScore(); // Necessary when update triggered by elimination
 	/*  Could apply victory stages only to initial ranks by calling
 		computeRank with ignoreVictStage=true here. */
 	rank = computeRank(false).first;

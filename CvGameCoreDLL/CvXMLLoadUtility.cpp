@@ -14,8 +14,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
-#include "CvGlobals.h"
-#include "FProfiler.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 static const int kBufSize = 2048;
@@ -63,7 +61,8 @@ void CvXMLLoadUtility::DestroyFXml()
 CvXMLLoadUtility::CvXMLLoadUtility() :
 m_iCurProgressStep(0),
 m_pCBFxn(NULL),
-m_pFXml(NULL)
+m_pFXml(NULL),
+m_bAssertMandatory(true) // advc.006b
 {
 	m_pSchemaCache = gDLL->getXMLIFace()->CreateFXmlSchemaCache();
 }
@@ -127,7 +126,8 @@ void CvXMLLoadUtility::ResetGlobalEffectInfo()
 //				mask value
 //
 //------------------------------------------------------------------------------------------------------
-void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
+// advc.003j: Unused (always was, apparently)
+/*void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
 {
 	int iLength = (int)strlen(szMask); // kmodx: compute strlen only once
 
@@ -277,7 +277,7 @@ void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
 			*puiMask += 15;
 		}
 	}
-}
+}*/
 
 //------------------------------------------------------------------------------------------------------
 //

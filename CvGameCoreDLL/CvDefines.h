@@ -3,11 +3,6 @@
 #ifndef CVDEFINES_H
 #define CVDEFINES_H
 
-// defines.h
-
-#define _USRDLL /* advc.make: Normally set by the makefile. However, then the
-                   Visual Studio editor can't find dozens of inlined functions,
-                   and puts a red line under each call to them. */
 
 // The following #defines should not be moddable...
 
@@ -18,18 +13,12 @@
 #define MOVE_DIRECT_ATTACK									(0x00000010)
 #define MOVE_THROUGH_ENEMY									(0x00000020)
 #define MOVE_MAX_MOVES										(0x00000040)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      01/01/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, General AI, 01/01/09, jdog5000: START
 // These two flags signal to weight the cost of moving through or adjacent to enemy territory higher
 // Used to reduce exposure to attack for approaching enemy cities
 #define MOVE_AVOID_ENEMY_WEIGHT_2							(0x00000080)
 #define MOVE_AVOID_ENEMY_WEIGHT_3							(0x00000100)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD: END
 #define MOVE_ATTACK_STACK									(0x00000200) // K-Mod.. allow the path to fight through enemy defences, but prefer not to.
 #define MOVE_SINGLE_ATTACK									(0x00000400) // K-Mod. only attack with one unit, not the whole stack
 #define MOVE_NO_ATTACK										(0x00000800) // K-Mod. used to prevent humans from accidentally attacking unseen units
@@ -37,19 +26,14 @@
 #define MOVE_ASSUME_VISIBLE									(0x00002000) // K-Mod. With this flag, the pathfinder will plan around enemy units even if they are not visible. (Note: AI units do this regardless of the flag.)
 #define MOVE_ROUTE_TO										(0x00004000) // advc.049
 
-/*
-** K-Mod, 18/dec/10, karadoc
-** global warming pollution flags for use in the CvPlayer::calculateGwPollution function
-*/
+/*  K-Mod, 18/dec/10, karadoc
+	global warming pollution flags for use in the CvPlayer::calculateGwPollution function */
 #define POLLUTION_POPULATION	1
 #define POLLUTION_BUILDINGS		2
 #define POLLUTION_BONUSES		4
 #define POLLUTION_POWER			8
 #define POLLUTION_ALL			15
-/*
-** K-Mod end
-*/
-
+// K-Mod end
 
 #define RANDPLOT_LAND													(0x00000001)
 #define RANDPLOT_UNOWNED											(0x00000002)
@@ -118,6 +102,8 @@
 #define DOUBLE_SEPARATOR													L"\n======================="
 // BUG - end
 #define TEXT_COLOR(szColor)										((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().r * 255)), ((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().g * 255)), ((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().b * 255)), ((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().a * 255))
+// advc.003:  (uses of this macro aren't tagged with "advc")
+#define PLAYER_TEXT_COLOR(kPlayer)								kPlayer.getPlayerTextColorR(), kPlayer.getPlayerTextColorG(), kPlayer.getPlayerTextColorB(), kPlayer.getPlayerTextColorA()
 
 // Version Verification files and folders
 #ifdef _DEBUG

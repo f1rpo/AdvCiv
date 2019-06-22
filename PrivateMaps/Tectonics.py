@@ -1,5 +1,5 @@
-# advc.021: Tectonics 3.16 with minor changes
-# replacing 3.15 (included with BtS)
+# advc.021a: Tectonics 3.16 with minor changes
+# replacing v3.15 (included with BtS)
 
 #-----------------------------------------------------------------------------
 #	Copyright (c) 2005-2008 Laurent Di Cesare
@@ -78,6 +78,23 @@ import Popup as PyPopup
 from CvMapGeneratorUtil import TerrainGenerator
 from CvMapGeneratorUtil import FeatureGenerator
 
+# <advc.165>
+def getGridSize(argsList):
+	[iWorldSize] = argsList
+	if iWorldSize < 0:
+		return ()
+	sizeModifiers = {
+		WorldSizeTypes.WORLDSIZE_DUEL:		(1, -1),
+		WorldSizeTypes.WORLDSIZE_TINY:		(0, -1),
+		WorldSizeTypes.WORLDSIZE_SMALL:		(0, -1),
+		WorldSizeTypes.WORLDSIZE_STANDARD:	(-1,-1),
+		WorldSizeTypes.WORLDSIZE_LARGE:		(-2, 0),
+		WorldSizeTypes.WORLDSIZE_HUGE:		(-1,-1)
+	}
+	wi = CyGlobalContext().getWorldInfo(iWorldSize)
+	return (sizeModifiers[iWorldSize][0] + wi.getGridWidth(), sizeModifiers[iWorldSize][1] + wi.getGridHeight())
+# </advc.165>
+
 def getDescription():
 	return "TXT_KEY_MAP_SCRIPT_TECTONICS_DESCR"
 
@@ -102,12 +119,12 @@ def getCustomMapOptionName(argsList):
 def getNumCustomMapOptionValues(argsList):
 	index = argsList[0]
 	if (index == 0):
-		return 9 # advc.021: was 8
+		return 9 # advc.021a: was 8
 	else:
 		return 4
 
 def getWrapX():
-	if (6 == CyMap().getCustomMapOption(0)): # advc.021: was 5==...
+	if (6 == CyMap().getCustomMapOption(0)): # advc.021a: was 5==...
 		return False
 	return True
 
@@ -115,11 +132,11 @@ def getWrapY():
 	return False
 
 def getTopLatitude():
-	if (6 == CyMap().getCustomMapOption(0)): # advc.021: was 5==...
+	if (6 == CyMap().getCustomMapOption(0)): # advc.021a: was 5==...
 		return 65
 	return 90
 def getBottomLatitude():
-	if (6 == CyMap().getCustomMapOption(0)): # advc.021: was 5==...
+	if (6 == CyMap().getCustomMapOption(0)): # advc.021a: was 5==...
 		return 25
 	return -90
 	
@@ -128,7 +145,7 @@ def getCustomMapOptionDescAt(argsList):
 	iSelection = argsList[1]
 	selection_names = ["TXT_KEY_MAP_SCRIPT_EARTH_70",
 	                   "TXT_KEY_MAP_SCRIPT_EARTH_60",
-					   "TXT_KEY_MAP_SCRIPT_EARTH_50", # advc.021
+					   "TXT_KEY_MAP_SCRIPT_EARTH_50", # advc.021a
 	                   "TXT_KEY_MAP_SCRIPT_PANGAEA",
 	                   "TXT_KEY_MAP_SCRIPT_LAKES",
 	                   "TXT_KEY_MAP_SCRIPT_ISLANDS",
@@ -149,7 +166,7 @@ def getCustomMapOptionDescAt(argsList):
 def getCustomMapOptionDefault(argsList):
 	iOption = argsList[0]
 	if (iOption == 0):
-		return 1 # advc.021: Was 0, i.e. 70%. Now 60% as the default.
+		return 1 # advc.021a: Was 0, i.e. 70%. Now 60% as the default.
 	else:
 		return 1
 
@@ -164,7 +181,7 @@ def generateTerrainTypes():
 
 def addFeatures():
 	NiTextOut("Adding Features (from Python Continents) ...")
-	# advc.021: was ...==5
+	# advc.021a: was ...==5
 	if (CyMap().getCustomMapOption(0) == 6):         #  "Mediterranean"
 		featuregen = NoIceFeatureGenerator()
 	else:
@@ -915,7 +932,7 @@ class ClimateGenerator:
 
 	def getLatitudeAtPlot(self, iX, iY):
 		"returns a value in the range of 0-90 degrees"
-		# advc.021: was ...==5
+		# advc.021a: was ...==5
 		if (CyMap().getCustomMapOption(0) == 6):         #  "Mediterranean"
 			return 65 - (40 * (self.mapHeight - iY) / self.mapHeight)
 		return self.map.plot(iX,iY).getLatitude()
@@ -1114,7 +1131,7 @@ def generatePlotTypes():
 	elif (userInputLandmass == 1):       # "Earthlike (60% water)"
 		numContinents = 1 + numPlayers*2
 		numSeaPlates = numPlayers*3 - 1
-	# advc.021: Added this block and pushed all subsequent ids one down
+	# advc.021a: Added this block and pushed all subsequent ids one down
 	elif (userInputLandmass == 2):       # "Earthlike (50% water)"
 		numContinents = 1 + numPlayers*2
 		numSeaPlates = 2 + numPlayers*2
@@ -1406,7 +1423,7 @@ class riversFromSea:
 			divider = 2
 		maxNumber = (self.width + self.height) / divider
 		userInputLandmass = self.map.getCustomMapOption(0)
-		# <advc.021> ==1 isn't Pangaea, should've been 2 (bug); with
+		# <advc.021a> ==1 isn't Pangaea, should've been 2 (bug); with
 		# the 50% option added, it should now be 3.
 		# However: Too many rivers in 3.16 in general, so
 		# let's always reduce their number.
@@ -1416,7 +1433,7 @@ class riversFromSea:
 			maxNumber /= 2
 		# Moved down; guaranteeing at least 1 river sounds prudent
 		riversNumber = 1 + maxNumber
-		# </advc.021>
+		# </advc.021a>
 		self.coasts = self.collateCoasts()
 		coastsNumber = len(self.coasts)
 		if (coastsNumber == 0):
@@ -1729,7 +1746,7 @@ def findStartingPlot(argsList):
 	allOnBest = false
 	isolatedStarts = false
 	userInputLandmass = CyMap().getCustomMapOption(0)
-	# advc.021: was ...==4 and ...==7
+	# advc.021a: was ...==4 and ...==7
 	if (userInputLandmass == 5):     #                 "Islands"
 		isolatedStarts = true
 	if (userInputLandmass == 8):     #                 "Terra"
@@ -1750,7 +1767,7 @@ def findStartingPlot(argsList):
 		shuffledPlayers.append(player_list[iChoosePlayer])
 		del player_list[iChoosePlayer]
 
-	# advc.021: Need to return sth. to avoid an exception in
+	# advc.021a: Need to return sth. to avoid an exception in
 	# CvPlayer::findStartingPlot
 	r = -1
 	
@@ -1793,9 +1810,9 @@ def findStartingPlot(argsList):
 		findstart = CvMapGeneratorUtil.findStartingPlot(playerID,isValid)
 		sPlot = map.plotByIndex(findstart)
 		player.setStartingPlot(sPlot,true)
-		r = findstart # advc.021
+		r = findstart # advc.021a
 
-	if r >= 0: # advc.021: Code to tell the DLL not to worry
+	if r >= 0: # advc.021a: Code to tell the DLL not to worry
 		return -10
 	return None
 
@@ -1807,7 +1824,7 @@ class MediterraneanFeatureGenerator(CvMapGeneratorUtil.FeatureGenerator):
 		return lat
 	
 def addFeatures():
-	if (6 == CyMap().getCustomMapOption(0)): # advc.021: was 5==...
+	if (6 == CyMap().getCustomMapOption(0)): # advc.021a: was 5==...
 		featuregen = MediterraneanFeatureGenerator()
 		featuregen.addFeatures()
 		return 0

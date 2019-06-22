@@ -13,7 +13,6 @@
 #include "CvArtFileMgr.h"
 #include "CySelectionGroup.h"
 #include "CvDLLInterfaceIFaceBase.h"
-#include "CvGlobals.h"
 
 CyUnit::CyUnit() : m_pUnit(NULL)
 {
@@ -557,7 +556,7 @@ bool CyUnit::canBuildRoute()
 
 int /*BuildTypes*/ CyUnit::getBuildType()
 {
-	return (int) m_pUnit ? m_pUnit->getBuildType() : (int) NO_BUILD;
+	return (int)(m_pUnit ? m_pUnit->getBuildType() : NO_BUILD); // kmodx
 }
 
 int CyUnit::workRate(bool bMax)

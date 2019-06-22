@@ -245,37 +245,32 @@ namespace python = boost::python;
 #include "CvDLLUtilityIFaceBase.h"
 
 //jason tests
-#include "CvPlayerAI.h"
+// advc.make: Removed most of these. (Don't know what the comment above means.)
 #include "CvGameCoreUtils.h"
-#include "CvMap.h"
-#include "CvGameAI.h"
-#include "CvPlot.h"
-#include "CvUnit.h"
 #include "CvGlobals.h"
-#include "CvCity.h"
 #include "FProfiler.h"
-#include "CyCity.h"
-#include "CvInfos.h"
-#include "CvTeamAI.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvRandom.h"
-#include "CvArea.h"
-#include "CvDllEntity.h"
-#include "CvDeal.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvGame.h"
-#include "CyGlobalContext.h"
-#include "CvSelectionGroup.h"
-#include "CvTalkingHeadMessage.h"
-#include "CvPlotGroup.h"
-#include "CvCityAI.h"
-#include "CvSelectionGroupAI.h"
-#include "CvUnitAI.h"
 
 #ifdef FINAL_RELEASE
 // Undefine OutputDebugString in final release builds
 #undef OutputDebugString
 #define OutputDebugString(x)
 #endif //FINAL_RELEASE
+
+/*  <advc.make> Cut from CvGameCoreUtils.h. The undefs make more sense to me here b/c
+	this is the file that includes windows.h, which contains the bothersome min/max defines. */
+#undef max
+#undef min
+#ifndef _USRDLL
+// use non inline functions when not in the dll
+#define getMapINLINE	getMap
+#define getGridHeightINLINE	getGridHeight
+#define getGridWidthINLINE	getGridWidth
+#define isWrapYINLINE	isWrapY
+#define isWrapXINLINE	isWrapX
+#define plotINLINE	plot
+#define getX_INLINE	getX
+#define getY_INLINE	getY
+#endif // </advc.make>
 
 #endif	// CvGameCoreDLL_h

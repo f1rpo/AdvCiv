@@ -24,13 +24,15 @@ class SevoPediaTrait:
 		self.Y_MAIN_PANE = self.top.Y_PEDIA_PAGE
 		self.W_MAIN_PANE = 200
 
-		self.X_LEADERS = self.X_MAIN_PANE + self.W_MAIN_PANE + 10
+		#self.X_LEADERS = self.X_MAIN_PANE + self.W_MAIN_PANE + 10
+		self.X_LEADERS = self.top.X_PEDIA_PAGE # advc.004y: Omit the MAIN_PANE
 		self.Y_LEADERS = self.Y_MAIN_PANE
 		self.W_LEADERS = self.top.R_PEDIA_PAGE - self.X_LEADERS
 		self.H_LEADERS = 110
 
 		# lines are 22 pixels high using WB font -- no idea about normal font
-		self.X_SPECIAL = self.X_MAIN_PANE + self.W_MAIN_PANE + 10
+		#self.X_SPECIAL = self.X_MAIN_PANE + self.W_MAIN_PANE + 10
+		self.X_SPECIAL = self.top.X_PEDIA_PAGE # advc.004y: Omit the MAIN_PANE
 		self.Y_SPECIAL = self.Y_LEADERS + self.H_LEADERS + 10
 		self.W_SPECIAL = self.top.R_PEDIA_PAGE - self.X_SPECIAL
 		self.H_SPECIAL = 150
@@ -57,16 +59,15 @@ class SevoPediaTrait:
 		sKey = info.getType()
 		sKey = sKey[sKey.find("TRAIT_"):]
 		self.iTrait = gc.getInfoTypeForString(sKey)
-		
-		screen = self.top.getScreen()
-
-		screen.addPanel( self.top.getNextWidgetName(), "", "", False, False, self.X_MAIN_PANE, self.Y_MAIN_PANE, self.W_MAIN_PANE, self.H_MAIN_PANE, PanelStyles.PANEL_STYLE_BLUE50)
-		screen.addPanel(self.top.getNextWidgetName(), "", "", False, False, self.X_ICON, self.Y_ICON, self.W_ICON, self.H_ICON, PanelStyles.PANEL_STYLE_MAIN)
-		screen.addDDSGFC(self.top.getNextWidgetName(), TraitUtil.getButton(self.iTrait), self.X_ICON + self.W_ICON/2 - self.ICON_SIZE/2, self.Y_ICON + self.H_ICON/2 - self.ICON_SIZE/2, self.ICON_SIZE, self.ICON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# advc.004y: Commented out. No made-up trait icons.
+		#screen = self.top.getScreen()
+		#screen.addPanel( self.top.getNextWidgetName(), "", "", False, False, self.X_MAIN_PANE, self.Y_MAIN_PANE, self.W_MAIN_PANE, self.H_MAIN_PANE, PanelStyles.PANEL_STYLE_BLUE50)
+		#screen.addPanel(self.top.getNextWidgetName(), "", "", False, False, self.X_ICON, self.Y_ICON, self.W_ICON, self.H_ICON, PanelStyles.PANEL_STYLE_MAIN)
+		#screen.addDDSGFC(self.top.getNextWidgetName(), TraitUtil.getButton(self.iTrait), self.X_ICON + self.W_ICON/2 - self.ICON_SIZE/2, self.Y_ICON + self.H_ICON/2 - self.ICON_SIZE/2, self.ICON_SIZE, self.ICON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		self.placeLeaders()
 		self.placeSpecial()
-		self.placeText()
+		#self.placeText() # advc.004y: Disable text box
 
 
 
@@ -135,7 +136,9 @@ class SevoPediaTrait:
 		panelName = self.top.getNextWidgetName()
 		screen.addPanel( panelName, "", "", True, True, self.X_TEXT, self.Y_TEXT, self.W_TEXT, self.H_TEXT, PanelStyles.PANEL_STYLE_BLUE50 )
 		szText = gc.getNewConceptInfo(self.iConcept).getCivilopedia()
-		screen.attachMultilineText( panelName, "Text", szText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# advc.004y: Don't display the text key if text not found
+		if not szText.endswith("PEDIA"):
+			screen.attachMultilineText( panelName, "Text", szText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 
 

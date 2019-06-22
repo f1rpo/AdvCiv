@@ -1014,9 +1014,9 @@ invert_heights
 class TerrainGenerator:
 	"If iDesertPercent=35, then about 35% of all land will be desert. Plains is similar. \
 	Note that all percentages are approximate, as values have to be roughened to achieve a natural look."
-	
+	# advc.tsl: Increased tundra and snow latitude by 0.03 each
 	def __init__(self, iDesertPercent=32, iPlainsPercent=18,
-				 fSnowLatitude=0.7, fTundraLatitude=0.6,
+				 fSnowLatitude=0.73, fTundraLatitude=0.63,
 				 fGrassLatitude=0.1, fDesertBottomLatitude=0.2,
 				 fDesertTopLatitude=0.5, fracXExp=-1,
 				 fracYExp=-1, grain_amount=4):

@@ -7,7 +7,7 @@
 // abstract class containing CvInterface functions that the DLL needs
 //
 
-//#include "CvStructs.h"
+
 #include "LinkedList.h"
 
 class CvUnit;

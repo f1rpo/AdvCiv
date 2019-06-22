@@ -3,7 +3,6 @@
 #ifndef CyMap_h
 #define CyMap_h
 
-//#include "CvEnums.h"
 //
 // Python wrapper class for CvMap 
 // SINGLETON

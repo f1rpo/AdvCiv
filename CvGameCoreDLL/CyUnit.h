@@ -6,15 +6,12 @@
 // Python wrapper class for CvUnit
 // 
 
-//#include "CvEnums.h"
-
 class CyArea;
 class CyPlot;
 class CyCity;
 class CvUnit;
 class CySelectionGroup;
 class CvArtInfoUnit;
-//class CyUnitEntity;
 class CyUnit
 {
 public:

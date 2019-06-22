@@ -17,7 +17,7 @@
 	<options id="Advisors" file="BUG Advisors.ini">
 		<section id="Advisors">
 			<!-- Exotic Foreign Advisor (F4) by Requies, Dresden, EmperorFool -->
-			<!-- advc.004: Set the default to Numbers (was Smilies) -->
+			<!-- advc.004: Set the default to Numbers (was Smilies in K-Mod) -->
 			<option id="EFAGlanceTab" key="EFA Glance" 
 					type="boolean" default="True" 
 					get="isShowGlance"/>
@@ -31,12 +31,24 @@
 			<option id="EFAWarTrades" key="EFA War Trades" 
 					type="boolean" default="True" 
 					get="isShowGlanceWarTrades"/>
+			<!-- advc.004: default was True in K-Mod -->
 			<option id="EFAImprovedInfo" key="EFA Improved Info" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isUseImprovedEFAInfo"/>
-			<option id="EFADealTurnsLeft" key="EFA Deal Turns Left" 
+			<!--option id="EFADealTurnsLeft" key="EFA Deal Turns Left" 
 					type="boolean" default="True" 
-					get="isShowDealTurnsLeft"/>
+					get="isShowDealTurnsLeft"/-->
+			<!-- advc.072: Replaced with a list of choices.
+				 The DLL relies on this order of the choices. -->
+			<list   id="DealTurnsLeft" key="Deal Turns Left" 
+					type="int" default="3" listType="string"
+					values="Active Tab|Current Deals|Both|Only Tooltip"
+					get="getShowDealTurns">
+				<choice id="Active"/>
+				<choice id="Current"/>
+				<choice id="Both"/>
+				<choice id="Neither"/>
+			</list>
 	
 			<!-- BUG Military Advisor (F5) by Ruff_Hi, EmperorFool, Karadoc -->
 			<option id="BugMA" key="BugMilitaryAdvisor"
@@ -51,9 +63,10 @@
 			<option id="WideTechScreen" key="Wide Tech Screen" 
 					type="boolean" default="False" 
 					get="isWideTechScreen"/>
+			<!-- advc.068: dirtyBit added -->
 			<option id="ShowTechEra" key="Show Tech Era" 
 					type="boolean" default="False"
-					get="isShowTechEra"/>
+					get="isShowTechEra" dirtyBit="Tech_Screen"/>
 	
 			<!-- BUG Religion Advisor (F7) by Ruff_Hi -->
 			<option id="BugReligiousTab" key="Religious" 

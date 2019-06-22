@@ -396,19 +396,32 @@ def calculateTradeRoutes(playerOrID, withPlayerOrID=None):
 	If Fractional Trade Routes is active, the value returned is fractional (times 100).
 	"""
 	domesticTrade = domesticCount = foreignTrade = foreignCount = 0
-	eTeam = PlayerUtil.getPlayerTeam(playerOrID)
+	# advc.001: Bugfixes merged from Dawn of Civilization
+	eTeam = PlayerUtil.getPlayerTeamID(playerOrID) # (was getPlayerTeam)
 	eWithPlayer = PlayerUtil.getPlayerID(withPlayerOrID)
 	for city in PlayerUtil.playerCities(playerOrID):
+		# advc.001: (Only relevant for FractionalTrade)
+		cityDomesticTrade = cityForeignTrade = 0
 		for i in range(city.getTradeRoutes()):
 			tradeCity = city.getTradeCity(i)
 			if tradeCity and tradeCity.getOwner() >= 0 and (eWithPlayer == -1 or eWithPlayer == tradeCity.getOwner()):
 				trade = city.calculateTradeYield(YieldTypes.YIELD_COMMERCE, TRADE_PROFIT_FUNC(city, tradeCity))
 				if tradeCity.getTeam() == eTeam:
-					domesticTrade += trade
+					cityDomesticTrade += trade # advc.001: was domesticTrade+=...
 					domesticCount += 1
 				else:
-					foreignTrade += trade
+					cityForeignTrade += trade # advc.001: was foreignTrade+=...
 					foreignCount += 1
+		# <advc.001>
+		if isFractionalTrade() and not withPlayerOrID:
+			cityDomesticTrade //= 100
+			cityForeignTrade //= 100
+		domesticTrade += cityDomesticTrade
+		foreignTrade += cityForeignTrade
+	if isFractionalTrade() and withPlayerOrID:
+		domesticTrade //= 100
+		foreignTrade //= 100
+	# </advc.001>
 	return domesticTrade, domesticCount, foreignTrade, foreignCount
 
 def initFractionalTrade():

@@ -1,6 +1,5 @@
 package wbo;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +30,7 @@ public class BarbCity {
 	}
 	
 	private void init(int x, int y) {
-		this.plot = new Point(x + WBOut.offsetX, y +  WBOut.offsetY);
+		this.plot = WBOut.getOffset(x, y);
 		religions = new ArrayList<String>();
 	}
 

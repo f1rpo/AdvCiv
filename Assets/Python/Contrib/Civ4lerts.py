@@ -358,7 +358,8 @@ class AbstractCityTestAlert(AbstractCityAlert):
 			willPass = self._willPassTest(city)
 			if passed != willPass and willPass: # avdc.106d: 'and willPass' added
 				message, icon = self._getPendingAlertMessageIcon(city, willPass)
-		if (message):
+		# advc.106d: suppress check added
+		if message and not self._suppressMessage(city):
 			addMessageAtCity(iPlayer, message, icon, city)
 	
 	def _passedTest(self, cityId):
@@ -398,6 +399,12 @@ class AbstractCityTestAlert(AbstractCityAlert):
 	def _getPendingAlertMessageIcon(self, city, passes):
 		"Returns a tuple of the message and icon to use for the pending alert."
 		return (None, None)
+	# <advc.106d>
+	def _suppressMessage(self, city):
+		"Returns true if no messages should currently be displayed about the city."
+		# By default, don't show messages about cities in occupation, but subclasses can override this.
+		return city.isOccupation()
+	# </advc.106d>
 
 # Population
 
@@ -640,6 +647,12 @@ class CityOccupation(AbstractCityTestAlert):
 			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_PACIFIED", (city.getName(), )),
 					HAPPY_ICON)
 
+	# <advc.106d> The default implementation suppresses messages about cities in occupation. Obv. don't want that here.
+	# (Untested b/c the occupation alert is permanently disabled.)
+	def _suppressMessage(self, city):
+		return False
+	# </advc.106d>
+
 # Hurrying Production
 
 class AbstractCanHurry(AbstractCityTestAlert):
@@ -721,13 +734,20 @@ class CanHurryPopulation(AbstractCanHurry):
 	
 	def _getAlertMessage(self, city, info):
 		iPop = city.hurryPopulation(self.keHurryType)
-		iOverflow = city.hurryProduction(self.keHurryType) - city.productionLeft()
-		if Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction():
-			iOverflow = iOverflow + city.getCurrentProductionDifference(True, False)
+		#iOverflow = city.hurryProduction(self.keHurryType) - city.productionLeft()
+		#if Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction():
+		#	iOverflow = iOverflow + city.getCurrentProductionDifference(True, False)
+		#iMaxOverflow = min(city.getProductionNeeded(), iOverflow)
+		#iOverflowGold = max(0, iOverflow - iMaxOverflow) * gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100
+		#iOverflow =  100 * iMaxOverflow / city.getBaseYieldRateModifier(gc.getInfoTypeForString("YIELD_PRODUCTION"), city.getProductionModifier())
+		# <advc.064> Replacing the above (same code as in CvMainInterface.py)
+		HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
+		HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
+		bCountCurrentOverflow = Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction()
+		iOverflow = city.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
+		iOverflowGold = city.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
+		# </advc.064>
 		iAnger = city.getHurryAngerTimer() + city.flatHurryAngerLength()
-		iMaxOverflow = min(city.getProductionNeeded(), iOverflow)
-		iOverflowGold = max(0, iOverflow - iMaxOverflow) * gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100
-		iOverflow =  100 * iMaxOverflow / city.getBaseYieldRateModifier(gc.getInfoTypeForString("YIELD_PRODUCTION"), city.getProductionModifier())
 		if (iOverflowGold > 0):
 			return localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_CAN_HURRY_POP_PLUS_GOLD", (city.getName(), info.getDescription(), iPop, iOverflow, iAnger, iOverflowGold))
 		else:
@@ -911,13 +931,15 @@ class RefusesToTalk(AbstractStatefulAlert):
 		except AttributeError:
 			return # </advc.009b>
 		newRefusals = set()
+		newRefusalsDisplay = set() # advc.106d: Don't necessarily display them all
 		for player in PlayerUtil.players(True, False, False, False):
 			if DiplomacyUtil.canContact(activePlayer, player) and not DiplomacyUtil.isWillingToTalk(player, eActivePlayer):
 				newRefusals.add(player.getID())
+				# <advc.106d> Don't report refusal when war just begun, nor when stopped trading (i.e. when not at war).
+				if gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+					newRefusalsDisplay.add(player.getID()) # </advc.106d>
 		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_WILLING_TO_TALK", refusals.difference(newRefusals))
-		# advc.106d: Don't report refusal when war just begun, nor when stopped trading (i.e. when not at war).
-		if gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
-			self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusals.difference(refusals))
+		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusalsDisplay.difference(refusals)) # advc.106d: was newRefusals...
 		self.refusals[eActivePlayer] = newRefusals
 	
 	def display(self, eActivePlayer, key, players):
@@ -1065,62 +1087,61 @@ class WorstEnemy(AbstractStatefulAlert):
 			self.enemies[player.getID()] = [-1] * gc.getMAX_TEAMS()
 		self.check(True) # advc.106c
 
-# <advc.210a>
-class WarTrade(AbstractStatefulAlert):
+class AdvCiv4lert(AbstractStatefulAlert):
 
 	def __init__(self, eventManager):
 		AbstractStatefulAlert.__init__(self, eventManager)
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-		self.id = 0
 
 	def onBeginActivePlayerTurn(self, argsList):
 		self.check()
 
 	def check(self, silent=False):
-		if not Civ4lertsOpt.isShowWarTradeAlert():
-			return
-		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
+		if self.isEnabled():
+			gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.getID(), silent)
 
 	def _reset(self):
 		self.check(True)
+
+# To be implemented by derived classes:
+
+	def isEnabled(self):
+		return
+
+	@staticmethod
+	def getID():
+		# The returned integer needs to correspond to the alert's position in the m_paAlerts vector in the DLL; see CvPlayer::CvPlayer.
+		return
+
+# <advc.210a>
+class WarTrade(AdvCiv4lert):
+
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowWarTradeAlert()
+
+	@staticmethod
+	def getID():
+		return 0
 # </advc.210a>
 
 # <advc.210b>
-class Revolt(AbstractStatefulAlert):
+class Revolt(AdvCiv4lert):
 
-	def __init__(self, eventManager):
-		AbstractStatefulAlert.__init__(self, eventManager)
-		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-		self.id = 1
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowRevoltAlert()
 
-	def onBeginActivePlayerTurn(self, argsList):
-		self.check()
-
-	def check(self, silent=False):
-		if not Civ4lertsOpt.isShowRevoltAlert():
-			return
-		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
-
-	def _reset(self):
-		self.check(True)
+	@staticmethod
+	def getID():
+		return 1
 # </advc.210b>
 
 # <advc.210d>
-class BonusThirdParties(AbstractStatefulAlert):
+class BonusThirdParties(AdvCiv4lert):
 
-	def __init__(self, eventManager):
-		AbstractStatefulAlert.__init__(self, eventManager)
-		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-		self.id = 2
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowBonusThirdPartiesAlert()
 
-	def onBeginActivePlayerTurn(self, argsList):
-		self.check()
-
-	def check(self, silent=False):
-		if not Civ4lertsOpt.isShowBonusThirdPartiesAlert():
-			return
-		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
-
-	def _reset(self):
-		self.check(True)
+	@staticmethod
+	def getID():
+		return 2
 # </advc.210d>

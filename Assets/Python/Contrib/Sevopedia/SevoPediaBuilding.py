@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -64,7 +63,16 @@ class SevoPediaBuilding:
 		self.X_HISTORY_PANE = self.X_SPECIAL_PANE
 		self.W_HISTORY_PANE = self.W_SPECIAL_PANE
 		self.Y_HISTORY_PANE = self.Y_SPECIAL_PANE + self.H_SPECIAL_PANE + 10
-		self.H_HISTORY_PANE = self.top.B_PEDIA_PAGE - self.Y_HISTORY_PANE
+		#self.H_HISTORY_PANE = self.top.B_PEDIA_PAGE - self.Y_HISTORY_PANE
+		# <advc.004y> (see SevoPediaUnit.py)
+		self.H_HISTORY_PANE = 190
+		iSpaceLeft = self.top.B_PEDIA_PAGE - self.Y_HISTORY_PANE - self.H_HISTORY_PANE
+		if iSpaceLeft < 0:
+			self.H_HISTORY_PANE += iSpaceLeft
+		else:
+			self.H_SPECIAL_PANE += iSpaceLeft
+			self.Y_HISTORY_PANE += iSpaceLeft
+		# </advc.004y>
 
 
 

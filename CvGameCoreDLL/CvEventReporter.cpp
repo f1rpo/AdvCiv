@@ -1,7 +1,10 @@
 #include "CvGameCoreDLL.h"
 #include "CvEventReporter.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 #include "CvDllPythonEvents.h"
 #include "CvInitCore.h"
+#include "CvDLLInterfaceIFaceBase.h" // advc.106l
 
 //
 // static, singleton accessor
@@ -418,7 +421,53 @@ void CvEventReporter::vassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVa
 void CvEventReporter::preSave()
 {
 	m_kPythonEventMgr.preSave();
+	/*  <advc.106l> The original "saving" messages are disabled through game text XML
+		b/c the EXE displays them for too long. Will show replacement messages here. */
+	bool bAutoSave = m_bPreAutoSave;
+	bool bQuickSave = m_bPreQuickSave;
+	m_bPreAutoSave = m_bPreQuickSave = false;
+	CvGame const& g = GC.getGameINLINE();
+	FAssertMsg(bAutoSave || !g.isAITurn() || g.isNetworkMultiPlayer(),
+			"Quicksave in between turns?");
+	char const* szDefineName = "";
+	CvWString szMsgTag;
+	if(bAutoSave) {
+		szDefineName = "AUTO_SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_AUTO_SAVING2";
+	}
+	else if(bQuickSave) {
+		szDefineName = "QUICK_SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_QUICK_SAVING2";
+	}
+	else {
+		szDefineName = "SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_SAVING_GAME2";
+	}
+	int iLength = GC.getDefineINT(szDefineName);
+	if(iLength <= 0)
+		return;
+	PlayerTypes eActivePlayer = g.getActivePlayer();
+	if(eActivePlayer == NO_PLAYER) {
+		FAssert(eActivePlayer != NO_PLAYER);
+		return;
+	}
+	gDLL->getInterfaceIFace()->addHumanMessage(eActivePlayer, true,
+			iLength, gDLL->getText(szMsgTag), NULL, MESSAGE_TYPE_DISPLAY_ONLY);
 }
+
+void CvEventReporter::preAutoSave() {
+
+	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+			"Should've been reset by preSave");
+	m_bPreAutoSave = true;
+}
+
+void CvEventReporter::preQuickSave() {
+
+	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+			"Should've been reset by preSave");
+	m_bPreQuickSave = true;
+} // </advc.106l>
 
 void CvEventReporter::windowActivation(bool bActive)
 {
@@ -486,9 +535,12 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 {
 	m_kStatistics.reset();
 	m_kStatistics.read(pStream);
+	GC.getGameINLINE().allGameDataRead(); // advc.003
 }
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {
 	m_kStatistics.write(pStream);
 }
 
+// advc.106l: Explicit constructor added, so I can initialize my booleans.
+CvEventReporter::CvEventReporter() : m_bPreAutoSave(false), m_bPreQuickSave(false) {}

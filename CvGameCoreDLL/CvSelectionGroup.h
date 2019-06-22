@@ -5,7 +5,6 @@
 #ifndef CIV4_GROUP_H
 #define CIV4_GROUP_H
 
-//#include "CvStructs.h"
 #include "LinkedList.h"
 #include "KmodPathFinder.h"
 
@@ -28,16 +27,17 @@ public:
 	void kill();
 
 	void doTurn();
-
-	bool showMoves(
-			CvPlot const& fromPlot) const; // advc.102
+	void doTurnPost(); // advc.004l
+	bool showMoves( /* <advc.102> */ CvPlot const& kFromPlot) const;
+	void setInitiallyVisible(bool b); // </advc.102>
 
 	void updateTimers();
 	bool doDelayedDeath();
 
 	void playActionSound();
 
-	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL, CvUnit* pMissionAIUnit = NULL);		// Exposed to Python
+	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL, CvUnit* pMissionAIUnit = NULL,		// Exposed to Python
+			bool bModified = false); // advc.011b
 	void popMission();																																										// Exposed to Python
 	//DllExport void autoMission();
 	bool autoMission(); // K-Mod. (No 'DllExport'? Are you serious!?)
@@ -61,13 +61,15 @@ public:
 	bool canEverDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible, bool bUseCache);
 	void setupActionCache();
 
-	bool isHuman();																																											// Exposed to Python
+	bool isHuman() const; // advc.002i: const																																									// Exposed to Python
 	DllExport bool isBusy();
 	bool isCargoBusy();
 	int baseMoves() const;																																										// Exposed to Python 
 	int maxMoves() const; // K-Mod
 	int movesLeft() const; // K-Mod
 	bool isWaiting() const;																																							// Exposed to Python
+	// advc.make: Cut from CvGameCoreUtils
+	inline bool isCycleGroup() const { return getNumUnits() > 0 && !isWaiting() && !isAutomated(); } // K-Mod
 	bool isFull();																																											// Exposed to Python
 	bool hasCargo();																																										// Exposed to Python
 	int getCargo() const;
@@ -79,28 +81,25 @@ public:
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
-	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) { return canMoveOrAttackInto(pPlot, bDeclareWar, false); } // Exposed to Python
-	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true); // K-Mod. (hack to avoid breaking the DllExport)
+	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
+		return canMoveOrAttackInto(pPlot, bDeclareWar, false);
+	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: const
+	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible
 	bool canFight();																																										// Exposed to Python 
 	bool canDefend();																																										// Exposed to Python
 	bool canBombard(const CvPlot* pPlot);
 	bool visibilityRange();
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/19/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-	int getBombardTurns( CvCity* pCity );
-	bool isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1 );
-	bool isHasPathToAreaEnemyCity( bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1 );
+
+	// BETTER_BTS_AI_MOD, General AI, 08/19/09, jdog5000: START
+	int getBombardTurns( CvCity* pCity ) /* advc.003: */ const;
+	bool isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1 ) /* Erik (CODE1): */ const;
+	bool isHasPathToAreaEnemyCity( bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1 ) /* Erik (CODE1): */ const;
 	bool isStranded() const; // Note: K-Mod no longer uses the stranded cache. I have a new system.
 	//void invalidateIsStrandedCache(); // deleted by K-Mod
 	//bool calculateIsStranded();
 	bool canMoveAllTerrain() const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 
 	void unloadAll();
 	bool alwaysInvisible() const;																																							// Exposed to Python
@@ -123,11 +122,13 @@ public:
 
 	RouteTypes getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
 
-	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting);
+	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting,
+			bool bMaxSurvival = false); // advc.048
 	void groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit = NULL, bool bEndMove = false);
 	bool groupPathTo(int iX, int iY, int iFlags);
 	bool groupRoadTo(int iX, int iY, int iFlags);
-	bool groupBuild(BuildTypes eBuild);
+	bool groupBuild(BuildTypes eBuild,
+			bool bFinish = true); // advc.011b
 
 	void setTransportUnit(CvUnit* pTransportUnit, CvSelectionGroup** pOtherGroup = NULL); // bbai added pOtherGroup
 
@@ -137,19 +138,19 @@ public:
 	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python
 	bool readyToMove(bool bAny = false); // Exposed to Python
 	bool readyToAuto(); // Exposed to Python
-	// K-Mod. (note: I'd make these function const, but it would conflict with some dllexport functions)
-	bool readyForMission();
-	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot, bool bTestVisible, bool bCheckMoves);
+	// K-Mod.
+	bool readyForMission(); // (note: I'd make this function const, but it would conflict with some dllexport functions)
+	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot,
+			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 
 	int getID() const;																																												// Exposed to Python
-	void setID(int iID);																			
+	void setID(int iID);
 
 	int getMissionTimer() const;
 	void setMissionTimer(int iNewValue);
 	void changeMissionTimer(int iChange);
-	void updateMissionTimer(int iSteps = 0,
-		CvPlot* fromPlot = NULL); // advc.102
+	void updateMissionTimer(int iSteps = 0, /* advc.102: */ CvPlot* pFromPlot = NULL);
 
 	inline bool isForceUpdate() { return m_bForceUpdate; } // K-Mod made inline
 	inline void setForceUpdate(bool bNewValue) { m_bForceUpdate = bNewValue; } // K-Mod made inline
@@ -242,16 +243,10 @@ public:
 	virtual CvUnit* AI_ejectBestDefender(CvPlot* pTargetPlot) = 0;
 	virtual void AI_separateNonAI(UnitAITypes eUnitAI) = 0;
 	virtual void AI_separateAI(UnitAITypes eUnitAI) = 0;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      06/02/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, General AI, 06/02/09, jdog5000: START
 	virtual bool AI_separateImpassable() = 0; // K-Mod added bool return value.
 	virtual bool AI_separateEmptyTransports() = 0; // same
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 
 	virtual bool AI_isFull() = 0;
 
@@ -268,6 +263,11 @@ protected:
 	// but adding another int increases the size to 84. Which is a shame, because I really want to add one more int...
 	// Although a single int doesn't cause a startup crash, I'd rather not risk instability.
 
+	// <advc.003k> Pointer to additional data members
+	class Data;
+	CvSelectionGroup::Data* m; // dial m for members
+	// </advc.003k>
+
 	int m_iID;
 	int m_iMissionTimer;
 
@@ -275,21 +275,38 @@ protected:
 
 	PlayerTypes m_eOwner;
 	ActivityTypes m_eActivityType;
-	AutomateTypes m_eAutomateType;
 
 	CLinkList<IDInfo> m_units;
-
 	CLinkList<MissionData> m_missionQueue;
-	std::vector<CvUnit *> m_aDifferentUnitCache;
+	std::vector<CvUnit*> m_aDifferentUnitCache;
 	bool m_bIsBusyCache;
 
 	void activateHeadMission();
 	void deactivateHeadMission();
-	
-	bool sentryAlert() const;
+	// <advc.075>
+	void handleBoarded();
+	bool canDisembark() const;
+	void resetBoarded();
+	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
+	// </advc.075>
+	bool sentryAlert(/*  advc.004l: */ bool bUpdateKnownEnemies = false);
+
+	// <advc.003k>
+	class Data {
+		CLinkList<IDInfo> knownEnemies; // advc.004l
+		bool bInitiallyVisible; // advc.102
+		// Moved here in order to bring sizeof down to 80
+		AutomateTypes eAutomateType;
+		friend CvSelectionGroup;
+	}; // </advc.003k>
 
 public:
 	static KmodPathFinder path_finder; // K-Mod! I'd rather this not be static, but I can't do that here.
 };
+/*  advc.003k: A trick from
+https://stackoverflow.com/questions/19401887/how-to-check-the-size-of-a-structure-at-compile-time/19402038
+	to verify that the class has a safe size. If this won't compile, then you've
+	probably added a data member (directly) to CvSelectionGroup. */
+typedef char assertSizeOfSelectionGroup[(sizeof(CvSelectionGroup)==80)*2-1];
 
 #endif

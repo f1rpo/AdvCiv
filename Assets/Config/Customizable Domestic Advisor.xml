@@ -30,8 +30,9 @@
 					values="None|Small|Medium|Large|LargeLeft" default="1">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</list>
+			<!-- advc.004: default was 3 -->
 			<list	id="ProductionGrouping" key="Production Grouping"
-					type="int" default="3" listType="string">
+					type="int" default="1" listType="string">
 				<choice id="None" get="isProductionGroupingNone"/>
 				<choice id="Icons" get="isProductionGroupingIcons"/>
 				<choice id="Colors" get="isProductionGroupingColors"/>

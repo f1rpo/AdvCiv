@@ -10,6 +10,7 @@ class CvHallOfFameInfo
 public:
 	CvHallOfFameInfo();
 	virtual ~CvHallOfFameInfo();
+	void uninit(); // advc.106i
 
 	void loadReplays();
 	int getNumGames() const;

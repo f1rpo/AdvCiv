@@ -16,7 +16,6 @@
 #define CIV4_GAME_TEXT_MGR_H
 
 #include "CvInfos.h"
-//#include "CvEnums.h"
 
 #pragma warning( disable: 4251 )	// needs to have dll-interface to be used by clients of class
 
@@ -56,17 +55,13 @@ public:
 
 	void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			bool bOneLine = false, bool bShort = false,
-			bool bColorHostile = false); // advc.048
-	void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort);
+			bool bColorHostile = false, // advc.048
+			bool bOmitOwner = false, // advc.061
+			bool bIndicator = false); // advc.007
+	void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort,
+			bool bIndicator = false); // advc.061
 	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
 	void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
-	// <advc.135c>
-	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
-	// </advc.135c>
 	void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
 	void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
 
@@ -83,13 +78,19 @@ public:
 	// advc.152:
 	void parseWarTradesHelp(CvWStringBuffer& szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 	void parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
-	void parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city);
+	void parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);
 // BUG - Building Additional Great People - start
 	bool setBuildingAdditionalGreatPeopleHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional Great People - end
 	void parseGreatGeneralHelp(CvWStringBuffer &szBuffer, CvPlayer& kPlayer);
 
 	void setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool bCivilopediaText = false, bool bPlayerContext = false, bool bStrategyText = false, bool bTreeInfo = true, TechTypes eFromTech = NO_TECH);
+// BULL - Trade Denial - start
+	void setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
+			PlayerTypes eTradePlayer, bool bCivilopediaText = false,
+			bool bPlayerContext = false, bool bStrategyText = false,
+			bool bTreeInfo = true, TechTypes eFromTech = NO_TECH);
+// BULL - Trade Denial - end
 	void setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool bCivilopediaText = false);
 	void setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool bCivilopediaText = false, bool bStrategyText = false, bool bTechChooserText = false, CvCity* pCity = NULL);
 	void setBuildingHelp(CvWStringBuffer &szBuffer, BuildingTypes eBuilding, bool bCivilopediaText = false, bool bStrategyText = false, bool bTechChooserText = false, CvCity* pCity = NULL);
@@ -121,6 +122,14 @@ public:
 	bool setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, int iValue, int iSymbol, bool bNewLine = false, bool bStarted = false);
 // BUG - Resumable Value Change Help - end
 	void setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText = false);
+// BULL - Trade Denial - start  (advc.073: param bImport added)
+	void setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
+			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport);
+// BULL - Trade Denial - end
+	// <advc.004w>
+	void setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
+			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo, CvCity* pCity);
+	// </advc.004w>
 	void setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia = false);
 	void setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes eReligion, CvCity *pCity, bool bCityScreen = false, bool bForceReligion = false, bool bForceState = false, bool bNoStateReligion = false);
 	void setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTypes eCorporation, bool bCivilopedia = false);
@@ -135,9 +144,9 @@ public:
 	bool setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& city, CommerceTypes eIndex, const CvWString& szStart, bool bStarted = false);
 	bool setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional info - end
-	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city);
-	void setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, CommerceTypes eCommerceType);
-	void setYieldHelp(CvWStringBuffer &szBuffer, CvCity& city, YieldTypes eYieldType);
+	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);  // advc.003: const city in this function and the next 2
+	void setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, CommerceTypes eCommerce);
+	void setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, YieldTypes eYield);
 	void setConvertHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, ReligionTypes eReligion);
 	void setRevolutionHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlayer);
 	void setVassalRevoltHelp(CvWStringBuffer& szBuffer, TeamTypes eMaster, TeamTypes eVassal);
@@ -199,25 +208,24 @@ public:
 
 	void buildSingleLineTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext);
 	void buildTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext, TechTypes eFromTech);
-	// <advc.034>
-	void buildDisengageString(CvWString& szString, PlayerTypes activeId,
-			PlayerTypes otherId);
-	void buildPeaceTreatyString(CvWString& szString, PlayerTypes activeId,
-			PlayerTypes otherId); // </advc.034>
+	// advc.034:
+	void buildDisengageString(CvWString& szString, PlayerTypes ePlayer, PlayerTypes eOther);
 
 	void getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWarPlan);
-	void getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
+	void getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer,
+			bool bConstCache = false); // advc.sha
 	void getVassalInfoString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer); // K-Mod
 	void getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer) const; // K-Mod
 	void getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
 	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
 			PlayerTypes ePlayer1, PlayerTypes ePlayer2,
-			int turnsToCancel = -1); // advc.004w
+			int iTurnsToCancel = -1); // advc.004w
 	void getDealString(CvWStringBuffer& szString, CvDeal& deal, PlayerTypes ePlayerPerspective = NO_PLAYER,
 			bool bCancel = false); // advc.004w
 	void getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective = NO_PLAYER,
-			int turnsToCancel = -1); // advc.004w
-	void getActiveDealsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
+			int iTurnsToCancel = -1); // advc.004w
+	void getActiveDealsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer,
+			bool bExcludeDual = false); // advc.087
 	void getOtherRelationsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 
 	void buildFinanceInflationString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);
@@ -230,7 +238,21 @@ public:
 	DllExport void getTradeScreenTitleIcon(CvString& szButton, CvWidgetDataStruct& widgetData, PlayerTypes ePlayer);
 	DllExport void getTradeScreenIcons(std::vector< std::pair<CvString, CvWidgetDataStruct> >& aIconInfos, PlayerTypes ePlayer);
 	DllExport void getTradeScreenHeader(CvWString& szHeader, PlayerTypes ePlayer, PlayerTypes eOtherPlayer, bool bAttitude);
-
+	// BULL - Finance Advisor - start
+	void buildDomesticTradeString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);
+	void buildForeignTradeString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);
+	void buildFinanceSpecialistGoldString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer);
+	// BULL - Finance Advisor - end  // BULL - Trade Hover - start
+	void buildTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer,
+			PlayerTypes eWithPlayer = NO_PLAYER, bool bDomestic = true,
+			bool bForeign = true, bool bHeading = true);
+	// BULL - Trade Hover - end
+	// BULL - Leaderhead Relations - start
+	void parseLeaderHeadRelationsHelp(CvWStringBuffer &szBuffer,
+			PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
+	// BULL - Leaderhead Relations - end
+	// BULL - Food Rate Hover:
+	void setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);
 	DllExport void getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWString& strName);
 
 	DllExport void getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot, bool bAlt, CvWStringBuffer& strHelp);
@@ -264,7 +286,12 @@ private:
 	void eventGoldHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, PlayerTypes ePlayer, PlayerTypes eOtherPlayer);
 
 	std::vector<int*> m_apbPromotion;
-
+	// BULL - Leaderhead Relations - start  // advc: private
+	void getAllRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam);
+	void getActiveTeamRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam);
+	void getOtherRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam,
+			TeamTypes eOtherTeam, TeamTypes eSkipTeam);
+	// BULL - Leaderhead Relations - end
 	//void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false);
 	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue);
 	void setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive = false, bool bMakeWhitespace = false);
@@ -273,7 +300,36 @@ private:
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
 	void appendPositiveModifiers(CvWStringBuffer& szString,
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
+	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc.003>
+	// <advc.004w>
+	void setProductionSpeedHelp(CvWStringBuffer& szString, OrderTypes eInfoType,
+			CvInfoBase const* pInfo, CvCity* pCity, bool bCivilopediaText);
+	// </advc.004w>
+	// <advc.135c>
+	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	// </advc.135c>
+	// advc.910:
+	void setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes eTech);
+	// <advc.061>
+	void setPlotListHelpPerOwner(CvWStringBuffer& szString, CvPlot const& kPlot,
+			bool bIndicator, bool bShort);
+	void appendUnitOwnerHeading(CvWStringBuffer& szString, PlayerTypes eOwner,
+			int iArmy, int iNavy, int iAir, int iTotal, bool bCollapsed = false);
+	void appendUnitTypeAggregated(CvWStringBuffer& szString,
+			std::vector<CvUnit const*> const& ownerUnits,
+			UnitTypes eUnit, CvPlot const& kPlot, bool bIndicator);
+	void appendAverageStrength(CvWStringBuffer& szString, int iSumMaxStrengthTimes100,
+			int iSumStrengthTimes100, int iUnits);
+	// For std::sort
+	  static CvPlot const* m_pHelpPlot;
+	  static bool listFirstUnitBeforeSecond(CvUnit const* pFirst, CvUnit const* pSecond);
+	  static bool listFirstUnitTypeBeforeSecond(UnitTypes eFirst, UnitTypes eSecond);
+	// </advc.061>
 };
 
 // Singleton Accessor

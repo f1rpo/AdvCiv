@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!--
+	Not Just Another Game Clock
+	Options Game Text
+
+	Copyright (c) 2009 The BUG Mod.
+-->
+<Civ4GameText xmlns="http://www.firaxis.com">
+
+	<!-- advc.002k -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__YEARNOTATION_TEXT</Tag>
+		<English>Year Notation</English>
+		<French>Notation de l'année</French>
+		<German>Zeitrechnung</German>
+		<Italian>Notazione dell'anno</Italian>
+		<Spanish>Notación del año</Spanish>
+	</TEXT>
+	<!-- Assisted by deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__YEARNOTATION_HOVER</Tag>
+		<English>Whether to show "AD" (Anno Domini) before or after the game year, or to use the CE/BCE notation instead of AD/BC. [COLOR_HIGHLIGHT_TEXT]AD Postfix[COLOR_REVERT] is what BtS originally used.</English>
+		<French>Si la langue anglaise est sélectionnée, cette option permet de basculer entre deux notations anno domini différentes et la notation de "Common Era". En français, on peut choisir seulement "avant / après Jésus-Christ" ou "Ère Commune".</French>
+		<German>Diese Option wechselt bei englischer Spracheinstellung zwischen zwei verschiedenen Anno-Domini-Notationen und der "Common Era"-Notation. Auf deutsch kann nur zwischen "vor/nach Christus" und "(vor) unserer Zeitrechnung" gewechselt werden.</German>
+		<Italian>Se si seleziona la lingua inglese, questa opzione commuta tra due diverse notazioni di anno domini e la notazione di "Common Era". In italiano ci sono solo "avanti / dopo Cristo" ed "era volgare" per scegliere.</Italian>
+		<Spanish>Si se selecciona el idioma inglés, esta opción cambia entre dos notaciones anno domini diferentes y la notación "Common Era". En español sólo hay "antes / después de Cristo" y "Era Común" para elegir.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__YEARNOTATION_LIST</Tag>
+		<English>AD Prefix|AD Postfix|Common Era</English>
+		<French>ap./av. J.C.|ap./av. J.-C.|(A)EC</French>
+		<German>v./n. Chr.|v./n. Chr.|(v.)u.Z.</German>
+		<Italian>a.C./d.C.|a.C./d.C.|(a.)e.v.</Italian>
+		<Spanish>a.C./d.C.|a.C./d.C.|(A)EC</Spanish>
+	</TEXT>
+
+
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ENABLED_TEXT</Tag>
+		<English>Enable NJAGC</English>
+		<French>Activez NJAGC</French>
+		<German>NJAGC aktivieren</German>
+		<Italian>Abilita Orologio</Italian>
+		<Spanish>Activar NJAGC</Spanish>
+	</TEXT>
+	<!-- advc.067: rewritten (German, English) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ENABLED_HOVER</Tag>
+		<English>Enables the NJAGC clock ("Not Just Another Game Clock"), which can be customized through the settings in the lower half of this tab. The right-hand column and the durations in the drop-down menus are only relevant if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</English>
+		<French>En activant, l'horloge est remplacé par le mod NJAGC de TheLopez.</French>
+		<German>Aktiviert die NJAGC-Zeitanzeige ("Not Just Another Game Clock"), die sich mit den nachstehenden Optionen individuell anpassen lässt. Die rechte Spalte und die Aufklappmenüs (Anzeigedauer) sind nur dann von Bedeutung, wenn [COLOR_HIGHLIGHT_TEXT]Abwechselnde Anzeige[COLOR_REVERT] aktiviert ist.</German>
+		<Italian>Quando è selezionato, viene utilizzato l'orologio evoluto del NJAGC (Not Just Another Game Clock) Mod di TheLopez.</Italian>
+		<Spanish>Si se activa, el reloj de juego se muestra empleando el mod NJAGC de TheLopez.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: was "Display Era" and in German "Epoche" -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWERA_TEXT</Tag>
+		<English>Era Display</English>
+		<French>Montrer l'Ere</French>
+		<German>Zeitalter anzeigen</German>
+		<Italian>Mostra l'Era</Italian>
+		<Spanish>Mostrar Era</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: Make clear that it's not the game era -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWERA_HOVER</Tag>
+		<English>When checked, the current era of your civilization is displayed to the left of the research bar.</English>
+		<French>En activant, l'ère actualle est montrée à gauche de la barre des recherches.</French>
+		<German>Zeigt das derzeitige Zeitalter Ihrer Zivilisation links neben dem Forschungsbalken an.</German>
+		<Italian>Quando è selezionato, viene mostrata l'Era corrente a sinistra della Barra di Ricerca Tecnologica.</Italian>
+		<Spanish>Si se activa, muestra la era actual a la izquierda de la barra de investigación.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: New option -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWGAMEERA_TEXT</Tag>
+		<English>Game Era</English>
+		<French>Ère mondiale</French>
+		<German>Spielzeitalter</German>
+		<Italian>Era mondiale</Italian>
+		<Spanish>Era mundial</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWGAMEERA_HOVER</Tag>
+		<English>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</English>
+		<French>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</French>
+		<German>Zeigt statt Ihrem Zeitalter das Durchschnittszeitalter aller Zivilisationen an (Spielzeitalter). Das Spielzeitalter beeinflusst das Verhalten der KI-Spieler, ist den menschlichen Spielern aber gewöhnlich erst dann bekannt, wenn sie mit allen Zivilisationen in Kontakt stehen; daher könnte man diese Option als regelwidrig ansehen.</German>
+		<Italian>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</Italian>
+		<Spanish>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: was "Use Era-Related Colors" -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWERACOLOR_TEXT</Tag>
+		<English>Era Colors</English>
+		<French>Coloriser les Eres</French>
+		<German>Zeitalter einfärben</German>
+		<Italian>Usa colori dell'Era</Italian>
+		<Spanish>Usar color de la Era</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: rewritten (English, German) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWERACOLOR_HOVER</Tag>
+		<English>When checked, the text color of the era (if enabled) and game year are displayed in the color assigned to the era. Regardless of this checkbox, the color assignments are also used by the [COLOR_HIGHLIGHT_TEXT]Show Eras[COLOR_REVERT] option ("Advisors" tab).</English>
+		<French>En activant, la date et l'ère du jeu seront colorisés différemment selon l'ère actuelle.</French>
+		<German>Zeigt das Zeitalter (falls aktiviert) und das Spieldatum in der Farbe an, die dem Zeitalter zugewiesen ist. Auch wenn diese Option nicht angekreuzt ist, wird das eingestellte Farbschema von der Option [COLOR_HIGHLIGHT_TEXT]Zeitalter anzeigen[COLOR_REVERT] auf dem Reiter "Berater" verwendet.</German>
+		<Italian>Quando è selezionato, la data e l'era vengono visualizzati utilizzando colori specifici per ogni era.</Italian>
+		<Spanish>La fecha de juego y la era se muestran con un color específico para cada era.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_ANCIENT_TEXT</Tag>
+		<English>Ancient Era</English>
+		<French>Antiquit&#233;</French>
+		<German>Antike</German>
+		<Italian>Era Antica</Italian>
+		<Spanish>Edad Antigüa</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_ANCIENT_HOVER</Tag>
+		<English>Display color for the Ancient era</English>
+		<French>Couleur pour l'Antiquité.</French>
+		<German>Anzeigefarbe für das Zeitalter "Antike"</German>
+		<Italian>Colore da utilizzare per l'Era Antica.</Italian>
+		<Spanish>Color a emplear para la Edad Antigüa.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_CLASSICAL_TEXT</Tag>
+		<English>Classical Era</English>
+		<French>Ere Classique</French>
+		<German>Klassik</German>
+		<Italian>Era Classica</Italian>
+		<Spanish>Edad Clásica</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_CLASSICAL_HOVER</Tag>
+		<English>Display color for the Classical era.</English>
+		<French>Couleur pour l'Ere Classique.</French>
+		<German>Anzeigefarbe für das Zeitalter "Klassik"</German>
+		<Italian>Colore da utilizzare per l'Era Classica.</Italian>
+		<Spanish>Color a emplear para la Edad Clásica.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_MEDIEVAL_TEXT</Tag>
+		<English>Medieval Era</English>
+		<French>Moyen Age</French>
+		<German>Mittelalter</German>
+		<Italian>Era Medioevale</Italian>
+		<Spanish>Edad Medieval</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_MEDIEVAL_HOVER</Tag>
+		<English>Display color for the Medieval era.</English>
+		<French>Couleur pour le Moyen Age.</French>
+		<German>Anzeigefarbe für das Zeitalter "Mittelalter"</German>
+		<Italian>Colore da utilizzare per l'Era Medioevale.</Italian>
+		<Spanish>Color a emplear para la Edad Medieval.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_RENAISSANCE_TEXT</Tag>
+		<English>Renaissance Era</English>
+		<French>Renaissance</French>
+		<German>Renaissance</German>
+		<Italian>Era Rinascimentale</Italian>
+		<Spanish>Renacimiento</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_RENAISSANCE_HOVER</Tag>
+		<English>Display color for the Renaissance era.</English>
+		<French>Couleur pour la Renaissance.</French>
+		<German>Anzeigefarbe für das Zeitalter "Renaissance"</German>
+		<Italian>Colore da utilizzare per l'Era Rinascimentale.</Italian>
+		<Spanish>Color a emplear para el Renacimiento.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_INDUSTRIAL_TEXT</Tag>
+		<English>Industrial Era</English>
+		<French>Ere Industrielle</French>
+		<German>Industriezeitalter</German>
+		<Italian>Era Industriale</Italian>
+		<Spanish>Edad Industrial</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_INDUSTRIAL_HOVER</Tag>
+		<English>Display color for the Industrial era.</English>
+		<French>Couleur pour l'Ere industrielle.</French>
+		<German>Anzeigefarbe für das Industriezeitalter</German>
+		<Italian>Colore da utilizzare per l'Era Industriale.</Italian>
+		<Spanish>Color a emplear para la Edad Industrial.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_MODERN_TEXT</Tag>
+		<English>Modern Era</English>
+		<French>Ere Moderne</French>
+		<German>Moderne</German>
+		<Italian>Era Moderna</Italian>
+		<Spanish>Edad Contemporánea</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_MODERN_HOVER</Tag>
+		<English>Display color for the Modern era.</English>
+		<French>Couleur pour l'Ere Moderne.</French>
+		<German>Anzeigefarbe für das Zeitalter "Moderne"</German>
+		<Italian>Colore da utilizzare per l'Era Moderna.</Italian>
+		<Spanish>Color a emplear para la Edad Contemporánea.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_FUTURE_TEXT</Tag>
+		<English>Future Era</English>
+		<French>Temps Futurs</French>
+		<German>Zukunft</German>
+		<Italian>Era Futura</Italian>
+		<Spanish>Edad Futura</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_FUTURE_HOVER</Tag>
+		<English>Display color for the Future era.</English>
+		<French>Couleur pour les Temps Futurs.</French>
+		<German>Anzeigefarbe für das Zeitalter "Zukunft"</German>
+		<Italian>Colore da utilizzare per l'Era Futura.</Italian>
+		<Spanish>Color a emplear para la Edad Futura.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: Added the part in parentheses -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWTIME_TEXT</Tag>
+		<English>Clock (Time of Day)</English>
+		<French>Horloge</French>
+		<German>Uhrzeit</German>
+		<Italian>Orologio</Italian>
+		<Spanish>Reloj</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTTIME_TEXT</Tag>
+		<English>Clock (Time of Day)</English>
+		<French>Horloge</French>
+		<German>Uhrzeit</German>
+		<Italian>Orologio</Italian>
+		<Spanish>Reloj</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWTIME_HOVER</Tag>
+		<English>When checked, the real time of day is displayed.</English>
+		<French>En activant, l'heure est montrée.</French>
+		<German>Zeigt die (wirkliche) Uhrzeit an.</German>
+		<Italian>Quando è selezionato, viene visualizzato il tempo reale.</Italian>
+		<Spanish>Si se activa, muestra el tiempo real.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTTIME_HOVER</Tag>
+		<English>When checked, the real time of day is displayed.</English>
+		<French>En activant, l'heure est montrée.</French>
+		<German>Zeigt die (wirkliche) Uhrzeit an.</German>
+		<Italian>Quando è selezionato, viene visualizzato il tempo reale.</Italian>
+		<Spanish>Muestra el tiempo real.</Spanish>
+	</TEXT>
+
+	<!-- advc.067: was "Completed Turns" and in German "Verstrichene Runden" -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWCOMPLETEDTURNS_TEXT</Tag>
+		<English>Game Turn</English>
+		<French>Tours Complétés</French>
+		<German>Aktuelle Runde</German>
+		<Italian>Turni completati</Italian>
+		<Spanish>Turnos Completados</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTCOMPLETEDTURNS_TEXT</Tag>
+		<English>Game Turn</English>
+		<French>Tours Complétés</French>
+		<German>Aktuelle Runde</German>
+		<Italian>Turni completati</Italian>
+		<Spanish>Turnos Completados</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWCOMPLETEDTURNS_HOVER</Tag>
+		<English>When checked, the current game turn number is displayed.</English>
+		<French>En activant, le nombre de tours complétés est montré.</French>
+		<German>Zeigt die Nummer der aktuellen Runde an.</German>
+		<Italian>Quando è selezionato, viene visualizzato il numero di turni completati.</Italian>
+		<Spanish>Muestra el número de turnos que ya se han completado.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTCOMPLETEDTURNS_HOVER</Tag>
+		<English>When checked, the current game turn number is displayed.</English>
+		<French>En activant, le nombre de tours complétés est montré.</French>
+		<German>Zeigt die Nummer der aktuellen Runde an.</German>
+		<Italian>Quando è selezionato, viene visualizzato il numero di turni completati.</Italian>
+		<Spanish>Muestra el número de turnos completados.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: was "Total Turns" and in German "Gesamtanzahl Runden"-->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWTOTALTURNS_TEXT</Tag>
+		<English>Turn Limit</English>
+		<French>Total des Tours</French>
+		<German>Rundenlimit</German>
+		<Italian>Turni Totali</Italian>
+		<Spanish>Turnos Totales</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTTOTALTURNS_TEXT</Tag>
+		<English>Turn Limit</English>
+		<French>Total des Tours</French>
+		<German>Rundenlimit</German>
+		<Italian>Turni Totali</Italian>
+		<Spanish>Turnos Totales</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWTOTALTURNS_HOVER</Tag>
+		<English>When checked, the turn limit is displayed if [COLOR_HIGHLIGHT_TEXT]Time Victory[COLOR_REVERT] is enabled.</English>
+		<French>En activant, le nombre total de tours pour une Victoire de Temps est montré.</French>
+		<German>Zeigt die maximale Rundenzahl des Spiels an, falls die Siegbedingung [COLOR_HIGHLIGHT_TEXT]Punktsieg[COLOR_REVERT] aktiviert ist.</German>
+		<Italian>Quando è selezionato, viene visualizzato il numero di turni totali (se la Vittoria a Tempo è abilitata).</Italian>
+		<Spanish>Muestra el número de turnos totales si la condición de Victoria por Tiempo está habilitada.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTTOTALTURNS_HOVER</Tag>
+		<English>When checked, the turn limit is displayed if [COLOR_HIGHLIGHT_TEXT]Time Victory[COLOR_REVERT] is enabled.</English>
+		<French>En activant, le nombre total de tours pour une Victoire de Temps est montré.</French>
+		<German>Zeigt die maximale Rundenzahl des Spiels an, falls die Siegbedingung [COLOR_HIGHLIGHT_TEXT]Punktsieg[COLOR_REVERT] aktiviert ist.</German>
+		<Italian>Quando è selezionato, viene visualizzato il numero di turni totali (se la Vittoria a Tempo è abilitata).</Italian>
+		<Spanish>Muestra el número de turnos totales si la condición de Victoria por Tiempo está habilitada.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: was "Game Date and Golden Age Turns" and in German
+		 "Spieldatum / Runden eines Goldenen Zeitalters". These should really
+		 be separate settings ...
+		 The game date can include a month, but I think "year" is the more
+		 intuitive term. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWDATE_TEXT</Tag>
+		<English>Game Year and Golden Age</English>
+		<French>Date du Jeu et Tours d'Age d'Or</French>
+		<German>Spieldatum und Goldenes Zeitalter</German>
+		<Italian>Data del gioco e turni rimasti dell'Età dell'Oro</Italian>
+		<Spanish>Fecha de Juego y Edad de Oro</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTDATE_TEXT</Tag>
+		<English>Game Year and Golden Age</English>
+		<French>Date du Jeu et Tours d'Age d'Or</French>
+		<German>Spieldatum und Goldenes Zeitalter</German>
+		<Italian>Data del gioco e turni rimasti dell'Età dell'Oro</Italian>
+		<Spanish>Fecha de Juego y Edad de Oro</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTDATE_HOVER</Tag>
+		<English>When checked, the game date and the number of turns left in a Golden Age are displayed. (Both as in BtS.)</English>
+		<French>En activant, la date du jeu et les tours restant de vos Ages d'Or sont montrés.</French>
+		<German>Zeigt das Spieldatum und die Anzahl der verbleibenden Runden im Goldenen Zeitalter an. (Beides wie in BtS.)</German>
+		<Italian>Quando è selezionato, viene visualizzata la data in gioco e il numero di turni di Età dell'Oro rimasti.</Italian>
+		<Spanish>Muestra la fecha de juego y el número de turnos restantes de la Edad de Oro.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWDATE_HOVER</Tag>
+		<English>When checked, the game date and the number of turns left in a Golden Age are displayed. (Both as in BtS.)</English>
+		<French>En activant, la date du jeu et les tours restant de vos Ages d'Or sont montrés.</French>
+		<German>Zeigt das Spieldatum und die Anzahl der verbleibenden Runden im Goldenen Zeitalter an. (Beides wie in BtS.)</German>
+		<Italian>Quando è selezionato, viene visualizzata la data in gioco e il numero di turni di Età dell'Oro rimasti.</Italian>
+		<Spanish>Muestra la fecha de juego y el número de turnos restantes de la Edad de Oro.</Spanish>
+	</TEXT>
+	
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTERNATETEXT_TEXT</Tag>
+		<English>Alternate Game Clock</English>
+		<French>Alterner l'Horloge</French>
+		<German>Anzeige abwechseln</German>
+		<Italian>Orologio alternativo</Italian>
+		<Spanish>Reloj Alternativo</Spanish>
+	</TEXT-->
+	<!-- advc.067: Merging the above with TXT_KEY_BUG_OPTLABEL_NJAGC_ALTERNATE
+		 in 'BUG Options Screen.xml' -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTERNATETEXT_TEXT</Tag>
+		<English>Alternate View</English>
+		<French>Alterner vue</French>
+		<German>Abwechselnde Anzeige</German>
+		<Italian>Visualizzazione alternativa</Italian>
+		<Spanish>Vista Alternativa</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: Rewritten; old translations:
+		 <French>En activant, l'horloge alterne entre la vue standard et la vue alternative.</French>
+		 <Italian>Quando è selezionato, l'orologio alterna due visualizzazioni, normale ed alternativa.</Italian>
+		 <Spanish>Permite cambiar entre vista estándar y alternante.</Spanish>
+		-->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTERNATETEXT_HOVER</Tag>
+		<English>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</English>
+		<French>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</French>
+		<German>Lässt die Zeitanzeige zwischen den Einstellungen in der linken Spalte und jenen in der rechten Spalte wechseln. Die beiden Aufklappmenüs steuern die jeweilige Anzeigedauer.</German>
+		<Italian>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</Italian>
+		<Spanish>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: unused -->
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTTIMING_TEXT</Tag>
+		<English>Period (in seconds)</English>
+		<French>Rythme (en secondes)</French>
+		<German>Intervall (in Sekunden)</German>
+		<Italian>Periodo (in secondi)</Italian>
+		<Spanish>Período (en segundos)</Spanish>
+	</TEXT-->
+	
+	<!-- advc.067: Rewritten; old translations:
+		 <French>Sélectionnez la rythme à laquelle l'horloge alterne entre les deux vues.</French>
+		 <Italian>Determina perr quanti secondi viene visualizzata ciascuna delle due versioni dell'orologio (se la visualizzazione alternativa è abilitata).</Italian>
+		 <Spanish>Permite seleccionar el tiempo que cada una de las vistas de reloj se mostrará cuando se emplea el modo alternante.</Spanish>
+		 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTTIMING_HOVER</Tag>
+		<English>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</English>
+		<French>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</French>
+		<German>Die Anzeigedauer (Sekunden) für die Einstellungen in der rechten Spalte, falls [COLOR_HIGHLIGHT_TEXT]Abwechselnde Anzeige[COLOR_REVERT] aktiviert ist.</German>
+		<Italian>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Italian>
+		<Spanish>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Spanish>
+	</TEXT>
+	<!-- advc.067: New key; same text as above (almost) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__PRIMARYTIMING_HOVER</Tag>
+		<English>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</English>
+		<French>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</French>
+		<German>Die Anzeigedauer (Sekunden) für die Einstellungen in der linken Spalte, falls [COLOR_HIGHLIGHT_TEXT]Abwechselnde Anzeige[COLOR_REVERT] aktiviert ist.</German>
+		<Italian>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Italian>
+		<Spanish>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Spanish>
+	</TEXT>
+	
+	<!-- advc.067: Now unused -->
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWCOMPLETEDPERCENT_TEXT</Tag>
+		<English>Completed Percentage</English>
+		<French>Pourcentage Complét&#233;</French>
+		<German>Verstrichene Runden (in Prozent)</German>
+		<Italian>Percentuale completata</Italian>
+		<Spanish>Porcentaje Completado</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWCOMPLETEDPERCENT_HOVER</Tag>
+		<English>When checked, the completed percentage is displayed if Time Victory is enabled.</English>
+		<French>En activant, le pourcentage complété pour une Victoire de Temps est montré.</French>
+		<German>Zeigt die verstrichenen Runden als Prozentsatz der insgesamt verfügbaren Runden an, falls "Punktsieg" aktiviert ist</German>
+		<Italian>Quando è selezionato, viene visualizzata la percentuale di turni completati (se la Vittoria a Tempo è abilitata).</Italian>
+		<Spanish>Muestra el porcentaje de turnos completado si la condición de Victoria por Tiempo está habilitada</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTCOMPLETEDPERCENT_TEXT</Tag>
+		<English>Completed Percentage</English>
+		<French>Pourcentage Complét&#233;</French>
+		<German>Verstrichene Runden (in Prozent)</German>
+		<Italian>Percentuale completata</Italian>
+		<Spanish>Porcentaje completado</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTCOMPLETEDPERCENT_HOVER</Tag>
+		<English>When checked, the completed percentage is displayed if Time Victory is enabled.</English>
+		<French>En activant, le pourcentage complété pour une Victoire de Temps est montré.</French>
+		<German>Zeigt die verstrichenen Runden als Prozentsatz der insgesamt verfügbaren Runden an, falls "Punktsieg" aktiviert ist</German>
+		<Italian>Quando è selezionato, viene visualizzata la percentuale di turni completati (se la Vittoria a Tempo è abilitata).</Italian>
+		<Spanish>Muestra el porcentaje de turnos completado si la condición de Victoria por Tiempo está habilitada</Spanish>
+	</TEXT-->
+
+</Civ4GameText>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- K-Mod hints -->
+	<!-- Style guidelines (from CIV4GameText_Strategy.xml): -->
+	<!-- Technologies should be colored COLOR_TECH_TEXT (example: [COLOR_TECH_TEXT]Bronze Working[COLOR_REVERT]) -->
+	<!-- Unit should be colored COLOR_UNIT_TEXT (example: [COLOR_UNIT_TEXT]Archers[COLOR_REVERT]) -->
+	<!-- Buildings should be colored COLOR_BUILDING_TEXT (example: [COLOR_BUILDING_TEXT]Theatre[COLOR_REVERT]) -->
+	<!-- Projects should be colored COLOR_PROJECT_TEXT (example: [COLOR_PROJECT_TEXT]SS Engine[COLOR_REVERT]) -->
+	<!-- Anything else official (that should be capitalized) should be colored COLOR_HIGHLIGHT_TEXT (example: [COLOR_HIGHLIGHT_TEXT]Trade Mission[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Islam[COLOR_REVERT]) -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+
+<!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes. -->
+
+<!-- advc.008c: Now also hints at menu button -->
+<TEXT>
+	<Tag>TXT_KEY_BUG_HINT_INTERFACE_1</Tag>
+	<English>You can customize the BUG mod from the game menu [ESC], or by pressing [ALT + CTRL + O].</English>
+	<French>Pressez [ALT + CTRL + O] pour accèder aux écrans d'options du BUG Mod.</French>
+	<German>Die BUG-Mod lässt sich vom Menü [ESC] aus konfigurieren, oder mit der Tastenkombination [STRG + ALT + O].</German>
+	<Italian>Premi [ALT + CTRL + O] per accedere alla schermata di configurazione del BUG Mod.</Italian>
+	<Spanish>Presiona [ALT + CTRL + O] para abrir la pantalla de opciones de BUG.</Spanish>
+</TEXT>
+<!-- advc.008c: Just stylistic changes -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_1</Tag>
+	<English>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution.</English>
+	<French>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution.</French>
+	<German>(K-Mod) Aquädukt und Krankenhaus erhöhen den Gesundheitswert einer Stadt, wohingegen öffentliche Verkehrsmittel und Recyclinganlagen die Umweltverschmutzung lindern.</German>
+	<Italian>(K-Mod) Un acquedotto o un ospedale aumentano la salute della città, ma il trasporto pubblico o il centro riciclaggio ne riducono l'inquinamento.</Italian>
+	<Spanish>(K-Mod) Un acueducto o un hospital aumentará la salud de una ciudad, pero el transporte público o un centro de reciclaje reduce su polución.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_2</Tag>
+	<English>(K-Mod) The cultural influence of each city extends beyond its border. If you are being culturally pressured by another civilization, consider getting more culture in all nearby cities; not just the cities being pressed.</English>
+	<French>(K-Mod) The cultural influence of each city extends beyond its border. If you are being culturally pressured by another civilization, consider getting more culture in all nearby cities; not just the cities being pressed.</French>
+	<German>(K-Mod) Der kulturelle Einfluss einer Stadt erstreckt sich über ihre Grenzen hinaus. Unter kulturellem Druck bietet es sich daher an, auch in benachbarten Städten mehr Kultur zu produzieren, nicht nur in den betroffenen Städten.</German>
+	<Italian>(K-Mod) L'influenza culturale di ogni città si estende oltre i suoi bordi. Se sei pressato culturalmente da un'altra civiltà prendi in considerazione di aumentare l'output culturale delle città vicine e non solo di quella pressata.</Italian>
+	<Spanish>(K-Mod) La influencia clultural de cada ciudad se extiende más alla de su frontera. Si estás siendo presionado culturalmente por otra civilización, considera adquirir más cultura en todas las ciudades cercanas; no solo en las ciudades que están siendo presionadas.</Spanish>
+</TEXT>
+<!-- advc.008c: Qualified this one a bit. Global warming isn't normally a good
+	 reason not to chop. -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_3</Tag>
+	<English>(K-Mod) In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
+	<French>(K-Mod) In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</French>
+	<German>(K-Mod) Wälder und Dschungel helfen gegen Spielende, die Umweltverschmutzung Ihrer Zivilisation auszugleichen. Ziehen Sie in Betracht, sie zu erhalten, um dem Klimawandel entgegenzuwirken.</German>
+	<Italian>(K-Mod) Foreste e giungle aiutano a contrastare l'inquinamento causato dalla tua civilità. Se non hai necessità di abbatterle, considera di mantenerle per ridurre gli effetti del riscaldamento globale.</Italian>
+	<Spanish>(K-Mod) Los bosques y las selvas ayudan a compensar la polución causada por tu civilización. Si no necesitas talarlos, considéraros para reducir los efectos del calentamiento global.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_4</Tag>
+	<English>(K-Mod) If a rival civilization becomes fixated on world domination - beware! They may decide to attack you even if they appear friendly.</English>
+	<French>(K-Mod) If a rival civilization becomes fixated on world domination - beware! They may decide to attack you even if they appear friendly.</French>
+	<German>(K-Mod) Wenn eine rivalisierende Zivilisation sich auf Weltherrschaft fixiert - vorsicht! Sie könnten sich entscheiden, Sie anzugreifen, selbst wenn sie freundlich erscheinen.</German>
+	<Italian>(K-Mod) Se una civiltà rivale punta a dominare il mondo - attenzione! Potrebbe decidere di attacacrti anche se appare amichevole.</Italian>
+	<Spanish>(K-Mod) Si un rival se ha obsesionado en la dominación mundial - ¡ten cuidado! Pueden decidir atacarte incluso si parecen amistosos.</Spanish>
+</TEXT>
+<!-- advc.008c: Apparently a mix-up of Assembly Line and Industrial Park-->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_5</Tag>
+	<English>Factories and Industrial Parks create extra pollution with coal and oil. If you aren't using your fossil fuels, consider removing access to them so that your people will be healthier.</English>
+	<French>Factories and Industrial Parks create extra pollution with coal and oil. If you aren't using your fossil fuels, consider removing access to them so that your people will be healthier.</French>
+	<German>Fabriken und Industriegebiete erzeugen zusätzliche Verschmutzung mit Kohle und Öl. Benötigen Sie ihre fossilen Brennstoffe nicht, ziehen Sie in Betracht, den Zugang zu ihnen abzuschneiden, damit Ihre Bevölkerung gesünder wird.</German>
+	<Italian>Fabbriche e Linee di produzione causano ulteriore inquinamento con carbone e petrolio. Se non usi combustibili fossili, considera di rimuoverne l'accesso per aumentare la salute di cittadini.</Italian>
+	<Spanish>Las fábricas y cadenas de montaje pueden producir polución extra con carbón y petróleo. Si no estás usando combustibles fósiles, considera quitar el acceso a ellos para que tu gente sea más saludable.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_6</Tag>
+	<English>(K-Mod) Units with the "leadership" warlord promotion greatly reduce the chance of cultural revolts in their city.</English>
+	<French>(K-Mod) Units with the "leadership" warlord promotion greatly reduce the chance of cultural revolts in their city.</French>
+	<German>(K-Mod) Einheiten mit der "Kriegsherr"-Beförderung in Städten verringern sehr die Wahrscheinlichkeit von kulturbedingten Revolten.</German>
+	<Italian>(K-Mod) Le unità con la promozione "Leadership" (Grande Generale richiesto) riducono maggiormente le probabilità di rivolta di una città.</Italian>
+	<Spanish>(K-Mod) Las unidades con el ascendo de caudillo "liderazgo" reduce enormemente la probabilidad de rebeliones culturales en su ciudad.</Spanish>
+</TEXT>
+<!-- advc.008c: "grants" instead of "shares". "share to" sounds awkward. -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_7</Tag>
+	<English>(K-Mod) When a Great General chooses to lead a unit as a warlord, it grants an immediate experience boost to all units in the group. More experience points are given to bigger groups.</English>
+	<French>(K-Mod) When a Great General chooses to lead a unit as a warlord, it grants an immediate experience boost to all units in the group. More experience points are given to bigger groups.</French>
+	<German>(K-Mod) Wenn ein Großer General sich dazu entschließt, eine Einheit als Kriegsherr zu führen, teilt er einmalig Erfahrungspunkte mit allen Einheiten der Gruppe. Größere Gruppen erhalten dabei mehr Punkte als kleine.</German>
+	<Italian>(K-Mod) Quando un Grande Generale decide di unirsi ad un unità come Grande Condottiero, distribuisce in immediato aumento di esperienza con tutte le unità sulla stessa casella. Maggiore lo stack, maggiore l'esperienza.</Italian>
+	<Spanish>(K-Mod) Cuando un Gran General elige liderar una unidad como un caudillo, comparte un aumento inmediato de experiencia a todas las unidades en el grupo. Más puntos de experiencia son dados a grupos más grandes.</Spanish>
+</TEXT>
+<!-- advc.008c: Just style -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_8</Tag>
+	<English>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</English>
+	<French>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</French>
+	<German>(K-Mod) Halten Sie im Stadtbildschirm [Alt] gedrückt und zeigen Sie auf ein Gebäude oder einen Spezialisten, um seinen Netto-Effekt zu sehen.</German>
+	<Italian>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</Italian>
+	<Spanish>(K-Mod) Mantén la tecla [ALT] presionada y apunta a un edificio o especialista para ver el efecto si estuviera en la ciudad actual.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_9</Tag>
+	<English>(K-Mod) As religions grow older, they become slightly less likely to spread.</English>
+	<French>(K-Mod) As religions grow older, they become slightly less likely to spread.</French>
+	<German>(K-Mod) Ältere Religionen verbreiten sich ein kleines bisschen langsamer.</German>
+	<Italian>(K-Mod) As religions grow older, they become slightly less likely to spread.</Italian>
+	<Spanish>(K-Mod) Cuando las religiones envejecen, se vuelven un poco menos probable de propagarse.</Spanish>
+</TEXT>
+<!-- advc.008c: German text was a bit misleading -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_10</Tag>
+	<English>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</English>
+	<French>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</French>
+	<German>Zufriedene Anführer anderer Zivilisationen kann man ruhig gelegentlich um ein kleines Geschenk bitten.</German>
+	<Italian>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</Italian>
+	<Spanish>Si un leader extranjero está Amable contigo, no se opondrán a ser preguntados por un pequeño regalo.</Spanish>
+</TEXT>
+<!-- advc.008c: More info about the XP loss when upgrading -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_11</Tag>
+	<English>A unit led by a [COLOR_HIGHLIGHT_TEXT]Great Warlord[COLOR_REVERT] can be upgraded for free and never loses experience points. (Upgrades normally cap experience points at 10.)</English>
+	<French>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</French>
+	<German>Von Kriegsherren angeführte Einheiten können umsonst modernisiert werden und verlieren dabei auch keine Erfahrungspunkte. (Normalerweise behält eine modernisierte Einheit höchstens 10 Erfahrungspunkte.)</German>
+	<Italian>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</Italian>
+	<Spanish>Las unidades lideradas por un caudillo pueden ser modernizadas gratis, y no perderán sus putnos de experiencia.</Spanish>
+</TEXT>
+<!-- advc.008c: Protecting wounded units is an important point (and
+	 "experienced veterans" a tautology) -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_12</Tag>
+	<English>(K-Mod) When a stack of units is attacked, the unit with the best chance of winning will usually defend first - but rookie units will attempt to protect wounded veterans and medics.</English>
+	<French>(K-Mod) When a stack of units is attacked, the unit with the best chance of winning will usually defend first - but rookie units will attempt to protect wounded veterans and medics.</French>
+	<German>(K-Mod) Wenn ein Einheitenstapel angegriffen wird, verteidigt normalerweise die Einheit mit der besten Siegeschance zuerst - aber grüne Einheiten versuchen verwundete Veteranen und Sanitäter zu beschützen.</German>
+	<Italian>(K-Mod) When a stack of units is attacked, the unit with the best chance of winning will usually defend first - but rookie units will attempt to protect wounded veterans and medics.</Italian>
+	<Spanish>(K-Mod) Cuando una pila de unidades es atacada, la unidad con mejor oprtunidad de ganar será normalmente la que defienda primero - pero las unidades novatas intentarán proteger veteranos experimentados y médicos.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_13</Tag>
+	<English>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</English>
+	<French>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</French>
+	<German>(K-Mod) In der Bauauftragsliste einer Stadt können [Strg] und [Umschalt] benutzt werden, um Einträge hoch und runter zu bewegen, und [Alt] um Einträge endlos bauen zu lassen.</German>
+	<Italian>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</Italian>
+	<Spanish>(K-Mod) En la cola de construcción, usa [CTRL] y [MAYÚS] para mover objetos arriba y abajo; y [ALT] para alternar si los objetos deben repetirse o no.</Spanish>
+</TEXT>
+<!-- replacement text for the inaccurate barbarian tip (changed english and german only)-->
+<!-- advc.008c: Replacement text had been invalidated by advc.300. Now the
+	 original hint ("Barbarians can appear anywhere a tile is obscured by fog
+	 of war, so never assume a tile you can't see is safe, even if you checked
+	 it the turn before!") is correct again. I'm overwriting hint 14 instead
+	 because it's bad advice: "Be careful in signing Open Border agreements -
+	 make sure your 'friend' isn't mapping out your land for sale to the 
+	 highest bidder!" -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_14</Tag>
+	<English>Barbarians do not appear in tiles that are visible to any civilization. Carefully positioned lookouts can significantly reduce the barbarian activity in an area.</English>
+	<French>Les barbares peuvent appara&#238;tre sur toutes les cases recouvertes par le brouillard de guerre. Vous ne saurez donc jamais ce qu'il y a sur celles qui sont invisibles, m&#234;me si vous avez d&#233;j&#224; v&#233;rifi&#233; au tour pr&#233;c&#233;dent !</French>
+	<German>Barbaren erscheinen nicht auf Feldern, die von einer Zivilisation eingesehen werden können. Wohl positionierte Späher können die Barbarenaktivität in einem Gebiet deutlich verringern.</German>
+	<Italian>I Barbari possono apparire in un qualsiasi spazio oscurato dalla nebbia di guerra. Non essere mai certo che uno spazio non visibile sia sicuro, anche se hai controllato durante il turno precedente!</Italian>
+	<Spanish>Los bárbaros no reaparecerán en dos pasos de cualquiera de las unidades. Con el posicionamiento cuidadoso de batidores puedes bloquear completamente grupos de pillaje que se formen en tu área.</Spanish>
+</TEXT>
+<!-- replacement text for the double-click tip, because I've changed the functionality of double-click -->
+<!-- advc.008c: The K-Mod text was "Double clicking a stack of units will wake
+	 them all up." (And German: " Ein Doppelklick auf einen Einheitenstapel
+	 weckt sie alle auf.") My text hopefully makes clearer that the 3D models or
+	 the flag (in cities - to avoid entering the city screen) needs to be
+	 clicked, not the unit icons. Will also wake up a single unit if there
+	 isn't a stack. I've left the Spanish text alone. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_6</Tag>
+	<English>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</English>
+	<French>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</French>
+	<German>(K-Mod) Ein Doppelklick auf ein Geländefeld weckt alle Einheiten dort auf. Bei Stadtfeldern funktioniert dies nur, wenn Sie auf die Flagge der Einheiten klicken.</German>
+	<Italian>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</Italian>
+	<Spanish>(K-Mod) Doble click en una pila de unidades las despertará a todas.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_14</Tag>
+	<English>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</English>
+	<French>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</French>
+	<German>(K-Mod) Halten Sie [X] gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
+	<Italian>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
+	<Spanish>(K-Mod) Mantener la tecla [X] presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_15</Tag>
+	<English>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</English>
+	<French>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</French>
+	<German>(K-Mod) Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
+	<Italian>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
+	<Spanish>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
+</TEXT>
+
+<!-- k146: I've changed the wording a little and added the German translation.
+	 -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_16</Tag>
+	<English>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</English>
+	<French>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</French>
+	<German>Halten Sie beim Wecken einer Einheit [ALT] gedrückt, so werden weltweit alle Ihre Einheiten dieses Typs geweckt.</German>
+	<Italian>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Italian>
+	<Spanish>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Spanish>
+</TEXT>
+
+</Civ4GameText>

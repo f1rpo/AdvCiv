@@ -2,8 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceCache.h"
-#include "WarAndPeaceAI.h"
-#include "CvPlayerAI.h"
+#include "WarAndPeaceAgent.h"
+#include "WarAndPeaceReport.h"
+#include "CvGamePlay.h"
+#include "AI_Defines.h"
+#include "CvMap.h"
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
@@ -23,6 +26,7 @@ WarAndPeaceCache::WarAndPeaceCache() {
 	goldPerProduction = totalAssets = -1;
 	bHasAggressiveTrait = bHasProtectiveTrait = canScrub = false;
 	trainDeepSeaCargo = trainAnyCargo = false;
+	focusOnPeacefulVictory = false;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		wwAnger[i] = threatRatings[i] = relativeNavyPow[i] = -1;
 		located[i] = false;
@@ -32,7 +36,7 @@ WarAndPeaceCache::WarAndPeaceCache() {
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		lostTilesAtWar[i] = // advc.035
 				pastWarScores[i] = sponsorshipsAgainst[i] =
-				sponsorsAgainst[i] = warUtilityIgnDistraction[i];
+				sponsorsAgainst[i] = warUtilityIgnDistraction[i] = -1;
 		hireAgainst[i] = true;
 	} 
 }
@@ -77,6 +81,7 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 	goldPerProduction = 0;
 	canScrub = false;
 	trainDeepSeaCargo = trainAnyCargo = false;
+	focusOnPeacefulVictory = false;
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		lostTilesAtWar[i] = 0; // advc.035
 		warUtilityIgnDistraction[i] = MIN_INT;
@@ -105,6 +110,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	savegameVersion = 4; // granularity of pastWarScore increased
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
+	savegameVersion = 5; // focusOnPeacefulVictory added
 	stream->Write(ownerId + 100 * savegameVersion);
 	int n = (int)v.size();
 	stream->Write(n);
@@ -129,6 +135,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	stream->Write(canScrub);
 	stream->Write(trainDeepSeaCargo);
 	stream->Write(trainAnyCargo);
+	stream->Write(focusOnPeacefulVictory);
 	stream->Write(readyToCapitulate.size());
 	for(std::set<TeamTypes>::const_iterator it = readyToCapitulate.begin();
 			it != readyToCapitulate.end(); it++)
@@ -189,11 +196,14 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	stream->Read(&canScrub);
 	stream->Read(&trainDeepSeaCargo);
 	stream->Read(&trainAnyCargo);
+	if(savegameVersion >= 5)
+		stream->Read(&focusOnPeacefulVictory);
 	int sz;
 	stream->Read(&sz);
 	for(int i = 0; i < sz; i++) {
 		int masterId;
 		stream->Read(&masterId);
+		FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
 		readyToCapitulate.insert((TeamTypes)masterId);
 	}
 	stream->Read(&sz);
@@ -225,6 +235,7 @@ void WarAndPeaceCache::update() {
 
 	PROFILE_FUNC();
 	clear(true);
+	focusOnPeacefulVictory = calculateFocusOnPeacefulVictory();
 	// Needs to be done before updating cities
 	updateTrainCargo();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++)
@@ -328,7 +339,7 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 							b.getReligionType() != ownerReligion)
 						continue;
 				}
-				if(isMundaneBuildingClass(b.getBuildingClassType())) 
+				if(isMundaneBuildingClass((BuildingClassTypes)b.getBuildingClassType()))
 					buildings++;
 				else wonders++;
 			}
@@ -341,10 +352,10 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 	// Cities about to be founded; will soon need buildings.
 	for(int i = 0; i < ::round(0.6 * std::min(owner.AI_getNumAIUnits(UNITAI_SETTLE),
 			owner.AI_getNumCitySites())); i++)
-		buildingCounts.push_back(::max(buildingCounts));
+		buildingCounts.push_back(::dMax(buildingCounts));
 	int era = owner.getCurrentEra();
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(owner.getPersonalityType());
-	double missing = ::median(buildingCounts) + std::max(0.0, ::median(wonderCounts) -
+	double missing = ::dMedian(buildingCounts) + std::max(0.0, ::dMedian(wonderCounts) -
 			/*  Assume one useless (small or great) wonder per era, but two for
 				Classical and none for Future. */
 			(std::min(5, era) + (era > 0 ? 1 : 0))) *
@@ -555,6 +566,36 @@ void WarAndPeaceCache::updateTrainCargo() {
 	}
 }
 
+bool WarAndPeaceCache::calculateFocusOnPeacefulVictory() {
+
+	CvPlayerAI const& owner = GET_PLAYER(ownerId);
+	if(owner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
+			owner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		return true;
+	if(owner.AI_isDoVictoryStrategyLevel4() || // (Diplo doesn't count as peaceful)
+			(!owner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) &&
+			!owner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3)))
+		return false;
+	bool const bHuman = owner.isHuman();
+	// Space3 or Culture3 -- but is there a rival at stage 4?
+	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
+		CvPlayerAI const& rival = GET_PLAYER(getWPAI.properCivs()[i]);
+		if(!rival.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
+				!rival.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+			continue;
+		// Could we possibly(!) stop them? Would we want to?
+		if(!bHuman && owner.AI_getAttitude(rival.getID()) >= ATTITUDE_FRIENDLY)
+			continue;
+		CvTeamAI const& rivalTeam = GET_TEAM(rival.getTeam());
+		if(rivalTeam.AI_getWarSuccessRating() < 0)
+			return false;
+		if(GET_TEAM(owner.getTeam()).getPower(true) * (bHuman ? 5 : 4) >
+				GET_TEAM(rival.getTeam()).getPower(false) * 3)
+			return false;
+	}
+	return true;
+}
+
 int WarAndPeaceCache::targetMissionCount(PlayerTypes civId) const {
 
 	if(civId == NO_PLAYER)
@@ -628,7 +669,7 @@ PlayerTypes WarAndPeaceCache::sponsorAgainst(TeamTypes tId) const {
 int WarAndPeaceCache::warUtilityIgnoringDistraction(TeamTypes tId) const {
 
 	if(tId == NO_TEAM || tId == BARBARIAN_TEAM)
-		return INT_MIN;
+		return MIN_INT;
 	return leaderCache().warUtilityIgnDistraction[tId];
 }
 
@@ -662,6 +703,11 @@ bool WarAndPeaceCache::canTrainDeepSeaCargo() const {
 bool WarAndPeaceCache::canTrainAnyCargo() const {
 
 	return trainAnyCargo;
+}
+
+bool WarAndPeaceCache::isFocusOnPeacefulVictory() const {
+
+	return focusOnPeacefulVictory;
 }
 
 WarAndPeaceCache const& WarAndPeaceCache::leaderCache() const {
@@ -777,7 +823,7 @@ void WarAndPeaceCache::updateLatestTurnReachableBySea() {
 		// No pair means not reachable (by sea)
 		if(!c.canCurrentlyReachBySea())
 			continue;
-		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGame().getGameTurn(),
+		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGameINLINE().gameTurn(),
 				c.getDistance());
 	}
 }
@@ -1382,7 +1428,7 @@ bool WarAndPeaceCache::City::canReach() const {
 	std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 	if(pos == ltr.end())
 		return false;
-	int turnsUnreachable = GC.getGame().getGameTurn() - pos->second.first;
+	int turnsUnreachable = GC.getGameINLINE().gameTurn() - pos->second.first;
 	return (turnsUnreachable < 10);*/
 	/*  If this isn't enough time for naval stacks to reach their target,
 		consider adding a stackEnRoute flag to City that is updated in
@@ -1633,8 +1679,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			if(c->at(cacheOwner.getCapitalCity()->plot()))
 				reachByLand = true;
 		}
-		// Reach by sea from c (whereas reachBySea refers to any city of agent)
-		bool rbsLoop = false;
 		if(trainAnyCargo) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
@@ -1645,7 +1689,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 						seaPenalty;
 				if(pwd < 0 || d < pwd) {
 					pwd = d;
-					rbsLoop = true;
 					reachBySea = true;
 				}
 			}
@@ -1746,7 +1789,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		int x = dest->getX_INLINE();
 		int y = dest->getY_INLINE();
 		dest = NULL;
-		int shortestStepDist = INT_MAX;
+		int shortestStepDist = MAX_INT;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(x, y, (DirectionTypes)i);
 			if(adj != NULL && adj->isCoastalLand(minSz)) {
@@ -1764,7 +1807,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		// The transports move onto a water tile adjacent to the coastal tile
 		int destx = dest->getX_INLINE();
 		int desty = dest->getY_INLINE();
-		int shortestStepDist = INT_MAX;
+		int shortestStepDist = MAX_INT;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);
 			if(adj != NULL && adj->isWater()) {
@@ -1787,7 +1830,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	return (*r >= 0);
 } // </advc.104b>
 
-void WarAndPeaceCache::City::fatCross(vector<CvPlot*>& r) {
+void WarAndPeaceCache::City::cityCross(vector<CvPlot*>& r) {
 
 	if(city() == NULL) {
 		FAssert(r.empty());
@@ -1796,7 +1839,7 @@ void WarAndPeaceCache::City::fatCross(vector<CvPlot*>& r) {
 			r.push_back(NULL);
 		return;
 	}
-	return ::fatCross(*city()->plot(), r);
+	return ::cityCross(*city()->plot(), r);
 }
 
 void WarAndPeaceCache::City::updateAssetScore() {
@@ -1837,7 +1880,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;
 	vector<CvPlot*> fc;
-	fatCross(fc);
+	cityCross(fc);
 	for(int i = 0; i < 21; i++) {
 		CvPlot const* pp = fc[i];
 		if(pp == NULL)
@@ -1851,11 +1894,11 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		double baseTileScore = 1.0 / 3; // i.e. 1/6 of a resource tile
 		if(p.isRevealed(t.getID(), false)) {
 			// getBonusType ensures that we can see the resource
-			BonusTypes res = p.getBonusType(t.getID());
-			if(res != NO_BONUS && !t.isBonusObsolete(res))
+			if(p.getNonObsoleteBonusType(t.getID()) != NO_BONUS) {
 				// It's OK if we can't use it yet
-				//&& !t.isHasTech((TechTypes)GC.getBonusInfo(res).getTechCityTrade())
+				//&& !t.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechCityTrade())
 				baseTileScore = 2;
+			}
 			cultureTestPlot = pp;
 			// Skip tiles that are essentially unworkable
 			int yf = p.calculateNatureYield(YIELD_FOOD, t.getID()),
@@ -1898,7 +1941,8 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	maintCost /= 100.0;
 	/*  Add 1 as a conservative estimate of incr. civic upkeep and incr. maint.
 		in other cities. Address these increases more carefully in GreedForAssets. */
-	if(c.getOwnerINLINE() != cacheOwnerId) maintCost += 1;
+	if(c.getOwnerINLINE() != cacheOwnerId)
+		maintCost += 1;
 	// Inflation isn't applied by CvCity
 	maintCost *= inflationMultiplier;
 	/*  B/c it's not really at gpt scale (see comment on top), and to account for 

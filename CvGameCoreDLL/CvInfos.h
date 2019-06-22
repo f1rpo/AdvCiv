@@ -27,6 +27,7 @@ class CvXMLLoadUtility;
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvInfoBase
+		: private boost::noncopyable // advc.003e
 {
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
@@ -91,6 +92,7 @@ protected:
 // holds the scale for scalable objects
 //
 class CvScalableInfo
+		: private boost::noncopyable // advc.003e
 {
 public:
 
@@ -191,6 +193,7 @@ public:
 	virtual ~CvDiplomacyResponse();
 
 	int getNumDiplomacyText();
+	// advc.003j (comment): The setters in this class are unused (and should arguably stay unused)
 	void setNumDiplomacyText(int i);
 
 	bool getCivilizationTypes(int i);
@@ -212,7 +215,7 @@ public:
 	const TCHAR* getDiplomacyText(int i) const;
 	const CvString* getDiplomacyText() const;
 	void setDiplomacyText(int i, CvString szText);
-	#if SERIALIZE_CVINFOS
+	#if SERIALIZE_CVINFOS // advc.003i: Even with SERIALIZE_CVINFOS, these two might be unnecessary.
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -495,7 +498,8 @@ public:
 	int getKamikazePercent() const;				// Exposed to Python
 
 	bool isLeader() const;				// Exposed to Python
-	bool isBlitz() const;				// Exposed to Python
+	// advc.164: was isBlitz
+	int getBlitz() const;				// Exposed to Python
 	bool isAmphib() const;				// Exposed to Python
 	bool isRiver() const;				// Exposed to Python
 	bool isEnemyRoute() const;				// Exposed to Python
@@ -568,7 +572,8 @@ protected:
 	int m_iKamikazePercent;
 
 	bool m_bLeader;
-	bool m_bBlitz;									
+	//bool m_bBlitz;
+	int m_iBlitz; // advc.164
 	bool m_bAmphib;								
 	bool m_bRiver;									
 	bool m_bEnemyRoute;						
@@ -737,6 +742,7 @@ protected:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvActionInfo
+		: private boost::noncopyable // advc.003e
 {
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
@@ -1002,6 +1008,10 @@ public:
 	void write(FDataStreamBase* );
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
+	// <advc.315>
+	inline bool isMostlyDefensive() const {
+		return isOnlyDefensive() || isOnlyAttackAnimals() || isOnlyAttackBarbarians();
+	} // </advc.315>
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 
@@ -1540,7 +1550,6 @@ public:
 	int getMaxPlayerInstances() const;				// Exposed to Python
 	int getInstanceCostModifier() const;				// Exposed to Python
 	int getDefaultUnitIndex() const;				// Exposed to Python
-	void setDefaultUnitIndex(int i);
 
 	bool read(CvXMLLoadUtility* pXML);
 	bool readPass3();
@@ -1585,7 +1594,6 @@ public:
 	int getFreeBonus() const;				// Exposed to Python
 	int getNumFreeBonuses() const;				// Exposed to Python
 	int getFreeBuildingClass() const;				// Exposed to Python
-	void setNumFreeBuildingClass(int i);
 	int getFreePromotion() const;				// Exposed to Python
 	int getCivicOption() const;				// Exposed to Python
 	int getAIWeight() const;				// Exposed to Python
@@ -1628,7 +1636,8 @@ public:
 	int getGlobalSpaceProductionModifier() const;				// Exposed to Python
 	int getTradeRoutes() const;				// Exposed to Python
 	int getCoastalTradeRoutes() const;				// Exposed to Python
-	int getGlobalTradeRoutes() const;				// Exposed to Python
+	// advc.310: Renamed; was getGlobalTradeRoutes.
+	int getAreaTradeRoutes() const;				// Exposed to Python
 	int getTradeRouteModifier() const;				// Exposed to Python
 	int getForeignTradeRouteModifier() const;				// Exposed to Python
 	int getAssetValue() const;				// Exposed to Python
@@ -1757,17 +1766,10 @@ public:
 
 	int getBonusYieldModifier(int i, int j) const;				// Exposed to Python
 	int* getBonusYieldModifierArray(int i) const;
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/27/10                    Afforess & jdog5000       */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
 	bool isAnySpecialistYieldChange() const;
 	bool isAnyBonusYieldModifier() const;
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH: END
 
 	// Other
 
@@ -1782,7 +1784,11 @@ public:
 	void write(FDataStreamBase*);
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
-
+	// <advc.310>
+	static void setDomesticGreatGeneralRateModifierEnabled(bool b);
+	static void setAreaTradeRoutesEnabled(bool b);
+	static void setAreaBorderObstacleEnabled(bool b);
+	// </advc.310>
 	//---------------------------------------PUBLIC MEMBER VARIABLES---------------------------------
 protected:
 
@@ -1839,7 +1845,7 @@ protected:
 	int m_iGlobalSpaceProductionModifier;	
 	int m_iTradeRoutes;									
 	int m_iCoastalTradeRoutes;						
-	int m_iGlobalTradeRoutes;						
+	int m_iAreaTradeRoutes; // advc.310: was m_iGlobalTradeRoutes
 	int m_iTradeRouteModifier;						
 	int m_iForeignTradeRouteModifier;						
 	int m_iAssetValue;									
@@ -1946,16 +1952,15 @@ protected:
 
 	int** m_ppaiSpecialistYieldChange;
 	int** m_ppaiBonusYieldModifier;
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/27/10                    Afforess & jdog5000       */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
 	bool m_bAnySpecialistYieldChange;
 	bool m_bAnyBonusYieldModifier;
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH: END
+	// <advc.310>
+	static bool m_bEnabledAreaBorderObstacle;
+	static bool m_bEnabledAreaTradeRoutes;
+	static bool m_bEnabledDomesticGreatGeneralRateModifier;
+	// </advc.310>
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2023,7 +2028,6 @@ public:
 	int getMaxPlayerInstances() const;				// Exposed to Python
 	int getExtraPlayerInstances() const;				// Exposed to Python
 	int getDefaultBuildingIndex() const;				// Exposed to Python
-	void setDefaultBuildingIndex(int i);
 
 	bool isNoLimit() const;				// Exposed to Python
 	bool isMonument() const;				// Exposed to Python
@@ -2225,7 +2229,6 @@ public:
 	const TCHAR* getButton() const;
 
 	int getDerivativeCiv() const;																// Exposed to Python
-	void setDerivativeCiv(int iCiv);
 
 	bool read(CvXMLLoadUtility* pXML);
 	bool readPass2(CvXMLLoadUtility* pXML);
@@ -2384,7 +2387,18 @@ public:
 	int getStartingGold() const;				// Exposed to Python
 	int getFreeUnits() const;				// Exposed to Python
 	int getUnitCostPercent() const;				// Exposed to Python
+	// <advc.251>
+	inline int getBuildTimePercent() const { return m_iBuildTimePercent; }
+	inline int getBaseGrowthThresholdPercent() const { return m_iBaseGrowthThresholdPercent; }
+	inline int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
+	inline int getCultureLevelPercent() const { return m_iCultureLevelPercent; }
+	// </advc.251>
 	int getResearchPercent() const;				// Exposed to Python
+	// <advc.251>
+	inline int getTrainPercent() const { return m_iTrainPercent; }
+	inline int getConstructPercent() const { return m_iConstructPercent; }
+	inline int getCreatePercent() const { return m_iCreatePercent; }
+	// </advc.251>
 	int getDistanceMaintenancePercent() const;				// Exposed to Python
 	int getNumCitiesMaintenancePercent() const;				// Exposed to Python
 	int getMaxNumCitiesMaintenance() const;				// Exposed to Python
@@ -2421,7 +2435,10 @@ public:
 	int getAIDeclareWarProb() const;								// Exposed to Python
 	int getAIWorkRateModifier() const;				// Exposed to Python
 	int getAIGrowthPercent() const;				// Exposed to Python
-	int getAIResearchPercent() const; // advc.251
+	// <advc.251>
+	inline int getAIGPThresholdPercent() const { return m_iAIGPThresholdPercent; }
+	inline int getAIResearchPercent() const { return m_iAIResearchPercent; }
+	// </advc.251>
 	int getAITrainPercent() const;				// Exposed to Python
 	int getAIWorldTrainPercent() const;				// Exposed to Python
 	int getAIConstructPercent() const;				// Exposed to Python
@@ -2434,7 +2451,8 @@ public:
 	int getAIUnitUpgradePercent() const;				// Exposed to Python
 	int getAIInflationPercent() const;				// Exposed to Python
 	int getAIWarWearinessPercent() const;				// Exposed to Python
-	int getAIPerEraModifier() const;						// Exposed to Python
+	//int getAIPerEraModifier() const;						// Exposed to Python
+	inline int getAIHandicapIncrementTurns() const { return m_iAIHandicapIncrementTurns; }
 	int getAIAttitudeChangePercent() const; // advc.148
 	int getAIAdvancedStartPercent() const;						// Exposed to Python
 	int getNumGoodies() const;				// Exposed to Python
@@ -2456,32 +2474,43 @@ protected:
 
 	int m_iFreeWinsVsBarbs;
 	int m_iAnimalAttackProb;
-	int m_iStartingLocationPercent;						
-	int m_iAdvancedStartPointsMod;											
-	int m_iStartingGold;											
-	int m_iFreeUnits;												
-	int m_iUnitCostPercent;									
-	int m_iResearchPercent;									
-	int m_iDistanceMaintenancePercent;				
-	int m_iNumCitiesMaintenancePercent;				
-	int m_iMaxNumCitiesMaintenance;					
-	int m_iColonyMaintenancePercent;				
-	int m_iMaxColonyMaintenance;					
-	int m_iCorporationMaintenancePercent;				
-	int m_iCivicUpkeepPercent;								
-	int m_iInflationPercent;									
-	int m_iHealthBonus;									
-	int m_iHappyBonus;										
+	int m_iStartingLocationPercent;
+	int m_iAdvancedStartPointsMod;
+	int m_iStartingGold;
+	int m_iFreeUnits;
+	int m_iUnitCostPercent;
+	// <advc.251>
+	int m_iBuildTimePercent;
+	int m_iBaseGrowthThresholdPercent;
+	int m_iGPThresholdPercent;
+	int m_iCultureLevelPercent;
+	// </advc.251>
+	int m_iResearchPercent;
+	// <advc.251>
+	int m_iTrainPercent;
+	int m_iConstructPercent;
+	int m_iCreatePercent;
+	// </avdc.251>
+	int m_iDistanceMaintenancePercent;
+	int m_iNumCitiesMaintenancePercent;
+	int m_iMaxNumCitiesMaintenance;
+	int m_iColonyMaintenancePercent;
+	int m_iMaxColonyMaintenance;
+	int m_iCorporationMaintenancePercent;
+	int m_iCivicUpkeepPercent;
+	int m_iInflationPercent;
+	int m_iHealthBonus;
+	int m_iHappyBonus;
 	int m_iAttitudeChange;
 	int m_iNoTechTradeModifier;
 	int m_iTechTradeKnownModifier;
-	int m_iUnownedTilesPerGameAnimal;				
-	int m_iUnownedTilesPerBarbarianUnit;			
-	int m_iUnownedWaterTilesPerBarbarianUnit;	
-	int m_iUnownedTilesPerBarbarianCity;			
-	int m_iBarbarianCreationTurnsElapsed;			
-	int m_iBarbarianCityCreationTurnsElapsed;	
-	int m_iBarbarianCityCreationProb;					
+	int m_iUnownedTilesPerGameAnimal;
+	int m_iUnownedTilesPerBarbarianUnit;
+	int m_iUnownedWaterTilesPerBarbarianUnit;
+	int m_iUnownedTilesPerBarbarianCity;
+	int m_iBarbarianCreationTurnsElapsed;
+	int m_iBarbarianCityCreationTurnsElapsed;
+	int m_iBarbarianCityCreationProb;
 	int m_iAnimalCombatModifier;
 	int m_iBarbarianCombatModifier;
 	int m_iAIAnimalCombatModifier;
@@ -2498,7 +2527,10 @@ protected:
 	int m_iAIDeclareWarProb;
 	int m_iAIWorkRateModifier;
 	int m_iAIGrowthPercent;
-	int m_iAIResearchPercent; // advc.251
+	// <advc.251>
+	int m_iAIGPThresholdPercent;
+	int m_iAIResearchPercent;
+	// </advc.251>
 	int m_iAITrainPercent;
 	int m_iAIWorldTrainPercent;
 	int m_iAIConstructPercent;
@@ -2511,7 +2543,8 @@ protected:
 	int m_iAIUnitUpgradePercent;
 	int m_iAIInflationPercent;
 	int m_iAIWarWearinessPercent;
-	int m_iAIPerEraModifier;
+	//int m_iAIPerEraModifier;
+	int m_iAIHandicapIncrementTurns; // advc.251
 	int m_iAIAdvancedStartPercent;
 	int m_iAIAttitudeChangePercent; // advc.148
 	int m_iNumGoodies;
@@ -2882,9 +2915,7 @@ public:
 	int getHappiness() const;				// Exposed to Python
 	int getPillageGold() const;				// Exposed to Python
 	int getImprovementPillage() const;				// Exposed to Python
-	void setImprovementPillage(int i);
 	int getImprovementUpgrade() const;				// Exposed to Python
-	void setImprovementUpgrade(int i);
 
 	bool isActsAsCity() const;				// Exposed to Python
 	bool isHillsMakesValid() const;				// Exposed to Python
@@ -2923,9 +2954,10 @@ public:
 	bool getFeatureMakesValid(int i) const;				// Exposed to Python
 
 	int getTechYieldChanges(int i, int j) const;				// Exposed to Python
-	int* getTechYieldChangesArray(int i);
+	int* getTechYieldChangesArray(int i) const; // advc.003: const
 	int getRouteYieldChanges(int i, int j) const;				// Exposed to Python
-	int* getRouteYieldChangesArray(int i);				// For Moose - CvWidgetData XXX
+	// For Moose - CvWidgetData XXX
+	int* getRouteYieldChangesArray(int i) const; // advc.003: const
 
 	int getImprovementBonusYield(int i, int j) const;				// Exposed to Python
 	bool isImprovementBonusMakesValid(int i) const;				// Exposed to Python
@@ -3323,7 +3355,7 @@ public:
 	virtual ~CvYieldInfo();
 
 	int getChar() const;				// Exposed to Python
-	void setChar(int i);			
+	void setChar(int i);
 	int getHillsChange() const;				// Exposed to Python
 	int getPeakChange() const;				// Exposed to Python
 	int getLakeChange() const;				// Exposed to Python
@@ -3339,7 +3371,7 @@ public:
 
 	// Arrays
 
-	const TCHAR* getSymbolPath(int i) const;			
+	const TCHAR* getSymbolPath(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -3361,7 +3393,6 @@ protected:
 	int m_iColorType;
 
 	CvString* m_paszSymbolPath;
-
 };
 
 
@@ -3541,19 +3572,13 @@ public:
 	int getTechTradeKnownPercent() const;				// Exposed to Python
 	int getMaxGoldTradePercent() const;				// Exposed to Python
 	int getMaxGoldPerTurnTradePercent() const;				// Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/21/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/21/10, jdog5000: START
 	int getCultureVictoryWeight() const;
 	int getSpaceVictoryWeight() const;
 	int getConquestVictoryWeight() const;
 	int getDominationVictoryWeight() const;
 	int getDiplomacyVictoryWeight() const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 	int getMaxWarRand() const;				// Exposed to Python
 	int getMaxWarNearbyPowerRatio() const;				// Exposed to Python
 	int getMaxWarDistantPowerRatio() const;				// Exposed to Python
@@ -3648,6 +3673,7 @@ public:
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
+	friend class WarAndPeaceAI; // advc.104x (for applyPersonalityWeight)
 protected:
 
 	int m_iWonderConstructRand;
@@ -3661,19 +3687,13 @@ protected:
 	int m_iTechTradeKnownPercent;
 	int m_iMaxGoldTradePercent;
 	int m_iMaxGoldPerTurnTradePercent;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/21/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD; Victory Strategy AI, 03/21/10, jdog5000: START
 	int m_iCultureVictoryWeight;
 	int m_iSpaceVictoryWeight;
 	int m_iConquestVictoryWeight;
 	int m_iDominationVictoryWeight;
 	int m_iDiplomacyVictoryWeight;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 	int m_iMaxWarRand;
 	int m_iMaxWarNearbyPowerRatio;
 	int m_iMaxWarDistantPowerRatio;
@@ -3874,12 +3894,14 @@ public:
 	virtual ~CvSeaLevelInfo();
 
 	int getSeaLevelChange() const;		// Exposed to Python
+	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.910
 
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
 
 	int m_iSeaLevelChange;
+	int m_iResearchPercent; // advc.910
 
 };
 
@@ -4002,7 +4024,6 @@ public:
 	int getVictoryPrereq() const;									// Exposed to Python
 	int getTechPrereq() const;										// Exposed to Python
 	int getAnyoneProjectPrereq() const;						// Exposed to Python
-	void setAnyoneProjectPrereq(int i);
 	int getMaxGlobalInstances() const;						// Exposed to Python
 	int getMaxTeamInstances() const;							// Exposed to Python
 	int getProductionCost() const;								// Exposed to Python
@@ -5261,18 +5282,11 @@ public:
 	int getConstructPercent() const;			//	Exposed to Python
 	int getCreatePercent() const;					//	Exposed to Python
 	int getResearchPercent() const;				//	Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Tech Diffusion                                                                               */
-/************************************************************************************************/
-	int getTechCostModifier() const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	int getTechCostModifier() const; // BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000
 	int getBuildPercent() const;					//	Exposed to Python
 	int getImprovementPercent() const;		//	Exposed to Python
 	int getGreatPeoplePercent() const;		//	Exposed to Python
+	int getCulturePercent() const; // advc.126
 	int getAnarchyPercent() const;				//	Exposed to Python
 	int getEventChancePerTurn() const;				//	Exposed to Python
 	int getSoundtrackSpace() const;				//	Exposed to Python
@@ -5308,18 +5322,11 @@ protected:
 	int m_iConstructPercent;
 	int m_iCreatePercent;
 	int m_iResearchPercent;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Tech Diffusion                                                                               */
-/************************************************************************************************/
-	int m_iTechCostModifier;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	int m_iTechCostModifier; // BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000
 	int m_iBuildPercent;
 	int m_iImprovementPercent;
 	int m_iGreatPeoplePercent;
+	int m_iCulturePercent; // advc.126
 	int m_iAnarchyPercent;
 	int m_iEventChancePerTurn;
 	int m_iSoundtrackSpace;
@@ -5676,26 +5683,22 @@ private:
 	CvString m_szPath;
 };
 
-
+// advc.003j: unused
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 //  class : CvQuestInfo
 //
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvQuestInfo :
-	public CvInfoBase
-{
+/*class CvQuestInfo :
+	public CvInfoBase {
 public:
-	struct QuestLink 
-	{
+	struct QuestLink  {
 		// Stores the QuestLinks Type and Name
 		QuestLink() :
 		m_szQuestLinkType("No Type"),
 		m_szQuestLinkName("No Name")
-		{
-		}
-
+		{}
 	CvString m_szQuestLinkType;
 	CvString m_szQuestLinkName;
 	};
@@ -5739,7 +5742,7 @@ private:
 	CvString* m_paszQuestMessages;
 	QuestLink* m_pQuestLinks;
 	CvString* m_paszQuestSounds;
-};
+};*/
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
@@ -6334,6 +6337,7 @@ public:
 	int getCounterespionageNumTurns() const;
 	int getCounterespionageMod() const;
 	int getDifficultyMod() const;
+	inline bool isReturnToCapital() const { return m_bReturnToCapital; } // advc.103
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -6373,6 +6377,7 @@ protected:
 	int m_iCounterespionageNumTurns;
 	int m_iCounterespionageMod;
 	int m_iDifficultyMod;
+	bool m_bReturnToCapital; // advc.103
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

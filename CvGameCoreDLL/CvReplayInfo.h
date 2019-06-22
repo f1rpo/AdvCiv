@@ -58,7 +58,7 @@ public:
 	int getPlayerAgriculture(int iPlayer, int iTurn) const;
 	int getFinalScore() const;
 	// <advc.707>
-	void setFinalScore(int sc);
+	void setFinalScore(int iScore);
 	int getFinalPlayerScore() const; // </advc.707>
 	int getFinalEconomy() const;
 	int getFinalIndustry() const;
@@ -78,7 +78,10 @@ protected:
 	bool isValidPlayer(int i) const;
 	bool isValidTurn(int i) const;
 	void addSettingsMsg(); // advc.106h
-
+	// <advc.106i>
+	bool checkBounds(int iValue, int iLower, int iUpper) const;
+	static bool STORE_REPLAYS_AS_BTS;
+	// </advc.106i>
 	static int REPLAY_VERSION;
 
 	int m_iActivePlayer;
@@ -108,7 +111,6 @@ protected:
 	CvWString m_szFinalDate;
 	CalendarTypes m_eCalendar;
 	int m_iNormalizedScore;
-	int m_iFinalScore; // advc.707
 
 	struct TurnData
 	{
@@ -135,6 +137,19 @@ protected:
 	int m_nMinimapSize;
 
 	CvString m_szModName;
-};
 
+	// <advc.003k> Additional data members
+	class Data {
+		int iFinalScore; // advc.707
+		// <advc.106i>
+		int iVersionRead;
+		bool bDisplayOtherMods;
+		CvString szPurportedModName;
+		// </advc.106i>
+		friend CvReplayInfo;
+	};
+	Data* m;
+};
+typedef char assertSizeOfReplayInfo[(sizeof(CvReplayInfo)==340)*2-1];
+// </advc.003k>
 #endif

@@ -9,8 +9,8 @@
 // Copyright 2005 Firaxis Games
 //
 
-//#include "CvEnums.h"
-# include <boost/python/object.hpp>
+
+#include <boost/python/object.hpp>
 namespace python = boost::python;
 
 class CvUnit;

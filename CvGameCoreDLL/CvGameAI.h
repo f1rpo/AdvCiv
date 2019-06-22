@@ -1,6 +1,5 @@
 #pragma once
 
-// gameAI.h
 
 #ifndef CIV4_GAME_AI_H
 #define CIV4_GAME_AI_H
@@ -31,14 +30,14 @@ public:
   virtual void read(FDataStreamBase* pStream);
   virtual void write(FDataStreamBase* pStream);
 
-  inline WarAndPeaceAI& warAndPeaceAI() { return wpai; } // advc.104
+  inline WarAndPeaceAI& warAndPeaceAI() { return m_wpai; } // advc.104
 
 protected:
 
   int m_iPad;
   // <advc.104>
   void AI_sortOutWPAIOptions(bool bFromSaveGame);
-  WarAndPeaceAI wpai; // </advc.104>
+  WarAndPeaceAI m_wpai; // </advc.104>
 };
 
 #endif

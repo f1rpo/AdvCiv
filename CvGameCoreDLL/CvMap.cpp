@@ -10,31 +10,23 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
-#include "CvCity.h"
-#include "CvPlotGroup.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvRandom.h"
-#include "CvGameCoreUtils.h"
+#include "CvPlotGroup.h"
 #include "CvFractal.h"
-#include "CvPlot.h"
-#include "CvGameCoreUtils.h"
-#include "CvMap.h"
 #include "CvMapGenerator.h"
 #include "FAStarNode.h"
 #include "CvInitCore.h"
 #include "CvInfos.h"
-#include "FProfiler.h"
 #include "CyArgsList.h"
-
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLIniParserIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h" // K-Mod
+#include <stack> // advc.030
 
-// Public Functions...
 
 CvMap::CvMap()
 {
@@ -54,13 +46,10 @@ CvMap::~CvMap()
 	uninit();
 }
 
-// FUNCTION: init()
-// Initializes the map.
+// Initializes the map
 // Parameters:
-//	pInitInfo					- Optional init structure (used for WB load)
-// Returns:
-//	nothing.
-void CvMap::init(CvMapInitData* pInitInfo/*=NULL*/)
+//	pInitInfo  - Optional init structure (used for WB load)
+void CvMap::init(CvMapInitData* pInitInfo)
 {
 	PROFILE("CvMap::init");
 	gDLL->logMemState( CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6", 
@@ -110,7 +99,6 @@ void CvMap::uninit()
 	m_areas.uninit();
 }
 
-// FUNCTION: reset()
 // Initializes data members that are serialized.
 void CvMap::reset(CvMapInitData* pInitInfo)
 {
@@ -233,8 +221,6 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	m_areas.removeAll();
 }
 
-
-// FUNCTION: setup()
 // Initializes all data that is not serialized but needs to be initialized after loading.
 void CvMap::setup()
 {
@@ -419,11 +405,8 @@ void CvMap::updateCenterUnit()
 {
 	/* original bts code
 	int iI;
-
 	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
-		plotByIndexINLINE(iI)->updateCenterUnit();
-	} */
+		plotByIndexINLINE(iI)->updateCenterUnit();*/
 	PROFILE_FUNC();
 	int iRange = -1;
 
@@ -487,9 +470,7 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pStartingPlot;
 	CvPlot* pLoopPlot;
-	int iDist;
 	int iI, iJ;
 
 	for (iI = 0; iI < numPlotsINLINE(); iI++)
@@ -504,7 +485,7 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
+		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
 
 		if (pStartingPlot != NULL)
 		{
@@ -517,9 +498,8 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 					//if (pLoopPlot->area() == pArea)
 					if (pLoopPlot->area() == pArea && pLoopPlot != pStartingPlot) // K-Mod
 					{
-						
-						//iDist = GC.getMapINLINE().calculatePathDistance(pStartingPlot, pLoopPlot);
-						iDist = stepDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+						//iDist = calculatePathDistance(pStartingPlot, pLoopPlot);
+						int iDist = stepDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 
 						if (iDist != -1)
 						{
@@ -560,18 +540,14 @@ void CvMap::verifyUnitValidPlot()
 
 void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2)
 {
-	CLLNode<XYCoords>* pPlotNode;
-	CvPlotGroup* pNewPlotGroup;
-	CvPlotGroup* pOldPlotGroup;
-	CvPlot* pPlot;
-
 	FAssertMsg(pPlotGroup1 != NULL, "pPlotGroup is not assigned to a valid value");
 	FAssertMsg(pPlotGroup2 != NULL, "pPlotGroup is not assigned to a valid value");
 
-	if (pPlotGroup1 == pPlotGroup2)
-	{
+	if(pPlotGroup1 == pPlotGroup2)
 		return;
-	}
+
+	CvPlotGroup* pNewPlotGroup;
+	CvPlotGroup* pOldPlotGroup;
 
 	if (pPlotGroup1->getLengthPlots() > pPlotGroup2->getLengthPlots())
 	{
@@ -584,51 +560,35 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 		pOldPlotGroup = pPlotGroup1;
 	}
 
-	pPlotNode = pOldPlotGroup->headPlotsNode();
+	CLLNode<XYCoords>* pPlotNode = pOldPlotGroup->headPlotsNode();
 	while (pPlotNode != NULL)
 	{
-		pPlot = plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		CvPlot* pPlot = plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 		pNewPlotGroup->addPlot(pPlot);
 		pPlotNode = pOldPlotGroup->deletePlotsNode(pPlotNode);
 	}
 }
 
 CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
-		int* iLegal) // advc.304
+		int* piLegal) // advc.304
 {
-	/*  <advc.304> The standard 100 trials for monte-carlo selection often fail to
+	/*  <advc.304> The standard 100 trials for Monte Carlo selection often fail to
 		find a plot when only handful of tiles are legal on large maps.
 		10000 trials would probably do, but that isn't much faster anymore than
 		gathering all valid plots upfront - which is what I'm doing. */
-	/*CvPlot* pTestPlot;
-	bool bValid;
-	CvPlot* pPlot;
-	int iCount;
-
-	pPlot = NULL;
-
-	iCount = 0;
-
-	while (iCount < iTimeout)
-	{
-		pTestPlot = plotSorenINLINE(GC.getGameINLINE().getSorenRandNum(getGridWidthINLINE(), "Rand Plot Width"), GC.getGameINLINE().getSorenRandNum(getGridHeightINLINE(), "Rand Plot Height"));
-
-		FAssertMsg(pTestPlot != NULL, "TestPlot is not assigned a valid value");
-		*/
-	std::vector<CvPlot*> legalPlots;
-	CvMap const& m = GC.getMap();
-	for(int i = 0; i < m.numPlots(); i++) {
-		CvPlot* pTestPlot = m.plotByIndexINLINE(i);
+	/*while (iCount < iTimeout) {
+		pTestPlot = plotSorenINLINE(GC.getGameINLINE().getSorenRandNum(getGridWidthINLINE(), "Rand Plot Width"), GC.getGameINLINE().getSorenRandNum(getGridHeightINLINE(), "Rand Plot Height"));*/
+	std::vector<CvPlot*> apLegalPlots;
+	for(int i = 0; i < numPlots(); i++) {
+		CvPlot* pTestPlot = plotByIndexINLINE(i);
 		if(pTestPlot == NULL)
 			continue; // </advc.304>
 		if (iArea == -1 || pTestPlot->getArea() == iArea)
 		{
 			bool bValid = true;
 
-			/* advc.300: Moved the horribly nested loop here to a new function
-			   b/c I need it again elsewhere. Now ignores barbarians on
-			   surrounding plots.
-			   Also deleted some declarations at the top that are no longer used. */
+			/* advc.300: Code moved into a new function.
+			   Barbarians in surrounding plots are now ignored.. */
 			if(pTestPlot->isCivUnitNearby(iMinUnitDistance) || pTestPlot->isUnit())
 				bValid = false;
 
@@ -719,7 +679,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 
 			if (bValid)
 			{
-				legalPlots.push_back(pTestPlot); // advc.304
+				apLegalPlots.push_back(pTestPlot); // advc.304
 				/*pPlot = pTestPlot;
 				break;*/
 			}
@@ -729,34 +689,26 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 		//iCount++;
 	}
 	//return pPlot;
-	int nLegal = (int)legalPlots.size();
-	if(iLegal != NULL)
-		*iLegal = nLegal;
-    if(nLegal == 0)
+	int iLegal = (int)apLegalPlots.size();
+	if(piLegal != NULL)
+		*piLegal = iLegal;
+    if(iLegal == 0)
         return NULL;
-    return legalPlots[GC.getGame().getSorenRandNum(nLegal, "advc.304")];
+    return apLegalPlots[GC.getGameINLINE().getSorenRandNum(iLegal, "advc.304")];
 	// </advc.304>
 }
 
 
 CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity* pSkipCity,
-		TeamTypes observer) // advc.004r
+		TeamTypes eObserver) const // advc.004r
 {
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	CvCity* pBestCity;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
+	int iBestValue = MAX_INT;
+	CvCity* pBestCity = NULL;
 
 	// XXX look for barbarian cities???
-
-	iBestValue = MAX_INT;
-	pBestCity = NULL;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -764,9 +716,10 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 			{
 				if ((eTeam == NO_TEAM) || (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam))
 				{
-					for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+					int iLoop;
+					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
 					{	// <advc.004r>
-						if(observer != NO_TEAM && !pLoopCity->isRevealed(observer, false))
+						if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
 							continue; // </advc.004r>
 						if (!bSameArea || (pLoopCity->area() == plotINLINE(iX, iY)->area()) || (bCoastalOnly && (pLoopCity->waterArea() == plotINLINE(iX, iY)->area())))
 						{
@@ -778,7 +731,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 									{
 										if ((pSkipCity == NULL) || (pLoopCity != pSkipCity))
 										{
-											iValue = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+											int iValue = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
 
 											if (iValue < iBestValue)
 											{
@@ -800,33 +753,27 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 }
 
 
-CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, bool bReadyToSelect, bool bWorkers)
+CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, bool bReadyToSelect, bool bWorkers) const
 {
-	CvSelectionGroup* pLoopSelectionGroup;
-	CvSelectionGroup* pBestSelectionGroup;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
+	int iBestValue = MAX_INT;
+	CvSelectionGroup* pBestSelectionGroup = NULL;
 
 	// XXX look for barbarian cities???
 
-	iBestValue = MAX_INT;
-	pBestSelectionGroup = NULL;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if ((eOwner == NO_PLAYER) || (iI == eOwner))
 			{
-				for(pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).firstSelectionGroup(&iLoop); pLoopSelectionGroup != NULL; pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).nextSelectionGroup(&iLoop))
+				int iLoop;
+				for(CvSelectionGroup* pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).firstSelectionGroup(&iLoop); pLoopSelectionGroup != NULL; pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).nextSelectionGroup(&iLoop))
 				{
 					if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
 					{
 						if (!bWorkers || pLoopSelectionGroup->hasWorker())
 						{
-							iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+							int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
 
 							if (iValue < iBestValue)
 							{
@@ -846,20 +793,15 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, 
 
 CvArea* CvMap::findBiggestArea(bool bWater)
 {
-	CvArea* pLoopArea;
-	CvArea* pBestArea;
-	int iValue;
-	int iBestValue;
+	int iBestValue = 0;
+	CvArea* pBestArea = NULL;
+
 	int iLoop;
-
-	iBestValue = 0;
-	pBestArea = NULL;
-
-	for(pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
+	for(CvArea* pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
 	{
 		if (pLoopArea->isWater() == bWater)
 		{
-			iValue = pLoopArea->getNumTiles();
+			int iValue = pLoopArea->getNumTiles();
 
 			if (iValue > iBestValue)
 			{
@@ -873,7 +815,7 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 }
 
 
-int CvMap::getMapFractalFlags()
+int CvMap::getMapFractalFlags() const
 {
 	int wrapX = 0;
 	if (isWrapXINLINE())
@@ -991,44 +933,44 @@ float CvMap::plotYToPointY(int iY)
 }
 
 
-float CvMap::getWidthCoords()																	
+float CvMap::getWidthCoords() const
 {
 	return (GC.getPLOT_SIZE() * ((float)getGridWidthINLINE()));
 }
 
 
-float CvMap::getHeightCoords()																	
+float CvMap::getHeightCoords() const
 {
 	return (GC.getPLOT_SIZE() * ((float)getGridHeightINLINE()));
 }
 
 
-int CvMap::maxPlotDistance()
+int CvMap::maxPlotDistance() const
 {
-	// <advc.140> Replacing this line:
 	//return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
+	// <advc.140> Replacing the above
 	CvGame const& g = GC.getGameINLINE();
-	CvWorldInfo const& w = GC.getWorldInfo(getWorldSize());
-	double civRatio = g.getRecommendedPlayers() / (double)g.countCivPlayersEverAlive();
+	double civRatio = g.getRecommendedPlayers() / (double)g.getCivPlayersEverAlive();
 	double seaLvlModifier = (100 - 5 * g.getSeaLevelChange()) / 100.0;
-	int wraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
-	if(isWrapX())
-		wraps++;
-	if(isWrapY())
-		wraps++;
-	double r = std::sqrt(w.getGridWidth() * w.getGridHeight() * civRatio *
-			seaLvlModifier) * 3.5 - 5 * wraps;
+	int iWraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
+	if(isWrapXINLINE())
+		iWraps++;
+	if(isWrapYINLINE())
+		iWraps++;
+	CvWorldInfo const& kWorld = GC.getWorldInfo(worldSize());
+	double r = std::sqrt(kWorld.getGridWidth() * kWorld.getGridHeight() * civRatio *
+			seaLvlModifier) * 3.5 - 5 * iWraps;
 	return std::max(1, ::round(r)); // </advc.140>
 }
 
 
-int CvMap::maxStepDistance()
+int CvMap::maxStepDistance() const
 {
 	return std::max(1, stepDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 }
 
 // <advc.140>
-int CvMap::maxMaintenanceDistance() {
+int CvMap::maxMaintenanceDistance() const {
 
 	return ::round(1 + maxPlotDistance() * (10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
 } // </advc.140>
@@ -1045,7 +987,7 @@ int CvMap::getGridHeight() const
 }
 
 
-int CvMap::getLandPlots()
+int CvMap::getLandPlots() const
 {
 	return m_iLandPlots;
 }
@@ -1058,7 +1000,7 @@ void CvMap::changeLandPlots(int iChange)
 }
 
 
-int CvMap::getOwnedPlots()
+int CvMap::getOwnedPlots() const
 {
 	return m_iOwnedPlots;
 }
@@ -1071,19 +1013,19 @@ void CvMap::changeOwnedPlots(int iChange)
 }
 
 
-int CvMap::getTopLatitude()
+int CvMap::getTopLatitude() const
 {
 	return m_iTopLatitude;
 }
 
 
-int CvMap::getBottomLatitude()
+int CvMap::getBottomLatitude() const
 {
 	return m_iBottomLatitude;
 }
 
 
-int CvMap::getNextRiverID()
+int CvMap::getNextRiverID() const
 {
 	return m_iNextRiverID;
 }
@@ -1111,26 +1053,27 @@ bool CvMap::isWrap()
 	return isWrapINLINE();
 }
 
-WorldSizeTypes CvMap::getWorldSize()
+// advc.003: const replacement for DLLExport getWorldSize
+WorldSizeTypes CvMap::worldSize() const
 {
 	return GC.getInitCore().getWorldSize();
 }
 
 
-ClimateTypes CvMap::getClimate()
+ClimateTypes CvMap::getClimate() const
 {
 	return GC.getInitCore().getClimate();
 }
 
 
-SeaLevelTypes CvMap::getSeaLevel()
+SeaLevelTypes CvMap::getSeaLevel() const
 {
 	return GC.getInitCore().getSeaLevel();
 }
 
 
 
-int CvMap::getNumCustomMapOptions()
+int CvMap::getNumCustomMapOptions() const
 {
 	return GC.getInitCore().getNumCustomMapOptions();
 }
@@ -1142,7 +1085,7 @@ CustomMapOptionTypes CvMap::getCustomMapOption(int iOption)
 }
 
 
-int CvMap::getNumBonuses(BonusTypes eIndex)													
+int CvMap::getNumBonuses(BonusTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -1159,7 +1102,7 @@ void CvMap::changeNumBonuses(BonusTypes eIndex, int iChange)
 }
 
 
-int CvMap::getNumBonusesOnLand(BonusTypes eIndex)													
+int CvMap::getNumBonusesOnLand(BonusTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -1194,39 +1137,32 @@ CvPlot* CvMap::pointToPlot(float fX, float fY)
 }
 
 
-int CvMap::getIndexAfterLastArea()																
+int CvMap::getIndexAfterLastArea() const
 {
 	return m_areas.getIndexAfterLast();
 }
 
 
-int CvMap::getNumAreas()																		
+int CvMap::getNumAreas() const
 {
 	return m_areas.getCount();
 }
 
 
-int CvMap::getNumLandAreas()
+int CvMap::getNumLandAreas() const  // advc.003: style changes
 {
-	CvArea* pLoopArea;
-	int iNumLandAreas;
+	int iNumLandAreas = 0;
 	int iLoop;
-
-	iNumLandAreas = 0;
-
-	for(pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+	for(CvArea* pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
 	{
-		if (!(pLoopArea->isWater()))
-		{
+		if (!pLoopArea->isWater())
 			iNumLandAreas++;
-		}
 	}
-
 	return iNumLandAreas;
 }
 
 
-CvArea* CvMap::getArea(int iID)																
+CvArea* CvMap::getArea(int iID) const
 {
 	return m_areas.getAt(iID);
 }
@@ -1244,13 +1180,13 @@ void CvMap::deleteArea(int iID)
 }
 
 
-CvArea* CvMap::firstArea(int *pIterIdx, bool bRev)
+CvArea* CvMap::firstArea(int *pIterIdx, bool bRev) const
 {
 	return !bRev ? m_areas.beginIter(pIterIdx) : m_areas.endIter(pIterIdx);
 }
 
 
-CvArea* CvMap::nextArea(int *pIterIdx, bool bRev)
+CvArea* CvMap::nextArea(int *pIterIdx, bool bRev) const
 {
 	return !bRev ? m_areas.nextIter(pIterIdx) : m_areas.prevIter(pIterIdx);
 }
@@ -1279,18 +1215,16 @@ void CvMap::resetPathDistance()
 }
 
 
-int CvMap::calculatePathDistance(CvPlot *pSource, CvPlot *pDest)
+int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const
 {
-	FAStarNode* pNode;
-
-	if (pSource == NULL || pDest == NULL)
-	{
+	if(pSource == NULL || pDest == NULL)
 		return -1;
-	}
 
-	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(), pSource->getX_INLINE(), pSource->getY_INLINE(), pDest->getX_INLINE(), pDest->getY_INLINE(), false, 0, true))
+	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
+			pSource->getX_INLINE(), pSource->getY_INLINE(),
+			pDest->getX_INLINE(), pDest->getY_INLINE(), false, 0, true))
 	{
-		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
+		FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 
 		if (pNode != NULL)
 		{
@@ -1302,22 +1236,15 @@ int CvMap::calculatePathDistance(CvPlot *pSource, CvPlot *pDest)
 }
 
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
-// Plot danger cache
+
+// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc.003: unnecessary NULL checks removed
 void CvMap::invalidateActivePlayerSafeRangeCache()
 {
 	PROFILE_FUNC();
 
 	for (int iI = 0; iI < numPlotsINLINE(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-		if (pLoopPlot)
-			pLoopPlot->setActivePlayerSafeRangeCache(-1);
+		plotByIndexINLINE(iI)->setActivePlayerSafeRangeCache(-1);
 	}
 }
 
@@ -1326,23 +1253,12 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 {
 	PROFILE_FUNC();
 
-	int iI;
-	CvPlot* pLoopPlot;
-
-	for( iI = 0; iI < numPlotsINLINE(); iI++ )
+	for(int iI = 0; iI < numPlotsINLINE(); iI++ )
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-		if( pLoopPlot != NULL )
-		{
-			pLoopPlot->setBorderDangerCache(eTeam, false);
-		}
+		plotByIndexINLINE(iI)->setBorderDangerCache(eTeam, false);
 	}
 }
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+// BETTER_BTS_AI_MOD: END
 
 //
 // read object from a stream
@@ -1463,31 +1379,26 @@ void CvMap::calculateAreas()
 		calculateReprAreas();
 		return;
 	} // </advc.030>
-	CvPlot* pLoopPlot;
-	CvArea* pArea;
-	int iArea;
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
+	
+	for (int iI = 0; iI < numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = plotByIndexINLINE(iI);
 		gDLL->callUpdater();
 		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
 
 		if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
 		{
-			pArea = addArea();
+			CvArea* pArea = addArea();
 			pArea->init(pArea->getID(), pLoopPlot->isWater());
 
-			iArea = pArea->getID();
+			int iArea = pArea->getID();
 
 			pLoopPlot->setArea(iArea);
 
 			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
 		}
-	} // <advc.030>
-	int dummy=-1;
-	updateLakes(); // </advc.030>
+	}
+	updateLakes(); // advc.030
 }
 
 // <advc.030>
@@ -1495,8 +1406,7 @@ void CvMap::calculateAreas_030() {
 
 	for(int pass = 0; pass <= 1; pass++) {
 		for(int i = 0; i < numPlotsINLINE(); i++) {
-			CvPlot* pp = plotByIndexINLINE(i);
-			CvPlot& p = *pp;
+			CvPlot& p = *plotByIndexINLINE(i);
 			if(pass == 0) { // No idea what this does; better do it only once.
 				gDLL->callUpdater();
 				/*  Second pass for impassables; can't handle
@@ -1508,10 +1418,10 @@ void CvMap::calculateAreas_030() {
 				continue;
 			FAssert(pass == 0 || p.isImpassable());
 			CvArea& a = *addArea();
-			int aId = a.getID();
-			a.init(aId, p.isWater());
-			p.setArea(aId);
-			calculateAreas_visit(p);
+			int iArea = a.getID();
+			a.init(iArea, p.isWater());
+			p.setArea(iArea);
+			calculateAreas_DFS(p);
 		}
 	}
 }
@@ -1519,13 +1429,13 @@ void CvMap::calculateAreas_030() {
 void CvMap::updateLakes() {
 
 	// CvArea::getNumTiles no longer sufficient for identifying lakes
-	int dummy=-1;
-	for(CvArea* a = firstArea(&dummy); a != NULL; a = nextArea(&dummy))
+	int foo;
+	for(CvArea* a = firstArea(&foo); a != NULL; a = nextArea(&foo))
 		a->updateLake();
 	for(int i = 0; i < numPlotsINLINE(); i++) {
-		CvPlot* pp = plotByIndexINLINE(i);
-		if(pp->isLake())
-			pp->updateYield();
+		CvPlot* pPlot = plotByIndexINLINE(i);
+		if(pPlot->isLake())
+			pPlot->updateYield();
 	}
 	computeShelves(); // advc.300
 }
@@ -1537,20 +1447,19 @@ void CvMap::calculateReprAreas() {
 		BtS area. To decide if a submarine move is possible, only need to
 		check if the representative id of the submarine's current area equals
 		that of its target area. That's done in CvArea::canBeEntered. */
-	int loopCounter = 0;
-	int reprChanged = 0; // For debugging; otherwise a bool would suffice.
+	int iLoop = 0;
+	int iReprChanged = 0; // For debugging; otherwise a bool would suffice.
 	do {
-		reprChanged = 0;
+		iReprChanged = 0;
 		for(int i = 0; i < numPlotsINLINE(); i++) {
-			CvPlot* pp = plotByIndexINLINE(i);
-			CvPlot& p = *pp;
+			CvPlot& p = *plotByIndexINLINE(i);
 			int const x = p.getX_INLINE();
 			int const y = p.getY_INLINE();
 			for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
-				CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)j);
-				if(qp == NULL)
+				CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)j);
+				if(pAdjacent == NULL)
 					continue;
-				CvPlot& q = *qp;
+				CvPlot& q = *pAdjacent;
 				// Only orthogonal adjacency for water tiles
 				if(p.isWater() && x != q.getX_INLINE() && y != q.getY_INLINE())
 					continue;
@@ -1560,67 +1469,70 @@ void CvMap::calculateReprAreas() {
 					if(qReprArea < pReprArea)
 						p.area()->setRepresentativeArea(qReprArea);
 					else q.area()->setRepresentativeArea(pReprArea);
-					reprChanged++;
+					iReprChanged++;
 				}
 			}
 		}
-		if(++loopCounter > 10) {
-			FAssert(loopCounter <= 10);
+		if(++iLoop > 10) {
+			FAssert(iLoop <= 10);
 			/*  Will have to write a faster algorithm then, based on the BtS code at
-				the beginning of this function. Would also make it easier to set the
-				lakes. */
+				the beginning of this function. That would also make it easier to
+				set the lakes. */
 			break;
 		}
-	} while(reprChanged > 0);
+	} while(iReprChanged > 0);
 	updateLakes();
-} // </advc.030>
+}
 
 
-// Private Functions...
+void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 
-// <advc.030>
-void CvMap::calculateAreas_visit(CvPlot const& p) {
-
-	int const x = p.getX_INLINE();
-	int const y = p.getY_INLINE();
-	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-		CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)i);
-		if(qp == NULL)
-			continue;
-		CvPlot& q = *qp;
-		/*  The two neighbors that p and q have in common if p and q are
-			diagonally adjacent: */
-		CvPlot* s = plot(p.getX_INLINE(), q.getY_INLINE());
-		CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
-		FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
-		if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
-				// For water tiles, orthogonal adjacency is unproblematic
-				(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()
-				// Diagonal adjacency only works if either s or t are water 
-				|| s == NULL || s->isWater() || t == NULL || t->isWater()) &&
-				/*  Depth-first search that doesn't continue at impassables
-					except to other impassables so that mountain ranges and
-					ice packs end up in one CvArea. */
-				(!p.isImpassable() || q.isImpassable())) {
-			q.setArea(p.getArea());
-			calculateAreas_visit(q);
+	/*  Explicit stack b/c memory can be an issue if a map has dimensions
+		considerably larger than Huge and very large areas.
+		I've run out of memory with a recursive implementation (with an attached
+		debugger) after about 20000 calls on a 148x148 map generated by LPlate2's
+		Eyeball Planet script. With the stack, at least the Release build should
+		be pretty safe. */
+	std::stack<CvPlot const*> stack;
+	stack.push(&kStart);
+	while(!stack.empty()) {
+		CvPlot const& p = *stack.top();
+		stack.pop();
+		int const x = p.getX_INLINE();
+		int const y = p.getY_INLINE();
+		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+			CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)i);
+			if(pAdjacent == NULL)
+				continue;
+			CvPlot& q = *pAdjacent;
+			/*  The two neighbors that p and q have in common if p and q are
+				diagonally adjacent: */
+			CvPlot* s = plot(p.getX_INLINE(), q.getY_INLINE());
+			CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
+			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
+			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
+					// For water tiles, orthogonal adjacency is unproblematic.
+					(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE() ||
+					// Diagonal adjacency only works if either s or t are water 
+					s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+					/*  Depth-first search that doesn't continue at impassables
+						except to other impassables so that mountain ranges and
+						ice packs end up in one CvArea. */
+					(!p.isImpassable() || q.isImpassable())) {
+				q.setArea(p.getArea());
+				stack.push(&q);
+			}
 		}
 	}
 } // </advc.030>
 
 // <advc.300>
-using std::vector;
-using std::map;
-using std::set;
-using std::pair;
-
-
 // All shelves adjacent to a continent
-void CvMap::getShelves(int landAreaId, vector<Shelf*>& r) const {
+void CvMap::getShelves(int iArea, std::vector<Shelf*>& r) const {
 
-	for(map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin();
+	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin();
 			it != shelves.end(); it++) {
-		if(it->first.first == landAreaId)
+		if(it->first.first == iArea)
     		r.push_back(it->second);
 	}
 }
@@ -1628,30 +1540,29 @@ void CvMap::getShelves(int landAreaId, vector<Shelf*>& r) const {
 
 void CvMap::computeShelves() {
 
-	for(map<Shelf::Id,Shelf*>::iterator it = shelves.begin();
+	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();
 			it != shelves.end(); it++)
 		SAFE_DELETE(it->second);
 	shelves.clear();
 
 	for(int i = 0; i < numPlotsINLINE(); i++) {
-		CvPlot* plot = plotByIndexINLINE(i);
+		CvPlot& p = *plotByIndexINLINE(i);
 		// For each passable marine water plot
-		if(plot == NULL || !plot->isWater() || plot->isLake() ||
-				plot->isImpassable() || !plot->isHabitable())
+		if(!p.isWater() || p.isLake() || p.isImpassable() || !p.isHabitable())
 			continue;
 		// Add plot to shelves of all adjacent land areas
-		set<int> adjLands;
-		plot->getAdjacentLandAreaIds(adjLands);
-		for(set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++) {
-			Shelf::Id sid(*it, plot->getArea());
-			map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(sid);
-			Shelf* shelf;
+		std::set<int> adjLands;
+		p.getAdjacentLandAreaIds(adjLands);
+		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++) {
+			Shelf::Id shelfID(*it, p.getArea());
+			std::map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(shelfID);
+			Shelf* pShelf;
 			if(shelfPos == shelves.end()) {
-				shelf = new Shelf();
-				shelves.insert(make_pair(sid, shelf));
+				pShelf = new Shelf();
+				shelves.insert(std::make_pair(shelfID, pShelf));
 			}
-			else shelf = shelfPos->second;
-			shelf->add(plot);
+			else pShelf = shelfPos->second;
+			pShelf->add(&p);
 		}
 	}
 }

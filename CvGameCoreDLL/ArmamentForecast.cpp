@@ -2,6 +2,13 @@
 
 #include "CvGameCoreDLL.h"
 #include "ArmamentForecast.h"
+#include "WarAndPeaceAgent.h"
+#include "MilitaryAnalyst.h"
+#include "WarEvalParameters.h"
+#include "WarAndPeaceReport.h"
+#include "CvGamePlay.h"
+#include "AI_Defines.h"
+#include "CvMap.h"
 #include <sstream>
 
 using std::vector;
@@ -302,13 +309,8 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	PROFILE_FUNC();
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!defensive) {
-		/*  Space and culture victory tend to overrule military build-up (even when
-			military victory is pursued in parallel), and divert a lot of production
-			into cultural things or spaceship parts. */
-		bool peacefulVictory = civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
-				civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) ||
-				civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
-				civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4);
+		// Space and culture victory tend to divert production away from the military
+		bool const peacefulVictory = wpai.getCache().isFocusOnPeacefulVictory();
 		if(peacefulVictory) {
 			report.log("Build-up reduced b/c pursuing peaceful victory");
 			if(intensity == FULL)
@@ -446,8 +448,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	// Shift weights away from milit. branches the civ can't build units for.
 	double surplus = 0;
 	for(int i = 0; i < NUM_BRANCHES; i++) {
-		MilitaryBranch& mb = *military[i];
-		if(mb.getTypicalUnit() == NULL) {
+		if(military[i]->getTypicalUnit() == NULL) {
 			surplus += branchPortions[i];
 			branchPortions[i] = 0;
 		}
@@ -458,8 +459,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	}
 	double checksum = 0;
 	for(int i = 0; i < NUM_BRANCHES; i++) {
-		MilitaryBranch& mb = *military[i];
-		if(mb.getTypicalUnit() != NULL)
+		if(military[i]->getTypicalUnit() != NULL)
 			branchPortions[i] += surplus * branchPortions[i] / (1 - surplus);
 		checksum += branchPortions[i];
 	}
@@ -487,7 +487,6 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		for(int i = 0; i < NUM_BRANCHES; i++) {
 			if(i == NUCLEAR || branchPortions[i] < 0.01)
 				continue;
-			MilitaryBranch& mb = *military[i];
 			if(firstItemDone)
 				msg << ", ";
 			msg << ::round(100 * branchPortions[i]);
@@ -510,7 +509,6 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		if(typicalProd <= 0)
 			continue;
 		double pow = mb.getTypicalUnitPower(m.ourId());
-		CvPlayerAI& civ = GET_PLAYER(civId);
 		double incr = branchPortions[i] * totalProductionForBuildUp * pow /
 				typicalProd;
 		mb.changePower(incr);
@@ -582,7 +580,7 @@ double ArmamentForecast::productionFromUpgrades() {
 		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().
 				getHandicapType());
 		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
-			// advc.250d: The per-era modifier no longer applies to upgrade cost
+		// advc.250d: The per-era modifier no longer applies to upgrade cost
 			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
 		aiUpgradeFactor /= 100.0;
 		/* Shouldn't draw conclusions from AI_getGoldToUpgradeAllUnits when

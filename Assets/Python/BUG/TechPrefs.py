@@ -36,7 +36,7 @@ class TechPrefs:
 
 	def __init__(self):
 		self.NUM_TECHS = gc.getNumTechInfos()
-		# <advc.003c> Was getDefineINT, which causes and exception b/c XML isn't loaded yet. It's OK b/c this function gets called again later on.
+		# <advc.003c> Was getDefineINT, which causes an exception b/c XML isn't loaded yet. It's OK b/c this function gets called again later on.
 		if self.NUM_TECHS <= 0: return
 		# Also: Might as well use the cached values
 		self.NUM_AND_PREREQS = gc.getNUM_AND_TECH_PREREQS()

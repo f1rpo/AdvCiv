@@ -27,7 +27,7 @@ public:
 	void AI_updateAssignWork();
 
 	//bool AI_avoidGrowth(); // disabled by K-Mod
-	bool AI_ignoreGrowth();
+	//bool AI_ignoreGrowth(); // advc.003j: K-Mod's replacement is also no longer used
 	//int AI_specialistValue(SpecialistTypes eSpecialist, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false) const;
 	int AI_specialistValue(SpecialistTypes eSpecialist, bool bRemove, bool bIgnoreFood = false, int iGrowthValue = -1) const; // K-Mod
 	int AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const; // K-Mod
@@ -41,10 +41,12 @@ public:
 	
 	/* int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const;
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
-	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true) const;
+	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0,
+			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
+			bool bIgnoreSpecialists = false) const; // advc.121b
 	// <advc.179>
-	double AI_estimateReligionBuildings(PlayerTypes civId, ReligionTypes eReligion,
-			std::vector<BuildingTypes> const& buildings) const; // </advc.179>
+	double AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
+			std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
 	ProjectTypes AI_bestProject(int* piBestValue = 0,
 			bool bAsync = false); // advc.001n
 	int AI_projectValue(ProjectTypes eProject);
@@ -57,29 +59,25 @@ public:
 	int AI_neededSeaWorkers();
 
 	bool AI_isDefended(int iExtra = 0);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD							9/19/08		jdog5000		    */
-/* 	Air AI																	    */
-/********************************************************************************/
 	//bool AI_isAirDefended(int iExtra = 0);
+	// BETTER_BTS_AI_MOD, Air AI, 9/19/08, jdog5000:
 	bool AI_isAirDefended(bool bCountLand = false, int iExtra = 0);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								    */
-/********************************************************************************/
 	bool AI_isDanger();
-	int AI_neededDefenders(
-			bool bIgnoreEvac = false); // advc.139
-	int AI_neededAirDefenders();
+	int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false); // advc.001n
+	int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false);
 	int AI_minDefenders();
-	int AI_neededFloatingDefenders(
-			bool bIgnoreEvac = false); // advc.139
-	void AI_updateNeededFloatingDefenders();
+	int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			// <advc.001n>
+			bool bConstCache = false);
+	// was void AI_updateNeededFloatingDefenders()
+	int AI_calculateNeededFloatingDefenders(bool bConstCache); // </advc.001n>
 	// <advc.139>
 	void AI_updateSafety(double relativeCityVal);
 	bool AI_isEvacuating() const;
 	bool AI_isSafe() const;
 	// </advc.139>
-	bool AI_isAwfulSite(PlayerTypes futureOwnerId) const; // advc.122
+	bool AI_isAwfulSite(PlayerTypes eFutureOwner) const; // advc.122
 	// advc.003: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
 	int AI_getEmphasizeAvoidGrowthCount() const;
@@ -105,7 +103,7 @@ public:
 
 	bool AI_isEmphasize(EmphasizeTypes eIndex) const;
 	void AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue);
-	void AI_forceEmphasizeCulture(bool bNewValue);
+	//void AI_forceEmphasizeCulture(bool bNewValue); // advc.003j
 
 	int AI_getBestBuildValue(int iIndex);
 	int AI_totalBestBuildValue(CvArea* pArea);
@@ -132,8 +130,6 @@ public:
 
 	int AI_getCityImportance(bool bEconomy, bool bMilitary);
 
-	int AI_calculateMilitaryOutput() const; // K-Mod
-
 	int AI_yieldMultiplier(YieldTypes eYield) const;
 	void AI_updateSpecialYieldMultiplier();
 	int AI_specialYieldMultiplier(YieldTypes eYield) const;
@@ -143,9 +139,13 @@ public:
 	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true);
 	int AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false ); // BBAI
 
-	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance);
-	int AI_highestTeamCloseness(TeamTypes eTeam); // K-Mod
-	bool AI_isFrontlineCity() const; // K-Mod
+	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
+			bool bConstCache = false); // advc.001n
+	int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
+			bool bConstCache); // advc.001n
+	// advc.003j: Both unused
+	/*bool AI_isFrontlineCity() const; // K-Mod
+	int AI_calculateMilitaryOutput() const;*/ // K-Mod
 	int AI_cityThreat(bool bDangerPercent = false);
 
 	int AI_getWorkersHave();
@@ -170,7 +170,7 @@ protected:
 
 	int* m_aiEmphasizeYieldCount;
 	int* m_aiEmphasizeCommerceCount;
-	bool m_bForceEmphasizeCulture;
+	bool m_bForceEmphasizeCulture; // advc.003j (comment): unused
 
 	int m_aiBestBuildValue[NUM_CITY_PLOTS];
 
@@ -212,7 +212,7 @@ protected:
 	bool AI_chooseDefender();
 	bool AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, int iOdds = -1); // bbai added iOdds
 	bool AI_chooseBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, int iMinThreshold = 0, int iOdds = -1); // bbai added iOdds.
-	bool AI_chooseProject();
+	//bool AI_chooseProject(); // advc.003j
 	bool AI_chooseProcess(CommerceTypes eCommerceType = NO_COMMERCE);
 
 	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue);
@@ -256,8 +256,12 @@ protected:
 
 	//int AI_buildingSpecialYieldChangeValue(BuildingTypes kBuilding, YieldTypes eYield) const;
 	int AI_buildingSeaYieldChangeWeight(BuildingTypes eBuilding, bool bGrowing = true) const; // K-Mod
-
-	void AI_cachePlayerCloseness(int iMaxDistance);
+	// <advc.001n> was void AI_cachePlayerCloseness(int)
+	int AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
+			bool bConstCache); // </advc.001n>
+	// <advc.031b>
+	int AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
+			int iWaterAreaSites, int iBestWaterAreaFoundValue) const; // </advc.031b>
 	void AI_updateWorkersNeededHere();
 
 	// added so under cheat mode we can call protected functions for testing

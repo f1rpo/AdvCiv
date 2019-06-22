@@ -2,9 +2,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryAnalyst.h"
-#include <set>
+#include "WarEvalParameters.h"
+#include "WarAndPeaceAgent.h"
+#include "InvasionGraph.h"
+#include "CvGamePlay.h"
+#include "AI_Defines.h"
 #include <sstream>
-#include <algorithm>
 #include <iterator>
 
 using std::set;
@@ -35,7 +38,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		capitulationsAcceptedPerTeam[i] = new set<TeamTypes>();
 	report.log("Military analysis from the pov of %s", report.leaderName(weId));
 	CvTeamAI& agent = TEAMREF(weId);
-	set<PlayerTypes> atWar;
+	set<PlayerTypes> currentlyAtWar; // 'atWar' is already a name of a global-context function
 	set<PlayerTypes> ourFutureOpponents;
 	set<PlayerTypes> ourSide;
 	set<PlayerTypes> theirSide;
@@ -50,7 +53,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		/*  Civs already at war (not necessarily with us).
 			If we are at war, our vassals are covered here as well. */
 		if(TEAMREF(civId).warAndPeaceAI().isKnownToBeAtWar(agent.getID()))
-			atWar.insert(civId);
+			currentlyAtWar.insert(civId);
 		TeamTypes masterTeamId = GET_PLAYER(civId).getMasterTeam();
 		if(masterTeamId == GET_PLAYER(weId).getMasterTeam())
 			weAndOurVassals.insert(civId);
@@ -146,9 +149,9 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	set<PlayerTypes> uninvolved;
 	uninvolved.insert(declaringWar.begin(), declaringWar.end());
 	uninvolved.insert(ourFutureOpponents.begin(), ourFutureOpponents.end());
-	partOfAnalysis.insert(atWar.begin(), atWar.end());
+	partOfAnalysis.insert(currentlyAtWar.begin(), currentlyAtWar.end());
 	partOfAnalysis.insert(uninvolved.begin(), uninvolved.end());
-	ig = new InvasionGraph(*this, atWar, peaceScenario);
+	ig = new InvasionGraph(*this, currentlyAtWar, peaceScenario);
 	ig->addUninvolvedParties(uninvolved);
 	/*  Simulation in two phases: The first phase lasts until we have finished
 		our war preparations (NB: we may already be in a war while preparing

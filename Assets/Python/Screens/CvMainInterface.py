@@ -222,9 +222,10 @@ class CvMainInterface:
 		self.DRAW_METHOD_PLE = "DRAW_METHOD_PLE"
 		self.DRAW_METHOD_VAN = "DRAW_METHOD_VAN"
 		self.DRAW_METHOD_BUG = "DRAW_METHOD_BUG"
-		self.DRAW_METHODS = (self.DRAW_METHOD_PLE, 
-							 self.DRAW_METHOD_VAN,
-							 self.DRAW_METHOD_BUG)
+		# advc.069: No longer used
+		#self.DRAW_METHODS = (self.DRAW_METHOD_PLE, 
+		#					 self.DRAW_METHOD_VAN,
+		#					 self.DRAW_METHOD_BUG)
 #		self.sDrawMethod = self.DRAW_METHOD_PLE
 # BUG - draw method
 
@@ -331,7 +332,8 @@ class CvMainInterface:
 			screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 		self.xResolution = screen.getXResolution()
 		self.yResolution = screen.getYResolution()
-		
+		# advc.061:
+		gc.getGame().setScreenDimensions(self.xResolution, self.yResolution)
 # BUG - Raw Yields - begin
 		global g_bYieldView
 		global g_iYieldType
@@ -1133,8 +1135,10 @@ class CvMainInterface:
 # BUG - Reminders - start
 					if ( ReminderEventManager.g_turnReminderTexts ):
 						acOutput = u"%s" % ReminderEventManager.g_turnReminderTexts
-					else:
+					elif MainOpt.isShowEndTurnMessage(): # advc.002n
 						acOutput = localText.getText("SYSTEM_END_TURN", ())
+					# advc.002n: So that toggling the option immediately hides the message
+					else: acOutput = ""
 # BUG - Reminders - end
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )
@@ -1145,7 +1149,8 @@ class CvMainInterface:
 					screen.setEndTurnState( "EndTurnText", acOutput )
 					bShow = True
 # BUG - Options - start
-				elif ( MainOpt.isShowOptionsKeyReminder() ):
+				# advc.004: Option disabled
+				elif False:#MainOpt.isShowOptionsKeyReminder()
 					if BugPath.isMac():
 						acOutput = localText.getText("TXT_KEY_BUG_OPTIONS_KEY_REMINDER_MAC", (BugPath.getModName(),))
 					else:
@@ -1169,25 +1174,31 @@ class CvMainInterface:
 # BUG - NJAGC - start
 		global g_bShowTimeTextAlt
 		if (CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
-			if (ClockOpt.isEnabled()):
-				if (ClockOpt.isShowEra()):
-					screen.show( "EraText" )
-				else:
-					screen.hide( "EraText" )
-				
+			# <advc.067> Moved out of the isEnabled block
+			if ClockOpt.isShowEra():
+				screen.show( "EraText" )
+			else:
+				screen.hide( "EraText" )
+			# </advc.067>
+			if ClockOpt.isEnabled():
 				if (ClockOpt.isAlternateTimeText()):
-					#global g_iTimeTextCounter (already done above)
 					if (CyUserProfile().wasClockJustTurnedOn() or g_iTimeTextCounter <= 0):
 						# reset timer, display primary
 						g_bShowTimeTextAlt = False
-						g_iTimeTextCounter = ClockOpt.getAlternatePeriod() * 1000
+						# advc.067: was getAlternatePeriod
+						g_iTimeTextCounter = ClockOpt.getPrimaryPeriod() * 1000
 						CyUserProfile().setClockJustTurnedOn(False)
 					else:
 						# countdown timer
 						g_iTimeTextCounter -= 250
 						if (g_iTimeTextCounter <= 0):
+							# <advc.067>
+							if g_bShowTimeTextAlt:
+								iPeriod = ClockOpt.getPrimaryPeriod()
+							else: # </advc.067>
+								iPeriod = ClockOpt.getAlternatePeriod()
 							# timer elapsed, toggle between primary and alternate
-							g_iTimeTextCounter = ClockOpt.getAlternatePeriod() * 1000
+							g_iTimeTextCounter = iPeriod * 1000
 							g_bShowTimeTextAlt = not g_bShowTimeTextAlt
 				else:
 					g_bShowTimeTextAlt = False
@@ -1196,7 +1207,7 @@ class CvMainInterface:
 				screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				screen.show( "TimeText" )
 			else:
-				screen.hide( "EraText" )
+				#screen.hide( "EraText" ) # advc.067
 				self.updateTimeText()
 				screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				screen.show( "TimeText" )
@@ -1286,16 +1297,18 @@ class CvMainInterface:
 			self.updateCityScreen()
 			CyInterface().setDirty(InterfaceDirtyBits.Domestic_Advisor_DIRTY_BIT, True)
 			CyInterface().setDirty(InterfaceDirtyBits.CityScreen_DIRTY_BIT, False)
+		bScoreStringsUpdated = False # advc.004z
 		if ( CyInterface().isDirty(InterfaceDirtyBits.Score_DIRTY_BIT) == True or CyInterface().checkFlashUpdate() ):
 			# Scores!
 			self.updateScoreStrings()
 			CyInterface().setDirty(InterfaceDirtyBits.Score_DIRTY_BIT, False)
+			bScoreStringsUpdated = True # advc.004z
 		if ( CyInterface().isDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT) == True ):
 			# Globeview and Globelayer buttons
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			self.updateGlobeviewButtons()
 			# <advc.004z>
-			if gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0:
+			if not bScoreStringsUpdated and MainOpt.isScoresInGlobeView():
 				# Show/hide scoreboard depending on whether the layer has options
 				self.updateScoreStrings() # </advc.004z>
 
@@ -1448,15 +1461,17 @@ class CvMainInterface:
 		if ( CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
 			self.updateGreatPersonBar(screen)
 # BUG - Great Person Bar - end
-
-		if ( CyInterface().shouldDisplayFlag() and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW ):
-			screen.show( "CivilizationFlag" )
+		#CyInterface().shouldDisplayFlag() and # advc.004y: Don't check this for the Civilopedia button
+		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW:
+			if CyInterface().shouldDisplayFlag(): # advc.004y
+				screen.show( "CivilizationFlag" )
+				screen.show( "MainMenuButton" )
+			else: # advc.004y
+				screen.hide( "CivilizationFlag" )
+				screen.hide( "MainMenuButton" )
 			screen.show( "InterfaceHelpButton" )
-			screen.show( "MainMenuButton" )
 		else:
-			screen.hide( "CivilizationFlag" )
 			screen.hide( "InterfaceHelpButton" )
-			screen.hide( "MainMenuButton" )
 
 		if ( CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY ):
 			screen.hide( "InterfaceLeftBackgroundWidget" )
@@ -1727,7 +1742,15 @@ class CvMainInterface:
 		self.updatePlotListButtons_Common(screen)
 
 # BUG - draw methods
-		sDrawMethod = self.DRAW_METHODS[PleOpt.getDrawMethod()]
+		#sDrawMethod = self.DRAW_METHODS[PleOpt.getDrawMethod()]
+		# <advc.069> Replacing the above (getDrawMethod removed)
+		if PleOpt.isPLE_Style():
+			sDrawMethod = self.DRAW_METHOD_PLE
+		elif PleOpt.isBUG_Style():
+			sDrawMethod = self.DRAW_METHOD_BUG
+		else:
+			sDrawMethod = self.DRAW_METHOD_VAN
+		# </advc.069>
 		if sDrawMethod == self.DRAW_METHOD_PLE:
 			self.PLE.updatePlotListButtons_PLE(screen, self.xResolution, self.yResolution)
 			self.bPLECurrentlyShowing = True
@@ -1837,7 +1860,9 @@ class CvMainInterface:
 
 # BUG - draw method
 	def hidePlotListButton_BUG(self, screen):
-		if self.DRAW_METHODS[PleOpt.getDrawMethod()] != self.DRAW_METHOD_BUG:
+		#if self.DRAW_METHODS[PleOpt.getDrawMethod()] != self.DRAW_METHOD_BUG:
+		# advc.069: Replacing the above (getDrawMethod removed)
+		if PleOpt.isPLE_Style() or not PleOpt.isBUG_Style():
 			self.BupPanel.clearUnits()
 			self.BupPanel.Hide()
 
@@ -1899,7 +1924,11 @@ class CvMainInterface:
 				iSkipped = 0
 
 			BugUtil.debug("updatePlotListButtons_Orig - iCount(%i), iSkipped(%i)", iCount, iSkipped)
-
+			# <advc.069>
+			bSimultaneousTurns = gc.getGame().isMPOption(MultiplayerOptionTypes.MPOPTION_SIMULTANEOUS_TURNS)
+			bWoundedIndicator = PleOpt.isShowWoundedIndicator()
+			bGGIndicator = PleOpt.isShowGreatGeneralIndicator()
+			# </advc.069>
 			CyInterface().cacheInterfacePlotUnits(pPlot)
 			for i in range(CyInterface().getNumCachedInterfacePlotUnits()):
 				pLoopUnit = CyInterface().getCachedInterfacePlotUnit(i)
@@ -1911,6 +1940,8 @@ class CvMainInterface:
 						bRightArrow = True
 
 					if ((iCount >= 0) and (iCount <  self.numPlotListButtonsPerRow() * self.numPlotListRows())):
+						# advc.069:
+						bShowMoveOverlay = (bSimultaneousTurns or pLoopUnit.getOwner() == gc.getGame().getActivePlayer() or (bWoundedIndicator and pLoopUnit.isHurt()) or (bGGIndicator and pLoopUnit.getLeaderUnitType() >= 0))
 						if ((pLoopUnit.getTeam() != gc.getGame().getActiveTeam()) or pLoopUnit.isWaiting()):
 							szFileName = ArtFileMgr.getInterfaceArtInfo("OVERLAY_FORTIFY").getPath()
 
@@ -1923,7 +1954,9 @@ class CvMainInterface:
 							szFileName = ArtFileMgr.getInterfaceArtInfo("OVERLAY_NOMOVE").getPath()
 
 						szString = "PlotListButton" + str(iCount)
-						screen.changeImageButton( szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton() )
+						#screen.changeImageButton( szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton() )
+						# advc.003l: Replacing the above
+						screen.changeImageButton( szString, gc.getPlayer(pLoopUnit.getOwner()).getUnitButton(pLoopUnit.getUnitType()))
 						if ( pLoopUnit.getOwner() == gc.getGame().getActivePlayer() ):
 							bEnable = True
 						else:
@@ -1956,9 +1989,10 @@ class CvMainInterface:
 							screen.show( szStringHealth )
 
 						# Adds the overlay first
-						szStringIcon = szString + "Icon"
-						screen.changeDDSGFC( szStringIcon, szFileName )
-						screen.show( szStringIcon )
+						if bShowMoveOverlay: # advc.069
+							szStringIcon = szString + "Icon"
+							screen.changeDDSGFC( szStringIcon, szFileName )
+							screen.show( szStringIcon )
 
 						if bEnable:
 							x = 315 + ((iCount % self.numPlotListButtonsPerRow()) * 34)
@@ -3050,161 +3084,178 @@ class CvMainInterface:
 			szString = "RateText" + str(iI)
 			screen.hide(szString)
 
-		if ( CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
+		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_ADVANCED_START:
+			return 0 # advc.003: Reduce indentation
 
-			# Percent of commerce
-			if (gc.getPlayer(ePlayer).isAlive()):
-				iCount = 0
-				for iI in range( CommerceTypes.NUM_COMMERCE_TYPES ):
-					eCommerce = (iI + 1) % CommerceTypes.NUM_COMMERCE_TYPES
-					#if (gc.getPlayer(ePlayer).isCommerceFlexible(eCommerce) or (CyInterface().isCityScreenUp() and (eCommerce == CommerceTypes.COMMERCE_GOLD))):
-					if self.showCommercePercent(eCommerce, ePlayer): # K-Mod
-						szOutText = u"<font=2>%c:%d%%</font>" %(gc.getCommerceInfo(eCommerce).getChar(), gc.getPlayer(ePlayer).getCommercePercent(eCommerce))
-						szString = "PercentText" + str(iI)
-						screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 14, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# Percent of commerce
+		if gc.getPlayer(ePlayer).isAlive():
+			iCount = 0
+			for iI in range( CommerceTypes.NUM_COMMERCE_TYPES ):
+				eCommerce = (iI + 1) % CommerceTypes.NUM_COMMERCE_TYPES
+				#if (gc.getPlayer(ePlayer).isCommerceFlexible(eCommerce) or (CyInterface().isCityScreenUp() and (eCommerce == CommerceTypes.COMMERCE_GOLD))):
+				if self.showCommercePercent(eCommerce, ePlayer): # K-Mod
+					szOutText = u"<font=2>%c:%d%%</font>" %(gc.getCommerceInfo(eCommerce).getChar(), gc.getPlayer(ePlayer).getCommercePercent(eCommerce))
+					szString = "PercentText" + str(iI)
+					screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 14, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+					screen.show( szString )
+
+					if not CyInterface().isCityScreenUp():
+						szOutText = u"<font=2>" + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (gc.getPlayer(ePlayer).getCommerceRate(CommerceTypes(eCommerce)), )) + u"</font>"
+						# <advc.004p>
+						if eCommerce == CommerceTypes.COMMERCE_CULTURE:
+							szOutText = u""
+						# </advc.004p>
+						szString = "RateText" + str(iI)
+# BUG - Min/Max Sliders - start
+						if MainOpt.isShowMinMaxCommerceButtons():
+							iMinMaxAdjustX = 40
+						else:
+							iMinMaxAdjustX = 0
+						screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 112 + iMinMaxAdjustX, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+# BUG - Min/Max Sliders - end
 						screen.show( szString )
 
-						if not CyInterface().isCityScreenUp():
-							szOutText = u"<font=2>" + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (gc.getPlayer(ePlayer).getCommerceRate(CommerceTypes(eCommerce)), )) + u"</font>"
-							# <advc.004p>
-							if eCommerce == CommerceTypes.COMMERCE_CULTURE:
-								szOutText = u""
-							# </advc.004p>
-							szString = "RateText" + str(iI)
-# BUG - Min/Max Sliders - start
-							if MainOpt.isShowMinMaxCommerceButtons():
-								iMinMaxAdjustX = 40
-							else:
-								iMinMaxAdjustX = 0
-							screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 112 + iMinMaxAdjustX, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-# BUG - Min/Max Sliders - end
-							screen.show( szString )
-
-						iCount = iCount + 1;
-
-			self.updateTimeText()
-			screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-			screen.show( "TimeText" )
-			
-			if (gc.getPlayer(ePlayer).isAlive()):
-				
+					iCount = iCount + 1;
+		self.updateTimeText()
+		screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.show( "TimeText" )
+		# advc.103: Don't show gold rate and current research when investigating
+		if not gc.getPlayer(ePlayer).isAlive() or (ePlayer != gc.getGame().getActivePlayer() and not gc.getGame().isDebugMode()):
+			return 0
 # BUG - Gold Rate Warning - start
-				if MainOpt.isGoldRateWarning():
-					pPlayer = gc.getPlayer(ePlayer)
-					iGold = pPlayer.getGold()
-					iGoldRate = pPlayer.calculateGoldRate()
-					if iGold < 0:
-						szText = BugUtil.getText("TXT_KEY_MISC_NEG_GOLD", iGold)
-						if iGoldRate != 0:
-							if iGold + iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
-							elif iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_POS_WARNING_GOLD_PER_TURN", iGoldRate)
-							else:
-								szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+		if True:#MainOpt.isGoldRateWarning(): # advc.070
+			pPlayer = gc.getPlayer(ePlayer)
+			iGold = pPlayer.getGold()
+			iGoldRate = pPlayer.calculateGoldRate()
+			if iGold < 0: # advc.070 (comment): Only relevant for mod-mods I think, so I'm not changing anything here.
+				szText = BugUtil.getText("TXT_KEY_MISC_NEG_GOLD", iGold)
+				if iGoldRate != 0:
+					if iGold + iGoldRate >= 0:
+						szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
+					elif iGoldRate >= 0:
+						szText += BugUtil.getText("TXT_KEY_MISC_POS_WARNING_GOLD_PER_TURN", iGoldRate)
 					else:
-						szText = BugUtil.getText("TXT_KEY_MISC_POS_GOLD", iGold)
-						if iGoldRate != 0:
-							if iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
-							elif iGold + iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
-							else:
-								szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
-					if pPlayer.isStrike():
-						szText += BugUtil.getPlainText("TXT_KEY_MISC_STRIKE")
-				else:
-					szText = CyGameTextMgr().getGoldStr(ePlayer)
+						szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+			else:
+				szText = BugUtil.getText("TXT_KEY_MISC_POS_GOLD", iGold)
+				if iGoldRate != 0:
+					# <advc.070>
+					szRateText = " ("
+					szRateText += BugUtil.getText("TXT_KEY_MISC_PER_TURN", iGoldRate)
+					szRateText += ")"
+					iRateColor = MainOpt.getGoldRateBrokeColor()
+					# </advc.070>
+					if iGoldRate >= 0:
+						iRateColor = MainOpt.getPositiveGoldRateColor()
+						#szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
+					elif iGold + iGoldRate >= 0:
+						iRateColor = MainOpt.getNegativeGoldRateColor()
+						#szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
+					#else:
+						#szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+					# advc.070:
+					szText += localText.changeTextColor(szRateText, iRateColor)
+						
+			if pPlayer.isStrike():
+				szText += BugUtil.getPlainText("TXT_KEY_MISC_STRIKE")
+		else:
+			szText = CyGameTextMgr().getGoldStr(ePlayer)
 # BUG - Gold Rate Warning - end
-				screen.setLabel( "GoldText", "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, 12, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-				screen.show( "GoldText" )
+		screen.setLabel( "GoldText", "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, 12, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.show( "GoldText" )
 				
-				if (((gc.getPlayer(ePlayer).calculateGoldRate() != 0) and not (gc.getPlayer(ePlayer).isAnarchy())) or (gc.getPlayer(ePlayer).getGold() != 0)):
-					screen.show( "GoldText" )
-
+		if (((gc.getPlayer(ePlayer).calculateGoldRate() != 0) and not (gc.getPlayer(ePlayer).isAnarchy())) or (gc.getPlayer(ePlayer).getGold() != 0)):
+			screen.show( "GoldText" )
 # BUG - NJAGC - start
-				if (ClockOpt.isEnabled()
-				and ClockOpt.isShowEra()):
-					szText = localText.getText("TXT_KEY_BUG_ERA", (gc.getEraInfo(gc.getPlayer(ePlayer).getCurrentEra()).getDescription(), ))
-					if(ClockOpt.isUseEraColor()):
-						iEraColor = ClockOpt.getEraColor(gc.getEraInfo(gc.getPlayer(ePlayer).getCurrentEra()).getType())
-						if (iEraColor >= 0):
-							szText = localText.changeTextColor(szText, iEraColor)
-					screen.setLabel( "EraText", "Background", szText, CvUtil.FONT_RIGHT_JUSTIFY, 250, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-					screen.show( "EraText" )
+		#if (ClockOpt.isEnabled() and ClockOpt.isShowEra()):
+		# advc.067: Replacing the above
+		if ClockOpt.isShowEra():
+			# <advc.067>
+			if ClockOpt.isShowGameEra():
+				iEra = gc.getGame().getCurrentEra()
+			else: # </advc.067>
+				iEra = gc.getPlayer(ePlayer).getCurrentEra()
+			szText = localText.getText("TXT_KEY_BUG_ERA", (gc.getEraInfo(iEra).getDescription(), ))
+			if(ClockOpt.isUseEraColor()):
+				iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
+				if (iEraColor >= 0):
+					szText = localText.changeTextColor(szText, iEraColor)
+			screen.setLabel( "EraText", "Background", szText, CvUtil.FONT_RIGHT_JUSTIFY, 250, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+			screen.show( "EraText" )
 # BUG - NJAGC - end
-				
-				if (gc.getPlayer(ePlayer).isAnarchy()):
-				
+		if (gc.getPlayer(ePlayer).isAnarchy()):
 # BUG - Bars on single line for higher resolution screens - start
-					if (xResolution >= 1440
-					and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
-						xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
-					else:
-						xCoord = screen.centerX(512)
-
-					yCoord = 5  # Ruff: this use to be 3 but I changed it so it lines up with the Great Person Bar
-					szText = localText.getText("INTERFACE_ANARCHY", (gc.getPlayer(ePlayer).getAnarchyTurns(), ))
-					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
+			if (xResolution >= 1440 and (self.isShowGGProgressBar() or self.isShowGPProgressBar())):
+				xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
+			else:
+				xCoord = screen.centerX(512)
+			yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
+			szText = localText.getText("INTERFACE_ANARCHY", (gc.getPlayer(ePlayer).getAnarchyTurns(), ))
+			screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
 # BUG - Bars on single line for higher resolution screens - end
-
-					if ( gc.getPlayer(ePlayer).getCurrentResearch() != -1 ):
-						screen.show( "ResearchText" )
-					else:
-						screen.hide( "ResearchText" )
-					
-				elif (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
-
-					szText = CyGameTextMgr().getResearchStr(ePlayer)
-
+			# advc.004x: Always show ResearchText (i.e. anarchy turns)
+			#if ( gc.getPlayer(ePlayer).getCurrentResearch() != -1 ):
+			screen.show( "ResearchText" )
+			#else:
+			#	screen.hide( "ResearchText" )		
+		elif (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
+			szText = CyGameTextMgr().getResearchStr(ePlayer)
 # BUG - Bars on single line for higher resolution screens - start
-					if (xResolution >= 1440
-					and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
-						szResearchBar = "ResearchBar-w"
-						xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
-					else:
-						szResearchBar = "ResearchBar"
-						xCoord = screen.centerX(512)
-
-					yCoord = 5  # Ruff: this use to be 3 but I changed it so it lines up with the Great Person Bar
-					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
-					screen.show( "ResearchText" )
+			if (xResolution >= 1440 and (self.isShowGGProgressBar() or self.isShowGPProgressBar())):
+				szResearchBar = "ResearchBar-w"
+				xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
+			else:
+				szResearchBar = "ResearchBar"
+				xCoord = screen.centerX(512)
+			yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
+			screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
+			screen.show( "ResearchText" )
 # BUG - Bars on single line for higher resolution screens - end
+			researchProgress = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchProgress(gc.getPlayer(ePlayer).getCurrentResearch())
+			overflowResearch = (gc.getPlayer(ePlayer).getOverflowResearch() * gc.getPlayer(ePlayer).calculateResearchModifier(gc.getPlayer(ePlayer).getCurrentResearch()))/100
+			researchCost = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchCost(gc.getPlayer(ePlayer).getCurrentResearch())
+			bTickMarks = MainOpt.isShowBarTickMarks() # advc.078
+			researchRate = gc.getPlayer(ePlayer).calculateResearchRate(-1)
+			# <advc.078>
+			# Meaning that overflow is shown as part of the current progress
+			overflowProgress = overflowResearch
+			overflowRate = 0
+			if bTickMarks:
+			# Meaning overflow is shown as part of the next turn's research rate
+				overflowRate = overflowResearch
+				overflowProgress = 0
+			# Mostly BtS code from here
+			progressPortion = float(researchProgress + overflowProgress) / researchCost
+			screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_STORED, progressPortion )
+			if ( researchCost > researchProgress + overflowProgress):
+				ratePortion = float(researchRate + overflowRate) / researchCost
+				# I don't understand why, but setBarPercentage seems to multiply its argument by the the remaining portion of the bar. Cancel that out:
+				ratePortion /= (1 - progressPortion)
+				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, ratePortion)
+			# </advc.078>
+			else:
+				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, 0.0 )
 
-					researchProgress = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchProgress(gc.getPlayer(ePlayer).getCurrentResearch())
-					overflowResearch = (gc.getPlayer(ePlayer).getOverflowResearch() * gc.getPlayer(ePlayer).calculateResearchModifier(gc.getPlayer(ePlayer).getCurrentResearch()))/100
-					researchCost = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchCost(gc.getPlayer(ePlayer).getCurrentResearch())
-					researchRate = gc.getPlayer(ePlayer).calculateResearchRate(-1)
-					
-					screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_STORED, float(researchProgress + overflowResearch) / researchCost )
-					if ( researchCost >  researchProgress + overflowResearch):
-						screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, float(researchRate) / (researchCost - researchProgress - overflowResearch))
-					else:
-						screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, 0.0 )
-
-					screen.show( szResearchBar )
-
+			screen.show(szResearchBar)
 # BUG - Progress Bar - Tick Marks - start
-					if MainOpt.isShowpBarTickMarks():
-						if szResearchBar == "ResearchBar":
-							self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
-						else:
-							self.pBarResearchBar_w.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
+			# advc.004x: researchRate condition added
+			if bTickMarks and researchRate > 0:
+				if szResearchBar == "ResearchBar":
+					self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
+				else:
+					self.pBarResearchBar_w.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
 # BUG - Progress Bar - Tick Marks - end
-
 # BUG - Great Person Bar - start
-				self.updateGreatPersonBar(screen)
+		self.updateGreatPersonBar(screen)
 # BUG - Great Person Bar - end
-
 # BUG - Great General Bar - start
-				self.updateGreatGeneralBar(screen)
+		self.updateGreatGeneralBar(screen)
 # BUG - Great General Bar - end
-					
 		return 0
 		
 # BUG - Great Person Bar - start
 	def updateGreatPersonBar(self, screen):
-		if (not CyInterface().isCityScreenUp() and MainOpt.isShowGPProgressBar()):
+		if (not CyInterface().isCityScreenUp() and self.isShowGPProgressBar()):
 			pGPCity, iGPTurns = GPUtil.getDisplayCity()
 			szText = GPUtil.getGreatPeopleText(pGPCity, iGPTurns, GP_BAR_WIDTH, MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), True)
 			szText = u"<font=2>%s</font>" % (szText)
@@ -3249,7 +3300,7 @@ class CvMainInterface:
 
 # BUG - Great General Bar - start
 	def updateGreatGeneralBar(self, screen):
-		if (not CyInterface().isCityScreenUp() and MainOpt.isShowGGProgressBar()):
+		if (not CyInterface().isCityScreenUp() and self.isShowGGProgressBar()):
 			pPlayer = gc.getActivePlayer()
 			iCombatExp = pPlayer.getCombatExperience()
 			iThresholdExp = pPlayer.greatPeopleThreshold(True)
@@ -3276,6 +3327,30 @@ class CvMainInterface:
 			screen.setBarPercentage( szGreatGeneralBar, InfoBarTypes.INFOBAR_STORED, fProgress )
 			screen.show( szGreatGeneralBar )
 # BUG - Great General Bar - end
+	# <advc.078> I've replaced all calls to MainOpt.isShowGGProgressBar and MainOpt.isShowGPProgressBar with these functions
+	def isShowGGProgressBar(self):
+		if not MainOpt.isShowGGProgressBar():
+			return False
+		if not MainOpt.isShowOnlyOnceProgress():
+			return True
+		iActivePlayer = gc.getGame().getActivePlayer()
+		if iActivePlayer < 0:
+			return False
+		activePlayer = gc.getPlayer(iActivePlayer)
+		return (activePlayer.getCombatExperience() > 0 or activePlayer.getGreatGeneralsCreated() > 0)
+		
+	def isShowGPProgressBar(self):
+		if not MainOpt.isShowGPProgressBar():
+			return False
+		if not MainOpt.isShowOnlyOnceProgress():
+			return True
+		iActivePlayer = gc.getGame().getActivePlayer()
+		if iActivePlayer < 0:
+			return False
+		activePlayer = gc.getPlayer(iActivePlayer)
+		# Don't want to check all cities here over and over. Let the DLL keep track of this (new function: isAnyGPPEver). The second condition is only for old savegames.
+		return (activePlayer.isAnyGPPEver() or activePlayer.getGreatPeopleCreated() > 0)
+	# </advc.078>
 					
 	def updateTimeText( self ):
 		
@@ -3284,6 +3359,15 @@ class CvMainInterface:
 		ePlayer = gc.getGame().getActivePlayer()
 		
 # BUG - NJAGC - start
+		# <advc.067> Moved out of the isEnabled block
+		iEraColor = -1
+		if(ClockOpt.isUseEraColor()):	
+			if ClockOpt.isShowGameEra():
+				iEra = gc.getGame().getCurrentEra()
+			else: # </advc.067>
+				iEra = gc.getPlayer(ePlayer).getCurrentEra()
+				iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
+		# advc.067: End of moved code
 		if (ClockOpt.isEnabled()):
 			"""
 			Format: Time - GameTurn/Total Percent - GA (TurnsLeft) Date
@@ -3294,13 +3378,15 @@ class CvMainInterface:
 				bShowTime = ClockOpt.isShowAltTime()
 				bShowGameTurn = ClockOpt.isShowAltGameTurn()
 				bShowTotalTurns = ClockOpt.isShowAltTotalTurns()
-				bShowPercentComplete = ClockOpt.isShowAltPercentComplete()
+				# advc.067: Option removed
+				bShowPercentComplete = False #ClockOpt.isShowAltPercentComplete()
 				bShowDateGA = ClockOpt.isShowAltDateGA()
 			else:
 				bShowTime = ClockOpt.isShowTime()
 				bShowGameTurn = ClockOpt.isShowGameTurn()
 				bShowTotalTurns = ClockOpt.isShowTotalTurns()
-				bShowPercentComplete = ClockOpt.isShowPercentComplete()
+				# advc.067: Option removed
+				bShowPercentComplete = False#ClockOpt.isShowPercentComplete()
 				bShowDateGA = ClockOpt.isShowDateGA()
 			
 			if (not gc.getGame().getMaxTurns() > 0):
@@ -3339,10 +3425,8 @@ class CvMainInterface:
 				else:
 					g_szTimeText += u" - "
 				szDateGA = unicode(CyGameTextMgr().getInterfaceTimeStr(ePlayer))
-				if(ClockOpt.isUseEraColor()):
-					iEraColor = ClockOpt.getEraColor(gc.getEraInfo(gc.getPlayer(ePlayer).getCurrentEra()).getType())
-					if (iEraColor >= 0):
-						szDateGA = localText.changeTextColor(szDateGA, iEraColor)
+				if iEraColor >= 0: # advc.067: Replacing code that has moved up
+					szDateGA = localText.changeTextColor(szDateGA, iEraColor)
 				g_szTimeText += szDateGA
 		else:
 			"""
@@ -3351,7 +3435,13 @@ class CvMainInterface:
 			
 			Ex: 10:37 - Turn 220 - GA (3) 1925
 			"""
-			g_szTimeText = localText.getText("TXT_KEY_TIME_TURN", (CyGame().getGameTurn(), )) + u" - " + unicode(CyGameTextMgr().getInterfaceTimeStr(ePlayer))
+			g_szTimeText = localText.getText("TXT_KEY_TIME_TURN", (CyGame().getGameTurn(), )) + u" - "
+			# <advc.067> Based on NJAGC code above
+			szDate = unicode(CyGameTextMgr().getInterfaceTimeStr(ePlayer))
+			if iEraColor >= 0:
+				szDate = localText.changeTextColor(szDate, iEraColor)
+			g_szTimeText += szDate
+			# </advc.067>
 			if (CyUserProfile().isClockOn()):
 				g_szTimeText = getClockText() + u" - " + g_szTimeText
 # BUG - NJAGC - end
@@ -3574,9 +3664,8 @@ class CvMainInterface:
 
 					szBuffer = u"%d%c" %(iFoodDifference, gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar())
 					# draw label below
-
-				screen.setLabel( "PopulationInputText", "Background", szBuffer, CvUtil.FONT_RIGHT_JUSTIFY, iCityCenterRow1X - 6, iCityCenterRow1Y, -0.3, FontTypes.GAME_FONT, 
-						*BugDll.widget("WIDGET_FOOD_MOD_HELP", -1, -1) )
+				# advc.004: BULL widget help enabled
+				screen.setLabel( "PopulationInputText", "Background", szBuffer, CvUtil.FONT_RIGHT_JUSTIFY, iCityCenterRow1X - 6, iCityCenterRow1Y, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_FOOD_MOD_HELP, -1, -1)
 				screen.show( "PopulationInputText" )
 # BUG - Food Rate Hover - end
 
@@ -3620,7 +3709,7 @@ class CvMainInterface:
 				screen.show( "PopulationBar" )
 
 # BUG - Progress Bar - Tick Marks - start
-				if MainOpt.isShowpBarTickMarks():
+				if MainOpt.isShowBarTickMarks():
 					self.pBarPopulationBar.drawTickMarks(screen, pHeadSelectedCity.getFood(), pHeadSelectedCity.growthThreshold(), iFoodDifference, iFoodDifference, False)
 # BUG - Progress Bar - Tick Marks - end
 
@@ -3629,40 +3718,62 @@ class CvMainInterface:
 						szBuffer = pHeadSelectedCity.getProductionName()
 # BUG - Whip Assist - start
 					else:
+						iProductionTurns = pHeadSelectedCity.getProductionTurnsLeft() # advc.004x
 						HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
 						HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
 						if (CityScreenOpt.isShowWhipAssist() and pHeadSelectedCity.canHurry(HURRY_WHIP, False)):
 							iHurryPop = pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
-							iOverflow = pHeadSelectedCity.hurryProduction(HURRY_WHIP) - pHeadSelectedCity.productionLeft()
-							if CityScreenOpt.isWhipAssistOverflowCountCurrentProduction():
-								iOverflow += pHeadSelectedCity.getCurrentProductionDifference(False, True)
-							iMaxOverflow = max(pHeadSelectedCity.getProductionNeeded(), pHeadSelectedCity.getCurrentProductionDifference(False, False))
-							iLost = max(0, iOverflow - iMaxOverflow)
-							iOverflow = min(iOverflow, iMaxOverflow)
-							iItemModifier = pHeadSelectedCity.getProductionModifier()
-							iBaseModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, 0)
-							iTotalModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, iItemModifier)
-							iLost *= iBaseModifier
-							iLost /= max(1, iTotalModifier)
-							iOverflow = (iBaseModifier * iOverflow) / max(1, iTotalModifier)
-							if iLost > 0:
-								if pHeadSelectedCity.isProductionUnit():
-									iGoldPercent = gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT")
-								elif pHeadSelectedCity.isProductionBuilding():
-									iGoldPercent = gc.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")
-								elif pHeadSelectedCity.isProductionProject():
-									iGoldPercent = gc.getDefineINT("MAXED_PROJECT_GOLD_PERCENT")
-								else:
-									iGoldPercent = 0
-								iOverflowGold = iLost * iGoldPercent / 100
-								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryPop, iOverflow, iOverflowGold))
+							#iOverflow = pHeadSelectedCity.hurryProduction(HURRY_WHIP) - pHeadSelectedCity.productionLeft()
+							#if CityScreenOpt.isWhipAssistOverflowCountCurrentProduction():
+								#iOverflow += pHeadSelectedCity.getCurrentProductionDifference(False, True)
+							#iMaxOverflow = max(pHeadSelectedCity.getProductionNeeded(), pHeadSelectedCity.getCurrentProductionDifference(False, False))
+							#iLost = max(0, iOverflow - iMaxOverflow)
+							#iOverflow = min(iOverflow, iMaxOverflow)
+							#iItemModifier = pHeadSelectedCity.getProductionModifier()
+							#iBaseModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, 0)
+							#iTotalModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, iItemModifier)
+							#iLost *= iBaseModifier
+							#iLost /= max(1, iTotalModifier)
+							#iOverflow = (iBaseModifier * iOverflow) / max(1, iTotalModifier)
+							#if iLost > 0:
+								#if pHeadSelectedCity.isProductionUnit():
+									#iGoldPercent = gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT")
+								#elif pHeadSelectedCity.isProductionBuilding():
+									#iGoldPercent = gc.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")
+								#elif pHeadSelectedCity.isProductionProject():
+									#iGoldPercent = gc.getDefineINT("MAXED_PROJECT_GOLD_PERCENT")
+								#else:
+									#iGoldPercent = 0
+								#iOverflowGold = iLost * iGoldPercent / 100
+							# <advc.064> Replacing the above by calling C++ code that does almost the same thing
+							bCountCurrentOverflow = CityScreenOpt.isWhipAssistOverflowCountCurrentProduction()
+							iOverflow = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
+							iOverflowGold = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
+							if iOverflowGold > 0: # </advc.064>
+								# <advc.004x>
+								if iProductionTurns <= 0:
+									szBuffer = localText.getText("INTERFACE_CITY_NO_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), iHurryPop, iOverflow, iOverflowGold))
+								else: # </advc.004x>
+									szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns, iHurryPop, iOverflow, iOverflowGold))
 							else:
-								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryPop, iOverflow))
+								# <advc.004x>
+								if iProductionTurns <= 0:
+									szBuffer = localText.getText("INTERFACE_CITY_NO_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), iHurryPop, iOverflow))
+								else: # </advc.004x>
+									szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns, iHurryPop, iOverflow))
 						elif (CityScreenOpt.isShowWhipAssist() and pHeadSelectedCity.canHurry(HURRY_BUY, False)):
 							iHurryCost = pHeadSelectedCity.hurryGold(HURRY_BUY)
-							szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_BUY", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryCost))
+							# <advc.004x>
+							if iProductionTurns <= 0:
+								szBuffer = localText.getText("INTERFACE_CITY_NO_PRODUCTION_BUY", (pHeadSelectedCity.getProductionNameKey(), iHurryCost))
+							else: # </advc.004x>
+								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_BUY", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns, iHurryCost))
 						else:
-							szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft()))
+							# <advc.004x>
+							if iProductionTurns <= 0:
+								szBuffer = pHeadSelectedCity.getProductionName()
+							else: # </advc.004x>
+								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns))
 # BUG - Whip Assist - end
 
 					screen.setLabel( "ProductionText", "Background", szBuffer, CvUtil.FONT_CENTER_JUSTIFY, screen.centerX(512), iCityCenterRow2Y, -1.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
@@ -3702,7 +3813,8 @@ class CvMainInterface:
 					screen.show( "HappinessText" )
 
 				if (not(pHeadSelectedCity.isProductionProcess())):
-				
+					# advc.064: Moved up
+					HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
 					iNeeded = pHeadSelectedCity.getProductionNeeded()
 					iStored = pHeadSelectedCity.getProduction()
 					screen.setBarPercentage( "ProductionBar", InfoBarTypes.INFOBAR_STORED, float(iStored) / iNeeded )
@@ -3718,7 +3830,7 @@ class CvMainInterface:
 					screen.show( "ProductionBar" )
 
 # BUG - Progress Bar - Tick Marks - start
-					if MainOpt.isShowpBarTickMarks():
+					if True:#MainOpt.isShowBarTickMarks(): # advc.064: Check moved down so that HurryTickMarks can be enabled independently
 						if (pHeadSelectedCity.isProductionProcess()):
 							iFirst = 0
 							iRate = 0
@@ -3728,12 +3840,12 @@ class CvMainInterface:
 						else:
 							iFirst = pHeadSelectedCity.getCurrentProductionDifference(True, True)
 							iRate = pHeadSelectedCity.getCurrentProductionDifference(True, False)
+					if MainOpt.isShowBarTickMarks():
 						self.pBarProductionBar.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, False)
-
-						HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
-						if pHeadSelectedCity.canHurry(HURRY_WHIP, True): # K-Mod, changed from False to True
-							iRate = pHeadSelectedCity.hurryProduction(HURRY_WHIP) / pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
-							self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, True)
+					# advc.064: Now optional and independent from ShowBarTick
+					if CityScreenOpt.isShowHurryTickMarks() and pHeadSelectedCity.canHurry(HURRY_WHIP, True): # K-Mod, changed from False to True
+						iRate = pHeadSelectedCity.hurryProduction(HURRY_WHIP) / pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
+						self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, True)
 # BUG - Progress Bar - Tick Marks - end
 
 				iCount = 0
@@ -3769,10 +3881,15 @@ class CvMainInterface:
 				if (bShowRawYields):
 					screen.addTableControlGFC( "TradeRouteTable", 4, 10, 187, 238, 98, False, False, 32, 32, TableStyles.TABLE_STYLE_STANDARD )
 					screen.setStyle( "TradeRouteTable", "Table_City_Style" )
-					screen.setTableColumnHeader( "TradeRouteTable", 0, u"", 110 )
-					screen.setTableColumnHeader( "TradeRouteTable", 1, u"", 60 )
-					screen.setTableColumnHeader( "TradeRouteTable", 2, u"", 55 )
-					screen.setTableColumnHeader( "TradeRouteTable", 3, u"", 10 )
+					# <advc.002b> Last param was 110 - too narrow
+					screen.setTableColumnHeader( "TradeRouteTable", 0, u"", 125 )
+					# Last param was 60
+					screen.setTableColumnHeader( "TradeRouteTable", 1, u"", 55 )
+					# Last param was 55
+					screen.setTableColumnHeader( "TradeRouteTable", 2, u"", 50 )
+					# Last param was 10
+					screen.setTableColumnHeader( "TradeRouteTable", 3, u"", 5 )
+					# </advc.002b>
 					screen.setTableColumnRightJustify( "TradeRouteTable", 1 )
 					screen.setTableColumnRightJustify( "TradeRouteTable", 2 )
 				else:
@@ -4462,7 +4579,8 @@ class CvMainInterface:
 						szBuffer = localText.getText("INTERFACE_CITY_COMMERCE_RATE_FLOAT", (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar(), gc.getCultureLevelInfo(pHeadSelectedCity.getCultureLevel()).getTextKey(), szRate))
 						
 # BUG - Culture Turns - start
-					if CityScreenOpt.isShowCultureTurns() and iRate > 0:
+					#if CityScreenOpt.isShowCultureTurns() and iRate > 0:
+					if iRate > 0: # advc.065: No longer optional
 						iCultureTimes100 = pHeadSelectedCity.getCultureTimes100(pHeadSelectedCity.getOwner())
 						iCultureLeftTimes100 = 100 * pHeadSelectedCity.getCultureThreshold() - iCultureTimes100
 						# K-Mod (don't display a negative countdown when we pass legendary culture)
@@ -4588,7 +4706,9 @@ class CvMainInterface:
 				
 				if ( CyInterface().getOrderNodeType(i) == OrderTypes.ORDER_TRAIN ):
 					szLeftBuffer = gc.getUnitInfo(CyInterface().getOrderNodeData1(i)).getDescription()
-					szRightBuffer = "(" + str(pHeadSelectedCity.getUnitProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)) + ")"
+					iProductionTurns = pHeadSelectedCity.getUnitProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)
+					if iProductionTurns > 0: # advc.004x
+						szRightBuffer = "(" + str(iProductionTurns) + ")"
 
 					if (CyInterface().getOrderNodeSave(i)):
 						szLeftBuffer = u"*" + szLeftBuffer
@@ -4614,7 +4734,9 @@ class CvMainInterface:
 
 				elif ( CyInterface().getOrderNodeType(i) == OrderTypes.ORDER_CONSTRUCT ):
 					szLeftBuffer = gc.getBuildingInfo(CyInterface().getOrderNodeData1(i)).getDescription()
-					szRightBuffer = "(" + str(pHeadSelectedCity.getBuildingProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)) + ")"
+					iProductionTurns = pHeadSelectedCity.getBuildingProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)
+					if iProductionTurns > 0: # advc.004x
+						szRightBuffer = "(" + str(iProductionTurns) + ")"
 
 # BUG - Production Started - start
 					if CityScreenOpt.isShowProductionStarted():
@@ -4637,7 +4759,9 @@ class CvMainInterface:
 
 				elif ( CyInterface().getOrderNodeType(i) == OrderTypes.ORDER_CREATE ):
 					szLeftBuffer = gc.getProjectInfo(CyInterface().getOrderNodeData1(i)).getDescription()
-					szRightBuffer = "(" + str(pHeadSelectedCity.getProjectProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)) + ")"
+					iProductionTurns = pHeadSelectedCity.getProjectProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)
+					if iProductionTurns > 0: # advc.004x
+						szRightBuffer = "(" + str(iProductionTurns) + ")"
 
 # BUG - Production Started - start
 					if BugDll.isVersion(3) and CityScreenOpt.isShowProductionStarted():
@@ -4788,7 +4912,15 @@ class CvMainInterface:
 							if (pHeadSelectedUnit.isFighting()):
 								szRightBuffer = u"?/%d%c" %(pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
 							elif (pHeadSelectedUnit.isHurt()):
-								szRightBuffer = u"%.1f/%d%c" %(((float(pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.currHitPoints())) / (float(pHeadSelectedUnit.maxHitPoints()))), pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
+								# <advc.004> Same as in CvGameTextMgr::setUnitHelp
+								fCurrStrength = pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.currHitPoints() / float(pHeadSelectedUnit.maxHitPoints())
+								iCurrStrengthTimes100 = (100 * pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.currHitPoints()) / pHeadSelectedUnit.maxHitPoints()
+								if pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.maxHitPoints() - iCurrStrengthTimes100 <= 5:
+									fCurrStrength = pHeadSelectedUnit.baseCombatStr() - 0.1
+								if pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.maxHitPoints() < 5:
+									fCurrStrength = 0.1
+								 # </advc.004>
+								szRightBuffer = u"%.1f/%d%c" %(fCurrStrength, pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
 							else:
 								szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
 
@@ -4882,7 +5014,8 @@ class CvMainInterface:
 						if (gc.getMissionInfo(pSelectedGroup.getMissionType(i)).isBuild()):
 							if (i == 0):
 								szLeftBuffer = gc.getBuildInfo(pSelectedGroup.getMissionData1(i)).getDescription()
-								szRightBuffer = localText.getText("INTERFACE_CITY_TURNS", (pSelectedGroup.plot().getBuildTurnsLeft(pSelectedGroup.getMissionData1(i), 0, 0), ))								
+								# advc.251: Pass group owner as param
+								szRightBuffer = localText.getText("INTERFACE_CITY_TURNS", (pSelectedGroup.plot().getBuildTurnsLeft(pSelectedGroup.getMissionData1(i), pSelectedGroup.getOwner(), 0, 0), ))								
 							else:
 								szLeftBuffer = u"%s..." %(gc.getBuildInfo(pSelectedGroup.getMissionData1(i)).getDescription())
 						else:
@@ -4914,6 +5047,11 @@ class CvMainInterface:
 			screen.hide( szName )
 			szName = "ScoreTech" + str(i)
 			screen.hide( szName )
+			# <dlph.30>
+			szName = "ScoreLeader" + str(i)
+			screen.hide( szName )
+			szName = "ScoreCiv" + str(i)
+			screen.hide( szName ) # </dlph.30>
 			for j in range( Scoreboard.NUM_PARTS ):
 				szName = "ScoreText%d-%d" %( i, j )
 				screen.hide( szName )
@@ -4922,36 +5060,27 @@ class CvMainInterface:
 		iWidth = 0
 		iCount = 0
 		iBtnHeight = 22
+		yCoord = 0 # advc.003: Make sure this is defined when needed
 		
 		if ((CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY)):
 			# <advc.004z>
 			kGLM = CyGlobeLayerManager()
 			iCurrentLayerID = kGLM.getCurrentLayerID()
 			# Copy-pasted from updateGlobeviewButtons
-			bGlobeViewOptions = (iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"))
+			bGlobeViewOptions = (iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (MainOpt.isResourceIconOptions() or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"))
 			# </advc.004z>
 			# advc.004z: Globe view options clause added
-			if CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and (not CyEngine().isGlobeviewUp() or (not bGlobeViewOptions and gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0)):
+			if CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and (not CyEngine().isGlobeviewUp() or (not bGlobeViewOptions and MainOpt.isScoresInGlobeView())):
 
 # BUG - Align Icons - start
 				bAlignIcons = ScoreOpt.isAlignIcons()
 				if (bAlignIcons):
 					scores = Scoreboard.Scoreboard()
+				# <advc.003> Need to assign a value
+				else:
+					scores = None # </advc.003>
 # BUG - Align Icons - end
-
-# BUG - 3.17 No Espionage - start
-				bEspionage = GameUtil.isEspionage()
-# BUG - 3.17 No Espionage - end
-
-# BUG - Power Rating - start
-				bShowPower = ScoreOpt.isShowPower()
-				if (bShowPower):
-					iPlayerPower = gc.getActivePlayer().getPower()
-					iPowerColor = ScoreOpt.getPowerColor()
-					iHighPowerColor = ScoreOpt.getHighPowerColor()
-					iLowPowerColor = ScoreOpt.getLowPowerColor()
-# BUG - Power Rating - end
-
+				# (BUG - Power Rating)  advc.003: Moved into the loop
 				i = gc.getMAX_CIV_TEAMS() - 1
 				while (i > -1):
 					eTeam = gc.getGame().getRankTeam(i)
@@ -4978,273 +5107,31 @@ class CvMainInterface:
 # BUG - Align Icons - start
 											if (bAlignIcons):
 												scores.addPlayer(gc.getPlayer(ePlayer), j)
-												# BUG: Align Icons continues throughout -- if (bAlignIcons): scores.setFoo(foo)
 # BUG - Align Icons - end
-	
-											if (gc.getGame().isGameMultiPlayer()):
-												if (not (gc.getPlayer(ePlayer).isTurnActive())):
-													szBuffer = szBuffer + "*"
-													if (bAlignIcons):
-														scores.setWaiting()
-	
-# BUG - Dead Civs - start
-											#if (ScoreOpt.isUsePlayerName()):
-											if ScoreOpt.isUsePlayerName() or (not gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam) and not gc.getGame().isDebugMode()): # K-Mod
-												szPlayerName = gc.getPlayer(ePlayer).getName()
-											else:
-												szPlayerName = gc.getLeaderHeadInfo(gc.getPlayer(ePlayer).getLeaderType()).getDescription()
-											if (ScoreOpt.isShowBothNames()):
-												szCivName = gc.getPlayer(ePlayer).getCivilizationShortDescription(0)
-												szPlayerName = szPlayerName + "/" + szCivName
-											elif (ScoreOpt.isShowBothNamesShort()):
-												szCivName = gc.getPlayer(ePlayer).getCivilizationDescription(0)
-												szPlayerName = szPlayerName + "/" + szCivName
-											elif (ScoreOpt.isShowLeaderName()):
-												szPlayerName = szPlayerName
-											elif (ScoreOpt.isShowCivName()):
-												szCivName = gc.getPlayer(ePlayer).getCivilizationShortDescription(0)
-												szPlayerName = szCivName
-											else:
-												szCivName = gc.getPlayer(ePlayer).getCivilizationDescription(0)
-												szPlayerName = szCivName
-											
-											if (not gc.getPlayer(ePlayer).isAlive() and ScoreOpt.isShowDeadTag()):
-												szPlayerScore = localText.getText("TXT_KEY_BUG_DEAD_CIV", ())
-												if (bAlignIcons):
-													scores.setScore(szPlayerScore)
-											else:
-												iScore = gc.getGame().getPlayerScore(ePlayer)
-												szPlayerScore = u"%d" % iScore
-												# <advc.155>
-												eMaster = gc.getTeam(eTeam).getMasterTeam()
-												if gc.getTeam(eMaster).getAliveCount() > 1 and gc.getDefineINT("COLOR_CODE_TEAM_SCORE") > 0:
-													szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorR(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorG(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorB(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorA(), szPlayerScore)
-												# </advc.155>
-												if (bAlignIcons):
-													scores.setScore(szPlayerScore)
-# BUG - Score Delta - start
-												if (ScoreOpt.isShowScoreDelta()):
-													iGameTurn = gc.getGame().getGameTurn()
-													if (ePlayer >= gc.getGame().getActivePlayer()):
-														iGameTurn -= 1
-													if (ScoreOpt.isScoreDeltaIncludeCurrentTurn()):
-														iScoreDelta = iScore
-													elif (iGameTurn >= 0):
-														iScoreDelta = gc.getPlayer(ePlayer).getScoreHistory(iGameTurn)
-													else:
-														iScoreDelta = 0
-													iPrevGameTurn = iGameTurn - 1
-													if (iPrevGameTurn >= 0):
-														iScoreDelta -= gc.getPlayer(ePlayer).getScoreHistory(iPrevGameTurn)
-													if (iScoreDelta != 0):
-														if (iScoreDelta > 0):
-															iColorType = gc.getInfoTypeForString("COLOR_GREEN")
-														elif (iScoreDelta < 0):
-															iColorType = gc.getInfoTypeForString("COLOR_RED")
-														szScoreDelta = "%+d" % iScoreDelta
-														if (iColorType >= 0):
-															szScoreDelta = localText.changeTextColor(szScoreDelta, iColorType)
-														szPlayerScore += szScoreDelta + u" "
-														if (bAlignIcons):
-															scores.setScoreDelta(szScoreDelta)
-# BUG - Score Delta - end
-											
-											if (not CyInterface().isFlashingPlayer(ePlayer) or CyInterface().shouldFlash(ePlayer)):
-												if (ePlayer == gc.getGame().getActivePlayer()):
-													szPlayerName = u"[<color=%d,%d,%d,%d>%s</color>]" %(gc.getPlayer(ePlayer).getPlayerTextColorR(), gc.getPlayer(ePlayer).getPlayerTextColorG(), gc.getPlayer(ePlayer).getPlayerTextColorB(), gc.getPlayer(ePlayer).getPlayerTextColorA(), szPlayerName)
-												else:
-													if (not gc.getPlayer(ePlayer).isAlive() and ScoreOpt.isGreyOutDeadCivs()):
-														szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(175, 175, 175, gc.getPlayer(ePlayer).getPlayerTextColorA(), szPlayerName)
-													else:
-														szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(gc.getPlayer(ePlayer).getPlayerTextColorR(), gc.getPlayer(ePlayer).getPlayerTextColorG(), gc.getPlayer(ePlayer).getPlayerTextColorB(), gc.getPlayer(ePlayer).getPlayerTextColorA(), szPlayerName)
-											szTempBuffer = u"%s: %s" %(szPlayerScore, szPlayerName)
-											szBuffer = szBuffer + szTempBuffer
-											if (bAlignIcons):
-												scores.setName(szPlayerName)
-												scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(gc.getPlayer(ePlayer).getPlayerTextColorR(), gc.getPlayer(ePlayer).getPlayerTextColorG(), gc.getPlayer(ePlayer).getPlayerTextColorB(), gc.getPlayer(ePlayer).getPlayerTextColorA(), ePlayer))
-											
-											if (gc.getPlayer(ePlayer).isAlive()):
-												if (bAlignIcons):
-													scores.setAlive()
-												# BUG: Rest of Dead Civs change is merely indentation by 1 level ...
-												#if (gc.getTeam(eTeam).isAlive()):
-													# if ( not (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam)) ):
-														# szBuffer = szBuffer + (" ?")
-														# if (bAlignIcons):
-															# scores.setNotMet()
-												# K-Mod
-												if gc.getTeam(eTeam).isAlive() and not gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam):
-													szBuffer = szBuffer + (" ?")
-													if (bAlignIcons):
-														scores.setNotMet()
-												if gc.getTeam(eTeam).isAlive() and (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam) or gc.getGame().isDebugMode()):
-												# K-Mod end
-													if (gc.getTeam(eTeam).isAtWar(gc.getGame().getActiveTeam())):
-														szBuffer = szBuffer + "("  + localText.getColorText("TXT_KEY_CONCEPT_WAR", (), gc.getInfoTypeForString("COLOR_RED")).upper() + ")"
-														if (bAlignIcons):
-															scores.setWar()
-													elif (gc.getTeam(gc.getGame().getActiveTeam()).isForcePeace(eTeam)):
-														if (bAlignIcons):
-															scores.setPeace()
-													elif (gc.getTeam(eTeam).isAVassal()):
-														for iOwnerTeam in range(gc.getMAX_TEAMS()):
-															if (gc.getTeam(eTeam).isVassal(iOwnerTeam) and gc.getTeam(gc.getGame().getActiveTeam()).isForcePeace(iOwnerTeam)):
-																if (bAlignIcons):
-																	scores.setPeace()
-																break
-													if (gc.getPlayer(ePlayer).canTradeNetworkWith(gc.getGame().getActivePlayer()) and (ePlayer != gc.getGame().getActivePlayer())):
-														szTempBuffer = u"%c" %(CyGame().getSymbolID(FontSymbols.TRADE_CHAR))
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setTrade()
-													if (gc.getTeam(eTeam).isOpenBorders(gc.getGame().getActiveTeam())):
-														szTempBuffer = u"%c" %(CyGame().getSymbolID(FontSymbols.OPEN_BORDERS_CHAR))
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setBorders()
-													if (gc.getTeam(eTeam).isDefensivePact(gc.getGame().getActiveTeam())):
-														szTempBuffer = u"%c" %(CyGame().getSymbolID(FontSymbols.DEFENSIVE_PACT_CHAR))
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setPact()
-													if (gc.getPlayer(ePlayer).getStateReligion() != -1):
-														if (gc.getPlayer(ePlayer).hasHolyCity(gc.getPlayer(ePlayer).getStateReligion())):
-															szTempBuffer = u"%c" %(gc.getReligionInfo(gc.getPlayer(ePlayer).getStateReligion()).getHolyCityChar())
-														else:
-															szTempBuffer = u"%c" %(gc.getReligionInfo(gc.getPlayer(ePlayer).getStateReligion()).getChar())
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setReligion(szTempBuffer)
-													
-													if (bEspionage and gc.getTeam(eTeam).getEspionagePointsAgainstTeam(gc.getGame().getActiveTeam()) < gc.getTeam(gc.getGame().getActiveTeam()).getEspionagePointsAgainstTeam(eTeam)):
-														szTempBuffer = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar())
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setEspionage()
-												
-												# K-Mod (original code deleted)
-												if gc.getGame().isDebugMode() or (gc.getActivePlayer().canSeeResearch(ePlayer) and
-												(gc.getPlayer(ePlayer).getTeam() != gc.getGame().getActiveTeam() or gc.getTeam(gc.getGame().getActiveTeam()).getNumMembers() > 1)):
-												# K-Mod end
-													if (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
-														szTempBuffer = u"-%s (%d)" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription(), gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True))
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setResearch(gc.getPlayer(ePlayer).getCurrentResearch(), gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True))
-												# BUG: ...end of indentation
-# BUG - Dead Civs - end
-# BUG - Power Rating - start
-												# if on, show according to espionage "see demographics" mission
-												if bShowPower and gc.getGame().getActivePlayer() != ePlayer and (gc.getGame().isDebugMode() or gc.getActivePlayer().canSeeDemographics(ePlayer)): # K-Mod (original BUG condition deleted)
-													iPower = gc.getPlayer(ePlayer).getPower()
-													if (iPower > 0): # avoid divide by zero
-														fPowerRatio = float(iPlayerPower) / float(iPower)
-														if (ScoreOpt.isPowerThemVersusYou()):
-															if (fPowerRatio > 0):
-																fPowerRatio = 1.0 / fPowerRatio
-															else:
-																fPowerRatio = 999.0
-														cPower = gc.getGame().getSymbolID(FontSymbols.STRENGTH_CHAR)
-														szTempBuffer = BugUtil.formatFloat(fPowerRatio, ScoreOpt.getPowerDecimals()) + u"%c" % (cPower)
-														if (iHighPowerColor >= 0 and fPowerRatio >= ScoreOpt.getHighPowerRatio()):
-															szTempBuffer = localText.changeTextColor(szTempBuffer, iHighPowerColor)
-														elif (iLowPowerColor >= 0 and fPowerRatio <= ScoreOpt.getLowPowerRatio()):
-															szTempBuffer = localText.changeTextColor(szTempBuffer, iLowPowerColor)
-														elif (iPowerColor >= 0):
-															szTempBuffer = localText.changeTextColor(szTempBuffer, iPowerColor)
-														szBuffer = szBuffer + u" " + szTempBuffer
-														if (bAlignIcons):
-															scores.setPower(szTempBuffer)
-# BUG - Power Rating - end
-# BUG - Attitude Icons - start
-												if (ScoreOpt.isShowAttitude()):
-													if (not gc.getPlayer(ePlayer).isHuman() and gc.getGame().getActivePlayer() != ePlayer):
-														iAtt = gc.getPlayer(ePlayer).AI_getAttitude(gc.getGame().getActivePlayer())
-														cAtt =  unichr(ord(unichr(CyGame().getSymbolID(FontSymbols.POWER_CHAR) + 4)) + iAtt)
-														szBuffer += cAtt
-														if (bAlignIcons):
-															scores.setAttitude(cAtt)
-# BUG - Attitude Icons - end
-# BUG - Refuses to Talk - start
-												if (not DiplomacyUtil.isWillingToTalk(ePlayer, gc.getGame().getActivePlayer())):
-													cRefusesToTalk = u"!"
-													szBuffer += cRefusesToTalk
-													if (bAlignIcons):
-														scores.setWontTalk()
-# BUG - Refuses to Talk - end
-
-# BUG - Worst Enemy - start
-												if (ScoreOpt.isShowWorstEnemy()):
-													if (AttitudeUtil.isWorstEnemy(ePlayer, gc.getGame().getActivePlayer())):
-														cWorstEnemy = u"%c" %(CyGame().getSymbolID(FontSymbols.ANGRY_POP_CHAR))
-														szBuffer += cWorstEnemy
-														if (bAlignIcons):
-															scores.setWorstEnemy()
-# BUG - Worst Enemy - end
-# BUG - WHEOOH - start
-												if (ScoreOpt.isShowWHEOOH() and False): # disabled by K-Mod
-													if (PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID())):
-														szTempBuffer = u"%c" %(CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR))
-														szBuffer = szBuffer + szTempBuffer
-														if (bAlignIcons):
-															scores.setWHEOOH()
-# BUG - WHEOOH - end
-# BUG - Num Cities - start
-												if (ScoreOpt.isShowCountCities()):
-													# if (PlayerUtil.canSeeCityList(ePlayer)):
-														# szTempBuffer = u"%d" % PlayerUtil.getNumCities(ePlayer)
-													# else:
-														# szTempBuffer = BugUtil.colorText(u"%d" % PlayerUtil.getNumRevealedCities(ePlayer), "COLOR_CYAN")
-													# K-Mod. count revealed cities only.
-													if gc.getGame().isDebugMode():
-														szTempBuffer = u"%d" % gc.getPlayer(ePlayer).getNumCities()
-													else:
-														szTempBuffer = u"%d" % PlayerUtil.getNumRevealedCities(ePlayer)
-													# K-Mod end
-													szBuffer = szBuffer + " " + szTempBuffer
-													if (bAlignIcons):
-														scores.setNumCities(szTempBuffer)
-# BUG - Num Cities - end
-											
-											if (CyGame().isNetworkMultiPlayer()):
-												szTempBuffer = CyGameTextMgr().getNetStats(ePlayer)
-												szBuffer = szBuffer + szTempBuffer
-												if (bAlignIcons):
-													scores.setNetStats(szTempBuffer)
-											
-											if (gc.getPlayer(ePlayer).isHuman() and CyInterface().isOOSVisible()):
-												szTempBuffer = u" <color=255,0,0>* %s *</color> (%d)" %(CyGameTextMgr().getOOSSeeds(ePlayer), CyGame().getTurnSlice()%8) # K-Mod, added TurnSlice
-												szBuffer = szBuffer + szTempBuffer
-												if (bAlignIcons):
-													scores.setNetStats(szTempBuffer)
-												
+											# advc.003: Code moved into auxiliary function
+											szBuffer += self.playerScoreString(ePlayer, scores, bAlignIcons)
 											szBuffer = szBuffer + "</font>"
-	
 # BUG - Align Icons - start
-											if (not bAlignIcons):
-												if ( CyInterface().determineWidth( szBuffer ) > iWidth ):
-													iWidth = CyInterface().determineWidth( szBuffer )
-		
+											if not bAlignIcons:
+												if CyInterface().determineWidth(szBuffer) > iWidth:
+													iWidth = CyInterface().determineWidth(szBuffer)
 												szName = "ScoreText" + str(ePlayer)
-												if ( CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or CyInterface().isInAdvancedStart()):
+												if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or CyInterface().isInAdvancedStart():
 													yCoord = yResolution - 206
 												else:
 													yCoord = yResolution - 88
-		
 # BUG - Dead Civs - start
 												# Don't try to contact dead civs
-												if (gc.getPlayer(ePlayer).isAlive()):
+												if gc.getPlayer(ePlayer).isAlive():
 													iWidgetType = WidgetTypes.WIDGET_CONTACT_CIV
-													iPlayer = ePlayer
+													eContactPlayer = ePlayer
 												else:
 													iWidgetType = WidgetTypes.WIDGET_GENERAL
-													iPlayer = -1
-												screen.setText( szName, "Background", szBuffer, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 12, yCoord - (iCount * iBtnHeight), -0.3, FontTypes.SMALL_FONT, iWidgetType, iPlayer, -1 )
+													eContactPlayer = -1
+												screen.setText(szName, "Background", szBuffer, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 12, yCoord - (iCount * iBtnHeight), -0.3, FontTypes.SMALL_FONT, iWidgetType, eContactPlayer, -1)
 # BUG - Dead Civs - end
-												screen.show( szName )
-												
+												screen.show(szName)
 												CyInterface().checkFlashReset(ePlayer)
-		
 												iCount = iCount + 1
 # BUG - Align Icons - end
 							j = j - 1
@@ -5262,6 +5149,293 @@ class CvMainInterface:
 					screen.setPanelSize( "ScoreBackground", xResolution - 21 - iWidth, yCoord - (iBtnHeight * iCount) - 4, iWidth + 12, (iBtnHeight * iCount) + 8 )
 					screen.show( "ScoreBackground" )
 # BUG - Align Icons - end
+
+	# <advc.003> Body cut from updateScoreStrings in order to reduce indentation
+	def playerScoreString(self, ePlayer, scores, bAlignIcons):
+		pPlayer = gc.getPlayer(ePlayer)
+		eTeam = pPlayer.getTeam()
+		pTeam = gc.getTeam(eTeam)
+		g = gc.getGame()
+		eActivePlayer = g.getActivePlayer()
+		eActiveTeam = g.getActiveTeam()
+		pActivePlayer = gc.getPlayer(eActivePlayer)
+		pActiveTeam = gc.getTeam(eActiveTeam)
+		szBuffer = "" # </advc.003>
+# BUG: Align Icons throughout -- if (bAlignIcons): scores.setFoo(foo)
+		if g.isGameMultiPlayer():
+			if not pPlayer.isTurnActive():
+				szBuffer = szBuffer + "*"
+				if bAlignIcons:
+					scores.setWaiting()
+# BUG - Dead Civs - start
+		#if (ScoreOpt.isUsePlayerName()):
+		if ScoreOpt.isUsePlayerName() or (not pActiveTeam.isHasMet(eTeam) and not g.isDebugMode()): # K-Mod
+			szPlayerName = pPlayer.getName()
+		else:
+			szPlayerName = gc.getLeaderHeadInfo(pPlayer.getLeaderType()).getDescription()
+		if ScoreOpt.isShowBothNames():
+			szCivName = pPlayer.getCivilizationShortDescription(0)
+			szPlayerName = szPlayerName + "/" + szCivName
+		elif ScoreOpt.isShowBothNamesShort():
+			szCivName = pPlayer.getCivilizationDescription(0)
+			szPlayerName = szPlayerName + "/" + szCivName
+		elif ScoreOpt.isShowLeaderName():
+			pass
+		elif ScoreOpt.isShowCivName():
+			szCivName = pPlayer.getCivilizationShortDescription(0)
+			szPlayerName = szCivName
+		else:
+			szCivName = pPlayer.getCivilizationDescription(0)
+			szPlayerName = szCivName
+		if not pPlayer.isAlive() and ScoreOpt.isShowDeadTag():
+			szPlayerScore = localText.getText("TXT_KEY_BUG_DEAD_CIV", ())
+			if bAlignIcons:
+				scores.setScore(szPlayerScore)
+		else:
+			iScore = g.getPlayerScore(ePlayer)
+			szPlayerScore = u"%d" % iScore
+			# <advc.155>
+			eMaster = pTeam.getMasterTeam()
+			# (To allow this option without the Advanced/Tabular layout option, simply remove the bAlignIcons check.)
+			if bAlignIcons and gc.getTeam(eMaster).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
+				pTeamLeader = gc.getPlayer(gc.getTeam(eMaster).getLeaderID())
+				szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(pTeamLeader.getPlayerTextColorR(), pTeamLeader.getPlayerTextColorG(), pTeamLeader.getPlayerTextColorB(), pTeamLeader.getPlayerTextColorA(), szPlayerScore)
+			# </advc.155>
+			if bAlignIcons:
+				scores.setScore(szPlayerScore)
+# BUG - Score Delta - start
+			if ScoreOpt.isShowScoreDelta():
+				iGameTurn = g.getGameTurn()
+				if ePlayer >= eActivePlayer:
+					iGameTurn -= 1
+				if ScoreOpt.isScoreDeltaIncludeCurrentTurn():
+					iScoreDelta = iScore
+				elif iGameTurn >= 0:
+					iScoreDelta = pPlayer.getScoreHistory(iGameTurn)
+				else:
+					iScoreDelta = 0
+				iPrevGameTurn = iGameTurn - 1
+				if iPrevGameTurn >= 0:
+					iScoreDelta -= pPlayer.getScoreHistory(iPrevGameTurn)
+				if iScoreDelta != 0:
+					if iScoreDelta > 0:
+						# advc.085: To match the color I (might) use for tech progress. Was just GREEN.
+						iColorType = gc.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT")
+					elif iScoreDelta < 0:
+						iColorType = gc.getInfoTypeForString("COLOR_RED")
+					szScoreDelta = "%+d" % iScoreDelta
+					if iColorType >= 0:
+						szScoreDelta = localText.changeTextColor(szScoreDelta, iColorType)
+					szPlayerScore += szScoreDelta + u" "
+					if bAlignIcons:
+						scores.setScoreDelta(szScoreDelta)
+# BUG - Score Delta - end
+		if not CyInterface().isFlashingPlayer(ePlayer) or CyInterface().shouldFlash(ePlayer):
+			if ePlayer == eActivePlayer:
+				szPlayerName = u"[<color=%d,%d,%d,%d>%s</color>]" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), szPlayerName)
+			else:
+				if not pPlayer.isAlive() and ScoreOpt.isGreyOutDeadCivs():
+					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(175, 175, 175, pPlayer.getPlayerTextColorA(), szPlayerName)
+				else:
+					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), szPlayerName)
+		szTempBuffer = u"%s: %s" %(szPlayerScore, szPlayerName)
+		szBuffer = szBuffer + szTempBuffer
+		if bAlignIcons:
+			scores.setName(szPlayerName)
+			scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), ePlayer))
+		if pPlayer.isAlive():
+			if bAlignIcons:
+				scores.setAlive()
+			# BUG: Rest of Dead Civs change is merely indentation by 1 level ...
+			#if pTeam.isAlive():
+				# if not pActiveTeam.isHasMet(eTeam):
+					# szBuffer = szBuffer + (" ?")
+					# if bAlignIcons:
+						# scores.setNotMet()
+			# K-Mod
+			if pTeam.isAlive() and not pActiveTeam.isHasMet(eTeam):
+				szBuffer = szBuffer + (" ?")
+				if bAlignIcons:
+					scores.setNotMet()
+			# K-Mod end
+			# <dlph.30>
+			if bAlignIcons:
+				scores.setLeaderIcon(pPlayer.getLeaderType())
+				scores.setCivIcon(pPlayer.getCivilizationType())
+			# </dlph.30>
+			# K-Mod
+			if pTeam.isAlive() and (pActiveTeam.isHasMet(eTeam) or g.isDebugMode()):
+			# K-Mod end
+				if pTeam.isAtWar(eActiveTeam):
+					szBuffer = szBuffer + "("  + localText.getColorText("TXT_KEY_CONCEPT_WAR", (), gc.getInfoTypeForString("COLOR_RED")).upper() + ")"
+					if bAlignIcons:
+						scores.setWar()
+				elif pActiveTeam.isForcePeace(eTeam):
+					if bAlignIcons:
+						scores.setPeace()
+				elif pTeam.isAVassal():
+					for eMasterTeam in range(gc.getMAX_TEAMS()):
+						if pTeam.isVassal(eMasterTeam) and pActiveTeam.isForcePeace(eMasterTeam):
+							if bAlignIcons:
+								scores.setPeace()
+							break
+				if pPlayer.canTradeNetworkWith(eActivePlayer) and ePlayer != eActivePlayer:
+					szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.TRADE_CHAR))
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setTrade()
+				if pTeam.isOpenBorders(eActiveTeam):
+					szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.OPEN_BORDERS_CHAR))
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setBorders()
+				if pTeam.isDefensivePact(eActiveTeam):
+					szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.DEFENSIVE_PACT_CHAR))
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setPact()
+				eStateReligion = pPlayer.getStateReligion()
+				if eStateReligion != -1:
+					if pPlayer.hasHolyCity(eStateReligion):
+						szTempBuffer = u"%c" %(gc.getReligionInfo(eStateReligion).getHolyCityChar())
+					else:
+						szTempBuffer = u"%c" %(gc.getReligionInfo(eStateReligion).getChar())
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setReligion(szTempBuffer)
+				# BUG - 3.17: isEspionage check
+				# advc.120h: Second condition was pTeam.getEspionagePointsAgainstTeam(eActiveTeam) < pActiveTeam.getEspionagePointsAgainstTeam(eTeam)
+				if GameUtil.isEspionage() and pActivePlayer.getEspionageSpendingWeightAgainstTeam(eTeam) > 0:
+					szTempBuffer = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar())
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setEspionage()
+				# <advc.085>
+				if ePlayer != eActivePlayer and (pPlayer.isGoldenAge() or pPlayer.isAnarchy()):
+					# szBuffer += # Perhaps tbd. (non-tabular layout)
+					if bAlignIcons:
+						scores.setGoldenAge(pPlayer.isAnarchy())
+				# </advc.085>
+			# K-Mod (original code deleted)
+			if g.isDebugMode() or (pActivePlayer.canSeeResearch(ePlayer) and (eTeam != eActiveTeam or pActiveTeam.getNumMembers() > 1)):
+			# K-Mod end
+				eCurrentResearch = pPlayer.getCurrentResearch() # advc.003
+				iProgressPercent = 0 # advc.085: Show that even when no current research
+				if eCurrentResearch != -1:
+					szTempBuffer = u"-%s" %gc.getTechInfo(eCurrentResearch).getDescription()
+					# <advc.004x>
+					#iTurnsLeft = pPlayer.getResearchTurnsLeft(eCurrentResearch, True)
+					#if iTurnsLeft >= 0:
+					# </advc.004x>
+						#szTempBuffer = u"-%s (%d)" %(gc.getTechInfo(eCurrentResearch).getDescription(), iTurnsLeft)
+					# <advc.085> Replacing the above
+					iCurrentCost = pTeam.getResearchCost(eCurrentResearch)
+					if iCurrentCost > 0:
+						iProgressPercent = (pTeam.getResearchProgress(eCurrentResearch) * 100) / iCurrentCost
+						iProgressPercent = min(iProgressPercent, 99)
+						iProgressPercent = max(iProgressPercent, 0)
+				szTempBuffer += u" %d%%" % iProgressPercent
+				# Don't req. eCurrentResearch!=-1 unless in Debug mode
+				if eCurrentResearch != -1 or not gc.getGame().isDebugMode():
+					szBuffer += szTempBuffer
+					if bAlignIcons:
+						# Pass along iProgressPercent instead of iTurnsLeft
+						scores.setResearch(eCurrentResearch, iProgressPercent)
+					# </advc.085>
+			# BUG (Dead Civs): ...end of indentation
+# BUG - Dead Civs - end
+# BUG - Power Rating - start
+			# if on, show according to espionage "see demographics" mission
+			if ScoreOpt.isShowPower() and eActivePlayer != ePlayer and (g.isDebugMode() or pActivePlayer.canSeeDemographics(ePlayer)): # K-Mod (original BUG condition deleted)
+				iPlayerPower = pActivePlayer.getPower()
+				iPowerColor = ScoreOpt.getPowerColor()
+				iHighPowerColor = ScoreOpt.getHighPowerColor()
+				iLowPowerColor = ScoreOpt.getLowPowerColor()
+				iPower = pPlayer.getPower()
+				if iPower > 0: # avoid divide by zero
+					fPowerRatio = float(iPlayerPower) / float(iPower)
+					if ScoreOpt.isPowerThemVersusYou():
+						if fPowerRatio > 0:
+							fPowerRatio = 1.0 / fPowerRatio
+						else:
+							fPowerRatio = 999.0
+					cPower = g.getSymbolID(FontSymbols.STRENGTH_CHAR)
+					szTempBuffer = BugUtil.formatFloat(fPowerRatio, ScoreOpt.getPowerDecimals()) + u"%c" % (cPower)
+					# <advc.085> Don't color the power ratios of teammates
+					bAlly = (eTeam == eActiveTeam)
+					iColor = 0 # Want to pass that to widget help </advc.085>
+					if iHighPowerColor >= 0 and not bAlly and fPowerRatio >= ScoreOpt.getHighPowerRatio():
+						iColor = iHighPowerColor
+					elif iLowPowerColor >= 0 and not bAlly and fPowerRatio <= ScoreOpt.getLowPowerRatio():
+						iColor = iLowPowerColor
+					elif (iPowerColor >= 0):
+						iColor = iPowerColor
+					szTempBuffer = localText.changeTextColor(szTempBuffer, iColor)
+					szBuffer = szBuffer + u" " + szTempBuffer
+					if bAlignIcons:
+						scores.setPower(szTempBuffer, iColor)
+# BUG - Power Rating - end
+# BUG - Attitude Icons - start
+			if ScoreOpt.isShowAttitude():
+				if not pPlayer.isHuman() and eActivePlayer != ePlayer:
+					iAtt = pPlayer.AI_getAttitude(eActivePlayer)
+					cAtt =  unichr(ord(unichr(g.getSymbolID(FontSymbols.POWER_CHAR) + 4)) + iAtt)
+					szBuffer += cAtt
+					if bAlignIcons:
+						scores.setAttitude(cAtt)
+# BUG - Attitude Icons - end
+# BUG - Refuses to Talk - start
+			if not DiplomacyUtil.isWillingToTalk(ePlayer, eActivePlayer):
+				cRefusesToTalk = u"!"
+				szBuffer += cRefusesToTalk
+				if bAlignIcons:
+					scores.setWontTalk()
+# BUG - Refuses to Talk - end
+# BUG - Worst Enemy - start
+			if ScoreOpt.isShowWorstEnemy():
+				if AttitudeUtil.isWorstEnemy(ePlayer, eActivePlayer):
+					cWorstEnemy = u"%c" %(g.getSymbolID(FontSymbols.ANGRY_POP_CHAR))
+					szBuffer += cWorstEnemy
+					if bAlignIcons:
+						scores.setWorstEnemy()
+# BUG - Worst Enemy - end
+# BUG - WHEOOH - start  # advc.104: Permanently disabled
+			#if ScoreOpt.isShowWHEOOH(): 
+			#	if PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID()):
+			#		szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.OCCUPATION_CHAR))
+			#		szBuffer = szBuffer + szTempBuffer
+			#		if bAlignIcons:
+			#			scores.setWHEOOH()
+# BUG - WHEOOH - end
+# BUG - Num Cities - start
+			if ScoreOpt.isShowCountCities():
+				# if PlayerUtil.canSeeCityList(ePlayer):
+					# szTempBuffer = u"%d" % PlayerUtil.getNumCities(ePlayer)
+				# else:
+					# szTempBuffer = BugUtil.colorText(u"%d" % PlayerUtil.getNumRevealedCities(ePlayer), "COLOR_CYAN")
+				# K-Mod. count revealed cities only.
+				if g.isDebugMode():
+					szTempBuffer = u"%d" % pPlayer.getNumCities()
+				else:
+					szTempBuffer = u"%d" % PlayerUtil.getNumRevealedCities(ePlayer)
+				# K-Mod end
+				# advc.085: Make city counts gray
+				szTempBuffer = localText.changeTextColor(szTempBuffer, gc.getInfoTypeForString("COLOR_BUILDING_TEXT"))
+				szBuffer = szBuffer + " " + szTempBuffer
+				if bAlignIcons:
+					scores.setNumCities(szTempBuffer)
+# BUG - Num Cities - end
+		if g.isNetworkMultiPlayer():
+			szTempBuffer = CyGameTextMgr().getNetStats(ePlayer)
+			szBuffer = szBuffer + szTempBuffer
+			if bAlignIcons:
+				scores.setNetStats(szTempBuffer)
+		if pPlayer.isHuman() and CyInterface().isOOSVisible():
+			szTempBuffer = u" <color=255,0,0>* %s *</color> (%d)" %(CyGameTextMgr().getOOSSeeds(ePlayer), g.getTurnSlice()%8) # K-Mod, added TurnSlice
+			szBuffer = szBuffer + szTempBuffer
+			if bAlignIcons:
+				scores.setNetStats(szTempBuffer)
+		return szBuffer
 
 	# Will update the help Strings
 	def updateHelpStrings( self ):
@@ -5298,7 +5472,7 @@ class CvMainInterface:
 
 # BUG - Bars on single line for higher resolution screens - start
 		if (xResolution >= 1440
-		and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
+		and (self.isShowGGProgressBar() or self.isShowGPProgressBar())):
 			xCoord = 268 + (xResolution - 1440) / 2
 			xCoord += 6 + 84
 			screen.moveItem( szButtonID, 264 + ( ( xResolution - 1024 ) / 2 ) + ( 34 * ( iCount % 15 ) ), 0 + ( 34 * ( iCount / 15 ) ), -0.3 )
@@ -5330,6 +5504,25 @@ class CvMainInterface:
 		kGLM = CyGlobeLayerManager()
 		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 		iCurrentLayerID = kGLM.getCurrentLayerID()
+		# <advc.004m>
+		# The layer id is meaningless to the DLL. Translate to enum type.
+		eCurrentLayerType = GlobeLayerTypes.NO_GLOBE_LAYER
+		if iCurrentLayerID >= 0:
+			szLayerName = kGLM.getLayer(iCurrentLayerID).getName()[:3]
+			if szLayerName == "STR":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_STRATEGY
+			elif szLayerName == "TRA":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_TRADE
+			elif szLayerName == "UNI":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_UNIT
+			elif szLayerName == "RES":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_RESOURCE
+			elif szLayerName == "REL":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_RELIGION
+			elif szLayerName == "CUL":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_CULTURE
+		gc.getGame().reportCurrentLayer(eCurrentLayerType)
+		# </advc.004m>
 
 		# Positioning things based on the visibility of the globe
 		if kEngine.isGlobeviewUp():
@@ -5355,8 +5548,12 @@ class CvMainInterface:
 		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
-			# advc.004z: Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
-			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"):
+			# <advc.004z>
+			bUnitLayer = (eCurrentLayerType == GlobeLayerTypes.GLOBE_LAYER_UNIT)
+			bResourceLayer = (eCurrentLayerType == GlobeLayerTypes.GLOBE_LAYER_RESOURCE)
+			# Clause for the resource layer added. Could instead set NumOptions to 0 in CvGame::getGlobeLayers, but then the resource layer wouldn't update properly when ResourceIconOptions is toggled in the BUG menu.
+			if iCurrentLayerID >= 0 and kGLM.getLayer(iCurrentLayerID).getNumOptions() > 0 and (not bResourceLayer or MainOpt.isResourceIconOptions()):
+				# </advc.004z>
 				bHasOptions = True		
 			else:
 				bHasOptions = False
@@ -5381,12 +5578,12 @@ class CvMainInterface:
 				for iTmp in range(iNumOptions):
 					iOption = iTmp # iNumOptions - iTmp - 1
 					# <advc.004z> Skip dummy option (see CvEnums.h)
-					if iOption == 2:
+					if bUnitLayer and iOption == 2:
 						continue # </advc.004z>
 					szName = "GlobeLayerOption" + str(iOption)
 					szCaption = kLayer.getOptionName(iOption)
 					# advc.004z: Highlight "All Units" option when the default (2) is selected. This is the case when none of the options has been clicked yet.
-					if iOption == iCurOption or (iCurOption == 2 and iOption == 0):
+					if iOption == iCurOption or (bUnitLayer and iCurOption == 2 and iOption == 0):
 						szBuffer = "  <color=0,255,0>%s</color>  " % (szCaption)
 					else:
 						szBuffer = "  %s  " % (szCaption)

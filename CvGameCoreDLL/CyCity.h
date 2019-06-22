@@ -6,7 +6,6 @@
 // Python wrapper class for CvCity 
 // 
 
-//#include "CvEnums.h"
 #include <string>
 # include <boost/python/tuple.hpp>
 namespace python = boost::python;
@@ -97,6 +96,8 @@ public:
 
 	bool canHurry(int /*HurryTypes*/ iHurry, bool bTestVisible);
 	void hurry(int /*HurryTypes*/ iHurry);
+	// advc.064:
+	int getHurryOverflow(int /*HurryTypes*/ iHurry, bool bProduction, bool bIncludeCurrent);
 	int /*UnitTypes*/ getConscriptUnit();
 	int getConscriptPopulation();
 	int conscriptMinCityPopulation();
@@ -170,6 +171,7 @@ public:
 	CyPlot* plot();
 	bool isConnectedTo(CyCity* pCity);
 	bool isConnectedToCapital(int /*PlayerTypes*/ ePlayer);
+	int getArea(); // advc.003
 	CyArea* area();
 	CyArea* waterArea();
 	CyPlot* getRallyPlot();
@@ -479,6 +481,7 @@ public:
 	bool AI_isEmphasize(int iEmphasizeType);
 	int AI_countBestBuilds(CyArea* pArea);
 	int AI_cityValue();
+	int AI_neededFloatingDefenders(); // advc.001n
 
 	std::string getScriptData() const;
 	void setScriptData(std::string szNewValue);

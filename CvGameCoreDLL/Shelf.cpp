@@ -1,7 +1,12 @@
 // <advc.300> New class; see Shelf.h for description
 
-#include "Shelf.h"
 #include "CvGameCoreDLL.h"
+#include "Shelf.h"
+#include "CvInfos.h"
+#include "CvGameAI.h"
+#include "CvPlot.h"
+#include "CvUnit.h"
+
 using std::vector;
 
 
@@ -16,9 +21,8 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
 
     /* Based on CvMap::syncRandPlot, but shelves are (normally) so small
        that random sampling isn't efficient. Instead, compute the legal
-       plots first, then return one of those at random (NULL if none) */
+       plots first, then return one of those at random (NULL if none). */
     vector<CvPlot*> legal;
-    CvMap& map = GC.getMap();
     for(unsigned int i = 0; i < plots.size(); i++) {
         CvPlot* plot = plots[i];
         bool isLegal =
@@ -81,7 +85,7 @@ int Shelf::countBarbarians() const {
 }
 
 
-bool Shelf::killBarb() {
+bool Shelf::killBarbarian() {
 
 	for(size_t i = 0; i < plots.size(); i++) {
         CvPlot* plot = plots[i]; if(plot == NULL) continue;
@@ -97,9 +101,8 @@ bool Shelf::killBarb() {
 	return false;
 }
 
-
 // <advc.306>
-CvUnit* Shelf::randomBarbCargoUnit() const {
+CvUnit* Shelf::randomBarbarianCargoUnit() const {
 
 	vector<CvUnit*> legal;
 	for(size_t i = 0; i < plots.size(); i++) {
@@ -118,7 +121,8 @@ CvUnit* Shelf::randomBarbCargoUnit() const {
 		}
 	}
 	int nLegal = legal.size();
-	if(nLegal == 0) return NULL;
+	if(nLegal == 0)
+		return NULL;
 	double pr = 0.2 + nLegal / 10.0;
     if(!::bernoulliSuccess(pr, "advc.306 (shelf)"))
         return NULL;

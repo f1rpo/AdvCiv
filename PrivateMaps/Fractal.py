@@ -1,9 +1,8 @@
 # advc.137: Copy from WL, no changes. Just so that this widely used map
-# shows up higher on the list of maps (mod maps are apparently prioritized).
-#
-#	FILE:	 Continents.py
+# shows up higher on the list of maps (mod maps are prioritized).
+#	FILE:	 Fractal.py
 #	AUTHOR:  Soren Johnson
-#	PURPOSE: Global map script - Civ4's default map script
+#	PURPOSE: Global map script
 #-----------------------------------------------------------------------------
 #	Copyright (c) 2004, 2005 Firaxis Games, Inc. All rights reserved.
 #-----------------------------------------------------------------------------

@@ -2,11 +2,16 @@
 
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
+#include "CvInfos.h"
+#include "CvGamePlay.h"
+#include "WarAndPeaceAgent.h" // advc.104
+#include "AI_Defines.h"
 #include "CvPopupInfo.h"
 #include "CvInitCore.h"
 #include "CvReplayInfo.h"
+#include "CvPlot.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h"
 
 using std::wstringstream;
 using std::vector;
@@ -43,7 +48,7 @@ void RiseFall::init() {
 	// Caller can't tell whether initialization already done
 	if(!chapters.empty())
 		return;
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(g.isGameMultiPlayer()) {
 		shutOff(gDLL->getText("TXT_KEY_RF_SINGLEPL_ONLY"));
 		return;
@@ -146,7 +151,7 @@ void RiseFall::init() {
 	gDLL->getInterfaceIFace()->setDirty(TurnTimer_DIRTY_BIT, true);
 	/*  Initial auto-save. Normally happens already in CvGame::update, but
 		RiseFall isn't yet initialized then. */
-	gDLL->getEngineIFace()->AutoSave(true);
+	g.autoSave(true);
 	g.showDawnOfMan();
 }
 
@@ -220,7 +225,7 @@ void RiseFall::reportElimination(PlayerTypes civId) {
 		setPlayerControl(civId, false);
 		CvPlayer& nextAlive = GET_PLAYER(nextCivAlive(civId));
 		if(pos < (int)(chapters.size() - 1)) {
-			GC.getGame().setActivePlayer(nextAlive.getID());
+			GC.getGameINLINE().setActivePlayer(nextAlive.getID());
 			nextAlive.setIsHuman(true);
 			nextAlive.updateHuman();
 			CvPopupInfo* popup = new CvPopupInfo(BUTTONPOPUP_RF_DEFEAT);
@@ -230,9 +235,9 @@ void RiseFall::reportElimination(PlayerTypes civId) {
 			setPlayerControl(nextAlive.getID(), true);
 			if(originalName != NULL)
 				GC.getInitCore().setLeaderName(nextAlive.getID(), *originalName);
-			FAssert(GC.getGame().countHumanPlayersAlive() > 0);
+			FAssert(GC.getGameINLINE().countHumanPlayersAlive() > 0);
 			// End the game directly when defeated in the final chapter
-			GC.getGame().setGameState(GAMESTATE_OVER);
+			GC.getGameINLINE().setGameState(GAMESTATE_OVER);
 		}
 	}
 }
@@ -250,7 +255,7 @@ void RiseFall::retire() {
 	int t = getRetireTurns();
 	if(t <= 0)
 		return;
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(chapters[pos]->getRetireTurn() < 0) // Don't store multiple timestamps
 		chapters[pos]->setRetireTurn(g.gameTurn());
 	g.setAIAutoPlay(t);
@@ -264,7 +269,7 @@ int RiseFall::getRetireTurns() const {
 	int pos = getCurrentChapter();
 	if(pos < 0)
 		return 0;
-	return chapters[pos]->getEndTurn() - GC.getGame().getGameTurn() + 1;
+	return chapters[pos]->getEndTurn() - GC.getGameINLINE().gameTurn() + 1;
 }
 
 bool RiseFall::hasRetired() const {
@@ -304,10 +309,13 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 
 	/*  Would rather get a call right before the turn of a civ begins, but can't
 		find this in the DLL code; only for civ 0 (atActiveTurnStart). */
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(g.getGameState() == GAMESTATE_EXTENDED)
 		return;
 	int gameTurn = g.gameTurn();
+	// The chapter of civ 0 needs to be started at the end of the previous game turn
+	if(civId == BARBARIAN_PLAYER)
+		gameTurn++;
 	/*  Conduct scoring exactly as scheduled at the end of a turn of the
 		civ being scored; show the score popup at the start of the next
 		active player turn. */
@@ -317,10 +325,12 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 			chapters[i]->score();
 	}
 	int currentChPos = getCurrentChapter();
-	if(currentChPos < 0 || currentChPos >= ((int)chapters.size()) - 1)
+	if(currentChPos < 0 || currentChPos >= (int)chapters.size()) {
+		FAssertMsg(currentChPos < 0 || interludeCountdown < 0, "Interlude past final chapter");
 		return;
+	}
 	RFChapter& currentCh = *chapters[currentChPos];
-	PlayerTypes nextCivId = (PlayerTypes)((civId + 1) % MAX_PLAYERS);
+	PlayerTypes nextCivId = nextCivAlive(civId);
 	if(nextCivId == currentCh.getCiv()) {
 		if(nextCivId != g.getActivePlayer()) {
 			if(GET_PLAYER(nextCivId).isAlive()) {
@@ -355,7 +365,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 
 void RiseFall::atGameTurnStart() {
 
-	CvGame const& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	int currentChPos = getCurrentChapter();
 	if(currentChPos < 0 || interludeCountdown > 0) {
 		interludeCountdown--;
@@ -378,7 +388,7 @@ void RiseFall::atActiveTurnStart() {
 	int pos = getCurrentChapter();
 	if(pos < 0)
 		return; // Happens on turn 0 b/c not yet initialized
-	CvGame const& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	int gameTurn = g.gameTurn();
 	PlayerTypes activeId = g.getActivePlayer();
 	if(activeId == NO_PLAYER)
@@ -394,7 +404,7 @@ void RiseFall::atActiveTurnStart() {
 		created. It's important that diplo popups are shown again after loading;
 		this works. On-screen messages and non-diplo popup aren't currently
 		shown after loading (not ideal). */
-	gDLL->getEngineIFace()->AutoSave();
+	g.autoSave();
 	if(active.isHumanDisabled()) // Only popups from here
 		return;
 	updateOffLimits(); /* Any civ that is a vassal of ActiveTeam at some point
@@ -452,32 +462,34 @@ void RiseFall::atActiveTurnStart() {
 
 void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	PlayerTypes formerHumanCiv = g.getActivePlayer();
 	if(formerHumanCiv != NO_PLAYER && !GET_PLAYER(formerHumanCiv).isHuman())
 		formerHumanCiv = NO_PLAYER;
-	if(!b || !GET_PLAYER(civId).isHuman()) // Unless human control continues
+	CvPlayer& civ = GET_PLAYER(civId);
+	if(!b || !civ.isHuman()) // Unless human control continues
 		gDLL->getInterfaceIFace()->clearQueuedPopups();
 	if(b) {
 		g.changeHumanPlayer(civId);
 		GC.getInitCore().setHandicap(civId, g.getHandicapType());
 	}
 	else {
-		GET_PLAYER(civId).setIsHuman(false);
+		civ.setIsHuman(false);
 		GC.getInitCore().setHandicap(civId, g.getAIHandicap());
 		GC.getInitCore().setLeaderName(civId,
-				GC.getLeaderHeadInfo(GET_PLAYER(civId).getLeaderType()).
-				getDescription());
+				GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription());
 		gDLL->getInterfaceIFace()->flushTalkingHeadMessages();
 		gDLL->getInterfaceIFace()->clearEventMessages();
 		gDLL->getInterfaceIFace()->clearSelectedCities();
 		gDLL->getInterfaceIFace()->clearSelectionList();
 	}
 	// (Un)fog the map
-	CvPlot::setAllFog(!b);
-	if(!b)
-		g.updateActiveVisibility();
-	setUIHidden(!b);
+	if(b || !g.isDebugMode()) {
+		CvPlot::setAllFog(!b);
+		if(!b)
+			g.updateActiveVisibility();
+		setUIHidden(!b);
+	}
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
 		if(!other.isAlive() || other.isMinorCiv())
@@ -488,6 +500,11 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 				other.getID() != formerHumanCiv && TEAMREF(formerHumanCiv).
 				isHasMet(other.getTeam()))
 			other.AI_updateAttitudeCache(formerHumanCiv);
+	}
+	if(b) { // Updates to apply human modifiers
+		civ.updateWarWearinessPercentAnger(); int foo=-1;
+		for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo))
+			c->updateMaintenance();
 	}
 }
 
@@ -513,7 +530,7 @@ void RiseFall::setPlayerName() {
 	if(pos >= 0) {
 		CvWString replayText = gDLL->getText("TXT_KEY_RF_REPLAY_NEXT_CHAPTER",
 				pos + 1, GET_PLAYER(activeCiv).getReplayName());
-		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, activeCiv,
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, activeCiv,
 			replayText, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	}
 }
@@ -528,9 +545,12 @@ void RiseFall::welcomeToNextChapter(int pos) {
 	RFChapter& ch = *chapters[pos];
 	setPlayerName();
 	CvPlayer& p = GET_PLAYER(ch.getCiv());
+	// Doing this in setUIHidden has no effect
+	if(gDLL->getEngineIFace()->isGlobeviewUp())
+		gDLL->getEngineIFace()->toggleGlobeview();
 	centerCamera(p.getID());
 	abandonPlans(p.getID()); // Also tries to move the camera
-	GC.getGame().showDawnOfMan();
+	GC.getGameINLINE().showDawnOfMan();
 	showDoW();
 	showQuests();
 	offLimits.clear();
@@ -557,7 +577,7 @@ void RiseFall::centerCamera(PlayerTypes civId) {
 
 void RiseFall::showDoW() {
 
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	CvTeamAI& activeTeam = GET_TEAM(g.getActiveTeam());
 	/*  Would be nicer to show e.g. "Alexander has declared war on you in 1923",
 		but would have to track additional info for this, or piece it together
@@ -571,13 +591,15 @@ void RiseFall::showDoW() {
 				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
 				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
 				GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-				enemy.getCapitalX(), enemy.getCapitalY()); // advc.127b
+				// <advc.127b>
+				enemy.getCapitalX(g.getActiveTeam(), true),
+				enemy.getCapitalY(g.getActiveTeam(), true)); // <advc.127b>
 	}
 }
 
 void RiseFall::showQuests() {
 
-	CvPlayer& p = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvPlayer& p = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
 	CvMessageQueue const& archive = p.getGameMessages();
 	for(std::list<CvTalkingHeadMessage>::const_iterator it = archive.begin();
 			it != archive.end(); it++) {
@@ -594,7 +616,7 @@ void RiseFall::showQuests() {
 void RiseFall::abandonPlans(PlayerTypes civId) {
 
 	CvPlayer& civ = GET_PLAYER(civId);
-	bool active = (civId == GC.getGame().getActivePlayer() && civ.isHuman());
+	bool active = (civId == GC.getGameINLINE().getActivePlayer() && civ.isHuman());
 	int dummy = -1;
 	for(CvSelectionGroup* gr = civ.firstSelectionGroup(&dummy); gr != NULL;
 			gr = civ.nextSelectionGroup(&dummy)) {
@@ -630,6 +652,8 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		// Without this, units outside owner's borders don't appear on the main interface.
 		if(gr->plot()->getOwnerINLINE() != civId)
 			gr->plot()->updateCenterUnit();
+		/* ^Perhaps no longer needed due to a change in CvPlot::updateVisibility
+			(advc.061). Should test this some time. */
 	}
 	// Set research slider to a balanced-budget position
 	int incr = GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS");
@@ -716,7 +740,7 @@ bool RiseFall::isBlockPopups() const {
 		
 		I'm now also using this function for tech-choice popups, contact by
 		the AI and Civ4lerts. */
-	return chapters[pos]->getStartTurn() == GC.getGame().getGameTurn();
+	return chapters[pos]->getStartTurn() == GC.getGameINLINE().getGameTurn();
 }
 
 bool RiseFall::isDeliverMessages(PlayerTypes civId) const {
@@ -777,6 +801,7 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 	return (g.getPlayerRank(aiCiv) > g.getPlayerRank(human));
 }
 
+// currently unused
 RFChapter* RiseFall::mostRecentlyFinished() const {
 
 	for(size_t i = chapters.size() - 1; i >= 0; i--) {
@@ -814,7 +839,7 @@ bool RiseFall::isEligible(PlayerTypes civId, bool allowRepeat) const {
 
 void RiseFall::updateOffLimits() {
 
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeam& t = GET_TEAM((TeamTypes)i);
 		if(t.isAlive() && t.isVassal(g.getActiveTeam()))
@@ -824,7 +849,7 @@ void RiseFall::updateOffLimits() {
 
 void RiseFall::haltForCivSelection(PlayerTypes haltCiv) {
 
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	/*  Set to active human for a moment, just to get the civ selection
 		popup through. Reset to AI-control in handleCivSelection. */
 	CvPlayer& h = GET_PLAYER(haltCiv);
@@ -843,12 +868,13 @@ PlayerTypes RiseFall::nextCivAlive(PlayerTypes startExcluded) const {
 		r = (r + 1) % MAX_PLAYERS;
 	if(r == startExcluded)
 		return NO_PLAYER;
+	FAssert(startExcluded == BARBARIAN_PLAYER || startExcluded < r || r == BARBARIAN_PLAYER);
 	return (PlayerTypes)r;
 }
 
 void RiseFall::prepareForExtendedGame() {
 
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	int pos = getCurrentChapter();
 	if(pos < 0) {
 		/*  Score the latest chapter to avoid confusion about whether it is
@@ -890,7 +916,7 @@ void RiseFall::prepareForExtendedGame() {
 		chapters[pos]->setEndless(true);
 		/*  So that the game end turn gets shown as the score turn. The popup
 			that switches to extended game appears one turn after victory. */
-		chapters[pos]->setScored(GC.getGame().getGameTurn() - 1);
+		chapters[pos]->setScored(GC.getGameINLINE().gameTurn() - 1);
 		if(g.getAIAutoPlay()) {
 			abandonPlans(chapters[pos]->getCiv());
 			g.setAIAutoPlay(0);
@@ -929,7 +955,8 @@ bool RiseFall::launchDefeatPopup(CvPopup* popup, CvPopupInfo& info) {
 		startTurn = chapters[pos + 1]->getStartTurn();
 	else FAssert(false);
 	CvWString text = gDLL->getText("TXT_KEY_MISC_DEFEAT") + L"\n\n";
-	text += gDLL->getText("TXT_KEY_RF_DEFEAT", startTurn, startTurn - GC.getGame().getGameTurn());
+	text += gDLL->getText("TXT_KEY_RF_DEFEAT", startTurn, startTurn -
+			GC.getGameINLINE().gameTurn());
 	gDLL->getInterfaceIFace()->popupSetBodyString(popup, text);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(popup,
 			gDLL->getText("TXT_KEY_POPUP_EXIT_TO_MAIN_MENU"), NULL,
@@ -949,7 +976,7 @@ void RiseFall::handleDefeatPopup(int buttonClicked) {
 		FAssert(false);
 		pos = -1;
 	}
-	CvGame const& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	// -1: Current turn already passed
 	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.gameTurn() - 1;
 	FAssert(interludeCountdown >= 0);
@@ -1004,7 +1031,7 @@ bool RiseFall::launchCivSelectionPopup(CvPopup* popup, CvPopupInfo& info) {
 void RiseFall::assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 		PlayerTypes selectedCiv) {
 
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	wstringstream wss;
 	wss << knownName(selectedCiv, false) << L"\n";
 	int victStage = victoryStage(selectedCiv);
@@ -1181,10 +1208,43 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 CvWString RiseFall::retireConfirmMsg() const {
 
 	CvWString r = gDLL->getText("TXT_KEY_RF_CONFIRM_RETIRE", getRetireTurns());
-	if(interludeLength > 0)
-		r += L" (" + gDLL->getText("TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE",
-				interludeLength) + L")";
+	if(interludeLength > 0 && getCurrentChapter() < (int)(chapters.size() - 1))
+		r.append(L" (" + gDLL->getText("TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE",
+				interludeLength) + L")");
+	r.append(NEWLINE);
+	r.append(NEWLINE);
+	r.append(gDLL->getText("TXT_KEY_RF_RETIRE_FOR_GOOD"));
 	return r;
+}
+
+bool RiseFall::launchRetirePopup(CvPopup* popup, CvPopupInfo& info) {
+
+	int pos = getCurrentChapter();
+	FAssert(pos >= 0);
+	bool bEndless = (pos >= 0 && chapters[pos]->isEndless());
+	CvDLLInterfaceIFaceBase& base = *gDLL->getInterfaceIFace();
+	base.popupSetBodyString(popup, bEndless ?
+			gDLL->getText("TXT_KEY_POPUP_ARE_YOU_SURE") :
+			retireConfirmMsg());
+	// The popupAddGenericButton calls are copied from CvDLLButtonPopup::launchConfirmMenu
+	if(!bEndless) {
+		base.popupAddGenericButton(popup, gDLL->getText("TXT_KEY_POPUP_RETIRE"),
+				NULL, 0, WIDGET_GENERAL);
+	}
+	base.popupAddGenericButton(popup, gDLL->getText("TXT_KEY_POPUP_CANCEL"),
+			NULL, 1, WIDGET_GENERAL);
+	base.popupAddGenericButton(popup, gDLL->getText("TXT_KEY_RF_END_GAME"),
+			NULL, 2, WIDGET_GENERAL);
+	base.popupLaunch(popup, false, POPUPSTATE_IMMEDIATE);
+	return true;
+}
+
+void RiseFall::handleRetirePopup(int buttonClicked) {
+
+	if(buttonClicked == 2)
+		GC.getGameINLINE().retire();
+	else if(buttonClicked == 0)
+		retire();
 }
 
 int RiseFall::getCivChapter(PlayerTypes civId) const {
@@ -1204,8 +1264,8 @@ bool RiseFall::isSelectingCiv() const {
 
 void RiseFall::afterCivSelection(int buttonClicked) {
 
-	CvGame& g = GC.getGame();
-	CvPlayer& h = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvGame& g = GC.getGameINLINE();
+	CvPlayer& h = GET_PLAYER(g.getActivePlayer());
 	int pos = getCurrentChapter();
 	if(buttonClicked == 1) {
 		FAssert(false);
@@ -1243,7 +1303,7 @@ void RiseFall::afterCivSelection(int buttonClicked) {
 		interludeCountdown = -1;
 		chapters[pos]->start();
 		// Save before firing popups
-		gDLL->getEngineIFace()->AutoSave();
+		g.autoSave();
 		welcomeToNextChapter(pos);
 		return;
 	}
@@ -1348,7 +1408,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 			break;
 		case TRADE_WAR:
 			itemVal = humanTeam.AI_declareWarTradeVal((TeamTypes)data, aiTeamId);
-			if(getWPAI.isEnabled())
+			if(getWPAI.isEnabled()) // advc.104
 				replVal = GET_TEAM(humanTeamId).warAndPeaceAI().tradeValJointWar(
 						(TeamTypes)data, aiTeam.getID());
 			break;

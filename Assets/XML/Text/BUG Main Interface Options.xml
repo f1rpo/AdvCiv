@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!--
+	BUG Main Interface
+	Options Game Text
+
+	Copyright (c) 2009 The BUG Mod.
+-->
+<!-- advc: Some of the Romance-language translations are from www.deepl.com -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+
+	<!-- advc.004: Disabled -->
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSKEY_TEXT</Tag>
+		<English>Options Shortcut Reminder</English>
+		<French>Rappel du Raccourci des Options</French>
+		<German>Erinnerung an die BUG-Optionen</German>
+		<Italian>Promemoria della combinazione per accedere alle Opzioni del</Italian>
+		<Spanish>Recordar Atajos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSKEY_HOVER</Tag>
+		<English>When checked, displays a message about Alt + Ctrl + O when a game is started or loaded.</English>
+		<French>En activant, en rappel sur l'utilisation de Alt + Ctrl + O est montré quand un jeu démarre ou est chargé.</French>
+		<German>Zeigt nach dem Spielstart oder dem Laden eines Spielstands eine Meldung, die an die Tastenkombination [STRG + ALT + O] erinnert, mit der man die Optionen der "BUG Mod" aufrufen kann</German>
+		<Italian>Quando è selezionato, mostra un messaggio che ricorda la combinazione di tasti per accedere al Menù delle Opzioni del BUG Mod quando un gioco viene iniziato o caricato .</Italian>
+		<Spanish>Si está activo, muestra un mensaje sobre Alt + Ctrl + O cuando un juego comienza o es cargado.</Spanish>
+	</TEXT-->
+	
+	<!-- advc.004: Options are on a menu -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSBUTTON_TEXT</Tag>
+		<English>BUG Menu Button</English>
+		<French>Options Button</French>
+		<German>BUG-Menü-Schaltfläche</German>
+		<Italian>Dottone Opzioni</Italian>
+		<Spanish>Botón Opciones</Spanish>
+	</TEXT>
+	
+	<!-- advc.004, advc.002g: Some extra info added (incl. restart) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSBUTTON_HOVER</Tag>
+		<English>When checked, a button for opening the BUG Menu is displayed in the upper left corner of the main interface, next to the Event Log button (restart required). The BUG Menu can always be accessed from the Game Menu [ESC], the Player Options screen [CTRL+O] and directly via [CTRL-ALT+O].</English>
+		<French>When checked, shows the BUG Option Screen button.</French>
+		<German>Zeigt (nach dem nächsten Neustart) eine Schaltfläche zum Öffnen des BUG-Menüs in der oberen linken Ecke des Hauptbildschirms an (neben der Ereignis-Log-Schaltfläche). Das BUG-Menü lässt sich in jedem Fall vom Spielmenü [ESC] und Spieleroptionsmenü [STRG+O] aus aufrufen, und direkt per [CTRL+ALT+O].</German>
+		<Italian>Quando è selezionato, mostra il bottone della schermata opzioni del BUG.</Italian>
+		<Spanish>Permite mostrar el botón de opciones BUG en la pantalla.</Spanish>
+	</TEXT>
+
+	<!-- advc.106b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AUTOOPENEVENTLOG_TEXT</Tag>
+		<English>Open Event Log</English>
+		<French>Open Event Log</French>
+		<German>Öffne Ereignis-Log</German>
+		<Italian>Open Event Log</Italian>
+		<Spanish>Open Event Log</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MESSAGELIMIT_TEXT</Tag>
+		<English>if more than (# messages)</English>
+		<French>if more than (# messages)</French>
+		<German>bei mehr als (# Nachrichten)</German>
+		<Italian>if more than (# messages)</Italian>
+		<Spanish>if more than (# messages)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AUTOOPENEVENTLOG_HOVER</Tag>
+		<English>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</English>
+		<French>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</French>
+		<German>Öffnet zu Beginn des Zuges das Ereignis-Log, wenn die Anzahl der neuen Nachrichten einen Grenzwert überschreitet. Nur wichtige Ereignisse (z.B. Kriegserklärungen) werden zusätzlich auf dem Hauptbildschirm angezeigt. Unabhängig von der Anzahl der Nachrichten, öffnet sich das Ereignis-Log außerdem bei jeder Kontaktaufnahme durch einen KI-Spieler. Wichtig: Die Option "Popups minimieren" (STRG + O) ist eine Voraussetzung für das automatische Öffnen des Ereignis-Logs.</German>
+		<Italian>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</Italian>
+		<Spanish>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MESSAGELIMIT_HOVER</Tag>
+		<English>The Event Log is opened when the number of new messages exceeds this limit.</English>
+		<French>The Event Log is opened when the number of new messages exceeds this limit.</French>
+		<German>Das Ereignis-Log wird automatisch geöffnet, wenn die Anzahl der neuen Nachrichten größer ist als die eingestellte Obergrenze.</German>
+		<Italian>The Event Log is opened when the number of new messages exceeds this limit.</Italian>
+		<Spanish>The Event Log is opened when the number of new messages exceeds this limit.</Spanish>
+	</TEXT>
+	
+	<!-- advc.002b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENDTURNMESSAGE_TEXT</Tag>
+		<English>End-Turn Message</English>
+		<French>End-Turn Message</French>
+		<German>Nachricht am Rundenende</German>
+		<Italian>End-Turn Message</Italian>
+		<Spanish>End-Turn Message</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENDTURNMESSAGE_HOVER</Tag>
+		<English>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</English>
+		<French>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</French>
+		<German>Blinkanzeige "Runde beenden mit EINGABETASTE" (wie in BtS), sobald alle Einheiten und Städte Befehle erhalten haben. Die rote Rundenende-Schaltfläche blinkt auch wenn diese Option nicht angekreuzt ist.</German>
+		<Italian>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</Italian>
+		<Spanish>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</Spanish>
+	</TEXT>
+	
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_TEXT</Tag>
+		<English>Gold Rate Warning</English>
+		<French>Gold Rate Warning</French>
+		<German>"Gold/Runde"-Warnung</German>
+		<Italian>Calo dell'Oro</Italian>
+		<Spanish>Advertencia Oro</Spanish>
+	</TEXT-->
+	<!-- advc.004: Rewritten (English, German); hopefully makes clearer how
+		 this differs from BtS. -->
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_HOVER</Tag>
+		<English>When checked, a negative gold rate is shown in red only if the deficit exceeds the gold reserves in your treasury. Otherwise (sufficient reserves), a negative gold rate is shown in yellow.</English>
+		<French>When checked, displays your gold rate in yellow if it is negative but not enough to drop your treasury below zero.</French>
+		<German>Färbt bei negativem Einkommen die [ICON_GOLD]/Runde-Anzeige nur dann rot ein, wenn das Defizit größer ist als der Goldvorrat. Andernfalls, d.h. wenn der Goldvorrat das Defizit auffangen kann, wird die [ICON_GOLD]/Runde-Anzeige gelb eingefärbt.</German>
+		<Italian>Quando è selezionato, mostra il tasso di crescita dell'oro in giallo se è negativo ma non abbastanza da mandarvi in rosso.</Italian>
+		<Spanish>Muestra tu oro en amarillo si el cambio este turno es negativo pero no suficiente para llevar tu tesoro por debajo de cero.</Spanish>
+	</TEXT-->
+	
+	<!-- advc.070 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__POSITIVEGOLDRATECOLOR_TEXT</Tag>
+		<English>Positive</English>
+		<French>Positif</French>
+		<German>Positiv</German>
+		<Italian>Positivo</Italian>
+		<Spanish>Positivo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEGATIVEGOLDRATECOLOR_TEXT</Tag>
+		<English>Negative</English>
+		<French>Negatif</French>
+		<German>Negativ</German>
+		<Italian>Negativo</Italian>
+		<Spanish>Negativo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEBROKECOLOR_TEXT</Tag>
+		<English>Broke</English>
+		<French>Insolvable</French>
+		<German>Insolvent</German>
+		<Italian>Insolvente</Italian>
+		<Spanish>Insolvente</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__POSITIVEGOLDRATECOLOR_HOVER</Tag>
+		<English>Text color to use for a positive per-turn income</English>
+		<French>Text color to use for a positive per-turn income</French>
+		<German>Textfarbe bei positivem Einkommen</German>
+		<Italian>Text color to use for a positive per-turn income</Italian>
+		<Spanish>Text color to use for a positive per-turn income</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEGATIVEGOLDRATECOLOR_HOVER</Tag>
+		<English>Text color to use for a negative per-turn income</English>
+		<French>Text color to use for a negative per-turn income</French>
+		<German>Textfarbe bei negativem Einkommen</German>
+		<Italian>Text color to use for a negative per-turn income</Italian>
+		<Spanish>Text color to use for a negative per-turn income</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEBROKECOLOR_HOVER</Tag>
+		<English>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</English>
+		<French>Text color to use for a negative per-turn income</French>
+		<German>Textfarbe bei negativem Einkommen, das den Goldvorrat übersteigt.</German>
+		<Italian>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</Italian>
+		<Spanish>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: German shortened (was the longest heading in its column) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TEXT</Tag>
+		<English>Great Person</English>
+		<French>Personnages Illustres</French>
+		<German>Große Pers.</German>
+		<Italian>Grandi Personaggi</Italian>
+		<Spanish>Gran Personaje</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: Minor changes. Could add:
+		 "or, if a city is currently selected, the Great Person progress of that city," but I guess that's not important enough. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_HOVER</Tag>
+		<English>When checked, displays a progress bar at the top of the main interface that shows when the next Great Person (except Great General) will be born and in which city.</English>
+		<French>En activant, montre la barre de progrès et la ville du prochain Personnage Illustre.</French>
+		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der anzeigt, wann die nächste große Persönlichkeit (außer Generäle) erscheinen wird und in welcher Stadt.</German>
+		<Italian>Quando è selezionato, mostra il progresso e la città del prossimo Grande Personaggio.</Italian>
+		<Spanish>When checked, displays the progress and city of the next Great Person.</Spanish>
+	</TEXT>
+
+	<!-- advc.004: Unused -->
+	<!--TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TYPES_TEXT</Tag>
+		<English>GP Bar Types</English>
+		<French>Types de Barre PI</French>
+		<German>Anzeigemethode</German>
+		<Italian>Tipi di Grandi Personaggi</Italian>
+		<Spanish>Barra de Tipo de GP</Spanish>
+	</TEXT-->
+
+	<!-- advc.004: Minor changes. Would be nice to state explicitly that this
+		 setting also applies to the city screen, but the text is already
+		 rather long. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TYPES_HOVER</Tag>
+		<English>The number of Great Person (GP) types to display in the GP bar. "[COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT]" shows only the most likely GP type. "[COLOR_HIGHLIGHT_TEXT]All[COLOR_REVERT]" also displays the probability distribution. Regardless of this option, that distribution is shown in the hover text of the GP bar.</English>
+		<French>Determine combien de types de PI doivent être montrés dans la Barre de Progrès. L'option [COLOR_HIGHLIGHT_TEXT]Maximum[COLOR_REVERT] montre aussi les chances de chacun.</French>
+		<German>Die Anzahl der Typen von großen Persönlichkeiten (GP), die im GP-Balken angezeigt werden. "[COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT]" zeigt lediglich den wahrscheinlichsten GP-Typ. "[COLOR_HIGHLIGHT_TEXT]Alle[COLOR_REVERT]" zeigt die gesamte Wahrscheinlichkeitsverteilung. Diese Verteilung wird in jedem Fall im Hilftext des GP-Balkens angezeigt.</German>
+		<Italian>Determina quanti tipi di Grandi Personaggi devono essere mostrati nella Barra dei Grandi Personaggi. L'impostazione [COLOR_HIGHLIGHT_TEXT]Massimo[COLOR_REVERT] mostra anche la possibilità percentuale di ognuna.</Italian>
+		<Spanish>Determina cuantos tipos de Gran Personaje mostrar en la barra de progreso de Grandes Personas. La opción [COLOR_HIGHLIGHT_TEXT]Máximo[COLOR_REVERT] también muestra la probabilidad de cada tipo.</Spanish>
+	</TEXT>
+	<!-- Was "None|One|Maximum" -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TYPES_LIST</Tag>
+		<English>0|1|All</English>
+		<French>0|1|Maximum</French>
+		<German>0|1|Alle</German>
+		<Italian>0|1|Tutti</Italian>
+		<Spanish>0|1|Máximo</Spanish>
+	</TEXT>
+	
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__COMBAT_COUNTER_TEXT</Tag>
+		<English>Great General</English>
+		<French>G&#233;n&#233;ral Illustre</French>
+		<German>Großer General</German>
+		<Italian>Grande Generale</Italian>
+		<Spanish>Gran General</Spanish>
+	</TEXT>
+	<!-- advc.004: Minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__COMBAT_COUNTER_HOVER</Tag>
+		<English>When checked, displays a progress bar on top of the main interface that shows how much combat experience is needed for the next Great General.</English>
+		<French>En activant, montre l'Expérience au Combat nécessaire pour le prochain Général Illustre.</French>
+		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der die Gefechtserfahrung anzeigt, die für den nächsten großen General benötigt wird.</German>
+		<Italian>Quando è selezionato, mostra la barra di avanzamento per il prossimo Grande Generale.</Italian>
+		<Spanish>Muestra una barra de progreso para el próximo Gran General.</Spanish>
+	</TEXT>
+	
+	<!-- advc.078: New option -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ONCEPROGRESS_TEXT</Tag>
+		<English>Show Only Once Progress</English>
+		<French>Show Only Once Progress</French>
+		<German>Balken erst bei Fortschritt</German>
+		<Italian>Show Only Once Progress</Italian>
+		<Spanish>Show Only Once Progress</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ONCEPROGRESS_HOVER</Tag>
+		<English>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</English>
+		<French>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</French>
+		<German>Die Fortschrittsbalken für [COLOR_HIGHLIGHT_TEXT]Große Persönlichkeiten[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Große Generäle[COLOR_REVERT] (falls überhaupt aktiviert) erscheinen erst, wenn entsprechender Fortschritt besteht.</German>
+		<Italian>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</Italian>
+		<Spanish>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</Spanish>
+	</TEXT>
+
+	<!-- advc.120c: Under the new heading, "Max/Min Buttons" should be clear
+		 enough. (Put "max" first to match the "+/-" order.) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINMAX_COMMERCE_TEXT</Tag>
+		<English>Max/Min Buttons</English>
+		<French>Min/Max Commerce Buttons</French>
+		<German>Max/Min-Schaltflächen</German>
+		<Italian>Bottoni del Commercio minimo/massimo</Italian>
+		<Spanish>Comercio Mínimo/Máximo</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: Mention right-click -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINMAX_COMMERCE_HOVER</Tag>
+		<English>When checked, a second pair of +/- buttons is displayed on the main interface for each type of commerce. These extra buttons set the respective commerce rate to 100% (+) or 0% (-). Regardless of this option, a right-click on the normal +/- buttons also sets the rate to 100%/0%.</English>
+		<French>When checked, displays a second pair of +/- buttons for each commerce type that set the rate to 100% and 0% respectively.</French>
+		<German>Zeigt ein zweites Paar "+/-"-Schaltflächen für jeden Anteilsregler an, die den Anteil auf 100% beziehungsweise 0% setzen. Auch ohne diese Option lassen sich die Anteile durch einen Rechtsklick auf die gewöhnlichen "+/-"-Schaltflächen auf 100%/0% setzen.</German>
+		<Italian>Quando è selezionato, mostra una seconda coppia di bottoni +/- per ogni tipo di commercio che impostano il valore rispettivamente al 100% ed allo 0%.</Italian>
+		<Spanish>Muestra un segundo par de botones +/- buttons que permiten fijar la producción a 100% y 0% respectivamente.</Spanish>
+	</TEXT>
+	
+	<!-- advc.120c: Translations based on TXT_KEY_TECH_DRAMA_STRATEGY in
+		 CIV4GameText_Strategy.xml ("slider"), TXT_KEY_CONCEPT_DIPLOMACY_PEDIA
+		 in CIV4GameText_Civilopedia_Concepts.xml ("screen"). -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_TEXT</Tag>
+		<English>Hide Espionage Slider when 0</English>
+		<French>Masquer la réglette d'espionnage à 0</French>
+		<German>Spionageregler auf 0 ausblenden</German>
+		<Italian>Nascondi barra di spionaggio quando è 0</Italian>
+		<Spanish>Ocultar el control de espionaje cuando está en 0</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_HOVER</Tag>
+		<English>Remove the espionage slider from the main interface if the slider position is 0. The slider can then still be accessed through the Espionage screen or the City screen.</English>
+		<French>Retirez la réglette d'espionnage de l'écran principal si la position de la réglette est 0. Vous pouvez toujours y accéder via l'écran Espionnage ou l'écran Ville.</French>
+		<German>Entfernt den Spionageregler vom Hauptbildschirm, wenn er auf 0 steht. Der Regler ist dann immer noch auf dem Spionagebildschirm und dem Stadtbildschirm verfügbar.</German>
+		<Italian>Rimuovere la barra di spionaggio dalla schermata principale se la sua posizione è 0. La barra può essere raggiunta attraverso la schermata Espionaggio o la schermata Città.</Italian>
+		<Spanish>Retire el control deslizante de espionaje de la pantalla principal si la posición del control deslizante es 0. Se puede acceder al control deslizante a través de la pantalla Espionaje o de la pantalla Ciudad.</Spanish>
+	</TEXT>
+	<!-- This is shown on the tech chooser, not the BUG menu, but it's related
+		 to the 120c option, so I'm putting it in this file.
+		 Based on TXT_KEY_ESPIONAGE_SCREEN (CIV4GameText_BTS.xml). -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ADJUST_ON_ESPIONGAE_SCREEN</Tag>
+		<English>[SPACE](on the Espionage screen)</English>
+		<French>[SPACE](sur l'écran d'espionnage)</French>
+		<German>[SPACE](auf dem Spionagebildschirm)</German>
+		<Italian>[SPACE](sulla schermata dello spionaggio)</Italian>
+		<Spanish>[SPACE](en la pantalla de espionaje)</Spanish>
+	</TEXT>
+	
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYARROWS_TEXT</Tag>
+		<English>City Cycle Arrows</English>
+		<French>Fleches de Ville</French>
+		<German>Städtepfeile</German>
+		<Italian>Frecce di scorrimento cittadino</Italian>
+		<Spanish>Flechas de Ciclar Ciudades</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYARROWS_HOVER</Tag>
+		<English>When checked, displays arrows to cycle through cities above your civ's flag.</English>
+		<French>En activant, montre des flèches pour cycler vos villes au-dessous du drapeau de votre civilisation.</French>
+		<German>Zeigt Pfeile über der Flagge der eigenen Zivilisation an, mit denen durch die einzelnen Städte geschaltet werden kann</German>
+		<Italian>Quando è selezionato, mostra sopra alla vostra bandiera le frecce per scorrere fra le Città.</Italian>
+		<Spanish>Muestra flechas encima de tu bandera que permiten ciclar entre distintas ciudades.</Spanish>
+	</TEXT>
+
+	<!-- advc.004m: German translation changed -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT</Tag>
+		<English>Field of View</English>
+		<French>Field of View</French>
+		<German>Sichtfeld</German>
+		<Italian>Campo visuale</Italian>
+		<Spanish>Campo de Visión</Spanish>
+	</TEXT>
+	<!-- advc.004m: Explain briefly what FoV does -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_HOVER</Tag>
+		<English>When checked, displays a slider for adjusting the field of view. The field-of-view setting changes the camera distance, but, unlike zoom, without changing the camera angle.</English>
+		<French>When checked, displays a slide bar which can be used to change the field of view.</French>
+		<German>Zeigt im Hauptbildschirm einen Regler an, mit dem die Größe des Sichtfelds eingestellt werden kann. Im Gegensatz zur Zoomfunktion ändert sich dabei der Blickwinkel nicht.</German>
+		<Italian>Quando è selezionato, visualizza un cursore che può essere utilizzato per regolare il campo visuale.</Italian>
+		<Spanish>Muestra una barra deslizante que permite modificar el campo de visión.</Spanish>
+	</TEXT>
+
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_TEXT</Tag>
+		<English>Tick Marks</English>
+		<French>Tick Marks</French>
+		<German>Teilstriche</German>
+		<Italian>Trattini di avanzamento</Italian>
+		<Spanish>Progreso Estimado</Spanish>
+	</TEXT>
+
+	<!-- advc.004: English rewritten, German revised. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_HOVER</Tag>
+		<English>When checked, progress bars on the main interface and city screen show tick marks that project the current per-turn progress rate into the future.</English>
+		<French>When checked, displays tick marks on selected progress bars that illustrate estimated future turn progress.</French>
+		<German>Zeigt Teilstriche auf den Fortschrittsbalken im Haupt- und Stadtbildschirm an, die die voraussichtlichen Fortschritte in zukünftigen Runden markieren.</German>
+		<Italian>Visualizza sulle barre di avanzamento selezionate dei trattini che mostrano il progresso stimato per i turni successivi.</Italian>
+		<Spanish>Muestra líneas en las barras de progreso seleccionadas que muestran el progreso estimado en turnos futuros.</Spanish>
+	</TEXT>
+	
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_REMEMBER_TEXT</Tag>
+		<English>Remember Field of View</English>
+		<French>Remember Field of View</French>
+		<German>FOV-Einstellung merken</German>
+		<Italian>Conserva il Campo visuale</Italian>
+		<Spanish>Recordar Campo de Visión</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_REMEMBER_HOVER</Tag>
+		<English>When checked, the Field of View value is remembered from game to game.</English>
+		<French>When checked, the Field of View value is remembered from game to game.</French>
+		<German>Merkt sich die letzte gewählte Einstellung für das Sichtfeld (engl. "Field of View") für weitere Partien</German>
+		<Italian>Quando è selezionato, il valore assegnato al Campo visuale viene conservato.</Italian>
+		<Spanish>Si se activa, el valor de Campo de Visión es recordado entre distintas partidas.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_VALUE_TEXT</Tag>
+		<English>Field of View - Value</English>
+		<French>Field of View - Value</French>
+		<German>FOV-Wert</German>
+		<Italian>Valore del Campo visuale</Italian>
+		<Spanish>Valor de Campo de Visión</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_VALUE_HOVER</Tag>
+		<English>Stores the Field of View value</English>
+		<French>Stores the Field of View value</French>
+		<German>Eingabemöglichkeit für die Einstellung des Sichtfeldes (engl. "Field of View")</German>
+		<Italian>Riporta il valore assegnato al Campo visuale</Italian>
+		<Spanish>Almacena el valor de Campo de Visión.</Spanish>
+	</TEXT>
+	
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITMOVEMENTPOINTSFRACTION_TEXT</Tag>
+		<English>Fractional Movement Points</English>
+		<French>Fractional Movement Points</French>
+		<German>Gebrochene Bewegungspunkte</German>
+		<Italian>Punti movimento decimali</Italian>
+		<Spanish>Puntos de Movimiento Decimales</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: Minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITMOVEMENTPOINTSFRACTION_HOVER</Tag>
+		<English>When a single unit is selected, this option shows the remaining movement points as a fraction on the Info pane.</English>
+		<French>When checked, shows the Movement Points for a single unit as a fraction in the Info Pane.</French>
+		<German>Zeigt die verbleibenden Bewegungspunkte in der Detailanzeige mit Nachkommastellen an, wenn eine einzelne Einheit ausgewählt ist.</German>
+		<Italian>Quando è selezionato, mostra nel Pannello delle Informazioni i Punti Movimento di una Unità come un numero con una cifra decimale.</Italian>
+		<Spanish>Muestra los puntos de movimiento para unidades como una fracción en el panel de información.</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: German translation was too unwieldy -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKMOVEMENTPOINTS_TEXT</Tag>
+		<English>Stack Movement Points</English>
+		<French>Stack Movement Points</French>
+		<German>Gruppen-Bewegungspunkte</German>
+		<Italian>Punti Movimento di gruppo</Italian>
+		<Spanish>Apilar Puntos de Movimiento</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: Minor changes -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKMOVEMENTPOINTS_HOVER</Tag>
+		<English>When multiple units are selected, this option shows the minimum and maximum of the selected units' movement points on the Info pane.</English>
+		<French>When checked, shows the minimum and maximum Movement Points for all selected units in the Info Pane.</French>
+		<German>Zeigt das Minimum und Maximum der Bewegungspunkte der ausgewählten Einheiten in der Detailanzeige an, wenn mehrere Einheiten ausgewählt sind.</German>
+		<Italian>Quando è selezionato, mostra nel Pannello delle Informazioni il valore minimo e quello massimo per i Punti Movimento del gruppo di Unità selezionate.</Italian>
+		<Spanish>Si se activa, muestra en el panel de información los puntos de movimiento mínimos y máximos para todas las unidades seleccionadas.</Spanish>
+	</TEXT>
+	
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONS_TEXT</Tag>
+		<English>Stack Promotions</English>
+		<French>Stack Promotions</French>
+		<German>Einheitenverband-Beförderungen</German>
+		<Italian>Stack Promotions</Italian>
+		<Spanish>Apilar ascensos</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: Minor changes to the next three keys -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONS_HOVER</Tag>
+		<English>When checked, shows all promotions possessed by at least one unit in the selected stack on the Info pane.</English>
+		<French>When checked, shows the promotions possessed by at least one unit in the stack.</French>
+		<German>Zeigt in der Detailanzeige alle Beförderungen an, über die zumindest eine Einheit des ausgewählten Verbandes verfügt.</German>
+		<Italian>When checked, shows the promotions possessed by at least one unit in the stack.</Italian>
+		<Spanish>Si se activa, muestra los ascensos poseídos por al menos una de las unidades del grupo.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOUNTS_TEXT</Tag>
+		<English>Counts</English>
+		<French>Counts</French>
+		<German>Anzahl</German>
+		<Italian>Counts</Italian>
+		<Spanish>Número</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOUNTS_HOVER</Tag>
+		<English>When checked, the stack promotion icons on the Info pane show the number of units in the selected stack that possess each promotion (if that number is greater than one).</English>
+		<French>When checked, shows the number of units in a stack that possess each promotion if more than one.</French>
+		<German>Zeigt in der Detailanzeige für jede Beförderung an, wie viele Einheiten im ausgewählten Verband über diese Beförderung verfügen (wenn mehrere Einheiten über die Beförderung verfügen).</German>
+		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
+		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
+	</TEXT>
+
+	<!-- advc.004: Was "Some", but I think it's easier to think of it as the
+		 default color. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLOR_TEXT</Tag>
+		<English>Color</English>
+		<French>Couleur</French>
+		<German>Farbe</German>
+		<Italian>Colore</Italian>
+		<Spanish>Color</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: This was just a repetition of the "Counts" hover text -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLOR_HOVER</Tag>
+		<English>Text color of the promotion count (unless a promotion is possessed by all units)</English>
+		<French>Text color of the promotion count (unless a promotion is possessed by all units)</French>
+		<German>Farbe, in der die Anzahl der Einheiten mit einer bestimmten Beförderung angezeigt wird (außer wenn alle Einheiten über diese Beförderung verfügen)</German>
+		<Italian>Text color of the promotion count (unless a promotion is possessed by all units)</Italian>
+		<Spanish>Text color of the promotion count (unless a promotion is possessed by all units)</Spanish>
+	</TEXT>
+	
+	<!-- advc.004 (no change): "Color (All)" would be too long -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLORALL_TEXT</Tag>
+		<English>All</English>
+		<French>All</French>
+		<German>Alle</German>
+		<Italian>All</Italian>
+		<Spanish>Todas</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: This was just a repetition of the "Counts" hover text -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLORALL_HOVER</Tag>
+		<English>If all units in a stack possess a given promotion, use this color instead of the one above.</English>
+		<French>If all units in a stack possess a given promotion, use this color instead of the one above.</French>
+		<German>Diese Farbe wird anstatt der obigen verwendet, wenn eine Beförderung allen Einheiten des Verbandes gemeinsam ist.</German>
+		<Italian>If all units in a stack possess a given promotion, use this color instead of the one above.</Italian>
+		<Spanish>If all units in a stack possess a given promotion, use this color instead of the one above.</Spanish>
+	</TEXT>
+	
+	<!-- advc.061 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__LISTUNITSPEROWNER_TEXT</Tag>
+		<English>List Units per Owner</English>
+		<French>Grouper les unités par propriétaire</French>
+		<German>Einheiten nach Besitzer gruppieren</German>
+		<Italian>Elenca unità per proprietario</Italian>
+		<Spanish>Agrupar unidades por propietario</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__LISTUNITSPEROWNER_HOVER</Tag>
+		<English>When checked, help text lists the units in a tile grouped by owner and shows the total unit count per owner.</English>
+		<French>En activant, le texte d'aide énumère les unités d'une case groupées par propriétaire et affiche le nombre total d'unités par propriétaire.</French>
+		<German>Im Hilfetext werden Einheiten eines Feldes nach Besitzer gruppiert aufgeführt und die Einheitenzahl pro Besitzer wird angegeben.</German>
+		<Italian>Quando è selezionato, il testo di aiuto elenca le unità in una casella raggruppate per proprietario e mostra il conteggio totale delle unità per proprietario.</Italian>
+		<Spanish>Si se activa, el texto de ayuda lista las unidades en una casilla agrupadas por propietario y muestra el número total de unidades por propietario.</Spanish>
+	</TEXT>
+
+	<!-- 002b: This option column gets a bit too wide with the larger fonts.
+		 Also, "Action button" is clearer than "Build/Action Icon".
+		 I didn't change the Romanic translations. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_TEXT</Tag>
+		<English>Action Button Size</English>
+		<French>Action Button Size</French>
+		<German>Größe der Schaltflächen</German>
+		<Italian>Dimensione Icona Costruisci/Azione</Italian>
+		<Spanish>Tamaño de Iconos de acción/construcción</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_HOVER</Tag>
+		<English>Determines the size of the build and action buttons in the bottom center of the screen.</English>
+		<French>Determines the size of the build and action buttons in the bottom center of the screen.</French>
+		<German>Bestimmt die Größe der Bau- und Befehlssymbole im Menü am unteren Bildschirmrand</German>
+		<Italian>Determina la dimensione delle icone per i tasti di costruzione e azione nella parte bassa e centrale dello schermo.</Italian>
+		<Spanish>Determina el tamaño de los iconos de construir y acción en los botones de la parte inferior central de la pantalla.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_LIST</Tag>
+		<English>Small|Medium|Large</English>
+		<French>Small|Medium|Large</French>
+		<German>Klein|Mittel|Gro&#223;</German>
+		<Italian>Piccola|Media|Larga</Italian>
+		<Spanish>Pequeño|Mediano|Grande</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RAPIDUNITCYCLING_TEXT</Tag>
+		<English>Rapid Unit Cycling</English>
+		<French>Rapid Unit Cycling</French>
+		<German>Schneller Einheitenwechsel</German>
+		<Italian>Cicla rapidamente tra le unit&#224;</Italian>
+		<Spanish>Circulación de unidades rápida</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RAPIDUNITCYCLING_HOVER</Tag>
+		<English>When checked, automatic unit selection happens instantly rather than with a delay.</English>
+		<French>When checked, automatic unit selection happens instantly rather than with a delay.</French>
+		<German>Lässt den automatischen Einheitenwechsel ohne Verzögerung passieren.</German>
+		<Italian>Quando è selezionato, la selezione automatica tra le unità è istantanea anzichè con ritardo.</Italian>
+		<Spanish>Activada, la selección de unidades automática ocurre instantáneamente más que con un retardo.</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: German was too long -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SIMPLESELECTION_TEXT</Tag>
+		<English>Simple [Shift] Unit Selection</English>
+		<French>Simple [Shift] Unit Selection</French>
+		<German>Einfache Auswahl mit [Shift]</German>
+		<Italian>Simple [Shift] Unit Selection</Italian>
+		<Spanish>Selección de unidades simple [Mayús]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SIMPLESELECTION_HOVER</Tag>
+		<English>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</English>
+		<French>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</French>
+		<German>Beim Auswählen von Einheiten mit gedrückter [Umschalt]-Taste wird mit jedem Klick nur eine Einheit zur Auswahl hinzugefügt.</German>
+		<Italian>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</Italian>
+		<Spanish>Activada, seleccionando unidades con la tecla [Mayús] sólo añadir una unidad cada vez.</Spanish>
+	</TEXT>
+	
+	<!-- advc.004z -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SCORESINGLOBEVIEW_TEXT</Tag>
+		<English>Scores in Globe View</English>
+		<French>Scores in Globe View</French>
+		<German>Punteanzeige in Globalansicht</German>
+		<Italian>Scores in Globe View</Italian>
+		<Spanish>Scores in Globe View</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SCORESINGLOBEVIEW_HOVER</Tag>
+		<English>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</English>
+		<French>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</French>
+		<German>Zeigt in der Globalansicht die Punktestände der Spieler an, sofern der Platz nicht für Optionen benötigt wird. (Die Strategieansicht z.B. hat Optionen zum Einzeichnen von Linien.)</German>
+		<Italian>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</Italian>
+		<Spanish>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RESOURCEICONOPTIONS_TEXT</Tag>
+		<English>Resource Filters</English>
+		<French>Resource Filters</French>
+		<German>Ressourcenfilter</German>
+		<Italian>Resource Filters</Italian>
+		<Spanish>Resource Filters</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RESOURCEICONOPTIONS_HOVER</Tag>
+		<English>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</English>
+		<French>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</French>
+		<German>Zeigt Filter-Optionen "Nahrung", "Luxusgüter" und "Allgemein" an, wenn die Ressourcenanzeige und die Globalansicht aktiviert sind. Ansonsten werden die Ressourcen stets ungefiltert angezeigt, und an Stelle der Filter-Optionen ist Platz für die Punkteanzeige.</German>
+		<Italian>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</Italian>
+		<Spanish>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TRIBALVILLAGEICONS_TEXT</Tag>
+		<English>Tribal Village Icons</English>
+		<French>Tribal Village Icons</French>
+		<German>Stammesdörfer markieren</German>
+		<Italian>Tribal Village Icons</Italian>
+		<Spanish>Tribal Village Icons</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TRIBALVILLAGEICONS_HOVER</Tag>
+		<English>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</English>
+		<French>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</French>
+		<German>Markiert zusätzlich zu Ressourcen auch Stammesdörfer, wenn die Ressourcenanzeige aktiv ist. Ausnahme: Die Ressourcenanzeige markiert keine Stammesdörfer, wenn [COLOR_HIGHLIGHT_TEXT]Einheitenempfehlungen[COLOR_REVERT] (Strg + O) eingeschaltet ist, da diese Option ebenfalls Stammesdörfer hervorhebt.</German>
+		<Italian>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</Italian>
+		<Spanish>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</Spanish>
+	</TEXT>
+	
+	<!-- advc.004h -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGYIELDS_TEXT</Tag>
+		<English>Founding Yields</English>
+		<French>Founding Yields</French>
+		<German>Siedler-Ertragsanzeige</German>
+		<Italian>Founding Yields</Italian>
+		<Spanish>Founding Yields</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGYIELDS_HOVER</Tag>
+		<English>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</English>
+		<French>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</French>
+		<German>Zeigt (wie in BtS) Geländeerträge auf der Hauptkarte an, wenn eine Siedlereinheit ausgewählt ist. Wenn diese Option nicht angekreuzt ist, werden Geländeerträge nur dann angezeigt, wenn die Ertragsanzeige (oberhalb der Übersichtskarte) aktiviert wurde.[NEWLINE]Beim Ändern dieser Option sollte kein Siedler ausgewählt sein.</German>
+		<Italian>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</Italian>
+		<Spanish>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_TEXT</Tag>
+		<English>Founding Border</English>
+		<French>Founding Border</French>
+		<German>Siedler-Grenzanzeige</German>
+		<Italian>Founding Border</Italian>
+		<Spanish>Founding Border</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_HOVER</Tag>
+		<English>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</English>
+		<French>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</French>
+		<German>Ob um eine ausgewählte Siedlereinheit Stadtgrenzen eingeblendet werden sollen und, wenn ja, ob die Grenzen (wie in BtS) nur benachbarte Felder ([COLOR_HIGHLIGHT_TEXT]innerer Ring[COLOR_REVERT]) einschließen sollen oder den gesamten Stadtradius ([COLOR_HIGHLIGHT_TEXT]Stadtkreuz[COLOR_REVERT]).</German>
+		<Italian>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</Italian>
+		<Spanish>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_LIST</Tag>
+		<English>None|Adjacent|City Cross</English>
+		<French>None|Adjacent|City Cross</French>
+		<German>Keine|Innerer Ring|Stadtkreuz</German>
+		<Italian>None|Adjacent|City Cross</Italian>
+		<Spanish>None|Adjacent|City Cross</Spanish>
+	</TEXT>
+	
+	<!-- advc.004m -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_TEXT</Tag>
+		<English>Start with Resource Display</English>
+		<French>Symboles de ressources au début du jeu</French>
+		<German>Ressourcenanzeige bei Spielstart</German>
+		<Italian>Mostra risorse all'inizio del gioco</Italian>
+		<Spanish>Muestra recursos al inicio del juego</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_HOVER</Tag>
+		<English>When checked, the Resource Display is enabled at the start of every new game. Otherwise, the Resource Display is disabled at game start.</English>
+		<French>Active l'affichage des ressources au début du jeu.</French>
+		<German>Aktiviert die Ressourcenanzeige zu Spielbeginn.</German>
+		<Italian>Abilita la segnalazione delle risorse all'inizio del gioco.</Italian>
+		<Spanish>Activa las marcas de recursos al inicio del juego.</Spanish>
+	</TEXT>
+	
+	<!-- advc.002f -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYNETWORKICON_TEXT</Tag>
+		<English>Trade Network</English>
+		<French>Trade Network</French>
+		<German>Handelsnetz</German>
+		<Italian>Trade Network</Italian>
+		<Spanish>Trade Network</Spanish>
+	</TEXT>
+	<!-- Term "trade layer": The button says "display of trade groups," but
+		 that's too unwieldy. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYNETWORKICON_HOVER</Tag>
+		<English>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</English>
+		<French>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</French>
+		<German>Zeigt das [ICON_TRADE]-Symbol über den Namen von Städten an, die an Ihr Städtenetz angeschlossen sind (wie in BtS). In jedem Fall können Sie über die Handelsgruppenanzeige (Globalansicht) prüfen, ob eine Stadt angeschlossen ist.</German>
+		<Italian>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</Italian>
+		<Spanish>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AIRPORTICON_TEXT</Tag>
+		<English>Airport</English>
+		<French>Airport</French>
+		<German>Flughafen</German>
+		<Italian>Airport</Italian>
+		<Spanish>Airport</Spanish>
+	</TEXT>
+	<!-- Italian and Spanish copied from 'BULL City Bar Options.xml' -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AIRPORTICON_HOVER</Tag>
+		<English>When checked, the [ICON_AIRPORT] icon is shown above the billboard of cities that have an airport.</English>
+		<French>When checked, the [ICON_AIRPORT] icon is shown above the billboard of cities that have an airport.</French>
+		<German>Zeigt das [ICON_AIRPORT]-Symbol über den Namen von Städten an, die über einen Flughafen verfügen.</German>
+		<Italian>Quando è selezionato, aggiunge l'icona [ICON_AIRPORT] alle città che hanno un Aeroporto.</Italian>
+		<Spanish>Muestra el icono [ICON_AIRPORT] sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
+	</TEXT>
+	
+</Civ4GameText>

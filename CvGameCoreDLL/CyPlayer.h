@@ -6,9 +6,6 @@
 // Python wrapper class for CvPlayer 
 // 
 
-//#include "CvEnums.h"
-//#include "CvStructs.h"
-
 class CyUnit;
 class CvPlayer;
 class CyCity;
@@ -23,17 +20,11 @@ public:
 	CvPlayer* getPlayer() { return m_pPlayer;	}	// Call from C++
 	bool isNone() { return (m_pPlayer==NULL); }
 
-/************************************************************************************************/
-/* CHANGE_PLAYER                         08/27/08                                 jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+	// CHANGE_PLAYER, 08/27/08, jdog5000: START
 	void changeLeader( int /*LeaderHeadTypes*/ eNewLeader );
 	void changeCiv( int /*CivilizationTypes*/ eNewCiv );
 	void setIsHuman( bool bNewValue );
-/************************************************************************************************/
-/* CHANGE_PLAYER                           END                                                  */
-/************************************************************************************************/
+	// CHANGE_PLAYER: END
 	int startingPlotRange();
 	bool startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlayer, int iRange, int iPass);
 
@@ -356,6 +347,7 @@ public:
 	bool isEverAlive();
 	bool isExtendedGame();
 	bool isFoundedFirstCity();
+	bool isAnyGPPEver(); // advc.078
 	
 	bool isStrike();
 
@@ -529,7 +521,10 @@ public:
 	// advc.038: returns int b/c I'm not sure if double would cause problems
 	int estimateYieldRate(YieldTypes yield) const;
 	void checkAlert(int alertId, bool silent); // advc.210
-	int AI_corporationBonusVal(int eBonus) const; // advc.210e
+	int AI_corporationBonusVal(int eBonus) const; // advc.210e, advc.073
+	// <advc.085>
+	void setScoreboardExpanded(bool b);
+	bool isScoreboardExpanded() const; // </advc.085>
 
 private:
 	CvPlayer* m_pPlayer;

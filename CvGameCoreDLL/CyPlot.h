@@ -3,8 +3,6 @@
 #ifndef CyPlot_h
 #define CyPlot_h
 
-//#include "CvEnums.h"
-
 //
 // Python wrapper class for CvPlot
 // 
@@ -57,8 +55,9 @@ public:
 	bool canHaveBonus(int /*BonusTypes*/ eBonus, bool bIgnoreLatitude);
 	bool canHaveImprovement(int /* ImprovementTypes */ eImprovement, int /*TeamTypes*/ eTeam, bool bPotential);
 	bool canBuild(int /*BuildTypes*/ eBuild, int /*PlayerTypes*/ ePlayer, bool bTestVisible);
-	int getBuildTime(int /*BuildTypes*/ eBuild);
-	int getBuildTurnsLeft(int /*BuildTypes*/ eBuild, int iNowExtra, int iThenExtra);
+	// advc.251: Param ePlayer added to these two functions
+	int getBuildTime(int /*BuildTypes*/ eBuild, int /*PlayerTypes*/ ePlayer);
+	int getBuildTurnsLeft(int /*BuildTypes*/ eBuild, int /*PlayerTypes*/ ePlayer, int iNowExtra, int iThenExtra);
 	int getFeatureProduction(int /*BuildTypes*/ eBuild, int /*TeamTypes*/ eTeam, CyCity* ppCity);
 
 	CyUnit* getBestDefender(int /*PlayerTypes*/ eOwner, int /*PlayerTypes*/ eAttackingPlayer, CyUnit* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove);
@@ -124,7 +123,8 @@ public:
 	int getX();
 	int getY();
 	bool at(int iX, int iY);
-	int getLatitude();																							
+	void setLatitude(int iLatitude); // advc.tsl
+	int getLatitude();
 	CyArea* area();
 	CyArea* waterArea();
 	int getArea();
@@ -244,7 +244,8 @@ public:
 	int /* ImprovementTypes */ getRevealedImprovementType(int /*TeamTypes*/ eTeam, bool bDebug);
 	int /* RouteTypes */ getRevealedRouteType(int /*TeamTypes*/ eTeam, bool bDebug);
 	int getBuildProgress(int /*BuildTypes*/ eBuild);
-	bool changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*TeamTypes*/ eTeam);
+	// advc.251: Last param now ePlayer
+	bool changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*PlayerTypes*/ ePlayer);
 
 	int getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex);
 	bool isCultureRangeCity(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex);

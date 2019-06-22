@@ -2,13 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlotGroup.h"
-#include "CvPlot.h"
-#include "CvGlobals.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
-#include "CvCity.h"
 #include "CvDLLFAStarIFaceBase.h"
-#include "FProfiler.h"
 
 // Public Functions...
 
@@ -219,36 +215,47 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 	FAssertMsg(eBonus >= 0, "eBonus is expected to be non-negative (invalid Index)");
 	FAssertMsg(eBonus < GC.getNumBonusInfos(), "eBonus is expected to be within maximum bounds (invalid Index)");
 
-	if (iChange != 0)
+	if (iChange == 0)
+		return; // advc.003
+
+	//iOldNumBonuses = getNumBonuses(eBonus);
+	m_paiNumBonuses[eBonus] = (m_paiNumBonuses[eBonus] + iChange);
+
+	//FAssertMsg(m_paiNumBonuses[eBonus] >= 0, "m_paiNumBonuses[eBonus] is expected to be non-negative (invalid Index)"); XXX
+	// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
+	// It's an unfortuante side effect of the way the update is implemented. ... and so this assert is invalid.
+	// (This isn't my fault. I haven't changed it. It has always been like this.)
+
+	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
+
+	while (pPlotNode != NULL)
 	{
-		//iOldNumBonuses = getNumBonuses(eBonus);
-
-		m_paiNumBonuses[eBonus] = (m_paiNumBonuses[eBonus] + iChange);
-
-		//FAssertMsg(m_paiNumBonuses[eBonus] >= 0, "m_paiNumBonuses[eBonus] is expected to be non-negative (invalid Index)"); XXX
-
-		// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
-		// It's an unfortuante side effect of the way the update is implemented. ... and so this assert is invalid.
-		// (This isn't my fault. I haven't changed it. It has always been like this.)
-
-		CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-
-		while (pPlotNode != NULL)
+		CvCity* pCity = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		if (pCity != NULL)
 		{
-			CvCity* pCity = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
-
-			if (pCity != NULL)
+			if (pCity->getOwnerINLINE() == getOwnerINLINE())
 			{
-				if (pCity->getOwnerINLINE() == getOwnerINLINE())
-				{
-					pCity->changeNumBonuses(eBonus, iChange);
-				}
+				pCity->changeNumBonuses(eBonus, iChange);
 			}
-
-			pPlotNode = nextPlotsNode(pPlotNode);
 		}
+
+		pPlotNode = nextPlotsNode(pPlotNode);
 	}
 }
+
+// <advc.064d>
+void CvPlotGroup::verifyCityProduction() {
+
+	PROFILE_FUNC();
+	CvMap const& m = GC.getMapINLINE();
+	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
+	while (pPlotNode != NULL) {
+		CvCity* pCity = m.plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
+			pCity->verifyProduction();
+		pPlotNode = nextPlotsNode(pPlotNode);
+	}
+} // </advc.064d>
 
 
 void CvPlotGroup::insertAtEndPlots(XYCoords xy)

@@ -7,8 +7,6 @@
 // SINGLETON
 // updated 6-5
 
-//#include "CvEnums.h"
-
 class CvGame;
 class CvGameAI;
 class CyCity;
@@ -166,7 +164,7 @@ public:
 	bool isSimultaneousTeamTurns();
 
 	bool isFinalInitialized();
-
+	void setScreenDimensions(int x, int y); // advc.061
 	int /*PlayerTypes*/ getActivePlayer();
 	void setActivePlayer(int /*PlayerTypes*/ eNewValue, bool bForceHotSeat);
 	int getPausePlayer();
@@ -267,15 +265,10 @@ public:
 	void saveReplay(int iPlayer);
 
 	void addPlayer(int /*PlayerTypes*/ eNewPlayer, int /*LeaderHeadTypes*/ eLeader, int /*CivilizationTypes*/ eCiv);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
+
+	// BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000:
 	void changeHumanPlayer( int /*PlayerTypes*/ eNewHuman );
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+
 	int getCultureThreshold(int /*CultureLevelTypes*/ eLevel);
 
 	int getPlotExtraYield(int iX, int iY, int /*YieldTypes*/ eYield); // K-Mod
@@ -290,6 +283,7 @@ public:
 	bool isEventActive(int /*EventTriggerTypes*/ eTrigger);
 	void doControl(int iControl);
 
+	void saveGame(std::string szFileName) const; // BULL - AutoSave
 	bool useKModAI(); // advc.104
 	int getBarbarianStartTurn(); // advc.300
 	std::wstring SPaHPointsForSettingsScreen(); // advc.250b
@@ -309,6 +303,7 @@ public:
 	bool isRFInterlude();
 	bool isRFBlockPopups();
 	bool isAITurn(); // </advc.706>
+	void reportCurrentLayer(int iLayer); // advc.004m
 
 protected:
 	CvGame* m_pGame;

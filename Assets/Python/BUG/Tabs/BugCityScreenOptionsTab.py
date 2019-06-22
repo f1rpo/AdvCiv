@@ -40,23 +40,31 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		###self.addCheckboxTextDropdown(screen, left, left, "CityScreen__RawYields", "CityScreen__RawYields_View")
 		self.addCheckbox(screen, panel, "CityScreen__RawYields")
 		self.addTextDropdown(screen, panel, panel, "CityScreen__RawYieldsView", True)
-		self.addTextDropdown(screen, panel, panel, "CityScreen__RawYieldsTiles", True)
+		# advc.004: I really don't see anyone selecting anything other than "worked tiles" as the default counting method
+		#self.addTextDropdown(screen, panel, panel, "CityScreen__RawYieldsTiles", True)
 		
 	def createHurryDetailPanel(self, screen, panel):
 		self.addLabel(screen, panel, "HurryDetail", "Hurry Detail:")
+		# advc.064: Moved from Misc
+		self.addCheckbox(screen, panel, "CityScreen__Anger_Counter")
 		left, right = self.addTwoColumnLayout(screen, panel, "HurryDetail", False)
 		#self.addCheckbox(screen, left, "CityBar__HurryAssist")
 		#self.addCheckbox(screen, right, "CityBar__HurryAssistIncludeCurrent")
+		# <advc.064> Restored (and BULL code merged)
+		self.addCheckbox(screen, left, "MiscHover__HurryOverflow")
+		self.addCheckbox(screen, right, "MiscHover__HurryOverflowIncludeCurrent")
+		# </advc.064>
 		self.addCheckbox(screen, left, "CityScreen__WhipAssist")
 		self.addCheckbox(screen, right, "CityScreen__WhipAssistOverflowCountCurrentProduction")
-		#self.addCheckbox(screen, left, "MiscHover__HurryOverflow")
-		#self.addCheckbox(screen, right, "MiscHover__HurryOverflowIncludeCurrent")
+		# advc.064: New option
+		self.addCheckbox(screen, left, "CityScreen__HurryTickMarks")
 		
 	def createBuildingActualEffectsPanel(self, screen, panel):
 		self.addLabel(screen, panel, "BuildingEffects", "Building Actual Effects in Hovers:")
 		left, right = self.addTwoColumnLayout(screen, panel, "BuildingEffects", False)
 		self.addCheckbox(screen, left, "MiscHover__BuildingActualEffects")
-		#self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalFood")
+		# BULL - Food Rate Hover:
+		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalFood")
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalProduction")
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalCommerce")
 		self.addCheckbox(screen, left, "MiscHover__BuildingSavedMaintenance")
@@ -113,15 +121,23 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 	def createMiscellaneousPanel(self, screen, panel):
 		self.addLabel(screen, panel, "Misc", "Miscellaneous:")
-		self.addCheckbox(screen, panel, "MiscHover__BaseCommerce")
-		self.addCheckbox(screen, panel, "CityScreen__FoodAssist")
-		self.addCheckbox(screen, panel, "CityScreen__Anger_Counter")
-		self.addCheckbox(screen, panel, "CityScreen__CultureTurns")
-		self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
-		self.addCheckbox(screen, panel, "CityScreen__OnlyPresentReligions")
-		self.addCheckbox(screen, panel, "CityScreen__OnlyPresentCorporations")
+		
+		# advc.004: Moved up
 		self.addTextDropdown(screen, panel, panel, "CityScreen__Specialists", True)
 		#self.addCheckbox(screen, panel, "MiscHover__RemoveSpecialist")
+		
+		# advc.065: No longer optional
+		#self.addCheckbox(screen, panel, "MiscHover__BaseCommerce")
+		self.addCheckbox(screen, panel, "CityScreen__FoodAssist")
+		
+		# (advc.064: Anger_Counter moved to HurryDetail)
+		
+		# advc.065: No longer optional
+		#self.addCheckbox(screen, panel, "CityScreen__CultureTurns")
+		# advc.004: Already shown on the General tab, once should be enough.
+		#self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
+		self.addCheckbox(screen, panel, "CityScreen__OnlyPresentReligions")
+		self.addCheckbox(screen, panel, "CityScreen__OnlyPresentCorporations")
 		
 		#self.addCheckbox(screen, panel, "MiscHover__UnitExperience")
 		#self.addCheckbox(screen, panel, "MiscHover__UnitExperienceModifiers")

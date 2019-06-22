@@ -3,10 +3,14 @@
 #ifndef WAR_UTILITY_ASPECT_H
 #define WAR_UTILITY_ASPECT_H
 
-#include "MilitaryAnalyst.h"
 #include "WarAndPeaceAI.h"
 
 class MilitaryAnalyst;
+class WarEvalParameters;
+class WarAndPeaceReport;
+class WarAndPeaceAI::Civ;
+class WarAndPeaceAI::Team;
+class WarAndPeaceCache;
 
 
 /*  <advc.104> New class. An aspect of war evaluation.
@@ -64,12 +68,11 @@ protected:
 	WarAndPeaceReport& report;
 	int numRivals; // Civs presently alive, not on our team, non-vassal
 	int numKnownRivals; // Like above, but only those met by agent
-	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
+	// So that subclasses don't need to call GC.getGameINLINE().getCurrentEra() repeatedly:
 	EraTypes gameEra;
 
-	/*  Subclasses must not access these members until evaluate(m)
-		has been called.
-		Initialization is guaranteed although they're not references.
+	/*  Subclasses must not access these members until evaluate(m) has been called.
+		Initialization is then guaranteed although they're not references.
 		This is obviously not an ideal class design. A separate class
 		WarUtilityAspect::Civ would be even more unwieldy I think. */
 	MilitaryAnalyst* m;
@@ -355,6 +358,8 @@ public:
 	void evaluate();
 	char const* aspectName() const;
 	int xmlId() const;
+private:
+	double gameProgressFactor;
 };
 
 

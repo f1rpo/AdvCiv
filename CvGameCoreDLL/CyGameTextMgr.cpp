@@ -86,6 +86,15 @@ std::wstring CyGameTextMgr::getUnitHelp(int iUnit, bool bCivilopediaText, bool b
 	return szBuffer.getCString();
 }
 
+// <advc.069>
+std::wstring CyGameTextMgr::getBasicUnitHelp(int iUnit, bool bCivilopediaText) {
+
+	CvWStringBuffer szBuffer;
+	GAMETEXT.setBasicUnitHelp(szBuffer, (UnitTypes)iUnit, bCivilopediaText);
+	return szBuffer.getCString();
+} // </advc.069>
+
+
 std::wstring CyGameTextMgr::getSpecificUnitHelp(CyUnit* pUnit, bool bOneLine, bool bShort)
 {
 	CvWStringBuffer szBuffer;

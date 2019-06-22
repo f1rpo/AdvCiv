@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvMessageControl.h"
 #include "CvMessageData.h"
+#include "CvGameAI.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 CvMessageControl& CvMessageControl::getInstance()
@@ -128,11 +129,13 @@ void CvMessageControl::sendJoinGroup(int iUnitID, int iHeadID)
 	}
 }
 
-void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift)
+void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift,
+		bool bModified) // advc.011b
 {
 	if (NO_PLAYER != GC.getGameINLINE().getActivePlayer())
 	{
-		gDLL->sendMessageData(new CvNetPushMission(GC.getGameINLINE().getActivePlayer(), iUnitID, eMission, iData1, iData2, iFlags, bShift));
+		gDLL->sendMessageData(new CvNetPushMission(GC.getGameINLINE().getActivePlayer(), iUnitID, eMission, iData1, iData2, iFlags, bShift,
+				bModified)); // advc.011b
 	}
 }
 
@@ -200,4 +203,7 @@ void CvMessageControl::sendPing(int iX, int iY)
 	}
 }
 
-
+void CvMessageControl::sendFPTest(int iResult)
+{
+	gDLL->sendMessageData(new CvNetFPTest(GC.getGameINLINE().getActivePlayer(), iResult));
+}

@@ -5,15 +5,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "CyGlobalContext.h"
+#include "CvGamePlay.h"
 #include "CyGame.h"
 #include "CyPlayer.h"
 #include "CyMap.h"
-#include "CvGlobals.h"
-#include "CvPlayerAI.h"
-//#include "CvStructs.h"
 #include "CvInfos.h"
 #include "CyTeam.h"
-#include "CvTeamAI.h"
 #include "CyArtFileMgr.h"
 
 CyGlobalContext::CyGlobalContext()
@@ -102,7 +99,16 @@ CyTeam* CyGlobalContext::getCyTeam(int i)
 
 	return i<MAX_TEAMS ? &cyTeams[i] : NULL;
 }
+// <dlph.27> (AdvCiv code)
+bool CyGlobalContext::isLogging() {
 
+	return GC.getLogging();
+}
+
+bool CyGlobalContext::isRandLogging() {
+
+	return GC.getRandLogging();
+} // </dlph.27>
 
 CvEffectInfo* CyGlobalContext::getEffectInfo(int /*EffectTypes*/ i) const
 {
@@ -454,6 +460,12 @@ CvPlayerOptionInfo* CyGlobalContext::getPlayerOptionsInfoByIndex(int i) const
 	return &GC.getPlayerOptionInfo((PlayerOptionTypes) i);
 }
 
+// <advc.003>
+bool CyGlobalContext::IsGraphicsInitialized() const {
+
+	return GC.IsGraphicsInitialized();
+} // </advc.003>
+
 
 CvGraphicOptionInfo* CyGlobalContext::getGraphicOptionsInfoByIndex(int i) const
 {
@@ -520,11 +532,11 @@ CvInfoBase* CyGlobalContext::getDenialInfo(int i) const
 	return (i>=0 && i<GC.getNumDenialInfos()) ? &GC.getDenialInfo((DenialTypes)i) : NULL;
 }
 
-
-CvQuestInfo* CyGlobalContext::getQuestInfo(int i) const
+// advc.003j:
+/*CvQuestInfo* CyGlobalContext::getQuestInfo(int i) const
 {
 	return (i>=0 && i<GC.getNumQuestInfos()) ? &GC.getQuestInfo(i) : NULL;
-}
+}*/
 
 
 CvTutorialInfo* CyGlobalContext::getTutorialInfo(int i) const

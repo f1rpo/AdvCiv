@@ -1,32 +1,11 @@
 #pragma once
 
-// game.h
 
 #ifndef CIV4_INITCORE_H
 #define CIV4_INITCORE_H
 
-//#include "CvEnums.h"
-
-/*
-** K-Mod, 8/dec/10, karadoc
-** moved this macro to CvGlobals.h (and modified it)
-*
-#define FASSERT_BOUNDS(lower,upper,index,fnString)\
-	if (index < lower)\
-	{\
-		char acOut[256];\
-		sprintf(acOut, "Index in %s expected to be >= %d", fnString, lower);\
-		FAssertMsg(index >= lower, acOut);\
-	}\
-	else if (index >= upper)\
-	{\
-		char acOut[256];\
-		sprintf(acOut, "Index in %s expected to be < %d", fnString, upper);\
-		FAssertMsg(index < upper, acOut);\
-	}
-**
-** K-Mod end
-*/
+/*  K-Mod, 8/dec/10, karadoc
+	moved FASSERT_BOUNDS to CvGlobals.h (and modified it) */
 
 class CvInitCore
 {
@@ -152,8 +131,8 @@ public:
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
-
-	const bool * getOptions() const	{ return m_abOptions; }
+	// advc.003b: inlined
+	inline const bool * getOptions() const	{ return m_abOptions; }
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 
@@ -168,8 +147,7 @@ public:
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-
-	int getGameTurn() const	{ return m_iGameTurn; }
+	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.003b
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
 	int getMaxTurns() const	{ return m_iMaxTurns; }

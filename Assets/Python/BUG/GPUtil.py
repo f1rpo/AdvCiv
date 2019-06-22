@@ -171,9 +171,11 @@ def getCityTurns(city):
 def calcPercentages(city):
 
 	# Calc total rate
-	iTotal = 0
-	for iUnit in g_gpUnitTypes:
-		iTotal += city.getGreatPeopleUnitProgress(iUnit)
+	#iTotal = 0
+	# advc.001c: Total no longer needed, and the >0 check would prevent percentages from being shown when the GP rate is positive but no GP have been accumulated yet.
+	iTotal=1
+	#for iUnit in g_gpUnitTypes:
+	#	iTotal += city.getGreatPeopleUnitProgress(iUnit)
 	# Calc individual percentages based on rates and total
 	percents = []
 	if (iTotal > 0):
@@ -208,7 +210,9 @@ def getHoverText(eWidgetType, iData1, iData2, bOption):
 	iThreshold = gc.getPlayer(city.getOwner()).greatPeopleThreshold(False)
 	iProgress = city.getGreatPeopleProgress()
 	iRate = city.getGreatPeopleRate()
-	szText = BugUtil.colorText(city.getName(), "COLOR_HIGHLIGHT_TEXT")
+	#szText = BugUtil.colorText(city.getName(), "COLOR_HIGHLIGHT_TEXT")
+	# advc.004: Don't color the city (I don't think this matches the overall color scheme of the game)
+	szText = city.getName()
 	szText += u"\n"
 	szText += BugUtil.getText("TXT_KEY_MISC_GREAT_PERSON", (iProgress, iThreshold))
 	if (iRate > 0):
@@ -219,7 +223,7 @@ def getHoverText(eWidgetType, iData1, iData2, bOption):
 	if (len(percents) > 0):
 		percents.sort()
 		percents.reverse()
-		szText += u"\n"
+		#szText += u"\n" advc.004: No empty line between total rate and percentages
 		for iPercent, iUnit in percents:
 #			iUnit = getUnitType(gpType)
 			szText += u"\n%s%s - %d%%" % (getUnitIcon(iUnit), gc.getUnitInfo(iUnit).getDescription(), iPercent)

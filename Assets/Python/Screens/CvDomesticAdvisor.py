@@ -268,7 +268,10 @@ class CvDomesticAdvisor:
 		screen.setTableInt( "CityListBackground", 11, i, unicode(pLoopCity.getTradeYield(YieldTypes.YIELD_COMMERCE)), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 		# Maintenance...
-		screen.setTableInt( "CityListBackground", 12, i, unicode(pLoopCity.getMaintenance()), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		#iMaintenance = pLoopCity.getMaintenance()
+		# advc.004: Based on K-Mod code in CvMainInterface.py
+		iMaintenance = pLoopCity.getMaintenanceTimes100() * (100+gc.getPlayer(pLoopCity.getOwner()).calculateInflationRate()) // 10000
+		screen.setTableInt( "CityListBackground", 12, i, unicode(iMaintenance), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 		# Great Person
 		iGreatPersonRate = pLoopCity.getGreatPeopleRate()
@@ -286,13 +289,19 @@ class CvDomesticAdvisor:
 		# Garrison
 		screen.setTableInt( "CityListBackground", 14, i, unicode(pLoopCity.plot().getNumDefenders(pLoopCity.getOwner())), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
-		# Producing	
-		screen.setTableText( "CityListBackground", 15, i, pLoopCity.getProductionName() + " (" + str(pLoopCity.getGeneralProductionTurnsLeft()) + ")", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# Producing
+		szProducing = pLoopCity.getProductionName()
+		iProductionTurns = pLoopCity.getGeneralProductionTurnsLeft()
+		if iProductionTurns > 0: # advc.004x
+			szProducing += " (" + str(iProductionTurns) + ")"
+		screen.setTableText( "CityListBackground", 15, i, szProducing, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 		# Liberation
-		if pLoopCity.getLiberationPlayer(false) != -1:
+		# advc.004: Mark potential independent colonies too (bCanSplit check added to the two conditions below)
+		bCanSplit = gc.getPlayer(gc.getGame().getActivePlayer()).canSplitArea(pLoopCity.getArea())
+		if bCanSplit or pLoopCity.getLiberationPlayer(false) != -1:
 			# UNOFFICIAL_PATCH begin
-			if not gc.getTeam(gc.getPlayer(pLoopCity.getLiberationPlayer(false)).getTeam()).isAtWar(CyGame().getActiveTeam()) :
+			if bCanSplit or not gc.getTeam(gc.getPlayer(pLoopCity.getLiberationPlayer(false)).getTeam()).isAtWar(CyGame().getActiveTeam()) :
 				screen.setTableText( "CityListBackground", 16, i, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)) + "</font>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 			# UNOFFICIAL_PATCH end
 		

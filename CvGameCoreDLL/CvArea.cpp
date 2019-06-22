@@ -1,15 +1,9 @@
 // area.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvArea.h"
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvGlobals.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
+#include "CvGamePlay.h"
 #include "CvInfos.h"
-
 #include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...
@@ -191,14 +185,14 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 
 	if (!bConstructorCall)
 	{
-		FAssertMsg((0 < GC.getNumBonusInfos()) && "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvArea::reset", "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvArea::reset");
+		FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is negative but an array is being allocated in CvArea::reset");
 		m_paiNumBonuses = new int[GC.getNumBonusInfos()];
 		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			m_paiNumBonuses[iI] = 0;
 		}
 
-		FAssertMsg((0 < GC.getNumImprovementInfos()) && "GC.getNumImprovementInfos() is not greater than zero but an array is being allocated in CvArea::reset", "GC.getNumImprovementInfos() is not greater than zero but an array is being allocated in CvArea::reset");
+		FAssertMsg(0 < GC.getNumImprovementInfos(), "GC.getNumImprovementInfos() is negative but an array is being allocated in CvArea::reset");
 		m_paiNumImprovements = new int[GC.getNumImprovementInfos()];
 		for (iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 		{
@@ -217,15 +211,11 @@ void CvArea::setID(int iID)
 
 int CvArea::calculateTotalBestNatureYield() const
 {
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iI;
+	int iCount = 0;
 
-	iCount = 0;
-
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -239,20 +229,16 @@ int CvArea::calculateTotalBestNatureYield() const
 
 int CvArea::countCoastalLand() const
 {
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iI;
-
 	if (isWater())
 	{
 		return 0;
 	}
 
-	iCount = 0;
+	int iCount = 0;
 
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -356,18 +342,18 @@ void CvArea::updateLake(bool bCheckRepr) {
 	m_bLake = false;
 	if(!isWater())
 		return;
-	int totalTiles = getNumTiles();
-	if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+	int iTotalTiles = getNumTiles();
+	if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
 		return;
 	if(!bCheckRepr) {
 		m_bLake = true;
 		return;
 	}
-	CvMap& m = GC.getMapINLINE(); int dummy=-1;
-	for(CvArea* other = m.firstArea(&dummy); other != NULL; other = m.nextArea(&dummy)) {
+	CvMap& m = GC.getMapINLINE(); int foo=-1;
+	for(CvArea* other = m.firstArea(&foo); other != NULL; other = m.nextArea(&foo)) {
 		if(other->m_iRepresentativeAreaId == m_iRepresentativeAreaId && other->m_iID != m_iID) {
-			totalTiles += other->getNumTiles();
-			if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+			iTotalTiles += other->getNumTiles();
+			if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
 				return;
 		}
 	}
@@ -386,14 +372,14 @@ int CvArea::getRepresentativeArea() const {
 
 /*  Replacement for the BtS area()==area() checks. Mostly used for
 	performance reasons before costlier more specific checks. */
-bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
+bool CvArea::canBeEntered(CvArea const& kFrom, CvUnit const* u) const {
 
-	if(getID() == from.getID())
+	if(getID() == kFrom.getID())
 		return true;
 	/*  If I wanted to support canMoveAllTerrain here, then I couldn't do
 		anything more when u==NULL. So that's not supported. */
-	if(isWater() == from.isWater() && (m_iRepresentativeAreaId !=
-			from.m_iRepresentativeAreaId || (u != NULL && !u->canMoveImpassable())))
+	if(isWater() == kFrom.isWater() && (m_iRepresentativeAreaId !=
+			kFrom.m_iRepresentativeAreaId || (u != NULL && !u->canMoveImpassable())))
 		return false;
 	/*  Can't rule out movement between water and land without knowing if the
 		unit is a ship inside a city or a land unit aboard a transport */
@@ -411,20 +397,18 @@ bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
 
 void CvArea::changeNumTiles(int iChange)
 {
-	bool bOldLake;
+	if(iChange == 0)
+		return;
 
-	if (iChange != 0)
+	bool bOldLake = isLake();
+
+	m_iNumTiles = (m_iNumTiles + iChange);
+	FAssert(getNumTiles() >= 0);
+
+	if (bOldLake != isLake())
 	{
-		bOldLake = isLake();
-
-		m_iNumTiles = (m_iNumTiles + iChange);
-		FAssert(getNumTiles() >= 0);
-
-		if (bOldLake != isLake())
-		{
-			GC.getMapINLINE().updateIrrigated();
-			GC.getMapINLINE().updateYield();
-		}
+		GC.getMapINLINE().updateIrrigated();
+		GC.getMapINLINE().updateYield();
 	}
 }
 
@@ -440,16 +424,15 @@ void CvArea::changeNumOwnedTiles(int iChange)
 // <advc.300>
 std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const {
 
-	std::pair<int,int> r;
-	r.first = 0; r.second = 0;
-	CvMap const& map = GC.getMap();
-	for(int i = 0; i < map.numPlots(); i++) {
-		CvPlot* plot = map.plotByIndexINLINE(i);
-		if(plot == NULL || plot->area() == NULL || plot->area()->getID() != getID()
-				|| !plot->isHabitable())
+	std::pair<int,int> r(0, 0);
+	CvMap const& kMap = GC.getMapINLINE();
+	for(int i = 0; i < kMap.numPlots(); i++) {
+		CvPlot* pPlot = kMap.plotByIndexINLINE(i);
+		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
+				|| !pPlot->isHabitable())
 			continue;
-		if(plot->isOwned() && (!bIgnoreBarb ||
-				plot->getOwnerINLINE() != BARBARIAN_PLAYER))
+		if(pPlot->isOwned() && (!bIgnoreBarb ||
+				pPlot->getOwnerINLINE() != BARBARIAN_PLAYER))
 			r.first++;
 		else r.second++;
 	}
@@ -470,9 +453,9 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 	   aren't cached/ serialized (yet). */
 	int r = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes civId = (PlayerTypes)i;
-		if(getCitiesPerPlayer(civId) > 0 &&
-				(!bSubtractOCC || !GET_PLAYER(civId).isHuman() ||
+		PlayerTypes ePlayer = (PlayerTypes)i;
+		if(getCitiesPerPlayer(ePlayer) > 0 &&
+				(!bSubtractOCC || !GET_PLAYER(ePlayer).isHuman() ||
 				!GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
 			r++;
 	}
@@ -480,12 +463,12 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 }
 
 
-bool CvArea::hasAnyAreaPlayerBonus(BonusTypes bId) const {
+bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const {
 
 	for(int i = 0; i < MAX_PLAYERS; i++) {
 		PlayerTypes ePlayer = (PlayerTypes)i;
 		// Barbarian, minor civ, anything goes so long as there's a city.
-		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(bId))
+		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(eBonus))
 			return true;
 	}
 	return false;
@@ -496,7 +479,7 @@ int CvArea::getBarbarianCitiesEverCreated() const {
 	return m_iBarbarianCitiesEver;
 }
 
-void CvArea::barbarianCityCreated() {
+void CvArea::reportBarbarianCityCreated() {
 
 	m_iBarbarianCitiesEver++;
 } // </advc.300>
@@ -565,7 +548,7 @@ int CvArea::getCitiesPerPlayer(PlayerTypes eIndex,
 		from so many places that I can't check if one of them might have a problem
 		with water areas having a positive city count. */
 	if(!bCheckAdjacentCoast && isWater())
-		return false; // </advc.030b>
+		return 0; // </advc.030b>
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	return m_aiCitiesPerPlayer[eIndex];
@@ -577,7 +560,7 @@ void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_iNumCities = (m_iNumCities + iChange);
-	barbarianCityCreated(); // advc.300
+	reportBarbarianCityCreated(); // advc.300
 	FAssert(getNumCities() >= 0);
 	m_aiCitiesPerPlayer[eIndex] = (m_aiCitiesPerPlayer[eIndex] + iChange);
 	FAssert(getCitiesPerPlayer(eIndex, true) >= 0); // advc.030b
@@ -783,26 +766,24 @@ bool CvArea::isCleanPower(TeamTypes eIndex) const
 
 void CvArea::changeCleanPowerCount(TeamTypes eIndex, int iChange)
 {
-	bool bOldCleanPower;
-
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be < MAX_TEAMS");
 
-	if (iChange != 0)
+	if(iChange == 0)
+		return;
+
+	bool bOldCleanPower = isCleanPower(eIndex);
+
+	m_aiCleanPowerCount[eIndex] = (m_aiCleanPowerCount[eIndex] + iChange);
+
+	if (bOldCleanPower != isCleanPower(eIndex))
 	{
-		bOldCleanPower = isCleanPower(eIndex);
+		GET_TEAM(eIndex).updateCommerce();
+		GET_TEAM(eIndex).updatePowerHealth();
 
-		m_aiCleanPowerCount[eIndex] = (m_aiCleanPowerCount[eIndex] + iChange);
-
-		if (bOldCleanPower != isCleanPower(eIndex))
+		if (eIndex == GC.getGameINLINE().getActiveTeam())
 		{
-			GET_TEAM(eIndex).updateCommerce();
-			GET_TEAM(eIndex).updatePowerHealth();
-
-			if (eIndex == GC.getGameINLINE().getActiveTeam())
-			{
-				gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-			}
+			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		}
 	}
 }
@@ -1086,7 +1067,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	int iI;
 
 	uint uiFlag=0;
-	uiFlag++; // advc.030
+	uiFlag = 1; // advc.030
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);

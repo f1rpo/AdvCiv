@@ -5,9 +5,10 @@
 #ifndef CIV4_DLL_BUTTON_POPUP_H
 #define CIV4_DLL_BUTTON_POPUP_H
 
-//#include "CvEnums.h"
+
 #include "CvPopupInfo.h"
 #include "CvPopupReturn.h"
+
 
 class CvPopup;
 class CvDLLButtonPopup
@@ -19,7 +20,7 @@ public:
 
 	DllExport static CvDLLButtonPopup& getInstance();
 	DllExport static void freeInstance();
-
+	// advc.003i (caveat): The EXE calls these virtual functions
 	virtual void OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, CvPopupInfo &info);
 	virtual void OnAltExecute(CvPopup& popup, const PopupReturn& popupReturn, CvPopupInfo &info);
 	virtual void OnFocus(CvPopup* pPopup, CvPopupInfo &info);

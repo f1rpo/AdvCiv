@@ -2,14 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
-#include "CvGlobals.h"
+#include "CvGamePlay.h"
 #include "CvInfos.h"
 // advc.137:
 #include "CvInitCore.h"
 
-// Public Functions...
 
 CvGameAI::CvGameAI()
 {
@@ -36,18 +33,19 @@ void CvGameAI::AI_init()
 // <advc.104u>
 /*  Parts of the AI don't seem to get properly initialized in scenarios. Not
 	sure if this has always been the case, if it has to do with K-Mod changes to
-	the turn order (team turns vs. player turns) or is a problem I introduced. */
+	the turn order (team turns vs. player turns) or is a problem I introduced.
+	Amendment: */
 void CvGameAI::AI_initScenario() {
 
 	// Citizens not properly assigned
 	for(int i = 0; i < MAX_PLAYERS; i++) {
-		CvPlayerAI& pl = GET_PLAYER((PlayerTypes)i);
-		if(!pl.isAlive())
-			continue; int dummy=-1;
-		for(CvCity* c = pl.firstCity(&dummy); c != NULL; c = pl.nextCity(&dummy)) {
-			/*  After getting failed assertions in CvCity::doTurn in the
-				Europe1000AD scenario (I'm guessing due to production from
-				Apostolic Palace). */
+		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
+		if(!kPlayer.isAlive())
+			continue;
+		int foo;
+		for(CvCity* c = kPlayer.firstCity(&foo); c != NULL; c = kPlayer.nextCity(&foo)) {
+			/*  Added after getting failed assertions in CvCity::doTurn in the
+				Europe1000AD scenario (I'm guessing due to production from Apostolic Palace). */
 			for(int j = 0; j < NUM_YIELD_TYPES; j++) {
 				YieldTypes y = (YieldTypes)j;
 				c->setBaseYieldRate(y, c->calculateBaseYieldRate(y));
@@ -71,24 +69,24 @@ void CvGameAI::AI_initScenario() {
 void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame) {
 
 	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE")) {
-		wpai.setUseKModAI(true);
+		m_wpai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, false);
 		return;
 	}
 	if(GC.getDefineINT("DISABLE_UWAI")) {
-		wpai.setUseKModAI(true);
+		m_wpai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
-	wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
+	m_wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
 	if(bFromSaveGame) {
-		if(wpai.isEnabled() || wpai.isEnabled(true))
+		if(m_wpai.isEnabled() || m_wpai.isEnabled(true))
 			setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
 	// If still not returned: settings according to Custom Game screen
 	bool bUseKModAI = isOption(GAMEOPTION_AGGRESSIVE_AI);
-	wpai.setUseKModAI(bUseKModAI);
+	m_wpai.setUseKModAI(bUseKModAI);
 	if(!bUseKModAI)
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 } // </advc.104>
@@ -182,7 +180,7 @@ void CvGameAI::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iPad);
 	// <advc.104>
-	wpai.read(pStream);
+	m_wpai.read(pStream);
 	AI_sortOutWPAIOptions(true);
 	// </advc.104>
 }
@@ -197,9 +195,5 @@ void CvGameAI::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_iPad);
 
-	wpai.write(pStream); // advc.104
+	m_wpai.write(pStream); // advc.104
 }
-
-// Protected Functions...
-
-// Private Functions...

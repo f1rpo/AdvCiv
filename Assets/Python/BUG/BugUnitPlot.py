@@ -326,7 +326,9 @@ class BupPanel:
 			self.screen.setState(szCell, BupUnit.isSelected)
 
 	def _drawUnitIcon(self, BupUnit, iIndex, szCell):
-		self.screen.changeImageButton(szCell, gc.getUnitInfo(BupUnit.UnitType).getButton())
+		#self.screen.changeImageButton(szCell, gc.getUnitInfo(BupUnit.UnitType).getButton())
+		# advc.003l: Replacing the above
+		self.screen.changeImageButton(szCell, gc.getPlayer(BupUnit.Owner).getUnitButton(BupUnit.UnitType))
 		self.screen.enable(szCell, BupUnit.Owner == gc.getGame().getActivePlayer())
 		self.screen.show(szCell)
 #		self.screen.setState(szCell, BupUnit.isSelected)

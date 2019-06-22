@@ -575,17 +575,19 @@ class CvDiplomacy:
 
 		# if we are asking for something
 		# advc.155: Treat DEMAND_TEAM here as well
-		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_ASK")  or self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND_TEAM")):
-			diploScreen.diploEvent(DiploEventTypes.DIPLOEVENT_ASK_HELP, -1, -1)
-			if (diploScreen.offerDeal()):
+		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_ASK") or self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND_TEAM")):
+			bAccept = diploScreen.offerDeal() # advc.144: Put acceptance flag in iData1
+			diploScreen.diploEvent(DiploEventTypes.DIPLOEVENT_ASK_HELP, bAccept, -1)
+			if bAccept:
 				self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_ACCEPT_ASK"))
 			else:
 				self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_REJECT_ASK"))
 
 		# if we are demanding something
 		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND")):
-			diploScreen.diploEvent(DiploEventTypes.DIPLOEVENT_MADE_DEMAND, -1, -1)
-			if (diploScreen.offerDeal()):
+			bAccept = diploScreen.offerDeal() # advc.144: Put acceptance flag in iData1
+			diploScreen.diploEvent(DiploEventTypes.DIPLOEVENT_MADE_DEMAND, bAccept, -1)
+			if bAccept:
 				self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_ACCEPT_DEMAND"))
 			else:
 				self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_REJECT_DEMAND"))

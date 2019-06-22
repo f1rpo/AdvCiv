@@ -10,7 +10,7 @@
 ##
 ## getSaveFileName(pathName)
 ##   Returns the full path and name of the save file for the current game.
-##   Used by MapFinder and the save events.
+##   Needed for MapFinder and the save events.
 ##
 ## The idea for this and much of the code come from HOF Mod.
 ##
@@ -25,7 +25,7 @@ import CvUtil
 import BugCore
 import BugPath
 import BugUtil
-import MapFinder
+#import MapFinder # advc.009c: Map finder removed
 import PlayerUtil
 
 
@@ -84,7 +84,8 @@ def getSaveDir(type=SINGLE, variant=None):
 def getSaveFileName(pathName):
 	if pathName:
 		activePlayer = PlayerUtil.getActivePlayer()
-		if not MapFinder.isActive() and options.isUsePlayerName():
+		#if not MapFinder.isActive() and options.isUsePlayerName():
+		if options.isUsePlayerName(): # advc.009c: Replacing the above
 			fileName = activePlayer.getName()
 			turnYear = CyGameTextMgr().getTimeStr(gc.getGame().getGameTurn(), False)
 			fileName += '_' + turnYear.replace(" ", "-")
@@ -124,25 +125,33 @@ def getSaveFileName(pathName):
 
 ## AutoSave Callbacks
 
+#def saveGameStart():
+#	"""
+#	Saves the single-player game when the map is generated as long as MapFinder isn't active.
+#	"""
+#	if not CyGame().isGameMultiPlayer() and options.isCreateStartSave() and not MapFinder.isActive():
+#		saveGame()
+# <advc.009c> Replacing the above
 def saveGameStart():
 	"""
-	Saves the single-player game when the map is generated as long as MapFinder isn't active.
+	Saves the single-player game when the map is generated.
 	"""
-	if not CyGame().isGameMultiPlayer() and options.isCreateStartSave() and not MapFinder.isActive():
+	if not CyGame().isGameMultiPlayer() and options.isCreateStartSave():
 		saveGame()
+# </advc.009c>
 
 def saveGameEnd():
 	"""
 	Saves the single-player game when the game ends.
 	"""
-	if not CyGame().isGameMultiPlayer() and options.isCreateEndSave() and not MapFinder.isActive():
+	if not CyGame().isGameMultiPlayer() and options.isCreateEndSave():# and not MapFinder.isActive(): # advc.009c
 		saveGame()
 
 def saveGameExit():
 	"""
 	Saves the single-player game when the player exits to the main menu or desktop.
 	"""
-	if not CyGame().isGameMultiPlayer() and options.isCreateExitSave() and not MapFinder.isActive():
+	if not CyGame().isGameMultiPlayer() and options.isCreateExitSave():# and not MapFinder.isActive(): # advc.009c
 		saveGame()
 
 

@@ -172,15 +172,14 @@ bool CyPlot::canBuild(int /*BuildTypes*/ eBuild, int /*PlayerTypes*/ ePlayer, bo
 {
 	return m_pPlot ? m_pPlot->canBuild((BuildTypes) eBuild, (PlayerTypes) ePlayer, bTestVisible) : false;
 }
-
-int CyPlot::getBuildTime(int /* BuildTypes */ eBuild)
+// advc.251: param ePlayer added to these two functions
+int CyPlot::getBuildTime(int /* BuildTypes */ eBuild, int /* PlayerTypes */ ePlayer)
 {
-	return m_pPlot ? m_pPlot->getBuildTime((BuildTypes)eBuild) : -1;
+	return m_pPlot ? m_pPlot->getBuildTime((BuildTypes)eBuild, (PlayerTypes)ePlayer) : -1;
 }
-
-int CyPlot::getBuildTurnsLeft(int /*BuildTypes*/ eBuild, int iNowExtra, int iThenExtra)
+int CyPlot::getBuildTurnsLeft(int /*BuildTypes*/ eBuild, int /* PlayerTypes */ ePlayer, int iNowExtra, int iThenExtra)
 {
-	return m_pPlot ? m_pPlot->getBuildTurnsLeft((BuildTypes) eBuild, iNowExtra, iThenExtra) : -1;
+	return m_pPlot ? m_pPlot->getBuildTurnsLeft((BuildTypes)eBuild, (PlayerTypes)ePlayer, iNowExtra, iThenExtra) : -1;
 }
 
 int CyPlot::getFeatureProduction(int /*BuildTypes*/ eBuild, int /*TeamTypes*/ eTeam, CyCity* ppCity)
@@ -458,8 +457,13 @@ bool CyPlot::at(int iX, int iY)
 {
 	return m_pPlot ? m_pPlot->at(iX, iY) : false;
 }
+// <advc.tsl>
+void CyPlot::setLatitude(int iLatitude) {
+	if(m_pPlot != NULL)
+		m_pPlot->setLatitude(iLatitude);
+} // </advc.tsl>
 
-int CyPlot::getLatitude()																						
+int CyPlot::getLatitude()
 {
 	return m_pPlot ? m_pPlot->getLatitude() : -1;
 }
@@ -988,9 +992,11 @@ int CyPlot::getBuildProgress(int /*BuildTypes*/ eBuild)
 	return m_pPlot ? m_pPlot->getBuildProgress((BuildTypes)eBuild) : -1;
 }
 
-bool CyPlot::changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*TeamTypes*/ eTeam)
+// advc.251: Last param now ePlayer (was eTeam)
+bool CyPlot::changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*PlayerTypes*/ ePlayer)
 {
-	return m_pPlot ? m_pPlot->changeBuildProgress((BuildTypes)eBuild, iChange, (TeamTypes)eTeam) : false;
+	return m_pPlot ? m_pPlot->changeBuildProgress((BuildTypes)eBuild, iChange,
+			(PlayerTypes)ePlayer) : false;
 }
 
 int CyPlot::getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex)
@@ -1010,7 +1016,7 @@ int CyPlot::getInvisibleVisibilityCount(int /*TeamTypes*/ eTeam, int /*Invisible
 
 bool CyPlot::isInvisibleVisible(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible)
 {
-	return m_pPlot ? m_pPlot->isInvisibleVisible((TeamTypes) eTeam, (InvisibleTypes) eInvisible) : -1;
+	return m_pPlot ? m_pPlot->isInvisibleVisible((TeamTypes) eTeam, (InvisibleTypes) eInvisible) : false;
 }
 
 void CyPlot::changeInvisibleVisibilityCount(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible, int iChange)

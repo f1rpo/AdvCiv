@@ -5,7 +5,6 @@
 #ifndef CIV4_PLOT_GROUP_H
 #define CIV4_PLOT_GROUP_H
 
-//#include "CvStructs.h"
 #include "LinkedList.h"
 
 class CvPlot;
@@ -23,7 +22,7 @@ public:
 
 	void addPlot(CvPlot* pPlot);
 	void removePlot(CvPlot* pPlot);
-	void recalculatePlots();														
+	void recalculatePlots();
 
 	int getID() const;
 	void setID(int iID);
@@ -36,10 +35,11 @@ public:
 	}
 #endif
 	int getNumBonuses(BonusTypes eBonus) const;
-	bool hasBonus(BonusTypes eBonus);										
+	bool hasBonus(BonusTypes eBonus);
 	void changeNumBonuses(BonusTypes eBonus, int iChange);
+	void verifyCityProduction(); // advc.064d
 
-	void insertAtEndPlots(XYCoords xy);			
+	void insertAtEndPlots(XYCoords xy);
 	CLLNode<XYCoords>* deletePlotsNode(CLLNode<XYCoords>* pNode);
 	CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode);
 	int getLengthPlots();

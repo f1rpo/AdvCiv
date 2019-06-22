@@ -184,9 +184,12 @@ class CvTechChooser:
 		else:
 			screen.hide( "CivDropDown" )
 
-		if ( screen.isPersistent() and self.iCivSelected == gc.getGame().getActivePlayer()):
+		# advc.068: Dirty-bit check added
+		if screen.isPersistent() and self.iCivSelected == gc.getGame().getActivePlayer() and not CyInterface().isDirty(InterfaceDirtyBits.Tech_Screen_DIRTY_BIT):
 			self.updateTechRecords(false)
 			return
+		# advc.068: Dirty no more
+		CyInterface().setDirty(InterfaceDirtyBits.Tech_Screen_DIRTY_BIT, False)
 
 		self.nWidgetCount = 0
 		self.sWidgets = []
@@ -235,7 +238,7 @@ class CvTechChooser:
 
 		# Make the scrollable area for the city list...
 		# advc.004a: What cities? Anyway, no scrollable area needed.
-		if false and BugOpt.isShowGPTechPrefs():
+		if False and BugOpt.isShowGPTechPrefs():
 			iX = 80
 			iW = xPanelWidth - 80
 		else:
@@ -326,8 +329,9 @@ class CvTechChooser:
 
 		# Draw the arrows
 		self.drawArrows(screen, sPanel, bANDPreReq, bORPreReq)
-
-		self.updateTechPrefs()
+		# advc.004a: Adding this guard b/c the new code somehow can't handle calls via preGameStart (CvAppInterface) if the map is very large. Still seems to get updated properly if the player opens the Tech Advisor on turn 0.
+		if CyGame().getElapsedGameTurns() > 0:
+			self.updateTechPrefs()
 
 		screen.moveToFront( "CivDropDown" )
 
@@ -487,7 +491,7 @@ class CvTechChooser:
 		j = 0
 		k = 0
 
-		# Obsolete Monastaries...
+		# Obsolete Monasteries...
 		for j in range (gc.getNumSpecialBuildingInfos()):
 			if (gc.getSpecialBuildingInfo(j).getObsoleteTech() == i):
 					# Add obsolete picture here...
@@ -576,6 +580,23 @@ class CvTechChooser:
 			szHappinessRateButton = self.getNextWidgetName("HappinessRate")
 			screen.addDDSGFCAt( szHappinessRateButton, szTechRecord, ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_HAPPINESS").getPath(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_HAPPINESS_RATE, i, -1, False )
 			fX += X_INCREMENT
+
+		j = 0
+		k = 0
+		
+		# Adjustments  (advc.120g: Moved up so that the icon appears before the tech trading icon)
+		for j in range( CommerceTypes.NUM_COMMERCE_TYPES ):
+			# advc.120g: The second condition said (I paraphrase) "not team.isCommerceFlexible". This hides the icon once the tech is dicovered, which I don't like. If there were multiple techs unlocking the same slider it would make more sense. Actually, buildings can - in theory - unlock a slider for a player. So I'm going to check if the player already has the slider, but the team doesn't (meaning that the player must have it through a building).
+			if (gc.getTechInfo(i).isCommerceFlexible(j) and (not gc.getPlayer(self.iCivSelected).isCommerceFlexible(j) or gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isCommerceFlexible(j))):
+				szAdjustButton = self.getNextWidgetName("AdjustButton")
+				if ( j == CommerceTypes.COMMERCE_CULTURE ):
+					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_CULTURE").getPath()
+				elif ( j == CommerceTypes.COMMERCE_ESPIONAGE ):
+					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_ESPIONAGE").getPath()
+				else:
+					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_QUESTIONMARK").getPath()
+				screen.addDDSGFCAt( szAdjustButton, szTechRecord, szFileName, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_ADJUST, i, j, False )
+				fX += X_INCREMENT
 
 		j = 0
 		k = 0
@@ -769,22 +790,6 @@ class CvTechChooser:
 		k = 0
 		# K-Mod end.
 
-		# Adjustments
-		for j in range( CommerceTypes.NUM_COMMERCE_TYPES ):
-			if (gc.getTechInfo(i).isCommerceFlexible(j) and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isCommerceFlexible(j))):
-				szAdjustButton = self.getNextWidgetName("AdjustButton")
-				if ( j == CommerceTypes.COMMERCE_CULTURE ):
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_CULTURE").getPath()
-				elif ( j == CommerceTypes.COMMERCE_ESPIONAGE ):
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_ESPIONAGE").getPath()
-				else:
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_QUESTIONMARK").getPath()
-				screen.addDDSGFCAt( szAdjustButton, szTechRecord, szFileName, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_ADJUST, i, j, False )
-				fX += X_INCREMENT
-
-		j = 0
-		k = 0
-
 		# Terrain opens up as a trade route
 		for j in range( gc.getNumTerrainInfos() ):
 			if gc.getTechInfo(i).isTerrainTrade(j):
@@ -806,7 +811,7 @@ class CvTechChooser:
 		j = 0
 		k = 0
 
-		# Special buildings like monestaries...
+		# Special buildings like monasteries...
 		for j in range( gc.getNumSpecialBuildingInfos() ):
 			if (gc.getSpecialBuildingInfo(j).getTechPrereq() == i):
 				szSpecialBuilding = self.getNextWidgetName("SpecialBuildingButton")
@@ -957,9 +962,11 @@ class CvTechChooser:
 				if bTechName:
 					szTechString += gc.getTechInfo(i).getDescription()
 					if ( gc.getPlayer(self.iCivSelected).isResearchingTech(i) ):
-						szTechString += " ("
-						szTechString += str(gc.getPlayer(self.iCivSelected).getResearchTurnsLeft(i, ( gc.getPlayer(self.iCivSelected).getCurrentResearch() == i )))
-						szTechString += ")"
+						iTurnsLeft = gc.getPlayer(self.iCivSelected).getResearchTurnsLeft(i, ( gc.getPlayer(self.iCivSelected).getCurrentResearch() == i ))
+						if iTurnsLeft > 0: # advc.004x: Don't show turns left during anarchy
+							szTechString += " ("
+							szTechString += str(iTurnsLeft)
+							szTechString += ")"
 					szTechString = szTechString + "</font>"
 					screen.setTextAt( szTechID, sPanel, szTechString, CvUtil.FONT_LEFT_JUSTIFY, iX + 6 + X_INCREMENT, iY + 6, -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_TECH_TREE, i, -1 )
 					screen.setActivation( szTechID, ActivationTypes.ACTIVATE_MIMICPARENTFOCUS )
@@ -1151,7 +1158,7 @@ class CvTechChooser:
 		self.bPrefsShowing = True
 
 		# Remove any techs researched since last call, creating tree if necessary
-		if (not self.pPrefs):
+		if not self.pPrefs:
 			self.resetTechPrefs()
 		self.pPrefs.removeKnownTechs()
 		bAnyResearch = False # advc.004a: Don't show the second button then

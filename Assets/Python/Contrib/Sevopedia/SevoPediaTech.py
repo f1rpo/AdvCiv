@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -50,12 +49,22 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		self.X_QUOTE_PANE = self.X_TECH_PANE
 		self.Y_QUOTE_PANE = self.Y_TECH_PANE + self.H_TECH_PANE + 10
 		self.W_QUOTE_PANE = self.top.R_PEDIA_PAGE - self.X_QUOTE_PANE
-		self.H_QUOTE_PANE = 110
+
+		# <advc.004y>
+		# Move some height settings up:
+		self.H_PREREQ_PANE = 124
+		self.H_BUILDING_PANE = self.H_PREREQ_PANE
+		self.H_UNIT_PANE = self.H_PREREQ_PANE
+		#self.H_SPECIAL_PANE = self.top.B_PEDIA_PAGE - self.Y_SPECIAL_PANE
+		# Instead use any extra space for the QUOTE_PANE
+		self.H_SPECIAL_PANE = self.H_BUILDING_PANE + self.H_UNIT_PANE + 10
+		# was 110
+		self.H_QUOTE_PANE = self.top.B_PEDIA_PAGE - self.H_SPECIAL_PANE - self.H_PREREQ_PANE - self.Y_QUOTE_PANE - 20
+		# </advc.004y>
 
 		self.X_PREREQ_PANE = self.X_TECH_PANE
 		self.Y_PREREQ_PANE = self.Y_QUOTE_PANE + self.H_QUOTE_PANE + 10
 		self.W_PREREQ_PANE = self.top.W_PEDIA_PAGE / 2 - 5
-		self.H_PREREQ_PANE = 124
 
 		self.X_LEADS_TO_PANE = self.X_PREREQ_PANE + self.W_PREREQ_PANE + 10
 		self.Y_LEADS_TO_PANE = self.Y_PREREQ_PANE
@@ -65,17 +74,14 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		self.X_SPECIAL_PANE = self.X_TECH_PANE
 		self.W_SPECIAL_PANE = self.W_PREREQ_PANE
 		self.Y_SPECIAL_PANE = self.Y_PREREQ_PANE + self.H_PREREQ_PANE + 10
-		self.H_SPECIAL_PANE = self.top.B_PEDIA_PAGE - self.Y_SPECIAL_PANE
 
 		self.X_UNIT_PANE = self.X_LEADS_TO_PANE
 		self.W_UNIT_PANE = self.W_LEADS_TO_PANE
 		self.Y_UNIT_PANE = self.Y_SPECIAL_PANE
-		self.H_UNIT_PANE = self.H_PREREQ_PANE
 
 		self.X_BUILDING_PANE = self.X_UNIT_PANE
 		self.W_BUILDING_PANE = self.W_UNIT_PANE
 		self.Y_BUILDING_PANE = self.Y_UNIT_PANE + self.H_UNIT_PANE + 10
-		self.H_BUILDING_PANE = self.H_PREREQ_PANE
 
 
 
@@ -103,14 +109,22 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 
 
 	def placeCivilizations(self):
+		# <advc.004y> Show the box only for starting techs
+		civs = []
+		for iCiv in range(gc.getNumCivilizationInfos()):
+			if gc.getCivilizationInfo(iCiv).isCivilizationFreeTechs(self.iTech):
+				civs.append(iCiv)
+		if len(civs) <= 0:
+			return
+		# </advc.004y>
 		screen = self.top.getScreen()
 		panelName = self.top.getNextWidgetName()
 		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_CATEGORY_CIV", ()), "", False, True, self.X_CIVS, self.Y_CIVS, self.W_CIVS, self.H_CIVS, PanelStyles.PANEL_STYLE_BLUE50 )
 		screen.attachLabel(panelName, "", "  ")
-		for iCiv in range(gc.getNumCivilizationInfos()):
+		for iCiv in civs: # advc.004y: Use the list computed above
 			civ = gc.getCivilizationInfo(iCiv)
-			if civ.isCivilizationFreeTechs(self.iTech):
-				screen.attachImageButton(panelName, "", civ.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iCiv, 1, False)
+			#if civ.isCivilizationFreeTechs(self.iTech):
+			screen.attachImageButton(panelName, "", civ.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iCiv, 1, False)
 
 
 
@@ -183,10 +197,16 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		panelName = self.top.getNextWidgetName()
 		screen.addPanel(panelName, localText.getText("TXT_KEY_PEDIA_UNITS_ENABLED", ()), "", False, True, self.X_UNIT_PANE, self.Y_UNIT_PANE, self.W_UNIT_PANE, self.H_UNIT_PANE, PanelStyles.PANEL_STYLE_BLUE50)
 		screen.attachLabel(panelName, "", "  ")
+		iActivePlayer = gc.getGame().getActivePlayer() # advc.003l
 		for eLoopUnit in range(gc.getNumUnitInfos()):
 			if (eLoopUnit != -1):
 				if (isTechRequiredForUnit(self.iTech, eLoopUnit)):
-					screen.attachImageButton(panelName, "", gc.getUnitInfo(eLoopUnit).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False)
+					szButton = gc.getUnitInfo(eLoopUnit).getButton()
+					# <advc.003l>
+					if iActivePlayer >= 0:
+						szButton = gc.getPlayer(iActivePlayer).getUnitButton(eLoopUnit)
+					# </advc.003l>
+					screen.attachImageButton(panelName, "", szButton, GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False)
 
 
 

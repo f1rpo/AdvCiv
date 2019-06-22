@@ -11,11 +11,21 @@ import static wbo.Direction.*;
 
 public class WBOut {
 	
-	public static final int offsetX = 8, offsetY = 8;
+	private static final int offsetX = 6, offsetY = 7,
+			mapWidth = 120, mapHeight = 72;
+	public static Point2D getOffset(int x, int y) {
+		Point r = new Point();
+		r.setLocation((x + offsetX) % mapWidth,
+				(y + offsetY) % mapHeight);
+		return r;
+	}
+	public static void offset(Point2D p) {
+		p.setLocation((p.getX() + offsetX) % mapWidth,
+				(p.getY() + offsetY) % mapHeight);
+	}
 
 	public static void main(String[] args) {
 
-		final int w = 120, h = 72;
 		String preamble[] = {
 				"Version=11",
 				"BeginGame",
@@ -60,7 +70,8 @@ public class WBOut {
 				new Civ("DARIUS"/*"CYRUS"*/, "PERSIA", 67, 32, "THE_WHEEL", "MYSTICISM",
 						new String[]{"PERSEPOLIS","ECBATANA","MERV","KANDAHAR"/*,"SAMARQAND"*/}),
 				new Civ("GENGHIS_KHAN", "MONGOL", /*76,49,*/ 78, 52, "MINING", "HUNTING",
-						new String[]{"TARTAR","BEIJING",/*"KARAKORUM","PYONGYANG"*/}), // Doesn't seem to found Pyongyang reliably, and Japan might reach Korea first once Tokugawa is on the map.
+						new String[]{"TARTAR","BEIJING",/*"KARAKORUM","PYONGYANG"*/}, // Doesn't seem to found Pyongyang reliably, and Japan might reach Korea first once Tokugawa is on the map.
+						"WARLORD"),
 				new Civ(placeBarbs ? "HATSHEPSUT" : "RAMESSES", "EGYPT", 56, 31, "AGRICULTURE", "MINING",
 						new String[]{"MEMPHIS","THEBES","PHEONICIAN"}),
 				// "QIN_SHI_HUANG" might work better if he's given him a higher peace weight; he shouldn't be pleased toward the "barbarians" surrounding China.
@@ -76,14 +87,14 @@ public class WBOut {
 				new Civ("SALADIN", "ARABIA", 63, 33, "AGRICULTURE", "THE_WHEEL",
 						new String[]{"BABYLON","NINEVEH","MECCA","HITTITE","VAN"}),
 				new Civ("SURYAVARMAN", "KHMER", 91,37/*89,45 (Guangzhou)*//*88, 47 (Fuzhou)*/ /*87, 49(NINGBO)*/, "FISHING", "MYSTICISM", // for Hinduism; else AGRICULTURE
-						new String[]{"YASODHARAPURA","Nakhon Pathom","Hanoi"/*"Fuzhou""NINGBO"*//*"GUANGZHOU","XINYU","MAOMING","KUNMING"*//*,"TAIPEI",*/},
+						new String[]{"YASODHARAPURA","Nakhon Pathom","Indrapura","Hanoi"/*"Fuzhou""NINGBO"*//*"GUANGZHOU","XINYU","MAOMING","KUNMING"*//*,"TAIPEI",*/},
 						"PRINCE"),
 				new Civ("TOKUGAWA", "JAPAN", 89, 56, "FISHING", "MYSTICISM",
 						// Pusan was the major trading port with Japan, but Seoul might be closer the location that Japan tends to settle. Keijo? That was the Japanese name for Seoul after 1910.
 						new String[]{"KYOTO","TOKYO",/*"SEOUL"*/"PUSAN","SAPPORO","KAGOSHIMA"},
 						"WARLORD"),
 				new Civ("ZARA_YAQOB", "ETHIOPIA", 59, 24, "AGRICULTURE", "",
-						new String[]{"AKSUM","NUBIAN"}, "PRINCE"),
+						new String[]{"AKSUM","GONDAR","NUBIAN"}, "PRINCE"),
 				new Civ("MANSA_MUSA", "MALI", 36, 29, "MINING", "",
 						new String[]{"KUMBISALEH"}, "MONARCH"),
 				new Civ("SHAKA", "ZULU", 55, 10, "HUNTING", "",
@@ -100,14 +111,14 @@ public class WBOut {
 		for(int i = 0; i < civs.length; i++)
 			pr(civs[i].civEntry(i));
 		pr("");
-		int numPlots = w * h;
+		int numPlots = mapWidth * mapHeight;
 		/* Huge (which matches the dimensions) or Large should mostly be
 		 * a question of tech pace. */
 		String worldSz = "LARGE";
 		String mapStr[] = {
 				"BeginMap",
-				"\tgrid width=" + w,
-				"\tgrid height=" + h,
+				"\tgrid width=" + mapWidth,
+				"\tgrid height=" + mapHeight,
 				"\twrap X=1",
 				"\twrap Y=0",
 				"\ttop latitude=80",
@@ -624,6 +635,7 @@ public class WBOut {
 				new Point(82,28),
 				new Point(81,27),
 				new Point(82,27),
+				new Point(88,33), // Great Andaman
 				// Indochina
 				new Point(85,36),
 				new Point(86,36),
@@ -633,16 +645,47 @@ public class WBOut {
 				new Point(91,40),
 				new Point(88,39),
 				new Point(89,38),
-				new Point(90,38),
 				new Point(91,38),
 				new Point(92,38),
 				new Point(88,37),
 				new Point(89,37),
 				new Point(87,36),
 				new Point(88,36),
-				new Point(89,36),
+				new Point(90,37),
 				new Point(87,35),
 				new Point(90,35),
+				// Sunda
+				new Point(91,34),
+				new Point(92,34),
+				new Point(93,33),
+				new Point(95,33),
+				new Point(93,31),
+				new Point(96,30),
+				new Point(97,30),
+				new Point(97,29),
+				new Point(99,29),
+				new Point(105,29),
+				new Point(107,29),
+				new Point(107,31),
+				new Point(108,31),
+				new Point(111,29),
+				new Point(105,27),
+				new Point(98,34),
+				new Point(101,34),
+				new Point(103,34),
+				new Point(104,34),
+				new Point(105,34),
+				new Point(101,33),
+				new Point(102,33),
+				new Point(101,32),
+				new Point(104,32),
+				new Point(103,31),
+				// Philippines
+				new Point(96,47),
+				new Point(99,45),
+				new Point(99,43),
+				new Point(101,42),
+				new Point(101,39),
 				// W China
 				new Point(77,43),
 				new Point(80,43),
@@ -1065,9 +1108,26 @@ public class WBOut {
 				new Point(87,38),
 				new Point(88,38),
 				new Point(87,37),
-				new Point(90,37),
+				new Point(89,36),
 				new Point(91,37),
 				new Point(92,37),
+				// Sunda
+				new Point(93,34),
+				new Point(94,33),
+				new Point(91,32),
+				new Point(92,31),
+				new Point(95,30),
+				new Point(96,29),
+				new Point(99,31),
+				new Point(100,29),
+				new Point(101,29),
+				new Point(102,28),
+				new Point(103,27),
+				new Point(109,28),
+				new Point(110,27),
+				new Point(112,28),
+				new Point(103,33),
+				new Point(104,33),
 				// W China
 				new Point(85,40),
 				new Point(85,41),
@@ -1164,6 +1224,16 @@ public class WBOut {
 				new Point(90,53),
 				new Point(91,51), // Okinawa
 				new Point(80,60), // Sakhalin
+				// Philippines
+				new Point(94,47),
+				new Point(94,46),
+				new Point(95,46),
+				new Point(98,46),
+				new Point(95,44),
+				new Point(97,44),
+				new Point(101,43),
+				new Point(100,41),
+				new Point(102,38),
 				// Arabian Peninsula
 				new Point(61,27),
 				new Point(63,25),
@@ -1395,6 +1465,7 @@ public class WBOut {
 				// Ethiopia
 				new Point(59,23), // Abuna Yosef
 				new Point(59,21), // Bale Mts.
+				new Point(105,35), // Kinabalu
 		}));
 		final Set<Point2D> tundra = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -1561,6 +1632,7 @@ public class WBOut {
 				new Point(77,51),
 				new Point(77,50),
 				new Point(82,44), // Zhoigê marsh
+				new Point(90,38), // Tonlié Sap, laterite
 				// African rainforest
 				new Point(36,26),
 				new Point(36,25),
@@ -1602,6 +1674,12 @@ public class WBOut {
 				new Point(80,41),
 				new Point(81,41),
 				new Point(84,27), // Sri Lanka
+				// Sunda
+				new Point(94,31),
+				new Point(95,31),
+				new Point(102,32),
+				new Point(103,32),
+				new Point(106,30),
 		}));
 		final Set<Point2D> snow = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -1658,17 +1736,23 @@ public class WBOut {
 		addSafe(land, tundra);
 		addSafe(land, snow);
 		for(Point2D p : land)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		final Set<Point2D> seaObstacles = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
-				new Point(50,58), // North Cape
+				new Point(51,58), // North Cape; moved 1 right to make it easier for Vikings to cover it with borders.
 				// Equatorial Counter
 				new Point(35,25),
 				new Point(35,24),
 				new Point(36,24),
 		}));
 		for(Point2D p : seaObstacles)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
+		final Set<Point2D> forceCoast = new HashSet<Point2D>(
+				Arrays.asList(new Point[] {
+				new Point(97,32), // Tambelan archipelago
+		}));
+		for(Point2D p : forceCoast)
+			offset(p);
 		final Set<River> rivers = new HashSet<River>(
 				Arrays.asList(new River[] {
 				new River(S,42,36,E), // Tunisia
@@ -2163,6 +2247,17 @@ public class WBOut {
 				new River(S,78,33,W),
 				new River(E,77,32,S),
 				new River(S,77,32,W),
+				new River(E,94,33,N), // Muar, Pahang
+				new River(E,95,30,N), // Batang Hari
+				new River(E,96,30,N), // Musi
+				new River(E,100,29,N), // Solo
+				new River(E,102,32,S), // Kahayan
+				// Kapuas
+				new River(S,102,33,W),
+				new River(S,101,33,W),
+				// ^Unfortunately, the game connects Kapuas and Kahayan. Can't be helped I guess.
+				new River(S,103,34,W), // Rajang
+				new River(S,104,33,E), // Mahakam
 		}));
 		final Set<Point2D> hills = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -2190,13 +2285,14 @@ public class WBOut {
 				new Point(65,25),
 				new Point(63,24),
 				new Point(64,24),
-				// Morocco
+				// Atlas Mts.
 				new Point(36,33),
 				new Point(37,33),
 				new Point(36,34),
 				new Point(38,34),
 				new Point(38,35),
 				new Point(39,35),
+				new Point(41,36),
 				new Point(50,32), // Cyrene
 				new Point(42,38), // Baleares
 				new Point(34,35), // Canaries
@@ -2608,7 +2704,30 @@ public class WBOut {
 				new Point(80,28),
 				new Point(81,28),
 				new Point(81,27),
-				new Point(85,26), // Sri Lanka
+				new Point(85,27), // Sri Lanka
+				// Sunda
+				new Point(93,34),
+				new Point(94,33),
+				new Point(91,32),
+				new Point(92,31),
+				new Point(95,30),
+				new Point(96,29),
+				new Point(100,29),
+				new Point(102,28),
+				new Point(103,27),
+				new Point(106,30),
+				new Point(107,31),
+				new Point(109,28),
+				new Point(110,27),
+				new Point(111,29),
+				new Point(112,28),
+				new Point(104,34),
+				new Point(103,33),
+				new Point(104,33),
+				// Philippines
+				new Point(94,46),
+				new Point(95,44),
+				new Point(101,43),
 				// Kola
 				new Point(52,56),
 				new Point(53,55),
@@ -2683,7 +2802,7 @@ public class WBOut {
 				new Point(37,35),
 				new Point(38,35),
 				new Point(40,35),
-				new Point(41,36),
+				new Point(41,36), // I've switched this back and forth w/ the Horse in 41,35 a bunch of times
 				new Point(42,36),
 				new Point(42,35),
 				new Point(43,34),
@@ -3089,6 +3208,7 @@ public class WBOut {
 				new Point(87,37),
 				new Point(88,37),
 				new Point(89,37),
+				new Point(104,34), // Brunei
 		}));
 		final Set<Point2D> jungle = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -3184,7 +3304,8 @@ public class WBOut {
 				new Point(92,39),
 				new Point(92,38),
 				new Point(90,37),
-				new Point(91,37),
+				new Point(90,38),
+				new Point(91,37), // Khmer capital; don't clear b/c I don't want to encourage moving the Settler (in order to be able to work the cleared tile)
 				new Point(92,37), // Earliest Khmer settlements; clear this?
 				new Point(87,36),
 				new Point(88,36),
@@ -3203,17 +3324,81 @@ public class WBOut {
 				new Point(81,27),
 				new Point(82,27),
 				new Point(84,27), // Sri Lanka
+				// Sunda
+				new Point(88,33),
+				new Point(91,34),
+				new Point(92,34),
+				new Point(93,34),
+				new Point(93,33),
+				new Point(94,33),
+				new Point(95,33),
+				new Point(91,32),
+				new Point(92,31),
+				new Point(93,31),
+				new Point(94,31),
+				new Point(95,31),
+				new Point(95,30),
+				new Point(96,30),
+				new Point(97,30),
+				new Point(96,29),
+				new Point(97,29),
+				new Point(99,31),
+				new Point(99,29),
+				new Point(100,29),
+				new Point(101,29),
+				new Point(102,28),
+				new Point(103,27),
+				new Point(105,27),
+				new Point(105,29),
+				new Point(107,29),
+				new Point(106,30),
+				new Point(107,31),
+				new Point(108,31),
+				new Point(111,29),
+				new Point(109,28),
+				new Point(112,28),
+				new Point(110,27),
+				new Point(101,34),
+				new Point(103,34),
+				new Point(105,34),
+				new Point(101,33),
+				new Point(102,33),
+				new Point(103,33),
+				new Point(104,33),
+				new Point(101,32),
+				new Point(102,32),
+				new Point(103,32),
+				new Point(104,32),
+				new Point(103,31),
+				new Point(98,34),
+				// Philippines
+				new Point(94,47),
+				new Point(94,46),
+				//new Point(95,46), // Assume that natives have already cleared the Manila area (where there isn't that much land anyway)
+				new Point(98,46),
+				new Point(95,44),
+				new Point(97,44),
+				new Point(101,43),
+				new Point(100,41),
+				new Point(102,38),
+				new Point(96,47),
+				new Point(99,45),
+				new Point(99,43),
+				new Point(101,42),
+				new Point(101,39),
 		}));
 		final Set<Point2D> oases = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
 				// Algeria
 				/*  Had to move these south to prevent Carthage from being
 					founded too far west. But there are oases this far 
-					south too. */
+					south too.
+					Had to move them again to prevent Mali from blocking
+					the Carthage site. */
 				new Point(39,33),  // Adrar, Timimoun
-				new Point(40,32), // Tamanrasset
+				//new Point(40,32), // Tamanrasset
 				new Point(41,34), // lots of oases here
-				new Point(42,33),
+				new Point(42,34), // Oued Souf
 				new Point(44,31),
 				new Point(42,28), // Ingall
 				new Point(60,34), // Damascus
@@ -3398,19 +3583,19 @@ public class WBOut {
 				new Point(83,53), // Pyongyang
 		}));
 		for(Point2D p : hills)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		for(Point2D p : forests)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		for(Point2D p : jungle)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		for(Point2D p : oases)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		for(Point2D p : floodPlains)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		for(Point2D p : ice)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		for(Point2D p : huts)
-			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
+			offset(p);
 		final Set<Bonus> bonuses = new HashSet<Bonus>(
 				Arrays.asList(new Bonus[] {
 				// Tunisia
@@ -3662,9 +3847,32 @@ public class WBOut {
 				new Bonus("SPICES",81,27),
 				new Bonus("BANANA",82,27),
 				new Bonus("CLAM",84,26), // Moved closer to Sri Lanka to make the island more likely to be settled by the AI
-				new Bonus("GEMS",84,27),
-				new Bonus("IVORY",85,27),
-				new Bonus("SPICES",85,26),
+				new Bonus("GEMS",85,26),
+				new Bonus("IVORY",84,27),
+				new Bonus("SPICES",85,27),
+				// Sunda
+				new Bonus("IVORY",91,34),
+				new Bonus("INCENSE",93,34),
+				new Bonus("CRAB",96,33),
+				new Bonus("IVORY",95,31),
+				new Bonus("COAL",95,30),
+				new Bonus("BANANA",97,29),
+				new Bonus("SUGAR",99,29),
+				new Bonus("DYE",100,29),
+				new Bonus("SUGAR",101,29),
+				new Bonus("RICE",102,28),
+				new Bonus("SPICES",109,28),
+				new Bonus("SPICES",112,28),
+				new Bonus("SPICES",110,27),
+				new Bonus("OIL",105,34),
+				// Philippines
+				new Bonus("RICE",94,47),
+				new Bonus("COW",96,47),
+				new Bonus("SUGAR",99,43),
+				new Bonus("BANANA",101,42),
+				new Bonus("CLAM",102,41),
+				new Bonus("FISH",99,38),
+				new Bonus("FISH",94,42),
 				// Japan
 				new Bonus("IRON",89,53),
 				new Bonus("SILVER",88,55),
@@ -3715,12 +3923,12 @@ public class WBOut {
 				new Bonus("BANANA",88,44),
 				new Bonus("RICE",89,44),
 				new Bonus("INCENSE",88,43),
-				new Bonus("SPICES",88,42),
+				new Bonus("SPICES",89,42), // Moved from 88,42; need a stronger bonus there to discourage a city.
 				new Bonus("SUGAR",91,47),
 				// Indochina
 				new Bonus("GEMS",86,38),
 				new Bonus("IVORY",85,36),
-				new Bonus("SUGAR",87,41),
+				new Bonus("SUGAR",88,42), // Moved from 87,41 to discourage a city that would block Hanoi
 				new Bonus("PIG",88,41),
 				new Bonus("DYE",87,40),
 				new Bonus("INCENSE",91,40),
@@ -3734,11 +3942,11 @@ public class WBOut {
 				new Bonus("IVORY",92,38),
 				new Bonus("IVORY",87,37),
 				new Bonus("SUGAR",89,37),
-				new Bonus("RICE",90,37),
+				new Bonus("RICE",89,36), // Moved from 90,37 so that AI Bankok can take over the tile from the Khmer capital
 				new Bonus("RICE",92,37),
 				new Bonus("SPICES",88,36),
-				new Bonus("FISH",92,36),
-				new Bonus("FISH",88,35),
+				new Bonus("FISH",93,40), // Moved from 92,36 to weaken Khmer capital and encourage a Champa city
+				new Bonus("FISH",89,34), // Moved from 88,35 to make it not quite so close to the moved Rice (see above)
 				// Iran
 				new Bonus("HORSE",65,36),
 				new Bonus("COW",64,35),
@@ -3773,8 +3981,8 @@ public class WBOut {
 				new Bonus("INCENSE",65,22),
 		}));
 		//Random r = new Random(0);
-		for(int x = 0; x < w; x++) {
-			for(int y = 0; y < h; y++) {
+		for(int x = 0; x < mapWidth; x++) {
+			for(int y = 0; y < mapHeight; y++) {
 				final Point2D plot = new Point(x, y);
 				pr("BeginPlot");
 				pr("\tx=" + (int)plot.getX() + ",y=" + (int)plot.getY());
@@ -3812,7 +4020,9 @@ public class WBOut {
 					}
 					else if(!seaObstacles.stream().anyMatch(
 							p -> p.equals(plot))) { // Automatic coasts
-						for(Point2D adjPlot : adjacentPlots(plot)) {
+						if(forceCoast.stream().anyMatch(p -> p.equals(plot)))
+							terrain = "COAST";
+						else for(Point2D adjPlot : adjacentPlots(plot)) {
 							if(land.stream().anyMatch(p -> p.equals(adjPlot))) {
 								terrain = "COAST";
 								break;

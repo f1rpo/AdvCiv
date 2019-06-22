@@ -2,6 +2,7 @@
 ##
 ## Utility functions for PLE by EmperorFool
 
-def resetUnitPlotListStackedBarColors(option, value):
+def resetUnitPlotListStackedBarColors(option=None, value=None):
 	import CvScreensInterface
-	CvScreensInterface.mainInterface.resetUnitPlotListStackedBarColors()
+	# advc.001, advc.069: The .PLE was missing
+	CvScreensInterface.mainInterface.PLE.resetUnitPlotListStackedBarColors()

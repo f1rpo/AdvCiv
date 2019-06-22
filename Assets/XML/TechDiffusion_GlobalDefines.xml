@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!-- -->
+<!-- Tech Diffusion: Plain BTS includes an adjustment to research rate based on how many civs you have met which already know a tech.
+     Tech Diffusion modifies this to take into account relationships, so tech diffuses fastest through open borders. 
+     In addition, it enables a kind of tech welfare to keep the civs who are far behind technologically relevant. -->
+<!-- by jdog5000 -->
+<!-- -->
+<Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+	<Define>
+        <!-- "I don't mind the normal BTS tech rules. So I'll set this to 0" - Karadoc -->
+		<DefineName>TECH_DIFFUSION_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Tech Diffusion: Power of research rate increase based on number of teams you know who already know the tech you're researching. -->
+		<DefineName>TECH_DIFFUSION_KNOWN_TEAM_MODIFIER</DefineName>
+		<iDefineIntVal>30</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Tech Diffusion: Threshold percentage of top known tech score at which extra tech welfare help begins. -->
+		<DefineName>TECH_DIFFUSION_WELFARE_THRESHOLD</DefineName>
+		<iDefineIntVal>88</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Tech Diffusion: Power of tech welfare assitance.  BBAI default: 30, for plain BTS: 0 -->
+		<DefineName>TECH_DIFFUSION_WELFARE_MODIFIER</DefineName>
+		<iDefineIntVal>30</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Research rate boost for knowing first OR tech prereq.  In vanilla BTS this is effectively 20, reducing the cost of most techs on the tech tree.  BBAI default: 20, for plain BTS: 20 -->
+		<!-- advc.910: set to 0 -->
+		<DefineName>TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Research rate boost for knowing additional OR tech prereqs.  In vanilla BTS this is 20.  Default: 20 -->
+		<DefineName>TECH_COST_KNOWN_PREREQ_MODIFIER</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
+	</Define>
+	<!-- BBAI has also introduced a tech cost modifier by era, which can be found in CIV4EraInfos.xml -->
+	<Define>
+		<!-- This variable allows the throttling of research rates, effectively changing the cost of all techs.
+		10 decreases your research rate by 10%, -10 increases your research rate by 10%.  Values above 50
+		are not recommended as they can cause almost complete stop to research when other modifiers are
+		considered. -->
+		<DefineName>TECH_COST_MODIFIER</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+</Civ4Defines>

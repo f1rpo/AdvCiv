@@ -23,7 +23,8 @@ public:
 	DllExport void sendLaunch(PlayerTypes ePlayer, VictoryTypes eVictory);
 	void sendEventTriggered(PlayerTypes ePlayer, EventTypes eEvent, int iEventTriggeredId);
 	DllExport void sendJoinGroup(int iUnitID, int iHeadID);
-	void sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift);
+	void sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift,
+			bool bModified); // advc.011b
 	void sendAutoMission(int iUnitID);
 	void sendDoCommand(int iUnitID, CommandTypes eCommand, int iData1, int iData2, bool bAlt);
 	void sendPercentChange(CommerceTypes eCommerce, int iChange);
@@ -32,6 +33,7 @@ public:
 	void sendDiploVote(int iVoteId, PlayerVoteTypes eChoice);
 	DllExport void sendChangeWar(TeamTypes eRivalTeam, bool bWar);
 	DllExport void sendPing(int iX, int iY);
+	void sendFPTest(int iResult); // advc.003g
 };
 
 

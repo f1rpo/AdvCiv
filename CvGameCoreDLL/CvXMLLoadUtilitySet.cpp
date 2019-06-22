@@ -5,110 +5,102 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
-#include "CvGlobals.h"
 #include "CvArtFileMgr.h"
 #include "CvGameTextMgr.h"
-#include <algorithm>
 #include "CvInfoWater.h"
-#include "FProfiler.h"
+#include "CvGameAI.h" // advc.104x
 #include "FVariableSystem.h"
-#include "CvGameCoreUtils.h"
+
 
 // Macro for Setting Global Art Defines
 #define INIT_XML_GLOBAL_LOAD(xmlInfoPath, infoArray, numInfos)  SetGlobalClassInfo(infoArray, xmlInfoPath, numInfos);
 
 bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
 {
-	bool bLoaded = false;	// used to make sure that the xml file was loaded correctly
+	// advc.003: Handle successful read upfront
+	if (gDLL->cacheRead(cache, szXMLFileName)) {		// src data file name
+		logMsg("Read GlobalDefines from cache");
+		return true;
+	}
 
-	if (!gDLL->cacheRead(cache, szXMLFileName))			// src data file name
+	// load normally
+	if (!CreateFXml())
 	{
-		// load normally
-		if (!CreateFXml())
-		{
-			return false;
-		}
+		return false;
+	}
 
-		// load the new FXml variable with the szXMLFileName file
-		bLoaded = LoadCivXml(m_pFXml, szXMLFileName);
-		if (!bLoaded)
-		{
-			char	szMessage[1024];
-			sprintf( szMessage, "LoadXML call failed for %s \n Current XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(szMessage, "XML Load Error");
-		}
+	bool bLoaded;	// used to make sure that the xml file was loaded correctly
+	// load the new FXml variable with the szXMLFileName file
+	bLoaded = LoadCivXml(m_pFXml, szXMLFileName);
+	if (!bLoaded)
+	{
+		char	szMessage[1024];
+		sprintf( szMessage, "LoadXML call failed for %s \n Current XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
+		gDLL->MessageBox(szMessage, "XML Load Error");
+	}
 
-		// if the load succeeded we will continue
-		if (bLoaded)
+	// if the load succeeded we will continue
+	if (bLoaded)
+	{
+		// locate the first define tag in the xml
+		if (gDLL->getXMLIFace()->LocateNode(m_pFXml,"Civ4Defines/Define"))
 		{
-			// locate the first define tag in the xml
-			if (gDLL->getXMLIFace()->LocateNode(m_pFXml,"Civ4Defines/Define"))
+			int i;	// loop counter
+			// get the number of other Define tags in the xml file
+			int iNumDefines = gDLL->getXMLIFace()->GetNumSiblings(m_pFXml);
+			// add one to the total in order to include the current Define tag
+			iNumDefines++;
+
+			// loop through all the Define tags
+			for (i=0;i<iNumDefines;i++)
 			{
-				int i;	// loop counter
-				// get the number of other Define tags in the xml file
-				int iNumDefines = gDLL->getXMLIFace()->GetNumSiblings(m_pFXml);
-				// add one to the total in order to include the current Define tag
-				iNumDefines++;
+				char szNodeType[256];	// holds the type of the current node
+				char szName[256];
 
-				// loop through all the Define tags
-				for (i=0;i<iNumDefines;i++)
+				// Skip any comments and stop at the next value we might want
+				if (SkipToNextVal())
 				{
-					char szNodeType[256];	// holds the type of the current node
-					char szName[256];
-
-					// Skip any comments and stop at the next value we might want
-					if (SkipToNextVal())
+					// call the function that sets the FXml pointer to the first non-comment child of
+					// the current tag and gets the value of that new node
+					if (GetChildXmlVal(szName))
 					{
-						// call the function that sets the FXml pointer to the first non-comment child of
-						// the current tag and gets the value of that new node
-						if (GetChildXmlVal(szName))
+						// set the FXml pointer to the next sibling of the current tag``
+						if (gDLL->getXMLIFace()->NextSibling(GetXML()))
 						{
-							// set the FXml pointer to the next sibling of the current tag``
-							if (gDLL->getXMLIFace()->NextSibling(GetXML()))
+							// Skip any comments and stop at the next value we might want
+							if (SkipToNextVal())
 							{
-								// Skip any comments and stop at the next value we might want
-								if (SkipToNextVal())
+								// if we successfuly get the node type for the current tag
+								if (gDLL->getXMLIFace()->GetLastLocatedNodeType(GetXML(),szNodeType))
 								{
-									// if we successfuly get the node type for the current tag
-									if (gDLL->getXMLIFace()->GetLastLocatedNodeType(GetXML(),szNodeType))
+									// if the node type of the current tag isn't null
+									if (strcmp(szNodeType,"")!=0)
 									{
-										// if the node type of the current tag isn't null
-										if (strcmp(szNodeType,"")!=0)
+										// if the node type of the current tag is a float then
+										if (strcmp(szNodeType,"float")==0)
 										{
-											// if the node type of the current tag is a float then
-											if (strcmp(szNodeType,"float")==0)
-											{
-												// get the float value for the define
-												float fVal;
-												GetXmlVal(&fVal);
-												GC.getDefinesVarSystem()->SetValue(szName, fVal);
-											}
-											// else if the node type of the current tag is an int then
-											else if (strcmp(szNodeType,"int")==0)
-											{
-												// get the int value for the define
-												int iVal;
-												GetXmlVal(&iVal);
-												GC.getDefinesVarSystem()->SetValue(szName, iVal);
-											}
-											// else if the node type of the current tag is a boolean then
-											else if (strcmp(szNodeType,"boolean")==0)
-											{
-												// get the boolean value for the define
-												bool bVal;
-												GetXmlVal(&bVal);
-												GC.getDefinesVarSystem()->SetValue(szName, bVal);
-											}
-											// otherwise we will assume it is a string/text value
-											else
-											{
-												char szVal[256];
-												// get the string/text value for the define
-												GetXmlVal(szVal);
-												GC.getDefinesVarSystem()->SetValue(szName, szVal);
-											}
+											// get the float value for the define
+											float fVal;
+											GetXmlVal(&fVal);
+											GC.getDefinesVarSystem()->SetValue(szName, fVal);
 										}
-										// otherwise we will default to getting the string/text value for the define
+										// else if the node type of the current tag is an int then
+										else if (strcmp(szNodeType,"int")==0)
+										{
+											// get the int value for the define
+											int iVal;
+											GetXmlVal(&iVal);
+											GC.getDefinesVarSystem()->SetValue(szName, iVal);
+										}
+										// else if the node type of the current tag is a boolean then
+										else if (strcmp(szNodeType,"boolean")==0)
+										{
+											// get the boolean value for the define
+											bool bVal;
+											GetXmlVal(&bVal);
+											GC.getDefinesVarSystem()->SetValue(szName, bVal);
+										}
+										// otherwise we will assume it is a string/text value
 										else
 										{
 											char szVal[256];
@@ -117,46 +109,47 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 											GC.getDefinesVarSystem()->SetValue(szName, szVal);
 										}
 									}
+									// otherwise we will default to getting the string/text value for the define
+									else
+									{
+										char szVal[256];
+										// get the string/text value for the define
+										GetXmlVal(szVal);
+										GC.getDefinesVarSystem()->SetValue(szName, szVal);
+									}
 								}
 							}
-
-							// since we are looking at the children of a Define tag we will need to go up
-							// one level so that we can go to the next Define tag.
-							// Set the FXml pointer to the parent of the current tag
-							gDLL->getXMLIFace()->SetToParent(GetXML());
 						}
-					}
 
-					// now we set the FXml pointer to the sibling of the current tag, which should be the next
-					// Define tag
-					if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-					{
-						break;
+						// since we are looking at the children of a Define tag we will need to go up
+						// one level so that we can go to the next Define tag.
+						// Set the FXml pointer to the parent of the current tag
+						gDLL->getXMLIFace()->SetToParent(GetXML());
 					}
 				}
 
-				// write global defines info to cache
-				bool bOk = gDLL->cacheWrite(cache);
-				if (!bOk)
+				// now we set the FXml pointer to the sibling of the current tag, which should be the next
+				// Define tag
+				if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
 				{
-					char	szMessage[1024];
-					sprintf( szMessage, "Failed writing to global defines cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Caching Error");
-				}
-				else
-				{
-					logMsg("Wrote GlobalDefines to cache");
+					break;
 				}
 			}
-		}
 
-		// delete the pointer to the FXml variable
-		gDLL->getXMLIFace()->DestroyFXml(m_pFXml);
+			// write global defines info to cache
+			// advc.003i: Disabled
+			/*bool bOk = gDLL->cacheWrite(cache);
+			if (!bOk) {
+				char	szMessage[1024];
+				sprintf( szMessage, "Failed writing to global defines cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
+				gDLL->MessageBox(szMessage, "XML Caching Error");
+			}
+			else logMsg("Wrote GlobalDefines to cache");*/
+		}
 	}
-	else
-	{
-		logMsg("Read GobalDefines from cache");
-	}
+
+	// delete the pointer to the FXml variable
+	gDLL->getXMLIFace()->DestroyFXml(m_pFXml);
 
 	return true;
 }
@@ -196,43 +189,19 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 		return false;
 	}
 
-	/* <advc.009> Load a separate GlobalDefines file. My guess as to the
-	   intended way of doing that: Set modularLoading=1 and name the
-	   configuration file something_GlobalDefines.xml.
-	   I can't get that to work, though, and it appears neither could
-	   the other modders. Hence: hard-coded filenames. */
+	// <advc.009> Load additional GlobalDefines files
 	if(!ReadGlobalDefines("xml\\GlobalDefines_devel.xml", cache))
 		return false;
 	if(!ReadGlobalDefines("xml\\GlobalDefines_advc.xml", cache))
 		return false; // </advc.009>
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* XML Options                                                                                  */
-/************************************************************************************************/
-	if (!ReadGlobalDefines("xml\\BBAI_Game_Options_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
+	// BETTER_BTS_AI_MOD, XML Options, 02/21/10, jdog5000: START
+	ReadGlobalDefines("xml\\BBAI_Game_Options_GlobalDefines.xml", cache);
 	// advc.104x: Removed the BBAI prefix from the file name
-	if (!ReadGlobalDefines("xml\\AI_Variables_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
-
-	if (!ReadGlobalDefines("xml\\TechDiffusion_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
-
-	if (!ReadGlobalDefines("xml\\LeadFromBehind_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	ReadGlobalDefines("xml\\AI_Variables_GlobalDefines.xml", cache);
+	ReadGlobalDefines("xml\\TechDiffusion_GlobalDefines.xml", cache);
+	ReadGlobalDefines("xml\\LeadFromBehind_GlobalDefines.xml", cache);
+	// BETTER_BTS_AI_MOD: END
 
 	if (gDLL->isModularXMLLoading())
 	{
@@ -327,8 +296,8 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("WARM_FEATURE", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("WARM_FEATURE", idx);
-
 //GWMod end M.A.
+
 		SetGlobalDefine("LAND_IMPROVEMENT", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("LAND_IMPROVEMENT", idx);
@@ -340,6 +309,7 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("RUINS_IMPROVEMENT", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("RUINS_IMPROVEMENT", idx);
+		GC.setRUINS_IMPROVEMENT(idx); // advc.003b
 
 		SetGlobalDefine("NUKE_FEATURE", szVal);
 		idx = FindInInfoClass(szVal);
@@ -554,120 +524,116 @@ bool CvXMLLoadUtility::SetGlobalArtDefines()
 bool CvXMLLoadUtility::LoadGlobalText()
 {
 	CvCacheObject* cache = gDLL->createGlobalTextCacheObject("GlobalText.dat");	// cache file name
-	if (!gDLL->cacheRead(cache))
+	// advc.003: Handle successful read upfront
+	if (gDLL->cacheRead(cache)) {
+		logMsg("Read GlobalText from cache");
+		gDLL->destroyCache(cache);
+		return true; 
+	}
+
+	if (!CreateFXml())
 	{
-		bool bLoaded = false;
+		return false;
+	}
 
-		if (!CreateFXml())
+	//
+	// load all files in the xml text directory
+	//
+	std::vector<CvString> aszFiles;
+	std::vector<CvString> aszModfiles;
+
+	gDLL->enumerateFiles(aszFiles, "xml\\text\\*.xml");
+
+	// K-Mod. Text files from mods may not have the same set of language as the base game.
+	// When such a mismatch occurs, we cannot simply rely on "getCurrentLanguage()" to give us the correct text from the mod file. We should instead check the xml tags.
+	// So, before we start loading text, we need to extract the current name of our language tag. This isn't as easy as I'd like. Here's what I'm going to do:
+	// CIV4GameText_Misc1.xml contains the text for the language options dropdown menu in the settings screen; so I'm going to assume that particular text file is
+	// well formed, and I'm going to use it to determine the current language name. (Note: I'd like to use the names from TXT_KEY_LANGUAGE_#, but that text isn't easy to access.)
+	// label text for the currently selected language -- that should correspond to the xml label used for that language.
+	std::string langauge_name;
+	if (LoadCivXml(m_pFXml, "xml\\text\\CIV4GameText_Misc1.xml"))
+	{
+		bool bValid = true;
+		bValid = bValid && gDLL->getXMLIFace()->LocateNode(m_pFXml, "Civ4GameText/TEXT");
+		bValid = bValid && gDLL->getXMLIFace()->SetToChild(m_pFXml);
+
+		if (bValid)
 		{
-			return false;
-		}
-
-		//
-		// load all files in the xml text directory
-		//
-		std::vector<CvString> aszFiles;
-		std::vector<CvString> aszModfiles;
-
-		gDLL->enumerateFiles(aszFiles, "xml\\text\\*.xml");
-
-		// K-Mod. Text files from mods may not have the same set of language as the base game.
-		// When such a mismatch occurs, we cannot simply rely on "getCurrentLanguage()" to give us the correct text from the mod file. We should instead check the xml tags.
-		// So, before we start loading text, we need to extract the current name of our language tag. This isn't as easy as I'd like. Here's what I'm going to do:
-		// CIV4GameText_Misc1.xml contains the text for the language options dropdown menu in the settings screen; so I'm going to assume that particular text file is
-		// well formed, and I'm going to use it to determine the current language name. (Note: I'd like to use the names from TXT_KEY_LANGUAGE_#, but that text isn't easy to access.)
-		// label text for the currently selected language -- that should correspond to the xml label used for that language.
-		std::string langauge_name;
-		if (LoadCivXml(m_pFXml, "xml\\text\\CIV4GameText_Misc1.xml"))
-		{
-			bool bValid = true;
-			bValid = bValid && gDLL->getXMLIFace()->LocateNode(m_pFXml, "Civ4GameText/TEXT");
-			bValid = bValid && gDLL->getXMLIFace()->SetToChild(m_pFXml);
-
-			if (bValid)
+			const int& iLanguage = GAMETEXT.getCurrentLanguage();
+			const int iMax = GC.getDefineINT("MAX_NUM_LANGUAGES");
+			int i;
+			for (i = 0; i < iMax; i++)
 			{
-				const int& iLanguage = GAMETEXT.getCurrentLanguage();
-				const int iMax = GC.getDefineINT("MAX_NUM_LANGUAGES");
-				int i;
-				for (i = 0; i < iMax; i++)
-				{
-					SkipToNextVal();
+				SkipToNextVal();
 
-					if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-						break;
-					if (i == iLanguage)
+				if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
+					break;
+				if (i == iLanguage)
+				{
+					char buffer[1024]; // no way to determine max tag name size. .. This is really bad; but what can I do about it?
+					if (gDLL->getXMLIFace()->GetLastLocatedNodeTagName(m_pFXml, buffer))
 					{
-						char buffer[1024]; // no way to determine max tag name size. .. This is really bad; but what can I do about it?
-						if (gDLL->getXMLIFace()->GetLastLocatedNodeTagName(m_pFXml, buffer))
-						{
-							buffer[1023] = 0; // just in case the buffer isn't even terminated!
-							langauge_name.assign(buffer);
-						}
+						buffer[1023] = 0; // just in case the buffer isn't even terminated!
+						langauge_name.assign(buffer);
 					}
 				}
-				// this is stupid...
-				// the number of languages is a static private variable which can only be set by a non-static function.
-				CvGameText dummy;
-				dummy.setNumLanguages(i);
 			}
+			// this is stupid...
+			// the number of languages is a static private variable which can only be set by a non-static function.
+			CvGameText dummy;
+			dummy.setNumLanguages(i);
 		}
+	}
 
-		// Remove duplicate files. (Both will be loaded from the mod folder anyway, so this will save us some time.)
-		// However, we must not disturb the order of the list, because it is important that the modded files overrule the unmodded files.
-		for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+	// Remove duplicate files. (Both will be loaded from the mod folder anyway, so this will save us some time.)
+	// However, we must not disturb the order of the list, because it is important that the modded files overrule the unmodded files.
+	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+	{
+		std::vector<CvString>::iterator jt = it+1;
+		while (jt != aszFiles.end())
 		{
-			std::vector<CvString>::iterator jt = it+1;
-			while (jt != aszFiles.end())
-			{
-				if (it->CompareNoCase(*jt) == 0)
-					jt = aszFiles.erase(jt);
-				else
-					++jt;
-			}
+			if (it->CompareNoCase(*jt) == 0)
+				jt = aszFiles.erase(jt);
+			else
+				++jt;
 		}
-		// K-Mod end
+	}
+	// K-Mod end
 
-		if (gDLL->isModularXMLLoading())
-		{
-			gDLL->enumerateFiles(aszModfiles, "modules\\*_CIV4GameText.xml");
-			aszFiles.insert(aszFiles.end(), aszModfiles.begin(), aszModfiles.end());
-		}
-
-		for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
-		{
-			bLoaded = LoadCivXml(m_pFXml, *it); // Load the XML
-			if (!bLoaded)
-			{
-				char	szMessage[1024];
-				sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", (*it).c_str(), GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Load Error");
-			}
-			if (bLoaded)
-			{
-				// if the xml is successfully validated
-				SetGameText("Civ4GameText", "Civ4GameText/TEXT", langauge_name);
-			}
-		}
-
-		DestroyFXml();
-
-		// write global text info to cache
-		bool bOk = gDLL->cacheWrite(cache);
+	if (gDLL->isModularXMLLoading())
+	{
+		gDLL->enumerateFiles(aszModfiles, "modules\\*_CIV4GameText.xml");
+		aszFiles.insert(aszFiles.end(), aszModfiles.begin(), aszModfiles.end());
+	}
+	bool bLoaded = false;
+	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+	{
+		bLoaded = LoadCivXml(m_pFXml, *it); // Load the XML
 		if (!bLoaded)
 		{
 			char	szMessage[1024];
-			sprintf( szMessage, "Failed writing to Global Text cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(szMessage, "XML Caching Error");
+			sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", (*it).c_str(), GC.getCurrentXMLFile().GetCString());
+			gDLL->MessageBox(szMessage, "XML Load Error");
 		}
-		if (bOk)
+		if (bLoaded)
 		{
-			logMsg("Wrote GlobalText to cache");
+			// if the xml is successfully validated
+			SetGameText("Civ4GameText", "Civ4GameText/TEXT", langauge_name);
 		}
-	}	// didn't read from cache
-	else
-	{
-		logMsg("Read GlobalText from cache");
 	}
+
+	DestroyFXml();
+
+	// write global text info to cache
+	// advc.003i: Disabled
+	/*bool bOk = gDLL->cacheWrite(cache);
+	if (!bOk) {
+		char	szMessage[1024];
+		sprintf( szMessage, "Failed writing to Global Text cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
+		gDLL->MessageBox(szMessage, "XML Caching Error");
+	}
+	if (bOk)
+		logMsg("Wrote GlobalText to cache");*/
 
 	gDLL->destroyCache(cache);
 
@@ -816,7 +782,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	UpdateProgressCB("GlobalOther");
 
 	DestroyFXml();
-
+	getWPAI.doXML(); // advc.104x
 	return true;
 }
 
@@ -825,7 +791,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 //  FUNCTION:   LoadPostMenuGlobals()
 //
 //  PURPOSE :   loads global xml data which isn't needed for the main menus
-//		this data is loaded as a secodn stage, when the game is launched
+//		this data is loaded as a second stage, when the game is launched
 //
 //------------------------------------------------------------------------------------------------------
 bool CvXMLLoadUtility::LoadPostMenuGlobals()
@@ -897,10 +863,10 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	// Load the attachable infos
 	LoadGlobalClassInfo(GC.getAttachableInfo(), "CIV4AttachableInfos", "Misc", "Civ4AttachableInfos/AttachableInfos/AttachableInfo", false);
 
-	// Specail Case Diplomacy Info due to double vectored nature and appending of Responses
+	// Special Case Diplomacy Info due to double vectored nature and appending of Responses
 	LoadDiplomacyInfo(GC.getDiplomacyInfo(), "CIV4DiplomacyInfos", "GameInfo", "Civ4DiplomacyInfos/DiplomacyInfos/DiplomacyInfo", &CvDLLUtilityIFaceBase::createDiplomacyInfoCacheObject);
-
-	LoadGlobalClassInfo(GC.getQuestInfo(), "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);
+	// advc.003j:
+	//LoadGlobalClassInfo(GC.getQuestInfo(), "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);
 	LoadGlobalClassInfo(GC.getTutorialInfo(), "Civ4TutorialInfos", "Misc", "Civ4TutorialInfos/TutorialInfo", false);
 
 	LoadGlobalClassInfo(GC.getEspionageMissionInfo(), "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
@@ -1523,8 +1489,12 @@ void CvXMLLoadUtility::SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfo
 }
 
 template <class T>
-void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath, bool bTwoPass, CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
+void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
+		const char* szFileRoot, const char* szFileDirectory,
+		const char* szXmlPath, bool bTwoPass,
+		CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
+	pArgFunction = NULL; // advc.003i: Disable XML cache
 	bool bLoaded = false;
 	bool bWriteCache = true;
 	CvCacheObject* pCache = NULL;
@@ -1577,22 +1547,18 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* 
 					}
 				}
 			}
-
-			if (NULL != pArgFunction && bWriteCache)
-			{
+			// advc.003i: Disabled
+			/*if (NULL != pArgFunction && bWriteCache) {
 				// write info to cache
 				bool bOk = gDLL->cacheWrite(pCache);
-				if (!bOk)
-				{
+				if (!bOk) {
 					char szMessage[1024];
 					sprintf(szMessage, "Failed writing to %s cache. \n Current XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
 					gDLL->MessageBox(szMessage, "XML Caching Error");
 				}
 				if (bOk)
-				{
 					logMsg("Wrote %s to cache", szFileDirectory);
-				}
-			}
+			}*/
 		}
 	}
 
@@ -1656,22 +1622,18 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 					}
 				}
 			}
-
-			if (NULL != pArgFunction && bWriteCache)
-			{
+			// advc.003i: Disabled
+			/*if (NULL != pArgFunction && bWriteCache) {
 				// write info to cache
 				bool bOk = gDLL->cacheWrite(pCache);
-				if (!bOk)
-				{
+				if (!bOk) {
 					char szMessage[1024];
 					sprintf(szMessage, "Failed writing to %s cache. \n Current XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
 					gDLL->MessageBox(szMessage, "XML Caching Error");
 				}
 				if (bOk)
-				{
 					logMsg("Wrote %s to cache", szFileDirectory);
-				}
-			}
+			}*/
 		}
 	}
 
@@ -1997,6 +1959,8 @@ void CvXMLLoadUtility::SetImprovementBonuses(CvImprovementBonusInfo** ppImprovem
 //  PURPOSE :   set the variable to a default and load it from the xml if there are any children
 //
 //------------------------------------------------------------------------------------------------------
+/*  advc.003j (comment): Unused, and apparently never was used. But sounds like it
+	could be useful. */
 bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 {
 	int iNumSibs;

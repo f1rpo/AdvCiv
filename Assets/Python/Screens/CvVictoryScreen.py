@@ -934,12 +934,13 @@ class CvVictoryScreen:
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (activePlayer.getNameKey(), activePlayer.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(activePlayer.getLeaderType(), activePlayer.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		g = gc.getGame() # advc.003
 		#screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_DIFFICULTY", (gc.getHandicapInfo(activePlayer.getHandicapType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# K-Mod. In multiplayer games, show both the game difficulty and the player difficulty
-		if activePlayer.getHandicapType() == gc.getGame().getHandicapType():
+		if activePlayer.getHandicapType() == g.getHandicapType():
 			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_DIFFICULTY", (gc.getHandicapInfo(activePlayer.getHandicapType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		else:
-			szBuffer = "%s :\n  %s (%s) / %s (%s)" % (localText.getText("TXT_KEY_PITBOSS_DIFFICULTY", ()), gc.getHandicapInfo(activePlayer.getHandicapType()).getText(), localText.getText("TXT_KEY_MAIN_MENU_PLAYER", ()), gc.getHandicapInfo(gc.getGame().getHandicapType()).getText(), localText.getText("TXT_KEY_OPTIONS_GAME", ()))
+			szBuffer = "%s :\n  %s (%s) / %s (%s)" % (localText.getText("TXT_KEY_PITBOSS_DIFFICULTY", ()), gc.getHandicapInfo(activePlayer.getHandicapType()).getText(), localText.getText("TXT_KEY_MAIN_MENU_PLAYER", ()), gc.getHandicapInfo(g.getHandicapType()).getText(), localText.getText("TXT_KEY_OPTIONS_GAME", ()))
 			screen.appendListBoxStringNoUpdate(szSettingsTable, szBuffer, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# K-Mod end
 
@@ -948,25 +949,28 @@ class CvVictoryScreen:
 
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(gc.getMap().getWorldSize()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(gc.getMap().getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		# <advc.137> Use TXT_KEY_LOW/HIGH instead of SEA_LEVEL keys.
-		# (The SEA_LEVEL keys include the recommendation for the
-		# Custom Game screen - don't want that here.
+		# <advc.137> Use TXT_KEY_LOW/HIGH instead of SEA_LEVEL keys. (The SEA_LEVEL keys include the recommendation for the Custom Game screen - don't want that here.
 		seaLvl = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
 		if seaLvl == 0: # Medium sea level - use the BtS code.
 			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		else:
-			tkey = "TXT_KEY_HIGH"
+			szKey = "TXT_KEY_HIGH"
 			if seaLvl < 0:
-				tkey = "TXT_KEY_LOW"
-			s = localText.getText(tkey, ())
-			appendText = localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,))
-			screen.appendListBoxStringNoUpdate(szSettingsTable, appendText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+				szKey = "TXT_KEY_LOW"
+			s = localText.getText(szKey, ())
+			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,)), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# </advc.137>
 		# advc.004:
-		screen.appendListBoxStringNoUpdate(szSettingsTable, str(gc.getGame().countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		screen.appendListBoxStringNoUpdate(szSettingsTable, str(g.countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_STARTING_ERA", (gc.getEraInfo(gc.getGame().getStartEra()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_GAME_SPEED", (gc.getGameSpeedInfo(gc.getGame().getGameSpeedType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_STARTING_ERA", (gc.getEraInfo(g.getStartEra()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# <advc.251>
+		iStartTurn = g.getStartTurn()
+		if iStartTurn != 0:
+			szTurnDate = CyGameTextMgr().getDateStr(iStartTurn, False, g.getCalendar(), g.getStartYear(), g.getGameSpeedType())
+			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_START_TURN", (iStartTurn, szTurnDate)), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# </advc.251>
+		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_GAME_SPEED", (gc.getGameSpeedInfo(g.getGameSpeedType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# advc.106i
 		screen.appendListBoxStringNoUpdate(szSettingsTable, BugPath.getModName() + " Mod", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
@@ -977,73 +981,77 @@ class CvVictoryScreen:
 		szOptionsTable = self.getNextWidgetName()
 		screen.addListBoxGFC(szOptionsTable, "", self.SETTINGS_PANEL_X2 + self.MARGIN, self.SETTINGS_PANEL_Y + self.MARGIN, self.SETTINGS_PANEL_WIDTH - 2*self.MARGIN, self.SETTINGS_PANEL_HEIGHT - 2*self.MARGIN, TableStyles.TABLE_STYLE_EMPTY)
 		screen.enableSelect(szOptionsTable, False)
-
+		bSPaH = g.isOption(GameOptionTypes.GAMEOPTION_SPAH) # advc.250b
 		for i in range(GameOptionTypes.NUM_GAMEOPTION_TYPES):
-			if gc.getGame().isOption(i):
+			if g.isOption(i):
 				# <advc.104> Handle Aggressive AI below; skip it here.
-				if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_AGGRESSIVE_AI":
+				if i == GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI:
 					continue # </advc.104>
 				# <advc.250b> Handle Advanced Start options below if SPaH.
-				isSPaH = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_SPAH)
-				if isSPaH:
-					if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_SPAH":
+				if bSPaH:
+					if i == GameOptionTypes.GAMEOPTION_SPAH:
 						continue
-					if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_ADVANCED_START":
+					if i == GameOptionTypes.GAMEOPTION_ADVANCED_START:
 						continue
 				# </advc.250b>
 				# <advc.300> Show earliest turn that barbarians can spawn on
-				descr = gc.getGameOptionInfo(i).getDescription()
-				if gc.getGameOptionInfo(i).getTextKey() =="TXT_KEY_GAME_OPTION_RAGING_BARBARIANS":
-					barbStart = gc.getGame().getBarbarianStartTurn()
+				szDescr = gc.getGameOptionInfo(i).getDescription()
+				if i == GameOptionTypes.GAMEOPTION_RAGING_BARBARIANS:
+					iBarbarianStartTurn = g.getBarbarianStartTurn()
 					# Stop displaying after some time [Since v0.94: Don't show the start turn at all.]
-					if False and barbStart + 25 > gc.getGame().getGameTurn():
-						descr += "\n\t("
-						descr += localText.getText("TXT_KEY_BARB_START", ())
-						descr += " " + str(barbStart) + ")"
-				# Next line: Plug in descr </advc.300>
-				screen.appendListBoxStringNoUpdate(szOptionsTable, descr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+					if False and iBarbarianStartTurn + 25 > g.getGameTurn():
+						szDescr += "\n\t("
+						szDescr += localText.getText("TXT_KEY_BARB_START", ())
+						szDescr += " " + str(iBarbarianStartTurn) + ")"
+				# </advc.300>
+				screen.appendListBoxStringNoUpdate(szOptionsTable, szDescr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# <advc.004> Disabled victory conditions. Some overlap with CvReplayInfo::addSettingsMsg
 		for i in range(gc.getNumVictoryInfos()):
-			if not gc.getGame().isVictoryValid(i):
+			if not g.isVictoryValid(i):
 				screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getVictoryInfo(i).getDescription() + " " + localText.getText("TXT_KEY_VICTORY_DISABLED",()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# </advc.004>
 
 		# <advc.104> AI settings
-		isAggro = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI)
-		isK = gc.getGame().useKModAI()
-		displayString = None
-		if isAggro and isK:
-			displayString = localText.getText("TXT_KEY_GAME_OPTION_AGGRESSIVE_AI",())
-		elif isK: # Only possible if Aggressive AI disabled through XML
-			displayString = "Non-aggressive AI"
-		if not displayString is None: # Copy-pasted from above
-			screen.appendListBoxStringNoUpdate(szOptionsTable, displayString, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		bLegacyAI = g.useKModAI()
+		szAIOption = None
+		if g.isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI) and bLegacyAI:
+			szAIOption = localText.getText("TXT_KEY_GAME_OPTION_AGGRESSIVE_AI",())
+		elif bLegacyAI: # Only possible if Aggressive AI disabled through XML
+			szAIOption = "Non-Aggressive AI"
+		if not szAIOption is None:
+			screen.appendListBoxStringNoUpdate(szOptionsTable, szAIOption, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# </advc.104>
 
-		if (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START)):
-			if not isSPaH: # advc.250b
-				szNumPoints = u"%s %d" % (localText.getText("TXT_KEY_ADVANCED_START_POINTS", ()), gc.getGame().getNumAdvancedStartPoints())
+		if (g.isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START)):
+			if not bSPaH: # advc.250b
+				szNumPoints = u"%s %d" % (localText.getText("TXT_KEY_ADVANCED_START_POINTS", ()), g.getNumAdvancedStartPoints())
 			# <advc.250b>
 			else:
-				# Could be done directly in Python, but also need it for advc.106i
-				szNumPoints = gc.getGame().SPaHPointsForSettingsScreen()
+				# Could be done directly in Python, but I also need it for advc.106i
+				szNumPoints = g.SPaHPointsForSettingsScreen()
 			# </advc.250b>
 			screen.appendListBoxStringNoUpdate(szOptionsTable, szNumPoints, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		if (gc.getGame().isGameMultiPlayer()):
+		if g.isGameMultiPlayer():
 			for i in range(gc.getNumMPOptionInfos()):
-				if (gc.getGame().isMPOption(i)):
+				if (g.isMPOption(i)):
 					screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getMPOptionInfo(i).getDescription(), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-			if (gc.getGame().getMaxTurns() > 0):
-				szMaxTurns = u"%s %d" % (localText.getText("TXT_KEY_TURN_LIMIT_TAG", ()), gc.getGame().getMaxTurns())
-				screen.appendListBoxStringNoUpdate(szOptionsTable, szMaxTurns, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if g.getMaxTurns() > 0:
+				# <advc.135d> Based on code in CvGame::setStartTurnYear
+				iDefaultEndTurn = 0
+				for i in range(gc.getGameSpeedInfo(g.getGameSpeedType()).getNumTurnIncrements()):
+					iDefaultEndTurn += gc.getGameSpeedInfo(g.getGameSpeedType()).getGameTurnInfo(i).iNumGameTurnsPerIncrement;
+				if g.getMaxTurns() != iDefaultEndTurn:
+				# </advc.135d>
+					szMaxTurns = u"%s %d" % (localText.getText("TXT_KEY_TURN_LIMIT_TAG", ()), g.getMaxTurns())
+					screen.appendListBoxStringNoUpdate(szOptionsTable, szMaxTurns, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-			if (gc.getGame().getMaxCityElimination() > 0):
-				szMaxCityElimination = u"%s %d" % (localText.getText("TXT_KEY_CITY_ELIM_TAG", ()), gc.getGame().getMaxCityElimination())
+			if (g.getMaxCityElimination() > 0):
+				szMaxCityElimination = u"%s %d" % (localText.getText("TXT_KEY_CITY_ELIM_TAG", ()), g.getMaxCityElimination())
 				screen.appendListBoxStringNoUpdate(szOptionsTable, szMaxCityElimination, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		if (gc.getGame().hasSkippedSaveChecksum()):
+		if (g.hasSkippedSaveChecksum()):
 			screen.appendListBoxStringNoUpdate(szOptionsTable, localText.getText("TXT_KEY_BUFFYWARNING_CHECKSUM_SKIPPED", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 		screen.updateListBox(szOptionsTable)
@@ -1057,7 +1065,7 @@ class CvVictoryScreen:
 
 		for iLoopPlayer in range(gc.getMAX_CIV_PLAYERS()):
 			player = gc.getPlayer(iLoopPlayer)
-			if (player.isEverAlive() and iLoopPlayer != self.iActivePlayer and (gc.getTeam(player.getTeam()).isHasMet(activePlayer.getTeam()) or gc.getGame().isDebugMode()) and not player.isBarbarian() and not player.isMinorCiv()):
+			if (player.isEverAlive() and iLoopPlayer != self.iActivePlayer and (gc.getTeam(player.getTeam()).isHasMet(activePlayer.getTeam()) or g.isDebugMode()) and not player.isBarbarian() and not player.isMinorCiv()):
 				screen.appendListBoxStringNoUpdate(szCivsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (player.getNameKey(), player.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 				screen.appendListBoxStringNoUpdate(szCivsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(player.getLeaderType(), player.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 				screen.appendListBoxStringNoUpdate(szCivsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
@@ -1158,19 +1166,6 @@ class CvVictoryScreen:
 				if (religionPercent > bestReligionPercent):
 					bestReligionPercent = religionPercent
 					iBestReligion = iLoopReligion
-
-		# Total Culture
-		ourCulture = activePlayer.getTeam().countTotalCulture()
-
-		iBestCultureTeam = -1
-		bestCulture = 0
-		for iLoopTeam in range(gc.getMAX_CIV_TEAMS()):
-			if (gc.getTeam(iLoopTeam).isAlive() and not gc.getTeam(iLoopTeam).isMinorCiv() and not gc.getTeam(iLoopTeam).isBarbarian()):
-				if (iLoopTeam != iActiveTeam and (activePlayer.getTeam().isHasMet(iLoopTeam) or gc.getGame().isDebugMode())):
-					teamCulture = gc.getTeam(iLoopTeam).countTotalCulture()
-					if (teamCulture > bestCulture):
-						bestCulture = teamCulture
-						iBestCultureTeam = iLoopTeam
 
 		# Vote
 		aiVoteBuildingClass = []
@@ -1309,7 +1304,22 @@ class CvVictoryScreen:
 
 				if (victory.getTotalCultureRatio() > 0):
 					iRow = screen.appendTableRow(szTable)
-					screen.setTableText(szTable, 0, iRow, localText.getText("TXT_KEY_VICTORY_SCREEN_PERCENT_CULTURE", (int((100.0 * bestCulture) / victory.getTotalCultureRatio()), )), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+					# <advc.003> Moved down to have this stuff in one place
+					ourCulture = activePlayer.getTeam().countTotalCulture()
+					iBestCultureTeam = -1
+					bestCulture = 0
+					for iLoopTeam in range(gc.getMAX_CIV_TEAMS()):
+						if (gc.getTeam(iLoopTeam).isAlive() and not gc.getTeam(iLoopTeam).isMinorCiv() and not gc.getTeam(iLoopTeam).isBarbarian()):
+							if (iLoopTeam != iActiveTeam and (activePlayer.getTeam().isHasMet(iLoopTeam) or gc.getGame().isDebugMode())):
+								teamCulture = gc.getTeam(iLoopTeam).countTotalCulture()
+								if (teamCulture > bestCulture):
+									bestCulture = teamCulture
+									iBestCultureTeam = iLoopTeam
+					# </advc.003>
+					#iCulturePercent = int((100.0 * bestCulture) / victory.getTotalCultureRatio())
+					# advc.004: The above is neither helpful nor really a percentage. Let's simply show the target ratio for now. What's really needed is, I think, the ratio of bestCulture to secondBestCulture, where secondBestCulture is computed w/o checking isHasMet. Or possibly that ratio divided by victory.getTotalCultureRatio (meaning that 100% is needed for victory). 
+					iCulturePercent = victory.getTotalCultureRatio()
+					screen.setTableText(szTable, 0, iRow, localText.getText("TXT_KEY_VICTORY_SCREEN_PERCENT_CULTURE", (iCulturePercent, )), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 					screen.setTableText(szTable, 2, iRow, activePlayer.getTeam().getName() + ":", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 					screen.setTableText(szTable, 3, iRow, unicode(ourCulture), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 					if (iBestLandTeam != -1):
@@ -1527,9 +1537,13 @@ class CvVictoryScreen:
 						theirBestCities = self.getListCultureCities(iBestCultureTeam, victory)
 					else:
 						theirBestCities = []
-						
+
 					iRow = screen.appendTableRow(szTable)
-					screen.setTableText(szTable, 0, iRow, localText.getText("TXT_KEY_VICTORY_SCREEN_CITY_CULTURE", (victory.getNumCultureCities(), gc.getCultureLevelInfo(victory.getCityCulture()).getTextKey())), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+					# <advc.126>
+					eVictoryLevel = victory.getCityCulture()
+					iCultureThresh = gc.getGame().getCultureThreshold(eVictoryLevel)
+					szCultureVictoryText = localText.getText("TXT_KEY_VICTORY_SCREEN_CITY_CULTURE", (victory.getNumCultureCities(), gc.getCultureLevelInfo(eVictoryLevel).getTextKey(), iCultureThresh)) # </advc.126>
+					screen.setTableText(szTable, 0, iRow, szCultureVictoryText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 					for i in range(victory.getNumCultureCities()):
 						if (len(ourBestCities) > i):

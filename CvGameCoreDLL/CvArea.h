@@ -5,7 +5,6 @@
 #ifndef CIV4_AREA_H
 #define CIV4_AREA_H
 
-//#include "CvStructs.h"
 
 class CvCity;
 class CvPlot;
@@ -36,7 +35,7 @@ public:
 	void setRepresentativeArea(int eArea);
 	// Should only be needed for computing the equivalence classes
 	int getRepresentativeArea() const;
-	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
+	bool canBeEntered(CvArea const& kFrom, CvUnit const* u = NULL) const;
 	// </advc.030>
 	void changeNumTiles(int iChange);
 	void changeNumOwnedTiles(int iChange);
@@ -46,11 +45,10 @@ public:
 			bool bIgnoreBarb = false) const;
 	int countCivCities() const;
 	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
-	bool hasAnyAreaPlayerBonus(BonusTypes bId) const;
+	bool hasAnyAreaPlayerBonus(BonusTypes eBonus) const;
 	int getBarbarianCitiesEverCreated() const;
-	void barbarianCityCreated();
+	void reportBarbarianCityCreated();
 	// </advc.300>
-																						// Exposed to Python
 	void changeNumRiverEdges(int iChange);																								// Exposed to Python
 
 	int getTotalPopulation() const;																						// Exposed to Python

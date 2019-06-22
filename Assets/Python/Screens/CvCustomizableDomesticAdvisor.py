@@ -565,9 +565,9 @@ class CvCustomizableDomesticAdvisor:
 				or info.getDomainProductionModifier(DomainTypes.DOMAIN_AIR) > 0 \
 				or info.getYieldChange(YieldTypes.YIELD_PRODUCTION) > 0:
 				icon += self.hammerIcon
-
+			# advc.310: iGlobalTradeRoutes renamed to iAreaTradeRoutes
 			if info.getTradeRouteModifier() > 0 or info.getTradeRoutes() > 0 or info.getCoastalTradeRoutes() > 0 \
-			or info.getGlobalTradeRoutes() > 0 or info.getForeignTradeRouteModifier() > 0:
+			or info.getAreaTradeRoutes() > 0 or info.getForeignTradeRouteModifier() > 0:
 				icon += self.tradeIcon
 
 			if info.getMaintenanceModifier() < 0:
@@ -1441,15 +1441,13 @@ class CvCustomizableDomesticAdvisor:
 	def calculateProducingTurns (self, city, szKey, arg):
 
 		szReturn = u""
-
 		# If there's something in the queue,
-		if (city.getOrderQueueLength() > 0):
-
+		if city.getOrderQueueLength() > 0:
 			# If it's not a process (i.e., Wealth, Research, Culture)
-			if (not (city.isProductionProcess())):
-
-				szReturn = unicode(city.getProductionTurnsLeft())
-
+			if not city.isProductionProcess():
+				iTurns = city.getProductionTurnsLeft()
+				if iTurns > 0: # advc.004x
+					szReturn = unicode(iTurns)
 		return szReturn
 
 	def calculateWhipPopulation (self, city, szKey, arg):

@@ -10,7 +10,6 @@
 #include "CvArea.h"
 #include "CyArea.h"
 #include "CyUnit.h"
-//#include "CvStructs.h"
 
 CySelectionGroup::CySelectionGroup() : m_pSelectionGroup(NULL)
 {
@@ -159,19 +158,11 @@ bool CySelectionGroup::hasWorker()
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->hasWorker() : false;
 }
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
 bool CySelectionGroup::isStranded()
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->isStranded() : false;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+} // BETTER_BTS_AI_MOD: END
 
 bool CySelectionGroup::at(int iX, int iY)
 {

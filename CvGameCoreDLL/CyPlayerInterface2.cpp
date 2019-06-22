@@ -67,5 +67,9 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("checkAlert", &CyPlayer::checkAlert, "void (int alertId, bool silent)")
 		// advc.210e:
 		.def("AI_corporationBonusVal", &CyPlayer::AI_corporationBonusVal, "int (int)")
+		// <advc.085>
+		.def("setScoreboardExpanded", &CyPlayer::setScoreboardExpanded, "void (bool)")
+		.def("isScoreboardExpanded", &CyPlayer::isScoreboardExpanded, "bool (void)")
+		// </advc.085>
 		;
 }

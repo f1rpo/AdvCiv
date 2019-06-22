@@ -2,8 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarEvalParameters.h"
-
-using std::vector;
+#include "WarAndPeaceAI.h"
+#include "CvGameAI.h"
+#include "CvTeamAI.h"
 
 
 WarEvalParameters::WarEvalParameters(TeamTypes agentId,
@@ -17,6 +18,9 @@ WarEvalParameters::WarEvalParameters(TeamTypes agentId,
 	consideringPeace = GET_TEAM(_agentId).isAtWar(_targetId);
 	if(sponsor != NO_PLAYER)
 		immediateDoW = true;
+	// To be set by WarEvaluator:
+	total = naval = false;
+	preparationTime = -1;
 }
 
 bool WarEvalParameters::isIgnoreDistraction() const {
@@ -121,10 +125,10 @@ TeamTypes WarEvalParameters::getCapitulationTeam() const {
 	return capitulationTeam;
 }
 
-long WarEvalParameters::id() const {
+int WarEvalParameters::id() const {
 
-	/*  Some 500 mio. possible combinations; fits into a single long int.
-		Ensure uniqueness through a mixed-based positional system: */
+	/*  Some 500 mio. possible combinations; fits into a single int.
+		Ensure uniqueness through a mixed-base positional system: */
 	long r = _targetId + 1; r *= 20;
 	r += _agentId + 1; r *= 20;
 	r += consideringPeace; r *= 2;
@@ -135,8 +139,9 @@ long WarEvalParameters::id() const {
 	r += sponsor + 1; r *= 20;
 	r += capitulationTeam + 1; r *= 20;
 	r += immediateDoW;
-	/*  warAllies and extraTargets can't fit in one long int, and those sets
-		matter only in situations where the cache should be disabled */
+	/*  warAllies and extraTargets matter only in situations where the cache
+		should be disabled. (Also wouldn't fit into a single int, but long long
+		could be used instead.) */
 	FAssert(warAllies.empty() && extraTargets.empty());
 	return r;
 }

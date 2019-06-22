@@ -2,8 +2,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarEvaluator.h"
+#include "WarAndPeaceAgent.h"
 #include "WarUtilityAspect.h"
 #include "MilitaryAnalyst.h"
+#include "WarAndPeaceReport.h"
+#include "WarEvalParameters.h"
+#include "CvGamePlay.h"
 
 #include <sstream>
 
@@ -13,22 +17,40 @@ using std::ostringstream;
 
 /*  When a player trades with the AI, the EXE asks the DLL to compute trade values
 	several times in a row (usually about a dozen times), which is enough to cause
-	a noticeable delay. Therefore this primitive caching mechanism.
-	Important to enable caching (checkCache=true) only tempoarily for UI purposes
-	b/c it's not 100% reliable (and not stored in savegames; could lead to
-	inconsistencies). */
-long WarEvaluator::lastCallParams[] = {0, 0, 0, 0, 0};
-int WarEvaluator::lastCallResult[] = {INT_MIN,INT_MIN,INT_MIN,INT_MIN,INT_MIN};
-/*  Calls alternate between naval/ non-naval, limited/ total or mutual war utility
-	of two civs, so caching just the last result isn't effective. */
-int WarEvaluator::cacheSz = 5; // lastCall... initializers need to match this number
-int WarEvaluator::lastIndex = 0;
+	a noticeable delay. Therefore this primitive caching mechanism. The cache is
+	always used on the Trade screen; in other (async) UI contexts, it has to be enabled
+	explicitly through the useCache param of the constructor, or the static enableCache.
+	As for the latter, it's important to call disableCache before returning to a
+	synchronized context b/c the cache doesn't work in all situations
+	(see WarEvalParameters::id) and isn't stored in savegames. */
 bool WarEvaluator::checkCache = false;
+bool WarEvaluator::cacheCleared = true;
+/*  Cache size: Calls alternate between naval/ non-naval,
+	limited/ total or mutual war utility of two civs,
+	so caching just the last result isn't effective. */
+static int const cacheSz = 10;
+static int lastCallParams[cacheSz];
+static int lastCallResult[cacheSz];
+static int lastIndex;
+
+void WarEvaluator::enableCache() {
+
+	checkCache = true;
+	cacheCleared = false;
+}
+
+void WarEvaluator::disableCache() {
+
+	checkCache = false;
+}
 
 void WarEvaluator::clearCache() {
 
+	if(cacheCleared) // Just to make sure that repeated clears don't waste time
+		return;
+	cacheCleared = true;
 	for(int i = 0; i < cacheSz; i++)
-		lastCallResult[i] = INT_MIN;
+		lastCallResult[i] = MIN_INT;
 }
 
 WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
@@ -40,12 +62,23 @@ WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 	targetTeam(target.warAndPeaceAI().teamMembers()),
 	useCache(useCache) {
 
+	static bool bInitCache = true;
+	if(bInitCache) {
+		for(int i = 0; i < cacheSz; i++) {
+			lastCallParams[i] = 0;
+			lastCallResult[i] = MIN_INT;
+		}
+		lastIndex = 0;
+		bInitCache = false;
+	}
+
 	FAssertMsg(agentId != targetId, "Considering war against own team");
 	// Second condition already detected above
 	FAssert(!target.isAVassal());
 	FAssert(agent.isHasMet(targetId));
 	FAssert(!agentTeam.empty());
 	FAssert(!targetTeam.empty());
+
 	peaceScenario = false;
 }
 
@@ -161,10 +194,11 @@ int WarEvaluator::evaluate(WarPlanTypes wp, int preparationTime) {
 		(BtS/K-Mod only considers total naval war.) */
 	bool skipNaval = true;
 	vector<PlayerTypes>& agentTeam = agent.warAndPeaceAI().teamMembers();
-	for(size_t i = 0; i < agentTeam.size(); i++)
+	for(size_t i = 0; i < agentTeam.size(); i++) {
 		if(GET_PLAYER(agentTeam[i]).AI_totalUnitAIs(UNITAI_ASSAULT_SEA) +
 				GET_PLAYER(agentTeam[i]).AI_totalUnitAIs(UNITAI_SETTLER_SEA) > 0)
 			skipNaval = false;
+	}
 	/*  If the report isn't mute anyway, and we're doing two runs, rather than
 		flooding the report with logs for both naval and non-naval utility, mute
 		the report in both runs, and do an additional run just for logging
@@ -178,7 +212,7 @@ int WarEvaluator::evaluate(WarPlanTypes wp, int preparationTime) {
 	int naval = MIN_INT;
 	if(!skipNaval)
 		naval = evaluate(wp, true, preparationTime);
-	int r = INT_MIN;
+	int r = MIN_INT;
 	if(extraRun) {
 		report.setMute(false);
 		r = evaluate(wp, naval > nonNaval + antiNavalBias, preparationTime);
@@ -211,10 +245,10 @@ int WarEvaluator::evaluate(WarPlanTypes wp, bool isNaval, int preparationTime) {
 	}
 	params.setPreparationTime(preparationTime);
 	// Don't check cache in recursive calls (peaceScenario=true)
-	if(!peaceScenario && (checkCache || useCache)) {
-		long id = params.id();
+	if(!peaceScenario && (checkCache || useCache || gDLL->isDiplomacy())) {
+		int id = params.id();
 		for(int i = 0; i < cacheSz; i++)
-			if(id == lastCallParams[i] && lastCallResult[i] != INT_MIN)
+			if(id == lastCallParams[i] && lastCallResult[i] != MIN_INT)
 				return lastCallResult[i];
 	}
 	if(peaceScenario)
@@ -289,7 +323,6 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& v) {
 
 void WarEvaluator::evaluate(PlayerTypes weId, vector<WarUtilityAspect*>& aspects) {
 
-	std::map<TeamTypes,WarPlanTypes> tmp;
 	MilitaryAnalyst m(weId, params, peaceScenario);
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];

@@ -9,14 +9,9 @@
 #include "CyArea.h"
 #include "CyPlot.h"
 #include "CvPlayerAI.h"
-//#include "CvEnums.h"
-#include "CvCity.h"
 #include "CvMap.h"
-#include "CvPlot.h"
 #include "CySelectionGroup.h"
 #include "CvDLLPythonIFaceBase.h"
-#include "CvGlobals.h"
-#include "WarEvaluator.h" // advc.104l
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
 {
@@ -26,11 +21,7 @@ CyPlayer::CyPlayer(CvPlayer* pPlayer) : m_pPlayer(pPlayer)
 {
 }
 
-/************************************************************************************************/
-/* CHANGE_PLAYER                         08/27/08                                 jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+// CHANGE_PLAYER, 08/27/08. jdog5000:
 void CyPlayer::changeLeader( int /*LeaderHeadTypes*/ eNewLeader )
 {
 	if( m_pPlayer )
@@ -47,9 +38,7 @@ void CyPlayer::setIsHuman( bool bNewValue )
 	if( m_pPlayer )
 		m_pPlayer->setIsHuman( bNewValue );
 }
-/************************************************************************************************/
-/* CHANGE_PLAYER                          END                                                   */
-/************************************************************************************************/
+// CHANGE_PLAYER: END
 
 int CyPlayer::startingPlotRange()
 {
@@ -326,7 +315,7 @@ int CyPlayer::getNumTradeBonusImports(int /*PlayerTypes*/ ePlayer)
 
 bool CyPlayer::hasBonus(int /*BonusTypes*/ eBonus)
 {
-	return m_pPlayer ? m_pPlayer->hasBonus((BonusTypes)eBonus) : NO_BONUS;
+	return m_pPlayer ? m_pPlayer->hasBonus((BonusTypes)eBonus) : false;
 }
 
 bool CyPlayer::canStopTradingWithTeam(int /*TeamTypes*/ eTeam)
@@ -1219,22 +1208,16 @@ int CyPlayer::getOverflowResearch()
 	return m_pPlayer ? m_pPlayer->getOverflowResearch() : 0;
 }
 
-/*
-** K-Mod, 27/dec/10, karadoc
-** replaced NoUnhealthyPopulation with UnhealthyPopulationModifier
-*/
 /* original bts code
-bool CyPlayer::isNoUnhealthyPopulation()
-{
+bool CyPlayer::isNoUnhealthyPopulation() {
 	return m_pPlayer ? m_pPlayer->isNoUnhealthyPopulation() : false;
 }*/
+/*  K-Mod, 27/dec/10, karadoc
+	replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
 int CyPlayer::getUnhealthyPopulationModifier()
 {
 	return m_pPlayer ? m_pPlayer->getUnhealthyPopulationModifier() : 0;
-}
-/*
-** K-Mod end
-*/
+} // K-Mod end
 
 bool CyPlayer::getExpInBorderModifier()
 {
@@ -1493,6 +1476,11 @@ bool CyPlayer::isFoundedFirstCity()
 {
 	return m_pPlayer ? m_pPlayer->isFoundedFirstCity() : false;
 }
+// <advc.078>
+bool CyPlayer::isAnyGPPEver()
+{
+	return m_pPlayer ? m_pPlayer->isAnyGPPEver() : false;
+} // </advc.078>
 
 bool CyPlayer::isStrike()
 {
@@ -1805,7 +1793,7 @@ int CyPlayer::getHurryCount(int /*HurryTypes*/ eIndex)
 
 bool CyPlayer::canHurry(int /*HurryTypes*/ eIndex)
 {
-	return m_pPlayer ? m_pPlayer->canHurry((HurryTypes)eIndex) : (int) NO_HURRY;
+	return m_pPlayer ? m_pPlayer->canHurry((HurryTypes)eIndex) : false;
 }
 
 int CyPlayer::getSpecialBuildingNotRequiredCount(int /*SpecialBuildingTypes*/ eIndex)
@@ -1815,7 +1803,7 @@ int CyPlayer::getSpecialBuildingNotRequiredCount(int /*SpecialBuildingTypes*/ eI
 
 bool CyPlayer::isSpecialBuildingNotRequired(int /*SpecialBuildingTypes*/ eIndex)
 {
-	return m_pPlayer ? m_pPlayer->isSpecialBuildingNotRequired((SpecialBuildingTypes)eIndex) : -1;
+	return m_pPlayer ? m_pPlayer->isSpecialBuildingNotRequired((SpecialBuildingTypes)eIndex) : false;
 }
 
 bool CyPlayer::isHasCivicOption(int /*CivicOptionTypes*/ eIndex)
@@ -2134,11 +2122,7 @@ bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
 	CvPlayerAI const& p = GET_PLAYER((PlayerTypes)ePlayer);
 	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
 		return false; // </advc.001>
-	// Gets called dozens of time already when loading a savegame
-	WarEvaluator::checkCache = true;
-	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
-	WarEvaluator::checkCache = false;
-	return r;
+	return m_pPlayer->AI().AI_isWillingToTalk(p.getID(), true);
 } // </advc.104l>
 
 bool CyPlayer::AI_demandRebukedWar(int /*PlayerTypes*/ ePlayer)
@@ -2357,8 +2341,21 @@ int CyPlayer::AI_corporationBonusVal(int eBonus) const {
 
 	if(m_pPlayer == NULL)
 		return -1;
-	/*  Adding AI_corporationBonusVal as a pure virtual function to CvPlayer
-		causes the EXE to crash during initialization. Will have to down-cast
-		instead. */
+	/*  Adding a virtual function CvPlayer::AI_corporationBonusVal causes
+		the EXE to crash during initialization. Will have to cast down instead. */
 	return dynamic_cast<CvPlayerAI*>(m_pPlayer)->AI_corporationBonusVal((BonusTypes)eBonus);
 } // </advc.210e>
+
+// <advc.085>
+void CyPlayer::setScoreboardExpanded(bool b) {
+
+	if(m_pPlayer != NULL)
+		m_pPlayer->setScoreboardExpanded(b);
+}
+
+bool CyPlayer::isScoreboardExpanded() const {
+
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->isScoreboardExpanded();
+} // </advc.085>

@@ -3,11 +3,12 @@
 #ifndef RISE_FALL_H
 #define RISE_FALL_H
 
-#include "CvString.h"
 #include "RFChapter.h"
 #include "RFTotalScore.h"
 
 class CvPopup;
+class CvDiplomacyResponse;
+class CvWString;
 
 // <advc.700>: Main class for the Rise & Fall mod component
 class RiseFall {
@@ -43,6 +44,8 @@ public:
 	  void assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 			PlayerTypes selectedCiv);
 	  CvWString retireConfirmMsg() const;
+	  bool launchRetirePopup(CvPopup* popup, CvPopupInfo& info);
+	  void handleRetirePopup(int buttonClicked);
 	  bool isSelectingCiv() const; // Waiting for callback
 	bool isDeliverMessages(PlayerTypes civId) const;
 	bool isCooperationRestricted(PlayerTypes aiCiv) const;

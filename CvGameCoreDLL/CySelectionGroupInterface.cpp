@@ -3,7 +3,6 @@
 #include "CyPlot.h"
 #include "CyArea.h"
 #include "CyUnit.h"
-//#include "CvStructs.h"
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>
 
@@ -47,17 +46,8 @@ void CySelectionGroupInterface()
 		.def("isInvisible", &CySelectionGroup::isInvisible, "bool (int eTeam)")
 		.def("countNumUnitAIType", &CySelectionGroup::countNumUnitAIType, "int (int (UnitAITypes) eUnitAI")
 		.def("hasWorker", &CySelectionGroup::hasWorker, "bool ()")
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+		// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000:
 		.def("isStranded", &CySelectionGroup::isStranded, "bool ()")
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-
 		.def("at", &CySelectionGroup::at, "bool (iX, iY) - is the group at plot iX, iY?")
 		.def("atPlot", &CySelectionGroup::atPlot, "bool (CyPlot* pPlot) - is the group at pPlot?")
 		.def("plot", &CySelectionGroup::plot, python::return_value_policy<python::manage_new_object>(), "CyPlot () - get plot that the group is on")

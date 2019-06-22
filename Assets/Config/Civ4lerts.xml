@@ -126,6 +126,17 @@
 			<option id="WorstEnemy" key="Worst Enemy" 
 					type="boolean" default="True" and="Enabled" 
 					get="isShowWorstEnemyAlert" set="setShowWorstEnemyAlert"/>
+			
+			<!-- advc.071: Not exactly an alert, but similar.
+				 Caveat: The DLL relies on this order of choices. -->
+			<list   id="OnFirstContact" key="On First Contact" 
+					type="int" default="2" listType="string" 
+					values="Message|Diplo Popup|Both">
+				<choice id="Message"/>
+				<choice id="Diplo"/>
+				<choice id="Both"/>
+			</list>
+
 		</section>
 	</options>
 	

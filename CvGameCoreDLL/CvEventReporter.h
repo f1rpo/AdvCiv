@@ -5,6 +5,7 @@
 
 #include "CvStatistics.h"
 #include "CvDllPythonEvents.h"
+#include "CvPlayer.h" // advc.make: for K-Mod's friend declaration
 
 //
 // A singleton class which is used to track game events.
@@ -23,6 +24,7 @@ class CvEventReporter
 	friend class CyStatistics;
 	friend const CvPlayerRecord* CvPlayer::getPlayerRecord() const; // K-Mod. Allow direct read-only access to player stats
 public:
+	CvEventReporter(); // advc.106l: Should perhaps be private, but that might break sth. in the EXE.
 	DllExport static CvEventReporter& getInstance();		// singleton accessor
 	DllExport void resetStatistics();
 
@@ -122,7 +124,10 @@ public:
 	void vassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVassal);
 
 	DllExport void preSave();
-
+	// <advc.106l> Will call these before (and in addition to) preSave
+	void preAutoSave();
+	void preQuickSave();
+	// </advc.106l>
 	DllExport void getGameStatistics(std::vector<CvStatBase*>& aStats);
 	DllExport void getPlayerStatistics(PlayerTypes ePlayer, std::vector<CvStatBase*>& aStats);
 	DllExport void readStatistics(FDataStreamBase* pStream);
@@ -131,6 +136,10 @@ public:
 private:
 	CvDllPythonEvents m_kPythonEventMgr;
 	CvStatistics m_kStatistics;
+	// <advc.106l>
+	bool m_bPreAutoSave;
+	bool m_bPreQuickSave;
+	// </advc.106l>
 };
 
 // helper

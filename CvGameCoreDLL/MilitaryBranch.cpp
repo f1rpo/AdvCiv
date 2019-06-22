@@ -2,6 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryBranch.h"
+#include "WarAndPeaceAgent.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 
 using std::ostream;
 using std::vector;
@@ -58,11 +61,15 @@ void MilitaryBranch::updateTypicalUnit() {
 		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
 				u.getDomainType() == DOMAIN_AIR || u.getDomainType() == DOMAIN_IMMOBILE)
 			continue;
-		// I may want to give some combat unit a national limit at some point ...
-		int const nationalLimit = GC.getUnitClassInfo((UnitClassTypes)i).
-				getMaxPlayerInstances();
+		/*  I may want to give some combat unit (e.g. War Elephant) a national limit
+			or an instance cost modifier at some point */
+		CvUnitClassInfo const& uci = GC.getUnitClassInfo((UnitClassTypes)i);
+		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
 				(GC.getGameINLINE().getCurrentEra() + 1) * 4)
+			continue;
+		int instanceCostModifier = uci.getInstanceCostModifier();
+		if(instanceCostModifier > 5)
 			continue;
 		/* Could call this for land units as well, but relying on the capital for
 		   those is faster, and perhaps more accurate as well. */
@@ -319,7 +326,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 		return -1;*/
 	double r = u.getPowerValue();
 	if(modify) {
-		if(::isMostlyDefensive(u)) // advc.315
+		if(u.isMostlyDefensive()) // advc.315
 			return -1;
 		// Prefer potential city raiders
 		for(int i = 0; i < GC.getNumPromotionInfos(); i++) {
@@ -339,7 +346,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 double MilitaryBranch::Cavalry::unitPower(CvUnitInfo const& u, bool modify) const {
 
 	if(u.getMoves() <= 1 || u.getProductionCost() >= 150 ||
-			::isMostlyDefensive(u)) // advc.315
+			u.isMostlyDefensive()) // advc.315
 		return -1;
 	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u);
 }

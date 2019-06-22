@@ -5,8 +5,12 @@
 
 // structs.h
 
-//#include "CvEnums.h"
 #include "CvString.h"
+
+// <advc.071>
+class CvPlot;
+class CvUnit;
+// </advc.071>
 
 // XXX these should not be in the DLL per se (if the user changes them, we are screwed...)
 
@@ -72,7 +76,11 @@ struct MissionData				// Exposed to Python
 	int iData2;
 	int iFlags;
 	int iPushTurn;
+	bool bModified; // advc.011b
 };
+// <advc.011b> Needed for savegame compatibility
+struct MissionDataLegacy { MissionTypes eMissionType; int iData1; int iData2;
+	int iFlags; int iPushTurn; }; // </advc.011b>
 
 struct TradeData					// Exposed to Python
 {
@@ -492,6 +500,25 @@ struct DllExport CvWBData
 	CvWString m_strHelp;
 	CvString m_strButton;
 };
-
+// <advc.071>
+struct FirstContactData {
+	FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
+			CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL);
+	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
+	IDInfo u1, u2;
+	int x1, y1, x2, y2;
+}; // </advc.071>
+// <advc.072>
+struct DealItemData {
+	DealItemData() : eGivePlayer(NO_PLAYER), eReceivePlayer(NO_PLAYER),
+			eItemType(TRADE_ITEM_NONE), iData(-1), iDeal(-1) {}
+	DealItemData(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
+			TradeableItems eItemType, int iData, int iDeal) :
+			eGivePlayer(eGivePlayer), eReceivePlayer(eReceivePlayer),
+			eItemType(eItemType), iData(iData), iDeal(iDeal) {}
+	PlayerTypes eGivePlayer, eReceivePlayer;
+	TradeableItems eItemType;
+	int iData, iDeal;
+}; // </advc.072>
 
 #endif	// CVSTRUCTS_H

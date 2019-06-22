@@ -89,17 +89,29 @@
 			adding translations for your new colors to Colors_CIV4GameText.xml
 			in the XML/Text directory. 
 		-->
+		<!-- advc.004: COLOR_DARK_GREY, COLOR_LIGHT_GREY and COLOR_GREY
+			 replaced with COLOR_BUILDING_TEXT (which is light gray).
+			 Added a second shade of green (see below) and COLOR_YIELD_FOOD (a
+			 kind of orange); used as a default in 'Not Just Another Game
+			 Clock.xml'.
+			 Replaced
+			 COLOR_RED with COLOR_WARNING_TEXT,
+			 COLOR_CYAN with COLOR_HIGHLIGHT_TEXT,
+			 COLOR_YELLOW with COLOR_UNIT_TEXT and
+			 COLOR_LIGHT_GREY with COLOR_BUILDING_TEXT.
+			 Added COLOR_POSITIVE_TEXT, but COLOR_GREEN is still needed e.g.
+			 for the PLE health bars. -->
 		<arg name="colors" type="tuple">
-			"COLOR_RED",
-			"COLOR_YELLOW",
-			"COLOR_CYAN",
+			"COLOR_WARNING_TEXT",
+			"COLOR_YIELD_FOOD",
+			"COLOR_UNIT_TEXT",
+			"COLOR_HIGHLIGHT_TEXT",
 			"COLOR_GREEN",
+			"COLOR_POSITIVE_TEXT",
 			"COLOR_BLUE",
 			"COLOR_MAGENTA",
 			"COLOR_WHITE",
-			"COLOR_LIGHT_GREY",
-			"COLOR_GREY",
-			"COLOR_DARK_GREY",
+			"COLOR_BUILDING_TEXT",
 			"COLOR_BLACK"
 		</arg>
 	</init>
@@ -118,7 +130,7 @@
 	<init module="TraitUtil"/>
 	<init module="UnitUtil"/>
     <gameutils module="WidgetUtil" handler="getWidgetHelp"/>
-    
+
 	<event type="OnLoad" module="CvTechChooser" function="resetTechPrefs"/>
 	<event type="GameStart" module="CvTechChooser" function="resetTechPrefs"/>
 	
@@ -147,6 +159,8 @@
 	<load mod="EventSigns"/>
 	<load mod="Strategy Overlay"/>
 	<load mod="StatusDump"/>
+	<!-- dlph.27: -->
+	<load mod="OOSLogger"/> <!-- OOS logging, idea from Fall From Heaven 2 by Kael. -->
 	
 	<!-- BULL -->
 	
@@ -156,7 +170,8 @@
 	<load mod="BULL Misc Hovers"/>
 	
 	<load mod="AutoSave"/>
-	<load mod="MapFinder"/>
+	<!-- advc.009c: Commented out -->
+	<!--load mod="MapFinder"/-->
 	<load mod="Advanced Combat Odds"/>
 	
 	<!-- BUFFY -->

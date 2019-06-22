@@ -37,7 +37,10 @@ public:
 	CvRandom& getCyASyncRand() const;
 	CyTeam* getCyTeam(int i);
 	CyArtFileMgr* getCyArtFileMgr() const;
-
+	// <dlph.27>
+	bool isLogging();
+	bool isRandLogging();
+	// </dlph.27>
 	CvEffectInfo* getEffectInfo(int i) const;
 	CvTerrainInfo* getTerrainInfo(int i) const;
 	CvBonusClassInfo* getBonusClassInfo(int i) const;
@@ -114,7 +117,7 @@ public:
 	CvInfoBase* getSeasonInfo(int i) const;
 	CvInfoBase* getMonthInfo(int i) const;
 	CvInfoBase* getDenialInfo(int i) const;
-	CvQuestInfo* getQuestInfo(int i) const;
+	//CvQuestInfo* getQuestInfo(int i) const; // advc.003j
 	CvTutorialInfo* getTutorialInfo(int i) const;
 	CvEventTriggerInfo* getEventTriggerInfo(int i) const;
 	CvEventInfo* getEventInfo(int i) const;
@@ -123,6 +126,7 @@ public:
 	CvPlayerOptionInfo* getPlayerOptionInfo(int i) const;
 	CvPlayerOptionInfo* getPlayerOptionsInfoByIndex(int i) const;
 
+	bool IsGraphicsInitialized() const; // advc.003
 	CvGraphicOptionInfo* getGraphicOptionInfo(int i) const;
 	CvGraphicOptionInfo* getGraphicOptionsInfoByIndex(int i) const;
 
@@ -211,7 +215,7 @@ public:
 	int getNumSeasonInfos() const { return GC.getNumSeasonInfos(); }
 	int getNumMonthInfos() const { return GC.getNumMonthInfos(); }
 	int getNumDenialInfos() const { return GC.getNumDenialInfos(); }
-	int getNumQuestInfos() const { return GC.getNumQuestInfos(); }
+	//int getNumQuestInfos() const { return GC.getNumQuestInfos(); } // advc.003j
 	int getNumTutorialInfos() const { return GC.getNumTutorialInfos(); }
 	int getNumEventTriggerInfos() const { return GC.getNumEventTriggerInfos(); }
 	int getNumEventInfos() const { return GC.getNumEventInfos(); }

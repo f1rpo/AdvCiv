@@ -5,13 +5,14 @@
 #include "CvGameCoreDLL.h"
 #include "CyGame.h"
 #include "CvGameAI.h"
+#include "StartPointsAsHandicap.h" // advc.250b
+#include "RiseFall.h" // advc.703
 #include "CyGlobalContext.h"
 #include "CyPlayer.h"
-//#include "CvEnums.h"
 #include "CyCity.h"
 #include "CyDeal.h"
 #include "CyReplayInfo.h"
-#include "CvReplayInfo.h"
+#include "CvDLLEngineIFaceBase.h" // BULL - AutoSave
 #include "CyPlot.h"
 
 CyGame::CyGame() : m_pGame(NULL)
@@ -136,7 +137,7 @@ int CyGame::getSecretaryGeneral(int /*VoteSourceTypes*/ eVoteSource) const
 
 bool CyGame::canHaveSecretaryGeneral(int /*VoteSourceTypes*/ eVoteSource) const
 {
-	return m_pGame ? (int)m_pGame->canHaveSecretaryGeneral((VoteSourceTypes) eVoteSource) : -1;
+	return m_pGame ? (int)m_pGame->canHaveSecretaryGeneral((VoteSourceTypes) eVoteSource) : false;
 }
 
 int CyGame::getVoteSourceReligion(int /*VoteSourceTypes*/ eVoteSource) const
@@ -158,8 +159,8 @@ int CyGame::countCivPlayersAlive()
 }
 
 int CyGame::countCivPlayersEverAlive()
-{
-	return m_pGame ? m_pGame->countCivPlayersEverAlive() : -1;
+{	// advc.003b: was m_pGame->countCivPlayersEverAlive()
+	return m_pGame ? m_pGame->getCivPlayersEverAlive() : -1;
 }
 
 int CyGame::countCivTeamsAlive()
@@ -168,8 +169,8 @@ int CyGame::countCivTeamsAlive()
 }
 
 int CyGame::countCivTeamsEverAlive()
-{
-	return m_pGame ? m_pGame->countCivTeamsEverAlive() : -1;
+{	// advc.003b: was m_pGame->countCivTeamsEverAlive()
+	return m_pGame ? m_pGame->getCivTeamsEverAlive() : -1;
 }
 
 int CyGame::countHumanPlayersAlive()
@@ -672,6 +673,12 @@ bool CyGame::isFinalInitialized()
 {
 	return m_pGame ? m_pGame->isFinalInitialized() : false;
 }
+// <advc.061>
+void CyGame::setScreenDimensions(int x, int y)
+{
+	if(m_pGame != NULL)
+		m_pGame->setScreenDimensions(x, y);
+} // </advc.061>
 
 int /*PlayerTypes*/ CyGame::getActivePlayer() 
 {
@@ -777,7 +784,7 @@ int CyGame::getTeamScore(int /*TeamTypes*/ eTeam)
 
 bool CyGame::isOption(int /*GameOptionTypes*/ eIndex)
 {
-	return m_pGame ? m_pGame->isOption((GameOptionTypes)eIndex) : -1;
+	return m_pGame ? m_pGame->isOption((GameOptionTypes)eIndex) : false;
 }
 
 void CyGame::setOption(int /*GameOptionTypes*/ eIndex, bool bEnabled)
@@ -788,12 +795,12 @@ void CyGame::setOption(int /*GameOptionTypes*/ eIndex, bool bEnabled)
 
 bool CyGame::isMPOption(int /*MultiplayerOptionTypes*/ eIndex)
 {
-	return m_pGame ? m_pGame->isMPOption((MultiplayerOptionTypes)eIndex) : -1;
+	return m_pGame ? m_pGame->isMPOption((MultiplayerOptionTypes)eIndex) : false;
 }
 
 bool CyGame::isForcedControl(int /*ForceControlTypes*/ eIndex)
 {
-	return m_pGame ? m_pGame->isForcedControl((ForceControlTypes)eIndex) : -1;
+	return m_pGame ? m_pGame->isForcedControl((ForceControlTypes)eIndex) : false;
 }
 
 int CyGame::getUnitCreatedCount(int /*UnitTypes*/ eIndex)
@@ -808,7 +815,7 @@ int CyGame::getUnitClassCreatedCount(int /*UnitClassTypes*/ eIndex)
 
 bool CyGame::isUnitClassMaxedOut(int /*UnitClassTypes*/ eIndex, int iExtra)
 {
-	return m_pGame ? m_pGame->isUnitClassMaxedOut((UnitClassTypes)eIndex, iExtra) : -1;
+	return m_pGame ? m_pGame->isUnitClassMaxedOut((UnitClassTypes)eIndex, iExtra) : false;
 }
 
 int CyGame::getBuildingClassCreatedCount(int /*BuildingClassTypes*/ eIndex) 
@@ -1144,24 +1151,22 @@ void CyGame::addPlayer(int eNewPlayer, int eLeader, int eCiv)
 	if (m_pGame)
 	{
 		m_pGame->addPlayer((PlayerTypes)eNewPlayer, (LeaderHeadTypes)eLeader, (CivilizationTypes)eCiv);
+		/*  <advc.104r> Only relevant for mod-mods (e.g. Barbarian Civ, PlatyBuilder).
+			Colonial vassals are handled by CvPlayer::splitEmpire instead. */
+		if(getWPAI.isEnabled())
+			getWPAI.processNewCivInGame((PlayerTypes)eNewPlayer); // </advc.104r>
 	}
 }
 
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
+// BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000: START
 void CyGame::changeHumanPlayer( int /*PlayerTypes*/ eNewHuman )
 {
 	if (m_pGame)
 	{
 		m_pGame->changeHumanPlayer((PlayerTypes)eNewHuman);
 	}
-}
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+} // BETTER_BTS_AI_MOD: END
+
 
 int CyGame::getCultureThreshold(int eLevel)
 {
@@ -1222,6 +1227,15 @@ void CyGame::doControl(int iControl)
 		m_pGame->doControl((ControlTypes) iControl);
 	}
 }
+// BULL - AutoSave - start
+void CyGame::saveGame(std::string szFileName) const
+{
+	// <advc> The BULL code had instead cast szFileName to a CvString&
+	static CvString szTmp;
+	szTmp = szFileName; // </advc>
+	gDLL->getEngineIFace()->SaveGame(szTmp, SAVEGAME_NORMAL);
+} // BULL - AutoSave - end
+
 // <advc.104>
 bool CyGame::useKModAI() {
 
@@ -1311,3 +1325,8 @@ bool CyGame::isAITurn() {
 		return false;
 	return m_pGame->isAITurn();
 } // </advc.706>
+// <advc.004m>
+void CyGame::reportCurrentLayer(int iLayer) {
+	if(m_pGame != NULL)
+		m_pGame->reportCurrentLayer((GlobeLayerTypes)iLayer);
+} // </advc.004m>

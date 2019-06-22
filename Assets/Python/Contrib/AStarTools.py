@@ -426,10 +426,11 @@ class AStarMoveArea:
 			return PleOpt.MH_Color_Neutral_Unit()
 		return PleOpt.MH_Color_Passable_Terrain()
 
-	# checks if there forwign territory on the plot and returns the corresponding color
+	# checks if there foreign territory on the plot and returns the corresponding color
 	def checkTerritory(self, pPlot):
 		iPlayer = pPlot.getRevealedOwner(self.iActivePlayerTeam, false)
-		pPlayer = gc.getPlayer(iPlayer)
+		# advc.001, advc.069: Unused, and will crash if pPlot unowned.
+		#pPlayer = gc.getPlayer(iPlayer)
 		iTeam = pPlot.getRevealedTeam(self.iActivePlayerTeam, false)
 		pTeam = gc.getTeam(iTeam)
 		if pPlot.isRevealedGoody(iTeam):

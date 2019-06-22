@@ -8,7 +8,6 @@
 #include "CyArea.h"
 #include "CyUnit.h"
 #include "CvDLLPythonIFaceBase.h"
-#include "CvGlobals.h"
 
 CyCity::CyCity() : m_pCity(NULL)
 {
@@ -233,7 +232,10 @@ std::wstring CyCity::getProductionName()
 
 int CyCity::getGeneralProductionTurnsLeft()
 {
-	return m_pCity ? m_pCity->getGeneralProductionTurnsLeft() : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getGeneralProductionTurnsLeft();
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
 std::wstring CyCity::getProductionNameKey()
@@ -283,22 +285,34 @@ int CyCity::getProductionNeeded()
 
 int CyCity::getProductionTurnsLeft()																
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft() : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft();
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
-int CyCity::getUnitProductionTurnsLeft(int /*UnitTypes*/ iUnit, int iNum)									
+int CyCity::getUnitProductionTurnsLeft(int iUnit, int iNum)									
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft((UnitTypes) iUnit, iNum) : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft((UnitTypes)iUnit, iNum);
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
-int CyCity::getBuildingProductionTurnsLeft(int /*BuildingTypes*/ iBuilding, int iNum)
+int CyCity::getBuildingProductionTurnsLeft(int iBuilding, int iNum)
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft((BuildingTypes) iBuilding, iNum) : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft((BuildingTypes)iBuilding, iNum);
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
-int CyCity::getProjectProductionTurnsLeft(int /*ProjectTypes*/ eProject, int iNum)								
+int CyCity::getProjectProductionTurnsLeft(int eProject, int iNum)								
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft((ProjectTypes)eProject, iNum) : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft((ProjectTypes)eProject, iNum);
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
 void CyCity::setProduction(int iNewValue)
@@ -353,6 +367,20 @@ void CyCity::hurry(int /*HurryTypes*/ iHurry)
 	if (m_pCity)
 		m_pCity->hurry((HurryTypes)iHurry);
 }
+
+// <advc.064>
+int CyCity::getHurryOverflow(int iHurry, bool bProduction, bool bIncludeCurrent) {
+
+	if(m_pCity == NULL)
+		return -1;
+	int iOverflowProduction = 0;
+	int iOverflowGold = 0;
+	bool bValid = m_pCity->hurryOverflow((HurryTypes)iHurry,
+			&iOverflowProduction, &iOverflowGold, bIncludeCurrent);
+	if(!bValid)
+		return -1;
+	return (bProduction ? iOverflowProduction : iOverflowGold);
+} // </advc.064>
 
 int /*UnitTypes*/ CyCity::getConscriptUnit()
 {
@@ -711,6 +739,11 @@ bool CyCity::isConnectedToCapital(int /*PlayerTypes*/ ePlayer)
 {
 	return m_pCity ? m_pCity->isConnectedToCapital((PlayerTypes)ePlayer) : false;
 }
+// <advc.003>
+int CyCity::getArea()
+{
+	return	m_pCity ? m_pCity->getArea() : -1;
+} // </advc.003>
 
 CyArea* CyCity::area()
 {
@@ -1793,8 +1826,11 @@ std::wstring CyCity::getNameKey()
 
 void CyCity::setName(std::wstring szNewValue, bool bFound)
 {
-	if (m_pCity)
-		m_pCity->setName(CvWString(szNewValue), bFound);
+	if (m_pCity) {
+		m_pCity->setName(CvWString(szNewValue), bFound,
+				// advc.106k: For preplaced cities in scenarios
+				!GC.IsGraphicsInitialized());
+	}
 }
 
 void CyCity::changeNoBonusCount(int /*BonusTypes*/ eBonus, int iChange)
@@ -2207,6 +2243,11 @@ int CyCity::AI_cityValue()
 {
 	return m_pCity ? m_pCity->AI_cityValue() : -1;
 }
+// <advc.001n>
+int CyCity::AI_neededFloatingDefenders()
+{
+	return m_pCity ? m_pCity->AI_neededFloatingDefenders(false, true) : -1;
+} // </advc.001n>
 
 std::string CyCity::getScriptData() const
 {

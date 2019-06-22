@@ -12,17 +12,18 @@
 //------------------------------------------------------------------------------------------------
 
 #include "CvGameCoreDLL.h"
+#include "CvStructs.h"
 #include "CvUnit.h"
-//#include "CvStructs.h"
+#include "CvPlot.h" // advc.071
 
 int EventTriggeredData::getID() const 
 { 
-	return m_iId; 
+	return m_iId;
 }
 
 void EventTriggeredData::setID(int iID) 
 { 
-	m_iId = iID; 
+	m_iId = iID;
 }
 
 void EventTriggeredData::read(FDataStreamBase* pStream)
@@ -510,6 +511,9 @@ CvAirMissionDefinition::CvAirMissionDefinition() :
 {
 	m_fMissionTime = 0.0f;
 	m_eMissionType = MISSION_AIRPATROL;
+	// <advc.003> Safer to initialize this here
+	for(int i = 0; i < BATTLE_UNIT_COUNT; i++)
+		m_aDamage[i] = 0; // </advc.003>
 }
 
 //------------------------------------------------------------------------------------------------
@@ -564,3 +568,27 @@ PBGameSetupData::PBGameSetupData()
 	}
 }
 
+// <advc.071>
+FirstContactData::FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2,
+		CvUnit const* pUnit1, CvUnit const* pUnit2) {
+
+	/*  Don't need to worry here about which unit is where and who sees whom - can
+		figure that out when we know which teams are meeting. */
+
+	if(pAt1 != NULL) {
+		x1 = pAt1->getX_INLINE();
+		y1 = pAt1->getY_INLINE();
+	}
+	if(pAt2 != NULL) {
+		x2 = pAt2->getX_INLINE();
+		y2 = pAt2->getY_INLINE();
+	}
+	if(pUnit1 != NULL) {
+		u1.eOwner = pUnit1->getOwnerINLINE();
+		u1.iID = pUnit1->getID();
+	}
+	if(pUnit2 != NULL) {
+		u2.eOwner = pUnit2->getOwnerINLINE();
+		u2.iID = pUnit2->getID();
+	}
+} // </advc.071>

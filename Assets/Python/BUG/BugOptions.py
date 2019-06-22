@@ -274,7 +274,8 @@ class IniFile(object):
 		for option in self.options:
 			if not option.isParameterized():
 				option.resetValue()
-		self.fillComments()
+		# advc.009d: Don't put comments in ini files
+		#self.fillComments()
 		self.write()
 	
 	def fillComments(self):

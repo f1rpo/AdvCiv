@@ -335,7 +335,9 @@ class AutoLogEvent(AbstractAutoLogEvent):
 #			self.dumpStuff()
 			self.storeStuff()
 
-			zcurrturn = gc.getGame().getElapsedGameTurns() + 1 + AutologOpt.get4000BCTurn()
+			#zcurrturn = gc.getGame().getElapsedGameTurns() + 1 + AutologOpt.get4000BCTurn()
+			# advc.004: Not sure why +1
+			zcurrturn = gc.getGame().getGameTurn() + 1
 			zmaxturn = gc.getGame().getMaxTurns()
 			zturn = gc.getGame().getGameTurn() + 1
 			zyear = gc.getGame().getTurnYear(zturn)
@@ -385,7 +387,8 @@ class AutoLogEvent(AbstractAutoLogEvent):
 			for i in range(0, iPlayer.getNumCities(), 1):
 				iCity = iPlayer.getCity(i)
 				iCurrentWhipCounter = iCity.getHurryAngerTimer()
-				iCurrentConstrictCounter = iCity.getConscriptAngerTimer()
+				# advc.003: was ...ConstrictCounter
+				iCurrentConscriptCounter = iCity.getConscriptAngerTimer()
 #				if iCurrentWhipCounter != 0: iCurrentWhipCounter += 1  # onBeginPlayerTurn fires after whip counter has decreased by 1
 
 #				message = "Whip Testing: %s, current(%i), prior(%i), flat(%i)" % (iCity.getName(), iCurrentWhipCounter, self.CityWhipCounter[i], iCity.flatHurryAngerLength())
@@ -395,7 +398,7 @@ class AutoLogEvent(AbstractAutoLogEvent):
 					message = BugUtil.getText("TXT_KEY_AUTOLOG_WHIP_APPLIED", (iCity.getName(), ))
 					Logger.writeLog(message, vColor="Red")
 
-				if iCurrentConstrictCounter > self.CityConscriptCounter[i]:
+				if iCurrentConscriptCounter > self.CityConscriptCounter[i]:
 					message = BugUtil.getText("TXT_KEY_AUTOLOG_CONSCRIPT", (gc.getUnitInfo(iCity.getConscriptUnit()).getDescription(), iCity.getName()))
 					Logger.writeLog(message, vColor="Red")
 
@@ -406,8 +409,8 @@ class AutoLogEvent(AbstractAutoLogEvent):
 					Logger.writeLog(message, vColor="DarkRed")
 
 				if (self.CityConscriptCounter[i] != 0
-				and iCurrentConstrictCounter < self.CityConscriptCounter[i]
-				and iCurrentConstrictCounter % iCity.flatConscriptAngerLength() == 0):
+				and iCurrentConscriptCounter < self.CityConscriptCounter[i]
+				and iCurrentConscriptCounter % iCity.flatConscriptAngerLength() == 0):
 					message = BugUtil.getText("TXT_KEY_AUTOLOG_DRAFT_ANGER_DECREASED", (iCity.getName(), ))
 					Logger.writeLog(message, vColor="DarkRed")
 
@@ -432,7 +435,8 @@ class AutoLogEvent(AbstractAutoLogEvent):
 	def onFirstContact(self, argsList):
 		if (AutologOpt.isLogContact()):
 			iTeamX,iHasMetTeamY = argsList
-			if (iTeamX == 0
+			# advc.001: check was iTeamX==0
+			if (iTeamX == CyGame().getActiveTeam()
 			and gc.getGame().getGameTurn() > 0):
 
 				sMsgArray = []
@@ -687,7 +691,8 @@ class AutoLogEvent(AbstractAutoLogEvent):
 			iReligion, iFounder = argsList
 			player = PyPlayer(iFounder)
 			iCityId = gc.getGame().getHolyCity(iReligion).getID()
-			if (player.getTeamID() == 0):
+			# advc.001: was ==0
+			if (player.getTeamID() == CyGame().getActiveTeam()):
 				messageEnd = gc.getPlayer(iFounder).getCity(iCityId).getName()
 			else:
 				messageEnd = BugUtil.getPlainText("TXT_KEY_AUTOLOG_DISTANT_LAND")
@@ -723,7 +728,8 @@ class AutoLogEvent(AbstractAutoLogEvent):
 			iCorporation, iFounder = argsList
 			player = PyPlayer(iFounder)
 			iCityId = gc.getGame().getHeadquarters(iCorporation).getID()
-			if (player.getTeamID() == 0):
+			# advc.001: was ==0
+			if (player.getTeamID() == CyGame.getActiveTeam()):
 				messageEnd = gc.getPlayer(iFounder).getCity(iCityId).getName()
 			else:
 				messageEnd = BugUtil.getPlainText("TXT_KEY_AUTOLOG_DISTANT_LAND")
