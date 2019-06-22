@@ -12551,8 +12551,7 @@ int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValu
 	int r = 19;
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE());
 	int iMinFoundValue = std::max(1, kOwner.AI_getMinFoundValue());
-	r += 9 * std::min(9, std::max(iBestAreaFoundValue, iBestWaterAreaFoundValue) /
-			iMinFoundValue);
+	r += (9 * std::max(iBestAreaFoundValue, iBestWaterAreaFoundValue)) / iMinFoundValue;
 	CvTeam const& kTeam = GET_TEAM(getTeam());
 	CvGame const& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_ALWAYS_WAR))
