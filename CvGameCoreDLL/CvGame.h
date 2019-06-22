@@ -869,6 +869,9 @@ protected:
 	void normalizeAddFoodBonuses();
 	void normalizeAddGoodTerrain();
 	void normalizeAddExtras();
+	// <advc.003>
+	bool isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kStartPlot,
+			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc.003>
 	// advc.108:
 	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
 

@@ -1957,31 +1957,28 @@ void CvGame::normalizeAddGoodTerrain()
 }
 
 
-void CvGame::normalizeAddExtras()
+void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentation
 {
 	bool bIgnoreLatitude = pythonIsBonusIgnoreLatitudes();
-
 	int iTotalValue = 0;
 	int iPlayerCount = 0;
 	int iBestValue = 0;
 	int iWorstValue = MAX_INT;
-
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
+		CvPlayerAI const& kPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (!kPlayer.isAlive())
+			continue;
 
-			if (pStartingPlot != NULL)
-			{
-				int iValue = GET_PLAYER((PlayerTypes)iI).AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true);
-				iTotalValue += iValue;
-                iPlayerCount++;
-                
-                iBestValue = std::max(iValue, iBestValue);
-                iWorstValue = std::min(iValue, iWorstValue);
-			}
-		}
+		CvPlot* pStartingPlot = kPlayer.getStartingPlot();
+		if (pStartingPlot == NULL)
+			continue;
+
+		int iValue = kPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true);
+		iTotalValue += iValue;
+		iPlayerCount++;
+		iBestValue = std::max(iValue, iBestValue);
+		iWorstValue = std::min(iValue, iWorstValue);
 	}
 
 	//iTargetValue = (iTotalValue + iBestValue) / (iPlayerCount + 1);
@@ -2001,17 +1998,15 @@ void CvGame::normalizeAddExtras()
 			continue;
 
 		CvPlot* pStartingPlot = kLoopPlayer.getStartingPlot();
-
 		if (pStartingPlot == NULL)
 			continue;
 
 		gDLL->callUpdater();	// allow window to update during launch
 
-        int iCount = 0;
+		int iCount = 0;
 		int iFeatureCount = 0;
 		int aiShuffle[NUM_CITY_PLOTS];
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
 			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
@@ -2020,37 +2015,31 @@ void CvGame::normalizeAddExtras()
 					logBBAI("    Player %d doesn't need any more features.", iI); // K-Mod
 				break;
 			}
-			if (getSorenRandNum((iCount + 2), "Setting Feature Type") <= 1)
+			if (getSorenRandNum(iCount + 2, "Setting Feature Type") <= 1)
 			{
 				CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+				if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
+						pLoopPlot->getBonusType() != NO_BONUS)
+					continue;
 
-				if (pLoopPlot != NULL)
+				if (pLoopPlot->getFeatureType() == NO_FEATURE)
 				{
-					if (pLoopPlot != pStartingPlot)
+					for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
 					{
-						if (pLoopPlot->getBonusType() == NO_BONUS)
+						if ((GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_FOOD) +
+								GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_PRODUCTION)) > 0)
 						{
-							if (pLoopPlot->getFeatureType() == NO_FEATURE)
+							if (pLoopPlot->canHaveFeature((FeatureTypes)iK))
 							{
-								for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
-								{
-									if ((GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_FOOD) + GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_PRODUCTION)) > 0)
-									{
-										if (pLoopPlot->canHaveFeature((FeatureTypes)iK))
-										{
-											if (gMapLogLevel > 0)
-												logBBAI("    Adding %S for player %d.", GC.getFeatureInfo((FeatureTypes)iK).getDescription(), iI); // K-Mod
-											pLoopPlot->setFeatureType((FeatureTypes)iK);
-											iCount++;
-											break;
-										}
-									}
-								}
+								if (gMapLogLevel > 0)
+									logBBAI("    Adding %S for player %d.", GC.getFeatureInfo((FeatureTypes)iK).getDescription(), iI); // K-Mod
+								pLoopPlot->setFeatureType((FeatureTypes)iK);
+								iCount++;
+								break;
 							}
-
-							iFeatureCount += (pLoopPlot->getFeatureType() != NO_FEATURE) ? 1 : 0;
 						}
 					}
+					iFeatureCount += (pLoopPlot->getFeatureType() != NO_FEATURE) ? 1 : 0;
 				}
 			}
 		}
@@ -2062,138 +2051,92 @@ void CvGame::normalizeAddExtras()
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
-			if (pLoopPlot != NULL)
+			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot)
+				continue;
+
+			if (pLoopPlot->isWater())
 			{
-				if (pLoopPlot != pStartingPlot)
+				iWaterCount++;
+				if (pLoopPlot->getBonusType() != NO_BONUS)
 				{
-					if (pLoopPlot->isWater())
-					{
-						iWaterCount++;
-						if (pLoopPlot->getBonusType() != NO_BONUS)
-						{
-							if (pLoopPlot->isAdjacentToLand())
-							{
-								iCoastFoodCount++;
-							}
-							else
-							{
-								iOceanFoodCount++;
-							}
-						}
-					}
-					else if (pLoopPlot->getBonusType(
-								// <advc.108> Don't count unrevealed bonuses
-								m_iNormalizationLevel > 1 ?
-								NO_TEAM : kLoopPlayer.getTeam()) // </advc.108>
-								!= NO_BONUS)
-							iOtherCount++;
+					if (pLoopPlot->isAdjacentToLand())
+						iCoastFoodCount++;
+					else iOceanFoodCount++;
 				}
 			}
+			else if (pLoopPlot->getBonusType( // <advc.108> Don't count unrevealed bonuses
+					m_iNormalizationLevel > 1 ?
+					NO_TEAM : kLoopPlayer.getTeam()) /* </advc.108> */ != NO_BONUS)
+				iOtherCount++;
 		}
 
 		bool bLandBias = (iWaterCount > NUM_CITY_PLOTS / 2);
-
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot)
+				continue;
 
-			if ((pLoopPlot != NULL) && (pLoopPlot != pStartingPlot))
+			if (getSorenRandNum((bLandBias && pLoopPlot->isWater()) ? 2 : 1, "Placing Bonuses") == 0)
 			{
-				if (getSorenRandNum(((bLandBias && pLoopPlot->isWater()) ? 2 : 1), "Placing Bonuses") == 0)
+				if (iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2 >= 12)
+					break;
+
+				if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
 				{
-					if ((iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2) >= 12)
-					{
-						break;
-					}
-
-					if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
-					{
-						if (gMapLogLevel > 0)
-							logBBAI("    Player %d doesn't need any more bonuses.", iI); // K-Mod
-						break;
-					}
-
-					bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
-					bool bOcean = (pLoopPlot->isWater() && !bCoast);
-					if ((pLoopPlot != pStartingPlot)
+					if (gMapLogLevel > 0)
+						logBBAI("    Player %d doesn't need any more bonuses.", iI); // K-Mod
+					break;
+				}
+				bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
+				bool bOcean = (pLoopPlot->isWater() && !bCoast);
+				if ((pLoopPlot != pStartingPlot)
 						&& !(bCoast && iCoastFoodCount >= 2) // advc.108: was >2
 						&& !(bOcean && iOceanFoodCount >= 2) // advc.108: was >2
 						// advc.108: At most 3 sea food
 						&& !((bOcean || bCoast) && iOceanFoodCount + iCoastFoodCount >= 3))
+				{
+					for (int iPass = 0; iPass < 2; iPass++)
 					{
-						for (int iPass = 0; iPass < 2; iPass++)
+						if (pLoopPlot->getBonusType() != NO_BONUS)
+							continue;
+
+						for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
+						{	// advc.003: Checks moved into auxiliary function
+							if(!isValidExtraBonus((BonusTypes)iK, kLoopPlayer.getID(),
+									*pLoopPlot, iPass == 0, bIgnoreLatitude))
+								continue;
+							if (gMapLogLevel > 0)
+								logBBAI("    Adding %S for player %d.", GC.getBonusInfo((BonusTypes)iK).getDescription(), iI); // K-Mod
+							pLoopPlot->setBonusType((BonusTypes)iK);
+							iCoastFoodCount += bCoast ? 1 : 0;
+							iOceanFoodCount += bOcean ? 1 : 0;
+							iOtherCount += !(bCoast || bOcean) ? 1 : 0;
+							break;
+						}
+						if (!bLandBias || pLoopPlot->isWater() || pLoopPlot->getBonusType() != NO_BONUS)
+							continue;
+
+						if ((iFeatureCount > 4 && pLoopPlot->getFeatureType() != NO_FEATURE)
+								&& iCoastFoodCount + iOceanFoodCount > 2 &&
+								getSorenRandNum(2, "Clear feature to add bonus") == 0)
 						{
-							if (pLoopPlot->getBonusType() == NO_BONUS)
-							{
-								for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
-								{
-									if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
-									{
-										//???no bonuses with negative yields?
-										if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
-											(GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
-										{
-											if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
-											{
-												if (GET_TEAM(kLoopPlayer.getTeam()).isHasTech((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechReveal())))
-												{
-													if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
-													{
-														/*  advc.108 (comment): Don't need to check whether the bonus is
-															revealed b/c all initially unrevealed bonuses have
-															bNormalize=0 in CvBonusInfos.xml. */
-														if (gMapLogLevel > 0)
-															logBBAI("    Adding %S for player %d.", GC.getBonusInfo((BonusTypes)iK).getDescription(), iI); // K-Mod
-														pLoopPlot->setBonusType((BonusTypes)iK);
-														iCoastFoodCount += bCoast ? 1 : 0;
-														iOceanFoodCount += bOcean ? 1 : 0;
-														iOtherCount += !(bCoast || bOcean) ? 1 : 0;
-														break;
-													}
-												}
-											}
-										}
-									}
-								}
+							if (gMapLogLevel > 0)
+								logBBAI("    Removing %S to place bonus for player %d.", GC.getFeatureInfo(pLoopPlot->getFeatureType()).getDescription(), iI); // K-Mod
 
-								if (bLandBias && !pLoopPlot->isWater() && pLoopPlot->getBonusType() == NO_BONUS)
-								{
-									if (((iFeatureCount > 4) && (pLoopPlot->getFeatureType() != NO_FEATURE))
-										&& ((iCoastFoodCount + iOceanFoodCount) > 2))
-									{
-										if (getSorenRandNum(2, "Clear feature to add bonus") == 0)
-										{
-											if (gMapLogLevel > 0)
-												logBBAI("    Removing %S to place bonus for player %d.", GC.getFeatureInfo(pLoopPlot->getFeatureType()).getDescription(), iI); // K-Mod
-											pLoopPlot->setFeatureType(NO_FEATURE);
+							pLoopPlot->setFeatureType(NO_FEATURE);
+							for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
+							{	// advc.003: Checks moved into auxiliary function
+								if(!isValidExtraBonus((BonusTypes)iK, kLoopPlayer.getID(),
+										*pLoopPlot, iPass == 0, bIgnoreLatitude))
+									continue;
 
-											for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
-											{
-												if (GC.getBonusInfo((BonusTypes)iK).isNormalize())
-												{
-													//???no bonuses with negative yields?
-													if ((GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_FOOD) >= 0) &&
-														(GC.getBonusInfo((BonusTypes)iK).getYieldChange(YIELD_PRODUCTION) >= 0))
-													{
-														if ((GC.getBonusInfo((BonusTypes)iK).getTechCityTrade() == NO_TECH) || (GC.getTechInfo((TechTypes)(GC.getBonusInfo((BonusTypes)iK).getTechCityTrade())).getEra() <= getStartEra()))
-														{
-															if ((iPass == 0) ? CvMapGenerator::GetInstance().canPlaceBonusAt(((BonusTypes)iK), pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude) : pLoopPlot->canHaveBonus(((BonusTypes)iK), bIgnoreLatitude))
-															{
-																if (gMapLogLevel > 0)
-																	logBBAI("    Adding %S for player %d.", GC.getBonusInfo((BonusTypes)iK).getDescription(), iI); // K-Mod
-																pLoopPlot->setBonusType((BonusTypes)iK);
-																iOtherCount++;
-																break;
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
+								if (gMapLogLevel > 0)
+									logBBAI("    Adding %S for player %d.", GC.getBonusInfo((BonusTypes)iK).getDescription(), iI); // K-Mod
+								pLoopPlot->setBonusType((BonusTypes)iK);
+								iOtherCount++;
+								break;
 							}
 						}
 					}
@@ -2202,7 +2145,6 @@ void CvGame::normalizeAddExtras()
 		}
 
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
 			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
@@ -2211,76 +2153,56 @@ void CvGame::normalizeAddExtras()
 					logBBAI("    Player %d doesn't need any more features (2).", iI); // K-Mod
 				break;
 			}
-
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
 
-			if (pLoopPlot != NULL)
+			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
+					pLoopPlot->getBonusType() != NO_BONUS || pLoopPlot->getFeatureType() != NO_FEATURE)
+				continue;
+
+			for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
 			{
-				if (pLoopPlot != pStartingPlot)
+				if ((GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_FOOD) + GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_PRODUCTION)) > 0)
 				{
-					if (pLoopPlot->getBonusType() == NO_BONUS)
+					if (pLoopPlot->canHaveFeature((FeatureTypes)iK))
 					{
-						if (pLoopPlot->getFeatureType() == NO_FEATURE)
-						{
-							for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
-							{
-								if ((GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_FOOD) + GC.getFeatureInfo((FeatureTypes)iK).getYieldChange(YIELD_PRODUCTION)) > 0)
-								{
-									if (pLoopPlot->canHaveFeature((FeatureTypes)iK))
-									{
-										if (gMapLogLevel > 0)
-											logBBAI("    Adding %S for player %d.", GC.getFeatureInfo((FeatureTypes)iK).getDescription(), iI); // K-Mod
-										pLoopPlot->setFeatureType((FeatureTypes)iK);
-										break;
-									}
-								}
-							}
-						}
+						if (gMapLogLevel > 0)
+							logBBAI("    Adding %S for player %d.", GC.getFeatureInfo((FeatureTypes)iK).getDescription(), iI); // K-Mod
+						pLoopPlot->setFeatureType((FeatureTypes)iK);
+						break;
 					}
 				}
 			}
 		}
-
 		int iHillsCount = 0;
-
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			CvPlot* pLoopPlot =plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->isHills())
-				{
-					iHillsCount++;
-				}
-			}
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+			if (pLoopPlot == NULL)
+				continue;
+
+			if (pLoopPlot->isHills())
+				iHillsCount++;
 		}
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
 			if (iHillsCount >= 3)
-			{
 				break;
-			}
+
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
-			if (pLoopPlot != NULL)
+			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->isHills())
+				continue;
+
+			if (pLoopPlot->getFeatureType() == NO_FEATURE ||
+					!GC.getFeatureInfo(pLoopPlot->getFeatureType()).isRequiresFlatlands())
 			{
-				if (!pLoopPlot->isWater())
+				if ((pLoopPlot->getBonusType() == NO_BONUS) ||
+						GC.getBonusInfo(pLoopPlot->getBonusType()).isHills())
 				{
-					if (!pLoopPlot->isHills())
-					{
-						if ((pLoopPlot->getFeatureType() == NO_FEATURE) ||
-							!GC.getFeatureInfo(pLoopPlot->getFeatureType()).isRequiresFlatlands())
-						{
-							if ((pLoopPlot->getBonusType() == NO_BONUS) ||
-								GC.getBonusInfo(pLoopPlot->getBonusType()).isHills())
-							{
-								if (gMapLogLevel > 0)
-									logBBAI("    Adding hills for player %d.", iI); // K-Mod
-								pLoopPlot->setPlotType(PLOT_HILLS, false, true);									
-								iHillsCount++;
-							}
-						}
-					}
+					if (gMapLogLevel > 0)
+						logBBAI("    Adding hills for player %d.", iI); // K-Mod
+					pLoopPlot->setPlotType(PLOT_HILLS, false, true);									
+					iHillsCount++;
 				}
 			}
 		}
@@ -2296,7 +2218,7 @@ void CvGame::normalizeStartingPlots()
 {
 	PROFILE_FUNC();
 
-	if (!(GC.getInitCore().getWBMapScript()) || GC.getInitCore().getWBMapNoPlayers())
+	if (!GC.getInitCore().getWBMapScript() || GC.getInitCore().getWBMapNoPlayers())
 	{
 		if (!gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "normalizeStartingPlotLocations", NULL)  || gDLL->getPythonIFace()->pythonUsingDefaultImpl())
 		{
@@ -2349,6 +2271,34 @@ void CvGame::normalizeStartingPlots()
 		normalizeAddExtras();
 	}
 }
+
+// <advc.003> Cut, pasted, refactored from normalizeAddExtras
+bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
+		CvPlot const& kStartPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const {
+
+	CvBonusInfo const& kBonus = GC.getBonusInfo(eBonus);
+	if (!kBonus.isNormalize())
+		return false;
+
+	if (kBonus.getYieldChange(YIELD_FOOD) < 0 ||
+			kBonus.getYieldChange(YIELD_PRODUCTION) < 0)
+		return false;
+
+	if (kBonus.getTechCityTrade() != NO_TECH &&
+			GC.getTechInfo((TechTypes)(kBonus.getTechCityTrade())).getEra() > getStartEra())
+		return false;
+	/*  advc: BtS had checked this only for seafood; doesn't really matter though
+		b/c all of the isNormalize resources are revealed from the start. */
+	if (!TEAMREF(eStartPlayer).isHasTech((TechTypes)kBonus.getTechReveal()))
+		return false;
+
+	if (bCheckCanPlace ? CvMapGenerator::GetInstance().
+			canPlaceBonusAt(eBonus, kStartPlot.getX_INLINE(), kStartPlot.getY_INLINE(), bIgnoreLatitude) :
+			kStartPlot.canHaveBonus(eBonus, bIgnoreLatitude))
+		return true;
+
+	return false;
+} // </advc.003>
 
 // <advc.108>
 bool CvGame::isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const {
