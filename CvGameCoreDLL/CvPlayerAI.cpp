@@ -3140,7 +3140,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
-	int iValue = 480;
+	int iValue = 400;
 	// <advc.040>
 	if(bFirstColony)
 		iValue += 55 * std::min(5, iUnrev); // </advc.040>
@@ -3676,8 +3676,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					bonuses already connected. Just doing a division by iCount
 					here won't work well for strategic resources. */
 				/*  Don't assume that the bonus is enabled.
-					And the coefficient was 80, halved. */
-				int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 40.0) /
+					And the coefficient was 80. */
+				int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 56.5) /
 						(1 + viBonusCount[eBonus]));
 				/*  Note (K-Mod):
 					1. the value of starting bonuses is reduced later.
@@ -3891,7 +3891,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// Note: iSpecialFood is whatever food happens to be associated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
 	// <advc.031>
 	// Preserve this for later
-	int nonYieldResourceVal = std::max(0, iResourceValue);
+	int iNonYieldResourceVal = std::max(0, iResourceValue);
 	if(specials > 0.01) {
 		double perSpecial[NUM_YIELD_TYPES] = {0.0};
 		perSpecial[YIELD_FOOD] = iSpecialFood / specials;
@@ -3932,8 +3932,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					iSpecialFoodMinus) / 10.0;
 			lowFoodFactor = ::dRange(lowFoodFactor, 0.5, 1.0);
 			// Don't apply this to the value from happiness/health/strategic
-			iValue = ::round((iValue - nonYieldResourceVal) * lowFoodFactor)
-					+ nonYieldResourceVal;
+			iValue = ::round((iValue - iNonYieldResourceVal) * lowFoodFactor)
+					+ iNonYieldResourceVal;
 		} // </advc.031>
 		int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
 		int iFoodDeficit = std::max(0, iSpecialFoodMinus - iSpecialFoodPlus);
@@ -3946,7 +3946,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
 		iValue /= 100 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit;*/
 		// K-Mod end
-		// <advc.031> Moved this up so that I can exclude nonYieldResourceVal.
+		// <advc.031> Moved this up so that I can exclude iNonYieldResourceVal.
 		// The formula looks interesting; just turn it into a single multiplier ...
 		double foodFactor = (100.0 + (kSet.bExpansive ? 20 : 15) * std::min(
 				(iFoodSurplus + iSpecialFoodPlus)/2,
@@ -3954,8 +3954,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				(100.0 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit);
 		// ... and reduce the impact b/c of the lowFoodFactor added above.
 		foodFactor = (foodFactor + 1) / 2;
-		iValue = ::round((iValue - nonYieldResourceVal) * foodFactor)
-				+ nonYieldResourceVal; // </advc.031>
+		iValue = ::round((iValue - iNonYieldResourceVal) * foodFactor)
+				+ iNonYieldResourceVal; // </advc.031>
 	}
 // END OF LOW FOOD ADJUSTMENT
 // NON-YIELD BENEFITS OF HOME TILE: health, chopping, coastal, hill, freshwater
