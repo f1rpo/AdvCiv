@@ -5027,7 +5027,7 @@ int CvCity::hurryProduction(HurryTypes eHurry) const
 	int iProductionDifference = getCurrentProductionDifference(bPopRush, true, false,
 			bPopRush, true);
 	if(bPopRush)
-		iProductionDifference++; // Yield rate will be at least 1
+		iProductionDifference += GC.getYieldInfo(YIELD_PRODUCTION).getMinCity();
 	int iProductionNeeded = std::max(0, getProductionNeeded() - getProduction() -
 			iProductionDifference);
 	// </advc.064b>
@@ -8272,7 +8272,7 @@ void CvCity::setOriginalOwner(PlayerTypes eNewValue)
 
 TeamTypes CvCity::getTeam() const
 {
-	return GET_PLAYER(getOwnerINLINE()).getTeam();
+	return TEAMID(getOwnerINLINE());
 }
 
 
