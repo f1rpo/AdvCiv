@@ -3422,10 +3422,11 @@ void FairPlay::evaluate() {
 	if(!they->isHuman() || we->isHuman() ||
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR_ON_FRIEND) < 0)
 		return;
-	CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
+
 	/*  Mostly care about Archery, which has power 6. The Wheel isn't unfair
 		(power 4). BW and IW have power 8 and 10. */
-	/*bool powerTechFound = false;
+	/*CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
+	bool powerTechFound = false;
 	for(int i = 0; i < GC.getNumTechInfos(); i++) {
 		if(h.isAIFreeTechs(i) && GC.getTechInfo((TechTypes)i).
 				getPowerValue() >= 5) {
@@ -3444,23 +3445,21 @@ void FairPlay::evaluate() {
 		FAssert(trainMod > 0);
 		return;
 	}
-	int t = ::round(g.getElapsedGameTurns() / (trainMod / 10000.0));
 	double uMinus = 0;
-	/*  All bets off by turn 100, but, already by turn 50, the cost may
-		no longer be prohibitive. */
-	int iTargetTurn = 100;
-	// Allow earlier aggression on crowded maps
-	iTargetTurn = ::round(iTargetTurn *
-			((1 + 1.5 * (g.getRecommendedPlayers() /
-			(double)g.getCivPlayersEverAlive())) / 2.5));
-	int iTurnsRemaining = iTargetTurn - t - GC.getEraInfo(startEra).getStartPercent();
-	if(iTurnsRemaining > 0) {
-		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
-		if(gameEra != startEra) // The above only matters in the start era
-			uMinus = 0;
+	if(gameEra == startEra) {
+		/*  All bets off by turn 100, but, already by turn 50, the cost may
+			no longer be prohibitive. */
+		int iTargetTurn = 100;
+		// Allow earlier aggression on crowded maps
+		iTargetTurn = ::round(iTargetTurn *
+				((1 + 1.5 * (g.getRecommendedPlayers() /
+				(double)g.getCivPlayersEverAlive())) / 2.5));
+		int iElapsed = ::round(g.getElapsedGameTurns() / (trainMod / 10000.0));
+		int iTurnsRemaining = iTargetTurn - iElapsed - GC.getEraInfo(startEra).getStartPercent();
+		if(iTurnsRemaining > 0)
+			uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
 	}
-	// ... but dogpiling remains an issue in the Classical era
-	if(gameEra > 1)
+	if(gameEra > 1) // Dogpiling remains an issue in the Classical era
 		return;
 	// Don't dogpile when human has lost cities in the early game
 	int citiesBuilt = they->getPlayerRecord()->getNumCitiesBuilt();
@@ -3487,15 +3486,15 @@ void FairPlay::evaluate() {
 	u -= std::max(0, ::round(uMinus));
 }
 
-int FairPlay::initialMilitaryUnits(PlayerTypes civId) {
+// (no longer used)
+/*int FairPlay::initialMilitaryUnits(PlayerTypes civId) {
 
-	// (this function isn't currently used)
 	CvPlayer const& civ = GET_PLAYER(civId);
 	CvHandicapInfo& h = GC.getHandicapInfo(civ.getHandicapType());
 	// DefenseUnits aren't all that defensive
 	return h.getStartingDefenseUnits() +
 			(civ.isHuman() ? 0 : h.getAIStartingDefenseUnits());
-}
+}*/
 
 char const* FairPlay::aspectName() const { return "Fair play"; }
 int FairPlay::xmlId() const { return 23; }

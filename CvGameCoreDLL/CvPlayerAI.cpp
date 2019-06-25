@@ -13210,7 +13210,8 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 	if(kCityPlot.getCulture(getID()) > kCityPlot.getCulture(ePlayer))
 		return DENIAL_NEVER; // Tbd.: This condition is too coarse
 // <advc.tmp>
-if(kPlayer.getTeam() == getTeam()||bLib) return NO_DENIAL;
+if(kPlayer.getTeam() == getTeam() || bLib)
+	return NO_DENIAL;
 return DENIAL_NEVER;
 // </advc.tmp>
 	/*  TOO_MUCH would be nicer than NEVER if on the same team, but these cities
@@ -13234,7 +13235,7 @@ return DENIAL_NEVER;
 	// </advc.122>
 }
 
-/*  advc.003 (comment): This player pays for the embargo and ePlayer stops trading
+/*  advc (comment): This player pays for the embargo and ePlayer stops trading
 	with eTradeTeam. */
 int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
 		bool bWarTrade) const // advc.104o  // advc.003: style changes
@@ -26457,29 +26458,25 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 	{
 		//Add a city to the list.
 		int iBestFoundValue = 0;
-		CvPlot* pBestFoundPlot = NULL;
+		CvPlot const* pBestFoundPlot = NULL;
 
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)  // advc.003: some style changes
 		{
-			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-			if (pLoopPlot->isRevealed(getTeam(), false))
+			CvPlot const& kPlot = *GC.getMapINLINE().plotByIndexINLINE(iI);
+			if (!kPlot.isRevealed(getTeam(), false))
+				continue;
+
+			int iValue = kPlot.getFoundValue(getID(), /* advc.052: */ true);
+			if (iValue > iMinFoundValueThreshold && !AI_isPlotCitySite(kPlot))
 			{
-				int iValue = pLoopPlot->getFoundValue(getID(), /* advc.052: */ true);
-				if (iValue > iMinFoundValueThreshold)
+				iValue *= std::min(NUM_CITY_PLOTS * 2, kPlot.area()->getNumUnownedTiles()
+						+ 1); /* advc.031: Just b/c all tiles in the area are
+								 owned doesn't mean we can't ever settle there.
+								 Probably an oversight; tagging advc.001. */
+				if (iValue > iBestFoundValue)
 				{
-					if (!AI_isPlotCitySite(*pLoopPlot))
-					{
-						iValue *= std::min(NUM_CITY_PLOTS * 2,
-								pLoopPlot->area()->getNumUnownedTiles()
-								+ 1); /*  advc.031: Just b/c all tiles in the area
-								are owned doesn't mean we can't ever settle there.
-								Probably an oversight; tagging advc.001. */
-						if (iValue > iBestFoundValue)
-						{
-							iBestFoundValue = iValue;
-							pBestFoundPlot = pLoopPlot;
-						}
-					}
+					iBestFoundValue = iValue;
+					pBestFoundPlot = &kPlot;
 				}
 			}
 		}
