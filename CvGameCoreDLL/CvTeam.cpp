@@ -2663,7 +2663,7 @@ bool CvTeam::isLossesAllowRevolt(TeamTypes eMaster) const {
 } // </advc.112>
 
 // BETTER_BTS_AI_MOD, General AI, 07/20/09, jdog5000: START
-bool CvTeam::isMasterPlanningLandWar(CvArea* pArea)
+bool CvTeam::isMasterPlanningLandWar(CvArea* pArea) const
 {
 	if( !isAVassal() )
 	{
@@ -2713,7 +2713,7 @@ bool CvTeam::isMasterPlanningLandWar(CvArea* pArea)
 }
 
 
-bool CvTeam::isMasterPlanningSeaWar(CvArea* pArea)
+bool CvTeam::isMasterPlanningSeaWar(CvArea* pArea) const
 {
 	if( !isAVassal() )
 	{

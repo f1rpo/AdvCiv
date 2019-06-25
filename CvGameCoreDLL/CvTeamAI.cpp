@@ -4850,30 +4850,34 @@ bool CvTeamAI::isAnyChosenWar() const {
 } // </advc.105>
 
 
-bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
-{
-	WarPlanTypes eWarPlan = AI_getWarPlan(GET_TEAM(eIndex).getMasterTeam()); // advc.104j
-	return (eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_PREPARING_TOTAL);
-}
-
-
 bool CvTeamAI::AI_isSneakAttackReady(TeamTypes eIndex) const
 {
-	//return (AI_isChosenWar(eIndex) && !(AI_isSneakAttackPreparing(eIndex)));
-	return !isAtWar(eIndex) && AI_isChosenWar(eIndex) && !AI_isSneakAttackPreparing(eIndex); // K-Mod
-}
-
-// K-Mod
-bool CvTeamAI::AI_isSneakAttackReady() const
-{
-	for (int i = 0; i < MAX_CIV_TEAMS; i++)
-	{
+	//return (AI_isChosenWar(eIndex) && !(AI_isSneakAttackPreparing(eIndex))); // BtS
+	// K-Mod  (advc.003: K-Mod code from an overloaded function)
+	if(eIndex != NO_TEAM)
+		return !isAtWar(eIndex) && AI_isChosenWar(eIndex) && !AI_isSneakAttackPreparing(eIndex); // K-Mod
+	for (int i = 0; i < MAX_CIV_TEAMS; i++) {
 		if (AI_isSneakAttackReady((TeamTypes)i))
 			return true;
 	}
 	return false;
+	// K-Mod end
 }
-// K-Mod end
+
+
+bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
+{
+	if(eIndex != NO_TEAM) { // advc.003
+		WarPlanTypes eWarPlan = AI_getWarPlan(GET_TEAM(eIndex).getMasterTeam()); // advc.104j
+		return (eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_PREPARING_TOTAL);
+	} // <advc.003> (based on K-Mod code above)
+	for (int i = 0; i < MAX_CIV_TEAMS; i++) {
+		if (AI_isSneakAttackPreparing((TeamTypes)i))
+			return true;
+	}
+	return false; // </advc.003>
+}
+
 
 void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar)  // advc.003: style changes
 {
@@ -6727,7 +6731,7 @@ int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const
 	
 }
 
-bool CvTeamAI::AI_isWaterAreaRelevant(CvArea* pArea)
+bool CvTeamAI::AI_isWaterAreaRelevant(CvArea* pArea) const
 {
 	int iTeamCities = 0;
 	int iOtherTeamCities = 0;

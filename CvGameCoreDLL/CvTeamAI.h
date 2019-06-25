@@ -219,9 +219,9 @@ public:
 	WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const;
 	bool AI_isChosenWar(TeamTypes eIndex) const;
 	bool isAnyChosenWar() const; // advc.105
-	bool AI_isSneakAttackPreparing(TeamTypes eIndex) const;
-	bool AI_isSneakAttackReady(TeamTypes eIndex) const;
-	bool AI_isSneakAttackReady() const; // K-Mod (any team)
+	bool AI_isSneakAttackReady(TeamTypes eIndex
+			= NO_TEAM) const; // K-Mod (any team)
+	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc.003: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
 	// advc.104:
 	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
@@ -254,7 +254,7 @@ public:
 	
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
 	
-	bool AI_isWaterAreaRelevant(CvArea* pArea);
+	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc.003: */ const;
 	
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
