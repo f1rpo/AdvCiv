@@ -11943,12 +11943,11 @@ int CvCityAI::AI_yieldMultiplier(YieldTypes eYield) const
 void CvCityAI::AI_updateSpecialYieldMultiplier()
 {
 	PROFILE_FUNC();
-	
+
+	int iOldProductionMult = m_aiSpecialYieldMultiplier[YIELD_PRODUCTION]; // advc.121
 	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
 		m_aiSpecialYieldMultiplier[iI] = 0;
-	}
-	
+
 	UnitTypes eProductionUnit = getProductionUnit();
 	if (eProductionUnit != NO_UNIT)
 	{
@@ -11968,7 +11967,9 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 25;
 		}
 		// K-Mod end
-	}
+	} // <advc.300>
+	if(isBarbarian())
+		return; // </advc.300>
 
 	BuildingTypes eProductionBuilding = getProductionBuilding();
 	if (eProductionBuilding != NO_BUILDING)
@@ -11980,7 +11981,7 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 25;					
 		}
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += std::max(-25, GC.getBuildingInfo(eProductionBuilding).getFoodKept());
-		
+
 		/* original bts code
 		if ((GC.getBuildingInfo(eProductionBuilding).getCommerceChange(COMMERCE_CULTURE) > 0)
 			|| (GC.getBuildingInfo(eProductionBuilding).getObsoleteSafeCommerceChange(COMMERCE_CULTURE) > 0)) {
@@ -11993,7 +11994,7 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 			}
 		} */ // emphasising production to get culture is nice, but not if it slows growth
 	}
-	
+
 	if (isHuman())
 		return; // advc.003
 	// non-human production value increase
@@ -12032,7 +12033,7 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 20;
 	}
 	// K-Mod end
-		
+
 	if ((kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER) && getPopulation() >= 4)
 			|| (eAreaAIType == AREAAI_OFFENSIVE) || (eAreaAIType == AREAAI_DEFENSIVE) 
 			|| (eAreaAIType == AREAAI_MASSING) || (eAreaAIType == AREAAI_ASSAULT))
@@ -12066,24 +12067,25 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 	int iIncome = 1 + kPlayer.AI_getAvailableIncome(); // K-Mod
 	int iExpenses = 1 + kPlayer.calculateInflatedCosts() + std::max(0, -kPlayer.getGoldPerTurn()); // K-Mod (just to be consistent with similar calculations)
 	FAssert(iIncome > 0);
-	
+
 	int iRatio = (100 * iExpenses) / iIncome;
 	//Gold -> Production Reduced To
 	// 40- -> 100%; 60 -> 83%; 100 -> 28%; 110+ -> 14%
 	m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += 100;
 	if (iRatio > 60)
-	{
-		//Greatly decrease production weight 
+	{	//Greatly decrease production weight 
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] *= std::max(10, 120 - iRatio);
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] /= 72;
 	}
 	else if (iRatio > 40)
-	{
-		//Slightly decrease production weight.
+	{	//Slightly decrease production weight.
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] *= 160 - iRatio;
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] /= 120;
 	}
 	m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] -= 100;
+	// <advc.121> Inertia, to avoid oscillation (not sure if really a problem).
+	m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += iOldProductionMult;
+	m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] /= 2; // </advc.121>
 }
 
 
