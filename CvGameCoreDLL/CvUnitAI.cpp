@@ -1167,10 +1167,10 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	FAssert(iValue < MAX_INT); // advc
 	//return std::min((long)MAX_INT, iValue); // K-Mod
 	/*  Erik (BUG1): We cannot change the signature due to the virtual specifier
-		so we have to truncate the final value to an int. At least we probably avoid
-		undefined behaviour during an intermediate computation...
-		Note that if signed overflow does occur, the std::min operation is meaningless. */
-	return static_cast<int>(iValue);
+		so we have to truncate the final value to an int. */
+	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that it is truncated to MAX_INT, which makes sense logically.
+		static_cast<int>(iValue) doesn't guarantee that and the resulting value is implementation-defined. */
+	return static_cast<int>(std::min(static_cast<long long>(MAX_INT), iValue));
 }
 
 // Lead From Behind, by UncutDragon, edited for K-Mod
