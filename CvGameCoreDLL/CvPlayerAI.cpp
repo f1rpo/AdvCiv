@@ -3140,7 +3140,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
-	int iValue = 400;
+	int iValue = 420;
 	// <advc.040>
 	if(bFirstColony)
 		iValue += 55 * std::min(5, iUnrev); // </advc.040>
