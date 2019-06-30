@@ -1231,7 +1231,7 @@ void CvGame::assignStartingPlots()
 		/*  p->getFoundValue(civ.getID()) would be faster, but
 			CvPlot::setFoundValue may not have been called
 			(and then it returns 0) */
-		int val = civ.AI_foundValue(p->getX_INLINE(), p->getY_INLINE(), -1, true);
+		int val = civ.AI_foundValue(p->getX(), p->getY(), -1, true);
 		FAssertMsg(val > 0, "Bad starting position");
 		// minus val for descending order
 		startPlots.push_back(std::make_pair<int,CvPlot*>(-val, p));
@@ -1284,7 +1284,7 @@ void CvGame::normalizeStartingPlotLocations()
 							if (iDist == -1)
 							{
 								// 5x penalty for not being on the same area, or having no passable route
-								iDist = 5*plotDistance(pPlotI->getX_INLINE(), pPlotI->getY_INLINE(), pPlotJ->getX_INLINE(), pPlotJ->getY_INLINE());
+								iDist = 5*plotDistance(pPlotI->getX(), pPlotI->getY(), pPlotJ->getX(), pPlotJ->getY());
 							}
 							aaiDistances[iI][iJ] = iDist;
 						}
@@ -1459,8 +1459,8 @@ void CvGame::normalizeRemovePeaks()  // advc.003: style changes
 		{
 			for (int iDY = -(iRange); iDY <= iRange; iDY++)
 			{
-				CvPlot*pLoopPlot = plotXY(pStartingPlot->getX_INLINE(),
-						pStartingPlot->getY_INLINE(), iDX, iDY);
+				CvPlot*pLoopPlot = plotXY(pStartingPlot->getX(),
+						pStartingPlot->getY(), iDX, iDY);
 				if (pLoopPlot == NULL)
 					continue;
 				if (pLoopPlot->isPeak()
@@ -1501,7 +1501,7 @@ CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)  // advc.003: style c
 	// K-Mod end
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(),
+		CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
 				aiShuffle[iI]); // K-Mod
 
 		if (pLoopPlot == NULL || pLoopPlot->isWater() ||
@@ -1545,7 +1545,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc.003: style changes
 		// <advc.108>
 		int iBadFeatures = 0;
 		for(int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++) {
-			CvPlot* p = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+			CvPlot* p = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			// Disregard inner ring
 			if(p == NULL || ::plotDistance(p, pStartingPlot) < 2 ||
 					p->getFeatureType() == NO_FEATURE)
@@ -1563,8 +1563,8 @@ void CvGame::normalizeRemoveBadFeatures()  // advc.003: style changes
 			prRemoval = 1;
 		// </advc.108>
 		for(int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++) {
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(),
-					pStartingPlot->getY_INLINE(), iJ);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(),
+					pStartingPlot->getY(), iJ);
 			if(pLoopPlot != NULL && pLoopPlot->getFeatureType() != NO_FEATURE) {
 				if(GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
 						GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0) {
@@ -1584,13 +1584,13 @@ void CvGame::normalizeRemoveBadFeatures()  // advc.003: style changes
 		{
 			for (int iY = -iMaxRange; iY <= iMaxRange; iY++)
 			{
-				CvPlot* pLoopPlot = plotXY(pStartingPlot->getX_INLINE(),
-						pStartingPlot->getY_INLINE(), iX, iY);
+				CvPlot* pLoopPlot = plotXY(pStartingPlot->getX(),
+						pStartingPlot->getY(), iX, iY);
 				if(pLoopPlot == NULL)
 					continue;
-				int iDistance = plotDistance(pStartingPlot->getX_INLINE(),
-						pStartingPlot->getY_INLINE(),
-						pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				int iDistance = plotDistance(pStartingPlot->getX(),
+						pStartingPlot->getY(),
+						pLoopPlot->getX(), pLoopPlot->getY());
 				if(iDistance <= iMaxRange &&
 						pLoopPlot->getFeatureType() != NO_FEATURE &&
 						GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
@@ -1644,12 +1644,12 @@ void CvGame::normalizeRemoveBadTerrain()  // advc.003: style changes
 		{
 			for (int iY = -iMaxRange; iY <= iMaxRange; iY++)
 			{
-				CvPlot* pLoopPlot = plotXY(pStartingPlot->getX_INLINE(),
-						pStartingPlot->getY_INLINE(), iX, iY);
+				CvPlot* pLoopPlot = plotXY(pStartingPlot->getX(),
+						pStartingPlot->getY(), iX, iY);
 				if(pLoopPlot == NULL)
 					continue;
-				int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(),
-						pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				int iDistance = plotDistance(pStartingPlot->getX(), pStartingPlot->getY(),
+						pLoopPlot->getX(), pLoopPlot->getY());
 				if(iDistance > iMaxRange)
 					continue;
 				if(!pLoopPlot->isWater() && (iDistance <= iCityRange ||
@@ -1728,7 +1728,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 		//for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		for (int iJ = 1; iJ < NUM_CITY_PLOTS; iJ++) // K-Mod. Don't count the city plot.
 		{
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			if (pLoopPlot == NULL)
 				continue;
 
@@ -1788,7 +1788,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 			if (iFoodBonus >= iTargetFoodBonusCount)
 				break;
 
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			if (pLoopPlot == NULL || pLoopPlot->getBonusType() != NO_BONUS)
 				continue;
 
@@ -1871,7 +1871,7 @@ void CvGame::normalizeAddGoodTerrain()
 
 				for (iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 				{
-					pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+					pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 
 					if (pLoopPlot != NULL)
 					{
@@ -1893,7 +1893,7 @@ void CvGame::normalizeAddGoodTerrain()
 						break;
 					}
 
-					pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+					pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 
 					if (pLoopPlot != NULL)
 					{
@@ -1973,7 +1973,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 		if (pStartingPlot == NULL)
 			continue;
 
-		int iValue = kPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true);
+		int iValue = kPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true);
 		iTotalValue += iValue;
 		iPlayerCount++;
 		iBestValue = std::max(iValue, iBestValue);
@@ -2008,7 +2008,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
+			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true) >= iTargetValue)
 			{
 				if (gMapLogLevel > 0)
 					logBBAI("    Player %d doesn't need any more features.", iI); // K-Mod
@@ -2016,7 +2016,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 			}
 			if (getSorenRandNum(iCount + 2, "Setting Feature Type") <= 1)
 			{
-				CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+				CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), aiShuffle[iJ]);
 				if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
 						pLoopPlot->getBonusType() != NO_BONUS)
 					continue;
@@ -2049,7 +2049,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 		int iWaterCount = 0;
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot)
 				continue;
 
@@ -2073,7 +2073,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), aiShuffle[iJ]);
 			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot)
 				continue;
 
@@ -2082,7 +2082,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 				if (iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2 >= 12)
 					break;
 
-				if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
+				if (kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true) >= iTargetValue)
 				{
 					if (gMapLogLevel > 0)
 						logBBAI("    Player %d doesn't need any more bonuses.", iI); // K-Mod
@@ -2146,13 +2146,13 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true) >= iTargetValue)
+			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true) >= iTargetValue)
 			{
 				if (gMapLogLevel > 0)
 					logBBAI("    Player %d doesn't need any more features (2).", iI); // K-Mod
 				break;
 			}
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), aiShuffle[iJ]);
 
 			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
 					pLoopPlot->getBonusType() != NO_BONUS || pLoopPlot->getFeatureType() != NO_FEATURE)
@@ -2175,7 +2175,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 		int iHillsCount = 0;
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iJ);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			if (pLoopPlot == NULL)
 				continue;
 
@@ -2188,7 +2188,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 			if (iHillsCount >= 3)
 				break;
 
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), aiShuffle[iJ]);
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), aiShuffle[iJ]);
 			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->isHills())
 				continue;
 
@@ -2206,7 +2206,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 			}
 		}
 		if (gMapLogLevel > 0)
-			logBBAI("    Player %d final value: %d", iI, kLoopPlayer.AI_foundValue(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), -1, true)); // K-Mod
+			logBBAI("    Player %d final value: %d", iI, kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true)); // K-Mod
 	}
 	if (gMapLogLevel > 0)
 		logBBAI("normalizeAddExtras() complete"); // K-Mod
@@ -2292,7 +2292,7 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return false;
 
 	if (bCheckCanPlace ? CvMapGenerator::GetInstance().
-			canPlaceBonusAt(eBonus, kStartPlot.getX_INLINE(), kStartPlot.getY_INLINE(), bIgnoreLatitude) :
+			canPlaceBonusAt(eBonus, kStartPlot.getX(), kStartPlot.getY(), bIgnoreLatitude) :
 			kStartPlot.canHaveBonus(eBonus, bIgnoreLatitude))
 		return true;
 
@@ -6202,7 +6202,7 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 			if (isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 			{
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
-				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHolyCity->getOwnerINLINE(), szBuffer, pHolyCity->getX_INLINE(), pHolyCity->getY_INLINE());
+				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHolyCity->getOwnerINLINE(), szBuffer, pHolyCity->getX(), pHolyCity->getY());
 						// advc.106: Reserve this color for treaties
 						//(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
@@ -6215,7 +6215,7 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 							|| kObs.isSpectator()) // advc.127
 					{
 						szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
-						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHolyCity->getX_INLINE(), pHolyCity->getY_INLINE(), false, true);
+						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHolyCity->getX(), pHolyCity->getY(), false, true);
 					}
 					else
 					{
@@ -6277,7 +6277,7 @@ void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bA
 				if (isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 				{
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_FOUNDED", GC.getCorporationInfo(eIndex).getTextKeyWide(), pHeadquarters->getNameKey());
-					addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHeadquarters->getOwnerINLINE(), szBuffer, pHeadquarters->getX_INLINE(), pHeadquarters->getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+					addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHeadquarters->getOwnerINLINE(), szBuffer, pHeadquarters->getX(), pHeadquarters->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 					for (int iI = 0; iI < MAX_PLAYERS; iI++)
 					{
@@ -6285,7 +6285,7 @@ void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bA
 						{
 							if (pHeadquarters->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 							{
-								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHeadquarters->getX_INLINE(), pHeadquarters->getY_INLINE(), false, true);
+								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHeadquarters->getX(), pHeadquarters->getY(), false, true);
 							}
 							else
 							{
@@ -6696,13 +6696,13 @@ void CvGame::doGlobalWarming()
 				{
 					pPlot->setImprovementType(NO_IMPROVEMENT);
 
-					CvCity* pCity = GC.getMapINLINE().findCity(pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					CvCity* pCity = GC.getMapINLINE().findCity(pPlot->getX(), pPlot->getY());
 					if (pCity != NULL)
 					{
 						if (pPlot->isVisible(pCity->getTeam(), false))
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 						}
 					}
 				}
@@ -6855,13 +6855,13 @@ void CvGame::doGlobalWarming()
 							NO_BUILD, false) // dlph.9
 						pPlot->setImprovementType(NO_IMPROVEMENT);
 
-					CvCity* pCity = GC.getMapINLINE().findCity(pPlot->getX_INLINE(), pPlot->getY_INLINE(), NO_PLAYER, NO_TEAM, false);
+					CvCity* pCity = GC.getMapINLINE().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, NO_TEAM, false);
 					if (pCity != NULL)
 					{
 						if (pPlot->isVisible(pCity->getTeam(), false))
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 						}
 					}
 					changeGwEventTally(1);
@@ -7397,7 +7397,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 				Barbarians appear there. Once there is a Barbarian city on a
 				small landmass, there may not be room for another city, and a
 				naval attack on a Barbarian city is difficult to execute for the AI. */
-			double mult = 0.5 + 0.75 * iEra;
+			double mult = 0.5 + 0.88 * iEra;
 			iTargetCities = ::round(mult * iTargetCities); // </advc.300>
 		}
 		int iUnownedTilesThreshold = GC.getHandicapInfo(getHandicapType()).getUnownedTilesPerBarbarianCity();
@@ -7414,10 +7414,10 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 
 		if (a.getCitiesPerPlayer(BARBARIAN_PLAYER) < iTargetCities)
 		{
-			//iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
+			//iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX(), pLoopPlot->getY(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
 			// K-Mod
 			int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue_bulk(
-					pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kFoundSet); 
+					pLoopPlot->getX(), pLoopPlot->getY(), kFoundSet); 
 			if (iTargetCitiesMultiplier > 100)
 			{/* <advc.300> This gives the area with the most owned tiles priority
 				over other areas unless the global city target is reached (rare),
@@ -7455,7 +7455,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 	if (pBestPlot != NULL)
 	{
 		FAssert(iBestValue > 0); // advc.300
-		GET_PLAYER(BARBARIAN_PLAYER).found(pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+		GET_PLAYER(BARBARIAN_PLAYER).found(pBestPlot->getX(), pBestPlot->getY());
 	}
 }
 
@@ -7669,7 +7669,7 @@ void CvGame::createAnimals()  // advc.003: style changes
 			if (eBestUnit != NO_UNIT)
 			{
 				GET_PLAYER(BARBARIAN_PLAYER).initUnit(eBestUnit,
-						pPlot->getX_INLINE(), pPlot->getY_INLINE(), UNITAI_ANIMAL);
+						pPlot->getX(), pPlot->getY(), UNITAI_ANIMAL);
 			}
 		}
 	}
@@ -7799,7 +7799,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 				if(eLoadUnit == NO_UNIT)
 					break;
 				CvUnit* pLoadUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(
-						eLoadUnit, pTransport->getX_INLINE(), pTransport->getY_INLINE(), eLoadAI);
+						eLoadUnit, pTransport->getX(), pTransport->getY(), eLoadAI);
 				/*  Don't set pTransport to UNITAI_ASSAULT_SEA -- that's for
 					medium-/large-scale invasions, and too laborious to adjust.
 					Instead add an unload routine to CvUnitAI::barbAttackSeaMove. */
@@ -7852,7 +7852,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 		if(eUnitType == NO_UNIT)
 			return r;
 		CvUnit* pNewUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(eUnitType,
-				pPlot->getX_INLINE(), pPlot->getY_INLINE(), eUnitAI);
+				pPlot->getX(), pPlot->getY(), eUnitAI);
 		if(pNewUnit != NULL && !pPlot->isWater())
 			r++;
 		// </advc.300>
@@ -8822,8 +8822,8 @@ int CvGame::calculateSyncChecksum()
 				int iLoop;
 				for (pLoopUnit = kPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kPlayer.nextUnit(&iLoop))
 				{
-					iMultiplier += (pLoopUnit->getX_INLINE() * 876543);
-					iMultiplier += (pLoopUnit->getY_INLINE() * 985310);
+					iMultiplier += (pLoopUnit->getX() * 876543);
+					iMultiplier += (pLoopUnit->getY() * 985310);
 					iMultiplier += (pLoopUnit->getDamage() * 736373);
 					iMultiplier += (pLoopUnit->getExperience() * 820622);
 					iMultiplier += (pLoopUnit->getLevel() * 367291);
@@ -11066,8 +11066,8 @@ std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes eVS, TeamTypes eObser
 	std::pair<int,int> r = std::make_pair(-1,-1);
 	if(pVSCity == NULL)
 		return r;
-	r.first = pVSCity->getX_INLINE();
-	r.second = pVSCity->getY_INLINE();
+	r.first = pVSCity->getX();
+	r.second = pVSCity->getY();
 	return r;
 }
 

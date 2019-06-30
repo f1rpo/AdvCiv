@@ -79,8 +79,8 @@ public:
 	inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2) const
 	{
 		return plotDistance(
-				plot1->getX_INLINE(), plot1->getY_INLINE(),
-				plot2->getX_INLINE(), plot2->getY_INLINE());
+				plot1->getX(), plot1->getY(),
+				plot2->getX(), plot2->getY());
 	}
 	// K-Mod end
 
@@ -108,8 +108,8 @@ public:
 	inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2) const
 	{
 		return stepDistance(
-				plot1->getX_INLINE(), plot1->getY_INLINE(),
-				plot2->getX_INLINE(), plot2->getY_INLINE());
+				plot1->getX(), plot1->getY(),
+				plot2->getX(), plot2->getY());
 	} // K-Mod end
 
 	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
@@ -135,7 +135,7 @@ public:
 	// K-Mod start
 	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
 	{
-		return plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+		return plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 	} // K-Mod end 
 
 	inline DirectionTypes directionXY(int iDX, int iDY) const
@@ -148,8 +148,8 @@ public:
 	inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) const
 	{
 		return directionXY(
-				dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()),
-				dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
+				dxWrap(pToPlot->getX() - pFromPlot->getX()),
+				dyWrap(pToPlot->getY() - pFromPlot->getY()));
 	}
 
 	inline int dxWrap(int iDX) const

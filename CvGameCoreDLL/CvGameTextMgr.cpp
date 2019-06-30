@@ -2113,7 +2113,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				if (pMissionPlot != NULL)
 				{
 					szString.append(CvWString::format(L"\n [%d,%d]",
-							pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE()));
+							pMissionPlot->getX(), pMissionPlot->getY()));
 
 					CvCity* pCity = pMissionPlot->getWorkingCity();
 					if (pCity != NULL)
@@ -2123,10 +2123,8 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						if (!pMissionPlot->isCity())
 						{
 							DirectionTypes eDirection = estimateDirection(
-									m.dxWrap(pMissionPlot->getX_INLINE() -
-									pCity->plot()->getX_INLINE()),
-									m.dyWrap(pMissionPlot->getY_INLINE() -
-									pCity->plot()->getY_INLINE()));
+									m.dxWrap(pMissionPlot->getX() - pCity->plot()->getX()),
+									m.dyWrap(pMissionPlot->getY() - pCity->plot()->getY()));
 							getDirectionTypeString(szTempString, eDirection);
 							szString.append(CvWString::format(L"%s of ",
 									szTempString.GetCString()));
@@ -2140,10 +2138,8 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						if (pMissionPlot != &kPlot)
 						{
 							DirectionTypes eDirection = estimateDirection(
-									m.dxWrap(pMissionPlot->getX_INLINE() -
-									kPlot.getX_INLINE()),
-									m.dyWrap(pMissionPlot->getY_INLINE() -
-									kPlot.getY_INLINE()));
+									m.dxWrap(pMissionPlot->getX() - kPlot.getX()),
+									m.dyWrap(pMissionPlot->getY() - kPlot.getY()));
 							getDirectionTypeString(szTempString, eDirection);
 							szString.append(CvWString::format(L" (%s)", szTempString.GetCString()));
 						}
@@ -4752,7 +4748,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szMapName.begin(), ::toupper); // to upper case
 			std::wostringstream ssKey;
 			ssKey << L"TXT_KEY_" << szMapName << L"_" <<
-					pPlot->getX_INLINE() << L"_" << pPlot->getY_INLINE() << L"_BONUS_";
+					pPlot->getX() << L"_" << pPlot->getY() << L"_BONUS_";
 			CvWString szBonusName = GC.getBonusInfo(eBonus).getDescription();
 			std::transform(szBonusName.begin(), szBonusName.end(),
 					szBonusName.begin(), ::toupper);
@@ -4969,8 +4965,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		return;
 
 	bool bAlt = GC.altKey();
-	int x = kPlot.getX_INLINE();
-	int y = kPlot.getY_INLINE();
+	int x = kPlot.getX();
+	int y = kPlot.getY();
 	CvWString szTempBuffer;
 	CvGame const& g = GC.getGameINLINE();
 	bool bConstCache = g.isNetworkMultiPlayer(); // advc.001n
@@ -5306,8 +5302,8 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 	}*/
 
 	CvWString szTempBuffer;
-	int x = kPlot.getX_INLINE();
-	int y = kPlot.getY_INLINE();
+	int x = kPlot.getX();
+	int y = kPlot.getY();
 
 	if (kPlot.getPlotGroup(GC.getGameINLINE().getActivePlayer()) != NULL)
 	{
@@ -5774,8 +5770,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 	bool bFirst = true;
 	// <advc.003>
-	int x = kPlot.getX_INLINE();
-	int y = kPlot.getY_INLINE(); // </advc.003>
+	int x = kPlot.getX();
+	int y = kPlot.getY(); // </advc.003>
 	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 	{
 		PlayerTypes ePlayer = (PlayerTypes)iI;
@@ -12261,7 +12257,7 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 
 		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
-			CvPlot* pLoopPlot = plotCity(city.getX_INLINE(), city.getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
 
 			if (pLoopPlot != NULL)
 			{
@@ -12384,7 +12380,7 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 
 		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
-			CvPlot* pLoopPlot = plotCity(city.getX_INLINE(), city.getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
 
 			if (pLoopPlot != NULL)
 			{
@@ -19167,14 +19163,14 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			{
 				if (kMission.isSelectPlot() || kMission.isTargetsCity())
 				{
-					iDistance = plotDistance(pOurCapital->getX_INLINE(), pOurCapital->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					iDistance = plotDistance(pOurCapital->getX(), pOurCapital->getY(), pPlot->getX(), pPlot->getY());
 				}
 				else
 				{
 					CvCity* pTheirCapital = GET_PLAYER(eTargetPlayer).getCapitalCity();
 					if (NULL != pTheirCapital)
 					{
-						iDistance = plotDistance(pOurCapital->getX_INLINE(), pOurCapital->getY_INLINE(), pTheirCapital->getX_INLINE(), pTheirCapital->getY_INLINE());
+						iDistance = plotDistance(pOurCapital->getX(), pOurCapital->getY(), pTheirCapital->getX(), pTheirCapital->getY());
 					}
 				}
 			}

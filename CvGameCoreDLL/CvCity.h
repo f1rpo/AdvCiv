@@ -267,19 +267,13 @@ public:
 	int plotNum() const; // advc.104
 
 	int getXExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-#ifdef _USRDLL
-	inline int getX_INLINE() const
-	{
-		return m_iX;
-	}
-#endif
+	#ifdef _USRDLL
+	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
+	#endif
 	int getYExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-#ifdef _USRDLL
-	inline int getY_INLINE() const
-	{
-		return m_iY;
-	}
-#endif	
+	#ifdef _USRDLL
+	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
+	#endif
 	bool at(int iX, int iY) const;																				// Exposed to Python
 	bool at(CvPlot* pPlot) const;																					// Exposed to Python - atPlot
 	DllExport CvPlot* plot() const;																	// Exposed to Python

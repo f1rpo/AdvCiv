@@ -259,7 +259,7 @@ void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOw
 				// <advc.127b>
 				int iFlashX = -1, iFlashY = -1;
 				if(plot()->isRevealed(kObs.getTeam(), true)) {
-					iFlashX = getX_INLINE(); iFlashY = getY_INLINE();
+					iFlashX = getX(); iFlashY = getY();
 				} // </advc.127b>
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT",
 						kOwner.getNameKey(), getNameKey());
@@ -280,7 +280,7 @@ void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOw
 		}
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT", kOwner.getNameKey(), getNameKey());
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(), szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(), szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
 	}
 
 	AI_init(eUnitAI);
@@ -593,8 +593,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 						szSound, // advc.004u
 						MESSAGE_TYPE_MAJOR_EVENT,
 						// <advc.004u> Indicate location on map
-						getButton(), eColor, bRev ? plot()->getX_INLINE() : -1,
-						bRev ? plot()->getY_INLINE() : -1, bRev, bRev);
+						getButton(), eColor,
+						bRev ? plot()->getX() : -1, bRev ? plot()->getY() : -1, bRev, bRev);
 						// </advc.004u>
 				}
 		}
@@ -689,13 +689,13 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	{
 		if (GET_PLAYER(eCapturingPlayer).isHuman() || GET_PLAYER(eCapturingPlayer).AI_captureUnit(eCaptureUnitType, pPlot) || 0 == GC.getDefineINT("AI_CAN_DISBAND_UNITS"))
 		{
-			CvUnit* pkCapturedUnit = GET_PLAYER(eCapturingPlayer).initUnit(eCaptureUnitType, pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			CvUnit* pkCapturedUnit = GET_PLAYER(eCapturingPlayer).initUnit(eCaptureUnitType, pPlot->getX(), pPlot->getY());
 
 			if (pkCapturedUnit != NULL)
 			{
 				CvWString szBuffer;
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_CAPTURED_UNIT", GC.getUnitInfo(eCaptureUnitType).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(eCapturingPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_UNITCAPTURE", MESSAGE_TYPE_INFO, pkCapturedUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				gDLL->getInterfaceIFace()->addHumanMessage(eCapturingPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_UNITCAPTURE", MESSAGE_TYPE_INFO, pkCapturedUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 				// Add a captured mission
 				if (pPlot->isActiveVisible(false)) // K-Mod
@@ -1121,50 +1121,50 @@ void CvUnit::updateAirCombat(bool bQuick)
 		if (isDead())
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY", pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(pInterceptor->getTeam()));
-			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN", getNameKey(), pInterceptor->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 		else if (kAirMission.getDamage(BATTLE_UNIT_ATTACKER) > 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_HURT_ENEMY_AIR", pInterceptor->getNameKey(), getNameKey(),
 				    kAirMission.getDamage(BATTLE_UNIT_ATTACKER), // advc.004g
 					getVisualCivAdjective(pInterceptor->getTeam()));
-			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_AIR_UNIT_HURT", getNameKey(), pInterceptor->getNameKey(),
 				    kAirMission.getDamage(BATTLE_UNIT_ATTACKER)); // advc.004g
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 
 		if (pInterceptor->isDead())
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY", getNameKey(), pInterceptor->getNameKey(), pInterceptor->getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN", pInterceptor->getNameKey(), getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 		else if (kAirMission.getDamage(BATTLE_UNIT_DEFENDER) > 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_ENEMY_AIR", getNameKey(), pInterceptor->getNameKey(),
 				    kAirMission.getDamage(BATTLE_UNIT_DEFENDER), // advc.004g
 					pInterceptor->getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_DAMAGED", pInterceptor->getNameKey(), getNameKey(),
 				    kAirMission.getDamage(BATTLE_UNIT_DEFENDER)); // advc.004g
-			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 
 		if (0 == kAirMission.getDamage(BATTLE_UNIT_ATTACKER) + kAirMission.getDamage(BATTLE_UNIT_DEFENDER))
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ABORTED_ENEMY_AIR", pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_ABORTED", getNameKey(), pInterceptor->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 	}
 
@@ -1525,7 +1525,7 @@ void CvUnit::updateCombat(bool bQuick)
 					szMessage = gDLL->getText("TXT_KEY_MISC_YOU_UNITS_UNDER_ATTACK_UNKNOWN");
 				}
 
-				gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true);
+				gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true);
 			}
 		}
 
@@ -1642,7 +1642,7 @@ void CvUnit::updateCombat(bool bQuick)
 					GET_PLAYER(getOwnerINLINE()) // advc.002l
 					.getCurrentEra()).getAudioUnitDefeatScript(),
 					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
-					"COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					"COLOR_RED"), pPlot->getX(), pPlot->getY());
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_ENEMY_UNIT",
 					pDefender->getNameKey(),
 					getNameKeyNoGG(), // advc.004u
@@ -1652,7 +1652,7 @@ void CvUnit::updateCombat(bool bQuick)
 					GET_PLAYER(pDefender->getOwnerINLINE()) // advc.002l
 					.getCurrentEra()).getAudioUnitVictoryScript(),
 					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
-					"COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					"COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 			// report event to Python, along with some other key state
 			CvEventReporter::getInstance().combatResult(pDefender, this);
 		}
@@ -1695,7 +1695,7 @@ void CvUnit::updateCombat(bool bQuick)
 					GET_PLAYER(getOwnerINLINE()) // advc.002l
 					.getCurrentEra()).getAudioUnitVictoryScript(),
 					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
-					"COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					"COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 			if (getVisualOwner(pDefender->getTeam()) != getOwnerINLINE()) {
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN",
 						pDefender->getNameKeyNoGG(), // advc.004u
@@ -1710,7 +1710,7 @@ void CvUnit::updateCombat(bool bQuick)
 					GET_PLAYER(pDefender->getOwnerINLINE()) // advc.002l
 					.getCurrentEra()).getAudioUnitDefeatScript(),
 					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
-					"COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					"COLOR_RED"), pPlot->getX(), pPlot->getY());
 			// report event to Python, along with some other key state
 			CvEventReporter::getInstance().combatResult(this, pDefender);
 
@@ -1762,9 +1762,9 @@ void CvUnit::updateCombat(bool bQuick)
 		else
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW", getNameKey(), pDefender->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 			szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_UNIT_WITHDRAW", getNameKey(), pDefender->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 
 			changeMoves(std::max(GC.getMOVE_DENOMINATOR(), pPlot->movementCost(this, plot())));
 			checkRemoveSelectionAfterAttack();
@@ -2040,7 +2040,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const {
 	for(int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++) {
 		CvPlot const& kPlot = *GC.getMapINLINE().plotByIndexINLINE(i);
 		if(::plotDistance(pCenter, &kPlot) <= (iMode == 1 ? 1 : CITY_PLOTS_RADIUS)) {
-			gDLL->getEngineIFace()->fillAreaBorderPlot(kPlot.getX_INLINE(), kPlot.getY_INLINE(),
+			gDLL->getEngineIFace()->fillAreaBorderPlot(kPlot.getX(), kPlot.getY(),
 					color, AREA_BORDER_LAYER_FOUNDING_BORDER);
 		}
 	}
@@ -2637,7 +2637,7 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 	{
 		for (int j = -iRange; j <= iRange; ++j)
 		{
-			CvPlot* pLoopPlot = ::plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), i, j);
+			CvPlot* pLoopPlot = ::plotXY(pPlot->getX(), pPlot->getY(), i, j);
 			if (NULL != pLoopPlot)
 			{
 				if (!pLoopPlot->isRevealed(getTeam(), false) && pPlot->canSeePlot(pLoopPlot, getTeam(), visibilityRange(), NO_DIRECTION))
@@ -2989,8 +2989,8 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		CyArgsList argsList;
 		argsList.add(getOwnerINLINE());
 		argsList.add(getID());
-		argsList.add(pPlot->getX_INLINE());
-		argsList.add(pPlot->getY_INLINE());
+		argsList.add(pPlot->getX());
+		argsList.add(pPlot->getY());
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "unitCannotMoveInto", argsList.makeFunctionArgs(), &lResult);
 		if (lResult != 0)
@@ -3132,7 +3132,7 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 				szMessage = gDLL->getText("TXT_KEY_MISC_YOU_UNITS_UNDER_ATTACK_UNKNOWN");
 			}
 
-			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true);
+			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true);
 		}
 	}
 
@@ -3204,7 +3204,7 @@ void CvUnit::move(CvPlot* pPlot, bool bShow)
 				aCargoUnits[i]->changeMoves(aCargoUnits[i]->movesLeft());
 		}
 	} // </advc.162>
-	setXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true, bShow && pPlot->isVisibleToWatchingHuman(), bShow);
+	setXY(pPlot->getX(), pPlot->getY(), true, true, bShow && pPlot->isVisibleToWatchingHuman(), bShow);
 	// <advc.001b> Arrival of air unit may interrupt production b/c of unit limit
 	if(getDomainType() == DOMAIN_AIR && pPlot->isCity() && pPlot->getOwnerINLINE() == getOwnerINLINE())
 		pPlot->getPlotCity()->verifyProduction(); // </advc.001b>
@@ -3248,7 +3248,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 	FAssertMsg(!isAttacking(), "isAttacking did not return false as expected");
 	FAssertMsg(!isFighting(), "isFighting did not return false as expected");
 
-	CvCity* pNearestCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), getOwnerINLINE());
+	CvCity* pNearestCity = GC.getMapINLINE().findCity(getX(), getY(), getOwnerINLINE());
 
 	int iBestValue = MAX_INT;
 	CvPlot* pBestPlot = NULL;
@@ -3271,8 +3271,8 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 					{
 						if (pLoopPlot->isRevealed(getTeam(), false))
 						{
-							int iValue = (plotDistance(getX_INLINE(), getY_INLINE(),
-									pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE())
+							int iValue = (plotDistance(getX(), getY(),
+									pLoopPlot->getX(), pLoopPlot->getY())
 									* 2);
 							// K-mod, 2/jan/11, karadoc - bForceMove functionality
 							if (bForceMove && iValue == 0)
@@ -3281,7 +3281,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 
 							if (pNearestCity != NULL)
 							{
-								iValue += plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
+								iValue += plotDistance(pLoopPlot->getX(), pLoopPlot->getY(), pNearestCity->getX(), pNearestCity->getY());
 							} /* <advc.003b> Apart from performance, this also
 								 makes it easier to test advc.046 through the debugger. */
 							if(iValue >= iBestValue)
@@ -3341,7 +3341,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 			setMoves(maxMoves());
 			// </advc.163>
 		}
-		setXY(pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), bGroup);
+		setXY(pBestPlot->getX(), pBestPlot->getY(), bGroup);
 	}
 	else
 	{
@@ -3578,7 +3578,7 @@ void CvUnit::gift(bool bTestTransport)
 	FAssertMsg(plot()->getOwnerINLINE() != NO_PLAYER, "plot()->getOwnerINLINE() is not expected to be equal with NO_PLAYER");
 	CvPlayerAI& kRecievingPlayer = GET_PLAYER(plot()->getOwnerINLINE()); // K-Mod
 
-	CvUnit* pGiftUnit = kRecievingPlayer.initUnit(getUnitType(), getX_INLINE(), getY_INLINE(), AI_getUnitAIType());
+	CvUnit* pGiftUnit = kRecievingPlayer.initUnit(getUnitType(), getX(), getY(), AI_getUnitAIType());
 	FAssertMsg(pGiftUnit != NULL, "GiftUnit is not assigned a valid value");
 
 	pGiftUnit->convert(this);
@@ -3617,7 +3617,7 @@ void CvUnit::gift(bool bTestTransport)
 	// K-Mod end
 
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GIFTED_UNIT_TO_YOU", GET_PLAYER(getOwnerINLINE()).getNameKey(), pGiftUnit->getNameKey());
-	gDLL->getInterfaceIFace()->addHumanMessage(pGiftUnit->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO, pGiftUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pGiftUnit->getX_INLINE(), pGiftUnit->getY_INLINE(), true, true);
+	gDLL->getInterfaceIFace()->addHumanMessage(pGiftUnit->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO, pGiftUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pGiftUnit->getX(), pGiftUnit->getY(), true, true);
 
 	// Python Event
 	CvEventReporter::getInstance().unitGifted(pGiftUnit, getOwnerINLINE(), plot());
@@ -4113,7 +4113,7 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 
 		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 		{
-			CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+			CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 
 			if (pLoopPlot != NULL)
 			{	// advc.030: Instead check domain type below
@@ -4274,7 +4274,7 @@ bool CvUnit::airlift(int iX, int iY)
 	finishMoves();
 
 	AutomateTypes eAuto = getGroup()->getAutomateType(); // K-Mod
-	setXY(pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE());
+	setXY(pTargetPlot->getX(), pTargetPlot->getY());
 	getGroup()->setAutomateType(eAuto); // K-Mod. (automated workers sometimes airlift themselves. They should stay automated.)
 
 	return true;
@@ -4289,7 +4289,7 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 	int iNukeRange = nukeRange();
 	for(int iDX = -iNukeRange; iDX <= iNukeRange; iDX++) {
 		for(int iDY = -iNukeRange; iDY <= iNukeRange; iDY++) {
-			CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue;
 
@@ -4323,7 +4323,7 @@ bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 	}
 
-	int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
+	int iDistance = plotDistance(pPlot->getX(), pPlot->getY(), iX, iY);
 	if (iDistance <= nukeRange())
 	{
 		return false;
@@ -4418,7 +4418,7 @@ bool CvUnit::nuke(int iX, int iY) {
 						kObs.getID() == getOwnerINLINE(), GC.getEVENT_MESSAGE_TIME(),
 						szBuffer, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT,
 						getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-						pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+						pPlot->getX(), pPlot->getY(), true, true);
 			}
 		}
 		if(pPlot->isActiveVisible(false)) {
@@ -4475,7 +4475,7 @@ bool CvUnit::nuke(int iX, int iY) {
 		double score = 0;
 		for(int dx = -nukeRange(); dx <= nukeRange(); dx++)
 		for(int dy = -nukeRange(); dy <= nukeRange(); dy++) {
-			CvPlot* pAffectedPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), dx, dy);
+			CvPlot* pAffectedPlot = plotXY(pPlot->getX(), pPlot->getY(), dx, dy);
 			if(pAffectedPlot == NULL || pAffectedPlot->getTeam() != i ||
 					!pAffectedPlot->isCity())
 				continue;
@@ -4569,7 +4569,7 @@ bool CvUnit::nuke(int iX, int iY) {
 					kObs.getID() == getOwnerINLINE(), GC.getEVENT_MESSAGE_TIME(),
 					szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT,
 					getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-					pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+					pPlot->getX(), pPlot->getY(), true, true);
 		}
 	}
 	// <advc.106>
@@ -4579,7 +4579,7 @@ bool CvUnit::nuke(int iX, int iY) {
 				pReplayCity->getOwnerINLINE()).getNameKey(),
 				GET_PLAYER(getOwnerINLINE()).getNameKey());
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
-				getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(),
+				getOwnerINLINE(), szBuffer, getX(), getY(),
 				(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 	} // </advc.106>
 
@@ -4619,7 +4619,7 @@ bool CvUnit::canReconAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 	}
 
-	int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
+	int iDistance = plotDistance(pPlot->getX(), pPlot->getY(), iX, iY);
 	if (iDistance > airRange() || 0 == iDistance)
 	{
 		return false;
@@ -4704,7 +4704,7 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 	}
 
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY) > getDropRange())
+	if (plotDistance(pPlot->getX(), pPlot->getY(), iX, iY) > getDropRange())
 	{
 		return false;
 	}
@@ -4738,8 +4738,7 @@ bool CvUnit::paradrop(int iX, int iY)
 	changeMoves(GC.getMOVE_DENOMINATOR() / 2);
 	setMadeAttack(true);
 
-	//setXY(pPlot->getX_INLINE(), pPlot->getY_INLINE());
-	setXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), true); // K-Mod
+	setXY(pPlot->getX(), pPlot->getY(), /* K-Mod: */ true);
 
 	//check if intercepted
 	if(interceptTest(pPlot))
@@ -4796,7 +4795,7 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 
 	CvPlot* pTargetPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) > airRange())
+	if (plotDistance(pPlot->getX(), pPlot->getY(), pTargetPlot->getX(), pTargetPlot->getY()) > airRange())
 	{
 		return false;
 	}
@@ -4887,10 +4886,10 @@ bool CvUnit::airBomb(int iX, int iY)
 		//pCity->changeDefenseModifier(-airBombCurrRate());
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DEFENSES_REDUCED_TO", pCity->getNameKey(), pCity->getDefenseModifier(false), getNameKey());
-		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true);
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_DEFENSES_REDUCED_TO", getNameKey(), pCity->getNameKey(), pCity->getDefenseModifier(false));
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX_INLINE(), pCity->getY_INLINE());
+		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY());
 	}
 	else
 	{
@@ -4900,14 +4899,14 @@ bool CvUnit::airBomb(int iX, int iY)
 					GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(pPlot->getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 				if (pPlot->isOwned())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
 					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(),
 							true, // advc.106j
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 				}
 
 				pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
@@ -4915,7 +4914,7 @@ bool CvUnit::airBomb(int iX, int iY)
 			else
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP", getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 			}
 		}
 	}
@@ -4955,7 +4954,7 @@ CvCity* CvUnit::bombardTarget(const CvPlot* pPlot) const
 
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 
 		if (pLoopPlot != NULL)
 		{
@@ -5052,14 +5051,14 @@ bool CvUnit::bombard()
 	gDLL->getInterfaceIFace()->addHumanMessage(pBombardCity->getOwnerINLINE(),
 			false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED",
 			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-			pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true);
+			pBombardCity->getX(), pBombardCity->getY(), true, true);
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
 			getNameKey(), pBombardCity->getNameKey(),
 			pBombardCity->getDefenseModifier(bIgnore)); // advc.004g: arg was false
 	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
 			true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD",
 			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
-			pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE());
+			pBombardCity->getX(), pBombardCity->getY());
 
 	if (pPlot->isActiveVisible(false))
 	{
@@ -5228,14 +5227,14 @@ bool CvUnit::pillage()
 				GET_PLAYER(getOwnerINLINE()).changeGold(iPillageGold);
 
 				szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPillageGold, GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 				if (pPlot->isOwned())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
 					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(),
 							true, // advc.106j
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 				}
 			}
 		}
@@ -5354,7 +5353,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
 	int iRange = GC.getDefineINT("SHIP_BLOCKADE_RANGE");
 	for(int i = -iRange; i <= iRange; i++) {
 		for(int j = -iRange; j <= iRange; j++) {
-			CvPlot* pLoopPlot = ::plotXY(getX_INLINE(), getY_INLINE(), i, j);
+			CvPlot* pLoopPlot = ::plotXY(getX(), getY(), i, j);
 			if(pLoopPlot == NULL || pLoopPlot->area() != area() ||
 					!canPlunder(pLoopPlot)) // advc.033
 				continue;
@@ -5443,7 +5442,7 @@ int CvUnit::sabotageProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) const
 
 		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 		{
-			CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+			CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 
 			if (pLoopPlot != NULL)
 			{
@@ -5522,17 +5521,17 @@ bool CvUnit::sabotage()
 
 		finishMoves();
 
-		CvCity* pNearestCity = GC.getMapINLINE().findCity(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pPlot->getOwnerINLINE(), NO_TEAM, false);
+		CvCity* pNearestCity = GC.getMapINLINE().findCity(pPlot->getX(), pPlot->getY(), pPlot->getOwnerINLINE(), NO_TEAM, false);
 
 		if (pNearestCity != NULL)
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_SABOTAGED", getNameKey(), pNearestCity->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 			if (pPlot->isOwned())
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SABOTAGE_NEAR", pNearestCity->getNameKey());
-				gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+				gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 			}
 		}
 
@@ -5614,7 +5613,7 @@ int CvUnit::destroyProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) const
 
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 
 		if (pLoopPlot != NULL)
 		{
@@ -5703,10 +5702,10 @@ bool CvUnit::destroy()
 		finishMoves();
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_DESTROYED_PRODUCTION", getNameKey(), pCity->getProductionNameKey(), pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX_INLINE(), pCity->getY_INLINE());
+		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY());
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_PRODUCTION_DESTROYED", pCity->getProductionNameKey(), pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true);
 
 		if (plot()->isActiveVisible(false))
 		{
@@ -5719,12 +5718,12 @@ bool CvUnit::destroy()
 				GET_PLAYER(getOwnerINLINE()).getCivilizationAdjective(), getNameKey());
 		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(),
 				false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO,
-				NULL, NO_COLOR, plot()->getX_INLINE(), plot()->getY_INLINE()); // advc.127b
+				NULL, NO_COLOR, plot()->getX(), plot()->getY()); // advc.127b
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_SPY_CAUGHT", getNameKey());
 		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
 				true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO,
-				NULL, NO_COLOR, plot()->getX_INLINE(), plot()->getY_INLINE()); // advc.127b
+				NULL, NO_COLOR, plot()->getX(), plot()->getY()); // advc.127b
 
 		if (plot()->isActiveVisible(false))
 		{
@@ -5771,7 +5770,7 @@ int CvUnit::stealPlansProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) con
 
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 
 		if (pLoopPlot != NULL)
 		{
@@ -5848,10 +5847,10 @@ bool CvUnit::stealPlans()
 		finishMoves();
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_STOLE_PLANS", getNameKey(), pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX_INLINE(), pCity->getY_INLINE());
+		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY());
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_PLANS_STOLEN", pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true);
 
 		if (plot()->isActiveVisible(false))
 		{
@@ -5890,7 +5889,7 @@ bool CvUnit::canFound(const CvPlot* pPlot, bool bTestVisible) const
 		return false;
 	}
 
-	if (!GET_PLAYER(getOwnerINLINE()).canFound(pPlot->getX_INLINE(), pPlot->getY_INLINE(), bTestVisible))
+	if (!GET_PLAYER(getOwnerINLINE()).canFound(pPlot->getX(), pPlot->getY(), bTestVisible))
 	{
 		return false;
 	}
@@ -5912,7 +5911,7 @@ bool CvUnit::found()
 		gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL);
 	}
 
-	GET_PLAYER(getOwnerINLINE()).found(getX_INLINE(), getY_INLINE());
+	GET_PLAYER(getOwnerINLINE()).found(getX(), getY());
 
 	if (plot()->isActiveVisible(false))
 	{
@@ -5983,8 +5982,8 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 		argsList.add(getOwnerINLINE());
 		argsList.add(getID());
 		argsList.add((int) eReligion);
-		argsList.add(pPlot->getX_INLINE());
-		argsList.add(pPlot->getY_INLINE());
+		argsList.add(pPlot->getX());
+		argsList.add(pPlot->getY());
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotSpreadReligion", argsList.makeFunctionArgs(), &lResult);
 		if (lResult > 0)
@@ -6030,7 +6029,7 @@ bool CvUnit::spread(ReligionTypes eReligion)
 		else
 		{	/* original bts code
 			szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD", getNameKey(), GC.getReligionInfo(eReligion).getChar(), pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
 			bSuccess = false;*/
 			// K-Mod. Instead of simply failing, give some chance of removing one of the existing religions.
 			std::vector<std::pair<int, ReligionTypes> > rankedReligions;
@@ -6054,7 +6053,7 @@ bool CvUnit::spread(ReligionTypes eReligion)
 			if (eFailedReligion == eReligion)
 			{
 				CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD", getNameKey(), GC.getReligionInfo(eReligion).getChar(), pCity->getNameKey()));
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE());
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
 				bSuccess = false;
 			}
 			else
@@ -6226,7 +6225,7 @@ bool CvUnit::spreadCorporation(CorporationTypes eCorporation)
 		else
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_FAILED_TO_SPREAD", getNameKey(), GC.getCorporationInfo(eCorporation).getChar(), pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
 		}
 	}
 
@@ -6881,7 +6880,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 				if(pCapital != NULL
 						&& kMission.isReturnToCapital()) // advc.103
 				{
-					setXY(pCapital->getX_INLINE(), pCapital->getY_INLINE(), false, false, false);
+					setXY(pCapital->getX(), pCapital->getY(), false, false, false);
 
 					CvWString szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_SPY_SUCCESS", getNameKey(), pCapital->getNameKey());
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
@@ -6891,7 +6890,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 							GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							"AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(),
 							(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-							pCapital->getX_INLINE(), pCapital->getY_INLINE(),
+							pCapital->getX(), pCapital->getY(),
 							true, true);
 				}
 			}
@@ -6940,14 +6939,14 @@ bool CvUnit::testSpyIntercepted(PlayerTypes eTargetPlayer, bool bMission, int iM
 	}
 
 	CvWString szCityName = kTargetPlayer.getCivilizationShortDescription();
-	CvCity* pClosestCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), eTargetPlayer, kTargetPlayer.getTeam(), true, false);
+	CvCity* pClosestCity = GC.getMapINLINE().findCity(getX(), getY(), eTargetPlayer, kTargetPlayer.getTeam(), true, false);
 	if (pClosestCity != NULL)
 	{
 		szCityName = pClosestCity->getName();
 	}
 
 	CvWString szBuffer = gDLL->getText(szFormatReveal.GetCString(), GET_PLAYER(getOwnerINLINE()).getCivilizationAdjectiveKey(), getNameKey(), kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 
 	if (GC.getGameINLINE().getSorenRandNum(100, "Spy Reveal identity") < GC.getDefineINT("ESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT"))
 	{
@@ -6956,12 +6955,12 @@ bool CvUnit::testSpyIntercepted(PlayerTypes eTargetPlayer, bool bMission, int iM
 			GET_PLAYER(eTargetPlayer).AI_rememberEvent(getOwnerINLINE(), MEMORY_SPY_CAUGHT);
 		}
 
-		gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
 	}
 	else
 	{
 		szBuffer = gDLL->getText(szFormatNoReveal.GetCString(), getNameKey(), kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
-		gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
 	}
 
 	if (plot()->isActiveVisible(false))
@@ -7642,7 +7641,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 
 		TeamTypes eTeam = getTeam();
 		int iArea = getArea();
-		int iX = getX_INLINE(), iY = getY_INLINE();
+		int iX = getX(), iY = getY();
 
 		// check every player on our team's cities
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -7675,7 +7674,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 								return pLoopCity;
 							}
 
-							int iValue = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+							int iValue = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
 
 							// if not same area, not as good (lower numbers are better)
 							if (iArea != pLoopCity->getArea() && (!bCoastalOnly || iArea != pWaterArea->getID()))
@@ -7709,7 +7708,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	else
 	{
 		// find the closest city
-		CvCity* pClosestCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), NO_PLAYER, getTeam(), true, bCoastalOnly);
+		CvCity* pClosestCity = GC.getMapINLINE().findCity(getX(), getY(), NO_PLAYER, getTeam(), true, bCoastalOnly);
 		if (pClosestCity != NULL)
 		{
 			// if we can train, then return this city (otherwise it will return NULL)
@@ -7743,7 +7742,7 @@ CvUnit* CvUnit::upgrade(UnitTypes eUnit) // K-Mod: this now returns the new unit
 
 	GET_PLAYER(getOwnerINLINE()).changeGold(-(upgradePrice(eUnit)));
 
-	CvUnit* pUpgradeUnit = GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, getX_INLINE(), getY_INLINE(), AI_getUnitAIType());
+	CvUnit* pUpgradeUnit = GET_PLAYER(getOwnerINLINE()).initUnit(eUnit, getX(), getY(), AI_getUnitAIType());
 
 	FAssertMsg(pUpgradeUnit != NULL, "UpgradeUnit is not assigned a valid value");
 
@@ -8978,7 +8977,7 @@ CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const
 							{
 								if ((pLoopUnit->getDomainType() != DOMAIN_AIR) || (pLoopUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT))
 								{
-									if (plotDistance(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE()) <= pLoopUnit->airRange())
+									if (plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), pPlot->getX(), pPlot->getY()) <= pLoopUnit->airRange())
 									{
 										int iValue = pLoopUnit->currInterceptionProbability();
 
@@ -9009,7 +9008,7 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 	{
 		for (int iDY = -1; iDY <= 1; ++iDY)  // advc.003: some changes to reduce indentation
 		{
-			CvPlot* pLoopPlot = plotXY(pPillager->getX_INLINE(), pPillager->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPillager->getX(), pPillager->getY(), iDX, iDY);
 			if (pLoopPlot == NULL)
 				continue;
 			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
@@ -9772,13 +9771,13 @@ void CvUnit::setHotKeyNumber(int iNewValue)
 // <advc.003f>
 int CvUnit::getXExternal() const
 {
-	return getX_INLINE();
+	return getX();
 }
 
 
 int CvUnit::getYExternal() const
 {
-	return getY_INLINE();
+	return getY();
 } // </advc.003f>
 
 
@@ -9793,15 +9792,15 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	/*if (GC.getLogging()) {
 		if (gDLL->getChtLvl() > 0) {
 			char szOut[1024];
-			sprintf(szOut, "Player %d Unit %d (%S's %S) moving from %d:%d to %d:%d\n", getOwnerINLINE(), getID(), GET_PLAYER(getOwnerINLINE()).getNameKey(), getName().GetCString(), getX_INLINE(), getY_INLINE(), iX, iY);
+			sprintf(szOut, "Player %d Unit %d (%S's %S) moving from %d:%d to %d:%d\n", getOwnerINLINE(), getID(), GET_PLAYER(getOwnerINLINE()).getNameKey(), getName().GetCString(), getX(), getY(), iX, iY);
 			gDLL->messageControlLog(szOut);
 		}
 	}*/
 
 	FAssert(!at(iX, iY));
 	FAssert(!isFighting());
-	FAssert((iX == INVALID_PLOT_COORD) || (GC.getMapINLINE().plotINLINE(iX, iY)->getX_INLINE() == iX));
-	FAssert((iY == INVALID_PLOT_COORD) || (GC.getMapINLINE().plotINLINE(iX, iY)->getY_INLINE() == iY));
+	FAssert((iX == INVALID_PLOT_COORD) || (GC.getMapINLINE().plotINLINE(iX, iY)->getX() == iX));
+	FAssert((iY == INVALID_PLOT_COORD) || (GC.getMapINLINE().plotINLINE(iX, iY)->getY() == iY));
 
 	/* if (getGroup() != NULL)
 		eOldActivityType = getGroup()->getActivityType();
@@ -9952,7 +9951,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		{
 			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 			{
-				CvPlot* pLoopPlot = plotDirection(pOldPlot->getX_INLINE(), pOldPlot->getY_INLINE(), ((DirectionTypes)iI));
+				CvPlot* pLoopPlot = plotDirection(pOldPlot->getX(), pOldPlot->getY(), ((DirectionTypes)iI));
 
 				if (pLoopPlot != NULL)
 				{
@@ -9987,8 +9986,8 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 	if (pNewPlot != NULL)
 	{
-		m_iX = pNewPlot->getX_INLINE();
-		m_iY = pNewPlot->getY_INLINE();
+		m_iX = pNewPlot->getX();
+		m_iY = pNewPlot->getY();
 	}
 	else
 	{
@@ -10112,7 +10111,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		/* original bts code
 		if (pNewPlot->isWater()) {
 			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
-				pLoopPlot = plotDirection(pNewPlot->getX_INLINE(), pNewPlot->getY_INLINE(), ((DirectionTypes)iI));
+				pLoopPlot = plotDirection(pNewPlot->getX(), pNewPlot->getY(), ((DirectionTypes)iI));
 				if (pLoopPlot != NULL) {
 					if (pLoopPlot->isWater()) {
 						pWorkingCity = pLoopPlot->getWorkingCity();
@@ -10257,7 +10256,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 bool CvUnit::at(int iX, int iY) const
 {
-	return((getX_INLINE() == iX) && (getY_INLINE() == iY));
+	return (getX() == iX && getY() == iY);
 }
 
 
@@ -10269,7 +10268,7 @@ bool CvUnit::atPlot(const CvPlot* pPlot) const
 
 CvPlot* CvUnit::plot() const
 {
-	return GC.getMapINLINE().plotSorenINLINE(getX_INLINE(), getY_INLINE());
+	return GC.getMapINLINE().plotSorenINLINE(getX(), getY());
 }
 
 
@@ -10325,8 +10324,8 @@ void CvUnit::setReconPlot(CvPlot* pNewValue)
 		}
 		else
 		{
-			m_iReconX = pNewValue->getX_INLINE();
-			m_iReconY = pNewValue->getY_INLINE();
+			m_iReconX = pNewValue->getX();
+			m_iReconY = pNewValue->getY();
 
 			pNewValue->changeReconCount(1); // changeAdjacentSight() tests for getReconCount()
 			pNewValue->changeAdjacentSight(getTeam(), GC.getDefineINT("RECON_VISIBILITY_RANGE"), true, this, true);
@@ -10577,8 +10576,8 @@ void CvUnit::setAttackPlot(const CvPlot* pNewValue, bool bAirCombat)
 	{
 		if (pNewValue != NULL)
 		{
-			m_iAttackPlotX = pNewValue->getX_INLINE();
-			m_iAttackPlotY = pNewValue->getY_INLINE();
+			m_iAttackPlotX = pNewValue->getX();
+			m_iAttackPlotY = pNewValue->getY();
 		}
 		else
 		{
@@ -11336,8 +11335,7 @@ void CvUnit::collectBlockadeGold()
 	blockadeRange(apRange, -1);
 	for(size_t i = 0; i < apRange.size(); i++) {
 		for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
-			CvPlot* pAdj = plotDirection(apRange[i]->getX_INLINE(),
-					apRange[i]->getY_INLINE(), (DirectionTypes)j);
+			CvPlot* pAdj = plotDirection(apRange[i]->getX(), apRange[i]->getY(), (DirectionTypes)j);
 			if(pAdj == NULL)
 				continue;
 			CvCity* pCity = pAdj->getPlotCity();
@@ -11357,13 +11355,13 @@ void CvUnit::collectBlockadeGold()
 				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BUILD_BANK",
 						MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE());
+						GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY());
 				szBuffer = gDLL->getText("TXT_KEY_MISC_TRADE_ROUTE_PLUNDER",
 						getNameKey(), pCity->getNameKey(), iGold);
 				gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BUILD_BANK",
 						MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE());
+						GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
 			}
 		}
 	}
@@ -12470,10 +12468,10 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 	if (iDamageCount > 0)
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SUFFER_COL_DMG", iDamageCount);
-		gDLL->getInterfaceIFace()->addHumanMessage(pSkipUnit->getOwnerINLINE(), (pSkipUnit->getDomainType() != DOMAIN_AIR), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(pSkipUnit->getOwnerINLINE(), (pSkipUnit->getDomainType() != DOMAIN_AIR), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pSkipUnit->getX(), pSkipUnit->getY(), true, true);
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_INFLICT_COL_DMG", getNameKey(), iDamageCount);
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pSkipUnit->getX_INLINE(), pSkipUnit->getY_INLINE());
+		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pSkipUnit->getX(), pSkipUnit->getY());
 	}
 }
 
@@ -12542,11 +12540,11 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength, in
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_UNIT_BY_FLANKING", getNameKey(), pUnit->getNameKey(), pUnit->getVisualCivAdjective(getTeam()));
 			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNIT_DIED_BY_FLANKING", pUnit->getNameKey(), getNameKey(), getVisualCivAdjective(pUnit->getTeam()));
 			gDLL->getInterfaceIFace()->addHumanMessage(pUnit->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(pUnit->getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 
 			pUnit->kill(false); 
 		}
@@ -12559,14 +12557,14 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength, in
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_UNITS_BY_FLANKING", getNameKey(), iNumUnitsHit);
 		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 				GET_PLAYER(getOwnerINLINE()) // advc.002l
-				.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 		if (NULL != pSkipUnit)
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNITS_DAMAGED_BY_FLANKING", getNameKey(), iNumUnitsHit);
 			gDLL->getInterfaceIFace()->addHumanMessage(pSkipUnit->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(pSkipUnit->getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 	}
 }
@@ -12634,7 +12632,7 @@ bool CvUnit::canAirStrike(const CvPlot* pPlot) const
 		return false;
 	}
 
-	if (plotDistance(getX_INLINE(), getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE()) > airRange())
+	if (plotDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) > airRange())
 	{
 		return false;
 	}
@@ -12677,12 +12675,12 @@ bool CvUnit::airStrike(CvPlot* pPlot)
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pDefender->getNameKey(), getNameKey(),
 		    // advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
-	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
 		    // advc.004g:
 		    ((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 	collateralCombat(pPlot, pDefender);
 
@@ -12750,7 +12748,7 @@ bool CvUnit::canRangeStrikeAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 	}
 	// UNOFFICIAL_PATCH: END
-	if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE()) > airRange())
+	if (plotDistance(pPlot->getX(), pPlot->getY(), pTargetPlot->getX(), pTargetPlot->getY()) > airRange())
 	{
 		return false;
 	}
@@ -12807,14 +12805,14 @@ bool CvUnit::rangeStrike(int iX, int iY)
 		    // advc.004g:
 		    ((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
 	//red icon over attacking unit
-	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), this->getX_INLINE(), this->getY_INLINE(), true, true);
+	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 	//white icon over defending unit
-	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), false, 0, L"", "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pDefender->getX_INLINE(), pDefender->getY_INLINE(), true, true);
+	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), false, 0, L"", "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pDefender->getX(), pDefender->getY(), true, true);
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
 			// advc.004g:
 		    ((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 	collateralCombat(pPlot, pDefender);
 
@@ -13280,7 +13278,7 @@ int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, boo
 
 	if (NULL != pPlot)
 	{
-		iValue += plotDistance(getX_INLINE(), getY_INLINE(), pPlot->getX_INLINE(), pPlot->getY_INLINE()) * kTrigger.getUnitDistanceWeight();
+		iValue += plotDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) * kTrigger.getUnitDistanceWeight();
 	}
 
 	return iValue;
@@ -13343,7 +13341,7 @@ void CvUnit::applyEvent(EventTypes eEvent)
 	{
 		changeImmobileTimer(kEvent.getUnitImmobileTurns());
 		CvWString szText = gDLL->getText("TXT_KEY_EVENT_UNIT_IMMOBILE", getNameKey(), kEvent.getUnitImmobileTurns());
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szText, "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"), getX_INLINE(), getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szText, "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"), getX(), getY(), true, true);
 	}
 
 	CvWString szNameKey(kEvent.getUnitNameKey());

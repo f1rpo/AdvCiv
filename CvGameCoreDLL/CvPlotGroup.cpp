@@ -73,8 +73,8 @@ void CvPlotGroup::addPlot(CvPlot* pPlot)
 {
 	XYCoords xy;
 
-	xy.iX = pPlot->getX_INLINE();
-	xy.iY = pPlot->getY_INLINE();
+	xy.iX = pPlot->getX();
+	xy.iY = pPlot->getY();
 
 	insertAtEndPlots(xy);
 
@@ -127,7 +127,7 @@ void CvPlotGroup::recalculatePlots()
 		iCount = 0;
 
 		gDLL->getFAStarIFace()->SetData(&GC.getPlotGroupFinder(), &iCount);
-		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, -1, false, eOwner);
+		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), pPlot->getX(), pPlot->getY(), -1, -1, false, eOwner);
 
 		if (iCount == getLengthPlots())
 		{
@@ -150,8 +150,8 @@ void CvPlotGroup::recalculatePlots()
 
 			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
 
-			xy.iX = pPlot->getX_INLINE();
-			xy.iY = pPlot->getY_INLINE();
+			xy.iX = pPlot->getX();
+			xy.iY = pPlot->getY();
 
 			oldPlotGroup.insertAtEnd(xy);
 

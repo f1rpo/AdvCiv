@@ -451,19 +451,13 @@ public:
 	void setHotKeyNumber(int iNewValue);																											// Exposed to Python
 
 	int getXExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-#ifdef _USRDLL
-	inline int getX_INLINE() const
-	{
-		return m_iX;
-	}
-#endif
+	#ifdef _USRDLL
+	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
+	#endif
 	int getYExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-#ifdef _USRDLL
-	inline int getY_INLINE() const
-	{
-		return m_iY;
-	}
-#endif
+	#ifdef _USRDLL
+	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
+	#endif
 	void setXY(int iX, int iY, bool bGroup = false, bool bUpdate = true, bool bShow = false, bool bCheckPlotVisible = false);	// Exposed to Python
 	bool at(int iX, int iY) const;																														// Exposed to Python
 	DllExport bool atPlot(const CvPlot* pPlot) const;																					// Exposed to Python

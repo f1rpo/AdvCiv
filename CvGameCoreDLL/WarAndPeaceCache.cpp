@@ -1786,8 +1786,8 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	if(dom != DOMAIN_LAND && !dest->isCoastalLand(minSz)) {
 		/*  A naval assault drops the units off on a tile adjacent to the city;
 			try to find an adjacent coastal tile. */
-		int x = dest->getX_INLINE();
-		int y = dest->getY_INLINE();
+		int x = dest->getX();
+		int y = dest->getY();
 		dest = NULL;
 		int shortestStepDist = MAX_INT;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
@@ -1805,8 +1805,8 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	}
 	if(dom != DOMAIN_LAND) {
 		// The transports move onto a water tile adjacent to the coastal tile
-		int destx = dest->getX_INLINE();
-		int desty = dest->getY_INLINE();
+		int destx = dest->getX();
+		int desty = dest->getY();
 		int shortestStepDist = MAX_INT;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);

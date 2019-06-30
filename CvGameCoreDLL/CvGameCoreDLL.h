@@ -269,8 +269,8 @@ namespace python = boost::python;
 #define isWrapYINLINE	isWrapY
 #define isWrapXINLINE	isWrapX
 #define plotINLINE	plot
-#define getX_INLINE	getX
-#define getY_INLINE	getY
+#define getX	getX
+#define getY	getY
 #endif // </advc.make>
 
 #endif	// CvGameCoreDLL_h

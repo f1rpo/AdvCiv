@@ -176,7 +176,7 @@ void RevoltAlert::check() {
 						GetCString(), szTempBuffer),
 						NULL // icon works, but is too distracting
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE());
+						c->getX(), c->getY());
 						// red text also too distracting
 						//(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 			}
@@ -189,7 +189,7 @@ void RevoltAlert::check() {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT", c->getName().
 						GetCString()), NULL
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE());
+						c->getX(), c->getY());
 		}
 #endif
 		if(c->isOccupation())
@@ -200,7 +200,7 @@ void RevoltAlert::check() {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_CITY_PACIFIED_ADVC", c->getName().
 						GetCString()), NULL,
 						//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE());
+						c->getX(), c->getY());
 			/*  Pretend that revolt chance is 0 after occupation ends, so that
 				a spearate alert is fired on the next turn if it's actually not 0. */
 			updatedRevolt.erase(c->plotNum());

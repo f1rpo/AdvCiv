@@ -116,7 +116,7 @@ bool CvSelectionGroup::sentryAlert(
 	{
 		for (int iY = -iMaxRange; iY <= iMaxRange; ++iY)
 		{
-			CvPlot* pPlot = ::plotXY(pHeadUnit->getX_INLINE(), pHeadUnit->getY_INLINE(), iX, iY);
+			CvPlot* pPlot = ::plotXY(pHeadUnit->getX(), pHeadUnit->getY(), iX, iY);
 			if(NULL == pPlot)
 				continue; // advc.003
 			if(pHeadUnit->plot()->canSeePlot(pPlot, pHeadUnit->getTeam(), iMaxRange - 1, NO_DIRECTION))
@@ -492,7 +492,7 @@ void CvSelectionGroup::playActionSound()
 
 	if ( (iScriptId != -1) && pHeadUnit )
 	{
-		CvPlot *pPlot = GC.getMapINLINE().plotINLINE(pHeadUnit->getX_INLINE(),pHeadUnit->getY_INLINE());
+		CvPlot *pPlot = GC.getMapINLINE().plotINLINE(pHeadUnit->getX(),pHeadUnit->getY());
 		if ( pPlot )
 		{
 			gDLL->Do3DSound( iScriptId, pPlot->getPoint() );
@@ -1363,7 +1363,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 				(missionData.iFlags & MOVE_ATTACK_STACK))
 		{	bool bDummy;
 			CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)missionData.iData1).getUnit(missionData.iData2);
-			if (pTargetUnit && groupAttack(pTargetUnit->getX_INLINE(), pTargetUnit->getY_INLINE(),
+			if (pTargetUnit && groupAttack(pTargetUnit->getX(), pTargetUnit->getY(),
 					missionData.iFlags, bDummy, /* advc.048: */ false)) 
 				bDone = true;
 		} // K-Mod end
@@ -1454,7 +1454,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 					}
 				}
 			}
-			if (groupPathTo(pTargetUnit->getX_INLINE(), pTargetUnit->getY_INLINE(),
+			if (groupPathTo(pTargetUnit->getX(), pTargetUnit->getY(),
 					missionData.iFlags))
 				bAction = true;
 			else bDone = true;
@@ -1973,7 +1973,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_AIRLIFT:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canAirliftAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+				if (pLoopUnit->canAirliftAt(pLoopUnit->plot(), pPlot->getX(), pPlot->getY()))
 				{
 					return true;
 				}
@@ -1983,7 +1983,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_NUKE:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canNukeAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+				if (pLoopUnit->canNukeAt(pLoopUnit->plot(), pPlot->getX(), pPlot->getY()))
 				{
 					return true;
 				}
@@ -1993,7 +1993,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_RECON:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canReconAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+				if (pLoopUnit->canReconAt(pLoopUnit->plot(), pPlot->getX(), pPlot->getY()))
 				{
 					return true;
 				}
@@ -2003,7 +2003,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_PARADROP:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canParadropAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+				if (pLoopUnit->canParadropAt(pLoopUnit->plot(), pPlot->getX(), pPlot->getY()))
 				{
 					return true;
 				}
@@ -2013,7 +2013,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_AIRBOMB:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canAirBombAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+				if (pLoopUnit->canAirBombAt(pLoopUnit->plot(), pPlot->getX(), pPlot->getY()))
 				{
 					return true;
 				}
@@ -2023,7 +2023,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_RANGE_ATTACK:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canRangeStrikeAt(pLoopUnit->plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()))
+				if (pLoopUnit->canRangeStrikeAt(pLoopUnit->plot(), pPlot->getX(), pPlot->getY()))
 				{
 					return true;
 				}
@@ -2872,7 +2872,7 @@ int CvSelectionGroup::getX() const
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
-		return getHeadUnit()->getX_INLINE();
+		return getHeadUnit()->getX();
 	}
 	else
 	{
@@ -2886,7 +2886,7 @@ int CvSelectionGroup::getY() const
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
-		return getHeadUnit()->getY_INLINE();
+		return getHeadUnit()->getY();
 	}
 	else
 	{
@@ -3040,7 +3040,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 		return false; // advc.003
 
 	if(getDomainType() != DOMAIN_AIR && stepDistance(getX(), getY(),
-			pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) != 1)
+			pDestPlot->getX(), pDestPlot->getY()) != 1)
 		return false; // advc.003
 	
 	bool bAttack = false;
@@ -3130,7 +3130,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 						// K-Mod: if this is AI stack, follow through with the attack to the end
 						!(iFlags & MOVE_SINGLE_ATTACK))
 				{	//AI_queueGroupAttack(iX, iY);
-					AI_queueGroupAttack(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()); // K-Mod
+					AI_queueGroupAttack(pDestPlot->getX(), pDestPlot->getY()); // K-Mod
 				}
 				break;
 			}
@@ -3563,7 +3563,7 @@ bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
 
 	if (isAmphibPlot(pPlot))
 	{
-		if (stepDistance(getX(), getY(), pPlot->getX_INLINE(), pPlot->getY_INLINE()) == 1)
+		if (stepDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) == 1)
 		{
 			CLLNode<IDInfo>* pUnitNode1 = headUnitNode();
 
@@ -3594,8 +3594,8 @@ bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
 				CvSelectionGroup* pGroup = aCargoGroups[i];
 				if (pGroup->canAllMove())
 				{
-					FAssert(!pGroup->at(pPlot->getX_INLINE(), pPlot->getY_INLINE()));
-					pGroup->pushMission(MISSION_MOVE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), (MOVE_IGNORE_DANGER | iFlags));
+					FAssert(!pGroup->at(pPlot->getX(), pPlot->getY()));
+					pGroup->pushMission(MISSION_MOVE_TO, pPlot->getX(), pPlot->getY(), (MOVE_IGNORE_DANGER | iFlags));
 					bLanding = true;
 				}
 			}
@@ -4221,9 +4221,9 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 	/*if (!bReuse)
 		path_finder.Reset();*/
 	path_finder.SetSettings(this, iFlags, iMaxPath);
-	bool bSuccess = path_finder.GeneratePath(pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), pToPlot->getX_INLINE(), pToPlot->getY_INLINE());
+	bool bSuccess = path_finder.GeneratePath(pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY());
 	/* test.
-	if (bSuccess != gDLL->getFAStarIFace()->GeneratePath(&GC.getPathFinder(), pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), pToPlot->getX_INLINE(), pToPlot->getY_INLINE(), false, iFlags, bReuse)) {
+	if (bSuccess != gDLL->getFAStarIFace()->GeneratePath(&GC.getPathFinder(), pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY(), false, iFlags, bReuse)) {
 		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getPathFinder());
 		if (bSuccess || iMaxPath < 0 || !pNode || pNode->m_iData2 <= iMaxPath) {
 			//::MessageBoxA(NULL,"pathfind mismatch","CvGameCore",MB_OK);

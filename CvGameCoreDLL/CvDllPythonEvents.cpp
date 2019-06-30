@@ -45,8 +45,8 @@ bool CvDllPythonEvents::reportKbdEvent(int evt, int key, int iCursorX, int iCurs
 		eventData.add(key);
 		eventData.add(iCursorX);
 		eventData.add(iCursorY);
-		eventData.add(pPlot ? pPlot->getX_INLINE() : -1);
-		eventData.add(pPlot ? pPlot->getY_INLINE() : -1);
+		eventData.add(pPlot ? pPlot->getX() : -1);
+		eventData.add(pPlot ? pPlot->getY() : -1);
 
 		return postEvent(eventData);
 	}
@@ -64,8 +64,8 @@ bool CvDllPythonEvents::reportMouseEvent(int evt, int iCursorX, int iCursorY, bo
 		eventData.add(evt);
 		eventData.add(iCursorX);
 		eventData.add(iCursorY);
-		eventData.add(pPlot ? pPlot->getX_INLINE() : -1);
-		eventData.add(pPlot ? pPlot->getY_INLINE() : -1);
+		eventData.add(pPlot ? pPlot->getX() : -1);
+		eventData.add(pPlot ? pPlot->getY() : -1);
 		eventData.add(bInterfaceConsumed);
 
 		// add list of active screens

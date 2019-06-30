@@ -4230,7 +4230,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 				gDLL->getInterfaceIFace()->addHumanMessage(kMember.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szMsg, NULL,
 						MESSAGE_TYPE_MINOR_EVENT, icon, (ColorTypes)ePlayerColor,
-						pAt == NULL ? -1 : pAt->getX_INLINE(), pAt == NULL ? -1 : pAt->getY_INLINE(),
+						pAt == NULL ? -1 : pAt->getX(), pAt == NULL ? -1 : pAt->getY(),
 						pAt != NULL, pAt != NULL);
 			}
 		}
@@ -6359,7 +6359,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				if (GC.getBonusInfo(eBonus).getTechReveal() != eIndex ||
 						isForceRevealedBonus(eBonus))
 					continue;
-				CvCity* pCity = GC.getMapINLINE().findCity(kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE(), NO_PLAYER,
+				CvCity* pCity = GC.getMapINLINE().findCity(kLoopPlot.getX(), kLoopPlot.getY(), NO_PLAYER,
 						// advc.004r: Pass ID as 'observer' (last param) instead of city owner 
 						NO_TEAM, false, false, NO_TEAM, NO_DIRECTION, NULL, getID());
 				if (pCity == NULL)
@@ -6378,7 +6378,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							"AS2D_DISCOVERBONUS", MESSAGE_TYPE_INFO,
 							GC.getBonusInfo(eBonus).getButton(), (ColorTypes)
 							GC.getInfoTypeForString("COLOR_WHITE"),
-							kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE(), true, true);
+							kLoopPlot.getX(), kLoopPlot.getY(), true, true);
 				}
 			}
 			// <advc.004r> Report no sources
@@ -7163,7 +7163,7 @@ int CvTeam::getCapitalX(TeamTypes eObserver, bool bDebug) const {
 	CvCity* pCapital = getLeaderCapital(eObserver, bDebug);
 	if(pCapital == NULL)
 		return -1;
-	return pCapital->getX_INLINE();
+	return pCapital->getX();
 }
 
 int CvTeam::getCapitalY(TeamTypes eObserver, bool bDebug) const {
@@ -7171,7 +7171,7 @@ int CvTeam::getCapitalY(TeamTypes eObserver, bool bDebug) const {
 	CvCity* pCapital = getLeaderCapital(eObserver, bDebug);
 	if(pCapital == NULL)
 		return -1;
-	return pCapital->getY_INLINE();
+	return pCapital->getY();
 } // </advc.127b>
 
 void CvTeam::processTech(TechTypes eTech, int iChange)

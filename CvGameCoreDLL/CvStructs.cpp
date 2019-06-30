@@ -576,12 +576,12 @@ FirstContactData::FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2,
 		figure that out when we know which teams are meeting. */
 
 	if(pAt1 != NULL) {
-		x1 = pAt1->getX_INLINE();
-		y1 = pAt1->getY_INLINE();
+		x1 = pAt1->getX();
+		y1 = pAt1->getY();
 	}
 	if(pAt2 != NULL) {
-		x2 = pAt2->getX_INLINE();
-		y2 = pAt2->getY_INLINE();
+		x2 = pAt2->getX();
+		y2 = pAt2->getY();
 	}
 	if(pUnit1 != NULL) {
 		u1.eOwner = pUnit1->getOwnerINLINE();

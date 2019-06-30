@@ -383,7 +383,7 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 			if (iDist > iLevel)
 				continue;
 
-			CvPlot* pLoopPlot = plotXY(pCity->getX_INLINE(), pCity->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pCity->getX(), pCity->getY(), iDX, iDY);
 
 			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID(), false) == pCity->getOwnerINLINE())
 			{
@@ -899,7 +899,7 @@ int CvTeamAI::AI_calculateCapitalProximity(TeamTypes eTeam) const
 
 								if (pTheirCapitalCity != NULL)
 								{
-									int iDistance = (plotDistance(pOurCapitalCity->getX_INLINE(), pOurCapitalCity->getY_INLINE(), pTheirCapitalCity->getX_INLINE(), pTheirCapitalCity->getY_INLINE()) * (pOurCapitalCity->area() != pTheirCapitalCity->area() ? 3 : 2));
+									int iDistance = (plotDistance(pOurCapitalCity->getX(), pOurCapitalCity->getY(), pTheirCapitalCity->getX(), pTheirCapitalCity->getY()) * (pOurCapitalCity->area() != pTheirCapitalCity->area() ? 3 : 2));
 									if (GET_PLAYER((PlayerTypes)iJ).getTeam() == eTeam)
 									{
 										iTotalDistance += iDistance;
@@ -1024,7 +1024,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 						continue;
 
 
-					if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, pOurCity->getX_INLINE(), pOurCity->getY_INLINE(), pTheirCity->getX_INLINE(), pTheirCity->getY_INLINE(), false, 0, true))
+					if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, pOurCity->getX(), pOurCity->getY(), pTheirCity->getX(), pTheirCity->getY(), false, 0, true))
 					{
 						// good.
 						gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
@@ -3448,7 +3448,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc.003: 
 			{	// Valuable terrain bonuses
 				for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 				{
-					CvPlot* pLoopPlot = ::plotCity(kCity.getX_INLINE(), kCity.getY_INLINE(), iJ);
+					CvPlot* pLoopPlot = ::plotCity(kCity.getX(), kCity.getY(), iJ);
 					if (pLoopPlot == NULL)
 						continue;
 					BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getID());
@@ -5180,14 +5180,14 @@ void CvTeamAI::AI_setStrengthMemory(int x, int y, int value)
 }
 // <advc.make> Was inlined in CvTeamAI.h
 int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot) {
-	//return AI_getStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE());
+	//return AI_getStrengthMemory(pPlot->getX(), pPlot->getY());
 	// To make sure that it won't be slower than before
-	return m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE())];
+	return m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(pPlot->getX(), pPlot->getY())];
 }
 
 void CvTeamAI::AI_setStrengthMemory(const CvPlot* pPlot, int value) {
-	//AI_setStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE(), value);
-	m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE())] = value;
+	//AI_setStrengthMemory(pPlot->getX(), pPlot->getY(), value);
+	m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(pPlot->getX(), pPlot->getY())] = value;
 } // </advc.make>
 
 void CvTeamAI::AI_updateStrengthMemory()

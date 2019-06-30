@@ -168,8 +168,8 @@ bool KmodPathFinder::GeneratePath(const CvPlot* pToPlot)
 {
 	if (!settings.pGroup || !pToPlot)
 		return false;
-	return GeneratePath(settings.pGroup->plot()->getX_INLINE(), settings.pGroup->plot()->getY_INLINE(),
-		pToPlot->getX_INLINE(), pToPlot->getY_INLINE());
+	return GeneratePath(settings.pGroup->plot()->getX(), settings.pGroup->plot()->getY(),
+		pToPlot->getX(), pToPlot->getY());
 }
 
 int KmodPathFinder::GetPathTurns() const
@@ -347,8 +347,8 @@ bool KmodPathFinder::ProcessNode()
 		if (!pAdjacentPlot)
 			continue;
 
-		const int& x = pAdjacentPlot->getX_INLINE(); // convenience
-		const int& y = pAdjacentPlot->getY_INLINE(); //
+		const int& x = pAdjacentPlot->getX(); // convenience
+		const int& y = pAdjacentPlot->getY(); //
 
 		if (parent_node->m_pParent && parent_node->m_pParent->m_iX == x && parent_node->m_pParent->m_iY == y)
 			continue; // no need to backtrack.

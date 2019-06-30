@@ -306,7 +306,7 @@ int StartPointsAsHandicap::minDist(CvPlot* p) {
 		CvPlot* q = civs[i]->startingPlot();
 		int d = GC.getMapINLINE().calculatePathDistance(p, q);
 		if(d < 0) // No (land) path
-			d = 5 * ::plotDistance(p->getX_INLINE(), p->getY_INLINE(), q->getX_INLINE(), q->getY_INLINE());
+			d = 5 * ::plotDistance(p->getX(), p->getY(), q->getX(), q->getY());
 		if(d < r)
 			r = d;
 	}

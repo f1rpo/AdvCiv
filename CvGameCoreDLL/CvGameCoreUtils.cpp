@@ -124,8 +124,8 @@ float hash(vector<long> const& x, PlayerTypes ePlayer) {
 		CvCity* pCapital = GET_PLAYER(ePlayer).getCapitalCity();
 		if(pCapital != NULL) {
 			iCapitalIndex = GC.getMapINLINE().plotNumINLINE(
-					pCapital->plot()->getX_INLINE(),
-					pCapital->plot()->getY_INLINE());
+					pCapital->plot()->getX(),
+					pCapital->plot()->getY());
 		}
 	}
 	if(iCapitalIndex >= 0) {
@@ -163,7 +163,7 @@ void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r) {
 			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
 				continue;
 			// That's NULL if off the map
-			r[pos] = m.plotINLINE(r[0]->getX_INLINE() + dx, r[0]->getY_INLINE() + dy);
+			r[pos] = m.plotINLINE(r[0]->getX() + dx, r[0]->getY() + dy);
 			pos++;
 		}
 	}
@@ -203,7 +203,7 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 			if(eTeam == eSecondTeam)
 				continue;
 			if((eTeam == t1 && eSecondTeam == t2) || (eTeam == t2 && eSecondTeam == t1)) {
-				int iPlotID = p.getX_INLINE() * 1000 + p.getY_INLINE();
+				int iPlotID = p.getX() * 1000 + p.getY();
 				if(seenPlots.count(iPlotID) <= 0) {
 					seenPlots.insert(iPlotID);
 					r.push_back(&p);
@@ -257,8 +257,8 @@ int plotCityXY(int iDX, int iDY)
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
 {
 	CvMap const& m = GC.getMapINLINE();
-	return plotCityXY(m.dxWrap(pPlot->getX_INLINE() - pCity->getX_INLINE()),
-			m.dyWrap(pPlot->getY_INLINE() - pCity->getY_INLINE()));
+	return plotCityXY(m.dxWrap(pPlot->getX() - pCity->getX()),
+			m.dyWrap(pPlot->getY() - pCity->getY()));
 }
 
 /*  <advc.303> Has to return true for the CITY_HOME_PLOT in order to be compatible
@@ -326,8 +326,8 @@ DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot)
 {
 	CvMap const& m = GC.getMapINLINE();
 	return estimateDirection(
-			m.dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()),
-			m.dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
+			m.dxWrap(pToPlot->getX() - pFromPlot->getX()),
+			m.dyWrap(pToPlot->getY() - pFromPlot->getY()));
 }
 
 
@@ -498,7 +498,7 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 		}
 	}
 
-	int iDistance = plotDistance(pFirstHead->getX_INLINE(), pFirstHead->getY_INLINE(), pSecondHead->getX_INLINE(), pSecondHead->getY_INLINE());
+	int iDistance = plotDistance(pFirstHead->getX(), pFirstHead->getY(), pSecondHead->getX(), pSecondHead->getY());
 	iPenalty = std::min(5, iPenalty * (1+iDistance) / iBaseScale);
 
 	// For human players, use the unit order that the plot actually has, not the order it _should_ have.
@@ -1920,10 +1920,10 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		int start_x = parent->m_pParent->m_iX;
 		int start_y = parent->m_pParent->m_iY;
 
-		int dx1 = WRAP_X(pFromPlot->getX_INLINE() - start_x);
-		int dy1 = WRAP_Y(pFromPlot->getY_INLINE() - start_y);
-		int dx2 = WRAP_X(pToPlot->getX_INLINE() - start_x);
-		int dy2 = WRAP_Y(pToPlot->getY_INLINE() - start_y);
+		int dx1 = WRAP_X(pFromPlot->getX() - start_x);
+		int dy1 = WRAP_Y(pFromPlot->getY() - start_y);
+		int dx2 = WRAP_X(pToPlot->getX() - start_x);
+		int dy2 = WRAP_Y(pToPlot->getY() - start_y);
 
 		// cross product. (greater than zero => sin(angle) > 0 => angle > 0)
 		int cross = dx1 * dy2 - dx2 * dy1;
@@ -1956,12 +1956,12 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	bool bAIControl = pSelectionGroup->AI_isControlled();
 	if (bAIControl)
 	{
-		if (pFromPlot->getX_INLINE() == pToPlot->getX_INLINE() || pFromPlot->getY_INLINE() == pToPlot->getY_INLINE())
+		if (pFromPlot->getX() == pToPlot->getX() || pFromPlot->getY() == pToPlot->getY())
 			iWorstCost += PATH_STRAIGHT_WEIGHT;
 	}
 	else
 	{
-		if ((pFromPlot->getX_INLINE() != pToPlot->getX_INLINE()) && (pFromPlot->getY_INLINE() != pToPlot->getY_INLINE()))
+		if (pFromPlot->getX() != pToPlot->getX() && pFromPlot->getY() != pToPlot->getY())
 			iWorstCost += PATH_STRAIGHT_WEIGHT * (1+(node->m_iX + node->m_iY)%2);
 		iWorstCost += (node->m_iX + node->m_iY+1)%3;
 	}
@@ -2000,7 +2000,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		else
 		{
 			// plot not visible. use memory
-			iEnemyDefence = GET_TEAM(eTeam).AI_getStrengthMemory(pToPlot->getX_INLINE(), pToPlot->getY_INLINE());
+			iEnemyDefence = GET_TEAM(eTeam).AI_getStrengthMemory(pToPlot->getX(), pToPlot->getY());
 		}
 
 		if (iEnemyDefence > 0)
@@ -2142,7 +2142,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				CvPlot* pAdjacentPlot;
 				for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 				{
-					pAdjacentPlot = plotDirection(pToPlot->getX_INLINE(), pToPlot->getY_INLINE(), ((DirectionTypes)iI));
+					pAdjacentPlot = plotDirection(pToPlot->getX(), pToPlot->getY(), ((DirectionTypes)iI));
 
 					if( pAdjacentPlot != NULL )
 					{
@@ -2182,7 +2182,7 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 	{
 		if (pFromPlot->isWater() && pToPlot->isWater())
 		{
-			if (!(GC.getMapINLINE().plotINLINE(pFromPlot->getX_INLINE(), pToPlot->getY_INLINE())->isWater()) && !(GC.getMapINLINE().plotINLINE(pToPlot->getX_INLINE(), pFromPlot->getY_INLINE())->isWater()))
+			if (!(GC.getMapINLINE().plotINLINE(pFromPlot->getX(), pToPlot->getY())->isWater()) && !(GC.getMapINLINE().plotINLINE(pToPlot->getX(), pFromPlot->getY())->isWater()))
 			{
 				if( !(pSelectionGroup->canMoveAllTerrain()) )
 				{
@@ -2549,7 +2549,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	}
 	if(eDom == DOMAIN_SEA && !bCoastalCity && !kToPlot.isWater() &&
 			// Allow non-city land tile as cargo destination
-			(kToPlot.getX_INLINE() != v[3] || kToPlot.getY_INLINE() != v[4]))
+			(kToPlot.getX() != v[3] || kToPlot.getY() != v[4]))
 		return FALSE;
 	/*  This handles only Coast and no other terrain types that a mod might make
 		impassable */

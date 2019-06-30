@@ -6185,7 +6185,7 @@ int CvCityAI::AI_neededSeaWorkers()
 	if(isBarbarian()) {
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			DirectionTypes dir = (DirectionTypes)i;
-			CvPlot* p = plotDirection(getX_INLINE(), getY_INLINE(), dir);
+			CvPlot* p = plotDirection(getX(), getY(), dir);
 			if(p == NULL)
 				continue;
 			if(!p->isWater())
@@ -6709,11 +6709,11 @@ void CvCityAI::AI_updateRouteToCity()  // advc.003: some style changes
 			if(pLoopCity == this || pLoopCity->area() != area())
 				continue;
 			if (!gDLL->getFAStarIFace()->GeneratePath(&GC.getRouteFinder(),
-				getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(),
-				pLoopCity->getY_INLINE(), false, getOwnerINLINE(), true))
+				getX(), getY(), pLoopCity->getX(),
+				pLoopCity->getY(), false, getOwnerINLINE(), true))
 			{
-				int iValue = plotDistance(getX_INLINE(), getY_INLINE(),
-						pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+				int iValue = plotDistance(getX(), getY(),
+						pLoopCity->getX(), pLoopCity->getY());
 				if (iValue < iBestValue)
 				{
 					iBestValue = iValue;
@@ -6844,7 +6844,7 @@ int CvCityAI::AI_totalBestBuildValue(CvArea* pArea)  // advc.003: style changes
 		if (iI == CITY_HOME_PLOT)
 			continue;
 
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot == NULL || pLoopPlot->area() != pArea)
 			continue;
 
@@ -6858,7 +6858,7 @@ int CvCityAI::AI_totalBestBuildValue(CvArea* pArea)  // advc.003: style changes
 
 int CvCityAI::AI_clearFeatureValue(int iIndex)
 {
-	CvPlot* pPlot = plotCity(getX_INLINE(), getY_INLINE(), iIndex);
+	CvPlot* pPlot = plotCity(getX(), getY(), iIndex);
 	FAssert(pPlot != NULL);
 	
 	FeatureTypes eFeature = pPlot->getFeatureType();
@@ -7751,7 +7751,7 @@ int CvCityAI::AI_countBestBuilds(CvArea* pArea) const  // advc.003: style change
 	{
 		if (iI == CITY_HOME_PLOT)
 			continue;
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot == NULL || pLoopPlot->area() != pArea)
 			continue;
 		if (AI_getBestBuild(iI) != NO_BUILD)
@@ -7837,7 +7837,7 @@ void CvCityAI::AI_updateBestBuild()
 	{
 		if (iI != CITY_HOME_PLOT)
 		{
-			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 
 			if (NULL != pLoopPlot && pLoopPlot->getWorkingCity() == this)
 			{
@@ -7933,7 +7933,7 @@ void CvCityAI::AI_updateBestBuild()
 	{
 		if (iI == CITY_HOME_PLOT)
 			continue;
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot == NULL || pLoopPlot->getWorkingCity() != this)
 			continue;
 
@@ -8023,7 +8023,7 @@ void CvCityAI::AI_updateBestBuild()
 		PROFILE("AI_updateBestBuild pruning phase");
 		for (int iI = 1; iI < NUM_CITY_PLOTS; iI++) // skip the city plot
 		{
-			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 
 			if (pLoopPlot == NULL || pLoopPlot->getWorkingCity() != this)
 				continue; // advc.003
@@ -8062,7 +8062,7 @@ int CvCityAI::AI_countBonusesToClear(FeatureTypes eFeature) const {
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 		if(i == CITY_HOME_PLOT)
 			continue;
-		CvPlot* p = ::plotCity(getX_INLINE(), getY_INLINE(), i);
+		CvPlot* p = ::plotCity(getX(), getY(), i);
 		if(p != NULL && p->getOwnerINLINE() == getID() &&
 				p->getFeatureType() == eFeature &&
 				p->getImprovementType() == NO_IMPROVEMENT) {
@@ -8573,7 +8573,7 @@ void CvCityAI::AI_doEmphasize()
 				int iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION();
 				for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; iPlot++)
 				{
-					CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iPlot);
+					CvPlot* pLoopPlot = plotCity(getX(), getY(), iPlot);
 					if (pLoopPlot != NULL && pLoopPlot->getWorkingCity() == this)
 					{
 						int iFood = pLoopPlot->getYield(YIELD_FOOD);
@@ -10780,7 +10780,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 		{
 			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 			{
-				pAdjacentPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+				pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 
 				if ((pAdjacentPlot != NULL) && (pAdjacentPlot->getOwnerINLINE() == getOwnerINLINE()) && (pAdjacentPlot->isCityRadius()))
 				{
@@ -10795,7 +10795,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 
 							for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
 							{
-								pAdjacentPlot2 = plotDirection(pAdjacentPlot->getX_INLINE(), pAdjacentPlot->getY_INLINE(), ((DirectionTypes)iJ));
+								pAdjacentPlot2 = plotDirection(pAdjacentPlot->getX(), pAdjacentPlot->getY(), ((DirectionTypes)iJ));
 								if ((pAdjacentPlot2 != NULL) && (pAdjacentPlot2->getOwnerINLINE() == getOwnerINLINE()))
 								{
 									eTempBonus = pAdjacentPlot2->getNonObsoleteBonusType(getTeam());
@@ -11714,7 +11714,7 @@ int CvCityAI::AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshol
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(),getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(getX(),getY(), iI);
 		if ((iI != CITY_HOME_PLOT) && (pLoopPlot != NULL))
 		{
 			if (pLoopPlot->getWorkingCity() == this)
@@ -11821,7 +11821,7 @@ void CvCityAI::AI_stealPlots()  // advc.003: some style changes
 	int iImportance = AI_getCityImportance(true, false);
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(),getY_INLINE(),iI);
+		CvPlot* pLoopPlot = plotCity(getX(),getY(),iI);
         if (pLoopPlot == NULL)
 			continue;
 
@@ -11867,7 +11867,7 @@ int CvCityAI::AI_buildingSeaYieldChangeWeight(BuildingTypes eBuilding, bool bGro
 
 	for (int i = 0; i < NUM_CITY_PLOTS; i++)
 	{
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), i);
+		CvPlot* pLoopPlot = plotCity(getX(), getY(), i);
 		if (!pLoopPlot || pLoopPlot->getWorkingCity() != this)
 			continue;
 
@@ -12101,7 +12101,7 @@ int CvCityAI::AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bInc
 	int iCount = 0;
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI); 
+		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI); 
 		if (pLoopPlot == NULL)
 			continue;
 
@@ -12137,7 +12137,7 @@ int CvCityAI::AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExt
 	int iCount = 0;
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot == NULL)
 			continue;
 
@@ -12225,8 +12225,8 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc.003: some st
 			if (pLoopCity == this)
 				continue;
 
-			int iDistance = stepDistance(getX_INLINE(), getY_INLINE(),
-					pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+			int iDistance = stepDistance(getX(), getY(),
+					pLoopCity->getX(), pLoopCity->getY());
 			/*  <advc.107> No functional change here. It's OK to use a higher
 				search range for cities on other continents; but will have to
 				decrease the distance later on when computing the closeness value. */
@@ -12297,7 +12297,7 @@ int CvCityAI::AI_highestTeamCloseness(TeamTypes eTeam,
 // return true if there is an adjacent plot not owned by us.
 bool CvCityAI::AI_isFrontlineCity() const {
 	for (int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-		CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)i);
+		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)i);
 		if (pAdjacentPlot && !pAdjacentPlot->isWater() && pAdjacentPlot->getTeam() != getTeam())
 			return true;
 	}
@@ -12340,7 +12340,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent)
 				CvPlot* pLoopPlot = getCityIndexPlot(iJ);
 				if (pLoopPlot && pLoopPlot->getOwnerINLINE() == iI)
 				{
-					iAccessFactor += (stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1) ? 2 : 1;
+					iAccessFactor += (stepDistance(getX(), getY(), pLoopPlot->getX(), pLoopPlot->getY()) <= 1) ? 2 : 1;
 				}
 			}
 		}

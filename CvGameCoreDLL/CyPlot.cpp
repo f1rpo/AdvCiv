@@ -445,12 +445,12 @@ bool CyPlot::isImpassable()
 
 int CyPlot::getX() 
 {
-	return m_pPlot ? m_pPlot->getX_INLINE() : -1;
+	return m_pPlot ? m_pPlot->getX() : -1;
 }
 
 int CyPlot::getY() 
 {
-	return m_pPlot ? m_pPlot->getY_INLINE() : -1;
+	return m_pPlot ? m_pPlot->getY() : -1;
 }
 
 bool CyPlot::at(int iX, int iY)

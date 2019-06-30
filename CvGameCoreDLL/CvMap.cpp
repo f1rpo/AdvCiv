@@ -499,11 +499,11 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 					if (pLoopPlot->area() == pArea && pLoopPlot != pStartingPlot) // K-Mod
 					{
 						//iDist = calculatePathDistance(pStartingPlot, pLoopPlot);
-						int iDist = stepDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+						int iDist = stepDistance(pStartingPlot->getX(), pStartingPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
 
 						if (iDist != -1)
 						{
-						    //int iCrowDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+						    //int iCrowDistance = plotDistance(pStartingPlot->getX(), pStartingPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
 						    //iDist = std::min(iDist,  iCrowDistance * 2);
 							if ((pLoopPlot->getMinOriginalStartDist() == -1) || (iDist < pLoopPlot->getMinOriginalStartDist()))
 							{
@@ -727,11 +727,11 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 							{
 								if ((eTeamAtWarWith == NO_TEAM) || atWar(GET_PLAYER((PlayerTypes)iI).getTeam(), eTeamAtWarWith))
 								{
-									if ((eDirection == NO_DIRECTION) || (estimateDirection(dxWrap(pLoopCity->getX_INLINE() - iX), dyWrap(pLoopCity->getY_INLINE() - iY)) == eDirection))
+									if ((eDirection == NO_DIRECTION) || (estimateDirection(dxWrap(pLoopCity->getX() - iX), dyWrap(pLoopCity->getY() - iY)) == eDirection))
 									{
 										if ((pSkipCity == NULL) || (pLoopCity != pSkipCity))
 										{
-											int iValue = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+											int iValue = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
 
 											if (iValue < iBestValue)
 											{
@@ -845,7 +845,7 @@ bool CvMap::findWater(CvPlot* pPlot, int iRange, bool bFreshWater)
 	{
 		for (iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 
 			if (pLoopPlot != NULL)
 			{
@@ -1221,8 +1221,8 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 		return -1;
 
 	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
-			pSource->getX_INLINE(), pSource->getY_INLINE(),
-			pDest->getX_INLINE(), pDest->getY_INLINE(), false, 0, true))
+			pSource->getX(), pSource->getY(),
+			pDest->getX(), pDest->getY(), false, 0, true))
 	{
 		FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 
@@ -1395,7 +1395,7 @@ void CvMap::calculateAreas()
 
 			pLoopPlot->setArea(iArea);
 
-			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX(), pLoopPlot->getY(), -1, -1, pLoopPlot->isWater(), iArea);
 		}
 	}
 	updateLakes(); // advc.030
@@ -1453,15 +1453,15 @@ void CvMap::calculateReprAreas() {
 		iReprChanged = 0;
 		for(int i = 0; i < numPlotsINLINE(); i++) {
 			CvPlot& p = *plotByIndexINLINE(i);
-			int const x = p.getX_INLINE();
-			int const y = p.getY_INLINE();
+			int const x = p.getX();
+			int const y = p.getY();
 			for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
 				CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)j);
 				if(pAdjacent == NULL)
 					continue;
 				CvPlot& q = *pAdjacent;
 				// Only orthogonal adjacency for water tiles
-				if(p.isWater() && x != q.getX_INLINE() && y != q.getY_INLINE())
+				if(p.isWater() && x != q.getX() && y != q.getY())
 					continue;
 				int const pReprArea = p.area()->getRepresentativeArea();
 				int const qReprArea = q.area()->getRepresentativeArea();
@@ -1498,8 +1498,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 	while(!stack.empty()) {
 		CvPlot const& p = *stack.top();
 		stack.pop();
-		int const x = p.getX_INLINE();
-		int const y = p.getY_INLINE();
+		int const x = p.getX();
+		int const y = p.getY();
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)i);
 			if(pAdjacent == NULL)
@@ -1507,12 +1507,12 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 			CvPlot& q = *pAdjacent;
 			/*  The two neighbors that p and q have in common if p and q are
 				diagonally adjacent: */
-			CvPlot* s = plotINLINE(p.getX_INLINE(), q.getY_INLINE());
-			CvPlot* t = plotINLINE(q.getX_INLINE(), p.getY_INLINE());
+			CvPlot* s = plotINLINE(p.getX(), q.getY());
+			CvPlot* t = plotINLINE(q.getX(), p.getY());
 			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
 					// For water tiles, orthogonal adjacency is unproblematic.
-					(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE() ||
+					(!p.isWater() || x == q.getX() || y == q.getY() ||
 					// Diagonal adjacency only works if either s or t are water 
 					s == NULL || s->isWater() || t == NULL || t->isWater()) &&
 					/*  Depth-first search that doesn't continue at impassables

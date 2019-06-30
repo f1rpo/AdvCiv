@@ -1010,12 +1010,12 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc) {  // advc.003: refacto
 		if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK()) {
 			CyArgsList argsList;
 			argsList.add((int)getID());
-			argsList.add(kLoopPlot.getX_INLINE()); argsList.add(kLoopPlot.getY_INLINE());
+			argsList.add(kLoopPlot.getX()); argsList.add(kLoopPlot.getY());
 			gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &iValue);
 		}
 		if(iValue == -1) {
 			// K-Mod:
-			iValue = AI_foundValue_bulk(kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE(), kFoundSet);
+			iValue = AI_foundValue_bulk(kLoopPlot.getX(), kLoopPlot.getY(), kFoundSet);
 			// <advc.108> Slight preference for the assigned starting plot
 			if(iCities <= 0 && pStartPlot != NULL && &kLoopPlot == pStartPlot &&
 					// Unless it doesn't have fresh water
@@ -1814,7 +1814,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 						iRazeValue -= 10;
 				} // </cdtw.1>
 				CvCity* pNearestTeamAreaCity = GC.getMapINLINE().findCity(
-						pCity->getX_INLINE(), pCity->getY_INLINE(), NO_PLAYER,
+						pCity->getX(), pCity->getY(), NO_PLAYER,
 						getTeam(), true, false, NO_TEAM, NO_DIRECTION, pCity);
 
 				// K-Mod
@@ -1832,8 +1832,8 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 				// K-Mod end
 				else if(pNearestTeamAreaCity != NULL) // advc.300
 				{
-					int iDistance = plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(),
-							pNearestTeamAreaCity->getX_INLINE(), pNearestTeamAreaCity->getY_INLINE());
+					int iDistance = plotDistance(pCity->getX(), pCity->getY(),
+							pNearestTeamAreaCity->getX(), pNearestTeamAreaCity->getY());
 					iDistance -= DEFAULT_PLAYER_CLOSENESS + 2;
 					// <advc.116> World size adjustment, upper cap
 					iDistance *= 60;
@@ -1951,7 +1951,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 
 			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 			{
-				CvPlot* pLoopPlot = plotCity(pCity->getX_INLINE(), pCity->getY_INLINE(), iI);
+				CvPlot* pLoopPlot = plotCity(pCity->getX(), pCity->getY(), iI);
 				if(pLoopPlot == NULL)
 					continue;
 				if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
@@ -2109,11 +2109,11 @@ bool CvPlayerAI::AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const
 		return true;
 	}
 
-	pNearestCity = GC.getMapINLINE().findCity(pPlot->getX_INLINE(), pPlot->getY_INLINE(), NO_PLAYER, getTeam());
+	pNearestCity = GC.getMapINLINE().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, getTeam());
 
 	if (pNearestCity != NULL)
 	{
-		if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()) <= 4)
+		if (plotDistance(pPlot->getX(), pPlot->getY(), pNearestCity->getX(), pNearestCity->getY()) <= 4)
 		{
 			return true;
 		}
@@ -2948,7 +2948,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				continue;
 			FAssert(pCitySitePlot != NULL);
 			if (!kSet.bDebug && // advc.007
-				plotDistance(iX, iY, pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= GC.getMIN_CITY_RANGE() &&
+				plotDistance(iX, iY, pCitySitePlot->getX(), pCitySitePlot->getY()) <= GC.getMIN_CITY_RANGE() &&
 				pPlot->area() == pCitySitePlot->area())
 			{
 				// this tile is too close to one of the sites we've already chosen.
@@ -2959,7 +2959,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				CvPlot* pLoopPlot = plotCity(iX, iY, iI);
 				if (pLoopPlot != NULL)
 				{
-					if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= CITY_PLOTS_RADIUS)
+					if (plotDistance(pLoopPlot->getX(), pLoopPlot->getY(), pCitySitePlot->getX(), pCitySitePlot->getY()) <= CITY_PLOTS_RADIUS)
 					{
 						//Plot is inside the radius of a city site
 						aiCitySiteRadius[iI] = iJ;
@@ -2974,8 +2974,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
 			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 				CvPlot* p = plotCity(iX, iY, i);
-				if(p != NULL && plotDistance(p->getX_INLINE(), p->getY_INLINE(),
-						c->getX_INLINE(), c->getY_INLINE()) <= CITY_PLOTS_RADIUS)
+				if(p != NULL && plotDistance(p->getX(), p->getY(),
+						c->getX(), c->getY()) <= CITY_PLOTS_RADIUS)
 					abOwnCityRadius[i] = true;
 			}
 		}
@@ -3140,7 +3140,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
-	int iValue = 420;
+	int iValue = 400;
 	// <advc.040>
 	if(bFirstColony)
 		iValue += 55 * std::min(5, iUnrev); // </advc.040>
@@ -3638,10 +3638,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iPlotValue *= 5;
 				iPlotValue /= 4;
 			}
-			else if(pLoopPlot != NULL &&
-					(pLoopPlot->getOwnerINLINE() == getID() ||
-					::stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
-					pLoopPlot->getY_INLINE()) <= 1)) {
+			else if(pLoopPlot != NULL && (pLoopPlot->getOwnerINLINE() == getID() ||
+					::stepDistance(iX, iY, pLoopPlot->getX(), pLoopPlot->getY()) <= 1)) {
 				iPlotValue *= 3;
 				iPlotValue /= 2;
 			}
@@ -3724,8 +3722,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iBonusValue = std::max(iBonusValue, 0);
 						} // </advc.031>
 						if (pLoopPlot->getOwnerINLINE() != getID() &&
-								::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
-								pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
+								::stepDistance(pPlot->getX(), pPlot->getY(),
+								pLoopPlot->getX(), pLoopPlot->getY()) > 1)
 						{
 							if (!kSet.bEasyCulture)
 								iBonusValue = iBonusValue * 3/4;
@@ -4096,7 +4094,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					if (pLoopPlot->isWater() || (pLoopPlot->area() == pArea)) // K-Mod
 					//if (pLoopPlot->isWater() || (pLoopPlot->area() == pArea))
 					{
-						if (plotDistance(iX, iY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iRange)
+						if (plotDistance(iX, iY, pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
 						{
 							/* original bts code
 							int iTempValue = 0;
@@ -4294,15 +4292,15 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER, NO_TEAM, false);
 		if(pNearestCity != NULL) {
 			iValue *= std::min(kSet.iBarbDiscouragedRange, plotDistance(iX, iY,
-					pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()));
+					pNearestCity->getX(), pNearestCity->getY()));
 			iValue /= kSet.iBarbDiscouragedRange;
 		}
 		/*if (pNearestCity)
-			iValue -= (std::max(0, (8 - plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()))) * 200);
+			iValue -= (std::max(0, (8 - plotDistance(iX, iY, pNearestCity->getX(), pNearestCity->getY()))) * 200);
 		else {
 			pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER, NO_TEAM, false);
 			if (pNearestCity != NULL) {
-				int iDistance = plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
+				int iDistance = plotDistance(iX, iY, pNearestCity->getX(), pNearestCity->getY());
 				iValue -= std::min(500 * iDistance, (8000 * iDistance) / GC.getMapINLINE().maxPlotDistance());
 			}
 		}*/ // </advc.303>
@@ -4329,10 +4327,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				}
 				if(pLoopCity->getArea() == pArea->getID()) {
 					int iDistance = plotDistance(iX, iY,
-							pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+							pLoopCity->getX(), pLoopCity->getY());
 					if(kLoopPlayer.getID() == getID() && (pNearestCity == NULL ||
 							iDistance < plotDistance(iX, iY,
-							pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE())))
+							pNearestCity->getX(), pNearestCity->getY())))
 						pNearestCity = pLoopCity;
 					int iCultureRange = pLoopCity->getCultureLevel() + 3;
 					if(iDistance <= iCultureRange && AI_deduceCitySite(pLoopCity)) {
@@ -4402,7 +4400,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 		if (pNearestCity != NULL)
 		{
-			int iDistance = plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
+			int iDistance = plotDistance(iX, iY, pNearestCity->getX(), pNearestCity->getY());
 			int iNumCities = getNumCities();
 			/*  advc.003: BtS code dealing with iDistance deleted;
 				K-Mod comment: Close cities are penalised in other ways */
@@ -4458,8 +4456,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			{
 				int iDistance = // advc.031:
 						std::min(GC.getMapINLINE().maxMaintenanceDistance(),
-						plotDistance(iX, iY, pNearestCity->getX_INLINE(),
-						pNearestCity->getY_INLINE()));
+						plotDistance(iX, iY, pNearestCity->getX(),
+						pNearestCity->getY()));
 				// <advc.031> Don't discourage settling on small nearby landmasses
 				if(pCapital == NULL || pArea == pCapital->area() ||
 						plotDistance(pPlot, pCapital->plot()) >= 10 ||
@@ -4718,7 +4716,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(pCity->getX_INLINE(), pCity->getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(pCity->getX(), pCity->getY(), iI);
 		if (pLoopPlot == NULL)
 			continue;
 		if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS) {
@@ -4781,7 +4779,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	} // </advc.104d>
 
 	CvMap const& m = GC.getMapINLINE();
-	CvCity* pNearestCity = m.findCity(pCity->getX_INLINE(), pCity->getY_INLINE(), getID());
+	CvCity* pNearestCity = m.findCity(pCity->getX(), pCity->getY(), getID());
 	if (pNearestCity != NULL)
 	{
 		// Now scales sensibly with map size, on large maps this term was incredibly dominant in magnitude
@@ -4948,15 +4946,15 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	{
 		for(int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue; // advc.003
 			//if(pLoopPlot->area() != pPlotArea)
 			// advc.030: Replacing the above
 			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue;
-			int iDistance = ::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
-					pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+			int iDistance = ::stepDistance(pPlot->getX(), pPlot->getY(),
+					pLoopPlot->getX(), pLoopPlot->getY());
 			if(bCheckBorder
 					// advc.030: For CheckBorder, it's a helpful precondition.
 					&& pLoopPlot->area() == pPlotArea)
@@ -5121,7 +5119,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	{
 		for(int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue;
 			//if(pLoopPlot->area() != pPlotArea)
@@ -5129,8 +5127,8 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue;
 			// Moved up
-			int iDistance = ::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
-					pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+			int iDistance = ::stepDistance(pPlot->getX(), pPlot->getY(),
+					pLoopPlot->getX(), pLoopPlot->getY());
 			// </advc.030>
 			if(bCheckBorder // advc.104
 					&& pLoopPlot->area() == pPlotArea) { // advc.030
@@ -5257,7 +5255,7 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 	{
 		for (int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 			if(pLoopPlot == NULL || !pLoopPlot->isWater() ||
 					!pPlot->isAdjacentToArea(pLoopPlot->getArea()))
 				continue;
@@ -6721,7 +6719,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 							if(i == CITY_HOME_PLOT)
 								continue;
-							CvPlot* p = ::plotCity(pCapitalCity->getX_INLINE(), pCapitalCity->getY_INLINE(), i);
+							CvPlot* p = ::plotCity(pCapitalCity->getX(), pCapitalCity->getY(), i);
 							if(p != NULL && p->getBonusType() == iK) {
 								FeatureTypes eLoopFeature = p->getFeatureType();
 								if(eLoopFeature == NO_FEATURE || GET_TEAM(getTeam()).
@@ -13133,7 +13131,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(kCity.getX_INLINE(), kCity.getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(kCity.getX(), kCity.getY(), iI);
 
 		if (pLoopPlot != NULL)
 		{
@@ -13191,10 +13189,10 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 			if(kPlayer.AI_isFinancialTrouble())
 				return DENIAL_UNKNOWN;
 			CvCity* pNearestCity = GC.getMapINLINE().findCity(
-					p.getX_INLINE(), p.getY_INLINE(), ePlayer, NO_TEAM, true, false,
+					p.getX(), p.getY(), ePlayer, NO_TEAM, true, false,
 					NO_TEAM, NO_DIRECTION, pCity);
-			if(pNearestCity == NULL || plotDistance(p.getX_INLINE(), p.getY_INLINE(),
-					pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()) > 9)
+			if(pNearestCity == NULL || plotDistance(p.getX(), p.getY(),
+					pNearestCity->getX(), pNearestCity->getY()) > 9)
 				return DENIAL_UNKNOWN;
 		}
 	}
@@ -14911,7 +14909,7 @@ int CvPlayerAI::AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot,
 		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
 			if(c->getCultureLevel() > 1 || c->getCultureTurnsLeft() > iLookAhead)
 				continue;
-			int iCityX = c->getX_INLINE(); int iCityY = c->getY_INLINE();
+			int iCityX = c->getX(); int iCityY = c->getY();
 			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 				CvPlot* p = ::plotCity(iCityX, iCityY, i);
 				if(p == NULL)
@@ -14944,8 +14942,8 @@ bool CvPlayerAI::AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot,
 			p.getImprovementType(), eNonObsoleteBonus))
 		return false;
 	if(pFromPlot == NULL || !bCheckPath || gDLL->getFAStarIFace()->GeneratePath(
-			&GC.getBorderFinder(), pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(),
-			p.getX_INLINE(), p.getY_INLINE(),
+			&GC.getBorderFinder(), pFromPlot->getX(), pFromPlot->getY(),
+			p.getX(), p.getY(),
 			//false,
 			/*  advc.001: Shouldn't allow diagonals in water. (A ship can move
 				in between an Ice and a land tile that  touch corners. But I'm
@@ -15279,7 +15277,7 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 	CvArea const& kPlotArea = *pPlot->area(); // advc.030
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
 		if(pLoopPlot == NULL)
 			continue; // advc.003
 		// <advc.030>
@@ -15773,8 +15771,8 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes* aeMission
 			if (pMissionPlot != NULL)
 			{
 				MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
-				int iDistance = ::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
-						pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE());
+				int iDistance = ::stepDistance(pPlot->getX(), pPlot->getY(),
+						pMissionPlot->getX(), pMissionPlot->getY());
 
 				if (iDistance <= iRange)
 				{
@@ -15812,7 +15810,7 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 	{
 		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pDefencePlot->getX_INLINE(), pDefencePlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pDefencePlot->getX(), pDefencePlot->getY(), iDX, iDY);
 			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
 				continue;
 
@@ -15882,7 +15880,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 	{
 		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pTargetPlot->getX_INLINE(), pTargetPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pTargetPlot->getX(), pTargetPlot->getY(), iDX, iDY);
 			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
 				continue;
 
@@ -15981,8 +15979,8 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity* pCity, CvSelectionGroup* pSk
 
 			if (pMissionPlot != NULL)
 			{
-				int iDistance = ::stepDistance(pCity->getX_INLINE(), pCity->getY_INLINE(),
-						pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE());
+				int iDistance = ::stepDistance(pCity->getX(), pCity->getY(),
+						pMissionPlot->getX(), pMissionPlot->getY());
 				if (iDistance <= 1 && pLoopSelectionGroup->canFight())
 				{
 					/* original bbai code
@@ -17639,10 +17637,10 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 				if (pCity->calculateCulturePercent(getID()) >= 8)
 				{
 					CvMap const& m = GC.getMapINLINE(); // advc.003
-					const CvCity* pOurClosestCity = m.findCity(pPlot->getX_INLINE(), pPlot->getY_INLINE(), getID());
+					const CvCity* pOurClosestCity = m.findCity(pPlot->getX(), pPlot->getY(), getID());
 					if (pOurClosestCity != NULL)
 					{
-						int iDistance = pCity->cultureDistance(m.xDistance(pPlot->getX_INLINE(), pOurClosestCity->getX_INLINE()), m.yDistance(pPlot->getY_INLINE(), pOurClosestCity->getY_INLINE()));
+						int iDistance = pCity->cultureDistance(m.xDistance(pPlot->getX(), pOurClosestCity->getX()), m.yDistance(pPlot->getY(), pOurClosestCity->getY()));
 						if (iDistance < 6)
 						{	// advc.003:
 							int iPressure = std::max(pCity->AI().AI_culturePressureFactor() -
@@ -18767,7 +18765,7 @@ void CvPlayerAI::AI_doMilitary()
 				{
 					CvWString aiTypeString;
 					getUnitAIString(aiTypeString, pDisbandUnit->AI_getUnitAIType());
-					logBBAI("    %S scraps '%S' %S, at (%d, %d), with value %d, due to financial trouble.", getCivilizationDescription(0), aiTypeString.GetCString(), pDisbandUnit->getName(0).GetCString(), pDisbandUnit->getX_INLINE(), pDisbandUnit->getY_INLINE(), unit_values[iDisbandCount].first);
+					logBBAI("    %S scraps '%S' %S, at (%d, %d), with value %d, due to financial trouble.", getCivilizationDescription(0), aiTypeString.GetCString(), pDisbandUnit->getName(0).GetCString(), pDisbandUnit->getX(), pDisbandUnit->getY(), unit_values[iDisbandCount].first);
 				}
 
 				pDisbandUnit->scrap();
@@ -19962,7 +19960,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 
 							for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 							{
-								pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iJ);
+								pLoopPlot = plotCity(pLoopCity->getX(), pLoopCity->getY(), iJ);
 
 								if (pLoopPlot != NULL)
 								{
@@ -22043,7 +22041,8 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 	}
 
 	int iOtherPlayerAttitudeWeight = 0;
-	if (kTriggeredData.m_eOtherPlayer != NO_PLAYER)
+	if (kTriggeredData.m_eOtherPlayer != NO_PLAYER &&
+			kTriggeredData.m_eOtherPlayer != BARBARIAN_PLAYER) // advc.003n
 	{
 		iOtherPlayerAttitudeWeight = AI_getAttitudeWeight(kTriggeredData.m_eOtherPlayer);
 		iOtherPlayerAttitudeWeight += 10 - GC.getGameINLINE().getSorenRandNum(20, "AI event value attitude");
@@ -22108,35 +22107,32 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 		{
 			//Oh wow this sure is mildly complicated.
 			TeamTypes eWorstEnemy = GET_TEAM(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam()).AI_getWorstEnemy();
-			
 			if (NO_TEAM != eWorstEnemy && eWorstEnemy != getTeam())
 			{
-			int iThirdPartyAttitudeWeight = kTeam.AI_getAttitudeWeight(eWorstEnemy);
-			
-			//If we like both teams, we want them to get along.
-			//If we like otherPlayer but not enemy (or vice-verca), we don't want them to get along.
-			//If we don't like either, we don't want them to get along.
-			//Also just value stirring up trouble in general.
-			
-			int iThirdPartyDiploValue = 50 * kEvent.getTheirEnemyAttitudeModifier();
-			iThirdPartyDiploValue *= (iThirdPartyAttitudeWeight - 10);
-			iThirdPartyDiploValue *= (iOtherPlayerAttitudeWeight - 10);
-			iThirdPartyDiploValue /= 10000;
-			
-			if ((iOtherPlayerAttitudeWeight) < 0 && (iThirdPartyAttitudeWeight < 0))
-			{
-				iThirdPartyDiploValue *= -1;
+				int iThirdPartyAttitudeWeight = kTeam.AI_getAttitudeWeight(eWorstEnemy);
+				//If we like both teams, we want them to get along.
+				//If we like otherPlayer but not enemy (or vice-verca), we don't want them to get along.
+				//If we don't like either, we don't want them to get along.
+				//Also just value stirring up trouble in general.
+				int iThirdPartyDiploValue = 50 * kEvent.getTheirEnemyAttitudeModifier();
+				iThirdPartyDiploValue *= (iThirdPartyAttitudeWeight - 10);
+				iThirdPartyDiploValue *= (iOtherPlayerAttitudeWeight - 10);
+				iThirdPartyDiploValue /= 10000;
+
+				if (iOtherPlayerAttitudeWeight < 0 && iThirdPartyAttitudeWeight < 0)
+				{
+					iThirdPartyDiploValue *= -1;
+				}
+
+				iThirdPartyDiploValue /= 2;
+
+				iDiploValue += iThirdPartyDiploValue;
 			}
-			
-			iThirdPartyDiploValue /= 2;
-			
-			iDiploValue += iThirdPartyDiploValue;
 		}
-		}
-		
+
 		iDiploValue *= iGameSpeedPercent;
 		iDiploValue /= 100;
-		
+
 		if (NO_BONUS != kEvent.getBonusGift())
 		{
 			/* original bts code
@@ -22151,7 +22147,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			iDiploValue += iGiftValue * GC.getPEACE_TREATY_LENGTH() / 4;
 			// K-Mod end
 		}
-		
+
 		if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
 		{
 			//What is this "relationships" thing?
@@ -22197,7 +22193,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			iValue += iWarValue;
 			// K-Mod end
 		}
-			
+
 		if (kEvent.getMaxPillage() > 0)
 		{
 			int iPillageValue = (40 * (kEvent.getMinPillage() + kEvent.getMaxPillage())) / 2;
@@ -22232,7 +22228,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 				iValue += (kEvent.getAdditionalEventChance(iEvent) * AI_eventValue((EventTypes)iEvent, kTriggeredData)) / 100;
 			}
 		}
-	
+
 		if (kEvent.getClearEventChance(iEvent) > 0)
 		{
 			if (iEvent == eEvent)
@@ -24639,7 +24635,7 @@ int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot const* pPlot) const
 		{
 			if (plotDistance(iDX, iDY, 0, 0) > CITY_PLOTS_RADIUS)
 			{
-				pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+				pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 				if (pLoopPlot != NULL)
 				{	// <advc.003> Code moved into subroutine
 					if(AI_isDeadlockedBonus(*pLoopPlot, *pPlot, iMinRange))
@@ -24665,17 +24661,17 @@ bool CvPlayerAI::AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& kCityPlot,
 	bool bNeverFound = true;
 	//look for a city site [cityPlot2] within a city radius [around p]
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
-		CvPlot* pLoopPlot = plotCity(p.getX_INLINE(), p.getY_INLINE(), i);
+		CvPlot* pLoopPlot = plotCity(p.getX(), p.getY(), i);
 		if(pLoopPlot == NULL ||
 				// advc.031: Don't want to settle on top of the bonus
 				i == CITY_HOME_PLOT)
 			continue;
 		CvPlot const& kCityPlot2 = *pLoopPlot;
 		//canFound usually returns very quickly
-		if(canFound(kCityPlot2.getX_INLINE(), kCityPlot2.getY_INLINE(), false)) {
+		if(canFound(kCityPlot2.getX(), kCityPlot2.getY(), false)) {
 			bNeverFound = false;
-			if(::stepDistance(kCityPlot.getX_INLINE(), kCityPlot.getY_INLINE(),
-					kCityPlot2.getX_INLINE(), kCityPlot2.getY_INLINE()) > iMinRange) {
+			if(::stepDistance(kCityPlot.getX(), kCityPlot.getY(),
+					kCityPlot2.getX(), kCityPlot2.getY()) > iMinRange) {
 				bCanFound = true;
 				break;
 			}
@@ -24751,7 +24747,7 @@ void CvPlayerAI::AI_updateGoldToUpgradeAllUnits()
 						}
 						else
 						{
-							CvCity* pCloseCity = GC.getMapINLINE().findCity(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), getID(), NO_TEAM, true, (pLoopUnit->getDomainType() == DOMAIN_SEA));
+							CvCity* pCloseCity = GC.getMapINLINE().findCity(pLoopUnit->getX(), pLoopUnit->getY(), getID(), NO_TEAM, true, (pLoopUnit->getDomainType() == DOMAIN_SEA));
 							if (pCloseCity != NULL && pCloseCity->canTrain(eUpgradeUnitType))
 							{
 								bCanUpgrade = true;
@@ -25170,8 +25166,8 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bT
 		}
 	} // <advc.081>
 	else {
-		int iCenterX = pCenter->getX_INLINE();
-		int iCenterY = pCenter->getY_INLINE();
+		int iCenterX = pCenter->getX();
+		int iCenterY = pCenter->getY();
 		// We set the range, not the caller - after all, this is an AI function.
 		int iRange = 13 + 2 * getCurrentEra();
 		for(int dx = -iRange; dx <= iRange; dx++)
@@ -25498,13 +25494,13 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc.003: style change
 			iValue += 1000;
 		else iValue += GC.getGameINLINE().getSorenRandNum(100, "AI Advanced Start Choose Team Start");
 
-		int iX = pLoopPlot->getX_INLINE();
-		int iY = pLoopPlot->getY_INLINE();
+		int iX = pLoopPlot->getX();
+		int iY = pLoopPlot->getY();
 		CvCity* pNearestCity = m.findCity(iX, iY, NO_PLAYER, getTeam());
 		if (NULL != pNearestCity)
 		{
 			FAssert(pNearestCity->getTeam() == getTeam());
-			int iDistance = m.stepDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
+			int iDistance = m.stepDistance(iX, iY, pNearestCity->getX(), pNearestCity->getY());
 			if (iDistance < 10)
 				iValue /= 10 - iDistance;
 		}
@@ -25599,7 +25595,7 @@ bool CvPlayerAI::AI_advancedStartPlaceExploreUnits(bool bLand)
 				{
 					for (int iY = -iRange; iY <= iRange; iY++)
 					{
-						CvPlot* pLoopPlot2 = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
+						CvPlot* pLoopPlot2 = plotXY(pLoopPlot->getX(), pLoopPlot->getY(), iX, iY);
 						if (NULL != pLoopPlot2) 
 						{
 							iExplorerCount += pLoopPlot2->plotCount(PUF_isUnitAIType, eUnitAI, -1, NO_PLAYER, getTeam());
@@ -25637,7 +25633,7 @@ bool CvPlayerAI::AI_advancedStartPlaceExploreUnits(bool bLand)
 
 	if (pBestExplorePlot != NULL)
 	{
-		doAdvancedStartAction(ADVANCEDSTARTACTION_UNIT, pBestExplorePlot->getX_INLINE(), pBestExplorePlot->getY_INLINE(), eBestUnitType, true,
+		doAdvancedStartAction(ADVANCEDSTARTACTION_UNIT, pBestExplorePlot->getX(), pBestExplorePlot->getY(), eBestUnitType, true,
 				UNITAI_EXPLORE); // advc.250c
 		return true;
 	}
@@ -25655,13 +25651,13 @@ void CvPlayerAI::AI_advancedStartRevealRadius(CvPlot* pPlot, int iRadius)
 			{
 				if (plotDistance(0, 0, iX, iY) <= iRadius)
 				{
-					CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
+					CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iX, iY);
 
 					if (NULL != pLoopPlot)
 					{
 						if (getAdvancedStartVisibilityCost(true, pLoopPlot) > 0)
 						{
-							doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, true);
+							doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY, pLoopPlot->getX(), pLoopPlot->getY(), -1, true);
 						}
 					}
 				}
@@ -25677,7 +25673,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 	CvCity* pCity = pPlot->getPlotCity();
 	if (pCity == NULL)
 	{
-		doAdvancedStartAction(ADVANCEDSTARTACTION_CITY, pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
+		doAdvancedStartAction(ADVANCEDSTARTACTION_CITY, pPlot->getX(), pPlot->getY(), -1, true);
 
 		pCity = pPlot->getPlotCity();
 		if ((pCity == NULL) || (pCity->getOwnerINLINE() != getID()))
@@ -25695,7 +25691,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 			(pCity->getCommerceRate(COMMERCE_CULTURE) <= 0 ||
 			(iCultureCost >= 0 && getAdvancedStartPoints() > iCultureCost * 100)))
 			// </advc.250c>
-		doAdvancedStartAction(ADVANCEDSTARTACTION_CULTURE, pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
+		doAdvancedStartAction(ADVANCEDSTARTACTION_CULTURE, pPlot->getX(), pPlot->getY(), -1, true);
 
 	//to account for culture expansion.
 	pCity->AI_updateBestBuild();
@@ -25705,7 +25701,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 	{
 		if (iI != CITY_HOME_PLOT)
 		{
-			CvPlot* pLoopPlot = plotCity(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(pPlot->getX(), pPlot->getY(), iI);
 			if ((pLoopPlot != NULL) && (pLoopPlot->getWorkingCity() == pCity))
 			{
 				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT)
@@ -25734,7 +25730,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 					ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
 					if (eImprovement != NO_IMPROVEMENT)
 					{
-						CvPlot* pLoopPlot = plotCity(pCity->getX_INLINE(), pCity->getY_INLINE(), iI);
+						CvPlot* pLoopPlot = plotCity(pCity->getX(), pCity->getY(), iI);
 						if ((pLoopPlot != NULL) && (pLoopPlot->getImprovementType() != eImprovement))
 						{
 							eBestImprovement = eImprovement;
@@ -25749,11 +25745,11 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 		if (iBestValue > 0)
 		{
 			FAssert(pBestPlot != NULL);
-			doAdvancedStartAction(ADVANCEDSTARTACTION_IMPROVEMENT, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), eBestImprovement, true);
+			doAdvancedStartAction(ADVANCEDSTARTACTION_IMPROVEMENT, pBestPlot->getX(), pBestPlot->getY(), eBestImprovement, true);
 			iPlotsImproved++;
 			if (pCity->getPopulation() < iPlotsImproved)
 			{
-				doAdvancedStartAction(ADVANCEDSTARTACTION_POP, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), -1, true);
+				doAdvancedStartAction(ADVANCEDSTARTACTION_POP, pBestPlot->getX(), pBestPlot->getY(), -1, true);
 			}
 		}
 		else break;
@@ -25770,7 +25766,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 		{
 			break;
 		}
-		doAdvancedStartAction(ADVANCEDSTARTACTION_POP, pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
+		doAdvancedStartAction(ADVANCEDSTARTACTION_POP, pPlot->getX(), pPlot->getY(), -1, true);
 	}
 	
 	pCity->AI_updateAssignWork();
@@ -25786,13 +25782,13 @@ bool CvPlayerAI::AI_advancedStartDoRoute(CvPlot* pFromPlot, CvPlot* pToPlot)
 	
 	FAStarNode* pNode;
 	gDLL->getFAStarIFace()->ForceReset(&GC.getStepFinder());
-	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(), pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), pToPlot->getX_INLINE(), pToPlot->getY_INLINE(), false, 0, true))
+	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(), pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY(), false, 0, true))
 	{
 		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 		if (pNode != NULL)
 		{
-			if (pNode->m_iData1 > (1 + ::stepDistance(pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(),
-					pToPlot->getX_INLINE(), pToPlot->getY_INLINE())))
+			if (pNode->m_iData1 > (1 + ::stepDistance(pFromPlot->getX(), pFromPlot->getY(),
+					pToPlot->getX(), pToPlot->getY())))
 			{
 				//Don't build convoluted paths.
 				return true;
@@ -25848,7 +25844,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 //				}
 //				for (iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
 //				{
-//					pLoopPlot2 = plotDirection(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (DirectionTypes)iJ);
+//					pLoopPlot2 = plotDirection(pLoopPlot->getX(), pLoopPlot->getY(), (DirectionTypes)iJ);
 //					if ((pLoopPlot2 != NULL) && (pLoopPlot2->getRouteType() != NO_ROUTE))
 //					{
 //						CvPlotGroup* pPlotGroup = pLoopPlot2->getPlotGroup(getID());
@@ -25866,7 +25862,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 //					RouteTypes eBestRoute = AI_bestAdvancedStartRoute(pLoopPlot);
 //					if (eBestRoute != NO_ROUTE)
 //					{
-//						doAdvancedStartAction(ADVANCEDSTARTACTION_ROUTE, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), eBestRoute, true);
+//						doAdvancedStartAction(ADVANCEDSTARTACTION_ROUTE, pLoopPlot->getX(), pLoopPlot->getY(), eBestRoute, true);
 //					}
 //				}
 //			}
@@ -25900,7 +25896,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 							{
 								for (int iY = -iRange; iY <= iRange; iY++)
 								{
-									CvPlot* pLoopPlot2 = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
+									CvPlot* pLoopPlot2 = plotXY(pLoopPlot->getX(), pLoopPlot->getY(), iX, iY);
 									if (pLoopPlot2 != NULL)
 									{
 										if (pLoopPlot2->getOwnerINLINE() == getID())
@@ -25952,7 +25948,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 					RouteTypes eRoute = (AI_bestAdvancedStartRoute(pLoopPlot, &iRouteYieldValue));
 					if (eRoute != NO_ROUTE && iRouteYieldValue > 0)
 					{
-						doAdvancedStartAction(ADVANCEDSTARTACTION_ROUTE, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), eRoute, true);
+						doAdvancedStartAction(ADVANCEDSTARTACTION_ROUTE, pLoopPlot->getX(), pLoopPlot->getY(), eRoute, true);
 					}
 				}
 			}
@@ -25973,7 +25969,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 			{
 				for (int iY = -iRange; iY <= iRange; iY++)
 				{
-					CvPlot* pLoopPlot = plotXY(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iX, iY);
+					CvPlot* pLoopPlot = plotXY(pLoopCity->getX(), pLoopCity->getY(), iX, iY);
 					if (pLoopPlot != NULL && pLoopPlot->getOwnerINLINE() == getID())
 					{
 						if ((pLoopPlot->isConnectedToCapital()) || pLoopPlot->isCity())
@@ -26069,7 +26065,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 					{
 						CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(iPlotLoop);
 
-						if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE()) <= GC.getDefineINT("ADVANCED_START_SIGHT_RANGE"))
+						if (plotDistance(pPlot->getX(), pPlot->getY(), pStartingPlot->getX(), pStartingPlot->getY()) <= GC.getDefineINT("ADVANCED_START_SIGHT_RANGE"))
 						{
 							pPlot->setRevealed(getTeam(), true, false, NO_TEAM, false);
 						}
@@ -26107,7 +26103,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 				{
 					for (int iJ = 0; iJ < NUM_CARDINALDIRECTION_TYPES; iJ++)
 					{
-						CvPlot* pLoopPlot2 = plotCardinalDirection(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), (CardinalDirectionTypes)iJ);
+						CvPlot* pLoopPlot2 = plotCardinalDirection(pLoopPlot->getX(), pLoopPlot->getY(), (CardinalDirectionTypes)iJ);
 						if ((pLoopPlot2 != NULL) && (getAdvancedStartVisibilityCost(true, pLoopPlot2) > 0))
 						{
 							//Mildly maphackery but any smart human can see the terrain type of a tile.
@@ -26119,7 +26115,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 							}
 							if (((iFoodYield >= 2) && !pLoopPlot2->isFreshWater()) || pLoopPlot2->isHills() || pLoopPlot2->isRiver())
 							{
-								doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY, pLoopPlot2->getX_INLINE(), pLoopPlot2->getY_INLINE(), -1, true);						
+								doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY, pLoopPlot2->getX(), pLoopPlot2->getY(), -1, true);						
 							}
 						}
 					}
@@ -26186,7 +26182,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 			//if (pLoopPlot->area() == getStartingPlot()->area())
 			{
-				if (plotDistance(getStartingPlot()->getX_INLINE(), getStartingPlot()->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) < 9)
+				if (plotDistance(getStartingPlot()->getX(), getStartingPlot()->getY(), pLoopPlot->getX(), pLoopPlot->getY()) < 9)
 				{
 					if (pLoopPlot->getFoundValue(getID()) > iBestFoundValue)
 					{
@@ -26279,7 +26275,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 				bDoneBuildings = (iLastPointsTotal - (getAdvancedStartPoints() - getAdvancedStartBuildingCost(eBuilding, true, pLoopCity))) > iCityPoints;
 				if (!bDoneBuildings)
 				{
-					doAdvancedStartAction(ADVANCEDSTARTACTION_BUILDING, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), eBuilding, true);
+					doAdvancedStartAction(ADVANCEDSTARTACTION_BUILDING, pLoopCity->getX(), pLoopCity->getY(), eBuilding, true);
 				}
 				else
 				{
@@ -26313,7 +26309,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 						bDone = true;
 						break;
 					}
-					doAdvancedStartAction(ADVANCEDSTARTACTION_UNIT, pUnitPlot->getX_INLINE(), pUnitPlot->getY_INLINE(), eBestUnit, true);
+					doAdvancedStartAction(ADVANCEDSTARTACTION_UNIT, pUnitPlot->getX(), pUnitPlot->getY(), eBestUnit, true);
 				}
 			}
 		}
@@ -26327,7 +26323,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 		{
 			while (pLoopCity->angryPopulation() > 0 && getAdvancedStartPopCost(false, pLoopCity) > 0)
 			{
-				doAdvancedStartAction(ADVANCEDSTARTACTION_POP, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), -1, false);
+				doAdvancedStartAction(ADVANCEDSTARTACTION_POP, pLoopCity->getX(), pLoopCity->getY(), -1, false);
 			}
 		}
 	}
@@ -26364,13 +26360,13 @@ void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int
 						if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK()) {
 							CyArgsList argsList;
 							argsList.add((int)getID());
-							argsList.add(pLoopPlot->getX_INLINE());
-							argsList.add(pLoopPlot->getY_INLINE());
+							argsList.add(pLoopPlot->getX());
+							argsList.add(pLoopPlot->getY());
 							gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &lResult);
 						}
 						short iValue; // K-Mod
 						if (lResult == -1)
-							iValue = AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+							iValue = AI_foundValue(pLoopPlot->getX(), pLoopPlot->getY());
 						else { //iValue = lResult;
 							iValue = (short)std::min((long)MAX_SHORT, lResult); // K-Mod
 						}
@@ -26482,8 +26478,8 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		}
 		if (pBestFoundPlot != NULL)
 		{
-			m_aiAICitySites.push_back(GC.getMapINLINE().plotNumINLINE(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()));
-			AI_recalculateFoundValues(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(), CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
+			m_aiAICitySites.push_back(GC.getMapINLINE().plotNumINLINE(pBestFoundPlot->getX(), pBestFoundPlot->getY()));
+			AI_recalculateFoundValues(pBestFoundPlot->getX(), pBestFoundPlot->getY(), CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		}
 		else break;
 		iPass++;
@@ -26517,7 +26513,7 @@ bool CvPlayerAI::AI_isPlotCitySite(
 		CvPlot const& kPlot) const // advc.003
 {
 	std::vector<int>::const_iterator it;
-	int iPlotIndex = GC.getMapINLINE().plotNumINLINE(kPlot.getX_INLINE(), kPlot.getY_INLINE());
+	int iPlotIndex = GC.getMapINLINE().plotNumINLINE(kPlot.getX(), kPlot.getY());
 	
 	for (it = m_aiAICitySites.begin(); it != m_aiAICitySites.end(); it++)
 	{
@@ -26599,7 +26595,7 @@ bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const
 		return true;
 
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-		CvPlot const* pAdj = plotDirection(p.getX_INLINE(), p.getY_INLINE(),
+		CvPlot const* pAdj = plotDirection(p.getX(), p.getY(),
 				(DirectionTypes)i);
 		if(pAdj != NULL && AI_isPlotCitySite(*pAdj))
 			return true;
@@ -27292,10 +27288,10 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot* pPlot) const
 	{
 		for (int iY = -iRange; iY <= iRange; iY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iX, iY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iX, iY);
 			if ((pLoopPlot != NULL) && (pPlot != pLoopPlot))
 			{
-				int iDistance = plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				int iDistance = plotDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
 				
 				if (pLoopPlot->getTeam() == getTeam())
 				{
@@ -27339,7 +27335,7 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot* pPlot) const
 //	if (iMinFriendlyCityPlot != NULL)
 //	{
 //		FAssert(iMinOtherCityPlot != NULL);
-//		if (plotDistance(iMinFriendlyCityPlot->getX_INLINE(), iMinFriendlyCityPlot->getY_INLINE(), iMinOtherCityPlot->getX_INLINE(), iMinOtherCityPlot->getY_INLINE()) < (iMinOtherCityDistance - 1))
+//		if (plotDistance(iMinFriendlyCityPlot->getX(), iMinFriendlyCityPlot->getY(), iMinOtherCityPlot->getX(), iMinOtherCityPlot->getY()) < (iMinOtherCityDistance - 1))
 //		{
 //			return 0;
 //		}
@@ -27347,12 +27343,12 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot* pPlot) const
 
 //	if (iMinOtherCityPlot != NULL)
 //	{
-//		CvCity* pNearestCity = GC.getMapINLINE().findCity(iMinOtherCityPlot->getX_INLINE(), iMinOtherCityPlot->getY_INLINE(), NO_PLAYER, getTeam(), false);
+//		CvCity* pNearestCity = GC.getMapINLINE().findCity(iMinOtherCityPlot->getX(), iMinOtherCityPlot->getY(), NO_PLAYER, getTeam(), false);
 //		if (NULL == pNearestCity)
 //		{
 //			return 0;
 //		}
-//		if (plotDistance(pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE(), iMinOtherCityPlot->getX_INLINE(), iMinOtherCityPlot->getY_INLINE()) < iRange)
+//		if (plotDistance(pNearestCity->getX(), pNearestCity->getY(), iMinOtherCityPlot->getX(), iMinOtherCityPlot->getY()) < iRange)
 //		{
 //			return 0;
 //		}
@@ -27418,7 +27414,7 @@ int CvPlayerAI::AI_getPlotCanalValue(CvPlot* pPlot) const
 	
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iI);
+		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
 		if (pLoopPlot != NULL)
 		{
 			if (pLoopPlot->isCity(true))
@@ -27560,7 +27556,7 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 	{
 		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue;
 			//if(pLoopPlot->area() != pPlotArea)
@@ -27832,8 +27828,8 @@ bool CvPlayerAI::AI_cheatDangerVisibility(CvPlot const& kAt) const {
 
 	double const pr = 0.5;
 	std::vector<long> hashInputs;
-	hashInputs.push_back(kAt.getX_INLINE());
-	hashInputs.push_back(kAt.getY_INLINE());
+	hashInputs.push_back(kAt.getX());
+	hashInputs.push_back(kAt.getY());
 	hashInputs.push_back(GC.getGameINLINE().getGameTurn());
 	hashInputs.push_back(getID());
 	return (::hash(hashInputs) < pr);
@@ -27843,7 +27839,7 @@ bool CvPlayerAI::AI_cheatDangerVisibility(CvPlot const& kAt) const {
 		more reliable) code above. */
 	/*	Should be possible to fit x, y, turn and id into a unique uint, but, if not,
 		prime coefficients should reduce the probability of collisions (I guess). */
-	/*unsigned int x = pAt.getX_INLINE() + 251 * pAt.getY_INLINE() +
+	/*unsigned int x = pAt.getX() + 251 * pAt.getY() +
 			63029 * GC.getGameINLINE().getGameTurn() + 94543517 * getID();
 	// Marsaglia Xorshift (may not work so well on 32-bit machines)
 	x ^= x << 13; x ^= x >> 7; x ^= x << 17;

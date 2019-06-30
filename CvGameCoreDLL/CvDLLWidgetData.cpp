@@ -2529,7 +2529,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	}
 	case MISSION_FOUND:
 	{
-		if (!kUnitOwner.canFound(kMissionPlot.getX_INLINE(), kMissionPlot.getY_INLINE()))
+		if (!kUnitOwner.canFound(kMissionPlot.getX(), kMissionPlot.getY()))
 		{
 			bool bValid = true;
 			int iRange = GC.getMIN_CITY_RANGE();
@@ -2537,8 +2537,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			{
 				for (int iDY = -(iRange); iDY <= iRange; iDY++)
 				{
-					CvPlot* pLoopPlot = plotXY(kMissionPlot.getX_INLINE(),
-							kMissionPlot.getY_INLINE(), iDX, iDY);
+					CvPlot* pLoopPlot = plotXY(kMissionPlot.getX(),
+							kMissionPlot.getY(), iDX, iDY);
 					if (pLoopPlot != NULL)
 					{
 						if (pLoopPlot->isCity())
@@ -6275,7 +6275,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 		if(i == CITY_HOME_PLOT) // Feature gets removed upon founding
 			continue;
-		CvPlot* pPlot = plotCity(kCityPlot.getX_INLINE(), kCityPlot.getY_INLINE(), i);
+		CvPlot* pPlot = plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
 		if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
 		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(eOwner), false))
 			continue;
