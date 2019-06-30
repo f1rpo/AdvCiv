@@ -66,7 +66,7 @@ void MilitaryBranch::updateTypicalUnit() {
 		CvUnitClassInfo const& uci = GC.getUnitClassInfo((UnitClassTypes)i);
 		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
-				(GC.getGameINLINE().getCurrentEra() + 1) * 4)
+				(GC.getGame().getCurrentEra() + 1) * 4)
 			continue;
 		int instanceCostModifier = uci.getInstanceCostModifier();
 		if(instanceCostModifier > 5)

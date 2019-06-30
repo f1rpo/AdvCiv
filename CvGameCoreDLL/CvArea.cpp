@@ -213,9 +213,9 @@ int CvArea::calculateTotalBestNatureYield() const
 {
 	int iCount = 0;
 
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -236,9 +236,9 @@ int CvArea::countCoastalLand() const
 
 	int iCount = 0;
 
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -349,7 +349,7 @@ void CvArea::updateLake(bool bCheckRepr) {
 		m_bLake = true;
 		return;
 	}
-	CvMap& m = GC.getMapINLINE(); int foo=-1;
+	CvMap& m = GC.getMap(); int foo=-1;
 	for(CvArea* other = m.firstArea(&foo); other != NULL; other = m.nextArea(&foo)) {
 		if(other->m_iRepresentativeAreaId == m_iRepresentativeAreaId && other->m_iID != m_iID) {
 			iTotalTiles += other->getNumTiles();
@@ -407,8 +407,8 @@ void CvArea::changeNumTiles(int iChange)
 
 	if (bOldLake != isLake())
 	{
-		GC.getMapINLINE().updateIrrigated();
-		GC.getMapINLINE().updateYield();
+		GC.getMap().updateIrrigated();
+		GC.getMap().updateYield();
 	}
 }
 
@@ -425,14 +425,14 @@ void CvArea::changeNumOwnedTiles(int iChange)
 std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const {
 
 	std::pair<int,int> r(0, 0);
-	CvMap const& kMap = GC.getMapINLINE();
-	for(int i = 0; i < kMap.numPlotsINLINE(); i++) {
-		CvPlot* pPlot = kMap.plotByIndexINLINE(i);
+	CvMap const& kMap = GC.getMap();
+	for(int i = 0; i < kMap.numPlots(); i++) {
+		CvPlot* pPlot = kMap.plotByIndex(i);
 		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
 				|| !pPlot->isHabitable())
 			continue;
 		if(pPlot->isOwned() && (!bIgnoreBarb ||
-				pPlot->getOwnerINLINE() != BARBARIAN_PLAYER))
+				pPlot->getOwner() != BARBARIAN_PLAYER))
 			r.first++;
 		else r.second++;
 	}
@@ -456,7 +456,7 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 		PlayerTypes ePlayer = (PlayerTypes)i;
 		if(getCitiesPerPlayer(ePlayer) > 0 &&
 				(!bSubtractOCC || !GET_PLAYER(ePlayer).isHuman() ||
-				!GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
+				!GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
 			r++;
 	}
 	return r;
@@ -781,7 +781,7 @@ void CvArea::changeCleanPowerCount(TeamTypes eIndex, int iChange)
 		GET_TEAM(eIndex).updateCommerce();
 		GET_TEAM(eIndex).updatePowerHealth();
 
-		if (eIndex == GC.getGameINLINE().getActiveTeam())
+		if (eIndex == GC.getGame().getActiveTeam())
 		{
 			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		}
@@ -811,7 +811,7 @@ void CvArea::changeBorderObstacleCount(TeamTypes eIndex, int iChange)
 
 	if (iChange > 0 && m_aiBorderObstacleCount[eIndex] == iChange)
 	{
-		GC.getMapINLINE().verifyUnitValidPlot();
+		GC.getMap().verifyUnitValidPlot();
 	}
 }
 
@@ -887,7 +887,7 @@ void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, in
 
 		GET_PLAYER(eIndex1).AI_makeAssignWorkDirty();
 
-		if (GET_PLAYER(eIndex1).getTeam() == GC.getGameINLINE().getActiveTeam())
+		if (GET_PLAYER(eIndex1).getTeam() == GC.getGame().getActiveTeam())
 		{
 			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		}

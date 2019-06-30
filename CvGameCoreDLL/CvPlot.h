@@ -336,12 +336,12 @@ public:
 	void setFlagDirty(bool bNewValue);																																					// Exposed to Python
 
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-#ifdef _USRDLL
-	inline PlayerTypes getOwnerINLINE() const
+	#ifdef _USRDLL
+	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
 	{
 		return (PlayerTypes)m_eOwner;
 	}
-#endif
+	#endif
 	void setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotGroup);
 	/*  <advc.035> The returned player becomes the owner if war/peace changes
 		between that player and the current owner */

@@ -3838,8 +3838,8 @@ int CvGlobals::getNumGlobeLayers() const { return NUM_GLOBE_LAYER_TYPES; }
 //
 // non-inline versions
 // <advc.003f>
-CvMap& CvGlobals::getMapExternal() { return getMapINLINE(); }
-CvGameAI& CvGlobals::getGameExternal() { return getGameINLINE(); } // </advc.003f>
+CvMap& CvGlobals::getMapExternal() { return getMap(); }
+CvGameAI& CvGlobals::getGameExternal() { return getGame(); } // </advc.003f>
 CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
 
 int CvGlobals::getMaxCivPlayers() const
@@ -3856,7 +3856,7 @@ void CvGlobals::SetGraphicsInitialized(bool bVal) {
 		return;
 	m_bGraphicsInitialized = bVal;
 	if(m_bGraphicsInitialized)
-		getGameINLINE().onGraphicsInitialized();
+		getGame().onGraphicsInitialized();
 }
 void CvGlobals::setInterface(CvInterface* pVal) { m_interface = pVal; }
 void CvGlobals::setDiplomacyScreen(CvDiplomacyScreen* pVal) { m_diplomacyScreen = pVal; }

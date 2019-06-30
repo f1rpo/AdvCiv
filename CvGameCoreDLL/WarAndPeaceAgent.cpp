@@ -351,7 +351,7 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 		if(isNaval) {
 			if(targetCity!= NULL && (GET_TEAM(targetCity->getTeam()).
 					AI_isPrimaryArea(&a) || 3 * a.getCitiesPerPlayer(
-					targetCity->getOwnerINLINE()) > a.getCitiesPerPlayer(
+					targetCity->getOwner()) > a.getCitiesPerPlayer(
 					member.getID()))) {
 				WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
 				if(!isPushover(targetCity->getTeam()) ||
@@ -389,7 +389,7 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 	std::set_difference(areasToAlign.begin(), areasToAlign.end(),
 					areasNotToAlign.begin(), areasNotToAlign.end(),
 					std::inserter(diff, diff.begin()));
-	CvMap& m = GC.getMapINLINE();
+	CvMap& m = GC.getMap();
 	for(std::set<int>::const_iterator it = diff.begin(); it != diff.end(); it++) {
 		CvArea& a = *m.getArea(*it);
 		AreaAITypes oldAAI = a.getAreaAIType(agentId);
@@ -477,9 +477,9 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 						return false;
 				}
 			}
-			CvMap const& m = GC.getMapINLINE();
+			CvMap const& m = GC.getMap();
 			// 12 turns for a Standard-size map, 9 on Small
-			int timeout = std::max(m.getGridWidthINLINE(), m.getGridHeightINLINE()) / 7;
+			int timeout = std::max(m.getGridWidth(), m.getGridHeight()) / 7;
 			// Checking missions is a bit costly, don't do it if timeout isn't near.
 			if(wpAge > timeout) {
 				// Akin to code in CvTeamAI::AI_endWarVal
@@ -819,7 +819,7 @@ bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
 				pDiplo->setTheirOfferList(ourList);
 				gDLL->beginDiplomacy(pDiplo, masterLeader.getID());
 			}
-			else GC.getGameINLINE().implementDeal(ourLeader.getID(),
+			else GC.getGame().implementDeal(ourLeader.getID(),
 					masterLeader.getID(), &ourList, &theirList);
 		}
 		return false;
@@ -1040,7 +1040,7 @@ bool WarAndPeaceAI::Team::considerConcludePreparations(TeamTypes targetId, int u
 		int u0 = eval.evaluate(directWp);
 		report->log("Utility of immediate switch to direct war plan: %d", u0);
 		if(u0 > 0) {
-			double rand = GC.getGameINLINE().getSorenRandNum(100000, "advc.104")
+			double rand = GC.getGame().getSorenRandNum(100000, "advc.104")
 					/ 100000.0;
 			/*  The more time remains, the longer we'd still have to wait in order
 				to get utility u. Therefore low thresh if high timeRemaining. 
@@ -1145,7 +1145,7 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 	/*  Low u suggests that we're not sure that we'll need help. Also,
 		war evaluation doesn't account for MEMORY_HIRED_WAR_ALLY and
 		CvTeam::makeUnwillingToTalk (advc.104o). */
-	if(u < 5 + 9 * ::hash(GC.getGameINLINE().getGameTurn(),
+	if(u < 5 + 9 * ::hash(GC.getGame().getGameTurn(),
 			GET_TEAM(agentId).getLeaderID()))
 		return 0;
 	// NB: declareWarTrade applies an additional threshold
@@ -1266,7 +1266,7 @@ void WarAndPeaceAI::Team::scheme() {
 			double const lww = limitedWarWeight();
 			if(lww < 0.99 || lww > 1.01)
 				report->log("Bias for/against limited war: %d percent", ::round(100 * lww));
-			int const padding = GC.getGameINLINE().getSorenRandNum(40,
+			int const padding = GC.getGame().getSorenRandNum(40,
 					"advc.104 (total vs. limited)");
 			total = (uTotal + padding > (padding + uLimited) * lww);
 		}
@@ -1471,7 +1471,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	std::vector<long> hashInput;
 	/*  Allow hash to change w/e the target's rank or our attitude toward the
 		sponsor changes */
-	hashInput.push_back(GC.getGameINLINE().getRankTeam(targetId));
+	hashInput.push_back(GC.getGame().getRankTeam(targetId));
 	hashInput.push_back(towardSponsor);
 	double h = ::hash(hashInput, agent.getLeaderID());
 	// 0.25 if pleased, 0.5 cautious, 1 furious
@@ -1632,7 +1632,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 					/*  This means that the human player may want to make peace
 						right away when the AI becomes willing to talk b/c the
 						AI could change its mind again on the next turn. */
-					if(::hash((GC.getGameINLINE().getGameTurn() -
+					if(::hash((GC.getGame().getGameTurn() -
 							/*  Integer division to avoid flickering, e.g.
 								when aiReluct/-50.0 is about 0.5. Don't just
 								hash game turn b/c that would mean that the
@@ -1899,7 +1899,7 @@ void WarAndPeaceAI::Team::startReport() {
 	report = new WarAndPeaceReport(!doReport);
 	if(!doReport)
 		return;
-	int year = GC.getGameINLINE().getGameTurnYear();
+	int year = GC.getGame().getGameTurnYear();
 	report->log("h3.");
 	report->log("Year %d, %s:", year, report->teamName(agentId));
 	for(size_t i = 0; i < members.size(); i++)
@@ -1922,7 +1922,7 @@ bool WarAndPeaceAI::Team::isReportTurn() const {
 
 	if(bForceReport)
 		return true;
-	int turnNumber = GC.getGameINLINE().getGameTurn();
+	int turnNumber = GC.getGame().getGameTurn();
 	int reportInterval = GC.getDefineINT("REPORT_INTERVAL");
 	return (reportInterval > 0 && turnNumber % reportInterval == 0);
 }
@@ -1939,7 +1939,7 @@ void WarAndPeaceAI::Team::showWarPlanAbandonedMsg(TeamTypes targetId) {
 
 void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
 
-	CvPlayer& activePl = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+	CvPlayer& activePl = GET_PLAYER(GC.getGame().getActivePlayer());
 	if(!activePl.isSpectator() || GC.getDefineINT("UWAI_SPECTATOR_ENABLED") <= 0)
 		return;
 	CvWString szBuffer = gDLL->getText(txtKey,
@@ -2035,7 +2035,7 @@ bool WarAndPeaceAI::Team::isFastRoads() const {
 double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 		bool forceUN) const {
 
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	VoteSourceTypes voteSource = GET_TEAM(agentId).AI_getLatestVictoryVoteSource();
 	bool isUN = false;
 	if(voteSource == NO_VOTESOURCE)
@@ -2317,7 +2317,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	double prSuccess = 0.5 - we.AI_prDenyHelp();
 	// Can't use sync'd RNG here, but don't want the outcome to change after reload.
 	std::vector<long> inputs;
-	inputs.push_back(GC.getGameINLINE().getGameTurn());
+	inputs.push_back(GC.getGame().getGameTurn());
 	inputs.push_back(tradeVal);
 	if(::hash(inputs, weId) < prSuccess)
 		return true;
@@ -2374,7 +2374,7 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 		situations when a deal is possible but AI_counterPropose doesn't find it.
 		It would also be slower. */
 	// <advc.705>
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL) &&
 			g.getRiseFall().isCooperationRestricted(weId) &&
 			TEAMREF(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 20)
@@ -2436,7 +2436,7 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 
 	// Based on how long it would take us to produce as much trade value
 	double speedFactor = 1;
-	int trainPercent = GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+	int trainPercent = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
 			getTrainPercent();
 	if(trainPercent > 0)
 		speedFactor = 100.0 / trainPercent;
@@ -2573,7 +2573,7 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 	double r = 0.25; // 30 is about average, Gandhi 15
 	if(human.getCurrentEra() == 0)
 		r += 0.1;
-	if(GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
 			human.getCurrentEra() <= 2)
 		r += 0.05;
 	return r;
@@ -2583,7 +2583,7 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 	future. Could e.g. check if 'weId' is able to see the demographics of 'civId'. */
 double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
 
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	period *= GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent();
 	period /= 100;
 	if(g.getElapsedGameTurns() < period + 1)

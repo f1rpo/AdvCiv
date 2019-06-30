@@ -184,7 +184,7 @@ bool CvSelectionGroupAI::AI_update()
 					TCHAR szOut[1024];
 					CvWString szTempString;
 					getUnitAIString(szTempString, pHeadUnit->AI_getUnitAIType());
-					sprintf(szOut, "Unit stuck in loop: %S(%S)[%d, %d] (%S)\n", pHeadUnit->getName().GetCString(), GET_PLAYER(pHeadUnit->getOwnerINLINE()).getName(),
+					sprintf(szOut, "Unit stuck in loop: %S(%S)[%d, %d] (%S)\n", pHeadUnit->getName().GetCString(), GET_PLAYER(pHeadUnit->getOwner()).getName(),
 						pHeadUnit->getX(), pHeadUnit->getY(), szTempString.GetCString());
 					gDLL->messageControlLog(szOut);
 				}
@@ -296,7 +296,7 @@ bool CvSelectionGroupAI::AI_update()
 		}
 	}
 	// <advc.test>
-	/*if(GC.getRandLogging() && !GC.getGameINLINE().checkInSync()) {
+	/*if(GC.getRandLogging() && !GC.getGame().checkInSync()) {
 		CvUnit* pHeadUnit = getHeadUnit(); // for inspection in debugger
 		FAssert(false);
 	}*/ // </advc.test>
@@ -352,7 +352,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	bool bHuman = (pUnitNode == NULL ? true :
-			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman());
+			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwner()).isHuman());
 	FAssert(!bMaxSurvival || bHuman); // advc.048
 	while (pUnitNode != NULL)
 	{
@@ -444,7 +444,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	// <advc.048> Copied from AI_getBestGroupAttacker
 	bool bHuman = (pUnitNode == NULL ? true :
-			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman());
+			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwner()).isHuman());
 	// </advc.048>
 	while (pUnitNode != NULL)
 	{
@@ -754,7 +754,7 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot)
 
 CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot()
 {
-	return GC.getMapINLINE().plotSorenINLINE(m_iMissionAIX, m_iMissionAIY);
+	return GC.getMap().plotSoren(m_iMissionAIX, m_iMissionAIY);
 }
 
 

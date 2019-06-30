@@ -103,12 +103,12 @@ int WarAndPeaceAI::maxLandDist() const {
 
 int WarAndPeaceAI::maxSeaDist() const {
 
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	int r = 15;
 	// That's true for Large and Huge maps
-	if(m.getGridWidthINLINE() > 100 || m.getGridHeightINLINE() > 100)
+	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
 		r = 18;
-	if(!m.isWrapXINLINE() && !m.isWrapYINLINE())
+	if(!m.isWrapX() && !m.isWrapY())
 		r = (r * 6) / 5;
 	return r;
 }
@@ -118,7 +118,7 @@ bool WarAndPeaceAI::isUpdated() const {
 	/*  In scenarios, CvTeamAI functions aren't properly called during the first
 		turn. Should skip war planning in the first two turns to make sure that
 		all AI data is properly initialized and updated. */
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	return (!g.isScenario() || g.getElapsedGameTurns() > 1);
 }
 

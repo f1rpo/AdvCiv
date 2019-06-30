@@ -80,7 +80,7 @@ void RFChapterScore::atChapterStart(RFChapter const& rfc) {
 	chapter = &rfc;
 	/*  Sometimes updated before the start of the first chapter anyway, but 
 		not guaranteed. */
-	GC.getGameINLINE().updateScore(true);
+	GC.getGame().updateScore(true);
 	std::pair<int,int> rank_rivals = computeRank(true);
 	initialRank = rank_rivals.first;
 	initialRivals = rank_rivals.second;
@@ -95,7 +95,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	}
 	double ourRank = 1;
 	int ourRivals = 0;
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	CvPlayerAI const& we = GET_PLAYER(chapter->getCiv());
 	bool weVassal = we.isAVassal();
 	int ourVictStage = g.getRiseFall().victoryStage(we.getID());
@@ -140,7 +140,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 
 int RFChapterScore::modifiedCivScore(PlayerTypes civId) const {
 
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	/*  Count winning AI as having the highest score. Could also be an
 		AI civ that the human player still gets score for, but not the current
 		human civ. */
@@ -153,12 +153,12 @@ void RFChapterScore::update() {
 
 	if(chapter == NULL || initialRank <= 0)
 		return;
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	if(chapter->isScored()) { // Freeze data upon scoring
 		updateString();
 		return;
 	}
-	GC.getGameINLINE().updateScore(); // Necessary when update triggered by elimination
+	GC.getGame().updateScore(); // Necessary when update triggered by elimination
 	/*  Could apply victory stages only to initial ranks by calling
 		computeRank with ignoreVictStage=true here. */
 	rank = computeRank(false).first;

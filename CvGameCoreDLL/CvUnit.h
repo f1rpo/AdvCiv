@@ -653,12 +653,12 @@ public:
 	void collectBlockadeGold();
 
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-#ifdef _USRDLL
-	inline PlayerTypes getOwnerINLINE() const
+	#ifdef _USRDLL
+	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
 	{
 		return m_eOwner;
 	}
-#endif
+	#endif
 	DllExport PlayerTypes getVisualOwner(TeamTypes eForTeam = NO_TEAM) const;																									// Exposed to Python
 	PlayerTypes getCombatOwner(TeamTypes eForTeam, const CvPlot* pPlot) const;																									// Exposed to Python
 	DllExport TeamTypes getTeam() const;																										// Exposed to Python

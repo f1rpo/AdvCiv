@@ -115,22 +115,22 @@ public:
 	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
 	{
 		if(eDirection == NO_DIRECTION)
-			return plotINLINE(iX, iY);
-		else return plotINLINE(
+			return plot(iX, iY);
+		else return plot(
 				iX + GC.getPlotDirectionX()[eDirection],
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
 
 	inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection) const
 	{
-		return plotINLINE(
+		return plot(
 			iX + GC.getPlotCardinalDirectionX()[eCardinalDirection],
 			iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]);
 	}
 
 	inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY) const
 	{
-		return plotINLINE(iX + iDX, iY + iDY);
+		return plot(iX + iDX, iY + iDY);
 	}
 	// K-Mod start
 	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
@@ -154,22 +154,22 @@ public:
 
 	inline int dxWrap(int iDX) const
 	{
-		return wrapCoordDifference(iDX, getGridWidthINLINE(), isWrapXINLINE());
+		return wrapCoordDifference(iDX, getGridWidth(), isWrapX());
 	}
 
 	inline int dyWrap(int iDY) const
 	{
-		return wrapCoordDifference(iDY, getGridHeightINLINE(), isWrapYINLINE());
+		return wrapCoordDifference(iDY, getGridHeight(), isWrapY());
 	}
 
 	inline int xDistance(int iFromX, int iToX) const
 	{
-		return coordDistance(iFromX, iToX, getGridWidthINLINE(), isWrapXINLINE());
+		return coordDistance(iFromX, iToX, getGridWidth(), isWrapX());
 	}
 
 	inline int yDistance(int iFromY, int iToY) const
 	{
-		return coordDistance(iFromY, iToY, getGridHeightINLINE(), isWrapYINLINE());
+		return coordDistance(iFromY, iToY, getGridHeight(), isWrapY());
 	}
 private: // Auxiliary functions
 	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
@@ -264,26 +264,26 @@ public: // advc.003: made several functions const
 	bool findWater(CvPlot* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
 	bool isPlotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline int isPlotINLINE(int iX, int iY) const
+	#ifdef _USRDLL
+	inline int isPlot(int iX, int iY) const // advc.003f: Renamed from isPlotINLINE
 	{
-		return (iX >= 0 && iX < getGridWidthINLINE() && iY >= 0 && iY < getGridHeightINLINE());
+		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
-#endif
+	#endif
 	int numPlotsExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline int numPlotsINLINE() const
+	#ifdef _USRDLL
+	inline int numPlots() const // advc.003f: Renamed from numPlotsINLINE
 	{
-		return getGridWidthINLINE() * getGridHeightINLINE();
+		return getGridWidth() * getGridHeight();
 	}
-#endif
+	#endif
 	int plotNumExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline int plotNumINLINE(int iX, int iY) const
+	#ifdef _USRDLL
+	inline int plotNum(int iX, int iY) const // advc.003f: Renamed from plotNumINLINE
 	{
-		return ((iY * getGridWidthINLINE()) + iX);
+		return ((iY * getGridWidth()) + iX);
 	}
-#endif
+	#endif
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
@@ -301,19 +301,19 @@ public: // advc.003: made several functions const
 	int maxMaintenanceDistance() const; // advc.140
 
 	int getGridWidthExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline int getGridWidthINLINE() const
+	#ifdef _USRDLL
+	inline int getGridWidth() const // advc.003f: Renamed from getGridWidthINLINE
 	{
 		return m_iGridWidth;
 	}
-#endif
+	#endif
 	int getGridHeightExternal() const; // advc.003f: Exported through .def file							// Exposed to Python																	// Exposed to Python
-#ifdef _USRDLL
-	inline int getGridHeightINLINE() const
+	#ifdef _USRDLL
+	inline int getGridHeight() const // advc.003f: Renamed from getGridHeightINLINE
 	{
 		return m_iGridHeight;
 	}
-#endif
+	#endif
 	int getLandPlots() const;																					// Exposed to Python
 	void changeLandPlots(int iChange);
 
@@ -327,26 +327,20 @@ public: // advc.003: made several functions const
 	void incrementNextRiverID();																					// Exposed to Python
 
 	bool isWrapXExternal(); // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline bool isWrapXINLINE() const
-	{
-		return m_bWrapX;
-	}
-#endif
+	#ifdef _USRDLL
+	inline bool isWrapX() const { return m_bWrapX; } // advc.003f: Renamed from isWrapXINLINE
+	#endif
 	bool isWrapYExternal(); // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline bool isWrapYINLINE() const
-	{
-		return m_bWrapY;
-	}
-#endif
+	#ifdef _USRDLL
+	inline bool isWrapY() const { return m_bWrapY; } // advc.003f: Renamed from isWrapYINLINE
+	#endif
 	bool isWrapExternal(); // advc.003f: Exported through .def file
-#ifdef _USRDLL
-	inline bool isWrapINLINE() const
+	#ifdef _USRDLL
+	inline bool isWrap() const // advc.003f: Renamed from isWrapINLINE
 	{
 		return m_bWrapX || m_bWrapY;
 	}
-#endif
+	#endif
 	DllExport WorldSizeTypes getWorldSize()															// Exposed to Python
 	// <advc.003> Need a const version
 	{	CvMap const& kThis = *this;
@@ -365,34 +359,34 @@ public: // advc.003: made several functions const
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
 	CvPlot* plotByIndexExternal(int iIndex) const; // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	inline CvPlot* plotByIndexINLINE(int iIndex) const
+	#ifdef _USRDLL
+	inline CvPlot* plotByIndex(int iIndex) const // advc.003f: Renamed from plotByIndexINLINE
 	{
-		return ((iIndex >= 0 && iIndex < getGridWidthINLINE() * getGridHeightINLINE()) ?
+		return ((iIndex >= 0 && iIndex < getGridWidth() * getGridHeight()) ?
 				&(m_pMapPlots[iIndex]) : NULL);
 	}
-#endif
+	#endif
 	CvPlot* plotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-#ifdef _USRDLL
-	__forceinline CvPlot* plotINLINE(int iX, int iY) const
+	#ifdef _USRDLL
+	__forceinline CvPlot* plot(int iX, int iY) const // advc.003f: Renamed from plotINLINE
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 		{
 			return NULL;
 		}
-		int iMapX = coordRange(iX, getGridWidthINLINE(), isWrapXINLINE());
-		int iMapY = coordRange(iY, getGridHeightINLINE(), isWrapYINLINE());
-		return (isPlotINLINE(iMapX, iMapY) ? &(m_pMapPlots[plotNumINLINE(iMapX, iMapY)]) : NULL);
+		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
+		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
+		return (isPlot(iMapX, iMapY) ? &(m_pMapPlots[plotNum(iMapX, iMapY)]) : NULL);
 	}
-	__forceinline CvPlot* plotSorenINLINE(int iX, int iY) const
+	__forceinline CvPlot* plotSoren(int iX, int iY) const // advc.003f: Renamed from plotSorenINLINE
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 		{
 			return NULL;
 		}
-		return &(m_pMapPlots[plotNumINLINE(iX, iY)]);
+		return &(m_pMapPlots[plotNum(iX, iY)]);
 	}
-#endif
+	#endif
 	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
 
 	int getIndexAfterLastArea() const;														// Exposed to Python
@@ -457,34 +451,34 @@ protected:
 /* <advc.make> Global wrappers for distance functions. The int versions are
 	exposed to Python */
 inline int plotDistance(int iX1, int iY1, int iX2, int iY2) {
-	return GC.getMapINLINE().plotDistance(iX1, iY1, iX2, iY2);
+	return GC.getMap().plotDistance(iX1, iY1, iX2, iY2);
 }
 inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2) {
-	return GC.getMapINLINE().plotDistance(plot1, plot2);
+	return GC.getMap().plotDistance(plot1, plot2);
 }
 inline int stepDistance(int iX1, int iY1, int iX2, int iY2) {
-	return GC.getMapINLINE().stepDistance(iX1, iY1, iX2, iY2);
+	return GC.getMap().stepDistance(iX1, iY1, iX2, iY2);
 }
 inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2) {
-	return GC.getMapINLINE().stepDistance(plot1, plot2);
+	return GC.getMap().stepDistance(plot1, plot2);
 }
 inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) {
-	return GC.getMapINLINE().plotDirection(iX, iY, eDirection);
+	return GC.getMap().plotDirection(iX, iY, eDirection);
 }
 inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection)	{
-	return GC.getMapINLINE().plotCardinalDirection(iX, iY, eCardinalDirection);
+	return GC.getMap().plotCardinalDirection(iX, iY, eCardinalDirection);
 }
 inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY)	{
-	return GC.getMapINLINE().plotXY(iX, iY, iDX, iDY);
+	return GC.getMap().plotXY(iX, iY, iDX, iDY);
 }
 inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) {
-	return GC.getMapINLINE().plotXY(pPlot, iDX, iDY);
+	return GC.getMap().plotXY(pPlot, iDX, iDY);
 }
 inline DirectionTypes directionXY(int iDX, int iDY)	{
-	return GC.getMapINLINE().directionXY(iDX, iDY);
+	return GC.getMap().directionXY(iDX, iDY);
 }
 inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) {
-	return GC.getMapINLINE().directionXY(pFromPlot, pToPlot);
+	return GC.getMap().directionXY(pFromPlot, pToPlot);
 }
 // </advc.make>
 #endif

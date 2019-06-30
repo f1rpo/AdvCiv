@@ -226,12 +226,12 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 	case MESSAGE_TYPE_MAJOR_EVENT:
 	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		// never expires
-		//iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		//iExpireTurn = GC.getGame().getGameTurn() + 1;
 		iExpireTurn += 100; // advc.106b
 		break;
 	case MESSAGE_TYPE_DISPLAY_ONLY:
 		// never saved
-		iExpireTurn = GC.getGameINLINE().getGameTurn() - 1;
+		iExpireTurn = GC.getGame().getGameTurn() - 1;
 		break;
 	// <advc.106b>
 	case MESSAGE_TYPE_EOT:
@@ -251,14 +251,14 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
     case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
 	case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;
 	case MESSAGE_TYPE_QUEST:
-		iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		iExpireTurn = GC.getGame().getGameTurn() + 1;
 		break;
 	case MESSAGE_TYPE_MAJOR_EVENT:
 	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		iExpireTurn += 50;
 		break;
 	default:
-		iExpireTurn = GC.getGameINLINE().getGameTurn() - 1;
+		iExpireTurn = GC.getGame().getGameTurn() - 1;
 		break;
 	}
 	return iExpireTurn; // </advc.700>

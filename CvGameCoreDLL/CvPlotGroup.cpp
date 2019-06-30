@@ -90,7 +90,7 @@ void CvPlotGroup::removePlot(CvPlot* pPlot)
 
 	while (pPlotNode != NULL)
 	{
-		if (GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY) == pPlot)
+		if (GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY) == pPlot)
 		{
 			pPlot->setPlotGroup(getOwner(), NULL);
 
@@ -122,7 +122,7 @@ void CvPlotGroup::recalculatePlots()
 
 	if (pPlotNode != NULL)
 	{
-		pPlot = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 
 		iCount = 0;
 
@@ -146,7 +146,7 @@ void CvPlotGroup::recalculatePlots()
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 1");
 
-			pPlot = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 
 			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
 
@@ -166,7 +166,7 @@ void CvPlotGroup::recalculatePlots()
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 2");
 
-			pPlot = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 
 			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
 
@@ -224,10 +224,10 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 
 	while (pPlotNode != NULL)
 	{
-		CvCity* pCity = GC.getMapINLINE().plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		CvCity* pCity = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
 		if (pCity != NULL)
 		{
-			if (pCity->getOwnerINLINE() == getOwner())
+			if (pCity->getOwner() == getOwner())
 			{
 				pCity->changeNumBonuses(eBonus, iChange);
 			}
@@ -241,11 +241,11 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 void CvPlotGroup::verifyCityProduction() {
 
 	PROFILE_FUNC();
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL) {
-		CvCity* pCity = m.plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
-		if (pCity != NULL && pCity->getOwnerINLINE() == getOwner())
+		CvCity* pCity = m.plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
 		pPlotNode = nextPlotsNode(pPlotNode);
 	}

@@ -46,7 +46,7 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 		pszLog = "bs";
 	if(bAsync)
 		return (GC.getASyncRand().get(10000, pszLog) < iChancePerMyriad);
-    return GC.getGameINLINE().
+    return GC.getGame().
 			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
 }
 
@@ -123,7 +123,7 @@ float hash(vector<long> const& x, PlayerTypes ePlayer) {
 	if(ePlayer != NO_PLAYER) {
 		CvCity* pCapital = GET_PLAYER(ePlayer).getCapitalCity();
 		if(pCapital != NULL) {
-			iCapitalIndex = GC.getMapINLINE().plotNumINLINE(
+			iCapitalIndex = GC.getMap().plotNum(
 					pCapital->plot()->getX(),
 					pCapital->plot()->getY());
 		}
@@ -156,14 +156,14 @@ void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r) {
 		r.push_back(NULL);
 	r[0] = const_cast<CvPlot*>(&pPlot);
 	int pos = 1;
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
 		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++) {
 			// Skip corners and center
 			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
 				continue;
 			// That's NULL if off the map
-			r[pos] = m.plotINLINE(r[0]->getX() + dx, r[0]->getY() + dy);
+			r[pos] = m.plot(r[0]->getX() + dx, r[0]->getY() + dy);
 			pos++;
 		}
 	}
@@ -195,7 +195,7 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 			if(p.isCity())
 				continue;
 			PlayerTypes eSecondOwner = p.getSecondOwner();
-			PlayerTypes eOwner = p.getOwnerINLINE();
+			PlayerTypes eOwner = p.getOwner();
 			if(eOwner == NO_PLAYER || eSecondOwner == NO_PLAYER)
 				continue;
 			TeamTypes eTeam = TEAMID(eOwner);
@@ -244,7 +244,7 @@ void applyColorToString(CvWString& s, char const* szColor, bool bLink) {
 
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {
-	return GC.getMapINLINE().plotINLINE(iX + GC.getCityPlotX()[iIndex], iY + GC.getCityPlotY()[iIndex]);
+	return GC.getMap().plot(iX + GC.getCityPlotX()[iIndex], iY + GC.getCityPlotY()[iIndex]);
 }
 
 int plotCityXY(int iDX, int iDY)
@@ -256,7 +256,7 @@ int plotCityXY(int iDX, int iDY)
 
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
 {
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	return plotCityXY(m.dxWrap(pPlot->getX() - pCity->getX()),
 			m.dyWrap(pPlot->getY() - pCity->getY()));
 }
@@ -324,7 +324,7 @@ DirectionTypes estimateDirection(int iDX, int iDY)
 
 DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot)
 {
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	return estimateDirection(
 			m.dxWrap(pToPlot->getX() - pFromPlot->getX()),
 			m.dyWrap(pToPlot->getY() - pFromPlot->getY()));
@@ -396,9 +396,9 @@ bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
 	FAssert(pSecondUnit != NULL);
 	FAssert(pFirstUnit != pSecondUnit);
 
-	if (pFirstUnit->getOwnerINLINE() != pSecondUnit->getOwnerINLINE())
+	if (pFirstUnit->getOwner() != pSecondUnit->getOwner())
 	{
-		return (pFirstUnit->getOwnerINLINE() < pSecondUnit->getOwnerINLINE());
+		return (pFirstUnit->getOwner() < pSecondUnit->getOwner());
 	}
 
 	if (pFirstUnit->getDomainType() != pSecondUnit->getDomainType())
@@ -720,7 +720,7 @@ int getWorldSizeMaxConscript(CivicTypes eCivic)
 
 	iMaxConscript = GC.getCivicInfo(eCivic).getMaxConscript();
 
-	iMaxConscript *= std::max(0, (GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getMaxConscriptModifier() + 100));
+	iMaxConscript *= std::max(0, (GC.getWorldInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100));
 	iMaxConscript /= 100;
 
 	return iMaxConscript;
@@ -1236,7 +1236,7 @@ int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
 	const CvTeam& kOurTeam = GET_TEAM(eOurTeam);
 	const CvTeam& kTargetTeam = GET_TEAM(eTargetTeam);
 
-	int iPopScale = 5 * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities();
+	int iPopScale = 5 * GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities();
 	int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
 	int iOurPoints = 10 * kOurTeam.getEspionagePointsEver() / std::max(1, iPopScale + kOurTeam.getTotalPopulation(false));
 
@@ -1387,9 +1387,9 @@ bool PUF_isPlayer(const CvUnit* pUnit, int iData1, int iData2)
 	PlayerTypes eOwner = (PlayerTypes)iData1;
 	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner)) {
 		// </advc.061>
-		return (pUnit->getOwnerINLINE() == iData1);
+		return (pUnit->getOwner() == iData1);
 	} // <advc.061>
-	return (pUnit->getOwnerINLINE() == iData1 && !pUnit->isInvisible(eForTeam, false) &&
+	return (pUnit->getOwner() == iData1 && !pUnit->isInvisible(eForTeam, false) &&
 			!pUnit->getUnitInfo().isHiddenNationality()); // </advc.061>
 }
 
@@ -1410,7 +1410,7 @@ bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2)
 bool PUF_isOtherPlayer(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getOwnerINLINE() != iData1);
+	return (pUnit->getOwner() != iData1);
 }
 
 bool PUF_isOtherTeam(const CvUnit* pUnit, int iData1, int iData2)
@@ -1643,7 +1643,7 @@ bool PUF_isUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2)
 
 bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2)
 {
-	return (PUF_isFiniteRange(pUnit,iData1,iData2) && ((GC.getGameINLINE().getGameTurn() - pUnit->getGameTurnCreated()) > 1));
+	return (PUF_isFiniteRange(pUnit,iData1,iData2) && ((GC.getGame().getGameTurn() - pUnit->getGameTurnCreated()) > 1));
 } // BETTER_BTS_AI_MOD: END
 // K-Mod
 bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2)
@@ -1664,7 +1664,7 @@ int potentialIrrigation(FAStarNode* parent, FAStarNode* node, int data, const vo
 		return TRUE;
 	}
 
-	return ((GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isPotentialIrrigation()) ? TRUE : FALSE);
+	return ((GC.getMap().plotSoren(node->m_iX, node->m_iY)->isPotentialIrrigation()) ? TRUE : FALSE);
 }
 
 
@@ -1672,7 +1672,7 @@ int checkFreshWater(FAStarNode* parent, FAStarNode* node, int data, const void* 
 {
 	if (data == ASNL_ADDCLOSED)
 	{
-		if (GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isFreshWater())
+		if (GC.getMap().plotSoren(node->m_iX, node->m_iY)->isFreshWater())
 		{
 			*((bool *)pointer) = true;
 		}
@@ -1686,7 +1686,7 @@ int changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, const void* 
 {
 	if (data == ASNL_ADDCLOSED)
 	{
-		GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->setIrrigated(*((bool *)pointer));
+		GC.getMap().plotSoren(node->m_iX, node->m_iY)->setIrrigated(*((bool *)pointer));
 	}
 
 	return 1;
@@ -1697,7 +1697,7 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pToPlot = GC.getMapINLINE().plotSorenINLINE(iToX, iToY);
+	CvPlot* pToPlot = GC.getMap().plotSoren(iToX, iToY);
 	FAssert(pToPlot);
 
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
@@ -1814,8 +1814,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 {
 	PROFILE_FUNC();
 
-	CvPlot* pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
-	CvPlot* pToPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	FAssert(pFromPlot != NULL);
 	FAssert(pToPlot != NULL);
@@ -1855,7 +1855,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	else if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && (iFlags & MOVE_DECLARE_WAR) &&
 			eTeam != BARBARIAN_TEAM) {
 		PlayerTypes const eSecondOwner = pToPlot->getSecondOwner();
-		PlayerTypes const eFirstOwner = pToPlot->getOwnerINLINE();
+		PlayerTypes const eFirstOwner = pToPlot->getOwner();
 		if(eSecondOwner != NO_PLAYER && eFirstOwner != NO_PLAYER &&
 				((pSelectionGroup->getDomainType() == DOMAIN_SEA) == pToPlot->isWater())) {
 			// Avoid tiles that flip from us to the enemy upon DoW
@@ -1911,8 +1911,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	/* original K-Mod symmetry breaking. (extra cost for turning a corner)
 	if (parent->m_pParent)
 	{
-		const int map_width = GC.getMapINLINE().getGridWidthINLINE();
-		const int map_height = GC.getMapINLINE().getGridHeightINLINE();
+		const int map_width = GC.getMap().getGridWidth();
+		const int map_height = GC.getMap().getGridHeight();
 
 #define WRAP_X(x) ((x) - ((x) > map_width/2 ? map_width : 0) + ((x) < -map_width/2 ? map_width : 0))
 #define WRAP_Y(y) ((y) - ((y) > map_height/2 ? map_height : 0) + ((y) < -map_height/2 ? map_height : 0))
@@ -2172,8 +2172,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags)
 {
-	CvPlot* pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
-	CvPlot* pToPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	FAssert(pFromPlot != NULL);
 	FAssert(pToPlot != NULL);
@@ -2182,9 +2182,10 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 	{
 		if (pFromPlot->isWater() && pToPlot->isWater())
 		{
-			if (!(GC.getMapINLINE().plotINLINE(pFromPlot->getX(), pToPlot->getY())->isWater()) && !(GC.getMapINLINE().plotINLINE(pToPlot->getX(), pFromPlot->getY())->isWater()))
+			if (!GC.getMap().plot(pFromPlot->getX(), pToPlot->getY())->isWater() &&
+					!GC.getMap().plot(pToPlot->getX(), pFromPlot->getY())->isWater())
 			{
-				if( !(pSelectionGroup->canMoveAllTerrain()) )
+				if (!pSelectionGroup->canMoveAllTerrain())
 				{
 					return FALSE;
 				}
@@ -2197,8 +2198,8 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags)
 {
 	PROFILE_FUNC();
-	CvPlot* pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
-	//CvPlot* pToPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	//CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	if (pSelectionGroup->atPlot(pFromPlot))
 	{
@@ -2215,7 +2216,7 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 			}
 		}
 
-		if (!(pFromPlot->isRevealed(pSelectionGroup->getHeadTeam(), false)))
+		if (!pFromPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
 		{
 			return FALSE;
 		}
@@ -2224,7 +2225,7 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 	if(iFlags & MOVE_ROUTE_TO) {
 		if(pFromPlot->getRevealedRouteType(pSelectionGroup->getHeadTeam(), false) ==
 			NO_ROUTE && !pSelectionGroup->isHuman()) {
-			PlayerTypes eOwner = pFromPlot->getOwnerINLINE();
+			PlayerTypes eOwner = pFromPlot->getOwner();
 			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
 				return FALSE;
 		}
@@ -2245,11 +2246,11 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 
 	if (bAIControl)
 	{
-		if ((parent->m_iData2 > 1) || (parent->m_iData1 == 0))
+		if (parent->m_iData2 > 1 || parent->m_iData1 == 0)
 		{
 			if (!(iFlags & MOVE_IGNORE_DANGER))
 			{
-				if (!(pSelectionGroup->canFight()) && !(pSelectionGroup->alwaysInvisible()))
+				if (!pSelectionGroup->canFight() && !pSelectionGroup->alwaysInvisible())
 				{
 					if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_getAnyPlotDanger(pFromPlot))
 					{
@@ -2262,22 +2263,22 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 
 	if (bAIControl || pFromPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
 	{
-		//if (iFlags & MOVE_THROUGH_ENEMY)
-		if (iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK)) // K-Mod
+		if (iFlags & (MOVE_THROUGH_ENEMY
+				| MOVE_ATTACK_STACK)) // K-Mod
 		{
-			//if (!(pSelectionGroup->canMoveOrAttackInto(pFromPlot)))
-			if (!pSelectionGroup->canMoveOrAttackInto(pFromPlot, iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman())) // K-Mod
-			{
+			if (!pSelectionGroup->canMoveOrAttackInto(pFromPlot,
+					// K-Mod:
+					iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman()))
 				return FALSE;
-			}
 		}
 		else
 		{
-			//if (!(pSelectionGroup->canMoveThrough(pFromPlot)))
-			if (!pSelectionGroup->canMoveThrough(pFromPlot, iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman(), iFlags & MOVE_ASSUME_VISIBLE || !pSelectionGroup->isHuman())) // K-Mod
-			{
+			if (!pSelectionGroup->canMoveThrough(pFromPlot,
+					// K-Mod
+					iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman(),
+					iFlags & MOVE_ASSUME_VISIBLE || !pSelectionGroup->isHuman()))
+					// K-Mod end
 				return FALSE;
-			}
 		}
 	}
 	// K-Mod. Note: it's currently difficult to extract the vision-cheating part of this AI,
@@ -2292,7 +2293,7 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 		int iEnemyDefence;
 		if (pFromPlot->isVisible(pSelectionGroup->getHeadTeam(), false))
 		{
-			iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwnerINLINE()).AI_localDefenceStrength(pToPlot, NO_TEAM, pSelectionGroup->getDomainType(), 0, true, false, pSelectionGroup->isHuman());
+			iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).AI_localDefenceStrength(pToPlot, NO_TEAM, pSelectionGroup->getDomainType(), 0, true, false, pSelectionGroup->isHuman());
 		}
 		else
 		{
@@ -2331,8 +2332,8 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	// <advc.003> Was unused apart from the assert
 	/*CvPlot* pFromPlot = ...;
 	CvPlot* pToPlot = ...; */
-	FAssert(GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY) != NULL);
-	FAssert(GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY) != NULL);
+	FAssert(GC.getMap().plotSoren(parent->m_iX, parent->m_iY) != NULL);
+	FAssert(GC.getMap().plotSoren(node->m_iX, node->m_iY) != NULL);
 	// </advc.003>
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
@@ -2372,9 +2373,9 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 	}
 	else
 	{
-		CvPlot* pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
+		CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
 		FAssertMsg(pFromPlot != NULL, "FromPlot is not assigned a valid value");
-		CvPlot* pToPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+		CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 		FAssertMsg(pToPlot != NULL, "ToPlot is not assigned a valid value");
 
 		int iStartMoves = parent->m_iData1;
@@ -2440,7 +2441,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			while (pStartNode->m_iData2 == iTurns && pStartNode->m_pParent)
 			{
 				pStartNode = pStartNode->m_pParent;
-				plot_list.push_back(GC.getMapINLINE().plotSorenINLINE(pStartNode->m_iX, pStartNode->m_iY));
+				plot_list.push_back(GC.getMap().plotSoren(pStartNode->m_iX, pStartNode->m_iY));
 			}
 			iMoves = MAX_INT;
 			bool bMaxMoves = pStartNode->m_iData1 == 0 || iFlags & MOVE_MAX_MOVES;
@@ -2480,9 +2481,9 @@ int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 	CvPlot* pFromPlot;
 	CvPlot* pToPlot;
 
-	pFromPlot = GC.getMapINLINE().plotSorenINLINE(gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
+	pFromPlot = GC.getMap().plotSoren(gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
 	FAssert(pFromPlot != NULL);
-	pToPlot = GC.getMapINLINE().plotSorenINLINE(iToX, iToY);
+	pToPlot = GC.getMap().plotSoren(iToX, iToY);
 	FAssert(pToPlot != NULL);
 
 	if (pFromPlot->area() != pToPlot->area())
@@ -2496,7 +2497,7 @@ int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 // <advc.104b> Rule out (basically) no destinations; let teamStepValid_advc decide
 int stepDestValid_advc(int iToX, int iToY, const void* pointer, FAStar* finder) {
 
-	CvPlot* pToPlot = GC.getMapINLINE().plotSorenINLINE(iToX, iToY);
+	CvPlot* pToPlot = GC.getMap().plotSoren(iToX, iToY);
 	if(pToPlot == NULL || pToPlot->isImpassable())
 		return FALSE;
 	return TRUE;
@@ -2508,14 +2509,14 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 
 	if(parent == NULL)
 		return TRUE;
-	CvMap const& m = GC.getMapINLINE();
-	CvPlot const& kToPlot = *m.plotSorenINLINE(node->m_iX, node->m_iY);
+	CvMap const& m = GC.getMap();
+	CvPlot const& kToPlot = *m.plotSoren(node->m_iX, node->m_iY);
 	if(kToPlot.isImpassable())
 		return FALSE;
-	CvPlot const& kFromPlot = *m.plotSorenINLINE(parent->m_iX, parent->m_iY);
+	CvPlot const& kFromPlot = *m.plotSoren(parent->m_iX, parent->m_iY);
 	if(kFromPlot.isWater() && kToPlot.isWater() &&
-			!m.plotINLINE(parent->m_iX, node->m_iY)->isWater() &&
-			!m.plotINLINE(node->m_iX, parent->m_iY)->isWater())
+			!m.plot(parent->m_iX, node->m_iY)->isWater() &&
+			!m.plot(node->m_iX, parent->m_iY)->isWater())
 		return FALSE;
 	TeamTypes ePlotTeam = kToPlot.getTeam();
 	int* v = (int*)pointer;
@@ -2596,14 +2597,14 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 		return TRUE;
 	}
 
-	pNewPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	if (pNewPlot->isImpassable())
 	{
 		return FALSE;
 	}
 
-	CvPlot* pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
+	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
 	if (pFromPlot->area() != pNewPlot->area())
 	{
 		return FALSE;
@@ -2613,7 +2614,7 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 		Don't count diagonal hops across land isthmus */
 	if (pFromPlot->isWater() && pNewPlot->isWater())
 	{
-		if (!(GC.getMapINLINE().plotINLINE(parent->m_iX, node->m_iY)->isWater()) && !(GC.getMapINLINE().plotINLINE(node->m_iX, parent->m_iY)->isWater()))
+		if (!(GC.getMap().plot(parent->m_iX, node->m_iY)->isWater()) && !(GC.getMap().plot(node->m_iX, parent->m_iY)->isWater()))
 		{
 			return FALSE;
 		}
@@ -2634,14 +2635,14 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return TRUE;
 	}
 
-	pNewPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	if (pNewPlot->isImpassable())
 	{
 		return FALSE;
 	}
 
-	CvPlot* pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
+	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
 
 	if (pFromPlot->area() != pNewPlot->area())
 	{
@@ -2651,7 +2652,7 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 	// Don't count diagonal hops across land isthmus
 	if (pFromPlot->isWater() && pNewPlot->isWater())
 	{
-		if (!(GC.getMapINLINE().plotINLINE(parent->m_iX, node->m_iY)->isWater()) && !(GC.getMapINLINE().plotINLINE(node->m_iX, parent->m_iY)->isWater()))
+		if (!(GC.getMap().plot(parent->m_iX, node->m_iY)->isWater()) && !(GC.getMap().plot(node->m_iX, parent->m_iY)->isWater()))
 		{
 			return FALSE;
 		}
@@ -2724,7 +2725,7 @@ int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* point
 		return TRUE;
 	}
 
-	pNewPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
 
@@ -2750,7 +2751,7 @@ int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* poin
 		return TRUE;
 	}
 
-	pNewPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
 
@@ -2769,15 +2770,15 @@ int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	{
 		return TRUE;
 	}
-	return ((GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() == GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater()) ? TRUE : FALSE);
+	return ((GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() == GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater()) ? TRUE : FALSE);
 	// (advc.030 takes care of this)
 	// BETTER_BTS_AI_MOD, General AI, 10/02/09, jdog5000
 	// BBAI TODO: Why doesn't this work to break water and ice into separate area?
-	/*if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
+	/*if( GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() != GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater() )
 	return FALSE;
 	// Ice blocks become their own area
-	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() && GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() ) {
-		if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isImpassable() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isImpassable() )
+	if( GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() && GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater() ) {
+		if( GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isImpassable() != GC.getMap().plotSoren(node->m_iX, node->m_iY)->isImpassable() )
 			return FALSE;
 	}
 	return TRUE;*/
@@ -2788,7 +2789,7 @@ int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 {
 	if (data == ASNL_ADDCLOSED)
 	{
-		GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->setArea(gDLL->getFAStarIFace()->GetInfo(finder));
+		GC.getMap().plotSoren(node->m_iX, node->m_iY)->setArea(gDLL->getFAStarIFace()->GetInfo(finder));
 	}
 
 	return 1;
@@ -2806,8 +2807,8 @@ int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* p
 		return TRUE;
 	}
 
-	pOldPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
-	pNewPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	pOldPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
 	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();

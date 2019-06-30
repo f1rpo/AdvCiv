@@ -159,7 +159,7 @@ int WarEvaluator::defaultPreparationTime(WarPlanTypes wp) {
 		else baseTime = WarAndPeaceAI::preparationTimeLimited;
 	}
 	int r = std::max(baseTime - age, 0);
-	r *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getTrainPercent();
+	r *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
 	r = ::round(r / 100.0);
 	return r;
 }

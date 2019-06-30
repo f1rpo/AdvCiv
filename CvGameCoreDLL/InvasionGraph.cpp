@@ -808,7 +808,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		   match an average case. */
 		if(!conquests.empty()) {
 			CvCity const& latestConq = *conquests[conquests.size() - 1]->city();
-			if(latestConq.getOwnerINLINE() == defender.id &&
+			if(latestConq.getOwner() == defender.id &&
 					latestConq.area() == cvCity->area()) {
 				deploymentDistAttacker *= 0.6;
 				// Will have to wait for some units to heal then though
@@ -1394,9 +1394,9 @@ CvArea* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
 		if(citiesMin <= 0)
 			continue;
 		if(c->isCapital()) {
-			if(c->getOwnerINLINE() == civ1.getID())
+			if(c->getOwner() == civ1.getID())
 				citiesMin++;
-			if(c->getOwnerINLINE() == civ2.getID())
+			if(c->getOwner() == civ2.getID())
 				citiesMin++;
 		}
 		if(citiesMin > maxCities) {
@@ -1482,7 +1482,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 			if(!isEliminated() && !nodeTeam.isAVassal() &&
 					!attackerTeam.isAVassal() &&
 					attackerTeam.isVassalStateTrading() &&
-					!GC.getGameINLINE().isOption(GAMEOPTION_NO_VASSAL_STATES) &&
+					!GC.getGame().isOption(GAMEOPTION_NO_VASSAL_STATES) &&
 					// Don't expect node to capitulate so long as it has vassals
 					nodeTeam.getVassalCount(TEAMID(outer.m.ourId())) <= 0 &&
 					GET_PLAYER(attacker.id).warAndPeaceAI().getConquestStage() <=

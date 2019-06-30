@@ -258,7 +258,7 @@ void WarAndPeaceCache::update() {
 	updateCanScrub();
 
 	// Any values used by war evaluation need to be updated before this!
-	if(GC.getGameINLINE().getElapsedGameTurns() > 0) { /* On turn 0, the
+	if(GC.getGame().getElapsedGameTurns() > 0) { /* On turn 0, the
 			other civs' caches aren't up to date, which can cause problems
 			in scenarios. */
 		updateWarUtility();
@@ -290,7 +290,7 @@ void WarAndPeaceCache::updateTotalAssetScore() {
 		if(!c.isOwnCity())
 			break; // Sorted so that owner's cities are at the end
 		CvCity* cp = c.city();
-		if(cp != NULL && cp->getOwnerINLINE() == ownerId)
+		if(cp != NULL && cp->getOwner() == ownerId)
 			/*  National wonders aren't included in the per-city asset score b/c
 				they shouldn't count for rival cities. */
 			totalAssets += c.getAssetScore() + cp->getNumNationalWonders() * 4;
@@ -398,7 +398,7 @@ double WarAndPeaceCache::goldPerProdSites() {
 			sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
 		}
 	}
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	int gameEra = g.getCurrentEra();
 	/*  Rage makes it more worthwhile to focus on early expansion (at least for
 		the AI), regardless of whether the additional cities are new or conquered
@@ -823,7 +823,7 @@ void WarAndPeaceCache::updateLatestTurnReachableBySea() {
 		// No pair means not reachable (by sea)
 		if(!c.canCurrentlyReachBySea())
 			continue;
-		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGameINLINE().
+		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGame().
 				getGameTurn(), c.getDistance());
 	}
 }
@@ -905,11 +905,11 @@ void WarAndPeaceCache::updateVassalScores() {
 
 void WarAndPeaceCache::updateAdjacentLand() {
 
-	CvMap& m = GC.getMapINLINE();
-	for(int i = 0; i < m.numPlotsINLINE(); i++) {
-		CvPlot* p = m.plotByIndexINLINE(i);
+	CvMap& m = GC.getMap();
+	for(int i = 0; i < m.numPlots(); i++) {
+		CvPlot* p = m.plotByIndex(i);
 		if(p->isWater()) continue;
-		PlayerTypes o = p->getOwnerINLINE();
+		PlayerTypes o = p->getOwner();
 		if(o == NO_PLAYER || !GET_PLAYER(o).isAlive() || o == BARBARIAN_PLAYER ||
 				TEAMID(o) == TEAMID(ownerId) || GET_PLAYER(o).isMinorCiv())
 			continue;
@@ -991,7 +991,7 @@ void WarAndPeaceCache::updateTargetMissionCount(PlayerTypes civId) {
 		if(missionPlot == NULL)
 			missionPlot = selGroup->plot();
 		FAssert(missionPlot != NULL);
-		if(missionPlot->isOwned() && missionPlot->getOwnerINLINE() == civId) {
+		if(missionPlot->isOwned() && missionPlot->getOwner() == civId) {
 			r += selGroup->getNumUnits();
 			r += selGroup->getCargo();
 		}
@@ -1002,7 +1002,7 @@ void WarAndPeaceCache::updateTargetMissionCount(PlayerTypes civId) {
 double WarAndPeaceCache::calculateThreatRating(PlayerTypes civId) const {
 
 	// Can't reliably estimate yield rates in the early game
-	if(GC.getGameINLINE().getCurrentEra() <= GC.getGameINLINE().getStartEra())
+	if(GC.getGame().getCurrentEra() <= GC.getGame().getStartEra())
 		return 0;
 	CvCity* cc = GET_PLAYER(ownerId).getCapitalCity();
 	City* c = NULL;
@@ -1231,7 +1231,7 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 
 void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 
-	if(!TEAMREF(ownerId).AI_deduceCitySite(c) || c->getOwnerINLINE() ==
+	if(!TEAMREF(ownerId).AI_deduceCitySite(c) || c->getOwner() ==
 			BARBARIAN_PLAYER)
 		return;
 	/*  I didn't think I'd need to update the city cache during turns, so this
@@ -1262,7 +1262,7 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 	else v[vIndex] = toCache;
 	cityMap.insert(std::make_pair<int,City*>(toCache->id(), toCache));
 	if(toCache->canReach())
-		nReachableCities[c->getOwnerINLINE()]++;
+		nReachableCities[c->getOwner()]++;
 	sortCitiesByAttackPriority();
 }
 
@@ -1375,7 +1375,7 @@ WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity* c)
 	plotIndex = c->plotNum();
 	updateDistance(c);
 	// AI_targetCityValue doesn't account for reachability (probably should)
-	if(!canReach() || cacheOwnerId == c->getOwnerINLINE())
+	if(!canReach() || cacheOwnerId == c->getOwner())
 		targetValue = -1;
 	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
 			city(), false, true);
@@ -1391,7 +1391,7 @@ WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId)
 
 CvCity* WarAndPeaceCache::City::city() const {
 
-	CvPlot* cityPlot = GC.getMapINLINE().plotByIndexINLINE(plotIndex);
+	CvPlot* cityPlot = GC.getMap().plotByIndex(plotIndex);
 	if(cityPlot == NULL)
 		return NULL;
 	return cityPlot->getPlotCity();
@@ -1428,7 +1428,7 @@ bool WarAndPeaceCache::City::canReach() const {
 	std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 	if(pos == ltr.end())
 		return false;
-	int turnsUnreachable = GC.getGameINLINE().gameTurn() - pos->second.first;
+	int turnsUnreachable = GC.getGame().gameTurn() - pos->second.first;
 	return (turnsUnreachable < 10);*/
 	/*  If this isn't enough time for naval stacks to reach their target,
 		consider adding a stackEnRoute flag to City that is updated in
@@ -1500,7 +1500,7 @@ void WarAndPeaceCache::City::read(FDataStreamBase* stream) {
 			(CvPlayer object) to be initialized. At this point, only the civs
 			up to cacheOwnerId are initialized.
 			canDeduce gets set properly on the next WarAndPeaceCache::update. */
-		CvPlot* cityPlot = GC.getMapINLINE().plotByIndexINLINE(plotIndex);
+		CvPlot* cityPlot = GC.getMap().plotByIndex(plotIndex);
 		if(cityPlot == NULL)
 			canDeduce = false;
 		else canDeduce = cityPlot->isRevealed(TEAMID(cacheOwnerId), false);
@@ -1509,7 +1509,7 @@ void WarAndPeaceCache::City::read(FDataStreamBase* stream) {
 
 CvCity* WarAndPeaceCache::City::cityById(int id) {
 
-	CvPlot* p = GC.getMapINLINE().plotByIndexINLINE(id);
+	CvPlot* p = GC.getMap().plotByIndex(id);
 	if(p == NULL)
 		return NULL;
 	return p->getPlotCity();
@@ -1594,7 +1594,7 @@ PlayerTypes WarAndPeaceCache::City::cityOwner() const {
 
 	if(city() == NULL)
 		return NO_PLAYER;
-	return city()->getOwnerINLINE();
+	return city()->getOwner();
 }
 
 bool WarAndPeaceCache::City::isOwnCity() const {
@@ -1631,7 +1631,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 
 	// Our own cities have 0 distance from themselves
-	if(targetCity->getOwnerINLINE() == cacheOwnerId) {
+	if(targetCity->getOwner() == cacheOwnerId) {
 		distance = 0;
 		reachByLand = true;
 		reachBySea = true;
@@ -1736,7 +1736,7 @@ double WarAndPeaceCache::City::estimateMovementSpeed(PlayerTypes civId,
 	if(dom != DOMAIN_LAND)
 		return civ.warAndPeaceAI().shipSpeed();
 	EraTypes const era = civ.getCurrentEra();
-	EraTypes const gameEra = GC.getGameINLINE().getCurrentEra();
+	EraTypes const gameEra = GC.getGame().getCurrentEra();
 	double r = 1;
 	if(era >= 6) // Future era; to account for very high mobility in endgame
 		r++;
@@ -1859,7 +1859,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	CvTeam& t = TEAMREF(cacheOwnerId);
 	double r = cacheOwner.AI_cityWonderVal(c);
 	r += 1.4 * cacheOwner.getTradeRoutes();
-	PlayerTypes cityOwnerId = c.getOwnerINLINE();
+	PlayerTypes cityOwnerId = c.getOwner();
 	/*  If we already own the city, then the score says how much we don't want
 		to lose it. Lost buildings hurt. Since most buildings don't survive
 		conquest, we ignore them if we don't own the city. */
@@ -1916,7 +1916,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		CvPlot const& ctp = *cultureTestPlot; // Just for brevity
 		double cultureModifier = std::min(1.5, std::max(0.0,
 				2.0 * ctp.calculateCulturePercent(cacheOwnerId) +
-				ctp.calculateCulturePercent(c.getOwnerINLINE()) +
+				ctp.calculateCulturePercent(c.getOwner()) +
 				ctp.calculateCulturePercent(BARBARIAN_PLAYER)) / 100.0);
 		// <advc.035>
 		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && cultureModifier < 1)
@@ -1941,7 +1941,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	maintCost /= 100.0;
 	/*  Add 1 as a conservative estimate of incr. civic upkeep and incr. maint.
 		in other cities. Address these increases more carefully in GreedForAssets. */
-	if(c.getOwnerINLINE() != cacheOwnerId)
+	if(c.getOwner() != cacheOwnerId)
 		maintCost += 1;
 	// Inflation isn't applied by CvCity
 	maintCost *= inflationMultiplier;

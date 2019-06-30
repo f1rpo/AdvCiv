@@ -46,14 +46,14 @@ int getDefineINT(const char* xmlKey, int iDefault)
 // <advc.003>
 bool checkBUGStatus(const char* optionKey, bool bWarn) {
 
-	if(!GC.IsGraphicsInitialized() || GC.getGameINLINE().getActivePlayer() == NO_PLAYER) {
+	if(!GC.IsGraphicsInitialized() || GC.getGame().getActivePlayer() == NO_PLAYER) {
 		if(!bWarn)
 			return false;
 		CvString szMsg = "BUG option ";
 		szMsg.append(optionKey);
 		szMsg.append(" accessed before BUG initialization");
 		FAssertMsg(GC.IsGraphicsInitialized(), szMsg.c_str());
-		FAssertMsg(GC.getGameINLINE().getActivePlayer() != NO_PLAYER, szMsg.c_str());
+		FAssertMsg(GC.getGame().getActivePlayer() != NO_PLAYER, szMsg.c_str());
 		return false;
 	}
 	return true;

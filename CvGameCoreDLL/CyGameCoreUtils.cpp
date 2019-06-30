@@ -20,12 +20,12 @@ float cyFloatRange(float fNum, float fLow, float fHigh)
 
 int cyDxWrap(int iDX)
 {
-	return GC.getMapINLINE().dxWrap(iDX);
+	return GC.getMap().dxWrap(iDX);
 }
 
 int cyDyWrap(int iDY)
 {
-	return GC.getMapINLINE().dyWrap(iDY);
+	return GC.getMap().dyWrap(iDY);
 }
 
 int cyPlotDistance(int iX, int iY, int iX2, int iY2)

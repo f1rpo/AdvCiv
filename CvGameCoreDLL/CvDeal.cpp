@@ -33,7 +33,7 @@ void CvDeal::init(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 
 	//--------------------------------
 	// Init other deal data
-	setInitialGameTurn(GC.getGameINLINE().getGameTurn());
+	setInitialGameTurn(GC.getGame().getGameTurn());
 }
 
 
@@ -128,7 +128,7 @@ void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
 				bUpdateAttitude, // advc.036
 				eCancelPlayer); // advc.130p
 	}
-	GC.getGameINLINE().deleteDeal(getID());
+	GC.getGame().deleteDeal(getID());
 }
 
 
@@ -309,7 +309,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 
 	// K-Mod
 	if (bBumpUnits)
-		GC.getMapINLINE().verifyUnitValidPlot();
+		GC.getMap().verifyUnitValidPlot();
 	// K-Mod end
 }
 
@@ -658,7 +658,7 @@ void CvDeal::setInitialGameTurn(int iNewValue)
 // <advc.133>
 int CvDeal::getAge() const {
 
-	return GC.getGameINLINE().getGameTurn() - getInitialGameTurn();
+	return GC.getGame().getGameTurn() - getInitialGameTurn();
 } // </advc.133>
 
 
@@ -870,9 +870,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 
 	case TRADE_MAPS:
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 		{
-			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 
 			if (pLoopPlot->isRevealed(GET_PLAYER(eFromPlayer).getTeam(), false))
 			{
@@ -1189,7 +1189,7 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 			CLinkList<TradeData> theirList;
 			if (bDual)
 				theirList.insertAtEnd(item);
-			GC.getGameINLINE().implementDeal(kFromMember.getID(), kToMember.getID(),
+			GC.getGame().implementDeal(kFromMember.getID(), kToMember.getID(),
 					&ourList, &theirList);
 		}
 	}
@@ -1199,7 +1199,7 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 {
 	CLLNode<TradeData>* pNode = NULL;
 	int iLoop;
-	for (CvDeal* pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
+	for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
 	{
 		if (pLoopDeal == this)
 			continue;
@@ -1267,7 +1267,7 @@ int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 	if(isDisengage())
 		len = std::min(GC.getDefineINT("DISENGAGE_LENGTH"), len);
 	return (getInitialGameTurn() + len - // </advc.034>
-			GC.getGameINLINE().getGameTurn());
+			GC.getGame().getGameTurn());
 }
 
 // static

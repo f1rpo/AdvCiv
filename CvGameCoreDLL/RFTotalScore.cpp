@@ -94,7 +94,7 @@ void RFTotalScore::update(std::vector<RFChapter*> const& chapters) {
 		}
 	}
 	int victoryBase = 150;
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	if(g.getGameState() != GAMESTATE_ON) {
 		// Once we know that the human player doesn't win
 		TeamTypes winner = g.getWinner();
@@ -118,7 +118,7 @@ void RFTotalScore::update(std::vector<RFChapter*> const& chapters) {
 	/*fromRemainingTime = std::max(0, ::round((total - compensation) *
 			(remainingTimePercent / 200.0)));*/
 	total += fromRemainingTime + fromScored + fromFinishedUnscored;
-	CvHandicapInfo& handicap = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType());
+	CvHandicapInfo& handicap = GC.getHandicapInfo(GC.getGame().getHandicapType());
 	difficultyPercent = ::round(100 *
 			((handicap.getDifficulty() + 10) / 40.0) - 100);
 	fromDifficulty = (total <= 0 ? 0 : ::round((difficultyPercent / 100.0) * total));
@@ -134,7 +134,7 @@ void RFTotalScore::updateString() {
 			fromVictory, unstarted, -fromInitialRank, initialRank,
 			initialRivals + 1, fromRemainingTime, remainingTimePercent,
 			fromDifficulty, difficultyPercent,
-			GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getDescription(),
+			GC.getHandicapInfo(GC.getGame().getHandicapType()).getDescription(),
 			total,
 			RiseFall::fillWS(fromScored, true),
 			RiseFall::fillWS(fromFinishedUnscored, true),
@@ -143,7 +143,7 @@ void RFTotalScore::updateString() {
 			RiseFall::fillWS(total)));
 	/*  Would be nice to show the Dan Quayle title after the total, but that title
 		is computed in CvDanQuayle.py and can't be accessed from here. */
-	if(GC.getGameINLINE().getGameState() == GAMESTATE_EXTENDED) {
+	if(GC.getGame().getGameState() == GAMESTATE_EXTENDED) {
 		int normScore = getNormalizedScore();
 		(*breakdownString) += L"\n" + gDLL->getText("TXT_KEY_RF_NORMALIZED",
 				normScore, RiseFall::fillWS(normScore));

@@ -271,7 +271,7 @@ void CvGame::setInitialItems()
 	normalizeStartingPlots();
 	// <advc.030> Now that ice has been placed and normalization is through
 	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
-		GC.getMapINLINE().recalculateAreas();
+		GC.getMap().recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
 	setAIHandicap(); // advc.127
@@ -331,14 +331,14 @@ void CvGame::regenerateMap()
 		return;
 
 	int iI;
-	CvMap& m = GC.getMapINLINE(); // advc.003
+	CvMap& m = GC.getMap(); // advc.003
 	/*  <advc.004j> Not sure if the unmodded game or any mod included with AdvCiv
 		uses script data, but can't hurt to reset it. CvDLLButtonPopup::
 		launchMainMenuPopup wants to disallow map regeneration once script data
 		has been set. */
 	setScriptData("");
-	for(int i = 0; i < m.numPlotsINLINE(); ++i) {
-		CvPlot* p = m.plotByIndexINLINE(i);
+	for(int i = 0; i < m.numPlots(); ++i) {
+		CvPlot* p = m.plotByIndex(i);
 		if(p != NULL) {
 			p->setScriptData("");
 			/*  advc.021b: Otherwise, assignStartingPlots runs into trouble upon
@@ -904,7 +904,7 @@ void CvGame::initFreeState()
 			if(bValid) // advc.051: Don't take away techs granted by the scenario
 				GET_TEAM((TeamTypes)iJ).setHasTech((TechTypes)iI, true, NO_PLAYER, false, false);
 			if (bValid && GC.getTechInfo((TechTypes)iI).isMapVisible()) 
-				GC.getMapINLINE().setRevealedPlots((TeamTypes)iJ, true, true); 
+				GC.getMap().setRevealedPlots((TeamTypes)iJ, true, true); 
 		}
 	} // <advc.051>
 	if(isScenario() && getStartEra() <= 0) { // Set start era based on player era
@@ -943,7 +943,7 @@ void CvGame::initScenario() {
 			if(GET_PLAYER((PlayerTypes)i).getNumCities() > 0)
 				return;
 		}
-		GC.getMapINLINE().recalculateAreas();
+		GC.getMap().recalculateAreas();
 	} // </advc.030>
 }
 
@@ -1012,11 +1012,11 @@ void CvGame::assignStartingPlots()
 	//
 	// First, make a list of all the pre-marked starting plots on the map.
 	std::vector<CvPlot*> starting_plots;
-	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		gDLL->callUpdater();	// allow window updates during launch
 
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(i);
+		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
 		if (pLoopPlot->isStartingPlot())
 			starting_plots.push_back(pLoopPlot);
 	}
@@ -1280,7 +1280,7 @@ void CvGame::normalizeStartingPlotLocations()
 						CvPlot *pPlotJ = GET_PLAYER((PlayerTypes)iJ).getStartingPlot();
 						if (pPlotJ != NULL)
 						{
-							int iDist = GC.getMapINLINE().calculatePathDistance(pPlotI, pPlotJ);
+							int iDist = GC.getMap().calculatePathDistance(pPlotI, pPlotJ);
 							if (iDist == -1)
 							{
 								// 5x penalty for not being on the same area, or having no passable route
@@ -1384,7 +1384,7 @@ int CvGame::getNormalizationLevel() const {
 
 void CvGame::normalizeAddRiver()  // advc.003: style changes
 {
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
@@ -1413,9 +1413,9 @@ void CvGame::normalizeAddRiver()  // advc.003: style changes
 		else CvMapGenerator::GetInstance().addRiver(pStartingPlot);
 
 		// add floodplains to any desert tiles the new river passes through
-		for (int iJ = 0; iJ < m.numPlotsINLINE(); iJ++)
+		for (int iJ = 0; iJ < m.numPlots(); iJ++)
 		{
-			CvPlot* pPlot = m.plotByIndexINLINE(iJ);
+			CvPlot* pPlot = m.plotByIndex(iJ);
 			for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
 			{
 				FeatureTypes eLoopFeature = (FeatureTypes)iK;
@@ -2806,7 +2806,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 	FAssertMsg(pUnit != NULL, "pUnit == NULL unexpectedly");
 	// <advc.002e> Show glow (only) on selected unit
 	if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
-		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwnerINLINE()); int foo=-1;
+		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner()); int foo=-1;
 		for(CvUnit* u = kOwner.firstUnit(&foo); u != NULL; u = kOwner.nextUnit(&foo)) {
 			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
 					u->atPlot(pUnit->plot()) && u->isReadyForPromotion());
@@ -2823,7 +2823,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = pUnitPlot->nextUnitNode(pUnitNode);
 
-			if (pLoopUnit->getOwnerINLINE() == getActivePlayer() && pLoopUnit->isGroupHead() && pLoopUnit->isWaiting())
+			if (pLoopUnit->getOwner() == getActivePlayer() && pLoopUnit->isGroupHead() && pLoopUnit->isWaiting())
 			{
 				CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(), COMMAND_WAKE, -1, -1, false);
 			}
@@ -2867,7 +2867,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = pUnitPlot->nextUnitNode(pUnitNode);
 
-			if (pLoopUnit->getOwnerINLINE() == getActivePlayer())
+			if (pLoopUnit->getOwner() == getActivePlayer())
 			{
 				if (pLoopUnit->getDomainType() == eDomain && (!bCheckMoves || pLoopUnit->canMove())) // K-Mod added domain check and bCheckMoves.
 				{
@@ -2902,7 +2902,7 @@ void CvGame::selectAll(CvPlot* pPlot) const
 	{
 		pCenterUnit = pPlot->getDebugCenterUnit();
 
-		if ((pCenterUnit != NULL) && (pCenterUnit->getOwnerINLINE() == getActivePlayer()))
+		if ((pCenterUnit != NULL) && (pCenterUnit->getOwner() == getActivePlayer()))
 		{
 			pSelectUnit = pCenterUnit;
 		}
@@ -3465,7 +3465,7 @@ int CvGame::countFreeTeamsAlive() const
 // <advc.137>
 int CvGame::getRecommendedPlayers() const {
 
-	CvWorldInfo const& kWorld = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
+	CvWorldInfo const& kWorld = GC.getWorldInfo(GC.getMap().getWorldSize());
 	return ::range(((-4 * getSeaLevelChange() + 100) * kWorld.getDefaultPlayers()) / 100,
 			2, MAX_CIV_PLAYERS);
 }
@@ -3526,7 +3526,7 @@ int CvGame::countKnownTechNumTeams(TechTypes eTech)
 int CvGame::getNumFreeBonuses(BuildingTypes eBuilding) const
 {
 	if (GC.getBuildingInfo(eBuilding).getNumFreeBonuses() == -1)
-		return GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumFreeBuildingBonuses();
+		return GC.getWorldInfo(GC.getMap().getWorldSize()).getNumFreeBuildingBonuses();
 	else return GC.getBuildingInfo(eBuilding).getNumFreeBonuses();
 }
 
@@ -4342,16 +4342,16 @@ void CvGame::initScoreCalculation()
 {
 	// initialize score calculation
 	int iMaxFood = 0;
-	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(i);
+		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		if (!pPlot->isWater() || pPlot->isAdjacentToLand())
 		{
 			iMaxFood += pPlot->calculateBestNatureYield(YIELD_FOOD, NO_TEAM);
 		}
 	}
 	m_iMaxPopulation = getPopulationScore(iMaxFood / std::max(1, GC.getFOOD_CONSUMPTION_PER_POPULATION()));
-	m_iMaxLand = getLandPlotsScore(GC.getMapINLINE().getLandPlots());
+	m_iMaxLand = getLandPlotsScore(GC.getMap().getLandPlots());
 	m_iMaxTech = 0;
 	for (int i = 0; i < GC.getNumTechInfos(); i++)
 	{
@@ -4546,13 +4546,13 @@ int CvGame::calculateGwLandDefence(PlayerTypes ePlayer) const
 {
 	int iTotal = 0;
 
-	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); ++i)
+	for (int i = 0; i < GC.getMap().numPlots(); ++i)
 	{
-		CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(i);
+		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 
 		if (pPlot->getFeatureType() != NO_FEATURE)
 		{
-			if (ePlayer == NO_PLAYER || ePlayer == pPlot->getOwnerINLINE())
+			if (ePlayer == NO_PLAYER || ePlayer == pPlot->getOwner())
 			{
 				iTotal += GC.getFeatureInfo(pPlot->getFeatureType()).getWarmingDefense();
 			}
@@ -4566,7 +4566,7 @@ int CvGame::calculateGwSustainabilityThreshold(PlayerTypes ePlayer) const
 {
 	// expect each pop to give ~10 pollution per turn at the time we cross the threshold, and ~1 pop per land tile...
 	// so default resistance should be around 10 per tile.
-	int iGlobalThreshold = GC.getMapINLINE().getLandPlots() * GC.getDefineINT("GLOBAL_WARMING_RESISTANCE");
+	int iGlobalThreshold = GC.getMap().getLandPlots() * GC.getDefineINT("GLOBAL_WARMING_RESISTANCE");
 	
 	// maybe we should add some points for coastal tiles as well, so that watery maps don't get too much warming
 
@@ -4580,7 +4580,7 @@ int CvGame::calculateGwSustainabilityThreshold(PlayerTypes ePlayer) const
 	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 	if (kPlayer.isAlive())
 	{
-		return iGlobalThreshold * kPlayer.getTotalLand() / std::max(1, GC.getMapINLINE().getLandPlots());
+		return iGlobalThreshold * kPlayer.getTotalLand() / std::max(1, GC.getMap().getLandPlots());
 	}
 	else
 		return 0;
@@ -4597,7 +4597,7 @@ int CvGame::calculateGwSeverityRating() const
 
 	// I recommend looking at the graph of this function to get a sense of how it works.
 
-	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() / (std::max(1,4*GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent()*GC.getMapINLINE().getLandPlots()));
+	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() / (std::max(1,4*GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent()*GC.getMap().getLandPlots()));
 	const long b = 70; // shape parameter. Lower values result in the function being steeper earlier.
 	return 100L - b*100L/(b+x*x);
 }
@@ -4662,14 +4662,14 @@ bool CvGame::circumnavigationAvailable() const
 		return false;
 	}
 
-	CvMap& kMap = GC.getMapINLINE();
+	CvMap& kMap = GC.getMap();
 
-	if (!(kMap.isWrapXINLINE()) && !(kMap.isWrapYINLINE()))
+	if (!kMap.isWrapX() && !kMap.isWrapY())
 	{
 		return false;
 	}
 
-	if (kMap.getLandPlots() > ((kMap.numPlotsINLINE() * 2) / 3))
+	if (kMap.getLandPlots() > (kMap.numPlots() * 2) / 3)
 	{
 		return false;
 	}
@@ -5054,10 +5054,10 @@ void CvGame::toggleDebugMode()
 	m_bDebugMode = (m_bDebugMode ? false : true);
 	updateDebugModeCache();
 
-	GC.getMapINLINE().updateVisibility();
-	GC.getMapINLINE().updateSymbols();
-	GC.getMapINLINE().updateMinimapColor();
-	GC.getMapINLINE().setFlagsDirty(); // K-Mod
+	GC.getMap().updateVisibility();
+	GC.getMap().updateSymbols();
+	GC.getMap().updateMinimapColor();
+	GC.getMap().setFlagsDirty(); // K-Mod
 	updateColoredPlots(); // K-Mod
 
 	gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
@@ -5177,7 +5177,7 @@ void CvGame::setFinalInitialized(bool bNewValue)
 		return;
 
 	updatePlotGroups();
-	GC.getMapINLINE().updateIrrigated();
+	GC.getMap().updateIrrigated();
 
 	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
@@ -5317,10 +5317,10 @@ void CvGame::updateActiveVisibility() {
 
 		if(!GC.IsGraphicsInitialized())
 			return;
-		GC.getMapINLINE().updateFog();
-		GC.getMapINLINE().updateVisibility();
-		GC.getMapINLINE().updateSymbols();
-		GC.getMapINLINE().updateMinimapColor();
+		GC.getMap().updateFog();
+		GC.getMap().updateVisibility();
+		GC.getMap().updateSymbols();
+		GC.getMap().updateMinimapColor();
 
 		updateUnitEnemyGlow();
 
@@ -6202,7 +6202,7 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 			if (isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 			{
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
-				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHolyCity->getOwnerINLINE(), szBuffer, pHolyCity->getX(), pHolyCity->getY());
+				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHolyCity->getOwner(), szBuffer, pHolyCity->getX(), pHolyCity->getY());
 						// advc.106: Reserve this color for treaties
 						//(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
@@ -6277,7 +6277,7 @@ void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bA
 				if (isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 				{
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_FOUNDED", GC.getCorporationInfo(eIndex).getTextKeyWide(), pHeadquarters->getNameKey());
-					addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHeadquarters->getOwnerINLINE(), szBuffer, pHeadquarters->getX(), pHeadquarters->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+					addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHeadquarters->getOwner(), szBuffer, pHeadquarters->getX(), pHeadquarters->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 					for (int iI = 0; iI < MAX_PLAYERS; iI++)
 					{
@@ -6463,7 +6463,7 @@ void CvGame::doTurn()
 			GET_TEAM((TeamTypes)iI).doTurn();
 	} */ // disabled by K-Mod. CvTeam::doTurn is now called at the the same time as CvPlayer::doTurn, to fix certain turn-order imbalances.
 
-	GC.getMapINLINE().doTurn();
+	GC.getMap().doTurn();
 
 	createBarbarianCities();
 
@@ -6628,9 +6628,9 @@ void CvGame::doDeals()
 void CvGame::doGlobalWarming()
 {
 	int iGlobalWarmingDefense = 0;
-	for (int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); ++i)
+	for (int i = 0; i < GC.getMap().numPlots(); ++i)
 	{
-		CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(i);
+		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 
 		if (!pPlot->isWater())
 		{
@@ -6643,7 +6643,7 @@ void CvGame::doGlobalWarming()
 			}
 		}
 	}
-	iGlobalWarmingDefense = iGlobalWarmingDefense * GC.getDefineINT("GLOBAL_WARMING_FOREST") / std::max(1, GC.getMapINLINE().getLandPlots());
+	iGlobalWarmingDefense = iGlobalWarmingDefense * GC.getDefineINT("GLOBAL_WARMING_FOREST") / std::max(1, GC.getMap().getLandPlots());
 
 	int iUnhealthWeight = GC.getDefineINT("GLOBAL_WARMING_UNHEALTH_WEIGHT");
 	int iGlobalWarmingValue = 0;
@@ -6659,7 +6659,7 @@ void CvGame::doGlobalWarming()
 			}
 		}
 	}
-	iGlobalWarmingValue /= GC.getMapINLINE().numPlotsINLINE();
+	iGlobalWarmingValue /= GC.getMap().numPlots();
 
 	iGlobalWarmingValue += getNukesExploded() * GC.getDefineINT("GLOBAL_WARMING_NUKE_WEIGHT") / 100;
 
@@ -6669,7 +6669,7 @@ void CvGame::doGlobalWarming()
 	{
 		if (getSorenRandNum(100, "Global Warming") + iGlobalWarmingDefense < GC.getDefineINT("GLOBAL_WARMING_PROB"))
 		{
-			CvPlot* pPlot = GC.getMapINLINE().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
+			CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 
 			if (pPlot != NULL)
 			{
@@ -6696,13 +6696,13 @@ void CvGame::doGlobalWarming()
 				{
 					pPlot->setImprovementType(NO_IMPROVEMENT);
 
-					CvCity* pCity = GC.getMapINLINE().findCity(pPlot->getX(), pPlot->getY());
+					CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY());
 					if (pCity != NULL)
 					{
 						if (pPlot->isVisible(pCity->getTeam(), false))
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
+							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 						}
 					}
 				}
@@ -6787,7 +6787,7 @@ void CvGame::doGlobalWarming()
 		int iLeftOdds = 10*GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent();
 		if (getSorenRandNum(iLeftOdds, "Global Warming") < GC.getDefineINT("GLOBAL_WARMING_PROB"))
 		{
-			//CvPlot* pPlot = GC.getMapINLINE().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
+			//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 
 			// Global warming is no longer completely random. getRandGWPlot will get a weighted random plot for us to strike
 			CvPlot* pPlot = getRandGWPlot(3);
@@ -6855,13 +6855,13 @@ void CvGame::doGlobalWarming()
 							NO_BUILD, false) // dlph.9
 						pPlot->setImprovementType(NO_IMPROVEMENT);
 
-					CvCity* pCity = GC.getMapINLINE().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, NO_TEAM, false);
+					CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, NO_TEAM, false);
 					if (pCity != NULL)
 					{
 						if (pPlot->isVisible(pCity->getTeam(), false))
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
+							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 						}
 					}
 					changeGwEventTally(1);
@@ -6897,11 +6897,11 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 	for (i = 0; i < iPool; i++)
 	{
 		// I want to be able to select a water tile with ice on it; so I can't just exclude water completely...
-		//CvPlot* pTestPlot = GC.getMapINLINE().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
+		//CvPlot* pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 		int j;
 		for (j = 0; j < 100; j++)
 		{
-			pTestPlot = GC.getMapINLINE().syncRandPlot(RANDPLOT_NOT_CITY);
+			pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_NOT_CITY);
 
 			if (pTestPlot == NULL)
 				break; // already checked 100 plots in the syncRandPlot funciton, so just give up.
@@ -7349,7 +7349,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 	   in Barbarian settling patterns. The expected value is 8, which is also the
 	   value K-Mod uses. */
 	kFoundSet.iBarbDiscouragedRange = 5 + getSorenRandNum(7, "advc.300 (discouraged range)");
-	CvMap const& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMap();
 	// Precomputed for efficiency
 	std::map<int,int> unownedPerArea; int foo=-1;
 	for(CvArea* pArea = m.firstArea(&foo); pArea != NULL; pArea = m.nextArea(&foo)) {
@@ -7372,9 +7372,9 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
-	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < m.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = m.plotByIndex(iI);
 		if(pLoopPlot->isWater() || pLoopPlot->isVisibleToCivTeam())
 			continue; // advc.003
 		// <advc.300>
@@ -7499,8 +7499,8 @@ void CvGame::createBarbarianUnits()
 	// Divided by 10 b/c now only shelf water tiles count
 	int iBaseTilesPerSeaUnit = kGameHandicap.getUnownedWaterTilesPerBarbarianUnit() / 8;
 	// </advc.300>
-	for(pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL;
-			pLoopArea = GC.getMapINLINE().nextArea(&iLoop)) {
+	for(pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL;
+			pLoopArea = GC.getMap().nextArea(&iLoop)) {
 		// <advc.300> 
 		CvArea& a = *pLoopArea;
 		/*  For each land area, first spawn sea Barbarians for each shelf attached
@@ -7511,7 +7511,7 @@ void CvGame::createBarbarianUnits()
 		if(a.isWater() || a.getNumCities() == 0)
 			continue;
 		int iUnowned = 0, iTiles = 0;
-		std::vector<Shelf*> shelves; GC.getMapINLINE().getShelves(a.getID(), shelves);
+		std::vector<Shelf*> shelves; GC.getMap().getShelves(a.getID(), shelves);
 		for(size_t i = 0; i < shelves.size(); i++) {
 			// Shelves also count for land Barbarians, ...
 			iUnowned += shelves[i]->countUnownedPlots();
@@ -7617,7 +7617,7 @@ void CvGame::createAnimals()  // advc.003: style changes
 		return;
 
 	int iLoop;
-	for(CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
+	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
 	{
 		if (pLoopArea->isWater())
 			continue;
@@ -7635,7 +7635,7 @@ void CvGame::createAnimals()  // advc.003: style changes
 		iNeededAnimals = (iNeededAnimals / 5) + 1;
 		for (int iI = 0; iI < iNeededAnimals; iI++)
 		{
-			CvPlot* pPlot = GC.getMapINLINE().syncRandPlot(
+			CvPlot* pPlot = GC.getMap().syncRandPlot(
 					(RANDPLOT_NOT_VISIBLE_TO_CIV | RANDPLOT_PASSABLE
 					| RANDPLOT_WATERSOURCE), // advc.300
 					pLoopArea->getID(), GC.getDefineINT("MIN_ANIMAL_STARTING_DISTANCE"));
@@ -7890,7 +7890,7 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const {
 	int iLegal = 0;
 	CvPlot* r = NULL;
 	if(shelf == NULL)
-		r = GC.getMapINLINE().syncRandPlot(restrictionFlags, a.getID(), iDist, -1, &iLegal);
+		r = GC.getMap().syncRandPlot(restrictionFlags, a.getID(), iDist, -1, &iLegal);
 	else {
 		r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
 		if(r != NULL && iLegal * 100 < shelf->size())
@@ -8271,7 +8271,7 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 	}
 	if (getAdjustedLandPercent(eVictory) > 0)
 	{
-		if (100 * kTeam.getTotalLand() < GC.getMapINLINE().getLandPlots() *
+		if (100 * kTeam.getTotalLand() < GC.getMap().getLandPlots() *
 				getAdjustedLandPercent(eVictory))
 			return false;
 	}
@@ -8609,7 +8609,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 
 			if (NULL != pCity)
 			{
-				if (NO_PLAYER != kData.kVoteOption.eOtherPlayer && kData.kVoteOption.eOtherPlayer != pCity->getOwnerINLINE())
+				if (NO_PLAYER != kData.kVoteOption.eOtherPlayer && kData.kVoteOption.eOtherPlayer != pCity->getOwner())
 				{
 					if( gTeamLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 						logBBAI("  Vote for assigning %S to %d (%S) passes", pCity->getName().GetCString(), GET_PLAYER(kData.kVoteOption.eOtherPlayer).getTeam(), GET_PLAYER(kData.kVoteOption.eOtherPlayer).getCivilizationDescription(0) );
@@ -8759,8 +8759,8 @@ int CvGame::calculateSyncChecksum()
 	iValue += getTotalPopulation();
 	iValue += getNumDeals();
 
-	iValue += GC.getMapINLINE().getOwnedPlots();
-	iValue += GC.getMapINLINE().getNumAreas();
+	iValue += GC.getMap().getOwnedPlots();
+	iValue += GC.getMap().getNumAreas();
 
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -9931,7 +9931,7 @@ void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYiel
 		m_aPlotExtraYields.push_back(kExtraYield);
 	}
 
-	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 	if (NULL != pPlot)
 	{
 		pPlot->updateYield();
@@ -9949,7 +9949,7 @@ void CvGame::removePlotExtraYield(int iX, int iY)
 		}
 	}
 
-	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 	if (NULL != pPlot)
 	{
 		pPlot->updateYield();
@@ -11012,7 +11012,7 @@ double CvGame::goodyHutEffectFactor(
 	double speedMultTurns = kSpeed.getGrowthPercent() / 100.0;
 	int const iWorldSzPercent = 100;
 		// Not sure if map-size adjustment is a good idea
-		//=GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent();
+		//=GC.getWorldInfo(GC.getMap().getWorldSize()).getResearchPercent();
 	double speedMultFinal = (bSpeedAdjust ?
 			kSpeed.getTrainPercent() * iWorldSzPercent / 10000.0 : 1);
 	double startTurn = std::max(0.0,

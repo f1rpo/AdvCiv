@@ -4,7 +4,7 @@
 
 CvHallOfFameInfo::CvHallOfFameInfo()
 {
-	GC.getGameINLINE().setHallOfFame(this); // advc.106i
+	GC.getGame().setHallOfFame(this); // advc.106i
 }
 
 CvHallOfFameInfo::~CvHallOfFameInfo()
@@ -14,7 +14,7 @@ CvHallOfFameInfo::~CvHallOfFameInfo()
 
 void CvHallOfFameInfo::uninit() {
 
-	GC.getGameINLINE().setHallOfFame(NULL);
+	GC.getGame().setHallOfFame(NULL);
 	GC.setHoFScreenUp(false);
 	for(size_t i = 0; i < m_aReplays.size(); i++)
 		SAFE_DELETE(m_aReplays[i]);

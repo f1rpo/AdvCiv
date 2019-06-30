@@ -178,7 +178,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	if(prepTime <= 0 && warEvalParams.isTotal())
 		timeHorizon += 5;
 	// Look a bit farther on Marathon speed
-	if(GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+	if(GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
 			getGoldenAgePercent() >= 150)
 		timeHorizon += 5;
 	/*  Skip phase 1 if it would be short (InvasionGraph::Node::isSneakAttack
@@ -382,7 +382,7 @@ void MilitaryAnalyst::prepareResults() {
 		node->getCapitulationsAccepted(*capitulationsAcceptedPerTeam[i]);
 	}
 	// Predict scores as current game score modified based on gained/ lost population
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	WarAndPeaceCache const& ourCache = GET_PLAYER(weId).warAndPeaceAI().getCache();
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		PlayerTypes civId = (PlayerTypes)i;

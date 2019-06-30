@@ -17,15 +17,15 @@ void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 	if(kPlayer.isHuman() ||
 		/*  <advc.700> Want message archive to be available when human
 			takes over. AI messages expire just like human messages. */
-			(GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) &&
+			(GC.getGame().isOption(GAMEOPTION_RISE_FALL) &&
 			!kPlayer.isHumanDisabled() &&
-			GC.getGameINLINE().getRiseFall().isDeliverMessages(ePlayer))) {
+			GC.getGame().getRiseFall().isDeliverMessages(ePlayer))) {
 			// </advc.700>
 		addMessage(ePlayer, bForce, iLength, szString, pszSound, eType,
 				pszIcon, eFlashColor, iFlashX, iFlashY, bShowOffScreenArrows,
 				bShowOnScreenArrows);
 	}
-	//else if (GC.getGameINLINE().getActivePlayer() == ePlayer)
+	//else if (GC.getGame().getActivePlayer() == ePlayer)
 	// advc.700: Replacing the above
 	else if(!kPlayer.isHuman() && kPlayer.isHumanDisabled()) {
 		// this means ePlayer is human, but currently using auto-play (K-Mod)

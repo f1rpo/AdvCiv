@@ -577,8 +577,7 @@ double ArmamentForecast::productionFromUpgrades() {
 			GC.getDefineINT("BASE_UNIT_UPGRADE_COST"));
 	r *= baseCostModifier;
 	if(!civ.isHuman()) {
-		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().
-				getHandicapType());
+		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGame().getHandicapType());
 		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
 		// advc.250d: The per-era modifier no longer applies to upgrade cost
 			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
@@ -596,7 +595,7 @@ CvArea* ArmamentForecast::getCapitalArea(PlayerTypes civId) const {
 	if(civId == NO_PLAYER)
 		civId = m.ourId();
 	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
-	return GC.getMapINLINE().getArea(capital->plot()->getArea());
+	return GC.getMap().getArea(capital->plot()->getArea());
 }
 
 AreaAITypes ArmamentForecast::getAreaAI(PlayerTypes civId) const {

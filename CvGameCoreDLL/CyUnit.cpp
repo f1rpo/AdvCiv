@@ -1463,7 +1463,7 @@ void CyUnit::setPromotionReady(bool bNewValue)
 
 int CyUnit::getOwner()
 {
-	return m_pUnit ? m_pUnit->getOwnerINLINE() : -1;
+	return m_pUnit ? m_pUnit->getOwner() : -1;
 }
 
 int CyUnit::getVisualOwner()

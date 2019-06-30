@@ -262,15 +262,15 @@ namespace python = boost::python;
 #undef max
 #undef min
 #ifndef _USRDLL
-// use non inline functions when not in the dll
-#define getMapINLINE	getMap
-#define getGridHeightINLINE	getGridHeight
-#define getGridWidthINLINE	getGridWidth
-#define isWrapYINLINE	isWrapY
-#define isWrapXINLINE	isWrapX
-#define plotINLINE	plot
-#define getX	getX
-#define getY	getY
+// use non inline functions when not in the dll  advc.003f: Renamed all these
+#define getMap	getMapExternal
+#define getGridHeight	getGridHeightExternal
+#define getGridWidth	getGridWidthExternal
+#define isWrapY	isWrapYExternal
+#define isWrapX	isWrapXExternal
+#define plot	plotExternal
+#define getX	getXExternal
+#define getY	getYExternal
 #endif // </advc.make>
 
 #endif	// CvGameCoreDLL_h

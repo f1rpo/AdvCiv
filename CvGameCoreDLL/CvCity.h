@@ -645,12 +645,9 @@ public:
 	void setPlundered(bool bNewValue);												// Exposed to Python
 
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file			// Exposed to Python
-#ifdef _USRDLL
-	inline PlayerTypes getOwnerINLINE() const
-	{
-		return m_eOwner;
-	}
-#endif
+	#ifdef _USRDLL
+	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.003f: Renamed from getOwnerINLINE
+	#endif
 	DllExport TeamTypes getTeam() const;											// Exposed to Python
 
 	PlayerTypes getPreviousOwner() const;											// Exposed to Python

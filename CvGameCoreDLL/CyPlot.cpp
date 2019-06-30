@@ -615,7 +615,7 @@ void CyPlot::setFlagDirty(bool bNewValue)
 
 int CyPlot::getOwner()
 {
-	return m_pPlot ? m_pPlot->getOwnerINLINE() : -1;
+	return m_pPlot ? m_pPlot->getOwner() : -1;
 }
 
 void CyPlot::setOwner(int /*PlayerTypes*/ eNewValue)

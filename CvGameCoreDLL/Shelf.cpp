@@ -45,7 +45,7 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
 		*legalCount = nLegal;
     if(nLegal == 0)
         return NULL;
-    return legal[GC.getGameINLINE().getSorenRandNum(nLegal, "advc.300")];
+    return legal[GC.getGame().getSorenRandNum(nLegal, "advc.300")];
 }
 
 
@@ -111,7 +111,7 @@ CvUnit* Shelf::randomBarbarianCargoUnit() const {
 			continue;
 		for(int j = 0; j < plot.getNumUnits(); j++) {
 			CvUnit* u = plot.getUnitByIndex(j); if(u == NULL) continue;
-			if(u->getOwnerINLINE() != BARBARIAN_PLAYER)
+			if(u->getOwner() != BARBARIAN_PLAYER)
 				break;
 			CvUnitInfo const& ui = GC.getUnitInfo(u->getUnitType());
 			int cargoSpace = std::min(2, ui.getCargoSpace()); // Load at most 2
@@ -126,7 +126,7 @@ CvUnit* Shelf::randomBarbarianCargoUnit() const {
 	double pr = 0.2 + nLegal / 10.0;
     if(!::bernoulliSuccess(pr, "advc.306 (shelf)"))
         return NULL;
-    return legal[GC.getGameINLINE().getSorenRandNum(nLegal, "advc.306")];
+    return legal[GC.getGame().getSorenRandNum(nLegal, "advc.306")];
 } // </advc.306>
 
 

@@ -105,7 +105,7 @@ void RFChapter::setCiv(PlayerTypes playerId) {
 
 void RFChapter::start() {
 
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	FAssert(startTurn == g.getGameTurn());
 	/*  This shouldn't do anything currently. (I.e. chapters start exactly as
 		planned, but could change in a future version.) */
@@ -123,7 +123,7 @@ void RFChapter::score() {
 	if(isScored())
 		return;
 	breakdown.update();
-	scoreTimestamp = GC.getGameINLINE().getGameTurn();
+	scoreTimestamp = GC.getGame().getGameTurn();
 }
 
 void RFChapter::setScored(int turn) {
@@ -163,7 +163,7 @@ int RFChapter::getDelay() const {
 
 bool RFChapter::hasStarted() const {
 
-	return GC.getGameINLINE().getGameTurn() >= getStartTurn();
+	return GC.getGame().getGameTurn() >= getStartTurn();
 }
 
 bool RFChapter::hasEnded() const {
@@ -172,7 +172,7 @@ bool RFChapter::hasEnded() const {
 		return true;
 	if(isEndless())
 		return false;
-	return GC.getGameINLINE().getGameTurn() > getEndTurn();
+	return GC.getGame().getGameTurn() > getEndTurn();
 }
 
 bool RFChapter::isOngoing() const {
@@ -205,7 +205,7 @@ int RFChapter::getScoreTurn() const {
 int RFChapter::computeScore() {
 
 	if(!isScored() && hasEnded()) {
-		PlayerTypes activeId = GC.getGameINLINE().getActivePlayer();
+		PlayerTypes activeId = GC.getGame().getActivePlayer();
 		/*  If current Civ score unknown to active player, provide the last known
 			chapter score instead. */
 		if(activeId != NO_PLAYER && getCiv() != NO_PLAYER &&
@@ -256,7 +256,7 @@ int RFChapter::getRemainingTimePercent() const {
 	int t = getRetireTurn();
 	if(t < 0 && (getCiv() == NO_PLAYER ||
 			GET_PLAYER(getCiv()).isAlive())) // Defeat is not retirement
-		t = GC.getGameINLINE().getGameTurn();
+		t = GC.getGame().getGameTurn();
 	return (length <= 0 ? 100 :
 			// Minus 1 b/c the current turn is already spent
 			::round((length - t + getStartTurn() - 1.0) / (0.01 * length)));

@@ -69,13 +69,13 @@ KmodPathFinder::~KmodPathFinder()
 bool KmodPathFinder::ValidateNodeMap()
 {
 	//PROFILE_FUNC(); // advc.003o
-	if (!GC.getGameINLINE().isFinalInitialized())
+	if (!GC.getGame().isFinalInitialized())
 		return false;
 
-	if (map_width != GC.getMapINLINE().getGridWidthINLINE() || map_height != GC.getMapINLINE().getGridHeightINLINE())
+	if (map_width != GC.getMap().getGridWidth() || map_height != GC.getMap().getGridHeight())
 	{
-		map_width = GC.getMapINLINE().getGridWidthINLINE();
-		map_height = GC.getMapINLINE().getGridHeightINLINE();
+		map_width = GC.getMap().getGridWidth();
+		map_height = GC.getMap().getGridHeight();
 		//node_data = (FAStarNode*)
 		// <advc.003> According to cppcheck, the above is a "common realloc mistake".
 		FAStarNode* new_node_data = static_cast<FAStarNode*>(
@@ -193,14 +193,14 @@ CvPlot* KmodPathFinder::GetPathFirstPlot() const
 	FAStarNode* node = end_node;
 
 	if (!node->m_pParent)
-		return GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+		return GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	while (node->m_pParent->m_pParent)
 	{
 		node = node->m_pParent;
 	}
 
-	return GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	return GC.getMap().plotSoren(node->m_iX, node->m_iY);
 }
 
 CvPlot* KmodPathFinder::GetPathEndTurnPlot() const
@@ -216,7 +216,7 @@ CvPlot* KmodPathFinder::GetPathEndTurnPlot() const
 		node = node->m_pParent;
 	}
 	FAssert(node);
-	return node ? GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY) : NULL;
+	return node ? GC.getMap().plotSoren(node->m_iX, node->m_iY) : NULL;
 }
 
 void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
@@ -353,8 +353,8 @@ bool KmodPathFinder::ProcessNode()
 		if (parent_node->m_pParent && parent_node->m_pParent->m_iX == x && parent_node->m_pParent->m_iY == y)
 			continue; // no need to backtrack.
 
-		//int iPlotNum = GC.getMapINLINE().plotNumINLINE(x, y);
-		//FAssert(iPlotNum >= 0 && iPlotNum < GC.getMapINLINE().numPlotsINLINE());
+		//int iPlotNum = GC.getMap().plotNum(x, y);
+		//FAssert(iPlotNum >= 0 && iPlotNum < GC.getMap().numPlots());
 
 		FAStarNode* child_node = &GetNode(x, y);
 		bool bNewNode = !child_node->m_bOnStack;

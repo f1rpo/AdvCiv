@@ -426,7 +426,7 @@ void CvEventReporter::preSave()
 	bool bAutoSave = m_bPreAutoSave;
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	FAssertMsg(bAutoSave || !g.isAITurn() || g.isNetworkMultiPlayer(),
 			"Quicksave in between turns?");
 	char const* szDefineName = "";
@@ -457,14 +457,14 @@ void CvEventReporter::preSave()
 
 void CvEventReporter::preAutoSave() {
 
-	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
 			"Should've been reset by preSave");
 	m_bPreAutoSave = true;
 }
 
 void CvEventReporter::preQuickSave() {
 
-	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
 			"Should've been reset by preSave");
 	m_bPreQuickSave = true;
 } // </advc.106l>
@@ -535,7 +535,7 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 {
 	m_kStatistics.reset();
 	m_kStatistics.read(pStream);
-	GC.getGameINLINE().allGameDataRead(); // advc.003
+	GC.getGame().allGameDataRead(); // advc.003
 }
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {

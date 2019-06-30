@@ -35,14 +35,14 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId
 		return;
 	// <advc.127>
 	bool autoPlayJustEnded = GET_PLAYER(ownerId).isAutoPlayJustEnded();
+	CvGame& g = GC.getGame();
 	bool force = (isDebug && (GET_PLAYER(ownerId).isSpectator() ||
 			/*  When Auto Play has just ended, we're no longer in spectator mode,
 				but the message should still be force-delivered. */
-			(autoPlayJustEnded && GC.getGameINLINE().isDebugMode())));
+			(autoPlayJustEnded && g.isDebugMode())));
 	if(!force && (GET_PLAYER(ownerId).isHumanDisabled() || autoPlayJustEnded))
 		return; // </advc.127>
 	// <advc.706>
-	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
 		return; // </advc.706>
 	bool arrows = (icon != NULL);
@@ -227,7 +227,7 @@ void BonusThirdPartiesAlert::reset() {
 void BonusThirdPartiesAlert::check() {
 
 	multiset<int> updatedDeals[MAX_CIV_PLAYERS];
-	CvGame& g = GC.getGameINLINE(); int foo=-1;
+	CvGame& g = GC.getGame(); int foo=-1;
 	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 		// This alert ignores trades of ownerId
 		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)

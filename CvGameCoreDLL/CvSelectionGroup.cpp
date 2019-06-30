@@ -260,7 +260,7 @@ void CvSelectionGroup::doTurn()
 
 	if (isHuman())
 	{
-		if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)
+		if (GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)
 				&& GET_TEAM(getTeam()).hasMetHuman()) // K-Mod
 		{
 			int iBestWaitTurns = 0;
@@ -272,7 +272,7 @@ void CvSelectionGroup::doTurn()
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = nextUnitNode(pUnitNode);
 
-				int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGameINLINE().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
+				int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGame().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
 
 				if (iWaitTurns > iBestWaitTurns)
 				{
@@ -315,8 +315,8 @@ void CvSelectionGroup::doTurnPost() {
 
 bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 {
-	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
-			GC.getGameINLINE().isSimultaneousTeamTurns())
+	if (GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
+			GC.getGame().isSimultaneousTeamTurns())
 		return false;
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -339,8 +339,8 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 		PlayerTypes eGroupOwner = m_eOwner;
 		TeamTypes eObs = kLoopPlayer.getTeam();
 		CvPlot const& kToPlot = *plot();
-		PlayerTypes eFromOwner = kFromPlot.getOwnerINLINE();
-		PlayerTypes eToOwner = kToPlot.getOwnerINLINE();
+		PlayerTypes eFromOwner = kFromPlot.getOwner();
+		PlayerTypes eToOwner = kToPlot.getOwner();
 		bool bAwayFromHome = (eGroupOwner != eToOwner || eGroupOwner != eFromOwner);
 		bool bInSpectatorsBorders = ((eFromOwner != NO_PLAYER &&
 				eObs == TEAMID(eFromOwner)) || (eToOwner != NO_PLAYER &&
@@ -492,7 +492,7 @@ void CvSelectionGroup::playActionSound()
 
 	if ( (iScriptId != -1) && pHeadUnit )
 	{
-		CvPlot *pPlot = GC.getMapINLINE().plotINLINE(pHeadUnit->getX(),pHeadUnit->getY());
+		CvPlot *pPlot = GC.getMap().plot(pHeadUnit->getX(),pHeadUnit->getY());
 		if ( pPlot )
 		{
 			gDLL->Do3DSound( iScriptId, pPlot->getPoint() );
@@ -532,7 +532,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 	mission.iData1 = iData1;
 	mission.iData2 = iData2;
 	mission.iFlags = iFlags;
-	mission.iPushTurn = GC.getGameINLINE().getGameTurn();
+	mission.iPushTurn = GC.getGame().getGameTurn();
 	mission.bModified = bModified; //advc.011b
 
 	if (canAllMove()) // K-Mod. Do not set the AI mission type if this is just a "follow" command!
@@ -543,7 +543,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 
 	if (bManual)
 	{
-		if (getOwner() == GC.getGameINLINE().getActivePlayer())
+		if (getOwner() == GC.getGame().getActivePlayer())
 		{
 			if (isBusy() && GC.getMissionInfo(eMission).isSound())
 			{
@@ -553,7 +553,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 			gDLL->getInterfaceIFace()->setHasMovedUnit(true);
 			/*  advc.001w: Prevent help text and mouse focus from lingering after
 				a command button is clicked */
-			GC.getGameINLINE().setUpdateTimer(CvGame::UPDATE_MOUSE_FOCUS, 2);
+			GC.getGame().setUpdateTimer(CvGame::UPDATE_MOUSE_FOCUS, 2);
 		}
 
 		CvEventReporter::getInstance().selectionGroupPushMission(this, eMission);
@@ -605,7 +605,7 @@ bool CvSelectionGroup::autoMission() // K-Mod changed this from void to bool.
 
 				//if (bVisibleHuman && GET_PLAYER(getOwner()).AI_getPlotDanger(plot(), 1) > 0)
 				// K-Mod. I want to allow players to queue actions when in danger without being overruled by this clause.
-				if (bVisibleHuman && headMissionQueueNode()->m_data.iPushTurn != GC.getGameINLINE().getGameTurn() && !(headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER) &&
+				if (bVisibleHuman && headMissionQueueNode()->m_data.iPushTurn != GC.getGame().getGameTurn() && !(headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER) &&
 					GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 1, true, false))
 				// K-Mod end
 				{
@@ -648,11 +648,11 @@ void CvSelectionGroup::updateMission()
 			}
 			else
 			{
-				if (getOwner() == GC.getGameINLINE().getActivePlayer())
+				if (getOwner() == GC.getGame().getActivePlayer())
 				{
 					if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
 					{
-						GC.getGameINLINE().cycleSelectionGroups_delayed(1, true);
+						GC.getGame().cycleSelectionGroups_delayed(1, true);
 					}
 				}
 			}
@@ -670,7 +670,7 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 		{
 		case MISSION_MOVE_TO:
 		case MISSION_ROUTE_TO:
-			return GC.getMapINLINE().plotINLINE(pMissionNode->m_data.iData1, pMissionNode->m_data.iData2);
+			return GC.getMap().plot(pMissionNode->m_data.iData1, pMissionNode->m_data.iData2);
 			break;
 
 		case MISSION_MOVE_TO_UNIT: {
@@ -753,15 +753,15 @@ void CvSelectionGroup::startMission()
 	FAssert(getOwner() != NO_PLAYER);
 	FAssert(headMissionQueueNode() != NULL);
 
-	if (!GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+	if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 	{
 		if (!GET_PLAYER(getOwner()).isTurnActive())
 		{
-			if (getOwner() == GC.getGameINLINE().getActivePlayer())
+			if (getOwner() == GC.getGame().getActivePlayer())
 			{
 				if (IsSelected())
 				{
-					GC.getGameINLINE().cycleSelectionGroups_delayed(1, true);
+					GC.getGame().cycleSelectionGroups_delayed(1, true);
 				}
 			}
 
@@ -794,7 +794,7 @@ void CvSelectionGroup::startMission()
 			// <advc.029> (Not sure if this is the best place for this)
 			if(getHeadUnit() != NULL && getDomainType() == DOMAIN_AIR) {
 				MissionData data = headMissionQueueNode()->m_data;
-				CvPlot* pDest = GC.getMapINLINE().plotINLINE(data.iData1, data.iData2);
+				CvPlot* pDest = GC.getMap().plot(data.iData1, data.iData2);
 				/*  Both air attack and rebase are MOVE_TO missions. Want to
 					clear the recon-plot only for rebase. */
 				if(data.eMissionType == MISSION_MOVE_TO && pDest != NULL &&
@@ -811,13 +811,13 @@ void CvSelectionGroup::startMission()
 		{
 		case MISSION_MOVE_TO:
 			// K-Mod. Prevent human players from accidentally attacking units that they can't see.
-			if (isHuman() && !GC.getMapINLINE().plotINLINE(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2)->isVisible(getTeam(), false))
+			if (isHuman() && !GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2)->isVisible(getTeam(), false))
 				headMissionQueueNode()->m_data.iFlags |= MOVE_NO_ATTACK;
 
 			// also, we should allow an amphibious landing even if we are out of moves.
 			if (!canAllMove())
 			{
-				if (groupAmphibMove(GC.getMapINLINE().plotINLINE(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2), headMissionQueueNode()->m_data.iFlags))
+				if (groupAmphibMove(GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2), headMissionQueueNode()->m_data.iFlags))
 				{
 					bDelete = true;
 				}
@@ -947,7 +947,7 @@ void CvSelectionGroup::startMission()
 
 		// K-Mod. If the worker is already in danger when the command is issued, use the MOVE_IGNORE_DANGER flag.
 		case MISSION_BUILD:
-			if (!AI_isControlled() && headMissionQueueNode()->m_data.iPushTurn == GC.getGameINLINE().getGameTurn() &&
+			if (!AI_isControlled() && headMissionQueueNode()->m_data.iPushTurn == GC.getGame().getGameTurn() &&
 				GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2, true, false)) // cf. condition used in CvSelectionGroup::doTurn.
 			{
 				headMissionQueueNode()->m_data.iFlags |= MOVE_IGNORE_DANGER;
@@ -1048,7 +1048,7 @@ void CvSelectionGroup::startMission()
 					{
 						bAction = true;
 
-						if (GC.getMapINLINE().plotINLINE(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2)->isVisibleToWatchingHuman())
+						if (GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2)->isVisibleToWatchingHuman())
 						{
 							bNuke = true;
 						}
@@ -1293,9 +1293,9 @@ void CvSelectionGroup::startMission()
 					activateHeadMission();
 				// K-Mod end
 
-				if (getOwner() == GC.getGameINLINE().getActivePlayer() && IsSelected())
+				if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 				{
-					GC.getGameINLINE().cycleSelectionGroups_delayed(GET_PLAYER(getOwner()).isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true, readyToSelect(true));
+					GC.getGame().cycleSelectionGroups_delayed(GET_PLAYER(getOwner()).isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true, readyToSelect(true));
 				}
 			}
 			else if (getActivityType() == ACTIVITY_MISSION)
@@ -1303,9 +1303,9 @@ void CvSelectionGroup::startMission()
 				continueMission();
 			}
 			// K-Mod
-			else if (getOwner() == GC.getGameINLINE().getActivePlayer() && IsSelected() && !canAnyMove())
+			else if (getOwner() == GC.getGame().getActivePlayer() && IsSelected() && !canAnyMove())
 			{
-				GC.getGameINLINE().cycleSelectionGroups_delayed(GET_PLAYER(getOwner()).isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true);
+				GC.getGame().cycleSelectionGroups_delayed(GET_PLAYER(getOwner()).isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true);
 			}
 			// K-Mod end
 		}
@@ -1339,7 +1339,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 		return false;
 	}
 	MissionData missionData = pHeadMission->m_data;
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	CvPlot* pFromPlot = plot(); // advc.102
 	bool bDone = false;
 	bool bAction = false;
@@ -1404,7 +1404,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 				if (getNumUnits() > 0 && !canAllMove() && pHeadMission != NULL)
 				{	
 					missionData = pHeadMission->m_data;
-					if (groupAmphibMove(GC.getMapINLINE().plotINLINE(
+					if (groupAmphibMove(GC.getMap().plot(
 							missionData.iData1, missionData.iData2), missionData.iFlags))
 					{
 						bAction = false;
@@ -1440,7 +1440,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 			}
 			if (AI_getMissionAIType() != MISSIONAI_SHADOW && AI_getMissionAIType() != MISSIONAI_GROUP)
 			{
-				if (!plot()->isOwned() || plot()->getOwnerINLINE() == getOwner())
+				if (!plot()->isOwned() || plot()->getOwner() == getOwner())
 				{
 					CvPlot* pMissionPlot = pTargetUnit->getGroup()->AI_getMissionAIPlot();
 					if (pMissionPlot != NULL && NO_TEAM != pMissionPlot->getTeam())
@@ -1668,7 +1668,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 				{
 					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 					pUnitNode = nextUnitNode(pUnitNode);
-					if (pLoopUnit->isGroupHead() && pLoopUnit->getOwnerINLINE() == getHeadOwner())
+					if (pLoopUnit->isGroupHead() && pLoopUnit->getOwner() == getHeadOwner())
 					{
 						CvSelectionGroup* pLoopGroup = pLoopUnit->getGroup();
 						if (pLoopGroup->getMissionType(0) == MISSION_BUILD &&
@@ -1864,7 +1864,7 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 		case INTERFACEMODE_GO_TO_TYPE:
 			if ((getDomainType() != DOMAIN_AIR) && (getDomainType() != DOMAIN_IMMOBILE))
 			{
-				if (pLoopUnit->plot()->plotCount(PUF_isUnitType, pLoopUnit->getUnitType(), -1, pLoopUnit->getOwnerINLINE()) > 1)
+				if (pLoopUnit->plot()->plotCount(PUF_isUnitType, pLoopUnit->getUnitType(), -1, pLoopUnit->getOwner()) > 1)
 				{
 					return true;
 				}
@@ -1874,7 +1874,7 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 		case INTERFACEMODE_GO_TO_ALL:
 			if ((getDomainType() != DOMAIN_AIR) && (getDomainType() != DOMAIN_IMMOBILE))
 			{
-				if (pLoopUnit->plot()->plotCount(NULL, -1, -1, pLoopUnit->getOwnerINLINE()) > 1)
+				if (pLoopUnit->plot()->plotCount(NULL, -1, -1, pLoopUnit->getOwner()) > 1)
 				{
 					return true;
 				}
@@ -3016,7 +3016,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 	FAssert(!isBusy()); // K-Mod
 
-	CvPlot* pDestPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvPlot* pDestPlot = GC.getMap().plot(iX, iY);
 
 	// K-Mod. Rather than clearing the existing path data; use a temporary pathfinder.
 	KmodPathFinder final_path;
@@ -3240,7 +3240,7 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, int iFlags)
 	FAssert(getOwner() != NO_PLAYER);
 	FAssert(headMissionQueueNode() != NULL);
 
-	CvPlot* pDestPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvPlot* pDestPlot = GC.getMap().plot(iX, iY);
 	FAssertMsg(pDestPlot != NULL, "DestPlot is not assigned a valid value");
 
 	//FAssertMsg(canAllMove(), "canAllMove is expected to be true");
@@ -3991,21 +3991,15 @@ void CvSelectionGroup::changeMissionTimer(int iChange)
 }
 
 
-void CvSelectionGroup::updateMissionTimer(int iSteps,
-		CvPlot* pFromPlot) // advc.102
+void CvSelectionGroup::updateMissionTimer(int iSteps, /* advc.102: */ CvPlot* pFromPlot)
 {
-	CvUnit* pTargetUnit;
-	CvPlot* pTargetPlot;
-	int iTime;
-
+	int iTime = 0;
 	if (!isHuman() && (!showMoves( // <advc.102>
 			pFromPlot == NULL ? *plot() : *pFromPlot) ||
 			// Are these timers synchronized?
-			(!GC.getGameINLINE().isNetworkMultiPlayer() &&
+			(!GC.getGame().isNetworkMultiPlayer() &&
 			gDLL->getEngineIFace()->isGlobeviewUp()))) // </advc.102>
-	{
 		iTime = 0;
-	}
 	else if (headMissionQueueNode() != NULL)
 	{
 		iTime = GC.getMissionInfo((MissionTypes)(headMissionQueueNode()->m_data.eMissionType)).getTime();
@@ -4014,21 +4008,18 @@ void CvSelectionGroup::updateMissionTimer(int iSteps,
 				(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||
 				(headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT))
 		{
+			CvPlot* pTargetPlot = NULL;
 			if (headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT)
 			{
-				pTargetUnit = GET_PLAYER((PlayerTypes)headMissionQueueNode()->m_data.iData1).getUnit(headMissionQueueNode()->m_data.iData2);
+				CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)headMissionQueueNode()->m_data.iData1).getUnit(headMissionQueueNode()->m_data.iData2);
 				if (pTargetUnit != NULL)
 				{
 					pTargetPlot = pTargetUnit->plot();
 				}
-				else
-				{
-					pTargetPlot = NULL;
-				}
 			}
 			else
 			{
-				pTargetPlot = GC.getMapINLINE().plotINLINE(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2);
+				pTargetPlot = GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2);
 			}
 
 			if (atPlot(pTargetPlot))
@@ -4041,14 +4032,11 @@ void CvSelectionGroup::updateMissionTimer(int iSteps,
 			}
 		}
 
-		if (isHuman() && (isAutomated() || (GET_PLAYER((GC.getGameINLINE().isNetworkMultiPlayer()) ? getOwner() : GC.getGameINLINE().getActivePlayer()).isOption(PLAYEROPTION_QUICK_MOVES))))
-		{
+		if (isHuman() && (isAutomated() || (GET_PLAYER(
+				GC.getGame().isNetworkMultiPlayer() ? getOwner() :
+				GC.getGame().getActivePlayer()).
+				isOption(PLAYEROPTION_QUICK_MOVES))))
 			iTime = std::min(iTime, 1);
-		}
-	}
-	else
-	{
-		iTime = 0;
 	}
 
 	setMissionTimer(iTime);
@@ -4121,7 +4109,7 @@ void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 			}
 		}
 
-		if (getTeam() == GC.getGameINLINE().getActiveTeam())
+		if (getTeam() == GC.getGame().getActiveTeam())
 		{
 			if (pPlot != NULL)
 			{
@@ -4569,7 +4557,7 @@ CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize, CvUnit* pNewHeadU
 	// Note: the force split can be overridden by the calling function if need be.
 	/*  <advc.706> Uncommented this old K-Mod code b/c my splitGroup(1) calls
 		failed the FAssert below. */
-	if (GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) && pRemainderGroup && pRemainderGroup->getHeadUnitAI() != eOldHeadAI)
+	if (GC.getGame().isOption(GAMEOPTION_RISE_FALL) && pRemainderGroup && pRemainderGroup->getHeadUnitAI() != eOldHeadAI)
 		pRemainderGroup->AI_setForceSeparate(); // </advc.706>
 	FAssert(!pRemainderGroup || pRemainderGroup->getHeadUnitAI() == eOldHeadAI || pRemainderGroup->AI_isForceSeparate()); // this should now be automatic, because of my other edits.
 	// K-Mod end
@@ -4701,7 +4689,7 @@ PlayerTypes CvSelectionGroup::getHeadOwner() const
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
-		return pHeadUnit->getOwnerINLINE();
+		return pHeadUnit->getOwner();
 	}
 
 	return NO_PLAYER;
@@ -4728,7 +4716,7 @@ void CvSelectionGroup::clearMissionQueue()
 
 	m_missionQueue.clear();
 
-	if ((getOwner() == GC.getGameINLINE().getActivePlayer()) && IsSelected())
+	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
@@ -4773,7 +4761,7 @@ void CvSelectionGroup::insertAtEndMissionQueue(MissionData mission, bool bStart)
 		activateHeadMission();
 	}
 
-	if (getOwner() == GC.getGameINLINE().getActivePlayer() && IsSelected())
+	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
@@ -4799,7 +4787,7 @@ CLLNode<MissionData>* CvSelectionGroup::deleteMissionQueueNode(CLLNode<MissionDa
 		activateHeadMission();*/
 	// Disabled by K-Mod. It should be possible to delete the head mission without immediately starting the next one!
 
-	if (getOwner() == GC.getGameINLINE().getActivePlayer() && IsSelected())
+	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
@@ -5074,9 +5062,9 @@ void CvSelectionGroup::deactivateHeadMission()
 
 		setMissionTimer(0);
 
-		/* if (getOwner() == GC.getGameINLINE().getActivePlayer()) {
+		/* if (getOwner() == GC.getGame().getActivePlayer()) {
 			if (IsSelected())
-				GC.getGameINLINE().cycleSelectionGroups_delayed(1, true, canAnyMove());
+				GC.getGame().cycleSelectionGroups_delayed(1, true, canAnyMove());
 		} */
 	}
 }

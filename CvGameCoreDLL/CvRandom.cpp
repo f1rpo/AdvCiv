@@ -56,7 +56,7 @@ unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
 	{
 		if (GC.getLogging() && GC.getRandLogging())
 		{
-			CvGame const& g = GC.getGameINLINE(); // advc.003
+			CvGame const& g = GC.getGame(); // advc.003
 			if (g.getTurnSlice() > 0)
 			{
 				TCHAR szOut[1024];

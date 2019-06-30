@@ -1513,7 +1513,7 @@ void CyCity::setPlundered(bool bNewValue)
 
 int /*PlayerTypes*/ CyCity::getOwner()
 {
-	return m_pCity ? m_pCity->getOwnerINLINE() : NO_PLAYER;
+	return m_pCity ? m_pCity->getOwner() : NO_PLAYER;
 }
 
 int /*TeamTypes*/ CyCity::getTeam()

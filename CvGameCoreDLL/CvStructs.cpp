@@ -584,11 +584,11 @@ FirstContactData::FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2,
 		y2 = pAt2->getY();
 	}
 	if(pUnit1 != NULL) {
-		u1.eOwner = pUnit1->getOwnerINLINE();
+		u1.eOwner = pUnit1->getOwner();
 		u1.iID = pUnit1->getID();
 	}
 	if(pUnit2 != NULL) {
-		u2.eOwner = pUnit2->getOwnerINLINE();
+		u2.eOwner = pUnit2->getOwner();
 		u2.iID = pUnit2->getID();
 	}
 } // </advc.071>

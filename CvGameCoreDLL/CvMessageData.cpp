@@ -196,7 +196,7 @@ void CvNetPushOrder::Execute()
 			// K-Mod end
 		}
 
-		if (GC.getGameINLINE().getActivePlayer() == m_ePlayer)
+		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
 			gDLL->getInterfaceIFace()->updatePythonScreens();
 		}
@@ -258,7 +258,7 @@ void CvNetPopOrder::Execute()
 			pCity->popOrder(m_iNum);
 		}
 
-		if (GC.getGameINLINE().getActivePlayer() == m_ePlayer)
+		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
 			gDLL->getInterfaceIFace()->updatePythonScreens();
 		}
@@ -394,7 +394,7 @@ void CvNetResearch::Execute()
 
 			if (m_iDiscover > 1)
 			{
-				if (m_ePlayer == GC.getGameINLINE().getActivePlayer())
+				if (m_ePlayer == GC.getGame().getActivePlayer())
 				{
 					kPlayer.chooseTech(m_iDiscover - 1);
 				}
@@ -416,7 +416,7 @@ void CvNetResearch::Execute()
 			}
 		}
 
-		if (GC.getGameINLINE().getActivePlayer() == m_ePlayer)
+		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
 			gDLL->getInterfaceIFace()->updatePythonScreens();
 		}
@@ -1013,7 +1013,7 @@ void CvNetChooseElection::Debug(char* szAddendum)
 
 void CvNetChooseElection::Execute()
 {
-	GC.getGameINLINE().setVoteChosen(m_iSelection, m_iVoteId);
+	GC.getGame().setVoteChosen(m_iSelection, m_iVoteId);
 }
 
 void CvNetChooseElection::PutInBuffer(FDataStreamBase* pStream)
@@ -1045,7 +1045,7 @@ void CvNetDiploVote::Debug(char* szAddendum)
 
 void CvNetDiploVote::Execute()
 {
-	GC.getGameINLINE().castVote(m_ePlayer, m_iVoteId, m_eChoice);
+	GC.getGame().castVote(m_ePlayer, m_iVoteId, m_eChoice);
 }
 
 void CvNetDiploVote::PutInBuffer(FDataStreamBase* pStream)
@@ -1135,9 +1135,9 @@ void CvNetPing::SetFromBuffer(FDataStreamBase* pStream)
 
 void CvNetPing::Execute()
 {
-	if (GC.getGameINLINE().getActiveTeam() != NO_TEAM)
+	if (GC.getGame().getActiveTeam() != NO_TEAM)
 	{
-		if (GET_PLAYER(m_ePlayer).getTeam() == GC.getGameINLINE().getActiveTeam() || GET_TEAM(GC.getGameINLINE().getActiveTeam()).isVassal(GET_PLAYER(m_ePlayer).getTeam()) || GET_TEAM(GET_PLAYER(m_ePlayer).getTeam()).isVassal(GC.getGameINLINE().getActiveTeam()))
+		if (GET_PLAYER(m_ePlayer).getTeam() == GC.getGame().getActiveTeam() || GET_TEAM(GC.getGame().getActiveTeam()).isVassal(GET_PLAYER(m_ePlayer).getTeam()) || GET_TEAM(GET_PLAYER(m_ePlayer).getTeam()).isVassal(GC.getGame().getActiveTeam()))
 		{
 			gDLL->getInterfaceIFace()->doPing(m_iX, m_iY, m_ePlayer);
 		}
@@ -1167,5 +1167,5 @@ void CvNetFPTest::SetFromBuffer(FDataStreamBase* pStream)
 
 void CvNetFPTest::Execute()
 {
-	GC.getGameINLINE().doFPCheck(m_iResult, m_ePlayer);
+	GC.getGame().doFPCheck(m_iResult, m_ePlayer);
 } // </advc.003g>
