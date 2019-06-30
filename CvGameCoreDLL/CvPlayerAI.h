@@ -437,11 +437,8 @@ public:
 			int iCountdownThresh = -1) const; // advc.115
 
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START
-	// (functions renamed and edited for K-Mod)
-	int AI_calculateSpaceVictoryStage() const;
-	int AI_calculateConquestVictoryStage() const;
-	int AI_calculateDominationVictoryStage() const;
-	int AI_calculateDiplomacyVictoryStage() const;
+	/* (functions renamed and edited for K-Mod;
+		advc: 'calculate' functions moved to protected section) */
 	bool AI_isDoVictoryStrategy(int iVictoryStrategy) const;
 	bool AI_isDoVictoryStrategyLevel4() const;
 	bool AI_isDoVictoryStrategyLevel3() const;
@@ -762,7 +759,13 @@ protected:
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
 	void AI_updateCityAttitude(CvPlot const& kCityPlot); // advc.130w
 	int AI_neededExplorers_bulk(CvArea const* pArea) const; // advc.003b
-
+	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START
+	// (advc: moved here from the public section)
+	int AI_calculateSpaceVictoryStage() const;
+	int AI_calculateConquestVictoryStage() const;
+	int AI_calculateDominationVictoryStage() const;
+	int AI_calculateDiplomacyVictoryStage() const;
+	// BETTER_BTS_AI_MOD: END
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
 	inline int AI_getStrategyHash() const { return m_iStrategyHash; }
 	void AI_updateStrategyHash();

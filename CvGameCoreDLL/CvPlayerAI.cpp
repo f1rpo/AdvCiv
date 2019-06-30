@@ -1808,7 +1808,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 			{
 				iRazeValue += 15; // advc.116: was 40
 				// <cdtw.1>
-				if(GET_TEAM(getTeam()).isAVassal()) {
+				if(isAVassal()) {
 					iRazeValue -= 5;
 					if(GET_TEAM(getTeam()).isCapitulated())
 						iRazeValue -= 10;
@@ -8742,7 +8742,7 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer, /* advc.104l: */ bool b
 	// advc.104i: Moved the !atWar and isAVassal checks up
 	if(!::atWar(getTeam(), kTheirTeam.getID()))
 		return (AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0);
-	if (kOurTeam.isAVassal()
+	if (isAVassal()
 			|| kTheirTeam.isAVassal()) // advc.104i: Get this out of the way too
 		return false;
 	// K-Mod
@@ -10285,8 +10285,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if (!getWPAI.isEnabled()) // advc.104n
 					{
 						if(!bValid && bThisPlayerWinning &&
-								(iWarsLosing >= iWarsWinning) && !bPropose &&
-								!kOurTeam.isAVassal())
+								(iWarsLosing >= iWarsWinning) && !bPropose && !isAVassal())
 						{
 							if( (kOurTeam.getAtWarCount(true) == 1) || bLosingBig )
 							{
@@ -10477,7 +10476,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					bValid = (bPropose || NO_DENIAL == GET_TEAM(getTeam()).AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
 					if (bValid)
 						bValid = (GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) < ATTITUDE_CAUTIOUS);*/
-					if( !bPropose && kOurTeam.isAVassal() )
+					if (!bPropose && isAVassal())
 					{
 						// Vassals always deny war trade requests and thus previously always voted no
 						bValid = false;
@@ -10490,7 +10489,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 								{
 									bValid = true;
 								}
-								//else if( (GET_TEAM(getTeam()).isAVassal() ? GET_TEAM(getTeam()).getCurrentMasterPower(true) : GET_TEAM(getTeam()).getPower(true)) > GET_TEAM(eWarTeam).getDefensivePower() )
+								//else if( (isAVassal() ? GET_TEAM(getTeam()).getCurrentMasterPower(true) : GET_TEAM(getTeam()).getPower(true)) > GET_TEAM(eWarTeam).getDefensivePower() )
 								else if (GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) > GET_TEAM(eWarTeam).getDefensivePower())
 								{
 									bValid = true;
@@ -10527,7 +10526,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						} // </advc.104n>
 					}
 					/*else{ // Consider defying resolution
-						if( !GET_TEAM(getTeam()).isAVassal() ) {
+						if( !isAVassal() ) {
 							if( eSecretaryGeneral == NO_TEAM || GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral) ) {
 								if( GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GC.getLeaderHeadInfo(getPersonalityType()).getDefensivePactRefuseAttitudeThreshold() ) {
 									int iDefyRand = GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight();
@@ -15097,7 +15096,8 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea* pArea, int iBuildProb) const
 	if (isBarbarian())
 		return 500;
 
-	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE))
+	//if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE))
+	if (!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.001j
 		return 20; // ??
 
 	if (iBuildProb < 0)
@@ -20001,7 +20001,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 
 			if (ourTeam.getLeaderID() == getID() &&
 					// advc.003b: Avoid costly TradeDenial check (in canTradeItem)
-					!ourTeam.isAVassal())
+					!isAVassal())
 			{
 				if (AI_getContactTimer(civId, CONTACT_PERMANENT_ALLIANCE) == 0)
 				{
@@ -20146,7 +20146,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 			// <advc.130z> Do this for non-humans too
 			if (/*civ.isHuman() &&*/ ourTeam.getLeaderID() == getID() &&
 					// Vassal-master handled above
-					!TEAMREF(civId).isAVassal() && !ourTeam.isAVassal() &&
+					!TEAMREF(civId).isAVassal() && !isAVassal() &&
 					ourTeam.getID() != civ.getTeam() &&
 					!civ.AI_isDoVictoryStrategyLevel3()) // </advc.130z>
 			{
@@ -20236,7 +20236,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 			{
 				if (!abContacted[civ.getTeam()] &&
 						// advc.130v:
-						(!ourTeam.isAVassal() || ourTeam.getMasterTeam() == civ.getTeam())) {
+						(!isAVassal() || ourTeam.getMasterTeam() == civ.getTeam())) {
 					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).
 							getContactRand(CONTACT_ASK_FOR_HELP);
 					// BETTER_BTS_AI_MOD, Diplomacy, 02/12/10, jdog5000: START
@@ -20616,7 +20616,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 				war allies. Peace vassals would be OK if it weren't for
 				advc.146 which implements a peace treaty between the war allies;
 				can't have a vassal force its master into a peace treaty. */
-			if(ourTeam.isAVassal())
+			if(isAVassal())
 				continue; // </advc.130v>
 			int iMinAtWarCounter = MAX_INT;
 			for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
@@ -22528,7 +22528,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 	{
 		int iValue = GC.getLeaderHeadInfo(getPersonalityType()).getCultureVictoryWeight();
 
-		if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
+		//if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
+		if (!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.001j
 			iValue += 30;
 
 		iValue += (g.isOption(GAMEOPTION_AGGRESSIVE_AI)
@@ -22564,11 +22565,11 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 			iValue -= AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) ? 20 : 0;
 			// K-Mod end
 		}
-		/*if ((GET_TEAM(getTeam()).isAVassal()) && (getNumCities() > 5)){
+		/*if (isAVassal() && getNumCities() > 5){
 			int iReligionCount = countTotalHasReligion();
-			if (((iReligionCount * 100) / getNumCities()) > 250){
+			if ((iReligionCount * 100) / getNumCities() > 250){
 				iValue += 1;
-				iValue += ((2 * iReligionCount) + 1) / getNumCities();
+				iValue += (2 * iReligionCount + 1) / getNumCities();
 			}
 		}*/
 		// <advc.109>
@@ -22807,7 +22808,8 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 	{
 		int iValue = GC.getLeaderHeadInfo(getPersonalityType()).getSpaceVictoryWeight();
 
-		if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE))
+		//if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE))
+		if (!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.003j
 			iValue += 30;
 
 		if(isAVassal())
@@ -22850,11 +22852,14 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 int CvPlayerAI::AI_calculateConquestVictoryStage() const
 {
 	PROFILE_FUNC();
+
+	CvGame const& g = GC.getGame(); // advc.003
 	const CvTeamAI& kTeam = GET_TEAM(getTeam());
 
 	// check for validity of conquest victory
-	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) || kTeam.isAVassal() ||
-			(GC.getDefineINT("BBAI_VICTORY_STRATEGY_CONQUEST") <= 0 &&
+	//if (g.isOption(GAMEOPTION_ALWAYS_PEACE)
+	if (!kTeam.AI_isWarPossible() || // advc.001j
+			isAVassal() || (GC.getDefineINT("BBAI_VICTORY_STRATEGY_CONQUEST") <= 0 &&
 			!isHuman())) // advc.115
 		return 0;
 
@@ -22863,7 +22868,7 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 
 		for (VictoryTypes i = (VictoryTypes)0; !bValid && i < GC.getNumVictoryInfos(); i=(VictoryTypes)(i+1))
 		{
-			if (GC.getGame().isVictoryValid(i) && GC.getVictoryInfo(i).isConquest())
+			if (g.isVictoryValid(i) && GC.getVictoryInfo(i).isConquest())
 				bValid = true;
 		}
 		if (!bValid)
@@ -22941,7 +22946,7 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 			// <advc.104c>
 			if(kTeam.AI_getAttitude(i) >= ATTITUDE_FRIENDLY)
 				iFriends++; // </advc.104c>
-			if(!GET_TEAM(getTeam()).AI_isLandTarget(i))
+			if(!kTeam.AI_isLandTarget(i))
 				iOffshoreRivals++;
 		}
 	}
@@ -22953,7 +22958,7 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 
 	// personality & randomness
 	int iValue = GC.getLeaderHeadInfo(getPersonalityType()).getConquestVictoryWeight();
-	//iValue += (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 20 : 0);
+	//iValue += (g.isOption(GAMEOPTION_AGGRESSIVE_AI) ? 20 : 0);
 	iValue += (AI_getStrategyRand(4) % 100);
 
 	// stats
@@ -22970,7 +22975,7 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 	iValue += iOurPower < iAverageRivalPower * 4/3 && iAttitudeWeight >= 50 ? -30 : 0;
 
 	if ((iKnownCivs <= iConqueredCivs || iValue < 110) &&
-			(GC.getGame().countCivTeamsAlive() > 2 || iValue < 50)) // advc.115c
+			(g.countCivTeamsAlive() > 2 || iValue < 50)) // advc.115c
 		return 0;
 
 	// So, we have some interest in a conquest victory. Now we just have to decide how strong the interest is.
@@ -22998,8 +23003,7 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 			{
 				// finally, before confirming level 4, check that there is at least one team that we can declare war on.
 				// <advc.115>
-				if(iConqueredCivs >= iKnownCivs/2 && GET_TEAM(getTeam()).getNumCities() * 2 >=
-						GC.getGame().getNumCities())
+				if(iConqueredCivs >= iKnownCivs/2 && kTeam.getNumCities() * 2 >= g.getNumCities())
 				{ // </advc.115>
 					for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
 					{
@@ -23028,14 +23032,11 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 int CvPlayerAI::AI_calculateDominationVictoryStage() const
 {
 	CvGame const& g = GC.getGame(); // advc.003
-	if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
-		return 0;
-
-	if (isAVassal())
-		return 0;
-
-	if (GC.getDefineINT("BBAI_VICTORY_STRATEGY_DOMINATION") <= 0
-			&& !isHuman()) // advc.115
+	const CvTeamAI& kTeam = GET_TEAM(getTeam());
+	//if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
+	if (!kTeam.AI_isWarPossible() || // advc.001j
+			isAVassal() || (GC.getDefineINT("BBAI_VICTORY_STRATEGY_DOMINATION") <= 0 &&
+			!isHuman())) // advc.115
 		return 0;
 
 	VictoryTypes eDomination = NO_VICTORY;
@@ -23057,13 +23058,10 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 		return 0;
 
 	int iPercentOfDomination = 0;
-	int iOurPopPercent = (100 * GET_TEAM(getTeam()).getTotalPopulation()) /
-			std::max(1, g.getTotalPopulation());
-	int iOurLandPercent = (100 * GET_TEAM(getTeam()).getTotalLand()) /
-			std::max(1, GC.getMap().getLandPlots());
+	int iOurPopPercent = (100 * kTeam.getTotalPopulation()) / std::max(1, g.getTotalPopulation());
+	int iOurLandPercent = (100 * kTeam.getTotalLand()) / std::max(1, GC.getMap().getLandPlots());
 
 	// <advc.104c>
-	CvTeamAI& kTeam = GET_TEAM(getTeam());
 	int iPopObjective = std::max(1, g.getAdjustedPopulationPercent(eDomination));
 	int iLandObjective =std::max(1, g.getAdjustedLandPercent(eDomination));
 	bool bBlockedByFriend = false;
@@ -24438,7 +24436,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 	}
 
 	//Turn off inappropriate strategies.
-	if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
+	//if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
+	if (!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.001j
 	{
 		m_iStrategyHash &= ~AI_STRATEGY_DAGGER;
 		m_iStrategyHash &= ~AI_STRATEGY_CRUSH;

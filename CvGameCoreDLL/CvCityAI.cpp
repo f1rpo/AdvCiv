@@ -646,7 +646,8 @@ void CvCityAI::AI_chooseProduction()
 	bool bGetBetterUnits = kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS);
 	bool bDagger = kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER);
 	bool bAggressiveAI = g.isOption(GAMEOPTION_AGGRESSIVE_AI);
-	bool bAlwaysPeace = g.isOption(GAMEOPTION_ALWAYS_PEACE);
+	bool bAlwaysPeace = //g.isOption(GAMEOPTION_ALWAYS_PEACE);
+			!GET_TEAM(getTeam()).AI_isWarPossible(); // advc.001j
 
 	/* original bts code
 	int iUnitCostPercentage = (kPlayer.calculateUnitCost() * 100) / std::max(1, kPlayer.calculatePreInflatedCosts()); */
@@ -2239,26 +2240,17 @@ void CvCityAI::AI_chooseProduction()
 	} // </dlph.15>
 
 	/* original code
-	if (!bAlwaysPeace && !(bLandWar || bAssault) && (kPlayer.AI_isDoStrategy(AI_STRATEGY_OWABWNW) || (g.getSorenRandNum(12, "AI consider Nuke") == 0)))
-	{
-		if( !bFinancialTrouble )
-		{
+	if (!bAlwaysPeace && !(bLandWar || bAssault) && (kPlayer.AI_isDoStrategy(AI_STRATEGY_OWABWNW) || (g.getSorenRandNum(12, "AI consider Nuke") == 0))) {
+		if( !bFinancialTrouble ) {
 			int iTotalNukes = kPlayer.AI_totalUnitAIs(UNITAI_ICBM);
 			int iNukesWanted = 1 + 2 * std::min(kPlayer.getNumCities(), g.getNumCities() - kPlayer.getNumCities());
-			if ((iTotalNukes < iNukesWanted) && (g.getSorenRandNum(100, "AI train nuke MWAHAHAH") < (90 - (80 * iTotalNukes) / iNukesWanted)))
-			{
-				if ((pWaterArea != NULL))
-				{
+			if ((iTotalNukes < iNukesWanted) && (g.getSorenRandNum(100, "AI train nuke MWAHAHAH") < (90 - (80 * iTotalNukes) / iNukesWanted))) {
+				if ((pWaterArea != NULL)) {
 					if (AI_chooseUnit(UNITAI_MISSILE_CARRIER_SEA, 50))
-					{
 						return;
-					}
 				}
-
 				if (AI_chooseUnit(UNITAI_ICBM))
-				{
 					return;
-				}
 			}
 		}
 	} */
@@ -12557,7 +12549,7 @@ int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValu
 	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_ALWAYS_WAR))
 		r -= 10;
-	else if(g.isOption(GAMEOPTION_ALWAYS_PEACE) || // Can't expand through war
+	else if(!GET_TEAM(getTeam()).AI_isWarPossible() || // Can't expand through war
 			(kTeam.isAVassal() && !kTeam.isCapitulated()) ||
 			(getWPAI.isEnabled() && kOwner.warAndPeaceAI().getCache().hasProtectiveTrait()))
 		r += 15;

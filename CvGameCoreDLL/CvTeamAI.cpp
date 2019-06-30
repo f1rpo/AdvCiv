@@ -957,12 +957,11 @@ bool CvTeamAI::AI_isWarPossible() const
 {
 	if (getAtWarCount(false) > 0)
 		return true;
-	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
+	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR)
+			&& isHuman()) // advc.001j: That option only applies to humans
 		return true;
-	if (!GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) &&
-			!GC.getGame().isOption(GAMEOPTION_NO_CHANGING_WAR_PEACE))
-		return true;
-	return false;
+	return (!GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) &&
+			!GC.getGame().isOption(GAMEOPTION_NO_CHANGING_WAR_PEACE));
 }
 
 // This function has been completely rewritten for K-Mod. The original BtS code, and the BBAI code have been deleted.
