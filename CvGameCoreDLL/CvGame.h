@@ -199,7 +199,7 @@ public:
 	int getCutoffSlice() const;
 	void setCutoffSlice(int iNewValue);
 	void changeCutoffSlice(int iChange);
-	int getTurnSlicesRemaining()
+	DllExport int getTurnSlicesRemaining()
 	// <advc.003> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getTurnSlicesRemaining();

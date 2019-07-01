@@ -399,7 +399,9 @@ class CvEventManager:
 		unitY = PyInfo.UnitInfo(pLoser.getUnitType())
 		if (not self.__LOG_COMBAT):
 			return
-		if playerX and playerX and unitX and playerY:
+		#if playerX and playerX and unitX and playerY:
+		# advc.001: The above looks like a copy-paste error
+		if playerX and playerY and unitX and unitY:
 			CvUtil.pyPrint('Player %d Civilization %s Unit %s has defeated Player %d Civilization %s Unit %s' 
 				%(playerX.getID(), playerX.getCivilizationName(), unitX.getDescription(), 
 				playerY.getID(), playerY.getCivilizationName(), unitY.getDescription()))

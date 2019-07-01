@@ -460,22 +460,12 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("AI_isEmphasize", &CyCity::AI_isEmphasize, "bool (int iEmphasizeType)")
 		.def("AI_countBestBuilds", &CyCity::AI_countBestBuilds, "int (CyArea* pArea)")
 		.def("AI_cityValue", &CyCity::AI_cityValue, "int ()")
+		// advc.001n:
+		.def("AI_neededFloatingDefenders", &CyCity::AI_neededFloatingDefenders, "int ()")
 
 		.def("getScriptData", &CyCity::getScriptData, "str () - Get stored custom data (via pickle)")
 		.def("setScriptData", &CyCity::setScriptData, "void (str) - Set stored custom data (via pickle)")
 
 		.def("visiblePopulation", &CyCity::visiblePopulation, "int ()")
-
-		.def("getBuildingYieldChange", &CyCity::getBuildingYieldChange, "int (int /*BuildingClassTypes*/ eBuildingClass, int /*YieldTypes*/ eYield)")
-		.def("setBuildingYieldChange", &CyCity::setBuildingYieldChange, "void (int /*BuildingClassTypes*/ eBuildingClass, int /*YieldTypes*/ eYield, int iChange)")
-		.def("getBuildingCommerceChange", &CyCity::getBuildingCommerceChange, "int (int /*BuildingClassTypes*/ eBuildingClass, int /*CommerceTypes*/ eCommerce)")
-		.def("setBuildingCommerceChange", &CyCity::setBuildingCommerceChange, "void (int /*BuildingClassTypes*/ eBuildingClass, int /*CommerceTypes*/ eCommerce, int iChange)")
-		.def("getBuildingHappyChange", &CyCity::getBuildingHappyChange, "int (int /*BuildingClassTypes*/ eBuildingClass)")
-		.def("setBuildingHappyChange", &CyCity::setBuildingHappyChange, "void (int /*BuildingClassTypes*/ eBuildingClass, int iChange)")
-		.def("getBuildingHealthChange", &CyCity::getBuildingHealthChange, "int (int /*BuildingClassTypes*/ eBuildingClass)")
-		.def("setBuildingHealthChange", &CyCity::setBuildingHealthChange, "void (int /*BuildingClassTypes*/ eBuildingClass, int iChange)")
-
-		.def("getLiberationPlayer", &CyCity::getLiberationPlayer, "int ()")
-		.def("liberate", &CyCity::liberate, "void ()")
 		;
 }
