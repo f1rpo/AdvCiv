@@ -3140,7 +3140,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
-	int iValue = 420;
+	int iValue = 410;
 	// <advc.040>
 	if(bFirstColony)
 		iValue += 55 * std::min(5, iUnrev); // </advc.040>
@@ -3675,7 +3675,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					here won't work well for strategic resources. */
 				/*  Don't assume that the bonus is enabled.
 					And the coefficient was 80. */
-				int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 56.5) /
+				int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 58.0) /
 						(1 + viBonusCount[eBonus]));
 				/*  Note (K-Mod):
 					1. the value of starting bonuses is reduced later.
@@ -14990,14 +14990,14 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 				// AI_getFlavorValue(FLAVOR_GROWTH) > 0 &&
 				AI_isPrimaryArea(pArea))
 		{
-			int iDummy=-1; // advc.113: Changed to floating point arithmetic
+			int foo=-1; // advc.113: Changed to floating point arithmetic
 			double extraCities = std::min(GC.getWorldInfo(GC.getMap().
 					getWorldSize()).getTargetNumCities()*(4.0/3) - getNumCities(),
-					(double)AI_getNumAreaCitySites(pArea->getID(), iDummy));
+					(double)AI_getNumAreaCitySites(pArea->getID(), foo));
 			extraCities = ::dRange(extraCities, 0.0, getNumCities()*(2.0/3));
 			/*  advc.113: Was 3*iExtraCities, which can be a lot. In K-Mod,
 				CvCityAI didn't actually train all those Workers, but now it might. */
-			iCount += ::round(1.4 * extraCities);
+			iCount += ::round(1.33 * extraCities);
 		}
 		// K-Mod end
 		if(getBestRoute() != NO_ROUTE)
@@ -15006,13 +15006,13 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 	/*  advc.113: To account for future tasks other than new cities:
 		population growth and new techs, and try to err on the side of too
 		many Workers (b/c the AI is pretty bad at sharing them between cities). */
-	iCount = (iCount * (100 + GC.getDefineINT("WORKER-RESERVE_PERCENT"))) / 100;
+	iCount = (iCount * (100 + GC.getDefineINT("WORKER_RESERVE_PERCENT"))) / 100;
 	iCount += 1;
 	iCount /= 3;
 	//iCount = std::min(iCount, (1 + getTotalPopulation()) / 2);
 	// <advc.113> Current population should have no bearing on Workers
 	int iCities = pArea->getCitiesPerPlayer(getID());
-	iCount = std::min(iCount, (iCities <= 1 ? 3 : ::round(2.2 * iCities)));
+	iCount = std::min(iCount, (iCities <= 1 && getCurrentEra() > 0) ? 3 : ::round(2.15 * iCities));
 	// </advc.113>
 	return std::max(1, iCount);
 }

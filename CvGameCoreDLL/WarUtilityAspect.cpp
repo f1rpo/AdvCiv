@@ -2985,11 +2985,11 @@ void Affection::evaluate() {
 		}
 	}
 	double pr = noWarPercent / 100.0;
-	double uMinus = std::pow(pr, 5.5) * 80;
+	double uMinus = std::pow(pr, 5.5) * 75;
 	if(noWarPercent >= 100) {
 		uMinus += 5;
 		if(towardsThem >= ATTITUDE_FRIENDLY)
-			uMinus += 45;
+			uMinus += 40;
 	}
 	bool const ignDistr = params.isIgnoreDistraction();
 	/*  The Catherine clause - doesn't make sense for her to consider sponsored

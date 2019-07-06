@@ -1751,58 +1751,45 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bConquest)
 	{
 		int iRange = pOldCity->getCultureLevel();
-
-		for (int iDX = -(iRange); iDX <= iRange; iDX++)
+		for (int iDX = -iRange; iDX <= iRange; iDX++)  // advc.003: Some changes to reduce indentation
 		{
-			for (int iDY = -(iRange); iDY <= iRange; iDY++)
+			for (int iDY = -iRange; iDY <= iRange; iDY++)
 			{
-				if (pOldCity->cultureDistance(iDX, iDY) <= iRange)
+				if (pOldCity->cultureDistance(iDX, iDY) > iRange)
+					continue;
+
+				CvPlot* pLoopPlot = plotXY(pOldCity->getX(), pOldCity->getY(), iDX, iDY);
+				if (pLoopPlot == NULL)
+					continue;
+
+				if (pLoopPlot->getOwner() != pOldCity->getOwner() ||
+						pLoopPlot->getNumCultureRangeCities(pOldCity->getOwner()) != 1)	
+					continue;
+
+				bool bForceUnowned = false;
+				for (iI = 0; iI < MAX_PLAYERS; iI++)
 				{
-					CvPlot* pLoopPlot = plotXY(pOldCity->getX(),pOldCity-> getY(), iDX, iDY);
+					CvPlayer const& kThirdParty = GET_PLAYER((PlayerTypes)iI);
+					if (!kThirdParty.isAlive() || kThirdParty.getTeam() == getTeam() ||
+							kThirdParty.getTeam() == pOldCity->getTeam())
+						continue;
 
-					if (pLoopPlot != NULL)
+					if (pLoopPlot->getNumCultureRangeCities(kThirdParty.getID()) > 0)
 					{
-						if (pLoopPlot->getOwner() == pOldCity->getOwner())	
-						{
-							if (pLoopPlot->getNumCultureRangeCities(pOldCity->getOwner()) == 1)
-							{
-								bool bForceUnowned = false;
-
-								for (iI = 0; iI < MAX_PLAYERS; iI++)
-								{
-									if (GET_PLAYER((PlayerTypes)iI).isAlive())
-									{
-										if ((GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) && (GET_PLAYER((PlayerTypes)iI).getTeam() != pOldCity->getTeam()))
-										{
-											if (pLoopPlot->getNumCultureRangeCities((PlayerTypes)iI) > 0)
-											{
-												bForceUnowned = true;
-												break;
-											}
-										}
-									}
-								}
-
-								if (bForceUnowned)
-								{
-									pLoopPlot->setForceUnownedTimer(GC.getDefineINT("FORCE_UNOWNED_CITY_TIMER"));
-								}
-							}
-						}
+						bForceUnowned = true;
+						break;
 					}
 				}
+				if (bForceUnowned)
+					pLoopPlot->setForceUnownedTimer(GC.getDefineINT("FORCE_UNOWNED_CITY_TIMER"));
 			}
 		}
 	}
 
 	if (pOldCity->getOriginalOwner() == pOldCity->getOwner())
-	{
 		GET_PLAYER(pOldCity->getOriginalOwner()).changeCitiesLost(1);
-	}
 	else if (pOldCity->getOriginalOwner() == getID())
-	{
 		GET_PLAYER(pOldCity->getOriginalOwner()).changeCitiesLost(-1);
-	}
 
 	if (bConquest)
 	{

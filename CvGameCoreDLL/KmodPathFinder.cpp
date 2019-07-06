@@ -115,8 +115,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 		// and then subtract the start cost & moves off all the remaining nodes.
 		Reset(); // but this is easier.
 	}
-	bool bRecalcHeuristics = false;
 
+	bool bRecalcHeuristics = false;
 	if (dest_x != x2 || dest_y != y2)
 		bRecalcHeuristics = true;
 
@@ -128,17 +128,17 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	if (GetNode(x1, y1).m_bOnStack)
 	{
 		int iMoves = (settings.iFlags & MOVE_MAX_MOVES) ? settings.pGroup->maxMoves() : settings.pGroup->movesLeft();
-		if (iMoves != GetNode(x1,  y1).m_iData1)
+		if (iMoves != GetNode(x1, y1).m_iData1)
 		{
 			Reset();
-			FAssert(!GetNode(x1,  y1).m_bOnStack);
+			FAssert(!GetNode(x1, y1).m_bOnStack);
 		}
 		// Note: This condition isn't actually enough to catch all significant changes.
 		// We really need to check max moves /and/ moves left /and/ base moves.
 		// but I don't feel like doing all that at the moment.
 	}
 
-	if (!GetNode(x1,  y1).m_bOnStack)
+	if (!GetNode(x1, y1).m_bOnStack)
 	{
 		AddStartNode();
 		bRecalcHeuristics = true;
@@ -146,8 +146,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	//else (not else. maybe start == dest)
 	{
 		// check if the end plot is already mapped.
-		if (GetNode(x2,  y2).m_bOnStack)
-			end_node = &GetNode(x2,  y2);
+		if (GetNode(x2, y2).m_bOnStack)
+			end_node = &GetNode(x2, y2);
 	}
 
 	if (bRecalcHeuristics)
@@ -374,7 +374,7 @@ bool KmodPathFinder::ProcessNode()
 
 				child_node->m_bOnStack = true;
 
-				if (pathValid_source(child_node, settings.pGroup , settings.iFlags))
+				if (pathValid_source(child_node, settings.pGroup, settings.iFlags))
 				{
 					open_list.push_back(child_node);
 					child_node->m_eFAStarListType = FASTARLIST_OPEN;
@@ -392,7 +392,7 @@ bool KmodPathFinder::ProcessNode()
 		}
 		else
 		{
-			if (!pathValid_join(parent_node, child_node, settings.pGroup , settings.iFlags))
+			if (!pathValid_join(parent_node, child_node, settings.pGroup, settings.iFlags))
 				child_node = NULL;
 		}
 

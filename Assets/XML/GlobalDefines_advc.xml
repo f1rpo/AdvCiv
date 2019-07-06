@@ -294,13 +294,13 @@
 
 	<!-- [advc.113]
 		 The upper bound for the number of Workers that the AI builds is
-		 increased by this percentage. It's there to account for various
-		 Worker tasks that the AI calculations omit.
-         Recommended: 13; a small negative value like -10 might be closest to
-		 BtS behavior. -->
+		 increased by this percentage. I had added it to account for various
+		 Worker tasks that the AI calculations omit, but it doesn't really seem
+		 helpful (anymore); recommended: 0.
+		 A small negative value like -10 might be closest to BtS behavior. -->
     <Define>
-        <DefineName>WORKER-RESERVE_PERCENT</DefineName>
-        <iDefineIntVal>13</iDefineIntVal>
+        <DefineName>WORKER_RESERVE_PERCENT</DefineName>
+        <iDefineIntVal>0</iDefineIntVal>
     </Define>
 
 	<!-- [advc.125]

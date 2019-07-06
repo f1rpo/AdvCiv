@@ -148,8 +148,8 @@ public:
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
 	int AI_cityThreat(bool bDangerPercent = false);
 
-	int AI_getWorkersHave();
-	int AI_getWorkersNeeded();
+	int AI_getWorkersHave() const;
+	int AI_getWorkersNeeded() const;
 	void AI_changeWorkersHave(int iChange);
 	BuildingTypes AI_bestAdvancedStartBuilding(int iPass);
 

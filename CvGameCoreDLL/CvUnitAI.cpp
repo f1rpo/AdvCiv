@@ -1647,16 +1647,15 @@ void CvUnitAI::AI_workerMove()
 
 	bool bCanRoute = canBuildRoute();
 	bool bNextCity = false;
-
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+
 	// XXX could be trouble...
 	if (plot()->getOwner() != getOwner())
 	{
 		if (AI_retreatToCity())
-		{
 			return;
-		}
 	}
+
 	if (!isHuman())
 	{
 		if (plot()->getOwner() == getOwner())
@@ -1672,30 +1671,23 @@ void CvUnitAI::AI_workerMove()
 		if (kOwner.AI_isPlotThreatened(plot(), 2))
 		{
 			if (AI_retreatToCity()) // XXX maybe not do this??? could be working productively somewhere else...
-			{
 				return;
-			}
 		}
 	}
 
-	if (bCanRoute)
+	if (bCanRoute && plot()->getOwner() == getOwner()) // XXX team???
 	{
-		if (plot()->getOwner() == getOwner()) // XXX team???
+		BonusTypes eNonObsoleteBonus = plot()->getNonObsoleteBonusType(getTeam());
+		if (NO_BONUS != eNonObsoleteBonus)
 		{
-			BonusTypes eNonObsoleteBonus = plot()->getNonObsoleteBonusType(getTeam());
-			if (NO_BONUS != eNonObsoleteBonus)
+			if (!plot()->isConnectedToCapital())
 			{
-				if (!plot()->isConnectedToCapital())
+				ImprovementTypes eImprovement = plot()->getImprovementType();
+				//if (NO_IMPROVEMENT != eImprovement && GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
+				if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
 				{
-					ImprovementTypes eImprovement = plot()->getImprovementType();
-					//if (NO_IMPROVEMENT != eImprovement && GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
-					if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
-					{
-						if (AI_connectPlot(plot()))
-						{
-							return;
-						}
-					}
+					if (AI_connectPlot(plot()))
+						return;
 				}
 			}
 		}
@@ -1717,9 +1709,7 @@ void CvUnitAI::AI_workerMove()
 	if (bCanRoute && !isBarbarian())
 	{
 		if (AI_connectCity())
-		{
 			return;
-		}
 	}
 
 	CvCity* pCity = NULL;
@@ -1728,9 +1718,7 @@ void CvUnitAI::AI_workerMove()
 	{
 		pCity = plot()->getPlotCity();
 		if (pCity == NULL)
-		{
 			pCity = plot()->getWorkingCity();
-		}
 	}
 
 	/*if (pCity != NULL) {
@@ -1752,15 +1740,32 @@ void CvUnitAI::AI_workerMove()
 			if (AI_improveCity(pCity))
 				return;
 		}}*/
+	// <advc.003>
+	int iNeed = 0;
+	int iHave = 0; // </advc.003>
 	if (pCity != NULL)
 	{
-		/* original bts code (is it just me, or did they get this backwards?)
-		if ((pCity->AI_getWorkersNeeded() > 0) && (plot()->isCity() || (pCity->AI_getWorkersNeeded() < ((1 + pCity->AI_getWorkersHave() * 2) / 3)))) */
-		// K-Mod. Note: this worker is currently at pCity, and so we're probably counted in AI_getWorkersHave.
-		if (pCity->AI_getWorkersNeeded() > 0 && (plot()->isCity() ||
-				pCity->AI_getWorkersHave()-1 <=
-				(1 + pCity->AI_getWorkersNeeded() * 2) / 3))
-		// K-Mod end
+		iNeed = pCity->AI_getWorkersNeeded();
+		iHave = pCity->AI_getWorkersHave();
+		/* bts code
+		if (iNeed > 0 && (plot()->isCity() || iNeed < (1 + iHave * 2) / 3)) */
+		/*  K-Mod. Is it just me, or did they get this backwards?
+			Note: this worker is currently at pCity, and so we're probably counted in AI_getWorkersHave. */
+		//if (iNeed > 0 && (plot()->isCity() || iHave - 1 <= (1 + iNeed * 2) / 3))
+		/*  advc.113: The above makes the worker leave its city even if the remaining
+			workers will only be 2/3 of what's needed, e.g. when iHave=iNeed=3.
+			I think the intention was, on the contrary, to let more workers improve
+			a city than are needed. iHave=3, iNeed=2 seems like the only relevant
+			example. (Note that iNeed will eventually decrease when too many workers
+			improve a city.)
+			The bigger issue is that the K-Mod (and BtS) code won't let a worker
+			leave when iHave=2, iNeed=1, which happens all the time. Also, I
+			don't think newly trained workers (isCity) should unconditionally stay.
+			It would be nice if CvCityAI::AI_updateWorkersNeededHere used
+			times-100 precision, but it rounds values in several places, so that's
+			difficult to change. */
+		if (iNeed > 0 && ((plot()->isCity() && iHave - 1 < 2 * iNeed) ||
+				iHave - 1 < (1 + iNeed * 4) / 3))
 		{
 			if (AI_improveCity(pCity))
 				return;
@@ -1772,7 +1777,6 @@ void CvUnitAI::AI_workerMove()
 		return;	*/ // Moved by K-Mod
 
 	bool bBuildFort = false;
-
 	if (GC.getGame().getSorenRandNum(5, "AI Worker build Fort with Priority")
 			== 0) // advc.001: Was > 0; why should a Fort be given priority 80% of the time?
 	{
@@ -1781,13 +1785,11 @@ void CvUnitAI::AI_workerMove()
 		bool bCanal = false;
 		bool bAirbase = false;
 		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) || kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) || kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
-		
+
 		if (bCanal || bAirbase)
 		{
 			if (AI_fortTerritory(bCanal, bAirbase))
-			{
 				return;
-			}
 		}
 		bBuildFort = true;
 	}
@@ -1796,34 +1798,27 @@ void CvUnitAI::AI_workerMove()
 	if (bCanRoute && isBarbarian())
 	{
 		if (AI_connectCity())
-		{
 			return;
-		}
 	}
 
-	if(!isBarbarian() && // advc.300
-		(pCity == NULL || pCity->AI_getWorkersNeeded() == 0 ||
-		(pCity->AI_getWorkersHave() > pCity->AI_getWorkersNeeded() + 1)))
-	{	/*if ((pBestBonusPlot != NULL) && (iBestBonusValue >= 15)) {
+	if(!isBarbarian() // advc.300
+		// advc.113: This has already been decided: we want to improve another city.
+		/*&& (pCity == NULL || iNeed == 0 || iHave > iNeed + 1)*/)
+	{	/*if (pBestBonusPlot != NULL && iBestBonusValue >= 15) {
 			if (AI_improvePlot(pBestBonusPlot, eBestBonusBuild))
 				return;
 		}*/ // disabled by K-Mod. (this did nothing - ever - because of a bug.)
 
 		/*if (pCity == NULL)
 			pCity = GC.getMap().findCity(getX(), getY(), getOwner());*/ // XXX do team???
-
 		if (AI_nextCityToImprove(pCity))
-		{
 			return;
-		}
-
 		bNextCity = true;
 	}
-
-	/* if (pBestBonusPlot != NULL) {
+	/*if (pBestBonusPlot != NULL) {
 		if (AI_improvePlot(pBestBonusPlot, eBestBonusBuild))
 			return;
-	} */ // K-Mod
+	}*/ // K-Mod
 
 	if (pCity != NULL)
 	{
@@ -1845,33 +1840,23 @@ void CvUnitAI::AI_workerMove()
 	if (!bNextCity)
 	{
 		if (AI_nextCityToImprove(pCity))
-		{
 			return;
-		}
 	}
 
 	if (bCanRoute)
 	{
 		if (AI_routeTerritory(true))
-		{
 			return;
-		}
 
 		if (AI_connectBonus(false))
-		{
 			return;
-		}
 
 		if (AI_routeCity())
-		{
 			return;
-		}
 	}
 
 	if (AI_irrigateTerritory())
-	{
 		return;
-	}
 
 	if (!bBuildFort)
 	{
@@ -1879,32 +1864,26 @@ void CvUnitAI::AI_workerMove()
 		bool bCanal = false; // K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
 		bool bAirbase = false;
 		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) || kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) || kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
-		
+
 		if (bCanal || bAirbase)
 		{
 			if (AI_fortTerritory(bCanal, bAirbase))
-			{
 				return;
-			}
 		}
 	}
 
 	if (bCanRoute)
 	{
 		if (AI_routeTerritory())
-		{
 			return;
-		}
 	}
 
 	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getAtWarCount(true) == 0))
 	{
-		if (!isHuman() || (getGameTurnCreated() < GC.getGame().getGameTurn()))
+		if (!isHuman() || getGameTurnCreated() < GC.getGame().getGameTurn())
 		{
 			if (AI_nextCityToImproveAirlift())
-			{
 				return;
-			}
 		}
 		if (!isHuman())
 		{
@@ -1947,9 +1926,7 @@ void CvUnitAI::AI_workerMove()
 	}
 
 	if (AI_retreatToCity(false, true))
-	{
 		return;
-	}
 
 	/*if (AI_retreatToCity())
 		return; */ // disabled by K-Mod (redundant)
@@ -1960,9 +1937,7 @@ void CvUnitAI::AI_workerMove()
 	// K-Mod end
 
 	if (AI_safety())
-	{
 		return;
-	}
 
 	getGroup()->pushMission(MISSION_SKIP);
 	return;
@@ -3199,7 +3174,7 @@ void CvUnitAI::AI_attackCityMove()
 				return;
 		} */ // I've moved this to be above the omniGroup stuff, otherwise it just causes AI confusion.
 
-		if( bReadyToAttack )
+		if (bReadyToAttack)
 		{
 			// Wait for units about to join our group
 			/* original BBAI code
@@ -3257,12 +3232,12 @@ void CvUnitAI::AI_attackCityMove()
 			}
 
 			int iTargetCount = kOwner.AI_unitTargetMissionAIs(this, MISSIONAI_GROUP);
-			if ((iTargetCount * 5) > getGroup()->getNumUnits())
+			if (iTargetCount * 5 > getGroup()->getNumUnits())
 			{
 				MissionAITypes eMissionAIType = MISSIONAI_GROUP;
 				int iJoiners = kOwner.AI_unitTargetMissionAIs(this, &eMissionAIType, 1, getGroup(), 2);
 
-				if( (iJoiners*5) > getGroup()->getNumUnits() )
+				if (iJoiners * 5 > getGroup()->getNumUnits())
 				{
 					getGroup()->pushMission(MISSION_SKIP,
 							-1, -1, 0, false, false, MISSIONAI_GROUP); // K-Mod (for debug feedback)
@@ -3289,7 +3264,7 @@ void CvUnitAI::AI_attackCityMove()
 			return;
 		}
 
-		if ((getGroup()->getNumUnits() == 1) && (getTeam() != plot()->getTeam()))
+		if (getGroup()->getNumUnits() == 1 && getTeam() != plot()->getTeam())
 		{
 			if (AI_retreatToCity())
 			{
@@ -3337,7 +3312,7 @@ void CvUnitAI::AI_attackCityMove()
 		// K-Mod end
 		{
 			// Before heading out, check whether to wait to allow unit upgrades
-			if( bInCity && plot()->getOwner() == getOwner() )
+			if (bInCity && plot()->getOwner() == getOwner())
 			{
 				//if( !(GET_PLAYER(getOwner()).AI_isFinancialTrouble()) )
 				if (!kOwner.AI_isFinancialTrouble() && !pTargetCity->isBarbarian())
@@ -3421,15 +3396,20 @@ void CvUnitAI::AI_attackCityMove()
 					CvCity* pAreaTargetCity =
 							area()->getTargetCity(getOwner());
 					if (pAreaTargetCity != NULL)
-					{
+					{	/*  advc: One way that this can happen: Owner is at war with a civ that it
+							can only reach through the territory of a third party (no OB) and is
+							preparing war against the third party.
+							AI_pickTargetCity will then pick a city of the current war enemy, but
+							the Area AI will be set to a non-ASSAULT type, meaning that AI_attackCityMove
+							will (in vain) look for a land path. AI_solveBlockageProblem will then (always?)
+							fail, and the unit won't move at all. This is probably for the best -- wait
+							until the preparations are through. Difficult to avoid the assertions below. */
 						/*  this is a last resort. I don't expect that we'll ever actually need it.
 							(it's a pretty ugly function, so I /hope/ we don't need it.) */
 						FAssertMsg(false, "AI_attackCityMove is resorting to AI_solveBlockageProblem");
 						if (AI_solveBlockageProblem(pAreaTargetCity->plot(),
 								(GET_TEAM(getTeam()).getAtWarCount(true) == 0)))
-						{
 							return;
-						}
 						// advc.006:
 						FAssertMsg(false, "AI_solveBlockageProblem returned false");
 					}
@@ -3494,7 +3474,7 @@ void CvUnitAI::AI_attackCityMove()
 
 	if (plot()->getOwner() == getOwner() && bLandWar)
 	{
-		if( (GET_TEAM(getTeam()).getAtWarCount(true) > 0) )
+		if ((GET_TEAM(getTeam()).getAtWarCount(true) > 0))
 		{
 			// if no land path to enemy cities, try getting there another way
 			if (AI_offensiveAirlift())
@@ -3502,7 +3482,7 @@ void CvUnitAI::AI_attackCityMove()
 				return;
 			}
 
-			if( pTargetCity == NULL )
+			if (pTargetCity == NULL)
 			{
 				if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT, NO_UNITAI, -1, -1, -1, -1, iMoveFlags, 4))
 				{
@@ -13228,9 +13208,6 @@ bool CvUnitAI::AI_patrol() // advc.003: refactored
 				pAdjacentPlot->isVisibleEnemyUnit(this) ||
 				!generatePath(pAdjacentPlot, 0, true))
 			continue;
-		/*  We shouldn't end the turn where we already are. Not sure if this can
-			occur. I thought it had a couple of years ago ... */
-		FAssert(!atPlot(getPathEndTurnPlot()));
 		/*  <advc.102> Non-Barbarian AI should only patrol tiles it doesn't own b/c
 			owned tiles have visibility anyway. In order to get to unowned tiles,
 			however, units may have to traverse owned tiles, so they need to be
@@ -19098,7 +19075,7 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 
 	CvCity* pCity = plot()->getPlotCity();
 
-	if (0 == iCurrentDanger)
+	if (iCurrentDanger <= 0)
 	{
 		if (pCity != NULL)
 		{
@@ -19106,7 +19083,7 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 			{
 				if (!bPrimary || GET_PLAYER(getOwner()).AI_isPrimaryArea(pCity->area()))
 				{
-					if (!bPrioritiseAirlift || (pCity->getMaxAirlift() > 0))
+					if (!bPrioritiseAirlift || pCity->getMaxAirlift() > 0)
 					{	//if (!(pCity->plot()->isVisibleEnemyUnit(this)))
 						{
 							getGroup()->pushMission(MISSION_SKIP);
@@ -19211,7 +19188,7 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_RETREAT);
 		else
 			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(),
-					iPass >= 2 ? MOVE_IGNORE_DANGER : 0, // was iPass >= 3
+					iPass >= 2 ? MOVE_IGNORE_DANGER : 0, // was iPass >= 3  advc (caveat): Flags here need to be consistent with those in the loop
 					false, false, MISSIONAI_RETREAT);
 		return true;
 	}

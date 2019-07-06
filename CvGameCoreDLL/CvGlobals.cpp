@@ -2719,7 +2719,7 @@ void CvGlobals::cacheGlobals()
 	// advc.107:					// The hyphens are stupid, but I don't want to change the XML file unnecessarily.
 	m_iEXTRA_DEFENDER_ERA = getDefineINT("EXTRA-DEFENDER_ERA");
 	// advc.113
-	m_iWORKER_RESERVE_PERCENT = getDefineINT("WORKER-RESERVE_PERCENT");
+	m_iWORKER_RESERVE_PERCENT = getDefineINT("WORKER_RESERVE_PERCENT");
 	
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");

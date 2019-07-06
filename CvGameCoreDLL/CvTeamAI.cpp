@@ -475,20 +475,18 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 
 /*  advc.104s (note): If UWAI is enabled, AI_doWar may adjust (i.e. overwrite) the
 	result of this calculation through WarAndPeaceAI::Team::alignAreaAI. */
-AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal) const
+AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal) const  // advc.003: style changes
 {
 	PROFILE_FUNC();
 
 	// K-Mod. This function originally had "!isWater()" wrapping all of the code.
 	// I've changed it to be more readable.
 	if (pArea->isWater())
-	{
 		return AREAAI_NEUTRAL;
-	}
 
 	if (isBarbarian())
 	{
-		if ((pArea->getNumCities() - pArea->getCitiesPerPlayer(BARBARIAN_PLAYER)) == 0
+		if (pArea->getNumCities() - pArea->getCitiesPerPlayer(BARBARIAN_PLAYER) == 0
 				// advc.300: Make (New World) Barbarians relatively peaceable unless outnumbered
 				|| pArea->countCivCities() < pArea->getCitiesPerPlayer(BARBARIAN_PLAYER))
 			return AREAAI_ASSAULT;
@@ -503,7 +501,6 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 			/*  advc (comment): Does this ever NOT happen? Only once a continent
 				is almost entirely owned by civs. */
 		}
-
 		return AREAAI_MASSING;
 	}
 
@@ -521,54 +518,48 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 
 	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
+		TeamTypes const eTarget = (TeamTypes)iI;
+		CvTeam const& kTarget = GET_TEAM(eTarget);
+		if (!kTarget.isAlive() || AI_getWarPlan(eTarget) == NO_WARPLAN)
+			continue;
+		FAssert(eTarget != getID());
+		FAssert(isHasMet(eTarget) || GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR));
+
+		if (AI_getWarPlan(eTarget) == WARPLAN_ATTACKED_RECENT)
 		{
-			if (AI_getWarPlan((TeamTypes)iI) != NO_WARPLAN)
+			FAssert(isAtWar(eTarget));
+			bRecentAttack = true;
+		}
+
+		if (kTarget.countNumCitiesByArea(pArea) > 0
+				//|| GET_TEAM((TeamTypes)iI).countNumUnitsByArea(pArea) > 4)
+		/*  advc.104s: Replacing the above. Setting AreaAI to ASSAULT won't stop
+			the AI from fighting any landed units. Need to focus on cities.
+			isLandTarget makes sure that there are reachable cities. Still check
+			city count for efficiency (there can be a lot of land areas to
+			calculate AI types for). */
+				&& AI_isLandTarget(eTarget))
+		{
+			bTargets = true;
+
+			if (AI_isChosenWar(eTarget))
 			{
-				FAssert(((TeamTypes)iI) != getID());
-				FAssert(isHasMet((TeamTypes)iI) || GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR));
+				bChosenTargets = true;
 
-				if (AI_getWarPlan((TeamTypes)iI) == WARPLAN_ATTACKED_RECENT)
-				{
-					FAssert(isAtWar((TeamTypes)iI));
-					bRecentAttack = true;
-				}
-
-				if (GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pArea) > 0
-						//|| GET_TEAM((TeamTypes)iI).countNumUnitsByArea(pArea) > 4)
-			/*  advc.104s: Replacing the above. Setting AreaAI to ASSAULT won't stop
-				the AI from fighting any landed units. Need to focus on cities.
-				isLandTarget makes sure that there are reachable cities. Still check
-				city count for efficiency (there can be a lot of land areas to
-				calculate AI types for). */
-						&& AI_isLandTarget((TeamTypes)iI))
-				{
-					bTargets = true;
-
-					if (AI_isChosenWar((TeamTypes)iI))
-					{
-						bChosenTargets = true;
-
-						if ((isAtWar((TeamTypes)iI)) ?
-								(AI_getAtWarCounter((TeamTypes)iI) < 10) :
-								AI_isSneakAttackReady((TeamTypes)iI))
-						{
-							bDeclaredTargets = true;
-						}
-					}
-				}
-				else
-				{
-                    bAssault = true;
-                    if (AI_isSneakAttackPreparing((TeamTypes)iI))
-                    {
-                        bPreparingAssault = true;
-                    }
-				}
+				if (isAtWar(eTarget) ?
+						(AI_getAtWarCounter(eTarget) < 10) :
+						AI_isSneakAttackReady(eTarget))
+					bDeclaredTargets = true;
 			}
 		}
+		else
+		{
+			bAssault = true;
+			if (AI_isSneakAttackPreparing(eTarget))
+				bPreparingAssault = true;
+		}
 	}
-    
+
 	// K-Mod - based on idea from BBAI
 	if (bTargets && iAreaCities > 0 && getAtWarCount(true) > 0) 
 	{
@@ -587,9 +578,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	} // K-Mod end
 
 	if (bDeclaredTargets)
-	{
 		return AREAAI_OFFENSIVE;
-	}
 
 	if (bTargets)
 	{
@@ -660,21 +649,15 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	{
 		for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
 		{
-			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-			
-			if (kPlayer.isAlive())
+			CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iPlayer);
+			if (!kMember.isAlive() || kMember.getTeam() != getID())
+				continue;
+
+			if (kMember.AI_isDoStrategy(AI_STRATEGY_DAGGER) ||
+					kMember.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
 			{
-				if (kPlayer.getTeam() == getID())
-				{
-					if (kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER) ||
-							kPlayer.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
-					{
-						if (pArea->getCitiesPerPlayer((PlayerTypes)iPlayer) > 0)
-						{
-							return AREAAI_MASSING;
-						}
-					}
-				}
+				if (pArea->getCitiesPerPlayer(kMember.getID()) > 0)
+					return AREAAI_MASSING;
 			}
 		}
 		if (bRecentAttack)
@@ -682,25 +665,16 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 			int iPower = countPowerByArea(pArea);
 			int iEnemyPower = countEnemyPowerByArea(pArea);
 			if (iPower > iEnemyPower)
-			{
 				return AREAAI_MASSING;
-			}
 			return AREAAI_DEFENSIVE;
 		}
 	}
 
-	if (iAreaCities > 0)
-	{
-		if (countEnemyDangerByArea(pArea) > iAreaCities)
-		{
-			return AREAAI_DEFENSIVE;
-		}
-	}
+	if (iAreaCities > 0 && countEnemyDangerByArea(pArea) > iAreaCities)
+		return AREAAI_DEFENSIVE;
 
 	if (bChosenTargets)
-	{
 		return AREAAI_MASSING;
-	}
 
 	if (bTargets)
 	{
@@ -710,30 +684,20 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 					GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) ||
 					(countPowerByArea(pArea) >
 					((countEnemyPowerByArea(pArea) * 3) / 2)))
-			{
 				return AREAAI_MASSING;
-			}
 		}
 		return AREAAI_DEFENSIVE;
 	}
-	else
+	else if (bAssault)
 	{
-		if (bAssault)
+		if (AI_isPrimaryArea(pArea))
 		{
-			if (AI_isPrimaryArea(pArea))
-			{
-                if (bPreparingAssault)
-				{
-					return AREAAI_ASSAULT_MASSING;
-				}
-			}
-			else if (countNumCitiesByArea(pArea) > 0)
-			{
-				return AREAAI_ASSAULT_ASSIST;
-			}
-
-			return AREAAI_ASSAULT;
+			if (bPreparingAssault)
+				return AREAAI_ASSAULT_MASSING;
 		}
+		else if (countNumCitiesByArea(pArea) > 0)
+			return AREAAI_ASSAULT_ASSIST;
+		return AREAAI_ASSAULT;
 	}
 	return AREAAI_NEUTRAL;
 }
@@ -957,7 +921,7 @@ bool CvTeamAI::AI_isWarPossible() const
 {
 	if (getAtWarCount(false) > 0)
 		return true;
-	/*  advc (comment): The option applies only to humans, but still implies that
+	/*  advc (comment): The option applies only to humans but still implies that
 		all the non-human civs will have a (human) war enemy. */
 	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
 		return true;

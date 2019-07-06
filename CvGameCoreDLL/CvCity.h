@@ -1089,9 +1089,9 @@ public:
 			bool bConstCache = false) = 0; // advc.001n
 	virtual int AI_cityThreat(bool bDangerPercent = false) = 0;
 	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) = 0;
-	
-	virtual int AI_getWorkersHave() = 0;
-	virtual int AI_getWorkersNeeded() = 0;
+	// advc.003: 2x const. I very much doubt that the EXE calls these.
+	virtual int AI_getWorkersHave() const = 0;
+	virtual int AI_getWorkersNeeded() const = 0;
 	virtual void AI_changeWorkersHave(int iChange) = 0;
 
 	bool hasShrine(ReligionTypes eReligion) const;
