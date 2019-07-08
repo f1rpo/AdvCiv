@@ -606,6 +606,16 @@
 		<DefineName>MIN_BARBARIAN_STARTING_DISTANCE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
+
+	<!-- advc.310: Only two modes (so far):
+		 0: Draw the Great Wall as in BtS.
+		 1: Omit edges that border on the territory of another civ or a peak.
+		 The main point is to avoid a very long wall graphic when the
+		 Great Wall gets constructed late. -->
+	<Define>
+		<DefineName>GREAT_WALL_GRAPHIC_MODE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 	
 	<!-- [advc.314] Settings for goody hut outcomes. See also Civ4GoodyInfo.xml
 		 and Civ4HandicapInfo.xml. Turn numbers are adjusted to the game speed

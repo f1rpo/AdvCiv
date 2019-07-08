@@ -279,7 +279,7 @@ public:
 			bool bNoImpassable = false) const;
 	CvArea* secondWaterArea() const;
 	int getArea() const;																																		// Exposed to Python
-	void setArea(int iNewValue);
+	void setArea(int iNewValue, /* advc.310: */ bool bProcess = true);
 
 	DllExport int getFeatureVariety() const;																													// Exposed to Python
 

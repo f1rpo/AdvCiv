@@ -4248,8 +4248,13 @@ int CvPlot::getArea() const
 }
 
 
-void CvPlot::setArea(int iNewValue) {  // advc.003: style changes
+void CvPlot::setArea(int iNewValue,  // advc.003: style changes
+		/* <advc.310> */ bool bProcess) {
 
+	if(!bProcess) {
+		m_iArea = iNewValue;
+		return;
+	} // </advc.310>
 	if(getArea() == iNewValue)
 		return;
 	if(area() != NULL)

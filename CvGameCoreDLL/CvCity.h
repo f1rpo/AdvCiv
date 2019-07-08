@@ -634,6 +634,7 @@ public:
 	/* allows you to programmatically specify a cities walls rather than having them be generated automagically */
 	DllExport bool isWallOverride() const; 
 	void setWallOverride(bool bOverride);
+	void addGreatWall(); // advc.310: Wrapper for CvEngine::AddGreatWall
 
 	DllExport bool isInfoDirty() const;
 	DllExport void setInfoDirty(bool bNewValue);

@@ -1394,13 +1394,13 @@ void CvCity::chooseProduction(UnitTypes eTrainUnit, BuildingTypes eConstructBuil
 
 int CvCity::getCityPlotIndex(const CvPlot* pPlot) const
 {
-	return plotCityXY(this, pPlot);
+	return ::plotCityXY(this, pPlot);
 }
 
 
 CvPlot* CvCity::getCityIndexPlot(int iIndex) const
 {
-	return plotCity(getX(), getY(), iIndex);
+	return ::plotCity(getX(), getY(), iIndex);
 }
 
 
@@ -11675,6 +11675,11 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 			}
 
 			GC.getGame().incrementBuildingClassCreatedCount((BuildingClassTypes)(GC.getBuildingInfo(eIndex).getBuildingClassType()));
+			/*  advc.003: Increments greater than 1 aren't supported. As for decrements:
+				a building that gets destroyed has nevertheless been created ...
+				That said, removing and recreating world wonders through WB will
+				lead to failed assertions in CvGame::isBuildingClassMaxedOut. */
+			FAssert(iChangeNumRealBuilding == 1);
 		}
 	}
 
@@ -11695,13 +11700,18 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 				}
 			}
 
-			if (iCountExisting == 1 && iNewValue == 0)
+			//if (iCountExisting == 1 && iNewValue == 0)
+			/*  advc.001: m_paiNumRealBuilding[eIndex] has already been decreased
+				(and the loop above skips eIndex anyway), so iCountExisting isn't
+				going to be 1. */
+			if (iCountExisting <= 0 && iOldNumBuilding > 0 && iNewValue <= 0)
 			{
 				gDLL->getEngineIFace()->RemoveGreatWall(this);
 			}
 			else if (iCountExisting == 0 && iNewValue > 0)
 			{
-				gDLL->getEngineIFace()->AddGreatWall(this);
+				//gDLL->getEngineIFace()->AddGreatWall(this);
+				addGreatWall(); // advc.310
 			}
 		}
 	}
@@ -12798,10 +12808,12 @@ CLLNode<OrderData>* CvCity::headOrderQueueNode() const
 	return m_orderQueue.head();
 }
 
+
 int CvCity::getNumOrdersQueued() const
 {
 	return m_orderQueue.getLength();
 }
+
 
 OrderData CvCity::getOrderData(int iIndex) const
 {
@@ -12824,11 +12836,61 @@ OrderData CvCity::getOrderData(int iIndex) const
 	return kData;
 }
 
+
 void CvCity::setWallOverridePoints(const std::vector< std::pair<float, float> >& kPoints)
 {
 	m_kWallOverridePoints = kPoints;
 	setLayoutDirty(true);
 }
+
+// <advc.310>
+void CvCity::addGreatWall() {
+
+	if(GC.getDefineINT("GREAT_WALL_GRAPHIC_MODE") != 1) {
+		gDLL->getEngineIFace()->AddGreatWall(this);
+		return;
+	}
+	// All plots orthogonally adjacent to a (desired) wall segment
+	std::set<int> aiWallPlots;
+	CvMap& m = GC.getMap();
+	for(int i = 0; i < m.numPlots(); i++) {
+		CvPlot* p = m.plotByIndex(i);
+		if(p->area() != area() || p->getOwner() != getOwner() // as in BtS
+				|| p->isImpassable()) // new: don't wall off peaks
+			continue;
+		bool bFound = false;
+		// Add p if we find an adjacent q such that (p, q) should have a segment in between
+		for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
+			if(j % 2 != 0) // Cardinal directions have even numbers
+				continue;
+			CvPlot* q = ::plotDirection(p->getX(), p->getY(), (DirectionTypes)j);
+			if(q == NULL || q->area() != area() || q->isImpassable())
+				continue;
+			PlayerTypes eOwner = q->getOwner();
+			if(eOwner == NO_PLAYER || eOwner == BARBARIAN_PLAYER) { // Not: any civ
+				aiWallPlots.insert(m.plotNum(q->getX(), q->getY()));
+				bFound = true;
+			}
+		}
+		if(bFound)
+			aiWallPlots.insert(m.plotNum(p->getX(), p->getY()));
+	}
+	/*  Hack: Use a dummy CvArea object to prevent CvEngine from placing segments
+		along plots not in aiWallPlots. */
+	CvArea* pTmpArea = m.addArea();
+	pTmpArea->init(pTmpArea->getID(), false);
+	/*  The city plot needs to be in the area as well b/c CvEngine will consider
+		only tiles in the same CvArea as the Great Wall city */
+	aiWallPlots.insert(plotNum());
+	// To be restored presently. They all have the same actual area.
+	int iActualArea = getArea();
+	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
+		m.plotByIndex(*it)->setArea(pTmpArea->getID(), /*bProcess=*/false);
+	gDLL->getEngineIFace()->AddGreatWall(this);
+	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
+		m.plotByIndex(*it)->setArea(iActualArea, false);
+	m.deleteArea(pTmpArea->getID());
+} // </advc.310>
 
 
 const std::vector< std::pair<float, float> >& CvCity::getWallOverridePoints() const
