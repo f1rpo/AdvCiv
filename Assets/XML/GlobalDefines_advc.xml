@@ -477,10 +477,10 @@
 		 AdvCiv. With closed borders, the anger is CLOSED_BORDERS_CULTURE_
 		 ANGER_MODIFIER percent greater. The increased anger also applies when
 		 the foreign civ has capitulated to the city owner or has been 
-		 eliminated (by anyone). Recommended: 50 -->
+		 eliminated (by anyone). Recommended: 25 (50?) -->
 	<Define>
 		<DefineName>CLOSED_BORDERS_CULTURE_ANGER_MODIFIER</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
+		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.099]
