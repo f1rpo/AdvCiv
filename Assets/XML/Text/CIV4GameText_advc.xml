@@ -993,7 +993,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_MONARCH_HELP</Tag>
-		<English>A challenging level. Some of the AI advantages are higher than on Prince (by another 5 percentage points) and increase every 50 turns. The AI players start the game with Archery, which makes early attacks on the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
+		<English>A challenging level. Some of the AI advantages are higher than on Prince (by another 5 percentage points) and increase every 50 turns. The AI players start the game with Archery, which makes early attacks against the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
 		<French>Pour les Monarques, les d&#233;fis qui se pr&#233;sentent sont d'une toute autre ampleur. L'entretien est plus cher, la recherche plus lente, votre peuple plus exigeant et vos adversaires I.A. tout simplement plus intelligents.</French>
 		<German>Eine anspruchsvolle Schwierigkeitsstufe. Die KI-Vorteile sind höher als auf "Prinz" (um weitere 5 Prozentpunkte) und steigen im Laufe der Zeitalter merklich. Die KI-Spieler beherrschen von Anfang an das Bogenschießen; dadurch ist es deutlich schwieriger als auf "Prinz", die KI im frühen Spiel anzugreifen. Sie müssen auch damit rechnen, dass die Barbaren sich das Bogenschießen recht bald aneignen.</German>
 		<Italian>Per i Monarchi, la sfida comincia a farsi impegnativa. Il costo di mantenimento &#232; superiore, la ricerca pi&#249; lenta, la gente pi&#249; difficile da accontentare e gli avversari computerizzati pi&#249; scaltri.</Italian>
@@ -4923,8 +4923,42 @@
 		<Italian>L'unità manterrà la sua posizione (non ritorna nella capitale)</Italian>
 		<Spanish>La unidad mantendrá su posición (no regresa a la capital)</Spanish>
 	</TEXT>
-	
+
 	<!-- advc.910 -->
+	<!-- To accompany TXT_KEY_MISC_LEADS_TO (CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_AND_LATER</Tag>
+		<English>[SPACE]and later[SPACE]</English>
+		<French>[SPACE]et (plus tard)[SPACE]</French>
+		<German>[SPACE]und später[SPACE]</German>
+		<Italian>[SPACE]e (dopo)[SPACE]</Italian>
+		<Spanish>[SPACE]y luego[SPACE]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_LATER_LEADS_TO</Tag>
+		<English>[NEWLINE][ICON_BULLET]Will lead to[SPACE]</English>
+		<French>[NEWLINE][ICON_BULLET]Mènera vers :[SPACE]</French>
+		<German>[NEWLINE][ICON_BULLET]Führt später zu:[SPACE]</German>
+		<Italian>[NEWLINE][ICON_BULLET]Condurrà a[SPACE]</Italian>
+		<Spanish>[NEWLINE][ICON_BULLET]Llevará a[SPACE]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_SPEEDS_UP</Tag>
+		<English>[NEWLINE][ICON_BULLET]Speeds up[SPACE]</English>
+		<French>[NEWLINE][ICON_BULLET]Accélère :[SPACE]</French>
+		<German>[NEWLINE][ICON_BULLET]Beschleunigt:[SPACE]</German>
+		<Italian>[NEWLINE][ICON_BULLET]Accelera:[SPACE]</Italian>
+		<Spanish>[NEWLINE][ICON_BULLET]Acelera:[SPACE]</Spanish>
+	</TEXT>
+	<!-- (better no COLOR_POSITIVE_TEXT) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_SPEED_UP_BY_PERCENT</Tag>
+		<English>[SPACE]by %d1%%</English>
+		<French>[SPACE]de %d1%%</French>
+		<German>[SPACE]um %d1%%</German>
+		<Italian>[SPACE]di %d1%%</Italian>
+		<Spanish>[SPACE]en %d1%%</Spanish>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RESEARCH_MODIFIER</Tag>
 		<English>Research Modifier</English>

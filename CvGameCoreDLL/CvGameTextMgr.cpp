@@ -14936,62 +14936,119 @@ bool CvGameTextMgr::buildPromotionString(CvWStringBuffer &szBuffer, TechTypes eT
 	return bFirst;
 }
 
-// Displays a list of derived technologies - no distinction between AND/OR prerequisites
-void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext)
-{
-	CvWString szTempBuffer;	// Formatting
+// <advc.910> Not much BtS code left unchanged here
+void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
+		TechTypes eTech, bool bPlayerContext) {
 
-	if (NO_TECH == eTech)
-	{
-		// you need to specify a tech of origin for this method to do anything
+	if(eTech == NO_TECH) { // This used to be a BtS comment; the other comments in this function are new.
+		FAssertMsg(eTech != NO_TECH, "you need to specify a tech of origin for this method to do anything");
 		return;
 	}
-
-	bool bFirst = true;
-	for (int iI = 0; iI < GC.getNumTechInfos(); ++iI)
-	{
-		bool bTechAlreadyAccessible = false;
-		if (bPlayerContext)
-		{
-			bTechAlreadyAccessible = (GET_TEAM(GC.getGame().getActiveTeam()).isHasTech((TechTypes)iI) || GET_PLAYER(GC.getGame().getActivePlayer()).canResearch((TechTypes)iI));
+	/*  Separate containers for techs that eTech
+		- will immediately enable,
+		- those that have an additional requirement which is yet unmet and
+		- (not listed by BtS) those that are merely sped up (OR req. already met).
+		Put the tech cost in the first component b/c I want to sort by that. */
+	std::vector<std::pair<int,TechTypes> > aieImmediate, aieLater, aieSpeedsUp;
+	for(int iI = 0; iI < GC.getNumTechInfos(); iI++) {
+		TechTypes eLeadsTo = (TechTypes)iI;
+		bool bCanAlreadyResearch = false;
+		bool bAlreadyHas = false;
+		if(bPlayerContext) {
+			PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
+			bAlreadyHas = TEAMREF(eActivePlayer).isHasTech(eLeadsTo);
+			bCanAlreadyResearch = (!bAlreadyHas && GET_PLAYER(eActivePlayer).canResearch(eLeadsTo));
 		}
-		if (!bTechAlreadyAccessible)
-		{
-			bool bTechFound = false;
-
-			//if (!bTechFound) // advc.003: Redundant
-			{
-				for (int iJ = 0; iJ < GC.getNUM_OR_TECH_PREREQS(); iJ++)
-				{
-					if (GC.getTechInfo((TechTypes) iI).getPrereqOrTechs(iJ) == eTech)
-					{
-						bTechFound = true;
-						break;
-					}
-				}
+		if (bAlreadyHas)
+			continue;
+		CvTechInfo const& kLeadsTo = GC.getTechInfo(eLeadsTo);
+		bool bTechFound = false;
+		bool bAlreadyMetOR = false;
+		bool bMeetsOR = false;
+		bool bAnyOR = false;
+		for(int iJ = 0; iJ < GC.getNUM_OR_TECH_PREREQS(); iJ++) {
+			TechTypes eOrTech = (TechTypes)kLeadsTo.getPrereqOrTechs(iJ);
+			if(eOrTech == NO_TECH)
+				continue;
+			bAnyOR = true;
+			if(eOrTech == eTech) {
+				bTechFound = true;
+				bMeetsOR = true;
 			}
-
-			if (!bTechFound)
-			{
-				for (int iJ = 0; iJ < GC.getNUM_AND_TECH_PREREQS(); iJ++)
-				{
-					if (GC.getTechInfo((TechTypes) iI).getPrereqAndTechs(iJ) == eTech)
-					{
-						bTechFound = true;
-						break;
-					}
-				}
-			}
-
-			if (bTechFound)
-			{
-				szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR , TEXT_COLOR("COLOR_TECH_TEXT"), GC.getTechInfo((TechTypes) iI).getDescription());
-				setListHelp(szBuffer, gDLL->getText("TXT_KEY_MISC_LEADS_TO").c_str(), szTempBuffer, L", ", bFirst);
-				bFirst = false;
+			else if(bPlayerContext) {
+				if(eOrTech != NO_TECH && GET_TEAM(GC.getGame().getActiveTeam()).isHasTech(eOrTech))
+					bAlreadyMetOR = true;
 			}
 		}
+		if(!bTechFound && !bCanAlreadyResearch) {
+			for(int iJ = 0; iJ < GC.getNUM_AND_TECH_PREREQS(); iJ++) {
+				if(kLeadsTo.getPrereqAndTechs(iJ) == eTech) {
+					bTechFound = true;
+					FAssertMsg(!bMeetsOR, "The same tech shouldn't be both AND and OR req.");
+					break;
+				}
+			}
+		}
+		if(!bTechFound)
+			continue;
+		bool bImmediate = (bAlreadyMetOR || bMeetsOR || !bAnyOR || !bPlayerContext);
+		if(bImmediate && bMeetsOR && bPlayerContext) {
+			CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
+			for(int iJ = 0; iJ < GC.getNUM_AND_TECH_PREREQS(); iJ++) {
+				if(!kActiveTeam.isHasTech((TechTypes)kLeadsTo.getPrereqAndTechs(iJ))) {
+					bImmediate = false;
+					break;
+				}
+			}
+		}
+		std::pair<int,TechTypes> eiLeadsTo = std::make_pair(kLeadsTo.getResearchCost(), eLeadsTo);
+		if(bMeetsOR && bAlreadyMetOR)
+			aieSpeedsUp.push_back(eiLeadsTo);
+		else if(bImmediate)
+			aieImmediate.push_back(eiLeadsTo);
+		else aieLater.push_back(eiLeadsTo);
+		
 	}
-}
+	std::sort(aieImmediate.begin(), aieImmediate.end());
+	std::sort(aieLater.begin(), aieLater.end());
+	std::sort(aieSpeedsUp.begin(), aieSpeedsUp.end());
+	CvWString szTempBuffer;
+	bool bFirst = true;
+	for(size_t i = 0; i < aieImmediate.size(); i++) {
+		TechTypes eLeadsTo = aieImmediate[i].second;
+		// Mostly as in BtS
+		szTempBuffer.Format(SETCOLR L"<link=literal>%s</link>" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"),
+				GC.getTechInfo(eLeadsTo).getDescription());
+		setListHelp(szBuffer, gDLL->getText("TXT_KEY_MISC_LEADS_TO").c_str(), szTempBuffer, L", ", bFirst);
+		bFirst = false;
+	}
+	bFirst = true;
+	for(size_t i = 0; i < aieLater.size(); i++) {
+		TechTypes eLeadsTo = aieLater[i].second;
+		// No color
+		szTempBuffer.Format(L"<link=literal>%s</link>", GC.getTechInfo(eLeadsTo).getDescription());
+		setListHelp(szBuffer, gDLL->getText(aieImmediate.empty() ?
+				"TXT_KEY_MISC_LATER_LEADS_TO" :
+				"TXT_KEY_MISC_AND_LATER").c_str(), szTempBuffer, L", ", bFirst);
+		bFirst = false;
+	}
+	FAssert(GC.getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER() == 0); // Not accounted for above
+	int iSpeedUpPercent = GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
+	if(iSpeedUpPercent <= 0) {
+		FAssert(iSpeedUpPercent > 0);
+		return;
+	}
+	bFirst = true;
+	for(size_t i = 0; i < aieSpeedsUp.size(); i++) {
+		TechTypes eLeadsTo = aieSpeedsUp[i].second;
+		szTempBuffer.Format(SETCOLR L"<link=literal>%s</link>" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"),
+				GC.getTechInfo(eLeadsTo).getDescription());
+		setListHelp(szBuffer, gDLL->getText("TXT_KEY_MISC_SPEEDS_UP").c_str(), szTempBuffer, L", ", bFirst);
+		bFirst = false;
+	}
+	if(!aieSpeedsUp.empty())
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_SPEED_UP_BY_PERCENT", iSpeedUpPercent));
+} // </advc.910>
 
 // Information about other prerequisite technologies to eTech besides eFromTech
 void CvGameTextMgr::buildTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext, TechTypes eFromTech)
