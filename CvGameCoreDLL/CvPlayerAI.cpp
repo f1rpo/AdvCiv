@@ -15337,15 +15337,43 @@ int CvPlayerAI::AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* 
 	return iCount;
 }
 
-int CvPlayerAI::AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, PlayerTypes* peBestPlayer) const
+/*  <advc.171> Cut from AI_missionaryValue b/c I want to add a war-plan check that
+	is also needed for CvUnitAI::AI_spreadReligion. Checking the other stuff
+	for AI_spreadReligion isn't necessary, but doesn't hurt and might save time. */
+bool CvPlayerAI::AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes eReligion) const {
+
+	CvPlayer& kTarget = GET_PLAYER(eTarget);
+	/*  Tbd.: AI_missionaryValue and AI_spreadReligion handle (team-)internal spread
+		differently (they probably shouldn't) */
+	FAssert(getTeam() != kTarget.getTeam());
+	if(!kTarget.isAlive() || kTarget.getNumCities() <= 0)
+		return false;
+	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(kTarget.getTeam())) // advc
+		return false;
+	if(!GET_TEAM(kTarget.getTeam()).isOpenBorders(getTeam()) &&
+			!GET_TEAM(getTeam()).isFriendlyTerritory(kTarget.getTeam())) // advc.001j
+		return false;
+	if(kTarget.isNoNonStateReligionSpread() && kTarget.getStateReligion() != eReligion &&
+			kTarget.getStateReligion() != NO_RELIGION)
+		return false;
+	return true;
+} // </advc.171>
+
+
+int CvPlayerAI::AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion  // advc.003: some style changes
+		/*  advc.171: Param unused.
+			Tbd.: Add a function AI_missionaryTargetValue(PlayerTypes eTarget)
+			to replace AI_isTargetForMissionaries and the overlapping
+			target player evaluations here and in CvUnitAI::AI_spreadReligion. */
+		/*,PlayerTypes* peBestPlayer*/) const
 {
 	CvTeam& kTeam = GET_TEAM(getTeam());
 	CvGame& kGame = GC.getGame();
 
 	int iSpreadInternalValue = 100;
 	int iSpreadExternalValue = 0;
-
-	// Obvious copy & paste bug
+	/*  BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000:
+		Obvious copy & paste bug */
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
 	{
 		iSpreadInternalValue += 500;
@@ -15357,26 +15385,24 @@ int CvPlayerAI::AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, Playe
 				iSpreadInternalValue += 3000;
 			}
 		}
-	}
+	} // BETTER_BTS_AI_MOD: END
 
 	// BETTER_BTS_AI_MOD, Missionary AI, 10/03/09, jdog5000: START
 	// In free religion, treat all religions like state religions
 	bool bStateReligion = (getStateReligion() == eReligion);
 	if (!isStateReligion())
-	{
-		// Free religion
+	{	// Free religion
 		iSpreadInternalValue += 500;
 		bStateReligion = true;
 	}
 	else if(bStateReligion)
-	{
 		iSpreadInternalValue += 1000;
-	}
 	else
 	{
-		iSpreadInternalValue += (500 * getHasReligionCount(eReligion)) / std::max(1, getNumCities());
+		iSpreadInternalValue += (500 * getHasReligionCount(eReligion)) /
+				std::max(1, getNumCities());
 	}
-	
+
 	int iGoldValue = 0;
 	if (kTeam.hasHolyCity(eReligion))
 	{
@@ -15391,10 +15417,10 @@ int CvPlayerAI::AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, Playe
 			// K-Mod. todo: use GC.getReligionInfo(eReligion).getGlobalReligionCommerce((CommerceTypes)iJ)
 		}
 	}
-	
+
 	int iOurCitiesHave = 0;
 	int iOurCitiesCount = 0;
-	
+
 	if (NULL == pArea)
 	{
 		iOurCitiesHave = kTeam.getHasReligionCount(eReligion);
@@ -15405,91 +15431,79 @@ int CvPlayerAI::AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, Playe
 		iOurCitiesHave = pArea->countHasReligion(eReligion, getID()) + countReligionSpreadUnits(pArea, eReligion,true);
 		iOurCitiesCount = pArea->getCitiesPerPlayer(getID());
 	}
-	
+
 	if (iOurCitiesHave < iOurCitiesCount)
 	{
 		iSpreadInternalValue *= 30 + ((100 * (iOurCitiesCount - iOurCitiesHave))/ iOurCitiesCount);
 		iSpreadInternalValue /= 100;
 		iSpreadInternalValue += iGoldValue;
 	}
-	else
-	{
-		iSpreadInternalValue = 0;
-	}
-	
+	else iSpreadInternalValue = 0;
+
 	if (iSpreadExternalValue > 0)
 	{
 		int iBestPlayer = NO_PLAYER;
 		int iBestValue = 0;
-		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+		for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
 		{
-			if (iPlayer != getID())
+			CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+			if (kLoopPlayer.getTeam() == getTeam() ||
+					// advc.171: Checks moved into auxiliary function
+					!AI_isTargetForMissionaries(kLoopPlayer.getID(), eReligion))
+				continue;
+
+			int iCitiesCount = 0;
+			int iCitiesHave = 0;
+			int iMultiplier = AI_isDoStrategy(AI_STRATEGY_MISSIONARY) ? 60 : 25;
+			// advc.171: Checked by AI_isTargetForMissionaries now
+			//if (!kLoopPlayer.isNoNonStateReligionSpread() || kLoopPlayer.getStateReligion() == eReligion) {
+			if (NULL == pArea)
 			{
-				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-				if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() != getTeam() && kLoopPlayer.getNumCities() > 0)
+				iCitiesCount += 1 + (kLoopPlayer.getNumCities() * 75) / 100;
+				iCitiesHave += std::min(iCitiesCount, kLoopPlayer.getHasReligionCount(eReligion));
+			}
+			else
+			{
+				int iPlayerSpreadPercent = (100 * kLoopPlayer.getHasReligionCount(eReligion)) / kLoopPlayer.getNumCities();
+				iCitiesCount += pArea->getCitiesPerPlayer((PlayerTypes)iPlayer);
+				iCitiesHave += std::min(iCitiesCount, (iCitiesCount * iPlayerSpreadPercent) / 75);
+			}//}
+
+			if (kLoopPlayer.getStateReligion() == NO_RELIGION)
+			{
+				// Paganism counts as a state religion civic, that's what's caught below
+				if (kLoopPlayer.getStateReligionCount() > 0)
 				{
-					if (GET_TEAM(kLoopPlayer.getTeam()).isOpenBorders(getTeam()) ||
-							// advc.001j:
-							GET_TEAM(getTeam()).isFriendlyTerritory(kLoopPlayer.getTeam()))
-					{
-						int iCitiesCount = 0;
-						int iCitiesHave = 0;
-						int iMultiplier = AI_isDoStrategy(AI_STRATEGY_MISSIONARY) ? 60 : 25;
-						if (!kLoopPlayer.isNoNonStateReligionSpread() || (kLoopPlayer.getStateReligion() == eReligion))
-						{
-							if (NULL == pArea)
-							{
-								iCitiesCount += 1 + (kLoopPlayer.getNumCities() * 75) / 100;
-								iCitiesHave += std::min(iCitiesCount, kLoopPlayer.getHasReligionCount(eReligion));
-							}
-							else
-							{
-								int iPlayerSpreadPercent = (100 * kLoopPlayer.getHasReligionCount(eReligion)) / kLoopPlayer.getNumCities();
-								iCitiesCount += pArea->getCitiesPerPlayer((PlayerTypes)iPlayer);
-								iCitiesHave += std::min(iCitiesCount, (iCitiesCount * iPlayerSpreadPercent) / 75);
-							}
-						}
-						
-						if (kLoopPlayer.getStateReligion() == NO_RELIGION)
-						{
-							// Paganism counts as a state religion civic, that's what's caught below
-							if (kLoopPlayer.getStateReligionCount() > 0)
-							{
-								int iTotalReligions = kLoopPlayer.countTotalHasReligion();
-								iMultiplier += 100 * std::max(0, kLoopPlayer.getNumCities() - iTotalReligions);
-								iMultiplier += (iTotalReligions == 0) ? 100 : 0;
-							}
-						}
-
-						int iValue = (iMultiplier * iSpreadExternalValue * (iCitiesCount - iCitiesHave)) / std::max(1, iCitiesCount);
-						iValue /= 100;
-						iValue += iGoldValue;
-
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							iBestPlayer = iPlayer;
-						}
-					}
+					int iTotalReligions = kLoopPlayer.countTotalHasReligion();
+					iMultiplier += 100 * std::max(0, kLoopPlayer.getNumCities() - iTotalReligions);
+					iMultiplier += (iTotalReligions == 0) ? 100 : 0;
 				}
+			}
+			// <advc.171>
+			if(GET_TEAM(getTeam()).AI_isSneakAttackPreparing(kLoopPlayer.getTeam()))
+				iMultiplier /= 2;
+			// </advc.171>
+			int iValue = (iMultiplier * iSpreadExternalValue * (iCitiesCount - iCitiesHave)) / std::max(1, iCitiesCount);
+			iValue /= 100;
+			iValue += iGoldValue;
+
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				iBestPlayer = iPlayer;
 			}
 		}
 
 		if (iBestValue > iSpreadInternalValue)
 		{
-			if (NULL != peBestPlayer)
-			{
-				*peBestPlayer = (PlayerTypes)iBestPlayer;
-			}
+			/*if (peBestPlayer != NULL)
+				*peBestPlayer = (PlayerTypes)iBestPlayer;*/ // advc.171
 			return iBestValue;
 		}
-
 	}
 
-	if (NULL != peBestPlayer)
-	{
-		*peBestPlayer = getID();
-	}
+	/*if (peBestPlayer != NULL)
+		*peBestPlayer = getID();*/ // advc.171
 
 	return iSpreadInternalValue;
 	// BETTER_BTS_AI_MOD: END

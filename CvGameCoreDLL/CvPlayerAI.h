@@ -10,7 +10,7 @@ class CvDeal;
 
 class CvPlayerAI : public CvPlayer
 {
-	friend CvPlayer; // adsvc.003: for CvPlayer::AI
+	friend CvPlayer; // advc.003: for CvPlayer::AI
 public:
 
 	CvPlayerAI();
@@ -307,9 +307,10 @@ public:
 	bool AI_isLandWar(CvArea* pArea) const; // K-Mod
 	bool AI_isFocusWar(CvArea* pArea = NULL) const; // advc.105
 
-	int AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, PlayerTypes* peBestPlayer = NULL) const;
+	int AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion/*, PlayerTypes* peBestPlayer = NULL*/) const;
 	int AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, PlayerTypes* peBestPlayer = NULL, bool bSpreadOnly = false) const;
-
+	// advc.171:
+	bool AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes eReligion) const;
 	int AI_corporationValue(CorporationTypes eCorporation, const CvCity* pCity = NULL) const;
 
 	int AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove = false) const;
