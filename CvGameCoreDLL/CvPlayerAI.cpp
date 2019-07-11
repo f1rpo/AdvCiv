@@ -7529,9 +7529,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	return iValue;*/ // K-Mod end
 	// <advc.001> The above won't work for long long
 	iValue = std::max(0LL, iValue);
-	FAssert(iValue < MAX_INT);
-	return static_cast<int>(iValue);
-	// </advc.001>
+	return ::longLongToInt(iValue); // </advc.001>
 }
 
 // K-mod. This function returns the (positive) value of the buildings we will lose by researching eTech.

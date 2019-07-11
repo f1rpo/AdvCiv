@@ -101,6 +101,21 @@ inline double dRange(double d, double low, double high) {
 	return d;
 } // </advc.003g>
 
+// advc.003: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
+inline int longLongToInt(long long x) {
+
+	FAssert(x < MAX_INT);
+	//return std::min((long)MAX_INT, iValue); // K-Mod
+	/*  Erik (BUG1): We cannot change the signature [of AI_sacrificeValue] due to
+		the virtual specifier so we have to truncate the final value to an int. */
+	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that it is truncated to MAX_INT, which makes sense logically.
+		static_cast<int>(iValue) doesn't guarantee that and the resulting value is implementation-defined. */
+	//return static_cast<int>(std::min(static_cast<long long>(MAX_INT), x));
+	/*  advc: Can't use std::min as above here, probably b/c of a conflicting definition
+		in windows.h. No matter: */
+	return static_cast<int>(std::min<long long>(MAX_INT, x));
+}
+
 // (advc.make: Distance functions moved into CvMap.h)
 
 CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
