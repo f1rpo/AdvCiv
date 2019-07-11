@@ -255,7 +255,7 @@ class MapConstants:
 		#anywhere in the world. For some mods, a new world doesn't make sense.
 		# advc.021b (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "enable the New World logic", meaning that starts in the New World are actually disallowed!
 		self.AllowNewWorld = False
-		
+
 		## (Mongoose Setting)
 		# Factor to modify mc.landPercent by if a Low or High Sea Level is chosen
 		#self.SeaLevelFactor = 1.5
@@ -467,8 +467,8 @@ class MapConstants:
 		##############################################################################
 		## PW3 Settings
 		##############################################################################
-
-		self.twistMinFreq = 0.02
+		# advc.021b: Was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in larger landmasses; perhaps/ hopefully similar to the "grain" parameter of the Fractal algorithm?
+		self.twistMinFreq = 0.045
 		self.twistMaxFreq = 0.12
 		self.twistVar     = 0.042
 		self.mountainFreq = 0.078
@@ -1596,7 +1596,11 @@ class ElevationMap3(FloatMap):
 
 
 	def GenerateElevationMap(self):
-		twistMinFreq = 128.0 / self.width * mc.twistMinFreq #0.02  / 128
+		# <advc.021b> Increased in MapConstants.initialize for larger landmasses. But that makes it difficult to prevent a pangaea, so:
+		twistMinFreq = mc.twistMinFreq
+		if mc.AllowNewWorld:
+			twistMinFreq *= 0.6 # </advc.021b>
+		twistMinFreq = 128.0 / self.width * twistMinFreq
 		twistMaxFreq = 128.0 / self.width * mc.twistMaxFreq #0.12  / 128
 		twistVar     = 128.0 / self.width * mc.twistVar     #0.042 / 128
 		mountainFreq = 128.0 / self.width * mc.mountainFreq #0.05  / 128
