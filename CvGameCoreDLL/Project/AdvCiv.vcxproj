@@ -37,7 +37,7 @@
   <ItemGroup>
     <ClCompile Include="..\AdvCiv4lerts.cpp" />
     <ClCompile Include="..\ArmamentForecast.cpp" />
-    <ClCompile Include="..\BetterBTSAI.cpp" />
+    <ClCompile Include="..\BBAILog.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
     <ClCompile Include="..\CvBugOptions.cpp" />
@@ -162,7 +162,7 @@
     <ClInclude Include="..\AdvCiv4lerts.h" />
     <ClInclude Include="..\AI_Defines.h" />
     <ClInclude Include="..\ArmamentForecast.h" />
-    <ClInclude Include="..\BetterBTSAI.h" />
+    <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\CvArea.h" />
     <ClInclude Include="..\CvArtFileMgr.h" />
     <ClInclude Include="..\CvBugOptions.h" />
