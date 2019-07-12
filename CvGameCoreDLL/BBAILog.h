@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BETTERBTSAI_H
-#define BETTERBTSAI_H
+#ifndef BBAI_LOG_H
+#define BBAI_LOG_H
 
 // AI decision making logging
 
@@ -14,19 +14,25 @@
 // 2 - Many decisions
 // 3 - All logging
 #ifdef LOG_AI
-#define gPlayerLogLevel 3
-#define gTeamLogLevel   3
-#define gCityLogLevel   3
-#define gUnitLogLevel   3
-#define gMapLogLevel    3 // K-Mod
+#define gPlayerLogLevel		3
+#define gTeamLogLevel		3
+#define gCityLogLevel		3
+#define gUnitLogLevel		3
+#define gMapLogLevel		3 // K-Mod
+#define gDealCancelLogLevel 1 // advc.133
 #else
-#define gPlayerLogLevel 0
-#define gTeamLogLevel   0
-#define gCityLogLevel   0
-#define gUnitLogLevel   0
-#define gMapLogLevel    0 // K-Mod
+#define gPlayerLogLevel		0
+#define gTeamLogLevel		0
+#define gCityLogLevel		0
+#define gUnitLogLevel		0
+#define gMapLogLevel		0 // K-Mod
+#define gDealCancelLogLevel 0 // advc.133
 #endif
 
 void logBBAI(TCHAR* format, ... );
+// <advc.133>
+class CvDeal;
+void logBBAICancel(CvDeal const& d, PlayerTypes eCancelPlayer, wchar const* szReason);
+// </advc.133>
 
-#endif  //BETTERBTSAI_H
+#endif  //BBAI_LOG_H

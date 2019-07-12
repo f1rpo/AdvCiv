@@ -7,7 +7,7 @@
 #include "CyUnit.h"
 #include "CyArgsList.h"
 #include "CvInfos.h"
-#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+#include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "AI_Defines.h" // BBAI
 #include "FAStarNode.h"
 #include "CvDLLPythonIFaceBase.h"

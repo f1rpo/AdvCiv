@@ -25,7 +25,7 @@
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 
-#include "BetterBTSAI.h" // bbai
+#include "BBAILog.h" // BBAI
 #include "CvBugOptions.h" // K-Mod
 
 // Public Functions...
@@ -2434,7 +2434,7 @@ void CvGame::update()
 
 		testAlive();
 		AI().warAndPeaceAI().invalidateUICache(); // advc.104l
-		if ((getAIAutoPlay() == 0) && !(gDLL->GetAutorun()) && GAMESTATE_EXTENDED != getGameState())
+		if (getAIAutoPlay() == 0 && !gDLL->GetAutorun() && GAMESTATE_EXTENDED != getGameState())
 		{
 			if (countHumanPlayersAlive() == 0
 					&& !isOption(GAMEOPTION_RISE_FALL)) // advc.707

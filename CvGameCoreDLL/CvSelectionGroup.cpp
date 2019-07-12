@@ -4,7 +4,7 @@
 #include "CvSelectionGroup.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
-#include "BetterBTSAI.h"
+#include "BBAILog.h"
 #include "FAStarNode.h"
 #include "CvInfos.h"
 #include "CvEventReporter.h"

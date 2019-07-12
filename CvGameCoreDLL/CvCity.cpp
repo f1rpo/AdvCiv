@@ -13,7 +13,7 @@
 #include "CvEventReporter.h"
 #include "CvBugOptions.h" // advc.060
 #include "CvInitCore.h" // advc.001: Needed for bugfix in getCityBillboardSizeIconColors
-#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+#include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"

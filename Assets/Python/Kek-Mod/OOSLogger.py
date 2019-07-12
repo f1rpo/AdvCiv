@@ -221,7 +221,8 @@ def writeLog():
 
 			if (iNumCities == 0):
 				pFile.write("No Cities")
-			else: # advc: Don't print this for each city
+			else:
+				# advc: Moved out of the loop - don't print this for each city.
 				pFile.write("(Events that have occurred are also used for the checksum.)\n")
 				pLoopCityTuple = pPlayer.firstCity(False)
 				while (pLoopCityTuple[0] != None):

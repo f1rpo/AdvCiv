@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlayerAI.h"
 #include "CvGamePlay.h"
-#include "BetterBTSAI.h" // BBAI
+#include "BBAILog.h" // BBAI
 #include "AI_Defines.h" // BBAI
 #include "WarAndPeaceAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
@@ -12895,6 +12895,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iCh
 	return iR *  GC.getPEACE_TREATY_LENGTH();
 }  // </advc.036>
 
+
 DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		int iChange) const // advc.133
 {
@@ -19526,8 +19527,8 @@ void CvPlayerAI::AI_doReligion()
 	}
 }
 
-// advc.133: 1 means d should be canceled, -1 it shouldn't be canceled, 0 it should be renegotiated.
-int CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip) {
+// advc.133: Partly cut from AI_doDiplo
+CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip) {
 
 	PROFILE_FUNC(); // advc.003b
 	PlayerTypes eWe = (bFlip ? d.getSecondPlayer() : d.getFirstPlayer());
@@ -19537,13 +19538,14 @@ int CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip)
 	CLinkList<TradeData> const& kTheyGive = (bFlip ? *d.getFirstTrades() :
 			*d.getSecondTrades());
 	if(eWe != getID() || eThey != ePlayer)
-		return -1;
-	// advc.003: Cut and pasted from AI_doDiplo:
+		return NO_CANCEL;
 	// K-Mod. getTradeDenial is not equipped to consider deal cancelation properly.
-	if(!AI_considerOffer(ePlayer, kTheyGive, kWeGive, -1, d.getAge())) // advc.133
-		return 0;
+	if(!AI_considerOffer(ePlayer, kTheyGive, kWeGive, -1, d.getAge())) {
+		if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"trade value");
+		return RENEGOTIATE;
+	}
 	if(kWeGive.getLength() <= 0)
-		return -1;
+		return NO_CANCEL;
 	/*  @"not equipped"-comment above: Resource trades do need special treatment.
 		For duals (Open Borders, Def. Pact, Perm. Alliance), getTradeDenial
 		is all right. AI_considerOffer will not cancel these b/c the trade values
@@ -19556,9 +19558,11 @@ int CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip)
 				// <dlph.3> Cancel DP immediately when war no longer shared
 				(((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
 				eDenial == DENIAL_JOKING)) || // </dlph.3>
-				::bernoulliSuccess(0.2, "advc.133")))
-			return 1;
-		else return -1;
+				::bernoulliSuccess(0.2, "advc.133"))) {
+			if (gDealCancelLogLevel > 1) logBBAICancel(d, getID(), L"dual denial");
+			return DO_CANCEL;
+		}
+		else return NO_CANCEL;
 	}
 	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
 		AI_bonusTrade explicitly and tell it that this is about cancelation. */
@@ -19567,17 +19571,19 @@ int CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip)
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
 		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, -1) != NO_DENIAL)
-			return 1;
+			return DO_CANCEL;
 	} /* Need to check their DENIAL_JOKING in case they're giving us a resource that
 		 we no longer need */
 	for(pNode = kTheyGive.head(); pNode != NULL; pNode = kTheyGive.next(pNode)) {
 		TradeData data = pNode->m_data;
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
-		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, -1) == DENIAL_JOKING)
-			return 1;
-	} // </advc.133>
-	return -1;
+		if(GET_PLAYER(ePlayer).AI_bonusTrade((BonusTypes)data.m_iData, getID(), -1) == DENIAL_JOKING) {
+			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - joking");
+			return DO_CANCEL;
+		}
+	}
+	return NO_CANCEL;
 }
 
 // advc.003: Body cut and pasted from AI_doDiplo. Returns true iff eOther contacted.
@@ -19594,11 +19600,11 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther) {
 		/*  advc.003: Cancellation checks moved into a subfunction
 			to reduce code duplication */
 		// <advc.133>
-		int iCancelCode1 = AI_checkCancel(*pLoopDeal, eOther, false);
-		int iCancelCode2 = AI_checkCancel(*pLoopDeal, eOther, true);
-		if(iCancelCode1 < 0 && iCancelCode2 < 0)
+		CancelCode eCancel1 = AI_checkCancel(*pLoopDeal, eOther, false);
+		CancelCode eCancel2 = AI_checkCancel(*pLoopDeal, eOther, true);
+		if(eCancel1 == NO_CANCEL && eCancel2 == NO_CANCEL)
 			continue;
-		bool bRenegotiate = ((iCancelCode1 == 0 || iCancelCode2 == 0) &&
+		bool bRenegotiate = ((eCancel1 == RENEGOTIATE || eCancel2 == RENEGOTIATE) &&
 				/*  Canceled AI-human deals bring up the trade table anyway
 					(except when a trade becomes invalid); this is about AI-AI trades. */
 				!isHuman() && !GET_PLAYER(eOther).isHuman() &&

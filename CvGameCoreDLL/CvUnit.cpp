@@ -12,7 +12,7 @@
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "CvArtFileMgr.h"
-#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
+#include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
 #include "AI_Defines.h" // BBAI
 #include "CvBugOptions.h" // advc.002e
 #include "CvDLLEntityIFaceBase.h"

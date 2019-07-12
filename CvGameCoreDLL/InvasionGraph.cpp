@@ -235,6 +235,8 @@ bool InvasionGraph::Node::isIsolated() const {
 
 void InvasionGraph::Node::logPower(char const* msg) const {
 
+	if(report.isMute())
+		return;
 	ostringstream out;
 	out << msg << " of " << report.leaderName(id)
 			<< "\n\np(.\n";

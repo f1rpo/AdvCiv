@@ -27,7 +27,7 @@
 #include "CvDLLPythonIFaceBase.h"
 //bbai
 #include "CvDLLFlagEntityIFaceBase.h"
-#include "BetterBTSAI.h"
+#include "BBAILog.h"
 //bbai end
 
 
@@ -7819,82 +7819,64 @@ int CvPlayer::countHolyCities() const
 }
 
 
-void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward)
+void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward)  // advc.003: some style changes
 {
-
-	if (NO_RELIGION == eReligion)
-	{
+	if (eReligion == NO_RELIGION)
 		return;
-	}
 
-	if (GC.getGame().isReligionFounded(eReligion))
+	CvReligionInfo const& kSlotReligion = GC.getReligionInfo(eSlotReligion);
+	CvGame& g = GC.getGame();
+	if (g.isReligionFounded(eReligion))
 	{
 		if (isHuman())
 		{
 			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, eSlotReligion);
-			if (NULL != pInfo)
-			{
+			if (pInfo != NULL)
 				gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
-			}
 		}
-		else
-		{
-			foundReligion(AI_chooseReligion(), eSlotReligion, bAward);
-		}
-
+		else foundReligion(AI_chooseReligion(), eSlotReligion, bAward);
 		return;
 	}
+	g.setReligionSlotTaken(eSlotReligion, true);
 
-	GC.getGame().setReligionSlotTaken(eSlotReligion, true);
-
-	bool bStarting = ((GC.getReligionInfo(eSlotReligion).getTechPrereq() == NO_TECH) || (GC.getTechInfo((TechTypes) GC.getReligionInfo(eSlotReligion).getTechPrereq()).getEra() < GC.getGame().getStartEra()));
+	bool bStarting = (kSlotReligion.getTechPrereq() == NO_TECH ||
+			GC.getTechInfo((TechTypes)kSlotReligion.getTechPrereq()).getEra() < g.getStartEra());
 
 	int iBestValue = 0;
 	CvCity* pBestCity = NULL;
 	int iLoop;
 	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		if (!bStarting || !(pLoopCity->isHolyCity()))
+		if (bStarting && pLoopCity->isHolyCity())
+			continue;
+
+		int iValue = 10;
+		iValue += pLoopCity->getPopulation();
+		iValue += g.getSorenRandNum(GC.getDefineINT("FOUND_RELIGION_CITY_RAND"), "Found Religion");
+		iValue /= (pLoopCity->getReligionCount() + 1);
+		if (pLoopCity->isCapital())
+			iValue /= 8;
+		iValue = std::max(1, iValue);
+
+		if (iValue > iBestValue)
 		{
-			int iValue = 10;
-			iValue += pLoopCity->getPopulation();
-			iValue += GC.getGame().getSorenRandNum(GC.getDefineINT("FOUND_RELIGION_CITY_RAND"), "Found Religion");
-
-			iValue /= (pLoopCity->getReligionCount() + 1);
-
-			if (pLoopCity->isCapital())
-			{
-				iValue /= 8;
-			}
-
-			iValue = std::max(1, iValue);
-
-			if (iValue > iBestValue)
-			{
-				iBestValue = iValue;
-				pBestCity = pLoopCity;
-			}
+			iBestValue = iValue;
+			pBestCity = pLoopCity;
 		}
 	}
 
-	if (pBestCity != NULL)
+	if (pBestCity == NULL)
+		return;
+
+	g.setHolyCity(eReligion, pBestCity, true);
+	if (bAward && kSlotReligion.getNumFreeUnits() > 0)
 	{
-		GC.getGame().setHolyCity(eReligion, pBestCity, true);
-
-		if (bAward)
+		UnitTypes eFreeUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
+				getCivilizationUnits(kSlotReligion.getFreeUnitClass());
+		if (eFreeUnit != NO_UNIT)
 		{
-			if (GC.getReligionInfo(eSlotReligion).getNumFreeUnits() > 0)
-			{
-				UnitTypes eFreeUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getReligionInfo(eReligion).getFreeUnitClass())));
-
-				if (eFreeUnit != NO_UNIT)
-				{
-					for (int i = 0; i < GC.getReligionInfo(eSlotReligion).getNumFreeUnits(); ++i)
-					{
-						initUnit(eFreeUnit, pBestCity->getX(), pBestCity->getY());
-					}
-				}
-			}
+			for (int i = 0; i < kSlotReligion.getNumFreeUnits(); i++)
+				initUnit(eFreeUnit, pBestCity->getX(), pBestCity->getY());
 		}
 	}
 }

@@ -7,7 +7,7 @@
 #include "CvGameTextMgr.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvEventReporter.h"
-#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+#include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 
 CvDeal::CvDeal()
@@ -615,22 +615,7 @@ bool CvDeal::isDisengage() const {
 
 // advc.130p: Replaced by code in recordTradeValue
 /*bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const {
-	CLLNode<TradeData>* pNode;
-	if (pFirstList != NULL) {
-		for (pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode)) {
-			if (pNode->m_data.m_eItemType == TRADE_PEACE)
-				return true;
-		}
-	}
-	if (pSecondList != NULL) {
-		for (pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode)) {
-			if (pNode->m_data.m_eItemType == TRADE_PEACE)
-				return true;
-		}
-	}
-	return false;
-}*/
-
+//... }*/
 
 int CvDeal::getID() const
 {

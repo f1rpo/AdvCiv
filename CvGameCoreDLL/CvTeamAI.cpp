@@ -6,7 +6,7 @@
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CyArgsList.h"
-#include "BetterBTSAI.h" // BBAI
+#include "BBAILog.h" // BBAI
 #include "AI_Defines.h" // BBAI
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvDLLInterfaceIFaceBase.h"

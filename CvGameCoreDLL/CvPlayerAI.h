@@ -730,7 +730,8 @@ protected:
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const;
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,
 			bool* bEnough = NULL) const;
-	int AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
+	enum CancelCode { NO_CANCEL = -1, RENEGOTIATE, DO_CANCEL };
+	CancelCode AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
 	bool AI_doDeals(PlayerTypes eOther);
 	// </advc.003>
 	bool AI_proposeResourceTrade(PlayerTypes eTo); // advc.133
