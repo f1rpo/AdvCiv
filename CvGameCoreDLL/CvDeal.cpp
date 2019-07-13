@@ -646,31 +646,64 @@ int CvDeal::getAge() const {
 	return GC.getGame().getGameTurn() - getInitialGameTurn();
 } // </advc.133>
 
-
-PlayerTypes CvDeal::getFirstPlayer() const
-{
-	return m_eFirstPlayer;
-}
-
-
-PlayerTypes CvDeal::getSecondPlayer() const
-{
-	return m_eSecondPlayer;
-}
-
-// <advc.003>
+// <advc.003> Might be important here that getFirstPlayer and getSecondPlayer are inlined
 bool CvDeal::isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const {
 
-	return (ePlayer == m_eFirstPlayer && eOtherPlayer == m_eSecondPlayer) ||
-		(eOtherPlayer == m_eFirstPlayer && ePlayer == m_eSecondPlayer);
+	return (ePlayer == getFirstPlayer() && eOtherPlayer == getSecondPlayer()) ||
+		   (eOtherPlayer == getFirstPlayer() && ePlayer == getSecondPlayer());
 }
+
 
 bool CvDeal::isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const {
 
-	return (eTeam == TEAMID(m_eFirstPlayer) && eOtherTeam == TEAMID(m_eSecondPlayer)) ||
-		(eOtherTeam == TEAMID(m_eFirstPlayer) && eTeam == TEAMID(m_eSecondPlayer));
-}// </advc.003>
+	return (eTeam == TEAMID(getFirstPlayer()) && eOtherTeam == TEAMID(getSecondPlayer())) ||
+		   (eOtherTeam == TEAMID(getFirstPlayer()) && eTeam == TEAMID(getSecondPlayer()));
+}
 
+
+CLinkList<TradeData> const& CvDeal::getGivesList(PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return *(ePlayer == getFirstPlayer() ? getFirstTrades() : getSecondTrades());
+}
+
+
+CLinkList<TradeData> const& CvDeal::getReceivesList(PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return *(ePlayer == getFirstPlayer() ? getSecondTrades() : getFirstTrades());
+}
+
+
+CLLNode<TradeData>* CvDeal::headGivesNode(PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return (ePlayer == getFirstPlayer() ? headFirstTradesNode() : headSecondTradesNode());
+}
+
+
+CLLNode<TradeData>* CvDeal::headReceivesNode(PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return (ePlayer == getFirstPlayer() ? headSecondTradesNode() : headFirstTradesNode());
+}
+
+
+CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return (ePlayer == getFirstPlayer() ? nextFirstTradesNode(pNode) :
+			nextSecondTradesNode(pNode));
+}
+
+
+CLLNode<TradeData>* CvDeal::nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return (ePlayer == getFirstPlayer() ? nextSecondTradesNode(pNode) :
+			nextFirstTradesNode(pNode));
+}
+// </advc.003>
 
 void CvDeal::clearFirstTrades()
 {
@@ -684,27 +717,9 @@ void CvDeal::insertAtEndFirstTrades(TradeData trade)
 }
 
 
-CLLNode<TradeData>* CvDeal::nextFirstTradesNode(CLLNode<TradeData>* pNode) const
-{
-	return m_firstTrades.next(pNode);
-}
-
-
 int CvDeal::getLengthFirstTrades() const
 {
 	return m_firstTrades.getLength();
-}
-
-
-CLLNode<TradeData>* CvDeal::headFirstTradesNode() const
-{
-	return m_firstTrades.head();
-}
-
-
-const CLinkList<TradeData>* CvDeal::getFirstTrades() const
-{
-	return &(m_firstTrades);
 }
 
 
@@ -720,27 +735,9 @@ void CvDeal::insertAtEndSecondTrades(TradeData trade)
 }
 
 
-CLLNode<TradeData>* CvDeal::nextSecondTradesNode(CLLNode<TradeData>* pNode) const
-{
-	return m_secondTrades.next(pNode);
-}
-
-
 int CvDeal::getLengthSecondTrades() const
 {
 	return m_secondTrades.getLength();
-}
-
-
-CLLNode<TradeData>* CvDeal::headSecondTradesNode() const
-{
-	return m_secondTrades.head();
-}
-
-
-const CLinkList<TradeData>* CvDeal::getSecondTrades() const
-{
-	return &(m_secondTrades);
 }
 
 

@@ -49,31 +49,50 @@ public:
 	int getInitialGameTurn() const;
 	void setInitialGameTurn(int iNewValue);
 	int getAge() const; // advc.133
-	DllExport PlayerTypes getFirstPlayer() const;
-	DllExport PlayerTypes getSecondPlayer() const;
-	// <advc.003>
+	// <advc.003f> inlined
+	DllExport inline PlayerTypes getFirstPlayer() const {
+		return m_eFirstPlayer; }
+	inline CLinkList<TradeData> const* getFirstTrades() const {
+		return &(m_firstTrades); }
+	DllExport inline CLLNode<TradeData>* headFirstTradesNode() const {
+		return m_firstTrades.head(); }
+	DllExport inline CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const {
+		return m_firstTrades.next(pNode); }
+	DllExport inline PlayerTypes getSecondPlayer() const {
+		return m_eSecondPlayer; }
+	inline CLinkList<TradeData> const* getSecondTrades() const {
+		return &(m_secondTrades); }
+	DllExport inline CLLNode<TradeData>* headSecondTradesNode() const {
+		return m_secondTrades.head(); }
+	DllExport inline CLLNode<TradeData>* nextSecondTradesNode(CLLNode<TradeData>* pNode) const {
+		return m_secondTrades.next(pNode); }
+	// </advc.003f>
+	/*  <advc.003> More convenient interface for iteration. Caller has to ensure
+		that ePlayer is involved in the trade!
+		Tbd.: Replace awkward uses of the old interface throughout the code base */
 	bool isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const;
 	bool isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const;
+	CLinkList<TradeData> const& getGivesList(PlayerTypes ePlayer) const;
+	CLinkList<TradeData> const& getReceivesList(PlayerTypes ePlayer) const;
+	CLLNode<TradeData>* headGivesNode(PlayerTypes ePlayer) const;
+	CLLNode<TradeData>* headReceivesNode(PlayerTypes ePlayer) const;
+	CLLNode<TradeData>* nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const;
+	CLLNode<TradeData>* nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const;
 	// </advc.003>
-	void clearFirstTrades(); // advc.003j (comment): unused
-	void insertAtEndFirstTrades(TradeData trade);
-	DllExport CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const;
-	int getLengthFirstTrades() const;
-	DllExport CLLNode<TradeData>* headFirstTradesNode() const;
-	const CLinkList<TradeData>* getFirstTrades() const;
 
+	void clearFirstTrades(); // advc.003j (comment): unused
+	void insertAtEndFirstTrades(TradeData trade); // advc (comment): Currently only used internally
+	int getLengthFirstTrades() const;
+	
 	void clearSecondTrades(); // advc.003j (comment): unused
-	void insertAtEndSecondTrades(TradeData trade);
-	DllExport CLLNode<TradeData>* nextSecondTradesNode(CLLNode<TradeData>* pNode) const;
+	void insertAtEndSecondTrades(TradeData trade); // advc (comment): Currently only used internally
 	int getLengthSecondTrades() const;
-	DllExport CLLNode<TradeData>* headSecondTradesNode() const;
-	const CLinkList<TradeData>* getSecondTrades() const;
 
 	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL)
 	// <advc.003> Need a const version
 	{
 		CvDeal const& kThis = *this;
-		return kThis.isCancelable();
+		return kThis.isCancelable(eByPlayer, pszReason);
 	} bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL) const;
 	// </advc.003>
 	bool isEverCancelable(PlayerTypes eByPlayer) const; // advc.130f

@@ -3172,6 +3172,9 @@ void CvPlayer::doTurn()  // advc.003: style changes
 				kOurTeam.cancelDisengage(tId);
 		}
 	} // </advc.034>
+	/*  advc.074: Make sure (if only for performance) that we don't keep expecting
+		a cancel-trade popup that never comes (the importer may have died) */
+	m_cancelingExport.clear();
 	int iGameTurn = g.getGameTurn();
 	updateEconomyHistory(iGameTurn, calculateTotalCommerce());
 	updateIndustryHistory(iGameTurn, calculateTotalYield(YIELD_PRODUCTION));
@@ -22471,15 +22474,33 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			for (int j = 0; j < GC.getNumBonusInfos(); j++)
 			{
 				setTradeItem(&item, TRADE_RESOURCES, j);
-				if (canTradeItem(eOtherPlayer, item))
-				{	// <advc.074>
-					if((!bOtherHuman && !isHuman()) || getTradeDenial(eOtherPlayer, item) !=
-							DENIAL_JOKING) { // </advc.074>
-						bFoundItemUs = true;
-						ourList.insertAtEnd(item);
+				if (!canTradeItem(eOtherPlayer, item))
+					continue;
+				// <advc.074>
+				bool bHuman = (bOtherHuman || isHuman());
+				bool bValid = (!bHuman || getTradeDenial(eOtherPlayer, item) != DENIAL_JOKING);
+				/*  Hack: Check if we're expecting a renegotiate-popup from
+					the EXE. Don't want any resources in the canceled deal to
+					be excluded from the trade table. */
+				if(bHuman) { // Even if already bValid=true, may need to clear j from m_cancelingExport.
+					for(CLLNode<std::pair<PlayerTypes,BonusTypes> >* pNode =
+							m_cancelingExport.head(); pNode != NULL; pNode =
+							m_cancelingExport.next(pNode)) {
+						PlayerTypes eCancelPlayer = pNode->m_data.first;
+						BonusTypes eCancelBonus = pNode->m_data.second;
+						FAssert(eCancelPlayer != getID());
+						if(eCancelPlayer == eOtherPlayer && eCancelBonus == j) {
+							bValid = true;
+							const_cast<CvPlayer*>(this)->m_cancelingExport.deleteNode(pNode);
+							break;
+						}
 					}
 				}
-			}
+				if(bValid) { // </advc.074>
+					bFoundItemUs = true;
+					ourList.insertAtEnd(item);
+				}
+			} 
 			break;
 
 		case TRADE_CITIES:

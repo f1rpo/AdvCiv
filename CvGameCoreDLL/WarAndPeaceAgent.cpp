@@ -1560,7 +1560,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 		return 0;
 	// Really just utility given how peaceThreshold is computed for humans
 	int humanUtility = human.warAndPeaceAI().reluctanceToPeace(ai.getID(), false);
-	// Neither side pays if both want peace, and the AI wants it more than the human
+	// Neither side pays if both want peace and the AI wants it more than the human
 	if(humanUtility <= 0 && aiReluct <= humanUtility)
 		return 0;
 	double reparations = 0;
@@ -1606,7 +1606,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 				go a lot higher now than they do in BtS. 5 utility can easily
 				correspond to 1000 gold in the midgame. The AI evaluation of human
 				utility isn't too reliable (may well assume that the human starts
-				some costly but futile offensive) and fluctuate a lot from turn
+				some costly but futile offensive) and fluctuates a lot from turn
 				to turn, whereas peace terms mustn't fluctuate too much.
 				And at least if aiReluct < 0, we do want peace negotiations to
 				succeed. */

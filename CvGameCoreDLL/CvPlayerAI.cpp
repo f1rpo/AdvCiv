@@ -12901,7 +12901,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 {
 	PROFILE_FUNC();
 
-	int iI=-1, iJ=-1; // advc.003: Other declarations moved
+	int iI=-1, iJ=-1;
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer); // advc.003
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 
@@ -19570,7 +19570,7 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 		TradeData data = pNode->m_data;
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
-		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, -1) != NO_DENIAL)
+		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, 0) != NO_DENIAL)
 			return DO_CANCEL;
 	} /* Need to check their DENIAL_JOKING in case they're giving us a resource that
 		 we no longer need */
@@ -19578,7 +19578,7 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 		TradeData data = pNode->m_data;
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
-		if(GET_PLAYER(ePlayer).AI_bonusTrade((BonusTypes)data.m_iData, getID(), -1) == DENIAL_JOKING) {
+		if(GET_PLAYER(ePlayer).AI_bonusTrade((BonusTypes)data.m_iData, getID(), 0) == DENIAL_JOKING) {
 			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - joking");
 			return DO_CANCEL;
 		}
@@ -19593,7 +19593,8 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther) {
 	CvGame& g = GC.getGame(); int iLoop=-1;
 	for(CvDeal* pLoopDeal = g.firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = g.nextDeal(&iLoop))
 	{
-		if(!pLoopDeal->isCancelable(getID()))
+		if(!pLoopDeal->isBetween(getID(), eOther) || // advc.003: Ensure this upfront
+				!pLoopDeal->isCancelable(getID()))
 			continue;
 		// if ((g.getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getPEACE_TREATY_LENGTH() * 2)) // K-Mod disabled
 		// (original bts code deleted)
@@ -19615,18 +19616,28 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther) {
 			CLinkList<TradeData> ourList;
 			CLinkList<TradeData> theirList;
 			bool bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
-			CLLNode<TradeData>* pNode=NULL;
-			for (pNode = pLoopDeal->headFirstTradesNode(); pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode))
+			CLLNode<TradeData>* pNode;
+			// advc.003: Use the improved CvDeal interface!
+			for (pNode = pLoopDeal->headGivesNode(getID()); pNode != NULL;
+					pNode = pLoopDeal->nextGivesNode(pNode, getID()))
 			{
-				if (pLoopDeal->getFirstPlayer() == getID())
-					ourList.insertAtEnd(pNode->m_data);
-				else theirList.insertAtEnd(pNode->m_data);
+				ourList.insertAtEnd(pNode->m_data);
+				/*  <advc.074> Remember the canceled resources to avoid
+					excluding them in CvPlayer::buildTradeTable */
+				if(pNode->m_data.m_eItemType == TRADE_RESOURCES) {
+					m_cancelingExport.insertAtEnd(std::make_pair(
+							eOther, (BonusTypes)pNode->m_data.m_iData));
+				} // </advc.074>
 			}
-			for (pNode = pLoopDeal->headSecondTradesNode(); pNode != NULL; pNode = pLoopDeal->nextSecondTradesNode(pNode))
+			for (pNode = pLoopDeal->headGivesNode(eOther); pNode != NULL;
+					pNode = pLoopDeal->nextGivesNode(pNode, eOther))
 			{
-				if (pLoopDeal->getSecondPlayer() == getID())
-					ourList.insertAtEnd(pNode->m_data);
-				else theirList.insertAtEnd(pNode->m_data);
+				theirList.insertAtEnd(pNode->m_data);
+				// <advc.074>
+				if(pNode->m_data.m_eItemType == TRADE_RESOURCES) {
+					GET_PLAYER(eOther).m_cancelingExport.insertAtEnd(std::make_pair(
+							getID(), (BonusTypes)pNode->m_data.m_iData));
+				} // </advc.074>
 			}
 			// <advc.062>
 			DenialTypes eVassalCancelReason = (!bVassalDeal ? NO_DENIAL :
