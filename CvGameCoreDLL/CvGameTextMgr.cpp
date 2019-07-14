@@ -4343,8 +4343,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	PlayerTypes eActivePlayer = g.getActivePlayer();
 	CvWString szTempBuffer;
 
-	PlayerTypes eRevealOwner = pPlot->getRevealedOwner(eActiveTeam, true);
-	if (eRevealOwner != NO_PLAYER
+	PlayerTypes eRevealedOwner = pPlot->getRevealedOwner(eActiveTeam, true);
+	if (eRevealedOwner != NO_PLAYER
 			// advc.099f:
 			|| bShift || getBugOptionBOOL("MiscHover__CultureInUnownedTiles", false))
 	{
@@ -4388,43 +4388,60 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(NEWLINE);
 				} // </advc.023>
 			} // </advc.101>
-			if(eRevealOwner != NO_PLAYER) { // advc.099f
-				CvPlayer const& kRevealOwner = GET_PLAYER(eRevealOwner);
-				szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR,
-						pPlot->calculateCulturePercent(eRevealOwner),
-						PLAYER_TEXT_COLOR(kRevealOwner), kRevealOwner.getCivilizationAdjective());
-				szString.append(szTempBuffer);
-				szString.append(NEWLINE);
-			}
-			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+			// <advc.099g> Put the players w/ tile culture in a container first
+			std::vector<std::pair<int,PlayerTypes> > aieCulturePerPlayer;
+			/*  Go backwards b/c of the stable_sort call below. Removing that call
+				will restore the BtS ordering (except for the special treatment
+				of eActivePlayer). */
+			for (int i = MAX_PLAYERS - 1; i >= 0; i--)
 			{
-				if (iPlayer != eRevealOwner)
+				if (i == eRevealedOwner || i == eActivePlayer) // Prepended below
+					continue; // </advc.099g>
+				CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
+				// advc.099: Replaced "Alive" with "EverAlive"
+				if (kPlayer.isEverAlive() && pPlot->getCulture(kPlayer.getID()) > 0)
 				{
-					CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-					// advc.099: Replaced "Alive" with "EverAlive"
-					if (kPlayer.isEverAlive() && pPlot->getCulture((PlayerTypes)iPlayer) > 0)
-					{/* K-Mod, 29/sep/10, Karadoc
-						Prevented display of 0% culture, to reduce the spam created by trade culture. */
-						/* original bts code
-						szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, pPlot->calculateCulturePercent((PlayerTypes)iPlayer), PLAYER_TEXT_COLOR(kPlayer), kPlayer.getCivilizationAdjective());
-						szString.append(szTempBuffer);
-						szString.append(NEWLINE);*/
-						int iCulturePercent = pPlot->calculateCulturePercent((PlayerTypes)iPlayer);
-						if (iCulturePercent >= 1)
-						{
-							szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR,
-									iCulturePercent, PLAYER_TEXT_COLOR(kPlayer),
-									kPlayer.getCivilizationAdjective());
-							szString.append(szTempBuffer);
-							szString.append(NEWLINE);
-						} // K-Mod end
+					int iCulture = pPlot->calculateCulturePercent(kPlayer.getID());
+					/*  K-Mod, 29/sep/10, Karadoc
+						Prevent display of 0% culture, to reduce the spam created by trade culture. */
+					if (iCulture >= 1)
+					{	// advc.099g:
+						aieCulturePerPlayer.push_back(std::make_pair(iCulture, kPlayer.getID()));
 					}
 				}
+			} // <advc.099g>
+			std::stable_sort(aieCulturePerPlayer.begin(), aieCulturePerPlayer.end());
+			if(eActivePlayer != eRevealedOwner) {
+				int iCulture = pPlot->calculateCulturePercent(eActivePlayer);
+				if(iCulture >= 1)
+					aieCulturePerPlayer.push_back(std::make_pair(iCulture, eActivePlayer));
 			}
+			if(eRevealedOwner != NO_PLAYER) // advc.099f
+			{
+				int iCulture = pPlot->calculateCulturePercent(eRevealedOwner);
+				if(iCulture >= 1)
+					aieCulturePerPlayer.push_back(std::make_pair(iCulture, eRevealedOwner));
+			}
+			std::reverse(aieCulturePerPlayer.begin(), aieCulturePerPlayer.end());
+			for (size_t i = 0; i < aieCulturePerPlayer.size(); i++)
+			{
+				CvPlayer const& kPlayer = GET_PLAYER(aieCulturePerPlayer[i].second);
+				int iCulture = aieCulturePerPlayer[i].first;
+				// </advc.099g>
+				szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, iCulture,
+						PLAYER_TEXT_COLOR(kPlayer), kPlayer.getCivilizationAdjective());
+				szString.append(szTempBuffer);
+				szString.append(NEWLINE);
+				// <advc.099g> Put it all on one line? I guess better not.
+				//setListHelp(szString, L"", szTempBuffer.GetCString(), L", ", i == 0);
+			}
+			/*if(!aieCulturePerPlayer.empty())
+				szString.append(NEWLINE);*/
+			// </advc.099g>
 		}
-		else if(eRevealOwner != NO_PLAYER) // advc.099f
+		else if(eRevealedOwner != NO_PLAYER) // advc.099f
 		{
-			CvPlayer const& kRevealOwner = GET_PLAYER(eRevealOwner);
+			CvPlayer const& kRevealOwner = GET_PLAYER(eRevealedOwner);
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
 					PLAYER_TEXT_COLOR(kRevealOwner), kRevealOwner.getCivilizationDescription());
 			szString.append(szTempBuffer);
@@ -4433,8 +4450,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	}
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit(); // advc.003
 	// <advc.012> 
-	TeamTypes eDefTeam = (eRevealOwner != NO_PLAYER ?
-			GET_PLAYER(eRevealOwner).getTeam() :
+	TeamTypes eDefTeam = (eRevealedOwner != NO_PLAYER ?
+			GET_PLAYER(eRevealedOwner).getTeam() :
 			NO_TEAM);
 	int iDefWithFeatures = pPlot->defenseModifier(eDefTeam, true, NO_TEAM, true);
 	int iDefWithoutFeatures = pPlot->defenseModifier(eDefTeam, true,
@@ -4650,7 +4667,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 								GC.getBuildInfo((BuildTypes) iI).getImprovement(),
 								eActiveTeam, true))
 							continue;
-						if(!bConnected && eRevealOwner != NO_PLAYER && // advc.047
+						if(!bConnected && eRevealedOwner != NO_PLAYER && // advc.047
 								GET_TEAM(eActiveTeam).isHasTech(
 								(TechTypes)GC.getBuildInfo((BuildTypes)iI).
 								getTechPrereq())) {
@@ -4817,7 +4834,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		{
 			if ((pPlot->getUpgradeProgress() > 0) || pPlot->isBeingWorked())
 			{
-				int iTurns = pPlot->getUpgradeTimeLeft(ePlotImprovement, eRevealOwner);
+				int iTurns = pPlot->getUpgradeTimeLeft(ePlotImprovement, eRevealedOwner);
 
 				szString.append(gDLL->getText("TXT_KEY_PLOT_IMP_UPGRADE", iTurns, GC.getImprovementInfo((ImprovementTypes) GC.getImprovementInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
 			}

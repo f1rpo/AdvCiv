@@ -158,7 +158,6 @@ void CvPlayer::init(PlayerTypes eID)
 	AI_init();
 }
 
-
 // advc.003q: Cut from CvPlayer::init
 void CvPlayer::initContainers() {
 
@@ -22482,7 +22481,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				/*  Hack: Check if we're expecting a renegotiate-popup from
 					the EXE. Don't want any resources in the canceled deal to
 					be excluded from the trade table. */
-				if(bHuman) { // Even if already bValid=true, may need to clear j from m_cancelingExport.
+				if(!bValid) {
 					for(CLLNode<std::pair<PlayerTypes,BonusTypes> >* pNode =
 							m_cancelingExport.head(); pNode != NULL; pNode =
 							m_cancelingExport.next(pNode)) {

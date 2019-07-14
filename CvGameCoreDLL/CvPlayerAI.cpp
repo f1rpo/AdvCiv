@@ -19617,13 +19617,13 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther) {
 			CLinkList<TradeData> theirList;
 			bool bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
 			CLLNode<TradeData>* pNode;
-			// advc.003: Use the improved CvDeal interface!
 			for (pNode = pLoopDeal->headGivesNode(getID()); pNode != NULL;
 					pNode = pLoopDeal->nextGivesNode(pNode, getID()))
 			{
 				ourList.insertAtEnd(pNode->m_data);
 				/*  <advc.074> Remember the canceled resources to avoid
-					excluding them in CvPlayer::buildTradeTable */
+					excluding them in CvPlayer::buildTradeTable. Known issue:
+					Won't work when multiple trades are canceled in a row. */
 				if(pNode->m_data.m_eItemType == TRADE_RESOURCES) {
 					m_cancelingExport.insertAtEnd(std::make_pair(
 							eOther, (BonusTypes)pNode->m_data.m_iData));
