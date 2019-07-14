@@ -4418,9 +4418,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			}
 			if(eRevealedOwner != NO_PLAYER) // advc.099f
 			{
-				int iCulture = pPlot->calculateCulturePercent(eRevealedOwner);
-				if(iCulture >= 1)
-					aieCulturePerPlayer.push_back(std::make_pair(iCulture, eRevealedOwner));
+				aieCulturePerPlayer.push_back(std::make_pair(
+						pPlot->calculateCulturePercent(eRevealedOwner), eRevealedOwner));
 			}
 			std::reverse(aieCulturePerPlayer.begin(), aieCulturePerPlayer.end());
 			for (size_t i = 0; i < aieCulturePerPlayer.size(); i++)
