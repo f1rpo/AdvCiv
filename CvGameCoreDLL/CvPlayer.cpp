@@ -2028,41 +2028,42 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				oldOwnerCulture - convertedCulture, true, false);
     } // </dlph.23>
 
-	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)  // advc.003: body refactored (incl. added comments)
 	{
-		if (paiNumRealBuilding[iI] > 0)
+		if (paiNumRealBuilding[iI] <= 0)
+			continue;
+
+		BuildingTypes eBuilding = (BuildingTypes)iI;
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)GC.getBuildingInfo(
+				eBuilding).getBuildingClassType();
+		// Can't acquire another civ's unique building
+		if (!::isWorldWonderClass(eBuildingClass)) // So that Barbarians can capture wonders
 		{
-			BuildingClassTypes eBuildingClass = (BuildingClassTypes)GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType();
-			BuildingTypes eBuilding = NO_BUILDING;
-			if (::isWorldWonderClass(eBuildingClass))
-			{
-				eBuilding = (BuildingTypes)iI;
-			}
-			else
-			{
-				eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-			}
-			if (eBuilding != NO_BUILDING)
-			{
-				int iNum = 0;
-				if (bTrade || !(GC.getBuildingInfo((BuildingTypes)iI).isNeverCapture()))
-				{
-					if (!isProductionMaxedBuildingClass(((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())), true))
-					{
-						if (pNewCity->isValidBuildingLocation(eBuilding))
-						{
-							if (!bConquest || bRecapture || GC.getGame().getSorenRandNum(100, "Capture Probability") < GC.getBuildingInfo((BuildingTypes)iI).getConquestProbability())
-							{
-								iNum += paiNumRealBuilding[iI];
-							}
-						}
-					}
-				}
-
-				pNewCity->setNumRealBuildingTimed(eBuilding, std::min(pNewCity->getNumRealBuilding(eBuilding) + iNum, GC.getCITY_MAX_NUM_BUILDINGS()), false, ((PlayerTypes)(paiBuildingOriginalOwner[iI])), paiBuildingOriginalTime[iI]);
-
-			}
+			eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).
+					getCivilizationBuildings(eBuildingClass);
 		}
+		if (eBuilding == NO_BUILDING)
+			continue;
+
+		CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
+		// Can acquire never-capture buildings only through city trade
+		if (!bTrade && kBuilding.isNeverCapture())
+			continue;
+
+		if (isProductionMaxedBuildingClass(eBuildingClass, true) ||
+				!pNewCity->isValidBuildingLocation(eBuilding))
+			continue;
+
+		// Capture roll unless recapture
+		int iOdds = kBuilding.getConquestProbability();
+		if (!bConquest || bRecapture || (iOdds > 0 &&
+				iOdds > GC.getGame().getSorenRandNum(100, "Capture Probability")))
+		{
+			pNewCity->setNumRealBuildingTimed(eBuilding, std::min(GC.getCITY_MAX_NUM_BUILDINGS(),
+					pNewCity->getNumRealBuilding(eBuilding) + paiNumRealBuilding[iI]),
+					false, (PlayerTypes)paiBuildingOriginalOwner[iI], paiBuildingOriginalTime[iI]);
+		}
+
 	}
 
 	for (std::vector<BuildingYieldChange>::iterator it = aBuildingYieldChange.begin(); it != aBuildingYieldChange.end(); ++it)
