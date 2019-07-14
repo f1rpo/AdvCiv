@@ -1234,7 +1234,7 @@ void CvGame::assignStartingPlots()
 		int val = civ.AI_foundValue(p->getX(), p->getY(), -1, true);
 		FAssertMsg(val > 0, "Bad starting position");
 		// minus val for descending order
-		startPlots.push_back(std::make_pair<int,CvPlot*>(-val, p));
+		startPlots.push_back(std::make_pair(-val, p));
 	}
 	FAssert(startPlots.size() == playerOrder.size());
 	std::sort(startPlots.begin(), startPlots.end());

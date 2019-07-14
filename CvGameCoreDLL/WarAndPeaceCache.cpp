@@ -168,7 +168,7 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	for(int i = 0; i < n; i++) {
 		v.push_back(new City(ownerId));
 		v[i]->read(stream);
-		cityMap.insert(std::make_pair<int,City*>(v[i]->id(), v[i]));
+		cityMap.insert(std::make_pair(v[i]->id(), v[i]));
 	}
 	stream->Read(MAX_CIV_PLAYERS, nReachableCities);
 	stream->Read(MAX_CIV_PLAYERS, targetMissionCounts);
@@ -274,7 +274,7 @@ void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 		if(TEAMREF(ownerId).AI_deduceCitySite(c)) {
 			City* cacheCity = new City(ownerId, c);
 			v.push_back(cacheCity);
-			cityMap.insert(std::make_pair<int,City*>(cacheCity->id(), cacheCity));
+			cityMap.insert(std::make_pair(cacheCity->id(), cacheCity));
 			if(civId != ownerId && cacheCity->canReach())
 				nReachableCities[civId]++;
 		}
@@ -1260,7 +1260,7 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 		//FAssertMsg(oldOwnerId == BARBARIAN_PLAYER);
 	}
 	else v[vIndex] = toCache;
-	cityMap.insert(std::make_pair<int,City*>(toCache->id(), toCache));
+	cityMap.insert(std::make_pair(toCache->id(), toCache));
 	if(toCache->canReach())
 		nReachableCities[c->getOwner()]++;
 	sortCitiesByAttackPriority();

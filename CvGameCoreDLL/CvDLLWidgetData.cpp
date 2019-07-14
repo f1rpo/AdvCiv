@@ -6169,8 +6169,7 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 		std::set<TechTypes>* discoverSet = NULL;
 		if(discoverMap.find(eNextDiscover) == discoverMap.end()) {
 			discoverSet = new std::set<TechTypes>();
-			discoverMap.insert(std::make_pair<TechTypes,std::set<TechTypes>*>(
-					eNextDiscover, discoverSet));
+			discoverMap.insert(std::make_pair(eNextDiscover, discoverSet));
 		}
 		else discoverSet = discoverMap.find(eNextDiscover)->second;
 		discoverSet->insert(eResearchOption);

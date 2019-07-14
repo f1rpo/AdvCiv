@@ -2214,7 +2214,8 @@ std::pair<double,double> InvasionGraph::Node::clashLossesWinnerLoser(double powA
 
 	double lesserPow = std::min(powAtt, powDef);
 	double greaterPow = std::max(powAtt, powDef);
-	if(greaterPow < 1) return std::make_pair<double,double>(0, 0);
+	if(greaterPow < 1)
+		return std::make_pair(0, 0);
 	double cpw = clashPortion, cpl = clashPortion;
 	/*  Since I've gotten rid of the attack=true case for non-naval
 		attacks, the initial clash needs to produce higher losses;
@@ -2226,11 +2227,11 @@ std::pair<double,double> InvasionGraph::Node::clashLossesWinnerLoser(double powA
 		cpl = clashPortion + 0.35;
 	}
 	if(!att || powAtt > powDef)
-		return std::make_pair<double,double>(
+		return std::make_pair(
 			0.5 * cpw * lesserPow * lesserPow / greaterPow,
 			0.5 * cpl * lesserPow
 		);
-	return std::make_pair<double,double>(
+	return std::make_pair(
 		0.5 * stake(powAtt, powDef) * powAtt,
 		0.8 * stake(powAtt, powDef) * powAtt
 	);

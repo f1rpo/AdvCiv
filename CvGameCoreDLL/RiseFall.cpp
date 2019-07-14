@@ -722,7 +722,7 @@ pair<int,int> RiseFall::getChapterCountdown() const {
 		r1 = GC.getGame().getGameTurn() - ch.getStartTurn() + 1;
 		r2 = ch.getLength();
 	}
-	return make_pair<int,int>(r1, r2);
+	return make_pair(r1, r2);
 }
 
 bool RiseFall::isBlockPopups() const {
