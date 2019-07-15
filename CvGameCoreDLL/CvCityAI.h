@@ -124,10 +124,8 @@ public:
 	void AI_updateBestBuild();
 	int AI_countBonusesToClear(FeatureTypes eFeature) const; // advc.129
 
-	virtual int AI_cityValue() const;
-
+	int AI_cityValue() const;
 	int AI_calculateWaterWorldPercent();
-
 	int AI_getCityImportance(bool bEconomy, bool bMilitary);
 
 	int AI_yieldMultiplier(YieldTypes eYield) const;
@@ -137,7 +135,7 @@ public:
 	void AI_setCultureWeight(int iWeight) { m_iCultureWeight = iWeight; } // K-Mod
 
 	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true);
-	int AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false ); // BBAI
+	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false) const; // BBAI
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 			bool bConstCache = false); // advc.001n
@@ -173,8 +171,8 @@ protected:
 	bool m_bForceEmphasizeCulture; // advc.003j (comment): unused
 
 	int m_aiBestBuildValue[NUM_CITY_PLOTS];
-
 	BuildTypes m_aeBestBuild[NUM_CITY_PLOTS];
+	BuildTypes m_eBestBuild; // advc.003b
 
 	bool* m_pbEmphasize;
 
@@ -262,7 +260,7 @@ protected:
 	// <advc.031b>
 	int AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
 			int iWaterAreaSites, int iBestWaterAreaFoundValue) const; // </advc.031b>
-	void AI_updateWorkersNeededHere();
+	void AI_updateWorkersHaveAndNeeded(); // advc.113b: Renamed from AI_updateWorkersNeededHere
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;

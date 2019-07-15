@@ -15012,8 +15012,9 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 	// <advc.113> Current population should have no bearing on Workers
 	int iCities = pArea->getCitiesPerPlayer(getID());
 	iCount = std::min(iCount, (iCities <= 1 && getCurrentEra() > 0) ? 3 : ::round(2.15 * iCities));
+	// Lower bound was 1 flat. Allow small islands to require 0 workers.
+	return std::max(pArea->getNumRevealedTiles(getTeam()) > 3 ? 1 : 0, iCount);
 	// </advc.113>
-	return std::max(1, iCount);
 }
 
 

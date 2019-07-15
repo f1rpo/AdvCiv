@@ -71,7 +71,7 @@ protected:
 	// K-Mod end
 	void AI_animalMove();
 	void AI_settleMove();
-	void AI_workerMove();
+	void AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave = true);
 	void AI_barbAttackMove();
 	void AI_attackMove();
 	void AI_attackCityMove();
@@ -118,6 +118,7 @@ protected:
 
 	int AI_promotionValue(PromotionTypes ePromotion);
 
+// advc (comment): The boolean functions below return true iff a mission was pushed
 	bool AI_shadow(UnitAITypes eUnitAI, int iMax = -1, int iMaxRatio = -1, bool bWithCargoOnly = true,
 	// BETTER_BTS_AI_MOD (Unit AI), 04/01/10, jdog5000:
 			bool bOutsideCityOnly = false, int iMaxPath = MAX_INT);
@@ -199,21 +200,22 @@ protected:
 	bool AI_transportGoTo(CvPlot* pEndTurnPlot, CvPlot* pTargetPlot, int iFlags, MissionAITypes eMissionAI); // K-Mod
 
 	bool AI_settlerSeaTransport();
-	bool AI_settlerSeaFerry();
+	bool AI_ferryWorkers();
 	bool AI_specialSeaTransportMissionary();
 	bool AI_specialSeaTransportSpy();
 	bool AI_carrierSeaTransport();
 	bool AI_connectPlot(CvPlot* pPlot, int iRange = 0);
+	CvCity* AI_getCityToImprove() const; // advc.113b
 	bool AI_improveCity(CvCity* pCity);
 	bool AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity,
-			int iNeededWorkersInArea = 0); // advc.117
+			int iMissingWorkersInArea = 0); // advc.117
 	bool AI_nextCityToImprove(CvCity* pCity);
 	bool AI_nextCityToImproveAirlift();
 	bool AI_irrigateTerritory();
 	bool AI_fortTerritory(bool bCanal, bool bAirbase);
 	//bool AI_improveBonus(int iMinValue = 0, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, int* piBestValue = NULL);
 	bool AI_improveBonus( // K-Mod
-			int iNeededWorkersInArea = 0); // advc.121
+			int iMissingWorkersInArea = 0); // advc.121
 	bool AI_improvePlot(CvPlot* pPlot, BuildTypes eBuild);
 	BuildTypes AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild);
 	bool AI_connectBonus(bool bTestTrade = true);
@@ -286,7 +288,7 @@ protected:
 	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
 	// <advc.121>
 	int AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild,
-			int iNeededWorkersInArea) const;
+			int iMissingWorkersInArea) const;
 	bool AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const;
 	// </advc.121>
 	int AI_searchRange(int iRange);

@@ -229,7 +229,9 @@ bool PUF_isCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isNotCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isSelected( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
 bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isNoMission(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+//bool PUF_isNoMission(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+// advc.113b:
+bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
 bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
 // bbai start
 bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);

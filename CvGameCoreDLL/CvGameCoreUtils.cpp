@@ -1616,14 +1616,26 @@ bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1, int iData2)
 	return true;
 }
 
-bool PUF_isNoMission(const CvUnit* pUnit, int iData1, int iData2)
+/*bool PUF_isNoMission(const CvUnit* pUnit, int iData1, int iData2)
 {
-	/* original bts code
-	return (pUnit->getGroup()->getActivityType() != ACTIVITY_MISSION); */
-	// K-Mod
-	return (pUnit->getGroup()->AI_getMissionAIType() == NO_MISSIONAI);
-	// K-Mod end
-}
+	//return (pUnit->getGroup()->getActivityType() != ACTIVITY_MISSION); // BtS
+	return (pUnit->getGroup()->AI_getMissionAIType() == NO_MISSIONAI); // K-Mod
+}*/
+/*  <advc.113b> The above won't do for counting the workers available to a city:
+	Doesn't count retreated workers and does count workers in cargo. */
+/*  Replacement: Counts pUnit if it has no mission or if the mission plot has the
+	given city as its working city. The city parameter is given as a pair
+	(iCity,iCityOwner).  */
+bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner)
+{
+	CvCity* pCity = GET_PLAYER((PlayerTypes)iCityOwner).getCity(iCity);
+	if(pCity == NULL || pUnit->isCargo())
+		return false;
+	CvPlot* pMissionPlot = pUnit->getGroup()->AI_getMissionAIPlot();
+	if(pMissionPlot == NULL)
+		pMissionPlot = pUnit->plot();
+	return (pMissionPlot->getWorkingCity() == pCity);
+} // </advc.113b>
 
 bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1, int iData2)
 {

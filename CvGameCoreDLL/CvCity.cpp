@@ -12450,6 +12450,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		kOwner.changeUnitClassMaking((UnitClassTypes)GC.getUnitInfo(eTrainUnit).getUnitClassType(), -1);
 		area()->changeNumTrainAIUnits(getOwner(), eTrainAIUnit, -1);
 		kOwner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
+		/*  <advc.113b> So that the new worker can already be taken into account
+			for choosing the next order */
+		if(eTrainAIUnit == UNITAI_WORKER)
+			AI_changeWorkersHave(1); // </advc.113b>
 		doPopOrder(pOrderNode); // advc.064d (see case ORDER_CONSTRUCT)
 		if(!bFinish)
 			break;

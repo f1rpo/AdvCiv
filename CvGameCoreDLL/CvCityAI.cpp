@@ -70,11 +70,11 @@ void CvCityAI::AI_init()
 	// Init other AI data
 
 	AI_assignWorkingPlots();
-	/*AI_updateWorkersNeededHere();	
+	/*AI_updateWorkersHaveAndNeeded();	
 	AI_updateBestBuild();*/
 	// BETTER_BTS_AI_MOD, City AI, Worker AI, 11/14/09, jdog5000: START
 	AI_updateBestBuild();
-	AI_updateWorkersNeededHere();
+	AI_updateWorkersHaveAndNeeded();
 	// BETTER_BTS_AI_MOD: END
 }
 
@@ -121,7 +121,7 @@ void CvCityAI::AI_reset()
 	{
 		m_aeBestBuild[iI] = NO_BUILD;
 	}
-	
+	m_eBestBuild = NO_BUILD; // advc.003b
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
 		m_aiSpecialYieldMultiplier[iI] = 0;
@@ -170,12 +170,12 @@ void CvCityAI::AI_doTurn()
 		AI_stealPlots();
 	}
 
-	/*AI_updateWorkersNeededHere();
+	/*AI_updateWorkersHaveAndNeeded();
 	AI_updateBestBuild();*/
 	// BETTER_BTS_AI_MOD, City AI, Worker AI, 11/14/09, jdog5000: START
 	if (!isDisorder()) // K-Mod
 		AI_updateBestBuild();
-	AI_updateWorkersNeededHere();
+	AI_updateWorkersHaveAndNeeded();
 	// BETTER_BTS_AI_MOD: END
 	AI_updateRouteToCity();
 
@@ -659,6 +659,7 @@ void CvCityAI::AI_chooseProduction()
 
 	int iExistingWorkers = kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_WORKER);
 	int iNeededWorkers = kPlayer.AI_neededWorkers(pArea);
+	int iMissingWorkers = iNeededWorkers - iExistingWorkers; // advc.113
 	// Sea worker need independent of whether water area is militarily relevant
 	int iNeededSeaWorkers = (bMaybeWaterArea) ? AI_neededSeaWorkers() : 0;
 	int iExistingSeaWorkers = (pWaterArea != NULL) ? kPlayer.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_WORKER_SEA) : 0;
@@ -932,10 +933,20 @@ void CvCityAI::AI_chooseProduction()
 	}
 
 	// Early game worker logic
-	/*  K-Mod, 10/sep/10, Karadoc
-		Changed "AI_totalBestBuildValue(area()) > 10" to "(AI_totalBestBuildValue(area())+50*iLandBonuses) > 100"
-		Also, I moved the iLandBonuses declaration here. It use to be lower down. */
-	int iLandBonuses = AI_countNumImprovableBonuses(true, kPlayer.getCurrentResearch());
+	// <advc.113>
+	bool bCloseToNewTech = false;
+	TechTypes eCurrentResearch = kPlayer.getCurrentResearch();
+	if (eCurrentResearch != NO_TECH && bPrimaryArea)
+	{
+		int iTurnsLeft = kPlayer.getResearchTurnsLeft(eCurrentResearch, true);
+		/*  Research turns per tech tend to stay the same throughout the game
+			(in AdvCiv), but production turns per worker decrease. */
+		if(iTurnsLeft >= 0 && iTurnsLeft <= 12 / (kPlayer.getCurrentEra() + 1))
+			bCloseToNewTech = true;
+	} // </advc.113>
+	// K-Mod 10/sep/10: iLandBonuses moved up
+	int iLandBonuses = AI_countNumImprovableBonuses(true,//kPlayer.getCurrentResearch()
+			bCloseToNewTech ? eCurrentResearch : NO_TECH); // advc.113
 
 	if (isCapital() && g.getElapsedGameTurns() < (30 * GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent()) / 100)
 	{
@@ -953,8 +964,9 @@ void CvCityAI::AI_chooseProduction()
 					}
 				}
 			}
-			//if( iExistingWorkers == 0 && AI_totalBestBuildValue(area()) > 10)
-			if (iExistingWorkers == 0 && AI_totalBestBuildValue(area()) + 50 * iLandBonuses > 100)
+			if (iExistingWorkers == 0 && /* advc.113: */ iMissingWorkers > 0 &&
+					//AI_totalBestBuildValue(area()) > 10
+					AI_totalBestBuildValue(area()) + 50 * iLandBonuses > 100) // K-Mod
 			{
 				if (!bChooseWorker && AI_chooseUnit(UNITAI_WORKER))
 				{
@@ -969,11 +981,16 @@ void CvCityAI::AI_chooseProduction()
 	if (!(bDefenseWar && iWarSuccessRating < -50) && !bDanger)
 	{
 		if (iExistingWorkers == 0)
-		{
-			/*  K-Mod, 10/sep/10, Karadoc
+		{	/*  K-Mod, 10/sep/10, Karadoc
 				I've taken iLandBonuses from here and moved it higher for use elsewhere. */
-			//int iLandBonuses = AI_countNumImprovableBonuses(true, kPlayer.getCurrentResearch());
-			if (iLandBonuses > 1 || (getPopulation() > 3 && iNeededWorkers > 0))
+			//int iLandBonuses = ...
+			if (iLandBonuses > 1 || (getPopulation() > 3 && //iNeededWorkers > 0
+					// <advc.113>
+					iMissingWorkers > 0 &&
+					// Wait for the mainland to send a worker
+					(bPrimaryArea || (iMissingWorkers > 1 && g.getSorenRandNum(
+					100, "advc.113 (choose worker 1)") < 20 * iMissingWorkers))))
+					// </advc.113>
 			{
 				if (!bChooseWorker && AI_chooseUnit(UNITAI_WORKER))
 				{
@@ -1185,11 +1202,9 @@ void CvCityAI::AI_chooseProduction()
 	// advc.113: Moved this conditional block (way) up to prioritize workers
 	// note: this is the only worker test that allows us to reach the full number of needed workers.
 	if (!(bLandWar && iWarSuccessRating < -30) && !bDanger)
-	{
-		if (iExistingWorkers < iNeededWorkers)
-		{	// <advc.113>
-			/*  1 added on both sides of the inequation so that "have 1, need 2"
-				is invalid */
+	{	// <advc.113>
+		if (iMissingWorkers > 0)
+		{	// 1 added on both sides of the inequation so that "have 1, need 2" is invalid
 			bool bValid = (3 * (AI_getWorkersHave() + 1) / 2 < AI_getWorkersNeeded() + 1  // local
 					// Wait for existing workers if new city
 					&& getGameTurnFounded() + 5 < g.getGameTurn());
@@ -1208,7 +1223,10 @@ void CvCityAI::AI_chooseProduction()
 				iWorkerOdds -= iBestBuildingValue + (iBuildUnitProb + 50) / // no change
 						// Divisor was 2 flat; war prep check added.
 						(kTeam.AI_isSneakAttackPreparing() ? 1 : 2);
-				bValid = (g.getSorenRandNum(100, "choose worker 6") < iWorkerOdds);
+				if(iWorkerOdds > 0 && !bPrimaryArea)
+					iWorkerOdds /= 2; // Wait for the mainland to send workers
+				bValid = (iWorkerOdds > 0 && // for efficiency
+						iWorkerOdds > g.getSorenRandNum(100, "choose worker 6"));
 			}
 			if(bValid) // </advc.113>
 			{
@@ -1303,7 +1321,12 @@ void CvCityAI::AI_chooseProduction()
 		{
 			if (getPopulation() >= 3 || iProductionRank <= (kPlayer.getNumCities() + 1) / 2)
 			{
-				if (!bChooseWorker && AI_chooseUnit(UNITAI_WORKER))
+				if (!bChooseWorker &&
+						// <advc.113> Wait for mainland to send workers
+						(bPrimaryArea ||
+						g.getSorenRandNum(100, "advc.113 (choose worker 4") <
+						15 * iMissingWorkers) && // </advc.113>
+						AI_chooseUnit(UNITAI_WORKER))
 				{
 					if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose worker 4", getName().GetCString());
 					return;
@@ -1317,7 +1340,9 @@ void CvCityAI::AI_chooseProduction()
 	//this can be overridden by "wait and grow more"
 	/*  K-Mod, 10/sep/10, Karadoc
 	It was "if (bDanger", I have changed it to "if (!bDanger" */
-	if (!bDanger && iExistingWorkers == 0 && (isCapital() || iNeededWorkers > 0 || iNeededSeaWorkers > iExistingSeaWorkers))
+	if (!bDanger && iExistingWorkers == 0 && (isCapital() ||
+			iMissingWorkers > 0 || // advc.113: was iNeededWorkers>0
+			iNeededSeaWorkers > iExistingSeaWorkers))
 	{
 		if (!(bDefenseWar && iWarSuccessRating < -30) && !(kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE)))
 		{
@@ -6407,7 +6432,7 @@ int CvCityAI::AI_minDefenders()
 	int iEra = GET_PLAYER(getOwner()).getCurrentEra();
 	// <advc.107> Make the era from which on there is an extra defender configurable
 	int iExtraDefenderEra = GC.getEXTRA_DEFENDER_ERA();
-	if(iExtraDefenderEra >= 0 && iEra >= iExtraDefenderEra)  // </advc.107>
+	if(iExtraDefenderEra >= 0 && iEra >= iExtraDefenderEra) // </advc.107>
 		iDefenders++;
 
 	if (iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 && isCoastal(
@@ -7740,6 +7765,9 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 
 BuildTypes CvCityAI::AI_getBestBuild(int iIndex) const
 {
+	// <advc.003b> Now also store the best build among all city plots
+	if(iIndex == -1)
+		return m_eBestBuild; // </advc.003b>
 	FAssertMsg(iIndex >= 0, "iIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(iIndex < NUM_CITY_PLOTS, "eIndex is expected to be within maximum bounds (invalid Index)");
 	return m_aeBestBuild[iIndex];
@@ -7810,12 +7838,14 @@ void CvCityAI::AI_updateBestBuild()
 				bChop = true;
 			}
 		}
+		CvWorldInfo const& kWorld = GC.getWorldInfo(GC.getMap().getWorldSize()); // advc.003
 		// Chop when trying to expand, and when at war -- but only if there is not financial trouble.
 		if (!bChop)
 		{
 			int iDummy;
 			if (kOwner.AI_isLandWar(area()) ||
-				(kOwner.getNumCities() < GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities() && kOwner.AI_getNumAreaCitySites(getArea(), iDummy) > 0))
+				(kOwner.getNumCities() < kWorld.getTargetNumCities() &&
+				kOwner.AI_getNumAreaCitySites(getArea(), iDummy) > 0))
 			{
 				if (!kOwner.AI_isFinancialTrouble())
 					bChop = true;
@@ -7824,7 +7854,16 @@ void CvCityAI::AI_updateBestBuild()
 		// Chop for workers, if we are short.
 		if (!bChop && getProductionUnitAI() == UNITAI_WORKER)
 		{
-			if (area()->getNumAIUnits(getOwner(), UNITAI_WORKER) < std::max(area()->getCitiesPerPlayer(getOwner()), GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities())*3/2)
+			int const iAreaWorkers = area()->getNumAIUnits(getOwner(), UNITAI_WORKER);
+			int const iAreaCities = area()->getCitiesPerPlayer(getOwner());
+			//if(iAreaWorkers < std::max(iAreaCities, kWorld.getTargetNumCities())*3/2)
+			/*  <advc.113> Note that, if we have time to chop, then we can't be really
+				short on workers. (I guess kOwner.AI_neededWorkers would be too slow here.) */
+			if (getProductionTurnsLeft() > 3 &&
+					(3 * iAreaWorkers < 4 * iAreaCities ||
+					(2 * iAreaWorkers < 3 * iAreaCities &&
+					AI_getWorkersHave() <= 0 && AI_getWorkersNeeded() > 0)))
+					// </advc.113>
 				bChop = true;
 		}
 		// K-Mod end
@@ -7925,12 +7964,12 @@ void CvCityAI::AI_updateBestBuild()
 	short aiYields[NUM_YIELD_TYPES];
 	int iBestPlot = -1;
 	int iBestPlotValue = -1;
-		
+
 	int iBestUnworkedPlotValue = 0;
-		
+
 	int aiValues[NUM_CITY_PLOTS];
 	int iGrowthValue = AI_growthValuePerFood(); // K-Mod
-		
+
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)  // advc.003: misc. style changes in the loop body
 	{
 		if (iI == CITY_HOME_PLOT)
@@ -8016,7 +8055,9 @@ void CvCityAI::AI_updateBestBuild()
 	{
 		//m_aiBestBuildValue[iBestPlot] *= 2;
 		m_aiBestBuildValue[iBestPlot] = m_aiBestBuildValue[iBestPlot] * 3 / 2; // K-Mod
+		m_eBestBuild = m_aeBestBuild[iBestPlot]; // advc.003b
 	}
+	else m_eBestBuild = NO_BUILD; // advc.003b
 
 	//Prune plots which are sub-par.
 	// K-Mod. I've rearranged the following code. But kept most of the original functionality.
@@ -11717,6 +11758,7 @@ int CvCityAI::AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWor
 //if healthy is false it assumes bad health conditions.
 int CvCityAI::AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshold, bool bWorkerOptimization) const
 {
+	//PROFILE_FUNC(); // advc.003b: Apparently not responsible for AI_yieldValue being somewhat slow
 	int iCount = 0;
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
@@ -12141,17 +12183,20 @@ int CvCityAI::AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bInc
 }
 
 // BBAI. K-Mod: I've rearranged some stuff and fixed some bugs.
-int CvCityAI::AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExtraTech, bool bLand, bool bWater )
+// advc (tbd.): Some overlap with CvPlayerAI::AI_isUnimprovedBonus -- merge?
+int CvCityAI::AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech, bool bLand,
+		bool bWater) const  // advc.003: const; style changes
 {
 	int iCount = 0;
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
+		if(iI == CITY_HOME_PLOT)
+			continue; // advc.003b
 		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot == NULL)
 			continue;
 
-		if (bLand && pLoopPlot->area() == area() ||
-				(bWater && pLoopPlot->isWater()))
+		if ((bLand && pLoopPlot->area() == area()) || (bWater && pLoopPlot->isWater()))
 		{
 			BonusTypes eLoopBonus = pLoopPlot->getBonusType(getTeam());
 			if (eLoopBonus != NO_BONUS &&
@@ -12161,29 +12206,38 @@ int CvCityAI::AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExt
 			{
 				if ((pLoopPlot->getOwner() == getOwner() &&
 						pLoopPlot->getWorkingCity() == this) ||
-						(bIncludeNeutral && (!pLoopPlot->isOwned())))
-				{
+						(bIncludeNeutral && !pLoopPlot->isOwned()))
+				{	// <advc.001>
+					ImprovementTypes eCurrentImp = pLoopPlot->getImprovementType();
+					if (eCurrentImp != NO_IMPROVEMENT &&
+							(GET_TEAM(getTeam()).isBonusObsolete(eLoopBonus) ||
+							GET_TEAM(getTeam()).doesImprovementConnectBonus(eCurrentImp, eLoopBonus)))
+						continue; // </advc.001>
 					for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
 					{
-						BuildTypes eBuild = ((BuildTypes)iJ);
+						BuildTypes eBuild = (BuildTypes)iJ;
 						ImprovementTypes eImp = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
+						if (eImp == NO_IMPROVEMENT || !pLoopPlot->canBuild(eBuild, getOwner()))
+							continue;
 
-						if (eImp != NO_IMPROVEMENT && pLoopPlot->canBuild(eBuild, getOwner()))
+						if (GC.getImprovementInfo(eImp).isImprovementBonusTrade(eLoopBonus) ||
+								GC.getImprovementInfo(eImp).isActsAsCity())
 						{
-							if (GC.getImprovementInfo(eImp).isImprovementBonusTrade(eLoopBonus) || GC.getImprovementInfo(eImp).isActsAsCity())
-							{
-								if( GET_PLAYER(getOwner()).canBuild(pLoopPlot, eBuild) )
+							if (GET_PLAYER(getOwner()).canBuild(pLoopPlot, eBuild))
+							{	/*  advc.001: If owner can already connect the resource
+									but built sth. else instead, then it's probably deliberate. */
+								if(eCurrentImp == NO_IMPROVEMENT)
 								{
 									iCount++;
 									break;
 								}
-								else if( (eExtraTech != NO_TECH) )
+							}
+							else if (eExtraTech != NO_TECH)
+							{
+								if (GC.getBuildInfo(eBuild).getTechPrereq() == eExtraTech)
 								{
-									if (GC.getBuildInfo(eBuild).getTechPrereq() == eExtraTech)
-									{
-										iCount++;
-										break;
-									}
+									iCount++;
+									break;
 								}
 							}
 						}
@@ -12598,13 +12652,10 @@ void CvCityAI::AI_changeWorkersHave(int iChange)
 	m_iWorkersHave = std::max(0, m_iWorkersHave);
 }
 	
-//This needs to be serialized for human workers.
-void CvCityAI::AI_updateWorkersNeededHere()  // advc.003: some changes to reduce indentation
+
+void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc.003: some style changes
 {
 	PROFILE_FUNC();
-
-	CvPlot* pLoopPlot;
-	short aiYields[NUM_YIELD_TYPES];
 
 	int iWorkersNeeded = 0;
 	int iWorkersHave = 0;
@@ -12628,19 +12679,26 @@ void CvCityAI::AI_updateWorkersNeededHere()  // advc.003: some changes to reduce
 				iWorkersHave++;
 		}
 	}
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	short aiYields[NUM_YIELD_TYPES];
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		pLoopPlot = getCityIndexPlot(iI);
+		CvPlot* pLoopPlot = getCityIndexPlot(iI);
 		if (pLoopPlot == NULL || pLoopPlot->getWorkingCity() != this)
 			continue;
 
 		//if (pLoopPlot->getArea() == getArea()) // (disabled by K-Mod)
 
-		//How slow is this? It could be almost NUM_CITY_PLOT times faster
-		//by iterating groups and seeing if the plot target lands in this city
-		//but since this is only called once/turn i'm not sure it matters.
-		iWorkersHave += (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD));
-		iWorkersHave += pLoopPlot->plotCount(PUF_isUnitAIType, UNITAI_WORKER, -1, getOwner(), getTeam(), PUF_isNoMission, -1, -1);
+		/*  BtS comment: How slow is this? It could be almost NUM_CITY_PLOT times faster
+			by iterating groups and seeing if the plot target lands in this city
+			but since this is only called once/turn i'm not sure it matters. */
+		/*  advc.113b: I also want to count workers in transports, so let's indeed
+			go through the groups just once (at the end of this function). */
+		//iWorkersHave += kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD);
+		iWorkersHave += pLoopPlot->plotCount(PUF_isUnitAIType, UNITAI_WORKER, -1, getOwner(), getTeam(),
+				//PUF_isNoMission, -1, -1);
+				// advc.113b: Perhaps move this into the group loop too (tbd.)?
+				PUF_isMissionPlotWorkingCity, getID(), getOwner());
 		if (iI == CITY_HOME_PLOT)
 			continue;
 
@@ -12684,10 +12742,10 @@ void CvCityAI::AI_updateWorkersNeededHere()  // advc.003: some changes to reduce
 	// K-Mod end
 	// <advc.113> Replacing the line above
 	iUnimprovedWorkedPlotCount += ::round(((std::min(iUnimprovedUnworkedPlotCount,
-			iFutureWork)+1) / 2.0)
+			iFutureWork) + 1) / 2.0)
 			* ((GC.getWORKER_RESERVE_PERCENT() + 100
 			// Flavor was previously counted in CvPlayerAI::AI_neededWorkers
-			+ 2 * GET_PLAYER(getOwner()).AI_getFlavorValue(FLAVOR_GROWTH)) / 100.0));
+			+ 2 * kOwner.AI_getFlavorValue(FLAVOR_GROWTH)) / 100.0));
 	// </advc.113>
 	iWorkersNeeded += 2 * iUnimprovedWorkedPlotCount;
 
@@ -12707,7 +12765,7 @@ void CvCityAI::AI_updateWorkersNeededHere()  // advc.003: some changes to reduce
 			if (iI == CITY_HOME_PLOT)
 				continue;
 
-			pLoopPlot = getCityIndexPlot(iI);
+			CvPlot* pLoopPlot = getCityIndexPlot(iI);
 			if (pLoopPlot == NULL || pLoopPlot->getWorkingCity() != this ||
 					pLoopPlot->getArea() != getArea() || AI_getBestBuild(iI) == NO_BUILD)
 				continue;
@@ -12742,47 +12800,71 @@ void CvCityAI::AI_updateWorkersNeededHere()  // advc.003: some changes to reduce
 			iWorkersNeeded += 2;
 	}
 
-	iWorkersNeeded += (std::max(0, iUnimprovedWorkedPlotCount - 1) *
-			(GET_PLAYER(getOwner()).getCurrentEra())) / 3;
-
-	if (GET_PLAYER(getOwner()).AI_isFinancialTrouble())
-	{
+	int iOwnerEra = kOwner.getCurrentEra();
+	iWorkersNeeded += (std::max(0, iUnimprovedWorkedPlotCount - 1) * iOwnerEra) / 3;
+	// advc.113: Disabled. Not clear to me that additional workers help with finances.
+	/*if (kOwner.AI_isFinancialTrouble()) {
 		iWorkersNeeded *= 3;
 		iWorkersNeeded /= 2;
-	}
-	/*  advc.117:
-		Chopping isn't considered when counting (un)improved (un)worked tiles
-		above. Needs to be accounted for in this function b/c prioritizing
-		Worker training and high build utility for chopping don't help if the
-		AI doesn't assign a worker to the city where the trees are. */
-	iWorkersNeeded += iChop / 2;
-	if (iWorkersNeeded > 0)
-	{
-		iWorkersNeeded++;
-		iWorkersNeeded = std::max(1, iWorkersNeeded / 3);
-	}
+	}*/
 
+	// advc.117: Chopping isn't considered when counting (un)improved (un)worked tiles
+	iWorkersNeeded += (6 * iChop) / 10;
+
+	// advc.113: Moved the iSpecialistExtra code up so that the division by 3 happens afterwards
 	int iSpecialistExtra = std::min((getSpecialistPopulation() - totalFreeSpecialists()), iUnimprovedUnworkedPlotCount);
 	iSpecialistExtra -= iImprovedUnworkedPlotCount;
+	//iWorkersNeeded += std::max(0, 1 + iSpecialistExtra) / 2;
+	// advc.113b: Instead divide by 3 below
+	iWorkersNeeded += std::max(0, iSpecialistExtra);
 
-	iWorkersNeeded += std::max(0, 1 + iSpecialistExtra) / 2;
+	if (iWorkersNeeded > 0)
+		iWorkersNeeded = std::max(1, (iWorkersNeeded + 1) / 3);
 
 	if (iWorstWorkedPlotValue <= iBestUnworkedPlotValue &&
 			iBestUnworkedPlotValue >= iBestPotentialPlotValue)
 		iWorkersNeeded /= 2;
 
 	if (angryPopulation(1) > 0)
-	{
-		iWorkersNeeded++;
-		iWorkersNeeded /= 2;
-	}
+		iWorkersNeeded = (iWorkersNeeded + 1) / 2;
 
 	iWorkersNeeded += (iSpecialCount + 1) / 2;
 
 	iWorkersNeeded = std::max((iUnimprovedWorkedPlotCount + 1) / 2, iWorkersNeeded);
-	/*  advc.117: More than 3 is dubious, though it probably won't hurt much in the
-		mid/late game. */
-	iWorkersNeeded = std::min(iWorkersNeeded, 2 + (1 + GET_PLAYER(getOwner()).getCurrentEra()) / 2);
+	// <advc.113> Greater than 3 is dubious. Allow 4 only in the late game.
+	if (iWorkersNeeded >= 4)
+		iWorkersNeeded--;
+	iWorkersNeeded = std::min(iWorkersNeeded, 2 + (2 + iOwnerEra) / 3); // </advc.113>
+	/*  <advc.113b> Replacing the more expensive AI_plotTargetMissionAIs call
+		in the city plot loop above. */
+	int foo;
+	for (CvSelectionGroup* pGroup = kOwner.firstSelectionGroup(&foo); pGroup != NULL;
+			pGroup = kOwner.nextSelectionGroup(&foo))
+	{
+		int const iSize = pGroup->getNumUnits();
+		if (iSize <= 0)
+			continue;
+		// Already counted in the city plot loop
+		if (pGroup->plot()->getWorkingCity() == this)
+			continue;
+		CvPlot* pMissionPlot = pGroup->AI_getMissionAIPlot();
+		int const iRange = 9 * (1 + iOwnerEra / 2);
+		if (pMissionPlot == NULL || ::plotDistance(pMissionPlot, pGroup->plot()) > iRange)
+			continue;
+		MissionAITypes eGroupMissionAI = pGroup->AI_getMissionAIType();
+		if (eGroupMissionAI == MISSIONAI_BUILD)
+		{
+			if (pMissionPlot->getWorkingCity() == this)
+				iWorkersHave += iSize;
+		}
+		// CvUnitAI::AI_ferryWorkers uses MISSIONAI_FOUND
+		else if (eGroupMissionAI == MISSIONAI_FOUND && pGroup->getDomainType() == DOMAIN_SEA)
+		{
+			if (pMissionPlot == plot())
+				iWorkersHave += pGroup->getHeadUnit()->getUnitAICargo(UNITAI_WORKER);
+		}
+	}
+
 	m_iWorkersNeeded = iWorkersNeeded;
 	m_iWorkersHave = iWorkersHave;
 }
@@ -12890,6 +12972,9 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bForceEmphasizeCulture);
 	pStream->Read(NUM_CITY_PLOTS, m_aiBestBuildValue);
 	pStream->Read(NUM_CITY_PLOTS, (int*)m_aeBestBuild);
+	// <advc.003b>
+	if(uiFlag >= 4)
+		pStream->Read((int*)&m_eBestBuild); // </advc.003b>
 	pStream->Read(GC.getNumEmphasizeInfos(), m_pbEmphasize);
 	pStream->Read(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
 	pStream->Read(&m_iCachePlayerClosenessTurn);
@@ -12922,6 +13007,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 
 	uint uiFlag=2;
 	uiFlag = 3; // advc.139
+	uiFlag = 4; // advc.003b (m_eBestBuild)
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iEmphasizeAvoidGrowthCount);
@@ -12937,6 +13023,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_bForceEmphasizeCulture);
 	pStream->Write(NUM_CITY_PLOTS, m_aiBestBuildValue);
 	pStream->Write(NUM_CITY_PLOTS, (int*)m_aeBestBuild);
+	pStream->Write(m_eBestBuild); // advc.003b
 	pStream->Write(GC.getNumEmphasizeInfos(), m_pbEmphasize);
 	pStream->Write(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
 	pStream->Write(m_iCachePlayerClosenessTurn);
@@ -12945,6 +13032,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_iNeededFloatingDefenders);
 	pStream->Write(m_iNeededFloatingDefendersCacheTurn);
 	pStream->Write(m_bEvacuate); // advc.139 (No need to save m_bSafe)
+	//This needs to be serialized for human workers.
 	pStream->Write(m_iWorkersNeeded);
 	pStream->Write(m_iWorkersHave);
 	// K-Mod (note: cache needs to be saved, otherwise players who join mid-turn might go out of sync when the cache is used)
