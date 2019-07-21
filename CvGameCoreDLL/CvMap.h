@@ -136,7 +136,7 @@ public:
 	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
 	{
 		return plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-	} // K-Mod end 
+	} // K-Mod end
 
 	inline DirectionTypes directionXY(int iDX, int iDY) const
 	{
@@ -242,9 +242,9 @@ public: // advc.003: made several functions const
 
 	void verifyUnitValidPlot();
 
-	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);	
+	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);
 
-	CvPlot* syncRandPlot(int iFlags = 0, int iArea = -1, int iMinUnitDistance = -1, int iTimeout = 100, // Exposed to Python 
+	CvPlot* syncRandPlot(int iFlags = 0, int iArea = -1, int iMinUnitDistance = -1, int iTimeout = 100, // Exposed to Python
 			int* piLegal = NULL); // advc.304
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
@@ -292,7 +292,7 @@ public: // advc.003: made several functions const
 
 	int pointYToPlotY(float fY);
 	DllExport float plotYToPointY(int iY);
-	
+
 	float getWidthCoords() const;
 	float getHeightCoords() const;
 

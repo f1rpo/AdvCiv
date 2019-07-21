@@ -59,7 +59,7 @@ private:
 	bool atTotalWarWithTarget() const;
 	void gatherCivsAndTeams();
 
-	public: 
+	public:
 		/*  If (or while) enabled, all WarEvaluator objects use the cache, not just
 			those with useCache=true. See constructor in WarEvaluator.cpp for more info. */
 		static void enableCache();

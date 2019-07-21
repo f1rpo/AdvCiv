@@ -189,7 +189,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 				pMsg->setText(game.getReplayMessageText(i));
 				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
-			}	
+			}
 		}
 		else
 		{
@@ -200,16 +200,16 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 				pMsg->setText(game.getReplayMessageText(i));
 				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
-			}	
+			}
 		}
 	}
 
 	m_iMapWidth = GC.getMap().getGridWidth();
 	m_iMapHeight = GC.getMap().getGridHeight();
-	
-	SAFE_DELETE(m_pcMinimapPixels);	
+
+	SAFE_DELETE(m_pcMinimapPixels);
 	m_pcMinimapPixels = new unsigned char[m_nMinimapSize];
-	
+
 	void *ptexture = (void*)gDLL->getInterfaceIFace()->getMinimapBaseTexture();
 	if (ptexture)
 		memcpy((void*)m_pcMinimapPixels, ptexture, m_nMinimapSize);
@@ -695,7 +695,7 @@ const unsigned char* CvReplayInfo::getMinimapPixels() const
 
 const char* CvReplayInfo::getModName() const
 {	/*  <advc.106i> Pretend to the EXE that every replay is an AdvCiv replay.
-		(Let CvReplayInfo::read decide which ones to show in HoF.) */ 
+		(Let CvReplayInfo::read decide which ones to show in HoF.) */
 	if(STORE_REPLAYS_AS_BTS || GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") > 0 ||
 			GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0)
 		return m->szPurportedModName; // </advc.106i>

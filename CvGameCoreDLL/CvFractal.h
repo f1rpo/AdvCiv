@@ -40,7 +40,7 @@ public:
 	DllExport CvFractal();
 	virtual ~CvFractal();
 	void uninit();
-	
+
 protected:
 
 	int m_iXs;

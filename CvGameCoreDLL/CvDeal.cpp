@@ -137,7 +137,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if (isVassalTrade(pFirstList) && isVassalTrade(pSecondList))
 		return;
 	// <advc.130p>
-	TeamTypes eWarTradeTarget = NO_TEAM; 
+	TeamTypes eWarTradeTarget = NO_TEAM;
 	TeamTypes ePeaceTradeTarget = NO_TEAM; // </advc.130p>
 	if (pFirstList != NULL)
 	{
@@ -196,7 +196,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		{ ... }*/
 
 		//GET_TEAM(eFirstTeam).makePeace(eSecondTeam, !isVassalTrade(pFirstList) && !isVassalTrade(pSecondList));
-		/*  K-Mod. Bump units only after all trades are completed, because some deals 
+		/*  K-Mod. Bump units only after all trades are completed, because some deals
 			(such as city gifts) may affect which units get bumped. (originally,
 			units were bumped automatically while executing the peace deal trades)
 			Note: the original code didn't bump units for vassal trades. This can
@@ -332,7 +332,7 @@ bool CvDeal::recordTradeValue(CLinkList<TradeData>* pFirstList, CLinkList<TradeD
 			pFirstList, true, 1, true, true) +
 			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
 			pFirstList, true, 1, false, true) / 2.0));
-	if(iValue <= 0) 
+	if(iValue <= 0)
 		return false;
 	GET_PLAYER(eSecondPlayer).AI_processPeacetimeValue(eFirstPlayer, iValue,
 			pSecondList == NULL || pSecondList->getLength() <= 0, bPeace,
@@ -408,8 +408,8 @@ void CvDeal::verify()
 		{
 			// XXX embargoes?
 			if ((kFirstPlayer.getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) < 0) ||
-				  !(kFirstPlayer.canTradeNetworkWith(getSecondPlayer())) || 
-				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) || 
+				  !(kFirstPlayer.canTradeNetworkWith(getSecondPlayer())) ||
+				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) ||
 				  GET_TEAM(kSecondPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData))
 			{
 				bCancelDeal = true;
@@ -423,8 +423,8 @@ void CvDeal::verify()
 		{
 			// XXX embargoes?
 			if ((GET_PLAYER(getSecondPlayer()).getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) < 0) ||
-				  !(GET_PLAYER(getSecondPlayer()).canTradeNetworkWith(getFirstPlayer())) || 
-				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) || 
+				  !(GET_PLAYER(getSecondPlayer()).canTradeNetworkWith(getFirstPlayer())) ||
+				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) ||
 				  GET_TEAM(kSecondPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData))
 			{
 				bCancelDeal = true;
@@ -516,7 +516,7 @@ bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReaso
 		{
 			CvTeam& kVassal = GET_TEAM(GET_PLAYER(getFirstPlayer()).getTeam());
 			TeamTypes eMaster = GET_PLAYER(getSecondPlayer()).getTeam();
-			
+
 			if (!kVassal.canVassalRevolt(eMaster))
 			{
 				if (pszReason)
@@ -550,7 +550,7 @@ bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReaso
 		{
 			CvTeam& kVassal = GET_TEAM(GET_PLAYER(getSecondPlayer()).getTeam());
 			TeamTypes eMaster = GET_PLAYER(getFirstPlayer()).getTeam();
-			
+
 			if (!kVassal.canVassalRevolt(eMaster))
 			{
 				// kmodx: Redundant code removed
@@ -862,16 +862,16 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			}
 		}
 
-		for (int iI = 0; iI < MAX_PLAYERS; iI++) 
-		{ 
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) 
-			{ 
-				if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(eToPlayer).getTeam()) 
-				{ 
-					GET_PLAYER((PlayerTypes)iI).updatePlotGroups(); 
-				} 
-			} 
-		} 
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		{
+			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			{
+				if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(eToPlayer).getTeam())
+				{
+					GET_PLAYER((PlayerTypes)iI).updatePlotGroups();
+				}
+			}
+		}
 
 		if( gTeamLogLevel >= 2 ) logBBAI("    Player %d (%S) trades maps due to TRADE_MAPS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0) );
 		break;

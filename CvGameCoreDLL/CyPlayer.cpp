@@ -1,5 +1,5 @@
 //
-// Python wrapper class for CvPlayer 
+// Python wrapper class for CvPlayer
 //
 
 #include "CvGameCoreDLL.h"
@@ -58,12 +58,12 @@ bool CyPlayer::startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlaye
 	return NULL;
 }
 
-CyPlot* CyPlayer::findStartingPlot(bool bRandomize) 
+CyPlot* CyPlayer::findStartingPlot(bool bRandomize)
 {
 	return m_pPlayer ? new CyPlot(m_pPlayer->findStartingPlot(bRandomize)) : NULL;
 }
 
-CyCity* CyPlayer::initCity(int x, int y) 
+CyCity* CyPlayer::initCity(int x, int y)
 {
 	return m_pPlayer ? new CyCity(m_pPlayer->initCity(x, y, true, true)) : NULL;
 }
@@ -390,7 +390,7 @@ bool CyPlayer::canFound(int iX, int iY)
 	return m_pPlayer ? m_pPlayer->canFound(iX, iY) : false;
 }
 
-void CyPlayer::found(int x, int y) 
+void CyPlayer::found(int x, int y)
 {
 	if (m_pPlayer)
 		m_pPlayer->found(x,y);
@@ -796,7 +796,7 @@ int CyPlayer::getTotalLandScored()
 	return m_pPlayer ? m_pPlayer->getTotalLandScored() : -1;
 }
 
-int CyPlayer::getGold() 
+int CyPlayer::getGold()
 {
 	return m_pPlayer ? m_pPlayer->getGold() : -1;
 }
@@ -818,7 +818,7 @@ int CyPlayer::getGoldPerTurn()
 	return m_pPlayer ? m_pPlayer->getGoldPerTurn() : -1;
 }
 
-int CyPlayer::getAdvancedStartPoints() 
+int CyPlayer::getAdvancedStartPoints()
 {
 	return m_pPlayer ? m_pPlayer->getAdvancedStartPoints() : -1;
 }
@@ -1457,17 +1457,17 @@ bool CyPlayer::isMinorCiv()
 	return m_pPlayer ? m_pPlayer->isMinorCiv() : false;
 }
 
-bool CyPlayer::isAlive() 
+bool CyPlayer::isAlive()
 {
 	return m_pPlayer ? m_pPlayer->isAlive() : false;
 }
 
-bool CyPlayer::isEverAlive() 
+bool CyPlayer::isEverAlive()
 {
 	return m_pPlayer ? m_pPlayer->isEverAlive() : false;
 }
 
-bool CyPlayer::isExtendedGame() 
+bool CyPlayer::isExtendedGame()
 {
 	return m_pPlayer ? m_pPlayer->isExtendedGame() : false;
 }
@@ -1497,7 +1497,7 @@ int /* HandicapTypes */ CyPlayer::getHandicapType()
 	return m_pPlayer ? (int) m_pPlayer->getHandicapType() : -1;
 }
 
-int /* CivilizationTypes */  CyPlayer::getCivilizationType() 
+int /* CivilizationTypes */  CyPlayer::getCivilizationType()
 {
 	return m_pPlayer ? (int) m_pPlayer->getCivilizationType() : NO_CIVILIZATION;
 }
@@ -1652,7 +1652,7 @@ int CyPlayer::getGoldPerTurnByPlayer(int /*PlayerTypes*/ eIndex)
 	return m_pPlayer ? m_pPlayer->getGoldPerTurnByPlayer((PlayerTypes) eIndex) : -1;
 }
 
-bool CyPlayer::isFeatAccomplished(int /*FeatTypes*/ eIndex)	
+bool CyPlayer::isFeatAccomplished(int /*FeatTypes*/ eIndex)
 {
 	return m_pPlayer ? m_pPlayer->isFeatAccomplished((FeatTypes)eIndex) : false;
 }
@@ -1663,7 +1663,7 @@ void CyPlayer::setFeatAccomplished(int /*FeatTypes*/ eIndex, bool bNewValue)
 		m_pPlayer->setFeatAccomplished((FeatTypes)eIndex, bNewValue);
 }
 
-bool CyPlayer::isOption(int /*PlayerOptionTypes*/ eIndex)	
+bool CyPlayer::isOption(int /*PlayerOptionTypes*/ eIndex)
 {
 	return m_pPlayer ? m_pPlayer->isOption((PlayerOptionTypes)eIndex) : false;
 }
@@ -1674,7 +1674,7 @@ void CyPlayer::setOption(int /*PlayerOptionTypes*/ eIndex, bool bNewValue)
 		m_pPlayer->setOption((PlayerOptionTypes)eIndex, bNewValue);
 }
 
-bool CyPlayer::isLoyalMember(int /*VoteSourceTypes*/ eIndex)	
+bool CyPlayer::isLoyalMember(int /*VoteSourceTypes*/ eIndex)
 {
 	return m_pPlayer ? m_pPlayer->isLoyalMember((VoteSourceTypes)eIndex) : false;
 }
@@ -1896,7 +1896,7 @@ void CyPlayer::changeCombatExperience(int iChange)
 	{
 		m_pPlayer->changeCombatExperience(iChange);
 	}
-	
+
 }
 
 void CyPlayer::setCombatExperience(int iExperience)

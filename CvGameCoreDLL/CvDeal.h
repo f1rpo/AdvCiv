@@ -83,7 +83,7 @@ public:
 	void clearFirstTrades(); // advc.003j (comment): unused
 	void insertAtEndFirstTrades(TradeData trade); // advc (comment): Currently only used internally
 	int getLengthFirstTrades() const;
-	
+
 	void clearSecondTrades(); // advc.003j (comment): unused
 	void insertAtEndSecondTrades(TradeData trade); // advc (comment): Currently only used internally
 	int getLengthSecondTrades() const;

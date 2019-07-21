@@ -167,7 +167,7 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 		}
 	}
 
-	if (pPlot->getImprovementType() != NO_IMPROVEMENT) 
+	if (pPlot->getImprovementType() != NO_IMPROVEMENT)
 	{
 		return false;
 	}
@@ -177,18 +177,18 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 		return false;
 	}
 
-	if (pPlot->isImpassable()) 
+	if (pPlot->isImpassable())
 	{
 		return false;
 	}
 
 	int iUniqueRange = GC.getImprovementInfo(eImprovement).getGoodyUniqueRange();
-	for (int iDX = -iUniqueRange; iDX <= iUniqueRange; iDX++) 
+	for (int iDX = -iUniqueRange; iDX <= iUniqueRange; iDX++)
 	{
 		for (int iDY = -iUniqueRange; iDY <= iUniqueRange; iDY++)
 		{
 			CvPlot *pLoopPlot	= plotXY(iX, iY, iDX, iDY);
-			if (pLoopPlot != NULL && pLoopPlot->getImprovementType() == eImprovement) 
+			if (pLoopPlot != NULL && pLoopPlot->getImprovementType() == eImprovement)
 			{
 				return false;
 			}
@@ -329,7 +329,7 @@ void CvMapGenerator::addRivers()
 }
 
 // pStartPlot = the plot at whose SE corner the river is starting
-// 
+//
 void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCardinalDirection, CardinalDirectionTypes eOriginalCardinalDirection, int iThisRiverID)
 {
 	if (iThisRiverID == -1)
@@ -349,7 +349,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 
 	CardinalDirectionTypes eBestCardinalDirection = NO_CARDINALDIRECTION;
 
-	if (eLastCardinalDirection==CARDINALDIRECTION_NORTH) 
+	if (eLastCardinalDirection==CARDINALDIRECTION_NORTH)
 	{
 		pRiverPlot = pStartPlot;
 		if (pRiverPlot == NULL)
@@ -418,7 +418,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 	}
 	else
 	{
-		//FAssertMsg(false, "Illegal direction type"); 
+		//FAssertMsg(false, "Illegal direction type");
 		// River is starting here, set the direction in the next step
 		pRiverPlot = pStartPlot;
 
@@ -488,26 +488,26 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 //Note from Blake:
 //Iustus wrote this function, it ensures that a new river actually
 //creates fresh water on the passed plot. Quite useful really
-//Although I veto'd its use since I like that you don't always 
+//Although I veto'd its use since I like that you don't always
 //get fresh water starts.
 // pFreshWaterPlot = the plot we want to give a fresh water river
-// 
+//
 bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 {
 	FAssertMsg(pFreshWaterPlot != NULL, "NULL plot parameter");
-	
+
 	// cannot have a river flow next to water
 	if (pFreshWaterPlot->isWater())
 	{
 		return false;
 	}
-	
+
 	// if it already has a fresh water river, then success! we done
 	if (pFreshWaterPlot->isRiver())
 	{
 		return true;
 	}
-	
+
 	bool bSuccess = false;
 
 	// randomize the order of directions
@@ -523,7 +523,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 		{
 			CardinalDirectionTypes eRiverDirection = NO_CARDINALDIRECTION;
 			CvPlot *pRiverPlot = NULL;
-			
+
 			switch (aiShuffle[iI])
 			{
 			case CARDINALDIRECTION_NORTH:
@@ -532,7 +532,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTH);
 					eRiverDirection = CARDINALDIRECTION_WEST;
 				}
-				else 
+				else
 				{
 					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTHWEST);
 					eRiverDirection = CARDINALDIRECTION_EAST;
@@ -545,7 +545,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 					pRiverPlot = pFreshWaterPlot;
 					eRiverDirection = CARDINALDIRECTION_NORTH;
 				}
-				else 
+				else
 				{
 					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTH);
 					eRiverDirection = CARDINALDIRECTION_SOUTH;
@@ -558,7 +558,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 					pRiverPlot = pFreshWaterPlot;
 					eRiverDirection = CARDINALDIRECTION_WEST;
 				}
-				else 
+				else
 				{
 					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_WEST);
 					eRiverDirection = CARDINALDIRECTION_EAST;
@@ -571,7 +571,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_WEST);
 					eRiverDirection = CARDINALDIRECTION_NORTH;
 				}
-				else 
+				else
 				{
 					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTHWEST);
 					eRiverDirection = CARDINALDIRECTION_SOUTH;
@@ -581,7 +581,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 			default:
 				FAssertMsg(false, "invalid cardinal direction");
 			}
-			
+
 			if (pRiverPlot != NULL && !pRiverPlot->hasCoastAtSECorner())
 			{
 				// try to make the river

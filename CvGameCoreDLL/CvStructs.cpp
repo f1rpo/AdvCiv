@@ -16,13 +16,13 @@
 #include "CvUnit.h"
 #include "CvPlot.h" // advc.071
 
-int EventTriggeredData::getID() const 
-{ 
+int EventTriggeredData::getID() const
+{
 	return m_iId;
 }
 
-void EventTriggeredData::setID(int iID) 
-{ 
+void EventTriggeredData::setID(int iID)
+{
 	m_iId = iID;
 }
 
@@ -64,14 +64,14 @@ void EventTriggeredData::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szGlobalText);
 }
 
-int VoteSelectionData::getID() const 
-{ 
-	return iId; 
+int VoteSelectionData::getID() const
+{
+	return iId;
 }
 
-void VoteSelectionData::setID(int iID) 
-{ 
-	iId = iID; 
+void VoteSelectionData::setID(int iID)
+{
+	iId = iID;
 }
 
 void VoteSelectionData::read(FDataStreamBase* pStream)
@@ -107,14 +107,14 @@ void VoteSelectionData::write(FDataStreamBase* pStream)
 	}
 }
 
-int VoteTriggeredData::getID() const 
-{ 
-	return iId; 
+int VoteTriggeredData::getID() const
+{
+	return iId;
 }
 
-void VoteTriggeredData::setID(int iID) 
-{ 
-	iId = iID; 
+void VoteTriggeredData::setID(int iID)
+{
+	iId = iID;
 }
 
 void VoteTriggeredData::read(FDataStreamBase* pStream)
@@ -211,7 +211,7 @@ void checkBattleUnitType(BattleUnitTypes unitType)
 
 CvBattleRound::CvBattleRound() :
 	m_iWaveSize(0),
-	m_bRangedRound(false) 
+	m_bRangedRound(false)
 {
 	m_aNumKilled[BATTLE_UNIT_ATTACKER] = m_aNumKilled[BATTLE_UNIT_DEFENDER] = 0;
 	m_aNumAlive[BATTLE_UNIT_ATTACKER] = m_aNumAlive[BATTLE_UNIT_DEFENDER] = 0;
@@ -337,8 +337,8 @@ void CvMissionDefinition::setPlot(const CvPlot *plot)
 // FUNCTION:    CvBattleDefinition::CvBattleDefinition
 //! \brief      Constructor.
 //------------------------------------------------------------------------------------------------
-CvBattleDefinition::CvBattleDefinition() : 
-	m_bAdvanceSquare(false), 
+CvBattleDefinition::CvBattleDefinition() :
+	m_bAdvanceSquare(false),
 	CvMissionDefinition()
 {
 	m_fMissionTime = 0.0f;

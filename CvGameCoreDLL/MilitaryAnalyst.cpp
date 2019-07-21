@@ -58,7 +58,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		if(masterTeamId == GET_PLAYER(weId).getMasterTeam())
 			weAndOurVassals.insert(civId);
 		if(masterTeamId == GET_TEAM(theyId).getMasterTeam())
-			theyAndTheirVassals.insert(civId);	
+			theyAndTheirVassals.insert(civId);
 		if(warEvalParams.isWarAlly(TEAMREF(civId).getMasterTeam()))
 			ourAllies.insert(civId);
 		if(warEvalParams.isExtraTarget(TEAMREF(civId).getMasterTeam()))
@@ -334,7 +334,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		double firedOnUs = portionFired * vassalFactorWe * vassalFactorCiv *
 				/*  sqrt for pessimism - we may get hit worse than the
 					average target, and that worries us. */
-				civNukes / std::sqrt((double)civTargets);	
+				civNukes / std::sqrt((double)civTargets);
 		firedOnUs = std::min(firedOnUs, 1.5 * we.getNumCities());
 		double firedByUs = 0;
 		if(ourTargets > 0) {

@@ -27,7 +27,7 @@ public:
 	int countNumUniqueBonusTypes() const;																			// Exposed to Python
 	int countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python
 	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python																					// Exposed to Python
-	
+
 	void setID(int iID);
 																										// Exposed to Python
 	// <advc.030>
@@ -173,7 +173,7 @@ public:
 	// <advc.003f> Inlined. All exposed to Python.
 	inline int  CvArea::getID() const { return m_iID; }
 	inline int  CvArea::getNumTiles() const { return m_iNumTiles; }
-	inline bool CvArea::isLake() const { 
+	inline bool CvArea::isLake() const {
 			return m_bLake; // <advc.030> Replacing the line below
 			//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
 	}

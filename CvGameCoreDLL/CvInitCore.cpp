@@ -131,7 +131,7 @@ void CvInitCore::setDefaults()
 	{
 		m_abMPOptions[i] = GC.getMPOptionInfo((MultiplayerOptionTypes)i).getDefault();
 	}
-}	
+}
 
 
 bool CvInitCore::getHuman(PlayerTypes eID) const
@@ -553,10 +553,10 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 	if (bClear || !pSource)
 	{
 		resetGame();
-	} 
+	}
 	if(!pSource)
 		return; // advc.003
-	
+
 	// Only copy over saved data
 
 	// Descriptive strings about game and map
@@ -742,7 +742,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 
 
 CvWString CvInitCore::getMapScriptName() const
-{ 
+{
 	if (gDLL->getTransferredMap())
 	{
 		if (!getWBMapScript())
@@ -751,8 +751,8 @@ CvWString CvInitCore::getMapScriptName() const
 			return ( m_szMapScriptName + CvWString(MAP_TRANSFER_EXT) );
 		}
 	}
-	return m_szMapScriptName; 
-}	
+	return m_szMapScriptName;
+}
 
 void CvInitCore::setMapScriptName(const CvWString & szMapScriptName)
 {
@@ -976,7 +976,7 @@ void CvInitCore::refreshCustomMapOptions()
 				// Got number of custom map options - now get the option defaults
 				CustomMapOptionTypes *aeMapOptions = new CustomMapOptionTypes[iNumOptions];
 				for (int i = 0; i < iNumOptions; ++i)
-				{	
+				{
 					long iOptionDefault = 0;
 					CyArgsList argsList;
 					argsList.add(i);
@@ -1907,7 +1907,7 @@ void CvInitCore::resetAdvancedStartPoints()
 	{
 		iPoints += GC.getEraInfo(getEra()).getAdvancedStartPoints();
 	}
-	
+
 	if (NO_WORLDSIZE != getWorldSize())
 	{
 		iPoints *= GC.getWorldInfo(getWorldSize()).getAdvancedStartPointsMod();
@@ -1984,7 +1984,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	else if(uiSaveFlag == 1) {
 		pStream->Read(NUM_GAMEOPTION_TYPES - 1, m_abOptions);
 		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
-	}	
+	}
 	else {
 		FAssert(uiSaveFlag == 2);
 		pStream->Read(NUM_GAMEOPTION_TYPES, m_abOptions);

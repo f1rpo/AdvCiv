@@ -196,7 +196,7 @@ bool CvSelectionGroupAI::AI_update()
 
 		// if we want to force the group to attack, force another attack
 		if (AI_isGroupAttack())
-		{			
+		{
 			AI_cancelGroupAttack();
 
 			groupAttack(m_iGroupAttackX, m_iGroupAttackY, MOVE_DIRECT_ATTACK, bFailedAlreadyFighting);
@@ -249,7 +249,7 @@ bool CvSelectionGroupAI::AI_update()
 			bool bFollow = false;
 			// <k146>
 			// if we're not group attacking, then check for 'follow' action
-			if (!AI_isGroupAttack() && readyToMove(true)) 
+			if (!AI_isGroupAttack() && readyToMove(true))
 			{
 				/*  What we do here might split the group. So to avoid problems,
 					lets make a list of our units. */
@@ -523,7 +523,7 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 		eOwner = getHeadOwner();
 	}
 	FAssert(eOwner != NO_PLAYER);
-	
+
 	// K-Mod. Note. This function currently does not support bPotentialEnemy == false.
 	//FAssert(bPotentialEnemy);
 	int defenderSum = pPlot->isVisible(getHeadTeam(), false)
@@ -690,7 +690,7 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot)
 					return true;
 				}
 				break;
-				
+
 			case UNITAI_PARADROP:
 			case UNITAI_RESERVE:
 			case UNITAI_COUNTER:
@@ -873,7 +873,7 @@ CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 	CvUnit* pLoopUnit;
 
 	pEntityNode = headUnitNode();
-	
+
 	CvUnit* pBestUnit = NULL;
 	int iBestUnitValue = 0;
 
@@ -881,12 +881,12 @@ CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 	{
 		pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
-		
+
 		//if (!pLoopUnit->noDefensiveBonus())
 		// commented out by K-Mod. The noDefBonus thing is already taken into account.
 		{
 			int iValue = pLoopUnit->currEffectiveStr(pDefendPlot, NULL) * 100;
-			
+
 			if (pDefendPlot->isCity(true, getTeam()))
 			{
 				iValue *= 100 + pLoopUnit->cityDefenseModifier();
@@ -895,9 +895,9 @@ CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 
 			iValue *= 100;
 			iValue /= (100 + pLoopUnit->cityAttackModifier() + pLoopUnit->getExtraCityAttackPercent());
-			
+
 			iValue /= 2 + pLoopUnit->getLevel();
-			
+
 			if (iValue > iBestUnitValue)
 			{
 				iBestUnitValue = iValue;
@@ -905,12 +905,12 @@ CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 			}
 		}
 	}
-	
+
 	if (NULL != pBestUnit && getNumUnits() > 1)
 	{
 		pBestUnit->joinGroup(NULL);
 	}
-	
+
 	return pBestUnit;
 }
 

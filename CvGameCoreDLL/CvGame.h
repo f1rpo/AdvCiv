@@ -131,10 +131,10 @@ public:
 	int countKnownTechNumTeams(TechTypes eTech);														// Exposed to Python
 	int getNumFreeBonuses(BuildingTypes eBuilding) const;	// advc.003: const										// Exposed to Python
 
-	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python 
+	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python
 	int calculateReligionPercent(ReligionTypes eReligion,								// Exposed to Python
 			bool bIgnoreOtherReligions = false) const; // advc.115b
-	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python 
+	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
 	int goldenAgeLength() const;																					// Exposed to Python
@@ -379,12 +379,12 @@ public:
 
 	CalendarTypes getCalendar() const;																// Exposed to Python
 
-	GameSpeedTypes getGameSpeedType() const;													// Exposed to Python 
+	GameSpeedTypes getGameSpeedType() const;													// Exposed to Python
 
 	PlayerTypes getRankPlayer(int iRank) const;															// Exposed to Python
 	void setRankPlayer(int iRank, PlayerTypes ePlayer);
 
-	int getPlayerRank(PlayerTypes ePlayer) const;														// Exposed to Python 
+	int getPlayerRank(PlayerTypes ePlayer) const;														// Exposed to Python
 	void setPlayerRank(PlayerTypes ePlayer, int iRank);
 
 	DllExport int getPlayerScore(PlayerTypes ePlayer) const;													// Exposed to Python
@@ -437,16 +437,16 @@ public:
 	bool isVictoryValid(VictoryTypes eIndex) const;															// Exposed to Python
 	void setVictoryValid(VictoryTypes eIndex, bool bValid);
 												// advc.003: const
-	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python  
+	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python
 	void makeSpecialUnitValid(SpecialUnitTypes eIndex);													// Exposed to Python
 												// advc.003: const
 	bool isSpecialBuildingValid(SpecialBuildingTypes eIndex) const;										// Exposed to Python
 	void makeSpecialBuildingValid(SpecialBuildingTypes eIndex, bool bAnnounce = false);									// Exposed to Python
 
-	bool isNukesValid() const;														// Exposed to Python  
+	bool isNukesValid() const;														// Exposed to Python
 	void makeNukesValid(bool bValid = true);													// Exposed to Python
 
-	bool isInAdvancedStart() const;														// Exposed to Python  
+	bool isInAdvancedStart() const;														// Exposed to Python
 
 	void setVoteChosen(int iSelection, int iVoteId);
 
@@ -486,7 +486,7 @@ public:
 
 	DllExport int getIndexAfterLastDeal();																								// Exposed to Python
 	int getNumDeals();																													// Exposed to Python
-	
+
 	DllExport CvDeal* getDeal(int iID)																			// Exposed to Python
 	// <advc.003> Need a const version
 	{	CvGame const& kThis = *this;
@@ -524,7 +524,7 @@ public:
 	bool checkInSync(); // advc.001n
 	void doFPCheck(int iChecksum, PlayerTypes ePlayer); // advc.003g
 
-	void addReplayMessage(ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString pszText = L"", 
+	void addReplayMessage(ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString pszText = L"",
 		int iPlotX = -1, int iPlotY = -1, ColorTypes eColor = NO_COLOR);
 	void clearReplayMessageMap();
 	int getReplayMessageTurn(uint i) const;
@@ -746,7 +746,7 @@ protected:
 	CvString m_szScriptData;
 
 	int m_aiUpdateTimers[NUM_UPDATE_TIMER_TYPES]; // advc.003r
-	
+
 	int* m_aiRankPlayer;        // Ordered by rank...
 	int* m_aiPlayerRank;        // Ordered by player ID...
 	int* m_aiPlayerScore;       // Ordered by player ID...
@@ -768,7 +768,7 @@ protected:
 
 	bool* m_pabSpecialUnitValid;
 	bool* m_pabSpecialBuildingValid;
-	bool* m_abReligionSlotTaken; 
+	bool* m_abReligionSlotTaken;
 
 	IDInfo* m_paHolyCity;
 	IDInfo* m_paHeadquarters;
@@ -790,7 +790,7 @@ protected:
 	CvRandom m_mapRand;
 	CvRandom m_sorenRand;
 
-	ReplayMessageList m_listReplayMessages; 
+	ReplayMessageList m_listReplayMessages;
 	CvReplayInfo* m_pReplayInfo;
 	int m_iNumSessions;
 	CvHallOfFameInfo* m_pHallOfFame; // advc.106i

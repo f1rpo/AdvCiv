@@ -17,8 +17,8 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 {
 	OutputDebugString("Python Extension Module - CyPlayerPythonInterface1\n");
 
-	// set the docstring of the current module scope 
-	python::scope().attr("__doc__") = "Civilization IV Player Class"; 
+	// set the docstring of the current module scope
+	python::scope().attr("__doc__") = "Civilization IV Player Class";
 	x
 		.def("isNone", &CyPlayer::isNone, "checks for a null player")
 		// CHANGE_PLAYER, 08/27/08, jdog5000: START

@@ -307,7 +307,7 @@ protected:
 	bool AI_moveIntoCity(int iRange);
 
 	bool AI_groupMergeRange(UnitAITypes eUnitAI, int iRange, bool bBiggerOnly = true, bool bAllowRegrouping = false, bool bIgnoreFaster = false);
-	
+
 	//bool AI_artistCultureVictoryMove(); // disabled by K-Mod
 	bool AI_poach();
 	bool AI_choke(int iRange = 1, bool bDefensive = false, int iFlags = 0);
@@ -315,7 +315,7 @@ protected:
 	int AI_plotDefense(CvPlot const* pPlot = NULL) const;
 
 	bool AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar);
-	
+
 	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild);
 	//int AI_getEspionageTargetValue(CvPlot* pPlot, int iMaxPath);
 	int AI_getEspionageTargetValue(CvPlot* pPlot); // K-Mod

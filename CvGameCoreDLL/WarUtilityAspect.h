@@ -22,7 +22,7 @@ public:
 	WarUtilityAspect(WarEvalParameters& params);
 	/*  Returns the computed utility (same as calling utility(void)).
 		Sets some protected data members that subclasses should find useful.
-		Concrete subclasses should therefore overwrite evaluate(void) instead. */	
+		Concrete subclasses should therefore overwrite evaluate(void) instead. */
 	virtual int evaluate(MilitaryAnalyst& m);
 	virtual char const* aspectName() const=0;
 	// Needs to correspond to the call order in WarAndPeaceAI::cacheXML
@@ -32,10 +32,10 @@ public:
 	int utility() const;
 
 protected:
-	// Just for convenience (replacing report->log) 
+	// Just for convenience (replacing report->log)
 	void log(char const* fmt, ...);
 	/*  What can m->ourId gain from or lose to theyId (both set by
-		evaluate(MilitaryAnalyst&)). From the pov of m->ourId.	
+		evaluate(MilitaryAnalyst&)). From the pov of m->ourId.
 		After computing the aspect utility, subclasses should add (not assign!)
 		their result to WarUtilityAspect::u */
 	virtual void evaluate()=0;

@@ -1,7 +1,7 @@
 #pragma once
 
 // CyDeal.h
-// Python wrapper class for CvDeal 
+// Python wrapper class for CvDeal
 
 #ifndef CY_DEAL_H
 #define CY_DEAL_H

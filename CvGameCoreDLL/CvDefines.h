@@ -81,7 +81,7 @@
 #define GAME_NAME															("Game")
 
 #define LANDSCAPE_FOW_RESOLUTION							(4)
-															
+
 #define Z_ORDER_LAYER													(-0.1f)
 #define Z_ORDER_LEVEL													(-0.3f)
 

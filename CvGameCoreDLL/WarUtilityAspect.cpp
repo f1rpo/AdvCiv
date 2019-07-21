@@ -295,7 +295,7 @@ double WarUtilityAspect::lossesFromNukes(PlayerTypes victimId, PlayerTypes srcId
 // <advc.035>
 double WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes victimId,
 		PlayerTypes srcId) {
-	
+
 	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
 		return 0;
 	double r = 0;
@@ -576,7 +576,7 @@ bool WarUtilityBroaderAspect::concernsOnlyWarParties() const {
 
 GreedForAssets::GreedForAssets(WarEvalParameters& params)
 	: WarUtilityAspect(params) {
-	
+
 	ourDist = -1;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		citiesPerArea[i] = NULL;
@@ -684,7 +684,7 @@ double GreedForAssets::defensibilityCost() {
 		personalityPercent /= 2;
 	if(mwmalp >= 3)
 		personalityPercent += 5;
-	log("Personality factor %d (mwmalp %d); threat factor %d", 
+	log("Personality factor %d (mwmalp %d); threat factor %d",
 			::round(personalityPercent), mwmalp,
 			::round(threatFactor * 100));
 	return std::min(0.5, std::sqrt(threatFactor) * personalityPercent / 100);
@@ -992,7 +992,7 @@ Loathing::Loathing(WarEvalParameters& params)
 void Loathing::evaluate() {
 
 	PROFILE_FUNC();
-	/*  Only count this if at war with them? No, that could lead to us joining 
+	/*  Only count this if at war with them? No, that could lead to us joining
 		a war despite not contributing anything to their losses.
 		Can't tell who causes their losses. */
 	/*bool atWar = (agent.isAtWar(TEAMID(theyId) &&
@@ -1318,7 +1318,7 @@ double MilitaryVictory::progressRatingDomination() {
 		it's certain we've reached the pop threshold. */
 	if(popToGo < 0) {
 		if(citiesToGo < 0) {
-			/*  Boths thresholds met, but somehow we haven't won. Assume we need 
+			/*  Boths thresholds met, but somehow we haven't won. Assume we need
 				a few more cities. */
 			log("Cities-to-go negative, set to %d", ::round(citiesToGo));
 			citiesToGo = 5;
@@ -2487,7 +2487,7 @@ int Effort::preEvaluate() {
 			::round(totalLostProduction));
 	double supply = 0; // And unit cost I guess (not a big factor)
 	// None if we're losing
-	if(m->lostCities(weId).empty() && lostUnits > 0) { 
+	if(m->lostCities(weId).empty() && lostUnits > 0) {
 		/*  Use lostUnits as a measure of the number of active fighters.
 			No need to apply the handicap modifier; humans can avoid supply much
 			better than AI; this cancels out.
@@ -2759,7 +2759,7 @@ void IllWill::evalLostPartner() {
 	}
 	/*  Humans are forgiving and tend to end wars quickly. This special treatment
 		should lead to slightly greater willingness to declare war against human
-		(handled at the end of this function), but also slightly greater 
+		(handled at the end of this function), but also slightly greater
 		willingness to make peace again. */
 	else diploFactor -= 0.15;
 	// Don't expect much from reconciling with minor players
@@ -2769,7 +2769,7 @@ void IllWill::evalLostPartner() {
 		if(agent.isAtWar(TEAMID(theyId)) && !m->isEliminated(theyId)) {
 			// Reconciliation is a long shot for the AI
 			int reconciliationUtility = ::round(4 * (altPartnerFactor / diploFactor)
-					* weAI->amortizationMultiplier());	
+					* weAI->amortizationMultiplier());
 			uMinus -= reconciliationUtility;
 			log("%d for the possibility of reconciliation", reconciliationUtility);
 		}
@@ -3217,7 +3217,7 @@ void Revolts::evaluate() {
 	/*  The war against theyId occupies our units, and rebels are taking advantage
 		in the primary areas of theyId */
 	double revoltLoss = 0;
-	int totalAssets = 0; 
+	int totalAssets = 0;
 	CvMap& map = GC.getMap(); int foo;
 	for(CvArea* a = map.firstArea(&foo); a != NULL; a = map.nextArea(&foo)) {
 		if(!they->AI_isPrimaryArea(a) || (we->AI_isPrimaryArea(a) &&
@@ -3786,7 +3786,7 @@ void TacticalSituation::evalOperational() {
 				initialPrepTime = WarAndPeaceAI::preparationTimeTotalNaval;
 			else initialPrepTime = WarAndPeaceAI::preparationTimeTotal;
 		}
-		else { 
+		else {
 			if(params.isNaval())
 				initialPrepTime = WarAndPeaceAI::preparationTimeLimitedNaval;
 			else initialPrepTime = WarAndPeaceAI::preparationTimeLimited;
@@ -3807,7 +3807,7 @@ void TacticalSituation::evalOperational() {
 	log("Readiness %d percent (%d of %d attackers, %d of %d cargo, "
 			"%d of %d escort); %d of %d turns for preparation remain",
 			::round(readiness * 100), attackers, ::round(targetAttackers),
-			::round(cargo), ::round(targetCargo), escort, ::round(targetEscort), 
+			::round(cargo), ::round(targetCargo), escort, ::round(targetEscort),
 			remaining, initialPrepTime);
 	int uMinus = ::round(100 * std::pow(passedPortion, 1.5) *
 			(1 - std::pow(readiness, 3.7)));

@@ -21,7 +21,7 @@ public:
 	virtual ~CvSelectionGroup();
 
 	DllExport void init(int iID, PlayerTypes eOwner);
-	DllExport void uninit();			
+	DllExport void uninit();
 	DllExport void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, bool bConstructorCall = false);
 
 	void kill();
@@ -64,7 +64,7 @@ public:
 	bool isHuman() const; // advc.002i: const																																									// Exposed to Python
 	DllExport bool isBusy();
 	bool isCargoBusy();
-	int baseMoves() const;																																										// Exposed to Python 
+	int baseMoves() const;																																										// Exposed to Python
 	int maxMoves() const; // K-Mod
 	int movesLeft() const; // K-Mod
 	bool isWaiting() const;																																							// Exposed to Python
@@ -86,7 +86,7 @@ public:
 	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: const
 	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible
-	bool canFight();																																										// Exposed to Python 
+	bool canFight();																																										// Exposed to Python
 	bool canDefend();																																										// Exposed to Python
 	bool canBombard(const CvPlot* pPlot);
 	bool visibilityRange();

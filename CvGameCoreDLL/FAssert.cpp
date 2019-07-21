@@ -64,7 +64,7 @@ namespace
 				sprintf( g_AssertText, "Assert Failed\r\n\r\n"
 					"File:  %s\r\n"
 					"Line:  %u\r\n"
-					"Expression:  %s\r\n" 
+					"Expression:  %s\r\n"
 					"Message:  %s\r\n"
 					"\r\n"
 					"----------------------------------------------------------\r\n",
@@ -107,11 +107,11 @@ namespace
 
 	DWORD DisplayAssertDialog()
 	{
-		CDialogTemplate dialogTemplate(_T("Assert Failed!"), 
+		CDialogTemplate dialogTemplate(_T("Assert Failed!"),
 			DS_SETFONT | DS_CENTER | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU,
 			0, 0, 379, 166, _T("MS Shell Dlg"), 8);
 
-		dialogTemplate.AddButton( _T("Ignore Always"), WS_VISIBLE, 0, 
+		dialogTemplate.AddButton( _T("Ignore Always"), WS_VISIBLE, 0,
 			157,145,64,14, IDC_IGNORE_ALWAYS );
 
 		dialogTemplate.AddButton( _T("&Ignore Once"), WS_VISIBLE, 0,
@@ -123,7 +123,7 @@ namespace
 		dialogTemplate.AddButton( _T("&Abort"), WS_VISIBLE, 0,
 			232,145,64,14, IDC_ABORT );
 
-		dialogTemplate.AddEditBox( _T(""), ES_MULTILINE | ES_AUTOVSCROLL | 
+		dialogTemplate.AddEditBox( _T(""), ES_MULTILINE | ES_AUTOVSCROLL |
 			ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL | WS_HSCROLL | WS_VISIBLE, WS_EX_STATICEDGE,
 			7,7,365,130, IDC_ASSERTION_TEXT );
 

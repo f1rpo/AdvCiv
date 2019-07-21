@@ -8,7 +8,7 @@ class CvDllPythonEvents
 public:
 	void reportGenericEvent(const char* szEventName, void *pyArgs);
 	bool reportKbdEvent(int evt, int key, int iCursorX, int iCursorY);
-	bool reportMouseEvent(int evt, int iCursorX, int iCursorY, bool bInterfaceConsumed=false);												
+	bool reportMouseEvent(int evt, int iCursorX, int iCursorY, bool bInterfaceConsumed=false);
 	void reportModNetMessage(int iData1, int iData2, int iData3, int iData4, int iData5);
 
 	void reportInit();
@@ -24,11 +24,11 @@ public:
 	void reportBeginPlayerTurn(int iGameTurn, PlayerTypes);
 	void reportEndPlayerTurn(int iGameTurn, PlayerTypes);
 
-	void reportFirstContact(TeamTypes iTeamID1, TeamTypes iTeamID2);						
-	void reportCombatResult(CvUnit* pWinner, CvUnit* pLoser);					
-	void reportImprovementBuilt(int iImprovementType, int iX, int iY);	
-	void reportImprovementDestroyed(int iImprovementType, int iPlayer, int iX, int iY);	
-	void reportRouteBuilt(int iRouteType, int iX, int iY);	
+	void reportFirstContact(TeamTypes iTeamID1, TeamTypes iTeamID2);
+	void reportCombatResult(CvUnit* pWinner, CvUnit* pLoser);
+	void reportImprovementBuilt(int iImprovementType, int iX, int iY);
+	void reportImprovementDestroyed(int iImprovementType, int iPlayer, int iX, int iY);
+	void reportRouteBuilt(int iRouteType, int iX, int iY);
 
 	void reportPlotRevealed(CvPlot *pPlot, TeamTypes eTeam);
 	void reportPlotFeatureRemoved(CvPlot *pPlot, FeatureTypes eFeature, CvCity* pCity);
@@ -51,11 +51,11 @@ public:
 
 	void reportSelectionGroupPushMission(CvSelectionGroup* pSelectionGroup, MissionTypes eMission);
 
-	void reportUnitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot);					
-	void reportUnitSetXY(CvPlot* pPlot, CvUnit* pUnit);					
+	void reportUnitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot);
+	void reportUnitSetXY(CvPlot* pPlot, CvUnit* pUnit);
 	void reportUnitCreated(CvUnit *pUnit);
 	void reportUnitBuilt(CvCity *pCity, CvUnit *pUnit);
-	void reportUnitKilled(CvUnit *pUnit, PlayerTypes eAttacker);			
+	void reportUnitKilled(CvUnit *pUnit, PlayerTypes eAttacker);
 	void reportUnitLost(CvUnit *pUnit);
 	void reportUnitPromoted(CvUnit* pUnit, PromotionTypes ePromotion);
 	void reportUnitSelected(CvUnit *pUnit);
@@ -86,7 +86,7 @@ public:
 	void reportGoldenAge(PlayerTypes ePlayer);
 	void reportEndGoldenAge(PlayerTypes ePlayer);
 	void reportChangeWar(bool bWar, TeamTypes eTeam, TeamTypes eOtherTeam);
-	void reportChat(CvWString szString);				
+	void reportChat(CvWString szString);
 	void reportVictory(TeamTypes eNewWinner, VictoryTypes eNewVictory);
 
 	void reportVassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVassal);

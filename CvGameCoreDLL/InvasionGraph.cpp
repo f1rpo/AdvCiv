@@ -836,7 +836,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	if(attackerUnprepared)
 		deploymentDuration += (5 - GET_PLAYER(id).getCurrentEra() / 2);
 	double reinforcementDist = deploymentDistAttacker;
-	/* The reduction in attacking army power based on distance mainly accounts for 
+	/* The reduction in attacking army power based on distance mainly accounts for
 	   two effects:
 	   a) Produced units become available with a delay.
 	   b) The combat AI tends to form smaller stacks when distances are long; they
@@ -2178,7 +2178,7 @@ double SimulationStep::getTempLosses() const {
    all units are equal and that each unit of power corresponds to one combat unit.
    Assume that each unit of the losing side fights once, leading to equal losses
    of 0.5 * lowerPow on both sides. The additional units of the winning side then
-   manage to attack the damaged surviving units a few times more, leading 
+   manage to attack the damaged surviving units a few times more, leading
    to additional losses only for the losing side. Assume that half of the additional
    units manage to make such an additional attack.
    After some derivation, this result in the following formulas:

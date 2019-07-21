@@ -1,6 +1,6 @@
 //
-// Python wrapper class for CyGameTextMgr 
-// 
+// Python wrapper class for CyGameTextMgr
+//
 #include "CvGameCoreDLL.h"
 #include "CvGameTextMgr.h"
 #include "CyGameTextMgr.h"
@@ -8,13 +8,13 @@
 #include "CyDeal.h"
 #include "CyUnit.h"
 
-CyGameTextMgr::CyGameTextMgr() : 
+CyGameTextMgr::CyGameTextMgr() :
 m_pGameTextMgr(NULL)
 {
 	m_pGameTextMgr = &CvGameTextMgr::GetInstance();
 }
 
-CyGameTextMgr::CyGameTextMgr(CvGameTextMgr* pGameTextMgr) : 
+CyGameTextMgr::CyGameTextMgr(CvGameTextMgr* pGameTextMgr) :
 m_pGameTextMgr(pGameTextMgr) // kmodx
 {}
 

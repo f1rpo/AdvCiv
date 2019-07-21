@@ -2720,7 +2720,7 @@ void CvGlobals::cacheGlobals()
 	m_iEXTRA_DEFENDER_ERA = getDefineINT("EXTRA-DEFENDER_ERA");
 	// advc.113
 	m_iWORKER_RESERVE_PERCENT = getDefineINT("WORKER_RESERVE_PERCENT");
-	
+
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
 	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");
@@ -2757,7 +2757,7 @@ void CvGlobals::cacheGlobals()
 	m_iPEAK_SEE_FROM_CHANGE = getDefineINT("PEAK_SEE_FROM_CHANGE");
 	m_iHILLS_SEE_FROM_CHANGE = getDefineINT("HILLS_SEE_FROM_CHANGE");
 	m_iUSE_SPIES_NO_ENTER_BORDERS = getDefineINT("USE_SPIES_NO_ENTER_BORDERS");
-	
+
 	m_fCAMERA_MIN_YAW = getDefineFLOAT("CAMERA_MIN_YAW");
 	m_fCAMERA_MAX_YAW = getDefineFLOAT("CAMERA_MAX_YAW");
 	m_fCAMERA_FAR_CLIP_Z_HEIGHT = getDefineFLOAT("CAMERA_FAR_CLIP_Z_HEIGHT");
@@ -3851,7 +3851,7 @@ bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
 
 // advc.003: onGraphicsInitialized call added
 void CvGlobals::SetGraphicsInitialized(bool bVal) {
-	
+
 	if(bVal == m_bGraphicsInitialized)
 		return;
 	m_bGraphicsInitialized = bVal;

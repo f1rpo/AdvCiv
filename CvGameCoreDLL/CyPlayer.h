@@ -3,8 +3,8 @@
 #ifndef CyPlayer_h
 #define CyPlayer_h
 //
-// Python wrapper class for CvPlayer 
-// 
+// Python wrapper class for CvPlayer
+//
 
 class CyUnit;
 class CvPlayer;
@@ -65,7 +65,7 @@ public:
 	std::wstring getBestAttackUnitKey();
 	int /*ArtStyleTypes*/ getArtStyleType();
 	std::string getUnitButton(int eUnit);
-	
+
 	int findBestFoundValue();
 
 	int countReligionSpreadUnits(CyArea* pArea, int /*ReligionTypes*/ eReligion);
@@ -98,7 +98,7 @@ public:
 	void killAllDeals();
 	bool isTurnActive( void );
 
-	void findNewCapital();	
+	void findNewCapital();
 	int getNumGovernmentCenters();
 	bool canRaze(CyCity* pCity);
 	void raze(CyCity* pCity);
@@ -111,7 +111,7 @@ public:
 	bool canTrain(int /*UnitTypes*/ eUnit, bool bContinue, bool bTestVisible);
 	bool canConstruct(int /*BuildingTypes*/eBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost);
 	bool canCreate(int /*ProjectTypes*/ eProject, bool bContinue, bool bTestVisible);
-	bool canMaintain(int /*ProcessTypes*/ eProcess, bool bContinue);	
+	bool canMaintain(int /*ProcessTypes*/ eProcess, bool bContinue);
 	bool isProductionMaxedUnitClass(int /*UnitClassTypes*/ eUnitClass);
 	bool isProductionMaxedBuildingClass(int /*BuildingClassTypes*/ eBuildingClass, bool bAcquireCity);
 	bool isProductionMaxedProject(int /*ProjectTypes*/ eProject);
@@ -235,9 +235,9 @@ public:
 	int getGoldenAgeTurns();
 	int getGoldenAgeLength();
 	bool isGoldenAge();
-	void changeGoldenAgeTurns(int iChange);	
+	void changeGoldenAgeTurns(int iChange);
 	int getNumUnitGoldenAges();
-	void changeNumUnitGoldenAges(int iChange);	
+	void changeNumUnitGoldenAges(int iChange);
 	int getAnarchyTurns();
 	bool isAnarchy();
 	void changeAnarchyTurns(int iChange);
@@ -348,7 +348,7 @@ public:
 	bool isExtendedGame();
 	bool isFoundedFirstCity();
 	bool isAnyGPPEver(); // advc.078
-	
+
 	bool isStrike();
 
 	int getID();
@@ -364,7 +364,7 @@ public:
 	void setLastStateReligion(int /*ReligionTypes*/ iNewReligion);
 
 	int getTeam();
-	
+
 	int /*PlayerColorTypes*/ getPlayerColor();
 	int getPlayerTextColorR();
 	int getPlayerTextColorG();
@@ -390,11 +390,11 @@ public:
 	int getGoldPerTurnByPlayer(int /*PlayerTypes*/ eIndex);
 	void setGoldPerTurnByPlayer(int /*PlayerTypes*/ eIndex, int iValue);
 
-	bool isFeatAccomplished(int /*FeatTypes*/ eIndex);	
+	bool isFeatAccomplished(int /*FeatTypes*/ eIndex);
 	void setFeatAccomplished(int /*FeatTypes*/ eIndex, bool bNewValue);
-	bool isOption(int /*PlayerOptionTypes*/ eIndex);	
+	bool isOption(int /*PlayerOptionTypes*/ eIndex);
 	void setOption(int /*PlayerOptionTypes*/ eIndex, bool bNewValue);
-	bool isLoyalMember(int /*VoteSourceTypes*/ eIndex);	
+	bool isLoyalMember(int /*VoteSourceTypes*/ eIndex);
 	void setLoyalMember(int /*VoteSourceTypes*/ eIndex, bool bNewValue);
 	int getVotes(int /*VoteTypes*/ eVote, int /*VoteSourceTypes*/ eVoteSource);
 	bool isFullMember(int /*VoteSourceTypes*/ eVoteSource) const;

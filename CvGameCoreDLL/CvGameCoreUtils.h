@@ -123,7 +123,7 @@ int plotCityXY(int iDX, int iDY);																									// Exposed to Python
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot);													// Exposed to Python
 bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot); // advc.303
 
-CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python 
+CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
@@ -261,7 +261,7 @@ int stepCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 int stepAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 // BETTER_BTS_AI_MOD, 11/30/08, jdog5000:
 int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
-// advc.104b: 
+// advc.104b:
 int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);

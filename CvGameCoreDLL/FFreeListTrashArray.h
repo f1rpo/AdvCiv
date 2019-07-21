@@ -207,7 +207,7 @@ T* FFreeListTrashArray<T>::add()
 {
 	int iIndex;
 
-	if (m_pArray == NULL) 
+	if (m_pArray == NULL)
 	{
 		init();
 	}
@@ -259,7 +259,7 @@ T* FFreeListTrashArray<T>::getAt(int iID) const
 
 	assert(iIndex >= 0);
 
-	if ((iIndex <= m_iLastIndex) && 
+	if ((iIndex <= m_iLastIndex) &&
 		(m_pArray[iIndex].pData != NULL))
 	{
 		if (((iID & FLTA_ID_MASK) == 0) || (m_pArray[iIndex].pData->getID() == iID))
@@ -308,7 +308,7 @@ bool FFreeListTrashArray<T>::removeAt(int iID)
 
 	assert(iIndex >= 0);
 
-	if ((iIndex <= m_iLastIndex) && 
+	if ((iIndex <= m_iLastIndex) &&
 		(m_pArray[iIndex].pData != NULL))
 	{
 		if (((iID & FLTA_ID_MASK) == 0) || (m_pArray[iIndex].pData->getID() == iID))

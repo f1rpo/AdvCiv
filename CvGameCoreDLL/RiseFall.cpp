@@ -125,7 +125,7 @@ void RiseFall::init() {
 				chapters[i + 1]->getLength());
 		if(nextChapterLength <= 0)
 			chapters[i]->setDelay(-10000); // For a negative scoreTurn
-		else { 
+		else {
 			double delayMultiplier = delayPenult;
 			if(maxChapters != 2) {
 				delayMultiplier = delayFirst + i *
@@ -446,7 +446,7 @@ void RiseFall::atActiveTurnStart() {
 	if(pos > 0 && pos < ((int)chapters.size()) - 2 &&
 			!chapters[pos]->wasRetireRecommended() &&
 			!(((int)eligible.size()) > 1) && g.getPlayerRank(activeId) == 0 &&
-			!active.AI_isDoVictoryStrategyLevel3()) { 
+			!active.AI_isDoVictoryStrategyLevel3()) {
 		RFChapterScore const& sc = chapters[pos]->computeScoreBreakdown();
 		if(sc.getScore() >= 50 && sc.getScoreFromRemainingTime() >= 10 &&
 				sc.getInitialRank() >= 3) {
@@ -674,7 +674,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		for(int i = 0; i < GC.getNumEmphasizeInfos(); i++)
 			c->AI_setEmphasize((EmphasizeTypes)i, false);
 		// Clear production queue
-		c->setProductionAutomated(false, true);	
+		c->setProductionAutomated(false, true);
 		c->setCitizensAutomated(true);
 	}
 }
@@ -737,7 +737,7 @@ bool RiseFall::isBlockPopups() const {
 		and there is no disorder because the city was formerly owned. I guess
 		in this case, the player won't be prompted to choose production, which
 		is bad, but rare and won't crash the game.
-		
+
 		I'm now also using this function for tech-choice popups, contact by
 		the AI and Civ4lerts. */
 	return chapters[pos]->getStartTurn() == GC.getGame().getGameTurn();

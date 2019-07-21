@@ -268,19 +268,19 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("FROZEN_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("FROZEN_TERRAIN", idx);
-		
+
 		SetGlobalDefine("COLD_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("COLD_TERRAIN", idx);
-		
+
 		SetGlobalDefine("TEMPERATE_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("TEMPERATE_TERRAIN", idx);
-		
+
 		SetGlobalDefine("DRY_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("DRY_TERRAIN", idx);
-		
+
 		SetGlobalDefine("BARREN_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("BARREN_TERRAIN", idx);
@@ -528,7 +528,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 	if (gDLL->cacheRead(cache)) {
 		logMsg("Read GlobalText from cache");
 		gDLL->destroyCache(cache);
-		return true; 
+		return true;
 	}
 
 	if (!CreateFXml())

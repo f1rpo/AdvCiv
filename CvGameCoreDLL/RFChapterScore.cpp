@@ -78,7 +78,7 @@ void RFChapterScore::read(FDataStreamBase* pStream, RFChapter const* rfc) {
 void RFChapterScore::atChapterStart(RFChapter const& rfc) {
 
 	chapter = &rfc;
-	/*  Sometimes updated before the start of the first chapter anyway, but 
+	/*  Sometimes updated before the start of the first chapter anyway, but
 		not guaranteed. */
 	GC.getGame().updateScore(true);
 	std::pair<int,int> rank_rivals = computeRank(true);
@@ -91,7 +91,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 
 	if(chapter == NULL) {
 		FAssert(chapter != NULL);
-		return std::make_pair<int,int>(-1, -1);
+		return std::make_pair(-1, -1);
 	}
 	double ourRank = 1;
 	int ourRivals = 0;
@@ -135,7 +135,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	if(g.getGameTurn() <= g.getStartTurn() && we.isAlive())
 		ourRank = 1 + ourRivals / 2.0;
 	ourRank += 0.01; // Just to be explicit about rounding up
-	return std::make_pair<int,int>(::round(ourRank), ourRivals);
+	return std::make_pair(::round(ourRank), ourRivals);
 }
 
 int RFChapterScore::modifiedCivScore(PlayerTypes civId) const {

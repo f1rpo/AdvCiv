@@ -17,8 +17,8 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 {
 	OutputDebugString("Python Extension Module - CyPlayerPythonInterface2\n");
 
-	// set the docstring of the current module scope 
-	python::scope().attr("__doc__") = "Civilization IV Player Class"; 
+	// set the docstring of the current module scope
+	python::scope().attr("__doc__") = "Civilization IV Player Class";
 	x
 		.def("AI_updateFoundValues", &CyPlayer::AI_updateFoundValues, "void (bool bStartingLoc)")
 		.def("AI_foundValue", &CyPlayer::AI_foundValue, "int (int, int, int, bool)")

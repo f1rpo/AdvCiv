@@ -90,7 +90,7 @@ void WarTradeAlert::check() {
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeamAI const& warTeam = GET_TEAM((TeamTypes)i);
 		bool valid = (warTeam.isAlive() && !warTeam.isAVassal() &&
-				!warTeam.isMinorCiv() && !warTeam.isHuman() && 
+				!warTeam.isMinorCiv() && !warTeam.isHuman() &&
 				warTeam.getID() != owner.getTeam() &&
 				!warTeam.isAtWar(owner.getTeam()) &&
 				owner.canContactAndTalk(warTeam.getLeaderID()));
@@ -249,11 +249,11 @@ void BonusThirdPartiesAlert::check() {
 			continue;
 		vector<int> newDeals;
 		set_difference(updatedDeals[i].begin(), updatedDeals[i].end(),
-				exportDeals[i].begin(), exportDeals[i].end(), 
+				exportDeals[i].begin(), exportDeals[i].end(),
 				inserter(newDeals, newDeals.begin()));
 		vector<int> missingDeals;
 		set_difference(exportDeals[i].begin(), exportDeals[i].end(),
-				updatedDeals[i].begin(), updatedDeals[i].end(), 
+				updatedDeals[i].begin(), updatedDeals[i].end(),
 				inserter(missingDeals, missingDeals.begin()));
 		for(size_t j = 0; j < newDeals.size(); j++) {
 			int newCount = updatedDeals[i].count(newDeals[j]);

@@ -54,8 +54,8 @@ public:
 	DllExport const wchar* getDescription(uint uiForm = 0) const;
 	DllExport const wchar* getText() const;
 	const wchar* getCivilopedia() const;
-	DllExport const wchar* getHelp() const;		
-	const wchar* getStrategy() const;	
+	DllExport const wchar* getHelp() const;
+	const wchar* getStrategy() const;
 
 	bool isMatchForLink(std::wstring szLink, bool bKeysOnly) const;
 	#if SERIALIZE_CVINFOS
@@ -234,7 +234,7 @@ protected:
 //
 //  class : CvSpecialistInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSpecialistInfo : public CvHotkeyInfo
@@ -290,7 +290,7 @@ protected:
 //
 //  class : CvTechInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvTechInfo : public CvInfoBase
@@ -435,7 +435,7 @@ protected:
 //
 //  class : CvPromotionInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvPromotionInfo :	public CvHotkeyInfo
@@ -539,25 +539,25 @@ protected:
 	int m_iPrereqOrPromotion2;
 	int m_iPrereqOrPromotion3; // K-Mod
 
-	int m_iTechPrereq;							
-	int m_iStateReligionPrereq;							
-	int m_iVisibilityChange;					
-	int m_iMovesChange;						
+	int m_iTechPrereq;
+	int m_iStateReligionPrereq;
+	int m_iVisibilityChange;
+	int m_iMovesChange;
 	int m_iMoveDiscountChange;
 	int m_iAirRangeChange;
 	int m_iInterceptChange;
 	int m_iEvasionChange;
-	int m_iWithdrawalChange;				
-	int m_iCargoChange;				
-	int m_iCollateralDamageChange;	
-	int m_iBombardRateChange;			
-	int m_iFirstStrikesChange;				
-	int m_iChanceFirstStrikesChange;	
-	int m_iEnemyHealChange;				
-	int m_iNeutralHealChange;				
-	int m_iFriendlyHealChange;				
-	int m_iSameTileHealChange;			
-	int m_iAdjacentTileHealChange;		
+	int m_iWithdrawalChange;
+	int m_iCargoChange;
+	int m_iCollateralDamageChange;
+	int m_iBombardRateChange;
+	int m_iFirstStrikesChange;
+	int m_iChanceFirstStrikesChange;
+	int m_iEnemyHealChange;
+	int m_iNeutralHealChange;
+	int m_iFriendlyHealChange;
+	int m_iSameTileHealChange;
+	int m_iAdjacentTileHealChange;
 	int m_iCombatPercent;
 	int m_iCityAttackPercent;
 	int m_iCityDefensePercent;
@@ -574,12 +574,12 @@ protected:
 	bool m_bLeader;
 	//bool m_bBlitz;
 	int m_iBlitz; // advc.164
-	bool m_bAmphib;								
-	bool m_bRiver;									
-	bool m_bEnemyRoute;						
-	bool m_bAlwaysHeal;						
-	bool m_bHillsDoubleMove;				
-	bool m_bImmuneToFirstStrikes;				
+	bool m_bAmphib;
+	bool m_bRiver;
+	bool m_bEnemyRoute;
+	bool m_bAlwaysHeal;
+	bool m_bHillsDoubleMove;
+	bool m_bImmuneToFirstStrikes;
 
 	CvString m_szSound;
 
@@ -602,7 +602,7 @@ protected:
 //
 //  class : CvMissionInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvMissionInfo : public CvHotkeyInfo
@@ -645,7 +645,7 @@ protected:
 //
 //  class : CvControlInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvControlInfo : public CvHotkeyInfo
@@ -667,7 +667,7 @@ protected:
 //
 //  class : CvCommandInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCommandInfo : public CvHotkeyInfo
@@ -701,7 +701,7 @@ protected:
 //
 //  class : CvAutomateInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvAutomateInfo : public CvHotkeyInfo
@@ -738,7 +738,7 @@ protected:
 //
 //  class : CvActionInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvActionInfo
@@ -810,7 +810,7 @@ private:
 //
 //  class : CvUnitInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoUnit;
@@ -1061,29 +1061,29 @@ protected:
 	int m_iBombardRate;
 	int m_iSpecialCargo;
 
-	int m_iDomainCargo;					
-	int m_iCargoSpace;						
+	int m_iDomainCargo;
+	int m_iCargoSpace;
 	int m_iConscriptionValue;
 	int m_iCultureGarrisonValue;
-	int m_iExtraCost;							
-	int m_iAssetValue;						
-	int m_iPowerValue;						
+	int m_iExtraCost;
+	int m_iAssetValue;
+	int m_iPowerValue;
 	int m_iUnitClassType;
-	int m_iSpecialUnitType;				
-	int m_iUnitCaptureClassType;		
-	int m_iUnitCombatType;				
+	int m_iSpecialUnitType;
+	int m_iUnitCaptureClassType;
+	int m_iUnitCombatType;
 	int m_iDomainType;
 	int m_iDefaultUnitAIType;
-	int m_iInvisibleType;					
+	int m_iInvisibleType;
 	int m_iAdvisorType;
-	int m_iHolyCity;							
-	int m_iReligionType;					
-	int m_iStateReligion;					
-	int m_iPrereqReligion;					
-	int m_iPrereqCorporation;					
-	int m_iPrereqBuilding;					
-	int m_iPrereqAndTech;					
-	int m_iPrereqAndBonus;				
+	int m_iHolyCity;
+	int m_iReligionType;
+	int m_iStateReligion;
+	int m_iPrereqReligion;
+	int m_iPrereqCorporation;
+	int m_iPrereqBuilding;
+	int m_iPrereqAndTech;
+	int m_iPrereqAndBonus;
 	int m_iGroupSize;
 	int m_iGroupDefinitions;
 	int m_iUnitMeleeWaveSize;
@@ -1189,11 +1189,11 @@ protected:
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// 
+//
 // class	: CvUnitFormationInfo
 //
 // \brief	: Holds information relating to the formation of sub-units within a unit
-// 
+//
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 class CvUnitEntry
@@ -1227,7 +1227,7 @@ public:
 
 	DllExport const TCHAR* getFormationType() const;
 	DllExport const std::vector<EntityEventTypes> & getEventTypes() const;
-	
+
 	DllExport int getNumUnitEntries() const;
 	DllExport const CvUnitEntry &getUnitEntry(int index) const;
 	DllExport void addUnitEntry(const CvUnitEntry &unitEntry);
@@ -1241,7 +1241,7 @@ public:
 	//---------------------------------------PUBLIC MEMBER VARIABLES---------------------------------
 
 protected:
-	
+
 	CvString m_szFormationType;
 	std::vector<EntityEventTypes>	m_vctEventTypes;		//!< The list of EntityEventTypes that this formation is intended for
 
@@ -1254,7 +1254,7 @@ protected:
 //
 //  class : CvSpecialUnitInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSpecialUnitInfo :
@@ -1293,7 +1293,7 @@ protected:
 //
 //  class : CvCivicOptionInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCivicOptionInfo :
@@ -1320,7 +1320,7 @@ protected:
 //
 //  class : CvCivicInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCivicInfo :
@@ -1332,7 +1332,7 @@ public:
 	CvCivicInfo();
 	virtual ~CvCivicInfo();
 
-	int getCivicOptionType() const;				// Exposed to Python					
+	int getCivicOptionType() const;				// Exposed to Python
 	int getAnarchyLength() const;				// Exposed to Python
 	int getUpkeep() const;				// Exposed to Python
 	int getAIWeight() const;				// Exposed to Python
@@ -1421,39 +1421,39 @@ protected:
 	int m_iAnarchyLength;
 	int m_iUpkeep;
 	int m_iAIWeight;
-	int m_iGreatPeopleRateModifier;					
-	int m_iGreatGeneralRateModifier;					
-	int m_iDomesticGreatGeneralRateModifier;					
-	int m_iStateReligionGreatPeopleRateModifier;					
-	int m_iDistanceMaintenanceModifier;					
-	int m_iNumCitiesMaintenanceModifier;					
-	int m_iCorporationMaintenanceModifier;					
+	int m_iGreatPeopleRateModifier;
+	int m_iGreatGeneralRateModifier;
+	int m_iDomesticGreatGeneralRateModifier;
+	int m_iStateReligionGreatPeopleRateModifier;
+	int m_iDistanceMaintenanceModifier;
+	int m_iNumCitiesMaintenanceModifier;
+	int m_iCorporationMaintenanceModifier;
 	int m_iExtraHealth;
 	int m_iExtraHappiness; // K-Mod
 	int m_iFreeExperience;
 	int m_iWorkerSpeedModifier;
 	int m_iImprovementUpgradeRateModifier;
 	int m_iMilitaryProductionModifier;
-	int m_iBaseFreeUnits;											
-	int m_iBaseFreeMilitaryUnits;								
-	int m_iFreeUnitsPopulationPercent;						
-	int m_iFreeMilitaryUnitsPopulationPercent;			
-	int m_iGoldPerUnit;												
-	int m_iGoldPerMilitaryUnit;									
+	int m_iBaseFreeUnits;
+	int m_iBaseFreeMilitaryUnits;
+	int m_iFreeUnitsPopulationPercent;
+	int m_iFreeMilitaryUnitsPopulationPercent;
+	int m_iGoldPerUnit;
+	int m_iGoldPerMilitaryUnit;
 	int m_iHappyPerMilitaryUnit;
 	int m_iLuxuryModifier; // advc.912c
 	int m_iLargestCityHappiness;
 	int m_iWarWearinessModifier;
 	int m_iFreeSpecialist;
-	int m_iTradeRoutes;												
-	int m_iTechPrereq;												
-	int m_iCivicPercentAnger;									
-	int m_iMaxConscript;											
-	int m_iStateReligionHappiness;							
-	int m_iNonStateReligionHappiness;						
-	int m_iStateReligionUnitProductionModifier;			
-	int m_iStateReligionBuildingProductionModifier;	
-	int m_iStateReligionFreeExperience;	
+	int m_iTradeRoutes;
+	int m_iTechPrereq;
+	int m_iCivicPercentAnger;
+	int m_iMaxConscript;
+	int m_iStateReligionHappiness;
+	int m_iNonStateReligionHappiness;
+	int m_iStateReligionUnitProductionModifier;
+	int m_iStateReligionBuildingProductionModifier;
+	int m_iStateReligionFreeExperience;
 	int m_iExpInBorderModifier;
 
 	bool m_bMilitaryFoodProduction;
@@ -1485,14 +1485,14 @@ protected:
 	bool* m_pabSpecialistValid;
 
 	int** m_ppiImprovementYieldChanges;
-	
+
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 //  class : CvDiplomacyInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvDiplomacyInfo :
@@ -1506,7 +1506,7 @@ public:
 	CvDiplomacyInfo();
 	virtual ~CvDiplomacyInfo();
 
-	void uninit();			
+	void uninit();
 
 	const CvDiplomacyResponse& getResponse(int iNum) const;	// Exposed to Python
 	int getNumResponses() const;															// Exposed to Python
@@ -1533,7 +1533,7 @@ private:
 //
 //  class : CvUnitClassInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvUnitClassInfo :
@@ -1557,11 +1557,11 @@ public:
 //---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iMaxGlobalInstances;	
-	int m_iMaxTeamInstances;	
-	int m_iMaxPlayerInstances;	
+	int m_iMaxGlobalInstances;
+	int m_iMaxTeamInstances;
+	int m_iMaxPlayerInstances;
 	int m_iInstanceCostModifier;
-	int m_iDefaultUnitIndex;		
+	int m_iDefaultUnitIndex;
 
 
 };
@@ -1570,7 +1570,7 @@ protected:
 //
 //  class : CvBuildingInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoBuilding;
@@ -1792,82 +1792,82 @@ public:
 	//---------------------------------------PUBLIC MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iBuildingClassType;						
+	int m_iBuildingClassType;
 	int m_iVictoryPrereq;
 	int m_iFreeStartEra;
 	int m_iMaxStartEra;
-	int m_iObsoleteTech;								
-	int m_iPrereqAndTech;								
-	int m_iNoBonus;									
-	int m_iPowerBonus;									
-	int m_iFreeBonus;									
-	int m_iNumFreeBonuses;							
-	int m_iFreeBuildingClass;									
-	int m_iFreePromotion;								
-	int m_iCivicOption;									
+	int m_iObsoleteTech;
+	int m_iPrereqAndTech;
+	int m_iNoBonus;
+	int m_iPowerBonus;
+	int m_iFreeBonus;
+	int m_iNumFreeBonuses;
+	int m_iFreeBuildingClass;
+	int m_iFreePromotion;
+	int m_iCivicOption;
 	int m_iAIWeight;
 	int m_iProductionCost;
 	int m_iHurryCostModifier;
 	int m_iHurryAngerModifier;
 	int m_iAdvancedStartCost;
 	int m_iAdvancedStartCostIncrease;
-	int m_iMinAreaSize;									
-	int m_iNumCitiesPrereq;							
-	int m_iNumTeamsPrereq;							
-	int m_iUnitLevelPrereq;							
-	int m_iMinLatitude;									
-	int m_iMaxLatitude;									
-	int m_iGreatPeopleRateModifier;				
-	int m_iGreatGeneralRateModifier;				
-	int m_iDomesticGreatGeneralRateModifier;						
-	int m_iGlobalGreatPeopleRateModifier;	
-	int m_iAnarchyModifier;							
-	int m_iGoldenAgeModifier;							
-	int m_iGlobalHurryModifier;						
+	int m_iMinAreaSize;
+	int m_iNumCitiesPrereq;
+	int m_iNumTeamsPrereq;
+	int m_iUnitLevelPrereq;
+	int m_iMinLatitude;
+	int m_iMaxLatitude;
+	int m_iGreatPeopleRateModifier;
+	int m_iGreatGeneralRateModifier;
+	int m_iDomesticGreatGeneralRateModifier;
+	int m_iGlobalGreatPeopleRateModifier;
+	int m_iAnarchyModifier;
+	int m_iGoldenAgeModifier;
+	int m_iGlobalHurryModifier;
 	int m_iFreeExperience;
-	int m_iGlobalFreeExperience;						
+	int m_iGlobalFreeExperience;
 	int m_iFoodKept;
 	int m_iAirlift;
-	int m_iAirModifier;									
-	int m_iAirUnitCapacity;									
+	int m_iAirModifier;
+	int m_iAirUnitCapacity;
 	int m_iNukeModifier;
 	int m_iNukeExplosionRand;
-	int m_iFreeSpecialist;								
-	int m_iAreaFreeSpecialist;						
-	int m_iGlobalFreeSpecialist;						
-	int m_iHappiness;									
-	int m_iAreaHappiness;								
-	int m_iGlobalHappiness;							
-	int m_iStateReligionHappiness;				
-	int m_iWorkerSpeedModifier;					
-	int m_iMilitaryProductionModifier;				
-	int m_iSpaceProductionModifier;				
-	int m_iGlobalSpaceProductionModifier;	
-	int m_iTradeRoutes;									
-	int m_iCoastalTradeRoutes;						
+	int m_iFreeSpecialist;
+	int m_iAreaFreeSpecialist;
+	int m_iGlobalFreeSpecialist;
+	int m_iHappiness;
+	int m_iAreaHappiness;
+	int m_iGlobalHappiness;
+	int m_iStateReligionHappiness;
+	int m_iWorkerSpeedModifier;
+	int m_iMilitaryProductionModifier;
+	int m_iSpaceProductionModifier;
+	int m_iGlobalSpaceProductionModifier;
+	int m_iTradeRoutes;
+	int m_iCoastalTradeRoutes;
 	int m_iAreaTradeRoutes; // advc.310: was m_iGlobalTradeRoutes
-	int m_iTradeRouteModifier;						
-	int m_iForeignTradeRouteModifier;						
-	int m_iAssetValue;									
-	int m_iPowerValue;									
-	int m_iSpecialBuildingType;						
+	int m_iTradeRouteModifier;
+	int m_iForeignTradeRouteModifier;
+	int m_iAssetValue;
+	int m_iPowerValue;
+	int m_iSpecialBuildingType;
 	int m_iAdvisorType;
-	int m_iHolyCity;										
-	int m_iReligionType;								
-	int m_iStateReligion;								
-	int m_iPrereqReligion;								
-	int m_iPrereqCorporation;								
-	int m_iFoundsCorporation;					
+	int m_iHolyCity;
+	int m_iReligionType;
+	int m_iStateReligion;
+	int m_iPrereqReligion;
+	int m_iPrereqCorporation;
+	int m_iFoundsCorporation;
 	int m_iGlobalReligionCommerce;
 	int m_iGlobalCorporationCommerce;
-	int m_iPrereqAndBonus;							
-	int m_iGreatPeopleUnitClass;					
-	int m_iGreatPeopleRateChange;				
-	int m_iConquestProbability;						
-	int m_iMaintenanceModifier;					
-	int m_iWarWearinessModifier;					
+	int m_iPrereqAndBonus;
+	int m_iGreatPeopleUnitClass;
+	int m_iGreatPeopleRateChange;
+	int m_iConquestProbability;
+	int m_iMaintenanceModifier;
+	int m_iWarWearinessModifier;
 	int m_iGlobalWarWearinessModifier;
-	int m_iEnemyWarWearinessModifier;					
+	int m_iEnemyWarWearinessModifier;
 	int m_iHealRateChange;
 	int m_iHealth;
 	int m_iAreaHealth;
@@ -1884,9 +1884,9 @@ protected:
 	float m_fVisibilityPriority;
 
 	bool m_bTeamShare;
-	bool m_bWater;								
-	bool m_bRiver;									
-	bool m_bPower;								
+	bool m_bWater;
+	bool m_bRiver;
+	bool m_bPower;
 	bool m_bDirtyPower;
 	bool m_bAreaCleanPower;
 	bool m_bAreaBorderObstacle;
@@ -1898,10 +1898,10 @@ protected:
 	bool m_bNoUnhappiness;
 	//bool m_bNoUnhealthyPopulation; // ...
 	int m_iUnhealthyPopulationModifier; // K-Mod
-	bool m_bBuildingOnlyHealthy;			
-	bool m_bNeverCapture;					
-	bool m_bNukeImmune;					
-	bool m_bPrereqReligion;					
+	bool m_bBuildingOnlyHealthy;
+	bool m_bNeverCapture;
+	bool m_bNukeImmune;
+	bool m_bPrereqReligion;
 	bool m_bCenterInCity;
 	bool m_bStateReligion;
 	bool m_bAllowsNukes;
@@ -1967,7 +1967,7 @@ protected:
 //
 //  class : CvSpecialBuildingInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSpecialBuildingInfo :
@@ -2011,7 +2011,7 @@ protected:
 //
 //  class : CvBuildingClassInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvBuildingClassInfo :
@@ -2062,7 +2062,7 @@ protected:
 //
 //  class : CvRiverInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvRiverInfo :
@@ -2076,14 +2076,14 @@ public:
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
-	
+
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 //  class : CvRiverModelInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvRiverModelInfo :
@@ -2124,7 +2124,7 @@ protected:
 //
 //  class : CvRouteModelInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvRouteModelInfo :
@@ -2161,7 +2161,7 @@ protected:
 
 	CvString m_szModelFile;				// The model filename
 	CvString m_szLateModelFile;				// The model filename
-	CvString m_szModelFileKey;			// The model file key reference 
+	CvString m_szModelFileKey;			// The model file key reference
 	bool m_bAnimated;
 
 	TCHAR		m_szConnectString[32];	// The connections this cell makes ( N S E W NE NW SE SW )
@@ -2173,7 +2173,7 @@ protected:
 //
 //  class : CvCivilizationInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoCivilization;
@@ -2202,9 +2202,9 @@ public:
 	DllExport const wchar* getShortDescription(uint uiForm = 0);
 	const wchar* getShortDescriptionKey() const;				// Exposed to Python
 	std::wstring pyGetShortDescriptionKey() { return getShortDescriptionKey(); }				// Exposed to Python
-	
+
 	std::wstring pyGetAdjective(uint uiForm) { return getAdjective(uiForm);  }	// Exposed to Python
-	DllExport const wchar* getAdjective(uint uiForm = 0);				
+	DllExport const wchar* getAdjective(uint uiForm = 0);
 	const wchar* getAdjectiveKey() const;				// Exposed to Python
 	std::wstring pyGetAdjectiveKey() { return getAdjectiveKey(); }				// Exposed to Python
 
@@ -2240,17 +2240,17 @@ public:
 
 protected:
 
-	int m_iDefaultPlayerColor;	
-	int m_iArtStyleType;				
+	int m_iDefaultPlayerColor;
+	int m_iArtStyleType;
 	int m_iUnitArtStyleType;  // FlavorUnits by Impaler[WrG]
-	int m_iNumCityNames;			
+	int m_iNumCityNames;
 	int m_iNumLeaders;				 // the number of leaders the Civ has, this is needed so that random leaders can be generated easily
 	int m_iSelectionSoundScriptId;
 	int m_iActionSoundScriptId;
 	int m_iDerivativeCiv;
 
-	bool m_bAIPlayable;			
-	bool m_bPlayable;				
+	bool m_bAIPlayable;
+	bool m_bPlayable;
 
 	CvString m_szArtDefineTag;
 	CvWString m_szShortDescriptionKey;
@@ -2277,7 +2277,7 @@ protected:
 //
 //  class : CvVictoryInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvVictoryInfo :
@@ -2335,7 +2335,7 @@ protected:
 //
 //  class : CvHurryInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvHurryInfo :
@@ -2368,7 +2368,7 @@ class CvHurryInfo :
 //
 //  class : CvHandicapInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvHandicapInfo :
@@ -2519,11 +2519,11 @@ protected:
 	int m_iStartingDefenseUnits;
 	int m_iStartingWorkerUnits;
 	int m_iStartingExploreUnits;
-	int m_iAIStartingUnitMultiplier;					
-	int m_iAIStartingDefenseUnits;				
-	int m_iAIStartingWorkerUnits;					
-	int m_iAIStartingExploreUnits;					
-	int m_iBarbarianInitialDefenders;			
+	int m_iAIStartingUnitMultiplier;
+	int m_iAIStartingDefenseUnits;
+	int m_iAIStartingWorkerUnits;
+	int m_iAIStartingExploreUnits;
+	int m_iBarbarianInitialDefenders;
 	int m_iAIDeclareWarProb;
 	int m_iAIWorkRateModifier;
 	int m_iAIGrowthPercent;
@@ -2565,7 +2565,7 @@ protected:
 //
 //  class : CvGameSpeedInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvGameSpeedInfo :
@@ -2639,7 +2639,7 @@ protected:
 //
 //  class : CvTurnTimerInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvTurnTimerInfo :
@@ -2671,7 +2671,7 @@ protected:
 //
 //  class : CvBuildInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvBuildInfo : public CvHotkeyInfo
@@ -2707,12 +2707,12 @@ public:
 
 protected:
 
-	int m_iTime;					
-	int m_iCost;					
-	int m_iTechPrereq;		
-	int m_iImprovement;	
-	int m_iRoute;				
-	int m_iEntityEvent;		
+	int m_iTime;
+	int m_iCost;
+	int m_iTechPrereq;
+	int m_iImprovement;
+	int m_iRoute;
+	int m_iEntityEvent;
 	int m_iMissionType;
 
 	bool m_bKill;
@@ -2731,7 +2731,7 @@ protected:
 //
 //  class : CvGoodyInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvGoodyInfo :
@@ -2769,22 +2769,22 @@ public:
 
 protected:
 
-	int m_iGold;							
-	int m_iGoldRand1;				
-	int m_iGoldRand2;				
-	int m_iMapOffset;					
-	int m_iMapRange;				
-	int m_iMapProb;					
-	int m_iExperience;				
-	int m_iHealing;						
-	int m_iDamagePrereq;			
-	int m_iBarbarianUnitProb;	
-	int m_iMinBarbarians;			
-	int m_iUnitClassType;			
-	int m_iBarbarianUnitClass;	
+	int m_iGold;
+	int m_iGoldRand1;
+	int m_iGoldRand2;
+	int m_iMapOffset;
+	int m_iMapRange;
+	int m_iMapProb;
+	int m_iExperience;
+	int m_iHealing;
+	int m_iDamagePrereq;
+	int m_iBarbarianUnitProb;
+	int m_iMinBarbarians;
+	int m_iUnitClassType;
+	int m_iBarbarianUnitClass;
 
-	bool m_bTech;						
-	bool m_bBad;						
+	bool m_bTech;
+	bool m_bBad;
 
 	CvString m_szSound;
 
@@ -2794,7 +2794,7 @@ protected:
 //
 //  class : CvRouteInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvRouteInfo :
@@ -2830,7 +2830,7 @@ protected:
 
 	int m_iValue;
 	int m_iMovementCost;
-	int m_iFlatMovementCost;	
+	int m_iFlatMovementCost;
 	int m_iPrereqBonus;
 
 	// Arrays
@@ -2845,7 +2845,7 @@ protected:
 //
 //  class : CvImprovementBonusInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvImprovementBonusInfo :
@@ -2867,7 +2867,7 @@ public:
 	bool isBonusTrade() const;				// Exposed to Python
 
 	int getYieldChange(int i) const;				// Exposed to Python
-	
+
 	#if SERIALIZE_CVINFOS
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
@@ -2890,7 +2890,7 @@ protected:
 //
 //  class : CvImprovementInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoImprovement;
@@ -2940,13 +2940,13 @@ public:
 	// Arrays
 
 	int getPrereqNatureYield(int i) const;				// Exposed to Python
-	int* getPrereqNatureYieldArray();			
+	int* getPrereqNatureYieldArray();
 	int getYieldChange(int i) const;				// Exposed to Python
-	int* getYieldChangeArray();			
+	int* getYieldChangeArray();
 	int getRiverSideYieldChange(int i) const;				// Exposed to Python
-	int* getRiverSideYieldChangeArray();			
+	int* getRiverSideYieldChangeArray();
 	int getHillsYieldChange(int i) const;				// Exposed to Python
-	int* getHillsYieldChangeArray();			
+	int* getHillsYieldChangeArray();
 	int getIrrigatedYieldChange(int i) const;				// Exposed to Python
 	int* getIrrigatedYieldChangeArray();				// For Moose - CvWidgetData XXX
 
@@ -2963,7 +2963,7 @@ public:
 	bool isImprovementBonusMakesValid(int i) const;				// Exposed to Python
 	bool isImprovementBonusTrade(int i) const;				// Exposed to Python
 	int getImprovementBonusDiscoverRand(int i) const;				// Exposed to Python
-	
+
 	// Other
 
 	const TCHAR* getButton() const;
@@ -2996,17 +2996,17 @@ protected:
 	int m_iImprovementPillage;
 	int m_iImprovementUpgrade;
 
-	bool m_bActsAsCity;				
-	bool m_bHillsMakesValid;				
-	bool m_bFreshWaterMakesValid;	
-	bool m_bRiverSideMakesValid;	
-	bool m_bNoFreshWater;				
-	bool m_bRequiresFlatlands;							
-	bool m_bRequiresRiverSide;		
-	bool m_bRequiresIrrigation;		
-	bool m_bCarriesIrrigation;			
+	bool m_bActsAsCity;
+	bool m_bHillsMakesValid;
+	bool m_bFreshWaterMakesValid;
+	bool m_bRiverSideMakesValid;
+	bool m_bNoFreshWater;
+	bool m_bRequiresFlatlands;
+	bool m_bRequiresRiverSide;
+	bool m_bRequiresIrrigation;
+	bool m_bCarriesIrrigation;
 	bool m_bRequiresFeature;
-	bool m_bWater;							
+	bool m_bWater;
 	bool m_bGoody;
 	bool m_bPermanent;
 	bool m_bOutsideBorders;
@@ -3038,7 +3038,7 @@ protected:
 //
 //  class : CvBonusClassInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvBonusClassInfo :
@@ -3058,7 +3058,7 @@ public:
 
 protected:
 
-	int m_iUniqueRange; 
+	int m_iUniqueRange;
 
 };
 
@@ -3066,7 +3066,7 @@ protected:
 //
 //  class : CvBonusInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoBonus;
@@ -3186,7 +3186,7 @@ protected:
 //
 //  class : CvFeatureInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoFeature;
@@ -3209,7 +3209,7 @@ public:
 	int getRivalDefenseModifier() const; // advc.012
 	int getAdvancedStartRemoveCost() const;						// Exposed to Python
 	int getTurnDamage() const;						// Exposed to Python
-	int getWarmingDefense() const; //GWmod	
+	int getWarmingDefense() const; //GWmod
 
 	bool isNoCoast() const;						// Exposed to Python
 	bool isNoRiver() const;						// Exposed to Python
@@ -3225,8 +3225,8 @@ public:
 	bool isNukeImmune() const;			// Exposed to Python
 	const TCHAR* getOnUnitChangeTo() const;
 
-	const TCHAR* getArtDefineTag() const;			
-	void setArtDefineTag(const TCHAR* szTag);			
+	const TCHAR* getArtDefineTag() const;
+	void setArtDefineTag(const TCHAR* szTag);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -3264,19 +3264,19 @@ protected:
 	int m_iAdvancedStartRemoveCost;
 	int m_iTurnDamage;
 	int m_iWarmingDefense; //GWMod new xml field M.A.
-	
-	bool m_bNoCoast;				
-	bool m_bNoRiver;					
-	bool m_bNoAdjacent;			
+
+	bool m_bNoCoast;
+	bool m_bNoRiver;
+	bool m_bNoAdjacent;
 	bool m_bRequiresFlatlands;
 	bool m_bRequiresRiver;
 	bool m_bRequiresRiverSide; // advc.129b
-	bool m_bAddsFreshWater;	
-	bool m_bImpassable;			
-	bool m_bNoCity;					
-	bool m_bNoImprovement;	
-	bool m_bVisibleAlways;	
-	bool m_bNukeImmune;	
+	bool m_bAddsFreshWater;
+	bool m_bImpassable;
+	bool m_bNoCity;
+	bool m_bNoImprovement;
+	bool m_bVisibleAlways;
+	bool m_bNukeImmune;
 	CvString m_szOnUnitChangeTo;
 
 	int m_iWorldSoundscapeScriptId;
@@ -3303,7 +3303,7 @@ private:
 //
 //  class : CvCommerceInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCommerceInfo :
@@ -3316,7 +3316,7 @@ public:
 	virtual ~CvCommerceInfo();
 
 	int getChar() const;				// Exposed to Python
-	void setChar(int i);			
+	void setChar(int i);
 	int getInitialPercent() const;				// Exposed to Python
 	int getInitialHappiness() const;				// Exposed to Python
 	int getAIWeightPercent() const;				// Exposed to Python
@@ -3328,12 +3328,12 @@ public:
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iChar;												
-	int m_iInitialPercent;								
-	int m_iInitialHappiness;							
-	int m_iAIWeightPercent;							
+	int m_iChar;
+	int m_iInitialPercent;
+	int m_iInitialHappiness;
+	int m_iAIWeightPercent;
 
-	bool m_bFlexiblePercent;							
+	bool m_bFlexiblePercent;
 
 };
 
@@ -3342,7 +3342,7 @@ protected:
 //
 //  class : CvYieldInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvYieldInfo :
@@ -3378,17 +3378,17 @@ public:
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iChar;										
-	int m_iHillsChange;							
+	int m_iChar;
+	int m_iHillsChange;
 	int m_iPeakChange;
 	int m_iLakeChange;
-	int m_iCityChange;							
-	int m_iPopulationChangeOffset;		
-	int m_iPopulationChangeDivisor;		
-	int m_iMinCity;									
-	int m_iTradeModifier;						
-	int m_iGoldenAgeYield;					
-	int m_iGoldenAgeYieldThreshold;		
+	int m_iCityChange;
+	int m_iPopulationChangeOffset;
+	int m_iPopulationChangeDivisor;
+	int m_iMinCity;
+	int m_iTradeModifier;
+	int m_iGoldenAgeYield;
+	int m_iGoldenAgeYieldThreshold;
 	int m_iAIWeightPercent;
 	int m_iColorType;
 
@@ -3400,7 +3400,7 @@ protected:
 //
 //  class : CvTerrainInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoTerrain;
@@ -3425,8 +3425,8 @@ public:
 	bool isFoundCoast() const;					// Exposed to Python
 	bool isFoundFreshWater() const;			// Exposed to Python
 
-	DllExport const TCHAR* getArtDefineTag() const;			
-	void setArtDefineTag(const TCHAR* szTag);			
+	DllExport const TCHAR* getArtDefineTag() const;
+	void setArtDefineTag(const TCHAR* szTag);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -3447,13 +3447,13 @@ public:
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iMovementCost;			
-	int m_iSeeFromLevel;			
-	int m_iSeeThroughLevel;		
-	int m_iBuildModifier;				
-	int m_iDefenseModifier;	
+	int m_iMovementCost;
+	int m_iSeeFromLevel;
+	int m_iSeeThroughLevel;
+	int m_iBuildModifier;
+	int m_iDefenseModifier;
 
-	bool m_bWater;					
+	bool m_bWater;
 	bool m_bImpassable;
 	bool m_bFound;
 	bool m_bFoundCoast;
@@ -3478,7 +3478,7 @@ private:
 //
 //  class : CvInterfaceModeInfo (ADD to Python)
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvInterfaceModeInfo :
@@ -3518,7 +3518,7 @@ protected:
 //
 //  class : CvAdvisorInfo (ADD to Python)
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvAdvisorInfo :
@@ -3531,7 +3531,7 @@ public:
 	virtual ~CvAdvisorInfo();
 
 	const TCHAR* getTexture() const;				// Exposed to Python
-	void setTexture(const TCHAR* szVal);			
+	void setTexture(const TCHAR* szVal);
 	int getNumCodes() const;
 	int getEnableCode(uint uiCode) const;
 	int getDisableCode(uint uiCode) const;
@@ -3548,7 +3548,7 @@ protected:
 //
 //  class : CvLeaderHeadInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvArtInfoLeaderhead;
@@ -3644,7 +3644,7 @@ public:
 
 	const TCHAR* getArtDefineTag() const;				// Exposed to Python
 	void setArtDefineTag(const TCHAR* szVal);
-	
+
 	// Arrays
 
 	bool hasTrait(int i) const;				// Exposed to Python
@@ -3782,7 +3782,7 @@ protected:
 //
 //  class : CvWorldInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvWorldInfo :
@@ -3909,7 +3909,7 @@ protected:
 //
 //  class : CvProcessInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvProcessInfo :
@@ -3944,7 +3944,7 @@ protected:
 //
 //  class : CvVoteInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvVoteInfo :	public CvInfoBase
@@ -4009,7 +4009,7 @@ protected:
 //
 //  class : CvProjectInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvProjectInfo :
@@ -4086,7 +4086,7 @@ protected:
 //
 //  class : CvReligionInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvReligionInfo : public CvHotkeyInfo
@@ -4098,9 +4098,9 @@ public:
 	virtual ~CvReligionInfo();
 
 	int getChar() const;								// Exposed to Python
-	void setChar(int i);			
+	void setChar(int i);
 	int getHolyCityChar() const;				// Exposed to Python
-	void setHolyCityChar(int i);			
+	void setHolyCityChar(int i);
 	int getTechPrereq() const;					// Exposed to Python
 	int getFreeUnitClass() const;				// Exposed to Python
 	int getNumFreeUnits() const;				// Exposed to Python
@@ -4109,15 +4109,15 @@ public:
 	void setMissionType(int iNewType);
 
 	const TCHAR* getTechButton() const;				// Exposed to Python
-	void setTechButton(const TCHAR* szVal);	
+	void setTechButton(const TCHAR* szVal);
 	const TCHAR* getGenericTechButton() const;				// Exposed to Python
-	void setGenericTechButton(const TCHAR* szVal);	
+	void setGenericTechButton(const TCHAR* szVal);
 	const TCHAR* getMovieFile() const;				// Exposed to Python
-	void setMovieFile(const TCHAR* szVal);	
+	void setMovieFile(const TCHAR* szVal);
 	const TCHAR* getMovieSound() const;				// Exposed to Python
-	void setMovieSound(const TCHAR* szVal);	
+	void setMovieSound(const TCHAR* szVal);
 	const TCHAR* getSound() const;						// Exposed to Python
-	void setSound(const TCHAR* szVal);			
+	void setSound(const TCHAR* szVal);
 
 	const TCHAR* getButtonDisabled() const;		//	Exposed to Python
 
@@ -4128,7 +4128,7 @@ public:
 	// Arrays
 
 	int getGlobalReligionCommerce(int i) const;		// Exposed to Python
-	int* getGlobalReligionCommerceArray() const;			
+	int* getGlobalReligionCommerceArray() const;
 	int getHolyCityCommerce(int i) const;					// Exposed to Python
 	int* getHolyCityCommerceArray() const;
 	int getStateReligionCommerce(int i) const;		// Exposed to Python
@@ -4139,8 +4139,8 @@ public:
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iChar;					
-	int m_iHolyCityChar;	
+	int m_iChar;
+	int m_iHolyCityChar;
 	int m_iTechPrereq;
 	int m_iFreeUnitClass;
 	int m_iNumFreeUnits;
@@ -4156,7 +4156,7 @@ protected:
 
 	// Arrays
 
-	int* m_paiGlobalReligionCommerce;		
+	int* m_paiGlobalReligionCommerce;
 	int* m_paiHolyCityCommerce;
 	int* m_paiStateReligionCommerce;
 
@@ -4166,7 +4166,7 @@ protected:
 //
 //  class : CvCorporationInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCorporationInfo : public CvHotkeyInfo
@@ -4178,9 +4178,9 @@ public:
 	virtual ~CvCorporationInfo();
 
 	int getChar() const;								// Exposed to Python
-	void setChar(int i);			
+	void setChar(int i);
 	int getHeadquarterChar() const;				// Exposed to Python
-	void setHeadquarterChar(int i);			
+	void setHeadquarterChar(int i);
 	int getTechPrereq() const;					// Exposed to Python
 	int getFreeUnitClass() const;				// Exposed to Python
 	int getSpreadFactor() const;				// Exposed to Python
@@ -4192,11 +4192,11 @@ public:
 	int getBonusProduced() const;					// Exposed to Python
 
 	const TCHAR* getMovieFile() const;				// Exposed to Python
-	void setMovieFile(const TCHAR* szVal);	
+	void setMovieFile(const TCHAR* szVal);
 	const TCHAR* getMovieSound() const;				// Exposed to Python
-	void setMovieSound(const TCHAR* szVal);	
+	void setMovieSound(const TCHAR* szVal);
 	const TCHAR* getSound() const;						// Exposed to Python
-	void setSound(const TCHAR* szVal);			
+	void setSound(const TCHAR* szVal);
 
 	// Arrays
 
@@ -4213,8 +4213,8 @@ public:
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iChar;					
-	int m_iHeadquarterChar;	
+	int m_iChar;
+	int m_iHeadquarterChar;
 	int m_iTechPrereq;
 	int m_iFreeUnitClass;
 	int m_iSpreadFactor;
@@ -4240,7 +4240,7 @@ protected:
 //
 //  class : CvTraitInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvTraitInfo :
@@ -4265,7 +4265,7 @@ public:
 	int getMaxPlayerBuildingProductionModifier() const;				// Exposed to Python
 
 	const TCHAR* getShortDescription() const;				// Exposed to Python
-	void setShortDescription(const TCHAR* szVal);			
+	void setShortDescription(const TCHAR* szVal);
 
 	// Arrays
 
@@ -4275,24 +4275,24 @@ public:
 	int getCommerceModifier(int i) const;				// Exposed to Python
 
 	int isFreePromotion(int i) const;				// Exposed to Python
-	int isFreePromotionUnitCombat(int i) const;			
+	int isFreePromotionUnitCombat(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 protected:
 
-	int m_iHealth;													
+	int m_iHealth;
 	int m_iHappiness;
-	int m_iMaxAnarchy;											
-	int m_iUpkeepModifier;									
-	int m_iLevelExperienceModifier;									
-	int m_iGreatPeopleRateModifier;						
-	int m_iGreatGeneralRateModifier;						
-	int m_iDomesticGreatGeneralRateModifier;						
-	int m_iMaxGlobalBuildingProductionModifier;	
-	int m_iMaxTeamBuildingProductionModifier;		
-	int m_iMaxPlayerBuildingProductionModifier;	
+	int m_iMaxAnarchy;
+	int m_iUpkeepModifier;
+	int m_iLevelExperienceModifier;
+	int m_iGreatPeopleRateModifier;
+	int m_iGreatGeneralRateModifier;
+	int m_iDomesticGreatGeneralRateModifier;
+	int m_iMaxGlobalBuildingProductionModifier;
+	int m_iMaxTeamBuildingProductionModifier;
+	int m_iMaxPlayerBuildingProductionModifier;
 
 	CvString m_szShortDescription;
 
@@ -4312,7 +4312,7 @@ protected:
 //
 //  class : CvCursorInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCursorInfo : public CvInfoBase
@@ -4324,7 +4324,7 @@ public:
 	virtual ~CvCursorInfo();
 
 	DllExport const TCHAR* getPath();				// Exposed to Python
-	void setPath(const TCHAR* szVal);			
+	void setPath(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -4339,7 +4339,7 @@ protected:
 //
 //  class : CvThroneRoomCamera
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvThroneRoomCamera : public CvInfoBase
@@ -4351,7 +4351,7 @@ public:
 	virtual ~CvThroneRoomCamera();
 
 	DllExport const TCHAR* getFileName();
-	void setFileName(const TCHAR* szVal);			
+	void setFileName(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -4365,7 +4365,7 @@ protected:
 //
 //  class : CvThroneRoomInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvThroneRoomInfo : public CvInfoBase
@@ -4377,15 +4377,15 @@ public:
 	virtual ~CvThroneRoomInfo();
 
 	DllExport const TCHAR* getEvent();
-	void setEvent(const TCHAR* szVal);			
+	void setEvent(const TCHAR* szVal);
 	DllExport const TCHAR* getNodeName();
-	void setNodeName(const TCHAR* szVal);			
+	void setNodeName(const TCHAR* szVal);
 	DllExport int getFromState();
-	void setFromState(int iVal);			
+	void setFromState(int iVal);
 	DllExport int getToState();
-	void setToState(int iVal);			
+	void setToState(int iVal);
 	DllExport int getAnimation();
-	void setAnimation(int iVal);			
+	void setAnimation(int iVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -4404,7 +4404,7 @@ protected:
 //
 //  class : CvThroneRoomStyleInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvThroneRoomStyleInfo : public CvInfoBase
@@ -4416,11 +4416,11 @@ public:
 	virtual ~CvThroneRoomStyleInfo();
 
 	DllExport const TCHAR* getArtStyleType();
-	void setArtStyleType(const TCHAR* szVal);	
+	void setArtStyleType(const TCHAR* szVal);
 	DllExport const TCHAR* getEraType();
-	void setEraType(const TCHAR* szVal);	
+	void setEraType(const TCHAR* szVal);
 	DllExport const TCHAR* getFileName();
-	void setFileName(const TCHAR* szVal);	
+	void setFileName(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -4438,7 +4438,7 @@ protected:
 //
 //  class : CvSlideShowInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSlideShowInfo : public CvInfoBase
@@ -4450,11 +4450,11 @@ public:
 	virtual ~CvSlideShowInfo();
 
 	DllExport const TCHAR* getPath();
-	void setPath(const TCHAR* szVal);			
+	void setPath(const TCHAR* szVal);
 	DllExport const TCHAR* getTransitionType();
-	void setTransitionType(const TCHAR* szVal);			
+	void setTransitionType(const TCHAR* szVal);
 	DllExport float getStartTime();
-	void setStartTime(float fVal);			
+	void setStartTime(float fVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -4471,7 +4471,7 @@ protected:
 //
 //  class : CvSlideShowRandomInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSlideShowRandomInfo : public CvInfoBase
@@ -4497,7 +4497,7 @@ protected:
 //
 //  class : CvWorldPickerInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvWorldPickerInfo : public CvInfoBase
@@ -4511,7 +4511,7 @@ public:
 	DllExport const TCHAR* getMapName();
 	void setMapName(const TCHAR* szVal);
 	DllExport const TCHAR* getModelFile();
-	void setModelFile(const TCHAR* szVal);	
+	void setModelFile(const TCHAR* szVal);
 	DllExport int getNumSizes();
 	DllExport float getSize(int index);
 	DllExport int getNumClimates();
@@ -4538,7 +4538,7 @@ protected:
 //
 //  class : CvSpaceShipInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSpaceShipInfo : public CvInfoBase
@@ -4579,7 +4579,7 @@ protected:
 //
 //  class : CvAnimationInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 typedef std::vector<std::pair<int,float> > CvAnimationPathDefinition;
@@ -4612,7 +4612,7 @@ class CvAnimationPathInfo : public CvInfoBase
 //
 //  class : CvAnimationInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvAnimationCategoryInfo : public CvInfoBase
@@ -4639,7 +4639,7 @@ class CvAnimationCategoryInfo : public CvInfoBase
 //
 //  class : CvEntityEventInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvEntityEventInfo : public CvInfoBase
@@ -4686,7 +4686,7 @@ public:
 
 	const TCHAR* getTag() const;				// Exposed to Python
 	void setTag(const TCHAR* szDesc);				// Exposed to Python
-	
+
 	DllExport const TCHAR* getPath() const;				// Exposed to Python
 	void setPath(const TCHAR* szDesc);				// Exposed to Python
 
@@ -4708,7 +4708,7 @@ public:
 
 	DllExport const TCHAR* getNIF() const;				// Exposed to Python
 	DllExport const TCHAR* getKFM() const;				// Exposed to Python
-	
+
 	void setNIF(const TCHAR* szDesc);				// Exposed to Python
 	void setKFM(const TCHAR* szDesc);				// Exposed to Python
 
@@ -4726,7 +4726,7 @@ protected:
 // Another base class
 //////////////////////////////////////////////////////////////////////////
 
-class CvArtInfoScalableAsset : 
+class CvArtInfoScalableAsset :
 	public CvArtInfoAsset,
 	public CvScalableInfo
 {
@@ -4919,7 +4919,7 @@ protected:
 	int m_iFontButtonIndex;
 };
 
-class CvArtInfoImprovement : public CvArtInfoScalableAsset 
+class CvArtInfoImprovement : public CvArtInfoScalableAsset
 {
 public:
 
@@ -4949,11 +4949,11 @@ public:
 	CvArtInfoTerrain();
 	virtual ~CvArtInfoTerrain();
 
-	DllExport const TCHAR* getBaseTexture();			
-	void setBaseTexture(const TCHAR* szTmp );			
-	DllExport const TCHAR* getGridTexture();			
-	void setGridTexture(const TCHAR* szTmp );			
-	DllExport const TCHAR* getDetailTexture();			
+	DllExport const TCHAR* getBaseTexture();
+	void setBaseTexture(const TCHAR* szTmp );
+	DllExport const TCHAR* getGridTexture();
+	void setGridTexture(const TCHAR* szTmp );
+	DllExport const TCHAR* getDetailTexture();
 	void setDetailTexture(const TCHAR* szTmp);
 	DllExport int getLayerOrder();
 	DllExport bool useAlphaShader();
@@ -4967,8 +4967,8 @@ protected:
 	CvString m_szGridTexture;
 
 	int m_iLayerOrder;									//!< Layering order of texture
-	bool m_bAlphaShader;						
-	int m_numTextureBlends;						//!< number to blend textures. 
+	bool m_bAlphaShader;
+	int m_numTextureBlends;						//!< number to blend textures.
 	CvTextureBlendSlotList  **m_pTextureSlots;	//!< Array of Textureslots per blend tile
 };
 
@@ -4981,7 +4981,7 @@ public:
 
 	DllExport bool isAnimated() const;				// Exposed to Python
 	DllExport bool isRiverArt() const;				// Exposed to Python
-	DllExport TileArtTypes getTileArtType() const;	
+	DllExport TileArtTypes getTileArtType() const;
 	DllExport LightTypes getLightType() const;
 
 	bool read(CvXMLLoadUtility* pXML);
@@ -5159,7 +5159,7 @@ protected:
 //
 //  class : CvEmphasizeInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvEmphasizeInfo :
@@ -5198,7 +5198,7 @@ protected:
 //
 //  class : CvUpkeepInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvUpkeepInfo :
@@ -5219,7 +5219,7 @@ public:
 protected:
 
 	int m_iPopulationPercent;
-	int m_iCityPercent;			
+	int m_iCityPercent;
 
 };
 
@@ -5227,7 +5227,7 @@ protected:
 //
 //  class : CvCultureLevelInfo
 //
-//  DESC:   
+//  DESC:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvCultureLevelInfo :
@@ -5261,7 +5261,7 @@ protected:
 //  DESC:   Used to manage different types of Art Styles
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvEraInfo : 
+class CvEraInfo :
 	public CvInfoBase
 {
 public:
@@ -5302,8 +5302,8 @@ public:
 
 	// Arrays
 
-	int getSoundtracks(int i) const;			
-	int getCitySoundscapeSciptId(int i) const;			
+	int getSoundtracks(int i) const;
+	int getCitySoundscapeSciptId(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -5354,7 +5354,7 @@ protected:
 //  DESC:   Used to manage different types of Art Styles
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvColorInfo : 
+class CvColorInfo :
 	public CvInfoBase
 {
 public:
@@ -5362,8 +5362,8 @@ public:
 	CvColorInfo();
 	virtual ~CvColorInfo();
 
-	DllExport const NiColorA& getColor() const;			
-	
+	DllExport const NiColorA& getColor() const;
+
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
@@ -5379,7 +5379,7 @@ protected:
 //  DESC:   Used to manage different types of Art Styles
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvPlayerColorInfo : 
+class CvPlayerColorInfo :
 	public CvInfoBase
 {
 public:
@@ -5387,9 +5387,9 @@ public:
 	CvPlayerColorInfo();
 	virtual ~CvPlayerColorInfo();
 
-	DllExport int getColorTypePrimary() const;			
-	DllExport int getColorTypeSecondary() const;			
-	int getTextColorType() const;			
+	DllExport int getColorTypePrimary() const;
+	DllExport int getColorTypeSecondary() const;
+	int getTextColorType() const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -5428,26 +5428,26 @@ class CvLandscapeInfo :
 		DllExport int getVerticalVertCnt() const;
 		DllExport int getWaterHeight() const;
 
-		float getTextureScaleX() const;			
-		float getTextureScaleY() const;			
-		DllExport float getZScale() const;			
+		float getTextureScaleX() const;
+		float getTextureScaleY() const;
+		DllExport float getZScale() const;
 
-		bool isUseTerrainShader() const;			
-		bool isUseLightmap() const;			
-		bool isRandomMap() const;		
+		bool isUseTerrainShader() const;
+		bool isUseLightmap() const;
+		bool isRandomMap() const;
 		DllExport float getPeakScale() const;
 		DllExport float getHillScale() const;
 
-		const TCHAR* getSkyArt();			
-		void setSkyArt(const TCHAR* szPath);			
-		const TCHAR* getHeightMap();			
-		void setHeightMap(const TCHAR* szPath);			
-		const TCHAR* getTerrainMap();			
-		void setTerrainMap(const TCHAR* szPath);			
-		const TCHAR* getNormalMap();			
-		void setNormalMap(const TCHAR* szPath);			
-		const TCHAR* getBlendMap();			
-		void setBlendMap(const TCHAR* szPath);			
+		const TCHAR* getSkyArt();
+		void setSkyArt(const TCHAR* szPath);
+		const TCHAR* getHeightMap();
+		void setHeightMap(const TCHAR* szPath);
+		const TCHAR* getTerrainMap();
+		void setTerrainMap(const TCHAR* szPath);
+		const TCHAR* getNormalMap();
+		void setNormalMap(const TCHAR* szPath);
+		const TCHAR* getBlendMap();
+		void setBlendMap(const TCHAR* szPath);
 
 		bool read(CvXMLLoadUtility* pXML);
 
@@ -5535,12 +5535,12 @@ class CvDiplomacyTextInfo :	public CvInfoBase
 public:
 	struct Response
 	{
-		Response() : 
-			m_iNumDiplomacyText(0), 
-			m_pbCivilizationTypes(NULL), 
-			m_pbLeaderHeadTypes(NULL), 
-			m_pbAttitudeTypes(NULL), 
-			m_pbDiplomacyPowerTypes(NULL), 
+		Response() :
+			m_iNumDiplomacyText(0),
+			m_pbCivilizationTypes(NULL),
+			m_pbLeaderHeadTypes(NULL),
+			m_pbAttitudeTypes(NULL),
+			m_pbDiplomacyPowerTypes(NULL),
 			m_paszDiplomacyText(NULL)
 		{
 		}
@@ -5568,9 +5568,9 @@ public:
 	CvDiplomacyTextInfo();
 	virtual ~CvDiplomacyTextInfo() { uninit(); }	// free memory - MT
 
-	// note - Response member vars allocated by CvXmlLoadUtility  
-	void init(int iNum);			
-	void uninit();			
+	// note - Response member vars allocated by CvXmlLoadUtility
+	void init(int iNum);
+	void uninit();
 
 	const Response& getResponse(int iNum) const { return m_pResponses[iNum]; }	// Exposed to Python
 	int getNumResponses() const;															// Exposed to Python
@@ -5603,7 +5603,7 @@ private:
 //
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvEffectInfo : 
+class CvEffectInfo :
 	public CvInfoBase,
 	public CvScalableInfo
 {
@@ -5639,7 +5639,7 @@ private:
 //
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvAttachableInfo : 
+class CvAttachableInfo :
 	public CvInfoBase,
 	public CvScalableInfo
 {
@@ -5666,7 +5666,7 @@ private:
 //
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvCameraInfo : 
+class CvCameraInfo :
 	public CvInfoBase
 {
 public:
@@ -5719,7 +5719,7 @@ public:
 	const TCHAR* getQuestLinkName(int iIndex) const;
 	const TCHAR* getQuestSounds(int iIndex) const;
 	const TCHAR* getQuestScript() const;
-	
+
 	void setNumQuestMessages(int iNum);
 	void setNumQuestSounds(int iNum);
 	void setQuestObjective(const TCHAR* szText);
@@ -6053,7 +6053,7 @@ private:
 	int m_iUnitDistanceWeight;
 	int m_iUnitExperienceWeight;
 	int m_iMinTreasury;
-	
+
 	std::vector<int> m_aiUnitsRequired;
 	std::vector<int> m_aiBuildingsRequired;
 	std::vector<int> m_aiPrereqOrTechs;
@@ -6303,13 +6303,13 @@ public:
 
 	CvEspionageMissionInfo();
 	virtual ~CvEspionageMissionInfo();
-	
+
 	int getCost() const;
 	bool isPassive() const;
 	bool isTwoPhases() const;
 	bool isTargetsCity() const;
 	bool isSelectPlot() const;
-	
+
 	int getTechPrereq() const;
 	int getVisibilityLevel() const;
 	bool isInvestigateCity() const;

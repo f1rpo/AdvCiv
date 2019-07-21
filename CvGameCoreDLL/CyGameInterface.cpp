@@ -6,7 +6,7 @@
 
 //
 // published python interface for CyGame
-// 
+//
 
 void CyGamePythonInterface()
 {

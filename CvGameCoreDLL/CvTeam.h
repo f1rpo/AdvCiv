@@ -171,7 +171,7 @@ public:
 	void changeForceTeamVoteEligibilityCount(VoteSourceTypes eVoteSource, int iChange);												// Exposed to Python
 
 	int getExtraWaterSeeFromCount() const;																							// Exposed to Python
-	bool isExtraWaterSeeFrom() const;																										// Exposed to Python	
+	bool isExtraWaterSeeFrom() const;																										// Exposed to Python
 	void changeExtraWaterSeeFromCount(int iChange);																// Exposed to Python
 
 	int getMapTradingCount() const;																											// Exposed to Python
@@ -203,7 +203,7 @@ public:
 	void changeVassalTradingCount(int iChange);												// Exposed to Python
 
 	int getBridgeBuildingCount() const;																									// Exposed to Python
-	bool isBridgeBuilding() const;																						// Exposed to Python		
+	bool isBridgeBuilding() const;																						// Exposed to Python
 	void changeBridgeBuildingCount(int iChange);																	// Exposed to Python
 
 	int getIrrigationCount() const;																											// Exposed to Python
@@ -344,7 +344,7 @@ public:
 	void setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft);
 	void changeVictoryCountdown(VictoryTypes eIndex, int iChange);
 	int getVictoryDelay(VictoryTypes eVictory) const;
-	bool canLaunch(VictoryTypes eVictory) const;									// Exposed to Python 
+	bool canLaunch(VictoryTypes eVictory) const;									// Exposed to Python
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
 	int getLaunchSuccessRate(VictoryTypes eVictory) const;								// Exposed to Python
 	void resetVictoryProgress();
@@ -364,8 +364,8 @@ public:
 	bool isNoTradeTech(TechTypes eIndex) const;																														// Exposed to Python
 	void setNoTradeTech(TechTypes eIndex, bool bNewValue);																					// Exposed to Python
 
-	int getImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2) const;										// Exposed to Python 
-	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python 
+	int getImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2) const;										// Exposed to Python
+	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python
 
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
 

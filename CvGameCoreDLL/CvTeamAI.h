@@ -23,7 +23,7 @@ public:
 	{
 		FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
 		FAssertMsg(eTeam < MAX_TEAMS, "eTeam is not assigned a valid value");
-		return m_aTeams[eTeam]; 
+		return m_aTeams[eTeam];
 	}
 #endif
 	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam);
@@ -205,7 +205,7 @@ public:
 	int AI_getSharedWarSuccess(TeamTypes eWarAlly) const;
 	void AI_setSharedWarSuccess(TeamTypes eWarAlly, int iWS); // </advc.130m>
 	// <advc.130n>
-	int AI_getReligionKnownSince(ReligionTypes eReligion) const; 
+	int AI_getReligionKnownSince(ReligionTypes eReligion) const;
 	void AI_reportNewReligion(ReligionTypes eReligion);
 	// </advc.130n>
 	int AI_getEnemyPeacetimeTradeValue(TeamTypes eIndex) const;
@@ -230,7 +230,7 @@ public:
 			bool bConstCache = false) const; // advc.001n
 
 	// <advc.104>
-	WarAndPeaceAI::Team& warAndPeaceAI(); 
+	WarAndPeaceAI::Team& warAndPeaceAI();
 	WarAndPeaceAI::Team const& warAndPeaceAI() const;
 	// </advc.104>
 	// advc.104: These 9 were protected
@@ -249,16 +249,16 @@ public:
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	// advc.012:
 	int AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding = false) const;
-	
+
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
-	
+
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
-	
+
 	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc.003: */ const;
-	
+
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
-	
+
 
 	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
 	int AI_getStrengthMemory(int x, int y) const;
@@ -298,7 +298,7 @@ protected:
 
 	int AI_noTechTradeThreshold() const;
 	int AI_techTradeKnownPercent() const;
-	
+
 	void AI_doCounter();
 	void AI_doWar();
 

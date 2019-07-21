@@ -65,7 +65,7 @@ public:
 	static wchar const* fillWS(int n, bool addPlus = false);
 	RFChapter& getChapter(int i) const; // Helps with exposal to Python
 	// Exposed to Python through CvGame:
-	  std::wstring* chapterScoreBreakdown(); 
+	  std::wstring* chapterScoreBreakdown();
 	  std::wstring* riseScoreBreakdown();
 	  /*  Named "MaxChapters" in order to make clear that the game may well end
 		  before all chapters are through */

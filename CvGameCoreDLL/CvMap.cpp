@@ -52,9 +52,9 @@ CvMap::~CvMap()
 void CvMap::init(CvMapInitData* pInitInfo)
 {
 	PROFILE("CvMap::init");
-	gDLL->logMemState( CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6", 
-		GC.getWorldInfo(GC.getInitCore().getWorldSize()).getDescription(), 
-		GC.getClimateInfo(GC.getInitCore().getClimate()).getDescription(), 
+	gDLL->logMemState( CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6",
+		GC.getWorldInfo(GC.getInitCore().getWorldSize()).getDescription(),
+		GC.getClimateInfo(GC.getInitCore().getClimate()).getDescription(),
 		GC.getSeaLevelInfo(GC.getInitCore().getSeaLevel()).getDescription(),
 		GC.getInitCore().getNumCustomMapOptions()).c_str() );
 
@@ -300,7 +300,7 @@ void CvMap::setAllPlotTypes(PlotTypes ePlotType)
 	//mark minimap as dirty
 	gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
 	gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
-	
+
 	//float endTime = (float) timeGetTime();
 	//OutputDebugString(CvString::format("[Jason] setAllPlotTypes: %f\n", endTime - startTime).c_str());
 }
@@ -1093,7 +1093,7 @@ int CvMap::getNumBonuses(BonusTypes eIndex) const
 }
 
 
-void CvMap::changeNumBonuses(BonusTypes eIndex, int iChange)									
+void CvMap::changeNumBonuses(BonusTypes eIndex, int iChange)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -1110,7 +1110,7 @@ int CvMap::getNumBonusesOnLand(BonusTypes eIndex) const
 }
 
 
-void CvMap::changeNumBonusesOnLand(BonusTypes eIndex, int iChange)									
+void CvMap::changeNumBonusesOnLand(BonusTypes eIndex, int iChange)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -1131,7 +1131,7 @@ CvPlot* CvMap::plotExternal(int iX, int iY) const // advc.003f
 }
 
 
-CvPlot* CvMap::pointToPlot(float fX, float fY)													
+CvPlot* CvMap::pointToPlot(float fX, float fY)
 {
 	return plot(pointXToPlotX(fX), pointYToPlotY(fY));
 }
@@ -1333,7 +1333,7 @@ void CvMap::write(FDataStreamBase* pStream)
 	pStream->Write(GC.getNumBonusInfos(), m_paiNumBonus);
 	pStream->Write(GC.getNumBonusInfos(), m_paiNumBonusOnLand);
 
-	int iI;	
+	int iI;
 	for (iI = 0; iI < numPlots(); iI++)
 	{
 		m_pMapPlots[iI].write(pStream);
@@ -1379,7 +1379,7 @@ void CvMap::calculateAreas()
 		calculateReprAreas();
 		return;
 	} // </advc.030>
-	
+
 	for (int iI = 0; iI < numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = plotByIndex(iI);
@@ -1513,7 +1513,7 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
 					// For water tiles, orthogonal adjacency is unproblematic.
 					(!p.isWater() || x == q.getX() || y == q.getY() ||
-					// Diagonal adjacency only works if either s or t are water 
+					// Diagonal adjacency only works if either s or t are water
 					s == NULL || s->isWater() || t == NULL || t->isWater()) &&
 					/*  Depth-first search that doesn't continue at impassables
 						except to other impassables so that mountain ranges and

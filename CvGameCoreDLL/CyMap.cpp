@@ -1,6 +1,6 @@
 //
-// Python wrapper class for CvMap 
-// 
+// Python wrapper class for CvMap
+//
 
 #include "CvGameCoreDLL.h"
 #include "CyMap.h"
@@ -102,7 +102,7 @@ int CyMap::plotY(int iIndex)
 	return m_pMap ? m_pMap->plotY(iIndex) : -1;
 }
 
-int CyMap::getGridWidth() 
+int CyMap::getGridWidth()
 {
 	return m_pMap->getGridWidth();
 }
@@ -212,7 +212,7 @@ CyPlot* CyMap::sPlotByIndex(int iIndex)
 	return NULL;
 }
 
-CyPlot* CyMap::plot(int iX, int iY) 
+CyPlot* CyMap::plot(int iX, int iY)
 {
 	return new CyPlot(m_pMap->plot(iX, iY));
 }
@@ -220,7 +220,7 @@ CyPlot* CyMap::plot(int iX, int iY)
 //
 // static version
 //
-CyPlot* CyMap::sPlot(int iX, int iY) 
+CyPlot* CyMap::sPlot(int iX, int iY)
 {
 	static CyPlot p;
 	p.setPlot(m_pMap->plot(iX, iY));

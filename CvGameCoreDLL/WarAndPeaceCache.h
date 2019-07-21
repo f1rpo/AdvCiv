@@ -200,7 +200,7 @@ private:
 	 int sponsorsAgainst[MAX_CIV_TEAMS];
 	 int warUtilityIgnDistraction[MAX_CIV_TEAMS];
 	 bool hireAgainst[MAX_CIV_TEAMS];
-	
+
 public:
 	/* Information to be cached about a CvCity and scoring functions useful
 	   for computing war utility. */

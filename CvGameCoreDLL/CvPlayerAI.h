@@ -244,7 +244,7 @@ public:
 	}
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	int AI_maxGoldTrade(PlayerTypes ePlayer) const {									// Exposed to Python
-		// <advc.134a> Can't add a param b/c the EXE calls this virtual function 
+		// <advc.134a> Can't add a param b/c the EXE calls this virtual function
 		return AI_maxGoldTrade(ePlayer, false);
 	}
 	int AI_maxGoldTrade(PlayerTypes ePlayer, bool bTeamTrade) const; // </advc.134a>
@@ -374,7 +374,7 @@ public:
 
 	int AI_getSameReligionCounter(PlayerTypes eIndex) const;
 	void AI_changeSameReligionCounter(PlayerTypes eIndex, int iChange);
-	
+
 	int AI_getDifferentReligionCounter(PlayerTypes eIndex) const;
 	void AI_changeDifferentReligionCounter(PlayerTypes eIndex, int iChange);
 

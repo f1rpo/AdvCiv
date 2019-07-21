@@ -45,7 +45,7 @@ CvPlot::CvPlot()
 	m_paiBuildProgress = NULL;
 	m_apaiCultureRangeCities = NULL;
 	m_apaiInvisibleVisibilityCount = NULL;
-	
+
 	m_pFeatureSymbol = NULL;
 	m_pPlotBuilder = NULL;
 	m_pRouteSymbol = NULL;
@@ -430,7 +430,7 @@ void CvPlot::doImprovement()
 					if(iOdds > 0)
 					{	// <advc.rom3>
 						//Afforess: check for valid terrains for this bonus before discovering it
-						if(!canHaveBonus((BonusTypes)iI), false, /* advc.129: */ true) 
+						if(!canHaveBonus((BonusTypes)iI), false, /* advc.129: */ true)
 							continue; // </advc.rom3>
 						iOdds *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 						iOdds /= 100;
@@ -654,7 +654,7 @@ void CvPlot::updateSymbols()
 	{
 		int maxYieldStack = GC.getDefineINT("MAX_YIELD_STACK");
 		int layers = maxYield /maxYieldStack + 1;
-		
+
 		CvSymbol *pSymbol= NULL;
 		for(int i=0;i<layers;i++)
 		{
@@ -762,7 +762,7 @@ void CvPlot::verifyUnitValidPlot()
 {
 	//PROFILE_FUNC(); // advc.003o
 	std::vector<std::pair<PlayerTypes, int> > bumped_groups; // K-Mod
-	
+
 	std::vector<CvUnit*> aUnits;
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
@@ -1784,7 +1784,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, C
 						}
 					}
 				}
-				
+
 				if (eFacingDirection != NO_DIRECTION)
 				{
 					if((abs(dx) <= 1) && (abs(dy) <= 1)) //always reveal adjacent plots when using line of sight
@@ -1910,7 +1910,7 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy, int origina
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -1931,7 +1931,7 @@ bool CvPlot::shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionT
 
 		int directionX = displacements[eFacingDirection][0];
 		int directionY = displacements[eFacingDirection][1];
-		
+
 		//compute angle off of direction
 		int crossProduct = directionX * dy - directionY * dx; //cross product
 		int dotProduct = directionX * dx + directionY * dy; //dot product
@@ -2044,7 +2044,7 @@ void CvPlot::setMaxVisibilityRangeCache() {
 void CvPlot::updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups)
 {
 	int const iRange = iMaxVisibilityRangeCache; // advc.003h
-	
+
 	for (int iDX = -iRange; iDX <= iRange; iDX++)
 	{
 		for (int iDY = -iRange; iDY <= iRange; iDY++)
@@ -2287,7 +2287,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	// <dlph.9> Replacing the above
 	bool bFound = false;
 	bool bBuildable = false;
-	
+
 	if (eBuild == NO_BUILD && !bAnyBuild)
 	{
 		for (iI = 0; iI < NUM_YIELD_TYPES; ++iI)
@@ -2316,7 +2316,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 		for (int i = 0; i < GC.getNumBuildInfos(); ++i)
 		{
 			CvBuildInfo& kBuild = GC.getBuildInfo((BuildTypes)i);
-			
+
 			if (kBuild.getImprovement() == eImprovement)
 			{
 				bBuildable = true;
@@ -2339,7 +2339,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 				}
 			}
 		}
-		
+
 		if (bBuildable && !bFound)
 		{
 			return false;
@@ -2711,7 +2711,7 @@ int CvPlot::getUnitPower(PlayerTypes eOwner) const
 }
 
 
-int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding, 
+int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 		TeamTypes eAttacker, // advc.012
 		bool bHelp) const
 {
@@ -2808,7 +2808,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	int iRegularCost;
 	if (pUnit->ignoreTerrainCost())
 	{
-		iRegularCost = 1; 
+		iRegularCost = 1;
 	}
 	else
 	{
@@ -3115,7 +3115,7 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 	aStepData[5] = iMaxPath; // </advc.104b>
 	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
 	gDLL->getFAStarIFace()->Initialize(pStepFinder,
-			GC.getMap().getGridWidth(), 
+			GC.getMap().getGridWidth(),
 			GC.getMap().getGridHeight(),
 			GC.getMap().isWrapX(),
 			GC.getMap().isWrapY(),
@@ -3206,7 +3206,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			int iCulture = getCulture(eLoopPlayer);
 			if (iCulture <= 0)
 				continue; // advc.003
-			if (/* advc.099c: */ bIgnoreCultureRange || 
+			if (/* advc.099c: */ bIgnoreCultureRange ||
 					isWithinCultureRange(eLoopPlayer))
 			{
 				if (iCulture > iBestCulture || (iCulture == iBestCulture &&
@@ -3471,7 +3471,7 @@ bool CvPlot::isActiveVisible(bool bDebug) const
 {	// <advc.706>
 	if(m_bAllFog)
 		return false; // </advc.706>
-	return isVisible(GC.getGame().getActiveTeam(), bDebug); 
+	return isVisible(GC.getGame().getActiveTeam(), bDebug);
 }
 
 
@@ -4139,7 +4139,7 @@ int CvPlot::getLatitude() const
 // advc.tsl: was getLatitude()
 int CvPlot::calculateLatitude() const
 {
-	/* orginal bts code		
+	/* orginal bts code
 	int iLatitude;
 	if (GC.getMap().isWrapX() || !(GC.getMap().isWrapY()))
 		iLatitude = ((getY() * 100) / GC.getMap().getGridHeight());
@@ -4238,7 +4238,7 @@ CvArea* CvPlot::secondWaterArea() const
 			}
 		}
 	}
-	return pBestArea;	
+	return pBestArea;
 }
 
 
@@ -4437,7 +4437,7 @@ bool CvPlot::isStartingPlot() const
 }
 
 
-void CvPlot::setStartingPlot(bool bNewValue)														 
+void CvPlot::setStartingPlot(bool bNewValue)
 {
 	m_bStartingPlot = bNewValue;
 }
@@ -5130,7 +5130,7 @@ bool CvPlot::isContestedByRival(PlayerTypes eRival) const {
 		}
 		return false;
 	} // </advc.099b>
-	return false; 
+	return false;
 } // </advc.035>
 
 
@@ -5394,7 +5394,7 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 		} // </advc.030>
 		if (bRebuildGraphics && GC.IsGraphicsInitialized())
 		{
-			//Update terrain graphical 
+			//Update terrain graphical
 			gDLL->getEngineIFace()->RebuildPlot(getX(), getY(), true, true);
 			//gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true); //minimap does a partial update
 			//gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
@@ -5508,7 +5508,7 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 
 	updateFeatureSymbol();
 
-	if ((eOldFeature != NO_FEATURE && GC.getFeatureInfo(eOldFeature).getArtInfo()->isRiverArt()) || 
+	if ((eOldFeature != NO_FEATURE && GC.getFeatureInfo(eOldFeature).getArtInfo()->isRiverArt()) ||
 		(getFeatureType() != NO_FEATURE && GC.getFeatureInfo(getFeatureType()).getArtInfo()->isRiverArt()))
 	{
 		updateRiverSymbolArt(true);
@@ -5799,7 +5799,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	CvCity* pWorkingCity = getWorkingCity();
 	if (NULL != pWorkingCity)
 	{
-		if ((NO_IMPROVEMENT != eNewValue && pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	|| 
+		if ((NO_IMPROVEMENT != eNewValue && pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	||
 			(NO_IMPROVEMENT != eOldImprovement && pWorkingCity->getImprovementFreeSpecialists(eOldImprovement) > 0))
 		{
 
@@ -5875,7 +5875,7 @@ void CvPlot::updateCityRoute(bool bUpdatePlotGroup)
 		return; // advc.003
 
 	FAssertMsg(isOwned(), "isOwned is expected to be true");
-		
+
 	eCityRoute = GET_PLAYER(getOwner()).getBestRoute();
 	if (eCityRoute == NO_ROUTE)
 	{
@@ -6214,7 +6214,7 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 		/* <advc.500a> No change to the assigned value, but add twice if more than
 		   one river. */
 		int iYieldPerRiver = ((bIgnoreFeature || (getFeatureType() == NO_FEATURE)) ?
-				GC.getTerrainInfo(getTerrainType()).getRiverYieldChange(eYield) : 
+				GC.getTerrainInfo(getTerrainType()).getRiverYieldChange(eYield) :
 				GC.getFeatureInfo(getFeatureType()).getRiverYieldChange(eYield));
 		int iRivers = 1;
 		if(isConnectRiverSegments())
@@ -6616,7 +6616,7 @@ void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bU
 
 	if(getCulture(eIndex) == iNewValue)
 		return;
-	
+
 	if(m_aiCulture == NULL)
 	{	// <advc.003b>
 		m_aiCulture = new int[MAX_PLAYERS](); // value-initialize
@@ -6701,7 +6701,7 @@ bool CvPlot::isBestAdjacentFound(PlayerTypes eIndex)
 			kFoundSet);
 	if (iPlotValue == 0)
 		return false;
-	
+
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
@@ -7871,7 +7871,7 @@ void CvPlot::updateRiverSymbol(bool bForce, bool bAdjacent)
 		m_pRiverSymbol = gDLL->getRiverIFace()->createRiver();
 		FAssert(m_pRiverSymbol != NULL);
 		gDLL->getRiverIFace()->init(m_pRiverSymbol, 0, 0, 0, this);
-		
+
 		//force tree cuts for adjacent plots
 		DirectionTypes affectedDirections[] = { NO_DIRECTION, DIRECTION_EAST, DIRECTION_SOUTHEAST, DIRECTION_SOUTH };
 		for(int i = 0; i < 4; i++)
@@ -7899,7 +7899,7 @@ void CvPlot::updateRiverSymbol(bool bForce, bool bAdjacent)
 		// update the symbol
 		setLayoutDirty(true);
 	}
-	
+
 	//recontour rivers - update position and contours
 	gDLL->getEntityIFace()->updatePosition((CvEntity*)m_pRiverSymbol);
 }
@@ -7984,7 +7984,7 @@ void CvPlot::updateFlagSymbol()
 			gDLL->getFlagEntityIFace()->updateUnitInfo(m_pFlagSymbol, this, false);
 	}
 
-	
+
 	if (ePlayerOffset == NO_PLAYER)
 		return; // advc.003
 
@@ -8299,7 +8299,7 @@ CvSymbol* CvPlot::addSymbol()
 }
 
 
-void CvPlot::deleteSymbol(int iID)			
+void CvPlot::deleteSymbol(int iID)
 {
 	m_symbols.erase(m_symbols.begin()+iID);
 }
@@ -9212,7 +9212,7 @@ bool CvPlot::updatePlotBuilder()
 
 bool CvPlot::isLayoutDirty() const
 {
-	return m_bPlotLayoutDirty;	
+	return m_bPlotLayoutDirty;
 }
 
 
@@ -9361,7 +9361,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 				if ((eYield != YIELD_COMMERCE) || (getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION())) {
 					ImprovementTypes eUpgradeImprovement2 = (ImprovementTypes)GC.getImprovementInfo(eUpgradeImprovement).getImprovementUpgrade();
 					if (eUpgradeImprovement2 != NO_IMPROVEMENT)
-						eUpgradeImprovement = eUpgradeImprovement2;				
+						eUpgradeImprovement = eUpgradeImprovement2;
 				}
 			}
 			if ((eUpgradeImprovement != NO_IMPROVEMENT) && (eUpgradeImprovement != eImprovement))
@@ -9373,10 +9373,10 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 				eImprovement = eFinalImprovement;
 			// </k146>
 		}
-		
+
 		iYield += calculateImprovementYieldChange(eImprovement, eYield, getOwner(), false);
 	}
-	
+
 	RouteTypes eRoute = (RouteTypes)GC.getBuildInfo(eBuild).getRoute();
 	if (eRoute != NO_ROUTE)
 	{
@@ -9813,7 +9813,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 				getPrereqAndBonus(); // </advc.003>
 		if(ePrereqAndBonus != NO_BONUS
 				&& ePrereqAndBonus != eAssumeAvailable) // advc.001u
-		{	
+		{
 			if (NULL == pCity)
 			{
 				if (!isPlotGroupConnectedBonus(getOwner(), ePrereqAndBonus))

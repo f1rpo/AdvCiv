@@ -76,7 +76,7 @@ public:
 
 	// Deletes Maps, Reloads Infos from XML, Rebuilds Maps
 	DllExport void Reset();																														// Exposed to Python
-	
+
 	// Builds Maps
 	DllExport void buildArtFileInfoMaps();																							// Exposed to Python
 

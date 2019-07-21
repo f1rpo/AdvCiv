@@ -747,7 +747,7 @@ public:
 	inline EraTypes getEXTRA_DEFENDER_ERA() { return (EraTypes)m_iEXTRA_DEFENDER_ERA; }
 	// advc.113:
 	inline int getWORKER_RESERVE_PERCENT() { return m_iWORKER_RESERVE_PERCENT; }
-	
+
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -1334,7 +1334,7 @@ protected:
 // BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 public:
 	int getDefineINT( const char * szName, const int iDefault ) const;
-	
+
 // BBAI Options
 public:
 	bool getBBAI_AIR_COMBAT();
@@ -1382,7 +1382,7 @@ protected:
 	int m_iTECH_COST_KNOWN_PREREQ_MODIFIER;
 	int m_iTECH_COST_MODIFIER;
 	int m_iTECH_COST_NOTRADE_MODIFIER; // advc.550d
-	
+
 // From Lead From Behind by UncutDragon. (edited for K-Mod)
 public:
 	bool getLFBEnable() const;

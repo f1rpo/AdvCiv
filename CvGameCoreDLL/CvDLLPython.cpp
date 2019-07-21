@@ -76,9 +76,9 @@ DllExport void DLLPublishToPython()
 	python::class_<CyPlot> plot ("CyPlot");		// define plot class
 	CyPlotPythonInterface1(plot);				// publish its methods
 
-	python::class_<CyGlobalContext> gc ("CyGlobalContext");	// define globals class 
-	CyGlobalContextPythonInterface1(gc);					// publish its methods 
+	python::class_<CyGlobalContext> gc ("CyGlobalContext");	// define globals class
+	CyGlobalContextPythonInterface1(gc);					// publish its methods
 	CyGlobalContextPythonInterface2(gc);					// publish its methods
 	CyGlobalContextPythonInterface3(gc);					// publish its methods
-	CyGlobalContextPythonInterface4(gc);					// publish its methods 
+	CyGlobalContextPythonInterface4(gc);					// publish its methods
 }

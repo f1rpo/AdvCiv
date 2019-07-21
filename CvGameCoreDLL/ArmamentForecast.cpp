@@ -43,7 +43,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	report.log("Production per turn: %d",  ::round(productionEstimate));
 	productionEstimate *= productionPortion;
 	if(productionPortion < 0.99)
-		report.log("Production considering lost cities: %d", 
+		report.log("Production considering lost cities: %d",
 				::round(productionEstimate));
 	// Express upgrades in terms of differences in production costs
 	double prodFromUpgrades = 0;
@@ -497,7 +497,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	// Compute total production for armament
 	double totalProductionForBuildUp = additionalProduction;
 	totalProductionForBuildUp += turnsBuildUp * armamentPortion * perTurnProduction;
-	report.log("Total production for build-up: %d hammers", 
+	report.log("Total production for build-up: %d hammers",
 			::round(totalProductionForBuildUp));
 	productionInvested = totalProductionForBuildUp;
 

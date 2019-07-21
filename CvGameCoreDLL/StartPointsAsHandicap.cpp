@@ -20,7 +20,7 @@ using std::ostringstream;
 
 
 StartPointsAsHandicap::StartPointsAsHandicap() {
-	
+
 	pointsDisplayString = NULL;
 	nCivs = nHuman = 0;
 	randPoints = false;
@@ -128,7 +128,7 @@ void StartPointsAsHandicap::gatherCivs() {
 		if((PlayerTypes)i == NO_PLAYER)
 			continue;
 		CvPlayer const& p = GET_PLAYER((PlayerTypes)i);
-		if(!p.isAlive() || p.isMinorCiv()) 
+		if(!p.isAlive() || p.isMinorCiv())
 			continue;
 		MajorCiv* mciv = new MajorCiv(p.getID());
 		civs.push_back(mciv);

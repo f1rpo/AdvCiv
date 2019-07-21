@@ -907,16 +907,16 @@ bool isLimitedProject(ProjectTypes eProject)
 
 // FUNCTION: getBinomialCoefficient
 // Needed for getCombatOdds
-// Returns int value, being the possible number of combinations 
+// Returns int value, being the possible number of combinations
 // of k draws out of a population of n
-// Written by DeepO 
+// Written by DeepO
 // Modified by Jason Winokur to keep the intermediate factorials small
 __int64 getBinomialCoefficient(int iN, int iK)
 {
 	__int64 iTemp = 1;
 	//take advantage of symmetry in combination, eg. 15C12 = 15C3
 	iK = std::min(iK, iN - iK);
-	
+
 	//eg. 15C3 = (15 * 14 * 13) / (1 * 2 * 3) = 15 / 1 * 14 / 2 * 13 / 3 = 455
 	for(int i=1;i<=iK;i++)
 		iTemp = (iTemp * (iN - i + 1)) / i;
@@ -979,7 +979,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 		return 1000;
 	}
 
-	iAttackerOdds = GC.getCOMBAT_DIE_SIDES() - iDefenderOdds;	
+	iAttackerOdds = GC.getCOMBAT_DIE_SIDES() - iDefenderOdds;
 
 	if (iAttackerOdds == 0)
 	{
@@ -1021,7 +1021,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	// /UncutDragon
 
 	// For every possible first strike event, calculate the odds of combat.
-	// Then, add these to the total, weighted to the chance of that first 
+	// Then, add these to the total, weighted to the chance of that first
 	// strike event occurring
 	//////
 
@@ -1038,9 +1038,9 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 				iFirstStrikes = iI - iJ;
 
 				// For every possible first strike getting hit, calculate both
-				// the chance of that event happening, as well as the rest of 
-				// the chance assuming the event has happened. Multiply these 
-				// together to get the total chance (Bayes rule). 
+				// the chance of that event happening, as well as the rest of
+				// the chance assuming the event has happened. Multiply these
+				// together to get the total chance (Bayes rule).
 				// iI3 counts the number of successful first strikes
 				//////
 
@@ -1049,7 +1049,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 					// event: iI3 first strikes hit the defender
 
 					// calculate chance of iI3 first strikes hitting: fOddsEvent
-					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 					// this needs to be in floating point math
 					//////
 
@@ -1066,15 +1066,15 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 					{
 						fOddsAfterEvent = 0;
 
-						// odds for _at_least_ (iNeededRoundsAttacker - iI3) (the remaining hits 
-						// the attacker needs to make) out of (iMaxRounds - iI3) (the left over 
+						// odds for _at_least_ (iNeededRoundsAttacker - iI3) (the remaining hits
+						// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
 						// rounds) is the sum of each _exact_ draw
 						//////
 
 						for (iI4 = (iNeededRoundsAttacker - iI3); iI4 < (iMaxRounds - iI3 + 1); iI4++)
 						{
 							// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-							// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+							// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 							// this needs to be in floating point math
 							//////
 
@@ -1082,7 +1082,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 						}
 					}
 
-					// Multiply these together, round them properly, and add 
+					// Multiply these together, round them properly, and add
 					// the result to the total iOdds
 					//////
 
@@ -1096,9 +1096,9 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 				iFirstStrikes = iJ - iI;
 
 				// For every possible first strike getting hit, calculate both
-				// the chance of that event happening, as well as the rest of 
-				// the chance assuming the event has happened. Multiply these 
-				// together to get the total chance (Bayes rule). 
+				// the chance of that event happening, as well as the rest of
+				// the chance assuming the event has happened. Multiply these
+				// together to get the total chance (Bayes rule).
 				// iI3 counts the number of successful first strikes
 				//////
 
@@ -1107,13 +1107,13 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 					// event: iI3 first strikes hit the defender
 
 					// First of all, check if the attacker is still alive.
-					// Otherwise, no further calculations need to occur 
+					// Otherwise, no further calculations need to occur
 					/////
 
 					if (iI3 < iNeededRoundsDefender)
 					{
 						// calculate chance of iI3 first strikes hitting: fOddsEvent
-						// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+						// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 						// this needs to be in floating point math
 						//////
 
@@ -1124,8 +1124,8 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 
 						fOddsAfterEvent = 0;
 
-						// odds for _at_least_ iNeededRoundsAttacker (the remaining hits 
-						// the attacker needs to make) out of (iMaxRounds - iI3) (the left over 
+						// odds for _at_least_ iNeededRoundsAttacker (the remaining hits
+						// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
 						// rounds) is the sum of each _exact_ draw
 						//////
 
@@ -1133,20 +1133,20 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 						{
 
 							// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-							// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+							// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 							// this needs to be in floating point math
 							//////
 
 							fOddsAfterEvent += ((float)getBinomialCoefficient((iMaxRounds - iI3), iI4)) * pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI4) * pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), ((iMaxRounds - iI3) - iI4));
 						}
 
-						// Multiply these together, round them properly, and add 
+						// Multiply these together, round them properly, and add
 						// the result to the total iOdds
 						//////
 
 						iOdds += ((int)(1000.0 * (fOddsEvent*fOddsAfterEvent + 0.0005)));
 					}
-				}				
+				}
 			}
 		}
 	}
@@ -1155,7 +1155,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	// note: the integer math breaks down when #FS > 656 (with a die size of 1000)
 	//////
 
-	iOdds /= (((pDefender->immuneToFirstStrikes()) ? 0 : pAttacker->chanceFirstStrikes()) + 1) * (((pAttacker->immuneToFirstStrikes()) ? 0 : pDefender->chanceFirstStrikes()) + 1); 
+	iOdds /= (((pDefender->immuneToFirstStrikes()) ? 0 : pAttacker->chanceFirstStrikes()) + 1) * (((pAttacker->immuneToFirstStrikes()) ? 0 : pDefender->chanceFirstStrikes()) + 1);
 
 	// finished!
 	//////
@@ -1623,9 +1623,9 @@ bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1, int iData2)
 }*/
 /*  <advc.113b> The above won't do for counting the workers available to a city:
 	Doesn't count retreated workers and does count workers in cargo. */
-/*  Replacement: Counts pUnit if it has no mission or if the mission plot has the
-	given city as its working city. The city parameter is given as a pair
-	(iCity,iCityOwner).  */
+/*  Replacement: Count pUnit if its mission plot has the given city as its
+	working city. If pUnit has no mission, then it's counted if its current plot
+	has the given city as its working city. */
 bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner)
 {
 	CvCity* pCity = GET_PLAYER((PlayerTypes)iCityOwner).getCity(iCity);
@@ -1694,7 +1694,7 @@ int checkFreshWater(FAStarNode* parent, FAStarNode* node, int data, const void* 
 }
 
 
-int changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder) 
+int changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (data == ASNL_ADDCLOSED)
 	{
@@ -2405,7 +2405,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			int iUnitMoves = (iStartMoves == 0 ? pLoopUnit->maxMoves() : iStartMoves);
 			iUnitMoves -= pToPlot->movementCost(pLoopUnit, pFromPlot);
 			iUnitMoves = std::max(iUnitMoves, 0);
-			
+
 			iMoves = std::min(iMoves, iUnitMoves);
 		} */
 		// K-Mod. The original code would give incorrect results for groups where one unit had more moves but also had higher move cost.
@@ -2797,7 +2797,7 @@ int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 }
 
 
-int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder) 
+int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (data == ASNL_ADDCLOSED)
 	{
@@ -3134,7 +3134,7 @@ void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI)
 {
 	// note, GC.getUnitAIInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
-	
+
 	switch (eUnitAI)
 	{
 	case NO_UNITAI: szString = L"no unitAI"; break;
@@ -3222,7 +3222,7 @@ int LFBgetCombatOdds(int iAttackerLowFS,	int iAttackerHighFS, int iDefenderLowFS
 	// If attacker has better than even chance to hit, we just flip it and calculate defender's chance to win
 	// This reduces how much we cache considerably (by half just from the fact we're only dealing with half the odds
 	// - but additionally, iNeededRounds'Defender' is guaranteed to stay low - at most 5 with standard settings).
-	iDefenderOdds = GC.getCOMBAT_DIE_SIDES() - iAttackerOdds;	
+	iDefenderOdds = GC.getCOMBAT_DIE_SIDES() - iAttackerOdds;
 	if (iAttackerOdds > iDefenderOdds)
 		bFlip = true;
 
@@ -3317,7 +3317,7 @@ int LFBlookupCombatOdds(LFBoddsFirstStrike* pOdds, int iFSIndex, int iFirstStrik
 
 		// Lookup the odds for the rounded up value
 		int iMaxOdds = LFBlookupCombatOdds(pAttOdds, iMaxOddsIndex, iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iMaxOddsValue);
-		
+
 		// Do a simple weighted average on the two odds
 		//iOdds += (((iAttackerOdds - iMinOddsValue) * (iMaxOdds - iOdds)) / LFB_ODDS_INTERVAL_SIZE);
 		iOdds += ((iAttackerOdds - iMinOddsValue) * (iMaxOdds - iOdds) + LFB_ODDS_INTERVAL_SIZE/2) / LFB_ODDS_INTERVAL_SIZE; // K-Mod. (rounded rather than truncated)
@@ -3388,9 +3388,9 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 		// Attacker gets more or equal first strikes than defender
 
 		// For every possible first strike getting hit, calculate both
-		// the chance of that event happening, as well as the rest of 
-		// the chance assuming the event has happened. Multiply these 
-		// together to get the total chance (Bayes rule). 
+		// the chance of that event happening, as well as the rest of
+		// the chance assuming the event has happened. Multiply these
+		// together to get the total chance (Bayes rule).
 		// iI3 counts the number of successful first strikes
 		//////
 
@@ -3399,7 +3399,7 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 			// event: iI3 first strikes hit the defender
 
 			// calculate chance of iI3 first strikes hitting: fOddsEvent
-			// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+			// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 			// this needs to be in floating point math
 			//////
 
@@ -3416,15 +3416,15 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 			{
 				fOddsAfterEvent = 0;
 
-				// odds for _at_least_ (iNeededRoundsAttacker - iI3) (the remaining hits 
-				// the attacker needs to make) out of (iMaxRounds - iI3) (the left over 
+				// odds for _at_least_ (iNeededRoundsAttacker - iI3) (the remaining hits
+				// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
 				// rounds) is the sum of each _exact_ draw
 				//////
 
 				for (iI4 = (iNeededRoundsAttacker - iI3); iI4 < (iMaxRounds - iI3 + 1); iI4++)
 				{
 					// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 					// this needs to be in floating point math
 					//////
 
@@ -3432,7 +3432,7 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 				}
 			}
 
-			// Multiply these together, round them properly, and add 
+			// Multiply these together, round them properly, and add
 			// the result to the total iOdds
 			//////
 
@@ -3446,9 +3446,9 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 		iFirstStrikes *= -1;
 
 		// For every possible first strike getting hit, calculate both
-		// the chance of that event happening, as well as the rest of 
-		// the chance assuming the event has happened. Multiply these 
-		// together to get the total chance (Bayes rule). 
+		// the chance of that event happening, as well as the rest of
+		// the chance assuming the event has happened. Multiply these
+		// together to get the total chance (Bayes rule).
 		// iI3 counts the number of successful first strikes
 		//////
 
@@ -3457,13 +3457,13 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 			// event: iI3 first strikes hit the defender
 
 			// First of all, check if the attacker is still alive.
-			// Otherwise, no further calculations need to occur 
+			// Otherwise, no further calculations need to occur
 			/////
 
 			if (iI3 < iNeededRoundsDefender)
 			{
 				// calculate chance of iI3 first strikes hitting: fOddsEvent
-				// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+				// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 				// this needs to be in floating point math
 				//////
 
@@ -3474,8 +3474,8 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 
 				fOddsAfterEvent = 0;
 
-				// odds for _at_least_ iNeededRoundsAttacker (the remaining hits 
-				// the attacker needs to make) out of (iMaxRounds - iI3) (the left over 
+				// odds for _at_least_ iNeededRoundsAttacker (the remaining hits
+				// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
 				// rounds) is the sum of each _exact_ draw
 				//////
 
@@ -3483,20 +3483,20 @@ int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNe
 				{
 
 					// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k)) 
+					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
 					// this needs to be in floating point math
 					//////
 
 					fOddsAfterEvent += ((float)getBinomialCoefficient((iMaxRounds - iI3), iI4)) * std::pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI4) * std::pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), ((iMaxRounds - iI3) - iI4));
 				}
 
-				// Multiply these together, round them properly, and add 
+				// Multiply these together, round them properly, and add
 				// the result to the total iOdds
 				//////
 
 				iOdds += ((int)((1000.0 * fOddsEvent * fOddsAfterEvent * (float)LFB_ODDS_EXTRA_ACCURACY)+0.5));
 			}
-		}				
+		}
 	}
 
 	return iOdds;

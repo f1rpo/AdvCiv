@@ -1043,7 +1043,7 @@ bool WarAndPeaceAI::Team::considerConcludePreparations(TeamTypes targetId, int u
 			double rand = GC.getGame().getSorenRandNum(100000, "advc.104")
 					/ 100000.0;
 			/*  The more time remains, the longer we'd still have to wait in order
-				to get utility u. Therefore low thresh if high timeRemaining. 
+				to get utility u. Therefore low thresh if high timeRemaining.
 				Example: 10 turns remaining, u=80: thresh between 32 and 80.
 						 8 turns later, if still u=80: thresh between 64 and 80. */
 			double randPortion = std::min(0.4, timeRemaining / 10.0);
@@ -2138,7 +2138,7 @@ TeamTypes WarAndPeaceAI::Team::diploVoteCounterCandidate(VoteSourceTypes voteSou
 		TeamTypes tId = getWPAI.properTeams()[i];
 		CvTeam const& t = GET_TEAM(tId);
 		// Someone else already controls the UN. This gets too complicated.
-		if(tId != agentId && voteSource != NO_VOTESOURCE && 
+		if(tId != agentId && voteSource != NO_VOTESOURCE &&
 				t.isForceTeamVoteEligible(voteSource))
 			return NO_TEAM;
 		if(t.isAVassal()) continue;

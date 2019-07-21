@@ -49,7 +49,7 @@ public:
 	}
 
 	//	Will set the bitfield for checkboxes
-	void setCheckboxBitfield( int iValue, int iGroup = 0 )								
+	void setCheckboxBitfield( int iValue, int iGroup = 0 )
 	{
 		//m_aiBitField, iGroup, iValue );
 		CvPopup_SetAtGrow(m_aiBitField, iGroup, iValue);
@@ -78,7 +78,7 @@ public:
 	const wchar *getEditBoxString( int iGroup = 0 ) const														// Exposed to Python
 	{
 //		return ((uint)iGroup<m_aszEditBoxString.size()) ? m_aszEditBoxString[iGroup] : NULL;
-		if ((uint)iGroup<m_aszEditBoxString.size()) 
+		if ((uint)iGroup<m_aszEditBoxString.size())
 			return m_aszEditBoxString[iGroup];
 		return NULL;
 	}

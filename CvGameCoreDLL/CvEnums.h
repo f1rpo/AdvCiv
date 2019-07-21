@@ -265,7 +265,7 @@ enum InterfaceMessageTypes	// Exposed to Python
 	MESSAGE_TYPE_COMBAT_MESSAGE,
 	MESSAGE_TYPE_QUEST,
 	// <advc.106b>
-	MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, 
+	MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY,
 	MESSAGE_TYPE_EOT, // </advc.106b>
 #ifdef _USRDLL
 	NUM_INTERFACE_MESSAGE_TYPES
@@ -658,7 +658,7 @@ enum WorldSizeTypes				// Exposed to Python
 #endif
 };
 
-// This is our current relationship with each 
+// This is our current relationship with each
 // one of our connected network peers
 enum InitStates
 {
@@ -1131,7 +1131,7 @@ enum TaskTypes				// Exposed to Python
 #endif
 };
 
-enum BuildingClassTypes				// Exposed to Python 
+enum BuildingClassTypes				// Exposed to Python
 {
 	NO_BUILDINGCLASS = -1,
 };
@@ -1234,7 +1234,7 @@ enum NewConceptTypes				// Exposed to Python
 
 enum CalendarTypes			// Exposed to Python
 {
-	NO_CALENDAR = -1, 
+	NO_CALENDAR = -1,
 
 	CALENDAR_DEFAULT,
 	CALENDAR_BI_YEARLY,
@@ -1798,7 +1798,7 @@ enum AnimationPathTypes	// Exposed to Python
 	ANIMATIONPATH_MELEE_FORTIFIED,
 	ANIMATIONPATH_MELEE_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
 	ANIMATIONPATH_MELEE_FLEE,			//!< Used only by settler children, so they don't die in combat
-	
+
 	// Ranged combat related animation paths
 	ANIMATIONPATH_RANGED_STRIKE,
 	ANIMATIONPATH_RANGED_DIE,
@@ -1807,7 +1807,7 @@ enum AnimationPathTypes	// Exposed to Python
 	ANIMATIONPATH_RANGED_RUNDIE,
 	ANIMATIONPATH_RANGED_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
 	ANIMATIONPATH_LEADER_COMMAND,
-	
+
 	// Air Units animation paths
 	ANIMATIONPATH_AIRFADEIN,
 	ANIMATIONPATH_AIRFADEOUT,
@@ -1955,12 +1955,12 @@ enum DiploEventTypes					// Exposed to Python
 #endif
 };
 
-enum DiploCommentTypes				// Exposed to Python 
+enum DiploCommentTypes				// Exposed to Python
 {
 	NO_DIPLOCOMMENT = -1
 };
 
-enum NetContactTypes					// Exposed to Python 
+enum NetContactTypes					// Exposed to Python
 {
 	NO_NETCONTACT = -1,
 	NETCONTACT_INITIAL,
@@ -1973,7 +1973,7 @@ enum NetContactTypes					// Exposed to Python
 #endif
 };
 
-enum ContactTypes							// Exposed to Python 
+enum ContactTypes							// Exposed to Python
 {
 	CONTACT_RELIGION_PRESSURE,
 	CONTACT_CIVIC_PRESSURE,
@@ -1993,7 +1993,7 @@ enum ContactTypes							// Exposed to Python
 	NUM_CONTACT_TYPES
 };
 
-enum MemoryTypes							// Exposed to Python 
+enum MemoryTypes							// Exposed to Python
 {
 	MEMORY_DECLARED_WAR,
 	MEMORY_DECLARED_WAR_ON_FRIEND,
@@ -2036,7 +2036,7 @@ enum MemoryTypes							// Exposed to Python
 	NUM_MEMORY_TYPES
 };
 
-enum AttitudeTypes				// Exposed to Python 
+enum AttitudeTypes				// Exposed to Python
 {
 	NO_ATTITUDE = -1,
 
@@ -2118,7 +2118,7 @@ enum FeatTypes						// Exposed to Python
 enum SaveGameTypes			// Exposed to Python
 {
 	SAVEGAME_NONE = -1,
-	
+
 	SAVEGAME_AUTO,
 	SAVEGAME_RECOVERY,
 	SAVEGAME_QUICK,
@@ -2245,7 +2245,7 @@ enum MenuScreenType
 	MENU_SCREEN_OPENING_MENU,
 	MENU_SCREEN_MOD_MENU,
 
-	MENU_SCREEN_GS_BUDDYLIST, 
+	MENU_SCREEN_GS_BUDDYLIST,
 	MENU_SCREEN_GS_CHATROOM,
 	MENU_SCREEN_GS_CHANNEL,
 	MENU_SCREEN_GS_CHOOSE_SCENARIO,
@@ -2457,7 +2457,7 @@ enum CivLoginStates
 	LOGIN_CIV_TAKEN,
 	LOGIN_CIV_HAS_ID,
 };
- 
+
 enum VersionTypes
 {
 	NO_VERSIONTYPE = -1,
@@ -2477,7 +2477,7 @@ enum VoteResultTypes
 
 enum VoteStatusTypes
 {
-	NO_VOTESTATUS = -1, 
+	NO_VOTESTATUS = -1,
 
 	VOTESTATUS_TIED = -2,
 	VOTESTATUS_UNDECIDED = -3,
@@ -2596,7 +2596,7 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_FILE_INFO,
 	GAMEMESSAGE_PICK_YOUR_CIV,
 	GAMEMESSAGE_CIV_CHOICE,
-	GAMEMESSAGE_CONFIRM_CIV_CLAIM, 
+	GAMEMESSAGE_CONFIRM_CIV_CLAIM,
 	GAMEMESSAGE_CLAIM_INFO,
 	GAMEMESSAGE_CIV_CHOICE_ACK,
 	GAMEMESSAGE_CIV_CHOICE_NACK,

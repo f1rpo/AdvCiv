@@ -38,7 +38,7 @@ WarAndPeaceCache::WarAndPeaceCache() {
 				pastWarScores[i] = sponsorshipsAgainst[i] =
 				sponsorsAgainst[i] = warUtilityIgnDistraction[i] = -1;
 		hireAgainst[i] = true;
-	} 
+	}
 }
 
 // Called only on exit (to Desktop)
@@ -245,7 +245,7 @@ void WarAndPeaceCache::update() {
 	/*  advc.003b: Disable latestTurnReachable fallback
 		(The update is actually cheap, but I'm not sure about the very numerous
 		getDistance calls.) */
-	//updateLatestTurnReachableBySea(); 
+	//updateLatestTurnReachableBySea();
 	updateTargetMissionCounts();
 	updateTypicalUnits();
 	updateThreatRatings();
@@ -391,7 +391,7 @@ double WarAndPeaceCache::goldPerProdSites() {
 	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER); int foo=-1;
 	/*  Don't want to count faraway barb cities. Reference value set after
 		looking at some sample targetCityValues; let's hope these generalize. */
-	double const refVal = 50; 
+	double const refVal = 50;
 	for(CvCity* c = barb.firstCity(&foo); c != NULL; c = barb.nextCity(&foo)) {
 		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c)) {
 			int const targetVal = owner.AI_targetCityValue(c, false, true);
@@ -983,7 +983,7 @@ void WarAndPeaceCache::updateTargetMissionCount(PlayerTypes civId) {
 	CvPlayerAI& owner = GET_PLAYER(ownerId);
 	for(CvSelectionGroup* selGroup = owner.firstSelectionGroup(&i);
 			selGroup != NULL; selGroup = owner.nextSelectionGroup(&i)) {
-		if(selGroup->getNumUnits() <= 0) // Turns out it can be empty
+		if(selGroup->getNumUnits() <= 0) // Can be empty
 			continue;
 		CvPlot* missionPlot = selGroup->AI_getMissionAIPlot();
 		/* Should work for human civs too. They don't (typically?)
@@ -1621,7 +1621,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 
 		NB: targetCity and this City refer to the same city (but targetCity has
 		type CvCity*).
-	   
+
 		Landlocked civs (0 coastal cities) are treated as unreachable by sea.
 		It's not that hard to compute mixed paths to such civs, but CvUnitAI
 		isn't capable of carrying out naval assaults on non-coastal cities.
@@ -1945,7 +1945,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		maintCost += 1;
 	// Inflation isn't applied by CvCity
 	maintCost *= inflationMultiplier;
-	/*  B/c it's not really at gpt scale (see comment on top), and to account for 
+	/*  B/c it's not really at gpt scale (see comment on top), and to account for
 		possible future maintenance reduction from buildings. */
 	maintCost *= 0.5;
 	r -= maintCost;
