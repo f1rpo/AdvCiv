@@ -78,9 +78,9 @@ public:
 	int getNumUnits();
 	void clearMissionQueue();
 	int getLengthMissionQueue();
-	int getMissionType( int iNode );
-	int getMissionData1( int iNode );
-	int getMissionData2( int iNode );
+	int getMissionType(int iNode);
+	int getMissionData1(int iNode);
+	int getMissionData2(int iNode);
 	MissionData* getMissionFromQueue(int iIndex);
 	CyUnit* getHeadUnit();
 	CyUnit* getUnitAt(int index);

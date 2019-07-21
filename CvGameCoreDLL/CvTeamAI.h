@@ -120,19 +120,19 @@ public:
 
 	int AI_getWarSuccessRating() const; // K-Mod
 
-	int AI_getEnemyPowerPercent( bool bConsiderOthers = false ) const;
+	int AI_getEnemyPowerPercent(bool bConsiderOthers = false) const;
 	int AI_getAirPower() const; // K-Mod
-	int AI_getRivalAirPower( ) const;
+	int AI_getRivalAirPower() const;
 	// K-Mod. (refuse peace when we need war for conquest victory.)
 	bool AI_refusePeace(TeamTypes ePeaceTeam) const;
 	// K-Mod. (is war an acceptable side effect for event choices, vassal deals, etc)
 	bool AI_refuseWar(TeamTypes eWarTeam) const;
-	bool AI_acceptSurrender( TeamTypes eSurrenderTeam ) const;
-	bool AI_isOkayVassalTarget( TeamTypes eTeam ) const;
+	bool AI_acceptSurrender(TeamTypes eSurrenderTeam) const;
+	bool AI_isOkayVassalTarget(TeamTypes eTeam) const;
 
-	void AI_getWarRands( int &iMaxWarRand, int &iLimitedWarRand, int &iDogpileWarRand ) const;
-	void AI_getWarThresholds( int &iMaxWarThreshold, int &iLimitedWarThreshold, int &iDogpileWarThreshold ) const;
-	int AI_getTotalWarOddsTimes100( ) const;
+	void AI_getWarRands(int &iMaxWarRand, int &iLimitedWarRand, int &iDogpileWarRand) const;
+	void AI_getWarThresholds(int &iMaxWarThreshold, int &iLimitedWarThreshold, int &iDogpileWarThreshold) const;
+	int AI_getTotalWarOddsTimes100() const;
 	// bbai end
 	/*  <advc.115b>
 		advc.104: NO_VOTESOURCE if none built yet, AP if AP built but not UN;
@@ -223,6 +223,10 @@ public:
 			= NO_TEAM) const; // K-Mod (any team)
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc.003: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
+	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc.003: Moved from CvTeam; made const.)
+	bool AI_isMasterPlanningLandWar(CvArea* pArea) const;
+	bool AI_isMasterPlanningSeaWar(CvArea* pArea) const;
+	// BETTER_BTS_AI_MOD: END
 	// advc.104:
 	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,

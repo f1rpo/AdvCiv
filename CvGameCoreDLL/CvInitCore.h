@@ -23,7 +23,7 @@ protected:
 
 	void setDefaults();
 
-	bool checkBounds( int iValue, int iLower, int iUpper ) const;
+	bool checkBounds(int iValue, int iLower, int iUpper) const;
 
 public:
 

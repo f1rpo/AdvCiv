@@ -124,7 +124,7 @@ bool CyCity::isBuildingsMaxed()
 	return m_pCity ? m_pCity->isBuildingsMaxed() : false;
 }
 
-bool CyCity::canTrain( int /*UnitTypes*/ eUnit, bool bContinue, bool bTestVisible )
+bool CyCity::canTrain(int /*UnitTypes*/ eUnit, bool bContinue, bool bTestVisible)
 {
 	return m_pCity ? m_pCity->canTrain((UnitTypes)eUnit, bContinue, bTestVisible) : false;
 }
@@ -134,12 +134,12 @@ bool CyCity::canConstruct( int /*BuildingTypes*/ eBuilding, bool bContinue, bool
 	return m_pCity ? m_pCity->canConstruct((BuildingTypes)eBuilding, bContinue, bTestVisible, bIgnoreCost) : false;
 }
 
-bool CyCity::canCreate( int /*ProjectTypes*/ eProject, bool bContinue, bool bTestVisible )
+bool CyCity::canCreate(int /*ProjectTypes*/ eProject, bool bContinue, bool bTestVisible)
 {
 	return m_pCity ? m_pCity->canCreate((ProjectTypes)eProject, bContinue, bTestVisible) : false;
 }
 
-bool CyCity::canMaintain( int /*ProcessTypes*/ eProcess, bool bContinue )
+bool CyCity::canMaintain(int /*ProcessTypes*/ eProcess, bool bContinue)
 {
 	return m_pCity ? m_pCity->canMaintain((ProcessTypes)eProcess, bContinue) : false;
 }
@@ -2260,9 +2260,9 @@ void CyCity::setScriptData(std::string szNewValue)
 		m_pCity->setScriptData(szNewValue);
 }
 
-int CyCity::visiblePopulation(void)
+int CyCity::visiblePopulation()
 {
-	if ( m_pCity )
+	if (m_pCity)
 	{
 		return m_pCity->visiblePopulation();
 	}

@@ -22,21 +22,21 @@ CyPlayer::CyPlayer(CvPlayer* pPlayer) : m_pPlayer(pPlayer)
 }
 
 // CHANGE_PLAYER, 08/27/08. jdog5000:
-void CyPlayer::changeLeader( int /*LeaderHeadTypes*/ eNewLeader )
+void CyPlayer::changeLeader(int /*LeaderHeadTypes*/ eNewLeader)
 {
-	if( m_pPlayer )
-		m_pPlayer->changeLeader( (LeaderHeadTypes)eNewLeader );
+	if (m_pPlayer)
+		m_pPlayer->changeLeader((LeaderHeadTypes)eNewLeader);
 }
 
-void CyPlayer::changeCiv( int /*CivilizationTypes*/ eNewCiv )
+void CyPlayer::changeCiv(int /*CivilizationTypes*/ eNewCiv)
 {
-	if( m_pPlayer )
-		m_pPlayer->changeCiv( (CivilizationTypes)eNewCiv );
+	if (m_pPlayer)
+		m_pPlayer->changeCiv((CivilizationTypes)eNewCiv);
 }
-void CyPlayer::setIsHuman( bool bNewValue )
+void CyPlayer::setIsHuman(bool bNewValue)
 {
-	if( m_pPlayer )
-		m_pPlayer->setIsHuman( bNewValue );
+	if (m_pPlayer)
+		m_pPlayer->setIsHuman(bNewValue);
 }
 // CHANGE_PLAYER: END
 
@@ -165,12 +165,12 @@ std::wstring CyPlayer::getCivilizationAdjective(int iForm)
 	return m_pPlayer ? m_pPlayer->getCivilizationAdjective((uint)iForm) : std::wstring();
 }
 
-std::wstring CyPlayer::getCivilizationAdjectiveKey( )
+std::wstring CyPlayer::getCivilizationAdjectiveKey()
 {
 	return m_pPlayer ? m_pPlayer->getCivilizationAdjectiveKey() : std::wstring();
 }
 
-std::wstring CyPlayer::getFlagDecal( )
+std::wstring CyPlayer::getFlagDecal()
 {
 	return m_pPlayer ? m_pPlayer->getFlagDecal() : std::wstring();
 }
@@ -185,7 +185,7 @@ std::wstring CyPlayer::getStateReligionName(int iForm)
 	return m_pPlayer ? m_pPlayer->getStateReligionName((int)iForm) : std::wstring();
 }
 
-std::wstring CyPlayer::getStateReligionKey( )
+std::wstring CyPlayer::getStateReligionKey()
 {
 	return m_pPlayer ? m_pPlayer->getStateReligionKey() : std::wstring();
 }
@@ -215,7 +215,7 @@ std::string CyPlayer::getUnitButton(int eUnit)
 	return m_pPlayer ? m_pPlayer->getUnitButton((UnitTypes)eUnit) : "";
 }
 
-int CyPlayer::findBestFoundValue( )
+int CyPlayer::findBestFoundValue()
 {
 	return m_pPlayer ? m_pPlayer->findBestFoundValue() : -1;
 }
@@ -1918,7 +1918,7 @@ int CyPlayer::findPathLength(int /*TechTypes*/ eTech, bool bCost)
 	return m_pPlayer ? m_pPlayer->findPathLength((TechTypes)eTech, bCost) : -1;
 }
 
-int CyPlayer::getQueuePosition( int /* TechTypes */ eTech )
+int CyPlayer::getQueuePosition(int /* TechTypes */ eTech)
 {
 	if (m_pPlayer)
 	{
@@ -2254,7 +2254,7 @@ void CyPlayer::setScriptData(std::string szNewValue)
 
 void CyPlayer::chooseTech(int iDiscover, std::wstring szText, bool bFront)
 {
-	if ( m_pPlayer )
+	if (m_pPlayer)
 	{
 		m_pPlayer->chooseTech(iDiscover, szText.c_str(), bFront);
 	}

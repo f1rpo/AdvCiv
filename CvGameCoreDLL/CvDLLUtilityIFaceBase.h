@@ -166,8 +166,8 @@ public:
 	virtual bool getAudioDisabled() = 0;
 	virtual int getAudioTagIndex(const TCHAR* szTag, int iScriptType = -1) = 0;
 
-	virtual void DoSound( int iScriptId ) = 0;
-	virtual void Do3DSound( int iScriptId, NiPoint3 vPosition ) = 0;
+	virtual void DoSound(int iScriptId) = 0;
+	virtual void Do3DSound(int iScriptId, NiPoint3 vPosition) = 0;
 
 	virtual FDataStreamBase* createFileStream() = 0;
 	virtual void destroyDataStream(FDataStreamBase*& stream) = 0;

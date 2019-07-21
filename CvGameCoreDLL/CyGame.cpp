@@ -1159,7 +1159,7 @@ void CyGame::addPlayer(int eNewPlayer, int eLeader, int eCiv)
 }
 
 // BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000: START
-void CyGame::changeHumanPlayer( int /*PlayerTypes*/ eNewHuman )
+void CyGame::changeHumanPlayer(int /*PlayerTypes*/ eNewHuman)
 {
 	if (m_pGame)
 	{

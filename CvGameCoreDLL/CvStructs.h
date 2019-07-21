@@ -360,7 +360,7 @@ class CvBattleDefinition : public CvMissionDefinition
 {
 public:
 	CvBattleDefinition();
-	DllExport CvBattleDefinition( const CvBattleDefinition & kCopy );
+	DllExport CvBattleDefinition(const CvBattleDefinition & kCopy);
 	DllExport ~CvBattleDefinition();
 	DllExport int getDamage(BattleUnitTypes unitType, BattleTimeTypes timeType) const;
 	void setDamage(BattleUnitTypes unitType, BattleTimeTypes timeType, int damage);
@@ -408,7 +408,7 @@ class CvAirMissionDefinition : public CvMissionDefinition
 {
 public:
 	CvAirMissionDefinition();
-	DllExport CvAirMissionDefinition( const CvAirMissionDefinition & kCopy );
+	DllExport CvAirMissionDefinition(const CvAirMissionDefinition & kCopy);
 
 	DllExport int getDamage(BattleUnitTypes unitType) const;
 	void setDamage(BattleUnitTypes unitType, int damage);

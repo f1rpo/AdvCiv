@@ -194,7 +194,7 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 	m_iCityTargetTimer = 0; // K-Mod
 
 	// CHANGE_PLAYER, 06/08/09, jdog5000: START
-	if( bConstructor || getNumUnits() == 0 )
+	if (bConstructor || getNumUnits() == 0)
 	{
 		for (iI = 0; iI < NUM_UNITAI_TYPES; iI++)
 		{
@@ -660,7 +660,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 		return;*/
 
 	// BETTER_BTS_AI_MOD, AI Logging, 02/24/10, jdog5000
-	if( gPlayerLogLevel > 2 && iStartingGold - getGold() > 0)
+	if (gPlayerLogLevel > 2 && iStartingGold - getGold() > 0)
 		logBBAI("    %S spends %d on unit upgrades out of budget of %d, %d gold remaining", getCivilizationDescription(0), iStartingGold - getGold(), iUpgradeBudget, getGold());
 
 	// UF bugfix: AI_doSplit moved here per alexman's suggestion
@@ -1081,7 +1081,7 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroup* pGroup) const
 	if (pHeadUnit == NULL)
 		return MAX_INT;
 
-	if( pHeadUnit->isSpy() )
+	if (pHeadUnit->isSpy())
 	{
 		return 0;
 	}
@@ -1411,12 +1411,12 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	int iLoop;
 	int iI;
 
-	if( isHuman() )
+	if (isHuman())
 	{
 		return;
 	}
 
-	if( isBarbarian() )
+	if (isBarbarian())
 	{
 		return;
 	}
@@ -1439,7 +1439,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	if (iTotalFloatingDefenders < ((iNeededFloatingDefenders + 1) / (bGetBetterUnits ? 3 : 2)))
 	if (!bExempt && AI_chooseLeastRepresentedUnit(floatingDefenderTypes))
 	{
-		if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose floating defender 1", getName().GetCString());
+		if (gCityLogLevel >= 2) logBBAI("      City %S uses choose floating defender 1", getName().GetCString());
 		return;
 	}
 	*/
@@ -1557,7 +1557,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 // K-Mod end, the rest is some unfinished code from BBAI
 
 	// BBAI TODO: Temp testing
-	if( getID() % 2 == 1 )
+	if (getID() % 2 == 1)
 	{
 		return;
 	}
@@ -1567,7 +1567,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	bool bIndustrious = (getMaxPlayerBuildingProductionModifier() > 0);
 	bool bAtWar = (GET_TEAM(getTeam()).getAtWarCount(true) > 0);
 
-	if( bIndustrious )
+	if (bIndustrious)
 	{
 		iMaxNumWonderCities += 1;
 	}
@@ -1576,27 +1576,27 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	// Power?
 	// Research?
 
-	if( bAtWar )
+	if (bAtWar)
 	{
 		int iWarSuccessRating = GET_TEAM(getTeam()).AI_getWarSuccessRating();
-		if( iWarSuccessRating < -90 )
+		if (iWarSuccessRating < -90)
 		{
 			iMaxNumWonderCities = 0;
 		}
 		else
 		{
-			if( iWarSuccessRating < 30 )
+			if (iWarSuccessRating < 30)
 			{
 				iMaxNumWonderCities -= 1;
 			}
-			if( iWarSuccessRating < -50 )
+			if (iWarSuccessRating < -50)
 			{
 				iMaxNumWonderCities /= 2;
 			}
 		}
 	}
 
-	if( isMinorCiv() && (GET_TEAM(getTeam()).getHasMetCivCount(false) > 1) )
+	if (isMinorCiv() && GET_TEAM(getTeam()).getHasMetCivCount(false) > 1)
 	{
 		iMaxNumWonderCities /= 2;
 	}
@@ -1610,25 +1610,25 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	int iNumDangerCities = 0;
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		if( pLoopCity->isProductionBuilding() )
+		if (pLoopCity->isProductionBuilding())
 		{
-			if( isLimitedWonderClass((BuildingClassTypes)(GC.getBuildingInfo(pLoopCity->getProductionBuilding()).getBuildingClassType())))
+			if (isLimitedWonderClass((BuildingClassTypes)GC.getBuildingInfo(pLoopCity->getProductionBuilding()).getBuildingClassType()))
 			{
 				iLimitedWonderCities++;
 
-				if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(pLoopCity->getProductionBuilding()).getBuildingClassType())))
+				if (isWorldWonderClass((BuildingClassTypes)GC.getBuildingInfo(pLoopCity->getProductionBuilding()).getBuildingClassType()))
 				{
 					iWorldWonderCities++;
 				}
 			}
 		}
 
-		if( pLoopCity->isProductionProject() )
+		if (pLoopCity->isProductionProject())
 		{
-			if( isLimitedProject(pLoopCity->getProductionProject()))
+			if (isLimitedProject(pLoopCity->getProductionProject()))
 			{
 				iLimitedWonderCities++;
-				if( isWorldProject(pLoopCity->getProductionProject()))
+				if (isWorldProject(pLoopCity->getProductionProject()))
 				{
 					iWorldWonderCities++;
 				}
@@ -1715,7 +1715,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 						DOMAIN_LAND, 3);
 				if(5 * iAttStr > 4 * iDefStr)
 					bRaze = true;
-				if(bRaze) logBBAI( "  Razing enemy cultural victory city" );
+				if(bRaze) logBBAI("  Razing enemy cultural victory city");
 			}
 		} // </advc.116>
 	} // <advc.122>
@@ -1730,13 +1730,13 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 		if(!bCultureVictory) { // advc.116
 			if(getNumCities() <= 1 || (getNumCities() < 5 && iCloseness > 0))
 			{
-				if( gPlayerLogLevel >= 1 ) logBBAI("    Player %d (%S) decides not to raze %S because they have few cities", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
+				if (gPlayerLogLevel >= 1) logBBAI("    Player %d (%S) decides not to raze %S because they have few cities", getID(), getCivilizationDescription(0), pCity->getName().GetCString());
 			}
 			else if(AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3) &&
 					GET_TEAM(getTeam()).AI_isPrimaryArea(pCity->area()))
 			{
 				// Do not raze, going for domination
-				if( gPlayerLogLevel >= 1 ) logBBAI("    Player %d (%S) decides not to raze %S because they're going for domination", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
+				if (gPlayerLogLevel >= 1) logBBAI("    Player %d (%S) decides not to raze %S because they're going for domination", getID(), getCivilizationDescription(0), pCity->getName().GetCString());
 			}
 		}
 		//else // advc.116
@@ -1774,7 +1774,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 			if (GET_TEAM(getTeam()).countNumCitiesByArea(pCity->area()) == 0)
 			{	// Conquered city in new continent/island
 				int iBestValue;
-				if( pCity->area()->getNumCities() == 1 && AI_getNumAreaCitySites(pCity->area()->getID(), iBestValue) == 0 )
+				if (pCity->area()->getNumCities() == 1 && AI_getNumAreaCitySites(pCity->area()->getID(), iBestValue) == 0)
 				{	// Probably small island
 					// ...
 				}
@@ -1884,7 +1884,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 			// </advc.116>
 			// (disabled by K-Mod)
 			// Scale down distance/maintenance effects for organized.
-			/*if( iRazeValue > 0 ) {
+			/*if (iRazeValue > 0) {
 				for (iI = 0; iI < GC.getNumTraitInfos(); iI++) {
 					// ... (advc.003: body deleted)
 				}
@@ -1902,12 +1902,12 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 					if (GET_TEAM(getTeam()).hasShrine(getStateReligion()))
 					{
 						iRazeValue -= 50;
-						if( gPlayerLogLevel >= 1 ) logBBAI("      Reduction for state religion with shrine" );
+						if (gPlayerLogLevel >= 1) logBBAI("      Reduction for state religion with shrine");
 					}
 					else
 					{
 						iRazeValue -= 10;
-						if( gPlayerLogLevel >= 1 ) logBBAI("      Reduction for state religion" );
+						if (gPlayerLogLevel >= 1) logBBAI("      Reduction for state religion");
 					}
 				}
 			}
@@ -1924,7 +1924,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 			{
 				if (pCity->isHolyCity((ReligionTypes)iI))
 				{
-					logBBAI("      Reduction for holy city" );
+					logBBAI("      Reduction for holy city");
 					if(getStateReligion() == iI)
 						iRazeValue -= 150;
 					else iRazeValue -= 5 + g.calculateReligionPercent((ReligionTypes)iI);
@@ -1989,13 +1989,13 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 
 			// More inclined to raze if we're unlikely to hold it
 			/*if(GET_TEAM(getTeam()).getPower(false)*10 <
-					kPreviousTeam.getPower(true)*8 ) {
+					kPreviousTeam.getPower(true)*8) {
 				int iTempValue = 20;
 				iTempValue *= (kPreviousTeam.getPower(true) -
 						GET_TEAM(getTeam()).getPower(false));
-				iTempValue /= std::max( 100, GET_TEAM(getTeam()).getPower(false) );
-				logBBAI("      Low power, so boost raze odds by %d", std::min( 75, iTempValue ) );
-				iRazeValue += std::min( 75, iTempValue );
+				iTempValue /= std::max(100, GET_TEAM(getTeam()).getPower(false));
+				logBBAI("      Low power, so boost raze odds by %d", std::min( 75, iTempValue));
+				iRazeValue += std::min(75, iTempValue);
 			}*/
 			// <advc.116> Razing doesn't really help when losing a war. Replacement:
 			iRazeValue += ::range((GET_TEAM(getTeam()).
@@ -2003,9 +2003,9 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 			// </advc.116>
 			if(gPlayerLogLevel >= 1)
 			{
-				if( bBarbCity ) logBBAI("      %S is a barb city", pCity->getName().GetCString() );
-				if( bPrevOwnerBarb ) logBBAI("      %S was last owned by barbs", pCity->getName().GetCString() );
-				logBBAI("      %S has area cities %d, closeness %d, bFinTrouble %d", pCity->getName().GetCString(), GET_TEAM(getTeam()).countNumCitiesByArea(pCity->area()), iCloseness, bFinancialTrouble );
+				if (bBarbCity) logBBAI("      %S is a barb city", pCity->getName().GetCString());
+				if (bPrevOwnerBarb) logBBAI("      %S was last owned by barbs", pCity->getName().GetCString());
+				logBBAI("      %S has area cities %d, closeness %d, bFinTrouble %d", pCity->getName().GetCString(), GET_TEAM(getTeam()).countNumCitiesByArea(pCity->area()), iCloseness, bFinancialTrouble);
 			}
 
 			// advc.116: Replacing the dice roll below. That's hardly any randomness.
@@ -2013,9 +2013,9 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 		} // End of !isBarbarian()
 
 		if(gPlayerLogLevel >= 1) {
-			//logBBAI("    Player %d (%S) has odds %d to raze city %S", getID(), getCivilizationDescription(0), iRazeValue, pCity->getName().GetCString() );
+			//logBBAI("    Player %d (%S) has odds %d to raze city %S", getID(), getCivilizationDescription(0), iRazeValue, pCity->getName().GetCString());
 			// advc.116: Replacing the above
-			if(!bRaze) logBBAI("    Player %d (%S) has raze value %d for city %S", getID(), getCivilizationDescription(0), iRazeValue, pCity->getName().GetCString() );
+			if(!bRaze) logBBAI("    Player %d (%S) has raze value %d for city %S", getID(), getCivilizationDescription(0), iRazeValue, pCity->getName().GetCString());
 		}
 
 		if (iRazeValue > 0)
@@ -2028,7 +2028,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 
 	if(bRaze)
 	{	// K-Mod moved the log message up - otherwise it will crash due to pCity being deleted!
-		logBBAI("    Player %d (%S) decides to to raze city %S!!!", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
+		logBBAI("    Player %d (%S) decides to to raze city %S!!!", getID(), getCivilizationDescription(0), pCity->getName().GetCString());
 		pCity->doTask(TASK_RAZE);
 	}
 	else CvEventReporter::getInstance().cityAcquiredAndKept(
@@ -3994,18 +3994,18 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iValue += 50;
 				// Push players to get more coastal cities so they can build navies
 				CvArea* pWaterArea = pPlot->waterArea(true);
-				if( pWaterArea != NULL )
+				if (pWaterArea != NULL)
 				{	// advc.031: Replacing the line below
 					iSeaValue += (kSet.bSeafaring ? 140 : 80);
 					//120 + (kSet.bSeafaring ? 160 : 0);
-					if( GET_TEAM(getTeam()).AI_isWaterAreaRelevant(pWaterArea)
+					if (GET_TEAM(getTeam()).AI_isWaterAreaRelevant(pWaterArea)
 							/*  advc.031: Don't worry about coastal production if we
 								already have many coastal cities. */
 							&& countNumCoastalCities() <= getNumCities() / 3)
 					{	// advc.031: Replacing the line below
 						iSeaValue += (kSet.bSeafaring ? 240 : 125);
 						//iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
-						//if( (countNumCoastalCities() < (getNumCities()/4)) || (countNumCoastalCitiesByArea(pPlot->area()) == 0) )
+						//if (countNumCoastalCities() < getNumCities() / 4 || countNumCoastalCitiesByArea(pPlot->area()) == 0)
 						if (
 							// advc.031: Disabled this clause
 							//countNumCoastalCities() < getNumCities()/4 ||
@@ -4692,7 +4692,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 			iValue += 2 + ((GC.getGame().calculateReligionPercent((ReligionTypes)iI)) / 5);
 			if (kOwner.getStateReligion() == iI)
 				iValue += 2;
-			if( getStateReligion() == iI )
+			if (getStateReligion() == iI)
 				iValue += 8;
 		}
 	}*/
@@ -4707,7 +4707,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	if (pCity->isEverOwned(getID()))
 	{
 		iValue += 4;
-		if( pCity->getOriginalOwner() == getID() )
+		if (pCity->getOriginalOwner() == getID())
 			iValue += 2;
 	}
 
@@ -4729,12 +4729,12 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 			iValue++;
 	}
 	bool bThwartVictory = false; // advc.104d
-	if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) )
+	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
 	{
 		if (pCity->getCultureLevel() >= g.culturalVictoryCultureLevel() - 1)
 		{
 			iValue += 10; // advc.104d: Was 15; will reduce distance penalty instead.
-			if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) )
+			if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
 			{
 				iValue += 15; // advc.104d: was 25
 				if (pCity->getCultureLevel() >= (g.culturalVictoryCultureLevel()) ||
@@ -4747,7 +4747,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 		}
 	}
 
-	if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) )
+	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
 	{
 		if (pCity->isCapital())
 		{	// <advc.104d>
@@ -4919,8 +4919,8 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	if(iRange == -1)
 		iRange = DANGER_RANGE;
 
-	/* bbai if( bTestMoves && isTurnActive() )
-	{ if( (iRange <= DANGER_RANGE) && pPlot->getActivePlayerNoDangerCache() )
+	/* bbai if (bTestMoves && isTurnActive())
+	{ if (iRange <= DANGER_RANGE && pPlot->getActivePlayerNoDangerCache())
 			return false; } */
 	// K-Mod
 	if(bTestMoves && isSafeRangeCacheValid() && iRange <= pPlot->getActivePlayerSafeRangeCache())
@@ -4936,7 +4936,7 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	// K-Mod end
 
 	if(bCheckBorder) {
-		//if( (iRange >= DANGER_RANGE) && pPlot->isTeamBorderCache(eTeam) )
+		//if (iRange >= DANGER_RANGE && pPlot->isTeamBorderCache(eTeam))
 		if(iRange >= BORDER_DANGER_RANGE && pPlot->getBorderDangerCache(eTeam)) // K-Mod. border danger doesn't count anything further than range 2.
 			return true;
 	}
@@ -5016,9 +5016,9 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 				// No need to loop over tiles full of our own units
-				if( pLoopUnit->getTeam() == eTeam )
+				if (pLoopUnit->getTeam() == eTeam)
 				{
-					if(!pLoopUnit->alwaysInvisible() &&
+					if (!pLoopUnit->alwaysInvisible() &&
 							pLoopUnit->getInvisibleType() == NO_INVISIBLE)
 						break;
 				}
@@ -5069,10 +5069,10 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	// case is called far more frequently, it is more important and the cache
 	// value being true is only assumed to mean that the plot is safe in the
 	// test moves case.
-	//if( bTestMoves )
+	//if (bTestMoves)
 	/* bbai code {
-		if( isTurnActive() ) {
-			if( !(GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)) && (GC.getGame().getNumGameTurnActive() == 1) )
+		if (isTurnActive()) {
+			if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1)
 				pPlot->setActivePlayerNoDangerCache(true);
 		}
 	}*/
@@ -5104,7 +5104,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 		iRange = DANGER_RANGE;
 	/* bbai
 	if(bTestMoves && isTurnActive()) {
-		if( (iRange <= DANGER_RANGE) && pPlot->getActivePlayerNoDangerCache() )
+		if (iRange <= DANGER_RANGE && pPlot->getActivePlayerNoDangerCache())
 			return 0;
 	}*/
 	// K-Mod
@@ -5561,11 +5561,11 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 							if (iPathLength <= iMaxPathLength)
 							{
-								iValue = AI_techValue( (TechTypes)iI, iPathLength, bIgnoreCost, bAsync, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave );
+								iValue = AI_techValue((TechTypes)iI, iPathLength, bIgnoreCost, bAsync, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave);
 
-								if( gPlayerLogLevel >= 3 )
+								if (gPlayerLogLevel >= 3)
 								{
-									logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo((TechTypes)iI).getDescription(), iValue );
+									logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo((TechTypes)iI).getDescription(), iValue);
 								}
 
 								if (iValue > iBestValue)
@@ -5674,7 +5674,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 			if (iDepth == 0 && gPlayerLogLevel >= 3)
 			{
-				logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eTech).getDescription(), iValue );
+				logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eTech).getDescription(), iValue);
 			}
 		}
 	}
@@ -5821,7 +5821,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 	if (gPlayerLogLevel >= 1)
 	{
-		logBBAI("  Player %d (%S) selects tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eBestTech).getDescription(), tech_it->first );
+		logBBAI("  Player %d (%S) selects tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eBestTech).getDescription(), tech_it->first);
 	}
 
 	return eBestTech;
@@ -6093,7 +6093,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	}
 
 	TechTypes eBestTech = techs[best_path_it->second.back()].second;
-	if( gPlayerLogLevel >= 1)
+	if (gPlayerLogLevel >= 1)
 	{
 		logBBAI("  Player %d (%S) selects tech %S with value %d. (Aiming for %S)",
 				getID(), getCivilizationDescription(0),
@@ -6936,7 +6936,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 	/* ------------------ Unit Value  ------------------ */
 	bool bEnablesUnitWonder;
-	iValue += AI_techUnitValue( eTech, iPathLength, bEnablesUnitWonder );
+	iValue += AI_techUnitValue( eTech, iPathLength, bEnablesUnitWonder);
 
 	if (bEnablesUnitWonder
 			&& getTotalPopulation() > 5) // k146
@@ -7735,7 +7735,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 	bool bWarPlan = AI_isFocusWar(); // advc.105
 			//(kTeam.getAnyWarPlanCount(true) > 0);
-	if( !bWarPlan )
+	if (!bWarPlan)
 	{
 		// Aggressive players will stick with war techs
 		if (kTeam.AI_getTotalWarOddsTimes100() > 400)
@@ -8139,7 +8139,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				{
 					iAssaultValue += 100; // k146: was 250
 				}
-				else if( eExistingUnit != NO_UNIT )
+				else if (eExistingUnit != NO_UNIT)
 				{
 					iAssaultValue += 500 * // k146: was 1000*
 							std::max(0, AI_unitImpassableCount(eLoopUnit) - AI_unitImpassableCount(eExistingUnit));
@@ -8234,11 +8234,11 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 						}
 					}
 					// Landlocked expansion over ocean
-					else if( eExistingUnit != NO_UNIT )
+					else if (eExistingUnit != NO_UNIT)
 					{
-						if( AI_unitImpassableCount(eLoopUnit) < AI_unitImpassableCount(eExistingUnit) )
+						if (AI_unitImpassableCount(eLoopUnit) < AI_unitImpassableCount(eExistingUnit))
 						{
-							if( iBestAreaValue < AI_getMinFoundValue() )
+							if (iBestAreaValue < AI_getMinFoundValue())
 							{
 								iTotalUnitValue += (AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2) ? 2000 : 500);
 							}
@@ -8437,7 +8437,7 @@ int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEna
 		// Victory condition values need to be scaled by number of cities to compete with other tech.
 		// Total value with be roughly iBaseValue * cities.
 		int iBaseValue = 0;
-		if( !kProjectInfo.isSpaceship() )
+		if (!kProjectInfo.isSpaceship())
 		{
 			// Apollo
 			iBaseValue += (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 50 : 2);
@@ -9195,8 +9195,8 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 	}
 	iPercent = std::min(iPercent, 100); // </advc.130v>
 	// bbai  // advc.147: Disabling this
-	/*if( AI_isDoStrategy(AI_VICTORY_CONQUEST3) )
-		iPercent = std::min( 120, (3 * iPercent)/2 );*/
+	/*if (AI_isDoStrategy(AI_VICTORY_CONQUEST3))
+		iPercent = std::min(120, (3 * iPercent) / 2);*/
 	m_aiCloseBordersAttitudeCache[ePlayer] = (iLimit * iPercent) / 100;
 }
 // K-Mod end
@@ -10239,7 +10239,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						prPeace = 1 - (1.0 / std::max(1, iPeaceRand));
 					// </advc.104n>
 					if(bLosingBig &&
-							//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose) )
+							//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose))
 							/*  advc.104n: The BtS code can have us randomly vote
 								against our own proposal. */
 							::hash(g.getGameTurn(), getID()) < prPeace)
@@ -10255,7 +10255,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if (!bValid && !bLosingBig && bWinningBig)
 					{
 						// Can we continue this war with defiance penalties?
-						if( !AI_isFinancialTrouble() )
+						if (!AI_isFinancialTrouble())
 						{
 							if (!g.getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
 								bDefy = true;
@@ -10285,10 +10285,10 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						if(!bValid && bThisPlayerWinning &&
 								(iWarsLosing >= iWarsWinning) && !bPropose && !isAVassal())
 						{
-							if( (kOurTeam.getAtWarCount(true) == 1) || bLosingBig )
+							if (kOurTeam.getAtWarCount(true) == 1 || bLosingBig)
 							{
 								// Can we continue this war with defiance penalties?
-								if( !AI_isFinancialTrouble() )
+								if (!AI_isFinancialTrouble())
 								{
 									int iDefyRand = GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight();
 									iDefyRand /= (bAggressiveAI ? 2 : 1);
@@ -10328,16 +10328,16 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						}
 					} // </advc.104n>
 
-					if( !bValid && !bDefy && !bPropose )
+					if (!bValid && !bDefy && !bPropose)
 					{
-						if((kOurTeam.AI_getAttitude(eSecretaryGeneral) > GC.getLeaderHeadInfo(getPersonalityType()).getVassalRefuseAttitudeThreshold()) )
+						if((kOurTeam.AI_getAttitude(eSecretaryGeneral) > GC.getLeaderHeadInfo(getPersonalityType()).getVassalRefuseAttitudeThreshold()))
 						{
 							// Influence by secretary
-							if( NO_DENIAL == kOurTeam.AI_makePeaceTrade(ePeaceTeam, eSecretaryGeneral) )
+							if (NO_DENIAL == kOurTeam.AI_makePeaceTrade(ePeaceTeam, eSecretaryGeneral))
 							{
 								bValid = true;
 							}
-							else if( eSecretaryGeneral != NO_TEAM && kOurTeam.isVassal(eSecretaryGeneral) )
+							else if (eSecretaryGeneral != NO_TEAM && kOurTeam.isVassal(eSecretaryGeneral))
 							{
 								bValid = true;
 							}
@@ -10346,12 +10346,12 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				}
 				else
 				{
-					if( kOurTeam.AI_getWarPlan(ePeaceTeam) != NO_WARPLAN )
+					if (kOurTeam.AI_getWarPlan(ePeaceTeam) != NO_WARPLAN)
 					{
 						// Keep planned enemy occupied
 						bValid = false;
 					}
-					else if( kOurTeam.AI_shareWar(ePeaceTeam)  && !(kOurTeam.isVassal(ePeaceTeam)) )
+					else if (kOurTeam.AI_shareWar(ePeaceTeam) && !kOurTeam.isVassal(ePeaceTeam))
 					{
 						// Keep ePeaceTeam at war with our common enemies
 						bValid = false;
@@ -10392,7 +10392,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						}
 					} // </advc.118>
 
-					if( !bValid )
+					if (!bValid)
 					{
 						if (bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam))
 						{
@@ -10429,7 +10429,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					{
 						return PLAYER_VOTE_YES;
 					}
-					else if( canStopTradingWithTeam(eEmbargoTeam) )
+					else if (canStopTradingWithTeam(eEmbargoTeam))
 					{
 						bValid = (NO_DENIAL == AI_stopTradingTrade(eEmbargoTeam, kVoteData.ePlayer));
 						if (bValid)
@@ -10464,7 +10464,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				} // <dlph.25/advc> Try to honor peace treaty
 				else if(kOurTeam.isForcePeace(eWarTeam))
 					bValid = false; // </dlph.25/advc>
-				else if ( kOurTeam.AI_getWarPlan(eWarTeam) != NO_WARPLAN )
+				else if (kOurTeam.AI_getWarPlan(eWarTeam) != NO_WARPLAN)
 				{	// BETTER_BTS_AI_MOD: END
 					bValid = true;
 				}
@@ -10479,15 +10479,15 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						// Vassals always deny war trade requests and thus previously always voted no
 						bValid = false;
 
-						if( kOurTeam.getAnyWarPlanCount(true) == 0 )
+						if (kOurTeam.getAnyWarPlanCount(true) == 0)
 						{
-							if( eSecretaryGeneral == NO_TEAM || (kOurTeam.AI_getAttitude(eSecretaryGeneral) > GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarRefuseAttitudeThreshold()) )
+							if (eSecretaryGeneral == NO_TEAM || kOurTeam.AI_getAttitude(eSecretaryGeneral) > GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarRefuseAttitudeThreshold())
 							{
-								if( eSecretaryGeneral != NO_TEAM && kOurTeam.isVassal(eSecretaryGeneral) )
+								if (eSecretaryGeneral != NO_TEAM && kOurTeam.isVassal(eSecretaryGeneral))
 								{
 									bValid = true;
 								}
-								//else if( (isAVassal() ? GET_TEAM(getTeam()).getCurrentMasterPower(true) : GET_TEAM(getTeam()).getPower(true)) > GET_TEAM(eWarTeam).getDefensivePower() )
+								//else if ((isAVassal() ? GET_TEAM(getTeam()).getCurrentMasterPower(true) : GET_TEAM(getTeam()).getPower(true)) > GET_TEAM(eWarTeam).getDefensivePower())
 								else if (GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) > GET_TEAM(eWarTeam).getDefensivePower())
 								{
 									bValid = true;
@@ -10524,9 +10524,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						} // </advc.104n>
 					}
 					/*else{ // Consider defying resolution
-						if( !isAVassal() ) {
-							if( eSecretaryGeneral == NO_TEAM || GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral) ) {
-								if( GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GC.getLeaderHeadInfo(getPersonalityType()).getDefensivePactRefuseAttitudeThreshold() ) {
+						if (!isAVassal()) {
+							if (eSecretaryGeneral == NO_TEAM || GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral)) {
+								if(GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GC.getLeaderHeadInfo(getPersonalityType()).getDefensivePactRefuseAttitudeThreshold()) {
 									int iDefyRand = GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight();
 									iDefyRand /= (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 2 : 1);
 									if (GC.getGame().getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force War)") > 0)
@@ -10570,7 +10570,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 		}
 		//if (bDefy && canDefyResolution(eVoteSource, kVoteData))
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: Don't defy resolutions from friends
-		if( bDefy && !bFriendlyToSecretary && canDefyResolution(eVoteSource, kVoteData))
+		if (bDefy && !bFriendlyToSecretary && canDefyResolution(eVoteSource, kVoteData))
 		{
 			return PLAYER_VOTE_NEVER;
 		}
@@ -10803,7 +10803,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	{
 		for (CLLNode<TradeData>* pNode = kTheyGive.head(); pNode; pNode = kTheyGive.next(pNode))
 		{
-			if( pNode->m_data.m_eItemType == TRADE_VASSAL )
+			if (pNode->m_data.m_eItemType == TRADE_VASSAL)
 			{
 				bVassalTrade = true;
 
@@ -10821,11 +10821,11 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 					}
 				}
 			}
-			else if( pNode->m_data.m_eItemType == TRADE_SURRENDER )
+			else if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
 			{
 				bVassalTrade = true;
 
-				if( !(kOurTeam.AI_acceptSurrender(kPlayer.getTeam())) )
+				if (!kOurTeam.AI_acceptSurrender(kPlayer.getTeam()))
 				{
 					return false;
 				}
@@ -10861,7 +10861,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	bool bPossibleCollusion = g.isOption(GAMEOPTION_RISE_FALL) &&
 			bHuman && g.getRiseFall().
 			isCooperationRestricted(getID()); // </advc.705>
-	if( !bVassalTrade )
+	if (!bVassalTrade)
 	{
 		if (kWeGive.getLength() == 0 && kTheyGive.getLength() > 0)
 		{	// <advc.705>
@@ -13874,7 +13874,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			// if (u.getCombat() > 0)
 			if (!u.isNoRevealMap() && (u.getCombat() > 0 || u.isInvisible())) // K-Mod
 			{
-				if (0 == AI_unitImpassableCount(eUnit))
+				if (AI_unitImpassableCount(eUnit) == 0)
 				{
 					bValid = true;
 				}
@@ -13976,7 +13976,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			{
 				if (u.getCargoSpace() == 0)
 				{
-					if (0 == AI_unitImpassableCount(eUnit))
+					if (AI_unitImpassableCount(eUnit) == 0)
 					{
 						bValid = true;
 					}
@@ -14361,7 +14361,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 100);
 		// BETTER_BTS_AI_MOD, War strategy AI, 03/20/10, jdog5000: START
 		//iValue += (u.getInterceptionProbability() * 2);
-		if( u.getInterceptionProbability() > 0 )
+		if (u.getInterceptionProbability() > 0)
 		{
 			iTempValue = u.getInterceptionProbability();
 
@@ -14416,7 +14416,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 		// BETTER_BTS_AI_MOD, War strategy AI, 03/20/10, jdog5000: START
 		//iValue += (u.getInterceptionProbability() * 3);
-		if( u.getInterceptionProbability() > 0 )
+		if (u.getInterceptionProbability() > 0)
 		{
 			iTempValue = u.getInterceptionProbability();
 
@@ -14477,7 +14477,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					iValue += (5 * u.getCorporationSpreads(iI)) / 2;
 					/*  UNOFFICIAL_PATCH, Bugfix, 06/03/09, jdog5000:
 						Fix potential crash, probably would only happen in mods */
-					if( pArea != NULL )
+					if (pArea != NULL)
 						iValue += 300 / std::max(1, pArea->countHasCorporation((CorporationTypes)iI, getID()));
 				}
 			}
@@ -15998,10 +15998,10 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity* pCity, CvSelectionGroup* pSk
 				if (iDistance <= 1 && pLoopSelectionGroup->canFight())
 				{
 					/* original bbai code
-					if( pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pMissionPlot, 0, true, &iPathTurns, iMaxPathTurns) ) {
-						if( !(pLoopSelectionGroup->canAllMove()) )
+					if (pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pMissionPlot, 0, true, &iPathTurns, iMaxPathTurns)) {
+						if (!pLoopSelectionGroup->canAllMove())
 							iPathTurns++;
-						if( iPathTurns <= iMaxPathTurns )
+						if (iPathTurns <= iMaxPathTurns)
 							iCount += pLoopSelectionGroup->getNumUnits();
 					} */
 					temp_finder.SetSettings(CvPathSettings(pLoopSelectionGroup, 0, iMaxPathTurns, GC.getMOVE_DENOMINATOR()));
@@ -16133,14 +16133,14 @@ int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* 
 		{
 			CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
 
-			if( pMissionPlot == NULL )
+			if (pMissionPlot == NULL)
 			{
 				pMissionPlot = pLoopSelectionGroup->plot();
 			}
 
-			if (NULL != pMissionPlot )
+			if (pMissionPlot != NULL)
 			{
-				if( pMissionPlot->isOwned() && pMissionPlot->getTeam() == eTargetTeam )
+				if (pMissionPlot->isOwned() && pMissionPlot->getTeam() == eTargetTeam)
 				{
 					if (atWar(getTeam(),pMissionPlot->getTeam()) || pLoopSelectionGroup->AI_isDeclareWar(pMissionPlot))
 					{
@@ -16234,7 +16234,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	FAssertMsg(eCivic < GC.getNumCivicInfos(), "eCivic is expected to be within maximum bounds (invalid Index)");
 	FAssertMsg(eCivic >= 0, "eCivic is expected to be non-negative (invalid Index)");
 
-	if( isBarbarian() )
+	if (isBarbarian())
 	{
 		return 1;
 	}
@@ -16244,24 +16244,25 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	int iS = isCivic(eCivic)? -1 :1;// K-Mod, sign for whether we should be considering gaining a bonus, or losing a bonus
 
 	bool bWarPlan = (kTeam.getAnyWarPlanCount(true) > 0);
-	if( bWarPlan )
+	if (bWarPlan)
 	{
 		bWarPlan = false;
 		int iEnemyWarSuccess = 0;
 
-		for( int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++ )
+		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
 		{
-			if( GET_TEAM((TeamTypes)iTeam).isAlive() && !GET_TEAM((TeamTypes)iTeam).isMinorCiv() )
+			if (GET_TEAM((TeamTypes)iTeam).isAlive() && !GET_TEAM((TeamTypes)iTeam).isMinorCiv())
 			{
-				if( kTeam.AI_getWarPlan((TeamTypes)iTeam) != NO_WARPLAN )
+				WarPlanTypes eWarPlan = kTeam.AI_getWarPlan((TeamTypes)iTeam); // advc.003
+				if (eWarPlan != NO_WARPLAN)
 				{
-					if( kTeam.AI_getWarPlan((TeamTypes)iTeam) == WARPLAN_TOTAL || kTeam.AI_getWarPlan((TeamTypes)iTeam) == WARPLAN_PREPARING_TOTAL )
+					if (eWarPlan == WARPLAN_TOTAL || eWarPlan == WARPLAN_PREPARING_TOTAL)
 					{
 						bWarPlan = true;
 						break;
 					}
 
-					if( kTeam.AI_isLandTarget((TeamTypes)iTeam) )
+					if (kTeam.AI_isLandTarget((TeamTypes)iTeam))
 					{
 						bWarPlan = true;
 						break;
@@ -16272,16 +16273,16 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			}
 		}
 
-		if( !bWarPlan )
+		if (!bWarPlan)
 		{
-			if( iEnemyWarSuccess > std::min(iCities, 4) * GC.getWAR_SUCCESS_CITY_CAPTURING() )
+			if (iEnemyWarSuccess > std::min(iCities, 4) * GC.getWAR_SUCCESS_CITY_CAPTURING())
 			{
 				// Lots of fighting, so war is real
 				bWarPlan = true;
 			}
-			else if( iEnemyWarSuccess > std::min(iCities, 2) * GC.getWAR_SUCCESS_CITY_CAPTURING() )
+			else if (iEnemyWarSuccess > std::min(iCities, 2) * GC.getWAR_SUCCESS_CITY_CAPTURING())
 			{
-				if( kTeam.AI_getEnemyPowerPercent() > 120 )
+				if (kTeam.AI_getEnemyPowerPercent() > 120)
 				{
 					bWarPlan = true;
 				}
@@ -16289,10 +16290,10 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	}
 
-	if( !bWarPlan )
+	if (!bWarPlan)
 	{
 		// Aggressive players will stick with war civics
-		if( kTeam.AI_getTotalWarOddsTimes100() > 200 )
+		if (kTeam.AI_getTotalWarOddsTimes100() > 200)
 		{
 			bWarPlan = true;
 		}
@@ -16384,7 +16385,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	/* original bts code
 	iValue += ((kCivic.getWorkerSpeedModifier() * AI_getNumAIUnits(UNITAI_WORKER)) / 15);
 	iValue += ((kCivic.getImprovementUpgradeRateModifier() * iCities) / 50);
-	iValue += (kCivic.getMilitaryProductionModifier() * iCities * iWarmongerPercent) / (bWarPlan ? 300 : 500 );
+	iValue += (kCivic.getMilitaryProductionModifier() * iCities * iWarmongerPercent) / (bWarPlan ? 300 : 500);
 	iValue += (kCivic.getBaseFreeUnits() / 2);
 	iValue += (kCivic.getBaseFreeMilitaryUnits() / 2);
 	iValue += ((kCivic.getFreeUnitsPopulationPercent() * getTotalPopulation()) / 200);
@@ -16452,14 +16453,14 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	//iValue += ((kCivic.isMilitaryFoodProduction()) ? 0 : 0);
 	// bbai
 	int iMaxConscript = getWorldSizeMaxConscript(eCivic);
-	if( iMaxConscript > 0 && (pCapital != NULL) )
+	if (iMaxConscript > 0 && pCapital != NULL)
 	{
 		UnitTypes eConscript = pCapital->getConscriptUnit();
-		if( eConscript != NO_UNIT )
+		if (eConscript != NO_UNIT)
 		{
 			// Nationhood
 			int iCombatValue = kGame.AI_combatValue(eConscript);
-			if( iCombatValue > 33 )
+			if (iCombatValue > 33)
 			{
 				int iTempValue = iCities + ((bWarPlan) ? 30 : 10);
 
@@ -16470,7 +16471,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				iTempValue /= 75;
 
 				int iWarSuccessRating = kTeam.AI_getWarSuccessRating();
-				if( iWarSuccessRating < -25 )
+				if (iWarSuccessRating < -25)
 				{
 					iTempValue *= 75 + range(-iWarSuccessRating, 25, 100);
 					iTempValue /= 100;
@@ -16777,8 +16778,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 				// loss of the headquarter bonus from our cities.
 				if (bTeamHQ &&
-					( (kCivic.isNoForeignCorporations() && !bPlayerHQ) ||
-					kCivic.isNoCorporations() ))
+					((kCivic.isNoForeignCorporations() && !bPlayerHQ) ||
+					kCivic.isNoCorporations()))
 				{
 					CvCity* pHqCity = iSpeculation == 0 ? kGame.getHeadquarters(eCorp) : pCapital;
 					if (pHqCity)
@@ -16943,7 +16944,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue += iTempValue / 100;
 
 		/* old modifiers, (just for reference)
-		iValue += (kCivic.getMilitaryProductionModifier() * iCities * iWarmongerFactor) / (bWarPlan ? 300 : 500 );
+		iValue += (kCivic.getMilitaryProductionModifier() * iCities * iWarmongerFactor) / (bWarPlan ? 300 : 500);
 		if (kCivic.getFreeExperience() > 0) {
 			// Free experience increases value of hammers spent on units, population is an okay measure of base hammer production
 			int iTempValue = (kCivic.getFreeExperience() * getTotalPopulation() * (bWarPlan ? 30 : 12))/100;
@@ -17190,7 +17191,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		/* original bts code
 		if (iTempValue != 0) {
 			// Nationalism
-			if( !isNationalWonderClass((BuildingClassTypes)iI) )
+			if (!isNationalWonderClass((BuildingClassTypes)iI))
 				iValue += (iTempValue * iCities)/2;
 			iValue += (iTempValue * getBuildingClassCountPlusMaking((BuildingClassTypes)iI) * 2);
 		}*/
@@ -17576,7 +17577,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	}
 
 
-	if (bMalicious && GC.getEspionageMissionInfo(eMission).getDestroyUnitCostFactor() > 0 || GC.getEspionageMissionInfo(eMission).getBuyUnitCostFactor() > 0 )
+	if (bMalicious && GC.getEspionageMissionInfo(eMission).getDestroyUnitCostFactor() > 0 || GC.getEspionageMissionInfo(eMission).getBuyUnitCostFactor() > 0)
 	{
 		CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iData);
 
@@ -17681,7 +17682,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 			/*int iAvgFoodShortage = std::max(0, iBaseUnhealth - iCityHealth) - pCity->foodDifference();
 			iAvgFoodShortage += std::max(0, iBaseUnhealth/2 - iCityHealth) - pCity->foodDifference();
 			iAvgFoodShortage /= 2;
-			if( iAvgFoodShortage > 0 )
+			if (iAvgFoodShortage > 0)
 				iValue += 8 * iAvgFoodShortage * iAvgFoodShortage;*/
 			int iAvgFoodShortage = (std::max(0, iBaseUnhealth - iCityHealth) + std::max(0, -iCityHealth))/2 - pCity->foodDifference(true, true);
 
@@ -19341,10 +19342,8 @@ void CvPlayerAI::AI_doCivics()
 {
 	FAssertMsg(!isHuman(), "isHuman did not return false as expected");
 
-	if( isBarbarian() )
-	{
+	if (isBarbarian())
 		return;
-	}
 
 	if (AI_getCivicTimer() > 0)
 	{
@@ -19356,9 +19355,7 @@ void CvPlayerAI::AI_doCivics()
 	}
 
 	if (!canRevolution(NULL))
-	{
 		return;
-	}
 
 	// FAssertMsg(AI_getCivicTimer() == 0, "AI Civic timer is expected to be 0"); // Disabled by K-Mod
 
@@ -19864,7 +19861,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 
 				// BETTER_BTS_AI_MOD, Diplomacy, 12/06/09, jdog5000: START
 				// Don't give techs for free to advanced vassals ...
-				//if( GET_PLAYER((PlayerTypes)iI).getTechScore()*10 < getTechScore()*9 )
+				//if (GET_PLAYER((PlayerTypes)iI).getTechScore()*10 < getTechScore()*9)
 				/*  <advc.112> Give tech only by and by probabilistically, especially to
 					peace vassals. The longer they stay with us, the more we trust them. */
 				int iTheirTechScore = 10 * civ.getTechScore();
@@ -20403,7 +20400,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 					// BETTER_BTS_AI_MOD, Diplomacy, 04/24/10, jdog5000: START
 					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH);
 					int iTechPerc = ourTeam.getBestKnownTechScorePercent();
-					if( iTechPerc < 90 )
+					if (iTechPerc < 90)
 					{	/* BBAI
 						iRand *= std::max(1, iTechPerc - 60);
 						iRand /= 30; */
@@ -20414,7 +20411,7 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 						// K-Mod end
 					}
 
-					if( AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ) {
+					if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE1)) {
 						//iRand /= 2;
 						/*  advc.550a: That seems like a bit of an unfair advantage
 							for civs pursuing a Space victory. */
@@ -22002,7 +21999,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 
 		for (int i = 0; i < NUM_YIELD_TYPES; ++i)
 		{
-			if (0 != kEvent.getPlotExtraYield(i))
+			if (kEvent.getPlotExtraYield(i) != 0)
 			{
 				if (pPlot->getWorkingCity() != NULL)
 				{
@@ -22516,12 +22513,12 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 				iCloseToLegendaryCount++;
 
 			// is already there?
-			if( pLoopCity->getCulture(getID()) > pLoopCity->getCultureThreshold(g.culturalVictoryCultureLevel()) )
+			if (pLoopCity->getCulture(getID()) > pLoopCity->getCultureThreshold(g.culturalVictoryCultureLevel()))
 				iLegendaryCount++;
 		}
 	}
 
-	if( iLegendaryCount >= iVictoryCities )
+	if (iLegendaryCount >= iVictoryCities)
 	{
 		// Already won, keep playing culture heavy but do some tech to keep pace if human wants to keep playing
 		return 3;
@@ -22547,11 +22544,11 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 	if (g.getStartEra() > 1)
 		return 0;
 	if (getCapitalCity()->getGameTurnFounded() > (10 + g.getStartTurn())) {
-		if( iHighCultureCount < GC.getGame().culturalVictoryNumCultureCities() ) {
+		if (iHighCultureCount < GC.getGame().culturalVictoryNumCultureCities()) {
 			//the loss of the capital indicates it might be a good idea to abort any culture victory
 			return 0;
 		}
-	} */
+	}*/
 
 	// If we aren't already obviously close to a cultural victory, then we need to consider whether or not to aim for culture at all.
 	if (iCloseToLegendaryCount < iVictoryCities)
@@ -22570,7 +22567,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 		iValue += 10 * std::min(iHighCultureCount, iVictoryCities + 1);
 		iValue += getCurrentEra() < (iEraThresholdPercent-20)*GC.getNumEraInfos()/100; // prep for culture in the early game, just in case.
 		// K-Mod end
-		if( iValue > 20 && getNumCities() >= iVictoryCities )
+		if (iValue > 20 && getNumCities() >= iVictoryCities)
 		{
 			iValue += 5*countHolyCities(); // was 10*
 			// K-Mod: be wary of going for a cultural victory if everyone hates us.
@@ -22630,7 +22627,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 		// if we have a lot of religion, may be able to catch up quickly
 		/* disabled by K-Mod
 		if (countTotalHasReligion() >= getNumCities() * 3) {
-			if( getNumCities() >= g.culturalVictoryNumCultureCities() )
+			if (getNumCities() >= g.culturalVictoryNumCultureCities())
 				bAt3 = true;
 		}*/
 
@@ -22695,7 +22692,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc.003: a few style chang
 int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 {
 	if(!isHuman() && // advc.115
-			GC.getDefineINT("BBAI_VICTORY_STRATEGY_SPACE") <= 0 )
+			GC.getDefineINT("BBAI_VICTORY_STRATEGY_SPACE") <= 0)
 		return 0;
 
 	if (getCapitalCity() == NULL)
@@ -22708,7 +22705,7 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		if (GC.getGame().isVictoryValid((VictoryTypes) iI))
 		{
 			CvVictoryInfo& kVictoryInfo = GC.getVictoryInfo((VictoryTypes) iI);
-			if( kVictoryInfo.getVictoryDelayTurns() > 0 )
+			if (kVictoryInfo.getVictoryDelayTurns() > 0)
 			{
 				eSpace = (VictoryTypes)iI;
 				break;
@@ -22716,25 +22713,25 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		}
 	}
 
-	if( eSpace == NO_VICTORY )
+	if (eSpace == NO_VICTORY)
 		return 0;
 
 	// If have built Apollo, then the race is on!
 	bool bHasApollo = false;
 	bool bNearAllTechs = true;
-	for( int iI = 0; iI < GC.getNumProjectInfos(); iI++ )
+	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
 	{
-		if( GC.getProjectInfo((ProjectTypes)iI).getVictoryPrereq() == eSpace )
+		if (GC.getProjectInfo((ProjectTypes)iI).getVictoryPrereq() == eSpace)
 		{
-			if( GET_TEAM(getTeam()).getProjectCount((ProjectTypes)iI) > 0 )
+			if (GET_TEAM(getTeam()).getProjectCount((ProjectTypes)iI) > 0)
 			{
 				bHasApollo = true;
 			}
 			else
 			{
-				if( !GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq()) )
+				if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq()))
 				{
-					if( !isResearchingTech((TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq()) )
+					if (!isResearchingTech((TechTypes)GC.getProjectInfo((ProjectTypes)iI).getTechPrereq()))
 					{
 						bNearAllTechs = false;
 					}
@@ -22752,9 +22749,9 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 			getCreatePercent()));
 	bool bEnoughProduction = (iTotalProduction > 240);
 	// </advc.115>
-	if( bHasApollo )
+	if (bHasApollo)
 	{
-		if( bNearAllTechs )
+		if (bNearAllTechs)
 		{
 			bool bOtherLaunched = false;
 			// K-Mod. (just tidying up a bit.)
@@ -22773,15 +22770,15 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 			}
 			// K-Mod end
 
-			if( !bOtherLaunched )
+			if (!bOtherLaunched)
 				return 4;
 
-			if(bEnoughProduction || iOurCountdown > 0) // advc.115
+			if (bEnoughProduction || iOurCountdown > 0) // advc.115
 				return 3;
 		}
 
 		/* original bbai code
-		if( GET_TEAM(getTeam()).getBestKnownTechScorePercent() > (m_iVictoryStrategyHash & AI_VICTORY_SPACE3 ? 80 : 85) )
+		if (GET_TEAM(getTeam()).getBestKnownTechScorePercent() > (m_iVictoryStrategyHash & AI_VICTORY_SPACE3 ? 80 : 85))
 			return 3;*/
 		// K-Mod. I don't think that's a good way to do it.
 		// instead, compare our spaceship progress to that of our rivals.
@@ -22827,11 +22824,11 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		// K-Mod end
 	}
 
-	if( isHuman())
+	if (isHuman())
 			//&& !GC.getGame().isDebugMode()) // advc.115d (commented out)
 		return 0;
 	// <advc.115>
-	if(!bEnoughProduction)
+	if (!bEnoughProduction)
 		return 0; // </advc.115>
 
 	// If can't build Apollo yet, then consider making player push for this victory type
@@ -22869,7 +22866,7 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		if (iValue >= 100
 				|| bNearAllTechs && iTotalProduction > 1000) // advc.115
 		{
-			if( getCurrentEra() >= GC.getNumEraInfos() - 3 )
+			if (getCurrentEra() >= GC.getNumEraInfos() - 3)
 				return 2;
 			return 1;
 		}
@@ -23076,7 +23073,7 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 		if (g.isVictoryValid((VictoryTypes) iI))
 		{
 			CvVictoryInfo& kVictoryInfo = GC.getVictoryInfo((VictoryTypes) iI);
-			if( kVictoryInfo.getLandPercent() > 0 && kVictoryInfo.getPopulationPercentLead() )
+			if (kVictoryInfo.getLandPercent() > 0 && kVictoryInfo.getPopulationPercentLead())
 			{
 				eDomination = (VictoryTypes)iI;
 				break;
@@ -23084,7 +23081,7 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 		}
 	}
 
-	if( eDomination == NO_VICTORY )
+	if (eDomination == NO_VICTORY)
 		return 0;
 
 	int iPercentOfDomination = 0;
@@ -23123,12 +23120,12 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 		int iEverAlive = g.getCivPlayersEverAlive();
 		if(iPercentOfDomination > 87 - iEverAlive) // was 80 flat </advc.115>
 			return 4;
-		if( iPercentOfDomination >
+		if (iPercentOfDomination >
 				62 - iEverAlive) // advc.115: was 50 flat
 			return 3;
 	}
 
-	if( isHuman())
+	if (isHuman())
 			//&& !g.isDebugMode()) // advc.115d (commented out)
 		return 0;
 
@@ -23168,11 +23165,11 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		return false; // </advc.178>
 	// Check for whether we are eligible for election
 	bool bVoteEligible = false;
-	for( int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++ )
+	for (int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++)
 	{
-		if( g.isDiploVote((VoteSourceTypes)iVoteSource) )
+		if (g.isDiploVote((VoteSourceTypes)iVoteSource))
 		{
-			if( g.isTeamVoteEligible(getTeam(),(VoteSourceTypes)iVoteSource) )
+			if (g.isTeamVoteEligible(getTeam(),(VoteSourceTypes)iVoteSource))
 			{
 				bVoteEligible = true;
 				break;
@@ -23236,17 +23233,17 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	/*if (iValue >= 100) // advc.115b (commented out)
 		bDiploInclined = true;*/
 
-	if( bVoteEligible &&
+	if (bVoteEligible &&
 			iValue > 150) // advc.115b: was bDiploInclined; isHuman clause removed
 	{
 		// BBAI TODO: Level 4 - close to enough to win a vote?
 		// <advc.115b>
-		if(iValue > 185 && membersProgress >= 1)
+		if (iValue > 185 && membersProgress >= 1)
 			return 4; // </advc.115b>
 		return 3;
 	}
 
-	if( isHuman())
+	if (isHuman())
 			//&& !g.isDebugMode()) // advc.115d (commented out)
 		return 0;
 	// <advc.115b>
@@ -23268,7 +23265,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 /// determine what other players (including the human player) are doing.
 bool CvPlayerAI::AI_isDoVictoryStrategy(int iVictoryStrategy) const
 {
-	if( isBarbarian() || isMinorCiv() || !isAlive() )
+	if (isBarbarian() || isMinorCiv() || !isAlive())
 		return false;
 	return (iVictoryStrategy & AI_getVictoryStrategyHash());
 }
@@ -23290,7 +23287,7 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 {
 	PROFILE_FUNC();
 
-	if( isBarbarian() || isMinorCiv() || !isAlive() ||
+	if (isBarbarian() || isMinorCiv() || !isAlive() ||
 			GET_TEAM(getTeam()).isCapitulated()) // advc.014
 	{
 		m_iVictoryStrategyHash = 0;
@@ -23311,7 +23308,7 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	// Space victory
 	int iVictoryStage = AI_calculateSpaceVictoryStage();
 
-	if( iVictoryStage >= 1 )
+	if (iVictoryStage >= 1)
 	{
 		m_iVictoryStrategyHash |= AI_VICTORY_SPACE1;
 		if (iVictoryStage > 1)
@@ -23334,7 +23331,7 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	// Conquest victory
 	iVictoryStage = AI_calculateConquestVictoryStage();
 
-	if( iVictoryStage >= 1 )
+	if (iVictoryStage >= 1)
 	{
 		m_iVictoryStrategyHash |= AI_VICTORY_CONQUEST1;
 		if (iVictoryStage > 1)
@@ -23357,7 +23354,7 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	// Domination victory
 	iVictoryStage = AI_calculateDominationVictoryStage();
 
-	if( iVictoryStage >= 1 )
+	if (iVictoryStage >= 1)
 	{
 		m_iVictoryStrategyHash |= AI_VICTORY_DOMINATION1;
 		if (iVictoryStage > 1)
@@ -23382,7 +23379,7 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	// so it is important that they are set first.
 	iVictoryStage = AI_calculateCultureVictoryStage();
 
-	if( iVictoryStage >= 1 )
+	if (iVictoryStage >= 1)
 	{
 		m_iVictoryStrategyHash |= AI_VICTORY_CULTURE1;
 		if (iVictoryStage > 1)
@@ -23406,7 +23403,7 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	// Diplomacy victory
 	iVictoryStage = AI_calculateDiplomacyVictoryStage();
 
-	if( iVictoryStage >= 1 )
+	if (iVictoryStage >= 1)
 	{
 		m_iVictoryStrategyHash |= AI_VICTORY_DIPLOMACY1;
 		if (iVictoryStage > 1)
@@ -23468,16 +23465,8 @@ bool CvPlayerAI::isCloseToReligiousVictory() const {
 
 bool CvPlayerAI::AI_isDoStrategy(int iStrategy) const
 {
-	if (isHuman())
-	{
+	if (isHuman() || isBarbarian() || isMinorCiv() || !isAlive())
 		return false;
-	}
-
-	if( isBarbarian() || isMinorCiv() || !isAlive() )
-	{
-		return false;
-	}
-
 	return (iStrategy & AI_getStrategyHash());
 }
 
@@ -23587,7 +23576,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 				//if (kLoopUnit.getMoves() > 1)
 				// UNOFFICIAL_PATCH, Bugfix, 09/10/08, jdog5000:
 				// Mobile anti-air and artillery flags only meant for land units
-				if ( kLoopUnit.getDomainType() == DOMAIN_LAND && kLoopUnit.getMoves() > 1 )
+				if (kLoopUnit.getDomainType() == DOMAIN_LAND && kLoopUnit.getMoves() > 1)
 				{
 					if (kLoopUnit.getInterceptionProbability() > 25)
 					{
@@ -23630,7 +23619,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 				if (kLoopPlayer.isAlive() && kTeam.isHasMet(kLoopPlayer.getTeam()))
 				{
 					// Attack units are scaled down to roughly reflect their limitations.
-					// (eg. Knights (10) vs Macemen (8). Cavalry (15) vs Rifles (14). Tank (28) vs Infantry (20) / Marine (24) )
+					// (eg. Knights (10) vs Macemen (8). Cavalry (15) vs Rifles (14). Tank (28) vs Infantry (20) / Marine (24))
 					int iValue = std::max(100*kLoopPlayer.getTypicalUnitValue(UNITAI_ATTACK)/110, kLoopPlayer.getTypicalUnitValue(UNITAI_CITY_DEFENSE));
 
 					iTotalWeightedValue += kLoopPlayer.getPower() * iValue;
@@ -23725,7 +23714,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 						{
 							if ((GET_PLAYER((PlayerTypes)iI).getStateReligion() == getStateReligion()))
 								iMissionary += 10;
-							else if( !GET_PLAYER((PlayerTypes)iI).isNoNonStateReligionSpread() )
+							else if(!GET_PLAYER((PlayerTypes)iI).isNoNonStateReligionSpread())
 							{
 								iMissionary += (GET_PLAYER((PlayerTypes)iI).countHolyCities() == 0) ? 12 : 4;
 							}
@@ -23790,24 +23779,24 @@ void CvPlayerAI::AI_updateStrategyHash()
 	// K-Mod end
 
 	// Turtle strategy
-	if( kTeam.getAtWarCount(true) > 0 && getNumCities() > 0 )
+	if (kTeam.getAtWarCount(true) > 0 && getNumCities() > 0)
 	{
 		int iMaxWarCounter = 0;
-		for( int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++ )
+		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
 		{
-			if( iTeam != getTeam() )
+			if (iTeam != getTeam())
 			{
-				if( GET_TEAM((TeamTypes)iTeam).isAlive() && !GET_TEAM((TeamTypes)iTeam).isMinorCiv() )
+				if (GET_TEAM((TeamTypes)iTeam).isAlive() && !GET_TEAM((TeamTypes)iTeam).isMinorCiv())
 				{
-					iMaxWarCounter = std::max( iMaxWarCounter, kTeam.AI_getAtWarCounter((TeamTypes)iTeam) );
+					iMaxWarCounter = std::max(iMaxWarCounter, kTeam.AI_getAtWarCounter((TeamTypes)iTeam));
 				}
 			}
 		}
 
 		// Are we losing badly or recently attacked?
-		if( iWarSuccessRating < -50 || iMaxWarCounter < 10 )
+		if (iWarSuccessRating < -50 || iMaxWarCounter < 10)
 		{
-			if( kTeam.AI_getEnemyPowerPercent(true) > std::max(150, GC.getDefineINT("BBAI_TURTLE_ENEMY_POWER_RATIO"))
+			if (kTeam.AI_getEnemyPowerPercent(true) > std::max(150, GC.getDefineINT("BBAI_TURTLE_ENEMY_POWER_RATIO"))
 					// advc.107
 					&& getNumMilitaryUnits() < (5 + getCurrentEra() * 1.5) * getNumCities())
 				m_iStrategyHash |= AI_STRATEGY_TURTLE;
@@ -23850,7 +23839,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 		{
 			if (//kLoopTeam.getAtWarCount(true) == 0
 				!kLoopPlayer.AI_isFocusWar() // advc.105: Replacing the above
-				|| kLoopTeam.AI_getEnemyPowerPercent(false) < 140 )
+				|| kLoopTeam.AI_getEnemyPowerPercent(false) < 140)
 			{
 				// Memory of them declaring on us and our friends
 				int iWarMemory = AI_getMemoryCount((PlayerTypes)iI, MEMORY_DECLARED_WAR);
@@ -23861,7 +23850,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 					//they are a snake
 					iTempParanoia += 50 + 50 * iWarMemory;
 
-					if( gPlayerLogLevel >= 2 )
+					if (gPlayerLogLevel >= 2)
 					{
 						logBBAI( "    Player %d (%S) wary of %S because of war memory %d", getID(), getCivilizationDescription(0), GET_PLAYER((PlayerTypes)iI).getCivilizationDescription(0), iWarMemory);
 					}
@@ -23908,15 +23897,15 @@ void CvPlayerAI::AI_updateStrategyHash()
 			// K-Mod end
 			/*  advc.022: Commented out. Defensive measures make most sense
 				around 150% power ratio; 200% is probably a lost cause. */
-			/*if( iTheirPower > 2*iOurDefensivePower ) {
-				//if( AI_getAttitude((PlayerTypes)iI) != ATTITUDE_FRIENDLY )
+			/*if (iTheirPower > 2*iOurDefensivePower) {
+				//if (AI_getAttitude((PlayerTypes)iI) != ATTITUDE_FRIENDLY)
 				// advc.022: Replacing the above
 				if(iAttitudeWarProb > 0)
 					iTempParanoia += 25;
 			}*/
 		}
 
-		if( iTempParanoia > 0 )
+		if (iTempParanoia > 0)
 		{
 			iTempParanoia *= std::min(iTheirPower,
 					// advc.022: At most double paranoia based on power ratio
@@ -23936,18 +23925,18 @@ void CvPlayerAI::AI_updateStrategyHash()
 		// Do they look like they're going for militaristic victory?
 		// advc.022: New temp variable
 		int iVictStratParanoia = 0;
-		if( kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) )
+		if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
 			iVictStratParanoia += 200;
-		else if( kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3) )
+		else if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
 			iVictStratParanoia += 100;
-		else if( kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3) )
+		else if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
 			iVictStratParanoia += 50;
 		/*  advc.022: Too high in K-Mod I think; who knows when they'll get around
 			to attack us. (Could count the alternative targets I guess ...). */
 		iTempParanoia += iVictStratParanoia / 2;
-		if( iTempParanoia > 0 )
+		if (iTempParanoia > 0)
 		{	// <advc.022> Replace this with something smoother
-			/*if( iCloseness == 0 )
+			/*if (iCloseness == 0)
 				iTempParanoia /= 2;*/
 			double multiplier = 2;
 			/*  I don't think closeness is intended to be a percentage, but based on
@@ -23966,7 +23955,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 	}
 	/*  advc.022: Commented out. BETTER_UNITS is supposed to make us train fewer
 		units (b/c they're no good), but high paranoia will lead to more units. */
-	/*if( m_iStrategyHash & AI_STRATEGY_GET_BETTER_UNITS ) {
+	/*if (m_iStrategyHash & AI_STRATEGY_GET_BETTER_UNITS) {
 		iParanoia *= 3;
 		iParanoia /= 2;
 	}*/
@@ -23985,10 +23974,10 @@ void CvPlayerAI::AI_updateStrategyHash()
 			g.getRecommendedPlayers())); // advc.137
 
 	// Alert strategy
-	if( iParanoia >= 200 )
+	if (iParanoia >= 200)
 	{
 		m_iStrategyHash |= AI_STRATEGY_ALERT1;
-		if( iParanoia >= 400
+		if (iParanoia >= 400
 				&& !AI_isFocusWar()) // advc.022: Need to focus on the war at hand
 			m_iStrategyHash |= AI_STRATEGY_ALERT2;
 	}
@@ -24027,9 +24016,9 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 	// BBAI TODO: Integrate Dagger with new conquest victory strategy, have Dagger focus on early rushes
 	//dagger
-	if( !(AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+	if (!AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2)
 		&& !(m_iStrategyHash & AI_STRATEGY_MISSIONARY)
-		&& (iCurrentEra <= (2+(AI_getStrategyRand(11)%2))) && (iCloseTargets > 0)
+		&& iCurrentEra <= (2 + (AI_getStrategyRand(11) % 2)) && iCloseTargets > 0
 		&& !bNoDagger) // advc.104f
 	{
 		int iDagger = 0;
@@ -24144,9 +24133,9 @@ void CvPlayerAI::AI_updateStrategyHash()
 		}
 		else
 		{
-			if( iLastStrategyHash &= AI_STRATEGY_DAGGER )
+			if (iLastStrategyHash &= AI_STRATEGY_DAGGER)
 			{
-				if (iDagger >= (9*AI_DAGGER_THRESHOLD)/10)
+				if (iDagger >= (9 * AI_DAGGER_THRESHOLD) / 10)
 				{
 					m_iStrategyHash |= AI_STRATEGY_DAGGER;
 				}
@@ -24308,11 +24297,11 @@ void CvPlayerAI::AI_updateStrategyHash()
 			{
 				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
-			else if(g.isOption(GAMEOPTION_AGGRESSIVE_AI) )
+			else if(g.isOption(GAMEOPTION_AGGRESSIVE_AI))
 			{
 				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
-			else if(AI_isDoVictoryStrategyLevel4() || AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) )
+			else if(AI_isDoVictoryStrategyLevel4() || AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
 			{
 				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
@@ -25242,11 +25231,11 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 	}
 	else
 	{
-		if( AI_isDoStrategy(AI_STRATEGY_ALERT2) )
+		if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
 		{
 			iDefenders *= 2;
 		}
-		else if( AI_isDoStrategy(AI_STRATEGY_ALERT1) )
+		else if (AI_isDoStrategy(AI_STRATEGY_ALERT1))
 		{
 			iDefenders *= 3;
 			iDefenders /= 2;
@@ -25259,9 +25248,9 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 		}
 		else if (pArea->getAreaAIType(getTeam()) == AREAAI_MASSING)
 		{	// bbai
-			if( GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) <
+			if (GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) <
 					(10 + GC.getLeaderHeadInfo(getPersonalityType()).
-					getMaxWarNearbyPowerRatio()) )
+					getMaxWarNearbyPowerRatio()))
 			{
 				iDefenders *= 2;
 				iDefenders /= 3;
@@ -25316,7 +25305,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 		/* original BTS code
 		iDefenders = std::min(iDefenders, iAreaCities * iAreaCities - 1);*/
 		// Lessen defensive requirements only if not being attacked locally
-		if( pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE )
+		if (pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
 		{	// This may be our first city captured on a large enemy continent, need defenses to scale up based
 			// on total number of area cities not just ours
 			iDefenders = std::min(iDefenders, iAreaCities * iAreaCities + pArea->getNumCities() - iAreaCities - 1);
@@ -26788,7 +26777,7 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 		int iBombardRate = GC.getUnitInfo(eLoopUnit).getBombardRate();
 		if (iBombardRate > 0)
 		{
-			if( GC.getUnitInfo(eLoopUnit).isIgnoreBuildingDefense() )
+			if (GC.getUnitInfo(eLoopUnit).isIgnoreBuildingDefense())
 			{
 				iBombardRate *= 3;
 				iBombardRate /= 2;
@@ -26878,7 +26867,7 @@ void CvPlayerAI::AI_doEnemyUnitData()
 					int iUnitValue = 1;
 					//if (atWar(getTeam(), pLoopUnit->getTeam()))
 					// BETTER_BTS_AI_MOD, War Strategy AI, 03/18/10, jdog5000:
-					if( GET_TEAM(getTeam()).AI_getWarPlan(pLoopUnit->getTeam()) != NO_WARPLAN )
+					if (GET_TEAM(getTeam()).AI_getWarPlan(pLoopUnit->getTeam()) != NO_WARPLAN)
 					{
 						iUnitValue += 10;
 
@@ -27355,7 +27344,7 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot* pPlot) const
 		}
 	}
 
-	if (0 == iOtherCityCount)
+	if (iOtherCityCount == 0)
 	{
 		return 0;
 	}
@@ -27522,12 +27511,12 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 			break;*/
 	}
 
-	return (0 == iCount) ? 50 * iHappy : iValue / iCount;
+	return (iCount == 0) ? 50 * iHappy : iValue / iCount;
 }
 
 int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) const
 {
-	if (0 == iHealth)
+	if (iHealth == 0)
 		iHealth = 1;
 
 	int iCount = getNumCities(); // advc.036: See AI_getHappinessWeight
@@ -27565,7 +27554,7 @@ int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) co
 	//return (0 == iCount) ? 50 : iValue / iCount;
 	/*  UNOFFICIAL_PATCH, Bugfix, 10/21/09, jdog5000
 		Mirror happiness valuation code */
-	return (0 == iCount) ? 50*iHealth : iValue / iCount;
+	return (iCount == 0) ? 50 * iHealth : iValue / iCount;
 }
 
 /* void CvPlayerAI::AI_invalidateCloseBordersAttitudeCache() {

@@ -74,7 +74,7 @@ void CvGame::updateColoredPlots()
 				pLoopPlot = m.plotByIndex(iPlotLoop);
 				for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 				{
-					if( GET_PLAYER((PlayerTypes)iI).isAlive() )
+					if (GET_PLAYER((PlayerTypes)iI).isAlive())
 					{
 						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(*pLoopPlot))
 						{
@@ -94,7 +94,7 @@ void CvGame::updateColoredPlots()
 				CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
 				ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
 
-				if( pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT )
+				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
 					int iPlotIndex = pWorkingCity->getCityPlotIndex(pLoopPlot);
 					int iBuildValue = pWorkingCity->AI_getBestBuildValue(iPlotIndex);
@@ -102,7 +102,7 @@ void CvGame::updateColoredPlots()
 
 					if (NO_BUILD != eBestBuild)
 					{
-						if( GC.getBuildInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getBuildInfo(eBestBuild).getImprovement() )
+						if (GC.getBuildInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getBuildInfo(eBestBuild).getImprovement())
 						{
 							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_RED")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}

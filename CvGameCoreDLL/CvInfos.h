@@ -1980,11 +1980,11 @@ public:
 	CvSpecialBuildingInfo();
 	virtual ~CvSpecialBuildingInfo();
 
-	int getObsoleteTech( void ) const;					// Exposed to Python
-	int getTechPrereq( void ) const;						// Exposed to Python
-	int getTechPrereqAnyone( void ) const;						// Exposed to Python
+	int getObsoleteTech() const;					// Exposed to Python
+	int getTechPrereq() const;						// Exposed to Python
+	int getTechPrereqAnyone() const;						// Exposed to Python
 
-	bool isValid( void ) const;									// Exposed to Python
+	bool isValid() const;									// Exposed to Python
 
 	// Arrays
 
@@ -4593,10 +4593,10 @@ class CvAnimationPathInfo : public CvInfoBase
 		CvAnimationPathInfo();
 		virtual ~CvAnimationPathInfo();
 
-		DllExport int getPathCategory( int i );
-		float getPathParameter( int i );
+		DllExport int getPathCategory(int i);
+		float getPathParameter(int i);
 		DllExport int getNumPathDefinitions();
-		DllExport CvAnimationPathDefinition * getPath( );
+		DllExport CvAnimationPathDefinition* getPath();
 		DllExport bool isMissionPath() const;
 
 		bool read(CvXMLLoadUtility* pXML);
@@ -4623,8 +4623,8 @@ class CvAnimationCategoryInfo : public CvInfoBase
 		CvAnimationCategoryInfo();
 		virtual ~CvAnimationCategoryInfo();
 
-		DllExport int getCategoryBaseID( );
-		DllExport int getCategoryDefaultTo( );
+		DllExport int getCategoryBaseID();
+		DllExport int getCategoryDefaultTo();
 
 		bool read(CvXMLLoadUtility* pXML);
 
@@ -4950,9 +4950,9 @@ public:
 	virtual ~CvArtInfoTerrain();
 
 	DllExport const TCHAR* getBaseTexture();
-	void setBaseTexture(const TCHAR* szTmp );
+	void setBaseTexture(const TCHAR* szTmp);
 	DllExport const TCHAR* getGridTexture();
-	void setGridTexture(const TCHAR* szTmp );
+	void setGridTexture(const TCHAR* szTmp);
 	DllExport const TCHAR* getDetailTexture();
 	void setDetailTexture(const TCHAR* szTmp);
 	DllExport int getLayerOrder();
@@ -5614,8 +5614,8 @@ public:
 
 	DllExport const TCHAR* getPath() const { return m_szPath; }
 	void setPath(const TCHAR* szVal) { m_szPath = szVal; }
-	float getUpdateRate( ) const { return m_fUpdateRate; };
-	void setUpdateRate( float fUpdateRate ) { m_fUpdateRate = fUpdateRate; }
+	float getUpdateRate() const { return m_fUpdateRate; };
+	void setUpdateRate(float fUpdateRate) { m_fUpdateRate = fUpdateRate; }
 	bool isProjectile() const { return m_bProjectile; };
 	float getProjectileSpeed() const { return m_fProjectileSpeed; };
 	float getProjectileArc() const { return m_fProjectileArc; };

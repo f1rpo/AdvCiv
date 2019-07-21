@@ -71,7 +71,7 @@ public:
 #endif
 	const CvWString& operator=( const char* w) { Copy(w);	return *this; }
 
-	void Format( LPCWSTR lpszFormat, ... );
+	void Format(LPCWSTR lpszFormat, ...);
 
 	// static helpers
 	static bool formatv(std::wstring& out, const wchar * fmt, va_list args);
@@ -242,11 +242,11 @@ public:
 	// FString compatibility
 	bool IsEmpty() const { return empty();	}
 	const char* GetCString() const 	{ return c_str(); }							// convert
-	int CompareNoCase( const char* lpsz ) const { return stricmp(lpsz, c_str()); }
-	int CompareNoCase( const char* lpsz, int iLength ) const { return strnicmp(lpsz, c_str(), iLength);  }
-	void Format( LPCSTR lpszFormat, ... );
+	int CompareNoCase(const char* lpsz) const { return stricmp(lpsz, c_str()); }
+	int CompareNoCase(const char* lpsz, int iLength) const { return strnicmp(lpsz, c_str(), iLength);  }
+	void Format(LPCSTR lpszFormat, ...);
 	int GetLength() const { return size(); }
-	int Replace( char chOld, char chNew );
+	int Replace(char chOld, char chNew);
 
 	void getTokens(const CvString& delimiters, std::vector<CvString>& tokensOut) const;
 
@@ -262,14 +262,14 @@ public:
 // Don't move these into a cpp file, since I don't want CvString to be part of the DLL, MT
 //////////////////////////////////////////////////////////////////////////
 
-inline int CvString::Replace( char chOld, char chNew )
+inline int CvString::Replace(char chOld, char chNew)
 {
-	int i, iCnt = 0;
-	for(i=0;i<(int)size();i++)
+	int iCnt = 0;
+	for(int i = 0; i < (int)size(); i++)
 	{
 		if ((*this)[i] == chOld)
 		{
-			replace(i, 1, std::string(1, chNew) );
+			replace(i, 1, std::string(1, chNew));
 			iCnt++;
 		}
 	}
@@ -327,9 +327,9 @@ inline bool CvString::formatv(std::string & out, const char * fmt, va_list args)
 	}
 	while (!success && attempts<kMaxAttempts);
 
-	if ( attempts==kMaxAttempts )
+	if (attempts==kMaxAttempts)
 	{
-		// dxPrintNL( "CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0 );
+		// dxPrintNL("CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0);
 	}
 
 	if (success)
@@ -370,9 +370,9 @@ inline bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list ar
 	}
 	while (!success && attempts<kMaxAttempts);
 
-	if ( attempts==kMaxAttempts )
+	if (attempts==kMaxAttempts)
 	{
-		// dxPrintNL( "CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0 );
+		// dxPrintNL("CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0);
 	}
 
 	if (success)
@@ -393,7 +393,7 @@ inline bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list ar
 inline std::wstring CvWString::formatv(const wchar * fmt, va_list args)
 {
 	std::wstring result;
-	formatv( result, fmt, args );
+	formatv(result, fmt, args);
 	return result;
 }
 
@@ -425,7 +425,7 @@ inline bool CvWString::format(std::wstring & out, const wchar * fmt, ...)
 //
 //
 //
-inline void CvWString::Format( LPCWSTR lpszFormat, ... )
+inline void CvWString::Format( LPCWSTR lpszFormat, ...)
 {
 	std::wstring result;
 	va_list args;
@@ -441,7 +441,7 @@ inline void CvWString::Format( LPCWSTR lpszFormat, ... )
 inline std::string CvString::formatv(const char * fmt, va_list args)
 {
 	std::string result;
-	formatv( result, fmt, args );
+	formatv(result, fmt, args);
 	return result;
 }
 //
@@ -473,7 +473,7 @@ inline bool CvString::format(std::string & out, const char * fmt, ...)
 //
 //
 //
-inline void CvString::Format( LPCSTR lpszFormat, ... )
+inline void CvString::Format( LPCSTR lpszFormat, ...)
 {
 	std::string result;
 	va_list args;

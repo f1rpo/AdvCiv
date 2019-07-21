@@ -52,11 +52,11 @@ CvMap::~CvMap()
 void CvMap::init(CvMapInitData* pInitInfo)
 {
 	PROFILE("CvMap::init");
-	gDLL->logMemState( CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6",
+	gDLL->logMemState(CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6",
 		GC.getWorldInfo(GC.getInitCore().getWorldSize()).getDescription(),
 		GC.getClimateInfo(GC.getInitCore().getClimate()).getDescription(),
 		GC.getSeaLevelInfo(GC.getInitCore().getSeaLevel()).getDescription(),
-		GC.getInitCore().getNumCustomMapOptions()).c_str() );
+		GC.getInitCore().getNumCustomMapOptions()).c_str());
 
 	gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "beforeInit");
 
@@ -1253,7 +1253,7 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 {
 	PROFILE_FUNC();
 
-	for(int iI = 0; iI < numPlots(); iI++ )
+	for(int iI = 0; iI < numPlots(); iI++)
 	{
 		plotByIndex(iI)->setBorderDangerCache(eTeam, false);
 	}

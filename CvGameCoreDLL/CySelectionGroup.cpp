@@ -176,12 +176,12 @@ bool CySelectionGroup::atPlot(CyPlot* pPlot)
 
 CyPlot* CySelectionGroup::plot()
 {
-	return m_pSelectionGroup ? new CyPlot( m_pSelectionGroup->plot() ) : NULL;
+	return m_pSelectionGroup ? new CyPlot(m_pSelectionGroup->plot()) : NULL;
 }
 
 CyArea* CySelectionGroup::area()
 {
-	return m_pSelectionGroup ? new CyArea( m_pSelectionGroup->area() ) : NULL;
+	return m_pSelectionGroup ? new CyArea(m_pSelectionGroup->area()) : NULL;
 }
 
 int /*RouteTypes*/ CySelectionGroup::getBestBuildRoute(CyPlot* pPlot, BuildTypes* peBestBuild)
@@ -296,17 +296,17 @@ CyUnit* CySelectionGroup::getUnitAt(int index)
 	return m_pSelectionGroup ? new CyUnit(m_pSelectionGroup->getUnitAt(index)) : NULL;
 }
 
-int CySelectionGroup::getMissionType( int iNode )
+int CySelectionGroup::getMissionType(int iNode)
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->getMissionType(iNode) : -1;
 }
 
-int CySelectionGroup::getMissionData1( int iNode )
+int CySelectionGroup::getMissionData1(int iNode)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData1( iNode ) : -1;
+	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData1(iNode) : -1;
 }
 
-int CySelectionGroup::getMissionData2( int iNode )
+int CySelectionGroup::getMissionData2(int iNode)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData2( iNode ) : -1;
+	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData2(iNode) : -1;
 }

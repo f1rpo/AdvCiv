@@ -370,7 +370,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 
 /*  BETTER_BTS_AI_MOD, 12/30/08, jdog5000: START
 	for clearing data stored in plots and cities for this team */
-void CvTeam::resetPlotAndCityData( )
+void CvTeam::resetPlotAndCityData()
 {
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
@@ -381,7 +381,7 @@ void CvTeam::resetPlotAndCityData( )
 		pLoopPlot->setRevealed(getID(), false, false, getID(), true);
 
 		CvCity* pLoopCity = pLoopPlot->getPlotCity();
-		if( pLoopCity != NULL )
+		if (pLoopCity != NULL)
 		{
 			pLoopCity->setRevealed(getID(), false);
 			pLoopCity->setEspionageVisibility(getID(), false, true);
@@ -1088,7 +1088,7 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 		/*if (isHasTech(eTech) && !isNoTradeTech(eTech)))
 			kShareTeam.setNoTradeTech((eTech), false);*/
 		// unofficial patch
-		/*if ( kShareTeam.isHasTech(eTech) && !(kShareTeam.isNoTradeTech(eTech)) )
+		/*if (kShareTeam.isHasTech(eTech) && !(kShareTeam.isNoTradeTech(eTech)))
 			setNoTradeTech((eTech), false);*/
 		/*  dlph.26 (commented out): "What was this even supposed to be doing?
 			No tech brokering is now applied if necessary when tech is shared
@@ -1390,7 +1390,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	if (isAtWar(eTeam))
 		return;
 
-	if( gTeamLogLevel >= 1 )
+	if (gTeamLogLevel >= 1)
 	{
 		logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam);
 	}
@@ -1768,7 +1768,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 					makeUnwillingToTalk((TeamTypes)iI);
 				} // </advc.104i>
 			}
-			else if( (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() > 1) && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
+			else if(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() > 1 && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
 			{
 				// For alliance option.  This teams pacts are canceled above if not using alliance option.
 				//GET_TEAM((TeamTypes)iI).declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
@@ -1778,7 +1778,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		}
 	}
 
-	if( GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 0)// dlph.3: || (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 1 && bPrimaryDoW))
+	if (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 0)// dlph.3: || (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 1 && bPrimaryDoW))
 	{
 		GET_TEAM(eTeam).cancelDefensivePacts();
 	}
@@ -1870,7 +1870,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
 		}
 	} // </advc.130i>
 
-	if( gTeamLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 05/21/10, jdog5000
+	if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 05/21/10, jdog5000
 		logBBAI("      Team %d (%S) and team %d (%S) make peace", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam, GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getCivilizationDescription(0));
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -2126,7 +2126,7 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 	// BETTER_BTS_AI_MOD, AI logging, 02/20/10, jdog5000: START
 	if(gTeamLogLevel >= 2 && GC.getGame().isFinalInitialized()) {
 		if(eTeam != getID() && isAlive() && GET_TEAM(eTeam).isAlive())
-			logBBAI("    Team %d (%S) meets team %d (%S)", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam, GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getCivilizationDescription(0) );
+			logBBAI("    Team %d (%S) meets team %d (%S)", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam, GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getCivilizationDescription(0));
 	} // BETTER_BTS_AI_MOD: END
 }
 
@@ -2411,9 +2411,9 @@ int CvTeam::countWarEnemies(bool bIgnoreMinors, bool bIgnoreVassals) const
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
-			if (!bIgnoreMinors || !(GET_TEAM((TeamTypes)iI).isMinorCiv()))
+			if (!bIgnoreMinors || !GET_TEAM((TeamTypes)iI).isMinorCiv())
 			{
-				if( !bIgnoreVassals || !(GET_TEAM((TeamTypes)iI).isAVassal()))
+				if (!bIgnoreVassals || !GET_TEAM((TeamTypes)iI).isAVassal())
 				{
 					if (isAtWar((TeamTypes)iI))
 					{
@@ -2662,98 +2662,6 @@ bool CvTeam::isLossesAllowRevolt(TeamTypes eMaster) const {
 	return false;
 } // </advc.112>
 
-// BETTER_BTS_AI_MOD, General AI, 07/20/09, jdog5000: START
-bool CvTeam::isMasterPlanningLandWar(CvArea* pArea) const
-{
-	if( !isAVassal() )
-	{
-		return false;
-	}
-
-	if( (pArea->getAreaAIType(getID()) == AREAAI_OFFENSIVE) || (pArea->getAreaAIType(getID()) == AREAAI_DEFENSIVE) || (pArea->getAreaAIType(getID()) == AREAAI_MASSING) )
-	{
-		return true;
-	}
-
-	for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
-	{
-		if( isVassal((TeamTypes)iI) )
-		{
-			if( GET_TEAM((TeamTypes)iI).getAnyWarPlanCount(true) > 0 )
-			{
-				if( (pArea->getAreaAIType((TeamTypes)iI) == AREAAI_OFFENSIVE) || (pArea->getAreaAIType((TeamTypes)iI) == AREAAI_DEFENSIVE) || (pArea->getAreaAIType((TeamTypes)iI) == AREAAI_MASSING) )
-				{
-					return true;
-				}
-				else if( pArea->getAreaAIType((TeamTypes)iI) == AREAAI_NEUTRAL )
-				{
-					// Master has no presence here
-					if( (pArea->getNumCities() - countNumCitiesByArea(pArea)) > 2 )
-					{
-						return (GC.getGame().getSorenRandNum((isCapitulated() ? 6 : 4),"Vassal land war") == 0);
-					}
-				}
-			}
-			else if( GET_TEAM((TeamTypes)iI).isHuman() )
-			{
-				if( GC.getBBAI_HUMAN_VASSAL_WAR_BUILD() )
-				{
-					if( (pArea->getNumCities() - countNumCitiesByArea(pArea) - GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pArea)) > 2 )
-					{
-						return (GC.getGame().getSorenRandNum(4,"Vassal land war") == 0);
-					}
-				}
-			}
-
-			break;
-		}
-	}
-
-	return false;
-}
-
-
-bool CvTeam::isMasterPlanningSeaWar(CvArea* pArea) const
-{
-	if( !isAVassal() )
-	{
-		return false;
-	}
-
-	if( (pArea->getAreaAIType(getID()) == AREAAI_ASSAULT) || (pArea->getAreaAIType(getID()) == AREAAI_ASSAULT_ASSIST) || (pArea->getAreaAIType(getID()) == AREAAI_ASSAULT_MASSING) )
-	{
-		return true;
-	}
-
-	for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
-	{
-		if( isVassal((TeamTypes)iI) )
-		{
-			if( GET_TEAM((TeamTypes)iI).getAnyWarPlanCount(true) > 0 )
-			{
-				if( (pArea->getAreaAIType((TeamTypes)iI) == AREAAI_ASSAULT) || (pArea->getAreaAIType((TeamTypes)iI) == AREAAI_ASSAULT_ASSIST) || (pArea->getAreaAIType((TeamTypes)iI) == AREAAI_ASSAULT_MASSING) )
-				{
-					return (GC.getGame().getSorenRandNum((isCapitulated() ? 3 : 2),"Vassal sea war") == 0);
-				}
-				else if( pArea->getAreaAIType((TeamTypes)iI) == AREAAI_NEUTRAL )
-				{
-					// Master has no presence here
-					return false;
-				}
-
-			}
-			else if( GET_TEAM((TeamTypes)iI).isHuman() )
-			{
-				return false;
-			}
-
-			break;
-		}
-	}
-
-	return false;
-}
-// BETTER_BTS_AI_MOD: END
 
 int CvTeam::getUnitClassMaking(UnitClassTypes eUnitClass) const
 {
@@ -3005,7 +2913,7 @@ int CvTeam::countEnemyPopulationByArea(CvArea* pArea) const
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() != getID())
 			{
-				if( AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN )
+				if (AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
 					iCount += pArea->getPopulationPerPlayer((PlayerTypes)iI);
 			}
 		}
@@ -3031,7 +2939,7 @@ int CvTeam::countNumAIUnitsByArea(CvArea* pArea, UnitAITypes eUnitAI) const
 }
 
 // BETTER_BTS_AI_MOD, War strategy AI, 05/19/10, jdog5000
-int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam ) const
+int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam) const
 {
 	PROFILE_FUNC();
 
@@ -3974,7 +3882,7 @@ void CvTeam::changeWarWeariness(TeamTypes eOtherTeam, const CvPlot& kPlot, int i
 	int iTheirCulture = kPlot.countFriendlyCulture(eOtherTeam);
 
 	int iRatio = 100;
-	if (0 != iOurCulture + iTheirCulture)
+	if (iOurCulture + iTheirCulture != 0)
 	{
 		iRatio = (100 * iTheirCulture) / (iOurCulture + iTheirCulture);
 	}
@@ -5569,7 +5477,7 @@ int CvTeam::changeResearchProgressPercent(TechTypes eIndex, int iPercent, Player
 {
 	int iBeakers = 0;
 
-	if (0 != iPercent && !isHasTech(eIndex))
+	if (iPercent != 0 && !isHasTech(eIndex))
 	{
 		if (iPercent > 0)
 		{
@@ -5604,18 +5512,18 @@ int CvTeam::getBestKnownTechScorePercent() const
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
-			if( GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
+			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
-				iOurTechScore = std::max( iOurTechScore, GET_PLAYER((PlayerTypes)iI).getTechScore() );
+				iOurTechScore = std::max(iOurTechScore, GET_PLAYER((PlayerTypes)iI).getTechScore());
 			}
 			else if (isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 			{
-				iBestKnownTechScore = std::max( iBestKnownTechScore, GET_PLAYER((PlayerTypes)iI).getTechScore() );
+				iBestKnownTechScore = std::max(iBestKnownTechScore, GET_PLAYER((PlayerTypes)iI).getTechScore());
 			}
 		}
 	}
 
-	iBestKnownTechScore = std::max( iBestKnownTechScore, iOurTechScore );
+	iBestKnownTechScore = std::max(iBestKnownTechScore, iOurTechScore);
 
 	return ((100*iOurTechScore)/std::max(iBestKnownTechScore, 1));
 } // BETTER_BTS_AI_MOD: END
@@ -6064,8 +5972,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 	if (isHasTech(eIndex))
 	{
-		if( gTeamLogLevel >= 2 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000: START
-			logBBAI("    Team %d (%S) acquires tech %S", getID(), getName().GetCString(), GC.getTechInfo(eIndex).getDescription() );
+		if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000: START
+			logBBAI("    Team %d (%S) acquires tech %S", getID(), getName().GetCString(), GC.getTechInfo(eIndex).getDescription());
 
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{

@@ -687,7 +687,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 	if (eCapturingPlayer != NO_PLAYER && eCaptureUnitType != NO_UNIT && !GET_PLAYER(eCapturingPlayer).isBarbarian())
 	{
-		if (GET_PLAYER(eCapturingPlayer).isHuman() || GET_PLAYER(eCapturingPlayer).AI_captureUnit(eCaptureUnitType, pPlot) || 0 == GC.getDefineINT("AI_CAN_DISBAND_UNITS"))
+		if (GET_PLAYER(eCapturingPlayer).isHuman() || GET_PLAYER(eCapturingPlayer).AI_captureUnit(eCaptureUnitType, pPlot) || GC.getDefineINT("AI_CAN_DISBAND_UNITS") == 0)
 		{
 			CvUnit* pkCapturedUnit = GET_PLAYER(eCapturingPlayer).initUnit(eCaptureUnitType, pPlot->getX(), pPlot->getY());
 
@@ -778,7 +778,7 @@ void CvUnit::doTurn()
 		FeatureTypes eFeature = plot()->getFeatureType();
 		if (NO_FEATURE != eFeature)
 		{
-			if (0 != GC.getFeatureInfo(eFeature).getTurnDamage())
+			if (GC.getFeatureInfo(eFeature).getTurnDamage() != 0)
 			{
 				changeDamage(GC.getFeatureInfo(eFeature).getTurnDamage(), NO_PLAYER);
 			}
@@ -889,7 +889,7 @@ void CvUnit::resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionD
 	int iTheirStrength = (DOMAIN_AIR == pInterceptor->getDomainType() ? pInterceptor->airCurrCombatStr(this) : pInterceptor->currCombatStr(NULL, NULL));
 	int iOurStrength = (DOMAIN_AIR == getDomainType() ? airCurrCombatStr(pInterceptor) : currCombatStr(NULL, NULL));
 	int iTotalStrength = iOurStrength + iTheirStrength;
-	if (0 == iTotalStrength)
+	if (iTotalStrength == 0)
 	{
 		FAssert(false);
 		return;
@@ -913,7 +913,7 @@ void CvUnit::resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionD
 
 	// Air v air is more like standard comabt
 	// Round damage in this case will now depend on strength and interception probability
-	if( GC.getBBAI_AIR_COMBAT() && (DOMAIN_AIR == pInterceptor->getDomainType() && DOMAIN_AIR == getDomainType()) )
+	if (GC.getBBAI_AIR_COMBAT() && DOMAIN_AIR == pInterceptor->getDomainType() && DOMAIN_AIR == getDomainType())
 	{
 		int iBaseDamage = GC.getDefineINT("AIR_COMBAT_DAMAGE");
 		int iOurFirepower = ((airMaxCombatStr(pInterceptor) + iOurStrength + 1) / 2);
@@ -1158,7 +1158,7 @@ void CvUnit::updateAirCombat(bool bQuick)
 			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 
-		if (0 == kAirMission.getDamage(BATTLE_UNIT_ATTACKER) + kAirMission.getDamage(BATTLE_UNIT_DEFENDER))
+		if (kAirMission.getDamage(BATTLE_UNIT_ATTACKER) + kAirMission.getDamage(BATTLE_UNIT_DEFENDER) == 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ABORTED_ENEMY_AIR", pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(getTeam()));
 			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
@@ -2770,7 +2770,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	case DOMAIN_LAND:
 		if (pPlot->isWater() && !canMoveAllTerrain())
 		{
-			if (!pPlot->isCity() || 0 == GC.getDefineINT("LAND_UNITS_CAN_ATTACK_WATER_CITIES"))
+			if (!pPlot->isCity() || GC.getDefineINT("LAND_UNITS_CAN_ATTACK_WATER_CITIES") == 0)
 			{
 				//if (bIgnoreLoad || !isHuman() || plot()->isWater() || !canLoad(pPlot))
 				if (bIgnoreLoad || plot()->isWater() || !canLoad(pPlot)) // K-Mod. (AI might want to load into a boat on the coast)
@@ -2843,7 +2843,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	// The following change makes capturing an undefended city like a attack action, it
 	// cannot be done after another attack or a paradrop
 	/*
-	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM)) ) {
+	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM))) {
 		if (//isMadeAttack() && !isBlitz()
 				isMadeAllAttacks()) // advc.164
 			return false;
@@ -3995,7 +3995,7 @@ void CvUnit::airCircle(bool bStart)
 	}
 
 	//cancel previos missions
-	gDLL->getEntityIFace()->RemoveUnitFromBattle( this );
+	gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
 
 	if (bStart)
 	{
@@ -4006,7 +4006,7 @@ void CvUnit::airCircle(bool bStart)
 		kDefinition.setMissionType(MISSION_AIRPATROL);
 		kDefinition.setMissionTime(1.0f); // patrol is indefinite - time is ignored
 
-		gDLL->getEntityIFace()->AddMission( &kDefinition );
+		gDLL->getEntityIFace()->AddMission(&kDefinition);
 	}
 }
 
@@ -4624,7 +4624,7 @@ bool CvUnit::canReconAt(const CvPlot* pPlot, int iX, int iY) const
 	}
 
 	int iDistance = plotDistance(pPlot->getX(), pPlot->getY(), iX, iY);
-	if (iDistance > airRange() || 0 == iDistance)
+	if (iDistance > airRange() || iDistance == 0)
 	{
 		return false;
 	}
@@ -7013,7 +7013,7 @@ int CvUnit::getSpyInterceptPercent(TeamTypes eTargetTeam, bool bMission) const
 	// K-Mod. I've added the following condition for the recent mission bonus, to make spies less likely to be caught while exploring during peace time.
 	if (bMission || atWar(getTeam(), eTargetTeam) || GET_TEAM(eTargetTeam).getCounterespionageModAgainstTeam(getTeam()) > 0 || plot()->isEspionageCounterSpy(eTargetTeam)) // K-Mod
 	{
-		if (0 == getFortifyTurns() || plot()->plotCount(PUF_isSpy, -1, -1, NO_PLAYER, getTeam()) > 1)
+		if (getFortifyTurns() == 0 || plot()->plotCount(PUF_isSpy, -1, -1, NO_PLAYER, getTeam()) > 1)
 			iSuccess += GC.getDefineINT("ESPIONAGE_INTERCEPT_RECENT_MISSION");
 	}
 
@@ -9160,9 +9160,9 @@ int CvUnit::maxFirstStrikes() const
 bool CvUnit::isRanged() const
 {
 	CvUnitInfo * pkUnitInfo = &getUnitInfo();
-	for (int i = 0; i < pkUnitInfo->getGroupDefinitions(); i++ )
+	for (int i = 0; i < pkUnitInfo->getGroupDefinitions(); i++)
 	{
-		if ( !getArtInfo(i, GET_PLAYER(getOwner()).getCurrentEra())->getActAsRanged() )
+		if (!getArtInfo(i, GET_PLAYER(getOwner()).getCurrentEra())->getActAsRanged())
 		{
 			return false;
 		}
@@ -11390,7 +11390,7 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 		if (m_pUnitInfo->isHiddenNationality()
 				&& !GC.getGame().isDebugMode()) // advc.007
 		{
-			//if( !plot()->isCity(true, getTeam()))
+			//if (!plot()->isCity(true, getTeam()))
 			// <advc.061> Replacing the above
 			if(!m_pUnitInfo->isAlwaysHostile() || isFighting() ||
 					/* If it's in the same tile as a revealed unit and it's always
@@ -13041,7 +13041,7 @@ int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& comb
 //! \retval		The number of units that should die for the given unit in the given portion of combat
 //------------------------------------------------------------------------------------------------
 // advc.003j (comment): Obsolete b/c of the K-Mod rewrite of planBattle
-int CvUnit::computeUnitsToDie( const CvBattleDefinition & kDefinition, bool bRanged, BattleUnitTypes iUnit ) const
+int CvUnit::computeUnitsToDie(const CvBattleDefinition & kDefinition, bool bRanged, BattleUnitTypes iUnit) const
 {
 	FAssertMsg( iUnit == BATTLE_UNIT_ATTACKER || iUnit == BATTLE_UNIT_DEFENDER, "Invalid unit index");
 
@@ -13057,9 +13057,9 @@ int CvUnit::computeUnitsToDie( const CvBattleDefinition & kDefinition, bool bRan
 //! \param      vctBattlePlan The battle plan
 //! \retval     true if the battle plan (seems) valid, false otherwise
 //------------------------------------------------------------------------------------------------
-bool CvUnit::verifyRoundsValid( const CvBattleDefinition & battleDefinition ) const
+bool CvUnit::verifyRoundsValid(const CvBattleDefinition & battleDefinition) const
 {
-	for(int i=0;i<battleDefinition.getNumBattleRounds();i++)
+	for(int i = 0; i < battleDefinition.getNumBattleRounds(); i++)
 	{
 		if(!battleDefinition.getBattleRound(i).isValid())
 			return false;
@@ -13073,9 +13073,9 @@ bool CvUnit::verifyRoundsValid( const CvBattleDefinition & battleDefinition ) co
 //! \param      kBattleDefinition The definition of the battle
 //------------------------------------------------------------------------------------------------
 // advc.003j (comment): Obsolete b/c of the K-Mod rewrite of planBattle
-void CvUnit::increaseBattleRounds( CvBattleDefinition & kBattleDefinition ) const
+void CvUnit::increaseBattleRounds(CvBattleDefinition & kBattleDefinition) const
 {
-	if ( kBattleDefinition.getUnit(BATTLE_UNIT_ATTACKER)->isRanged() && kBattleDefinition.getUnit(BATTLE_UNIT_DEFENDER)->isRanged())
+	if (kBattleDefinition.getUnit(BATTLE_UNIT_ATTACKER)->isRanged() && kBattleDefinition.getUnit(BATTLE_UNIT_DEFENDER)->isRanged())
 	{
 		kBattleDefinition.addNumRangedRounds(1);
 	}
@@ -13093,11 +13093,11 @@ void CvUnit::increaseBattleRounds( CvBattleDefinition & kBattleDefinition ) cons
 //! \param		iDefenderMax The maximum number of Defenders that can participate in a wave (alive)
 //! \retval     The desired wave size for the given parameters
 //------------------------------------------------------------------------------------------------
-int CvUnit::computeWaveSize( bool bRangedRound, int iAttackerMax, int iDefenderMax ) const
+int CvUnit::computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMax) const
 {
-	FAssertMsg( getCombatUnit() != NULL, "You must be fighting somebody!" );
+	FAssertMsg(getCombatUnit() != NULL, "You must be fighting somebody!");
 	int aiDesiredSize[BATTLE_UNIT_COUNT];
-	if ( bRangedRound )
+	if (bRangedRound)
 	{
 		aiDesiredSize[BATTLE_UNIT_ATTACKER] = getUnitInfo().getRangedWaveSize();
 		aiDesiredSize[BATTLE_UNIT_DEFENDER] = getCombatUnit()->getUnitInfo().getRangedWaveSize();
@@ -13110,8 +13110,8 @@ int CvUnit::computeWaveSize( bool bRangedRound, int iAttackerMax, int iDefenderM
 
 	aiDesiredSize[BATTLE_UNIT_DEFENDER] = aiDesiredSize[BATTLE_UNIT_DEFENDER] <= 0 ? iDefenderMax : aiDesiredSize[BATTLE_UNIT_DEFENDER];
 	aiDesiredSize[BATTLE_UNIT_ATTACKER] = aiDesiredSize[BATTLE_UNIT_ATTACKER] <= 0 ? iDefenderMax : aiDesiredSize[BATTLE_UNIT_ATTACKER];
-	return std::min( std::min( aiDesiredSize[BATTLE_UNIT_ATTACKER], iAttackerMax ), std::min( aiDesiredSize[BATTLE_UNIT_DEFENDER],
-		iDefenderMax) );
+	return std::min(std::min( aiDesiredSize[BATTLE_UNIT_ATTACKER], iAttackerMax), std::min(aiDesiredSize[BATTLE_UNIT_DEFENDER],
+		iDefenderMax));
 }
 
 bool CvUnit::isTargetOf(const CvUnit& attacker) const
@@ -13225,19 +13225,13 @@ int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, boo
 
 	if (!CvString(kTrigger.getPythonCanDoUnit()).empty())
 	{
-		long lResult;
-
-		CyArgsList argsList;
+		long lResult; CyArgsList argsList;
 		argsList.add(eTrigger);
 		argsList.add(getOwner());
 		argsList.add(getID());
-
 		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCanDoUnit(), argsList.makeFunctionArgs(), &lResult);
-
-		if (0 == lResult)
-		{
+		if (lResult == 0)
 			return MIN_INT;
-		}
 	}
 
 	if (kTrigger.getNumUnitsRequired() > 0)
@@ -13271,7 +13265,7 @@ int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, boo
 
 	int iValue = 0;
 
-	if (0 == getDamage() && kTrigger.getUnitDamagedWeight() > 0)
+	if (getDamage() == 0 && kTrigger.getUnitDamagedWeight() > 0)
 	{
 		return MIN_INT;
 	}
@@ -13292,7 +13286,7 @@ bool CvUnit::canApplyEvent(EventTypes eEvent) const
 {
 	CvEventInfo& kEvent = GC.getEventInfo(eEvent);
 
-	if (0 != kEvent.getUnitExperience())
+	if (kEvent.getUnitExperience() != 0)
 	{
 		if (!canAcquirePromotionAny())
 		{
@@ -13330,7 +13324,7 @@ void CvUnit::applyEvent(EventTypes eEvent)
 
 	CvEventInfo& kEvent = GC.getEventInfo(eEvent);
 
-	if (0 != kEvent.getUnitExperience())
+	if (kEvent.getUnitExperience() != 0)
 	{
 		setDamage(0);
 		changeExperience(kEvent.getUnitExperience());
@@ -13903,8 +13897,8 @@ int CvUnit::LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const
 
 	iDefenderHitLimit = maxHitPoints() - pAttacker->combatLimit();
 
-	iNeededRoundsAttacker = (std::max(0, currHitPoints() - iDefenderHitLimit) + iDamageToDefender - 1 ) / iDamageToDefender;
-	iNeededRoundsDefender = (pAttacker->currHitPoints() + iDamageToAttacker - 1 ) / iDamageToAttacker;
+	iNeededRoundsAttacker = (std::max(0, currHitPoints() - iDefenderHitLimit) + iDamageToDefender - 1) / iDamageToDefender;
+	iNeededRoundsDefender = (pAttacker->currHitPoints() + iDamageToAttacker - 1) / iDamageToAttacker;
 
 	// calculate possible first strikes distribution.
 	// We can't use the getCombatFirstStrikes() function (only one result,

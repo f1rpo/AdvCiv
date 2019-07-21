@@ -1227,12 +1227,12 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimationPathInfo, char* szTagName, int* iNumVals)
 {
 	PROFILE_FUNC();
-	logMsg( "SetGlobalAnimationPathInfo %s\n", szTagName );
+	logMsg("SetGlobalAnimationPathInfo %s\n", szTagName);
 
 	int		i;						// Loop counters
 	CvAnimationPathInfo * pAnimPathInfo = NULL;	// local pointer to the domain info memory
 
-	if ( gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName ))
+	if (gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
 	{
 		// get the number of times the szTagName tag appears in the xml file
 		*iNumVals = gDLL->getXMLIFace()->NumOfElementsByTagName(m_pFXml,szTagName);
@@ -1264,7 +1264,7 @@ void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimat
 	// if we didn't find the tag name in the xml then we never set the local pointer to the
 	// newly allocated memory and there for we will FAssert to let people know this most
 	// interesting fact
-	if(!pAnimPathInfo )
+	if(!pAnimPathInfo)
 	{
 		char	szMessage[1024];
 		sprintf( szMessage, "Error finding tag node in SetGlobalAnimationPathInfo function \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
@@ -2402,7 +2402,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 							if (iIndexVal != -1)
 							{
 								GetNextXmlVal(szTemp);
-								if ( szTemp.GetLength() > 0 )
+								if (szTemp.GetLength() > 0)
 									piList[iIndexVal] = gDLL->getAudioTagIndex(szTemp);
 								else
 									piList[iIndexVal] = -1;
@@ -2475,7 +2475,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 							if (iIndexVal != -1)
 							{
 								GetNextXmlVal(szTemp);
-								if ( szTemp.GetLength() > 0 )
+								if (szTemp.GetLength() > 0)
 									piList[iIndexVal] = gDLL->getAudioTagIndex(szTemp);
 								else
 									piList[iIndexVal] = -1;

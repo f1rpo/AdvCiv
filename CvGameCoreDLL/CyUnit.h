@@ -90,7 +90,7 @@ public:
 	int stealPlansProb( CyPlot* pPlot, int /*ProbabilityTypes*/ eProbStyle);
 	bool canStealPlans( CyPlot* pPlot, bool bTestVisible);
 
-	bool IsSelected( void );
+	bool IsSelected();
 
 	bool canFound(CyPlot* pPlot, bool bTestVisible);
 	bool canSpread(CyPlot* pPlot, int /*ReligionTypes*/ eReligion, bool bTestVisible);

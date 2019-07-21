@@ -47,10 +47,10 @@ public:
 	bool isNationalWondersMaxed();
 	bool isBuildingsMaxed();
 
-	bool canTrain( int iUnit, bool bContinue, bool bTestVisible);
-	bool canConstruct( int iBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost);
-	bool canCreate( int iProject, bool bContinue, bool bTestVisible );
-	bool canMaintain( int iProcess, bool bContinue );
+	bool canTrain(int iUnit, bool bContinue, bool bTestVisible);
+	bool canConstruct(int iBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost);
+	bool canCreate(int iProject, bool bContinue, bool bTestVisible);
+	bool canMaintain(int iProcess, bool bContinue);
 	bool canJoin();
 	int getFoodTurnsLeft();
 	bool isProduction();
@@ -299,7 +299,7 @@ public:
 	int getTotalDefense(bool bIgnoreBuilding);
 	int getDefenseModifier(bool bIgnoreBuilding);
 
-	int visiblePopulation(void);
+	int visiblePopulation();
 
 	int getOccupationTimer();
 	bool isOccupation();

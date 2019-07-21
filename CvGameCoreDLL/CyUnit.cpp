@@ -44,7 +44,7 @@ void CyUnit::NotifyEntity(int /*MissionTypes*/ eEvent)
 
 bool CyUnit::isActionRecommended(int i)
 {
-	if ( m_pUnit )
+	if (m_pUnit)
 	{
 		return m_pUnit->isActionRecommended(i);
 	}
@@ -1070,7 +1070,7 @@ bool CyUnit::isGroupHead()
 
 CySelectionGroup* CyUnit::getGroup()
 {
-	return m_pUnit ? new CySelectionGroup( m_pUnit->getGroup() ) : NULL;
+	return m_pUnit ? new CySelectionGroup(m_pUnit->getGroup()) : NULL;
 }
 
 int CyUnit::getHotKeyNumber()
@@ -1634,7 +1634,7 @@ void CyUnit::setUnitAIType(int /*UnitAITypes*/ iNewValue)
 	}
 }
 
-bool CyUnit::IsSelected( void )
+bool CyUnit::IsSelected()
 {
 	return m_pUnit ? m_pUnit->IsSelected() : false;
 }

@@ -75,7 +75,7 @@ public:
 	};
 	~CProfileScope()
 	{
-		if(bValid )
+		if(bValid)
 		{
 #ifdef USE_INTERNAL_PROFILER
 			IFPEndSample(m_pSample);

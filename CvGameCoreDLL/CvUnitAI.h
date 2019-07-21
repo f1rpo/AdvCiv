@@ -238,7 +238,7 @@ protected:
 	bool AI_airStrike(int iThreshold = 0); // K-Mod note. this function now handles bombing defences, and defensive strikes.
 
 	// BETTER_BTS_AI_MOD, Air AI, 9/26/08, jdog5000: START
-	int AI_airOffenseBaseValue( CvPlot* pPlot );
+	int AI_airOffenseBaseValue(CvPlot* pPlot);
 	//bool AI_defensiveAirStrike(); // disabled by K-Mod
 	bool AI_defendBaseAirStrike();
 	// BETTER_BTS_AI_MOD: END
@@ -247,7 +247,7 @@ protected:
 	bool AI_exploreAir();
 
 	// BETTER_BTS_AI_MOD, Player Interface, 01/12/09, jdog5000: START
-	int AI_exploreAirPlotValue( CvPlot* pPlot );
+	int AI_exploreAirPlotValue(CvPlot* pPlot);
 	bool AI_exploreAir2();
 	void AI_exploreAirMove();
 	// BETTER_BTS_AI_MOD: END

@@ -93,7 +93,7 @@ public:
 
 	void goodyReceived(PlayerTypes ePlayer, CvPlot *pGoodyPlot, CvUnit *pGoodyUnit, GoodyTypes eGoodyType);
 
-	void greatPersonBorn(CvUnit *pUnit, PlayerTypes ePlayer, CvCity *pCity );
+	void greatPersonBorn(CvUnit *pUnit, PlayerTypes ePlayer, CvCity *pCity);
 
 	void buildingBuilt(CvCity *pCity, BuildingTypes eBuilding);
 	void projectBuilt(CvCity *pCity, ProjectTypes eProject);
@@ -113,7 +113,7 @@ public:
 	void endGoldenAge(PlayerTypes ePlayer);
 	void changeWar(bool bWar, TeamTypes eTeam, TeamTypes eOtherTeam);
 
-	void setPlayerAlive( PlayerTypes ePlayerID, bool bNewValue );
+	void setPlayerAlive(PlayerTypes ePlayerID, bool bNewValue);
 	void playerChangeStateReligion(PlayerTypes ePlayerID, ReligionTypes eNewReligion, ReligionTypes eOldReligion);
 	void playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, int iAmount);
 

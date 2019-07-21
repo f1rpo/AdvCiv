@@ -19,7 +19,7 @@ public:
 	void sendEspionageSpendingWeightChange (int /*TeamTypes*/ eTargetTeam, int iChange);
 	void sendAdvancedStartAction	(int /*AdvancedStartActionTypes*/ eAction, int /*PlayerTypes*/ ePlayer, int iX, int iY, int iData, bool bAdd);
 	void sendModNetMessage(int iData1, int iData2, int iData3, int iData4, int iData5);
-	void sendConvert( int /*ReligionTypes*/ iReligion );
+	void sendConvert(int /*ReligionTypes*/ iReligion);
 	void sendEmpireSplit(int /*PlayerTypes*/ ePlayer, int iAreaId);
 
 	//	Helper function to determine the first bad connection...

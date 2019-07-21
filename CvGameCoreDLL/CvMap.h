@@ -194,7 +194,7 @@ private: // Auxiliary functions
 	{
 		if (!bWrap || iRange == 0)
 			return iCoord;
-		if (iCoord < 0 )
+		if (iCoord < 0)
 			return (iRange + (iCoord % iRange));
 		else if (iCoord >= iRange)
 			return (iCoord % iRange);

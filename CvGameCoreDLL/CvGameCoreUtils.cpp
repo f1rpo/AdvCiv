@@ -290,7 +290,7 @@ DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard)
 
 bool isCardinalDirection(DirectionTypes eDirection)
 {
-	switch( eDirection )
+	switch (eDirection)
 	{
 	case DIRECTION_EAST:
 	case DIRECTION_NORTH:
@@ -331,9 +331,9 @@ DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot)
 }
 
 
-float directionAngle( DirectionTypes eDirection )
+float directionAngle (DirectionTypes eDirection)
 {
-	switch( eDirection )
+	switch (eDirection)
 	{
 	case DIRECTION_NORTHEAST:	return fM_PI * 0.25f;
 	case DIRECTION_EAST:			return fM_PI * 0.5f;
@@ -1000,8 +1000,8 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 
 	iDefenderHitLimit = pDefender->maxHitPoints() - pAttacker->combatLimit();
 
-	iNeededRoundsAttacker = (std::max(0, pDefender->currHitPoints() - iDefenderHitLimit) + iDamageToDefender - 1 ) / iDamageToDefender;
-	iNeededRoundsDefender = (pAttacker->currHitPoints() + iDamageToAttacker - 1 ) / iDamageToAttacker;
+	iNeededRoundsAttacker = (std::max(0, pDefender->currHitPoints() - iDefenderHitLimit) + iDamageToDefender - 1) / iDamageToDefender;
+	iNeededRoundsDefender = (pAttacker->currHitPoints() + iDamageToAttacker - 1) / iDamageToAttacker;
 	iMaxRounds = iNeededRoundsAttacker + iNeededRoundsDefender - 1;
 
 	// calculate possible first strikes distribution.
@@ -1734,9 +1734,9 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 			int iGroupAreaID = pSelectionGroup->getArea();
 			if (pToPlot->getArea() != iGroupAreaID)
 			{
-				if( !(pSelectionGroup->canMoveAllTerrain()) )
+				if (!pSelectionGroup->canMoveAllTerrain())
 				{
-					if (!(pToPlot->isAdjacentToArea(iGroupAreaID)))
+					if (!pToPlot->isAdjacentToArea(iGroupAreaID))
 					{
 						return FALSE;
 					}
@@ -2046,7 +2046,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 
 		// Damage caused by features (for mods)
-		if (0 != GC.getPATH_DAMAGE_WEIGHT())
+		if (GC.getPATH_DAMAGE_WEIGHT() != 0)
 		{
 			if (pToPlot->getFeatureType() != NO_FEATURE)
 			{
@@ -2156,7 +2156,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				{
 					pAdjacentPlot = plotDirection(pToPlot->getX(), pToPlot->getY(), ((DirectionTypes)iI));
 
-					if( pAdjacentPlot != NULL )
+					if (pAdjacentPlot != NULL)
 					{
 						if (pAdjacentPlot->isOwned() && atWar(pAdjacentPlot->getTeam(), pSelectionGroup->getHeadTeam()))
 						{
@@ -2786,11 +2786,11 @@ int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	// (advc.030 takes care of this)
 	// BETTER_BTS_AI_MOD, General AI, 10/02/09, jdog5000
 	// BBAI TODO: Why doesn't this work to break water and ice into separate area?
-	/*if( GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() != GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater() )
+	/*if (GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() != GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater())
 	return FALSE;
 	// Ice blocks become their own area
-	if( GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() && GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater() ) {
-		if( GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isImpassable() != GC.getMap().plotSoren(node->m_iX, node->m_iY)->isImpassable() )
+	if (GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() && GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater()) {
+		if (GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isImpassable() != GC.getMap().plotSoren(node->m_iX, node->m_iY)->isImpassable())
 			return FALSE;
 	}
 	return TRUE;*/

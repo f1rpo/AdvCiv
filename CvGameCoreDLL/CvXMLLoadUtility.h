@@ -309,7 +309,7 @@ private:
 	CvWString CreateKeyStringFromKBCode(const TCHAR* pszHotKey);
 
 	void orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength);
-	void logMsg(char* format, ... );
+	void logMsg(char* format, ...);
 	// <advc.006b>
 	bool m_bAssertMandatory;
 	static CvString szAssertMsg; // </advc.006b>

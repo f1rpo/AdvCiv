@@ -371,7 +371,7 @@ void CvDllPythonEvents::reportGotoPlotSet(CvPlot *pPlot, PlayerTypes ePlayer)
 	}
 }
 
-void CvDllPythonEvents::reportCityBuilt( CvCity *pCity )
+void CvDllPythonEvents::reportCityBuilt(CvCity *pCity)
 {
 	if (preEvent())
 	{
@@ -386,7 +386,7 @@ void CvDllPythonEvents::reportCityBuilt( CvCity *pCity )
 	}
 }
 
-void CvDllPythonEvents::reportCityRazed( CvCity *pCity, PlayerTypes ePlayer )
+void CvDllPythonEvents::reportCityRazed(CvCity *pCity, PlayerTypes ePlayer)
 {
 	if (preEvent())
 	{
@@ -451,7 +451,7 @@ void CvDllPythonEvents::reportCityLost(CvCity* pCity)
 	}
 }
 
-void CvDllPythonEvents::reportCultureExpansion( CvCity *pCity, PlayerTypes ePlayer )
+void CvDllPythonEvents::reportCultureExpansion(CvCity *pCity, PlayerTypes ePlayer)
 {
 	if (preEvent())
 	{
@@ -468,7 +468,7 @@ void CvDllPythonEvents::reportCultureExpansion( CvCity *pCity, PlayerTypes ePlay
 	}
 }
 
-void CvDllPythonEvents::reportCityGrowth( CvCity *pCity, PlayerTypes ePlayer )
+void CvDllPythonEvents::reportCityGrowth(CvCity *pCity, PlayerTypes ePlayer)
 {
 	if (preEvent())
 	{
@@ -485,7 +485,7 @@ void CvDllPythonEvents::reportCityGrowth( CvCity *pCity, PlayerTypes ePlayer )
 	}
 }
 
-void CvDllPythonEvents::reportCityProduction( CvCity *pCity, PlayerTypes ePlayer )
+void CvDllPythonEvents::reportCityProduction(CvCity *pCity, PlayerTypes ePlayer)
 {
 	if (preEvent())
 	{
@@ -502,7 +502,7 @@ void CvDllPythonEvents::reportCityProduction( CvCity *pCity, PlayerTypes ePlayer
 	}
 }
 
-void CvDllPythonEvents::reportCityBuildingUnit( CvCity *pCity, UnitTypes eUnitType )
+void CvDllPythonEvents::reportCityBuildingUnit(CvCity *pCity, UnitTypes eUnitType)
 {
 	if (preEvent())
 	{
@@ -519,7 +519,7 @@ void CvDllPythonEvents::reportCityBuildingUnit( CvCity *pCity, UnitTypes eUnitTy
 	}
 }
 
-void CvDllPythonEvents::reportCityBuildingBuilding( CvCity *pCity, BuildingTypes eBuildingType )
+void CvDllPythonEvents::reportCityBuildingBuilding(CvCity *pCity, BuildingTypes eBuildingType)
 {
 	if (preEvent())
 	{
@@ -536,7 +536,7 @@ void CvDllPythonEvents::reportCityBuildingBuilding( CvCity *pCity, BuildingTypes
 	}
 }
 
-void CvDllPythonEvents::reportCityRename( CvCity *pCity )
+void CvDllPythonEvents::reportCityRename(CvCity *pCity)
 {
 	if (preEvent())
 	{
@@ -551,7 +551,7 @@ void CvDllPythonEvents::reportCityRename( CvCity *pCity )
 	}
 }
 
-void CvDllPythonEvents::reportCityHurry( CvCity *pCity, HurryTypes eHurry )
+void CvDllPythonEvents::reportCityHurry(CvCity *pCity, HurryTypes eHurry)
 {
 	if (preEvent())
 	{
@@ -863,7 +863,7 @@ void CvDllPythonEvents::reportGoodyReceived(PlayerTypes ePlayer, CvPlot *pGoodyP
 	}
 }
 
-void CvDllPythonEvents::reportGreatPersonBorn( CvUnit *pUnit, PlayerTypes ePlayer, CvCity *pCity )
+void CvDllPythonEvents::reportGreatPersonBorn(CvUnit *pUnit, PlayerTypes ePlayer, CvCity *pCity)
 {
 	if (preEvent())
 	{
@@ -1100,7 +1100,7 @@ void CvDllPythonEvents::reportVassalState(TeamTypes eMaster, TeamTypes eVassal, 
 	}
 }
 
-void CvDllPythonEvents::reportSetPlayerAlive( PlayerTypes ePlayerID, bool bNewValue )
+void CvDllPythonEvents::reportSetPlayerAlive(PlayerTypes ePlayerID, bool bNewValue)
 {
 	if (preEvent())
 	{

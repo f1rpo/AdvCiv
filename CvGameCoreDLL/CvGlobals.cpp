@@ -1070,8 +1070,8 @@ std::vector<CvEntityEventInfo*>& CvGlobals::getEntityEventInfo()
 
 CvEntityEventInfo& CvGlobals::getEntityEventInfo(EntityEventTypes e)
 {
-	FAssert( e > -1 );
-	FAssert( e < getNumEntityEventInfos() );
+	FAssert(e > -1);
+	FAssert(e < getNumEntityEventInfos());
 	return *(m_paEntityEventInfo[e]);
 }
 
@@ -2635,14 +2635,14 @@ int CvGlobals::getFootstepAudioTypeByTag(CvString strTag)
 {
 	int iIndex = -1;
 
-	if ( strTag.GetLength() <= 0 )
+	if (strTag.GetLength() <= 0)
 	{
 		return iIndex;
 	}
 
-	for ( int i = 0; i < m_iNumFootstepAudioTypes; i++ )
+	for (int i = 0; i < m_iNumFootstepAudioTypes; i++)
 	{
-		if ( strTag.CompareNoCase(m_paszFootstepAudioTypes[i]) == 0 )
+		if (strTag.CompareNoCase(m_paszFootstepAudioTypes[i]) == 0)
 		{
 			iIndex = i;
 			break;
@@ -2871,11 +2871,11 @@ void CvGlobals::setRUINS_IMPROVEMENT(int iValue) {
 } // </advc.003b>
 
 // BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
-int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
+int CvGlobals::getDefineINT(const char * szName, const int iDefault) const
 {
 	int iReturn = 0;
 
-	if( getDefinesVarSystem()->GetValue( szName, iReturn ) )
+	if (getDefinesVarSystem()->GetValue(szName, iReturn))
 	{
 		return iReturn;
 	}
@@ -2884,55 +2884,55 @@ int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
 } // BETTER_BTS_AI_MOD: END
 
 
-int CvGlobals::getDefineINT( const char * szName ) const
+int CvGlobals::getDefineINT(const char * szName) const
 {
 	int iReturn = 0;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue( szName, iReturn );
+			getDefinesVarSystem()->GetValue(szName, iReturn);
 	FAssert(bSuccess); // advc.003c
 	return iReturn;
 }
 
-float CvGlobals::getDefineFLOAT( const char * szName ) const
+float CvGlobals::getDefineFLOAT(const char * szName) const
 {
 	float fReturn = 0;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue( szName, fReturn );
+			getDefinesVarSystem()->GetValue(szName, fReturn);
 	/*  advc.003c: The EXE queries CAMERA_MIN_DISTANCE during startup, which
 		fails but doesn't cause any problems. */
 	FAssert(bSuccess || std::strcmp("CAMERA_MIN_DISTANCE", szName) == 0);
 	return fReturn;
 }
 
-const char * CvGlobals::getDefineSTRING( const char * szName ) const
+const char * CvGlobals::getDefineSTRING(const char * szName) const
 {
 	const char * szReturn = NULL;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue( szName, szReturn );
+			getDefinesVarSystem()->GetValue(szName, szReturn);
 	FAssert(bSuccess); // advc.003c
 	return szReturn;
 }
 
-void CvGlobals::setDefineINT( const char * szName, int iValue,
-		bool bUpdateCache ) // advc.003b
+void CvGlobals::setDefineINT(const char * szName, int iValue,
+		bool bUpdateCache) // advc.003b
 {
-	getDefinesVarSystem()->SetValue( szName, iValue );
+	getDefinesVarSystem()->SetValue(szName, iValue);
 	if(bUpdateCache) // advc.003b
 		cacheGlobals();
 }
 
-void CvGlobals::setDefineFLOAT( const char * szName, float fValue,
-		bool bUpdateCache ) // advc.003b
+void CvGlobals::setDefineFLOAT(const char * szName, float fValue,
+		bool bUpdateCache) // advc.003b
 {
-	getDefinesVarSystem()->SetValue( szName, fValue );
+	getDefinesVarSystem()->SetValue(szName, fValue);
 	if(bUpdateCache) // advc.003b
 		cacheGlobals();
 }
 
-void CvGlobals::setDefineSTRING( const char * szName, const char * szValue,
-		bool bUpdateCache ) // advc.003b
+void CvGlobals::setDefineSTRING(const char * szName, const char * szValue,
+		bool bUpdateCache) // advc.003b
 {
-	getDefinesVarSystem()->SetValue( szName, szValue );
+	getDefinesVarSystem()->SetValue(szName, szValue);
 	if(bUpdateCache) // advc.003b
 		cacheGlobals();
 }

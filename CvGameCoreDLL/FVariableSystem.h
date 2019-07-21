@@ -56,7 +56,7 @@ class FVariable
 		FVariable(const FVariable& src) { CopyFrom(src); }
 		virtual ~FVariable();
 
-		const FVariable& operator=( const FVariable& varSrc ) { CopyFrom(varSrc); return *this; }
+		const FVariable& operator=( const FVariable& varSrc) { CopyFrom(varSrc); return *this; }
 		void CopyFrom(const FVariable& varSrc);
 		void Read(FDataStreamBase *);
 		void Write(FDataStreamBase *) const;
@@ -94,8 +94,8 @@ class FVariableSystem
 	public:
 
 		// Constructor/Destructor
-		FVariableSystem( );
-		virtual ~FVariableSystem( );
+		FVariableSystem();
+		virtual ~FVariableSystem();
 
 		void UnInit();
 
@@ -133,8 +133,8 @@ class FVariableSystem
 		bool RemValue( const char * szVariable );
 
 		// Iteration
-		std::string GetFirstVariableName( );
-		std::string GetNextVariableName( );
+		std::string GetFirstVariableName();
+		std::string GetNextVariableName();
 
 		void Read(FDataStreamBase *);
 		void Write(FDataStreamBase *) const;

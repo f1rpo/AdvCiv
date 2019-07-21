@@ -475,27 +475,27 @@ void CvSelectionGroup::playActionSound()
 	int iScriptId = -1;
 
 	pHeadUnit = getHeadUnit();
-	if ( pHeadUnit )
+	if (pHeadUnit)
 	{
 		iScriptId = pHeadUnit->getArtInfo(0, GET_PLAYER(getOwner()).getCurrentEra())->getActionSoundScriptId();
 	}
 
-	if ( (iScriptId == -1) && pHeadUnit )
+	if (iScriptId == -1 && pHeadUnit)
 	{
 		CvCivilizationInfo *pCivInfo;
-		pCivInfo = &GC.getCivilizationInfo( pHeadUnit->getCivilizationType() );
-		if ( pCivInfo )
+		pCivInfo = &GC.getCivilizationInfo(pHeadUnit->getCivilizationType());
+		if (pCivInfo)
 		{
 			iScriptId = pCivInfo->getActionSoundScriptId();
 		}
 	}
 
-	if ( (iScriptId != -1) && pHeadUnit )
+	if (iScriptId != -1 && pHeadUnit)
 	{
-		CvPlot *pPlot = GC.getMap().plot(pHeadUnit->getX(),pHeadUnit->getY());
-		if ( pPlot )
+		CvPlot* pPlot = GC.getMap().plot(pHeadUnit->getX(),pHeadUnit->getY());
+		if (pPlot != NULL)
 		{
-			gDLL->Do3DSound( iScriptId, pPlot->getPoint() );
+			gDLL->Do3DSound(iScriptId, pPlot->getPoint());
 		}
 	}
 
@@ -964,9 +964,9 @@ void CvSelectionGroup::startMission()
 			break;
 		}
 
-		if ( bNotify )
+		if (bNotify)
 		{
-			NotifyEntity( headMissionQueueNode()->m_data.eMissionType );
+			NotifyEntity(headMissionQueueNode()->m_data.eMissionType);
 		}
 
 		// Individual unit effects
@@ -2606,11 +2606,11 @@ int CvSelectionGroup::getBombardTurns(CvCity* pCity) const
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		if( pLoopUnit->bombardRate() > 0 )
+		if (pLoopUnit->bombardRate() > 0)
 		{
 			iUnitBombardRate = pLoopUnit->bombardRate();
 
-			if( pLoopUnit->ignoreBuildingDefense() )
+			if (pLoopUnit->ignoreBuildingDefense())
 			{
 				bIgnoreBuildingDefense = true;
 			}
@@ -2625,14 +2625,14 @@ int CvSelectionGroup::getBombardTurns(CvCity* pCity) const
 	}
 
 
-	if( pCity->getTotalDefense(bIgnoreBuildingDefense) == 0 )
+	if (pCity->getTotalDefense(bIgnoreBuildingDefense) == 0)
 	{
 		return 0;
 	}
 
 	int iBombardTurns = pCity->getTotalDefense(bIgnoreBuildingDefense);
 
-	if( iTotalBombardRate > 0 )
+	if (iTotalBombardRate > 0)
 	{
 		iBombardTurns = (GC.getMAX_CITY_DEFENSE_DAMAGE() - pCity->getDefenseDamage());
 		iBombardTurns *= pCity->getTotalDefense(false);
@@ -2640,24 +2640,24 @@ int CvSelectionGroup::getBombardTurns(CvCity* pCity) const
 		iBombardTurns /= std::max(1, (GC.getMAX_CITY_DEFENSE_DAMAGE() * iTotalBombardRate));
 	}
 
-	//if( gUnitLogLevel > 2 ) logBBAI("      Bombard of %S will take %d turns at rate %d and current damage %d with bombard def %d", pCity->getName().GetCString(), iBombardTurns, iTotalBombardRate, pCity->getDefenseDamage(), (bIgnoreBuildingDefense ? 0 : pCity->getBuildingBombardDefense()));
+	//if (gUnitLogLevel > 2) logBBAI("      Bombard of %S will take %d turns at rate %d and current damage %d with bombard def %d", pCity->getName().GetCString(), iBombardTurns, iTotalBombardRate, pCity->getDefenseDamage(), (bIgnoreBuildingDefense ? 0 : pCity->getBuildingBombardDefense()));
 
 	return iBombardTurns;
 }
 
 
-bool CvSelectionGroup::isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags, int iMaxPathTurns ) const
+bool CvSelectionGroup::isHasPathToAreaPlayerCity(PlayerTypes ePlayer, int iFlags, int iMaxPathTurns) const
 {
 	PROFILE_FUNC();
 	int iLoop;
 	for(CvCity* pLoopCity = GET_PLAYER(ePlayer).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iLoop))
 	{
-		if( pLoopCity->area() == area() )
+		if (pLoopCity->area() == area())
 		{
 			int iPathTurns;
-			if( generatePath(plot(), pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPathTurns) )
+			if (generatePath(plot(), pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPathTurns))
 			{
-				if( (iMaxPathTurns < 0) || (iPathTurns <= iMaxPathTurns) )
+				if (iMaxPathTurns < 0 || iPathTurns <= iMaxPathTurns)
 				{
 					return true;
 				}
@@ -2669,7 +2669,7 @@ bool CvSelectionGroup::isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlag
 }
 
 
-bool CvSelectionGroup::isHasPathToAreaEnemyCity( bool bIgnoreMinors, int iFlags, int iMaxPathTurns ) const
+bool CvSelectionGroup::isHasPathToAreaEnemyCity(bool bIgnoreMinors, int iFlags, int iMaxPathTurns) const
 {
 	PROFILE_FUNC();
 
@@ -2677,11 +2677,11 @@ bool CvSelectionGroup::isHasPathToAreaEnemyCity( bool bIgnoreMinors, int iFlags,
 
 	for(int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && isPotentialEnemy(getTeam(), GET_PLAYER((PlayerTypes)iI).getTeam()) )
+		if (GET_PLAYER((PlayerTypes)iI).isAlive() && isPotentialEnemy(getTeam(), TEAMID((PlayerTypes)iI)))
 		{
-			if( !bIgnoreMinors || (!GET_PLAYER((PlayerTypes)iI).isBarbarian() && !GET_PLAYER((PlayerTypes)iI).isMinorCiv()) )
+			if (!bIgnoreMinors || (!GET_PLAYER((PlayerTypes)iI).isBarbarian() && !GET_PLAYER((PlayerTypes)iI).isMinorCiv()))
 			{
-				if( isHasPathToAreaPlayerCity((PlayerTypes)iI, iFlags, iMaxPathTurns) )
+				if (isHasPathToAreaPlayerCity((PlayerTypes)iI, iFlags, iMaxPathTurns))
 				{
 					return true;
 				}
@@ -2696,7 +2696,7 @@ bool CvSelectionGroup::isHasPathToAreaEnemyCity( bool bIgnoreMinors, int iFlags,
 bool CvSelectionGroup::isStranded() const
 {
 	/*PROFILE_FUNC();
-	if( !(m_bIsStrandedCacheValid) ){
+	if (!m_bIsStrandedCacheValid){
 		m_bIsStrandedCache = calculateIsStranded();
 		m_bIsStrandedCacheValid = true;
 	}
@@ -4829,7 +4829,7 @@ int CvSelectionGroup::getMissionType(int iNode) const
 
 	while (pMissionNode != NULL)
 	{
-		if ( iNode == iCount )
+		if (iNode == iCount)
 		{
 			return pMissionNode->m_data.eMissionType;
 		}
@@ -4850,7 +4850,7 @@ int CvSelectionGroup::getMissionData1(int iNode) const
 
 	while (pMissionNode != NULL)
 	{
-		if ( iNode == iCount )
+		if (iNode == iCount)
 		{
 			return pMissionNode->m_data.iData1;
 		}
@@ -4871,7 +4871,7 @@ int CvSelectionGroup::getMissionData2(int iNode) const
 
 	while (pMissionNode != NULL)
 	{
-		if ( iNode == iCount )
+		if (iNode == iCount)
 		{
 			return pMissionNode->m_data.iData2;
 		}

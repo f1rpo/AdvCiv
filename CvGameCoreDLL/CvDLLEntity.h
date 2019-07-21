@@ -47,11 +47,11 @@ public:
 	void PlayAnimation(AnimationTypes eAnim, float fSpeed = 1.0f, bool bQueue = false, int iLayer = 0,
 		float fStartPct = 0.0f, float fEndPct = 1.0f);
 	void StopAnimation(AnimationTypes eAnim);
-	void MoveTo( const CvPlot * pkPlot );
-	void QueueMove( const CvPlot * pkPlot );
-	void ExecuteMove( float fTimeToExecute, bool bCombat );
-	void SetPosition( const CvPlot * pkPlot );
-	void NotifyEntity( MissionTypes eMission );
+	void MoveTo(const CvPlot * pkPlot);
+	void QueueMove(const CvPlot * pkPlot);
+	void ExecuteMove(float fTimeToExecute, bool bCombat);
+	void SetPosition(const CvPlot * pkPlot);
+	void NotifyEntity(MissionTypes eMission);
 	void SetSiegeTower(bool show);
 	bool GetSiegeTower();
 

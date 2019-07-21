@@ -693,13 +693,13 @@ public:
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
-	DllExport int getDefineINT( const char * szName ) const;
-	DllExport float getDefineFLOAT( const char * szName ) const;
-	DllExport const char * getDefineSTRING( const char * szName ) const;
+	DllExport int getDefineINT(const char * szName) const;
+	DllExport float getDefineFLOAT(const char * szName) const;
+	DllExport const char * getDefineSTRING(const char * szName) const;
 	// advc.003b: Params for suppressing cache update added
-	void setDefineINT( const char * szName, int iValue, bool bUpdateCache = true);
-	void setDefineFLOAT( const char * szName, float fValue, bool bUpdateCache = true );
-	void setDefineSTRING( const char * szName, const char * szValue, bool bUpdateCache = true );
+	void setDefineINT(const char * szName, int iValue, bool bUpdateCache = true);
+	void setDefineFLOAT(const char * szName, float fValue, bool bUpdateCache = true);
+	void setDefineSTRING(const char * szName, const char * szValue, bool bUpdateCache = true);
 
 	inline int getEXTRA_YIELD() { return m_iEXTRA_YIELD; } // K-Mod (why aren't all these functions inline?)
 	// advc.130s: Cached for performance reasons
@@ -1333,7 +1333,7 @@ protected:
 
 // BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 public:
-	int getDefineINT( const char * szName, const int iDefault ) const;
+	int getDefineINT(const char * szName, const int iDefault) const;
 
 // BBAI Options
 public:

@@ -360,8 +360,8 @@ CvBattleDefinition::CvBattleDefinition() :
 //! \brief      Copy constructor
 //! \param      kCopy The object to copy
 //------------------------------------------------------------------------------------------------
-CvBattleDefinition::CvBattleDefinition( const CvBattleDefinition & kCopy ) :
-	m_bAdvanceSquare( kCopy.m_bAdvanceSquare )
+CvBattleDefinition::CvBattleDefinition(const CvBattleDefinition & kCopy) :
+	m_bAdvanceSquare(kCopy.m_bAdvanceSquare)
 {
 	m_fMissionTime = kCopy.m_fMissionTime;
 	m_eMissionType = MISSION_BEGIN_COMBAT;
@@ -521,7 +521,7 @@ CvAirMissionDefinition::CvAirMissionDefinition() :
 //! \brief      Copy constructor
 //! \param      kCopy The object to copy
 //------------------------------------------------------------------------------------------------
-CvAirMissionDefinition::CvAirMissionDefinition( const CvAirMissionDefinition & kCopy )
+CvAirMissionDefinition::CvAirMissionDefinition(const CvAirMissionDefinition & kCopy)
 {
 	m_fMissionTime = kCopy.m_fMissionTime;
 	m_eMissionType = kCopy.m_eMissionType;

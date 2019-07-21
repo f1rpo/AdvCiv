@@ -173,9 +173,9 @@ public:
 
 	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
 			// advc.003: const qualifier added to these two
-	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true ) const;
-	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER ) const;
-	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
+	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
+	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
+	int calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 			// <advc.104b>
 			TeamTypes eTargetTeam = NO_TEAM, DomainTypes eDomain = NO_DOMAIN,
 			int iMaxPath = -1); // </advc.104b>

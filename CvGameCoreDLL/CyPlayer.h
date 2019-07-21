@@ -21,9 +21,9 @@ public:
 	bool isNone() { return (m_pPlayer==NULL); }
 
 	// CHANGE_PLAYER, 08/27/08, jdog5000: START
-	void changeLeader( int /*LeaderHeadTypes*/ eNewLeader );
-	void changeCiv( int /*CivilizationTypes*/ eNewCiv );
-	void setIsHuman( bool bNewValue );
+	void changeLeader(int /*LeaderHeadTypes*/ eNewLeader);
+	void changeCiv(int /*CivilizationTypes*/ eNewCiv);
+	void setIsHuman(bool bNewValue);
 	// CHANGE_PLAYER: END
 	int startingPlotRange();
 	bool startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlayer, int iRange, int iPass);
@@ -96,7 +96,7 @@ public:
 	bool canStopTradingWithTeam(int /*TeamTypes*/ eTeam);
 	void stopTradingWithTeam(int /*TeamTypes*/ eTeam);
 	void killAllDeals();
-	bool isTurnActive( void );
+	bool isTurnActive();
 
 	void findNewCapital();
 	int getNumGovernmentCenters();
@@ -448,7 +448,7 @@ public:
 
 	int findPathLength(int /*TechTypes*/ eTech, bool bCost);
 
-	int getQueuePosition( int /*TechTypes*/ eTech );
+	int getQueuePosition(int /*TechTypes*/ eTech);
 	void clearResearchQueue();
 	bool pushResearch(int /*TechTypes*/ iIndex, bool bClear);
 	void popResearch(int /*TechTypes*/ eTech);

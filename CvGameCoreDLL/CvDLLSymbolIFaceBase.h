@@ -21,7 +21,7 @@ class CvDLLSymbolIFaceBase
 public:
 	virtual void init(CvSymbol* , int iID, int iOffset, int iType, CvPlot* pPlot) = 0;
 	virtual CvSymbol* createSymbol() = 0;
-	virtual void destroy(CvSymbol*&, bool bSafeDelete=true ) = 0;
+	virtual void destroy(CvSymbol*&, bool bSafeDelete=true) = 0;
 	virtual void setAlpha(CvSymbol*, float fAlpha) = 0;
 	virtual void setScale(CvSymbol*, float fScale) = 0;
 	virtual void Hide(CvSymbol*, bool bHide) = 0;

@@ -691,7 +691,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 }
 
 
-bool CvDLLWidgetData::executeAction( CvWidgetDataStruct &widgetDataStruct )
+bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 {
 	bool bHandled = false; // Right now general bHandled = false;  We can specific-case this to true later. Game will run with this = false;
 
@@ -715,7 +715,7 @@ bool CvDLLWidgetData::executeAction( CvWidgetDataStruct &widgetDataStruct )
 		break;
 
 	case WIDGET_CITY_SCROLL:
-		if ( widgetDataStruct.m_iData1 > 0 )
+		if (widgetDataStruct.m_iData1 > 0)
 		{
 			GC.getGame().doControl(CONTROL_NEXTCITY);
 		}
@@ -1026,7 +1026,7 @@ bool CvDLLWidgetData::executeAction( CvWidgetDataStruct &widgetDataStruct )
 }
 
 //	right clicking action
-bool CvDLLWidgetData::executeAltAction( CvWidgetDataStruct &widgetDataStruct )
+bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvWidgetDataStruct widgetData = widgetDataStruct;
 
@@ -1428,7 +1428,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 	if (GC.altKey())
 	{
 		TeamTypes eWidgetTeam = GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1).getTeam(); // K-Mod
-		if( GC.shiftKey() )
+		if (GC.shiftKey())
 		{
 			// Warning: use of this is not multiplayer compatible
 			// K-Mod, since this it isn't MP compatible, I'm going to disable it for the time being.
@@ -1436,7 +1436,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 			{
 				if (GET_TEAM(GC.getGame().getActiveTeam()).canDeclareWar(eWidgetTeam))
 				{
-					if( GET_TEAM(GC.getGame().getActiveTeam()).AI_getWarPlan(eWidgetTeam) == WARPLAN_PREPARING_TOTAL)
+					if (GET_TEAM(GC.getGame().getActiveTeam()).AI_getWarPlan(eWidgetTeam) == WARPLAN_PREPARING_TOTAL)
 					{
 						GET_TEAM(GC.getGame().getActiveTeam()).AI_setWarPlan(eWidgetTeam, NO_WARPLAN);
 					}
@@ -1757,7 +1757,7 @@ void CvDLLWidgetData::doGotoTurnEvent(CvWidgetDataStruct &widgetDataStruct)
 	}
 }
 
-void CvDLLWidgetData::doMenu( void )
+void CvDLLWidgetData::doMenu()
 {
 	if (!gDLL->isGameInitializing())
 	{
@@ -3605,7 +3605,7 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			szBuffer.append(szString);
 		} // </advc.034>
-		//if (eTeam != eActiveTeam ) // advc.085
+		//if (eTeam != eActiveTeam) // advc.085
 		// Show which civs this player is at war with
 		CvWStringBuffer szWarWithString;
 		CvWStringBuffer szWorstEnemyString;
@@ -3696,7 +3696,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
 
 	// Show tech percent adjust
-	szBuffer.append(CvWString::format(SETCOLR L"TechPercent: %d%%, CurResMod: %d%%" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kTeam.getBestKnownTechScorePercent(), kPlayer.calculateResearchModifier(kPlayer.getCurrentResearch()) ));
+	szBuffer.append(CvWString::format(SETCOLR L"TechPercent: %d%%, CurResMod: %d%%" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kTeam.getBestKnownTechScorePercent(), kPlayer.calculateResearchModifier(kPlayer.getCurrentResearch())));
 	szBuffer.append(NEWLINE);
 	szBuffer.append(NEWLINE);
 
@@ -3994,7 +3994,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 				else { // </advc.104>
 					int iOtherValue = kTeam.AI_endWarVal(eLoopTeam);
 					int iTheirValue = kLoopTeam.AI_endWarVal(eTeam);
-					szBuffer.append( CvWString::format(SETCOLR L" %s " ENDCOLR SETCOLR L"(%d, %d)" ENDCOLR SETCOLR L" with %s " ENDCOLR  SETCOLR L"(%d, %d)\n" ENDCOLR,
+					szBuffer.append(CvWString::format(SETCOLR L" %s " ENDCOLR SETCOLR L"(%d, %d)" ENDCOLR SETCOLR L" with %s " ENDCOLR  SETCOLR L"(%d, %d)\n" ENDCOLR,
 						TEXT_COLOR((iOtherValue < iTheirValue) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),
 						szWarplan.getCString(),
 						TEXT_COLOR((iOtherValue < iTheirValue) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),
@@ -4002,14 +4002,14 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 						TEXT_COLOR((iOtherValue < iTheirValue) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),
 						kLoopTeam.getName().GetCString(),
 						TEXT_COLOR((iTheirValue < iOtherValue) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),
-						iTheirValue, kLoopTeam.AI_getWarSuccess(eTeam)) );
+						iTheirValue, kLoopTeam.AI_getWarSuccess(eTeam)));
 				}
 			}
 		}
 	}
 
 	// double space if had any war
-	if( kTeam.getAnyWarPlanCount(true) > 0 )
+	if (kTeam.getAnyWarPlanCount(true) > 0)
 	{
 		int iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent();
 		szBuffer.append(CvWString::format(SETCOLR L"\nEnemy Power Percent: %d" ENDCOLR, TEXT_COLOR((iEnemyPowerPercent < 100) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), iEnemyPowerPercent));
@@ -4082,9 +4082,9 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
 			{
-				if ( GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER)
+				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER)
 					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)
-					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) )
+					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
 				{
 					iDaggerCount++;
 					bAggressive = true;
@@ -4111,16 +4111,16 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	int iTotalWarRand;
     int iLimitedWarRand;
     int iDogpileWarRand;
-	kTeam.AI_getWarRands( iTotalWarRand, iLimitedWarRand, iDogpileWarRand );
+	kTeam.AI_getWarRands(iTotalWarRand, iLimitedWarRand, iDogpileWarRand);
 
 	int iTotalWarThreshold;
 	int iLimitedWarThreshold;
 	int iDogpileWarThreshold;
-	kTeam.AI_getWarThresholds( iTotalWarThreshold, iLimitedWarThreshold, iDogpileWarThreshold );
+	kTeam.AI_getWarThresholds(iTotalWarThreshold, iLimitedWarThreshold, iDogpileWarThreshold);
 
 	// we oppose war if half the non-dagger teammates in financial trouble
 	bool bFinancesOpposeWar = false;
-	if ((iFinancialTroubleCount - iDaggerCount) >= std::max(1, kTeam.getNumMembers() / 2 ))
+	if ((iFinancialTroubleCount - iDaggerCount) >= std::max(1, kTeam.getNumMembers() / 2))
 	{
 		// this can be overridden by by the pro-war booleans
 		bFinancesOpposeWar = true;
@@ -4206,7 +4206,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 			{
 				if (kTeam.canEventuallyDeclareWar(eLoopTeam) && kTeam.isHasMet(eLoopTeam))
 				{
-					if( GET_TEAM(eLoopTeam).isAVassal() && !kTeam.AI_isOkayVassalTarget(eLoopTeam) )
+					if (GET_TEAM(eLoopTeam).isAVassal() && !kTeam.AI_isOkayVassalTarget(eLoopTeam))
 					{
 						continue;
 					}
@@ -4336,7 +4336,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		}
 	}
 
-	if( bFinancesOpposeWar )
+	if (bFinancesOpposeWar)
 	{
 		szBuffer.append(CvWString::format(SETCOLR L"## Finances oppose war%s%s%s\n" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 			bFinancesProTotalWar ? L", pro Total" : L"",
@@ -4524,9 +4524,9 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 					int iNoWarChance = std::max(0, aStartWarInfo[iTeamIndex].iNoWarAttitudeProb + 20 - (bAggressive ? 10 : 0) - (bFinancesProDogpileWar ? 10 : 0));
 					int iTeamWarPercentage = (100 - iNoWarChance);
 
-					if( aStartWarInfo[iTeamIndex].bEnoughDogpilePower )
+					if (aStartWarInfo[iTeamIndex].bEnoughDogpilePower)
 					{
-						if( (aStartWarInfo[iTeamIndex].bLandTarget) || (aStartWarInfo[iTeamIndex].bVictory4) )
+						if (aStartWarInfo[iTeamIndex].bLandTarget || aStartWarInfo[iTeamIndex].bVictory4)
 						{
 							szBuffer.append(CvWString::format(SETCOLR L" %d%% %s%s war (%d) with %s\n" ENDCOLR, TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"),
 								iTeamWarPercentage,
@@ -4607,10 +4607,10 @@ void CvDLLWidgetData::parseRevolutionHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 /*void CvDLLWidgetData::parsePopupQueue(CvWidgetDataStruct &widgetDataStruct, CvWString &szBuffer) {
 	PopupEventTypes eEvent;
-	if ( m_pPopup || m_pScreen ) {
-		if ( m_pPopup )
+	if (m_pPopup || m_pScreen) {
+		if (m_pPopup)
 			eEvent = m_pPopup->getPopupType();
-		else if ( m_pScreen )
+		else if (m_pScreen)
 			eEvent = m_pScreen->getPopupType();
 		switch (eEvent) {
 			case POPUPEVENT_NONE:
@@ -5656,12 +5656,12 @@ void CvDLLWidgetData::parseReligionHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 	}
 }
 
-void CvDLLWidgetData::parseReligionHelpCity( CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer )
+void CvDLLWidgetData::parseReligionHelpCity(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	GAMETEXT.setReligionHelpCity(szBuffer, (ReligionTypes)widgetDataStruct.m_iData1, gDLL->getInterfaceIFace()->getHeadSelectedCity(), true);
 }
 
-void CvDLLWidgetData::parseCorporationHelpCity( CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer )
+void CvDLLWidgetData::parseCorporationHelpCity(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	GAMETEXT.setCorporationHelpCity(szBuffer, (CorporationTypes)widgetDataStruct.m_iData1, gDLL->getInterfaceIFace()->getHeadSelectedCity(), true);
 }

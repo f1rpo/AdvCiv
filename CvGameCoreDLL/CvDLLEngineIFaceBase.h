@@ -26,7 +26,7 @@ public:
 	virtual void ClampToWorldCoords(NiPoint3* pPt3, float fOffset = 0.0f) = 0;
 	virtual void SetCameraZoom(float zoom) = 0;
 	virtual float GetUpdateRate() = 0;
-	virtual bool SetUpdateRate( float fUpdateRate ) = 0;
+	virtual bool SetUpdateRate(float fUpdateRate) = 0;
 	virtual void toggleGlobeview() = 0;
 	virtual bool isGlobeviewUp() = 0;
 	virtual void toggleResourceLayer() = 0;

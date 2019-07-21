@@ -74,13 +74,10 @@ public:
 	bool isVotingMember(VoteSourceTypes eVoteSource) const;
 	bool isFullMember(VoteSourceTypes eVoteSource) const;
 
-	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc.003: x2 const added)
-	bool isMasterPlanningLandWar(CvArea* pArea) const;
-	bool isMasterPlanningSeaWar(CvArea* pArea) const;
 	/*  advc.003: Adding a default value for bIgnoreMinors to all WarPlan functions.
 		Also: beware of confusing getAtWarCount with CvTeamAI::AI_getAtWarCounter. */
+	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: bIgnoreVassals added
 	int getAtWarCount(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;																				// Exposed to Python
-	// BETTER_BTS_AI_MOD: END
 	int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;								// Exposed to Python
 	int getAnyWarPlanCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
 	int getChosenWarCount(bool bIgnoreMinors = true) const;																		// Exposed to Python

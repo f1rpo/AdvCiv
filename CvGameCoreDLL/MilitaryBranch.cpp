@@ -322,7 +322,7 @@ double MilitaryBranch::Logistics::unitUtility(CvUnitInfo const& u, double pow) c
 
 double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	// (Include nukes in army )
+	// (Include nukes in army)
 	/*if(u.getNukeRange() >= 0)
 		return -1;*/
 	double r = u.getPowerValue();

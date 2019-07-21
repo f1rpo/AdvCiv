@@ -239,22 +239,22 @@ void CvPlayer::initInGame(PlayerTypes eID)
 	int iOtherTeamMembers = 0;
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if( iI != getID() )
+		if (iI != getID())
 		{
-			if( GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam() )
+			if (TEAMID((PlayerTypes)iI) == getTeam())
 			{
 				iOtherTeamMembers++;
 			}
 		}
 	}
 	bool bTeamInit = false;
-	if( (iOtherTeamMembers == 0) || GET_TEAM(getTeam()).getNumMembers() == 0 )
+	if (iOtherTeamMembers == 0 || GET_TEAM(getTeam()).getNumMembers() == 0)
 	{
 		bTeamInit = true;
 		GET_TEAM(getTeam()).init(getTeam());
 		GET_TEAM(getTeam()).resetPlotAndCityData();
 	}
-	if( bTeamInit || (GET_TEAM(getTeam()).getNumMembers() == iOtherTeamMembers) )
+	if (bTeamInit || (GET_TEAM(getTeam()).getNumMembers() == iOtherTeamMembers))
 	{
 		GET_TEAM(getTeam()).changeNumMembers(1);
 	}
@@ -284,11 +284,11 @@ void CvPlayer::initInGame(PlayerTypes eID)
 
 			CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(pEvent->m_eTrigger);
 			if (kTrigger.isGlobal()) {
-				setTriggerFired( *pEvent, false, false );
+				setTriggerFired(*pEvent, false, false);
 				break;
 			}
-			else if (kTrigger.isTeam() && GET_PLAYER((PlayerTypes)iJ).getTeam() == getTeam() ) {
-				setTriggerFired( *pEvent, false, false );
+			else if (kTrigger.isTeam() && GET_PLAYER((PlayerTypes)iJ).getTeam() == getTeam()) {
+				setTriggerFired(*pEvent, false, false);
 				break;
 			}
 		}
@@ -300,7 +300,7 @@ void CvPlayer::initInGame(PlayerTypes eID)
 }
 
 // Reset all data for this player stored in plot and city objects
-void CvPlayer::resetPlotAndCityData( )
+void CvPlayer::resetPlotAndCityData()
 {
 	for (int iPlot = 0; iPlot < GC.getMap().numPlots(); ++iPlot)
 	{
@@ -310,7 +310,7 @@ void CvPlayer::resetPlotAndCityData( )
 		pLoopPlot->setFoundValue(getID(), 0);
 
 		CvCity* pLoopCity = pLoopPlot->getPlotCity();
-		if( pLoopCity != NULL )
+		if (pLoopCity != NULL)
 		{
 			pLoopCity->setCulture(getID(), 0, false, false);
 			pLoopCity->changeNumRevolts(getID(), -pLoopCity->getNumRevolts(getID()));
@@ -852,7 +852,7 @@ void CvPlayer::processTraits(int iChange)
 }
 
 // for changing the personality of the player
-void CvPlayer::changePersonalityType( )
+void CvPlayer::changePersonalityType()
 {
 	if(isBarbarian())
 		return;
@@ -897,11 +897,11 @@ void CvPlayer::changePersonalityType( )
 }
 
 // reset state of event logic, unit prices
-void CvPlayer::resetCivTypeEffects( )
+void CvPlayer::resetCivTypeEffects()
 {
 	int iI;
 
-	if( !isAlive() )
+	if (!isAlive())
 	{
 		for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 		{
@@ -915,7 +915,7 @@ void CvPlayer::resetCivTypeEffects( )
 
 		for (iI = 0; iI < GC.getNumEventTriggerInfos(); iI++)
 		{
-			if( (!GC.getEventTriggerInfo((EventTriggerTypes)iI).isGlobal()) && (!GC.getEventTriggerInfo((EventTriggerTypes)iI).isTeam() || GET_TEAM(getTeam()).getNumMembers() == 1) )
+			if(!GC.getEventTriggerInfo((EventTriggerTypes)iI).isGlobal() && (!GC.getEventTriggerInfo((EventTriggerTypes)iI).isTeam() || GET_TEAM(getTeam()).getNumMembers() == 1))
 			{
 				resetTriggerFired((EventTriggerTypes)iI);
 			}
@@ -937,23 +937,23 @@ void CvPlayer::resetCivTypeEffects( )
 }
 
 // for switching the leaderhead of this player
-void CvPlayer::changeLeader( LeaderHeadTypes eNewLeader )
+void CvPlayer::changeLeader(LeaderHeadTypes eNewLeader)
 {
 	LeaderHeadTypes eOldLeader = getLeaderType();
 
-	if( eOldLeader == eNewLeader )
+	if (eOldLeader == eNewLeader)
 		return;
 
 	//clearTraitBonuses(); // Clear old traits
 	processTraits(-1); // advc.003q
-	GC.getInitCore().setLeader( getID(), eNewLeader );
+	GC.getInitCore().setLeader(getID(), eNewLeader);
 	// addTraitBonuses(); // Add new traits
 	processTraits(1); // advc.003q
 
 	// Set new personality
 	changePersonalityType();
 
-	if( isAlive() || isEverAlive() )
+	if (isAlive() || isEverAlive())
 	{
 		gDLL->getInterfaceIFace()->setDirty(HighlightPlot_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
@@ -970,33 +970,33 @@ void CvPlayer::changeLeader( LeaderHeadTypes eNewLeader )
 
 // (advc.003: Moved up so that all the CHANGE_PLAYER code dated 08/17/08 is in one place)
 // for changing whether this player is human or not
-void CvPlayer::setIsHuman( bool bNewValue )
+void CvPlayer::setIsHuman(bool bNewValue)
 {
 	// <advc.706> Make sure that these are consistent
 	if(!bNewValue)
 		m_bDisableHuman = false; // </advc.706>
-	if( bNewValue == isHuman() )
+	if (bNewValue == isHuman())
 		return;
 
-	if( bNewValue )
-		GC.getInitCore().setSlotStatus( getID(), SS_TAKEN );
+	if (bNewValue)
+		GC.getInitCore().setSlotStatus(getID(), SS_TAKEN);
 	else
-		GC.getInitCore().setSlotStatus( getID(), SS_COMPUTER ); // or SS_OPEN for multiplayer?
+		GC.getInitCore().setSlotStatus(getID(), SS_COMPUTER); // or SS_OPEN for multiplayer?
 }
 // CHANGE_PLAYER: END
 // CHANGE_PLAYER, 05/09/09, jdog5000: START
 // for changing the civilization of this player
-void CvPlayer::changeCiv( CivilizationTypes eNewCiv )
+void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 {
 	CivilizationTypes eOldCiv = getCivilizationType();
 	PlayerColorTypes eColor = (PlayerColorTypes)GC.getCivilizationInfo(eNewCiv).getDefaultPlayerColor();
 
-	if( eOldCiv == eNewCiv )
+	if (eOldCiv == eNewCiv)
 		return;
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (eColor == NO_PLAYERCOLOR || (GET_PLAYER((PlayerTypes)iI).getPlayerColor() == eColor && iI != getID()) )
+		if (eColor == NO_PLAYERCOLOR || (GET_PLAYER((PlayerTypes)iI).getPlayerColor() == eColor && iI != getID()))
 		{
 			for (int iK = 0; iK < GC.getNumPlayerColorInfos(); iK++)
 			{
@@ -1024,17 +1024,17 @@ void CvPlayer::changeCiv( CivilizationTypes eNewCiv )
 		}
 	}
 
-	GC.getInitCore().setCiv( getID(), eNewCiv );
-	GC.getInitCore().setColor( getID(), eColor );
+	GC.getInitCore().setCiv(getID(), eNewCiv);
+	GC.getInitCore().setColor(getID(), eColor);
 
 	resetCivTypeEffects();
 
-	if( isAlive() )
+	if (isAlive())
 	{
 		// if the player is alive and showing on scoreboard, etc
 		// change colors, graphics, flags, units
-		GC.getInitCore().setFlagDecal( getID(), (CvWString)GC.getCivilizationInfo(eNewCiv).getFlagTexture() );
-		GC.getInitCore().setArtStyle( getID(), (ArtStyleTypes)GC.getCivilizationInfo(eNewCiv).getArtStyleType() );
+		GC.getInitCore().setFlagDecal(getID(), (CvWString)GC.getCivilizationInfo(eNewCiv).getFlagTexture());
+		GC.getInitCore().setArtStyle(getID(), (ArtStyleTypes)GC.getCivilizationInfo(eNewCiv).getArtStyleType());
 
 		// Forces update of units flags
 		EraTypes eEra = getCurrentEra();
@@ -1067,10 +1067,10 @@ void CvPlayer::changeCiv( CivilizationTypes eNewCiv )
 		{
 			pLoopUnit->reloadEntity();
 			pLoopPlot = pLoopUnit->plot();
-			/*if( pLoopPlot != NULL ) {
+			/*if (pLoopPlot != NULL) {
 				CvFlagEntity* pFlag = pLoopPlot->getFlagSymbol();
-				if( pFlag != NULL ) {
-					if( gDLL->getFlagEntityIFace()->getPlayer(pFlag) == getID() ) {
+				if (pFlag != NULL) {
+					if (gDLL->getFlagEntityIFace()->getPlayer(pFlag) == getID()) {
 						gDLL->getFlagEntityIFace()->destroy(pFlag);
 						CvFlagEntity* pNewFlag = gDLL->getFlagEntityIFace()->create(getID());
 						if (pFlag != NULL)
@@ -1113,7 +1113,7 @@ void CvPlayer::changeCiv( CivilizationTypes eNewCiv )
 		gDLL->getInterfaceIFace()->setDirty(SelectionSound_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(GlobeInfo_DIRTY_BIT, true);
 	}
-	else if( isEverAlive() )
+	else if (isEverAlive())
 	{
 		// Not currently alive, but may show on some people's scoreboard
 		// or graphs
@@ -1909,7 +1909,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			kChange.eBuildingClass = (BuildingClassTypes)iI;
 			kChange.eYield = (YieldTypes)iYield;
 			kChange.iChange = pOldCity->getBuildingYieldChange((BuildingClassTypes)iI, (YieldTypes)iYield);
-			if (0 != kChange.iChange)
+			if (kChange.iChange != 0)
 			{
 				aBuildingYieldChange.push_back(kChange);
 			}
@@ -1921,20 +1921,20 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			kChange.eBuildingClass = (BuildingClassTypes)iI;
 			kChange.eCommerce = (CommerceTypes)iCommerce;
 			kChange.iChange = pOldCity->getBuildingCommerceChange((BuildingClassTypes)iI, (CommerceTypes)iCommerce);
-			if (0 != kChange.iChange)
+			if (kChange.iChange != 0)
 			{
 				aBuildingCommerceChange.push_back(kChange);
 			}
 		}
 
 		int iChange = pOldCity->getBuildingHappyChange((BuildingClassTypes)iI);
-		if (0 != iChange)
+		if (iChange != 0)
 		{
 			aBuildingHappyChange.push_back(std::make_pair((BuildingClassTypes)iI, iChange));
 		}
 
 		iChange = pOldCity->getBuildingHealthChange((BuildingClassTypes)iI);
-		if (0 != iChange)
+		if (iChange != 0)
 		{
 			aBuildingHealthChange.push_back(std::make_pair((BuildingClassTypes)iI, iChange));
 		}
@@ -2175,8 +2175,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		}
 	} // </advc.104>
 	CvEventReporter::getInstance().cityAcquired(eOldOwner, getID(), pNewCity, bConquest, bTrade);
-	if( gPlayerLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-		logBBAI("  Player %d (%S) acquires city %S bConq %d bTrade %d", getID(), getCivilizationDescription(0), pNewCity->getName(0).GetCString(), bConquest, bTrade );
+	if (gPlayerLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+		logBBAI("  Player %d (%S) acquires city %S bConq %d bTrade %d", getID(), getCivilizationDescription(0), pNewCity->getName(0).GetCString(), bConquest, bTrade);
 
 	SAFE_DELETE_ARRAY(pabHasReligion);
 	SAFE_DELETE_ARRAY(pabHolyCity);
@@ -2789,7 +2789,7 @@ void CvPlayer::updateHuman()
 	else
 	{
 		// AI_AUTO_PLAY_MOD, 09/01/07, MRGENIE:
-		if( m_bDisableHuman )
+		if (m_bDisableHuman)
 			m_bHuman = false;
 		else // AI_AUTO_PLAY_MOD: END
 			m_bHuman = GC.getInitCore().getHuman(getID());
@@ -3722,15 +3722,15 @@ int CvPlayer::countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, b
 	}
 
 	// bbai
-	if( bIncludeTraining )
+	if (bIncludeTraining)
 	{
-		for(CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop) )
+		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 		{
 			UnitTypes eUnit = pLoopCity->getProductionUnit();
 
-			if( eUnit != NO_UNIT )
+			if (eUnit != NO_UNIT)
 			{
-				if(GC.getUnitInfo(eUnit).getReligionSpreads(eReligion) > 0)
+				if (GC.getUnitInfo(eUnit).getReligionSpreads(eReligion) > 0)
 				{
 					iCount++;
 				}
@@ -4110,8 +4110,8 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 	case DIPLOEVENT_DEMAND_WAR:
 		FAssertMsg(GET_PLAYER(ePlayer).getTeam() != getTeam(), "shouldn't call this function on our own team");
-		if( gTeamLogLevel >= 2 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-			logBBAI("    Team %d (%S) declares war on team %d due to DIPLOEVENT", getTeam(), getCivilizationDescription(0), ePlayer );
+		if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			logBBAI("    Team %d (%S) declares war on team %d due to DIPLOEVENT", getTeam(), getCivilizationDescription(0), ePlayer);
 		GET_TEAM(getTeam()).declareWar(GET_PLAYER(ePlayer).getTeam(), false, WARPLAN_LIMITED);
 		break;
 
@@ -4154,8 +4154,8 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		AI().AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_JOIN_WAR);
 		// advc.146:
 		GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer));
-		if( gTeamLogLevel >= 2 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-			logBBAI("    Team %d (%S) declares war on team %d due to DIPLOEVENT", getTeam(), getCivilizationDescription(0), ePlayer );
+		if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			logBBAI("    Team %d (%S) declares war on team %d due to DIPLOEVENT", getTeam(), getCivilizationDescription(0), ePlayer);
 		TEAMREF(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
 				true, getID()); // advc.100
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -5739,8 +5739,8 @@ void CvPlayer::found(int iX, int iY)  // advc.003: some style changes
 	} // </advc.210c>
 	if(!CvPlot::isAllFog()) // advc.706: Suppress name-city popup
 		CvEventReporter::getInstance().cityBuilt(pCity);
-	if( gPlayerLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000:
-		logBBAI("  Player %d (%S) founds new city %S at %d, %d", getID(), getCivilizationDescription(0), pCity->getName(0).GetCString(), iX, iY );
+	if (gPlayerLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000:
+		logBBAI("  Player %d (%S) founds new city %S at %d, %d", getID(), getCivilizationDescription(0), pCity->getName(0).GetCString(), iX, iY);
 }
 
 
@@ -7011,7 +7011,7 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech,
 		return iModifier;
 
 	// BETTER_BTS_AI_MOD, Tech Diffusion, 07/27/09, jdog5000: START
-	if( GC.getTECH_DIFFUSION_ENABLE() )
+	if (GC.getTECH_DIFFUSION_ENABLE())
 	{
 		double knownExp = 0.0;
 		// Tech flows better through open borders
@@ -7025,11 +7025,11 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech,
 					{
 						knownExp += 0.5;
 
-						if( GET_TEAM(getTeam()).isOpenBorders((TeamTypes)iI) || GET_TEAM((TeamTypes)iI).isVassal(getTeam()) )
+						if (GET_TEAM(getTeam()).isOpenBorders((TeamTypes)iI) || GET_TEAM((TeamTypes)iI).isVassal(getTeam()))
 						{
 							knownExp += 1.5;
 						}
-						else if( GET_TEAM(getTeam()).isAtWar((TeamTypes)iI) || GET_TEAM(getTeam()).isVassal((TeamTypes)iI) )
+						else if (GET_TEAM(getTeam()).isAtWar((TeamTypes)iI) || GET_TEAM(getTeam()).isVassal((TeamTypes)iI))
 						{
 							knownExp += 0.5;
 						}
@@ -7046,9 +7046,9 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech,
 		// Tech flows downhill to those who are far behind
 		int iTechScorePercent = GET_TEAM(getTeam()).getBestKnownTechScorePercent();
 		int iWelfareThreshold = GC.getTECH_DIFFUSION_WELFARE_THRESHOLD();
-		if( iTechScorePercent < iWelfareThreshold )
+		if (iTechScorePercent < iWelfareThreshold)
 		{
-			if( knownExp > 0.0 )
+			if (knownExp > 0.0)
 			{
 				*piFromOtherKnown += // advc.910
 						(GC.getTECH_DIFFUSION_WELFARE_MODIFIER() *
@@ -7527,7 +7527,7 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 
 	/*  UNOFFICIAL_PATCH, Tech AI (Bugfix), 02/16/10, jdog5000: START
 		Circumvents second crash bug in simultaneous turns MP games */
-	if( eCivic == NO_CIVIC )
+	if (eCivic == NO_CIVIC)
 		return true; // UNOFFICIAL_PATCH: END
 
 	if (GC.getGame().isForceCivicOption((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())))
@@ -10257,7 +10257,7 @@ void CvPlayer::changeCombatExperience(int iChange)
 
 bool CvPlayer::isConnected() const
 {
-	return gDLL->isConnected( getNetID() );
+	return gDLL->isConnected(getNetID());
 }
 
 int CvPlayer::getNetID() const
@@ -10277,8 +10277,8 @@ void CvPlayer::sendReminder()
 
 	// Only perform this step if we have a valid email address on record,
 	// and we have provided information about how to send emails
-	if ( !getPbemEmailAddress().empty() &&
-		!gDLL->GetPitbossSmtpHost().empty() )
+	if (!getPbemEmailAddress().empty() &&
+		!gDLL->GetPitbossSmtpHost().empty())
 	{
 		GAMETEXT.setTimeStr(szYearStr, GC.getGame().getGameTurn(), true);
 
@@ -10298,8 +10298,8 @@ void CvPlayer::sendReminder()
 		long iResult;
 		bool bOK = gDLL->getPythonIFace()->callFunction(PYPitBossModule, "sendEmail", argsList.makeFunctionArgs(), &iResult);
 
-		FAssertMsg( bOK, "Pitboss Python call to onSendEmail failed!" );
-		FAssertMsg( iResult == 0, "Pitboss Python fn onSendEmail encountered an error" );
+		FAssertMsg(bOK, "Pitboss Python call to onSendEmail failed!");
+		FAssertMsg(iResult == 0, "Pitboss Python fn onSendEmail encountered an error");
 	}
 }
 
@@ -10495,7 +10495,7 @@ void CvPlayer::setTurnActiveForPbem(bool bActive)
 		m_bTurnActive = bActive;
 		GC.getGame().changeNumGameTurnActive(isTurnActive() ? 1 : -1);
 		// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
-		//if( GC.getGame().getNumGameTurnActive() != 1 )  // advc (comment): This BBAI line had already been commented out in BBAI
+		//if (GC.getGame().getNumGameTurnActive() != 1)  // advc (comment): This BBAI line had already been commented out in BBAI
 		GC.getMap().invalidateActivePlayerSafeRangeCache();
 		// BETTER_BTS_AI_MOD: END
 	}
@@ -10532,10 +10532,10 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		g.resetTurnTimer();
 
 		// If we are the Pitboss, send this player an email
-		if ( gDLL->IsPitbossHost() )
+		if (gDLL->IsPitbossHost())
 		{
 			// If this guy is not currently connected, try sending him an email
-			if ( isHuman() && !isConnected() )
+			if (isHuman() && !isConnected())
 			{
 				sendReminder();
 			}
@@ -10724,11 +10724,11 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 // (This logging is from bbai.)
 void CvPlayer::onTurnLogging() const
 {
-	if( gPlayerLogLevel > 0 )
+	if (gPlayerLogLevel > 0)
 	{
 		logBBAI("Player %d (%S) setTurnActive for turn %d (%d %s)", getID(), getCivilizationDescription(0), GC.getGame().getGameTurn(), std::abs(GC.getGame().getGameTurnYear()), GC.getGame().getGameTurnYear()>0 ? "AD" : "BC");
 
-		if( GC.getGame().getGameTurn() > 0 && (GC.getGame().getGameTurn() % 25) == 0 && !isBarbarian() )
+		if (GC.getGame().getGameTurn() > 0 && (GC.getGame().getGameTurn() % 25) == 0 && !isBarbarian())
 		{
 			CvWStringBuffer szBuffer;
 			GAMETEXT.setScoreHelp(szBuffer, getID());
@@ -10741,9 +10741,9 @@ void CvPlayer::onTurnLogging() const
 			int iProduction = 0;
 			int iAgri = 0;
 			int iCount = 0;
-			for( int iI = 1; iI <= 5; iI++ )
+			for (int iI = 1; iI <= 5; iI++)
 			{
-				if( iGameTurn - iI >= 0 )
+				if (iGameTurn - iI >= 0)
 				{
 					iEconomy += getEconomyHistory(iGameTurn - iI);
 					iProduction += getIndustryHistory(iGameTurn - iI);
@@ -10759,36 +10759,36 @@ void CvPlayer::onTurnLogging() const
 		}
 	}
 
-	if( gPlayerLogLevel >= 2 )
+	if (gPlayerLogLevel >= 2)
 	{
 		CvWStringBuffer szBuffer;
 
 		logBBAI("    Player %d (%S) has %d cities, %d pop, %d power, %d tech percent", getID(), getCivilizationDescription(0), getNumCities(), getTotalPopulation(), getPower(), GET_TEAM(getTeam()).getBestKnownTechScorePercent());
-		if( AI().AI_isFinancialTrouble() )
+		if (AI().AI_isFinancialTrouble())
 			logBBAI("    Financial trouble!");
 
 		szBuffer.append(CvWString::format(L"    Team %d has met: ", getTeam()));
 
-		for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
+		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
-			if( iI != getTeam() && GET_TEAM(getTeam()).isHasMet((TeamTypes)iI) )
+			if (iI != getTeam() && GET_TEAM(getTeam()).isHasMet((TeamTypes)iI))
 			{
-				if( GET_TEAM((TeamTypes)iI).isAlive() )
+				if (GET_TEAM((TeamTypes)iI).isAlive())
 				{
 					szBuffer.append(CvWString::format(L"%d,", iI));
 				}
 			}
 		}
 
-		if( GET_TEAM(getTeam()).getVassalCount() > 0 )
+		if (GET_TEAM(getTeam()).getVassalCount() > 0)
 		{
 			szBuffer.append(CvWString::format(L";  vassals: "));
 
-			for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
+			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
-				if( iI != getTeam() && GET_TEAM((TeamTypes)iI).isVassal(getTeam()) )
+				if (iI != getTeam() && GET_TEAM((TeamTypes)iI).isVassal(getTeam()))
 				{
-					if( GET_TEAM((TeamTypes)iI).isAlive() )
+					if (GET_TEAM((TeamTypes)iI).isAlive())
 					{
 						szBuffer.append(CvWString::format(L"%d,", iI));
 					}
@@ -10796,15 +10796,15 @@ void CvPlayer::onTurnLogging() const
 			}
 		}
 
-		if( GET_TEAM(getTeam()).getAtWarCount(false) > 0 )
+		if (GET_TEAM(getTeam()).getAtWarCount(false) > 0)
 		{
 			szBuffer.append(CvWString::format(L";  at war with: "));
 
-			for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
+			for(int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
-				if( iI != getTeam() && GET_TEAM(getTeam()).isAtWar((TeamTypes)iI) )
+				if(iI != getTeam() && GET_TEAM(getTeam()).isAtWar((TeamTypes)iI))
 				{
-					if( GET_TEAM((TeamTypes)iI).isAlive() )
+					if (GET_TEAM((TeamTypes)iI).isAlive())
 					{
 						szBuffer.append(CvWString::format(L"%d,", iI));
 					}
@@ -10812,15 +10812,15 @@ void CvPlayer::onTurnLogging() const
 			}
 		}
 
-		if( GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0 )
+		if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0)
 		{
 			szBuffer.append(CvWString::format(L";  planning war with: "));
 
-			for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
+			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
-				if( iI != getTeam() && !GET_TEAM(getTeam()).isAtWar((TeamTypes)iI) && GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) != NO_WARPLAN )
+				if (iI != getTeam() && !GET_TEAM(getTeam()).isAtWar((TeamTypes)iI) && GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iI) != NO_WARPLAN)
 				{
-					if( GET_TEAM((TeamTypes)iI).isAlive() )
+					if (GET_TEAM((TeamTypes)iI).isAlive())
 					{
 						szBuffer.append(CvWString::format(L"%d,", iI));
 					}
@@ -10832,7 +10832,7 @@ void CvPlayer::onTurnLogging() const
 
 		szBuffer.clear();
 
-		if( GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0 ) logBBAI("    Enemy power perc: %d (%d with others reduction)", GET_TEAM(getTeam()).AI_getEnemyPowerPercent(), GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true));
+		if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0) logBBAI("    Enemy power perc: %d (%d with others reduction)", GET_TEAM(getTeam()).AI_getEnemyPowerPercent(), GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true));
 	}
 }
 // K-Mod end
@@ -10896,7 +10896,7 @@ bool CvPlayer::isTurnDone() const
 	{
 		return false;
 	}
-	if (!isHuman() )
+	if (!isHuman())
 	{
 		return true;
 	}
@@ -15257,7 +15257,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 				if (gUnitLogLevel >= 2 && !isHuman())
 				{
-					logBBAI("      Spy for player %d (%S) causes revolt in %S, owned by %S (%d)", getID(), getCivilizationDescription(0), pCity->getName().GetCString(), GET_PLAYER(pCity->getOwner()).getCivilizationDescription(0), pCity->getOwner() );
+					logBBAI("      Spy for player %d (%S) causes revolt in %S, owned by %S (%d)", getID(), getCivilizationDescription(0), pCity->getName().GetCString(), GET_PLAYER(pCity->getOwner()).getCivilizationDescription(0), pCity->getOwner());
 				}
 			}
 		}
@@ -15517,7 +15517,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 
-	if (0 == getNumCities())
+	if (getNumCities() == 0)
 	{
 		switch (eAction)
 		{
@@ -15668,7 +15668,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			// Add City to the map
 			if (bAdd)
 			{
-				if (0 == getNumCities())
+				if (getNumCities() == 0)
 				{
 					PlayerTypes eClosestPlayer = NO_PLAYER;
 					int iMinDistance = MAX_INT;
@@ -15679,7 +15679,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 						{
 							if (kPlayer.getTeam() == getTeam())
 							{
-								if (0 == kPlayer.getNumCities())
+								if (kPlayer.getNumCities() == 0)
 								{
 									FAssert(kPlayer.getStartingPlot() != NULL);
 									int iDistance = plotDistance(iX, iY, kPlayer.getStartingPlot()->getX(), kPlayer.getStartingPlot()->getY());
@@ -15700,7 +15700,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 						setStartingPlot(pTempPlot, false);
 					}
 				}
-				if (getAdvancedStartPoints() >= iCost || 0 == getNumCities())
+				if (getAdvancedStartPoints() >= iCost || getNumCities() == 0)
 				{
 					found(iX, iY);
 					changeAdvancedStartPoints(-std::min(iCost, getAdvancedStartPoints()));
@@ -16090,7 +16090,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot* pPlot
 	{
 		CvCity* pCity = NULL;
 
-		if (0 == GC.getDefineINT("ADVANCED_START_ALLOW_UNITS_OUTSIDE_CITIES"))
+		if (GC.getDefineINT("ADVANCED_START_ALLOW_UNITS_OUTSIDE_CITIES") == 0)
 		{
 			pCity = pPlot->getPlotCity();
 
@@ -16193,7 +16193,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot* pPlot
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
-	if (0 != GC.getUnitInfo(eUnit).getAdvancedStartCostIncrease())
+	if (GC.getUnitInfo(eUnit).getAdvancedStartCostIncrease() != 0)
 	{
 		for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 		{
@@ -16304,7 +16304,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
-	if (0 != GC.getDefineINT("ADVANCED_START_CITY_COST_INCREASE"))
+	if (GC.getDefineINT("ADVANCED_START_CITY_COST_INCREASE") != 0)
 	{
 		if (!bAdd)
 		{
@@ -16335,7 +16335,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 /////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity* pCity) const
 {
-	if (0 == getNumCities())
+	if (getNumCities() == 0)
 	{
 		return -1;
 	}
@@ -16365,7 +16365,7 @@ int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity* pCity) const
 		iCost = (getGrowthThreshold(iPopulation) * GC.getDefineINT("ADVANCED_START_POPULATION_COST")) / 100;
 
 		// Increase cost if the XML defines that additional Pop will cost more
-		if (0 != GC.getDefineINT("ADVANCED_START_POPULATION_COST_INCREASE"))
+		if (GC.getDefineINT("ADVANCED_START_POPULATION_COST_INCREASE") != 0)
 		{
 			--iPopulation;
 
@@ -16508,7 +16508,7 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, C
 	}
 
 	// Increase cost if the XML defines that additional Buildings will cost more
-	if (0 != GC.getBuildingInfo(eBuilding).getAdvancedStartCostIncrease())
+	if (GC.getBuildingInfo(eBuilding).getAdvancedStartCostIncrease() != 0)
 	{
 		iNumBuildingType = countNumBuildings(eBuilding);
 
@@ -16601,7 +16601,7 @@ int CvPlayer::getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot* pP
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
-	if (0 != GC.getRouteInfo(eRoute).getAdvancedStartCostIncrease())
+	if (GC.getRouteInfo(eRoute).getAdvancedStartCostIncrease() != 0)
 	{
 		int iPlotLoop = 0;
 		CvPlot* pPlot;
@@ -16724,7 +16724,7 @@ int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, boo
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
-	if (0 != GC.getImprovementInfo(eImprovement).getAdvancedStartCostIncrease())
+	if (GC.getImprovementInfo(eImprovement).getAdvancedStartCostIncrease() != 0)
 	{
 		int iPlotLoop = 0;
 		CvPlot* pPlot;
@@ -16861,7 +16861,7 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
-	if (0 != GC.getTechInfo(eTech).getAdvancedStartCostIncrease())
+	if (GC.getTechInfo(eTech).getAdvancedStartCostIncrease() != 0)
 	{
 		for (int iTechLoop = 0; iTechLoop < GC.getNumTechInfos(); iTechLoop++)
 		{
@@ -18873,7 +18873,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 
 		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCanDo(), argsList.makeFunctionArgs(), &lResult);
 
-		if (0 == lResult)
+		if (lResult == 0)
 		{
 			deleteEventTriggered(pTriggerData->getID());
 			return NULL;
@@ -18983,7 +18983,7 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 		}
 	}
 
-	if (0 != kEvent.getSpaceProductionModifier())
+	if (kEvent.getSpaceProductionModifier() != 0)
 	{
 		bool bValid = false;
 		for (int iProject = 0; iProject < GC.getNumProjectInfos(); ++iProject)
@@ -19021,7 +19021,7 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 		}
 	}
 
-	if (0 != kEvent.getTechPercent() || 0 != kEvent.getTechCostPercent())
+	if (kEvent.getTechPercent() != 0 || kEvent.getTechCostPercent() != 0)
 	{
 		if (NO_TECH == getBestEventTech(eEvent, kTriggeredData.m_eOtherPlayer))
 		{
@@ -19181,7 +19181,7 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 		}
 	}
 
-	if (0 != kEvent.getAttitudeModifier())
+	if (kEvent.getAttitudeModifier() != 0)
 	{
 		if (NO_PLAYER == kTriggeredData.m_eOtherPlayer)
 		{
@@ -19195,14 +19195,14 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 
 		if (GET_PLAYER(kTriggeredData.m_eOtherPlayer).isHuman())
 		{
-			if (0 == kEvent.getOurAttitudeModifier())
+			if (kEvent.getOurAttitudeModifier() == 0)
 			{
 				return false;
 			}
 		}
 	}
 
-	if (0 != kEvent.getTheirEnemyAttitudeModifier())
+	if (kEvent.getTheirEnemyAttitudeModifier() != 0)
 	{
 		if (NO_PLAYER == kTriggeredData.m_eOtherPlayer)
 		{
@@ -19262,18 +19262,12 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 
 	if (!CvString(kEvent.getPythonCanDo()).empty())
 	{
-		long lResult;
-
-		CyArgsList argsList;
+		long lResult; CyArgsList argsList;
 		argsList.add(eEvent);
 		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kTriggeredData));
-
 		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kEvent.getPythonCanDo(), argsList.makeFunctionArgs(), &lResult);
-
-		if (0 == lResult)
-		{
+		if (lResult == 0)
 			return false;
-		}
 	}
 
 	return true;
@@ -19340,7 +19334,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		}
 	}
 
-	if (0 != kEvent.getTechPercent())
+	if (kEvent.getTechPercent() != 0)
 	{
 		TechTypes eBestTech = getBestEventTech(eEvent, pTriggeredData->m_eOtherPlayer);
 
@@ -19372,17 +19366,17 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		changeGoldenAgeTurns(getGoldenAgeLength());
 	}
 
-	if (0 != kEvent.getInflationModifier())
+	if (kEvent.getInflationModifier() != 0)
 	{
 		m_iInflationModifier += kEvent.getInflationModifier();
 	}
 
-	if (0 != kEvent.getSpaceProductionModifier())
+	if (kEvent.getSpaceProductionModifier() != 0)
 	{
 		changeSpaceProductionModifier(kEvent.getSpaceProductionModifier());
 	}
 
-	if (0 != kEvent.getFreeUnitSupport())
+	if (kEvent.getFreeUnitSupport() != 0)
 	{
 		changeBaseFreeUnits(kEvent.getFreeUnitSupport());
 	}
@@ -19391,8 +19385,8 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 	{
 		if (NO_PLAYER != pTriggeredData->m_eOtherPlayer)
 		{
-			if( gTeamLogLevel >= 2 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-				logBBAI("    Team %d (%S) declares war on team %d due to event", GET_PLAYER(pTriggeredData->m_eOtherPlayer).getTeam(), GET_PLAYER(pTriggeredData->m_eOtherPlayer).getCivilizationDescription(0), getTeam() );
+			if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+				logBBAI("    Team %d (%S) declares war on team %d due to event", GET_PLAYER(pTriggeredData->m_eOtherPlayer).getTeam(), GET_PLAYER(pTriggeredData->m_eOtherPlayer).getCivilizationDescription(0), getTeam());
 			GET_TEAM(GET_PLAYER(pTriggeredData->m_eOtherPlayer).getTeam()).declareWar(getTeam(), false, WARPLAN_LIMITED,
 					true, NO_PLAYER, true); // advc.106g
 		}
@@ -19499,7 +19493,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		{
 			for (int i = 0; i < GC.getNumBuildingClassInfos(); ++i)
 			{
-				if (0 != kEvent.getBuildingHappyChange(i))
+				if (kEvent.getBuildingHappyChange(i) != 0)
 				{
 					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(i);
 					if (NO_BUILDING != eBuilding)
@@ -19514,7 +19508,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		{
 			for (int i = 0; i < GC.getNumBuildingClassInfos(); ++i)
 			{
-				if (0 != kEvent.getBuildingHealthChange(i))
+				if (kEvent.getBuildingHealthChange(i) != 0)
 				{
 					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(i);
 					if (NO_BUILDING != eBuilding)
@@ -19821,7 +19815,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		}
 	}
 
-	if (0 != kEvent.getTheirEnemyAttitudeModifier())
+	if (kEvent.getTheirEnemyAttitudeModifier() != 0)
 	{
 		if (NO_PLAYER != pTriggeredData->m_eOtherPlayer)
 		{
@@ -19977,7 +19971,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 
 	for (int iEvent = 0; iEvent < GC.getNumEventInfos(); ++iEvent)
 	{
-		if (0 == kEvent.getAdditionalEventTime(iEvent))
+		if (kEvent.getAdditionalEventTime(iEvent) == 0)
 		{
 			if (kEvent.getAdditionalEventChance(iEvent) > 0)
 			{
@@ -20029,7 +20023,7 @@ bool CvPlayer::isValidEventTech(TechTypes eTech, EventTypes eEvent, PlayerTypes 
 {
 	CvEventInfo& kEvent = GC.getEventInfo(eEvent);
 
-	if (0 == kEvent.getTechPercent() && 0 == kEvent.getTechCostPercent())
+	if (kEvent.getTechPercent() == 0 && kEvent.getTechCostPercent() == 0)
 	{
 		return false;
 	}
@@ -20064,7 +20058,7 @@ TechTypes CvPlayer::getBestEventTech(EventTypes eEvent, PlayerTypes eOtherPlayer
 	TechTypes eBestTech = NO_TECH;
 	CvEventInfo& kEvent = GC.getEventInfo(eEvent);
 
-	if (0 == kEvent.getTechPercent() && 0 == kEvent.getTechCostPercent())
+	if (kEvent.getTechPercent() == 0 && kEvent.getTechCostPercent() == 0)
 	{
 		return NO_TECH;
 	}
@@ -20078,7 +20072,7 @@ TechTypes CvPlayer::getBestEventTech(EventTypes eEvent, PlayerTypes eOtherPlayer
 		bool bFoundFlavor = false;
 		for (int i = 0; i < GC.getNumFlavorTypes(); ++i)
 		{
-			if (0 != kEvent.getTechFlavorValue(i))
+			if (kEvent.getTechFlavorValue(i) != 0)
 			{
 				bFoundFlavor = true;
 				break;
@@ -20903,7 +20897,7 @@ bool CvPlayer::canSplitArea(int iAreaId) const
 		return false;
 	}
 
-	if (0 == pArea->getCitiesPerPlayer(getID()))
+	if (pArea->getCitiesPerPlayer(getID()) == 0)
 	{
 		return false;
 	}
@@ -21248,7 +21242,7 @@ bool CvPlayer::isValidTriggerReligion(const CvEventTriggerInfo& kTrigger, CvCity
 	}
 	else
 	{
-		if (0 == getHasReligionCount(eReligion))
+		if (getHasReligionCount(eReligion) == 0)
 		{
 			return false;
 		}
@@ -21498,7 +21492,7 @@ void CvPlayer::setUnitExtraCost(UnitClassTypes eUnitClass, int iCost)
 	{
 		if ((*it).first == eUnitClass)
 		{
-			if (0 == iCost)
+			if (iCost == 0)
 			{
 				m_aUnitExtraCosts.erase(it);
 			}
@@ -21510,7 +21504,7 @@ void CvPlayer::setUnitExtraCost(UnitClassTypes eUnitClass, int iCost)
 		}
 	}
 
-	if (0 != iCost)
+	if (iCost != 0)
 	{
 		m_aUnitExtraCosts.push_back(std::make_pair(eUnitClass, iCost));
 	}
@@ -21841,7 +21835,7 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 				&& isFullMember(eVoteSource)) // advc
 		{
 			// BETTER_BTS_AI_MOD, 12/31/08, jdog5000: Vassals can't defy declarations of war
-			//if( !GET_TEAM(getTeam()).isAVassal() ) // dlph.25: Vassals already handled
+			//if (!GET_TEAM(getTeam()).isAVassal()) // dlph.25: Vassals already handled
 			return true;
 		}
 	}
@@ -22616,7 +22610,7 @@ bool CvPlayer::getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eI
 {
 	szIcon.clear();
 
-	switch ( eItem )
+	switch (eItem)
 	{
 	case TRADE_TECHNOLOGIES:
 		szString = gDLL->getText("TXT_KEY_CONCEPT_TECHNOLOGY");
@@ -23352,7 +23346,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() == 0);
 				break;
 			case SHOW_HAPPY_RESOURCES:
-				bOfInterest = (kBonusInfo.getHappiness() != 0 ) && (kBonusInfo.getHealth() == 0);
+				bOfInterest = (kBonusInfo.getHappiness() != 0) && (kBonusInfo.getHealth() == 0);
 				break;
 			case SHOW_HEALTH_RESOURCES:
 				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() != 0);

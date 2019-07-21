@@ -1541,10 +1541,10 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 		if (pXML->SkipToNextVal())
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg((0 < GC.getNUM_OR_TECH_PREREQS()) ,"Allocating zero or less memory in SetGlobalUnitInfo");
+			FAssertMsg(GC.getNUM_OR_TECH_PREREQS() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqOrTechs, GC.getNUM_OR_TECH_PREREQS(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -1571,10 +1571,10 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 		if (pXML->SkipToNextVal())
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg((0 < GC.getNUM_AND_TECH_PREREQS()) ,"Allocating zero or less memory in SetGlobalUnitInfo");
+			FAssertMsg(GC.getNUM_AND_TECH_PREREQS() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_AND_TECH_PREREQS(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -2363,7 +2363,7 @@ bool CvMissionInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bBuild, "bBuild");
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible", /* advc.006b: */ false);
 
-	if ( pXML->GetChildXmlValByName(szTmp, "EntityEventType", /* advc.006b: */ "") )
+	if (pXML->GetChildXmlValByName(szTmp, "EntityEventType", /* advc.006b: */ ""))
 	{
 		m_eEntityEvent = (EntityEventTypes)pXML->FindInInfoClass(szTmp);
 	}
@@ -4332,7 +4332,7 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 
 	int iNumInvisibleTypes;
 	stream->Read(&iNumInvisibleTypes);
-	for(int i=0;i<iNumInvisibleTypes;i++)
+	for(int i = 0; i < iNumInvisibleTypes; i++)
 	{
 		int iSeeInvisibleType;
 		stream->Read(&iSeeInvisibleType);
@@ -4650,7 +4650,7 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iInvisibleType);
 
 	stream->Write((int)m_aiSeeInvisibleTypes.size());
-	for(int i=0;i<(int)m_aiSeeInvisibleTypes.size();i++)
+	for(int i = 0; i < (int)m_aiSeeInvisibleTypes.size(); i++)
 	{
 		stream->Write(m_aiSeeInvisibleTypes[i]);
 	}
@@ -4772,15 +4772,10 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 //
 bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
 	if (!CvHotkeyInfo::read(pXML))
-	{
 		return false;
-	}
 
-	int j=0;				//loop counter
-	int k=0;				//loop counter
-	int iNumSibs=0;				// the number of siblings the current xml node has
+	CvString szTextVal;
 	int iIndexVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "Class");
@@ -4807,7 +4802,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "SeeInvisible");
 	std::vector<CvString> tokens;
 	szTextVal.getTokens(",", tokens);
-	for(int i=0;i<(int)tokens.size();i++)
+	for(int i = 0; i < (int)tokens.size(); i++)
 	{
 		int iInvisibleType = pXML->FindInInfoClass(tokens[i]);
 		if(iInvisibleType != NO_INVISIBLE)
@@ -4923,16 +4918,16 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg((0 < GC.getNUM_UNIT_AND_TECH_PREREQS()) ,"Allocating zero or less memory in SetGlobalUnitInfo");
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			FAssertMsg(GC.getNUM_UNIT_AND_TECH_PREREQS() > 0 , "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_UNIT_AND_TECH_PREREQS(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					FAssertMsg((iNumSibs <= GC.getNUM_UNIT_AND_TECH_PREREQS()) ,"There are more siblings than memory allocated for them in SetGlobalUnitInfo");
-					for (j=0;j<iNumSibs;j++)
+					FAssertMsg(iNumSibs <= GC.getNUM_UNIT_AND_TECH_PREREQS(), "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqAndTechs[j] = pXML->FindInInfoClass(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -4956,16 +4951,16 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg((0 < GC.getNUM_UNIT_PREREQ_OR_BONUSES()),"Allocating zero or less memory in SetGlobalUnitInfo");
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			FAssertMsg(GC.getNUM_UNIT_PREREQ_OR_BONUSES() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg((iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES()) , "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -4987,10 +4982,10 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 		if(pXML->SkipToNextVal()) {
 			pXML->InitList(&m_piSpeedBonuses[0], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
 			pXML->InitList(&m_piSpeedBonuses[1], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), 0);
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if(iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML())) {
 				FAssert(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES());
-				for(j = 0; j < iNumSibs; j++) {
+				for(int j = 0; j < iNumSibs; j++) {
 					pXML->GetChildXmlValByName(szTextVal, "BonusType");
 					int iBonus = pXML->FindInInfoClass(szTextVal);
 					if(iBonus > -1) {
@@ -5092,26 +5087,26 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iPowerValue, "iPower");
 
 	// Read the mesh groups elements
-	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"UnitMeshGroups") )
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"UnitMeshGroups"))
 	{
 		pXML->GetChildXmlValByName( &m_iGroupSize, "iGroupSize");
 		m_iGroupDefinitions = iIndexVal = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "UnitMeshGroup");
 		// advc.006b: GetChildXmlValByName can't handle comments. Assert added to warn about that.
 		FAssertMsg(m_iGroupDefinitions > 0, "XML comment inside UnitMeshGroups?");
 		m_piUnitGroupRequired = new int[ iIndexVal ];
-		pXML->GetChildXmlValByName( &m_iUnitMeleeWaveSize, "iMeleeWaveSize" );
-		pXML->GetChildXmlValByName( &m_iUnitRangedWaveSize, "iRangedWaveSize" );
-		pXML->GetChildXmlValByName( &m_fUnitMaxSpeed, "fMaxSpeed");
-		pXML->GetChildXmlValByName( &m_fUnitPadTime, "fPadTime");
+		pXML->GetChildXmlValByName(&m_iUnitMeleeWaveSize, "iMeleeWaveSize");
+		pXML->GetChildXmlValByName(&m_iUnitRangedWaveSize, "iRangedWaveSize");
+		pXML->GetChildXmlValByName(&m_fUnitMaxSpeed, "fMaxSpeed");
+		pXML->GetChildXmlValByName(&m_fUnitPadTime, "fPadTime");
 		m_paszEarlyArtDefineTags = new CvString[ iIndexVal ];
 		m_paszLateArtDefineTags = new CvString[ iIndexVal ];
 		m_paszMiddleArtDefineTags = new CvString[ iIndexVal ];
 
 		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "UnitMeshGroup"))
 		{
-			for ( k = 0; k < iIndexVal; k++ )
+			for (int k = 0; k < iIndexVal; k++)
 			{
-				pXML->GetChildXmlValByName( &m_piUnitGroupRequired[k], "iRequired");
+				pXML->GetChildXmlValByName(&m_piUnitGroupRequired[k], "iRequired");
 				pXML->GetChildXmlValByName(szTextVal, "EarlyArtDefineTag");
 				setEarlyArtDefineTag(k, szTextVal);
 				pXML->GetChildXmlValByName(szTextVal, "LateArtDefineTag", /* advc.006b: */ "");
@@ -5236,32 +5231,32 @@ bool CvUnitFormationInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(m_szFormationType, "FormationType");
 
-	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "EventMaskList" ))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "EventMaskList"))
 	{
-		if ( gDLL->getXMLIFace()->SetToChild( pXML->GetXML() ) )
+		if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 		{
-			pXML->GetXmlVal( szTextVal );
+			pXML->GetXmlVal(szTextVal);
 			do
 			{
 				iIndex = pXML->FindInInfoClass(szTextVal);
-				if ( iIndex != -1 )
-					m_vctEventTypes.push_back( (EntityEventTypes)iIndex );
-				bNextSibling = pXML->GetNextXmlVal( szTextVal );
+				if (iIndex != -1)
+					m_vctEventTypes.push_back((EntityEventTypes)iIndex);
+				bNextSibling = pXML->GetNextXmlVal(szTextVal);
 			}
-			while( bNextSibling );
+			while(bNextSibling);
 			gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 		}
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
 	// Read the entries
-	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "UnitEntry" ) )
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "UnitEntry"))
 	{
 		do
 		{
 			CvUnitEntry unitEntry;
 			pXML->GetChildXmlValByName(szTextVal, "UnitEntryType");
-			if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "Position" ) )
+			if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "Position"))
 			{
 				pXML->GetChildXmlValByName( &unitEntry.m_position.x, "x");
 				pXML->GetChildXmlValByName( &unitEntry.m_position.y, "y");
@@ -6012,17 +6007,16 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	m_pabSpecialistValid = new bool[GC.getNumSpecialistInfos()];
 	stream->Read(GC.getNumSpecialistInfos(), m_pabSpecialistValid);
 
-	int i;
 	if (m_ppiImprovementYieldChanges != NULL)
 	{
-		for(i=0;i<GC.getNumImprovementInfos();i++)
+		for(int i = 0; i < GC.getNumImprovementInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppiImprovementYieldChanges[i]);
 		}
 		SAFE_DELETE_ARRAY(m_ppiImprovementYieldChanges);
 	}
 	m_ppiImprovementYieldChanges = new int*[GC.getNumImprovementInfos()];
-	for(i=0;i<GC.getNumImprovementInfos();i++)
+	for(int i = 0;i < GC.getNumImprovementInfos(); i++)
 	{
 		m_ppiImprovementYieldChanges[i]  = new int[NUM_YIELD_TYPES];
 		stream->Read(NUM_YIELD_TYPES, m_ppiImprovementYieldChanges[i]);
@@ -6103,8 +6097,7 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumSpecialBuildingInfos(), m_pabSpecialBuildingNotRequired);
 	stream->Write(GC.getNumSpecialistInfos(), m_pabSpecialistValid);
 
-	int i;
-	for(i=0;i<GC.getNumImprovementInfos();i++)
+	for(int i = 0;i < GC.getNumImprovementInfos(); i++)
 	{
 		stream->Write(NUM_YIELD_TYPES, m_ppiImprovementYieldChanges[i]);
 	}
@@ -6114,15 +6107,11 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 #endif
 bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
+	
 	if (!CvInfoBase::read(pXML))
-	{
 		return false;
-	}
 
-	int j;
-	int iNumSibs=0;				// the number of siblings the current xml node has
-	int iIndex;
+	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "CivicOptionType");
 	m_iCivicOptionType = pXML->FindInInfoClass(szTextVal);
@@ -6255,15 +6244,15 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
-				if (0 < iNumSibs)
+				if (iNumSibs > 0)
 				{
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						pXML->GetChildXmlValByName(szTextVal, "ImprovementType");
-						iIndex = pXML->FindInInfoClass(szTextVal);
+						int iIndex = pXML->FindInInfoClass(szTextVal);
 
 						if (iIndex > -1)
 						{
@@ -6442,22 +6431,20 @@ void CvDiplomacyInfo::write(FDataStreamBase* stream)
 #endif
 bool CvDiplomacyInfo::read(CvXMLLoadUtility* pXML)
 {
-	int i;
-
 	if (!CvInfoBase::read(pXML))
 	{
 		return false;
 	}
 
 	uninit();
-	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Responses") )
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Responses"))
 	{
 		int iNewResponses = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "Response");
 		// advc.006b: GetChildXmlValByName can't handle comments
 		FAssertMsg(iNewResponses > 0, "XML comment inside Responses?");
 		gDLL->getXMLIFace()->SetToChild(pXML->GetXML());
 
-		for (i = 0; i < iNewResponses; i++)
+		for (int i = 0; i < iNewResponses; i++)
 		{
 			CvDiplomacyResponse* pNewResponse = new CvDiplomacyResponse;
 			pNewResponse->read(pXML);
@@ -6781,7 +6768,7 @@ CvBuildingInfo::~CvBuildingInfo()
 
 	if (m_ppaiSpecialistYieldChange != NULL)
 	{
-		for(int i=0;i<GC.getNumSpecialistInfos();i++)
+		for(int i = 0; i < GC.getNumSpecialistInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppaiSpecialistYieldChange[i]);
 		}
@@ -6790,7 +6777,7 @@ CvBuildingInfo::~CvBuildingInfo()
 
 	if (m_ppaiBonusYieldModifier != NULL)
 	{
-		for(int i=0;i<GC.getNumBonusInfos();i++)
+		for(int i = 0;i < GC.getNumBonusInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppaiBonusYieldModifier[i]);
 		}
@@ -8083,10 +8070,9 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	m_pbBuildingClassNeededInCity = new bool[GC.getNumBuildingClassInfos()];
 	stream->Read(GC.getNumBuildingClassInfos(), m_pbBuildingClassNeededInCity);
 
-	int i;
 	if (m_ppaiSpecialistYieldChange != NULL)
 	{
-		for(i=0;i<GC.getNumSpecialistInfos();i++)
+		for(int i = 0; i < GC.getNumSpecialistInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppaiSpecialistYieldChange[i]);
 		}
@@ -8094,18 +8080,18 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	}
 
 	m_ppaiSpecialistYieldChange = new int*[GC.getNumSpecialistInfos()];
-	for(i=0;i<GC.getNumSpecialistInfos();i++)
+	for(int i = 0;i < GC.getNumSpecialistInfos(); i++)
 	{
 		m_ppaiSpecialistYieldChange[i]  = new int[NUM_YIELD_TYPES];
 		stream->Read(NUM_YIELD_TYPES, m_ppaiSpecialistYieldChange[i]);
 	}
 	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
 	m_bAnySpecialistYieldChange = false;
-	for(i=0;(!m_bAnySpecialistYieldChange) && i<GC.getNumSpecialistInfos();i++)
+	for(int i = 0; !m_bAnySpecialistYieldChange && i < GC.getNumSpecialistInfos(); i++)
 	{
-		for(int j=0; j < NUM_YIELD_TYPES; j++ )
+		for(int j = 0; j < NUM_YIELD_TYPES; j++)
 		{
-			if( m_ppaiSpecialistYieldChange[i][j] != 0 )
+			if (m_ppaiSpecialistYieldChange[i][j] != 0)
 			{
 				m_bAnySpecialistYieldChange = true;
 				break;
@@ -8115,7 +8101,7 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 
 	if (m_ppaiBonusYieldModifier != NULL)
 	{
-		for(i=0;i<GC.getNumBonusInfos();i++)
+		for(int i = 0; i < GC.getNumBonusInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppaiBonusYieldModifier[i]);
 		}
@@ -8123,18 +8109,18 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	}
 
 	m_ppaiBonusYieldModifier = new int*[GC.getNumBonusInfos()];
-	for(i=0;i<GC.getNumBonusInfos();i++)
+	for(int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
 		m_ppaiBonusYieldModifier[i]  = new int[NUM_YIELD_TYPES];
 		stream->Read(NUM_YIELD_TYPES, m_ppaiBonusYieldModifier[i]);
 	}
 	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
 	m_bAnyBonusYieldModifier = false;
-	for(i=0;(!m_bAnyBonusYieldModifier) && i<GC.getNumBonusInfos();i++)
+	for(int i = 0; !m_bAnyBonusYieldModifier && i < GC.getNumBonusInfos(); i++)
 	{
-		for(int j=0; j < NUM_YIELD_TYPES; j++ )
+		for(int j=0; j < NUM_YIELD_TYPES; j++)
 		{
-			if( m_ppaiBonusYieldModifier[i][j] != 0 )
+			if (m_ppaiBonusYieldModifier[i][j] != 0)
 			{
 				m_bAnyBonusYieldModifier = true;
 				break;
@@ -8306,13 +8292,12 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(NUM_COMMERCE_TYPES, m_pbCommerceChangeOriginalOwner);
 	stream->Write(GC.getNumBuildingClassInfos(), m_pbBuildingClassNeededInCity);
 
-	int i;
-	for(i=0;i<GC.getNumSpecialistInfos();i++)
+	for(int i = 0 ;i < GC.getNumSpecialistInfos(); i++)
 	{
 		stream->Write(NUM_YIELD_TYPES, m_ppaiSpecialistYieldChange[i]);
 	}
 
-	for(i=0;i<GC.getNumBonusInfos();i++)
+	for(int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
 		stream->Write(NUM_YIELD_TYPES, m_ppaiBonusYieldModifier[i]);
 	}
@@ -8323,16 +8308,10 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 //
 bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
 	if (!CvHotkeyInfo::read(pXML))
-	{
 		return false;
-	}
 
-	int j=0;						//loop counter
-	int k=0;						//loop counter
-	int iNumSibs=0;				// the number of siblings the current xml node has
-	int iNumChildren;				// the number of children the current node has
+	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "BuildingClass");
 	m_iBuildingClassType = pXML->FindInInfoClass(szTextVal);
@@ -8392,15 +8371,15 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_BUILDING_AND_TECH_PREREQS(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg((iNumSibs <= GC.getNUM_BUILDING_AND_TECH_PREREQS()),"For loop iterator is greater than array size");
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqAndTechs[j] = pXML->FindInInfoClass(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -8428,10 +8407,10 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 		if (pXML->SkipToNextVal())
 		{
 			// get the total number of children the current xml node has
-			iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), -1);
 
-			if (0 < iNumChildren)
+			if (iNumChildren > 0)
 			{
 				// if the call to the function that sets the current xml node to it's first non-comment
 				// child and sets the parameter with the new node's value succeeds
@@ -8439,7 +8418,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 				{
 					FAssertMsg((iNumChildren <= GC.getNUM_BUILDING_PREREQ_OR_BONUSES()),"For loop iterator is greater than array size");
 					// loop through all the siblings
-					for (j=0;j<iNumChildren;j++)
+					for (int j = 0; j < iNumChildren; j++)
 					{
 						// call the find in list function to return either -1 if no value is found
 						// or the index in the list the match is found at
@@ -8799,14 +8778,14 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->Init2DIntList(&m_ppaiSpecialistYieldChange, GC.getNumSpecialistInfos(), NUM_YIELD_TYPES);
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"SpecialistYieldChanges"))
 	{
-		iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+		int iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
 		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"SpecialistYieldChange"))
 		{
-			for(j=0;j<iNumChildren;j++)
+			for(int j = 0; j < iNumChildren; j++)
 			{
 				pXML->GetChildXmlValByName(szTextVal, "SpecialistType");
-				k = pXML->FindInInfoClass(szTextVal);
+				int k = pXML->FindInInfoClass(szTextVal);
 				if (k > -1)
 				{
 					// delete the array since it will be reallocated
@@ -8829,11 +8808,11 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 				}
 			}
 
-			for(int ii=0;(!m_bAnySpecialistYieldChange) && ii<GC.getNumSpecialistInfos();ii++)
+			for(int ii = 0; !m_bAnySpecialistYieldChange && ii < GC.getNumSpecialistInfos(); ii++)
 			{
-				for(int ij=0; ij < NUM_YIELD_TYPES; ij++ )
+				for(int ij = 0; ij < NUM_YIELD_TYPES; ij++)
 				{
-					if( m_ppaiSpecialistYieldChange[ii][ij] != 0 )
+					if (m_ppaiSpecialistYieldChange[ii][ij] != 0)
 					{
 						m_bAnySpecialistYieldChange = true;
 						break;
@@ -8852,14 +8831,14 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->Init2DIntList(&m_ppaiBonusYieldModifier, GC.getNumBonusInfos(), NUM_YIELD_TYPES);
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"BonusYieldModifiers"))
 	{
-		iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+		int iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
 		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"BonusYieldModifier"))
 		{
-			for(j=0;j<iNumChildren;j++)
+			for(int j = 0; j < iNumChildren; j++)
 			{
 				pXML->GetChildXmlValByName(szTextVal, "BonusType");
-				k = pXML->FindInInfoClass(szTextVal);
+				int k = pXML->FindInInfoClass(szTextVal);
 				if (k > -1)
 				{
 					// delete the array since it will be reallocated
@@ -8883,11 +8862,11 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 				}
 			}
 
-			for(int ii=0;(!m_bAnyBonusYieldModifier) && ii<GC.getNumBonusInfos(); ii++)
+			for(int ii = 0; !m_bAnyBonusYieldModifier && ii < GC.getNumBonusInfos(); ii++)
 			{
-				for(int ij=0; ij < NUM_YIELD_TYPES; ij++ )
+				for(int ij=0; ij < NUM_YIELD_TYPES; ij++)
 				{
-					if( m_ppaiBonusYieldModifier[ii][ij] != 0 )
+					if (m_ppaiBonusYieldModifier[ii][ij] != 0)
 					{
 						m_bAnyBonusYieldModifier = true;
 						break;
@@ -8959,22 +8938,22 @@ CvSpecialBuildingInfo::~CvSpecialBuildingInfo()
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 }
 
-int CvSpecialBuildingInfo::getObsoleteTech( void ) const
+int CvSpecialBuildingInfo::getObsoleteTech() const
 {
 	return m_iObsoleteTech;
 }
 
-int CvSpecialBuildingInfo::getTechPrereq( void ) const
+int CvSpecialBuildingInfo::getTechPrereq() const
 {
 	return m_iTechPrereq;
 }
 
-int CvSpecialBuildingInfo::getTechPrereqAnyone( void ) const
+int CvSpecialBuildingInfo::getTechPrereqAnyone() const
 {
 	return m_iTechPrereqAnyone;
 }
 
-bool CvSpecialBuildingInfo::isValid( void ) const
+bool CvSpecialBuildingInfo::isValid() const
 {
 	return m_bValid;
 }
@@ -9500,7 +9479,7 @@ const wchar* CvCivilizationInfo::getAdjectiveKey() const
 
 const TCHAR* CvCivilizationInfo::getFlagTexture() const
 {
-	return ARTFILEMGR.getCivilizationArtInfo( getArtDefineTag() )->getPath();
+	return ARTFILEMGR.getCivilizationArtInfo(getArtDefineTag())->getPath();
 }
 
 const TCHAR* CvCivilizationInfo::getArtDefineTag() const
@@ -9573,7 +9552,7 @@ bool CvCivilizationInfo::isCivilizationDisableTechs(int i) const
 
 const CvArtInfoCivilization* CvCivilizationInfo::getArtInfo() const
 {
-	return ARTFILEMGR.getCivilizationArtInfo( getArtDefineTag() );
+	return ARTFILEMGR.getCivilizationArtInfo(getArtDefineTag());
 }
 
 const TCHAR* CvCivilizationInfo::getButton() const
@@ -9694,15 +9673,11 @@ void CvCivilizationInfo::write(FDataStreamBase* stream)
 #endif
 bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 {
-	char szClassVal[256];					// holds the text value of the relevant classinfo
-
-	CvString szTextVal;
 	if (!CvInfoBase::read(pXML))
-	{
 		return false;
-	}
 
-	int j, iNumSibs;
+	char szClassVal[256]; // holds the text value of the relevant classinfo
+	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(m_szShortDescriptionKey, "ShortDescription");
 	// Get the Text from Text/Civ4GameTextXML.xml
@@ -9724,9 +9699,9 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 	m_iUnitArtStyleType = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "CivilizationSelectionSound");
-	m_iSelectionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
+	m_iSelectionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
 	pXML->GetChildXmlValByName(szTextVal, "CivilizationActionSound");
-	m_iActionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
+	m_iActionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
 
 	// set the current xml node to it's next sibling and then
 	pXML->GetChildXmlValByName(&m_bPlayable, "bPlayable");
@@ -9747,17 +9722,17 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 			// call the function that sets the default civilization buildings
 			pXML->InitBuildingDefaults(&m_piCivilizationBuildings);
 			// get the total number of children the current xml node has
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			// if the call to the function that sets the current xml node to it's first non-comment
 			// child and sets the parameter with the new node's value succeeds
-			if ( (0 < iNumSibs) && (gDLL->getXMLIFace()->SetToChild(pXML->GetXML())) )
+			if (iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
 				int iBuildingClassIndex;
 
 				FAssertMsg((iNumSibs <= GC.getNumBuildingClassInfos()) ,"In SetGlobalCivilizationInfo iNumSibs is greater than GC.getNumBuildingClassInfos()");
 
 				// loop through all the siblings
-				for (j=0;j<iNumSibs;j++)
+				for (int j = 0; j < iNumSibs; j++)
 				{
 					if (pXML->GetChildXmlVal(szClassVal))
 					{
@@ -9807,17 +9782,17 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 			// call the function that sets the default civilization buildings
 			pXML->InitUnitDefaults(&m_piCivilizationUnits);
 			// get the total number of children the current xml node has
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			// if the call to the function that sets the current xml node to it's first non-comment
 			// child and sets the parameter with the new node's value succeeds
-			if ( (0 < iNumSibs) && (gDLL->getXMLIFace()->SetToChild(pXML->GetXML())) )
+			if (iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
 				int iUnitClassIndex;
 
 				FAssertMsg((iNumSibs <= GC.getNumUnitClassInfos()),"In SetGlobalCivilizationInfo iNumSibs is greater than GC.getNumUnitClassInfos()");
 
 				// loop through all the siblings
-				for (j=0;j<iNumSibs;j++)
+				for (int j = 0; j < iNumSibs; j++)
 				{
 					if (pXML->GetChildXmlVal(szClassVal))
 					{
@@ -9869,15 +9844,15 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			pXML->InitList(&m_piCivilizationInitialCivics, GC.getNumCivicOptionInfos());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg((iNumSibs <= GC.getNumCivicOptionInfos()),"For loop iterator is greater than array size");
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piCivilizationInitialCivics[j] = pXML->FindInInfoClass(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -10759,11 +10734,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
-	{
 		return false;
-	}
-
-	int j;
 
 	pXML->GetChildXmlValByName(&m_iFreeWinsVsBarbs, "iFreeWinsVsBarbs");
 	pXML->GetChildXmlValByName(&m_iAnimalAttackProb, "iAnimalAttackProb");
@@ -10852,7 +10823,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 		{
 			m_piGoodies = new int[m_iNumGoodies];
 
-			for (j=0;j<m_iNumGoodies;j++)
+			for (int j = 0; j < m_iNumGoodies; j++)
 			{
 				m_piGoodies[j] = pXML->FindInInfoClass(pszGoodyNames[j]);
 			}
@@ -11046,11 +11017,9 @@ void CvGameSpeedInfo::allocateGameTurnInfos(const int iSize)
 bool CvGameSpeedInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
-	{
 		return false;
-	}
 
-	int j, iTempVal;
+	int iTempVal;
 
 	pXML->GetChildXmlValByName(&m_iGrowthPercent, "iGrowthPercent");
 	pXML->GetChildXmlValByName(&m_iTrainPercent, "iTrainPercent");
@@ -11082,7 +11051,7 @@ bool CvGameSpeedInfo::read(CvXMLLoadUtility* pXML)
 			allocateGameTurnInfos(getNumTurnIncrements());
 
 			// loop through each tag
-			for (j=0;j<getNumTurnIncrements();j++)
+			for (int j = 0; j < getNumTurnIncrements(); j++)
 			{
 				pXML->GetChildXmlValByName(&iTempVal, "iMonthIncrement");
 				getGameTurnInfo(j).iMonthIncrement = iTempVal;
@@ -11604,15 +11573,15 @@ bool CvRouteInfo::read(CvXMLLoadUtility* pXML)
 		if (pXML->SkipToNextVal())
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg((0 < GC.getNUM_ROUTE_PREREQ_OR_BONUSES()) ,"Allocating zero or less memory in SetGlobalUnitInfo");
+			FAssertMsg(GC.getNUM_ROUTE_PREREQ_OR_BONUSES() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_ROUTE_PREREQ_OR_BONUSES(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg((iNumSibs <= GC.getNUM_ROUTE_PREREQ_OR_BONUSES()) ,"There are more siblings than memory allocated for them in SetGlobalUnitInfo");
-					for (int j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -12192,15 +12161,15 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 
 	SAFE_DELETE_ARRAY(m_paImprovementBonus);
 	m_paImprovementBonus = new CvImprovementBonusInfo[GC.getNumBonusInfos()];
-	int i;
-	for (i = 0; i < GC.getNumBonusInfos(); i++)
+
+	for (int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
 		m_paImprovementBonus[i].read(stream);
 	}
 
 	if (m_ppiTechYieldChanges != NULL)
 	{
-		for(i=0;i<GC.getNumTechInfos();i++)
+		for(int i = 0; i < GC.getNumTechInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppiTechYieldChanges[i]);
 		}
@@ -12208,7 +12177,7 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 	}
 
 	m_ppiTechYieldChanges = new int*[GC.getNumTechInfos()];
-	for(i=0;i<GC.getNumTechInfos();i++)
+	for(int i = 0; i < GC.getNumTechInfos(); i++)
 	{
 		m_ppiTechYieldChanges[i]  = new int[NUM_YIELD_TYPES];
 		stream->Read(NUM_YIELD_TYPES, m_ppiTechYieldChanges[i]);
@@ -12216,7 +12185,7 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 
 	if (m_ppiRouteYieldChanges != NULL)
 	{
-		for(i=0;i<GC.getNumRouteInfos();i++)
+		for(int i = 0; i < GC.getNumRouteInfos(); i++)
 		{
 			SAFE_DELETE_ARRAY(m_ppiRouteYieldChanges[i]);
 		}
@@ -12224,7 +12193,7 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 	}
 
 	m_ppiRouteYieldChanges = new int*[GC.getNumRouteInfos()];
-	for(i=0;i<GC.getNumRouteInfos();i++)
+	for(int i = 0; i < GC.getNumRouteInfos(); i++)
 	{
 		m_ppiRouteYieldChanges[i]  = new int[NUM_YIELD_TYPES];
 		stream->Read(NUM_YIELD_TYPES, m_ppiRouteYieldChanges[i]);
@@ -12281,18 +12250,17 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumTerrainInfos(), m_pbTerrainMakesValid);
 	stream->Write(GC.getNumFeatureInfos(), m_pbFeatureMakesValid);
 
-	int i;
-	for (i = 0; i < GC.getNumBonusInfos(); i++)
+	for (int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
 		m_paImprovementBonus[i].write(stream);
 	}
 
-	for(i=0;i<GC.getNumTechInfos();i++)
+	for(int i = 0; i < GC.getNumTechInfos(); i++)
 	{
 		stream->Write(NUM_YIELD_TYPES, m_ppiTechYieldChanges[i]);
 	}
 
-	for(i=0;i<GC.getNumRouteInfos();i++)
+	for(int i = 0; i < GC.getNumRouteInfos(); i++)
 	{
 		stream->Write(NUM_YIELD_TYPES, m_ppiRouteYieldChanges[i]);
 	}
@@ -12300,13 +12268,10 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 #endif
 bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
 	if (!CvInfoBase::read(pXML))
-	{
 		return false;
-	}
 
-	int iIndex, j, iNumSibs;
+	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
 	setArtDefineTag(szTextVal);
@@ -12413,15 +12378,15 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
-				if (0 < iNumSibs)
+				if (iNumSibs > 0)
 				{
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						pXML->GetChildXmlValByName(szTextVal, "PrereqTech");
-						iIndex = pXML->FindInInfoClass(szTextVal);
+						int iIndex = pXML->FindInInfoClass(szTextVal);
 
 						if (iIndex > -1)
 						{
@@ -12461,16 +12426,16 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
 
-				if (0 < iNumSibs)
+				if (iNumSibs > 0)
 				{
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						pXML->GetChildXmlValByName(szTextVal, "RouteType");
-						iIndex = pXML->FindInInfoClass(szTextVal);
+						int iIndex = pXML->FindInInfoClass(szTextVal);
 
 						if (iIndex > -1)
 						{
@@ -12504,10 +12469,9 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 	}
 
 	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if ( szTextVal.GetLength() > 0 )
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE );
-	else
-		m_iWorldSoundscapeScriptId = -1;
+	if (szTextVal.GetLength() > 0)
+		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
+	else m_iWorldSoundscapeScriptId = -1;
 
 	return true;
 }
@@ -13374,8 +13338,8 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getFootstepAudioTypes(), GC.getNumFootstepAudioTypes());
 
 	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if ( szTextVal.GetLength() > 0 )
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE );
+	if (szTextVal.GetLength() > 0)
+		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
 	else m_iWorldSoundscapeScriptId = -1;
 
 	pXML->GetChildXmlValByName(m_szEffectType, "EffectType");
@@ -13605,21 +13569,20 @@ bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "ColorType");
 	m_iColorType = pXML->FindInInfoClass(szTextVal);
 
-	int iNumSibs, j;
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SymbolPaths"))
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg((0 < GC.getDefineINT("MAX_YIELD_STACK")) ,"Allocating zero or less memory in SetGlobalYieldInfo");
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			FAssertMsg(GC.getDefineINT("MAX_YIELD_STACK") > 0, "Allocating zero or less memory in SetGlobalYieldInfo");
 			m_paszSymbolPath = new CvString[GC.getDefineINT("MAX_YIELD_STACK")];
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg((iNumSibs <= GC.getDefineINT("MAX_YIELD_STACK")) ,"There are more siblings than memory allocated for them in SetGlobalYieldInfo");
-					for (j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_paszSymbolPath[j] = szTextVal;
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -13835,8 +13798,8 @@ bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getFootstepAudioTypes(), GC.getNumFootstepAudioTypes());
 
 	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if ( szTextVal.GetLength() > 0 )
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE );
+	if (szTextVal.GetLength() > 0)
+		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
 	else
 		m_iWorldSoundscapeScriptId = -1;
 
@@ -13996,13 +13959,13 @@ int CvAdvisorInfo::getNumCodes() const
 
 int CvAdvisorInfo::getEnableCode(uint uiCode) const
 {
-	FAssert( uiCode < m_vctEnableDisableCodes.size() );
+	FAssert(uiCode < m_vctEnableDisableCodes.size());
 	return m_vctEnableDisableCodes[uiCode].first;
 }
 
 int CvAdvisorInfo::getDisableCode(uint uiCode) const
 {
-	FAssert( uiCode < m_vctEnableDisableCodes.size() );
+	FAssert(uiCode < m_vctEnableDisableCodes.size());
 	return m_vctEnableDisableCodes[uiCode].second;
 }
 
@@ -14016,17 +13979,17 @@ bool CvAdvisorInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(szTextVal, "Texture",
 			""); // advc.006b: Actually, none of them has a texture.
-	setTexture( szTextVal );
+	setTexture(szTextVal);
 
-	gDLL->getXMLIFace()->SetToChild( pXML->GetXML() );
+	gDLL->getXMLIFace()->SetToChild(pXML->GetXML());
 	while(gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "EventCodes"))
 	{
 		int iEnableCode, iDisableCode;
 		pXML->GetChildXmlValByName(&iEnableCode, "iEnableCode");
 		pXML->GetChildXmlValByName(&iDisableCode, "iDisableCode");
-		m_vctEnableDisableCodes.push_back( std::make_pair( iEnableCode, iDisableCode ));
+		m_vctEnableDisableCodes.push_back(std::make_pair(iEnableCode, iDisableCode));
 	}
-	gDLL->getXMLIFace()->SetToParent( pXML->GetXML() );
+	gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 
 	return true;
 }
@@ -14710,7 +14673,7 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iMaxGoldTradePercent);
 	stream->Read(&m_iMaxGoldPerTurnTradePercent);
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/21/10, jdog5000: START
-	if( uiFlag > 0 )
+	if (uiFlag > 0)
 	{
 		stream->Read(&m_iCultureVictoryWeight);
 		stream->Read(&m_iSpaceVictoryWeight);
@@ -15998,17 +15961,17 @@ void CvReligionInfo::setMovieSound(const TCHAR* szVal)
 	m_szMovieSound = szVal;
 }
 
-const TCHAR* CvReligionInfo::getButtonDisabled( void ) const
+const TCHAR* CvReligionInfo::getButtonDisabled() const
 {
 	static TCHAR szDisabled[512];
 
 	szDisabled[0] = '\0';
 
-	if ( getButton() && strlen(getButton()) > 4 )
+	if (getButton() && strlen(getButton()) > 4)
 	{
-		strncpy( szDisabled, getButton(), strlen(getButton()) - 4 );
+		strncpy(szDisabled, getButton(), strlen(getButton()) - 4);
 		szDisabled[strlen(getButton()) - 4] = '\0';
-		strcat( szDisabled, "_D.dds" );
+		strcat(szDisabled, "_D.dds");
 	}
 
 	return szDisabled;
@@ -16381,15 +16344,15 @@ bool CvCorporationInfo::read(CvXMLLoadUtility* pXML)
 		if (pXML->SkipToNextVal())
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg(0 < GC.getNUM_CORPORATION_PREREQ_BONUSES(),"Allocating zero or less memory in CvCorporationInfo::read");
+			FAssertMsg(GC.getNUM_CORPORATION_PREREQ_BONUSES() > 0, "Allocating zero or less memory in CvCorporationInfo::read");
 			pXML->InitList(&m_paiPrereqBonuses, GC.getNUM_CORPORATION_PREREQ_BONUSES(), -1);
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg((iNumSibs <= GC.getNUM_CORPORATION_PREREQ_BONUSES()) , "There are more siblings than memory allocated for them in CvCorporationInfo::read");
-					for (int j=0; j<iNumSibs; ++j)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_paiPrereqBonuses[j] = pXML->FindInInfoClass(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -16827,13 +16790,13 @@ bool CvThroneRoomInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(szTextVal, "Event");
 	setEvent(szTextVal);
-	pXML->GetChildXmlValByName(&iVal, "iFromState" );
+	pXML->GetChildXmlValByName(&iVal, "iFromState");
 	setFromState(iVal);
-	pXML->GetChildXmlValByName(&iVal, "iToState" );
+	pXML->GetChildXmlValByName(&iVal, "iToState");
 	setToState(iVal);
 	pXML->GetChildXmlValByName(szTextVal, "NodeName");
 	setNodeName(szTextVal);
-	pXML->GetChildXmlValByName(&iVal, "iAnimation" );
+	pXML->GetChildXmlValByName(&iVal, "iAnimation");
 	setAnimation(iVal);
 
 	return true;
@@ -17406,12 +17369,12 @@ CvAnimationPathInfo::~CvAnimationPathInfo()
 {
 }
 
-int CvAnimationPathInfo::getPathCategory( int i )
+int CvAnimationPathInfo::getPathCategory(int i)
 {
 	return (int)m_vctPathDefinition.size() > i ? m_vctPathDefinition[i].first : -1;
 }
 
-float CvAnimationPathInfo::getPathParameter( int i )
+float CvAnimationPathInfo::getPathParameter(int i)
 {
 	return (int)m_vctPathDefinition.size() > i ? m_vctPathDefinition[i].second : -1;
 }
@@ -17421,7 +17384,7 @@ int CvAnimationPathInfo::getNumPathDefinitions()
 	return m_vctPathDefinition.size();
 }
 
-CvAnimationPathDefinition * CvAnimationPathInfo::getPath( )
+CvAnimationPathDefinition * CvAnimationPathInfo::getPath()
 {
 	return &m_vctPathDefinition;
 }
@@ -17448,8 +17411,8 @@ bool CvAnimationPathInfo::read(CvXMLLoadUtility* pXML)
 	int		iCurrentCategory;				// The current category information we are building
 	float	fParameter;						// Temporary
 
-	pXML->GetChildXmlValByName( &m_bMissionPath, "bMissionPath" );
-	gDLL->getXMLIFace()->SetToChild(pXML->GetXML() );
+	pXML->GetChildXmlValByName(&m_bMissionPath, "bMissionPath");
+	gDLL->getXMLIFace()->SetToChild(pXML->GetXML());
 	gDLL->getXMLIFace()->GetLastNodeText(pXML->GetXML(), szTempString);
 	gDLL->getXMLIFace()->NextSibling(pXML->GetXML());
 	gDLL->getXMLIFace()->NextSibling(pXML->GetXML());
@@ -17465,14 +17428,14 @@ bool CvAnimationPathInfo::read(CvXMLLoadUtility* pXML)
 			pXML->GetChildXmlValByName( szTempString, _T("Operator"));
 			iCurrentCategory = GC.getTypesEnum(szTempString);
 			iCurrentCategory = ((int)ANIMOP_FIRST) + iCurrentCategory;
-			if ( !pXML->GetChildXmlValByName( &fParameter, "Parameter" ) )
+			if (!pXML->GetChildXmlValByName(&fParameter, "Parameter"))
 			{
 				fParameter = 0.0f;
 			}
 		}
-			m_vctPathDefinition.push_back( std::make_pair(iCurrentCategory, fParameter ));
+			m_vctPathDefinition.push_back(std::make_pair(iCurrentCategory, fParameter));
 	}
-	while ( gDLL->getXMLIFace()->NextSibling(pXML->GetXML()));
+	while (gDLL->getXMLIFace()->NextSibling(pXML->GetXML()));
 	gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 
 	return true;
@@ -17505,14 +17468,14 @@ CvAnimationCategoryInfo::~CvAnimationCategoryInfo()
 {
 }
 
-int CvAnimationCategoryInfo::getCategoryBaseID( )
+int CvAnimationCategoryInfo::getCategoryBaseID()
 {
 	return m_kCategory.first;
 }
 
-int CvAnimationCategoryInfo::getCategoryDefaultTo( )
+int CvAnimationCategoryInfo::getCategoryDefaultTo()
 {
-	if ( m_kCategory.second < -1 )
+	if (m_kCategory.second < -1)
 	{
 		// CvXMLLoadUtility *pXML = new CvXMLLoadUtility();
 		m_kCategory.second = CvXMLLoadUtility::FindInInfoClass( m_szDefaultTo);
@@ -17555,27 +17518,25 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	int iNumSibs, i;
-
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"AnimationPathTypes"))
 	{
 		// Skip any comments and stop at the next value we might want
 		if (pXML->SkipToNextVal())
 		{
 			// get the total number of children the current xml node has
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
 				// if the call to the function that sets the current xml node to it's first non-comment
 				// child and sets the parameter with the new node's value succeeds
 				if (pXML->GetChildXmlVal(szTmp))
 				{
-					AnimationPathTypes eAnimationPath = (AnimationPathTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
-					if ( eAnimationPath > ANIMATIONPATH_NONE )
-						m_vctAnimationPathType.push_back( eAnimationPath );
+					AnimationPathTypes eAnimationPath = (AnimationPathTypes)CvXMLLoadUtility::FindInInfoClass(szTmp);
+					if (eAnimationPath > ANIMATIONPATH_NONE)
+						m_vctAnimationPathType.push_back(eAnimationPath);
 
 					// loop through all the siblings, we start at 1 since we already have the first value
-					for (i=1;i<iNumSibs;i++)
+					for (int i = 1; i < iNumSibs; i++)
 					{
 						if (!pXML->GetNextXmlVal(szTmp))
 						{
@@ -17583,8 +17544,8 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 						}
 						// advc.003: renamed to avoid shadowing of eAnimationPath
 						AnimationPathTypes eLoopAnimationPath = (AnimationPathTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
-						if ( eLoopAnimationPath > ANIMATIONPATH_NONE )
-							m_vctAnimationPathType.push_back( eLoopAnimationPath );
+						if (eLoopAnimationPath > ANIMATIONPATH_NONE)
+							m_vctAnimationPathType.push_back(eLoopAnimationPath);
 
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -17600,7 +17561,7 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 		if (pXML->SkipToNextVal())
 		{
 			// get the total number of children the current xml node has
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
 				// if the call to the function that sets the current xml node to it's first non-comment
@@ -17608,20 +17569,20 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 				if (pXML->GetChildXmlVal(szTmp))
 				{
 					EffectTypes eEffectType = (EffectTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
-					if ( eEffectType > NO_EFFECT )
-						m_vctEffectTypes.push_back( eEffectType );
+					if (eEffectType > NO_EFFECT)
+						m_vctEffectTypes.push_back(eEffectType);
 
 					// loop through all the siblings, we start at 1 since we already have the first value
-					for (i=1;i<iNumSibs;i++)
+					for (int i = 1; i < iNumSibs; i++)
 					{
 						if (!pXML->GetNextXmlVal(szTmp))
 						{
 							break;
 						}
 						// advc.003: renamed to avoid shadowing of eEffectType
-						EffectTypes eLoopEffectType = (EffectTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
-						if ( eLoopEffectType > NO_EFFECT )
-							m_vctEffectTypes.push_back( eLoopEffectType );
+						EffectTypes eLoopEffectType = (EffectTypes)CvXMLLoadUtility::FindInInfoClass(szTmp);
+						if (eLoopEffectType > NO_EFFECT)
+							m_vctEffectTypes.push_back(eLoopEffectType);
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
@@ -17630,7 +17591,7 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	pXML->GetChildXmlValByName( &m_bUpdateFormation, "bUpdateFormation" );
+	pXML->GetChildXmlValByName(&m_bUpdateFormation, "bUpdateFormation");
 
 	return true;
 }
@@ -17940,30 +17901,30 @@ bool CvArtInfoUnit::read(CvXMLLoadUtility* pXML)
 	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "ActionSound", /* advc.006b: */ "");
-	m_iActionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
+	m_iActionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
 	pXML->GetChildXmlValByName(szTextVal, "SelectionSound", /* advc.006b: */ "");
-	m_iSelectionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
+	m_iSelectionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
 	pXML->GetChildXmlValByName(szTextVal, "PatrolSound", /* advc.006b: */ "");
-	m_iPatrolSoundTag = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
+	m_iPatrolSoundTag = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
 
 	pXML->GetChildXmlValByName(szTextVal, "TrainSound", /* advc.006b: */ "");
 	setTrainSound(szTextVal);
 
-	pXML->GetChildXmlValByName(&m_bActAsRanged, "bActAsRanged" );
-	pXML->GetChildXmlValByName(&m_bActAsLand, "bActAsLand" );
-	pXML->GetChildXmlValByName(&m_bActAsAir, "bActAsAir" );
-	pXML->GetChildXmlValByName(&m_bCombatExempt, "bCombatExempt", false );
-	pXML->GetChildXmlValByName(&m_fExchangeAngle, "fExchangeAngle", 0.0f );
-	pXML->GetChildXmlValByName(&m_bSmoothMove, "bSmoothMove", false );
-	pXML->GetChildXmlValByName(&m_fAngleInterRate, "fAngleInterpRate", FLT_MAX );
-	pXML->GetChildXmlValByName(&m_fBankRate, "fBankRate", 0 );
+	pXML->GetChildXmlValByName(&m_bActAsRanged, "bActAsRanged");
+	pXML->GetChildXmlValByName(&m_bActAsLand, "bActAsLand");
+	pXML->GetChildXmlValByName(&m_bActAsAir, "bActAsAir");
+	pXML->GetChildXmlValByName(&m_bCombatExempt, "bCombatExempt", false);
+	pXML->GetChildXmlValByName(&m_fExchangeAngle, "fExchangeAngle", 0.0f);
+	pXML->GetChildXmlValByName(&m_bSmoothMove, "bSmoothMove", false);
+	pXML->GetChildXmlValByName(&m_fAngleInterRate, "fAngleInterpRate", FLT_MAX);
+	pXML->GetChildXmlValByName(&m_fBankRate, "fBankRate", 0);
 
 	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF", /* advc.006b: */ "");
 	setShaderNIF(szTextVal);
 
-	if ( gDLL->getXMLIFace()->SetToChildByTagName( pXML->GetXML(), "ShadowDef" ))
+	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "ShadowDef"))
 	{
-		pXML->GetChildXmlValByName( m_szShadowAttach, "ShadowAttachNode" );
+		pXML->GetChildXmlValByName(m_szShadowAttach, "ShadowAttachNode");
 		pXML->GetChildXmlValByName(m_szShadowNIF, "ShadowNIF");
 		pXML->GetChildXmlValByName(&m_fShadowScale, "fShadowScale");
 		gDLL->getXMLIFace()->SetToParent( pXML->GetXML());
@@ -17971,18 +17932,18 @@ bool CvArtInfoUnit::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_iDamageStates, "iDamageStates", 0);
 	pXML->GetChildXmlValByName(&m_fBattleDistance, "fBattleDistance", 0.0f);
-	pXML->GetChildXmlValByName(&m_fRangedDeathTime, "fRangedDeathTime", 0.0f );
+	pXML->GetChildXmlValByName(&m_fRangedDeathTime, "fRangedDeathTime", 0.0f);
 
 	m_fTrailWidth = -1.0f; // invalid.
 	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "TrailDefinition"))
 	{
-		pXML->GetChildXmlValByName(m_szTrailTexture, "Texture" );
-		pXML->GetChildXmlValByName(&m_fTrailWidth, "fWidth" );
-		pXML->GetChildXmlValByName(&m_fTrailLength, "fLength" );
-		pXML->GetChildXmlValByName(&m_fTrailTaper, "fTaper" );
-		pXML->GetChildXmlValByName(&m_fTrailFadeStartTime, "fFadeStartTime" );
-		pXML->GetChildXmlValByName(&m_fTrailFadeFalloff, "fFadeFalloff" );
-		gDLL->getXMLIFace()->SetToParent(pXML->GetXML() );
+		pXML->GetChildXmlValByName(m_szTrailTexture, "Texture");
+		pXML->GetChildXmlValByName(&m_fTrailWidth, "fWidth");
+		pXML->GetChildXmlValByName(&m_fTrailLength, "fLength");
+		pXML->GetChildXmlValByName(&m_fTrailTaper, "fTaper");
+		pXML->GetChildXmlValByName(&m_fTrailFadeStartTime, "fFadeStartTime");
+		pXML->GetChildXmlValByName(&m_fTrailFadeFalloff, "fFadeFalloff");
+		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"AudioRunSounds"))
@@ -18199,7 +18160,7 @@ m_numTextureBlends(16),
 m_pTextureSlots(NULL)
 {
 	m_pTextureSlots = new CvTextureBlendSlotList * [m_numTextureBlends];
-	for ( int i = 0; i < m_numTextureBlends; i++ )
+	for (int i = 0; i < m_numTextureBlends; i++)
 	{
 		m_pTextureSlots[i] = new CvTextureBlendSlotList;
 	}
@@ -18208,7 +18169,7 @@ m_pTextureSlots(NULL)
 
 CvArtInfoTerrain::~CvArtInfoTerrain()
 {
-	for ( int i = 0; i < m_numTextureBlends; i++ )
+	for (int i = 0; i < m_numTextureBlends; i++)
 	{
 		SAFE_DELETE(m_pTextureSlots[i]);
 	}
@@ -18220,7 +18181,7 @@ const TCHAR* CvArtInfoTerrain::getBaseTexture()
 	return getPath();
 }
 
-void CvArtInfoTerrain::setBaseTexture(const TCHAR* szTmp )
+void CvArtInfoTerrain::setBaseTexture(const TCHAR* szTmp)
 {
 	setPath(szTmp);
 }
@@ -18230,7 +18191,7 @@ const TCHAR* CvArtInfoTerrain::getGridTexture()
 	return m_szGridTexture;
 }
 
-void CvArtInfoTerrain::setGridTexture(const TCHAR* szTmp )
+void CvArtInfoTerrain::setGridTexture(const TCHAR* szTmp)
 {
 	m_szGridTexture = szTmp;
 }
@@ -18268,7 +18229,7 @@ void BuildSlotList( CvTextureBlendSlotList &list, CvString &numlist)
 	char *token;
 	const char *numstring = numlist;
 	token = strtok( const_cast<char *>(numstring), seps);
-	while( token != NULL )
+	while(token != NULL)
 	{
 		int slot = atoi(token);
 		token = strtok( NULL, seps);
@@ -18295,7 +18256,7 @@ bool CvArtInfoTerrain::read(CvXMLLoadUtility* pXML)
 
 	// Parse texture slots for blend tile lists
 	char xmlName[] = "TextureBlend00";
-	for(int i =1; i<m_numTextureBlends;i++ )
+	for(int i =1; i < m_numTextureBlends; i++)
 	{
 		sprintf(xmlName+(strlen(xmlName)-2),"%02d",i);
 		pXML->GetChildXmlValByName(szTextVal, xmlName);
@@ -18416,7 +18377,7 @@ bool CvArtInfoFeature::read(CvXMLLoadUtility* pXML)
 								}
 								else
 								{
-									for(int i=0;i<NUM_ROTATION_TYPES;i++)
+									for(int i = 0; i < NUM_ROTATION_TYPES; i++)
 									{
 										int newConnectionMask = getRotatedConnectionMask(connectionMask, (RotationTypes) i);
 										FeatureArtPiece &featureArtPiece = featureVariety.createFeatureArtPieceFromConnectionMask(newConnectionMask);
@@ -18497,7 +18458,7 @@ int CvArtInfoFeature::getConnectionMaskFromString(const CvString &connectionStri
 		connectionString.getTokens(" \t\n", tokens);
 
 		int connectionMask = 0;
-		for(int i=0;i<(int)tokens.size();i++)
+		for(int i = 0; i < (int)tokens.size(); i++)
 		{
 			// found a token, parse it.
 			CvString &token = tokens[i];
@@ -18966,8 +18927,7 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 		{
 			m_paiSoundtracks = new int[m_iNumSoundtracks];
 
-			int j;
-			for (j=0;j<m_iNumSoundtracks;j++)
+			for (int j = 0; j < m_iNumSoundtracks; j++)
 			{
 				m_paiSoundtracks[j] = ((!gDLL->getAudioDisabled()) ? gDLL->getAudioTagIndex(pszSoundTrackNames[j], AUDIOTAG_2DSCRIPT) : -1);
 			}
@@ -19597,17 +19557,16 @@ bool CvDiplomacyTextInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	int j;
 	pXML->GetChildXmlValByName(szTextVal, "Type");
 
-	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Responses") )
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Responses"))
 	{
 		int iIndexVal = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "Response");
 		// advc.006b: GetChildXmlValByName can't handle comments
 		FAssertMsg(iIndexVal > 0, "XML comment inside Responses?");
 		init(iIndexVal);
 
-		for (j = 0; j < iIndexVal; j++)
+		for (int j = 0; j < iIndexVal; j++)
 		{
 			if (j == 0)
 			{
@@ -19674,15 +19633,15 @@ bool CvEffectInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "Path");
 	setPath(szTextVal);
 
-	pXML->GetChildXmlValByName(&m_fUpdateRate, "fUpdateRate" );
+	pXML->GetChildXmlValByName(&m_fUpdateRate, "fUpdateRate");
 
 	int iTemporary;
-	pXML->GetChildXmlValByName(&iTemporary, "bIsProjectile" );
+	pXML->GetChildXmlValByName(&iTemporary, "bIsProjectile");
 	m_bProjectile = iTemporary != 0;
 
 	pXML->GetChildXmlValByName(&m_fProjectileSpeed, "fSpeed", /* advc.006b: */ 0);
 	pXML->GetChildXmlValByName(&m_fProjectileArc, "fArcValue", /* advc.006b: */ 0);
-	pXML->GetChildXmlValByName(&m_bSticky, "bSticky", false );
+	pXML->GetChildXmlValByName(&m_bSticky, "bSticky", false);
 	return true;
 }
 
@@ -19771,7 +19730,7 @@ void CvQuestInfo::reset()
 bool CvQuestInfo::initQuestLinks(int iNum)
 {
 	reset();
-	if ( iNum > 0 )
+	if (iNum > 0)
 	{
 		m_pQuestLinks = new QuestLink[iNum];
 		m_iNumQuestLinks = iNum;
@@ -19892,8 +19851,7 @@ bool CvQuestInfo::read(CvXMLLoadUtility* pXML)
 
 		if (initQuestLinks(iNum))
 		{
-			int i;
-			for (i=0; i<m_iNumQuestLinks; i++)
+			for (int i = 0; i<m_iNumQuestLinks; i++)
 			{
 				pXML->GetChildXmlValByName(szTextVal, "QuestLinkType");
 				m_pQuestLinks[i].m_szQuestLinkType = szTextVal;
@@ -20075,7 +20033,7 @@ bool CvTutorialInfo::read(CvXMLLoadUtility* pXML)
 	{
 		int iNum;
 		iNum = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "TutorialMessage");
-		if ( iNum > 0 )
+		if (iNum > 0)
 		{
 			gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"TutorialMessage");
 			initTutorialMessages(iNum);
@@ -21167,7 +21125,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiUnitsRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21195,7 +21153,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiBuildingsRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21223,7 +21181,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiPrereqOrTechs.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21251,7 +21209,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiPrereqAndTechs.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21285,7 +21243,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiObsoleteTechs.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21313,7 +21271,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiEvents.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21341,11 +21299,11 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiPrereqEvents.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					for (int j=0;j<iNumSibs;j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_aiPrereqEvents.push_back(pXML->FindInInfoClass(szTextVal));
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -21369,7 +21327,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiFeaturesRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21397,7 +21355,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiTerrainsRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21425,7 +21383,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiImprovementsRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21453,7 +21411,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiBonusesRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21481,7 +21439,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiRoutesRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
@@ -21509,11 +21467,11 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiReligionsRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					for (int j=0; j < iNumSibs; j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_aiReligionsRequired.push_back(pXML->FindInInfoClass(szTextVal));
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -21537,11 +21495,11 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			m_aiCorporationsRequired.clear();
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					for (int j=0; j < iNumSibs; j++)
+					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_aiCorporationsRequired.push_back(pXML->FindInInfoClass(szTextVal));
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -21566,7 +21524,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
@@ -21604,11 +21562,11 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					for (int j=0; j<iNumSibs; ++j)
+					for (int j = 0; j<iNumSibs; ++j)
 					{
 						m_aszWorldNews.push_back(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -22585,11 +22543,11 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					for (int j=0; j<iNumSibs; ++j)
+					for (int j = 0; j<iNumSibs; ++j)
 					{
 						m_aszWorldNews.push_back(szTextVal);
 						if (!pXML->GetNextXmlVal(szTextVal))
@@ -22613,7 +22571,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
@@ -22654,7 +22612,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
@@ -22695,7 +22653,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
@@ -22734,7 +22692,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 
-			if (0 < iNumSibs)
+			if (iNumSibs > 0)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
@@ -23181,11 +23139,6 @@ void CvUnitArtStyleTypeInfo::setMiddleArtDefineTag(int /*Mesh Index*/ i, int /*U
 
 bool CvUnitArtStyleTypeInfo::read(CvXMLLoadUtility* pXML)
 {
-	int j, i;
-	int iNumSibs;
-	int iIndex; // UnitIndex
-	int iMesh;  // Mesh Index
-
 	CvString szTextVal;
 	if (!CvInfoBase::read(pXML))
 	{
@@ -23196,23 +23149,23 @@ bool CvUnitArtStyleTypeInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (pXML->SkipToNextVal())
 		{
-			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
-				if (0 < iNumSibs)
+				if (iNumSibs > 0)
 				{
-					for (i = 0; i < iNumSibs; i++)
+					for (int i = 0; i < iNumSibs; i++)
 					{
 						pXML->GetChildXmlValByName(szTextVal, "UnitType");
-						iIndex = pXML->FindInInfoClass(szTextVal);
+						int iIndex = pXML->FindInInfoClass(szTextVal); // Unit index
 
 						if (iIndex > -1)
 						{
-							iMesh = GC.getUnitInfo((UnitTypes) iIndex).getGroupDefinitions();
+							int iMesh = GC.getUnitInfo((UnitTypes)iIndex).getGroupDefinitions(); // Mesh index
 
 							if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"UnitMeshGroup"))
 							{
-								for (j = 0; j < iMesh; j++)
+								for (int j = 0; j < iMesh; j++)
 								{
 								    // Overwrite with the Style Art
 									pXML->GetChildXmlValByName(szTextVal, "EarlyArtDefineTag");

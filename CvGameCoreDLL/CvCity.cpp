@@ -2026,7 +2026,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		return false;
 
 	CvBuildingInfo const& bi = GC.getBuildingInfo(eBuilding);
-	if( bi.isPrereqReligion())
+	if (bi.isPrereqReligion())
 	{
 		//if (getReligionCount() > 0)
 		if(getReligionCount() == 0) // K-Mod
@@ -3473,7 +3473,7 @@ void CvCity::hurry(HurryTypes eHurry)
 
 	changeHurryAngerTimer(iHurryAngerLength);
 
-	if( gCityLogLevel >= 2 ) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+	if (gCityLogLevel >= 2) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 		CvWStringBuffer szBuffer; CvWString szString;
 		if (isProductionUnit())
 			szString = GC.getUnitInfo(getProductionUnit()).getDescription();
@@ -3481,7 +3481,7 @@ void CvCity::hurry(HurryTypes eHurry)
 			szString = GC.getBuildingInfo(getProductionBuilding()).getDescription();
 		else if (isProductionProject())
 			szString = GC.getProjectInfo(getProductionProject()).getDescription();
-		logBBAI("    City %S hurrying production of %S at cost of %d pop, %d gold, %d anger length", getName().GetCString(), szString.GetCString(), iHurryPopulation, iHurryGold, iHurryAngerLength );
+		logBBAI("    City %S hurrying production of %S at cost of %d pop, %d gold, %d anger length", getName().GetCString(), szString.GetCString(), iHurryPopulation, iHurryGold, iHurryAngerLength);
 	}
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
@@ -3778,7 +3778,7 @@ void CvCity::conscript()
 			gDLL->getInterfaceIFace()->selectUnit(pUnit, true, false, true);
 		}
 		if (gCityLogLevel >= 2 && !isHuman()) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-			logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength );
+			logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength);
 	}
 }
 
@@ -5452,12 +5452,12 @@ CvArea* CvCity::secondWaterArea() const
 CvArea* CvCity::sharedWaterArea(CvCity* pOtherCity) const
 {
 	CvArea* pWaterArea = waterArea(true);
-	if( pWaterArea != NULL )
+	if (pWaterArea != NULL)
 	{
 		CvArea* pOtherWaterArea = pOtherCity->waterArea(true);
-		if( pOtherWaterArea != NULL )
+		if (pOtherWaterArea != NULL)
 		{
-			if( pWaterArea == pOtherWaterArea )
+			if (pWaterArea == pOtherWaterArea)
 			{
 				return pWaterArea;
 			}
@@ -5466,15 +5466,15 @@ CvArea* CvCity::sharedWaterArea(CvCity* pOtherCity) const
 				CvArea* pSecondWaterArea = secondWaterArea();
 				CvArea* pOtherSecondWaterArea = pOtherCity->secondWaterArea();
 
-				if( pSecondWaterArea != NULL && pSecondWaterArea == pOtherWaterArea )
+				if (pSecondWaterArea != NULL && pSecondWaterArea == pOtherWaterArea)
 				{
 					return pSecondWaterArea;
 				}
-				else if( pOtherSecondWaterArea != NULL && pWaterArea == pOtherSecondWaterArea )
+				else if (pOtherSecondWaterArea != NULL && pWaterArea == pOtherSecondWaterArea)
 				{
 					return pWaterArea;
 				}
-				else if( pSecondWaterArea != NULL && pOtherSecondWaterArea != NULL && pSecondWaterArea == pOtherSecondWaterArea )
+				else if (pSecondWaterArea != NULL && pOtherSecondWaterArea != NULL && pSecondWaterArea == pOtherSecondWaterArea)
 				{
 					return pSecondWaterArea;
 				}
@@ -5494,7 +5494,7 @@ bool CvCity::isBlockaded() const
 
 		if (pAdjacentPlot != NULL)
 		{
-			if( pAdjacentPlot->getBlockadedCount(getTeam()) > 0 )
+			if (pAdjacentPlot->getBlockadedCount(getTeam()) > 0)
 			{
 				return true;
 			}
@@ -6183,7 +6183,7 @@ int CvCity::getHurryAngerModifier() const
 
 void CvCity::changeHurryAngerModifier(int iChange)
 {
-	if (0 != iChange)
+	if (iChange != 0)
 	{
 		int iRatio = 0;
 
@@ -8803,7 +8803,7 @@ void CvCity::setBaseYieldRate(YieldTypes eIndex, int iNewValue)
 			if (isCitySelected())
 			{
 				gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
-				gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+				gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 			}
 		}
 	}
@@ -9217,7 +9217,7 @@ void CvCity::updateCommerce(CommerceTypes eIndex)
 
 		if (isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 		}
 	}
@@ -11309,7 +11309,7 @@ int CvCity::getEspionageDefenseModifier() const
 
 void CvCity::changeEspionageDefenseModifier(int iChange)
 {
-	if (0 != iChange)
+	if (iChange != 0)
 	{
 		m_iEspionageDefenseModifier += iChange;
 	}
@@ -11396,7 +11396,7 @@ void CvCity::setWorkingPlot(int iIndex, bool bNewValue)
 
 	if (bSelected)
 	{
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
 		// <advc.064b>
@@ -11955,7 +11955,7 @@ void CvCity::processVoteSourceBonus(VoteSourceTypes eVoteSource, bool bActive)
 					iChange = -iChange;
 				}
 
-				if (0 != iChange)
+				if (iChange != 0)
 				{
 					for (int iBuilding = 0; iBuilding < GC.getNumBuildingInfos(); ++iBuilding)
 					{
@@ -11975,7 +11975,7 @@ void CvCity::processVoteSourceBonus(VoteSourceTypes eVoteSource, bool bActive)
 					iChange = -iChange;
 				}
 
-				if (0 != iChange)
+				if (iChange != 0)
 				{
 					for (int iBuilding = 0; iBuilding < GC.getNumBuildingInfos(); ++iBuilding)
 					{
@@ -12282,11 +12282,11 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 			bValid = true;
 			bBuildingUnit = true;
 			CvEventReporter::getInstance().cityBuildingUnit(this, (UnitTypes)iData1);
-			if( gCityLogLevel >= 1 )
+			if (gCityLogLevel >= 1)
 			{
 				CvWString szString;
 				getUnitAIString(szString, (UnitAITypes)iData2);
-				logBBAI("    City %S pushes production of unit %S with UNITAI %S", getName().GetCString(), GC.getUnitInfo((UnitTypes) iData1).getDescription(), szString.GetCString() );
+				logBBAI("    City %S pushes production of unit %S with UNITAI %S", getName().GetCString(), GC.getUnitInfo((UnitTypes) iData1).getDescription(), szString.GetCString());
 			}
 		}
 		break;
@@ -12299,8 +12299,8 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 			bValid = true;
 			bBuildingBuilding = true;
 			CvEventReporter::getInstance().cityBuildingBuilding(this, (BuildingTypes)iData1);
-			if( gCityLogLevel >= 1 )
-				logBBAI("    City %S pushes production of building %S", getName().GetCString(), GC.getBuildingInfo((BuildingTypes)iData1).getDescription() );
+			if (gCityLogLevel >= 1)
+				logBBAI("    City %S pushes production of building %S", getName().GetCString(), GC.getBuildingInfo((BuildingTypes)iData1).getDescription());
 		}
 		break;
 
@@ -12310,8 +12310,8 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 			GET_TEAM(getTeam()).changeProjectMaking(((ProjectTypes)iData1), 1);
 
 			bValid = true;
-			if( gCityLogLevel >= 1 )
-				logBBAI("    City %S pushes production of project %S", getName().GetCString(), GC.getProjectInfo((ProjectTypes)iData1).getDescription() );
+			if (gCityLogLevel >= 1)
+				logBBAI("    City %S pushes production of project %S", getName().GetCString(), GC.getProjectInfo((ProjectTypes)iData1).getDescription());
 		}
 		break;
 
@@ -12327,8 +12327,8 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 				iData2 = getCultureLevel();
 			}
 			// K-Mod end
-			if( gCityLogLevel >= 1 )
-				logBBAI("    City %S pushes production of process %S", getName().GetCString(), GC.getProcessInfo((ProcessTypes)iData1).getDescription() );
+			if (gCityLogLevel >= 1)
+				logBBAI("    City %S pushes production of process %S", getName().GetCString(), GC.getProcessInfo((ProcessTypes)iData1).getDescription());
 		}
 		break;
 
@@ -12386,7 +12386,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 
 		if (isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
@@ -12479,9 +12479,9 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				pUnit->automate(AUTOMATE_RELIGION);
 		}
 		CvEventReporter::getInstance().unitBuilt(this, pUnit);
-		if(gCityLogLevel >= 1 ) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+		if(gCityLogLevel >= 1) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 			CvWString szString; getUnitAIString(szString, pUnit->AI_getUnitAIType());
-			logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString() );
+			logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString());
 		}
 		CvUnitInfo const& kUnitInfo = GC.getUnitInfo(eTrainUnit);
 		if(kUnitInfo.getDomainType() == DOMAIN_AIR) {
@@ -12516,8 +12516,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				GC.getGame().isBuildingClassMaxedOut(bct))
 			maxedBuildingOrProject = eConstructBuilding; // </advc.123f>
 		CvEventReporter::getInstance().buildingBuilt(this, eConstructBuilding);
-		if( gCityLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-			logBBAI("    City %S finishes production of building %S", getName().GetCString(), GC.getBuildingInfo(eConstructBuilding).getDescription() );
+		if (gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			logBBAI("    City %S finishes production of building %S", getName().GetCString(), GC.getBuildingInfo(eConstructBuilding).getDescription());
 		break;
 	}
 	case ORDER_CREATE: {
@@ -12575,8 +12575,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		// <advc.123f>
 		if(GC.getGame().isProjectMaxedOut(eCreateProject))
 			maxedBuildingOrProject = eCreateProject; // </advc.123f>
-		if( gCityLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-			logBBAI("    City %S finishes production of project %S", getName().GetCString(), GC.getProjectInfo(eCreateProject).getDescription() );
+		if (gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			logBBAI("    City %S finishes production of project %S", getName().GetCString(), GC.getProjectInfo(eCreateProject).getDescription());
 		break;
 	}
 	case ORDER_MAINTAIN:
@@ -12653,7 +12653,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 
 		if (isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 		}
@@ -12739,7 +12739,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 
 		if (isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
+			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
@@ -14542,19 +14542,13 @@ int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const
 
 	if (!CvString(kTrigger.getPythonCanDoCity()).empty())
 	{
-		long lResult;
-
-		CyArgsList argsList;
+		long lResult; CyArgsList argsList;
 		argsList.add(eTrigger);
 		argsList.add(getOwner());
 		argsList.add(getID());
-
 		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCanDoCity(), argsList.makeFunctionArgs(), &lResult);
-
-		if (0 == lResult)
-		{
+		if (lResult == 0)
 			return MIN_INT;
-		}
 	}
 
 	if (kTrigger.getNumBuildings() > 0 && kTrigger.getNumBuildingsRequired() > 0)
@@ -14707,7 +14701,7 @@ int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const
 
 	int iValue = 0;
 
-	if (0 == getFood() && kTrigger.getCityFoodWeight() > 0)
+	if (getFood() == 0 && kTrigger.getCityFoodWeight() > 0)
 	{
 		return MIN_INT;
 	}
@@ -14856,7 +14850,7 @@ void CvCity::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredD
 			changeOccupationTimer(kEvent.getRevoltTurns());
 		}
 
-		if (0 != kEvent.getSpaceProductionModifier())
+		if (kEvent.getSpaceProductionModifier() != 0)
 		{
 			changeSpaceProductionModifier(kEvent.getSpaceProductionModifier());
 		}
@@ -14936,7 +14930,7 @@ void CvCity::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredD
 		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kEvent.getBuildingClass());
 		if (eBuilding != NO_BUILDING)
 		{
-			if (0 != kEvent.getBuildingChange())
+			if (kEvent.getBuildingChange() != 0)
 			{
 				setNumRealBuilding(eBuilding, getNumRealBuilding(eBuilding) + kEvent.getBuildingChange());
 			}
@@ -15130,7 +15124,7 @@ void CvCity::setBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldType
 		}
 	}
 
-	if (0 != iChange)
+	if (iChange != 0)
 	{
 		BuildingYieldChange kChange;
 		kChange.eBuildingClass = eBuildingClass;
@@ -15191,7 +15185,7 @@ void CvCity::setBuildingCommerceChange(BuildingClassTypes eBuildingClass, Commer
 		}
 	}
 
-	if (0 != iChange)
+	if (iChange != 0)
 	{
 		BuildingCommerceChange kChange;
 		kChange.eBuildingClass = eBuildingClass;
@@ -15248,7 +15242,7 @@ void CvCity::setBuildingHappyChange(BuildingClassTypes eBuildingClass, int iChan
 							changeBuildingBadHappiness(-iOldChange);
 						}
 
-						if( iChange != 0 )
+						if (iChange != 0)
 						{
 							m_aBuildingHappyChange.push_back(std::make_pair(eBuildingClass, iChange));
 							if (iChange > 0)
@@ -15351,7 +15345,7 @@ void CvCity::setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iCha
 							changeBuildingBadHealth(-iOldChange);
 						}
 
-						if( iChange != 0 )
+						if (iChange != 0)
 						{
 							m_aBuildingHealthChange.push_back(std::make_pair(eBuildingClass, iChange));
 							if (iChange > 0)

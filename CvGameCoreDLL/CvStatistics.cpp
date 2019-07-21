@@ -40,7 +40,7 @@ const CvString& CvGameRecord::getMapName() const
 	return m_szMapName;
 }
 
-void CvGameRecord::setEra( EraTypes eEra )
+void CvGameRecord::setEra(EraTypes eEra)
 {
 	m_eEra = eEra;
 }
@@ -143,7 +143,7 @@ void CvPlayerRecord::reset()
 	m_iNumGoldenAges = 0;
 }
 
-void CvPlayerRecord::unitBuilt( CvUnit *pUnit )
+void CvPlayerRecord::unitBuilt(CvUnit *pUnit)
 {
 	++m_piNumUnitsBuilt[pUnit->getUnitType()];
 }
@@ -153,7 +153,7 @@ int CvPlayerRecord::getNumUnitsBuilt(int iUnitType) const
 	return m_piNumUnitsBuilt[iUnitType];
 }
 
-void CvPlayerRecord::unitKilled( CvUnit * pUnit )
+void CvPlayerRecord::unitKilled(CvUnit * pUnit)
 {
 	++m_piNumUnitsKilled[pUnit->getUnitType()];
 }
@@ -163,7 +163,7 @@ int CvPlayerRecord::getNumUnitsKilled(int iUnitType) const
 	return m_piNumUnitsKilled[iUnitType];
 }
 
-void CvPlayerRecord::unitWasKilled( CvUnit * pUnit )
+void CvPlayerRecord::unitWasKilled(CvUnit * pUnit)
 {
 	++m_piNumUnitsWasKilled[pUnit->getUnitType()];
 }
@@ -173,7 +173,7 @@ int CvPlayerRecord::getNumUnitsWasKilled(int iUnitType) const
 	return m_piNumUnitsWasKilled[iUnitType];
 }
 
-void CvPlayerRecord::buildingBuilt( BuildingTypes eBuilding )
+void CvPlayerRecord::buildingBuilt(BuildingTypes eBuilding)
 {
 	++m_piNumBuildingsBuilt[(int)eBuilding];
 }
@@ -183,17 +183,17 @@ int CvPlayerRecord::getNumBuildingsBuilt(BuildingTypes eBuilding) const
 	return m_piNumBuildingsBuilt[(int)eBuilding];
 }
 
-void CvPlayerRecord::religionFounded( ReligionTypes eReligion )
+void CvPlayerRecord::religionFounded(ReligionTypes eReligion)
 {
 	m_pbReligionFounded[(int)eReligion] = true;
 }
 
-bool CvPlayerRecord::getReligionFounded( ReligionTypes eReligion ) const
+bool CvPlayerRecord::getReligionFounded(ReligionTypes eReligion) const
 {
 	return m_pbReligionFounded[(int)eReligion];
 }
 
-void CvPlayerRecord::setPlayerID( int iID )
+void CvPlayerRecord::setPlayerID(int iID)
 {
 	m_iID = iID;
 }
@@ -213,7 +213,7 @@ int CvPlayerRecord::getVictory() const
 	return m_eVictory;
 }
 
-void CvPlayerRecord::setTimePlayed( int iTime )
+void CvPlayerRecord::setTimePlayed(int iTime)
 {
 	m_iTime = iTime;
 }
@@ -223,7 +223,7 @@ int CvPlayerRecord::getMinutesPlayed() const
 	return m_iTime;
 }
 
-void CvPlayerRecord::setLeader( LeaderHeadTypes eLeader )
+void CvPlayerRecord::setLeader(LeaderHeadTypes eLeader)
 {
 	m_eLeader = eLeader;
 }
@@ -354,7 +354,7 @@ void CvStatistics::setEra(EraTypes eEra)
 //
 // Setting player-specific stats
 //
-void CvStatistics::setVictory( TeamTypes eWinner, VictoryTypes eVictory )
+void CvStatistics::setVictory(TeamTypes eWinner, VictoryTypes eVictory)
 {
 	// Report a victory for all players on this team...
 	for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
@@ -363,7 +363,7 @@ void CvStatistics::setVictory( TeamTypes eWinner, VictoryTypes eVictory )
 		{
 			// DAN: They could be eliminated and still watching the game and get a win!
 			// How to prevent this?
-			if ( (GET_PLAYER((PlayerTypes)i).isHuman()) && (GET_PLAYER((PlayerTypes)i).getTeam() == eWinner) )
+			if ((GET_PLAYER((PlayerTypes)i).isHuman()) && GET_PLAYER((PlayerTypes)i).getTeam() == eWinner)
 			{
 				// If this guy is still alive and on the winning team, record the victory
 				getPlayerRecord(i)->setVictory(eVictory);
@@ -376,11 +376,11 @@ void CvStatistics::setVictory( TeamTypes eWinner, VictoryTypes eVictory )
 		}
 	}
 }
-void CvStatistics::setTimePlayed( PlayerTypes ePlayer, int iTime )
+void CvStatistics::setTimePlayed(PlayerTypes ePlayer, int iTime)
 {
 	getPlayerRecord((int)ePlayer)->setTimePlayed(iTime);
 }
-void CvStatistics::setLeader( PlayerTypes ePlayer, LeaderHeadTypes eLeader )
+void CvStatistics::setLeader(PlayerTypes ePlayer, LeaderHeadTypes eLeader)
 {
 	getPlayerRecord((int)ePlayer)->setLeader(eLeader);
 }
@@ -388,34 +388,34 @@ void CvStatistics::setLeader( PlayerTypes ePlayer, LeaderHeadTypes eLeader )
 //
 // Player-specific stat events
 //
-void CvStatistics::unitBuilt( CvUnit *pUnit )
+void CvStatistics::unitBuilt(CvUnit *pUnit)
 {
-	getPlayerRecord( pUnit->getOwner() )->unitBuilt( pUnit );
+	getPlayerRecord(pUnit->getOwner())->unitBuilt(pUnit);
 }
-void CvStatistics::unitKilled( CvUnit *pUnit, PlayerTypes eAttacker )
+void CvStatistics::unitKilled(CvUnit *pUnit, PlayerTypes eAttacker)
 {
-	getPlayerRecord( eAttacker )->unitKilled( pUnit );
-	getPlayerRecord( pUnit->getOwner() )->unitWasKilled( pUnit );
+	getPlayerRecord(eAttacker)->unitKilled(pUnit);
+	getPlayerRecord(pUnit->getOwner())->unitWasKilled(pUnit);
 }
-void CvStatistics::cityBuilt( CvCity *pCity )
+void CvStatistics::cityBuilt(CvCity *pCity)
 {
-	getPlayerRecord( pCity->getOwner() )->cityBuilt();
+	getPlayerRecord(pCity->getOwner())->cityBuilt();
 }
-void CvStatistics::cityRazed( CvCity * pCity, PlayerTypes ePlayer )
+void CvStatistics::cityRazed(CvCity * pCity, PlayerTypes ePlayer)
 {
-	getPlayerRecord( ePlayer )->cityRazed();
+	getPlayerRecord(ePlayer)->cityRazed();
 }
-void CvStatistics::buildingBuilt( CvCity *pCity, BuildingTypes eBuilding )
+void CvStatistics::buildingBuilt(CvCity *pCity, BuildingTypes eBuilding)
 {
-	getPlayerRecord( pCity->getOwner() )->buildingBuilt(eBuilding);
+	getPlayerRecord(pCity->getOwner())->buildingBuilt(eBuilding);
 }
-void CvStatistics::religionFounded( ReligionTypes eReligion, PlayerTypes eFounder )
+void CvStatistics::religionFounded(ReligionTypes eReligion, PlayerTypes eFounder)
 {
-	getPlayerRecord( eFounder )->religionFounded(eReligion);
+	getPlayerRecord(eFounder)->religionFounded(eReligion);
 }
-void CvStatistics::goldenAge( PlayerTypes ePlayer )
+void CvStatistics::goldenAge(PlayerTypes ePlayer)
 {
-	getPlayerRecord( ePlayer )->goldenAge();
+	getPlayerRecord(ePlayer)->goldenAge();
 }
 
 void CvStatistics::read(FDataStreamBase* pStream)
@@ -456,12 +456,12 @@ CvPlayerRecord *CvStatistics::getPlayerRecord(int iIndex)
 	FAssert(iIndex >= 0);
 	FAssert(iIndex < MAX_PLAYERS);
 
-	if ( iIndex >= (int)m_PlayerRecords.size() || m_PlayerRecords[iIndex] == NULL )
+	if (iIndex >= (int)m_PlayerRecords.size() || m_PlayerRecords[iIndex] == NULL)
 	{
 		CvPlayerRecord *pRecord = new CvPlayerRecord;
 
 		pRecord->init();
-		pRecord->setPlayerID( iIndex );
+		pRecord->setPlayerID(iIndex);
 		m_PlayerRecords.resize(iIndex + 1, NULL);
 		m_PlayerRecords[iIndex] = pRecord;
 	}

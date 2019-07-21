@@ -16,10 +16,10 @@ public:
 	DllExport void parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &widgetDataStruct);
 
 	//	This will execute the action for the widget
-	DllExport bool executeAction( CvWidgetDataStruct &widgetDataStruct );
+	DllExport bool executeAction(CvWidgetDataStruct &widgetDataStruct);
 
 	//	This will execute an alternate action for the widget
-	DllExport bool executeAltAction( CvWidgetDataStruct &widgetDataStruct );
+	DllExport bool executeAltAction(CvWidgetDataStruct &widgetDataStruct);
 
 	DllExport bool isLink(const CvWidgetDataStruct &widgetDataStruct) const;
 
@@ -79,7 +79,7 @@ public:
 	void doPediaBuildJump(CvWidgetDataStruct &widgetDataStruct);
 	void doDealKill(CvWidgetDataStruct &widgetDataStruct);
 	void doRefreshMilitaryAdvisor(CvWidgetDataStruct &widgetDataStruct);
-	void doMenu( void );
+	void doMenu();
 	void doLaunch(CvWidgetDataStruct &widgetDataStruct);
 
 protected:

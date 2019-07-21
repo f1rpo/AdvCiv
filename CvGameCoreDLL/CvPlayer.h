@@ -72,7 +72,7 @@ public:
 	bool hasTrait(TraitTypes eTrait) const;																																			// Exposed to Python
 	// BETTER_BTS_AI_MOD, 12/30/08, jdog5000: START
 	void initInGame(PlayerTypes eID);
-	void resetPlotAndCityData( );
+	void resetPlotAndCityData();
 	// BETTER_BTS_AI_MOD: END
 	// CHANGE_PLAYER, 12/30/08, jdog5000: START
 	/*void clearTraitBonuses();

@@ -4052,7 +4052,7 @@ int CvGame::getMaxTurnLen()
 	{
 		// Use the user provided input
 		// Turn time is in hours
-		return ( getPitbossTurnTime() * 3600 * 4);
+		return (getPitbossTurnTime() * 3600 * 4);
 	}
 	else
 	{
@@ -4079,9 +4079,9 @@ int CvGame::getMaxTurnLen()
 		// Now return turn len based on base len and unit and city bonuses
 		TurnTimerTypes eTurnTimer = GC.getInitCore().getTurnTimer();
 		FAssertMsg(eTurnTimer >= 0 && eTurnTimer < GC.getNumTurnTimerInfos(), "Invalid TurnTimer Selection in InitCore");
-		return ( GC.getTurnTimerInfo(eTurnTimer).getBaseTime() +
+		return (GC.getTurnTimerInfo(eTurnTimer).getBaseTime() +
 			    (GC.getTurnTimerInfo(eTurnTimer).getCityBonus()*iMaxCities) +
-				(GC.getTurnTimerInfo(eTurnTimer).getUnitBonus()*iMaxUnits) );
+				(GC.getTurnTimerInfo(eTurnTimer).getUnitBonus()*iMaxUnits));
 	}
 }
 
@@ -4694,7 +4694,7 @@ void CvGame::changeDiploVote(VoteSourceTypes eVoteSource, int iChange)
 {
 	FAssert(eVoteSource >= 0 && eVoteSource < GC.getNumVoteSourceInfos());
 
-	if (0 != iChange)
+	if (iChange != 0)
 	{
 		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 		{
@@ -6449,7 +6449,7 @@ void CvGame::doTurn()
 
 	// END OF TURN
 	if(!CvPlot::isAllFog()) // advc.706: Suppress popups
-		CvEventReporter::getInstance().beginGameTurn( getGameTurn() );
+		CvEventReporter::getInstance().beginGameTurn(getGameTurn());
 
 	doUpdateCacheOnTurn();
 
@@ -8507,8 +8507,8 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 		{
 			FAssert(NO_PLAYER != kData.kVoteOption.ePlayer);
 			CvPlayer& kPlayer = GET_PLAYER(kData.kVoteOption.ePlayer);
-			if( gTeamLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-				logBBAI("  Vote for forcing peace against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0) );
+			if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+				logBBAI("  Vote for forcing peace against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0));
 			// <dlph.25> 'Cancel defensive pacts with the attackers first'
 			int foo=-1;
 			for(CvDeal* pLoopDeal = firstDeal(&foo); pLoopDeal != NULL; pLoopDeal = nextDeal(&foo)) {
@@ -8576,8 +8576,8 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 		{
 			FAssert(NO_PLAYER != kData.kVoteOption.ePlayer);
 			CvPlayer& kPlayer = GET_PLAYER(kData.kVoteOption.ePlayer);
-			if( gTeamLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-				logBBAI("  Vote for war against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0) );
+			if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+				logBBAI("  Vote for war against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0));
 
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
@@ -8611,8 +8611,8 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 			{
 				if (NO_PLAYER != kData.kVoteOption.eOtherPlayer && kData.kVoteOption.eOtherPlayer != pCity->getOwner())
 				{
-					if( gTeamLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-						logBBAI("  Vote for assigning %S to %d (%S) passes", pCity->getName().GetCString(), GET_PLAYER(kData.kVoteOption.eOtherPlayer).getTeam(), GET_PLAYER(kData.kVoteOption.eOtherPlayer).getCivilizationDescription(0) );
+					if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+						logBBAI("  Vote for assigning %S to %d (%S) passes", pCity->getName().GetCString(), GET_PLAYER(kData.kVoteOption.eOtherPlayer).getTeam(), GET_PLAYER(kData.kVoteOption.eOtherPlayer).getCivilizationDescription(0));
 					GET_PLAYER(kData.kVoteOption.eOtherPlayer).acquireCity(pCity, false, true, true);
 				}
 			}
@@ -9761,12 +9761,12 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 	// * Fixed bug with colonies who occupy recycled player slots showing the old leader or civ names.
 	CvWString szEmptyString = L"";
 	LeaderHeadTypes eOldLeader = GET_PLAYER(eNewPlayer).getLeaderType();
-	if ( (eOldLeader != NO_LEADER) && (eOldLeader != eLeader) )
+	if (eOldLeader != NO_LEADER && eOldLeader != eLeader)
 	{
 		GC.getInitCore().setLeaderName(eNewPlayer, szEmptyString);
 	}
 	CivilizationTypes eOldCiv = GET_PLAYER(eNewPlayer).getCivilizationType();
-	if ( (eOldCiv != NO_CIVILIZATION) && (eOldCiv != eCiv) )
+	if (eOldCiv != NO_CIVILIZATION && eOldCiv != eCiv)
 	{
 		GC.getInitCore().setCivAdjective(eNewPlayer, szEmptyString);
 		GC.getInitCore().setCivDescription(eNewPlayer, szEmptyString);
@@ -9780,7 +9780,7 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 		if (eColor == NO_PLAYERCOLOR || (GET_PLAYER((PlayerTypes)iI).getPlayerColor() == eColor
 				/*  UNOFFICIAL_PATCH, Bugfix, 12/30/08, jdog5000:
 					Don't invalidate color choice if it's taken by this player */
-				&& (PlayerTypes)iI != eNewPlayer) )
+				&& (PlayerTypes)iI != eNewPlayer))
 		{
 			for (int iK = 0; iK < GC.getNumPlayerColorInfos(); iK++)
 			{
@@ -9823,7 +9823,7 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 }
 
 //	BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000: START
-void CvGame::changeHumanPlayer( PlayerTypes eNewHuman )
+void CvGame::changeHumanPlayer(PlayerTypes eNewHuman)
 {
 	PlayerTypes eCurHuman = getActivePlayer();
 	/*  <advc.127> Rearranged code b/c of a change in CvPlayer::isOption.
@@ -9841,8 +9841,8 @@ void CvGame::changeHumanPlayer( PlayerTypes eNewHuman )
 	GET_PLAYER(eNewHuman).updateHuman();
 	for (int iI = 0; iI < NUM_PLAYEROPTION_TYPES; iI++)
 	{
-		GET_PLAYER(eNewHuman).setOption( (PlayerOptionTypes)iI,
-				GET_PLAYER(eCurHuman).isOption((PlayerOptionTypes)iI) );
+		GET_PLAYER(eNewHuman).setOption((PlayerOptionTypes)iI,
+				GET_PLAYER(eCurHuman).isOption((PlayerOptionTypes)iI));
 	}
 	for (int iI = 0; iI < NUM_PLAYEROPTION_TYPES; iI++)
 	{
@@ -10361,7 +10361,7 @@ VoteSelectionData* CvGame::addVoteSelection(VoteSourceTypes eVoteSource)
 			}
 		}
 
-		if (0 == pData->aVoteOptions.size())
+		if (pData->aVoteOptions.size() == 0)
 		{
 			deleteVoteSelection(pData->getID());
 			pData = NULL;

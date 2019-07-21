@@ -435,7 +435,7 @@ void CvPlot::doImprovement()
 						iOdds *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 						iOdds /= 100;
 
-						if( GC.getGame().getSorenRandNum(iOdds, "Bonus Discovery") == 0)
+						if (GC.getGame().getSorenRandNum(iOdds, "Bonus Discovery") == 0)
 						{	// UNOFFICIAL_PATCH: END
 							setBonusType((BonusTypes)iI);
 
@@ -2980,7 +2980,7 @@ bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) /* 
 
 	FAssert(eAttackerTeam != NO_TEAM);
 
-	if( (area()->getNumCities() - GET_TEAM(eAttackerTeam).countNumCitiesByArea(area())) == 0 )
+	if (area()->getNumCities() - GET_TEAM(eAttackerTeam).countNumCitiesByArea(area()) == 0)
 		return false;
 
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
@@ -2999,20 +2999,20 @@ bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) /* 
 	// First check capitals
 	for (int iI = 0; !bFound && iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN )
+		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
 		{
-			if( !bIgnoreBarb || !(GET_PLAYER((PlayerTypes)iI).isBarbarian() || GET_PLAYER((PlayerTypes)iI).isMinorCiv()) )
+			if (!bIgnoreBarb || !(GET_PLAYER((PlayerTypes)iI).isBarbarian() || GET_PLAYER((PlayerTypes)iI).isMinorCiv()))
 			{
 				CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).getCapitalCity();
 				if (pLoopCity == NULL)
 					continue;
-				if( (pLoopCity->area() == area()) )
+				if (pLoopCity->area() == area())
 				{
 					bFound = gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
 							getX(), getY(),
 							pLoopCity->getX(), pLoopCity->getY(),
 							false, 0, true);
-					if( bFound )
+					if (bFound)
 						break;
 				}
 			}
@@ -3022,19 +3022,19 @@ bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) /* 
 	// Check all other cities
 	for (int iI = 0; !bFound && iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN )
+		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
 		{
-			if( !bIgnoreBarb || !(GET_PLAYER((PlayerTypes)iI).isBarbarian() || GET_PLAYER((PlayerTypes)iI).isMinorCiv()) )
+			if (!bIgnoreBarb || !(GET_PLAYER((PlayerTypes)iI).isBarbarian() || GET_PLAYER((PlayerTypes)iI).isMinorCiv()))
 			{
 				int iLoop;
 				for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); !bFound && pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
 				{
-					if( (pLoopCity->area() == area()) && !(pLoopCity->isCapital()) )
+					if (pLoopCity->area() == area() && !pLoopCity->isCapital())
 					{
 						bFound = gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
 								getX(), getY(), pLoopCity->getX(), pLoopCity->getY(),
 								false, 0, true);
-						if( bFound )
+						if (bFound)
 							break;
 					}
 				}
@@ -3047,13 +3047,13 @@ bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) /* 
 	return bFound;
 }
 
-bool CvPlot::isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer ) /* advc.003: */ const  // (and some minor style changes)
+bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer) /* advc.003: */ const  // (and some minor style changes)
 {
 	PROFILE_FUNC();
 
 	FAssert(eMoveTeam != NO_TEAM);
 
-	if( (area()->getCitiesPerPlayer(eOtherPlayer) == 0) )
+	if (area()->getCitiesPerPlayer(eOtherPlayer) == 0)
 		return false;
 
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
@@ -3099,7 +3099,7 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 	/*  advc.104b: Commented out. Want to be able to measure paths between
 		coastal cities of different continents. (And shouldn't return "false"
 		at any rate.) */
-	/*if( pTargetPlot->area() != area() )
+	/*if (pTargetPlot->area() != area())
 		return false;*/
 
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
@@ -3143,7 +3143,7 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 // I've changed the purpose of this function - because this is the way it is always used.
 void CvPlot::invalidateBorderDangerCache()
 {
-	/* for( int iI = 0; iI < MAX_TEAMS; iI++ )
+	/* for (int iI = 0; iI < MAX_TEAMS; iI++)
 		m_abBorderDangerCache[iI] = false;*/
 	for (int iDX = -BORDER_DANGER_RANGE; iDX <= BORDER_DANGER_RANGE; iDX++)
 	{
@@ -5770,8 +5770,8 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	}
 
 	// Building or removing a fort will now force a plotgroup update to verify resource connections.
-	if ( (NO_IMPROVEMENT != getImprovementType() && GC.getImprovementInfo(getImprovementType()).isActsAsCity()) !=
-		(NO_IMPROVEMENT != eOldImprovement && GC.getImprovementInfo(eOldImprovement).isActsAsCity()) )
+	if ((NO_IMPROVEMENT != getImprovementType() && GC.getImprovementInfo(getImprovementType()).isActsAsCity()) !=
+		(NO_IMPROVEMENT != eOldImprovement && GC.getImprovementInfo(eOldImprovement).isActsAsCity()))
 	{
 		updatePlotGroup();
 	}
@@ -6291,7 +6291,7 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 	{
 		RouteTypes eRoute = getRouteType();
 
-		if( bBestRoute && ePlayer != NO_PLAYER )
+		if (bBestRoute && ePlayer != NO_PLAYER)
 		{
 			//eRoute = GET_PLAYER(ePlayer).getBestRoute(GC.getMap().plotSoren(getX(), getY()));
 			eRoute = GET_PLAYER(ePlayer).getBestRoute(this); // K-Mod. (obvious?)
@@ -7123,7 +7123,7 @@ void CvPlot::changeBlockadedCount(TeamTypes eTeam, int iChange)
 			|| isWater());
 	// Hack so that never get negative blockade counts as a result of fixing issue causing
 	// rare permanent blockades.
-	if( getBlockadedCount(eTeam) < 0 )
+	if (getBlockadedCount(eTeam) < 0)
 		m_aiBlockadedCount[eTeam] = 0;
 	// BETTER_BTS_AI_MOD: END
 	CvCity* pWorkingCity = getWorkingCity();
@@ -8390,7 +8390,7 @@ void CvPlot::doFeature()
 					if (GC.getGame().getSorenRandNum(10000, "Feature Growth") < iProbability)*/
 					// UNOFFICIAL_PATCH, Gamespeed scaling, 03/04/10, jdog5000: START
 					int iOdds = (10000*GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent())/100;
-					if( GC.getGame().getSorenRandNum(iOdds, "Feature Growth") < iProbability )
+					if (GC.getGame().getSorenRandNum(iOdds, "Feature Growth") < iProbability)
 					// UNOFFICIAL_PATCH: END
 					{
 						setFeatureType((FeatureTypes)iI);
@@ -9707,7 +9707,7 @@ void CvPlot::applyEvent(EventTypes eEvent)
 	for (int i = 0; i < NUM_YIELD_TYPES; ++i)
 	{
 		int iChange = kEvent.getPlotExtraYield(i);
-		if (0 != iChange)
+		if (iChange != 0)
 		{
 			GC.getGame().setPlotExtraYield(m_iX, m_iY, (YieldTypes)i, iChange);
 		}
