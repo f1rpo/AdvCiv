@@ -3,7 +3,7 @@ Download site and instructions for installation:
 Manual on GitHub:
 	https://github.com/f1rpo/AdvCiv/raw/master/manual.pdf
 Source code on GitHub:
-	https://github.com/f1rpo/AdvCiv
+	https://github.com/f1rpo/AdvCiv/tree/master/CvGameCoreDLL
 Discussion thread on CivFanatics:
 	https://forums.civfanatics.com/threads/advanced-civ.614217
 A half-finished Earth scenario for AdvCiv:

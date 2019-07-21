@@ -1,5 +1,6 @@
 #### Civilization 4 SDK Makefile 2.5 ####
 ####  Copyright 2015 Nightinggale    ####
+# (advc: with some modifications; see below)
 #########################################
 #### Civilization 4 SDK Makefile 2.0 ####
 ####  Copyright 2013 Nightinggale    ####
@@ -419,4 +420,3 @@ $(TEMP_TARGET_FILES)\$(BLACKLIST).obj: $(BLACKLIST).cpp
 	@DEL "$*.obj.@"
 
 !ENDIF
-
