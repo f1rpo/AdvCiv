@@ -23697,8 +23697,14 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1) {
 		for(std::list<CvPopupInfo*>::iterator it = m_listPopups.begin();
 				it != m_listPopups.end(); it++) {
 			CvPopupInfo* pPopup = *it;
-			if(pPopup->getButtonPopupType() != ePopupType || (iData1 >= 0 &&
-					pPopup->getData1() != iData1))
+			if((pPopup->getButtonPopupType() != ePopupType &&
+					/*  Don't relaunch a found-religion popup in response to a
+						change-religion popup. The player will already have chosen
+						and founded a religion, i.e. the found-religion popup is
+						essentially already done. */
+					(ePopupType != BUTTONPOPUP_CHANGERELIGION || pass < 1 ||
+					pPopup->getButtonPopupType() != BUTTONPOPUP_FOUND_RELIGION)) ||
+					(iData1 >= 0 && pPopup->getData1() != iData1))
 				newQueue.push_back(pPopup);
 			else {
 				if(pass <= 0)
