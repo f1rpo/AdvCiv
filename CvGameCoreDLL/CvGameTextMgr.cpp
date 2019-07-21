@@ -1547,7 +1547,7 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	/*  BtS shows no owner for Privateers and Animals (but it does for Barbarians);
 		I'm calling units without a visible owner "rogue" units and they get their
 		own entries in the perOwner vector. I'm also treating Barbarians inside
-		cities that way (b/c only Barbarian units can exist there).
+		cities that way b/c only Barbarian units (and spies) can exist there.
 		These distinctions are implemented in CvUnit::isUnowned b/c I also want
 		rogues to be preferred as the center unit -- this makes sure that the
 		center unit can be listed first w/o the need for a heading.
@@ -15778,7 +15778,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 			!g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isNetworkMultiPlayer() &&
 			!g.isDebugMode()) {
 		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date "
-				"(OK if AI Auto Play has just ended or after loading a pre-0.95 save)");
+				"(OK after loading a save created during AI Auto play or prior to v0.95)");
 		kPlayer.AI_updateAttitudeCache(eTargetPlayer, true);
 		// Try again, this time without recursion. szBuffer hasn't been changed yet.
 		getAttitudeString(szBuffer, ePlayer, eTargetPlayer, true);
@@ -17689,7 +17689,9 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		// BUG - Airport Icon - start
 		if (getBugOptionBOOL("MainInterface__AirportIcon", true))
 		{
-			int eAirportClass = GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT");
+			int eAirportClass = GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT"
+					// Mod-mods that don't have an airport should set bHideAssert:
+					/*,true*/);
 			if (eAirportClass != -1)
 			{
 				int eAirport = GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationBuildings(eAirportClass);

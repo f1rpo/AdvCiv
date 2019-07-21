@@ -80,12 +80,12 @@ public:
 	void processTraits(int iChange); // advc.003q: Replacing the above
 	void changePersonalityType();
 	void resetCivTypeEffects();
-	void changeLeader( LeaderHeadTypes eNewLeader );
-	void changeCiv( CivilizationTypes eNewCiv );
-	void setIsHuman( bool bNewValue );
+	void changeLeader(LeaderHeadTypes eNewLeader);
+	void changeCiv(CivilizationTypes eNewCiv);
+	void setIsHuman(bool bNewValue);
 	// CHANGE_PLAYER: END
 	// AI_AUTO_PLAY_MOD, 07/09/08, jdog5000: START
-	void setHumanDisabled(bool newVal);
+	void setHumanDisabled(bool bNewVal);
 	bool isHumanDisabled() /* advc.127: */ const;	// and exposed to Python
 	bool isSpectator() const; // advc.127
 	bool isAutoPlayJustEnded() const;		// advc.127: exposed to Python

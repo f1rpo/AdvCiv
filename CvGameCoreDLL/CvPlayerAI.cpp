@@ -28059,3 +28059,15 @@ WarAndPeaceAI::Civ& CvPlayerAI::warAndPeaceAI() {
 WarAndPeaceAI::Civ const& CvPlayerAI::warAndPeaceAI() const {
 	return *m_pWPAI;
 } // </advc.104>
+
+/*  <advc.127> Tbd.: There may well be other AI data to be updated when
+	human control is suspended or resumed. */
+void CvPlayerAI::AI_setHumanDisabled(bool bDisabled) {
+
+	// Some of the first-impression modifiers don't apply to human players
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
+		if(kPlayer.isAlive())
+			kPlayer.AI_updateAttitudeCache();
+	}
+} // </advc.127>

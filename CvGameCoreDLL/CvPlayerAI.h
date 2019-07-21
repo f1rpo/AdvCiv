@@ -778,6 +778,7 @@ protected:
 
 	void AI_doEnemyUnitData();
 	//void AI_invalidateCloseBordersAttitudeCache(); // disabled by K-Mod
+	void AI_setHumanDisabled(bool bDisabled); // advc.127
 
 	friend class CvGameTextMgr;
 };

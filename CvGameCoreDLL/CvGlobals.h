@@ -217,7 +217,7 @@ public:
 	// Global Infos
 	// All info type strings are upper case and are kept in this hash map for fast lookup
 	//
-	DllExport int getInfoTypeForString(const char* szType, bool hideAssert = false) const;			// returns the infos index, use this when searching for an info type string
+	DllExport int getInfoTypeForString(const char* szType, bool bHideAssert = false) const;			// returns the infos index, use this when searching for an info type string
 	void setInfoTypeFromString(const char* szType, int idx);
 	DllExport void infoTypeFromStringReset();
 	void addToInfosVectors(void *infoVector);

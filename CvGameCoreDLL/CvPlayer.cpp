@@ -2730,37 +2730,34 @@ bool CvPlayer::hasTrait(TraitTypes eTrait) const
 }
 
 // AI_AUTO_PLAY_MOD, 07/09/08, jdog5000: START
-void CvPlayer::setHumanDisabled( bool newVal )
+void CvPlayer::setHumanDisabled(bool bNewVal)
 {
 	// <advc.127>
 	m_bAutoPlayJustEnded = true;
 	CvGame& g = GC.getGame();
 	// Not sure if this is needed:
 	bool const bActive = (g.getActivePlayer() == getID());
-	CvWString replayText;
-	if(newVal && !m_bDisableHuman && bActive) {
-		// advc.004h:
-		gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
-		gDLL->getInterfaceIFace()->clearQueuedPopups();
-		replayText = gDLL->getText("TXT_KEY_AUTO_PLAY_STARTED");
-	}
-	if(!newVal && m_bDisableHuman) {
-		/*  Remove the inter-AI diplo modifiers; would otherwise happen during
-			the next round of AI turns, i.e. with a 1-turn delay. */
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-			CvPlayerAI& p = GET_PLAYER((PlayerTypes)i);
-			if(p.isAlive())
-				p.AI_updateAttitudeCache();
+	CvWString szReplayText;
+	if(bNewVal && !m_bDisableHuman) {
+		AI().AI_setHumanDisabled(true);
+		if(bActive) {
+			// advc.004h:
+			gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
+			gDLL->getInterfaceIFace()->clearQueuedPopups();
+			szReplayText = gDLL->getText("TXT_KEY_AUTO_PLAY_STARTED");
 		}
+	}
+	else if(!bNewVal && m_bDisableHuman) {
+		AI().AI_setHumanDisabled(false);
 		m_iNewMessages = 0; // Don't open Event Log when coming out of Auto Play
 		if(bActive)
-			replayText = gDLL->getText("TXT_KEY_AUTO_PLAY_ENDED");
+			szReplayText = gDLL->getText("TXT_KEY_AUTO_PLAY_ENDED");
 	}
-	if(!replayText.empty()) {
-		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), replayText, -1, -1,
+	if(!szReplayText.empty()) {
+		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szReplayText, -1, -1,
 				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	} // </advc.127>
-	m_bDisableHuman = newVal;
+	m_bDisableHuman = bNewVal;
 	updateHuman();
 }
 
@@ -3151,8 +3148,8 @@ void CvPlayer::doTurn()  // advc.003: style changes
 		gr->doTurnPost();
 	// </advc.004l>
 	/*  <advc.034> Cancel disengagement agreements at the end of a round, i.e.
-		at the end of the barb turn. */
-	int iDisengageLength = (GC.getDefineINT("DISENGAGE_LENGTH") > 0);
+		at the end of the Barbarian turn. */
+	int iDisengageLength = GC.getDefineINT("DISENGAGE_LENGTH");
 	if(isBarbarian() && iDisengageLength > 0) {
 		for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 			if(d->isDisengage() && d->turnsToCancel() <= 1) {
@@ -23654,9 +23651,10 @@ void CvPlayer::checkAlert(int iAlertID, bool bSilent)  {
 } // </advc.210>
 
 // <advc.104> Inspired by CvTeamAI::AI_estimateTotalYieldRate
+// (Tbd.: Move to CvPlayerAI)
 double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const {
 
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // Called very frequently; about 1.5% of the turn times (July 2019).
 	CvGame const& g = GC.getGame();
 	int iGameTurn = g.getGameTurn();
 	int iTurnsPlayed = iGameTurn - g.getStartTurn();

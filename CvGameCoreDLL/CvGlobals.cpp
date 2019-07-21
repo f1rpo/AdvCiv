@@ -3741,7 +3741,7 @@ void CvGlobals::setHoFScreenUp(bool b) {
 // Global Infos Hash Map
 //
 
-int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
+int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
 {
 	FAssertMsg(szType, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
@@ -3750,8 +3750,8 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
 		return it->second;
 	}
 
-	//if(!hideAssert)
-	if (!hideAssert && !(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0)) // K-Mod
+	//if(!bHideAssert)
+	if (!bHideAssert && !(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0)) // K-Mod
 	{	// <advc.006>
 		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
 		/*  This function gets called from Python with szType=PLOT_PEAK etc.

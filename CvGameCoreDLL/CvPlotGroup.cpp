@@ -240,7 +240,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 // <advc.064d>
 void CvPlotGroup::verifyCityProduction() {
 
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // About 1 permille of the runtime (July 2019)
 	CvMap const& m = GC.getMap();
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL) {
