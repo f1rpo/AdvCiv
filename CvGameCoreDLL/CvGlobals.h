@@ -1146,7 +1146,7 @@ protected:
 	std::vector<CvEventTriggerInfo*> m_paEventTriggerInfo;
 	std::vector<CvEventInfo*> m_paEventInfo;
 	std::vector<CvEspionageMissionInfo*> m_paEspionageMissionInfo;
-    std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleTypeInfo;
+	std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleTypeInfo;
 
 	// Game Text
 	std::vector<CvGameText*> m_paGameTextXML;

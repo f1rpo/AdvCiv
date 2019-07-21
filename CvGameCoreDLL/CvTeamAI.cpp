@@ -1630,12 +1630,12 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 				} */
 
 				// Note: Commitment cost is currently meant to take into account risk as well as resource requirements.
-				//       But with overseas wars, the relative strength of navy units effects these things differently.
-				//       If our navy is much stronger than theirs, then our risk is low but we still need to commit a
-				//       just as much resources to win the land-war for an invasion.
-				//       If their navy is stronger than ours, our risk is high and our resources will be higher too.
+				// But with overseas wars, the relative strength of navy units effects these things differently.
+				// If our navy is much stronger than theirs, then our risk is low but we still need to commit a
+				// just as much resources to win the land-war for an invasion.
+				// If their navy is stronger than ours, our risk is high and our resources will be higher too.
 				//
-				//       The current calculations are too simplistic to explicitly specify all that stuff.
+				// The current calculations are too simplistic to explicitly specify all that stuff.
 				if (bTotalWar)
 				{
 					//iCommitmentPerMil = iCommitmentPerMil * (4*iOurNavy + 5*iEnemyNavy) / (8*iOurNavy + 1*iEnemyNavy);
@@ -1923,14 +1923,14 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 			iValue /= 10 * iOurPower;
 		}
 
-	    // for now, we will always do the land mass check for domination
+		// for now, we will always do the land mass check for domination
 		// if we have more than half the land, then value peace at 90% * land ratio
 		int iLandRatio = getTotalLand(true) * 100 / std::max(1, kWarTeam.getTotalLand(true));
-	    if (iLandRatio > 120)
-	    {
+		if (iLandRatio > 120)
+		{
 			iValue *= 9 * 100;
 			iValue /= 10 * iLandRatio;
-	    }
+		}
 
 		// if in financial trouble, warmongers will continue the fight to make more money
 		if (bAnyFinancialTrouble)
@@ -1991,7 +1991,7 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 		iValue *= 2;
 	}
 	else if ((!isHuman() && eWarPlan == WARPLAN_DOGPILE && kWarTeam.getAtWarCount(true) > 1) ||
-		     (!kWarTeam.isHuman() && kWarTeam.AI_getWarPlan(getID()) == WARPLAN_DOGPILE && getAtWarCount(true) > 1))
+			(!kWarTeam.isHuman() && kWarTeam.AI_getWarPlan(getID()) == WARPLAN_DOGPILE && getAtWarCount(true) > 1))
 	{
 		iValue *= 3;
 		iValue /= 2;
@@ -2165,8 +2165,8 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eTeam) const
 		{
 			int iNoTechTradeThreshold = AI_noTechTradeThreshold();
 
-            iNoTechTradeThreshold *= std::max(0, (GC.getHandicapInfo(GET_TEAM(eTeam).getHandicapType()).getNoTechTradeModifier() + 100));
-            iNoTechTradeThreshold /= 100;
+			iNoTechTradeThreshold *= std::max(0, (GC.getHandicapInfo(GET_TEAM(eTeam).getHandicapType()).getNoTechTradeModifier() + 100));
+			iNoTechTradeThreshold /= 100;
 
 			if (AI_getMemoryCount(eTeam, MEMORY_RECEIVED_TECH_FROM_ANY) > iNoTechTradeThreshold)
 			{
@@ -2658,7 +2658,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	if(!isAVassal() && (getWarPlanCount(WARPLAN_PREPARING_LIMITED) > 0 ||
 			getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0))
 		return DENIAL_POWER_US;
-    //int iAttitudeModifier = 0; // Computation rewritten further down this function
+	//int iAttitudeModifier = 0; // Computation rewritten further down this function
 	// !isParent check removed
 	// Computation of iPersonalityModifier moved down
 	// Commented-out BBAI code (06/03/09, jdog) deleted
@@ -2944,7 +2944,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 				if(eTowardUs >= ATTITUDE_PLEASED || kThreat.getAtWarCount() > 0)
 					continue;
 			}
-            iAttitudeModifier += std::max(0, (int)(ATTITUDE_PLEASED - eTowardUs));
+			iAttitudeModifier += std::max(0, (int)(ATTITUDE_PLEASED - eTowardUs));
 		}
 		/*  In large games, there tend to be alternative targets for dangerous civs
 			to attack. */
@@ -3640,7 +3640,7 @@ void CvTeamAI::AI_getWarRands(int &iMaxWarRand, int &iLimitedWarRand, int &iDogp
 
 	if (bFinalWar)
 	{
-	    iMaxWarRand /= 4;
+		iMaxWarRand /= 4;
 	}
 
 	iLimitedWarRand *= (2 + iNumMembers);
@@ -3834,8 +3834,8 @@ DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eTeam) c
 	}
 
 	/* original bts code
-    int iLandRatio = ((getTotalLand(true) * 100) / std::max(20, GET_TEAM(eTeam).getTotalLand(true)));
-    if (iLandRatio > 250)
+	int iLandRatio = ((getTotalLand(true) * 100) / std::max(20, GET_TEAM(eTeam).getTotalLand(true)));
+	if (iLandRatio > 250)
 		return DENIAL_VICTORY;*/
 	// K-Mod
 	if (AI_refusePeace(ePeaceTeam))
@@ -5701,7 +5701,7 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier,
 		{
 			if (gTeamLogLevel >= 1)
 			{
-				logBBAI("      Team %d (%S) abandoning WARPLAN_LIMITED or WARPLAN_DOGPILE against team %d (%S) after %d turns with enemy power percent %d",
+				logBBAI("    Team %d (%S) abandoning WARPLAN_LIMITED or WARPLAN_DOGPILE against team %d (%S) after %d turns with enemy power percent %d",
 						getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
 						eTarget, GET_PLAYER(GET_TEAM(eTarget).getLeaderID()).getCivilizationDescription(0),
 						AI_getWarPlanStateCounter(eTarget), iEnemyPowerPercent);
@@ -5717,7 +5717,7 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier,
 		{
 			if (gTeamLogLevel >= 1)
 			{
-				logBBAI("      Team %d (%S) abandoning WARPLAN_DOGPILE against team %d (%S) after %d turns because enemy has no war",
+				logBBAI("    Team %d (%S) abandoning WARPLAN_DOGPILE against team %d (%S) after %d turns because enemy has no war",
 						getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
 						eTarget, GET_PLAYER(GET_TEAM(eTarget).getLeaderID()).getCivilizationDescription(0),
 						AI_getWarPlanStateCounter(eTarget));
@@ -5821,7 +5821,7 @@ void CvTeamAI::AI_doWar()
 			{
 				if (gTeamLogLevel >= 1)
 				{
-					logBBAI("      Team %d (%S) switching WARPLANS against team %d (%S) from ATTACKED_RECENT to ATTACKED with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), iEnemyPowerPercent);
+					logBBAI("    Team %d (%S) switching WARPLANS against team %d (%S) from ATTACKED_RECENT to ATTACKED with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), iEnemyPowerPercent);
 				}
 				AI_setWarPlan(eLoopTeam, WARPLAN_ATTACKED);
 			}
@@ -5845,7 +5845,7 @@ void CvTeamAI::AI_doWar()
 					{
 						if (gTeamLogLevel >= 1)
 						{
-							logBBAI("      Team %d (%S) abandoning WARPLANS against team %d (%S) due to human / vassal timeout", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0));
+							logBBAI("    Team %d (%S) abandoning WARPLANS against team %d (%S) due to human / vassal timeout", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0));
 						}
 						AI_setWarPlan(eLoopTeam, NO_WARPLAN);
 					}
@@ -5856,7 +5856,7 @@ void CvTeamAI::AI_doWar()
 					{
 						if (gTeamLogLevel >= 1)
 						{
-							logBBAI("      Team %d (%S) abandoning WARPLANS against team %d (%S) due to AI master's warplan cancelation", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0));
+							logBBAI("    Team %d (%S) abandoning WARPLANS against team %d (%S) due to AI master's warplan cancelation", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0));
 						}
 						AI_setWarPlan(eLoopTeam, NO_WARPLAN);
 					}
@@ -5913,12 +5913,12 @@ void CvTeamAI::AI_doWar()
 				if (AI_startWarVal(eLoopTeam, WARPLAN_LIMITED) > 0) // K-Mod. Last chance to change our mind if circumstances have changed
 				{
 					AI_setWarPlan(eLoopTeam, WARPLAN_LIMITED);
-					if (gTeamLogLevel >= 1) logBBAI("      Team %d (%S) switching WARPLANS against team %d (%S) from PREPARING_LIMITED to LIMITED after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
+					if (gTeamLogLevel >= 1) logBBAI("    Team %d (%S) switching WARPLANS against team %d (%S) from PREPARING_LIMITED to LIMITED after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
 				}
 				else
 				{	// advc.001: Actually abandon the war plan
 					AI_setWarPlan(eLoopTeam, NO_WARPLAN);
-					if (gTeamLogLevel >= 1) logBBAI("      Team %d (%S) abandoning WARPLAN_LIMITED against team %d (%S) after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
+					if (gTeamLogLevel >= 1) logBBAI("    Team %d (%S) abandoning WARPLAN_LIMITED against team %d (%S) after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
 				}
 			}
 		}
@@ -5972,11 +5972,11 @@ void CvTeamAI::AI_doWar()
 						AI_startWarVal(eLoopTeam, WARPLAN_TOTAL) > 0)) // K-Mod. Last chance to change our mind if circumstances have changed
 				{
 					AI_setWarPlan(eLoopTeam, WARPLAN_TOTAL);
-					if (gTeamLogLevel >= 1) logBBAI("      Team %d (%S) switching WARPLANS against team %d (%S) from PREPARING_TOTAL to TOTAL after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
+					if (gTeamLogLevel >= 1) logBBAI("    Team %d (%S) switching WARPLANS against team %d (%S) from PREPARING_TOTAL to TOTAL after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
 				}
 				else if (AI_getWarPlanStateCounter(eLoopTeam) > ((20 * iAbandonTimeModifier) / 100)) {
 					AI_setWarPlan(eLoopTeam, NO_WARPLAN);
-					if (gTeamLogLevel >= 1) logBBAI("      Team %d (%S) abandoning WARPLAN_TOTAL_PREPARING against team %d (%S) after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
+					if (gTeamLogLevel >= 1) logBBAI("    Team %d (%S) abandoning WARPLAN_TOTAL_PREPARING against team %d (%S) after %d turns with enemy power percent %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eLoopTeam, GET_PLAYER(GET_TEAM(eLoopTeam).getLeaderID()).getCivilizationDescription(0), AI_getWarPlanStateCounter(eLoopTeam), iEnemyPowerPercent);
 				}
 			}
 		}
@@ -6206,11 +6206,11 @@ void CvTeamAI::AI_doWar()
 			}
 		}
 
-	    // if random in this range is 0, we go to war of this type (so lower numbers are higher probablity)
+		// if random in this range is 0, we go to war of this type (so lower numbers are higher probablity)
 		// average of everyone on our team
 		int iTotalWarRand;
-	    int iLimitedWarRand;
-	    int iDogpileWarRand;
+		int iLimitedWarRand;
+		int iDogpileWarRand;
 		AI_getWarRands(iTotalWarRand, iLimitedWarRand, iDogpileWarRand);
 
 		int iTotalWarThreshold;
@@ -6319,7 +6319,7 @@ void CvTeamAI::AI_doWar()
 
 											if (iValue > 0 && gTeamLogLevel >= 2)
 											{
-												logBBAI("      Team %d (%S) considering starting TOTAL warplan with team %d with value %d on pass %d with %d adjacent plots", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue, iPass, AI_calculateAdjacentLandPlots((TeamTypes)iI));
+												logBBAI("    Team %d (%S) considering starting TOTAL warplan with team %d with value %d on pass %d with %d adjacent plots", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue, iPass, AI_calculateAdjacentLandPlots((TeamTypes)iI));
 											}
 
 											if (iValue > iBestValue)
@@ -6377,7 +6377,7 @@ void CvTeamAI::AI_doWar()
 
 									if (iValue > 0 && gTeamLogLevel >= 2)
 									{
-										logBBAI("      Team %d (%S) considering starting LIMITED warplan with team %d with value %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue);
+										logBBAI("    Team %d (%S) considering starting LIMITED warplan with team %d with value %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue);
 									}
 
 									if (iValue > iBestValue)
@@ -6451,7 +6451,7 @@ void CvTeamAI::AI_doWar()
 
 										if (iValue > 0 && gTeamLogLevel >= 2)
 										{
-											logBBAI("      Team %d (%S) considering starting DOGPILE warplan with team %d with value %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue);
+											logBBAI("    Team %d (%S) considering starting DOGPILE warplan with team %d with value %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), iI, iValue);
 										}
 
 										if (iValue > iBestValue)

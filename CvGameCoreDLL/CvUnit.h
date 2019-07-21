@@ -798,7 +798,7 @@ public:
 	virtual bool AI_isCityAIType() const = 0;
 	virtual UnitAITypes AI_getUnitAIType() const = 0;																				// Exposed to Python
 	virtual void AI_setUnitAIType(UnitAITypes eNewValue) = 0;
-    virtual int AI_sacrificeValue(const CvPlot* pPlot) const = 0;
+	virtual int AI_sacrificeValue(const CvPlot* pPlot) const = 0;
 	// BETTER_BTS_AI_MOD, Unit AI, 04/05/10, jdog5000: START
 	virtual bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT) = 0;
 

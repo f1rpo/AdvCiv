@@ -539,7 +539,7 @@ double MilitaryAnalyst::lostPower(PlayerTypes civId,
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return 0;
-    return node->getLostPower(mb);
+	return node->getLostPower(mb);
 }
 
 double MilitaryAnalyst::gainedPower(PlayerTypes civId,
@@ -548,7 +548,7 @@ double MilitaryAnalyst::gainedPower(PlayerTypes civId,
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return 0;
-    return node->getGainedPower(mb);
+	return node->getGainedPower(mb);
 }
 
 double MilitaryAnalyst::militaryProduction(PlayerTypes civId) const {
@@ -556,7 +556,7 @@ double MilitaryAnalyst::militaryProduction(PlayerTypes civId) const {
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return 0;
-    return node->getProductionInvested();
+	return node->getProductionInvested();
 }
 
 void MilitaryAnalyst::logResults(PlayerTypes civId) {

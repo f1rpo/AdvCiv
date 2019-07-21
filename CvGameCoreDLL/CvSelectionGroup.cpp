@@ -1807,7 +1807,7 @@ void CvSelectionGroup::setupActionCache()
 	//cache busy calculation
 	m_bIsBusyCache = isBusy();
 
-    //cache different unit types
+	//cache different unit types
 	m_aDifferentUnitCache.erase(m_aDifferentUnitCache.begin(), m_aDifferentUnitCache.end());
 	CLLNode<IDInfo> *pUnitNode = headUnitNode();
 	while(pUnitNode != NULL)
@@ -2199,13 +2199,13 @@ int CvSelectionGroup::movesLeft() const
 bool CvSelectionGroup::isWaiting() const
 {
 	/* original bts code
-	return ((getActivityType() == ACTIVITY_HOLD) ||
-		      (getActivityType() == ACTIVITY_SLEEP) ||
-					(getActivityType() == ACTIVITY_HEAL) ||
-					(getActivityType() == ACTIVITY_SENTRY) ||
-					(getActivityType() == ACTIVITY_PATROL) ||
-					(getActivityType() == ACTIVITY_PLUNDER) ||
-					(getActivityType() == ACTIVITY_INTERCEPT)); */
+	return (getActivityType() == ACTIVITY_HOLD ||
+			getActivityType() == ACTIVITY_SLEEP ||
+			getActivityType() == ACTIVITY_HEAL ||
+			getActivityType() == ACTIVITY_SENTRY ||
+			getActivityType() == ACTIVITY_PATROL ||
+			getActivityType() == ACTIVITY_PLUNDER ||
+			getActivityType() == ACTIVITY_INTERCEPT); */
 	// K-Mod. (same functionality)
 	return !(getActivityType() == ACTIVITY_AWAKE || getActivityType() == ACTIVITY_MISSION);
 	// K-Mod end
@@ -3353,7 +3353,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 
 	bool bContinue = false;
 	CvPlot* pPlot = plot();
-    /* original bts code
+	/* original bts code
 	ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
 	if (eImprovement != NO_IMPROVEMENT) {
 		if (AI_isControlled()) {
@@ -3907,9 +3907,9 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 			break;
 
 		case MISSION_BUILD:
-            FAssertMsg(((BuildTypes)iData1) < GC.getNumBuildInfos(), "Invalid Build");
-            if (pLoopUnit->canBuild(pPlot, (BuildTypes)iData1, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
-                return true;
+			FAssertMsg(((BuildTypes)iData1) < GC.getNumBuildInfos(), "Invalid Build");
+			if (pLoopUnit->canBuild(pPlot, (BuildTypes)iData1, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+				return true;
 			break;
 
 		case MISSION_LEAD:

@@ -594,13 +594,13 @@ public:
 	void changePlotExtraCost(int iX, int iY, int iCost);   // exposed to Python
 	void removePlotExtraCost(int iX, int iY);
 
-	ReligionTypes getVoteSourceReligion(VoteSourceTypes eVoteSource) const;      // Exposed to Python
-	void setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eReligion, bool bAnnounce = false);      // Exposed to Python
+	ReligionTypes getVoteSourceReligion(VoteSourceTypes eVoteSource) const;	 	// Exposed to Python
+	void setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eReligion, bool bAnnounce = false);		// Exposed to Python
 
-	bool isEventActive(EventTriggerTypes eTrigger) const;    // exposed to Python
+	bool isEventActive(EventTriggerTypes eTrigger) const;		// exposed to Python
 	DllExport void initEvents();
 
-	bool isCivEverActive(CivilizationTypes eCivilization) const;      // Exposed to Python
+	bool isCivEverActive(CivilizationTypes eCivilization) const;		// Exposed to Python
 	bool isLeaderEverActive(LeaderHeadTypes eLeader) const;		// Exposed to Python
 	bool isUnitEverActive(UnitTypes eUnit) const;		// Exposed to Python
 	bool isBuildingEverActive(BuildingTypes eBuilding) const;		// Exposed to Python
@@ -747,9 +747,9 @@ protected:
 
 	int m_aiUpdateTimers[NUM_UPDATE_TIMER_TYPES]; // advc.003r
 
-	int* m_aiRankPlayer;        // Ordered by rank...
-	int* m_aiPlayerRank;        // Ordered by player ID...
-	int* m_aiPlayerScore;       // Ordered by player ID...
+	int* m_aiRankPlayer;		// Ordered by rank...
+	int* m_aiPlayerRank;		// Ordered by player ID...
+	int* m_aiPlayerScore;	   // Ordered by player ID...
 	int* m_aiRankTeam;						// Ordered by rank...
 	int* m_aiTeamRank;						// Ordered by team ID...
 	int* m_aiTeamScore;						// Ordered by team ID...

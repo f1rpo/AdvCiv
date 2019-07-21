@@ -1253,7 +1253,7 @@ int CyGame::getBarbarianStartTurn() {
 // <advc.250b>
 std::wstring CyGame::SPaHPointsForSettingsScreen() {
 
-    if(m_pGame == NULL)
+	if(m_pGame == NULL)
 		return L"";
 	std::wstring* r = m_pGame->startPointsAsHandicap().forSettingsScreen();
 	if(r == NULL)

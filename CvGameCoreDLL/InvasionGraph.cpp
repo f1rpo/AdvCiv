@@ -612,8 +612,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	FAssert(!clashOnly || (targetCity() != NULL && defender.targetCity() != NULL));
 	if(clashOnly) {
 		report.log("*Clash* of %s and %s",
-			   report.leaderName(getId()),
-	           report.leaderName(defender.getId()));
+				report.leaderName(getId()),
+				report.leaderName(defender.getId()));
 	}
 	else {
 		report.log("Attack on *%s* by %s",
@@ -822,7 +822,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	else {
 		double dist = clashDistance(defender);
 		FAssert(dist > 0); /* WarAndPeaceCache::City::updateDistance should
-						      guarantee this. */
+							  guarantee this. */
 		deploymentDistAttacker = dist;
 		deploymentDistDefender = dist;
 		// Can't rule out that both armies are eliminated at this point
@@ -840,7 +840,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	   two effects:
 	   a) Produced units become available with a delay.
 	   b) The combat AI tends to form smaller stacks when distances are long; they
-	      arrive in a trickle.
+		 arrive in a trickle.
 	   When sneak attacking, b) is less of a concern, but don't want to encourage
 	   early long-distance wars; reduce deploymentDist only slightly. */
 	if(sneakAttack) {
@@ -1244,7 +1244,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		canBombard = false;
 	}
 	else bombDuration *= 100.0 / (100 - bombDefPercent);
-    // Just the hill defense (help=true skips city defense)
+	// Just the hill defense (help=true skips city defense)
 	tileBonus += cvCity->plot()->defenseModifier(NO_TEAM, true, NO_TEAM, true);
 	tileBonus /= 100.0;
 	/*  Would be nice to check also if the city is enclosed by rivers, e.g. in a
@@ -1275,7 +1275,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double defenderPow = localGarrisonPow + ralliedGarrisonPow
 			+ defendingArmyPow;
 	report.log("City defender power: %d (%d from local garrisons, "
-		       "%d from rallied garrisons, %d from retreated army"
+			   "%d from rallied garrisons, %d from retreated army"
 			   " (%d percent))",
 			::round(defenderPow), ::round(localGarrisonPow),
 			::round(ralliedGarrisonPow), ::round(defendingArmyPow),
@@ -1476,8 +1476,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 			attacker.lostPower[ARMY] += powLeftBehind;
 			/* Don't want to add the power to guard b/c the newly conquered city
 			   can't be attacked by third parties (nor reconquered) and doesn't
-		       count when computing garrison strength. However, mustn't treat
-		       units left behind as losses; record them in shiftedPower. */
+			   count when computing garrison strength. However, mustn't treat
+			   units left behind as losses; record them in shiftedPower. */
 			attacker.shiftedPower[ARMY] += powLeftBehind;
 			CvTeamAI const& attackerTeam = TEAMREF(attacker.id);
 			CvTeamAI const& nodeTeam = TEAMREF(id);
@@ -1677,7 +1677,7 @@ void InvasionGraph::Node::resolveLosses() {
 				/* Could remove the NULL entries during the iteration above
 				   (more efficient), but modifying a container during
 				   iteration is a can of worms.
-		           NULL means the invader can't pick a target city (none left
+				   NULL means the invader can't pick a target city (none left
 				   or none revealed on the map). NB: applyStep may also erase
 				   Nodes from targetedBy. */
 				if(isTargetting[i]) {
@@ -1753,12 +1753,12 @@ void InvasionGraph::Node::changePrimaryTarget(Node* newTarget) {
 	if(newTarget != NULL) {
 		newTarget->targetedBy.insert(id);
 		report.log("%s now targets %s", report.leaderName(id),
-			    report.leaderName(newTarget->getId()));
+				report.leaderName(newTarget->getId()));
 	}
 	if(oldTarget != NULL) {
 		oldTarget->targetedBy.erase(id);
 		report.log("%s no longer targets %s", report.leaderName(id),
-			    report.leaderName(oldTarget->getId()));
+				report.leaderName(oldTarget->getId()));
 	}
 }
 
@@ -1991,33 +1991,33 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 			cyc[1]->getTargetedBy().size() == 1) {
 		cyc[0]->clash(1, 1);
 		return;
-	    /* The code below could handle this case as well, but leads to
+		/* The code below could handle this case as well, but leads to
 		   unnecessary computations and logging. */
 	}
-    // Only for cycles of length > 2
-    int toughestEnemies_cycIndex = -1;
-    double highestEnemyThreat = -1;
-    // Only for length 2
-    double armyPortion1, armyPortion2;
-    for(size_t i = 0; i < cyc.size(); i++) {
-	    Node& n = *cyc[i];
-        double threatOfAttackFromCycle = -1;
-        double sumOfEnemyThreat = 0;
+	// Only for cycles of length > 2
+	int toughestEnemies_cycIndex = -1;
+	double highestEnemyThreat = -1;
+	// Only for length 2
+	double armyPortion1, armyPortion2;
+	for(size_t i = 0; i < cyc.size(); i++) {
+		Node& n = *cyc[i];
+		double threatOfAttackFromCycle = -1;
+		double sumOfEnemyThreat = 0;
 		/* The targeting Nodes may themselves be busy fending off attackers.
 		   This is taken into account when resolving losses, but not when
 		   breaking cycles. */
 		set<PlayerTypes> const& targetedBy = n.getTargetedBy();
-        for(set<PlayerTypes>::const_iterator it = targetedBy.begin();
+		for(set<PlayerTypes>::const_iterator it = targetedBy.begin();
 				it != targetedBy.end(); it++) {
 			const char* nodeName = report.leaderName(n.getId());
 			report.log("Assessing threat of %s's army to %s's garrisons "
 					   "(ignoring army of %s)",
 					report.leaderName(nodeMap[*it]->getId()),
-			        nodeName, nodeName);
+					nodeName, nodeName);
 			report.setMute(true);
-	        SimulationStep* ss = nodeMap[*it]->step();
+			SimulationStep* ss = nodeMap[*it]->step();
 			report.setMute(false);
-	        if(ss == NULL) {
+			if(ss == NULL) {
 				/*  Might be fine in some circumstances, but suggests inconsistent
 					results of the targetCity and findTarget function. The former
 					relies on the order of the cache. */
@@ -2034,37 +2034,37 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 				report.log("Threat set to %d/%d percent (base/modified by willingness)",
 						::round(100 * baseThreat), ::round(100 * thr));
 			else report.log("Threat set to %d percent", ::round(100 * thr));
-		    /* Whether power ratios or power values are used, makes no
+			/* Whether power ratios or power values are used, makes no
 			   difference in this context. Ratios are convenient b/c there's
 			   a function for those anyway. */
-	        sumOfEnemyThreat += thr;
+			sumOfEnemyThreat += thr;
 			// Only relevant for cyc.size == 2
-	        if(ss->getAttacker() == n.getPrimaryTarget()->getId())
-	            threatOfAttackFromCycle = thr;
-	        delete ss;
-        }
-        if(sumOfEnemyThreat > highestEnemyThreat) {
-	        highestEnemyThreat = sumOfEnemyThreat;
-	        toughestEnemies_cycIndex = i;
-        }
+			if(ss->getAttacker() == n.getPrimaryTarget()->getId())
+				threatOfAttackFromCycle = thr;
+			delete ss;
+		}
+		if(sumOfEnemyThreat > highestEnemyThreat) {
+			highestEnemyThreat = sumOfEnemyThreat;
+			toughestEnemies_cycIndex = i;
+		}
 		/* Only relevant for cyc.size == 2. Two civs target each other, and
 		   others may intefere from the outside. Army portions available for
 		   clash depend on these outside threats. */
 		FAssert(sumOfEnemyThreat + 0.001 > threatOfAttackFromCycle);
 		// 1.25: Prioritize primary target
-        double armyPortion = 1.25 * threatOfAttackFromCycle / sumOfEnemyThreat;
+		double armyPortion = 1.25 * threatOfAttackFromCycle / sumOfEnemyThreat;
 		armyPortion = std::min(1.0, armyPortion);
-        if(i == 0) armyPortion1 = armyPortion;
-        if(i == 1) armyPortion2 = armyPortion;
-    }
-    if(cyc.size() > 2) {
+		if(i == 0) armyPortion1 = armyPortion;
+		if(i == 1) armyPortion2 = armyPortion;
+	}
+	if(cyc.size() > 2) {
 		Node& toughestEnemiesNode = *cyc[toughestEnemies_cycIndex];
-        /* Break the cycle by removing the target of the most besieged node.
+		/* Break the cycle by removing the target of the most besieged node.
 		   Rationale: This node is likely to need all its units for defending
 		   itself, or at least likelier than any other node in the cycle. */
-        toughestEnemiesNode.changePrimaryTarget(NULL);
-    }
-    else cyc[0]->clash(armyPortion1, armyPortion2);
+		toughestEnemiesNode.changePrimaryTarget(NULL);
+	}
+	else cyc[0]->clash(armyPortion1, armyPortion2);
 }
 
 /*  WarAndPeaceAI::Civ::warConfidenceAllies is about our general confidence in

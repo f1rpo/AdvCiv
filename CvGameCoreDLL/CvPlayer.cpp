@@ -1191,8 +1191,8 @@ void CvPlayer::initFreeUnits()
 		CvPlot* pStartingPlot = getStartingPlot();
 		if (NULL != pStartingPlot)
 		{
-			/* advc.108: BtS code moved into a new function (b/c I need the same
-		       behavior elsewhere). */
+			/*  advc.108: BtS code moved into a new function (b/c I need the same
+				behavior elsewhere). */
 			TEAMREF(getID()).revealSurroundingPlots(*pStartingPlot,
 					GC.getDefineINT("ADVANCED_START_SIGHT_RANGE"));
 		}
@@ -2026,7 +2026,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				newOwnerCulture + convertedCulture, true, false);
 		pNewCity->setCultureTimes100(eOldOwner,
 				oldOwnerCulture - convertedCulture, true, false);
-    } // </dlph.23>
+	} // </dlph.23>
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)  // advc.003: body refactored (incl. added comments)
 	{
@@ -3189,7 +3189,7 @@ void CvPlayer::doTurn()  // advc.003: style changes
 	if(g.isOption(GAMEOPTION_RISE_FALL))
 		g.getRiseFall().atTurnEnd(getID()); // </advc.700>
 
-    if (g.isDebugMode()) // BETTER_BTS_AI_MOD, Debug, 07/08/09, jdog5000
+	if (g.isDebugMode()) // BETTER_BTS_AI_MOD, Debug, 07/08/09, jdog5000
 		g.updateColoredPlots();
 
 	CvEventReporter::getInstance().endPlayerTurn(iGameTurn, getID());
@@ -3600,10 +3600,10 @@ bool CvPlayer::hasBusyUnit() const
 		if (pLoopSelectionGroup->isBusy())
 		{
 			/* original bts code
-		    if (pLoopSelectionGroup->getNumUnits() == 0) {
-		        pLoopSelectionGroup->kill();
-		        return false;
-		    } */ // disabled by K-Mod. isBusy returns false if there are no units in the group.
+			if (pLoopSelectionGroup->getNumUnits() == 0) {
+				pLoopSelectionGroup->kill();
+				return false;
+			} */ // disabled by K-Mod. isBusy returns false if there are no units in the group.
 			return true;
 		}
 	}
@@ -3842,7 +3842,7 @@ int CvPlayer::countOwnedBonuses(BonusTypes eBonus) const
 		return 0;
 	// K-Mod end
 
-    bool bAdvancedStart = (getAdvancedStartPoints() >= 0) && (getCurrentEra() < 3);
+	bool bAdvancedStart = (getAdvancedStartPoints() >= 0) && (getCurrentEra() < 3);
 
 	int iCount = 0;
 
@@ -4561,7 +4561,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				/*  <advc.132> canForceCivic double-checks everything checked here
 					already, plus some clauses that I've added there. */
 					|| ((TEAMREF(getID()).isVassal(theirTeam.getID()) ||
-			        ::atWar(getTeam(), theirTeam.getID())) &&
+					::atWar(getTeam(), theirTeam.getID())) &&
 					GET_PLAYER(eWhoTo).canForceCivics(getID(),
 					(CivicTypes)item.m_iData))) // </advc.132>
 			{
@@ -4623,8 +4623,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					{
 						if (ourTeam.isDefensivePactTrading() || theirTeam.isDefensivePactTrading())
 						{
-							/* <dlph.3> 'Added possibility of signing defensive pact while
-							              in war if BBAI defensive pact option is >= 1' */
+							/*  <dlph.3> 'Added possibility of signing defensive pact while
+								in war if BBAI defensive pact option is >= 1' */
 							if (((ourTeam.getAtWarCount(true) == 0) &&
 									(theirTeam.getAtWarCount(true) == 0)) ||
 									(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() >= 1
@@ -5927,12 +5927,12 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 	// <dlph.19>
 	if(eBuilding == (BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).
 			getCivilizationBuildings(GC.getDefineINT("CAPITAL_BUILDINGCLASS")))) {
-        for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
-            if(kOurTeam.getVictoryCountdown((VictoryTypes)i) >= 0 &&
+		for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
+			if(kOurTeam.getVictoryCountdown((VictoryTypes)i) >= 0 &&
 					GC.getGame().getGameState() == GAMESTATE_ON)
-                return false;
-        }
-    } // </dlph.19>
+				return false;
+		}
+	} // </dlph.19>
 
 	if (kOurTeam.isBuildingClassMaxedOut(eBuildingClass))
 	{
@@ -10569,7 +10569,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 					}
 					// K-Mod. Call CvTeam::doTurn at the start of this team's turn. ie. when the leader's turn is activated.
 					// Note: in simultaneous turns mode this is called by CvGame::doTurn,
-					//       because from here we can't tell which player in each team will be activated first.
+					// because from here we can't tell which player in each team will be activated first.
 					else
 					{
 						if (GET_TEAM(getTeam()).getLeaderID() == getID())
@@ -13464,11 +13464,11 @@ void CvPlayer::postProcessMessages() {
 	/* Determining how many messages are being displayed:
 	   - showMissedMessages doesn't help, that's only for Hotseat games.
 	   - m_listGameMessages: Those are all messages in the log, and there is
-	     no way of telling which messages have already been displayed; setShown
+		 no way of telling which messages have already been displayed; setShown
 		 is apparently called when a message is added to the log, which happens
-         right after triggering it.
+		 right after triggering it.
 	   => Need to track messages triggered during other civs' turns manually
-	     (m_iNewMessages). */
+		 (m_iNewMessages). */
 	/*  Don't show the log at game start (also: the BUG setting for the limit
 		isn't available at the start of the 0th turn) */
 	int iLimit = (GC.getGame().getElapsedGameTurns() <= 0 ? MAX_INT :
@@ -22028,7 +22028,7 @@ bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) co
 	//return (GET_PLAYER(eTarget).canDoReligion(eReligion) && GET_PLAYER(eTarget).getStateReligion() != eReligion && getStateReligion() == eReligion);
 	// K-Mod - You shouldn't be able to force a religion on an irreligious civ.
 	//return (GET_PLAYER(eTarget).isStateReligion() && GET_PLAYER(eTarget).canDoReligion(eReligion) && GET_PLAYER(eTarget).getStateReligion() != eReligion && getStateReligion() == eReligion);
-    // <advc.132> Rewritten based on the K-Mod condition (commented out above)
+	// <advc.132> Rewritten based on the K-Mod condition (commented out above)
 	CvPlayer const& kTarget = GET_PLAYER(eTarget);
 	/*  Just the conditions from above. (Better use canConvert, which checks recent
 		religion change? Would also have to use canRevolution then in canForceCivics.) */

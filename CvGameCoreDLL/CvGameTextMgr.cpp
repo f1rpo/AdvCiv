@@ -620,9 +620,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			szString.append(szTempBuffer);
 		}
 	}
-    if (bAlt && //(gDLL->getChtLvl() > 0))
+	if (bAlt && //(gDLL->getChtLvl() > 0))
 			bDebugMode) // advc.135c
-    {
+	{
 		CvSelectionGroup* eGroup = pUnit->getGroup();
 		if (eGroup != NULL)
 		{
@@ -634,7 +634,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			szTempBuffer.Format(L"Group(%d), %d units", eGroup->getID(), eGroup->getNumUnits());
 			szString.append(szTempBuffer);
 		}
-    }
+	}
 
 	if (!bOneLine)
 	{
@@ -1255,14 +1255,14 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			szString.append(pUnit->getUnitInfo().getHelp());
 		}
 
-        if (bShift && //(gDLL->getChtLvl() > 0))
+		if (bShift && //(gDLL->getChtLvl() > 0))
 				bDebugMode) // advc.135c
-        {
-            szTempBuffer.Format(L"\nUnitAI Type = %s.", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
-            szString.append(szTempBuffer);
-            szTempBuffer.Format(L"\nSacrifice Value = %d.", pUnit->AI_sacrificeValue(NULL));
-            szString.append(szTempBuffer);
-        }
+		{
+			szTempBuffer.Format(L"\nUnitAI Type = %s.", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
+			szString.append(szTempBuffer);
+			szTempBuffer.Format(L"\nSacrifice Value = %d.", pUnit->AI_sacrificeValue(NULL));
+			szString.append(szTempBuffer);
+		}
 	}
 }
 
@@ -7506,7 +7506,7 @@ void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes
 		if(pi.getPrereqPromotion() == ePromotion)
 			aeReq.push_back(eLoopPromo);
 		if(pi.getPrereqOrPromotion1() == ePromotion ||
-			    pi.getPrereqOrPromotion2() == ePromotion ||
+				pi.getPrereqOrPromotion2() == ePromotion ||
 				pi.getPrereqOrPromotion3() == ePromotion)
 			aeAltReq.push_back(eLoopPromo);
 	}
@@ -8260,9 +8260,9 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 
 	// show debug info if cheat level > 0 and alt down
 	bool bAlt = GC.altKey();
-    if (bAlt && //(gDLL->getChtLvl() > 0))
+	if (bAlt && //(gDLL->getChtLvl() > 0))
 			g.isDebugMode()) // advc.135c
-    {
+	{
 		szBuffer.clear();
 
 		for (iI = 0; iI < MAX_PLAYERS; ++iI)
@@ -8272,7 +8272,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			if (playerI->isAlive())
 			{
 				szTempBuffer.Format(L"%s: ", playerI->getName());
-		        szBuffer.append(szTempBuffer);
+				szBuffer.append(szTempBuffer);
 
 				TechTypes ePlayerTech = playerI->getCurrentResearch();
 				if(ePlayerTech == NO_TECH)
@@ -8285,12 +8285,12 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 							teamI->getResearchProgress(ePlayerTech),
 							teamI->getResearchCost(ePlayerTech));
 				}
-		        szBuffer.append(szTempBuffer);
+				szBuffer.append(szTempBuffer);
 			}
 		}
 
 		return;
-    }
+	}
 
 
 	if (NO_TECH == eTech)
@@ -11976,7 +11976,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 			{	// <advc.004w>
 				if(iMaxTeam == 1)
 					szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TEAM1"));
-                else szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TEAM_NUM_LEFT",
+				else szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TEAM_NUM_LEFT",
 						iMaxTeam - TEAMREF(ePlayer).getProjectCount(eProject) -
 						iMaking)); // </advc.004w>
 			}

@@ -3745,60 +3745,60 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 
 	//kPlayer.AI_getStrategyHash();
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER))
-    {
-        szTempBuffer.Format(L"Dagger, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Dagger, ");
+		szBuffer.append(szTempBuffer);
+	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_CRUSH))
-    {
-        szTempBuffer.Format(L"Crush, ");
-        szBuffer.append(szTempBuffer);
+	{
+		szTempBuffer.Format(L"Crush, ");
+		szBuffer.append(szTempBuffer);
 	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT1))
-    {
-        szTempBuffer.Format(L"Alert1, ");
-        szBuffer.append(szTempBuffer);
+	{
+		szTempBuffer.Format(L"Alert1, ");
+		szBuffer.append(szTempBuffer);
 	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT2))
-    {
-        szTempBuffer.Format(L"Alert2, ");
-        szBuffer.append(szTempBuffer);
+	{
+		szTempBuffer.Format(L"Alert2, ");
+		szBuffer.append(szTempBuffer);
 	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE))
-    {
-        szTempBuffer.Format(L"Turtle, ");
-        szBuffer.append(szTempBuffer);
+	{
+		szTempBuffer.Format(L"Turtle, ");
+		szBuffer.append(szTempBuffer);
 	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
-    {
-        szTempBuffer.Format(L"LastStand, ");
-        szBuffer.append(szTempBuffer);
+	{
+		szTempBuffer.Format(L"LastStand, ");
+		szBuffer.append(szTempBuffer);
 	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
-    {
-        szTempBuffer.Format(L"FinalWar, ");
-        szBuffer.append(szTempBuffer);
-    }
-    if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
-    {
-        szTempBuffer.Format(L"GetBetterUnits, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"FinalWar, ");
+		szBuffer.append(szTempBuffer);
+	}
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+	{
+		szTempBuffer.Format(L"GetBetterUnits, ");
+		szBuffer.append(szTempBuffer);
+	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
-    {
-        szTempBuffer.Format(L"Production, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Production, ");
+		szBuffer.append(szTempBuffer);
+	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
-    {
-        szTempBuffer.Format(L"Missionary, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Missionary, ");
+		szBuffer.append(szTempBuffer);
+	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE))
-    {
-        szTempBuffer.Format(L"BigEspionage, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"BigEspionage, ");
+		szBuffer.append(szTempBuffer);
+	}
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
 	{
 		szTempBuffer.Format(L"EconomyFocus, ");
@@ -3812,7 +3812,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 
 	szBuffer.append(NEWLINE);
 	szTempBuffer.Format(L"Vic Strats: ");
-    szBuffer.append(szTempBuffer);
+	szBuffer.append(szTempBuffer);
 
 	szTempBuffer.Format(L"");
 	// Victory strategies
@@ -3821,109 +3821,109 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	/*  <advc.007> Reordered and "else" added so that only the highest stage is
 		displayed. */
 	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
-    {
-        szTempBuffer.Format(L"Culture4, ");
-        szBuffer.append(szTempBuffer);
-    }
-    else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
-    {
-        szTempBuffer.Format(L"Culture3, ");
-        szBuffer.append(szTempBuffer);
-    }
-    else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
-    {
-        szTempBuffer.Format(L"Culture2, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Culture4, ");
+		szBuffer.append(szTempBuffer);
+	}
+	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	{
+		szTempBuffer.Format(L"Culture3, ");
+		szBuffer.append(szTempBuffer);
+	}
+	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+	{
+		szTempBuffer.Format(L"Culture2, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
-    {
-        szTempBuffer.Format(L"Culture1, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Culture1, ");
+		szBuffer.append(szTempBuffer);
+	}
 
 	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
-    {
-        szTempBuffer.Format(L"Space4, ");
-        szBuffer.append(szTempBuffer);
-    }
-    else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
-    {
-        szTempBuffer.Format(L"Space3, ");
-        szBuffer.append(szTempBuffer);
-    }
-    else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
-    {
-        szTempBuffer.Format(L"Space2, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Space4, ");
+		szBuffer.append(szTempBuffer);
+	}
+	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+	{
+		szTempBuffer.Format(L"Space3, ");
+		szBuffer.append(szTempBuffer);
+	}
+	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
+	{
+		szTempBuffer.Format(L"Space2, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1))
-    {
-        szTempBuffer.Format(L"Space1, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Space1, ");
+		szBuffer.append(szTempBuffer);
+	}
 
 	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
-    {
-        szTempBuffer.Format(L"Conq4, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Conq4, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
-    {
-        szTempBuffer.Format(L"Conq3, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Conq3, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2))
-    {
-        szTempBuffer.Format(L"Conq2, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Conq2, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1))
-    {
-        szTempBuffer.Format(L"Conq1, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Conq1, ");
+		szBuffer.append(szTempBuffer);
+	}
 
 	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
-    {
-        szTempBuffer.Format(L"Dom4, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Dom4, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
-    {
-        szTempBuffer.Format(L"Dom3, ");
-        szBuffer.append(szTempBuffer);
-    }
-    else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2))
-    {
-        szTempBuffer.Format(L"Dom2, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Dom3, ");
+		szBuffer.append(szTempBuffer);
+	}
+	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2))
+	{
+		szTempBuffer.Format(L"Dom2, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1))
-    {
-        szTempBuffer.Format(L"Dom1, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Dom1, ");
+		szBuffer.append(szTempBuffer);
+	}
 
 	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
-    {
-        szTempBuffer.Format(L"Diplo4, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Diplo4, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3))
-    {
-        szTempBuffer.Format(L"Diplo3, ");
-        szBuffer.append(szTempBuffer);
-    }
-    else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
-    {
-        szTempBuffer.Format(L"Diplo2, ");
-        szBuffer.append(szTempBuffer);
-    }
+	{
+		szTempBuffer.Format(L"Diplo3, ");
+		szBuffer.append(szTempBuffer);
+	}
+	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+	{
+		szTempBuffer.Format(L"Diplo2, ");
+		szBuffer.append(szTempBuffer);
+	}
 	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1))
-    {
-        szTempBuffer.Format(L"Diplo1, ");
-        szBuffer.append(szTempBuffer);
-    } // </advc.007>
+	{
+		szTempBuffer.Format(L"Diplo1, ");
+		szBuffer.append(szTempBuffer);
+	} // </advc.007>
 
 	// List the top 3 culture cities (by culture value weight).
 	//if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
@@ -4109,8 +4109,8 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	// if random in this range is 0, we go to war of this type (so lower numbers are higher probablity)
 	// average of everyone on our team
 	int iTotalWarRand;
-    int iLimitedWarRand;
-    int iDogpileWarRand;
+	int iLimitedWarRand;
+	int iDogpileWarRand;
 	kTeam.AI_getWarRands(iTotalWarRand, iLimitedWarRand, iDogpileWarRand);
 
 	int iTotalWarThreshold;
@@ -4181,7 +4181,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		int		iPossibleMaxWarPass;
 		bool	bPossibleLimitedWar;
 		bool	bPossibleDogpileWar;
-		bool    bEnoughDogpilePower;
+		bool	bEnoughDogpilePower;
 
 		bool	bValid;
 		bool	bLandTarget;

@@ -2475,13 +2475,13 @@ bool WarAndPeaceAI::Civ::isNearMilitaryVictory(int stage) const {
 	CvPlayerAI& we = GET_PLAYER(weId);
 	switch(stage) {
 		case 1: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1) ||
-                       we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1);
+					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1);
 		case 2: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2) ||
-                       we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2);
+					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2);
 		case 3: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3) ||
-                       we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3);
+					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3);
 		case 4: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) ||
-                       we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4);
+					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4);
 		default: return false;
 	}
 }

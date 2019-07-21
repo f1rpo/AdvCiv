@@ -359,8 +359,8 @@ double MilitaryBranch::Fleet::unitPower(CvUnitInfo const& u, bool modify) const 
 	if(modify) {
 		for(int i = 0; i < GC.getNumTerrainInfos(); i++)
 			if(u.getTerrainImpassable(i)) { r /= 2; break; }
-		/* Would like to use CvPlayerAI::AI_unitImpassableCount, but the darn thing
-	       requires a UnitTypes argument */
+		/*  Would like to use CvPlayerAI::AI_unitImpassableCount, but the darn thing
+			requires a UnitTypes argument */
 	}
 	return r;
 }

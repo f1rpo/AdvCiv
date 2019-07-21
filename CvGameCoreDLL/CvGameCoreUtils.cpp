@@ -36,7 +36,7 @@ int roundToMultiple(double d, int iMultiple) {
 
 bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, int iData2) {
 
-    int iChancePerMyriad = round(pr * 10000.0);
+	int iChancePerMyriad = round(pr * 10000.0);
 	// These two checks are just for better performance
 	if(iChancePerMyriad >= 10000)
 		return true;
@@ -46,7 +46,7 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 		pszLog = "bs";
 	if(bAsync)
 		return (GC.getASyncRand().get(10000, pszLog) < iChancePerMyriad);
-    return GC.getGame().
+	return GC.getGame().
 			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
 }
 

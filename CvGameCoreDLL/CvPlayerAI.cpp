@@ -3877,7 +3877,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		iResourceValue /= 2;
 	} */
 	// K-mod. It's tricky to get this right. Special commerce is great in the early game, but not so great later on.
-	//        Food is always great - unless we already have too much; and food already affects a bunch of other parts of the site evaluation...
+	// Food is always great - unless we already have too much; and food already affects a bunch of other parts of the site evaluation...
 	if (kSet.bStartingLoc) {
 		/*  try not to make the value of strategic resources too overwhelming.
 			(note: I removed a bigger value reduction from the original code
@@ -8446,8 +8446,8 @@ int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEna
 		{
 			// Space ship parts (changed by K-Mod)
 			// Note: ideally this would take into account the production cost of each item,
-			//       and the total number / production of a completed space-ship, and a
-			//       bunch of other things. But I think this is good enough for now.
+			// and the total number / production of a completed space-ship, and a
+			// bunch of other things. But I think this is good enough for now.
 			if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
 			{
 				iBaseValue += 40;

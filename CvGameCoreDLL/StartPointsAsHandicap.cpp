@@ -210,12 +210,12 @@ void StartPointsAsHandicap::randomizePoints() {
 	std::sort(civs.begin(), civs.end(), isLeftPtsLessThanRight);
 	/*  Increase and decrease some point values randomly. The random changes are
 		such that the following properties remain unchanged:
-         * the ordering of the civs (by points), e.g.
-           the civ with the 3rd most points will still
-           have the third most points after randomization;
-         * the sum of the points over all civs;
-         * the highest and the lowest point value among AI civs; and
-         * the human player's points. */
+		 * the ordering of the civs (by points), e.g.
+		   the civ with the 3rd most points will still
+		   have the third most points after randomization;
+		 * the sum of the points over all civs;
+		 * the highest and the lowest point value among AI civs; and
+		 * the human player's points. */
 	int nAI = nCivs - nHuman;
 	int middleAIIndex = nHuman + nAI / 2;
 	if(nAI < 4)
@@ -431,7 +431,7 @@ int StartPointsAsHandicap::MajorCiv::id() const {
 
 CvPlot* StartPointsAsHandicap::MajorCiv::startingPlot() const {
 
-    return GET_PLAYER(civId).getStartingPlot();
+	return GET_PLAYER(civId).getStartingPlot();
 }
 
 bool StartPointsAsHandicap::MajorCiv::isHuman() const {

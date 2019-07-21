@@ -46,7 +46,7 @@ public:
 	bool hasCapitulated(TeamTypes civId) const;
 	// From units lost at war
 	double lostPower(PlayerTypes civId, MilitaryBranchTypes mb) const;
-    // Net gain, i.e. build-up minus losses; can be negative
+	// Net gain, i.e. build-up minus losses; can be negative
 	double gainedPower(PlayerTypes civId, MilitaryBranchTypes mb) const;
 	// Production invested in military build-up
 	double militaryProduction(PlayerTypes civId) const;

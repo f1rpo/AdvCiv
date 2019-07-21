@@ -800,7 +800,7 @@ void WarAndPeaceCache::sortCitiesByAttackPriority() {
 			v[i] = v[iMax];
 			v[iMax] = tmp;
 		}
-    }
+	}
 }
 
 int WarAndPeaceCache::size() const {
@@ -1528,7 +1528,7 @@ bool WarAndPeaceCache::City::byOwnerAndDistance(City* one, City* two) {
 		return false;
 	int dist1 = one->getDistance(),
 		dist2 = two->getDistance();
-    return dist1 < dist2;
+	return dist1 < dist2;
 }
 
 bool WarAndPeaceCache::City::byDistance(City* one, City* two) {
@@ -1539,7 +1539,7 @@ bool WarAndPeaceCache::City::byDistance(City* one, City* two) {
 		return false;
 	if(dist2 < 0 && dist1 >= 0)
 		return true;
-    return dist1 < dist2;
+	return dist1 < dist2;
 }
 
 bool WarAndPeaceCache::City::byOwnerAndTargetValue(City* one, City* two) {
@@ -1551,21 +1551,21 @@ bool WarAndPeaceCache::City::byOwnerAndTargetValue(City* one, City* two) {
 		return false;
 	int v1 = one->getTargetValue(),
 		v2 = two->getTargetValue();
-    return v1 > v2;
+	return v1 > v2;
 }
 
 bool WarAndPeaceCache::City::byTargetValue(City* one, City* two) {
 
 	int v1 = one->getTargetValue(),
 		v2 = two->getTargetValue();
-    return v1 > v2;
+	return v1 > v2;
 }
 
 bool WarAndPeaceCache::City::byAttackPriority(City* one, City* two) {
 
 	double v1 = one->attackPriority(),
 		   v2 = two->attackPriority();
-    return v1 > v2;
+	return v1 > v2;
 }
 double WarAndPeaceCache::City::attackPriority() const {
 
@@ -1587,7 +1587,7 @@ int WarAndPeaceCache::City::byOwner(City* one, City* two) {
 		return -1;
 	if(owner2 < owner1)
 		return 1;
-    return 0;
+	return 0;
 }
 
 PlayerTypes WarAndPeaceCache::City::cityOwner() const {

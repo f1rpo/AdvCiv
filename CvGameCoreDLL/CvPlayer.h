@@ -985,7 +985,7 @@ public:
 	EventTriggeredData* addEventTriggered();
 	void deleteEventTriggered(int iID);
 	EventTriggeredData* initTriggeredData(EventTriggerTypes eEventTrigger, bool bFire = false, int iCityId = -1, int iPlotX = INVALID_PLOT_COORD, int iPlotY = INVALID_PLOT_COORD, PlayerTypes eOtherPlayer = NO_PLAYER, int iOtherPlayerCityId = -1, ReligionTypes eReligion = NO_RELIGION, CorporationTypes eCorporation = NO_CORPORATION, int iUnitId = -1, BuildingTypes eBuilding = NO_BUILDING);   // Exposed to Python
-	int getEventTriggerWeight(EventTriggerTypes eTrigger) const;    // Exposed to python
+	int getEventTriggerWeight(EventTriggerTypes eTrigger) const;	// Exposed to python
 
 	DllExport void addMessage(const CvTalkingHeadMessage& message);
 	void showMissedMessages();
@@ -1077,8 +1077,8 @@ public:
 	bool canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const;
 	void setDefiedResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData);
 	void setEndorsedResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData);
-	bool isFullMember(VoteSourceTypes eVoteSource) const;    // Exposed to Python
-	bool isVotingMember(VoteSourceTypes eVoteSource) const;    // Exposed to Python
+	bool isFullMember(VoteSourceTypes eVoteSource) const;		// Exposed to Python
+	bool isVotingMember(VoteSourceTypes eVoteSource) const;		// Exposed to Python
 
 	void invalidatePopulationRankCache();
 	void invalidateYieldRankCache(YieldTypes eYield = NO_YIELD);
@@ -1087,7 +1087,7 @@ public:
 	PlayerTypes pickConqueredCityOwner(const CvCity& kCity) const;
 	bool canHaveTradeRoutesWith(PlayerTypes ePlayer) const;
 
-	void forcePeace(PlayerTypes ePlayer);    // exposed to Python
+	void forcePeace(PlayerTypes ePlayer);		// exposed to Python
 	// advc.032: True iff a treaty was found and its turnsToCancel reset
 	bool resetPeaceTreaty(PlayerTypes ePlayer);
 	bool canSpiesEnterBorders(PlayerTypes ePlayer) const;

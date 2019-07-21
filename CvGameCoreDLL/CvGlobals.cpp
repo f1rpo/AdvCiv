@@ -2534,7 +2534,7 @@ CvString& CvGlobals::getArtStyleTypes(ArtStyleTypes e)
 
 int CvGlobals::getNumUnitArtStyleTypeInfos()
 {
-    return (int)m_paUnitArtStyleTypeInfo.size();
+	return (int)m_paUnitArtStyleTypeInfo.size();
 }
 
 std::vector<CvUnitArtStyleTypeInfo*>& CvGlobals::getUnitArtStyleTypeInfo()

@@ -114,7 +114,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		if((loopTeam.isAtWar(tId) || warAssumed) && !peaceAssumedLoop &&
 				/* If neither side can reach the other, the war doesn't count
 				   because it doesn't (or shouldn't) lead to additional buildup. */
-			    reachEither) {
+				reachEither) {
 			iWars++;
 			if(iWars <= 1)
 				singleWarEnemy = loopTeam.getID();
@@ -134,7 +134,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 					// Only assume total war if we can reach them (not just them us)
 					t.warAndPeaceAI().canReach(loopTeamId);
 			if((t.AI_getWarPlan(loopTeamId) == WARPLAN_TOTAL &&
-				    /* If we already have a (total) war plan against the target,
+					/* If we already have a (total) war plan against the target,
 					   that plan is going to be replaced by the war plan
 					   under consideration if adopted. */
 					(TEAMID(weId) != tId || loopTeamId != targetTeamId)) ||
@@ -157,7 +157,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				(attackedRecently ? ", attacked recently" : ""));
 	if(iTotalWars > 0 ||
 			/* When planning for limited war while being alert2 or dagger,
-		       the strategies take precedence. However, shouldn't trust
+			   the strategies take precedence. However, shouldn't trust
 			   alert2 when assuming peace b/c alert2 may well be caused
 			   by the ongoing war.
 			   (alert2 now treated separately farther below.)
@@ -175,13 +175,13 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			master != ourMaster))
 		intensity = FULL;
 	bool attackedUnprepared = attackedRecently && iWarPlans == 0;
-		    // Count preparing limited as unprepared?
+			// Count preparing limited as unprepared?
 			//nWarPlans <= t.getWarPlanCount(WARPLAN_PREPARING_LIMITED);
 	bool defensive = false;
 	/* Trust defensive AreaAI even when assuming peace b/c defensive build-up will
 	   (or should) continue despite peace. */
 	if((getAreaAI(civId) == AREAAI_DEFENSIVE &&
-		    /* Trust AreaAI for the first phase of simulation, for the second phase,
+			/* Trust AreaAI for the first phase of simulation, for the second phase,
 			   if increased or full build-up (always the case when
 			   defensive AreaAI?), assume that t will be able to get on the
 			   offensive, or that defenses reach a saturation point. */

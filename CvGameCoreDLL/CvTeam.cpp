@@ -865,7 +865,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		TechTypes eTech = (TechTypes)iI;
 		if (isHasTech(eTech))
 		{
-            GET_TEAM(eTeam).setNoTradeTech(eTech,
+			GET_TEAM(eTeam).setNoTradeTech(eTech,
 					(!GET_TEAM(eTeam).isHasTech(eTech) ||
 					GET_TEAM(eTeam).isNoTradeTech(eTech)) &&
 					isNoTradeTech(eTech));
@@ -1097,7 +1097,7 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 
 	// K-Mod. Share extra moves.
 	// Note: there is no reliable way to do this. We can't tell if the bonus is from something unique- such as circumnavigation,
-	//       or from something that is already taken into account - such as refrigeration.
+	// or from something that is already taken into account - such as refrigeration.
 	for (DomainTypes t = (DomainTypes)0; t < NUM_DOMAIN_TYPES; t=(DomainTypes)(t+1))
 	{
 		if (kShareTeam.getExtraMoves(t) > getExtraMoves(t))
@@ -1871,7 +1871,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
 	} // </advc.130i>
 
 	if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 05/21/10, jdog5000
-		logBBAI("      Team %d (%S) and team %d (%S) make peace", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam, GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getCivilizationDescription(0));
+		logBBAI("    Team %d (%S) and team %d (%S) make peace", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam, GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getCivilizationDescription(0));
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -3121,20 +3121,20 @@ bool CvTeam::isBonusObsolete(BonusTypes eBonus) const
 	which isn't relevant for Barbarians. */
 bool CvTeam::canSeeReqBonuses(UnitTypes eUnit) {
 
-    CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
-    BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
-    if(eAndBonus != NO_BONUS && !isBonusRevealed(eAndBonus))
-        return false;
-    bool bAllBlank = true; // Handle dummy NONE XML elements
-    for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
-       BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(i);
-        if(eOrBonus != NO_BONUS) {
-            bAllBlank = false;
-            if(isBonusRevealed(eOrBonus))
-                return true;
-        }
-    }
-    return bAllBlank;
+	CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+	BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
+	if(eAndBonus != NO_BONUS && !isBonusRevealed(eAndBonus))
+		return false;
+	bool bAllBlank = true; // Handle dummy NONE XML elements
+	for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+		BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(i);
+		if(eOrBonus != NO_BONUS) {
+			bAllBlank = false;
+			if(isBonusRevealed(eOrBonus))
+				return true;
+		}
+	}
+	return bAllBlank;
 } // </advc.301>
 
 

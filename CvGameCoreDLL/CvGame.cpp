@@ -311,9 +311,9 @@ void CvGame::setInitialItems()
 			setStartTurnYear call and setInitialItems. The second setStartTurnYear
 			causes any initial "universal" peace treaties to end after 1 turn.
 			Need to inform all CvDeal objects about the changed start turn: */
-        CvDeal* d; int foo;
-        for(d = firstDeal(&foo); d != NULL; d = nextDeal(&foo))
-            d->setInitialGameTurn(getGameTurn());
+		CvDeal* d; int foo;
+		for(d = firstDeal(&foo); d != NULL; d = nextDeal(&foo))
+			d->setInitialGameTurn(getGameTurn());
 	} // </advc.250c>
 	// </advc.251>
 	for (int i = 0; i < MAX_PLAYERS; ++i)
@@ -502,7 +502,7 @@ void CvGame::uninit()
 // advc.250c: Function body cut from CvGame::init. Changes marked in-line.
 void CvGame::setStartTurnYear(int iTurn) {
 
-    int iI;
+	int iI;
 	CvGameSpeedInfo const& kSpeed = GC.getGameSpeedInfo(getGameSpeedType()); // advc.003
 	// <advc.250c>
 	if(iTurn > 0)
@@ -4080,7 +4080,7 @@ int CvGame::getMaxTurnLen()
 		TurnTimerTypes eTurnTimer = GC.getInitCore().getTurnTimer();
 		FAssertMsg(eTurnTimer >= 0 && eTurnTimer < GC.getNumTurnTimerInfos(), "Invalid TurnTimer Selection in InitCore");
 		return (GC.getTurnTimerInfo(eTurnTimer).getBaseTime() +
-			    (GC.getTurnTimerInfo(eTurnTimer).getCityBonus()*iMaxCities) +
+				(GC.getTurnTimerInfo(eTurnTimer).getCityBonus()*iMaxCities) +
 				(GC.getTurnTimerInfo(eTurnTimer).getUnitBonus()*iMaxUnits));
 	}
 }

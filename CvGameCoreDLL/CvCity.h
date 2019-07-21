@@ -977,16 +977,16 @@ public:
 	bool isEventOccured(EventTypes eEvent) const;
 	void setEventOccured(EventTypes eEvent, bool bOccured);
 
-	int getBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield) const;           // Exposed to Python
-	void setBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange);          // Exposed to Python
+	int getBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield) const;			// Exposed to Python
+	void setBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange);			// Exposed to Python
 	void changeBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange);
-	int getBuildingCommerceChange(BuildingClassTypes eBuildingClass, CommerceTypes eCommerce) const;           // Exposed to Python
-	void setBuildingCommerceChange(BuildingClassTypes eBuildingClass, CommerceTypes eCommerce, int iChange);          // Exposed to Python
+	int getBuildingCommerceChange(BuildingClassTypes eBuildingClass, CommerceTypes eCommerce) const;			// Exposed to Python
+	void setBuildingCommerceChange(BuildingClassTypes eBuildingClass, CommerceTypes eCommerce, int iChange);			// Exposed to Python
 	void changeBuildingCommerceChange(BuildingClassTypes eBuildingClass, CommerceTypes eCommerce, int iChange);
-	int getBuildingHappyChange(BuildingClassTypes eBuildingClass) const;           // Exposed to Python
-	void setBuildingHappyChange(BuildingClassTypes eBuildingClass, int iChange);          // Exposed to Python
-	int getBuildingHealthChange(BuildingClassTypes eBuildingClass) const;           // Exposed to Python
-	void setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange);          // Exposed to Python
+	int getBuildingHappyChange(BuildingClassTypes eBuildingClass) const;			// Exposed to Python
+	void setBuildingHappyChange(BuildingClassTypes eBuildingClass, int iChange);	   	// Exposed to Python
+	int getBuildingHealthChange(BuildingClassTypes eBuildingClass) const;			// Exposed to Python
+	void setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange);			// Exposed to Python
 
 	PlayerTypes getLiberationPlayer(bool bConquest,									   // Exposed to Python
 			TeamTypes eWarTeam = NO_TEAM) const; // advc.122

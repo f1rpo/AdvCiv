@@ -503,8 +503,8 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 
 						if (iDist != -1)
 						{
-						    //int iCrowDistance = plotDistance(pStartingPlot->getX(), pStartingPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
-						    //iDist = std::min(iDist,  iCrowDistance * 2);
+							//int iCrowDistance = plotDistance(pStartingPlot->getX(), pStartingPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
+							//iDist = std::min(iDist,  iCrowDistance * 2);
 							if ((pLoopPlot->getMinOriginalStartDist() == -1) || (iDist < pLoopPlot->getMinOriginalStartDist()))
 							{
 								pLoopPlot->setMinOriginalStartDist(iDist);
@@ -692,9 +692,9 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	int iLegal = (int)apLegalPlots.size();
 	if(piLegal != NULL)
 		*piLegal = iLegal;
-    if(iLegal == 0)
-        return NULL;
-    return apLegalPlots[GC.getGame().getSorenRandNum(iLegal, "advc.304")];
+	if(iLegal == 0)
+		return NULL;
+	return apLegalPlots[GC.getGame().getSorenRandNum(iLegal, "advc.304")];
 	// </advc.304>
 }
 
@@ -1533,7 +1533,7 @@ void CvMap::getShelves(int iArea, std::vector<Shelf*>& r) const {
 	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin();
 			it != shelves.end(); it++) {
 		if(it->first.first == iArea)
-    		r.push_back(it->second);
+			r.push_back(it->second);
 	}
 }
 

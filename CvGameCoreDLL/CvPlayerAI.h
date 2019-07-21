@@ -567,8 +567,8 @@ public:
 	bool AI_disapprovesOfDoW(TeamTypes eAggressor, TeamTypes eVictim) const;
 	bool AI_isDangerFromSubmarines() const; // advc.651
 	bool AI_isPiracyTarget(PlayerTypes eTarget) const; // advc.033
-    /* Are there cities with sufficient production to
-	   train a significant number of units of type 'ut'?*/
+	/* Are there cities with sufficient production to
+	   train a significant number of units of type eUnit? */
 	bool AI_canBeExpectedToTrain(UnitTypes eUnit) const; // advc.104, advc.651
 	bool AI_isDefenseFocusOnBarbarians(int iArea) const; // advc.300
 	// advc.001: needed for bNeighbouringReligion in AI_techValue

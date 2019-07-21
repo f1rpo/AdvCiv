@@ -216,7 +216,7 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 	case MESSAGE_TYPE_CHAT:
 		iExpireTurn += 20;
 		break;
-    case MESSAGE_TYPE_COMBAT_MESSAGE:
+	case MESSAGE_TYPE_COMBAT_MESSAGE:
 		iExpireTurn += 20;
 		break;
 	case MESSAGE_TYPE_MINOR_EVENT:
@@ -248,7 +248,7 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 	iExpireTurn = getTurn();
 	switch(m_eMessageType) {
 	case MESSAGE_TYPE_INFO: iExpireTurn += 1; break;
-    case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
+	case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
 	case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;
 	case MESSAGE_TYPE_QUEST:
 		iExpireTurn = GC.getGame().getGameTurn() + 1;

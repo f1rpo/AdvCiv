@@ -1129,12 +1129,12 @@ void CvUnit::updateAirCombat(bool bQuick)
 		else if (kAirMission.getDamage(BATTLE_UNIT_ATTACKER) > 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_HURT_ENEMY_AIR", pInterceptor->getNameKey(), getNameKey(),
-				    kAirMission.getDamage(BATTLE_UNIT_ATTACKER), // advc.004g
+					kAirMission.getDamage(BATTLE_UNIT_ATTACKER), // advc.004g
 					getVisualCivAdjective(pInterceptor->getTeam()));
 			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_AIR_UNIT_HURT", getNameKey(), pInterceptor->getNameKey(),
-				    kAirMission.getDamage(BATTLE_UNIT_ATTACKER)); // advc.004g
+					kAirMission.getDamage(BATTLE_UNIT_ATTACKER)); // advc.004g
 			gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 
@@ -1149,12 +1149,12 @@ void CvUnit::updateAirCombat(bool bQuick)
 		else if (kAirMission.getDamage(BATTLE_UNIT_DEFENDER) > 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_ENEMY_AIR", getNameKey(), pInterceptor->getNameKey(),
-				    kAirMission.getDamage(BATTLE_UNIT_DEFENDER), // advc.004g
+					kAirMission.getDamage(BATTLE_UNIT_DEFENDER), // advc.004g
 					pInterceptor->getVisualCivAdjective(getTeam()));
 			gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_DAMAGED", pInterceptor->getNameKey(), getNameKey(),
-				    kAirMission.getDamage(BATTLE_UNIT_DEFENDER)); // advc.004g
+					kAirMission.getDamage(BATTLE_UNIT_DEFENDER)); // advc.004g
 			gDLL->getInterfaceIFace()->addHumanMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
 		}
 
@@ -3535,7 +3535,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport)
 	   (intolerant) state religion. */
 	ReligionTypes eRecipientReligion = kRecipient.getStateReligion();
 	if(eRecipientReligion != NO_RELIGION && AI_getUnitAIType() == UNITAI_MISSIONARY &&
-	        kRecipient.isNoNonStateReligionSpread() &&
+			kRecipient.isNoNonStateReligionSpread() &&
 			eRecipientReligion != GC.getUnitInfo(getUnitType()).getReligionType())
 		return false;
 	// <dlph.4>
@@ -3612,7 +3612,7 @@ void CvUnit::gift(bool bTestTransport)
 		}
 		kRecievingPlayer.AI_processPeacetimeGrantValue(getOwner(), iGiftValue);
 		// TODO: It would nice if there was some way this could also reduce "you refused to help us during war time", and stuff like that.
-		//       But I think that would probably require some additional AI memory.
+		// But I think that would probably require some additional AI memory.
 	}
 	else
 	{
@@ -6393,10 +6393,10 @@ int CvUnit::getDiscoverResearch(TechTypes eTech) const
 	iResearch *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getUnitDiscoverPercent();
 	iResearch /= 100;
 
-    if (eTech != NO_TECH)
-    {
-        iResearch = std::min(GET_TEAM(getTeam()).getResearchLeft(eTech), iResearch);
-    }
+	if (eTech != NO_TECH)
+	{
+		iResearch = std::min(GET_TEAM(getTeam()).getResearchLeft(eTech), iResearch);
+	}
 
 	return std::max(0, iResearch);
 }
@@ -7081,7 +7081,7 @@ bool CvUnit::goldenAge()
 
 bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible) const
 {
-    FAssertMsg(eBuild < GC.getNumBuildInfos(), "Index out of bounds");
+	FAssertMsg(eBuild < GC.getNumBuildInfos(), "Index out of bounds");
 	if (!m_pUnitInfo->getBuilds(eBuild))
 	{
 		return false;
@@ -12677,13 +12677,13 @@ bool CvUnit::airStrike(CvPlot* pPlot)
 	int iUnitDamage = std::max(pDefender->getDamage(), std::min((pDefender->getDamage() + iDamage), airCombatLimit()));
 
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pDefender->getNameKey(), getNameKey(),
-		    // advc.004g:
+			// advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
 	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
-		    // advc.004g:
-		    ((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
+			// advc.004g:
+			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
 	gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 	collateralCombat(pPlot, pDefender);
@@ -12806,8 +12806,8 @@ bool CvUnit::rangeStrike(int iX, int iY)
 	int iUnitDamage = std::max(pDefender->getDamage(), std::min((pDefender->getDamage() + iDamage), airCombatLimit()));
 
 	CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pDefender->getNameKey(), getNameKey(),
-		    // advc.004g:
-		    ((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
+			// advc.004g:
+			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
 	//red icon over attacking unit
 	gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 	//white icon over defending unit
@@ -12815,7 +12815,7 @@ bool CvUnit::rangeStrike(int iX, int iY)
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
 			// advc.004g:
-		    ((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
+			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
 	gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 
 	collateralCombat(pPlot, pDefender);

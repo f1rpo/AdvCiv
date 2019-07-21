@@ -474,7 +474,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 				{
 					if (bForce || pLoopUnit->canMoveInto(pPlot, true))
 					{
-                        int iValue = pLoopUnit->AI_sacrificeValue(pPlot);
+						int iValue = pLoopUnit->AI_sacrificeValue(pPlot);
 						/* advc.006: > 0 not guaranteed if unit has no
 						   production cost; changed to >= 0. */
 						FAssert(iValue >= 0);

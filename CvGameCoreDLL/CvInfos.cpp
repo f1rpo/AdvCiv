@@ -23167,7 +23167,7 @@ bool CvUnitArtStyleTypeInfo::read(CvXMLLoadUtility* pXML)
 							{
 								for (int j = 0; j < iMesh; j++)
 								{
-								    // Overwrite with the Style Art
+									// Overwrite with the Style Art
 									pXML->GetChildXmlValByName(szTextVal, "EarlyArtDefineTag");
 									setEarlyArtDefineTag(j, iIndex, szTextVal);
 									pXML->GetChildXmlValByName(szTextVal, "LateArtDefineTag");

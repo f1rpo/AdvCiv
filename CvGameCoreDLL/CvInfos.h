@@ -2189,7 +2189,7 @@ public:
 
 	DllExport int getDefaultPlayerColor() const;				// Expose to Python
 	int getArtStyleType() const;				// Expose to Python
-	int getUnitArtStyleType() const;         // Expose to Python
+	int getUnitArtStyleType() const;			// Expose to Python
 	int getNumCityNames() const;				// Expose to Python
 	int getNumLeaders() const;				// Exposed to Python - the number of leaders the Civ has, this is needed so that random leaders can be generated easily
 	int getSelectionSoundScriptId() const;				// Expose to Python
@@ -6393,7 +6393,7 @@ public:
 	CvUnitArtStyleTypeInfo();
 	virtual ~CvUnitArtStyleTypeInfo();
 
-    const TCHAR* getEarlyArtDefineTag(int /*Mesh Index*/ i, int /*UnitType*/ j) const;
+	const TCHAR* getEarlyArtDefineTag(int /*Mesh Index*/ i, int /*UnitType*/ j) const;
 	void setEarlyArtDefineTag(int /*Mesh Index*/ i, int /*UnitType*/ j, const TCHAR* szVal);
 	const TCHAR* getLateArtDefineTag(int /*Mesh Index*/ i, int /*UnitType*/ j) const;
 	void setLateArtDefineTag(int /*Mesh Index*/ i, int /*UnitType*/ j, const TCHAR* szVal);
@@ -6411,7 +6411,7 @@ protected:
 		CvString szTag;
 	};
 	typedef std::vector<ArtDefneTag> ArtDefineArray;
-    ArtDefineArray m_azEarlyArtDefineTags;
+	ArtDefineArray m_azEarlyArtDefineTags;
 	ArtDefineArray m_azLateArtDefineTags;
 	ArtDefineArray m_azMiddleArtDefineTags;
 };
