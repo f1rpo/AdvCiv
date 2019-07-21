@@ -237,10 +237,10 @@
 			 power values then typically equal unit strength, e.g. two Warriors
 			 are as good as one Spearman. When squaring, one Spearman is as
 			 good as four Warriors. (That seems too much.)
-			 Recommended: 1.65; one Spearman then corresponds to 3.1 Warriors.
+			 Recommended: 1.66; one Spearman then corresponds to 3.15 Warriors.
 			 -->
         <DefineName>POWER_CORRECTION</DefineName>
-        <fDefineFloatVal>1.65</fDefineFloatVal>
+        <fDefineFloatVal>1.66</fDefineFloatVal>
     </Define>
 	<!-- [/advc.104] -->
 
