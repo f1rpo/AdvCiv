@@ -2256,7 +2256,12 @@ bool CvUnit::isUnowned() const {
 		return false;
 	if(isAnimal() || m_pUnitInfo->isHiddenNationality())
 		return true;
-	CvCity* pPlotCity = plot()->getPlotCity();
+	// The way this function is used, I guess it's possible that the unit has just died, so:
+	// Erik: bugfix, the current plot could be NULL
+	const CvPlot* pPlot = plot();
+	if(pPlot == NULL)
+		return false; // (end of bugfix)
+	CvCity* pPlotCity = pPlot->getPlotCity();
 	if(pPlotCity != NULL && pPlotCity->isBarbarian())
 		return true;
 	return false;
