@@ -3721,7 +3721,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_MOBILE_SAM</Type>
 			<Button>,Art/Interface/Buttons/Units/ICBM.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,6,11</Button>
-			<fScale>0.57</fScale>
+			<!-- advc.002j: was 0.57 -->
+			<fScale>0.55</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
