@@ -111,7 +111,8 @@ void MilitaryBranch::NuclearArsenal::updateTypicalUnit() {
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
 		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
 				civ.getCivilizationType()).getCivilizationUnits(i));
-		if(ut == NO_UNIT) continue;
+		if(ut == NO_UNIT)
+			continue;
 		CvCity* capital = civ.getCapitalCity();
 		if(capital == NULL || !capital->canTrain(ut))
 			continue;
@@ -467,6 +468,8 @@ bool MilitaryBranch::Army::canTrainSiege() const {
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
 		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
 				civ.getCivilizationType()).getCivilizationUnits(i));
+		if(ut == NO_UNIT)
+			continue;
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		if(((u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_LAND) ||
 				(u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_AIR)) &&
@@ -484,6 +487,8 @@ bool MilitaryBranch::Army::canTrainCollateral() const {
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
 		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
 				civ.getCivilizationType()).getCivilizationUnits(i));
+		if(ut == NO_UNIT)
+			continue;
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		if(u.getCollateralDamage() > 0 &&
 				isValidDomain((DomainTypes)u.getDomainType()) &&

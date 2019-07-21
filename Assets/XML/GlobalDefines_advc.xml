@@ -71,7 +71,16 @@
 		<DefineName>HOF_DISPLAY_OTHER_MOD_REPLAYS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
+	<!-- advc.002h: 0 only hides the clouds. Their shadows are hidden through
+		 BML.fpk. Original value: 1. If BML.fpk is removed, then this value
+		 should be set back to 1; otherwise, there will be cloud shadows without
+		 clouds. -->
+	<Define>
+		<DefineName>RENDER_GLOBEVIEW_CLOUDS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
 	<!-- [advc.104, advc.019]
 		A value of 1 or greater enables K-Mod's AI for decisions on war
 		and peace (instead of UWAI), and disables the "Aggressive AI" option.
@@ -132,7 +141,7 @@
 	</Define>
 
 	<!-- [advc.102]
-		 If set to 0, the moves of friendly Workers are not shown to the 
+		 If set to 0, the moves of friendly Workers are not shown to the
 		 player, even if the "show friendly moves" option is enabled.
 		 Exception: Workers outside of their owners' cultural borders are still
 		 shown moving. Recommended: 0; 1 for BtS behavior. -->
@@ -169,7 +178,7 @@
 		<DefineName>ENABLE_HOTKEY_SHOW_FRIENDLY_MOVES</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.038]
 		 The "Top Civs" pop-up ("... has completed his greatest work: The
 		 [e.g.] wealthiest civilizations") appears every TOP_CIVS_INTERVAL
@@ -182,7 +191,7 @@
 	</Define>
 
     <!-- [advc.107]
-		 Starting from this game era, the AI keeps an extra defender in all of 
+		 Starting from this game era, the AI keeps an extra defender in all of
 		 its cities. The era codes are:
          -1: no era (no extra defender, bare minimum remains 1 for the entire
 		  game)
@@ -224,14 +233,14 @@
 		 parameter has no effect. NSA removes jungle and shelf ice ("bad
 		 features") entirely in the city radius around each starting plot,
 		 and with 50% probability 1 plot beyond the city range. (See
-		 CvGame.cpp, normalizeRemoveBadFeatures; it's a bit more 
+		 CvGame.cpp, normalizeRemoveBadFeatures; it's a bit more
 		 complicated than this.)
          Without NSA, plots in the inner city radius are still cleared
 		 entirely, whereas plots in the outer radius are only cleared if
          there are more bad plots than the threshold. If there are too
-		 many bad plots, then each of them is cleared with a probability 
-		 chosen so that the expected number of bad plots remaining equals 
-		 the threshold. (Example: 9 jungle plots among the 12 plots in 
+		 many bad plots, then each of them is cleared with a probability
+		 chosen so that the expected number of bad plots remaining equals
+		 the threshold. (Example: 9 jungle plots among the 12 plots in
 		 the city range; threshold is 3. The 9 jungles will be cleared
 		 independently with probability 1 minus 3/9, i.e. 67%.)
          Recommended: 3.
@@ -277,7 +286,7 @@
 		<DefineName>START_SIGHT_RANGE</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.143]
 		 Companion to VASSAL_REVOLT_OWN_LOSSES_FACTOR. Voluntary vassals
 		 cancel the agreement once they lose so much territory that less than
@@ -383,7 +392,7 @@
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
 		<fDefineFloatVal>4600</fDefineFloatVal>
 	</Define>
-	
+
 	<!-- [advc.500b]
 		 If this is set to a value greater than 0, unhappiness for lack of
 		 military protection is computed based on defensive strength (see
@@ -394,7 +403,7 @@
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.106]
 		 If set to 1, era transitions are recorded in replays.
 		 Set to 0 for BtS behavior (no era transitions in replays).
@@ -421,7 +430,7 @@
 		<DefineName>MESSAGE_LIMIT_WITHOUT_MPU</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.106e: 4 (recommended) means that religion spread in foreign
 		 cities is no longer announced once the player enters the Industrial era
 		 (unless the player owns the respective holy city). Set to -1 to
@@ -440,7 +449,7 @@
 		<DefineName>ANNOUNCE_STATE_RELIGION_SPREAD</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.106h: 1 (recommended) means that the game settings are recorded
 		 in replay files (as the first replay message). 0 (BtS) behavior means
 		 that the game settings are partly stored in the replay file, but not
@@ -449,7 +458,7 @@
 		<DefineName>SETTINGS_IN_REPLAYS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.106l: "Saving" messages are displayed for this many seconds
 		 except for networked multiplayer saves.
 		 0 means that no saving messages are displayed. Use 10 for BtS behavior
@@ -471,22 +480,22 @@
 		<DefineName>SAVING_MESSAGE_TIME</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.099]
 		 The default value for culture-based anger assumes Open Borders in
 		 AdvCiv. With closed borders, the anger is CLOSED_BORDERS_CULTURE_
 		 ANGER_MODIFIER percent greater. The increased anger also applies when
-		 the foreign civ has capitulated to the city owner or has been 
+		 the foreign civ has capitulated to the city owner or has been
 		 eliminated (by anyone). Recommended: 25 (50?) -->
 	<Define>
 		<DefineName>CLOSED_BORDERS_CULTURE_ANGER_MODIFIER</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.099]
 	     Copied from GlobalDefines.xml only for reference; the value
 		 there is 50, and no change is recommended.
-		 Anger from foreign culture is greater while at war. 
+		 Anger from foreign culture is greater while at war.
 		 Now (additively) cumulative with
 		 CLOSED_BORDERS_CULTURE_ANGER_MODIFIER (see above).
 		 Civs eliminated by the city owner don't count as being
@@ -521,7 +530,7 @@
 		<DefineName>REVOLTS_IGNORE_CULTURE_RANGE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.099]
 	     If set to 1 (recommended), Barbarian culture can cause cities to
 		 revolt. 0 or less: Barbarian culture cannot cause revolts.
@@ -550,7 +559,7 @@
 		<DefineName>CITY_RADIUS_DECAY</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.300: The percentage of owned tiles per landmass at which
 		 Barbarian activity reaches its peak. AdvCiv computes the target
 		 number B of Barbarian units on a landmass (or shelf) as
@@ -616,7 +625,7 @@
 		<DefineName>GREAT_WALL_GRAPHIC_MODE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.314] Settings for goody hut outcomes. See also Civ4GoodyInfo.xml
 		 and Civ4HandicapInfo.xml. Turn numbers are adjusted to the game speed
 		 by the DLL. -->
@@ -640,7 +649,7 @@
 		<DefineName>GOODY_BUFF_PEAK_MULTIPLIER</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.139]
 	     The AI evacuates combat units from a city, when the "attack
 		 strength" against the city divided by the local "defense strength"
@@ -706,7 +715,7 @@
 		<DefineName>ADVANCED_START_VISIBILITY_COST_INCREASE</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.250c][advc.251]
 		 If set to 1 or greater, games on Immortal or Deity difficulty,
 		 or with Advanced Start, start on a turn computed from the number of
@@ -736,7 +745,7 @@
         <DefineName>SPAH_SHOW_RANDOMIZED</DefineName>
         <iDefineIntVal>1</iDefineIntVal>
     </Define>
-	
+
 	<!-- [advc.sha] Set to 1 or greater (recommended) to enable the
 		 Hidden Attitude Mod.
 		 0 for BtS behavior, i.e. some hidden relations modifiers. -->
@@ -744,7 +753,7 @@
 		<DefineName>SHOW_HIDDEN_ATTITUDE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.011] The number of turns that need to pass without Worker
 		 action in a plot before progress on unfinished Worker builds
 		 starts to decay. Recommended: 8, i.e. decay kicks in on the
@@ -754,7 +763,7 @@
 		<DefineName>DELAY_UNTIL_BUILD_DECAY</DefineName>
 		<iDefineIntVal>8</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.004n] The number of additional unit icons shown on the city
 		 screen when clicking the right arrow button next to the unit
 		 icons. Originally (GlobalDefines.xml) 10, recommended 100
@@ -763,7 +772,7 @@
 		<DefineName>MAX_PLOT_LIST_SIZE</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.130g] Base penalty on AI relations for being at war. BtS
 		 hardcodes this to -3 in CvPlayerAI.cpp. I need it in an additional
 		 place, so, I'm adding an XML parameter. -->
@@ -771,23 +780,23 @@
 		<DefineName>AT_WAR_ATTITUDE_CHANGE</DefineName>
 		<iDefineIntVal>-3</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.130l] If set to 1 or greater, change 130l (see manual) is
 		 enabled; otherwise (recommended) disabled.-->
 	<Define>
 		<DefineName>ENABLE_130L</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.130s] When set to 1 or higher (recommended), the relations bonus
 		 for accepting AI requests for military aid is enabled. The bonus is
-		 set to +1 for every leader in the Leaderhead XML. Set to 0 or less 
+		 set to +1 for every leader in the Leaderhead XML. Set to 0 or less
 		 for no diplo bonus (BtS behavior). -->
 	<Define>
 		<DefineName>ENABLE_JOIN_WAR_DIPLO_BONUS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.130o] MADE_DEMAND_RECENT memory is increased to this number when
 		 a human player attacks an AI civ after receiving their tribute.
 		 MADE_DEMAND_RECENT memory causes the AI to reject demands and pleas,
@@ -800,7 +809,7 @@
 		<DefineName>WAR_DESPITE_TRIBUTE_MEMORY</DefineName>
 		<iDefineIntVal>8</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.023] The per-turn probability of decrementing the occupation
 		 timer is computed as 1 minus the revolt probability raised to the
 		 power of UNREST_COUNTDOWN_EXPONENT.
@@ -814,7 +823,7 @@
 		<DefineName>OCCUPATION_COUNTDOWN_EXPONENT</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.023] Overwrites the value from Vanilla Civ 4. Original value: 50.
 		 When computing the length of the occupation period after conquest,
 		 the city population is added after multiplying it by this percentage.
@@ -825,7 +834,7 @@
 		<DefineName>OCCUPATION_TURNS_POPULATION_PERCENT</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.025] Culture that spreads from a capitulated vassal to its
 		 master is multiplied by this percentage. 100 for BtS behavior
 		 (normal spread); recommended: 50. -->
@@ -833,7 +842,7 @@
 		<DefineName>CAPITULATED_TO_MASTER_CULTURE_PERCENT</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.026] When the AI offers a trade to a human player, it's willing
 		 to offer AI_OFFER_EXTRA_GOLD_PERCENT% more gold (lump sum or per turn)
 		 than it normally would. 0 for BtS behavior; recommended: 25. -->
@@ -841,7 +850,7 @@
 		<DefineName>AI_OFFER_EXTRA_GOLD_PERCENT</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.122] To receive a city through trade, a civ needs to have at
 		 least this percentage of tile culture in the city tile.
 		 0 for BtS behavior; recommended: 10. -->
@@ -849,7 +858,7 @@
 		<DefineName>CITY_TRADE_CULTURE_THRESH</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.030] Set this to 1 or greater (recommended) to treat plot groups
 		 that are separated by mountain peaks or shelf ice as separate map
 		 areas. 0 or less for BtS behavior (only land/water partition the map).
@@ -864,7 +873,7 @@
 		<DefineName>CITY_SCREEN_CLICK_WILL_EXIT</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.700] Rise & Fall parameters. The first four are applied at game
 		 start; changing them in a running game has no effect.  -->
 	<!-- Base value for the number of chapters; recommended: 7. Has to be
@@ -914,13 +923,6 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.002h] 0 only hides the clouds. Their shadows are hidden through
-		 BML.fpk. Original value: 1. -->
-	<Define>
-		<DefineName>RENDER_GLOBEVIEW_CLOUDS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	
 	<!-- [advc.550d] This modifier is applied to tech costs when playing
 		 with the "No Tech Trading" option. The effect of the modifier is
 		 reduced in the early and late game. Recommended: 28. Use 0 for BtS
@@ -967,7 +969,7 @@
 		<DefineName>ENABLE_005F</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- [advc.004z] -->
 	<!-- If set to 0, no options are shown for the Unit layer; all units are
 		 indicated on the map. If set to 1 (BtS behavior), options
@@ -978,7 +980,7 @@
 		<DefineName>SHOW_UNIT_LAYER_OPTIONS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- If set to 1, the Trade layer (Globe view) colors tiles connected	
+	<!-- If set to 1, the Trade layer (Globe view) colors tiles connected
 		 through trade regardless of the tile owner. If set to 0 (BtS
 		 behavior), only tiles owned by the human player's team are colored. -->
 	<Define>
@@ -987,7 +989,7 @@
 	</Define>
 	<!-- If set to 1, the Trade layer (Globe view) blackens tiles with an
 		 actively visible city that isn't connected to its owner's capital.
-		 If set to 0 (BtS behavior), connection to the capital is not 
+		 If set to 0 (BtS behavior), connection to the capital is not
 		 indicated. -->
 	<Define>
 		<DefineName>CONNECTION_TO_CAPITAL_ON_TRADE_LAYER</DefineName>
@@ -1005,7 +1007,7 @@
 		<DefineName>ALERT_ON_NO_LONGER_WAR_TRADE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.120f: When a spy switches the civics or religion of a target civ,
 		 third parties that know the target are notified of the spy mission
 		 (without revealing the spy owner).
@@ -1021,7 +1023,7 @@
 		<DefineName>ENABLE_162</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.156: When multiple members of a team are researching the same
 		 technology, their research modifiers are increased by this many
 		 percentage points. Recommended: -10 to penalize researching the same
@@ -1031,7 +1033,7 @@
 		<DefineName>RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER</DefineName>
 		<iDefineIntVal>-10</iDefineIntVal>
 	</Define>
-	
+
 	<!-- advc.082: If set to 1, hover text when about to attack says to
 		 hold down the Alt key to get the attacker with the highest odds (if that
 		 unit isn't identical to the unit that is about to attack).
