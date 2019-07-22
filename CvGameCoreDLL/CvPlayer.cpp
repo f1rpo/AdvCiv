@@ -1622,6 +1622,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	for(int iPass = 0; iPass < iMaxPlotDist; iPass++)*/ // </advc.140>
 	/*  <dlph.35> "First pass avoids starting locations that have very little food
 		(before normalization) to avoid starting on the edge of very bad terrain." */
+	int iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
 	for(int iPass = 0; iPass < 2; iPass++)
 	{
 		for(size_t iJ = 0; iJ < areas_by_value.size(); iJ++)
@@ -1639,12 +1640,13 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 				{
 					int iTotalFood = 0;
 					int iLandPlots = 0;
-					for (int iX = -2; iX <= 2; iX++)
+					for (int iX = -iStartingRange; iX <= iStartingRange; iX++)
 					{
-						for (int iY = -2; iY <= 2; iY++)
+						for (int iY = -iStartingRange; iY <= iStartingRange; iY++)
 						{
 							CvPlot* pCheckPlot = plotXY(pLoopPlot->getX(), pLoopPlot->getY(), iX, iY);
-							if (pCheckPlot != NULL && !pCheckPlot->isWater())
+							if (pCheckPlot != NULL && !pCheckPlot->isWater() &&
+									(::plotDistance(pLoopPlot, pCheckPlot) <= iStartingRange))
 							{
 								iLandPlots++;
 								iTotalFood += pCheckPlot->calculateBestNatureYield(YIELD_FOOD, NO_TEAM);

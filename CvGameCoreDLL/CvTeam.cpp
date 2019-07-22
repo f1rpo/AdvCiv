@@ -3327,18 +3327,24 @@ void CvTeam::changeAliveCount(int iChange)
 {
 	m_iAliveCount += iChange;
 	FAssert(getAliveCount() >= 0);
+	if(isBarbarian())
+		return; // advc.003
 
 	// free vassals
 	if (m_iAliveCount == 0)
 	{
-		for (int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
+		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
 		{
 			if (iTeam != getID())
 			{
 				CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
-				if (kLoopTeam.isAlive() && kLoopTeam.isVassal(getID()))
+				if (kLoopTeam.isAlive())
 				{
-					kLoopTeam.setVassal(getID(), false, false);
+					if (kLoopTeam.isVassal(getID()))
+						kLoopTeam.setVassal(getID(), false, false);
+					/*  advc.004v (inspired by a Kek-Mod change):
+						So that the identity of dead teams isn't concealed */
+					kLoopTeam.makeHasSeen(getID());
 				}
 				/*  <advc.003m> So that AtWarCounts are updated. Also seems prudent
 					in general not to keep dead teams at war. */
@@ -3348,7 +3354,7 @@ void CvTeam::changeAliveCount(int iChange)
 			}
 		}
 	} // <advc.003b>
-	if(!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
+	if(m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
 		GC.getGame().changeCivTeamsEverAlive(1); // </advc.003b>
 }
 

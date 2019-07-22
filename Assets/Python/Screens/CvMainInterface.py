@@ -5042,7 +5042,7 @@ class CvMainInterface:
 		screen.hide( "ScoreBackground" )
 		
 # BUG - Align Icons - start
-		for i in range( gc.getMAX_PLAYERS() ):
+		for i in range( gc.getMAX_CIV_PLAYERS() ): # advc.003: Was MAX_PLAYERS
 			szName = "ScoreText" + str(i)
 			screen.hide( szName )
 			szName = "ScoreTech" + str(i)
@@ -5084,8 +5084,8 @@ class CvMainInterface:
 				i = gc.getMAX_CIV_TEAMS() - 1
 				while (i > -1):
 					eTeam = gc.getGame().getRankTeam(i)
-
-					if (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam) or gc.getTeam(eTeam).isHuman() or gc.getGame().isDebugMode()):
+					# advc.004v: Show members of unmet dead teams
+					if gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam) or gc.getTeam(eTeam).isHuman() or gc.getGame().isDebugMode() or (not gc.getTeam(eTeam).isAlive() and gc.getTeam(eTeam).isEverAlive() and ScoreOpt.isShowDeadCivs()):
 # BUG - Align Icons - start
 						if (bAlignIcons):
 							scores.addTeam(gc.getTeam(eTeam), i)

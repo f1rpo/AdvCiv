@@ -2789,7 +2789,8 @@ class CvInfoScreen:
 			if ePlayerColor != -1:
 				playerColor = gc.getPlayerColorInfo(ePlayerColor)
 				if playerColor:
-					color = playerColor.getColorTypePrimary()
+					#color = playerColor.getColorTypePrimary()
+					color = playerColor.getTextColorType() # dlph.36
 
 			if (self.szWonderDisplayMode == self.szWDM_Project):
 				pWonderInfo = gc.getProjectInfo(iWonderType)
@@ -2834,7 +2835,8 @@ class CvInfoScreen:
 			if ePlayerColor != -1:
 				playerColor = gc.getPlayerColorInfo(ePlayerColor)
 				if playerColor:
-					color = playerColor.getColorTypePrimary()
+					#color = playerColor.getColorTypePrimary()
+					color = playerColor.getTextColorType() # dlph.36
 
 			if (self.szWonderDisplayMode == self.szWDM_Project):
 				pWonderInfo = gc.getProjectInfo(iWonderType)
