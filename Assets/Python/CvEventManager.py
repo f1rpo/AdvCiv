@@ -52,12 +52,17 @@ class CvEventManager:
 		self.__LOG_BUILDING = 0
 		self.__LOG_COMBAT = 0
 		self.__LOG_CONTACT = 0
-		self.__LOG_IMPROVEMENT =0
+		self.__LOG_IMPROVEMENT = 0
 		self.__LOG_CITYLOST = 0
 		self.__LOG_CITYBUILDING = 0
+		# <advc.007>
+		self.__LOG_CITY_CULTURE = 0
+		self.__LOG_CITY_GROWTH = 0
+		self.__LOG_SAVING = 0
+		# </advc.007>
 		self.__LOG_TECH = 0
 		self.__LOG_UNITBUILD = 0
-		self.__LOG_UNITKILLED = 1
+		self.__LOG_UNITKILLED = 0 # advc.007: was 1
 		self.__LOG_UNITLOST = 0
 		self.__LOG_UNITPROMOTED = 0
 		self.__LOG_UNITSELECTED = 0
@@ -313,6 +318,9 @@ class CvEventManager:
 	
 	def onPreSave(self, argsList):
 		"called before a game is actually saved"
+		# <advc.007>
+		if (not self.__LOG_SAVING):
+			return # </advc.007>
 		CvUtil.pyPrint('OnPreSave')
 	
 	def onSaveGame(self, argsList):
@@ -865,12 +873,18 @@ class CvEventManager:
 		'City Culture Expansion'
 		pCity = argsList[0]
 		iPlayer = argsList[1]
+		# <advc.007>
+		if (not self.__LOG_CITY_CULTURE):
+			return # </advc.007>
 		CvUtil.pyPrint("City %s's culture has expanded" %(pCity.getName(),))
 	
 	def onCityGrowth(self, argsList):
 		'City Population Growth'
 		pCity = argsList[0]
 		iPlayer = argsList[1]
+		# <advc.007>
+		if (not self.__LOG_CITY_GROWTH):
+			return # </advc.007>
 		CvUtil.pyPrint("%s has grown" %(pCity.getName(),))
 	
 	def onCityDoTurn(self, argsList):
