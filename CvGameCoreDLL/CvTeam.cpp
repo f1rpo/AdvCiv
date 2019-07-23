@@ -5452,8 +5452,9 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 		/*  <advc.004x> Update research-turns shown in popup (tbd.: perhaps setting
 			Popup_DIRTY_BIT would suffice here?) */
 		CvPlayer& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-		if(kActivePlayer.getCurrentResearch() == NO_TECH
-				&& kActivePlayer.isHuman()) { // i.e. not during Auto Play
+		if(kActivePlayer.getCurrentResearch() == NO_TECH &&
+				kActivePlayer.isFoundedFirstCity() &&
+				kActivePlayer.isHuman()) { // i.e. not during Auto Play
 			kActivePlayer.killAll(BUTTONPOPUP_CHOOSETECH);
 			kActivePlayer.chooseTech();
 		} // </advc.004x>
