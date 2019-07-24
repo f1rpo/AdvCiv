@@ -28,6 +28,25 @@ typedef std::vector< std::pair<UnitCombatTypes, PromotionTypes> > UnitCombatProm
 typedef std::vector< std::pair<UnitClassTypes, PromotionTypes> > UnitClassPromotionArray;
 typedef std::vector< std::pair<CivilizationTypes, LeaderHeadTypes> > CivLeaderArray;
 
+/*  <advc.003s> So far only used in CvGame.cpp as a proof of concept. Tbd.: Use these
+	everywhere and add macros to replace CvGame::firstDeal/nextDeal and CvMap::firstArea/nextArea. */
+#define FOR_EACH_CITY(pCity, kOwner) \
+	FAssertMsg(CvPlayer::m_iCityLoopCounter == -1, "Mustn't nest FOR_EACH_CITY calls"); \
+	for(CvCity* pCity = (kOwner).firstCity(&CvPlayer::m_iCityLoopCounter); \
+			pCity != NULL || ((CvPlayer::m_iCityLoopCounter = -1) + 1); \
+			pCity = (kOwner).nextCity(&CvPlayer::m_iCityLoopCounter))
+#define FOR_EACH_UNIT(pUnit, kOwner) \
+	FAssertMsg(CvPlayer::m_iUnitLoopCounter == -1, "Mustn't nest FOR_EACH_UNIT calls"); \
+	for(CvUnit* pUnit = (kOwner).firstUnit(&CvPlayer::m_iUnitLoopCounter); \
+			pUnit != NULL || ((CvPlayer::m_iUnitLoopCounter = -1) + 1); \
+			pUnit = (kOwner).nextUnit(&CvPlayer::m_iUnitLoopCounter))
+#define FOR_EACH_GROUP(pGroup, kOwner) \
+	FAssertMsg(CvPlayer::m_iGroupLoopCounter == -1, "Mustn't nest FOR_EACH_GROUP calls"); \
+	for(CvSelectionGroup* pGroup = (kOwner).firstSelectionGroup(&CvPlayer::m_iGroupLoopCounter); \
+			pGroup != NULL || ((CvPlayer::m_iGroupLoopCounter = -1) + 1); \
+			pGroup = (kOwner).nextSelectionGroup(&CvPlayer::m_iGroupLoopCounter))
+// </advc.003s>
+
 class CvPlayer
 		: private boost::noncopyable // advc.003e
 {
@@ -1489,6 +1508,12 @@ protected:
 	void getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview resource layer
 	void getReligionLayerColors(ReligionTypes eSelectedReligion, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview religion layer
 	void getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview culture layer
+	// <advc.003s> "Anonymous" loop counters for the FOR_EACH macros
+	public:
+		static int m_iCityLoopCounter;
+		static int m_iUnitLoopCounter;
+		static int m_iGroupLoopCounter;
+	// </advc.003s>
 };
 
 #endif

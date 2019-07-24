@@ -2806,8 +2806,8 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 	FAssertMsg(pUnit != NULL, "pUnit == NULL unexpectedly");
 	// <advc.002e> Show glow (only) on selected unit
 	if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
-		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner()); int foo=-1;
-		for(CvUnit* u = kOwner.firstUnit(&foo); u != NULL; u = kOwner.nextUnit(&foo)) {
+		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner());
+		FOR_EACH_UNIT(u, kOwner) {
 			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
 					u->atPlot(pUnit->plot()) && u->isReadyForPromotion());
 		}
@@ -3561,8 +3561,7 @@ void CvGame::replaceCorporation(CorporationTypes eCorporation1, CorporationTypes
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (kLoopPlayer.isAlive())
 		{
-			int iIter;
-			for (CvCity* pCity = kLoopPlayer.firstCity(&iIter); NULL != pCity; pCity = kLoopPlayer.nextCity(&iIter))
+			FOR_EACH_CITY(pCity, kLoopPlayer)
 			{
 				if (pCity->isHasCorporation(eCorporation1))
 				{
@@ -3571,7 +3570,7 @@ void CvGame::replaceCorporation(CorporationTypes eCorporation1, CorporationTypes
 				}
 			}
 
-			for (CvUnit* pUnit = kLoopPlayer.firstUnit(&iIter); NULL != pUnit; pUnit = kLoopPlayer.nextUnit(&iIter))
+			FOR_EACH_UNIT(pUnit, kLoopPlayer)
 			{
 				if (pUnit->getUnitInfo().getCorporationSpreads(eCorporation1) > 0)
 				{
@@ -3592,21 +3591,21 @@ int CvGame::calculateReligionPercent(ReligionTypes eReligion,
 	int iCount = 0;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (!kPlayer.isAlive())
+			continue;
+
+		FOR_EACH_CITY(pLoopCity, kPlayer)
 		{
-			int iLoop;
-			for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-			{
-				if (pLoopCity->isHasReligion(eReligion))
-				{	// <advc.115b>
-					if(bIgnoreOtherReligions)
-						iCount += pLoopCity->getPopulation();
-					else // </advc.115b>
-					{
-						iCount += (pLoopCity->getPopulation() +
-								pLoopCity->getReligionCount() / 2) /
-								pLoopCity->getReligionCount();
-					}
+			if (pLoopCity->isHasReligion(eReligion))
+			{	// <advc.115b>
+				if(bIgnoreOtherReligions)
+					iCount += pLoopCity->getPopulation();
+				else // </advc.115b>
+				{
+					iCount += (pLoopCity->getPopulation() +
+							pLoopCity->getReligionCount() / 2) /
+							pLoopCity->getReligionCount();
 				}
 			}
 		}
@@ -5349,16 +5348,13 @@ void CvGame::updateActiveVisibility() {
 
 void CvGame::updateUnitEnemyGlow()
 {
-	//update unit enemy glow
-	for(int i=0;i<MAX_PLAYERS;i++)
+	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
-		PlayerTypes playerType = (PlayerTypes) i;
-		int iLoop;
-		for(CvUnit *pLoopUnit = GET_PLAYER(playerType).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(playerType).nextUnit(&iLoop))
-		{
-			//update glow
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
+		if (!kPlayer.isAlive())
+			continue; // advc.003b
+		FOR_EACH_UNIT(pLoopUnit, kPlayer)
 			gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getUnitEntity());
-		}
 	}
 }
 
@@ -6622,101 +6618,8 @@ void CvGame::doDeals()
 	// K-Mod end
 }
 
-/*
-** original bts code
-**
-void CvGame::doGlobalWarming()
-{
-	int iGlobalWarmingDefense = 0;
-	for (int i = 0; i < GC.getMap().numPlots(); ++i)
-	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-
-		if (!pPlot->isWater())
-		{
-			if (pPlot->getFeatureType() != NO_FEATURE)
-			{
-				if (GC.getFeatureInfo(pPlot->getFeatureType()).getGrowthProbability() > 0) // hack, but we don't want to add new XML field in the patch just for this
-				{
-					++iGlobalWarmingDefense;
-				}
-			}
-		}
-	}
-	iGlobalWarmingDefense = iGlobalWarmingDefense * GC.getDefineINT("GLOBAL_WARMING_FOREST") / std::max(1, GC.getMap().getLandPlots());
-
-	int iUnhealthWeight = GC.getDefineINT("GLOBAL_WARMING_UNHEALTH_WEIGHT");
-	int iGlobalWarmingValue = 0;
-	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
-	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iPlayer);
-		if (kPlayer.isAlive())
-		{
-			int iLoop;
-			for (CvCity* pCity = kPlayer.firstCity(&iLoop); pCity != NULL; pCity = kPlayer.nextCity(&iLoop))
-			{
-				iGlobalWarmingValue -= pCity->getBuildingBadHealth() * iUnhealthWeight;
-			}
-		}
-	}
-	iGlobalWarmingValue /= GC.getMap().numPlots();
-
-	iGlobalWarmingValue += getNukesExploded() * GC.getDefineINT("GLOBAL_WARMING_NUKE_WEIGHT") / 100;
-
-	TerrainTypes eWarmingTerrain = ((TerrainTypes)(GC.getDefineINT("GLOBAL_WARMING_TERRAIN")));
-
-	for (int iI = 0; iI < iGlobalWarmingValue; iI++)
-	{
-		if (getSorenRandNum(100, "Global Warming") + iGlobalWarmingDefense < GC.getDefineINT("GLOBAL_WARMING_PROB"))
-		{
-			CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
-
-			if (pPlot != NULL)
-			{
-				bool bChanged = false;
-
-				if (pPlot->getFeatureType() != NO_FEATURE)
-				{
-					if (pPlot->getFeatureType() != GC.getDefineINT("NUKE_FEATURE"))
-					{
-						pPlot->setFeatureType(NO_FEATURE);
-						bChanged = true;
-					}
-				}
-				else if (pPlot->getTerrainType() != eWarmingTerrain)
-				{
-					if (pPlot->calculateTotalBestNatureYield(NO_TEAM) > 1)
-					{
-						pPlot->setTerrainType(eWarmingTerrain);
-						bChanged = true;
-					}
-				}
-
-				if (bChanged)
-				{
-					pPlot->setImprovementType(NO_IMPROVEMENT);
-
-					CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY());
-					if (pCity != NULL)
-					{
-						if (pPlot->isVisible(pCity->getTeam(), false))
-						{
-							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
-						}
-					}
-				}
-			}
-		}
-	}
-}
-** end original bts code
-**/
-
-/*
-** K-Mod, 5/dec/10, karadoc
-** complete rewrite of global warming, using some features from 'GWMod' by M.A.
-*/
+/*  K-Mod, 5/dec/10, karadoc
+	complete rewrite of global warming, using some features from 'GWMod' by M.A. */
 void CvGame::doGlobalWarming()
 {
 	PROFILE_FUNC();
@@ -7470,10 +7373,6 @@ void CvGame::createBarbarianUnits()
 	if (lResult == 1)
 		return;
 
-	CvUnit* pLoopUnit;
-	CvArea* pLoopArea;
-	int iLoop;
-
 	//if (GC.getEraInfo(getCurrentEra()).isNoBarbUnits()) ...
 	bool bCreateBarbarians = isBarbarianCreationEra(); // advc.307 (checked later now)
 	bool bAnimals = false;
@@ -7499,7 +7398,8 @@ void CvGame::createBarbarianUnits()
 	// Divided by 10 b/c now only shelf water tiles count
 	int iBaseTilesPerSeaUnit = kGameHandicap.getUnownedWaterTilesPerBarbarianUnit() / 8;
 	// </advc.300>
-	for(pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL;
+	int iLoop;
+	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL;
 			pLoopArea = GC.getMap().nextArea(&iLoop)) {
 		// <advc.300>
 		CvArea& a = *pLoopArea;
@@ -7576,7 +7476,7 @@ void CvGame::createBarbarianUnits()
 			createBarbarians */
 		// </advc.300>
 	}
-	for (pLoopUnit = GET_PLAYER(BARBARIAN_PLAYER).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(BARBARIAN_PLAYER).nextUnit(&iLoop))
+	FOR_EACH_UNIT(pLoopUnit, GET_PLAYER(BARBARIAN_PLAYER))
 	{
 		if (pLoopUnit->isAnimal()
 				// advc.309: Don't cull animals where there are no civ cities
@@ -7586,8 +7486,7 @@ void CvGame::createBarbarianUnits()
 			break;
 		}
 	} // <advc.300>
-	for(CvCity* c = GET_PLAYER(BARBARIAN_PLAYER).firstCity(&iLoop); c != NULL;
-			c = GET_PLAYER(BARBARIAN_PLAYER).nextCity(&iLoop)) {
+	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER)) {
 		/*  Large Barb congregations are only a problem if they have nothing
 			to attack */
 		if(c->area()->countCivCities() > 0)
@@ -7923,9 +7822,7 @@ bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Sh
 			return shelf->killBarbarian();
 		/*  Tbd.: Be a bit more considerate about which unit to sacrifice.
 			Currently, it's the same (arbitrary) method as for animal culling. */
-		int foo=-1;
-		for(CvUnit* pUnit = GET_PLAYER(BARBARIAN_PLAYER).firstUnit(&foo);
-				pUnit != NULL; pUnit = GET_PLAYER(BARBARIAN_PLAYER).nextUnit(&foo)) {
+		FOR_EACH_UNIT(pUnit, GET_PLAYER(BARBARIAN_PLAYER)) {
 			CvUnit& u = *pUnit;
 			if(u.isAnimal() || u.plot()->area()->getID() != a.getID() ||
 					u.getUnitCombatType() == NO_UNITCOMBAT)
@@ -8058,8 +7955,6 @@ void CvGame::updateWar()
 
 void CvGame::updateMoves()
 {
-	CvSelectionGroup* pLoopSelectionGroup;
-	int iLoop;
 	int iI;
 
 	int aiShuffle[MAX_PLAYERS];
@@ -8098,17 +7993,15 @@ void CvGame::updateMoves()
 
 				if (player.isAutoMoves())
 				{
-					for(pLoopSelectionGroup = player.firstSelectionGroup(&iLoop); pLoopSelectionGroup; pLoopSelectionGroup = player.nextSelectionGroup(&iLoop))
-					{
-						pLoopSelectionGroup->autoMission();
-					}
+					FOR_EACH_GROUP(pGroup, player)
+						pGroup->autoMission();
 					// K-Mod. Here's where we do the AI for automated units.
 					// Note, we can't do AI_update and autoMission in the same loop, because either one might delete the group - and thus cause the other to crash.
 					if (player.isHuman())
 					{
-						for (pLoopSelectionGroup = player.firstSelectionGroup(&iLoop); pLoopSelectionGroup; pLoopSelectionGroup = player.nextSelectionGroup(&iLoop))
+						FOR_EACH_GROUP(pGroup, player)
 						{
-							if (pLoopSelectionGroup->AI_update())
+							if (pGroup->AI_update())
 							{
 								FAssert(player.hasBusyUnit());
 								break;
@@ -8304,9 +8197,7 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iK);
 			if (!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
 				continue;
-			int iLoop;
-			for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL;
-					pLoopCity = kLoopPlayer.nextCity(&iLoop))
+			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 			{
 				if (pLoopCity->getCultureLevel() >= kVictory.getCityCulture())
 					iCount++;
@@ -8817,10 +8708,8 @@ int CvGame::calculateSyncChecksum()
 					iMultiplier += (kPlayer.AI_totalUnitAIs((UnitAITypes)iJ) * 643383);
 				break;
 
-			case 3: {
-				CvUnit* pLoopUnit;
-				int iLoop;
-				for (pLoopUnit = kPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kPlayer.nextUnit(&iLoop))
+			case 3:
+				FOR_EACH_UNIT(pLoopUnit, kPlayer)
 				{
 					iMultiplier += (pLoopUnit->getX() * 876543);
 					iMultiplier += (pLoopUnit->getY() * 985310);
@@ -8829,7 +8718,6 @@ int CvGame::calculateSyncChecksum()
 					iMultiplier += (pLoopUnit->getLevel() * 367291);
 				}
 				break;
-			}
 			// K-Mod - new checks.
 			case 4: // attitude cache
 				// <advc.003n>
@@ -8843,9 +8731,8 @@ int CvGame::calculateSyncChecksum()
 				// strategy hash
 				//iMultiplier += kPlayer.AI_getStrategyHash() * 367291;
 				break;
-			case 5: { // city religions and corporations
-				int iLoop;
-				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+			case 5: // city religions and corporations
+				FOR_EACH_CITY(pLoopCity, kPlayer)
 				{
 					for (iJ = 0; iJ < GC.getNumReligionInfos(); iJ++)
 					{
@@ -8859,17 +8746,14 @@ int CvGame::calculateSyncChecksum()
 					}
 				}
 				break;
-			}
-			case 6: { // city production
-				/* CvCity* pLoopCity; int iLoop;
-				for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop)) {
+			case 6: // city production
+				/*FOR_EACH_CITY(pLoopCity, kPlayer) {
 					CLLNode<OrderData>* pOrderNode = pLoopCity->headOrderQueueNode();
 					if (pOrderNode != NULL)
 						iMultiplier += pLoopCity->getID()*(pOrderNode->m_data.eOrderType+2*pOrderNode->m_data.iData1+3*pOrderNode->m_data.iData2+6);
-				} break; */
+				} break;*/
 				// city health and happiness
-				int iLoop;
-				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+				FOR_EACH_CITY(pLoopCity, kPlayer)
 				{
 					iMultiplier += pLoopCity->goodHealth() * 876543;
 					iMultiplier += pLoopCity->badHealth() * 985310;
@@ -8887,16 +8771,13 @@ int CvGame::calculateSyncChecksum()
 					}*/
 				}
 				break;
-			}
-			case 7: { // city event history
-				int iLoop;
-				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+			case 7: // city event history
+				FOR_EACH_CITY(pLoopCity, kPlayer)
 				{
 					for (iJ = 0; iJ < GC.getNumEventInfos(); iJ++)
 						iMultiplier += (iJ+1)*pLoopCity->isEventOccured((EventTypes)iJ);
 				}
 				break;
-			}
 			// K-Mod end
 			} // end TurnSlice switch
 			// <advc.001n>
@@ -10320,12 +10201,10 @@ VoteSelectionData* CvGame::addVoteSelection(VoteSourceTypes eVoteSource)
 						for (int iPlayer1 = 0; iPlayer1 < MAX_CIV_PLAYERS; ++iPlayer1)
 						{
 							CvPlayer& kPlayer1 = GET_PLAYER((PlayerTypes)iPlayer1);
-
-							int iLoop;
-							for (CvCity* pLoopCity = kPlayer1.firstCity(&iLoop); NULL != pLoopCity; pLoopCity = kPlayer1.nextCity(&iLoop))
+							FOR_EACH_CITY(pLoopCity, kPlayer1)
 							{
 								PlayerTypes eNewOwner = pLoopCity->plot()->findHighestCulturePlayer();
-								if (NO_PLAYER != eNewOwner
+								if (eNewOwner != NO_PLAYER
 								/*  advc.099: No longer implied by findHighestCulturePlayer;
 									mustn't return cities to dead civs. */
 										&& GET_PLAYER(eNewOwner).isAlive())
@@ -11076,11 +10955,11 @@ CvCity* CvGame::getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver, bool
 	BuildingTypes eVSBuilding = getVoteSourceBuilding(eVS);
 	if(eVSBuilding == NO_BUILDING)
 		return NULL;
-	for(int i = 0; i < MAX_PLAYERS; i++) { int foo=-1;
+	for(int i = 0; i < MAX_PLAYERS; i++) {
 		CvPlayer const& kOwner = GET_PLAYER((PlayerTypes)i);
 		if(!kOwner.isAlive())
 			continue;
-		for(CvCity* c = kOwner.firstCity(&foo); c != NULL; c = kOwner.nextCity(&foo)) {
+		FOR_EACH_CITY(c, kOwner) {
 			if(eObserver != NO_TEAM && !c->isRevealed(eObserver, bDebug))
 				continue;
 			if(c->getNumBuilding(eVSBuilding) > 0)
