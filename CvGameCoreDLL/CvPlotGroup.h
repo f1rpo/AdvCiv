@@ -12,7 +12,6 @@ class CvPlotGroup
 {
 
 public:
-
 	CvPlotGroup();
 	virtual ~CvPlotGroup();
 
@@ -47,13 +46,10 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
-
+	static int m_iRecalculating; // advc.064d
 	int m_iID;
-
 	PlayerTypes m_eOwner;
-
 	int* m_paiNumBonuses;
-
 	CLinkList<XYCoords> m_plots;
 };
 

@@ -6,6 +6,8 @@
 #include "CvMap.h"
 #include "CvDLLFAStarIFaceBase.h"
 
+int CvPlotGroup::m_iRecalculating = 0; // advc.064d
+
 // Public Functions...
 
 CvPlotGroup::CvPlotGroup()
@@ -134,7 +136,14 @@ void CvPlotGroup::recalculatePlots()
 			return;
 		}
 	}
-
+	/*  <advc.064d> To deal with nested recalculatePlots calls. Mustn't
+		verifyCityProduction so long as any recalculation is ongoing. */
+	m_iRecalculating++;
+	/*  Hopefully, it's enough to verify the production of all cities that are
+		in the plot group before recalc. Any cities added during recalc get
+		removed from some other plot group. However, I'm doing this only for the
+		root recalc call, so ... might be inadequate. */
+	std::vector<CvCity*> apOldCities; // </advc.064d>
 	{
 		PROFILE("CvPlotGroup::recalculatePlots update");
 
@@ -147,7 +156,11 @@ void CvPlotGroup::recalculatePlots()
 			PROFILE("CvPlotGroup::recalculatePlots update 1");
 
 			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-
+			// <advc.064d>
+			CvCity* pPlotCity = pPlot->getPlotCity();
+			if (pPlotCity != NULL)
+				apOldCities.push_back(pPlotCity);
+			// </advc.064d>
 			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
 
 			xy.iX = pPlot->getX();
@@ -175,6 +188,14 @@ void CvPlotGroup::recalculatePlots()
 			pPlotNode = oldPlotGroup.deleteNode(pPlotNode);
 		}
 	}
+	// <advc.064d>
+	m_iRecalculating--;
+	FAssert(m_iRecalculating >= 0);
+	if (m_iRecalculating == 0)
+	{
+		for (size_t i = 0; i < apOldCities.size(); i++)
+			apOldCities[i]->verifyProduction();
+	} // </advc.064d>
 }
 
 
@@ -241,6 +262,8 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 void CvPlotGroup::verifyCityProduction() {
 
 	PROFILE_FUNC(); // About 1 permille of the runtime (July 2019)
+	if (m_iRecalculating > 0)
+		return;
 	CvMap const& m = GC.getMap();
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL) {
