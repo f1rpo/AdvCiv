@@ -14,6 +14,7 @@
 # YOURMOD2 and YOURLOGS (see under "Paths").
 # Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
 # CvGameCoreDLL.rc used only for final release.
+# Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
 # devolution (Erik) has added the target 'Final_Release' with additional optimizations.
 
 ## User setup
@@ -70,7 +71,7 @@ FD="bin\fastdep.exe"
 # BLACKLIST=CvTextScreens
 
 #### DEFINES ####
-Debug_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /D_DEBUG
+Debug_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /D_DEBUG
 Release_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /DNDEBUG /DFINAL_RELEASE
 ## Optional: Copy the flags above into "Additional options" in NMAKE properties (Configuration Properties)
 ## to make VC++ aware of what is defined and what isn't, which affects the help popup and red lines.
