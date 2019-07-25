@@ -4393,7 +4393,7 @@ int CvCity::getCulturePercentAnger() const
 		int iRelationsModifier = 0;
 		if(!kRival.isBarbarian()) {
 			if(kRival.isAlive() && ::atWar(kRival.getTeam(), getTeam()))
-				iRelationsModifier += iAngerModWar;
+				iRelationsModifier += iAngerModWar + iAngerModCB;
 			else {
 				bool const bCapitulatedVassal = (GET_TEAM(kRival.getTeam()).isCapitulated() &&
 						GET_TEAM(kRival.getTeam()).isVassal(getTeam()));
