@@ -23852,8 +23852,3 @@ void CvPlayer::announceEspionageToThirdParties(EspionageMissionTypes eMission, P
 				eTarget, szTmp);
 	}
 } // </advc.120f>
-// <advc.003s>
-int CvPlayer::m_iCityLoopCounter = -1;
-int CvPlayer::m_iUnitLoopCounter = -1;
-int CvPlayer::m_iGroupLoopCounter = -1;
-// </advc.003s>
