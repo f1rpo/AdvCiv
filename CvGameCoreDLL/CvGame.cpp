@@ -759,7 +759,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 		AI_reset();
 	}
 	m_ActivePlayerCycledGroups.clear(); // K-Mod
-	m_bAITurn = false; // advc.106b
+	m_bInBetweenTurns = false; // advc.106b
 	m_iTurnLoadedFromSave = -1; // advc.044
 	// <advc.004m>
 	m_eCurrentLayer = GLOBE_LAYER_UNKNOWN;
@@ -2392,7 +2392,7 @@ void CvGame::update()
 			game turn. I've tried doing that through BugEventManager.py, but soon
 			gave up. Tagging advc.706 b/c it's especially important to supress
 			the update when R&F is enabled. */
-		if(!isAITurn()) {
+		if(!isInBetweenTurns()) {
 			CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
 			// <advc.003r>
 			for(int i = 0; i < NUM_UPDATE_TIMER_TYPES; i++)
@@ -6581,14 +6581,14 @@ void CvGame::doTurn()
 }
 
 // <advc.106b>
-bool CvGame::isAITurn() const {
+bool CvGame::isInBetweenTurns() const {
 
-	return m_bAITurn;
+	return m_bInBetweenTurns;
 }
 
-void CvGame::setAITurn(bool b) {
+void CvGame::setInBetweenTurns(bool b) {
 
-	m_bAITurn = b;
+	m_bInBetweenTurns = b;
 } // </advc.106b>
 
 

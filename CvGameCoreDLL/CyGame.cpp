@@ -1319,11 +1319,6 @@ bool CyGame::isRFBlockPopups() {
 		return false;
 	return (m_pGame->isOption(GAMEOPTION_RISE_FALL) &&
 			m_pGame->getRiseFall().isBlockPopups());
-}
-bool CyGame::isAITurn() {
-	if(m_pGame == NULL)
-		return false;
-	return m_pGame->isAITurn();
 } // </advc.706>
 // <advc.004m>
 void CyGame::reportCurrentLayer(int iLayer) {

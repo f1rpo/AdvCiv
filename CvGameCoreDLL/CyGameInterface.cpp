@@ -296,8 +296,7 @@ void CyGamePythonInterface()
 		.def("riseScoreBreakdown", &CyGame::riseScoreBreakdown)
 		// </advc.704><advc.706>
 		.def("isRFInterlude", &CyGame::isRFInterlude, "bool ()")
-		.def("isRFBlockPopups", &CyGame::isRFBlockPopups, "bool ()")
-		.def("isAITurn", &CyGame::isAITurn, "bool ()") // </advc.706>
+		.def("isRFBlockPopups", &CyGame::isRFBlockPopups, "bool ()") // </advc.706>
 		// advc.004m:
 		.def("reportCurrentLayer", &CyGame::reportCurrentLayer, "void(int /*GlobeLayerTypes*/)")
 		;

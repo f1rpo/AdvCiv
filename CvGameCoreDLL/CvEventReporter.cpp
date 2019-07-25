@@ -427,7 +427,7 @@ void CvEventReporter::preSave()
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
 	CvGame const& g = GC.getGame();
-	FAssertMsg(bAutoSave || !g.isAITurn() || g.isNetworkMultiPlayer(),
+	FAssertMsg(bAutoSave || !g.isInBetweenTurns() || g.isNetworkMultiPlayer(),
 			"Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;

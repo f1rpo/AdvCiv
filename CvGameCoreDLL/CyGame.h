@@ -301,8 +301,7 @@ public:
 	// </advc.703>
 	// <advc.706>
 	bool isRFInterlude();
-	bool isRFBlockPopups();
-	bool isAITurn(); // </advc.706>
+	bool isRFBlockPopups(); // </advc.706>
 	void reportCurrentLayer(int iLayer); // advc.004m
 
 protected:

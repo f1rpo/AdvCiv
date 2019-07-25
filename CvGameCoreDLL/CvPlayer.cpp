@@ -3072,7 +3072,7 @@ void CvPlayer::doTurn()  // advc.003: style changes
 	CvGame& g = GC.getGame();
 	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
 	   need assistance from CvPlayer. */
-	g.setAITurn(true);
+	g.setInBetweenTurns(true);
 	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
 		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0,
@@ -13445,9 +13445,8 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 	// </advc.706>
 	m_listGameMessages.push_back(message);
 	// <advc.106b>
-	/*  Special treatment only for events in other civs' turns.
-		NB: ActivePlayer is always human. */
-	if(!g.isAITurn() && g.getActivePlayer() == getID())
+	// Special treatment only for events in other civs' turns.
+	if(!g.isInBetweenTurns() && g.getActivePlayer() == getID())
 		return;
 	/* DISPLAY_ONLY, COMBAT, CHAT, QUEST don't show up on the Event tab
 	   of the Turn Log, and therefore shouldn't count.
@@ -13539,7 +13538,7 @@ void CvPlayer::postProcessMessages() {
 	for(size_t i = 0; i < m_aMajorMsgs.size(); i++)
 		SAFE_DELETE(m_aMajorMsgs[i]);
 	m_aMajorMsgs.clear();
-	GC.getGame().setAITurn(false);
+	GC.getGame().setInBetweenTurns(false);
 }
 
 int CvPlayer::getStartOfTurnMessageLimit() const {
@@ -22483,10 +22482,10 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				// <advc.074>
 				bool bHuman = (bOtherHuman || isHuman());
 				bool bValid = (!bHuman || getTradeDenial(eOtherPlayer, item) != DENIAL_JOKING);
-				/*  Hack: Check if we're expecting a renegotiate-popup from
-					the EXE. Don't want any resources in the canceled deal to
-					be excluded from the trade table. */
-				if(!bValid) {
+				/*  Hack: Check if we're expecting a renegotiate-popup from the EXE.
+					Don't want any resources in the canceled deal to be excluded
+					from the trade table. */
+				if(!bValid && !GC.getGame().isInBetweenTurns()) {
 					for(CLLNode<std::pair<PlayerTypes,BonusTypes> >* pNode =
 							m_cancelingExport.head(); pNode != NULL; pNode =
 							m_cancelingExport.next(pNode)) {

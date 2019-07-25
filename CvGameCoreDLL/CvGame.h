@@ -343,15 +343,11 @@ public:
 	void updateActiveVisibility(); // advc.706
 	DllExport void updateUnitEnemyGlow();
 	/* <advc.106b> When a DLL function is called from the EXE, there is no (other)
-	   way to determine whether it's during a human turn. */
-	/*  advc.706: Also need these functions to make sure that
-		ActivePlayerTurnStart events are fired only on human turns.
-		Exported isAITurn to Python for that reason, though I'm actually
-		suppressing the Python event through CvGame::update now, so the
-		Python export is currently unused. */
-	bool isAITurn() const; // Exposed to Python
-	void setAITurn(bool b);
-	// </advc.106b>
+	   way to determine whether it's during a human turn.
+	   (Or would CvPlayer::isTurnActive work? But that's not as convenient ...) */
+	// Also used for various other AdvCiv changes
+	bool isInBetweenTurns() const;
+	void setInBetweenTurns(bool b); // </advc.106b>
 
 	HandicapTypes getHandicapType() const;
 	void setHandicapType(HandicapTypes eHandicap);
@@ -724,7 +720,7 @@ protected:
 	bool m_bPlayerOptionsSent;
 	bool m_bNukesValid;
 	int m_iScreenWidth, m_iScreenHeight; // advc.061
-	bool m_bAITurn; // advc.106b
+	bool m_bInBetweenTurns; // advc.106b
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
 	bool m_bAllGameDataRead; // advc.003
