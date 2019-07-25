@@ -5260,6 +5260,17 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 				return false;
 		}
 	} // </advc.315d>
+	// <advc.315e> No map reveal at the edges of a non-wrapping map
+	if(goody.getMapProb() > 0) {
+		int const iRange = 3;
+		for(int dx = -iRange; dx <= iRange; dx++) {
+			for(int dy = -iRange; dy <= iRange; dy++) {
+				CvPlot* pLoopPlot = ::plotXY(pPlot->getX(), pPlot->getY(), dx, dy);
+				if(pLoopPlot == NULL)
+					return false;
+			}
+		}
+	} // </advc.315e>
 	return true;
 }
 
