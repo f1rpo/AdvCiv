@@ -164,8 +164,8 @@ void CyInfoPythonInterface2()
 		// Arrays
 
 		.def("getGoodies", &CvHandicapInfo::getGoodies, "int (int i)")
-		.def("isFreeTechs", &CvHandicapInfo::isFreeTechs, "int (int i)")
-		.def("isAIFreeTechs", &CvHandicapInfo::isAIFreeTechs, "int (int i)")
+		.def("isFreeTechs", &CvHandicapInfo::isFreeTechs, "bool (int i)")
+		.def("isAIFreeTechs", &CvHandicapInfo::isAIFreeTechs, "bool (int i)")
 		;
 
 	python::class_<CvGameSpeedInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvGameSpeedInfo")

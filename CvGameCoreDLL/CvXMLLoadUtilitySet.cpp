@@ -2006,16 +2006,14 @@ bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 	return bReturn;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
 //  FUNCTION:   SetVariableListTagPair(	int **ppiList, const TCHAR* szRootTagName,
 //										int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal)
-//
 //  PURPOSE :   allocate and initialize a list from a tag pair in the xml
-//
-//------------------------------------------------------------------------------------------------------
+/*  advc.003t: Will set the array that ppiList points to to NULL if
+	iDefaultListVal is 0 and no pairs are found or if all (index,value) pairs
+	have the value 0. */
 void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-											  int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal)
+		int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2030,6 +2028,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 		gDLL->MessageBox(szMessage, "XML Error");
 	}
 	InitList(ppiList, iInfoBaseLength, iDefaultListVal);
+	bool bListModified = false; // advc.003t
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
 		if (SkipToNextVal())
@@ -2055,7 +2054,11 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 
 							if (iIndexVal != -1)
 							{
+								int iOldVal = piList[iIndexVal]; // advc.003t
 								GetNextXmlVal(&piList[iIndexVal]);
+								// <advc.003t>
+								if (iOldVal != piList[iIndexVal])
+									bListModified = true; // </advc.003t>
 							}
 
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);
@@ -2074,18 +2077,14 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 	}
+	// <advc.003t>
+	if (!bListModified && iDefaultListVal == 0)
+		SAFE_DELETE(*ppiList); // </advc.003t>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   SetVariableListTagPair(	bool **ppbList, const TCHAR* szRootTagName,
-//										int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal)
-//
-//  PURPOSE :   allocate and initialize a list from a tag pair in the xml
-//
-//------------------------------------------------------------------------------------------------------
+// advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-											  int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal)
+		int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2100,6 +2099,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 		gDLL->MessageBox(szMessage, "XML Error");
 	}
 	InitList(ppbList, iInfoBaseLength, bDefaultListVal);
+	bool bListModified = false; // advc.003t
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
 		if (SkipToNextVal())
@@ -2124,7 +2124,11 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 							iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal != -1)
 							{
+								bool bOldVal = pbList[iIndexVal]; // advc.003t
 								GetNextXmlVal(&pbList[iIndexVal]);
+								// <advc.003t>
+								if (bOldVal != pbList[iIndexVal])
+									bListModified = true; // </advc.003t>
 							}
 
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);
@@ -2143,18 +2147,14 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 	}
+	// <advc.003t>
+	if (!bListModified && bDefaultListVal == false)
+		SAFE_DELETE(*ppbList); // </advc.003t>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   SetVariableListTagPair(	float **ppfList, const TCHAR* szRootTagName,
-//										int iInfoBaseSize, int iInfoBaseLength, float fDefaultListVal)
-//
-//  PURPOSE :   allocate and initialize a list from a tag pair in the xml
-//
-//------------------------------------------------------------------------------------------------------
+// advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRootTagName,
-											  int iInfoBaseSize, int iInfoBaseLength, float fDefaultListVal)
+		int iInfoBaseSize, int iInfoBaseLength, float fDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2169,6 +2169,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 		gDLL->MessageBox(szMessage, "XML Error");
 	}
 	InitList(ppfList, iInfoBaseLength, fDefaultListVal);
+	bool bListModified = false; // advc.003t
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
 		if (SkipToNextVal())
@@ -2193,7 +2194,11 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 							iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal != -1)
 							{
+								float fOldVal = pfList[iIndexVal]; // advc.003t
 								GetNextXmlVal(&pfList[iIndexVal]);
+								// <advc.003t>
+								if (fOldVal != pfList[iIndexVal])
+									bListModified = true; // </advc.003t>
 							}
 
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);
@@ -2212,18 +2217,14 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 	}
+	// <advc.003t>
+	if (!bListModified && fDefaultListVal == 0)
+		SAFE_DELETE(*ppfList); // </advc.003t>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   SetVariableListTagPair(	CvString **ppfList, const TCHAR* szRootTagName,
-//										int iInfoBaseSize, int iInfoBaseLength, CvString szDefaultListVal)
-//
-//  PURPOSE :   allocate and initialize a list from a tag pair in the xml
-//
-//------------------------------------------------------------------------------------------------------
+// advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
-											  int iInfoBaseSize, int iInfoBaseLength, CvString szDefaultListVal)
+		int iInfoBaseSize, int iInfoBaseLength, CvString szDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2238,6 +2239,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 		gDLL->MessageBox(szMessage, "XML Error");
 	}
 	InitStringList(ppszList, iInfoBaseLength, szDefaultListVal);
+	bool bListModified = false; // advc.003t
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
 		if (SkipToNextVal())
@@ -2263,6 +2265,16 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 							if (iIndexVal != -1)
 							{
 								GetNextXmlVal(pszList[iIndexVal]);
+								/*  <advc.003t> Since bListModified will only matter
+									if szDefaultListVal is an empty string, let's
+									simply check: */
+								if (!pszList[iIndexVal].empty())
+									bListModified = true;
+								/*  For the primitive types, 0-entries in XML are usually
+									deliberate (for readability), but empty strings
+									would be strange. */
+								else FAssertMsg(false, "Empty string in list of tag pairs");
+								// </advc.003t>
 							}
 
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);
@@ -2281,6 +2293,9 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 	}
+	// <advc.003t>
+	if (!bListModified && szDefaultListVal.empty())
+		SAFE_DELETE(*ppszList); // </advc.003t>
 }
 
 //------------------------------------------------------------------------------------------------------

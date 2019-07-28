@@ -15701,7 +15701,7 @@ int CvCity::getMusicScriptId() const
 
 int CvCity::getSoundscapeScriptId() const
 {
-	return GC.getEraInfo(GET_PLAYER(getOwner()).getCurrentEra()).getCitySoundscapeSciptId(getCitySizeType());
+	return GC.getEraInfo(GET_PLAYER(getOwner()).getCurrentEra()).getCitySoundscapeScriptId(getCitySizeType());
 }
 
 void CvCity::cheat(bool bCtrl, bool bAlt, bool bShift)

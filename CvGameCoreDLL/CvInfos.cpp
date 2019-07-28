@@ -648,86 +648,86 @@ int CvDiplomacyResponse::getNumDiplomacyText()
 	return m_iNumDiplomacyText;
 }
 
-void CvDiplomacyResponse::setNumDiplomacyText(int i)
+/*void CvDiplomacyResponse::setNumDiplomacyText(int i)
 {
 	m_iNumDiplomacyText = i;
-}
+}*/
 
 bool CvDiplomacyResponse::getCivilizationTypes(int i)
 {
 	FAssertMsg(i < GC.getNumCivilizationInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbCivilizationTypes[i];
+	return (m_pbCivilizationTypes != NULL ? m_pbCivilizationTypes[i] : false); // advc.003t
 }
 
-bool* CvDiplomacyResponse::getCivilizationTypes() const
+/*bool* CvDiplomacyResponse::getCivilizationTypes() const
 {
 	return m_pbCivilizationTypes;
-}
+}*/
 
-void CvDiplomacyResponse::setCivilizationTypes(int i, bool bVal)
+/*void CvDiplomacyResponse::setCivilizationTypes(int i, bool bVal)
 {
 	FAssertMsg(i < GC.getNumCivilizationInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	m_pbCivilizationTypes[i] = bVal;
-}
+}*/
 
 bool CvDiplomacyResponse::getLeaderHeadTypes(int i)
 {
 	FAssertMsg(i < GC.getNumLeaderHeadInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbLeaderHeadTypes[i];
+	return (m_pbLeaderHeadTypes != NULL ? m_pbLeaderHeadTypes[i] : false); // advc.003t
 }
 
-bool* CvDiplomacyResponse::getLeaderHeadTypes() const
+/*bool* CvDiplomacyResponse::getLeaderHeadTypes() const
 {
 	return m_pbLeaderHeadTypes;
-}
+}*/
 
-void CvDiplomacyResponse::setLeaderHeadTypes(int i, bool bVal)
+/*void CvDiplomacyResponse::setLeaderHeadTypes(int i, bool bVal)
 {
 	FAssertMsg(i < GC.getNumLeaderHeadInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	m_pbLeaderHeadTypes[i] = bVal;
-}
+}*/
 
 bool CvDiplomacyResponse::getAttitudeTypes(int i) const
 {
 	FAssertMsg(i < NUM_ATTITUDE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbAttitudeTypes[i];
+	return (m_pbAttitudeTypes != NULL ? m_pbAttitudeTypes[i] : false); // advc.003t
 }
 
-bool* CvDiplomacyResponse::getAttitudeTypes() const
+/*bool* CvDiplomacyResponse::getAttitudeTypes() const
 {
 	return m_pbAttitudeTypes;
-}
+}*/
 
-void CvDiplomacyResponse::setAttitudeTypes(int i, bool bVal)
+/*void CvDiplomacyResponse::setAttitudeTypes(int i, bool bVal)
 {
 	FAssertMsg(i < NUM_ATTITUDE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	m_pbAttitudeTypes[i] = bVal;
-}
+}*/
 
 bool CvDiplomacyResponse::getDiplomacyPowerTypes(int i)
 {
 	FAssertMsg(i < NUM_DIPLOMACYPOWER_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbDiplomacyPowerTypes[i];
+	return (m_pbDiplomacyPowerTypes != NULL ? m_pbDiplomacyPowerTypes[i] : false); // advc.003t
 }
 
-bool* CvDiplomacyResponse::getDiplomacyPowerTypes() const
+/*bool* CvDiplomacyResponse::getDiplomacyPowerTypes() const
 {
 	return m_pbDiplomacyPowerTypes;
-}
+}*/
 
-void CvDiplomacyResponse::setDiplomacyPowerTypes(int i, bool bVal)
+/*void CvDiplomacyResponse::setDiplomacyPowerTypes(int i, bool bVal)
 {
 	FAssertMsg(i < NUM_DIPLOMACYPOWER_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	m_pbDiplomacyPowerTypes[i] = bVal;
-}
+}*/
 
 const TCHAR* CvDiplomacyResponse::getDiplomacyText(int i) const
 {
@@ -798,7 +798,7 @@ bool CvDiplomacyResponse::read(CvXMLLoadUtility* pXML)
 	// PowerTypes
 	pXML->SetVariableListTagPair(&m_pbDiplomacyPowerTypes, "DiplomacyPowers", GC.getDiplomacyPowerTypes(), NUM_DIPLOMACYPOWER_TYPES);
 	// DiplomacyText
-	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"DiplomacyText"))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "DiplomacyText"))
 	{
 		pXML->SetStringList(&m_paszDiplomacyText, &m_iNumDiplomacyText);
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -880,7 +880,7 @@ int CvSpecialistInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 const int* CvSpecialistInfo::getYieldChangeArray() const
@@ -892,14 +892,14 @@ int CvSpecialistInfo::getCommerceChange(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceChange ? m_piCommerceChange[i] : -1;
+	return m_piCommerceChange ? m_piCommerceChange[i] : 0; // advc.003t
 }
 
 int CvSpecialistInfo::getFlavorValue(int i) const
 {
 	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlavorValue ? m_piFlavorValue[i] : -1;
+	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 const TCHAR* CvSpecialistInfo::getTexture() const
@@ -1256,24 +1256,24 @@ void CvTechInfo::setSoundMP(const TCHAR* szVal)
 
 int CvTechInfo::getDomainExtraMoves(int i) const
 {
-	return m_piDomainExtraMoves ? m_piDomainExtraMoves[i] : -1;
+	return m_piDomainExtraMoves ? m_piDomainExtraMoves[i] : 0; // advc.003t
 }
 
 int CvTechInfo::getFlavorValue(int i) const
 {
 	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlavorValue ? m_piFlavorValue[i] : -1;
+	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvTechInfo::getPrereqOrTechs(int i) const
 {
-	return m_piPrereqOrTechs ? m_piPrereqOrTechs[i] : -1;
+	return m_piPrereqOrTechs ? m_piPrereqOrTechs[i] : NO_TECH; // advc.003t
 }
 
 int CvTechInfo::getPrereqAndTechs(int i) const
 {
-	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : -1;
+	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
 // K-Mod
@@ -1953,42 +1953,42 @@ int CvPromotionInfo::getTerrainAttackPercent(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTerrainAttackPercent ? m_piTerrainAttackPercent[i] : -1;
+	return m_piTerrainAttackPercent ? m_piTerrainAttackPercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getTerrainDefensePercent(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTerrainDefensePercent ? m_piTerrainDefensePercent[i] : -1;
+	return m_piTerrainDefensePercent ? m_piTerrainDefensePercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getFeatureAttackPercent(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFeatureAttackPercent ? m_piFeatureAttackPercent[i] : -1;
+	return m_piFeatureAttackPercent ? m_piFeatureAttackPercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getFeatureDefensePercent(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFeatureDefensePercent ? m_piFeatureDefensePercent[i] : -1;
+	return m_piFeatureDefensePercent ? m_piFeatureDefensePercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getUnitCombatModifierPercent(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitCombatInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitCombatModifierPercent ? m_piUnitCombatModifierPercent[i] : -1;
+	return m_piUnitCombatModifierPercent ? m_piUnitCombatModifierPercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getDomainModifierPercent(int i) const
 {
 	FAssertMsg(i < NUM_DOMAIN_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDomainModifierPercent ? m_piDomainModifierPercent[i] : -1;
+	return m_piDomainModifierPercent ? m_piDomainModifierPercent[i] : 0; // advc.003t
 }
 
 bool CvPromotionInfo::getTerrainDoubleMove(int i) const
@@ -3180,7 +3180,7 @@ m_piTerrainPassableTech(NULL),
 m_piFeaturePassableTech(NULL),
 m_pbGreatPeoples(NULL),
 m_pbBuildings(NULL),
-m_pbForceBuildings(NULL),
+//m_pbForceBuildings(NULL), // advc.003t
 m_pbTerrainImpassable(NULL),
 m_pbFeatureImpassable(NULL),
 m_piPrereqAndTechs(NULL),
@@ -3233,7 +3233,7 @@ CvUnitInfo::~CvUnitInfo()
 	SAFE_DELETE_ARRAY(m_piFeaturePassableTech);
 	SAFE_DELETE_ARRAY(m_pbGreatPeoples);
 	SAFE_DELETE_ARRAY(m_pbBuildings);
-	SAFE_DELETE_ARRAY(m_pbForceBuildings);
+	//SAFE_DELETE_ARRAY(m_pbForceBuildings); // advc.003t
 	SAFE_DELETE_ARRAY(m_pbTerrainImpassable);
 	SAFE_DELETE_ARRAY(m_pbFeatureImpassable);
 	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
@@ -3868,112 +3868,113 @@ int CvUnitInfo::getPrereqAndTechs(int i) const
 {
 	FAssertMsg(i < GC.getNUM_UNIT_AND_TECH_PREREQS(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : -1;
+	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
 int CvUnitInfo::getPrereqOrBonuses(int i) const
 {
 	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : -1;
+	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
 }
 // <advc.905b>
 int CvUnitInfo::getSpeedBonuses(int i) const {
 
 	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piSpeedBonuses[0] ? m_piSpeedBonuses[0][i] : -1;
+	return m_piSpeedBonuses[0] ? m_piSpeedBonuses[0][i] : NO_BONUS;
 }
 
 int CvUnitInfo::getExtraMoves(int i) const {
 
 	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piSpeedBonuses[1] ? m_piSpeedBonuses[1][i] : -1;
+	return m_piSpeedBonuses[1] ? m_piSpeedBonuses[1][i] : 0;
 } // </advc.905b>
 
 int CvUnitInfo::getProductionTraits(int i) const
 {
 	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piProductionTraits ? m_piProductionTraits[i] : -1;
+	return m_piProductionTraits ? m_piProductionTraits[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getFlavorValue(int i) const
 {
 	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlavorValue ? m_piFlavorValue[i] : -1;
+	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getTerrainAttackModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTerrainAttackModifier ? m_piTerrainAttackModifier[i] : -1;
+	return m_piTerrainAttackModifier ? m_piTerrainAttackModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getTerrainDefenseModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTerrainDefenseModifier ? m_piTerrainDefenseModifier[i] : -1;
+	return m_piTerrainDefenseModifier ? m_piTerrainDefenseModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getFeatureAttackModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFeatureAttackModifier ? m_piFeatureAttackModifier[i] : -1;
+	return m_piFeatureAttackModifier ? m_piFeatureAttackModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getFeatureDefenseModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFeatureDefenseModifier ? m_piFeatureDefenseModifier[i] : -1;
+	return m_piFeatureDefenseModifier ? m_piFeatureDefenseModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitClassAttackModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitClassAttackModifier ? m_piUnitClassAttackModifier[i] : -1;
+	return m_piUnitClassAttackModifier ? m_piUnitClassAttackModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitClassDefenseModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitClassDefenseModifier ? m_piUnitClassDefenseModifier[i] : -1;
+	return m_piUnitClassDefenseModifier ? m_piUnitClassDefenseModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitCombatModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitCombatInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitCombatModifier ? m_piUnitCombatModifier[i] : -1;
+	return m_piUnitCombatModifier ? m_piUnitCombatModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitCombatCollateralImmune(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitCombatInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitCombatCollateralImmune ? m_piUnitCombatCollateralImmune[i] : -1;
+	return m_piUnitCombatCollateralImmune ? m_piUnitCombatCollateralImmune[i]
+			: 0; // advc.003t: Was -1. This one acts as a boolean actually.
 }
 
 int CvUnitInfo::getDomainModifier(int i) const
 {
 	FAssertMsg(i < NUM_DOMAIN_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDomainModifier ? m_piDomainModifier[i] : -1;
+	return m_piDomainModifier ? m_piDomainModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getBonusProductionModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumBonusInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : -1;
+	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitGroupRequired(int i) const
@@ -4022,7 +4023,8 @@ int CvUnitInfo::getFlankingStrikeUnitClass(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlankingStrikeUnitClass ? m_piFlankingStrikeUnitClass[i] : -1;
+	return m_piFlankingStrikeUnitClass ? m_piFlankingStrikeUnitClass[i]
+			: 0; // advc.003t: Was -1. This is called iFlankingStrength in XML.
 }
 
 bool CvUnitInfo::getUnitAIType(int i) const
@@ -4050,28 +4052,29 @@ int CvUnitInfo::getReligionSpreads(int i) const
 {
 	FAssertMsg(i < GC.getNumReligionInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piReligionSpreads ? m_piReligionSpreads[i] : -1;
+	return m_piReligionSpreads ? m_piReligionSpreads[i] :
+			0; // advc.003t: Was -1. This is called iReligionSpread in XML.
 }
 
 int CvUnitInfo::getCorporationSpreads(int i) const
 {
 	FAssertMsg(i < GC.getNumCorporationInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCorporationSpreads ? m_piCorporationSpreads[i] : -1;
+	return m_piCorporationSpreads ? m_piCorporationSpreads[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getTerrainPassableTech(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTerrainPassableTech ? m_piTerrainPassableTech[i] : -1;
+	return m_piTerrainPassableTech ? m_piTerrainPassableTech[i] : NO_TECH; // advc.003t
 }
 
 int CvUnitInfo::getFeaturePassableTech(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFeaturePassableTech ? m_piFeaturePassableTech[i] : -1;
+	return m_piFeaturePassableTech ? m_piFeaturePassableTech[i] : NO_TECH; // advc.003t
 }
 
 bool CvUnitInfo::getGreatPeoples(int i) const
@@ -4087,13 +4090,13 @@ bool CvUnitInfo::getBuildings(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_pbBuildings ? m_pbBuildings[i] : false;
 }
-
-bool CvUnitInfo::getForceBuildings(int i) const
+// advc.003t
+/*bool CvUnitInfo::getForceBuildings(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_pbForceBuildings ? m_pbForceBuildings[i] : false;
-}
+}*/
 
 bool CvUnitInfo::getTerrainImpassable(int i) const
 {
@@ -4533,10 +4536,10 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	SAFE_DELETE_ARRAY(m_pbBuildings);
 	m_pbBuildings = new bool[GC.getNumBuildingInfos()];
 	stream->Read(GC.getNumBuildingInfos(), m_pbBuildings);
-
-	SAFE_DELETE_ARRAY(m_pbForceBuildings);
+	// advc.003t:
+	/*SAFE_DELETE_ARRAY(m_pbForceBuildings);
 	m_pbForceBuildings = new bool[GC.getNumBuildingInfos()];
-	stream->Read(GC.getNumBuildingInfos(), m_pbForceBuildings);
+	stream->Read(GC.getNumBuildingInfos(), m_pbForceBuildings);*/
 
 	SAFE_DELETE_ARRAY(m_pbTerrainNative);
 	m_pbTerrainNative = new bool[GC.getNumTerrainInfos()];
@@ -4750,7 +4753,7 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumFeatureInfos(), m_piFeaturePassableTech);
 	stream->Write(GC.getNumSpecialistInfos(), m_pbGreatPeoples);
 	stream->Write(GC.getNumBuildingInfos(), m_pbBuildings);
-	stream->Write(GC.getNumBuildingInfos(), m_pbForceBuildings);
+	//stream->Write(GC.getNumBuildingInfos(), m_pbForceBuildings); // advc.003t
 	stream->Write(GC.getNumTerrainInfos(), m_pbTerrainNative);
 	stream->Write(GC.getNumFeatureInfos(), m_pbFeatureNative);
 	stream->Write(GC.getNumTerrainInfos(), m_pbTerrainImpassable);
@@ -4873,25 +4876,29 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 	CvString* pszTemp = NULL;
 	pXML->SetVariableListTagPair(&pszTemp, "TerrainPassableTechs", sizeof(GC.getTerrainInfo((TerrainTypes)0)), GC.getNumTerrainInfos());
-	m_piTerrainPassableTech = new int[GC.getNumTerrainInfos()];
-	for (int i = 0; i < GC.getNumTerrainInfos(); ++i)
+	if (pszTemp != NULL) // advc.003t
 	{
-		m_piTerrainPassableTech[i] = pszTemp[i].IsEmpty() ? NO_TECH : pXML->FindInInfoClass(pszTemp[i]);
+		m_piTerrainPassableTech = new int[GC.getNumTerrainInfos()];
+		for (int i = 0; i < GC.getNumTerrainInfos(); ++i)
+		{
+			m_piTerrainPassableTech[i] = pszTemp[i].IsEmpty() ? NO_TECH : pXML->FindInInfoClass(pszTemp[i]);
+		}
+		SAFE_DELETE_ARRAY(pszTemp);
 	}
-	SAFE_DELETE_ARRAY(pszTemp);
-
 	pXML->SetVariableListTagPair(&pszTemp, "FeaturePassableTechs", sizeof(GC.getFeatureInfo((FeatureTypes)0)), GC.getNumFeatureInfos());
-	m_piFeaturePassableTech = new int[GC.getNumFeatureInfos()];
-	for (int i = 0; i < GC.getNumFeatureInfos(); ++i)
+	if (pszTemp != NULL) // advc.003t
 	{
-		m_piFeaturePassableTech[i] = pszTemp[i].IsEmpty() ? NO_TECH : pXML->FindInInfoClass(pszTemp[i]);
+		m_piFeaturePassableTech = new int[GC.getNumFeatureInfos()];
+		for (int i = 0; i < GC.getNumFeatureInfos(); ++i)
+		{
+			m_piFeaturePassableTech[i] = pszTemp[i].IsEmpty() ? NO_TECH : pXML->FindInInfoClass(pszTemp[i]);
+		}
+		SAFE_DELETE_ARRAY(pszTemp);
 	}
-	SAFE_DELETE_ARRAY(pszTemp);
-
 	pXML->SetVariableListTagPair(&m_pbGreatPeoples, "GreatPeoples", sizeof(GC.getSpecialistInfo((SpecialistTypes)0)), GC.getNumSpecialistInfos());
 
 	pXML->SetVariableListTagPair(&m_pbBuildings, "Buildings", sizeof(GC.getBuildingInfo((BuildingTypes)0)), GC.getNumBuildingInfos());
-	pXML->SetVariableListTagPair(&m_pbForceBuildings, "ForceBuildings", sizeof(GC.getBuildingInfo((BuildingTypes)0)), GC.getNumBuildingInfos());
+	//pXML->SetVariableListTagPair(&m_pbForceBuildings, "ForceBuildings", sizeof(GC.getBuildingInfo((BuildingTypes)0)), GC.getNumBuildingInfos()); // advc.003t
 
 	pXML->GetChildXmlValByName(szTextVal, "HolyCity");
 	m_iHolyCity = pXML->FindInInfoClass(szTextVal);
@@ -5336,15 +5343,16 @@ bool CvSpecialUnitInfo::isCarrierUnitAIType(int i) const
 {
 	FAssertMsg(i < NUM_UNITAI_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbCarrierUnitAITypes ? m_pbCarrierUnitAITypes[i] :
-			false; // advc.003: was -1
+	return m_pbCarrierUnitAITypes ? m_pbCarrierUnitAITypes[i]
+			: false; // advc.003t: was -1 (which equals true)
 }
 
 int CvSpecialUnitInfo::getProductionTraits(int i) const
 {
 	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piProductionTraits ? m_piProductionTraits[i] : -1;
+	return m_piProductionTraits ? m_piProductionTraits[i]
+			: 0; // advc.003t: Was -1. This is the production discount percentage.
 }
 
 bool CvSpecialUnitInfo::read(CvXMLLoadUtility* pXML)
@@ -5772,7 +5780,7 @@ int CvCivicInfo::getYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldModifier ? m_piYieldModifier[i] : -1;
+	return m_piYieldModifier ? m_piYieldModifier[i] : 0; // advc.003t
 }
 
 int* CvCivicInfo::getYieldModifierArray() const
@@ -5784,7 +5792,7 @@ int CvCivicInfo::getCapitalYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCapitalYieldModifier ? m_piCapitalYieldModifier[i] : -1;
+	return m_piCapitalYieldModifier ? m_piCapitalYieldModifier[i] : 0; // advc.003t
 }
 
 int* CvCivicInfo::getCapitalYieldModifierArray() const
@@ -5796,7 +5804,7 @@ int CvCivicInfo::getTradeYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTradeYieldModifier ? m_piTradeYieldModifier[i] : -1;
+	return m_piTradeYieldModifier ? m_piTradeYieldModifier[i] : 0; // advc.003t
 }
 
 int* CvCivicInfo::getTradeYieldModifierArray() const
@@ -5808,7 +5816,7 @@ int CvCivicInfo::getCommerceModifier(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceModifier ? m_piCommerceModifier[i] : -1;
+	return m_piCommerceModifier ? m_piCommerceModifier[i] : 0; // advc.003t
 }
 
 int* CvCivicInfo::getCommerceModifierArray() const
@@ -5820,7 +5828,7 @@ int CvCivicInfo::getCapitalCommerceModifier(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCapitalCommerceModifier ? m_piCapitalCommerceModifier[i] : -1;
+	return m_piCapitalCommerceModifier ? m_piCapitalCommerceModifier[i] : 0; // advc.003t
 }
 
 int* CvCivicInfo::getCapitalCommerceModifierArray() const
@@ -5832,7 +5840,7 @@ int CvCivicInfo::getSpecialistExtraCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : -1;
+	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : 0; // advc.003t
 }
 
 int* CvCivicInfo::getSpecialistExtraCommerceArray() const
@@ -5844,21 +5852,21 @@ int CvCivicInfo::getBuildingHappinessChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiBuildingHappinessChanges ? m_paiBuildingHappinessChanges[i] : -1;
+	return m_paiBuildingHappinessChanges ? m_paiBuildingHappinessChanges[i] : 0; // advc.003t
 }
 
 int CvCivicInfo::getBuildingHealthChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiBuildingHealthChanges ? m_paiBuildingHealthChanges[i] : -1;
+	return m_paiBuildingHealthChanges ? m_paiBuildingHealthChanges[i] : 0; // advc.003t
 }
 
 int CvCivicInfo::getFeatureHappinessChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiFeatureHappinessChanges ? m_paiFeatureHappinessChanges[i] : -1;
+	return m_paiFeatureHappinessChanges ? m_paiFeatureHappinessChanges[i] : 0; // advc.003t
 }
 
 bool CvCivicInfo::isHurry(int i) const
@@ -7394,7 +7402,7 @@ int CvBuildingInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getYieldChangeArray() const
@@ -7406,7 +7414,7 @@ int CvBuildingInfo::getYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldModifier ? m_piYieldModifier[i] : -1;
+	return m_piYieldModifier ? m_piYieldModifier[i] : 0; // advc003t
 }
 
 int* CvBuildingInfo::getYieldModifierArray() const
@@ -7418,7 +7426,7 @@ int CvBuildingInfo::getPowerYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPowerYieldModifier ? m_piPowerYieldModifier[i] : -1;
+	return m_piPowerYieldModifier ? m_piPowerYieldModifier[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getPowerYieldModifierArray() const
@@ -7430,7 +7438,7 @@ int CvBuildingInfo::getAreaYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piAreaYieldModifier ? m_piAreaYieldModifier[i] : -1;
+	return m_piAreaYieldModifier ? m_piAreaYieldModifier[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getAreaYieldModifierArray() const
@@ -7442,7 +7450,7 @@ int CvBuildingInfo::getGlobalYieldModifier(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piGlobalYieldModifier ? m_piGlobalYieldModifier[i] : -1;
+	return m_piGlobalYieldModifier ? m_piGlobalYieldModifier[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getGlobalYieldModifierArray() const
@@ -7454,7 +7462,7 @@ int CvBuildingInfo::getSeaPlotYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piSeaPlotYieldChange ? m_piSeaPlotYieldChange[i] : -1;
+	return m_piSeaPlotYieldChange ? m_piSeaPlotYieldChange[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getSeaPlotYieldChangeArray() const
@@ -7466,7 +7474,7 @@ int CvBuildingInfo::getRiverPlotYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piRiverPlotYieldChange ? m_piRiverPlotYieldChange[i] : -1;
+	return m_piRiverPlotYieldChange ? m_piRiverPlotYieldChange[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getRiverPlotYieldChangeArray() const
@@ -7478,7 +7486,7 @@ int CvBuildingInfo::getGlobalSeaPlotYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piGlobalSeaPlotYieldChange ? m_piGlobalSeaPlotYieldChange[i] : -1;
+	return m_piGlobalSeaPlotYieldChange ? m_piGlobalSeaPlotYieldChange[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getGlobalSeaPlotYieldChangeArray() const
@@ -7490,7 +7498,7 @@ int CvBuildingInfo::getCommerceChange(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceChange ? m_piCommerceChange[i] : -1;
+	return m_piCommerceChange ? m_piCommerceChange[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getCommerceChangeArray() const
@@ -7502,7 +7510,7 @@ int CvBuildingInfo::getObsoleteSafeCommerceChange(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piObsoleteSafeCommerceChange ? m_piObsoleteSafeCommerceChange[i] : -1;
+	return m_piObsoleteSafeCommerceChange ? m_piObsoleteSafeCommerceChange[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getObsoleteSafeCommerceChangeArray() const
@@ -7514,14 +7522,15 @@ int CvBuildingInfo::getCommerceChangeDoubleTime(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceChangeDoubleTime ? m_piCommerceChangeDoubleTime[i] : -1;
+	return m_piCommerceChangeDoubleTime ? m_piCommerceChangeDoubleTime[i]
+			: 0; // advc.003t: Was -1. 0 means infinity here.
 }
 
 int CvBuildingInfo::getCommerceModifier(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceModifier ? m_piCommerceModifier[i] : -1;
+	return m_piCommerceModifier ? m_piCommerceModifier[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getCommerceModifierArray() const
@@ -7533,7 +7542,7 @@ int CvBuildingInfo::getGlobalCommerceModifier(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piGlobalCommerceModifier ? m_piGlobalCommerceModifier[i] : -1;
+	return m_piGlobalCommerceModifier ? m_piGlobalCommerceModifier[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getGlobalCommerceModifierArray() const
@@ -7545,7 +7554,7 @@ int CvBuildingInfo::getSpecialistExtraCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : -1;
+	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getSpecialistExtraCommerceArray() const
@@ -7557,7 +7566,7 @@ int CvBuildingInfo::getStateReligionCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piStateReligionCommerce ? m_piStateReligionCommerce[i] : -1;
+	return m_piStateReligionCommerce ? m_piStateReligionCommerce[i] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getStateReligionCommerceArray() const
@@ -7569,126 +7578,129 @@ int CvBuildingInfo::getCommerceHappiness(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceHappiness ? m_piCommerceHappiness[i] : -1;
+	return m_piCommerceHappiness ? m_piCommerceHappiness[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getReligionChange(int i) const
 {
 	FAssertMsg(i < GC.getNumReligionInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piReligionChange ? m_piReligionChange[i] : -1;
+	return m_piReligionChange ? m_piReligionChange[i]
+			: 0; // advc.003t: Was -1. This one acts as a boolean actually.
 }
 
 int CvBuildingInfo::getSpecialistCount(int i) const
 {
 	FAssertMsg(i < GC.getNumSpecialistInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piSpecialistCount ? m_piSpecialistCount[i] : -1;
+	return m_piSpecialistCount ? m_piSpecialistCount[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getFreeSpecialistCount(int i) const
 {
 	FAssertMsg(i < GC.getNumSpecialistInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFreeSpecialistCount ? m_piFreeSpecialistCount[i] : -1;
+	return m_piFreeSpecialistCount ? m_piFreeSpecialistCount[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getBonusHealthChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumBonusInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piBonusHealthChanges ? m_piBonusHealthChanges[i] : -1;
+	return m_piBonusHealthChanges ? m_piBonusHealthChanges[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getBonusHappinessChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumBonusInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piBonusHappinessChanges ? m_piBonusHappinessChanges[i] : -1;
+	return m_piBonusHappinessChanges ? m_piBonusHappinessChanges[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getBonusProductionModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumBonusInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : -1;
+	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getUnitCombatFreeExperience(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitCombatInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitCombatFreeExperience ? m_piUnitCombatFreeExperience[i] : -1;
+	return m_piUnitCombatFreeExperience ? m_piUnitCombatFreeExperience[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getDomainFreeExperience(int i) const
 {
 	FAssertMsg(i < NUM_DOMAIN_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDomainFreeExperience ? m_piDomainFreeExperience[i] : -1;
+	return m_piDomainFreeExperience ? m_piDomainFreeExperience[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getDomainProductionModifier(int i) const
 {
 	FAssertMsg(i < NUM_DOMAIN_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDomainProductionModifier ? m_piDomainProductionModifier[i] : -1;
+	return m_piDomainProductionModifier ? m_piDomainProductionModifier[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPrereqAndTechs(int i) const
 {
 	FAssertMsg(i < GC.getNUM_BUILDING_AND_TECH_PREREQS(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : -1;
+	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
 int CvBuildingInfo::getPrereqOrBonuses(int i) const
 {
 	FAssertMsg(i < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : -1;
+	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_TECH; // advc.003t
 }
 
 int CvBuildingInfo::getProductionTraits(int i) const
 {
 	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piProductionTraits ? m_piProductionTraits[i] : -1;
+	return m_piProductionTraits ? m_piProductionTraits[i]
+			: 0; // advc.003t: Was -1. This is the production discount percentage.
 }
 
 int CvBuildingInfo::getHappinessTraits(int i) const
 {
 	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piHappinessTraits ? m_piHappinessTraits[i] : -1;
+	return m_piHappinessTraits ? m_piHappinessTraits[i]
+			: 0; // advc.003t: Was -1. This is the happiness from trait.
 }
 
 int CvBuildingInfo::getBuildingHappinessChanges(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piBuildingHappinessChanges ? m_piBuildingHappinessChanges[i] : -1;
+	return m_piBuildingHappinessChanges ? m_piBuildingHappinessChanges[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPrereqNumOfBuildingClass(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPrereqNumOfBuildingClass ? m_piPrereqNumOfBuildingClass[i] : -1;
+	return m_piPrereqNumOfBuildingClass ? m_piPrereqNumOfBuildingClass[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getFlavorValue(int i) const
 {
 	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlavorValue ? m_piFlavorValue[i] : -1;
+	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getImprovementFreeSpecialist(int i) const
 {
 	FAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piImprovementFreeSpecialist ? m_piImprovementFreeSpecialist[i] : -1;
+	return m_piImprovementFreeSpecialist ? m_piImprovementFreeSpecialist[i] : 0; // advc.003t
 }
 
 bool CvBuildingInfo::isCommerceFlexible(int i) const
@@ -7718,7 +7730,7 @@ int CvBuildingInfo::getSpecialistYieldChange(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_ppaiSpecialistYieldChange ? m_ppaiSpecialistYieldChange[i][j] : -1;
+	return m_ppaiSpecialistYieldChange ? m_ppaiSpecialistYieldChange[i][j] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getSpecialistYieldChangeArray(int i) const
@@ -7744,7 +7756,7 @@ int CvBuildingInfo::getBonusYieldModifier(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_ppaiBonusYieldModifier ? m_ppaiBonusYieldModifier[i][j] : -1;
+	return m_ppaiBonusYieldModifier ? m_ppaiBonusYieldModifier[i][j] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getBonusYieldModifierArray(int i) const
@@ -8964,7 +8976,8 @@ int CvSpecialBuildingInfo::getProductionTraits(int i) const
 {
 	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piProductionTraits ? m_piProductionTraits[i] : -1;
+	return m_piProductionTraits ? m_piProductionTraits[i]
+			: 0; // advc.003t: Was -1. This is the production discount percentage.
 }
 
 bool CvSpecialBuildingInfo::read(CvXMLLoadUtility* pXML)
@@ -9061,11 +9074,13 @@ bool CvBuildingClassInfo::isMonument() const
 
 // Arrays
 
+/*  advc (comment): Unused. Number of buildings of this class required for
+	victory i as a necessary (not sufficient) condition. */
 int CvBuildingClassInfo::getVictoryThreshold(int i) const
 {
 	FAssertMsg(i < GC.getNumVictoryInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piVictoryThreshold ? m_piVictoryThreshold[i] : -1;
+	return m_piVictoryThreshold ? m_piVictoryThreshold[i] : 0; // advc.003t
 }
 
 bool CvBuildingClassInfo::read(CvXMLLoadUtility* pXML)
@@ -9498,28 +9513,28 @@ int CvCivilizationInfo::getCivilizationBuildings(int i) const
 {
 	FAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCivilizationBuildings ? m_piCivilizationBuildings[i] : -1;
+	return m_piCivilizationBuildings ? m_piCivilizationBuildings[i] : NO_BUILDING; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationUnits(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCivilizationUnits ? m_piCivilizationUnits[i] : -1;
+	return m_piCivilizationUnits ? m_piCivilizationUnits[i] : NO_UNIT; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationFreeUnitsClass(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCivilizationFreeUnitsClass ? m_piCivilizationFreeUnitsClass[i] : -1;
+	return m_piCivilizationFreeUnitsClass ? m_piCivilizationFreeUnitsClass[i] : NO_UNITCLASS; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationInitialCivics(int i) const
 {
 	FAssertMsg(i < GC.getNumCivicOptionInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCivilizationInitialCivics ? m_piCivilizationInitialCivics[i] : -1;
+	return m_piCivilizationInitialCivics ? m_piCivilizationInitialCivics[i] : NO_CIVIC; // advc.003t
 }
 
 bool CvCivilizationInfo::isLeaders(int i) const
@@ -10500,18 +10515,18 @@ int CvHandicapInfo::getGoodies(int i) const
 	return m_piGoodies[i];
 }
 
-int CvHandicapInfo::isFreeTechs(int i) const
+bool CvHandicapInfo::isFreeTechs(int i) const // advc.003t: Return type was int
 {
 	FAssertMsg(i < GC.getNumTechInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbFreeTechs[i];
+	return (m_pbFreeTechs != NULL ? m_pbFreeTechs[i] : false);
 }
 
-int CvHandicapInfo::isAIFreeTechs(int i) const
+bool CvHandicapInfo::isAIFreeTechs(int i) const // advc.003t: Return type was int
 {
 	FAssertMsg(i < GC.getNumTechInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbAIFreeTechs[i];
+	return (m_pbAIFreeTechs != NULL ? m_pbAIFreeTechs[i] : false);
 }
 #if SERIALIZE_CVINFOS
 void CvHandicapInfo::read(FDataStreamBase* stream)
@@ -11234,21 +11249,21 @@ int CvBuildInfo::getFeatureTech(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiFeatureTech ? m_paiFeatureTech[i] : -1;
+	return m_paiFeatureTech ? m_paiFeatureTech[i] : NO_TECH; // advc.003t
 }
 
 int CvBuildInfo::getFeatureTime(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiFeatureTime ? m_paiFeatureTime[i] : -1;
+	return m_paiFeatureTime ? m_paiFeatureTime[i] : 0; // advc.003t
 }
 
 int CvBuildInfo::getFeatureProduction(int i) const
 {
 	FAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiFeatureProduction ? m_paiFeatureProduction[i] : -1;
+	return m_paiFeatureProduction ? m_paiFeatureProduction[i] : 0; // advc.003t
 }
 
 bool CvBuildInfo::isFeatureRemove(int i) const
@@ -11520,19 +11535,19 @@ int CvRouteInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 int CvRouteInfo::getTechMovementChange(int i) const
 {
 	FAssertMsg(i < GC.getNumTechInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTechMovementChange ? m_piTechMovementChange[i] : -1;
+	return m_piTechMovementChange ? m_piTechMovementChange[i] : 0; // advc.003t
 }
 
 int CvRouteInfo::getPrereqOrBonus(int i) const
 {
-	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : -1;
+	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
 }
 
 bool CvRouteInfo::read(CvXMLLoadUtility* pXML)
@@ -11651,7 +11666,7 @@ int CvImprovementBonusInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 #if SERIALIZE_CVINFOS
 void CvImprovementBonusInfo::read(FDataStreamBase* stream)
@@ -11936,7 +11951,7 @@ int CvImprovementInfo::getPrereqNatureYield(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPrereqNatureYield ? m_piPrereqNatureYield[i] : -1;
+	return m_piPrereqNatureYield ? m_piPrereqNatureYield[i] : 0; // advc.003t
 }
 
 int* CvImprovementInfo::getPrereqNatureYieldArray()
@@ -11948,7 +11963,7 @@ int CvImprovementInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 int* CvImprovementInfo::getYieldChangeArray()
@@ -11960,7 +11975,7 @@ int CvImprovementInfo::getRiverSideYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piRiverSideYieldChange ? m_piRiverSideYieldChange[i] : -1;
+	return m_piRiverSideYieldChange ? m_piRiverSideYieldChange[i] : 0; // advc.003t
 }
 
 int* CvImprovementInfo::getRiverSideYieldChangeArray()
@@ -11972,7 +11987,7 @@ int CvImprovementInfo::getHillsYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : -1;
+	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : 0; // advc.003t
 }
 
 int* CvImprovementInfo::getHillsYieldChangeArray()
@@ -11984,7 +11999,7 @@ int CvImprovementInfo::getIrrigatedYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piIrrigatedChange ? m_piIrrigatedChange[i] : -1;
+	return m_piIrrigatedChange ? m_piIrrigatedChange[i] : 0; // advc.003t
 }
 
 int* CvImprovementInfo::getIrrigatedYieldChangeArray()
@@ -12040,7 +12055,7 @@ int CvImprovementInfo::getImprovementBonusYield(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_paImprovementBonus[i].m_piYieldChange ? m_paImprovementBonus[i].getYieldChange(j) : -1;
+	return m_paImprovementBonus[i].m_piYieldChange ? m_paImprovementBonus[i].getYieldChange(j) : 0; // advc.003t
 }
 
 bool CvImprovementInfo::isImprovementBonusMakesValid(int i) const
@@ -12764,7 +12779,7 @@ int CvBonusInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 int* CvBonusInfo::getYieldChangeArray()
@@ -12776,14 +12791,14 @@ int CvBonusInfo::getImprovementChange(int i) const
 {
 	FAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piImprovementChange ? m_piImprovementChange[i] : -1;
+	return m_piImprovementChange ? m_piImprovementChange[i] : 0; // advc.003t
 }
 
 bool CvBonusInfo::isTerrain(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbTerrain ?	m_pbTerrain[i] : false;
+	return m_pbTerrain ? m_pbTerrain[i] : false;
 }
 
 bool CvBonusInfo::isFeature(int i) const
@@ -13212,28 +13227,30 @@ int CvFeatureInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 int CvFeatureInfo::getRiverYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piRiverYieldChange ? m_piRiverYieldChange[i] : -1;
+	return m_piRiverYieldChange ? m_piRiverYieldChange[i] : 0; // advc.003t
 }
 
 int CvFeatureInfo::getHillsYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : -1;
+	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : 0; // advc.003t
 }
 
 int CvFeatureInfo::get3DAudioScriptFootstepIndex(int i) const
 {
 	//	FAssertMsg(i < ?, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i] : -1;
+	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i]
+			// advc.003t: Was -1. CvTerrainInfo::read sets 0 as the default, so 0 works apparently.
+			: 0;
 }
 
 bool CvFeatureInfo::isTerrain(int i) const
@@ -13718,28 +13735,29 @@ int CvTerrainInfo::getYield(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYields ? m_piYields[i] : -1;
+	return m_piYields ? m_piYields[i] : 0; // advc.003t
 }
 
 int CvTerrainInfo::getRiverYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piRiverYieldChange ? m_piRiverYieldChange[i] : -1;
+	return m_piRiverYieldChange ? m_piRiverYieldChange[i] : 0; // advc.003t
 }
 
 int CvTerrainInfo::getHillsYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : -1;
+	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : 0; // advc.003t
 }
 
 int CvTerrainInfo::get3DAudioScriptFootstepIndex(int i) const
 {
 //	FAssertMsg(i < ?, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i] : -1;
+	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i]
+			: 0; // advc.003t: see get3DAudioScriptFootstepIndex
 }
 
 bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
@@ -14554,21 +14572,21 @@ int CvLeaderHeadInfo::getFlavorValue(int i) const
 {
 	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFlavorValue ? m_piFlavorValue[i] : -1;
+	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getContactRand(int i) const
 {
 	FAssertMsg(i < NUM_CONTACT_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piContactRand ? m_piContactRand[i] : -1;
+	return m_piContactRand ? m_piContactRand[i] : 0; // advc.003t: Never contact by default
 }
 
 int CvLeaderHeadInfo::getContactDelay(int i) const
 {
 	FAssertMsg(i < NUM_CONTACT_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piContactDelay ? m_piContactDelay[i] : -1;
+	return m_piContactDelay ? m_piContactDelay[i] : 0; // advc.003t: No delay by default
 }
 
 int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
@@ -14588,56 +14606,58 @@ int CvLeaderHeadInfo::getMemoryAttitudePercent(int i) const
 {
 	FAssertMsg(i < NUM_MEMORY_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piMemoryAttitudePercent ? m_piMemoryAttitudePercent[i] : -1;
+	return m_piMemoryAttitudePercent ? m_piMemoryAttitudePercent[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getNoWarAttitudeProb(int i) const
 {
 	FAssertMsg(i < NUM_ATTITUDE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piNoWarAttitudeProb ? m_piNoWarAttitudeProb[i] : -1;
+	return m_piNoWarAttitudeProb ? m_piNoWarAttitudeProb[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getUnitAIWeightModifier(int i) const
 {
 	FAssertMsg(i < NUM_UNITAI_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitAIWeightModifier ? m_piUnitAIWeightModifier[i] : -1;
+	return m_piUnitAIWeightModifier ? m_piUnitAIWeightModifier[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getImprovementWeightModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piImprovementWeightModifier ? m_piImprovementWeightModifier[i] : -1;
+	return m_piImprovementWeightModifier ? m_piImprovementWeightModifier[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploPeaceIntroMusicScriptIds ? m_piDiploPeaceIntroMusicScriptIds[i] : -1;
+	return m_piDiploPeaceIntroMusicScriptIds ? m_piDiploPeaceIntroMusicScriptIds[i]
+			// advc.003t: CvLeaderHeadInfo::read sets the music script ids to 0 by default, so 0 works.
+			: 0;
 }
 
 int CvLeaderHeadInfo::getDiploPeaceMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploPeaceMusicScriptIds ? m_piDiploPeaceMusicScriptIds[i] : -1;
+	return m_piDiploPeaceMusicScriptIds ? m_piDiploPeaceMusicScriptIds[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getDiploWarIntroMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploWarIntroMusicScriptIds ? m_piDiploWarIntroMusicScriptIds[i] : -1;
+	return m_piDiploWarIntroMusicScriptIds ? m_piDiploWarIntroMusicScriptIds[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getDiploWarMusicScriptIds(int i) const
 {
 	FAssertMsg(i < GC.getNumEraInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piDiploWarMusicScriptIds ? m_piDiploWarMusicScriptIds[i] : -1;
+	return m_piDiploWarMusicScriptIds ? m_piDiploWarMusicScriptIds[i] : 0; // advc.003t
 }
 
 const TCHAR* CvLeaderHeadInfo::getLeaderHead() const
@@ -15410,7 +15430,7 @@ int CvProcessInfo::getProductionToCommerceModifier(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiProductionToCommerceModifier ? m_paiProductionToCommerceModifier[i] : -1;
+	return m_paiProductionToCommerceModifier ? m_paiProductionToCommerceModifier[i] : 0; // advc.003t
 }
 
 bool CvProcessInfo::read(CvXMLLoadUtility* pXML)
@@ -15747,26 +15767,25 @@ int CvProjectInfo::getBonusProductionModifier(int i) const
 {
 	FAssertMsg(i < GC.getNumBonusInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : -1;
+	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : 0; // advc.003t
 }
 
 int CvProjectInfo::getVictoryThreshold(int i) const
 {
 	FAssertMsg(i < GC.getNumVictoryInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piVictoryThreshold ? m_piVictoryThreshold[i] : -1;
+	return m_piVictoryThreshold ? m_piVictoryThreshold[i] : 0; // advc.003t
 }
 
 int CvProjectInfo::getVictoryMinThreshold(int i) const
 {
 	FAssertMsg(i < GC.getNumVictoryInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-
-	if (m_piVictoryMinThreshold && m_piVictoryMinThreshold[i] != 0)
-	{
+	// <advc.003t>
+	if (m_piVictoryMinThreshold == NULL)
+		return 0;
+	if (m_piVictoryMinThreshold[i] != 0) // </advc.003t>
 		return m_piVictoryMinThreshold[i];
-	}
-
 	return getVictoryThreshold(i);
 }
 
@@ -15774,7 +15793,7 @@ int CvProjectInfo::getProjectsNeeded(int i) const
 {
 	FAssertMsg(i < GC.getNumProjectInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piProjectsNeeded ? m_piProjectsNeeded[i] : false;
+	return m_piProjectsNeeded ? m_piProjectsNeeded[i] : 0; // advc.003t: was false
 }
 
 bool CvProjectInfo::read(CvXMLLoadUtility* pXML)
@@ -16003,7 +16022,7 @@ int CvReligionInfo::getGlobalReligionCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiGlobalReligionCommerce ? m_paiGlobalReligionCommerce[i] : -1;
+	return m_paiGlobalReligionCommerce ? m_paiGlobalReligionCommerce[i] : 0; // advc.003t
 }
 
 int* CvReligionInfo::getGlobalReligionCommerceArray() const
@@ -16015,7 +16034,7 @@ int CvReligionInfo::getHolyCityCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiHolyCityCommerce ? m_paiHolyCityCommerce[i] : -1;
+	return m_paiHolyCityCommerce ? m_paiHolyCityCommerce[i] : 0; // advc.003t
 }
 
 int* CvReligionInfo::getHolyCityCommerceArray() const
@@ -16027,7 +16046,7 @@ int CvReligionInfo::getStateReligionCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiStateReligionCommerce ? m_paiStateReligionCommerce[i] : -1;
+	return m_paiStateReligionCommerce ? m_paiStateReligionCommerce[i] : 0; // advc.003t
 }
 
 int* CvReligionInfo::getStateReligionCommerceArray() const
@@ -16247,14 +16266,14 @@ int CvCorporationInfo::getPrereqBonus(int i) const
 {
 	FAssertMsg(i < GC.getNUM_CORPORATION_PREREQ_BONUSES(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiPrereqBonuses[i];
+	return (m_paiPrereqBonuses != NULL ? m_paiPrereqBonuses[i] : NO_BONUS); // advc.003t
 }
 
 int CvCorporationInfo::getHeadquarterCommerce(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiHeadquarterCommerce ? m_paiHeadquarterCommerce[i] : -1;
+	return m_paiHeadquarterCommerce ? m_paiHeadquarterCommerce[i] : 0; // advc.003t
 }
 
 int* CvCorporationInfo::getHeadquarterCommerceArray() const
@@ -16266,7 +16285,7 @@ int CvCorporationInfo::getCommerceProduced(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiCommerceProduced ? m_paiCommerceProduced[i] : -1;
+	return m_paiCommerceProduced ? m_paiCommerceProduced[i] : 0; // advc.003t
 }
 
 int* CvCorporationInfo::getCommerceProducedArray() const
@@ -16278,7 +16297,7 @@ int CvCorporationInfo::getYieldProduced(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiYieldProduced ? m_paiYieldProduced[i] : -1;
+	return m_paiYieldProduced ? m_paiYieldProduced[i] : 0; // advc.003t
 }
 
 int* CvCorporationInfo::getYieldProducedArray() const
@@ -16502,32 +16521,32 @@ void CvTraitInfo::setShortDescription(const TCHAR* szVal)
 
 int CvTraitInfo::getExtraYieldThreshold(int i) const
 {
-	return m_paiExtraYieldThreshold ? m_paiExtraYieldThreshold[i] : -1;
+	return m_paiExtraYieldThreshold ? m_paiExtraYieldThreshold[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getTradeYieldModifier(int i) const
 {
-	return m_paiTradeYieldModifier ? m_paiTradeYieldModifier[i] : -1;
+	return m_paiTradeYieldModifier ? m_paiTradeYieldModifier[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getCommerceChange(int i) const
 {
-	return m_paiCommerceChange ? m_paiCommerceChange[i] : -1;
+	return m_paiCommerceChange ? m_paiCommerceChange[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getCommerceModifier(int i) const
 {
-	return m_paiCommerceModifier ? m_paiCommerceModifier[i] : -1;
+	return m_paiCommerceModifier ? m_paiCommerceModifier[i] : 0; // advc.003t
 }
 
-int CvTraitInfo::isFreePromotion(int i) const
+bool CvTraitInfo::isFreePromotion(int i) const // advc.003t: Return type was int
 {
-	return m_pabFreePromotion ? m_pabFreePromotion[i] : -1;
+	return m_pabFreePromotion ? m_pabFreePromotion[i] : false;
 }
 
-int CvTraitInfo::isFreePromotionUnitCombat(int i) const
+bool CvTraitInfo::isFreePromotionUnitCombat(int i) const // advc.003t: Return type was int
 {
-	return m_pabFreePromotionUnitCombat ? m_pabFreePromotionUnitCombat[i] : -1;
+	return m_pabFreePromotionUnitCombat ? m_pabFreePromotionUnitCombat[i] : false;
 }
 
 bool CvTraitInfo::read(CvXMLLoadUtility* pXML)
@@ -18550,14 +18569,14 @@ int CvEmphasizeInfo::getYieldChange(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldModifiers ? m_piYieldModifiers[i] : -1;
+	return m_piYieldModifiers ? m_piYieldModifiers[i] : 0; // advc.003t
 }
 
 int CvEmphasizeInfo::getCommerceChange(int i) const
 {
 	FAssertMsg(i < NUM_COMMERCE_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piCommerceModifiers ? m_piCommerceModifiers[i] : -1;
+	return m_piCommerceModifiers ? m_piCommerceModifiers[i] : 0; // advc.003t
 }
 
 //
@@ -18659,7 +18678,7 @@ int CvCultureLevelInfo::getSpeedThreshold(int i) const
 {
 	FAssert(i < GC.getNumGameSpeedInfos());
 	FAssert(i > -1);
-	return m_paiSpeedThreshold[i];
+	return (m_paiSpeedThreshold != NULL ? m_paiSpeedThreshold[i] : 0); // advc.003t
 }
 
 bool CvCultureLevelInfo::read(CvXMLLoadUtility* pXml)
@@ -18709,14 +18728,14 @@ m_bNoAnimals(false),
 m_bNoBarbUnits(false),
 m_bNoBarbCities(false),
 m_bFirstSoundtrackFirst(false),
-m_paiCitySoundscapeSciptIds(NULL),
+m_paiCitySoundscapeScriptIds(NULL),
 m_paiSoundtracks(NULL)
 {
 }
 
 CvEraInfo::~CvEraInfo()
 {
-	SAFE_DELETE_ARRAY(m_paiCitySoundscapeSciptIds);
+	SAFE_DELETE_ARRAY(m_paiCitySoundscapeScriptIds);
 	SAFE_DELETE_ARRAY(m_paiSoundtracks);
 }
 
@@ -18871,14 +18890,18 @@ int CvEraInfo::getSoundtracks(int i) const
 {
 	FAssertMsg(i < getNumSoundtracks(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiSoundtracks ? m_paiSoundtracks[i] : -1;
+	return m_paiSoundtracks ? m_paiSoundtracks[i]
+		/*  advc.003t: Was -1. CvEraInfo::read also uses -1 as the default, but,
+			since 0 is used as the default for all other audio ids, let's hope
+			that 0 will also work here. */
+		: 0;
 }
 
-int CvEraInfo::getCitySoundscapeSciptId(int i) const
+int CvEraInfo::getCitySoundscapeScriptId(int i) const
 {
 //	FAssertMsg(i < ?, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paiCitySoundscapeSciptIds ? m_paiCitySoundscapeSciptIds[i] : -1;
+	return m_paiCitySoundscapeScriptIds ? m_paiCitySoundscapeScriptIds[i] : 0; // advc.003t
 }
 
 bool CvEraInfo::read(CvXMLLoadUtility* pXML)
@@ -18942,7 +18965,7 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 		SAFE_DELETE_ARRAY(pszSoundTrackNames);
 	}
 
-	pXML->SetVariableListTagPairForAudioScripts(&m_paiCitySoundscapeSciptIds, "CitySoundscapes", GC.getCitySizeTypes(), sizeof(GC.getCitySizeTypes((CitySizeTypes)0)));
+	pXML->SetVariableListTagPairForAudioScripts(&m_paiCitySoundscapeScriptIds, "CitySoundscapes", GC.getCitySizeTypes(), sizeof(GC.getCitySizeTypes((CitySizeTypes)0)));
 
 	return true;
 }
@@ -19431,7 +19454,8 @@ bool CvDiplomacyTextInfo::getCivilizationTypes(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < GC.getNumCivilizationInfos(), "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_pResponses[i].m_pbCivilizationTypes[j];
+	return (m_pResponses[i].m_pbCivilizationTypes[j] == NULL ? false : // advc.003t
+			m_pResponses[i].m_pbCivilizationTypes[j]);
 }
 
 bool CvDiplomacyTextInfo::getLeaderHeadTypes(int i, int j) const
@@ -19440,7 +19464,8 @@ bool CvDiplomacyTextInfo::getLeaderHeadTypes(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < GC.getNumLeaderHeadInfos(), "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_pResponses[i].m_pbLeaderHeadTypes[j];
+	return (m_pResponses[i].m_pbLeaderHeadTypes[j] == NULL ? false : // advc.003t
+			m_pResponses[i].m_pbLeaderHeadTypes[j]);
 }
 
 bool CvDiplomacyTextInfo::getAttitudeTypes(int i, int j) const
@@ -19449,7 +19474,8 @@ bool CvDiplomacyTextInfo::getAttitudeTypes(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < NUM_ATTITUDE_TYPES, "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_pResponses[i].m_pbAttitudeTypes[j];
+	return (m_pResponses[i].m_pbAttitudeTypes[j] == NULL ? false : // advc.003t
+			m_pResponses[i].m_pbAttitudeTypes[j]);
 }
 
 bool CvDiplomacyTextInfo::getDiplomacyPowerTypes(int i, int j) const
@@ -19458,7 +19484,8 @@ bool CvDiplomacyTextInfo::getDiplomacyPowerTypes(int i, int j) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	FAssertMsg(j < NUM_DIPLOMACYPOWER_TYPES, "Index out of bounds");
 	FAssertMsg(j > -1, "Index out of bounds");
-	return m_pResponses[i].m_pbDiplomacyPowerTypes[j];
+	return (m_pResponses[i].m_pbDiplomacyPowerTypes[j] == NULL ? false : // advc.003t
+			m_pResponses[i].m_pbDiplomacyPowerTypes[j]);
 }
 
 int CvDiplomacyTextInfo::getNumDiplomacyText(int i) const
@@ -21997,35 +22024,35 @@ int CvEventInfo::getTechFlavorValue(int i) const
 {
 	FAssertMsg(i < GC.getNumFlavorTypes(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piTechFlavorValue ? m_piTechFlavorValue[i] : -1;
+	return m_piTechFlavorValue ? m_piTechFlavorValue[i] : 0; // advc.003t
 }
 
 int CvEventInfo::getPlotExtraYield(int i) const
 {
 	FAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piPlotExtraYields ? m_piPlotExtraYields[i] : -1;
+	return m_piPlotExtraYields ? m_piPlotExtraYields[i] : 0; // advc.003t
 }
 
 int CvEventInfo::getFreeSpecialistCount(int i) const
 {
 	FAssertMsg(i < GC.getNumSpecialistInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piFreeSpecialistCount ? m_piFreeSpecialistCount[i] : -1;
+	return m_piFreeSpecialistCount ? m_piFreeSpecialistCount[i] : 0; // advc.003t
 }
 
 int CvEventInfo::getUnitCombatPromotion(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitCombatInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitCombatPromotions ? m_piUnitCombatPromotions[i] : -1;
+	return m_piUnitCombatPromotions ? m_piUnitCombatPromotions[i] : NO_PROMOTION; // advc.003t
 }
 
 int CvEventInfo::getUnitClassPromotion(int i) const
 {
 	FAssertMsg(i < GC.getNumUnitClassInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piUnitClassPromotions ? m_piUnitClassPromotions[i] : -1;
+	return m_piUnitClassPromotions ? m_piUnitClassPromotions[i] : NO_PROMOTION; // advc.003t
 }
 
 const CvWString& CvEventInfo::getWorldNews(int i) const
@@ -22512,21 +22539,21 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 	FAssertMsg(NULL == m_piUnitCombatPromotions, "Memory leak");
 	m_piUnitCombatPromotions = new int[GC.getNumUnitCombatInfos()];
 	pXML->SetVariableListTagPair(&pszPromotions, "UnitCombatPromotions", sizeof(GC.getUnitCombatInfo((UnitCombatTypes)0)), GC.getNumUnitCombatInfos(), "NONE");
-	for (int i = 0; i < GC.getNumUnitCombatInfos(); ++i)
+	if (pszPromotions != NULL) // advc.003t
 	{
-		m_piUnitCombatPromotions[i] = pXML->FindInInfoClass(pszPromotions[i]);
+		for (int i = 0; i < GC.getNumUnitCombatInfos(); ++i)
+			m_piUnitCombatPromotions[i] = pXML->FindInInfoClass(pszPromotions[i]);
+		SAFE_DELETE_ARRAY(pszPromotions);
 	}
-	SAFE_DELETE_ARRAY(pszPromotions);
-
 	FAssertMsg(NULL == m_piUnitClassPromotions, "Memory leak");
 	m_piUnitClassPromotions = new int[GC.getNumUnitClassInfos()];
 	pXML->SetVariableListTagPair(&pszPromotions, "UnitClassPromotions", sizeof(GC.getUnitClassInfo((UnitClassTypes)0)), GC.getNumUnitClassInfos(), "NONE");
-	for (int i = 0; i < GC.getNumUnitClassInfos(); ++i)
+	if (pszPromotions!= NULL) // advc.003t
 	{
-		m_piUnitClassPromotions[i] = pXML->FindInInfoClass(pszPromotions[i]);
+		for (int i = 0; i < GC.getNumUnitClassInfos(); ++i)
+			m_piUnitClassPromotions[i] = pXML->FindInInfoClass(pszPromotions[i]);
+		SAFE_DELETE_ARRAY(pszPromotions);
 	}
-	SAFE_DELETE_ARRAY(pszPromotions);
-
 	pXML->GetChildXmlValByName(m_szUnitName, "UnitName");
 	pXML->GetChildXmlValByName(m_szOtherPlayerPopup, "OtherPlayerPopup");
 	pXML->GetChildXmlValByName(m_szQuestFailText, "QuestFailText");

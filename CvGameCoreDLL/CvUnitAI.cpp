@@ -5229,7 +5229,8 @@ bool CvUnitAI::AI_greatPersonMove()
 			if (eBuilding == NO_BUILDING)
 				continue; // advc.003
 
-			if ((m_pUnitInfo->getForceBuildings(eBuilding) || m_pUnitInfo->getBuildings(eBuilding)) &&
+			if ((//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
+					m_pUnitInfo->getBuildings(eBuilding)) &&
 					canConstruct(pLoopCity->plot(), eBuilding))
 			{
 				// Note, building value is roughly 4x the value of the commerce it provides.
@@ -12641,8 +12642,8 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 						if (NO_BUILDING != eBuilding)
 						{
 							bool bDoesBuild = false;
-							if ((m_pUnitInfo->getForceBuildings(eBuilding))
-								|| (m_pUnitInfo->getBuildings(eBuilding)))
+							if (//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
+									m_pUnitInfo->getBuildings(eBuilding))
 							{
 								bDoesBuild = true;
 							}

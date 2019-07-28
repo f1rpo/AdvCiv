@@ -193,24 +193,24 @@ public:
 	virtual ~CvDiplomacyResponse();
 
 	int getNumDiplomacyText();
-	// advc.003j (comment): The setters in this class are unused (and should arguably stay unused)
-	void setNumDiplomacyText(int i);
+	// advc.003j: Disabled the unused setters and bool* getters
+	//void setNumDiplomacyText(int i);
 
 	bool getCivilizationTypes(int i);
-	bool* getCivilizationTypes() const;
-	void setCivilizationTypes(int i, bool bVal);
+	//bool* getCivilizationTypes() const;
+	//void setCivilizationTypes(int i, bool bVal);
 
 	bool getLeaderHeadTypes(int i);
-	bool* getLeaderHeadTypes() const;
-	void setLeaderHeadTypes(int i, bool bVal);
+	//bool* getLeaderHeadTypes() const;
+	//void setLeaderHeadTypes(int i, bool bVal);
 
 	bool getAttitudeTypes(int i) const;
-	bool* getAttitudeTypes() const;
-	void setAttitudeTypes(int i, bool bVal);
+	//bool* getAttitudeTypes() const;
+	//void setAttitudeTypes(int i, bool bVal);
 
 	bool getDiplomacyPowerTypes(int i);
-	bool* getDiplomacyPowerTypes() const;
-	void setDiplomacyPowerTypes(int i, bool bVal);
+	//bool* getDiplomacyPowerTypes() const;
+	//void setDiplomacyPowerTypes(int i, bool bVal);
 
 	const TCHAR* getDiplomacyText(int i) const;
 	const CvString* getDiplomacyText() const;
@@ -981,7 +981,7 @@ public:
 	bool getBuilds(int i) const;						// Exposed to Python
 	bool getGreatPeoples(int i) const;			// Exposed to Python
 	bool getBuildings(int i) const;					// Exposed to Python
-	bool getForceBuildings(int i) const;		// Exposed to Python
+	//bool getForceBuildings(int i) const; // advc.003t
 	bool getTerrainImpassable(int i) const;				// Exposed to Python
 	bool getFeatureImpassable(int i) const;				// Exposed to Python
 	bool getTerrainNative(int i) const;			// Exposed to Python
@@ -1171,7 +1171,7 @@ protected:
 	bool* m_pbBuilds;
 	bool* m_pbGreatPeoples;
 	bool* m_pbBuildings;
-	bool* m_pbForceBuildings;
+	//bool* m_pbForceBuildings; // advc.003t
 	bool* m_pbTerrainNative;
 	bool* m_pbFeatureNative;
 	bool* m_pbTerrainImpassable;
@@ -2461,8 +2461,9 @@ public:
 	// Arrays
 
 	int getGoodies(int i) const;				// Exposed to Python
-	int isFreeTechs(int i) const;				// Exposed to Python
-	int isAIFreeTechs(int i) const;				// Exposed to Python
+	// advc.003t: Return type was int for these two
+	bool isFreeTechs(int i) const;				// Exposed to Python
+	bool isAIFreeTechs(int i) const;				// Exposed to Python
 	#if SERIALIZE_CVINFOS
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
@@ -4273,9 +4274,9 @@ public:
 	int getTradeYieldModifier(int i) const;				// Exposed to Python
 	int getCommerceChange(int i) const;				// Exposed to Python
 	int getCommerceModifier(int i) const;				// Exposed to Python
-
-	int isFreePromotion(int i) const;				// Exposed to Python
-	int isFreePromotionUnitCombat(int i) const;
+	// advc.003t: Return type was int for these two
+	bool isFreePromotion(int i) const;				// Exposed to Python
+	bool isFreePromotionUnitCombat(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -5303,7 +5304,7 @@ public:
 	// Arrays
 
 	int getSoundtracks(int i) const;
-	int getCitySoundscapeSciptId(int i) const;
+	int getCitySoundscapeScriptId(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -5343,7 +5344,7 @@ protected:
 	// Arrays
 
 	int* m_paiSoundtracks;
-	int* m_paiCitySoundscapeSciptIds;
+	int* m_paiCitySoundscapeScriptIds;
 
 };
 

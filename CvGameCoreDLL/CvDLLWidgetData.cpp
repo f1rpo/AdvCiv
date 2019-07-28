@@ -2683,7 +2683,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		BuildingTypes eBuilding = (BuildingTypes)kAction.getMissionData();
 		if(pMissionCity == NULL)
 			break;
-		if (!kUnit.getUnitInfo().getForceBuildings(eBuilding) &&
+		if (/*!kUnit.getUnitInfo().getForceBuildings(eBuilding) &&*/ // advc.003t
 				!pMissionCity->canConstruct(eBuilding, false, false, true))
 		{
 			if (!g.isBuildingClassMaxedOut((BuildingClassTypes)

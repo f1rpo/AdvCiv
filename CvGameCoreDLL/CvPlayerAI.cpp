@@ -24546,14 +24546,15 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 				int iCost = GC.getBuildingInfo(eBuilding).getProductionCost();
 				if(iCost > 0 && iCost < (iCurrentEra + 1) * 40)
 					continue; // </advc.003b>
-				if (kInfo.getForceBuildings(eBuilding) ||
+				if (//kInfo.getForceBuildings(eBuilding) || // advc.003t
 					(kInfo.getBuildings(eBuilding) && canConstruct(eBuilding, false, false, true)))
 				{
 					for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 					{
 						// cf. conditions used in CvUnit::canConstruct
 						if (pLoopCity->getNumRealBuilding(eBuilding) > 0 ||
-								(!kInfo.getForceBuildings(eBuilding) && !pLoopCity->canConstruct(eBuilding, false, false, true)))
+								(/*!kInfo.getForceBuildings(eBuilding) &&*/ // advc.003t
+								!pLoopCity->canConstruct(eBuilding, false, false, true)))
 							continue;
 
 						// Note, building value is roughly 4x the value of the commerce it provides.

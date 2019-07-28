@@ -292,7 +292,7 @@ void CyInfoPythonInterface3()
 		.def("getCommerceChange", &CvTraitInfo::getCommerceChange, "int (int i)")
 		.def("getCommerceModifier", &CvTraitInfo::getCommerceModifier, "int (int i)")
 
-		.def("isFreePromotion", &CvTraitInfo::isFreePromotion, "int (int i)")
+		.def("isFreePromotion", &CvTraitInfo::isFreePromotion, "bool (int i)")
 		;
 
 	python::class_<CvWorldInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvWorldInfo")
@@ -447,7 +447,7 @@ void CyInfoPythonInterface3()
 		// Arrays
 
 		.def("getSoundtracks", &CvEraInfo::getSoundtracks, "int (int i) -")
-		.def("getCitySoundscapeSciptId", &CvEraInfo::getCitySoundscapeSciptId, "int (int i) -")
+		.def("getCitySoundscapeScriptId", &CvEraInfo::getCitySoundscapeScriptId, "int (int i) -")
 		;
 
 	python::class_<CvColorInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvColorInfo")
