@@ -92,7 +92,6 @@ public:
 	bool isActionRecommended(int iAction);
 	void updateFoundingBorder(bool bForceClear = false) const; // advc.004h
 
-	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python
 	bool isUnowned() const; // advc.061
 
 	bool canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible = false, bool bTestBusy = true);	// Exposed to Python
@@ -349,11 +348,16 @@ public:
 	DllExport float currCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;																	// Exposed to Python
 
 	DllExport bool canFight() const;																									// Exposed to Python
+	bool canSiege(TeamTypes eTeam) const;																							// Exposed to Python
+	bool canCombat() const; // dlph.8
 	bool canAttack() const;																														// Exposed to Python
 	bool canAttack(const CvUnit& defender) const;
 	bool canDefend(const CvPlot* pPlot = NULL) const;																	// Exposed to Python
-	bool canSiege(TeamTypes eTeam) const;																							// Exposed to Python
-	bool canCombat() const; // dlph.8
+	// <advc.003>
+	bool canDefendAtCurrentPlot(PlayerTypes eAttackingPlayer,
+			CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
+			bool bTestCanMove, bool bTestVisible) const; // </advc.003>
+	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python
 
 	int airBaseCombatStr() const;																						// Exposed to Python
 	int airMaxCombatStr(const CvUnit* pOther) const;																						// Exposed to Python

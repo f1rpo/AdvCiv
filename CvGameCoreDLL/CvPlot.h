@@ -147,7 +147,7 @@ public:
 	CvUnit* getBestDefender(PlayerTypes eOwner,
 			PlayerTypes eAttackingPlayer, CvUnit const* pAttacker,
 			bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove,
-			bool bVisible) const; // </advc.028>
+			bool bTestVisible) const; // </advc.028>
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
 	bool hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;
 	// disabled by K-Mod:

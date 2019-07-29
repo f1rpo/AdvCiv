@@ -2630,46 +2630,32 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** pp
 
 CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer,
 		CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
-		bool bTestCanMove, /* advc.028: */ bool bVisible) const
+		bool bTestCanMove, /* advc.028: */ bool bTestVisible) const
 {
+	FAssert(!bTestCanMove); // advc.003: Tbd.: Confirm that unused, then remove this param.
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
 	int iBestUnitRank = -1;
 	CvUnit* pBestUnit = NULL;
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-	while (pUnitNode != NULL)
+	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc.003: while loop replaced
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-
-		if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwner() == eOwner))
-		{
-			if(!bVisible || // advc.028
-					eAttackingPlayer == NO_PLAYER ||
-					!pLoopUnit->isInvisible(TEAMID(eAttackingPlayer),
-					true)) // advc.028
+		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
+		{	// advc.003: Moved the other conditions into an auxiliary function
+			if(pLoopUnit->canDefendAtCurrentPlot(eAttackingPlayer, pAttacker,
+					bTestAtWar, bTestPotentialEnemy, bTestCanMove,
+					bTestVisible)) // advc.028
 			{
-				if (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwner()).getTeam(), this)))
-				{
-					if (!bTestPotentialEnemy || (eAttackingPlayer == NO_PLAYER) ||  pLoopUnit->isPotentialEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isPotentialEnemy(GET_PLAYER(pLoopUnit->getOwner()).getTeam(), this)))
-					{
-						if (!bTestCanMove || (pLoopUnit->canMove() && !pLoopUnit->isCargo()))
-						{
-							if (pAttacker == NULL || pAttacker->getDomainType() != DOMAIN_AIR || pLoopUnit->getDamage() < pAttacker->airCombatLimit())
-							{
-								if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker,
-										&iBestUnitRank, // UncutDragon
-										bVisible)) // advc.061
-									pBestUnit = pLoopUnit;
-							}
-						}
-					}
-				}
+				if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker,
+						&iBestUnitRank, // UncutDragon
+						bTestVisible)) // advc.061
+					pBestUnit = pLoopUnit;
 			}
 		}
 	}
 	// BETTER_BTS_AI_MOD: END
 	return pBestUnit;
 }
+
 
 CvUnit* CvPlot::getSelectedUnit() const
 {

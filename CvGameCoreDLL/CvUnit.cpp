@@ -2047,201 +2047,6 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const {
 } // </advc.004h>
 
 
-bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
-		int* pBestDefenderRank, // Lead From Behind by UncutDragon
-		bool bPreferUnowned) const // advc.061
-{
-	TeamTypes eAttackerTeam = NO_TEAM;
-	if (NULL != pAttacker)
-		eAttackerTeam = pAttacker->getTeam();
-
-	// <advc.028>
-	bool bInvisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
-	// Only pick invisible unit as defender once attack is underway ...
-	if(bInvisible && pAttacker->getAttackPlot() == NULL)
-		return false;
-	/*  and if there is some visible team unit that could get attacked otherwise
-		(better: check if our team has the best visible defender; tbd.): */
-	if(bInvisible) {
-		bool bFound = false;
-		CLLNode<IDInfo>* pNode = plot()->headUnitNode();
-		while(pNode != NULL) {
-			CvUnit* pUnit = ::getUnit(pNode->m_data);
-			pNode = plot()->nextUnitNode(pNode);
-			if(pUnit->getTeam() == getTeam() && !pUnit->isInvisible(eAttackerTeam, false))
-				bFound = true;
-		}
-		if(!bFound)
-			return false;
-	}
-	// Moved down: // </advc.028>
-	if (pDefender == NULL)
-		return true;
-	// <advc.028>
-	if(pDefender->getTeam() != getTeam() && bInvisible)
-		return false; // </advc.028>
-	if (canCoexistWithEnemyUnit(eAttackerTeam))
-	{
-		return false;
-	}
-
-	if (!canDefend())
-	{
-		return false;
-	}
-
-	if (canDefend() && !pDefender->canDefend())
-	{
-		return true;
-	}
-
-	// <advc.061>
-	if(bPreferUnowned) {
-		bool bUnowned = isUnowned();
-		if(bUnowned != pDefender->isUnowned())
-			return bUnowned;
-	} // </advc.061>
-
-	if (pAttacker)
-	{
-		if (isTargetOf(*pAttacker) && !pDefender->isTargetOf(*pAttacker))
-		{
-			return true;
-		}
-
-		if (!isTargetOf(*pAttacker) && pDefender->isTargetOf(*pAttacker))
-		{
-			return false;
-		}
-
-		if (pAttacker->canAttack(*pDefender) && !pAttacker->canAttack(*this))
-		{
-			return false;
-		}
-
-		if (pAttacker->canAttack(*this) && !pAttacker->canAttack(*pDefender))
-		{
-			return true;
-		}
-	}
-
-	// UncutDragon
-	// To cut down on changes to existing code, we just short-circuit the method
-	// and this point and call our own version instead
-	if (GC.getLFBEnable())
-		return LFBisBetterDefenderThan(pDefender, pAttacker, pBestDefenderRank);
-	// /UncutDragon
-
-// advc (comment): Start of legacy BtS code
-	int iOurDefense = currCombatStr(plot(), pAttacker);
-	if (::isWorldUnitClass(getUnitClassType()))
-	{
-		iOurDefense /= 2;
-	}
-
-	if (NULL == pAttacker)
-	{
-		if (pDefender->collateralDamage() > 0)
-		{
-			iOurDefense *= (100 + pDefender->collateralDamage());
-			iOurDefense /= 100;
-		}
-
-		if (pDefender->currInterceptionProbability() > 0)
-		{
-			iOurDefense *= (100 + pDefender->currInterceptionProbability());
-			iOurDefense /= 100;
-		}
-	}
-	else
-	{
-		if (!(pAttacker->immuneToFirstStrikes()))
-		{
-			iOurDefense *= 100 + (firstStrikes() * 2 + chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
-			iOurDefense /= 100;
-		}
-
-		if (immuneToFirstStrikes())
-		{
-			iOurDefense *= 100 + (pAttacker->firstStrikes() * 2 + pAttacker->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
-			iOurDefense /= 100;
-		}
-	}
-
-	int iAssetValue = std::max(1, getUnitInfo().getAssetValue());
-	int iCargoAssetValue = 0;
-	std::vector<CvUnit*> aCargoUnits;
-	getCargoUnits(aCargoUnits);
-	for (uint i = 0; i < aCargoUnits.size(); ++i)
-	{
-		iCargoAssetValue += aCargoUnits[i]->getUnitInfo().getAssetValue();
-	}
-	iOurDefense = iOurDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue);
-
-	int iTheirDefense = pDefender->currCombatStr(plot(), pAttacker);
-	if (::isWorldUnitClass(pDefender->getUnitClassType()))
-	{
-		iTheirDefense /= 2;
-	}
-
-	if (NULL == pAttacker)
-	{
-		if (collateralDamage() > 0)
-		{
-			iTheirDefense *= (100 + collateralDamage());
-			iTheirDefense /= 100;
-		}
-
-		if (currInterceptionProbability() > 0)
-		{
-			iTheirDefense *= (100 + currInterceptionProbability());
-			iTheirDefense /= 100;
-		}
-	}
-	else
-	{
-		if (!(pAttacker->immuneToFirstStrikes()))
-		{
-			iTheirDefense *= 100 + (pDefender->firstStrikes() * 2 + pDefender->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
-			iTheirDefense /= 100;
-		}
-
-		if (pDefender->immuneToFirstStrikes())
-		{
-			iTheirDefense *= 100 + (pAttacker->firstStrikes() * 2 + pAttacker->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
-			iTheirDefense /= 100;
-		}
-	}
-
-	iAssetValue = std::max(1, pDefender->getUnitInfo().getAssetValue());
-	iCargoAssetValue = 0;
-	pDefender->getCargoUnits(aCargoUnits);
-	for (uint i = 0; i < aCargoUnits.size(); ++i)
-	{
-		iCargoAssetValue += aCargoUnits[i]->getUnitInfo().getAssetValue();
-	}
-	iTheirDefense = iTheirDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue);
-
-	if (iOurDefense == iTheirDefense)
-	{
-		if (NO_UNIT == getLeaderUnitType() && NO_UNIT != pDefender->getLeaderUnitType())
-		{
-			++iOurDefense;
-		}
-		else if (NO_UNIT != getLeaderUnitType() && NO_UNIT == pDefender->getLeaderUnitType())
-		{
-			++iTheirDefense;
-		}
-		else if (isBeforeUnitCycle(this, pDefender))
-		{
-			++iOurDefense;
-		}
-	}
-
-	return (iOurDefense > iTheirDefense);
-// advc (comment): End of legacy BtS code
-}
-
 /*  <advc.061> See comment at call location in CvGameTextMgr::setPlotListHelpPerOwner.
 	Doesn't check isVisible. */
 bool CvUnit::isUnowned() const {
@@ -8712,6 +8517,36 @@ bool CvUnit::canFight() const
 }
 
 
+bool CvUnit::canSiege(TeamTypes eTeam) const
+{
+	if (!canDefend())
+	{
+		return false;
+	}
+
+	if (!isEnemy(eTeam))
+	{
+		return false;
+	}
+
+	if (!isNeverInvisible())
+	{
+		return false;
+	} // <advc.033>
+	if(eTeam != NO_TEAM && (GET_TEAM(eTeam).isVassal(getTeam()) ||
+			GET_TEAM(getTeam()).isVassal(eTeam)))
+		return false; // </advc.033>
+	return true;
+}
+
+// <dlph.8> "Added function for checking whether a unit is a combat unit."
+bool CvUnit::canCombat() const {
+
+	// avdc: Check getUnitInfo().isMilitaryProduction() instead?
+	return (baseCombatStr() > 0 || airBaseCombatStr() > 0 || nukeRange() >= 0);
+} // </dlph.8>
+
+
 bool CvUnit::canAttack() const
 {
 	if (!canFight())
@@ -8772,34 +8607,225 @@ bool CvUnit::canDefend(const CvPlot* pPlot) const
 	return true;
 }
 
-
-bool CvUnit::canSiege(TeamTypes eTeam) const
+// advc.003: Body cut from CvPlot::getBestDefender
+bool CvUnit::canDefendAtCurrentPlot(PlayerTypes eAttackingPlayer,
+	CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
+	bool bTestCanMove, bool bTestVisible) const
 {
+	return
+		((eAttackingPlayer == NO_PLAYER || /* advc.028: */ !bTestVisible ||
+		!isInvisible(TEAMID(eAttackingPlayer), /* advc.028: */ true)) 
+		&&
+		(!bTestAtWar || eAttackingPlayer == NO_PLAYER ||
+		isEnemy(TEAMID(eAttackingPlayer), plot()) ||
+		(pAttacker != NULL && pAttacker->isEnemy(getTeam(), plot())))
+		&&
+		(!bTestPotentialEnemy || eAttackingPlayer == NO_PLAYER ||
+		isPotentialEnemy(TEAMID(eAttackingPlayer), plot()) ||
+		(pAttacker != NULL && pAttacker->isPotentialEnemy(getTeam(), plot())))
+		&&
+		(!bTestCanMove || (canMove() && !isCargo()))
+		&&
+		(pAttacker == NULL || pAttacker->getDomainType() != DOMAIN_AIR ||
+		getDamage() < pAttacker->airCombatLimit()));
+}
+
+
+bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
+		int* pBestDefenderRank, // Lead From Behind by UncutDragon
+		bool bPreferUnowned) const // advc.061
+{
+	TeamTypes eAttackerTeam = NO_TEAM;
+	if (NULL != pAttacker)
+		eAttackerTeam = pAttacker->getTeam();
+
+	// <advc.028>
+	bool bInvisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
+	// Only pick invisible unit as defender once attack is underway ...
+	if(bInvisible && pAttacker->getAttackPlot() == NULL)
+		return false;
+	/*  and if there is some visible team unit that could get attacked otherwise
+		(better: check if our team has the best visible defender; tbd.): */
+	if(bInvisible) {
+		bool bFound = false;
+		CLLNode<IDInfo>* pNode = plot()->headUnitNode();
+		while(pNode != NULL) {
+			CvUnit* pUnit = ::getUnit(pNode->m_data);
+			pNode = plot()->nextUnitNode(pNode);
+			if(pUnit->getTeam() == getTeam() && !pUnit->isInvisible(eAttackerTeam, false))
+				bFound = true;
+		}
+		if(!bFound)
+			return false;
+	}
+	// Moved down: // </advc.028>
+	if (pDefender == NULL)
+		return true;
+	// <advc.028>
+	if(pDefender->getTeam() != getTeam() && bInvisible)
+		return false; // </advc.028>
+	if (canCoexistWithEnemyUnit(eAttackerTeam))
+	{
+		return false;
+	}
+
 	if (!canDefend())
 	{
 		return false;
 	}
 
-	if (!isEnemy(eTeam))
+	if (canDefend() && !pDefender->canDefend())
 	{
-		return false;
+		return true;
 	}
 
-	if (!isNeverInvisible())
+	// <advc.061>
+	if(bPreferUnowned) {
+		bool bUnowned = isUnowned();
+		if(bUnowned != pDefender->isUnowned())
+			return bUnowned;
+	} // </advc.061>
+
+	if (pAttacker)
 	{
-		return false;
-	} // <advc.033>
-	if(eTeam != NO_TEAM && (GET_TEAM(eTeam).isVassal(getTeam()) ||
-			GET_TEAM(getTeam()).isVassal(eTeam)))
-		return false; // </advc.033>
-	return true;
+		if (isTargetOf(*pAttacker) && !pDefender->isTargetOf(*pAttacker))
+		{
+			return true;
+		}
+
+		if (!isTargetOf(*pAttacker) && pDefender->isTargetOf(*pAttacker))
+		{
+			return false;
+		}
+
+		if (pAttacker->canAttack(*pDefender) && !pAttacker->canAttack(*this))
+		{
+			return false;
+		}
+
+		if (pAttacker->canAttack(*this) && !pAttacker->canAttack(*pDefender))
+		{
+			return true;
+		}
+	}
+
+	// UncutDragon
+	// To cut down on changes to existing code, we just short-circuit the method
+	// and this point and call our own version instead
+	if (GC.getLFBEnable())
+		return LFBisBetterDefenderThan(pDefender, pAttacker, pBestDefenderRank);
+	// /UncutDragon
+
+// advc (comment): Start of legacy BtS code
+	int iOurDefense = currCombatStr(plot(), pAttacker);
+	if (::isWorldUnitClass(getUnitClassType()))
+	{
+		iOurDefense /= 2;
+	}
+
+	if (NULL == pAttacker)
+	{
+		if (pDefender->collateralDamage() > 0)
+		{
+			iOurDefense *= (100 + pDefender->collateralDamage());
+			iOurDefense /= 100;
+		}
+
+		if (pDefender->currInterceptionProbability() > 0)
+		{
+			iOurDefense *= (100 + pDefender->currInterceptionProbability());
+			iOurDefense /= 100;
+		}
+	}
+	else
+	{
+		if (!(pAttacker->immuneToFirstStrikes()))
+		{
+			iOurDefense *= 100 + (firstStrikes() * 2 + chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
+			iOurDefense /= 100;
+		}
+
+		if (immuneToFirstStrikes())
+		{
+			iOurDefense *= 100 + (pAttacker->firstStrikes() * 2 + pAttacker->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
+			iOurDefense /= 100;
+		}
+	}
+
+	int iAssetValue = std::max(1, getUnitInfo().getAssetValue());
+	int iCargoAssetValue = 0;
+	std::vector<CvUnit*> aCargoUnits;
+	getCargoUnits(aCargoUnits);
+	for (uint i = 0; i < aCargoUnits.size(); ++i)
+	{
+		iCargoAssetValue += aCargoUnits[i]->getUnitInfo().getAssetValue();
+	}
+	iOurDefense = iOurDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue);
+
+	int iTheirDefense = pDefender->currCombatStr(plot(), pAttacker);
+	if (::isWorldUnitClass(pDefender->getUnitClassType()))
+	{
+		iTheirDefense /= 2;
+	}
+
+	if (NULL == pAttacker)
+	{
+		if (collateralDamage() > 0)
+		{
+			iTheirDefense *= (100 + collateralDamage());
+			iTheirDefense /= 100;
+		}
+
+		if (currInterceptionProbability() > 0)
+		{
+			iTheirDefense *= (100 + currInterceptionProbability());
+			iTheirDefense /= 100;
+		}
+	}
+	else
+	{
+		if (!(pAttacker->immuneToFirstStrikes()))
+		{
+			iTheirDefense *= 100 + (pDefender->firstStrikes() * 2 + pDefender->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
+			iTheirDefense /= 100;
+		}
+
+		if (pDefender->immuneToFirstStrikes())
+		{
+			iTheirDefense *= 100 + (pAttacker->firstStrikes() * 2 + pAttacker->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
+			iTheirDefense /= 100;
+		}
+	}
+
+	iAssetValue = std::max(1, pDefender->getUnitInfo().getAssetValue());
+	iCargoAssetValue = 0;
+	pDefender->getCargoUnits(aCargoUnits);
+	for (uint i = 0; i < aCargoUnits.size(); ++i)
+	{
+		iCargoAssetValue += aCargoUnits[i]->getUnitInfo().getAssetValue();
+	}
+	iTheirDefense = iTheirDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue);
+
+	if (iOurDefense == iTheirDefense)
+	{
+		if (NO_UNIT == getLeaderUnitType() && NO_UNIT != pDefender->getLeaderUnitType())
+		{
+			++iOurDefense;
+		}
+		else if (NO_UNIT != getLeaderUnitType() && NO_UNIT == pDefender->getLeaderUnitType())
+		{
+			++iTheirDefense;
+		}
+		else if (isBeforeUnitCycle(this, pDefender))
+		{
+			++iOurDefense;
+		}
+	}
+
+	return (iOurDefense > iTheirDefense);
+// advc (comment): End of legacy BtS code
 }
 
-// <dlph.8> "Added function for checking whether a unit is a combat unit."
-bool CvUnit::canCombat() const {
-
-	return (baseCombatStr() > 0 || airBaseCombatStr() > 0 || nukeRange() >= 0);
-} // </dlph.8>
 
 int CvUnit::airBaseCombatStr() const
 {

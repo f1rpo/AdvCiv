@@ -23162,7 +23162,9 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 					continue;
 
 				// now, is this unit of interest?
-				bool bMilitary = pUnit->baseCombatStr() > 0;
+				bool bMilitary = //pUnit->baseCombatStr() > 0;
+						// advc.004z: The above doesn't work for air units
+						pUnit->canCombat();
 				bool bEnemy = pUnit->isEnemy(getTeam());
 				bool bOnOurTeam = pUnit->getTeam() == getTeam();
 				bool bOfInterest = false;

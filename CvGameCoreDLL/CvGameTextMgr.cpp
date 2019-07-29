@@ -1913,16 +1913,17 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 
 	if (iNumVisibleUnits > 0)
 	{
-		if (pPlot->getCenterUnit())
+		CvUnit* pCenterUnit = Plot->getCenterUnit(); // advc.003
+		if (pCenterUnit != NULL)
 		{
-			setUnitHelp(szString, pPlot->getCenterUnit(), iNumVisibleUnits > iMaxNumUnits, true,
+			setUnitHelp(szString, pCenterUnit, iNumVisibleUnits > iMaxNumUnits, true,
 					false, false, bIndicator); // advc.007
 		}
 		uint iNumShown = std::min<uint>(iMaxNumUnits, iNumVisibleUnits);
 		for (uint iI = 0; iI < iNumShown && iI < (int) plotUnits.size(); iI++)
 		{
 			CvUnit* pLoopUnit = plotUnits[iI];
-			if (pLoopUnit != pPlot->getCenterUnit())
+			if (pLoopUnit != pCenterUnit)
 			{
 				szString.append(NEWLINE);
 				setUnitHelp(szString, pLoopUnit, true, true,
