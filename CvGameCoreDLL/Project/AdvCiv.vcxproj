@@ -137,6 +137,7 @@
     <ClCompile Include="..\CyTeamInterface.cpp" />
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
+    <ClCompile Include="..\DefenderSelector.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
     <ClCompile Include="..\InvasionGraph.cpp" />
     <ClCompile Include="..\KmodPathFinder.cpp" />
@@ -247,6 +248,7 @@
     <ClInclude Include="..\CySelectionGroup.h" />
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
+    <ClCompile Include="..\DefenderSelector.h" />
     <ClInclude Include="..\FAssert.h" />
     <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\FDataStreamBase.h" />

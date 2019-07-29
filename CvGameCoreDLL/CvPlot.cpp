@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
 #include "CvGamePlay.h"
+#include "DefenderSelector.h" // advco.defr
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CvArtFileMgr.h"
@@ -29,6 +30,7 @@ CvPlot::CvPlot()
 	m_aiYield = new short[NUM_YIELD_TYPES];
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000:
 	m_abBorderDangerCache = new bool[MAX_TEAMS];
+	m_pDefenderSelector = new DefenderSelector(*this); // advco.defr
 
 	m_aiCulture = NULL;
 	m_aiFoundValue = NULL;
@@ -67,6 +69,7 @@ CvPlot::~CvPlot()
 	SAFE_DELETE_ARRAY(m_aiYield);
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000:
 	SAFE_DELETE_ARRAY(m_abBorderDangerCache);
+	SAFE_DELETE(m_pDefenderSelector); // advco.defr
 }
 
 void CvPlot::init(int iX, int iY)
@@ -137,6 +140,7 @@ void CvPlot::uninit()
 	}
 
 	m_units.clear();
+	m_pDefenderSelector->uninit(); // advco.defr
 }
 
 // FUNCTION: reset()
@@ -2633,28 +2637,65 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 		bool bTestCanMove, /* advc.028: */ bool bTestVisible) const
 {
 	FAssert(!bTestCanMove); // advc.003: Tbd.: Confirm that unused, then remove this param.
-	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
+	// <advco.rdef>
+	std::vector<CvUnit*> defenders;
+	validDefenders(defenders, eOwner, eAttackingPlayer, pAttacker,
+		bTestAtWar, bTestPotentialEnemy, bTestCanMove, bTestVisible);
+	// </advco.rdef>
 	int iBestUnitRank = -1;
 	CvUnit* pBestUnit = NULL;
+	// <advco.rdef>
+	//if (...) // Tbd.: Check if defender randomization is enabled
+	m_pDefenderSelector->selectAvailableDefenders(defenders, eAttackingPlayer, pAttacker);
+	for (size_t i = 0; i < defenders.size(); i++)
+	{
+		CvUnit* pLoopUnit = defenders[i]; // </advco.rdef>
+		if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker,
+			&iBestUnitRank, // UncutDragon
+			bTestVisible)) // advc.061
+		{
+			pBestUnit = pLoopUnit;
+		}
+	}
+	// BETTER_BTS_AI_MOD: END
+	return pBestUnit;
+}
+
+// advco.defr: Cut from CvPlot::getBestDefender
+void CvPlot::validDefenders(std::vector<CvUnit*>& r, PlayerTypes eOwner,
+	PlayerTypes eAttackingPlayer, CvUnit const* pAttacker, bool bTestAtWar,
+	bool bTestPotentialEnemy, bool bTestCanMove, /* advc.028: */ bool bTestVisible) const
+{
+	r.reserve(getNumUnits());
+	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
 	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc.003: while loop replaced
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
 		{	// advc.003: Moved the other conditions into an auxiliary function
 			if(pLoopUnit->canDefendAtCurrentPlot(eAttackingPlayer, pAttacker,
-					bTestAtWar, bTestPotentialEnemy, bTestCanMove,
-					bTestVisible)) // advc.028
+				bTestAtWar, bTestPotentialEnemy, bTestCanMove,
+				bTestVisible)) // advc.028
 			{
-				if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker,
-						&iBestUnitRank, // UncutDragon
-						bTestVisible)) // advc.061
-					pBestUnit = pLoopUnit;
+				r.push_back(pLoopUnit);
 			}
 		}
 	}
-	// BETTER_BTS_AI_MOD: END
-	return pBestUnit;
 }
+
+/*  <advco.defr> A vector would be easier to compute, but the caller (UI)
+	will need to find elements. */
+void CvPlot::availableDefendersVsActivePlayer(std::set<CvUnit const*>& r) const
+{
+	std::vector<CvUnit*> tmpVector;
+	PlayerTypes eAttackerOwner = GC.getGame().getActivePlayer();
+	CvUnit* pAttacker = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	validDefenders(tmpVector, NO_PLAYER, eAttackerOwner, pAttacker,
+			// Show availability info only for current war enemies (bTestAtWar)
+			true, true, false, true);
+	m_pDefenderSelector->selectAvailableDefenders(tmpVector, eAttackerOwner, pAttacker);
+	r.insert(tmpVector.begin(), tmpVector.end());
+} // </advco.defr>
 
 
 CvUnit* CvPlot::getSelectedUnit() const

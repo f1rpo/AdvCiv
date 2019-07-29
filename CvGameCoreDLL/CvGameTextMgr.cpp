@@ -435,7 +435,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		bool bOneLine, bool bShort,
 		bool bColorHostile, // advc.048
 		bool bOmitOwner, // advc.061
-		bool bIndicator) { // advc.007
+		bool bIndicator, // advc.007
+		bool bAvailable) { // advco.defr
 
 	PROFILE_FUNC();
 
@@ -454,11 +455,14 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		szColTag = (pUnit->isEnemy(g.getActiveTeam()) ?
 				"COLOR_WARNING_TEXT" : "COLOR_POSITIVE_TEXT");
 	} // </advc.048>
+	// <advco.defr>
+	else if (!bAvailable)
+		szColTag = "COLOR_LIGHT_GREY";
+	// </advco.defr>
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(
 			szColTag), // advc.048
 			pUnit->getName().GetCString());
 	szString.append(szTempBuffer);
-
 	szString.append(L", ");
 
 	if (pUnit->getDomainType() == DOMAIN_AIR)
@@ -1408,7 +1412,8 @@ void CvGameTextMgr::appendUnitOwnerHeading(CvWStringBuffer& szString, PlayerType
 // Reuses bits and pieces from setPlotListHelp
 void CvGameTextMgr::appendUnitTypeAggregated(CvWStringBuffer& szString,
 		std::vector<CvUnit const*> const& ownerUnits, UnitTypes eUnit,
-		CvPlot const& kPlot, bool bIndicator) { // advc.007
+		CvPlot const& kPlot, bool bIndicator, // advc.007
+		std::set<CvUnit const*> const& availableDefenders) { // advco.defr
 
 	CvUnit* pCenterUnit = kPlot.getCenterUnit();
 	int iCount = 0;
@@ -1467,7 +1472,9 @@ void CvGameTextMgr::appendUnitTypeAggregated(CvWStringBuffer& szString,
 	for(size_t i = 0; i < warlords.size(); i++) {
 		szString.append(NEWLINE);
 		setUnitHelp(szString, warlords[i], true, true, false, true,
-				bIndicator); // advc.007
+				bIndicator, // advc.007
+				// advco.defr:
+				!availableDefenders.empty() || availableDefenders.count(warlords[i]) > 0);
 	}
 }
 
@@ -1544,6 +1551,25 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			iLineLimit--;
 	}
 	iLineLimit = std::max(iLineLimit, 15);
+	/*  <advco.defr> First pass through the plot's units. To make sure that the
+		available defenders are listed on top. */
+	// Fixme: Doesn't work b/c of the sort call toward the end of this function
+	std::vector<CvUnit const*> allUnits;
+	bool bShowAvail = true; // Tbd.: Check if defender randomization is enabled
+	std::set<CvUnit const*> availableDefenders;
+	if(bShowAvail)
+		kPlot.availableDefendersVsActivePlayer(availableDefenders);
+	if(availableDefenders.empty())
+		bShowAvail = false; // No enemies in kPlot
+	std::vector<CvUnit const*> tail;
+	for(CLLNode<IDInfo>* pNode = kPlot.headUnitNode(); pNode != NULL; pNode = kPlot.nextUnitNode(pNode)) {
+		CvUnit const* pUnit = ::getUnit(pNode->m_data);
+		if(bShowAvail && availableDefenders.count(pUnit) > 0)
+			allUnits.push_back(pUnit);
+		else tail.push_back(pUnit);
+	}
+	allUnits.insert(allUnits.end(), tail.begin(), tail.end());
+	// </advc.defr>
 	/*  BtS shows no owner for Privateers and Animals (but it does for Barbarians);
 		I'm calling units without a visible owner "rogue" units and they get their
 		own entries in the perOwner vector. I'm also treating Barbarians inside
@@ -1562,14 +1588,8 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	int const OTHER = 3;
 	int const ALL = 4;
 	std::vector<CvUnit const*> perOwner[iRogueIndex + 1][ALL+1];
-	CLLNode<IDInfo>* pNode = kPlot.headUnitNode();
-	while(pNode != NULL) {
-		CvUnit* pUnit = ::getUnit(pNode->m_data);
-		pNode = kPlot.nextUnitNode(pNode);
-		if(pUnit == NULL) {
-			FAssert(pUnit != NULL);
-			continue;
-		}
+	for(size_t i = 0; i < allUnits.size(); i++) {
+		CvUnit const* pUnit = allUnits[i];
 		if(pUnit->isInvisible(eActiveTeam, true))
 			continue;
 		PlayerTypes eVisualOwner = pUnit->getVisualOwner(eActiveTeam);
@@ -1618,6 +1638,9 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	}
 	int iTotal = (int)uTotal;
 	CvUnit const& kCenterUnit = *kPlot.getCenterUnit();
+	// <advco.defr>
+	FAssert(!bShowAvail || !kCenterUnit.isEnemy(eActiveTeam) ||
+			availableDefenders.count(&kCenterUnit) > 0); // </advco.defr>
 	PlayerTypes eCenterOwner = kCenterUnit.getVisualOwner();
 	int iCenterOwner = eCenterOwner;
 	if(kCenterUnit.isUnowned())
@@ -1746,7 +1769,9 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 				if(!szString.isEmpty())
 					szString.append(NEWLINE);
 				setUnitHelp(szString, perOwner[iNextIndex][ALL][0], true, true,
-						false, false, bIndicator); // advc.007
+						false, false, bIndicator, // advc.007
+						// advco.defr:
+						!bShowAvail || availableDefenders.count(perOwner[iNextIndex][ALL][0]) > 0);
 			}
 			continue;
 		}
@@ -1774,7 +1799,8 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			std::sort(unitTypes.begin(), unitTypes.end(), listFirstUnitTypeBeforeSecond);
 			for(size_t i = 0; i < unitTypes.size(); i++) {
 				appendUnitTypeAggregated(szString, perOwner[iNextIndex][ALL],
-					unitTypes[i], kPlot, bIndicator);
+					unitTypes[i], kPlot, bIndicator,
+					availableDefenders); // advco.defr: for the Great Warlords
 			}
 		}
 		else {
@@ -1784,7 +1810,9 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 				if(units[i] != &kCenterUnit) {
 					szString.append(NEWLINE);
 					setUnitHelp(szString, units[i], true, true, false, true,
-							bIndicator); // advc.007
+							bIndicator, // advc.007
+							// advco.defr:
+							!bShowAvail || availableDefenders.count(units[i]) > 0);
 				}
 			}
 		}
@@ -1913,13 +1941,21 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 
 	if (iNumVisibleUnits > 0)
 	{
-		CvUnit* pCenterUnit = Plot->getCenterUnit(); // advc.003
+		CvUnit* pCenterUnit = pPlot->getCenterUnit(); // advc.003
 		if (pCenterUnit != NULL)
 		{
 			setUnitHelp(szString, pCenterUnit, iNumVisibleUnits > iMaxNumUnits, true,
 					false, false, bIndicator); // advc.007
 		}
 		uint iNumShown = std::min<uint>(iMaxNumUnits, iNumVisibleUnits);
+		/*  <advco.defr> Rudimentary support for the BtS unit list: indicate which
+			units are available, but don't mess with the display order. */
+		bool bShowAvail = true; // Tbd.: Check if defender randomization is enabled
+		std::set<CvUnit const*> availableDefenders;
+		if (bShowAvail)
+			pPlot->availableDefendersVsActivePlayer(availableDefenders);
+		if (availableDefenders.empty())
+			bShowAvail = false; // </advco.defr>
 		for (uint iI = 0; iI < iNumShown && iI < (int) plotUnits.size(); iI++)
 		{
 			CvUnit* pLoopUnit = plotUnits[iI];
@@ -1927,7 +1963,9 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 			{
 				szString.append(NEWLINE);
 				setUnitHelp(szString, pLoopUnit, true, true,
-						false, false, bIndicator); // advc.007
+						false, false, bIndicator, // advc.007
+						// advco.defr:
+						!bShowAvail || availableDefenders.count(pLoopUnit) > 0);
 			}
 		}
 		if(iNumVisibleUnits > iMaxNumUnits)
