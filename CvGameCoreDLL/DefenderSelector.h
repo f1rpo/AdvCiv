@@ -3,8 +3,6 @@
 #ifndef DEFENDER_FILTER_H
 #define DEFENDER_FILTER_H
 
-#include "CvGameCoreDLL.h"
-
 class CvUnit;
 class CvPlot;
 
@@ -72,7 +70,6 @@ protected:
 		void add(IDInfo id, int iValue);
 		void sort();
 	protected:
-		// Can still replace this with a struct later
 		typedef std::pair<int,IDInfo> CacheEntry;
 		bool m_bValid;
 		std::vector<CacheEntry> m_entries;

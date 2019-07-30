@@ -133,6 +133,20 @@ void RandomizedSelector::validateCache(PlayerTypes eAttackerOwner) const
 {
 	if (!m_cache.isValid())
 		cacheDefenders(eAttackerOwner);
+	/*  Tbd. Call DefenderSelector::update as described below.
+		However, the time saved is going to be negligible, so this may not be
+		worth polluting the code base, and isn't a priority in any case.
+		- from CvUnit::kill (update the plot where the unit was killed) and
+		  on non-lethal damage (but not while combat is still being resolved)
+		- from CvUnit::setXY (on the source and destination plot)
+		- at the start of each CvPlayer's turn (all plots)
+		- from CvTeam::declareWar and makePeace (only plots with military units
+		  owned by the war target)
+		 Updates after combat should also write a message to the combat log.
+		 And when the active player destroys a defender in combat, the on-screen
+		 message should say which unit has become available. */
+	// For now, keep the cache permanently invalid.
+	//m_cache.setValid(true);
 }
 
 void RandomizedSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
@@ -153,20 +167,6 @@ void RandomizedSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 		m_cache.add(pUnit->getIDInfo(), iAvailability);
 	}
 	m_cache.sort();
-	/*  Tbd. Call DefenderSelector::update as described below.
-		However, the time saved is going to be negligible, so this may not be
-		worth polluting the code base, and isn't a priority in any case.
-		- from CvUnit::kill (update the plot where the unit was killed) and
-		  on non-lethal damage (but not while combat is still being resolved)
-		- from CvUnit::setXY (on the source and destination plot)
-		- at the start of each CvPlayer's turn (all plots)
-		- from CvTeam::declareWar and makePeace (only plots with military units
-		  owned by the war target)
-		 Updates after combat should also write a message to the combat log.
-		 And when the active player destroys a defender in combat, the on-screen
-		 message should say which unit has become available. */
-	// For now, keep the cache permanently invalid.
-	//m_cache.setValid(true);
 }
 
 int RandomizedSelector::biasValue(CvUnit const& kUnit) const
