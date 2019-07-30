@@ -474,7 +474,6 @@ public class WBOut {
 				new Point(66,26),
 				new Point(67,26),
 				new Point(65,25),
-				new Point(66,25),
 		}));
 		final Set<Point2D> plains = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -753,6 +752,7 @@ public class WBOut {
 				new Point(62,26),
 				new Point(64,25),
 				new Point(64,24),
+				new Point(66,25),
 				// Hispania
 				new Point(37,41),
 				new Point(38,41),
@@ -2843,7 +2843,10 @@ public class WBOut {
 				new Point(57,38),
 				new Point(61,38),
 				new Point(62,38),
+				new Point(63,40),
+				new Point(63,39),
 				// Iran
+				new Point(65,38),
 				new Point(64,36),
 				new Point(65,35),
 				new Point(68,31),
@@ -3721,9 +3724,11 @@ public class WBOut {
 				// Norway, Sweden
 				new Bonus("FISH",43,53),
 				new Bonus("FISH",47,57),
+				new Bonus("OIL",42,52),
 				new Bonus("HORSE",44,54),
 				new Bonus("IRON",44,53),
 				new Bonus("MARBLE",48,51),
+				new Bonus("COPPER",48,53),
 				new Bonus("DEER",49,54),
 				new Bonus("FISH",37,58), // Iceland
 				new Bonus("COW",36,52), // Ireland
@@ -3734,6 +3739,7 @@ public class WBOut {
 				new Bonus("STONE",38,50), // Moved from Hispania
 				new Bonus("SHEEP",39,50),
 				new Bonus("WHEAT",41,50),
+				new Bonus("COAL",39,52),
 				new Bonus("HORSE",40,52),
 				new Bonus("URANIUM",40,54),
 				new Bonus("FISH",42,50), // Dogger Bank (shifted away from Denmark)

@@ -13,7 +13,7 @@ Temporary measures:
 To be done:
 * America, Greenland, Southern Africa, Australia, Melanesia, Micronesia, Polynesia
 * The three non-playable leaders: Shaka, Huayana Capac and Pacal
-* Rules changes in AdvCiv that forbid Farms on Tundra and remove the health penalty from Jungle. To reduce implausible deforestation.
+* Rules changes in AdvCiv that forbid Farms on Tundra and remove the health penalty from Jungle. To reduce implausible deforestation. Also, some of the tiles representing spruces and firs should perhaps have no Forest feature at all as those woods have fairly limited uses.
 * Addition of an Islet feature (like in Realism Invictus).
 * Changes to the AI evaluation of techs that found a religion. Especially leaders with a Medieval favorite religion like Charlemagne should avoid founding one of the early religons. Could then perhaps use Justinian instead of Pericles.
 * Overhaul of leader personalities. I might swap in Qin for Mao after increasing Qin's peace-weight (pitting him against his warlike neighbors) and Cyrus for Darius after making Cyrus a bit more warlike. The Chinese leader also needs to be more averse to long-distance wars (higher MaxWarMinAdjacentLandPercent).
@@ -23,7 +23,7 @@ To be done:
 (see AdvCiv/Assets/XML/Text/Civ4GameText_Earth18Civs.xml for an example)
 
 Perhaps to be revised:
-* Charlemagne usually expands into Poland and often even into East Scandinavia. It might be better to replace Ragnar's England with Bismarck's Germany (starting at Berlin), covering all the Germanic peoples except - possibly - the British, and to move the Celtic capital from Prague to Paris and replace Charlemagne with the more Anglo-French De Gaulle. These changes may make it too difficult for Rome to expand, and would require a different resource distribution in the northern half of Europe and possibly changes to the coastline as well.
+* Charlemagne usually expands into Poland and often even into East Scandinavia. It might be better to replace Ragnar's England with Bismarck's Germany (starting at Berlin), covering all the Germanic peoples except - possibly - the British, and to move the Celtic capital from Prague to Paris and replace Charlemagne with the more Anglo-French De Gaulle. These changes may make it too difficult for Rome to expand, and would require a different resource distribution in the northern half of Europe and possibly changes to the coastline as well. Perhaps, instead, merely move Ragnar's capital to Denmark (Roskilde) and Charlemagne's to Aachen or Bibracte.
 * Enlarging only the Eastern Sahara (for the Nile valley), but not the Western Sahara, was a bad idea. Additional desert tiles in the Western Sahara would make it harder for Mali to expand into North Africa, and probably wouldn't have any adverse side-effects.
 * Similarly, Northern Siberia is more vertically compressed than it needs to be.
 
