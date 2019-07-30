@@ -8,16 +8,18 @@
 class CvUnit;
 class CvPlot;
 
-/*  advco.defr: Main class for the defender randomization module. Part of the
-	Advanced Combat (working title) mod. */
+/*  advco.defr: Main class hierarchy for the defender randomization module.
+	Part of the Advanced Combat (working title) mod. */
+// Abstract base class
 class DefenderSelector
 {
 public:
 	DefenderSelector(CvPlot const& kPlot);
-	void uninit();
-	void update();
+	virtual ~DefenderSelector();
+	virtual void uninit();
+	virtual void update(); // Update cached data (if any)
 	struct Settings // Constraints on the defender selection
-	{	// Same defaults as in BtS (not very helpful ...)
+	{	// Same defaults as in the BtS code (not very helpful ...)
 		Settings(PlayerTypes eDefOwner = NO_PLAYER, PlayerTypes eAttOwner = NO_PLAYER,
 			CvUnit const* pAttUnit = NULL, bool bTestAtWar = false,
 			bool bTestPotentialEnemy = false, bool bTestVisible = false) :
@@ -28,14 +30,35 @@ public:
 		CvUnit const* pAttUnit;
 		bool bTestAtWar, bTestPotentialEnemy, bTestVisible;
 	};
-	CvUnit* getBestDefender(Settings const& kSettings) const;
-	// Returns by parameter r. Empties r if all units are available!
-	void getAvailableDefenders(std::vector<CvUnit*>& r, Settings const& kSettings) const;
-	static int maxAvailableDefenders();
+	virtual CvUnit* getDefender(Settings const& kSettings) const=0;
+	// Returns by parameter r. Empty r means all units!
+	virtual void getDefenders(std::vector<CvUnit*>& r, Settings const& kSettings) const;
 
 protected:
 	CvPlot const& m_kPlot;
+};
 
+// Encapsulates the BtS defender selection algorithm
+class BestDefenderSelector : public DefenderSelector
+{
+public:
+	BestDefenderSelector(CvPlot const& kPlot);
+	~BestDefenderSelector();
+	CvUnit* getDefender(Settings const& kSettings) const;
+};
+
+class RandomizedSelector : public BestDefenderSelector
+{
+public:
+	RandomizedSelector(CvPlot const& kPlot);
+	~RandomizedSelector();
+	void uninit();
+	void update();
+	CvUnit* getDefender(Settings const& kSettings) const;
+	void getDefenders(std::vector<CvUnit*>& r, Settings const& kSettings) const;
+	static int maxAvailableDefenders();
+
+protected:
 	class Cache
 	{
 	public:

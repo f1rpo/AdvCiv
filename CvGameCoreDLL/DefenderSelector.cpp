@@ -7,23 +7,67 @@
 
 DefenderSelector::DefenderSelector(CvPlot const& kPlot) : m_kPlot(kPlot) {}
 
-void DefenderSelector::uninit()
+DefenderSelector::~DefenderSelector() {}
+
+void DefenderSelector::uninit() {}
+
+void DefenderSelector::update() {}
+
+void DefenderSelector::getDefenders(std::vector<CvUnit*>& r, Settings const& kSettings) const {}
+
+BestDefenderSelector::BestDefenderSelector(CvPlot const& kPlot) : DefenderSelector(kPlot) {}
+
+BestDefenderSelector::~BestDefenderSelector() {}
+
+// Cut from CvPlot::getBestDefender; funtionally equivalent.
+CvUnit* BestDefenderSelector::getDefender(Settings const& kSettings) const
+{
+	CvUnit* r = NULL;
+	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
+	for (CLLNode<IDInfo>* pUnitNode = m_kPlot.headUnitNode(); pUnitNode != NULL; // advc.003: while loop replaced
+			pUnitNode = m_kPlot.nextUnitNode(pUnitNode))
+	{
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		if (kSettings.eDefOwner == NO_PLAYER || pLoopUnit->getOwner() == kSettings.eDefOwner)
+		{	// advc.003: Moved the other conditions into an auxiliary function
+			if(pLoopUnit->canDefendAtCurrentPlot(kSettings.eAttOwner, kSettings.pAttUnit,
+					kSettings.bTestAtWar, kSettings.bTestPotentialEnemy,
+					false, kSettings.bTestVisible)) // advc.028
+			{
+				if (pLoopUnit->isBetterDefenderThan(r, kSettings.pAttUnit,
+						NULL, //&iBestUnitRank // UncutDragon (advc: NULL should work as well)
+						kSettings.bTestVisible)) // advc.061
+					r = pLoopUnit;
+			}
+		}
+	}
+	// BETTER_BTS_AI_MOD: END
+	return r;
+}
+
+RandomizedSelector::RandomizedSelector(CvPlot const& kPlot) : BestDefenderSelector(kPlot) {}
+
+RandomizedSelector::~RandomizedSelector() {}
+
+void RandomizedSelector::uninit()
 {
 	m_cache.clear();
 }
 
-void DefenderSelector::update()
+void RandomizedSelector::update()
 {
 	m_cache.setValid(false); // Recompute only on demand
 }
 
-CvUnit* DefenderSelector::getBestDefender(Settings const& kSettings) const
+CvUnit* RandomizedSelector::getDefender(Settings const& kSettings) const
 {
 	CvUnit* r = NULL;
 	std::vector<CvUnit*> defenders;
-	getAvailableDefenders(defenders, kSettings);
-	/*  As in BtS, but I think it's neater to let DefenderSelector take over
-		CvPlot::getBestDefender entirely. */
+	getDefenders(defenders, kSettings);
+	if (defenders.empty())
+	{	// If everyone is available, use the BtS algorithm.
+		return BestDefenderSelector::getDefender(kSettings);
+	}
 	for (size_t i = 0; i < defenders.size(); i++)
 	{
 		if (defenders[i]->isBetterDefenderThan(r, kSettings.pAttUnit, NULL, kSettings.bTestVisible))
@@ -32,14 +76,14 @@ CvUnit* DefenderSelector::getBestDefender(Settings const& kSettings) const
 	return r;
 }
 
-void DefenderSelector::getAvailableDefenders(std::vector<CvUnit*>& r,
-	Settings const& kSettings) const
+void RandomizedSelector::getDefenders(std::vector<CvUnit*>& r, Settings const& kSettings) const
 {
-	PROFILE_FUNC(); // Tbd.: Profile it
+	FAssert(r.empty());
 	if (kSettings.eAttOwner == NO_PLAYER)
 	{	// Only valid in async code for plots that the active player can't attack
 		return;
 	}
+	PROFILE_FUNC(); // Tbd.: Profile it
 	validateCache(kSettings.eAttOwner);
 	for (int i = 0; i < m_cache.size() &&
 		r.size() < (uint)maxAvailableDefenders(); i++)
@@ -63,14 +107,14 @@ void DefenderSelector::getAvailableDefenders(std::vector<CvUnit*>& r,
 	}
 }
 
-int DefenderSelector::maxAvailableDefenders()
+int RandomizedSelector::maxAvailableDefenders()
 {
 	/*  Tbd.: If the upper bound remains constant, move it to XML/ Globals
 		and get rid of this function (or at least make it non-public). */
 	return 4; // GC.getMAX_AVAILABLE_DEFENDERS()
 }
 
-bool DefenderSelector::canCombat(CvUnit const& kDefUnit, Settings const& kSettings) const
+bool RandomizedSelector::canCombat(CvUnit const& kDefUnit, Settings const& kSettings) const
 {
 	if (!kDefUnit.canFight())
 		return false;
@@ -84,13 +128,13 @@ bool DefenderSelector::canCombat(CvUnit const& kDefUnit, Settings const& kSettin
 	return true;
 }
 
-void DefenderSelector::validateCache(PlayerTypes eAttackerOwner) const
+void RandomizedSelector::validateCache(PlayerTypes eAttackerOwner) const
 {
 	if (!m_cache.isValid())
 		cacheDefenders(eAttackerOwner);
 }
 
-void DefenderSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
+void RandomizedSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 {
 	PROFILE_FUNC(); /*  Tbd.: Profile it; time spent here should decrease a lot
 						once the setValid call at the end is uncommented. */
@@ -124,14 +168,14 @@ void DefenderSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 	//m_cache.setValid(true);
 }
 
-int DefenderSelector::biasValue(CvUnit const& kUnit) const
+int RandomizedSelector::biasValue(CvUnit const& kUnit) const
 {
 	return kUnit.currHitPoints();
 		// Bias for units with higher AI power value?
 		//+ 2 * kUnit.getUnitInfo().getPower()
 }
 
-int DefenderSelector::randomValue(CvUnit const& kUnit, PlayerTypes eAttackerOwner) const
+int RandomizedSelector::randomValue(CvUnit const& kUnit, PlayerTypes eAttackerOwner) const
 {
 	std::vector<long> hashInputs;
 	hashInputs.push_back(GC.getGame().getGameTurn());
@@ -144,14 +188,14 @@ int DefenderSelector::randomValue(CvUnit const& kUnit, PlayerTypes eAttackerOwne
 	return ::round(100 * ::hash(hashInputs, eAttackerOwner));
 }
 
-DefenderSelector::Cache::Cache() : m_bValid(false) {}
+RandomizedSelector::Cache::Cache() : m_bValid(false) {}
 
-void DefenderSelector::Cache::setValid(bool b)
+void RandomizedSelector::Cache::setValid(bool b)
 {
 	m_bValid = b;
 }
 
-void DefenderSelector::Cache::clear(int iReserve)
+void RandomizedSelector::Cache::clear(int iReserve)
 {
 	m_entries.clear();
 	setValid(false);
@@ -159,27 +203,27 @@ void DefenderSelector::Cache::clear(int iReserve)
 		m_entries.reserve(iReserve);
 }
 
-bool DefenderSelector::Cache::isValid() const
+bool RandomizedSelector::Cache::isValid() const
 {
 	return m_bValid;
 }
 
-IDInfo DefenderSelector::Cache::at(int iPosition) const
+IDInfo RandomizedSelector::Cache::at(int iPosition) const
 {
 	return m_entries.at(iPosition).second;
 }
 
-int DefenderSelector::Cache::size() const
+int RandomizedSelector::Cache::size() const
 {
 	return (int)m_entries.size();
 }
 
-void DefenderSelector::Cache::add(IDInfo id, int iValue)
+void RandomizedSelector::Cache::add(IDInfo id, int iValue)
 {
 	m_entries.push_back(CacheEntry(iValue, id));
 }
 
-void DefenderSelector::Cache::sort()
+void RandomizedSelector::Cache::sort()
 {
 	// No point in stable_sort as the cache is fully recomputed before sorting
 	std::sort(m_entries.rbegin(), m_entries.rend());

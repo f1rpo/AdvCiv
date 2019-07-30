@@ -30,8 +30,8 @@ CvPlot::CvPlot()
 	m_aiYield = new short[NUM_YIELD_TYPES];
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000:
 	m_abBorderDangerCache = new bool[MAX_TEAMS];
-	// advco.defr: Tbd. - leave at NULL if defender randomization disabled
-	m_pDefenderSelector = new DefenderSelector(*this);
+	// advco.defr: Tbd. - new BestDefenderSelector if defender randomization is disabled
+	m_pDefenderSelector = new RandomizedSelector(*this);
 
 	m_aiCulture = NULL;
 	m_aiFoundValue = NULL;
@@ -141,9 +141,7 @@ void CvPlot::uninit()
 	}
 
 	m_units.clear();
-	// <advco.defr>
-	if (m_pDefenderSelector != NULL)
-		m_pDefenderSelector->uninit(); // </advco.defr>
+	m_pDefenderSelector->uninit(); // advco.defr
 }
 
 // FUNCTION: reset()
@@ -2640,37 +2638,11 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 		bool bTestCanMove, /* advc.028: */ bool bTestVisible) const
 {
 	FAssert(!bTestCanMove); // advc.003: Tbd.: Confirm that unused, then remove this param.
-	// <advco.rdef>
-	CvUnit* r = NULL;
-	if (m_pDefenderSelector != NULL)
-	{
-		DefenderSelector::Settings settings(eOwner, eAttackingPlayer, pAttacker,
-			bTestAtWar, bTestPotentialEnemy, bTestVisible);
-		r = m_pDefenderSelector->getBestDefender(settings);
-	}
-	// NULL from DefenderSelector can mean that all units should be available
-	if (r != NULL)
-		return r;
+	// <advco.rdef> BtS/BBAI code moved into BestDefenderSelector::getDefender
+	DefenderSelector::Settings settings(eOwner, eAttackingPlayer, pAttacker,
+		bTestAtWar, bTestPotentialEnemy, bTestVisible);
+	return m_pDefenderSelector->getDefender(settings);
 	// </advco.rdef>
-	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
-	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc.003: while loop replaced
-	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
-		{	// advc.003: Moved the other conditions into an auxiliary function
-			if(pLoopUnit->canDefendAtCurrentPlot(eAttackingPlayer, pAttacker,
-					bTestAtWar, bTestPotentialEnemy, bTestCanMove,
-					bTestVisible)) // advc.028
-			{
-				if (pLoopUnit->isBetterDefenderThan(r, pAttacker,
-						NULL, //&iBestUnitRank // UncutDragon (advc: NULL should work as well)
-						bTestVisible)) // advc.061
-					r = pLoopUnit;
-			}
-		}
-	}
-	// BETTER_BTS_AI_MOD: END
-	return r;
 }
 
 /*  <advco.defr> I.e. a set of units that the UI should gray out.
@@ -2685,7 +2657,7 @@ void CvPlot::unavailableDefendersVsActivePlayer(std::set<CvUnit const*>& r) cons
 	DefenderSelector::Settings settings(NO_PLAYER, GC.getGame().getActivePlayer(),
 		gDLL->getInterfaceIFace()->getHeadSelectedUnit(),
 		true, true, !GC.getGame().isDebugMode());
-	m_pDefenderSelector->getAvailableDefenders(availableVector, settings);
+	m_pDefenderSelector->getDefenders(availableVector, settings);
 	if (availableVector.empty()) // Meaning that all are available
 		return;
 	std::set<CvUnit*> availableSet;
