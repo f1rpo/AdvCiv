@@ -16,10 +16,21 @@ public:
 	DefenderSelector(CvPlot const& kPlot);
 	void uninit();
 	void update();
-	/*  The caller provides a vector of legal defenders. The selection is returned
-		through the same parameter. */
-	void selectAvailableDefenders(std::vector<CvUnit*>& kAvailable,
-		PlayerTypes eAttackerOwner, CvUnit const* pAttacker = NULL) const;
+	struct Settings // Constraints on the defender selection
+	{	// Same defaults as in BtS (not very helpful ...)
+		Settings(PlayerTypes eDefOwner = NO_PLAYER, PlayerTypes eAttOwner = NO_PLAYER,
+			CvUnit const* pAttUnit = NULL, bool bTestAtWar = false,
+			bool bTestPotentialEnemy = false, bool bTestVisible = false) :
+			eDefOwner(eDefOwner), eAttOwner(eAttOwner), pAttUnit(pAttUnit),
+			bTestAtWar(bTestAtWar), bTestPotentialEnemy(bTestPotentialEnemy),
+			bTestVisible(bTestVisible) {}
+		PlayerTypes eDefOwner, eAttOwner;
+		CvUnit const* pAttUnit;
+		bool bTestAtWar, bTestPotentialEnemy, bTestVisible;
+	};
+	CvUnit* getBestDefender(Settings const& kSettings) const;
+	// Returns by parameter r. Empties r if all units are available!
+	void getAvailableDefenders(std::vector<CvUnit*>& r, Settings const& kSettings) const;
 	static int maxAvailableDefenders();
 
 protected:
@@ -46,9 +57,9 @@ protected:
 	void validateCache(PlayerTypes eAttackerOwner) const;
 	// The main algorithm; want this outside of the cache class.
 	void cacheDefenders(PlayerTypes eAttackerOwner) const;
-	bool canFight(CvUnit const& kDefender, PlayerTypes eAttackerOwner, CvUnit const* pAttacker = NULL) const;
 	int biasValue(CvUnit const& kUnit) const;
 	int randomValue(CvUnit const& kUnit, PlayerTypes eAttackerOwner) const;
+	bool canCombat(CvUnit const& kDefUnit, Settings const& kSettings) const;
 };
 
 #endif

@@ -58,7 +58,7 @@ public:
 			bool bColorHostile = false, // advc.048
 			bool bOmitOwner = false, // advc.061
 			bool bIndicator = false, // advc.007
-			bool bAvailable = true); // advco.defr
+			bool bUnavailable = false); // advco.defr
 	void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort,
 			bool bIndicator = false); // advc.061
 	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
@@ -325,7 +325,7 @@ private:
 	void appendUnitTypeAggregated(CvWStringBuffer& szString,
 			std::vector<CvUnit const*> const& ownerUnits,
 			UnitTypes eUnit, CvPlot const& kPlot, bool bIndicator,
-			std::set<CvUnit const*> const& availableDefenders); // advco.defr
+			std::set<CvUnit const*> const& kUnavailable); // advco.defr
 	void appendAverageStrength(CvWStringBuffer& szString, int iSumMaxStrengthTimes100,
 			int iSumStrengthTimes100, int iUnits);
 	// For std::sort

@@ -150,7 +150,7 @@ public:
 			bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove,
 			bool bTestVisible) const; // </advc.028>
 	// advco.defr:
-	void availableDefendersVsActivePlayer(std::set<CvUnit const*>& r) const;
+	void unavailableDefendersVsActivePlayer(std::set<CvUnit const*>& r) const;
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
 	bool hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;
 	// disabled by K-Mod:
@@ -674,11 +674,7 @@ protected:
 	int exclusiveRadius(PlayerTypes ePlayer) const;
 	// </advc.099b>
 	ColorTypes plotMinimapColor();
-	// <advco.defr>
-	void validDefenders(std::vector<CvUnit*>& r, PlayerTypes eOwner,
-		PlayerTypes eAttackingPlayer, CvUnit const* pAttacker, bool bTestAtWar,
-		bool bTestPotentialEnemy, bool bTestCanMove, /* advc.028: */ bool bTestVisible) const;
-	// </advco.defr>
+
 	static int iMaxVisibilityRangeCache; // advc.003h
 
 	// added so under cheat mode we can access protected stuff

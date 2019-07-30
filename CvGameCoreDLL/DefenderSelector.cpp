@@ -17,45 +17,71 @@ void DefenderSelector::update()
 	m_cache.setValid(false); // Recompute only on demand
 }
 
-void DefenderSelector::selectAvailableDefenders(std::vector<CvUnit*>& kAvailable,
-	PlayerTypes eAttackerOwner, CvUnit const* pAttacker) const
+CvUnit* DefenderSelector::getBestDefender(Settings const& kSettings) const
 {
-	/*  Need a (potential) attacking player. NO_PLAYER calls do happen, but
-		only on plots with units owned by the active player. */
-	if (eAttackerOwner == NO_PLAYER)
-		return;
+	CvUnit* r = NULL;
+	std::vector<CvUnit*> defenders;
+	getAvailableDefenders(defenders, kSettings);
+	/*  As in BtS, but I think it's neater to let DefenderSelector take over
+		CvPlot::getBestDefender entirely. */
+	for (size_t i = 0; i < defenders.size(); i++)
+	{
+		if (defenders[i]->isBetterDefenderThan(r, kSettings.pAttUnit, NULL, kSettings.bTestVisible))
+			r = defenders[i];
+	}
+	return r;
+}
+
+void DefenderSelector::getAvailableDefenders(std::vector<CvUnit*>& r,
+	Settings const& kSettings) const
+{
 	PROFILE_FUNC(); // Tbd.: Profile it
-	validateCache(eAttackerOwner);
-	/*  For a "fast" legality check. (What would be faster: Call CvPlot::canDefendHere
-		from this function instead of letting the caller do it beforehand.) */
-	std::set<IDInfo> combatants;
-	/*  Units that can't fight the attacker are always available and don't count
-		toward maxAvailableDefenders (except spies) */
-	std::vector<CvUnit*> nonCombatants;
-	for (size_t i = 0; i < kAvailable.size(); i++)
-	{
-		if (!canFight(*kAvailable[i], eAttackerOwner, pAttacker) &&
-			!kAvailable[i]->alwaysInvisible())
-		{
-			nonCombatants.push_back(kAvailable[i]);
-		}
-		else combatants.insert(kAvailable[i]->getIDInfo());
+	if (kSettings.eAttOwner == NO_PLAYER)
+	{	// Only valid in async code for plots that the active player can't attack
+		return;
 	}
-	kAvailable.clear();
+	validateCache(kSettings.eAttOwner);
 	for (int i = 0; i < m_cache.size() &&
-		kAvailable.size() < (uint)maxAvailableDefenders(); i++)
+		r.size() < (uint)maxAvailableDefenders(); i++)
 	{
-		IDInfo unitID(m_cache.at(i));
-		if (combatants.count(unitID) > 0)
-			kAvailable.push_back(::getUnit(unitID));
+		CvUnit* pUnit = ::getUnit(m_cache.at(i));
+		if (pUnit == NULL)
+		{	// But it could perhaps also be that the unit is currently dying; that would be OK.
+			FAssertMsg(pUnit != NULL, "Cache out of date?");
+			continue;
+		}
+		if (kSettings.eDefOwner != NO_PLAYER && pUnit->getOwner() != kSettings.eDefOwner)
+			continue;
+		if (pUnit->canDefendAtCurrentPlot(kSettings.eAttOwner, kSettings.pAttUnit,
+			kSettings.bTestAtWar, kSettings.bTestPotentialEnemy, false, kSettings.bTestVisible))
+		{
+			/*  Noncombatants are unavailable unless no proper defender is available:
+				empty r means all are available. */
+			if (canCombat(*pUnit, kSettings))
+				r.push_back(pUnit);
+		}
 	}
-	kAvailable.insert(kAvailable.end(), nonCombatants.begin(), nonCombatants.end());
 }
 
 int DefenderSelector::maxAvailableDefenders()
 {
-	// Tbd.: If the upper bound remains constant, move it to XML/ Globals.
+	/*  Tbd.: If the upper bound remains constant, move it to XML/ Globals
+		and get rid of this function (or at least make it non-public). */
 	return 4; // GC.getMAX_AVAILABLE_DEFENDERS()
+}
+
+bool DefenderSelector::canCombat(CvUnit const& kDefUnit, Settings const& kSettings) const
+{
+	if (!kDefUnit.canFight())
+		return false;
+	if (!kDefUnit.isEnemy(TEAMID(kSettings.eAttOwner)))
+		return false;
+	/*  Assume a land attacker unless a sea attacker is given. In particular,
+		assume a land attacker when an air attacker is given. */
+	bool bSeaAttacker = (kSettings.pAttUnit != NULL && kSettings.pAttUnit->getDomainType() == DOMAIN_SEA);
+	if (!bSeaAttacker && !m_kPlot.isWater() && kDefUnit.getDomainType() != DOMAIN_LAND)
+		return false;
+	return true;
 }
 
 void DefenderSelector::validateCache(PlayerTypes eAttackerOwner) const
@@ -96,19 +122,6 @@ void DefenderSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 		 And when the active player destroys a defender in combat, the on-screen
 		 message should say which unit has become available. */
 	//m_cache.setValid(true);
-}
-
-bool DefenderSelector::canFight(CvUnit const& kDefender, PlayerTypes eAttackerOwner,
-		CvUnit const* pAttacker) const
-{
-	if (!kDefender.canFight() || !kDefender.isEnemy(TEAMID(eAttackerOwner)))
-		return false;
-	/*  Assume a land attacker unless a sea attacker is given. In particular,
-		assume a land attacker when an air attacker is given. */
-	bool bSeaAttacker = (pAttacker != NULL && pAttacker->getDomainType() == DOMAIN_SEA);
-	if (!bSeaAttacker && kDefender.getDomainType() != DOMAIN_LAND)
-		return false;
-	return true;
 }
 
 int DefenderSelector::biasValue(CvUnit const& kUnit) const
