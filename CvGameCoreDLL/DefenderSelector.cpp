@@ -83,7 +83,7 @@ void RandomizedSelector::getDefenders(std::vector<CvUnit*>& r, Settings const& k
 	{	// Only valid in async code for plots that the active player can't attack
 		return;
 	}
-	PROFILE_FUNC(); // Tbd.: Profile it
+	//PROFILE_FUNC(); // Ca. 1.5 permille of the running time
 	validateCache(kSettings.eAttOwner);
 	for (int i = 0; i < m_cache.size() &&
 		r.size() < (uint)maxAvailableDefenders(); i++)
@@ -123,7 +123,8 @@ bool RandomizedSelector::canCombat(CvUnit const& kDefUnit, Settings const& kSett
 	/*  Assume a land attacker unless a sea attacker is given. In particular,
 		assume a land attacker when an air attacker is given. */
 	bool bSeaAttacker = (kSettings.pAttUnit != NULL && kSettings.pAttUnit->getDomainType() == DOMAIN_SEA);
-	if (!bSeaAttacker && !m_kPlot.isWater() && kDefUnit.getDomainType() != DOMAIN_LAND)
+	if (!bSeaAttacker && !m_kPlot.isWater() && (kDefUnit.getDomainType() != DOMAIN_LAND ||
+			kDefUnit.isCargo()))
 		return false;
 	return true;
 }
@@ -136,8 +137,7 @@ void RandomizedSelector::validateCache(PlayerTypes eAttackerOwner) const
 
 void RandomizedSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 {
-	PROFILE_FUNC(); /*  Tbd.: Profile it; time spent here should decrease a lot
-						once the setValid call at the end is uncommented. */
+	PROFILE_FUNC(); // Less than 1 permille of the running time
 	m_cache.clear(m_kPlot.getNumUnits());
 	for (CLLNode<IDInfo>* pNode = m_kPlot.headUnitNode(); pNode != NULL;
 		pNode = m_kPlot.nextUnitNode(pNode))
@@ -153,9 +153,9 @@ void RandomizedSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 		m_cache.add(pUnit->getIDInfo(), iAvailability);
 	}
 	m_cache.sort();
-	/*  The update calls aren't implemented yet, so, for now, keep the cache
-		permanently invalid.
-		Tbd. Call DefenderSelector::update:
+	/*  Tbd. Call DefenderSelector::update as described below.
+		However, the time saved is going to be negligible, so this may not be
+		worth polluting the code base, and isn't a priority in any case.
 		- from CvUnit::kill (update the plot where the unit was killed) and
 		  on non-lethal damage (but not while combat is still being resolved)
 		- from CvUnit::setXY (on the source and destination plot)
@@ -165,6 +165,7 @@ void RandomizedSelector::cacheDefenders(PlayerTypes eAttackerOwner) const
 		 Updates after combat should also write a message to the combat log.
 		 And when the active player destroys a defender in combat, the on-screen
 		 message should say which unit has become available. */
+	// For now, keep the cache permanently invalid.
 	//m_cache.setValid(true);
 }
 

@@ -38,7 +38,7 @@ protected:
 	CvPlot const& m_kPlot;
 };
 
-// Encapsulates the BtS defender selection algorithm
+// Encapsulates the BtS defender selection algorithm: select the best defender
 class BestDefenderSelector : public DefenderSelector
 {
 public:
@@ -47,6 +47,7 @@ public:
 	CvUnit* getDefender(Settings const& kSettings) const;
 };
 
+// Selects the best defender from a random set
 class RandomizedSelector : public BestDefenderSelector
 {
 public:

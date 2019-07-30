@@ -324,12 +324,13 @@ private:
 			int iArmy, int iNavy, int iAir, int iTotal, bool bCollapsed = false);
 	void appendUnitTypeAggregated(CvWStringBuffer& szString,
 			std::vector<CvUnit const*> const& ownerUnits,
-			UnitTypes eUnit, CvPlot const& kPlot, bool bIndicator,
-			std::set<CvUnit const*> const& kUnavailable); // advco.defr
+			UnitTypes eUnit, CvPlot const& kPlot,
+			bool bUnavailable); // advco.defr
 	void appendAverageStrength(CvWStringBuffer& szString, int iSumMaxStrengthTimes100,
 			int iSumStrengthTimes100, int iUnits);
 	// For std::sort
 	  static CvPlot const* m_pHelpPlot;
+	  static std::set<CvUnit const*>* m_pUnavailable; // advco.defr
 	  static bool listFirstUnitBeforeSecond(CvUnit const* pFirst, CvUnit const* pSecond);
 	  static bool listFirstUnitTypeBeforeSecond(UnitTypes eFirst, UnitTypes eSecond);
 	// </advc.061>

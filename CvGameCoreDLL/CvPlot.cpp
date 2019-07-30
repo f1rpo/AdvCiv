@@ -2651,8 +2651,6 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 	to the active player can be unavailable. */
 void CvPlot::unavailableDefendersVsActivePlayer(std::set<CvUnit const*>& r) const
 {
-	if (m_pDefenderSelector == NULL)
-		return;
 	std::vector<CvUnit*> availableVector;
 	DefenderSelector::Settings settings(NO_PLAYER, GC.getGame().getActivePlayer(),
 		gDLL->getInterfaceIFace()->getHeadSelectedUnit(),
@@ -2665,7 +2663,7 @@ void CvPlot::unavailableDefendersVsActivePlayer(std::set<CvUnit const*>& r) cons
 	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc.003: while loop replaced
 	{
 		CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
-		if (!pUnit->alwaysInvisible() && pUnit->isEnemy(GC.getGame().getActiveTeam(), this) &&
+		if (!pUnit->alwaysInvisible() && pUnit->isEnemy(GC.getGame().getActiveTeam()) &&
 			availableSet.count(pUnit) <= 0)
 		{
 			r.insert(pUnit);
