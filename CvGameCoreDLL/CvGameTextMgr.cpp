@@ -638,7 +638,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 
 	if (!bOneLine)
 	{
-		setEspionageMissionHelp(szString, pUnit);
+		if (pUnit->getOwner() == g.getActiveTeam()) // advc.007: Don't show rival spy test in Debug mode
+			setEspionageMissionHelp(szString, pUnit);
 
 		if (pUnit->cargoSpace() > 0)
 		{
@@ -1587,14 +1588,9 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			else if(eDomain == DOMAIN_AIR)
 				iType = AIR;
 		}
-		if(pUnit->isUnowned()) {
-			perOwner[iRogueIndex][iType].push_back(pUnit);
-			perOwner[iRogueIndex][ALL].push_back(pUnit);
-		}
-		else {
-			perOwner[eVisualOwner][iType].push_back(pUnit);
-			perOwner[eVisualOwner][ALL].push_back(pUnit);
-		}
+		int iOwnerIndex = (pUnit->isUnowned() ? iRogueIndex : eVisualOwner);
+		perOwner[iOwnerIndex][iType].push_back(pUnit);
+		perOwner[iOwnerIndex][ALL].push_back(pUnit);
 	}
 	int iHeadings = 0;
 	uint uTotal = perOwner[iRogueIndex][ALL].size();
@@ -1913,7 +1909,7 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 
 	if (iNumVisibleUnits > 0)
 	{
-		CvUnit* pCenterUnit = Plot->getCenterUnit(); // advc.003
+		CvUnit* pCenterUnit = pPlot->getCenterUnit(); // advc.003
 		if (pCenterUnit != NULL)
 		{
 			setUnitHelp(szString, pCenterUnit, iNumVisibleUnits > iMaxNumUnits, true,
