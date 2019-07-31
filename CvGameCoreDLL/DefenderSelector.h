@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef DEFENDER_FILTER_H
-#define DEFENDER_FILTER_H
+#ifndef DEFENDER_SELECTOR_H
+#define DEFENDER_SELECTOR_H
 
 class CvUnit;
 class CvPlot;
