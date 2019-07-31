@@ -3,9 +3,6 @@
 #ifndef WAR_EVAL_PARAMETERS_H
 #define WAR_EVAL_PARAMETERS_H
 
-#include "CvEnums.h"
-#include <set>
-
 class WarUtilityAspect;
 class WarAndPeaceReport;
 

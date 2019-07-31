@@ -3,9 +3,6 @@
 #ifndef WAR_AND_PEACE_AI_H
 #define WAR_AND_PEACE_AI_H
 
-#include "CvEnums.h"
-#include <vector>
-
 class FDataStreamBase;
 
 /*  <advc.104> AI functionality for decisions on war and peace. Main class of the

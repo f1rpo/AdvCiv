@@ -6,7 +6,8 @@
 #include "WarAndPeaceAgent.h"
 #include "InvasionGraph.h"
 #include "CvGamePlay.h"
-#include "AI_Defines.h"
+#include "BBAI_Defines.h"
+#include "CvInfos.h"
 #include <sstream>
 #include <iterator>
 

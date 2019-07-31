@@ -9,7 +9,6 @@
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
 #include "CvPlotGroup.h"
-#include "LinkedList.h"
 #include "CvTalkingHeadMessage.h"
 
 class CvDiploParameters;

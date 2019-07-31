@@ -3,7 +3,6 @@
 #ifndef MILITARY_BRANCH_H
 #define MILITARY_BRANCH_H
 
-#include "CvInfos.h"
 #include <sstream>
 
 /* Containers of military branches should be laid out in this order.

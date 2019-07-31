@@ -14,6 +14,7 @@ class CyCity;
 class CySelectionGroup;
 class CyUnit;
 class CyArea;
+
 class CyMap
 {
 public:

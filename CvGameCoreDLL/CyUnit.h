@@ -2,6 +2,7 @@
 
 #ifndef CyUnit_h
 #define CyUnit_h
+
 //
 // Python wrapper class for CvUnit
 //
@@ -12,6 +13,7 @@ class CyCity;
 class CvUnit;
 class CySelectionGroup;
 class CvArtInfoUnit;
+
 class CyUnit
 {
 public:

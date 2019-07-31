@@ -4,12 +4,13 @@
 #include "WarAndPeaceCache.h"
 #include "WarAndPeaceAgent.h"
 #include "WarAndPeaceReport.h"
-#include "CvGamePlay.h"
-#include "AI_Defines.h"
-#include "CvMap.h"
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
+#include "CvGamePlay.h"
+#include "BBAI_Defines.h"
+#include "CvMap.h"
+#include "CvInfos.h"
 #include <cmath>
 
 using std::vector;

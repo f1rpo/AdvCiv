@@ -2,17 +2,17 @@
 
 #ifndef CySelectionGroup_h
 #define CySelectionGroup_h
+
 //
 // Python wrapper class for CySelectionGroup
 //
-//
 
 struct MissionData;
-
 class CyPlot;
 class CyArea;
 class CyUnit;
 class CvSelectionGroup;
+
 class CySelectionGroup
 {
 public:

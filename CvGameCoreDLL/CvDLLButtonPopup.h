@@ -5,12 +5,10 @@
 #ifndef CIV4_DLL_BUTTON_POPUP_H
 #define CIV4_DLL_BUTTON_POPUP_H
 
-
-#include "CvPopupInfo.h"
-#include "CvPopupReturn.h"
-
-
 class CvPopup;
+class PopupReturn;
+class CvPopupInfo;
+
 class CvDLLButtonPopup
 {
 

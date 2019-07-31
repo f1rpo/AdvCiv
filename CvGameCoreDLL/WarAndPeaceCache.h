@@ -3,12 +3,6 @@
 #ifndef WAR_AND_PEACE_CACHE_H
 #define WAR_AND_PEACE_CACHE_H
 
-#include "CvEnums.h"
-#include "CvStructs.h"
-#include "LinkedList.h"
-#include <vector>
-#include <map>
-
 class WarAndPeaceCache;
 class MilitaryBranch;
 class CvCity;

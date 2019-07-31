@@ -6,7 +6,6 @@
 #include "MilitaryBranch.h"
 #include "WarAndPeaceCache.h"
 #include "WarAndPeaceReport.h"
-#include <set>
 
 class MilitaryAnalyst;
 class SimulationStep;

@@ -18,7 +18,7 @@
 #include "CvArtFileMgr.h"
 #include "CvMap.h"
 #include "RiseFall.h" // advc.700
-#include "AI_Defines.h" // BBAI
+#include "BBAI_Defines.h"
 #include "CvBugOptions.h"
 #include "CvPopupInfo.h"
 #include "CyArgsList.h"

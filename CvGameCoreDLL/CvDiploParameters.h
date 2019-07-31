@@ -2,7 +2,6 @@
 #ifndef CVDIPLOPARAMETERS_H
 #define CVDIPLOPARAMETERS_H
 
-#include "LinkedList.h"
 #include "FVariableSystem.h"
 
 class CvDiploParameters

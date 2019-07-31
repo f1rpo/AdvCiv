@@ -5,10 +5,6 @@
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
-#include "LinkedList.h"
-#include <bitset>
-#include <set> // advc.300
-
 // needs to have dll-interface to be used by clients of class
 #pragma warning( disable: 4251 )
 

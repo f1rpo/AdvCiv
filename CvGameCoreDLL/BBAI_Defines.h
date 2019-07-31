@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef AI_DEFINES_H
-#define AI_DEFINES_H
+#ifndef BBAI_DEFINES_H // advc.make: Renamed this file from AI_Defines.h
+#define BBAI_DEFINES_H
 
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD					03/08/10				jdog5000	    */

@@ -16,6 +16,7 @@ class CvPlot;
 class CvRoute;
 class CvFeature;
 class CvRiver;
+
 class CvDLLSymbolIFaceBase
 {
 public:

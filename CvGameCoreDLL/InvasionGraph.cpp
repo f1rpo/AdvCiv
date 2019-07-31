@@ -9,6 +9,7 @@
 #include "CvGamePlay.h"
 #include "CvPlot.h"
 #include "CvArea.h"
+#include "CvInfos.h"
 #include <sstream>
 
 using std::ostringstream;

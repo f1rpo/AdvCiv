@@ -3,10 +3,7 @@
 
 #pragma once
 
-#include "CvEnums.h"
-
 class CvReplayMessage;
-
 
 class CvReplayInfo
 {

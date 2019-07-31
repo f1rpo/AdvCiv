@@ -3,8 +3,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlayerAI.h"
 #include "CvGamePlay.h"
-#include "BBAILog.h" // BBAI
-#include "AI_Defines.h" // BBAI
+#include "BBAILog.h"
+#include "BBAI_Defines.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
 #include "CvMap.h"

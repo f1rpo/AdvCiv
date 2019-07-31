@@ -5,10 +5,6 @@
 #ifndef CIV4_DEAL_H
 #define CIV4_DEAL_H
 
-
-#include "LinkedList.h"
-
-
 class CvDeal
 {
 

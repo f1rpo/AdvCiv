@@ -3,10 +3,6 @@
 #ifndef WAR_AND_PEACE_REPORT_H
 #define WAR_AND_PEACE_REPORT_H
 
-#include "CvEnums.h"
-#include "CvString.h"
-#include <vector>
-
 /* <advc.104>: New class. A report about the war planning of a single team
    (cf. WarAndPeaceAI::Team::doWar). I'm also focusing string handling
    needed for logging in this class.

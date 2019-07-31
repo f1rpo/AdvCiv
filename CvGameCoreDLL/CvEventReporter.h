@@ -19,6 +19,7 @@ class CvUnit;
 class CvCity;
 class CvPlot;
 class CvSelectionGroup;
+
 class CvEventReporter
 {
 	friend class CyStatistics;

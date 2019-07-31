@@ -5,8 +5,6 @@
 
 // structs.h
 
-#include "CvString.h"
-
 // <advc.071>
 class CvPlot;
 class CvUnit;

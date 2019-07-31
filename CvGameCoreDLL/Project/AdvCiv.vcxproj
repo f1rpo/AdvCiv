@@ -160,8 +160,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\AdvCiv4lerts.h" />
-    <ClInclude Include="..\AI_Defines.h" />
     <ClInclude Include="..\ArmamentForecast.h" />
+    <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\CvArea.h" />
     <ClInclude Include="..\CvArtFileMgr.h" />

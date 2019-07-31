@@ -7684,7 +7684,7 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 // Returns the number of land units spawned (possibly in cargo). The first half is new code.
 int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAllowed) { // </advc.300>
 
-	/* <advc.306> Spawn cargo load before ships. Othwerwise, the newly placed ship
+	/* <advc.306> Spawn cargo load before ships. Otherwise, the newly placed ship
 	   would always be an eligible target and too many ships would carry cargo. */
 	FAssert(!bCargoAllowed || pShelf != NULL);
 	int r = 0;

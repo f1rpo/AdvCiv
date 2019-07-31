@@ -5,7 +5,7 @@
 #include "CvInfos.h"
 #include "CvGamePlay.h"
 #include "WarAndPeaceAgent.h" // advc.104
-#include "AI_Defines.h"
+#include "BBAI_Defines.h"
 #include "CvPopupInfo.h"
 #include "CvInitCore.h"
 #include "CvReplayInfo.h"

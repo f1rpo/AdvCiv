@@ -8,9 +8,10 @@
 #include "WarAndPeaceAgent.h"
 #include "MilitaryAnalyst.h"
 #include "CvGamePlay.h"
-#include "AI_Defines.h"
+#include "BBAI_Defines.h"
 #include "CvStatistics.h"
 #include "CvMap.h"
+#include "CvInfos.h"
 
 using std::vector;
 using std::string;

@@ -3,6 +3,7 @@
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
+#include "CvInfos.h"
 #include "CvInitCore.h"
 #include "RiseFall.h" // advc.700
 #include "CyPlot.h"

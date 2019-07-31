@@ -10,7 +10,7 @@
 #include "CvInfos.h"
 #include "CvStatistics.h" // advc.310
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-#include "AI_Defines.h" // BBAI
+#include "BBAI_Defines.h"
 
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"

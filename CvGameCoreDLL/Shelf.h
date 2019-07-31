@@ -3,12 +3,8 @@
 #ifndef SHELF_H
 #define SHELF_H
 
-#include <utility>
-#include <vector>
-
 class CvPlot;
 class CvUnit;
-
 
 /* <advc.300> New class representing a continental shelf, akin to a CvArea
    (but I don't want to inherit from that class). Used for spawning

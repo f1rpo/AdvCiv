@@ -5,6 +5,7 @@
 #include "WarAndPeaceAgent.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvInfos.h"
 
 using std::ostream;
 using std::vector;

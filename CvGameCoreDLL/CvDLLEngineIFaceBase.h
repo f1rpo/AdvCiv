@@ -3,7 +3,6 @@
 #ifndef CvDLLEngineIFaceBase_h
 #define CvDLLEngineIFaceBase_h
 
-
 //
 // abstract interface for CvEngine functions used by DLL
 //

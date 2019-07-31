@@ -15,13 +15,11 @@
 #ifndef XML_LOAD_UTILITY_H
 #define XML_LOAD_UTILITY_H
 
-#include "CvInfos.h"
-#include "CvGlobals.h"
-
 class FXmlSchemaCache;
 class FXml;
 class CvGameText;
 class CvCacheObject;
+class CvImprovementBonusInfo;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //

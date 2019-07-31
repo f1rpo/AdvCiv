@@ -6,8 +6,8 @@
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CyArgsList.h"
-#include "BBAILog.h" // BBAI
-#include "AI_Defines.h" // BBAI
+#include "BBAILog.h"
+#include "BBAI_Defines.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
@@ -474,7 +474,7 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 // K-Mod end
 
 /*  advc.104s (note): If UWAI is enabled, AI_doWar may adjust (i.e. overwrite) the
-	result of this calculation through WarAndPeaceAI::Team::alignAreaAI. */
+	result of this calculation through WarAndPeaceAgent::Team::alignAreaAI. */
 AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal) const  // advc.003: style changes
 {
 	PROFILE_FUNC();

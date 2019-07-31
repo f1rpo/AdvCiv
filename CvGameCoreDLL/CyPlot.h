@@ -10,6 +10,7 @@ class CyArea;
 class CvPlot;
 class CyUnit;
 class CyCity;
+
 class CyPlot
 {
 public:

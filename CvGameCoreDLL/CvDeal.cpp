@@ -7,6 +7,7 @@
 #include "CvGameTextMgr.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvEventReporter.h"
+#include "CvInfos.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 

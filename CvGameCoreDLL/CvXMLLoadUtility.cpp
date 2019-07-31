@@ -12,6 +12,7 @@
 //  Copyright (c) 2003 Firaxis Games, Inc. All rights reserved.
 //------------------------------------------------------------------------------------------------
 #include "CvGameCoreDLL.h"
+#include "CvInfos.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
 #include "CvDLLUtilityIFaceBase.h"

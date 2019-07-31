@@ -6,7 +6,6 @@
 #define CIV4_GAME_H
 
 #include "CvDeal.h"
-#include "CvRandom.h"
 
 class CvPlot;
 class CvCity;

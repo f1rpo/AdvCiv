@@ -15,8 +15,6 @@
 #ifndef CIV4_GAME_TEXT_MGR_H
 #define CIV4_GAME_TEXT_MGR_H
 
-#include "CvInfos.h"
-
 #pragma warning( disable: 4251 )	// needs to have dll-interface to be used by clients of class
 
 class CvCity;

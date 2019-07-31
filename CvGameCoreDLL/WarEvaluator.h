@@ -3,9 +3,6 @@
 #ifndef WAR_EVALUATOR_H
 #define WAR_EVALUATOR_H
 
-#include "CvEnums.h"
-#include <vector>
-
 class WarEvalParameters;
 class WarUtilityAspect;
 class WarAndPeaceReport;

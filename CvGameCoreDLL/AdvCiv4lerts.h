@@ -3,8 +3,6 @@
 #ifndef ADVCIV4LERTS_H
 #define ADVCIV4LERTS_H
 
-#include "CvString.h"
-
 /*  <advc.210>: I can't write this in Python, so I'm having Civ4lerts.py call
 	this class. Will need to make changes in Civ4lerts.py, Civ4lerts.xml,
 	BugAlertsOptionsTab.py, CvPlayer.h, CvPlayer.cpp and some file for game text

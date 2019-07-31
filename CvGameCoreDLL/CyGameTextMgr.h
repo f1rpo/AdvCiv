@@ -12,6 +12,7 @@ class CyCity;
 class CyUnit;
 class CyDeal;
 struct TradeData;
+
 class CyGameTextMgr
 {
 public:

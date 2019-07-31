@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifndef CIV4_INITCORE_H
 #define CIV4_INITCORE_H
 

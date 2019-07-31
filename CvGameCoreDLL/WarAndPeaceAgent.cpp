@@ -7,7 +7,7 @@
 #include "WarEvalParameters.h"
 #include "CvInfos.h"
 #include "CvGamePlay.h"
-#include "AI_Defines.h"
+#include "BBAI_Defines.h"
 #include "CvDiploParameters.h"
 #include "CvMap.h"
 #include "RiseFall.h" // advc.705
@@ -2028,8 +2028,7 @@ bool WarAndPeaceAI::Team::isPotentialWarEnemy(TeamTypes tId) const {
 
 bool WarAndPeaceAI::Team::isFastRoads() const {
 
-	// aka isEngineering
-	return GET_TEAM(agentId).getRouteChange((RouteTypes)0) <= -10;
+	return (GET_TEAM(agentId).getRouteChange((RouteTypes)0) <= -10);
 }
 
 double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,

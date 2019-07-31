@@ -5,7 +5,6 @@
 
 #include "RFChapter.h"
 
-
 /*  <advc.700>: New class. Computes and stores the total awarded Rise score. */
 class RFTotalScore {
 

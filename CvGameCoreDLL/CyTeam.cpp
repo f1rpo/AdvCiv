@@ -913,6 +913,10 @@ int CyTeam::getLaunchSuccessRate(int /*VictoryTypes*/ eVictory)
 	return (m_pTeam ? m_pTeam->getLaunchSuccessRate((VictoryTypes)eVictory) : -1);
 }
 
+bool CyTeam::hasSpaceshipArrived() // K-Mod
+{
+	return (m_pTeam ? m_pTeam->hasSpaceshipArrived() : false);
+}
 
 int CyTeam::getEspionagePointsAgainstTeam(int /*TeamTypes*/ eIndex)
 {

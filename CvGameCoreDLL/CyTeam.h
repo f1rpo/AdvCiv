@@ -6,8 +6,6 @@
 // Python wrapper class for CvTeam
 //
 
-#include "CvTeam.h"
-
 class CvTeam;
 class CyArea;
 class CyTeam
@@ -210,7 +208,7 @@ public:
 	int getVictoryDelay(int /*VictoryTypes*/ eVictory);
 	bool canLaunch(int /*VictoryTypes*/ eVictory);
 	int getLaunchSuccessRate(int /*VictoryTypes*/ eVictory);
-	bool hasSpaceshipArrived() { return (m_pTeam ? m_pTeam->hasSpaceshipArrived() : false); } // K-Mod
+	bool hasSpaceshipArrived();
 
 	int getEspionagePointsAgainstTeam(int /*TeamTypes*/ eIndex);
 	void setEspionagePointsAgainstTeam(int /*TeamTypes*/ eIndex, int iValue);

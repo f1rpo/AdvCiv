@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvDLLButtonPopup.h"
+#include "CvPopupInfo.h"
 #include "CvGamePlay.h"
 #include "RiseFall.h" // advc.706
 #include "CvMap.h"
