@@ -7,7 +7,6 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include <iterator>
 
 /*  advc.make: Include this for debugging with Visual Leak Detector

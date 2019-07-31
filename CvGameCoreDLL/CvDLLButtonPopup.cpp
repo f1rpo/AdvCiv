@@ -6,19 +6,10 @@
 #include "CvGamePlay.h"
 #include "RiseFall.h" // advc.706
 #include "CvMap.h"
-#include "CvArtFileMgr.h"
-#include "CyCity.h"
-#include "CyArgsList.h"
 #include "CvPopupReturn.h"
 #include "CvInfos.h"
-#include "CvInitCore.h"
 #include "CvGameTextMgr.h"
-#include "CvEventReporter.h"
 #include "CvMessageControl.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
 
 
 #define PASSWORD_DEFAULT (L"*****")

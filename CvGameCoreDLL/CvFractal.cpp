@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvFractal.h"
-#include "CvInitCore.h" // advc.tsl
 
 
 #define FLOAT_PRECISION		(1000)

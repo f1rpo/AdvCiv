@@ -5,11 +5,10 @@
 #include "CvGameCoreDLL.h"
 #include "CySelectionGroup.h"
 #include "CvSelectionGroup.h"
-#include "CvPlot.h"
-#include "CyPlot.h"
-#include "CvArea.h"
 #include "CyArea.h"
-#include "CyUnit.h"
+#include "CvArea.h"
+#include "CvPlot.h"
+
 
 CySelectionGroup::CySelectionGroup() : m_pSelectionGroup(NULL)
 {

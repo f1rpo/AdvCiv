@@ -4,20 +4,12 @@
 #include "CvTeamAI.h"
 #include "CvMap.h"
 #include "CvInfos.h"
-#include "CvInitCore.h"
 #include "RiseFall.h" // advc.700
-#include "CyPlot.h"
-#include "CyArgsList.h"
 #include "CvPopupInfo.h"
 #include "FAStarNode.h"
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
 #include "CvBugOptions.h"
-#include "CvEventReporter.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
 #include <fstream> // advc.003d
 
 /*  advc: This file was, reportedly, added by patch 3.17.

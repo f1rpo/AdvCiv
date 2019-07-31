@@ -4,7 +4,6 @@
 #include "CvMap.h"
 #include "CvGamePlay.h"
 #include "CvInfos.h"
-#include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...
 

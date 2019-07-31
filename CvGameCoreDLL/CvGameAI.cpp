@@ -4,8 +4,6 @@
 #include "CvGameAI.h"
 #include "CvGamePlay.h"
 #include "CvInfos.h"
-// advc.137:
-#include "CvInitCore.h"
 
 
 CvGameAI::CvGameAI()

@@ -2,9 +2,7 @@
 #include "CvDLLWidgetData.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
-#include "CyArgsList.h"
 #include "CvGameTextMgr.h"
-#include "CvEventReporter.h"
 #include "CvPopupInfo.h"
 #include "CvMessageControl.h"
 #include "CvInfos.h"
@@ -12,9 +10,7 @@
 #include "BBAI_Defines.h"
 #include "WarEvaluator.h" // advc.104l
 #include "RiseFall.h" // advc.706
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
+
 
 CvDLLWidgetData* CvDLLWidgetData::m_pInst = NULL;
 

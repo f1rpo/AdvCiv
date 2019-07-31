@@ -7,11 +7,8 @@
 #include "WarAndPeaceAgent.h" // advc.104
 #include "BBAI_Defines.h"
 #include "CvPopupInfo.h"
-#include "CvInitCore.h"
 #include "CvReplayInfo.h"
 #include "CvPlot.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
 
 using std::wstringstream;
 using std::vector;

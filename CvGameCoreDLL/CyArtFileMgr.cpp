@@ -3,8 +3,6 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CyArtFileMgr.h"
-#include "CvArtFileMgr.h"
-#include "CyGlobalContext.h"
 
 CyArtFileMgr::CyArtFileMgr() : m_pArtFileMgr(NULL)
 {

@@ -5,17 +5,9 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
-#include "CvArtFileMgr.h"
-#include "CyArgsList.h"
-#include "CvEventReporter.h"
 #include "FAStarNode.h" // BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLSymbolIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
 #include "CvDLLPlotBuilderIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
 #include "CvDLLFlagEntityIFaceBase.h"
 
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6

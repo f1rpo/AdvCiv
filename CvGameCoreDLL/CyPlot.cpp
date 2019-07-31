@@ -4,9 +4,7 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CyPlot.h"
-#include "CyCity.h"
 #include "CyArea.h"
-#include "CyUnit.h"
 #include "CvPlot.h"
 
 CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot)

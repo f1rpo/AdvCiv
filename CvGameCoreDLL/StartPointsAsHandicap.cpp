@@ -4,7 +4,6 @@
 #include "StartPointsAsHandicap.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvInitCore.h"
 #include "CvMap.h"
 #include <cmath>
 #include <sstream>

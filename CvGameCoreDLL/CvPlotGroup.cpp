@@ -4,7 +4,6 @@
 #include "CvPlotGroup.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
-#include "CvDLLFAStarIFaceBase.h"
 
 int CvPlotGroup::m_iRecalculating = 0; // advc.064d
 

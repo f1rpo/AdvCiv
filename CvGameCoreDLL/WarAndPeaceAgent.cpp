@@ -11,7 +11,6 @@
 #include "CvDiploParameters.h"
 #include "CvMap.h"
 #include "RiseFall.h" // advc.705
-#include "CvDLLInterfaceIFaceBase.h"
 #include <iterator>
 
 using std::vector;

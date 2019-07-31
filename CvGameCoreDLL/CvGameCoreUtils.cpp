@@ -4,9 +4,6 @@
 #include "CvMap.h"
 #include "FAStarNode.h"
 #include "CvInfos.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
 
 using std::vector; // advc.003
 

@@ -6,13 +6,10 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
-#include "CvArtFileMgr.h"
 #include "CvPlayerAI.h"
 #include "CvInfoWater.h"
 #include "CvGameTextMgr.h"
 #include "FVariableSystem.h"
-#include "CvInitCore.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLXMLIFaceBase.h"
 

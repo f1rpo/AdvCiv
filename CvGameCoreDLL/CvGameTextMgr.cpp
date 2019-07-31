@@ -15,20 +15,14 @@
 #include "CvGameTextMgr.h"
 #include "CvInfos.h"
 #include "CvXMLLoadUtility.h"
-#include "CvArtFileMgr.h"
 #include "CvMap.h"
 #include "RiseFall.h" // advc.700
 #include "BBAI_Defines.h"
 #include "CvBugOptions.h"
 #include "CvPopupInfo.h"
-#include "CyArgsList.h"
-// <advc.050>
-#include "CvInitCore.h"
-#include <sstream> // </advc.050>
-#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLUtilityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLSymbolIFaceBase.h"
+#include <sstream> // advc.050
 
 int shortenID(int iId)
 {

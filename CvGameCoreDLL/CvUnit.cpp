@@ -6,21 +6,11 @@
 #include "WarAndPeaceAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
 #include "CvMap.h"
-#include "CyUnit.h"
-#include "CyArgsList.h"
-#include "CyPlot.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
-#include "CvArtFileMgr.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
 #include "BBAI_Defines.h"
 #include "CvBugOptions.h" // advc.002e
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
-#include "CvEventReporter.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
 
 
 CvUnit::CvUnit()

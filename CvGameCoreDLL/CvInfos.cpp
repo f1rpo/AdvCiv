@@ -11,7 +11,6 @@
 //------------------------------------------------------------------------------------------------
 #include "CvGameCoreDLL.h"
 #include "CvInfos.h"
-#include "CvArtFileMgr.h"
 #include "CvXMLLoadUtility.h"
 #include "CvGameTextMgr.h"
 #include "CvDLLXMLIFaceBase.h"

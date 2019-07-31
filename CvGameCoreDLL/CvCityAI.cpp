@@ -5,16 +5,9 @@
 #include "CvGamePlay.h"
 #include "WarAndPeaceAgent.h" // advc.031b (for trait checks)
 #include "CvMap.h"
-#include "CyCity.h"
-#include "CyArgsList.h"
 #include "CvInfos.h"
-#include "CvStatistics.h" // advc.310
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "BBAI_Defines.h"
-
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
 
 
 #define BUILDINGFOCUS_FOOD					(1 << 1)

@@ -9,17 +9,9 @@
 #include "RiseFall.h" // advc.705
 #include "CvMap.h"
 #include "CvDiploParameters.h"
-#include "CvInitCore.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
-#include "CvEventReporter.h"
-#include "CyArgsList.h"
 #include "FAStarNode.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
 #include <iterator> // advc.036
 #include <queue> // k146
 

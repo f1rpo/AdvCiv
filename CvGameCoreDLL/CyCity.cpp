@@ -4,10 +4,7 @@
 #include "CvGameCoreDLL.h"
 #include "CyCity.h"
 #include "CvCity.h"
-#include "CyPlot.h"
 #include "CyArea.h"
-#include "CyUnit.h"
-#include "CvDLLPythonIFaceBase.h"
 
 CyCity::CyCity() : m_pCity(NULL)
 {

@@ -1,5 +1,4 @@
 #include "CvGameCoreDLL.h"
-#include "CyCity.h"
 
 // dlph.34/advc: Added in order to reduce the size of CyCityInterface1.cpp
 

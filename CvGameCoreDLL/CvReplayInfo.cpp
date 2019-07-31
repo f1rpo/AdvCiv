@@ -6,9 +6,7 @@
 #include "CvMap.h"
 #include "CvReplayMessage.h"
 #include "CvGameTextMgr.h"
-#include "CvInitCore.h"
 #include "StartPointsAsHandicap.h" // advc.250b
-#include "CvDLLInterfaceIFaceBase.h"
 
 int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
 bool CvReplayInfo::STORE_REPLAYS_AS_BTS = false; // advc.106i

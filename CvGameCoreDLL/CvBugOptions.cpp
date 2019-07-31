@@ -13,9 +13,7 @@ Created:	2009-01-21
 #include "CvGameCoreDLL.h"
 #include "CvBugOptions.h"
 #include "CvGameAI.h"
-#include "CyArgsList.h"
 #include "FVariableSystem.h"
-#include "CvDLLPythonIFaceBase.h"
 
 bool getDefineBOOL(const char* xmlKey, bool bDefault)
 {

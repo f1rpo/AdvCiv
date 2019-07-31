@@ -5,7 +5,6 @@
 #include "CvInfos.h"
 #include "CvGamePlay.h"
 #include "RiseFall.h" // advc.706
-#include "CvDLLInterfaceIFaceBase.h"
 #include <iterator>
 
 using std::set;

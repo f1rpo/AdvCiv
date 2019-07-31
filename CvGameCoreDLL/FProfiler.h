@@ -9,7 +9,6 @@
 #pragma once
 
 
-#include "CvDLLEntityIFaceBase.h"
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGlobals.h"	// for gDLL
 

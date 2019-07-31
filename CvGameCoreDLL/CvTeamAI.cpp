@@ -5,13 +5,9 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
-#include "CyArgsList.h"
 #include "BBAILog.h"
 #include "BBAI_Defines.h"
 #include "WarAndPeaceAgent.h" // advc.104
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h" // K-Mod (currently used in AI_isLandTarget)
 #include <numeric> // K-Mod. used in AI_warSpoilsValue
 
 // statics

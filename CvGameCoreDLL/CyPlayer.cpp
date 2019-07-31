@@ -4,14 +4,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "CyPlayer.h"
-#include "CyUnit.h"
-#include "CyCity.h"
 #include "CyArea.h"
-#include "CyPlot.h"
+#include "CySelectionGroup.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
-#include "CySelectionGroup.h"
-#include "CvDLLPythonIFaceBase.h"
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
 {

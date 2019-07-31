@@ -1,11 +1,9 @@
-//
 //	FILE:	 CvMap.cpp
 //	AUTHOR:  Soren Johnson
 //	PURPOSE: Game map class
 //-----------------------------------------------------------------------------
 //	Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
 //-----------------------------------------------------------------------------
-//
 
 
 #include "CvGameCoreDLL.h"
@@ -16,15 +14,8 @@
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
 #include "FAStarNode.h"
-#include "CvInitCore.h"
 #include "CvInfos.h"
-#include "CyArgsList.h"
-#include "CvDLLEngineIFaceBase.h"
 #include "CvDLLIniParserIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h" // K-Mod
 #include <stack> // advc.030
 
 

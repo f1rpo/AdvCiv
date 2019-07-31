@@ -9,7 +9,6 @@
 #include "MilitaryAnalyst.h"
 #include "CvGamePlay.h"
 #include "BBAI_Defines.h"
-#include "CvStatistics.h"
 #include "CvMap.h"
 #include "CvInfos.h"
 

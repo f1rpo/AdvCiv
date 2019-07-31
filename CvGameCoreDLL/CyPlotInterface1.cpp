@@ -1,9 +1,6 @@
 #include "CvGameCoreDLL.h"
-#include "CyPlot.h"
-#include "CyCity.h"
-#include "CyArea.h"
-#include "CyUnit.h"
 #include "CvPlot.h"
+#include "CyArea.h"
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>
 

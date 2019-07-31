@@ -2,9 +2,6 @@
 #include "CvEventReporter.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvDllPythonEvents.h"
-#include "CvInitCore.h"
-#include "CvDLLInterfaceIFaceBase.h" // advc.106l
 
 //
 // static, singleton accessor
@@ -389,6 +386,11 @@ void CvEventReporter::playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPl
 {
 	m_kPythonEventMgr.reportPlayerGoldTrade(eFromPlayer, eToPlayer, iAmount);
 }
+// <advc.make> To get rid of the K-Mod friend declaration in the header
+CvPlayerRecord const* CvEventReporter::getPlayerRecord(PlayerTypes ePlayer) const
+{
+	return m_kStatistics.getPlayerRecord(ePlayer);
+} // </advc.make>
 
 void CvEventReporter::chat(CvWString szString)
 {

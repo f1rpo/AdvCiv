@@ -3,11 +3,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
 #include "CvPlayerAI.h"
-#include "CyArgsList.h"
 #include "CvInfos.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLUtilityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h" // advc.001m
 
 
 CvInitCore::CvInitCore()

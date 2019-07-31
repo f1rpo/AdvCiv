@@ -2,10 +2,8 @@
 #include "CvMessageData.h"
 #include "CvInfos.h"
 #include "CvGamePlay.h"
-#include "CvEventReporter.h"
 #include "FDataStreamBase.h"
 #include "CvDLLUtilityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
 
 
 CvMessageData* CvMessageData::createMessage(GameMessageTypes eType)

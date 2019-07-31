@@ -5,7 +5,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
-#include "CvArtFileMgr.h"
 #include "CvGameTextMgr.h"
 #include "CvInfoWater.h"
 #include "CvGameAI.h" // advc.104x

@@ -7,15 +7,8 @@
 #include "BBAILog.h"
 #include "FAStarNode.h"
 #include "CvInfos.h"
-#include "CvEventReporter.h"
-#include "CyPlot.h"
 #include "CySelectionGroup.h"
-#include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h" // advc.102
-#include "CvDLLFAStarIFaceBase.h"
+
 
 KmodPathFinder CvSelectionGroup::path_finder; // K-Mod
 

@@ -7,13 +7,9 @@
 #include "CvGameAI.h"
 #include "StartPointsAsHandicap.h" // advc.250b
 #include "RiseFall.h" // advc.703
-#include "CyGlobalContext.h"
 #include "CyPlayer.h"
-#include "CyCity.h"
 #include "CyDeal.h"
 #include "CyReplayInfo.h"
-#include "CvDLLEngineIFaceBase.h" // BULL - AutoSave
-#include "CyPlot.h"
 
 CyGame::CyGame() : m_pGame(NULL)
 {

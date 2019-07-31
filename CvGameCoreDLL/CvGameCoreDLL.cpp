@@ -1,11 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreDLLUndefNew.h"
 #include <new>
-#include "CvDLLInterfaceIFaceBase.h"
-#ifdef USE_INTERNAL_PROFILER
-#include "CvDLLPythonIFaceBase.h"
-#endif
-
 #include <psapi.h>
 /*  advc.mak: This fixes a linker error related to psapi. One can probably also
 	amend this through Visual Studio settings. I copied the line from here:

@@ -4,10 +4,6 @@
 #include "CvMap.h"
 #include "CvFractal.h"
 #include "CvInfos.h"
-#include "CyPlot.h"
-#include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
-
 
 // static
 CvMapGenerator* CvMapGenerator::m_pInst = NULL;

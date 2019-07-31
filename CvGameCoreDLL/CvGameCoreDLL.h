@@ -240,9 +240,9 @@ namespace python = boost::python;
 #include "FFreeListArray.h"
 //#include "FVariableSystem.h"
 #include "CvString.h"
-#include "CvEnums.h"
+#include "CvEnums.h" // includes CvDefines.h
 #include "CvStructs.h"
-#include "CvDLLUtilityIFaceBase.h"
+#include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 
 //jason tests
 // advc.make: Removed most of these. (Don't know what the comment above means.)
@@ -250,6 +250,21 @@ namespace python = boost::python;
 #include "CvGlobals.h"
 #include "FProfiler.h"
 #include "CvRandom.h"
+/*  advc.make: These I had removed (not _that_ frequently included),
+	but decided to add them back. */
+#include "CyGlobalContext.h" // includes CvArtFileMgr.h
+#include "CyCity.h"
+#include "CvDLLPythonIFaceBase.h"
+#include "CvDLLEntityIFaceBase.h"
+// advc.make: New additions
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLFAStarIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h"
+#include "CvInitCore.h"
+#include "CvEventReporter.h" // includes CvStatistics.h and CvDllPythonEvents.h
+#include "CyArgsList.h"
+#include "CyPlot.h"
+#include "CyUnit.h"
 
 #ifdef FINAL_RELEASE
 // Undefine OutputDebugString in final release builds

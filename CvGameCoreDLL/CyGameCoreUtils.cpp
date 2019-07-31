@@ -1,9 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CyGameCoreUtils.h"
 #include "CvGameCoreUtils.h"
-#include "CyPlot.h"
-#include "CyCity.h"
-#include "CyUnit.h"
 /*  advc.make (would be nicer to move the respective functions to the
 	Python interface of CvMap) */
 #include "CvMap.h"

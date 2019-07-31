@@ -1,7 +1,4 @@
 #include "CvGameCoreDLL.h"
-#include "CyUnit.h"
-#include "CyCity.h"
-#include "CyPlot.h"
 #include "CyArea.h"
 #include "CySelectionGroup.h"
 #include "CyArtFileMgr.h"

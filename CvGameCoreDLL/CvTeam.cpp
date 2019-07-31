@@ -5,19 +5,12 @@
 #include "CvGamePlay.h"
 #include "WarAndPeaceAgent.h" // advc.104t
 #include "CvMap.h"
-#include "CvEventReporter.h"
-#include "CvArtFileMgr.h"
 #include "CvDiploParameters.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
-#include "CyArgsList.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "BBAI_Defines.h"
-#include "CvInitCore.h" // advc.003m
 #include "CvBugOptions.h" // advc.071
-#include "CvDLLPythonIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...
 

@@ -5,7 +5,6 @@
 
 #include "CvStatistics.h"
 #include "CvDllPythonEvents.h"
-#include "CvPlayer.h" // advc.make: for K-Mod's friend declaration
 
 //
 // A singleton class which is used to track game events.
@@ -23,7 +22,9 @@ class CvSelectionGroup;
 class CvEventReporter
 {
 	friend class CyStatistics;
-	friend const CvPlayerRecord* CvPlayer::getPlayerRecord() const; // K-Mod. Allow direct read-only access to player stats
+	/*  advc.make: Want to precompile this header, so CvPlayer.h can't be included.
+		I've instead added a public CvEventReporter::getPlayerRecord function. */
+	//friend const CvPlayerRecord* CvPlayer::getPlayerRecord() const; // K-Mod. Allow direct read-only access to player stats
 public:
 	CvEventReporter(); // advc.106l: Should perhaps be private, but that might break sth. in the EXE.
 	DllExport static CvEventReporter& getInstance();		// singleton accessor
@@ -117,6 +118,7 @@ public:
 	void setPlayerAlive(PlayerTypes ePlayerID, bool bNewValue);
 	void playerChangeStateReligion(PlayerTypes ePlayerID, ReligionTypes eNewReligion, ReligionTypes eOldReligion);
 	void playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, int iAmount);
+	CvPlayerRecord const* getPlayerRecord(PlayerTypes ePlayer) const; // advc.make
 
 	DllExport void chat(CvWString szString);
 

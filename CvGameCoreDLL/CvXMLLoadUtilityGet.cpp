@@ -5,7 +5,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
-#include "CvArtFileMgr.h"
 #include "FInputDevice.h"
 
 //

@@ -4,27 +4,17 @@
 #include "CvGame.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
-#include "CvInitCore.h"
 #include "CvMapGenerator.h"
-#include "CvArtFileMgr.h"
 #include "CvDiploParameters.h"
 #include "CvReplayMessage.h"
-#include "CyArgsList.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "CvReplayInfo.h"
 #include "CvGameTextMgr.h"
-#include "CvEventReporter.h"
 #include "CvMessageControl.h"
 #include "StartPointsAsHandicap.h" // advc.250b
 #include "RiseFall.h" // advc.700
 #include "CvHallOfFameInfo.h" // advc.106i
-
-// interface uses
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
-
 #include "BBAILog.h" // BBAI
 #include "CvBugOptions.h" // K-Mod
 

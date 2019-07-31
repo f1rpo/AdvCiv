@@ -5,7 +5,6 @@
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
-#include "CvDLLEntityIFaceBase.h"
 
 
 CvSelectionGroupAI::CvSelectionGroupAI()

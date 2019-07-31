@@ -5,26 +5,14 @@
 #include "CvGamePlay.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
-#include "CvArtFileMgr.h"
 #include "CvDiploParameters.h"
-#include "CvInitCore.h"
-#include "CyArgsList.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "CvDiploParameters.h"
 #include "CvGameTextMgr.h"
 #include "RiseFall.h" // advc.700
 #include "AdvCiv4lerts.h" // advc.210
-#include "CyCity.h"
-#include "CyPlot.h"
-#include "CyUnit.h"
-#include "CvEventReporter.h"
 #include "CvBugOptions.h" // advc.106b
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvDLLPythonIFaceBase.h"
 //bbai
 #include "CvDLLFlagEntityIFaceBase.h"
 #include "BBAILog.h"
@@ -14010,7 +13998,9 @@ void CvPlayer::updateEspionageHistory(int iTurn, int iBestEspionage)
 // (This saves us from having to use the built-in CyStatistics class)
 const CvPlayerRecord* CvPlayer::getPlayerRecord() const
 {
-	return CvEventReporter::getInstance().m_kStatistics.getPlayerRecord(getID());
+	return CvEventReporter::getInstance().
+			// advc.make: CvEventReporter::getPlayerRecord added
+			/*m_kStatistics.*/getPlayerRecord(getID());
 }
 // K-Mod end
 
