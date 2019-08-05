@@ -58,6 +58,7 @@ public:
 
 	CLLNode<tVARTYPE>* next(CLLNode<tVARTYPE>* pNode) const;
 	CLLNode<tVARTYPE>* prev(CLLNode<tVARTYPE>* pNode) const;
+	static CLLNode<tVARTYPE>* static_next(CLLNode<tVARTYPE>* pNode); // advc.003
 
 	CLLNode<tVARTYPE>* nodeNum(int iNum) const;
 
@@ -361,8 +362,7 @@ inline void CLinkList<tVARTYPE>::moveToEnd(CLLNode<tVARTYPE>* pNode)
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::next(CLLNode<tVARTYPE>* pNode) const
 {
-  assert(pNode != NULL);
-
+  //assert(pNode != NULL); // advc.003b: I suspect that this slows assert builds down more than it's worth
   return pNode->m_pNext;
 }
 
@@ -375,6 +375,15 @@ inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::prev(CLLNode<tVARTYPE>* pNode) co
 	return pNode->m_pPrev;
 }
 
+/*  <advc.003> Since the next node doesn't depend on the list at all, let's allow
+	traversal without a list object. */
+template <class tVARTYPE>
+inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::static_next(CLLNode<tVARTYPE>* pNode)
+{
+	//assert(pNode != NULL);
+	return pNode->m_pNext;
+}
+// </advc.003>
 
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::nodeNum(int iNum) const

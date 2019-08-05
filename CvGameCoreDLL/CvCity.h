@@ -12,7 +12,7 @@ class CvPlotGroup;
 class CvArea;
 class CvGenericBuilding;
 class CvArtInfoBuilding;
-class CvCityAI; // advc.003: Needed for AI(void) functions
+class CvCityAI; // advc.003u
 
 class CvCity : public CvDLLEntity
 {
@@ -41,7 +41,7 @@ public:
 	void updateYield();
 	void updateVisibility();
 
-	void createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience);		// Exposed to Python
+	void createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience) const;		// Exposed to Python
 	void doTask(TaskTypes eTask, int iData1 = -1, int iData2 = -1, bool bOption = false, bool bAlt = false, bool bShift = false, bool bCtrl = false);		// Exposed to Python
 	void chooseProduction(UnitTypes eTrainUnit = NO_UNIT, BuildingTypes eConstructBuilding = NO_BUILDING, ProjectTypes eCreateProject = NO_PROJECT, bool bFinish = false, bool bFront = false);		// Exposed to Python
 
@@ -278,7 +278,7 @@ public:
 	bool at(CvPlot* pPlot) const;																					// Exposed to Python - atPlot
 	DllExport CvPlot* plot() const;																	// Exposed to Python
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
-	bool isConnectedTo(CvCity* pCity) const;															// Exposed to Python
+	bool isConnectedTo(CvCity const* pCity) const;															// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;				// Exposed to Python
 	int getArea() const;							// advc.003: Exposed to Python
 	CvArea* area() const;																						// Exposed to Python
@@ -697,11 +697,11 @@ public:
 	void changeBonusYieldRateModifier(YieldTypes eIndex, int iChange);
 
 	int getTradeYield(YieldTypes eIndex) const;										// Exposed to Python
-	int totalTradeModifier(CvCity* pOtherCity = NULL) const;						// Exposed to Python
+	int totalTradeModifier(CvCity const* pOtherCity = NULL) const;						// Exposed to Python
 	int getPopulationTradeModifier() const;
 	int getPeaceTradeModifier(TeamTypes eTeam) const;
-	int getBaseTradeProfit(CvCity* pCity) const;
-	int calculateTradeProfit(CvCity* pCity) const;									// Exposed to Python
+	int getBaseTradeProfit(CvCity const* pCity) const;
+	int calculateTradeProfit(CvCity const* pCity) const;									// Exposed to Python
 	int calculateTradeYield(YieldTypes eIndex, int iTradeProfit) const;				// Exposed to Python
 	// BULL - Trade Hover - start
 	void calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& iDomesticRoutes,
@@ -1006,7 +1006,7 @@ public:
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
-	// <advc.003>
+	// <advc.003u>
 	inline CvCityAI& AI() {
 		//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -1016,7 +1016,7 @@ public:
 	inline CvCityAI const& AI() const {
 		//return *static_cast<CvCityAI const*>(this);
 		return *reinterpret_cast<CvCityAI const*>(this);
-	} // </advc.003>
+	} // </advc.003u>
 	virtual void AI_init() = 0;
 	virtual void AI_reset() = 0;
 	virtual void AI_doTurn() = 0;
@@ -1027,33 +1027,32 @@ public:
 	virtual int AI_specialistValue(SpecialistTypes eSpecialist, bool bRemove, bool bIgnoreFood, int iGrowthValue) const = 0; // K-Mod
 	virtual int AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const = 0; // K-Mod
 	virtual void AI_chooseProduction() = 0;
-	virtual UnitTypes AI_bestUnit(bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, UnitAITypes* peBestUnitAI = NULL) = 0;
-	virtual UnitTypes AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) = 0;
-	virtual BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) = 0;
-	//virtual int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const = 0;
-	// K-Mod:
+	virtual UnitTypes AI_bestUnit(bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, UnitAITypes* peBestUnitAI = NULL) const = 0;
+	virtual UnitTypes AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const = 0;
+	virtual BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const = 0;
 	virtual int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0,
+			// K-Mod:
 			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
 			bool bIgnoreSpecialists = false) const = 0; // advc.121b
 	virtual int AI_projectValue(ProjectTypes eProject) = 0;
-	virtual int AI_neededSeaWorkers() = 0;
-	virtual bool AI_isDefended(int iExtra = 0) = 0;
+	virtual int AI_neededSeaWorkers() const = 0;
+	virtual bool AI_isDefended(int iExtra = 0) const = 0;
 	//virtual bool AI_isAirDefended(int iExtra = 0) = 0;
 	// BETTER_BTS_AI_MOD, Air AI, 9/19/08, jdog5000:
 	virtual bool AI_isAirDefended(bool bCountLand = 0, int iExtra = 0) = 0;
 
-	virtual bool AI_isDanger() = 0;
+	virtual bool AI_isDanger() const = 0;
 
 	virtual int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			bool bConstCache = false) = 0; // advc.001n
+			bool bConstCache = false) const = 0; // advc.001n
 	virtual int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			bool bConstCache = false) = 0; // advc.001n
+			bool bConstCache = false) const = 0; // advc.001n
 	// <advc.139> Frequently used, so I don't want to have to downcast all the time.
 	virtual bool AI_isEvacuating() const = 0;
 	virtual bool AI_isSafe() const = 0;
 	// </advc.139>
-	virtual int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) = 0;
-	virtual int AI_minDefenders() = 0;
+	virtual int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) const = 0;
+	virtual int AI_minDefenders() const = 0;
 	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;
 	virtual bool AI_isAssignWorkDirty() const = 0;
 	virtual CvCity* AI_getRouteToCity() const = 0;
@@ -1062,7 +1061,7 @@ public:
 	virtual void AI_setChooseProductionDirty(bool bNewValue) = 0;
 	virtual bool AI_isEmphasize(EmphasizeTypes eIndex) const = 0;											// Exposed to Python
 	virtual void AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue) = 0;
-	virtual int AI_getBestBuildValue(int iIndex) = 0;
+	virtual int AI_getBestBuildValue(int iIndex) const = 0;
 	// K-Mod
 	virtual int AI_getTargetPopulation() const = 0;
 	virtual int AI_countGoodPlots() const = 0;
@@ -1071,7 +1070,7 @@ public:
 	virtual int AI_getImprovementValue(CvPlot /* advc.003: */ const& kPlot,
 			ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const = 0;
 	// K-Mod end
-	virtual int AI_totalBestBuildValue(CvArea* pArea) = 0;
+	virtual int AI_totalBestBuildValue(CvArea* pArea) const = 0;
 	virtual int AI_countBestBuilds(CvArea* pArea) const = 0;													// Exposed to Python
 	virtual BuildTypes AI_getBestBuild(int iIndex) const = 0;
 	virtual void AI_updateBestBuild() = 0;
@@ -1080,16 +1079,16 @@ public:
 
 	//virtual int AI_calculateCulturePressure(bool bGreatWork = false) const = 0; // disabled by K-Mod
 	virtual int AI_calculateWaterWorldPercent() = 0;
-	virtual int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) = 0;
+	virtual int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const = 0;
 	virtual int AI_yieldMultiplier(YieldTypes eYield) const = 0;
 	virtual int AI_getCultureWeight() const = 0; // K-Mod
 	virtual void AI_setCultureWeight(int iWeight) = 0; // K-Mod
 	virtual int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
-			bool bConstCache = false) = 0; // advc.001n
+			bool bConstCache = false) const = 0; // advc.001n
 	virtual int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
-			bool bConstCache = false) = 0; // advc.001n
-	virtual int AI_cityThreat(bool bDangerPercent = false) = 0;
-	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) = 0;
+			bool bConstCache = false) const = 0; // advc.001n
+	virtual int AI_cityThreat(bool bDangerPercent = false) const = 0;
+	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) const = 0;
 	// advc.003: 2x const. I very much doubt that the EXE calls these.
 	virtual int AI_getWorkersHave() const = 0;
 	virtual int AI_getWorkersNeeded() const = 0;

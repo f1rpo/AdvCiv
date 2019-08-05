@@ -1,0 +1,22 @@
+// advc.003s: At least in Visual Studio 2010, the FOR_EACH macros (defined in the Cv*List.h files) aren't parsed properly by the code editor unless this hint file is present. Placing the hint file in the project directory is, unfortunately, not working for me. Even with the hint file, statement completion (Ctrl+Space) ignores the variables declared through the first macro argument (but not the "anonymous" loop counter variables that the macros declare internally).
+
+#define FOR_EACH_DEAL(pDeal)
+#define FOR_EACH_DEAL_VAR(pDeal)
+
+#define FOR_EACH_AREA(pArea)
+#define FOR_EACH_AREA_VAR(pArea)
+
+#define FOR_EACH_CITY(pCity, kOwner)
+#define FOR_EACH_CITYAI(pCity, kOwner)
+#define FOR_EACH_CITY_VAR(pCity, kOwner)
+#define FOR_EACH_CITYAI_VAR(pCity, kOwner)
+
+#define FOR_EACH_UNIT(pCity, kOwner)
+#define FOR_EACH_UNITAI(pCity, kOwner)
+#define FOR_EACH_UNIT_VAR(pCity, kOwner)
+#define FOR_EACH_UNITAI_VAR(pCity, kOwner)
+
+#define FOR_EACH_GROUP(pCity, kOwner)
+#define FOR_EACH_GROUPAI(pCity, kOwner)
+#define FOR_EACH_GROUP_VAR(pCity, kOwner)
+#define FOR_EACH_GROUPAI_VAR(pCity, kOwner)

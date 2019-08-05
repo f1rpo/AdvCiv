@@ -4,6 +4,10 @@
 #define CIV4_PLAYER_AI_H
 
 #include "CvPlayer.h"
+// <advc.003u>
+#include "CvCityList.h"
+#include "CvUnitList.h"
+#include "CvSelectionGroupList.h" // </advc.003u>
 #include "WarAndPeaceAI.h" // advc.104
 
 class CvDeal;
@@ -35,7 +39,41 @@ public:
 	void AI_init();
 	void AI_uninit();
 	void AI_reset(bool bConstructor);
-
+	// <advc.003u> Access to AI-type members. Code mostly duplicated from CvPlayer.
+	inline CvCityAI* AI_firstCity(int *pIterIdx) const {
+		return m_cities->beginIter(pIterIdx);
+	}
+	inline CvCityAI* AI_nextCity(int *pIterIdx) const {
+		return m_cities->nextIter(pIterIdx);
+	}
+	inline CvCityAI* AI_getCity(int iID) const {
+		return m_cities->getAt(iID);
+	}
+	inline CvCityAI* AI_addCity() {
+		return m_cities->add();
+	}
+	inline CvUnitAI* AI_firstUnit(int *pIterIdx) const {
+		return m_units->beginIter(pIterIdx);
+	}
+	inline CvUnitAI* AI_nextUnit(int *pIterIdx) const {
+		return m_units->nextIter(pIterIdx);
+	}
+	inline CvUnitAI* AI_getUnit(int iID) const {
+		return m_units->getAt(iID);
+	}
+	inline CvUnitAI* AI_addUnit() {
+		return m_units->add();
+	}
+	inline CvSelectionGroupAI* AI_firstSelectionGroup(int *pIterIdx) const {
+		return m_selectionGroups->beginIter(pIterIdx);
+	}
+	inline CvSelectionGroupAI* AI_nextSelectionGroup(int *pIterIdx) const {
+		return m_selectionGroups->nextIter(pIterIdx);
+	}
+	inline CvSelectionGroupAI* AI_getSelectionGroup(int iID) const {
+		return m_selectionGroups->getAt(iID);
+	}
+	// </advc.003u>
 	int AI_getFlavorValue(FlavorTypes eFlavor) const;
 
 	void updateCacheData(); // K-Mod
@@ -105,7 +143,7 @@ public:
 
 	int AI_militaryWeight(CvArea* pArea) const;
 
-	int AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
+	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCity* AI_findTargetCity(CvArea* pArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
 
@@ -237,7 +275,7 @@ public:
 			const CLinkList<TradeData>* pOurList,
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const {
-		/*  advc.705: This pure virtual function gets called from the EXE.
+		/*  advc.705: This virtual function gets called from the EXE.
 			See the protected section for my replacement. */
 		return AI_counterPropose(ePlayer, pTheirList, pOurList, pTheirInventory,
 				pOurInventory, pTheirCounter, pOurCounter, 1);
@@ -270,7 +308,7 @@ public:
 	// advc.036:
 	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const;
 
-	int AI_cityTradeVal(CvCity* pCity) const;
+	int AI_cityTradeVal(CvCity const* pCity) const;
 	DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const;
 
 	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
@@ -295,8 +333,10 @@ public:
 	int AI_neededExplorers(CvArea* pArea) const;
 	void AI_updateNeededExplorers(); // advc.003b
 
-	// advc.042: Moved from CvPlayer and int param added
+	// <advc.042> Moved from CvPlayer and iLookAhead param added
 	int AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
+	int AI_countOwnedBonuses(BonusTypes eBonus) const;																											// Exposed to Python
+	// </advc.042>
 	int AI_neededWorkers(CvArea* pArea) const;
 	int AI_neededMissionaries(CvArea* pArea, ReligionTypes eReligion) const;
 	int AI_neededExecutives(CvArea* pArea, CorporationTypes eCorporation) const;
@@ -319,8 +359,8 @@ public:
 	int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
 	int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
 	int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes* aeMissionAI, int iMissionAICount, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
-	int AI_unitTargetMissionAIs(CvUnit* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_unitTargetMissionAIs(CvUnit* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
+	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
+	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	int AI_enemyTargetMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	int AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	int AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
@@ -328,11 +368,11 @@ public:
 	int AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 0, bool bAtTarget = true, bool bCheckMoves = false, bool bNoCache = false) const;
 	int AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 2, bool bUseTarget = true, bool bCheckMoves = false, bool bCheckCanAttack = false,
 			int* piAttackerCount = NULL) const; // advc.139
-	int AI_cityTargetStrengthByPath(CvCity* pCity, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
+	int AI_cityTargetStrengthByPath(CvCity const* pCity, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
 	// K-Mod end
 	// BBAI start
 	int AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_unitTargetMissionAIs(CvUnit* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
+	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
 	// BBAI end
 
 	CivicTypes AI_bestCivic(CivicOptionTypes eCivicOption, int* iBestValue = 0) const;
@@ -517,12 +557,12 @@ public:
 	CvPlot* AI_getCitySite(int iIndex) const;
 	// advc.117, advc.121:
 	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
-
+	bool AI_isAwfulSite(CvCity const& kCity) const; // advc.122
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
 	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true, bool bCheckForeignTradePolicy = true, CvArea* pIgnoreArea = 0) const; // K-Mod
 
 	int AI_bestAreaUnitAIValue(UnitAITypes eUnitAI, CvArea* pArea, UnitTypes* peBestUnitType = NULL) const;
-	int AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity* pCity, UnitTypes* peBestUnitType = NULL) const;
+	int AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity, UnitTypes* peBestUnitType = NULL) const;
 
 	int AI_calculateTotalBombard(DomainTypes eDomain) const;
 
@@ -708,7 +748,7 @@ protected:
 			bool bCheckPartnerAttacked = false) const;
 	// <advc.104h>
 	int AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver, int iDelta,
-			int* iGold, TechTypes* eBestTech, CvCity** pBestCity); // </advc.104h>
+			int* iGold, TechTypes* eBestTech, CvCity const** pBestCity); // </advc.104h>
 	// <advc.705> Replacement for the virtual function AI_counterPropose
 	bool AI_counterPropose(PlayerTypes ePlayer,
 			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
@@ -731,7 +771,7 @@ protected:
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,
 			bool* bEnough = NULL) const;
 	enum CancelCode { NO_CANCEL = -1, RENEGOTIATE, DO_CANCEL };
-	CancelCode AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
+	CancelCode AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer);
 	bool AI_doDeals(PlayerTypes eOther);
 	// </advc.003>
 	bool AI_proposeResourceTrade(PlayerTypes eTo); // advc.133

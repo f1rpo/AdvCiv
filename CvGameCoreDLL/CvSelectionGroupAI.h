@@ -30,6 +30,7 @@ public:
 	bool AI_update();
 
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const;
+	// advc.003u (comment): These three should return CvUnitAI* - but will have to make them non-virtual first.
 	CvUnit* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds, bool bForce = false, bool bNoBlitz = false) const {
 		// <advc.048> Pure virtual in CvSelectionGroup, so preserve the signature to be on the safe side.
 		return AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iUnitOdds, bForce, bNoBlitz,
@@ -50,19 +51,21 @@ public:
 	inline bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
 
 	bool AI_isControlled();
-	bool AI_isDeclareWar(const CvPlot* pPlot = NULL);
+	bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const;
 
-	CvPlot* AI_getMissionAIPlot();
+	CvPlot* AI_getMissionAIPlot() const;
 
 	bool AI_isForceSeparate();
 	//void AI_makeForceSeparate();
 	inline void AI_setForceSeparate(bool bNewValue = true) { m_bForceSeparate = bNewValue; } // K-Mod
 
 	MissionAITypes AI_getMissionAIType() const;
-	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot, CvUnit* pNewUnit);
+	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
+			CvUnit const* pNewUnit);
+	// advc.003u (comment): These two should return CvUnitAI* - but will have to make them non-virtual first.
 	CvUnit* AI_ejectBestDefender(CvPlot* pTargetPlot);
-
-	CvUnit* AI_getMissionAIUnit();
+	CvUnit* AI_getMissionAIUnit() const;
+	CvUnitAI* AI_getHeadUnit() const; // advc.003u: Counterpart to CvSelectionGroup::getHeadUnit
 
 	bool AI_isFull();
 

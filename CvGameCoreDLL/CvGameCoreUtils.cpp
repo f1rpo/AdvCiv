@@ -172,13 +172,12 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
 		return;
 	// Sufficient to check plots around the teams' cities
-	vector<CvCity*> apCities;
+	vector<CvCity const*> apCities;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
 		if(!kMember.isAlive() || (kMember.getTeam() != t1 && kMember.getTeam() != t2))
 			continue;
-		int foo;
-		for(CvCity* c = kMember.firstCity(&foo); c != NULL; c = kMember.nextCity(&foo))
+		FOR_EACH_CITY(c, kMember)
 			apCities.push_back(c);
 	}
 	std::set<int> seenPlots; // To avoid duplicates
@@ -371,21 +370,31 @@ bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
 					canDeclareWar(eTheirTeam))); // UNOFFICIAL_PATCH: END
 }
 
-CvCity* getCity(IDInfo city)
+CvCityAI* AI_getCity(IDInfo city) // advc.003u: Return CvCityAI*
 {
 	if (city.eOwner >= 0 && city.eOwner < MAX_PLAYERS)
-		return (GET_PLAYER((PlayerTypes)city.eOwner).getCity(city.iID));
+		return (GET_PLAYER((PlayerTypes)city.eOwner).AI_getCity(city.iID));
 
 	return NULL;
+}
+
+CvUnitAI* AI_getUnit(IDInfo unit) // advc.003u: Return CvUnitAI*
+{
+	if (unit.eOwner >= 0 && unit.eOwner < MAX_PLAYERS)
+		return (GET_PLAYER((PlayerTypes)unit.eOwner).AI_getUnit(unit.iID));
+
+	return NULL;
+}
+// <advc.003u>
+CvCity* getCity(IDInfo city)
+{
+	return AI_getCity(city);
 }
 
 CvUnit* getUnit(IDInfo unit)
 {
-	if (unit.eOwner >= 0 && unit.eOwner < MAX_PLAYERS)
-		return (GET_PLAYER((PlayerTypes)unit.eOwner).getUnit(unit.iID));
-
-	return NULL;
-}
+	return AI_getUnit(unit);
+} // </advc.003u>
 
 bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
 {
@@ -1594,7 +1603,7 @@ bool PUF_isUnitAIType(const CvUnit* pUnit, int iData1, int iData2)
 
 bool PUF_isCityAIType(const CvUnit* pUnit, int iData1, int iData2)
 {
-	return pUnit->AI_isCityAIType();
+	return pUnit->AI().AI_isCityAIType();
 }
 
 bool PUF_isNotCityAIType(const CvUnit* pUnit, int iData1, int iData2)
@@ -1850,7 +1859,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	if (!pToPlot->isRevealed(eTeam, false))
 	{
 		if (pSelectionGroup->getAutomateType() == AUTOMATE_EXPLORE ||
-			(!pSelectionGroup->isHuman() && (pSelectionGroup->getHeadUnitAI() == UNITAI_EXPLORE || pSelectionGroup->getHeadUnitAI() == UNITAI_EXPLORE_SEA)))
+			(!pSelectionGroup->isHuman() && (pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE || pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE_SEA)))
 		{
 			iExploreModifier = 2; // lower cost to encourage exploring unrevealed areas
 		}

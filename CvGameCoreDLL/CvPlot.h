@@ -110,7 +110,7 @@ public:
 	int seeFromLevel(TeamTypes eTeam) const;																										// Exposed to Python
 	int seeThroughLevel() const;																																// Exposed to Python
 	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
-			CvUnit* pUnit, bool bUpdatePlotGroups);
+			CvUnit const* pUnit, bool bUpdatePlotGroups);
 	bool canSeePlot(CvPlot *plot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection) const;
 	bool canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,
 			int originalDX, int originalDY, bool firstPlot, bool outerRing) const;
@@ -374,16 +374,29 @@ public:
 	void setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroup);																															// Exposed to Python
 	void updateCityRoute(bool bUpdatePlotGroup);
 
-	DllExport CvCity* getPlotCity() const;																																					// Exposed to Python
+	DllExport CvCity* getPlotCity() const;																														// Exposed to Python
+	// <advc.003u>
+	inline CvCityAI* AI_getPlotCity() const
+	{
+		return ::AI_getCity(m_plotCity);
+	} // </advc.003u>
 	void setPlotCity(CvCity* pNewValue);
 	void setRuinsName(const CvWString& szName); // advc.005c
 	const wchar* getRuinsName() const; // advc.005c
 
 	CvCity* getWorkingCity() const;																																				// Exposed to Python
 	void updateWorkingCity();
-
 	CvCity* getWorkingCityOverride() const;																															// Exposed to Python
-	void setWorkingCityOverride( const CvCity* pNewValue);
+	void setWorkingCityOverride(const CvCity* pNewValue);
+	// <advc.003u>
+	CvCityAI* AI_getWorkingCity() const
+	{
+		return ::AI_getCity(m_workingCity);
+	}
+	CvCityAI* AI_getWorkingCityOverrideAI() const
+	{
+		return ::AI_getCity(m_workingCityOverride);
+	} // </advc.003u>
 
 	int getRiverID() const;																																							// Exposed to Python
 	void setRiverID(int iNewValue);																																			// Exposed to Python
@@ -449,7 +462,7 @@ public:
 	int getVisibilityCount(TeamTypes eTeam) const;																											// Exposed to Python
 	void changeVisibilityCount(TeamTypes eTeam, int iChange,												// Exposed to Python
 			InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,
-			CvUnit* pUnit = NULL); // advc.071
+			CvUnit const* pUnit = NULL); // advc.071
 
 	int getStolenVisibilityCount(TeamTypes eTeam) const;																								// Exposed to Python
 	void changeStolenVisibilityCount(TeamTypes eTeam, int iChange);

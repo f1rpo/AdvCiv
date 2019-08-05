@@ -879,14 +879,12 @@ void CvNetDoCommand::Execute()
 		{
 			if (m_bAlt && GC.getCommandInfo(m_eCommand).getAll())
 			{
-				int iLoop;
-				/* orginal bts code
-				for (CvUnit* pLoopUnit = GET_PLAYER(m_ePlayer).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(m_ePlayer).nextUnit(&iLoop)) {
+				/*FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(m_ePlayer)) // BtS
 					if (pLoopUnit->getUnitType() == pUnit->getUnitType())*/
 				/*  UNOFFICIAL_PATCH, Bugfix, 07/08/09, jdog5000: START
 					Have to save type ahead of time, pointer can change */
 				UnitTypes eUpgradeType = pUnit->getUnitType();
-				for (CvUnit* pLoopUnit = GET_PLAYER(m_ePlayer).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(m_ePlayer).nextUnit(&iLoop))
+				FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(m_ePlayer))
 				{
 					if (pLoopUnit->getUnitType() == eUpgradeType)
 					// UNOFFICIAL_PATCH: END

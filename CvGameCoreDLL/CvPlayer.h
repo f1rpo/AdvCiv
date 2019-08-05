@@ -5,9 +5,6 @@
 #ifndef CIV4_PLAYER_H
 #define CIV4_PLAYER_H
 
-#include "CvCityAI.h"
-#include "CvUnitAI.h"
-#include "CvSelectionGroupAI.h"
 #include "CvPlotGroup.h"
 #include "CvTalkingHeadMessage.h"
 
@@ -16,7 +13,12 @@ class CvPopupInfo;
 class CvEventTriggerInfo;
 class CvPlayerRecord; // K-Mod
 class AdvCiv4lert; // advc.210
-class CvPlayerAI; // advc.003: Needed for AI(void) functions
+class CvArea;
+// <advc.003u>
+class CvPlayerAI;
+class CvCityList;
+class CvUnitList;
+class CvSelectionGroupList; // </advc.003u>
 
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
@@ -26,25 +28,6 @@ typedef stdext::hash_map<EventTypes, EventTriggeredData> CvEventMap;
 typedef std::vector< std::pair<UnitCombatTypes, PromotionTypes> > UnitCombatPromotionArray;
 typedef std::vector< std::pair<UnitClassTypes, PromotionTypes> > UnitClassPromotionArray;
 typedef std::vector< std::pair<CivilizationTypes, LeaderHeadTypes> > CivLeaderArray;
-
-/*  <advc.003s> FOR_EACH macros. So far only used in CvGame.cpp as a proof of concept.
-	Tbd.: Use these everywhere and add macros to replace CvGame::firstDeal/nextDeal and
-	CvMap::firstArea/nextArea. Will have to move the LOOPCOUNTERNAME stuff to a new header file then. */
-#define CONCATVARNAME_IMPL(prefix, lineNum) prefix##lineNum
-// This second layer of indirection is necessary
-#define CONCATVARNAME(prefix, lineNum) CONCATVARNAME_IMPL(prefix, lineNum)
-// ('iLoopCounter_##__LINE__' won't work)
-#define LOOPCOUNTERNAME CONCATVARNAME(iLoopCounter_, __LINE__)
-#define FOR_EACH_CITY(pCity, kOwner) \
-	int LOOPCOUNTERNAME; \
-	for(CvCity* pCity = (kOwner).firstCity(&LOOPCOUNTERNAME); pCity != NULL; pCity = (kOwner).nextCity(&LOOPCOUNTERNAME))
-#define FOR_EACH_UNIT(pUnit, kOwner) \
-	int LOOPCOUNTERNAME; \
-	for(CvUnit* pUnit = (kOwner).firstUnit(&LOOPCOUNTERNAME); pUnit != NULL; pUnit = (kOwner).nextUnit(&LOOPCOUNTERNAME))
-#define FOR_EACH_GROUP(pGroup, kOwner) \
-	int LOOPCOUNTERNAME; \
-	for(CvSelectionGroup* pGroup = (kOwner).firstSelectionGroup(&LOOPCOUNTERNAME); pGroup != NULL; pGroup = (kOwner).nextSelectionGroup(&LOOPCOUNTERNAME))
-// </advc.003s>
 
 class CvPlayer
 		: private boost::noncopyable // advc.003e
@@ -81,7 +64,9 @@ public:
 	void getCivilizationCityName(CvWString& szBuffer, CivilizationTypes eCivilization) const;
 	bool isCityNameValid(CvWString& szName, bool bTestDestroyed = true) const;
 
-	CvUnit* initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI = NO_UNITAI, DirectionTypes eFacingDirection = NO_DIRECTION);							// Exposed to Python
+	CvUnit* initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI = NO_UNITAI,								// Exposed to Python
+			// advc.003u: Set this default here rather than in CvUnit::init
+			DirectionTypes eFacingDirection = DIRECTION_SOUTH);
 	void disbandUnit(bool bAnnounce);																																					// Exposed to Python
 	void killUnits();																																													// Exposed to Python
 
@@ -193,8 +178,8 @@ public:
 	int countNumCoastalCities() const;																																		// Exposed to Python
 	int countNumCoastalCitiesByArea(CvArea* pArea) const;																									// Exposed to Python
 	int countTotalCulture() const;																																				// Exposed to Python
-	int countOwnedBonuses(BonusTypes eBonus) const;																												// Exposed to Python
-	// advc.042: countUnimprovedBonuses moved to CvPlayerAI
+
+	// advc.042: countUnimprovedBonuses, countOwnedBonuses moved to CvPlayerAI
 	int countCityFeatures(FeatureTypes eFeature) const;																										// Exposed to Python
 	int countNumBuildings(BuildingTypes eBuilding) const;																									// Exposed to Python
 	int countNumCitiesConnectedToCapital() const;																								// Exposed to Python
@@ -214,7 +199,7 @@ public:
 	bool canTradeNetworkWith(PlayerTypes ePlayer) const;																									// Exposed to Python
 	int getNumAvailableBonuses(BonusTypes eBonus) const;																									// Exposed to Python
 	int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
-	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
+	int getNumTradeBonusImports(PlayerTypes eFromPlayer) const;																								// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
 	// advc.003: Said "IncludeCancelable", but actually does the opposite.
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;
@@ -413,15 +398,16 @@ public:
 
 	void doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd,
 			int iData2 = -1); // advc.250c
-	int getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python
-	int getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python
-	int getAdvancedStartPopCost(bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python
-	int getAdvancedStartCultureCost(bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python
-	int getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python
-	int getAdvancedStartImprovementCost(ImprovementTypes eImprovement, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python
-	int getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python
+	// advc.003: Made all the pointer params const
+	int getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
+	int getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
+	int getAdvancedStartPopCost(bool bAdd, CvCity const* pCity = NULL) const;																													// Exposed to Python
+	int getAdvancedStartCultureCost(bool bAdd, CvCity const* pCity = NULL) const;																													// Exposed to Python
+	int getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, CvCity const* pCity = NULL) const;																													// Exposed to Python
+	int getAdvancedStartImprovementCost(ImprovementTypes eImprovement, bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
+	int getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
 	int getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const;																													// Exposed to Python
-	int getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python
+	int getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
 
 	int getGoldenAgeTurns() const;																															// Exposed to Python
 	bool isGoldenAge() const;																																		// Exposed to Python
@@ -973,17 +959,17 @@ public:
 	// city iteration
 	DllExport CvCity* firstCity(int *pIterIdx, bool bRev=false) const;																// Exposed to Python
 	DllExport CvCity* nextCity(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python
-	DllExport int getNumCities() const;																																// Exposed to Python
+	DllExport int getNumCities() const;																													// Exposed to Python
 	DllExport CvCity* getCity(int iID) const;																													// Exposed to Python
-	CvCity* addCity();
+	//CvCity* addCity(); // advc.003u: removed
 	void deleteCity(int iID);
 
-	// unit iteration
+	// unit iteration 
 	DllExport CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const;																// Exposed to Python
 	DllExport CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python
-	DllExport int getNumUnits() const;																																// Exposed to Python
+	DllExport int getNumUnits() const;																													// Exposed to Python
 	CvUnit* getUnit(int iID) const;																													// Exposed to Python
-	CvUnit* addUnit();
+	//CvUnit* addUnit(); // advc.003u: removed
 	void deleteUnit(int iID);
 
 	// selection groups iteration
@@ -1080,10 +1066,11 @@ public:
 	int getUnitExtraCost(UnitClassTypes eUnitClass) const;
 	void setUnitExtraCost(UnitClassTypes eUnitClass, int iCost);
 
-	bool splitEmpire(int iAreaId);
+	bool splitEmpire(int iArea); // advc.003: Keep this one around for CvMessageData
+	bool splitEmpire(CvArea& kArea);
 	bool canSplitEmpire() const;
-	bool canSplitArea(int iAreaId) const;
-	PlayerTypes getSplitEmpirePlayer(int iAreaId) const;
+	bool canSplitArea(CvArea const& kArea) const;
+	PlayerTypes getSplitEmpirePlayer(CvArea const& kArea) const;
 	bool getSplitEmpireLeaders(CivLeaderArray& aLeaders) const;
 
 	void launch(VictoryTypes victoryType);
@@ -1125,7 +1112,7 @@ public:
 	double estimateYieldRate(YieldTypes eYield, int iSamples = 5) const;
 	void setSavingReplay(bool b); // advc.106i
 
-	// <advc.003> A bit nicer than GET_PLAYER(getID())
+	// <advc.003u> A bit nicer than GET_PLAYER(getID())
 	inline CvPlayerAI& AI() {
 		//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -1135,7 +1122,7 @@ public:
 	inline CvPlayerAI const& AI() const {
 		//return *static_cast<CvPlayerAI const*>(this);
 		return *reinterpret_cast<CvPlayerAI const*>(this);
-	} // </advc.003>
+	} // </advc.003u>
 	// <advc.085> (both exposed to Python)
 	void setScoreboardExpanded(bool b);
 	bool isScoreboardExpanded() const;
@@ -1193,7 +1180,6 @@ public:
 			bool bIgnoreAnnual = false, int iExtra = 0,
 			bool bIgnoreDiscount = false, // advc.550a
 			bool bIgnorePeace = false) const = 0; // advc.130p
-	// advc.130o: Removed const qualifier
 	virtual bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) = 0;
 	virtual bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const = 0;
 	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, // K-Mod added bAssumeEnabled
@@ -1201,7 +1187,7 @@ public:
 	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
 	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			int iChange = 0) const = 0; // advc.133
-	virtual int AI_cityTradeVal(CvCity* pCity) const = 0;
+	virtual int AI_cityTradeVal(CvCity const* pCity) const = 0; // advc.003: CvCity const*
 	virtual DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) const = 0;
@@ -1211,7 +1197,8 @@ public:
 	virtual int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const = 0;											// Exposed to Python
 	virtual int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const = 0;									// Exposed to Python
 	virtual int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const = 0;
-	virtual int AI_unitTargetMissionAIs(CvUnit* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const = 0;
+	virtual int AI_unitTargetMissionAIs(CvUnit const* pUnit, // advc.003: const
+			MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const = 0;
 	virtual int AI_civicValue(CivicTypes eCivic) const = 0;   // Exposed to Python
 	virtual int AI_getNumAIUnits(UnitAITypes eIndex) const = 0;																					// Exposed to Python
 	// <advc.130p> Renamed; let's hope the EXE doesn't call these.
@@ -1425,20 +1412,19 @@ protected:
 	int** m_ppaaiImprovementYieldChange;
 
 	CLinkList<int> m_groupCycle;
-
 	CLinkList<TechTypes> m_researchQueue;
-
 	CLinkList<CvWString> m_cityNames;
 
 	FFreeListTrashArray<CvPlotGroup> m_plotGroups;
-
-	FFreeListTrashArray<CvCityAI> m_cities;
-
-	FFreeListTrashArray<CvUnitAI> m_units;
-
-	FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
-
+	//FFreeListTrashArray<CvCityAI> m_cities;
+	//FFreeListTrashArray<CvUnitAI>
+	//FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
+	// <advc.003u> Replacing the above to avoid having to include the AI headers
+	CvCityList* m_cities;
+	CvUnitList* m_units;
+	CvSelectionGroupList* m_selectionGroups; // </advc.003u>
 	FFreeListTrashArray<EventTriggeredData> m_eventsTriggered;
+
 	CvEventMap m_mapEventsOccured;
 	CvEventMap m_mapEventCountdown;
 	UnitCombatPromotionArray m_aFreeUnitCombatPromotions;
@@ -1464,6 +1450,7 @@ protected:
 	void uninit();
 	void initContainers();
 	bool initOtherData();
+
 	void doGold();
 	void doResearch();
 	void doEspionagePoints();
@@ -1499,7 +1486,7 @@ protected:
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 
-	void doUpdateCacheOnTurn();
+	//void doUpdateCacheOnTurn(); // advc.003: unused
 	int getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const;
 
 	void getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview trade layer

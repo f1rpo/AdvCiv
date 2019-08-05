@@ -5,8 +5,6 @@
 #ifndef CIV4_GAME_H
 #define CIV4_GAME_H
 
-#include "CvDeal.h"
-
 class CvPlot;
 class CvCity;
 class CvReplayMessage;
@@ -14,7 +12,10 @@ class CvReplayInfo;
 class CvArtInfoBuilding;
 class CvArea;
 class CvHallOfFameInfo; // advc.106i
-class CvGameAI; // advc.003: Needed for AI(void) functions
+// <advc.003u>
+class CvGameAI;
+class CvDealList;
+class CvDeal; // </advc.003u>
 class Shelf; // advc.300
 class StartPointsAsHandicap; // advc.250b
 class RiseFall; // advc.700
@@ -486,7 +487,7 @@ public:
 	// <advc.003> Need a const version
 	{	CvGame const& kThis = *this;
 		return const_cast<CvDeal*>(kThis.getDeal(iID));
-	} CvDeal const* getDeal(int iID) const { return m_deals.getAt(iID); } // </advc.003>
+	} CvDeal const* getDeal(int iID) const; // </advc.003>
 
 	CvDeal* addDeal();
 	void deleteDeal(int iID);
@@ -536,7 +537,8 @@ public:
 	virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
 	// <advc.003>
 	void allGameDataRead();
-	void onGraphicsInitialized();
+	void onGraphicsInitialized(); // </advc.003>
+	// <advc.003u>
 	inline CvGameAI& AI() {
 		//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -546,15 +548,14 @@ public:
 	inline CvGameAI const& AI() const {
 		//return *static_cast<CvGameAI const*>(this);
 		return *reinterpret_cast<CvGameAI const*>(this);
-	} // </advc.003>
+	} // </advc.003u>
 	/*  advc (warning): Mustn't add any pure virtual functions to this class.
 		(Or perhaps adding them at the end would be ok?) */
 	virtual void AI_init() = 0;
 	virtual void AI_reset() = 0;
 	virtual void AI_makeAssignWorkDirty() = 0;
 	virtual void AI_updateAssignWork() = 0;
-	virtual int AI_combatValue(UnitTypes eUnit)
-			const = 0; // K-Mod!
+	virtual int AI_combatValue(UnitTypes eUnit) /* K-Mod! */ const = 0; 
 
 	CvReplayInfo* getReplayInfo() const;
 	DllExport void setReplayInfo(CvReplayInfo* pReplay);
@@ -772,15 +773,16 @@ protected:
 	std::vector<CvWString> m_aszDestroyedCities;
 	std::vector<CvWString> m_aszGreatPeopleBorn;
 
-	FFreeListTrashArray<CvDeal> m_deals;
+	FFreeListTrashArray<VoteSelectionData> m_voteSelections;
+	FFreeListTrashArray<VoteTriggeredData> m_votesTriggered;
+	//FFreeListTrashArray<CvDeal> m_deals;
+	CvDealList* m_deals; // advc.003u
 	/*  <advc.072> Not serialized. One for use by CvPlayer::getItemTradeString,
 		the other for CvDLLWidgetData::parseTradeItem. */
 	CLinkList<DealItemData> m_currentDeals;
 	CLinkList<DealItemData> m_currentDealsWidget;
 	bool m_bShowingCurrentDeals;
 	// </advc.072>
-	FFreeListTrashArray<VoteSelectionData> m_voteSelections;
-	FFreeListTrashArray<VoteTriggeredData> m_votesTriggered;
 
 	CvRandom m_mapRand;
 	CvRandom m_sorenRand;

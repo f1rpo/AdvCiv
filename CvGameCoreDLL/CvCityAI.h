@@ -33,11 +33,11 @@ public:
 	int AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const; // K-Mod
 	void AI_chooseProduction();
 
-	UnitTypes AI_bestUnit(bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, UnitAITypes* peBestUnitAI = NULL);
-	UnitTypes AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR);
+	UnitTypes AI_bestUnit(bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, UnitAITypes* peBestUnitAI = NULL) const;
+	UnitTypes AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
 
-	BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR);
-	BuildingTypes AI_bestBuildingThreshold(int iFocusFlags = 0, int iMaxTurns = 0, int iMinThreshold = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR);
+	BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
+	BuildingTypes AI_bestBuildingThreshold(int iFocusFlags = 0, int iMaxTurns = 0, int iMinThreshold = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
 
 	/* int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const;
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
@@ -56,28 +56,27 @@ public:
 	ProcessTypes AI_bestProcess(CommerceTypes eCommerceType = NO_COMMERCE) const;
 	int AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType = NO_COMMERCE) const;
 
-	int AI_neededSeaWorkers();
+	int AI_neededSeaWorkers() const;
 
-	bool AI_isDefended(int iExtra = 0);
+	bool AI_isDefended(int iExtra = 0) const;
 	//bool AI_isAirDefended(int iExtra = 0);
 	// BETTER_BTS_AI_MOD, Air AI, 9/19/08, jdog5000:
 	bool AI_isAirDefended(bool bCountLand = false, int iExtra = 0);
-	bool AI_isDanger();
+	bool AI_isDanger() const;
 	int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			bool bConstCache = false); // advc.001n
-	int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false);
-	int AI_minDefenders();
+			bool bConstCache = false) const; // advc.001n
+	int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) const;
+	int AI_minDefenders() const;
 	int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
 			// <advc.001n>
-			bool bConstCache = false);
+			bool bConstCache = false) const;
 	// was void AI_updateNeededFloatingDefenders()
-	int AI_calculateNeededFloatingDefenders(bool bConstCache); // </advc.001n>
+	int AI_calculateNeededFloatingDefenders(bool bConstCache) const; // </advc.001n>
 	// <advc.139>
 	void AI_updateSafety(double relativeCityVal);
 	bool AI_isEvacuating() const;
-	bool AI_isSafe() const;
-	// </advc.139>
-	bool AI_isAwfulSite(PlayerTypes eFutureOwner) const; // advc.122
+	bool AI_isSafe() const; // </advc.139>
+
 	// advc.003: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
 	int AI_getEmphasizeAvoidGrowthCount() const;
@@ -89,7 +88,7 @@ public:
 	bool AI_isAssignWorkDirty() const;
 	void AI_setAssignWorkDirty(bool bNewValue);
 
-	bool AI_isChooseProductionDirty() const;
+	bool AI_isChooseProductionDirty() const; // advc.003u (comment): Move to CvCity? It's also used for human choose-production popups.
 	void AI_setChooseProductionDirty(bool bNewValue);
 
 	CvCity* AI_getRouteToCity() const;
@@ -105,8 +104,8 @@ public:
 	void AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue);
 	//void AI_forceEmphasizeCulture(bool bNewValue); // advc.003j
 
-	int AI_getBestBuildValue(int iIndex);
-	int AI_totalBestBuildValue(CvArea* pArea);
+	int AI_getBestBuildValue(int iIndex) const;
+	int AI_totalBestBuildValue(CvArea* pArea) const;
 
 	int AI_clearFeatureValue(int iIndex);
 	// K-Mod
@@ -134,22 +133,22 @@ public:
 	int AI_getCultureWeight() const { return m_iCultureWeight; } // K-Mod
 	void AI_setCultureWeight(int iWeight) { m_iCultureWeight = iWeight; } // K-Mod
 
-	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true);
+	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const;
 	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false) const; // BBAI
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
-			bool bConstCache = false); // advc.001n
+			bool bConstCache = false) const; // advc.001n
 	int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
-			bool bConstCache); // advc.001n
+			bool bConstCache) const; // advc.001n
 	// advc.003j: Both unused
 	/*bool AI_isFrontlineCity() const; // K-Mod
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
-	int AI_cityThreat(bool bDangerPercent = false);
+	int AI_cityThreat(bool bDangerPercent = false) const;
 
 	int AI_getWorkersHave() const;
 	int AI_getWorkersNeeded() const;
 	void AI_changeWorkersHave(int iChange);
-	BuildingTypes AI_bestAdvancedStartBuilding(int iPass);
+	BuildingTypes AI_bestAdvancedStartBuilding(int iPass) const;
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
@@ -178,12 +177,13 @@ protected:
 
 	int* m_aiSpecialYieldMultiplier;
 
-	int m_iCachePlayerClosenessTurn;
-	int m_iCachePlayerClosenessDistance;
 	int* m_aiPlayerCloseness;
+	// <advc.003> Made mutable (and made the cache accessor functions const)
+	mutable int m_iCachePlayerClosenessTurn;
+	mutable int m_iCachePlayerClosenessDistance;
 
-	int m_iNeededFloatingDefenders;
-	int m_iNeededFloatingDefendersCacheTurn;
+	mutable int m_iNeededFloatingDefenders;
+	mutable int m_iNeededFloatingDefendersCacheTurn; // </advc.003>
 	// <advc.139>
 	bool m_bEvacuate;
 	bool m_bSafe;
@@ -256,7 +256,7 @@ protected:
 	int AI_buildingSeaYieldChangeWeight(BuildingTypes eBuilding, bool bGrowing = true) const; // K-Mod
 	// <advc.001n> was void AI_cachePlayerCloseness(int)
 	int AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
-			bool bConstCache); // </advc.001n>
+			bool bConstCache) const; // </advc.001n>
 	// <advc.031b>
 	int AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
 			int iWaterAreaSites, int iBestWaterAreaFoundValue) const; // </advc.031b>

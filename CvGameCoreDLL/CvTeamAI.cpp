@@ -4,6 +4,7 @@
 #include "CvTeamAI.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
+#include "CvAreaList.h" // advc.003s
 #include "CvInfos.h"
 #include "BBAILog.h"
 #include "BBAI_Defines.h"
@@ -240,19 +241,13 @@ void CvTeamAI::AI_updateAreaStrategies(bool bTargets)
 	PROFILE_FUNC();
 
 	if (!GC.getGame().isFinalInitialized())
-	{
 		return;
-	}
-	int iLoop;
-	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
-	{
+
+	FOR_EACH_AREA_VAR(pLoopArea)
 		pLoopArea->setAreaAIType(getID(), AI_calculateAreaAIType(pLoopArea));
-	}
 
 	if (bTargets)
-	{
 		AI_updateAreaTargets();
-	}
 }
 
 
@@ -438,15 +433,12 @@ bool CvTeamAI::AI_isPrimaryArea(CvArea* pArea) const
 bool CvTeamAI::AI_hasCitiesInPrimaryArea(TeamTypes eTeam) const
 {
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
-	int iLoop;
-	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+	FOR_EACH_AREA_VAR(pLoopArea)
 	{
 		if (AI_isPrimaryArea(pLoopArea))
 		{
 			if (GET_TEAM(eTeam).countNumCitiesByArea(pLoopArea))
-			{
 				return true;
-			}
 		}
 	}
 	return false;
@@ -458,9 +450,7 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 	FAssert(eTeam != getID());
 
 	const CvTeamAI& kTeam = GET_TEAM(eTeam);
-
-	int iLoop;
-	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+	FOR_EACH_AREA_VAR(pLoopArea)
 	{
 		if (AI_isPrimaryArea(pLoopArea) && kTeam.AI_isPrimaryArea(pLoopArea))
 			return true;
@@ -895,8 +885,7 @@ bool CvTeamAI::AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly, int iMi
 		const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
 		if (kLoopPlayer.getTeam() == eTeam)
 		{
-			int iLoop;
-			for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 			{
 				if (AI_deduceCitySite(pLoopCity))
 				{
@@ -936,9 +925,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 	// </advc.104s>
 
 	const CvTeamAI& kOtherTeam = GET_TEAM(eTeam);
-
-	int iLoop;
-	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+	FOR_EACH_AREA_VAR(pLoopArea)
 	{
 		if (AI_isPrimaryArea(pLoopArea) && kOtherTeam.AI_isPrimaryArea(pLoopArea))
 			return true;
@@ -950,8 +937,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 		if (kOurPlayer.getTeam() != getID() || !kOurPlayer.isAlive())
 			continue;
 
-		int iL1;
-		for (CvCity* pOurCity = kOurPlayer.firstCity(&iL1); pOurCity; pOurCity = kOurPlayer.nextCity(&iL1))
+		FOR_EACH_CITY(pOurCity, kOurPlayer)
 		{
 			if (!kOurPlayer.AI_isPrimaryArea(pOurCity->area()))
 				continue;
@@ -969,8 +955,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 				gDLL->getFAStarIFace()->Initialize(pTeamStepFinder, GC.getMap().getGridWidth(), GC.getMap().getGridHeight(), GC.getMap().isWrapX(), GC.getMap().isWrapY(), stepDestValid, stepHeuristic, stepCost, teamStepValid, stepAdd, NULL, NULL);
 				gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &teamVec);
 
-				int iL2;
-				for (CvCity* pTheirCity = kTheirPlayer.firstCity(&iL2); pTheirCity; pTheirCity = kTheirPlayer.nextCity(&iL2))
+				FOR_EACH_CITY(pTheirCity, kTheirPlayer)
 				{
 					if (pTheirCity->area() != pOurCity->area())
 						continue;
@@ -1335,8 +1320,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		if (kLoopPlayer.getTeam() != eTarget || !kLoopPlayer.isAlive())
 			continue;
 
-		int iLoop;
-		for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+		FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 		{
 			if (!AI_deduceCitySite(pLoopCity))
 				continue;
@@ -2004,11 +1988,8 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 	}
 	int iTheirAttackers = 0;
 	CvArea* pLoopArea = NULL;
-	int iLoop;
-	for(pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
-	{
+	FOR_EACH_AREA_VAR(pLoopArea)
 		iTheirAttackers += countEnemyDangerByArea(pLoopArea, eTeam);
-	}
 
 	int iAttackerRatio = (100 * iOurAttackers) / std::max(1 + GC.getGame().getCurrentEra(), iTheirAttackers);
 
@@ -2821,9 +2802,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 		}
 		if(iNukes == 0) {
 			// Based on code in AI_endWarVal:
-			int iTheirAttackers = 0; int iLoop;
-			for(CvArea* pLoopArea = m.firstArea(&iLoop); pLoopArea != NULL;
-					pLoopArea = m.nextArea(&iLoop)) {
+			int iTheirAttackers = 0;
+			FOR_EACH_AREA_VAR(pLoopArea) {
 				int iAreaCities = countNumCitiesByArea(pLoopArea);
 				if(iAreaCities <= 0)
 					continue;
@@ -3385,8 +3365,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc.003: 
 		if (!kSurrenderCiv.isAlive() || kSurrenderCiv.getTeam() != eSurrenderTeam)
 			continue;
 
-		int iLoop;
-		for (CvCity* pLoopCity = kSurrenderCiv.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kSurrenderCiv.nextCity(&iLoop))
+		FOR_EACH_CITY(pLoopCity, kSurrenderCiv)
 		{
 			CvCity const& kCity = *pLoopCity;
 			bool bValuable = (kCity.isHolyCity() || kCity.isHeadquarters() ||
@@ -5527,8 +5506,7 @@ double CvTeamAI::AI_OpenBordersCounterIncrement(TeamTypes eOther) const {
 		if(!kOurMember.isAlive() || kOurMember.getTeam() != getID())
 			continue;
 		// Based on calculateTradeRoutes in BUG's TradeUtil.py
-		int foo;
-		for(CvCity* c = kOurMember.firstCity(&foo); c != NULL; c = kOurMember.nextCity(&foo)) {
+		FOR_EACH_CITY(c, kOurMember) {
 			for(int j = 0; j < c->getTradeRoutes(); j++) {
 				CvCity* pPartnerCity = c->getTradeCity(j);
 				if(pPartnerCity == NULL)
@@ -5933,8 +5911,7 @@ void CvTeamAI::AI_doWar()
 				bool bAreaValid = false;
 				bool bShareValid = false;
 
-				int iLoop;
-				for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+				FOR_EACH_AREA_VAR(pLoopArea)
 				{
 					if (AI_isPrimaryArea(pLoopArea))
 					{
@@ -6736,9 +6713,7 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea* pArea) const
 		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 		if ((iTeamCities < 2 && kPlayer.getTeam() == getID()) || (iOtherTeamCities < 2 && kPlayer.getTeam() != getID()))
 		{
-			int iLoop;
-			CvCity* pLoopCity;
-			for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+			FOR_EACH_CITY(pLoopCity, kPlayer)
 			{
 				if (pLoopCity->plot()->isAdjacentToArea(pArea->getID()))
 				{
@@ -6750,17 +6725,12 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea* pArea) const
 							return true;
 						}
 					}
-					else
-					{
-						iOtherTeamCities++;
-					}
+					else iOtherTeamCities++;
 				}
 			}
 		}
 		if (iTeamCities >= 2 && iOtherTeamCities >= 2)
-		{
 			return true;
-		}
 	}
 	// BETTER_BTS_AI_MOD: END
 	return false;

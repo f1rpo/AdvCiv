@@ -39,10 +39,12 @@
     <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
+    <ClCompile Include="..\CvAreaList.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
     <ClCompile Include="..\CvBugOptions.cpp" />
     <ClCompile Include="..\CvCity.cpp" />
     <ClCompile Include="..\CvCityAI.cpp" />
+    <ClCompile Include="..\CvCityList.cpp" />
     <ClCompile Include="..\CvDeal.cpp" />
     <ClCompile Include="..\CvDiploParameters.cpp" />
     <ClCompile Include="..\CvDLLButtonPopup.cpp" />
@@ -80,6 +82,7 @@
     <ClCompile Include="..\CvReplayMessage.cpp" />
     <ClCompile Include="..\CvSelectionGroup.cpp" />
     <ClCompile Include="..\CvSelectionGroupAI.cpp" />
+    <ClCompile Include="..\CvSelectionGroupList.cpp" />
     <ClCompile Include="..\CvStatistics.cpp" />
     <ClCompile Include="..\CvStructs.cpp" />
     <ClCompile Include="..\CvTalkingHeadMessage.cpp" />
@@ -87,6 +90,7 @@
     <ClCompile Include="..\CvTeamAI.cpp" />
     <ClCompile Include="..\CvUnit.cpp" />
     <ClCompile Include="..\CvUnitAI.cpp" />
+    <ClCompile Include="..\CvUnitList.cpp" />
     <ClCompile Include="..\CvXMLLoadUtility.cpp" />
     <ClCompile Include="..\CvXMLLoadUtilityGet.cpp" />
     <ClCompile Include="..\CvXMLLoadUtilityInit.cpp" />
@@ -169,6 +173,7 @@
     <ClInclude Include="..\CvCity.h" />
     <ClInclude Include="..\CvCityAI.h" />
     <ClInclude Include="..\CvDeal.h" />
+    <ClInclude Include="..\CvDealList.h" />
     <ClInclude Include="..\CvDefines.h" />
     <ClInclude Include="..\CvDiploParameters.h" />
     <ClInclude Include="..\CvDLLButtonPopup.h" />
@@ -256,6 +261,7 @@
     <ClInclude Include="..\FFreeListTrashArray.h" />
     <ClInclude Include="..\FInputDevice.h" />
     <ClInclude Include="..\FProfiler.h" />
+    <ClInclude Include="..\FLTALoopCounter.h" />
     <ClInclude Include="..\FVariableSystem.h" />
     <ClInclude Include="..\InvasionGraph.h" />
     <ClInclude Include="..\KmodPathFinder.h" />
@@ -280,6 +286,7 @@
   <ItemGroup>
     <None Include="..\FVariableSystem.inl" />
     <None Include="..\interfaceDirtyBits.inl" />
+    <None Include="..\cpp.hint" />
     <None Include="CvGameCoreDLL.def" />
     <None Include="Makefile" />
     <None Include="Makefile.project" />

@@ -6,6 +6,7 @@
 #include "WarAndPeaceAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
 #include "CvMap.h"
+#include "CvArea.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
@@ -13,295 +14,11 @@
 #include "CvBugOptions.h" // advc.002e
 
 
-CvUnit::CvUnit()
+CvUnit::CvUnit() // advc.003u: Body cut from the deleted reset function
 {
-	m_aiExtraDomainModifier = new int[NUM_DOMAIN_TYPES];
+	CvDLLEntity::createUnitEntity(this);
 
-	m_pabHasPromotion = NULL;
-
-	m_paiTerrainDoubleMoveCount = NULL;
-	m_paiFeatureDoubleMoveCount = NULL;
-	m_paiExtraTerrainAttackPercent = NULL;
-	m_paiExtraTerrainDefensePercent = NULL;
-	m_paiExtraFeatureAttackPercent = NULL;
-	m_paiExtraFeatureDefensePercent = NULL;
-	m_paiExtraUnitCombatModifier = NULL;
-
-	CvDLLEntity::createUnitEntity(this);		// create and attach entity to unit
-
-	reset(0, NO_UNIT, NO_PLAYER, true);
-}
-
-
-CvUnit::~CvUnit()
-{
-	if (!gDLL->GetDone() && GC.IsGraphicsInitialized())						// don't need to remove entity when the app is shutting down, or crash can occur
-	{
-		gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
-		CvDLLEntity::removeEntity();		// remove entity from engine
-	}
-
-	CvDLLEntity::destroyEntity();			// delete CvUnitEntity and detach from us
-
-	uninit();
-
-	SAFE_DELETE_ARRAY(m_aiExtraDomainModifier);
-}
-
-void CvUnit::reloadEntity()
-{
-	//destroy old entity
-	if (!gDLL->GetDone() && GC.IsGraphicsInitialized())						// don't need to remove entity when the app is shutting down, or crash can occur
-	{
-		gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
-		CvDLLEntity::removeEntity();		// remove entity from engine
-	}
-
-	CvDLLEntity::destroyEntity();			// delete CvUnitEntity and detach from us
-
-	//creat new one
-	CvDLLEntity::createUnitEntity(this);		// create and attach entity to unit
-	setupGraphical();
-}
-
-
-void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection)
-{
-	CvWString szBuffer;
-	int iI, iJ;
-
-	FAssert(NO_UNIT != eUnit);
-
-	//--------------------------------
-	// Init saved data
-	reset(iID, eUnit, eOwner);
-
-	if(eFacingDirection == NO_DIRECTION)
-		m_eFacingDirection = DIRECTION_SOUTH;
-	else m_eFacingDirection = eFacingDirection;
-
-	//--------------------------------
-	// Init containers
-
-	//--------------------------------
-	// Init pre-setup() data
-	setXY(iX, iY, false, false);
-
-	//--------------------------------
-	// Init non-saved data
-	setupGraphical();
-
-	//--------------------------------
-	// Init other game data
-	plot()->updateCenterUnit();
-	plot()->setFlagDirty(true);
-	// <advc.003>
-	CvGame& g = GC.getGame();
-	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	int iCreated = g.getUnitCreatedCount(getUnitType()); // was called "iUnitName"
-	// </advc.003>
-	int iNumNames = m_pUnitInfo->getNumUnitNames();
-	if (iCreated < iNumNames)
-	{	// <advc.005b>
-		/*  Skip every iStep'th name on average. Basic assumption: About half of
-			the names are used in a long (space-race) game with 7 civs; therefore, skip every
-			iStep=2 then. Adjust this to the (current) number of civs. */
-		int iAlive = g.countCivPlayersAlive();
-		if(iAlive <= 0) {
-			FAssert(iAlive > 0);
-			iAlive = 7;
-		}
-		int const iStep = std::max(1, ::round(14.0 / iAlive));
-		// This gives iRand an expected value of step
-		int iRand = g.getSorenRandNum(2 * iStep + 1, "advc.005b");
-		/*  The index of the most recently used name isn't available; instead,
-			take iStep times the number of previously used names in order to
-			pick up roughly where we left off. */
-		int iOffset = iStep * iCreated + iRand;
-		// That's +8 in Medieval, +16 in Renaissance and +24 in Industrial or later.
-		iOffset += std::min(24, 8 * std::max(0, g.getStartEra() - 1));
-		bool bNameSet = false;
-		// If we run out of names, search backward
-		if(iOffset >= iNumNames) {
-			/*  The first couple are still somewhat random, but then just
-				pick them chronologically. */
-			for(iI = iNumNames - 1 - iRand; iI >= 0; iI--) {
-				CvWString szName = gDLL->getText(m_pUnitInfo->getUnitNames(iI));
-				// Copied from below
-				if(!g.isGreatPersonBorn(szName)) {
-					setName(szName);
-					bNameSet = true;
-					g.addGreatPersonBornName(szName);
-					break;
-				}
-			} // Otherwise, search forward
-		}
-		if(!bNameSet) { // </advc.005b>
-			for (iI = 0; iI < iNumNames; iI++)
-			{
-				int iIndex = (iI + iOffset) % iNumNames;
-				CvWString szName = gDLL->getText(m_pUnitInfo->getUnitNames(iIndex));
-				if (!g.isGreatPersonBorn(szName))
-				{
-					setName(szName);
-					g.addGreatPersonBornName(szName);
-					break;
-				}
-			}
-		}
-	}
-
-	setGameTurnCreated(g.getGameTurn());
-	g.incrementUnitCreatedCount(getUnitType());
-	g.incrementUnitClassCreatedCount((UnitClassTypes)m_pUnitInfo->getUnitClassType());
-	GET_TEAM(getTeam()).changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
-	kOwner.changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
-	kOwner.changeExtraUnitCost(m_pUnitInfo->getExtraCost());
-
-	if (m_pUnitInfo->getNukeRange() != -1)
-		kOwner.changeNumNukeUnits(1);
-
-	if (m_pUnitInfo->isMilitarySupport())
-		kOwner.changeNumMilitaryUnits(1);
-
-	kOwner.changeAssets(m_pUnitInfo->getAssetValue());
-	kOwner.changePower(m_pUnitInfo->getPowerValue()
-			/ (m_pUnitInfo->getDomainType() == DOMAIN_SEA ? 2 : 1) // advc.104e
-	);
-
-	// advc.104: To enable more differentiated tracking of power values
-	kOwner.warAndPeaceAI().getCache().reportUnitCreated(*m_pUnitInfo);
-
-	for (iI = 0; iI < GC.getNumPromotionInfos(); iI++)
-	{
-		if (m_pUnitInfo->getFreePromotions(iI))
-		{
-			setHasPromotion(((PromotionTypes)iI), true);
-		}
-	}
-
-	FAssertMsg((GC.getNumTraitInfos() > 0), "GC.getNumTraitInfos() is less than or equal to zero but is expected to be larger than zero in CvUnit::init");
-	for (iI = 0; iI < GC.getNumTraitInfos(); iI++)
-	{
-		if (kOwner.hasTrait((TraitTypes)iI))
-		{
-			for (iJ = 0; iJ < GC.getNumPromotionInfos(); iJ++)
-			{
-				if (GC.getTraitInfo((TraitTypes) iI).isFreePromotion(iJ))
-				{
-					if ((getUnitCombatType() != NO_UNITCOMBAT) && GC.getTraitInfo((TraitTypes) iI).isFreePromotionUnitCombat(getUnitCombatType()))
-					{
-						setHasPromotion(((PromotionTypes)iJ), true);
-					}
-				}
-			}
-		}
-	}
-
-	if (NO_UNITCOMBAT != getUnitCombatType())
-	{
-		for (iJ = 0; iJ < GC.getNumPromotionInfos(); iJ++)
-		{
-			if (kOwner.isFreePromotion(getUnitCombatType(), (PromotionTypes)iJ))
-			{
-				setHasPromotion(((PromotionTypes)iJ), true);
-			}
-		}
-	}
-
-	if (NO_UNITCLASS != getUnitClassType())
-	{
-		for (iJ = 0; iJ < GC.getNumPromotionInfos(); iJ++)
-		{
-			if (kOwner.isFreePromotion(getUnitClassType(), (PromotionTypes)iJ))
-			{
-				setHasPromotion(((PromotionTypes)iJ), true);
-			}
-		}
-	}
-
-	if (getDomainType() == DOMAIN_LAND)
-	{
-		if (baseCombatStr() > 0)
-		{
-			if ((g.getBestLandUnit() == NO_UNIT) || (baseCombatStr() > g.getBestLandUnitCombat()))
-			{
-				g.setBestLandUnit(getUnitType());
-			}
-		}
-	}
-
-	if (kOwner.getID() == g.getActivePlayer())
-	{
-		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-	}
-
-	if (isWorldUnitClass((UnitClassTypes)m_pUnitInfo->getUnitClassType()))
-	{
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
-			if(!kObs.isAlive())
-				continue; // advc.003
-			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam())
-					|| kObs.isSpectator()) // advc.127
-			{
-				// <advc.127b>
-				int iFlashX = -1, iFlashY = -1;
-				if(plot()->isRevealed(kObs.getTeam(), true)) {
-					iFlashX = getX(); iFlashY = getY();
-				} // </advc.127b>
-				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT",
-						kOwner.getNameKey(), getNameKey());
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-						"AS2D_WONDER_UNIT_BUILD", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
-						iFlashX, iFlashY, true, true);
-			}
-			else
-			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_CREATED_UNIT", getNameKey());
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-						"AS2D_WONDER_UNIT_BUILD", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
-			}
-		}
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT", kOwner.getNameKey(), getNameKey());
-		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(), szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
-	}
-
-	AI_init(eUnitAI);
-
-	CvEventReporter::getInstance().unitCreated(this);
-}
-
-
-void CvUnit::uninit()
-{
-	SAFE_DELETE_ARRAY(m_pabHasPromotion);
-
-	SAFE_DELETE_ARRAY(m_paiTerrainDoubleMoveCount);
-	SAFE_DELETE_ARRAY(m_paiFeatureDoubleMoveCount);
-	SAFE_DELETE_ARRAY(m_paiExtraTerrainAttackPercent);
-	SAFE_DELETE_ARRAY(m_paiExtraTerrainDefensePercent);
-	SAFE_DELETE_ARRAY(m_paiExtraFeatureAttackPercent);
-	SAFE_DELETE_ARRAY(m_paiExtraFeatureDefensePercent);
-	SAFE_DELETE_ARRAY(m_paiExtraUnitCombatModifier);
-}
-
-// Initializes data members that are serialized.
-void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstructorCall)
-{
-	int iI;
-
-	//--------------------------------
-	// Uninit class
-	uninit();
-
-	m_iID = iID;
+	m_iID = 0;
 	m_iGroupID = FFreeList::INVALID_INDEX;
 	m_iHotKeyNumber = -1;
 	m_iX = INVALID_PLOT_COORD;
@@ -367,85 +84,278 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_bBlockading = false;
 	m_bAirCombat = false;
 
-	m_eOwner = eOwner;
+	m_eOwner = NO_PLAYER;
 	m_eCapturingPlayer = NO_PLAYER;
-	m_eUnitType = eUnit;
-	m_pUnitInfo = (NO_UNIT != m_eUnitType) ? &GC.getUnitInfo(m_eUnitType) : NULL;
-	m_iBaseCombat = (NO_UNIT != m_eUnitType) ? m_pUnitInfo->getCombat() : 0;
+	m_eUnitType = NO_UNIT;
+	m_pUnitInfo = NULL;
+	m_iBaseCombat = 0;
 	m_eLeaderUnitType = NO_UNIT;
-	m_iCargoCapacity = (NO_UNIT != m_eUnitType) ? m_pUnitInfo->getCargoSpace() : 0;
-
-	m_combatUnit.reset();
-	m_transportUnit.reset();
-
-	for (iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
-	{
-		m_aiExtraDomainModifier[iI] = 0;
-	}
-
-	m_szName.clear();
-	m_szScriptData ="";
+	m_iCargoCapacity = 0;
 	m_iLastReconTurn = -1; // advc.029
 
-	if (!bConstructorCall)
-	{
-		FAssertMsg((0 < GC.getNumPromotionInfos()), "GC.getNumPromotionInfos() is not greater than zero but an array is being allocated in CvUnit::reset");
-		m_pabHasPromotion = new bool[GC.getNumPromotionInfos()];
-		for (iI = 0; iI < GC.getNumPromotionInfos(); iI++)
-		{
-			m_pabHasPromotion[iI] = false;
-		}
+	// Avoid 'new int[0]'
+	FAssert(GC.getNumPromotionInfos() > 0);
+	FAssert(GC.getNumTerrainInfos() > 0);
+	FAssert(GC.getNumFeatureInfos() > 0);
+	FAssert(GC.getNumUnitCombatInfos() > 0);
 
-		FAssertMsg((0 < GC.getNumTerrainInfos()), "GC.getNumTerrainInfos() is not greater than zero but a float array is being allocated in CvUnit::reset");
-		m_paiTerrainDoubleMoveCount = new int[GC.getNumTerrainInfos()];
-		m_paiExtraTerrainAttackPercent = new int[GC.getNumTerrainInfos()];
-		m_paiExtraTerrainDefensePercent = new int[GC.getNumTerrainInfos()];
-		for (iI = 0; iI < GC.getNumTerrainInfos(); iI++)
-		{
-			m_paiTerrainDoubleMoveCount[iI] = 0;
-			m_paiExtraTerrainAttackPercent[iI] = 0;
-			m_paiExtraTerrainDefensePercent[iI] = 0;
-		}
+	// Allocate memory and value-initialize
+	m_pabHasPromotion = new bool[GC.getNumPromotionInfos()]();
+	m_paiExtraDomainModifier = new int[NUM_DOMAIN_TYPES]();
+	m_paiTerrainDoubleMoveCount = new int[GC.getNumTerrainInfos()]();
+	m_paiExtraTerrainAttackPercent = new int[GC.getNumTerrainInfos()]();
+	m_paiExtraTerrainDefensePercent = new int[GC.getNumTerrainInfos()]();
+	m_paiFeatureDoubleMoveCount = new int[GC.getNumFeatureInfos()]();
+	m_paiExtraFeatureDefensePercent = new int[GC.getNumFeatureInfos()]();
+	m_paiExtraFeatureAttackPercent = new int[GC.getNumFeatureInfos()]();
+	m_paiExtraUnitCombatModifier = new int[GC.getNumUnitCombatInfos()]();
+}
 
-		FAssertMsg((0 < GC.getNumFeatureInfos()), "GC.getNumFeatureInfos() is not greater than zero but a float array is being allocated in CvUnit::reset");
-		m_paiFeatureDoubleMoveCount = new int[GC.getNumFeatureInfos()];
-		m_paiExtraFeatureDefensePercent = new int[GC.getNumFeatureInfos()];
-		m_paiExtraFeatureAttackPercent = new int[GC.getNumFeatureInfos()];
-		for (iI = 0; iI < GC.getNumFeatureInfos(); iI++)
-		{
-			m_paiFeatureDoubleMoveCount[iI] = 0;
-			m_paiExtraFeatureAttackPercent[iI] = 0;
-			m_paiExtraFeatureDefensePercent[iI] = 0;
-		}
+// advc.003u: Param eUnitAI moved to CvUnitAI::init
+void CvUnit::init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection)
+{
+	FAssert(NO_UNIT != eUnit);
 
-		FAssertMsg((0 < GC.getNumUnitCombatInfos()), "GC.getNumUnitCombatInfos() is not greater than zero but an array is being allocated in CvUnit::reset");
-		m_paiExtraUnitCombatModifier = new int[GC.getNumUnitCombatInfos()];
-		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
-		{
-			m_paiExtraUnitCombatModifier[iI] = 0;
-		}
-
-		AI_reset();
-	}
+	m_iID = iID;
+	m_eUnitType = eUnit;
+	m_eOwner = eOwner;
+	m_eFacingDirection = eFacingDirection;
+	m_pUnitInfo = &GC.getUnitInfo(m_eUnitType);
+	m_iBaseCombat = m_pUnitInfo->getCombat();
+	m_iCargoCapacity = m_pUnitInfo->getCargoSpace();
+	setXY(iX, iY, false, false);
+	/*  advc.003u: Rest of the body moved into finalizeInit so that subclasses
+		can do their init code in between */
 }
 
 
-//////////////////////////////////////
-// graphical only setup
-//////////////////////////////////////
-void CvUnit::setupGraphical()
+CvUnit::~CvUnit()
+{
+	uninitEntity();
+	// advc.003u: uninit body moved here
+	SAFE_DELETE_ARRAY(m_pabHasPromotion);
+	SAFE_DELETE_ARRAY(m_paiExtraDomainModifier);
+	SAFE_DELETE_ARRAY(m_paiTerrainDoubleMoveCount);
+	SAFE_DELETE_ARRAY(m_paiFeatureDoubleMoveCount);
+	SAFE_DELETE_ARRAY(m_paiExtraTerrainAttackPercent);
+	SAFE_DELETE_ARRAY(m_paiExtraTerrainDefensePercent);
+	SAFE_DELETE_ARRAY(m_paiExtraFeatureAttackPercent);
+	SAFE_DELETE_ARRAY(m_paiExtraFeatureDefensePercent);
+	SAFE_DELETE_ARRAY(m_paiExtraUnitCombatModifier);
+}
+
+
+void CvUnit::reloadEntity()
+{
+	uninitEntity();
+	CvDLLEntity::createUnitEntity(this); // create and attach entity to unit
+	setupGraphical();
+}
+
+// advc.003u: Body moved from reloadEntity. Comments are by Firaxis.
+void CvUnit::uninitEntity()
+{
+	// don't need to remove entity when the app is shutting down, or crash can occur
+	if (!gDLL->GetDone() && GC.IsGraphicsInitialized())
+	{
+		gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
+		CvDLLEntity::removeEntity(); // remove entity from engine
+	}
+	CvDLLEntity::destroyEntity(); // delete CvUnitEntity and detach from us
+}
+
+
+void CvUnit::finalizeInit() // advc.003u: Body cut from init
+{
+	setupGraphical();
+
+	plot()->updateCenterUnit();
+	plot()->setFlagDirty(true);
+
+	CvGame& g = GC.getGame();
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	int iCreated = g.getUnitCreatedCount(getUnitType()); // advc.003: was called "iUnitName"
+	int iNumNames = m_pUnitInfo->getNumUnitNames();
+	if (iCreated < iNumNames)
+	{	// <advc.005b>
+		/*  Skip every iStep'th name on average. Basic assumption: About half of
+			the names are used in a long (space-race) game with 7 civs; therefore, skip every
+			iStep=2 then. Adjust this to the (current) number of civs. */
+		int iAlive = g.countCivPlayersAlive();
+		if(iAlive <= 0) {
+			FAssert(iAlive > 0);
+			iAlive = 7;
+		}
+		int const iStep = std::max(1, ::round(14.0 / iAlive));
+		// This gives iRand an expected value of step
+		int iRand = g.getSorenRandNum(2 * iStep + 1, "advc.005b");
+		/*  The index of the most recently used name isn't available; instead,
+			take iStep times the number of previously used names in order to
+			pick up roughly where we left off. */
+		int iOffset = iStep * iCreated + iRand;
+		// That's +8 in Medieval, +16 in Renaissance and +24 in Industrial or later.
+		iOffset += std::min(24, 8 * std::max(0, g.getStartEra() - 1));
+		bool bNameSet = false;
+		// If we run out of names, search backward
+		if(iOffset >= iNumNames) {
+			/*  The first couple are still somewhat random, but then just
+				pick them chronologically. */
+			for(int i = iNumNames - 1 - iRand; i >= 0; i--) {
+				CvWString szName = gDLL->getText(m_pUnitInfo->getUnitNames(i));
+				// Copied from below
+				if(!g.isGreatPersonBorn(szName)) {
+					setName(szName);
+					bNameSet = true;
+					g.addGreatPersonBornName(szName);
+					break;
+				}
+			} // Otherwise, search forward
+		}
+		if(!bNameSet) { // </advc.005b>
+			for (int i = 0; i < iNumNames; i++)
+			{
+				int iIndex = (i + iOffset) % iNumNames;
+				CvWString szName = gDLL->getText(m_pUnitInfo->getUnitNames(iIndex));
+				if (!g.isGreatPersonBorn(szName))
+				{
+					setName(szName);
+					g.addGreatPersonBornName(szName);
+					break;
+				}
+			}
+		}
+	}
+
+	setGameTurnCreated(g.getGameTurn());
+	g.incrementUnitCreatedCount(getUnitType());
+	g.incrementUnitClassCreatedCount((UnitClassTypes)m_pUnitInfo->getUnitClassType());
+	GET_TEAM(getTeam()).changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
+	kOwner.changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
+	kOwner.changeExtraUnitCost(m_pUnitInfo->getExtraCost());
+
+	if (m_pUnitInfo->getNukeRange() != -1)
+		kOwner.changeNumNukeUnits(1);
+
+	if (m_pUnitInfo->isMilitarySupport())
+		kOwner.changeNumMilitaryUnits(1);
+
+	kOwner.changeAssets(m_pUnitInfo->getAssetValue());
+	kOwner.changePower(m_pUnitInfo->getPowerValue()
+			/ (m_pUnitInfo->getDomainType() == DOMAIN_SEA ? 2 : 1) // advc.104e
+	);
+
+	// advc.104: To enable more differentiated tracking of power values
+	kOwner.warAndPeaceAI().getCache().reportUnitCreated(*m_pUnitInfo);
+
+	for (int i = 0; i < GC.getNumPromotionInfos(); i++)
+	{
+		if (m_pUnitInfo->getFreePromotions(i))
+			setHasPromotion((PromotionTypes)i, true);
+	}
+
+	FAssert(GC.getNumTraitInfos() > 0);
+	for (int i = 0; i < GC.getNumTraitInfos(); i++)
+	{
+		TraitTypes eTrait = (TraitTypes)i;
+		if (!kOwner.hasTrait(eTrait))
+			continue;
+
+		CvTraitInfo const& kTrait = GC.getTraitInfo(eTrait);
+		for (int j = 0; j < GC.getNumPromotionInfos(); j++)
+		{
+			PromotionTypes ePromo = (PromotionTypes)j;
+			if (kTrait.isFreePromotion(ePromo))
+			{
+				if (getUnitCombatType() != NO_UNITCOMBAT && kTrait.isFreePromotionUnitCombat(getUnitCombatType()))
+					setHasPromotion(ePromo, true);
+			}
+		}
+	}
+
+	if (getUnitCombatType() != NO_UNITCOMBAT)
+	{
+		for (int i = 0; i < GC.getNumPromotionInfos(); i++)
+		{
+			PromotionTypes ePromo = (PromotionTypes)i;
+			if (kOwner.isFreePromotion(getUnitCombatType(), ePromo))
+				setHasPromotion(ePromo, true);
+		}
+	}
+
+	if (getUnitClassType() != NO_UNITCLASS)
+	{
+		for (int i = 0; i < GC.getNumPromotionInfos(); i++)
+		{
+			PromotionTypes ePromo = (PromotionTypes)i;
+			if (kOwner.isFreePromotion(getUnitClassType(), ePromo))
+				setHasPromotion(ePromo, true);
+		}
+	}
+
+	if (getDomainType() == DOMAIN_LAND)
+	{
+		if (baseCombatStr() > 0)
+		{
+			if (g.getBestLandUnit() == NO_UNIT || baseCombatStr() > g.getBestLandUnitCombat())
+				g.setBestLandUnit(getUnitType());
+		}
+	}
+
+	if (kOwner.getID() == g.getActivePlayer())
+		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
+
+	if (isWorldUnitClass((UnitClassTypes)m_pUnitInfo->getUnitClassType()))
+	{
+		for (int i = 0; i < MAX_PLAYERS; i++)
+		{
+			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
+			if(!kObs.isAlive())
+				continue; // advc.003
+
+			CvWString szBuffer;
+			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam())
+					|| kObs.isSpectator()) // advc.127
+			{
+				// <advc.127b>
+				int iFlashX = -1, iFlashY = -1;
+				if(plot()->isRevealed(kObs.getTeam(), true)) {
+					iFlashX = getX(); iFlashY = getY();
+				} // </advc.127b>
+				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT",
+						kOwner.getNameKey(), getNameKey());
+				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+						"AS2D_WONDER_UNIT_BUILD", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
+						(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
+						iFlashX, iFlashY, true, true);
+			}
+			else
+			{
+				szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_CREATED_UNIT", getNameKey());
+				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+						"AS2D_WONDER_UNIT_BUILD", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
+						(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+			}
+		}
+
+		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT", kOwner.getNameKey(), getNameKey()));
+		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(), szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+	}
+
+	CvEventReporter::getInstance().unitCreated(this);
+}
+
+
+void CvUnit::setupGraphical() // graphical-only setup
 {
 	if (!GC.IsGraphicsInitialized())
-	{
 		return;
-	}
 
 	CvDLLEntity::setup();
 
 	if (getGroup()->getActivityType() == ACTIVITY_INTERCEPT)
-	{
 		airCircle(true);
-	}
 }
 
 
@@ -3233,7 +3143,7 @@ void CvUnit::automate(AutomateTypes eAutomate)
 		// unfortunately, CvSelectionGroup::AI_update can kill the unit, and CvUnit::automate currently isn't allowed to kill the unit.
 		// CvUnit::AI_update should be ok; but using it here makes me a bit uncomfortable because it doesn't include all the checks and conditions of the group update.
 		// ...too bad.
-		AI_update();
+		AI().AI_update();
 	}
 	// K-Mod end
 }
@@ -6249,7 +6159,7 @@ bool CvUnit::discover()
 }
 
 
-int CvUnit::getMaxHurryProduction(CvCity* pCity) const
+int CvUnit::getMaxHurryProduction(CvCity const* pCity) const // advc.003: const CvCity*
 {
 	int iProduction = m_pUnitInfo->getBaseHurry() +
 			m_pUnitInfo->getHurryMultiplier() * pCity->getPopulation();
@@ -7447,8 +7357,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 			CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 			if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == eTeam)
 			{
-				int iLoop;
-				for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+				FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer)
 				{
 					// if coastal only, then make sure we are coast
 					CvArea* pWaterArea = NULL;
@@ -8974,41 +8883,33 @@ int CvUnit::rangeCombatDamage(const CvUnit* pDefender) const
 }
 
 
-CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const
+CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const  // advc.003: some style changes
 {
 	int iBestValue = 0;
 	CvUnit* pBestUnit = NULL;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (isEnemy(GET_PLAYER((PlayerTypes)iI).getTeam()) && !isInvisible(GET_PLAYER((PlayerTypes)iI).getTeam(), false, false))
-			{
-				int iLoop;
-				for(CvUnit* pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
-				{
-					if (pLoopUnit->canAirDefend())
-					{
-						if (!pLoopUnit->isMadeInterception())
-						{
-							if ((pLoopUnit->getDomainType() != DOMAIN_AIR) || !(pLoopUnit->hasMoved()))
-							{
-								if ((pLoopUnit->getDomainType() != DOMAIN_AIR) || (pLoopUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT))
-								{
-									if (plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), pPlot->getX(), pPlot->getY()) <= pLoopUnit->airRange())
-									{
-										int iValue = pLoopUnit->currInterceptionProbability();
+		CvPlayer const& kEnemy = GET_PLAYER((PlayerTypes)iI);
+		if (!kEnemy.isAlive() || !isEnemy(kEnemy.getTeam()) ||
+				isInvisible(kEnemy.getTeam(), false, false))
+			continue;
 
-										if (iValue > iBestValue)
-										{
-											iBestValue = iValue;
-											pBestUnit = pLoopUnit;
-										}
-									}
-								}
-							}
-						}
-					}
+		FOR_EACH_UNIT_VAR(pLoopUnit, kEnemy)
+		{
+			if (pLoopUnit->canAirDefend() &&
+				!pLoopUnit->isMadeInterception() &&
+				(pLoopUnit->getDomainType() != DOMAIN_AIR || !pLoopUnit->hasMoved()) &&
+				(pLoopUnit->getDomainType() != DOMAIN_AIR ||
+				pLoopUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT) &&
+				plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), pPlot->getX(), pPlot->getY()) <=
+				pLoopUnit->airRange())
+			{
+				int iValue = pLoopUnit->currInterceptionProbability();
+
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					pBestUnit = pLoopUnit;
 				}
 			}
 		}
@@ -9595,7 +9496,7 @@ bool CvUnit::isGroupHead() const // XXX is this used???
 }
 
 
-CvSelectionGroup* CvUnit::getGroup() const
+CvSelectionGroup* CvUnit::getGroup() const // advc.003u (comment): The body is duplicated in CvUnitAI::AI_getGroup
 {
 	return GET_PLAYER(getOwner()).getSelectionGroup(getGroupID());
 }
@@ -9763,27 +9664,22 @@ void CvUnit::setHotKeyNumber(int iNewValue)
 {
 	FAssert(getOwner() != NO_PLAYER);
 
-	if (getHotKeyNumber() != iNewValue)
+	if (getHotKeyNumber() == iNewValue)
+		return;
+
+	if (iNewValue != -1)
 	{
-		if (iNewValue != -1)
+		FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(getOwner()))
 		{
-			int iLoop;
-			for(CvUnit* pLoopUnit = GET_PLAYER(getOwner()).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(getOwner()).nextUnit(&iLoop))
-			{
-				if (pLoopUnit->getHotKeyNumber() == iNewValue)
-				{
-					pLoopUnit->setHotKeyNumber(-1);
-				}
-			}
-		}
-
-		m_iHotKeyNumber = iNewValue;
-
-		if (IsSelected())
-		{
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+			if (pLoopUnit->getHotKeyNumber() == iNewValue)
+				pLoopUnit->setHotKeyNumber(-1);
 		}
 	}
+
+	m_iHotKeyNumber = iNewValue;
+
+	if (IsSelected())
+		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 }
 
 // <advc.003f>
@@ -11647,22 +11543,6 @@ void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 }
 
 
-int CvUnit::getExtraDomainModifier(DomainTypes eIndex) const
-{
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < NUM_DOMAIN_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_aiExtraDomainModifier[eIndex];
-}
-
-
-void CvUnit::changeExtraDomainModifier(DomainTypes eIndex, int iChange)
-{
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < NUM_DOMAIN_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
-	m_aiExtraDomainModifier[eIndex] = (m_aiExtraDomainModifier[eIndex] + iChange);
-}
-
-
 const CvWString CvUnit::getName(uint uiForm) const
 {
 	CvWString szBuffer;
@@ -11741,26 +11621,37 @@ void CvUnit::setScriptData(std::string szNewValue)
 }
 
 
+int CvUnit::getExtraDomainModifier(DomainTypes eIndex) const
+{
+	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, eIndex, "CvUnit::getExtraDomainModifier");
+	return m_paiExtraDomainModifier[eIndex];
+}
+
+
+void CvUnit::changeExtraDomainModifier(DomainTypes eIndex, int iChange)
+{
+	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, eIndex, "CvUnit::changeExtraDomainModifier");
+	m_paiExtraDomainModifier[eIndex] += iChange;
+}
+
+
 int CvUnit::getTerrainDoubleMoveCount(TerrainTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::getTerrainDoubleMoveCount");
 	return m_paiTerrainDoubleMoveCount[eIndex];
 }
 
 
 bool CvUnit::isTerrainDoubleMove(TerrainTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::isTerrainDoubleMoveCount");
 	return (getTerrainDoubleMoveCount(eIndex) > 0);
 }
 
 
 void CvUnit::changeTerrainDoubleMoveCount(TerrainTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::changeTerrainDoubleMoveCount");
 	m_paiTerrainDoubleMoveCount[eIndex] = (m_paiTerrainDoubleMoveCount[eIndex] + iChange);
 	FAssert(getTerrainDoubleMoveCount(eIndex) >= 0);
 }
@@ -11768,24 +11659,21 @@ void CvUnit::changeTerrainDoubleMoveCount(TerrainTypes eIndex, int iChange)
 
 int CvUnit::getFeatureDoubleMoveCount(FeatureTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::getFeatureDoubleMoveCount");
 	return m_paiFeatureDoubleMoveCount[eIndex];
 }
 
 
 bool CvUnit::isFeatureDoubleMove(FeatureTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::isFeatureDoubleMoveCount");
 	return (getFeatureDoubleMoveCount(eIndex) > 0);
 }
 
 
 void CvUnit::changeFeatureDoubleMoveCount(FeatureTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::changeFeatureDoubleMoveCount");
 	m_paiFeatureDoubleMoveCount[eIndex] = (m_paiFeatureDoubleMoveCount[eIndex] + iChange);
 	FAssert(getFeatureDoubleMoveCount(eIndex) >= 0);
 }
@@ -11793,108 +11681,89 @@ void CvUnit::changeFeatureDoubleMoveCount(FeatureTypes eIndex, int iChange)
 
 int CvUnit::getExtraTerrainAttackPercent(TerrainTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::getExtraTerrainAttackPercent");
 	return m_paiExtraTerrainAttackPercent[eIndex];
 }
 
 
 void CvUnit::changeExtraTerrainAttackPercent(TerrainTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::changeExtraTerrainAttackPercent");
 	if (iChange != 0)
 	{
 		m_paiExtraTerrainAttackPercent[eIndex] += iChange;
-
 		setInfoBarDirty(true);
 	}
 }
 
 int CvUnit::getExtraTerrainDefensePercent(TerrainTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::getExtraTerrainDefensePercent");
 	return m_paiExtraTerrainDefensePercent[eIndex];
 }
 
 
 void CvUnit::changeExtraTerrainDefensePercent(TerrainTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumTerrainInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), eIndex, "CvUnit::changeExtraTerrainDefensePercent");
 	if (iChange != 0)
 	{
 		m_paiExtraTerrainDefensePercent[eIndex] += iChange;
-
 		setInfoBarDirty(true);
 	}
 }
 
 int CvUnit::getExtraFeatureAttackPercent(FeatureTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::getExtraFeatureAttackPercent");
 	return m_paiExtraFeatureAttackPercent[eIndex];
 }
 
 
 void CvUnit::changeExtraFeatureAttackPercent(FeatureTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::changeExtraFeatureAttackPercent");
 	if (iChange != 0)
 	{
 		m_paiExtraFeatureAttackPercent[eIndex] += iChange;
-
 		setInfoBarDirty(true);
 	}
 }
 
 int CvUnit::getExtraFeatureDefensePercent(FeatureTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::getExtraFeatureDefensePercent");
 	return m_paiExtraFeatureDefensePercent[eIndex];
 }
 
 
 void CvUnit::changeExtraFeatureDefensePercent(FeatureTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumFeatureInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-
+	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), eIndex, "CvUnit::changeExtraFeatureDefensePercent");
 	if (iChange != 0)
 	{
 		m_paiExtraFeatureDefensePercent[eIndex] += iChange;
-
 		setInfoBarDirty(true);
 	}
 }
 
 int CvUnit::getExtraUnitCombatModifier(UnitCombatTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumUnitCombatInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), eIndex, "CvUnit::getExtraUnitCombatModifier");
 	return m_paiExtraUnitCombatModifier[eIndex];
 }
 
 
 void CvUnit::changeExtraUnitCombatModifier(UnitCombatTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumUnitCombatInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), eIndex, "CvUnit::changeExtraUnitCombatModifier");
 	m_paiExtraUnitCombatModifier[eIndex] = (m_paiExtraUnitCombatModifier[eIndex] + iChange);
 }
 
 
 bool CvUnit::canAcquirePromotion(PromotionTypes ePromotion) const
 {
-	FAssertMsg(ePromotion >= 0, "ePromotion is expected to be non-negative (invalid Index)");
-	FAssertMsg(ePromotion < GC.getNumPromotionInfos(), "ePromotion is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumPromotionInfos(), ePromotion, "CvUnit::canAcquirePromotion");
 
 	if (isHasPromotion(ePromotion))
 	{
@@ -12157,9 +12026,6 @@ bool CvUnit::potentialWarAction(const CvPlot* pPlot) const
 
 void CvUnit::read(FDataStreamBase* pStream)
 {
-	// Init data before load
-	reset();
-
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
 
@@ -12265,7 +12131,7 @@ void CvUnit::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_transportUnit.eOwner);
 	pStream->Read(&m_transportUnit.iID);
 
-	pStream->Read(NUM_DOMAIN_TYPES, m_aiExtraDomainModifier);
+	pStream->Read(NUM_DOMAIN_TYPES, m_paiExtraDomainModifier);
 
 	pStream->ReadString(m_szName);
 	pStream->ReadString(m_szScriptData);
@@ -12366,7 +12232,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 	pStream->Write(m_transportUnit.eOwner);
 	pStream->Write(m_transportUnit.iID);
 
-	pStream->Write(NUM_DOMAIN_TYPES, m_aiExtraDomainModifier);
+	pStream->Write(NUM_DOMAIN_TYPES, m_paiExtraDomainModifier);
 
 	pStream->WriteString(m_szName);
 	pStream->WriteString(m_szScriptData);

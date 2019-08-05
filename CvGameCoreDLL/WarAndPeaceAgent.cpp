@@ -10,6 +10,7 @@
 #include "BBAI_Defines.h"
 #include "CvDiploParameters.h"
 #include "CvMap.h"
+#include "CvArea.h"
 #include "RiseFall.h" // advc.705
 #include <iterator>
 
@@ -2407,8 +2408,7 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 	int cityLimit = (int)std::ceil(human.getNumCities() / 6.0);
 	int cityCount = 0;
 	if(!ignoreCities) {
-		int dummy = -1;
-		for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
+		FOR_EACH_CITY(c, human) {
 			setTradeItem(&item, TRADE_CITIES, c->getID());
 			if(human.canTradeItem(weId, item, true)) {
 				if(totalTradeVal < targetTradeVal)

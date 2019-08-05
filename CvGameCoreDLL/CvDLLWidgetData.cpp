@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLWidgetData.h"
 #include "CvGamePlay.h"
+#include "CvDeal.h"
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
 #include "CvPopupInfo.h"
@@ -3932,8 +3933,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		int iLegendaryCulture = GC.getGame().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
 		std::vector<std::pair<int,int> > city_list; // (weight, city id)
 
-		int iLoop;
-		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+		FOR_EACH_CITY(pLoopCity, kPlayer)
 			city_list.push_back(std::make_pair(kPlayer.AI_commerceWeight(COMMERCE_CULTURE, pLoopCity), pLoopCity->getID()));
 
 		int iListCities = std::min((int)city_list.size(), 3);
@@ -6222,8 +6222,7 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes eOwner)
 		return "";
 	int iProjPreInfl = 0;
 	// New city increases other cities' maintenance
-	int foo=-1;
-	for(CvCity* c = kOwner.firstCity(&foo); c != NULL; c = kOwner.nextCity(&foo)) {
+	FOR_EACH_CITY(c, kOwner) {
 		if(c->isDisorder()) // Can't account for these
 			continue;
 		int iProjected = // Distance and corp. maintenance stay the same

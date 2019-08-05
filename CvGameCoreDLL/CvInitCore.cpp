@@ -729,8 +729,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 				setSlotStatus(eID, pSource->getSlotStatus(eID));
 				setSlotClaim(eID, pSource->getSlotClaim(eID));
 				// <advc.001p>
-				int foo=-1;
-				for(CvCity* c = GET_PLAYER(eID).firstCity(&foo); c != NULL; c = GET_PLAYER(eID).nextCity(&foo))
+				FOR_EACH_CITY_VAR(c, GET_PLAYER(eID))
 					c->reset(); // </advc.001p>
 			}
 		}

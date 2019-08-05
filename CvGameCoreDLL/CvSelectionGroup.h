@@ -36,7 +36,8 @@ public:
 
 	void playActionSound();
 
-	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL, CvUnit* pMissionAIUnit = NULL,		// Exposed to Python
+	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL,		// Exposed to Python
+			CvUnit const* pMissionAIUnit = NULL,
 			bool bModified = false); // advc.011b
 	void popMission();																																										// Exposed to Python
 	//DllExport void autoMission();
@@ -62,19 +63,28 @@ public:
 	void setupActionCache();
 
 	bool isHuman() const; // advc.002i: const																																									// Exposed to Python
-	DllExport bool isBusy();
-	bool isCargoBusy();
+
+	DllExport bool isBusy()
+	// <advc.003> Need a const version of this
+	{	CvSelectionGroup const& kThis = *this;
+		return kThis.isBusy();
+	} bool isBusy() const; // </advc.003>
+	bool isCargoBusy() const;
 	int baseMoves() const;																																										// Exposed to Python
 	int maxMoves() const; // K-Mod
 	int movesLeft() const; // K-Mod
 	bool isWaiting() const;																																							// Exposed to Python
 	// advc.make: Cut from CvGameCoreUtils
 	inline bool isCycleGroup() const { return getNumUnits() > 0 && !isWaiting() && !isAutomated(); } // K-Mod
-	bool isFull();																																											// Exposed to Python
-	bool hasCargo();																																										// Exposed to Python
+	bool isFull() const;																																											// Exposed to Python
+	bool hasCargo() const;																																										// Exposed to Python
 	int getCargo() const;
 	int cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo = NO_SPECIALUNIT, DomainTypes eDomainCargo = NO_DOMAIN) const; // K-Mod
-	DllExport bool canAllMove();																																				// Exposed to Python
+	DllExport bool canAllMove()																																				// Exposed to Python
+	// <advc.003> Need a const version fo this
+	{	CvSelectionGroup const& kThis = *this;
+		return kThis.canAllMove();
+	} bool canAllMove() const; // </advc.003>
 	bool canAnyMove() const; // Exposed to Python
 	bool canCargoAllMove() const; // K-Mod (moved from CvUnit)
 	bool hasMoved() const; // Exposed to Python
@@ -86,13 +96,13 @@ public:
 	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: const
 	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible
-	bool canFight();																																										// Exposed to Python
-	bool canDefend();																																										// Exposed to Python
-	bool canBombard(const CvPlot* pPlot);
-	bool visibilityRange();
+	bool canFight() const;																																										// Exposed to Python
+	bool canDefend() const;																																										// Exposed to Python
+	bool canBombard(const CvPlot* pPlot) const;
+	bool visibilityRange() const;
 
 	// BETTER_BTS_AI_MOD, General AI, 08/19/09, jdog5000: START
-	int getBombardTurns(CvCity* pCity) /* advc.003: */ const;
+	int getBombardTurns(CvCity const* pCity) const;
 	bool isHasPathToAreaPlayerCity(PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 	bool isHasPathToAreaEnemyCity(bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 	bool isStranded() const; // Note: K-Mod no longer uses the stranded cache. I have a new system.
@@ -104,7 +114,7 @@ public:
 	void unloadAll();
 	bool alwaysInvisible() const;																																							// Exposed to Python
 	bool isInvisible(TeamTypes eTeam) const;																								// Exposed to Python
-	int countNumUnitAIType(UnitAITypes eUnitAI);																												// Exposed to Python
+	int countNumUnitAIType(UnitAITypes eUnitAI) const;																												// Exposed to Python
 	bool hasWorker();																																										// Exposed to Python
 	bool IsSelected();
 	DllExport void NotifyEntity(MissionTypes eMission);
@@ -136,10 +146,10 @@ public:
 	bool groupAmphibMove(CvPlot* pPlot, int iFlags);
 
 	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python
-	bool readyToMove(bool bAny = false); // Exposed to Python
-	bool readyToAuto(); // Exposed to Python
+	bool readyToMove(bool bAny = false) const; // Exposed to Python
+	bool readyToAuto() const; // Exposed to Python
 	// K-Mod.
-	bool readyForMission(); // (note: I'd make this function const, but it would conflict with some dllexport functions)
+	bool readyForMission() const;
 	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot,
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
@@ -152,7 +162,7 @@ public:
 	void changeMissionTimer(int iChange);
 	void updateMissionTimer(int iSteps = 0, /* advc.102: */ CvPlot* pFromPlot = NULL);
 
-	inline bool isForceUpdate() { return m_bForceUpdate; } // K-Mod made inline
+	inline bool isForceUpdate() const { return m_bForceUpdate; } // K-Mod made inline // advc.003: const
 	inline void setForceUpdate(bool bNewValue) { m_bForceUpdate = bNewValue; } // K-Mod made inline
 	// void doForceUpdate(); // K-Mod. (disabled. force update doesn't work the same way anymore.)
 
@@ -189,7 +199,7 @@ public:
 	DllExport CLLNode<IDInfo>* headUnitNode() const;
 	DllExport CvUnit* getHeadUnit() const;
 	CvUnit* getUnitAt(int index) const;
-	UnitAITypes getHeadUnitAI() const;
+	UnitAITypes getHeadUnitAIType() const; // advc.003u: was getHeadUnitAI
 	PlayerTypes getHeadOwner() const;
 	TeamTypes getHeadTeam() const;
 
@@ -228,15 +238,16 @@ public:
 	virtual bool AI_isGroupAttack() const = 0; // K-Mod made const
 
 	virtual bool AI_isControlled() = 0;
-	virtual bool AI_isDeclareWar(const CvPlot* pPlot = NULL) = 0;
-	virtual CvPlot* AI_getMissionAIPlot() = 0;
+	virtual bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const = 0;
+	virtual CvPlot* AI_getMissionAIPlot() const = 0;
 	virtual bool AI_isForceSeparate() = 0;
 	//virtual void AI_makeForceSeparate() = 0;
 	virtual void AI_setForceSeparate(bool bNewValue = true) = 0; // K-Mod
 	//virtual MissionAITypes AI_getMissionAIType() = 0;
 	virtual MissionAITypes AI_getMissionAIType() const = 0; // K-Mod
-	virtual void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot, CvUnit* pNewUnit) = 0;
-	virtual CvUnit* AI_getMissionAIUnit() = 0;
+	virtual void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
+			CvUnit const* pNewUnit) = 0; // advc.003: const
+	virtual CvUnit* AI_getMissionAIUnit() const = 0;
 	virtual CvUnit* AI_ejectBestDefender(CvPlot* pTargetPlot) = 0;
 	virtual void AI_separateNonAI(UnitAITypes eUnitAI) = 0;
 	virtual void AI_separateAI(UnitAITypes eUnitAI) = 0;

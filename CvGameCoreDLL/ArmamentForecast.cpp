@@ -9,6 +9,7 @@
 #include "CvGamePlay.h"
 #include "BBAI_Defines.h"
 #include "CvMap.h"
+#include "CvArea.h"
 #include "CvInfos.h"
 #include <sstream>
 
@@ -375,8 +376,8 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	branchPortions[HOME_GUARD] = 0.13;
 	if(navalArmament) {
 		branchPortions[FLEET] = 0.2;
-		int rev = 0, revCoast = 0, dummy = 0;
-		for(CvCity* c = civ.firstCity(&dummy); c != NULL; c = civ.nextCity(&dummy)) {
+		int rev = 0, revCoast = 0;
+		FOR_EACH_CITY(c, civ) {
 			if(c->isRevealed(civ.getTeam(), false)) {
 				rev++;
 				if(c->isCoastal())

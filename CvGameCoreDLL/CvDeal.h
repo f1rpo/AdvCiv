@@ -33,7 +33,6 @@ public:
 	// advc.130p: BtS function; now unused.
 	//bool isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const;
 	bool isVassalDeal() const;
-	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
 	/*  advc.003: The above checks if pList contains only TRADE_RESSOURCE items;
 		need a function that checks if this deal is a tribute deal between a vassal and a master. */
@@ -63,17 +62,28 @@ public:
 	DllExport inline CLLNode<TradeData>* nextSecondTradesNode(CLLNode<TradeData>* pNode) const {
 		return m_secondTrades.next(pNode); }
 	// </advc.003f>
-	/*  <advc.003> More convenient interface for iteration. Caller has to ensure
-		that ePlayer is involved in the trade!
-		Tbd.: Replace awkward uses of the old interface throughout the code base */
+	// <advc.003> More convenient interface for iteration
 	bool isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const;
 	bool isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const;
+	bool isBetween(PlayerTypes ePlayer, TeamTypes eTeam) const;
+	bool involves(PlayerTypes ePlayer) const;
+	bool involves(TeamTypes eTeam) const;
+	PlayerTypes getOtherPlayer(PlayerTypes ePlayer) const;
+	// Caller has to ensure that ePlayer/ eTeam is involved in the trade!
 	CLinkList<TradeData> const& getGivesList(PlayerTypes ePlayer) const;
-	CLinkList<TradeData> const& getReceivesList(PlayerTypes ePlayer) const;
+	CLinkList<TradeData> const& getGivesList(TeamTypes eTeam) const;
 	CLLNode<TradeData>* headGivesNode(PlayerTypes ePlayer) const;
-	CLLNode<TradeData>* headReceivesNode(PlayerTypes ePlayer) const;
 	CLLNode<TradeData>* nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const;
+	CLLNode<TradeData>* headGivesNode(TeamTypes eTeam) const;
+	CLLNode<TradeData>* nextGivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const;
+	CLinkList<TradeData> const& getReceivesList(PlayerTypes ePlayer) const;
+	CLinkList<TradeData> const& getReceivesList(TeamTypes eTeam) const;
+	CLLNode<TradeData>* headReceivesNode(PlayerTypes ePlayer) const;
 	CLLNode<TradeData>* nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const;
+	CLLNode<TradeData>* headReceivesNode(TeamTypes eTeam) const;
+	CLLNode<TradeData>* nextReceivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const;
+	CLLNode<TradeData>* headTradesNode() const;
+	CLLNode<TradeData>* nextTradesNode(CLLNode<TradeData>* pNode) const;
 	// </advc.003>
 
 	void clearFirstTrades(); // advc.003j (comment): unused
@@ -93,6 +103,7 @@ public:
 	// </advc.003>
 	bool isEverCancelable(PlayerTypes eByPlayer) const; // advc.130f
 	int turnsToCancel(PlayerTypes eByPlayer = NO_PLAYER) /* advc.003: */ const;
+	bool isAllDual() const; // advc.003
 
 	static bool isAnnual(TradeableItems eItem);
 	DllExport static bool isDual(TradeableItems eItem, bool bExcludePeace = false);
@@ -123,6 +134,11 @@ protected:
 	// </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
+	void announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, // advc.003
+			bool bForce) const; // advc.106j
+	bool verify(PlayerTypes eRecipient, PlayerTypes eGiver);
+	// advc.003: was public
+	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 
 	static bool isVassalTrade(const CLinkList<TradeData>* pFirstList);
 

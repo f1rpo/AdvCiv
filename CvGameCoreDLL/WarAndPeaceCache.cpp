@@ -10,6 +10,7 @@
 #include "CvGamePlay.h"
 #include "BBAI_Defines.h"
 #include "CvMap.h"
+#include "CvArea.h"
 #include "CvInfos.h"
 #include <cmath>
 
@@ -269,11 +270,11 @@ void WarAndPeaceCache::update() {
 void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 
 	PROFILE_FUNC();
-	CvPlayerAI& civ = GET_PLAYER(civId); int foo=-1;
-	for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo)) {
+	CvPlayerAI& civ = GET_PLAYER(civId);
+	FOR_EACH_CITY(c, civ) {
 		// c.isRevealed() impedes the AI too much
 		if(TEAMREF(ownerId).AI_deduceCitySite(c)) {
-			City* cacheCity = new City(ownerId, c);
+			City* cacheCity = new City(ownerId, *c);
 			v.push_back(cacheCity);
 			cityMap.insert(std::make_pair(cacheCity->id(), cacheCity));
 			if(civId != ownerId && cacheCity->canReach())
@@ -312,14 +313,13 @@ double const WarAndPeaceCache::goldPerProdUpperLimit = 4.5;
 double WarAndPeaceCache::goldPerProdBuildings() {
 
 	PROFILE_FUNC();
-	int dummy=-1; // For unused out-parameters
 	vector<double> buildingCounts; // excluding wonders
 	vector<double> wonderCounts;
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	EraTypes ownerEra = owner.getCurrentEra();
 	ReligionTypes ownerReligion = owner.getStateReligion();
-	for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
-			cp = owner.nextCity(&dummy)) { CvCity const& c = *cp;
+	FOR_EACH_CITY(cp, owner) {
+		CvCity const& c = *cp;
 		int buildings = 0, wonders = 0;
 		for(int i = 0; i < GC.getNumBuildingInfos(); i++) {
 			BuildingTypes bId = (BuildingTypes)i;
@@ -389,11 +389,10 @@ double WarAndPeaceCache::goldPerProdSites() {
 			may increase a bit (see shapeWeight in AI_foundValue_bulk) */
 		sites += foundVals[i] * (weights[i] + settlers / 10.0) / 2500;
 	}
-	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER); int foo=-1;
 	/*  Don't want to count faraway barb cities. Reference value set after
 		looking at some sample targetCityValues; let's hope these generalize. */
 	double const refVal = 50;
-	for(CvCity* c = barb.firstCity(&foo); c != NULL; c = barb.nextCity(&foo)) {
+	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER)) {
 		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c)) {
 			int const targetVal = owner.AI_targetCityValue(c, false, true);
 			sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
@@ -491,8 +490,8 @@ void WarAndPeaceCache::updateWarAnger() {
 	if(owner.isAnarchy())
 		return;
 	double totalWWAnger = 0;
-	int dummy=-1; for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
-			cp = owner.nextCity(&dummy)) { CvCity const& c = *cp;
+	FOR_EACH_CITY(cp, owner) {
+		CvCity const& c = *cp;
 		if(c.isDisorder())
 			continue;
 		/*  Disregard happiness from culture rate unless we need culture
@@ -980,10 +979,8 @@ void WarAndPeaceCache::updateRelativeNavyPower() {
 void WarAndPeaceCache::updateTargetMissionCount(PlayerTypes civId) {
 
 	int r = 0;
-	int i;
 	CvPlayerAI& owner = GET_PLAYER(ownerId);
-	for(CvSelectionGroup* selGroup = owner.firstSelectionGroup(&i);
-			selGroup != NULL; selGroup = owner.nextSelectionGroup(&i)) {
+	FOR_EACH_GROUPAI(selGroup, owner) {
 		if(selGroup->getNumUnits() <= 0) // Can be empty
 			continue;
 		CvPlot* missionPlot = selGroup->AI_getMissionAIPlot();
@@ -1254,7 +1251,7 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 			}
 		}
 	}
-	City* toCache = new City(ownerId, c);
+	City* toCache = new City(ownerId, *c);
 	if(vIndex < 0 || vIndex >= v.size()) {
 		v.push_back(toCache);
 		// (c could also have become revealed through map trade)
@@ -1368,15 +1365,15 @@ void WarAndPeaceCache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 		nNonNavyUnits += (add ? 1 : -1);
 }
 
-WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity* c)
+WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity const& c)
 		: cacheOwnerId(cacheOwnerId) {
 
-	canDeduce = TEAMREF(cacheOwnerId).AI_deduceCitySite(c);
+	canDeduce = TEAMREF(cacheOwnerId).AI_deduceCitySite(&c);
 	// Use plot index as city id (the pointer 'c' isn't serializable)
-	plotIndex = c->plotNum();
+	plotIndex = c.plotNum();
 	updateDistance(c);
 	// AI_targetCityValue doesn't account for reachability (probably should)
-	if(!canReach() || cacheOwnerId == c->getOwner())
+	if(!canReach() || cacheOwnerId == c.getOwner())
 		targetValue = -1;
 	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
 			city(), false, true);
@@ -1604,7 +1601,7 @@ bool WarAndPeaceCache::City::isOwnCity() const {
 	return (distance == 0 && cityOwner() == cacheOwnerId);
 }
 
-void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
+void WarAndPeaceCache::City::updateDistance(CvCity const& targetCity) {
 
 	PROFILE_FUNC();
 	/*  For each city of the agent (cacheOwner), compute a path to the target city
@@ -1632,7 +1629,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 
 	// Our own cities have 0 distance from themselves
-	if(targetCity->getOwner() == cacheOwnerId) {
+	if(targetCity.getOwner() == cacheOwnerId) {
 		distance = 0;
 		reachByLand = true;
 		reachBySea = true;
@@ -1645,7 +1642,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	bool human = cacheOwner.isHuman();
 	EraTypes const era = cacheOwner.getCurrentEra();
 	// Assume that humans can always locate cities
-	if(!human && !cacheOwner.AI_deduceCitySite(targetCity))
+	if(!human && !cacheOwner.AI_deduceCitySite(&targetCity))
 		return;
 	bool trainDeepSeaCargo = cacheOwner.warAndPeaceAI().getCache().
 			canTrainDeepSeaCargo();
@@ -1657,8 +1654,8 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		but at least one other city that does have a path to the target, then there
 		is most likely also some mixed path from c to the target. */
 	double mixedPath = 0;
-	CvCity* capital = cacheOwner.getCapitalCity(); int foo;
-	for(CvCity* c = cacheOwner.firstCity(&foo); c != NULL; c = cacheOwner.nextCity(&foo)) {
+	CvCity* capital = cacheOwner.getCapitalCity();
+	FOR_EACH_CITY(c, cacheOwner) {
 		// Skip small and isolated cities
 		if(!c->isCapital() && (c->area()->getCitiesPerPlayer(cacheOwnerId) <= 1 ||
 				c->getPopulation() < capital->getPopulation() / 3 ||
@@ -1667,7 +1664,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
-		if(measureDistance(cacheOwnerId, DOMAIN_LAND, p, targetCity->plot(), &d)) {
+		if(measureDistance(cacheOwnerId, DOMAIN_LAND, p, targetCity.plot(), &d)) {
 			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
 			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
@@ -1684,7 +1681,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(cacheOwnerId, dom, p, targetCity->plot(), &d)) {
+			if(measureDistance(cacheOwnerId, dom, p, targetCity.plot(), &d)) {
 				FAssert(d >= 0);
 				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
 						seaPenalty;

@@ -238,7 +238,7 @@ int CyPlayer::countTotalCulture()
 
 int CyPlayer::countOwnedBonuses(int /*BonusTypes*/ eBonus)
 {
-	return m_pPlayer ? m_pPlayer->countOwnedBonuses((BonusTypes)eBonus) : NO_BONUS;
+	return m_pPlayer ? m_pPlayer->AI().AI_countOwnedBonuses((BonusTypes)eBonus) : NO_BONUS;
 }
 
 int CyPlayer::countUnimprovedBonuses(CyArea* pArea, CyPlot* pFromPlot)
@@ -2299,8 +2299,14 @@ bool CyPlayer::canSplitEmpire() const
 bool CyPlayer::canSplitArea(int iAreaId) const
 {
 	if (m_pPlayer)
-	{
-		return m_pPlayer->canSplitArea(iAreaId);
+	{	// <advc.003> Handle the area lookup here
+		CvArea* pArea = GC.getMap().getArea(iAreaId);
+		if (pArea == NULL)
+		{
+			FAssert(pArea != NULL);
+			return false;
+		} // </advc.003>
+		return m_pPlayer->canSplitArea(*pArea);
 	}
 
 	return false;

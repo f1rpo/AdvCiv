@@ -28,7 +28,7 @@
 #define FLTA_ID_MASK				(~(FLTA_INDEX_MASK))
 #define FLTA_GROWTH_FACTOR	(2)
 
-template <class T>
+template <class T> // advc (note): T is required to be a concrete class with a getID() function
 class FFreeListTrashArray : public FFreeListArrayBase<T>
 {
 public:
@@ -478,7 +478,8 @@ inline void FFreeListTrashArray< T >::Write( FDataStreamBase* pStream )
 //-------------------------------
 // Serialization helper templates:
 //-------------------------------
-
+namespace // advc.003: Make these inaccessible to files that include this header
+{
 //
 // use when list contains streamable types
 //
@@ -542,5 +543,5 @@ inline void WriteStreamableFFreeListTrashArray( FFreeListTrashArray< T >& flist,
 		}
 	}
 }
-
+} // advc.003: end of unnamed namespace
 #endif	//FFREELISTTRASHARRAY_H

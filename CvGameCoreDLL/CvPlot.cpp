@@ -4,6 +4,7 @@
 #include "CvPlot.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
+#include "CvArea.h"
 #include "CvInfos.h"
 #include "FAStarNode.h" // BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000
 #include "CvDLLSymbolIFaceBase.h"
@@ -644,7 +645,7 @@ void CvPlot::updateSymbols()
 
 	if(maxYield>0)
 	{
-		int maxYieldStack = GC.getDefineINT("MAX_YIELD_STACK");
+		static int maxYieldStack = GC.getDefineINT("MAX_YIELD_STACK"); // advc.003b: static
 		int layers = maxYield /maxYieldStack + 1;
 
 		CvSymbol *pSymbol= NULL;
@@ -1688,11 +1689,9 @@ int CvPlot::seeFromLevel(TeamTypes eTeam) const
 
 int CvPlot::seeThroughLevel() const
 {
-	int iLevel;
-
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 
-	iLevel = GC.getTerrainInfo(getTerrainType()).getSeeThroughLevel();
+	int iLevel = GC.getTerrainInfo(getTerrainType()).getSeeThroughLevel();
 
 	if (getFeatureType() != NO_FEATURE)
 	{
@@ -1719,36 +1718,29 @@ int CvPlot::seeThroughLevel() const
 
 
 
-void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, CvUnit* pUnit, bool bUpdatePlotGroups)
+void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
+		CvUnit const* pUnit, bool bUpdatePlotGroups) // advc.003: const CvUnit*
 {
 	bool bAerial = (pUnit != NULL && pUnit->getDomainType() == DOMAIN_AIR);
 
 	DirectionTypes eFacingDirection = NO_DIRECTION;
 	if (!bAerial && NULL != pUnit)
-	{
 		eFacingDirection = pUnit->getFacingDirection(true);
-	}
 
 	//fill invisible types
 	std::vector<InvisibleTypes> aSeeInvisibleTypes;
 	if (NULL != pUnit)
 	{
 		for(int i=0;i<pUnit->getNumSeeInvisibleTypes();i++)
-		{
 			aSeeInvisibleTypes.push_back(pUnit->getSeeInvisibleType(i));
-		}
 	}
 
 	if(aSeeInvisibleTypes.size() == 0)
-	{
 		aSeeInvisibleTypes.push_back(NO_INVISIBLE);
-	}
 
 	//check one extra outer ring
 	if (!bAerial)
-	{
 		iRange++;
-	}
 
 	for(int i=0;i<(int)aSeeInvisibleTypes.size();i++)
 	{
@@ -1760,10 +1752,8 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, C
 				if (bAerial || shouldProcessDisplacementPlot(dx, dy, iRange - 1, eFacingDirection))
 				{
 					bool outerRing = false;
-					if ((abs(dx) == iRange) || (abs(dy) == iRange))
-					{
+					if (abs(dx) == iRange || abs(dy) == iRange)
 						outerRing = true;
-					}
 
 					//check if anything blocking the plot
 					if (bAerial || canSeeDisplacementPlot(eTeam, dx, dy, dx, dy, true, outerRing))
@@ -1779,7 +1769,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, C
 
 				if (eFacingDirection != NO_DIRECTION)
 				{
-					if((abs(dx) <= 1) && (abs(dy) <= 1)) //always reveal adjacent plots when using line of sight
+					if(abs(dx) <= 1 && abs(dy) <= 1) //always reveal adjacent plots when using line of sight
 					{
 						CvPlot* pPlot = plotXY(getX(), getY(), dx, dy);
 						if (NULL != pPlot)
@@ -2010,12 +2000,12 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 		int iRange = GC.getDefineINT("RECON_VISIBILITY_RANGE");
 		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 		{
-			int iLoop;
-			for(CvUnit* pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
+			FOR_EACH_UNIT(pLoopUnit, GET_PLAYER((PlayerTypes)iI))
 			{
 				if (pLoopUnit->getReconPlot() == this)
 				{
-					changeAdjacentSight(pLoopUnit->getTeam(), iRange, bIncrement, pLoopUnit, bUpdatePlotGroups);
+					changeAdjacentSight(pLoopUnit->getTeam(), iRange, bIncrement,
+							pLoopUnit, bUpdatePlotGroups);
 				}
 			}
 		}
@@ -2652,18 +2642,13 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 CvUnit* CvPlot::getSelectedUnit() const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
 	while (pUnitNode != NULL)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
-
 		if (pLoopUnit->IsSelected())
-		{
 			return pLoopUnit;
-		}
 	}
-
 	return NULL;
 }
 
@@ -3000,12 +2985,12 @@ bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) /* 
 	// Check all other cities
 	for (int iI = 0; !bFound && iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (kLoopPlayer.isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
 		{
-			if (!bIgnoreBarb || !(GET_PLAYER((PlayerTypes)iI).isBarbarian() || GET_PLAYER((PlayerTypes)iI).isMinorCiv()))
+			if (!bIgnoreBarb || !(kLoopPlayer.isBarbarian() || kLoopPlayer.isMinorCiv()))
 			{
-				int iLoop;
-				for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); !bFound && pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+				FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 				{
 					if (pLoopCity->area() == area() && !pLoopCity->isCapital())
 					{
@@ -3047,8 +3032,7 @@ bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer
 	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &aeTeams);
 
 	bool bFound = false;
-	int iLoop;
-	for (CvCity* pLoopCity = GET_PLAYER(eOtherPlayer).firstCity(&iLoop); !bFound && pLoopCity != NULL; pLoopCity = GET_PLAYER(eOtherPlayer).nextCity(&iLoop))
+	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOtherPlayer))
 	{
 		if (pLoopCity->area() == area())
 		{
@@ -3320,27 +3304,23 @@ int CvPlot::plotCount(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerT
 CvUnit* CvPlot::plotCheck(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerTypes eOwner, TeamTypes eTeam, ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
 	while (pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwner() == eOwner))
+		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
 		{
-			if ((eTeam == NO_TEAM) || (pLoopUnit->getTeam() == eTeam))
+			if (eTeam == NO_TEAM || pLoopUnit->getTeam() == eTeam)
 			{
 				if (funcA(pLoopUnit, iData1A, iData2A))
 				{
-					if ((funcB == NULL) || funcB(pLoopUnit, iData1B, iData2B))
-					{
+					if (funcB == NULL || funcB(pLoopUnit, iData1B, iData2B))
 						return pLoopUnit;
-					}
 				}
 			}
 		}
 	}
-
 	return NULL;
 }
 
@@ -5865,7 +5845,7 @@ void CvPlot::updateCityRoute(bool bUpdatePlotGroup)
 
 CvCity* CvPlot::getPlotCity() const
 {
-	return getCity(m_plotCity);
+	return ::getCity(m_plotCity);
 }
 
 
@@ -5945,14 +5925,16 @@ void CvPlot::setRuinsName(const CvWString& szName) {
 	m_szMostRecentCityName = szName;
 }
 
+
 const wchar* CvPlot::getRuinsName() const {
 
 	return m_szMostRecentCityName;
 } // </advc.005c>
 
+
 CvCity* CvPlot::getWorkingCity() const
 {
-	return getCity(m_workingCity);
+	return ::getCity(m_workingCity);
 }
 
 
@@ -6010,19 +5992,12 @@ void CvPlot::updateWorkingCity()
 		FAssertMsg(!isBeingWorked(), "isBeingWorked did not return false as expected");
 		m_workingCity = pBestCity->getIDInfo();
 	}
-	else
-	{
-		m_workingCity.reset();
-	}
+	else m_workingCity.reset();
 
 	if (pOldWorkingCity != NULL)
-	{
 		pOldWorkingCity->AI_setAssignWorkDirty(true);
-	}
 	if (getWorkingCity() != NULL)
-	{
 		getWorkingCity()->AI_setAssignWorkDirty(true);
-	}
 
 	updateYield();
 	updateFog();
@@ -6045,7 +6020,7 @@ void CvPlot::updateWorkingCity()
 
 CvCity* CvPlot::getWorkingCityOverride() const
 {
-	return getCity(m_workingCityOverride);
+	return ::getCity(m_workingCityOverride);
 }
 
 
@@ -6936,7 +6911,7 @@ int CvPlot::getVisibilityCount(TeamTypes eTeam) const
 
 
 void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,
-		CvUnit* pUnit) // advc.071
+		CvUnit const* pUnit) // advc.071
 {
 	FAssertMsg(eTeam >= 0, "eTeam is expected to be non-negative (invalid Index)");
 	FAssertMsg(eTeam < MAX_TEAMS, "eTeam is expected to be within maximum bounds (invalid Index)");
@@ -8158,15 +8133,9 @@ int CvPlot::getNumUnits() const
 CvUnit* CvPlot::getUnitByIndex(int iIndex) const
 {
 	CLLNode<IDInfo>* pUnitNode = m_units.nodeNum(iIndex);
-
 	if (pUnitNode != NULL)
-	{
 		return ::getUnit(pUnitNode->m_data);
-	}
-	else
-	{
-		return NULL;
-	}
+	else return NULL;
 }
 
 

@@ -6,7 +6,7 @@
 #include "CyUnit.h"
 #include "CyArea.h"
 #include "CySelectionGroup.h"
-#include "CvUnit.h"
+#include "CvUnitAI.h" // advc.003u
 #include "CvArea.h"
 #include "CvPlot.h"
 
@@ -1626,7 +1626,7 @@ void CyUnit::setUnitAIType(int /*UnitAITypes*/ iNewValue)
 {
 	if (m_pUnit)
 	{
-		m_pUnit->AI_setUnitAIType((UnitAITypes)iNewValue);
+		m_pUnit->AI().AI_setUnitAIType((UnitAITypes)iNewValue);
 	}
 }
 

@@ -12,10 +12,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGamePlay.h"
+#include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"
 #include "CvInfos.h"
 #include "CvXMLLoadUtility.h"
 #include "CvMap.h"
+#include "CvArea.h"
 #include "RiseFall.h" // advc.700
 #include "BBAI_Defines.h"
 #include "CvBugOptions.h"
@@ -1255,7 +1257,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		{
 			szTempBuffer.Format(L"\nUnitAI Type = %s.", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
 			szString.append(szTempBuffer);
-			szTempBuffer.Format(L"\nSacrifice Value = %d.", pUnit->AI_sacrificeValue(NULL));
+			szTempBuffer.Format(L"\nSacrifice Value = %d.", pUnit->AI().AI_sacrificeValue(NULL));
 			szString.append(szTempBuffer);
 		}
 	}
@@ -2390,9 +2392,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						continue;
 					if(kArea.getCitiesPerPlayer((PlayerTypes)iPlayer) <= 0)
 						continue;
-					int iLoop = -1;
-					for(CvCity* pLoopCity = pl.firstCity(&iLoop); pLoopCity != NULL;
-							pLoopCity = pl.nextCity(&iLoop))
+					FOR_EACH_CITY(pLoopCity, pl)
 					{
 						if(pLoopCity->area() == &kArea)
 						{
@@ -5532,7 +5532,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 				(iEnemyOffense * 1.0f) / std::max(1, iOurDefense), iEnemyOffense, iOurDefense));
 		}
 
-		CvCity* pCity = kPlot.getPlotCity();
+		CvCityAI* pCity = kPlot.AI_getPlotCity();
 		if (pCity != NULL)
 		{
 			/* szTempBuffer.Format(L"\n\nCulture Pressure Value = %d (%d)", pCity->AI_calculateCulturePressure(), pCity->culturePressureFactor());
@@ -5548,7 +5548,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			int iUnitCostPercentage = (iUnitCost * 100) / std::max(1, iTotalCosts);
 			szString.append(CvWString::format(L"\nUnit cost percentage: %d (%d / %d)", iUnitCostPercentage, iUnitCost, iTotalCosts)); */
 			// K-Mod
-			int iBuildUnitProb = pCity->AI().AI_buildUnitProb(); // advc.003 (cast)
+			int iBuildUnitProb = pCity->AI_buildUnitProb(); // advc.003 (cast)
 			szString.append(CvWString::format(L"\nUnit Cost: %d (max: %d)",
 					kCityOwner.AI_unitCostPerMil(), kCityOwner.AI_maxUnitCostPerMil(pCity->area(), iBuildUnitProb)));
 			// K-Mod end
@@ -5558,20 +5558,15 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			{
 				int iValue = 0;
 				for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-				{
 					iValue += kCityOwner.getCommerceRate((CommerceTypes)iI) * kCityOwner.AI_commerceWeight((CommerceTypes)iI)/100;
-				}
-				int iLoop=-1;
-				for (CvCity* pLoopCity = kCityOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kCityOwner.nextCity(&iLoop))
-				{
+				FOR_EACH_CITY(pLoopCity, kCityOwner)
 					iValue += 2*pLoopCity->getYieldRate(YIELD_PRODUCTION);
-				}
 				iValue /= kCityOwner.getTotalPopulation();
 				szString.append(CvWString::format(L"\nAverage citizen value: %d", iValue));
 
 				//
 				szString.append(CvWString::format(L"\nBuild unit prob: %d%%", iBuildUnitProb));
-				BuildingTypes eBestBuilding = pCity->AI().AI_bestBuildingThreshold(0, 0, 0, true); // advc.003 (cast)
+				BuildingTypes eBestBuilding = pCity->AI_bestBuildingThreshold(0, 0, 0, true); // advc.003 (cast)
 				int iBestBuildingValue = (eBestBuilding == NO_BUILDING) ? 0 : pCity->AI_buildingValue(eBestBuilding, 0, 0, true);
 
 				// Note. cf. adjustments made in AI_chooseProduction
@@ -5874,16 +5869,15 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 
 	CvWString szTempBuffer;
 
-	CvCity*	pCity = kPlot.getWorkingCity();
+	CvCityAI* pCity = kPlot.AI_getWorkingCity();
 	if (pCity != NULL)
 	{
 		// some functions we want to call are not in CvCity, worse some are protected, so made us a friend
-		CvCityAI const& kCityAI = pCity->AI(); // advc.003
 
 		CvPlayerAI const& kCityOwner = GET_PLAYER(pCity->getOwner()); // advc.003
-		//bool bAvoidGrowth = kCity.AI_avoidGrowth();
-		//bool bIgnoreGrowth = kCityAI.AI_ignoreGrowth();
-		int iGrowthValue = kCityAI.AI_growthValuePerFood();
+		//bool bAvoidGrowth = pCity->.AI_avoidGrowth();
+		//bool bIgnoreGrowth = pCity->.AI_ignoreGrowth();
+		int iGrowthValue = pCity->AI_growthValuePerFood();
 
 		// if we over the city, then do an array of all the plots
 		if (kPlot.getPlotCity() != NULL)
@@ -5972,7 +5966,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 					szString.append(CvWString::format(L": (%d/%d) ", iSpecialistCount, iMaxThisSpecialist));
 
 					// add value
-					int iValue = kCityAI.AI_specialistValue((SpecialistTypes)iI, bUsingSpecialist, false, iGrowthValue);
+					int iValue = pCity->AI_specialistValue((SpecialistTypes)iI, bUsingSpecialist, false, iGrowthValue);
 					setYieldValueString(szString, iValue, bUsingSpecialist);
 				}
 			}
@@ -6008,7 +6002,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 
 				szString.append(L"\nCity spec mults:  (");
 				for (YieldTypes i = (YieldTypes)0; i < NUM_YIELD_TYPES; i = (YieldTypes)(i+1))
-					szString.append(CvWString::format(L"%s%d%c", i == 0 ? L"" : L", ", kCityAI.AI_specialYieldMultiplier(i), GC.getYieldInfo(i).getChar()));
+					szString.append(CvWString::format(L"%s%d%c", i == 0 ? L"" : L", ", pCity->AI_specialYieldMultiplier(i), GC.getYieldInfo(i).getChar()));
 				szString.append(L")");
 				szString.append(CvWString::format(L"\nCity weights: ("));
 				for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
@@ -6056,9 +6050,9 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 				szTempBuffer.Format( SETCOLR L"%s not working" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), pCity->getName().GetCString());
 			szString.append(szTempBuffer);
 
-			int iValue = kCityAI.AI_plotValue(&kPlot, bWorkingPlot, false, false, iGrowthValue);
-			int iRawValue = kCityAI.AI_plotValue(&kPlot, bWorkingPlot, true, false, iGrowthValue);
-			int iMagicValue = kCityAI.AI_getPlotMagicValue(kPlot, kCityAI.healthRate() == 0);
+			int iValue = pCity->AI_plotValue(&kPlot, bWorkingPlot, false, false, iGrowthValue);
+			int iRawValue = pCity->AI_plotValue(&kPlot, bWorkingPlot, true, false, iGrowthValue);
+			int iMagicValue = pCity->AI_getPlotMagicValue(kPlot, pCity->healthRate() == 0);
 
 			szTempBuffer.Format(L"\nvalue = %d\nraw value = %d\nmagic value = %d", iValue, iRawValue, iMagicValue);
 			szString.append(szTempBuffer);
@@ -6216,10 +6210,8 @@ void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCit
 
 	if (pPlot != NULL && pPlot->getWorkingCity() == pCity)
 	{
-		CvCityAI const& kCityAI = pCity->AI(); // advc.003
 		bool bWorkingPlot = pCity->isWorkingPlot(iIndex);
-
-		int iValue = kCityAI.AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
+		int iValue = pCity->AI().AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
 
 		setYieldValueString(szString, iValue, /*bActive*/ bWorkingPlot);
 	}
@@ -12042,7 +12034,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	{
 		if (GC.getProjectInfo((ProjectTypes)iI).getProjectsNeeded(eProject) > 0)
 		{
-			if ((pCity == NULL) || pCity->canCreate(((ProjectTypes)iI), false, true))
+			if (pCity == NULL || pCity->canCreate((ProjectTypes)iI, false, true))
 			{
 				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_PROJECT_REQUIRED_TO_CREATE").c_str());
 				szTempBuffer.Format(SETCOLR L"<link=literal>%s</link>" ENDCOLR, TEXT_COLOR("COLOR_PROJECT_TEXT"), GC.getProjectInfo((ProjectTypes)iI).getDescription());
@@ -12052,7 +12044,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 		}
 	}
 
-	if ((pCity == NULL) || !(pCity->canCreate(eProject)))
+	if (pCity == NULL || !pCity->canCreate(eProject))
 	{
 		if (pCity != NULL)
 		{
@@ -15174,8 +15166,7 @@ void CvGameTextMgr::buildDisengageString(CvWString& szString, PlayerTypes ePlaye
 		PlayerTypes eOther) {
 
 	int iTurns = 0;
-	CvGame const& g = GC.getGame(); int foo=-1;
-	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+	FOR_EACH_DEAL(d) {
 		if(d->isDisengage() && d->isBetween(ePlayer, eOther)) {
 			iTurns = d->turnsToCancel();
 			break;
@@ -16213,19 +16204,15 @@ void CvGameTextMgr::buildFinanceCityMaintString(CvWStringBuffer& szBuffer, Playe
 {
 	if (NO_PLAYER == ePlayer)
 		return;
-	int iLoop;
+
 	int iDistanceMaint = 0;
 	int iColonyMaint = 0;
 	int iCorporationMaint = 0;
 
 	CvPlayer& player = GET_PLAYER(ePlayer);
-	for (CvCity* pLoopCity = player.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = player.nextCity(&iLoop))
+	FOR_EACH_CITY(pLoopCity, player)
 	{
-/**
-*** K-Mod, 06/sep/10, Karadoc
-*** Bug fix
-**/
-
+		// K-Mod, 06/sep/10, Karadoc: Bug fix
 		/* Old BTS code
 		iDistanceMaint += (pLoopCity->calculateDistanceMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))) / 100;
 		iColonyMaint += (pLoopCity->calculateColonyMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))) / 100;
@@ -16237,9 +16224,7 @@ void CvGameTextMgr::buildFinanceCityMaintString(CvWStringBuffer& szBuffer, Playe
 			iColonyMaint += (pLoopCity->calculateColonyMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))+50) / 100;
 			iCorporationMaint += (pLoopCity->calculateCorporationMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))+50) / 100;
 		}
-/**
-*** K-Mod end
-**/
+		// K-Mod end
 	}
 	// K-Mod. Changed to include the effects of inflation.
 	int iInflationFactor = player.calculateInflationRate()+100;
@@ -16916,40 +16901,16 @@ void CvGameTextMgr::getActiveDealsString(CvWStringBuffer &szBuffer,
 		PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer,
 		bool bExludeDual) // advc.087
 {
-	int iIndex;
-	CvDeal* pDeal = GC.getGame().firstDeal(&iIndex);
-	while (NULL != pDeal)
+	FOR_EACH_DEAL(pDeal)
 	{
-		if ((pDeal->getFirstPlayer() == eThisPlayer && pDeal->getSecondPlayer() == eOtherPlayer)
-			|| (pDeal->getFirstPlayer() == eOtherPlayer && pDeal->getSecondPlayer() == eThisPlayer))
-		{	// <advc.087>
-			if(bExludeDual) {
-				bool bDual = true;
-				CLLNode<TradeData>* pNode;
-				for(pNode = pDeal->headFirstTradesNode(); pNode != NULL;
-						pNode = pDeal->nextFirstTradesNode(pNode)) {
-					if(!CvDeal::isDual(pNode->m_data.m_eItemType)) {
-						bDual = false;
-						break;
-					}
-				}
-				for(pNode = pDeal->headSecondTradesNode(); pNode != NULL;
-						pNode = pDeal->nextSecondTradesNode(pNode)) {
-					if(!CvDeal::isDual(pNode->m_data.m_eItemType)) {
-						bDual = false;
-						break;
-					}
-				}
-				if(bDual) {
-					pDeal = GC.getGame().nextDeal(&iIndex);
-					continue;
-				}
-			} // </advc.087>
-			szBuffer.append(NEWLINE);
-			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
-			getDealString(szBuffer, *pDeal, eThisPlayer);
-		}
-		pDeal = GC.getGame().nextDeal(&iIndex);
+		if (!pDeal->isBetween(eThisPlayer, eOtherPlayer))
+			continue;
+		// <advc.087>
+		if(bExludeDual && pDeal->isAllDual())
+			continue; // </advc.087>
+		szBuffer.append(NEWLINE);
+		szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
+		getDealString(szBuffer, *pDeal, eThisPlayer);
 	}
 }
 
@@ -17138,9 +17099,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 			CvPlayer const& kMember = GET_PLAYER((PlayerTypes)j);
 			if (!kMember.isAlive() || kMember.getTeam() != kOwner.getTeam())
 				continue;
-			int iLoop;
-			for(CvCity* pLoopCity = kMember.firstCity(&iLoop); pLoopCity != NULL;
-					pLoopCity = kMember.nextCity(&iLoop)) {
+			FOR_EACH_CITY(pLoopCity, kMember) {
 				if(pLoopCity->getNumBuilding(eBuilding) > 0 &&
 						!GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding(eBuilding)) {
 					for(int k = 0; k < pLoopCity->getNumBuilding(eBuilding); k++)
@@ -17279,9 +17238,7 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity,
 			CvPlayer const& kMember = GET_PLAYER((PlayerTypes)j);
 			if(!kMember.isAlive() || kMember.getTeam() != kOwner.getTeam())
 				continue;
-			int iLoop;
-			for(CvCity* pLoopCity = kMember.firstCity(&iLoop); pLoopCity != NULL;
-					pLoopCity = kMember.nextCity(&iLoop)) {
+			FOR_EACH_CITY(pLoopCity, kMember) {
 				if(pLoopCity->getNumBuilding(eBuilding) > 0 &&
 						!GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding(eBuilding)) {
 					for(int k = 0; k < pLoopCity->getNumBuilding(eBuilding); k++)
@@ -17508,23 +17465,18 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer,
 				iBuildingMod += infoBuilding.getGreatPeopleRateModifier();
 			}
 		}
-		for (int j = 0; j < MAX_PLAYERS; j++)
+		for (int j = 0; j < MAX_CIV_PLAYERS; j++)
 		{
-			if (GET_PLAYER((PlayerTypes)j).isAlive())
+			CvPlayer const& kMember = GET_PLAYER((PlayerTypes)j);
+			if (!kMember.isAlive() || kMember.getTeam() != kOwner.getTeam())
+				continue; // advc.003
+			FOR_EACH_CITY(pLoopCity, kMember)
 			{
-				if (GET_PLAYER((PlayerTypes)j).getTeam() == kOwner.getTeam())
+				if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 &&
+					!GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
 				{
-					int iLoop;
-					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)j).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)j).nextCity(&iLoop))
-					{
-						if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
-						{
-							for (int k = 0; k < pLoopCity->getNumBuilding((BuildingTypes)i); k++)
-							{
-								iBuildingMod += infoBuilding.getGlobalGreatPeopleRateModifier();
-							}
-						}
-					}
+					for (int k = 0; k < pLoopCity->getNumBuilding((BuildingTypes)i); k++)
+						iBuildingMod += infoBuilding.getGlobalGreatPeopleRateModifier();
 				}
 			}
 		}
@@ -19365,8 +19317,8 @@ void CvGameTextMgr::buildFinanceSpecialistGoldString(CvWStringBuffer& szBuffer, 
 	if(ePlayer == NO_PLAYER)
 		return;
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	int* iCounts = new int[GC.getNumSpecialistInfos()](); int foo;
-	for(CvCity* pCity = kPlayer.firstCity(&foo); pCity != NULL; pCity = kPlayer.nextCity(&foo)) {
+	int* iCounts = new int[GC.getNumSpecialistInfos()]();
+	FOR_EACH_CITY(pCity, kPlayer) {
 		if(!pCity->isDisorder()) {
 			for(int i = 0; i < GC.getNumSpecialistInfos(); i++) {
 				SpecialistTypes eSpecialist = (SpecialistTypes)i;
@@ -19479,9 +19431,8 @@ void CvGameTextMgr::buildTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePla
 				bCanTrade = false;
 			}
 			// <advc.124>
-			bool bAnyCityKnown = false; int foo;
-			for(CvCity* pLoopCity = kWithPlayer.firstCity(&foo); pLoopCity != NULL;
-					pLoopCity = kWithPlayer.nextCity(&foo)) {
+			bool bAnyCityKnown = false;
+			FOR_EACH_CITY(pLoopCity, kWithPlayer) {
 				if(pLoopCity->isRevealed(kPlayer.getTeam(), false)) {
 					bAnyCityKnown = true;
 					break;
