@@ -1461,17 +1461,21 @@ class CvMainInterface:
 		if ( CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
 			self.updateGreatPersonBar(screen)
 # BUG - Great Person Bar - end
-		#CyInterface().shouldDisplayFlag() and # advc.004y: Don't check this for the Civilopedia button
-		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW:
-			if CyInterface().shouldDisplayFlag(): # advc.004y
-				screen.show( "CivilizationFlag" )
-				screen.show( "MainMenuButton" )
-			else: # advc.004y
-				screen.hide( "CivilizationFlag" )
-				screen.hide( "MainMenuButton" )
-			screen.show( "InterfaceHelpButton" )
+		#CyInterface().shouldDisplayFlag() and
+		# <advc.004y> Don't check shouldDisplayFlag for the Civilopedia button, but do check if the city screen is up.
+		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW and not CyInterface().isCityScreenUp():
+			screen.show("InterfaceHelpButton")
+			if CyInterface().shouldDisplayFlag():
+				screen.show("CivilizationFlag")
+				screen.show("MainMenuButton")
+			else:
+				screen.hide("CivilizationFlag")
+				screen.hide("MainMenuButton")
+			# </advc.004y>
 		else:
-			screen.hide( "InterfaceHelpButton" )
+			screen.hide("CivilizationFlag")
+			screen.hide("InterfaceHelpButton")
+			screen.hide("MainMenuButton")
 
 		if ( CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY ):
 			screen.hide( "InterfaceLeftBackgroundWidget" )
