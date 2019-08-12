@@ -140,6 +140,19 @@ class CvGlobals
 {
 //	friend class CvDLLUtilityIFace;
 	friend class CvXMLLoadUtility;
+	/*  advc.003: Removed the std::vector<Cv...Info*>& getters for each info type.
+		Comments in CvGlobals.cpp had said that those getters were
+		"For Moose - XML Load Util and CvInfos."
+		The only calls came from CvXMLLoadUtility (mostly the three
+		CvXMLLoadUtility::Load...Infos functions). CvXMLLoadUtility is a friend
+		class anyway; not a good reason to fully expose all the info vectors.
+		Some more comments deleted from CvGlobals.cpp:
+		getWaterPlaneInfo: "For Moose - CvDecal and CvWater"
+		getUnitFormationInfo: "For Moose - CvUnitEntity"
+		getBuildingInfo, getTechInfo "For Moose - XML Load Util, CvInfos, CvCacheObject"
+		None of those were called outside of CvXMLLoadUtility.
+		getHandicapInfo, getGameSpeed, getTurnTimer: "Do NOT export outside of the DLL"
+		Strange, but no reason not to remove those getter. */
 public:
 
 	// singleton accessor
@@ -224,395 +237,295 @@ public:
 	DllExport void infosReset();
 
 	DllExport int getNumWorldInfos();
-	std::vector<CvWorldInfo*>& getWorldInfo();
 	DllExport CvWorldInfo& getWorldInfo(WorldSizeTypes e);
 
 	DllExport int getNumClimateInfos();
-	std::vector<CvClimateInfo*>& getClimateInfo();
 	DllExport CvClimateInfo& getClimateInfo(ClimateTypes e);
 
 	DllExport int getNumSeaLevelInfos();
-	std::vector<CvSeaLevelInfo*>& getSeaLevelInfo();
 	DllExport CvSeaLevelInfo& getSeaLevelInfo(SeaLevelTypes e);
 
 	int getNumColorInfos();
-	std::vector<CvColorInfo*>& getColorInfo();
 	DllExport CvColorInfo& getColorInfo(ColorTypes e);
 
 	DllExport int getNumPlayerColorInfos();
-	std::vector<CvPlayerColorInfo*>& getPlayerColorInfo();
 	DllExport CvPlayerColorInfo& getPlayerColorInfo(PlayerColorTypes e);
 
 	int getNumAdvisorInfos();
-	std::vector<CvAdvisorInfo*>& getAdvisorInfo();
 	CvAdvisorInfo& getAdvisorInfo(AdvisorTypes e);
 
 	DllExport  int getNumHints();
-	std::vector<CvInfoBase*>& getHints();
 	DllExport CvInfoBase& getHints(int i);
 
 	int getNumMainMenus();
-	std::vector<CvMainMenuInfo*>& getMainMenus();
 	DllExport CvMainMenuInfo& getMainMenus(int i);
 
 	DllExport int getNumRouteModelInfos();
-	std::vector<CvRouteModelInfo*>& getRouteModelInfo();
 	DllExport CvRouteModelInfo& getRouteModelInfo(int i);
 
 	int getNumRiverInfos();
-	std::vector<CvRiverInfo*>& getRiverInfo();
 	CvRiverInfo& getRiverInfo(RiverTypes e);
 
 	DllExport int getNumRiverModelInfos();
-	std::vector<CvRiverModelInfo*>& getRiverModelInfo();
 	DllExport CvRiverModelInfo& getRiverModelInfo(int i);
 
 	int getNumWaterPlaneInfos();
-	std::vector<CvWaterPlaneInfo*>& getWaterPlaneInfo();
 	DllExport CvWaterPlaneInfo& getWaterPlaneInfo(int i);
 
 	DllExport int getNumTerrainPlaneInfos();
-	std::vector<CvTerrainPlaneInfo*>& getTerrainPlaneInfo();
 	DllExport CvTerrainPlaneInfo& getTerrainPlaneInfo(int i);
 
 	DllExport int getNumCameraOverlayInfos();
-	std::vector<CvCameraOverlayInfo*>& getCameraOverlayInfo();
 	DllExport CvCameraOverlayInfo& getCameraOverlayInfo(int i);
 
 	int getNumAnimationPathInfos();
-	std::vector<CvAnimationPathInfo*>& getAnimationPathInfo();
 	DllExport CvAnimationPathInfo& getAnimationPathInfo(AnimationPathTypes e);
 
 	int getNumAnimationCategoryInfos();
-	std::vector<CvAnimationCategoryInfo*>& getAnimationCategoryInfo();
 	DllExport CvAnimationCategoryInfo& getAnimationCategoryInfo(AnimationCategoryTypes e);
 
 	int getNumEntityEventInfos();
-	std::vector<CvEntityEventInfo*>& getEntityEventInfo();
 	DllExport CvEntityEventInfo& getEntityEventInfo(EntityEventTypes e);
 
 	int getNumEffectInfos();
-	std::vector<CvEffectInfo*>& getEffectInfo();
 	DllExport CvEffectInfo& getEffectInfo(int i);
 
 	int getNumAttachableInfos();
-	std::vector<CvAttachableInfo*>& getAttachableInfo();
 	DllExport CvAttachableInfo& getAttachableInfo(int i);
 
 	int getNumCameraInfos();
-	std::vector<CvCameraInfo*>& getCameraInfo();
 	CvCameraInfo& getCameraInfo(CameraAnimationTypes eCameraAnimationNum);
 
 	DllExport int getNumUnitFormationInfos();
-	std::vector<CvUnitFormationInfo*>& getUnitFormationInfo();
 	DllExport CvUnitFormationInfo& getUnitFormationInfo(int i);
 
 	int getNumGameTextXML();
-	std::vector<CvGameText*>& getGameTextXML();
 
 	int getNumLandscapeInfos();
-	std::vector<CvLandscapeInfo*>& getLandscapeInfo();
 	DllExport CvLandscapeInfo& getLandscapeInfo(int iIndex);
 	DllExport int getActiveLandscapeID();
 	DllExport void setActiveLandscapeID(int iLandscapeID);
 
 	DllExport int getNumTerrainInfos();
-	std::vector<CvTerrainInfo*>& getTerrainInfo();
 	DllExport CvTerrainInfo& getTerrainInfo(TerrainTypes eTerrainNum);
 
 	int getNumBonusClassInfos();
-	std::vector<CvBonusClassInfo*>& getBonusClassInfo();
 	CvBonusClassInfo& getBonusClassInfo(BonusClassTypes eBonusNum);
 
 	DllExport int getNumBonusInfos();
-	std::vector<CvBonusInfo*>& getBonusInfo();
 	DllExport CvBonusInfo& getBonusInfo(BonusTypes eBonusNum);
 
 	DllExport int getNumFeatureInfos();
-	std::vector<CvFeatureInfo*>& getFeatureInfo();
 	DllExport CvFeatureInfo& getFeatureInfo(FeatureTypes eFeatureNum);
 
 	DllExport int& getNumPlayableCivilizationInfos();
 	DllExport int& getNumAIPlayableCivilizationInfos();
 	DllExport int getNumCivilizationInfos();
-	std::vector<CvCivilizationInfo*>& getCivilizationInfo();
 	DllExport CvCivilizationInfo& getCivilizationInfo(CivilizationTypes eCivilizationNum);
 
 	DllExport int getNumLeaderHeadInfos();
-	std::vector<CvLeaderHeadInfo*>& getLeaderHeadInfo();
 	DllExport CvLeaderHeadInfo& getLeaderHeadInfo(LeaderHeadTypes eLeaderHeadNum);
 
 	int getNumTraitInfos();
-	std::vector<CvTraitInfo*>& getTraitInfo();
 	CvTraitInfo& getTraitInfo(TraitTypes eTraitNum);
 
 	DllExport int getNumCursorInfos();
-	std::vector<CvCursorInfo*>& getCursorInfo();
 	DllExport	CvCursorInfo& getCursorInfo(CursorTypes eCursorNum);
 
 	int getNumThroneRoomCameras();
-	std::vector<CvThroneRoomCamera*>& getThroneRoomCamera();
 	DllExport	CvThroneRoomCamera& getThroneRoomCamera(int iIndex);
 
 	DllExport int getNumThroneRoomInfos();
-	std::vector<CvThroneRoomInfo*>& getThroneRoomInfo();
 	DllExport	CvThroneRoomInfo& getThroneRoomInfo(int iIndex);
 
 	DllExport int getNumThroneRoomStyleInfos();
-	std::vector<CvThroneRoomStyleInfo*>& getThroneRoomStyleInfo();
 	DllExport	CvThroneRoomStyleInfo& getThroneRoomStyleInfo(int iIndex);
 
 	DllExport int getNumSlideShowInfos();
-	std::vector<CvSlideShowInfo*>& getSlideShowInfo();
 	DllExport	CvSlideShowInfo& getSlideShowInfo(int iIndex);
 
 	DllExport int getNumSlideShowRandomInfos();
-	std::vector<CvSlideShowRandomInfo*>& getSlideShowRandomInfo();
 	DllExport	CvSlideShowRandomInfo& getSlideShowRandomInfo(int iIndex);
 
 	DllExport int getNumWorldPickerInfos();
-	std::vector<CvWorldPickerInfo*>& getWorldPickerInfo();
 	DllExport	CvWorldPickerInfo& getWorldPickerInfo(int iIndex);
 
 	DllExport int getNumSpaceShipInfos();
-	std::vector<CvSpaceShipInfo*>& getSpaceShipInfo();
 	DllExport	CvSpaceShipInfo& getSpaceShipInfo(int iIndex);
 
 	int getNumUnitInfos();
-	std::vector<CvUnitInfo*>& getUnitInfo();
 	CvUnitInfo& getUnitInfo(UnitTypes eUnitNum);
 
 	int getNumSpecialUnitInfos();
-	std::vector<CvSpecialUnitInfo*>& getSpecialUnitInfo();
 	CvSpecialUnitInfo& getSpecialUnitInfo(SpecialUnitTypes eSpecialUnitNum);
 
 	int getNumConceptInfos();
-	std::vector<CvInfoBase*>& getConceptInfo();
 	CvInfoBase& getConceptInfo(ConceptTypes e);
 
 	int getNumNewConceptInfos();
-	std::vector<CvInfoBase*>& getNewConceptInfo();
 	CvInfoBase& getNewConceptInfo(NewConceptTypes e);
 
 	int getNumCityTabInfos();
-	std::vector<CvInfoBase*>& getCityTabInfo();
 	CvInfoBase& getCityTabInfo(CityTabTypes e);
 
 	int getNumCalendarInfos();
-	std::vector<CvInfoBase*>& getCalendarInfo();
 	CvInfoBase& getCalendarInfo(CalendarTypes e);
 
 	int getNumSeasonInfos();
-	std::vector<CvInfoBase*>& getSeasonInfo();
 	CvInfoBase& getSeasonInfo(SeasonTypes e);
 
 	int getNumMonthInfos();
-	std::vector<CvInfoBase*>& getMonthInfo();
 	CvInfoBase& getMonthInfo(MonthTypes e);
 
 	int getNumDenialInfos();
-	std::vector<CvInfoBase*>& getDenialInfo();
 	CvInfoBase& getDenialInfo(DenialTypes e);
 
 	int getNumInvisibleInfos();
-	std::vector<CvInfoBase*>& getInvisibleInfo();
 	CvInfoBase& getInvisibleInfo(InvisibleTypes e);
 
 	int getNumVoteSourceInfos();
-	std::vector<CvVoteSourceInfo*>& getVoteSourceInfo();
 	CvVoteSourceInfo& getVoteSourceInfo(VoteSourceTypes e);
 
 	int getNumUnitCombatInfos();
-	std::vector<CvInfoBase*>& getUnitCombatInfo();
 	CvInfoBase& getUnitCombatInfo(UnitCombatTypes e);
 
-	std::vector<CvInfoBase*>& getDomainInfo();
 	CvInfoBase& getDomainInfo(DomainTypes e);
 
-	std::vector<CvInfoBase*>& getUnitAIInfo();
 	CvInfoBase& getUnitAIInfo(UnitAITypes eUnitAINum);
 
-	std::vector<CvInfoBase*>& getAttitudeInfo();
 	CvInfoBase& getAttitudeInfo(AttitudeTypes eAttitudeNum);
 
-	std::vector<CvInfoBase*>& getMemoryInfo();
 	CvInfoBase& getMemoryInfo(MemoryTypes eMemoryNum);
 
 	int getNumGameOptionInfos();
-	std::vector<CvGameOptionInfo*>& getGameOptionInfo();
-	DllExport	CvGameOptionInfo& getGameOptionInfo(GameOptionTypes eGameOptionNum);
+	DllExport CvGameOptionInfo& getGameOptionInfo(GameOptionTypes eGameOptionNum);
 
 	int getNumMPOptionInfos();
-	std::vector<CvMPOptionInfo*>& getMPOptionInfo();
-	DllExport	CvMPOptionInfo& getMPOptionInfo(MultiplayerOptionTypes eMPOptionNum);
+	DllExport CvMPOptionInfo& getMPOptionInfo(MultiplayerOptionTypes eMPOptionNum);
 
 	int getNumForceControlInfos();
-	std::vector<CvForceControlInfo*>& getForceControlInfo();
 	CvForceControlInfo& getForceControlInfo(ForceControlTypes eForceControlNum);
 
-	std::vector<CvPlayerOptionInfo*>& getPlayerOptionInfo();
-	DllExport	CvPlayerOptionInfo& getPlayerOptionInfo(PlayerOptionTypes ePlayerOptionNum);
+	DllExport CvPlayerOptionInfo& getPlayerOptionInfo(PlayerOptionTypes ePlayerOptionNum);
 
-	std::vector<CvGraphicOptionInfo*>& getGraphicOptionInfo();
-	DllExport	CvGraphicOptionInfo& getGraphicOptionInfo(GraphicOptionTypes eGraphicOptionNum);
+	DllExport CvGraphicOptionInfo& getGraphicOptionInfo(GraphicOptionTypes eGraphicOptionNum);
 
-	std::vector<CvYieldInfo*>& getYieldInfo();
 	CvYieldInfo& getYieldInfo(YieldTypes eYieldNum);
 
-	std::vector<CvCommerceInfo*>& getCommerceInfo();
 	CvCommerceInfo& getCommerceInfo(CommerceTypes eCommerceNum);
 
 	DllExport int getNumRouteInfos();
-	std::vector<CvRouteInfo*>& getRouteInfo();
 	CvRouteInfo& getRouteInfo(RouteTypes eRouteNum);
 
 	DllExport int getNumImprovementInfos();
-	std::vector<CvImprovementInfo*>& getImprovementInfo();
 	DllExport CvImprovementInfo& getImprovementInfo(ImprovementTypes eImprovementNum);
 
 	int getNumGoodyInfos();
-	std::vector<CvGoodyInfo*>& getGoodyInfo();
 	CvGoodyInfo& getGoodyInfo(GoodyTypes eGoodyNum);
 
 	int getNumBuildInfos();
-	std::vector<CvBuildInfo*>& getBuildInfo();
 	DllExport CvBuildInfo& getBuildInfo(BuildTypes eBuildNum);
 
 	DllExport int getNumHandicapInfos();
-	std::vector<CvHandicapInfo*>& getHandicapInfo();
 	DllExport CvHandicapInfo& getHandicapInfo(HandicapTypes eHandicapNum);
 
 	DllExport int getNumGameSpeedInfos();
-	std::vector<CvGameSpeedInfo*>& getGameSpeedInfo();
 	DllExport CvGameSpeedInfo& getGameSpeedInfo(GameSpeedTypes eGameSpeedNum);
 
 	DllExport int getNumTurnTimerInfos();
-	std::vector<CvTurnTimerInfo*>& getTurnTimerInfo();
 	DllExport CvTurnTimerInfo& getTurnTimerInfo(TurnTimerTypes eTurnTimerNum);
 
 	int getNumProcessInfos();
-	std::vector<CvProcessInfo*>& getProcessInfo();
 	CvProcessInfo& getProcessInfo(ProcessTypes e);
 
 	int getNumVoteInfos();
-	std::vector<CvVoteInfo*>& getVoteInfo();
 	CvVoteInfo& getVoteInfo(VoteTypes e);
 
 	int getNumProjectInfos();
-	std::vector<CvProjectInfo*>& getProjectInfo();
 	CvProjectInfo& getProjectInfo(ProjectTypes e);
 
 	int getNumBuildingClassInfos();
-	std::vector<CvBuildingClassInfo*>& getBuildingClassInfo();
 	CvBuildingClassInfo& getBuildingClassInfo(BuildingClassTypes eBuildingClassNum);
 
 	int getNumBuildingInfos();
-	std::vector<CvBuildingInfo*>& getBuildingInfo();
 	CvBuildingInfo& getBuildingInfo(BuildingTypes eBuildingNum);
 
 	int getNumSpecialBuildingInfos();
-	std::vector<CvSpecialBuildingInfo*>& getSpecialBuildingInfo();
 	CvSpecialBuildingInfo& getSpecialBuildingInfo(SpecialBuildingTypes eSpecialBuildingNum);
 
 	int getNumUnitClassInfos();
-	std::vector<CvUnitClassInfo*>& getUnitClassInfo();
 	CvUnitClassInfo& getUnitClassInfo(UnitClassTypes eUnitClassNum);
 
 	DllExport int getNumActionInfos();
-	std::vector<CvActionInfo*>& getActionInfo();
 	DllExport CvActionInfo& getActionInfo(int i);
 
-	std::vector<CvMissionInfo*>& getMissionInfo();
 	DllExport CvMissionInfo& getMissionInfo(MissionTypes eMissionNum);
 
-	std::vector<CvControlInfo*>& getControlInfo();
 	CvControlInfo& getControlInfo(ControlTypes eControlNum);
 
-	std::vector<CvCommandInfo*>& getCommandInfo();
 	CvCommandInfo& getCommandInfo(CommandTypes eCommandNum);
 
 	DllExport int getNumAutomateInfos();
-	std::vector<CvAutomateInfo*>& getAutomateInfo();
 	CvAutomateInfo& getAutomateInfo(int iAutomateNum);
 
 	int getNumPromotionInfos();
-	std::vector<CvPromotionInfo*>& getPromotionInfo();
 	CvPromotionInfo& getPromotionInfo(PromotionTypes ePromotionNum);
 
 	int getNumTechInfos();
-	std::vector<CvTechInfo*>& getTechInfo();
 	CvTechInfo& getTechInfo(TechTypes eTechNum);
 
 	int getNumReligionInfos();
-	std::vector<CvReligionInfo*>& getReligionInfo();
 	CvReligionInfo& getReligionInfo(ReligionTypes eReligionNum);
 
 	int getNumCorporationInfos();
-	std::vector<CvCorporationInfo*>& getCorporationInfo();
 	CvCorporationInfo& getCorporationInfo(CorporationTypes eCorporationNum);
 
 	int getNumSpecialistInfos();
-	std::vector<CvSpecialistInfo*>& getSpecialistInfo();
 	CvSpecialistInfo& getSpecialistInfo(SpecialistTypes eSpecialistNum);
 
 	int getNumCivicOptionInfos();
-	std::vector<CvCivicOptionInfo*>& getCivicOptionInfo();
 	CvCivicOptionInfo& getCivicOptionInfo(CivicOptionTypes eCivicOptionNum);
 
 	int getNumCivicInfos();
-	std::vector<CvCivicInfo*>& getCivicInfo();
 	CvCivicInfo& getCivicInfo(CivicTypes eCivicNum);
 
 	int getNumDiplomacyInfos();
-	std::vector<CvDiplomacyInfo*>& getDiplomacyInfo();
 	CvDiplomacyInfo& getDiplomacyInfo(int iDiplomacyNum);
 
 	DllExport int getNumEraInfos();
-	std::vector<CvEraInfo*>& getEraInfo();
 	DllExport CvEraInfo& getEraInfo(EraTypes eEraNum);
 
 	int getNumHurryInfos();
-	std::vector<CvHurryInfo*>& getHurryInfo();
 	CvHurryInfo& getHurryInfo(HurryTypes eHurryNum);
 
 	int getNumEmphasizeInfos();
-	std::vector<CvEmphasizeInfo*>& getEmphasizeInfo();
 	CvEmphasizeInfo& getEmphasizeInfo(EmphasizeTypes eEmphasizeNum);
 
 	int getNumUpkeepInfos();
-	std::vector<CvUpkeepInfo*>& getUpkeepInfo();
 	CvUpkeepInfo& getUpkeepInfo(UpkeepTypes eUpkeepNum);
 
 	int getNumCultureLevelInfos();
-	std::vector<CvCultureLevelInfo*>& getCultureLevelInfo();
 	CvCultureLevelInfo& getCultureLevelInfo(CultureLevelTypes eCultureLevelNum);
 
 	DllExport int getNumVictoryInfos();
-	std::vector<CvVictoryInfo*>& getVictoryInfo();
 	DllExport CvVictoryInfo& getVictoryInfo(VictoryTypes eVictoryNum);
 	// advc.003j:
 	/*int getNumQuestInfos();
-	std::vector<CvQuestInfo*>& getQuestInfo();
 	CvQuestInfo& getQuestInfo(int iIndex);*/
 
 	int getNumTutorialInfos();
-	std::vector<CvTutorialInfo*>& getTutorialInfo();
 	CvTutorialInfo& getTutorialInfo(int i);
 
 	int getNumEventTriggerInfos();
-	std::vector<CvEventTriggerInfo*>& getEventTriggerInfo();
 	CvEventTriggerInfo& getEventTriggerInfo(EventTriggerTypes eEventTrigger);
 
 	int getNumEventInfos();
-	std::vector<CvEventInfo*>& getEventInfo();
 	CvEventInfo& getEventInfo(EventTypes eEvent);
 
 	int getNumEspionageMissionInfos();
-	std::vector<CvEspionageMissionInfo*>& getEspionageMissionInfo();
 	CvEspionageMissionInfo& getEspionageMissionInfo(EspionageMissionTypes eEspionageMissionNum);
 
 	int getNumUnitArtStyleTypeInfos();
-	std::vector<CvUnitArtStyleTypeInfo*>& getUnitArtStyleTypeInfo();
 	CvUnitArtStyleTypeInfo& getUnitArtStyleTypeInfo(UnitArtStyleTypes eUnitArtStyleTypeNum);
 
 	//
@@ -1100,15 +1013,15 @@ protected:
 	std::vector<CvVoteSourceInfo*> m_paVoteSourceInfo;
 	std::vector<CvInfoBase*> m_paUnitCombatInfo;
 	std::vector<CvInfoBase*> m_paDomainInfo;
-	std::vector<CvInfoBase*> m_paUnitAIInfos;
-	std::vector<CvInfoBase*> m_paAttitudeInfos;
-	std::vector<CvInfoBase*> m_paMemoryInfos;
-	std::vector<CvInfoBase*> m_paFeatInfos;
-	std::vector<CvGameOptionInfo*> m_paGameOptionInfos;
-	std::vector<CvMPOptionInfo*> m_paMPOptionInfos;
-	std::vector<CvForceControlInfo*> m_paForceControlInfos;
-	std::vector<CvPlayerOptionInfo*> m_paPlayerOptionInfos;
-	std::vector<CvGraphicOptionInfo*> m_paGraphicOptionInfos;
+	std::vector<CvInfoBase*> m_paUnitAIInfo;
+	std::vector<CvInfoBase*> m_paAttitudeInfo;
+	std::vector<CvInfoBase*> m_paMemoryInfo;
+	std::vector<CvInfoBase*> m_paFeatInfo;
+	std::vector<CvGameOptionInfo*> m_paGameOptionInfo;
+	std::vector<CvMPOptionInfo*> m_paMPOptionInfo;
+	std::vector<CvForceControlInfo*> m_paForceControlInfo;
+	std::vector<CvPlayerOptionInfo*> m_paPlayerOptionInfo;
+	std::vector<CvGraphicOptionInfo*> m_paGraphicOptionInfo;
 	std::vector<CvSpecialistInfo*> m_paSpecialistInfo;
 	std::vector<CvEmphasizeInfo*> m_paEmphasizeInfo;
 	std::vector<CvUpkeepInfo*> m_paUpkeepInfo;
