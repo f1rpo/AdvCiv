@@ -637,7 +637,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.placeItems(WidgetTypes.WIDGET_PEDIA_DESCRIPTION, self.getTraitInfo)
 	
 	def getTraitList(self):
-		return self.getSortedList(gc.getNumNewConceptInfos(), self.getTraitInfo, True)
+		return self.getSortedList(gc.getNumNewConceptInfos(), self.getTraitInfo, True, False) # advc.004y: bCheckGraphicalOnly = False
 
 	def getTraitInfo(self, id):
 		info = gc.getNewConceptInfo(id)
@@ -919,12 +919,13 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 	def isSortLists(self):
 		return AdvisorOpt.SevopediaSortItemList()
 
-	def getSortedList(self, numInfos, getInfo, noSort=False):
+	# advc.004y: bCheckGraphicalOnly flag added (for CvInfo types that don't have that element)
+	def getSortedList(self, numInfos, getInfo, noSort=False, bCheckGraphicalOnly = True):
 		list = []
 		for i in range(numInfos):
 			item = getInfo(i)
 			# advc.004y: GraphicalOnly check added
-			if item and not item.isGraphicalOnly():
+			if item and (not bCheckGraphicalOnly or not item.isGraphicalOnly()):
 				list.append((item.getDescription(), i))
 		if self.isSortLists() and not noSort:
 			list.sort()
