@@ -46,8 +46,9 @@ void *__cdecl operator new(size_t size)
 		try
 		{
 			result = gDLL->newMem(size, __FILE__, __LINE__);
-			memset(result,0,size);
-
+			/*  advc.make: Don't obscure uninitialized memory by setting _Val=0.
+				Adopted from C2C (billw2015). */
+			memset(result, 0xDA, size);
 			PROFILE_TRACK_ALLOC(result);
 		}
 		catch(std::exception const&) // advc.003: Better to catch it by reference
@@ -58,8 +59,8 @@ void *__cdecl operator new(size_t size)
 		return result;
 	}
 
-	OutputDebugString("Alloc [unsafe]");
 	//::MessageBoxA(NULL,"UNsafe alloc","CvGameCore",MB_OK); // disabled by K-Mod, for now.
+	//OutputDebugString("Alloc [unsafe]"); // advc.make: Don't need this either, do we?
 	return malloc(size);
 }
 
@@ -68,13 +69,9 @@ void __cdecl operator delete (void *p)
 	if (gDLL)
 	{
 		PROFILE_TRACK_DEALLOC(p);
-
 		gDLL->delMem(p, __FILE__, __LINE__);
 	}
-	else
-	{
-		free(p);
-	}
+	else free(p);
 }
 
 void* operator new[](size_t size)
@@ -83,9 +80,7 @@ void* operator new[](size_t size)
 	{
 		//OutputDebugString("Alloc [safe]");
 		void* result = gDLL->newMemArray(size, __FILE__, __LINE__);
-
-		memset(result,0,size);
-
+		memset(result, 0xDA, size); // advc.make
 		return result;
 	}
 
@@ -97,28 +92,21 @@ void* operator new[](size_t size)
 void operator delete[](void* pvMem)
 {
 	if (gDLL)
-	{
 		gDLL->delMemArray(pvMem, __FILE__, __LINE__);
-	}
-	else
-	{
-		free(pvMem);
-	}
+	else free(pvMem);
 }
 
 void *__cdecl operator new(size_t size, char* pcFile, int iLine)
 {
 	void* result = gDLL->newMem(size, pcFile, iLine);
-
-	memset(result,0,size);
+	memset(result, 0xDA, size); // advc.make
 	return result;
 }
 
 void *__cdecl operator new[](size_t size, char* pcFile, int iLine)
 {
 	void* result = gDLL->newMem(size, pcFile, iLine);
-
-	memset(result,0,size);
+	memset(result, 0xDA, size); // advc.make
 	return result;
 }
 
