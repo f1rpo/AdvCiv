@@ -639,29 +639,43 @@ void CvMapGenerator::addBonuses()
 			return; // Python override
 		}
 	}
-
-	for (int iOrder = 0; iOrder < GC.getNumBonusInfos(); iOrder++)
+	/*  <advc.129> Only do an iteration for those PlacementOrder numbers that are
+		actually used in the BonusInfos. */
+	std::vector<int> aiOrdinals;
+	for (int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
-		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+		int iOrder = GC.getBonusInfo((BonusTypes)i).getPlacementOrder();
+		if (iOrder >= 0) // The negative ones aren't supposed to be placed at all
+			aiOrdinals.push_back(iOrder);
+	}
+	::removeDuplicates(aiOrdinals);
+	std::sort(aiOrdinals.begin(), aiOrdinals.end());
+	//for (int iOrder = 0; iOrder < GC.getNumBonusInfos(); iOrder++)
+	for (size_t i = 0; i < aiOrdinals.size(); i++)
+	{
+		int iOrder = aiOrdinals[i];
+		FAssertMsg(aiOrdinals.size() <= (uint)12, "Shuffling this often might be slow(?)");
+		// Break ties in the order randomly
+		int* piShuffledIndices = ::shuffle(GC.getNumBonusInfos(), GC.getGame().getMapRand());
+		// </advc.129>
+		for (int j = 0; j < GC.getNumBonusInfos(); j++)
 		{
-			gDLL->callUpdater();
-			if (GC.getBonusInfo((BonusTypes)iI).getPlacementOrder() == iOrder)
+			BonusTypes eBonus = (BonusTypes)piShuffledIndices[j]; // advc.129
+			//gDLL->callUpdater();
+			if (GC.getBonusInfo(eBonus).getPlacementOrder() != iOrder)
+				continue;
+
+			gDLL->callUpdater(); // advc.003b: Moved down; don't need to update the UI quite so frequently.
+			CyArgsList argsList;
+			argsList.add(eBonus);
+			if (!gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addBonusType", argsList.makeFunctionArgs()) || gDLL->getPythonIFace()->pythonUsingDefaultImpl())
 			{
-				CyArgsList argsList;
-				argsList.add(iI);
-				if (!gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addBonusType", argsList.makeFunctionArgs()) || gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-				{
-					if (GC.getBonusInfo((BonusTypes)iI).isOneArea())
-					{
-						addUniqueBonusType((BonusTypes)iI);
-					}
-					else
-					{
-						addNonUniqueBonusType((BonusTypes)iI);
-					}
-				}
+				if (GC.getBonusInfo(eBonus).isOneArea())
+					addUniqueBonusType(eBonus);
+				else addNonUniqueBonusType(eBonus);
 			}
 		}
+		SAFE_DELETE_ARRAY(piShuffledIndices); // advc.129
 	}
 }
 
@@ -672,19 +686,22 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	// (But it is now slightly more efficient and easier to read.)
 	std::set<int> areas_tried;
 
-	CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
+	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
 	int iBonusCount = calculateNumBonusesToAdd(eBonusType);
 	bool bIgnoreLatitude = GC.getGame().pythonIsBonusIgnoreLatitudes();
-
+	// advc.003b: Don't waste time trying to place land resources in the ocean
+	bool bWater = (pBonusInfo.isTerrain(GC.getDefineINT("DEEP_WATER_TERRAIN")) ||
+			pBonusInfo.isTerrain(GC.getDefineINT("SHALLOW_WATER_TERRAIN")));
 	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
 
 	while (true)
 	{
 		int iBestValue = 0;
 		CvArea *pBestArea = NULL;
-		CvArea *pLoopArea = NULL;
 		FOR_EACH_AREA_VAR(pLoopArea)
-		{
+		{	// <advc.003b>
+			if (pLoopArea->isWater() && !bWater)
+				continue; // </advc.003b>
 			if (areas_tried.count(pLoopArea->getID()) == 0)
 			{
 				int iNumUniqueBonusesOnArea = pLoopArea->countNumUniqueBonusTypes() + 1; // number of unique bonuses starting on the area, plus this one

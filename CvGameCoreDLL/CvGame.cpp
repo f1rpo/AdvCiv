@@ -1774,18 +1774,18 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 		iTargetFoodBonusCount += std::max(0, 2-iGoodNatureTileCount); // K-Mod
 
 		// K-Mod. I've rearranged a couple of things to make it a bit more efficient and easier to read.
-		for (int iJ = 1; iJ < NUM_CITY_PLOTS; iJ++)
+		for (int iJ = 1; iJ < NUM_CITY_PLOTS &&
+			iFoodBonus < iTargetFoodBonusCount; iJ++)
 		{
-			if (iFoodBonus >= iTargetFoodBonusCount)
-				break;
-
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			if (pLoopPlot == NULL || pLoopPlot->getBonusType() != NO_BONUS)
 				continue;
-
+			// advc.129: Randomize the order in which resources are considered
+			int* piShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
 			for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
 			{
-				const CvBonusInfo& kLoopBonus = GC.getBonusInfo((BonusTypes)iK);
+				BonusTypes eLoopBonus = (BonusTypes)piShuffledIndices[iK]; // advc.129
+				CvBonusInfo const& kLoopBonus = GC.getBonusInfo(eLoopBonus);
 				if (!kLoopBonus.isNormalize() || kLoopBonus.getYieldChange(YIELD_FOOD) <= 0)
 					continue;
 
@@ -1807,10 +1807,10 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 				}
 				if(!bValid)
 					continue; // </advc.108>
-				if (!pLoopPlot->canHaveBonus((BonusTypes)iK, bIgnoreLatitude))
+				if (!pLoopPlot->canHaveBonus(eLoopBonus, bIgnoreLatitude))
 					continue;
 
-				pLoopPlot->setBonusType((BonusTypes)iK);
+				pLoopPlot->setBonusType(eLoopBonus);
 				if (pLoopPlot->isWater())
 					iFoodBonus += 2;
 				else
@@ -1823,7 +1823,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 
 					for (ImprovementTypes eImp = (ImprovementTypes)0; !bHighFood && eImp < GC.getNumImprovementInfos(); eImp=(ImprovementTypes)(eImp+1))
 					{
-						if (GC.getImprovementInfo(eImp).isImprovementBonusTrade((BonusTypes)iK))
+						if (GC.getImprovementInfo(eImp).isImprovementBonusTrade(eLoopBonus))
 						{
 							bHighFood = iNaturalFood + pLoopPlot->calculateImprovementYieldChange(
 									eImp, YIELD_FOOD, (PlayerTypes)iI, false, false) >= iHighFoodThreshold;
@@ -1834,6 +1834,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 				}
 				break;
 			}
+			SAFE_DELETE_ARRAY(piShuffledIndices); // advc.129
 		}
 	}
 }
@@ -2081,7 +2082,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 				}
 				bool bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
 				bool bOcean = (pLoopPlot->isWater() && !bCoast);
-				if ((pLoopPlot != pStartingPlot)
+				if (pLoopPlot != pStartingPlot
 						&& !(bCoast && iCoastFoodCount >= 2) // advc.108: was >2
 						&& !(bOcean && iOceanFoodCount >= 2) // advc.108: was >2
 						// advc.108: At most 3 sea food
@@ -2091,15 +2092,10 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 					{
 						if (pLoopPlot->getBonusType() != NO_BONUS)
 							continue;
-
-						for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
-						{	// advc.003: Checks moved into auxiliary function
-							if(!isValidExtraBonus((BonusTypes)iK, kLoopPlayer.getID(),
-									*pLoopPlot, iPass == 0, bIgnoreLatitude))
-								continue;
-							if (gMapLogLevel > 0)
-								logBBAI("    Adding %S for player %d.", GC.getBonusInfo((BonusTypes)iK).getDescription(), iI); // K-Mod
-							pLoopPlot->setBonusType((BonusTypes)iK);
+						// advc.003: Selection and placement moved into auxiliary function
+						if (placeExtraBonus(kLoopPlayer.getID(), *pLoopPlot,
+								iPass == 0, bIgnoreLatitude, false))
+						{
 							iCoastFoodCount += bCoast ? 1 : 0;
 							iOceanFoodCount += bOcean ? 1 : 0;
 							iOtherCount += !(bCoast || bOcean) ? 1 : 0;
@@ -2112,22 +2108,10 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 								&& iCoastFoodCount + iOceanFoodCount > 2 &&
 								getSorenRandNum(2, "Clear feature to add bonus") == 0)
 						{
-							if (gMapLogLevel > 0)
-								logBBAI("    Removing %S to place bonus for player %d.", GC.getFeatureInfo(pLoopPlot->getFeatureType()).getDescription(), iI); // K-Mod
-
-							pLoopPlot->setFeatureType(NO_FEATURE);
-							for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
-							{	// advc.003: Checks moved into auxiliary function
-								if(!isValidExtraBonus((BonusTypes)iK, kLoopPlayer.getID(),
-										*pLoopPlot, iPass == 0, bIgnoreLatitude))
-									continue;
-
-								if (gMapLogLevel > 0)
-									logBBAI("    Adding %S for player %d.", GC.getBonusInfo((BonusTypes)iK).getDescription(), iI); // K-Mod
-								pLoopPlot->setBonusType((BonusTypes)iK);
+							// advc.003: Selection, clearing of feature and placement moved into auxiliary function.
+							if (placeExtraBonus(kLoopPlayer.getID(), *pLoopPlot,
+									iPass == 0, bIgnoreLatitude, true))
 								iOtherCount++;
-								break;
-							}
 						}
 					}
 				}
@@ -2263,8 +2247,33 @@ void CvGame::normalizeStartingPlots()
 }
 
 // <advc.003> Cut, pasted, refactored from normalizeAddExtras
+bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
+		bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature)
+{
+	if (bRemoveFeature && kPlot.getFeatureType() != NO_FEATURE)
+	{
+		if (gMapLogLevel > 0) logBBAI("    Removing %S to place bonus for player %d", GC.getFeatureInfo(kPlot.getFeatureType()).getDescription(), eStartPlayer); // K-Mod
+		kPlot.setFeatureType(NO_FEATURE);
+	}
+	// advc.129: Try the resources in a random order
+	int* piShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
+	for (int i = 0; i < GC.getNumBonusInfos(); i++)
+	{
+		BonusTypes eBonus = (BonusTypes)piShuffledIndices[i]; // advc.129
+		if (isValidExtraBonus(eBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude))
+		{
+			if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d", GC.getBonusInfo(eBonus).getDescription(), eStartPlayer); // K-Mod
+			kPlot.setBonusType(eBonus);			
+			return true;
+		}
+	}
+	SAFE_DELETE_ARRAY(piShuffledIndices); // advc.129
+	return false;
+}
+
+
 bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
-		CvPlot const& kStartPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const {
+		CvPlot const& kPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const {
 
 	CvBonusInfo const& kBonus = GC.getBonusInfo(eBonus);
 	if (!kBonus.isNormalize())
@@ -2283,8 +2292,8 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return false;
 
 	if (bCheckCanPlace ? CvMapGenerator::GetInstance().
-			canPlaceBonusAt(eBonus, kStartPlot.getX(), kStartPlot.getY(), bIgnoreLatitude) :
-			kStartPlot.canHaveBonus(eBonus, bIgnoreLatitude))
+			canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude) :
+			kPlot.canHaveBonus(eBonus, bIgnoreLatitude))
 		return true;
 
 	return false;
