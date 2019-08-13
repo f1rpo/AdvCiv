@@ -648,19 +648,20 @@ void CvMapGenerator::addBonuses()
 		if (iOrder >= 0) // The negative ones aren't supposed to be placed at all
 			aiOrdinals.push_back(iOrder);
 	}
+	FAssertMsg(aiOrdinals.size() <= (uint)12, "Shuffling the bonus indices this often might be slow(?)");
 	::removeDuplicates(aiOrdinals);
 	std::sort(aiOrdinals.begin(), aiOrdinals.end());
 	//for (int iOrder = 0; iOrder < GC.getNumBonusInfos(); iOrder++)
 	for (size_t i = 0; i < aiOrdinals.size(); i++)
 	{
-		int iOrder = aiOrdinals[i];
-		FAssertMsg(aiOrdinals.size() <= (uint)12, "Shuffling this often might be slow(?)");
-		// Break ties in the order randomly
-		int* piShuffledIndices = ::shuffle(GC.getNumBonusInfos(), GC.getGame().getMapRand());
+		int iOrder = aiOrdinals[i];	
+		/*  Break ties in the order randomly (perhaps better not to do this though
+			if the assertion above fails) */
+		int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), GC.getGame().getMapRand());
 		// </advc.129>
 		for (int j = 0; j < GC.getNumBonusInfos(); j++)
 		{
-			BonusTypes eBonus = (BonusTypes)piShuffledIndices[j]; // advc.129
+			BonusTypes eBonus = (BonusTypes)aiShuffledIndices[j]; // advc.129
 			//gDLL->callUpdater();
 			if (GC.getBonusInfo(eBonus).getPlacementOrder() != iOrder)
 				continue;
@@ -675,7 +676,7 @@ void CvMapGenerator::addBonuses()
 				else addNonUniqueBonusType(eBonus);
 			}
 		}
-		SAFE_DELETE_ARRAY(piShuffledIndices); // advc.129
+		SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 	}
 }
 
@@ -725,10 +726,10 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 		// Place the bonuses:
 
 		CvMap& m = GC.getMap(); // advc.003 (and some stype changes in the following)
-		int* piShuffle = shuffle(m.numPlots(), GC.getGame().getMapRand());
+		int* aiShuffledIndices = shuffle(m.numPlots(), GC.getGame().getMapRand());
 		for (int iI = 0; iI < m.numPlots(); iI++)
 		{
-			CvPlot& kRandPlot = *m.plotByIndex(piShuffle[iI]);
+			CvPlot& kRandPlot = *m.plotByIndex(aiShuffledIndices[iI]);
 
 			if (m.getNumBonuses(eBonusType) >= iBonusCount)
 				break; // We already have enough
@@ -792,7 +793,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 			} } } } }*/
 
 		}
-		SAFE_DELETE_ARRAY(piShuffle);
+		SAFE_DELETE_ARRAY(aiShuffledIndices);
 	}
 }
 
@@ -802,7 +803,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	if (iBonusCount == 0)
 		return;
 
-	int* piShuffle = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
+	int *aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
 	// advc.129: Moved into placeGroup
 	//CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
 
@@ -811,7 +812,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	CvPlot* pPlot = NULL;
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		pPlot = GC.getMap().plotByIndex(piShuffle[iI]);
+		pPlot = GC.getMap().plotByIndex(aiShuffledIndices[iI]);
 		if (!canPlaceBonusAt(eBonusType, pPlot->getX(), pPlot->getY(), bIgnoreLatitude))
 			continue; // advc.003
 
@@ -833,7 +834,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 		if (iBonusCount == 0)
 			break;
 	}
-	SAFE_DELETE_ARRAY(piShuffle);
+	SAFE_DELETE_ARRAY(aiShuffledIndices);
 }
 
 
@@ -857,20 +858,20 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 	int sz = (int)apGroupRange.size();
 	if(sz <= 0)
 		return 0;
-	int* piShuffled = new int[sz];
+	int* aiShuffledIndices = new int[sz];
 	for(int i = 0; i < sz; i++)
-		piShuffled[i] = i;
-	::shuffleArray(piShuffled, sz, GC.getGame().getMapRand());
+		aiShuffledIndices[i] = i;
+	::shuffleArray(aiShuffledIndices, sz, GC.getGame().getMapRand());
 	for(int j = 0; j < sz && iLimit > 0; j++) {
 		int iProb = kBonus.getGroupRand();
 		iProb = ::round(iProb * std::pow(2/3.0, iPlaced));
 		if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < iProb) {
-			apGroupRange[piShuffled[j]]->setBonusType(eBonusType);
+			apGroupRange[aiShuffledIndices[j]]->setBonusType(eBonusType);
 			iLimit--;
 			iPlaced++;
 		}
 	}
-	delete[] piShuffled;
+	delete[] aiShuffledIndices;
 	FAssert(iLimit >= 0);
 	return iPlaced;
 } // </advc.129>
@@ -896,7 +897,7 @@ void CvMapGenerator::addGoodies()
 	}
 
 	int iNumPlots = GC.getMap().numPlots();
-	int* piShuffle = shuffle(iNumPlots, GC.getGame().getMapRand());
+	int* aiShuffledIndices = shuffle(iNumPlots, GC.getGame().getMapRand());
 
 	for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 	{
@@ -905,7 +906,7 @@ void CvMapGenerator::addGoodies()
 			for (int iJ = 0; iJ < iNumPlots; iJ++)
 			{
 				gDLL->callUpdater();
-				CvPlot *pPlot = GC.getMap().plotByIndex(piShuffle[iJ]);
+				CvPlot *pPlot = GC.getMap().plotByIndex(aiShuffledIndices[iJ]);
 				FAssertMsg(pPlot, "pPlot is expected not to be NULL");
 				if (!(pPlot->isWater()))
 				{
@@ -923,7 +924,7 @@ void CvMapGenerator::addGoodies()
 		}
 	}
 
-	SAFE_DELETE_ARRAY(piShuffle);
+	SAFE_DELETE_ARRAY(aiShuffledIndices);
 }
 
 

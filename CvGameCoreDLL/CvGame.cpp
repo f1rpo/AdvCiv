@@ -1781,10 +1781,10 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 			if (pLoopPlot == NULL || pLoopPlot->getBonusType() != NO_BONUS)
 				continue;
 			// advc.129: Randomize the order in which resources are considered
-			int* piShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
+			int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
 			for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
 			{
-				BonusTypes eLoopBonus = (BonusTypes)piShuffledIndices[iK]; // advc.129
+				BonusTypes eLoopBonus = (BonusTypes)aiShuffledIndices[iK]; // advc.129
 				CvBonusInfo const& kLoopBonus = GC.getBonusInfo(eLoopBonus);
 				if (!kLoopBonus.isNormalize() || kLoopBonus.getYieldChange(YIELD_FOOD) <= 0)
 					continue;
@@ -1834,7 +1834,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
 				}
 				break;
 			}
-			SAFE_DELETE_ARRAY(piShuffledIndices); // advc.129
+			SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 		}
 	}
 }
@@ -2256,10 +2256,10 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		kPlot.setFeatureType(NO_FEATURE);
 	}
 	// advc.129: Try the resources in a random order
-	int* piShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
+	int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
 	for (int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
-		BonusTypes eBonus = (BonusTypes)piShuffledIndices[i]; // advc.129
+		BonusTypes eBonus = (BonusTypes)aiShuffledIndices[i]; // advc.129
 		if (isValidExtraBonus(eBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude))
 		{
 			if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d", GC.getBonusInfo(eBonus).getDescription(), eStartPlayer); // K-Mod
@@ -2267,7 +2267,7 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 			return true;
 		}
 	}
-	SAFE_DELETE_ARRAY(piShuffledIndices); // advc.129
+	SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 	return false;
 }
 
