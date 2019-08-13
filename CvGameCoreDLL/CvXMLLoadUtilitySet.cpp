@@ -2081,7 +2081,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 	}
 	// <advc.003t>
 	if (!bListModified && iDefaultListVal == 0)
-		SAFE_DELETE(*ppiList); // </advc.003t>
+		SAFE_DELETE_ARRAY(*ppiList); // </advc.003t>
 }
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
@@ -2151,7 +2151,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 	}
 	// <advc.003t>
 	if (!bListModified && bDefaultListVal == false)
-		SAFE_DELETE(*ppbList); // </advc.003t>
+		SAFE_DELETE_ARRAY(*ppbList); // </advc.003t>
 }
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
@@ -2221,7 +2221,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 	}
 	// <advc.003t>
 	if (!bListModified && fDefaultListVal == 0)
-		SAFE_DELETE(*ppfList); // </advc.003t>
+		SAFE_DELETE_ARRAY(*ppfList); // </advc.003t>
 }
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
@@ -2297,7 +2297,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 	}
 	// <advc.003t>
 	if (!bListModified && szDefaultListVal.empty())
-		SAFE_DELETE(*ppszList); // </advc.003t>
+		SAFE_DELETE_ARRAY(*ppszList); // </advc.003t>
 }
 
 //------------------------------------------------------------------------------------------------------
