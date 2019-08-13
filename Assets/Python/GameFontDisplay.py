@@ -4,7 +4,7 @@ import ScreenInput
 import CvScreenEnums
 gc = CyGlobalContext()
 
-
+# advc.gfd: Main class of Nightinggale's GameFont Display component
 class GameFontDisplay:
 	def __init__(self):
 		return

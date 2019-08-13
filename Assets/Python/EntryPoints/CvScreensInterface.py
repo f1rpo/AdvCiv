@@ -36,6 +36,7 @@ import CvWorldBuilderDiplomacyScreen
 
 import CvDebugTools
 import CvDebugInfoScreen
+import GameFontDisplay # advc.gfd
 #import CvDiplomacy
 
 import CvUtil
@@ -1152,11 +1153,11 @@ HandleInputMap = {  MAIN_INTERFACE : mainInterface,
 					VICTORY_MOVIE_SCREEN : victoryMovie,
 					ESPIONAGE_ADVISOR : espionageAdvisor,
 					DAN_QUAYLE_SCREEN : danQuayleScreen,
-
 					WORLDBUILDER_SCREEN : worldBuilderScreen,
 					WORLDBUILDER_DIPLOMACY_SCREEN : worldBuilderDiplomacyScreen,
-					
 					DEBUG_INFO_SCREEN : debugInfoScreen,
+					# advc.gfd:
+					GAMEFONT_DISPLAY_SCREEN : GameFontDisplay.GameFontDisplay(),
 				
 				# add new screens here
 				}

@@ -222,70 +222,7 @@ class CvEventManager:
 #################### ON EVENTS ######################
 	def onKbdEvent(self, argsList):
 		'keypress handler - return 1 if the event was consumed'
-
-		eventType,key,mx,my,px,py = argsList
-		game = gc.getGame()
-		
-		if (self.bAllowCheats):
-			# notify debug tools of input to allow it to override the control
-			argsList = (eventType,key,self.bCtrl,self.bShift,self.bAlt,mx,my,px,py,gc.getGame().isNetworkMultiPlayer())
-			if ( CvDebugTools.g_CvDebugTools.notifyInput(argsList) ):
-				return 0
-		
-		if ( eventType == self.EventKeyDown ):
-			theKey=int(key)
-			
-			CvCameraControls.g_CameraControls.handleInput( theKey )
-						
-			if (self.bAllowCheats):
-				# Shift - T (Debug - No MP)
-				if (theKey == int(InputTypes.KB_T)):
-					if ( self.bShift ):
-						self.beginEvent(CvUtil.EventAwardTechsAndGold)
-						#self.beginEvent(CvUtil.EventCameraControlPopup)
-						return 1
-							
-				elif (theKey == int(InputTypes.KB_W)):
-					if ( self.bShift and self.bCtrl):
-						self.beginEvent(CvUtil.EventShowWonder)
-						return 1
-							
-				# Shift - ] (Debug - currently mouse-overd unit, health += 10
-				elif (theKey == int(InputTypes.KB_LBRACKET) and self.bShift ):
-					unit = CyMap().plot(px, py).getUnit(0)
-					if ( not unit.isNone() ):
-						d = min( unit.maxHitPoints()-1, unit.getDamage() + 10 )
-						unit.setDamage( d, PlayerTypes.NO_PLAYER )
-					
-				# Shift - [ (Debug - currently mouse-overd unit, health -= 10
-				elif (theKey == int(InputTypes.KB_RBRACKET) and self.bShift ):
-					unit = CyMap().plot(px, py).getUnit(0)
-					if ( not unit.isNone() ):
-						d = max( 0, unit.getDamage() - 10 )
-						unit.setDamage( d, PlayerTypes.NO_PLAYER )
-					
-				elif (theKey == int(InputTypes.KB_F1)):
-					if ( self.bShift ):
-						CvScreensInterface.replayScreen.showScreen(False)
-						return 1
-					# don't return 1 unless you want the input consumed
-				
-				elif (theKey == int(InputTypes.KB_F2)):
-					if ( self.bShift ):
-						import CvDebugInfoScreen
-						CvScreensInterface.showDebugInfoScreen()
-						return 1
-				
-				elif (theKey == int(InputTypes.KB_F3)):
-					if ( self.bShift ):
-						CvScreensInterface.showDanQuayleScreen(())
-						return 1
-						
-				elif (theKey == int(InputTypes.KB_F4)):
-					if ( self.bShift ):
-						CvScreensInterface.showUnVictoryScreen(())
-						return 1
-											
+		# advc.007b: Body (mostly cheat commands) deleted; keyboard input is handled by BugEventManager.py.
 		return 0
 
 	def onModNetMessage(self, argsList):

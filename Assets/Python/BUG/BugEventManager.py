@@ -108,6 +108,7 @@ import types
 import CvUtil
 import CvScreensInterface
 # </advc.007b>
+import GameFontDisplay # advc.gfd
 # --------- Better BTS AI mod (1/2) -------------
 import AIAutoPlay
 import ChangePlayer
@@ -511,6 +512,10 @@ class BugEventManager(CvEventManager.CvEventManager):
 						if not unit.isNone():
 							d = max(0, unit.getDamage() - 10)
 							unit.setDamage(d, PlayerTypes.NO_PLAYER)
+					# <advc.gfd> Keep Nightinggale's key combination
+					elif theKey == int(InputTypes.KB_F1) and self.bShift and self.bCtrl:
+						GameFontDisplay.GameFontDisplay().interfaceScreen()
+						return 1 # </advc.gfd>
 					elif theKey == int(InputTypes.KB_F1):
 						if self.bShift:
 							CvScreensInterface.replayScreen.showScreen(False)
