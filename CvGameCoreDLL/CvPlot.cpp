@@ -487,8 +487,11 @@ void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 				eCulturalOwner = eSecondOwner;
 			else setSecondOwner(eSecondOwner);
 		}
-		else FAssertMsg(eSecondOwner != NO_PLAYER, "ownerId!=NO_PLAYER"
-				" should imply secondOwnerId!=NO_PLAYER");
+		else
+		{
+			FAssertMsg(eSecondOwner != NO_PLAYER, "eCulturalOwner!=NO_PLAYER"
+				" should imply eSecondOwner!=NO_PLAYER");
+		}
 	}
 	setOwner(eCulturalOwner, // </advc.035>
 			bBumpUnits, bUpdatePlotGroups);
@@ -2078,8 +2081,7 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
 				!kBonus.isTerrain(getTerrainType()))
 			return false;
 	}
-	else // </advc.129>
-	if (getFeatureType() != NO_FEATURE)
+	else /* </advc.129> */ if (getFeatureType() != NO_FEATURE)
 	{
 		if (!kBonus.isFeature(getFeatureType()))
 		{
@@ -3143,7 +3145,7 @@ void CvPlot::invalidateBorderDangerCache()
 PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureRange,
 		bool bOwnExclusiveRadius) const // advc.035
 {
-	PROFILE("CvPlot::calculateCulturalOwner()");
+	PROFILE_FUNC();
 	int iI;
 	/*  advc.001: When a city is captured, the tiles in its culture range (but I
 		think not the city plot itself) are set to unowned for 2 turns. This leads
@@ -3182,7 +3184,12 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 				|| bIgnoreCultureRange) // advc.099c
 		{
 			int iCulture = getCulture(eLoopPlayer);
-			if (iCulture <= 0)
+			/*  <advc.035> When the range of a city expands, tile ownership is updated
+				before tile culture is spread. If the expansion is sudden (WorldBuilder,
+				perhaps also culture bomb), 0 tile culture in the new range is possible. */
+			if (bOwnExclusiveRadius && iBestCulture == 0 && abCityRadius[iI])
+				iBestCulture = -1;
+			if (iCulture <= iBestCulture) // </advc.035>
 				continue; // advc.003
 			if (/* advc.099c: */ bIgnoreCultureRange ||
 					isWithinCultureRange(eLoopPlayer))

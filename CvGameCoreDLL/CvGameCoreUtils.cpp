@@ -2894,6 +2894,7 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 	}
 }
 
+
 int getTurnYearForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed)
 {
 	return (getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed) / GC.getNumMonthInfos());

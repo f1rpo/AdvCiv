@@ -237,7 +237,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 
 	//FAssertMsg(m_paiNumBonuses[eBonus] >= 0, "m_paiNumBonuses[eBonus] is expected to be non-negative (invalid Index)"); XXX
 	// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
-	// It's an unfortuante side effect of the way the update is implemented. ... and so this assert is invalid.
+	// It's an unfortunate side effect of the way the update is implemented. ... and so this assert is invalid.
 	// (This isn't my fault. I haven't changed it. It has always been like this.)
 
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
