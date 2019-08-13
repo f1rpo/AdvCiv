@@ -1866,22 +1866,15 @@ int CvCity::getNumNationalWondersLeft() const {
 
 bool CvCity::isBuildingsMaxed() const
 {
+	// <advc.003b> -1 unless a mod-mod changes it
+	static int iMaxBuildingsPerCity = GC.getDefineINT("MAX_BUILDINGS_PER_CITY");
+	if (iMaxBuildingsPerCity < 0)
+		return false; // </advc.003b>
+
 	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-	{
 		return false;
-	}
 
-	if (GC.getDefineINT("MAX_BUILDINGS_PER_CITY") == -1)
-	{
-		return false;
-	}
-
-	if (getNumBuildings() >= GC.getDefineINT("MAX_BUILDINGS_PER_CITY"))
-	{
-		return true;
-	}
-
-	return false;
+	return (getNumBuildings() >= iMaxBuildingsPerCity);
 }
 
 // <advc.064d>
@@ -1983,9 +1976,11 @@ bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
 {
-	if(eBuilding == NO_BUILDING)
+	if(eBuilding == NO_BUILDING) // advc.test: Safe to remove this check?
+	{
+		FAssert(false);
 		return false;
-
+	}
 	if(GC.getUSE_CAN_CONSTRUCT_CALLBACK()) {
 		CyCity* pyCity = new CyCity((CvCity*)this);
 		CyArgsList argsList;
@@ -2005,81 +2000,67 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 	if(getNumBuilding(eBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS())
 		return false;
 
-	CvBuildingInfo const& bi = GC.getBuildingInfo(eBuilding);
-	if (bi.isPrereqReligion())
+	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
+	if (kBuilding.isPrereqReligion() &&
+			//getReligionCount() > 0
+			getReligionCount() <= 0) // K-Mod
+		return false;
 	{
-		//if (getReligionCount() > 0)
-		if(getReligionCount() == 0) // K-Mod
+		ReligionTypes ePrereqReligion = (ReligionTypes)kBuilding.getPrereqReligion();
+		if (ePrereqReligion != NO_RELIGION && !isHasReligion(ePrereqReligion))
 			return false;
 	}
-
-	if (bi.isStateReligion())
+	if (kBuilding.isStateReligion())
 	{
 		ReligionTypes eStateReligion = GET_PLAYER(getOwner()).getStateReligion();
-		if(NO_RELIGION == eStateReligion || !isHasReligion(eStateReligion))
+		if(eStateReligion == NO_RELIGION || !isHasReligion(eStateReligion))
 			return false;
 	}
-
-	if (bi.getPrereqReligion() != NO_RELIGION)
 	{
-		if(!isHasReligion((ReligionTypes)(bi.getPrereqReligion())))
-			return false;
-	}
-
-	CorporationTypes ePrereqCorp = (CorporationTypes)bi.getPrereqCorporation();
-	if (ePrereqCorp != NO_CORPORATION)
-	{
-		if(!isHasCorporation(ePrereqCorp))
-			return false;
-	}
-
-	CorporationTypes eFoundCorp = (CorporationTypes)bi.getFoundsCorporation();
-	if (eFoundCorp != NO_CORPORATION)
-	{
-		if(GC.getGame().isCorporationFounded(eFoundCorp))
-			return false;
-
-		for (int iCorporation = 0; iCorporation < GC.getNumCorporationInfos(); ++iCorporation)
+		CorporationTypes ePrereqCorp = (CorporationTypes)kBuilding.getPrereqCorporation();
+		if (ePrereqCorp != NO_CORPORATION)
 		{
-			CorporationTypes eLoopCorp = (CorporationTypes)iCorporation;
-			if (isHeadquarters(eLoopCorp))
-			{
-				if(GC.getGame().isCompetingCorporation(eLoopCorp, eFoundCorp))
-					return false;
-			}
+			if(!isHasCorporation(ePrereqCorp))
+				return false;
 		}
 	}
 
+	CorporationTypes eFoundCorp = (CorporationTypes)kBuilding.getFoundsCorporation();
+	if (eFoundCorp != NO_CORPORATION)
+	{
+		for (int i = 0; i < GC.getNumCorporationInfos(); i++)
+		{
+			CorporationTypes eLoopCorp = (CorporationTypes)i;
+			if (isHeadquarters(eLoopCorp) && GC.getGame().
+					isCompetingCorporation(eLoopCorp, eFoundCorp))
+				return false;
+		}
+	}
 	if(!isValidBuildingLocation(eBuilding))
 		return false;
 
-	if (bi.isGovernmentCenter())
-	{
-		if(isGovernmentCenter())
-			return false;
-	}
+	if (kBuilding.isGovernmentCenter() && isGovernmentCenter())
+		return false;
 
 	if (!bTestVisible)
 	{
-		if (!bContinue)
+		if (!bContinue && getFirstBuildingOrder(eBuilding) != -1)
+			return false;
+
+		BuildingClassTypes bct = (BuildingClassTypes)kBuilding.getBuildingClassType();
+		if (!GC.getBuildingClassInfo(bct).isNoLimit())
 		{
-			if(getFirstBuildingOrder(eBuilding) != -1)
-				return false;
-		}
-		BuildingClassTypes bct = (BuildingClassTypes)(bi.getBuildingClassType());
-		if (!(GC.getBuildingClassInfo(bct)).isNoLimit())
-		{
-			if (isWorldWonderClass(bct))
+			if (::isWorldWonderClass(bct))
 			{
 				if(isWorldWondersMaxed())
 					return false;
 			}
-			else if (isTeamWonderClass(bct))
+			else if (::isTeamWonderClass(bct))
 			{
 				if(isTeamWondersMaxed())
 					return false;
 			}
-			else if (isNationalWonderClass(bct))
+			else if (::isNationalWonderClass(bct))
 			{
 				if(isNationalWondersMaxed())
 					return false;
@@ -2087,76 +2068,62 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 			else if(isBuildingsMaxed())
 				return false;
 		}
-
-		if (bi.getHolyCity() != NO_RELIGION)
 		{
-			if(!isHolyCity(((ReligionTypes)(bi.getHolyCity()))))
+			ReligionTypes eHolyCityReligion = (ReligionTypes)kBuilding.getHolyCity();
+			if (eHolyCityReligion != NO_RELIGION && !isHolyCity(eHolyCityReligion))
 				return false;
 		}
-
-		if (bi.getPrereqAndBonus() != NO_BONUS)
-		{
-			if(!hasBonus((BonusTypes)bi.getPrereqAndBonus()))
-				return false;
-		}
+		if (kBuilding.getPrereqAndBonus() != NO_BONUS &&
+				!hasBonus((BonusTypes)kBuilding.getPrereqAndBonus()))
+			return false;
 
 		if (eFoundCorp != NO_CORPORATION)
 		{
-			if(GC.getGame().isCorporationFounded(eFoundCorp))
-				return false;
-
-			if(GET_PLAYER(getOwner()).isNoCorporations())
-				return false;
-
-			bool bValid = false;
-			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+			bool bValidBonus = false;
+			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); i++)
 			{
-				BonusTypes eBonus = (BonusTypes)GC.getCorporationInfo(eFoundCorp).getPrereqBonus(i);
-				if (NO_BONUS != eBonus)
+				BonusTypes ePrereqBonus = (BonusTypes)GC.getCorporationInfo(eFoundCorp).getPrereqBonus(i);
+				if (ePrereqBonus != NO_BONUS && hasBonus(ePrereqBonus))
 				{
-					if (hasBonus(eBonus))
-					{
-						bValid = true;
-						break;
-					}
+					bValidBonus = true;
+					break;
 				}
 			}
-
-			if(!bValid)
+			if(!bValidBonus)
 				return false;
 		}
 
-		if(plot()->getLatitude() > bi.getMaxLatitude())
+		if(plot()->getLatitude() > kBuilding.getMaxLatitude())
 			return false;
-		if(plot()->getLatitude() < bi.getMinLatitude())
+		if(plot()->getLatitude() < kBuilding.getMinLatitude())
 			return false;
-
-		bool bRequiresBonus = false;
-		bool bNeedsBonus = true;
-
-		for (int iI = 0; iI < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iI++)
 		{
-			if (GC.getBuildingInfo(eBuilding).getPrereqOrBonuses(iI) != NO_BONUS)
+			bool bPrereqBonus = false;
+			bool bValidBonus = false;
+			for (int i = 0; i < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); i++)
 			{
-				bRequiresBonus = true;
-				if(hasBonus((BonusTypes)GC.getBuildingInfo(eBuilding).getPrereqOrBonuses(iI)))
-					bNeedsBonus = false;
+				BonusTypes ePrereqBonus = (BonusTypes)kBuilding.getPrereqOrBonuses(i);
+				if (ePrereqBonus != NO_BONUS)
+				{
+					bPrereqBonus = true;
+					if(hasBonus(ePrereqBonus))
+						bValidBonus = true;
+				}
 			}
+			if(bPrereqBonus && !bValidBonus)
+				return false;
 		}
-
-		if(bRequiresBonus && bNeedsBonus)
-			return false;
-
-		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
 		{
-			if (bi.isBuildingClassNeededInCity(iI))
+			BuildingClassTypes ePrereqClass = (BuildingClassTypes)i;
+			if (kBuilding.isBuildingClassNeededInCity(ePrereqClass))
 			{
 				BuildingTypes ePrereqBuilding = (BuildingTypes)
-						(GC.getCivilizationInfo(getCivilizationType()).
-						getCivilizationBuildings(iI));
+						GC.getCivilizationInfo(getCivilizationType()).
+						getCivilizationBuildings(ePrereqClass);
 				if (ePrereqBuilding != NO_BUILDING)
 				{
-					if(getNumBuilding(ePrereqBuilding) == 0
+					if(getNumBuilding(ePrereqBuilding) <= 0
 							/* && (bContinue || (getFirstBuildingOrder(ePrereqBuilding) == -1))*/)
 						return false;
 				}

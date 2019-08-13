@@ -340,6 +340,7 @@ public:
 	int getVictoryCountdown(VictoryTypes eIndex) const;																							// Exposed to Python
 	void setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft);
 	void changeVictoryCountdown(VictoryTypes eIndex, int iChange);
+	bool isAnyVictoryCountdown() const; // advc.003b
 	int getVictoryDelay(VictoryTypes eVictory) const;
 	bool canLaunch(VictoryTypes eVictory) const;									// Exposed to Python
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
@@ -496,6 +497,7 @@ protected:
 	// </advc.003m>
 	bool m_bMapCentering;
 	bool m_bCapitulated;
+	bool m_bAnyVictoryCountdown; // advc.003b
 
 	int* m_aiStolenVisibilityTimer;
 	int* m_aiWarWeariness;

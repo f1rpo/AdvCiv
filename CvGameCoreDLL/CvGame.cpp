@@ -5704,29 +5704,30 @@ void CvGame::setForceControl(ForceControlTypes eIndex, bool bEnabled)
 // advc.003: Mostly cut from CvPlayer::canConstruct
 bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const {
 
-	if(!bIgnoreCost && GC.getBuildingInfo(eBuilding).getProductionCost() == -1)
+	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
+
+	if(!bIgnoreCost && kBuilding.getProductionCost() == -1)
 		return false;
 
-	if(getCivTeamsEverAlive() < GC.getBuildingInfo(eBuilding).getNumTeamsPrereq())
+	if(getCivTeamsEverAlive() < kBuilding.getNumTeamsPrereq())
 		return false;
-
-	VictoryTypes ePrereqVict = (VictoryTypes)GC.getBuildingInfo(eBuilding).
-			getVictoryPrereq();
-	if(ePrereqVict != NO_VICTORY && !isVictoryValid(ePrereqVict))
-		return false;
-
-	int iMaxStartEra = GC.getBuildingInfo(eBuilding).getMaxStartEra();
-	if(iMaxStartEra != NO_ERA && getStartEra() > iMaxStartEra)
-		return false;
-
-	if(isBuildingClassMaxedOut((BuildingClassTypes)
-			(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
+	{
+		VictoryTypes ePrereqVict = (VictoryTypes)kBuilding.getVictoryPrereq();
+		if(ePrereqVict != NO_VICTORY && !isVictoryValid(ePrereqVict))
+			return false;
+	}
+	{
+		int iMaxStartEra = kBuilding.getMaxStartEra();
+		if(iMaxStartEra != NO_ERA && getStartEra() > iMaxStartEra)
+			return false;
+	}
+	if(isBuildingClassMaxedOut((BuildingClassTypes)kBuilding.getBuildingClassType()))
 		return false;
 
 	if(bTestVisible)
 		return true;
 
-	if(isNoNukes() && GC.getBuildingInfo(eBuilding).isAllowsNukes()) {
+	if(isNoNukes() && kBuilding.isAllowsNukes()) {
 		return false;
 		// What the original code did:
 		/*for(int i = 0; i < GC.getNumUnitInfos(); i++) {
@@ -5734,15 +5735,19 @@ bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestV
 				return false;
 		}*/
 	}
-
-	SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getBuildingInfo(eBuilding).
-			getSpecialBuildingType();
-	if(eSpecial != NO_SPECIALBUILDING && !isSpecialBuildingValid(eSpecial))
-		return false;
-
+	{
+		SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getBuildingInfo(eBuilding).
+				getSpecialBuildingType();
+		if(eSpecial != NO_SPECIALBUILDING && !isSpecialBuildingValid(eSpecial))
+			return false;
+	}
 	if(getNumCities() < GC.getBuildingInfo(eBuilding).getNumCitiesPrereq())
 		return false;
-
+	{
+		CorporationTypes eFoundCorp = (CorporationTypes)kBuilding.getFoundsCorporation();
+		if (eFoundCorp != NO_CORPORATION && isCorporationFounded(eFoundCorp))
+			return false;
+	}
 	return true;
 }
 

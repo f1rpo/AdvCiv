@@ -5653,142 +5653,104 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 }
 
 
-bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
+bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const  // advc.003: style changes
 {
-	/*  <advc.003> Global checks moved into new function. These are all fast
-		(now that CivTeamsEverAlive is cached). */
+	/*  advc: Global checks moved into new function. These are all fast (now that
+		CivTeamsEverAlive is cached). */
 	if(!GC.getGame().canConstruct(eBuilding, bIgnoreCost, bTestVisible))
-		return false; // </advc.003>
+		return false;
 
-	int iI;
-	CvTeamAI& kOurTeam = GET_TEAM(getTeam());
-	BuildingClassTypes eBuildingClass = (BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType());
+	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
+	BuildingClassTypes eBuildingClass = (BuildingClassTypes)(kBuilding.getBuildingClassType());
 
 	if (GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass) != eBuilding)
-	{
 		return false;
-	}
 
+	CvTeamAI& kOurTeam = GET_TEAM(getTeam());
 	if (!bIgnoreTech) // K-Mod
 	{
-		if (!kOurTeam.isHasTech((TechTypes) GC.getBuildingInfo(eBuilding).getPrereqAndTech()))
-		{
+		if (!kOurTeam.isHasTech((TechTypes)kBuilding.getPrereqAndTech()))
 			return false;
-		}
 
-		for (iI = 0; iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
+		for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
 		{
-			if (GC.getBuildingInfo(eBuilding).getPrereqAndTechs(iI) != NO_TECH)
-			{
-				if (!kOurTeam.isHasTech((TechTypes)GC.getBuildingInfo(eBuilding).getPrereqAndTechs(iI)))
-				{
-					return false;
-				}
-			}
+			if (!kOurTeam.isHasTech((TechTypes)kBuilding.getPrereqAndTechs(i)))
+				return false;
 		}
 	}
 
 	if (kOurTeam.isObsoleteBuilding(eBuilding))
-	{
 		return false;
-	}
-
-	SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getBuildingInfo(eBuilding).getSpecialBuildingType(); // advc.003
-	if (eSpecial != NO_SPECIALBUILDING)
 	{
-		if (!kOurTeam.isHasTech((TechTypes)GC.getSpecialBuildingInfo(eSpecial).getTechPrereq()))
-		{
+		SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)kBuilding.getSpecialBuildingType();
+		if (eSpecial != NO_SPECIALBUILDING && !kOurTeam.isHasTech((TechTypes)
+				GC.getSpecialBuildingInfo(eSpecial).getTechPrereq()))
 			return false;
-		}
 	}
-
-	if (GC.getBuildingInfo(eBuilding).getStateReligion() != NO_RELIGION)
 	{
-		if (getStateReligion() != GC.getBuildingInfo(eBuilding).getStateReligion())
-		{
+		ReligionTypes ePrereqStateReligion = (ReligionTypes)GC.getBuildingInfo(eBuilding).getStateReligion();
+		if (ePrereqStateReligion != NO_RELIGION && ePrereqStateReligion != getStateReligion())
 			return false;
-		}
 	}
-
-	if (GC.getBuildingInfo(eBuilding).getVictoryPrereq() != NO_VICTORY)
 	{
-		if (isMinorCiv())
+		VictoryTypes ePrereqVictory = (VictoryTypes)kBuilding.getVictoryPrereq();
+		if (ePrereqVictory != NO_VICTORY)
 		{
-			return false;
-		}
+			if (isMinorCiv() || isBarbarian())
+				return false;
 
-		if (kOurTeam.getVictoryCountdown((VictoryTypes)GC.getBuildingInfo(eBuilding).getVictoryPrereq()) >= 0)
-		{
-			return false;
-		}
-	}
-	// <dlph.19>
-	if(eBuilding == (BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).
-			getCivilizationBuildings(GC.getDefineINT("CAPITAL_BUILDINGCLASS")))) {
-		for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
-			if(kOurTeam.getVictoryCountdown((VictoryTypes)i) >= 0 &&
-					GC.getGame().getGameState() == GAMESTATE_ON)
+			if (kOurTeam.getVictoryCountdown(ePrereqVictory) >= 0)
 				return false;
 		}
-	} // </dlph.19>
+	}
+	{
+		CorporationTypes eFoundCorp = (CorporationTypes)kBuilding.getFoundsCorporation();
+		if (eFoundCorp != NO_CORPORATION && isNoCorporations())
+			return false;
+	}
+	// <dlph.19> (advc: simplified)
+	if (kBuilding.isCapital() && GC.getGame().getGameState() == GAMESTATE_ON &&
+			GET_TEAM(getTeam()).isAnyVictoryCountdown()) // advc.003b
+		return false; // </dlph.19>
 
 	if (kOurTeam.isBuildingClassMaxedOut(eBuildingClass))
-	{
 		return false;
-	}
 
 	if (isBuildingClassMaxedOut(eBuildingClass))
-	{
 		return false;
-	}
 
-	CvCivilizationInfo &civilizationInfo = GC.getCivilizationInfo(getCivilizationType());
-	int numBuildingClassInfos = GC.getNumBuildingClassInfos();
-	for (iI = 0; iI < numBuildingClassInfos; iI++)
+	CvCivilizationInfo const& kCivilization = GC.getCivilizationInfo(getCivilizationType());
+	for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
 	{
-		BuildingTypes ePrereqBuilding = (BuildingTypes)civilizationInfo.getCivilizationBuildings(iI);
-		if (NO_BUILDING != ePrereqBuilding && kOurTeam.isObsoleteBuilding(ePrereqBuilding))
-		{
-			if (getBuildingClassCount((BuildingClassTypes)iI) < getBuildingClassPrereqBuilding(eBuilding, (BuildingClassTypes)iI, 0))
-			{
-				return false;
-			}
-		}
+		BuildingClassTypes ePrereqClass = (BuildingClassTypes)i;
+		BuildingTypes ePrereqBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings(ePrereqClass);
+		if (ePrereqBuilding != NO_BUILDING && kOurTeam.isObsoleteBuilding(ePrereqBuilding) &&
+				getBuildingClassCount(ePrereqClass) < getBuildingClassPrereqBuilding(eBuilding, ePrereqClass, 0))
+			return false;
 	}
 
 	if(bTestVisible)
-		return true; // advc.003
+		return true;
 
-	if (GC.getGame().isBuildingClassMaxedOut(eBuildingClass,
-			(kOurTeam.getBuildingClassMaking(eBuildingClass) +
-			((bContinue) ? -1 : 0))))
-	{
+	if (getHighestUnitLevel() < kBuilding.getUnitLevelPrereq())
 		return false;
-	}
-
-	if (kOurTeam.isBuildingClassMaxedOut(eBuildingClass,
-			(kOurTeam.getBuildingClassMaking(eBuildingClass) +
-			((bContinue) ? -1 : 0))))
 	{
-		return false;
-	}
-
-	if (isBuildingClassMaxedOut(eBuildingClass,
-			(getBuildingClassMaking(eBuildingClass) + ((bContinue) ? -1 : 0))))
-	{
-		return false;
-	}
-
-	if (getHighestUnitLevel() < GC.getBuildingInfo(eBuilding).getUnitLevelPrereq())
-	{
-		return false;
-	}
-
-	for (iI = 0; iI < numBuildingClassInfos; iI++)
-	{
-		if (getBuildingClassCount((BuildingClassTypes)iI) < getBuildingClassPrereqBuilding(eBuilding, ((BuildingClassTypes)iI), ((bContinue) ? 0 : getBuildingClassMaking(eBuildingClass))))
-		{
+		int iTeamMaking = kOurTeam.getBuildingClassMaking(eBuildingClass);
+		int iTeamMakingCont = iTeamMaking + (bContinue ? -1 : 0);
+		if (GC.getGame().isBuildingClassMaxedOut(eBuildingClass, iTeamMakingCont))
 			return false;
+		if (kOurTeam.isBuildingClassMaxedOut(eBuildingClass, iTeamMakingCont))
+			return false;
+		int iMaking = getBuildingClassMaking(eBuildingClass);
+		int iMakingCont = iMaking + (bContinue ? -1 : 0);
+		if (isBuildingClassMaxedOut(eBuildingClass, iMakingCont))
+			return false;
+		for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
+		{
+			BuildingClassTypes ePrereqClass = (BuildingClassTypes)i;
+			if (getBuildingClassCount(ePrereqClass) < getBuildingClassPrereqBuilding(
+					eBuilding, ePrereqClass, bContinue ? 0 : iMaking))
+				return false;
 		}
 	}
 

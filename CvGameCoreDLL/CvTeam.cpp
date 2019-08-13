@@ -191,6 +191,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 	m_bMinorTeam = false; // </advc.003m>
 	m_bMapCentering = false;
 	m_bCapitulated = false;
+	m_bAnyVictoryCountdown = false; // advc.003b
 
 	m_eID = eID;
 	// <advc.134a>
@@ -2974,7 +2975,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
 	EraTypes eTechEra = (EraTypes)GC.getTechInfo(eTech).getEra();
 	int iModifier = 100 + GC.getEraInfo(eTechEra).getTechCostModifier();
-	/*  This is a BBAI tech diffusion thing, but since it applies always, I think
+	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
 	iModifier += GC.getTECH_COST_MODIFIER();
 	// </advc.910>
@@ -5523,20 +5524,31 @@ void CvTeam::setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumVictoryInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 	m_aiVictoryCountdown[eIndex] = iTurnsLeft;
+	// <advc.003b>
+	if (iTurnsLeft >= 0)
+		m_bAnyVictoryCountdown = true;
+	else
+	{
+		m_bAnyVictoryCountdown = false;
+		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
+		{
+			if (i != eIndex && getVictoryCountdown((VictoryTypes)i) >= 0)
+				m_bAnyVictoryCountdown = true;
+		}
+	} // </advc.003b>
 }
 
 
 void CvTeam::changeVictoryCountdown(VictoryTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumVictoryInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-
-	if (iChange != 0)
-	{
-		m_aiVictoryCountdown[eIndex] += iChange;
-		FAssert(m_aiVictoryCountdown[eIndex] >= 0);
-	}
+	setVictoryCountdown(eIndex, getVictoryCountdown(eIndex) + iChange); // advc.003: was m_aiVictoryCountdown[eIndex] += iChange
 }
+
+// <advc.003b>
+bool CvTeam::isAnyVictoryCountdown() const
+{
+	return m_bAnyVictoryCountdown;
+} // </advc.003b>
 
 
 int CvTeam::getVictoryDelay(VictoryTypes eVictory) const
@@ -5598,50 +5610,54 @@ int CvTeam::getLaunchSuccessRate(VictoryTypes eVictory) const
 }
 
 void CvTeam::resetVictoryProgress()
-{
+{	// <advc.003b>
+	if (!isAnyVictoryCountdown() || GC.getGame().getGameState() != GAMESTATE_ON)
+		return; // </advc.003b>
 	for (int iI = 0; iI < GC.getNumVictoryInfos(); ++iI)
 	{
-		if (getVictoryCountdown((VictoryTypes)iI) >= 0 && GC.getGame().getGameState() == GAMESTATE_ON)
+		if (getVictoryCountdown((VictoryTypes)iI) < 0)
+			continue;
+
+		setVictoryCountdown((VictoryTypes)iI, -1);
+
+		for (int iK = 0; iK < GC.getNumProjectInfos(); iK++)
 		{
-			setVictoryCountdown((VictoryTypes)iI, -1);
-
-			for (int iK = 0; iK < GC.getNumProjectInfos(); iK++)
+			if (GC.getProjectInfo((ProjectTypes)iK).getVictoryMinThreshold((VictoryTypes)iI) > 0)
 			{
-				if (GC.getProjectInfo((ProjectTypes)iK).getVictoryMinThreshold((VictoryTypes)iI) > 0)
-				{
-					changeProjectCount((ProjectTypes)iK, -getProjectCount((ProjectTypes)iK));
-				}
+				changeProjectCount((ProjectTypes)iK, -getProjectCount((ProjectTypes)iK));
 			}
-
-			CvWString szBuffer = gDLL->getText("TXT_KEY_VICTORY_RESET", getReplayName().GetCString(), GC.getVictoryInfo((VictoryTypes)iI).getTextKeyWide());
-
-			for (int iJ = 0; iJ < MAX_PLAYERS; ++iJ)
-			{
-				CvPlayer& kObs = GET_PLAYER((PlayerTypes)iJ);
-				if(!kObs.isAlive())
-					continue; // advc.003
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-						"AS2D_MELTDOWN", MESSAGE_TYPE_MAJOR_EVENT,
-						// <advc.127b>
-						NULL, NO_COLOR, getCapitalX(kObs.getTeam(), true),
-						getCapitalY(kObs.getTeam(), true)); // </advc.127b>
-				if(kObs.getTeam() == getID())
-				{
-					CvPopupInfo* pInfo = new CvPopupInfo();
-					pInfo->setText(szBuffer);
-					gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes) iJ);
-				}
-			}
-
-			GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 		}
+
+		CvWString szBuffer = gDLL->getText("TXT_KEY_VICTORY_RESET", getReplayName().GetCString(), GC.getVictoryInfo((VictoryTypes)iI).getTextKeyWide());
+
+		for (int iJ = 0; iJ < MAX_PLAYERS; ++iJ)
+		{
+			CvPlayer& kObs = GET_PLAYER((PlayerTypes)iJ);
+			if(!kObs.isAlive())
+				continue; // advc.003
+			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+					false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+					"AS2D_MELTDOWN", MESSAGE_TYPE_MAJOR_EVENT,
+					// <advc.127b>
+					NULL, NO_COLOR, getCapitalX(kObs.getTeam(), true),
+					getCapitalY(kObs.getTeam(), true)); // </advc.127b>
+			if(kObs.getTeam() == getID())
+			{
+				CvPopupInfo* pInfo = new CvPopupInfo();
+				pInfo->setText(szBuffer);
+				gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes) iJ);
+			}
+		}
+
+		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	}
 }
 
 // K-Mod, code moved from CvPlayer::hasSpaceshipArrived. (it makes more sense to be here)
 bool CvTeam::hasSpaceshipArrived() const
-{
+{	// <advc.003b>
+	if (!isAnyVictoryCountdown())
+		return false; // </advc.003b>
 	VictoryTypes eSpaceVictory = GC.getGame().getSpaceVictory();
 	if (eSpaceVictory != NO_VICTORY)
 	{
@@ -7292,6 +7308,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_bMapCentering);
 	pStream->Read(&m_bCapitulated);
+	// <advc.003b>
+	if (uiFlag >= 7)
+		pStream->Read(&m_bAnyVictoryCountdown); // </advc.003b>
 
 	pStream->Read((int*)&m_eID);
 
@@ -7358,6 +7377,13 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumTechInfos(), m_paiTechCount);
 	pStream->Read(GC.getNumTerrainInfos(), m_paiTerrainTradeCount);
 	pStream->Read(GC.getNumVictoryInfos(), m_aiVictoryCountdown);
+	// <advc.003b>
+	if (uiFlag < 7)
+	{
+		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
+			if (getVictoryCountdown((VictoryTypes)i) >= 0)
+				m_bAnyVictoryCountdown = true;
+	} // </advc.003b>
 
 	pStream->Read(GC.getNumTechInfos(), m_pabHasTech);
 	pStream->Read(GC.getNumTechInfos(), m_pabNoTradeTech);
@@ -7406,6 +7432,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	uiFlag = 4; // advc.162
 	uiFlag = 5; // advc.003m
 	uiFlag = 6; // advc.120g
+	uiFlag = 7; // advc.003b: m_bAnyVictoryCountdown
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
@@ -7440,6 +7467,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	// </advc.003m>
 	pStream->Write(m_bMapCentering);
 	pStream->Write(m_bCapitulated);
+	pStream->Write(m_bAnyVictoryCountdown); // advc.003b
 
 	pStream->Write(m_eID);
 
@@ -7556,7 +7584,9 @@ int CvTeam::getProjectPartNumber(ProjectTypes eProject, bool bAssert) const
 }
 
 bool CvTeam::hasLaunched() const
-{
+{	// <advc.003b>
+	if (!isAnyVictoryCountdown())
+		return false; // </advc.003b>
 	VictoryTypes spaceVictory = GC.getGame().getSpaceVictory();
 	if (spaceVictory != NO_VICTORY)
 	{
