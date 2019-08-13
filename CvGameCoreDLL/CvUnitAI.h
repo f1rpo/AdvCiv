@@ -8,6 +8,7 @@
 #include "CvUnit.h"
 
 class CvCity;
+class CvSelectionGroupAI; // advc.003u
 
 class CvUnitAI : public CvUnit
 {
@@ -15,34 +16,34 @@ class CvUnitAI : public CvUnit
 public:
 
 	CvUnitAI();
-	virtual ~CvUnitAI();
-
-	void AI_init(UnitAITypes eUnitAI);
-	void AI_uninit();
-	void AI_reset(UnitAITypes eUnitAI = NO_UNITAI);
+	~CvUnitAI();
+	// advc.003u: Parameter list from CvUnit::init moved here
+	void AI_init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner,
+			int iX, int iY, DirectionTypes eFacingDirection);
 
 	bool AI_update();
-	//bool AI_follow();
-	bool AI_follow(bool bFirst = true); // K-Mod
-	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT); // bbai / bts
-
+	bool AI_follow(/* K-Mod: */ bool bFirst = true);
+	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT,
+			// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000:
+			int iMaxTransportPath = MAX_INT);
 	void AI_upgrade();
-
 	void AI_promote();
 
-	int AI_groupFirstVal();
-	int AI_groupSecondVal();
+	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
+	int AI_groupFirstVal() const;
+	int AI_groupSecondVal() const;
 
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const;
 
-	bool AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL);
+	bool AI_bestCityBuild(CvCity const* pCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL,
+			CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL) const;
 
 	bool AI_isCityAIType() const;
 
 	inline int AI_getBirthmark() const { return m_iBirthmark; }
 	void AI_setBirthmark(int iNewValue);
 
-	UnitAITypes AI_getUnitAIType() const;
+	UnitAITypes AI_getUnitAIType() const;																				// Exposed to Python
 	void AI_setUnitAIType(UnitAITypes eNewValue);
 
 	int AI_sacrificeValue(const CvPlot* pPlot) const;
@@ -53,6 +54,7 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
+	void finalizeInit(); // advc.003u: override
 
 	int m_iBirthmark;
 
@@ -229,7 +231,7 @@ protected:
 	bool AI_pickup(UnitAITypes eUnitAI, bool bCountProduction = false, int iMaxPath = MAX_INT);
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);
 	// advc.003: New auxiliary function
-	bool AI_considerPickup(UnitAITypes eUnitAI, CvCity& kCity) const;
+	bool AI_considerPickup(UnitAITypes eUnitAI, CvCityAI const& kCity) const;
 	// BETTER_BTS_AI_MOD: END
 	bool AI_airOffensiveCity();
 	bool AI_airDefensiveCity();
@@ -292,7 +294,7 @@ protected:
 	bool AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const;
 	// </advc.121>
 	int AI_searchRange(int iRange);
-	bool AI_plotValid(CvPlot /* advc.003: */ const* pPlot);
+	bool AI_plotValid(CvPlot /* advc.003: */ const* pPlot) const;
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
 	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false); // K-Mod
@@ -316,7 +318,7 @@ protected:
 
 	bool AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar);
 
-	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild);
+	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild) const;
 	//int AI_getEspionageTargetValue(CvPlot* pPlot, int iMaxPath);
 	int AI_getEspionageTargetValue(CvPlot* pPlot); // K-Mod
 

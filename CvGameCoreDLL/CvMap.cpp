@@ -8,6 +8,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
+#include "CvAreaList.h" // advc.003u
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvPlotGroup.h"
@@ -19,7 +20,7 @@
 #include <stack> // advc.030
 
 
-CvMap::CvMap()
+CvMap::CvMap() /* advc.003u: */ : m_areas(new CvAreaList())
 {
 	CvMapInitData defaultMapData;
 
@@ -35,6 +36,7 @@ CvMap::CvMap()
 CvMap::~CvMap()
 {
 	uninit();
+	SAFE_DELETE(m_areas); // advc.003u
 }
 
 // Initializes the map
@@ -57,7 +59,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 
 	//--------------------------------
 	// Init containers
-	m_areas.init();
+	m_areas->init();
 
 	//--------------------------------
 	// Init non-saved data
@@ -87,7 +89,7 @@ void CvMap::uninit()
 
 	SAFE_DELETE_ARRAY(m_pMapPlots);
 
-	m_areas.uninit();
+	m_areas->uninit();
 }
 
 // Initializes data members that are serialized.
@@ -209,7 +211,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 		}
 	}
 
-	m_areas.removeAll();
+	m_areas->removeAll();
 }
 
 // Initializes all data that is not serialized but needs to be initialized after loading.
@@ -690,94 +692,87 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 }
 
 
-CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity* pSkipCity,
+CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc.003: style changes
+		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity* pSkipCity,
 		TeamTypes eObserver) const // advc.004r
 {
 	PROFILE_FUNC();
 
 	int iBestValue = MAX_INT;
 	CvCity* pBestCity = NULL;
-
-	// XXX look for barbarian cities???
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int i = // <advc.003b> Don't go through all players if eOwner is given
+		(eOwner != NO_PLAYER ? eOwner : 0);
+		i < (eOwner != NO_PLAYER ? eOwner + 1 : // </advc.003b>
+		MAX_PLAYERS); i++) // XXX look for barbarian cities???
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if ((eOwner == NO_PLAYER) || (iI == eOwner))
-			{
-				if ((eTeam == NO_TEAM) || (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam))
-				{
-					int iLoop;
-					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-					{	// <advc.004r>
-						if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
-							continue; // </advc.004r>
-						if (!bSameArea || (pLoopCity->area() == plot(iX, iY)->area()) || (bCoastalOnly && (pLoopCity->waterArea() == plot(iX, iY)->area())))
-						{
-							if (!bCoastalOnly || pLoopCity->isCoastal())
-							{
-								if ((eTeamAtWarWith == NO_TEAM) || atWar(GET_PLAYER((PlayerTypes)iI).getTeam(), eTeamAtWarWith))
-								{
-									if ((eDirection == NO_DIRECTION) || (estimateDirection(dxWrap(pLoopCity->getX() - iX), dyWrap(pLoopCity->getY() - iY)) == eDirection))
-									{
-										if ((pSkipCity == NULL) || (pLoopCity != pSkipCity))
-										{
-											int iValue = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
+		/*if (eOwner != NO_PLAYER && i != eOwner)
+			continue;*/
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		if (!kLoopPlayer.isAlive())
+			continue;
+		if (eTeam != NO_TEAM && kLoopPlayer.getTeam() != eTeam)
+			continue;
 
-											if (iValue < iBestValue)
-											{
-												iBestValue = iValue;
-												pBestCity = pLoopCity;
-											}
-										}
-									}
-								}
-							}
-						}
+		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer) // advc.003: Body refactored
+		{	// <advc.004r>
+			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
+				continue; // </advc.004r>
+			if (!bSameArea || pLoopCity->area() == plot(iX, iY)->area() ||
+					(bCoastalOnly && pLoopCity->waterArea() == plot(iX, iY)->area()))
+			{
+				if ((!bCoastalOnly || pLoopCity->isCoastal()) &&
+					eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith) &&
+					(eDirection == NO_DIRECTION || estimateDirection(
+					dxWrap(pLoopCity->getX() - iX), dyWrap(pLoopCity->getY() - iY)) == eDirection) &&
+					(pSkipCity == NULL || pLoopCity != pSkipCity))
+				{
+					int iValue = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
+					if (iValue < iBestValue)
+					{
+						iBestValue = iValue;
+						pBestCity = pLoopCity;
 					}
 				}
 			}
 		}
 	}
-
 	return pBestCity;
 }
 
 
-CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, bool bReadyToSelect, bool bWorkers) const
+CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,  // advc.003: some style changes
+		bool bReadyToSelect, bool bWorkers) const
 {
 	int iBestValue = MAX_INT;
 	CvSelectionGroup* pBestSelectionGroup = NULL;
-
-	// XXX look for barbarian cities???
-
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int i =  // <advc.003b> Don't go through all players if eOwner is given
+		(eOwner != NO_PLAYER ? eOwner : 0);
+		i < (eOwner != NO_PLAYER ? eOwner + 1 : // </advc.003b>
+		MAX_PLAYERS); i++) // XXX look for barbarian groups???
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if ((eOwner == NO_PLAYER) || (iI == eOwner))
-			{
-				int iLoop;
-				for(CvSelectionGroup* pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).firstSelectionGroup(&iLoop); pLoopSelectionGroup != NULL; pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).nextSelectionGroup(&iLoop))
-				{
-					if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
-					{
-						if (!bWorkers || pLoopSelectionGroup->hasWorker())
-						{
-							int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+		/*if (eOwner != NO_PLAYER && i != eOwner)
+			continue;*/
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		if (!kLoopPlayer.isAlive())
+			continue;
 
-							if (iValue < iBestValue)
-							{
-								iBestValue = iValue;
-								pBestSelectionGroup = pLoopSelectionGroup;
-							}
-						}
+		FOR_EACH_GROUP_VAR(pLoopSelectionGroup, kLoopPlayer)
+		{
+			if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
+			{
+				if (!bWorkers || pLoopSelectionGroup->hasWorker())
+				{
+					int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+
+					if (iValue < iBestValue)
+					{
+						iBestValue = iValue;
+						pBestSelectionGroup = pLoopSelectionGroup;
 					}
 				}
 			}
 		}
 	}
-
 	return pBestSelectionGroup;
 }
 
@@ -786,14 +781,11 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 {
 	int iBestValue = 0;
 	CvArea* pBestArea = NULL;
-
-	int iLoop;
-	for(CvArea* pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
+	FOR_EACH_AREA_VAR(pLoopArea)
 	{
 		if (pLoopArea->isWater() == bWater)
 		{
 			int iValue = pLoopArea->getNumTiles();
-
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
@@ -801,7 +793,6 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 			}
 		}
 	}
-
 	return pBestArea;
 }
 
@@ -1130,21 +1121,20 @@ CvPlot* CvMap::pointToPlot(float fX, float fY)
 
 int CvMap::getIndexAfterLastArea() const
 {
-	return m_areas.getIndexAfterLast();
+	return m_areas->getIndexAfterLast();
 }
 
 
 int CvMap::getNumAreas() const
 {
-	return m_areas.getCount();
+	return m_areas->getCount();
 }
 
 
 int CvMap::getNumLandAreas() const  // advc.003: style changes
 {
 	int iNumLandAreas = 0;
-	int iLoop;
-	for(CvArea* pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
+	FOR_EACH_AREA(pLoopArea)
 	{
 		if (!pLoopArea->isWater())
 			iNumLandAreas++;
@@ -1155,31 +1145,31 @@ int CvMap::getNumLandAreas() const  // advc.003: style changes
 
 CvArea* CvMap::getArea(int iID) const
 {
-	return m_areas.getAt(iID);
+	return m_areas->getAt(iID);
 }
 
 
 CvArea* CvMap::addArea()
 {
-	return m_areas.add();
+	return m_areas->add();
 }
 
 
 void CvMap::deleteArea(int iID)
 {
-	m_areas.removeAt(iID);
+	m_areas->removeAt(iID);
 }
 
 
 CvArea* CvMap::firstArea(int *pIterIdx, bool bRev) const
 {
-	return !bRev ? m_areas.beginIter(pIterIdx) : m_areas.endIter(pIterIdx);
+	return !bRev ? m_areas->beginIter(pIterIdx) : m_areas->endIter(pIterIdx);
 }
 
 
 CvArea* CvMap::nextArea(int *pIterIdx, bool bRev) const
 {
-	return !bRev ? m_areas.nextIter(pIterIdx) : m_areas.prevIter(pIterIdx);
+	return !bRev ? m_areas->nextIter(pIterIdx) : m_areas->prevIter(pIterIdx);
 }
 
 
@@ -1194,7 +1184,7 @@ void CvMap::recalculateAreas()
 		plotByIndex(iI)->setArea(FFreeList::INVALID_INDEX);
 	}
 
-	m_areas.removeAll();
+	m_areas->removeAll();
 
 	calculateAreas();
 }
@@ -1291,7 +1281,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	}
 
 	// call the read of the free list CvArea class allocations
-	ReadStreamableFFreeListTrashArray(m_areas, pStream);
+	ReadStreamableFFreeListTrashArray(*m_areas, pStream);
 
 	setup();
 	computeShelves(); // advc.300
@@ -1331,7 +1321,7 @@ void CvMap::write(FDataStreamBase* pStream)
 	}
 
 	// call the read of the free list CvArea class allocations
-	WriteStreamableFFreeListTrashArray(m_areas, pStream);
+	WriteStreamableFFreeListTrashArray(*m_areas, pStream);
 }
 
 
@@ -1420,8 +1410,7 @@ void CvMap::calculateAreas_030() {
 void CvMap::updateLakes() {
 
 	// CvArea::getNumTiles no longer sufficient for identifying lakes
-	int foo;
-	for(CvArea* a = firstArea(&foo); a != NULL; a = nextArea(&foo))
+	FOR_EACH_AREA_VAR(a)
 		a->updateLake();
 	for(int i = 0; i < numPlots(); i++) {
 		CvPlot* pPlot = plotByIndex(i);

@@ -4,6 +4,7 @@
 #include "CvCity.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
+#include "CvArea.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "CvGameTextMgr.h"
@@ -1251,7 +1252,7 @@ void CvCity::updateVisibility()
 }
 
 
-void CvCity::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience)
+void CvCity::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience) /* advc.003: */ const
 {
 	GET_PLAYER(getOwner()).createGreatPeople(eGreatPersonUnit, bIncrementThreshold, bIncrementExperience, getX(), getY());
 }
@@ -1579,8 +1580,8 @@ int CvCity::findPopulationRank() const
 	if (!m_bPopulationRankValid)
 	{
 		/* original bts code
-		int iRank = 1; int iLoop;
-		for (CvCity* pLoopCity = GET_PLAYER(getOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwner()).nextCity(&iLoop)) {
+		int iRank = 1;
+		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner())) {
 			if ((pLoopCity->getPopulation() > getPopulation()) ||
 					((pLoopCity->getPopulation() == getPopulation()) && (pLoopCity->getID() < getID())))
 				iRank++;
@@ -1592,11 +1593,8 @@ int CvCity::findPopulationRank() const
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
 		std::vector<std::pair<int, int> > city_scores;
-		int iLoop;
-		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity; pLoopCity = kPlayer.nextCity(&iLoop))
-		{
+		FOR_EACH_CITY(pLoopCity, kPlayer)
 			city_scores.push_back(std::make_pair(-pLoopCity->getPopulation(), pLoopCity->getID()));
-		}
 		// note: we are sorting by minimum of _negative_ score, and then by min cityID.
 		std::sort(city_scores.begin(), city_scores.end());
 		FAssert(city_scores.size() == kPlayer.getNumCities());
@@ -1621,8 +1619,8 @@ int CvCity::findBaseYieldRateRank(YieldTypes eYield) const
 	{
 		/* original bts code
 		int iRate = getBaseYieldRate(eYield);
-		int iRank = 1; int iLoop;
-		for (CvCity* pLoopCity = GET_PLAYER(getOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwner()).nextCity(&iLoop)) {
+		int iRank = 1;
+		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()) {
 			if ((pLoopCity->getBaseYieldRate(eYield) > iRate) ||
 				((pLoopCity->getBaseYieldRate(eYield) == iRate) && (pLoopCity->getID() < getID())))
 				iRank++;
@@ -1633,11 +1631,8 @@ int CvCity::findBaseYieldRateRank(YieldTypes eYield) const
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
 		std::vector<std::pair<int, int> > city_scores;
-		int iLoop;
-		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity; pLoopCity = kPlayer.nextCity(&iLoop))
-		{
+		FOR_EACH_CITY(pLoopCity, kPlayer)
 			city_scores.push_back(std::make_pair(-pLoopCity->getBaseYieldRate(eYield), pLoopCity->getID()));
-		}
 		// note: we are sorting by minimum of _negative_ score, and then by min cityID.
 		std::sort(city_scores.begin(), city_scores.end());
 		FAssert(city_scores.size() == kPlayer.getNumCities());
@@ -1662,8 +1657,8 @@ int CvCity::findYieldRateRank(YieldTypes eYield) const
 	{
 		/* original bts code
 		int iRate = getYieldRate(eYield);
-		int iRank = 1; int iLoop;
-		for (CvCity* pLoopCity = GET_PLAYER(getOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwner()).nextCity(&iLoop)){
+		int iRank = 1;
+		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner())) {
 			if ((pLoopCity->getYieldRate(eYield) > iRate) ||
 				((pLoopCity->getYieldRate(eYield) == iRate) && (pLoopCity->getID() < getID())))
 				iRank++;
@@ -1674,11 +1669,8 @@ int CvCity::findYieldRateRank(YieldTypes eYield) const
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
 		std::vector<std::pair<int, int> > city_scores;
-		int iLoop;
-		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity; pLoopCity = kPlayer.nextCity(&iLoop))
-		{
+		FOR_EACH_CITY(pLoopCity, kPlayer)
 			city_scores.push_back(std::make_pair(-pLoopCity->getYieldRate(eYield), pLoopCity->getID()));
-		}
 		// note: we are sorting by minimum of _negative_ score, and then by min cityID.
 		std::sort(city_scores.begin(), city_scores.end());
 		FAssert(city_scores.size() == kPlayer.getNumCities());
@@ -1703,8 +1695,8 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 	{
 		/* original bts code
 		int iRate = getCommerceRateTimes100(eCommerce);
-		int iRank = 1; int iLoop;
-		for (CvCity* pLoopCity = GET_PLAYER(getOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwner()).nextCity(&iLoop)) {
+		int iRank = 1;
+		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()) {
 			if ((pLoopCity->getCommerceRateTimes100(eCommerce) > iRate) ||
 					((pLoopCity->getCommerceRateTimes100(eCommerce) == iRate) && (pLoopCity->getID() < getID())))
 				iRank++;
@@ -1715,11 +1707,8 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
 		std::vector<std::pair<int, int> > city_scores;
-		int iLoop;
-		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity; pLoopCity = kPlayer.nextCity(&iLoop))
-		{
+		FOR_EACH_CITY(pLoopCity, kPlayer)
 			city_scores.push_back(std::make_pair(-pLoopCity->getCommerceRateTimes100(eCommerce), pLoopCity->getID()));
-		}
 		// note: we are sorting by minimum of _negative_ score, and then by min cityID.
 		std::sort(city_scores.begin(), city_scores.end());
 		FAssert(city_scores.size() == kPlayer.getNumCities());
@@ -5402,7 +5391,7 @@ CvPlotGroup* CvCity::plotGroup(PlayerTypes ePlayer) const
 }
 
 
-bool CvCity::isConnectedTo(CvCity* pCity) const
+bool CvCity::isConnectedTo(CvCity const* pCity) const // advc.003: const CvCity*
 {
 	return plot()->isConnectedTo(pCity);
 }
@@ -8920,7 +8909,7 @@ int CvCity::getTradeYield(YieldTypes eIndex) const
 }
 
 
-int CvCity::totalTradeModifier(CvCity* pOtherCity) const
+int CvCity::totalTradeModifier(CvCity const* pOtherCity) const // advc.003: const CvCity*
 {
 	int iModifier = 100;
 
@@ -8976,7 +8965,7 @@ int CvCity::getPeaceTradeModifier(TeamTypes eTeam) const
 	return ((GC.getDefineINT("FOREIGN_TRADE_MODIFIER") * iPeaceTurns) / std::max(1, GC.getDefineINT("FOREIGN_TRADE_FULL_CREDIT_PEACE_TURNS")));
 }
 
-int CvCity::getBaseTradeProfit(CvCity* pCity) const
+int CvCity::getBaseTradeProfit(CvCity const* pCity) const // advc.003: const CvCity*
 {
 	int iProfit = std::min(pCity->getPopulation() * GC.getDefineINT("THEIR_POPULATION_TRADE_PERCENT"), plotDistance(getX(), getY(), pCity->getX(), pCity->getY()) * GC.getWorldInfo(GC.getMap().getWorldSize()).getTradeProfitPercent());
 
@@ -8988,7 +8977,7 @@ int CvCity::getBaseTradeProfit(CvCity* pCity) const
 	return iProfit;
 }
 
-int CvCity::calculateTradeProfit(CvCity* pCity) const
+int CvCity::calculateTradeProfit(CvCity const* pCity) const // advc.003: const CvCity*
 {
 	int iProfit = getBaseTradeProfit(pCity);
 
@@ -11469,7 +11458,6 @@ void CvCity::setNumRealBuilding(BuildingTypes eIndex, int iNewValue)
 
 void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool bFirst, PlayerTypes eOriginalOwner, int iOriginalTime)
 {
-	CvCity* pLoopCity;
 	CvWString szBuffer;
 	int iI;
 
@@ -11559,19 +11547,18 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 				{
 					for (iI = 0; iI < MAX_PLAYERS; iI++)
 					{
-						if (GET_PLAYER((PlayerTypes)iI).isAlive())
+						CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iI);
+						if (!kMember.isAlive() || kMember.getTeam() != getTeam())
+							continue;
+
+						if (GC.getBuildingInfo(eIndex).isTeamShare() || (iI == getOwner()))
 						{
-							if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
+							FOR_EACH_CITYAI_VAR(pLoopCity, kMember)
 							{
-								if (GC.getBuildingInfo(eIndex).isTeamShare() || (iI == getOwner()))
-								{	int iLoop=-1;
-									for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-									{
-										pLoopCity->setPopulation(std::max(1, (pLoopCity->getPopulation() + iChangeNumRealBuilding * GC.getBuildingInfo(eIndex).getGlobalPopulationChange())));
-										// so subsequent cities don't starve with the extra citizen working nothing
-										pLoopCity->AI_updateAssignWork();
-									}
-								}
+								pLoopCity->setPopulation(std::max(1, pLoopCity->getPopulation() +
+										iChangeNumRealBuilding * GC.getBuildingInfo(eIndex).getGlobalPopulationChange()));
+								// so subsequent cities don't starve with the extra citizen working nothing
+								pLoopCity->AI_updateAssignWork();
 							}
 						}
 					}
@@ -12172,9 +12159,8 @@ void CvCity::updateTradeRoutes() // advc.003: refactored
 			CvPlayer const& kPartner = GET_PLAYER((PlayerTypes)iI);
 			if(!kOwner.canHaveTradeRoutesWith(kPartner.getID()))
 				continue;
-			int iLoop;
-			for(CvCity* pLoopCity = kPartner.firstCity(&iLoop);
-					pLoopCity != NULL; pLoopCity = kPartner.nextCity(&iLoop))
+
+			FOR_EACH_CITY(pLoopCity, kPartner)
 			{
 				if(pLoopCity == this)
 					continue;
@@ -15496,17 +15482,11 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest,
 	}
 
 	CvPlayer& kOwner = GET_PLAYER(getOwner());
-	if (kOwner.canSplitEmpire() && kOwner.canSplitArea(area()->getID()))
+	if (kOwner.canSplitEmpire() && kOwner.canSplitArea(*area()))
 	{
-		PlayerTypes ePlayer = GET_PLAYER(getOwner()).getSplitEmpirePlayer(area()->getID());
-
-		if (NO_PLAYER != ePlayer)
-		{
-			if (GET_PLAYER(ePlayer).isAlive())
-			{
-				return ePlayer;
-			}
-		}
+		PlayerTypes ePlayer = GET_PLAYER(getOwner()).getSplitEmpirePlayer(*area());
+		if (ePlayer != NO_PLAYER && GET_PLAYER(ePlayer).isAlive())
+			return ePlayer;
 	}
 
 	PlayerTypes eBestPlayer = NO_PLAYER;

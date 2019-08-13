@@ -12,12 +12,13 @@
 //-----------------------------------------------------------------------------
 //
 
-#include "CvArea.h"
 #include "CvPlot.h"
+// <advc.003u>
+class CvArea;
+class CvAreaList; // </advc.003u>
 // <advc.300>
 #include "Shelf.h"
-#include <map>
-// </advc.300>
+#include <map> // </advc.300>
 
 class FAStar;
 class CvPlotGroup;
@@ -438,7 +439,9 @@ protected:
 	CvPlot* m_pMapPlots;
 	std::map<Shelf::Id,Shelf*> shelves; // advc.300
 
-	FFreeListTrashArray<CvArea> m_areas;
+	//FFreeListTrashArray<CvArea> m_areas;
+	CvAreaList* m_areas; // advc.003u
+
 	void calculateAreas();
 	// <advc.030>
 	void calculateAreas_030();

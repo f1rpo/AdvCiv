@@ -4,6 +4,7 @@
 #include "AdvCiv4lerts.h"
 #include "CvInfos.h"
 #include "CvGamePlay.h"
+#include "CvDealList.h" // advc.003s
 #include "RiseFall.h" // advc.706
 #include <iterator>
 
@@ -159,8 +160,8 @@ void RevoltAlert::check() {
 
 	set<int> updatedRevolt;
 	set<int> updatedOccupation;
-	CvPlayer const& owner = GET_PLAYER(ownerId); int dummy;
-	for(CvCity* c = owner.firstCity(&dummy); c != NULL; c = owner.nextCity(&dummy)) {
+	CvPlayer const& owner = GET_PLAYER(ownerId);
+	FOR_EACH_CITY(c, owner) {
 		bool couldPreviouslyRevolt = revoltPossible.count(c->plotNum()) > 0;
 		bool wasOccupation = occupation.count(c->plotNum()) > 0;
 		double pr = c->revoltProbability();
@@ -226,8 +227,7 @@ void BonusThirdPartiesAlert::reset() {
 void BonusThirdPartiesAlert::check() {
 
 	multiset<int> updatedDeals[MAX_CIV_PLAYERS];
-	CvGame& g = GC.getGame(); int foo=-1;
-	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+	FOR_EACH_DEAL(d) {
 		// This alert ignores trades of ownerId
 		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)
 			continue;

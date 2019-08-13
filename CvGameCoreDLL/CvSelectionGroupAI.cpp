@@ -203,7 +203,7 @@ bool CvSelectionGroupAI::AI_update()
 		// else pick AI action
 		else
 		{
-			CvUnit* pHeadUnit = getHeadUnit();
+			CvUnitAI* pHeadUnit = AI_getHeadUnit();
 
 			//if (pHeadUnit == NULL || pHeadUnit->isDelayedDeath())
 			if (pHeadUnit == NULL || pHeadUnit->doDelayedDeath()) // K-Mod
@@ -262,9 +262,8 @@ bool CvSelectionGroupAI::AI_update()
 				path_finder.Reset();
 				for (std::vector<IDInfo>::iterator it = originalGroup.begin(); it != originalGroup.end(); ++it)
 				{
-					CvUnit* pLoopUnit = ::getUnit(*it);
-					if (pLoopUnit && pLoopUnit->getGroupID() == getID() &&
-							pLoopUnit->canMove())
+					CvUnitAI* pLoopUnit = ::AI_getUnit(*it);
+					if (pLoopUnit && pLoopUnit->getGroupID() == getID() && pLoopUnit->canMove())
 					{
 						if (pLoopUnit->AI_follow(bFirst))
 						{
@@ -355,47 +354,47 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	FAssert(!bMaxSurvival || bHuman); // advc.048
 	while (pUnitNode != NULL)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnitAI& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		if (pLoopUnit->isDead())
+		if (kLoopUnit.isDead())
 			continue; // advc.003
 
 		bool bCanAttack = false;
-		if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-			bCanAttack = pLoopUnit->canAirAttack();
+		if (kLoopUnit.getDomainType() == DOMAIN_AIR)
+			bCanAttack = kLoopUnit.canAirAttack();
 		else
 		{
-			bCanAttack = pLoopUnit->canAttack();
-			if (bCanAttack && bNoBlitz && pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+			bCanAttack = kLoopUnit.canAttack();
+			if (bCanAttack && bNoBlitz && kLoopUnit.isBlitz() && kLoopUnit.isMadeAttack())
 				bCanAttack = false;
 		}
-		if (!bCanAttack || (!bForce && !pLoopUnit->canMove()))
+		if (!bCanAttack || (!bForce && !kLoopUnit.canMove()))
 			continue;
 
-		if (!bForce && !pLoopUnit->canMoveInto(pPlot, /*bAttack*/ true, /*bDeclareWar*/ bPotentialEnemy))
+		if (!bForce && !kLoopUnit.canMoveInto(pPlot, /*bAttack*/ true, /*bDeclareWar*/ bPotentialEnemy))
 			continue;
 
 		// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
 		if (GC.getLFBEnable() && GC.getLFBUseCombatOdds() && /* advc.048: */ !bMaxSurvival)
 		{
-			pLoopUnit->LFBgetBetterAttacker(&pBestUnit, pPlot, bPotentialEnemy, iBestOdds,
+			kLoopUnit.LFBgetBetterAttacker(&pBestUnit, pPlot, bPotentialEnemy, iBestOdds,
 					iBestValue); // K-Mod.
 		}
 		else
 		{
-			int iOdds = pLoopUnit->AI_attackOdds(pPlot, bPotentialEnemy);
+			int iOdds = kLoopUnit.AI_attackOdds(pPlot, bPotentialEnemy);
 			int iValue = iOdds;
 			FAssert(iValue > 0);
 
-			if (pLoopUnit->collateralDamage() > 0 && /* advc.048: */ !bMaxSurvival)
+			if (kLoopUnit.collateralDamage() > 0 && /* advc.048: */ !bMaxSurvival)
 			{
 				int iPossibleTargets = std::min(
-						pPlot->getNumVisibleEnemyDefenders(pLoopUnit) - 1,
-						pLoopUnit->collateralDamageMaxUnits());
+						pPlot->getNumVisibleEnemyDefenders(&kLoopUnit) - 1,
+						kLoopUnit.collateralDamageMaxUnits());
 				if (iPossibleTargets > 0)
 				{
-					iValue *= (100 + (pLoopUnit->collateralDamage() * iPossibleTargets) / 5);
+					iValue *= (100 + (kLoopUnit.collateralDamage() * iPossibleTargets) / 5);
 					iValue /= 100;
 				}
 			}
@@ -406,13 +405,13 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 						to match the choice made in the !bMaxSurvival branch above
 						and the bSacrifice branch below. */
 					|| (bHuman && iValue < iOddsThresh && iValue == iBestValue &&
-					(pBestUnit == NULL || pLoopUnit->AI_sacrificeValue(pPlot) >
-					pBestUnit->AI_sacrificeValue(pPlot))))
+					(pBestUnit == NULL || kLoopUnit.AI_sacrificeValue(pPlot) >
+					kLoopUnit.AI_sacrificeValue(pPlot))))
 					// </advc.048>
 			{
 				iBestValue = iValue;
 				iBestOdds = iOdds;
-				pBestUnit = pLoopUnit;
+				pBestUnit = &kLoopUnit;
 			}
 		}
 		// BETTER_BTS_AI_MOD: END
@@ -438,7 +437,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 		bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
 {
 	int iBestValue = -1; // advc.048: was 0
-	CvUnit* pBestUnit = NULL;
+	CvUnitAI* pBestUnit = NULL;
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	// <advc.048> Copied from AI_getBestGroupAttacker
@@ -447,7 +446,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 	// </advc.048>
 	while (pUnitNode != NULL)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnitAI* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (!pLoopUnit->isDead())
@@ -635,7 +634,7 @@ bool CvSelectionGroupAI::AI_isControlled()
 }
 
 
-bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot)
+bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc.003: */ const
 {
 	FAssert(getHeadUnit() != NULL);
 
@@ -751,7 +750,7 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot)
 }
 
 
-CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot()
+CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot() /* advc.003: */ const
 {
 	return GC.getMap().plotSoren(m_iMissionAIX, m_iMissionAIY);
 }
@@ -775,7 +774,8 @@ MissionAITypes CvSelectionGroupAI::AI_getMissionAIType() const
 }
 
 
-void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot, CvUnit* pNewUnit)
+void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
+		CvUnit const* pNewUnit)
 {
 	//PROFILE_FUNC();
 
@@ -803,9 +803,9 @@ void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* p
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_getMissionAIUnit()
+CvUnit* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc.003: */ const
 {
-	return getUnit(m_missionAIUnit);
+	return ::getUnit(m_missionAIUnit);
 }
 
 bool CvSelectionGroupAI::AI_isFull()
@@ -813,7 +813,7 @@ bool CvSelectionGroupAI::AI_isFull()
 	if(getNumUnits() <= 0)
 		return false;
 
-	UnitAITypes eUnitAI = getHeadUnitAI();
+	UnitAITypes eUnitAI = getHeadUnitAIType();
 	// do two passes, the first pass, we ignore units with speical cargo
 	int iSpecialCargoCount = 0;
 	int iCargoCount = 0;
@@ -868,17 +868,12 @@ bool CvSelectionGroupAI::AI_isFull()
 
 CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 {
-	CLLNode<IDInfo>* pEntityNode;
-	CvUnit* pLoopUnit;
-
-	pEntityNode = headUnitNode();
-
-	CvUnit* pBestUnit = NULL;
+	CvUnitAI* pBestUnit = NULL;
 	int iBestUnitValue = 0;
-
+	CLLNode<IDInfo>* pEntityNode = headUnitNode();
 	while (pEntityNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pEntityNode->m_data);
+		CvUnitAI* pLoopUnit = ::AI_getUnit(pEntityNode->m_data); // advc.003u
 		pEntityNode = nextUnitNode(pEntityNode);
 
 		//if (!pLoopUnit->noDefensiveBonus())
@@ -912,6 +907,13 @@ CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 
 	return pBestUnit;
 }
+
+// <advc.003u> Based on CvSelectionGroup::getHeadUnit
+CvUnitAI* CvSelectionGroupAI::AI_getHeadUnit() const
+{
+	CLLNode<IDInfo>* pNode = headUnitNode();
+	return (pNode != NULL ? ::AI_getUnit(pNode->m_data) : NULL);
+} // </advc.003u>
 
 
 void CvSelectionGroupAI::read(FDataStreamBase* pStream)

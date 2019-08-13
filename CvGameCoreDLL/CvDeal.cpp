@@ -1,6 +1,8 @@
 // CvDeal.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CvDeal.h"
+#include "CvDealList.h" // advc.003s
 #include "CvGamePlay.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
@@ -61,8 +63,8 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 	if (getLengthFirstTrades() > 0 || getLengthSecondTrades() > 0)
 	{	// <advc.106j>
 		bool bForce = false;
-		for(CLLNode<TradeData>* pNode = headFirstTradesNode(); pNode != NULL;
-				pNode = nextFirstTradesNode(pNode)) {
+		for(CLLNode<TradeData>* pNode = headTradesNode(); pNode != NULL;
+				pNode = nextTradesNode(pNode)) {
 			if(isDual(pNode->m_data.m_eItemType) ||
 					(pNode->m_data.m_eItemType == TRADE_RESOURCES &&
 					!GET_PLAYER(getFirstPlayer()).canTradeNetworkWith(getSecondPlayer()))) {
@@ -70,58 +72,46 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 				break;
 			}
 		} // </advc.106j>
-		CvWString szString;
-		CvWStringBuffer szDealString;
-		CvWString szCancelString = gDLL->getText("TXT_KEY_POPUP_DEAL_CANCEL");
 		if (TEAMREF(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
 		{
-			szDealString.clear();
-			GAMETEXT.getDealString(szDealString, *this, getFirstPlayer(),
-					true); // advc.004w
-			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(getFirstPlayer(),
-					bForce, // advc.106j
-					GC.getEVENT_MESSAGE_TIME(), szString,
-					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
-					// <advc.127b>
-					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
-					GET_PLAYER(getSecondPlayer()).getCapitalX(getFirstPlayer()),
-					GET_PLAYER(getSecondPlayer()).getCapitalY(getFirstPlayer()));
-					// </advc.127b>
-		}
-
-		if (TEAMREF(getSecondPlayer()).isHasMet(TEAMID(getFirstPlayer())))
-		{
-			szDealString.clear();
-			GAMETEXT.getDealString(szDealString, *this, getSecondPlayer(),
-					true); // advc.004w
-			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(getSecondPlayer(),
-					bForce, // advc.106j
-					GC.getEVENT_MESSAGE_TIME(), szString,
-					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
-					// <advc.127b>
-					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
-					GET_PLAYER(getFirstPlayer()).getCapitalX(getSecondPlayer()),
-					GET_PLAYER(getFirstPlayer()).getCapitalY(getSecondPlayer()));
-					// </advc.127b>
+			// advc.003: Auxiliary function to remove duplicate code
+			announceCancel(getFirstPlayer(), getSecondPlayer(), /* advc.106j: */ bForce);
+			announceCancel(getSecondPlayer(), getFirstPlayer(), /* advc.106j: */ bForce);
 		}
 	}
 	// <advc.036>
 	killSilent(bKillTeam, /* advc.130p: */ true, eCancelPlayer);
+}
+// advc.003: Cut from 'kill' above
+void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bForce) const
+{
+	CvWString szString;
+	CvWStringBuffer szDealString;
+	CvWString szCancelString = gDLL->getText("TXT_KEY_POPUP_DEAL_CANCEL");
+	GAMETEXT.getDealString(szDealString, *this, eMsgTarget, /* advc.004w: */ true);
+	szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
+	gDLL->getInterfaceIFace()->addHumanMessage(eMsgTarget,
+			bForce, // advc.106j
+			GC.getEVENT_MESSAGE_TIME(), szString,
+			bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
+			// <advc.127b>
+			MESSAGE_TYPE_INFO, NULL, NO_COLOR,
+			GET_PLAYER(eOther).getCapitalX(eMsgTarget),
+			GET_PLAYER(eOther).getCapitalY(eMsgTarget));
+			// </advc.127b>
 }
 
 void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
 		PlayerTypes eCancelPlayer) { // advc.130p
 
 	CLLNode<TradeData>* pNode;
-	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
+	for (pNode = headFirstTradesNode(); pNode != NULL; pNode = nextFirstTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(), bKillTeam,
 				bUpdateAttitude, // advc.036
 				eCancelPlayer); // advc.130p
 	}
-	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
+	for (pNode = headSecondTradesNode(); pNode != NULL; pNode = nextSecondTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(), bKillTeam,
 				bUpdateAttitude, // advc.036
@@ -392,80 +382,46 @@ void CvDeal::doTurn()
 	}
 }
 
-
 // XXX probably should have some sort of message for the user or something...
 void CvDeal::verify()
 {
-	bool bCancelDeal = false;
-
-	CvPlayer& kFirstPlayer = GET_PLAYER(getFirstPlayer());
-	CvPlayer& kSecondPlayer = GET_PLAYER(getSecondPlayer());
-
-	for (CLLNode<TradeData>* pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
-	{
-		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
-		{
-			// XXX embargoes?
-			if ((kFirstPlayer.getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) < 0) ||
-				  !(kFirstPlayer.canTradeNetworkWith(getSecondPlayer())) ||
-				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) ||
-				  GET_TEAM(kSecondPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData))
-			{
-				bCancelDeal = true;
-			}
-		}
-	}
-
-	for (CLLNode<TradeData>* pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
-	{
-		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
-		{
-			// XXX embargoes?
-			if ((GET_PLAYER(getSecondPlayer()).getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) < 0) ||
-				  !(GET_PLAYER(getSecondPlayer()).canTradeNetworkWith(getFirstPlayer())) ||
-				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) ||
-				  GET_TEAM(kSecondPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData))
-			{
-				bCancelDeal = true;
-			}
-		}
-	}
-
-	if (isCancelable(NO_PLAYER))
-	{
-		if (isPeaceDeal())
-		{
-			bCancelDeal = true;
-		}
-	}
-
-	if (bCancelDeal)
-	{
+	// advc.003: Moved into auxiliary function to get rid of duplicate code
+	if (!verify(getFirstPlayer(), getSecondPlayer()) ||
+			!verify(getSecondPlayer(), getFirstPlayer()) ||
+			(isCancelable(NO_PLAYER) && isPeaceDeal()))
 		kill();
+}
+
+// advc.003: Cut from 'verify' above
+bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
+{
+	CvPlayer& kGiver = GET_PLAYER(eGiver);
+	for (CLLNode<TradeData>* pNode = this->headReceivesNode(eRecipient); pNode != NULL;
+		pNode = nextReceivesNode(pNode, eRecipient))
+	{
+		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
+		{
+			BonusTypes eBonus = (BonusTypes) pNode->m_data.m_iData;
+			// XXX embargoes?
+			if ((kGiver.getNumTradeableBonuses(eBonus) < 0) ||
+					!kGiver.canTradeNetworkWith(eRecipient) ||
+					GET_TEAM(kGiver.getTeam()).isBonusObsolete(eBonus) ||
+					TEAMREF(eRecipient).isBonusObsolete(eBonus))
+				return false;
+		}
 	}
+	return true;
 }
 
 
-bool CvDeal::isPeaceDeal() const
+bool CvDeal::isPeaceDeal() const  // advc.003: simplified
 {
-	CLLNode<TradeData>* pNode;
-
-	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
+	for (CLLNode<TradeData>* pNode = headTradesNode(); pNode != NULL;
+		pNode = nextTradesNode(pNode))
 	{
 		if (pNode->m_data.m_eItemType == getPeaceItem())
-		{
 			return true;
-		}
 	}
-
-	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
-	{
-		if (pNode->m_data.m_eItemType == getPeaceItem())
-		{
-			return true;
-		}
-	}
-
 	return false;
 }
 
@@ -476,108 +432,75 @@ bool CvDeal::isVassalDeal() const
 
 bool CvDeal::isVassalTrade(const CLinkList<TradeData>* pList)
 {
-	if (pList)
+	if (pList != NULL)
 	{
 		for (CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
 		{
 			if (isVassal(pNode->m_data.m_eItemType))
-			{
 				return true;
-			}
 		}
 	}
-
 	return false;
 }
 
-
+/*	advc.001: Rewrote this function. The BtS code was (even more) convoluted,
+	inefficient and contained at least one bug.
+	(The first player was passed to setVassalRevoltHelp as eVassal even if the
+	first player was on the eMaster team; copy-paste error probably.) */
 bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason) const
 {
-	CLLNode<TradeData>* pNode;
-	CvWStringBuffer szBuffer;
+	FAssertMsg(involves(eByPlayer), "Caller should have ensured this");
+	// Vassal and master (technically) have the same master
+	TeamTypes eMaster = GET_PLAYER(getFirstPlayer()).getMasterTeam();
+	if (eMaster != GET_PLAYER(getSecondPlayer()).getMasterTeam())
+		return false; // There is no vassal deal, so this can't be one.
+	TeamTypes eVassal;
+	if (TEAMREF(getFirstPlayer()).isVassal(eMaster))
+		eVassal = TEAMID(getFirstPlayer());
+	else if(TEAMREF(getSecondPlayer()).isVassal(eMaster))
+		eVassal = TEAMID(getSecondPlayer());
+	else return false; // sibling vassals
 
-	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
+	for (CLLNode<TradeData>* pNode = headGivesNode(eVassal); pNode != NULL;
+			pNode = nextGivesNode(pNode, eVassal))
 	{
-		if (isVassal(pNode->m_data.m_eItemType))
+		if (!isVassal(pNode->m_data.m_eItemType))
+			continue;
+
+		if (TEAMID(eByPlayer) == eMaster) // Master can never cancel
 		{
-			if (eByPlayer == getSecondPlayer())
-			{
-				if (pszReason)
-				{
-					*pszReason += gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL_EVER");
-				}
-
-				return true;
-			}
+			if (pszReason)
+				*pszReason += gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL_EVER");
+			return true;
 		}
-
-		if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
+		FAssert(TEAMID(eByPlayer) == eVassal);
+		// Voluntary vassal can always cancel
+		if (pNode->m_data.m_eItemType != TRADE_SURRENDER)
+			return false;
+	
+		if (!GET_TEAM(eVassal).canVassalRevolt(eMaster))
 		{
-			CvTeam& kVassal = GET_TEAM(GET_PLAYER(getFirstPlayer()).getTeam());
-			TeamTypes eMaster = GET_PLAYER(getSecondPlayer()).getTeam();
-
-			if (!kVassal.canVassalRevolt(eMaster))
+			if (pszReason)
 			{
-				if (pszReason)
-				{
-					szBuffer.clear();
-					GAMETEXT.setVassalRevoltHelp(szBuffer, eMaster, GET_PLAYER(getFirstPlayer()).getTeam());
-					*pszReason = szBuffer.getCString();
-				}
-
-				return true;
+				CvWStringBuffer szBuffer;
+				GAMETEXT.setVassalRevoltHelp(szBuffer, eMaster, eVassal);
+				*pszReason = szBuffer.getCString();
 			}
+			return true;
 		}
+		return false; // Assume at most one vassal item per deal
 	}
-
-	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
-	{
-		if (isVassal(pNode->m_data.m_eItemType))
-		{
-			if (eByPlayer == getFirstPlayer())
-			{
-				if (pszReason)
-				{
-					*pszReason += gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL_EVER");
-				}
-
-				return true;
-			}
-		}
-
-		if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
-		{
-			CvTeam& kVassal = GET_TEAM(GET_PLAYER(getSecondPlayer()).getTeam());
-			TeamTypes eMaster = GET_PLAYER(getFirstPlayer()).getTeam();
-
-			if (!kVassal.canVassalRevolt(eMaster))
-			{
-				// kmodx: Redundant code removed
-				if (pszReason)
-				{
-					szBuffer.clear();
-					GAMETEXT.setVassalRevoltHelp(szBuffer, eMaster, GET_PLAYER(getFirstPlayer()).getTeam());
-					*pszReason = szBuffer.getCString();
-				}
-
-				return true;
-			}
-		}
-	}
-
 	return false;
 }
+
 
 bool CvDeal::isVassalTributeDeal(const CLinkList<TradeData>* pList)
 {
 	for (CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
 	{
 		if (pNode->m_data.m_eItemType != TRADE_RESOURCES)
-		{
 			return false;
-		}
 	}
-
 	return true;
 }
 
@@ -587,22 +510,16 @@ bool CvDeal::isVassalTributeDeal() const {
 
 	PlayerTypes eVassalPlayer = NO_PLAYER;
 	PlayerTypes eMasterPlayer = NO_PLAYER;
-	CLinkList<TradeData> const* pVassalGives = NULL;
-	CLinkList<TradeData> const* pMasterGives = NULL;
 	if(TEAMREF(getFirstPlayer()).isVassal(TEAMID(getSecondPlayer()))) {
 		eVassalPlayer = getFirstPlayer();
 		eMasterPlayer = getSecondPlayer();
-		pVassalGives = getFirstTrades();
-		pMasterGives = getSecondTrades();
 	}
 	else if(TEAMREF(getSecondPlayer()).isVassal(TEAMID(getFirstPlayer()))) {
 		eVassalPlayer = getSecondPlayer();
 		eMasterPlayer = getFirstPlayer();
-		pVassalGives = getSecondTrades();
-		pMasterGives = getFirstTrades();
 	}
-	return eVassalPlayer != NO_PLAYER && pMasterGives->getLength() <= 0 &&
-			CvDeal::isVassalTributeDeal(pVassalGives);
+	return eVassalPlayer != NO_PLAYER && getGivesList(eMasterPlayer).getLength() <= 0 &&
+			CvDeal::isVassalTributeDeal(&getGivesList(eVassalPlayer));
 } // </advc.003>
 
 // <advc.034>
@@ -660,6 +577,32 @@ bool CvDeal::isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const {
 }
 
 
+bool CvDeal::isBetween(PlayerTypes ePlayer, TeamTypes eTeam) const {
+
+	return (ePlayer == getFirstPlayer() && eTeam == TEAMID(getSecondPlayer())) ||
+		   (eTeam == TEAMID(getFirstPlayer()) && ePlayer == getSecondPlayer());
+}
+
+
+bool CvDeal::involves(PlayerTypes ePlayer) const {
+
+	return (getFirstPlayer() == ePlayer || getSecondPlayer() == ePlayer);
+}
+
+
+bool CvDeal::involves(TeamTypes eTeam) const {
+
+	return (TEAMID(getFirstPlayer()) == eTeam || TEAMID(getSecondPlayer()) == eTeam);
+}
+
+
+PlayerTypes CvDeal::getOtherPlayer(PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return (ePlayer == getFirstPlayer() ? getSecondPlayer() : getFirstPlayer());
+}
+
+
 CLinkList<TradeData> const& CvDeal::getGivesList(PlayerTypes ePlayer) const {
 
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
@@ -667,10 +610,24 @@ CLinkList<TradeData> const& CvDeal::getGivesList(PlayerTypes ePlayer) const {
 }
 
 
+CLinkList<TradeData> const& CvDeal::getGivesList(TeamTypes eTeam) const {
+
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return *(TEAMID(getFirstPlayer()) == eTeam ? getFirstTrades() : getSecondTrades());
+}
+
+
 CLinkList<TradeData> const& CvDeal::getReceivesList(PlayerTypes ePlayer) const {
 
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return *(ePlayer == getFirstPlayer() ? getSecondTrades() : getFirstTrades());
+}
+
+
+CLinkList<TradeData> const& CvDeal::getReceivesList(TeamTypes eTeam) const {
+
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return *(TEAMID(getFirstPlayer()) == eTeam ? getSecondTrades() : getFirstTrades());
 }
 
 
@@ -688,9 +645,26 @@ CLLNode<TradeData>* CvDeal::headReceivesNode(PlayerTypes ePlayer) const {
 }
 
 
+CLLNode<TradeData>* CvDeal::headGivesNode(TeamTypes eTeam) const {
+
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return (TEAMID(getFirstPlayer()) == eTeam ? headFirstTradesNode() : headSecondTradesNode());
+}
+
+
+CLLNode<TradeData>* CvDeal::headReceivesNode(TeamTypes eTeam) const {
+
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return (TEAMID(getFirstPlayer()) == eTeam ? headSecondTradesNode() : headFirstTradesNode());
+}
+
+/*  No assertions in the next... functions - don't want to slow assert builds down,
+	and normally the head function is called first.
+	Due to the implementation of CLinkList, all the next functions return the same
+	result. So one could actually remove all except nextTradesNode. But I guess it's
+	better not to set the CLinkList implementation in stone. */
 CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const {
 
-	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return (ePlayer == getFirstPlayer() ? nextFirstTradesNode(pNode) :
 			nextSecondTradesNode(pNode));
 }
@@ -698,9 +672,36 @@ CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes
 
 CLLNode<TradeData>* CvDeal::nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const {
 
-	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return (ePlayer == getFirstPlayer() ? nextSecondTradesNode(pNode) :
 			nextFirstTradesNode(pNode));
+}
+
+
+CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const {
+
+	return (TEAMID(getFirstPlayer()) == eTeam ? nextFirstTradesNode(pNode) :
+			nextSecondTradesNode(pNode));
+}
+
+
+CLLNode<TradeData>* CvDeal::nextReceivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const {
+
+	return (TEAMID(getFirstPlayer()) == eTeam ? nextSecondTradesNode(pNode) :
+			nextFirstTradesNode(pNode));
+}
+
+
+CLLNode<TradeData>* CvDeal::headTradesNode() const {
+
+	return (headFirstTradesNode() == NULL ? headSecondTradesNode() : headFirstTradesNode());
+}
+
+
+CLLNode<TradeData>* CvDeal::nextTradesNode(CLLNode<TradeData>* pNode) const {
+
+	if (pNode == getFirstTrades()->tail())
+		return headSecondTradesNode();
+	return CLinkList<TradeData>::static_next(pNode);
 }
 // </advc.003>
 
@@ -1179,8 +1180,7 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam)  // advc.003: style changes
 {
 	CLLNode<TradeData>* pNode = NULL;
-	int iLoop;
-	for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		if (pLoopDeal == this)
 			continue;
@@ -1218,9 +1218,11 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 }
 
 bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason) const
-{	// <advc.001> Not really a bug, but you'd really expect this function to check this.
-	if(eByPlayer != NO_PLAYER && getFirstPlayer() != eByPlayer && getSecondPlayer() != eByPlayer)
+{
+	// <advc.001> Not really a bug, but you'd really expect this function to check this.
+	if (!involves(eByPlayer))
 		return false; // </advc.001>
+
 	if (isUncancelableVassalDeal(eByPlayer, pszReason))
 		return false;
 
@@ -1236,9 +1238,9 @@ bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason) const
 	See declaration in CvDeal.h. */
 bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const {
 
-	// I don't think isUncancellableVassalDeal covers this:
-	if(getFirstPlayer() != eByPlayer && getSecondPlayer() != eByPlayer)
+	if (!involves(eByPlayer))
 		return false;
+
 	return !isUncancelableVassalDeal(eByPlayer);
 } // </advc.130f>
 
@@ -1250,6 +1252,16 @@ int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 	return (getInitialGameTurn() + len - // </advc.034>
 			GC.getGame().getGameTurn());
 }
+// <advc.003>
+bool CvDeal::isAllDual() const
+{
+	CLLNode<TradeData>* pNode;
+	for(pNode = headTradesNode(); pNode != NULL; pNode = nextTradesNode(pNode)) {
+		if(!CvDeal::isDual(pNode->m_data.m_eItemType))
+			return false;
+	}
+	return true;
+} // </advc.003>
 
 // static
 bool CvDeal::isAnnual(TradeableItems eItem)

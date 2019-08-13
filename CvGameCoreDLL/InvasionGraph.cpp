@@ -358,9 +358,8 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 		bool bValidFound = false;
 		/*  In large games, looking up oppId's cities is faster than a pass through
 			our whole cache. */
-		int foo=-1;
-		for(CvCity* cvCity = GET_PLAYER(oppId).firstCity(&foo); cvCity != NULL;
-				cvCity = GET_PLAYER(oppId).nextCity(&foo)) {
+		CvPlayer const& opp = GET_PLAYER(oppId);
+		FOR_EACH_CITY(cvCity, opp) {
 			WarAndPeaceCache::City* c = cache.lookupCity(*cvCity);
 			if(c != NULL && c->canReach() && !outer.nodeMap[oppId]->
 					hasLost(c->id())) {
@@ -1388,9 +1387,8 @@ CvArea* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
 	int maxCities = 0;
 	// Going through cities should be faster than going through all areas
 	CvPlayer const& fewerCitiesCiv = (civ1.getNumCities() < civ2.getNumCities() ?
-			civ1 : civ2); int dummy=-1;
-	for(CvCity* c = fewerCitiesCiv.firstCity(&dummy); c != NULL;
-			c = fewerCitiesCiv.nextCity(&dummy)) {
+			civ1 : civ2);
+	FOR_EACH_CITY(c, fewerCitiesCiv) {
 		CvArea* const a = c->area();
 		int citiesMin = std::min(a->getCitiesPerPlayer(civ1.getID()),
 				a->getCitiesPerPlayer(civ2.getID()));

@@ -6,6 +6,7 @@
 #include "CvGamePlay.h"
 #include "RiseFall.h" // advc.706
 #include "CvMap.h"
+#include "CvAreaList.h" // advc.003s
 #include "CvPopupReturn.h"
 #include "CvInfos.h"
 #include "CvGameTextMgr.h"
@@ -2660,49 +2661,36 @@ bool CvDLLButtonPopup::launchEventPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 
-bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)
+bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc.003: style changes
 {
-	int iLoop;
-	PlayerTypes ePlayer = GC.getGame().getActivePlayer();
-	if (ePlayer == NO_PLAYER)
-	{
-		return false;
-	}
-
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_FREE_COLONY"));
 
-	if (GET_PLAYER(ePlayer).canSplitEmpire())
+	CvPlayer const& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());	
+	if (kPlayer.canSplitEmpire())
 	{
-		for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+		FOR_EACH_AREA(pLoopArea)
 		{
-			if (GET_PLAYER(ePlayer).canSplitArea(pLoopArea->getID()))
+			if (!kPlayer.canSplitArea(*pLoopArea))
+				continue;
+
+			CvWString szCityList;
+			int iNumCities = 0;
+			FOR_EACH_CITY(pLoopCity, kPlayer)
 			{
-				CvWString szCityList;
-				int iCityLoop;
-				int iNumCities = 0;
-				for (CvCity* pLoopCity = GET_PLAYER(ePlayer).firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iCityLoop))
+				if (pLoopCity->area()->getID() == pLoopArea->getID())
 				{
-					if (pLoopCity->area()->getID() == pLoopArea->getID())
-					{
-						if (!szCityList.empty())
-						{
-							szCityList += L", ";
-						}
-						++iNumCities;
-
-						szCityList += pLoopCity->getName();
-					}
+					if (!szCityList.empty())
+						szCityList += L", ";
+					iNumCities++;
+					szCityList += pLoopCity->getName();
 				}
-
-				CvWString szBuffer = gDLL->getText("TXT_KEY_SPLIT_EMPIRE", szCityList.GetCString());
-				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), pLoopArea->getID(), WIDGET_GENERAL);
 			}
+			CvWString szBuffer = gDLL->getText("TXT_KEY_SPLIT_EMPIRE", szCityList.GetCString());
+			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), pLoopArea->getID(), WIDGET_GENERAL);
 		}
 	}
-
-	for (CvCity* pLoopCity = GET_PLAYER(ePlayer).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iLoop))
+	FOR_EACH_CITY(pLoopCity, kPlayer)
 	{
-
 		// UNOFFICIAL_PATCH, Bugfix, 08/04/09, jdog5000
 		/* original bts code
 		PlayerTypes ePlayer = pLoopCity->getLiberationPlayer(false);
@@ -2713,10 +2701,10 @@ bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)
 		}*/
 		// Avoid potential variable name conflict
 		PlayerTypes eLibPlayer = pLoopCity->getLiberationPlayer(false);
-		if (NO_PLAYER != eLibPlayer)
+		if (eLibPlayer != NO_PLAYER)
 		{
 			// Don't offer liberation during war
-			if (!TEAMREF(ePlayer).isAtWar(TEAMID(eLibPlayer)))
+			if (!GET_TEAM(kPlayer.getTeam()).isAtWar(TEAMID(eLibPlayer)))
 			{
 				CvWString szCity = gDLL->getText("TXT_KEY_CITY_LIBERATE", pLoopCity->getNameKey(), GET_PLAYER(eLibPlayer).getNameKey());
 				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szCity, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), -pLoopCity->getID(), WIDGET_GENERAL);
@@ -2732,29 +2720,18 @@ bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchLaunchPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	PlayerTypes ePlayer = GC.getGame().getActivePlayer();
-	if (ePlayer == NO_PLAYER)
-	{
-		return false;
-	}
-
 	VictoryTypes eVictory = (VictoryTypes)info.getData1();
 	if (NO_VICTORY == eVictory)
-	{
 		return false;
-	}
 
-	CvTeam& kTeam = GET_TEAM(GET_PLAYER(ePlayer).getTeam());
-
+	CvTeam const& kTeam = GET_TEAM(GC.getGame().getActiveTeam()); // advc.003
 	// K-Mod. Cancel the popup if something has happened to prevent the launch.
 	if (!kTeam.canLaunch(eVictory))
 		return false;
 	// K-Mod end
 
 	if (kTeam.getVictoryCountdown(eVictory) > 0 || GC.getGame().getGameState() != GAMESTATE_ON)
-	{
 		return false;
-	}
 
 	CvWString szDate;
 	GAMETEXT.setTimeStr(szDate, GC.getGame().getGameTurn() + kTeam.getVictoryDelay(eVictory), false);
@@ -2778,16 +2755,10 @@ bool CvDLLButtonPopup::launchLaunchPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchFoundReligionPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	PlayerTypes ePlayer = GC.getGame().getActivePlayer();
-	if (ePlayer == NO_PLAYER)
-	{
-		return false;
-	}
-
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_FOUNDED_RELIGION"));
 
 	bool bFound = false;
-	for (int iReligion = 0; iReligion < GC.getNumReligionInfos(); ++iReligion)
+	for (int iReligion = 0; iReligion < GC.getNumReligionInfos(); iReligion++)
 	{
 		CvReligionInfo& kReligion = GC.getReligionInfo((ReligionTypes)iReligion);
 		if (!GC.getGame().isReligionFounded((ReligionTypes)iReligion))
@@ -2798,9 +2769,7 @@ bool CvDLLButtonPopup::launchFoundReligionPopup(CvPopup* pPopup, CvPopupInfo &in
 	}
 
 	if (!bFound)
-	{
 		return false;
-	}
 
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 

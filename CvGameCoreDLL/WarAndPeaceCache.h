@@ -200,7 +200,7 @@ public:
 	   for computing war utility. */
 	class City {
 	public:
-		City(PlayerTypes cacheOwnerId, CvCity* c);
+		City(PlayerTypes cacheOwnerId, CvCity const& c);
 		City(PlayerTypes cacheOwnerId); // for reading from savegame
 		PlayerTypes cityOwner() const;
 		bool isOwnCity() const;
@@ -249,7 +249,7 @@ public:
 		/* Auxiliary function for sorting. -1 means one < two, +1 two < one and 0
 		   neither. */
 		static int byOwner(City* one, City* two);
-		void updateDistance(CvCity* targetCity);
+		void updateDistance(CvCity const& targetCity);
 		void updateAssetScore();
 
 		int distance, targetValue, assetScore;

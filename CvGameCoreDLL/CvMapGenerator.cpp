@@ -2,6 +2,7 @@
 #include "CvMapGenerator.h"
 #include "CvGameAI.h"
 #include "CvMap.h"
+#include "CvAreaList.h" // advc.003s
 #include "CvFractal.h"
 #include "CvInfos.h"
 
@@ -672,9 +673,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	std::set<int> areas_tried;
 
 	CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
-
 	int iBonusCount = calculateNumBonusesToAdd(eBonusType);
-
 	bool bIgnoreLatitude = GC.getGame().pythonIsBonusIgnoreLatitudes();
 
 	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
@@ -682,11 +681,9 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	while (true)
 	{
 		int iBestValue = 0;
-		int iLoop = 0;
 		CvArea *pBestArea = NULL;
 		CvArea *pLoopArea = NULL;
-
-		for(pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+		FOR_EACH_AREA_VAR(pLoopArea)
 		{
 			if (areas_tried.count(pLoopArea->getID()) == 0)
 			{
@@ -704,9 +701,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 		}
 
 		if (pBestArea == NULL)
-		{
 			break; // can't place bonus on any area
-		}
 
 		areas_tried.insert(pBestArea->getID());
 

@@ -40,8 +40,8 @@ void CvGameAI::AI_initScenario() {
 		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isAlive())
 			continue;
-		int foo;
-		for(CvCity* c = kPlayer.firstCity(&foo); c != NULL; c = kPlayer.nextCity(&foo)) {
+
+		FOR_EACH_CITY_VAR(c, kPlayer) {
 			/*  Added after getting failed assertions in CvCity::doTurn in the
 				Europe1000AD scenario (I'm guessing due to production from Apostolic Palace). */
 			for(int j = 0; j < NUM_YIELD_TYPES; j++) {

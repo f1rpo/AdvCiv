@@ -19,7 +19,6 @@ class WarAndPeaceCache;
 class WarUtilityAspect {
 
 public:
-	WarUtilityAspect(WarEvalParameters& params);
 	/*  Returns the computed utility (same as calling utility(void)).
 		Sets some protected data members that subclasses should find useful.
 		Concrete subclasses should therefore overwrite evaluate(void) instead. */
@@ -32,6 +31,7 @@ public:
 	int utility() const;
 
 protected:
+	WarUtilityAspect(WarEvalParameters& params);
 	// Just for convenience (replacing report->log)
 	void log(char const* fmt, ...);
 	/*  What can m->ourId gain from or lose to theyId (both set by
@@ -135,9 +135,8 @@ private:
 	if evaluate(void) should be called also for parties that aren't part of the
 	military analysis. */
 class WarUtilityBroaderAspect : public WarUtilityAspect {
-public:
-	WarUtilityBroaderAspect(WarEvalParameters& params);
 protected:
+	WarUtilityBroaderAspect(WarEvalParameters& params);
 	bool concernsOnlyWarParties() const;
 };
 

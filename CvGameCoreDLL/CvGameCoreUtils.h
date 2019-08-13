@@ -7,7 +7,9 @@
 
 class CvPlot;
 class CvCity;
+class CvCityAI; // advc.003u
 class CvUnit;
+class CvUnitAI; // advc.003u
 class CvSelectionGroup;
 class CvString;
 class CvRandom;
@@ -133,6 +135,9 @@ DllExport float directionAngle(DirectionTypes eDirection);
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);					// Exposed to Python
 
+// <advc.003u>
+CvCityAI* AI_getCity(IDInfo city);
+CvUnitAI* AI_getUnit(IDInfo unit); // </advc.003u>
 DllExport CvCity* getCity(IDInfo city);												// Exposed to Python
 DllExport CvUnit* getUnit(IDInfo unit);												// Exposed to Python
 

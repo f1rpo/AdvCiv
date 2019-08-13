@@ -16,67 +16,16 @@ class CvSelectionGroup;
 //class FAStarNode;
 class CvArtInfoUnit;
 class KmodPathFinder;
-class CvUnitAI; // advc.003: Needed for AI(void) functions
-
-struct CombatDetails					// Exposed to Python
-{
-	int iExtraCombatPercent;
-	int iAnimalCombatModifierTA;
-	int iAIAnimalCombatModifierTA;
-	int iAnimalCombatModifierAA;
-	int iAIAnimalCombatModifierAA;
-	int iBarbarianCombatModifierTB;
-	int iAIBarbarianCombatModifierTB;
-	int iBarbarianCombatModifierAB;
-	int iAIBarbarianCombatModifierAB;
-	int iPlotDefenseModifier;
-	int iFortifyModifier;
-	int iCityDefenseModifier;
-	int iHillsAttackModifier;
-	int iHillsDefenseModifier;
-	int iFeatureAttackModifier;
-	int iFeatureDefenseModifier;
-	int iTerrainAttackModifier;
-	int iTerrainDefenseModifier;
-	int iCityAttackModifier;
-	int iDomainDefenseModifier;
-	int iCityBarbarianDefenseModifier;
-	int iClassDefenseModifier;
-	int iClassAttackModifier;
-	int iCombatModifierT;
-	int iCombatModifierA;
-	int iDomainModifierA;
-	int iDomainModifierT;
-	int iAnimalCombatModifierA;
-	int iAnimalCombatModifierT;
-	int iRiverAttackModifier;
-	int iAmphibAttackModifier;
-	int iKamikazeModifier;
-	int iModifierTotal;
-	int iBaseCombatStr;
-	int iCombat;
-	int iMaxCombatStr;
-	int iCurrHitPoints;
-	int iMaxHitPoints;
-	int iCurrCombatStr;
-	PlayerTypes eOwner;
-	PlayerTypes eVisualOwner;
-	std::wstring sUnitName;
-};
+class CvUnitAI; // advc.003u
+struct CombatDetails;										// Exposed to Python
 
 class CvUnit : public CvDLLEntity
 {
 
 public:
 
-	CvUnit();
-	virtual ~CvUnit();
-
-	void reloadEntity();
-	void init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection);
-	void uninit();
-	void reset(int iID = 0, UnitTypes eUnit = NO_UNIT, PlayerTypes eOwner = NO_PLAYER, bool bConstructorCall = false);
 	void setupGraphical();
+	void reloadEntity();
 
 	void convert(CvUnit* pUnit);																																	// Exposed to Python
 	void kill(bool bDelay, PlayerTypes ePlayer = NO_PLAYER);														// Exposed to Python
@@ -232,7 +181,7 @@ public:
 	bool canDiscover(const CvPlot* pPlot) const;																									// Exposed to Python
 	bool discover();
 
-	int getMaxHurryProduction(CvCity* pCity) const;																													// Exposed to Python
+	int getMaxHurryProduction(CvCity const* pCity) const;																													// Exposed to Python
 	int getHurryProduction(const CvPlot* pPlot) const;																						// Exposed to Python
 	bool canHurry(const CvPlot* pPlot, bool bTestVisible = false) const;													// Exposed to Python
 	bool hurry();
@@ -774,9 +723,24 @@ public:
 	DllExport void getLayerAnimationPaths(std::vector<AnimationPathTypes>& aAnimationPaths) const;
 	DllExport int getSelectionSoundScript() const;
 
+	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
+	// Lead From Behind (UncutDragon, edited for K-Mod): START
+			int* pBestDefenderRank,
+			bool bPreferUnowned = false) const; // advc.061
+	int LFBgetAttackerRank(const CvUnit* pDefender, int& iUnadjustedRank) const;
+	int LFBgetDefenderRank(const CvUnit* pAttacker) const;
+	// unprotected by K-Mod. (I want to use the LFB value for some AI stuff)
+	int LFBgetDefenderOdds(const CvUnit* pAttacker) const;
+	int LFBgetValueAdjustedOdds(int iOdds, bool bDefender) const;
+	int LFBgetRelativeValueRating() const;
+	int LFGgetDefensiveValueAdjustment() const; // K-Mod
+	bool LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
+	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
+	// Lead From Behind: END
+
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
-	// <advc.003>
+	// <advc.003u>
 	inline CvUnitAI& AI() {
 		//return *static_cast<CvUnitAI*>(const_cast<CvUnit*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -786,13 +750,13 @@ public:
 	inline CvUnitAI const& AI() const {
 		//return *static_cast<CvUnitAI const*>(this);
 		return *reinterpret_cast<CvUnitAI const*>(this);
-	} // </advc.003>
-
-	virtual void AI_init(UnitAITypes eUnitAI) = 0;
+	}
+	// I'll bet that the EXE calls none of these
+	/*virtual void AI_init(UnitAITypes eUnitAI) = 0;
 	virtual void AI_uninit() = 0;
 	virtual void AI_reset(UnitAITypes eUnitAI = NO_UNITAI) = 0;
 	virtual bool AI_update() = 0;
-	virtual bool AI_follow(/* K-Mod: */ bool bFirst = true) = 0;
+	virtual bool AI_follow(bool bFirst = true) = 0;
 	virtual void AI_upgrade() = 0;
 	virtual void AI_promote() = 0;
 	virtual int AI_groupFirstVal() = 0;
@@ -800,13 +764,23 @@ public:
 	virtual int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const = 0;
 	virtual bool AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL) = 0;
 	virtual bool AI_isCityAIType() const = 0;
-	virtual UnitAITypes AI_getUnitAIType() const = 0;																				// Exposed to Python
 	virtual void AI_setUnitAIType(UnitAITypes eNewValue) = 0;
 	virtual int AI_sacrificeValue(const CvPlot* pPlot) const = 0;
-	// BETTER_BTS_AI_MOD, Unit AI, 04/05/10, jdog5000: START
-	virtual bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT) = 0;
+	virtual bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT) = 0;*/
+	/*  Keep this one b/c it has many call locations. And keeping one pure virtual function
+		is important to keep this an abstract class. */ // </advc.003u>
+	virtual UnitAITypes AI_getUnitAIType() const = 0;
 
-protected: // advc (note): The public Lead From Behind functions are declared at the end
+protected:
+
+	// <advc.003u>
+	CvUnit();
+	virtual ~CvUnit();
+	/*  Subclasses need to call these two init functions; not called by base. May
+		also want to override them. */
+	virtual void init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY,
+			DirectionTypes eFacingDirection);
+	virtual void finalizeInit(); // </advc.003u>
 
 	int m_iID;
 	int m_iGroupID;
@@ -888,13 +862,12 @@ protected: // advc (note): The public Lead From Behind functions are declared at
 	IDInfo m_combatUnit;
 	IDInfo m_transportUnit;
 
-	int* m_aiExtraDomainModifier;
-
 	CvWString m_szName;
 	CvString m_szScriptData;
 
 	bool* m_pabHasPromotion;
 
+	int* m_paiExtraDomainModifier;
 	int* m_paiTerrainDoubleMoveCount;
 	int* m_paiFeatureDoubleMoveCount;
 	int* m_paiExtraTerrainAttackPercent;
@@ -924,23 +897,57 @@ protected: // advc (note): The public Lead From Behind functions are declared at
 	void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible); // K-Mod
 	void resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionDefinition& kBattle);
 	void checkRemoveSelectionAfterAttack();
+// <advc.003u>
+private:
+	void uninitEntity(); // I don't think subclasses should ever call this
+	// </advc.003u>
+};
 
-public:
-	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
-	// Lead From Behind (UncutDragon, edited for K-Mod): START
-			int* pBestDefenderRank,
-			bool bPreferUnowned = false) const; // advc.061
-	virtual void LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue) = 0;
-	int LFBgetAttackerRank(const CvUnit* pDefender, int& iUnadjustedRank) const;
-	int LFBgetDefenderRank(const CvUnit* pAttacker) const;
-//protected: // unprotected by K-Mod. (I want to use the LFB value for some AI stuff)
-	int LFBgetDefenderOdds(const CvUnit* pAttacker) const;
-	int LFBgetValueAdjustedOdds(int iOdds, bool bDefender) const;
-	int LFBgetRelativeValueRating() const;
-	int LFGgetDefensiveValueAdjustment() const; // K-Mod
-	bool LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
-	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
-	// Lead From Behind: END
+// advc.003: Moved from the beginning of the file
+struct CombatDetails
+{
+	int iExtraCombatPercent;
+	int iAnimalCombatModifierTA;
+	int iAIAnimalCombatModifierTA;
+	int iAnimalCombatModifierAA;
+	int iAIAnimalCombatModifierAA;
+	int iBarbarianCombatModifierTB;
+	int iAIBarbarianCombatModifierTB;
+	int iBarbarianCombatModifierAB;
+	int iAIBarbarianCombatModifierAB;
+	int iPlotDefenseModifier;
+	int iFortifyModifier;
+	int iCityDefenseModifier;
+	int iHillsAttackModifier;
+	int iHillsDefenseModifier;
+	int iFeatureAttackModifier;
+	int iFeatureDefenseModifier;
+	int iTerrainAttackModifier;
+	int iTerrainDefenseModifier;
+	int iCityAttackModifier;
+	int iDomainDefenseModifier;
+	int iCityBarbarianDefenseModifier;
+	int iClassDefenseModifier;
+	int iClassAttackModifier;
+	int iCombatModifierT;
+	int iCombatModifierA;
+	int iDomainModifierA;
+	int iDomainModifierT;
+	int iAnimalCombatModifierA;
+	int iAnimalCombatModifierT;
+	int iRiverAttackModifier;
+	int iAmphibAttackModifier;
+	int iKamikazeModifier;
+	int iModifierTotal;
+	int iBaseCombatStr;
+	int iCombat;
+	int iMaxCombatStr;
+	int iCurrHitPoints;
+	int iMaxHitPoints;
+	int iCurrCombatStr;
+	PlayerTypes eOwner;
+	PlayerTypes eVisualOwner;
+	std::wstring sUnitName;
 };
 
 #endif

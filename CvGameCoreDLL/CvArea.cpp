@@ -1,6 +1,8 @@
 // area.cpp
 
 #include "CvGameCoreDLL.h"
+#include "CvArea.h"
+#include "CvAreaList.h" // advc.003s
 #include "CvMap.h"
 #include "CvGamePlay.h"
 #include "CvInfos.h"
@@ -276,61 +278,50 @@ int CvArea::countNumUniqueBonusTypes() const
 
 int CvArea::countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner) const
 {
-	CvCity* pLoopCity;
-	int iCount;
-	int iLoop;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	// <advc.003b> Don't go through all players if eOwner is given
+	if (eOwner == NO_PLAYER)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if ((eOwner == NO_PLAYER) || (iI == eOwner))
-			{
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-				{
-					if (pLoopCity->area()->getID() == getID())
-					{
-						if (pLoopCity->isHasReligion(eReligion))
-						{
-							iCount++;
-						}
-					}
-				}
-			}
+			if (GET_PLAYER((PlayerTypes)iI).isAlive()) // Recursive call with eOwner!=NO_PLAYER
+				iCount += countHasReligion(eReligion, (PlayerTypes)iI);
+		}
+		return iCount;
+	} // </advc.003b>
+	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
+	{
+		if (pLoopCity->area()->getID() == getID())
+		{
+			if (pLoopCity->isHasReligion(eReligion))
+				iCount++;
 		}
 	}
-
 	return iCount;
 }
 
 int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner) const
 {
 	int iCount = 0;
-
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	// <advc.003b> Don't go through all players if eOwner is given
+	if (eOwner == NO_PLAYER)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if ((eOwner == NO_PLAYER) || (iI == eOwner))
-			{
-				int iLoop;
-				for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); NULL != pLoopCity; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-				{
-					if (pLoopCity->area()->getID() == getID())
-					{
-						if (pLoopCity->isHasCorporation(eCorporation))
-						{
-							++iCount;
-						}
-					}
-				}
-			}
+			if (GET_PLAYER((PlayerTypes)iI).isAlive()) // Recursive call with eOwner!=NO_PLAYER
+				iCount += countHasCorporation(eCorporation, (PlayerTypes)iI);
+		}
+		return iCount;
+	} // </advc.003b>
+	
+	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
+	{
+		if (pLoopCity->area()->getID() == getID())
+		{
+			if (pLoopCity->isHasCorporation(eCorporation))
+				iCount++;
 		}
 	}
-
 	return iCount;
 }
 
@@ -348,10 +339,9 @@ void CvArea::updateLake(bool bCheckRepr) {
 		m_bLake = true;
 		return;
 	}
-	CvMap& m = GC.getMap(); int foo=-1;
-	for(CvArea* other = m.firstArea(&foo); other != NULL; other = m.nextArea(&foo)) {
-		if(other->m_iRepresentativeAreaId == m_iRepresentativeAreaId && other->m_iID != m_iID) {
-			iTotalTiles += other->getNumTiles();
+	FOR_EACH_AREA(pOther) {
+		if(pOther->m_iRepresentativeAreaId == m_iRepresentativeAreaId && pOther->getID() != getID()) {
+			iTotalTiles += pOther->getNumTiles();
 			if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
 				return;
 		}

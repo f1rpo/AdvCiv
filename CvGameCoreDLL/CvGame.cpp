@@ -2,8 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
+#include "CvDealList.h" // advc.003u
 #include "CvGamePlay.h"
 #include "CvMap.h"
+#include "CvAreaList.h" // advc.003s
 #include "CvMapGenerator.h"
 #include "CvDiploParameters.h"
 #include "CvReplayMessage.h"
@@ -20,7 +22,9 @@
 
 // Public Functions...
 
-CvGame::CvGame()
+CvGame::CvGame() /* advc.003u: */ : m_deals(new CvDealList()),
+	m_pRiseFall(new RiseFall()), // advc.700
+	m_pSpah(new StartPointsAsHandicap()) // advc.250b
 {
 	m_aiRankPlayer = new int[MAX_PLAYERS];        // Ordered by rank...
 	m_aiPlayerRank = new int[MAX_PLAYERS];        // Ordered by player ID...
@@ -28,9 +32,6 @@ CvGame::CvGame()
 	m_aiRankTeam = new int[MAX_TEAMS];						// Ordered by rank...
 	m_aiTeamRank = new int[MAX_TEAMS];						// Ordered by team ID...
 	m_aiTeamScore = new int[MAX_TEAMS];						// Ordered by team ID...
-
-	m_pSpah = new StartPointsAsHandicap(); // advc.250b
-	m_pRiseFall = new RiseFall(); // advc.700
 
 	m_paiUnitCreatedCount = NULL;
 	m_paiUnitClassCreatedCount = NULL;
@@ -74,6 +75,7 @@ CvGame::~CvGame()
 
 	SAFE_DELETE(m_pSpah); // advc.250b
 	SAFE_DELETE(m_pRiseFall); // advc.700
+	SAFE_DELETE(m_deals); // advc.003u
 }
 
 void CvGame::init(HandicapTypes eHandicap)
@@ -87,7 +89,7 @@ void CvGame::init(HandicapTypes eHandicap)
 
 	//--------------------------------
 	// Init containers
-	m_deals.init();
+	m_deals->init();
 	m_voteSelections.init();
 	m_votesTriggered.init();
 
@@ -301,8 +303,7 @@ void CvGame::setInitialItems()
 			setStartTurnYear call and setInitialItems. The second setStartTurnYear
 			causes any initial "universal" peace treaties to end after 1 turn.
 			Need to inform all CvDeal objects about the changed start turn: */
-		CvDeal* d; int foo;
-		for(d = firstDeal(&foo); d != NULL; d = nextDeal(&foo))
+		FOR_EACH_DEAL_VAR(d)
 			d->setInitialGameTurn(getGameTurn());
 	} // </advc.250c>
 	// </advc.251>
@@ -465,7 +466,7 @@ void CvGame::uninit()
 	m_aszDestroyedCities.clear();
 	m_aszGreatPeopleBorn.clear();
 
-	m_deals.uninit();
+	m_deals->uninit();
 	// <advc.072> This also frees dynamically allocated memory
 	m_currentDeals.clear();
 	m_currentDealsWidget.clear();
@@ -731,7 +732,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 		}
 	}
 
-	m_deals.removeAll();
+	m_deals->removeAll();
 	m_voteSelections.removeAll();
 	m_votesTriggered.removeAll();
 
@@ -2797,7 +2798,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 	// <advc.002e> Show glow (only) on selected unit
 	if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
 		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner());
-		FOR_EACH_UNIT(u, kOwner) {
+		FOR_EACH_UNIT_VAR(u, kOwner) {
 			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
 					u->atPlot(pUnit->plot()) && u->isReadyForPromotion());
 		}
@@ -2983,13 +2984,8 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 
 void CvGame::verifyDeals()
 {
-	CvDeal* pLoopDeal;
-	int iLoop;
-
-	for(pLoopDeal = firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = nextDeal(&iLoop))
-	{
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 		pLoopDeal->verify();
-	}
 }
 
 
@@ -3551,7 +3547,7 @@ void CvGame::replaceCorporation(CorporationTypes eCorporation1, CorporationTypes
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (kLoopPlayer.isAlive())
 		{
-			FOR_EACH_CITY(pCity, kLoopPlayer)
+			FOR_EACH_CITY_VAR(pCity, kLoopPlayer)
 			{
 				if (pCity->isHasCorporation(eCorporation1))
 				{
@@ -3560,7 +3556,7 @@ void CvGame::replaceCorporation(CorporationTypes eCorporation1, CorporationTypes
 				}
 			}
 
-			FOR_EACH_UNIT(pUnit, kLoopPlayer)
+			FOR_EACH_UNIT_VAR(pUnit, kLoopPlayer)
 			{
 				if (pUnit->getUnitInfo().getCorporationSpreads(eCorporation1) > 0)
 				{
@@ -5343,7 +5339,7 @@ void CvGame::updateUnitEnemyGlow()
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if (!kPlayer.isAlive())
 			continue; // advc.003b
-		FOR_EACH_UNIT(pLoopUnit, kPlayer)
+		FOR_EACH_UNIT_VAR(pLoopUnit, kPlayer)
 			gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getUnitEntity());
 	}
 }
@@ -6584,13 +6580,10 @@ void CvGame::setInBetweenTurns(bool b) {
 
 void CvGame::doDeals()
 {
-	CvDeal* pLoopDeal;
-	int iLoop;
-
 	verifyDeals();
 
 	std::set<PlayerTypes> trade_players; // K-Mod. List of players involved in trades.
-	for(pLoopDeal = firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = nextDeal(&iLoop))
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		// K-Mod
 		trade_players.insert(pLoopDeal->getFirstPlayer());
@@ -7243,22 +7236,20 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 	   value K-Mod uses. */
 	kFoundSet.iBarbDiscouragedRange = 5 + getSorenRandNum(7, "advc.300 (discouraged range)");
 	CvMap const& m = GC.getMap();
-	// Precomputed for efficiency
-	std::map<int,int> unownedPerArea; int foo=-1;
-	for(CvArea* pArea = m.firstArea(&foo); pArea != NULL; pArea = m.nextArea(&foo)) {
-		CvArea const& a = *pArea;
+	std::map<int,int> unownedPerArea; // Precomputed for efficiency
+	FOR_EACH_AREA(pArea) {
 		/* Plots owned by Barbarians are counted in BtS, and I count them when
 		   creating units because it makes some sense that Barbarians get fewer free
 		   units once they have cities, but for cities, I'm not sure.
 		   Keep counting them for now. */
-		std::pair<int,int> iiOwnedUnowned = a.countOwnedUnownedHabitableTiles();
+		std::pair<int,int> iiOwnedUnowned = pArea->countOwnedUnownedHabitableTiles();
 				//a.countOwnedUnownedHabitableTiles(true);
 		int iUnowned = iiOwnedUnowned.second;
 		std::vector<Shelf*> shelves;
-		m.getShelves(a.getID(), shelves);
+		m.getShelves(pArea->getID(), shelves);
 		for(size_t i = 0; i < shelves.size(); i++)
 			iUnowned += shelves[i]->countUnownedPlots() / 2;
-		unownedPerArea.insert(std::make_pair(a.getID(), iUnowned));
+		unownedPerArea.insert(std::make_pair(pArea->getID(), iUnowned));
 	}
 	bool bRage = isOption(GAMEOPTION_RAGING_BARBARIANS);
 	// </advc.300>
@@ -7388,9 +7379,7 @@ void CvGame::createBarbarianUnits()
 	// Divided by 10 b/c now only shelf water tiles count
 	int iBaseTilesPerSeaUnit = kGameHandicap.getUnownedWaterTilesPerBarbarianUnit() / 8;
 	// </advc.300>
-	int iLoop;
-	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL;
-			pLoopArea = GC.getMap().nextArea(&iLoop)) {
+	FOR_EACH_AREA_VAR(pLoopArea) {
 		// <advc.300>
 		CvArea& a = *pLoopArea;
 		/*  For each land area, first spawn sea Barbarians for each shelf attached
@@ -7466,7 +7455,7 @@ void CvGame::createBarbarianUnits()
 			createBarbarians */
 		// </advc.300>
 	}
-	FOR_EACH_UNIT(pLoopUnit, GET_PLAYER(BARBARIAN_PLAYER))
+	FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(BARBARIAN_PLAYER))
 	{
 		if (pLoopUnit->isAnimal()
 				// advc.309: Don't cull animals where there are no civ cities
@@ -7505,8 +7494,7 @@ void CvGame::createAnimals()  // advc.003: style changes
 	if (getElapsedGameTurns() < 5)
 		return;
 
-	int iLoop;
-	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+	FOR_EACH_AREA(pLoopArea)
 	{
 		if (pLoopArea->isWater())
 			continue;
@@ -7812,7 +7800,7 @@ bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Sh
 			return shelf->killBarbarian();
 		/*  Tbd.: Be a bit more considerate about which unit to sacrifice.
 			Currently, it's the same (arbitrary) method as for animal culling. */
-		FOR_EACH_UNIT(pUnit, GET_PLAYER(BARBARIAN_PLAYER)) {
+		FOR_EACH_UNIT_VAR(pUnit, GET_PLAYER(BARBARIAN_PLAYER)) {
 			CvUnit& u = *pUnit;
 			if(u.isAnimal() || u.plot()->area()->getID() != a.getID() ||
 					u.getUnitCombatType() == NO_UNITCOMBAT)
@@ -7962,7 +7950,7 @@ void CvGame::updateMoves()
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		CvPlayer& player = GET_PLAYER((PlayerTypes)(aiShuffle[iI]));
+		CvPlayerAI& player = GET_PLAYER((PlayerTypes)(aiShuffle[iI]));
 
 		if (player.isAlive())
 		{
@@ -7983,13 +7971,13 @@ void CvGame::updateMoves()
 
 				if (player.isAutoMoves())
 				{
-					FOR_EACH_GROUP(pGroup, player)
+					FOR_EACH_GROUP_VAR(pGroup, player)
 						pGroup->autoMission();
 					// K-Mod. Here's where we do the AI for automated units.
 					// Note, we can't do AI_update and autoMission in the same loop, because either one might delete the group - and thus cause the other to crash.
 					if (player.isHuman())
 					{
-						FOR_EACH_GROUP(pGroup, player)
+						FOR_EACH_GROUPAI_VAR(pGroup, player)
 						{
 							if (pGroup->AI_update())
 							{
@@ -8391,34 +8379,25 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 			if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 				logBBAI("  Vote for forcing peace against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0));
 			// <dlph.25> 'Cancel defensive pacts with the attackers first'
-			int foo=-1;
-			for(CvDeal* pLoopDeal = firstDeal(&foo); pLoopDeal != NULL; pLoopDeal = nextDeal(&foo)) {
-				bool bCancelDeal = false;
-				if((TEAMID(pLoopDeal->getFirstPlayer()) == kPlayer.getTeam() &&
-						TEAMREF(pLoopDeal->getSecondPlayer()).isVotingMember(
-						kData.eVoteSource)) || (GET_PLAYER(pLoopDeal->
-						getSecondPlayer()).getTeam() == kPlayer.getTeam() &&
-						TEAMREF(pLoopDeal->getFirstPlayer()).isVotingMember(
-						kData.eVoteSource))) {
+			FOR_EACH_DEAL_VAR(pLoopDeal)
+			{
+				if ((TEAMID(pLoopDeal->getFirstPlayer()) == kPlayer.getTeam() &&
+					TEAMREF(pLoopDeal->getSecondPlayer()).
+					isVotingMember(kData.eVoteSource)) ||
+					(TEAMID(pLoopDeal->getSecondPlayer()) == kPlayer.getTeam() &&
+					TEAMREF(pLoopDeal->getFirstPlayer()).
+					isVotingMember(kData.eVoteSource)))
+				{
 					for(CLLNode<TradeData>* pNode = pLoopDeal->headFirstTradesNode();
-							pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode)) {
-						if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) {
-							bCancelDeal = true;
+						pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode))
+					{
+						if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
+						{
+							pLoopDeal->kill();
 							break;
 						}
-					}
-					if(!bCancelDeal) {
-						for(CLLNode<TradeData>* pNode = pLoopDeal->headSecondTradesNode();
-								pNode != NULL; pNode = pLoopDeal->nextSecondTradesNode(pNode)) {
-							if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) {
-								bCancelDeal = true;
-								break;
-							}
-						}
-					}
+					} // advc.003: Don't bother with SecondTrades; DPs are dual.
 				}
-				if(bCancelDeal)
-					pLoopDeal->kill();
 			} // </dlph.25>
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
@@ -8505,37 +8484,43 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 
 int CvGame::getIndexAfterLastDeal()
 {
-	return m_deals.getIndexAfterLast();
+	return m_deals->getIndexAfterLast();
 }
 
 
 int CvGame::getNumDeals()
 {
-	return m_deals.getCount();
+	return m_deals->getCount();
 }
+
+
+CvDeal const* CvGame::getDeal(int iID) const // advc.003u: 2x const
+{
+	return m_deals->getAt(iID);
+} 
 
 
 CvDeal* CvGame::addDeal()
 {
-	return m_deals.add();
+	return m_deals->add();
 }
 
 
  void CvGame::deleteDeal(int iID)
 {
-	m_deals.removeAt(iID);
+	m_deals->removeAt(iID);
 	gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
 }
 
 CvDeal* CvGame::firstDeal(int *pIterIdx, bool bRev) const
 {
-	return !bRev ? m_deals.beginIter(pIterIdx) : m_deals.endIter(pIterIdx);
+	return !bRev ? m_deals->beginIter(pIterIdx) : m_deals->endIter(pIterIdx);
 }
 
 
 CvDeal* CvGame::nextDeal(int *pIterIdx, bool bRev) const
 {
-	return !bRev ? m_deals.nextIter(pIterIdx) : m_deals.prevIter(pIterIdx);
+	return !bRev ? m_deals->nextIter(pIterIdx) : m_deals->prevIter(pIterIdx);
 }
 
 /*  <advc.072> All the FAssert(false) in this function mean that we're somehow
@@ -8556,8 +8541,8 @@ CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePla
 	CLinkList<DealItemData>& kCurrentDeals = (bWidget ? m_currentDealsWidget :
 			m_currentDeals);
 	if(kCurrentDeals.getLength() <= 0) {
-		bool bFirstFound = false; int foo=-1;
-		for(CvDeal* d = firstDeal(&foo); d != NULL; d = nextDeal(&foo)) {
+		bool bFirstFound = false;
+		FOR_EACH_DEAL(d) {
 			if(!d->isBetween(eGivePlayer, eReceivePlayer))
 				continue;
 			CLinkList<TradeData> const& kGiveList = *(d->getFirstPlayer() == eGivePlayer ?
@@ -8743,7 +8728,7 @@ int CvGame::calculateSyncChecksum()
 						iMultiplier += pLoopCity->getID()*(pOrderNode->m_data.eOrderType+2*pOrderNode->m_data.iData1+3*pOrderNode->m_data.iData2+6);
 				} break;*/
 				// city health and happiness
-				FOR_EACH_CITY(pLoopCity, kPlayer)
+				FOR_EACH_CITYAI(pLoopCity, kPlayer)
 				{
 					iMultiplier += pLoopCity->goodHealth() * 876543;
 					iMultiplier += pLoopCity->badHealth() * 985310;
@@ -8752,10 +8737,10 @@ int CvGame::calculateSyncChecksum()
 					iMultiplier += pLoopCity->getFood() * 367291;
 					/*  advc.001n: FloatingDefenders should be good enough as closeness
 						factors into that */
-					iMultiplier += pLoopCity->AI().AI_neededFloatingDefenders(false, true) * 324111;
+					iMultiplier += pLoopCity->AI_neededFloatingDefenders(false, true) * 324111;
 					/*for(iJ = 0; iJ < MAX_PLAYERS; iJ++) {
 						if(GET_PLAYER((PlayerTypes)iJ).isAlive()) {
-							iMultiplier += (pLoopCity->AI().AI_playerCloseness(
+							iMultiplier += (pLoopCity->AI_playerCloseness(
 									(PlayerTypes)iJ, DEFAULT_PLAYER_CLOSENESS, true) + 1) * (iJ + 1);
 						}
 					}*/
@@ -9026,7 +9011,6 @@ uint CvGame::getNumReplayMessages() const
 	return m_listReplayMessages.size();
 }
 
-// Private Functions...
 
 void CvGame::read(FDataStreamBase* pStream)
 {
@@ -9167,7 +9151,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		}
 	}
 
-	ReadStreamableFFreeListTrashArray(m_deals, pStream);
+	ReadStreamableFFreeListTrashArray(*m_deals, pStream);
 	ReadStreamableFFreeListTrashArray(m_voteSelections, pStream);
 	ReadStreamableFFreeListTrashArray(m_votesTriggered, pStream);
 
@@ -9407,7 +9391,7 @@ void CvGame::write(FDataStreamBase* pStream)
 		}
 	}
 
-	WriteStreamableFFreeListTrashArray(m_deals, pStream);
+	WriteStreamableFFreeListTrashArray(*m_deals, pStream);
 	WriteStreamableFFreeListTrashArray(m_voteSelections, pStream);
 	WriteStreamableFFreeListTrashArray(m_votesTriggered, pStream);
 
@@ -10672,7 +10656,7 @@ void CvGame::doVoteSelection()
 							{	//kTeam1.meet((TeamTypes)iTeam2, true);
 								// <advc.071> Check isHasMet b/c getVoteSourceCity is a bit slow
 								if(!kTeam1.isHasMet(kTeam2.getID())) {
-									CvCity* pSrcCity = getVoteSourceCity(eVoteSource, NO_TEAM);
+									CvCity const* pSrcCity = getVoteSourceCity(eVoteSource, NO_TEAM);
 									if(pSrcCity == NULL)
 										kTeam1.meet((TeamTypes)iTeam2, true, NULL);
 									else {
@@ -10931,7 +10915,7 @@ void CvGame::reportCurrentLayer(GlobeLayerTypes eLayer) {
 std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes eVS, TeamTypes eObserver,
 		bool bDebug) const {
 
-	CvCity* pVSCity = getVoteSourceCity(eVS, eObserver, bDebug);
+	CvCity const* pVSCity = getVoteSourceCity(eVS, eObserver, bDebug);
 	std::pair<int,int> r = std::make_pair(-1,-1);
 	if(pVSCity == NULL)
 		return r;
@@ -10949,7 +10933,7 @@ CvCity* CvGame::getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver, bool
 		CvPlayer const& kOwner = GET_PLAYER((PlayerTypes)i);
 		if(!kOwner.isAlive())
 			continue;
-		FOR_EACH_CITY(c, kOwner) {
+		FOR_EACH_CITY_VAR(c, kOwner) {
 			if(eObserver != NO_TEAM && !c->isRevealed(eObserver, bDebug))
 				continue;
 			if(c->getNumBuilding(eVSBuilding) > 0)

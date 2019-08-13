@@ -3,8 +3,10 @@
 #include "CvGameCoreDLL.h"
 #include "CvTeam.h"
 #include "CvGamePlay.h"
+#include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104t
 #include "CvMap.h"
+#include "CvAreaList.h" // advc.003s
 #include "CvDiploParameters.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
@@ -416,7 +418,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 	CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_PLAYER_PERMANENT_ALLIANCE",
 			getReplayName().GetCString(), GET_TEAM(eTeam).getReplayName().GetCString()));
-	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	CvGame& g = GC.getGame();
+	g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 	// K-Mod note: the cancel deals code use to be here. I've moved it lower down.
 
@@ -629,7 +632,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	// "AP resident and UN secretary general teams need to be updated if that team will not be used anymore."
 	for (iI = 0; iI < GC.getNumVoteSourceInfos(); iI++)
 	{
-		if (GC.getGame().canHaveSecretaryGeneral((VoteSourceTypes)iI) && GC.getGame().getSecretaryGeneral((VoteSourceTypes)iI) == eTeam)
+		if (g.canHaveSecretaryGeneral((VoteSourceTypes)iI) && g.getSecretaryGeneral((VoteSourceTypes)iI) == eTeam)
 		{
 			for (iJ = 0; iJ < GC.getNumVoteInfos(); iJ++)
 			{
@@ -642,7 +645,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 					kData.kVoteOption.iCityId = -1;
 					kData.kVoteOption.szText.clear();
 					kData.kVoteOption.ePlayer = NO_PLAYER;
-					GC.getGame().setVoteOutcome(kData, (PlayerVoteTypes)getID());
+					g.setVoteOutcome(kData, (PlayerVoteTypes)getID());
 				}
 			}
 		}
@@ -664,68 +667,43 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	}
 	// K-Mod end
 
-	// K-Mod. The following cancel deals code has been moved from higher up.
+	// K-Mod: The following cancel deals code has been moved from higher up.
 	// I've done this so that when open-borders is canceled, it doesn't bump our new allies out of our borders.
-	int iLoop;
-	for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		/* original bts code
 		if (((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
 			  ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))) */
-		// K-Mod. The player's teams have already been reassigned - so we don't check for eTeam anymore.
-		if (GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID() && GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID())
-		// K-Mod end
+		// K-Mod: The player's teams have already been reassigned - so we don't check for eTeam anymore.
+		if (!pLoopDeal->involves(getID())) // advc.003: Replacing the K-Mod replacement
+			continue;
+
+		for (CLLNode<TradeData>* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
+			pNode = pLoopDeal->nextTradesNode(pNode))
 		{
-			bool bValid = true;
-
-			if (pLoopDeal->getFirstTrades() != NULL)
-			{
-				for (CLLNode<TradeData>* pNode = pLoopDeal->getFirstTrades()->head(); pNode; pNode = pLoopDeal->getFirstTrades()->next(pNode))
-				{
-					if ((pNode->m_data.m_eItemType == TRADE_OPEN_BORDERS) ||
-						  (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
-						  (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) ||
-						  (pNode->m_data.m_eItemType == TRADE_VASSAL) ||
-						  (pNode->m_data.m_eItemType == TRADE_SURRENDER)
-						  // advc.034: Simplest to just cancel it
-						  || pNode->m_data.m_eItemType == TRADE_DISENGAGE)
-						bValid = false;
-				}
-			}
-
-			if (pLoopDeal->getSecondTrades() != NULL)
-			{
-				for (CLLNode<TradeData>* pNode = pLoopDeal->getSecondTrades()->head(); pNode; pNode = pLoopDeal->getSecondTrades()->next(pNode))
-				{
-					if ((pNode->m_data.m_eItemType == TRADE_OPEN_BORDERS) ||
-						  (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
-						  (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) ||
-						  (pNode->m_data.m_eItemType == TRADE_VASSAL) ||
-						  (pNode->m_data.m_eItemType == TRADE_SURRENDER)
-						  // advc.034: As above
-						  || pNode->m_data.m_eItemType == TRADE_DISENGAGE)
-						bValid = false;
-				}
-			}
-
-			if (!bValid)
+			if ((pNode->m_data.m_eItemType == TRADE_OPEN_BORDERS) ||
+				(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
+				(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) ||
+				(pNode->m_data.m_eItemType == TRADE_VASSAL) ||
+				(pNode->m_data.m_eItemType == TRADE_SURRENDER)
+				// advc.034: Simplest to just cancel it
+				|| pNode->m_data.m_eItemType == TRADE_DISENGAGE)
 			{
 				pLoopDeal->kill();
+				break;
 			}
 		}
 	}
-	// K-Mod end
-
 	// <dlph.1>
 	for(iI = 0; iI < NUM_DOMAIN_TYPES; iI++) {
 		DomainTypes eDomain = (DomainTypes)iI; // advc.003
 		changeExtraMoves(eDomain, std::max(0, GET_TEAM(eTeam).getExtraMoves(eDomain) -
 				getExtraMoves(eDomain)));
 	} // </dlph.1>
-
-	for (iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap const& m = GC.getMap();
+	for (iI = 0; iI < m.numPlots(); iI++)
 	{
-		CvPlot& p = *GC.getMap().plotByIndex(iI); // advc.003
+		CvPlot& p = *m.plotByIndex(iI); // advc.003
 
 		/*  dlph.26: This part is moved above to the part where members of the
 			other team still had their old team number. */
@@ -744,16 +722,14 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		}
 
 		if (p.isRevealed(eTeam, false))
-		{
 			p.setRevealed(getID(), true, false, eTeam, false);
-		}
 	}
 
-	GC.getGame().updatePlotGroups();
+	g.updatePlotGroups();
 	int iOtherTeamSize = getNumMembers() - iOriginalTeamSize; // dlph.26
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
-		if ((iI != getID()) && (iI != eTeam))
+		if (iI != getID() && iI != eTeam)
 		{
 			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iI); // K-Mod
 			/*kLoopTeam.setWarWeariness(getID(), ((kLoopTeam.getWarWeariness(getID()) + kLoopTeam.getWarWeariness(eTeam)) / 2));
@@ -828,14 +804,12 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	} // </advc.104t>
 	AI_updateAreaStrategies();
 
-	GC.getGame().updateScore(true);
+	g.updateScore(true);
 }
 
 
 void CvTeam::shareItems(TeamTypes eTeam)
 {
-	CvCity* pLoopCity;
-	int iLoop;
 	int iI, iJ, iK;
 
 	FAssert(eTeam != NO_TEAM);
@@ -901,8 +875,8 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
 			continue;
-		for(pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL;
-				pLoopCity = kLoopPlayer.nextCity(&iLoop)) {
+
+		FOR_EACH_CITY(pLoopCity, kLoopPlayer) {
 			for(iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
 				BuildingTypes eBuilding = (BuildingTypes)iJ;
 				int iCityBuildings = pLoopCity->getNumBuilding(eBuilding);
@@ -927,8 +901,8 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != getID())
 			continue;
-		for(pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL;
-				pLoopCity = kLoopPlayer.nextCity(&iLoop)) {
+
+		FOR_EACH_CITY(pLoopCity, kLoopPlayer) {
 			for(iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
 				BuildingTypes eBuilding = (BuildingTypes)iJ;
 				int iCityBuildings = pLoopCity->getNumBuilding(eBuilding);
@@ -953,9 +927,9 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam
-					/*  dlph.26: "Other direction also done here as other direction
-						of shareItems is not used anymore." */
-					|| GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
+				/*  dlph.26: "Other direction also done here as other direction
+					of shareItems is not used anymore." */
+				|| GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
 				GET_PLAYER((PlayerTypes)iI).AI_updateBonusValue();
 			}
@@ -1372,7 +1346,6 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 {
 	PROFILE_FUNC();
 
-	int iLoop;
 	int iI;
 
 	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
@@ -1388,21 +1361,17 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam);
 	}
 
-	for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
-		if (((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
-				((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID())))
-		{
+		if (pLoopDeal->isBetween(getID(), eTeam))
 			pLoopDeal->kill();
-		}
 	}
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if ((GET_PLAYER((PlayerTypes)iI).getTeam() == getID()) || (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam))
-		{
-			GET_PLAYER((PlayerTypes)iI).updatePlunder(-1, false);
-		}
+		CvPlayer& kEitherMember = GET_PLAYER((PlayerTypes)iI);
+		if (kEitherMember.getTeam() == getID() || kEitherMember.getTeam() == eTeam)
+			kEitherMember.updatePlunder(-1, false);
 	}
 
 	FAssertMsg(eTeam != getID(), "eTeam is not expected to be equal with getID()");
@@ -2764,8 +2733,8 @@ bool CvTeam::isInContactWithBarbarians() const {
 	// (Perhaps just iUnitThresh=1 would have the same effect)
 	int iUnitThresh = g.getCurrentEra();
 	CvTeam const& kBarbarianTeam = GET_TEAM(BARBARIAN_TEAM);
-	CvMap const& m = GC.getMap(); int foo;
-	for(CvArea* pArea = m.firstArea(&foo); pArea != NULL; pArea = m.nextArea(&foo)) {
+	CvMap const& m = GC.getMap();
+	FOR_EACH_AREA_VAR(pArea) {
 		if(bCheckCity && countNumCitiesByArea(pArea) == 0)
 			continue;
 		if(!bCheckCity && countNumUnitsByArea(pArea) < iUnitThresh)
@@ -4320,8 +4289,7 @@ void CvTeam::setDisengage(TeamTypes eIndex, bool bNewValue) {
 
 void CvTeam::cancelDisengage(TeamTypes otherId) {
 
-	CvGame& g = GC.getGame(); int foo;
-	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+	FOR_EACH_DEAL_VAR(d) {
 		if(d->isDisengage() && d->isBetween(getID(), otherId)) {
 			d->kill(false);
 			break;
@@ -4455,8 +4423,7 @@ int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes eOther) const {
 	TeamTypes eOurMaster = getMasterTeam();
 	TeamTypes eTheirMaster = GET_TEAM(eOther).getMasterTeam();
 	int r = 0;
-	CvGame& g = GC.getGame(); int foo;
-	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+	FOR_EACH_DEAL(d) {
 		TeamTypes eFirstMaster = GET_PLAYER(d->getFirstPlayer()).getMasterTeam();
 		TeamTypes eSecondMaster = GET_PLAYER(d->getSecondPlayer()).getMasterTeam();
 		if(((eFirstMaster == eOurMaster && eSecondMaster == eTheirMaster) ||
@@ -4498,11 +4465,12 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 		if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == eMaster)
 		{
-			int iLoop;
-			for (CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&iLoop); NULL != pLoopUnit; pLoopUnit = kLoopPlayer.nextUnit(&iLoop))
+			FOR_EACH_UNIT(pLoopUnit, kLoopPlayer)
 			{
 				CvPlot* pPlot = pLoopUnit->plot();
-				if (pLoopUnit->getTeam() != pPlot->getTeam() && (pPlot->getTeam() == NO_TEAM || !GET_TEAM(pPlot->getTeam()).isVassal(pLoopUnit->getTeam())))
+				if (pLoopUnit->getTeam() != pPlot->getTeam() &&
+						(pPlot->getTeam() == NO_TEAM ||
+						!GET_TEAM(pPlot->getTeam()).isVassal(pLoopUnit->getTeam())))
 					kLoopPlayer.changeNumOutsideUnits(-1);
 			}
 		}
@@ -4523,11 +4491,12 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 		if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == eMaster)
 		{
-			int iLoop;
-			for (CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&iLoop); NULL != pLoopUnit; pLoopUnit = kLoopPlayer.nextUnit(&iLoop))
+			FOR_EACH_UNIT(pLoopUnit, kLoopPlayer)
 			{
 				CvPlot* pPlot = pLoopUnit->plot();
-				if (pLoopUnit->getTeam() != pPlot->getTeam() && (pPlot->getTeam() == NO_TEAM || !GET_TEAM(pPlot->getTeam()).isVassal(pLoopUnit->getTeam())))
+				if (pLoopUnit->getTeam() != pPlot->getTeam() &&
+						(pPlot->getTeam() == NO_TEAM ||
+						!GET_TEAM(pPlot->getTeam()).isVassal(pLoopUnit->getTeam())))
 					kLoopPlayer.changeNumOutsideUnits(1);
 			}
 		}
@@ -4551,48 +4520,25 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	if (isVassal(eMaster))
 	{
 		m_bCapitulated = bCapitulated;
-
-		int iLoop; // advc.003: some style changes int his loop
-		for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+		FOR_EACH_DEAL_VAR(pLoopDeal) // advc.003: some style changes in this loop
 		{	// <advc.034>
-			if(pLoopDeal->isBetween(eMaster, getID()) && pLoopDeal->isDisengage())
+			if (pLoopDeal->isDisengage() && pLoopDeal->isBetween(eMaster, getID()))
 				pLoopDeal->kill();
 			// </advc.034>
-			if(TEAMID(pLoopDeal->getFirstPlayer()) != getID() &&
-					TEAMID(pLoopDeal->getSecondPlayer()) != getID())
+			if (!pLoopDeal->involves(getID()))
 				continue;
-			bool bValid = true;
 
-			if (pLoopDeal->getFirstTrades() != NULL)
+			for (CLLNode<TradeData>* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
+				pNode = pLoopDeal->nextTradesNode(pNode))
 			{
-				for (CLLNode<TradeData>* pNode = pLoopDeal->getFirstTrades()->head(); pNode; pNode = pLoopDeal->getFirstTrades()->next(pNode))
+				if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT ||
+					pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
 				{
-					if ((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
-						(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY))
-					{
-						bValid = false;
-						break;
-					}
+					pLoopDeal->kill();
+					break;
 				}
 			}
-
-			if (bValid && pLoopDeal->getSecondTrades() != NULL)
-			{
-				for (CLLNode<TradeData>* pNode = pLoopDeal->getSecondTrades()->head(); pNode; pNode = pLoopDeal->getSecondTrades()->next(pNode))
-				{
-					if ((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
-						(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY))
-					{
-						bValid = false;
-						break;
-					}
-				}
-			}
-
-			if (!bValid)
-				pLoopDeal->kill();
 		}
-
 		setForcePeace(eMaster, false);
 		GET_TEAM(eMaster).setForcePeace(getID(), false);
 		// <advc.130o> Forget tribute demands
@@ -4782,14 +4728,12 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		} // </advc.130y>
 		m_bCapitulated = false;
 		// <advc.133>
-		int foo=-1;
-		for(CvDeal* d = GC.getGame().firstDeal(&foo); d != NULL;
-				d = GC.getGame().nextDeal(&foo)) {
-			if(TEAMID(d->getFirstPlayer()) != getID() &&
-					TEAMID(d->getSecondPlayer()) != getID())
-				continue;
-			// Treat deal as very old so that turnsToCancel returns 0
-			d->setInitialGameTurn(-100);
+		FOR_EACH_DEAL_VAR(d) {
+			if (d->involves(getID()))
+			{
+				// Treat deal as very old so that turnsToCancel returns 0
+				d->setInitialGameTurn(-100);
+			}
 		} // </advc.133>
 		// <advc.104j> Stop any war plans that eMaster may have forced on us
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
@@ -4842,8 +4786,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			CvPlayer& kVassalMember = GET_PLAYER((PlayerTypes)i);
 			if(!kVassalMember.isAlive() || kVassalMember.getTeam() != getID())
 				continue;
-			int foo;
-			for(CvUnit* u = kVassalMember.firstUnit(&foo); u != NULL; u = kVassalMember.nextUnit(&foo)) {
+			FOR_EACH_UNIT_VAR(u, kVassalMember) {
 				if(u->getUnitInfo().getNukeRange() >= 0) // non-nukes have -1
 					u->scrap();
 			}
@@ -4928,52 +4871,23 @@ void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const
 
 void CvTeam::freeVassal(TeamTypes eVassal) const
 {
-
-	CLLNode<TradeData>* pNode;
-	int iLoop;
-	for(CvDeal*  pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
-		bool bValid = true;
+		if (!pLoopDeal->isBetween(getID(), eVassal))
+			continue;
 
-		if ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eVassal) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))
+		for (CLLNode<TradeData>* pNode = pLoopDeal->headGivesNode(eVassal); pNode != NULL;
+			pNode = pLoopDeal->nextGivesNode(pNode, eVassal))
 		{
-
-			if (pLoopDeal->getFirstTrades() != NULL)
+			if (pNode->m_data.m_eItemType == TRADE_VASSAL ||
+				pNode->m_data.m_eItemType == TRADE_SURRENDER)
 			{
-				for (pNode = pLoopDeal->getFirstTrades()->head(); pNode; pNode = pLoopDeal->getFirstTrades()->next(pNode))
-				{
-					if ((pNode->m_data.m_eItemType == TRADE_VASSAL) ||
-						(pNode->m_data.m_eItemType == TRADE_SURRENDER))
-					{
-						bValid = false;
-					}
-				}
+				pLoopDeal->kill();
+				break;
 			}
 		}
-
-		if (bValid)
-		{
-			if ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eVassal))
-			{
-				if (pLoopDeal->getSecondTrades() != NULL)
-				{
-					for (pNode = pLoopDeal->getSecondTrades()->head(); pNode; pNode = pLoopDeal->getSecondTrades()->next(pNode))
-					{
-						if ((pNode->m_data.m_eItemType == TRADE_VASSAL) ||
-							(pNode->m_data.m_eItemType == TRADE_SURRENDER))
-						{
-							bValid = false;
-						}
-					}
-				}
-			}
-		}
-
-		if (!bValid)
-		{
-			pLoopDeal->kill();
-		}
-	} // <advc.130y>
+	}
+	// <advc.130y>
 	if(isCapitulated() && GET_PLAYER(GET_TEAM(eVassal).getLeaderID()).
 			// Not thankful if still thankful to old master
 			AI_getMemoryAttitude(getLeaderID(), MEMORY_INDEPENDENCE) <= 0)
@@ -5394,17 +5308,15 @@ void CvTeam::changeObsoleteBuildingCount(BuildingTypes eIndex, int iChange)
 	{
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			CvPlayer const& kMember = GET_PLAYER((PlayerTypes)iI);
+			if (!kMember.isAlive() || kMember.getTeam() != getID())
+				continue;
+			FOR_EACH_CITY_VAR(pLoopCity, kMember)
 			{
-				if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-				{	int iLoop;
-					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-					{
-						if (pLoopCity->getNumBuilding(eIndex) > 0)
-						{
-							pLoopCity->processBuilding(eIndex, ((isObsoleteBuilding(eIndex)) ? -pLoopCity->getNumBuilding(eIndex) : pLoopCity->getNumBuilding(eIndex)), true);
-						}
-					}
+				if (pLoopCity->getNumBuilding(eIndex) > 0)
+				{
+					pLoopCity->processBuilding(eIndex, isObsoleteBuilding(eIndex) ?
+						-pLoopCity->getNumBuilding(eIndex) : pLoopCity->getNumBuilding(eIndex), true);
 				}
 			}
 		}
@@ -6586,15 +6498,13 @@ void CvTeam::changeCounterespionageModAgainstTeam(TeamTypes eIndex, int iChange)
 void CvTeam::verifySpyUnitsValidPlot()
 {
 	std::vector<CvUnit*> aUnits;
-
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 
 		if (kPlayer.isAlive() && kPlayer.getTeam() == getID())
 		{
-			int iLoop;
-			for (CvUnit* pUnit = kPlayer.firstUnit(&iLoop); pUnit != NULL; pUnit = kPlayer.nextUnit(&iLoop))
+			FOR_EACH_UNIT_VAR(pUnit, kPlayer)
 			{
 				PlayerTypes eOwner = pUnit->plot()->getOwner();
 				if (NO_PLAYER != eOwner)
@@ -6602,9 +6512,7 @@ void CvTeam::verifySpyUnitsValidPlot()
 					if (pUnit->isSpy())
 					{
 						if (!kPlayer.canSpiesEnterBorders(eOwner))
-						{
 							aUnits.push_back(pUnit);
-						}
 					}
 				}
 			}
@@ -7272,39 +7180,19 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 
 void CvTeam::cancelDefensivePacts()
 {
-	int iLoop;
-	for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
-		bool bCancelDeal = false;
+		if (!pLoopDeal->involves(getID()))
+			continue;
 
-		if ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) ||
-			(GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))
+		for (CLLNode<TradeData>* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
+			pNode = pLoopDeal->nextTradesNode(pNode))
 		{
-			for (CLLNode<TradeData>* pNode = pLoopDeal->headFirstTradesNode(); (pNode != NULL); pNode = pLoopDeal->nextFirstTradesNode(pNode))
+			if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
 			{
-				if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
-				{
-					bCancelDeal = true;
-					break;
-				}
+				pLoopDeal->kill();
+				break;
 			}
-
-			if (!bCancelDeal)
-			{
-				for (CLLNode<TradeData>* pNode = pLoopDeal->headSecondTradesNode(); (pNode != NULL); pNode = pLoopDeal->nextSecondTradesNode(pNode))
-				{
-					if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
-					{
-						bCancelDeal = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if (bCancelDeal)
-		{
-			pLoopDeal->kill();
 		}
 	}
 }
@@ -7312,11 +7200,9 @@ void CvTeam::cancelDefensivePacts()
 // <dlph.3> (actually an advc change)
 void CvTeam::allowDefensivePactsToBeCanceled() {
 
-	CvGame& g = GC.getGame(); int foo=-1;
-	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
-		if((TEAMID(d->getFirstPlayer()) != getID() &&
-				TEAMID(d->getSecondPlayer()) != getID()) ||
-				d->getFirstTrades()->getLength() <= 0)
+	FOR_EACH_DEAL_VAR(d)
+	{
+		if (!d->involves(getID()) || d->getFirstTrades()->getLength() <= 0)
 			continue;
 		if(d->headFirstTradesNode()->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
 			d->setInitialGameTurn(-100);

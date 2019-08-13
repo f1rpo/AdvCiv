@@ -8,6 +8,7 @@
 #include "LinkedList.h"
 
 class CvPlot;
+
 class CvPlotGroup
 {
 

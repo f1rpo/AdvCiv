@@ -4,6 +4,7 @@
 #include "RiseFall.h"
 #include "CvInfos.h"
 #include "CvGamePlay.h"
+#include "CvDeal.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "BBAI_Defines.h"
 #include "CvPopupInfo.h"
@@ -499,8 +500,8 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 			other.AI_updateAttitudeCache(formerHumanCiv);
 	}
 	if(b) { // Updates to apply human modifiers
-		civ.updateWarWearinessPercentAnger(); int foo=-1;
-		for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo))
+		civ.updateWarWearinessPercentAnger();
+		FOR_EACH_CITY_VAR(c, civ)
 			c->updateMaintenance();
 	}
 }
@@ -614,15 +615,11 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 
 	CvPlayer& civ = GET_PLAYER(civId);
 	bool active = (civId == GC.getGame().getActivePlayer() && civ.isHuman());
-	int dummy = -1;
-	for(CvSelectionGroup* gr = civ.firstSelectionGroup(&dummy); gr != NULL;
-			gr = civ.nextSelectionGroup(&dummy)) {
+	FOR_EACH_GROUP_VAR(gr, civ)
 		gr->splitGroup(1);
-	}
 	CvCity* capital = civ.getCapitalCity();
 	bool unitSelected = false;
-	for(CvSelectionGroup* gr = civ.firstSelectionGroup(&dummy); gr != NULL;
-			gr = civ.nextSelectionGroup(&dummy)) {
+	FOR_EACH_GROUP_VAR(gr, civ) {
 		if(gr->getHeadUnit() == NULL)
 			continue;
 		gr->setAutomateType(NO_AUTOMATE);
@@ -666,7 +663,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 	if(currentTech == NO_TECH)
 		civ.clearResearchQueue();
 	else civ.pushResearch(currentTech, true);
-	for(CvCity* c = civ.firstCity(&dummy); c != NULL; c = civ.nextCity(&dummy)) {
+	FOR_EACH_CITY_VAR(c, civ) {
 		// Turn off production emphasis. AvoidGrowth is also a type of emphasis.
 		for(int i = 0; i < GC.getNumEmphasizeInfos(); i++)
 			c->AI_setEmphasize((EmphasizeTypes)i, false);

@@ -8,8 +8,10 @@
 #include "WarAndPeaceAgent.h"
 #include "MilitaryAnalyst.h"
 #include "CvGamePlay.h"
+#include "CvDealList.h"
 #include "BBAI_Defines.h"
 #include "CvMap.h"
+#include "CvAreaList.h"
 #include "CvInfos.h"
 
 using std::vector;
@@ -161,8 +163,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 		City* cp = theyAI->getCache().getCity(i);*/
 	/*  In large games, looking up their cities is faster than a pass through their
 		whole cache. */
-	int foo=-1;
-	for(CvCity* cvCity = they->firstCity(&foo); cvCity != NULL; cvCity = they->nextCity(&foo)) {
+	FOR_EACH_CITY(cvCity, *they) {
 		if(!agent.AI_deduceCitySite(cvCity))
 			continue;
 		City* cp = theyAI->getCache().lookupCity(*cvCity);
@@ -242,8 +243,8 @@ double WarUtilityAspect::lossesFromBlockade(PlayerTypes victimId, PlayerTypes to
 		return 0;
 	int coastalPop = 0;
 	int totalPop = 0;
-	int coastalCities = 0; int dummy;
-	for(CvCity* c = victim.firstCity(&dummy); c != NULL; c = victim.nextCity(&dummy)) {
+	int coastalCities = 0;
+	FOR_EACH_CITY(c, victim) {
 		if(!c->isRevealed(TEAMID(weId), false) ||
 				m->lostCities(victimId).count(c->plotNum()) > 0)
 			continue;
@@ -450,46 +451,33 @@ AttitudeTypes WarUtilityAspect::techRefuseThresh(PlayerTypes civId) {
 
 double WarUtilityAspect::partnerUtilFromTrade() {
 
-	CvGame& g = GC.getGame();
 	double goldVal = 0;
 	int resourceTradeCount = 0;
 	double tradeValFromGold = 0;
 	int const defaultTimeHorizon = 25;
-	int dummy;
-	for(CvDeal* dp = g.firstDeal(&dummy); dp != NULL; dp = g.nextDeal(&dummy)) {
-		CvDeal& d = *dp;
-		if(!d.isEverCancelable(weId))
+	FOR_EACH_DEAL(dp) {
+		CvDeal const& d = *dp;
+		if(!d.isBetween(weId, theyId) || !d.isEverCancelable(weId))
 			continue;
-		/*  Now ensured that the deal involves us, but not clear if we're first
-			or second. */
-		CLinkList<TradeData> const* weReceive = NULL;
-		bool isGift = false;
-		if(TEAMID(d.getFirstPlayer()) == TEAMID(theyId)) {
-			weReceive = d.getFirstTrades();
-			isGift = (d.getLengthSecondTrades() == 0);
-		}
-		else if(TEAMID(d.getSecondPlayer()) == TEAMID(theyId)) {
-			weReceive = d.getSecondTrades();
-			isGift = (d.getLengthFirstTrades() == 0);
-		}
-		if(weReceive == NULL)
-			continue;
+		bool isGift = (d.getGivesList(weId).getLength() == 0);
 		// Handle OB and DP separately (AI_dealVal just counts cities for those)
 		bool skip = false;
 		bool weReceiveResource = false;
-		for(CLLNode<TradeData>* item = weReceive->head(); item != NULL;
-				item = weReceive->next(item)) {
+		for(CLLNode<TradeData>* item = d.headReceivesNode(weId); item != NULL;
+				item = d.nextReceivesNode(item, weId)) {
 			if(CvDeal::isDual(item->m_data.m_eItemType)) {
 				skip = true;
 				continue;
 			}
 			if(item->m_data.m_eItemType == TRADE_RESOURCES) {
 				weReceiveResource = true;
-				if(skip) break; // Know everything we need
+				if(skip)
+					break; // Know everything we need
 			}
 			else FAssert(skip || item->m_data.m_eItemType == TRADE_GOLD_PER_TURN);
 		}
-		if(skip) continue;
+		if(skip)
+			continue;
 		// Count only the first four resource trades
 		if(weReceiveResource) {
 			resourceTradeCount++;
@@ -501,7 +489,8 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 		}
 		/*  AI_dealVal is supposed to be gold-per-turn, but seems a bit high for
 			that; hence divide by 1.5. Time horizon is ten turns (treaty length). */
-		double dealVal = we->AI_dealVal(theyId, weReceive) / (1.5 * GC.getPEACE_TREATY_LENGTH());
+		double dealVal = we->AI_dealVal(theyId, &d.getReceivesList(weId)) /
+				(1.5 * GC.getPEACE_TREATY_LENGTH());
 		if(!weReceiveResource) {
 			int const maxTradeValFromGold = 40;
 			if(tradeValFromGold + dealVal > maxTradeValFromGold) {
@@ -530,7 +519,7 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 	log("Net gold value of resource and gold: %d", ::round(goldVal));
 	// Based on TradeUtil::calculateTradeRoutes (Python)
 	double trProfit = 0;
-	for(CvCity* cp = we->firstCity(&dummy); cp != NULL; cp = we->nextCity(&dummy)) {
+	FOR_EACH_CITY(cp, *we) {
 		CvCity const& c = *cp;
 		for(int i = 0; i < c.getTradeRoutes(); i++) {
 			CvCity* cp2 = c.getTradeCity(i);
@@ -1424,9 +1413,9 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		popGained += pop;
 	}
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
-		double newVassalVotes = 0; int foo=-1;
+		double newVassalVotes = 0;
 		// Faster than a full pass through ourCache
-		for(CvCity* cvCity = they->firstCity(&foo); cvCity != NULL; cvCity = they->nextCity(&foo)) {
+		FOR_EACH_CITY(cvCity, *they) {
 			City* c = ourCache->lookupCity(*cvCity);
 			if(c == NULL || m->lostCities(theyId).count(c->id()) > 0)
 				continue;
@@ -3173,8 +3162,8 @@ void PublicOpposition::evaluate() {
 	if(pop <= 0) // at game start
 		return;
 	double faithAnger = 0;
-	int dummy; for(CvCity* cp = we->firstCity(&dummy); cp != NULL;
-			cp = we->nextCity(&dummy)) { CvCity const& c = *cp;
+	FOR_EACH_CITY(cp, *we) {
+		CvCity const& c = *cp;
 		if(c.isDisorder())
 			continue;
 		double angry = c.angryPopulation(0,
@@ -3218,8 +3207,7 @@ void Revolts::evaluate() {
 		in the primary areas of theyId */
 	double revoltLoss = 0;
 	int totalAssets = 0;
-	CvMap& map = GC.getMap(); int foo;
-	for(CvArea* a = map.firstArea(&foo); a != NULL; a = map.nextArea(&foo)) {
+	FOR_EACH_AREA_VAR(a) {
 		if(!they->AI_isPrimaryArea(a) || (we->AI_isPrimaryArea(a) &&
 				a->getCitiesPerPlayer(theyId) <= 2)) // Almost done here
 			continue;
@@ -3230,8 +3218,7 @@ void Revolts::evaluate() {
 		if((!willBeWar && (aai == AREAAI_DEFENSIVE || aai == AREAAI_NEUTRAL ||
 				aai == NO_AREAAI)) || !m->isWar(weId, theyId))
 			continue;
-		int bar;
-		for(CvCity* c = we->firstCity(&bar); c != NULL; c = we->nextCity(&bar)) {
+		FOR_EACH_CITY(c, *we) {
 			if(c->area()->getID() != a->getID())
 				continue;
 			City* cacheCity = ourCache->lookupCity(*c);
@@ -3574,14 +3561,12 @@ void TacticalSituation::evalEngagement() {
 	int ourTotal = 0;
 	double ourMissions = 0;
 	int const hpThresh = 60;
-	int dummy;
-	for(CvSelectionGroup* gr = we->firstSelectionGroup(&dummy); gr != NULL;
-			gr = we->nextSelectionGroup(&dummy)) {
-		CvUnit* head = gr->getHeadUnit();
-		if(head == NULL || !head->canDefend())
-			continue;
+	FOR_EACH_GROUP(gr, *we) {
 		int groupSize = gr->getNumUnits();
 		if(groupSize <= 0)
+			continue;
+		CvUnit* head = gr->getHeadUnit();
+		if(head == NULL || !head->canDefend())
 			continue;
 		ourTotal += groupSize;
 		int iRange = 1; // don't shadow ::range()
@@ -3662,7 +3647,7 @@ void TacticalSituation::evalEngagement() {
 		uPlus += 3.0 * (theirEvac - 1.35 * ourEvac) / we->getTotalPopulation();
 	uPlus *= 100;
 	int recentlyLostPop = 0;
-	for(CvCity* c = they->firstCity(&dummy); c != NULL; c = they->nextCity(&dummy)) {
+	FOR_EACH_CITY(c, *they) {
 		int iRange = 2;
 		// Do we have Engineering?
 		if(agentAI.isFastRoads())
@@ -3691,9 +3676,9 @@ void TacticalSituation::evalEngagement() {
 
 int TacticalSituation::evacPop(PlayerTypes ownerId, PlayerTypes invaderId) {
 
-	int r = 0; int dummy;
+	int r = 0;
 	CvPlayer const& o = GET_PLAYER(ownerId);
-	for(CvCity* c = o.firstCity(&dummy); c != NULL; c = o.nextCity(&dummy)) {
+	FOR_EACH_CITY(c, o) {
 		/*  Check PlotDanger b/c we don't want to count cities that are threatened
 			by a third party */
 		if(c->AI_isEvacuating() && o.AI_getPlotDanger(c->plot(),
