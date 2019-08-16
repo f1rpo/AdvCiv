@@ -216,7 +216,7 @@ public:
 	DllExport int countNumHumanGameTurnActive() const;														// Exposed to Python
 	void changeNumGameTurnActive(int iChange);
 
-	DllExport int getNumCities() const;																						// Exposed to Python
+	int getNumCities() const;																						// Exposed to Python
 	int getNumCivCities() const;																				// Exposed to Python
 	void changeNumCities(int iChange);
 

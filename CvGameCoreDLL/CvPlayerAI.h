@@ -719,8 +719,13 @@ protected:
 	void AI_doReligion();
 	void AI_doDiplo();
 	void AI_doCheckFinancialTrouble();
-	// advc.003:
-	bool AI_proposeJointWar(PlayerTypes eHuman);
+	/*  <advc.003> Overlaps with CvTeamAI::roundTradeVal. Could call that function,
+		but don't want to include CvTeamAI.h here. (And want inlining.) */
+	inline void AI_roundTradeVal(int& iTradeVal) const
+	{
+		iTradeVal -= iTradeVal % GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER);
+	}
+	bool AI_proposeJointWar(PlayerTypes eHuman); // </advc.003>
 	// advc.130t:
 	int AI_rivalPactAttitude(PlayerTypes ePlayer, bool bVassalPacts) const;
 	double AI_expansionistHate(PlayerTypes ePlayer) const;

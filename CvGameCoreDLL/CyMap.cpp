@@ -46,7 +46,11 @@ void CyMap::updateVisibility()
 
 CyPlot* CyMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout)
 {
-	return m_pMap ? new CyPlot(m_pMap->syncRandPlot(iFlags, iArea, iMinUnitDistance, iTimeout)) : NULL;
+	// <advc.003> No longer takes an area id
+	if (m_pMap == NULL)
+		return NULL;
+	CvArea* pArea = m_pMap->getArea(iArea); // </advc.003>
+	return new CyPlot(m_pMap->syncRandPlot(iFlags, pArea, iMinUnitDistance, iTimeout));
 }
 
 CyCity* CyMap::findCity(int iX, int iY, int /*PlayerTypes*/ eOwner, int /*TeamTypes*/ eTeam, bool bSameArea, bool bCoastalOnly, int /*TeamTypes*/ eTeamAtWarWith, int /*DirectionTypes*/ eDirection, CyCity* pSkipCity)

@@ -12,7 +12,6 @@ EXPORTS
 ?getOwner@CvUnit@@QBE?AW4PlayerTypes@@XZ=?getOwnerExternal@CvUnit@@QBE?AW4PlayerTypes@@XZ
 ?isPlot@CvMap@@QBE_NHH@Z=?isPlotExternal@CvMap@@QBE_NHH@Z
 ?numPlots@CvMap@@QBEHXZ=?numPlotsExternal@CvMap@@QBEHXZ
-?plotNum@CvMap@@QBEHHH@Z=?plotNumExternal@CvMap@@QBEHHH@Z
 ?getGridWidth@CvMap@@QBEHXZ=?getGridWidthExternal@CvMap@@QBEHXZ
 ?getGridHeight@CvMap@@QBEHXZ=?getGridHeightExternal@CvMap@@QBEHXZ
 ?isWrapX@CvMap@@QAE_NXZ=?isWrapXExternal@CvMap@@QAE_NXZ

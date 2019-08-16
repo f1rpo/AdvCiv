@@ -3020,7 +3020,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	// <advc.112> Lower bound: 10
 	double landRatio = std::max(10, getTotalLand(false)) / (double)
 			std::max(10, getVassalPower()); // </advc.112>
-	double lossesThresh = GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR") / 100.0;
+	static double const lossesThresh = GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR") / 100.0;
 	if(landRatio < 0.85 * lossesThresh || (landRatio < lossesThresh &&
 			::hash(g.getGameTurn(), getLeaderID()) < 0.15))
 		return DENIAL_POWER_YOUR_ENEMIES; // Denial type doesn't matter
@@ -3139,7 +3139,7 @@ int CvTeamAI::AI_getWarSuccessRating() const
 			iMilitaryUnits += kLoopPlayer.getNumMilitaryUnits();
 		}
 	}
-	int iSuccessScale = iMilitaryUnits * GC.getDefineINT("WAR_SUCCESS_ATTACKING") / 5;
+	int iSuccessScale = iMilitaryUnits * GC.getDefineINT(CvGlobals::WAR_SUCCESS_ATTACKING) / 5;
 
 	int iThisTeamPower = getPower(true);
 	int iScore = 0;
@@ -3490,7 +3490,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc.003: 
 			if (isAtWar(i) && kLoopTeam.isAlive() && !kLoopTeam.isMinorCiv() &&
 					i != eSurrenderTeam && !kLoopTeam.isVassal(eSurrenderTeam))
 			{
-				if (kLoopTeam.AI_getWarSuccess(getID()) > 5*GC.getDefineINT("WAR_SUCCESS_ATTACKING"))
+				if (kLoopTeam.AI_getWarSuccess(getID()) > 5*GC.getDefineINT(CvGlobals::WAR_SUCCESS_ATTACKING))
 				{
 					return true;
 				}
@@ -3762,12 +3762,14 @@ int CvTeamAI::AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const
 	return AI_roundTradeVal(iValue); // advc.104k
 }
 
-// <advc.104k> Same procedure as in BtS, I've only moved it into a function.
+// <advc.104k> Same procedure as in BtS mostly
 int CvTeamAI::AI_roundTradeVal(int iVal) const {
 
-	int rem = GC.getDIPLOMACY_VALUE_REMAINDER();
+	int rem = GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER);
 	iVal -= iVal % rem;
-	if(isHuman()) // Not sure if this is really needed
+	/*  Not sure if this lower bound is really needed. The BtS code
+		(see CvPlayerAI::AI_roundTradeVal) doesn't have it. */
+	if(isHuman()) 
 		return std::max(iVal, rem);
 	return iVal;
 } // </advc.104k>
@@ -3874,9 +3876,9 @@ int CvTeamAI::AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) c
 	int iTheirPower = GET_TEAM(eTeam).getPower(true);
 	int iWarTeamPower = GET_TEAM(eWarTeam).getPower(true);
 
-	iValue *= 50 + ((
-		GC.getDefineINT("WAR_TRADEVAL_POWER_WEIGHT") // advc.100
-		* iWarTeamPower) / (iTheirPower + iWarTeamPower + 1));
+	static int const iWAR_TRADEVAL_POWER_WEIGHT = GC.getDefineINT("WAR_TRADEVAL_POWER_WEIGHT"); // advc.100
+	iValue *= 50 + ((/* advc.100: */ iWAR_TRADEVAL_POWER_WEIGHT
+			* iWarTeamPower) / (iTheirPower + iWarTeamPower + 1));
 	iValue /= 100;
 
 	if (!(GET_TEAM(eTeam).AI_isAllyLandTarget(eWarTeam)))
@@ -4855,9 +4857,11 @@ bool CvTeamAI::AI_isMasterPlanningLandWar(CvArea* pArea) const
 				return (GC.getGame().getSorenRandNum(isCapitulated() ? 6 : 4, "Vassal land war") == 0);
 		}
 	}
-	else if (kMaster.isHuman() && GC.getBBAI_HUMAN_VASSAL_WAR_BUILD())
+	else if (kMaster.isHuman())
 	{
-		if (pArea->getNumCities() - countNumCitiesByArea(pArea) -
+		static bool const bBBAI_HUMAN_VASSAL_WAR_BUILD = GC.getDefineBOOL("BBAI_HUMAN_VASSAL_WAR_BUILD");
+		if (bBBAI_HUMAN_VASSAL_WAR_BUILD &&
+				pArea->getNumCities() - countNumCitiesByArea(pArea) -
 				kMaster.countNumCitiesByArea(pArea) > 2)
 			return (GC.getGame().getSorenRandNum(4, "Vassal land war") == 0);
 	}
@@ -6047,7 +6051,7 @@ void CvTeamAI::AI_doWar()
 			if (AI_getAtWarCounter(eLoopTeam) > std::max(10, (14 * GC.getGameSpeedInfo(kGame.getGameSpeedType()).getVictoryDelayPercent()) / 100))
 			{
 				// If nothing is happening in war
-				if (AI_getWarSuccess(eLoopTeam) + GET_TEAM(eLoopTeam).AI_getWarSuccess(getID()) < 2 * GC.getDefineINT("WAR_SUCCESS_ATTACKING"))
+				if (AI_getWarSuccess(eLoopTeam) + GET_TEAM(eLoopTeam).AI_getWarSuccess(getID()) < 2 * GC.getDefineINT(CvGlobals::WAR_SUCCESS_ATTACKING))
 				{
 					if (kGame.getSorenRandNum(8, "AI Make Peace 1") == 0)
 					{

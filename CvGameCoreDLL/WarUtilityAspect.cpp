@@ -297,7 +297,7 @@ double WarUtilityAspect::lossesFromNukes(PlayerTypes victimId, PlayerTypes srcId
 double WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes victimId,
 		PlayerTypes srcId) {
 
-	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return 0;
 	double r = 0;
 	int victimLostTiles = 0;
@@ -490,7 +490,7 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 		/*  AI_dealVal is supposed to be gold-per-turn, but seems a bit high for
 			that; hence divide by 1.5. Time horizon is ten turns (treaty length). */
 		double dealVal = we->AI_dealVal(theyId, &d.getReceivesList(weId)) /
-				(1.5 * GC.getPEACE_TREATY_LENGTH());
+				(1.5 * GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 		if(!weReceiveResource) {
 			int const maxTradeValFromGold = 40;
 			if(tradeValFromGold + dealVal > maxTradeValFromGold) {
@@ -3233,7 +3233,7 @@ void Revolts::evaluate() {
 				continue;
 			/*  If the AI has been failing to supress a city for a long time,
 				then it's probably not a matter of distracted units. */
-			if(c->getNumRevolts() > GC.getNUM_WARNING_REVOLTS()) {
+			if(c->getNumRevolts() > GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS)) {
 				log("%s skipped as hopeless", report.cityName(*c));
 				continue;
 			}

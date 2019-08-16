@@ -68,7 +68,7 @@ unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
 				} // advc: Only the second %s is new
 				sprintf(szOut, "Rand = %ul / %hu (%s%s) on %d\n", getSeed(), usNum,
 						pszLog, szData.c_str(), g.getTurnSlice());
-				if(GC.getPER_PLAYER_MESSAGE_CONTROL_LOG() > 0 &&
+				if(GC.getDefineBOOL(CvGlobals::PER_PLAYER_MESSAGE_CONTROL_LOG) &&
 						g.isNetworkMultiPlayer()) {
 					CvString logName = CvString::format("MPLog%d.log",
 							(int)g.getActivePlayer());

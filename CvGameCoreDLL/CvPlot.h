@@ -80,9 +80,10 @@ public:
 
 	bool isAdjacentToArea(int iAreaID) const;
 	bool isAdjacentToArea(const CvArea* pArea) const;																						// Exposed to Python
-	bool shareAdjacentArea( const CvPlot* pPlot) const;																					// Exposed to Python
+	bool shareAdjacentArea(const CvPlot* pPlot) const;																					// Exposed to Python
 	bool isAdjacentToLand() const;																															// Exposed to Python
-	bool isCoastalLand(int iMinWaterSize = -1) const;																																	// Exposed to Python
+	// advc.003t: Default was -1, which now means MIN_WATER_SIZE_FOR_OCEAN.
+	bool isCoastalLand(int iMinWaterSize = 0) const;																																	// Exposed to Python
 
 	bool isVisibleWorked() const;
 	bool isWithinTeamCityRadius(TeamTypes eTeam, PlayerTypes eIgnorePlayer = NO_PLAYER) const;	// Exposed to Python

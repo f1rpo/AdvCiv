@@ -376,7 +376,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			continue;
 
 		// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
-		if (GC.getLFBEnable() && GC.getLFBUseCombatOdds() && /* advc.048: */ !bMaxSurvival)
+		if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE) && GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS) && /* advc.048: */ !bMaxSurvival)
 		{
 			kLoopUnit.LFBgetBetterAttacker(&pBestUnit, pPlot, bPotentialEnemy, iBestOdds,
 					iBestValue); // K-Mod.

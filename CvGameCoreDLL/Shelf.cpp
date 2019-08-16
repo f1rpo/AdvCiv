@@ -130,6 +130,5 @@ CvUnit* Shelf::randomBarbarianCargoUnit() const {
 } // </advc.306>
 
 
-Shelf::Id::Id(int landId, int waterId) :
-		std::pair<int,int>(landId, waterId) {}
+Shelf::Id::Id(int landId, int waterId) : std::pair<int,int>(landId, waterId) {}
 // </advc.300>

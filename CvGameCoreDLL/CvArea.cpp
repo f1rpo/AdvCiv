@@ -333,7 +333,7 @@ void CvArea::updateLake(bool bCheckRepr) {
 	if(!isWater())
 		return;
 	int iTotalTiles = getNumTiles();
-	if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
+	if(iTotalTiles > GC.getDefineINT(CvGlobals::LAKE_MAX_AREA_SIZE))
 		return;
 	if(!bCheckRepr) {
 		m_bLake = true;
@@ -342,7 +342,7 @@ void CvArea::updateLake(bool bCheckRepr) {
 	FOR_EACH_AREA(pOther) {
 		if(pOther->m_iRepresentativeAreaId == m_iRepresentativeAreaId && pOther->getID() != getID()) {
 			iTotalTiles += pOther->getNumTiles();
-			if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
+			if(iTotalTiles > GC.getDefineINT(CvGlobals::LAKE_MAX_AREA_SIZE))
 				return;
 		}
 	}

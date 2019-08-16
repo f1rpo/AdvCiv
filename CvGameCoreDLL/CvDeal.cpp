@@ -194,7 +194,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
 		bool bDone = false;
 		if(!bSurrender && pFirstList != NULL && pSecondList != NULL &&
-				GC.getDefineINT("ANNOUNCE_REPARATIONS") > 0) {
+				GC.getDefineBOOL("ANNOUNCE_REPARATIONS")) {
 			int iFirstLength = pFirstList->getLength();
 			int iSecondLength = pSecondList->getLength();
 			// Call makePeace on the recipient of reparations
@@ -351,30 +351,20 @@ void CvDeal::doTurn()
 	{
 		if (getLengthSecondTrades() > 0)
 		{
-			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) / GC.getPEACE_TREATY_LENGTH());
-
+			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) /
+					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 			if (getLengthFirstTrades() > 0)
-			{
 				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeTradeValue(getSecondPlayer(), iValue);
-			}
-			else
-			{
-				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeGrantValue(getSecondPlayer(), iValue);
-			}
+			else GET_PLAYER(getFirstPlayer()).AI_processPeacetimeGrantValue(getSecondPlayer(), iValue);
 		}
 
 		if (getLengthFirstTrades() > 0)
 		{
-			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) / GC.getPEACE_TREATY_LENGTH());
-
+			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) /
+					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 			if (getLengthSecondTrades() > 0)
-			{
 				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeTradeValue(getFirstPlayer(), iValue);
-			}
-			else
-			{
-				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeGrantValue(getFirstPlayer(), iValue);
-			}
+			else GET_PLAYER(getSecondPlayer()).AI_processPeacetimeGrantValue(getFirstPlayer(), iValue);
 		}
 		// K-Mod note: for balance reasons this function should probably be called at the boundry of some particular player's turn,
 		// rather than at the turn boundry of the game itself. -- Unfortunately, the game currently doesn't work like this.
@@ -960,8 +950,8 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 		GET_PLAYER(eFromPlayer).revolution(paeNewCivics, true);
 
-		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getPEACE_TREATY_LENGTH())
-			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getPEACE_TREATY_LENGTH());
+		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))
+			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) switched civics due to TRADE_CIVICS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 
@@ -971,16 +961,16 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_RELIGION:
 		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData,
 				true); // advc.001v
-		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getPEACE_TREATY_LENGTH())
-			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getPEACE_TREATY_LENGTH());
+		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))
+			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) switched religions due to TRADE_RELIGION with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		break;
 
 	case TRADE_OPEN_BORDERS:
 		if (trade.m_iData == 0)
 		{
-			startTeamTrade(TRADE_OPEN_BORDERS, GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eToPlayer).getTeam(), true);
-			GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).setOpenBorders(((TeamTypes)(GET_PLAYER(eToPlayer).getTeam())), true);
+			startTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
+			TEAMREF(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S_1) signs open borders due to TRADE_OPEN_BORDERS with player %d (%S_2)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		}
 		else
@@ -1246,9 +1236,9 @@ bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const {
 
 int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 {	// <advc.034>
-	int len = GC.getPEACE_TREATY_LENGTH();
+	int len = GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH);
 	if(isDisengage())
-		len = std::min(GC.getDefineINT("DISENGAGE_LENGTH"), len);
+		len = std::min(GC.getDefineINT(CvGlobals::DISENGAGE_LENGTH), len);
 	return (getInitialGameTurn() + len - // </advc.034>
 			GC.getGame().getGameTurn());
 }

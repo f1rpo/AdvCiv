@@ -231,20 +231,20 @@ void CvMapGenerator::addLakes()
 	}
 
 	gDLL->NiTextOut("Adding Lakes...");
-
+	int const iLAKE_PLOT_RAND = GC.getDefineINT("LAKE_PLOT_RAND"); // advc.003b
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		gDLL->callUpdater();
+		//gDLL->callUpdater(); // advc.003b: Not needed I reckon
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
 
-		if (!(pLoopPlot->isWater()))
+		if (!pLoopPlot->isWater())
 		{
-			if (!(pLoopPlot->isCoastalLand()))
+			if (!pLoopPlot->isCoastalLand())
 			{
-				if (!(pLoopPlot->isRiver()))
+				if (!pLoopPlot->isRiver())
 				{
-					if (GC.getGame().getMapRandNum(GC.getDefineINT("LAKE_PLOT_RAND"), "addLakes") == 0)
+					if (GC.getGame().getMapRandNum(iLAKE_PLOT_RAND, "addLakes") == 0)
 					{
 						pLoopPlot->setPlotType(PLOT_OCEAN);
 					}
@@ -254,75 +254,68 @@ void CvMapGenerator::addLakes()
 	}
 }
 
-void CvMapGenerator::addRivers()
+void CvMapGenerator::addRivers()  // advc.003: Refactored
 {
 	PROFILE("CvMapGenerator::addRivers");
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addRivers"))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			return;
-		}
-	}
+	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addRivers") &&
+			!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
+		return;
 
 	gDLL->NiTextOut("Adding Rivers...");
-	CvPlot* pLoopPlot;
-	CvPlot* pStartPlot;
-	int iPass;
-	int iRiverSourceRange;
-	int iSeaWaterRange;
-	int iI;
 
-	for (iPass = 0; iPass < 4; iPass++)
+	int const iRiverSourceRange = GC.getDefineINT("RIVER_SOURCE_MIN_RIVER_RANGE");
+	int const iSeaWaterRange = GC.getDefineINT("RIVER_SOURCE_MIN_SEAWATER_RANGE");
+	int const iPlotsPerRiverEdge =  GC.getDefineINT("PLOTS_PER_RIVER_EDGE");
+	// advc.129: Randomize the traversal order
+	int* aiShuffledIndices = ::shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
+	for (int iPass = 0; iPass < 4; iPass++)
 	{
-		if (iPass <= 1)
-		{
-			iRiverSourceRange = GC.getDefineINT("RIVER_SOURCE_MIN_RIVER_RANGE");
-		}
-		else
-		{
-			iRiverSourceRange = (GC.getDefineINT("RIVER_SOURCE_MIN_RIVER_RANGE") / 2);
-		}
+		int iRiverSourceRangeLoop = (iPass <= 1 ? iRiverSourceRange : iRiverSourceRange / 2);
+		int iSeaWaterRangeLoop =  (iPass <= 1 ? iSeaWaterRange : iSeaWaterRange / 2);
 
-		if (iPass <= 1)
+		for (int i = 0; i < GC.getMap().numPlots(); i++)
 		{
-			iSeaWaterRange = GC.getDefineINT("RIVER_SOURCE_MIN_SEAWATER_RANGE");
-		}
-		else
-		{
-			iSeaWaterRange = (GC.getDefineINT("RIVER_SOURCE_MIN_SEAWATER_RANGE") / 2);
-		}
+			CvPlot const* pLoopPlot = GC.getMap().plotByIndex(
+					aiShuffledIndices[i]); // advc.129
+			if (pLoopPlot->isWater())
+				continue;
 
-		for (iI = 0; iI < GC.getMap().numPlots(); iI++)
-		{
-			gDLL->callUpdater();
-			pLoopPlot = GC.getMap().plotByIndex(iI);
-			FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
-
-			if (!(pLoopPlot->isWater()))
+			bool bValid;
+			switch(iPass)
 			{
-				if (((iPass == 0) && (pLoopPlot->isHills() || pLoopPlot->isPeak())) ||
-					  ((iPass == 1) && !(pLoopPlot->isCoastalLand()) && (GC.getGame().getMapRandNum(8, "addRivers") == 0)) ||
-					  ((iPass == 2) && (pLoopPlot->isHills() || pLoopPlot->isPeak()) && (pLoopPlot->area()->getNumRiverEdges() < ((pLoopPlot->area()->getNumTiles() / GC.getDefineINT("PLOTS_PER_RIVER_EDGE")) + 1))) ||
-					  ((iPass == 3) && (pLoopPlot->area()->getNumRiverEdges() < ((pLoopPlot->area()->getNumTiles() / GC.getDefineINT("PLOTS_PER_RIVER_EDGE")) + 1))))
-				{
-					if (!GC.getMap().findWater(pLoopPlot, iRiverSourceRange, true))
-					{
-						if (!GC.getMap().findWater(pLoopPlot, iSeaWaterRange, false))
-						{
-							pStartPlot = pLoopPlot->getInlandCorner();
+			case 0:
+				bValid = (pLoopPlot->isHills() || pLoopPlot->isPeak());
+				break;
+			case 1:
+				bValid = (!pLoopPlot->isCoastalLand() &&
+						GC.getGame().getMapRandNum(8, "addRivers") == 0);
+				break;
+			case 2:
+				bValid =  ((pLoopPlot->isHills() || pLoopPlot->isPeak()) &&
+					  pLoopPlot->area()->getNumRiverEdges() < 1 +
+					  pLoopPlot->area()->getNumTiles() / iPlotsPerRiverEdge);
+				break;
+			case 3:
+				bValid = (pLoopPlot->area()->getNumRiverEdges() < 1 +
+						pLoopPlot->area()->getNumTiles() / iPlotsPerRiverEdge);
+				break;
+			default: FAssertMsg(false, "Invalid iPass");
+			}
+			if (!bValid)
+				continue;
 
-							if (pStartPlot != NULL)
-							{
-								doRiver(pStartPlot);
-							}
-						}
-					}
-				}
+			gDLL->callUpdater(); // advc.003b: Moved down; shouldn't need to update the UI in every iteration.
+			if (!GC.getMap().findWater(pLoopPlot, iRiverSourceRange, true) &&
+				!GC.getMap().findWater(pLoopPlot, iSeaWaterRange, false))
+			{
+				CvPlot* pStartPlot = pLoopPlot->getInlandCorner();
+				if (pStartPlot != NULL)
+					doRiver(pStartPlot);
 			}
 		}
 	}
+	SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 }
 
 // pStartPlot = the plot at whose SE corner the river is starting
@@ -648,8 +641,8 @@ void CvMapGenerator::addBonuses()
 		if (iOrder >= 0) // The negative ones aren't supposed to be placed at all
 			aiOrdinals.push_back(iOrder);
 	}
-	FAssertMsg(aiOrdinals.size() <= (uint)12, "Shuffling the bonus indices this often might be slow(?)");
 	::removeDuplicates(aiOrdinals);
+	FAssertMsg(aiOrdinals.size() <= (uint)12, "Shuffling the bonus indices this often might be slow(?)");
 	std::sort(aiOrdinals.begin(), aiOrdinals.end());
 	//for (int iOrder = 0; iOrder < GC.getNumBonusInfos(); iOrder++)
 	for (size_t i = 0; i < aiOrdinals.size(); i++)
@@ -691,8 +684,8 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	int iBonusCount = calculateNumBonusesToAdd(eBonusType);
 	bool bIgnoreLatitude = GC.getGame().pythonIsBonusIgnoreLatitudes();
 	// advc.003b: Don't waste time trying to place land resources in the ocean
-	bool bWater = (pBonusInfo.isTerrain(GC.getDefineINT("DEEP_WATER_TERRAIN")) ||
-			pBonusInfo.isTerrain(GC.getDefineINT("SHALLOW_WATER_TERRAIN")));
+	bool bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
+			pBonusInfo.isTerrain(GC.getWATER_TERRAIN(false)));
 	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
 
 	while (true)
@@ -877,62 +870,54 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 } // </advc.129>
 
 
-void CvMapGenerator::addGoodies()
+void CvMapGenerator::addGoodies()  // advc.003: some style changes
 {
 	PROFILE("CvMapGenerator::addGoodies");
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addGoodies"))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			return; // Python override
-		}
-	}
+	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addGoodies") &&
+			!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
+		return;
 
 	gDLL->NiTextOut("Adding Goodies...");
 
 	if (GC.getEraInfo(GC.getGame().getStartEra()).isNoGoodies())
-	{
 		return;
-	}
 
-	int iNumPlots = GC.getMap().numPlots();
-	int* aiShuffledIndices = shuffle(iNumPlots, GC.getGame().getMapRand());
-
+	int* aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
 	for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 	{
-		if (GC.getImprovementInfo((ImprovementTypes)iI).isGoody() && GC.getImprovementInfo((ImprovementTypes)iI).getTilesPerGoody() > 0)
+		ImprovementTypes eImprov = (ImprovementTypes)iI;
+		if (!GC.getImprovementInfo(eImprov).isGoody() ||
+				GC.getImprovementInfo(eImprov).getTilesPerGoody() <= 0)
+			continue;
+
+		for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
 		{
-			for (int iJ = 0; iJ < iNumPlots; iJ++)
+			CvPlot *pPlot = GC.getMap().plotByIndex(aiShuffledIndices[iJ]);
+			FAssertMsg(pPlot, "pPlot is expected not to be NULL");
+			if (pPlot->isWater())
+				continue;
+
+			CvArea *pArea = GC.getMap().getArea(pPlot->getArea());
+			FAssertMsg(pArea, "pArea is expected not to be NULL");
+			if (pArea->getNumImprovements(eImprov) <
+				(pArea->getNumTiles() +
+				GC.getImprovementInfo(eImprov).getTilesPerGoody() / 2) /
+				GC.getImprovementInfo(eImprov).getTilesPerGoody())
 			{
-				gDLL->callUpdater();
-				CvPlot *pPlot = GC.getMap().plotByIndex(aiShuffledIndices[iJ]);
-				FAssertMsg(pPlot, "pPlot is expected not to be NULL");
-				if (!(pPlot->isWater()))
-				{
-					CvArea *pArea = GC.getMap().getArea(pPlot->getArea());
-					FAssertMsg(pArea, "pArea is expected not to be NULL");
-					if (pArea->getNumImprovements((ImprovementTypes)iI) < ((pArea->getNumTiles() + (GC.getImprovementInfo((ImprovementTypes)iI).getTilesPerGoody() / 2)) / GC.getImprovementInfo((ImprovementTypes) iI).getTilesPerGoody()))
-					{
-						if (canPlaceGoodyAt(((ImprovementTypes)iI), pPlot->getX(), pPlot->getY()))
-						{
-							pPlot->setImprovementType((ImprovementTypes)iI);
-						}
-					}
-				}
+				if (canPlaceGoodyAt(eImprov, pPlot->getX(), pPlot->getY()))
+					pPlot->setImprovementType(eImprov);
 			}
 		}
+	gDLL->callUpdater(); // advc.003b: Moved out of the loop
 	}
-
 	SAFE_DELETE_ARRAY(aiShuffledIndices);
 }
 
 
 void CvMapGenerator::eraseRivers()
 {
-	int i;
-
-	for (i = 0; i < GC.getMap().numPlots(); i++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		if (pPlot->isNOfRiver())
@@ -948,9 +933,7 @@ void CvMapGenerator::eraseRivers()
 
 void CvMapGenerator::eraseFeatures()
 {
-	int i;
-
-	for (i = 0; i < GC.getMap().numPlots(); i++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		pPlot->setFeatureType(NO_FEATURE);
@@ -959,9 +942,7 @@ void CvMapGenerator::eraseFeatures()
 
 void CvMapGenerator::eraseBonuses()
 {
-	int i;
-
-	for (i = 0; i < GC.getMap().numPlots(); i++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		pPlot->setBonusType(NO_BONUS);
@@ -970,9 +951,7 @@ void CvMapGenerator::eraseBonuses()
 
 void CvMapGenerator::eraseGoodies()
 {
-	int i;
-
-	for (i = 0; i < GC.getMap().numPlots(); i++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		if (pPlot->isGoody())
@@ -1056,8 +1035,8 @@ void CvMapGenerator::generateTerrain()
 		// Generate terrain for each plot
 		for (int iI = 0; iI < iNumPlots; iI++)
 		{
-			gDLL->callUpdater();
-			GC.getMap().plotByIndex(iI)->setTerrainType(((TerrainTypes)(terrainMapOut[iI])), false, false);
+			//gDLL->callUpdater(); // addvc.003b
+			GC.getMap().plotByIndex(iI)->setTerrainType((TerrainTypes)terrainMapOut[iI], false, false);
 		}
 	}
 }
@@ -1072,31 +1051,23 @@ void CvMapGenerator::afterGeneration()
 
 void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 {
-	int iNumPlots = GC.getMap().numPlots();
-
-	for (int iI = 0; iI < iNumPlots; iI++)
+	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		gDLL->callUpdater();
-		GC.getMap().plotByIndex(iI)->setPlotType(((PlotTypes)(paiPlotTypes[iI])), false, false);
+		//gDLL->callUpdater(); // advc.003b: Not needed I reckon
+		GC.getMap().plotByIndex(iI)->setPlotType((PlotTypes)paiPlotTypes[iI], false, false);
 	}
 
 	GC.getMap().recalculateAreas();
 
-	for (int iI = 0; iI < iNumPlots; iI++)
+	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		gDLL->callUpdater();
+		//gDLL->callUpdater(); // advc.003b
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
 		if (pLoopPlot->isWater())
 		{
 			if (pLoopPlot->isAdjacentToLand())
-			{
-				pLoopPlot->setTerrainType(((TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN"))), false, false);
-			}
-			else
-			{
-				pLoopPlot->setTerrainType(((TerrainTypes)(GC.getDefineINT("DEEP_WATER_TERRAIN"))), false, false);
-			}
+				pLoopPlot->setTerrainType(GC.getWATER_TERRAIN(true), false, false);
+			else pLoopPlot->setTerrainType(GC.getWATER_TERRAIN(false), false, false);
 		}
 	}
 }
@@ -1180,7 +1151,7 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 			}
 		}
 		// <advc.129>
-		if(GC.getDefineINT("SUBLINEAR_BONUS_QUANTITIES") > 0) {
+		if(GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES")) {
 			int iSubtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
 			int iRemainder = iNumPossible;
 			int iResult = 0;

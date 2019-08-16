@@ -101,8 +101,8 @@ void CvGame::init(HandicapTypes eHandicap)
 
 	m_bAllGameDataRead = true; // advc.003: Not loading from savegame
 	// <advc.108>
-	m_iNormalizationLevel = GC.getDefineINT("NORMALIZE_STARTPLOTS_AGGRESSIVELY") > 0 ?
-			3 : 1;
+	m_iNormalizationLevel = (GC.getDefineBOOL("NORMALIZE_STARTPLOTS_AGGRESSIVELY") ?
+			3 : 1);
 	if(m_iNormalizationLevel == 1 && isGameMultiPlayer())
 		m_iNormalizationLevel = 2;
 	// </advc.108>
@@ -262,7 +262,7 @@ void CvGame::setInitialItems()
 	assignStartingPlots();
 	normalizeStartingPlots();
 	// <advc.030> Now that ice has been placed and normalization is through
-	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
+	if(GC.getDefineBOOL("PASSABLE_AREAS"))
 		GC.getMap().recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
@@ -275,7 +275,7 @@ void CvGame::setInitialItems()
 		m_pSpah->setInitialItems(); // </advc.250b>
 	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
-	if(getStartEra() == 0 && GC.getDefineINT("INCREASE_START_TURN") > 0) {
+	if(getStartEra() == 0 && GC.getDefineBOOL("INCREASE_START_TURN")) {
 		std::vector<double> distr;
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
@@ -297,7 +297,7 @@ void CvGame::setInitialItems()
 				gameHandicap.getAIStartingWorkerUnits() * 10) *
 				GC.getGameSpeedInfo(getGameSpeedType()).getGrowthPercent()) / 100;
 	} // <advc.250c>
-	if(getStartTurn() != iStartTurn && GC.getDefineINT("INCREASE_START_TURN") > 0) {
+	if(getStartTurn() != iStartTurn && GC.getDefineBOOL("INCREASE_START_TURN")) {
 		setStartTurnYear(iStartTurn);
 		/*  initDiplomacy is called from outside the DLL between the first
 			setStartTurnYear call and setInitialItems. The second setStartTurnYear
@@ -393,7 +393,7 @@ void CvGame::regenerateMap()
 
 	cycleSelectionGroups_delayed(1, false);
 	// <advc.004j>
-	bool bShowDawn = (GC.getDefineINT("SHOW_DAWN_AFTER_REGEN") > 0 &&
+	bool bShowDawn = (GC.getDefineBOOL("SHOW_DAWN_AFTER_REGEN") &&
 			// Somehow doesn't work with Adv. Start; Dawn screen doesn't appear.
 			(!isOption(GAMEOPTION_ADVANCED_START) || isOption(GAMEOPTION_SPAH)));
 	// </advc.004j>
@@ -926,7 +926,7 @@ void CvGame::initScenario() {
 	setAIHandicap(); // advc.127
 	initFreeState(); // Tech from handicap
 	// <advc.030>
-	if(GC.getDefineINT("PASSABLE_AREAS") > 0) {
+	if(GC.getDefineBOOL("PASSABLE_AREAS")) {
 		/*  recalculateAreas can't handle preplaced cities. Or perhaps it can
 			(Barbarian cities are fine in most cases), but there's going to
 			be other stuff, like free units, that causes problems. */
@@ -2631,7 +2631,8 @@ void CvGame::updateGwPercentAnger()
 			// amplify the affects of responsibility
 			iResponsibilityFactor = std::max(0, 2*iResponsibilityFactor-100);
 
-			iAngerPercent = GC.getDefineINT("GLOBAL_WARMING_BASE_ANGER_PERCENT") * iGwSeverityRating * iResponsibilityFactor;
+			static int const iGLOBAL_WARMING_BASE_ANGER_PERCENT = GC.getDefineINT("GLOBAL_WARMING_BASE_ANGER_PERCENT"); // advc.003b
+			iAngerPercent = iGLOBAL_WARMING_BASE_ANGER_PERCENT * iGwSeverityRating * iResponsibilityFactor;
 			iAngerPercent = ROUND_DIVIDE(iAngerPercent, 10000);// div, 100 * 100
 		}
 		kPlayer.setGwPercentAnger(iAngerPercent);
@@ -3611,7 +3612,8 @@ int CvGame::calculateReligionPercent(ReligionTypes eReligion,
 
 int CvGame::goldenAgeLength() const
 {
-	int iLength = GC.getDefineINT("GOLDEN_AGE_LENGTH");
+	static int const iGOLDEN_AGE_LENGTH = GC.getDefineINT("GOLDEN_AGE_LENGTH"); // advc.003b
+	int iLength = iGOLDEN_AGE_LENGTH;
 
 	iLength *= GC.getGameSpeedInfo(getGameSpeedType()).getGoldenAgePercent();
 	iLength /= 100;
@@ -4646,27 +4648,20 @@ void CvGame::makeCircumnavigated()
 
 bool CvGame::circumnavigationAvailable() const
 {
-	if (isCircumnavigated())
-	{
+	static bool const bCIRCUMNAVIGATE_FREE_MOVES = GC.getDefineBOOL("CIRCUMNAVIGATE_FREE_MOVES"); // advc.003b
+	if (!bCIRCUMNAVIGATE_FREE_MOVES)
 		return false;
-	}
 
-	if (GC.getDefineINT("CIRCUMNAVIGATE_FREE_MOVES") == 0)
-	{
+	if (isCircumnavigated())
 		return false;
-	}
 
 	CvMap& kMap = GC.getMap();
 
 	if (!kMap.isWrapX() && !kMap.isWrapY())
-	{
 		return false;
-	}
 
 	if (kMap.getLandPlots() > (kMap.numPlots() * 2) / 3)
-	{
 		return false;
-	}
 
 	return true;
 }
@@ -5094,7 +5089,7 @@ bool CvGame::isDebugToolsAllowed(bool bWB) const {
 	if(gDLL->GetWorldBuilderMode())
 		return true;
 	if(isGameMultiPlayer()) {
-		if(GC.getDefineINT("ENABLE_DEBUG_TOOLS_MULTIPLAYER") <= 0)
+		if(!GC.getDefineBOOL("ENABLE_DEBUG_TOOLS_MULTIPLAYER"))
 			return false;
 		if(isHotSeat())
 			return true;
@@ -6137,164 +6132,128 @@ void CvGame::setVoteChosen(int iSelection, int iVoteId)
 
 CvCity* CvGame::getHolyCity(ReligionTypes eIndex)
 {
-// K-Mod
-	/* original bts code
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumReligionInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	*/
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::getHolyCity");
-// K-Mod end
+	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::getHolyCity"); // K-Mod
 	return getCity(m_paHolyCity[eIndex]);
 }
 
 
-void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)
+void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc.003: refactored (note: almost the same as setHeadquarters)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumReligionInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::setHolyCity");
 
 	CvCity* pOldValue = getHolyCity(eIndex);
-
 	if(pOldValue == pNewValue)
 		return;
-
 	// religion visibility now part of espionage
 	//updateCitySight(false, true);
-
 	if (pNewValue != NULL)
-	{
 		m_paHolyCity[eIndex] = pNewValue->getIDInfo();
-	}
-	else
-	{
-		m_paHolyCity[eIndex].reset();
-	}
-
+	else m_paHolyCity[eIndex].reset();
 	// religion visibility now part of espionage
 	//updateCitySight(true, true);
-
 	if (pOldValue != NULL)
 	{
-		pOldValue->changeReligionInfluence(eIndex, -(GC.getDefineINT("HOLY_CITY_INFLUENCE")));
-
+		pOldValue->changeReligionInfluence(eIndex, -GC.getDefineINT("HOLY_CITY_INFLUENCE"));
 		pOldValue->updateReligionCommerce();
-
 		pOldValue->setInfoDirty(true);
 	}
+	AI_makeAssignWorkDirty();// advc: Was done at the very end; hope it's OK up here.
+	if (getHolyCity(eIndex) == NULL)
+		return;
 
-	if (getHolyCity(eIndex) != NULL)
+	CvCity* pHolyCity = getHolyCity(eIndex);
+	pHolyCity->setHasReligion(eIndex, true, bAnnounce, true);
+	pHolyCity->changeReligionInfluence(eIndex, GC.getDefineINT("HOLY_CITY_INFLUENCE"));
+	pHolyCity->updateReligionCommerce();
+	pHolyCity->setInfoDirty(true);
+	if (!bAnnounce || !isFinalInitialized() || gDLL->GetWorldBuilderMode())
+		return;
+
+	CvWString szMsgRevealed(gDLL->getText("TXT_KEY_MISC_REL_FOUNDED",
+			GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey()));
+	CvWString szMsgUnknown(gDLL->getText("TXT_KEY_MISC_REL_FOUNDED_UNKNOWN",
+			GC.getReligionInfo(eIndex).getTextKeyWide()));
+	addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHolyCity->getOwner(),
+			szMsgRevealed, pHolyCity->getX(), pHolyCity->getY());
+			// advc.106: Reserve this color for treaties
+			//(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		CvCity* pHolyCity = getHolyCity(eIndex);
-
-		pHolyCity->setHasReligion(eIndex, true, bAnnounce, true);
-		pHolyCity->changeReligionInfluence(eIndex, GC.getDefineINT("HOLY_CITY_INFLUENCE"));
-
-		pHolyCity->updateReligionCommerce();
-
-		pHolyCity->setInfoDirty(true);
-
-		if (bAnnounce)
-		{
-			if (isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
-			{
-				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
-				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHolyCity->getOwner(), szBuffer, pHolyCity->getX(), pHolyCity->getY());
-						// advc.106: Reserve this color for treaties
-						//(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-
-				for (int iI = 0; iI < MAX_PLAYERS; iI++)
-				{
-					CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
-					if (!kObs.isAlive())
-						continue; // advc.003
-					if (pHolyCity->isRevealed(kObs.getTeam(), false)
-							|| kObs.isSpectator()) // advc.127
-					{
-						szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
-						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHolyCity->getX(), pHolyCity->getY(), false, true);
-					}
-					else
-					{
-						szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED_UNKNOWN", GC.getReligionInfo(eIndex).getTextKeyWide());
-						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-					}
-				}
-			}
-		}
+		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
+		if (!kObs.isAlive())
+			continue;
+		bool bRevealed = (pHolyCity->isRevealed(kObs.getTeam(), false)
+				|| kObs.isSpectator()); // advc.127
+		gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
+				bRevealed ? szMsgRevealed : szMsgUnknown,
+				GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
+				GC.getReligionInfo(eIndex).getButton(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+				bRevealed ? pHolyCity->getX() : -1, bRevealed ? pHolyCity->getY() : -1,
+				false, bRevealed);
 	}
-
-	AI_makeAssignWorkDirty();
 }
 
 
 CvCity* CvGame::getHeadquarters(CorporationTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumCorporationInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumCorporationInfos(), eIndex, "CvGame::getHeadquarters");
 	return getCity(m_paHeadquarters[eIndex]);
 }
 
 
-void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)
+void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc.003: refactored (note: almost the same as setHolyCity)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumCorporationInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	FASSERT_BOUNDS(0, GC.getNumCorporationInfos(), eIndex, "CvGame::setHeadquarters");
 
 	CvCity* pOldValue = getHeadquarters(eIndex);
+	if (pOldValue == pNewValue)
+		return;
 
-	if (pOldValue != pNewValue)
+	if (pNewValue != NULL)
+		m_paHeadquarters[eIndex] = pNewValue->getIDInfo();
+	else m_paHeadquarters[eIndex].reset();
+
+	if (pOldValue != NULL)
 	{
-		if (pNewValue != NULL)
-		{
-			m_paHeadquarters[eIndex] = pNewValue->getIDInfo();
-		}
-		else
-		{
-			m_paHeadquarters[eIndex].reset();
-		}
+		pOldValue->updateCorporation();
+		pOldValue->setInfoDirty(true);
+	}
+	AI_makeAssignWorkDirty(); // advc: Moved up; see setHolyCity.
+	CvCity* pHeadquarters = getHeadquarters(eIndex);
+	if (pHeadquarters == NULL)
+		return;
 
-		if (pOldValue != NULL)
-		{
-			pOldValue->updateCorporation();
+	pHeadquarters->setHasCorporation(eIndex, true, bAnnounce);
+	pHeadquarters->updateCorporation();
+	pHeadquarters->setInfoDirty(true);
+	if (!bAnnounce || !isFinalInitialized() || gDLL->GetWorldBuilderMode())
+		return;
 
-			pOldValue->setInfoDirty(true);
-		}
-
-		CvCity* pHeadquarters = getHeadquarters(eIndex);
-
-		if (NULL != pHeadquarters)
-		{
-			pHeadquarters->setHasCorporation(eIndex, true, bAnnounce);
-			pHeadquarters->updateCorporation();
-			pHeadquarters->setInfoDirty(true);
-
-			if (bAnnounce)
-			{
-				if (isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
-				{
-					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_FOUNDED", GC.getCorporationInfo(eIndex).getTextKeyWide(), pHeadquarters->getNameKey());
-					addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHeadquarters->getOwner(), szBuffer, pHeadquarters->getX(), pHeadquarters->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-
-					for (int iI = 0; iI < MAX_PLAYERS; iI++)
-					{
-						if (GET_PLAYER((PlayerTypes)iI).isAlive())
-						{
-							if (pHeadquarters->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
-							{
-								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHeadquarters->getX(), pHeadquarters->getY(), false, true);
-							}
-							else
-							{
-								CvWString szBuffer2 = gDLL->getText("TXT_KEY_MISC_CORPORATION_FOUNDED_UNKNOWN", GC.getCorporationInfo(eIndex).getTextKeyWide());
-								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer2, GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-							}
-						}
-					}
-				}
-			}
-		}
-
-		AI_makeAssignWorkDirty();
+	CvWString szMsgRevealed(gDLL->getText("TXT_KEY_MISC_CORPORATION_FOUNDED",
+			GC.getCorporationInfo(eIndex).getTextKeyWide(), pHeadquarters->getNameKey()));
+	CvWString szMsgUnknown(gDLL->getText("TXT_KEY_MISC_CORPORATION_FOUNDED_UNKNOWN",
+			GC.getCorporationInfo(eIndex).getTextKeyWide()));
+	addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, pHeadquarters->getOwner(),
+			szMsgRevealed, pHeadquarters->getX(), pHeadquarters->getY());
+			// advc.106: Reserve this color for treaties
+			//(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	for (int i = 0; i < MAX_PLAYERS; i++)
+	{
+		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
+		if (!kObs.isAlive())
+			continue;
+		bool bRevealed =  (pHeadquarters->isRevealed(kObs.getTeam(), false)
+				|| kObs.isSpectator()); // advc.127
+		gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
+				bRevealed ? szMsgRevealed : szMsgUnknown,
+				GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
+				GC.getCorporationInfo(eIndex).getButton(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+				bRevealed ? pHeadquarters->getX() : -1, bRevealed ? pHeadquarters->getY() : -1,
+				false, bRevealed);
 	}
 }
 
@@ -6663,24 +6622,24 @@ void CvGame::doGlobalWarming()
 
 	}
 
-	/*
-	** Apply the effects of GW
-	*/
 	int iGlobalWarmingRolls = getGlobalWarmingChances();
 
-	TerrainTypes eWarmingTerrain = ((TerrainTypes)(GC.getDefineINT("GLOBAL_WARMING_TERRAIN")));
-	TerrainTypes eFrozenTerrain = ((TerrainTypes)(GC.getDefineINT("FROZEN_TERRAIN")));
-	TerrainTypes eColdTerrain = ((TerrainTypes)(GC.getDefineINT("COLD_TERRAIN")));
-	TerrainTypes eTemperateTerrain = ((TerrainTypes)(GC.getDefineINT("TEMPERATE_TERRAIN")));
-	TerrainTypes eDryTerrain = ((TerrainTypes)(GC.getDefineINT("DRY_TERRAIN")));
-	TerrainTypes eBarrenTerrain = ((TerrainTypes)(GC.getDefineINT("BARREN_TERRAIN")));
+	// Apply the effects of GW
 
-	FeatureTypes eColdFeature = ((FeatureTypes)(GC.getDefineINT("COLD_FEATURE")));
-	FeatureTypes eTemperateFeature = ((FeatureTypes)(GC.getDefineINT("TEMPERATE_FEATURE")));
-	FeatureTypes eWarmFeature = ((FeatureTypes)(GC.getDefineINT("WARM_FEATURE")));
-	FeatureTypes eFalloutFeature = ((FeatureTypes)(GC.getDefineINT("NUKE_FEATURE")));
+	// advc.003b: Can't hurt to make these static
+	static TerrainTypes const eWarmingTerrain = ((TerrainTypes)(GC.getDefineINT("GLOBAL_WARMING_TERRAIN")));
+	static TerrainTypes const eFrozenTerrain = ((TerrainTypes)(GC.getDefineINT("FROZEN_TERRAIN")));
+	static TerrainTypes const eColdTerrain = ((TerrainTypes)(GC.getDefineINT("COLD_TERRAIN")));
+	static TerrainTypes const eTemperateTerrain = ((TerrainTypes)(GC.getDefineINT("TEMPERATE_TERRAIN")));
+	static TerrainTypes const eDryTerrain = ((TerrainTypes)(GC.getDefineINT("DRY_TERRAIN")));
+	static TerrainTypes const eBarrenTerrain = ((TerrainTypes)(GC.getDefineINT("BARREN_TERRAIN")));
 
-	//Global Warming
+	static FeatureTypes const eColdFeature = ((FeatureTypes)(GC.getDefineINT("COLD_FEATURE")));
+	static FeatureTypes const eTemperateFeature = ((FeatureTypes)(GC.getDefineINT("TEMPERATE_FEATURE")));
+	static FeatureTypes const eWarmFeature = ((FeatureTypes)(GC.getDefineINT("WARM_FEATURE")));
+	static FeatureTypes const eFalloutFeature = ((FeatureTypes)(GC.getDefineINT("NUKE_FEATURE")));
+
+	// Global Warming
 	for (int iI = 0; iI < iGlobalWarmingRolls; iI++)
 	{
 		// note, warming prob out of 1000, not percent.
@@ -6688,16 +6647,13 @@ void CvGame::doGlobalWarming()
 		if (getSorenRandNum(iLeftOdds, "Global Warming") < GC.getDefineINT("GLOBAL_WARMING_PROB"))
 		{
 			//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
-
 			// Global warming is no longer completely random. getRandGWPlot will get a weighted random plot for us to strike
 			CvPlot* pPlot = getRandGWPlot(3);
 
 			if (pPlot != NULL)
 			{
 				bool bChanged = false;
-				/*
-				** rewritten terrain changing code:
-				*/
+				// rewritten terrain changing code:
 				// 1) Melt frozen terrain
 				if (pPlot->getFeatureType() == eColdFeature)
 				{
@@ -6778,34 +6734,35 @@ void CvGame::doGlobalWarming()
 
 // Choose the best plot for global warming to strike from a set of iPool random plots
 CvPlot* CvGame::getRandGWPlot(int iPool)
-{
-	CvPlot* pBestPlot = NULL;
-	CvPlot* pTestPlot = NULL;
-	TerrainTypes eTerrain = NO_TERRAIN;
-	int iBestScore = -1; // higher score means better target plot
-	int iTestScore;
-	int i;
-
-	const TerrainTypes eFrozenTerrain = ((TerrainTypes)(GC.getDefineINT("FROZEN_TERRAIN")));
-	const TerrainTypes eColdTerrain = ((TerrainTypes)(GC.getDefineINT("COLD_TERRAIN")));
-	const TerrainTypes eTemperateTerrain = ((TerrainTypes)(GC.getDefineINT("TEMPERATE_TERRAIN")));
-	const TerrainTypes eDryTerrain = ((TerrainTypes)(GC.getDefineINT("DRY_TERRAIN")));
-
-	const FeatureTypes eColdFeature = ((FeatureTypes)(GC.getDefineINT("COLD_FEATURE")));
+{	// advc.003b: Can't hurt to make these static
+	static const TerrainTypes eFrozenTerrain = (TerrainTypes)GC.getDefineINT("FROZEN_TERRAIN");
+	static const TerrainTypes eColdTerrain = (TerrainTypes)GC.getDefineINT("COLD_TERRAIN");
+	static const TerrainTypes eTemperateTerrain = (TerrainTypes)GC.getDefineINT("TEMPERATE_TERRAIN");
+	static const TerrainTypes eDryTerrain = (TerrainTypes)GC.getDefineINT("DRY_TERRAIN");
+	static const FeatureTypes eColdFeature = (FeatureTypes)GC.getDefineINT("COLD_FEATURE");
 
 	// Currently we just choose the coldest tile; but I may include other tests in future versions
-	for (i = 0; i < iPool; i++)
+	CvPlot* pBestPlot = NULL;
+	TerrainTypes eTerrain = NO_TERRAIN;
+	int iBestScore = -1; // higher score means better target plot
+	for (int i = 0; i < iPool; i++)
 	{
 		// I want to be able to select a water tile with ice on it; so I can't just exclude water completely...
 		//CvPlot* pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
-		int j;
-		for (j = 0; j < 100; j++)
+		/*  advc (comment): Should arguably just create a new flag RANDPLOT_GLOBAL_WARMING
+			and let synRandPlot handle the randomized selection. */ 
+		CvPlot* pTestPlot = NULL;
+		/*  advc.003: Was < 100. If we want to be certain not to miss, then we should
+			check the whole map. But a 1% failure chance is fine with me. */
+		for (int j = 0; j < 25; j++)
 		{
-			pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_NOT_CITY);
-
+			pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_NOT_CITY,
+					NULL, -1, 20); // advc.003: iTimeout was 100 - don't need to draw that many cities to conclude that sth. is wrong.
 			if (pTestPlot == NULL)
-				break; // already checked 100 plots in the syncRandPlot funciton, so just give up.
-
+			{
+				FAssert(pTestPlot != NULL); // advc.003
+				break; // give up
+			}
 			// check for ice
 			if (pTestPlot->getFeatureType() == eColdFeature)
 			{
@@ -6822,11 +6779,11 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 			// not a suitable plot, try again.
 		}
 
-		if (pTestPlot == NULL || j == 100)
+		if (pTestPlot == NULL/* || j == 100*/) // advc.003: Unnecessary as I'm resetting pTestPlot in the outer loop
 			continue;
 
-		// if only I could do this with a switch...
-
+		// if only I could do this with a switch...  [advc: one cannot b/c the case labels need to be constant expressions]
+		int iTestScore = 0;
 		if (eTerrain == eFrozenTerrain)
 			iTestScore = 4;
 		else if (eTerrain == eColdTerrain)
@@ -6835,9 +6792,6 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 			iTestScore = 2;
 		else if (eTerrain == eDryTerrain)
 			iTestScore = 1;
-		else
-			iTestScore = 0;
-
 		if (iTestScore > iBestScore)
 		{
 			if (iBestScore > 0 || iTestScore >= 3)
@@ -6848,10 +6802,7 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 		}
 	}
 	return pBestPlot;
-}
-/*
-** K-Mod end
-*/
+} // K-Mod end
 
 
 void CvGame::doHolyCity()
@@ -7376,7 +7327,7 @@ void CvGame::createBarbarianUnits()
 			/*  advc.300: No need to delay Barbarians (bAnimals=true) if they start
 				slowly (PEAK_PERCENT>=35). For slow game speed settings, there is
 				now a similar check in CvUnitAI::AI_barbAttackMove. */
-			GC.getDefineINT("BARB_PEAK_PERCENT") < 35)
+			GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT) < 35)
 		bAnimals = true;
 	// advc.300: Moved into new function
 	if (getGameTurn() < getBarbarianStartTurn())
@@ -7508,6 +7459,7 @@ void CvGame::createAnimals()  // advc.003: style changes
 	if (getElapsedGameTurns() < 5)
 		return;
 
+	int const iMinAnimalStartingDist = GC.getDefineINT("MIN_ANIMAL_STARTING_DISTANCE"); // advc.300
 	FOR_EACH_AREA(pLoopArea)
 	{
 		if (pLoopArea->isWater())
@@ -7526,10 +7478,9 @@ void CvGame::createAnimals()  // advc.003: style changes
 		iNeededAnimals = (iNeededAnimals / 5) + 1;
 		for (int iI = 0; iI < iNeededAnimals; iI++)
 		{
-			CvPlot* pPlot = GC.getMap().syncRandPlot(
-					(RANDPLOT_NOT_VISIBLE_TO_CIV | RANDPLOT_PASSABLE
-					| RANDPLOT_WATERSOURCE), // advc.300
-					pLoopArea->getID(), GC.getDefineINT("MIN_ANIMAL_STARTING_DISTANCE"));
+			CvPlot* pPlot = GC.getMap().syncRandPlot((RANDPLOT_NOT_VISIBLE_TO_CIV | RANDPLOT_PASSABLE
+					| RANDPLOT_WATERSOURCE), // advc.300: Also use no iTimeout (try all plots)
+					pLoopArea, iMinAnimalStartingDist);
 			if (pPlot == NULL)
 				continue;
 
@@ -7603,7 +7554,7 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 		int iUnitsPresent, int iBarbarianCities) {
 
 	int iOwned = iTiles - iUnowned;
-	int iPeakPercent = ::range(GC.getDefineINT("BARB_PEAK_PERCENT"), 0, 100);
+	int iPeakPercent = ::range(GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT), 0, 100);
 	if(iOwned == 0 || iPeakPercent == 0)
 		return 0;
 	double peak = iPeakPercent / 100.0;
@@ -7637,8 +7588,7 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 			/*  Make sure that there's enough unowned land where the Barbarians
 				could plausibly gather. */
 			iUnowned / 6.0);
-	double adjustment = GC.getDefineINT("BARB_ACTIVITY_ADJUSTMENT") + 100;
-	adjustment /= 100;
+	static double const adjustment = (GC.getDefineINT("BARB_ACTIVITY_ADJUSTMENT") + 100) / 100.0;
 	target *= adjustment;
 
 	int iInitialDefenders = GC.getHandicapInfo(getHandicapType()).
@@ -7776,12 +7726,12 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const {
 		Could otherwise happen now b/c the visible flag and dist. restriction
 		no longer apply to Barbarians previously spawned; see
 		CvPlot::isVisibleToCivTeam, CvMap::isCivUnitNearby. */
-	int iDist = GC.getDefineINT("MIN_BARBARIAN_STARTING_DISTANCE");
+	static int const iDist = GC.getDefineINT("MIN_BARBARIAN_STARTING_DISTANCE");
 	// <advc.304> Sometimes don't pick a plot if there are few legal plots
 	int iLegal = 0;
 	CvPlot* r = NULL;
 	if(shelf == NULL)
-		r = GC.getMap().syncRandPlot(restrictionFlags, a.getID(), iDist, -1, &iLegal);
+		r = GC.getMap().syncRandPlot(restrictionFlags, &a, iDist, -1, &iLegal);
 	else {
 		r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
 		if(r != NULL && iLegal * 100 < shelf->size())
@@ -7790,7 +7740,7 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const {
 	if(r != NULL) {
 		double prSkip = 0;
 		if(iLegal > 0 && iLegal < 4)
-			prSkip = 1 - 1.0 / (5 - iLegal);
+			prSkip = 1 - 1.0 / (5 - iLegal); // Tbd.: Should perhaps be based on a.getNumTiles()
 		if(::bernoulliSuccess(prSkip, "advc.304"))
 			r = NULL;
 	}
@@ -7873,7 +7823,7 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 			continue; // </advc.301>
 		bool bFound = false;
 		bool bRequires = false;
-		for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); j++) {
+		for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++) {
 			BonusTypes eOrBonus = (BonusTypes)u.getPrereqOrBonuses(j);
 			if(eOrBonus == NO_BONUS)
 				continue;
@@ -10030,7 +9980,8 @@ int CvGame::getCultureThreshold(CultureLevelTypes eLevel) const
 	int iThreshold = GC.getCultureLevelInfo(eLevel).getSpeedThreshold(getGameSpeedType());
 	if (isOption(GAMEOPTION_NO_ESPIONAGE))
 	{
-		iThreshold *= 100 + GC.getDefineINT("NO_ESPIONAGE_CULTURE_LEVEL_MODIFIER");
+		static int const iNO_ESPIONAGE_CULTURE_LEVEL_MODIFIER = GC.getDefineINT("NO_ESPIONAGE_CULTURE_LEVEL_MODIFIER"); // advc.003b
+		iThreshold *= 100 + iNO_ESPIONAGE_CULTURE_LEVEL_MODIFIER;
 		iThreshold /= 100;
 	} // <advc.126>
 	int const iExempt = 50; // Don't adjust thresholds below "developing"
@@ -10875,6 +10826,9 @@ double CvGame::goodyHutEffectFactor(
 			function are still game-speed adjusted. */
 		bool bSpeedAdjust) const {
 
+	static int const iGOODY_BUFF_START_TURN = GC.getDefineINT("GOODY_BUFF_START_TURN");
+	static int const iGOODY_BUFF_PEAK_TURN = GC.getDefineINT("GOODY_BUFF_PEAK_TURN");
+	static int const iGOODY_BUFF_PEAK_MULTIPLIER = GC.getDefineINT("GOODY_BUFF_PEAK_MULTIPLIER");
 	CvGameSpeedInfo& kSpeed = GC.getGameSpeedInfo(getGameSpeedType());
 	double speedMultTurns = kSpeed.getGrowthPercent() / 100.0;
 	int const iWorldSzPercent = 100;
@@ -10882,11 +10836,9 @@ double CvGame::goodyHutEffectFactor(
 		//=GC.getWorldInfo(GC.getMap().getWorldSize()).getResearchPercent();
 	double speedMultFinal = (bSpeedAdjust ?
 			kSpeed.getTrainPercent() * iWorldSzPercent / 10000.0 : 1);
-	double startTurn = std::max(0.0,
-			GC.getDefineINT("GOODY_BUFF_START_TURN") * speedMultTurns);
-	double peakTurn = std::max(startTurn,
-			GC.getDefineINT("GOODY_BUFF_PEAK_TURN") * speedMultTurns);
-	double peakMult = std::max(1, GC.getDefineINT("GOODY_BUFF_PEAK_MULTIPLIER"));
+	double startTurn = std::max(0.0, iGOODY_BUFF_START_TURN * speedMultTurns);
+	double peakTurn = std::max(startTurn, iGOODY_BUFF_PEAK_TURN * speedMultTurns);
+	double peakMult = std::max(1, iGOODY_BUFF_PEAK_MULTIPLIER);
 	/*  Exponent for power-law function; aiming for a function shape that
 		resembles the graphs on the Info tab. */
 	double exponent = 1.25;

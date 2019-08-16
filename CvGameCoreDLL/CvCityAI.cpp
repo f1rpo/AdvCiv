@@ -3445,7 +3445,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 		BuildingTypes eLoopBuilding = (BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eLoopClass));
 
-		if (eLoopBuilding == NO_BUILDING || getNumBuilding(eLoopBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS())
+		if (eLoopBuilding == NO_BUILDING || getNumBuilding(eLoopBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
 			continue;
 
 		if (iFocusFlags & BUILDINGFOCUS_WORLDWONDER && !isWorldWonderClass(eLoopClass))
@@ -3517,10 +3517,12 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 			if (iLimit == -1)
 			{
 				// We're not out of the woods yet. Check for prereq buildings.
-				for (int iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
+				if (kBuilding.isAnyPrereqNumOfBuildingClass()) // advc.003t
 				{
-					if (kBuilding.getPrereqNumOfBuildingClass(iJ) > 0)
+					for (int iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
 					{
+						if (kBuilding.getPrereqNumOfBuildingClass(iJ) <= 0)
+							continue;
 						// I wish this was easier to calculate...
 						int iBuilt = kOwner.getBuildingClassCount(eLoopClass);
 						int iBuilding = kOwner.getBuildingClassMaking(eLoopClass);
@@ -3535,7 +3537,9 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 			}
 			if (iLimit != -1)
 			{
-				const int iMaxNumWonders = (g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ? GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC") : GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY");
+				const int iMaxNumWonders = (g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ?
+						GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC) :
+						GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY);
 
 				if (isNationalWonderClass(eLoopClass) && iMaxNumWonders != -1)
 				{
@@ -3684,7 +3688,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	// for example, bRemove is critical for calculating the lost value of obsoleting walls and castles.
 	// There are several sections which could, in the future, be improved using bRemove -
 	// but I don't see it as a high priority.
-	bool bRemove = getNumBuilding(eBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS();
+	bool bRemove = getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS);
 
 	// Veto checks: return zero if the building is not suitable.
 	// Note: these checks are essentially the same as in the original code, they've just been moved.
@@ -3704,17 +3708,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			kBuilding.getHolyCity() == NO_RELIGION)
 		return 0;
 	// </advc.014>
-	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+	if (kBuilding.isAnyReligionChange()) // advc.003t
 	{
-		if (kBuilding.getReligionChange(iI) > 0)
+		for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		{
-			if (!GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
+			if (kBuilding.getReligionChange(iI) > 0)
 			{
-				return 0;
+				if (!GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
+				{
+					return 0;
+				}
 			}
 		}
 	}
-
 	// Construction value cache.
 	// Note: the WONDEROK and WORLDWONDER flags should not affect the final value - and so cache should not be disabled by those flags.
 	const bool bNeutralFlags = (iFocusFlags & ~(BUILDINGFOCUS_WONDEROK | BUILDINGFOCUS_WORLDWONDER)) == 0;
@@ -3943,12 +3949,14 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				iValue += (-iGlobalWarWearinessModifer * iHappyModifier) / 16; */
 				iValue += iCitValue * iNumCities * -iGlobalWarWearinessModifer * (iWarWearinessPercentAnger + GC.getPERCENT_ANGER_DIVISOR()/(bWarPlan ? 10 : 20)) / (100 * GC.getPERCENT_ANGER_DIVISOR()); // K-Mod
 			}
-
-			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+			if (kBuilding.isAnyBuildingHappinessChanges()) // advc.003t
 			{
-				if (kBuilding.getBuildingHappinessChanges(iI) != 0)
+				for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 				{
-					iValue += (kBuilding.getBuildingHappinessChanges(iI) * kOwner.getBuildingClassCount((BuildingClassTypes)iI) * 8);
+					if (kBuilding.getBuildingHappinessChanges(iI) != 0)
+					{
+						iValue += (kBuilding.getBuildingHappinessChanges(iI) * kOwner.getBuildingClassCount((BuildingClassTypes)iI) * 8);
+					}
 				}
 			}
 		}
@@ -3964,7 +3972,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				future holds electrical power and other baddies) */
 			if(iOwnerEra >= 4 && !isPower()) {
 				// NB: POWER_HEALTH_CHANGE is negative
-				iFutureHealthLevel += GC.getDefineINT("POWER_HEALTH_CHANGE") / 2;
+				iFutureHealthLevel += GC.getDefineINT(CvGlobals::POWER_HEALTH_CHANGE) / 2;
 			}
 			/*  And replaced four instances of iHealthLevel with iFutureHealthLevel
 				in this block of code ... */
@@ -4050,7 +4058,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					break;
 				case DOMAIN_SEA:
 					// advc.041: No longer guaranteed by the building's MinAreaSize
-					if(isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN() * 2)) {
+					if(isCoastal(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN) * 2)) {
 						// special case. Don't use 'iWeight', because for sea bHighProductionCity may be too strict.
 						iValue += kBuilding.getDomainFreeExperience(iI) * 7;
 					}
@@ -4086,7 +4094,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			}
 			iValue += (kBuilding.getDomainFreeExperience(DOMAIN_SEA) * ((iHasMetCount > 0) ? 16 : 8));
 			// advc.041: No longer guaranteed by the building's MinAreaSize
-			if(isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN() * 2))
+			if(isCoastal(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN) * 2))
 				iValue += (kBuilding.getDomainProductionModifier(DOMAIN_SEA) / 4);
 		}
 
@@ -4122,7 +4130,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			// K-Mod. (original code deleted)
 			int iSpecialistsValue = 0;
 			//int iUnusedSpecialists = 0;
-			SpecialistTypes eDefaultSpecialist = (SpecialistTypes)GC.getDefineINT("DEFAULT_SPECIALIST");
+			SpecialistTypes eDefaultSpecialist = (SpecialistTypes)GC.getDEFAULT_SPECIALIST();
 			int iAvailableWorkers = iFoodDifference/2 + (eDefaultSpecialist == NO_SPECIALIST ? 0 : getSpecialistCount(eDefaultSpecialist));
 			for (SpecialistTypes eLoopSpec = (SpecialistTypes)0; eLoopSpec < GC.getNumSpecialistInfos(); eLoopSpec = (SpecialistTypes)(eLoopSpec+1))
 			{
@@ -4545,17 +4553,18 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					iValue += AI_permanentSpecialistValue((SpecialistTypes)iI) * kBuilding.getFreeSpecialistCount(iI) / 100;
 				}
 			}
-
-			for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
+			if (kBuilding.isAnyImprovementFreeSpecialist()) // advc.003t
 			{
-				if (kBuilding.getImprovementFreeSpecialist(iI) > 0)
+				for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 				{
-					iValue += kBuilding.getImprovementFreeSpecialist(iI) * countNumImprovedPlots((ImprovementTypes)iI, true) * 50;
-					// advc.131:
-					iTotalImprFreeSpecialists += kBuilding.getImprovementFreeSpecialist(iI);
+					if (kBuilding.getImprovementFreeSpecialist(iI) > 0)
+					{
+						iValue += kBuilding.getImprovementFreeSpecialist(iI) * countNumImprovedPlots((ImprovementTypes)iI, true) * 50;
+						// advc.131:
+						iTotalImprFreeSpecialists += kBuilding.getImprovementFreeSpecialist(iI);
+					}
 				}
 			}
-
 			for (int iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 			{
 				iValue += (kBuilding.getDomainProductionModifier(iI) / 5);
@@ -5465,18 +5474,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				}
 			}
 			// K-Mod end (corp)
-
-			for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+			if (kBuilding.isAnyReligionChange()) // advc.003t
 			{
-				if (kBuilding.getReligionChange(iI) > 0)
+				for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 				{
-					if (GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
+					if (kBuilding.getReligionChange(iI) > 0)
 					{
-						iValue += (kBuilding.getReligionChange(iI) * ((eStateReligion == iI) ? 10 : 1));
+						if (GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
+						{
+							iValue += (kBuilding.getReligionChange(iI) * ((eStateReligion == iI) ? 10 : 1));
+						}
 					}
 				}
 			}
-
 			if (NO_VOTESOURCE != kBuilding.getVoteSourceType())
 			{
 				iValue += 100;
@@ -6000,7 +6010,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject)
 								iTemp /= 3;
 						}
 
-						for (int k = 0; k < GC.getNUM_UNIT_AND_TECH_PREREQS(); k++)
+						for (int k = 0; k < GC.getNUM_UNIT_AND_TECH_PREREQS(i); k++)
 						{
 							TechTypes ePrereqTech = (TechTypes)kLoopUnit.getPrereqAndTechs(k);
 							if (ePrereqTech != NO_TECH && !kLoopTeam.isHasTech(ePrereqTech))
@@ -6417,13 +6427,13 @@ int CvCityAI::AI_minDefenders() /* advc.003: */ const
 	int iDefenders = 1;
 	int iEra = GET_PLAYER(getOwner()).getCurrentEra();
 	// <advc.107> Make the era from which on there is an extra defender configurable
-	int iExtraDefenderEra = GC.getEXTRA_DEFENDER_ERA();
+	static int const iExtraDefenderEra = GC.getDefineINT("EXTRA-DEFENDER_ERA");
 	if(iExtraDefenderEra >= 0 && iEra >= iExtraDefenderEra) // </advc.107>
 		iDefenders++;
 
 	if (iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 && isCoastal(
 			// advc.107: A small water area doesn't justify an extra defender
-			2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+			2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN)))
 		iDefenders++;
 
 	return iDefenders;
@@ -6541,7 +6551,8 @@ void CvCityAI::AI_updateSafety(double relativeCityVal) {
 	}
 	// Only bail if they can take the city in one turn or almost
 	if(iAttackers + 1 >= plot()->getNumDefenders(getOwner())) {
-		int iThresh = GC.getDefineINT("AI_EVACUATION_THRESH");
+		static int const iAI_EVACUATION_THRESH = GC.getDefineINT("AI_EVACUATION_THRESH");
+		int iThresh = iAI_EVACUATION_THRESH;
 		//  Higher threshold for important cities
 		if(relativeCityVal > 0.5)
 			iThresh = ::round(iThresh * (0.5 + relativeCityVal));
@@ -8112,11 +8123,13 @@ void CvCityAI::AI_doDraft(bool bForce)
 	// K-Mod. See if our drafted unit is particularly good value.
 	// (cf. my calculation in CvPlayerAI::AI_civicValue)
 	UnitTypes eConscriptUnit = getConscriptUnit();
-	int iConscriptPop = std::max(1, GC.getUnitInfo(eConscriptUnit).getProductionCost() / GC.getDefineINT("CONSCRIPT_POPULATION_PER_COST"));
+	int iConscriptPop = std::max(1, GC.getUnitInfo(eConscriptUnit).getProductionCost() /
+			GC.getDefineINT(CvGlobals::CONSCRIPT_POPULATION_PER_COST));
 
 	// call it "good value" if we get at least 1.4 times the normal hammers-per-conscript-pop.
 	// (with standard settings, this only happens for riflemen)
-	bool bGoodValue = 10 * GC.getUnitInfo(eConscriptUnit).getProductionCost() / (iConscriptPop * GC.getDefineINT("CONSCRIPT_POPULATION_PER_COST")) >= 14;
+	bool bGoodValue = 10 * GC.getUnitInfo(eConscriptUnit).getProductionCost() /
+			(iConscriptPop * GC.getDefineINT(CvGlobals::CONSCRIPT_POPULATION_PER_COST)) >= 14;
 
 	// one more thing... it's not "good value" if we already have too many troops.
 	if (!bLandWar && bGoodValue)
@@ -8137,7 +8150,7 @@ void CvCityAI::AI_doDraft(bool bForce)
 	if(!bDanger && !kOwner.AI_isFocusWar() && !bTooMuchPop)
 		return; // </advc.017>
 	// Large cities want a little spare happiness
-	int iHappyDiff = GC.getDefineINT("CONSCRIPT_POP_ANGER") - iConscriptPop + (bGoodValue ? 0 : getPopulation()/10);
+	int iHappyDiff = GC.getDefineINT(CvGlobals::CONSCRIPT_POP_ANGER) - iConscriptPop + (bGoodValue ? 0 : getPopulation()/10);
 
 	if((!bGoodValue && !bLandWar) || angryPopulation(iHappyDiff) > 0)
 		return; // advc.003
@@ -8251,7 +8264,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 		int iPopCost = 0;
 		// <advc.101> Don't whip in cities with revolt chance
 		if(iHurryAngerLength >= 3 && (revoltProbability(false, false, true) > 0 ||
-				(getNumRevolts() >= GC.getNUM_WARNING_REVOLTS() &&
+				(getNumRevolts() >= GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS) &&
 				revoltProbability(true, true, true) > 0)))
 			continue; // </advc.101>
 		int iOverflow = 0; // advc.121b
@@ -8259,7 +8272,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 		{
 			if (!isNoUnhappiness())
 			{
-				iHappyDiff = iHurryPopulation - GC.getDefineINT("HURRY_POP_ANGER");
+				iHappyDiff = iHurryPopulation - GC.getDefineINT(CvGlobals::HURRY_POP_ANGER);
 
 				if (iHurryAngerLength > 0 && getHurryAngerTimer() > 1)
 					iHappyDiff -= ROUND_DIVIDE((kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 4 : 3) * getHurryAngerTimer(), iHurryAngerLength);
@@ -8290,7 +8303,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 				return;
 			}
 
-			iPopCost = AI_citizenSacrificeCost(iHurryPopulation, iHappy, GC.getDefineINT("HURRY_POP_ANGER"), iHurryAngerLength);
+			iPopCost = AI_citizenSacrificeCost(iHurryPopulation, iHappy, GC.getDefineINT(CvGlobals::HURRY_POP_ANGER), iHurryAngerLength);
 			iPopCost += std::max(0, 6 * -iHappyDiff) * iHurryAngerLength;
 
 			if (kOwner.isHuman())
@@ -9005,16 +9018,17 @@ bool CvCityAI::AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist)
 	if (extraFreeSpecialists() < 0)
 	{
 		// does generic 'citizen' specialist exist?
-		if (GC.getDefineINT("DEFAULT_SPECIALIST") != NO_SPECIALIST)
+		if (GC.getDEFAULT_SPECIALIST() != NO_SPECIALIST)
 		{
 			// is ignore something other than generic citizen?
-			if (eIgnoreSpecialist != GC.getDefineINT("DEFAULT_SPECIALIST"))
+			if (eIgnoreSpecialist != GC.getDEFAULT_SPECIALIST())
 			{
 				// do we have at least one more generic citizen than we are forcing?
-				if (getSpecialistCount((SpecialistTypes)(GC.getDefineINT("DEFAULT_SPECIALIST"))) > getForceSpecialistCount((SpecialistTypes)(GC.getDefineINT("DEFAULT_SPECIALIST"))))
+				if (getSpecialistCount((SpecialistTypes)GC.getDEFAULT_SPECIALIST()) >
+					getForceSpecialistCount((SpecialistTypes)GC.getDEFAULT_SPECIALIST()))
 				{
 					// remove the extra generic citzen
-					changeSpecialistCount(((SpecialistTypes)(GC.getDefineINT("DEFAULT_SPECIALIST"))), -1);
+					changeSpecialistCount((SpecialistTypes)GC.getDEFAULT_SPECIALIST(), -1);
 					return true;
 				}
 			}
@@ -9827,7 +9841,8 @@ int CvCityAI::AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemo
 						{
 							if (kOwner.getNumCities() > 2)
 							{
-								iHappinessLevel += ((GC.getDefineINT("NO_MILITARY_PERCENT_ANGER") * (iPopulation + 1)) / GC.getPERCENT_ANGER_DIVISOR());
+								iHappinessLevel += ((GC.getDefineINT(CvGlobals::NO_MILITARY_PERCENT_ANGER) *
+										(iPopulation + 1)) / GC.getPERCENT_ANGER_DIVISOR());
 							}
 						}
 
@@ -10361,7 +10376,7 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 		// Devalue generic citizens (for no specific reason). (cf. AI_specialistValue)
 		/* if (no gpp)
 		{
-			SpecialistTypes eGenericCitizen = (SpecialistTypes) GC.getDefineINT("DEFAULT_SPECIALIST");
+			SpecialistTypes eGenericCitizen = (SpecialistTypes)GC.getDEFAULT_SPECIALIST();
 
 			if (eGenericCitizen != NO_SPECIALIST)
 			{
@@ -10402,9 +10417,9 @@ bool CvCityAI::AI_finalImprovementYieldDifference(
 					// Otherwise the improvement doesn't matter
 					pPlot->calculateNatureYield(i, getTeam()) < extraYieldThresh) {
 				if(pPlot->getYield(i) > extraYieldThresh)
-					iYieldDiff -= GC.getEXTRA_YIELD();
+					iYieldDiff -= GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 				if(pPlot->getYield(i) + iYieldDiff > extraYieldThresh)
-					iYieldDiff += GC.getEXTRA_YIELD();
+					iYieldDiff += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 				// Replacing the line below // </advc.908a>
 				//iYieldDiff += (pPlot->getYield(i) >= kOwner.getExtraYieldThreshold(i) ? -GC.getEXTRA_YIELD() : 0) + (pPlot->getYield(i)+iYieldDiff >= kOwner.getExtraYieldThreshold(i) ? GC.getEXTRA_YIELD() : 0);
 			}
@@ -10551,7 +10566,7 @@ int CvCityAI::AI_growthValuePerFood() const
 	for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i = (SpecialistTypes)(i+1))
 	{
 		// cf. CvCity::isSpecialistValid
-		int iAvailable = (kOwner.isSpecialistValid(i) || i == GC.getDefineINT("DEFAULT_SPECIALIST"))
+		int iAvailable = (kOwner.isSpecialistValid(i) || i == GC.getDEFAULT_SPECIALIST())
 			? 3
 			: std::min(3, getMaxSpecialistCount(i) - getSpecialistCount(i));
 
@@ -11052,7 +11067,7 @@ int CvCityAI::AI_getHappyFromHurry(int iHurryPopulation) const
 {
 	PROFILE_FUNC();
 
-	int iHappyDiff = iHurryPopulation - GC.getDefineINT("HURRY_POP_ANGER");
+	int iHappyDiff = iHurryPopulation - GC.getDefineINT(CvGlobals::HURRY_POP_ANGER);
 	if (iHappyDiff > 0)
 	{
 		if (getHurryAngerTimer() <= 1)
@@ -11751,7 +11766,7 @@ int CvCityAI::AI_countGoodSpecialists(bool bHealthy) const
 		{
 			//iCount += getMaxSpecialistCount(eSpecialist);
 			// K-Mod
-			if (kPlayer.isSpecialistValid(eSpecialist) || eSpecialist == GC.getDefineINT("DEFAULT_SPECIALIST"))
+			if (kPlayer.isSpecialistValid(eSpecialist) || eSpecialist == GC.getDEFAULT_SPECIALIST())
 				return getPopulation(); // unlimited
 			int delta = getMaxSpecialistCount(eSpecialist) - getSpecialistCount(eSpecialist);
 			/*  <advc.006> CvTeam::doResearch can obsolete a building
@@ -11851,7 +11866,7 @@ int CvCityAI::AI_buildingSeaYieldChangeWeight(BuildingTypes eBuilding, bool bGro
 	const CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
 
 	// only add the building's bonuses if it isn't already built - otherwise the building will be overvalued for sabortage missions.
-	bool bBonuses = getNumBuilding(eBuilding) < GC.getCITY_MAX_NUM_BUILDINGS();
+	bool bBonuses = getNumBuilding(eBuilding) < GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS);
 
 	for (int i = 0; i < NUM_CITY_PLOTS; i++)
 	{
@@ -12347,7 +12362,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc.03: */ const
 
 		// Evaluate the posibility of a naval assault.
 		if (isCoastal( // advc.131: Area size threshold was 10, now 20
-				2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+				2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN)))
 		{
 			// This evaluation may be expensive (when I finish writing it), so only do it if there is reason to be concerned.
 			if (kOwner.AI_isDoVictoryStrategyLevel4() ||
@@ -12680,7 +12695,7 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc.003: some style changes
 	// <advc.113> Replacing the line above
 	iUnimprovedWorkedPlotCount += ::round(((std::min(iUnimprovedUnworkedPlotCount,
 			iFutureWork) + 1) / 2.0)
-			* ((GC.getWORKER_RESERVE_PERCENT() + 100
+			* ((GC.getDefineINT(CvGlobals::WORKER_RESERVE_PERCENT) + 100
 			// Flavor was previously counted in CvPlayerAI::AI_neededWorkers
 			+ 2 * kOwner.AI_getFlavorValue(FLAVOR_GROWTH)) / 100.0));
 	// </advc.113>

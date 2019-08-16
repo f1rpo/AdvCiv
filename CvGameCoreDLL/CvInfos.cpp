@@ -1542,7 +1542,7 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			FAssertMsg(GC.getNUM_OR_TECH_PREREQS() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqOrTechs, GC.getNUM_OR_TECH_PREREQS(), -1);
-
+			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
@@ -1551,6 +1551,9 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						m_piPrereqOrTechs[j] = GC.getInfoTypeForString(szTextVal);
+						// <advc.003t>
+						if (m_piPrereqOrTechs[j] != NO_TECH)
+							bAnyReq = true; // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 						{
 							break;
@@ -1559,7 +1562,9 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			}
+			} // <advc.003t>
+			if (!bAnyReq)
+				SAFE_DELETE_ARRAY(m_piPrereqOrTechs); // </advc.003t>
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -1572,7 +1577,7 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			FAssertMsg(GC.getNUM_AND_TECH_PREREQS() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_AND_TECH_PREREQS(), -1);
-
+			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
@@ -1581,6 +1586,9 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						m_piPrereqAndTechs[j] = GC.getInfoTypeForString(szTextVal);
+						// <advc.003t>
+						if (m_piPrereqAndTechs[j] != NO_TECH)
+							bAnyReq = true; // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 						{
 							break;
@@ -1589,7 +1597,9 @@ bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			}
+			} // <advc.003t>
+			if (!bAnyReq)
+				SAFE_DELETE_ARRAY(m_piPrereqAndTechs); // </advc.003t>
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -2626,7 +2636,7 @@ int CvActionInfo::getCommandData() const
 	}
 	else if (ACTIONSUBTYPE_AUTOMATE == m_eSubType)
 	{
-		return GC.getAutomateInfo(m_iOriginalIndex).getAutomate();
+		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getAutomate();
 	}
 
 	return -1;
@@ -2641,7 +2651,7 @@ int CvActionInfo::getAutomateType() const
 	}
 	else if (ACTIONSUBTYPE_AUTOMATE == m_eSubType)
 	{
-		return GC.getAutomateInfo(m_iOriginalIndex).getAutomate();
+		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getAutomate();
 	}
 
 	return NO_AUTOMATE;
@@ -2702,7 +2712,7 @@ int CvActionInfo::getCommandType() const
 	}
 	else if (ACTIONSUBTYPE_AUTOMATE == m_eSubType)
 	{
-		return GC.getAutomateInfo(m_iOriginalIndex).getCommand();
+		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getCommand();
 	}
 
 	return NO_COMMAND;
@@ -2735,7 +2745,7 @@ bool CvActionInfo::isConfirmCommand() const
 	}
 	else if (ACTIONSUBTYPE_AUTOMATE == m_eSubType)
 	{
-		return GC.getAutomateInfo(m_iOriginalIndex).getConfirmCommand();
+		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getConfirmCommand();
 	}
 
 	return false;
@@ -2754,7 +2764,7 @@ bool CvActionInfo::isVisible() const
 	}
 	else if (ACTIONSUBTYPE_AUTOMATE == m_eSubType)
 	{
-		return GC.getAutomateInfo(m_iOriginalIndex).getVisible();
+		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getVisible();
 	}
 	else if (ACTIONSUBTYPE_MISSION == m_eSubType)
 	{
@@ -2813,7 +2823,7 @@ CvHotkeyInfo* CvActionInfo::getHotkeyInfo() const
 			return &GC.getControlInfo((ControlTypes)getOriginalIndex());
 			break;
 		case ACTIONSUBTYPE_AUTOMATE:
-			return &GC.getAutomateInfo(getOriginalIndex());
+			return &GC.getAutomateInfo((AutomateTypes)getOriginalIndex());
 			break;
 		case ACTIONSUBTYPE_MISSION:
 			return &GC.getMissionInfo((MissionTypes)getOriginalIndex());
@@ -4927,7 +4937,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			FAssertMsg(GC.getNUM_UNIT_AND_TECH_PREREQS() > 0 , "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_UNIT_AND_TECH_PREREQS(), -1);
-
+			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
@@ -4936,6 +4946,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqAndTechs[j] = pXML->FindInInfoClass(szTextVal);
+						// <advc.003t>
+						if (m_piPrereqAndTechs[j] != NO_TECH)
+							bAnyReq = true; // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 						{
 							break;
@@ -4944,7 +4957,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			}
+			} // <advc.003t>
+			if (!bAnyReq)
+				SAFE_DELETE_ARRAY(m_piPrereqAndTechs); // </advc.003t>
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -4960,7 +4975,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			FAssertMsg(GC.getNUM_UNIT_PREREQ_OR_BONUSES() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
 			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
-
+			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
@@ -4969,6 +4984,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
+						// <advc.003t>
+						if (m_piPrereqOrBonuses[j] != NO_BONUS)
+							bAnyReq = true; // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 						{
 							break;
@@ -4977,7 +4995,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			}
+			} // <advc.003t>
+			if (!bAnyReq)
+				SAFE_DELETE_ARRAY(m_piPrereqOrBonuses); // </advc.003t>
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -7738,17 +7758,7 @@ int* CvBuildingInfo::getSpecialistYieldChangeArray(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_ppaiSpecialistYieldChange[i];
 }
-// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
-bool CvBuildingInfo::isAnySpecialistYieldChange() const
-{
-	return m_bAnySpecialistYieldChange;
-}
 
-bool CvBuildingInfo::isAnyBonusYieldModifier() const
-{
-	return m_bAnyBonusYieldModifier;
-}
-// UNOFFICIAL_PATCH: END
 int CvBuildingInfo::getBonusYieldModifier(int i, int j) const
 {
 	FAssertMsg(i < GC.getNumBonusInfos(), "Index out of bounds");
@@ -8384,7 +8394,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_BUILDING_AND_TECH_PREREQS(), -1);
-
+			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
 				if (pXML->GetChildXmlVal(szTextVal))
@@ -8393,6 +8403,9 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqAndTechs[j] = pXML->FindInInfoClass(szTextVal);
+						// <advc.003t>
+						if (m_piPrereqAndTechs[j] != NO_TECH)
+							bAnyReq = true; // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 						{
 							break;
@@ -8401,7 +8414,9 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			}
+			} // <advc.003t>
+			if (!bAnyReq)
+				SAFE_DELETE_ARRAY(m_piPrereqAndTechs); // </advc.003t>
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -8420,7 +8435,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 			// get the total number of children the current xml node has
 			int iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), -1);
-
+			bool bAnyReq = false; // advc.003t
 			if (iNumChildren > 0)
 			{
 				// if the call to the function that sets the current xml node to it's first non-comment
@@ -8434,7 +8449,9 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 						// call the find in list function to return either -1 if no value is found
 						// or the index in the list the match is found at
 						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
-
+						// <advc.003t>
+						if (m_piPrereqOrBonuses[j] != NO_BONUS)
+							bAnyReq = true; // </advc.003t>
 						// if the call to the function that sets the current xml node to it's first non-comment
 						// sibling and sets the parameter with the new node's value does not succeed
 						// we will break out of this for loop
@@ -8447,7 +8464,9 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 					// set the current xml node to it's parent node
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			}
+			} // <advc.003t>
+			if (!bAnyReq)
+				SAFE_DELETE_ARRAY(m_piPrereqOrBonuses); // </advc.003t>
 		}
 
 		// set the current xml node to it's parent node
@@ -9073,7 +9092,7 @@ bool CvBuildingClassInfo::isMonument() const
 
 // Arrays
 
-/*  advc (comment): Unused. Number of buildings of this class required for
+/*  advc (comment): Unused in XML. Number of buildings of this class required for
 	victory i as a necessary (not sufficient) condition. */
 int CvBuildingClassInfo::getVictoryThreshold(int i) const
 {
@@ -12589,7 +12608,6 @@ m_bFlatlands(false),
 m_bNoRiverSide(false),
 m_bNormalize(false),
 m_piYieldChange(NULL),
-m_piImprovementChange(NULL),
 m_pbTerrain(NULL),
 m_pbFeature(NULL),
 m_pbFeatureTerrain(NULL)
@@ -12606,7 +12624,6 @@ m_pbFeatureTerrain(NULL)
 CvBonusInfo::~CvBonusInfo()
 {
 	SAFE_DELETE_ARRAY(m_piYieldChange);
-	SAFE_DELETE_ARRAY(m_piImprovementChange);
 	SAFE_DELETE_ARRAY(m_pbTerrain);
 	SAFE_DELETE_ARRAY(m_pbFeature);
 	SAFE_DELETE_ARRAY(m_pbFeatureTerrain);	// free memory - MT
@@ -12786,13 +12803,6 @@ int* CvBonusInfo::getYieldChangeArray()
 	return m_piYieldChange;
 }
 
-int CvBonusInfo::getImprovementChange(int i) const
-{
-	FAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piImprovementChange ? m_piImprovementChange[i] : 0; // advc.003t
-}
-
 bool CvBonusInfo::isTerrain(int i) const
 {
 	FAssertMsg(i < GC.getNumTerrainInfos(), "Index out of bounds");
@@ -12873,11 +12883,6 @@ void CvBonusInfo::read(FDataStreamBase* stream)
 	SAFE_DELETE_ARRAY(m_piYieldChange);
 	m_piYieldChange = new int[NUM_YIELD_TYPES];
 	stream->Read(NUM_YIELD_TYPES, m_piYieldChange);
-
-	SAFE_DELETE_ARRAY(m_piImprovementChange);
-	m_piImprovementChange = new int[GC.getNumImprovementInfos()];
-	stream->Read(GC.getNumImprovementInfos(), m_piImprovementChange);
-
 	SAFE_DELETE_ARRAY(m_pbTerrain);
 	m_pbTerrain = new bool[GC.getNumTerrainInfos()];
 	stream->Read(GC.getNumTerrainInfos(), m_pbTerrain);
@@ -12934,7 +12939,6 @@ void CvBonusInfo::write(FDataStreamBase* stream)
 	// Arrays
 
 	stream->Write(NUM_YIELD_TYPES, m_piYieldChange);
-	stream->Write(GC.getNumImprovementInfos(), m_piImprovementChange);
 	stream->Write(GC.getNumTerrainInfos(), m_pbTerrain);
 	stream->Write(GC.getNumFeatureInfos(), m_pbFeature);
 	stream->Write(GC.getNumTerrainInfos(), m_pbFeatureTerrain);
@@ -16516,35 +16520,41 @@ void CvTraitInfo::setShortDescription(const TCHAR* szVal)
 	m_szShortDescription = szVal;
 }
 
-// Arrays
+// Arrays  // advc.003t: FASSERT_BOUNDS calls added
 
 int CvTraitInfo::getExtraYieldThreshold(int i) const
 {
+	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTraitInfo::getExtraYieldThreshold");
 	return m_paiExtraYieldThreshold ? m_paiExtraYieldThreshold[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getTradeYieldModifier(int i) const
 {
+	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTraitInfo::getTradeYieldModifier");
 	return m_paiTradeYieldModifier ? m_paiTradeYieldModifier[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getCommerceChange(int i) const
 {
+	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvTraitInfo::getCommerceChange");
 	return m_paiCommerceChange ? m_paiCommerceChange[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getCommerceModifier(int i) const
 {
+	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvTraitInfo::getCommerceModifier");
 	return m_paiCommerceModifier ? m_paiCommerceModifier[i] : 0; // advc.003t
 }
 
 bool CvTraitInfo::isFreePromotion(int i) const // advc.003t: Return type was int
 {
+	FASSERT_BOUNDS(0, GC.getNumPromotionInfos(), i, "CvTraitInfo::isFreePromotion");
 	return m_pabFreePromotion ? m_pabFreePromotion[i] : false;
 }
 
 bool CvTraitInfo::isFreePromotionUnitCombat(int i) const // advc.003t: Return type was int
 {
+	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvTraitInfo::isFreePromotionUnitCombat");
 	return m_pabFreePromotionUnitCombat ? m_pabFreePromotionUnitCombat[i] : false;
 }
 

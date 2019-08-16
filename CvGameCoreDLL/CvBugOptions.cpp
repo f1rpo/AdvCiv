@@ -15,31 +15,20 @@ Created:	2009-01-21
 #include "CvGameAI.h"
 #include "FVariableSystem.h"
 
-bool getDefineBOOL(const char* xmlKey, bool bDefault)
-{
+// advc.003t: Replaced by functions in CvGlobals
+/*bool getDefineBOOL(const char* xmlKey, bool bDefault) {
 	int iResult = 0;
 	if (GC.getDefinesVarSystem()->GetValue(xmlKey, iResult))
-	{
 		return iResult != 0;
-	}
-	else
-	{
-		return bDefault;
-	}
+	else return bDefault;
 }
 
-int getDefineINT(const char* xmlKey, int iDefault)
-{
+int getDefineINT(const char* xmlKey, int iDefault) {
 	int iResult = 0;
 	if (GC.getDefinesVarSystem()->GetValue(xmlKey, iResult))
-	{
 		return iResult;
-	}
-	else
-	{
-		return iDefault;
-	}
-}
+	else return iDefault;
+}*/
 
 // <advc.003>
 bool checkBUGStatus(const char* optionKey, bool bWarn) {

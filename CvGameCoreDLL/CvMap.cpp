@@ -562,133 +562,85 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 	}
 }
 
-CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
-		int* piLegal) // advc.304
+
+CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
+		int iMinCivUnitDistance, // advc.300: Renamed from iMinUnitDistance
+		int iTimeout,
+		int* piValidCount) // advc.304: Number of valid tiles
 {
-	/*  <advc.304> The standard 100 trials for Monte Carlo selection often fail to
-		find a plot when only handful of tiles are legal on large maps.
-		10000 trials would probably do, but that isn't much faster anymore than
-		gathering all valid plots upfront - which is what I'm doing. */
-	/*while (iCount < iTimeout) {
-		pTestPlot = plotSoren(GC.getGame().getSorenRandNum(getGridWidth(), "Rand Plot Width"), GC.getGame().getSorenRandNum(getGridHeight(), "Rand Plot Height"));*/
-	std::vector<CvPlot*> apLegalPlots;
-	for(int i = 0; i < numPlots(); i++) {
-		CvPlot* pTestPlot = plotByIndex(i);
-		if(pTestPlot == NULL)
-			continue; // </advc.304>
-		if (iArea == -1 || pTestPlot->getArea() == iArea)
-		{
-			bool bValid = true;
-
-			/* advc.300: Code moved into a new function.
-			   Barbarians in surrounding plots are now ignored.. */
-			if(pTestPlot->isCivUnitNearby(iMinUnitDistance) || pTestPlot->isUnit())
-				bValid = false;
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_LAND)
-				{
-					if (pTestPlot->isWater())
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_UNOWNED)
-				{
-					if (pTestPlot->isOwned())
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_ADJACENT_UNOWNED)
-				{
-					if (pTestPlot->isAdjacentOwned())
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_ADJACENT_LAND)
-				{
-					if (!(pTestPlot->isAdjacentToLand()))
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_PASSABLE)
-				{
-					if (pTestPlot->isImpassable())
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_NOT_VISIBLE_TO_CIV)
-				{
-					if (pTestPlot->isVisibleToCivTeam())
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			if (bValid)
-			{
-				if (iFlags & RANDPLOT_NOT_CITY)
-				{
-					if (pTestPlot->isCity())
-					{
-						bValid = false;
-					}
-				}
-			}
-
-			// <advc.300>
-			if(bValid && (iFlags & RANDPLOT_HABITABLE) &&
-					pTestPlot->getYield(YIELD_FOOD) <= 0)
-				bValid = false;
-			if(bValid && (iFlags & RANDPLOT_WATERSOURCE) &&
-					!pTestPlot->isFreshWater() && pTestPlot->getYield(YIELD_FOOD) <= 0)
-				bValid = false; // </advc.300>
-
-			if (bValid)
-			{
-				apLegalPlots.push_back(pTestPlot); // advc.304
-				/*pPlot = pTestPlot;
-				break;*/
-			}
+	/*  <advc.304> Look exhaustively for a valid plot by default. Rationale:
+		The biggest maps have about 10000 plots. If there is only one valid plot,
+		then the BtS default of considering 100 plots drawn at random has only a
+		(ca.) 1% chance of success. 10000 trials - slower than exhaustive search! -
+		still have only a 63% chance of success. Also bear in mind that the
+		1 plot in 10000 could be 1 of just 3 plots in the given pArea (or the only
+		plot there), so not exactly a needle in a haystack from the caller's pov. */
+	if (iTimeout < 0)
+	{
+		std::vector<CvPlot*> apValidPlots;
+		for(int i = 0; i < numPlots(); i++) {
+			CvPlot& kPlot = *plotByIndex(i);
+			if (isValidRandPlot(kPlot, iFlags, pArea, iMinCivUnitDistance))
+				apValidPlots.push_back(&kPlot);
 		}
-
-		// <advc.304>
-		//iCount++;
+		int iValid = (int)apValidPlots.size();
+		if(piValidCount != NULL)
+			*piValidCount = iValid;
+		if(iValid == 0)
+			return NULL;
+		return apValidPlots[GC.getGame().getSorenRandNum(iValid, "advc.304")];
 	}
-	//return pPlot;
-	int iLegal = (int)apLegalPlots.size();
-	if(piLegal != NULL)
-		*piLegal = iLegal;
-	if(iLegal == 0)
-		return NULL;
-	return apLegalPlots[GC.getGame().getSorenRandNum(iLegal, "advc.304")];
+	FAssert(iTimeout != 0);
+	/*  BtS code (refactored): Limited number of trials
+		(can be faster or slower than the above; that's not really the point) */
 	// </advc.304>
+	for (int i = 0; i < iTimeout; i++) {
+		CvPlot& kTestPlot = *plotSoren(
+				GC.getGame().getSorenRandNum(getGridWidth(), "Rand Plot Width"),
+				GC.getGame().getSorenRandNum(getGridHeight(), "Rand Plot Height"));
+		if (isValidRandPlot(kTestPlot, iFlags, pArea, iMinCivUnitDistance))
+		{	/*  <advc.304> Not useful, but want to make sure it doesn't stay
+				uninitialized. 1 since we found only 1 valid plot. */
+			if(piValidCount != NULL)
+				*piValidCount = 1; // </advc.304>
+			return &kTestPlot;
+		}
+	} // <advc.304>
+	if(piValidCount != NULL)
+		*piValidCount = 0; // </advc.304>
+	return NULL;
+}
+
+// advc.003: Body cut from syncRandPlot
+bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
+		int iMinCivUnitDistance) const
+{
+	if (pArea != NULL && kPlot.area() != pArea)
+		return false;
+	/*  advc.300: Code moved into new function isCivUnitNearby;
+		Barbarians in surrounding plots are now ignored. */
+	if(iMinCivUnitDistance >= 0 && (kPlot.isUnit() || kPlot.isCivUnitNearby(iMinCivUnitDistance)))
+		return false;
+	if ((iFlags & RANDPLOT_LAND) && kPlot.isWater())
+		return false;
+	if ((iFlags & RANDPLOT_UNOWNED) && kPlot.isOwned())
+		return false;
+	if ((iFlags & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
+		return false;
+	if ((iFlags & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
+		return false;
+	if ((iFlags & RANDPLOT_PASSABLE) && kPlot.isImpassable())
+		return false;
+	if ((iFlags & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
+		return false;
+	if ((iFlags & RANDPLOT_NOT_CITY) && kPlot.isCity())
+		return false;
+	// <advc.300>
+	if((iFlags & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
+		return false;
+	if((iFlags & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() && kPlot.getYield(YIELD_FOOD) <= 0)
+		return false; // </advc.300>
+	return true;
 }
 
 
@@ -816,7 +768,7 @@ int CvMap::getMapFractalFlags() const
 
 
 //"Check plots for wetlands or seaWater.  Returns true if found"
-bool CvMap::findWater(CvPlot* pPlot, int iRange, bool bFreshWater)
+bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc.003: const CvPlot*
 {
 	PROFILE("CvMap::findWater()");
 
@@ -862,12 +814,6 @@ bool CvMap::isPlotExternal(int iX, int iY) const // advc.003f
 int CvMap::numPlotsExternal() const // advc.003f
 {
 	return numPlots();
-}
-
-
-int CvMap::plotNumExternal(int iX, int iY) const // advc.003f
-{
-	return plotNum(iX, iY);
 }
 
 
@@ -954,7 +900,8 @@ int CvMap::maxStepDistance() const
 // <advc.140>
 int CvMap::maxMaintenanceDistance() const {
 
-	return ::round(1 + maxPlotDistance() * (10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
+	return ::round(1 + maxPlotDistance() * (10.0 /
+			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE)));
 } // </advc.140>
 
 int CvMap::getGridWidthExternal() const // advc.003f

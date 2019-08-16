@@ -169,7 +169,7 @@ void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r) {
 // <advc.035>
 void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 
-	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return;
 	// Sufficient to check plots around the teams' cities
 	vector<CvCity const*> apCities;
@@ -772,7 +772,7 @@ bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit)
 		return true;
 	}
 
-	for (iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(); iI++)
+	for (iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(eUnit); iI++)
 	{
 		if (info.getPrereqAndTechs(iI) == eTech)
 		{
@@ -1022,7 +1022,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	iDefenderHighFS = (pAttacker->immuneToFirstStrikes()) ? 0 : (pDefender->firstStrikes() + pDefender->chanceFirstStrikes());
 
 	// UncutDragon
-	if (GC.getLFBEnable())
+	if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE))
 		return LFBgetCombatOdds(iAttackerLowFS, iAttackerHighFS, iDefenderLowFS, iDefenderHighFS, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
 	// /UncutDragon
 
@@ -1172,7 +1172,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 // K-Mod
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam)
 {
-	int iBaseCollateral = GC.getDefineINT("COLLATERAL_COMBAT_DAMAGE"); // note: the default xml value is "10"
+	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // note: the default xml value is "10"
 
 	// Collateral damage does not depend on any kind of strength bonus - so when a unit takes collateral damage, their bonuses are effectively wasted.
 	// Therefore, I'm going to inflate the value of collateral damage based on a rough estimate of the defenders bonuses might be.
@@ -1245,8 +1245,10 @@ int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
 	int iPopScale = 5 * GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities();
 	int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
 	int iOurPoints = 10 * kOurTeam.getEspionagePointsEver() / std::max(1, iPopScale + kOurTeam.getTotalPopulation(false));
-
-	return GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * std::max(1, 2 * iTargetPoints + iOurPoints) / std::max(1, iTargetPoints + 2 * iOurPoints);
+	static int const iESPIONAGE_SPENDING_MULTIPLIER = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER"); // advc.003b
+	return iESPIONAGE_SPENDING_MULTIPLIER *
+			std::max(1, 2 * iTargetPoints + iOurPoints) /
+			std::max(1, iTargetPoints + 2 * iOurPoints);
 	// K-Mod end
 }
 
@@ -1870,8 +1872,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	}
 	// K-Mod end
 	// <advc.035>
-	else if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && (iFlags & MOVE_DECLARE_WAR) &&
-			eTeam != BARBARIAN_TEAM) {
+	else if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) &&
+			(iFlags & MOVE_DECLARE_WAR) && eTeam != BARBARIAN_TEAM) {
 		PlayerTypes const eSecondOwner = pToPlot->getSecondOwner();
 		PlayerTypes const eFirstOwner = pToPlot->getOwner();
 		if(eSecondOwner != NO_PLAYER && eFirstOwner != NO_PLAYER &&
@@ -2052,11 +2054,11 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 
 		// Damage caused by features (for mods)
-		if (GC.getPATH_DAMAGE_WEIGHT() != 0)
+		if (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) != 0)
 		{
 			if (pToPlot->getFeatureType() != NO_FEATURE)
 			{
-				iWorstCost += (GC.getPATH_DAMAGE_WEIGHT() * std::max(0, GC.getFeatureInfo(pToPlot->getFeatureType()).getTurnDamage())) / GC.getMAX_HIT_POINTS();
+				iWorstCost += (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) * std::max(0, GC.getFeatureInfo(pToPlot->getFeatureType()).getTurnDamage())) / GC.getMAX_HIT_POINTS();
 			}
 
 			if (pToPlot->getExtraMovePathCost() > 0)
@@ -2115,7 +2117,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 						if (pLoopUnit->canAttack() && !pLoopUnit->isRiver() && pFromPlot->isRiverCrossing(directionXY(pFromPlot, pToPlot)))
 						{
-							iAttackWeight -= PATH_RIVER_WEIGHT * GC.getRIVER_ATTACK_MODIFIER(); // Note, river modifier will be negative.
+							iAttackWeight -= PATH_RIVER_WEIGHT * GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER); // Note, river modifier will be negative.
 							//iAttackMod -= (PATH_MOVEMENT_WEIGHT * iMovesLeft);
 						}
 					}
@@ -2536,9 +2538,9 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			!m.plot(parent->m_iX, node->m_iY)->isWater() &&
 			!m.plot(node->m_iX, parent->m_iY)->isWater())
 		return FALSE;
-	TeamTypes ePlotTeam = kToPlot.getTeam();
+	TeamTypes const ePlotTeam = kToPlot.getTeam();
 	int* v = (int*)pointer;
-	int iMaxPath = v[5];
+	int const iMaxPath = v[5];
 	/*  As far as I understand the code, node (the pToPlot) is still set to 0
 		cost if it's visited for the first time, so we should look at parent
 		(pFromPlot) when enforcing the upper bound (iMaxPath). But it doesn't
@@ -2546,8 +2548,8 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
 			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
 		return FALSE;
-	TeamTypes eTeam = (TeamTypes)v[0]; // The team that computes the path
-	TeamTypes eTargetTeam = (TeamTypes)v[1];
+	TeamTypes const eTeam = (TeamTypes)v[0]; // The team that computes the path
+	TeamTypes const eTargetTeam = (TeamTypes)v[1];
 	DomainTypes eDom = (DomainTypes)v[2];
 	if(eDom == NO_DOMAIN)
 		eDom = DOMAIN_LAND;
@@ -2559,7 +2561,8 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFromPlot.isCity() &&
 			kFromPlot.getTeam() != BARBARIAN_TEAM)
 		return FALSE; // </advc.033>
-	bool bCoastalCity = kToPlot.isCity(true) && kToPlot.isCoastalLand();
+	bool const bCoastalCity = kToPlot.isCity(true) && kToPlot.isCoastalLand();
+	bool const bDestination = kToPlot.at(v[3], v[4]);
 	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
 	bool bImpassableTerrain = false;
 	if(eDom == DOMAIN_IMMOBILE) {
@@ -2567,13 +2570,12 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		eDom = DOMAIN_SEA;
 	}
 	if(eDom == DOMAIN_SEA && !bCoastalCity && !kToPlot.isWater() &&
-			// Allow non-city land tile as cargo destination
-			(kToPlot.getX() != v[3] || kToPlot.getY() != v[4]))
+			!bDestination) // Allow non-city land tile as cargo destination
 		return FALSE;
-	/*  This handles only Coast and no other terrain types that a mod might make
-		impassable */
-	if(!bCoastalCity && ePlotTeam != eTeam && bImpassableTerrain &&
-			kToPlot.getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
+	if(!bCoastalCity && !bDestination && ePlotTeam != eTeam && bImpassableTerrain &&
+			/*  This handles only Coast and no other water terrain types that a mod-mod 
+				might make passable */
+			kToPlot.getTerrainType() != GC.getWATER_TERRAIN(true))
 		return FALSE;
 	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)

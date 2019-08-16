@@ -167,7 +167,7 @@ void CvSelectionGroup::doTurn()
 	{
 		if (pHeadUnit->isSpy() && pHeadUnit->plot()->getTeam() != getTeam())
 		{
-			if (pHeadUnit->getFortifyTurns() == GC.getDefineINT("MAX_FORTIFY_TURNS")-1)
+			if (pHeadUnit->getFortifyTurns() == GC.getDefineINT(CvGlobals::MAX_FORTIFY_TURNS)-1)
 			{
 				setActivityType(ACTIVITY_AWAKE); // time to wake up!
 			}
@@ -259,18 +259,15 @@ void CvSelectionGroup::doTurn()
 			int iBestWaitTurns = 0;
 
 			CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
 			while (pUnitNode != NULL)
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = nextUnitNode(pUnitNode);
 
-				int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGame().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
-
+				int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") -
+						(GC.getGame().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
 				if (iWaitTurns > iBestWaitTurns)
-				{
 					iBestWaitTurns = iWaitTurns;
-				}
 			}
 
 			setMissionTimer(std::max(iBestWaitTurns, getMissionTimer()));
@@ -311,7 +308,12 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 	if (GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
 			GC.getGame().isSimultaneousTeamTurns())
 		return false;
-
+	// <advc.102>
+	static bool const bShowWorkers = GC.getDefineBOOL("SHOW_FRIENDLY_WORKER_MOVES");
+	static bool const bShowShips = GC.getDefineBOOL("SHOW_FRIENDLY_SEA_MOVES");
+	// Also refers to Executives; those have the same Unit AI.
+	static bool const bShowMissionaries = GC.getDefineBOOL("SHOW_FRIENDLY_MISSIONARY_MOVES");
+	// </advc.102>
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
@@ -338,10 +340,6 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 		bool bInSpectatorsBorders = ((eFromOwner != NO_PLAYER &&
 				eObs == TEAMID(eFromOwner)) || (eToOwner != NO_PLAYER &&
 				eObs == TEAMID(eToOwner)));
-		bool bShowWorkers = GC.getDefineINT("SHOW_FRIENDLY_WORKER_MOVES"),
-			 bShowShips = GC.getDefineINT("SHOW_FRIENDLY_SEA_MOVES"),
-			// Also refers to Executives; those have the same Unit AI.
-			 bShowMissionaries = GC.getDefineINT("SHOW_FRIENDLY_MISSIONARY_MOVES");
 		bool bEnteringOrLeaving = (plot()->isVisible(eObs, false) != kFromPlot.isVisible(eObs, false));
 		bool bSeaPatrol = (getDomainType() == DOMAIN_SEA &&
 				AI_getMissionAIType() == MISSIONAI_PATROL);

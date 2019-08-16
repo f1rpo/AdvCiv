@@ -655,8 +655,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	{
 		// cf. CvTeam::getResearchCost
 		int iCostMultiplier = 100;
-		iCostMultiplier *= 100 + GC.getDefineINT("TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER") * (getNumMembers() - 1); // new
-		iCostMultiplier /= 100 + GC.getDefineINT("TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER") * (iOriginalTeamSize - 1); // old
+		iCostMultiplier *= 100 + GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) * (getNumMembers() - 1); // new
+		iCostMultiplier /= 100 + GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) * (iOriginalTeamSize - 1); // old
 
 		FAssert(iCostMultiplier >= 100);
 
@@ -1707,7 +1707,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	   correct behaviour would be to have all attack the inital attacker,
 	   but additional wars are declared due to recursive calls of declareWar
 	   in the loop below.' */
-	if(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 0 || (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 1 && bPrimaryDoW))
+	int const iDPBehavior = GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR);
+	if(iDPBehavior == 0 || (iDPBehavior == 1 && bPrimaryDoW))
 		cancelDefensivePacts();
 	bool bDefPactTriggered = false; // advc.104i
 	for (iI = 0; iI < MAX_TEAMS; iI++)
@@ -1731,7 +1732,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 					makeUnwillingToTalk((TeamTypes)iI);
 				} // </advc.104i>
 			}
-			else if(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() > 1 && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
+			else if (iDPBehavior > 1 && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
 			{
 				// For alliance option.  This teams pacts are canceled above if not using alliance option.
 				//GET_TEAM((TeamTypes)iI).declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
@@ -1741,7 +1742,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		}
 	}
 
-	if (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 0)// dlph.3: || (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 1 && bPrimaryDoW))
+	if (iDPBehavior == 0)// dlph.3: || (iDPBehavior == 1 && bPrimaryDoW))
 	{
 		GET_TEAM(eTeam).cancelDefensivePacts();
 	}
@@ -1869,7 +1870,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
 	AI_setWarPlan(eTeam, NO_WARPLAN);
 	GET_TEAM(eTeam).AI_setWarPlan(getID(), NO_WARPLAN);
 	// <advc.034>
-	if(!bCapitulate && GC.getDefineINT("DISENGAGE_LENGTH") > 0)
+	if(!bCapitulate && GC.getDefineINT(CvGlobals::DISENGAGE_LENGTH) > 0)
 		signDisengage(eTeam); // </advc.034>
 
 	if (bBumpUnits)
@@ -2977,7 +2978,8 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	int iModifier = 100 + GC.getEraInfo(eTechEra).getTechCostModifier();
 	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
-	iModifier += GC.getTECH_COST_MODIFIER();
+	static int const iTECH_COST_MODIFIER = GC.getDefineINT("TECH_COST_MODIFIER");
+	iModifier += iTECH_COST_MODIFIER;
 	// </advc.910>
 	if (bGlobalModifiers) // K-Mod
 	{	// advc.003:
@@ -2998,7 +3000,8 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 		} // </advc.308>
 		// <advc.550d>
 		if(g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6) {
-			iModifier += std::max(0, ::round((GC.getTECH_COST_NOTRADE_MODIFIER() + 5 *
+			static int const iTECH_COST_NOTRADE_MODIFIER = GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER");
+			iModifier += std::max(0, ::round((iTECH_COST_NOTRADE_MODIFIER + 5 *
 					std::pow(std::abs(eTechEra - 2.5), 1.5)) *
 					::dRange((kWorld.getDefaultPlayers() - 2) / 6.0, 0, 2)));
 		} // </advc.550d>
@@ -3007,7 +3010,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	if (bTeamSizeModifiers) // K-Mod
 	{
 		cost *= 0.01 * std::max(0, 100 +
-				GC.getDefineINT("TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER") *
+				GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) *
 				(getNumMembers() - 1));
 	}
 	// <advc.251>
@@ -3089,7 +3092,7 @@ bool CvTeam::canSeeReqBonuses(UnitTypes eUnit) {
 	if(eAndBonus != NO_BONUS && !isBonusRevealed(eAndBonus))
 		return false;
 	bool bAllBlank = true; // Handle dummy NONE XML elements
-	for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+	for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++) {
 		BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(i);
 		if(eOrBonus != NO_BONUS) {
 			bAllBlank = false;
@@ -7084,15 +7087,16 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 			changeCommerceFlexibleCount(((CommerceTypes)iI), iChange);
 		}
 	}
-
-	for (iI = 0; iI < GC.getNumTerrainInfos(); iI++)
+	if (GC.getTechInfo(eTech).isAnyTerrainTrade()) // advc.003t
 	{
-		if (GC.getTechInfo(eTech).isTerrainTrade(iI))
+		for (iI = 0; iI < GC.getNumTerrainInfos(); iI++)
 		{
-			changeTerrainTradeCount(((TerrainTypes)iI), iChange);
+			if (GC.getTechInfo(eTech).isTerrainTrade(iI))
+			{
+				changeTerrainTradeCount(((TerrainTypes)iI), iChange);
+			}
 		}
 	}
-
 	if (GC.getTechInfo(eTech).isRiverTrade())
 	{
 		changeRiverTradeCount(iChange);

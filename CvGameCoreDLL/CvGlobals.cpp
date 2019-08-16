@@ -147,175 +147,49 @@ m_aeTurnRightDirection(NULL),
 //m_aPlayerOptionsInfo(NULL),
 m_Profiler(NULL),
 m_VarSystem(NULL),
-m_bCachingDone(false), // advc.003c
+m_paHints(NULL),
+m_paMainMenus(NULL),
+m_aiGlobalDefinesCache(NULL), // advc.003t, advc.003c
 m_bHoFScreenUp(false), // advc.106i
-m_iEXTRA_YIELD(0), // K-Mod
-m_bJOIN_WAR_DIPLO_BONUS(false), // advc.130s
-m_iTILE_CULTURE_DECAY_PER_MILL(0), // advc.099
-m_iCITY_RADIUS_DECAY(0), // advc.099b
-m_iREVOLTS_IGNORE_CULTURE_RANGE(0), // advc.099c
-m_iNUM_WARNING_REVOLTS(0), // advc.101
-m_iMAX_DISTANCE_CITY_MAINTENANCE(0), // advc.140
-m_iOWN_EXCLUSIVE_RADIUS(0), // advc.035
-// <advc.003b>
-m_iDIPLOMACY_VALUE_REMAINDER(0),
-m_iPEACE_TREATY_LENGTH(0),
-m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER(0),
-m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
-// </advc.003b>
-m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER(0), // advc.210
-m_iENABLE_005F(0), // advc.005f
-m_iPER_PLAYER_MESSAGE_CONTROL_LOG(0), // advc.007
-m_iUWAI_MULTI_WAR_RELUCTANCE(0), // advc.104
-m_iCITY_TRADE_CULTURE_THRESH(0), // advc.122
-m_iMINIMAP_WATER_MODE(0), // advc.002a
-m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
-m_iBASE_RESEARCH_RATE(0), // advc.910
-m_iNEW_HURRY_MODIFIER(0), // advc.003b
-m_fPOWER_CORRECTION(0), // advc.104
-m_iEXTRA_DEFENDER_ERA(NO_ERA), // advc.107
-m_iWORKER_RESERVE_PERCENT(0), // advc.113
-m_iMOVE_DENOMINATOR(0),
-m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
-m_iNUM_BUILDING_PREREQ_OR_BONUSES(0),
-m_iFOOD_CONSUMPTION_PER_POPULATION(0),
-m_iMAX_HIT_POINTS(0),
-m_iPATH_DAMAGE_WEIGHT(0),
-m_iHILLS_EXTRA_DEFENSE(0),
-m_iRIVER_ATTACK_MODIFIER(0),
-m_iAMPHIB_ATTACK_MODIFIER(0),
-m_iHILLS_EXTRA_MOVEMENT(0),
-m_iMAX_PLOT_LIST_ROWS(0),
-m_iUNIT_MULTISELECT_MAX(0),
-m_iPERCENT_ANGER_DIVISOR(0),
-m_iEVENT_MESSAGE_TIME(0),
-m_iROUTE_FEATURE_GROWTH_MODIFIER(0),
-m_iFEATURE_GROWTH_MODIFIER(0),
-m_iMIN_CITY_RANGE(0),
-m_iCITY_MAX_NUM_BUILDINGS(0),
-m_iNUM_UNIT_AND_TECH_PREREQS(0),
-m_iNUM_AND_TECH_PREREQS(0),
-m_iNUM_OR_TECH_PREREQS(0),
-m_iLAKE_MAX_AREA_SIZE(0),
-m_iNUM_ROUTE_PREREQ_OR_BONUSES(0),
-m_iNUM_BUILDING_AND_TECH_PREREQS(0),
-m_iMIN_WATER_SIZE_FOR_OCEAN(0),
-m_iFORTIFY_MODIFIER_PER_TURN(0),
-m_iMAX_CITY_DEFENSE_DAMAGE(0),
-m_iCITY_DEFENSE_DAMAGE_HEAL_RATE(0), // cdtw.2
-m_iNUM_CORPORATION_PREREQ_BONUSES(0),
-m_iPEAK_SEE_THROUGH_CHANGE(0),
-m_iHILLS_SEE_THROUGH_CHANGE(0),
-m_iSEAWATER_SEE_FROM_CHANGE(0),
-m_iPEAK_SEE_FROM_CHANGE(0),
-m_iHILLS_SEE_FROM_CHANGE(0),
-m_iUSE_SPIES_NO_ENTER_BORDERS(0),
-m_fCAMERA_MIN_YAW(0),
-m_fCAMERA_MAX_YAW(0),
-m_fCAMERA_FAR_CLIP_Z_HEIGHT(0),
-m_fCAMERA_MAX_TRAVEL_DISTANCE(0),
-m_fCAMERA_START_DISTANCE(0),
-m_fAIR_BOMB_HEIGHT(0),
-m_fPLOT_SIZE(0),
-m_fCAMERA_SPECIAL_PITCH(0),
-m_fCAMERA_MAX_TURN_OFFSET(0),
-m_fCAMERA_MIN_DISTANCE(0),
-m_fCAMERA_UPPER_PITCH(0),
-m_fCAMERA_LOWER_PITCH(0),
-m_fFIELD_OF_VIEW(0),
-m_fSHADOW_SCALE(0),
+m_fCAMERA_MIN_YAW(0), m_fCAMERA_MAX_YAW(0), m_fCAMERA_FAR_CLIP_Z_HEIGHT(0),
+m_fCAMERA_MAX_TRAVEL_DISTANCE(0), m_fCAMERA_START_DISTANCE(0),
+m_fAIR_BOMB_HEIGHT(0), m_fPLOT_SIZE(0), m_fCAMERA_SPECIAL_PITCH(0),
+m_fCAMERA_MAX_TURN_OFFSET(0), m_fCAMERA_MIN_DISTANCE(0),
+m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
+m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
-m_iUSE_CANNOT_FOUND_CITY_CALLBACK(0),
-m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK(0),
-m_iUSE_IS_PLAYER_RESEARCH_CALLBACK(0),
-m_iUSE_CAN_RESEARCH_CALLBACK(0),
-m_iUSE_CANNOT_DO_CIVIC_CALLBACK(0),
-m_iUSE_CAN_DO_CIVIC_CALLBACK(0),
-m_iUSE_CANNOT_CONSTRUCT_CALLBACK(0),
-m_iUSE_CAN_CONSTRUCT_CALLBACK(0),
-m_iUSE_CAN_DECLARE_WAR_CALLBACK(0),
-m_iUSE_CANNOT_RESEARCH_CALLBACK(0),
-m_iUSE_GET_UNIT_COST_MOD_CALLBACK(0),
-m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK(0),
-m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK(0),
-m_iUSE_CAN_BUILD_CALLBACK(0),
-m_iUSE_CANNOT_TRAIN_CALLBACK(0),
-m_iUSE_CAN_TRAIN_CALLBACK(0),
-m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK(0),
-m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK(0),
-m_iUSE_FINISH_TEXT_CALLBACK(0),
-m_iUSE_ON_UNIT_SET_XY_CALLBACK(0),
-m_iUSE_ON_UNIT_SELECTED_CALLBACK(0),
-m_iUSE_ON_UPDATE_CALLBACK(0),
-m_iUSE_ON_UNIT_CREATED_CALLBACK(0),
-m_iUSE_ON_UNIT_LOST_CALLBACK(0),
+m_iUSE_FINISH_TEXT_CALLBACK(0), m_iUSE_ON_UPDATE_CALLBACK(0),
+m_iUSE_CANNOT_FOUND_CITY_CALLBACK(0), m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK(0),
+m_iUSE_IS_PLAYER_RESEARCH_CALLBACK(0), m_iUSE_CAN_RESEARCH_CALLBACK(0),
+m_iUSE_CANNOT_DO_CIVIC_CALLBACK(0), m_iUSE_CAN_DO_CIVIC_CALLBACK(0),
+m_iUSE_CANNOT_CONSTRUCT_CALLBACK(0), m_iUSE_CAN_CONSTRUCT_CALLBACK(0),
+m_iUSE_CAN_DECLARE_WAR_CALLBACK(0), m_iUSE_CANNOT_RESEARCH_CALLBACK(0),
+m_iUSE_GET_UNIT_COST_MOD_CALLBACK(0), m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK(0),
+m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK(0), m_iUSE_CAN_BUILD_CALLBACK(0),
+m_iUSE_CANNOT_TRAIN_CALLBACK(0), m_iUSE_CAN_TRAIN_CALLBACK(0),
+m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK(0), m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK(0),
+m_iUSE_ON_UNIT_SET_XY_CALLBACK(0), m_iUSE_ON_UNIT_SELECTED_CALLBACK(0),
+m_iUSE_ON_UNIT_CREATED_CALLBACK(0), m_iUSE_ON_UNIT_LOST_CALLBACK(0),
 // K-Mod
-m_bUSE_AI_UNIT_UPDATE_CALLBACK(false),
-m_bUSE_AI_DO_DIPLO_CALLBACK(false),
-m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK(false),
-m_bUSE_AI_DO_WAR_CALLBACK(false),
+m_bUSE_AI_UNIT_UPDATE_CALLBACK(false), m_bUSE_AI_DO_DIPLO_CALLBACK(false),
+m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK(false), m_bUSE_AI_DO_WAR_CALLBACK(false),
 m_bUSE_AI_CHOOSE_TECH_CALLBACK(false),
 
-m_bUSE_DO_GROWTH_CALLBACK(false),
-m_bUSE_DO_CULTURE_CALLBACK(false),
-m_bUSE_DO_PLOT_CULTURE_CALLBACK(false),
-m_bUSE_DO_PRODUCTION_CALLBACK(false),
-m_bUSE_DO_RELIGION_CALLBACK(false),
-m_bUSE_DO_GREAT_PEOPLE_CALLBACK(false),
-m_bUSE_DO_MELTDOWN_CALLBACK(false),
-m_bUSE_DO_PILLAGE_GOLD_CALLBACK(false),
-m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK(false),
-m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK(false),
-m_bUSE_DO_COMBAT_CALLBACK(false),
-// K-Mod end
-m_paHints(NULL),
-m_paMainMenus(NULL)
-
-// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
-// BBAI Options
-,m_bBBAI_AIR_COMBAT(false)
-,m_bBBAI_HUMAN_VASSAL_WAR_BUILD(false)
-,m_iBBAI_DEFENSIVE_PACT_BEHAVIOR(0)
-,m_bBBAI_HUMAN_AS_VASSAL_OPTION(false)
-
-// BBAI AI Variables
-,m_iWAR_SUCCESS_CITY_CAPTURING(25)
-,m_iBBAI_ATTACK_CITY_STACK_RATIO(110)
-,m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO(300)
-,m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO(140)
-
-// Tech Diffusion
-,m_bTECH_DIFFUSION_ENABLE(false)
-,m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER(30)
-,m_iTECH_DIFFUSION_WELFARE_THRESHOLD(88)
-,m_iTECH_DIFFUSION_WELFARE_MODIFIER(30)
-,m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER(20)
-,m_iTECH_COST_KNOWN_PREREQ_MODIFIER(20)
-,m_iTECH_COST_MODIFIER(0)
-,m_iTECH_COST_NOTRADE_MODIFIER(0) // advc.550d
-
-// From Lead From Behind by UncutDragon
-// Lead from Behind flags
-,m_bLFBEnable(false)
-,m_iLFBBasedOnGeneral(1)
-,m_iLFBBasedOnExperience(1)
-,m_iLFBBasedOnLimited(1)
-,m_iLFBBasedOnHealer(1)
-,m_iLFBDefensiveAdjustment(1)
-,m_bLFBUseSlidingScale(true)
-,m_iLFBAdjustNumerator(1)
-,m_iLFBAdjustDenominator(3)
-,m_bLFBUseCombatOdds(true)
-,m_iCOMBAT_DIE_SIDES(-1)
-,m_iCOMBAT_DAMAGE(-1)
-// BETTER_BTS_AI_MOD: END
+m_bUSE_DO_GROWTH_CALLBACK(false), m_bUSE_DO_CULTURE_CALLBACK(false),
+m_bUSE_DO_PLOT_CULTURE_CALLBACK(false), m_bUSE_DO_PRODUCTION_CALLBACK(false),
+m_bUSE_DO_RELIGION_CALLBACK(false), m_bUSE_DO_GREAT_PEOPLE_CALLBACK(false),
+m_bUSE_DO_MELTDOWN_CALLBACK(false), m_bUSE_DO_PILLAGE_GOLD_CALLBACK(false),
+m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK(false), m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK(false),
+m_bUSE_DO_COMBAT_CALLBACK(false), // K-Mod end
+// <advc.003b>
+m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
+m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
-	// (constructor body)
+	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.003b>
 }
 
 CvGlobals::~CvGlobals()
-{
-}
+{}
 
 //
 // allocate
@@ -433,16 +307,16 @@ void CvGlobals::init()
 
 	FAssertMsg(gDLL != NULL, "Civ app needs to set gDLL");
 
-	m_VarSystem = new FVariableSystem;
-	m_asyncRand = new CvRandom;
-	m_initCore = new CvInitCore;
-	m_loadedInitCore = new CvInitCore;
-	m_iniInitCore = new CvInitCore;
+	m_VarSystem = new FVariableSystem();
+	m_asyncRand = new CvRandom();
+	m_initCore = new CvInitCore();
+	m_loadedInitCore = new CvInitCore();
+	m_iniInitCore = new CvInitCore();
 
 	gDLL->initGlobals();	// some globals need to be allocated outside the dll
 
-	m_game = new CvGameAI;
-	m_map = new CvMap;
+	m_game = new CvGameAI();
+	m_map = new CvMap();
 
 	CvPlayerAI::initStatics();
 	CvTeamAI::initStatics();
@@ -479,6 +353,7 @@ void CvGlobals::uninit()
 	SAFE_DELETE_ARRAY(m_aiCityPlotPriority);
 	SAFE_DELETE_ARRAY(m_aeTurnLeftDirection);
 	SAFE_DELETE_ARRAY(m_aeTurnRightDirection);
+	SAFE_DELETE_ARRAY(m_aiGlobalDefinesCache); // advc.003t
 
 	SAFE_DELETE(m_game);
 	SAFE_DELETE(m_map);
@@ -494,24 +369,12 @@ void CvGlobals::uninit()
 	SAFE_DELETE(m_VarSystem);
 
 	// already deleted outside of the dll, set to null for safety
-	m_messageQueue=NULL;
-	m_hotJoinMsgQueue=NULL;
-	m_messageControl=NULL;
-	m_setupData=NULL;
-	m_messageCodes=NULL;
-	m_dropMgr=NULL;
-	m_portal=NULL;
-	m_statsReporter=NULL;
-	m_interface=NULL;
-	m_diplomacyScreen=NULL;
-	m_mpDiplomacyScreen=NULL;
-	m_pathFinder=NULL;
-	m_interfacePathFinder=NULL;
-	m_stepFinder=NULL;
-	m_routeFinder=NULL;
-	m_borderFinder=NULL;
-	m_areaFinder=NULL;
-	m_plotGroupFinder=NULL;
+	m_messageQueue=NULL; m_hotJoinMsgQueue=NULL; m_messageControl=NULL;
+	m_setupData=NULL; m_messageCodes=NULL; m_dropMgr=NULL;
+	m_portal=NULL; m_statsReporter=NULL; m_interface=NULL;
+	m_diplomacyScreen=NULL; m_mpDiplomacyScreen=NULL; m_pathFinder=NULL;
+	m_interfacePathFinder=NULL; m_stepFinder=NULL; m_routeFinder=NULL;
+	m_borderFinder=NULL; m_areaFinder=NULL; m_plotGroupFinder=NULL;
 
 	m_typesMap.clear();
 	m_aInfoVectors.clear();
@@ -767,81 +630,7 @@ DirectionTypes CvGlobals::getXYDirection(int i, int j)
 	return m_aaeXYDirection[i][j];
 }
 
-int CvGlobals::getNumWorldInfos()
-{
-	return (int)m_paWorldInfo.size();
-}
-
-CvWorldInfo& CvGlobals::getWorldInfo(WorldSizeTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumWorldInfos());
-	return *(m_paWorldInfo[e]);
-}
-
-/////////////////////////////////////////////
-// CLIMATE
-/////////////////////////////////////////////
-
-int CvGlobals::getNumClimateInfos()
-{
-	return (int)m_paClimateInfo.size();
-}
-
-CvClimateInfo& CvGlobals::getClimateInfo(ClimateTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumClimateInfos());
-	return *(m_paClimateInfo[e]);
-}
-
-/////////////////////////////////////////////
-// SEALEVEL
-/////////////////////////////////////////////
-
-int CvGlobals::getNumSeaLevelInfos()
-{
-	return (int)m_paSeaLevelInfo.size();
-}
-
-CvSeaLevelInfo& CvGlobals::getSeaLevelInfo(SeaLevelTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumSeaLevelInfos());
-	return *(m_paSeaLevelInfo[e]);
-}
-
-int CvGlobals::getNumHints()
-{
-	return (int)m_paHints.size();
-}
-
-CvInfoBase& CvGlobals::getHints(int i)
-{
-	return *(m_paHints[i]);
-}
-
-int CvGlobals::getNumMainMenus()
-{
-	return (int)m_paMainMenus.size();
-}
-
-CvMainMenuInfo& CvGlobals::getMainMenus(int i)
-{
-	if (i >= getNumMainMenus())
-	{
-		return *(m_paMainMenus[0]);
-	}
-
-	return *(m_paMainMenus[i]);
-}
-
-int CvGlobals::getNumColorInfos()
-{
-	return (int)m_paColorInfo.size();
-}
-
-CvColorInfo& CvGlobals::getColorInfo(ColorTypes e)
+CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
 {
 	FAssert(e > -1);
 	/*  <advc.106i> So that AdvCiv is able to show replays from mods with
@@ -854,205 +643,6 @@ CvColorInfo& CvGlobals::getColorInfo(ColorTypes e)
 	return *(m_paColorInfo[e]);
 }
 
-
-int CvGlobals::getNumPlayerColorInfos()
-{
-	return (int)m_paPlayerColorInfo.size();
-}
-
-CvPlayerColorInfo& CvGlobals::getPlayerColorInfo(PlayerColorTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumPlayerColorInfos());
-	return *(m_paPlayerColorInfo[e]);
-}
-
-int CvGlobals::getNumAdvisorInfos()
-{
-	return (int)m_paAdvisorInfo.size();
-}
-
-CvAdvisorInfo& CvGlobals::getAdvisorInfo(AdvisorTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumAdvisorInfos());
-	return *(m_paAdvisorInfo[e]);
-}
-
-int CvGlobals::getNumRouteModelInfos()
-{
-	return (int)m_paRouteModelInfo.size();
-}
-
-CvRouteModelInfo& CvGlobals::getRouteModelInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumRouteModelInfos());
-	return *(m_paRouteModelInfo[i]);
-}
-
-int CvGlobals::getNumRiverInfos()
-{
-	return (int)m_paRiverInfo.size();
-}
-
-CvRiverInfo& CvGlobals::getRiverInfo(RiverTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumRiverInfos());
-	return *(m_paRiverInfo[e]);
-}
-
-int CvGlobals::getNumRiverModelInfos()
-{
-	return (int)m_paRiverModelInfo.size();
-}
-
-CvRiverModelInfo& CvGlobals::getRiverModelInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumRiverModelInfos());
-	return *(m_paRiverModelInfo[i]);
-}
-
-int CvGlobals::getNumWaterPlaneInfos()
-{
-	return (int)m_paWaterPlaneInfo.size();
-}
-
-CvWaterPlaneInfo& CvGlobals::getWaterPlaneInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumWaterPlaneInfos());
-	return *(m_paWaterPlaneInfo[i]);
-}
-
-int CvGlobals::getNumTerrainPlaneInfos()
-{
-	return (int)m_paTerrainPlaneInfo.size();
-}
-
-CvTerrainPlaneInfo& CvGlobals::getTerrainPlaneInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumTerrainPlaneInfos());
-	return *(m_paTerrainPlaneInfo[i]);
-}
-
-int CvGlobals::getNumCameraOverlayInfos()
-{
-	return (int)m_paCameraOverlayInfo.size();
-}
-
-CvCameraOverlayInfo& CvGlobals::getCameraOverlayInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumCameraOverlayInfos());
-	return *(m_paCameraOverlayInfo[i]);
-}
-
-int CvGlobals::getNumAnimationPathInfos()
-{
-	return (int)m_paAnimationPathInfo.size();
-}
-
-CvAnimationPathInfo& CvGlobals::getAnimationPathInfo(AnimationPathTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumAnimationPathInfos());
-	return *(m_paAnimationPathInfo[e]);
-}
-
-int CvGlobals::getNumAnimationCategoryInfos()
-{
-	return (int)m_paAnimationCategoryInfo.size();
-}
-
-CvAnimationCategoryInfo& CvGlobals::getAnimationCategoryInfo(AnimationCategoryTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumAnimationCategoryInfos());
-	return *(m_paAnimationCategoryInfo[e]);
-}
-
-int CvGlobals::getNumEntityEventInfos()
-{
-	return (int)m_paEntityEventInfo.size();
-}
-
-CvEntityEventInfo& CvGlobals::getEntityEventInfo(EntityEventTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumEntityEventInfos());
-	return *(m_paEntityEventInfo[e]);
-}
-
-int CvGlobals::getNumEffectInfos()
-{
-	return (int)m_paEffectInfo.size();
-}
-
-CvEffectInfo& CvGlobals::getEffectInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumEffectInfos());
-	return *(m_paEffectInfo[i]);
-}
-
-
-int CvGlobals::getNumAttachableInfos()
-{
-	return (int)m_paAttachableInfo.size();
-}
-
-CvAttachableInfo& CvGlobals::getAttachableInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumAttachableInfos());
-	return *(m_paAttachableInfo[i]);
-}
-
-int CvGlobals::getNumCameraInfos()
-{
-	return (int)m_paCameraInfo.size();
-}
-
-CvCameraInfo& CvGlobals::getCameraInfo(CameraAnimationTypes eCameraAnimationNum)
-{
-	return *(m_paCameraInfo[eCameraAnimationNum]);
-}
-
-int CvGlobals::getNumUnitFormationInfos()
-{
-	return (int)m_paUnitFormationInfo.size();
-}
-
-CvUnitFormationInfo& CvGlobals::getUnitFormationInfo(int i)
-{
-	FAssert(i > -1);
-	FAssert(i < getNumUnitFormationInfos());
-	return *(m_paUnitFormationInfo[i]);
-}
-
-// TEXT
-int CvGlobals::getNumGameTextXML()
-{
-	return (int)m_paGameTextXML.size();
-}
-
-// Landscape INFOS
-int CvGlobals::getNumLandscapeInfos()
-{
-	return (int)m_paLandscapeInfo.size();
-}
-
-CvLandscapeInfo& CvGlobals::getLandscapeInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumLandscapeInfos());
-	return *(m_paLandscapeInfo[iIndex]);
-}
-
 int CvGlobals::getActiveLandscapeID()
 {
 	return m_iActiveLandscapeID;
@@ -1063,56 +653,6 @@ void CvGlobals::setActiveLandscapeID(int iLandscapeID)
 	m_iActiveLandscapeID = iLandscapeID;
 }
 
-
-int CvGlobals::getNumTerrainInfos()
-{
-	return (int)m_paTerrainInfo.size();
-}
-
-CvTerrainInfo& CvGlobals::getTerrainInfo(TerrainTypes eTerrainNum)
-{
-	FAssert(eTerrainNum > -1);
-	FAssert(eTerrainNum < getNumTerrainInfos());
-	return *(m_paTerrainInfo[eTerrainNum]);
-}
-
-int CvGlobals::getNumBonusClassInfos()
-{
-	return (int)m_paBonusClassInfo.size();
-}
-
-CvBonusClassInfo& CvGlobals::getBonusClassInfo(BonusClassTypes eBonusNum)
-{
-	FAssert(eBonusNum > -1);
-	FAssert(eBonusNum < getNumBonusClassInfos());
-	return *(m_paBonusClassInfo[eBonusNum]);
-}
-
-
-int CvGlobals::getNumBonusInfos()
-{
-	return (int)m_paBonusInfo.size();
-}
-
-CvBonusInfo& CvGlobals::getBonusInfo(BonusTypes eBonusNum)
-{
-	FAssert(eBonusNum > -1);
-	FAssert(eBonusNum < getNumBonusInfos());
-	return *(m_paBonusInfo[eBonusNum]);
-}
-
-int CvGlobals::getNumFeatureInfos()
-{
-	return (int)m_paFeatureInfo.size();
-}
-
-CvFeatureInfo& CvGlobals::getFeatureInfo(FeatureTypes eFeatureNum)
-{
-	FAssert(eFeatureNum > -1);
-	FAssert(eFeatureNum < getNumFeatureInfos());
-	return *(m_paFeatureInfo[eFeatureNum]);
-}
-
 int& CvGlobals::getNumPlayableCivilizationInfos()
 {
 	return m_iNumPlayableCivilizationInfos;
@@ -1121,840 +661,6 @@ int& CvGlobals::getNumPlayableCivilizationInfos()
 int& CvGlobals::getNumAIPlayableCivilizationInfos()
 {
 	return m_iNumAIPlayableCivilizationInfos;
-}
-
-int CvGlobals::getNumCivilizationInfos()
-{
-	return (int)m_paCivilizationInfo.size();
-}
-
-CvCivilizationInfo& CvGlobals::getCivilizationInfo(CivilizationTypes eCivilizationNum)
-{
-	FAssert(eCivilizationNum > -1);
-	FAssert(eCivilizationNum < getNumCivilizationInfos());
-	return *(m_paCivilizationInfo[eCivilizationNum]);
-}
-
-
-int CvGlobals::getNumLeaderHeadInfos()
-{
-	return (int)m_paLeaderHeadInfo.size();
-}
-
-CvLeaderHeadInfo& CvGlobals::getLeaderHeadInfo(LeaderHeadTypes eLeaderHeadNum)
-{
-	FAssert(eLeaderHeadNum > -1);
-	FAssert(eLeaderHeadNum < getNumLeaderHeadInfos());
-	return *(m_paLeaderHeadInfo[eLeaderHeadNum]);
-}
-
-
-int CvGlobals::getNumTraitInfos()
-{
-	return (int)m_paTraitInfo.size();
-}
-
-CvTraitInfo& CvGlobals::getTraitInfo(TraitTypes eTraitNum)
-{
-	FAssert(eTraitNum > -1);
-	FAssert(eTraitNum < getNumTraitInfos());
-	return *(m_paTraitInfo[eTraitNum]);
-}
-
-
-int CvGlobals::getNumCursorInfos()
-{
-	return (int)m_paCursorInfo.size();
-}
-
-CvCursorInfo& CvGlobals::getCursorInfo(CursorTypes eCursorNum)
-{
-	FAssert(eCursorNum > -1);
-	FAssert(eCursorNum < getNumCursorInfos());
-	return *(m_paCursorInfo[eCursorNum]);
-}
-
-int CvGlobals::getNumThroneRoomCameras()
-{
-	return (int)m_paThroneRoomCamera.size();
-}
-
-CvThroneRoomCamera& CvGlobals::getThroneRoomCamera(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumThroneRoomCameras());
-	return *(m_paThroneRoomCamera[iIndex]);
-}
-
-int CvGlobals::getNumThroneRoomInfos()
-{
-	return (int)m_paThroneRoomInfo.size();
-}
-
-CvThroneRoomInfo& CvGlobals::getThroneRoomInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumThroneRoomInfos());
-	return *(m_paThroneRoomInfo[iIndex]);
-}
-
-int CvGlobals::getNumThroneRoomStyleInfos()
-{
-	return (int)m_paThroneRoomStyleInfo.size();
-}
-
-CvThroneRoomStyleInfo& CvGlobals::getThroneRoomStyleInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumThroneRoomStyleInfos());
-	return *(m_paThroneRoomStyleInfo[iIndex]);
-}
-
-int CvGlobals::getNumSlideShowInfos()
-{
-	return (int)m_paSlideShowInfo.size();
-}
-
-CvSlideShowInfo& CvGlobals::getSlideShowInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumSlideShowInfos());
-	return *(m_paSlideShowInfo[iIndex]);
-}
-
-int CvGlobals::getNumSlideShowRandomInfos()
-{
-	return (int)m_paSlideShowRandomInfo.size();
-}
-
-CvSlideShowRandomInfo& CvGlobals::getSlideShowRandomInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumSlideShowRandomInfos());
-	return *(m_paSlideShowRandomInfo[iIndex]);
-}
-
-int CvGlobals::getNumWorldPickerInfos()
-{
-	return (int)m_paWorldPickerInfo.size();
-}
-
-CvWorldPickerInfo& CvGlobals::getWorldPickerInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumWorldPickerInfos());
-	return *(m_paWorldPickerInfo[iIndex]);
-}
-
-int CvGlobals::getNumSpaceShipInfos()
-{
-	return (int)m_paSpaceShipInfo.size();
-}
-
-CvSpaceShipInfo& CvGlobals::getSpaceShipInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumSpaceShipInfos());
-	return *(m_paSpaceShipInfo[iIndex]);
-}
-
-int CvGlobals::getNumUnitInfos()
-{
-	return (int)m_paUnitInfo.size();
-}
-
-CvUnitInfo& CvGlobals::getUnitInfo(UnitTypes eUnitNum)
-{
-	FAssert(eUnitNum > -1);
-	FAssert(eUnitNum < getNumUnitInfos());
-	return *(m_paUnitInfo[eUnitNum]);
-}
-
-int CvGlobals::getNumSpecialUnitInfos()
-{
-	return (int)m_paSpecialUnitInfo.size();
-}
-
-CvSpecialUnitInfo& CvGlobals::getSpecialUnitInfo(SpecialUnitTypes eSpecialUnitNum)
-{
-	FAssert(eSpecialUnitNum > -1);
-	FAssert(eSpecialUnitNum < getNumSpecialUnitInfos());
-	return *(m_paSpecialUnitInfo[eSpecialUnitNum]);
-}
-
-
-int CvGlobals::getNumConceptInfos()
-{
-	return (int)m_paConceptInfo.size();
-}
-
-CvInfoBase& CvGlobals::getConceptInfo(ConceptTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumConceptInfos());
-	return *(m_paConceptInfo[e]);
-}
-
-
-int CvGlobals::getNumNewConceptInfos()
-{
-	return (int)m_paNewConceptInfo.size();
-}
-
-CvInfoBase& CvGlobals::getNewConceptInfo(NewConceptTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumNewConceptInfos());
-	return *(m_paNewConceptInfo[e]);
-}
-
-
-int CvGlobals::getNumCityTabInfos()
-{
-	return (int)m_paCityTabInfo.size();
-}
-
-CvInfoBase& CvGlobals::getCityTabInfo(CityTabTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumCityTabInfos());
-	return *(m_paCityTabInfo[e]);
-}
-
-
-int CvGlobals::getNumCalendarInfos()
-{
-	return (int)m_paCalendarInfo.size();
-}
-
-CvInfoBase& CvGlobals::getCalendarInfo(CalendarTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumCalendarInfos());
-	return *(m_paCalendarInfo[e]);
-}
-
-
-int CvGlobals::getNumSeasonInfos()
-{
-	return (int)m_paSeasonInfo.size();
-}
-
-CvInfoBase& CvGlobals::getSeasonInfo(SeasonTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumSeasonInfos());
-	return *(m_paSeasonInfo[e]);
-}
-
-
-int CvGlobals::getNumMonthInfos()
-{
-	return (int)m_paMonthInfo.size();
-}
-
-CvInfoBase& CvGlobals::getMonthInfo(MonthTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumMonthInfos());
-	return *(m_paMonthInfo[e]);
-}
-
-
-int CvGlobals::getNumDenialInfos()
-{
-	return (int)m_paDenialInfo.size();
-}
-
-CvInfoBase& CvGlobals::getDenialInfo(DenialTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumDenialInfos());
-	return *(m_paDenialInfo[e]);
-}
-
-
-int CvGlobals::getNumInvisibleInfos()
-{
-	return (int)m_paInvisibleInfo.size();
-}
-
-CvInfoBase& CvGlobals::getInvisibleInfo(InvisibleTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumInvisibleInfos());
-	return *(m_paInvisibleInfo[e]);
-}
-
-
-int CvGlobals::getNumVoteSourceInfos()
-{
-	return (int)m_paVoteSourceInfo.size();
-}
-
-CvVoteSourceInfo& CvGlobals::getVoteSourceInfo(VoteSourceTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumVoteSourceInfos());
-	return *(m_paVoteSourceInfo[e]);
-}
-
-
-int CvGlobals::getNumUnitCombatInfos()
-{
-	return (int)m_paUnitCombatInfo.size();
-}
-
-CvInfoBase& CvGlobals::getUnitCombatInfo(UnitCombatTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumUnitCombatInfos());
-	return *(m_paUnitCombatInfo[e]);
-}
-
-
-CvInfoBase& CvGlobals::getDomainInfo(DomainTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < NUM_DOMAIN_TYPES);
-	return *(m_paDomainInfo[e]);
-}
-
-
-CvInfoBase& CvGlobals::getUnitAIInfo(UnitAITypes eUnitAINum)
-{
-	FAssert(eUnitAINum >= 0);
-	FAssert(eUnitAINum < NUM_UNITAI_TYPES);
-	return *(m_paUnitAIInfo[eUnitAINum]);
-}
-
-
-CvInfoBase& CvGlobals::getAttitudeInfo(AttitudeTypes eAttitudeNum)
-{
-	FAssert(eAttitudeNum >= 0);
-	FAssert(eAttitudeNum < NUM_ATTITUDE_TYPES);
-	return *(m_paAttitudeInfo[eAttitudeNum]);
-}
-
-
-CvInfoBase& CvGlobals::getMemoryInfo(MemoryTypes eMemoryNum)
-{
-	FAssert(eMemoryNum >= 0);
-	FAssert(eMemoryNum < NUM_MEMORY_TYPES);
-	return *(m_paMemoryInfo[eMemoryNum]);
-}
-
-
-int CvGlobals::getNumGameOptionInfos()
-{
-	return (int)m_paGameOptionInfo.size();
-}
-
-CvGameOptionInfo& CvGlobals::getGameOptionInfo(GameOptionTypes eGameOptionNum)
-{
-	FAssert(eGameOptionNum >= 0);
-	FAssert(eGameOptionNum < getNumGameOptionInfos());
-	return *(m_paGameOptionInfo[eGameOptionNum]);
-}
-
-int CvGlobals::getNumMPOptionInfos()
-{
-	return (int)m_paMPOptionInfo.size();
-}
-
-CvMPOptionInfo& CvGlobals::getMPOptionInfo(MultiplayerOptionTypes eMPOptionNum)
-{
-	FAssert(eMPOptionNum >= 0);
-	FAssert(eMPOptionNum < getNumMPOptionInfos());
-	return *(m_paMPOptionInfo[eMPOptionNum]);
-}
-
-int CvGlobals::getNumForceControlInfos()
-{
-	return (int)m_paForceControlInfo.size();
-}
-
-CvForceControlInfo& CvGlobals::getForceControlInfo(ForceControlTypes eForceControlNum)
-{
-	FAssert(eForceControlNum >= 0);
-	FAssert(eForceControlNum < getNumForceControlInfos());
-	return *(m_paForceControlInfo[eForceControlNum]);
-}
-
-CvPlayerOptionInfo& CvGlobals::getPlayerOptionInfo(PlayerOptionTypes ePlayerOptionNum)
-{
-	FAssert(ePlayerOptionNum >= 0);
-	FAssert(ePlayerOptionNum < NUM_PLAYEROPTION_TYPES);
-	return *(m_paPlayerOptionInfo[ePlayerOptionNum]);
-}
-
-CvGraphicOptionInfo& CvGlobals::getGraphicOptionInfo(GraphicOptionTypes eGraphicOptionNum)
-{
-	FAssert(eGraphicOptionNum >= 0);
-	FAssert(eGraphicOptionNum < NUM_GRAPHICOPTION_TYPES);
-	return *(m_paGraphicOptionInfo[eGraphicOptionNum]);
-}
-
-
-CvYieldInfo& CvGlobals::getYieldInfo(YieldTypes eYieldNum)
-{
-	FAssert(eYieldNum > -1);
-	FAssert(eYieldNum < NUM_YIELD_TYPES);
-	return *(m_paYieldInfo[eYieldNum]);
-}
-
-
-CvCommerceInfo& CvGlobals::getCommerceInfo(CommerceTypes eCommerceNum)
-{
-	FAssert(eCommerceNum > -1);
-	FAssert(eCommerceNum < NUM_COMMERCE_TYPES);
-	return *(m_paCommerceInfo[eCommerceNum]);
-}
-
-int CvGlobals::getNumRouteInfos()
-{
-	return (int)m_paRouteInfo.size();
-}
-
-CvRouteInfo& CvGlobals::getRouteInfo(RouteTypes eRouteNum)
-{
-	FAssert(eRouteNum > -1);
-	FAssert(eRouteNum < getNumRouteInfos());
-	return *(m_paRouteInfo[eRouteNum]);
-}
-
-int CvGlobals::getNumImprovementInfos()
-{
-	return (int)m_paImprovementInfo.size();
-}
-
-CvImprovementInfo& CvGlobals::getImprovementInfo(ImprovementTypes eImprovementNum)
-{
-	FAssert(eImprovementNum > -1);
-	FAssert(eImprovementNum < getNumImprovementInfos());
-	return *(m_paImprovementInfo[eImprovementNum]);
-}
-
-int CvGlobals::getNumGoodyInfos()
-{
-	return (int)m_paGoodyInfo.size();
-}
-
-CvGoodyInfo& CvGlobals::getGoodyInfo(GoodyTypes eGoodyNum)
-{
-	FAssert(eGoodyNum > -1);
-	FAssert(eGoodyNum < getNumGoodyInfos());
-	return *(m_paGoodyInfo[eGoodyNum]);
-}
-
-int CvGlobals::getNumBuildInfos()
-{
-	return (int)m_paBuildInfo.size();
-}
-
-CvBuildInfo& CvGlobals::getBuildInfo(BuildTypes eBuildNum)
-{
-	FAssert(eBuildNum > -1);
-	FAssert(eBuildNum < getNumBuildInfos());
-	return *(m_paBuildInfo[eBuildNum]);
-}
-
-int CvGlobals::getNumHandicapInfos()
-{
-	return (int)m_paHandicapInfo.size();
-}
-
-CvHandicapInfo& CvGlobals::getHandicapInfo(HandicapTypes eHandicapNum)
-{
-	FAssert(eHandicapNum > -1);
-	FAssert(eHandicapNum < getNumHandicapInfos());
-	return *(m_paHandicapInfo[eHandicapNum]);
-}
-
-int CvGlobals::getNumGameSpeedInfos()
-{
-	return (int)m_paGameSpeedInfo.size();
-}
-
-CvGameSpeedInfo& CvGlobals::getGameSpeedInfo(GameSpeedTypes eGameSpeedNum)
-{
-	FAssert(eGameSpeedNum > -1);
-	FAssert(eGameSpeedNum < getNumGameSpeedInfos());
-	return *(m_paGameSpeedInfo[eGameSpeedNum]);
-}
-
-int CvGlobals::getNumTurnTimerInfos()
-{
-	return (int)m_paTurnTimerInfo.size();
-}
-
-CvTurnTimerInfo& CvGlobals::getTurnTimerInfo(TurnTimerTypes eTurnTimerNum)
-{
-	FAssert(eTurnTimerNum > -1);
-	FAssert(eTurnTimerNum < getNumTurnTimerInfos());
-	return *(m_paTurnTimerInfo[eTurnTimerNum]);
-}
-
-int CvGlobals::getNumProcessInfos()
-{
-	return (int)m_paProcessInfo.size();
-}
-
-CvProcessInfo& CvGlobals::getProcessInfo(ProcessTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumProcessInfos());
-	return *(m_paProcessInfo[e]);
-}
-
-int CvGlobals::getNumVoteInfos()
-{
-	return (int)m_paVoteInfo.size();
-}
-
-CvVoteInfo& CvGlobals::getVoteInfo(VoteTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumVoteInfos());
-	return *(m_paVoteInfo[e]);
-}
-
-int CvGlobals::getNumProjectInfos()
-{
-	return (int)m_paProjectInfo.size();
-}
-
-CvProjectInfo& CvGlobals::getProjectInfo(ProjectTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < getNumProjectInfos());
-	return *(m_paProjectInfo[e]);
-}
-
-int CvGlobals::getNumBuildingClassInfos()
-{
-	return (int)m_paBuildingClassInfo.size();
-}
-
-CvBuildingClassInfo& CvGlobals::getBuildingClassInfo(BuildingClassTypes eBuildingClassNum)
-{
-	FAssert(eBuildingClassNum > -1);
-	FAssert(eBuildingClassNum < getNumBuildingClassInfos());
-	return *(m_paBuildingClassInfo[eBuildingClassNum]);
-}
-
-int CvGlobals::getNumBuildingInfos()
-{
-	return (int)m_paBuildingInfo.size();
-}
-
-CvBuildingInfo& CvGlobals::getBuildingInfo(BuildingTypes eBuildingNum)
-{
-	FAssert(eBuildingNum > -1);
-	FAssert(eBuildingNum < getNumBuildingInfos());
-	return *(m_paBuildingInfo[eBuildingNum]);
-}
-
-int CvGlobals::getNumSpecialBuildingInfos()
-{
-	return (int)m_paSpecialBuildingInfo.size();
-}
-
-CvSpecialBuildingInfo& CvGlobals::getSpecialBuildingInfo(SpecialBuildingTypes eSpecialBuildingNum)
-{
-	FAssert(eSpecialBuildingNum > -1);
-	FAssert(eSpecialBuildingNum < getNumSpecialBuildingInfos());
-	return *(m_paSpecialBuildingInfo[eSpecialBuildingNum]);
-}
-
-int CvGlobals::getNumUnitClassInfos()
-{
-	return (int)m_paUnitClassInfo.size();
-}
-
-CvUnitClassInfo& CvGlobals::getUnitClassInfo(UnitClassTypes eUnitClassNum)
-{
-	FAssert(eUnitClassNum > -1);
-	FAssert(eUnitClassNum < getNumUnitClassInfos());
-	return *(m_paUnitClassInfo[eUnitClassNum]);
-}
-
-int CvGlobals::getNumActionInfos()
-{
-	return (int)m_paActionInfo.size();
-}
-
-CvActionInfo& CvGlobals::getActionInfo(int i)
-{
-	FAssertMsg(i < getNumActionInfos(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return *(m_paActionInfo[i]);
-}
-
-
-CvMissionInfo& CvGlobals::getMissionInfo(MissionTypes eMissionNum)
-{
-	FAssert(eMissionNum > -1);
-	FAssert(eMissionNum < NUM_MISSION_TYPES);
-	return *(m_paMissionInfo[eMissionNum]);
-}
-
-
-CvControlInfo& CvGlobals::getControlInfo(ControlTypes eControlNum)
-{
-	FAssert(eControlNum > -1);
-	FAssert(eControlNum < NUM_CONTROL_TYPES);
-	FAssert(m_paControlInfo.size() > 0);
-	return *(m_paControlInfo[eControlNum]);
-}
-
-
-CvCommandInfo& CvGlobals::getCommandInfo(CommandTypes eCommandNum)
-{
-	FAssert(eCommandNum > -1);
-	FAssert(eCommandNum < NUM_COMMAND_TYPES);
-	return *(m_paCommandInfo[eCommandNum]);
-}
-
-int CvGlobals::getNumAutomateInfos()
-{
-	return (int)m_paAutomateInfo.size();
-}
-
-CvAutomateInfo& CvGlobals::getAutomateInfo(int iAutomateNum)
-{
-	FAssertMsg(iAutomateNum < getNumAutomateInfos(), "Index out of bounds");
-	FAssertMsg(iAutomateNum > -1, "Index out of bounds");
-	return *(m_paAutomateInfo[iAutomateNum]);
-}
-
-int CvGlobals::getNumPromotionInfos()
-{
-	return (int)m_paPromotionInfo.size();
-}
-
-CvPromotionInfo& CvGlobals::getPromotionInfo(PromotionTypes ePromotionNum)
-{
-	FAssert(ePromotionNum > -1);
-	FAssert(ePromotionNum < getNumPromotionInfos());
-	return *(m_paPromotionInfo[ePromotionNum]);
-}
-
-int CvGlobals::getNumTechInfos()
-{
-	return (int)m_paTechInfo.size();
-}
-
-CvTechInfo& CvGlobals::getTechInfo(TechTypes eTechNum)
-{
-	FAssert(eTechNum > -1);
-	FAssert(eTechNum < getNumTechInfos());
-	return *(m_paTechInfo[eTechNum]);
-}
-
-int CvGlobals::getNumReligionInfos()
-{
-	return (int)m_paReligionInfo.size();
-}
-
-CvReligionInfo& CvGlobals::getReligionInfo(ReligionTypes eReligionNum)
-{
-	FAssert(eReligionNum > -1);
-	FAssert(eReligionNum < getNumReligionInfos());
-	return *(m_paReligionInfo[eReligionNum]);
-}
-
-int CvGlobals::getNumCorporationInfos()
-{
-	return (int)m_paCorporationInfo.size();
-}
-
-CvCorporationInfo& CvGlobals::getCorporationInfo(CorporationTypes eCorporationNum)
-{
-	FAssert(eCorporationNum > -1);
-	FAssert(eCorporationNum < getNumCorporationInfos());
-	return *(m_paCorporationInfo[eCorporationNum]);
-}
-
-int CvGlobals::getNumSpecialistInfos()
-{
-	return (int)m_paSpecialistInfo.size();
-}
-
-CvSpecialistInfo& CvGlobals::getSpecialistInfo(SpecialistTypes eSpecialistNum)
-{
-	FAssert(eSpecialistNum > -1);
-	FAssert(eSpecialistNum < getNumSpecialistInfos());
-	return *(m_paSpecialistInfo[eSpecialistNum]);
-}
-
-int CvGlobals::getNumCivicOptionInfos()
-{
-	return (int)m_paCivicOptionInfo.size();
-}
-
-CvCivicOptionInfo& CvGlobals::getCivicOptionInfo(CivicOptionTypes eCivicOptionNum)
-{
-	FAssert(eCivicOptionNum > -1);
-	FAssert(eCivicOptionNum < getNumCivicOptionInfos());
-	return *(m_paCivicOptionInfo[eCivicOptionNum]);
-}
-
-int CvGlobals::getNumCivicInfos()
-{
-	return (int)m_paCivicInfo.size();
-}
-
-CvCivicInfo& CvGlobals::getCivicInfo(CivicTypes eCivicNum)
-{
-	FAssert(eCivicNum > -1);
-	FAssert(eCivicNum < getNumCivicInfos());
-	return *(m_paCivicInfo[eCivicNum]);
-}
-
-int CvGlobals::getNumDiplomacyInfos()
-{
-	return (int)m_paDiplomacyInfo.size();
-}
-
-CvDiplomacyInfo& CvGlobals::getDiplomacyInfo(int iDiplomacyNum)
-{
-	FAssertMsg(iDiplomacyNum < getNumDiplomacyInfos(), "Index out of bounds");
-	FAssertMsg(iDiplomacyNum > -1, "Index out of bounds");
-	return *(m_paDiplomacyInfo[iDiplomacyNum]);
-}
-
-int CvGlobals::getNumEraInfos()
-{
-	return (int)m_aEraInfo.size();
-}
-
-CvEraInfo& CvGlobals::getEraInfo(EraTypes eEraNum)
-{
-	FAssert(eEraNum > -1);
-	FAssert(eEraNum < getNumEraInfos());
-	return *(m_aEraInfo[eEraNum]);
-}
-
-int CvGlobals::getNumHurryInfos()
-{
-	return (int)m_paHurryInfo.size();
-}
-
-CvHurryInfo& CvGlobals::getHurryInfo(HurryTypes eHurryNum)
-{
-	FAssert(eHurryNum > -1);
-	FAssert(eHurryNum < getNumHurryInfos());
-	return *(m_paHurryInfo[eHurryNum]);
-}
-
-int CvGlobals::getNumEmphasizeInfos()
-{
-	return (int)m_paEmphasizeInfo.size();
-}
-
-CvEmphasizeInfo& CvGlobals::getEmphasizeInfo(EmphasizeTypes eEmphasizeNum)
-{
-	FAssert(eEmphasizeNum > -1);
-	FAssert(eEmphasizeNum < getNumEmphasizeInfos());
-	return *(m_paEmphasizeInfo[eEmphasizeNum]);
-}
-
-int CvGlobals::getNumUpkeepInfos()
-{
-	return (int)m_paUpkeepInfo.size();
-}
-
-CvUpkeepInfo& CvGlobals::getUpkeepInfo(UpkeepTypes eUpkeepNum)
-{
-	FAssert(eUpkeepNum > -1);
-	FAssert(eUpkeepNum < getNumUpkeepInfos());
-	return *(m_paUpkeepInfo[eUpkeepNum]);
-}
-
-int CvGlobals::getNumCultureLevelInfos()
-{
-	return (int)m_paCultureLevelInfo.size();
-}
-
-CvCultureLevelInfo& CvGlobals::getCultureLevelInfo(CultureLevelTypes eCultureLevelNum)
-{
-	FAssert(eCultureLevelNum > -1);
-	FAssert(eCultureLevelNum < getNumCultureLevelInfos());
-	return *(m_paCultureLevelInfo[eCultureLevelNum]);
-}
-
-int CvGlobals::getNumVictoryInfos()
-{
-	return (int)m_paVictoryInfo.size();
-}
-
-CvVictoryInfo& CvGlobals::getVictoryInfo(VictoryTypes eVictoryNum)
-{
-	FAssert(eVictoryNum > -1);
-	FAssert(eVictoryNum < getNumVictoryInfos());
-	return *(m_paVictoryInfo[eVictoryNum]);
-}
-
-// advc.003j:
-/*int CvGlobals::getNumQuestInfos()
-{
-	return (int)m_paQuestInfo.size();
-}
-
-CvQuestInfo& CvGlobals::getQuestInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumQuestInfos());
-	return *(m_paQuestInfo[iIndex]);
-}*/
-
-int CvGlobals::getNumTutorialInfos()
-{
-	return (int)m_paTutorialInfo.size();
-}
-
-CvTutorialInfo& CvGlobals::getTutorialInfo(int iIndex)
-{
-	FAssert(iIndex > -1);
-	FAssert(iIndex < getNumTutorialInfos());
-	return *(m_paTutorialInfo[iIndex]);
-}
-
-int CvGlobals::getNumEventTriggerInfos()
-{
-	return (int)m_paEventTriggerInfo.size();
-}
-
-CvEventTriggerInfo& CvGlobals::getEventTriggerInfo(EventTriggerTypes eEventTrigger)
-{
-	FAssert(eEventTrigger > -1);
-	FAssert(eEventTrigger < getNumEventTriggerInfos());
-	return *(m_paEventTriggerInfo[eEventTrigger]);
-}
-
-int CvGlobals::getNumEventInfos()
-{
-	return (int)m_paEventInfo.size();
-}
-
-CvEventInfo& CvGlobals::getEventInfo(EventTypes eEvent)
-{
-	FAssert(eEvent > -1);
-	FAssert(eEvent < getNumEventInfos());
-	return *(m_paEventInfo[eEvent]);
-}
-
-int CvGlobals::getNumEspionageMissionInfos()
-{
-	return (int)m_paEspionageMissionInfo.size();
-}
-
-CvEspionageMissionInfo& CvGlobals::getEspionageMissionInfo(EspionageMissionTypes eEspionageMissionNum)
-{
-	FAssert(eEspionageMissionNum > -1);
-	FAssert(eEspionageMissionNum < getNumEspionageMissionInfos());
-	return *(m_paEspionageMissionInfo[eEspionageMissionNum]);
 }
 
 int& CvGlobals::getNumEntityEventTypes()
@@ -2035,18 +741,6 @@ CvString& CvGlobals::getArtStyleTypes(ArtStyleTypes e)
 	FAssert(e > -1);
 	FAssert(e < getNumArtStyleTypes());
 	return m_paszArtStyleTypes[e];
-}
-
-int CvGlobals::getNumUnitArtStyleTypeInfos()
-{
-	return (int)m_paUnitArtStyleTypeInfo.size();
-}
-
-CvUnitArtStyleTypeInfo& CvGlobals::getUnitArtStyleTypeInfo(UnitArtStyleTypes eUnitArtStyleTypeNum)
-{
-	FAssert(eUnitArtStyleTypeNum > -1);
-	FAssert(eUnitArtStyleTypeNum < getNumUnitArtStyleTypeInfos());
-	return *(m_paUnitArtStyleTypeInfo[eUnitArtStyleTypeNum]);
 }
 
 int& CvGlobals::getNumCitySizeTypes()
@@ -2173,107 +867,67 @@ CvString const& CvGlobals::getCurrentXMLFile() const
 {
 	return m_szCurrentXMLFile;
 }
-
-void CvGlobals::cacheGlobals()
+// advc.003t:
+#define MAKE_STRINGS(VAR) #VAR,
+// <advc.003t>
+void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 {
-	m_iEXTRA_YIELD = getDefineINT("EXTRA_YIELD"); // K-Mod
-	// advc.130s:
-	m_bJOIN_WAR_DIPLO_BONUS = (getDefineINT("ENABLE_JOIN_WAR_DIPLO_BONUS") > 0);
-	// advc.099:
-	m_iTILE_CULTURE_DECAY_PER_MILL = getDefineINT("TILE_CULTURE_DECAY_PER_MILL");
-	// advc.099b:
-	m_iCITY_RADIUS_DECAY = getDefineINT("CITY_RADIUS_DECAY");
-	// advc.099c:
-	m_iREVOLTS_IGNORE_CULTURE_RANGE = getDefineINT("REVOLTS_IGNORE_CULTURE_RANGE");
-	// advc.101:
-	m_iNUM_WARNING_REVOLTS = getDefineINT("NUM_WARNING_REVOLTS");
-	// advc.140:
-	m_iMAX_DISTANCE_CITY_MAINTENANCE = getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE");
-	// advc.035:
-	m_iOWN_EXCLUSIVE_RADIUS = getDefineINT("OWN_EXCLUSIVE_RADIUS");
-	// <advc.003b>
-	m_iDIPLOMACY_VALUE_REMAINDER = getDefineINT("DIPLOMACY_VALUE_REMAINDER");
-	m_iPEACE_TREATY_LENGTH = getDefineINT("PEACE_TREATY_LENGTH");
-	m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER = getDefineINT("TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER");
-	// </advc.003b>
-	// advc.210:
-	m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER = getDefineINT("RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER");
-	// advc.005f:
-	m_iENABLE_005F = getDefineINT("ENABLE_005F");
-	// advc.007:
-	m_iPER_PLAYER_MESSAGE_CONTROL_LOG = getDefineINT("PER_PLAYER_MESSAGE_CONTROL_LOG");
-	// advc.104:
-	m_iUWAI_MULTI_WAR_RELUCTANCE = getDefineINT("UWAI_MULTI_WAR_RELUCTANCE");
-	// advc.122:
-	m_iCITY_TRADE_CULTURE_THRESH = getDefineINT("CITY_TRADE_CULTURE_THRESH");
-	// advc.002a:
-	m_iMINIMAP_WATER_MODE = getDefineINT("MINIMAP_WATER_MODE");
-	// advc.011:
-	m_iDELAY_UNTIL_BUILD_DECAY = getDefineINT("DELAY_UNTIL_BUILD_DECAY");
-	// advc.910:
-	m_iBASE_RESEARCH_RATE = getDefineINT("BASE_RESEARCH_RATE");
-	// advc.003b:
-	m_iNEW_HURRY_MODIFIER = getDefineINT("NEW_HURRY_MODIFIER");
-	// advc.104:
-	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION");
-	// advc.107:					// The hyphens are stupid, but I don't want to change the XML file unnecessarily.
-	m_iEXTRA_DEFENDER_ERA = getDefineINT("EXTRA-DEFENDER_ERA");
-	// advc.113
-	m_iWORKER_RESERVE_PERCENT = getDefineINT("WORKER_RESERVE_PERCENT");
+	const char* const aszGlobalDefinesTagNames[] = {
+		ENUMERATE_GLOBAL_DEFINES(MAKE_STRINGS)
+	};
+	FAssert(sizeof(aszGlobalDefinesTagNames) / sizeof(char*) == NUM_GLOBAL_DEFINES);
 
-	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
-	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
-	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");
-	m_iFOOD_CONSUMPTION_PER_POPULATION = getDefineINT("FOOD_CONSUMPTION_PER_POPULATION");
-	m_iMAX_HIT_POINTS = getDefineINT("MAX_HIT_POINTS");
-	m_iPATH_DAMAGE_WEIGHT = getDefineINT("PATH_DAMAGE_WEIGHT");
-	m_iHILLS_EXTRA_DEFENSE = getDefineINT("HILLS_EXTRA_DEFENSE");
-	m_iRIVER_ATTACK_MODIFIER = getDefineINT("RIVER_ATTACK_MODIFIER");
-	m_iAMPHIB_ATTACK_MODIFIER = getDefineINT("AMPHIB_ATTACK_MODIFIER");
-	m_iHILLS_EXTRA_MOVEMENT = getDefineINT("HILLS_EXTRA_MOVEMENT");
-	m_iMAX_PLOT_LIST_ROWS = getDefineINT("MAX_PLOT_LIST_ROWS");
-	m_iUNIT_MULTISELECT_MAX = getDefineINT("UNIT_MULTISELECT_MAX");
-	m_iPERCENT_ANGER_DIVISOR = getDefineINT("PERCENT_ANGER_DIVISOR");
-	m_iEVENT_MESSAGE_TIME = getDefineINT("EVENT_MESSAGE_TIME");
-	m_iROUTE_FEATURE_GROWTH_MODIFIER = getDefineINT("ROUTE_FEATURE_GROWTH_MODIFIER");
-	m_iFEATURE_GROWTH_MODIFIER = getDefineINT("FEATURE_GROWTH_MODIFIER");
-	m_iMIN_CITY_RANGE = getDefineINT("MIN_CITY_RANGE");
-	m_iCITY_MAX_NUM_BUILDINGS = getDefineINT("CITY_MAX_NUM_BUILDINGS");
-	m_iNUM_UNIT_AND_TECH_PREREQS = getDefineINT("NUM_UNIT_AND_TECH_PREREQS");
-	m_iNUM_AND_TECH_PREREQS = getDefineINT("NUM_AND_TECH_PREREQS");
-	m_iNUM_OR_TECH_PREREQS = getDefineINT("NUM_OR_TECH_PREREQS");
-	m_iLAKE_MAX_AREA_SIZE = getDefineINT("LAKE_MAX_AREA_SIZE");
-	m_iNUM_ROUTE_PREREQ_OR_BONUSES = getDefineINT("NUM_ROUTE_PREREQ_OR_BONUSES");
-	m_iNUM_BUILDING_AND_TECH_PREREQS = getDefineINT("NUM_BUILDING_AND_TECH_PREREQS");
-	m_iMIN_WATER_SIZE_FOR_OCEAN = getDefineINT("MIN_WATER_SIZE_FOR_OCEAN");
-	m_iFORTIFY_MODIFIER_PER_TURN = getDefineINT("FORTIFY_MODIFIER_PER_TURN");
-	m_iMAX_CITY_DEFENSE_DAMAGE = getDefineINT("MAX_CITY_DEFENSE_DAMAGE");
-	// cdtw.2:
-	m_iCITY_DEFENSE_DAMAGE_HEAL_RATE = getDefineINT("CITY_DEFENSE_DAMAGE_HEAL_RATE");
-	m_iNUM_CORPORATION_PREREQ_BONUSES = getDefineINT("NUM_CORPORATION_PREREQ_BONUSES");
-	m_iPEAK_SEE_THROUGH_CHANGE = getDefineINT("PEAK_SEE_THROUGH_CHANGE");
-	m_iHILLS_SEE_THROUGH_CHANGE = getDefineINT("HILLS_SEE_THROUGH_CHANGE");
-	m_iSEAWATER_SEE_FROM_CHANGE = getDefineINT("SEAWATER_SEE_FROM_CHANGE");
-	m_iPEAK_SEE_FROM_CHANGE = getDefineINT("PEAK_SEE_FROM_CHANGE");
-	m_iHILLS_SEE_FROM_CHANGE = getDefineINT("HILLS_SEE_FROM_CHANGE");
-	m_iUSE_SPIES_NO_ENTER_BORDERS = getDefineINT("USE_SPIES_NO_ENTER_BORDERS");
+	if (szChangedDefine != NULL) // Cache update
+	{
+		for (int i = 0; i < NUM_GLOBAL_DEFINES; i++)
+		{
+			if (std::strcmp(aszGlobalDefinesTagNames[i], szChangedDefine) == 0)
+			{
+				m_aiGlobalDefinesCache[i] = iNewValue;
+				break;
+			}
+		}
+		return; // Don't bother checking the Python callback flags
+	}
 
-	m_fCAMERA_MIN_YAW = getDefineFLOAT("CAMERA_MIN_YAW");
-	m_fCAMERA_MAX_YAW = getDefineFLOAT("CAMERA_MAX_YAW");
-	m_fCAMERA_FAR_CLIP_Z_HEIGHT = getDefineFLOAT("CAMERA_FAR_CLIP_Z_HEIGHT");
-	m_fCAMERA_MAX_TRAVEL_DISTANCE = getDefineFLOAT("CAMERA_MAX_TRAVEL_DISTANCE");
-	m_fCAMERA_START_DISTANCE = getDefineFLOAT("CAMERA_START_DISTANCE");
-	m_fAIR_BOMB_HEIGHT = getDefineFLOAT("AIR_BOMB_HEIGHT");
-	m_fPLOT_SIZE = getDefineFLOAT("PLOT_SIZE");
-	m_fCAMERA_SPECIAL_PITCH = getDefineFLOAT("CAMERA_SPECIAL_PITCH");
-	m_fCAMERA_MAX_TURN_OFFSET = getDefineFLOAT("CAMERA_MAX_TURN_OFFSET");
-	m_fCAMERA_MIN_DISTANCE = getDefineFLOAT("CAMERA_MIN_DISTANCE");
-	m_fCAMERA_UPPER_PITCH = getDefineFLOAT("CAMERA_UPPER_PITCH");
-	m_fCAMERA_LOWER_PITCH = getDefineFLOAT("CAMERA_LOWER_PITCH");
-	m_fFIELD_OF_VIEW = getDefineFLOAT("FIELD_OF_VIEW");
-	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
-	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
+	// Initialize cache (or full update)
+	SAFE_DELETE_ARRAY(m_aiGlobalDefinesCache);
+	m_aiGlobalDefinesCache = new int[NUM_GLOBAL_DEFINES];
+	for (int i = 0; i < NUM_GLOBAL_DEFINES; i++)
+	{
+		/*  Let's not throw away the default values from BBAI
+			(though they should of course not be needed) */
+		int iDefault = 0;
+		switch((GlobalDefines)i)
+		{
+		// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
+		// BBAI AI Variables
+		case WAR_SUCCESS_CITY_CAPTURING: iDefault = 25; break;
+		case BBAI_ATTACK_CITY_STACK_RATIO: iDefault = 110; break;
+		case BBAI_SKIP_BOMBARD_BASE_STACK_RATIO: iDefault = 300; break;
+		case BBAI_SKIP_BOMBARD_MIN_STACK_RATIO: iDefault = 140; break;
+		//case TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER: iDefault = 20; break; // advc.910: Should be 0 also by default
+		case TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER: iDefault = 20; break;
+		case TECH_COST_KNOWN_PREREQ_MODIFIER: iDefault = 20; break;
+		// From Lead From Behind by UncutDragon
+		case LFB_ENABLE: iDefault = 1; break;
+		case LFB_BASEDONGENERAL: iDefault = 1; break;
+		case LFB_BASEDONEXPERIENCE: iDefault = 1; break;
+		case LFB_BASEDONLIMITED: iDefault = 1; break;
+		case LFB_BASEDONHEALER: iDefault = 1; break;
+		case LFB_DEFENSIVEADJUSTMENT: iDefault = 1; break;
+		case LFB_USESLIDINGSCALE: iDefault = 1; break;
+		case LFB_ADJUSTNUMERATOR: iDefault = 1; break;
+		case LFB_ADJUSTDENOMINATOR: iDefault = 3; break;
+		case LFB_USECOMBATODDS: iDefault = 1; break;
+		case COMBAT_DIE_SIDES: iDefault = -1; break;
+		case COMBAT_DAMAGE: iDefault = -1; break;
+		// BETTER_BTS_AI_MOD: END
+		}
+		m_aiGlobalDefinesCache[i] = getDefineINT(aszGlobalDefinesTagNames[i], iDefault);
+	} // </advc.003t>
 
+	m_iUSE_FINISH_TEXT_CALLBACK = getDefineINT("USE_FINISH_TEXT_CALLBACK");
 	m_iUSE_CANNOT_FOUND_CITY_CALLBACK = getDefineINT("USE_CANNOT_FOUND_CITY_CALLBACK");
 	m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK = getDefineINT("USE_CAN_FOUND_CITIES_ON_WATER_CALLBACK");
 	m_iUSE_IS_PLAYER_RESEARCH_CALLBACK = getDefineINT("USE_IS_PLAYER_RESEARCH_CALLBACK");
@@ -2295,7 +949,6 @@ void CvGlobals::cacheGlobals()
 	/*  advc.003c, advc.001: Had said "USE_USE...".
 		The variable name is still wrong, but that doesn't hurt. */
 	m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK = getDefineINT("USE_CANNOT_SPREAD_RELIGION_CALLBACK");
-	m_iUSE_FINISH_TEXT_CALLBACK = getDefineINT("USE_FINISH_TEXT_CALLBACK");
 	m_iUSE_ON_UNIT_SET_XY_CALLBACK = getDefineINT("USE_ON_UNIT_SET_XY_CALLBACK");
 	m_iUSE_ON_UNIT_SELECTED_CALLBACK = getDefineINT("USE_ON_UNIT_SELECTED_CALLBACK");
 	m_iUSE_ON_UPDATE_CALLBACK = getDefineINT("USE_ON_UPDATE_CALLBACK");
@@ -2321,77 +974,65 @@ void CvGlobals::cacheGlobals()
 	m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK = getDefineINT("USE_UNIT_UPGRADE_PRICE_CALLBACK") != 0;
 	m_bUSE_DO_COMBAT_CALLBACK = getDefineINT("USE_DO_COMBAT_CALLBACK") != 0;
 	// K-Mod end
+}
 
-	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
-	// BBAI Options
-	m_bBBAI_AIR_COMBAT = !(getDefineINT("BBAI_AIR_COMBAT") == 0);
-	m_bBBAI_HUMAN_VASSAL_WAR_BUILD = !(getDefineINT("BBAI_HUMAN_VASSAL_WAR_BUILD") == 0);
-	m_iBBAI_DEFENSIVE_PACT_BEHAVIOR = getDefineINT("BBAI_DEFENSIVE_PACT_BEHAVIOR");
-	m_bBBAI_HUMAN_AS_VASSAL_OPTION = !(getDefineINT("BBAI_HUMAN_AS_VASSAL_OPTION") == 0);
+void CvGlobals::cacheGlobalFloats()
+{
+	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
 
-	// BBAI AI Variables
-	m_iWAR_SUCCESS_CITY_CAPTURING = getDefineINT("WAR_SUCCESS_CITY_CAPTURING", m_iWAR_SUCCESS_CITY_CAPTURING);
-	m_iBBAI_ATTACK_CITY_STACK_RATIO = getDefineINT("BBAI_ATTACK_CITY_STACK_RATIO", m_iBBAI_ATTACK_CITY_STACK_RATIO);
-	m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_BASE_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO);
-	m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_MIN_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
+	m_fCAMERA_MIN_YAW = getDefineFLOAT("CAMERA_MIN_YAW");
+	m_fCAMERA_MAX_YAW = getDefineFLOAT("CAMERA_MAX_YAW");
+	m_fCAMERA_FAR_CLIP_Z_HEIGHT = getDefineFLOAT("CAMERA_FAR_CLIP_Z_HEIGHT");
+	m_fCAMERA_MAX_TRAVEL_DISTANCE = getDefineFLOAT("CAMERA_MAX_TRAVEL_DISTANCE");
+	m_fCAMERA_START_DISTANCE = getDefineFLOAT("CAMERA_START_DISTANCE");
+	m_fAIR_BOMB_HEIGHT = getDefineFLOAT("AIR_BOMB_HEIGHT");
+	m_fPLOT_SIZE = getDefineFLOAT("PLOT_SIZE");
+	m_fCAMERA_SPECIAL_PITCH = getDefineFLOAT("CAMERA_SPECIAL_PITCH");
+	m_fCAMERA_MAX_TURN_OFFSET = getDefineFLOAT("CAMERA_MAX_TURN_OFFSET");
+	m_fCAMERA_MIN_DISTANCE = getDefineFLOAT("CAMERA_MIN_DISTANCE");
+	m_fCAMERA_UPPER_PITCH = getDefineFLOAT("CAMERA_UPPER_PITCH");
+	m_fCAMERA_LOWER_PITCH = getDefineFLOAT("CAMERA_LOWER_PITCH");
+	m_fFIELD_OF_VIEW = getDefineFLOAT("FIELD_OF_VIEW");
+	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
+	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
+}
 
-	// Tech Diffusion
-	m_bTECH_DIFFUSION_ENABLE = !(getDefineINT("TECH_DIFFUSION_ENABLE") == 0);
-	m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER = getDefineINT("TECH_DIFFUSION_KNOWN_TEAM_MODIFIER", m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER);
-	m_iTECH_DIFFUSION_WELFARE_THRESHOLD = getDefineINT("TECH_DIFFUSION_WELFARE_THRESHOLD", m_iTECH_DIFFUSION_WELFARE_THRESHOLD);
-	m_iTECH_DIFFUSION_WELFARE_MODIFIER = getDefineINT("TECH_DIFFUSION_WELFARE_MODIFIER", m_iTECH_DIFFUSION_WELFARE_MODIFIER);
-	m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER = getDefineINT("TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER", m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER);
-	m_iTECH_COST_KNOWN_PREREQ_MODIFIER = getDefineINT("TECH_COST_KNOWN_PREREQ_MODIFIER", m_iTECH_COST_KNOWN_PREREQ_MODIFIER);
-	m_iTECH_COST_MODIFIER = getDefineINT("TECH_COST_MODIFIER", m_iTECH_COST_MODIFIER);
-	// <advc.550d>
-	m_iTECH_COST_NOTRADE_MODIFIER = getDefineINT("TECH_COST_NOTRADE_MODIFIER",
-			m_iTECH_COST_NOTRADE_MODIFIER); // </advc.550d>
-
-	// From Lead From Behind by UncutDragon: flags
-	m_bLFBEnable = !(getDefineINT("LFB_ENABLE") == 0);
-	m_iLFBBasedOnGeneral = getDefineINT("LFB_BASEDONGENERAL");
-	m_iLFBBasedOnExperience = getDefineINT("LFB_BASEDONEXPERIENCE");
-	m_iLFBBasedOnLimited = getDefineINT("LFB_BASEDONLIMITED");
-	m_iLFBBasedOnHealer = getDefineINT("LFB_BASEDONHEALER");
-	m_iLFBDefensiveAdjustment = getDefineINT("LFB_DEFENSIVEADJUSTMENT");
-	m_bLFBUseSlidingScale = !(getDefineINT("LFB_USESLIDINGSCALE") == 0);
-	m_iLFBAdjustNumerator = getDefineINT("LFB_ADJUSTNUMERATOR");
-	m_iLFBAdjustDenominator = getDefineINT("LFB_ADJUSTDENOMINATOR");
-	m_bLFBUseCombatOdds = !(getDefineINT("LFB_USECOMBATODDS") == 0);
-	m_iCOMBAT_DIE_SIDES = getDefineINT("COMBAT_DIE_SIDES");
-	m_iCOMBAT_DAMAGE = getDefineINT("COMBAT_DAMAGE");
-	// BETTER_BTS_AI_MOD: END
-	m_bCachingDone = true; // advc.003c
+void CvGlobals::cacheGlobals()
+{
+	// <advc.003t> Moved into subroutines to allow partial updates
+	cacheGlobalInts();
+	cacheGlobalFloats();
+	// Strings: Mostly can't cache these here (too early) // </advc.003t>
 }
 
 // <advc.003b>
 void CvGlobals::setRUINS_IMPROVEMENT(int iValue) {
 
 	m_iRUINS_IMPROVEMENT = iValue;
+}
+
+void CvGlobals::setWATER_TERRAIN(bool bShallow, int iValue) {
+
+	m_aiWATER_TERRAIN[bShallow] = iValue;
+} 
+
+void CvGlobals::setDEFAULT_SPECIALIST(int iValue) {
+
+	m_iDEFAULT_SPECIALIST = iValue;
 } // </advc.003b>
 
-// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
-int CvGlobals::getDefineINT(const char * szName, const int iDefault) const
+int CvGlobals::getDefineINT(const char * szName,
+		// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
+		const int iDefault) const
 {
-	int iReturn = 0;
-
-	if (getDefinesVarSystem()->GetValue(szName, iReturn))
-	{
-		return iReturn;
-	}
-
-	return iDefault;
-} // BETTER_BTS_AI_MOD: END
-
-
-int CvGlobals::getDefineINT(const char * szName) const
-{
-	int iReturn = 0;
+	int iReturn = iDefault;
+	// BETTER_BTS_AI_MOD: END
 	bool bSuccess = // advc.003c
 			getDefinesVarSystem()->GetValue(szName, iReturn);
 	FAssert(bSuccess); // advc.003c
 	return iReturn;
 }
+
 
 float CvGlobals::getDefineFLOAT(const char * szName) const
 {
@@ -2414,203 +1055,80 @@ const char * CvGlobals::getDefineSTRING(const char * szName) const
 }
 
 void CvGlobals::setDefineINT(const char * szName, int iValue,
-		bool bUpdateCache) // advc.003b
+		bool bUpdateCache) // advc.003t
 {
 	getDefinesVarSystem()->SetValue(szName, iValue);
-	if(bUpdateCache) // advc.003b
-		cacheGlobals();
+	// <advc.003t>
+	if(bUpdateCache)
+		cacheGlobalInts(szName, iValue); // Pinpoint update </advc.003t>
 }
 
 void CvGlobals::setDefineFLOAT(const char * szName, float fValue,
-		bool bUpdateCache) // advc.003b
+		bool bUpdateCache) // advc.003t
 {
 	getDefinesVarSystem()->SetValue(szName, fValue);
-	if(bUpdateCache) // advc.003b
-		cacheGlobals();
+	// <advc.003t>
+	if(bUpdateCache)
+		cacheGlobalFloats(); // </advc.003t>
 }
 
 void CvGlobals::setDefineSTRING(const char * szName, const char * szValue,
 		bool bUpdateCache) // advc.003b
 {
 	getDefinesVarSystem()->SetValue(szName, szValue);
-	if(bUpdateCache) // advc.003b
-		cacheGlobals();
+	//cacheGlobals();
+	FAssertMsg(!bUpdateCache, "No strings to update"); // advc.003t
+}
+/*  <advc.003t> Optional parameters added. The return value is only an upper bound,
+	even if an argument is given. */
+int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
+{
+	return (eUnit == NO_UNIT || getUnitInfo(eUnit).isAnyPrereqOrBonus() ?
+			getDefineINT(NUM_UNIT_PREREQ_OR_BONUSES) : 0);
 }
 
-int CvGlobals::getMOVE_DENOMINATOR()
+int CvGlobals::getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const
 {
-	return m_iMOVE_DENOMINATOR;
+	return (eUnit == NO_UNIT || getUnitInfo(eUnit).isAnyPrereqAndTech() ?
+			getDefineINT(NUM_UNIT_AND_TECH_PREREQS) : 0);
 }
 
-int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES()
+int CvGlobals::getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const
 {
-	return m_iNUM_UNIT_PREREQ_OR_BONUSES;
+	return (eBuilding == NO_BUILDING || getBuildingInfo(eBuilding).isAnyPrereqOrBonus() ?
+			getDefineINT(NUM_BUILDING_PREREQ_OR_BONUSES) : 0);
 }
 
-int CvGlobals::getNUM_BUILDING_PREREQ_OR_BONUSES()
+int CvGlobals::getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const
 {
-	return m_iNUM_BUILDING_PREREQ_OR_BONUSES;
+	return (eBuilding == NO_BUILDING || getBuildingInfo(eBuilding).isAnyPrereqAndTech() ?
+			getDefineINT(NUM_BUILDING_AND_TECH_PREREQS) : 0);
 }
 
-int CvGlobals::getFOOD_CONSUMPTION_PER_POPULATION()
+int CvGlobals::getNUM_AND_TECH_PREREQS(TechTypes eTech) const
 {
-	return m_iFOOD_CONSUMPTION_PER_POPULATION;
+	return (eTech == NO_TECH || getTechInfo(eTech).isAnyPrereqAndTech() ?
+			getDefineINT(NUM_AND_TECH_PREREQS) : 0);
 }
 
-int CvGlobals::getMAX_HIT_POINTS()
+int CvGlobals::getNUM_OR_TECH_PREREQS(TechTypes eTech) const
 {
-	return m_iMAX_HIT_POINTS;
+	return (eTech == NO_TECH || getTechInfo(eTech).isAnyPrereqOrTech() ?
+			getDefineINT(NUM_OR_TECH_PREREQS) : 0);
 }
 
-int CvGlobals::getPATH_DAMAGE_WEIGHT()
+int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
 {
-	return m_iPATH_DAMAGE_WEIGHT;
+	return (eRoute == NO_ROUTE || getRouteInfo(eRoute).isAnyPrereqOrBonus() ?
+			getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES) : 0);
 }
 
-int CvGlobals::getHILLS_EXTRA_DEFENSE()
+int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES(CorporationTypes eCorporation) const
 {
-	return m_iHILLS_EXTRA_DEFENSE;
+	return (eCorporation == NO_CORPORATION || getCorporationInfo(eCorporation).isAnyPrereqOrBonus() ?
+			getDefineINT(NUM_CORPORATION_PREREQ_BONUSES) : 0);
 }
-
-int CvGlobals::getRIVER_ATTACK_MODIFIER()
-{
-	return m_iRIVER_ATTACK_MODIFIER;
-}
-
-int CvGlobals::getAMPHIB_ATTACK_MODIFIER()
-{
-	return m_iAMPHIB_ATTACK_MODIFIER;
-}
-
-int CvGlobals::getHILLS_EXTRA_MOVEMENT()
-{
-	return m_iHILLS_EXTRA_MOVEMENT;
-}
-
-int CvGlobals::getMAX_PLOT_LIST_ROWS()
-{
-	return m_iMAX_PLOT_LIST_ROWS;
-}
-
-int CvGlobals::getUNIT_MULTISELECT_MAX()
-{
-	return m_iUNIT_MULTISELECT_MAX;
-}
-
-int CvGlobals::getPERCENT_ANGER_DIVISOR()
-{
-	return m_iPERCENT_ANGER_DIVISOR;
-}
-
-int CvGlobals::getEVENT_MESSAGE_TIME()
-{
-	return m_iEVENT_MESSAGE_TIME;
-}
-
-int CvGlobals::getROUTE_FEATURE_GROWTH_MODIFIER()
-{
-	return m_iROUTE_FEATURE_GROWTH_MODIFIER;
-}
-
-int CvGlobals::getFEATURE_GROWTH_MODIFIER()
-{
-	return m_iFEATURE_GROWTH_MODIFIER;
-}
-
-int CvGlobals::getMIN_CITY_RANGE()
-{
-	return m_iMIN_CITY_RANGE;
-}
-
-int CvGlobals::getCITY_MAX_NUM_BUILDINGS()
-{
-	return m_iCITY_MAX_NUM_BUILDINGS;
-}
-
-int CvGlobals::getNUM_UNIT_AND_TECH_PREREQS()
-{
-	return m_iNUM_UNIT_AND_TECH_PREREQS;
-}
-
-int CvGlobals::getNUM_AND_TECH_PREREQS()
-{
-	return m_iNUM_AND_TECH_PREREQS;
-}
-
-int CvGlobals::getNUM_OR_TECH_PREREQS()
-{
-	return m_iNUM_OR_TECH_PREREQS;
-}
-
-int CvGlobals::getLAKE_MAX_AREA_SIZE()
-{
-	return m_iLAKE_MAX_AREA_SIZE;
-}
-
-int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES()
-{
-	return m_iNUM_ROUTE_PREREQ_OR_BONUSES;
-}
-
-int CvGlobals::getNUM_BUILDING_AND_TECH_PREREQS()
-{
-	return m_iNUM_BUILDING_AND_TECH_PREREQS;
-}
-
-int CvGlobals::getMIN_WATER_SIZE_FOR_OCEAN()
-{
-	return m_iMIN_WATER_SIZE_FOR_OCEAN;
-}
-
-int CvGlobals::getFORTIFY_MODIFIER_PER_TURN()
-{
-	return m_iFORTIFY_MODIFIER_PER_TURN;
-}
-
-int CvGlobals::getMAX_CITY_DEFENSE_DAMAGE()
-{
-	return m_iMAX_CITY_DEFENSE_DAMAGE;
-}
-// <cdtw.2>
-int CvGlobals::getCITY_DEFENSE_DAMAGE_HEAL_RATE()
-{
-	return m_iCITY_DEFENSE_DAMAGE_HEAL_RATE;
-} // </cdtw.2>
-
-int CvGlobals::getPEAK_SEE_THROUGH_CHANGE()
-{
-	return m_iPEAK_SEE_THROUGH_CHANGE;
-}
-
-int CvGlobals::getHILLS_SEE_THROUGH_CHANGE()
-{
-	return m_iHILLS_SEE_THROUGH_CHANGE;
-}
-
-int CvGlobals::getSEAWATER_SEE_FROM_CHANGE()
-{
-	return m_iSEAWATER_SEE_FROM_CHANGE;
-}
-
-int CvGlobals::getPEAK_SEE_FROM_CHANGE()
-{
-	return m_iPEAK_SEE_FROM_CHANGE;
-}
-
-int CvGlobals::getHILLS_SEE_FROM_CHANGE()
-{
-	return m_iHILLS_SEE_FROM_CHANGE;
-}
-
-int CvGlobals::getUSE_SPIES_NO_ENTER_BORDERS()
-{
-	return m_iUSE_SPIES_NO_ENTER_BORDERS;
-}
-
-int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES()
-{
-	return m_iNUM_CORPORATION_PREREQ_BONUSES;
-}
+// </advc.003t>
 
 float CvGlobals::getCAMERA_MIN_YAW()
 {
@@ -3228,7 +1746,7 @@ void CvGlobals::deleteInfoArrays()
 // <advc.003c>
 bool CvGlobals::isCachingDone() const {
 
-	return m_bCachingDone;
+	return m_aiGlobalDefinesCache != NULL;
 } // </advc.003c>
 
 // <advc.106i>
@@ -3377,150 +1895,3 @@ void CvGlobals::setBorderFinder(FAStar* pVal) { m_borderFinder = pVal; }
 void CvGlobals::setAreaFinder(FAStar* pVal) { m_areaFinder = pVal; }
 void CvGlobals::setPlotGroupFinder(FAStar* pVal) { m_plotGroupFinder = pVal; }
 CvDLLUtilityIFaceBase* CvGlobals::getDLLIFaceNonInl() { return m_pDLL; }
-
-// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
-
-// BBAI Options
-bool CvGlobals::getBBAI_AIR_COMBAT()
-{
-	return m_bBBAI_AIR_COMBAT;
-}
-
-bool CvGlobals::getBBAI_HUMAN_VASSAL_WAR_BUILD()
-{
-	return m_bBBAI_HUMAN_VASSAL_WAR_BUILD;
-}
-
-int CvGlobals::getBBAI_DEFENSIVE_PACT_BEHAVIOR()
-{
-	return m_iBBAI_DEFENSIVE_PACT_BEHAVIOR;
-}
-
-bool CvGlobals::getBBAI_HUMAN_AS_VASSAL_OPTION()
-{
-	return m_bBBAI_HUMAN_AS_VASSAL_OPTION;
-}
-
-// BBAI AI Variables
-int CvGlobals::getWAR_SUCCESS_CITY_CAPTURING()
-{
-	return m_iWAR_SUCCESS_CITY_CAPTURING;
-}
-
-int CvGlobals::getBBAI_ATTACK_CITY_STACK_RATIO()
-{
-	return m_iBBAI_ATTACK_CITY_STACK_RATIO;
-}
-
-int CvGlobals::getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO()
-{
-	return m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO;
-}
-
-int CvGlobals::getBBAI_SKIP_BOMBARD_MIN_STACK_RATIO()
-{
-	return m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO;
-}
-
-// Tech Diffusion
-bool CvGlobals::getTECH_DIFFUSION_ENABLE()
-{
-	return m_bTECH_DIFFUSION_ENABLE;
-}
-
-int CvGlobals::getTECH_DIFFUSION_KNOWN_TEAM_MODIFIER()
-{
-	return m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER;
-}
-
-int CvGlobals::getTECH_DIFFUSION_WELFARE_THRESHOLD()
-{
-	return m_iTECH_DIFFUSION_WELFARE_THRESHOLD;
-}
-
-int CvGlobals::getTECH_DIFFUSION_WELFARE_MODIFIER()
-{
-	return m_iTECH_DIFFUSION_WELFARE_MODIFIER;
-}
-
-int CvGlobals::getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER()
-{
-	return m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER;
-}
-
-int CvGlobals::getTECH_COST_KNOWN_PREREQ_MODIFIER()
-{
-	return m_iTECH_COST_KNOWN_PREREQ_MODIFIER;
-}
-
-int CvGlobals::getTECH_COST_MODIFIER()
-{
-	return m_iTECH_COST_MODIFIER;
-}
-// <advc.550d>
-int CvGlobals::getTECH_COST_NOTRADE_MODIFIER() {
-
-	return m_iTECH_COST_NOTRADE_MODIFIER;
-} // </advc.550d>
-
-// From Lead From Behind by UncutDragon: flags (edited for K-Mod)
-bool CvGlobals::getLFBEnable() const
-{
-	return m_bLFBEnable;
-}
-
-int CvGlobals::getLFBBasedOnGeneral() const
-{
-	return m_iLFBBasedOnGeneral;
-}
-
-int CvGlobals::getLFBBasedOnExperience() const
-{
-	return m_iLFBBasedOnExperience;
-}
-
-int CvGlobals::getLFBBasedOnLimited() const
-{
-	return m_iLFBBasedOnLimited;
-}
-
-int CvGlobals::getLFBBasedOnHealer() const
-{
-	return m_iLFBBasedOnHealer;
-}
-
-int CvGlobals::getLFBDefensiveAdjustment() const
-{
-	return m_iLFBDefensiveAdjustment;
-}
-
-bool CvGlobals::getLFBUseSlidingScale() const
-{
-	return m_bLFBUseSlidingScale;
-}
-
-int CvGlobals::getLFBAdjustNumerator() const
-{
-	return m_iLFBAdjustNumerator;
-}
-
-int CvGlobals::getLFBAdjustDenominator() const
-{
-	return m_iLFBAdjustDenominator;
-}
-
-bool CvGlobals::getLFBUseCombatOdds() const
-{
-	return m_bLFBUseCombatOdds;
-}
-
-int CvGlobals::getCOMBAT_DIE_SIDES() const
-{
-	return m_iCOMBAT_DIE_SIDES;
-}
-
-int CvGlobals::getCOMBAT_DAMAGE() const
-{
-	return m_iCOMBAT_DAMAGE;
-}
-// BETTER_BTS_AI_MOD: END

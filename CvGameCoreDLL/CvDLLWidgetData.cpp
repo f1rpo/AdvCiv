@@ -2007,7 +2007,7 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS",
-				GC.getDefineINT("HURRY_POP_ANGER"),
+				GC.getDefineINT(CvGlobals::HURRY_POP_ANGER),
 				iHurryAngerLength + kCity.getHurryAngerTimer()));
 	}
 
@@ -2078,7 +2078,8 @@ void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, C
 			if (iConscriptAngerLength > 0)
 			{
 				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS", GC.getDefineINT("CONSCRIPT_POP_ANGER"), (iConscriptAngerLength + pHeadSelectedCity->getConscriptAngerTimer())));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS", GC.getDefineINT(CvGlobals::CONSCRIPT_POP_ANGER),
+						(iConscriptAngerLength + pHeadSelectedCity->getConscriptAngerTimer())));
 			}
 
 			int iMinCityPopulation = pHeadSelectedCity->conscriptMinCityPopulation();
@@ -2320,7 +2321,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 
 		if (kAction.getAutomateType() != NO_AUTOMATE)
 		{
-			CvAutomateInfo const& kAutomate = GC.getAutomateInfo((ControlTypes)
+			CvAutomateInfo const& kAutomate = GC.getAutomateInfo((AutomateTypes)
 					kAction.getAutomateType());
 			if (!CvWString(kAutomate.getHelp()).empty())
 			{
@@ -2530,7 +2531,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		if (!kUnitOwner.canFound(kMissionPlot.getX(), kMissionPlot.getY()))
 		{
 			bool bValid = true;
-			int iRange = GC.getMIN_CITY_RANGE();
+			int iRange = GC.getDefineINT(CvGlobals::MIN_CITY_RANGE);
 			for (int iDX = -(iRange); iDX <= iRange; iDX++)
 			{
 				for (int iDY = -(iRange); iDY <= iRange; iDY++)
@@ -2548,7 +2549,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_FOUND",
-						GC.getMIN_CITY_RANGE()));
+						GC.getDefineINT(CvGlobals::MIN_CITY_RANGE)));
 			}
 		}
 		// <advc.004b> Show the projected increase in city maintenance
@@ -3415,7 +3416,7 @@ void CvDLLWidgetData::parseChangeSpecialistHelp(CvWidgetDataStruct &widgetDataSt
 	if (widgetDataStruct.m_iData2 > 0)
 	{
 		GAMETEXT.parseSpecialistHelp(szBuffer, (SpecialistTypes)widgetDataStruct.m_iData1, pHeadSelectedCity);
-		if (widgetDataStruct.m_iData1 != GC.getDefineINT("DEFAULT_SPECIALIST"))
+		if (widgetDataStruct.m_iData1 != GC.getDEFAULT_SPECIALIST())
 		{
 			if (!GET_PLAYER(pHeadSelectedCity->getOwner()).
 					isSpecialistValid((SpecialistTypes)widgetDataStruct.m_iData1))
@@ -4805,7 +4806,7 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		break;
 	case TRADE_PEACE_TREATY:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY",
-				GC.getPEACE_TREATY_LENGTH()));
+				GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)));
 		break;
 	// <advc.034>
 	case TRADE_DISENGAGE:
@@ -6283,7 +6284,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 	if(kCityPlot.isFreshWater()) {
 		r.append(NEWLINE);
 		r.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_FRESH_WATER",
-				GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE")));
+				GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE)));
 	}
 	int iGoodHealth = iGoodHealthPercent / 100;
 	int iBadHealth = iBadHealthPercent / 100;

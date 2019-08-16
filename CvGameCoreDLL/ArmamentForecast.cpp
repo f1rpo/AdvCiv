@@ -569,14 +569,14 @@ double ArmamentForecast::productionFromUpgrades() {
 		report.log("Upgrades bounded by income (%d gpt)", ::round(income));
 	r = std::min(incomeBound, r);
 	// An approximate inversion of CvUnit::upgradePrice
-	double upgrCostPerProd = GC.getDefineINT("UNIT_UPGRADE_COST_PER_PRODUCTION");
+	double upgrCostPerProd = GC.getDefineINT(CvGlobals::UNIT_UPGRADE_COST_PER_PRODUCTION);
 	r /= upgrCostPerProd;
 	/* The base upgrade cost is paid per unit, but CvPlayerAI doesn't track
 	   how many units need an upgrade. Assuming a mean training cost difference
 	   of 30 hammers, one can look at the base cost as a multiplicative modifier. */
 	double typicalGoldForProdDiff = upgrCostPerProd * 30;
 	double baseCostModifier = typicalGoldForProdDiff / (typicalGoldForProdDiff +
-			GC.getDefineINT("BASE_UNIT_UPGRADE_COST"));
+			GC.getDefineINT(CvGlobals::BASE_UNIT_UPGRADE_COST));
 	r *= baseCostModifier;
 	if(!civ.isHuman()) {
 		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGame().getHandicapType());

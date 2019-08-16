@@ -26,9 +26,9 @@ Calls out to the CvAppInterface Python module to check user options.
 /*void logMsg(const char* format, ...);
 bool isBug();
 void setIsBug(bool bIsBug);*/
-
-bool getDefineBOOL(const char* xmlKey, bool bDefault = false);
-int getDefineINT(const char* xmlKey, int iDefault = 0);
+// advc.003t: Replaced by functions in CvGlobals
+/*bool getDefineBOOL(const char* xmlKey, bool bDefault = false);
+int getDefineINT(const char* xmlKey, int iDefault = 0);*/
 
 /*  advc.003: Removed unused param char const* xmlKey = NULL
 	bWarn added */

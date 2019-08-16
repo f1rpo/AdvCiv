@@ -259,10 +259,12 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("DEEP_WATER_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("DEEP_WATER_TERRAIN", idx);
+		GC.setWATER_TERRAIN(false, idx); // advc.003b
 
 		SetGlobalDefine("SHALLOW_WATER_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("SHALLOW_WATER_TERRAIN", idx);
+		GC.setWATER_TERRAIN(true, idx); // advc.003b
 //GWMod Start M.A.
 		SetGlobalDefine("FROZEN_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
@@ -325,6 +327,7 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("DEFAULT_SPECIALIST", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("DEFAULT_SPECIALIST", idx);
+		GC.setDEFAULT_SPECIALIST(idx); // advc.003b
 
 		SetGlobalDefine("INITIAL_CITY_ROUTE_TYPE", szVal);
 		idx = FindInInfoClass(szVal);
@@ -1123,7 +1126,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumAutomateInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getAutomateInfo(i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getAutomateInfo((AutomateTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_AUTOMATE;
 		iTotalActionInfoCount++;
 	}
@@ -1200,7 +1203,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		}
 		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_AUTOMATE)
 		{
-			GC.getAutomateInfo(piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
+			GC.getAutomateInfo((AutomateTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
 		}
 		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_MISSION)
 		{

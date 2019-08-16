@@ -50,11 +50,11 @@ public:
 	DllExport void closeInactiveSlots();
 	DllExport void reopenInactiveSlots();
 
-	DllExport void resetGame();
+	void resetGame();
 	DllExport void resetGame(CvInitCore * pSource, bool bClear = true, bool bSaveGameType = false);
 	DllExport void resetPlayers();
 	DllExport void resetPlayers(CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
-	DllExport void resetPlayer(PlayerTypes eID);
+	void resetPlayer(PlayerTypes eID);
 	DllExport void resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
 
 	// **************************

@@ -98,7 +98,7 @@ CyTeam* CyGlobalContext::getCyTeam(int i)
 
 	return i<MAX_TEAMS ? &cyTeams[i] : NULL;
 }
-// <dlph.27> (AdvCiv code)
+// <dlph.27> (advc)
 bool CyGlobalContext::isLogging() {
 
 	return GC.getLogging();
@@ -111,7 +111,8 @@ bool CyGlobalContext::isRandLogging() {
 
 CvEffectInfo* CyGlobalContext::getEffectInfo(int /*EffectTypes*/ i) const
 {
-	return (i>=0 && i<GC.getNumEffectInfos()) ? &GC.getEffectInfo((EffectTypes) i) : NULL;
+	CvGlobals const& kGlobals = GC; // advc.003t: To disambiguate between the DllExport getEffectInfo and its const replacement
+	return (i>=0 && i<GC.getNumEffectInfos()) ? &kGlobals.getEffectInfo((EffectTypes) i) : NULL;
 }
 
 CvTerrainInfo* CyGlobalContext::getTerrainInfo(int /*TerrainTypes*/ i) const
@@ -241,7 +242,7 @@ CvActionInfo* CyGlobalContext::getActionInfo(int i) const
 
 CvAutomateInfo* CyGlobalContext::getAutomateInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumAutomateInfos()) ? &GC.getAutomateInfo(i) : NULL;
+	return (i>=0 && i<GC.getNumAutomateInfos()) ? &GC.getAutomateInfo((AutomateTypes)i) : NULL;
 }
 
 CvCommandInfo* CyGlobalContext::getCommandInfo(int i) const

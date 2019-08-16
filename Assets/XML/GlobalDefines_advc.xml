@@ -1043,4 +1043,44 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
+	<!-- advc.148: Mapping of relations values to AI attitude levels.
+		 Previously hardcoded in CvPlayerAI::AI_getAttitudeFromValue.
+		 Bear in mind that Civ4HandicapInfos.xml can also have a direct impact
+		 on how easy the AI is to please/ anger through the "first impression"
+		 modifier; see the "Dynamic Diplomacy" chapter in the manual about
+		 that. -->
+	<!-- Cautious attitude applies by default when none of the thresholds below
+		 are reached. -->
+
+	<!-- Relations need to be at least this good to make an AI civ Friendly.
+		 Recommended: 10 - as in BtS - however, effectively it's one lower due
+		 to changes in Civ4HandicapInfos.xml. Maybe 9 would play better,
+		 but that's an odd number. -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_FRIENDLY</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- Relations need to be at least this good to make an AI civ Pleased
+		 (and mustn't be good enough for Friendly).
+		 Recommended: 4, i.e. effectively the same as in BtS (3). -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_PLEASED</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<!-- Relations need to be this bad or worse to make the AI Furious.
+		 Recommended: -8 to give Pleased and Annoyed the same interval lengths.
+		 This means that the AI, effectively, gets Furious more quickly than in
+		 BtS (by 1). Apart from symmetry, -9 or -10 might play better. -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_FURIOUS</DefineName>
+		<iDefineIntVal>-8</iDefineIntVal>
+	</Define>
+	<!-- Relations need to be this bad or worse to make the AI Annoyed
+		 (and mustn't be bad enough for Furious).
+		 Recommended: -2, i.e. effectively the same as in BtS (-3). -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_ANNOYED</DefineName>
+		<iDefineIntVal>-2</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

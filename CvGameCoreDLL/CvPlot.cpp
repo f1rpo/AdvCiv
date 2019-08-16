@@ -481,7 +481,7 @@ void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 	// <advc.035>
 	PlayerTypes eCulturalOwner = calculateCulturalOwner();
 	setSecondOwner(eCulturalOwner);
-	if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && eCulturalOwner != NO_PLAYER) {
+	if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) && eCulturalOwner != NO_PLAYER) {
 		PlayerTypes eSecondOwner = calculateCulturalOwner(false, true);
 		if(eSecondOwner != NO_PLAYER) {
 			if(!TEAMREF(eSecondOwner).isAtWar(TEAMID(eCulturalOwner)))
@@ -504,39 +504,26 @@ void CvPlot::updateFog()
 	//PROFILE_FUNC();
 
 	if (!GC.IsGraphicsInitialized())
-	{
 		return;
-	}
 
 	FAssert(GC.getGame().getActiveTeam() != NO_TEAM);
 
 	if (isRevealed(GC.getGame().getActiveTeam(), false))
 	{
 		if (gDLL->getInterfaceIFace()->isBareMapMode())
-		{
 			gDLL->getEngineIFace()->LightenVisibility(getFOWIndex());
-		}
 		else
 		{
-			int cityScreenFogEnabled = GC.getDefineINT("CITY_SCREEN_FOG_ENABLED");
-			if (cityScreenFogEnabled && gDLL->getInterfaceIFace()->isCityScreenUp() && (gDLL->getInterfaceIFace()->getHeadSelectedCity() != getWorkingCity()))
-			{
+			static bool const bCityScreenFogEnabled = GC.getDefineBOOL("CITY_SCREEN_FOG_ENABLED"); // advc.003b: static
+			if (bCityScreenFogEnabled && gDLL->getInterfaceIFace()->isCityScreenUp() &&
+					gDLL->getInterfaceIFace()->getHeadSelectedCity() != getWorkingCity())
 				gDLL->getEngineIFace()->DarkenVisibility(getFOWIndex());
-			}
 			else if (isActiveVisible(false))
-			{
 				gDLL->getEngineIFace()->LightenVisibility(getFOWIndex());
-			}
-			else
-			{
-				gDLL->getEngineIFace()->DarkenVisibility(getFOWIndex());
-			}
+			else gDLL->getEngineIFace()->DarkenVisibility(getFOWIndex());
 		}
 	}
-	else
-	{
-		gDLL->getEngineIFace()->BlackenVisibility(getFOWIndex());
-	}
+	else gDLL->getEngineIFace()->BlackenVisibility(getFOWIndex());
 }
 
 
@@ -687,7 +674,7 @@ void CvPlot::updateMinimapColor()
 		return;
 	}
 	// <advc.002a>
-	int const iMode = GC.getMINIMAP_WATER_MODE();
+	int const iMode = GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE);
 	if(iMode == 3 && isWater())
 		return; // </advc.002a>
 	gDLL->getInterfaceIFace()->setMinimapColor(MINIMAPMODE_TERRITORY, getX(), getY(), plotMinimapColor(), STANDARD_MINIMAP_ALPHA
@@ -942,10 +929,9 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 			// if we remove roads, don't remove them on the city... XXX
 
 			CvCity* pLoopCity = pLoopPlot->getPlotCity();
-
 			if (pLoopCity == NULL)
 			{
-				if (!(pLoopPlot->isWater()) && !(pLoopPlot->isImpassable()))
+				if (!pLoopPlot->isWater() && !pLoopPlot->isImpassable())
 				{
 					if (NO_FEATURE == pLoopPlot->getFeatureType() || !GC.getFeatureInfo(pLoopPlot->getFeatureType()).isNukeImmune())
 					{
@@ -994,7 +980,9 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 						eAttackingTeam == TEAMID(pLoopUnit->getOwner())))
 						// </dlph.7>
 				{
-					int iNukeDamage = (GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE") + GC.getGame().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1"), "Nuke Damage 1") + GC.getGame().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2"), "Nuke Damage 2"));
+					int iNukeDamage = (GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE") +
+							GC.getGame().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1"), "Nuke Damage 1") +
+							GC.getGame().getSorenRandNum(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2"), "Nuke Damage 2"));
 
 					if (pLoopCity != NULL)
 					{
@@ -1278,31 +1266,22 @@ bool CvPlot::isCoastalLand(int iMinWaterSize) const
 {
 	PROFILE_FUNC();
 
-	CvPlot* pAdjacentPlot;
-	int iI;
-
 	if (isWater())
-	{
 		return false;
-	}
-
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	// <advc.003t>
+	if (iMinWaterSize < 0)
+		iMinWaterSize = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
+	// </advc.003t>
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
+		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+		if (pAdjacentPlot == NULL)
+			continue;
 
-		if (pAdjacentPlot != NULL)
-		{
-			if (pAdjacentPlot->isWater()
-					&& !pAdjacentPlot->isImpassable()) // advc.030
-			{
-				if (pAdjacentPlot->area()->getNumTiles() >= iMinWaterSize)
-				{
-					return true;
-				}
-			}
-		}
+		if (pAdjacentPlot->isWater() /* advc.030: */ && !pAdjacentPlot->isImpassable() &&
+				pAdjacentPlot->area()->getNumTiles() >= iMinWaterSize)
+			return true;
 	}
-
 	return false;
 }
 
@@ -1668,17 +1647,17 @@ int CvPlot::seeFromLevel(TeamTypes eTeam) const
 
 	if (isPeak())
 	{
-		iLevel += GC.getPEAK_SEE_FROM_CHANGE();
+		iLevel += GC.getDefineINT(CvGlobals::PEAK_SEE_FROM_CHANGE);
 	}
 
 	if (isHills())
 	{
-		iLevel += GC.getHILLS_SEE_FROM_CHANGE();
+		iLevel += GC.getDefineINT(CvGlobals::HILLS_SEE_FROM_CHANGE);
 	}
 
 	if (isWater())
 	{
-		iLevel += GC.getSEAWATER_SEE_FROM_CHANGE();
+		iLevel += GC.getDefineINT(CvGlobals::SEAWATER_SEE_FROM_CHANGE);
 
 		if (GET_TEAM(eTeam).isExtraWaterSeeFrom())
 		{
@@ -1703,17 +1682,17 @@ int CvPlot::seeThroughLevel() const
 
 	if (isPeak())
 	{
-		iLevel += GC.getPEAK_SEE_THROUGH_CHANGE();
+		iLevel += GC.getDefineINT(CvGlobals::PEAK_SEE_THROUGH_CHANGE);
 	}
 
 	if (isHills())
 	{
-		iLevel += GC.getHILLS_SEE_THROUGH_CHANGE();
+		iLevel += GC.getDefineINT(CvGlobals::HILLS_SEE_THROUGH_CHANGE);
 	}
 
 	if (isWater())
 	{
-		iLevel += GC.getSEAWATER_SEE_FROM_CHANGE();
+		iLevel += GC.getDefineINT(CvGlobals::SEAWATER_SEE_FROM_CHANGE);
 	}
 
 	return iLevel;
@@ -1958,7 +1937,7 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 				CvCity* pHolyCity = GC.getGame().getHolyCity((ReligionTypes)iI);
 				if (pHolyCity != NULL) {
 					if (GET_PLAYER(pHolyCity->getOwner()).getStateReligion() == iI)
-						changeAdjacentSight(pHolyCity->getTeam(), GC.getDefineINT("PLOT_VISIBILITY_RANGE"), bIncrement, NULL, bUpdatePlotGroups);
+						changeAdjacentSight(pHolyCity->getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
 				}
 			}
 		}*/
@@ -1968,7 +1947,7 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 		{
 			if (GET_TEAM(getTeam()).isVassal((TeamTypes)iI))
 			{
-				changeAdjacentSight((TeamTypes)iI, GC.getDefineINT("PLOT_VISIBILITY_RANGE"), bIncrement, NULL, bUpdatePlotGroups);
+				changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
 			}
 		}
 
@@ -1978,7 +1957,7 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 			if (pCity->getEspionageVisibility((TeamTypes)iI))
 			{
 				// Passive Effect: enough EPs gives you visibility into someone's cities
-				changeAdjacentSight((TeamTypes)iI, GC.getDefineINT("PLOT_VISIBILITY_RANGE"), bIncrement, NULL, bUpdatePlotGroups);
+				changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
 			}
 		}
 	}
@@ -1986,7 +1965,7 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 	// Owned
 	if (isOwned())
 	{
-		changeAdjacentSight(getTeam(), GC.getDefineINT("PLOT_VISIBILITY_RANGE"), bIncrement, NULL, bUpdatePlotGroups);
+		changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
 	}
 
 	// Unit
@@ -2000,7 +1979,7 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 
 	if (getReconCount() > 0)
 	{
-		int iRange = GC.getDefineINT("RECON_VISIBILITY_RANGE");
+		int iRange = GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE);
 		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 		{
 			FOR_EACH_UNIT(pLoopUnit, GET_PLAYER((PlayerTypes)iI))
@@ -2018,10 +1997,10 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 // <advc.003h> Cut and pasted from CvPlot::updateSeeFromSight
 void CvPlot::setMaxVisibilityRangeCache() {
 
-	int iRange = GC.getDefineINT("UNIT_VISIBILITY_RANGE") + 1;
+	int iRange = GC.getDefineINT(CvGlobals::UNIT_VISIBILITY_RANGE) + 1;
 	for(int iPromotion = 0; iPromotion < GC.getNumPromotionInfos(); iPromotion++)
 		iRange += GC.getPromotionInfo((PromotionTypes)iPromotion).getVisibilityChange();
-	iRange = std::max(GC.getDefineINT("RECON_VISIBILITY_RANGE") + 1, iRange);
+	iRange = std::max(GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE) + 1, iRange);
 	iMaxVisibilityRangeCache = iRange;
 } // </advc.003h>
 
@@ -2572,26 +2551,18 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const {
 
 int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const
 {
-	int iProduction;
-
 	if (getFeatureType() == NO_FEATURE)
-	{
 		return 0;
-	}
 
 	*ppCity = getWorkingCity();
 
 	if (*ppCity == NULL)
-	{
 		*ppCity = GC.getMap().findCity(getX(), getY(), NO_PLAYER, eTeam, false);
-	}
 
 	if (*ppCity == NULL)
-	{
 		return 0;
-	}
 
-	iProduction = (GC.getBuildInfo(eBuild).getFeatureProduction(getFeatureType()) - (std::max(0, (plotDistance(getX(), getY(), (*ppCity)->getX(), (*ppCity)->getY()) - 2)) * 5));
+	int iProduction = (GC.getBuildInfo(eBuild).getFeatureProduction(getFeatureType()) - (std::max(0, (plotDistance(getX(), getY(), (*ppCity)->getX(), (*ppCity)->getY()) - 2)) * 5));
 
 	iProduction *= std::max(0, (GET_PLAYER((*ppCity)->getOwner()).getFeatureProductionModifier() + 100));
 	iProduction /= 100;
@@ -2599,7 +2570,9 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** pp
 	iProduction *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getFeatureProductionPercent();
 	iProduction /= 100;
 
-	iProduction *= std::min((GC.getDefineINT("BASE_FEATURE_PRODUCTION_PERCENT") + (GC.getDefineINT("FEATURE_PRODUCTION_PERCENT_MULTIPLIER") * (*ppCity)->getPopulation())), 100);
+	iProduction *= std::min((GC.getDefineINT("BASE_FEATURE_PRODUCTION_PERCENT") +
+			(GC.getDefineINT("FEATURE_PRODUCTION_PERCENT_MULTIPLIER") *
+			(*ppCity)->getPopulation())), 100);
 	iProduction /= 100;
 
 	if (getTeam() != eTeam)
@@ -2692,7 +2665,7 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	}
 	if (isHills())
 	{
-		iModifier += GC.getHILLS_EXTRA_DEFENSE();
+		iModifier += GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE);
 	}
 	ImprovementTypes eImprovement;
 	if (bHelp)
@@ -2782,7 +2755,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 				GC.getFeatureInfo(getFeatureType()).getMovementCost());
 		if (isHills())
 		{
-			iRegularCost += GC.getHILLS_EXTRA_MOVEMENT();
+			iRegularCost += GC.getDefineINT(CvGlobals::HILLS_EXTRA_MOVEMENT);
 		}
 
 		if (iRegularCost > 0)
@@ -4250,7 +4223,8 @@ int CvPlot::getOwnershipDuration() const
 
 bool CvPlot::isOwnershipScore() const
 {
-	return (getOwnershipDuration() >= GC.getDefineINT("OWNERSHIP_SCORE_DURATION_THRESHOLD"));
+	static int const iOWNERSHIP_SCORE_DURATION_THRESHOLD = GC.getDefineINT("OWNERSHIP_SCORE_DURATION_THRESHOLD"); // advc.003b
+	return (getOwnershipDuration() >= iOWNERSHIP_SCORE_DURATION_THRESHOLD);
 }
 
 
@@ -4514,62 +4488,45 @@ CvPlot* CvPlot::getInlandCorner() const
 {
 	CvPlot* pRiverPlot = NULL; // will be a plot through whose SE corner we want the river to run
 	int aiShuffle[4];
-
 	shuffleArray(aiShuffle, 4, GC.getGame().getMapRand());
-
+	CvMap const& m = GC.getMap();
 	for (int iI = 0; iI < 4; ++iI)
 	{
 		switch (aiShuffle[iI])
 		{
 		case 0:
-			pRiverPlot = GC.getMap().plotSoren(getX(), getY()); break;
+			pRiverPlot = m.plotSoren(getX(), getY()); break;
 		case 1:
-			pRiverPlot = plotDirection(getX(), getY(), DIRECTION_NORTH); break;
+			pRiverPlot = m.plotDirection(getX(), getY(), DIRECTION_NORTH); break;
 		case 2:
-			pRiverPlot = plotDirection(getX(), getY(), DIRECTION_NORTHWEST); break;
+			pRiverPlot = m.plotDirection(getX(), getY(), DIRECTION_NORTHWEST); break;
 		case 3:
-			pRiverPlot = plotDirection(getX(), getY(), DIRECTION_WEST); break;
+			pRiverPlot = m.plotDirection(getX(), getY(), DIRECTION_WEST); break;
 		}
 		if (pRiverPlot != NULL && !pRiverPlot->hasCoastAtSECorner())
-		{
 			break;
-		}
-		else
-		{
-			pRiverPlot = NULL;
-		}
+		pRiverPlot = NULL;
 	}
-
 	return pRiverPlot;
 }
 
 
 bool CvPlot::hasCoastAtSECorner() const
 {
-	CvPlot* pAdjacentPlot;
-
 	if (isWater())
-	{
 		return true;
-	}
 
-	pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_EAST);
+	CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_EAST);
 	if (pAdjacentPlot != NULL && pAdjacentPlot->isWater())
-	{
 		return true;
-	}
 
 	pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_SOUTHEAST);
 	if (pAdjacentPlot != NULL && pAdjacentPlot->isWater())
-	{
 		return true;
-	}
 
 	pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_SOUTH);
 	if (pAdjacentPlot != NULL && pAdjacentPlot->isWater())
-	{
 		return true;
-	}
 
 	return false;
 }
@@ -4670,18 +4627,17 @@ bool CvPlot::isPotentialCityWorkForArea(CvArea* pArea) const
 {
 	PROFILE_FUNC();
 
+	static bool const bWATER_POTENTIAL_CITY_WORK_FOR_AREA = GC.getDefineBOOL("WATER_POTENTIAL_CITY_WORK_FOR_AREA"); // advc.003b
+
 	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 	{
 		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-
 		if (pLoopPlot != NULL)
 		{
-			if (!(pLoopPlot->isWater()) || GC.getDefineINT("WATER_POTENTIAL_CITY_WORK_FOR_AREA"))
+			if (bWATER_POTENTIAL_CITY_WORK_FOR_AREA || !pLoopPlot->isWater())
 			{
 				if (pLoopPlot->area() == pArea)
-				{
 					return true;
-				}
 			}
 		}
 	}
@@ -4872,7 +4828,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 			if (eBestUnit != NO_UNIT)
 			{
-				int iFreeUnits = (GC.getDefineINT("BASE_REVOLT_FREE_UNITS") + ((pNewCity->getHighestPopulation() * GC.getDefineINT("REVOLT_FREE_UNITS_PERCENT")) / 100));
+				int iFreeUnits = (GC.getDefineINT("BASE_REVOLT_FREE_UNITS") +
+						(pNewCity->getHighestPopulation() *
+						GC.getDefineINT("REVOLT_FREE_UNITS_PERCENT")) / 100);
 
 				for (iI = 0; iI < iFreeUnits; ++iI)
 				{
@@ -4887,7 +4845,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 		if (isOwned())
 		{
-			changeAdjacentSight(getTeam(), GC.getDefineINT("PLOT_VISIBILITY_RANGE"), false, NULL, bUpdatePlotGroup);
+			changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), false, NULL, bUpdatePlotGroup);
 
 			if (area())
 			{
@@ -4944,7 +4902,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 		if (isOwned())
 		{
-			changeAdjacentSight(getTeam(), GC.getDefineINT("PLOT_VISIBILITY_RANGE"), true, NULL, bUpdatePlotGroup);
+			changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), true, NULL, bUpdatePlotGroup);
 
 			if (area())
 			{
@@ -5061,7 +5019,7 @@ bool CvPlot::isContestedByRival(PlayerTypes eRival) const {
 	PlayerTypes eFirstOwner = getOwner();
 	if(eFirstOwner == NO_PLAYER)
 		return false;
-	if(GC.getOWN_EXCLUSIVE_RADIUS() > 0) {
+	if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS)) {
 		PlayerTypes eSecondOwner = getSecondOwner();
 		return eSecondOwner != NO_PLAYER && eFirstOwner != NO_PLAYER &&
 				eFirstOwner != eSecondOwner && (eRival == NO_PLAYER ||
@@ -5069,7 +5027,7 @@ bool CvPlot::isContestedByRival(PlayerTypes eRival) const {
 				TEAMREF(eFirstOwner).getMasterTeam() !=
 				TEAMREF(eSecondOwner).getMasterTeam();
 	} // <advc.099b>
-	else if(GC.getCITY_RADIUS_DECAY() > 0) {
+	else if(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) > 0) {
 		if(eFirstOwner == eRival) // No longer contested; they own it.
 			return false;
 		int iTotalCulture = getTotalCulture();
@@ -5129,18 +5087,14 @@ bool CvPlot::isPeak() const
 }
 
 
-void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)
+void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)  // advc.003: some style changes
 {
 	bool bRecalculateAreas = false; // advc.030
-	int iI;
-	CvPlot* pLoopPlot;
-
+	static TerrainTypes const eLAND_TERRAIN = (TerrainTypes)GC.getDefineINT("LAND_TERRAIN"); // advc.003b
 	if (getPlotType() != eNewValue)
 	{
-		if ((getPlotType() == PLOT_OCEAN) || (eNewValue == PLOT_OCEAN))
-		{
+		if (getPlotType() == PLOT_OCEAN || eNewValue == PLOT_OCEAN)
 			erase();
-		}
 
 		bool bWasWater = isWater();
 		bool bWasPeak = isPeak(); // advc.030
@@ -5154,23 +5108,10 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 
 		updateSeeFromSight(true, true);
 
-		if ((getTerrainType() == NO_TERRAIN) || (GC.getTerrainInfo(getTerrainType()).isWater() != isWater()))
+		if (getTerrainType() == NO_TERRAIN || GC.getTerrainInfo(getTerrainType()).isWater() != isWater())
 		{
-			if (isWater())
-			{
-				if (isAdjacentToLand())
-				{
-					setTerrainType(((TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN"))), bRecalculate, bRebuildGraphics);
-				}
-				else
-				{
-					setTerrainType(((TerrainTypes)(GC.getDefineINT("DEEP_WATER_TERRAIN"))), bRecalculate, bRebuildGraphics);
-				}
-			}
-			else
-			{
-				setTerrainType(((TerrainTypes)(GC.getDefineINT("LAND_TERRAIN"))), bRecalculate, bRebuildGraphics);
-			}
+			setTerrainType(isWater() ? GC.getWATER_TERRAIN(isAdjacentToLand()) :
+					eLAND_TERRAIN, bRecalculate, bRebuildGraphics);
 		}
 
 		GC.getMap().resetPathDistance();
@@ -5179,28 +5120,22 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 		{
 			if (bRecalculate)
 			{
-				for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+				for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 				{
-					pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+					CvPlot* pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
 					if (pLoopPlot == NULL)
-						continue; // advc.003
+						continue;
 					if (pLoopPlot->isWater())
 					{
-						if (pLoopPlot->isAdjacentToLand())
-						{
-							pLoopPlot->setTerrainType((TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")), bRecalculate, bRebuildGraphics);
-						}
-						else
-						{
-							pLoopPlot->setTerrainType((TerrainTypes)(GC.getDefineINT("DEEP_WATER_TERRAIN")), bRecalculate, bRebuildGraphics);
-						}
+						pLoopPlot->setTerrainType(GC.getWATER_TERRAIN(
+							pLoopPlot->isAdjacentToLand()), bRecalculate, bRebuildGraphics);
 					}
 				}
 			}
 
-			for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 			{
-				pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+				CvPlot* pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
 				if (pLoopPlot != NULL)
 				{
 					pLoopPlot->updateYield();
@@ -5208,26 +5143,22 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 				}
 			}
 
-			for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+			for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 			{
-				pLoopPlot = plotCity(getX(), getY(), iI);
+				CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 				if (pLoopPlot != NULL)
-				{
 					pLoopPlot->updatePotentialCityWork();
-				}
 			}
 
 			GC.getMap().changeLandPlots((isWater()) ? -1 : 1);
 
 			if (getBonusType() != NO_BONUS)
-			{
-				GC.getMap().changeNumBonusesOnLand(getBonusType(), ((isWater()) ? -1 : 1));
-			}
+				GC.getMap().changeNumBonusesOnLand(getBonusType(), isWater() ? -1 : 1);
 
 			if (isOwned())
 			{
-				GET_PLAYER(getOwner()).changeTotalLand((isWater()) ? -1 : 1);
-				GET_TEAM(getTeam()).changeTotalLand((isWater()) ? -1 : 1);
+				GET_PLAYER(getOwner()).changeTotalLand(isWater() ? -1 : 1);
+				GET_TEAM(getTeam()).changeTotalLand(isWater() ? -1 : 1);
 			}
 
 			if (bRecalculate)
@@ -5238,17 +5169,15 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 				// XXX might want to change this if we allow diagonal water movement...
 				if (isWater())
 				{
-					for (iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+					for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
 					{
-						pLoopPlot = plotCardinalDirection(getX(), getY(), (CardinalDirectionTypes)iI);
+						CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), (CardinalDirectionTypes)iI);
 						if (pLoopPlot == NULL)
-							continue; // advc.003
+							continue;
 						if (pLoopPlot->area()->isWater())
 						{
 							if (pNewArea == NULL)
-							{
 								pNewArea = pLoopPlot->area();
-							}
 							else if (pNewArea != pLoopPlot->area())
 							{
 								bRecalculateAreas = true;
@@ -5260,17 +5189,15 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 				}
 				else
 				{
-					for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+					for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 					{
-						pLoopPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
+						CvPlot* pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
 						if (pLoopPlot == NULL)
 							continue; // advc.003
 						if (!pLoopPlot->area()->isWater())
 						{
 							if (pNewArea == NULL)
-							{
 								pNewArea = pLoopPlot->area();
-							}
 							else if (pNewArea != pLoopPlot->area())
 							{
 								bRecalculateAreas = true;
@@ -5282,7 +5209,7 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 
 				if (!bRecalculateAreas)
 				{
-					pLoopPlot = plotDirection(getX(), getY(), ((DirectionTypes)(NUM_DIRECTION_TYPES - 1)));
+					CvPlot* pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)(NUM_DIRECTION_TYPES - 1));
 					CvArea* pLastArea = NULL;
 					if (pLoopPlot != NULL)
 					{
@@ -5291,40 +5218,30 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 
 					int iAreaCount = 0;
 
-					for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+					for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 					{
-						pLoopPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
+						pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
 						CvArea* pCurrArea = NULL;
 						if (pLoopPlot != NULL)
-						{
 							pCurrArea = pLoopPlot->area();
-						}
 
 						if (pCurrArea != pLastArea)
-						{
 							iAreaCount++;
-						}
 
 						pLastArea = pCurrArea;
 					}
 
 					if (iAreaCount > 2)
-					{
 						bRecalculateAreas = true;
-					}
 				}
 				if (bRecalculateAreas)
-				{
 					GC.getMap().recalculateAreas();
-				}
 				else
 				{
 					setArea(FFreeList::INVALID_INDEX);
 
-					if ((area() != NULL) && (area()->getNumTiles() == 1))
-					{
+					if (area() != NULL && area()->getNumTiles() == 1)
 						GC.getMap().deleteArea(getArea());
-					}
 
 					if (pNewArea == NULL)
 					{
@@ -5337,20 +5254,24 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 			}
 		}
 		// <advc.030>
-		if(!isWater() && bWasPeak != isPeak() && !bRecalculateAreas && bRecalculate) {
+		if(!isWater() && bWasPeak != isPeak() && !bRecalculateAreas && bRecalculate)
+		{
 			/*  When removing a peak, it's easy enough to tell whether we need to
 				recalc, but too much work to come up with conditions for recalc
 				when placing a peak; will have to always recalc. */
 			if(isPeak())
 				GC.getMap().recalculateAreas();
-			else {
+			else
+			{
 				int iArea = getArea();
-				for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+				for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+				{
 					CvPlot* p = ::plotDirection(getX(), getY(),
 							(DirectionTypes)i);
 					if(p == NULL || p->isWater())
 						continue;
-					if(iArea != p->getArea()) {
+					if(iArea != p->getArea())
+					{
 						GC.getMap().recalculateAreas();
 						break;
 					}
@@ -5832,20 +5753,17 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 }
 
 
-void CvPlot::updateCityRoute(bool bUpdatePlotGroup)
+void CvPlot::updateCityRoute(bool bUpdatePlotGroup)  // advc.003: some style changes
 {
-	RouteTypes eCityRoute;
-
 	if (!isCity())
-		return; // advc.003
+		return;
 
-	FAssertMsg(isOwned(), "isOwned is expected to be true");
+	FAssert(isOwned());
 
-	eCityRoute = GET_PLAYER(getOwner()).getBestRoute();
+	RouteTypes eCityRoute = GET_PLAYER(getOwner()).getBestRoute();
 	if (eCityRoute == NO_ROUTE)
-	{
-		eCityRoute = ((RouteTypes)(GC.getDefineINT("INITIAL_CITY_ROUTE_TYPE")));
-	}
+		eCityRoute = ((RouteTypes)GC.getDefineINT("INITIAL_CITY_ROUTE_TYPE"));
+
 	setRouteType(eCityRoute, bUpdatePlotGroup);
 }
 
@@ -6409,7 +6327,7 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 		int iExtraYieldThresh = GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield);
 		if(iExtraYieldThresh > 0) {
 			if(iYield > iExtraYieldThresh || iNatureYield >= iExtraYieldThresh)
-				iYield += GC.getEXTRA_YIELD(); // </advc.908a>
+				iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD); // </advc.908a>
 		}
 
 		if (GET_PLAYER(ePlayer).isGoldenAge())
@@ -7457,19 +7375,15 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	}
 }
 
-bool CvPlot::isAdjacentRevealed(TeamTypes eTeam,
-		bool bSkipOcean) const  // advc.205c
+bool CvPlot::isAdjacentRevealed(TeamTypes eTeam, /* advc.205c: */ bool bSkipOcean) const
 {
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
 		if (pAdjacentPlot == NULL)
 			continue;
-		if (pAdjacentPlot->isRevealed(eTeam, false)
-				// <advc.250c>
-				&& (!bSkipOcean || pAdjacentPlot->getTerrainType() !=
-				(TerrainTypes)GC.getDefineINT("DEEP_WATER_TERRAIN")))
-				// </advc.250c>
+		if (pAdjacentPlot->isRevealed(eTeam, false) /* <advc.250c> */ && (!bSkipOcean ||
+				pAdjacentPlot->getTerrainType() != GC.getWATER_TERRAIN(false))) // </advc.250c>
 			return true;
 	}
 	return false;
@@ -7647,7 +7561,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
 bool CvPlot::decayBuildProgress(bool bTest) {
 
 	PROFILE_FUNC();
-	int iDelay = GC.getDELAY_UNTIL_BUILD_DECAY();
+	int iDelay = GC.getDefineINT(CvGlobals::DELAY_UNTIL_BUILD_DECAY);
 	if(bTest && m_iTurnsBuildsInterrupted > -2 &&
 			m_iTurnsBuildsInterrupted + 1 < iDelay)
 		return false;
@@ -8329,13 +8243,14 @@ void CvPlot::doFeature()
 						}
 					}
 				}
-
-				iProbability *= std::max(0, (GC.getFEATURE_GROWTH_MODIFIER() + 100));
+				static int const iFEATURE_GROWTH_MODIFIER = GC.getDefineINT("FEATURE_GROWTH_MODIFIER");
+				iProbability *= std::max(0, iFEATURE_GROWTH_MODIFIER + 100);
 				iProbability /= 100;
 
 				if (isRoute())
 				{
-					iProbability *= std::max(0, (GC.getROUTE_FEATURE_GROWTH_MODIFIER() + 100));
+					static int const iROUTE_FEATURE_GROWTH_MODIFIER = GC.getDefineINT("ROUTE_FEATURE_GROWTH_MODIFIER");
+					iProbability *= std::max(0, (iROUTE_FEATURE_GROWTH_MODIFIER + 100));
 					iProbability /= 100;
 				}
 
@@ -8384,8 +8299,9 @@ void CvPlot::doCultureDecay() {
 	PROFILE_FUNC();
 	if(getTotalCulture() <= 0)
 		return;
-	int const iExclDecay = GC.getCITY_RADIUS_DECAY();
-	int const iBaseDecayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
+	int const iExclDecay = GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY);
+	// advc.099:
+	static int const iBaseDecayPerMill = GC.getDefineINT("TILE_CULTURE_DECAY_PER_MILL");
 	bool abInRadius[MAX_CIV_PLAYERS] = {false};
 	bool bInAnyRadius = false;
 	int iMaxRadiusCulture = 0;
@@ -8607,7 +8523,7 @@ ColorTypes CvPlot::plotMinimapColor()
 
 		if (isActiveVisible(true)
 				// advc.002a
-				&& GC.getMINIMAP_WATER_MODE() != 6)
+				&& GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE) != 6)
 		{
 			CvUnit* pCenterUnit = getDebugCenterUnit();
 
@@ -8692,7 +8608,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if(uiFlag >= 1)
 		pStream->Read(&m_eSecondOwner);
 	else m_eSecondOwner = m_eOwner;
-	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		m_eSecondOwner = m_eOwner; // </advc.035>
 	pStream->Read((int*)&m_plotCity.eOwner);
 	pStream->Read(&m_plotCity.iID);
@@ -9207,11 +9123,11 @@ void CvPlot::getVisibleImprovementState(ImprovementTypes& eType, bool& bWorked)
 			{
 				if (isWater())
 				{
-					eType = ((ImprovementTypes)(GC.getDefineINT("WATER_IMPROVEMENT")));
+					eType = (ImprovementTypes)GC.getDefineINT("WATER_IMPROVEMENT");
 				}
 				else
 				{
-					eType = ((ImprovementTypes)(GC.getDefineINT("LAND_IMPROVEMENT")));
+					eType = (ImprovementTypes)GC.getDefineINT("LAND_IMPROVEMENT");
 				}
 			}
 		}
@@ -9352,7 +9268,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 	int iThreshold = GET_PLAYER(getOwner()).getExtraYieldThreshold(eYield);
 	if (iThreshold > 0 &&
 				(iYield > iThreshold || iNatureYield >= iThreshold)) // advc.908a
-		iYield += GC.getEXTRA_YIELD();
+		iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 	// K-Mod end
 
 	//return iYield;
@@ -9782,9 +9698,9 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		bool bRequiresBonus = false;
 		bool bNeedsBonus = true;
 
-		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); ++iI)
-		{	// advc.003:
-			BonusTypes ePrereqOrBonus = (BonusTypes)GC.getUnitInfo(eUnit).getPrereqOrBonuses(iI);
+		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++iI)
+		{
+			BonusTypes ePrereqOrBonus = (BonusTypes)GC.getUnitInfo(eUnit).getPrereqOrBonuses(iI); // advc.003
 			if(ePrereqOrBonus != NO_BONUS &&
 					ePrereqOrBonus != eAssumeAvailable) // advc.001u
 			{
@@ -9876,7 +9792,7 @@ int CvPlot::airUnitSpaceAvailable(TeamTypes eTeam) const
 	}
 	else
 	{
-		iMaxUnits = GC.getDefineINT("CITY_AIR_UNIT_CAPACITY");
+		iMaxUnits = GC.getDefineINT(CvGlobals::CITY_AIR_UNIT_CAPACITY);
 	}
 
 	return (iMaxUnits - countNumAirUnits(eTeam));

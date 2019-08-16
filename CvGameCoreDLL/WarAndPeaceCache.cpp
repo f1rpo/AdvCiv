@@ -557,9 +557,9 @@ void WarAndPeaceCache::updateTrainCargo() {
 		CvUnitInfo& info = GC.getUnitInfo(ut);
 		if(info.getUnitAIType(UNITAI_ASSAULT_SEA) && owner.canTrain(ut)) {
 			trainAnyCargo = true;
-			/* A check for GC.getDefineINT("DEEP_WATER_TERRAIN") would be
-			   better for future modding. However, counting impassable
-			   terrain types is used everywhere else as well. */
+			/*  A check for GC.getWATER_TERRAIN(false) would be better for
+				future modding. However, counting impassable terrain types is
+				used everywhere else as well. */
 			if(owner.AI_unitImpassableCount(ut) == 0)
 				trainDeepSeaCargo = true;
 		}
@@ -834,7 +834,8 @@ void WarAndPeaceCache::updateHasAggressiveTrait() {
 
 	bHasAggressiveTrait = false;
 	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
-		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i)) {
+		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i) &&
+				GC.getTraitInfo((TraitTypes)i).isAnyFreePromotion()) {
 			for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
 				if(GC.getPromotionInfo((PromotionTypes)j).getCombatPercent() > 0
 						&& GC.getTraitInfo((TraitTypes)i).isFreePromotion(j)) {
@@ -862,7 +863,8 @@ void WarAndPeaceCache::updateHasProtectiveTrait() {
 
 	bHasProtectiveTrait = false;
 	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
-		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i)) {
+		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i) &&
+				GC.getTraitInfo((TraitTypes)i).isAnyFreePromotion()) {
 			for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
 				if(GC.getPromotionInfo((PromotionTypes)j).
 						getCityDefensePercent() > 0
@@ -921,7 +923,7 @@ void WarAndPeaceCache::updateAdjacentLand() {
 void WarAndPeaceCache::updateLostTilesAtWar() {
 
 	//PROFILE_FUNC();
-	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return;
 	CvTeam const& ownerTeam = TEAMREF(ownerId);
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
@@ -1764,8 +1766,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	if(dom == DOMAIN_LAND && start->area() != dest->area())
 		return false;
 	// Can't plot mixed-domain paths
-	int const minSz = GC.getMIN_WATER_SIZE_FOR_OCEAN();
-	if(dom != DOMAIN_LAND && !start->isCoastalLand(minSz))
+	if(dom != DOMAIN_LAND && !start->isCoastalLand(-1))
 		return false;
 	int maxDist = (dom == DOMAIN_LAND ? getWPAI.maxLandDist() :
 			getWPAI.maxSeaDist());
@@ -1781,7 +1782,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		return false;
 	// dest is guaranteed to be owned; get the owner before possibly changing dest
 	TeamTypes destTeam = dest->getTeam();
-	if(dom != DOMAIN_LAND && !dest->isCoastalLand(minSz)) {
+	if(dom != DOMAIN_LAND && !dest->isCoastalLand(-1)) {
 		/*  A naval assault drops the units off on a tile adjacent to the city;
 			try to find an adjacent coastal tile. */
 		int x = dest->getX();
@@ -1790,7 +1791,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		int shortestStepDist = MAX_INT;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(x, y, (DirectionTypes)i);
-			if(adj != NULL && adj->isCoastalLand(minSz)) {
+			if(adj != NULL && adj->isCoastalLand(-1)) {
 				int d = ::stepDistance(start, adj);
 				if(d < shortestStepDist) {
 					dest = adj;
@@ -1917,7 +1918,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 				ctp.calculateCulturePercent(c.getOwner()) +
 				ctp.calculateCulturePercent(BARBARIAN_PLAYER)) / 100.0);
 		// <advc.035>
-		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && cultureModifier < 1)
+		if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) && cultureModifier < 1)
 			cultureModifier = (2 * cultureModifier + 1) / 3; // </advc.035>
 		// <advc.099b>
 		/*  Don't check if it's actually in the exclusive radius; might be too

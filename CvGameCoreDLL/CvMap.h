@@ -242,11 +242,14 @@ public: // advc.003: made several functions const
 	void updateYield();
 
 	void verifyUnitValidPlot();
-
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);
 
-	CvPlot* syncRandPlot(int iFlags = 0, int iArea = -1, int iMinUnitDistance = -1, int iTimeout = 100, // Exposed to Python
-			int* piLegal = NULL); // advc.304
+	CvPlot* syncRandPlot(int iFlags = 0, CvArea const* pArea = NULL, // advc.003: was iArea								// Exposed to Python
+			int iMinCivUnitDistance = -1,
+			int iTimeout = -1, int* piValidCount = NULL); // advc.304 (default timeout was 100)
+	// <advc.003>
+	bool isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
+			int iMinCivUnitDistance) const; // </advc.003>
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
 		// <advc.004r>
@@ -262,7 +265,7 @@ public: // advc.003: made several functions const
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 
 	int getMapFractalFlags() const;																												// Exposed to Python
-	bool findWater(CvPlot* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
+	bool findWater(CvPlot const* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
 	bool isPlotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
 	#ifdef _USRDLL
@@ -277,10 +280,7 @@ public: // advc.003: made several functions const
 	{
 		return getGridWidth() * getGridHeight();
 	}
-	#endif
-	int plotNumExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline int plotNum(int iX, int iY) const // advc.003f: Renamed from plotNumINLINE
+	inline int plotNum(int iX, int iY) const // advc.003f: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
 	{
 		return ((iY * getGridWidth()) + iX);
 	}

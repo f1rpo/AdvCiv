@@ -545,13 +545,12 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 				peace with the ExtraTarget. */
 			params.setNotConsideringPeace();
 			WarEvaluator eval(params);
+			static int const iUWAI_MULTI_WAR_RELUCTANCE = GC.getDefineINT("UWAI_MULTI_WAR_RELUCTANCE");
 			/*  Check both limited and total war instead of agent
 				.AI_getWarPlan(otherId) in order to avoid a preference for
 				the two-front case on account of greater military build-up. */
-			int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
-					GC.getUWAI_MULTI_WAR_RELUCTANCE();
-			int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
-					GC.getUWAI_MULTI_WAR_RELUCTANCE();
+			int uLim = eval.evaluate(WARPLAN_LIMITED, 0) - iUWAI_MULTI_WAR_RELUCTANCE;
+			int uTot = eval.evaluate(WARPLAN_TOTAL, 0) - iUWAI_MULTI_WAR_RELUCTANCE;
 			u = std::min(uLim, uTot);
 			// Tbd.: If the war plan against otherId is TOTAL
 			report->log("Utility of a two-front war compared with a war "
@@ -1272,9 +1271,9 @@ void WarAndPeaceAI::Team::scheme() {
 		}
 		int u = std::max(uLimited, uTotal);
 		report->setMute(false);
-		int reportThresh = (GET_TEAM(targetId).isHuman() ?
-				GC.getDefineINT("UWAI_REPORT_THRESH_HUMAN") :
-				GC.getDefineINT("UWAI_REPORT_THRESH"));
+		static int const UWAI_REPORT_THRESH = GC.getDefineINT("UWAI_REPORT_THRESH");
+		static int const UWAI_REPORT_THRESH_HUMAN = GC.getDefineINT("UWAI_REPORT_THRESH_HUMAN");
+		int reportThresh = (GET_TEAM(targetId).isHuman() ? UWAI_REPORT_THRESH_HUMAN : UWAI_REPORT_THRESH);
 		// Extra evaluation just for logging
 		if(!report->isMute() && u > reportThresh) {
 			if(total)
@@ -1309,7 +1308,7 @@ void WarAndPeaceAI::Team::scheme() {
 			still a peace treaty */
 		double peacePortionRemaining = agent.turnsOfForcedPeaceRemaining(targetId) /
 				// +1.0 b/c I don't want 0 drive at this point
-				(GC.getPEACE_TREATY_LENGTH() + 1.0);
+				(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) + 1.0);
 		drive *= std::pow(1 - peacePortionRemaining, 1.0); // was ^1.5; let's try it w/o exponentiation
 		targets.push_back(TargetData(drive, targetId, total, u));
 		totalDrive += drive;
@@ -1923,7 +1922,7 @@ bool WarAndPeaceAI::Team::isReportTurn() const {
 	if(bForceReport)
 		return true;
 	int turnNumber = GC.getGame().getGameTurn();
-	int reportInterval = GC.getDefineINT("REPORT_INTERVAL");
+	static int const reportInterval = GC.getDefineINT("REPORT_INTERVAL");
 	return (reportInterval > 0 && turnNumber % reportInterval == 0);
 }
 
@@ -1940,7 +1939,7 @@ void WarAndPeaceAI::Team::showWarPlanAbandonedMsg(TeamTypes targetId) {
 void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
 
 	CvPlayer& activePl = GET_PLAYER(GC.getGame().getActivePlayer());
-	if(!activePl.isSpectator() || GC.getDefineINT("UWAI_SPECTATOR_ENABLED") <= 0)
+	if(!activePl.isSpectator() || !GC.getDefineBOOL("UWAI_SPECTATOR_ENABLED"))
 		return;
 	CvWString szBuffer = gDLL->getText(txtKey,
 			GET_TEAM(agentId).getName().GetCString(),

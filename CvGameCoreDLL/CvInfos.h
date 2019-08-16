@@ -356,12 +356,14 @@ public:
 	int getDomainExtraMoves(int i) const;	// Exposed to Python
 	int getFlavorValue(int i) const;			// Exposed to Python
 	int getPrereqOrTechs(int i) const;		// Exposed to Python
+	inline bool isAnyPrereqOrTech() const { return (m_piPrereqOrTechs != NULL); } // advc.003t
 	int getPrereqAndTechs(int i) const;		// Exposed to Python
-
+	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
 	int getSpecialistExtraCommerce(int i) const; // K-Mod, Exposed to Python
 	int* getSpecialistExtraCommerceArray() const; // K-Mod
 	bool isCommerceFlexible(int i) const;	// Exposed to Python
 	bool isTerrainTrade(int i) const;			// Exposed to Python
+	inline bool isAnyTerrainTrade() const { return (m_pbTerrainTrade != NULL); } // advc.003t
 	#if SERIALIZE_CVINFOS
 	void read(FDataStreamBase* );
 	void write(FDataStreamBase* );
@@ -947,7 +949,9 @@ public:
 	// Arrays
 
 	int getPrereqAndTechs(int i) const;				// Exposed to Python
+	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
 	int getPrereqOrBonuses(int i) const;				// Exposed to Python
+	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
 	// <advc.905b>
 	int getSpeedBonuses(int i) const;
 	int getExtraMoves(int i) const;
@@ -959,34 +963,48 @@ public:
 	int getFeatureAttackModifier(int i) const;				// Exposed to Python
 	int getFeatureDefenseModifier(int i) const;				// Exposed to Python
 	int getUnitClassAttackModifier(int i) const;				// Exposed to Python
+	inline bool isAnyUnitClassAttackModifier() const { return (m_piUnitClassAttackModifier != NULL); } // advc.003t
 	int getUnitClassDefenseModifier(int i) const;				// Exposed to Python
+	inline bool isAnyUnitClassDefenseModifier() const { return (m_piUnitClassDefenseModifier != NULL); } // advc.003t
 	int getUnitCombatModifier(int i) const;				// Exposed to Python
 	int getUnitCombatCollateralImmune(int i) const;				// Exposed to Python
 	int getDomainModifier(int i) const;				// Exposed to Python
 	int getBonusProductionModifier(int i) const;				// Exposed to Python
+	inline bool isAnyBonusProductionModifier() const { return (m_piBonusProductionModifier != NULL); } // advc.003t
 	int getUnitGroupRequired(int i) const;				// Exposed to Python
 	int getReligionSpreads(int i) const;		// Exposed to Python
 	int getCorporationSpreads(int i) const;		// Exposed to Python
 	int getTerrainPassableTech(int i) const;		// Exposed to Python
+	inline bool isAnyTerrainPassableTech() const { return (m_piTerrainPassableTech != NULL); } // advc.003t
 	int getFeaturePassableTech(int i) const;		// Exposed to Python
 	int getFlankingStrikeUnitClass(int i) const;	// Exposed to Python
+	inline bool isAnyFlankingStrikeUnitClass() const { return (m_piFlankingStrikeUnitClass != NULL); } // advc.003t
 
 	bool getUpgradeUnitClass(int i) const;	// Exposed to Python
+	inline bool isAnyUpgradeUnitClass() const { return (m_pbUpgradeUnitClass != NULL); } // advc.003t
 	bool getTargetUnitClass(int i) const;	// Exposed to Python
+	inline bool isAnyTargetUnitClass() const { return (m_pbTargetUnitClass != NULL); } // advc.003t
 	bool getTargetUnitCombat(int i) const;	// Exposed to Python
 	bool getDefenderUnitClass(int i) const;	// Exposed to Python
+	inline bool isAnyDefenderUnitClass() const { return (m_pbDefenderUnitClass != NULL); } // advc.003t
 	bool getDefenderUnitCombat(int i) const;	// Exposed to Python
 	bool getUnitAIType(int i) const;				// Exposed to Python
 	bool getNotUnitAIType(int i) const;			// Exposed to Python
+	inline bool isAnyNotUnitAIType() const { return (m_pbNotUnitAIType != NULL); } // advc.003t
 	bool getBuilds(int i) const;						// Exposed to Python
+	inline bool isAnyBuilds() const { return (m_pbBuilds != NULL); } // advc.003t
 	bool getGreatPeoples(int i) const;			// Exposed to Python
 	bool getBuildings(int i) const;					// Exposed to Python
+	inline bool isAnyBuildings() const { return (m_pbBuildings != NULL); } // advc.003t
 	//bool getForceBuildings(int i) const; // advc.003t
 	bool getTerrainImpassable(int i) const;				// Exposed to Python
+	inline bool isAnyTerrainImpassable() const { return (m_pbTerrainImpassable != NULL); } // advc.003t
 	bool getFeatureImpassable(int i) const;				// Exposed to Python
+	inline bool isAnyFeatureImpassable() const { return (m_pbFeatureImpassable != NULL); } // advc.003t
 	bool getTerrainNative(int i) const;			// Exposed to Python
 	bool getFeatureNative(int i) const;			// Exposed to Python
 	bool getFreePromotions(int i) const;		// Exposed to Python
+	inline bool isAnyFreePromotions() const { return (m_pbFreePromotions != NULL); } // advc.003t
 	int getLeaderPromotion() const;   // Exposed to Python
 	int getLeaderExperience() const;				// Exposed to Python
 
@@ -1400,7 +1418,9 @@ public:
 	int getSpecialistExtraCommerce(int i) const;				// Exposed to Python
 	int* getSpecialistExtraCommerceArray() const;
 	int getBuildingHappinessChanges(int i) const;				// Exposed to Python
+	inline bool isAnyBuildingHappinessChanges() const { return (m_paiBuildingHappinessChanges != NULL); } // advc.003t
 	int getBuildingHealthChanges(int i) const;				// Exposed to Python
+	inline bool isAnyBuildingHealthChanges() const { return (m_paiBuildingHealthChanges != NULL); } // advc.003t
 	int getFeatureHappinessChanges(int i) const;				// Exposed to Python
 
 	bool isHurry(int i) const;													// Exposed to Python
@@ -1740,37 +1760,45 @@ public:
 	int* getStateReligionCommerceArray() const;
 	int getCommerceHappiness(int i) const;				// Exposed to Python
 	int getReligionChange(int i) const;				// Exposed to Python
+	inline bool isAnyReligionChange() const { return (m_piReligionChange != NULL); } // advc.003t
 	int getSpecialistCount(int i) const;				// Exposed to Python
 	int getFreeSpecialistCount(int i) const;				// Exposed to Python
 	int getBonusHealthChanges(int i) const;				// Exposed to Python
+	inline bool isAnyBonusHealthChanges() const { return (m_piBonusHealthChanges != NULL); } // advc.003t
 	int getBonusHappinessChanges(int i) const;				// Exposed to Python
+	inline bool isAnyBonusHappinessChanges() const { return (m_piBonusHappinessChanges != NULL); } // advc.003t
 	int getBonusProductionModifier(int i) const;				// Exposed to Python
+	inline bool isAnyBonusProductionModifier() const { return (m_piBonusProductionModifier != NULL); } // advc.003t
 	int getUnitCombatFreeExperience(int i) const;				// Exposed to Python
 	int getDomainFreeExperience(int i) const;						// Exposed to Python
 	int getDomainProductionModifier(int i) const;				// Exposed to Python
 	int getPrereqAndTechs(int i) const;				// Exposed to Python
+	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
 	int getPrereqOrBonuses(int i) const;				// Exposed to Python
+	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
 	int getProductionTraits(int i) const;				// Exposed to Python
 	int getHappinessTraits(int i) const;				// Exposed to Python
 	int getBuildingHappinessChanges(int i) const;				// Exposed to Python
+	inline bool isAnyBuildingHappinessChanges() const { return (m_piBuildingHappinessChanges != NULL); } // advc.003t
 	int getPrereqNumOfBuildingClass(int i) const;				// Exposed to Python
+	inline bool isAnyPrereqNumOfBuildingClass() const { return (m_piPrereqNumOfBuildingClass != NULL); } // advc.003t
 	int getFlavorValue(int i) const;				// Exposed to Python
 	int getImprovementFreeSpecialist(int i) const;				// Exposed to Python
+	inline bool isAnyImprovementFreeSpecialist() const { return (m_piImprovementFreeSpecialist != NULL); } // advc.003t
 
 	bool isCommerceFlexible(int i) const;				// Exposed to Python
 	bool isCommerceChangeOriginalOwner(int i) const;				// Exposed to Python
 	bool isBuildingClassNeededInCity(int i) const;				// Exposed to Python
+	inline bool isAnyBuildingClassNeededInCity() const { return (m_pbBuildingClassNeededInCity != NULL); } // advc.003t
 
 	int getSpecialistYieldChange(int i, int j) const;			// Exposed to Python
 	int* getSpecialistYieldChangeArray(int i) const;
-
 	int getBonusYieldModifier(int i, int j) const;				// Exposed to Python
 	int* getBonusYieldModifierArray(int i) const;
-	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
-	bool isAnySpecialistYieldChange() const;
-	bool isAnyBonusYieldModifier() const;
+	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START  // advc.003t: inlined
+	inline bool isAnySpecialistYieldChange() const { return m_bAnySpecialistYieldChange; }
+	inline bool isAnyBonusYieldModifier() const { return m_bAnyBonusYieldModifier; }
 	// UNOFFICIAL_PATCH: END
-
 	// Other
 
 	const CvArtInfoBuilding* getArtInfo() const;
@@ -2820,6 +2848,7 @@ public:
 	int getYieldChange(int i) const;				// Exposed to Python
 	int getTechMovementChange(int i) const;				// Exposed to Python
 	int getPrereqOrBonus(int i) const;				// Exposed to Python
+	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -2952,7 +2981,9 @@ public:
 	int* getIrrigatedYieldChangeArray();				// For Moose - CvWidgetData XXX
 
 	bool getTerrainMakesValid(int i) const;				// Exposed to Python
+	inline bool isAnyTerrainMakesValid() const { return (m_pbTerrainMakesValid != NULL); } // advc.003t
 	bool getFeatureMakesValid(int i) const;				// Exposed to Python
+	inline bool isAnyFeatureMakesValid() const { return (m_pbFeatureMakesValid != NULL); } // advc.003t
 
 	int getTechYieldChanges(int i, int j) const;				// Exposed to Python
 	int* getTechYieldChangesArray(int i) const; // advc.003: const
@@ -3119,7 +3150,8 @@ public:
 
 	int getYieldChange(int i) const;				// Exposed to Python
 	int* getYieldChangeArray();				// Exposed to Python
-	int getImprovementChange(int i) const;
+	// advc.003j: Unused in DLL and XML; wasn't even read from XML.
+	//int getImprovementChange(int i) const;
 
 	bool isTerrain(int i) const;				// Exposed to Python
 	bool isFeature(int i) const;				// Exposed to Python
@@ -3175,7 +3207,6 @@ protected:
 	// Arrays
 
 	int* m_piYieldChange;
-	int* m_piImprovementChange;
 
 	bool* m_pbTerrain;
 	bool* m_pbFeature;
@@ -4202,6 +4233,7 @@ public:
 	// Arrays
 
 	int getPrereqBonus(int i) const;					// Exposed to Python
+	inline bool isAnyPrereqOrBonus() const { return (m_paiPrereqBonuses != NULL); } // advc.003t
 	int getHeadquarterCommerce(int i) const;					// Exposed to Python
 	int* getHeadquarterCommerceArray() const;
 	int getCommerceProduced(int i) const;					// Exposed to Python
@@ -4276,6 +4308,7 @@ public:
 	int getCommerceModifier(int i) const;				// Exposed to Python
 	// advc.003t: Return type was int for these two
 	bool isFreePromotion(int i) const;				// Exposed to Python
+	inline bool isAnyFreePromotion() const { return (m_pabFreePromotion != NULL); } // advc.003t
 	bool isFreePromotionUnitCombat(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);

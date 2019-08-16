@@ -2449,11 +2449,11 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 	iDefenderFirepower = pDefender->currFirepower(pDefender->plot(), pAttacker);
 
 	iStrengthFactor = ((iAttackerFirepower + iDefenderFirepower + 1) / 2);
-	iDamageToAttacker = std::max(1,((GC.getDefineINT("COMBAT_DAMAGE") * (iDefenderFirepower + iStrengthFactor)) / (iAttackerFirepower + iStrengthFactor)));
-	iDamageToDefender = std::max(1,((GC.getDefineINT("COMBAT_DAMAGE") * (iAttackerFirepower + iStrengthFactor)) / (iDefenderFirepower + iStrengthFactor)));
+	iDamageToAttacker = std::max(1,((GC.getCOMBAT_DAMAGE() * (iDefenderFirepower + iStrengthFactor)) / (iAttackerFirepower + iStrengthFactor)));
+	iDamageToDefender = std::max(1,((GC.getCOMBAT_DAMAGE() * (iAttackerFirepower + iStrengthFactor)) / (iDefenderFirepower + iStrengthFactor)));
 
-	iDefenderOdds = ((GC.getDefineINT("COMBAT_DIE_SIDES") * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
-	iAttackerOdds = GC.getDefineINT("COMBAT_DIE_SIDES") - iDefenderOdds;
+	iDefenderOdds = ((GC.getCOMBAT_DIE_SIDES() * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
+	iAttackerOdds = GC.getCOMBAT_DIE_SIDES() - iDefenderOdds;
 	/*  advc.001: Replacing the check below. The BUG authors must've missed this
 		one when they integrated ACO into BUG. */
 	if(!getBugOptionBOOL("ACO__IgnoreBarbFreeWins", false)
@@ -2468,8 +2468,8 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 				//attacker is not barb and attacker player has free wins left
 				//I have assumed in the following code only one of the units (attacker and defender) can be a barbarian
 
-				iDefenderOdds = std::min((10 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iDefenderOdds);
-				iAttackerOdds = std::max((90 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iAttackerOdds);
+				iDefenderOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iDefenderOdds);
+				iAttackerOdds = std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iAttackerOdds);
 			}
 		}
 		else if (pAttacker->isBarbarian())
@@ -2478,8 +2478,8 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 			if (!GET_PLAYER(pDefender->getOwner()).isBarbarian() && GET_PLAYER(pDefender->getOwner()).getWinsVsBarbs() < GC.getHandicapInfo(GET_PLAYER(pDefender->getOwner()).getHandicapType()).getFreeWinsVsBarbs())
 			{
 				//defender is not barbarian and defender has free wins left and attacker is barbarian
-				iAttackerOdds = std::min((10 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iAttackerOdds);
-				iDefenderOdds = std::max((90 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iDefenderOdds);
+				iAttackerOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iAttackerOdds);
+				iDefenderOdds = std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iDefenderOdds);
 			}
 		}
 	}
@@ -2501,8 +2501,8 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 	AttFSC = (pDefender->immuneToFirstStrikes()) ? 0 : (pAttacker->chanceFirstStrikes());
 	DefFSC = (pAttacker->immuneToFirstStrikes()) ? 0 : (pDefender->chanceFirstStrikes());
 
-	float P_A = (float)iAttackerOdds / GC.getDefineINT("COMBAT_DIE_SIDES");
-	float P_D = (float)iDefenderOdds / GC.getDefineINT("COMBAT_DIE_SIDES");
+	float P_A = (float)iAttackerOdds / GC.getCOMBAT_DIE_SIDES();
+	float P_D = (float)iDefenderOdds / GC.getCOMBAT_DIE_SIDES();
 	float answer = 0.0f;
 	if (n_A < N_A && n_D == iNeededRoundsAttacker)   // (1) Defender dies or is taken to combat limit
 	{
@@ -2808,7 +2808,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		if (ACO_enabled)
 		{
 			// <advc.312>
-			int iMaxXPAtt = GC.getDefineINT("MAX_EXPERIENCE_PER_COMBAT");
+			int iMaxXPAtt = GC.getDefineINT(CvGlobals::MAX_EXPERIENCE_PER_COMBAT);
 			int iMaxXPDef = iMaxXPAtt;
 			if(pAttacker->isBarbarian())
 				iMaxXPDef -= 4;
@@ -2857,12 +2857,12 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			FAssert((iAttackerStrength + iDefenderStrength)*(iAttackerFirepower + iDefenderFirepower) > 0);
 
 			int iStrengthFactor    = ((iAttackerFirepower + iDefenderFirepower + 1) / 2);
-			int iDamageToAttacker  = std::max(1,((GC.getDefineINT("COMBAT_DAMAGE") * (iDefenderFirepower + iStrengthFactor)) / (iAttackerFirepower + iStrengthFactor)));
-			int iDamageToDefender  = std::max(1,((GC.getDefineINT("COMBAT_DAMAGE") * (iAttackerFirepower + iStrengthFactor)) / (iDefenderFirepower + iStrengthFactor)));
+			int iDamageToAttacker  = std::max(1,((GC.getCOMBAT_DAMAGE() * (iDefenderFirepower + iStrengthFactor)) / (iAttackerFirepower + iStrengthFactor)));
+			int iDamageToDefender  = std::max(1,((GC.getCOMBAT_DAMAGE() * (iAttackerFirepower + iStrengthFactor)) / (iDefenderFirepower + iStrengthFactor)));
 			int iFlankAmount       = iDamageToAttacker;
 
-			int iDefenderOdds = ((GC.getDefineINT("COMBAT_DIE_SIDES") * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
-			int iAttackerOdds = GC.getDefineINT("COMBAT_DIE_SIDES") - iDefenderOdds;
+			int iDefenderOdds = ((GC.getCOMBAT_DIE_SIDES() * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
+			int iAttackerOdds = GC.getCOMBAT_DIE_SIDES() - iDefenderOdds;
 
 			// Barbarian related code.
 			/*  advc.001: The section below deals with FreeWins, so it should
@@ -2879,8 +2879,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					{
 						//attacker is not barb and attacker player has free wins left
 						//I have assumed in the following code only one of the units (attacker and defender) can be a barbarian
-						iDefenderOdds = std::min((10 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iDefenderOdds);
-						iAttackerOdds = std::max((90 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iAttackerOdds);
+						iDefenderOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iDefenderOdds);
+						iAttackerOdds = std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iAttackerOdds);
 						szTempBuffer.Format(SETCOLR L"%d\n" ENDCOLR,
 							TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),GC.getHandicapInfo(GET_PLAYER(pAttacker->getOwner()).getHandicapType()).getFreeWinsVsBarbs()-GET_PLAYER(pAttacker->getOwner()).getWinsVsBarbs());
 						szString.append(gDLL->getText("TXT_ACO_BarbFreeWinsLeft"));
@@ -2896,8 +2896,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 						if (!GET_PLAYER(pDefender->getOwner()).isBarbarian() && GET_PLAYER(pDefender->getOwner()).getWinsVsBarbs() < GC.getHandicapInfo(GET_PLAYER(pDefender->getOwner()).getHandicapType()).getFreeWinsVsBarbs())
 						{
 							//defender is not barbarian and defender has free wins left and attacker is barbarian
-							iAttackerOdds = std::min((10 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iAttackerOdds);
-							iDefenderOdds = std::max((90 * GC.getDefineINT("COMBAT_DIE_SIDES")) / 100, iDefenderOdds);
+							iAttackerOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iAttackerOdds);
+							iDefenderOdds = std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iDefenderOdds);
 							szTempBuffer.Format(SETCOLR L"%d\n" ENDCOLR,
 								TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),GC.getHandicapInfo(GET_PLAYER(pDefender->getOwner()).getHandicapType()).getFreeWinsVsBarbs()-GET_PLAYER(pDefender->getOwner()).getWinsVsBarbs());
 							szString.append(gDLL->getText("TXT_ACO_BarbFreeWinsLeft"));
@@ -2911,27 +2911,27 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			//XP calculations
 			int iExperience;
 			int iWithdrawXP;//thanks to phungus420
-			iWithdrawXP = GC.getDefineINT("EXPERIENCE_FROM_WITHDRAWL");//thanks to phungus420
+			iWithdrawXP = GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL);//thanks to phungus420
 
 			if (pAttacker->combatLimit() < 100)
 			{
-				iExperience        = GC.getDefineINT("EXPERIENCE_FROM_WITHDRAWL");
+				iExperience        = GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL);
 			}
 			else
 			{
 				iExperience        = (pDefender->attackXPValue() * iDefenderStrength) / iAttackerStrength;
-				iExperience        = range(iExperience, GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT"),
+				iExperience        = range(iExperience, GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT),
 						iMaxXPAtt); // advc.312
 			}
 
 			int iDefExperienceKill;
 			iDefExperienceKill = (pAttacker->defenseXPValue() * iAttackerStrength) / iDefenderStrength;
-			iDefExperienceKill = range(iDefExperienceKill, GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT"),
+			iDefExperienceKill = range(iDefExperienceKill, GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT),
 					iMaxXPDef); // advc.312
 
 			int iBonusAttackerXP = (iExperience * iAttackerExperienceModifier) / 100;
 			int iBonusDefenderXP = (iDefExperienceKill * iDefenderExperienceModifier) / 100;
-			int iBonusWithdrawXP = (GC.getDefineINT("EXPERIENCE_FROM_WITHDRAWL") * iAttackerExperienceModifier) / 100;
+			int iBonusWithdrawXP = (GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL) * iAttackerExperienceModifier) / 100;
 
 
 			//The following code adjusts the XP for barbarian encounters.  In standard game, barb and animal xp cap is 10,5 respectively.
@@ -3299,7 +3299,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			else
 			{
 				szTempBuffer.Format(L": " SETCOLR L"%.2f%% " L"%d" ENDCOLR,
-					TEXT_COLOR("COLOR_POSITIVE_TEXT"),100.0f*PullOutOdds,GC.getDefineINT("EXPERIENCE_FROM_WITHDRAWL"));
+					TEXT_COLOR("COLOR_POSITIVE_TEXT"),100.0f*PullOutOdds,GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL));
 				//iExperience,TEXT_COLOR("COLOR_POSITIVE_TEXT"), E_HP_Att_Victory/AttackerKillOdds);
 				szString.append(gDLL->getText("TXT_ACO_Withdraw"));
 				szString.append(szTempBuffer.GetCString());
@@ -3337,7 +3337,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			{
 				szString.append(NEWLINE);
 				szTempBuffer.Format(L": " SETCOLR L"%.2f%% " ENDCOLR SETCOLR L"%d" ENDCOLR,
-					TEXT_COLOR("COLOR_UNIT_TEXT"),100.0f*RetreatOdds,TEXT_COLOR("COLOR_POSITIVE_TEXT"),GC.getDefineINT("EXPERIENCE_FROM_WITHDRAWL"));
+					TEXT_COLOR("COLOR_UNIT_TEXT"),100.0f*RetreatOdds,TEXT_COLOR("COLOR_POSITIVE_TEXT"),GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL));
 				//szString.append(gDLL->getText("TXT_ACO_Retreat"));
 				szString.append(gDLL->getText("TXT_ACO_Withdraw")); // advc.048b
 				szString.append(szTempBuffer.GetCString());
@@ -3393,9 +3393,9 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				if (pAttacker->combatLimit() == pDefender->maxHitPoints())
 				{
 					FAssert(/* advc.312: */ iMaxXPAtt
-							> GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT")); //ensuring the differences is at least 1
+							> GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT)); //ensuring the differences is at least 1
 					int size = /* advc.312: */ iMaxXPAtt
-							- GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT");
+							- GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT);
 					float* CombatRatioThresholds = new float[size];
 
 					for (int i = 0; i < size; i++) //setup the array
@@ -3417,7 +3417,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 							{
 								szString.append(NEWLINE);
 								szTempBuffer.Format(L"(%.2f:%d",
-									CombatRatioThresholds[i],GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT")+1);
+									CombatRatioThresholds[i],GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT)+1);
 								szString.append(szTempBuffer.GetCString());
 								szString.append(gDLL->getText("TXT_ACO_XP"));
 								szTempBuffer.Format(L"), (R=" SETCOLR L"%.2f" ENDCOLR
@@ -3931,7 +3931,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				szString.append(gDLL->getText("TXT_ACO_HitsAt"));
 				// advc.048: Closing parenthesis added
 				szTempBuffer.Format(L")" SETCOLR L" %.1f%%" ENDCOLR,
-					TEXT_COLOR("COLOR_POSITIVE_TEXT"),float(iAttackerOdds)*100.0f / float(GC.getDefineINT("COMBAT_DIE_SIDES")));
+					TEXT_COLOR("COLOR_POSITIVE_TEXT"),float(iAttackerOdds)*100.0f / float(GC.getCOMBAT_DIE_SIDES()));
 				szString.append(szTempBuffer.GetCString());
 			}
 			/*  advc.048: The else branch of this conditional contained the XP range code,
@@ -4519,7 +4519,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			// advc.004h:
 			pHeadSelectedUnit->canFound() && pHeadSelectedUnit->atPlot(pPlot)) {
 			szTempBuffer = CvWString::format(L" +%d%c",
-					GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE"),
+					GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE),
 					gDLL->getSymbolID(HEALTHY_CHAR));
 			szString.append(szTempBuffer);
 		} // </advc.004b>
@@ -4872,7 +4872,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 				szBuildDescr.c_str());
 		szBuildDescr = szTempBuffer;
-		bool bDecay = (GC.getDELAY_UNTIL_BUILD_DECAY() > 0 &&
+		bool bDecay = (GC.getDefineINT(CvGlobals::DELAY_UNTIL_BUILD_DECAY) > 0 &&
 				pPlot->decayBuildProgress(true));
 		if(bDecay) { // Check if Workers are getting on the task this turn
 			CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
@@ -5943,7 +5943,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 				int iMaxThisSpecialist = pCity->getMaxSpecialistCount((SpecialistTypes) iI);
 				int iSpecialistCount = pCity->getSpecialistCount((SpecialistTypes) iI);
 				bool bUsingSpecialist = (iSpecialistCount > 0);
-				bool bDefaultSpecialist = (iI == GC.getDefineINT("DEFAULT_SPECIALIST"));
+				bool bDefaultSpecialist = (iI == GC.getDEFAULT_SPECIALIST());
 
 				// can this city have any of this specialist?
 				if (iMaxThisSpecialist > 0 || bDefaultSpecialist)
@@ -8830,7 +8830,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		// "4 MOVES_CHAR (with Coal)" for city screen when all bonuses available
 		CvWStringBuffer szSpeedBonusesCompact;
 		int iTotalExtraMoves = 0;
-		for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+		for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(); i++) {
 			if(u.getSpeedBonuses(i) < 0)
 				continue;
 			int iExtraMoves = u.getExtraMoves(i);
@@ -9554,7 +9554,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 	}
 	// <advc.905b>
 	if(bCivilopediaText) {
-		for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+		for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(); i++) {
 			if(u.getSpeedBonuses(i) < 0)
 				continue;
 			int iExtraMoves = u.getExtraMoves(i);
@@ -10127,7 +10127,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	// <advc.004w>
 	bool bInBuildingList = false;
 	if(!bCivilopediaText && pCity != NULL &&
-			pCity->getNumBuilding(eBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS())
+			pCity->getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
 		bInBuildingList = true;
 	bool bObsolete = true;
 	if(pPlayer != NULL)
@@ -10518,13 +10518,13 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_POWER"));
 
 		/* original bts code
-		if (kBuilding.isDirtyPower() && (GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE") != 0))
+		if (kBuilding.isDirtyPower() && (GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) != 0))
 		{
-			szTempBuffer.Format(L" (+%d%c)", abs(GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE")), ((GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE") > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
+			szTempBuffer.Format(L" (+%d%c)", abs(GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE)), ((GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
 			szBuffer.append(szTempBuffer);
 		} */
 		// K-Mod. Also include base health change from power.
-		int iPowerHealth = GC.getDefineINT("POWER_HEALTH_CHANGE") + (kBuilding.isDirtyPower() ? GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE") : 0);
+		int iPowerHealth = GC.getDefineINT(CvGlobals::POWER_HEALTH_CHANGE) + (kBuilding.isDirtyPower() ? GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) : 0);
 		if (iPowerHealth)
 		{
 			szTempBuffer.Format(L" (+%d%c)", abs(iPowerHealth), iPowerHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR));
@@ -11191,13 +11191,13 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_POWER_WITH", GC.getBonusInfo((BonusTypes)kBuilding.getPowerBonus()).getTextKeyWide()));
 
 		/* original bts code
-		if (kBuilding.isDirtyPower() && (GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE") != 0))
+		if (kBuilding.isDirtyPower() && (GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) != 0))
 		{
-			szTempBuffer.Format(L" (+%d%c)", abs(GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE")), ((GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE") > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
+			szTempBuffer.Format(L" (+%d%c)", abs(GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE)), ((GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
 			szBuffer.append(szTempBuffer);
 		} */
 		// K-Mod. Also include base health change from power.
-		int iPowerHealth = GC.getDefineINT("POWER_HEALTH_CHANGE") + (kBuilding.isDirtyPower() ? GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE") : 0);
+		int iPowerHealth = GC.getDefineINT(CvGlobals::POWER_HEALTH_CHANGE) + (kBuilding.isDirtyPower() ? GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) : 0);
 		if (iPowerHealth)
 		{
 			szTempBuffer.Format(L" (+%d%c)", abs(iPowerHealth), iPowerHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR));
@@ -11291,7 +11291,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				if (pCity->isWorldWondersMaxed())
 				{
 					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_WORLD_WONDERS_PER_CITY", GC.getDefineINT("MAX_WORLD_WONDERS_PER_CITY")));
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_WORLD_WONDERS_PER_CITY", GC.getDefineINT(CvGlobals::MAX_WORLD_WONDERS_PER_CITY)));
 				}
 			}
 			else if (isTeamWonderClass(bct))
@@ -11299,14 +11299,16 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				if (pCity->isTeamWondersMaxed())
 				{
 					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDERS_PER_CITY", GC.getDefineINT("MAX_TEAM_WONDERS_PER_CITY")));
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDERS_PER_CITY", GC.getDefineINT(CvGlobals::MAX_TEAM_WONDERS_PER_CITY)));
 				}
 			}
 			else if (isNationalWonderClass(bct))
 			{
 				if (pCity->isNationalWondersMaxed())
 				{
-					int iMaxNumWonders = (g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && GET_PLAYER(pCity->getOwner()).isHuman()) ? GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC") : GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY");
+					int iMaxNumWonders = (g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && GET_PLAYER(pCity->getOwner()).isHuman()) ?
+							GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC) :
+							GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY);
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NATIONAL_WONDERS_PER_CITY", iMaxNumWonders));
 				}
@@ -13761,7 +13763,7 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			CvUnitInfo& kUnit = GC.getUnitInfo(eLoopUnit);
 			// <advc.905b>
 			int iSpeed = 0;
-			for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); j++) {
+			for(int j = 0; j < GC.getNUM_UNIT_SPEED_BONUSES(); j++) {
 				if(kUnit.getSpeedBonuses(j) != eBonus)
 					continue;
 				iSpeed = kUnit.getExtraMoves(j);
@@ -15034,8 +15036,8 @@ void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 				"TXT_KEY_MISC_AND_LATER").c_str(), szTempBuffer, L", ", bFirst);
 		bFirst = false;
 	}
-	FAssert(GC.getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER() == 0); // Not accounted for above
-	int iSpeedUpPercent = GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
+	FAssert(GC.getDefineINT(CvGlobals::TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER) == 0); // Not accounted for above
+	int iSpeedUpPercent = GC.getDefineINT(CvGlobals::TECH_COST_KNOWN_PREREQ_MODIFIER);
 	if(iSpeedUpPercent <= 0) {
 		FAssert(iSpeedUpPercent > 0);
 		return;
@@ -15526,7 +15528,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	// Attitude breakdown
 	// <advc.sha>
 	int iTotal = 0;
-	bool bSHowHiddenAttitude = (GC.getDefineINT("SHOW_HIDDEN_ATTITUDE") > 0);
+	bool bSHowHiddenAttitude = (GC.getDefineBOOL("SHOW_HIDDEN_ATTITUDE"));
 	// </advc.sha>
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
@@ -15902,7 +15904,7 @@ void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& t
 	case TRADE_PEACE_TREATY:
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PEACE_TREATY",
 				// <advc.004w>
-				(iTurnsToCancel < 0 ? GC.getPEACE_TREATY_LENGTH() :
+				(iTurnsToCancel < 0 ? GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) :
 				iTurnsToCancel))); // </advc.004w>
 		break;
 	case TRADE_TECHNOLOGIES:
@@ -19973,14 +19975,16 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 
-			if (g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_ALWAYS_WAR) && g.getElapsedGameTurns() <= GC.getPEACE_TREATY_LENGTH()
+			if (g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_ALWAYS_WAR) &&
+					g.getElapsedGameTurns() <= GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)
 					/*  advc.250b: No need to (constantly) remind human of
 						"universal" peace when the AI civs have big headstarts. */
 					&& !g.isOption(GAMEOPTION_SPAH))
 			{
 				if(!strText.empty())
 					strText += L" -- ";
-				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING", GC.getPEACE_TREATY_LENGTH() - g.getElapsedGameTurns());
+				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING",
+						GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) - g.getElapsedGameTurns());
 			}
 			else if (iMinVictoryTurns < MAX_INT)
 			{
@@ -20464,7 +20468,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 		if (pAttacker->plot()->isRiverCrossing(directionXY(pAttacker->plot(),
 				pPlot)))
 		{
-			iModifier = GC.getRIVER_ATTACK_MODIFIER();
+			iModifier = GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
 
 			if (iModifier != 0)
 			{
@@ -20479,7 +20483,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 	{
 		if (!(pPlot->isWater()) && pAttacker->plot()->isWater())
 		{
-			iModifier = GC.getAMPHIB_ATTACK_MODIFIER();
+			iModifier = GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER);
 
 			if (iModifier != 0)
 			{
