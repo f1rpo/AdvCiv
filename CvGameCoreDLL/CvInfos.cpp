@@ -15,6 +15,9 @@
 #include "CvGameTextMgr.h"
 #include "CvDLLXMLIFaceBase.h"
 
+// <advc.003t> Overwrite the definition in CvGlobals.h b/c a const GC is no use here
+#undef GC
+#define GC CvGlobals::getInstance() // </advc.003t>
 
 //------------------------------------------------------------------------------------------------------
 //

@@ -450,11 +450,6 @@ CvInterface* CvGlobals::getInterfacePtr()
 	return m_interface;
 }
 
-CvRandom& CvGlobals::getASyncRand()
-{
-	return *m_asyncRand;
-}
-
 CMessageQueue& CvGlobals::getMessageQueue()
 {
 	return *m_messageQueue;
@@ -475,41 +470,6 @@ CvDropMgr& CvGlobals::getDropMgr()
 	return *m_dropMgr;
 }
 
-FAStar& CvGlobals::getPathFinder()
-{
-	return *m_pathFinder;
-}
-
-FAStar& CvGlobals::getInterfacePathFinder()
-{
-	return *m_interfacePathFinder;
-}
-
-FAStar& CvGlobals::getStepFinder()
-{
-	return *m_stepFinder;
-}
-
-FAStar& CvGlobals::getRouteFinder()
-{
-	return *m_routeFinder;
-}
-
-FAStar& CvGlobals::getBorderFinder()
-{
-	return *m_borderFinder;
-}
-
-FAStar& CvGlobals::getAreaFinder()
-{
-	return *m_areaFinder;
-}
-
-FAStar& CvGlobals::getPlotGroupFinder()
-{
-	return *m_plotGroupFinder;
-}
-
 // advc.003j: Was DLLExport, but actually unused.
 /*NiPoint3& CvGlobals::getPt3Origin()
 {
@@ -521,114 +481,12 @@ std::vector<CvInterfaceModeInfo*>& CvGlobals::getInterfaceModeInfo()
 	return m_paInterfaceModeInfo;
 }
 
-CvInterfaceModeInfo& CvGlobals::getInterfaceModeInfo(InterfaceModeTypes e)
-{
-	FAssert(e > -1);
-	FAssert(e < NUM_INTERFACEMODE_TYPES);
-	return *(m_paInterfaceModeInfo[e]);
-}
 // advc.003j: Was DLLExport, but actually neither called internally nor externally.
 /*NiPoint3& CvGlobals::getPt3CameraDir()
 {
 	return m_pt3CameraDir;
 }*/
 
-bool& CvGlobals::getLogging()
-{
-	return m_bLogging;
-}
-
-bool& CvGlobals::getRandLogging()
-{
-	return m_bRandLogging;
-}
-
-bool& CvGlobals::getSynchLogging()
-{
-	return m_bSynchLogging;
-}
-
-bool& CvGlobals::overwriteLogs()
-{
-	return m_bOverwriteLogs;
-}
-
-int* CvGlobals::getPlotDirectionX()
-{
-	return m_aiPlotDirectionX;
-}
-
-int* CvGlobals::getPlotDirectionY()
-{
-	return m_aiPlotDirectionY;
-}
-
-int* CvGlobals::getPlotCardinalDirectionX()
-{
-	return m_aiPlotCardinalDirectionX;
-}
-
-int* CvGlobals::getPlotCardinalDirectionY()
-{
-	return m_aiPlotCardinalDirectionY;
-}
-
-int* CvGlobals::getCityPlotX()
-{
-	return m_aiCityPlotX;
-}
-
-int* CvGlobals::getCityPlotY()
-{
-	return m_aiCityPlotY;
-}
-
-int* CvGlobals::getCityPlotPriority()
-{
-	return m_aiCityPlotPriority;
-}
-
-int CvGlobals::getXYCityPlot(int i, int j)
-{
-	FAssertMsg(i < CITY_PLOTS_DIAMETER, "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	FAssertMsg(j < CITY_PLOTS_DIAMETER, "Index out of bounds");
-	FAssertMsg(j > -1, "Index out of bounds");
-	return m_aaiXYCityPlot[i][j];
-}
-
-DirectionTypes* CvGlobals::getTurnLeftDirection()
-{
-	return m_aeTurnLeftDirection;
-}
-
-DirectionTypes CvGlobals::getTurnLeftDirection(int i)
-{
-	FAssertMsg(i < NUM_DIRECTION_TYPES, "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_aeTurnLeftDirection[i];
-}
-
-DirectionTypes* CvGlobals::getTurnRightDirection()
-{
-	return m_aeTurnRightDirection;
-}
-
-DirectionTypes CvGlobals::getTurnRightDirection(int i)
-{
-	FAssertMsg(i < NUM_DIRECTION_TYPES, "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_aeTurnRightDirection[i];
-}
-
-DirectionTypes CvGlobals::getXYDirection(int i, int j)
-{
-	FAssertMsg(i < DIRECTION_DIAMETER, "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	FAssertMsg(j < DIRECTION_DIAMETER, "Index out of bounds");
-	FAssertMsg(j > -1, "Index out of bounds");
-	return m_aaeXYDirection[i][j];
-}
 
 CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
 {
@@ -643,15 +501,20 @@ CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
 	return *(m_paColorInfo[e]);
 }
 
-int CvGlobals::getActiveLandscapeID()
-{
-	return m_iActiveLandscapeID;
-}
-
 void CvGlobals::setActiveLandscapeID(int iLandscapeID)
 {
 	m_iActiveLandscapeID = iLandscapeID;
 }
+// <advc.003x>
+int CvGlobals::getLandscapePlotsPerCellX() const
+{
+	return getLandscapeInfo(getActiveLandscapeID()).getPlotsPerCellX();
+}
+
+int CvGlobals::getLandscapePlotsPerCellY() const
+{
+	return getLandscapeInfo(getActiveLandscapeID()).getPlotsPerCellY();
+} // </advc.003x>
 
 int& CvGlobals::getNumPlayableCivilizationInfos()
 {
@@ -707,11 +570,6 @@ CvString& CvGlobals::getFunctionTypes(FunctionTypes e)
 	FAssert(e > -1);
 	FAssert(e < NUM_FUNC_TYPES);
 	return m_paszFunctionTypes[e];
-}
-
-int& CvGlobals::getNumFlavorTypes()
-{
-	return m_iNumFlavorTypes;
 }
 
 CvString*& CvGlobals::getFlavorTypes()
@@ -1130,249 +988,129 @@ int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES(CorporationTypes eCorporation) 
 }
 // </advc.003t>
 
-float CvGlobals::getCAMERA_MIN_YAW()
-{
-	return m_fCAMERA_MIN_YAW;
-}
-
-float CvGlobals::getCAMERA_MAX_YAW()
-{
-	return m_fCAMERA_MAX_YAW;
-}
-
-float CvGlobals::getCAMERA_FAR_CLIP_Z_HEIGHT()
-{
-	return m_fCAMERA_FAR_CLIP_Z_HEIGHT;
-}
-
-float CvGlobals::getCAMERA_MAX_TRAVEL_DISTANCE()
-{
-	return m_fCAMERA_MAX_TRAVEL_DISTANCE;
-}
-
-float CvGlobals::getCAMERA_START_DISTANCE()
-{
-	return m_fCAMERA_START_DISTANCE;
-}
-
-float CvGlobals::getAIR_BOMB_HEIGHT()
-{
-	return m_fAIR_BOMB_HEIGHT;
-}
-
-float CvGlobals::getPLOT_SIZE()
-{
-	return m_fPLOT_SIZE;
-}
-
-float CvGlobals::getCAMERA_SPECIAL_PITCH()
-{
-	return m_fCAMERA_SPECIAL_PITCH;
-}
-
-float CvGlobals::getCAMERA_MAX_TURN_OFFSET()
-{
-	return m_fCAMERA_MAX_TURN_OFFSET;
-}
-
-float CvGlobals::getCAMERA_MIN_DISTANCE()
-{
-	return m_fCAMERA_MIN_DISTANCE;
-}
-
-float CvGlobals::getCAMERA_UPPER_PITCH()
-{
-	return m_fCAMERA_UPPER_PITCH;
-}
-
-float CvGlobals::getCAMERA_LOWER_PITCH()
-{
-	return m_fCAMERA_LOWER_PITCH;
-}
-
-float CvGlobals::getFIELD_OF_VIEW()
-{
-	return m_fFIELD_OF_VIEW;
-}
-
-float CvGlobals::getSHADOW_SCALE()
-{
-	return m_fSHADOW_SCALE;
-}
-
-float CvGlobals::getUNIT_MULTISELECT_DISTANCE()
-{
-	return m_fUNIT_MULTISELECT_DISTANCE;
-}
-
-int CvGlobals::getUSE_CANNOT_FOUND_CITY_CALLBACK()
+int CvGlobals::getUSE_CANNOT_FOUND_CITY_CALLBACK() const
 {
 	return m_iUSE_CANNOT_FOUND_CITY_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK()
+int CvGlobals::getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK() const
 {
 	return m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK;
 }
 
-int CvGlobals::getUSE_IS_PLAYER_RESEARCH_CALLBACK()
+int CvGlobals::getUSE_IS_PLAYER_RESEARCH_CALLBACK() const
 {
 	return m_iUSE_IS_PLAYER_RESEARCH_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_RESEARCH_CALLBACK()
+int CvGlobals::getUSE_CAN_RESEARCH_CALLBACK() const
 {
 	return m_iUSE_CAN_RESEARCH_CALLBACK;
 }
 
-int CvGlobals::getUSE_CANNOT_DO_CIVIC_CALLBACK()
+int CvGlobals::getUSE_CANNOT_DO_CIVIC_CALLBACK() const
 {
 	return m_iUSE_CANNOT_DO_CIVIC_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_DO_CIVIC_CALLBACK()
+int CvGlobals::getUSE_CAN_DO_CIVIC_CALLBACK() const
 {
 	return m_iUSE_CAN_DO_CIVIC_CALLBACK;
 }
 
-int CvGlobals::getUSE_CANNOT_CONSTRUCT_CALLBACK()
+int CvGlobals::getUSE_CANNOT_CONSTRUCT_CALLBACK() const
 {
 	return m_iUSE_CANNOT_CONSTRUCT_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_CONSTRUCT_CALLBACK()
+int CvGlobals::getUSE_CAN_CONSTRUCT_CALLBACK() const
 {
 	return m_iUSE_CAN_CONSTRUCT_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_DECLARE_WAR_CALLBACK()
+int CvGlobals::getUSE_CAN_DECLARE_WAR_CALLBACK() const
 {
 	return m_iUSE_CAN_DECLARE_WAR_CALLBACK;
 }
 
-int CvGlobals::getUSE_CANNOT_RESEARCH_CALLBACK()
+int CvGlobals::getUSE_CANNOT_RESEARCH_CALLBACK() const
 {
 	return m_iUSE_CANNOT_RESEARCH_CALLBACK;
 }
 
-int CvGlobals::getUSE_GET_UNIT_COST_MOD_CALLBACK()
+int CvGlobals::getUSE_GET_UNIT_COST_MOD_CALLBACK() const
 {
 	return m_iUSE_GET_UNIT_COST_MOD_CALLBACK;
 }
 
-int CvGlobals::getUSE_GET_BUILDING_COST_MOD_CALLBACK()
+int CvGlobals::getUSE_GET_BUILDING_COST_MOD_CALLBACK() const
 {
 	return m_iUSE_GET_BUILDING_COST_MOD_CALLBACK;
 }
 
-int CvGlobals::getUSE_GET_CITY_FOUND_VALUE_CALLBACK()
+int CvGlobals::getUSE_GET_CITY_FOUND_VALUE_CALLBACK() const
 {
 	return m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK;
 }
 
-int CvGlobals::getUSE_CANNOT_HANDLE_ACTION_CALLBACK()
+int CvGlobals::getUSE_CANNOT_HANDLE_ACTION_CALLBACK() const
 {
 	return m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_BUILD_CALLBACK()
+int CvGlobals::getUSE_CAN_BUILD_CALLBACK() const
 {
 	return m_iUSE_CAN_BUILD_CALLBACK;
 }
 
-int CvGlobals::getUSE_CANNOT_TRAIN_CALLBACK()
+int CvGlobals::getUSE_CANNOT_TRAIN_CALLBACK() const
 {
 	return m_iUSE_CANNOT_TRAIN_CALLBACK;
 }
 
-int CvGlobals::getUSE_CAN_TRAIN_CALLBACK()
+int CvGlobals::getUSE_CAN_TRAIN_CALLBACK() const
 {
 	return m_iUSE_CAN_TRAIN_CALLBACK;
 }
 
-int CvGlobals::getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK()
+int CvGlobals::getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK() const
 {
 	return m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK;
 }
 
-int CvGlobals::getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK()
+int CvGlobals::getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK() const
 {
 	return m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK;
 }
 
-int CvGlobals::getUSE_FINISH_TEXT_CALLBACK()
+int CvGlobals::getUSE_FINISH_TEXT_CALLBACK() const
 {
 	return m_iUSE_FINISH_TEXT_CALLBACK;
 }
 
-int CvGlobals::getUSE_ON_UNIT_SET_XY_CALLBACK()
+int CvGlobals::getUSE_ON_UNIT_SET_XY_CALLBACK() const
 {
 	return m_iUSE_ON_UNIT_SET_XY_CALLBACK;
 }
 
-int CvGlobals::getUSE_ON_UNIT_SELECTED_CALLBACK()
+int CvGlobals::getUSE_ON_UNIT_SELECTED_CALLBACK() const
 {
 	return m_iUSE_ON_UNIT_SELECTED_CALLBACK;
 }
 
-int CvGlobals::getUSE_ON_UPDATE_CALLBACK()
+int CvGlobals::getUSE_ON_UPDATE_CALLBACK() const
 {
 	return m_iUSE_ON_UPDATE_CALLBACK;
 }
 
-int CvGlobals::getUSE_ON_UNIT_CREATED_CALLBACK()
+int CvGlobals::getUSE_ON_UNIT_CREATED_CALLBACK() const
 {
 	return m_iUSE_ON_UNIT_CREATED_CALLBACK;
 }
 
-int CvGlobals::getUSE_ON_UNIT_LOST_CALLBACK()
+int CvGlobals::getUSE_ON_UNIT_LOST_CALLBACK() const
 {
 	return m_iUSE_ON_UNIT_LOST_CALLBACK;
-}
-
-int CvGlobals::getMAX_CIV_PLAYERS()
-{
-	return MAX_CIV_PLAYERS;
-}
-
-int CvGlobals::getMAX_PLAYERS()
-{
-	return MAX_PLAYERS;
-}
-
-int CvGlobals::getMAX_CIV_TEAMS()
-{
-	return MAX_CIV_TEAMS;
-}
-
-int CvGlobals::getMAX_TEAMS()
-{
-	return MAX_TEAMS;
-}
-
-int CvGlobals::getBARBARIAN_PLAYER()
-{
-	return BARBARIAN_PLAYER;
-}
-
-int CvGlobals::getBARBARIAN_TEAM()
-{
-	return BARBARIAN_TEAM;
-}
-
-int CvGlobals::getINVALID_PLOT_COORD()
-{
-	return INVALID_PLOT_COORD;
-}
-
-int CvGlobals::getNUM_CITY_PLOTS()
-{
-	return NUM_CITY_PLOTS;
-}
-
-int CvGlobals::getCITY_HOME_PLOT()
-{
-	return CITY_HOME_PLOT;
 }
 
 void CvGlobals::setDLLIFace(CvDLLUtilityIFaceBase* pDll)

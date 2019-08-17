@@ -7926,7 +7926,7 @@ void CvGame::updateMoves()
 
 					if (!player.isHuman())
 					{
-						if (!(player.hasBusyUnit()) && !(player.hasReadyUnit(true)))
+						if (!player.hasBusyUnit() && !player.hasReadyUnit(true))
 						{
 							player.setAutoMoves(true);
 						}
@@ -9580,16 +9580,17 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 	// * Fixed bug with colonies who occupy recycled player slots showing the old leader or civ names.
 	CvWString szEmptyString = L"";
 	LeaderHeadTypes eOldLeader = GET_PLAYER(eNewPlayer).getLeaderType();
+	CvInitCore& kInitCore = GC.getInitCore();
 	if (eOldLeader != NO_LEADER && eOldLeader != eLeader)
 	{
-		GC.getInitCore().setLeaderName(eNewPlayer, szEmptyString);
+		kInitCore.setLeaderName(eNewPlayer, szEmptyString);
 	}
 	CivilizationTypes eOldCiv = GET_PLAYER(eNewPlayer).getCivilizationType();
 	if (eOldCiv != NO_CIVILIZATION && eOldCiv != eCiv)
 	{
-		GC.getInitCore().setCivAdjective(eNewPlayer, szEmptyString);
-		GC.getInitCore().setCivDescription(eNewPlayer, szEmptyString);
-		GC.getInitCore().setCivShortDesc(eNewPlayer, szEmptyString);
+		kInitCore.setCivAdjective(eNewPlayer, szEmptyString);
+		kInitCore.setCivDescription(eNewPlayer, szEmptyString);
+		kInitCore.setCivShortDesc(eNewPlayer, szEmptyString);
 	}
 	// UNOFFICIAL_PATCH End
 	PlayerColorTypes eColor = (PlayerColorTypes)GC.getCivilizationInfo(eCiv).getDefaultPlayerColor();
@@ -9628,10 +9629,10 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 	}
 
 	TeamTypes eTeam = GET_PLAYER(eNewPlayer).getTeam();
-	GC.getInitCore().setLeader(eNewPlayer, eLeader);
-	GC.getInitCore().setCiv(eNewPlayer, eCiv);
-	GC.getInitCore().setSlotStatus(eNewPlayer, SS_COMPUTER);
-	GC.getInitCore().setColor(eNewPlayer, eColor);
+	kInitCore.setLeader(eNewPlayer, eLeader);
+	kInitCore.setCiv(eNewPlayer, eCiv);
+	kInitCore.setSlotStatus(eNewPlayer, SS_COMPUTER);
+	kInitCore.setColor(eNewPlayer, eColor);
 	// BETTER_BTS_AI_MOD, Bugfix, 12/30/08, jdog5000: START
 	// Team init now handled when appropriate in player initInGame
 	/*GET_TEAM(eTeam).init(eTeam);

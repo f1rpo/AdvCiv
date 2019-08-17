@@ -98,7 +98,7 @@ public:
 	int getInfoTypeForString(const char* szInfoType) const;
 	int getTypesEnum(const char* szType) const;
 
-	int getNumPlayerColorInfos() const { return GC.getNumPlayerColorInfos(); }
+	int getNumPlayerColorInfos() const { return kGlobals.getNumPlayerColorInfos(); }
 	CvPlayerColorInfo* getPlayerColorInfo(int i) const;
 
 	CvInfoBase* getHints(int i) const;
@@ -146,84 +146,84 @@ public:
 
 	// Structs
 
-	const char* getEntityEventTypes(int i) const { return GC.getEntityEventTypes((EntityEventTypes) i); }
-	const char* getAnimationOperatorTypes(int i) const { return GC.getAnimationOperatorTypes((AnimationOperatorTypes) i); }
-	const char* getFunctionTypes(int i) const { return GC.getFunctionTypes((FunctionTypes) i); }
-	const char* getFlavorTypes(int i) const { return GC.getFlavorTypes((FlavorTypes) i); }
-	const char* getArtStyleTypes(int i) const { return GC.getArtStyleTypes((ArtStyleTypes) i); }
-	const char* getCitySizeTypes(int i) const { return GC.getCitySizeTypes(i); }
-	const char* getContactTypes(int i) const { return GC.getContactTypes((ContactTypes) i); }
-	const char* getDiplomacyPowerTypes(int i) const { return GC.getDiplomacyPowerTypes((DiplomacyPowerTypes) i); }
-	const char *getFootstepAudioTypes(int i) { return GC.getFootstepAudioTypes(i); }
-	const char *getFootstepAudioTags(int i) { return GC.getFootstepAudioTags(i); }
+	const char* getEntityEventTypes(int i) const { return kGlobals.getEntityEventTypes((EntityEventTypes) i); }
+	const char* getAnimationOperatorTypes(int i) const { return kGlobals.getAnimationOperatorTypes((AnimationOperatorTypes) i); }
+	const char* getFunctionTypes(int i) const { return kGlobals.getFunctionTypes((FunctionTypes) i); }
+	const char* getFlavorTypes(int i) const { return kGlobals.getFlavorTypes((FlavorTypes) i); }
+	const char* getArtStyleTypes(int i) const { return kGlobals.getArtStyleTypes((ArtStyleTypes) i); }
+	const char* getCitySizeTypes(int i) const { return kGlobals.getCitySizeTypes(i); }
+	const char* getContactTypes(int i) const { return kGlobals.getContactTypes((ContactTypes) i); }
+	const char* getDiplomacyPowerTypes(int i) const { return kGlobals.getDiplomacyPowerTypes((DiplomacyPowerTypes) i); }
+	const char *getFootstepAudioTypes(int i) { return kGlobals.getFootstepAudioTypes(i); }
+	const char *getFootstepAudioTags(int i) { return kGlobals.getFootstepAudioTags(i); }
 
-	int getNumEffectInfos() const { return GC.getNumEffectInfos(); }
-	int getNumTerrainInfos() const { return GC.getNumTerrainInfos(); }
-	int getNumSpecialBuildingInfos() const { return GC.getNumSpecialBuildingInfos(); }
-	int getNumBonusInfos() const { return GC.getNumBonusInfos(); };
-	int getNumPlayableCivilizationInfos() const { return GC.getNumPlayableCivilizationInfos(); }
-	int getNumCivilizatonInfos() const { return GC.getNumCivilizationInfos(); }
-	int getNumLeaderHeadInfos() const { return GC.getNumLeaderHeadInfos(); }
-	int getNumTraitInfos() const { return GC.getNumTraitInfos(); }
-	int getNumUnitInfos() const { return GC.getNumUnitInfos(); }
-	int getNumSpecialUnitInfos() const { return GC.getNumSpecialUnitInfos(); }
-	int getNumRouteInfos() const { return GC.getNumRouteInfos(); }
-	int getNumFeatureInfos() const { return GC.getNumFeatureInfos(); }
-	int getNumImprovementInfos() const { return GC.getNumImprovementInfos(); }
-	int getNumGoodyInfos() const { return GC.getNumGoodyInfos(); }
-	int getNumBuildInfos() const { return GC.getNumBuildInfos(); }
-	int getNumHandicapInfos() const { return GC.getNumHandicapInfos(); }
-	int getNumGameSpeedInfos() const { return GC.getNumGameSpeedInfos(); }
-	int getNumTurnTimerInfos() const { return GC.getNumTurnTimerInfos(); }
-	int getNumBuildingClassInfos() const { return GC.getNumBuildingClassInfos(); }
-	int getNumBuildingInfos() const { return GC.getNumBuildingInfos(); }
-	int getNumUnitClassInfos() const { return GC.getNumUnitClassInfos(); }
-	int getNumUnitCombatInfos() const { return GC.getNumUnitCombatInfos(); }
-	int getNumAutomateInfos() const { return GC.getNumAutomateInfos(); }
-	int getNumCommandInfos() const { return GC.getNumCommandInfos(); }
-	int getNumControlInfos() const { return GC.getNumControlInfos(); }
-	int getNumMissionInfos() const { return GC.getNumMissionInfos(); }
-	int getNumActionInfos() const { return GC.getNumActionInfos(); }
-	int getNumPromotionInfos() const { return GC.getNumPromotionInfos(); }
-	int getNumTechInfos() const { return GC.getNumTechInfos(); }
-	int getNumReligionInfos() const { return GC.getNumReligionInfos(); }
-	int getNumCorporationInfos() const { return GC.getNumCorporationInfos(); }
-	int getNumSpecialistInfos() const { return GC.getNumSpecialistInfos(); }
-	int getNumCivicInfos() const { return GC.getNumCivicInfos(); }
-	int getNumDiplomacyInfos() const { return GC.getNumDiplomacyInfos(); }
-	int getNumCivicOptionInfos() const { return GC.getNumCivicOptionInfos(); }
-	int getNumProjectInfos() const { return GC.getNumProjectInfos(); }
-	int getNumVoteInfos() const { return GC.getNumVoteInfos(); }
-	int getNumProcessInfos() const { return GC.getNumProcessInfos(); }
-	int getNumEmphasizeInfos() const { return GC.getNumEmphasizeInfos(); }
-	int getNumHurryInfos() const { return GC.getNumHurryInfos(); }
-	int getNumUpkeepInfos() const { return GC.getNumUpkeepInfos(); }
-	int getNumCultureLevelInfos() const { return GC.getNumCultureLevelInfos(); }
-	int getNumEraInfos() const { return GC.getNumEraInfos(); }
-	int getNumVictoryInfos() const { return GC.getNumVictoryInfos(); }
-	int getNumWorldInfos() const { return GC.getNumWorldInfos(); }
-	int getNumSeaLevelInfos() const { return GC.getNumSeaLevelInfos(); }
-	int getNumClimateInfos() const { return GC.getNumClimateInfos(); }
-	int getNumConceptInfos() const { return GC.getNumConceptInfos(); }
-	int getNumNewConceptInfos() const { return GC.getNumNewConceptInfos(); }
-	int getNumCityTabInfos() const { return GC.getNumCityTabInfos(); }
-	int getNumCalendarInfos() const { return GC.getNumCalendarInfos(); }
-	int getNumPlayerOptionInfos() const { return GC.getNumPlayerOptionInfos(); }
-	int getNumGameOptionInfos() const { return GC.getNumGameOptionInfos(); }
-	int getNumMPOptionInfos() const { return GC.getNumMPOptionInfos(); }
-	int getNumForceControlInfos() const { return GC.getNumForceControlInfos(); }
-	int getNumSeasonInfos() const { return GC.getNumSeasonInfos(); }
-	int getNumMonthInfos() const { return GC.getNumMonthInfos(); }
-	int getNumDenialInfos() const { return GC.getNumDenialInfos(); }
-	//int getNumQuestInfos() const { return GC.getNumQuestInfos(); } // advc.003j
-	int getNumTutorialInfos() const { return GC.getNumTutorialInfos(); }
-	int getNumEventTriggerInfos() const { return GC.getNumEventTriggerInfos(); }
-	int getNumEventInfos() const { return GC.getNumEventInfos(); }
-	int getNumEspionageMissionInfos() const { return GC.getNumEspionageMissionInfos(); }
-	int getNumHints() const { return GC.getNumHints(); }
-	int getNumMainMenus() const { return GC.getNumMainMenus(); }
-	int getNumInvisibleInfos() const { return GC.getNumInvisibleInfos(); }
-	int getNumVoteSourceInfos() const { return GC.getNumVoteSourceInfos(); }
+	int getNumEffectInfos() const { return kGlobals.getNumEffectInfos(); }
+	int getNumTerrainInfos() const { return kGlobals.getNumTerrainInfos(); }
+	int getNumSpecialBuildingInfos() const { return kGlobals.getNumSpecialBuildingInfos(); }
+	int getNumBonusInfos() const { return kGlobals.getNumBonusInfos(); };
+	int getNumPlayableCivilizationInfos() const { return kGlobals.getNumPlayableCivilizationInfos(); }
+	int getNumCivilizatonInfos() const { return kGlobals.getNumCivilizationInfos(); }
+	int getNumLeaderHeadInfos() const { return kGlobals.getNumLeaderHeadInfos(); }
+	int getNumTraitInfos() const { return kGlobals.getNumTraitInfos(); }
+	int getNumUnitInfos() const { return kGlobals.getNumUnitInfos(); }
+	int getNumSpecialUnitInfos() const { return kGlobals.getNumSpecialUnitInfos(); }
+	int getNumRouteInfos() const { return kGlobals.getNumRouteInfos(); }
+	int getNumFeatureInfos() const { return kGlobals.getNumFeatureInfos(); }
+	int getNumImprovementInfos() const { return kGlobals.getNumImprovementInfos(); }
+	int getNumGoodyInfos() const { return kGlobals.getNumGoodyInfos(); }
+	int getNumBuildInfos() const { return kGlobals.getNumBuildInfos(); }
+	int getNumHandicapInfos() const { return kGlobals.getNumHandicapInfos(); }
+	int getNumGameSpeedInfos() const { return kGlobals.getNumGameSpeedInfos(); }
+	int getNumTurnTimerInfos() const { return kGlobals.getNumTurnTimerInfos(); }
+	int getNumBuildingClassInfos() const { return kGlobals.getNumBuildingClassInfos(); }
+	int getNumBuildingInfos() const { return kGlobals.getNumBuildingInfos(); }
+	int getNumUnitClassInfos() const { return kGlobals.getNumUnitClassInfos(); }
+	int getNumUnitCombatInfos() const { return kGlobals.getNumUnitCombatInfos(); }
+	int getNumAutomateInfos() const { return kGlobals.getNumAutomateInfos(); }
+	int getNumCommandInfos() const { return kGlobals.getNumCommandInfos(); }
+	int getNumControlInfos() const { return kGlobals.getNumControlInfos(); }
+	int getNumMissionInfos() const { return kGlobals.getNumMissionInfos(); }
+	int getNumActionInfos() const { return kGlobals.getNumActionInfos(); }
+	int getNumPromotionInfos() const { return kGlobals.getNumPromotionInfos(); }
+	int getNumTechInfos() const { return kGlobals.getNumTechInfos(); }
+	int getNumReligionInfos() const { return kGlobals.getNumReligionInfos(); }
+	int getNumCorporationInfos() const { return kGlobals.getNumCorporationInfos(); }
+	int getNumSpecialistInfos() const { return kGlobals.getNumSpecialistInfos(); }
+	int getNumCivicInfos() const { return kGlobals.getNumCivicInfos(); }
+	int getNumDiplomacyInfos() const { return kGlobals.getNumDiplomacyInfos(); }
+	int getNumCivicOptionInfos() const { return kGlobals.getNumCivicOptionInfos(); }
+	int getNumProjectInfos() const { return kGlobals.getNumProjectInfos(); }
+	int getNumVoteInfos() const { return kGlobals.getNumVoteInfos(); }
+	int getNumProcessInfos() const { return kGlobals.getNumProcessInfos(); }
+	int getNumEmphasizeInfos() const { return kGlobals.getNumEmphasizeInfos(); }
+	int getNumHurryInfos() const { return kGlobals.getNumHurryInfos(); }
+	int getNumUpkeepInfos() const { return kGlobals.getNumUpkeepInfos(); }
+	int getNumCultureLevelInfos() const { return kGlobals.getNumCultureLevelInfos(); }
+	int getNumEraInfos() const { return kGlobals.getNumEraInfos(); }
+	int getNumVictoryInfos() const { return kGlobals.getNumVictoryInfos(); }
+	int getNumWorldInfos() const { return kGlobals.getNumWorldInfos(); }
+	int getNumSeaLevelInfos() const { return kGlobals.getNumSeaLevelInfos(); }
+	int getNumClimateInfos() const { return kGlobals.getNumClimateInfos(); }
+	int getNumConceptInfos() const { return kGlobals.getNumConceptInfos(); }
+	int getNumNewConceptInfos() const { return kGlobals.getNumNewConceptInfos(); }
+	int getNumCityTabInfos() const { return kGlobals.getNumCityTabInfos(); }
+	int getNumCalendarInfos() const { return kGlobals.getNumCalendarInfos(); }
+	int getNumPlayerOptionInfos() const { return kGlobals.getNumPlayerOptionInfos(); }
+	int getNumGameOptionInfos() const { return kGlobals.getNumGameOptionInfos(); }
+	int getNumMPOptionInfos() const { return kGlobals.getNumMPOptionInfos(); }
+	int getNumForceControlInfos() const { return kGlobals.getNumForceControlInfos(); }
+	int getNumSeasonInfos() const { return kGlobals.getNumSeasonInfos(); }
+	int getNumMonthInfos() const { return kGlobals.getNumMonthInfos(); }
+	int getNumDenialInfos() const { return kGlobals.getNumDenialInfos(); }
+	//int getNumQuestInfos() const { return kGlobals.getNumQuestInfos(); } // advc.003j
+	int getNumTutorialInfos() const { return kGlobals.getNumTutorialInfos(); }
+	int getNumEventTriggerInfos() const { return kGlobals.getNumEventTriggerInfos(); }
+	int getNumEventInfos() const { return kGlobals.getNumEventInfos(); }
+	int getNumEspionageMissionInfos() const { return kGlobals.getNumEspionageMissionInfos(); }
+	int getNumHints() const { return kGlobals.getNumHints(); }
+	int getNumMainMenus() const { return kGlobals.getNumMainMenus(); }
+	int getNumInvisibleInfos() const { return kGlobals.getNumInvisibleInfos(); }
+	int getNumVoteSourceInfos() const { return kGlobals.getNumVoteSourceInfos(); }
 
 	// ArtInfos
 	int getNumInterfaceArtInfos() const { return ARTFILEMGR.getNumInterfaceArtInfos(); }
@@ -237,75 +237,78 @@ public:
 	int getNumBonusArtInfos() const { return ARTFILEMGR.getNumBonusArtInfos(); }
 	int getNumTerrainArtInfos() const { return ARTFILEMGR.getNumTerrainArtInfos(); }
 	int getNumFeatureArtInfos() const { return ARTFILEMGR.getNumFeatureArtInfos(); }
-	int getNumAnimationPathInfos() const { return GC.getNumAnimationPathInfos(); }
-	int getNumAnimationCategoryInfos() const { return GC.getNumAnimationCategoryInfos(); }
-	int getNumUnitArtStyleTypeInfos() const { return GC.getNumUnitArtStyleTypeInfos(); }
+	int getNumAnimationPathInfos() const { return kGlobals.getNumAnimationPathInfos(); }
+	int getNumAnimationCategoryInfos() const { return kGlobals.getNumAnimationCategoryInfos(); }
+	int getNumUnitArtStyleTypeInfos() const { return kGlobals.getNumUnitArtStyleTypeInfos(); }
 
 
-	int getNumEntityEventTypes() const { return GC.getNumEntityEventTypes(); }
-	int getNumAnimationOperatorTypes() const { return GC.getNumAnimationOperatorTypes(); }
-	int getNumArtStyleTypes() const { return GC.getNumArtStyleTypes(); }
-	int getNumFlavorTypes() const { return GC.getNumFlavorTypes(); }
-	int getNumCitySizeTypes() const { return GC.getNumCitySizeTypes(); }
-	int getNumFootstepAudioTypes() const { return GC.getNumFootstepAudioTypes(); }
+	int getNumEntityEventTypes() const { return kGlobals.getNumEntityEventTypes(); }
+	int getNumAnimationOperatorTypes() const { return kGlobals.getNumAnimationOperatorTypes(); }
+	int getNumArtStyleTypes() const { return kGlobals.getNumArtStyleTypes(); }
+	int getNumFlavorTypes() const { return kGlobals.getNumFlavorTypes(); }
+	int getNumCitySizeTypes() const { return kGlobals.getNumCitySizeTypes(); }
+	int getNumFootstepAudioTypes() const { return kGlobals.getNumFootstepAudioTypes(); }
 
 	//////////////////////
 	// Globals Defines
 	//////////////////////
 
 	CyVariableSystem* getCyDefinesVarSystem();
-	int getDefineINT(const char * szName) const { return GC.getDefineINT(szName); }
-	float getDefineFLOAT(const char * szName) const { return GC.getDefineFLOAT(szName); }
-	const char * getDefineSTRING(const char * szName) const { return GC.getDefineSTRING(szName); }
-	void setDefineINT(const char * szName, int iValue) { return GC.setDefineINT(szName, iValue); }
-	void setDefineFLOAT(const char * szName, float fValue) { return GC.setDefineFLOAT(szName, fValue); }
-	void setDefineSTRING(const char * szName, const char * szValue) { return GC.setDefineSTRING(szName, szValue); }
+	int getDefineINT(const char * szName) const { return kGlobals.getDefineINT(szName); }
+	float getDefineFLOAT(const char * szName) const { return kGlobals.getDefineFLOAT(szName); }
+	const char * getDefineSTRING(const char * szName) const { return kGlobals.getDefineSTRING(szName); }
+	void setDefineINT(const char * szName, int iValue) { return kGlobals.setDefineINT(szName, iValue); }
+	void setDefineFLOAT(const char * szName, float fValue) { return kGlobals.setDefineFLOAT(szName, fValue); }
+	void setDefineSTRING(const char * szName, const char * szValue) { return kGlobals.setDefineSTRING(szName, szValue); }
 
-	int getMOVE_DENOMINATOR() const { return GC.getMOVE_DENOMINATOR(); }
-	int getFOOD_CONSUMPTION_PER_POPULATION() const { return GC.getFOOD_CONSUMPTION_PER_POPULATION(); }
-	int getMAX_HIT_POINTS() const { return GC.getMAX_HIT_POINTS(); }
-	int getMAX_PLOT_LIST_ROWS() const { return GC.getMAX_PLOT_LIST_ROWS(); }
-	int getUNIT_MULTISELECT_MAX() const { return GC.getUNIT_MULTISELECT_MAX(); }
-	int getEVENT_MESSAGE_TIME() const { return GC.getEVENT_MESSAGE_TIME(); }
-	int getPERCENT_ANGER_DIVISOR() const { return GC.getPERCENT_ANGER_DIVISOR(); }
-	int getMIN_WATER_SIZE_FOR_OCEAN() const { return GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN); }
-	int getMAX_CITY_DEFENSE_DAMAGE() const { return GC.getMAX_CITY_DEFENSE_DAMAGE(); }
+	int getMOVE_DENOMINATOR() const { return kGlobals.getMOVE_DENOMINATOR(); }
+	int getFOOD_CONSUMPTION_PER_POPULATION() const { return kGlobals.getFOOD_CONSUMPTION_PER_POPULATION(); }
+	int getMAX_HIT_POINTS() const { return kGlobals.getMAX_HIT_POINTS(); }
+	int getMAX_PLOT_LIST_ROWS() const { return kGlobals.getMAX_PLOT_LIST_ROWS(); }
+	int getUNIT_MULTISELECT_MAX() const { return kGlobals.getUNIT_MULTISELECT_MAX(); }
+	int getEVENT_MESSAGE_TIME() const { return kGlobals.getEVENT_MESSAGE_TIME(); }
+	int getPERCENT_ANGER_DIVISOR() const { return kGlobals.getPERCENT_ANGER_DIVISOR(); }
+	int getMIN_WATER_SIZE_FOR_OCEAN() const { return kGlobals.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN); }
+	int getMAX_CITY_DEFENSE_DAMAGE() const { return kGlobals.getMAX_CITY_DEFENSE_DAMAGE(); }
 
-	int getNUM_UNIT_AND_TECH_PREREQS() const { return GC.getNUM_UNIT_AND_TECH_PREREQS(); }
-	int getNUM_UNIT_PREREQ_OR_BONUSES() const { return GC.getNUM_UNIT_PREREQ_OR_BONUSES(); }
-	int getNUM_BUILDING_AND_TECH_PREREQS() const { return GC.getNUM_BUILDING_AND_TECH_PREREQS(); }
-	int getNUM_BUILDING_PREREQ_OR_BONUSES() const { return GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); }	
-	int getNUM_AND_TECH_PREREQS() const { return GC.getNUM_AND_TECH_PREREQS(); }
-	int getNUM_OR_TECH_PREREQS() const { return GC.getNUM_OR_TECH_PREREQS(); }
-	int getNUM_ROUTE_PREREQ_OR_BONUSES() const { return GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); }
-	int getNUM_CORPORATION_PREREQ_BONUSES() const { return GC.getNUM_CORPORATION_PREREQ_BONUSES(); }
+	int getNUM_UNIT_AND_TECH_PREREQS() const { return kGlobals.getNUM_UNIT_AND_TECH_PREREQS(); }
+	int getNUM_UNIT_PREREQ_OR_BONUSES() const { return kGlobals.getNUM_UNIT_PREREQ_OR_BONUSES(); }
+	int getNUM_BUILDING_AND_TECH_PREREQS() const { return kGlobals.getNUM_BUILDING_AND_TECH_PREREQS(); }
+	int getNUM_BUILDING_PREREQ_OR_BONUSES() const { return kGlobals.getNUM_BUILDING_PREREQ_OR_BONUSES(); }	
+	int getNUM_AND_TECH_PREREQS() const { return kGlobals.getNUM_AND_TECH_PREREQS(); }
+	int getNUM_OR_TECH_PREREQS() const { return kGlobals.getNUM_OR_TECH_PREREQS(); }
+	int getNUM_ROUTE_PREREQ_OR_BONUSES() const { return kGlobals.getNUM_ROUTE_PREREQ_OR_BONUSES(); }
+	int getNUM_CORPORATION_PREREQ_BONUSES() const { return kGlobals.getNUM_CORPORATION_PREREQ_BONUSES(); }
 	// advc.003t: Removed the other (unused) accessors for cached GlobalDefines
 
-	float getCAMERA_MIN_YAW() const { return GC.getCAMERA_MIN_YAW(); }
-	float getCAMERA_MAX_YAW() const { return GC.getCAMERA_MAX_YAW(); }
-	float getCAMERA_FAR_CLIP_Z_HEIGHT() const { return GC.getCAMERA_FAR_CLIP_Z_HEIGHT(); }
-	float getCAMERA_MAX_TRAVEL_DISTANCE() const { return GC.getCAMERA_MAX_TRAVEL_DISTANCE(); }
-	float getCAMERA_START_DISTANCE() const { return GC.getCAMERA_START_DISTANCE(); }
-	float getAIR_BOMB_HEIGHT() const { return GC.getAIR_BOMB_HEIGHT(); }
-	float getPLOT_SIZE() const { return GC.getPLOT_SIZE(); }
-	float getCAMERA_SPECIAL_PITCH() const { return GC.getCAMERA_SPECIAL_PITCH(); }
-	float getCAMERA_MAX_TURN_OFFSET() const { return GC.getCAMERA_MAX_TURN_OFFSET(); }
-	float getCAMERA_MIN_DISTANCE() const { return GC.getCAMERA_MIN_DISTANCE(); }
-	float getCAMERA_UPPER_PITCH() const { return GC.getCAMERA_UPPER_PITCH(); }
-	float getCAMERA_LOWER_PITCH() const { return GC.getCAMERA_LOWER_PITCH(); }
-	float getFIELD_OF_VIEW() const { return GC.getFIELD_OF_VIEW(); }
-	float getSHADOW_SCALE() const { return GC.getSHADOW_SCALE(); }
-	float getUNIT_MULTISELECT_DISTANCE() const { return GC.getUNIT_MULTISELECT_DISTANCE(); }
+	float getCAMERA_MIN_YAW() const { return kGlobals.getCAMERA_MIN_YAW(); }
+	float getCAMERA_MAX_YAW() const { return kGlobals.getCAMERA_MAX_YAW(); }
+	float getCAMERA_FAR_CLIP_Z_HEIGHT() const { return kGlobals.getCAMERA_FAR_CLIP_Z_HEIGHT(); }
+	float getCAMERA_MAX_TRAVEL_DISTANCE() const { return kGlobals.getCAMERA_MAX_TRAVEL_DISTANCE(); }
+	float getCAMERA_START_DISTANCE() const { return kGlobals.getCAMERA_START_DISTANCE(); }
+	float getAIR_BOMB_HEIGHT() const { return kGlobals.getAIR_BOMB_HEIGHT(); }
+	float getPLOT_SIZE() const { return kGlobals.getPLOT_SIZE(); }
+	float getCAMERA_SPECIAL_PITCH() const { return kGlobals.getCAMERA_SPECIAL_PITCH(); }
+	float getCAMERA_MAX_TURN_OFFSET() const { return kGlobals.getCAMERA_MAX_TURN_OFFSET(); }
+	float getCAMERA_MIN_DISTANCE() const { return kGlobals.getCAMERA_MIN_DISTANCE(); }
+	float getCAMERA_UPPER_PITCH() const { return kGlobals.getCAMERA_UPPER_PITCH(); }
+	float getCAMERA_LOWER_PITCH() const { return kGlobals.getCAMERA_LOWER_PITCH(); }
+	float getFIELD_OF_VIEW() const { return kGlobals.getFIELD_OF_VIEW(); }
+	float getSHADOW_SCALE() const { return kGlobals.getSHADOW_SCALE(); }
+	float getUNIT_MULTISELECT_DISTANCE() const { return kGlobals.getUNIT_MULTISELECT_DISTANCE(); }
 
-	int getMAX_CIV_PLAYERS() const { return GC.getMAX_CIV_PLAYERS(); }
-	int getMAX_PLAYERS() const { return GC.getMAX_PLAYERS(); }
-	int getMAX_CIV_TEAMS() const { return GC.getMAX_CIV_TEAMS(); }
-	int getMAX_TEAMS() const { return GC.getMAX_TEAMS(); }
-	int getBARBARIAN_PLAYER() const { return GC.getBARBARIAN_PLAYER(); }
-	int getBARBARIAN_TEAM() const { return GC.getBARBARIAN_TEAM(); }
-	int getINVALID_PLOT_COORD() const { return GC.getINVALID_PLOT_COORD(); }
-	int getNUM_CITY_PLOTS() const { return GC.getNUM_CITY_PLOTS(); }
-	int getCITY_HOME_PLOT() const { return GC.getCITY_HOME_PLOT(); }
+	int getMAX_CIV_PLAYERS() const { return kGlobals.getMAX_CIV_PLAYERS(); }
+	int getMAX_PLAYERS() const { return kGlobals.getMAX_PLAYERS(); }
+	int getMAX_CIV_TEAMS() const { return kGlobals.getMAX_CIV_TEAMS(); }
+	int getMAX_TEAMS() const { return kGlobals.getMAX_TEAMS(); }
+	int getBARBARIAN_PLAYER() const { return kGlobals.getBARBARIAN_PLAYER(); }
+	int getBARBARIAN_TEAM() const { return kGlobals.getBARBARIAN_TEAM(); }
+	int getINVALID_PLOT_COORD() const { return kGlobals.getINVALID_PLOT_COORD(); }
+	int getNUM_CITY_PLOTS() const { return kGlobals.getNUM_CITY_PLOTS(); }
+	int getCITY_HOME_PLOT() const { return kGlobals.getCITY_HOME_PLOT(); }
+// <advc.003t> Non-const global context (previously the member functions had used GC)
+private:
+	CvGlobals& kGlobals; // </advc.003t>
 };
 
 #endif	// CyGlobalContext_h

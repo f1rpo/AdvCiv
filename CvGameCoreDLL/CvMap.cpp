@@ -132,9 +132,10 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 
 		// convert to plot dimensions
 		if (GC.getNumLandscapeInfos() > 0)
-		{
-			m_iGridWidth *= GC.getLandscapeInfo(GC.getActiveLandscapeID()).getPlotsPerCellX();
-			m_iGridHeight *= GC.getLandscapeInfo(GC.getActiveLandscapeID()).getPlotsPerCellY();
+		{	/*  advc.003x: A bit of code moved into new CvGlobals functions
+				in order to remove the dependency of CvMap on CvLandscapeInfos */
+			m_iGridWidth *= GC.getLandscapePlotsPerCellX();
+			m_iGridHeight *= GC.getLandscapePlotsPerCellY();
 		}
 	}
 
@@ -1153,11 +1154,8 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 			pDest->getX(), pDest->getY(), false, 0, true))
 	{
 		FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
-
 		if (pNode != NULL)
-		{
 			return pNode->m_iData1;
-		}
 	}
 
 	return -1; // no passable path exists
@@ -1280,10 +1278,11 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 	CvMapInitData initData(iGridW, iGridH, iTopLatitude, iBottomLatitude, bWrapX, bWrapY);
 
 	// Set init core data
-	GC.getInitCore().setWorldSize(eWorldSize);
-	GC.getInitCore().setClimate(eClimate);
-	GC.getInitCore().setSeaLevel(eSeaLevel);
-	GC.getInitCore().setCustomMapOptions(iNumCustomMapOptions, aeCustomMapOptions);
+	CvInitCore& kInitCore = GC.getInitCore();
+	kInitCore.setWorldSize(eWorldSize);
+	kInitCore.setClimate(eClimate);
+	kInitCore.setSeaLevel(eSeaLevel);
+	kInitCore.setCustomMapOptions(iNumCustomMapOptions, aeCustomMapOptions);
 
 	// Init map
 	init(&initData);
@@ -1307,7 +1306,6 @@ void CvMap::calculateAreas()
 		calculateReprAreas();
 		return;
 	} // </advc.030>
-
 	for (int iI = 0; iI < numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = plotByIndex(iI);
@@ -1318,12 +1316,10 @@ void CvMap::calculateAreas()
 		{
 			CvArea* pArea = addArea();
 			pArea->init(pArea->getID(), pLoopPlot->isWater());
-
 			int iArea = pArea->getID();
-
 			pLoopPlot->setArea(iArea);
-
-			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX(), pLoopPlot->getY(), -1, -1, pLoopPlot->isWater(), iArea);
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX(), pLoopPlot->getY(),
+				-1, -1, pLoopPlot->isWater(), iArea);
 		}
 	}
 	updateLakes(); // advc.030

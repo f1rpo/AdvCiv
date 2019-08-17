@@ -158,7 +158,8 @@ class CvGlobals
 public:
 
 	// singleton accessor
-	DllExport inline static CvGlobals& getInstance();
+	DllExport __forceinline static CvGlobals& getInstance();
+	__forceinline static CvGlobals const& getConstInstance(); // advc.003t
 
 	CvGlobals();
 	virtual ~CvGlobals();
@@ -173,7 +174,8 @@ public:
 	DllExport FMPIManager*& getFMPMgrPtr();
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
-	DllExport inline CvInitCore& getInitCore() { return *m_initCore; } // advc.003b
+	DllExport inline CvInitCore& getInitCore() { return *m_initCore; }
+	inline CvInitCore& getInitCore() const { return *m_initCore; } // advc.003t: const replacement
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -184,49 +186,96 @@ public:
 	DllExport int getMaxCivPlayers() const;
 	// inlined for perf reasons, do not use outside of dll  // advc.003f: Both renamed
 	#ifdef _USRDLL
-	CvMap& getMap() { return *m_map; } // was getMapINLINE
-	CvGameAI& getGame() { return *m_game; } // was getGameINLINE
+	CvMap& getMap() const { return *m_map; } // was getMapINLINE
+	CvGameAI& getGame() const { return *m_game; } // was getGameINLINE
 	#endif
 	CvMap& getMapExternal(); // advc.003f: Exported through .def file
 	CvGameAI& getGameExternal(); // advc.003f: Exported through .def file
 	DllExport CvGameAI *getGamePointer();
-	DllExport CvRandom& getASyncRand();
+	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.003t: inline
 	DllExport CMessageQueue& getMessageQueue();
 	DllExport CMessageQueue& getHotMessageQueue();
 	DllExport CMessageControl& getMessageControl();
 	DllExport CvDropMgr& getDropMgr();
-	DllExport FAStar& getPathFinder();
-	DllExport FAStar& getInterfacePathFinder();
-	DllExport FAStar& getStepFinder();
-	DllExport FAStar& getRouteFinder();
-	DllExport FAStar& getBorderFinder();
-	DllExport FAStar& getAreaFinder();
-	DllExport FAStar& getPlotGroupFinder();
+	/*  advc.003t: inlined and constified. The caller is certainly going to change
+		the returned FAStar objects, but CvGlobals doesn't own those objects, so
+		it shouldn't be our concern. */
+	DllExport inline FAStar& getPathFinder() { CvGlobals const& kThis = *this; return kThis.getPathFinder(); }
+	inline FAStar& getPathFinder() const { return *m_pathFinder; }
+	DllExport inline FAStar& getInterfacePathFinder() { CvGlobals const& kThis = *this; return kThis.getInterfacePathFinder(); }
+	inline FAStar& getInterfacePathFinder() const { return *m_interfacePathFinder; }
+	DllExport inline FAStar& getStepFinder() { CvGlobals const& kThis = *this; return kThis.getStepFinder(); }
+	inline FAStar& getStepFinder() const { return *m_stepFinder; }
+	DllExport inline FAStar& getRouteFinder() { CvGlobals const& kThis = *this; return kThis.getRouteFinder(); }
+	inline FAStar& getRouteFinder() const { return *m_routeFinder; }
+	DllExport inline FAStar& getBorderFinder() { CvGlobals const& kThis = *this; return kThis.getBorderFinder(); }
+	inline FAStar& getBorderFinder() const { return *m_borderFinder; }
+	DllExport inline FAStar& getAreaFinder() { CvGlobals const& kThis = *this; return kThis.getAreaFinder(); }
+	inline FAStar& getAreaFinder() const { return *m_areaFinder; }
+	DllExport inline FAStar& getPlotGroupFinder() { CvGlobals const& kThis = *this; return kThis.getPlotGroupFinder(); }
+	inline FAStar& getPlotGroupFinder() const { return *m_plotGroupFinder; }
 	//NiPoint3& getPt3Origin(); // advc.003j: unused
 
 	DllExport std::vector<CvInterfaceModeInfo*>& getInterfaceModeInfo();
-	DllExport CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e);
+	DllExport inline CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e)
+	// advc.003t: Need a const replacement
+	{ CvGlobals const& kThis = *this; return kThis.getInterfaceModeInfo(e); }
+	inline CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e) const
+	{
+		FASSERT_BOUNDS(0, NUM_INTERFACEMODE_TYPES, e, "CvGlobals::getInterfaceModeInfo");
+		return *(m_paInterfaceModeInfo[e]);
+	}
 
 	//NiPoint3& getPt3CameraDir(); // advc.003j: unused
-	// <advc> Exposed these two to Python for dlph.27
-	DllExport bool& getLogging();
-	DllExport bool& getRandLogging(); // </advc>
-	DllExport bool& getSynchLogging();
-	DllExport bool& overwriteLogs();
+	// advc.003t: inlined
+	DllExport inline bool& getLogging() { return m_bLogging; }
+	DllExport inline bool& getRandLogging() { return m_bRandLogging; }
+	DllExport inline bool& getSynchLogging() { return m_bSynchLogging; }
+	DllExport inline bool& overwriteLogs() { return m_bOverwriteLogs; }
+	// advc.003t: const versions of the above
+	// The first two are exposed to Python for dlph.27
+	inline bool isLogging() const { return m_bLogging; }
+	inline bool isRandLogging() const { return m_bRandLogging; }
+	inline bool isSynchLogging() const { return m_bSynchLogging; }
+	inline bool isOverwriteLogs() const { return m_bOverwriteLogs; }
 
-	DllExport int* getPlotDirectionX();
-	DllExport int* getPlotDirectionY();
-	DllExport int* getPlotCardinalDirectionX();
-	DllExport int* getPlotCardinalDirectionY();
-	int* getCityPlotX();
-	int* getCityPlotY();
-	int* getCityPlotPriority();
-	int getXYCityPlot(int i, int j);
-	DirectionTypes* getTurnLeftDirection();
-	DirectionTypes getTurnLeftDirection(int i);
-	DirectionTypes* getTurnRightDirection();
-	DirectionTypes getTurnRightDirection(int i);
-	DllExport DirectionTypes getXYDirection(int i, int j);
+	// advc.003t: Inlined and constified
+	DllExport inline int* getPlotDirectionX() { return m_aiPlotDirectionX; }
+	inline int const* getPlotDirectionX() const { return m_aiPlotDirectionX; }
+	DllExport inline int* getPlotDirectionY() { return m_aiPlotDirectionY; }
+	inline int const* getPlotDirectionY() const { return m_aiPlotDirectionY; }
+	DllExport inline int* getPlotCardinalDirectionX() { return m_aiPlotCardinalDirectionX; };
+	inline int const* getPlotCardinalDirectionX() const { return m_aiPlotCardinalDirectionX; };
+	DllExport inline int* getPlotCardinalDirectionY() { return m_aiPlotCardinalDirectionY; };
+	inline int const* getPlotCardinalDirectionY() const { return m_aiPlotCardinalDirectionY; };
+	DllExport inline DirectionTypes getXYDirection(int i, int j) { CvGlobals const& kThis = *this; return kThis.getXYDirection(i,j); }
+	inline DirectionTypes getXYDirection(int i, int j) const
+	{
+		FASSERT_BOUNDS(0, DIRECTION_DIAMETER, i, "CvGlobals::getXYDirection");
+		FASSERT_BOUNDS(0, DIRECTION_DIAMETER, j, "CvGlobals::getXYDirection");
+		return m_aaeXYDirection[i][j];
+	}
+	inline int getXYCityPlot(int i, int j) const
+	{
+		FASSERT_BOUNDS(0, CITY_PLOTS_DIAMETER, i, "CvGlobals::getXYCityPlot");
+		FASSERT_BOUNDS(0, CITY_PLOTS_DIAMETER, j, "CvGlobals::getXYCityPlot");
+		return m_aaiXYCityPlot[i][j];
+	}
+	inline int const* getCityPlotX() const { return m_aiCityPlotX; }
+	inline int const* getCityPlotY() const { return m_aiCityPlotY; }
+	inline int const* CvGlobals::getCityPlotPriority() const { return m_aiCityPlotPriority; }
+	inline DirectionTypes const* getTurnLeftDirection() const { return m_aeTurnLeftDirection; }
+	inline DirectionTypes getTurnLeftDirection(int i) const
+	{
+		FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, i, "CvGlobals::getTurnLeftDirection");
+		return m_aeTurnLeftDirection[i];
+	}
+	inline DirectionTypes const* getTurnRightDirection() const { return m_aeTurnRightDirection; }
+	inline DirectionTypes getTurnRightDirection(int i) const
+	{
+		FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, i, "CvGlobals::getTurnRightDirection");
+		return m_aeTurnRightDirection[i];
+	}
 
 	//
 	// Global Infos
@@ -465,8 +514,13 @@ public:
 		FASSERT_BOUNDS(0, getNumLandscapeInfos(), iLandscape, "CvGlobals::getLandscapeInfo");
 		return *m_paLandscapeInfo[iLandscape];
 	}
-	DllExport int getActiveLandscapeID();
+	DllExport inline int getActiveLandscapeID() { CvGlobals const& kThis = *this; return kThis.getActiveLandscapeID(); }
+	inline int getActiveLandscapeID() const { return m_iActiveLandscapeID; } // advc.003t: const version
 	DllExport void setActiveLandscapeID(int iLandscapeID);
+
+	// <advc.003x> So that CvMap doesn't have to use CvLandscapeInfo directly
+	int getLandscapePlotsPerCellX() const;
+	int getLandscapePlotsPerCellY() const; // </advc.003x>
 
 	DllExport int getNumTerrainInfos() { CvGlobals const& kThis = *this; return kThis.getNumTerrainInfos(); }
 	inline int getNumTerrainInfos() const
@@ -1191,7 +1245,8 @@ public:
 	CvString*& getFunctionTypes();
 	CvString& getFunctionTypes(FunctionTypes e);
 
-	int& getNumFlavorTypes();
+	inline int& getNumFlavorTypes() { return m_iNumFlavorTypes; }
+	inline int const& getNumFlavorTypes() const { return m_iNumFlavorTypes; } // advc.003t: const version
 	CvString*& getFlavorTypes();
 	CvString& getFlavorTypes(FlavorTypes e);
 
@@ -1223,7 +1278,7 @@ public:
 	CvString*& getFootstepAudioTags();
 	DllExport CvString& getFootstepAudioTags(int i);
 
-	CvString const& getCurrentXMLFile() const; // advc.003: 2x const
+	CvString const& getCurrentXMLFile() const; // advc.003t: 2x const
 	void setCurrentXMLFile(const TCHAR* szFileName);
 
 	//
@@ -1382,36 +1437,39 @@ public:
 	}
 	// Keep these as wrappers; too many call locations to change or DllExport.
 	// These are all exposed to Python
-	inline int getMOVE_DENOMINATOR() { return getDefineINT(MOVE_DENOMINATOR); }
-	inline int getFOOD_CONSUMPTION_PER_POPULATION() { return getDefineINT(FOOD_CONSUMPTION_PER_POPULATION); }
-	inline int getMAX_HIT_POINTS() { return getDefineINT(MAX_HIT_POINTS); }
-	inline int getPERCENT_ANGER_DIVISOR() { return getDefineINT(PERCENT_ANGER_DIVISOR); }
-	inline int getMAX_CITY_DEFENSE_DAMAGE() { return getDefineINT(MAX_CITY_DEFENSE_DAMAGE); }
-	DllExport inline int getMAX_PLOT_LIST_ROWS() { return getDefineINT(MAX_PLOT_LIST_ROWS); }
-	DllExport inline int getUNIT_MULTISELECT_MAX() { return getDefineINT(UNIT_MULTISELECT_MAX); }
-	DllExport inline int getEVENT_MESSAGE_TIME() { return getDefineINT(EVENT_MESSAGE_TIME); }
-	inline int getEVENT_MESSAGE_TIME_LONG() { return getDefineINT(EVENT_MESSAGE_TIME_LONG); } // advc.003: Treat these two the same
+	inline int getMOVE_DENOMINATOR() const { return getDefineINT(MOVE_DENOMINATOR); }
+	inline int getFOOD_CONSUMPTION_PER_POPULATION() const { return getDefineINT(FOOD_CONSUMPTION_PER_POPULATION); }
+	inline int getMAX_HIT_POINTS() const { return getDefineINT(MAX_HIT_POINTS); }
+	inline int getPERCENT_ANGER_DIVISOR() const { return getDefineINT(PERCENT_ANGER_DIVISOR); }
+	inline int getMAX_CITY_DEFENSE_DAMAGE() const { return getDefineINT(MAX_CITY_DEFENSE_DAMAGE); }
+	DllExport inline int getMAX_PLOT_LIST_ROWS() { CvGlobals const& kThis = *this; return kThis.getMAX_PLOT_LIST_ROWS(); }
+	inline int getMAX_PLOT_LIST_ROWS() const { return getDefineINT(MAX_PLOT_LIST_ROWS); }
+	DllExport inline int getUNIT_MULTISELECT_MAX() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_MAX(); }
+	inline int getUNIT_MULTISELECT_MAX() const { return getDefineINT(UNIT_MULTISELECT_MAX); }
+	DllExport inline int getEVENT_MESSAGE_TIME() { CvGlobals const& kThis = *this; return kThis.getEVENT_MESSAGE_TIME(); }
+	inline int getEVENT_MESSAGE_TIME() const { return getDefineINT(EVENT_MESSAGE_TIME); }
+	inline int getEVENT_MESSAGE_TIME_LONG() const { return getDefineINT(EVENT_MESSAGE_TIME_LONG); } // advc.003: Treat these two the same
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
-	inline int getWAR_SUCCESS_CITY_CAPTURING() { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
-	inline int getCOMBAT_DIE_SIDES() { return getDefineINT(COMBAT_DIE_SIDES); }
-	inline int getCOMBAT_DAMAGE() { return getDefineINT(COMBAT_DAMAGE); }
+	inline int getWAR_SUCCESS_CITY_CAPTURING() const { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
+	inline int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }
+	inline int getCOMBAT_DAMAGE() const { return getDefineINT(COMBAT_DAMAGE); }
 	// BETTER_BTS_AI_MOD: END
 	// </advc.003t>
 	/*  <advc.003b> (TextVals can't be loaded by cacheGlobals. Hence also won't be
 		updated when a setDefine... function is called.) */
-	inline ImprovementTypes getRUINS_IMPROVEMENT()
+	inline ImprovementTypes getRUINS_IMPROVEMENT() const
 	{
 		FAssertMsg(m_iRUINS_IMPROVEMENT != NO_IMPROVEMENT, "RUINS_IMPROVEMENT accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
 		return (ImprovementTypes)m_iRUINS_IMPROVEMENT;
 	}
 	void setRUINS_IMPROVEMENT(int iVal);
-	inline SpecialistTypes getDEFAULT_SPECIALIST()
+	inline SpecialistTypes getDEFAULT_SPECIALIST() const
 	{
 		FAssertMsg(m_iDEFAULT_SPECIALIST != NO_SPECIALIST, "DEFAULT_SPECIALIST accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
 		return (SpecialistTypes)m_iDEFAULT_SPECIALIST;
 	}
 	void setDEFAULT_SPECIALIST(int iVal);
-	inline TerrainTypes getWATER_TERRAIN(bool bShallow)
+	inline TerrainTypes getWATER_TERRAIN(bool bShallow) const
 	{
 		int r = m_aiWATER_TERRAIN[bShallow];
 		FAssertMsg(r != NO_TERRAIN, "WATER_TERRAIN accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
@@ -1434,96 +1492,113 @@ public:
 	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute = NO_ROUTE) const;
 	int getNUM_CORPORATION_PREREQ_BONUSES(CorporationTypes eCorporation = NO_CORPORATION) const;
 	// </advc.003t>
-
-	DllExport float getCAMERA_MIN_YAW();
-	DllExport float getCAMERA_MAX_YAW();
-	DllExport float getCAMERA_FAR_CLIP_Z_HEIGHT();
-	DllExport float getCAMERA_MAX_TRAVEL_DISTANCE();
-	DllExport float getCAMERA_START_DISTANCE();
-	DllExport float getAIR_BOMB_HEIGHT();
-	DllExport float getPLOT_SIZE();
-	DllExport float getCAMERA_SPECIAL_PITCH();
-	DllExport float getCAMERA_MAX_TURN_OFFSET();
-	DllExport float getCAMERA_MIN_DISTANCE();
-	DllExport float getCAMERA_UPPER_PITCH();
-	DllExport float getCAMERA_LOWER_PITCH();
-	DllExport float getFIELD_OF_VIEW();
-	DllExport float getSHADOW_SCALE();
-	DllExport float getUNIT_MULTISELECT_DISTANCE();
 	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
+	// <advc.003t> All inlined and constified
+	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }
+	inline float getCAMERA_MIN_YAW() const { return m_fCAMERA_MIN_YAW; }
+	DllExport inline float getCAMERA_MAX_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_YAW(); }
+	inline float getCAMERA_MAX_YAW() const { return m_fCAMERA_MAX_YAW; }
+	DllExport inline float getCAMERA_FAR_CLIP_Z_HEIGHT() { CvGlobals const& kThis = *this; return kThis.getCAMERA_FAR_CLIP_Z_HEIGHT(); }
+	inline float getCAMERA_FAR_CLIP_Z_HEIGHT() const { return m_fCAMERA_FAR_CLIP_Z_HEIGHT; }
+	DllExport inline float getCAMERA_MAX_TRAVEL_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_TRAVEL_DISTANCE(); }
+	inline float getCAMERA_MAX_TRAVEL_DISTANCE() const { return m_fCAMERA_MAX_TRAVEL_DISTANCE; }
+	DllExport inline float getCAMERA_START_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_START_DISTANCE(); }
+	inline float getCAMERA_START_DISTANCE() const { return m_fCAMERA_START_DISTANCE; }
+	DllExport inline float getAIR_BOMB_HEIGHT() { CvGlobals const& kThis = *this; return kThis.getAIR_BOMB_HEIGHT(); }
+	inline float getAIR_BOMB_HEIGHT() const { return m_fAIR_BOMB_HEIGHT; }
+	DllExport inline float getPLOT_SIZE() { CvGlobals const& kThis = *this; return kThis.getPLOT_SIZE(); }
+	inline float getPLOT_SIZE() const { return m_fPLOT_SIZE; }
+	DllExport inline float getCAMERA_SPECIAL_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_SPECIAL_PITCH(); }
+	inline float getCAMERA_SPECIAL_PITCH() const { return m_fCAMERA_SPECIAL_PITCH; }
+	DllExport inline float getCAMERA_MAX_TURN_OFFSET() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_TURN_OFFSET(); }
+	inline float getCAMERA_MAX_TURN_OFFSET() const { return m_fCAMERA_MAX_TURN_OFFSET; }
+	DllExport inline float getCAMERA_MIN_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_DISTANCE(); }
+	inline float getCAMERA_MIN_DISTANCE() const { return m_fCAMERA_MIN_DISTANCE; }
+	DllExport inline float getCAMERA_UPPER_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_UPPER_PITCH(); }
+	inline float getCAMERA_UPPER_PITCH() const { return m_fCAMERA_UPPER_PITCH; }
+	DllExport inline float getCAMERA_LOWER_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_LOWER_PITCH(); }
+	inline float getCAMERA_LOWER_PITCH() const { return m_fCAMERA_LOWER_PITCH; }
+	DllExport inline float getFIELD_OF_VIEW() { CvGlobals const& kThis = *this; return kThis.getFIELD_OF_VIEW(); }
+	inline float getFIELD_OF_VIEW() const { return m_fFIELD_OF_VIEW; }
+	DllExport float getSHADOW_SCALE() { CvGlobals const& kThis = *this; return kThis.getSHADOW_SCALE(); }
+	inline float getSHADOW_SCALE() const { return m_fSHADOW_SCALE; }
+	DllExport inline float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
+	inline float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
 
-	DllExport int getUSE_FINISH_TEXT_CALLBACK();
-	int getUSE_ON_UPDATE_CALLBACK();
-	int getUSE_CANNOT_FOUND_CITY_CALLBACK();
-	int getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK();
-	int getUSE_IS_PLAYER_RESEARCH_CALLBACK();
-	int getUSE_CAN_RESEARCH_CALLBACK();
-	int getUSE_CANNOT_DO_CIVIC_CALLBACK();
-	int getUSE_CAN_DO_CIVIC_CALLBACK();
-	int getUSE_CANNOT_CONSTRUCT_CALLBACK();
-	int getUSE_CAN_CONSTRUCT_CALLBACK();
-	int getUSE_CAN_DECLARE_WAR_CALLBACK();
-	int getUSE_CANNOT_RESEARCH_CALLBACK();
-	int getUSE_GET_UNIT_COST_MOD_CALLBACK();
-	int getUSE_GET_BUILDING_COST_MOD_CALLBACK();
-	int getUSE_GET_CITY_FOUND_VALUE_CALLBACK();
-	int getUSE_CANNOT_HANDLE_ACTION_CALLBACK();
-	int getUSE_CAN_BUILD_CALLBACK();
-	int getUSE_CANNOT_TRAIN_CALLBACK();
-	int getUSE_CAN_TRAIN_CALLBACK();
-	int getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK();
-	int getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK();
-	int getUSE_ON_UNIT_SET_XY_CALLBACK();
-	int getUSE_ON_UNIT_SELECTED_CALLBACK();
-	int getUSE_ON_UNIT_CREATED_CALLBACK();
-	int getUSE_ON_UNIT_LOST_CALLBACK();
+	DllExport inline int getUSE_FINISH_TEXT_CALLBACK() { CvGlobals const& kThis = *this; return kThis.getUSE_FINISH_TEXT_CALLBACK(); }
+	int getUSE_FINISH_TEXT_CALLBACK() const;
+	int getUSE_ON_UPDATE_CALLBACK() const;
+	int getUSE_CANNOT_FOUND_CITY_CALLBACK() const;
+	int getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK() const;
+	int getUSE_IS_PLAYER_RESEARCH_CALLBACK() const;
+	int getUSE_CAN_RESEARCH_CALLBACK() const;
+	int getUSE_CANNOT_DO_CIVIC_CALLBACK() const;
+	int getUSE_CAN_DO_CIVIC_CALLBACK() const;
+	int getUSE_CANNOT_CONSTRUCT_CALLBACK() const;
+	int getUSE_CAN_CONSTRUCT_CALLBACK() const;
+	int getUSE_CAN_DECLARE_WAR_CALLBACK() const;
+	int getUSE_CANNOT_RESEARCH_CALLBACK() const;
+	int getUSE_GET_UNIT_COST_MOD_CALLBACK() const;
+	int getUSE_GET_BUILDING_COST_MOD_CALLBACK() const;
+	int getUSE_GET_CITY_FOUND_VALUE_CALLBACK() const;
+	int getUSE_CANNOT_HANDLE_ACTION_CALLBACK() const;
+	int getUSE_CAN_BUILD_CALLBACK() const;
+	int getUSE_CANNOT_TRAIN_CALLBACK() const;
+	int getUSE_CAN_TRAIN_CALLBACK() const;
+	int getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK() const;
+	int getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK() const;
+	int getUSE_ON_UNIT_SET_XY_CALLBACK() const;
+	int getUSE_ON_UNIT_SELECTED_CALLBACK() const;
+	int getUSE_ON_UNIT_CREATED_CALLBACK() const;
+	int getUSE_ON_UNIT_LOST_CALLBACK() const;
 	// K-Mod
-	inline bool getUSE_AI_UNIT_UPDATE_CALLBACK() { return m_bUSE_AI_UNIT_UPDATE_CALLBACK; }
-	inline bool getUSE_AI_DO_DIPLO_CALLBACK() { return m_bUSE_AI_DO_DIPLO_CALLBACK; }
-	inline bool getUSE_AI_CHOOSE_PRODUCTION_CALLBACK() { return m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK; }
-	inline bool getUSE_AI_DO_WAR_CALLBACK() { return m_bUSE_AI_DO_WAR_CALLBACK; }
-	inline bool getUSE_AI_CHOOSE_TECH_CALLBACK() { return m_bUSE_AI_CHOOSE_TECH_CALLBACK; }
+	inline bool getUSE_AI_UNIT_UPDATE_CALLBACK() const { return m_bUSE_AI_UNIT_UPDATE_CALLBACK; }
+	inline bool getUSE_AI_DO_DIPLO_CALLBACK() const { return m_bUSE_AI_DO_DIPLO_CALLBACK; }
+	inline bool getUSE_AI_CHOOSE_PRODUCTION_CALLBACK() const { return m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK; }
+	inline bool getUSE_AI_DO_WAR_CALLBACK() const { return m_bUSE_AI_DO_WAR_CALLBACK; }
+	inline bool getUSE_AI_CHOOSE_TECH_CALLBACK() const { return m_bUSE_AI_CHOOSE_TECH_CALLBACK; }
 
-	inline bool getUSE_DO_GROWTH_CALLBACK() { return m_bUSE_DO_GROWTH_CALLBACK; }
-	inline bool getUSE_DO_CULTURE_CALLBACK() { return m_bUSE_DO_CULTURE_CALLBACK; }
-	inline bool getUSE_DO_PLOT_CULTURE_CALLBACK() { return m_bUSE_DO_PLOT_CULTURE_CALLBACK; }
-	inline bool getUSE_DO_PRODUCTION_CALLBACK() { return m_bUSE_DO_PRODUCTION_CALLBACK; }
-	inline bool getUSE_DO_RELIGION_CALLBACK() { return m_bUSE_DO_RELIGION_CALLBACK; }
-	inline bool getUSE_DO_GREAT_PEOPLE_CALLBACK() { return m_bUSE_DO_GREAT_PEOPLE_CALLBACK; }
-	inline bool getUSE_DO_MELTDOWN_CALLBACK() { return m_bUSE_DO_MELTDOWN_CALLBACK; }
+	inline bool getUSE_DO_GROWTH_CALLBACK() const { return m_bUSE_DO_GROWTH_CALLBACK; }
+	inline bool getUSE_DO_CULTURE_CALLBACK() const { return m_bUSE_DO_CULTURE_CALLBACK; }
+	inline bool getUSE_DO_PLOT_CULTURE_CALLBACK() const { return m_bUSE_DO_PLOT_CULTURE_CALLBACK; }
+	inline bool getUSE_DO_PRODUCTION_CALLBACK() const { return m_bUSE_DO_PRODUCTION_CALLBACK; }
+	inline bool getUSE_DO_RELIGION_CALLBACK() const { return m_bUSE_DO_RELIGION_CALLBACK; }
+	inline bool getUSE_DO_GREAT_PEOPLE_CALLBACK() const { return m_bUSE_DO_GREAT_PEOPLE_CALLBACK; }
+	inline bool getUSE_DO_MELTDOWN_CALLBACK() const { return m_bUSE_DO_MELTDOWN_CALLBACK; }
 
-	inline bool getUSE_DO_PILLAGE_GOLD_CALLBACK() { return m_bUSE_DO_PILLAGE_GOLD_CALLBACK; }
-	inline bool getUSE_GET_EXPERIENCE_NEEDED_CALLBACK() { return m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK; }
-	inline bool getUSE_UNIT_UPGRADE_PRICE_CALLBACK() { return m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK; }
-	inline bool getUSE_DO_COMBAT_CALLBACK() { return m_bUSE_DO_COMBAT_CALLBACK; }
+	inline bool getUSE_DO_PILLAGE_GOLD_CALLBACK() const { return m_bUSE_DO_PILLAGE_GOLD_CALLBACK; }
+	inline bool getUSE_GET_EXPERIENCE_NEEDED_CALLBACK() const { return m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK; }
+	inline bool getUSE_UNIT_UPGRADE_PRICE_CALLBACK() const { return m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK; }
+	inline bool getUSE_DO_COMBAT_CALLBACK() const { return m_bUSE_DO_COMBAT_CALLBACK; }
 #pragma endregion GlobalDefines
 	// more reliable versions of the 'gDLL->xxxKey' functions:
 	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
-	inline bool altKey() { return (GetKeyState(VK_MENU) & 0x8000); }
-	inline bool ctrlKey() { return (GetKeyState(VK_CONTROL) & 0x8000); }
-	inline bool shiftKey() { return (GetKeyState(VK_SHIFT) & 0x8000); }
+	inline bool altKey() const { return (GetKeyState(VK_MENU) & 0x8000); }
+	inline bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }
+	inline bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
 	// hold X to temporarily suppress automatic unit cycling.
-	inline bool suppressCycling() { return (GetKeyState('X') & 0x8000) ||
+	inline bool suppressCycling() const { return (GetKeyState('X') & 0x8000) ||
 			((GetKeyState('U') & 0x8000) && shiftKey()); } // advc.088
 	// K-Mod end
-
-	DllExport int getMAX_CIV_PLAYERS();
-	int getMAX_PLAYERS();
-	int getMAX_CIV_TEAMS();
-	int getMAX_TEAMS();
-	int getBARBARIAN_PLAYER();
-	int getBARBARIAN_TEAM();
-	int getINVALID_PLOT_COORD();
-	int getNUM_CITY_PLOTS();
-	int getCITY_HOME_PLOT();
+	// advc.003t: Inlined and constified
+	DllExport inline int getMAX_CIV_PLAYERS() { CvGlobals const& kThis = *this; return kThis.getMAX_CIV_PLAYERS(); }
+	inline int getMAX_CIV_PLAYERS() const { return MAX_CIV_PLAYERS; }
+	inline int getMAX_PLAYERS() const { return MAX_PLAYERS; }
+	inline int getMAX_CIV_TEAMS() const { return MAX_CIV_TEAMS; }
+	inline int getMAX_TEAMS() const { return MAX_TEAMS; }
+	inline int getBARBARIAN_PLAYER() const { return BARBARIAN_PLAYER; }
+	inline int getBARBARIAN_TEAM() const { return BARBARIAN_TEAM; }
+	inline int getINVALID_PLOT_COORD() const { return INVALID_PLOT_COORD; }
+	inline int getNUM_CITY_PLOTS() const { return NUM_CITY_PLOTS; }
+	inline int getCITY_HOME_PLOT() const { return CITY_HOME_PLOT; }
 
 	// ***** END EXPOSED TO PYTHON *****
-
 	////////////// END DEFINES //////////////////
 
 	DllExport void setDLLIFace(CvDLLUtilityIFaceBase* pDll);
 #ifdef _USRDLL
-	CvDLLUtilityIFaceBase* getDLLIFace() { return m_pDLL; }		// inlined for perf reasons, do not use outside of dll
+	// inlined for perf reasons, do not use outside of dll
+	CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc.003t: const
 #endif
 	DllExport CvDLLUtilityIFaceBase* getDLLIFaceNonInl();
 	DllExport void setDLLProfiler(FProfiler* prof);
@@ -1937,21 +2012,29 @@ extern CvGlobals gGlobals;	// for debugging
 //
 // inlines
 //
-inline CvGlobals& CvGlobals::getInstance()
+__forceinline CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
+// <advc.003t>
+__forceinline CvGlobals const& CvGlobals::getConstInstance()
+{
+	return gGlobals;
+} // </advc.003t>
 
 
 //
 // helpers
 //
-#define GC CvGlobals::getInstance()
+#define GC CvGlobals::getConstInstance() // advc.003t: was ...getInstance()
 #ifndef _USRDLL
 #define gDLL GC.getDLLIFaceNonInl()
 #else
 #define gDLL GC.getDLLIFace()
 #endif
+
+// advc.003t: Direct access to RNG (can't get it from the const GC)
+inline CvRandom& getASyncRand() { return CvGlobals::getInstance().getASyncRand(); }
 
 #ifndef _USRDLL
 #define NUM_DIRECTION_TYPES (GC.getNumDirections())

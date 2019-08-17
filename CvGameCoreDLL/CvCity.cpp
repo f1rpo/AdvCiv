@@ -135,7 +135,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	//--------------------------------
 	// Log this event
-	if (GC.getLogging())
+	if (GC.isLogging())
 	{
 		if (gDLL->getChtLvl() > 0)
 		{
@@ -649,7 +649,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 			m_pabWorkingPlot[iI] = false;
 		}
 
-		FAssertMsg(0 < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES), "GC.getMAX_TRADE_ROUTES() is not greater than zero but an array is being allocated in CvCity::reset");
+		FAssertMsg(0 < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES), "MAX_TRADE_ROUTES is not greater than zero but an array is being allocated in CvCity::reset");
 		m_paTradeCities = new IDInfo[GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES)];
 		for (iI = 0; iI < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES); iI++)
 		{

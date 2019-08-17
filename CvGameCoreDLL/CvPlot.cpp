@@ -5887,7 +5887,7 @@ void CvPlot::updateWorkingCity()
 
 			if (pLoopCity->getOwner() == getOwner())
 			{	// XXX use getGameTurnAcquired() instead???
-				int* pCityPriority = GC.getCityPlotPriority(); // advc.003
+				int const* pCityPriority = GC.getCityPlotPriority(); // advc.003
 				if (pBestCity == NULL ||
 						pCityPriority[iI] < pCityPriority[iBestPlot] ||
 						(pCityPriority[iI] == pCityPriority[iBestPlot] &&

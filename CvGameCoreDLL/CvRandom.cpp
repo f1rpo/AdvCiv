@@ -53,7 +53,7 @@ unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
 {
 	if (pszLog != NULL)
 	{
-		if (GC.getLogging() && GC.getRandLogging())
+		if (GC.isLogging() && GC.isRandLogging())
 		{
 			CvGame const& g = GC.getGame(); // advc.003
 			if (g.getTurnSlice() > 0)

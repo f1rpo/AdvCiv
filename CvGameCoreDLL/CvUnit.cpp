@@ -2958,10 +2958,10 @@ void CvUnit::move(CvPlot* pPlot, bool bShow)
 			//spawn birds if trees present - JW
 			if (featureType != NO_FEATURE)
 			{
-				if (GC.getASyncRand().get(100) < GC.getFeatureInfo(featureType).getEffectProbability())
+				if (getASyncRand().get(100) < GC.getFeatureInfo(featureType).getEffectProbability())
 				{
 					EffectTypes eEffect = (EffectTypes)GC.getInfoTypeForString(GC.getFeatureInfo(featureType).getEffectType());
-					gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(GC.getASyncRand().get(360)));
+					gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)getASyncRand().get(360));
 					gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_BIRDS_SCATTER", pPlot->getPoint());
 				}
 			}
@@ -11418,7 +11418,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 	{
 		if (bAttacking)
 		{
-			if (GC.getLogging())
+			if (GC.isLogging())
 			{
 				if (//gDLL->getChtLvl() > 0)
 						GC.getGame().isDebugMode()) // advc.135c

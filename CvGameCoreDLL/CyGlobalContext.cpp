@@ -12,13 +12,12 @@
 #include "CyTeam.h"
 #include "CyArtFileMgr.h"
 
-CyGlobalContext::CyGlobalContext()
-{
-}
+CyGlobalContext::CyGlobalContext() :
+	kGlobals(CvGlobals::getInstance()) // advc.003t
+{}
 
 CyGlobalContext::~CyGlobalContext()
-{
-}
+{}
 
 CyGlobalContext& CyGlobalContext::getInstance()
 {
@@ -78,7 +77,7 @@ CyPlayer* CyGlobalContext::getCyActivePlayer()
 
 CvRandom& CyGlobalContext::getCyASyncRand() const
 {
-	return GC.getASyncRand();
+	return getASyncRand();
 }
 
 CyTeam* CyGlobalContext::getCyTeam(int i)
@@ -101,18 +100,17 @@ CyTeam* CyGlobalContext::getCyTeam(int i)
 // <dlph.27> (advc)
 bool CyGlobalContext::isLogging() {
 
-	return GC.getLogging();
+	return GC.isLogging();
 }
 
 bool CyGlobalContext::isRandLogging() {
 
-	return GC.getRandLogging();
+	return GC.isRandLogging();
 } // </dlph.27>
 
 CvEffectInfo* CyGlobalContext::getEffectInfo(int /*EffectTypes*/ i) const
 {
-	CvGlobals const& kGlobals = GC; // advc.003t: To disambiguate between the DllExport getEffectInfo and its const replacement
-	return (i>=0 && i<GC.getNumEffectInfos()) ? &kGlobals.getEffectInfo((EffectTypes) i) : NULL;
+	return (i>=0 && i<GC.getNumEffectInfos()) ? &GC.getEffectInfo((EffectTypes) i) : NULL;
 }
 
 CvTerrainInfo* CyGlobalContext::getTerrainInfo(int /*TerrainTypes*/ i) const

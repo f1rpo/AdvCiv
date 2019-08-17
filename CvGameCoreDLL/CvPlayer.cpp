@@ -980,10 +980,8 @@ void CvPlayer::setIsHuman(bool bNewValue)
 	if (bNewValue == isHuman())
 		return;
 
-	if (bNewValue)
-		GC.getInitCore().setSlotStatus(getID(), SS_TAKEN);
-	else
-		GC.getInitCore().setSlotStatus(getID(), SS_COMPUTER); // or SS_OPEN for multiplayer?
+	GC.getInitCore().setSlotStatus(getID(), bNewValue ? SS_TAKEN :
+			SS_COMPUTER); // or SS_OPEN for multiplayer?
 }
 // CHANGE_PLAYER: END
 // CHANGE_PLAYER, 05/09/09, jdog5000: START
@@ -1027,17 +1025,16 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 		}
 	}
 
-	GC.getInitCore().setCiv(getID(), eNewCiv);
-	GC.getInitCore().setColor(getID(), eColor);
-
+	CvInitCore& kInitCore = GC.getInitCore();
+	kInitCore.setCiv(getID(), eNewCiv);
+	kInitCore.setColor(getID(), eColor);
 	resetCivTypeEffects();
-
 	if (isAlive())
 	{
 		// if the player is alive and showing on scoreboard, etc
 		// change colors, graphics, flags, units
-		GC.getInitCore().setFlagDecal(getID(), (CvWString)GC.getCivilizationInfo(eNewCiv).getFlagTexture());
-		GC.getInitCore().setArtStyle(getID(), (ArtStyleTypes)GC.getCivilizationInfo(eNewCiv).getArtStyleType());
+		kInitCore.setFlagDecal(getID(), (CvWString)GC.getCivilizationInfo(eNewCiv).getFlagTexture());
+		kInitCore.setArtStyle(getID(), (ArtStyleTypes)GC.getCivilizationInfo(eNewCiv).getArtStyleType());
 
 		// Forces update of units flags
 		EraTypes eEra = getCurrentEra();
@@ -3243,7 +3240,6 @@ void CvPlayer::doTurnUnits()
 	if (getID() == GC.getGame().getActivePlayer())
 	{
 		gDLL->getFAStarIFace()->ForceReset(&GC.getInterfacePathFinder());
-
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
 	}
@@ -10244,7 +10240,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		onTurnLogging(); // bbai logging
 		// K-Mod end
 
-		if (GC.getLogging())
+		if (GC.isLogging())
 		{
 			if (gDLL->getChtLvl() > 0)
 			{
@@ -10361,7 +10357,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	}
 	else
 	{
-		if (GC.getLogging())
+		if (GC.isLogging())
 		{
 			if (gDLL->getChtLvl() > 0)
 			{
@@ -15145,7 +15141,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 					&& GC.getGame().getActiveTeam() == getTeam()) // advc.120i
 			{
 				EffectTypes eEffect = GC.getEntityEventInfo(GC.getMissionInfo(MISSION_BOMBARD).getEntityEvent()).getEffectType();
-				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(GC.getASyncRand().get(360)));
+				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(getASyncRand().get(360)));
 				gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_CITY_EXPLOSION", pPlot->getPoint());
 			}
 		}

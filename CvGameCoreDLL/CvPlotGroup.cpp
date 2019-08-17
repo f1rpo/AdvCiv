@@ -85,10 +85,7 @@ void CvPlotGroup::addPlot(CvPlot* pPlot)
 
 void CvPlotGroup::removePlot(CvPlot* pPlot)
 {
-	CLLNode<XYCoords>* pPlotNode;
-
-	pPlotNode = headPlotsNode();
-
+	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL)
 	{
 		if (GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY) == pPlot)
@@ -110,30 +107,20 @@ void CvPlotGroup::recalculatePlots()
 {
 	PROFILE_FUNC();
 
-	CLLNode<XYCoords>* pPlotNode;
-	CvPlot* pPlot;
-	CLinkList<XYCoords> oldPlotGroup;
 	XYCoords xy;
-	PlayerTypes eOwner;
-	int iCount;
+	PlayerTypes eOwner = getOwner();
 
-	eOwner = getOwner();
-
-	pPlotNode = headPlotsNode();
-
+	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	if (pPlotNode != NULL)
 	{
-		pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		CvPlot* pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 
-		iCount = 0;
-
+		int iCount = 0;
 		gDLL->getFAStarIFace()->SetData(&GC.getPlotGroupFinder(), &iCount);
-		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), pPlot->getX(), pPlot->getY(), -1, -1, false, eOwner);
-
+		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), pPlot->getX(), pPlot->getY(),
+				-1, -1, false, eOwner);
 		if (iCount == getLengthPlots())
-		{
 			return;
-		}
 	}
 	/*  <advc.064d> To deal with nested recalculatePlots calls. Mustn't
 		verifyCityProduction so long as any recalculation is ongoing. */
@@ -146,15 +133,14 @@ void CvPlotGroup::recalculatePlots()
 	{
 		PROFILE("CvPlotGroup::recalculatePlots update");
 
-		oldPlotGroup.clear();
+		CLinkList<XYCoords> oldPlotGroup;
 
 		pPlotNode = headPlotsNode();
-
 		while (pPlotNode != NULL)
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 1");
 
-			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			CvPlot* pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 			// <advc.064d>
 			CvCity* pPlotCity = pPlot->getPlotCity();
 			if (pPlotCity != NULL)
@@ -166,24 +152,18 @@ void CvPlotGroup::recalculatePlots()
 			xy.iY = pPlot->getY();
 
 			oldPlotGroup.insertAtEnd(xy);
-
 			pPlot->setPlotGroup(eOwner, NULL);
-
 			pPlotNode = deletePlotsNode(pPlotNode); // will delete this PlotGroup...
 		}
 
 		pPlotNode = oldPlotGroup.head();
-
 		while (pPlotNode != NULL)
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 2");
 
-			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-
+			CvPlot* pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
-
 			pPlot->updatePlotGroup(eOwner, true);
-
 			pPlotNode = oldPlotGroup.deleteNode(pPlotNode);
 		}
 	}

@@ -2706,7 +2706,7 @@ int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 	}
 	else
 	{
-		return kCurrentEra.getSoundtracks(GC.getASyncRand().get(kCurrentEra.getNumSoundtracks(), "Pick Song ASYNC"));
+		return kCurrentEra.getSoundtracks(getASyncRand().get(kCurrentEra.getNumSoundtracks(), "Pick Song ASYNC"));
 	}
 }
 

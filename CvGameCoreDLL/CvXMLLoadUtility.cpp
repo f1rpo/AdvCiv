@@ -89,13 +89,10 @@ CvXMLLoadUtility::~CvXMLLoadUtility(void)
 //------------------------------------------------------------------------------------------------------
 void CvXMLLoadUtility::ResetLandscapeInfo()
 {
+	CvGlobals& kGlobals = CvGlobals::getInstance(); // advc.003t: non-const globals
 	for (int i = 0; i < GC.getNumLandscapeInfos(); ++i)
-	{
-		SAFE_DELETE(GC.m_paLandscapeInfo[i]);
-	}
-
-	GC.m_paLandscapeInfo.clear();
-
+		SAFE_DELETE(kGlobals.m_paLandscapeInfo[i]);
+	kGlobals.m_paLandscapeInfo.clear();
 	SetupGlobalLandscapeInfo();
 }
 
@@ -108,14 +105,11 @@ void CvXMLLoadUtility::ResetLandscapeInfo()
 //------------------------------------------------------------------------------------------------------
 void CvXMLLoadUtility::ResetGlobalEffectInfo()
 {
-	for (int i = 0; i < GC.getNumEffectInfos(); ++i)
-	{
-		SAFE_DELETE(GC.m_paEffectInfo[i]);
-	}
-
-	GC.m_paEffectInfo.clear();
-
-	LoadGlobalClassInfo(GC.m_paEffectInfo, "CIV4EffectInfos", "Misc", "Civ4EffectInfos/EffectInfos/EffectInfo", false, false);
+	CvGlobals& kGlobals = CvGlobals::getInstance(); // advc.003t: non-const globals
+	for (int i = 0; i < kGlobals.getNumEffectInfos(); ++i)
+		SAFE_DELETE(kGlobals.m_paEffectInfo[i]);
+	kGlobals.m_paEffectInfo.clear();
+	LoadGlobalClassInfo(kGlobals.m_paEffectInfo, "CIV4EffectInfos", "Misc", "Civ4EffectInfos/EffectInfos/EffectInfo", false, false);
 }
 
 
@@ -371,7 +365,7 @@ bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 	}
 
 	logMsg("Load XML file %s SUCCEEDED\n", szPath.c_str());
-	GC.setCurrentXMLFile(szFilename);
+	CvGlobals::getInstance().setCurrentXMLFile(szFilename);
 	return true;	// success
 }
 

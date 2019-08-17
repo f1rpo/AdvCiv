@@ -178,7 +178,7 @@ bool CvSelectionGroupAI::AI_update()
 			CvUnit* pHeadUnit = getHeadUnit();
 			if (NULL != pHeadUnit)
 			{
-				if (GC.getLogging())
+				if (GC.isLogging())
 				{
 					TCHAR szOut[1024];
 					CvWString szTempString;
