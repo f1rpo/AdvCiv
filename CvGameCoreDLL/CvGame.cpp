@@ -751,6 +751,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	}
 	m_ActivePlayerCycledGroups.clear(); // K-Mod
 	m_bInBetweenTurns = false; // advc.106b
+	m_iUnitUpdateAttempts = 0; // advc.001y
 	m_iTurnLoadedFromSave = -1; // advc.044
 	// <advc.004m>
 	m_eCurrentLayer = GLOBE_LAYER_UNKNOWN;
@@ -4127,6 +4128,7 @@ void CvGame::changeNumGameTurnActive(int iChange)
 {
 	m_iNumGameTurnActive = (m_iNumGameTurnActive + iChange);
 	FAssert(getNumGameTurnActive() >= 0);
+	m_iUnitUpdateAttempts = 0; // advc.001y
 }
 
 
@@ -7897,8 +7899,6 @@ void CvGame::updateWar()
 
 void CvGame::updateMoves()
 {
-	int iI;
-
 	int aiShuffle[MAX_PLAYERS];
 	if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 	{
@@ -7906,13 +7906,15 @@ void CvGame::updateMoves()
 	}
 	else
 	{
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			aiShuffle[iI] = iI;
 		}
-	}
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	} // <advc.001y>
+	int const iMaxUnitUpdateAttempts = 15; 
+	FAssertMsg(m_iUnitUpdateAttempts != iMaxUnitUpdateAttempts - 5, "Unit stuck in a loop");
+	// </advc.001y>
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayerAI& player = GET_PLAYER((PlayerTypes)(aiShuffle[iI]));
 
@@ -7926,9 +7928,16 @@ void CvGame::updateMoves()
 
 					if (!player.isHuman())
 					{
-						if (!player.hasBusyUnit() && !player.hasReadyUnit(true))
+						if (!player.hasBusyUnit())
 						{
-							player.setAutoMoves(true);
+							/*  advc.001y: Safety measure against infinite loop
+								(Complementing Vanilla Civ 4 code in CvSelectionGroupAI::AI_update.
+								The attempt counter there won't work when CvUnitAI::AI_update
+								joins a different selection group.) */
+							if (m_iUnitUpdateAttempts > iMaxUnitUpdateAttempts ||
+									!player.hasReadyUnit(true))
+								player.setAutoMoves(true);
+							else m_iUnitUpdateAttempts++; // advc.001y
 						}
 					}
 				}

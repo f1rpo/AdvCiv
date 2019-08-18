@@ -708,6 +708,7 @@ protected:
 	int m_iCivPlayersEverAlive;
 	int m_iCivTeamsEverAlive;
 	// </advc.003b>
+	int m_iUnitUpdateAttempts; // advc.001y
 	unsigned int m_uiInitialTime;
 
 	bool m_bScoreDirty;
