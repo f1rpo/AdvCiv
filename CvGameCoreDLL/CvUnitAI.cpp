@@ -8108,8 +8108,8 @@ void CvUnitAI::AI_settlerSeaMove()
 						CvArea* pWaterArea = plot()->waterArea();
 						FAssert(pWaterArea != NULL);
 						if (pWaterArea != NULL)
-						{
-							if (kOwner.AI_totalUnitAIs(UNITAI_EXPLORE_SEA) == 0)
+						{	// advc.tmp: Disabled temporarily b/c of possible oscillation between UnitAI_SETTLER_SEA and UNITAI_EXPLORE_SEA
+							/*if (kOwner.AI_totalUnitAIs(UNITAI_EXPLORE_SEA) == 0)
 							{
 								if (kOwner.AI_unitValue(getUnitType(), UNITAI_EXPLORE_SEA, pWaterArea) > 0)
 								{
@@ -8117,7 +8117,7 @@ void CvUnitAI::AI_settlerSeaMove()
 									AI_exploreSeaMove();
 									return;
 								}
-							}
+							}*/
 
 							if (kOwner.AI_totalUnitAIs(UNITAI_SPY_SEA) == 0)
 							{
