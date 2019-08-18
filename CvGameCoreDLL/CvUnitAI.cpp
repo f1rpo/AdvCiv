@@ -6884,43 +6884,34 @@ void CvUnitAI::AI_exploreSeaMove()
 	// BETTER_BTS_AI_MOD, Naval AI, 10/21/08, Solver & jdog5000: START
 	if (plot()->isCity(true)) //prioritize getting outta there
 	{
-		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
+		if (AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (!isHuman())
 			{
 				if (AI_anyAttack(1, 60))
-				{
 					return;
-				}
 			}
 
 			if (AI_retreatToCity())
-			{
 				return;
-			}
 
 			if (AI_safety())
-			{
 				return;
-			}
 		}
 	} // BETTER_BTS_AI_MOD: END
-
-	CvArea* pWaterArea = plot()->waterArea();
 
 	if (!isHuman())
 	{
 		if (AI_anyAttack(1, 60))
-		{
 			return;
-		}
 	}
 
 	// (advc.017b: Moved the transform/ scrap block down; try nearby exploration first.)
 
 	if (getDamage() > 0)
 	{
-		if ((plot()->getFeatureType() == NO_FEATURE) || (GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() == 0))
+		if (plot()->getFeatureType() == NO_FEATURE ||
+			GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() <= 0)
 		{
 			getGroup()->pushMission(MISSION_HEAL);
 			return;
@@ -6930,70 +6921,37 @@ void CvUnitAI::AI_exploreSeaMove()
 	if (!isHuman())
 	{
 		if (AI_pillageRange(1))
-		{
 			return;
-		}
 	}
 
 	if (AI_exploreRange(4))
-	{
 		return;
-	}
 
 	if (!isHuman())
 	{
 		if (AI_pillageRange(4))
-		{
 			return;
-		}
 	}
-	// advc.017b: Moved this chunk of code down
+	// advc.017b: Moved this chunk of code down (and rewrote much of it)
 	bool bExcessExplorers = false;
+	// (Would be nice to check plot()->secondWaterArea as well, but that takes extra time.)
+	CvArea* pWaterArea = plot()->waterArea();
 	if (!isHuman() && !isBarbarian()) //XXX move some of this into a function? maybe useful elsewhere
 	{	// <advc.017b>
 		bool bTransform = false;
 		// Don't be too quick to decide that there are too many explorers
 		if(::bernoulliSuccess(0.13, "advc.017b")) {
-			/*  Be careful not to convert or scrap a unit that CvPlayerAI thinks we need
-				(b/c otherwise cities will keep training explorers and they'll keep
-				getting converted to other AI types) */
-			CvArea* pSecondWaterArea = NULL;
-			if(pWaterArea == NULL)
-				pSecondWaterArea = plot()->secondWaterArea();
-			else FAssert(pWaterArea != NULL);
-			// Subtract explorers still being trained
-			int iInTraining = kOwner.AI_getNumTrainAIUnits(UNITAI_EXPLORE_SEA);
-			bool bTransform = ((pWaterArea == NULL ||
-					kOwner.AI_neededExplorers(pWaterArea) <
-					kOwner.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_EXPLORE_SEA) -
-					iInTraining) && (pSecondWaterArea == NULL ||
-					kOwner.AI_neededExplorers(pSecondWaterArea) <
-					kOwner.AI_totalWaterAreaUnitAIs(pSecondWaterArea, UNITAI_EXPLORE_SEA) -
-					kOwner.AI_getNumTrainAIUnits(UNITAI_EXPLORE_SEA)));
+			bool bTransform = kOwner.AI_isExcessSeaExplorers(pWaterArea);
 			bExcessExplorers = bTransform;
 		}
 		if(!bTransform &&
 				/*  In the early game, it'll often take a better explorer (Galley
 					vs Work Boat) too long to reach an unexplored area; better to
 					let the outdated explorer continue. */
-				kOwner.getCurrentEra() > 1) {
-			int iValue = kOwner.AI_unitValue(getUnitType(), UNITAI_EXPLORE_SEA, pWaterArea);
-			for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-				UnitClassTypes eUnitClass = (UnitClassTypes)i;
-				/*  Will eventually build some Caravels as attackers even if
-					explorers are maxed out. Could alternatively check
-					kOwner.canTrain(ut), but that's slightly more expensive. */
-				if(kOwner.getUnitClassCount(eUnitClass) <= 0)
-					continue;
-				UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(kOwner.
-						getCivilizationType()).getCivilizationUnits(eUnitClass);
-				int iLoopValue = kOwner.AI_unitValue(eUnit, UNITAI_EXPLORE_SEA, pWaterArea);
-				if(75 * iLoopValue > 100 * iValue) {
-					bTransform = true;
-					break;
-				}
-			}
-		} // Moved the obsoletion test; now only required for scrapping
+				kOwner.getCurrentEra() > 1 &&
+				kOwner.AI_isOutdatedUnit(getUnitType(), UNITAI_EXPLORE_SEA, pWaterArea))
+			bTransform = true;
+		// Moved the obsoletion test; now only required for scrapping
 		if(bTransform) { // </advc.017b>
 			// <advc.003> Made this more concise (original code deleted)
 			std::vector<UnitAITypes> transformTypes;
@@ -7033,6 +6991,7 @@ void CvUnitAI::AI_exploreSeaMove()
 							kOwner.AI_countUnimprovedBonuses(pWaterArea, plot(), 5) <= 0)
 						continue;
 					AI_setUnitAIType(transformTypes[i]);
+					AI_update();
 					return;
 				}
 			} // </advc.003>
@@ -7047,57 +7006,39 @@ void CvUnitAI::AI_exploreSeaMove()
 	}
 
 	if (AI_explore())
-	{
 		return;
-	}
 
 	if (!isHuman())
 	{
 		if (AI_pillage())
-		{
 			return;
-		}
 	}
 
 	if (!isHuman())
 	{
 		if (AI_travelToUpgradeCity())
+			return;
+
+	}
+
+	if (!isHuman() && AI_getUnitAIType() == UNITAI_EXPLORE_SEA &&
+		pWaterArea != NULL && bExcessExplorers) // advc.017b
+	{
+		if (kOwner.calculateUnitCost() > 0)
 		{
+			scrap();
 			return;
 		}
 	}
 
-	if (!(isHuman()) && (AI_getUnitAIType() == UNITAI_EXPLORE_SEA))
-	{
-		pWaterArea = plot()->waterArea();
-
-		if (pWaterArea != NULL)
-		{
-			if (bExcessExplorers) // advc.017b
-			{
-				if (kOwner.calculateUnitCost() > 0)
-				{
-					scrap();
-					return;
-				}
-			}
-		}
-	}
-
 	if (AI_patrol())
-	{
 		return;
-	}
 
 	if (AI_retreatToCity())
-	{
 		return;
-	}
 
 	if (AI_safety())
-	{
 		return;
-	}
 
 	getGroup()->pushMission(MISSION_SKIP);
 	return;
@@ -7833,7 +7774,7 @@ void CvUnitAI::AI_settlerSeaMove()
 	// BETTER_BTS_AI_MOD, Naval AI, 10/21/08, Solver & jdog5000: START
 	if (plot()->isCity(true))
 	{
-		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
+		if (AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (bEmpty)
 			{
@@ -7964,7 +7905,8 @@ void CvUnitAI::AI_settlerSeaMove()
 					if (kOwner.AI_unitValue(getUnitType(), UNITAI_ASSAULT_SEA, pWaterArea) > 0)
 					{
 						AI_setUnitAIType(UNITAI_ASSAULT_SEA);
-						AI_assaultSeaMove();
+						//AI_assaultSeaMove();
+						AI_update(); // advc.003u
 						return;
 					}
 				}
@@ -8039,7 +7981,7 @@ void CvUnitAI::AI_settlerSeaMove()
 	if (!getGroup()->hasCargo())
 	{
 		// Rescue stranded non-settlers
-		if(AI_pickupStranded())
+		if (AI_pickupStranded())
 		{
 			return;
 		}
@@ -8100,12 +8042,17 @@ void CvUnitAI::AI_settlerSeaMove()
 						FAssert(pWaterArea != NULL);
 						if (pWaterArea != NULL)
 						{
-							if (kOwner.AI_totalUnitAIs(UNITAI_EXPLORE_SEA) == 0)
+							if (kOwner.AI_totalUnitAIs(UNITAI_EXPLORE_SEA) <= 0 &&
+								// <advc.017b>
+								!kOwner.AI_isExcessSeaExplorers(pWaterArea, 1) &&
+								!kOwner.AI_isOutdatedUnit(getUnitType(), UNITAI_EXPLORE_SEA, pWaterArea))
+								// </advc.017b>
 							{
 								if (kOwner.AI_unitValue(getUnitType(), UNITAI_EXPLORE_SEA, pWaterArea) > 0)
 								{
 									AI_setUnitAIType(UNITAI_EXPLORE_SEA);
-									AI_exploreSeaMove();
+									//AI_exploreSeaMove();
+									AI_update(); // advc.003u
 									return;
 								}
 							}
@@ -8115,7 +8062,8 @@ void CvUnitAI::AI_settlerSeaMove()
 								if (kOwner.AI_unitValue(getUnitType(), UNITAI_SPY_SEA, area()) > 0)
 								{
 									AI_setUnitAIType(UNITAI_SPY_SEA);
-									AI_spySeaMove();
+									//AI_spySeaMove();
+									AI_update(); // advc.003u
 									return;
 								}
 							}
@@ -8125,7 +8073,8 @@ void CvUnitAI::AI_settlerSeaMove()
 								if (kOwner.AI_unitValue(getUnitType(), UNITAI_MISSIONARY_SEA, area()) > 0)
 								{
 									AI_setUnitAIType(UNITAI_MISSIONARY_SEA);
-									AI_missionarySeaMove();
+									//AI_missionarySeaMove();
+									AI_update(); // advc.003u
 									return;
 								}
 							}
@@ -8133,7 +8082,8 @@ void CvUnitAI::AI_settlerSeaMove()
 							if (kOwner.AI_unitValue(getUnitType(), UNITAI_ATTACK_SEA, pWaterArea) > 0)
 							{
 								AI_setUnitAIType(UNITAI_ATTACK_SEA);
-								AI_attackSeaMove();
+								//AI_attackSeaMove();
+								AI_update(); // advc.003u
 								return;
 							}
 						}

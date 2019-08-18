@@ -14743,6 +14743,7 @@ void CvPlayerAI::AI_updateNeededExplorers() {
 		// Nothing stored for small areas; AI_neededExplorers will return 0.
 	}
 }
+
 // Body cut and pasted from AI_neededExplorers
 int CvPlayerAI::AI_neededExplorers_bulk(CvArea const* pArea) const {
 
@@ -14802,6 +14803,44 @@ int CvPlayerAI::AI_neededExplorers_bulk(CvArea const* pArea) const {
 	}
 	return iNeeded;
 } // </advc.003b>
+
+/*  <advc.017b> Checks to help CvUnitAI avoid oscillation between UnitAITypes
+	(and to avoid inconsistencies between CvUnitAI and CvCityAI) */
+bool CvPlayerAI::AI_isExcessSeaExplorers(CvArea* pWaterArea, int iChange) const
+{
+	PROFILE_FUNC(); // (AI_totalWaterAreaUnitAIs is expensive)
+
+	if (pWaterArea == NULL)
+	{
+		FAssert(pWaterArea != NULL);
+		return true; // No sea exploration possible then
+	}
+	int iHave = AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_EXPLORE_SEA) -
+			AI_getNumTrainAIUnits(UNITAI_EXPLORE_SEA);
+	return (pWaterArea == NULL || AI_neededExplorers(pWaterArea) < iHave + iChange);
+}
+
+// Note: only tested for eRole=UNITAI_EXPLORE_SEA
+bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea* pArea) const
+{
+	PROFILE_FUNC();
+	int iValue = AI_unitValue(eUnit, eRole, pArea);
+	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType();
+	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+		UnitClassTypes eLoopUnitClass = (UnitClassTypes)i;
+		if(eLoopUnitClass == eUnitClass ||
+				getUnitClassCount(eLoopUnitClass) <= 0) // Avoid slow canTrain checks
+			continue;
+		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
+				getCivilizationUnits(eLoopUnitClass);
+		if (eLoopUnit == NO_UNIT)
+			continue;
+		int iLoopValue = AI_unitValue(eLoopUnit, eRole, pArea);
+		if(75 * iLoopValue > 100 * iValue)
+			return true;
+	}
+	return false;
+} // </advc.017b>
 
 // advc.042: Cut from CvPlayer.cpp
 /*  K-Mod. I've rearranged some stuff in this function to fix a couple of minor bugs;

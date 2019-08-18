@@ -332,7 +332,10 @@ public:
 
 	int AI_neededExplorers(CvArea* pArea) const;
 	void AI_updateNeededExplorers(); // advc.003b
-
+	// <advc.017b>
+	bool AI_isExcessSeaExplorers(CvArea* pWaterArea, int iChange = 0) const;
+	bool AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea* pArea) const;
+	// </advc.017>
 	// <advc.042> Moved from CvPlayer and iLookAhead param added
 	int AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
 	int AI_countOwnedBonuses(BonusTypes eBonus) const;																											// Exposed to Python
