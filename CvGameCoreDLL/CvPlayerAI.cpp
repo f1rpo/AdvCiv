@@ -12738,7 +12738,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iCh
 			kPlayer.AI_bonusVal(eBonus, 0, false, true);
 	if(!isHuman() && kPlayer.isHuman()) {
 		/*  For now, only address the case of a human civ receiving two health
-			resources or two happiness resources from an AI civ (and cancelation
+			resources or two happiness resources from an AI civ (and cancellation
 			of such a deal). More than 2 is ruled out by the caller. */
 		if(bExtraHappyOrHealth && iChange > 0)
 			ourVal *= 0.75;
@@ -12836,7 +12836,6 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 {
 	PROFILE_FUNC();
 
-	int iI=-1, iJ=-1;
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer); // advc.003
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 
@@ -12854,9 +12853,8 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	int iAvailThem = kPlayer.getNumAvailableBonuses(eBonus);
 	// advc.036: Moved this clause up
 	if (iAvailThem + iChange > 1 && kPlayer.AI_corporationBonusVal(eBonus, true) <= 0)
-	{
 		return DENIAL_JOKING;
-	} // <advc.037> This used to apply to all vassals
+	// <advc.037> This used to apply to all vassals
 	bool bVassal = GET_TEAM(getTeam()).isVassal(TEAMID(ePlayer));
 	if(bVassal && GET_TEAM(getTeam()).isCapitulated()) // </advc.037>
 		return NO_DENIAL;
@@ -12867,7 +12865,6 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			making peace. */
 		return NO_DENIAL;
 	}
-
 	//if (GET_PLAYER(ePlayer).getTeam() == getTeam())
 	// advc.155: Commented out
 	/*if (TEAMID(ePlayer) == getTeam() && kPlayer.isHuman()) // K-Mod
@@ -12901,7 +12898,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	bool bCrucialStrategic = false; // advc.036
 
 	CvCity* pCapitalCity = getCapitalCity();
-	for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
 	{
 		UnitTypes eUnit = (UnitTypes)iI;
 		if (GC.getUnitInfo(eUnit).getPrereqAndBonus() == eBonus)
@@ -12909,7 +12906,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			bStrategic = true;
 			bCrucialStrategic = true; // advc.036
 		}
-		for (iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iJ++)
+		for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iJ++)
 		{
 			if (GC.getUnitInfo(eUnit).getPrereqOrBonuses(iJ) == eBonus)
 			{
@@ -12927,15 +12924,18 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			continue; // </advc.001>
 	}
 	if(!isHuman() // advc.036: No longer guaranteed (b/c of the tradeValThresh clause)
-			&& !bVassal) { // advc.037
-		if(!bStrategic) { // advc.003b
-			for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+			&& !bVassal) // advc.037
+	{
+		if(!bStrategic) // advc.003b
+		{
+			for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 			{
-				if (GC.getBuildingInfo((BuildingTypes) iI).getPrereqAndBonus() == eBonus)
+				BuildingTypes eBuilding = (BuildingTypes)iI;
+				if (GC.getBuildingInfo(eBuilding).getPrereqAndBonus() == eBonus)
 					bStrategic = true;
-				for (iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iJ++)
+				for (int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(eBuilding); iJ++)
 				{
-					if (GC.getBuildingInfo((BuildingTypes) iI).getPrereqOrBonuses(iJ) == eBonus)
+					if (GC.getBuildingInfo(eBuilding).getPrereqOrBonuses(iJ) == eBonus)
 						bStrategic = true;
 				} // <advc.003b>
 				if(bStrategic)
@@ -12958,7 +12958,6 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHappinessBonusRefuseAttitudeThreshold())
 				return DENIAL_ATTITUDE;
 		}
-
 		if (GC.getBonusInfo(eBonus).getHealth() > 0)
 		{
 			bCrucialStrategic = false; // advc.036
@@ -13005,15 +13004,16 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		else return NO_DENIAL;
 	} // </advc.037>
 	// Replacing the JOKING clause further up
-	if(kPlayer.isHuman() && iAvailThem <= 0 ? /*  Don't presume value
+	if(kPlayer.isHuman() && (iAvailThem + iChange <= 1 ? /*  Don't presume value
 			for human unless human only needs the resource for a corp */
 			(iValueForUs >= iTradeValThresh +
 			/*  bonusVal gives every city equal weight, but early on,
 				it's mostly about the capital, which can grow fast. */
 			std::min(2, (getNumCities() - 1) / 2)) :
 			(3 * iValueForUs >= 2 * iValueForThem ||
-			iValueForThem - iValueForUs < iTradeValThresh ||
-			iValueForUs > iTradeValThresh + 2))
+			iValueForThem <= 0 ||
+			(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
+			iValueForUs > iTradeValThresh + 2)))
 		return DENIAL_NO_GAIN;
 	// </advc.036>
 	return NO_DENIAL;
@@ -19514,13 +19514,16 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 		else return NO_CANCEL;
 	}
 	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
-		AI_bonusTrade explicitly and tell it that this is about cancelation. */
+		AI_bonusTrade explicitly and tell it that this is about cancellation. */
 	for(pNode = d.headGivesNode(getID()); pNode != NULL; pNode = d.nextGivesNode(pNode, getID())) {
 		TradeData data = pNode->m_data;
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
 		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, 0) != NO_DENIAL)
+		{
+			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - denial");
 			return DO_CANCEL;
+		}
 	} /* Need to check their DENIAL_JOKING in case they're giving us a resource that
 		 we no longer need */
 	for(pNode = d.headGivesNode(ePlayer); pNode != NULL; pNode = d.nextGivesNode(pNode, ePlayer)) {
