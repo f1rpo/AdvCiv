@@ -6,14 +6,12 @@
 // Python wrapper class for CvCity
 //
 
-#include <boost/python/tuple.hpp>
-namespace python = boost::python;
-
 struct OrderData;
 class CvCity;
 class CyPlot;
 class CyArea;
 class CyUnit;
+
 class CyCity
 {
 public:

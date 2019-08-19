@@ -222,6 +222,15 @@ void DumpMemUsage(const char* fn, int line);
 //
 // Boost Python
 //
+// <advc.make>
+#ifdef _CODE_EDITOR
+namespace boost
+{
+	namespace python { class tuple; }
+	class noncopyable {}; // advc.003e
+}
+class PyObject;
+#else // </advc.make>
 # include <boost/python/list.hpp>
 # include <boost/python/tuple.hpp>
 # include <boost/python/class.hpp>
@@ -231,6 +240,7 @@ void DumpMemUsage(const char* fn, int line);
 # include <boost/python/def.hpp>
 
 namespace python = boost::python;
+#endif // advc.make
 
 #include "FAssert.h"
 #include "CvGameCoreDLLDefNew.h"

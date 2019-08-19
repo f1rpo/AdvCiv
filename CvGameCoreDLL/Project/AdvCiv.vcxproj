@@ -168,10 +168,12 @@
     <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\CvArea.h" />
+    <ClInclude Include="..\CvAreaList.h" />
     <ClInclude Include="..\CvArtFileMgr.h" />
     <ClInclude Include="..\CvBugOptions.h" />
     <ClInclude Include="..\CvCity.h" />
     <ClInclude Include="..\CvCityAI.h" />
+    <ClInclude Include="..\CvCityList.h" />
     <ClInclude Include="..\CvDeal.h" />
     <ClInclude Include="..\CvDealList.h" />
     <ClInclude Include="..\CvDefines.h" />
@@ -215,6 +217,7 @@
     <ClInclude Include="..\CvMessageData.h" />
     <ClInclude Include="..\CvPlayer.h" />
     <ClInclude Include="..\CvPlayerAI.h" />
+    <ClInclude Include="..\FLTALoopCounter.h" />
     <ClInclude Include="..\CvPlot.h" />
     <ClInclude Include="..\CvPlotGroup.h" />
     <ClInclude Include="..\CvPopupInfo.h" />
@@ -224,6 +227,7 @@
     <ClInclude Include="..\CvReplayMessage.h" />
     <ClInclude Include="..\CvSelectionGroup.h" />
     <ClInclude Include="..\CvSelectionGroupAI.h" />
+    <ClInclude Include="..\CvSelectionGroupList.h" />
     <ClInclude Include="..\CvStatistics.h" />
     <ClInclude Include="..\CvString.h" />
     <ClInclude Include="..\CvStructs.h" />
@@ -232,6 +236,7 @@
     <ClInclude Include="..\CvTeamAI.h" />
     <ClInclude Include="..\CvUnit.h" />
     <ClInclude Include="..\CvUnitAI.h" />
+    <ClInclude Include="..\CvUnitList.h" />
     <ClInclude Include="..\CvXMLLoadUtility.h" />
     <ClInclude Include="..\CyArea.h" />
     <ClInclude Include="..\CyArgsList.h" />
@@ -407,7 +412,7 @@ nmake fastdep /NOLOGO
 nmake dll /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
-    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR</AdditionalOptions>
+    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Assert-fast|Win32'">
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -441,7 +446,7 @@ nmake precompile /NOLOGO
 bin\jom build</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Profile
 nmake clean /NOLOGO</NMakeCleanCommandLine>
-    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR</AdditionalOptions>
+    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-fast|Win32'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -475,7 +480,7 @@ nmake precompile /NOLOGO
 bin\jom build</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
-    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR</AdditionalOptions>
+    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final_Release-fast|Win32'">
     <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -492,7 +497,7 @@ nmake precompile /NOLOGO
 bin\jom build</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Final_Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
-    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR</AdditionalOptions>
+    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerEnvironment>_NO_DEBUG_HEAP=1</LocalDebuggerEnvironment>
