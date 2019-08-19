@@ -4092,13 +4092,17 @@ bool CvUnitInfo::getBuildings(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_pbBuildings ? m_pbBuildings[i] : false;
 }
-// advc.003t
-/*bool CvUnitInfo::getForceBuildings(int i) const
+
+bool CvUnitInfo::getForceBuildings(int i) const
 {
-	FAssertMsg(i < GC.getNumBuildingInfos(), "Index out of bounds");
+	/*FAssertMsg(i < GC.getNumBuildingInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbForceBuildings ? m_pbForceBuildings[i] : false;
-}*/
+	return m_pbForceBuildings ? m_pbForceBuildings[i] : false;*/
+	/*  advc.003t: I've removed the tag from XML, but don't want to break Python
+		code (yet). Specifically, the BtS CvCorporationScreen.py calls
+		getForceBuldings in line 153. */
+	return false;
+}
 
 bool CvUnitInfo::getTerrainImpassable(int i) const
 {

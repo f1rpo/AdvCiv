@@ -348,7 +348,7 @@ void CyInfoPythonInterface1()
 		.def("getGreatPeoples", &CvUnitInfo::getGreatPeoples, "bool (int i)")
 		.def("getBuildings", &CvUnitInfo::getBuildings, "bool (int i)")
 		// advc.003t:
-		//.def("getForceBuildings", &CvUnitInfo::getForceBuildings, "bool (int i)")
+		.def("getForceBuildings", &CvUnitInfo::getForceBuildings, "bool (int i)")
 		.def("getTerrainImpassable", &CvUnitInfo::getTerrainImpassable, "bool (int i)")
 		.def("getFeatureImpassable", &CvUnitInfo::getFeatureImpassable, "bool (int i)")
 		.def("getTerrainNative", &CvUnitInfo::getTerrainNative, "bool (int i)")

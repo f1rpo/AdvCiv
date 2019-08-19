@@ -1004,7 +1004,7 @@ public:
 	bool getGreatPeoples(int i) const;			// Exposed to Python
 	bool getBuildings(int i) const;					// Exposed to Python
 	inline bool isAnyBuildings() const { return (m_pbBuildings != NULL); } // advc.003t
-	//bool getForceBuildings(int i) const; // advc.003t
+	bool getForceBuildings(int i) const; // advc.003t: Dummy function
 	bool getTerrainImpassable(int i) const;				// Exposed to Python
 	inline bool isAnyTerrainImpassable() const { return (m_pbTerrainImpassable != NULL); } // advc.003t
 	bool getFeatureImpassable(int i) const;				// Exposed to Python
