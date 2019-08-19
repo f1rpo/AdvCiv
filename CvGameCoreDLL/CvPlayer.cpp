@@ -5561,25 +5561,9 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 		return false;
 	}
 
-	if (!bIgnoreCost)
-	{
-		if (GC.getUnitInfo(eUnit).getProductionCost() == -1)
-		{
-			return false;
-		}
-	}
-
 	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
 	{
 		if (GC.getUnitInfo(eUnit).isFound())
-		{
-			return false;
-		}
-	}
-
-	if (GC.getGame().isOption(GAMEOPTION_NO_ESPIONAGE))
-	{
-		if (GC.getUnitInfo(eUnit).isSpy() || GC.getUnitInfo(eUnit).getEspionagePoints() > 0)
 		{
 			return false;
 		}
@@ -5608,11 +5592,9 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 			return false;
 		}
 	}
-
-	if (GC.getGame().isUnitClassMaxedOut(eUnitClass))
-	{
-		return false;
-	}
+	// <advc.003> Some checks moved to CvGame
+	if (!GC.getGame().canTrain(eUnit, bIgnoreCost, bTestVisible))
+		return false; // </advc.003>
 
 	/* original bts code
 	if (GET_TEAM(getTeam()).isUnitClassMaxedOut(eUnitClass))
@@ -5637,22 +5619,6 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 		if (isUnitClassMaxedOut(eUnitClass, (getUnitClassMaking(eUnitClass) + ((bContinue) ? -1 : 0))))
 		{
 			return false;
-		}
-
-		if (GC.getGame().isNoNukes() || !GC.getGame().isNukesValid())
-		{
-			if (GC.getUnitInfo(eUnit).getNukeRange() != -1)
-			{
-				return false;
-			}
-		}
-
-		if (GC.getUnitInfo(eUnit).getSpecialUnitType() != NO_SPECIALUNIT)
-		{
-			if (!(GC.getGame().isSpecialUnitValid((SpecialUnitTypes)(GC.getUnitInfo(eUnit).getSpecialUnitType()))))
-			{
-				return false;
-			}
 		}
 	}
 

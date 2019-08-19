@@ -409,9 +409,10 @@ public:
 
 	bool isForcedControl(ForceControlTypes eIndex) const;												// Exposed to Python
 	void setForceControl(ForceControlTypes eIndex, bool bEnabled);
-	// advc.003:
+	// <advc.003>
 	bool canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const;
-
+	bool canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) const;
+	// </advc.003>
 	int getUnitCreatedCount(UnitTypes eIndex) const; // Exposed to Python
 	void incrementUnitCreatedCount(UnitTypes eIndex);
 

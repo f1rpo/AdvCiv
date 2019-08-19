@@ -5699,8 +5699,8 @@ void CvGame::setForceControl(ForceControlTypes eIndex, bool bEnabled)
 }
 
 // advc.003: Mostly cut from CvPlayer::canConstruct
-bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const {
-
+bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const
+{
 	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
 
 	if(!bIgnoreCost && kBuilding.getProductionCost() == -1)
@@ -5748,6 +5748,32 @@ bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestV
 	return true;
 }
 
+// advc.003: Cut from CvPlayer::canTrain
+bool CvGame::canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) const
+{
+	CvUnitInfo const& kUnit = GC.getUnitInfo(eUnit);
+
+	if (!bIgnoreCost && kUnit.getProductionCost() == -1)
+		return false;
+
+	if (isOption(GAMEOPTION_NO_ESPIONAGE) && (kUnit.isSpy() || kUnit.getEspionagePoints() > 0))
+		return false;
+
+	if (isUnitClassMaxedOut((UnitClassTypes)kUnit.getUnitClassType()))
+		return false;
+
+	if (bTestVisible)
+		return true;
+
+	if ((isNoNukes() || !isNukesValid()) && kUnit.getNukeRange() != -1)
+		return false;
+
+	SpecialUnitTypes eSpecialUnit = (SpecialUnitTypes)kUnit.getSpecialUnitType();
+	if (eSpecialUnit != NO_SPECIALUNIT && !isSpecialUnitValid(eSpecialUnit))
+		return false;
+
+	return true;
+}
 
 int CvGame::getUnitCreatedCount(UnitTypes eIndex) const
 {
