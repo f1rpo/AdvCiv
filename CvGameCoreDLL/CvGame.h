@@ -58,8 +58,14 @@ public:
 	void autoSave(bool bInitial = false); // advc.106l
 	DllExport void testExtendedGame();
 
-	DllExport CvUnit* getPlotUnit(const CvPlot* pPlot, int iIndex) const;
-	DllExport void getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit*>& plotUnits) const;
+	DllExport CvUnit* getPlotUnit(const CvPlot* pPlot, int iIndex) const
+	{
+		return getPlotUnits(pPlot, NULL, iIndex); // advc.003
+	}
+	DllExport void getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit*>& plotUnits) const
+	{
+		getPlotUnits(pPlot, &plotUnits, -1); // advc.003
+	}
 
 	DllExport void cycleCities(bool bForward = true, bool bAdd = false) const;																				// Exposed to Python
 	void cycleSelectionGroups(bool bClear, bool bForward = true, bool bWorkers = false);								// Exposed to Python
@@ -861,12 +867,12 @@ protected:
 
 	void testAlive();
 	void testVictory();
+	void showEndGameSequence();
 	int FPChecksum() const; // advc.003g
 	void handleUpdateTimer(UpdateTimerTypes eTimerType); // advc.003r
 
 	void processVote(const VoteTriggeredData& kData, int iChange);
-
-	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
+	
 	void normalizeStartingPlotLocations();
 	void normalizeAddRiver();
 	void normalizeRemovePeaks();
@@ -883,12 +889,11 @@ protected:
 			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc.003>
 	// advc.108:
 	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
-
-	void showEndGameSequence();
-
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 
+	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
 	void doUpdateCacheOnTurn();
+	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex = -1) const; // advc.003
 };
 
 #endif

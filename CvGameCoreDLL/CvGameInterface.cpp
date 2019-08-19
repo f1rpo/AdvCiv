@@ -492,135 +492,63 @@ void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ 
 	gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
 }
 
-CvUnit* CvGame::getPlotUnit(const CvPlot* pPlot, int iIndex) const
+// advc.003: Merge of two BtS functions that had largely the same body
+CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex) const
 {
 	PROFILE_FUNC();
+
+	FAssert((iIndex == -1) != (pPlotUnits == NULL));
+
+	if (pPlotUnits != NULL)
+		pPlotUnits->clear();
 
 	if(pPlot == NULL)
 		return NULL;
 
 	int iCount = 0;
-	PlayerTypes activePlayer = getActivePlayer();
-	TeamTypes activeTeam = getActiveTeam();
-	CLLNode<IDInfo>* pUnitNode1;
-	CLLNode<IDInfo>* pUnitNode2;
-	CvUnit* pLoopUnit1;
-	CvUnit* pLoopUnit2;
+	PlayerTypes eActivePlayer = getActivePlayer();
+	TeamTypes eActiveTeam = getActiveTeam();
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		pUnitNode1 = pPlot->headUnitNode();
-
-		while (pUnitNode1 != NULL)
+		for (CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pPlot->nextUnitNode(pUnitNode))
 		{
-			pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
-			pUnitNode1 = pPlot->nextUnitNode(pUnitNode1);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			if ((pLoopUnit->getOwner() == eActivePlayer) != (iPass == 0))
+				continue;
+			if (pLoopUnit->isInvisible(eActiveTeam, true) || pLoopUnit->isCargo())
+				continue;
 
-			if (!(pLoopUnit1->isInvisible(activeTeam, true)))
+			if (iCount == iIndex)
+				return pLoopUnit;
+
+			iCount++;
+			if (pPlotUnits != NULL)
+				pPlotUnits->push_back(pLoopUnit);
+			//if (pLoopUnit1->getTeam() == activeTeam || isDebugMode()) {
+			if (!pLoopUnit->hasCargo())
+				continue;
+
+			for (CLLNode<IDInfo>* pCargoUnitNode = pPlot->headUnitNode(); pCargoUnitNode != NULL;
+				pCargoUnitNode = pPlot->nextUnitNode(pCargoUnitNode))
 			{
-				if (!(pLoopUnit1->isCargo()))
+				CvUnit* pCargoUnit = ::getUnit(pCargoUnitNode->m_data);
+				if (pCargoUnit->isInvisible(eActiveTeam, true))
+					continue;
+
+				if (pCargoUnit->getTransportUnit() == pLoopUnit)
 				{
-					if ((pLoopUnit1->getOwner() == activePlayer) == (iPass == 0))
-					{
-						if (iCount == iIndex)
-						{
-							return pLoopUnit1;
-						}
+					if (iCount == iIndex)
+						return pCargoUnit;
 
-						iCount++;
-
-						//if ((pLoopUnit1->getTeam() == activeTeam) || isDebugMode())
-						{
-							if (pLoopUnit1->hasCargo())
-							{
-								pUnitNode2 = pPlot->headUnitNode();
-
-								while (pUnitNode2 != NULL)
-								{
-									pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
-									pUnitNode2 = pPlot->nextUnitNode(pUnitNode2);
-
-									if (!(pLoopUnit2->isInvisible(activeTeam, true)))
-									{
-										if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
-										{
-											if (iCount == iIndex)
-											{
-												return pLoopUnit2;
-											}
-
-											iCount++;
-										}
-									}
-								}
-							}
-						}
-					}
+					iCount++;
+					if (pPlotUnits != NULL)
+						pPlotUnits->push_back(pCargoUnit);
 				}
 			}
 		}
 	}
-
 	return NULL;
-}
-
-void CvGame::getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit *> &plotUnits) const
-{
-	PROFILE_FUNC();
-
-	plotUnits.erase(plotUnits.begin(), plotUnits.end());
-
-	if(pPlot == NULL)
-		return;
-
-	CLLNode<IDInfo>* pUnitNode1;
-	CLLNode<IDInfo>* pUnitNode2;
-	CvUnit* pLoopUnit1;
-	CvUnit* pLoopUnit2;
-	PlayerTypes activePlayer = getActivePlayer();
-	TeamTypes activeTeam = getActiveTeam();
-	for (int iPass = 0; iPass < 2; iPass++)
-	{
-		pUnitNode1 = pPlot->headUnitNode();
-
-		while (pUnitNode1 != NULL)
-		{
-			pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
-			pUnitNode1 = pPlot->nextUnitNode(pUnitNode1);
-
-			if (!(pLoopUnit1->isInvisible(activeTeam, true)))
-			{
-				if (!(pLoopUnit1->isCargo()))
-				{
-					if ((pLoopUnit1->getOwner() == activePlayer) == (iPass == 0))
-					{
-						plotUnits.push_back(pLoopUnit1);
-
-						//if ((pLoopUnit1->getTeam() == activeTeam) || isDebugMode())
-						{
-							if (pLoopUnit1->hasCargo())
-							{
-								pUnitNode2 = pPlot->headUnitNode();
-
-								while (pUnitNode2 != NULL)
-								{
-									pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
-									pUnitNode2 = pPlot->nextUnitNode(pUnitNode2);
-
-									if (!(pLoopUnit2->isInvisible(activeTeam, true)))
-									{
-										if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
-										{
-											plotUnits.push_back(pLoopUnit2);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 void CvGame::cycleCities(bool bForward, bool bAdd) const
