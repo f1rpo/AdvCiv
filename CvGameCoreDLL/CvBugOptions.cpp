@@ -65,7 +65,6 @@ bool getBugOptionBOOL(const char* id, bool bDefault, bool bWarn)
 
 int getBugOptionINT(const char* id, int iDefault, bool bWarn)
 {	// <advc.003>
-	PROFILE_FUNC();
 	if(!checkBUGStatus(id, bWarn))
 		return iDefault; // </advc.003>
 	CyArgsList argsList;

@@ -1695,7 +1695,7 @@ CvPlotGroup* CvPlayer::initPlotGroup(CvPlot* pPlot)
 CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
 		int iOccupationTimer) // advc.122
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	CvCity* pCity = m_cities->add(); // advc.003u: was = addCity()
 	if (pCity == NULL)
@@ -2418,7 +2418,7 @@ bool CvPlayer::isCityNameValid(CvWString& szName, bool bTestDestroyed) const
 
 CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI, DirectionTypes eFacingDirection)
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	CvUnitAI* pUnit = m_units->add(); // advc.003u: was = addUnit()
 	if (pUnit == NULL)
@@ -20479,6 +20479,8 @@ bool CvPlayer::canSplitEmpire() const
 
 bool CvPlayer::canSplitArea(CvArea const& kArea) const // advc.003: was iAreaId
 {
+	PROFILE_FUNC(); // advc.003: Moved from CvPlayerAI::AI_doSplit
+
 	CvCity* pCapital = getCapitalCity();
 	if (pCapital == NULL)
 		return false;

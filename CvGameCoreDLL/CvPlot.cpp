@@ -1264,7 +1264,7 @@ bool CvPlot::isAdjacentToLand() const
 
 bool CvPlot::isCoastalLand(int iMinWaterSize) const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o: Called very frequently, probably mainly from CvUnitAI::AI_plotValid.
 
 	if (isWater())
 		return false;
@@ -3537,7 +3537,7 @@ void CvPlot::removeGoody()
 
 bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const {
 
-	if(bCheckImprovement && NO_IMPROVEMENT != getImprovementType()
+	if(bCheckImprovement && getImprovementType() != NO_IMPROVEMENT
 			&& GC.getImprovementInfo(getImprovementType()).isActsAsCity()) {
 		if(NO_TEAM == eForTeam || (NO_TEAM == getTeam() &&
 				GC.getImprovementInfo(getImprovementType()).isOutsideBorders()) ||

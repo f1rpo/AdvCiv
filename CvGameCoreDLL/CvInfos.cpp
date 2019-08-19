@@ -3551,11 +3551,6 @@ int CvUnitInfo::getUnitCombatType() const
 	return m_iUnitCombatType;
 }
 
-int CvUnitInfo::getDomainType() const
-{
-	return m_iDomainType;
-}
-
 int CvUnitInfo::getDefaultUnitAIType() const
 {
 	return m_iDefaultUnitAIType;
@@ -3776,11 +3771,6 @@ bool CvUnitInfo::isNoDefensiveBonus() const
 bool CvUnitInfo::isIgnoreBuildingDefense() const
 {
 	return m_bIgnoreBuildingDefense;
-}
-
-bool CvUnitInfo::isCanMoveImpassable() const
-{
-	return m_bCanMoveImpassable;
 }
 
 bool CvUnitInfo::isCanMoveAllTerrain() const

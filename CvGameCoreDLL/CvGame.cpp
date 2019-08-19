@@ -2920,7 +2920,7 @@ void CvGame::selectAll(CvPlot* pPlot) const
 
 bool CvGame::selectionListIgnoreBuildingDefense() const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	bool bIgnoreBuilding = false;
 	bool bAttackLandUnit = false;
@@ -8585,7 +8585,7 @@ int CvGame::getSorenRandNum(int iNum, const char* pszLog,
 
 int CvGame::calculateSyncChecksum()
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 	// <advc.003b>
 	if(!isNetworkMultiPlayer())
 		return 0; // </advc.003b>
@@ -8743,7 +8743,7 @@ int CvGame::calculateSyncChecksum()
 
 int CvGame::calculateOptionsChecksum()
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	int iValue = 0;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)

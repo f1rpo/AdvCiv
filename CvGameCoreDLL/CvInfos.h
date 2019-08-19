@@ -879,7 +879,11 @@ public:
 	int getSpecialUnitType() const;						// Exposed to Python
 	int getUnitCaptureClassType() const;			// Exposed to Python
 	int getUnitCombatType() const;						// Exposed to Python
-	int getDomainType() const;								// Exposed to Python
+	// advc.130f: inlined for CvArea::canBeEntered
+	__forceinline int getDomainType() const								// Exposed to Python
+	{
+		return m_iDomainType;
+	}
 	int getDefaultUnitAIType() const;					// Exposed to Python
 	int getInvisibleType() const;							// Exposed to Python
 	int getSeeInvisibleType(int i) const;					// Exposed to Python
@@ -927,7 +931,11 @@ public:
 	bool isFirstStrikeImmune() const;				// Exposed to Python
 	bool isNoDefensiveBonus() const;				// Exposed to Python
 	bool isIgnoreBuildingDefense() const;				// Exposed to Python
-	bool isCanMoveImpassable() const;				// Exposed to Python
+	// advc.003f: inlined for CvArea::canBeEntered
+	__forceinline bool isCanMoveImpassable() const				// Exposed to Python
+	{
+		return m_bCanMoveImpassable;
+	}
 	bool isCanMoveAllTerrain() const;				// Exposed to Python
 	bool isFlatMovementCost() const;				// Exposed to Python
 	bool isIgnoreTerrainCost() const;				// Exposed to Python

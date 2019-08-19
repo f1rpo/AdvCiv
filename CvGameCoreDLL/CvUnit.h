@@ -631,7 +631,12 @@ public:
 	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
 	CvUnit* getTransportUnit() const;																							// Exposed to Python
-	bool isCargo() const;																													// Exposed to Python
+	// advc.103f: inlined for CvArea::canBeEntered
+	__forceinline bool isCargo() const																												// Exposed to Python
+	{	// advc.test: (Should perhaps simply turn m_transportUnit into a CvUnit pointer.)
+		FAssert((getTransportUnit() == NULL) == (m_transportUnit.iID == NO_PLAYER));
+		return (m_transportUnit.iID != NO_PLAYER); // avoid ::getUnit call
+	}
 	void setTransportUnit(CvUnit* pTransportUnit);																							// Exposed to Python
 
 	int getExtraDomainModifier(DomainTypes eIndex) const;																		// Exposed to Python

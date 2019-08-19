@@ -11923,7 +11923,7 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer,
 			std::max(0, -getGoldPerTurn())) / 5; // </advc.036>
 	if (iGoldRate > 0)
 	{
-		PROFILE("AI_maxGoldTrade: gold rate adjustment");
+		//PROFILE("AI_maxGoldTrade: gold rate adjustment"); // advc.003o
 		int iTarget = AI_goldTarget();
 		if (iTreasury < iTarget)
 		{
@@ -14808,8 +14808,6 @@ int CvPlayerAI::AI_neededExplorers_bulk(CvArea const* pArea) const {
 	(and to avoid inconsistencies between CvUnitAI and CvCityAI) */
 bool CvPlayerAI::AI_isExcessSeaExplorers(CvArea* pWaterArea, int iChange) const
 {
-	PROFILE_FUNC(); // (AI_totalWaterAreaUnitAIs is expensive)
-
 	if (pWaterArea == NULL)
 	{
 		FAssert(pWaterArea != NULL);
@@ -14823,7 +14821,6 @@ bool CvPlayerAI::AI_isExcessSeaExplorers(CvArea* pWaterArea, int iChange) const
 // Note: only tested for eRole=UNITAI_EXPLORE_SEA
 bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea* pArea) const
 {
-	PROFILE_FUNC();
 	int iValue = AI_unitValue(eUnit, eRole, pArea);
 	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType();
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
@@ -15190,7 +15187,7 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea* pArea, int iBuildProb) const
 // The starting value is around 100, which corresponds to quite a low tendency to build nukes.
 int CvPlayerAI::AI_nukeWeight() const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	if (!GC.getGame().isNukesValid() || GC.getGame().isNoNukes())
 		return 0;
@@ -22249,8 +22246,6 @@ EventTypes CvPlayerAI::AI_chooseEvent(int iTriggeredId) const
 
 void CvPlayerAI::AI_doSplit(/* advc.104r: */ bool bForce)  // advc.003: some style changes
 {
-	PROFILE_FUNC();
-
 	if (!canSplitEmpire())
 		return;
 
@@ -25074,7 +25069,7 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 int CvPlayerAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 		bool bConstCache) const // advc.001n
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o (the cache seems to be very effective)
 	FAssert(GET_PLAYER(eIndex).isAlive());
 	FAssert(eIndex != getID());
 
@@ -25139,7 +25134,7 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bT
 //this doesn't include the minimal one or two garrison units in each city.
 int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	int iAreaCities = pArea->getCitiesPerPlayer(getID());
 	int iCurrentEra = getCurrentEra();
@@ -26778,7 +26773,7 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 
 void CvPlayerAI::AI_updateBonusValue()
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // advc.036 (comment): Performance could be an issue in multiplayer
 
 	FAssert(m_aiBonusValue != NULL);
 

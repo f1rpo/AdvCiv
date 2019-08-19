@@ -2313,11 +2313,7 @@ int CvTeamAI::AI_mapTradeVal(TeamTypes eTeam) const
 
 DenialTypes CvTeamAI::AI_mapTrade(TeamTypes eTeam) const
 {
-	PROFILE_FUNC();
-
-	AttitudeTypes eAttitude;
-	int iI;
-
+	//PROFILE_FUNC(); // advc.003o
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
 	if (isHuman())
@@ -2340,9 +2336,9 @@ DenialTypes CvTeamAI::AI_mapTrade(TeamTypes eTeam) const
 		return DENIAL_WORST_ENEMY;
 	}
 
-	eAttitude = AI_getAttitude(eTeam);
+	AttitudeTypes eAttitude = AI_getAttitude(eTeam);
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -3312,8 +3308,7 @@ bool CvTeamAI::AI_refuseWar(TeamTypes eWarTeam) const
 // the following is a bbai function which has been edited for K-Mod (most of the K-Mod changes are unmarked)
 bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc.003: style changes
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	const CvTeamAI& kSurrenderTeam = GET_TEAM(eSurrenderTeam);
 
 	if (isHuman())
@@ -4104,8 +4099,7 @@ int CvTeamAI::AI_openBordersTradeVal(TeamTypes eTeam) const
 
 DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const  // advc.003: some style changes
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc,003o
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
 	if (isHuman() || isVassal(eTeam))
@@ -4164,8 +4158,7 @@ int CvTeamAI::AI_defensivePactTradeVal(TeamTypes eTeam) const
 
 DenialTypes CvTeamAI::AI_defensivePactTrade(TeamTypes eTeam) const
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
 	if (isHuman())
@@ -4900,7 +4893,7 @@ int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance,
 		bool bConsiderLandTarget, // advc.104o
 		bool bConstCache) const // advc.001n
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o (the cache seems to be very effective)
 
 	if (iMaxDistance == -1)
 		iMaxDistance = DEFAULT_PLAYER_CLOSENESS;

@@ -20996,7 +20996,7 @@ bool CvUnitAI::AI_reconSpy(int iRange)  // advc.003: loops flattened
 /// Have spy breakdown city defenses if we have troops in position to capture city this turn.
 bool CvUnitAI::AI_revoltCitySpy()
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	CvCity* pCity = plot()->getPlotCity();
 
@@ -22129,18 +22129,14 @@ int CvUnitAI::AI_searchRange(int iRange)
 	}
 }
 
-
 // XXX at some point test the game with and without this function...
 bool CvUnitAI::AI_plotValid(CvPlot const* pPlot) /* advc.003: */ const
-{	/*  advc.003o: This function is called extremely often and the total time
-		spent is significant, but profiling it over and over won't help.
-		Regarding the XXX comment above: To get rid of this function, step 1 would be
-		to FAssert(false) when it returns false. */
+{	/*  advc.003o: Called extremely often; see comments in CvArea::canBeEntered.
+		Regarding the XXX comment above: I don't think this function could be
+		easily removed at this point. */
 	//PROFILE_FUNC();
 	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(pPlot))
-	{
 		return false;
-	}
 
 	switch (getDomainType())
 	{
@@ -22155,10 +22151,6 @@ bool CvUnitAI::AI_plotValid(CvPlot const* pPlot) /* advc.003: */ const
 		}
 		break;
 
-	case DOMAIN_AIR:
-		FAssert(false);
-		break;
-
 	case DOMAIN_LAND:
 		if (//pPlot->getArea() == getArea()
 		/*  advc.030: Replacing the above. Wouldn't hurt to do that for
@@ -22171,13 +22163,8 @@ bool CvUnitAI::AI_plotValid(CvPlot const* pPlot) /* advc.003: */ const
 		}
 		break;
 
-	case DOMAIN_IMMOBILE:
-		FAssert(false);
-		break;
-
 	default:
 		FAssert(false);
-		break;
 	}
 
 	return false;

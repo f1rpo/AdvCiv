@@ -303,8 +303,7 @@ void CvMap::setAllPlotTypes(PlotTypes ePlotType)
 // XXX generalize these funcs? (macro?)
 void CvMap::doTurn()
 {
-	PROFILE("CvMap::doTurn()");
-
+	//PROFILE("CvMap::doTurn()"); // advc.003o
 	for(int iI = 0; iI < numPlots(); iI++)
 		plotByIndex(iI)->doTurn();
 }

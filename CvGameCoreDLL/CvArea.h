@@ -170,8 +170,8 @@ public:
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
-	// <advc.003f> Inlined. All exposed to Python.
-	inline int  CvArea::getID() const { return m_iID; }
+	// <advc.003f> Inlined. All exposed to Python. 2x __force for CvArea::canBeEntered.
+	__forceinline int  CvArea::getID() const { return m_iID; }
 	inline int  CvArea::getNumTiles() const { return m_iNumTiles; }
 	inline bool CvArea::isLake() const {
 			return m_bLake; // <advc.030> Replacing the line below
@@ -185,7 +185,7 @@ public:
 	inline int  CvArea :: getNumUnits() const { return m_iNumUnits; }
 	inline int  CvArea :: getNumCities() const { return m_iNumCities; }
 	inline int  CvArea :: getNumStartingPlots() const { return m_iNumStartingPlots; }
-	inline bool CvArea :: isWater() const { return m_bWater; }
+	__forceinline bool CvArea :: isWater() const { return m_bWater; }
 	inline int  CvArea :: getNumUnrevealedTiles(TeamTypes eIndex) const {
 		return getNumTiles() - getNumRevealedTiles(eIndex);
 	}

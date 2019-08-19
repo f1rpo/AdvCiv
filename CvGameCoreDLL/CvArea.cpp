@@ -363,6 +363,11 @@ int CvArea::getRepresentativeArea() const {
 	performance reasons before costlier more specific checks. */
 bool CvArea::canBeEntered(CvArea const& kFrom, CvUnit const* u) const {
 
+	//PROFILE_FUNC();
+	/*  Called extremely often, more than 10^6 times per second according to the
+		internal profiler. Mostly from CvUnitAI::AI_isPlotValid.
+		advc.130f: I've force-inlined all functions called from here except
+		CvUnit::plot and CvUnit::getDomainType. */
 	if(getID() == kFrom.getID())
 		return true;
 	/*  If I wanted to support canMoveAllTerrain here, then I couldn't do

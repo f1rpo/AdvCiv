@@ -3475,7 +3475,7 @@ bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
 
 bool CvUnit::canLoad(const CvPlot* pPlot, /* advc.123c: */ bool bCheckMoves) const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	FAssert(pPlot != NULL);
 
@@ -3778,7 +3778,7 @@ bool CvUnit::canSentry(const CvPlot* pPlot) const
 
 int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 	// <advc.003b>
 	static int const iCITY_HEAL_RATE = GC.getDefineINT("CITY_HEAL_RATE");
 	static int const iFRIENDLY_HEAL_RATE = GC.getDefineINT("FRIENDLY_HEAL_RATE");
@@ -7515,7 +7515,7 @@ const wchar* CvUnit::getVisualCivAdjective(TeamTypes eForTeam) const
 
 SpecialUnitTypes CvUnit::getSpecialUnitType() const
 {
-	return ((SpecialUnitTypes)(m_pUnitInfo->getSpecialUnitType()));
+	return (SpecialUnitTypes)m_pUnitInfo->getSpecialUnitType();
 }
 
 
@@ -7528,19 +7528,17 @@ UnitTypes CvUnit::getCaptureUnitType(CivilizationTypes eCivilization) const
 
 UnitCombatTypes CvUnit::getUnitCombatType() const
 {
-	return ((UnitCombatTypes)(m_pUnitInfo->getUnitCombatType()));
+	return (UnitCombatTypes)m_pUnitInfo->getUnitCombatType();
 }
 
-
-DomainTypes CvUnit::getDomainType() const
+DomainTypes CvUnit::getDomainType() const													// Exposed to Python
 {
-	return ((DomainTypes)(m_pUnitInfo->getDomainType()));
+	return (DomainTypes)m_pUnitInfo->getDomainType();
 }
-
 
 InvisibleTypes CvUnit::getInvisibleType() const
 {
-	return ((InvisibleTypes)(m_pUnitInfo->getInvisibleType()));
+	return (InvisibleTypes)m_pUnitInfo->getInvisibleType();
 }
 
 int CvUnit::getNumSeeInvisibleTypes() const
@@ -9130,7 +9128,6 @@ bool CvUnit::ignoreBuildingDefense() const
 {
 	return m_pUnitInfo->isIgnoreBuildingDefense();
 }
-
 
 bool CvUnit::canMoveImpassable() const
 {
@@ -11501,66 +11498,54 @@ CvUnit* CvUnit::getTransportUnit() const
 }
 
 
-bool CvUnit::isCargo() const
-{
-	return (getTransportUnit() != NULL);
-}
-
-
 void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 {
-	CvUnit* pOldTransportUnit;
+	CvUnit* pOldTransportUnit = getTransportUnit();
 
-	pOldTransportUnit = getTransportUnit();
+	if (pOldTransportUnit == pTransportUnit)
+		return;
 
-	if (pOldTransportUnit != pTransportUnit)
+	if (pOldTransportUnit != NULL)
+		pOldTransportUnit->changeCargo(-1);
+
+	if (pTransportUnit != NULL)
 	{
-		if (pOldTransportUnit != NULL)
-		{
-			pOldTransportUnit->changeCargo(-1);
-		}
+		FAssertMsg(pTransportUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType()) > 0, "Cargo space is expected to be available");
 
-		if (pTransportUnit != NULL)
-		{
-			FAssertMsg(pTransportUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType()) > 0, "Cargo space is expected to be available");
+		//joinGroup(NULL, true); // Because what if a group of 3 tries to get in a transport which can hold 2...
 
-			//joinGroup(NULL, true); // Because what if a group of 3 tries to get in a transport which can hold 2...
-
-			// K-Mod
-			if (getGroup()->getNumUnits() > 1) // we could use > cargoSpace, I suppose. But maybe some quirks of game mechanics rely on this group split.
-				joinGroup(NULL, true);
-			else
-			{
-				getGroup()->clearMissionQueue();
-				if (IsSelected())
-					gDLL->getInterfaceIFace()->removeFromSelectionList(this);
-			}
-			FAssert(getGroup()->headMissionQueueNode() == 0); // we don't want them jumping off the boat to complete some unfinished mission!
-			// K-Mod end
-
-			m_transportUnit = pTransportUnit->getIDInfo();
-
-			if (getDomainType() != DOMAIN_AIR)
-			{
-				//getGroup()->setActivityType(ACTIVITY_SLEEP);
-				getGroup()->setActivityType(ACTIVITY_BOARDED); // advc.075
-			}
-
-			if (GC.getGame().isFinalInitialized())
-			{
-				finishMoves();
-			}
-
-			pTransportUnit->changeCargo(1);
-			pTransportUnit->getGroup()->setActivityType(ACTIVITY_AWAKE);
-		}
+		// K-Mod
+		if (getGroup()->getNumUnits() > 1) // we could use > cargoSpace, I suppose. But maybe some quirks of game mechanics rely on this group split.
+			joinGroup(NULL, true);
 		else
 		{
-			m_transportUnit.reset();
-
-			if (getGroup()->getActivityType() != ACTIVITY_MISSION) // K-Mod. (the unit might be trying to walk somewhere.)
-				getGroup()->setActivityType(ACTIVITY_AWAKE);
+			getGroup()->clearMissionQueue();
+			if (IsSelected())
+				gDLL->getInterfaceIFace()->removeFromSelectionList(this);
 		}
+		FAssert(getGroup()->headMissionQueueNode() == 0); // we don't want them jumping off the boat to complete some unfinished mission!
+		// K-Mod end
+
+		m_transportUnit = pTransportUnit->getIDInfo();
+
+		if (getDomainType() != DOMAIN_AIR)
+		{
+			//getGroup()->setActivityType(ACTIVITY_SLEEP);
+			getGroup()->setActivityType(ACTIVITY_BOARDED); // advc.075
+		}
+
+		if (GC.getGame().isFinalInitialized())
+			finishMoves();
+
+		pTransportUnit->changeCargo(1);
+		pTransportUnit->getGroup()->setActivityType(ACTIVITY_AWAKE);
+	}
+	else
+	{
+		m_transportUnit.reset();
+
+		if (getGroup()->getActivityType() != ACTIVITY_MISSION) // K-Mod. (the unit might be trying to walk somewhere.)
+			getGroup()->setActivityType(ACTIVITY_AWAKE);
 	}
 }
 
