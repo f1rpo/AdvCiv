@@ -18971,7 +18971,9 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 		SAFE_DELETE_ARRAY(pszSoundTrackNames);
 	}
 
-	pXML->SetVariableListTagPairForAudioScripts(&m_paiCitySoundscapeScriptIds, "CitySoundscapes", GC.getCitySizeTypes(), sizeof(GC.getCitySizeTypes((CitySizeTypes)0)));
+	pXML->SetVariableListTagPairForAudioScripts(&m_paiCitySoundscapeScriptIds, "CitySoundscapes", GC.getCitySizeTypes(),
+		//sizeof(GC.getCitySizeTypes((CitySizeTypes)0))
+		GC.getNumCitySizeTypes()); // advc.001 (The above was greater than the correct value, so it didn't do any real harm.)
 
 	return true;
 }

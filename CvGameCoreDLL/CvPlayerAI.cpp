@@ -17167,8 +17167,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			if (iTempValue == 0)
 				continue;
 
+			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
+			// <advc.001> (No problem with the BtS/AdvCiv XML data, but still a bug.)
+			if (eBuilding == NO_BUILDING)
+				continue; // </advc.001>
 			int iExpectedBuildings = 0;
-			if (canConstruct((BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)))
+			if (canConstruct(eBuilding))
 			{
 				iExpectedBuildings = (iCities + 2*getBuildingClassCountPlusMaking((BuildingClassTypes)iI))/3;
 			}
