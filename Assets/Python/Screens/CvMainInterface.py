@@ -2419,7 +2419,9 @@ class CvMainInterface:
 				# Units to construct
 				for i in range ( g_NumUnitClassInfos ):
 					eLoopUnit = gc.getCivilizationInfo(pHeadSelectedCity.getCivilizationType()).getCivilizationUnits(i)
-
+					# <advc.001>
+					if eLoopUnit == UnitTypes.NO_UNIT:
+						continue # </advc.001>
 					if (pHeadSelectedCity.canTrain(eLoopUnit, False, True)):
 						szButton = gc.getPlayer(pHeadSelectedCity.getOwner()).getUnitButton(eLoopUnit)
 						screen.appendMultiListButton( "BottomButtonContainer", szButton, iRow, WidgetTypes.WIDGET_TRAIN, i, -1, False )
@@ -2440,7 +2442,9 @@ class CvMainInterface:
 				for i in range ( g_NumBuildingClassInfos ):
 					if (not isLimitedWonderClass(i)):
 						eLoopBuilding = gc.getCivilizationInfo(pHeadSelectedCity.getCivilizationType()).getCivilizationBuildings(i)
-
+						# <advc.001>
+						if eLoopBuilding == BuildingTypes.NO_BUILDING:
+							continue # </advc.001>
 						if (pHeadSelectedCity.canConstruct(eLoopBuilding, False, True, False)):
 							screen.appendMultiListButton( "BottomButtonContainer", gc.getBuildingInfo(eLoopBuilding).getButton(), iRow, WidgetTypes.WIDGET_CONSTRUCT, i, -1, False )
 							screen.show( "BottomButtonContainer" )
@@ -2461,7 +2465,9 @@ class CvMainInterface:
 				for i in range( g_NumBuildingClassInfos ):
 					if (isLimitedWonderClass(i)):
 						eLoopBuilding = gc.getCivilizationInfo(pHeadSelectedCity.getCivilizationType()).getCivilizationBuildings(i)
-
+						# <advc.001>
+						if eLoopBuilding == BuildingTypes.NO_BUILDING:
+							continue # </advc.001>
 						if (pHeadSelectedCity.canConstruct(eLoopBuilding, False, True, False)):
 							screen.appendMultiListButton( "BottomButtonContainer", gc.getBuildingInfo(eLoopBuilding).getButton(), iRow, WidgetTypes.WIDGET_CONSTRUCT, i, -1, False )
 							screen.show( "BottomButtonContainer" )

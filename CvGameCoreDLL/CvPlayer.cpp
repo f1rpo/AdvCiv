@@ -8541,7 +8541,7 @@ int CvPlayer::getWorkRate(BuildTypes eBuild) const {
 	CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
 		UnitTypes eUnit = (UnitTypes)kCiv.getCivilizationUnits(i);
-		if (eUnit == NULL)
+		if (eUnit == NO_UNIT)
 			continue;
 		CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
 		if (kUnit.getBuilds(eBuild)) {
