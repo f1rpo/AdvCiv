@@ -618,7 +618,7 @@ public:
 		FASSERT_BOUNDS(0, getNumThroneRoomCameras(), iThroneRoomCamera, "CvGlobals::getThroneRoomCamera");
 		return *m_paThroneRoomCamera[iThroneRoomCamera];
 	}
-	DllExport int getNumThroneRoomInfos() { CvGlobals const& kThis = *this; return kThis.getNumThroneRoomInfos(); }
+	DllExport int getNumThroneRoomInfos();
 	inline int getNumThroneRoomInfos() const
 	{
 		return (int)m_paThroneRoomInfo.size();
@@ -1280,6 +1280,11 @@ public:
 
 	CvString const& getCurrentXMLFile() const; // advc.003t: 2x const
 	void setCurrentXMLFile(const TCHAR* szFileName);
+	// <advc.003v>
+	void setXMLLoadUtility(CvXMLLoadUtility* pXML);
+	void loadOptionalXMLInfo();
+	void loadThroneRoomInfo();
+	// </advc.003v>
 
 	//
 	///////////////// BEGIN global defines
@@ -1995,6 +2000,8 @@ protected:
 	bool m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK;
 	bool m_bUSE_DO_COMBAT_CALLBACK;
 	// K-Mod end
+
+	CvXMLLoadUtility* m_pXMLLoadUtility; // advc.003v
 
 	// DLL interface
 	CvDLLUtilityIFaceBase* m_pDLL;

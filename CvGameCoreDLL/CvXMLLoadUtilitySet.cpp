@@ -786,9 +786,10 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	}
 
 	UpdateProgressCB("GlobalOther");
-
 	DestroyFXml();
 	getWPAI.doXML(); // advc.104x
+	GC.setXMLLoadUtility(this); // advc.003v
+
 	return true;
 }
 
@@ -810,16 +811,13 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 		comment under the friend declaration in CvGlobals.h. */
 
 	//throne room disabled
-	UpdateProgressCB("Global Throne Room");
-
-	LoadGlobalClassInfo(GC.m_paThroneRoomCamera, "CIV4ThroneRoomCameraInfos", "Interface", "Civ4ThroneRoomCameraInfos/ThroneRoomCameraInfos/ThroneRoomCamera", false);
-	LoadGlobalClassInfo(GC.m_paThroneRoomInfo, "CIV4ThroneRoomInfos", "Interface", "Civ4ThroneRoomInfos/ThroneRoomInfos/ThroneRoomInfo", false);
-	LoadGlobalClassInfo(GC.m_paThroneRoomStyleInfo, "CIV4ThroneRoomStyleInfos", "Interface", "Civ4ThroneRoomStyleInfos/ThroneRoomStyleInfos/ThroneRoomStyleInfo", false);
-
-	UpdateProgressCB("Global Events");
-
-	LoadGlobalClassInfo(GC.m_paEventInfo, "CIV4EventInfos", "Events", "Civ4EventInfos/EventInfos/EventInfo", true, &CvDLLUtilityIFaceBase::createEventInfoCacheObject);
-	LoadGlobalClassInfo(GC.m_paEventTriggerInfo, "CIV4EventTriggerInfos", "Events", "Civ4EventTriggerInfos/EventTriggerInfos/EventTriggerInfo", false, &CvDLLUtilityIFaceBase::createEventTriggerInfoCacheObject);
+	// advc.003v: Moved into LoadThroneRoomInfo
+	//UpdateProgressCB("Global Throne Room");
+	// ...
+	
+	// advc.003v: Moved into LoadOptionalGlobals
+	//UpdateProgressCB("Global Events");
+	// ...
 
 	UpdateProgressCB("Global Routes");
 
@@ -876,11 +874,48 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	//LoadGlobalClassInfo(GC.QuestInfo, "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);
 	LoadGlobalClassInfo(GC.m_paTutorialInfo, "Civ4TutorialInfos", "Misc", "Civ4TutorialInfos/TutorialInfo", false);
 
+	/*  advc.003v (comment): Could probably move this to LoadOptionalGlobals, but,
+		since the NO_ESPIONAGE option isn't even visible anymore in AdvCiv, I'm
+		not going to bother to try it. */
 	LoadGlobalClassInfo(GC.m_paEspionageMissionInfo, "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
 
 	DestroyFXml();
 	return true;
 }
+
+// <advc.003v>
+bool CvXMLLoadUtility::LoadOptionalGlobals()
+{
+	if (m_bEventsLoaded || GC.getGame().isOption(GAMEOPTION_NO_EVENTS))
+		return true;
+
+	if (!CreateFXml())
+		return false;
+	UpdateProgressCB("Global Events");
+	LoadGlobalClassInfo(GC.m_paEventInfo, "CIV4EventInfos", "Events", "Civ4EventInfos/EventInfos/EventInfo", true, &CvDLLUtilityIFaceBase::createEventInfoCacheObject);
+	LoadGlobalClassInfo(GC.m_paEventTriggerInfo, "CIV4EventTriggerInfos", "Events", "Civ4EventTriggerInfos/EventTriggerInfos/EventTriggerInfo", false, &CvDLLUtilityIFaceBase::createEventTriggerInfoCacheObject);
+	DestroyFXml();
+	m_bEventsLoaded = true;
+	return true;
+} // </advc.003v>
+
+
+bool CvXMLLoadUtility::LoadThroneRoomInfo()
+{
+	if (m_bThroneRoomLoaded)
+		return true;
+
+	if (!CreateFXml())
+		return false;
+	FAssert(GC.getGame().isDebugMode());
+	UpdateProgressCB("Global Throne Room");
+	LoadGlobalClassInfo(GC.m_paThroneRoomCamera, "CIV4ThroneRoomCameraInfos", "Interface", "Civ4ThroneRoomCameraInfos/ThroneRoomCameraInfos/ThroneRoomCamera", false);
+	LoadGlobalClassInfo(GC.m_paThroneRoomInfo, "CIV4ThroneRoomInfos", "Interface", "Civ4ThroneRoomInfos/ThroneRoomInfos/ThroneRoomInfo", false);
+	LoadGlobalClassInfo(GC.m_paThroneRoomStyleInfo, "CIV4ThroneRoomStyleInfos", "Interface", "Civ4ThroneRoomStyleInfos/ThroneRoomStyleInfos/ThroneRoomStyleInfo", false);
+	DestroyFXml();
+	m_bThroneRoomLoaded = true;
+	return true;
+} // </advc.003v>
 
 
 //------------------------------------------------------------------------------------------------------

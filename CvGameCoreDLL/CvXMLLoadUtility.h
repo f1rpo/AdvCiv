@@ -45,6 +45,9 @@ public:
 	DllExport bool LoadBasicInfos();
 	DllExport bool LoadPlayerOptions();
 	DllExport bool LoadGraphicOptions();
+	// <advc.003v>
+	bool LoadOptionalGlobals();
+	bool LoadThroneRoomInfo(); // </advc.003v>
 
 	// read the global defines from a specific file
 	bool ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache);
@@ -264,6 +267,11 @@ private:
 	int m_iCurProgressStep;
 	ProgressCB m_pCBFxn;
 
+	bool m_bEventsLoaded, m_bThroneRoomLoaded; // advc.003v
+	// <advc.006b>
+	bool m_bAssertMandatory;
+	static CvString szAssertMsg;
+	// </advc.006b>
 //---------------------------------------PRIVATE INTERFACE---------------------------------
 private:
 	void UpdateProgressCB(const char* szMessage=NULL);
@@ -308,9 +316,6 @@ private:
 
 	void orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength);
 	void logMsg(char* format, ...);
-	// <advc.006b>
-	bool m_bAssertMandatory;
-	static CvString szAssertMsg; // </advc.006b>
 };
 
 #ifdef _USRDLL

@@ -3,13 +3,14 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
+#include "FVariableSystem.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CvPlayerAI.h"
 #include "CvInfoWater.h"
 #include "CvGameTextMgr.h"
-#include "FVariableSystem.h"
+#include "CvXMLLoadUtility.h" // advc.003v
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLXMLIFaceBase.h"
 
@@ -133,6 +134,7 @@ m_routeFinder(NULL),
 m_borderFinder(NULL),
 m_areaFinder(NULL),
 m_plotGroupFinder(NULL),
+m_pXMLLoadUtility(NULL), // advc.003v
 m_pDLL(NULL),
 m_aiPlotDirectionX(NULL),
 m_aiPlotDirectionY(NULL),
@@ -501,6 +503,14 @@ CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
 	return *(m_paColorInfo[e]);
 }
 
+int CvGlobals::getNumThroneRoomInfos()
+{
+	loadThroneRoomInfo(); // advc.003v: Load it as late as possible
+	// <advc.130t>
+	CvGlobals const& kThis = *this;
+	return kThis.getNumThroneRoomInfos(); // </advc.130t>
+}
+
 void CvGlobals::setActiveLandscapeID(int iLandscapeID)
 {
 	m_iActiveLandscapeID = iLandscapeID;
@@ -725,6 +735,28 @@ CvString const& CvGlobals::getCurrentXMLFile() const
 {
 	return m_szCurrentXMLFile;
 }
+// <advc.003v>
+// It seems that the DLL wasn't keeping a handle to the XMLLoadUtility so far
+void CvGlobals::setXMLLoadUtility(CvXMLLoadUtility* pXML)
+{
+	m_pXMLLoadUtility = pXML;
+}
+
+void CvGlobals::loadOptionalXMLInfo()
+{
+	bool bSuccess = false;
+	if (m_pXMLLoadUtility != NULL)
+		bSuccess = m_pXMLLoadUtility->LoadOptionalGlobals();
+	FAssertMsg(bSuccess, "Failed to load optional XML data");
+}
+
+void CvGlobals::loadThroneRoomInfo()
+{
+	bool bSuccess = false;
+	if (m_pXMLLoadUtility != NULL)
+		bSuccess = m_pXMLLoadUtility->LoadThroneRoomInfo();
+	FAssertMsg(bSuccess, "Failed to load XML data for Throne Room");
+} // </advc.003v>
 // advc.003t:
 #define MAKE_STRINGS(VAR) #VAR,
 // <advc.003t>

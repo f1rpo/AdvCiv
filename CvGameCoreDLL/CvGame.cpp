@@ -762,6 +762,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// <advc.003r>
 	for(int i = 0; i < NUM_UPDATE_TIMER_TYPES; i++)
 		m_aiUpdateTimers[i] = -1; // </advc.003r>
+	/*  <advc.003v> No need to read data from a savegame first; CvInitCore
+		is responsible for the game options and is loaded before CvGame. */
+	if (!bConstructorCall)
+		CvGlobals::getInstance().loadOptionalXMLInfo(); // </advc.003v>
 }
 
 
