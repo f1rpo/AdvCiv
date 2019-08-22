@@ -3,7 +3,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
 #include "CvPlayerAI.h"
-#include "CvInfos.h"
+#include "CvInfo_Unit.h"
+#include "CvInfo_GameOption.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 
@@ -1972,7 +1973,8 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		pStream->Read(m_iNumVictories, m_abVictories);
 	}
 	// <advc.912d>
-	if(uiSaveFlag <= 0)	{
+	if(uiSaveFlag <= 0)
+	{
 		pStream->Read(NUM_GAMEOPTION_TYPES - 2, m_abOptions);
 		m_abOptions[NUM_GAMEOPTION_TYPES - 2] = false;
 		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;

@@ -2,7 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
-#include "CvInfos.h"
+#include "CvInfo_Unit.h"
+#include "CvInfo_Terrain.h"
 #include "CvGamePlay.h"
 #include "CvDealList.h" // advc.003s
 #include "RiseFall.h" // advc.706

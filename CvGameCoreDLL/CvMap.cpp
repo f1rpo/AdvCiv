@@ -15,7 +15,7 @@
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
 #include "FAStarNode.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
 #include "CvDLLIniParserIFaceBase.h"
 #include <stack> // advc.030
 

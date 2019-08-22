@@ -7,8 +7,11 @@
 #include "WarAndPeaceAgent.h" // advc.104t
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Civics.h"
 #include "CvDiploParameters.h"
-#include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "BBAI_Defines.h"

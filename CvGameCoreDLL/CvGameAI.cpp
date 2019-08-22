@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
 #include "CvGamePlay.h"
-#include "CvInfos.h"
+#include "CvInfo_Unit.h"
 
 
 CvGameAI::CvGameAI()

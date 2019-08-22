@@ -3,10 +3,10 @@
 //
 
 #include "CvGameCoreDLL.h"
+#include "CvInfo_Misc.h"
 #include "CyMap.h"
 #include "CyPlayer.h"
 #include "CyGame.h"
-#include "CvInfos.h"
 #include "CyTeam.h"
 
 void CyGlobalContextPythonInterface3(python::class_<CyGlobalContext>& x)

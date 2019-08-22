@@ -7,7 +7,8 @@
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
-#include "CvInfos.h"
+#include "CvInfo_Civics.h"
+#include "CvInfo_Terrain.h" // just for a logBBAI call :(
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 

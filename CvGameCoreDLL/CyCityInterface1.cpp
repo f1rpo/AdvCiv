@@ -1,6 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CyArea.h"
-#include "CvInfos.h"
 
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>

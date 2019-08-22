@@ -17,7 +17,7 @@
       <Configuration>Profile-fast</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-	<ProjectConfiguration Include="Debug-fast|Win32">
+    <ProjectConfiguration Include="Debug-fast|Win32">
       <Configuration>Debug-fast</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
@@ -64,8 +64,23 @@
     <ClCompile Include="..\CvGameTextMgr.cpp" />
     <ClCompile Include="..\CvGlobals.cpp" />
     <ClCompile Include="..\CvHallOfFameInfo.cpp" />
-    <ClCompile Include="..\CvInfos.cpp" />
-    <ClCompile Include="..\CvInfoWater.cpp" />
+    <ClCompile Include="..\CvInfo_Asset.cpp" />
+    <ClCompile Include="..\CvInfo_Base.cpp" />
+    <ClCompile Include="..\CvInfo_Build.cpp" />
+    <ClCompile Include="..\CvInfo_Building.cpp" />
+    <ClCompile Include="..\CvInfo_City.cpp" />
+    <ClCompile Include="..\CvInfo_Civics.cpp" />
+    <ClCompile Include="..\CvInfo_Civilization.cpp" />
+    <ClCompile Include="..\CvInfo_Command.cpp" />
+    <ClCompile Include="..\CvInfo_GameOption.cpp" />
+    <ClCompile Include="..\CvInfo_Misc.cpp" />
+    <ClCompile Include="..\CvInfo_Organization.cpp" />
+    <ClCompile Include="..\CvInfo_RandomEvent.cpp" />
+    <ClCompile Include="..\CvInfo_Symbol.cpp" />
+    <ClCompile Include="..\CvInfo_Tech.cpp" />
+    <ClCompile Include="..\CvInfo_Terrain.cpp" />
+    <ClCompile Include="..\CvInfo_Unit.cpp" />
+    <ClCompile Include="..\CvInfo_Water.cpp" />
     <ClCompile Include="..\CvInitCore.cpp" />
     <ClCompile Include="..\CvMap.cpp" />
     <ClCompile Include="..\CvMapGenerator.cpp" />
@@ -208,8 +223,24 @@
     <ClInclude Include="..\CvGameTextMgr.h" />
     <ClInclude Include="..\CvGlobals.h" />
     <ClInclude Include="..\CvHallOfFameInfo.h" />
-    <ClInclude Include="..\CvInfos.h" />
-    <ClInclude Include="..\CvInfoWater.h" />
+    <ClInclude Include="..\CvInfo_All.h" />
+    <ClInclude Include="..\CvInfo_Asset.h" />
+    <ClInclude Include="..\CvInfo_Base.h" />
+    <ClInclude Include="..\CvInfo_Build.h" />
+    <ClInclude Include="..\CvInfo_Building.h" />
+    <ClInclude Include="..\CvInfo_City.h" />
+    <ClInclude Include="..\CvInfo_Civics.h" />
+    <ClInclude Include="..\CvInfo_Civilization.h" />
+    <ClInclude Include="..\CvInfo_Command.h" />
+    <ClInclude Include="..\CvInfo_GameOption.h" />
+    <ClInclude Include="..\CvInfo_Misc.h" />
+    <ClInclude Include="..\CvInfo_Organization.h" />
+    <ClInclude Include="..\CvInfo_RandomEvent.h" />
+    <ClInclude Include="..\CvInfo_Symbol.h" />
+    <ClInclude Include="..\CvInfo_Tech.h" />
+    <ClInclude Include="..\CvInfo_Terrain.h" />
+    <ClInclude Include="..\CvInfo_Unit.h" />
+    <ClInclude Include="..\CvInfo_Water.h" />
     <ClInclude Include="..\CvInitCore.h" />
     <ClInclude Include="..\CvMap.h" />
     <ClInclude Include="..\CvMapGenerator.h" />

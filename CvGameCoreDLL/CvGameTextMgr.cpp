@@ -14,7 +14,7 @@
 #include "CvGamePlay.h"
 #include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 #include "CvXMLLoadUtility.h"
 #include "CvMap.h"
 #include "CvArea.h"

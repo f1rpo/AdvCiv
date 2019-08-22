@@ -6,7 +6,7 @@
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
 #include "CvGameTextMgr.h"
-#include "CvInfoWater.h"
+#include "CvInfo_All.h"
 #include "CvGameAI.h" // advc.104x
 #include "FVariableSystem.h"
 // <advc.003t> Overwrite the definition in CvGlobals.h b/c a const GC is no use here
@@ -14,7 +14,8 @@
 #define GC CvGlobals::getInstance() // </advc.003t>
 
 // Macro for Setting Global Art Defines
-#define INIT_XML_GLOBAL_LOAD(xmlInfoPath, infoArray, numInfos)  SetGlobalClassInfo(infoArray, xmlInfoPath, numInfos);
+// advc.003j: unused
+//#define INIT_XML_GLOBAL_LOAD(xmlInfoPath, infoArray, numInfos)  SetGlobalClassInfo(infoArray, xmlInfoPath, numInfos);
 
 bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
 {
@@ -748,7 +749,6 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paWorldPickerInfo, "CIV4WorldPickerInfos", "Interface", "Civ4WorldPickerInfos/WorldPickerInfos/WorldPickerInfo", false);
 	LoadGlobalClassInfo(GC.m_paSpaceShipInfo, "Civ4SpaceShipInfos", "Interface", "Civ4SpaceShipInfos/SpaceShipInfos/SpaceShipInfo", false);
 
-
 	LoadGlobalClassInfo(GC.m_paYieldInfo, "CIV4YieldInfos", "Terrain", "Civ4YieldInfos/YieldInfos/YieldInfo", false);
 	LoadGlobalClassInfo(GC.m_paCommerceInfo, "CIV4CommerceInfo", "GameInfo", "Civ4CommerceInfo/CommerceInfos/CommerceInfo", false);
 	LoadGlobalClassInfo(GC.m_paGameOptionInfo, "CIV4GameOptionInfos", "GameInfo", "Civ4GameOptionInfos/GameOptionInfos/GameOptionInfo", false);
@@ -820,47 +820,37 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	// ...
 
 	UpdateProgressCB("Global Routes");
-
 	LoadGlobalClassInfo(GC.m_paRouteModelInfo, "Civ4RouteModelInfos", "Art", "Civ4RouteModelInfos/RouteModelInfos/RouteModelInfo", false);
 
 	UpdateProgressCB("Global Rivers");
-
 	LoadGlobalClassInfo(GC.m_paRiverInfo, "CIV4RiverInfos", "Misc", "Civ4RiverInfos/RiverInfos/RiverInfo", false);
 	LoadGlobalClassInfo(GC.m_paRiverModelInfo, "CIV4RiverModelInfos", "Art", "Civ4RiverModelInfos/RiverModelInfos/RiverModelInfo", false);
 
 	UpdateProgressCB("Global Other");
-
 	LoadGlobalClassInfo(GC.m_paWaterPlaneInfo, "CIV4WaterPlaneInfos", "Misc", "Civ4WaterPlaneInfos/WaterPlaneInfos/WaterPlaneInfo", false);
 	LoadGlobalClassInfo(GC.m_paTerrainPlaneInfo, "CIV4TerrainPlaneInfos", "Misc", "Civ4TerrainPlaneInfos/TerrainPlaneInfos/TerrainPlaneInfo", false);
 	LoadGlobalClassInfo(GC.m_paCameraOverlayInfo, "CIV4CameraOverlayInfos", "Misc", "Civ4CameraOverlayInfos/CameraOverlayInfos/CameraOverlayInfo", false);
 
-
 	UpdateProgressCB("Global Process");
-
 	LoadGlobalClassInfo(GC.m_paProcessInfo, "CIV4ProcessInfo", "GameInfo", "Civ4ProcessInfo/ProcessInfos/ProcessInfo", false);
 
 	UpdateProgressCB("Global Emphasize");
-
 	LoadGlobalClassInfo(GC.m_paEmphasizeInfo, "CIV4EmphasizeInfo", "GameInfo", "Civ4EmphasizeInfo/EmphasizeInfos/EmphasizeInfo", false);
 
 	UpdateProgressCB("Global Other");
-
 	LoadGlobalClassInfo(GC.m_paMissionInfo, "CIV4MissionInfos", "Units", "Civ4MissionInfos/MissionInfos/MissionInfo", false);
 	LoadGlobalClassInfo(GC.m_paControlInfo, "CIV4ControlInfos", "Units", "Civ4ControlInfos/ControlInfos/ControlInfo", false);
 	LoadGlobalClassInfo(GC.m_paCommandInfo, "CIV4CommandInfos", "Units", "Civ4CommandInfos/CommandInfos/CommandInfo", false);
 	LoadGlobalClassInfo(GC.m_paAutomateInfo, "CIV4AutomateInfos", "Units", "Civ4AutomateInfos/AutomateInfos/AutomateInfo", false);
 
 	UpdateProgressCB("Global Vote");
-
 	LoadGlobalClassInfo(GC.m_paVoteInfo, "CIV4VoteInfo", "GameInfo", "Civ4VoteInfo/VoteInfos/VoteInfo", false);
 
 	UpdateProgressCB("Global Interface");
-
 	LoadGlobalClassInfo(GC.m_paCameraInfo, "CIV4CameraInfos", "Interface", "Civ4CameraInfos/CameraInfos/CameraInfo", false);
 	LoadGlobalClassInfo(GC.m_paInterfaceModeInfo, "CIV4InterfaceModeInfos", "Interface", "Civ4InterfaceModeInfos/InterfaceModeInfos/InterfaceModeInfo", false);
 
 	SetGlobalActionInfo();
-
 
 	// Load the formation info
 	LoadGlobalClassInfo(GC.m_paUnitFormationInfo, "CIV4FormationInfos", "Units", "UnitFormations/UnitFormation", false);
@@ -872,6 +862,7 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadDiplomacyInfo(GC.m_paDiplomacyInfo, "CIV4DiplomacyInfos", "GameInfo", "Civ4DiplomacyInfos/DiplomacyInfos/DiplomacyInfo", &CvDLLUtilityIFaceBase::createDiplomacyInfoCacheObject);
 	// advc.003j:
 	//LoadGlobalClassInfo(GC.QuestInfo, "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);
+
 	LoadGlobalClassInfo(GC.m_paTutorialInfo, "Civ4TutorialInfos", "Misc", "Civ4TutorialInfos/TutorialInfo", false);
 
 	/*  advc.003v (comment): Could probably move this to LoadOptionalGlobals, but,
@@ -880,6 +871,7 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paEspionageMissionInfo, "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
 
 	DestroyFXml();
+
 	return true;
 }
 
@@ -1436,12 +1428,12 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 			}
 
 			int iIndex = -1;
-			if (NULL != pClassInfo->getType())
+			if (pClassInfo->getType() != NULL)
 			{
 				iIndex = GC.getInfoTypeForString(pClassInfo->getType(), true);
 			}
 
-			if (-1 == iIndex)
+			if (iIndex == -1)
 			{
 				aInfos.push_back(pClassInfo);
 				if (NULL != pClassInfo->getType())
@@ -2048,14 +2040,13 @@ bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 	return bReturn;
 }
 
-//  FUNCTION:   SetVariableListTagPair(	int **ppiList, const TCHAR* szRootTagName,
-//										int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal)
-//  PURPOSE :   allocate and initialize a list from a tag pair in the xml
+
 /*  advc.003t: Will set the array that ppiList points to to NULL if
 	iDefaultListVal is 0 and no pairs are found or if all (index,value) pairs
 	have the value 0. */
+// advc.003x: Unused param iInfoBaseSize removed
 void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal)
+	int iInfoBaseLength, int iDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2126,7 +2117,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal)
+	int iInfoBaseLength, bool bDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2196,7 +2187,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, float fDefaultListVal)
+	int iInfoBaseLength, float fDefaultListVal)
 {
 	int i;
 	int iIndexVal;
@@ -2266,7 +2257,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, CvString szDefaultListVal)
+	int iInfoBaseLength, CvString szDefaultListVal)
 {
 	int i;
 	int iIndexVal;

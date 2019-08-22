@@ -212,20 +212,15 @@ public:
 	void InitPointerFloatList(float*** pppfList, int iSizeX);
 
 	// allocate and initialize a list from a tag pair in the xml
+	// advc.003x: Unused param iInfoBaseSize removed from these four
 	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, int iDefaultListVal = 0);
-
-	// allocate and initialize a list from a tag pair in the xml
+			int iInfoBaseLength, int iDefaultListVal = 0);
 	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, bool bDefaultListVal = false);
-
-	// allocate and initialize a list from a tag pair in the xml
+			int iInfoBaseLength, bool bDefaultListVal = false);
 	void SetVariableListTagPair(float **ppfList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, float fDefaultListVal = 0.0f);
-
-	// allocate and initialize a list from a tag pair in the xml
+			int iInfoBaseLength, float fDefaultListVal = 0.0f);
 	void SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
-		int iInfoBaseSize, int iInfoBaseLength, CvString szDefaultListVal = "");
+			int iInfoBaseLength, CvString szDefaultListVal = "");
 
 	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,

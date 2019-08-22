@@ -5,7 +5,10 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvArea.h"
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Civics.h" // for calculateImprovementYieldChange with bOptimal=true
 #include "FAStarNode.h" // BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000
 #include "CvDLLSymbolIFaceBase.h"
 #include "CvDLLPlotBuilderIFaceBase.h"
@@ -3254,46 +3257,35 @@ void CvPlot::plotAction(PlotUnitFunc func, int iData1, int iData2, PlayerTypes e
 int CvPlot::plotCount(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerTypes eOwner, TeamTypes eTeam, ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
 {
 	int iCount = 0;
-
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
-	while (pUnitNode != NULL)
+	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc.003: was a while loop
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-
-		if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwner() == eOwner))
+		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
 		{
-			if ((eTeam == NO_TEAM) || (pLoopUnit->getTeam() == eTeam))
+			if (eTeam == NO_TEAM || pLoopUnit->getTeam() == eTeam)
 			{
-				if ((funcA == NULL) || funcA(pLoopUnit, iData1A, iData2A))
+				if (funcA == NULL || funcA(pLoopUnit, iData1A, iData2A))
 				{
-					if ((funcB == NULL) || funcB(pLoopUnit, iData1B, iData2B))
-					{
+					if (funcB == NULL || funcB(pLoopUnit, iData1B, iData2B))
 						iCount++;
-					}
 				}
 			}
 		}
 	}
-
 	return iCount;
 }
 
 
 CvUnit* CvPlot::plotCheck(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerTypes eOwner, TeamTypes eTeam, ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
 {
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-	while (pUnitNode != NULL)
+	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc.003: was a while loop
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-
 		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
 		{
 			if (eTeam == NO_TEAM || pLoopUnit->getTeam() == eTeam)
-			{
-				if (funcA(pLoopUnit, iData1A, iData2A))
+			{	// advc.045: Missing NULL check added. Bug? Tagging advc.001.
+				if (funcA == NULL || funcA(pLoopUnit, iData1A, iData2A))
 				{
 					if (funcB == NULL || funcB(pLoopUnit, iData1B, iData2B))
 						return pLoopUnit;
@@ -6192,7 +6184,7 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 		// Maybe I'll fix it later.
 		for (int iI = 0; iI < GC.getNumCivicInfos(); ++iI)
 		{
-			iYield += GC.getCivicInfo((CivicTypes) iI).getImprovementYieldChanges(eImprovement, eYield);
+			iYield += GC.getCivicInfo((CivicTypes)iI).getImprovementYieldChanges(eImprovement, eYield);
 		}
 	}
 	else

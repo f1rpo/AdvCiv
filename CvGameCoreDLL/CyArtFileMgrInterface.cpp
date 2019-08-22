@@ -1,6 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CyArtFileMgr.h"
-#include "CvInfos.h"
 
 //
 // published python interface for CyArea

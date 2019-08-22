@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
 #include "CvGamePlay.h"
 #include "CvDeal.h"
 #include "WarAndPeaceAgent.h" // advc.104

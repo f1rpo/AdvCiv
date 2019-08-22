@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "RFTotalScore.h"
 #include "CvGamePlay.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
 #include "RiseFall.h"
 #include "RFChapterScore.h"
 

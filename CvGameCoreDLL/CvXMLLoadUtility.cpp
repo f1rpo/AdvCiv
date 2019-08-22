@@ -12,10 +12,10 @@
 //  Copyright (c) 2003 Firaxis Games, Inc. All rights reserved.
 //------------------------------------------------------------------------------------------------
 #include "CvGameCoreDLL.h"
-#include "CvInfos.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
 #include "CvDLLUtilityIFaceBase.h"
+#include "CvInfo_Misc.h"
 
 static const int kBufSize = 2048;
 
@@ -63,6 +63,7 @@ CvXMLLoadUtility::CvXMLLoadUtility() :
 m_iCurProgressStep(0),
 m_pCBFxn(NULL),
 m_pFXml(NULL),
+m_bEventsLoaded(false), m_bThroneRoomLoaded(false), // advc.003v
 m_bAssertMandatory(true) // advc.006b
 {
 	m_pSchemaCache = gDLL->getXMLIFace()->CreateFXmlSchemaCache();

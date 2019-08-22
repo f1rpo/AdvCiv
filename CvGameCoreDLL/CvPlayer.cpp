@@ -11,10 +11,9 @@
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
+#include "CvInfo_All.h"
 #include "CvDiploParameters.h"
-#include "CvInfos.h"
 #include "CvPopupInfo.h"
-#include "CvDiploParameters.h"
 #include "CvGameTextMgr.h"
 #include "RiseFall.h" // advc.700
 #include "AdvCiv4lerts.h" // advc.210

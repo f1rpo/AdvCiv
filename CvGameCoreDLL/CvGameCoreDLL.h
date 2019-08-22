@@ -222,11 +222,16 @@ void DumpMemUsage(const char* fn, int line);
 //
 // Boost Python
 //
-// <advc.make>
+// <advc.make> (This prevents many error markers in the VS code editor, but not all.)
 #ifdef _CODE_EDITOR
 namespace boost
 {
-	namespace python { class tuple; }
+	namespace python {
+		class tuple;
+		template<typename x, typename y> class class_;
+		template<typename x> class return_value_policy;
+		class reference_existing_object;
+	}
 	class noncopyable {}; // advc.003e
 }
 class PyObject;
@@ -260,6 +265,14 @@ namespace python = boost::python;
 #include "CvGlobals.h"
 #include "FProfiler.h"
 #include "CvRandom.h"
+// <advc.003x> Include only parts of the old CvInfos.h (caveat: the order of these matters)
+#include "CvInfo_Base.h"
+#include "CvInfo_Asset.h"
+#include "CvInfo_Tech.h"
+#include "CvInfo_Civilization.h"
+#include "CvInfo_Organization.h"
+#include "CvInfo_Symbol.h"
+#include "CvInfo_RandomEvent.h" // </advc.003x>
 /*  advc.make: These I had removed (not _that_ frequently included),
 	but decided to add them back. */
 #include "CyGlobalContext.h" // includes CvArtFileMgr.h

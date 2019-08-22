@@ -7,7 +7,10 @@
 #include "RiseFall.h" // advc.705
 #include "CvMap.h"
 #include "CvArea.h"
-#include "CvInfos.h"
+#include "CvInfo_Unit.h"
+#include "CvInfo_Command.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
 #include "CvPopupInfo.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
 #include "BBAI_Defines.h"
@@ -5310,16 +5313,16 @@ int CvUnit::destroyCost(const CvPlot* pPlot) const
 	bool bLimited = false;
 
 	if (pCity->isProductionUnit())
-	{
-		bLimited = isLimitedUnitClass((UnitClassTypes)(GC.getUnitInfo(pCity->getProductionUnit()).getUnitClassType()));
+	{	// advc.003x: To be consistent with the change below
+		bLimited = ::isLimitedUnitClass(pCity->getProductionUnit());
 	}
 	else if (pCity->isProductionBuilding())
-	{
-		bLimited = isLimitedWonderClass((BuildingClassTypes)(GC.getBuildingInfo(pCity->getProductionBuilding()).getBuildingClassType()));
+	{	// advc.003x: Moved a bit of code into CvGameCoreUtils to avoid including CvInfo_Building.h
+		bLimited = ::isLimitedWonderClass(pCity->getProductionBuilding());
 	}
 	else if (pCity->isProductionProject())
 	{
-		bLimited = isLimitedProject(pCity->getProductionProject());
+		bLimited = ::isLimitedProject(pCity->getProductionProject());
 	} // <advc.003b>
 	static int const iBASE_SPY_DESTROY_COST = GC.getDefineINT("BASE_SPY_DESTROY_COST");
 	static int const iSPY_DESTROY_COST_MULTIPLIER_LIMITED = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER_LIMITED");

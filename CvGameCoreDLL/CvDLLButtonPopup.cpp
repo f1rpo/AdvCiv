@@ -8,7 +8,7 @@
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvPopupReturn.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
 

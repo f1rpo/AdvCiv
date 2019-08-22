@@ -6,9 +6,8 @@
 #include "FVariableSystem.h"
 #include "CvGamePlay.h"
 #include "CvMap.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 #include "CvPlayerAI.h"
-#include "CvInfoWater.h"
 #include "CvGameTextMgr.h"
 #include "CvXMLLoadUtility.h" // advc.003v
 #include "CvDLLUtilityIFaceBase.h"
@@ -306,6 +305,15 @@ void CvGlobals::init()
 		DIRECTION_SOUTH,     NO_DIRECTION,    DIRECTION_NORTH,
 		DIRECTION_SOUTHEAST, DIRECTION_EAST,	DIRECTION_NORTHEAST,
 	};
+	/*  <advc.006> getInfoTypeForString gets called for each of the PlotTypes values
+		at startup and when reloading Python scripts. PlotTypes isn't an info type,
+		so this is probably an error, but I can't locate that error. In conjunction
+		with changes in getInfoTypeForString, adding the PlotTypes values to the
+		enum types map prevents a failed assertion. */
+	setTypesEnum("PLOT_PEAK", PLOT_PEAK);
+	setTypesEnum("PLOT_HILLS", PLOT_HILLS);
+	setTypesEnum("PLOT_LAND", PLOT_LAND);
+	setTypesEnum("PLOT_OCEAN", PLOT_OCEAN); // </advc.006>
 
 	FAssertMsg(gDLL != NULL, "Civ app needs to set gDLL");
 
@@ -611,11 +619,6 @@ CvString& CvGlobals::getArtStyleTypes(ArtStyleTypes e)
 	return m_paszArtStyleTypes[e];
 }
 
-int& CvGlobals::getNumCitySizeTypes()
-{
-	return m_iNumCitySizeTypes;
-}
-
 CvString*& CvGlobals::getCitySizeTypes()
 {
 	return m_paszCitySizeTypes;
@@ -674,11 +677,6 @@ CvString& CvGlobals::getDirectionTypes(AutomateTypes e)
 	FAssert(e > -1);
 	FAssert(e < NUM_DIRECTION_TYPES);
 	return m_paszDirectionTypes[e];
-}
-
-int& CvGlobals::getNumFootstepAudioTypes()
-{
-	return m_iNumFootstepAudioTypes;
 }
 
 CvString*& CvGlobals::getFootstepAudioTypes()
@@ -1012,13 +1010,11 @@ int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
 	return (eRoute == NO_ROUTE || getRouteInfo(eRoute).isAnyPrereqOrBonus() ?
 			getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES) : 0);
 }
-
-int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES(CorporationTypes eCorporation) const
-{
-	return (eCorporation == NO_CORPORATION || getCorporationInfo(eCorporation).isAnyPrereqOrBonus() ?
-			getDefineINT(NUM_CORPORATION_PREREQ_BONUSES) : 0);
-}
 // </advc.003t>
+int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const
+{
+	return getDefineINT(NUM_CORPORATION_PREREQ_BONUSES);
+}
 
 int CvGlobals::getUSE_CANNOT_FOUND_CITY_CALLBACK() const
 {
@@ -1312,16 +1308,27 @@ void CvGlobals::writeEventTriggerInfoArray(FDataStreamBase* pStream)
 // Global Types Hash Map
 //
 
-int CvGlobals::getTypesEnum(const char* szType) const
+int CvGlobals::getTypesEnum(const char* szType, /* advc.006: */ bool bHideAssert) const
 {
 	FAssertMsg(szType, "null type string");
 	TypesMap::const_iterator it = m_typesMap.find(szType);
-	if (it!=m_typesMap.end())
-	{
+	if (it != m_typesMap.end())
 		return it->second;
+	/*FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, CvString::format("type %s not found", szType).c_str());
+	return -1;*/
+	/*  advc.006: Replacing the above with code from getInfoTypeForString, which
+		now calls this function. */
+	//if(!bHideAssert)
+	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "")==0 || strcmp(szType, "NONE")==0))
+	{
+		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
+		CvString szError;
+		szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
+		//FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, szError.c_str());
+		// advc.006: Adding an assert (the one above was already commented out)
+		FAssertMsg(false, szError.c_str());
+		gDLL->logMsg("xml.log", szError);
 	}
-
-	FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, CvString::format("type %s not found", szType).c_str());
 	return -1;
 }
 
@@ -1533,45 +1540,12 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
 {
 	FAssertMsg(szType, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
-	if (it!=m_infosMap.end())
-	{
+	if (it != m_infosMap.end())
 		return it->second;
-	}
-
-	//if(!bHideAssert)
-	if (!bHideAssert && !(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0)) // K-Mod
-	{	// <advc.006>
-		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
-		/*  This function gets called from Python with szType=PLOT_PEAK etc.
-			These are PlotTypes, which don't have associated info objects. Results
-			in an error message in the xml.log. Perhaps the WB plot types in
-			CIV4ArtDefines_Interface.xml are meant? I'm simply returning the
-			plot type. In fact, it doesn't seem to matter what values are returned;
-			no observable error occurs.
-			Looks like BUG introduced this problem, but I can't find the
-			call location in the BUG code, hence the workaround here. */
-		//if(std::strcmp(szCurrentXMLFile, "xml\\GameInfo/CIV4ForceControlInfos.xml") == 0)
-		{ /* ^I've also seen this call now after reloading Python and then returning
-			 to the main menu, i.e. unrelated to CIV4ForceControlInfos. */
-			if(std::strcmp(szType, "PLOT_PEAK") == 0)
-				return PLOT_PEAK;
-				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_MOUNTAIN");
-			if(std::strcmp(szType, "PLOT_LAND") == 0)
-				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_PLAINS");
-				return PLOT_LAND;
-			if(std::strcmp(szType, "PLOT_OCEAN") == 0)
-				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_OCEAN");
-				return PLOT_OCEAN;
-		} // </advc.006>
-		CvString szError;
-		szError.Format("info type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
-		//FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, szError.c_str());
-		// advc.006: Adding an assert (the one above was already commented out)
-		FAssertMsg(false, szError.c_str());
-		gDLL->logMsg("xml.log", szError);
-	}
-
-	return -1;
+	/*  advc.006: Fall back on getTypesEnum. (Needed for advc.003x - though I don't
+		quite understand why it worked before I split up CvInfos.h.)
+		Assertion code moved there. */
+	return getTypesEnum(szType, bHideAssert);
 }
 
 void CvGlobals::setInfoTypeFromString(const char* szType, int idx)

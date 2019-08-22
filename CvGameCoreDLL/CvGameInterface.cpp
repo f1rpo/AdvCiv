@@ -3,7 +3,10 @@
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Command.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
 #include "RiseFall.h" // advc.700
 #include "CvPopupInfo.h"
 #include "FAStarNode.h"

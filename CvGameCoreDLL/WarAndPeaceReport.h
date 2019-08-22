@@ -29,7 +29,7 @@ public:
 	char const* masterName(TeamTypes masterId, int charLimit = 8);
 	char const* teamName(TeamTypes teamId);
 	char const* techName(TechTypes teamId, int charLimit = 8);
-	char const* unitName(CvUnitInfo const& u, int charLimit = 8);
+	char const* unitName(CvInfoBase const& unitInfo, int charLimit = 8);
 	char const* cityName(CvCity const& c, int charLimit = 12);
 	char const* warPlanName(WarPlanTypes wp) const;
 	/* A string of '>' characters to indicate nesting through

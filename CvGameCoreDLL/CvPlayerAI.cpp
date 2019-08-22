@@ -11,7 +11,10 @@
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvDiploParameters.h"
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Civics.h"
 #include "CvPopupInfo.h"
 #include "FAStarNode.h"
 #include <iterator> // advc.036
@@ -4781,7 +4784,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const {
 	}
 	r += 4 * c.getNumActiveWorldWonders(getID());
 	return r;
-}// </advc.104d>
+} // </advc.104d>
 
 
 CvCity* CvPlayerAI::AI_findTargetCity(CvArea* pArea) const  // advc.003: some style changes
@@ -17166,7 +17169,6 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			// K-Mod
 			if (iTempValue == 0)
 				continue;
-
 			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
 			// <advc.001> (No problem with the BtS/AdvCiv XML data, but still a bug.)
 			if (eBuilding == NO_BUILDING)

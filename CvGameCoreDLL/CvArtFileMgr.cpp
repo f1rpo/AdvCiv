@@ -14,7 +14,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvArtFileMgr.h"
 #include "CvXMLLoadUtility.h"
-#include "CvInfos.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 // Macro for Building Art Info Maps

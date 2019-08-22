@@ -1,6 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
-#include "CvInfos.h"
 
 //
 // Python interface for structs

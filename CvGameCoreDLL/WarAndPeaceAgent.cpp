@@ -5,7 +5,9 @@
 #include "WarEvaluator.h"
 #include "WarAndPeaceReport.h"
 #include "WarEvalParameters.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Building.h" // Just for vote-related info
+#include "CvInfo_Unit.h" // for WarAndPeaceAI::Civ::militaryPower
 #include "CvGamePlay.h"
 #include "BBAI_Defines.h"
 #include "CvDiploParameters.h"

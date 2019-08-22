@@ -12,7 +12,10 @@
 #include "BBAI_Defines.h"
 #include "CvMap.h"
 #include "CvAreaList.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Unit.h"
+#include "CvInfo_Building.h" // Just for vote-related info
+
 
 using std::vector;
 using std::string;

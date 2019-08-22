@@ -5,7 +5,10 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvArea.h"
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Civics.h"
 #include "CvPopupInfo.h"
 #include "CvGameTextMgr.h"
 #include "CvBugOptions.h" // advc.060
@@ -14176,11 +14179,9 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 
 	iNumBuildings = GC.getNumBuildingInfos();
 	// <advc.045>
-	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
-	bool allVisible = (eActivePlayer == NO_PLAYER ||
-			plot()->isInvestigate(TEAMID(eActivePlayer)) ||
-			plot()->plotCount(NULL, -1, -1, eActivePlayer) > 0 ||
-			GC.getGame().isDebugMode()); // </advc.045>
+	TeamTypes eActiveTeam = GC.getGame().getActiveTeam();
+	bool bAllVisible = (eActiveTeam != NO_TEAM &&
+			isAllBuildingsVisible(eActiveTeam, true)); // </advc.045>
 	for(int i = 0; i < iNumBuildings; i++)
 	{
 		eCurType = (BuildingTypes) i;
@@ -14192,7 +14193,7 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 		bool bWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.
 				getBuildingClassType());
 		bool bDefense = (kBuilding.getDefenseModifier() > 0);
-		if(!allVisible && !bWonder && !bDefense) {
+		if(!bAllVisible && !bWonder && !bDefense) {
 			bool visibleYieldChange = false;
 			int* seaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
 			int* riverPlotYieldChanges = kBuilding.getRiverPlotYieldChangeArray();
@@ -14248,6 +14249,15 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 		kChosenVisible.push_back(kVisible[i]);
 	}
 }
+
+// <advc.045>
+bool CvCity::isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const
+{
+	if (bDebug && GC.getGame().isDebugMode())
+		return true;
+	return (plot()->isInvestigate(eTeam) ||
+			plot()->plotCheck(NULL, -1, -1, NO_PLAYER, eTeam) > 0 != NULL);
+} // </advc.045>
 
 static int natGetDeterministicRandom(int iMin, int iMax, int iSeedX, int iSeedY)
 {

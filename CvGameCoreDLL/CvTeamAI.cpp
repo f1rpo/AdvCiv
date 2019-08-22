@@ -5,7 +5,9 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
 #include "BBAILog.h"
 #include "BBAI_Defines.h"
 #include "WarAndPeaceAgent.h" // advc.104

@@ -5,12 +5,15 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvArea.h"
-#include "CvInfos.h"
+#include "CvInfo_Unit.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Building.h" // advc.003x: Only needed for the special buildings that GP can construct and AI_nukeValue
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "BBAI_Defines.h"
 #include "FAStarNode.h"
 
-#define FOUND_RANGE				(7)
+//#define FOUND_RANGE (7) // advc.003: unused
 
 // <advc.003u>
 CvUnitAI::CvUnitAI() // Body cut from AI_reset
@@ -11341,21 +11344,21 @@ bool CvUnitAI::AI_guardSpy(int iRandomPercent)
 		}
 		if (pLoopCity->isProductionUnit())
 		{
-			if (isLimitedUnitClass((UnitClassTypes)(GC.getUnitInfo(pLoopCity->getProductionUnit()).getUnitClassType())))
+			if (::isLimitedUnitClass(/* advc.003x: */pLoopCity->getProductionUnit()))
 			{
 				iValue += 4;
 			}
 		}
 		else if (pLoopCity->isProductionBuilding())
 		{
-			if (isLimitedWonderClass((BuildingClassTypes)(GC.getBuildingInfo(pLoopCity->getProductionBuilding()).getBuildingClassType())))
+			if (::isLimitedWonderClass(/* advc.003x: */pLoopCity->getProductionBuilding()))
 			{
 				iValue += 5;
 			}
 		}
 		else if (pLoopCity->isProductionProject())
 		{
-			if (isLimitedProject(pLoopCity->getProductionProject()))
+			if (::isLimitedProject(pLoopCity->getProductionProject()))
 			{
 				iValue += 6;
 			}
@@ -12508,8 +12511,7 @@ bool CvUnitAI::AI_join(int iMaxCount)
 	return false;
 }
 
-// iMaxCount = 1 would mean construct only if there are no existing buildings
-//   constructed by this GP type.
+// iMaxCount = 1 would mean construct only if there are no existing buildings constructed by this GP type.
 bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThreshold)
 {
 	PROFILE_FUNC();
@@ -12547,12 +12549,12 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 				}
 				if (bDoesBuild && GET_PLAYER(getOwner()).getBuildingClassCount((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType()) < iMaxSingleBuildingCount)
 				{
-					//if (canConstruct(pLoopCity->plot(), eBuilding))
-					if (canConstruct(pLoopCity->plot(), eBuilding) && generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true))
+					if (canConstruct(pLoopCity->plot(), eBuilding) &&
+							generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true)) // K-Mod
 					{
 						int iValue = pLoopCity->AI_buildingValue(eBuilding);
 
-						if ((iValue > iThreshold) && (iValue > iBestValue))
+						if (iValue > iThreshold && iValue > iBestValue)
 						{
 							iBestValue = iValue;
 							pBestPlot = getPathEndTurnPlot();
@@ -21974,6 +21976,9 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 							iPlotValue += iCivilianTargetWeight * 2 * (pLoopCity->getCultureLevel() + 2) * pLoopCity->getPopulation();
 
 							// note, it is possible to see which buildings the city has by looking at the map. This is not secret information.
+							/*  advc.045 (comment): The above is no longer true. Tbd.:
+								if (!pLoopCity->isAllBuildingsVisible(getTeam(), false))
+								then use an estimate only. */
 							for (BuildingTypes i = (BuildingTypes)0; i < GC.getNumBuildingInfos(); i=(BuildingTypes)(i+1))
 							{
 								if (pLoopCity->getNumRealBuilding(i) > 0)

@@ -6,7 +6,10 @@
 #include "WarAndPeaceAgent.h" // advc.031b (for trait checks)
 #include "CvMap.h"
 #include "CvArea.h"
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Civics.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "BBAI_Defines.h"
 

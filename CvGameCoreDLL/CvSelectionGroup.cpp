@@ -6,7 +6,8 @@
 #include "CvMap.h"
 #include "BBAILog.h"
 #include "FAStarNode.h"
-#include "CvInfos.h"
+#include "CvInfo_Command.h"
+#include "CvInfo_Terrain.h" // for getBestBuildRoute
 #include "CySelectionGroup.h"
 
 

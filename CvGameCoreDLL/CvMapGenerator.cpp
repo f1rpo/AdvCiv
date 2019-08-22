@@ -4,7 +4,8 @@
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvFractal.h"
-#include "CvInfos.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
 
 // static
 CvMapGenerator* CvMapGenerator::m_pInst = NULL;

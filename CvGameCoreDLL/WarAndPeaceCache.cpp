@@ -11,7 +11,9 @@
 #include "BBAI_Defines.h"
 #include "CvMap.h"
 #include "CvArea.h"
-#include "CvInfos.h"
+#include "CvInfo_Building.h"
+#include "CvInfo_Unit.h"
+#include "CvInfo_Terrain.h"
 #include <cmath>
 
 using std::vector;

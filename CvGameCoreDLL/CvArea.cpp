@@ -5,9 +5,8 @@
 #include "CvAreaList.h" // advc.003s
 #include "CvMap.h"
 #include "CvGamePlay.h"
-#include "CvInfos.h"
+#include "CvInfo_Terrain.h"
 
-// Public Functions...
 
 CvArea::CvArea()
 {
@@ -256,12 +255,8 @@ int CvArea::countCoastalLand() const
 
 int CvArea::countNumUniqueBonusTypes() const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 	{
 		if (getNumBonuses((BonusTypes)iI) > 0)
 		{

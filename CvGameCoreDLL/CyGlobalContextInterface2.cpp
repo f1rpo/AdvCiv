@@ -7,7 +7,6 @@
 #include "CyMap.h"
 #include "CyPlayer.h"
 #include "CyGame.h"
-#include "CvInfos.h"
 #include "CyTeam.h"
 
 

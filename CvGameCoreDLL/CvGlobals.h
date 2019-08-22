@@ -618,7 +618,7 @@ public:
 		FASSERT_BOUNDS(0, getNumThroneRoomCameras(), iThroneRoomCamera, "CvGlobals::getThroneRoomCamera");
 		return *m_paThroneRoomCamera[iThroneRoomCamera];
 	}
-	DllExport int getNumThroneRoomInfos();
+	DllExport int getNumThroneRoomInfos(); // advc.003v: No inline definition; needs to do some extra work now.
 	inline int getNumThroneRoomInfos() const
 	{
 		return (int)m_paThroneRoomInfo.size();
@@ -1221,7 +1221,10 @@ public:
 	// All type strings are upper case and are kept in this hash map for fast lookup
 	// The other functions are kept for convenience when enumerating, but most are not used
 	//
-	DllExport int getTypesEnum(const char* szType) const; // use this when searching for a type
+	DllExport int getTypesEnum(const char* szType) const // use this when searching for a type
+	// <advc.006> Add bHideAssert param
+	{ return getTypesEnum(szType, false); }
+	int getTypesEnum(const char* szType, bool bHideAssert) const; // </advc.006>
 	void setTypesEnum(const char* szType, int iEnum);
 
 	DllExport int getNUM_ENGINE_DIRTY_BITS() const;
@@ -1254,7 +1257,8 @@ public:
 	CvString*& getArtStyleTypes();
 	DllExport CvString& getArtStyleTypes(ArtStyleTypes e);
 
-	int& getNumCitySizeTypes();
+	inline int& getNumCitySizeTypes() { return m_iNumCitySizeTypes; }
+	inline int getNumCitySizeTypes() const { return m_iNumCitySizeTypes; } // advc.00t: const version
 	CvString*& getCitySizeTypes();
 	CvString& getCitySizeTypes(int i);
 
@@ -1270,7 +1274,8 @@ public:
 	CvString*& getDirectionTypes();
 	CvString& getDirectionTypes(AutomateTypes e);
 
-	DllExport int& getNumFootstepAudioTypes();
+	DllExport inline int& getNumFootstepAudioTypes() { return m_iNumFootstepAudioTypes; }
+	inline int getNumFootstepAudioTypes() const { return m_iNumFootstepAudioTypes; } // advc.003t: const version
 	CvString*& getFootstepAudioTypes();
 	CvString& getFootstepAudioTypes(int i);
 	int getFootstepAudioTypeByTag(CvString strTag);
@@ -1495,8 +1500,8 @@ public:
 	int getNUM_AND_TECH_PREREQS(TechTypes = NO_TECH) const;
 	int getNUM_OR_TECH_PREREQS(TechTypes = NO_TECH) const;
 	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute = NO_ROUTE) const;
-	int getNUM_CORPORATION_PREREQ_BONUSES(CorporationTypes eCorporation = NO_CORPORATION) const;
 	// </advc.003t>
+	int getNUM_CORPORATION_PREREQ_BONUSES() const; // advc: A param like above doesn't help b/c all corps require resources
 	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
 	// <advc.003t> All inlined and constified
 	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }

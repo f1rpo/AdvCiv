@@ -3,7 +3,6 @@
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceReport.h"
 #include "CvGamePlay.h"
-#include "CvInfos.h"
 #include <sstream>
 
 using std::ostringstream;
@@ -65,9 +64,9 @@ char const* WarAndPeaceReport::leaderName(PlayerTypes civId, int charLimit) {
 	return narrow(leader.getDescription(), charLimit);
 }
 
-char const* WarAndPeaceReport::unitName(CvUnitInfo const& u, int charLimit) {
+char const* WarAndPeaceReport::unitName(CvInfoBase const& unitInfo, int charLimit) {
 
-	return narrow(u.getDescription(), charLimit);
+	return narrow(unitInfo.getDescription(), charLimit);
 }
 
 char const* WarAndPeaceReport::cityName(CvCity const& c, int charLimit) {

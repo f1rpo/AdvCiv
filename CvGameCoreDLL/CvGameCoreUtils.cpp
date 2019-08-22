@@ -3,7 +3,7 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "FAStarNode.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 
 using std::vector; // advc.003
 
@@ -865,6 +865,16 @@ bool isLimitedWonderClass(BuildingClassTypes eBuildingClass)
 {
 	return (isWorldWonderClass(eBuildingClass) || isTeamWonderClass(eBuildingClass) || isNationalWonderClass(eBuildingClass));
 }
+// <advc.003x>
+bool isLimitedWonderClass(BuildingTypes eBuilding)
+{
+	return isLimitedWonderClass((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType());
+}
+
+bool isLimitedUnitClass(UnitTypes eUnit)
+{
+	return isLimitedUnitClass((UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType());
+} // </advc.003x>
 
 int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
 {
@@ -2974,10 +2984,13 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 	return iTurnMonth;
 }
 
-// these string functions should only be used under chipotle cheat code (not internationalized)
 
 void getDirectionTypeString(CvWString& szString, DirectionTypes eDirectionType)
 {
+	/*  advc.007: Turned this comment
+		"these string functions should only be used under chipotle cheat code (not internationalized)"
+		into an assertion: */
+	FAssertMsg(GC.getGame().isDebugMode(), "getDirectionTypeString should only be used for Debug output");
 	switch (eDirectionType)
 	{
 	case NO_DIRECTION: szString = L"NO_DIRECTION"; break;
@@ -3003,6 +3016,7 @@ void getCardinalDirectionTypeString(CvWString& szString, CardinalDirectionTypes 
 // advc.007: Removed the "ACTIVITY_" prefix from the strings b/c it takes up too much space.
 void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 {
+	FAssertMsg(GC.getGame().isDebugMode(), "getActivityTypeString should only be used for Debug output"); // advc.007
 	switch (eActivityType)
 	{
 	case NO_ACTIVITY: szString = L"NO_ACTIVITY"; break;
@@ -3031,6 +3045,7 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 
 void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 {
+	FAssertMsg(GC.getGame().isDebugMode(), "getMissionTypeString should only be used for Debug output"); // advc.007
 	switch (eMissionType)
 	{
 	case NO_MISSION: szString = L"NO_MISSION"; break;
@@ -3091,6 +3106,7 @@ void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 // advc.007: Removed the "MISSIONAI_" prefix from the strings b/c it takes up too much space.
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 {
+	FAssertMsg(GC.getGame().isDebugMode(), "getMissionAIString should only be used for Debug output"); // advc.007
 	switch (eMissionAI)
 	{
 	case NO_MISSIONAI: szString = L"NO_MISSIONAI"; break;
@@ -3142,6 +3158,8 @@ void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI)
 {
+	FAssertMsg(GC.getGame().isDebugMode(), "getUnitAIString should only be used for Debug output"); // advc.007
+
 	// note, GC.getUnitAIInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
 
 	switch (eUnitAI)

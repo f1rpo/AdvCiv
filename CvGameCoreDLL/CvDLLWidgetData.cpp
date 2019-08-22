@@ -6,7 +6,7 @@
 #include "CvGameTextMgr.h"
 #include "CvPopupInfo.h"
 #include "CvMessageControl.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 #include "CvBugOptions.h"
 #include "BBAI_Defines.h"
 #include "WarEvaluator.h" // advc.104l

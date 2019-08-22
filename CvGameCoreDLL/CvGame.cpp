@@ -9,7 +9,10 @@
 #include "CvMapGenerator.h"
 #include "CvDiploParameters.h"
 #include "CvReplayMessage.h"
-#include "CvInfos.h"
+#include "CvInfo_City.h"
+#include "CvInfo_Terrain.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Civics.h"
 #include "CvPopupInfo.h"
 #include "CvReplayInfo.h"
 #include "CvGameTextMgr.h"
@@ -5902,19 +5905,14 @@ bool CvGame::isForceCivic(CivicTypes eIndex) const
 
 bool CvGame::isForceCivicOption(CivicOptionTypes eCivicOption) const
 {
-	int iI;
-
-	for (iI = 0; iI < GC.getNumCivicInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 	{
 		if (GC.getCivicInfo((CivicTypes)iI).getCivicOptionType() == eCivicOption)
 		{
 			if (isForceCivic((CivicTypes)iI))
-			{
 				return true;
-			}
 		}
 	}
-
 	return false;
 }
 

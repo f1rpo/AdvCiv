@@ -4,11 +4,12 @@
 //
 
 #include "CvGameCoreDLL.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Misc.h"
 #include "CvGamePlay.h"
 #include "CyGame.h"
 #include "CyPlayer.h"
 #include "CyMap.h"
-#include "CvInfos.h"
 #include "CyTeam.h"
 #include "CyArtFileMgr.h"
 

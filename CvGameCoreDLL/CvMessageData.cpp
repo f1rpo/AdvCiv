@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvMessageData.h"
-#include "CvInfos.h"
+#include "CvInfo_Command.h"
 #include "CvGamePlay.h"
 #include "FDataStreamBase.h"
 #include "CvDLLUtilityIFaceBase.h"

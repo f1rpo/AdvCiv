@@ -21,6 +21,7 @@
 //
 // Adding a New Entry:
 //		*	Create a new ArtInfo<new> in 'CvInfos.h' & add to CyInfosInterface
+			// ^advc.003x: Now in CvInfo_Asset.h
 //		*	Add a new ART_INFO_DECL to 'CvArtFileMgr.h'
 //		*	Add a new ART_INFO_DEFN to 'CvArtFileMgr.cpp'
 //		*	Update Python 'CyGlobalContext & CyArtFileMgr' files

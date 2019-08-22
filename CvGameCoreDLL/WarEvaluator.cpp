@@ -8,7 +8,7 @@
 #include "WarAndPeaceReport.h"
 #include "WarEvalParameters.h"
 #include "CvGamePlay.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
 #include <sstream>
 
 using std::vector;

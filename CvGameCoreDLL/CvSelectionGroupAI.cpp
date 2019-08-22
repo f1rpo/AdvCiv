@@ -178,7 +178,8 @@ bool CvSelectionGroupAI::AI_update()
 			CvUnit* pHeadUnit = getHeadUnit();
 			if (NULL != pHeadUnit)
 			{
-				if (GC.isLogging())
+				if (GC.isLogging()
+						&& iAttempts == iMaxAttempts) // advc.001y: Don't spam the log
 				{
 					TCHAR szOut[1024];
 					CvWString szTempString;
@@ -187,7 +188,6 @@ bool CvSelectionGroupAI::AI_update()
 						pHeadUnit->getX(), pHeadUnit->getY(), szTempString.GetCString());
 					gDLL->messageControlLog(szOut);
 				}
-
 				pHeadUnit->finishMoves();
 			}
 			break;

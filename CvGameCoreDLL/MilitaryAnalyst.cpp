@@ -7,7 +7,7 @@
 #include "InvasionGraph.h"
 #include "CvGamePlay.h"
 #include "BBAI_Defines.h"
-#include "CvInfos.h"
+#include "CvInfo_GameOption.h"
 #include <sstream>
 #include <iterator>
 
