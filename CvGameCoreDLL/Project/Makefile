@@ -19,7 +19,8 @@
 #   difficult to associate error messages with a translation unit; but don't need
 #   a slow version of every config.]
 # YOURMOD2 and YOURLOGS (see under "Paths").
-# Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
+# PROJECT_Profile_CFLAGS added to Makefile.project. So that the internal profiler
+# can be enabled from there.
 # CvGameCoreDLL.rc used only for final release.
 # Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
 # devolution (Erik) has added the target 'Final_Release' with
@@ -106,6 +107,7 @@ CUSTOM_LDFLAGS =
 
 PRECOMPILE_DEPENDENCIES =
 PROJECT_CFLAGS =
+PROJECT_Profile_CFLAGS =
 PROJECT_LDFLAGS =
 SOURCE_DIR =
 
@@ -131,6 +133,8 @@ SUBDIRPATH15 = ../
 !IF [ECHO PROJECT_CFLAGS = >> Makefile.project]
 !ENDIF
 !IF [ECHO PROJECT_LDFLAGS = >> Makefile.project]
+!ENDIF
+!IF [ECHO PROJECT_Profile_CFLAGS = >> Makefile.project]
 !ENDIF
 !IF [ECHO PRECOMPILE_DEPENDENCIES = >> Makefile.project]
 !ENDIF
@@ -244,7 +248,7 @@ CFLAGS  = $(Release_CFLAGS) /DFASSERT_ENABLE
 LDFLAGS = $(Release_LDFLAGS)
 !ENDIF
 !IF "$(TARGET)" == "Profile"
-CFLAGS  = $(Release_CFLAGS) /Z7 /DFP_PROFILE_ENABLE /DUSE_INTERNAL_PROFILER
+CFLAGS  = $(Release_CFLAGS) $(PROJECT_Profile_CFLAGS) /Z7
 LDFLAGS = $(Debug_LDFLAGS)
 !ENDIF
 !IF "$(TARGET)" == "Final_Release"
