@@ -865,17 +865,27 @@ bool isLimitedWonderClass(BuildingClassTypes eBuildingClass)
 {
 	return (isWorldWonderClass(eBuildingClass) || isTeamWonderClass(eBuildingClass) || isNationalWonderClass(eBuildingClass));
 }
-// <advc.003x>
-bool isLimitedWonderClass(BuildingTypes eBuilding)
+// <advc.003w>
+bool isWorldUnitClass(UnitTypes eUnit)
 {
-	return isLimitedWonderClass((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType());
+	return isWorldUnitClass((UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType());
 }
 
 bool isLimitedUnitClass(UnitTypes eUnit)
 {
 	return isLimitedUnitClass((UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType());
-} // </advc.003x>
+}
 
+bool isWorldWonderClass(BuildingTypes eBuilding)
+{
+	return isWorldWonderClass((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType());
+}
+
+bool isLimitedWonderClass(BuildingTypes eBuilding)
+{
+	return isLimitedWonderClass((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType());
+}
+// </advc.003w>
 int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
 {
 	int iMax;

@@ -1242,19 +1242,20 @@ void CvDLLWidgetData::doDeleteGroup()
 
 
 void CvDLLWidgetData::doTrain(CvWidgetDataStruct &widgetDataStruct)
-{
-	UnitTypes eUnit;
-
-	eUnit = ((UnitTypes)(GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationUnits(widgetDataStruct.m_iData1)));
-
+{	// <advc.003w>
+	UnitClassTypes eUnitClass = (UnitClassTypes)widgetDataStruct.m_iData1;
+	UnitTypes eUnit = GC.getGame().getActiveCivilization()->getUnit(eUnitClass);
+	// </advc.003w>
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 	{
-		//CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_TRAIN, eUnit, false, false, false);
-		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_TRAIN, eUnit, false, true, 0);
+		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_TRAIN,
+				eUnit, false, //false, false);
+				true, 0); // K-Mod
 	}
 	else
 	{
-		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_TRAIN, eUnit, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
+		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_TRAIN,
+				eUnit, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
 	gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_UNITS);
@@ -1262,29 +1263,25 @@ void CvDLLWidgetData::doTrain(CvWidgetDataStruct &widgetDataStruct)
 
 
 void CvDLLWidgetData::doConstruct(CvWidgetDataStruct &widgetDataStruct)
-{
-	BuildingTypes eBuilding;
-
-	eBuilding = ((BuildingTypes)(GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationBuildings(widgetDataStruct.m_iData1)));
-
+{	// <advc.003w>
+	BuildingClassTypes eBuildingClass = (BuildingClassTypes)widgetDataStruct.m_iData1;
+	BuildingTypes eBuilding = GC.getGame().getActiveCivilization()->getBuilding(eBuildingClass);
+	// </advc.003w>
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 	{
-		//CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_CONSTRUCT, eBuilding, false, false, false);
-		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_CONSTRUCT, eBuilding, false, true, 0);
+		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_CONSTRUCT,
+				eBuilding, false, //false, false);
+				true, 0); // K-Mod
 	}
 	else
 	{
-		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CONSTRUCT, eBuilding, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
+		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CONSTRUCT,
+				eBuilding, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
-	if (isLimitedWonderClass((BuildingClassTypes)(widgetDataStruct.m_iData1)))
-	{
+	if (::isLimitedWonderClass(eBuildingClass))
 		gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
-	}
-	else
-	{
-		gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_BUILDINGS);
-	}
+	else gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_BUILDINGS);
 }
 
 
@@ -1292,12 +1289,14 @@ void CvDLLWidgetData::doCreate(CvWidgetDataStruct &widgetDataStruct)
 {
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 	{
-		//CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_CREATE, widgetDataStruct.m_iData1, false, false, false);
-		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_CREATE, widgetDataStruct.m_iData1, false, true, 0);
+		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_CREATE,
+				widgetDataStruct.m_iData1, false, //false, false);
+				true, 0); // K-Mod
 	}
 	else
 	{
-		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CREATE, widgetDataStruct.m_iData1, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
+		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CREATE,
+				widgetDataStruct.m_iData1, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
 	gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
@@ -1309,11 +1308,14 @@ void CvDLLWidgetData::doMaintain(CvWidgetDataStruct &widgetDataStruct)
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 	{
 		//CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_MAINTAIN, widgetDataStruct.m_iData1, false, false, false);
-		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_MAINTAIN, widgetDataStruct.m_iData1, false, true, 0);
+		CvMessageControl::getInstance().sendPushOrder(widgetDataStruct.m_iData2, ORDER_MAINTAIN,
+				widgetDataStruct.m_iData1, false, //false, false);
+				true, 0); // K-Mod
 	}
 	else
 	{
-		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_MAINTAIN, widgetDataStruct.m_iData1, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
+		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_MAINTAIN,
+				widgetDataStruct.m_iData1, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
 	gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
@@ -1614,8 +1616,7 @@ void CvDLLWidgetData::doPediaFeatureJump(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doPediaTrainJump(CvWidgetDataStruct &widgetDataStruct)
 {
 	CyArgsList argsList;
-	argsList.add(GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationUnits(widgetDataStruct.m_iData1));
-
+	argsList.add(GC.getGame().getActiveCivilization()->getUnit((UnitClassTypes)widgetDataStruct.m_iData1)); // advc.003w
 	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToUnit", argsList.makeFunctionArgs());
 }
 
@@ -1623,8 +1624,7 @@ void CvDLLWidgetData::doPediaTrainJump(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doPediaConstructJump(CvWidgetDataStruct &widgetDataStruct)
 {
 	CyArgsList argsList;
-	argsList.add(GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationBuildings(widgetDataStruct.m_iData1));
-
+	argsList.add(GC.getGame().getActiveCivilization()->getBuilding((BuildingClassTypes)widgetDataStruct.m_iData1)); // advc.003w
 	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToBuilding", argsList.makeFunctionArgs());
 }
 
@@ -1825,11 +1825,7 @@ void CvDLLWidgetData::parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 
 void CvDLLWidgetData::parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity;
-	CvWString szTempBuffer;
-
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
+	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		PlayerTypes ePlayer = pHeadSelectedCity->getLiberationPlayer(false);
@@ -1840,20 +1836,17 @@ void CvDLLWidgetData::parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct
 	}
 }
 
+
 void CvDLLWidgetData::parseCityNameHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity;
-	CvWString szTempBuffer;
-
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
+	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		szBuffer.append(pHeadSelectedCity->getName());
 
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_CITY_POPULATION", pHeadSelectedCity->getRealPopulation()));
-
+		CvWString szTempBuffer;
 		GAMETEXT.setTimeStr(szTempBuffer, pHeadSelectedCity->getGameTurnFounded(), false);
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_CITY_FOUNDED", szTempBuffer.GetCString()));
@@ -1864,26 +1857,19 @@ void CvDLLWidgetData::parseCityNameHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 }
 
 
-
 void CvDLLWidgetData::parseTrainHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	CvCity* pHeadSelectedCity;
-	UnitTypes eUnit;
-
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
-	{
 		pHeadSelectedCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(widgetDataStruct.m_iData2);
-	}
-	else
-	{
-		pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-	}
+	else pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
-		eUnit = (UnitTypes)GC.getCivilizationInfo(pHeadSelectedCity->getCivilizationType()).getCivilizationUnits(widgetDataStruct.m_iData1);
-
-		GAMETEXT.setUnitHelp(szBuffer, eUnit, false, widgetDataStruct.m_bOption, false, pHeadSelectedCity);
+		CvCivilization const& kCiv = pHeadSelectedCity->getCivilization(); // advc.003w
+		GAMETEXT.setUnitHelp(szBuffer,
+				kCiv.getUnit((UnitClassTypes)widgetDataStruct.m_iData1),
+				false, widgetDataStruct.m_bOption, false, pHeadSelectedCity);
 	}
 }
 
@@ -1891,26 +1877,18 @@ void CvDLLWidgetData::parseTrainHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 void CvDLLWidgetData::parseConstructHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	CvCity* pHeadSelectedCity;
-	BuildingTypes eBuilding;
-
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
-	{
 		pHeadSelectedCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(widgetDataStruct.m_iData2);
-	}
-	else
-	{
-		pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-	}
+	else pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
-		eBuilding = (BuildingTypes)GC.getCivilizationInfo(pHeadSelectedCity->getCivilizationType()).getCivilizationBuildings(widgetDataStruct.m_iData1);
-
-		//GAMETEXT.setBuildingHelp(szBuffer, eBuilding, false, widgetDataStruct.m_bOption, false, pHeadSelectedCity);
-// BUG - Building Actual Effects - start
-		GAMETEXT.setBuildingHelpActual(szBuffer, eBuilding, false, widgetDataStruct.m_bOption, false, pHeadSelectedCity);
-// BUG - Building Actual Effects - end
-
+		CvCivilization const& kCiv = pHeadSelectedCity->getCivilization(); // advc.003w
+		//GAMETEXT.setBuildingHelp(...
+		// BUG - Building Actual Effects:
+		GAMETEXT.setBuildingHelpActual(szBuffer,
+				kCiv.getBuilding((BuildingClassTypes)widgetDataStruct.m_iData1),
+				false, widgetDataStruct.m_bOption, false, pHeadSelectedCity);
 	}
 }
 
@@ -1918,15 +1896,9 @@ void CvDLLWidgetData::parseConstructHelp(CvWidgetDataStruct &widgetDataStruct, C
 void CvDLLWidgetData::parseCreateHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	CvCity* pHeadSelectedCity;
-
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
-	{
 		pHeadSelectedCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(widgetDataStruct.m_iData2);
-	}
-	else
-	{
-		pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-	}
+	else pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 
 	GAMETEXT.setProjectHelp(szBuffer, ((ProjectTypes)widgetDataStruct.m_iData1), false, pHeadSelectedCity);
 }
@@ -1934,14 +1906,12 @@ void CvDLLWidgetData::parseCreateHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 void CvDLLWidgetData::parseMaintainHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.setProcessHelp(szBuffer, ((ProcessTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.setProcessHelp(szBuffer, (ProcessTypes)widgetDataStruct.m_iData1);
 }
 
 
 void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvWString szTempBuffer;
-
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return;
@@ -1982,6 +1952,7 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			if(iOverflowProduction > 0 || iOverflowGold > 0) {
 				bool bFirst = true;
 				CvWStringBuffer szOverflowBuffer;
+				CvWString szTempBuffer;
 				// advc: Plus signs added if !bIncludeCurrent
 				if(iOverflowProduction > 0) {
 					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
@@ -2026,7 +1997,7 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			{
 				if (GC.getCivicInfo((CivicTypes)iI).isHurry(eHurry))
 				{
-					szTempBuffer = NEWLINE + gDLL->getText("TXT_KEY_REQUIRES");
+					CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
 					setListHelp(szBuffer, szTempBuffer, GC.getCivicInfo((CivicTypes)iI).getDescription(), gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
 					bFirst = false;
 				}
@@ -3363,27 +3334,24 @@ void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStr
 
 	CvWString szTempBuffer;
 	bool bFirst = true;
-
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = *GC.getGame().getActiveCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationBuildings(iI);
-		if (eLoopBuilding == NO_BUILDING)
-			continue;
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+		if (GC.getBuildingInfo(eLoopBuilding).getSpecialistCount(widgetDataStruct.m_iData1) <= 0)
+			continue; // advc.003
 
-		if (GC.getBuildingInfo(eLoopBuilding).getSpecialistCount(widgetDataStruct.m_iData1) > 0)
+		if (pHeadSelectedCity->getNumBuilding(eLoopBuilding) <= 0 &&
+			!::isLimitedWonderClass(eLoopBuilding))
 		{
-			if ((pHeadSelectedCity->getNumBuilding(eLoopBuilding) <= 0) &&
-					!isLimitedWonderClass((BuildingClassTypes)iI))
+			if (GC.getBuildingInfo(eLoopBuilding).getSpecialBuildingType() == NO_SPECIALBUILDING ||
+				pHeadSelectedCity->canConstruct(eLoopBuilding))
 			{
-				if (GC.getBuildingInfo(eLoopBuilding).getSpecialBuildingType() == NO_SPECIALBUILDING ||
-						pHeadSelectedCity->canConstruct(eLoopBuilding))
-				{
-					szTempBuffer = NEWLINE + gDLL->getText("TXT_KEY_REQUIRES");
-					setListHelp(szBuffer, szTempBuffer, GC.getBuildingInfo(
-							eLoopBuilding).getDescription(),
-							gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-					bFirst = false;
-				}
+				szTempBuffer = NEWLINE + gDLL->getText("TXT_KEY_REQUIRES");
+				setListHelp(szBuffer, szTempBuffer, GC.getBuildingInfo(
+						eLoopBuilding).getDescription(),
+						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
+				bFirst = false;
 			}
 		}
 	}

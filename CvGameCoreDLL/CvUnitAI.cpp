@@ -481,12 +481,11 @@ void CvUnitAI::AI_upgrade()
 	if (!isReadyForUpgrade())
 		return;
 
-	const CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
-	const CvCivilizationInfo& kCivInfo = GC.getCivilizationInfo(kPlayer.getCivilizationType());
+	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
 	UnitAITypes eUnitAI = AI_getUnitAIType();
 	CvArea* pArea = area();
 
-	int iBestValue = kPlayer.AI_unitValue(getUnitType(), eUnitAI, pArea) * 100;
+	int iBestValue = kOwner.AI_unitValue(getUnitType(), eUnitAI, pArea) * 100;
 	UnitTypes eBestUnit = NO_UNIT;
 
 	// Note: the original code did two passes, presumably for speed reasons.
@@ -497,24 +496,21 @@ void CvUnitAI::AI_upgrade()
 	//
 	// I've reversed the order of iteration because the stronger units are typically later in the list
 	bool bFirst = true; // advc.007
-	for (UnitClassTypes i = (UnitClassTypes)(GC.getNumUnitClassInfos()-1); i >= 0; i=(UnitClassTypes)(i-1))
+	CvCivilization const& kCiv = kOwner.getCivilization(); // advc.003w
+	for (int i = kCiv.getNumUnits() - 1; i >= 0; i--)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)kCivInfo.getCivilizationUnits(i);
-
-		if (eLoopUnit != NO_UNIT)
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		int iValue = kOwner.AI_unitValue(eLoopUnit, eUnitAI, pArea);
+		// use a random factor. less than 100, so that the upgrade must be better than the current unit.
+		iValue *= 80 + GC.getGame().getSorenRandNum(21,
+				// <advc.007> Don't pollute the MPLog
+				bFirst ? "AI Upgrade" : NULL);
+		bFirst = false; // </advc.007>
+		// (believe it or not, AI_unitValue is faster than canUpgrade.)
+		if (iValue > iBestValue && canUpgrade(eLoopUnit))
 		{
-			int iValue = kPlayer.AI_unitValue(eLoopUnit, eUnitAI, pArea);
-			// use a random factor. less than 100, so that the upgrade must be better than the current unit.
-			iValue *= 80 + GC.getGame().getSorenRandNum(21,
-					// <advc.007> Don't pollute the MPLog
-					bFirst ? "AI Upgrade" : NULL);
-			bFirst = false; // </advc.007>
-			// (believe it or not, AI_unitValue is faster than canUpgrade.)
-			if (iValue > iBestValue && canUpgrade(eLoopUnit))
-			{
-				iBestValue = iValue;
-				eBestUnit = eLoopUnit;
-			}
+			iBestValue = iValue;
+			eBestUnit = eLoopUnit;
 		}
 	}
 
@@ -4600,7 +4596,7 @@ void CvUnitAI::AI_exploreMove()
 
 	if (getDamage() > 0)
 	{
-		if ((plot()->getFeatureType() == NO_FEATURE) || (GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() == 0))
+		if (plot()->getFeatureType() == NO_FEATURE || GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() == 0)
 		{
 			getGroup()->pushMission(MISSION_HEAL);
 			return;
@@ -5217,12 +5213,10 @@ bool CvUnitAI::AI_greatPersonMove()
 			}
 		}
 		// Construct
-		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		CvCivilization const& kCiv = GET_PLAYER(getOwner()).getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
-			if (eBuilding == NO_BUILDING)
-				continue; // advc.003
-
+			BuildingTypes eBuilding = kCiv.buildingAt(i);
 			if ((//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
 					m_pUnitInfo->getBuildings(eBuilding)) &&
 					canConstruct(pLoopCity->plot(), eBuilding))
@@ -5239,7 +5233,7 @@ bool CvUnitAI::AI_greatPersonMove()
 				}
 				continue; // advc.003
 			}
-			if (!bCanHurry || !isWorldWonderClass((BuildingClassTypes)iI) ||
+			if (!bCanHurry || !::isWorldWonderClass(eBuilding) ||
 					!pLoopCity->canConstruct(eBuilding))
 				continue; // advc.003
 
@@ -11344,14 +11338,14 @@ bool CvUnitAI::AI_guardSpy(int iRandomPercent)
 		}
 		if (pLoopCity->isProductionUnit())
 		{
-			if (::isLimitedUnitClass(/* advc.003x: */pLoopCity->getProductionUnit()))
+			if (::isLimitedUnitClass(pLoopCity->getProductionUnit()))
 			{
 				iValue += 4;
 			}
 		}
 		else if (pLoopCity->isProductionBuilding())
 		{
-			if (::isLimitedWonderClass(/* advc.003x: */pLoopCity->getProductionBuilding()))
+			if (::isLimitedWonderClass(pLoopCity->getProductionBuilding()))
 			{
 				iValue += 5;
 			}
@@ -12531,36 +12525,34 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 
 		//if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_CONSTRUCT, getGroup()) == 0)
 		// above line disabled by K-Mod, because there are different types of buildings to construct...
-		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		CvCivilization const& kCiv = GET_PLAYER(getOwner()).getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
-
-			if (NO_BUILDING != eBuilding)
+			BuildingTypes eBuilding = kCiv.buildingAt(i);
+			bool bDoesBuild = false;
+			if (//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
+					m_pUnitInfo->getBuildings(eBuilding))
+				bDoesBuild = true;
+			if (bDoesBuild && (pLoopCity->getNumBuilding(eBuilding) > 0))
 			{
-				bool bDoesBuild = false;
-				if (//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
-						m_pUnitInfo->getBuildings(eBuilding))
-					bDoesBuild = true;
-				if (bDoesBuild && (pLoopCity->getNumBuilding(eBuilding) > 0))
+				iCount++;
+				if (iCount >= iMaxCount)
+					return false;
+			}
+			if (bDoesBuild && GET_PLAYER(getOwner()).getBuildingClassCount(
+				kCiv.buildingClassAt(i)) < iMaxSingleBuildingCount)
+			{
+				if (canConstruct(pLoopCity->plot(), eBuilding) &&
+					generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true)) // K-Mod
 				{
-					iCount++;
-					if (iCount >= iMaxCount)
-						return false;
-				}
-				if (bDoesBuild && GET_PLAYER(getOwner()).getBuildingClassCount((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType()) < iMaxSingleBuildingCount)
-				{
-					if (canConstruct(pLoopCity->plot(), eBuilding) &&
-							generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true)) // K-Mod
-					{
-						int iValue = pLoopCity->AI_buildingValue(eBuilding);
+					int iValue = pLoopCity->AI_buildingValue(eBuilding);
 
-						if (iValue > iThreshold && iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = getPathEndTurnPlot();
-							pBestConstructPlot = pLoopCity->plot();
-							eBestBuilding = eBuilding;
-						}
+					if (iValue > iThreshold && iValue > iBestValue)
+					{
+						iBestValue = iValue;
+						pBestPlot = getPathEndTurnPlot();
+						pBestConstructPlot = pLoopCity->plot();
+						eBestBuilding = eBuilding;
 					}
 				}
 			}

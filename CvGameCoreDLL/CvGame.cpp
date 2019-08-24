@@ -3673,24 +3673,18 @@ bool CvGame::canTrainNukes() const
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (kPlayer.isAlive())
 		{
-			for (int iJ = 0; iJ < GC.getNumUnitClassInfos(); iJ++)
+			CvCivilization const& kCiv = kPlayer.getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(kPlayer.getCivilizationType()).getCivilizationUnits((UnitClassTypes)iJ);
-
-				if (NO_UNIT != eUnit)
+				UnitTypes eUnit = kCiv.unitAt(i);
+				if (GC.getUnitInfo(eUnit).getNukeRange() >= 0)
 				{
-					if (-1 != GC.getUnitInfo(eUnit).getNukeRange())
-					{
-						if (kPlayer.canTrain(eUnit))
-						{
-							return true;
-						}
-					}
+					if (kPlayer.canTrain(eUnit))
+						return true;
 				}
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -3746,6 +3740,15 @@ CivilizationTypes CvGame::getActiveCivilizationType() const
 		return (CivilizationTypes)GET_PLAYER(getActivePlayer()).getCivilizationType();
 	}
 }
+
+// <advc.003w>
+CvCivilization const* CvGame::getActiveCivilization() const
+{
+	PlayerTypes eActivePlayer = getActivePlayer();
+	if (eActivePlayer == NO_PLAYER)
+		return NULL;
+	return &GET_PLAYER(eActivePlayer).getCivilization();
+} // </advc.003w>
 
 
 bool CvGame::isNetworkMultiPlayer() const
@@ -7517,12 +7520,10 @@ void CvGame::createAnimals()  // advc.003: style changes
 			UnitTypes eBestUnit = NO_UNIT;
 			int iBestValue = 0;
 			// advc (comment): This loop picks an animal that is suitable for pPlot
-			for (int iJ = 0; iJ < GC.getNumUnitClassInfos(); iJ++)
+			CvCivilization const& kCiv = GET_PLAYER(BARBARIAN_PLAYER).getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				UnitTypes eLoopUnit = (UnitTypes)(GC.getCivilizationInfo(GET_PLAYER(BARBARIAN_PLAYER).
-						getCivilizationType()).getCivilizationUnits(iJ));
-				if (eLoopUnit == NO_UNIT)
-					continue;
+				UnitTypes eLoopUnit = kCiv.unitAt(i);
 				CvUnitInfo const& kUnit = GC.getUnitInfo(eLoopUnit);
 				if (!kUnit.getUnitAIType(UNITAI_ANIMAL))
 					continue;
@@ -7817,21 +7818,19 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 	}
 	UnitTypes r = NO_UNIT;
 	int iBestValue = 0;
-	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-		UnitTypes eUnit = (UnitTypes)(GC.getCivilizationInfo(
-				GET_PLAYER(BARBARIAN_PLAYER).getCivilizationType()).
-				getCivilizationUnits(i));
-		if(eUnit == NO_UNIT)
-			continue;
-		CvUnitInfo const& u = GC.getUnitInfo(eUnit);
-		DomainTypes eDomain = (DomainTypes)u.getDomainType();
-		if(u.getCombat() <= 0 || eDomain == DOMAIN_AIR ||
-				u.isMostlyDefensive() || // advc.315
+	CvCivilization const& kCiv = GET_PLAYER(BARBARIAN_PLAYER).getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes eUnit = kCiv.unitAt(i);
+		CvUnitInfo const& kUnit = GC.getUnitInfo(eUnit);
+		DomainTypes eDomain = (DomainTypes)kUnit.getDomainType();
+		if(kUnit.getCombat() <= 0 || eDomain == DOMAIN_AIR ||
+				kUnit.isMostlyDefensive() || // advc.315
 				(eDomain == DOMAIN_SEA) != bSea ||
 				!GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit))
 			continue;
 		// <advc.301>
-		BonusTypes eAndBonus = (BonusTypes)u.getPrereqAndBonus();
+		BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
 		TechTypes eAndBonusTech = NO_TECH;
 		if(eAndBonus != NO_BONUS) {
 			eAndBonusTech = (TechTypes)GC.getBonusInfo(eAndBonus).getTechCityTrade();
@@ -7843,7 +7842,7 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 			hasTech already tested by canTrain, but era shouldn't be
 			tested there b/c it's OK for Barbarian cities to train outdated units
 			(they only will if they can't train anything better). */
-		TechTypes eAndTech = (TechTypes)u.getPrereqAndTech();
+		TechTypes eAndTech = (TechTypes)kUnit.getPrereqAndTech();
 		int iUnitEra = 0;
 		if(eAndTech != NO_TECH)
 			iUnitEra = GC.getTechInfo(eAndTech).getEra();
@@ -7854,7 +7853,7 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 		bool bFound = false;
 		bool bRequires = false;
 		for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++) {
-			BonusTypes eOrBonus = (BonusTypes)u.getPrereqOrBonuses(j);
+			BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(j);
 			if(eOrBonus == NO_BONUS)
 				continue;
 			CvBonusInfo const& kOrBonus = GC.getBonusInfo(eOrBonus);
@@ -7881,7 +7880,7 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 		if(!GET_TEAM(BARBARIAN_TEAM).canSeeReqBonuses(eUnit))
 			continue; // </advc.301>
 		int iValue = (1 + getSorenRandNum(1000, "Barb Unit Selection"));
-		if(u.getUnitAIType(eUnitAI))
+		if(kUnit.getUnitAIType(eUnitAI))
 			iValue += 200;
 		if(iValue > iBestValue) {
 			r = eUnit;

@@ -14,6 +14,7 @@
 
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvCivilization.h" // advc.003w
 #include "CvTeamAI.h"
 
 #endif

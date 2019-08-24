@@ -177,11 +177,13 @@ bool isWorldWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to 
 bool isTeamWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
 bool isNationalWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
 bool isLimitedWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-int limitedWonderClassLimit(BuildingClassTypes eBuildingClass);
-/*  <advc.003x> Would make sense to have such a counterpart for each of the other
-	is...Class functions, but I only need these two for now. */
+// <advc.003w> For convenience
+bool isWorldUnitClass(UnitTypes eUnit);
+bool isLimitedUnitClass(UnitTypes eUnit);
+bool isWorldWonderClass(BuildingTypes eBuilding);
 bool isLimitedWonderClass(BuildingTypes eBuilding);
-bool isLimitedUnitClass(UnitTypes eUnit); // </advc.003x>
+// </advc.003w>
+int limitedWonderClassLimit(BuildingClassTypes eBuildingClass);
 
 bool isWorldProject(ProjectTypes eProject);														// Exposed to Python
 bool isTeamProject(ProjectTypes eProject);														// Exposed to Python

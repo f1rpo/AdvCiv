@@ -6,10 +6,10 @@
 /*  advc.003x: Cut from CvInfos.h.
 	CvCivilizationInfo, CvLeaderHeadInfo, CvTraitInfo,
 	CvDiplomacyInfo, CvDiplomacyResponse
-	Want to precompile these as they're frequently needed
-	(CvLeaderHeadInfo by most of the AI code - but not only; CvCivilizationInfo
-	for the mapping of unit and building classes to unit and building types), are
-	fairly large, and tags are added rather rarely. */
+	Want to precompile these. CvLeaderHeadInfo is frequently needed (by most of
+	the AI code - but not only), is large and tags are added rarely. CvCivilization
+	still (despite change advc.003w) plays a role in mapping building/ unit classes
+	to types. */
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvCivilizationInfo

@@ -5,6 +5,7 @@
 #include "WarAndPeaceAgent.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvCivilization.h"
 #include "CvInfo_Unit.h"
 
 using std::ostream;
@@ -51,12 +52,10 @@ void MilitaryBranch::updateTypicalUnit() {
 	PROFILE_FUNC();
 	double val = 0;
 	double bestVal = 0;
-	CvPlayerAI& civ = GET_PLAYER(ownerId);
-	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
-				civ.getCivilizationType()).getCivilizationUnits(i));
-		if(ut == NO_UNIT)
-			continue;
+	CvPlayerAI& owner = GET_PLAYER(ownerId);
+	CvCivilization const& civ = owner.getCivilization();
+	for (int i = 0; i < civ.getNumUnits(); i++) {
+		UnitTypes ut = civ.unitAt(i);
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		// Siege and air units count for power but aren't typical
 		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
@@ -79,7 +78,7 @@ void MilitaryBranch::updateTypicalUnit() {
 				continue;
 		}
 		else {
-			CvCity* capital = civ.getCapitalCity();
+			CvCity* capital = owner.getCapitalCity();
 			if(capital == NULL || !capital->canTrain(ut, false, false, false, false,
 					true)) // Ignore air unit cap
 				continue;

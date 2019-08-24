@@ -16,6 +16,7 @@ class CvHallOfFameInfo; // advc.106i
 class CvGameAI;
 class CvDealList;
 class CvDeal; // </advc.003u>
+class CvCivilization; // advc.003w
 class Shelf; // advc.300
 class StartPointsAsHandicap; // advc.250b
 class RiseFall; // advc.700
@@ -153,6 +154,7 @@ public:
 
 	DllExport TeamTypes getActiveTeam() const;																		// Exposed to Python
 	CivilizationTypes getActiveCivilizationType() const;								// Exposed to Python
+	CvCivilization const* getActiveCivilization() const; // advc.003w
 
 	DllExport bool isNetworkMultiPlayer() const;																	// Exposed to Python
 	DllExport bool isGameMultiPlayer() const;																			// Exposed to Python

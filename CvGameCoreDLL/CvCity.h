@@ -13,6 +13,7 @@ class CvArea;
 class CvGenericBuilding;
 class CvArtInfoBuilding;
 class CvCityAI; // advc.003u
+class CvCivilization; // advc.003w
 
 class CvCity : public CvDLLEntity
 {
@@ -178,6 +179,7 @@ public:
 
 	HandicapTypes getHandicapType() const;												// Exposed to Python
 	CivilizationTypes getCivilizationType() const;										// Exposed to Python
+	CvCivilization const& getCivilization() const; // advc.003w
 	LeaderHeadTypes getPersonalityType() const;															// Exposed to Python
 	DllExport ArtStyleTypes getArtStyleType() const;														// Exposed to Python
 	CitySizeTypes getCitySizeType() const;												// Exposed to Python
@@ -251,6 +253,7 @@ public:
 	PlayerTypes calculateCulturalOwner() const; // advc.099c
 
 	int getNumBuilding(BuildingTypes eIndex) const;									// Exposed to Python
+	int getNumBuilding(BuildingClassTypes eBuildingClass) const; // advc.003w
 	int getNumActiveBuilding(BuildingTypes eIndex) const;							// Exposed to Python
 	bool hasActiveWorldWonder() const;																			// Exposed to Python
 	// UNOFFICIAL_PATCH, Bugfix, 03/04/10, Mongoose & jdog5000:
@@ -914,6 +917,7 @@ public:
 	void alterWorkingPlot(int iIndex);																			// Exposed to Python
 
 	int getNumRealBuilding(BuildingTypes eIndex) const;														// Exposed to Python
+	int getNumRealBuilding(BuildingClassTypes eBuildingClass) const; // advc.003w
 	void setNumRealBuilding(BuildingTypes eIndex, int iNewValue);					// Exposed to Python
 	void setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool bFirst, PlayerTypes eOriginalOwner, int iOriginalTime);
 

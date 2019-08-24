@@ -10,10 +10,11 @@ class FDataStreamBase;
 	(Tbd.: Change everything that's named "WPAI" or "WarAndPeace" to "UWAI".)
 	Instead of making lots of additions to CvTeamAI and CvPlayerAI, I've put the
 	new functions in classes WarAndPeaceAI::Team and WarAndPeaceAI::Civ, which are
-	defined in WarAndPeaceAgent.h. (I prefer the term "civs" to "players" unless
-	Barbarians are included.) The outer class WarAndPeaceAI shared by Team and Civ
-	is for overarching stuff that would otherwise fit into CvGameAI or CvGameCoreUtils.
-	An instance is accessible through the macro "getWPAI".
+	defined in WarAndPeaceAgent.h. (I use the term "civ" instead of "player" when
+	Barbarians are excluded. The actual CvCivilization class added by advc.003w
+	isn't used much in the WarAndPeace code.) The outer class WarAndPeaceAI shared by
+	Team and Civ is for overarching stuff that would otherwise fit into CvGameAI or
+	CvGameCoreUtils. An instance is accessible through the macro "getWPAI".
 
 	The main method for war planning is WarAndPeaceAI::Team::doWar. */
 

@@ -2655,35 +2655,27 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 			bSeafaring = true;
 		if (!bSeafaring)
 		{
-			for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+			CvCivilization const& kCiv = kPlayer.getCivilization(); // advc.003w 
+			for (int i = 0; i < kCiv.getNumUniqueUnits(); i++)
 			{
-				UnitTypes eCivUnit = (UnitTypes)GC.getCivilizationInfo(kPlayer.getCivilizationType()).getCivilizationUnits(iI);
-				UnitTypes eDefaultUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex();
-				if (eCivUnit != NO_UNIT && eCivUnit != eDefaultUnit)
+				UnitTypes eUniqueUnit = kCiv.uniqueUnitAt(i);
+				if (GC.getUnitInfo(eUniqueUnit).getDomainType() == DOMAIN_SEA)
 				{
-					if (GC.getUnitInfo(eCivUnit).getDomainType() == DOMAIN_SEA)
-					{
-						bSeafaring = true;
-						break;
-					}
+					bSeafaring = true;
+					break;
 				}
 			}
 		}
 		if (!bSeafaring)
 		{
-			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+			CvCivilization const& kCiv = kPlayer.getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUniqueBuildings(); i++)
 			{
-				BuildingTypes eCivBuilding = (BuildingTypes)GC.getCivilizationInfo(kPlayer.getCivilizationType()).getCivilizationBuildings(iI);
-				BuildingTypes eDefaultBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex();
-				if (eCivBuilding !=
-						NO_BUILDING // kmodx: was NO_UNIT
-					&& eCivBuilding != eDefaultBuilding)
+				BuildingTypes eUniqueBuilding = kCiv.uniqueBuildingAt(i);
+				if (GC.getBuildingInfo(eUniqueBuilding).isWater())
 				{
-					if (GC.getBuildingInfo(eCivBuilding).isWater())
-					{
-						bSeafaring = true;
-						break;
-					}
+					bSeafaring = true;
+					break;
 				}
 			}
 		}
@@ -7484,27 +7476,22 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 int CvPlayerAI::AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const
 {
 	int iTotalPenalty = 0;
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+		SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getBuildingInfo(eLoopBuilding).getSpecialBuildingType();
+		bool bObsolete = GC.getBuildingInfo(eLoopBuilding).getObsoleteTech() == eTech ||
+				(eSpecial != NO_SPECIALBUILDING && GC.getSpecialBuildingInfo(eSpecial).
+				getObsoleteTech() == eTech);
+		if (!bObsolete || getBuildingClassCount(kCiv.buildingClassAt(i)) <= 0)
+			continue;
 
-		if (eLoopBuilding != NO_BUILDING)
+		FOR_EACH_CITYAI(pLoopCity, *this)
 		{
-			bool bObsolete = GC.getBuildingInfo(eLoopBuilding).getObsoleteTech() == eTech
-				|| (GC.getBuildingInfo(eLoopBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING
-				&& GC.getSpecialBuildingInfo((SpecialBuildingTypes)GC.getBuildingInfo(eLoopBuilding).getSpecialBuildingType()).getObsoleteTech() == eTech);
-
-			if (bObsolete && getBuildingClassCount((BuildingClassTypes)iI) > 0)
-			{
-				FOR_EACH_CITYAI(pLoopCity, *this)
-				{
-					int n = pLoopCity->getNumActiveBuilding(eLoopBuilding);
-					if (n > 0)
-					{
-						iTotalPenalty += n * pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache);
-					}
-				}
-			}
+			int n = pLoopCity->getNumActiveBuilding(eLoopBuilding);
+			if (n > 0)
+				iTotalPenalty += n * pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache);
 		}
 	}
 	// iScale is set more or less arbitrarily based on trial and error.
@@ -7546,14 +7533,16 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 	CvGameSpeedInfo const& kGameSpeed = GC.getGameSpeedInfo(g.getGameSpeedType());
 	std::vector<const CvCity*> relevant_cities; // (this will be populated when we find a building that needs to be evaluated)
 
-	for (BuildingClassTypes eClass = (BuildingClassTypes)0; eClass < GC.getNumBuildingClassInfos(); eClass=(BuildingClassTypes)(eClass+1))
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eLoopBuilding = ((BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eClass));
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 
-		if (eLoopBuilding == NO_BUILDING || !isTechRequiredForBuilding(eTech, eLoopBuilding))
+		if (!isTechRequiredForBuilding(eTech, eLoopBuilding))
 			continue; // this building class is not relevent
 
 		const CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
+		BuildingClassTypes eClass = kCiv.buildingClassAt(i);
 
 		if (GET_TEAM(getTeam()).isObsoleteBuilding(eLoopBuilding))
 			continue; // already obsolete
@@ -7723,13 +7712,14 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	int iValue = 0;
 
 	bEnablesUnitWonder = false;
-	for (UnitClassTypes eLoopClass = (UnitClassTypes)0; eLoopClass < GC.getNumUnitClassInfos(); eLoopClass = (UnitClassTypes)(eLoopClass+1))
+	CvCivilization const& kCiv = getCivilization(); // advc.003w 
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eLoopClass);
-
-		if (eLoopUnit == NO_UNIT || !isTechRequiredForUnit(eTech, eLoopUnit))
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		if (!isTechRequiredForUnit(eTech, eLoopUnit))
 			continue;
 
+		UnitClassTypes eLoopClass = kCiv.unitClassAt(i);
 		CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
 		/*  <k146> Raw value moved here, so that it is adjusted by missing
 			techs / resources */
@@ -7744,9 +7734,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 		int iMilitaryValue = 0;
 		int iUtilityValue = 0;
 
-		if (GC.getUnitClassInfo(eLoopClass).getDefaultUnitIndex() != GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eLoopClass))
+		if (kCiv.isUnique(eLoopUnit))
 		{
-			//UU
 			iTotalUnitValue += 600;
 		}
 
@@ -8123,23 +8112,14 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			}
 			// k146: Disabled
 			/*if (AI_totalUnitAIs((UnitAITypes)kLoopUnit.getDefaultUnitAIType()) == 0)
-			{
-				// do not give bonus to seagoing units if they are worthless
+			{	// do not give bonus to seagoing units if they are worthless
 				if (iTotalUnitValue > 0)
-				{
 					iTotalUnitValue *= 2;
-				}
-
-				if (kLoopUnit.getDefaultUnitAIType() == UNITAI_EXPLORE)
-				{
+				if (kLoopUnit.getDefaultUnitAIType() == UNITAI_EXPLORE) {
 					if (pCapitalCity != NULL)
-					{
 						iTotalUnitValue += (AI_neededExplorers(pCapitalCity->area()) * 400);
-					}
 				}
-
-				if (kLoopUnit.getDefaultUnitAIType() == UNITAI_EXPLORE_SEA)
-				{
+				if (kLoopUnit.getDefaultUnitAIType() == UNITAI_EXPLORE_SEA) {
 					iTotalUnitValue += 400;
 					iTotalUnitValue += ((GC.getGame().countCivTeamsAlive() - iHasMetCount) * 200);
 				}
@@ -8247,7 +8227,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			}
 		}
 		// <k146>
-		if(isWorldUnitClass(eLoopClass) &&
+		if(::isWorldUnitClass(eLoopClass) &&
 				!GC.getGame().isUnitClassMaxedOut(eLoopClass))
 			bEnablesUnitWonder = true; // </k146>
 		// K-Mod
@@ -8442,46 +8422,36 @@ int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 	bool bAnyWarplan = AI_isFocusWar(); // advc.105
 			//(GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
 	int iBestUnitValue = 0;
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w 
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-
-		if (eLoopUnit != NO_UNIT)
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		if (isTechRequiredForUnit((eTech), eLoopUnit))
 		{
-			if (isTechRequiredForUnit((eTech), eLoopUnit))
-			{
-				int iTempValue = (GC.getUnitInfo(eLoopUnit).getCombat() * 100) / std::max(1, (GC.getGame().getBestLandUnitCombat()));
-				iTempValue *= bAnyWarplan ? 2 : 1;
+			int iTempValue = (GC.getUnitInfo(eLoopUnit).getCombat() * 100) /
+					std::max(1, (GC.getGame().getBestLandUnitCombat()));
+			iTempValue *= bAnyWarplan ? 2 : 1;
 
-				iValue += iTempValue / 3;
-				iBestUnitValue = std::max(iBestUnitValue, iTempValue);
-			}
+			iValue += iTempValue / 3;
+			iBestUnitValue = std::max(iBestUnitValue, iTempValue);
 		}
 	}
 	iValue += std::max(0, iBestUnitValue - 15);
 
 	//cultural things
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
-
-		if (eLoopBuilding != NO_BUILDING)
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+		if (isTechRequiredForBuilding(eTech, eLoopBuilding))
 		{
-			if (isTechRequiredForBuilding((eTech), eLoopBuilding))
-			{
-				CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
-
-				if ((GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)))
-				{
-					//UB
-					iValue += 100;
-				}
-				iValue += (150 * (kLoopBuilding.getCommerceChange(COMMERCE_CULTURE)
-						//) * 20);
-						// UNOFFICIAL_PATCH, Bugfix, 05/25/10, Fuyu & jdog5000:
-						+ kLoopBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE))) / 20;
-				iValue += kLoopBuilding.getCommerceModifier(COMMERCE_CULTURE) * 2;
-			}
+			if (kCiv.isUnique(eLoopBuilding))
+				iValue += 100;
+			CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
+			iValue += (150 * (kLoopBuilding.getCommerceChange(COMMERCE_CULTURE)
+					//) * 20);
+					// UNOFFICIAL_PATCH, Bugfix, 05/25/10, Fuyu & jdog5000:
+					+ kLoopBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE))) / 20;
+			iValue += kLoopBuilding.getCommerceModifier(COMMERCE_CULTURE) * 2;
 		}
 	}
 
@@ -12246,15 +12216,14 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	int iHealth = GC.getBonusInfo(eBonus).getHealth();
 	int iBuildingHappy = 0;
 	int iBuildingHealth = 0;
-	for(int i = 0; i < GC.getNumBuildingClassInfos(); i++) {
-		BuildingClassTypes eBuildingClass = (BuildingClassTypes)i;
-		int iBuildingClassCount = getBuildingClassCount(eBuildingClass);
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		int iBuildingClassCount = getBuildingClassCount(kCiv.buildingClassAt(i));
 		if(iBuildingClassCount <= 0)
 			continue;
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(
-				getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-		if(eBuilding == NO_BUILDING)
-			continue;
+
 		iBuildingHappy += iBuildingClassCount * GC.getBuildingInfo(eBuilding).
 				getBonusHappinessChanges(eBonus);
 		iBuildingHealth += iBuildingClassCount * GC.getBuildingInfo(eBuilding).
@@ -12347,11 +12316,9 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	if(pCoastalCity == NULL && pUnconnectedCoastalCity != NULL)
 		pCoastalCity = pUnconnectedCoastalCity;
 
-	for(int iI = 0; iI < GC.getNumUnitClassInfos(); iI++) {
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(
-				getCivilizationType()).getCivilizationUnits(iI);
-		if(eLoopUnit == NO_UNIT)
-			continue;
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes eLoopUnit = kCiv.unitAt(i); // advc.003w
 		CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
 		/* original bts code
 		... */ // advc.003: deleted
@@ -12458,13 +12425,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		} // K-Mod end
 	}
 
-	for(int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++) {
-		BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(
-				getCivilizationType()).getCivilizationBuildings(iI);
-		if(eLoopBuilding == NO_BUILDING)
-			continue;
-
-		BuildingClassTypes eBuildingClass = (BuildingClassTypes)iI;
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i); // advc.003w
+		BuildingClassTypes eBuildingClass = kCiv.buildingClassAt(i);
 		CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
 
 		int iTempValue = 0;
@@ -13041,9 +13005,8 @@ int CvPlayerAI::AI_cityTradeVal(CvCity const* pCity) const  // advc.003: const C
 
 	int iValue = 300;
 
-	//iValue += (kCity.getPopulation() * 50);
-	int iPopValue = // advc.003
-			kCity.getPopulation() * 20 + kCity.getHighestPopulation() * 30; // K-Mod
+	//iValue += (kCity.getPopulation() * 50); // advc.003: Call this iPopValue
+	int iPopValue = kCity.getPopulation() * 20 + kCity.getHighestPopulation() * 30; // K-Mod
 	iValue += iPopValue;
 
 	iValue += 200 * kCity.getCultureLevel();
@@ -13425,8 +13388,8 @@ DenialTypes CvPlayerAI::AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) co
 	{
 		return NO_DENIAL;
 	}
-
-	if (getCivicPercentAnger(getCivics((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())),true) > getCivicPercentAnger(eCivic))
+	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getCivicInfo(eCivic).getCivicOptionType(); // advc.003
+	if (getCivicPercentAnger(getCivics(eCivicOption), true) > getCivicPercentAnger(eCivic))
 	{
 		return DENIAL_ANGER_CIVIC;
 	}
@@ -13434,13 +13397,13 @@ DenialTypes CvPlayerAI::AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) co
 	CivicTypes eFavoriteCivic = (CivicTypes)GC.getLeaderHeadInfo(getPersonalityType()).getFavoriteCivic();
 	if (eFavoriteCivic != NO_CIVIC)
 	{
-		if (isCivic(eFavoriteCivic) && (GC.getCivicInfo(eCivic).getCivicOptionType() == GC.getCivicInfo(eFavoriteCivic).getCivicOptionType()))
+		if (isCivic(eFavoriteCivic) && eCivicOption == GC.getCivicInfo(eFavoriteCivic).getCivicOptionType())
 		{
 			return DENIAL_FAVORITE_CIVIC;
 		}
 	}
 
-	if (GC.getCivilizationInfo(getCivilizationType()).getCivilizationInitialCivics(GC.getCivicInfo(eCivic).getCivicOptionType()) == eCivic)
+	if (getCivilization().getInitialCivic(eCivicOption) == eCivic)
 	{
 		return DENIAL_JOKING;
 	}
@@ -14161,20 +14124,20 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			// we should not assume all unitai_collateral are limited. -- This whole business is an ugly kludge... I hope it works.
 			int iNoLimitCollateral = 0;
 
-			for (UnitClassTypes i = (UnitClassTypes)0; i < GC.getNumUnitClassInfos(); i=(UnitClassTypes)(i+1))
+			CvCivilization const& kCiv = getCivilization(); // advc.003w 
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(i);
-				if (eLoopUnit == NO_UNIT)
-					continue;
+				UnitTypes eLoopUnit = kCiv.unitAt(i);
+				UnitClassTypes eUnitClass = kCiv.unitClassAt(i);
 				const CvUnitInfo& kLoopInfo = GC.getUnitInfo(eLoopUnit);
 
 				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 &&
 						!kLoopInfo.isMostlyDefensive()) // advc.315
 				{
 					if (kLoopInfo.getCombatLimit() < 100)
-						iLimitedUnits += getUnitClassCount(i);
+						iLimitedUnits += getUnitClassCount(eUnitClass);
 					else if (kLoopInfo.getCollateralDamage() > 0)
-						iNoLimitCollateral = getUnitClassCount(i);
+						iNoLimitCollateral = getUnitClassCount(eUnitClass);
 				}
 			}
 
@@ -14826,15 +14789,15 @@ bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea* p
 {
 	int iValue = AI_unitValue(eUnit, eRole, pArea);
 	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType();
-	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-		UnitClassTypes eLoopUnitClass = (UnitClassTypes)i;
+	CvCivilization const& kCiv = getCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitClassTypes eLoopUnitClass = kCiv.unitClassAt(i);
 		if(eLoopUnitClass == eUnitClass ||
 				getUnitClassCount(eLoopUnitClass) <= 0) // Avoid slow canTrain checks
 			continue;
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
-				getCivilizationUnits(eLoopUnitClass);
-		if (eLoopUnit == NO_UNIT)
-			continue;
+
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
 		int iLoopValue = AI_unitValue(eLoopUnit, eRole, pArea);
 		if(75 * iLoopValue > 100 * iValue)
 			return true;
@@ -17156,9 +17119,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 	if (kCivic.isAnyBuildingHappinessChanges())
 	{
-		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		CvCivilization const& kCiv = getCivilization(); // advc.003w (also fixes a bug; NO_BUILDING check was missing)
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			int iTempValue = kCivic.getBuildingHappinessChanges(iI);
+			BuildingTypes eBuilding = kCiv.buildingAt(i);
+			BuildingClassTypes eBuildingClass = kCiv.buildingClassAt(i);
+			int iTempValue = kCivic.getBuildingHappinessChanges(eBuildingClass);
 			/* original bts code
 			if (iTempValue != 0) {
 				// Nationalism
@@ -17169,14 +17135,11 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			// K-Mod
 			if (iTempValue == 0)
 				continue;
-			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
-			// <advc.001> (No problem with the BtS/AdvCiv XML data, but still a bug.)
-			if (eBuilding == NO_BUILDING)
-				continue; // </advc.001>
+
 			int iExpectedBuildings = 0;
 			if (canConstruct(eBuilding))
 			{
-				iExpectedBuildings = (iCities + 2*getBuildingClassCountPlusMaking((BuildingClassTypes)iI))/3;
+				iExpectedBuildings = (iCities + 2*getBuildingClassCountPlusMaking(eBuildingClass))/3;
 			}
 			iValue += (10 * iExpectedBuildings * iS * AI_getHappinessWeight(iS * iTempValue, 1))/100;
 		}
@@ -18489,38 +18452,38 @@ void CvPlayerAI::AI_doCounter()  // advc.003: style changes
 	double decayFactor = 1 - GET_TEAM(getTeam()).AI_getDiploDecay(); // advc.130k
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
 	{	// <advc.130k>
-		PlayerTypes eCiv = (PlayerTypes)iI;
-		CvPlayerAI const& kCiv = GET_PLAYER(eCiv);
-		if(!kCiv.isAlive() || kCiv.getTeam() == getTeam() ||
-				!GET_TEAM(getTeam()).isHasMet(kCiv.getTeam()))
+		PlayerTypes ePlayer = (PlayerTypes)iI;
+		CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+		if(!kPlayer.isAlive() || kPlayer.getTeam() == getTeam() ||
+				!GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
 			continue;
 		if(getStateReligion() != NO_RELIGION &&
-				getStateReligion() == kCiv.getStateReligion())
-			AI_changeSameReligionCounter(eCiv, kOurTeam.AI_randomCounterChange());
-		else AI_setSameReligionCounter(eCiv, (int)(
-				decayFactor * AI_getSameReligionCounter(eCiv)));
+				getStateReligion() == kPlayer.getStateReligion())
+			AI_changeSameReligionCounter(ePlayer, kOurTeam.AI_randomCounterChange());
+		else AI_setSameReligionCounter(ePlayer, (int)(
+				decayFactor * AI_getSameReligionCounter(ePlayer)));
 		CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
 		if(getStateReligion() != NO_RELIGION &&
-				kCiv.getStateReligion() != NO_RELIGION &&
-				getStateReligion() != kCiv.getStateReligion() &&
+				kPlayer.getStateReligion() != NO_RELIGION &&
+				getStateReligion() != kPlayer.getStateReligion() &&
 				// Delay religion hate if just met
-				kOurTeam.AI_getHasMetCounter(kCiv.getTeam()) >
+				kOurTeam.AI_getHasMetCounter(kPlayer.getTeam()) >
 				// This is 10 (given the XML value in BtS)
 				2 * -lh.getDifferentReligionAttitudeDivisor())
-			AI_changeDifferentReligionCounter(eCiv, kOurTeam.AI_randomCounterChange());
-		else AI_setDifferentReligionCounter(eCiv, (int)(
-				decayFactor * AI_getDifferentReligionCounter(eCiv)));
+			AI_changeDifferentReligionCounter(ePlayer, kOurTeam.AI_randomCounterChange());
+		else AI_setDifferentReligionCounter(ePlayer, (int)(
+				decayFactor * AI_getDifferentReligionCounter(ePlayer)));
 		if(lh.getFavoriteCivic() != NO_CIVIC) {
 			CivicTypes eFavCivic = (CivicTypes)lh.getFavoriteCivic();
-			if(isCivic(eFavCivic) && kCiv.isCivic(eFavCivic))
-				AI_changeFavoriteCivicCounter(eCiv, kOurTeam.AI_randomCounterChange());
-			else AI_setFavoriteCivicCounter(eCiv, (int)(
-				decayFactor * AI_getFavoriteCivicCounter(eCiv)));
+			if(isCivic(eFavCivic) && kPlayer.isCivic(eFavCivic))
+				AI_changeFavoriteCivicCounter(ePlayer, kOurTeam.AI_randomCounterChange());
+			else AI_setFavoriteCivicCounter(ePlayer, (int)(
+				decayFactor * AI_getFavoriteCivicCounter(ePlayer)));
 		} // <advc.130p>
-		AI_setPeacetimeGrantValue(eCiv, (int)(
-				decayFactor * AI_getPeacetimeGrantValue(eCiv)));
-		AI_setPeacetimeTradeValue(eCiv, (int)(
-				decayFactor * AI_getPeacetimeTradeValue(eCiv)));
+		AI_setPeacetimeGrantValue(ePlayer, (int)(
+				decayFactor * AI_getPeacetimeGrantValue(ePlayer)));
+		AI_setPeacetimeTradeValue(ePlayer, (int)(
+				decayFactor * AI_getPeacetimeTradeValue(ePlayer)));
 		// </advc.130p>
 		// <advc.149>
 		int iAttitudeDiv = lh.getBonusTradeAttitudeDivisor();
@@ -18528,13 +18491,13 @@ void CvPlayerAI::AI_doCounter()  // advc.003: style changes
 			continue;
 		//int iBonusImports = getNumTradeBonusImports(eCiv);
 		// Same scale as the above, but taking into account utility.
-		double bonusVal = AI_bonusImportValue(eCiv);
-		int iBonusTrade = AI_getBonusTradeCounter(eCiv);
+		double bonusVal = AI_bonusImportValue(ePlayer);
+		int iBonusTrade = AI_getBonusTradeCounter(ePlayer);
 		if(bonusVal <= iBonusTrade / (1.2 * iAttitudeDiv)) {
 			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
 				but let's just do exponential decay instead. */
-			AI_setBonusTradeCounter(eCiv, (int)(
-					decayFactor * AI_getBonusTradeCounter(eCiv)));
+			AI_setBonusTradeCounter(ePlayer, (int)(
+					decayFactor * AI_getBonusTradeCounter(ePlayer)));
 		}
 		else {
 			double incr = bonusVal;
@@ -18548,8 +18511,8 @@ void CvPlayerAI::AI_doCounter()  // advc.003: style changes
 				double exportable = 0;
 				for(int j = 0; j < GC.getNumBonusInfos(); j++) {
 					BonusTypes eBonus = (BonusTypes)j;
-					int iAvail = kCiv.getNumAvailableBonuses(eBonus)
-							+ kCiv.getBonusExport(eBonus);
+					int iAvail = kPlayer.getNumAvailableBonuses(eBonus)
+							+ kPlayer.getBonusExport(eBonus);
 					if(iAvail > 1)
 						exportable += std::min(iAvail - 1, 3);
 				} /* Mean of capBonuses and a multiple of exportable, but
@@ -18562,13 +18525,13 @@ void CvPlayerAI::AI_doCounter()  // advc.003: style changes
 				if(weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
 			}
-			AI_changeBonusTradeCounter(eCiv, kOurTeam.AI_randomCounterChange(::round(
+			AI_changeBonusTradeCounter(ePlayer, kOurTeam.AI_randomCounterChange(::round(
 					1.25 * iAttitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
 					incr / 2)); // Halved b/c it's a binomial distrib w/ 2 trials
 			// <advc.036>
-			int iOldGoldTraded = AI_getGoldTradedTo(eCiv);
+			int iOldGoldTraded = AI_getGoldTradedTo(ePlayer);
 			int iNewGoldTraded = (int)(decayFactor * iOldGoldTraded);
-			AI_changeGoldTradedTo(eCiv, iNewGoldTraded - iOldGoldTraded);
+			AI_changeGoldTradedTo(ePlayer, iNewGoldTraded - iOldGoldTraded);
 			// </advc.036>
 		} // </advc.149> </advc.130k>
 	}
@@ -21690,63 +21653,51 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 	{
 		iValue += (kTeam.getResearchCost((TechTypes)kEvent.getTech()) * kEvent.getTechPercent()) / 100;
 	}
-
-	if (kEvent.getUnitClass() != NO_UNITCLASS)
 	{
-		UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(kEvent.getUnitClass());
-		if (eUnit != NO_UNIT)
+		UnitClassTypes eUnitClass = (UnitClassTypes)kEvent.getUnitClass(); // advc.003
+		if (eUnitClass != NO_UNITCLASS)
 		{
-			//Altough AI_unitValue compares well within units, the value is somewhat independent of cost
-			int iUnitValue = GC.getUnitInfo(eUnit).getProductionCost();
-			if (iUnitValue > 0)
+			UnitTypes eUnit = getCivilization().getUnit(eUnitClass);
+			if (eUnit != NO_UNIT)
 			{
-				iUnitValue *= 2;
-			}
-			else if (iUnitValue == -1)
-			{
-				iUnitValue = 2000; //Great Person?  // (was 200)
-			}
+				//Altough AI_unitValue compares well within units, the value is somewhat independent of cost
+				int iUnitValue = GC.getUnitInfo(eUnit).getProductionCost();
+				if (iUnitValue > 0)
+					iUnitValue *= 2;
+				else if (iUnitValue == -1)
+					iUnitValue = 2000; //Great Person?  // (was 200)
 
-			iUnitValue *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
-			iUnitValue /= 100; // K-Mod
-			iValue += kEvent.getNumUnits() * iUnitValue;
+				iUnitValue *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
+				iUnitValue /= 100; // K-Mod
+				iValue += kEvent.getNumUnits() * iUnitValue;
+			}
 		}
 	}
-
 	if (kEvent.isDisbandUnit() && pUnit != NULL)
 	{
 		int iUnitValue = pUnit->getUnitInfo().getProductionCost();
 		if (iUnitValue > 0)
-		{
 			iUnitValue *= 2;
-		}
 		else if (iUnitValue == -1)
-		{
 			iUnitValue = 2000; //Great Person?  // (was 200)
-		}
 
 		iUnitValue *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
 		iUnitValue /= 100; // K-Mod
 		iValue -= iUnitValue;
 	}
-
-	if (kEvent.getBuildingClass() != NO_BUILDINGCLASS)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kEvent.getBuildingClass());
-		if (eBuilding != NO_BUILDING)
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)kEvent.getBuildingClass(); // advc.003
+		if (eBuildingClass != NO_BUILDINGCLASS)
 		{
-			if (pCity)
+			BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);
+			if (eBuilding != NO_BUILDING && pCity != NULL)
 			{
 				//iValue += kEvent.getBuildingChange() * pCity->AI_buildingValue(eBuilding);
 				int iBuildingValue = GC.getBuildingInfo(eBuilding).getProductionCost();
 				if (iBuildingValue > 0)
-				{
 					iBuildingValue *= 2;
-				}
 				else if (iBuildingValue == -1)
-				{
 					iBuildingValue = 300; //Shrine?
-				}
 
 				iBuildingValue *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getConstructPercent();
 				iValue += kEvent.getBuildingChange() * iBuildingValue;
@@ -23479,83 +23430,80 @@ void CvPlayerAI::AI_updateStrategyHash()
 	int iWarSuccessRating = kTeam.AI_getWarSuccessRating();
 	// K-Mod end
 
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		/*if (getCapitalCity() != NULL) // advc.003: already guaranteed
+		{*/
+		if (!getCapitalCity()->canTrain(eLoopUnit))
+			continue;
 
-		if (NO_UNIT != eLoopUnit)
+		CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
+		bool bUU = kCiv.isUnique(eLoopUnit);
+		/*if (kLoopUnit.getUnitAIType(UNITAI_RESERVE) || kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY)
+				|| kLoopUnit.getUnitAIType(UNITAI_COUNTER) || kLoopUnit.getUnitAIType(UNITAI_PILLAGE)) */
+		// K-Mod. Original code was missing the obvious: UNITAI_ATTACK. Was this a bug? (I'm skipping "pillage".)
+		if (kLoopUnit.getUnitAIType(UNITAI_ATTACK) || kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY)
+				|| kLoopUnit.getUnitAIType(UNITAI_RESERVE) || kLoopUnit.getUnitAIType(UNITAI_COUNTER))
+		// K-Mod end
 		{
-			/*if (getCapitalCity() != NULL) // advc.003: already guaranteed
-			{*/
-			if (getCapitalCity()->canTrain(eLoopUnit))
+			iAttackUnitCount++;
+
+			//UU love
+			if (bUU)
 			{
-				CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
-				bool bUU = (GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI));
-				/* original bts code
-				if (kLoopUnit.getUnitAIType(UNITAI_RESERVE) || kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY)
-					|| kLoopUnit.getUnitAIType(UNITAI_COUNTER) || kLoopUnit.getUnitAIType(UNITAI_PILLAGE)) */
-				// K-Mod. Original code was missing the obvious: UNITAI_ATTACK. Was this a bug? (I'm skipping "pillage".)
-				if (kLoopUnit.getUnitAIType(UNITAI_ATTACK) || kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY)
-						|| kLoopUnit.getUnitAIType(UNITAI_RESERVE) || kLoopUnit.getUnitAIType(UNITAI_COUNTER))
-				// K-Mod end
+				if (kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY) ||
+					(kLoopUnit.getUnitAIType(UNITAI_ATTACK)	&&
+					!kLoopUnit.getUnitAIType(UNITAI_CITY_DEFENSE)))
 				{
 					iAttackUnitCount++;
-
-					//UU love
-					if (bUU)
-					{
-						if (kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY) ||
-								(kLoopUnit.getUnitAIType(UNITAI_ATTACK)	&& !kLoopUnit.getUnitAIType(UNITAI_CITY_DEFENSE)))
-						{
-							iAttackUnitCount++;
-						}
-					}
-					int iCombat = kLoopUnit.getCombat();
-					int iMoves = kLoopUnit.getMoves();
-					if (iMoves == 1)
-					{
-						iBestSlowUnitCombat = std::max(iBestSlowUnitCombat, iCombat);
-					}
-					else if (iMoves > 1)
-					{
-						iBestFastUnitCombat = std::max(iBestFastUnitCombat, iCombat);
-						if (bUU)
-						{
-							iBestFastUnitCombat += 1;
-						}
-					}
-				}
-				//if (kLoopUnit.getMoves() > 1)
-				// UNOFFICIAL_PATCH, Bugfix, 09/10/08, jdog5000:
-				// Mobile anti-air and artillery flags only meant for land units
-				if (kLoopUnit.getDomainType() == DOMAIN_LAND && kLoopUnit.getMoves() > 1)
-				{
-					if (kLoopUnit.getInterceptionProbability() > 25)
-					{
-						bHasMobileAntiair = true;
-					}
-					if (kLoopUnit.getBombardRate() > 10)
-					{
-						bHasMobileArtillery = true;
-					}
-				}
-
-				if (kLoopUnit.getAirRange() > 1)
-				{
-					if (!kLoopUnit.isSuicide())
-					{
-						if ((kLoopUnit.getBombRate() > 10) && (kLoopUnit.getAirCombat() > 0))
-						{
-							bHasBomber = true;
-						}
-					}
-				}
-
-				if (kLoopUnit.getNukeRange() > 0)
-				{
-					iNukeCount++;
 				}
 			}
+			int iCombat = kLoopUnit.getCombat();
+			int iMoves = kLoopUnit.getMoves();
+			if (iMoves == 1)
+			{
+				iBestSlowUnitCombat = std::max(iBestSlowUnitCombat, iCombat);
+			}
+			else if (iMoves > 1)
+			{
+				iBestFastUnitCombat = std::max(iBestFastUnitCombat, iCombat);
+				if (bUU)
+				{
+					iBestFastUnitCombat += 1;
+				}
+			}
+		}
+		//if (kLoopUnit.getMoves() > 1)
+		// UNOFFICIAL_PATCH, Bugfix, 09/10/08, jdog5000:
+		// Mobile anti-air and artillery flags only meant for land units
+		if (kLoopUnit.getDomainType() == DOMAIN_LAND && kLoopUnit.getMoves() > 1)
+		{
+			if (kLoopUnit.getInterceptionProbability() > 25)
+			{
+				bHasMobileAntiair = true;
+			}
+			if (kLoopUnit.getBombardRate() > 10)
+			{
+				bHasMobileArtillery = true;
+			}
+		}
+
+		if (kLoopUnit.getAirRange() > 1)
+		{
+			if (!kLoopUnit.isSuicide())
+			{
+				if ((kLoopUnit.getBombRate() > 10) && (kLoopUnit.getAirCombat() > 0))
+				{
+					bHasBomber = true;
+				}
+			}
+		}
+
+		if (kLoopUnit.getNukeRange() > 0)
+		{
+			iNukeCount++;
 		}
 	}
 
@@ -23979,92 +23927,95 @@ void CvPlayerAI::AI_updateStrategyHash()
 		iDagger /= 10;
 		iDagger += 5 * std::min(8, AI_getFlavorValue(FLAVOR_MILITARY));
 
-		for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+		CvCivilization const& kCiv = getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumUniqueUnits(); i++)
 		{
-			UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
+			UnitTypes eUnit = kCiv.uniqueUnitAt(i);
+			CvUnitInfo const& kUnit = GC.getUnitInfo(eUnit);
+			if (kUnit.getCombat() <= 0)
+				continue; // advc.003
+			UnitClassTypes eLoopUnitClass = (UnitClassTypes)kUnit.getUnitClassType();
+			/*  (advc: A little crazy to have all this code just for counting
+				unique units for Dagger - which UWAI bypasses anyway -,
+				but that's how it was and is.) */
+			//if ((GC.getUnitClassInfo(eLoopUnitClass).getDefaultUnitIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eLoopUnitClass))) {
+			bool bDefensive = (kUnit.getUnitAIType(UNITAI_CITY_DEFENSE) &&
+					!kUnit.getUnitAIType(UNITAI_RESERVE));
 
-			if (eLoopUnit != NO_UNIT && GC.getUnitInfo(eLoopUnit).getCombat() > 0)
+			iDagger += bDefensive ? -10 : 0;
+
+			if (getCapitalCity()->canTrain(eUnit))
 			{
-				if ((GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)))
+				iDagger += bDefensive ? 10 : 40;
+
+				int iUUStr = kUnit.getCombat();
+				int iNormalStr = GC.getUnitInfo((UnitTypes)GC.getUnitClassInfo(
+						eLoopUnitClass).getDefaultUnitIndex()).getCombat();
+				iDagger += 20 * range((iUUStr - iNormalStr), 0, 2);
+				if (kUnit.getPrereqAndTech() == NO_TECH)
 				{
-					bool bDefensive = (GC.getUnitInfo(eLoopUnit).getUnitAIType(UNITAI_CITY_DEFENSE) &&
-						!GC.getUnitInfo(eLoopUnit).getUnitAIType(UNITAI_RESERVE));
-
-					iDagger += bDefensive ? -10 : 0;
-
-					if (getCapitalCity()->canTrain(eLoopUnit))
+					iDagger += 20;
+				}
+			}
+			else
+			{
+				if (kUnit.getPrereqAndTech() != NO_TECH)
+				{
+					if (GC.getTechInfo((TechTypes)kUnit.getPrereqAndTech()).getEra() <= iCurrentEra + 1)
 					{
-						iDagger += bDefensive ? 10 : 40;
-
-						int iUUStr = GC.getUnitInfo(eLoopUnit).getCombat();
-						int iNormalStr = GC.getUnitInfo((UnitTypes)(GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex())).getCombat();
-						iDagger += 20 * range((iUUStr - iNormalStr), 0, 2);
-						if (GC.getUnitInfo(eLoopUnit).getPrereqAndTech() == NO_TECH)
+						if (kTeam.isHasTech((TechTypes)kUnit.getPrereqAndTech()))
 						{
-							iDagger += 20;
+							//we have the tech but can't train the unit, dejection.
+							iDagger += 10;
+						}
+						else
+						{
+							//we don't have the tech, it's understandable we can't train.
+							iDagger += 30;
 						}
 					}
-					else
+				}
+
+				bool bNeedsAndBonus = false;
+				int iOrBonusCount = 0;
+				int iOrBonusHave = 0;
+
+				for (int iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
+				{
+					BonusTypes eBonus = (BonusTypes)iJ;
+					if (eBonus != NO_BONUS)
 					{
-						if (GC.getUnitInfo(eLoopUnit).getPrereqAndTech() != NO_TECH)
+						if (kUnit.getPrereqAndBonus() == eBonus)
 						{
-							if (GC.getTechInfo((TechTypes)(GC.getUnitInfo(eLoopUnit).getPrereqAndTech())).getEra() <= (iCurrentEra + 1))
+							if (getNumTradeableBonuses(eBonus) == 0)
 							{
-								if (kTeam.isHasTech((TechTypes)GC.getUnitInfo(eLoopUnit).getPrereqAndTech()))
-								{
-									//we have the tech but can't train the unit, dejection.
-									iDagger += 10;
-								}
-								else
-								{
-									//we don't have the tech, it's understandable we can't train.
-									iDagger += 30;
-								}
+								bNeedsAndBonus = true;
 							}
 						}
 
-						bool bNeedsAndBonus = false;
-						int iOrBonusCount = 0;
-						int iOrBonusHave = 0;
-
-						for (int iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
+						for (int iK = 0; iK < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iK++)
 						{
-							BonusTypes eBonus = (BonusTypes)iJ;
-							if (eBonus != NO_BONUS)
+							if (kUnit.getPrereqOrBonuses(iK) == eBonus)
 							{
-								if (GC.getUnitInfo(eLoopUnit).getPrereqAndBonus() == eBonus)
+								iOrBonusCount++;
+								if (getNumTradeableBonuses(eBonus) > 0)
 								{
-									if (getNumTradeableBonuses(eBonus) == 0)
-									{
-										bNeedsAndBonus = true;
-									}
-								}
-
-								for (int iK = 0; iK < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eLoopUnit); iK++)
-								{
-									if (GC.getUnitInfo(eLoopUnit).getPrereqOrBonuses(iK) == eBonus)
-									{
-										iOrBonusCount++;
-										if (getNumTradeableBonuses(eBonus) > 0)
-										{
-											iOrBonusHave++;
-										}
-									}
+									iOrBonusHave++;
 								}
 							}
 						}
-
-
-						iDagger += 20;
-						if (bNeedsAndBonus)
-						{
-							iDagger -= 20;
-						}
-						if ((iOrBonusCount > 0) && (iOrBonusHave == 0))
-						{
-							iDagger -= 20;
-						}
 					}
+				}
+
+
+				iDagger += 20;
+				if (bNeedsAndBonus)
+				{
+					iDagger -= 20;
+				}
+				if ((iOrBonusCount > 0) && (iOrBonusHave == 0))
+				{
+					iDagger -= 20;
 				}
 			}
 		}
@@ -24126,7 +24077,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
-			if ((GET_TEAM((TeamTypes)iI).isAlive()) && (iI != getTeam()))
+			if (GET_TEAM((TeamTypes)iI).isAlive() && iI != getTeam())
 			{
 				if (kTeam.AI_getWarPlan((TeamTypes)iI) != NO_WARPLAN)
 				{
@@ -24446,7 +24397,7 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 		if (m_GreatPersonWeights.find(eGreatPersonClass) != m_GreatPersonWeights.end())
 			continue; // already evaluated
 
-		UnitTypes eGreatPerson = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eGreatPersonClass);
+		UnitTypes eGreatPerson = getCivilization().getUnit(eGreatPersonClass);
 		if (eGreatPerson == NO_UNIT)
 			continue;
 
@@ -24488,11 +24439,10 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 		// value of building something.
 		if (kInfo.isAnyBuildings()) // advc.003t
 		{
-			for (int j = 0; j < GC.getNumBuildingClassInfos(); j++)
+			CvCivilization const& kCiv = getCivilization(); // advc.003w 
+			for (int j = 0; j < kCiv.getNumBuildings(); j++)
 			{
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(j);
-				if (eBuilding == NO_BUILDING)
-					continue;
+				BuildingTypes eBuilding = kCiv.buildingAt(j);
 				/*  <advc.003b> We're looking for the optimal use of the GP. A cheap
 					building isn't going to be it. (Can always settle the GP.) */
 				int iCost = GC.getBuildingInfo(eBuilding).getProductionCost();
@@ -24514,7 +24464,7 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 						int iTempValue = pLoopCity->AI_buildingValue(eBuilding) * 25;
 
 						// if the building is a world wonder, increase the value.
-						if (isWorldWonderClass((BuildingClassTypes)j))
+						if (::isWorldWonderClass(eBuilding))
 							iTempValue = 3*iTempValue/2;
 
 						// reduce the value if we already have great people of this type
@@ -24658,8 +24608,6 @@ void CvPlayerAI::AI_updateGoldToUpgradeAllUnits()
 
 	int iTotalGold = 0;
 
-	CvCivilizationInfo& kCivilizationInfo = GC.getCivilizationInfo(getCivilizationType());
-
 	// cache the value for each unit type
 	std::vector<int> aiUnitUpgradePrice(GC.getNumUnitInfos(), 0);	// initializes to zeros
 
@@ -24693,41 +24641,39 @@ void CvPlayerAI::AI_updateGoldToUpgradeAllUnits()
 		CvArea* pUnitArea = pLoopUnit->area();
 		int iUnitValue = AI_unitValue(eUnitType, eUnitAIType, pUnitArea);
 
-		for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+		CvCivilization const& kCiv = getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumUnits(); i++)
 		{
-			UnitClassTypes eUpgradeUnitClassType = (UnitClassTypes) iI;
-			UnitTypes eUpgradeUnitType = (UnitTypes)(kCivilizationInfo.getCivilizationUnits(iI));
+			UnitTypes eUpgradeUnitType = kCiv.unitAt(i);
+			UnitClassTypes eUpgradeUnitClassType = kCiv.unitClassAt(i);
 
-			if (NO_UNIT != eUpgradeUnitType)
+			// is it better?
+			int iUpgradeValue = AI_unitValue(eUpgradeUnitType, eUnitAIType, pUnitArea);
+			if (iUpgradeValue > iUnitValue)
 			{
-				// is it better?
-				int iUpgradeValue = AI_unitValue(eUpgradeUnitType, eUnitAIType, pUnitArea);
-				if (iUpgradeValue > iUnitValue)
+				// is this a valid upgrade?
+				if (pLoopUnit->upgradeAvailable(eUnitType, eUpgradeUnitClassType))
 				{
-					// is this a valid upgrade?
-					if (pLoopUnit->upgradeAvailable(eUnitType, eUpgradeUnitClassType))
+					// can we actually make this upgrade?
+					bool bCanUpgrade = false;
+					CvCity* pCapitalCity = getCapitalCity();
+					if (pCapitalCity != NULL && pCapitalCity->canTrain(eUpgradeUnitType))
 					{
-						// can we actually make this upgrade?
-						bool bCanUpgrade = false;
-						CvCity* pCapitalCity = getCapitalCity();
-						if (pCapitalCity != NULL && pCapitalCity->canTrain(eUpgradeUnitType))
+						bCanUpgrade = true;
+					}
+					else
+					{
+						CvCity* pCloseCity = GC.getMap().findCity(pLoopUnit->getX(), pLoopUnit->getY(), getID(), NO_TEAM, true, (pLoopUnit->getDomainType() == DOMAIN_SEA));
+						if (pCloseCity != NULL && pCloseCity->canTrain(eUpgradeUnitType))
 						{
 							bCanUpgrade = true;
 						}
-						else
-						{
-							CvCity* pCloseCity = GC.getMap().findCity(pLoopUnit->getX(), pLoopUnit->getY(), getID(), NO_TEAM, true, (pLoopUnit->getDomainType() == DOMAIN_SEA));
-							if (pCloseCity != NULL && pCloseCity->canTrain(eUpgradeUnitType))
-							{
-								bCanUpgrade = true;
-							}
-						}
+					}
 
-						if (bCanUpgrade)
-						{
-							iUnitGold += pLoopUnit->upgradePrice(eUpgradeUnitType);
-							iUnitUpgradePossibilities++;
-						}
+					if (bCanUpgrade)
+					{
+						iUnitGold += pLoopUnit->upgradePrice(eUpgradeUnitType);
+						iUnitUpgradePossibilities++;
 					}
 				}
 			}
@@ -25336,12 +25282,11 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot* pPlot, UnitAITypes eUni
 
 	int iBestValue = 0;
 	UnitTypes eBestUnit = NO_UNIT;
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-
-		if (eLoopUnit == NO_UNIT)
-			continue;
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		UnitClassTypes eLoopUnitClass = kCiv.unitClassAt(i);
 		//if (!isHuman() || (GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI)) {
 		int iUnitCost = getAdvancedStartUnitCost(eLoopUnit, true, pPlot);
 		if (iUnitCost < 0)
@@ -25405,7 +25350,7 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot* pPlot, UnitAITypes eUni
 		iValue /= 100;
 
 		iValue *= (getNumCities() + 2);
-		iValue /= (getUnitClassCountPlusMaking((UnitClassTypes)iI) + getNumCities() + 2);
+		iValue /= (getUnitClassCountPlusMaking(eLoopUnitClass) + getNumCities() + 2);
 
 		FAssert((MAX_INT / 1000) > iValue);
 		iValue *= 1000;
@@ -26706,24 +26651,21 @@ int CvPlayerAI::AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity,
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");
 
 	int iBestValue = 0;
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-
-		if (eLoopUnit != NO_UNIT)
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		//if (!isHuman() || (GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI)) { // disabled by K-Mod
+		if (NULL == pCity ? (canTrain(eLoopUnit)
+				&& AI_haveResourcesToTrain(eLoopUnit)) : // k146
+				pCity->canTrain(eLoopUnit))
 		{
-			//if (!isHuman() || (GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI)) { // disabled by K-Mod
-			if (NULL == pCity ? (canTrain(eLoopUnit)
-					&& AI_haveResourcesToTrain(eLoopUnit)) : // k146
-					pCity->canTrain(eLoopUnit))
+			int iValue = AI_unitValue(eLoopUnit, eUnitAI, (pCity == NULL) ? NULL : pCity->area());
+			if (iValue > iBestValue)
 			{
-				int iValue = AI_unitValue(eLoopUnit, eUnitAI, (pCity == NULL) ? NULL : pCity->area());
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					if (peBestUnitType != NULL)
-						*peBestUnitType = eLoopUnit;
-				}
+				iBestValue = iValue;
+				if (peBestUnitType != NULL)
+					*peBestUnitType = eLoopUnit;
 			}
 		}
 	}
@@ -26733,13 +26675,15 @@ int CvPlayerAI::AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity,
 int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 {
 	int iTotalBombard = 0;
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-		if (eLoopUnit == NO_UNIT)
-			continue;
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+
 		if (GC.getUnitInfo(eLoopUnit).getDomainType() != eDomain)
 			continue;
+
+		UnitClassTypes eLoopClass = kCiv.unitClassAt(i);
 
 		int iBombardRate = GC.getUnitInfo(eLoopUnit).getBombardRate();
 		if (iBombardRate > 0)
@@ -26749,13 +26693,13 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 				iBombardRate *= 3;
 				iBombardRate /= 2;
 			}
-			iTotalBombard += iBombardRate * getUnitClassCount((UnitClassTypes)iI);
+			iTotalBombard += iBombardRate * getUnitClassCount(eLoopClass);
 		}
 
 		int iBombRate = GC.getUnitInfo(eLoopUnit).getBombRate();
 		if (iBombRate > 0)
 		{
-			iTotalBombard += iBombRate * getUnitClassCount((UnitClassTypes)iI);
+			iTotalBombard += iBombRate * getUnitClassCount(eLoopClass);
 		}
 	}
 	return iTotalBombard;
@@ -27780,11 +27724,10 @@ void CvPlayerAI::AI_updateDangerFromSubmarines() {
 		if(!kWarEnemy.isAlive() || kWarEnemy.isMinorCiv() ||
 				!GET_TEAM(kWarEnemy.getTeam()).isAtWar(getTeam()))
 			continue;
-		for(int j = 0; j < GC.getNumUnitClassInfos(); j++) {
-			UnitTypes eUnit = (UnitTypes)(GC.getCivilizationInfo(
-					getCivilizationType()).getCivilizationUnits(j));
-			if(eUnit == NO_UNIT)
-				continue;
+		CvCivilization const& kCiv = kWarEnemy.getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumUnits(); i++)
+		{
+			UnitTypes eUnit = kCiv.unitAt(i);
 			CvUnitInfo const& u = GC.getUnitInfo(eUnit);
 			if(u.getDomainType() == DOMAIN_SEA &&
 					u.getInvisibleType() != NO_INVISIBLE &&

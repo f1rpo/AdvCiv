@@ -22,7 +22,10 @@ protected:
 
 	void setDefaults();
 
-	bool checkBounds(int iValue, int iLower, int iUpper) const;
+	inline bool checkBounds(int iValue, int iLower, int iUpper) const // advc.003f: inline
+	{
+		return (iLower <= iValue &&  iValue < iUpper);
+	}
 
 public:
 

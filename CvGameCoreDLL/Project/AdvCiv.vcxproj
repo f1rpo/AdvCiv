@@ -45,6 +45,7 @@
     <ClCompile Include="..\CvCity.cpp" />
     <ClCompile Include="..\CvCityAI.cpp" />
     <ClCompile Include="..\CvCityList.cpp" />
+    <ClCompile Include="..\CvCivilization.cpp" />
     <ClCompile Include="..\CvDeal.cpp" />
     <ClCompile Include="..\CvDiploParameters.cpp" />
     <ClCompile Include="..\CvDLLButtonPopup.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="..\CvCity.h" />
     <ClInclude Include="..\CvCityAI.h" />
     <ClInclude Include="..\CvCityList.h" />
+    <ClInclude Include="..\CvCivilization.h" />
     <ClInclude Include="..\CvDeal.h" />
     <ClInclude Include="..\CvDealList.h" />
     <ClInclude Include="..\CvDefines.h" />

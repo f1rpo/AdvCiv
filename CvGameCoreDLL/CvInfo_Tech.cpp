@@ -155,7 +155,7 @@ bool CvTechInfo::isCommerceFlexible(int i) const
 
 bool CvTechInfo::isTerrainTrade(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainTypes(), i, "CvTechInfo::isTerrainTrade"); // advc.003: check bounds
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvTechInfo::isTerrainTrade"); // advc.003: check bounds
 	return m_pbTerrainTrade ? m_pbTerrainTrade[i] : false;
 }
 #if SERIALIZE_CVINFOS

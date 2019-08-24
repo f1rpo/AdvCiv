@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvPlayerAI.h"
+#include "CvCivilization.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
 #include "CvInfo_City.h"
@@ -2038,11 +2039,11 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 		{
 			szBuffer = gDLL->getText("TXT_KEY_CHANGE_PRODUCTION");
 			aFlyoutItems.push_back(CvFlyoutMenuData(NO_FLYOUT, -1, -1, -1, szBuffer));
-			for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+			CvCivilization const& kCiv = pCity->getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(pCity->getCivilizationType()).
-						getCivilizationUnits(iI);
-				if (eLoopUnit == NO_UNIT || !pCity->canTrain(eLoopUnit))
+				UnitTypes eLoopUnit = kCiv.unitAt(i);
+				if (!pCity->canTrain(eLoopUnit))
 					continue; // advc.003
 				szBuffer = GC.getUnitInfo(eLoopUnit).getDescription();
 				int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
@@ -2051,12 +2052,10 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_TRAIN, eLoopUnit,
 						pPlot->getX(), pPlot->getY(), szBuffer));
 			}
-
-			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+			for (int i = 0; i < kCiv.getNumBuildings(); i++)
 			{
-				BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(
-						pCity->getCivilizationType()).getCivilizationBuildings(iI);
-				if (eLoopBuilding == NO_BUILDING || !pCity->canConstruct(eLoopBuilding))
+				BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+				if (!pCity->canConstruct(eLoopBuilding))
 					continue; // advc.003
 				szBuffer = GC.getBuildingInfo(eLoopBuilding).getDescription();
 				int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
@@ -2065,7 +2064,6 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSTRUCT, eLoopBuilding,
 						pPlot->getX(), pPlot->getY(), szBuffer));
 			}
-
 			for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
 			{
 				ProjectTypes eLoopProject = (ProjectTypes) iI;
@@ -2078,7 +2076,6 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CREATE, eLoopProject,
 						pPlot->getX(), pPlot->getY(), szBuffer));
 			}
-
 			for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
 			{
 				ProcessTypes eLoopProcess = (ProcessTypes)iI;
@@ -2409,45 +2406,34 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const
 
 void CvGame::loadBuildQueue(const CvString& strItem) const
 {
-	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	// advc.003w: The first two loops were needlessly complicated
+	CvCivilization const& kCiv = *getActiveCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitClassTypes eUnitClass = (UnitClassTypes)GC.getUnitInfo((UnitTypes)iI).getUnitClassType();
-		UnitTypes eUnit = NO_UNIT;
-
-		if (NO_UNITCLASS != eUnitClass)
+		UnitTypes eUnit = kCiv.unitAt(i);
+		if (GC.getUnitInfo(eUnit).getType() == strItem)
 		{
-			eUnit = (UnitTypes)GC.getCivilizationInfo(getActiveCivilizationType()).getCivilizationUnits(eUnitClass);
-
-			if (NO_UNIT != eUnit && strItem == GC.getUnitInfo(eUnit).getType())
-			{
-				selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_TRAIN, eUnit, -1, false, false, true);
-				return;
-			}
+			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_TRAIN,
+					eUnit, -1, false, false, true);
+			return;
 		}
 	}
-
-	for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingClassTypes eBuildingClass = (BuildingClassTypes)GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType();
-		BuildingTypes eBuilding = NO_BUILDING;
-
-		if (NO_BUILDINGCLASS != eBuildingClass)
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (GC.getBuildingInfo(eBuilding).getType() == strItem)
 		{
-			eBuilding = (BuildingTypes)GC.getCivilizationInfo(getActiveCivilizationType()).getCivilizationBuildings(eBuildingClass);
-
-			if (NO_BUILDING != eBuilding && strItem == GC.getBuildingInfo(eBuilding).getType())
-			{
-				selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CONSTRUCT, eBuilding, -1, false, false, true);
-				return;
-			}
+			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CONSTRUCT,
+					eBuilding, -1, false, false, true);
+			return;
 		}
 	}
-
 	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
 	{
 		if (strItem == GC.getProjectInfo((ProjectTypes)iI).getType())
 		{
-			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CREATE, ((ProjectTypes)iI), -1, false, false, true);
+			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CREATE,
+					(ProjectTypes)iI, -1, false, false, true);
 			return;
 		}
 	}
@@ -2456,7 +2442,8 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 	{
 		if (strItem == GC.getProcessInfo((ProcessTypes)iI).getType())
 		{
-			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_MAINTAIN, ((ProcessTypes)iI), -1, false, false, true);
+			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_MAINTAIN,
+					(ProcessTypes)iI, -1, false, false, true);
 			return;
 		}
 	}

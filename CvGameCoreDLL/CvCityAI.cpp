@@ -3145,12 +3145,10 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 	std::vector<std::pair<int, UnitTypes> > candidates;
 	int iBestBaseValue = 0;
 
-	for (int i = 0; i < GC.getNumUnitClassInfos(); i++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(i);
-
-		if (eLoopUnit == NO_UNIT)
-			continue;
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
 
 		if (eIgnoreAdvisor != NO_ADVISOR && GC.getUnitInfo(eLoopUnit).getAdvisorType() == eIgnoreAdvisor)
 			continue;
@@ -3161,9 +3159,9 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		if (!canTrain(eLoopUnit))
 			continue;
 		// <advc.041> Mostly cut and pasted from CvPlot::canTrain
-		CvUnitInfo& u = GC.getUnitInfo(eLoopUnit);
-		if(u.isPrereqBonuses()) {
-			if(u.getDomainType() == DOMAIN_SEA) {
+		CvUnitInfo& kUnit = GC.getUnitInfo(eLoopUnit);
+		if(kUnit.isPrereqBonuses()) {
+			if(kUnit.getDomainType() == DOMAIN_SEA) {
 				if(!isPrereqBonusSea())
 					continue;
 			}
@@ -3172,11 +3170,11 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 			else if(area()->getNumTotalBonuses() <= 0)
 				continue;
 		}
-		int iMinAreaSz = u.getMinAreaSize();
+		int iMinAreaSz = kUnit.getMinAreaSize();
 		if(iMinAreaSz > 0) {
 			CvPlot const& p = *plot();
-			if((u.getDomainType() == DOMAIN_SEA && !p.isCoastalLand(iMinAreaSz)) ||
-					(u.getDomainType() != DOMAIN_SEA && p.area()->getNumTiles() < iMinAreaSz))
+			if((kUnit.getDomainType() == DOMAIN_SEA && !p.isCoastalLand(iMinAreaSz)) ||
+					(kUnit.getDomainType() != DOMAIN_SEA && p.area()->getNumTiles() < iMinAreaSz))
 				continue;
 		} // </advc.041>
 		int iValue = GET_PLAYER(getOwner()).AI_unitValue(eLoopUnit, eUnitAI, area());
@@ -3413,23 +3411,19 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 	if (iFocusFlags & BUILDINGFOCUS_CAPITAL)
 	{
 		int iBestTurnsLeft = iMaxTurns > 0 ? iMaxTurns : MAX_INT;
-		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		CvCivilization const& kCiv = getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
-
-			if (NO_BUILDING != eLoopBuilding)
+			BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+			if (GC.getBuildingInfo(eLoopBuilding).isCapital())
 			{
-				if (GC.getBuildingInfo(eLoopBuilding).isCapital())
+				if (canConstruct(eLoopBuilding))
 				{
-					if (canConstruct(eLoopBuilding))
+					int iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
+					if (iTurnsLeft <= iBestTurnsLeft)
 					{
-						int iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
-
-						if (iTurnsLeft <= iBestTurnsLeft)
-						{
-							eBestBuilding = eLoopBuilding;
-							iBestTurnsLeft = iTurnsLeft;
-						}
+						eBestBuilding = eLoopBuilding;
+						iBestTurnsLeft = iTurnsLeft;
 					}
 				}
 			}
@@ -3441,14 +3435,14 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 	// K-Mote note: I've rearranged most of the code below to improve readability and efficiency.
 	// Some changes are marked, but most are not.
 	// (At least 6 huge nested 'if' blocks have been replaced with 'continue' conditions.)
-	for (BuildingClassTypes eLoopClass = (BuildingClassTypes)0; eLoopClass < GC.getNumBuildingClassInfos(); eLoopClass=(BuildingClassTypes)(eLoopClass+1))
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
+		BuildingClassTypes eLoopClass = kCiv.buildingClassAt(i);
 		if (kOwner.isBuildingClassMaxedOut(eLoopClass, GC.getBuildingClassInfo(eLoopClass).getExtraPlayerInstances()))
 			continue;
-
-		BuildingTypes eLoopBuilding = (BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eLoopClass));
-
-		if (eLoopBuilding == NO_BUILDING || getNumBuilding(eLoopBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+		if (getNumBuilding(eLoopBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
 			continue;
 
 		if (iFocusFlags & BUILDINGFOCUS_WORLDWONDER && !isWorldWonderClass(eLoopClass))
@@ -4079,11 +4073,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 		if ((iFocusFlags & BUILDINGFOCUS_DOMAINSEA))
 		{
 			iValue += (kBuilding.getFreeExperience() * (iHasMetCount > 0 ? 16 : 8));
-			for (int iUnitIndex = 0; iUnitIndex < GC.getNumUnitClassInfos(); iUnitIndex++)
+			CvCivilization const& kCiv = getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iUnitIndex);
-				if(eUnit == NO_UNIT)
-					continue;
+				UnitTypes eUnit = kCiv.unitAt(i);
 				CvUnitInfo& kUnitInfo = GC.getUnitInfo(eUnit);
 				int iCombatType = kUnitInfo.getUnitCombatType();
 				// <advc.rom4> Avoid canTrain call; credits: alberts2 (C2C).
@@ -4470,8 +4463,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				UnitClassTypes eGPClass = (UnitClassTypes)kBuilding.getGreatPeopleUnitClass();
 				// <advc.020>
 				if(iTempValue > 0 && eGPClass != NO_UNITCLASS) {
-					UnitTypes eGPUnit = (UnitTypes)GC.getCivilizationInfo(
-							getCivilizationType()).getCivilizationUnits(eGPClass);
+					UnitTypes eGPUnit = getCivilization().getUnit(eGPClass);
 					if(eGPUnit != NO_UNIT) {
 						/*  Just adding a flavor bonus may overrate GPP in general.
 							Apply a small malus when the flavor does not match. */
@@ -4618,23 +4610,26 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			// (I've deleted the original code for this section.)
 			if (bAllowRecursion)
 			{	// (moved from AI_bestBuildingThreshold)
-				if (kBuilding.getFreeBuildingClass() != NO_BUILDINGCLASS)
+				BuildingClassTypes eFreeClass = (BuildingClassTypes)kBuilding.getFreeBuildingClass();
+				if (eFreeClass != NO_BUILDINGCLASS)
 				{
-					BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kBuilding.getFreeBuildingClass());
+					BuildingTypes eFreeBuilding = getCivilization().getBuilding(eFreeClass);
 					if (NO_BUILDING != eFreeBuilding)
-					{	// K-Mod note: this is actually a pretty poor approximation, because the value of the free building is likely to be different in the other cities.
-						// also, if the free building is very powerful, then our other cities will probably build it themselves before they get the freebie! (that's why I reduce the city count below)
-						int iFreeBuildingValue = std::min(AI_buildingValue(eFreeBuilding, 0, 0, bConstCache, false), kOwner.getProductionNeeded(eFreeBuilding)/2);
-						iValue += iFreeBuildingValue * (std::max(iCitiesTarget, kOwner.getNumCities()*2/3) - kOwner.getBuildingClassCountPlusMaking((BuildingClassTypes)kBuilding.getFreeBuildingClass()));
+					{	/*  K-Mod note: this is actually a pretty poor approximation, because the value of the free building is
+							likely to be different in the other cities. also, if the free building is very powerful, then our
+							other cities will probably build it themselves before they get the freebie!
+							(that's why I reduce the city count below) */
+						int iFreeBuildingValue = std::min(AI_buildingValue(eFreeBuilding, 0, 0, bConstCache, false),
+								kOwner.getProductionNeeded(eFreeBuilding)/2);
+						iValue += iFreeBuildingValue * (std::max(iCitiesTarget, kOwner.getNumCities()*2/3) -
+								kOwner.getBuildingClassCountPlusMaking(eFreeClass));
 					}
 				}
-				//
-				for (BuildingClassTypes eLoopClass = (BuildingClassTypes)0; eLoopClass < GC.getNumBuildingClassInfos(); eLoopClass = (BuildingClassTypes)(eLoopClass+1))
+				CvCivilization const& kCiv = getCivilization(); // advc.003w
+				for (int i = 0; i < kCiv.getNumBuildings(); i++)
 				{
-					BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eLoopClass); // K-Mod
-					if (eLoopBuilding == NO_BUILDING)
-						continue;
-
+					BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+					BuildingClassTypes eLoopClass = kCiv.buildingClassAt(i);
 					int iPrereqBuildings = 0; // number of eBuilding required to build eLoopBuilding
 					const CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
 					int iLimitForLoopBuilding = limitedWonderClassLimit(eLoopClass);
@@ -5296,15 +5291,14 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				if (eStateReligion != NO_RELIGION && kBuilding.getStateReligionCommerce(iI) != 0)
 				{
 					int iCount = 0;
-					for (BuildingClassTypes eLoopClass = (BuildingClassTypes)0; eLoopClass < GC.getNumBuildingClassInfos(); eLoopClass = (BuildingClassTypes)(eLoopClass+1))
+					CvCivilization const& kCiv = getCivilization(); // advc.003w
+					for (int j = 0; j < kCiv.getNumBuildings(); j++)
 					{
-						BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eLoopClass); // K-Mod
-
-						if (eLoopBuilding != NO_BUILDING &&
-							GC.getBuildingInfo(eLoopBuilding).getReligionType() == eStateReligion &&
+						BuildingTypes eLoopBuilding = kCiv.buildingAt(j);
+						if (GC.getBuildingInfo(eLoopBuilding).getReligionType() == eStateReligion &&
 							!GET_TEAM(kOwner.getTeam()).isObsoleteBuilding(eLoopBuilding))
 						{
-							iCount += kOwner.getBuildingClassCountPlusMaking(eLoopClass);
+							iCount += kOwner.getBuildingClassCountPlusMaking(kCiv.buildingClassAt(j));
 						}
 					}
 					iCount = std::max(iCount, kOwner.getHasReligionCount(eStateReligion));
@@ -5983,7 +5977,8 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject)
 						!GET_TEAM(kLoopPlayer.getTeam()).isCapitulated() &&
 						// advc.650: These have too much to lose from nukes
 						!kLoopTeam.AI_isAnyMemberDoVictoryStrategyLevel4() &&
-						GC.getCivilizationInfo(kLoopPlayer.getCivilizationType()).getCivilizationUnits(kLoopUnit.getUnitClassType()) == i &&
+						kLoopPlayer.getCivilization().getUnit((UnitClassTypes)
+						kLoopUnit.getUnitClassType()) == i &&
 						(kLoopPlayer.getTeam() == kOwner.getTeam() || kTeam.isHasMet(kLoopPlayer.getTeam())))
 					{
 						int iTemp=0; // advc.003
@@ -8733,57 +8728,51 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 	if (bMissionary)
 	{
 		for (int iReligion = 0; iReligion < GC.getNumReligionInfos(); iReligion++)
-		{
+		{	// advc.003: Some style changes in this block
 			ReligionTypes eReligion = (ReligionTypes)iReligion;
-			if (isHasReligion(eReligion))
+			if (!isHasReligion(eReligion))
+				continue;
+
+			int iHasCount = kPlayer.getHasReligionCount(eReligion);
+			FAssert(iHasCount > 0);
+			int iRoll = (iHasCount > 4) ? iBaseChance : (((100 - iBaseChance) / iHasCount) + iBaseChance);
+			if (kPlayer.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
 			{
-				int iHasCount = kPlayer.getHasReligionCount(eReligion);
-				FAssert(iHasCount > 0);
-				int iRoll = (iHasCount > 4) ? iBaseChance : (((100 - iBaseChance) / iHasCount) + iBaseChance);
-				if (kPlayer.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
-				{
-					iRoll *= (kPlayer.getStateReligion() == eReligion) ? 170 : 65;
-					iRoll /= 100;
-				}
-				if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
-				{
-					iRoll += 25;
-				}
-				else if (!kTeam.hasHolyCity(eReligion) && !(kPlayer.getStateReligion() == eReligion))
-				{
-					iRoll /= 2;
-					/*if (kPlayer.isNoNonStateReligionSpread())
-						iRoll /= 2;*/ // disabled by K-mod
-				}
+				iRoll *= (kPlayer.getStateReligion() == eReligion) ? 170 : 65;
+				iRoll /= 100;
+			}
+			if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+				iRoll += 25;
+			else if (!kTeam.hasHolyCity(eReligion) && !(kPlayer.getStateReligion() == eReligion))
+			{
+				iRoll /= 2;
+				/*if (kPlayer.isNoNonStateReligionSpread())
+				iRoll /= 2;*/ // disabled by K-mod
+			}
 
-				if (iRoll > g.getSorenRandNum(100, "AI choose missionary"))
+			if (iRoll <= g.getSorenRandNum(100, "AI choose missionary"))
+				continue;
+
+				int iReligionValue = kPlayer.AI_missionaryValue(area(), eReligion);
+			if (iReligionValue <= 0)
+				continue;
+
+			CvCivilization const& kCiv = getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
+			{
+				UnitTypes eLoopUnit = kCiv.unitAt(i);
+				CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
+				if (kUnitInfo.getReligionSpreads(eReligion) > 0)
 				{
-					int iReligionValue = kPlayer.AI_missionaryValue(area(), eReligion);
-					if (iReligionValue > 0)
+					if (canTrain(eLoopUnit))
 					{
-						for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+						int iValue = iReligionValue;
+						iValue /= kUnitInfo.getProductionCost();
+						if (iValue > iBestValue)
 						{
-							UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-
-							if (eLoopUnit != NO_UNIT)
-							{
-								CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
-								if (kUnitInfo.getReligionSpreads(eReligion) > 0)
-								{
-									if (canTrain(eLoopUnit))
-									{
-										int iValue = iReligionValue;
-										iValue /= kUnitInfo.getProductionCost();
-
-										if (iValue > iBestValue)
-										{
-											iBestValue = iValue;
-											*eBestSpreadUnit = eLoopUnit;
-											*iBestSpreadUnitValue = iReligionValue;
-										}
-									}
-								}
-							}
+							iBestValue = iValue;
+							*eBestSpreadUnit = eLoopUnit;
+							*iBestSpreadUnitValue = iReligionValue;
 						}
 					}
 				}
@@ -8794,80 +8783,76 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 	if (bExecutive)
 	{
 		for (int iCorporation = 0; iCorporation < GC.getNumCorporationInfos(); iCorporation++)
-		{
+		{	// advc.003: some style changes in this block
 			CorporationTypes eCorporation = (CorporationTypes)iCorporation;
-			if (isActiveCorporation(eCorporation))
+			if (!isActiveCorporation(eCorporation))
+				continue;
+
+			int iHasCount = kPlayer.getHasCorporationCount(eCorporation);
+			FAssert(iHasCount > 0);
+			int iRoll = (iHasCount > 4) ? iBaseChance : (((100 - iBaseChance) / iHasCount) + iBaseChance);
+			/* if (!kTeam.hasHeadquarters(eCorporation))
+				iRoll /= 8;*/
+			// K-Mod
+			if (kTeam.hasHeadquarters(eCorporation))
+				iRoll += 10;
+			else iRoll /= 2;
+			// K-Mod end
+			if (iRoll <= g.getSorenRandNum(100, "AI choose executive"))
+				continue;
+
+			int iCorporationValue = kPlayer.AI_executiveValue(area(), eCorporation);
+			if (iCorporationValue <= 0)
+				continue;
+
+			CvCivilization const& kCiv = getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				int iHasCount = kPlayer.getHasCorporationCount(eCorporation);
-				FAssert(iHasCount > 0);
-				int iRoll = (iHasCount > 4) ? iBaseChance : (((100 - iBaseChance) / iHasCount) + iBaseChance);
-				/* original bts code
-				if (!kTeam.hasHeadquarters(eCorporation))
-					iRoll /= 8;*/
-				// K-Mod
-				if (kTeam.hasHeadquarters(eCorporation))
-					iRoll += 10;
-				else
-					iRoll /= 2;
-				// K-Mod end
-
-				if (iRoll > g.getSorenRandNum(100, "AI choose executive"))
+				UnitTypes eLoopUnit = kCiv.unitAt(i);
+				CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
+				if (kUnitInfo.getCorporationSpreads(eCorporation) > 0)
 				{
-					int iCorporationValue = kPlayer.AI_executiveValue(area(), eCorporation);
-					if (iCorporationValue > 0)
-					{
-						for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+					if (canTrain(eLoopUnit))
+					{	/* original bts code
+						int iValue = iCorporationValue;
+						iValue /= kUnitInfo.getProductionCost();
+						int iTotalCount = 0;
+						int iPlotCount = 0;
+						FOR_EACH_UNITAI(pLoopUnit, kPlayer) {
+						if ((pLoopUnit->AI_getUnitAIType() == UNITAI_MISSIONARY) && (pLoopUnit->getUnitInfo().getCorporationSpreads(eCorporation) > 0)) {
+						iTotalCount++;
+						if (pLoopUnit->plot() == plot())
+						iPlotCount++;
+						}
+						}
+						iCorporationValue /= std::max(1, (iTotalCount / 4) + iPlotCount); */
+						// K-Mod
+						UnitClassTypes eLoopClass = kCiv.unitClassAt(i);
+						int iExistingUnits = kPlayer.getUnitClassCount(eLoopClass) +
+								kPlayer.getUnitClassMaking(eLoopClass)/2;
+						iCorporationValue *= 3;
+						iCorporationValue /= iExistingUnits > 1 ? 2 + iExistingUnits : 3;
+
+						int iValue = iCorporationValue;
+						iValue /= kUnitInfo.getProductionCost();
+						// K-Mod end
+
+						/* original bts code
+						int iCost = std::max(0, GC.getCorporationInfo(eCorporation).getSpreadCost() * (100 + GET_PLAYER(getOwner()).calculateInflationRate()));
+						iCost /= 100;
+						if (kPlayer.getGold() >= iCost) {
+						iCost *= GC.getDefineINT("CORPORATION_FOREIGN_SPREAD_COST_PERCENT");
+						iCost /= 100;
+						if (kPlayer.getGold() < iCost && iTotalCount > 1)
+						iCorporationValue /= 2;
+						}
+						else if (iTotalCount > 1)
+						iCorporationValue /= 5;*/
+						if (iValue > iBestValue)
 						{
-							UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-
-							if (eLoopUnit != NO_UNIT)
-							{
-								CvUnitInfo& kUnitInfo = GC.getUnitInfo(eLoopUnit);
-								if (kUnitInfo.getCorporationSpreads(eCorporation) > 0)
-								{
-									if (canTrain(eLoopUnit))
-									{	/* original bts code
-										int iValue = iCorporationValue;
-										iValue /= kUnitInfo.getProductionCost();
-										int iTotalCount = 0;
-										int iPlotCount = 0;
-										FOR_EACH_UNITAI(pLoopUnit, kPlayer) {
-											if ((pLoopUnit->AI_getUnitAIType() == UNITAI_MISSIONARY) && (pLoopUnit->getUnitInfo().getCorporationSpreads(eCorporation) > 0)) {
-												iTotalCount++;
-												if (pLoopUnit->plot() == plot())
-													iPlotCount++;
-											}
-										}
-										iCorporationValue /= std::max(1, (iTotalCount / 4) + iPlotCount); */
-										// K-Mod
-										int iExistingUnits = kPlayer.getUnitClassCount((UnitClassTypes)iI) + kPlayer.getUnitClassMaking((UnitClassTypes)iI)/2;
-										iCorporationValue *= 3;
-										iCorporationValue /= iExistingUnits > 1 ? 2 + iExistingUnits : 3;
-
-										int iValue = iCorporationValue;
-										iValue /= kUnitInfo.getProductionCost();
-										// K-Mod end
-
-										/* original bts code
-										int iCost = std::max(0, GC.getCorporationInfo(eCorporation).getSpreadCost() * (100 + GET_PLAYER(getOwner()).calculateInflationRate()));
-										iCost /= 100;
-										if (kPlayer.getGold() >= iCost) {
-											iCost *= GC.getDefineINT("CORPORATION_FOREIGN_SPREAD_COST_PERCENT");
-											iCost /= 100;
-											if (kPlayer.getGold() < iCost && iTotalCount > 1)
-												iCorporationValue /= 2;
-										}
-										else if (iTotalCount > 1)
-											iCorporationValue /= 5;*/
-										if (iValue > iBestValue)
-										{
-											iBestValue = iValue;
-											*eBestSpreadUnit = eLoopUnit;
-											*iBestSpreadUnitValue = iCorporationValue;
-										}
-									}
-								}
-							}
+							iBestValue = iValue;
+							*eBestSpreadUnit = eLoopUnit;
+							*iBestSpreadUnitValue = iCorporationValue;
 						}
 					}
 				}

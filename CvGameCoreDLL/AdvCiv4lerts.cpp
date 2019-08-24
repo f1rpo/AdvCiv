@@ -327,11 +327,9 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data,
 		CvBonusInfo& bi = GC.getBonusInfo(bonusId);
 		bool strategic = (bi.getHappiness() + bi.getHealth() <= 0);
 		if(!strategic) { // Don't bother with buildings (only need to cover Ivory)
-			for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-				UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(to.
-						getCivilizationType()).getCivilizationUnits(i));
-				if(ut == NO_UNIT)
-					continue;
+			CvCivilization const& kCiv = to.getCivilization();
+			for (int i = 0; i < kCiv.getNumUnits(); i++) {
+				UnitTypes ut = kCiv.unitAt(i);
 				CvUnitInfo& ui = GC.getUnitInfo(ut);
 				if(ui.getPrereqAndBonus() == bonusId) {
 					// Only report Ivory while it's relevant

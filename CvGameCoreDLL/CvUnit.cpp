@@ -5304,26 +5304,17 @@ bool CvUnit::sabotage()
 int CvUnit::destroyCost(const CvPlot* pPlot) const
 {
 	CvCity* pCity = pPlot->getPlotCity();
-
 	if (pCity == NULL)
-	{
 		return 0;
-	}
 
 	bool bLimited = false;
-
 	if (pCity->isProductionUnit())
-	{	// advc.003x: To be consistent with the change below
 		bLimited = ::isLimitedUnitClass(pCity->getProductionUnit());
-	}
 	else if (pCity->isProductionBuilding())
-	{	// advc.003x: Moved a bit of code into CvGameCoreUtils to avoid including CvInfo_Building.h
 		bLimited = ::isLimitedWonderClass(pCity->getProductionBuilding());
-	}
 	else if (pCity->isProductionProject())
-	{
 		bLimited = ::isLimitedProject(pCity->getProductionProject());
-	} // <advc.003b>
+	// <advc.003b>
 	static int const iBASE_SPY_DESTROY_COST = GC.getDefineINT("BASE_SPY_DESTROY_COST");
 	static int const iSPY_DESTROY_COST_MULTIPLIER_LIMITED = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER_LIMITED");
 	static int const iSPY_DESTROY_COST_MULTIPLIER = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER"); // </advc.003b>

@@ -6244,7 +6244,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				if (kMember.isAlive() && kMember.getTeam() == getID() && kMember.isHuman() &&
 						(kMember.getID() != ePlayer || !bReligionFounded ||
 						kMember.getLastStateReligion() != NO_RELIGION) /*&&
-						kCiv.canRevolution(NULL)*/) { // advc.004x
+						kMember.canRevolution(NULL)*/) { // advc.004x
 					CivicTypes eCivic = NO_CIVIC;
 					for (int iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
 					{

@@ -1219,41 +1219,38 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 				DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
-
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = pCity->getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(
-				pCity->getCivilizationType()).getCivilizationUnits(iI);
-		if (eLoopUnit == NO_UNIT || eLoopUnit == eProductionUnit ||
-				!pCity->canTrain(eLoopUnit))
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		if (eLoopUnit == eProductionUnit || !pCity->canTrain(eLoopUnit))
 			continue; // advc.003
-
+		UnitClassTypes eUnitClass = kCiv.unitClassAt(i);
 		int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
 		// advc.004x:
 		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_TRAIN, eLoopUnit);
 		szBuffer.Format(L"%s (%d)", GC.getUnitInfo(eLoopUnit).getDescription(), iTurns);
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
-				GET_PLAYER(pCity->getOwner()).getUnitButton(eLoopUnit),
-				iI, WIDGET_TRAIN, iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH,
-				DLL_FONT_LEFT_JUSTIFY);
+				GET_PLAYER(pCity->getOwner()).getUnitButton(eLoopUnit), eUnitClass,
+				WIDGET_TRAIN, eUnitClass, pCity->getID(), true,
+				POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 
 	}
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(
-				pCity->getCivilizationType()).getCivilizationBuildings(iI);
-		if (eLoopBuilding == NO_BUILDING || eLoopBuilding == eProductionBuilding ||
-				!pCity->canConstruct(eLoopBuilding))
+		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+		if (eLoopBuilding == eProductionBuilding || !pCity->canConstruct(eLoopBuilding))
 			continue; // advc.003
-
+		BuildingClassTypes eBuildingClass = kCiv.buildingClassAt(i);
 		int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
 		// advc.004x:
 		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CONSTRUCT, eLoopBuilding);
 		szBuffer.Format(L"%s (%d)", GC.getBuildingInfo(eLoopBuilding).getDescription(), iTurns);
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
-				GC.getBuildingInfo(eLoopBuilding).getButton(), iI, WIDGET_CONSTRUCT,
-				iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+				GC.getBuildingInfo(eLoopBuilding).getButton(), eBuildingClass,
+				WIDGET_CONSTRUCT, eBuildingClass, pCity->getID(), true,
+				POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 			iNumBuilds++;
 	}
 	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
@@ -1261,13 +1258,12 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		ProjectTypes eLoopProject = (ProjectTypes)iI;
 		if (eLoopProject == eProductionProject || !pCity->canCreate(eLoopProject))
 			continue; // advc.003
-
 		int iTurns = pCity->getProductionTurnsLeft((ProjectTypes)iI, 0);
 		// advc.004x:
 		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CREATE, eLoopProject);
 		szBuffer.Format(L"%s (%d)", GC.getProjectInfo(eLoopProject).getDescription(), iTurns);
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
-				GC.getProjectInfo(eLoopProject).getButton(), iI, WIDGET_CREATE, iI,
+				GC.getProjectInfo(eLoopProject).getButton(), eLoopProject, WIDGET_CREATE, eLoopProject,
 				pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
@@ -1276,11 +1272,10 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		ProcessTypes eLoopProcess = (ProcessTypes)iI;
 		if (eLoopProcess == eProductionProcess || !pCity->canMaintain(eLoopProcess))
 			continue; // advc.003
-
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,
 				GC.getProcessInfo(eLoopProcess).getDescription(),
-				GC.getProcessInfo(eLoopProcess).getButton(), iI, WIDGET_MAINTAIN,
-				iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+				GC.getProcessInfo(eLoopProcess).getButton(), eLoopProcess, WIDGET_MAINTAIN,
+				eLoopProcess, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
 
@@ -1791,34 +1786,34 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	std::vector<PlayerTypes> aeTargets;
 	//std::vector<PlayerTypes> aeAllies;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayer const& kCiv = GET_PLAYER((PlayerTypes)i);
-		if(!kCiv.isAlive())
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
+		if(!kPlayer.isAlive())
 			continue;
-		/*if(kCiv.getMasterTeam() == kActiveTeam.getMasterTeam())
-			aeAllies.push_back(kCiv.getID());*/
-		if(!kActiveTeam.isHasMet(kCiv.getTeam()) ||
-				kActiveTeam.getMasterTeam() == kCiv.getMasterTeam())
+		/*if(kPlayer.getMasterTeam() == kActiveTeam.getMasterTeam())
+			aeAllies.push_back(kPlayer.getID());*/
+		if(!kActiveTeam.isHasMet(kPlayer.getTeam()) ||
+				kActiveTeam.getMasterTeam() == kPlayer.getMasterTeam())
 			continue;
-		if(GET_TEAM(kCiv.getTeam()).getMasterTeam() == GET_TEAM(eRivalTeam).getMasterTeam())
-			aeTargets.push_back(kCiv.getID());
+		if(GET_TEAM(kPlayer.getTeam()).getMasterTeam() == GET_TEAM(eRivalTeam).getMasterTeam())
+			aeTargets.push_back(kPlayer.getID());
 	}
 	std::vector<PlayerTypes> aeDP;
 	std::vector<PlayerTypes> aeDisapproving;
 	bool bReceivedTribute = false; // advc.130o
 	for(size_t i = 0; i < aeTargets.size(); i++) {
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			CvPlayerAI const& kCiv = GET_PLAYER((PlayerTypes)j);
-			if(!kCiv.isAlive())
+			CvPlayerAI const& kPlayer = GET_PLAYER((PlayerTypes)j);
+			if(!kPlayer.isAlive())
 				continue;
-			if(!kActiveTeam.isHasMet(kCiv.getTeam()) ||
-					kActiveTeam.getMasterTeam() == kCiv.getMasterTeam())
+			if(!kActiveTeam.isHasMet(kPlayer.getTeam()) ||
+					kActiveTeam.getMasterTeam() == kPlayer.getMasterTeam())
 				continue;
 			if(GET_TEAM(GET_PLAYER(aeTargets[i]).getMasterTeam()).isDefensivePact(
-					kCiv.getTeam()))
-				aeDP.push_back(kCiv.getID());
-			if(!kCiv.isHuman() && kCiv.AI_disapprovesOfDoW(kActiveTeam.getID(),
+					kPlayer.getTeam()))
+				aeDP.push_back(kPlayer.getID());
+			if(!kPlayer.isHuman() && kPlayer.AI_disapprovesOfDoW(kActiveTeam.getID(),
 					TEAMID(aeTargets[i])))
-				aeDisapproving.push_back(kCiv.getID());
+				aeDisapproving.push_back(kPlayer.getID());
 			// <advc.130o>
 			if(!bReceivedTribute &&
 					kActiveTeam.isHuman() && !GET_PLAYER(aeTargets[i]).isHuman() &&

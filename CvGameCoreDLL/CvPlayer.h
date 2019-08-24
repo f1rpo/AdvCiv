@@ -18,8 +18,9 @@ class CvArea;
 class CvPlayerAI;
 class CvCityList;
 class CvUnitList;
-class CvSelectionGroupList; // </advc.003u>
-
+class CvSelectionGroupList;
+class CvCivilization;
+// </advc.003u>
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 typedef std::list<CvDiploParameters*> CvDiploQueue;
@@ -29,8 +30,7 @@ typedef std::vector< std::pair<UnitCombatTypes, PromotionTypes> > UnitCombatProm
 typedef std::vector< std::pair<UnitClassTypes, PromotionTypes> > UnitClassPromotionArray;
 typedef std::vector< std::pair<CivilizationTypes, LeaderHeadTypes> > CivLeaderArray;
 
-class CvPlayer
-		: private boost::noncopyable // advc.003e
+class CvPlayer /* advc.003e: */ : private boost::noncopyable
 {
 public:
 	CvPlayer();
@@ -82,7 +82,7 @@ public:
 	void addTraitBonuses();*/
 	void processTraits(int iChange); // advc.003q: Replacing the above
 	void changePersonalityType();
-	void resetCivTypeEffects();
+	void resetCivTypeEffects(/* advc.003q: */ bool bInit);
 	void changeLeader(LeaderHeadTypes eNewLeader);
 	void changeCiv(CivilizationTypes eNewCiv);
 	void setIsHuman(bool bNewValue);
@@ -746,6 +746,13 @@ public:
 	DllExport HandicapTypes getHandicapType() const;																									// Exposed to Python
 
 	DllExport CivilizationTypes getCivilizationType() const;																					// Exposed to Python
+	// <advc.003u>
+	void setCivilization(CivilizationTypes eCivilization);
+	inline CvCivilization const& getCivilization() const
+	{
+		FAssertMsg(m_pCivilization != NULL, "Player has no civilization type");
+		return *m_pCivilization;
+	} // </advc.003u>
 	DllExport LeaderHeadTypes getLeaderType() const;																									// Exposed to Python
 	LeaderHeadTypes getPersonalityType() const;																												// Exposed to Python
 	void setPersonalityType(LeaderHeadTypes eNewValue);																					// Exposed to Python
@@ -1352,6 +1359,7 @@ protected:
 	ReligionTypes m_eLastStateReligion;
 	PlayerTypes m_eParent;
 	TeamTypes m_eTeamType;
+	CvCivilization* m_pCivilization; // advc.003u
 
 	int* m_aiSeaPlotYield;
 	int* m_aiYieldRateModifier;

@@ -6585,11 +6585,11 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 		{
 			if (eCivilization == NO_CIVILIZATION)
 			{
-				eLoopUnit = ((UnitTypes)(GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex()));
+				eLoopUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex();
 			}
 			else
 			{
-				eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationUnits(iI)));
+				eLoopUnit = (UnitTypes)GC.getCivilizationInfo(eCivilization).getCivilizationUnits(iI);
 			}
 
 			if (eLoopUnit != NO_UNIT && !isWorldUnitClass((UnitClassTypes)iI))
@@ -6637,11 +6637,11 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 		{
 			if (eCivilization == NO_CIVILIZATION)
 			{
-				eLoopBuilding = ((BuildingTypes)(GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex()));
+				eLoopBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex();
 			}
 			else
 			{
-				eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI)));
+				eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI);
 			}
 
 			if (eLoopBuilding != NO_BUILDING && !isWorldWonderClass((BuildingClassTypes)iI))
@@ -6671,11 +6671,11 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 		{
 			if (eCivilization == NO_CIVILIZATION)
 			{
-				eLoopBuilding = ((BuildingTypes)(GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex()));
+				eLoopBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex();
 			}
 			else
 			{
-				eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI)));
+				eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI);
 			}
 
 			if (eLoopBuilding != NO_BUILDING && !isWorldWonderClass((BuildingClassTypes)iI))
@@ -6855,10 +6855,10 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 
 		bool bFound = false;
 		for (int iI = 0; iI < GC.getNumUnitClassInfos(); ++iI)
-		{
-			eDefaultUnit = ((UnitTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationUnits(iI)));
-			eUniqueUnit = ((UnitTypes)(GC.getUnitClassInfo((UnitClassTypes) iI).getDefaultUnitIndex()));
-			if ((eDefaultUnit != NO_UNIT) && (eUniqueUnit != NO_UNIT))
+		{	// advc.003: These were switched, but perhaps on purpose. So I switch them again when they're used.
+			eUniqueUnit = (UnitTypes)GC.getCivilizationInfo(eCivilization).getCivilizationUnits(iI);
+			eDefaultUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex();
+			if (eDefaultUnit != NO_UNIT && eUniqueUnit != NO_UNIT)
 			{
 				if (eDefaultUnit != eUniqueUnit)
 				{
@@ -6870,14 +6870,14 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 							szInfoText.append(L", ");
 						}
 						szBuffer.Format((bLinks ? L"<link=literal>%s</link> - (<link=literal>%s</link>)" : L"%s - (%s)"),
-							GC.getUnitInfo(eDefaultUnit).getDescription(),
-							GC.getUnitInfo(eUniqueUnit).getDescription());
+							GC.getUnitInfo(eUniqueUnit).getDescription(),
+							GC.getUnitInfo(eDefaultUnit).getDescription());
 					}
 					else
 					{
 						szBuffer.Format(L"\n  %c%s - (%s)", gDLL->getSymbolID(BULLET_CHAR),
-							GC.getUnitInfo(eDefaultUnit).getDescription(),
-							GC.getUnitInfo(eUniqueUnit).getDescription());
+							GC.getUnitInfo(eUniqueUnit).getDescription(),
+							GC.getUnitInfo(eDefaultUnit).getDescription());
 					}
 					szInfoText.append(szBuffer);
 					bFound = true;
@@ -6919,10 +6919,10 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 
 		bFound = false;
 		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
-		{
-			eDefaultBuilding = ((BuildingTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI)));
-			eUniqueBuilding = ((BuildingTypes)(GC.getBuildingClassInfo((BuildingClassTypes) iI).getDefaultBuildingIndex()));
-			if ((eDefaultBuilding != NO_BUILDING) && (eUniqueBuilding != NO_BUILDING))
+		{	// advc.003: These two variables were switched
+			eUniqueBuilding = (BuildingTypes)GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(iI);
+			eDefaultBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes) iI).getDefaultBuildingIndex();
+			if (eDefaultBuilding != NO_BUILDING && eUniqueBuilding != NO_BUILDING)
 			{
 				if (eDefaultBuilding != eUniqueBuilding)
 				{
@@ -6934,14 +6934,14 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 							szInfoText.append(L", ");
 						}
 						szBuffer.Format((bLinks ? L"<link=literal>%s</link> - (<link=literal>%s</link>)" : L"%s - (%s)"),
-							GC.getBuildingInfo(eDefaultBuilding).getDescription(),
-							GC.getBuildingInfo(eUniqueBuilding).getDescription());
+							GC.getBuildingInfo(eUniqueBuilding).getDescription(),
+							GC.getBuildingInfo(eDefaultBuilding).getDescription());
 					}
 					else
 					{
 						szBuffer.Format(L"\n  %c%s - (%s)", gDLL->getSymbolID(BULLET_CHAR),
-							GC.getBuildingInfo(eDefaultBuilding).getDescription(),
-							GC.getBuildingInfo(eUniqueBuilding).getDescription());
+							GC.getBuildingInfo(eUniqueBuilding).getDescription(),
+							GC.getBuildingInfo(eDefaultBuilding).getDescription());
 					}
 					szInfoText.append(szBuffer);
 					bFound = true;
@@ -8083,20 +8083,23 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		}
 	}
 
-	//	Building Happiness
+	//	Building Happiness and Health
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
-	{
-		if (ci.getBuildingHappinessChanges(iI) != 0)
+	{	// <advc.003>
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)iI;
+		int iHappy = ci.getBuildingHappinessChanges(eBuildingClass);
+		int iHealth = ci.getBuildingHealthChanges(eBuildingClass); // </advc.003>
+		if (iHappy != 0)
 		{
 			if (bPlayerContext && NO_PLAYER != GC.getGame().getActivePlayer())
 			{
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationBuildings(iI);
+				BuildingTypes eBuilding = GC.getGame().getActiveCivilization()->getBuilding(eBuildingClass);
 				if (NO_BUILDING != eBuilding)
 				{
 					szHelpText.append(NEWLINE);
 					szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_HAPPINESS",
 							// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
-							abs(ci.getBuildingHappinessChanges(iI)), ((ci.getBuildingHappinessChanges(iI) > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)),
+							abs(iHappy), iHappy > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR),
 							GC.getBuildingInfo(eBuilding).getTextKeyWide()));
 				}
 			}
@@ -8105,22 +8108,23 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 				szHelpText.append(NEWLINE);
 				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_HAPPINESS",
 						// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
-						abs(ci.getBuildingHappinessChanges(iI)), ((ci.getBuildingHappinessChanges(iI) > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)),
-						GC.getBuildingClassInfo((BuildingClassTypes)iI).getTextKeyWide()));
+						abs(ci.getBuildingHappinessChanges(eBuildingClass)),
+						(ci.getBuildingHappinessChanges(eBuildingClass) > 0) ?
+						gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR),
+						GC.getBuildingClassInfo(eBuildingClass).getTextKeyWide()));
 			}
 		}
-
-		if (ci.getBuildingHealthChanges(iI) != 0)
+		if (iHealth != 0)
 		{
 			if (bPlayerContext && NO_PLAYER != GC.getGame().getActivePlayer())
 			{
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getCivilizationBuildings(iI);
+				BuildingTypes eBuilding = GC.getGame().getActiveCivilization()->getBuilding(eBuildingClass);
 				if (NO_BUILDING != eBuilding)
 				{
 					szHelpText.append(NEWLINE);
 					szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_HAPPINESS",
 							// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhealthy symbol
-							abs(ci.getBuildingHealthChanges(iI)), ((ci.getBuildingHealthChanges(iI) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)),
+							abs(iHealth), iHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR),
 							GC.getBuildingInfo(eBuilding).getTextKeyWide()));
 				}
 			}
@@ -8129,8 +8133,8 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 				szHelpText.append(NEWLINE);
 				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BUILDING_HAPPINESS",
 						// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhealthy symbol
-						abs(ci.getBuildingHealthChanges(iI)), ((ci.getBuildingHealthChanges(iI) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)),
-						GC.getBuildingClassInfo((BuildingClassTypes)iI).getTextKeyWide()));
+						abs(iHealth), iHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR),
+						GC.getBuildingClassInfo(eBuildingClass).getTextKeyWide()));
 			}
 		}
 	}
@@ -8301,18 +8305,13 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 	//	Obsolete Buildings
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
 	{
-		if (!bPlayerContext || (GET_PLAYER(eActivePlayer).getBuildingClassCount((BuildingClassTypes)iI) > 0))
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)iI; // advc.003
+		if (!bPlayerContext || (GET_PLAYER(eActivePlayer).getBuildingClassCount(eBuildingClass) > 0))
 		{
 			BuildingTypes eLoopBuilding;
 			if (eActivePlayer != NO_PLAYER)
-			{
-				eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(g.getActiveCivilizationType()).getCivilizationBuildings(iI);
-			}
-			else
-			{
-				eLoopBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex();
-			}
-
+				eLoopBuilding = g.getActiveCivilization()->getBuilding(eBuildingClass);
+			else eLoopBuilding = (BuildingTypes)GC.getBuildingClassInfo(eBuildingClass).getDefaultBuildingIndex();
 			if (eLoopBuilding != NO_BUILDING)
 			{
 				//	Obsolete Buildings Check...
@@ -8473,7 +8472,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 				UnitTypes eLoopUnit;
 				if (eActivePlayer != NO_PLAYER)
 				{
-					eLoopUnit = (UnitTypes)GC.getCivilizationInfo(g.getActiveCivilizationType()).getCivilizationUnits(iI);
+					eLoopUnit = g.getActiveCivilization()->getUnit((UnitClassTypes)iI);
 				}
 				else
 				{
@@ -8519,7 +8518,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 				BuildingTypes eLoopBuilding;
 				if (eActivePlayer != NO_PLAYER)
 				{
-					eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(g.getActiveCivilizationType()).getCivilizationBuildings(iI);
+					eLoopBuilding = g.getActiveCivilization()->getBuilding((BuildingClassTypes)iI);
 				}
 				else
 				{
@@ -10254,18 +10253,13 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				(bInBuildingList ? L"\n%s%d%c" :
 				L", %s%d%c"), ((kBuilding.getGreatPeopleRateChange() > 0) ? "+" : ""), kBuilding.getGreatPeopleRateChange(), gDLL->getSymbolID(GREAT_PEOPLE_CHAR));
 		szBuffer.append(szTempBuffer);
-
-		if (kBuilding.getGreatPeopleUnitClass() != NO_UNITCLASS)
+		UnitClassTypes eGPClass = (UnitClassTypes)kBuilding.getGreatPeopleUnitClass(); // advc.003
+		if (eGPClass != NO_UNITCLASS)
 		{
 			UnitTypes eGreatPeopleUnit = NO_UNIT; // advc.003
 			if (ePlayer != NO_PLAYER)
-			{
-				eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(pPlayer->getCivilizationType()).getCivilizationUnits(kBuilding.getGreatPeopleUnitClass())));
-			}
-			else
-			{
-				eGreatPeopleUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)kBuilding.getGreatPeopleUnitClass()).getDefaultUnitIndex();
-			}
+				eGreatPeopleUnit = pPlayer->getCivilization().getUnit(eGPClass);
+			else eGreatPeopleUnit = (UnitTypes)GC.getUnitClassInfo(eGPClass).getDefaultUnitIndex();
 
 			if (eGreatPeopleUnit != NO_UNIT)
 			{
@@ -10480,19 +10474,13 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			szBuffer.append(szTempBuffer);
 		}
 	}
-
-	if (kBuilding.getFreeBuildingClass() != NO_BUILDINGCLASS)
+	BuildingClassTypes eFreeBuildingClass = (BuildingClassTypes)kBuilding.getFreeBuildingClass();
+	if (eFreeBuildingClass != NO_BUILDINGCLASS)
 	{
 		BuildingTypes eFreeBuilding;
 		if (ePlayer != NO_PLAYER)
-		{
-			eFreeBuilding = ((BuildingTypes)(GC.getCivilizationInfo(pPlayer->getCivilizationType()).getCivilizationBuildings(kBuilding.getFreeBuildingClass())));
-		}
-		else
-		{
-			eFreeBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)kBuilding.getFreeBuildingClass()).getDefaultBuildingIndex();
-		}
-
+			eFreeBuilding = pPlayer->getCivilization().getBuilding(eFreeBuildingClass);
+		else eFreeBuilding = (BuildingTypes)GC.getBuildingClassInfo(eFreeBuildingClass).getDefaultBuildingIndex();
 		if (NO_BUILDING != eFreeBuilding)
 		{
 			szBuffer.append(NEWLINE);
@@ -11161,26 +11149,30 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	iLast = 0;
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
 	{
-		if (kBuilding.getBuildingHappinessChanges(iI) != 0)
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)iI; // advc.003
+		if (kBuilding.getBuildingHappinessChanges(eBuildingClass) != 0)
 		{
 			szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_BUILDING_HAPPINESS_CHANGE",
 					// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
-					abs(kBuilding.getBuildingHappinessChanges(iI)),
-					((kBuilding.getBuildingHappinessChanges(iI) > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))).c_str());
+					abs(kBuilding.getBuildingHappinessChanges(eBuildingClass)),
+					(kBuilding.getBuildingHappinessChanges(eBuildingClass) > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))).c_str());
 			CvWString szBuilding;
-			if (NO_PLAYER != ePlayer)
+			if (ePlayer != NO_PLAYER)
 			{
-				BuildingTypes ePlayerBuilding = ((BuildingTypes)(GC.getCivilizationInfo(pPlayer->getCivilizationType()).getCivilizationBuildings(iI)));
+				BuildingTypes ePlayerBuilding = pPlayer->getCivilization().getBuilding(eBuildingClass);
 				if (NO_BUILDING != ePlayerBuilding)
 				{
-					szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iI).getDescription());
+					szBuilding.Format(L"<link=literal>%s</link>",
+							GC.getBuildingClassInfo(eBuildingClass).getDescription());
 				}
 			}
 			else
 			{
-				szBuilding.Format(L"<link=literal>%s</link>", GC.getBuildingClassInfo((BuildingClassTypes)iI).getDescription());
+				szBuilding.Format(L"<link=literal>%s</link>",
+						GC.getBuildingClassInfo(eBuildingClass).getDescription());
 			}
-			setListHelp(szBuffer, szTempBuffer, szBuilding, L", ", (kBuilding.getBuildingHappinessChanges(iI) != iLast));
+			setListHelp(szBuffer, szTempBuffer, szBuilding, L", ",
+					kBuilding.getBuildingHappinessChanges(iI) != iLast);
 			iLast = kBuilding.getBuildingHappinessChanges(iI);
 		}
 	}
@@ -11210,21 +11202,17 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
 	{
+		BuildingClassTypes eLoopBuildingClass = (BuildingClassTypes)iI;
 		BuildingTypes eLoopBuilding = NO_BUILDING; // advc.003
 		if (ePlayer != NO_PLAYER)
-		{
-			eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(pPlayer->getCivilizationType()).getCivilizationBuildings(iI)));
-		}
-		else
-		{
-			eLoopBuilding = (BuildingTypes)GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex();
-		}
+			eLoopBuilding = pPlayer->getCivilization().getBuilding(eLoopBuildingClass);
+		else eLoopBuilding = (BuildingTypes)GC.getBuildingClassInfo(eLoopBuildingClass).getDefaultBuildingIndex();
 		if(eLoopBuilding == NO_BUILDING)
 			continue; // advc.003
 		if (GC.getBuildingInfo(eLoopBuilding).isBuildingClassNeededInCity(bct)
-				&& !bInBuildingList) // advc.004w
+			&& !bInBuildingList) // advc.004w
 		{
-			if ((pCity == NULL) || pCity->canConstruct(eLoopBuilding, false, true))
+			if (pCity == NULL || pCity->canConstruct(eLoopBuilding, false, true))
 			{
 				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_BUILDING_REQUIRED_TO_BUILD").c_str());
 				szTempBuffer.Format(SETCOLR L"<link=literal>%s</link>" ENDCOLR, TEXT_COLOR("COLOR_BUILDING_TEXT"), GC.getBuildingInfo(eLoopBuilding).getDescription());
@@ -11249,17 +11237,13 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 
 	if (bCivilopediaText)
 	{
-		if (kBuilding.getGreatPeopleUnitClass() != NO_UNITCLASS)
+		UnitClassTypes eGPClass = (UnitClassTypes)kBuilding.getGreatPeopleUnitClass();
+		if (eGPClass != NO_UNITCLASS)
 		{
 			UnitTypes eGreatPeopleUnit = NO_UNIT; // advc.003
 			if (ePlayer != NO_PLAYER)
-			{
-				eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(pPlayer->getCivilizationType()).getCivilizationUnits(kBuilding.getGreatPeopleUnitClass())));
-			}
-			else
-			{
-				eGreatPeopleUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)kBuilding.getGreatPeopleUnitClass()).getDefaultUnitIndex();
-			}
+				eGreatPeopleUnit = pPlayer->getCivilization().getUnit(eGPClass);
+			else eGreatPeopleUnit = (UnitTypes)GC.getUnitClassInfo(eGPClass).getDefaultUnitIndex();
 
 			if (eGreatPeopleUnit!= NO_UNIT)
 			{
@@ -11530,6 +11514,7 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 
 		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); ++iI)
 		{
+			BuildingClassTypes eLoopBuildingClass = (BuildingClassTypes)iI; // advc.003
 			// K-Mod note: I've rearranged the conditions in the following block. Originally it was something like this:
 			//if (ePlayer == NO_PLAYER && kBuilding.getPrereqNumOfBuildingClass((BuildingClassTypes)iI) > 0)
 			//else if (ePlayer != NO_PLAYER && GET_PLAYER(ePlayer).getBuildingClassPrereqBuilding(eBuilding, ((BuildingClassTypes)iI)) > 0)
@@ -11537,8 +11522,8 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 
 			// K-Mod. Check that we can actually build this class of building. (Previously this was checked in every single block below.)
 			BuildingTypes eLoopBuilding = (BuildingTypes)(ePlayer == NO_PLAYER
-				? GC.getBuildingClassInfo((BuildingClassTypes)iI).getDefaultBuildingIndex()
-				: GC.getCivilizationInfo(GET_PLAYER(ePlayer).getCivilizationType()).getCivilizationBuildings(iI));
+				? GC.getBuildingClassInfo(eLoopBuildingClass).getDefaultBuildingIndex()
+				: GET_PLAYER(ePlayer).getCivilization().getBuilding(eLoopBuildingClass));
 			if (eLoopBuilding == NO_BUILDING)
 				continue;
 			// K-Mod end
@@ -12461,17 +12446,16 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 bool CvGameTextMgr::setBuildingAdditionalHealthHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted)
 {
 	CvWString szLabel;
-	CvCivilizationInfo& kCivilization = GC.getCivilizationInfo(GET_PLAYER(city.getOwner()).getCivilizationType());
 
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings((BuildingClassTypes)iI);
-
-		if (eBuilding != NO_BUILDING && city.canConstruct(eBuilding, false, true, false))
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (city.canConstruct(eBuilding, false, true, false))
 		{
 			int iGood = 0, iBad = 0;
 			//int iChange = // advc.003: unused
-				city.getAdditionalHealthByBuilding(eBuilding, iGood, iBad);
+			  city.getAdditionalHealthByBuilding(eBuilding, iGood, iBad);
 
 			if (iGood != 0 || iBad != 0)
 			{
@@ -12485,7 +12469,8 @@ bool CvGameTextMgr::setBuildingAdditionalHealthHelp(CvWStringBuffer &szBuffer, c
 				}
 
 				szLabel.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_BUILDING_TEXT"), GC.getBuildingInfo(eBuilding).getDescription());
-				bool bStartedLine = setResumableGoodBadChangeHelp(szBuffer, szLabel, L": ", L"", iGood, gDLL->getSymbolID(HEALTHY_CHAR), iBad, gDLL->getSymbolID(UNHEALTHY_CHAR), false, true);
+				bool bStartedLine = setResumableGoodBadChangeHelp(szBuffer, szLabel, L": ", L"", iGood, gDLL->getSymbolID(HEALTHY_CHAR), iBad,
+						gDLL->getSymbolID(UNHEALTHY_CHAR), false, true);
 				setResumableValueChangeHelp(szBuffer, szLabel, L": ", L"", iSpoiledFood, gDLL->getSymbolID(EATEN_FOOD_CHAR), false, true, bStartedLine);
 				setResumableValueChangeHelp(szBuffer, szLabel, L": ", L"", iStarvation, gDLL->getSymbolID(BAD_FOOD_CHAR), false, true, bStartedLine);
 			}
@@ -12498,13 +12483,6 @@ bool CvGameTextMgr::setBuildingAdditionalHealthHelp(CvWStringBuffer &szBuffer, c
 
 void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
 {
-	int iOldAngerPercent;
-	int iNewAngerPercent;
-	int iOldAnger;
-	int iNewAnger;
-	int iAnger;
-	int iI;
-
 	if (city.isOccupation())
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_ANGER_RESISTANCE"));
@@ -12515,22 +12493,20 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	}
 	else if (city.unhappyLevel() > 0)
 	{
-		iOldAngerPercent = 0;
-		iNewAngerPercent = 0;
+		int iOldAngerPercent = 0;
+		int iNewAngerPercent = 0;
 
-		iOldAnger = 0;
-		iNewAnger = 0;
+		int iOldAnger = 0;
+		int iNewAnger = 0;
 
-/*
-** K-Mod, 5/jan/11, karadoc
-** all anger perecent bits were like this:
-iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getDefineINT("PERCENT_ANGER_DIVISOR")));
-** I've changed it to use GC.getPERCENT_ANGER_DIVISOR() for both parts.
-*/
+		/*  K-Mod, 5/jan/11
+			all anger perecent bits were like this: */
+		//iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getDefineINT("PERCENT_ANGER_DIVISOR")));
+		// I've changed it to use GC.getPERCENT_ANGER_DIVISOR() for both parts.
 		// XXX decomp these???
 		iNewAngerPercent += city.getOvercrowdingPercentAnger();
 		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+		int iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_OVERCROWDING", iAnger));
@@ -12653,7 +12629,7 @@ iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_D
 		}
 		iOldAnger = iNewAnger;
 
-		for (iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+		for (int iI = 0; iI < GC.getNumCivicInfos(); ++iI)
 		{
 			iNewAngerPercent += GET_PLAYER(city.getOwner()).getCivicPercentAnger((CivicTypes)iI);
 			iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
@@ -12917,17 +12893,16 @@ void CvGameTextMgr::setHappyHelp(CvWStringBuffer &szBuffer, CvCity& city)
 bool CvGameTextMgr::setBuildingAdditionalHappinessHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted)
 {
 	CvWString szLabel;
-	CvCivilizationInfo& kCivilization = GC.getCivilizationInfo(GET_PLAYER(city.getOwner()).getCivilizationType());
 
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings((BuildingClassTypes)iI);
-
-		if (eBuilding != NO_BUILDING && city.canConstruct(eBuilding, false, true, false))
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (city.canConstruct(eBuilding, false, true, false))
 		{
 			int iGood = 0, iBad = 0;
 			//int iChange = // advc.003: unused
-				city.getAdditionalHappinessByBuilding(eBuilding, iGood, iBad);
+			  city.getAdditionalHappinessByBuilding(eBuilding, iGood, iBad);
 
 			if (iGood != 0 || iBad != 0)
 			{
@@ -12940,7 +12915,8 @@ bool CvGameTextMgr::setBuildingAdditionalHappinessHelp(CvWStringBuffer &szBuffer
 				}
 
 				szLabel.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_BUILDING_TEXT"), GC.getBuildingInfo(eBuilding).getDescription());
-				bool bStartedLine = setResumableGoodBadChangeHelp(szBuffer, szLabel, L": ", L"", iGood, gDLL->getSymbolID(HAPPY_CHAR), iBad, gDLL->getSymbolID(UNHAPPY_CHAR), false, true);
+				bool bStartedLine = setResumableGoodBadChangeHelp(szBuffer, szLabel, L": ", L"", iGood, gDLL->getSymbolID(HAPPY_CHAR), iBad,
+						gDLL->getSymbolID(UNHAPPY_CHAR), false, true);
 				setResumableValueChangeHelp(szBuffer, szLabel, L": ", L"", iAngryPop, gDLL->getSymbolID(ANGRY_POP_CHAR), false, true, bStartedLine);
 			}
 		}
@@ -13754,12 +13730,9 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		if(pTrainCity == NULL)
 			pTrainCity = pActivePlayer->getCapitalCity();
 		std::vector<CvUnitInfo*> aEnables;
-		for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-			UnitClassTypes eUnitClass = (UnitClassTypes)i;
-			UnitTypes eLoopUnit = (UnitTypes)(GC.getCivilizationInfo(
-					eCivilization).getCivilizationUnits(i));
-			if(eLoopUnit == NO_UNIT)
-				continue;
+		CvCivilization const& kCiv = *GC.getGame().getActiveCivilization();
+		for (int i = 0; i < kCiv.getNumUnits(); i++) {
+			UnitTypes eLoopUnit = kCiv.unitAt(i);
 			CvUnitInfo& kUnit = GC.getUnitInfo(eLoopUnit);
 			// <advc.905b>
 			int iSpeed = 0;
@@ -13856,18 +13829,12 @@ void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eRe
 			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FOUNDED_FIRST", GC.getTechInfo((TechTypes)religion.getTechPrereq()).getTextKeyWide()));
 		}
 	}
-
-	if (religion.getFreeUnitClass() != NO_UNITCLASS)
+	UnitClassTypes eFreeUnitClass = (UnitClassTypes)religion.getFreeUnitClass(); // advc.003
+	if (eFreeUnitClass != NO_UNITCLASS)
 	{
 		if (GC.getGame().getActivePlayer() != NO_PLAYER)
-		{
-			eFreeUnit = ((UnitTypes)(GC.getCivilizationInfo(GET_PLAYER(GC.getGame().getActivePlayer()).getCivilizationType()).getCivilizationUnits(religion.getFreeUnitClass())));
-		}
-		else
-		{
-			eFreeUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)religion.getFreeUnitClass()).getDefaultUnitIndex();
-		}
-
+			eFreeUnit = GC.getGame().getActiveCivilization()->getUnit(eFreeUnitClass);
+		else eFreeUnit = (UnitTypes)GC.getUnitClassInfo(eFreeUnitClass).getDefaultUnitIndex();
 		if (eFreeUnit != NO_UNIT)
 		{
 			if (religion.getNumFreeUnits() > 1)
@@ -14146,18 +14113,12 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_CORPORATION_BONUS_PRODUCED", GC.getBonusInfo((BonusTypes)kCorporation.getBonusProduced()).getChar()));
 	}
-
-	if (kCorporation.getFreeUnitClass() != NO_UNITCLASS)
+	UnitClassTypes eFreeUnitClass = (UnitClassTypes)kCorporation.getFreeUnitClass(); // advc.003
+	if (eFreeUnitClass != NO_UNITCLASS)
 	{
 		if (GC.getGame().getActivePlayer() != NO_PLAYER)
-		{
-			eFreeUnit = ((UnitTypes)(GC.getCivilizationInfo(GET_PLAYER(GC.getGame().getActivePlayer()).getCivilizationType()).getCivilizationUnits(kCorporation.getFreeUnitClass())));
-		}
-		else
-		{
-			eFreeUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)kCorporation.getFreeUnitClass()).getDefaultUnitIndex();
-		}
-
+			eFreeUnit = GC.getGame().getActiveCivilization()->getUnit(eFreeUnitClass);
+		else eFreeUnit = (UnitTypes)GC.getUnitClassInfo(eFreeUnitClass).getDefaultUnitIndex();
 		if (eFreeUnit != NO_UNIT)
 		{
 			szBuffer.append(NEWLINE);
@@ -16314,16 +16275,14 @@ bool CvGameTextMgr::setBuildingAdditionalYieldHelp(CvWStringBuffer &szBuffer, co
 {
 	CvYieldInfo& info = GC.getYieldInfo(eIndex);
 	CvWString szLabel;
-	CvCivilizationInfo& kCivilization = GC.getCivilizationInfo(GET_PLAYER(city.getOwner()).getCivilizationType());
 
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings((BuildingClassTypes)iI);
-
-		if (eBuilding != NO_BUILDING && city.canConstruct(eBuilding, false, true, false))
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (city.canConstruct(eBuilding, false, true, false))
 		{
 			int iChange = city.getAdditionalYieldByBuilding(eIndex, eBuilding);
-
 			if (iChange != 0)
 			{
 				if (!bStarted)
@@ -16347,16 +16306,14 @@ bool CvGameTextMgr::setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer,
 {
 	CvCommerceInfo& info = GC.getCommerceInfo(eIndex);
 	CvWString szLabel;
-	CvCivilizationInfo& kCivilization = GC.getCivilizationInfo(GET_PLAYER(city.getOwner()).getCivilizationType());
 
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings((BuildingClassTypes)iI);
-
-		if (eBuilding != NO_BUILDING && city.canConstruct(eBuilding, false, true, false))
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (city.canConstruct(eBuilding, false, true, false))
 		{
 			int iChange = city.getAdditionalCommerceTimes100ByBuilding(eIndex, eBuilding);
-
 			if (iChange != 0)
 			{
 				if (!bStarted)
@@ -16380,13 +16337,12 @@ bool CvGameTextMgr::setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, c
 {
 	CvCommerceInfo& info = GC.getCommerceInfo(COMMERCE_GOLD);
 	CvWString szLabel;
-	CvCivilizationInfo& kCivilization = GC.getCivilizationInfo(GET_PLAYER(city.getOwner()).getCivilizationType());
 
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings((BuildingClassTypes)iI);
-
-		if (eBuilding != NO_BUILDING && city.canConstruct(eBuilding, false, true, false))
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (city.canConstruct(eBuilding, false, true, false))
 		{
 			int iChange = city.getSavedMaintenanceTimes100ByBuilding(eBuilding);
 
@@ -17556,16 +17512,14 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer,
 bool CvGameTextMgr::setBuildingAdditionalGreatPeopleHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted)
 {
 	CvWString szLabel;
-	CvCivilizationInfo& kCivilization = GC.getCivilizationInfo(GET_PLAYER(city.getOwner()).getCivilizationType());
 
-	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)kCivilization.getCivilizationBuildings((BuildingClassTypes)iI);
-
-		if (eBuilding != NO_BUILDING && city.canConstruct(eBuilding, false, true, false))
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (city.canConstruct(eBuilding, false, true, false))
 		{
 			int iChange = city.getAdditionalGreatPeopleRateByBuilding(eBuilding);
-
 			if (iChange != 0)
 			{
 				if (!bStarted)
@@ -17637,13 +17591,13 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		// BUG - Airport Icon - start
 		if (getBugOptionBOOL("MainInterface__AirportIcon", true))
 		{
-			int eAirportClass = GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT"
+			BuildingClassTypes eAirportClass = (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT"
 					// Mod-mods that don't have an airport should set bHideAssert:
 					/*,true*/);
-			if (eAirportClass != -1)
+			if (eAirportClass != NO_BUILDINGCLASS)
 			{
-				int eAirport = GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationBuildings(eAirportClass);
-				if (eAirport != -1 && pCity->getNumBuilding((BuildingTypes)eAirport) > 0)
+				BuildingTypes eAirport = pCity->getCivilization().getBuilding(eAirportClass);
+				if (eAirport != NO_BUILDING && pCity->getNumBuilding(eAirport) > 0)
 				{
 					szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(AIRPORT_CHAR)));
 				}
@@ -17849,12 +17803,12 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 
 	CvEventInfo& kEvent = GC.getEventInfo(eEvent);
 	CvPlayer& kActivePlayer = GET_PLAYER(ePlayer);
+	CvCivilization const& kCiv = kActivePlayer.getCivilization(); // advc.003w
 	EventTriggeredData* pTriggeredData = kActivePlayer.getEventTriggered(iEventTriggeredId);
 
 	if (NULL == pTriggeredData)
-	{
 		return;
-	}
+
 
 	CvCity* pCity = kActivePlayer.getCity(pTriggeredData->m_iCityId);
 	CvCity* pOtherPlayerCity = NULL;
@@ -18152,13 +18106,13 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 			}
 		}
 	}
-
-	if (kEvent.getBuildingClass() != NO_BUILDINGCLASS)
+	BuildingClassTypes eBuildingClass = (BuildingClassTypes)kEvent.getBuildingClass(); // advc.003
+	if (eBuildingClass != NO_BUILDINGCLASS)
 	{
 		CivilizationTypes eCiv = kActivePlayer.getCivilizationType();
-		if (NO_CIVILIZATION != eCiv)
+		if (eCiv != NO_CIVILIZATION)
 		{
-			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(eCiv).getCivilizationBuildings(kEvent.getBuildingClass());
+			BuildingTypes eBuilding = kActivePlayer.getCivilization().getBuilding(eBuildingClass);
 			if (eBuilding != NO_BUILDING)
 			{
 				if (kEvent.getBuildingChange() > 0)
@@ -18181,7 +18135,7 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 		for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
 		{
 			CivilizationTypes eCiv = kActivePlayer.getCivilizationType();
-			if (NO_CIVILIZATION != eCiv)
+			if (eCiv != NO_CIVILIZATION)
 			{
 				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(eCiv).getCivilizationBuildings(iBuildingClass);
 				if (eBuilding != NO_BUILDING)
@@ -18210,7 +18164,7 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 		for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
 		{
 			CivilizationTypes eCiv = kActivePlayer.getCivilizationType();
-			if (NO_CIVILIZATION != eCiv)
+			if (eCiv != NO_CIVILIZATION)
 			{
 				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(eCiv).getCivilizationBuildings(iBuildingClass);
 				if (eBuilding != NO_BUILDING)
@@ -18235,52 +18189,38 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 
 	if (kEvent.getNumBuildingHappyChanges() > 0)
 	{
-		for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			CivilizationTypes eCiv = kActivePlayer.getCivilizationType();
-			if (NO_CIVILIZATION != eCiv)
+			BuildingTypes eBuilding = kCiv.buildingAt(i);
+			int iHappy = kEvent.getBuildingHappyChange(kCiv.buildingClassAt(i));
+			if (iHappy > 0)
 			{
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(eCiv).getCivilizationBuildings(iBuildingClass);
-				if (eBuilding != NO_BUILDING)
-				{
-					int iHappy = kEvent.getBuildingHappyChange(iBuildingClass);
-					if (iHappy > 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), iHappy, gDLL->getSymbolID(HAPPY_CHAR)));
-					}
-					else if (iHappy < 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), -iHappy, gDLL->getSymbolID(UNHAPPY_CHAR)));
-					}
-				}
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), iHappy, gDLL->getSymbolID(HAPPY_CHAR)));
+			}
+			else if (iHappy < 0)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), -iHappy, gDLL->getSymbolID(UNHAPPY_CHAR)));
 			}
 		}
 	}
 
 	if (kEvent.getNumBuildingHealthChanges() > 0)
 	{
-		for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			CivilizationTypes eCiv = kActivePlayer.getCivilizationType();
-			if (NO_CIVILIZATION != eCiv)
+			BuildingTypes eBuilding = kCiv.buildingAt(i);
+			int iHealth = kEvent.getBuildingHealthChange(kCiv.buildingClassAt(i));
+			if (iHealth > 0)
 			{
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(eCiv).getCivilizationBuildings(iBuildingClass);
-				if (eBuilding != NO_BUILDING)
-				{
-					int iHealth = kEvent.getBuildingHealthChange(iBuildingClass);
-					if (iHealth > 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), iHealth, gDLL->getSymbolID(HEALTHY_CHAR)));
-					}
-					else if (iHealth < 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), -iHealth, gDLL->getSymbolID(UNHEALTHY_CHAR)));
-					}
-				}
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), iHealth, gDLL->getSymbolID(HEALTHY_CHAR)));
+			}
+			else if (iHealth < 0)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_EVENT_HAPPY_BUILDING", GC.getBuildingInfo(eBuilding).getTextKeyWide(), -iHealth, gDLL->getSymbolID(UNHEALTHY_CHAR)));
 			}
 		}
 	}
@@ -18400,16 +18340,17 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 		}
 	}
 
-	for (int i = 0; i < GC.getNumUnitClassInfos(); ++i)
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		if (NO_PROMOTION != kEvent.getUnitClassPromotion(i))
+		UnitTypes ePromotedUnit = kCiv.unitAt(i);
+		UnitClassTypes ePromotedUnitClass = kCiv.unitClassAt(i);
+		if (kEvent.getUnitClassPromotion(ePromotedUnitClass) != NO_PROMOTION)
 		{
-			UnitTypes ePromotedUnit = ((UnitTypes)(GC.getCivilizationInfo(kActivePlayer.getCivilizationType()).getCivilizationUnits(i)));
-			if (NO_UNIT != ePromotedUnit)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_EVENT_UNIT_CLASS_PROMOTION", GC.getUnitInfo(ePromotedUnit).getTextKeyWide(), GC.getPromotionInfo((PromotionTypes)kEvent.getUnitClassPromotion(i)).getTextKeyWide()));
-			}
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_EVENT_UNIT_CLASS_PROMOTION",
+					GC.getUnitInfo(ePromotedUnit).getTextKeyWide(),
+					GC.getPromotionInfo((PromotionTypes)kEvent.
+					getUnitClassPromotion(ePromotedUnitClass)).getTextKeyWide()));
 		}
 	}
 
@@ -20194,22 +20135,20 @@ void CvGameTextMgr::getCityDataForAS(std::vector<CvWBData>& mapCityList, std::ve
 	}
 
 	CvWStringBuffer szBuffer;
-	for(int i = 0; i < GC.getNumBuildingClassInfos(); i++)
+	CvCivilization const& kCiv = kActivePlayer.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eBuilding = (BuildingTypes) GC.getCivilizationInfo(kActivePlayer.getCivilizationType()).getCivilizationBuildings(i);
-
-		if (eBuilding != NO_BUILDING)
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if(!GC.getGame().isFreeStartEraBuilding(eBuilding)) // advc.003
 		{
-			if(!GC.getGame().isFreeStartEraBuilding(eBuilding)) // advc.003
+			// Building cost -1 denotes unit which may not be purchased
+			iCost = kActivePlayer.getAdvancedStartBuildingCost(eBuilding, true);
+			if (iCost > 0)
 			{
-				// Building cost -1 denotes unit which may not be purchased
-				iCost = kActivePlayer.getAdvancedStartBuildingCost(eBuilding, true);
-				if (iCost > 0)
-				{
-					szBuffer.clear();
-					setBuildingHelp(szBuffer, eBuilding);
-					mapBuildingList.push_back(CvWBData(eBuilding, szBuffer.getCString(), GC.getBuildingInfo(eBuilding).getButton()));
-				}
+				szBuffer.clear();
+				setBuildingHelp(szBuffer, eBuilding);
+				mapBuildingList.push_back(CvWBData(eBuilding, szBuffer.getCString(),
+						GC.getBuildingInfo(eBuilding).getButton()));
 			}
 		}
 	}
@@ -20223,26 +20162,24 @@ void CvGameTextMgr::getUnitDataForAS(std::vector<CvWBData>& mapUnitList)
 	CvPlayer& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 
 	CvWStringBuffer szBuffer;
-	for(int i = 0; i < GC.getNumUnitClassInfos(); i++)
+	CvCivilization const& kCiv = kActivePlayer.getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eUnit = (UnitTypes) GC.getCivilizationInfo(kActivePlayer.getCivilizationType()).getCivilizationUnits(i);
-		if (eUnit != NO_UNIT)
+		UnitTypes eUnit = kCiv.unitAt(i);
+		// Unit cost -1 denotes unit which may not be purchased
+		int iCost = kActivePlayer.getAdvancedStartUnitCost(eUnit, true);
+		if (iCost > 0)
 		{
-			// Unit cost -1 denotes unit which may not be purchased
-			int iCost = kActivePlayer.getAdvancedStartUnitCost(eUnit, true);
-			if (iCost > 0)
-			{
-				szBuffer.clear();
-				setUnitHelp(szBuffer, eUnit);
+			szBuffer.clear();
+			setUnitHelp(szBuffer, eUnit);
 
-				int iMaxUnitsPerCity = GC.getDefineINT("ADVANCED_START_MAX_UNITS_PER_CITY");
-				if (iMaxUnitsPerCity >= 0 && GC.getUnitInfo(eUnit).isMilitarySupport())
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_WB_AS_MAX_UNITS_PER_CITY", iMaxUnitsPerCity));
-				}
-				mapUnitList.push_back(CvWBData(eUnit, szBuffer.getCString(), kActivePlayer.getUnitButton(eUnit)));
+			int iMaxUnitsPerCity = GC.getDefineINT("ADVANCED_START_MAX_UNITS_PER_CITY");
+			if (iMaxUnitsPerCity >= 0 && GC.getUnitInfo(eUnit).isMilitarySupport())
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_WB_AS_MAX_UNITS_PER_CITY", iMaxUnitsPerCity));
 			}
+			mapUnitList.push_back(CvWBData(eUnit, szBuffer.getCString(), kActivePlayer.getUnitButton(eUnit)));
 		}
 	}
 }

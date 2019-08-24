@@ -278,19 +278,15 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	{
 		if (kOwner.getNumCities() == 1)
 		{
-			for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+			CvCivilization const& kCiv = getCivilization(); // advc.003w
+			for (int i = 0; i < kCiv.getNumBuildings(); i++)
 			{
-				if (GC.getCivilizationInfo(getCivilizationType()).isCivilizationFreeBuildingClass(iI))
+				BuildingTypes eBuilding = kCiv.buildingAt(i);
+				if (kCiv.isFreeBuilding(eBuilding))
 				{
-					BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
-
-					if (eLoopBuilding != NO_BUILDING)
-					{
-						setNumRealBuilding(eLoopBuilding, true);
-					}
+					setNumRealBuilding(eBuilding, 1);
 				}
 			}
-
 			if (!isHuman() /* advc.250b: */ && !g.isOption(GAMEOPTION_SPAH))
 			{
 				changeOverflowProduction(GC.getDefineINT("INITIAL_AI_CITY_PRODUCTION"), 0);
@@ -1748,27 +1744,21 @@ UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount,
 	bool bUpgradeUnavailable = false;
 	if (GC.getUnitInfo(eUnit).isAnyUpgradeUnitClass()) // advc.003t
 	{
-		for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+		CvCivilization const& kCiv = getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumUnits(); i++)
 		{
-			if (!GC.getUnitInfo(eUnit).getUpgradeUnitClass(iI))
+			if (!GC.getUnitInfo(eUnit).getUpgradeUnitClass(kCiv.unitClassAt(i)))
 				continue;
-			UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI);
-			if (eLoopUnit != NO_UNIT)
+	
+			bUpgradeFound = true;
+			UnitTypes eTempUnit = allUpgradesAvailable(kCiv.unitAt(i), iUpgradeCount + 1,
+					eAssumeAvailable); // advc.001u
+			if (eTempUnit != NO_UNIT)
 			{
-				bUpgradeFound = true;
-
-				UnitTypes eTempUnit = allUpgradesAvailable(eLoopUnit, iUpgradeCount + 1,
-						eAssumeAvailable); // advc.001u
-				if (eTempUnit != NO_UNIT)
-				{
-					eUpgradeUnit = eTempUnit;
-					bUpgradeAvailable = true;
-				}
-				else
-				{
-					bUpgradeUnavailable = true;
-				}
+				eUpgradeUnit = eTempUnit;
+				bUpgradeAvailable = true;
 			}
+			else bUpgradeUnavailable = true;
 		}
 	}
 
@@ -1953,22 +1943,14 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 
 bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 {
-	for (int i = 0; i < GC.getNumUnitClassInfos(); i++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(i);
-
-		if (NO_UNIT != eUnit)
-		{
-			if (GC.getUnitInfo(eUnit).getUnitCombatType() == eUnitCombat)
-			{
-				if (canTrain(eUnit))
-				{
-					return true;
-				}
-			}
-		}
+		UnitTypes eUnit = kCiv.unitAt(i);
+		if (GC.getUnitInfo(eUnit).getUnitCombatType() == eUnitCombat &&
+				canTrain(eUnit))
+			return true;
 	}
-
 	return false;
 }
 
@@ -2120,16 +2102,14 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 				BuildingClassTypes ePrereqClass = (BuildingClassTypes)i;
 				if (!kBuilding.isBuildingClassNeededInCity(ePrereqClass))
 					continue;
-
-				BuildingTypes ePrereqBuilding = (BuildingTypes)
-						GC.getCivilizationInfo(getCivilizationType()).
-						getCivilizationBuildings(ePrereqClass);
-				if (ePrereqBuilding != NO_BUILDING)
-				{
-					if(getNumBuilding(ePrereqBuilding) <= 0
-							/* && (bContinue || (getFirstBuildingOrder(ePrereqBuilding) == -1))*/)
+				/*BuildingTypes ePrereqBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(ePrereqClass);
+				if (ePrereqBuilding != NO_BUILDING) {
+					if(getNumBuilding(ePrereqBuilding) <= 0)
+							//&& (bContinue || (getFirstBuildingOrder(ePrereqBuilding) == -1))) // advc (comment): This was already commented out in Vanilla Civ 4
 						return false;
-				}
+				}*/ // <advc.003w> Replacing the above
+				if (getNumBuilding(ePrereqClass) <= 0)
+					return false; // </advc.003w>
 			}
 		}
 	}
@@ -3546,20 +3526,17 @@ UnitTypes CvCity::getConscriptUnit() const
 {
 	int iBestValue = 0;
 	UnitTypes eBestUnit = NO_UNIT;
-
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI);
-		if (eLoopUnit != NO_UNIT)
+		UnitTypes eLoopUnit = kCiv.unitAt(i);
+		if (canTrain(eLoopUnit))
 		{
-			if (canTrain(eLoopUnit))
+			int iValue = GC.getUnitInfo(eLoopUnit).getConscriptionValue();
+			if (iValue > iBestValue)
 			{
-				int iValue = GC.getUnitInfo(eLoopUnit).getConscriptionValue();
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					eBestUnit = eLoopUnit;
-				}
+				iBestValue = iValue;
+				eBestUnit = eLoopUnit;
 			}
 		}
 	}
@@ -4052,10 +4029,8 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		//changeBaseGreatPeopleRate(kBuilding.getGreatPeopleRateChange() * iChange);
 		if (kBuilding.getGreatPeopleUnitClass() != NO_UNITCLASS)
 		{
-			UnitTypes eGreatPeopleUnit = (UnitTypes)
-					(GC.getCivilizationInfo(getCivilizationType()).
-					getCivilizationUnits(kBuilding.getGreatPeopleUnitClass()));
-
+			UnitTypes eGreatPeopleUnit = getCivilization().getUnit((UnitClassTypes)
+					kBuilding.getGreatPeopleUnitClass());
 			if (eGreatPeopleUnit != NO_UNIT)
 			{
 				changeGreatPeopleUnitRate(eGreatPeopleUnit, kBuilding.getGreatPeopleRateChange() * iChange);
@@ -4102,39 +4077,33 @@ void CvCity::processProcess(ProcessTypes eProcess, int iChange)
 }
 
 
-void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
+void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)  // advc.003: style changes
 {
-	UnitTypes eGreatPeopleUnit;
-	int iI;
-
-	if (GC.getSpecialistInfo(eSpecialist).getGreatPeopleUnitClass() != NO_UNITCLASS)
+	CvSpecialistInfo const& kSpecialist = GC.getSpecialistInfo(eSpecialist);
+	UnitClassTypes eGPClass = (UnitClassTypes)kSpecialist.getGreatPeopleUnitClass();
+	if (eGPClass != NO_UNITCLASS)
 	{
-		eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getSpecialistInfo(eSpecialist).getGreatPeopleUnitClass())));
-
+		UnitTypes eGreatPeopleUnit = getCivilization().getUnit(eGPClass);
 		if (eGreatPeopleUnit != NO_UNIT)
 		{
-			changeGreatPeopleUnitRate(eGreatPeopleUnit, GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
+			changeGreatPeopleUnitRate(eGreatPeopleUnit, kSpecialist.getGreatPeopleRateChange() * iChange);
 			/*  advc.051: Moved from below. Barbarians don't have GP units; if they
 				still end up with a specialist, the base GP rate shouldn't count it. */
-			changeBaseGreatPeopleRate(GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
+			changeBaseGreatPeopleRate(kSpecialist.getGreatPeopleRateChange() * iChange);
 		}
 	}
 	// advc.051: Moved into the block above
-	//changeBaseGreatPeopleRate(GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
+	//changeBaseGreatPeopleRate(kSpecialist.getGreatPeopleRateChange() * iChange);
 
-	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		changeBaseYieldRate(((YieldTypes)iI), (GC.getSpecialistInfo(eSpecialist).getYieldChange(iI) * iChange));
-	}
+	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+		changeBaseYieldRate((YieldTypes)iI, kSpecialist.getYieldChange(iI) * iChange);
 
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-	{
-		changeSpecialistCommerce(((CommerceTypes)iI), (GC.getSpecialistInfo(eSpecialist).getCommerceChange(iI) * iChange));
-	}
+	for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+		changeSpecialistCommerce((CommerceTypes)iI, kSpecialist.getCommerceChange(iI) * iChange);
 
 	updateExtraSpecialistYield();
 
-	changeSpecialistFreeExperience(GC.getSpecialistInfo(eSpecialist).getExperience() * iChange);
+	changeSpecialistFreeExperience(kSpecialist.getExperience() * iChange);
 }
 
 
@@ -4148,6 +4117,12 @@ CivilizationTypes CvCity::getCivilizationType() const
 {
 	return GET_PLAYER(getOwner()).getCivilizationType();
 }
+
+// <advc.003w>
+CvCivilization const& CvCity::getCivilization() const
+{
+	return GET_PLAYER(getOwner()).getCivilization();
+} // </advc.003w>
 
 
 LeaderHeadTypes CvCity::getPersonalityType() const
@@ -4267,17 +4242,13 @@ bool CvCity::isHeadquarters(CorporationTypes eIndex) const
 
 void CvCity::setHeadquarters(CorporationTypes eIndex)
 {
-	GC.getGame().setHeadquarters(eIndex, this,
-			false); // advc.106e
-
-	if (GC.getCorporationInfo(eIndex).getFreeUnitClass() != NO_UNITCLASS)
+	GC.getGame().setHeadquarters(eIndex, this, /* advc.106e: */ false);
+	UnitClassTypes eFreeClass = (UnitClassTypes)GC.getCorporationInfo(eIndex).getFreeUnitClass();
+	if (eFreeClass != NO_UNITCLASS)
 	{
-		UnitTypes eFreeUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getCorporationInfo(eIndex).getFreeUnitClass())));
-
+		UnitTypes eFreeUnit = getCivilization().getUnit(eFreeClass);
 		if (eFreeUnit != NO_UNIT)
-		{
 			GET_PLAYER(getOwner()).initUnit(eFreeUnit, getX(), getY());
-		}
 	}
 }
 
@@ -4286,11 +4257,8 @@ bool CvCity::isHeadquarters() const
 	for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
 	{
 		if (isHeadquarters((CorporationTypes)iI))
-		{
 			return true;
-		}
 	}
-
 	return false;
 }
 
@@ -5231,6 +5199,15 @@ int CvCity::getNumBuilding(BuildingTypes eIndex) const
 
 	return std::min(GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS), getNumRealBuilding(eIndex) + getNumFreeBuilding(eIndex));
 }
+
+// <advc.003w>
+int CvCity::getNumBuilding(BuildingClassTypes eBuildingClass) const
+{
+	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);
+	if (eBuilding == NO_BUILDING)
+		return 0;
+	return getNumBuilding(eBuilding);
+} // </advc.003w>
 
 
 int CvCity::getNumActiveBuilding(BuildingTypes eIndex) const
@@ -11435,6 +11412,15 @@ int CvCity::getNumRealBuilding(BuildingTypes eIndex) const
 	return m_paiNumRealBuilding[eIndex];
 }
 
+// <advc.003w>
+int CvCity::getNumRealBuilding(BuildingClassTypes eBuildingClass) const
+{
+	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);
+	if (eBuilding == NO_BUILDING)
+		return 0;
+	return getNumRealBuilding(eBuilding);
+} // </advc.003w>
+
 
 void CvCity::setNumRealBuilding(BuildingTypes eIndex, int iNewValue)
 {
@@ -14123,27 +14109,27 @@ void CvCity::write(FDataStreamBase* pStream)
 	pStream->Write(m_aBuildingYieldChange.size());
 	for (std::vector<BuildingYieldChange>::iterator it = m_aBuildingYieldChange.begin(); it != m_aBuildingYieldChange.end(); ++it)
 	{
-		(*it).write(pStream);
+		it->write(pStream);
 	}
 
 	pStream->Write(m_aBuildingCommerceChange.size());
 	for (std::vector<BuildingCommerceChange>::iterator it = m_aBuildingCommerceChange.begin(); it != m_aBuildingCommerceChange.end(); ++it)
 	{
-		(*it).write(pStream);
+		it->write(pStream);
 	}
 
 	pStream->Write(m_aBuildingHappyChange.size());
 	for (BuildingChangeArray::iterator it = m_aBuildingHappyChange.begin(); it != m_aBuildingHappyChange.end(); ++it)
 	{
-		pStream->Write((*it).first);
-		pStream->Write((*it).second);
+		pStream->Write(it->first);
+		pStream->Write(it->second);
 	}
 
 	pStream->Write(m_aBuildingHealthChange.size());
 	for (BuildingChangeArray::iterator it = m_aBuildingHealthChange.begin(); it != m_aBuildingHealthChange.end(); ++it)
 	{
-		pStream->Write((*it).first);
-		pStream->Write((*it).second);
+		pStream->Write(it->first);
+		pStream->Write(it->second);
 	}
 	pStream->Write(m_iPopRushHurryCount); // advc.912d
 	// <advc.004x>
@@ -14539,26 +14525,18 @@ int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const
 	if (kTrigger.getNumBuildings() > 0 && kTrigger.getNumBuildingsRequired() > 0)
 	{
 		bool bFoundValid = false;
-
-		for (int i = 0; i < kTrigger.getNumBuildingsRequired(); ++i)
+		for (int i = 0; i < kTrigger.getNumBuildingsRequired(); i++)
 		{
-			if (kTrigger.getBuildingRequired(i) != NO_BUILDINGCLASS)
+			BuildingClassTypes eBuildingClass = (BuildingClassTypes)kTrigger.getBuildingRequired(i);
+			if (eBuildingClass != NO_BUILDINGCLASS &&
+				getNumRealBuilding(eBuildingClass) > 0) // advc.003w: simplified
 			{
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kTrigger.getBuildingRequired(i));
-				if (NO_BUILDING != eBuilding)
-				{
-					if (getNumRealBuilding(eBuilding) > 0)
-					{
-						bFoundValid = true;
-					}
-				}
+				bFoundValid = true;
+				break;
 			}
 		}
-
 		if (!bFoundValid)
-		{
 			return MIN_INT;
-		}
 	}
 
 
@@ -14729,32 +14707,33 @@ bool CvCity::canApplyEvent(EventTypes eEvent, const EventTriggeredData& kTrigger
 	{
 		return false;
 	}
-
-	if (kEvent.getBuildingClass() != NO_BUILDINGCLASS)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kEvent.getBuildingClass());
-		if (eBuilding == NO_BUILDING)
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)kEvent.getBuildingClass();
+		if (eBuildingClass != NO_BUILDINGCLASS)
 		{
-			return false;
-		}
-
-		if (kEvent.getBuildingChange() > 0)
-		{
-			if (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
+			BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);
+			if (eBuilding == NO_BUILDING)
 			{
 				return false;
 			}
-		}
-		else if (kEvent.getBuildingChange() < 0)
-		{
-			if (getNumRealBuilding(eBuilding) + kEvent.getBuildingChange() < 0)
+
+			if (kEvent.getBuildingChange() > 0)
 			{
-				return false;
+				if (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
+				{
+					return false;
+				}
+			}
+			else if (kEvent.getBuildingChange() < 0)
+			{
+				if (getNumRealBuilding(eBuilding) + kEvent.getBuildingChange() < 0)
+				{
+					return false;
+				}
 			}
 		}
 	}
-
-	if (-1 != kEvent.getMaxNumReligions() && getReligionCount() > kEvent.getMaxNumReligions())
+	if (kEvent.getMaxNumReligions() != -1 && getReligionCount() > kEvent.getMaxNumReligions())
 	{
 		return false;
 	}
@@ -14896,32 +14875,34 @@ void CvCity::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredD
 			changeCulture(getOwner(), kEvent.getCulture(), true, true);
 		}
 	}
-
-
-	if (kEvent.getUnitClass() != NO_UNITCLASS)
 	{
-		UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(kEvent.getUnitClass());
-		if (eUnit != NO_UNIT)
+		UnitClassTypes eUnitClass = (UnitClassTypes)kEvent.getUnitClass(); // advc.003
+		if (eUnitClass != NO_UNITCLASS)
 		{
-			for (int i = 0; i < kEvent.getNumUnits(); ++i)
+			UnitTypes eUnit = getCivilization().getUnit(eUnitClass);
+			if (eUnit != NO_UNIT)
 			{
-				GET_PLAYER(getOwner()).initUnit(eUnit, getX(), getY());
+				for (int i = 0; i < kEvent.getNumUnits(); i++)
+				{
+					GET_PLAYER(getOwner()).initUnit(eUnit, getX(), getY());
+				}
 			}
 		}
 	}
-
-	if (kEvent.getBuildingClass() != NO_BUILDINGCLASS)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(kEvent.getBuildingClass());
-		if (eBuilding != NO_BUILDING)
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)kEvent.getBuildingClass(); // advc.003
+		if (eBuildingClass != NO_BUILDINGCLASS)
 		{
-			if (kEvent.getBuildingChange() != 0)
+			BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);
+			if (eBuilding != NO_BUILDING)
 			{
-				setNumRealBuilding(eBuilding, getNumRealBuilding(eBuilding) + kEvent.getBuildingChange());
+				if (kEvent.getBuildingChange() != 0)
+				{
+					setNumRealBuilding(eBuilding, getNumRealBuilding(eBuilding) + kEvent.getBuildingChange());
+				}
 			}
 		}
 	}
-
 	if (kEvent.getNumBuildingYieldChanges() > 0)
 	{
 		for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
@@ -15067,9 +15048,9 @@ int CvCity::getBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes
 {
 	for (std::vector<BuildingYieldChange>::const_iterator it = m_aBuildingYieldChange.begin(); it != m_aBuildingYieldChange.end(); ++it)
 	{
-		if ((*it).eBuildingClass == eBuildingClass && (*it).eYield == eYield)
+		if (it->eBuildingClass == eBuildingClass && it->eYield == eYield)
 		{
-			return (*it).iChange;
+			return it->iChange;
 		}
 	}
 
@@ -15078,35 +15059,27 @@ int CvCity::getBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes
 
 void CvCity::setBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange)
 {
+	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass); // advc.003w
 	for (std::vector<BuildingYieldChange>::iterator it = m_aBuildingYieldChange.begin(); it != m_aBuildingYieldChange.end(); ++it)
 	{
-		if ((*it).eBuildingClass == eBuildingClass && (*it).eYield == eYield)
+		if (it->eBuildingClass != eBuildingClass || it->eYield != eYield)
+			continue;
+
+		int iOldChange = it->iChange;
+		if (iOldChange != iChange)
 		{
-			int iOldChange = (*it).iChange;
-			if (iOldChange != iChange)
+
+			if (iChange == 0)
+				m_aBuildingYieldChange.erase(it);
+			else it->iChange = iChange;
+
+			if (eBuilding != NO_BUILDING)
 			{
-
-				if (iChange == 0)
-				{
-					m_aBuildingYieldChange.erase(it);
-				}
-				else
-				{
-					(*it).iChange = iChange;
-				}
-
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-				if (NO_BUILDING != eBuilding)
-				{
-					if (getNumActiveBuilding(eBuilding) > 0)
-					{
-						changeBaseYieldRate(eYield, (iChange - iOldChange) * getNumActiveBuilding(eBuilding));
-					}
-				}
+				if (getNumActiveBuilding(eBuilding) > 0)
+					changeBaseYieldRate(eYield, (iChange - iOldChange) * getNumActiveBuilding(eBuilding));
 			}
-
-			return;
 		}
+		return;
 	}
 
 	if (iChange != 0)
@@ -15117,13 +15090,10 @@ void CvCity::setBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldType
 		kChange.iChange = iChange;
 		m_aBuildingYieldChange.push_back(kChange);
 
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-		if (NO_BUILDING != eBuilding)
+		if (eBuilding != NO_BUILDING)
 		{
 			if (getNumActiveBuilding(eBuilding) > 0)
-			{
 				changeBaseYieldRate(eYield, iChange * getNumActiveBuilding(eBuilding));
-			}
 		}
 	}
 }
@@ -15137,9 +15107,9 @@ int CvCity::getBuildingCommerceChange(BuildingClassTypes eBuildingClass, Commerc
 {
 	for (std::vector<BuildingCommerceChange>::const_iterator it = m_aBuildingCommerceChange.begin(); it != m_aBuildingCommerceChange.end(); ++it)
 	{
-		if ((*it).eBuildingClass == eBuildingClass && (*it).eCommerce == eCommerce)
+		if (it->eBuildingClass == eBuildingClass && it->eCommerce == eCommerce)
 		{
-			return (*it).iChange;
+			return it->iChange;
 		}
 	}
 
@@ -15150,9 +15120,9 @@ void CvCity::setBuildingCommerceChange(BuildingClassTypes eBuildingClass, Commer
 {
 	for (std::vector<BuildingCommerceChange>::iterator it = m_aBuildingCommerceChange.begin(); it != m_aBuildingCommerceChange.end(); ++it)
 	{
-		if ((*it).eBuildingClass == eBuildingClass && (*it).eCommerce == eCommerce)
+		if (it->eBuildingClass == eBuildingClass && it->eCommerce == eCommerce)
 		{
-			if ((*it).iChange != iChange)
+			if (it->iChange != iChange)
 			{
 				if (iChange == 0)
 				{
@@ -15160,7 +15130,7 @@ void CvCity::setBuildingCommerceChange(BuildingClassTypes eBuildingClass, Commer
 				}
 				else
 				{
-					(*it).iChange = iChange;
+					it->iChange = iChange;
 				}
 
 				updateBuildingCommerce();
@@ -15190,54 +15160,45 @@ void CvCity::changeBuildingCommerceChange(BuildingClassTypes eBuildingClass, Com
 
 void CvCity::setBuildingHappyChange(BuildingClassTypes eBuildingClass, int iChange)
 {
+	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass); // advc.003w
 	for (BuildingChangeArray::iterator it = m_aBuildingHappyChange.begin(); it != m_aBuildingHappyChange.end(); ++it)
 	{
-		if ((*it).first == eBuildingClass)
+		if (it->first == eBuildingClass)
 		{
-			if ((*it).second != iChange)
+			if (it->second != iChange)
 			{
-				/*if ((*it).second > 0)
-					changeBuildingGoodHappiness(-(*it).second);
-				else if ((*it).second < 0)
-					changeBuildingBadHappiness((*it).second);
+				/*if (it->second > 0)
+					changeBuildingGoodHappiness(-it->second);
+				else if (it->second < 0)
+					changeBuildingBadHappiness(it->second);
 				if (iChange == 0)
 					m_aBuildingHappyChange.erase(it);
-				else (*it).second = iChange;
+				else it->second = iChange;
 				if (iChange > 0)
 					changeBuildingGoodHappiness(iChange);
 				else if (iChange < 0)
 					changeBuildingGoodHappiness(-iChange);*/
 				// UNOFFICIAL_PATCH (Bugfix), 10/22/09, jdog5000: START
-				int iOldChange = (*it).second;
+				int iOldChange = it->second;
 
 				m_aBuildingHappyChange.erase(it);
 
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-				if (NO_BUILDING != eBuilding)
+				if (eBuilding != NO_BUILDING)
 				{
 					if (getNumActiveBuilding(eBuilding) > 0)
 					{
-
 						if (iOldChange > 0)
-						{
 							changeBuildingGoodHappiness(-iOldChange);
-						}
 						else if (iOldChange < 0)
-						{
 							changeBuildingBadHappiness(-iOldChange);
-						}
 
 						if (iChange != 0)
 						{
 							m_aBuildingHappyChange.push_back(std::make_pair(eBuildingClass, iChange));
 							if (iChange > 0)
-							{
 								changeBuildingGoodHappiness(iChange);
-							}
 							else if (iChange < 0)
-							{
 								changeBuildingBadHappiness(iChange);
-							}
 						}
 					}
 				}
@@ -15256,21 +15217,16 @@ void CvCity::setBuildingHappyChange(BuildingClassTypes eBuildingClass, int iChan
 		else if (iChange < 0)
 			changeBuildingGoodHappiness(-iChange);*/
 		// UNOFFICIAL_PATCH (Bugfix), 10/22/09, jdog5000: START
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-		if (NO_BUILDING != eBuilding)
+		if (eBuilding != NO_BUILDING)
 		{
 			if (getNumActiveBuilding(eBuilding) > 0)
 			{
 				m_aBuildingHappyChange.push_back(std::make_pair(eBuildingClass, iChange));
 
 				if (iChange > 0)
-				{
 					changeBuildingGoodHappiness(iChange);
-				}
 				else if (iChange < 0)
-				{
 					changeBuildingBadHappiness(iChange);
-				}
 			}
 		}
 		// UNOFFICIAL_PATCH: END
@@ -15282,9 +15238,9 @@ int CvCity::getBuildingHappyChange(BuildingClassTypes eBuildingClass) const
 {
 	for (BuildingChangeArray::const_iterator it = m_aBuildingHappyChange.begin(); it != m_aBuildingHappyChange.end(); ++it)
 	{
-		if ((*it).first == eBuildingClass)
+		if (it->first == eBuildingClass)
 		{
-			return (*it).second;
+			return it->second;
 		}
 	}
 
@@ -15294,53 +15250,45 @@ int CvCity::getBuildingHappyChange(BuildingClassTypes eBuildingClass) const
 
 void CvCity::setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange)
 {
+	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass); // advc.003w
 	for (BuildingChangeArray::iterator it = m_aBuildingHealthChange.begin(); it != m_aBuildingHealthChange.end(); ++it)
 	{
-		if ((*it).first == eBuildingClass)
+		if (it->first == eBuildingClass)
 		{
-			if ((*it).second != iChange)
+			if (it->second != iChange)
 			{
-				/*if ((*it).second > 0)
-					changeBuildingGoodHealth(-(*it).second);
-				else if ((*it).second < 0)
-					changeBuildingBadHealth((*it).second);
+				/*if (it->second > 0)
+					changeBuildingGoodHealth(-it->second);
+				else if (it->second < 0)
+					changeBuildingBadHealth(it->second);
 				if (iChange == 0)
 					m_aBuildingHealthChange.erase(it);
-				else (*it).second = iChange;
+				else it->second = iChange;
 				if (iChange > 0)
 					changeBuildingGoodHealth(iChange);
 				else if (iChange < 0)
 					changeBuildingBadHealth(-iChange);*/
 				// UNOFFICIAL_PATCH, Bugfix, 10/22/09, jdog5000
-				int iOldChange = (*it).second;
+				int iOldChange = it->second;
 
 				m_aBuildingHealthChange.erase(it);
 
-				BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-				if (NO_BUILDING != eBuilding)
+				if (eBuilding != NO_BUILDING)
 				{
 					if (getNumActiveBuilding(eBuilding) > 0)
 					{
 						if (iOldChange > 0)
-						{
 							changeBuildingGoodHealth(-iOldChange);
-						}
 						else if (iOldChange < 0)
-						{
 							changeBuildingBadHealth(-iOldChange);
-						}
 
 						if (iChange != 0)
 						{
 							m_aBuildingHealthChange.push_back(std::make_pair(eBuildingClass, iChange));
 							if (iChange > 0)
-							{
 								changeBuildingGoodHealth(iChange);
-							}
 							else if (iChange < 0)
-							{
 								changeBuildingBadHealth(iChange);
-							}
 						}
 					}
 				}
@@ -15359,21 +15307,16 @@ void CvCity::setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iCha
 		else if (iChange < 0)
 			changeBuildingGoodHappiness(-iChange);*/
 		// UNOFFICIAL_PATCH, Bugfix, 10/22/09, jdog5000
-		BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass);
-		if (NO_BUILDING != eBuilding)
+		if (eBuilding != NO_BUILDING)
 		{
 			if (getNumActiveBuilding(eBuilding) > 0)
 			{
 				m_aBuildingHealthChange.push_back(std::make_pair(eBuildingClass, iChange));
 
 				if (iChange > 0)
-				{
 					changeBuildingGoodHealth(iChange);
-				}
 				else if (iChange < 0)
-				{
 					changeBuildingBadHealth(iChange);
-				}
 			}
 		}
 		// UNOFFICIAL_PATCH: END
@@ -15385,9 +15328,9 @@ int CvCity::getBuildingHealthChange(BuildingClassTypes eBuildingClass) const
 {
 	for (BuildingChangeArray::const_iterator it = m_aBuildingHealthChange.begin(); it != m_aBuildingHealthChange.end(); ++it)
 	{
-		if ((*it).first == eBuildingClass)
+		if (it->first == eBuildingClass)
 		{
-			return (*it).second;
+			return it->second;
 		}
 	}
 
