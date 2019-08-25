@@ -3751,8 +3751,8 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 			}
 		case MISSION_HEAL:
 			if (pLoopUnit->canHeal(pPlot)
-					// advc.004l: isHuman check only for performance
-					&& (!pLoopUnit->isHuman() || !pLoopUnit->canSentryHeal(pPlot)))
+					// advc.004l: AI control check only for performance
+					&& (AI_isControlled() || !pLoopUnit->canSentryHeal(pPlot)))
 				return true;
 			break;
 		// <advc.004l> Make the two heal missions mutually exclusive (for humans)

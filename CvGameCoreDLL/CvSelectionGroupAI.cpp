@@ -628,7 +628,7 @@ void CvSelectionGroupAI::AI_queueGroupAttack(int iX, int iY)
 	m_iGroupAttackY = iY;
 }
 
-bool CvSelectionGroupAI::AI_isControlled()
+bool CvSelectionGroupAI::AI_isControlled() const
 {
 	return (!isHuman() || isAutomated());
 }

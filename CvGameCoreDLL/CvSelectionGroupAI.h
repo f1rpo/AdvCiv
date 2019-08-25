@@ -50,7 +50,7 @@ public:
 	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)
 	inline bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
 
-	bool AI_isControlled();
+	bool AI_isControlled() const;
 	bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const;
 
 	CvPlot* AI_getMissionAIPlot() const;

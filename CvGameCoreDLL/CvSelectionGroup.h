@@ -237,7 +237,7 @@ public:
 	virtual void AI_cancelGroupAttack() = 0;
 	virtual bool AI_isGroupAttack() const = 0; // K-Mod made const
 
-	virtual bool AI_isControlled() = 0;
+	virtual bool AI_isControlled() /* advc.003: */ const = 0;
 	virtual bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const = 0;
 	virtual CvPlot* AI_getMissionAIPlot() const = 0;
 	virtual bool AI_isForceSeparate() = 0;
