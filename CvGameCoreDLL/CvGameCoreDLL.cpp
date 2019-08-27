@@ -1,13 +1,13 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreDLLUndefNew.h"
 #include <new>
-#include <psapi.h>
-/*  advc.mak: This fixes a linker error related to psapi. One can probably also
-	amend this through Visual Studio settings. I copied the line from here:
-	https://stackoverflow.com/questions/3151728/unresolved-external-symbols-in-compiling-32-bit-application-in-windows-64 */
-#pragma comment(lib, "psapi.lib")
 
 #ifdef MEMORY_TRACKING
+// <advc.make> Include ony conditionally
+#include "CvDLLPythonIFaceBase.h"
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib") // Help the linker find psapi
+// </advc.make>
 void	ProfileTrackAlloc(void* ptr);
 
 void	ProfileTrackDeAlloc(void* ptr);
@@ -85,7 +85,7 @@ void* operator new[](size_t size)
 	}
 
 	OutputDebugString("Alloc [unsafe]");
-	::MessageBoxA(NULL,"UNsafe alloc","CvGameCore",MB_OK);
+	::MessageBoxA(NULL,"Unsafe alloc","CvGameCore",MB_OK);
 	return malloc(size);
 }
 

@@ -53,6 +53,8 @@ class CvEventManager:
 		self.__LOG_COMBAT = 0
 		self.__LOG_CONTACT = 0
 		self.__LOG_IMPROVEMENT = 0
+		self.__LOG_PLOTPICKED = 0 # advc.007
+		self.__LOG_NUKEEXPLOSION = 0 # advc.007
 		self.__LOG_CITYLOST = 0
 		self.__LOG_CITYBUILDING = 0
 		# <advc.007>
@@ -74,6 +76,8 @@ class CvEventManager:
 		self.__LOG_GOLDENAGE = 0
 		self.__LOG_ENDGOLDENAGE = 0
 		self.__LOG_WARPEACE = 0
+		self.__LOG_CITYBUILT = 0 # advc.007
+		self.__LOG_CITYACQUIRED = 0 # advc.007
 		self.__LOG_PUSH_MISSION = 0
 		
 		## EVENTLIST
@@ -432,12 +436,18 @@ class CvEventManager:
 	def onPlotPicked(self, argsList):
 		'Plot Picked'
 		pPlot = argsList[0]
+		# <advc.007>
+		if (not self.__LOG_PLOTPICKED):
+			return # </advc.007>
 		CvUtil.pyPrint('Plot was picked at %d, %d'
 			%(pPlot.getX(), pPlot.getY()))
 
 	def onNukeExplosion(self, argsList):
 		'Nuke Explosion'
 		pPlot, pNukeUnit = argsList
+		# <advc.007>
+		if (not self.__LOG_NUKEEXPLOSION):
+			return # </advc.007>
 		CvUtil.pyPrint('Nuke detonated at %d, %d'
 			%(pPlot.getX(), pPlot.getY()))
 
@@ -767,34 +777,38 @@ class CvEventManager:
 		'City Built'
 		city = argsList[0]
 		if (city.getOwner() == gc.getGame().getActivePlayer()):
-			self.__eventEditCityNameBegin(city, False)	
+			self.__eventEditCityNameBegin(city, False)
+		# <advc.007>
+		if (not self.__LOG_CITYBUILT):
+			return # </advc.007>
 		CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
 		
 	def onCityRazed(self, argsList):
 		'City Razed'
 		city, iPlayer = argsList
-		iOwner = city.findHighestCulture()
-		
+		#iOwner = city.findHighestCulture()
 		# Partisans!
-		if city.getPopulation > 1 and iOwner != -1 and iPlayer != -1:
-			owner = gc.getPlayer(iOwner)
-			if not owner.isBarbarian() and owner.getNumCities() > 0:
-				if gc.getTeam(owner.getTeam()).isAtWar(gc.getPlayer(iPlayer).getTeam()):
-					if gc.getNumEventTriggerInfos() > 0: # prevents mods that don't have events from getting an error
-						iEvent = CvUtil.findInfoTypeNum(gc.getEventTriggerInfo, gc.getNumEventTriggerInfos(),'EVENTTRIGGER_PARTISANS')
-						if iEvent != -1 and gc.getGame().isEventActive(iEvent) and owner.getEventTriggerWeight(iEvent) < 0:
-							triggerData = owner.initTriggeredData(iEvent, true, -1, city.getX(), city.getY(), iPlayer, city.getID(), -1, -1, -1, -1)
-			
+		# advc.003y: Code deleted; reimplemented in the DLL (cf. CvCity::doPartisans).
+
+		# <advc.007>
+		if (not self.__LOG_CITYACQUIRED):
+			return # </advc.007>
 		CvUtil.pyPrint("City Razed Event: %s" %(city.getName(),))
 	
 	def onCityAcquired(self, argsList):
 		'City Acquired'
 		iPreviousOwner,iNewOwner,pCity,bConquest,bTrade = argsList
+		# <advc.007>
+		if (not self.__LOG_CITYACQUIRED):
+			return # </advc.007>
 		CvUtil.pyPrint('City Acquired Event: %s' %(pCity.getName()))
 	
 	def onCityAcquiredAndKept(self, argsList):
 		'City Acquired and Kept'
 		iOwner,pCity = argsList
+		# <advc.007>
+		if (not self.__LOG_CITYACQUIRED):
+			return # </advc.007>
 		CvUtil.pyPrint('City Acquired and Kept Event: %s' %(pCity.getName()))
 	
 	def onCityLost(self, argsList):

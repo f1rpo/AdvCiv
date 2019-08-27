@@ -160,10 +160,10 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			g.doControl(CONTROL_SAVE_NORMAL);
 			break;
 		case MM_OPTIONS:
-			gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showOptionsScreen");
+			GC.getPythonCaller()->showPythonScreen("OptionsScreen");
 			break;
 		case MM_BUG_OPTIONS:
-			gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showBugOptionsScreen");
+			GC.getPythonCaller()->showPythonScreen("BugOptionsScreen");
 			break;
 		case MM_ENTER_WB:
 			/* original bts code
@@ -293,7 +293,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 	case BUTTONPOPUP_CHOOSETECH:
 		if (pPopupReturn->getButtonClicked() == GC.getNumTechInfos())
 		{
-			gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showTechChooser");
+			GC.getPythonCaller()->showPythonScreen("TechChooser");
 			GET_PLAYER(g.getActivePlayer()).chooseTech(0, "", true);
 		}
 		break;
@@ -381,9 +381,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			CvMessageControl::getInstance().sendUpdateCivics(aeNewCivics);
 		}
 		else if (pPopupReturn->getButtonClicked() == 2)
-		{
-			gDLL->getPythonIFace()->callFunction(PYScreensModule, "showCivicsScreen");
-		}
+			GC.getPythonCaller()->showPythonScreen("CivicsScreen");
 		break;
 
 	case BUTTONPOPUP_CHANGERELIGION:
@@ -418,21 +416,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		break;
 
 	case BUTTONPOPUP_PYTHON:
-		if (!info.getOnClickedPythonCallback().IsEmpty())
-		{
-			FAssertMsg(!g.isNetworkMultiPlayer(), "Danger: Out of Sync");
-			CyArgsList argsList;
-			argsList.add(pPopupReturn->getButtonClicked());
-			argsList.add(info.getData1());
-			argsList.add(info.getData2());
-			argsList.add(info.getData3());
-			argsList.add(info.getFlags());
-			argsList.add(info.getText());
-			argsList.add(info.getOption1());
-			argsList.add(info.getOption2());
-			gDLL->getPythonIFace()->callFunction((info.getPythonModule().IsEmpty() ? PYScreensModule : info.getPythonModule()), info.getOnClickedPythonCallback(), argsList.makeFunctionArgs());
-			break;
-		}
+		GC.getPythonCaller()->onOKClicked(info, pPopupReturn->getButtonClicked());
 		break;
 
 	case BUTTONPOPUP_DETAILS:
@@ -756,9 +740,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 {
 	if (gDLL->getInterfaceIFace()->popupIsDying(pPopup))
-	{
 		return;
-	}
 
 	FAssert(GC.getGame().getActivePlayer() != NO_PLAYER); // K-Mod
 
@@ -818,13 +800,11 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 		{
 			PlayerTypes ePlayer = GC.getGame().getActivePlayer();
 			CvCity* pCity = GET_PLAYER(ePlayer).getCity(info.getData1());
-
 			if (NULL == pCity || pCity->getOwner() != ePlayer)
 			{
 				gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
 				break;
 			}
-
 			gDLL->getInterfaceIFace()->lookAtCityOffset(pCity->getID());
 		}
 		break;
@@ -832,27 +812,13 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 	case BUTTONPOPUP_CHANGECIVIC:
 		if (!GET_PLAYER(GC.getGame().getActivePlayer()).canRevolution(NULL) ||
 				GC.getGame().getGameState() == GAMESTATE_OVER)
-		{
 			gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
-		}
 		break;
 
 	case BUTTONPOPUP_PYTHON:
 	case BUTTONPOPUP_PYTHON_SCREEN:
-		if (!info.getOnFocusPythonCallback().IsEmpty())
-		{
-			long iResult; CyArgsList argsList;
-			argsList.add(info.getData1());
-			argsList.add(info.getData2());
-			argsList.add(info.getData3());
-			argsList.add(info.getFlags());
-			argsList.add(info.getText());
-			argsList.add(info.getOption1());
-			argsList.add(info.getOption2());
-			gDLL->getPythonIFace()->callFunction(PYScreensModule, info.getOnFocusPythonCallback(), argsList.makeFunctionArgs(), &iResult);
-			if (iResult != 0)
-				gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
-		}
+		if (GC.getPythonCaller()->onFocus(info))
+			gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
 		break;
 	// K-Mod. cancel unnecessary popups if the game is over. (It's tempting to do this for the 'default:' case, but that might break something.)
 	case BUTTONPOPUP_CHOOSEELECTION:
@@ -947,7 +913,9 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 		bLaunched = launchConfirmMenu(pPopup, info);
 		break;
 	case BUTTONPOPUP_PYTHON_SCREEN:
-		bLaunched = launchPythonScreen(pPopup, info);
+		// so the Popup object is deleted, since it's just a dummy
+		bLaunched = false;
+		GC.getPythonCaller()->launchPythonScreenPopup(info, pPopup);
 		break;
 	case BUTTONPOPUP_DEAL_CANCELED:
 		bLaunched = launchCancelDeal(pPopup, info);
@@ -1023,21 +991,11 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	CvWString szTemp;
 
 	CvCity* pCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(info.getData1());
-	if (NULL == pCity || pCity->isProductionAutomated())
-	{
+	if (pCity == NULL || pCity->isProductionAutomated())
 		return false;
-	}
 
-	CyCity* pyCity = new CyCity(pCity);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in plot class
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "skipProductionPopup", argsList.makeFunctionArgs(), &lResult);
-	delete pyCity;	// python fxn must not hold on to this pointer
-	if (lResult == 1)
-	{
+	if (GC.getPythonCaller()->isSkipProductionPopup(*pCity))
 		return false;
-	}
 
 	FAssertMsg(pCity->getOwner() == GC.getGame().getActivePlayer(), "City must belong to Active Player");
 
@@ -1113,21 +1071,18 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, szBuffer, DLL_FONT_LEFT_JUSTIFY);
 
-	pyCity = new CyCity(pCity);
-	CyArgsList argsList2;
-	argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in plot class
-	lResult=1;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "showExamineCityButton", argsList2.makeFunctionArgs(), &lResult);
-	delete pyCity;	// python fxn must not hold on to this pointer
-	if (lResult == 1)
+	if (GC.getPythonCaller()->isShowExamineButton(*pCity))
 	{
 		int iExamineCityID = 0;
 		iExamineCityID = std::max(iExamineCityID, GC.getNumUnitInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumBuildingInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumProjectInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumProcessInfos());
-
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), iExamineCityID, WIDGET_GENERAL, -1, -1, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,
+				gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(),
+				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(),
+				iExamineCityID, WIDGET_GENERAL, -1, -1, true,
+				POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 	}
 	// Were never read before being reassigned
 	/*UnitTypes eProductionUnit = pCity->getProductionUnit();
@@ -1137,27 +1092,21 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	int iNumBuilds = 0;
 
-	pyCity = new CyCity(pCity);
-	CyArgsList argsList3;
-	argsList3.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-	lResult=-1;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "getRecommendedUnit", argsList3.makeFunctionArgs(), &lResult);
-	UnitTypes eProductionUnit = ((UnitTypes)lResult);
-	CyArgsList argsList4; // XXX
-	argsList4.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-	lResult=-1;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "getRecommendedBuilding", argsList4.makeFunctionArgs(), &lResult);
-	BuildingTypes eProductionBuilding = ((BuildingTypes)lResult);
-	delete pyCity;	// python fxn must not hold on to this pointer
+	UnitTypes eProductionUnit = GC.getPythonCaller()->recommendedUnit(*pCity);
+	BuildingTypes eProductionBuilding = GC.getPythonCaller()->recommendedBuilding(*pCity);
 
 	if (eProductionUnit == NO_UNIT)
 	{
-		eProductionUnit = pCity->AI_bestUnit(true, ((eProductionBuilding != NO_BUILDING) ? ((AdvisorTypes)(GC.getBuildingInfo(eProductionBuilding).getAdvisorType())) : NO_ADVISOR));
+		eProductionUnit = pCity->AI_bestUnit(true,
+				eProductionBuilding == NO_BUILDING ? NO_ADVISOR :
+				(AdvisorTypes)GC.getBuildingInfo(eProductionBuilding).getAdvisorType());
 	}
 
 	if (eProductionBuilding == NO_BUILDING)
 	{
-		eProductionBuilding = pCity->AI_bestBuilding(0, 50, true, ((eProductionUnit != NO_UNIT) ? ((AdvisorTypes)(GC.getUnitInfo(eProductionUnit).getAdvisorType())) : NO_ADVISOR));
+		eProductionBuilding = pCity->AI_bestBuilding(0, 50, true,
+				eProductionUnit == NO_UNIT ? NO_ADVISOR :
+				(AdvisorTypes)GC.getUnitInfo(eProductionUnit).getAdvisorType());
 	}
 
 	if (eProductionUnit != NO_UNIT)
@@ -1526,60 +1475,42 @@ bool CvDLLButtonPopup::launchDisbandCityPopup(CvPopup* pPopup, CvPopupInfo &info
 
 bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	CyArgsList argsList;
-	argsList.add(GC.getGame().getActivePlayer());
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "skipResearchPopup", argsList.makeFunctionArgs(), &lResult);
-	if(lResult == 1)
-		return false;
+	CvPlayer& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 
-	CvPlayer& player = GET_PLAYER(GC.getGame().getActivePlayer());
+	if (GC.getPythonCaller()->isSkipResearchPopup(kActivePlayer.getID()))
+		return false;
 
 	int iDiscover = info.getData1();
 	CvWString szHeader = info.getText();
 	if (szHeader.empty())
 	{
-		szHeader = (iDiscover > 0) ? gDLL->getText("TXT_KEY_POPUP_CHOOSE_TECH").c_str() : gDLL->getText("TXT_KEY_POPUP_RESEARCH_NEXT").c_str();
+		szHeader = (iDiscover > 0) ? gDLL->getText("TXT_KEY_POPUP_CHOOSE_TECH").c_str() :
+				gDLL->getText("TXT_KEY_POPUP_RESEARCH_NEXT").c_str();
 	}
 	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, szHeader, DLL_FONT_LEFT_JUSTIFY);
-
 	if (iDiscover == 0)
 	{
-		lResult=1;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "showTechChooserButton", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
+		if (GC.getPythonCaller()->isShowTechChooserButton(kActivePlayer.getID()))
 		{
 			// Allow user to Jump to the Tech Chooser
 			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_SEE_BIG_PICTURE").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_TECH")->getPath(), GC.getNumTechInfos(), WIDGET_GENERAL, -1, MAX_INT, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 			// Note: This button is NOT supposed to close the popup!!
 		}
 	}
-
-	TechTypes eBestTech = NO_TECH;
+	TechTypes eBestTech = GC.getPythonCaller()->recommendedTech(kActivePlayer.getID(), true);
 	TechTypes eNextBestTech = NO_TECH;
-
-	lResult = -1;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "getFirstRecommendedTech", argsList.makeFunctionArgs(), &lResult);
-	eBestTech = ((TechTypes)lResult);
-
 	if (eBestTech == NO_TECH)
-	{
-		eBestTech = player.AI_bestTech(1, (iDiscover > 0), true);
-	}
-
+		eBestTech = kActivePlayer.AI_bestTech(1, (iDiscover > 0), true);
 	if (eBestTech != NO_TECH)
 	{
-		argsList.add(eBestTech);
-		lResult = -1;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "getSecondRecommendedTech", argsList.makeFunctionArgs(), &lResult);
-		eNextBestTech = ((TechTypes)lResult);
-
+		eNextBestTech = GC.getPythonCaller()->recommendedTech(kActivePlayer.getID(),
+				false, eBestTech);
 		if (eNextBestTech == NO_TECH)
 		{
-			eNextBestTech = player.AI_bestTech(1, (iDiscover > 0), true, eBestTech, ((AdvisorTypes)(GC.getTechInfo(eBestTech).getAdvisorType())));
+			eNextBestTech = kActivePlayer.AI_bestTech(1, iDiscover > 0, true,
+					eBestTech, (AdvisorTypes)GC.getTechInfo(eBestTech).getAdvisorType());
 		}
 	}
-
 	int iNumTechs = 0;
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
@@ -1588,12 +1519,12 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 			if((iI == eBestTech || iI == eNextBestTech) != (iPass == 0))
 				continue; // advc.003
 			TechTypes eTech = (TechTypes)iI;
-			if(!player.canResearch(eTech))
+			if(!kActivePlayer.canResearch(eTech))
 				continue; // advc.003
 
 			CvWString szBuffer;
 			// <advc.004x>
-			int iTurnsLeft = player.getResearchTurnsLeft(eTech, true);
+			int iTurnsLeft = kActivePlayer.getResearchTurnsLeft(eTech, true);
 			if(iDiscover > 0 || iTurnsLeft >= 0) { // </advc.004x>
 				szBuffer.Format(L"%s (%d)", GC.getTechInfo(eTech).getDescription(),
 						(iDiscover > 0 ? 0 : iTurnsLeft));
@@ -1622,7 +1553,6 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 					}
 				}
 			}
-
 			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
 					szButton, iI, WIDGET_RESEARCH, iI, iDiscover, true,
 					POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
@@ -1634,10 +1564,10 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 		// player cannot research anything, so don't show this popup after all
 		return false;
 	}
-
-	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_TECHNOLOGY, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_TECH")->getPath());
-	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, ((iDiscover > 0) ? POPUPSTATE_QUEUED : POPUPSTATE_MINIMIZED));
-
+	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_TECHNOLOGY,
+			ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_TECH")->getPath());
+	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, iDiscover > 0 ?
+			POPUPSTATE_QUEUED : POPUPSTATE_MINIMIZED);
 	return true;
 }
 
@@ -2309,22 +2239,6 @@ bool CvDLLButtonPopup::launchConfirmMenu(CvPopup *pPopup, CvPopupInfo &info)
 	return true;
 }
 
-bool CvDLLButtonPopup::launchPythonScreen(CvPopup* pPopup, CvPopupInfo &info)
-{
-	// this is not really a popup, but a Python screen
-	// we trick the app into thinking that it's a popup so that we can take advantage of the popup queuing system
-
-	CyArgsList argsList;
-	argsList.add(info.getData1());
-	argsList.add(info.getData2());
-	argsList.add(info.getData3());
-	argsList.add(info.getOption1());
-	argsList.add(info.getOption2());
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, CvString(info.getText()).GetCString(), argsList.makeFunctionArgs());
-
-	return false; // return false, so the Popup object is deleted, since it's just a dummy
-}
-
 bool CvDLLButtonPopup::launchCancelDeal(CvPopup* pPopup, CvPopupInfo &info)
 {
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup,  gDLL->getText("TXT_KEY_POPUP_CANCEL_DEAL"));
@@ -2342,10 +2256,12 @@ bool CvDLLButtonPopup::launchPythonPopup(CvPopup* pPopup, CvPopupInfo &info)
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, info.getText());
 	for (int i = 0; i < info.getNumPythonButtons(); i++)
 	{
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, info.getPythonButtonText(i), info.getPythonButtonArt(i).IsEmpty() ? NULL : info.getPythonButtonArt(i).GetCString(), i);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,
+				info.getPythonButtonText(i), info.getPythonButtonArt(i).IsEmpty() ?
+				NULL : info.getPythonButtonArt(i).GetCString(), i);
 	}
-
-	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_WARNING, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_WARNING")->getPath());
+	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_WARNING,
+			ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_WARNING")->getPath());
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 
 	return true;

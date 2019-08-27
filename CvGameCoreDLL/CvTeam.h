@@ -9,8 +9,7 @@
 
 class CvArea;
 
-class CvTeam
-		: private boost::noncopyable // advc.003e
+class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
 
 public:
@@ -563,6 +562,7 @@ protected:
 	void doBarbarianResearch(); // advc.003
 	void updateTechShare(TechTypes eTech);
 	void updateTechShare();
+	void updatePlotGroupBonus(TechTypes eTech, bool bAdd); // advc.003
 
 	void processTech(TechTypes eTech, int iChange);
 

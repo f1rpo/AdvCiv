@@ -7,8 +7,6 @@
 #define FLOAT_PRECISION		(1000)
 
 
-// Public Functions...
-
 CvFractal::CvFractal()
 {
 	reset();
@@ -351,7 +349,6 @@ int CvFractal::getHeightFromPercent(int iPercent)
 	return iEstimate;
 }
 
-// Protected Functions...
 
 void CvFractal::tectonicAction(CvFractal* pRifts)  //  Assumes FRAC_WRAP_X is on.
 {

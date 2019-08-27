@@ -47,7 +47,6 @@ private:
 	bool launchDoEspionageTargetPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchConfirmMenu(CvPopup *pPopup, CvPopupInfo &info);
-	bool launchPythonScreen(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchPythonPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchDetailsPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchAdminPopup(CvPopup* pPopup, CvPopupInfo &info);

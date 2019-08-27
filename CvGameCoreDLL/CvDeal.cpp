@@ -26,15 +26,7 @@ CvDeal::~CvDeal()
 
 void CvDeal::init(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 {
-	//--------------------------------
-	// Init saved data
-	reset(iID, eFirstPlayer, eSecondPlayer);
-
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other deal data
+	reset(iID, eFirstPlayer, eSecondPlayer); // Reset serialized data
 	setInitialGameTurn(GC.getGame().getGameTurn());
 }
 
@@ -49,7 +41,7 @@ void CvDeal::uninit()
 // Initializes data members that are serialized.
 void CvDeal::reset(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 {
-	uninit(); // Uninit class
+	uninit();
 
 	m_iID = iID;
 	m_iInitialGameTurn = 0;

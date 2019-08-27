@@ -5,16 +5,15 @@
 #include "CyCity.h"
 #include "CvCity.h"
 #include "CyArea.h"
+#include "CvDLLPythonIFaceBase.h"
 
-CyCity::CyCity() : m_pCity(NULL)
-{
+CyCity::CyCity() : m_pCity(NULL) {}
 
-}
+CyCity::CyCity(CvCity* pCity) : m_pCity(pCity) {}
 
-CyCity::CyCity(CvCity* pCity) : m_pCity(pCity)
-{
-
-}
+/*  advc.003y: The cast can't be helped, but at least, this way, it's in a
+	single place. */
+CyCity::CyCity(CvCity const& kCity) : m_pCity(const_cast<CvCity*>(&kCity)) {}
 
 void CyCity::kill()
 {

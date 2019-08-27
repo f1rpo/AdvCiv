@@ -16,6 +16,7 @@ class CyPlot
 public:
 	CyPlot();
 	DllExport CyPlot(CvPlot*);			// Call from C++
+	CyPlot(CvPlot const&); // advc.003y
 	CvPlot* getPlot() { return m_pPlot; }	// Call from C++
 	void setPlot(CvPlot* p) { m_pPlot=p; }	// Call from C++
 	bool isNone() { return (m_pPlot==NULL); }

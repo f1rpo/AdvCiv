@@ -22,9 +22,6 @@ CvSelectionGroupAI::~CvSelectionGroupAI()
 void CvSelectionGroupAI::AI_init()
 {
 	AI_reset();
-
-	//--------------------------------
-	// Init other game data
 }
 
 
@@ -176,18 +173,10 @@ bool CvSelectionGroupAI::AI_update()
 		if(iAttempts >= iMaxAttempts) // was > 100 </advc.001y>
 		{
 			CvUnit* pHeadUnit = getHeadUnit();
-			if (NULL != pHeadUnit)
+			if (pHeadUnit != NULL)
 			{
-				if (GC.isLogging()
-						&& iAttempts == iMaxAttempts) // advc.001y: Don't spam the log
-				{
-					TCHAR szOut[1024];
-					CvWString szTempString;
-					getUnitAIString(szTempString, pHeadUnit->AI_getUnitAIType());
-					sprintf(szOut, "Unit stuck in loop: %S(%S)[%d, %d] (%S)\n", pHeadUnit->getName().GetCString(), GET_PLAYER(pHeadUnit->getOwner()).getName(),
-						pHeadUnit->getX(), pHeadUnit->getY(), szTempString.GetCString());
-					gDLL->messageControlLog(szOut);
-				}
+				if (iAttempts == iMaxAttempts) // advc.001y: Don't spam the log
+					GC.getLogger().logUnitStuck(*pHeadUnit); // advc.003t
 				pHeadUnit->finishMoves();
 			}
 			break;

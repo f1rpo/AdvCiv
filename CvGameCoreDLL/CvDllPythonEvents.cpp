@@ -1,9 +1,51 @@
 #include "CvGameCoreDLL.h"
 #include "CvDllPythonEvents.h"
+#include "CvDLLPythonIFaceBase.h"
 #include "CvGameAI.h"
 #include "CvPlot.h"
 #include "CvSelectionGroup.h"
 #include "CvUnit.h"
+
+/*  <advc.003y> Move the callback defines from CvGlobals to where they are used
+	(i.e. move some here and the rest to CvPythonCaller). */
+/*  See CvGlobals.h about this macro. Would like to add more, but most of the
+	callbacks are actually in use - by Autolog, EventSigns or Civ4lerts. */
+#define ENUMERATE_CALLBACK_DEFINES(DO) \
+	DO(ON_UPDATE) \
+	DO(ON_UNIT_SET_XY) \
+	DO(ON_UNIT_SELECTED) \
+	DO(ON_UNIT_CREATED) \
+	DO(ON_UNIT_LOST) \
+	/* New additions (callbacks unused in BtS/AdvCiv)  */ \
+	DO(ROUTE_BUILT) \
+	DO(UNIT_MOVE) \
+	DO(UNIT_BUILD_IMPROVEMENT) \
+	/* </advc> */
+enum CallbackDefines
+{
+	ENUMERATE_CALLBACK_DEFINES(MAKE_ENUM)
+	NUM_CALLBACK_DEFINES
+};
+#define MAKE_STRINGS(VAR) "USE_"#VAR"_CALLBACK",
+
+CvDllPythonEvents::CvDllPythonEvents() : m_abUseCallback(NULL) {}
+
+CvDllPythonEvents::~CvDllPythonEvents()
+{
+	SAFE_DELETE_ARRAY(m_abUseCallback);
+}
+
+void CvDllPythonEvents::initCallbackGuards()
+{
+	// Duplicate code unfortunately (cf. CvPythonCaller)
+	const char* const aszGlobalCallbackTagNames[] = {
+		ENUMERATE_CALLBACK_DEFINES(MAKE_STRINGS)
+	};
+	FAssert(sizeof(aszGlobalCallbackTagNames) / sizeof(char*) == NUM_CALLBACK_DEFINES);
+	m_abUseCallback = new bool[NUM_CALLBACK_DEFINES];
+	for (int i = 0; i < NUM_CALLBACK_DEFINES; i++)
+		m_abUseCallback[i] = GC.getDefineBOOL(aszGlobalCallbackTagNames[i]);
+} // </advc.003y>
 
 bool CvDllPythonEvents::preEvent()
 {
@@ -97,16 +139,15 @@ void CvDllPythonEvents::reportInit()
 }
 
 void CvDllPythonEvents::reportUpdate(float fDeltaTime)
-{
+{	// <advc.003y>
+	if (!isUse(ON_UPDATE))
+		return; // </advc.003y>
 	if (preEvent())
 	{
-		if(GC.getUSE_ON_UPDATE_CALLBACK())
-		{
-			CyArgsList eventData;
-			eventData.add("Update");				// add key to lookup python handler fxn
-			eventData.add(fDeltaTime);
-			postEvent(eventData);
-		}
+		CyArgsList eventData;
+		eventData.add("Update");				// add key to lookup python handler fxn
+		eventData.add(fDeltaTime);
+		postEvent(eventData);
 	}
 }
 
@@ -257,7 +298,9 @@ void CvDllPythonEvents::reportImprovementDestroyed(int iImprovementType, int iPl
 }
 
 void CvDllPythonEvents::reportRouteBuilt(int iRouteType, int iX, int iY)
-{
+{	// <advc.003y>
+	if (!isUse(ROUTE_BUILT))
+		return; // </advc.003y>
 	if (preEvent())
 	{
 		CyArgsList eventData;
@@ -563,10 +606,8 @@ void CvDllPythonEvents::reportCityHurry(CvCity *pCity, HurryTypes eHurry)
 
 void CvDllPythonEvents::reportSelectionGroupPushMission(CvSelectionGroup* pSelectionGroup, MissionTypes eMission)
 {
-	if (NULL == pSelectionGroup)
-	{
+	if (pSelectionGroup == NULL)
 		return;
-	}
 
 	if (preEvent())
 	{
@@ -599,7 +640,9 @@ void CvDllPythonEvents::reportSelectionGroupPushMission(CvSelectionGroup* pSelec
 }
 
 void CvDllPythonEvents::reportUnitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOldPlot)
-{
+{	// <advc.003y>
+	if (!isUse(UNIT_MOVE))
+		return; // </advc.003y>
 	if (preEvent())
 	{
 		CyArgsList eventData;
@@ -623,42 +666,40 @@ void CvDllPythonEvents::reportUnitMove(CvPlot* pPlot, CvUnit* pUnit, CvPlot* pOl
 }
 
 void CvDllPythonEvents::reportUnitSetXY(CvPlot* pPlot, CvUnit* pUnit)
-{
+{	// <advc.003y>
+	if (!isUse(ON_UNIT_SET_XY))
+		return; // </advc.003y>
 	if (preEvent())
 	{
-		if(GC.getUSE_ON_UNIT_SET_XY_CALLBACK())
-		{
-			CyArgsList eventData;
-			eventData.add("unitSetXY");						// add key to lookup python handler fxn
+		CyArgsList eventData;
+		eventData.add("unitSetXY");						// add key to lookup python handler fxn
 
-			CyPlot* py = new CyPlot(pPlot);
-			eventData.add(gDLL->getPythonIFace()->makePythonObject(py));
+		CyPlot* py = new CyPlot(pPlot);
+		eventData.add(gDLL->getPythonIFace()->makePythonObject(py));
 
-			CyUnit* pyu = new CyUnit(pUnit);
-			eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
+		CyUnit* pyu = new CyUnit(pUnit);
+		eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
 
-			postEvent(eventData);
+		postEvent(eventData);
 
-			delete py;
-			delete pyu;
-		}
+		delete py;
+		delete pyu;
 	}
 }
 
 void CvDllPythonEvents::reportUnitCreated(CvUnit* pUnit)
-{
+{	// <advc.003y>
+	if (!isUse(ON_UNIT_CREATED))
+		return; // </advc.003y>
 	if (preEvent())
 	{
-		if(GC.getUSE_ON_UNIT_CREATED_CALLBACK())
-		{
-			CyArgsList eventData;
-			eventData.add("unitCreated");						// add key to lookup python handler fxn
+		CyArgsList eventData;
+		eventData.add("unitCreated");						// add key to lookup python handler fxn
 
-			CyUnit* pyu = new CyUnit(pUnit);
-			eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
-			postEvent(eventData);
-			delete pyu;
-		}
+		CyUnit* pyu = new CyUnit(pUnit);
+		eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
+		postEvent(eventData);
+		delete pyu;
 	}
 }
 
@@ -698,19 +739,18 @@ void CvDllPythonEvents::reportUnitKilled(CvUnit* pUnit, PlayerTypes eAttacker)
 }
 
 void CvDllPythonEvents::reportUnitLost(CvUnit* pUnit)
-{
+{	// <advc.003y>
+	if (!isUse(ON_UNIT_LOST))
+		return; // </advc.003y>
 	if (preEvent())
 	{
-		if(GC.getUSE_ON_UNIT_LOST_CALLBACK())
-		{
-			CyArgsList eventData;
-			eventData.add("unitLost");						// add key to lookup python handler fxn
+		CyArgsList eventData;
+		eventData.add("unitLost");						// add key to lookup python handler fxn
 
-			CyUnit* pyu = new CyUnit(pUnit);
-			eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
-			postEvent(eventData);
-			delete pyu;
-		}
+		CyUnit* pyu = new CyUnit(pUnit);
+		eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
+		postEvent(eventData);
+		delete pyu;
 	}
 }
 
@@ -730,19 +770,18 @@ void CvDllPythonEvents::reportUnitPromoted(CvUnit* pUnit, PromotionTypes ePromot
 }
 
 void CvDllPythonEvents::reportUnitSelected(CvUnit* pUnit)
-{
+{	// <advc.003y>
+	if (!isUse(ON_UNIT_SELECTED))
+		return; // </advc.003y>
 	if (preEvent())
 	{
-		if(GC.getUSE_ON_UNIT_SELECTED_CALLBACK())
-		{
-			CyArgsList eventData;
-			eventData.add("unitSelected");						// add key to lookup python handler fxn
+		CyArgsList eventData;
+		eventData.add("unitSelected");						// add key to lookup python handler fxn
 
-			CyUnit* pyu = new CyUnit(pUnit);
-			eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
-			postEvent(eventData);
-			delete pyu;
-		}
+		CyUnit* pyu = new CyUnit(pUnit);
+		eventData.add(gDLL->getPythonIFace()->makePythonObject(pyu));
+		postEvent(eventData);
+		delete pyu;
 	}
 }
 
@@ -816,7 +855,9 @@ void CvDllPythonEvents::reportUnitGifted(CvUnit* pUnit, PlayerTypes eGiftingPlay
 }
 
 void CvDllPythonEvents::reportUnitBuildImprovement(CvUnit* pUnit, BuildTypes eBuild, bool bFinished)
-{
+{	// <advc.003y>
+	if (!isUse(UNIT_BUILD_IMPROVEMENT))
+		return; // </advc.003y>
 	if (preEvent())
 	{
 		CyArgsList eventData;

@@ -7,15 +7,11 @@
 #include "CyArea.h"
 #include "CvPlot.h"
 
-CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot)
-{
+CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot) {}
+// advc.003y: (see CyCity.cpp)
+CyPlot::CyPlot(CvPlot const& kPlot) : m_pPlot(const_cast<CvPlot*>(&kPlot)) {}
 
-}
-
-CyPlot::CyPlot() : m_pPlot(NULL)
-{
-
-}
+CyPlot::CyPlot() : m_pPlot(NULL) {}
 
 void CyPlot::erase()
 {

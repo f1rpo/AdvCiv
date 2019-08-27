@@ -237,6 +237,14 @@ void applyColorToString(CvWString& s, char const* szColor, bool bLink) {
 		s.Format(L"<link=literal>%s</link>", s.GetCString());
 	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
 } // </advc.004w>
+/*  <advc.003> Tbd.: Take into account the locale - perhaps through
+	boost::locale::conv - and/ or check for characters that can't be narrowed.
+	So far, it's the same code that CvInitCore::refreshCustomMapOptions had
+	been using. */
+void narrowUnsafe(CvWString const& szWideString, CvString& szNarrowString)
+{
+	szNarrowString = CvString(szWideString);
+}
 
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {

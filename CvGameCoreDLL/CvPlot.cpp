@@ -18,7 +18,6 @@
 bool CvPlot::m_bAllFog = false; // advc.706
 int CvPlot::iMaxVisibilityRangeCache; // advc.003h
 
-// Public Functions...
 
 CvPlot::CvPlot()
 {
@@ -67,15 +66,7 @@ CvPlot::~CvPlot()
 
 void CvPlot::init(int iX, int iY)
 {
-	//--------------------------------
-	// Init saved data
 	reset(iX, iY);
-
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other game data
 }
 
 
@@ -135,14 +126,11 @@ void CvPlot::uninit()
 	m_units.clear();
 }
 
-// FUNCTION: reset()
 // Initializes data members that are serialized.
 void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 {
 	int iI;
 
-	//--------------------------------
-	// Uninit class
 	uninit();
 
 	m_iX = iX;
@@ -2326,27 +2314,16 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 
 bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible) const
 {
-	if(GC.getUSE_CAN_BUILD_CALLBACK()) {
-		CyArgsList argsList;
-		argsList.add(getX()); argsList.add(getY());
-		argsList.add((int)eBuild); argsList.add((int)ePlayer);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canBuild", argsList.makeFunctionArgs(), &lResult);
-		if (lResult >= 1)
-			return true;
-		else if (lResult == 0)
-			return false;
-	}
-
 	if (eBuild == NO_BUILD)
-	{
 		return false;
+	{
+		bool bPyOverride=false;
+		bool r = GC.getPythonCaller()->canBuild(*this, eBuild, ePlayer, bPyOverride);
+		if (bPyOverride)
+			return r;
 	}
-
 	bool bValid = false;
-
-	ImprovementTypes eImprovement = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
-
+	ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (!canHaveImprovement(eImprovement, GET_PLAYER(ePlayer).getTeam(), bTestVisible,
@@ -6523,30 +6500,18 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 
 	if (m_aiFoundValue[eIndex] == -1)
 	{
-		long lResult=-1;
-		if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK())
-		{
-			CyArgsList argsList;
-			argsList.add((int)eIndex);
-			argsList.add(getX()); argsList.add(getY());
-			gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &lResult);
-		}
-
-		if (lResult == -1)
-		{
+		short iValue = GC.getPythonCaller()->AI_foundValue(eIndex, *this);
+		if (iValue == -1)
 			m_aiFoundValue[eIndex] = GET_PLAYER(eIndex).AI_foundValue(getX(), getY(), -1, true);
-		}
 
 		if (m_aiFoundValue[eIndex] > area()->getBestFoundValue(eIndex))
-		{
 			area()->setBestFoundValue(eIndex, m_aiFoundValue[eIndex]);
-		}
 	}
 	//return m_aiFoundValue[eIndex];
 	// <advc.052>
 	int r = m_aiFoundValue[eIndex];
-	if(bRandomize && !GET_PLAYER(eIndex).isHuman() && GC.getGame().isScenario()) {
-		// Randomly change the value by +/- 1.5%
+	if(bRandomize && !GET_PLAYER(eIndex).isHuman() && GC.getGame().isScenario())
+	{	// Randomly change the value by +/- 1.5%
 		double const plusMinus = 0.015;
 		std::vector<long> hashInput;
 		/*  Base the random multiplier on a number that is unique
@@ -8185,8 +8150,6 @@ void CvPlot::setScriptData(const char* szNewValue)
 	SAFE_DELETE_ARRAY(m_szScriptData);
 	m_szScriptData = _strdup(szNewValue);
 }
-
-// Protected Functions...
 
 void CvPlot::doFeature()
 {

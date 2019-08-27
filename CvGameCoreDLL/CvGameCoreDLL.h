@@ -263,6 +263,8 @@ namespace python = boost::python;
 // advc.make: Removed most of these. (Don't know what the comment above means.)
 #include "CvGameCoreUtils.h"
 #include "CvGlobals.h"
+#include "CvPythonCaller.h" // advc.003y
+#include "CvDLLLogger.h" // advc.003t
 #include "FProfiler.h"
 #include "CvRandom.h"
 // <advc.003x> Include only parts of the old CvInfos.h (caveat: the order of these matters)
@@ -277,7 +279,6 @@ namespace python = boost::python;
 	but decided to add them back. */
 #include "CyGlobalContext.h" // includes CvArtFileMgr.h
 #include "CyCity.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
 // advc.make: New additions
 #include "CvDLLInterfaceIFaceBase.h"

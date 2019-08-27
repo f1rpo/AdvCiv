@@ -40,10 +40,15 @@ public:
 	void showDawnOfMan(); // advc.004j
 	DllExport void initDiplomacy();
 	DllExport void initFreeUnits();
-	int getNormalizationLevel() const; // advc.108
+	int getStartingPlotNormalizationLevel() const; // advc.108
+	int getStartingPlotRange() const; // advc.003b (exposed to Python via CyPlayer)
 
 	DllExport void update();
 	void updateScore(bool bForce = false);
+	// <advc.003y>
+	int getScoreComponent(int iRawScore, int iInitial, int iMax, int iMultiplier,
+			bool bExponential, bool bFinal, bool bVictory) const; // </advc.003y>
+	int getDifficultyForEndScore() const; // advc.250 (exposed to Python; hence public)
 
 	DllExport void updateColoredPlots();
 	DllExport void updateBlockadedPlots();
@@ -359,9 +364,7 @@ public:
 
 	HandicapTypes getHandicapType() const;
 	void setHandicapType(HandicapTypes eHandicap);
-
 	HandicapTypes getAIHandicap() const; // advc.127
-	int getDifficultyForEndScore() const; // advc.250	(exposed to Python)
 
 	DllExport PlayerTypes getPausePlayer() const;																			// Exposed to Python
 	DllExport bool isPaused() const;																									// Exposed to Python
@@ -609,10 +612,8 @@ public:
 	bool isLeaderEverActive(LeaderHeadTypes eLeader) const;		// Exposed to Python
 	bool isUnitEverActive(UnitTypes eUnit) const;		// Exposed to Python
 	bool isBuildingEverActive(BuildingTypes eBuilding) const;		// Exposed to Python
-
 	void processBuilding(BuildingTypes eBuilding, int iChange);
-
-	bool pythonIsBonusIgnoreLatitudes() const;
+	//bool pythonIsBonusIgnoreLatitudes() const; // advc.003y: Moved to CvPythonCaller
 
 	DllExport void getGlobeLayers(std::vector<CvGlobeLayerData>& aLayers) const;
 	DllExport void startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>& aFlyoutItems) const;
@@ -714,6 +715,7 @@ protected:
 	int m_iTurnLoadedFromSave; // advc.044
 	int m_iNormalizationLevel; // advc.108
 	// <advc.003b>
+	int m_iStartingPlotRange; // advc.003b
 	int m_iCivPlayersEverAlive;
 	int m_iCivTeamsEverAlive;
 	// </advc.003b>
@@ -833,6 +835,7 @@ protected:
 	void initFreeState();
 	void assignStartingPlots();
 	void normalizeStartingPlots(); // </advc.003i>
+	void updateStartingPlotRange(); // advc.003b
 	void applyOptionEffects(bool bEnableAll = false); // advc.310
 	void doTurn();
 	void doDeals();

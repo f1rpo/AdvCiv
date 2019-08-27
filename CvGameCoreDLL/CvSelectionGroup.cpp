@@ -30,15 +30,7 @@ CvSelectionGroup::~CvSelectionGroup()
 
 void CvSelectionGroup::init(int iID, PlayerTypes eOwner)
 {
-	//--------------------------------
-	// Init saved data
-	reset(iID, eOwner);
-
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other game data
+	reset(iID, eOwner); // Reset serialized data
 	AI_init();
 }
 
@@ -54,7 +46,7 @@ void CvSelectionGroup::uninit()
 // Initializes data members that are serialized.
 void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 {
-	uninit(); // Uninit class
+	uninit();
 
 	m_iID = iID;
 	m_iMissionTimer = 0;
@@ -3074,18 +3066,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 			bAttack = true;
 
-			if (GC.getUSE_DO_COMBAT_CALLBACK()) { // K-Mod. block unused python callbacks
-				CySelectionGroup* pyGroup = new CySelectionGroup(this);
-				CyPlot* pyPlot = new CyPlot(pDestPlot);
-				CyArgsList argsList;
-				argsList.add(gDLL->getPythonIFace()->makePythonObject(pyGroup));
-				argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));
-				long lResult=0;
-				gDLL->getPythonIFace()->callFunction(PYGameModule, "doCombat", argsList.makeFunctionArgs(), &lResult);
-				delete pyGroup; delete pyPlot;
-				if (lResult == 1)
-					break;
-			}
+			if (GC.getPythonCaller()->doCombat(*this, *pDestPlot))
+				break;
 
 			bool bStack = (isHuman() && (getDomainType() == DOMAIN_AIR ||
 					GET_PLAYER(getOwner()).isOption(PLAYEROPTION_STACK_ATTACK)));
@@ -5012,7 +4994,6 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 	m_missionQueue.Write(pStream);
 }
 
-// Protected Functions...
 
 void CvSelectionGroup::activateHeadMission()
 {

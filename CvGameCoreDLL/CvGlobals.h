@@ -21,6 +21,8 @@ static inline int ROUND_DIVIDE(int a, int b)
 
 class FProfiler;
 class CvDLLUtilityIFaceBase;
+class CvPythonCaller; // advc.003y
+class CvDLLLogger; // advc.003t
 class CvRandom;
 class CvGameAI;
 class CMessageControl;
@@ -162,7 +164,7 @@ public:
 	__forceinline static CvGlobals const& getConstInstance(); // advc.003t
 
 	CvGlobals();
-	virtual ~CvGlobals();
+	virtual ~CvGlobals(); // advc (comment) Probably has to stay virtual for the EXE
 
 	DllExport void init();
 	DllExport void uninit();
@@ -192,6 +194,11 @@ public:
 	CvMap& getMapExternal(); // advc.003f: Exported through .def file
 	CvGameAI& getGameExternal(); // advc.003f: Exported through .def file
 	DllExport CvGameAI *getGamePointer();
+	// <advc.003y>
+	inline CvPythonCaller const* getPythonCaller() const
+	{
+		return m_pPythonCaller;
+	} // </advc.003y>
 	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.003t: inline
 	DllExport CMessageQueue& getMessageQueue();
 	DllExport CMessageQueue& getHotMessageQueue();
@@ -232,12 +239,17 @@ public:
 	DllExport inline bool& getRandLogging() { return m_bRandLogging; }
 	DllExport inline bool& getSynchLogging() { return m_bSynchLogging; }
 	DllExport inline bool& overwriteLogs() { return m_bOverwriteLogs; }
-	// advc.003t: const versions of the above
+	// <advc.003t> const versions of the above
 	// The first two are exposed to Python for dlph.27
 	inline bool isLogging() const { return m_bLogging; }
 	inline bool isRandLogging() const { return m_bRandLogging; }
 	inline bool isSynchLogging() const { return m_bSynchLogging; }
 	inline bool isOverwriteLogs() const { return m_bOverwriteLogs; }
+	// <advc.003t>
+	inline CvDLLLogger& getLogger() const
+	{
+		return *m_pLogger;
+	} // </advc.003t>
 
 	// advc.003t: Inlined and constified
 	DllExport inline int* getPlotDirectionX() { return m_aiPlotDirectionX; }
@@ -1383,7 +1395,9 @@ public:
 		DO(UNIT_UPGRADE_COST_PER_PRODUCTION) \
 		DO(AIR_COMBAT_DAMAGE) \
 		DO(SHIP_BLOCKADE_RANGE) \
-		DO(MAX_TRADE_ROUTES) /* </advc.003b> */ \
+		DO(MAX_TRADE_ROUTES) \
+		DO(ENABLE_DEBUG_TOOLS_MULTIPLAYER) \
+		/* </advc.003b> */ \
 		DO(PATH_DAMAGE_WEIGHT) \
 		DO(HILLS_EXTRA_DEFENSE) \
 		DO(RIVER_ATTACK_MODIFIER) \
@@ -1535,51 +1549,8 @@ public:
 	DllExport inline float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
 	inline float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
 
-	DllExport inline int getUSE_FINISH_TEXT_CALLBACK() { CvGlobals const& kThis = *this; return kThis.getUSE_FINISH_TEXT_CALLBACK(); }
-	int getUSE_FINISH_TEXT_CALLBACK() const;
-	int getUSE_ON_UPDATE_CALLBACK() const;
-	int getUSE_CANNOT_FOUND_CITY_CALLBACK() const;
-	int getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK() const;
-	int getUSE_IS_PLAYER_RESEARCH_CALLBACK() const;
-	int getUSE_CAN_RESEARCH_CALLBACK() const;
-	int getUSE_CANNOT_DO_CIVIC_CALLBACK() const;
-	int getUSE_CAN_DO_CIVIC_CALLBACK() const;
-	int getUSE_CANNOT_CONSTRUCT_CALLBACK() const;
-	int getUSE_CAN_CONSTRUCT_CALLBACK() const;
-	int getUSE_CAN_DECLARE_WAR_CALLBACK() const;
-	int getUSE_CANNOT_RESEARCH_CALLBACK() const;
-	int getUSE_GET_UNIT_COST_MOD_CALLBACK() const;
-	int getUSE_GET_BUILDING_COST_MOD_CALLBACK() const;
-	int getUSE_GET_CITY_FOUND_VALUE_CALLBACK() const;
-	int getUSE_CANNOT_HANDLE_ACTION_CALLBACK() const;
-	int getUSE_CAN_BUILD_CALLBACK() const;
-	int getUSE_CANNOT_TRAIN_CALLBACK() const;
-	int getUSE_CAN_TRAIN_CALLBACK() const;
-	int getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK() const;
-	int getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK() const;
-	int getUSE_ON_UNIT_SET_XY_CALLBACK() const;
-	int getUSE_ON_UNIT_SELECTED_CALLBACK() const;
-	int getUSE_ON_UNIT_CREATED_CALLBACK() const;
-	int getUSE_ON_UNIT_LOST_CALLBACK() const;
-	// K-Mod
-	inline bool getUSE_AI_UNIT_UPDATE_CALLBACK() const { return m_bUSE_AI_UNIT_UPDATE_CALLBACK; }
-	inline bool getUSE_AI_DO_DIPLO_CALLBACK() const { return m_bUSE_AI_DO_DIPLO_CALLBACK; }
-	inline bool getUSE_AI_CHOOSE_PRODUCTION_CALLBACK() const { return m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK; }
-	inline bool getUSE_AI_DO_WAR_CALLBACK() const { return m_bUSE_AI_DO_WAR_CALLBACK; }
-	inline bool getUSE_AI_CHOOSE_TECH_CALLBACK() const { return m_bUSE_AI_CHOOSE_TECH_CALLBACK; }
-
-	inline bool getUSE_DO_GROWTH_CALLBACK() const { return m_bUSE_DO_GROWTH_CALLBACK; }
-	inline bool getUSE_DO_CULTURE_CALLBACK() const { return m_bUSE_DO_CULTURE_CALLBACK; }
-	inline bool getUSE_DO_PLOT_CULTURE_CALLBACK() const { return m_bUSE_DO_PLOT_CULTURE_CALLBACK; }
-	inline bool getUSE_DO_PRODUCTION_CALLBACK() const { return m_bUSE_DO_PRODUCTION_CALLBACK; }
-	inline bool getUSE_DO_RELIGION_CALLBACK() const { return m_bUSE_DO_RELIGION_CALLBACK; }
-	inline bool getUSE_DO_GREAT_PEOPLE_CALLBACK() const { return m_bUSE_DO_GREAT_PEOPLE_CALLBACK; }
-	inline bool getUSE_DO_MELTDOWN_CALLBACK() const { return m_bUSE_DO_MELTDOWN_CALLBACK; }
-
-	inline bool getUSE_DO_PILLAGE_GOLD_CALLBACK() const { return m_bUSE_DO_PILLAGE_GOLD_CALLBACK; }
-	inline bool getUSE_GET_EXPERIENCE_NEEDED_CALLBACK() const { return m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK; }
-	inline bool getUSE_UNIT_UPGRADE_PRICE_CALLBACK() const { return m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK; }
-	inline bool getUSE_DO_COMBAT_CALLBACK() const { return m_bUSE_DO_COMBAT_CALLBACK; }
+	DllExport int getUSE_FINISH_TEXT_CALLBACK();
+	// advc.003y: Moved the other callback getters to CvPythonCaller
 #pragma endregion GlobalDefines
 	// more reliable versions of the 'gDLL->xxxKey' functions:
 	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
@@ -1723,7 +1694,8 @@ protected:
 	FMPIManager * m_pFMPMgr;
 
 	CvRandom* m_asyncRand;
-
+	CvPythonCaller* m_pPythonCaller; // advc.003y
+	CvDLLLogger* m_pLogger; // advc.003t
 	CvGameAI* m_game;
 
 	CMessageQueue* m_messageQueue;
@@ -1959,52 +1931,6 @@ protected:
 	float m_fFIELD_OF_VIEW;
 	float m_fSHADOW_SCALE;
 	float m_fUNIT_MULTISELECT_DISTANCE;
-
-	int m_iUSE_FINISH_TEXT_CALLBACK;
-	int m_iUSE_ON_UPDATE_CALLBACK;
-	int m_iUSE_CANNOT_FOUND_CITY_CALLBACK;
-	int m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK;
-	int m_iUSE_IS_PLAYER_RESEARCH_CALLBACK;
-	int m_iUSE_CAN_RESEARCH_CALLBACK;
-	int m_iUSE_CANNOT_DO_CIVIC_CALLBACK;
-	int m_iUSE_CAN_DO_CIVIC_CALLBACK;
-	int m_iUSE_CANNOT_CONSTRUCT_CALLBACK;
-	int m_iUSE_CAN_CONSTRUCT_CALLBACK;
-	int m_iUSE_CAN_DECLARE_WAR_CALLBACK;
-	int m_iUSE_CANNOT_RESEARCH_CALLBACK;
-	int m_iUSE_GET_UNIT_COST_MOD_CALLBACK;
-	int m_iUSE_GET_BUILDING_COST_MOD_CALLBACK;
-	int m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK;
-	int m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK;
-	int m_iUSE_CAN_BUILD_CALLBACK;
-	int m_iUSE_CANNOT_TRAIN_CALLBACK;
-	int m_iUSE_CAN_TRAIN_CALLBACK;
-	int m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK;
-	int m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK;
-	int m_iUSE_ON_UNIT_SET_XY_CALLBACK;
-	int m_iUSE_ON_UNIT_SELECTED_CALLBACK;
-	int m_iUSE_ON_UNIT_CREATED_CALLBACK;
-	int m_iUSE_ON_UNIT_LOST_CALLBACK;
-	// K-Mod
-	bool m_bUSE_AI_UNIT_UPDATE_CALLBACK;
-	bool m_bUSE_AI_DO_DIPLO_CALLBACK;
-	bool m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK;
-	bool m_bUSE_AI_DO_WAR_CALLBACK;
-	bool m_bUSE_AI_CHOOSE_TECH_CALLBACK;
-
-	bool m_bUSE_DO_GROWTH_CALLBACK;
-	bool m_bUSE_DO_CULTURE_CALLBACK;
-	bool m_bUSE_DO_PLOT_CULTURE_CALLBACK;
-	bool m_bUSE_DO_PRODUCTION_CALLBACK;
-	bool m_bUSE_DO_RELIGION_CALLBACK;
-	bool m_bUSE_DO_GREAT_PEOPLE_CALLBACK;
-	bool m_bUSE_DO_MELTDOWN_CALLBACK;
-
-	bool m_bUSE_DO_PILLAGE_GOLD_CALLBACK;
-	bool m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK;
-	bool m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK;
-	bool m_bUSE_DO_COMBAT_CALLBACK;
-	// K-Mod end
 
 	CvXMLLoadUtility* m_pXMLLoadUtility; // advc.003v
 

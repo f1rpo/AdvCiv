@@ -57,18 +57,12 @@ bool CvUnitAI::AI_update()
 {
 	PROFILE_FUNC();
 
-	FAssertMsg(canMove(), "canMove is expected to be true");
-	FAssertMsg(isGroupHead(), "isGroupHead is expected to be true"); // XXX is this a good idea???
+	FAssert(canMove());
+	FAssert(isGroupHead()); // XXX is this a good idea???
 
-	if (GC.getUSE_AI_UNIT_UPDATE_CALLBACK()) { // K-Mod. block unused python callbacks
-		CyUnit* pyUnit = new CyUnit(this); CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyUnit));
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_unitUpdate", argsList.makeFunctionArgs(), &lResult);
-		delete pyUnit;
-		if (lResult == 1)
-			return false;
-	} // <advc.128>
+	if (GC.getPythonCaller()->AI_update(*this))
+		return false;
+	// <advc.128>
 	m_iSearchRangeRandPercent = GC.getGame().getSorenRandNum(101, "advc.128",
 			getX() * 1000 + getY(), getID()); // </advc.128>
 	if (getDomainType() == DOMAIN_LAND)

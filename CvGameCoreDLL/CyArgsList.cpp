@@ -1,5 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CyArgsList.h"
+#include "CvDLLPythonIFaceBase.h"
 
 //////////////////////////////////////////////////////
 // CyArgsList

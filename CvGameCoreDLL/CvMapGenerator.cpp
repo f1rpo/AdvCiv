@@ -7,28 +7,22 @@
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
 
-// static
-CvMapGenerator* CvMapGenerator::m_pInst = NULL;
 
-// singleton accessor
-CvMapGenerator& CvMapGenerator::GetInstance()
+CvMapGenerator* CvMapGenerator::m_pInst = NULL; // static
+
+
+CvMapGenerator& CvMapGenerator::GetInstance() // singleton accessor
 {
 	if (m_pInst==NULL)
-	{
 		m_pInst = new CvMapGenerator;
-	}
 	return *m_pInst;
 }
 
 
-CvMapGenerator::CvMapGenerator()
-{
-}
+CvMapGenerator::CvMapGenerator() {}
 
 
-CvMapGenerator::~CvMapGenerator()
-{
-}
+CvMapGenerator::~CvMapGenerator() {}
 
 
 bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)  // advc.003: style changes
@@ -43,19 +37,12 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 
 	if(!pPlot->canHaveBonus(eBonus, bIgnoreLatitude))
 		return false;
-
-	long result = 0;
-	CyPlot kPlot = CyPlot(pPlot);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(&kPlot));
-	if(gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "canPlaceBonusAt", argsList.makeFunctionArgs(), &result)) {
-		if(!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) {
-			if(result >= 0)
-				return result;
-			else FAssertMsg(false, "canPlaceBonusAt() must return >= 0");
-		}
+	{
+		bool bOverride=false;
+		bool r = GC.getPythonCaller()->canPlaceBonusAt(*pPlot, bOverride);
+		if (bOverride)
+			return r;
 	}
-
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
 		CvPlot* pLoopPlot = plotDirection(iX, iY, ((DirectionTypes)iI));
 		if(pLoopPlot == NULL)
@@ -95,15 +82,15 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 		}
 	}
 	// <advc.129> Prevent more than one adjacent copy regardless of range.
-	int nFound = 0;
+	int iFound = 0;
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 		CvPlot* pp = plotDirection(iX, iY, (DirectionTypes)i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
 		if(p.area() != pArea)
 			continue;
 		if(p.getBonusType() == eBonus) {
-			nFound++;
-			if(nFound >= 2)
+			iFound++;
+			if(iFound >= 2)
 				return false;
 			/*  A single adjacent copy could already have another adjacent copy.
 				However, if that's prohibited, clusters of more than 2 resources
@@ -129,67 +116,33 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 {
 	PROFILE_FUNC();
 
-	CvPlot* pPlot;
-
 	FAssertMsg(eImprovement != NO_IMPROVEMENT, "Improvement is not assigned a valid value");
 	FAssertMsg(GC.getImprovementInfo(eImprovement).isGoody(), "ImprovementType eImprovement is expected to be a goody");
 
 	if (GC.getGame().isOption(GAMEOPTION_NO_GOODY_HUTS))
-	{
 		return false;
-	}
 
-	pPlot = GC.getMap().plot(iX, iY);
-
-	if (!(pPlot->canHaveImprovement(eImprovement, NO_TEAM)))
-	{
+	CvPlot* pPlot = GC.getMap().plot(iX, iY);
+	if (!pPlot->canHaveImprovement(eImprovement, NO_TEAM))
 		return false;
-	}
-
-	long result = 0;
-	CyPlot kPlot = CyPlot(pPlot);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(&kPlot));
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "canPlaceGoodyAt", argsList.makeFunctionArgs(), &result))
 	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) // Python override
-		{
-			if (result >= 0)
-			{
-				return result;
-			}
-			else
-			{
-				FAssertMsg(false, "python canPlaceGoodyAt() must return >= 0");
-			}
-		}
+		bool bOverride=false;
+		bool r = GC.getPythonCaller()->canPlaceGoodyAt(*pPlot, bOverride);
+		if (bOverride)
+			return r;
 	}
-
-	if (pPlot->getImprovementType() != NO_IMPROVEMENT)
-	{
+	if (pPlot->getImprovementType() != NO_IMPROVEMENT || pPlot->getBonusType() != NO_BONUS ||
+			pPlot->isImpassable())
 		return false;
-	}
-
-	if (pPlot->getBonusType() != NO_BONUS)
-	{
-		return false;
-	}
-
-	if (pPlot->isImpassable())
-	{
-		return false;
-	}
 
 	int iUniqueRange = GC.getImprovementInfo(eImprovement).getGoodyUniqueRange();
 	for (int iDX = -iUniqueRange; iDX <= iUniqueRange; iDX++)
 	{
 		for (int iDY = -iUniqueRange; iDY <= iUniqueRange; iDY++)
 		{
-			CvPlot *pLoopPlot	= plotXY(iX, iY, iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(iX, iY, iDX, iDY);
 			if (pLoopPlot != NULL && pLoopPlot->getImprovementType() == eImprovement)
-			{
 				return false;
-			}
 		}
 	}
 
@@ -221,15 +174,10 @@ void CvMapGenerator::addGameElements()
 
 void CvMapGenerator::addLakes()
 {
-	PROFILE("CvMapGenerator::addLakes");
+	PROFILE_FUNC();
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addLakes"))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			return;
-		}
-	}
+	if (GC.getPythonCaller()->addLakes())
+		return;
 
 	gDLL->NiTextOut("Adding Lakes...");
 	int const iLAKE_PLOT_RAND = GC.getDefineINT("LAKE_PLOT_RAND"); // advc.003b
@@ -257,10 +205,9 @@ void CvMapGenerator::addLakes()
 
 void CvMapGenerator::addRivers()  // advc.003: Refactored
 {
-	PROFILE("CvMapGenerator::addRivers");
+	PROFILE_FUNC();
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addRivers") &&
-			!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
+	if (GC.getPythonCaller()->addRivers())
 		return;
 
 	gDLL->NiTextOut("Adding Rivers...");
@@ -320,7 +267,6 @@ void CvMapGenerator::addRivers()  // advc.003: Refactored
 }
 
 // pStartPlot = the plot at whose SE corner the river is starting
-//
 void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCardinalDirection, CardinalDirectionTypes eOriginalCardinalDirection, int iThisRiverID)
 {
 	if (iThisRiverID == -1)
@@ -413,24 +359,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 		// River is starting here, set the direction in the next step
 		pRiverPlot = pStartPlot;
 
-		long result = 0;
-		CyPlot kPlot = CyPlot(pRiverPlot);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kPlot));
-		if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getRiverStartCardinalDirection", argsList.makeFunctionArgs(), &result))
-		{
-			if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) // Python override
-			{
-				if (result >= 0)
-				{
-					eBestCardinalDirection = ((CardinalDirectionTypes)result);
-				}
-				else
-				{
-					FAssertMsg(false, "python getRiverStartCardinalDirection() must return >= 0");
-				}
-			}
-		}
+		GC.getPythonCaller()->riverStartCardinalDirection(*pRiverPlot, eBestCardinalDirection);
 	}
 
 	if (pRiverPlot == NULL)
@@ -595,27 +524,19 @@ void CvMapGenerator::addFeatures()
 {
 	PROFILE("CvMapGenerator::addFeatures");
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addFeatures", NULL))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			return;
-		}
-	}
+	if (GC.getPythonCaller()->addFeatures())
+		return;
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(iI);
-		FAssert(pPlot != NULL);
-
+		CvPlot& kPlot = *GC.getMap().plotByIndex(iI);
 		for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
 		{
-			if (pPlot->canHaveFeature((FeatureTypes)iJ))
+			if (kPlot.canHaveFeature((FeatureTypes)iJ))
 			{
-				if (GC.getGame().getMapRandNum(10000, "addFeaturesAtPlot") < GC.getFeatureInfo((FeatureTypes)iJ).getAppearanceProbability())
-				{
-					pPlot->setFeatureType((FeatureTypes)iJ);
-				}
+				if (GC.getGame().getMapRandNum(10000, "addFeaturesAtPlot") <
+						GC.getFeatureInfo((FeatureTypes)iJ).getAppearanceProbability())
+					kPlot.setFeatureType((FeatureTypes)iJ);
 			}
 		}
 	}
@@ -626,13 +547,9 @@ void CvMapGenerator::addBonuses()
 	PROFILE("CvMapGenerator::addBonuses");
 	gDLL->NiTextOut("Adding Bonuses...");
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addBonuses", NULL))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			return; // Python override
-		}
-	}
+	CvPythonCaller const& py = *GC.getPythonCaller();
+	if (py.addBonuses())
+		return;
 	/*  <advc.129> Only do an iteration for those PlacementOrder numbers that are
 		actually used in the BonusInfos. */
 	std::vector<int> aiOrdinals;
@@ -661,9 +578,7 @@ void CvMapGenerator::addBonuses()
 				continue;
 
 			gDLL->callUpdater(); // advc.003b: Moved down; don't need to update the UI quite so frequently.
-			CyArgsList argsList;
-			argsList.add(eBonus);
-			if (!gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addBonusType", argsList.makeFunctionArgs()) || gDLL->getPythonIFace()->pythonUsingDefaultImpl())
+			if (!py.addBonusType(eBonus))
 			{
 				if (GC.getBonusInfo(eBonus).isOneArea())
 					addUniqueBonusType(eBonus);
@@ -682,10 +597,10 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	std::set<int> areas_tried;
 
 	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
-	int iBonusCount = calculateNumBonusesToAdd(eBonusType);
-	bool bIgnoreLatitude = GC.getGame().pythonIsBonusIgnoreLatitudes();
+	int const iBonusCount = calculateNumBonusesToAdd(eBonusType);
+	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	// advc.003b: Don't waste time trying to place land resources in the ocean
-	bool bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
+	bool const bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
 			pBonusInfo.isTerrain(GC.getWATER_TERRAIN(false)));
 	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
 
@@ -800,24 +715,21 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	int *aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
 	// advc.129: Moved into placeGroup
 	//CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
-
-	bool bIgnoreLatitude = GC.getGame().pythonIsBonusIgnoreLatitudes();
-
-	CvPlot* pPlot = NULL;
+	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		pPlot = GC.getMap().plotByIndex(aiShuffledIndices[iI]);
-		if (!canPlaceBonusAt(eBonusType, pPlot->getX(), pPlot->getY(), bIgnoreLatitude))
+		CvPlot& kPlot = *GC.getMap().plotByIndex(aiShuffledIndices[iI]);
+		if (!canPlaceBonusAt(eBonusType, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
 			continue; // advc.003
 
-		pPlot->setBonusType(eBonusType);
+		kPlot.setBonusType(eBonusType);
 		iBonusCount--;
 		// advc.129: Replacing the loop below
-		iBonusCount -= placeGroup(eBonusType, *pPlot, bIgnoreLatitude, iBonusCount);
+		iBonusCount -= placeGroup(eBonusType, kPlot, bIgnoreLatitude, iBonusCount);
 		/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
 			for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
 				if (iBonusCount > 0) {
-					CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+					CvPlot* pLoopPlot	= plotXY(kPlot.getX(), kPlot.getY(), iDX, iDY);
 					if (pLoopPlot != NULL) {
 						if (canPlaceBonusAt(eBonusType, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
 							if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < pBonusInfo.getGroupRand()) {
@@ -875,8 +787,7 @@ void CvMapGenerator::addGoodies()  // advc.003: some style changes
 {
 	PROFILE("CvMapGenerator::addGoodies");
 
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "addGoodies") &&
-			!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
+	if (GC.getPythonCaller()->addGoodies())
 		return;
 
 	gDLL->NiTextOut("Adding Goodies...");
@@ -894,23 +805,21 @@ void CvMapGenerator::addGoodies()  // advc.003: some style changes
 
 		for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
 		{
-			CvPlot *pPlot = GC.getMap().plotByIndex(aiShuffledIndices[iJ]);
-			FAssertMsg(pPlot, "pPlot is expected not to be NULL");
-			if (pPlot->isWater())
+			CvPlot& kPlot = *GC.getMap().plotByIndex(aiShuffledIndices[iJ]);
+			if (kPlot.isWater())
 				continue;
 
-			CvArea *pArea = GC.getMap().getArea(pPlot->getArea());
-			FAssertMsg(pArea, "pArea is expected not to be NULL");
-			if (pArea->getNumImprovements(eImprov) <
-				(pArea->getNumTiles() +
+			CvArea const& kArea = *GC.getMap().getArea(kPlot.getArea());
+			if (kArea.getNumImprovements(eImprov) <
+				(kArea.getNumTiles() +
 				GC.getImprovementInfo(eImprov).getTilesPerGoody() / 2) /
 				GC.getImprovementInfo(eImprov).getTilesPerGoody())
 			{
-				if (canPlaceGoodyAt(eImprov, pPlot->getX(), pPlot->getY()))
-					pPlot->setImprovementType(eImprov);
+				if (canPlaceGoodyAt(eImprov, kPlot.getX(), kPlot.getY()))
+					kPlot.setImprovementType(eImprov);
 			}
 		}
-	gDLL->callUpdater(); // advc.003b: Moved out of the loop
+		gDLL->callUpdater(); // advc.003b: Moved out of the loop
 	}
 	SAFE_DELETE_ARRAY(aiShuffledIndices);
 }
@@ -972,15 +881,8 @@ void CvMapGenerator::generateRandomMap()
 {
 	PROFILE("generateRandomMap()");
 
-	gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "beforeGeneration");
-
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "generateRandomMap"))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			return; // Python override
-		}
-	}
+	if (GC.getPythonCaller()->generateRandomMap())
+		return;
 
 	char buf[256];
 
@@ -996,30 +898,14 @@ void CvMapGenerator::generateRandomMap()
 
 void CvMapGenerator::generatePlotTypes()
 {
-	int* paiPlotTypes = new int[GC.getMap().numPlots()];
-
-	int iNumPlots = GC.getMap().numPlots();
-
-	std::vector<int> plotTypesOut;
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "generatePlotTypes", NULL, &plotTypesOut) && !gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-	{
-		// Python override
-		FAssertMsg((int)plotTypesOut.size() == iNumPlots, "python generatePlotTypes() should return list with length numPlots");
-		for (int iI = 0; iI < iNumPlots; iI++)
-		{
-			paiPlotTypes[iI] = plotTypesOut[iI];
-		}
-	}
-	else
+	int const iNumPlots = GC.getMap().numPlots();
+	int* paiPlotTypes = new int[iNumPlots];
+	if (!GC.getPythonCaller()->generatePlotTypes(paiPlotTypes, iNumPlots))
 	{
 		for (int iI = 0; iI < iNumPlots; iI++)
-		{
 			paiPlotTypes[iI] = PLOT_LAND;
-		}
 	}
-
 	setPlotTypes(paiPlotTypes);
-
 	SAFE_DELETE_ARRAY(paiPlotTypes);
 }
 
@@ -1027,17 +913,14 @@ void CvMapGenerator::generateTerrain()
 {
 	PROFILE("generateTerrain()");
 
-	std::vector<int> terrainMapOut;
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "generateTerrainTypes", NULL, &terrainMapOut) && !gDLL->getPythonIFace()->pythonUsingDefaultImpl())
+	int iNumPlots = GC.getMap().numPlots();
+	std::vector<int> pyTerrain;
+	if (GC.getPythonCaller()->generateTerrainTypes(pyTerrain, iNumPlots))
 	{
-		 // Python override
-		int iNumPlots = GC.getMap().numPlots();
-		FAssertMsg((int)terrainMapOut.size() == iNumPlots, "python generateTerrain() should return a list with length CyMap().getNumPoints()");
-		// Generate terrain for each plot
-		for (int iI = 0; iI < iNumPlots; iI++)
+		for (int i = 0; i < iNumPlots; i++)
 		{
 			//gDLL->callUpdater(); // addvc.003b
-			GC.getMap().plotByIndex(iI)->setTerrainType((TerrainTypes)terrainMapOut[iI], false, false);
+			GC.getMap().plotByIndex(i)->setTerrainType((TerrainTypes)pyTerrain[i], false, false);
 		}
 	}
 }
@@ -1046,8 +929,7 @@ void CvMapGenerator::generateTerrain()
 void CvMapGenerator::afterGeneration()
 {
 	PROFILE("CvMapGenerator::afterGeneration");
-
-	gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "afterGeneration");
+	GC.getPythonCaller()->callMapFunction("afterGeneration");
 }
 
 void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
@@ -1073,52 +955,27 @@ void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 	}
 }
 
-// Protected functions:
 
 int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
 {
-	FAssert(pPlot != NULL);
+	bool bOverride=false;
+	int pyValue = GC.getPythonCaller()->riverValue(*pPlot, bOverride);
+	if (bOverride)
+		return pyValue;
+	int iSum = pyValue; // Add to value from Python
 
-	long result = 0;
-	CyPlot kPlot = CyPlot(pPlot);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(&kPlot));
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getRiverAltitude", argsList.makeFunctionArgs(), &result))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) // Python override
-		{
-			if (result >= 0)
-			{
-				return result;
-			}
-			else
-			{
-				FAssertMsg(false, "python getRiverAltitude() must return >= 0");
-			}
-		}
-	}
-
-	int iSum = result;
-
-	iSum += ((NUM_PLOT_TYPES - pPlot->getPlotType()) * 20);
+	iSum += (NUM_PLOT_TYPES - pPlot->getPlotType()) * 20;
 
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
-
+		CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
 		if (pAdjacentPlot != NULL)
-		{
 			iSum += (NUM_PLOT_TYPES - pAdjacentPlot->getPlotType());
-		}
-		else
-		{
-			iSum += (NUM_PLOT_TYPES * 10);
-		}
+		else iSum += (NUM_PLOT_TYPES * 10);
 	}
 	CvRandom riverRand;
 	riverRand.init((pPlot->getX() * 43251267) + (pPlot->getY() * 8273903));
-
-	iSum += (riverRand.get(10, "River Rand"));
+	iSum += riverRand.get(10, "River Rand");
 
 	return iSum;
 }
@@ -1135,7 +992,7 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 	int iRand4 = GC.getGame().getMapRandNum(pBonusInfo.getRandAppearance4(), "calculateNumBonusesToAdd-4");
 	int iBaseCount = pBonusInfo.getConstAppearance() + iRand1 + iRand2 + iRand3 + iRand4;
 
-	bool bIgnoreLatitude = GC.getGame().pythonIsBonusIgnoreLatitudes();
+	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 
 	// Calculate iNumPossible, the number of plots that are eligible to have this bonus:
 

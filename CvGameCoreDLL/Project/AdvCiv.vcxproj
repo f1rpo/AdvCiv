@@ -93,6 +93,7 @@
     <ClCompile Include="..\CvPlotGroup.cpp" />
     <ClCompile Include="..\CvPopupInfo.cpp" />
     <ClCompile Include="..\CvPopupReturn.cpp" />
+    <ClCompile Include="..\CvPythonCaller.cpp" />
     <ClCompile Include="..\CvRandom.cpp" />
     <ClCompile Include="..\CvReplayInfo.cpp" />
     <ClCompile Include="..\CvReplayMessage.cpp" />
@@ -250,6 +251,7 @@
     <ClInclude Include="..\CvMessageData.h" />
     <ClInclude Include="..\CvPlayer.h" />
     <ClInclude Include="..\CvPlayerAI.h" />
+    <ClInclude Include="..\CvPythonCaller.h" />
     <ClInclude Include="..\FLTALoopCounter.h" />
     <ClInclude Include="..\CvPlot.h" />
     <ClInclude Include="..\CvPlotGroup.h" />

@@ -18,6 +18,12 @@ void CvEventReporter::resetStatistics()
 	m_kStatistics.reset();
 }
 
+// <advc.003y> Just pass the call along
+void CvEventReporter::initPythonCallbackGuards()
+{
+	m_kPythonEventMgr.initCallbackGuards();
+} // </advc.003y>
+
 //
 // Returns true if the event is consumed by Python
 //

@@ -7,7 +7,6 @@
 
 int CvPlotGroup::m_iRecalculating = 0; // advc.064d
 
-// Public Functions...
 
 CvPlotGroup::CvPlotGroup()
 {

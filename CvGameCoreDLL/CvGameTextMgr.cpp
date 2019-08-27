@@ -18442,18 +18442,7 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 		szBuffer.append(gDLL->getText("TXT_KEY_EVENT_IMMOBILE_UNIT", kEvent.getUnitImmobileTurns(), szUnit.GetCString()));
 	}
 
-	if (!CvWString(kEvent.getPythonHelp()).empty())
-	{
-		CvWString szHelp;
-		CyArgsList argsList;
-		argsList.add(eEvent);
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pTriggeredData));
-
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kEvent.getPythonHelp(), argsList.makeFunctionArgs(), &szHelp);
-
-		szBuffer.append(NEWLINE);
-		szBuffer.append(szHelp);
-	}
+	szBuffer.append(GC.getPythonCaller()->eventHelp(eEvent, pTriggeredData));
 
 	CvWStringBuffer szTemp;
 	for (int i = 0; i < GC.getNumEventInfos(); ++i)

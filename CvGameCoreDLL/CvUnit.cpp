@@ -15,6 +15,7 @@
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
 #include "BBAI_Defines.h"
 #include "CvBugOptions.h" // advc.002e
+#include "CvDLLPythonIFaceBase.h" // for CvEventReporter::genericEvent
 
 
 CvUnit::CvUnit() // advc.003u: Body cut from the deleted reset function
@@ -1722,12 +1723,15 @@ bool CvUnit::isActionRecommended(int iAction)
 	/*  <advc.002e> This needs to be done in some CvUnit function that gets called
 		by the EXE after read, after isPromotionReady and late enough for IsSelected
 		to work. (E.g. setupGraphical and shouldShowEnemyGlow are too early.) */
-	if(iAction == 0 && !getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
+	if(iAction == 0 && !getBugOptionBOOL("PLE__ShowPromotionGlow", false))
+	{
 		CvSelectionGroup* gr = getGroup();
 		for(CLLNode<IDInfo>* pNode = gr->headUnitNode(); pNode != NULL;
-				pNode = gr->nextUnitNode(pNode)) {
+				pNode = gr->nextUnitNode(pNode))
+		{
 			CvUnit* pUnit = ::getUnit(pNode->m_data);
-			if(pUnit != NULL) {
+			if(pUnit != NULL)
+			{
 				bool bGlow = pUnit->isReadyForPromotion();
 				gDLL->getEntityIFace()->showPromotionGlow(pUnit->getUnitEntity(), bGlow);
 			}
@@ -1739,50 +1743,31 @@ bool CvUnit::isActionRecommended(int iAction)
 		updateFoundingBorder(); // </advc.004h>
 
 	if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS))
-	{
 		return false;
-	}
 
-	CyUnit* pyUnit = new CyUnit(this);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyUnit));	// pass in unit class
-	argsList.add(iAction);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "isActionRecommended", argsList.makeFunctionArgs(), &lResult);
-	delete pyUnit;	// python fxn must not hold on to this pointer
-	if (lResult == 1)
-	{
+	if (GC.getPythonCaller()->isActionRecommended(*this, iAction))
 		return true;
-	}
 
 	CvPlot* pPlot = gDLL->getInterfaceIFace()->getGotoPlot();
-
-	if (pPlot == NULL)
-	{
-		if (GC.shiftKey())
-		{
-			pPlot = getGroup()->lastMissionPlot();
-		}
-	}
-
+	if (pPlot == NULL && GC.shiftKey())
+		pPlot = getGroup()->lastMissionPlot();
 	if(pPlot == NULL)
 		pPlot = plot();
-	// advc.003:
-	MissionTypes eMission = (MissionTypes)GC.getActionInfo(iAction).getMissionType();
+
+	MissionTypes eMission = (MissionTypes)GC.getActionInfo(iAction).getMissionType(); // advc.003
 	if (eMission == MISSION_FORTIFY)
 	{
 		if (pPlot->isCity(true, getTeam()))
 		{
 			if (canDefend(pPlot))
 			{
-				if (pPlot->getNumDefenders(getOwner()) < ((atPlot(pPlot)) ? 2 : 1))
+				if (pPlot->getNumDefenders(getOwner()) < (atPlot(pPlot) ? 2 : 1))
 				{
 					return true;
 				}
 			}
 		}
 	}
-
 	else if(eMission == MISSION_HEAL /* advc.004l: */ || eMission == MISSION_SENTRY_HEAL)
 	{
 		if (isHurt())
@@ -1796,7 +1781,6 @@ bool CvUnit::isActionRecommended(int iAction)
 			}
 		}
 	}
-
 	else if (eMission == MISSION_FOUND)
 	{
 		if (canFound(pPlot))
@@ -1807,7 +1791,6 @@ bool CvUnit::isActionRecommended(int iAction)
 			}
 		}
 	}
-
 	else if (eMission == MISSION_BUILD)
 	{
 		if (pPlot->getOwner() == getOwner())
@@ -1927,9 +1910,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	}
 
 	if (GC.getActionInfo(iAction).getCommandType() == COMMAND_PROMOTION)
-	{
 		return true;
-	}
 
 	return false;
 }
@@ -2687,9 +2668,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			{
 				return false;
 			}
-
-			/* original bts code
-			if (isHuman()) {
+			/*if (isHuman()) {
 				if (!bDeclareWar)
 					return false;
 			}
@@ -2699,7 +2678,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 						return false;
 				}
 				else return false;
-			} */
+			}*/
 			// K-Mod. Rather than allowing the AI to move in forbidden territory when it is planning war.
 			// I'm going to disallow it from doing so when _not_ planning war.
 			if (!bDeclareWar)
@@ -2708,7 +2687,8 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			}
 			else if (!isHuman())
 			{
-				if (!GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam) || !getGroup()->AI_isDeclareWar(pPlot))
+				if (!GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam) ||
+						!getGroup()->AI_isDeclareWar(pPlot))
 				{
 					return false;
 				}
@@ -2716,19 +2696,8 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			// K-Mod end
 		}
 	}
-
-	if (GC.getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK())
-	{
-		CyArgsList argsList;
-		argsList.add(getOwner());
-		argsList.add(getID());
-		argsList.add(pPlot->getX());
-		argsList.add(pPlot->getY());
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "unitCannotMoveInto", argsList.makeFunctionArgs(), &lResult);
-		if (lResult != 0)
-			return false;
-	}
+	if (GC.getPythonCaller()->cannotMoveIntoOverride(*this, *pPlot))
+		return false;
 
 	return true;
 }
@@ -4924,40 +4893,23 @@ bool CvUnit::pillage()
 
 		if (pPlot->getTeam() != getTeam())
 		{
-			// Use python to determine pillage amounts...
-			//lPillageGold = 0;
-			long lPillageGold = -1; // K-Mod
-			int iPillageGold = -1; // advc.003
-			if (GC.getUSE_DO_PILLAGE_GOLD_CALLBACK()) // K-Mod. I've written C to replace the python callback.
-			{
-				CyPlot* pyPlot = new CyPlot(pPlot);
-				CyUnit* pyUnit = new CyUnit(this);
-				CyArgsList argsList;
-				argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));
-				argsList.add(gDLL->getPythonIFace()->makePythonObject(pyUnit));
-				gDLL->getPythonIFace()->callFunction(PYGameModule, "doPillageGold", argsList.makeFunctionArgs(),&lPillageGold);
-				delete pyPlot;
-				delete pyUnit;
-				iPillageGold = (int)lPillageGold;
-			}
-			// K-Mod. C version of the original python code
-			if (lPillageGold < 0)
-			{
+			int iPillageGold = 0;
+			if (!GC.getPythonCaller()->doPillageGold(*this, *pPlot, iPillageGold))
+			{	// K-Mod. C version of the original python code
 				int iPillageBase = GC.getImprovementInfo((ImprovementTypes)pPlot->getImprovementType()).getPillageGold();
-				iPillageGold = 0;
 				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase, "Pillage Gold 1");
 				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase, "Pillage Gold 2");
 				iPillageGold += getPillageChange() * iPillageGold / 100;
+				// K-Mod end
 			}
-			// K-Mod end
-
 			if (iPillageGold > 0)
 			{
 				GET_PLAYER(getOwner()).changeGold(iPillageGold);
-
 				szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPillageGold, GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
-
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true,
+						GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE",
+						MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
+						GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
 				if (pPlot->isOwned())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
@@ -4967,8 +4919,8 @@ bool CvUnit::pillage()
 				}
 			}
 		}
-
-		pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
+		pPlot->setImprovementType((ImprovementTypes)GC.getImprovementInfo(
+				pPlot->getImprovementType()).getImprovementPillage());
 	}
 	else if (pPlot->isRoute())
 	{
@@ -4991,9 +4943,7 @@ bool CvUnit::pillage()
 	}
 
 	if (eTempImprovement != NO_IMPROVEMENT || eTempRoute != NO_ROUTE)
-	{
 		CvEventReporter::getInstance().unitPillage(this, eTempImprovement, eTempRoute, getOwner());
-	}
 
 	return true;
 }
@@ -5699,20 +5649,9 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 			}
 		}
 	}
-	// UNOFFICIAL_PATCH, Efficiency, 08/19/09, jdog5000: Moved from above
-	if (GC.getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK())
-	{
-		CyArgsList argsList;
-		argsList.add(getOwner());
-		argsList.add(getID());
-		argsList.add((int) eReligion);
-		argsList.add(pPlot->getX());
-		argsList.add(pPlot->getY());
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotSpreadReligion", argsList.makeFunctionArgs(), &lResult);
-		if (lResult > 0)
-			return false;
-	}
+	// UNOFFICIAL_PATCH, Efficiency, 08/19/09, jdog5000: Moved from above (advc: only matters if the callback is re-enabled)
+	if (GC.getPythonCaller()->cannotSpreadOverride(*this, *pPlot, eReligion))
+		return false;
 
 	return true;
 }
@@ -7116,20 +7055,15 @@ int CvUnit::getStackExperienceToGive(int iNumUnits) const
 
 int CvUnit::upgradePrice(UnitTypes eUnit) const
 {
-	if (GC.getUSE_UNIT_UPGRADE_PRICE_CALLBACK()) { // K-Mod. block unused python callbacks
-		CyArgsList argsList; argsList.add(getOwner());
-		argsList.add(getID()); argsList.add((int) eUnit);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "getUpgradePriceOverride", argsList.makeFunctionArgs(), &lResult);
-		if (lResult >= 0)
-			return lResult;
+	{
+		int r = GC.getPythonCaller()->upgradePrice(*this, eUnit);
+		if (r >= 0)
+			return r;
 	}
-
 	if (isBarbarian())
 		return 0;
 
 	int iPrice = GC.getDefineINT(CvGlobals::BASE_UNIT_UPGRADE_COST);
-
 	iPrice += std::max(0, (GET_PLAYER(getOwner()).getProductionNeeded(eUnit) -
 			GET_PLAYER(getOwner()).getProductionNeeded(getUnitType()))) *
 			GC.getDefineINT(CvGlobals::UNIT_UPGRADE_COST_PER_PRODUCTION);
@@ -9011,17 +8945,10 @@ int CvUnit::fortifyModifier() const
 
 int CvUnit::experienceNeeded() const
 {
-	if (GC.getUSE_GET_EXPERIENCE_NEEDED_CALLBACK()) // K-Mod. I've written C to replace the python callback.
-	{	// Use python to determine pillage amounts...
-		long lExperienceNeeded = 0;
-		CyArgsList argsList;
-		argsList.add(getLevel());
-		argsList.add(getOwner());
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "getExperienceNeeded", argsList.makeFunctionArgs(),&lExperienceNeeded);
-		//iExperienceNeeded = (int)lExperienceNeeded;
-		lExperienceNeeded = std::min((long)MAX_INT, lExperienceNeeded); // K-Mod
-		if (lExperienceNeeded >= 0) // K-Mod
-			return (int)lExperienceNeeded;
+	{
+		int r = GC.getPythonCaller()->experienceNeeded(*this);
+		if (r >= 0)
+			return r;
 	}
 	// K-Mod. C version of the original python code.
 	// Note: python rounds towards negative infinity, but C++ rounds towards 0.
@@ -11401,28 +11328,13 @@ CvUnit* CvUnit::getCombatUnit() const
 void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 {
 	if (isCombatFocus())
-	{
 		gDLL->getInterfaceIFace()->setCombatFocus(false);
-	}
 
 	if (pCombatUnit != NULL)
 	{
 		if (bAttacking)
 		{
-			if (GC.isLogging())
-			{
-				if (//gDLL->getChtLvl() > 0)
-						GC.getGame().isDebugMode()) // advc.135c
-				{
-					// Log info about this combat...
-					char szOut[1024];
-					sprintf( szOut, "*** KOMBAT!\n     ATTACKER: Player %d Unit %d (%S's %S), CombatStrength=%d\n     DEFENDER: Player %d Unit %d (%S's %S), CombatStrength=%d\n",
-						getOwner(), getID(), GET_PLAYER(getOwner()).getName(), getName().GetCString(), currCombatStr(NULL, NULL),
-						pCombatUnit->getOwner(), pCombatUnit->getID(), GET_PLAYER(pCombatUnit->getOwner()).getName(), pCombatUnit->getName().GetCString(), pCombatUnit->currCombatStr(pCombatUnit->plot(), this));
-					gDLL->messageControlLog(szOut);
-				}
-			}
-
+			GC.getLogger().logCombat(*this, *pCombatUnit); // advc.003t
 			/* original bts code
 			if (getDomainType() == DOMAIN_LAND
 				&& !m_pUnitInfo->isIgnoreBuildingDefense()
@@ -11430,9 +11342,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 				&& pCombatUnit->plot()->getPlotCity()->getBuildingDefense() > 0
 				&& cityAttackModifier() >= GC.getDefineINT("MIN_CITY_ATTACK_MODIFIER_FOR_SIEGE_TOWER")) */
 			if (showSiegeTower(pCombatUnit)) // K-Mod
-			{
 				CvDLLEntity::SetSiegeTower(true);
-			}
 		}
 
 		FAssertMsg(getCombatUnit() == NULL, "Combat Unit is not expected to be assigned");
@@ -13093,26 +13003,9 @@ void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int
 int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, bool bCheckPlot) const
 {
 	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(eTrigger);
-	if (kTrigger.getNumUnits() <= 0)
-	{
+	if (kTrigger.getNumUnits() <= 0 || isDead() ||
+			!GC.getPythonCaller()->canTriggerEvent(*this, eTrigger))
 		return MIN_INT;
-	}
-
-	if (isDead())
-	{
-		return MIN_INT;
-	}
-
-	if (!CvString(kTrigger.getPythonCanDoUnit()).empty())
-	{
-		long lResult; CyArgsList argsList;
-		argsList.add(eTrigger);
-		argsList.add(getOwner());
-		argsList.add(getID());
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCanDoUnit(), argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 0)
-			return MIN_INT;
-	}
 
 	if (kTrigger.getNumUnitsRequired() > 0)
 	{

@@ -93,15 +93,7 @@ CvArea::~CvArea()
 
 void CvArea::init(int iID, bool bWater)
 {
-	//--------------------------------
-	// Init saved data
 	reset(iID, bWater);
-
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other game data
 }
 
 
@@ -111,15 +103,11 @@ void CvArea::uninit()
 	SAFE_DELETE_ARRAY(m_paiNumImprovements);
 }
 
-
-// FUNCTION: reset()
 // Initializes data members that are serialized.
 void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 {
 	int iI, iJ;
 
-	//--------------------------------
-	// Uninit class
 	uninit();
 
 	m_iID = iID;
@@ -1112,5 +1100,3 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(GC.getNumBonusInfos(), m_paiNumBonuses);
 	pStream->Write(GC.getNumImprovementInfos(), m_paiNumImprovements);
 }
-
-// Protected Functions...

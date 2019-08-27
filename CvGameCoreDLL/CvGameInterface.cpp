@@ -32,15 +32,10 @@ void CvGame::updateColoredPlots()
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_BLOCKADING);
 
 	if (!gDLL->GetWorldBuilderMode() || gDLL->getInterfaceIFace()->isInAdvancedStart())
-	{
 		gDLL->getEngineIFace()->clearColoredPlots(PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
-	}
 
-	long lResult = 0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "updateColoredPlots", NULL, &lResult);
-	if(lResult == 1)
+	if (GC.getPythonCaller()->updateColoredPlots())
 		return;
-
 	// <advc.004h>
 	// Moved up
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
@@ -834,36 +829,15 @@ bool CvGame::selectCity(CvCity* pSelectCity, bool bCtrl, bool bAlt, bool bShift)
 
 void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const
 {
-	//CLLNode<IDInfo>* pSelectedUnitNode;
-	CvUnit* pHeadSelectedUnit;
-	//CvUnit* pSelectedUnit;
-	//TeamTypes eRivalTeam;
-
 	if (pPlot == NULL)
-	{
 		return;
-	}
 
-	CyPlot* pyPlot = new CyPlot(pPlot);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in plot class
-	argsList.add(bAlt);
-	argsList.add(bShift);
-	argsList.add(bCtrl);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotSelectionListMove", argsList.makeFunctionArgs(), &lResult);
-	delete pyPlot;	// python fxn must not hold on to this pointer
-	if (lResult == 1)
-	{
+	if (GC.getPythonCaller()->cannotSelectionListMoveOverride(*pPlot, bAlt, bShift, bCtrl))
 		return;
-	}
 
-	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
-	if ((pHeadSelectedUnit == NULL) || (pHeadSelectedUnit->getOwner() != getActivePlayer()))
-	{
+	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	if (pHeadSelectedUnit == NULL || pHeadSelectedUnit->getOwner() != getActivePlayer())
 		return;
-	}
 
 	if (bAlt)
 	{
@@ -871,11 +845,9 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 		gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, true, true); // K-Mod
 	}
 	else if (bCtrl)
-	{
 		gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, true, false);
-	}
 
-	/* original bts code
+	/* bts code
 	pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 	while (pSelectedUnitNode != NULL)
 	{
@@ -891,14 +863,9 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, int iData4,
 		int iFlags, bool bAlt, bool bShift) const
 {
-	CyArgsList argsList;
-	argsList.add(eMessage);	// pass in plot class
-	argsList.add(iData2); argsList.add(iData3);
-	argsList.add(iData4); argsList.add(iFlags);
-	argsList.add(bAlt); argsList.add(bShift);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotSelectionListGameNetMessage", argsList.makeFunctionArgs(), &lResult);
-	if(lResult == 1)
+	int aiPyData[] = { iData2, iData3, iData4 };
+	if (GC.getPythonCaller()->cannotSelectionListNetOverride((GameMessageTypes)
+			eMessage, aiPyData, iFlags, bAlt, bShift))
 		return;
 
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
@@ -1083,101 +1050,60 @@ void CvGame::selectedCitiesGameNetMessage(int eMessage, int iData2, int iData3, 
 }
 
 
-bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const
+bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const  // advc.003: style changes
 {
 	PROFILE_FUNC();
 
 	bool bShift = GC.shiftKey();
 
-	if(GC.getUSE_CANNOT_HANDLE_ACTION_CALLBACK())
-	{
-		CyPlot* pyPlot = new CyPlot(pPlot);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in plot class
-		argsList.add(iAction);
-		argsList.add(bTestVisible);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotHandleAction", argsList.makeFunctionArgs(), &lResult);
-		delete pyPlot;	// python fxn must not hold on to this pointer
-		if(lResult == 1)
-			return false;
-	}
+	if (GC.getPythonCaller()->cannotHandleActionOverride(*pPlot, iAction, bTestVisible))
+		return false;
 
-	if (GC.getActionInfo(iAction).getControlType() != NO_CONTROL)
-	{
-		if (canDoControl((ControlTypes)(GC.getActionInfo(iAction).getControlType())))
-		{
-			return true;
-		}
-	}
+	if (GC.getActionInfo(iAction).getControlType() != NO_CONTROL &&
+			canDoControl((ControlTypes)GC.getActionInfo(iAction).getControlType()))
+		return true;
 
 	if (gDLL->getInterfaceIFace()->isCitySelection())
-	{
 		return false; // XXX hack!
-	}
 
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	if (pHeadSelectedUnit == NULL || pHeadSelectedUnit->getOwner() != getActivePlayer())
+		return false;
 
-	if (pHeadSelectedUnit != NULL)
+	if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !GET_PLAYER(pHeadSelectedUnit->getOwner()).isTurnActive())
+		return false;
+
+	CvSelectionGroup* pSelectedInterfaceList = gDLL->getInterfaceIFace()->getSelectionList();
+	if (GC.getActionInfo(iAction).getMissionType() != NO_MISSION)
 	{
-		if (pHeadSelectedUnit->getOwner() == getActivePlayer())
+		CvPlot* pMissionPlot = NULL;
+		if (gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
 		{
-			if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GET_PLAYER(pHeadSelectedUnit->getOwner()).isTurnActive())
-			{
-				CvSelectionGroup* pSelectedInterfaceList = gDLL->getInterfaceIFace()->getSelectionList();
-
-				if (GC.getActionInfo(iAction).getMissionType() != NO_MISSION)
-				{
-					CvPlot* pMissionPlot = NULL;
-					if (gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
-					{
-						CvSelectionGroup* pSelectedGroup = pHeadSelectedUnit->getGroup();
-
-						if (pPlot != NULL)
-						{
-							pMissionPlot = pPlot;
-						}
-						else if (bShift)
-						{
-							pMissionPlot = pSelectedGroup->lastMissionPlot();
-						}
-						else
-						{
-							pMissionPlot = NULL;
-						}
-
-						if ((pMissionPlot == NULL) || !(pMissionPlot->isVisible(pHeadSelectedUnit->getTeam(), false)))
-						{
-							pMissionPlot = pSelectedGroup->plot();
-						}
-
-					}
-					else
-					{
-						pMissionPlot = pSelectedInterfaceList->plot();
-					}
-
-					if (pSelectedInterfaceList->canStartMission(GC.getActionInfo(iAction).getMissionType(), GC.getActionInfo(iAction).getMissionData(), -1, pMissionPlot, bTestVisible, bUseCache))
-					{
-						return true;
-					}
-				}
-
-				if (GC.getActionInfo(iAction).getCommandType() != NO_COMMAND)
-				{
-					if (pSelectedInterfaceList->canDoCommand(((CommandTypes)(GC.getActionInfo(iAction).getCommandType())), GC.getActionInfo(iAction).getCommandData(), -1, bTestVisible, bUseCache))
-					{
-						return true;
-					}
-				}
-
-				if (gDLL->getInterfaceIFace()->canDoInterfaceMode(((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType()), pSelectedInterfaceList))
-				{
-					return true;
-				}
-			}
+			CvSelectionGroup* pSelectedGroup = pHeadSelectedUnit->getGroup();
+			if (pPlot != NULL)
+				pMissionPlot = pPlot;
+			else if (bShift)
+				pMissionPlot = pSelectedGroup->lastMissionPlot();
+			else pMissionPlot = NULL;
+			if (pMissionPlot == NULL ||
+					!pMissionPlot->isVisible(pHeadSelectedUnit->getTeam(), false))
+				pMissionPlot = pSelectedGroup->plot();
 		}
+		else pMissionPlot = pSelectedInterfaceList->plot();
+		if (pSelectedInterfaceList->canStartMission(GC.getActionInfo(iAction).
+				getMissionType(), GC.getActionInfo(iAction).getMissionData(), -1, pMissionPlot, bTestVisible, bUseCache))
+			return true;
 	}
+	if (GC.getActionInfo(iAction).getCommandType() != NO_COMMAND)
+	{
+		if (pSelectedInterfaceList->canDoCommand((CommandTypes)
+				GC.getActionInfo(iAction).getCommandType(),
+				GC.getActionInfo(iAction).getCommandData(), -1, bTestVisible, bUseCache))
+			return true;
+	}
+	if (gDLL->getInterfaceIFace()->canDoInterfaceMode((InterfaceModeTypes)
+			GC.getActionInfo(iAction).getInterfaceModeType(), pSelectedInterfaceList))
+		return true;
 
 	return false;
 }
@@ -1192,20 +1118,19 @@ void CvGame::handleAction(int iAction)
 	bool bAlt = GC.altKey();
 	bool bShift = GC.shiftKey();
 
-	if (!(gDLL->getInterfaceIFace()->canHandleAction(iAction)))
+	if (!gDLL->getInterfaceIFace()->canHandleAction(iAction))
 	{
 		return;
 	}
 
 	if (GC.getActionInfo(iAction).getControlType() != NO_CONTROL)
 	{
-		doControl((ControlTypes)(GC.getActionInfo(iAction).getControlType()));
+		doControl((ControlTypes)GC.getActionInfo(iAction).getControlType());
 	}
 
 	if (gDLL->getInterfaceIFace()->canDoInterfaceMode((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType(), gDLL->getInterfaceIFace()->getSelectionList()))
 	{
 		CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
 		if (pHeadSelectedUnit != NULL)
 		{
 			if (GC.getInterfaceModeInfo((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType()).getSelectAll())
@@ -1264,14 +1189,9 @@ void CvGame::handleAction(int iAction)
 
 bool CvGame::canDoControl(ControlTypes eControl) const
 {
-	CyArgsList argsList;
-	argsList.add(eControl);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotDoControl", argsList.makeFunctionArgs(), &lResult);
-	if (lResult == 1)
-	{
+	if (GC.getPythonCaller()->cannotDoControlOverride(eControl))
 		return false;
-	}
+
 	/*  <advc.706> I don't think loading is possible in between turns, but there
 		would be no harm in it. */
 	if(CvPlot::isAllFog() && eControl != CONTROL_LOAD_GAME &&
@@ -1647,7 +1567,7 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_OPTIONS_SCREEN:
-		gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showOptionsScreen");
+		GC.getPythonCaller()->showPythonScreen("OptionsScreen");
 		break;
 
 	case CONTROL_RETIRE: // <advc.706> Need three buttons, so no BUTTONPOPUP_CONFIRM_MENU.
@@ -1692,11 +1612,9 @@ void CvGame::doControl(ControlTypes eControl)
 				attached, exitingToMainMenu can actually be quite slow.
 				(Fullscreen pretty much rules out that a debugger is attached.) */
 			if(gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN)) {
-				// Based on code in CvBugOptions.cpp
 				/*  On my system, it's "C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
 					the user directory can vary. */
-				CvString szQuickSavePath;
-				gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &szQuickSavePath);
+				CvString szQuickSavePath(::getUserDirPath());
 				if(!szQuickSavePath.empty()) {
 					szQuickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
 					// CTD if loading fails, so let's make sure that the file is good.
@@ -1741,81 +1659,63 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_CIVILOPEDIA:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaShow");
+		GC.getPythonCaller()->callScreenFunction("pediaShow");
 		break;
 
 	case CONTROL_RELIGION_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showReligionScreen");
+		GC.getPythonCaller()->showPythonScreen("ReligionScreen");
 		break;
 
 	case CONTROL_CORPORATION_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showCorporationScreen");
+		GC.getPythonCaller()->showPythonScreen("CorporationScreen");
 		break;
 
 	case CONTROL_CIVICS_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showCivicsScreen");
+		GC.getPythonCaller()->showPythonScreen("CivicsScreen");
 		break;
 
 	case CONTROL_FOREIGN_SCREEN:
-		{
-			CyArgsList argsList;
-			argsList.add(-1);
-			gDLL->getPythonIFace()->callFunction(PYScreensModule, "showForeignAdvisorScreen", argsList.makeFunctionArgs());
-		}
+		GC.getPythonCaller()->showForeignAdvisorScreen();
 		break;
 
 	case CONTROL_FINANCIAL_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showFinanceAdvisor");
+		GC.getPythonCaller()->showPythonScreen("FinanceAdvisor");
 		break;
 
 	case CONTROL_MILITARY_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showMilitaryAdvisor");
+		GC.getPythonCaller()->showPythonScreen("MilitaryAdvisor");
 		break;
 
 	case CONTROL_TECH_CHOOSER:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showTechChooser");
+		GC.getPythonCaller()->showPythonScreen("TechChooser");
 		break;
 
 	case CONTROL_TURN_LOG:
 		if (!gDLL->GetWorldBuilderMode() || pInterface->isInAdvancedStart())
-		{
 			pInterface->toggleTurnLog();
-		}
 		break;
 
 	case CONTROL_CHAT_ALL:
 		if (!gDLL->GetWorldBuilderMode() || pInterface->isInAdvancedStart())
-		{
 			pInterface->showTurnLog(CHATTARGET_ALL);
-		}
 		break;
 
 	case CONTROL_CHAT_TEAM:
 		if (!gDLL->GetWorldBuilderMode() || pInterface->isInAdvancedStart())
-		{
 			pInterface->showTurnLog(CHATTARGET_TEAM);
-		}
 		break;
 
 	case CONTROL_DOMESTIC_SCREEN:
-		{
-			CyArgsList argsList;
-			argsList.add(-1);
-			gDLL->getPythonIFace()->callFunction(PYScreensModule, "showDomesticAdvisor", argsList.makeFunctionArgs());
-		}
+		//argsList.add(-1); // advc.003y: Unused param removed from CyScreensInterface.py
+		GC.getPythonCaller()->showPythonScreen("DomesticAdvisor");
 		break;
 
 	case CONTROL_VICTORY_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showVictoryScreen");
+		GC.getPythonCaller()->showPythonScreen("VictoryScreen");
 		break;
 
 	case CONTROL_INFO:
-		{
-			CyArgsList args;
-			args.add(0);
-			args.add(getGameState() == GAMESTATE_ON ? 0 : 1);
-			gDLL->getPythonIFace()->callFunction(PYScreensModule, "showInfoScreen", args.makeFunctionArgs());
-		}
+		GC.getPythonCaller()->showInfoScreen(0, getGameState() != GAMESTATE_ON);
 		break;
 
 	case CONTROL_GLOBE_VIEW:
@@ -1828,9 +1728,7 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_ADMIN_DETAILS:
 		if (GC.getInitCore().getAdminPassword().empty())
-		{
 			pInterface->showAdminDetails();
-		}
 		else
 		{
 			pInfo = new CvPopupInfo(BUTTONPOPUP_ADMIN_PASSWORD);
@@ -1843,51 +1741,39 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_HALL_OF_FAME:
-		{
-			CyArgsList args;
-			args.add(true);
-			gDLL->getPythonIFace()->callFunction(PYScreensModule, "showHallOfFame", args.makeFunctionArgs());
-		}
+		GC.getPythonCaller()->showHallOfFameScreen(true);
 		break;
 
 	case CONTROL_WORLD_BUILDER:
 		// K-Mod. (original code moved into CvGame::retire)
-		{
-			// <advc.007>
-			if(isDebugMode())
-				enterWorldBuilder();
-			else { // </advc.007>
-				pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
-				if (NULL != pInfo)
-				{
-					pInfo->setData1(4);
-					pInterface->addPopup(pInfo, getActivePlayer(), true);
-				}
+		// <advc.007>
+		if(isDebugMode())
+			enterWorldBuilder();
+		else { // </advc.007>
+			pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
+			if (pInfo != NULL)
+			{
+				pInfo->setData1(4);
+				pInterface->addPopup(pInfo, getActivePlayer(), true);
 			}
-		}
-		// K-Mod end
+		} // K-Mod end
 		break;
 
 	case CONTROL_ESPIONAGE_SCREEN:
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "showEspionageAdvisor");
+		GC.getPythonCaller()->showPythonScreen("EspionageAdvisor");
 		break;
 
 	case CONTROL_FREE_COLONY:
-		{
-			pInfo = new CvPopupInfo(BUTTONPOPUP_FREE_COLONY);
-			if (pInfo)
-			{
-				pInterface->addPopup(pInfo);
-			}
-		}
+	{
+		pInfo = new CvPopupInfo(BUTTONPOPUP_FREE_COLONY);
+		if (pInfo != NULL)
+			pInterface->addPopup(pInfo);
 		break;
-
+	}
 	case CONTROL_DIPLOMACY:
 		pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOMACY);
-		if (NULL != pInfo)
-		{
+		if (pInfo != NULL)
 			pInterface->addPopup(pInfo);
-		}
 		break;
 
 	default:
@@ -2326,82 +2212,42 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 	}
 }
 
-CvPlot* CvGame::getNewHighlightPlot() const
+CvPlot* CvGame::getNewHighlightPlot() const  // advc.003: refactored
 {
-	CvPlot* pNewPlot = NULL;
 	if (gDLL->GetWorldBuilderMode())
-	{
-		std::vector<int> coords;
-		bool bOK = false;
-		CyArgsList argsList;
-		argsList.add(0);
-		bOK = gDLL->getPythonIFace()->callFunction(PYScreensModule, "WorldBuilderGetHighlightPlot", argsList.makeFunctionArgs(), &coords);
-		if (bOK && coords.size())
-		{
-			pNewPlot = GC.getMap().plot(coords[0],coords[1]);
-		}
-	}
-	else
-	{
-		if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
-		{
-			pNewPlot = gDLL->getInterfaceIFace()->getMouseOverPlot();
-		}
-	}
-	return pNewPlot;
+		return GC.getPythonCaller()->WBGetHighlightPlot();
+	if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
+		return gDLL->getInterfaceIFace()->getMouseOverPlot();
+	return NULL;
 }
 
 
-ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const
+ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc.003: refactored
 {
-	ColorTypes eColor = NO_COLOR;
+	if (pPlot == NULL)
+		return NO_COLOR;
 
-	if (pPlot != NULL)
+	ColorTypes eDefaultColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+	if (gDLL->GetWorldBuilderMode())
+		return eDefaultColor;
+
+	switch (gDLL->getInterfaceIFace()->getInterfaceMode())
 	{
-		eColor = (ColorTypes) GC.getInfoTypeForString("COLOR_GREEN");
-		if (!gDLL->GetWorldBuilderMode())
-		{
-			switch (gDLL->getInterfaceIFace()->getInterfaceMode())
-			{
-			case INTERFACEMODE_PING:
-			case INTERFACEMODE_SIGN:
-				if (!pPlot->isRevealed(getActiveTeam(), true))
-				{
-					eColor = NO_COLOR;
-				}
-				break;
-			case INTERFACEMODE_PYTHON_PICK_PLOT:
-				if (!pPlot->isRevealed(getActiveTeam(), true))
-				{
-					eColor = NO_COLOR;
-				}
-				else
-				{
-					CyPlot* pyPlot = new CyPlot(pPlot);
-					CyArgsList argsList;
-					argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in plot class
-					long lResult = 0;
-					gDLL->getPythonIFace()->callFunction(PYGameModule, "canPickPlot", argsList.makeFunctionArgs(), &lResult);
-					delete pyPlot;	// python fxn must not hold on to this pointer
-					if (lResult == 0)
-					{
-						eColor = NO_COLOR;
-					}
-				}
-				break;
-			case INTERFACEMODE_SAVE_PLOT_NIFS:
-				eColor = (ColorTypes) GC.getInfoTypeForString("COLOR_DARK_GREY");
-				break;
-			default:
-				if (!gDLL->getInterfaceIFace()->getSelectionList()->canDoInterfaceModeAt(gDLL->getInterfaceIFace()->getInterfaceMode(), pPlot))
-				{
-					eColor = (ColorTypes) GC.getInfoTypeForString("COLOR_DARK_GREY");
-				}
-				break;
-			}
-		}
+	case INTERFACEMODE_PING:
+	case INTERFACEMODE_SIGN:
+		if (!pPlot->isRevealed(getActiveTeam(), true))
+			return NO_COLOR;
+	case INTERFACEMODE_PYTHON_PICK_PLOT:
+		if (!pPlot->isRevealed(getActiveTeam(), true) ||
+				!GC.getPythonCaller()->canPickRevealedPlot(*pPlot))
+			return NO_COLOR;
+	case INTERFACEMODE_SAVE_PLOT_NIFS:
+		return (ColorTypes)GC.getInfoTypeForString("COLOR_DARK_GREY");
 	}
-	return eColor;
+	if (!gDLL->getInterfaceIFace()->getSelectionList()->canDoInterfaceModeAt(
+			gDLL->getInterfaceIFace()->getInterfaceMode(), pPlot))
+		return (ColorTypes)GC.getInfoTypeForString("COLOR_DARK_GREY");
+	return eDefaultColor;
 }
 
 void CvGame::loadBuildQueue(const CvString& strItem) const

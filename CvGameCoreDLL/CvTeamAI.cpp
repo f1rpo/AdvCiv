@@ -38,8 +38,6 @@ DllExport CvTeamAI& CvTeamAI::getTeamNonInl(TeamTypes eTeam)
 }
 
 
-// Public Functions...
-
 CvTeamAI::CvTeamAI()
 {
 	m_aiWarPlanStateCounter = new int[MAX_TEAMS];
@@ -83,9 +81,6 @@ CvTeamAI::~CvTeamAI()
 void CvTeamAI::AI_init()
 {
 	AI_reset(false);
-
-	//--------------------------------
-	// Init other game data
 }
 
 // K-Mod
@@ -5738,26 +5733,14 @@ void CvTeamAI::AI_doWar()
 	PROFILE_FUNC();
 
 	CvGame& kGame = GC.getGame(); // K-Mod
-
 	/* FAssert(!isHuman());
 	FAssert(!isBarbarian());
 	FAssert(!isMinorCiv());
-
 	if (isAVassal())
 		return;*/
 	// disabled by K-Mod. All civs still need to do some basic updates.
-
-	// allow python to handle it
-	if (GC.getUSE_AI_DO_WAR_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyArgsList argsList;
-		argsList.add(getID());
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_doWar", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-			return;
-	}
-
+	if (GC.getPythonCaller()->AI_doWar(getID()))
+		return;
 	// <advc.104>
 	if(getWPAI.isEnabled() || getWPAI.isEnabled(true)) {
 		// Let the K-Mod code handle Barbarians and minors

@@ -46,27 +46,15 @@ void CvMap::init(CvMapInitData* pInitInfo)
 {
 	PROFILE("CvMap::init");
 	gDLL->logMemState(CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6",
-		GC.getWorldInfo(GC.getInitCore().getWorldSize()).getDescription(),
-		GC.getClimateInfo(GC.getInitCore().getClimate()).getDescription(),
-		GC.getSeaLevelInfo(GC.getInitCore().getSeaLevel()).getDescription(),
-		GC.getInitCore().getNumCustomMapOptions()).c_str());
+			GC.getWorldInfo(GC.getInitCore().getWorldSize()).getDescription(),
+			GC.getClimateInfo(GC.getInitCore().getClimate()).getDescription(),
+			GC.getSeaLevelInfo(GC.getInitCore().getSeaLevel()).getDescription(),
+			GC.getInitCore().getNumCustomMapOptions()).c_str());
+	GC.getPythonCaller()->callMapFunction("beforeInit");
 
-	gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "beforeInit");
-
-	//--------------------------------
-	// Init saved data
-	reset(pInitInfo);
-
-	//--------------------------------
-	// Init containers
-	m_areas->init();
-
-	//--------------------------------
-	// Init non-saved data
+	reset(pInitInfo); // Init serialized data
+	m_areas->init(); // Init containers
 	setup();
-
-	//--------------------------------
-	// Init other game data
 	gDLL->logMemState("CvMap before init plots");
 	m_pMapPlots = new CvPlot[numPlots()];
 	for (int iX = 0; iX < getGridWidth(); iX++)
@@ -95,14 +83,10 @@ void CvMap::uninit()
 // Initializes data members that are serialized.
 void CvMap::reset(CvMapInitData* pInitInfo)
 {
-	//--------------------------------
-	// Uninit class
 	uninit();
 
-	//
 	// set grid size
 	// initially set in terrain cell units
-	//
 	m_iGridWidth = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ? GC.getWorldInfo(GC.getInitCore().getWorldSize()).getGridWidth (): 0;	//todotw:tcells wide
 	m_iGridHeight = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ? GC.getWorldInfo(GC.getInitCore().getWorldSize()).getGridHeight (): 0;
 
@@ -114,20 +98,11 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	}
 	else
 	{
-		// check map script for grid size override
-		if (GC.getInitCore().getWorldSize() != NO_WORLDSIZE)
+		WorldSizeTypes eWorldSize = GC.getInitCore().getWorldSize();
+		if (eWorldSize != NO_WORLDSIZE)
 		{
-			std::vector<int> out;
-			CyArgsList argsList;
-			argsList.add(GC.getInitCore().getWorldSize());
-			bool ok = gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getGridSize", argsList.makeFunctionArgs(), &out);
-
-			if (ok && !gDLL->getPythonIFace()->pythonUsingDefaultImpl() && out.size() == 2)
-			{
-				m_iGridWidth = out[0];
-				m_iGridHeight = out[1];
-				FAssertMsg(m_iGridWidth > 0 && m_iGridHeight > 0, "the width and height returned by python getGridSize() must be positive");
-			}
+			// check map script for grid size override
+			GC.getPythonCaller()->mapGridDimensions(eWorldSize, m_iGridWidth, m_iGridHeight);
 		}
 
 		// convert to plot dimensions
@@ -150,18 +125,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	else
 	{
 		// Check map script for latitude override (map script beats ini file)
-
-		long resultTop = -1, resultBottom = -1;
-		bool okX = gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getTopLatitude", NULL, &resultTop);
-		bool overrideX = !gDLL->getPythonIFace()->pythonUsingDefaultImpl();
-		bool okY = gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getBottomLatitude", NULL, &resultBottom);
-		bool overrideY = !gDLL->getPythonIFace()->pythonUsingDefaultImpl();
-
-		if (okX && okY && overrideX && overrideY && resultTop != -1 && resultBottom != -1)
-		{
-			m_iTopLatitude = resultTop;
-			m_iBottomLatitude = resultBottom;
-		}
+		GC.getPythonCaller()->mapLatitudeExtremes(m_iTopLatitude, m_iBottomLatitude);
 	}
 
 	m_iTopLatitude = std::min(m_iTopLatitude, 90);
@@ -184,18 +148,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	else
 	{
 		// Check map script for wrap override (map script beats ini file)
-
-		long resultX = -1, resultY = -1;
-		bool okX = gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getWrapX", NULL, &resultX);
-		bool overrideX = !gDLL->getPythonIFace()->pythonUsingDefaultImpl();
-		bool okY = gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "getWrapY", NULL, &resultY);
-		bool overrideY = !gDLL->getPythonIFace()->pythonUsingDefaultImpl();
-
-		if (okX && okY && overrideX && overrideY && resultX != -1 && resultY != -1)
-		{
-			m_bWrapX = (resultX != 0);
-			m_bWrapY = (resultY != 0);
-		}
+		GC.getPythonCaller()->mapWraps(m_bWrapX, m_bWrapY);
 	}
 
 	if (GC.getNumBonusInfos())
@@ -1287,10 +1240,6 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 	init(&initData);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-// Protected Functions...
-//////////////////////////////////////////////////////////////////////////
 
 void CvMap::calculateAreas()
 {

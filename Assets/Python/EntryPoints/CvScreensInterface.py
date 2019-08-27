@@ -159,7 +159,8 @@ def createDomesticAdvisor():
 		HandleInputMap[DOMESTIC_ADVISOR] = domesticAdvisor
 # BUG - CustDomAdv - end
 
-def showDomesticAdvisor(argsList):
+# advc.003y: removed unused argsList b/c it complicates calls from the DLL
+def showDomesticAdvisor():
 	if (-1 != CyGame().getActivePlayer()):
 		domesticAdvisor.interfaceScreen()
 

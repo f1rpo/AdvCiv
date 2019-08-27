@@ -944,48 +944,32 @@ void CvInitCore::clearCustomMapOptions()
 	m_iNumCustomMapOptions = 0;
 }
 
-void CvInitCore::refreshCustomMapOptions()
+void CvInitCore::refreshCustomMapOptions()  // advc.003y: refactored
 {
 	clearCustomMapOptions();
 
-	if ( !getWBMapScript() )
-	{
-		if ( gDLL->pythonMapExists(CvString(getMapScriptName()).GetCString()) )
-		{
-			bool bOK;
-			long iNumOptions = 0;
+	if (getWBMapScript())
+		return;
 
-			gDLL->getPythonIFace()->callFunction(CvString(getMapScriptName()).GetCString(), "getNumHiddenCustomMapOptions", NULL, &iNumOptions);
-			m_iNumHiddenCustomMapOptions = iNumOptions;
-
-			bOK = gDLL->getPythonIFace()->callFunction(CvString(getMapScriptName()).GetCString(), "getNumCustomMapOptions", NULL, &iNumOptions);
-			if (bOK)
-			{
-				// Got number of custom map options - now get the option defaults
-				CustomMapOptionTypes *aeMapOptions = new CustomMapOptionTypes[iNumOptions];
-				for (int i = 0; i < iNumOptions; ++i)
-				{
-					long iOptionDefault = 0;
-					CyArgsList argsList;
-					argsList.add(i);
-
-					bOK = gDLL->getPythonIFace()->callFunction(CvString(getMapScriptName()).GetCString(), "getCustomMapOptionDefault", argsList.makeFunctionArgs(), &iOptionDefault);
-					FAssertMsg(bOK, "Call to python fn \"getCustomMapOptionDefault\" failed in CvInitCore::refreshCustomMapOptions");
-					if (bOK)
-					{
-						aeMapOptions[i] = (CustomMapOptionTypes)iOptionDefault;
-					}
-					else
-					{
-						aeMapOptions[i] = NO_CUSTOM_MAPOPTION;
-					}
-				}
-
-				setCustomMapOptions(iNumOptions, aeMapOptions);
-				SAFE_DELETE_ARRAY(aeMapOptions);
-			}
-		}
+	CvString szMapScriptNameNarrow;
+	::narrowUnsafe(getMapScriptName(), szMapScriptNameNarrow);
+	char const* szMapScriptName = szMapScriptNameNarrow.GetCString();
+	if (!gDLL->pythonMapExists(szMapScriptName))
+	{	// advc.003: Map script doesn't have to be present when loading a game
+		FAssertMsg(getType() == GAME_SP_LOAD, "Map script not found");
+		return;
 	}
+	CvPythonCaller const& py = *GC.getPythonCaller();
+	m_iNumHiddenCustomMapOptions = py.numCustomMapOptions(szMapScriptName, true);
+	int iOptions = py.numCustomMapOptions(szMapScriptName, false);
+	if (iOptions <= 0)
+		return;
+
+	CustomMapOptionTypes* aeMapOptions = new CustomMapOptionTypes[iOptions];
+	for (int i = 0; i < iOptions; i++)
+		aeMapOptions[i] = py.customMapOptionDefault(szMapScriptName, i);
+	setCustomMapOptions(iOptions, aeMapOptions);
+	SAFE_DELETE_ARRAY(aeMapOptions);
 }
 
 

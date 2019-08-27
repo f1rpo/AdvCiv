@@ -981,6 +981,7 @@ public:
 	void applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData, bool bClear);
 	bool isEventOccured(EventTypes eEvent) const;
 	void setEventOccured(EventTypes eEvent, bool bOccured);
+	void doPartisans(); // advc.003y
 
 	int getBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield) const;			// Exposed to Python
 	void setBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange);			// Exposed to Python

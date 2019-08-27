@@ -692,7 +692,10 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 {
 	bool bHandled = false; // Right now general bHandled = false;  We can specific-case this to true later. Game will run with this = false;
-
+	// <advc.003y>
+	CvPythonCaller const& py = *GC.getPythonCaller();
+	int const iData1 = widgetDataStruct.m_iData1;
+	int const iData2 = widgetDataStruct.m_iData2; // </advc.003y>
 	switch (widgetDataStruct.m_eWidgetType)
 	{
 
@@ -701,7 +704,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 
 	case WIDGET_PLOT_LIST_SHIFT:
-		gDLL->getInterfaceIFace()->changePlotListColumn(widgetDataStruct.m_iData1 *
+		gDLL->getInterfaceIFace()->changePlotListColumn(iData1 *
 			  // <advc.004n> BtS code:
 			  //((GC.ctrlKey()) ? (GC.getDefineINT("MAX_PLOT_LIST_SIZE") - 1) : 1));
 			  std::min(GC.getDefineINT("MAX_PLOT_LIST_SIZE"),
@@ -713,7 +716,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 
 	case WIDGET_CITY_SCROLL:
-		if (widgetDataStruct.m_iData1 > 0)
+		if (iData1 > 0)
 		{
 			GC.getGame().doControl(CONTROL_NEXTCITY);
 		}
@@ -856,85 +859,85 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_UNIT:
-		doPediaUnitJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Unit");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_BUILDING:
-		doPediaBuildingJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Building");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_TECH:
 	case WIDGET_PEDIA_JUMP_TO_REQUIRED_TECH:
 	case WIDGET_PEDIA_JUMP_TO_DERIVED_TECH:
-		doPediaTechJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Tech");
 		break;
 
 	case WIDGET_PEDIA_BACK:
-		doPediaBack();
+		py.callScreenFunction("pediaBack");
 		break;
 	case WIDGET_PEDIA_FORWARD:
-		doPediaForward();
+		py.callScreenFunction("pediaForward");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_BONUS:
-		doPediaBonusJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Bonus");
 		break;
 
 	case WIDGET_PEDIA_MAIN:
-		doPediaMain(widgetDataStruct);
+		py.jumpToPediaMain(iData1);
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_PROMOTION:
-		doPediaPromotionJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Promotion");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_UNIT_COMBAT:
-		doPediaUnitCombatJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "UnitChart");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_IMPROVEMENT:
-		doPediaImprovementJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Improvement");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_CIVIC:
-		doPediaCivicJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Civic");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_CIV:
-		doPediaCivilizationJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Civ");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_LEADER:
-		doPediaLeaderJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Leader");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_SPECIALIST:
-		doPediaSpecialistJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Specialist");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_PROJECT:
-		doPediaProjectJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Project");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_RELIGION:
-		doPediaReligionJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Religion");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_CORPORATION:
-		doPediaCorporationJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Corporation");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_TERRAIN:
-		doPediaTerrainJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Terrain");
 		break;
 
 	case WIDGET_PEDIA_JUMP_TO_FEATURE:
-		doPediaFeatureJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Feature");
 		break;
 
 	case WIDGET_PEDIA_DESCRIPTION:
 	case WIDGET_PEDIA_DESCRIPTION_NO_HELP:
-		doPediaDescription(widgetDataStruct);
+		py.jumpToPediaDescription(iData1, iData2);
 		break;
 
 	case WIDGET_TURN_EVENT:
@@ -942,7 +945,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 
 	case WIDGET_FOREIGN_ADVISOR:
-		doForeignAdvisor(widgetDataStruct);
+		py.showForeignAdvisorScreen(iData1);
 		break;
 
 	case WIDGET_DEAL_KILL:
@@ -950,7 +953,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 
 	case WIDGET_MINIMAP_HIGHLIGHT:
-		doRefreshMilitaryAdvisor(widgetDataStruct);
+		py.refreshMilitaryAdvisor(iData1, iData2);
 		break;
 
 	case WIDGET_CHOOSE_EVENT:
@@ -960,8 +963,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 	// <advc.706>
 	case WIDGET_RF_CIV_CHOICE:
-		GC.getGame().getRiseFall().handleCivSelection(
-				(PlayerTypes)widgetDataStruct.m_iData1);
+		GC.getGame().getRiseFall().handleCivSelection((PlayerTypes)iData1);
 		break;
 	// </advc.706>
 	case WIDGET_HELP_TECH_PREPREQ:
@@ -1026,8 +1028,11 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 //	right clicking action
 bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 {
-	CvWidgetDataStruct widgetData = widgetDataStruct;
-
+	// <advc.003y>
+	CvPythonCaller const& py = *GC.getPythonCaller();
+	int iData1 = widgetDataStruct.m_iData1;
+	int iData2 = widgetDataStruct.m_iData2; // </advc.003y>
+	CvCivilization const& kActiveCiv = *GC.getGame().getActiveCivilization(); // advc.003w
 	bool bHandled = true;
 	switch (widgetDataStruct.m_eWidgetType)
 	{
@@ -1035,7 +1040,7 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 	case WIDGET_HELP_TECH_PREPREQ:
 	case WIDGET_RESEARCH:
 	case WIDGET_TECH_TREE:
-		doPediaTechJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Tech");
 		break;
 	// K-Mod
 	case WIDGET_CHANGE_PERCENT:
@@ -1043,60 +1048,66 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 	// K-Mod end
 	case WIDGET_TRAIN:
-		doPediaTrainJump(widgetDataStruct);
+		py.jumpToPedia(kActiveCiv.getUnit((UnitClassTypes)iData1), "Unit");
 		break;
 	case WIDGET_CONSTRUCT:
-		doPediaConstructJump(widgetDataStruct);
+		py.jumpToPedia(kActiveCiv.getBuilding((BuildingClassTypes)iData1), "Building");
 		break;
 	case WIDGET_CREATE:
-		doPediaProjectJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Project");
 		break;
 	case WIDGET_PEDIA_JUMP_TO_UNIT:
 	case WIDGET_HELP_FREE_UNIT:
-		doPediaUnitJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Unit");
 		break;
 	case WIDGET_HELP_FOUND_RELIGION:
-		widgetData.m_iData1 = widgetData.m_iData2;
-		//	Intentional fallthrough...
+		py.jumpToPedia(iData2, "Religion");
+		break;
 	case WIDGET_PEDIA_JUMP_TO_RELIGION:
-		doPediaReligionJump(widgetData);
+		py.jumpToPedia(iData1, "Religion");
 		break;
 	case WIDGET_HELP_FOUND_CORPORATION:
-		widgetData.m_iData1 = widgetData.m_iData2;
-		//	Intentional fallthrough...
+		py.jumpToPedia(iData2, "Corporation");
+		break;
 	case WIDGET_PEDIA_JUMP_TO_CORPORATION:
-		doPediaCorporationJump(widgetData);
+		py.jumpToPedia(iData1, "Corporation");
 		break;
 	case WIDGET_PEDIA_JUMP_TO_BUILDING:
-		doPediaBuildingJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Building");
 		break;
 	case WIDGET_PEDIA_JUMP_TO_PROMOTION:
-		doPediaPromotionJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Promotion");
 		break;
 	case WIDGET_HELP_OBSOLETE:
-		doPediaBuildingJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Building");
 		break;
 	case WIDGET_HELP_IMPROVEMENT:
-		doPediaBuildJump(widgetDataStruct);
+	{	// advc.003y: Moved out of the deleted doPediaBuildJump
+		ImprovementTypes eImprovement = NO_IMPROVEMENT;
+		BuildTypes eBuild = (BuildTypes)widgetDataStruct.m_iData2;
+		if (eBuild != NO_BUILD)
+			eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
+		if (NO_IMPROVEMENT != eImprovement)
+			py.jumpToPedia(iData1, "Improvement");
 		break;
+	}
 	case WIDGET_HELP_YIELD_CHANGE:
-		doPediaImprovementJump(widgetDataStruct, true);
+		py.jumpToPedia(widgetDataStruct.m_iData2, "Improvement");
 		break;
 	case WIDGET_HELP_BONUS_REVEAL:
 	case WIDGET_HELP_OBSOLETE_BONUS:
-		doPediaBonusJump(widgetDataStruct, true);
+		py.jumpToPedia(widgetDataStruct.m_iData2, "Bonus");
 		break;
 	case WIDGET_CITIZEN:
 	case WIDGET_FREE_CITIZEN:
 	case WIDGET_DISABLED_CITIZEN:
-		doPediaSpecialistJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Specialist");
 		break;
 	case WIDGET_PEDIA_JUMP_TO_PROJECT:
-		doPediaProjectJump(widgetDataStruct);
+		py.jumpToPedia(iData1, "Project");
 		break;
 	case WIDGET_HELP_CIVIC_REVEAL:
-		widgetData.m_iData1 = widgetData.m_iData2;
-		doPediaCivicJump(widgetData);
+		py.jumpToPedia(iData2, "Civic");
 		break;
 	case WIDGET_LH_GLANCE: // advc.152
 	case WIDGET_LEADERHEAD:
@@ -1555,193 +1566,6 @@ void CvDLLWidgetData::doSelected(CvWidgetDataStruct &widgetDataStruct)
 	}
 }
 
-
-void CvDLLWidgetData::doPediaTechJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToTech", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaUnitJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToUnit", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaBuildingJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToBuilding", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaProjectJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToProject", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaReligionJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToReligion", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaCorporationJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToCorporation", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaTerrainJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToTerrain", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaFeatureJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToFeature", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaTrainJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(GC.getGame().getActiveCivilization()->getUnit((UnitClassTypes)widgetDataStruct.m_iData1)); // advc.003w
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToUnit", argsList.makeFunctionArgs());
-}
-
-
-void CvDLLWidgetData::doPediaConstructJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(GC.getGame().getActiveCivilization()->getBuilding((BuildingClassTypes)widgetDataStruct.m_iData1)); // advc.003w
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToBuilding", argsList.makeFunctionArgs());
-}
-
-
-void CvDLLWidgetData::doPediaBack()
-{
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaBack");
-}
-
-void CvDLLWidgetData::doPediaForward()
-{
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaForward");
-}
-
-void CvDLLWidgetData::doPediaBonusJump(CvWidgetDataStruct &widgetDataStruct, bool bData2)
-{
-	CyArgsList argsList;
-	if (bData2)
-	{
-		argsList.add(widgetDataStruct.m_iData2);
-	}
-	else
-	{
-		argsList.add(widgetDataStruct.m_iData1);
-	}
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToBonus", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaSpecialistJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToSpecialist", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaMain(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1 < 0 ? 0 : widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaMain", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaPromotionJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToPromotion", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaUnitCombatJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToUnitChart", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaImprovementJump(CvWidgetDataStruct &widgetDataStruct, bool bData2)
-{
-	CyArgsList argsList;
-	if (bData2)
-	{
-		argsList.add(widgetDataStruct.m_iData2);
-	}
-	else
-	{
-		argsList.add(widgetDataStruct.m_iData1);
-	}
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToImprovement", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaCivicJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToCivic", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaCivilizationJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToCiv", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaLeaderJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToLeader", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaDescription(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	argsList.add(widgetDataStruct.m_iData2);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaShowHistorical", argsList.makeFunctionArgs());
-}
-
-void CvDLLWidgetData::doPediaBuildJump(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-
-	ImprovementTypes eImprovement = NO_IMPROVEMENT;
-	BuildTypes eBuild = (BuildTypes)widgetDataStruct.m_iData2;
-	if (NO_BUILD != eBuild)
-	{
-		eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
-	}
-
-	if (NO_IMPROVEMENT != eImprovement)
-	{
-		argsList.add(eImprovement);
-		gDLL->getPythonIFace()->callFunction(PYScreensModule, "pediaJumpToImprovement", argsList.makeFunctionArgs());
-	}
-}
-
 void CvDLLWidgetData::doGotoTurnEvent(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvPlot* pPlot = GC.getMap().plot(widgetDataStruct.m_iData1, widgetDataStruct.m_iData2);
@@ -1777,13 +1601,6 @@ void CvDLLWidgetData::doLaunch(CvWidgetDataStruct &widgetDataStruct)
 			gDLL->getInterfaceIFace()->addPopup(pInfo);
 		}
 	}
-}
-
-void CvDLLWidgetData::doForeignAdvisor(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "showForeignAdvisorScreen", argsList.makeFunctionArgs());
 }
 
 //
@@ -5904,15 +5721,6 @@ void CvDLLWidgetData::doDealKill(CvWidgetDataStruct &widgetDataStruct)
 			}
 		}
 	}
-}
-
-
-void CvDLLWidgetData::doRefreshMilitaryAdvisor(CvWidgetDataStruct &widgetDataStruct)
-{
-	CyArgsList argsList;
-	argsList.add(widgetDataStruct.m_iData1);
-	argsList.add(widgetDataStruct.m_iData2);
-	gDLL->getPythonIFace()->callFunction(PYScreensModule, "refreshMilitaryAdvisor", argsList.makeFunctionArgs());
 }
 
 void CvDLLWidgetData::parseProductionModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)

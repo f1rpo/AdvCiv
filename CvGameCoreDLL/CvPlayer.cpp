@@ -24,9 +24,6 @@
 #include "BBAILog.h"
 //bbai end
 
-
-// Public Functions...
-
 CvPlayer::CvPlayer() :
 	/* <advc.003u> */ m_cities(new CvCityList()), m_units(new CvUnitList()),
 	m_selectionGroups(new CvSelectionGroupList()), // </advc.003u>
@@ -127,16 +124,11 @@ CvPlayer::~CvPlayer()
 
 void CvPlayer::init(PlayerTypes eID)
 {
-	//--------------------------------
-	// Init saved data
-	reset(eID);
+	reset(eID); // Reset serialized data
 
-	//--------------------------------
 	// Init containers
 	initContainers(); // advc.003q: Moved into a subroutine for initInGame
 
-	//--------------------------------
-	// Init non-saved data
 	setupGraphical();
 
 	//--------------------------------
@@ -400,8 +392,6 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 {
 	int iI, iJ;
 
-	//--------------------------------
-	// Uninit class
 	uninit();
 
 	m_iStartingX = INVALID_PLOT_COORD;
@@ -1332,40 +1322,25 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 		return;
 
 	CvPlot* pBestPlot = NULL;
-
 	//if (isHuman())
-	if(eUnitAI == UNITAI_EXPLORE) // advc.108
-	{
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "startHumansOnSameTile", NULL, &lResult);
-		if (lResult == 0)
+	if(eUnitAI == UNITAI_EXPLORE && // advc.108
+		!GC.getUnitInfo(eUnit).isFound() &&
+		GC.getPythonCaller()->isExplorerPlacementRandomized())
+	{ // advc.003: style changes in this block
+		int iRandOffset = GC.getGame().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
+		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 		{
-			if (!GC.getUnitInfo(eUnit).isFound())
+			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
+					((iI + iRandOffset) % NUM_CITY_PLOTS));
+			if (pLoopPlot == NULL)
+				continue;
+
+			if (pLoopPlot->getArea() == pStartingPlot->getArea() &&
+					!pLoopPlot->isImpassable() && !pLoopPlot->isUnit() &&
+					!pLoopPlot->isGoody())
 			{
-				int iRandOffset = GC.getGame().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
-
-				for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-				{
-					CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), ((iI + iRandOffset) % NUM_CITY_PLOTS));
-
-					if (pLoopPlot != NULL)
-					{
-						if (pLoopPlot->getArea() == pStartingPlot->getArea())
-						{
-							if (!pLoopPlot->isImpassable())
-							{
-								if (!pLoopPlot->isUnit())
-								{
-									if (!pLoopPlot->isGoody())
-									{
-										pBestPlot = pLoopPlot;
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
+				pBestPlot = pLoopPlot;
+				break;
 			}
 		}
 	}
@@ -1382,28 +1357,10 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 	initUnit(eUnit, pBestPlot->getX(), pBestPlot->getY(), eUnitAI);
 }
 
+// advc.003b: Now only a wrapper. I'm keeping it around for Python exporting.
 int CvPlayer::startingPlotRange() const
 {
-	int iRange;
-
-	iRange = (GC.getMap().maxStepDistance() + 10);
-
-	iRange *= GC.getDefineINT("STARTING_DISTANCE_PERCENT");
-	iRange /= 100;
-
-	iRange *= (GC.getMap().getLandPlots() / (GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities() * GC.getGame().countCivPlayersAlive()));
-	iRange /= NUM_CITY_PLOTS;
-
-	iRange += std::min(((GC.getMap().getNumAreas() + 1) / 2), GC.getGame().countCivPlayersAlive());
-
-	long lResult=0;
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "minStartingDistanceModifier", NULL, &lResult))
-	{
-		iRange *= std::max<int>(0, (lResult + 100));
-		iRange /= 100;
-	}
-
-	return std::max(iRange, GC.getDefineINT("MIN_CIV_STARTING_DISTANCE"));
+	return GC.getGame().getStartingPlotRange();
 }
 
 
@@ -1493,22 +1450,14 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas() const  // advc.00
 	PROFILE_FUNC();
 
 	std::vector<std::pair<int,int> > areas_by_value; // dlph.35
-	CvMap const& m = GC.getMap();
-
-	long result = -1;
-	CyArgsList argsList;
-	argsList.add(getID());		// pass in this players ID
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "findStartingArea", argsList.makeFunctionArgs(), &result)) {
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) {
-			if (result == -1 || m.getArea(result) != NULL) {
-				//return result; // <dlph.35>
-				areas_by_value.push_back(std::make_pair(result, 1));
-				return areas_by_value; // </dlph.35>
-			}
-			else FAssertMsg(false, "python findStartingArea() must return -1 or the ID of a valid area");
+	{
+		CvArea* pyArea = GC.getPythonCaller()->findStartingArea(getID());
+		if (pyArea != NULL)
+		{	// <dlph.35>
+			areas_by_value.push_back(std::make_pair(pyArea->getID(), 1));
+			return areas_by_value; // </dlph.35>
 		}
 	}
-
 	// find best land area
 	//int iBestValue = 0; int iBestArea = -1; // dlph.35
 	FOR_EACH_AREA(pLoopArea)
@@ -1553,29 +1502,11 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas() const  // advc.00
 CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 {
 	PROFILE_FUNC();
-	CvMap const& m = GC.getMap();
-
-	long result = -1;
-	CyArgsList argsList;
-	argsList.add(getID());		// pass in this players ID
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->
-			getMapScriptModule(), "findStartingPlot", argsList.makeFunctionArgs(), &result)) {
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) { // Python override
-			CvPlot *pPlot = m.plotByIndex(result);
-			if (pPlot != NULL)
-				return pPlot;
-			else {
-				FAssertMsg(//false
-					/*  advc.021a: Tectonics apparently assigns all starting plots
-						at once on its own and then returns "None". Or something;
-						doesn't seem to be a problem anyway. Now I'm having it
-						return -10 to indicate that it's a known (or non-) issue. */
-					result == -10,
-					"python findStartingPlot() returned an invalid plot index!");
-			}
-		}
+	{
+		CvPlot* r = GC.getPythonCaller()->findStartingPlot(getID());
+		if (r != NULL)
+			return r;
 	}
-
 	//int iBestArea = -1;
 	// dlph.35: "This function is adjusted to work with a list of possible starting areas instead of a single one."
 	std::vector<std::pair<int,int> > areas_by_value;
@@ -1595,8 +1526,6 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 		//iBestArea = findStartingArea();
 		areas_by_value = findStartingAreas(); // dlph.35
 	}
-
-	int iRange = startingPlotRange();
 	/*  <advc.140> Cut and pasted from CvMap::maxPlotDistance. I've changed that
 		function, but I think the original formula might be needed here.
 		I'm not sure I understand the purpose of this outer loop. */
@@ -1608,7 +1537,8 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	for(int iPass = 0; iPass < iMaxPlotDist; iPass++)*/ // </advc.140>
 	/*  <dlph.35> "First pass avoids starting locations that have very little food
 		(before normalization) to avoid starting on the edge of very bad terrain." */
-	int iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
+	int const iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
+	CvMap const& m = GC.getMap();
 	for(int iPass = 0; iPass < 2; iPass++)
 	{
 		for(size_t iJ = 0; iJ < areas_by_value.size(); iJ++)
@@ -1808,22 +1738,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_WAS_CAPTURED_BY", szName.GetCString(), getCivilizationDescriptionKey());
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, pOldCity->getX(), pOldCity->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 	}
-
 	int iCaptureGold = 0;
-
 	if (bConquest)
-	{	// Use python to determine city capture gold amounts...
-		long lCaptureGold;
-		lCaptureGold = 0;
-		CyCity* pyOldCity = new CyCity(pOldCity);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyOldCity));
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doCityCaptureGold", argsList.makeFunctionArgs(),&lCaptureGold);
-		delete pyOldCity;
-		iCaptureGold = (int)lCaptureGold;
-	}
-
-	changeGold(iCaptureGold);
+		iCaptureGold = doCaptureGold(*pOldCity); // advc.003y: Moved into subroutine
 
 	bool* pabHasReligion = new bool[GC.getNumReligionInfos()];
 	bool* pabHolyCity = new bool[GC.getNumReligionInfos()];
@@ -2178,15 +2095,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	if (bConquest)
 	{
-		CyCity* pyCity = new CyCity(pNewCity);
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canRazeCity", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;
-		if (lResult == 1)
-		{	//auto raze based on game rules
+		bool bRazeImpossible = false; // advc.003y
+		if (GC.getPythonCaller()->canRaze(*pNewCity, getID()))
+		{	// auto raze based on game rules
 			if (pNewCity->isAutoRaze())
 			{
 				if (iCaptureGold > 0)
@@ -2202,7 +2113,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			else if (!isHuman())
 				AI_conquerCity(pNewCity); // could delete the pointer...
 			else
-			{	//popup raze option
+			{	// popup raze option
 				eHighestCulturePlayer = pNewCity->getLiberationPlayer(true);
 				bRaze = canRaze(pNewCity);
 				bGift = (eHighestCulturePlayer != NO_PLAYER &&
@@ -2218,23 +2129,19 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 					pInfo->setData2(eHighestCulturePlayer);
 					pInfo->setData3(iCaptureGold);
 					gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
-				}
-				else
-				{/* original bts code
-					pNewCity->chooseProduction();
-					CvEventReporter::getInstance().cityAcquiredAndKept(getID(), pNewCity); */
-					lResult = 0; // K-Mod. (signal that we cannot raze the city.)
-				}
+				} // <advc.003y> (based on K-Mod code)
+				else bRazeImpossible = true;
 			}
 		}
-		// K-Mod. properly handle the case where python says we can't raze the city
-		// (note. this isn't in an 'else' because I overwrite lResult in the case above.)
-		if (lResult == 0)
+		else bRazeImpossible = true;
+		if (bRazeImpossible) // </advc.003y>
 		{
+			// K-Mod. properly handle the case where python says we can't raze the city
 			CvEventReporter::getInstance().cityAcquiredAndKept(getID(), pNewCity);
 			if (isHuman())
 				pNewCity->chooseProduction();
-		} // K-Mod end
+			// K-Mod end
+		}
 	}
 	else if (!bTrade)
 	{
@@ -2244,10 +2151,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			pInfo->setData1(pNewCity->getID());
 			gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
 		}
-		else
-		{
-			CvEventReporter::getInstance().cityAcquiredAndKept(getID(), pNewCity);
-		}
+		else CvEventReporter::getInstance().cityAcquiredAndKept(getID(), pNewCity);
 	} // <advc.004x>
 	if(bTrade && isHuman())
 		pNewCity->chooseProduction(); // </advc.004x>
@@ -2255,20 +2159,19 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	for (CvEventMap::iterator it = m_mapEventsOccured.begin(); it != m_mapEventsOccured.end(); ++it)
 	{
 		EventTriggeredData &triggerData = it->second;
-		if((triggerData.m_eOtherPlayer == eOldOwner) && (triggerData.m_iOtherPlayerCityId == iOldCityId))
-		{
+		if(triggerData.m_eOtherPlayer == eOldOwner && triggerData.m_iOtherPlayerCityId == iOldCityId)
 			triggerData.m_iOtherPlayerCityId = -1;
-		}
 	} // <advc.001f>
 	for(int i = 0; i < MAX_TEAMS; i++)
+	{
 		if(m_abRevealed[i])
 			pCityPlot->setRevealed((TeamTypes)i, true, false, NO_TEAM, false);
-	// </advc.001f>
+	} // </advc.001f>
 	/* <advc.001> Elimination otherwise happens only in CvGame::update, which
 	   appears to be called only during the human player's turn. That means a dead
 	   AI player can get one more turn before being eliminated. Not normally a problem
-	   because there isn't much a civ without assets can do, but I've had a case where
-	   a dead player arranged a vassal agreement. */
+	   because there isn't much that a civ without cities can do, but I've had a
+	   case where a dead player arranged a vassal agreement. */
 	if(eOldOwner != NO_PLAYER)
 		GET_PLAYER(eOldOwner).verifyAlive(); // </advc.001>
 	AI().AI_updateCityAttitude(*pCityPlot); // advc.130w
@@ -3537,28 +3440,33 @@ int CvPlayer::calculateScore(bool bFinal, bool bVictory) const
 {
 	PROFILE_FUNC();
 
-	if (!isAlive())
-	{
+	if (!isAlive() || GET_TEAM(getTeam()).getNumMembers() <= 0)
 		return 0;
-	}
-
-	if (GET_TEAM(getTeam()).getNumMembers() == 0)
-	{
-		return 0;
-	}
-
-	long lScore = 0;
-
-	CyArgsList argsList;
-	argsList.add((int) getID());
-	argsList.add(bFinal);
-	argsList.add(bVictory);
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "calculateScore", argsList.makeFunctionArgs(), &lScore);
 	// <advc.707>
 	if(GC.getGame().isOption(GAMEOPTION_RISE_FALL) && bFinal)
 		return GC.getGame().getRiseFall().getNormalizedFinalScore();
 	// </advc.707>
-	return ((int)lScore);
+	/*  <advc.003y> Ported from CvGameUtils.py; callback disabled by default.
+		Apart from CvGame::getScoreComponent, the auxiliary functions were already
+		in the DLL. */
+	static int const iSCORE_POPULATION_FACTOR = GC.getDefineINT("SCORE_POPULATION_FACTOR");
+	static int const iSCORE_LAND_FACTOR = GC.getDefineINT("SCORE_LAND_FACTOR");
+	static int const iSCORE_TECH_FACTOR = GC.getDefineINT("SCORE_TECH_FACTOR");
+	static int const iSCORE_WONDER_FACTOR = GC.getDefineINT("SCORE_WONDER_FACTOR");
+	CvGame const& g = GC.getGame();
+	int iPopulationScore = g.getScoreComponent(getPopScore(), g.getInitPopulation(),
+			g.getMaxPopulation(), iSCORE_POPULATION_FACTOR, true, bFinal, bVictory);
+	int iLandScore = g.getScoreComponent(getLandScore(), g.getInitLand(),
+			g.getMaxLand(), iSCORE_LAND_FACTOR, true, bFinal, bVictory);
+	int iTechScore = g.getScoreComponent(getTechScore(), g.getInitTech(),
+			g.getMaxTech(), iSCORE_TECH_FACTOR, true, bFinal, bVictory);
+	int iWondersScore = g.getScoreComponent(getWondersScore(), g.getInitWonders(),
+			g.getMaxWonders(), iSCORE_WONDER_FACTOR, false, bFinal, bVictory);
+	int r = iPopulationScore + iLandScore + iWondersScore + iTechScore;
+
+	GC.getPythonCaller()->doPlayerScore(getID(), bFinal, bVictory, r); // </advc.003y>
+
+	return r;
 }
 
 
@@ -4853,15 +4761,11 @@ bool CvPlayer::canRaze(CvCity* pCity) const
 		if (pCity->calculateTeamCulturePercent(getTeam()) >= GC.getDefineINT("RAZING_CULTURAL_PERCENT_THRESHOLD"))
 			return false;
 	}
-
-	CyCity* pyCity = new CyCity(pCity);
-	CyArgsList argsList; argsList.add(getID());
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "canRazeCity", argsList.makeFunctionArgs(), &lResult);
-	delete pyCity;
-	if (lResult == 0)
-		return (false);
+	/*  advc.003y (note): This Python function is also called from acquireCity.
+		acquireCity should arguably call CvPlayer::canRaze instead. But that seems
+		difficult to untangle. */
+	if (!GC.getPythonCaller()->canRaze(*pCity, getID()))
+		return false;
 
 	return true;
 }
@@ -4898,7 +4802,7 @@ void CvPlayer::raze(CvCity* pCity)
 	swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_CITY_RAZED_BY", pCity->getNameKey(), getCivilizationDescriptionKey()).GetCString());
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, pCity->getX(), pCity->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 
-	// Report this event
+	pCity->doPartisans(); // advc.003y
 	CvEventReporter::getInstance().cityRazed(pCity, getID());
 	CvPlot const& kCityPlot = *pCity->plot(); // advc.130w
 	disband(pCity);
@@ -5304,15 +5208,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 
 void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes eTaboo)
 {
-	CyPlot kGoodyPlot(pPlot);
-	CyUnit kGoodyUnit(pUnit);
-	CyArgsList argsList;
-	argsList.add(getID());
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(&kGoodyPlot));
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(&kGoodyUnit));
-	long result=0;
-	bool ok = gDLL->getPythonIFace()->callFunction(PYGameModule, "doGoody", argsList.makeFunctionArgs(), &result);
-	if (ok && result)
+	if (GC.getPythonCaller()->doGoody(*pPlot, pUnit, getID()))
 		return;
 
 	FAssert(pPlot->isGoody() /* advc.314: */ || eTaboo != NO_GOODY);
@@ -5339,7 +5235,7 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 		if (canReceiveGoody(pPlot, eGoody, pUnit))
 		{
 			receiveGoody(pPlot, eGoody, pUnit, /* advc.314: */ eTaboo != NO_GOODY);
-			// Python Event
+			// advc (note): pUnit can be NULL here, but a CyUnit for Python can still be created.
 			CvEventReporter::getInstance().goodyReceived(getID(), pPlot, pUnit, eGoody);
 			break;
 		}
@@ -5349,22 +5245,18 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 
 bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc.003: some style changes
 {
-	long lResult=0;
-	if(GC.getUSE_CANNOT_FOUND_CITY_CALLBACK()) {
-		CyArgsList argsList;
-		argsList.add((int)getID());
-		argsList.add(iX);
-		argsList.add(iY);
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotFoundCity", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-			return false;
-	}
-
 	if (GC.getGame().isFinalInitialized() && getNumCities() > 0 &&
 			GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
 		return false;
 
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
+	// <advc.003>
+	if (pPlot == NULL)
+	{
+		FAssert(pPlot != NULL);
+		return false;
+	} // </advc.003>
+
 	if (pPlot->isImpassable())
 		return false;
 
@@ -5393,20 +5285,18 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc.003: s
 				pPlot->isFreshWater())
 			bValid = true;
 	}
-	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000
+	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000:
 		(canFoundCitiesOnWater callback handling was incorrect and ignored isWater() if it returned true) */
-	if (pPlot->isWater() && GC.getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK()) {
-			bValid = false;
-			CyArgsList argsList2;
-			argsList2.add(iX);
-			argsList2.add(iY);
-			lResult=0;
-			gDLL->getPythonIFace()->callFunction(PYGameModule, "canFoundCitiesOnWater", argsList2.makeFunctionArgs(), &lResult);
-			if (lResult == 1)
-				bValid = true;
-	} // UNOFFICIAL_PATCH: END
+	if (pPlot->isWater() && GC.getPythonCaller()->canFoundWaterCity(*pPlot))
+	{
+		bValid = true;
+		FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
+	}
 
 	if (!bValid)
+		return false;
+	// advc.003y: Moved down
+	if (GC.getPythonCaller()->cannotFoundCityOverride(*pPlot, getID()))
 		return false;
 
 	if (bTestVisible)
@@ -5915,19 +5805,13 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 	// </advc.107>
 	// advc.251 (comment): See getNewCityProductionValue
 	iProductionNeeded += getUnitExtraCost(eUnitClass);
-	// Python cost modifier
-	if(GC.getUSE_GET_UNIT_COST_MOD_CALLBACK()) {
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add((int)eUnit);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "getUnitCostMod", argsList.makeFunctionArgs(), &lResult);
-		if (lResult > 1) {
-			iProductionNeeded *= lResult;
-			iProductionNeeded /= 100;
-		}
-	}
 
+	int iPyMod = GC.getPythonCaller()->unitCostMod(getID(), eUnit);
+	if (iPyMod > 0)
+	{
+		iProductionNeeded *= iPyMod;
+		iProductionNeeded /= 100;
+	}
 	return std::max(1, iProductionNeeded);
 }
 
@@ -6611,39 +6495,29 @@ int CvPlayer::calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost,
 
 int CvPlayer::calculatePreInflatedCosts() const
 {
-	CyArgsList argsList;
-	argsList.add(getID());
-	long lResult;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "getExtraCost", argsList.makeFunctionArgs(), &lResult);
-
-	return (calculateUnitCost() + calculateUnitSupply() + getTotalMaintenance() + getCivicUpkeep() + (int)lResult);
+	return calculateUnitCost() + calculateUnitSupply() + getTotalMaintenance() + getCivicUpkeep() +
+			GC.getPythonCaller()->extraExpenses(getID());
 }
 
 
 int CvPlayer::calculateInflationRate() const
 {
-	int iTurns = ((GC.getGame().getGameTurn() + GC.getGame().getElapsedGameTurns()) / 2);
-
-	if (GC.getGame().getMaxTurns() > 0)
-	{
-		iTurns = std::min(GC.getGame().getMaxTurns(), iTurns);
-	}
-
-	iTurns += GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getInflationOffset();
-
+	CvGame const& g = GC.getGame();
+	int iTurns = (g.getGameTurn() + g.getElapsedGameTurns()) / 2;
+	if (g.getMaxTurns() > 0)
+		iTurns = std::min(g.getMaxTurns(), iTurns);
+	iTurns += GC.getGameSpeedInfo(g.getGameSpeedType()).getInflationOffset();
 	if (iTurns <= 0)
-	{
 		return 0;
-	}
 
-	int iInflationPerTurnTimes10000 = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getInflationPercent();
+	int iInflationPerTurnTimes10000 = GC.getGameSpeedInfo(g.getGameSpeedType()).getInflationPercent();
 	iInflationPerTurnTimes10000 *= GC.getHandicapInfo(getHandicapType()).getInflationPercent();
 	iInflationPerTurnTimes10000 /= 100;
 
 	int iModifier = m_iInflationModifier;
 	if (!isHuman() && !isBarbarian())
 	{
-		int iAIModifier = GC.getHandicapInfo(GC.getGame().getHandicapType()).getAIInflationPercent();
+		int iAIModifier = GC.getHandicapInfo(g.getHandicapType()).getAIInflationPercent();
 		// advc.251: Gold costs are no longer adjusted to handicap
 		/*iAIModifier *= std::max(0, ((GC.getHandicapInfo(GC.getGame().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
 		iAIModifier /= 100;*/
@@ -6666,26 +6540,20 @@ int CvPlayer::calculateInflatedCosts() const
 {
 	PROFILE_FUNC();
 
-	int iCosts;
-
-	iCosts = calculatePreInflatedCosts();
-
+	int iCosts = calculatePreInflatedCosts();
 	iCosts *= std::max(0, (calculateInflationRate() + 100));
 	iCosts /= 100;
-
 	return iCosts;
 }
 
 
-/* int CvPlayer::calculateBaseNetGold() const {  // (see calculateGoldRate)
-
+/*int CvPlayer::calculateBaseNetGold() const { // (see calculateGoldRate)
 	int iNetGold = (getCommerceRate(COMMERCE_GOLD) + getGoldPerTurn());
 	iNetGold -= calculateInflatedCosts();
 	return iNetGold;
-} */
+}*/
 
-int CvPlayer::calculateResearchModifier(TechTypes eTech,
-		// <advc.910>
+int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
 		int* piFromOtherKnown, int* piFromPaths, int* piFromTeam) const {
 	// So that the caller isn't required to provide the pointer params
 	int iFromOtherKnown, iFromPaths, iFromTeam;
@@ -6890,14 +6758,8 @@ int CvPlayer::calculateTotalCommerce() const
 
 bool CvPlayer::isResearch() const
 {
-	if(GC.getUSE_IS_PLAYER_RESEARCH_CALLBACK()) {
-		CyArgsList argsList;
-		argsList.add(getID());
-		long lResult = 1;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "isPlayerResearch", argsList.makeFunctionArgs(), &lResult);
-		if(lResult == 0)
-			return false;
-	}
+	if (!GC.getPythonCaller()->canDoResearch(getID()))
+		return false;
 	return (isFoundedFirstCity() /* advc.004x: */ && !isAnarchy());
 }
 
@@ -6905,26 +6767,13 @@ bool CvPlayer::isResearch() const
 bool CvPlayer::canEverResearch(TechTypes eTech) const
 {
 	if (GC.getTechInfo(eTech).isDisable())
-	{
 		return false;
-	}
 
 	if (GC.getCivilizationInfo(getCivilizationType()).isCivilizationDisableTechs(eTech))
-	{
 		return false;
-	}
 
-	if(GC.getUSE_CANNOT_RESEARCH_CALLBACK())
-	{
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(eTech);
-		argsList.add(false);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotResearch", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-			return false;
-	}
+	if (GC.getPythonCaller()->cannotResearchOverride(getID(), eTech, false))
+		return false;
 
 	return true;
 }
@@ -6933,16 +6782,8 @@ bool CvPlayer::canEverResearch(TechTypes eTech) const
 bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 		bool bCouldResearchAgain) const // advc.126
 {
-	if(GC.getUSE_CAN_RESEARCH_CALLBACK()) {
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(eTech);
-		argsList.add(bTrade);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canResearch", argsList.makeFunctionArgs(), &lResult);
-		if(lResult == 1)
-			return true;
-	}
+	if (GC.getPythonCaller()->canResearchOverride(getID(), eTech, bTrade))
+		return true;
 
 	/*  advc.004x: Commented out - shouldn't matter here.
 		(And wouldn't prevent players from queuing up research during anarchy or
@@ -6956,8 +6797,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 
 	bool bFoundPossible = false;
 	bool bFoundValid = false;
-	int iI;
-	for (iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(eTech); iI++)
+	for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(eTech); iI++)
 	{
 		TechTypes ePrereq = (TechTypes)GC.getTechInfo(eTech).getPrereqOrTechs(iI);
 		// <advc.126> Cycle detection
@@ -6983,11 +6823,9 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 	}
 
 	if (bFoundPossible && !bFoundValid)
-	{
 		return false;
-	}
 
-	for (iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(eTech); iI++)
+	for (int iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(eTech); iI++)
 	{
 		TechTypes ePrereq = (TechTypes)GC.getTechInfo(eTech).getPrereqAndTechs(iI);
 		if (ePrereq != NO_TECH)
@@ -7003,9 +6841,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 	}
 
 	if (!canEverResearch(eTech))
-	{
 		return false;
-	}
 
 	return true;
 }
@@ -7225,42 +7061,23 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 	if (eCivic == NO_CIVIC)
 		return true; // UNOFFICIAL_PATCH: END
 
-	if (GC.getGame().isForceCivicOption((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())))
-	{
+	if (GC.getGame().isForceCivicOption((CivicOptionTypes)GC.getCivicInfo(eCivic).getCivicOptionType()))
 		return GC.getGame().isForceCivic(eCivic);
-	}
 
-	if(GC.getUSE_CAN_DO_CIVIC_CALLBACK())
-	{
-		CyArgsList argsList;
-		argsList.add(getID());
-		argsList.add(eCivic);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canDoCivic", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
-			return true;
-		}
-	}
+	if (GC.getPythonCaller()->canDoCivicOverride(getID(), eCivic))
+		return true;
 
-	if (!isHasCivicOption((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())) && !(GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getCivicInfo(eCivic).getTechPrereq()))))
-	{
+	if (!isHasCivicOption((CivicOptionTypes)GC.getCivicInfo(eCivic).getCivicOptionType()) &&
+			!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getCivicInfo(eCivic).getTechPrereq()))
 		return false;
-	}
 
-	if(GC.getUSE_CANNOT_DO_CIVIC_CALLBACK())
-	{
-		CyArgsList argsList2; // XXX
-		argsList2.add(getID());
-		argsList2.add(eCivic);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotDoCivic", argsList2.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-			return false;
-	}
+	if (GC.getPythonCaller()->cannotDoCivicOverride(getID(), eCivic))
+		return false;
 	// <advc.912d>
-	if(GC.getGame().isOption(GAMEOPTION_NO_SLAVERY) && isHuman()) {
-		for(int i = 0; i < GC.getNumHurryInfos(); i++) {
+	if(GC.getGame().isOption(GAMEOPTION_NO_SLAVERY) && isHuman())
+	{
+		for(int i = 0; i < GC.getNumHurryInfos(); i++)
+		{
 			if(GC.getCivicInfo(eCivic).isHurry(i) &&
 					GC.getHurryInfo((HurryTypes)i).getProductionPerPopulation() > 0)
 				return false;
@@ -7321,28 +7138,20 @@ bool CvPlayer::canRevolution(CivicTypes* paeNewCivics) const
 
 void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 {
-
 	if (!bForce && !canRevolution(paeNewCivics))
 		return;
-
-	int iI;
 
 	int iAnarchyLength = getCivicAnarchyLength(paeNewCivics);
 	if (iAnarchyLength > 0)
 	{
 		changeAnarchyTurns(iAnarchyLength);
-
-		for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
-		{
-			setCivics(((CivicOptionTypes)iI), paeNewCivics[iI]);
-		}
+		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+			setCivics((CivicOptionTypes)iI, paeNewCivics[iI]);
 	}
 	else
 	{
-		for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
-		{
-			setCivics(((CivicOptionTypes)iI), paeNewCivics[iI]);
-		}
+		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+			setCivics((CivicOptionTypes)iI, paeNewCivics[iI]);
 	}
 
 	setRevolutionTimer(std::max(1, ((100 + getAnarchyModifier()) * GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100) + iAnarchyLength);
@@ -7352,7 +7161,8 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 		gDLL->getInterfaceIFace()->setDirty(Popup_DIRTY_BIT, true); // to force an update of the civic chooser popup
 		// <advc.004x>
 		killAll(BUTTONPOPUP_CHANGECIVIC);
-		if(iAnarchyLength > 0) {
+		if(iAnarchyLength > 0)
+		{
 			killAll(BUTTONPOPUP_CHOOSEPRODUCTION);
 			killAll(BUTTONPOPUP_CHOOSETECH);
 		}
@@ -7360,42 +7170,31 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 }
 
 
-int CvPlayer::getCivicPercentAnger(CivicTypes eCivic, bool bIgnore) const
+int CvPlayer::getCivicPercentAnger(CivicTypes eCivic, bool bIgnore) const  // advc.003: style changes
 {
 	if (GC.getCivicInfo(eCivic).getCivicPercentAnger() == 0)
-	{
 		return 0;
-	}
 
-	if (!bIgnore && (getCivics((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())) == eCivic))
-	{
+	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getCivicInfo(eCivic).getCivicOptionType();
+	if (!bIgnore && getCivics(eCivicOption) == eCivic)
 		return 0;
-	}
 
 	int iCount = 0;
 	int iPossibleCount = 0;
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).getCivics((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType())) == eCivic)
-				{
-					iCount += GET_PLAYER((PlayerTypes)iI).getNumCities();
-				}
-
-				iPossibleCount += GET_PLAYER((PlayerTypes)iI).getNumCities();
-			}
-		}
+		CvPlayer const& kOther = GET_PLAYER((PlayerTypes)iI);
+		if (!kOther.isAlive() || kOther.getTeam() == getTeam())
+			continue;
+		if (kOther.getCivics(eCivicOption) == eCivic)
+			iCount += kOther.getNumCities();
+		iPossibleCount += kOther.getNumCities();
 	}
 
-	if (iPossibleCount == 0)
-	{
+	if (iPossibleCount <= 0)
 		return 0;
-	}
 
-	return ((GC.getCivicInfo(eCivic).getCivicPercentAnger() * iCount) / iPossibleCount);
+	return (GC.getCivicInfo(eCivic).getCivicPercentAnger() * iCount) / iPossibleCount;
 }
 
 
@@ -9936,37 +9735,6 @@ void CvPlayer::setNetID(int iNetID)
 	GC.getInitCore().setNetID(getID(), iNetID);
 }
 
-void CvPlayer::sendReminder()
-{
-	CvWString szYearStr;
-
-	// Only perform this step if we have a valid email address on record,
-	// and we have provided information about how to send emails
-	if (!getPbemEmailAddress().empty() &&
-		!gDLL->GetPitbossSmtpHost().empty())
-	{
-		GAMETEXT.setTimeStr(szYearStr, GC.getGame().getGameTurn(), true);
-
-		// Generate our arguments
-		CyArgsList argsList;
-		argsList.add(getPbemEmailAddress());
-		argsList.add(gDLL->GetPitbossSmtpHost());
-		argsList.add(gDLL->GetPitbossSmtpLogin());
-		argsList.add(gDLL->GetPitbossSmtpPassword());
-		argsList.add(GC.getGame().getName());
-		argsList.add(GC.getGame().isMPOption(MPOPTION_TURN_TIMER));
-		argsList.add(GC.getGame().getPitbossTurnTime());
-		argsList.add(gDLL->GetPitbossEmail());
-		argsList.add(szYearStr);
-
-		// Now send our email via Python
-		long iResult;
-		bool bOK = gDLL->getPythonIFace()->callFunction(PYPitBossModule, "sendEmail", argsList.makeFunctionArgs(), &iResult);
-
-		FAssertMsg(bOK, "Pitboss Python call to onSendEmail failed!");
-		FAssertMsg(iResult == 0, "Pitboss Python fn onSendEmail encountered an error");
-	}
-}
 
 uint CvPlayer::getStartTime() const
 {
@@ -10180,30 +9948,17 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		AI().updateCacheData();
 		onTurnLogging(); // bbai logging
 		// K-Mod end
-
-		if (GC.isLogging())
-		{
-			if (gDLL->getChtLvl() > 0)
-			{
-				TCHAR szOut[1024];
-				sprintf(szOut, "Player %d Turn ON\n", getID());
-				gDLL->messageControlLog(szOut);
-			}
-		}
+		GC.getLogger().logTurnActive(getID()); // advc.003t
 
 		FAssertMsg(isAlive(), "isAlive is expected to be true");
 
 		setEndTurn(false);
 		g.resetTurnTimer();
 
-		// If we are the Pitboss, send this player an email
-		if (gDLL->IsPitbossHost())
-		{
-			// If this guy is not currently connected, try sending him an email
+		if (gDLL->IsPitbossHost()) // If we are the Pitboss, send this player an email
+		{	// If this guy is not currently connected, try sending him an email
 			if (isHuman() && !isConnected())
-			{
-				sendReminder();
-			}
+				GC.getPythonCaller()->sendEmailReminder(getPbemEmailAddress());
 		}
 
 		if ((g.isHotSeat() || g.isPbem()) && isHuman() && bDoTurn)
@@ -10211,7 +9966,6 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			gDLL->getInterfaceIFace()->clearEventMessages();
 			// advc.135a: Commented out
 			//gDLL->getEngineIFace()->setResourceLayer(false);
-
 			g.setActivePlayer(getID());
 		}
 
@@ -10298,15 +10052,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	}
 	else
 	{
-		if (GC.isLogging())
-		{
-			if (gDLL->getChtLvl() > 0)
-			{
-				TCHAR szOut[1024];
-				sprintf(szOut, "Player %d Turn OFF\n", getID());
-				gDLL->messageControlLog(szOut);
-			}
-		}
+		GC.getLogger().logTurnActive(getID()); // advc.003t
 
 		if (getID() == g.getActivePlayer())
 		{
@@ -13700,11 +13446,7 @@ void CvPlayer::setSmtpHost(const char* szHost)
 
 void CvPlayer::doGold()
 {
-	CyArgsList argsList;
-	argsList.add(getID());
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "doGold", argsList.makeFunctionArgs(), &lResult);
-	if(lResult == 1)
+	if (GC.getPythonCaller()->doGold(getID()))
 		return;
 
 	// <advc.300> Let CvGame::killBarbarian handle overcrowding
@@ -13752,20 +13494,13 @@ void CvPlayer::doGold()
 			}
 		}
 	}
-	else
-	{
-		setStrike(false);
-	}
+	else setStrike(false);
 }
 
 
 void CvPlayer::doResearch()
 {
-	CyArgsList argsList;
-	argsList.add(getID());
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "doResearch", argsList.makeFunctionArgs(), &lResult);
-	if(lResult == 1)
+	if (GC.getPythonCaller()->doResearch(getID()))
 		return;
 
 	if (isResearch() /* K-Mod: */ && !isAnarchy())
@@ -13800,9 +13535,7 @@ void CvPlayer::doResearch()
 		}
 
 		if (bForceResearchChoice)
-		{
 			clearResearchQueue();
-		}
 	}
 }
 
@@ -13831,107 +13564,70 @@ void CvPlayer::doEspionagePoints()  // advc.003: some style changes
 	}
 }
 
-int CvPlayer::getEspionageSpending(TeamTypes eAgainstTeam) const
+int CvPlayer::getEspionageSpending(TeamTypes eAgainstTeam) const  // advc.003: style changes
 {
-	int iSpendingValue = 0;
-
-	int iTotalPoints = getCommerceRate(COMMERCE_ESPIONAGE);
-	int iAvailablePoints = iTotalPoints;
-
-	int iTotalWeight = 0;
+	PROFILE_FUNC(); // advc.003b
+	int iTotalWeight = 0; // Get sum of all weights to be used later on
 	int iBestWeight = 0;
-
 	bool bFoundTeam = false;
-
-	int iLoop;
-
-	// Get sum of all weights to be used later on
-	for (iLoop = 0; iLoop < MAX_CIV_TEAMS; iLoop++)
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
 	{
-		if (getTeam() != iLoop)
-		{
-			if (GET_TEAM((TeamTypes)iLoop).isAlive())
-			{
-				if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iLoop))
-				{
-					if (iLoop == int(eAgainstTeam))
-					{
-						bFoundTeam = true;
-					}
+		CvTeam const& kOther = GET_TEAM((TeamTypes)i);
+		if (!kOther.isAlive() || kOther.getID() == getTeam() ||
+				!kOther.isHasMet(getTeam()))
+			continue;
 
-					int iWeight = getEspionageSpendingWeightAgainstTeam((TeamTypes)iLoop);
+		if (kOther.getID() == eAgainstTeam)
+			bFoundTeam = true;
 
-					if (iWeight > iBestWeight)
-					{
-						iBestWeight = iWeight;
-					}
-
-					iTotalWeight += iWeight;
-				}
-			}
-		}
+		int iWeight = getEspionageSpendingWeightAgainstTeam(kOther.getID());
+		iBestWeight = std::max(iBestWeight, iWeight);
+		iTotalWeight += iWeight;
 	}
 
-	// The player requested is not valid
-	if (!bFoundTeam)
-	{
+	if (!bFoundTeam) // The player requested is not valid
 		return -1;
-	}
 
+	int iSpendingValue = 0;
+	int const iTotalPoints = getCommerceRate(COMMERCE_ESPIONAGE);
+	int iAvailablePoints = iTotalPoints;
 	// Split up Espionage Point budget based on weights (if any weights have been assigned)
 	if (iTotalWeight > 0)
 	{
-		for (iLoop = 0; iLoop < MAX_CIV_TEAMS; iLoop++)
+		for (int i = 0; i < MAX_CIV_TEAMS; i++)
 		{
-			if (getTeam() != iLoop)
-			{
-				if (GET_TEAM((TeamTypes)iLoop).isAlive())
-				{
-					if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iLoop))
-					{
-						int iChange = (iTotalPoints * getEspionageSpendingWeightAgainstTeam((TeamTypes)iLoop) / iTotalWeight);
-						iAvailablePoints -= iChange;
+			CvTeam const& kOther = GET_TEAM((TeamTypes)i);
+			if (!kOther.isAlive() || kOther.getID() == getTeam() ||
+					!kOther.isHasMet(getTeam()))
+				continue;
 
-						if (iLoop == int(eAgainstTeam))
-						{
-							iSpendingValue += iChange;
-						}
-					}
-				}
-			}
+			int iChange = iTotalPoints * getEspionageSpendingWeightAgainstTeam(kOther.getID()) / iTotalWeight;
+			iAvailablePoints -= iChange;
+			if (kOther.getID() == eAgainstTeam)
+				iSpendingValue += iChange;
 		}
 	}
 
 	// Divide remainder evenly among top Teams
-	while (iAvailablePoints > 0)
+	while (iAvailablePoints > 0) // advc (comment): bFoundTeam=true ensures termination
 	{
-		for (iLoop = 0; iLoop < MAX_CIV_TEAMS; iLoop++)
+		for (int i = 0; i < MAX_CIV_TEAMS; i++)
 		{
-			if (getTeam() != iLoop)
-			{
-				if (GET_TEAM((TeamTypes)iLoop).isAlive())
-				{
-					if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iLoop))
-					{
-						if (getEspionageSpendingWeightAgainstTeam((TeamTypes)iLoop) == iBestWeight)
-						{
-							if (iLoop == int(eAgainstTeam))
-							{
-								++iSpendingValue;
-							}
-							--iAvailablePoints;
+			CvTeam const& kOther = GET_TEAM((TeamTypes)i);
+			if (!kOther.isAlive() || kOther.getID() == getTeam() ||
+					!kOther.isHasMet(getTeam()))
+				continue;
 
-							if (iAvailablePoints <= 0)
-							{
-								break;
-							}
-						}
-					}
-				}
+			if (getEspionageSpendingWeightAgainstTeam(kOther.getID()) == iBestWeight)
+			{
+				if (kOther.getID() == eAgainstTeam)
+					iSpendingValue++;
+				iAvailablePoints--;
+				if (iAvailablePoints <= 0)
+					break;
 			}
 		}
 	}
-
 	return iSpendingValue;
 }
 
@@ -16655,6 +16351,35 @@ void CvPlayer::verifyGoldCommercePercent()
 	} // K-Mod end
 }
 
+/*  <advc.003y> Ported to C++ from CvGameUtils.py; callback disabled by default.
+	On-screen message to be handled by the caller; hence the return value. */
+int CvPlayer::doCaptureGold(CvCity const& kOldCity) // "old": city still fully intact
+{
+	int iCaptureGold = 0;
+	if (!GC.getPythonCaller()->captureGold(kOldCity, iCaptureGold))
+	{
+		FAssert(iCaptureGold == 0);
+		static int const iBASE_CAPTURE_GOLD = GC.getDefineINT("BASE_CAPTURE_GOLD");
+		static int const iCAPTURE_GOLD_PER_POPULATION = GC.getDefineINT("CAPTURE_GOLD_PER_POPULATION");
+		static int const iCAPTURE_GOLD_RAND1 = GC.getDefineINT("CAPTURE_GOLD_RAND1");
+		static int const iCAPTURE_GOLD_RAND2 = GC.getDefineINT("CAPTURE_GOLD_RAND2");
+		static int const iCAPTURE_GOLD_MAX_TURNS = GC.getDefineINT("CAPTURE_GOLD_MAX_TURNS");
+		iCaptureGold += iBASE_CAPTURE_GOLD;
+		iCaptureGold += kOldCity.getPopulation() * iCAPTURE_GOLD_PER_POPULATION;
+		CvGame& g = GC.getGame();
+		iCaptureGold += g.getSorenRandNum(iCAPTURE_GOLD_RAND1, "Capture Gold 1");
+		iCaptureGold += g.getSorenRandNum(iCAPTURE_GOLD_RAND2, "Capture Gold 2");
+		if (iCAPTURE_GOLD_MAX_TURNS > 0)
+		{
+			iCaptureGold *= ::range(g.getGameTurn() - kOldCity.getGameTurnAcquired(),
+					0, iCAPTURE_GOLD_MAX_TURNS);
+			iCaptureGold /= iCAPTURE_GOLD_MAX_TURNS;
+		}
+	}
+	changeGold(iCaptureGold);
+	return iCaptureGold;
+} // </advc.003y>
+
 
 void CvPlayer::processCivics(CivicTypes eCivic, int iChange)
 {
@@ -17977,16 +17702,15 @@ void CvPlayer::resetTriggerFired(EventTriggerTypes eTrigger)
 	}
 }
 
-void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bOthers, bool bAnnounce)
+
+void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bOthers, bool bAnnounce)  // advc.003: some style changes
 {
-	FAssert(kTriggeredData.m_eTrigger >= 0 && kTriggeredData.m_eTrigger < GC.getNumEventTriggerInfos());
+	FASSERT_BOUNDS(0, GC.getNumEventTriggerInfos(), kTriggeredData.m_eTrigger, "CvPlayer::setTriggerFired");
 
 	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(kTriggeredData.m_eTrigger);
-
 	if (!isTriggerFired(kTriggeredData.m_eTrigger))
 	{
 		m_triggersFired.push_back(kTriggeredData.m_eTrigger);
-
 		if (bOthers)
 		{
 			if (kTrigger.isGlobal())
@@ -17994,69 +17718,59 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 				for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 				{
 					if (i != getID())
-					{
 						GET_PLAYER((PlayerTypes)i).setTriggerFired(kTriggeredData, false, false);
-					}
 				}
 			}
 			else if (kTrigger.isTeam())
 			{
 				for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 				{
-					if (i != getID() && getTeam() == GET_PLAYER((PlayerTypes)i).getTeam())
-					{
+					if (i != getID() && getTeam() == TEAMID((PlayerTypes)i))
 						GET_PLAYER((PlayerTypes)i).setTriggerFired(kTriggeredData, false, false);
-					}
 				}
 			}
 		}
 	}
 
-	if (!CvString(kTrigger.getPythonCallback()).empty())
-	{
-		long lResult;
-
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kTriggeredData));
-
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCallback(), argsList.makeFunctionArgs(), &lResult);
-	}
+	GC.getPythonCaller()->afterEventTriggered(kTriggeredData);
 
 	if (bAnnounce)
 	{
 		CvPlot* pPlot = GC.getMap().plot(kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY);
-
 		if (!kTriggeredData.m_szGlobalText.empty())
 		{
-			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
+			// advc.003: Moved out of the loop
+			bool bMetOtherPlayer = (kTriggeredData.m_eOtherPlayer == NO_PLAYER ||
+					TEAMREF(kTriggeredData.m_eOtherPlayer).isHasMet(getTeam()));
+			for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 			{
-				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+				if (!kLoopPlayer.isAlive())
+					continue;
 
-				if (kLoopPlayer.isAlive())
+				if (bMetOtherPlayer || GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()))
 				{
-					if (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()) && (NO_PLAYER == kTriggeredData.m_eOtherPlayer || GET_TEAM(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam()).isHasMet(getTeam())))
+					bool bShowPlot = kTrigger.isShowPlot();
+					if (bShowPlot && kLoopPlayer.getTeam() != getTeam())
 					{
-						bool bShowPlot = kTrigger.isShowPlot();
-
-						if (bShowPlot)
-						{
-							if (kLoopPlayer.getTeam() != getTeam())
-							{
-								if (NULL == pPlot || !pPlot->isRevealed(kLoopPlayer.getTeam(), false))
-								{
-									bShowPlot = false;
-								}
-							}
-						}
-
-						if (bShowPlot)
-						{
-							gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szGlobalText, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY, true, true);
-						}
-						else
-						{
-							gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szGlobalText, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT);
-						}
+						if (pPlot == NULL || !pPlot->isRevealed(kLoopPlayer.getTeam(), false))
+							bShowPlot = false;
+					}
+					if (bShowPlot)
+					{
+						gDLL->getInterfaceIFace()->addHumanMessage(kLoopPlayer.getID(),
+								false, GC.getEVENT_MESSAGE_TIME(),
+								kTriggeredData.m_szGlobalText, "AS2D_CIVIC_ADOPT",
+								MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)
+								GC.getInfoTypeForString("COLOR_WHITE"),
+								kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY, true, true);
+					}
+					else
+					{
+						gDLL->getInterfaceIFace()->addHumanMessage(kLoopPlayer.getID(),
+								false, GC.getEVENT_MESSAGE_TIME(),
+								kTriggeredData.m_szGlobalText, "AS2D_CIVIC_ADOPT",
+								MESSAGE_TYPE_MINOR_EVENT);
 					}
 				}
 			}
@@ -18067,11 +17781,18 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 		{
 			if (kTrigger.isShowPlot() && NULL != pPlot && pPlot->isRevealed(getTeam(), false))
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szText, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY, true, true);
+				gDLL->getInterfaceIFace()->addHumanMessage(getID(), false,
+						GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szText,
+						"AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL,
+						(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+						kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY, true, true);
 			}
 			else
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szText, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
+				gDLL->getInterfaceIFace()->addHumanMessage(getID(), false,
+						GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szText,
+						"AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL,
+						(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
 			}
 		}
 	}
@@ -18079,7 +17800,6 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 
 EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger, bool bFire, int iCityId, int iPlotX, int iPlotY, PlayerTypes eOtherPlayer, int iOtherPlayerCityId, ReligionTypes eReligion, CorporationTypes eCorporation, int iUnitId, BuildingTypes eBuilding)
 {
-
 	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(eEventTrigger);
 
 	CvCity* pCity = getCity(iCityId);
@@ -18493,38 +18213,14 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 		pTriggerData->m_iUnitId = (NULL != pUnit) ? pUnit->getID() : -1;
 		pTriggerData->m_eBuilding = eBuilding;
 	}
-	else
+	else return NULL;
+
+	if (!GC.getPythonCaller()->doEventTrigger(getID(), *pTriggerData,
+		// The Python call may change these data
+		pCity, pPlot, pUnit, eOtherPlayer, pOtherPlayerCity, eReligion, eCorporation, eBuilding))
 	{
+		deleteEventTriggered(pTriggerData->getID());
 		return NULL;
-	}
-
-	if (!CvString(kTrigger.getPythonCanDo()).empty())
-	{
-		long lResult;
-
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pTriggerData));
-
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCanDo(), argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult == 0)
-		{
-			deleteEventTriggered(pTriggerData->getID());
-			return NULL;
-		}
-
-		// python may change pTriggerData
-		pCity = getCity(pTriggerData->m_iCityId);
-		pPlot = GC.getMap().plot(pTriggerData->m_iPlotX, pTriggerData->m_iPlotY);
-		pUnit = getUnit(pTriggerData->m_iUnitId);
-		eOtherPlayer = pTriggerData->m_eOtherPlayer;
-		if (NO_PLAYER != eOtherPlayer)
-		{
-			pOtherPlayerCity = GET_PLAYER(eOtherPlayer).getCity(pTriggerData->m_iOtherPlayerCityId);
-		}
-		eReligion = pTriggerData->m_eReligion;
-		eCorporation = pTriggerData->m_eCorporation;
-		eBuilding = pTriggerData->m_eBuilding;
 	}
 
 	std::vector<CvWString> aszTexts;
@@ -18890,16 +18586,8 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 			}
 		}
 	}
-
-	if (!CvString(kEvent.getPythonCanDo()).empty())
-	{
-		long lResult; CyArgsList argsList;
-		argsList.add(eEvent);
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kTriggeredData));
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kEvent.getPythonCanDo(), argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 0)
-			return false;
-	}
+	if (!GC.getPythonCaller()->canDoEvent(eEvent, kTriggeredData))
+		return false;
 
 	return true;
 }
@@ -18911,7 +18599,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 
 	EventTriggeredData* pTriggeredData = getEventTriggered(iEventTriggeredId);
 
-	if (NULL == pTriggeredData)
+	if (pTriggeredData == NULL)
 	{
 		deleteEventTriggered(iEventTriggeredId);
 		return;
@@ -19433,16 +19121,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		}
 	}
 
-	if (!CvString(kEvent.getPythonCallback()).empty())
-	{
-		long lResult;
-
-		CyArgsList argsList;
-		argsList.add(eEvent);
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pTriggeredData));
-
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kEvent.getPythonCallback(), argsList.makeFunctionArgs(), &lResult);
-	}
+	GC.getPythonCaller()->applyEvent(eEvent, *pTriggeredData);
 
 	if (kEvent.getNumWorldNews() > 0)
 	{
@@ -19910,93 +19589,53 @@ void CvPlayer::expireEvent(EventTypes eEvent, const EventTriggeredData& kTrigger
 	}
 }
 
-bool CvPlayer::checkExpireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const
+bool CvPlayer::checkExpireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const  // advc.003: style changes
 {
+	if (GC.getPythonCaller()->checkExpireEvent(eEvent, kTriggeredData))
+		return true;
+
 	CvEventInfo& kEvent = GC.getEventInfo(eEvent);
 
-	if (!CvString(kEvent.getPythonExpireCheck()).empty())
-	{
-		long lResult;
-		CyArgsList argsList;
-		argsList.add(eEvent);
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(&kTriggeredData));
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kEvent.getPythonExpireCheck(), argsList.makeFunctionArgs(), &lResult);
-		if (lResult != 0)
-			return true;
-	}
-
 	if (!kEvent.isQuest())
-	{
-		if (GC.getGame().getGameTurn() - kTriggeredData.m_iTurn > 2)
-		{
-			return true;
-		}
-
-		return false;
-	}
+		return (GC.getGame().getGameTurn() - kTriggeredData.m_iTurn > 2);
 
 	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(kTriggeredData.m_eTrigger);
-
 	FAssert(kTriggeredData.m_ePlayer != NO_PLAYER);
-
 	CvPlayer& kPlayer = GET_PLAYER(kTriggeredData.m_ePlayer);
 
-	if (kTrigger.isStateReligion() & kTrigger.isPickReligion())
-	{
-		if (kPlayer.getStateReligion() != kTriggeredData.m_eReligion)
-		{
-			return true;
-		}
-	}
+	if (kTrigger.isStateReligion() & kTrigger.isPickReligion() &&
+			kPlayer.getStateReligion() != kTriggeredData.m_eReligion)
+		return true;
 
-	if (NO_CIVIC != kTrigger.getCivic())
-	{
-		if (!kPlayer.isCivic((CivicTypes)kTrigger.getCivic()))
-		{
-			return true;
-		}
-	}
+	if (kTrigger.getCivic() != NO_CIVIC &&
+			!kPlayer.isCivic((CivicTypes)kTrigger.getCivic()))
+		return true;
 
-	if (kTriggeredData.m_iCityId != -1)
-	{
-		if (NULL == kPlayer.getCity(kTriggeredData.m_iCityId))
-		{
-			return true;
-		}
-	}
+	if (kTriggeredData.m_iCityId != -1 &&
+			kPlayer.getCity(kTriggeredData.m_iCityId) == NULL)
+		return true;
 
-	if (kTriggeredData.m_iUnitId != -1)
-	{
-		if (NULL == kPlayer.getUnit(kTriggeredData.m_iUnitId))
-		{
-			return true;
-		}
-	}
+	if (kTriggeredData.m_iUnitId != -1 &&
+			kPlayer.getUnit(kTriggeredData.m_iUnitId) == NULL)
+		return true;
 
-	if (NO_PLAYER != kTriggeredData.m_eOtherPlayer)
+	if (kTriggeredData.m_eOtherPlayer != NO_PLAYER)
 	{
 		if (!GET_PLAYER(kTriggeredData.m_eOtherPlayer).isAlive())
-		{
 			return true;
-		}
 
-		if (kTriggeredData.m_iOtherPlayerCityId != -1)
-		{
-			if (NULL == GET_PLAYER(kTriggeredData.m_eOtherPlayer).getCity(kTriggeredData.m_iOtherPlayerCityId))
-			{
-				return true;
-			}
-		}
+		if (kTriggeredData.m_iOtherPlayerCityId != -1 &&
+				GET_PLAYER(kTriggeredData.m_eOtherPlayer).
+				getCity(kTriggeredData.m_iOtherPlayerCityId) == NULL)
+			return true;
 	}
 
 	if (kTrigger.getNumObsoleteTechs() > 0)
 	{
-		for (int iI = 0; iI < kTrigger.getNumObsoleteTechs(); iI++)
+		for (int i = 0; i < kTrigger.getNumObsoleteTechs(); i++)
 		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)(kTrigger.getObsoleteTech(iI))))
-			{
+			if (GET_TEAM(getTeam()).isHasTech((TechTypes)kTrigger.getObsoleteTech(i)))
 				return true;
-			}
 		}
 	}
 

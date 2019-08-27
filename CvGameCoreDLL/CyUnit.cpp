@@ -10,15 +10,11 @@
 #include "CvArea.h"
 #include "CvPlot.h"
 
-CyUnit::CyUnit() : m_pUnit(NULL)
-{
+CyUnit::CyUnit() : m_pUnit(NULL) {}
+// advc.003y: (see CyCity.cpp)
+CyUnit::CyUnit(CvUnit const& kUnit) : m_pUnit(const_cast<CvUnit*>(&kUnit)) {}
 
-}
-
-CyUnit::CyUnit(CvUnit* pUnit) : m_pUnit(pUnit)
-{
-
-}
+CyUnit::CyUnit(CvUnit* pUnit) : m_pUnit(pUnit) {}
 
 void CyUnit::convert(CyUnit* pUnit)
 {

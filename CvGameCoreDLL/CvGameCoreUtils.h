@@ -66,6 +66,7 @@ template<typename T> void removeDuplicates(std::vector<T>& v) {
 } // </advc.130h>
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
+void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc.003
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
@@ -116,6 +117,12 @@ inline int longLongToInt(long long x) {
 	/*  advc: Can't use std::min as above here, probably b/c of a conflicting definition
 		in windows.h. No matter: */
 	return static_cast<int>(std::min<long long>(MAX_INT, x));
+}
+
+inline short intToShort(int x) {
+
+	FAssert(x < MAX_SHORT);
+	return static_cast<short>(std::min<int>(MAX_SHORT, x));
 }
 
 // (advc.make: Distance functions moved into CvMap.h)

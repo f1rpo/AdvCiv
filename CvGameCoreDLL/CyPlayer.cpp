@@ -8,6 +8,7 @@
 #include "CySelectionGroup.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
+#include "CvDLLPythonIFaceBase.h"
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
 {

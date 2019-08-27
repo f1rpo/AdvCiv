@@ -10,16 +10,13 @@
 #include "CvPlot.h"
 
 
-CySelectionGroup::CySelectionGroup() : m_pSelectionGroup(NULL)
-{
+CySelectionGroup::CySelectionGroup() : m_pSelectionGroup(NULL) {}
 
-}
-
-CySelectionGroup::CySelectionGroup(CvSelectionGroup* pSelectionGroup) : m_pSelectionGroup(pSelectionGroup)
-{
-
-}
-
+CySelectionGroup::CySelectionGroup(CvSelectionGroup* pSelectionGroup) : m_pSelectionGroup(pSelectionGroup) {}
+// <advc.003y> (see CyCity.cpp)
+CySelectionGroup::CySelectionGroup(CvSelectionGroup const& kSelectionGroup) :
+	m_pSelectionGroup(const_cast<CvSelectionGroup*>(&kSelectionGroup)) {}
+// </advc.003y>
 void CySelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CyPlot* pMissionAIPlot, CyUnit* pMissionAIUnit)
 {
 	if (m_pSelectionGroup)

@@ -136,28 +136,10 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	CvGame& g = GC.getGame();
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 
-	//--------------------------------
-	// Log this event
-	if (GC.isLogging())
-	{
-		if (gDLL->getChtLvl() > 0)
-		{
-			TCHAR szOut[1024];
-			sprintf(szOut, "Player %d City %d built at %d:%d\n", eOwner, iID, iX, iY);
-			gDLL->messageControlLog(szOut);
-		}
-	}
+	reset(iID, eOwner, pPlot->getX(), pPlot->getY()); // Reset serialized data
 
-	//--------------------------------
-	// Init saved data
-	reset(iID, eOwner, pPlot->getX(), pPlot->getY());
-
-	//--------------------------------
-	// Init non-saved data
 	setupGraphical();
 
-	//--------------------------------
-	// Init other game data
 	CvPlayer& kOwner = GET_PLAYER(getOwner());
 	setName(kOwner.getNewCityName(),
 			false, true); // advc.106k
@@ -201,13 +183,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 		}
 	}
 
-	CyArgsList argsList;
-	argsList.add(iX);
-	argsList.add(iY);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "citiesDestroyFeatures", argsList.makeFunctionArgs(), &lResult);
-
-	if (lResult == 1)
+	if (GC.getPythonCaller()->isCitiesDestroyFeatures(iX, iY))
 	{
 		if (pPlot->getFeatureType() != NO_FEATURE)
 		{
@@ -306,6 +282,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	}
 
 	AI_init();
+	GC.getLogger().logCityBuilt(*this); // advc.003t: Moved down so that just a single param needs to be passed
 }
 
 
@@ -350,8 +327,6 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 {
 	int iI;
 
-	//--------------------------------
-	// Uninit class
 	uninit();
 
 	m_iID = iID;
@@ -1881,22 +1856,15 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 {
 	PROFILE_FUNC(); // advc.003b
 
-	if(eUnit == NO_UNIT)
+	if(eUnit == NO_UNIT) // advc.test: Safe to remove this check?
+	{
+		FAssert(eUnit != NO_UNIT);
 		return false;
-
-	if(GC.getUSE_CAN_TRAIN_CALLBACK()) {
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-		argsList.add(eUnit);
-		argsList.add(bContinue); argsList.add(bTestVisible);
-		argsList.add(bIgnoreCost); argsList.add(bIgnoreUpgrades);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canTrain", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;
-		if (lResult == 1)
-			return true;
 	}
+	if (GC.getPythonCaller()->canTrainOverride(*this, eUnit, bContinue,  bTestVisible,
+			bIgnoreCost, bIgnoreUpgrades))
+		return true;
+
 	/*  <advc.041> Don't allow any ships to be trained at lakes, except
 		Work Boat if there are resources in the lake. */
 	CvUnitInfo& u = GC.getUnitInfo(eUnit);
@@ -1921,22 +1889,9 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		}
 	}
 
-	if(GC.getUSE_CANNOT_TRAIN_CALLBACK())
-	{
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList2; // XXX
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-		argsList2.add(eUnit);
-		argsList2.add(bContinue);
-		argsList2.add(bTestVisible);
-		argsList2.add(bIgnoreCost);
-		argsList2.add(bIgnoreUpgrades);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotTrain", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;
-		if (lResult == 1)
-			return false;
-	}
+	if (GC.getPythonCaller()->cannotTrainOverride(*this, eUnit, bContinue,
+			bTestVisible, bIgnoreCost, bIgnoreUpgrades))
+		return false;
 
 	return true;
 }
@@ -1963,18 +1918,10 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		FAssert(false);
 		return false;
 	}
-	if(GC.getUSE_CAN_CONSTRUCT_CALLBACK()) {
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-		argsList.add(eBuilding); argsList.add(bContinue);
-		argsList.add(bTestVisible); argsList.add(bIgnoreCost);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canConstruct", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;
-		if(lResult == 1)
-			return true;
-	}
+
+	if (GC.getPythonCaller()->canConstructOverride(*this, eBuilding,
+			bContinue, bTestVisible, bIgnoreCost))
+		return true;
 
 	if(!GET_PLAYER(getOwner()).canConstruct(eBuilding, bContinue, bTestVisible, bIgnoreCost, bIgnoreTech))
 		return false;
@@ -2114,18 +2061,9 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		}
 	}
 
-	if(GC.getUSE_CANNOT_CONSTRUCT_CALLBACK()) {
-		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-		argsList.add(eBuilding); argsList.add(bContinue);
-		argsList.add(bTestVisible); argsList.add(bIgnoreCost);
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotConstruct", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;
-		if(lResult == 1)
-			return false;
-	}
+	if (GC.getPythonCaller()->cannotConstructOverride(*this, eBuilding,
+			bContinue, bTestVisible, bIgnoreCost))
+		return false;
 
 	return true;
 }
@@ -2133,33 +2071,13 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 
 bool CvCity::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisible) const
 {
-	CyCity* pyCity = new CyCity((CvCity*)this);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-	argsList.add(eProject);
-	argsList.add(bContinue);
-	argsList.add(bTestVisible);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "canCreate", argsList.makeFunctionArgs(), &lResult);
-	delete pyCity;
-	if (lResult == 1)
+	if (GC.getPythonCaller()->canCreateOverride(*this, eProject, bContinue, bTestVisible))
 		return true;
 
-	if (!(GET_PLAYER(getOwner()).canCreate(eProject, bContinue, bTestVisible)))
-	{
+	if (!GET_PLAYER(getOwner()).canCreate(eProject, bContinue, bTestVisible))
 		return false;
-	}
 
-	pyCity = new CyCity((CvCity*)this);
-	CyArgsList argsList2; // XXX
-	argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-	argsList2.add(eProject);
-	argsList2.add(bContinue);
-	argsList2.add(bTestVisible);
-	lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotCreate", argsList2.makeFunctionArgs(), &lResult);
-	delete pyCity;
-	if (lResult == 1)
+	if (GC.getPythonCaller()->cannotCreateOverride(*this, eProject, bContinue, bTestVisible))
 		return false;
 
 	return true;
@@ -2168,31 +2086,13 @@ bool CvCity::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisible)
 
 bool CvCity::canMaintain(ProcessTypes eProcess, bool bContinue) const
 {
-	CyCity* pyCity = new CyCity((CvCity*)this);
-	CyArgsList argsList;
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-	argsList.add(eProcess);
-	argsList.add(bContinue);
-	long lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "canMaintain", argsList.makeFunctionArgs(), &lResult);
-	delete pyCity;
-	if (lResult == 1)
+	if (GC.getPythonCaller()->canMaintainOverride(*this, eProcess, bContinue))
 		return true;
 
-	if (!(GET_PLAYER(getOwner()).canMaintain(eProcess, bContinue)))
-	{
+	if (!GET_PLAYER(getOwner()).canMaintain(eProcess, bContinue))
 		return false;
-	}
 
-	pyCity = new CyCity((CvCity*)this);
-	CyArgsList argsList2; // XXX
-	argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
-	argsList2.add(eProcess);
-	argsList2.add(bContinue);
-	lResult=0;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotMaintain", argsList2.makeFunctionArgs(), &lResult);
-	delete pyCity;
-	if (lResult == 1)
+	if (GC.getPythonCaller()->cannotMaintainOverride(*this, eProcess, bContinue))
 		return false;
 
 	return true;
@@ -2855,21 +2755,11 @@ int CvCity::getProductionNeeded(BuildingTypes eBuilding) const
 {
 	int iProductionNeeded = GET_PLAYER(getOwner()).getProductionNeeded(eBuilding);
 
-	// Python cost modifier
-	if (GC.getUSE_GET_BUILDING_COST_MOD_CALLBACK())
+	int iPythonModifier = GC.getPythonCaller()->buildingCostMod(*this, eBuilding);
+	if (iPythonModifier > 1)
 	{
-		CyArgsList argsList;
-		argsList.add(getOwner());	// Player ID
-		argsList.add(getID());	// City ID
-		argsList.add(eBuilding);	// Building ID
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "getBuildingCostMod", argsList.makeFunctionArgs(), &lResult);
-
-		if (lResult > 1)
-		{
-			iProductionNeeded *= lResult;
-			iProductionNeeded /= 100;
-		}
+		iProductionNeeded *= iPythonModifier;
+		iProductionNeeded /= 100;
 	}
 
 	return iProductionNeeded;
@@ -3541,12 +3431,9 @@ UnitTypes CvCity::getConscriptUnit() const
 		}
 	}
 
-	CyArgsList argsList;
-	argsList.add(getOwner());
-	long lConscriptUnit = -1;
-	gDLL->getPythonIFace()->callFunction(PYGameModule, "getConscriptUnitType", argsList.makeFunctionArgs(),&lConscriptUnit);
-	if (lConscriptUnit != -1)
-		eBestUnit = ((UnitTypes)lConscriptUnit);
+	UnitTypes ePythonUnit = GC.getPythonCaller()->conscriptUnitOverride(getOwner());
+	if (ePythonUnit != NO_UNIT)
+		eBestUnit = ePythonUnit;
 
 	return eBestUnit;
 }
@@ -12864,23 +12751,13 @@ const std::vector< std::pair<float, float> >& CvCity::getWallOverridePoints() co
 	return m_kWallOverridePoints;
 }
 
-// Protected Functions...
 
 void CvCity::doGrowth()
 {
-	int iDiff;
+	if (GC.getPythonCaller()->doGrowth(*this))
+		return;
 
-	if (GC.getUSE_DO_GROWTH_CALLBACK()) { // K-Mod. block unused python callbacks
-		CyCity* pyCity = new CyCity(this); CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doGrowth", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-			return;
-	}
-
-	iDiff = foodDifference();
+	int iDiff = foodDifference();
 
 	changeFood(iDiff);
 	if(iDiff > 0) // advc.160: Don't empty the Granary when insufficient food
@@ -12920,24 +12797,13 @@ void CvCity::doGrowth()
 
 void CvCity::doCulture()
 {
-	if (GC.getUSE_DO_CULTURE_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doCulture", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return;
-		}
-	} // <advc.099b>
+	if (GC.getPythonCaller()->doCulture(*this))
+		return;
+	// <advc.099b>
 	if(isOccupation())
 		return; // </advc.099b>
 	/*  K-Mod, 26/sep/10, 31/oct/10, Karadoc
 		Trade culture: START */
-	int iI;
 	int iLevel = getCultureLevel();
 	if (iLevel > 0)
 	{	// advc.125:
@@ -12946,18 +12812,16 @@ void CvCity::doCulture()
 		// so that we avoid excessive calls to change culture and reduce rounding errors
 		int iTradeCultureTimes100[MAX_PLAYERS] = {};
 
-		for (iI = 0; iI < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES); iI++)
+		for (int iI = 0; iI < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES); iI++)
 		{
 			CvCity* pLoopCity = getTradeCity(iI);
 			if(pLoopCity != NULL)
 			{	// foreign and domestic
 				//if (pLoopCity->getOwner() != getOwner())
-				{
-					iTradeCultureTimes100[pLoopCity->getOwner()]+= pLoopCity->getTradeCultureRateTimes100(iLevel);
-				}
+				iTradeCultureTimes100[pLoopCity->getOwner()]+= pLoopCity->getTradeCultureRateTimes100(iLevel);
 			}
 		}
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (iTradeCultureTimes100[iI] > 0)
 			{
@@ -12979,35 +12843,17 @@ void CvCity::doCulture()
 // A note about scale: the city plot itself gets roughly 10x culture. The outer edges of the cultural influence get 1x culture (ie. the influence that extends beyond the borders).
 void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture)  // advc.003: some style changes
 {
+	FAssert(ePlayer != NO_PLAYER);
+
+	if (GC.getPythonCaller()->doPlotCultureTimes100(*this, ePlayer, bUpdate, iCultureRateTimes100))
+		return;
+
 	CultureLevelTypes eCultureLevel = (CultureLevelTypes)0;
-
-	if (GC.getUSE_DO_PLOT_CULTURE_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(bUpdate);
-		argsList.add(ePlayer);
-		//argsList.add(iCultureRate);
-		argsList.add(iCultureRateTimes100/100); // K-Mod
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doPlotCulture", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-
-	FAssert(NO_PLAYER != ePlayer);
-
 	if (getOwner() == ePlayer)
-	{
 		eCultureLevel = getCultureLevel();
-	}
 	else
 	{
-		for (int iI = (GC.getNumCultureLevelInfos() - 1); iI > 0; iI--)
+		for (int iI = GC.getNumCultureLevelInfos() - 1; iI > 0; iI--)
 		{
 			if (getCultureTimes100(ePlayer) >= 100 * GC.getGame().getCultureThreshold((CultureLevelTypes)iI))
 			{
@@ -13208,15 +13054,8 @@ bool CvCity::doCheckProduction()  // advc.003:some style changes
 
 void CvCity::doProduction(bool bAllowNoProduction)
 {
-	if (GC.getUSE_DO_PRODUCTION_CALLBACK()) { // K-Mod. block unused python callbacks
-		CyCity* pyCity = new CyCity(this); CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doProduction", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-			return;
-	}
+	if (GC.getPythonCaller()->doProduction(*this))
+		return;
 
 	if (!isHuman() || isProductionAutomated())
 	{
@@ -13271,9 +13110,7 @@ void CvCity::doProduction(bool bAllowNoProduction)
 
 void CvCity::doDecay()
 {
-	int iI;
-
-	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		BuildingTypes eBuilding = (BuildingTypes) iI;
 		if (getProductionBuilding() != eBuilding)
@@ -13299,7 +13136,7 @@ void CvCity::doDecay()
 		}
 	}
 
-	for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
 	{
 		UnitTypes eUnit = (UnitTypes) iI;
 		if (getProductionUnit() != eUnit)
@@ -13318,10 +13155,7 @@ void CvCity::doDecay()
 					}
 				}
 			}
-			else
-			{
-				setUnitProductionTime(eUnit, 0);
-			}
+			else setUnitProductionTime(eUnit, 0);
 		}
 	}
 }
@@ -13330,19 +13164,8 @@ void CvCity::doDecay()
 // K-Mod. I've completely rewritten this function, and deleted the old code.
 void CvCity::doReligion()
 {
-	if (GC.getUSE_DO_RELIGION_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doReligion", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
+	if (GC.getPythonCaller()->doReligion(*this))
+		return;
 
 	// gives some of the top religions a shot at spreading to the city.
 	int iChances = 1 + (getCultureLevel() >= 4 ? 1 : 0) + (getPopulation() + 3) / 8 - getReligionCount();
@@ -13486,21 +13309,11 @@ void CvCity::doReligion()
 
 void CvCity::doGreatPeople()
 {
-	if(GC.getUSE_DO_GREAT_PEOPLE_CALLBACK()) { // K-Mod. block unused python callbacks
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doGreatPeople", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if(lResult == 1)
-			return;
-	}
+	if (GC.getPythonCaller()->doGreatPeople(*this))
+		return;
 
 	if (isDisorder())
-	{
 		return;
-	}
 
 	changeGreatPeopleProgress(getGreatPeopleRate());
 	// advc.051: Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
@@ -13554,24 +13367,10 @@ void CvCity::doGreatPeople()
 
 void CvCity::doMeltdown()
 {
-	CvWString szBuffer;
-	int iI;
+	if (GC.getPythonCaller()->doMeltdown(*this))
+		return;
 
-	if (GC.getUSE_DO_MELTDOWN_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "doMeltdown", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
-
-	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		// <dlph.5>
 		// <advc.003> Restructured DarkLunaPhantom's code the code a bit
@@ -13633,7 +13432,7 @@ void CvCity::doMeltdown()
 			//plot()->nukeExplosion(1);
 			plot()->nukeExplosion(1, 0, false); // K-Mod
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey());
+			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
 			gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 
 			break;
@@ -13641,7 +13440,6 @@ void CvCity::doMeltdown()
 	}
 }
 
-// Private Functions...
 
 void CvCity::read(FDataStreamBase* pStream)
 {
@@ -14508,19 +14306,10 @@ int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const
 	FAssert(eTrigger >= 0);
 	FAssert(eTrigger < GC.getNumEventTriggerInfos());
 
+	if (!GC.getPythonCaller()->canTriggerEvent(*this, eTrigger))
+		return MIN_INT;
+
 	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(eTrigger);
-
-
-	if (!CvString(kTrigger.getPythonCanDoCity()).empty())
-	{
-		long lResult; CyArgsList argsList;
-		argsList.add(eTrigger);
-		argsList.add(getOwner());
-		argsList.add(getID());
-		gDLL->getPythonIFace()->callFunction(PYRandomEventModule, kTrigger.getPythonCanDoCity(), argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 0)
-			return MIN_INT;
-	}
 
 	if (kTrigger.getNumBuildings() > 0 && kTrigger.getNumBuildingsRequired() > 0)
 	{
@@ -14981,6 +14770,33 @@ void CvCity::setEventOccured(EventTypes eEvent, bool bOccured)
 	{
 		m_aEventsOccured.push_back(eEvent);
 	}
+}
+// advc.003y: Ported from CvEventManager.py; Python code there deleted.
+void CvCity::doPartisans()
+{
+	if (GC.getGame().isOption(GAMEOPTION_NO_EVENTS))
+		return;
+	if (getPopulation() <= 1 || isBarbarian())
+		return;
+	// advc: Was based on city culture instead of plot culture
+	PlayerTypes eHighestCulturePlayer = plot()->findHighestCulturePlayer();
+	if (eHighestCulturePlayer == getOwner() || eHighestCulturePlayer == BARBARIAN_PLAYER)
+		return;
+	CvPlayer& kPartisanPlayer = GET_PLAYER(eHighestCulturePlayer);
+	// advc.099: alive check
+	if (!kPartisanPlayer.isAlive() || kPartisanPlayer.getNumCities() <= 0)
+		return;
+	if (!::atWar(getTeam(), kPartisanPlayer.getTeam()))
+		return;
+
+	EventTriggerTypes eTrigger = (EventTriggerTypes)GC.getInfoTypeForString("EVENTTRIGGER_PARTISANS");
+	FAssert(eTrigger != NO_EVENTTRIGGER);
+	if (!GC.getGame().isEventActive(eTrigger) ||
+			/*  Non-negative probability means, apparently, that the event is not
+				supposed to be triggered manually like this. */
+			kPartisanPlayer.getEventTriggerWeight(eTrigger) >= 0)
+		return;
+	kPartisanPlayer.initTriggeredData(eTrigger, /*bFire=*/true, -1, getX(), getY(), getOwner(), getID());
 }
 
 bool CvCity::hasShrine(ReligionTypes eReligion) const

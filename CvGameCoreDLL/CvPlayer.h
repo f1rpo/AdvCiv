@@ -700,7 +700,7 @@ public:
 	bool isConnected() const;
 	DllExport int getNetID() const;
 	DllExport void setNetID(int iNetID);
-	void sendReminder();
+	//void sendReminder(); // advc.003y: Moved to CvPythonCaller (sendEmailReminder)
 
 	uint getStartTime() const;
 	DllExport void setStartTime(uint uiStartTime);
@@ -992,11 +992,16 @@ public:
 	EventTriggeredData* nextEventTriggered(int *pIterIdx, bool bRev=false) const;
 	int getNumEventsTriggered() const;
 
-	EventTriggeredData* getEventTriggered(int iID) const;   // Exposed to Python
+	EventTriggeredData* getEventTriggered(int iID) const;								// Exposed to Python
 	EventTriggeredData* addEventTriggered();
 	void deleteEventTriggered(int iID);
-	EventTriggeredData* initTriggeredData(EventTriggerTypes eEventTrigger, bool bFire = false, int iCityId = -1, int iPlotX = INVALID_PLOT_COORD, int iPlotY = INVALID_PLOT_COORD, PlayerTypes eOtherPlayer = NO_PLAYER, int iOtherPlayerCityId = -1, ReligionTypes eReligion = NO_RELIGION, CorporationTypes eCorporation = NO_CORPORATION, int iUnitId = -1, BuildingTypes eBuilding = NO_BUILDING);   // Exposed to Python
-	int getEventTriggerWeight(EventTriggerTypes eTrigger) const;	// Exposed to python
+	EventTriggeredData* initTriggeredData(EventTriggerTypes eEventTrigger,				// Exposed to Python
+			bool bFire = false, int iCityId = -1, int iPlotX = INVALID_PLOT_COORD,
+			int iPlotY = INVALID_PLOT_COORD, PlayerTypes eOtherPlayer = NO_PLAYER,
+			int iOtherPlayerCityId = -1, ReligionTypes eReligion = NO_RELIGION,
+			CorporationTypes eCorporation = NO_CORPORATION, int iUnitId = -1,
+			BuildingTypes eBuilding = NO_BUILDING);
+	int getEventTriggerWeight(EventTriggerTypes eTrigger) const;						// Exposed to python
 
 	DllExport void addMessage(const CvTalkingHeadMessage& message);
 	void showMissedMessages();
@@ -1487,7 +1492,7 @@ protected:
 	bool isValidEventTech(TechTypes eTech, EventTypes eEvent, PlayerTypes eOtherPlayer) const;
 
 	void verifyGoldCommercePercent();
-
+	int doCaptureGold(CvCity const& kOldCity); // advc.003y
 	void processCivics(CivicTypes eCivic, int iChange);
 
 	// for serialization

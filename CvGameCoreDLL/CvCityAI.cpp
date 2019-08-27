@@ -62,10 +62,7 @@ CvCityAI::~CvCityAI()
 
 void CvCityAI::AI_init()
 {
-	AI_reset(); // Init saved data
-
-	// Init other AI data
-
+	AI_reset(); // Reset serialized data
 	AI_assignWorkingPlots();
 	/*AI_updateWorkersHaveAndNeeded();
 	AI_updateBestBuild();*/
@@ -489,11 +486,8 @@ void CvCityAI::AI_chooseProduction()
 	{
 		if (getProduction() > 0)
 		{
-
-			if ((getProductionUnitAI() == UNITAI_SETTLE) && kPlayer.AI_isFinancialTrouble())
-			{
-
-			}
+			if (getProductionUnitAI() == UNITAI_SETTLE && kPlayer.AI_isFinancialTrouble())
+			{}
 			//if we are killing our growth to train this, then finish it.
 			else if (!bDanger && isFoodProduction())
 			{
@@ -507,7 +501,6 @@ void CvCityAI::AI_chooseProduction()
 			{
 				return;
 			}
-
 			// if building a combat unit, and we have no defenders, keep building it
 			UnitTypes eProductionUnit = getProductionUnit();
 			if (eProductionUnit != NO_UNIT)
@@ -520,7 +513,6 @@ void CvCityAI::AI_chooseProduction()
 					}
 				}
 			}
-
 			// if we are building a wonder, do not cancel, keep building it (if no danger)
 			/* original bts code
 			BuildingTypes eProductionBuilding = getProductionBuilding();
@@ -543,37 +535,19 @@ void CvCityAI::AI_chooseProduction()
 			}
 			// K-Mod end
 		}
-
 		clearOrderQueue();
 	}
-
-	//if (kPlayer.isAnarchy()) // original bts code
+	//if (kPlayer.isAnarchy())
 	if (isDisorder()) // K-Mod
-	{
 		return;
-	}
 
 	// only clear the dirty bit if we actually do a check, multiple items might be queued
 	AI_setChooseProductionDirty(false);
 	if (bWasFoodProduction)
-	{
 		AI_assignWorkingPlots();
-	}
 
-	// allow python to handle it
-	if (GC.getUSE_AI_CHOOSE_PRODUCTION_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_chooseProduction", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer
-		if (lResult == 1)
-		{
-			return;
-		}
-	}
+	if (GC.getPythonCaller()->AI_chooseProduction(*this))
+		return;
 
 	//if (isHuman() && isProductionAutomated())
 	if (isHuman())
@@ -691,9 +665,7 @@ void CvCityAI::AI_chooseProduction()
 	{
 		iMaxSettlers = std::min((kPlayer.getNumCities() + 1) / 2, iNumAreaCitySites + iNumWaterAreaCitySites);
 		if (bLandWar || bAssault)
-		{
 			iMaxSettlers = (iMaxSettlers + 2) / 3;
-		}
 	}
 	int iSettlerPriority = 0; // advc.031b
 
@@ -711,13 +683,8 @@ void CvCityAI::AI_chooseProduction()
 					if (iNumAreaCitySites + iNumWaterAreaCitySites > 0 &&
 							kPlayer.getNumCities() < 6 &&
 							g.getSorenRandNum(2, "AI Less Culture More Expand") == 0)
-					{
 						bImportantCity = false;
-					}
-					else
-					{
-						bImportantCity = true;
-					}
+					else bImportantCity = true;
 				}
 			}
 		}
@@ -8086,8 +8053,6 @@ int CvCityAI::AI_countBonusesToClear(FeatureTypes eFeature) const {
 	return r;
 } // </advc.129>
 
-
-// Protected Functions...
 
 void CvCityAI::AI_doDraft(bool bForce)
 {

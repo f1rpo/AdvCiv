@@ -21,10 +21,6 @@ CvGameAI::~CvGameAI()
 void CvGameAI::AI_init()
 {
 	AI_reset();
-
-	//--------------------------------
-	// Init other game data
-
 	AI_sortOutWPAIOptions(false); // advc.104
 }
 

@@ -107,6 +107,8 @@ m_bZoomIn(false),
 m_bLoadGameFromFile(false),
 m_pFMPMgr(NULL),
 m_asyncRand(NULL),
+m_pPythonCaller(NULL), // advc.003y
+m_pLogger(NULL), // advc.003t
 m_interface(NULL),
 m_game(NULL),
 m_messageQueue(NULL),
@@ -119,7 +121,6 @@ m_setupData(NULL),
 // <kmodx> Missing initialization
 m_iniInitCore(NULL),
 m_loadedInitCore(NULL),
-m_iUSE_GET_BUILDING_COST_MOD_CALLBACK(0),
 // </kmodx>
 m_initCore(NULL),
 m_statsReporter(NULL),
@@ -159,29 +160,6 @@ m_fCAMERA_MAX_TURN_OFFSET(0), m_fCAMERA_MIN_DISTANCE(0),
 m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
-m_iUSE_FINISH_TEXT_CALLBACK(0), m_iUSE_ON_UPDATE_CALLBACK(0),
-m_iUSE_CANNOT_FOUND_CITY_CALLBACK(0), m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK(0),
-m_iUSE_IS_PLAYER_RESEARCH_CALLBACK(0), m_iUSE_CAN_RESEARCH_CALLBACK(0),
-m_iUSE_CANNOT_DO_CIVIC_CALLBACK(0), m_iUSE_CAN_DO_CIVIC_CALLBACK(0),
-m_iUSE_CANNOT_CONSTRUCT_CALLBACK(0), m_iUSE_CAN_CONSTRUCT_CALLBACK(0),
-m_iUSE_CAN_DECLARE_WAR_CALLBACK(0), m_iUSE_CANNOT_RESEARCH_CALLBACK(0),
-m_iUSE_GET_UNIT_COST_MOD_CALLBACK(0), m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK(0),
-m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK(0), m_iUSE_CAN_BUILD_CALLBACK(0),
-m_iUSE_CANNOT_TRAIN_CALLBACK(0), m_iUSE_CAN_TRAIN_CALLBACK(0),
-m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK(0), m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK(0),
-m_iUSE_ON_UNIT_SET_XY_CALLBACK(0), m_iUSE_ON_UNIT_SELECTED_CALLBACK(0),
-m_iUSE_ON_UNIT_CREATED_CALLBACK(0), m_iUSE_ON_UNIT_LOST_CALLBACK(0),
-// K-Mod
-m_bUSE_AI_UNIT_UPDATE_CALLBACK(false), m_bUSE_AI_DO_DIPLO_CALLBACK(false),
-m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK(false), m_bUSE_AI_DO_WAR_CALLBACK(false),
-m_bUSE_AI_CHOOSE_TECH_CALLBACK(false),
-
-m_bUSE_DO_GROWTH_CALLBACK(false), m_bUSE_DO_CULTURE_CALLBACK(false),
-m_bUSE_DO_PLOT_CULTURE_CALLBACK(false), m_bUSE_DO_PRODUCTION_CALLBACK(false),
-m_bUSE_DO_RELIGION_CALLBACK(false), m_bUSE_DO_GREAT_PEOPLE_CALLBACK(false),
-m_bUSE_DO_MELTDOWN_CALLBACK(false), m_bUSE_DO_PILLAGE_GOLD_CALLBACK(false),
-m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK(false), m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK(false),
-m_bUSE_DO_COMBAT_CALLBACK(false), // K-Mod end
 // <advc.003b>
 m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
@@ -189,8 +167,7 @@ m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.003b>
 }
 
-CvGlobals::~CvGlobals()
-{}
+CvGlobals::~CvGlobals() {}
 
 //
 // allocate
@@ -322,9 +299,8 @@ void CvGlobals::init()
 	m_initCore = new CvInitCore();
 	m_loadedInitCore = new CvInitCore();
 	m_iniInitCore = new CvInitCore();
-
 	gDLL->initGlobals();	// some globals need to be allocated outside the dll
-
+	m_pLogger = new CvDLLLogger(isLogging(), isRandLogging()); // advc.003t
 	m_game = new CvGameAI();
 	m_map = new CvMap();
 
@@ -372,6 +348,8 @@ void CvGlobals::uninit()
 	CvTeamAI::freeStatics();
 
 	SAFE_DELETE(m_asyncRand);
+	SAFE_DELETE(m_pPythonCaller); // advc.003y
+	SAFE_DELETE(m_pLogger); // advc.003t
 	SAFE_DELETE(m_initCore);
 	SAFE_DELETE(m_loadedInitCore);
 	SAFE_DELETE(m_iniInitCore);
@@ -496,7 +474,6 @@ std::vector<CvInterfaceModeInfo*>& CvGlobals::getInterfaceModeInfo()
 {
 	return m_pt3CameraDir;
 }*/
-
 
 CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
 {
@@ -775,7 +752,7 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 				break;
 			}
 		}
-		return; // Don't bother checking the Python callback flags
+		return;
 	}
 
 	// Initialize cache (or full update)
@@ -814,54 +791,6 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 		}
 		m_aiGlobalDefinesCache[i] = getDefineINT(aszGlobalDefinesTagNames[i], iDefault);
 	} // </advc.003t>
-
-	m_iUSE_FINISH_TEXT_CALLBACK = getDefineINT("USE_FINISH_TEXT_CALLBACK");
-	m_iUSE_CANNOT_FOUND_CITY_CALLBACK = getDefineINT("USE_CANNOT_FOUND_CITY_CALLBACK");
-	m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK = getDefineINT("USE_CAN_FOUND_CITIES_ON_WATER_CALLBACK");
-	m_iUSE_IS_PLAYER_RESEARCH_CALLBACK = getDefineINT("USE_IS_PLAYER_RESEARCH_CALLBACK");
-	m_iUSE_CAN_RESEARCH_CALLBACK = getDefineINT("USE_CAN_RESEARCH_CALLBACK");
-	m_iUSE_CANNOT_DO_CIVIC_CALLBACK = getDefineINT("USE_CANNOT_DO_CIVIC_CALLBACK");
-	m_iUSE_CAN_DO_CIVIC_CALLBACK = getDefineINT("USE_CAN_DO_CIVIC_CALLBACK");
-	m_iUSE_CANNOT_CONSTRUCT_CALLBACK = getDefineINT("USE_CANNOT_CONSTRUCT_CALLBACK");
-	m_iUSE_CAN_CONSTRUCT_CALLBACK = getDefineINT("USE_CAN_CONSTRUCT_CALLBACK");
-	m_iUSE_CAN_DECLARE_WAR_CALLBACK = getDefineINT("USE_CAN_DECLARE_WAR_CALLBACK");
-	m_iUSE_CANNOT_RESEARCH_CALLBACK = getDefineINT("USE_CANNOT_RESEARCH_CALLBACK");
-	m_iUSE_GET_UNIT_COST_MOD_CALLBACK = getDefineINT("USE_GET_UNIT_COST_MOD_CALLBACK");
-	m_iUSE_GET_BUILDING_COST_MOD_CALLBACK = getDefineINT("USE_GET_BUILDING_COST_MOD_CALLBACK");
-	m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK = getDefineINT("USE_GET_CITY_FOUND_VALUE_CALLBACK");
-	m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK = getDefineINT("USE_CANNOT_HANDLE_ACTION_CALLBACK");
-	m_iUSE_CAN_BUILD_CALLBACK = getDefineINT("USE_CAN_BUILD_CALLBACK");
-	m_iUSE_CANNOT_TRAIN_CALLBACK = getDefineINT("USE_CANNOT_TRAIN_CALLBACK");
-	m_iUSE_CAN_TRAIN_CALLBACK = getDefineINT("USE_CAN_TRAIN_CALLBACK");
-	m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK = getDefineINT("USE_UNIT_CANNOT_MOVE_INTO_CALLBACK");
-	/*  advc.003c, advc.001: Had said "USE_USE...".
-		The variable name is still wrong, but that doesn't hurt. */
-	m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK = getDefineINT("USE_CANNOT_SPREAD_RELIGION_CALLBACK");
-	m_iUSE_ON_UNIT_SET_XY_CALLBACK = getDefineINT("USE_ON_UNIT_SET_XY_CALLBACK");
-	m_iUSE_ON_UNIT_SELECTED_CALLBACK = getDefineINT("USE_ON_UNIT_SELECTED_CALLBACK");
-	m_iUSE_ON_UPDATE_CALLBACK = getDefineINT("USE_ON_UPDATE_CALLBACK");
-	m_iUSE_ON_UNIT_CREATED_CALLBACK = getDefineINT("USE_ON_UNIT_CREATED_CALLBACK");
-	m_iUSE_ON_UNIT_LOST_CALLBACK = getDefineINT("USE_ON_UNIT_LOST_CALLBACK");
-	// K-Mod
-	m_bUSE_AI_UNIT_UPDATE_CALLBACK = getDefineINT("USE_AI_UNIT_UPDATE_CALLBACK") != 0;
-	m_bUSE_AI_DO_DIPLO_CALLBACK = getDefineINT("USE_AI_DO_DIPLO_CALLBACK") != 0;
-	m_bUSE_AI_CHOOSE_PRODUCTION_CALLBACK = getDefineINT("USE_AI_CHOOSE_PRODUCTION_CALLBACK") != 0;
-	m_bUSE_AI_DO_WAR_CALLBACK = getDefineINT("USE_AI_DO_WAR_CALLBACK") != 0;
-	m_bUSE_AI_CHOOSE_TECH_CALLBACK = getDefineINT("USE_AI_CHOOSE_TECH_CALLBACK") != 0;
-
-	m_bUSE_DO_GROWTH_CALLBACK = getDefineINT("USE_DO_GROWTH_CALLBACK") != 0;
-	m_bUSE_DO_CULTURE_CALLBACK = getDefineINT("USE_DO_CULTURE_CALLBACK") != 0;
-	m_bUSE_DO_PLOT_CULTURE_CALLBACK = getDefineINT("USE_DO_PLOT_CULTURE_CALLBACK") != 0;
-	m_bUSE_DO_PRODUCTION_CALLBACK = getDefineINT("USE_DO_PRODUCTION_CALLBACK") != 0;
-	m_bUSE_DO_RELIGION_CALLBACK = getDefineINT("USE_DO_RELIGION_CALLBACK") != 0;
-	m_bUSE_DO_GREAT_PEOPLE_CALLBACK = getDefineINT("USE_DO_GREAT_PEOPLE_CALLBACK") != 0;
-	m_bUSE_DO_MELTDOWN_CALLBACK = getDefineINT("USE_DO_MELTDOWN_CALLBACK") != 0;
-
-	m_bUSE_DO_PILLAGE_GOLD_CALLBACK = getDefineINT("USE_DO_PILLAGE_GOLD_CALLBACK") != 0;
-	m_bUSE_GET_EXPERIENCE_NEEDED_CALLBACK = getDefineINT("USE_GET_EXPERIENCE_NEEDED_CALLBACK") != 0;
-	m_bUSE_UNIT_UPGRADE_PRICE_CALLBACK = getDefineINT("USE_UNIT_UPGRADE_PRICE_CALLBACK") != 0;
-	m_bUSE_DO_COMBAT_CALLBACK = getDefineINT("USE_DO_COMBAT_CALLBACK") != 0;
-	// K-Mod end
 }
 
 void CvGlobals::cacheGlobalFloats()
@@ -891,6 +820,11 @@ void CvGlobals::cacheGlobals()
 	cacheGlobalInts();
 	cacheGlobalFloats();
 	// Strings: Mostly can't cache these here (too early) // </advc.003t>
+	// <advc.003y>
+	// New class to handle Python callback defines
+	m_pPythonCaller = new CvPythonCaller();
+	// Some of the callback defines are handled by CvDllPythonEvents
+	CvEventReporter::getInstance().initPythonCallbackGuards();
 }
 
 // <advc.003b>
@@ -1016,129 +950,9 @@ int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const
 	return getDefineINT(NUM_CORPORATION_PREREQ_BONUSES);
 }
 
-int CvGlobals::getUSE_CANNOT_FOUND_CITY_CALLBACK() const
+int CvGlobals::getUSE_FINISH_TEXT_CALLBACK()
 {
-	return m_iUSE_CANNOT_FOUND_CITY_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK() const
-{
-	return m_iUSE_CAN_FOUND_CITIES_ON_WATER_CALLBACK;
-}
-
-int CvGlobals::getUSE_IS_PLAYER_RESEARCH_CALLBACK() const
-{
-	return m_iUSE_IS_PLAYER_RESEARCH_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_RESEARCH_CALLBACK() const
-{
-	return m_iUSE_CAN_RESEARCH_CALLBACK;
-}
-
-int CvGlobals::getUSE_CANNOT_DO_CIVIC_CALLBACK() const
-{
-	return m_iUSE_CANNOT_DO_CIVIC_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_DO_CIVIC_CALLBACK() const
-{
-	return m_iUSE_CAN_DO_CIVIC_CALLBACK;
-}
-
-int CvGlobals::getUSE_CANNOT_CONSTRUCT_CALLBACK() const
-{
-	return m_iUSE_CANNOT_CONSTRUCT_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_CONSTRUCT_CALLBACK() const
-{
-	return m_iUSE_CAN_CONSTRUCT_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_DECLARE_WAR_CALLBACK() const
-{
-	return m_iUSE_CAN_DECLARE_WAR_CALLBACK;
-}
-
-int CvGlobals::getUSE_CANNOT_RESEARCH_CALLBACK() const
-{
-	return m_iUSE_CANNOT_RESEARCH_CALLBACK;
-}
-
-int CvGlobals::getUSE_GET_UNIT_COST_MOD_CALLBACK() const
-{
-	return m_iUSE_GET_UNIT_COST_MOD_CALLBACK;
-}
-
-int CvGlobals::getUSE_GET_BUILDING_COST_MOD_CALLBACK() const
-{
-	return m_iUSE_GET_BUILDING_COST_MOD_CALLBACK;
-}
-
-int CvGlobals::getUSE_GET_CITY_FOUND_VALUE_CALLBACK() const
-{
-	return m_iUSE_GET_CITY_FOUND_VALUE_CALLBACK;
-}
-
-int CvGlobals::getUSE_CANNOT_HANDLE_ACTION_CALLBACK() const
-{
-	return m_iUSE_CANNOT_HANDLE_ACTION_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_BUILD_CALLBACK() const
-{
-	return m_iUSE_CAN_BUILD_CALLBACK;
-}
-
-int CvGlobals::getUSE_CANNOT_TRAIN_CALLBACK() const
-{
-	return m_iUSE_CANNOT_TRAIN_CALLBACK;
-}
-
-int CvGlobals::getUSE_CAN_TRAIN_CALLBACK() const
-{
-	return m_iUSE_CAN_TRAIN_CALLBACK;
-}
-
-int CvGlobals::getUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK() const
-{
-	return m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK;
-}
-
-int CvGlobals::getUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK() const
-{
-	return m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK;
-}
-
-int CvGlobals::getUSE_FINISH_TEXT_CALLBACK() const
-{
-	return m_iUSE_FINISH_TEXT_CALLBACK;
-}
-
-int CvGlobals::getUSE_ON_UNIT_SET_XY_CALLBACK() const
-{
-	return m_iUSE_ON_UNIT_SET_XY_CALLBACK;
-}
-
-int CvGlobals::getUSE_ON_UNIT_SELECTED_CALLBACK() const
-{
-	return m_iUSE_ON_UNIT_SELECTED_CALLBACK;
-}
-
-int CvGlobals::getUSE_ON_UPDATE_CALLBACK() const
-{
-	return m_iUSE_ON_UPDATE_CALLBACK;
-}
-
-int CvGlobals::getUSE_ON_UNIT_CREATED_CALLBACK() const
-{
-	return m_iUSE_ON_UNIT_CREATED_CALLBACK;
-}
-
-int CvGlobals::getUSE_ON_UNIT_LOST_CALLBACK() const
-{
-	return m_iUSE_ON_UNIT_LOST_CALLBACK;
+	return static_cast<int>(getPythonCaller()->isUseFinishTextCallback()); // advc.003y
 }
 
 void CvGlobals::setDLLIFace(CvDLLUtilityIFaceBase* pDll)

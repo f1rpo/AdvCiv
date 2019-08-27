@@ -29,6 +29,7 @@ public:
 	CvEventReporter(); // advc.106l: Should perhaps be private, but that might break sth. in the EXE.
 	DllExport static CvEventReporter& getInstance();		// singleton accessor
 	DllExport void resetStatistics();
+	void initPythonCallbackGuards(); //n advc.003y
 
 	DllExport bool mouseEvent(int evt, int iCursorX, int iCursorY, bool bInterfaceConsumed=false);
 	DllExport bool kbdEvent(int evt, int key, int iCursorX, int iCursorY);

@@ -34,5 +34,6 @@ int getDefineINT(const char* xmlKey, int iDefault = 0);*/
 	bWarn added */
 bool getBugOptionBOOL(const char* id, bool bDefault = true, bool bWarn = true);
 int getBugOptionINT(const char* id, int iDefault = 0, bool bWarn = true);
+CvString getUserDirPath(); // advc.003d
 
 #endif

@@ -58,8 +58,6 @@ DllExport CvPlayerAI& CvPlayerAI::getPlayerNonInl(PlayerTypes ePlayer)
 	return getPlayer(ePlayer);
 }
 
-// Public Functions...
-
 
 CvPlayerAI::CvPlayerAI()
 {
@@ -143,7 +141,7 @@ CvPlayerAI::~CvPlayerAI()
 
 void CvPlayerAI::AI_init()
 {
-	AI_reset(false);
+	AI_reset(false); // Reset serialized data
 
 	// advc.003: Caller should guarantee this
 	FAssert(GC.getInitCore().getSlotStatus(getID()) == SS_TAKEN || GC.getInitCore().getSlotStatus(getID()) == SS_COMPUTER);
@@ -980,49 +978,41 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc) {  // advc.003: refacto
 	FOR_EACH_AREA_VAR(pLoopArea)
 		pLoopArea->setBestFoundValue(getID(), 0);
 
-	if(bStartingLoc) {
+	if(bStartingLoc)
+	{
 		for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
 			GC.getMap().plotByIndex(iI)->setFoundValue(getID(), -1);
 		return;
 	}
-
 	CvFoundSettings kFoundSet(*this, false); // K-Mod
 	AI_invalidateCitySites(/*AI_getMinFoundValue()*/-1); // K-Mod
 	// <advc.108>
 	int iCities = getNumCities();
 	CvPlot const* pStartPlot = getStartingPlot(); // </advc.108>
-	for(int iI = 0; iI < GC.getMap().numPlots(); iI++) {
+	for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	{
 		CvPlot& kLoopPlot = *GC.getMap().plotByIndex(iI);
-		if(!kLoopPlot.isRevealed(getTeam(), false)) {
-				//&& !AI_isPrimaryArea(kLoopPlot.area()))
-			/*  K-Mod: Clear out any junk found values.
-				(I've seen legacy AI code which makes use of the found values of unrevealed plots.
-				It shouldn't use those values at all, but if it does use them,
-				I'd prefer them not to be junk!) */
+		if(!kLoopPlot.isRevealed(getTeam(), false))
+			//&& !AI_isPrimaryArea(kLoopPlot.area()))
+		/*  K-Mod: Clear out any junk found values.
+			(I've seen legacy AI code which makes use of the found values of unrevealed plots.
+			It shouldn't use those values at all, but if it does use them,
+			I'd prefer them not to be junk!) */
+		{
 			kLoopPlot.setFoundValue(getID(), 0);
 			continue;
 		}
-		long iValue = -1;
-		if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK()) {
-			CyArgsList argsList;
-			argsList.add((int)getID());
-			argsList.add(kLoopPlot.getX()); argsList.add(kLoopPlot.getY());
-			gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &iValue);
-		}
-		if(iValue == -1) {
-			// K-Mod:
+		short iValue = GC.getPythonCaller()->AI_foundValue(getID(), kLoopPlot);
+		if(iValue == -1)
+		{	// K-Mod:
 			iValue = AI_foundValue_bulk(kLoopPlot.getX(), kLoopPlot.getY(), kFoundSet);
 			// <advc.108> Slight preference for the assigned starting plot
 			if(iCities <= 0 && pStartPlot != NULL && &kLoopPlot == pStartPlot &&
 					// Unless it doesn't have fresh water
 					kLoopPlot.isFreshWater())
-				iValue = ::round(1.05 * iValue); // </advc.108>
+				iValue = ::intToShort(::round(1.05 * iValue)); // </advc.108>
 		}
-		// K-Mod.
-		FAssertMsg(iValue <= MAX_SHORT, "If this assert fails, the foundValue calculation may need to be changed.");
-		iValue = std::min((long)MAX_SHORT, iValue);
-		// K-Mod end
-		kLoopPlot.setFoundValue(getID(), (short)iValue);
+		kLoopPlot.setFoundValue(getID(), iValue);
 		if(iValue > kLoopPlot.area()->getBestFoundValue(getID()))
 			kLoopPlot.area()->setBestFoundValue(getID(), iValue);
 	}
@@ -3197,7 +3187,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		FeatureTypes const eFeature = pLoopPlot->getFeatureType();
 		BonusTypes const eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
 				// advc.108: Don't factor in unrevealed bonuses
-				&& g.getNormalizationLevel() > 1)
+				&& g.getStartingPlotNormalizationLevel() > 1)
 				? NO_TEAM : getTeam());
 		CvTeamAI const& kTeam = GET_TEAM(getTeam());
 		// K-Mod
@@ -4132,8 +4122,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		if (!bNormalize)
 		{
 			int iMinDistanceFactor = MAX_INT;
-			int iMinRange = startingPlotRange();
-
+			int iMinRange = //startingPlotRange();
+				g.getStartingPlotRange(); // advc.003b: Now precomputed
 			//iValue *= 100; // (disabled by K-Mod to prevent int overflow)
 			for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 			{
@@ -4531,12 +4521,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// advc.003: BtS code (iDifferentAreaTile) deleted
 	// disabled by K-Mod. This kind of stuff is already taken into account.
 
-	// K-Mod. Note: iValue is an int, but this function only returns a short - so we need to be careful.
+	// K-Mod: iValue is an int, but this function only returns a short - so we need to be careful.
 	FAssert(iValue >= 0);
-	FAssert(iValue < MAX_SHORT);
-	iValue = std::min(iValue, MAX_SHORT);
-	// K-Mod end
-	return std::max(1, iValue);
+	//FAssert(iValue < MAX_SHORT); iValue = std::min(iValue, MAX_SHORT); // advc.03: Moved to CvGameCoreUtils.h
+	return std::max<short>(1, ::intToShort(iValue));
 }
 
 
@@ -8469,30 +8457,15 @@ int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 
 void CvPlayerAI::AI_chooseFreeTech()
 {
-	TechTypes eBestTech = NO_TECH;
-
 	clearResearchQueue();
 
-	if (GC.getUSE_AI_CHOOSE_TECH_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyArgsList argsList;
-		long lResult;
-		argsList.add(getID());
-		argsList.add(true);
-		lResult = -1;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_chooseTech", argsList.makeFunctionArgs(), &lResult);
-		eBestTech = ((TechTypes)lResult);
-	}
+	TechTypes eBestTech = GC.getPythonCaller()->AI_chooseTech(getID(), true); 
 
 	if (eBestTech == NO_TECH)
-	{
 		eBestTech = AI_bestTech(1, true);
-	}
 
 	if (eBestTech != NO_TECH)
-	{
 		GET_TEAM(getTeam()).setHasTech(eBestTech, true, getID(), true, true);
-	}
 }
 
 
@@ -8519,30 +8492,23 @@ void CvPlayerAI::AI_chooseResearch()
 		}
 	}
 
-	if (getCurrentResearch() == NO_TECH)
-	{
-		TechTypes eBestTech = NO_TECH; // K-Mod
-		if (GC.getUSE_AI_CHOOSE_TECH_CALLBACK()) { // K-Mod. block unused python callbacks
-			CyArgsList argsList; long lResult;
-			argsList.add(getID()); argsList.add(false); lResult = -1;
-			gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_chooseTech", argsList.makeFunctionArgs(), &lResult);
-			eBestTech = ((TechTypes)lResult);
-		}
+	if (getCurrentResearch() != NO_TECH)
+		return;
 
-		if (eBestTech == NO_TECH)
-		{	// <k146>
-			int iResearchDepth = (isHuman() || isBarbarian() ||
-					AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
-					AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY))
-				? 1 : 3;
-			eBestTech = AI_bestTech(iResearchDepth); // </k146>
-		}
+	TechTypes eBestTech = GC.getPythonCaller()->AI_chooseTech(getID(), false);
 
-		if (eBestTech != NO_TECH)
-		{	/*  advc.004x: Don't kill popup when AI chooses tech for human
-				(instead prod the human each turn to pick a tech him/herself) */
-			pushResearch(eBestTech, false, false);
-		}
+	if (eBestTech == NO_TECH)
+	{	// <k146>
+		int iResearchDepth = (isHuman() || isBarbarian() ||
+				AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
+				AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY))
+			? 1 : 3;
+		eBestTech = AI_bestTech(iResearchDepth); // </k146>
+	}
+	if (eBestTech != NO_TECH)
+	{	/*  advc.004x: Don't kill popup when AI chooses tech for human
+			(instead prod the human each turn to pick a tech him/herself) */
+		pushResearch(eBestTech, false, false);
 	}
 }
 
@@ -18440,7 +18406,6 @@ int CvPlayerAI::AI_calculateGoldenAgeValue(bool bConsiderRevolution) const
 	return iValue;
 }
 
-// Protected Functions...
 
 void CvPlayerAI::AI_doCounter()  // advc.003: style changes
 {	// <advc.003n>
@@ -19669,15 +19634,9 @@ void CvPlayerAI::AI_doDiplo()  // advc.003: style changes
 	FAssert(!isMinorCiv());
 	FAssert(!isBarbarian());
 
-	// allow python to handle it
-	if(GC.getUSE_AI_DO_DIPLO_CALLBACK()) { // K-Mod. block unused python callbacks
-		CyArgsList argsList;
-		argsList.add(getID());
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_doDiplo", argsList.makeFunctionArgs(), &lResult);
-		if(lResult == 1)
-			return;
-	}
+	if (GC.getPythonCaller()->AI_doDiplo(getID()))
+		return;
+
 	iGoldValuePercent = AI_goldTradeValuePercent();
 
 	CvGame& g = GC.getGame();
@@ -26220,49 +26179,30 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 }
 
 
-void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const
+void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const  // advc.003: some style changes
 {
 	for (int iLoopX = -iOuterRadius; iLoopX <= iOuterRadius; iLoopX++)
 	{
 		for (int iLoopY = -iOuterRadius; iLoopY <= iOuterRadius; iLoopY++)
 		{
 			CvPlot* pLoopPlot = plotXY(iX, iY, iLoopX, iLoopY);
-			if (NULL != pLoopPlot && !AI_isPlotCitySite(*pLoopPlot))
+			if (pLoopPlot == NULL || AI_isPlotCitySite(*pLoopPlot))
+				continue;
+
+			if (::stepDistance(0, 0, iLoopX, iLoopY) <= iInnerRadius)
 			{
-				if (::stepDistance(0, 0, iLoopX, iLoopY) <= iInnerRadius)
-				{
-					if (!(iLoopX == 0 && iLoopY == 0))
-					{
-						pLoopPlot->setFoundValue(getID(), 0);
-					}
-				}
-				else
-				{
-					if (pLoopPlot != NULL && pLoopPlot->isRevealed(getTeam(), false))
-					{
-						long lResult=-1;
-						if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK()) {
-							CyArgsList argsList;
-							argsList.add((int)getID());
-							argsList.add(pLoopPlot->getX());
-							argsList.add(pLoopPlot->getY());
-							gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &lResult);
-						}
-						short iValue; // K-Mod
-						if (lResult == -1)
-							iValue = AI_foundValue(pLoopPlot->getX(), pLoopPlot->getY());
-						else { //iValue = lResult;
-							iValue = (short)std::min((long)MAX_SHORT, lResult); // K-Mod
-						}
-
-						pLoopPlot->setFoundValue(getID(), iValue);
-
-						if (iValue > pLoopPlot->area()->getBestFoundValue(getID()))
-						{
-							pLoopPlot->area()->setBestFoundValue(getID(), iValue);
-						}
-					}
-				}
+				if (iLoopX != 0 || iLoopY != 0)
+					pLoopPlot->setFoundValue(getID(), 0);
+				continue;
+			}
+			if (pLoopPlot != NULL && pLoopPlot->isRevealed(getTeam(), false))
+			{
+				short iValue = GC.getPythonCaller()->AI_foundValue(getID(), *pLoopPlot);
+				if (iValue == -1)
+					iValue = AI_foundValue(pLoopPlot->getX(), pLoopPlot->getY());
+				pLoopPlot->setFoundValue(getID(), iValue);
+				if (iValue > pLoopPlot->area()->getBestFoundValue(getID()))
+					pLoopPlot->area()->setBestFoundValue(getID(), iValue);
 			}
 		}
 	}

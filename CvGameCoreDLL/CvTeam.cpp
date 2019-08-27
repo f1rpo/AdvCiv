@@ -17,8 +17,6 @@
 #include "BBAI_Defines.h"
 #include "CvBugOptions.h" // advc.071
 
-// Public Functions...
-
 // <dlph.26> "Initializations of static variables."
 std::queue<TeamTypes> CvTeam::attacking_queue;
 std::queue<TeamTypes> CvTeam::defending_queue;
@@ -102,15 +100,8 @@ CvTeam::~CvTeam()
 
 void CvTeam::init(TeamTypes eID)
 {
-	//--------------------------------
-	// Init saved data
-	reset(eID);
+	reset(eID); // Reset serialized data
 
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other game data
 	AI_init();
 
 	// BETTER_BTS_AI_MOD 12/30/08 jdog5000
@@ -163,7 +154,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 {
 	int iI, iJ;
 
-	uninit(); // Uninit class
+	uninit();
 
 	m_iNumMembers = 0;
 	m_iAliveCount = 0;
@@ -1296,51 +1287,13 @@ bool CvTeam::canDeclareWar(TeamTypes eTeam) const
 	return true;
 }
 
-// bbai
+// bbai (advc.003: refactored)
 bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 {
-	if (eTeam == getID())
-	{
-		return false;
-	}
-
-	if (!(isAlive()) || !(GET_TEAM(eTeam).isAlive()))
-	{
-		return false;
-	}
-
-	if (isAtWar(eTeam))
-	{
-		return false;
-	}
-
-	if (!isHasMet(eTeam))
-	{
-		return false;
-	}
-
-	if (!canChangeWarPeace(eTeam, true))
-	{
-		return false;
-	}
-
-	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE))
-	{
-		return false;
-	}
-
-	if(GC.getUSE_CAN_DECLARE_WAR_CALLBACK())
-	{
-		CyArgsList argsList;
-		argsList.add(getID());	// Team ID
-		argsList.add(eTeam);	// pass in city class
-		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "canDeclareWar", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 0)
-			return false;
-	}
-
-	return true;
+	return (eTeam != getID() && isAlive() && GET_TEAM(eTeam).isAlive() &&
+			!isAtWar(eTeam) && isHasMet(eTeam) && canChangeWarPeace(eTeam, true) &&
+			!GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) &&
+			GC.getPythonCaller()->canDeclareWar(getID(), eTeam));
 } // bbai end
 
 // K-Mod note: I've shuffled things around a bit in this function.
@@ -1360,10 +1313,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	if (isAtWar(eTeam))
 		return;
 
-	if (gTeamLogLevel >= 1)
-	{
-		logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam);
-	}
+	if (gTeamLogLevel >= 1) logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTeam);
 
 	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
@@ -5828,9 +5778,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		return;
 
 	if (ePlayer == NO_PLAYER)
-	{
 		ePlayer = getLeaderID();
-	}
 
 	FAssert(eIndex >= 0);
 	FAssert(eIndex < GC.getNumTechInfos());
@@ -5842,62 +5790,18 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 	if (GC.getTechInfo(eIndex).isRepeat())
 	{
 		m_paiTechCount[eIndex]++;
-
 		setResearchProgress(eIndex, 0, ePlayer);
-
-		// report event to Python
 		CvEventReporter::getInstance().techAcquired(eIndex, getID(), ePlayer, bAnnounce && 1 == m_paiTechCount[eIndex]);
 
-		if (1 == m_paiTechCount[eIndex])
-		{
-			if (bAnnounce)
-			{
-				if (g.isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
-				{
-					announceTechToPlayers(eIndex, /* advc.156: */ ePlayer);
-				}
-			}
-		}
+		if (m_paiTechCount[eIndex] == 1 && bAnnounce &&
+				g.isFinalInitialized() && !gDLL->GetWorldBuilderMode())
+			announceTechToPlayers(eIndex, /* advc.156: */ ePlayer);
 	}
 	else
 	{
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
-		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-			if (pLoopPlot->getBonusType() != NO_BONUS)
-			{
-				if (pLoopPlot->getTeam() == getID())
-				{
-					if ((GC.getBonusInfo(pLoopPlot->getBonusType()).getTechReveal() == eIndex) ||
-						(GC.getBonusInfo(pLoopPlot->getBonusType()).getTechCityTrade() == eIndex) ||
-						(GC.getBonusInfo(pLoopPlot->getBonusType()).getTechObsolete() == eIndex))
-					{
-						pLoopPlot->updatePlotGroupBonus(false);
-					}
-				}
-			}
-		}
-
+		updatePlotGroupBonus(eIndex, false); // advc.003: Code moved into auxiliary function
 		m_pabHasTech[eIndex] = bNewValue;
-
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
-		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-			if (pLoopPlot->getBonusType() != NO_BONUS)
-			{
-				if (pLoopPlot->getTeam() == getID())
-				{
-					if ((GC.getBonusInfo(pLoopPlot->getBonusType()).getTechReveal() == eIndex) ||
-						(GC.getBonusInfo(pLoopPlot->getBonusType()).getTechCityTrade() == eIndex) ||
-						(GC.getBonusInfo(pLoopPlot->getBonusType()).getTechObsolete() == eIndex))
-					{
-						pLoopPlot->updatePlotGroupBonus(true);
-					}
-				}
-			}
-		}
+		updatePlotGroupBonus(eIndex, true);
 	}
 
 	processTech(eIndex, ((bNewValue) ? 1 : -1));
@@ -5937,131 +5841,91 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		bool bReligionFounded = false;
 		bool bFirstBonus = false;
 		bool firstToDiscover = (g.countKnownTechNumTeams(eIndex) == 1); // advc.106
-		if (bFirst)
-		{
-			if (firstToDiscover)
+		if (bFirst && firstToDiscover &&
+			!GC.getPythonCaller()->doOrganizationTech(getID(), ePlayer, eIndex))
+		{	// advc.003: style changes in this block
+			for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 			{
-				CyArgsList argsList;
-				argsList.add(getID());
-				argsList.add(ePlayer);
-				argsList.add(eIndex);
-				argsList.add(bFirst);
-				long lResult=0;
-				gDLL->getPythonIFace()->callFunction(PYGameModule, "doHolyCityTech", argsList.makeFunctionArgs(), &lResult);
-				if (lResult != 1)
+				ReligionTypes eReligion = (ReligionTypes)iI;
+				if (GC.getReligionInfo(eReligion).getTechPrereq() != eIndex)
+					continue;
+
+				int iBestValue = MAX_INT;
+				PlayerTypes eBestPlayer = NO_PLAYER;
+				for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
 				{
-					for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+					CvPlayer const& kMember = GET_PLAYER((PlayerTypes)iJ);
+					if (!kMember.isAlive() || kMember.getTeam() != getID())
+						continue;
+
+					int iValue = 10;
+					iValue += g.getSorenRandNum(10, "Found Religion (Player)");
+					for (int iK = 0; iK < GC.getNumReligionInfos(); iK++)
+						iValue += kMember.getHasReligionCount((ReligionTypes)iK) * 10;
+
+					if (kMember.getCurrentResearch() != eIndex)
+						iValue *= 10;
+
+					if (iValue < iBestValue)
 					{
-						if (GC.getReligionInfo((ReligionTypes)iI).getTechPrereq() == eIndex)
-						{
-							int iBestValue = MAX_INT;
-							PlayerTypes eBestPlayer = NO_PLAYER;
-
-							for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
-							{
-								if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-								{
-									if (GET_PLAYER((PlayerTypes)iJ).getTeam() == getID())
-									{
-										int iValue = 10;
-
-										iValue += g.getSorenRandNum(10, "Found Religion (Player)");
-
-										for (int iK = 0; iK < GC.getNumReligionInfos(); iK++)
-										{
-											iValue += (GET_PLAYER((PlayerTypes)iJ).getHasReligionCount((ReligionTypes)iK) * 10);
-										}
-
-										if (GET_PLAYER((PlayerTypes)iJ).getCurrentResearch() != eIndex)
-										{
-											iValue *= 10;
-										}
-
-										if (iValue < iBestValue)
-										{
-											iBestValue = iValue;
-											eBestPlayer = ((PlayerTypes)iJ);
-										}
-									}
-								}
-							}
-
-							if (eBestPlayer != NO_PLAYER)
-							{
-								g.setReligionSlotTaken((ReligionTypes)iI, true);
-
-								if (g.isOption(GAMEOPTION_PICK_RELIGION))
-								{
-									if (GET_PLAYER(eBestPlayer).isHuman())
-									{
-										CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, iI);
-										if (NULL != pInfo)
-										{
-											gDLL->getInterfaceIFace()->addPopup(pInfo, eBestPlayer);
-										}
-									}
-									else
-									{
-										ReligionTypes eReligion = GET_PLAYER(eBestPlayer).AI_chooseReligion();
-										if (NO_RELIGION != eReligion)
-										{
-											GET_PLAYER(eBestPlayer).foundReligion(eReligion, (ReligionTypes)iI, true);
-										}
-									}
-								}
-								else
-								{
-									GET_PLAYER(eBestPlayer).foundReligion((ReligionTypes)iI, (ReligionTypes)iI, true);
-								}
-
-								bReligionFounded = true;
-								bFirstBonus = true;
-							}
-						}
-					}
-
-					for (int iI = 0; iI < GC.getNumCorporationInfos(); ++iI)
-					{
-						if (GC.getCorporationInfo((CorporationTypes)iI).getTechPrereq() == eIndex)
-						{
-							if (!(g.isCorporationFounded((CorporationTypes)iI)))
-							{
-								int iBestValue = MAX_INT;
-								PlayerTypes eBestPlayer = NO_PLAYER;
-
-								for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
-								{
-									if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-									{
-										if (GET_PLAYER((PlayerTypes)iJ).getTeam() == getID())
-										{
-											int iValue = 10;
-
-											iValue += g.getSorenRandNum(10, "Found Corporation (Player)");
-
-											if (GET_PLAYER((PlayerTypes)iJ).getCurrentResearch() != eIndex)
-											{
-												iValue *= 10;
-											}
-
-											if (iValue < iBestValue)
-											{
-												iBestValue = iValue;
-												eBestPlayer = ((PlayerTypes)iJ);
-											}
-										}
-									}
-								}
-
-								if (eBestPlayer != NO_PLAYER)
-								{
-									GET_PLAYER(eBestPlayer).foundCorporation((CorporationTypes)iI);
-									bFirstBonus = true;
-								}
-							}
-						}
+						iBestValue = iValue;
+						eBestPlayer = kMember.getID();
 					}
 				}
+				if (eBestPlayer == NO_PLAYER)
+					continue;
+
+				g.setReligionSlotTaken(eReligion, true);
+				if (g.isOption(GAMEOPTION_PICK_RELIGION))
+				{
+					if (GET_PLAYER(eBestPlayer).isHuman())
+					{
+						CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FOUND_RELIGION, eReligion);
+						if (pInfo != NULL)
+							gDLL->getInterfaceIFace()->addPopup(pInfo, eBestPlayer);
+					}
+					else
+					{
+						ReligionTypes eFoundReligion = GET_PLAYER(eBestPlayer).AI_chooseReligion();
+						if (eFoundReligion != NO_RELIGION)
+							GET_PLAYER(eBestPlayer).foundReligion(eFoundReligion, eReligion, true);
+					}
+				}
+				else GET_PLAYER(eBestPlayer).foundReligion(eReligion, eReligion, true);
+				bReligionFounded = true;
+				bFirstBonus = true;
+			}
+			for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
+			{
+				CorporationTypes eCorp = (CorporationTypes)iI;
+				if (GC.getCorporationInfo(eCorp).getTechPrereq() != eIndex ||
+						g.isCorporationFounded(eCorp))
+					continue;
+				/*  advc (comment): From here on unused and thus not properly tested;
+					see comment in CvGame::doHeadquarters. */
+				int iBestValue = MAX_INT;
+				PlayerTypes eBestPlayer = NO_PLAYER;
+				for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
+				{
+					CvPlayer const& kMember = GET_PLAYER((PlayerTypes)iJ);
+					if (!kMember.isAlive() || kMember.getTeam() != getID())
+						continue;
+
+					int iValue = 10;
+					iValue += g.getSorenRandNum(10, "Found Corporation (Player)");
+					if (kMember.getCurrentResearch() != eIndex)
+						iValue *= 10;
+					if (iValue < iBestValue)
+					{
+						iBestValue = iValue;
+						eBestPlayer = kMember.getID();
+					}
+				}
+				if (eBestPlayer == NO_PLAYER)
+					continue;
+
+				GET_PLAYER(eBestPlayer).foundCorporation(eCorp);
+				bFirstBonus = true;
 			}
 		}
 
@@ -6850,6 +6714,24 @@ void CvTeam::updateTechShare()
 	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		updateTechShare((TechTypes)iI);
+	}
+}
+
+// advc.003: Duplicate code cut from setHasTech
+void CvTeam::updatePlotGroupBonus(TechTypes eTech, bool bAdd)
+{
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	{
+		CvPlot& kPlot = *GC.getMap().plotByIndex(i);
+		if (kPlot.getTeam() != getID())
+			continue;
+		BonusTypes eBonus = kPlot.getBonusType();
+		if (eBonus == NO_BONUS)
+			continue;
+		CvBonusInfo const& kBonus = GC.getBonusInfo(eBonus);
+		if (kBonus.getTechReveal() == eTech || kBonus.getTechCityTrade() == eTech ||
+				kBonus.getTechObsolete() == eTech)
+			kPlot.updatePlotGroupBonus(bAdd);
 	}
 }
 
