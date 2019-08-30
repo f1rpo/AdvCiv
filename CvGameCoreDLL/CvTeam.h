@@ -254,12 +254,12 @@ public:
 			FirstContactData* pData = NULL); // advc.071
 	// K-Mod
 	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen[eIndex]; };
-	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen[eIndex] = true; };
-	// K-Mod end
-
-	DllExport bool isAtWar(TeamTypes eIndex) const;																			// Exposed to Python
-	// <advc.134a> Alias that the EXE can't (directly) call
-	inline bool isAtWarInternal(TeamTypes eIndex) const {
+	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen[eIndex] = true; }; // K-Mod end
+	// <advc.134a>
+	bool isAtWarExternal(TeamTypes eIndex) const; // Exported through .def file
+	inline bool isAtWar(TeamTypes eIndex) const																	// Exposed to Python
+	{
+		FASSERT_BOUNDS(0, MAX_TEAMS, eIndex, "CvTeam::isAtWar");
 		return m_abAtWar[eIndex];
 	} // </advc.134a>
 	void setAtWar(TeamTypes eIndex, bool bNewValue);

@@ -1857,7 +1857,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bTrade)
 	{
 		// <advc.122>
-		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+		for(int i = 0; i < NUM_CITY_PLOTS; i++)
+		{
 			CvPlot* pp = plotCity(
 					pCityPlot->getX(), pCityPlot->getY(), i);
 			if(pp == NULL) continue; CvPlot& p = *pp;
@@ -1882,21 +1883,25 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			}
 		}*/
 		// <advc.123d>
-		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+		{
 			CvTeam const& t = GET_TEAM((TeamTypes)i);
 			if(!t.isAlive() || t.isMinorCiv() || t.getID() == TEAMID(eOldOwner) ||
 					t.getID() == getTeam() || !t.isAtWar(TEAMID(eOldOwner)))
 				continue;
 			bool bEverOwned = false;
-			for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+			for(int j = 0; j < MAX_CIV_PLAYERS; j++)
+			{
 				CvPlayer const& kMember = GET_PLAYER((PlayerTypes)j);
 				if(kMember.isAlive() && kMember.getTeam() == t.getID() &&
-						abEverOwned[kMember.getID()]) {
+						abEverOwned[kMember.getID()])
+				{
 					bEverOwned = true;
 					break;
 				}
 			}
-			if(bEverOwned) {
+			if(bEverOwned)
+			{
 				TEAMREF(eOldOwner).AI_changeWarSuccess(t.getID(),
 						-std::min(GC.getWAR_SUCCESS_CITY_CAPTURING(),
 						TEAMREF(eOldOwner).AI_getWarSuccess(t.getID())));
@@ -4050,221 +4055,160 @@ bool CvPlayer::canReceiveTradeCity() const
 	return true;
 }
 
-bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const
-{	// <advc.003>
+bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const  // advc.003: Style changes; assertions added.
+{
 	if (bTestDenial && getTradeDenial(eWhoTo, item) != NO_DENIAL)
 		return false;
-	CvTeam const& ourTeam = GET_TEAM(getTeam());
-	CvTeam const& theirTeam = TEAMREF(eWhoTo); // </advc.003>
+
+	CvTeam const& kOurTeam = GET_TEAM(getTeam());
+	CvTeam const& kToTeam = TEAMREF(eWhoTo);
 	switch (item.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
-		if (!GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING))
-		{
-			if (GC.getTechInfo((TechTypes)item.m_iData).isTrade())
-			{
-				if (ourTeam.isHasTech((TechTypes)item.m_iData) && !ourTeam.isNoTradeTech((TechTypes)(item.m_iData)))
-				{
-					if (!theirTeam.isHasTech((TechTypes)item.m_iData))
-					{
-						//if (GET_PLAYER(eWhoTo).isHuman() || (GET_PLAYER(eWhoTo).getCurrentResearch() != item.m_iData))
-						{
-							if (ourTeam.isTechTrading() || theirTeam.isTechTrading())
-							{
-								FAssertMsg(item.m_iData >= 0, "item.m_iData is expected to be non-negative (invalid Index)");
-
-								if (GET_PLAYER(eWhoTo).canResearch(((TechTypes)item.m_iData), true))
-								{
-									return true;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		break;
-
-	case TRADE_RESOURCES:
-		FAssertMsg(item.m_iData > -1, "iData is expected to be non-negative");
-
-		if (canTradeNetworkWith(eWhoTo))
-		{
-			if (!theirTeam.isBonusObsolete((BonusTypes) item.m_iData) && !ourTeam.isBonusObsolete((BonusTypes) item.m_iData))
-			{
-				bool const bCanTradeAll = true; // advc.036
-						//(isHuman() || getTeam() == GET_PLAYER(eWhoTo).getTeam() || ourTeam.isVassal(theirTeam.getID()));
-				if (getNumTradeableBonuses((BonusTypes) item.m_iData) > (bCanTradeAll ? 0 : 1))
-				{
-					// if (GET_PLAYER(eWhoTo).getNumAvailableBonuses(eBonus) == 0)
-					{
-						return true;
-					}
-				}
-			}
-		}
-		break;
-
-	case TRADE_CITIES:
-		{
-			CvCity* pCityTraded = getCity(item.m_iData);
-
-			if (pCityTraded != NULL && pCityTraded->getLiberationPlayer(
-					false, /* advc.122: */ getTeam())
-					== eWhoTo)
-				return true;
-			// <advc.003>
-			if(!GET_PLAYER(eWhoTo).canReceiveTradeCity() ||
-					GC.getGame().getMaxCityElimination() > 0)
-				break; // </advc.003>
-			// <advc.122>
-			if(pCityTraded == NULL || pCityTraded->isCapital() ||
-					!pCityTraded->isRevealed(theirTeam.getID(), false))
-				break;
-			// Can't trade so long as the previous owner hasn't accepted the loss
-			int const iNumPrevOwners = 1;
-			bool bValid = true;
-			PlayerTypes aePrevOwners[iNumPrevOwners] = {
-					pCityTraded->getPreviousOwner(),
-					// Let's ignore the original owner
-					//pCityTraded->getOriginalOwner(),
-			};
-			for(int i = 0; i < iNumPrevOwners; i++) {
-				if(aePrevOwners[i] != NO_PLAYER && TEAMID(aePrevOwners[i]) != TEAMID(eWhoTo) &&
-						// advc.134a: Avoid calling CvTeam::isAtWar in canTradeItem
-						::atWar(TEAMID(aePrevOwners[i]), getTeam()) &&
-						!::atWar(TEAMID(aePrevOwners[i]),TEAMID(eWhoTo))) {
-					bValid = false;
-					break;
-				}
-			}
-			if(!bValid)
-				break;
-			CvPlot const& kCityPlot = *pCityTraded->plot();
-			// Can't trade an endangered city to a third party
-			if(!::atWar(TEAMID(eWhoTo), getTeam()) && // advc.134a: Not: CvTeam::isAtWar
-					kCityPlot.isVisibleEnemyCityAttacker(getID()))
-				break;
-
-			if(kCityPlot.calculateCulturePercent(eWhoTo) < GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
-				break;
-			// The BtS condition:
-			if ((!ourTeam.isAVassal() && !theirTeam.isVassal(getTeam())) ||
-					// Alternative condition:
-					(theirTeam.isVassal(getTeam()) &&
-					// Tile culture, not city culture.
-					kCityPlot.getCulture(eWhoTo) > kCityPlot.getCulture(getID())))
-				return true;
-			// </advc.122>
-		}
-		break;
-
-	case TRADE_GOLD:
-		if (ourTeam.isGoldTrading() || theirTeam.isGoldTrading())
-		{
-			if (getGold() >= item.m_iData)
-			{
-				return true;
-			}
-		}
-		break;
-
-	case TRADE_GOLD_PER_TURN:
-		if (ourTeam.isGoldTrading() || theirTeam.isGoldTrading())
-		{
-			return true;
-		}
-		break;
-
-	case TRADE_MAPS:
-		if (getTeam() != theirTeam.getID())
-		{
-			if (ourTeam.isMapTrading() || theirTeam.isMapTrading())
-			{
-				return true;
-			}
-		}
-		break;
-
-	case TRADE_VASSAL:
-	case TRADE_SURRENDER:
 	{
-		static bool const bBBAI_HUMAN_AS_VASSAL_OPTION = GC.getDefineBOOL("BBAI_HUMAN_AS_VASSAL_OPTION"); // advc.003b
-		if (!isHuman() || GET_PLAYER(eWhoTo).isHuman() ||
-				bBBAI_HUMAN_AS_VASSAL_OPTION) // BETTER_BTS_AI_MOD, Customization, 12/06/09, jdog5000
+		FASSERT_BOUNDS(0, GC.getNumTechInfos(), item.m_iData, "CvPlayer::canTradeItem");
+		TechTypes eTech = (TechTypes)item.m_iData;
+		if (!GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) &&
+				GC.getTechInfo(eTech).isTrade() &&
+				kOurTeam.isHasTech(eTech) &&
+				!kOurTeam.isNoTradeTech(eTech) &&
+				!kToTeam.isHasTech(eTech) &&
+				(kOurTeam.isTechTrading() || kToTeam.isTechTrading()) &&
+				GET_PLAYER(eWhoTo).canResearch(eTech, true))
+			return true;
+		break;
+	}
+	case TRADE_RESOURCES:
+	{
+		FASSERT_BOUNDS(0, GC.getNumBonusInfos(), item.m_iData, "CvPlayer::canTradeItem");
+		BonusTypes eBonus = (BonusTypes)item.m_iData;
+		if (canTradeNetworkWith(eWhoTo) &&
+			!kToTeam.isBonusObsolete(eBonus) &&
+			!kOurTeam.isBonusObsolete(eBonus))
 		{
-			CvTeam& kVassalTeam = GET_TEAM(getTeam());
-			CvTeam& kMasterTeam = GET_TEAM(GET_PLAYER(eWhoTo).getTeam());
-			if (kMasterTeam.isVassalStateTrading()) // the master must possess the tech
-			{
-				if (!kVassalTeam.isAVassal() && !kMasterTeam.isAVassal() && getTeam() != GET_PLAYER(eWhoTo).getTeam())
-				{	// advc.134a: Avoid calling CvTeam::isAtWar in canTradeItem
-					bool bWar = ::atWar(kMasterTeam.getID(), getTeam());
-					if ((bWar || item.m_iData == 1) && item.m_eItemType == TRADE_SURRENDER)
-					{
-						return true;
-					}
-					if (!bWar && item.m_eItemType == TRADE_VASSAL)
-					{
-						return true;
-					}
-				}
+			//bCanTradeAll=(isHuman() || getTeam() == TEAMID(eWhoTo) || kOurTeam.isVassal(kToTeam.getID()));
+			bool const bCanTradeAll = true; // advc.036
+			if (getNumTradeableBonuses(eBonus) > (bCanTradeAll ? 0 : 1))
+			{	// if (GET_PLAYER(eWhoTo).getNumAvailableBonuses(eBonus) == 0)
+				return true;
 			}
 		}
 		break;
 	}
-	case TRADE_PEACE:
-		if (!ourTeam.isHuman())
+	case TRADE_CITIES:
+	{
+		CvCity const* pCity = getCity(item.m_iData);
+		if (pCity == NULL)
 		{
-			if (!ourTeam.isAVassal())
-			{
-				if (ourTeam.isHasMet((TeamTypes)item.m_iData) &&
-						theirTeam.isHasMet((TeamTypes)item.m_iData))
-				{
-					if (::atWar(getTeam(), (TeamTypes)item.m_iData))
-					{
-						return true;
-					}
-				}
-			}
+			FAssert(pCity != NULL);
+			break;
 		}
-		break;
-
-	case TRADE_WAR:
-		if (!ourTeam.isHuman())
+		CvCity const& kCity = *pCity;
+		if (kCity.getLiberationPlayer(false, /* advc.122: */ getTeam()) == eWhoTo)
+			return true;
+		if(!GET_PLAYER(eWhoTo).canReceiveTradeCity() || GC.getGame().getMaxCityElimination() > 0)
+			break;
+		// <advc.122>
+		if(kCity.isCapital() || !kCity.isRevealed(kToTeam.getID(), false))
+			break;
+		// Can't trade so long as the previous owner hasn't accepted the loss (let's ignore kCity.getOriginalOwner())
+		PlayerTypes ePreviousOwner = kCity.getPreviousOwner();
+		if (ePreviousOwner != NO_PLAYER)
 		{
-			if (!ourTeam.isAVassal())
-			{
-				if (!GET_TEAM((TeamTypes)item.m_iData).isAVassal())
-				{
-					if (ourTeam.isHasMet((TeamTypes)item.m_iData) &&
-							theirTeam.isHasMet((TeamTypes)item.m_iData))
-					{
-						if (ourTeam.canDeclareWar((TeamTypes)item.m_iData))
-						{
-							//return true;
-							// advc.100: Replacing the above (advc.134a: Don't call CvTeam::isAtWar)
-							return !::atWar(ourTeam.getID(), theirTeam.getID());
-						}
-					}
-				}
-			}
+			TeamTypes ePreviousTeam = TEAMID(ePreviousOwner);
+			if (ePreviousTeam != kToTeam.getID() &&
+					kOurTeam.isAtWar(ePreviousTeam) &&
+					!kToTeam.isAtWar(ePreviousTeam))
+				break;
 		}
+		CvPlot const& kCityPlot = *kCity.plot();
+		// Can't trade an endangered city to a third party
+		if(!kToTeam.isAtWar(getTeam()) && kCityPlot.isVisibleEnemyCityAttacker(getID()))
+			break;
+		if(kCityPlot.calculateCulturePercent(eWhoTo) < GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
+			break;
+		// The BtS condition:
+		if ((!kOurTeam.isAVassal() && !kToTeam.isVassal(getTeam())) ||
+				// Alternative condition:
+				(kToTeam.isVassal(getTeam()) &&
+				// Tile culture, not city culture.
+				kCityPlot.getCulture(eWhoTo) > kCityPlot.getCulture(getID())))
+			return true;
+		// </advc.122>
 		break;
-
-	case TRADE_EMBARGO: {
-		if(ourTeam.isHuman()) // advc.003
-			return false;
-		TeamTypes eEmbargoTarget = (TeamTypes)(item.m_iData);
-		if (ourTeam.isHasMet(eEmbargoTarget) && theirTeam.isHasMet(eEmbargoTarget))
+	}
+	case TRADE_GOLD:
+		FAssert(item.m_iData >= 0); // (advc: 0 is OK as an unspecified amount)
+		if (kOurTeam.isGoldTrading() || kToTeam.isGoldTrading())
 		{
-			if (canStopTradingWithTeam(eEmbargoTarget)
-					// <advc.130f>
-					&& (!GET_PLAYER(eWhoTo).isTradingWithTeam(eEmbargoTarget, true) ||
-					(ourTeam.isCapitulated() && ourTeam.isVassal(theirTeam.getID()))))
-					// </advc.130f>
+			if (getGold() >= item.m_iData)
 				return true;
 		}
+		break;
+	case TRADE_GOLD_PER_TURN:
+		FAssert(item.m_iData >= 0);
+		if (kOurTeam.isGoldTrading() || kToTeam.isGoldTrading())
+			return true;
+		break;
+	case TRADE_MAPS:
+		if (getTeam() != kToTeam.getID())
+		{
+			if (kOurTeam.isMapTrading() || kToTeam.isMapTrading())
+				return true;
+		}
+		break;
+	case TRADE_VASSAL:
+	case TRADE_SURRENDER:
+	{
+		static bool const bBBAI_HUMAN_AS_VASSAL_OPTION = GC.getDefineBOOL("BBAI_HUMAN_AS_VASSAL_OPTION"); // advc.003b
+		if (isHuman() && !GET_PLAYER(eWhoTo).isHuman() &&
+				!bBBAI_HUMAN_AS_VASSAL_OPTION) // BETTER_BTS_AI_MOD, Customization, 12/06/09, jdog5000
+			break;
+		if (!kToTeam.isVassalStateTrading()) // the master must possess the tech
+			break;
+		if (kOurTeam.isAVassal() || kToTeam.isAVassal() || getTeam() == kToTeam.getID())
+			break;
+		bool const bWar = kToTeam.isAtWar(getTeam());
+		if ((bWar || item.m_iData == 1) && item.m_eItemType == TRADE_SURRENDER)
+			return true;
+		if (!bWar && item.m_eItemType == TRADE_VASSAL)
+			return true;
+		break;
+	}
+	case TRADE_PEACE:
+	{
+		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, item.m_iData, "CvPlayer::canTradeItem");
+		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
+		if (!kOurTeam.isHuman() && !kOurTeam.isAVassal() &&
+				kToTeam.isHasMet(eTargetTeam) && //kOurTeam.isHasMet(eTargetTeam) && // advc: redundant
+				kOurTeam.isAtWar(eTargetTeam))
+			return true;
+		break;
+	}
+	case TRADE_WAR:
+	{
+		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, item.m_iData, "CvPlayer::canTradeItem");
+		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
+		if (!kOurTeam.isHuman() && !kOurTeam.isAVassal() &&
+				!GET_TEAM(eTargetTeam).isAVassal() &&
+				kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
+				kOurTeam.canDeclareWar(eTargetTeam) &&
+				!kOurTeam.isAtWar(kToTeam.getID())) // advc.100
+			return true;
+		break;
+	}
+	case TRADE_EMBARGO:
+	{
+		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, item.m_iData, "CvPlayer::canTradeItem");
+		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
+		if (!kOurTeam.isHuman() &&
+				kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
+				canStopTradingWithTeam(eTargetTeam) &&
+				// <advc.130f>
+				(!GET_PLAYER(eWhoTo).isTradingWithTeam(eTargetTeam, true) ||
+				(kOurTeam.isCapitulated() && kOurTeam.isVassal(kToTeam.getID()))))
+				// </advc.130f>
+			return true;
 		break;
 	}
 	case TRADE_CIVIC:
@@ -4272,129 +4216,93 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				// UNOFFICIAL_PATCH, Diplomacy, 10/22/09, denev & jdog5000
 				//|| getTeam() == theirTeam.getID())
 		// <advc.155> Replacing the patched code above
-		if((getTeam() == theirTeam.getID()) ?
-				(!isHuman() || GET_PLAYER(eWhoTo).isHuman()) :
-				/*  Don't allow humans from one team to manipulate the civics of
-					AI civs on another human team. */
-				!ourTeam.isHuman()) // </advc.155>
+		if((getTeam() == kToTeam.getID()) ?
+			(!isHuman() || GET_PLAYER(eWhoTo).isHuman()) :
+			/*  Don't allow humans from one team to manipulate the civics of
+				AI civs on another human team. */
+			!kOurTeam.isHuman()) // </advc.155>
 		{
-			if (GET_PLAYER(eWhoTo).isCivic((CivicTypes)item.m_iData)
-				/*  <advc.132> canForceCivic double-checks everything checked here
-					already, plus some clauses that I've added there. */
-					|| ((TEAMREF(getID()).isVassal(theirTeam.getID()) ||
-					::atWar(getTeam(), theirTeam.getID())) &&
-					GET_PLAYER(eWhoTo).canForceCivics(getID(),
-					(CivicTypes)item.m_iData))) // </advc.132>
+			CivicTypes eCivic = (CivicTypes)item.m_iData;
+			if (GET_PLAYER(eWhoTo).isCivic(eCivic) /* <advc.132> */ ||
+				/*  canForceCivic double-checks everything checked here already,
+					plus some clauses that I've added there. */
+				((kOurTeam.isVassal(kToTeam.getID()) ||
+				kOurTeam.isAtWar(kToTeam.getID())) &&
+				GET_PLAYER(eWhoTo).canForceCivics(getID(), eCivic))) // </advc.132>
 			{
-				if (canDoCivics((CivicTypes)(item.m_iData)) && !isCivic((CivicTypes)(item.m_iData)))
-				{
-					if (canRevolution(NULL))
-						return true;
-				}
+				if (canDoCivics(eCivic) && !isCivic(eCivic) && canRevolution(NULL))
+					return true;
 			}
 		}
 		break;
-
 	case TRADE_RELIGION:
 		//if (!ourTeam.isHuman()
 				// UNOFFICIAL_PATCH, Diplomacy, 10/22/09, denev & jdog5000
 				//|| getTeam() == theirTeam.getID())
 		// <advc.155> Replacing the patched code above
-		if((getTeam() == theirTeam.getID()) ?
-				(!isHuman() || GET_PLAYER(eWhoTo).isHuman()) :
-				!ourTeam.isHuman()) // </advc.155>
+		if((getTeam() == kToTeam.getID()) ?
+			(!isHuman() || GET_PLAYER(eWhoTo).isHuman()) :
+			!kOurTeam.isHuman()) // </advc.155>
 		{
-			if (GET_PLAYER(eWhoTo).getStateReligion() == ((ReligionTypes)item.m_iData)
-					// <advc.132> Same thing as for civics above
-					|| ((TEAMREF(getID()).isVassal(theirTeam.getID())
-					|| ::atWar(getTeam(), theirTeam.getID()))
-					&& GET_PLAYER(eWhoTo).canForceReligion(getID(),
-					(ReligionTypes)item.m_iData))) // </advc.132>
+			ReligionTypes eReligion = (ReligionTypes)item.m_iData;
+			if (GET_PLAYER(eWhoTo).getStateReligion() == eReligion /* <advc.132> */ ||
+				// Same thing as for civics above
+				((kOurTeam.isVassal(kToTeam.getID()) ||
+				kOurTeam.isAtWar(kToTeam.getID())) &&
+				GET_PLAYER(eWhoTo).canForceReligion(getID(), eReligion))) // </advc.132>
 			{
-				if (canConvert((ReligionTypes)(item.m_iData)))
+				if (canConvert(eReligion))
 					return true;
 			}
 		}
 		break;
-
 	case TRADE_OPEN_BORDERS:
-		if (getTeam() != theirTeam.getID())
-		{
-			if (!::atWar(getTeam(), theirTeam.getID()))
-			{
-				if (!ourTeam.isOpenBorders(theirTeam.getID()))
-				{
-					if (ourTeam.isOpenBordersTrading() || theirTeam.isOpenBordersTrading())
-					{
-						return true;
-					}
-				}
-			}
-		}
+		if (getTeam() != kToTeam.getID() && !kOurTeam.isAtWar(kToTeam.getID()) &&
+				!kOurTeam.isOpenBorders(kToTeam.getID()) &&
+				(kOurTeam.isOpenBordersTrading() || kToTeam.isOpenBordersTrading()))
+			return true;
 		break;
-
 	case TRADE_DEFENSIVE_PACT:
-		if (!ourTeam.isAVassal() && !theirTeam.isAVassal())
+		if (!kOurTeam.isAVassal() && !kToTeam.isAVassal() &&
+			getTeam() != kToTeam.getID() && //!kToTeam.isVassal(getTeam()) // advc: redundant
+			!kOurTeam.isAtWar(kToTeam.getID()) &&
+			!kOurTeam.isDefensivePact(kToTeam.getID()) &&
+			(kOurTeam.isDefensivePactTrading() || kToTeam.isDefensivePactTrading()))
 		{
-			if (getTeam() != theirTeam.getID() && !theirTeam.isVassal(getTeam()))
+			/*  <dlph.3> 'Added possibility of signing defensive pact while in war
+				if BBAI defensive pact option is >= 1' */
+			if ((kOurTeam.getAtWarCount(true) <= 0 && kToTeam.getAtWarCount(true) <= 0) ||
+				(GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) >= 1
+				/*  advc: Prohibit DP when not all wars shared?
+					Enough to have the AI refuse such pacts I think
+					(in CvTeamAI::AI_defensivePactTrade). */
+					//&& TEAMREF(getID()).allWarsShared(theirTeam.getID())
+				)) // </dlph.3>
 			{
-				if (!::atWar(getTeam(), theirTeam.getID()))
-				{
-					if (!ourTeam.isDefensivePact(theirTeam.getID()))
-					{
-						if (ourTeam.isDefensivePactTrading() || theirTeam.isDefensivePactTrading())
-						{
-							/*  <dlph.3> 'Added possibility of signing defensive pact while
-								in war if BBAI defensive pact option is >= 1' */
-							if (((ourTeam.getAtWarCount(true) == 0) &&
-									(theirTeam.getAtWarCount(true) == 0)) ||
-									(GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) >= 1
-									/*  advc: Prohibit DP when not all wars shared?
-										Enough to have the AI refuse such pacts I think
-										(in CvTeamAI::AI_defensivePactTrade). */
-									//&& TEAMREF(getID()).allWarsShared(theirTeam.getID())
-									)) // </dlph.3>
-							{
-								if (ourTeam.canSignDefensivePact(theirTeam.getID()))
-									return true;
-							}
-						}
-					}
-				}
+				if (kOurTeam.canSignDefensivePact(kToTeam.getID()))
+					return true;
 			}
 		}
 		break;
-
 	case TRADE_PERMANENT_ALLIANCE:
-		if (!ourTeam.isAVassal() && !theirTeam.isAVassal())
-		{
-			if (getTeam() != theirTeam.getID() && !theirTeam.isVassal(getTeam()))
-			{
-				if (!::atWar(getTeam(), theirTeam.getID()))
-				{
-					if (ourTeam.isPermanentAllianceTrading() || theirTeam.isPermanentAllianceTrading())
-					{
-						if (ourTeam.getNumMembers() == 1 && theirTeam.getNumMembers() == 1)
-						{
-							return true;
-						}
-					}
-				}
-			}
-		}
+		if (!kOurTeam.isAVassal() && !kToTeam.isAVassal() &&
+				getTeam() != kToTeam.getID() && //!kToTeam.isVassal(getTeam()) // advc: redundant
+				kOurTeam.isAtWar(kToTeam.getID()) &&
+				(kOurTeam.isPermanentAllianceTrading() || kToTeam.isPermanentAllianceTrading()) &&
+				kOurTeam.getNumMembers() == 1 && kToTeam.getNumMembers() == 1)
+			return true;
 		break;
-
 	case TRADE_PEACE_TREATY:
 		return true;
-		break;
 	// <advc.034>
 	case TRADE_DISENGAGE:
-		return  !theirTeam.isDisengage(getTeam()) &&
-				!theirTeam.isAtWar(getTeam()) &&
-				!theirTeam.isOpenBorders(getTeam()) &&
-				!theirTeam.isVassal(getTeam()) &&
-				!ourTeam.isVassal(theirTeam.getID()) &&
-				theirTeam.isHasMet(getTeam());
+		if (!kToTeam.isDisengage(getTeam()) &&
+				!kToTeam.isAtWar(getTeam()) &&
+				!kToTeam.isOpenBorders(getTeam()) &&
+				!kToTeam.isVassal(getTeam()) &&
+				!kOurTeam.isVassal(kToTeam.getID()) &&
+				kToTeam.isHasMet(getTeam()))
+			return true;
 		break; // </advc.034>
 	}
 

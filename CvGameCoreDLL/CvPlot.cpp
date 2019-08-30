@@ -296,50 +296,35 @@ float CvPlot::getSymbolSize() const
 	if (isVisibleWorked())
 	{
 		if (isShowCitySymbols())
-		{
 			return 1.6f;
-		}
-		else
-		{
-			return 1.2f;
-		}
+		else return 1.2f;
 	}
 	else
 	{
 		if (isShowCitySymbols())
-		{
 			return 1.2f;
-		}
-		else
-		{
-			return 0.8f;
-		}
+		else return 0.8f;
 	}
 }
 
 
 float CvPlot::getSymbolOffsetX(int iOffset) const
 {
-	return ((40.0f + (((float)iOffset) * 28.0f * getSymbolSize())) - (GC.getPLOT_SIZE() / 2.0f));
+	return 40.0f + iOffset * 28.0f * getSymbolSize() - GC.getPLOT_SIZE() / 2.0f;
 }
 
 
 float CvPlot::getSymbolOffsetY(int iOffset) const
 {
-	return (-(GC.getPLOT_SIZE() / 2.0f) + 50.0f);
+	return -(GC.getPLOT_SIZE() / 2.0f) + 50.0f;
 }
 
 
 TeamTypes CvPlot::getTeam() const
 {
 	if (isOwned())
-	{
-		return GET_PLAYER(getOwner()).getTeam();
-	}
-	else
-	{
-		return NO_TEAM;
-	}
+		return TEAMID(getOwner());
+	return NO_TEAM;
 }
 
 
@@ -366,15 +351,9 @@ void CvPlot::doTurn()
 	doCulture();
 	verifyUnitValidPlot();
 
-	/*
-	if (!isOwned())
-	{
-		doImprovementUpgrade();
-	}
-	*/
-
-	// XXX
-#ifdef _DEBUG
+	/*if (!isOwned())
+		doImprovementUpgrade();*/ // advc (comment): Was already commented out in BtS
+	#ifdef _DEBUG // XXX
 	{
 		CLLNode<IDInfo>* pUnitNode = headUnitNode();
 		while (pUnitNode != NULL)
@@ -385,8 +364,7 @@ void CvPlot::doTurn()
 			FAssertMsg(pLoopUnit->atPlot(this), "pLoopUnit is expected to be at the current plot instance");
 		}
 	}
-#endif
-	// XXX
+	#endif // XXX
 }
 
 
@@ -3859,9 +3837,9 @@ bool CvPlot::isBonusNetwork(TeamTypes eTeam) const
 
 bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 {
-	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
+	FAssert(eTeam != NO_TEAM);
 
-	if(atWar(eTeam, getTeam())
+	if(::atWar(eTeam, getTeam())
 			/*  advc.124: War blocks trade, but blockades against the plot owner
 				override this. If these blockades also affect eTeam, trade is again
 				blocked (by the next conditional). */
@@ -3882,40 +3860,40 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 }
 
 
-bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
+bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const  // advc.003: some style changes
 {
-	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
+	FAssert(eTeam != NO_TEAM);
 
-	if ((atWar(eTeam, getTeam())
+	if ((::atWar(eTeam, getTeam())
 			// advc.124:
 			&& getBlockadedCount(getTeam()) <= getBlockadedCount(eTeam))
-			|| (atWar(eTeam, pPlot->getTeam())
+			|| (::atWar(eTeam, kOther.getTeam())
 			// advc.124:
-			&& pPlot->getBlockadedCount(pPlot->getTeam()) <= pPlot->getBlockadedCount(eTeam)))
+			&& kOther.getBlockadedCount(kOther.getTeam()) <= kOther.getBlockadedCount(eTeam)))
 		return false;
 
-	if (isTradeNetworkImpassable(eTeam) || pPlot->isTradeNetworkImpassable(eTeam))
+	if (isTradeNetworkImpassable(eTeam) || kOther.isTradeNetworkImpassable(eTeam))
 		return false;
 
 	//if (!isOwned()) { // advc.124 (commented out)
-	if (!isRevealed(eTeam, false) || !pPlot->isRevealed(eTeam, false))
+	if (!isRevealed(eTeam, false) || !kOther.isRevealed(eTeam, false))
 		return false;
 
 	if (isRoute() /* advc.124: */ && getRevealedRouteType(eTeam, false) != NO_ROUTE)
 	{
-		if (pPlot->isRoute()
-				&& pPlot->getRevealedRouteType(eTeam, false) != NO_ROUTE) // advc.124
+		if (kOther.isRoute()
+				&& kOther.getRevealedRouteType(eTeam, false) != NO_ROUTE) // advc.124
 			return true;
 	}
 
 	if (isCity(true, eTeam))
 	{
-		if (pPlot->isNetworkTerrain(eTeam))
+		if (kOther.isNetworkTerrain(eTeam))
 			return true;
 	}
 	/*  <advc.124> The isCityRadius check is just for performance (though it
 		probably doesn't make a difference) */
-	if(isRoute() && isCityRadius() && pPlot->isNetworkTerrain(eTeam)) {
+	if(isRoute() && isCityRadius() && kOther.isNetworkTerrain(eTeam)) {
 		CvCity* pWorkingCity = getWorkingCity();
 		if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam)
 			return true;
@@ -3923,20 +3901,21 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 
 	if (isNetworkTerrain(eTeam))
 	{
-		if (pPlot->isCity(true, eTeam))
+		if (kOther.isCity(true, eTeam))
 			return true;
 
-		if (pPlot->isNetworkTerrain(eTeam))
+		if (kOther.isNetworkTerrain(eTeam))
 			return true;
 
-		if (pPlot->isRiverNetwork(eTeam))
+		if (kOther.isRiverNetwork(eTeam))
 		{
-			if (pPlot->isRiverConnection(directionXY(pPlot, this)))
+			if (kOther.isRiverConnection(directionXY(&kOther, this)))
 				return true;
 		}
 		// <advc.124>
-		if(pPlot->isRoute() && pPlot->isCityRadius()) {
-			CvCity* pWorkingCity = pPlot->getWorkingCity();
+		if(kOther.isRoute() && kOther.isCityRadius())
+		{
+			CvCity* pWorkingCity = kOther.getWorkingCity();
 			if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam &&
 					area()->getCitiesPerPlayer(getOwner()) <= 0)
 				return true;
@@ -3945,15 +3924,15 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 
 	if (isRiverNetwork(eTeam))
 	{
-		if (pPlot->isNetworkTerrain(eTeam))
+		if (kOther.isNetworkTerrain(eTeam))
 		{
-			if (isRiverConnection(directionXY(this, pPlot)))
+			if (isRiverConnection(directionXY(this, &kOther)))
 				return true;
 		}
 
-		if (isRiverConnection(directionXY(this, pPlot)) || pPlot->isRiverConnection(directionXY(pPlot, this)))
+		if (isRiverConnection(directionXY(this, &kOther)) || kOther.isRiverConnection(directionXY(&kOther, this)))
 		{
-			if (pPlot->isRiverNetwork(eTeam))
+			if (kOther.isRiverNetwork(eTeam))
 				return true;
 		}
 	}
@@ -6723,7 +6702,7 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate)
 						continue; // advc.003
 					if (pAdjacentPlot->getPlotGroup(ePlayer) == pPlotGroup)
 					{
-						if (!isTradeNetworkConnected(pAdjacentPlot, eTeam))
+						if (!isTradeNetworkConnected(*pAdjacentPlot, eTeam))
 						{
 							bConnected = false;
 							break;
@@ -6757,7 +6736,7 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate)
 		CvPlotGroup* pAdjacentPlotGroup = pAdjacentPlot->getPlotGroup(ePlayer);
 		if (pAdjacentPlotGroup != NULL && pAdjacentPlotGroup != pPlotGroup)
 		{
-			if (isTradeNetworkConnected(pAdjacentPlot, eTeam))
+			if (isTradeNetworkConnected(*pAdjacentPlot, eTeam))
 			{
 				if (pPlotGroup == NULL)
 				{

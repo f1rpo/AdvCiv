@@ -5,8 +5,7 @@
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
-// needs to have dll-interface to be used by clients of class
-#pragma warning( disable: 4251 )
+#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
 
 class CvArea;
 class CvMap;
@@ -20,15 +19,16 @@ class CvUnit;
 class CvSymbol;
 class CvFlagEntity;
 
-typedef bool (*ConstPlotUnitFunc)( const CvUnit* pUnit, int iData1, int iData2);
+typedef bool (*ConstPlotUnitFunc)(const CvUnit* pUnit, int iData1, int iData2);
 typedef bool (*PlotUnitFunc)(CvUnit* pUnit, int iData1, int iData2);
+
 
 class CvPlot
 {
-
 public:
+
 	CvPlot();
-	virtual ~CvPlot();
+	~CvPlot();
 
 	void init(int iX, int iY);
 	void uninit();
@@ -256,7 +256,7 @@ public:
 	bool isNetworkTerrain(TeamTypes eTeam) const;																											// Exposed to Python
 	bool isBonusNetwork(TeamTypes eTeam) const;																												// Exposed to Python
 	bool isTradeNetwork(TeamTypes eTeam) const;																												// Exposed to Python
-	bool isTradeNetworkConnected(const CvPlot * pPlot, TeamTypes eTeam) const;												// Exposed to Python
+	bool isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const; // advc.003: param was CvPlot const*								// Exposed to Python
 	bool isRiverNetwork(TeamTypes eTeam) const;
 
 	bool isValidDomainForLocation(const CvUnit& unit) const;																					// Exposed to Python

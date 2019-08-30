@@ -419,7 +419,7 @@ bool CyPlot::isTradeNetwork(int /*TeamTypes*/ eTeam)
 
 bool CyPlot::isTradeNetworkConnected(CyPlot* pPlot, int /*TeamTypes*/ eTeam)
 {
-	return m_pPlot ? m_pPlot->isTradeNetworkConnected(pPlot->getPlot(), (TeamTypes)eTeam) : false;
+	return m_pPlot ? m_pPlot->isTradeNetworkConnected(*pPlot->getPlot(), (TeamTypes)eTeam) : false;
 }
 
 bool CyPlot::isValidDomainForLocation(CyUnit* pUnit) const

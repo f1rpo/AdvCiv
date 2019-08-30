@@ -4057,33 +4057,34 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 	} // </advc.071>
 }
 
-
-bool CvTeam::isAtWar(TeamTypes eIndex) const
+// <advc.134a>
+bool CvTeam::isAtWarExternal(TeamTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
-	/*  <advc.134a> Feign peace if we know that the EXE is about to check a
-		peace offer (b/c being at war shouldn't prevent AI-to-human peace offers). */
-	if(m_iPeaceOfferStage == 2 && m_eOfferingPeace == eIndex) {
+	/*  Feign peace if we know that the EXE is about to check a peace offer
+		(b/c being at war shouldn't prevent AI-to-human peace offers). */
+	if(m_iPeaceOfferStage == 2 && m_eOfferingPeace == eIndex)
+	{
 		const_cast<CvTeam*>(this)->m_iPeaceOfferStage = 0;
 		const_cast<CvTeam*>(this)->m_eOfferingPeace = NO_TEAM;
 		return false;
-	} // </advc.134a>
-	return m_abAtWar[eIndex];
-}
+	} 
+	return isAtWar(eIndex);
+} 
 
-// <advc.134a>
-void CvTeam::advancePeaceOfferStage(TeamTypes eAITeam) {
 
+void CvTeam::advancePeaceOfferStage(TeamTypes eAITeam)
+{
 	if(eAITeam != NO_TEAM)
 		m_eOfferingPeace = eAITeam;
 	m_iPeaceOfferStage++;
 }
 
+
 bool CvTeam::isPeaceOfferStage(int iStage, TeamTypes eOffering) const {
 
 	return (eOffering == m_eOfferingPeace && iStage == m_iPeaceOfferStage);
 } // </advc.134a>
+
 
 void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 {
@@ -4094,7 +4095,8 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 		return; // </advc.035>
 	m_abAtWar[eIndex] = bNewValue;
 	// <advc.003m>
-	if(eIndex != BARBARIAN_TEAM) {
+	if(eIndex != BARBARIAN_TEAM)
+	{
 		changeAtWarCount(bNewValue ? 1 : -1, GET_TEAM(eIndex).isMinorCiv(),
 				GET_TEAM(eIndex).isAVassal());
 	} // </advc.003m>
@@ -4104,7 +4106,8 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 		return; // setAtWar gets called on both sides; do this only once.
 	std::vector<CvPlot*> flipPlots;
 	::contestedPlots(flipPlots, getID(), eIndex);
-	for(size_t i = 0; i < flipPlots.size(); i++) {
+	for(size_t i = 0; i < flipPlots.size(); i++)
+	{
 		CvPlot& p = *flipPlots[i];
 		PlayerTypes secondOwner = p.getSecondOwner();
 		p.setSecondOwner(p.getOwner());
@@ -4112,16 +4115,19 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 			plot groups until all tiles are flipped */
 		p.setOwner(secondOwner, false, false);
 	}
-	for(size_t i = 0; i < flipPlots.size(); i++) {
+	for(size_t i = 0; i < flipPlots.size(); i++)
+	{
 		CvPlot& p = *flipPlots[i];
 		p.updatePlotGroup();
 		p.verifyUnitValidPlot();
 	}
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
 		CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
 		if(!ourMember.isAlive() || ourMember.getTeam() != getID())
 			continue;
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++)
+		{
 			CvPlayerAI& theirMember = GET_PLAYER((PlayerTypes)j);
 			if(!theirMember.isAlive() || theirMember.getTeam() != eIndex)
 				continue;
@@ -4134,8 +4140,8 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 
 /*  <advc.162> "Just" meaning on the current turn. Don't want to rely on
 	CvTeamAI::AI_atWarCounter for this b/c that's an AI function. */
-bool CvTeam::hasJustDeclaredWar(TeamTypes eIndex) const {
-
+bool CvTeam::hasJustDeclaredWar(TeamTypes eIndex) const
+{
 	return m_abJustDeclaredWar[eIndex];
 } // </advc.162>
 

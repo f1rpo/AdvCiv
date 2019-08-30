@@ -355,9 +355,7 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
 	if(eTeamA == NO_TEAM || eTeamB == NO_TEAM)
 		return false;
-
-	// advc.134a: Use internal function. (And removed some assertions.)
-	return GET_TEAM(eTeamA).isAtWarInternal(eTeamB);
+	return GET_TEAM(eTeamA).isAtWar(eTeamB);
 }
 
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
@@ -2865,7 +2863,7 @@ int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* p
 	{
 		if (pNewPlot->isTradeNetwork(eTeam))
 		{
-			if (pNewPlot->isTradeNetworkConnected(pOldPlot, eTeam))
+			if (pNewPlot->isTradeNetworkConnected(*pOldPlot, eTeam))
 			{
 				return TRUE;
 			}
