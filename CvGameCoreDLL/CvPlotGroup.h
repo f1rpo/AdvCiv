@@ -28,10 +28,10 @@ public:
 	inline int getID() const { return m_iID; } // advc.003f
 	void setID(int iID);
 
-	/*PlayerTypes getOwner() const;
-	#ifdef _USRDLL*/ // advc.003f: The EXE doesn't call this, so no need for an external version.
+	//PlayerTypes getOwner() const;
+	// advc.003f: The EXE doesn't call this, so no need for an external version.
 	inline PlayerTypes getOwner() const { return m_eOwner; }
-	//#endif
+
 	int getNumBonuses(BonusTypes eBonus) const;
 	bool hasBonus(BonusTypes eBonus);
 	void changeNumBonuses(BonusTypes eBonus, int iChange);

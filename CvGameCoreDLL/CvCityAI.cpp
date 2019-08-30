@@ -6485,7 +6485,7 @@ int CvCityAI::AI_neededAirDefenders(/* advc.001n: */ bool bConstCache) /* advc.0
 bool CvCityAI::AI_isDanger() /* advc.003: */ const
 {
 	// BETTER_BTS_AI_MOD, City AI, Efficiency, 08/20/09, jdog5000: was AI_getPlotDanger
-	return GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2, false);
+	return GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2, false);
 }
 
 // <advc.139>
@@ -12463,7 +12463,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc.03: */ const
 		}
 	}*/
 
-	iTotalThreat += 3 * kOwner.AI_getPlotDanger(plot(), 3, false); // was 2 *
+	iTotalThreat += 3 * kOwner.AI_getPlotDanger(*plot(), 3, false); // was 2 *
 
 	// K-Mod. Increase the threat rating for high-value cities.
 	// (Note: this replaces the culture & wonder stuff above)

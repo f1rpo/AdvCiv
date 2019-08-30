@@ -172,17 +172,16 @@ public:
 			// advc.003: const qualifier added to these two
 	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
 	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
-	int calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
-			// <advc.104b>
-			TeamTypes eTargetTeam = NO_TEAM, DomainTypes eDomain = NO_DOMAIN,
-			int iMaxPath = -1); // </advc.104b>
+	int calculatePathDistanceToPlot(TeamTypes eTeam, // <advc.104b>
+			CvPlot const& kTargetPlot, TeamTypes eTargetTeam = NO_TEAM,
+			DomainTypes eDomain = NO_DOMAIN, int iMaxPath = -1) const; // </advc.104b>
 	// BETTER_BTS_AI_MOD: END
 	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
 	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)
 	inline int getActivePlayerSafeRangeCache() const { return m_iActivePlayerSafeRangeCache; }
-	inline void setActivePlayerSafeRangeCache(int range) { m_iActivePlayerSafeRangeCache = range; }
+	inline void setActivePlayerSafeRangeCache(int range) const { m_iActivePlayerSafeRangeCache = range; } // advc.003: const
 	inline bool getBorderDangerCache(TeamTypes eTeam) const { return m_abBorderDangerCache[eTeam]; }
-	inline void setBorderDangerCache(TeamTypes eTeam, bool bNewValue) { m_abBorderDangerCache[eTeam] = bNewValue; }
+	inline void setBorderDangerCache(TeamTypes eTeam, bool bNewValue) const { m_abBorderDangerCache[eTeam] = bNewValue; } // advc.003: const
 	void invalidateBorderDangerCache();
 	// BETTER_BTS_AI_MOD: END
 	PlayerTypes calculateCulturalOwner(
@@ -264,13 +263,9 @@ public:
 	bool isImpassable() const;																															// Exposed to Python
 
 	int getXExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	#ifdef _USRDLL
 	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
-	#endif
 	int getYExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	#ifdef _USRDLL
 	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
-	#endif
 	bool at(int iX, int iY) const;																																		// Exposed to Python
 	int getLatitude() const;																																					// Exposed to Python
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
@@ -339,12 +334,10 @@ public:
 	void setFlagDirty(bool bNewValue);																																					// Exposed to Python
 
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	#ifdef _USRDLL
 	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
 	{
 		return (PlayerTypes)m_eOwner;
 	}
-	#endif
 	void setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotGroup);
 	/*  <advc.035> The returned player becomes the owner if war/peace changes
 		between that player and the current owner */
@@ -630,9 +623,9 @@ protected:
 	IDInfo m_workingCityOverride;
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 	//bool m_bActivePlayerNoDangerCache;
-	int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
-	bool* m_abBorderDangerCache;
-	// BETTER_BTS_AI_MOD: END
+	mutable int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
+	mutable bool* m_abBorderDangerCache;
+	// BETTER_BTS_AI_MOD: END  // advc.003: 2x mutable
 
 	short* m_aiYield;
 	int* m_aiCulture;

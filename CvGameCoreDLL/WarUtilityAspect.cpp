@@ -3573,25 +3573,25 @@ void TacticalSituation::evalEngagement() {
 			continue;
 		ourTotal += groupSize;
 		int iRange = 1; // don't shadow ::range()
-		CvPlot* pl = gr->plot();
-		PlayerTypes plotOwner = pl->getOwner();
+		CvPlot const& groupPlot = *gr->plot();
+		PlayerTypes plotOwner = groupPlot.getOwner();
 		/*  Limit range, not least for performance reasons, to cover combat imminent
 			on our current turn or the opponent's next turn. If our group is on a
 			friendly route, we can probably attack units two tiles away,
 			though we probably won't if our units are damaged. */
 		if(head->maxHitPoints() - head->getDamage() >= 80) {
-			if(pl->area()->isWater())
+			if(groupPlot.area()->isWater())
 				iRange++;
 			else if(plotOwner != NO_PLAYER &&
 					(plotOwner == weId || agent.isOpenBorders(TEAMID(plotOwner)))
-					&& (pl->isRoute() || pl->isCity()))
+					&& (groupPlot.isRoute() || groupPlot.isCity()))
 				iRange++;
 		}
 		bool isCity = gr->plot()->isCity();
 		int theirDamaged = 0;
 		/*  Count at most one enemy unit per unit of ours as "entangled", i.e. count
 			pairs of units. */
-		int pairs = we->AI_getPlotDanger(pl, iRange, false, false, &theirDamaged,
+		int pairs = we->AI_getPlotDanger(groupPlot, iRange, false, false, &theirDamaged,
 				hpThresh, groupSize, theyId);
 		/*  Should perhaps also count fewer units as entangled if their units are
 			in a city, but that gets complicated b/c AI_getPlotDanger would have to
@@ -3656,7 +3656,7 @@ void TacticalSituation::evalEngagement() {
 		if(agentAI.isFastRoads())
 			iRange++;
 		if(c->isOccupation() && c->isEverOwned(weId) && they->AI_getPlotDanger(
-				c->plot(), iRange, false, false) >
+				*c->plot(), iRange, false, false) >
 				1) /* Just want to know if we have some presence beyond a single
 					  stray unit near the city */
 			recentlyLostPop += c->getPopulation();
@@ -3684,7 +3684,7 @@ int TacticalSituation::evacPop(PlayerTypes ownerId, PlayerTypes invaderId) {
 	FOR_EACH_CITY(c, o) {
 		/*  Check PlotDanger b/c we don't want to count cities that are threatened
 			by a third party */
-		if(c->AI_isEvacuating() && o.AI_getPlotDanger(c->plot(),
+		if(c->AI_isEvacuating() && o.AI_getPlotDanger(*c->plot(),
 				1, false, false, NULL, 60, 2, invaderId) >= 2)
 			r += c->getPopulation();
 	}

@@ -626,7 +626,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 					CvPlot* pCapturePlot = pkCapturedUnit->plot();
 					if (pCapturePlot != NULL && !pCapturePlot->isCity(false))
 					{
-						if (GET_PLAYER(eCapturingPlayer).AI_getPlotDanger(pCapturePlot) > 0 &&
+						if (GET_PLAYER(eCapturingPlayer).AI_getPlotDanger(*pCapturePlot) > 0 &&
 								GC.getDefineBOOL("AI_CAN_DISBAND_UNITS"))
 						{
 							//pkCapturedUnit->kill(false);
@@ -1937,7 +1937,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const {
 		pCenter = plot();
 	else pCenter = pGoToPlot;
 	if(pCenter == NULL || !pCenter->isRevealed(TEAMID(getOwner()), false) ||
-			(!atPlot(pCenter) && !canMoveInto(pCenter)) || !canFound(pCenter))
+			(!atPlot(pCenter) && !canMoveInto(*pCenter)) || !canFound(pCenter))
 		return;
 	ColorTypes eColor = (ColorTypes)GC.getPlayerColorInfo(GET_PLAYER(getOwner()).
 			getPlayerColor()).getColorTypePrimary();
@@ -2327,8 +2327,8 @@ TeamTypes CvUnit::getDeclareWarMove(const CvPlot* pPlot) const
 		{
 			//if (canMoveInto(pPlot, true, true, true))
 			// K-Mod. Don't give the "declare war" popup unless we need war to move into the plot.
-			if (canMoveInto(pPlot, true, true, true, false) &&
-					!canMoveInto(pPlot, false, false, false, false))
+			if (canMoveInto(*pPlot, true, true, true, false) &&
+					!canMoveInto(*pPlot, false, false, false, false))
 			// K-Mod end
 			{
 				CvUnit* pUnit = pPlot->plotCheck(PUF_canDeclareWar,
@@ -2369,50 +2369,48 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 /*  K-Mod. I've rearranged a few things to make the function slightly faster,
 	and added "bAssumeVisible" which signals that we should check for units on
 	the plot regardless of whether we can actually see. */
-bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible,
+bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible, // advc.003: 1st param was a pointer
 		bool bDangerCheck) const // advc.001k
 {
 	PROFILE_FUNC();
 
-	FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
-
-	if (atPlot(pPlot))
+	if (atPlot(&kPlot))
 	{
 		return false;
 	}
 
-	if (!m_pUnitInfo->isCanMoveImpassable() && pPlot->isImpassable())
+	if (!m_pUnitInfo->isCanMoveImpassable() && kPlot.isImpassable())
 	{
 		return false;
 	}
 
 	// Cannot move around in unrevealed land freely
-	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(pPlot))
+	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(&kPlot))
 	{
 		return false;
 	}
 	static bool const bUSE_SPIES_NO_ENTER_BORDERS = GC.getDefineBOOL("USE_SPIES_NO_ENTER_BORDERS"); // advc.003b
 	if (m_pUnitInfo->isSpy() && bUSE_SPIES_NO_ENTER_BORDERS)
 	{
-		if (pPlot->getOwner() != NO_PLAYER && !GET_PLAYER(getOwner()).canSpiesEnterBorders(pPlot->getOwner()))
+		if (kPlot.getOwner() != NO_PLAYER && !GET_PLAYER(getOwner()).canSpiesEnterBorders(kPlot.getOwner()))
 		{
 			return false;
 		}
 	}
 
-	CvArea *pPlotArea = pPlot->area();
-	TeamTypes ePlotTeam = pPlot->getTeam();
+	CvArea *pPlotArea = kPlot.area();
+	TeamTypes ePlotTeam = kPlot.getTeam();
 	bool bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
 	if (bCanEnterArea)
 	{
-		if (pPlot->getFeatureType() != NO_FEATURE)
+		if (kPlot.getFeatureType() != NO_FEATURE)
 		{
-			if (m_pUnitInfo->getFeatureImpassable(pPlot->getFeatureType()))
+			if (m_pUnitInfo->getFeatureImpassable(kPlot.getFeatureType()))
 			{
-				TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(pPlot->getFeatureType());
+				TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(kPlot.getFeatureType());
 				if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
 				{
-					if (DOMAIN_SEA != getDomainType() || pPlot->getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
+					if (DOMAIN_SEA != getDomainType() || kPlot.getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
 					{
 						return false;
 					}
@@ -2420,14 +2418,14 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			}
 		}
 
-		if (m_pUnitInfo->getTerrainImpassable(pPlot->getTerrainType()))
+		if (m_pUnitInfo->getTerrainImpassable(kPlot.getTerrainType()))
 		{
-			TechTypes eTech = (TechTypes)m_pUnitInfo->getTerrainPassableTech(pPlot->getTerrainType());
+			TechTypes eTech = (TechTypes)m_pUnitInfo->getTerrainPassableTech(kPlot.getTerrainType());
 			if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
 			{
-				if (DOMAIN_SEA != getDomainType() || pPlot->getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
+				if (DOMAIN_SEA != getDomainType() || kPlot.getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
 				{
-					if (bIgnoreLoad || !canLoad(pPlot))
+					if (bIgnoreLoad || !canLoad(&kPlot))
 					{
 						return false;
 					}
@@ -2439,9 +2437,9 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	switch (getDomainType())
 	{
 	case DOMAIN_SEA:
-		if (!pPlot->isWater() && !canMoveAllTerrain())
+		if (!kPlot.isWater() && !canMoveAllTerrain())
 		{
-			if (!pPlot->isFriendlyCity(*this, true) || !pPlot->isCoastalLand())
+			if (!kPlot.isFriendlyCity(*this, true) || !kPlot.isCoastalLand())
 			{
 				return false;
 			}
@@ -2453,13 +2451,13 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		{
 			bool bValid = false;
 
-			if (pPlot->isFriendlyCity(*this, true))
+			if (kPlot.isFriendlyCity(*this, true))
 			{
 				bValid = true;
 
 				if (m_pUnitInfo->getAirUnitCap() > 0)
 				{
-					if (pPlot->airUnitSpaceAvailable(getTeam()) <= 0)
+					if (kPlot.airUnitSpaceAvailable(getTeam()) <= 0)
 					{
 						bValid = false;
 					}
@@ -2468,7 +2466,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 			if (!bValid)
 			{
-				if (bIgnoreLoad || !canLoad(pPlot))
+				if (bIgnoreLoad || !canLoad(&kPlot))
 				{
 					return false;
 				}
@@ -2478,12 +2476,12 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		break;
 
 	case DOMAIN_LAND:
-		if (pPlot->isWater() && !canMoveAllTerrain())
+		if (kPlot.isWater() && !canMoveAllTerrain())
 		{
-			if (!pPlot->isCity() || !GC.getDefineBOOL(CvGlobals::LAND_UNITS_CAN_ATTACK_WATER_CITIES))
+			if (!kPlot.isCity() || !GC.getDefineBOOL(CvGlobals::LAND_UNITS_CAN_ATTACK_WATER_CITIES))
 			{
-				//if (bIgnoreLoad || !isHuman() || plot()->isWater() || !canLoad(pPlot))
-				if (bIgnoreLoad || plot()->isWater() || !canLoad(pPlot)) // K-Mod. (AI might want to load into a boat on the coast)
+				//if (bIgnoreLoad || !isHuman() || kPlot.isWater() || !canLoad(&kPlot))
+				if (bIgnoreLoad || plot()->isWater() || !canLoad(&kPlot)) // K-Mod. (AI might want to load into a boat on the coast)
 				{
 					return false;
 				}
@@ -2502,24 +2500,24 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 	if (isAnimal())
 	{
-		if (pPlot->isOwned())
+		if (kPlot.isOwned())
 		{
 			return false;
 		}
 
 		if (!bAttack)
 		{
-			if(pPlot->getBonusType() != NO_BONUS
+			if(kPlot.getBonusType() != NO_BONUS
 					// advc.309:
-					&& GC.getBonusInfo(pPlot->getBonusType()).getTechReveal() == NO_TECH)
+					&& GC.getBonusInfo(kPlot.getBonusType()).getTechReveal() == NO_TECH)
 				return false;
 
-			if(pPlot->getImprovementType() != NO_IMPROVEMENT
+			if(kPlot.getImprovementType() != NO_IMPROVEMENT
 					// advc.309:
-					&& GC.getImprovementInfo(pPlot->getImprovementType()).isGoody())
+					&& GC.getImprovementInfo(kPlot.getImprovementType()).isGoody())
 				return false;
 
-			if (pPlot->getNumUnits() > 0)
+			if (kPlot.getNumUnits() > 0)
 			{
 				return false;
 			}
@@ -2530,7 +2528,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	{
 		if (!bAttack)
 		{
-			if (pPlot->isEnemyCity(*this))
+			if (kPlot.isEnemyCity(*this))
 			{
 				return false;
 			}
@@ -2553,7 +2551,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	// The following change makes capturing an undefended city like a attack action, it
 	// cannot be done after another attack or a paradrop
 	/*
-	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM))) {
+	if (bAttack || (kPlot.isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM))) {
 		if (//isMadeAttack() && !isBlitz()
 				isMadeAllAttacks()) // advc.164
 			return false;
@@ -2568,7 +2566,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	{
 		if (//isMadeAttack() && !isBlitz()
 				isMadeAllAttacks() && // advc.164
-				pPlot->isVisibleEnemyDefender(this))
+				kPlot.isVisibleEnemyDefender(this))
 			return false;
 	}
 	// UNOFFICIAL_PATCH: END
@@ -2577,7 +2575,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	{
 		if (bAttack)
 		{
-			if (!canAirStrike(pPlot))
+			if (!canAirStrike(&kPlot))
 			{
 				return false;
 			}
@@ -2589,10 +2587,10 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		{
 			if (bAttack || !canCoexistWithEnemyUnit(NO_TEAM))
 			{
-				//if (!isHuman() || (pPlot->isVisible(getTeam(), false)))
-				if (bAssumeVisible || pPlot->isVisible(getTeam(), false))
+				//if (!isHuman() || (kPlot.isVisible(getTeam(), false)))
+				if (bAssumeVisible || kPlot.isVisible(getTeam(), false))
 				{
-					if (pPlot->isVisibleEnemyUnit(this) != bAttack)
+					if (kPlot.isVisibleEnemyUnit(this) != bAttack)
 					{
 						//FAssertMsg(isHuman() || (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack)), "hopefully not an issue, but tracking how often this is the case when we dont want to really declare war");
 						/* original bts code
@@ -2600,7 +2598,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 						// K-Mod. I'm not entirely sure I understand what they were trying to do here. But I'm pretty sure it's wrong.
 						// I think the rule should be that bAttack means we have to actually fight an enemy unit. Capturing an undefended city doesn't count.
 						// (there is no "isVisiblePotentialEnemyUnit" function, so I just wrote the code directly.)
-						if (!bAttack || !bDeclareWar || !pPlot->isVisiblePotentialEnemyUnit(getOwner()))
+						if (!bAttack || !bDeclareWar || !kPlot.isVisiblePotentialEnemyUnit(getOwner()))
 						// K-Mod end
 						{
 							return false;
@@ -2608,10 +2606,10 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 					} // <advc.315>
 					else if(bAttack && ( // <advc.315b>
 							(m_pUnitInfo->isOnlyAttackBarbarians() &&
-							pPlot->plotCheck(PUF_isPlayer, BARBARIAN_PLAYER) == NULL) ||
+							kPlot.plotCheck(PUF_isPlayer, BARBARIAN_PLAYER) == NULL) ||
 							// </advc.315b> <advc.315a>
 							(m_pUnitInfo->isOnlyAttackAnimals() &&
-							pPlot->plotCheck(PUF_isAnimal) == NULL)))
+							kPlot.plotCheck(PUF_isAnimal) == NULL)))
 							// </advc.315a>
 						return false; // </advc.315>
 				}
@@ -2625,7 +2623,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 						return false;
 				} */
 				// K-Mod. (this is much faster.)
-				if (!pPlot->hasDefender(true, NO_PLAYER, getOwner(), this, true))
+				if (!kPlot.hasDefender(true, NO_PLAYER, getOwner(), this, true))
 					return false;
 				// K-Mod end
 			}
@@ -2639,15 +2637,15 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 			if (!canCoexistWithEnemyUnit(NO_TEAM))
 			{
-				//if (!isHuman() || pPlot->isVisible(getTeam(), false))
-				if (bAssumeVisible || pPlot->isVisible(getTeam(), false)) // K-Mod
+				//if (!isHuman() || kPlot.isVisible(getTeam(), false))
+				if (bAssumeVisible || kPlot.isVisible(getTeam(), false)) // K-Mod
 				{
-					if (pPlot->isEnemyCity(*this))
+					if (kPlot.isEnemyCity(*this))
 					{
 						return false;
 					}
 
-					if (pPlot->isVisibleEnemyUnit(this))
+					if (kPlot.isVisibleEnemyUnit(this))
 					{
 						return false;
 					}
@@ -2657,7 +2655,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 		if (isHuman()) // (should this be !bAssumeVisible? It's a bit different to the other isHuman() checks)
 		{
-			ePlotTeam = pPlot->getRevealedTeam(getTeam(), false);
+			ePlotTeam = kPlot.getRevealedTeam(getTeam(), false);
 			bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
 		}
 
@@ -2688,7 +2686,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			else if (!isHuman())
 			{
 				if (!GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam) ||
-						!getGroup()->AI_isDeclareWar(pPlot))
+						!getGroup()->AI_isDeclareWar(&kPlot))
 				{
 					return false;
 				}
@@ -2696,17 +2694,17 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			// K-Mod end
 		}
 	}
-	if (GC.getPythonCaller()->cannotMoveIntoOverride(*this, *pPlot))
+	if (GC.getPythonCaller()->cannotMoveIntoOverride(*this, kPlot))
 		return false;
 
 	return true;
 }
 
 
-bool CvUnit::canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar,
+bool CvUnit::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar, // advc.003: 1st param was a pointer
 		bool bDangerCheck) const // advc.001k
 {
-	return (canMoveInto(pPlot, false, bDeclareWar) || canMoveInto(pPlot, true, bDeclareWar,
+	return (canMoveInto(kPlot, false, bDeclareWar) || canMoveInto(kPlot, true, bDeclareWar,
 			false, true, bDangerCheck)); // advc.001k
 }
 
@@ -2742,7 +2740,7 @@ void CvUnit::attack(CvPlot* pPlot, bool bQuick)
 	/**
 	*** Note: this assertion could fail in certain situations involving sea-patrol - Karadoc
 	**/
-	FAssert(canMoveInto(pPlot, true));
+	FAssert(canMoveInto(*pPlot, true));
 	FAssert(getCombatTimer() == 0);
 
 	setAttackPlot(pPlot, false);
@@ -2892,7 +2890,7 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 
 void CvUnit::move(CvPlot* pPlot, bool bShow)
 {
-	FAssert(canMoveOrAttackInto(pPlot) || isMadeAttack());
+	FAssert(canMoveOrAttackInto(*pPlot) || isMadeAttack());
 
 	CvPlot* pOldPlot = plot();
 
@@ -2953,29 +2951,27 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 	CvCity* pNearestCity = GC.getMap().findCity(getX(), getY(), getOwner());
 
 	int iBestValue = MAX_INT;
-	CvPlot* pBestPlot = NULL;
+	CvPlot const* pBestPlot = NULL;
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
+		CvPlot const& kLoopPlot = *GC.getMap().plotByIndex(iI); // advc.003: was CvPlot*
 
-		if (pLoopPlot->isValidDomainForLocation(*this))
+		if (kLoopPlot.isValidDomainForLocation(*this))
 		{
-			if (canMoveInto(pLoopPlot))
+			if (canMoveInto(kLoopPlot))
 			{
-				if (canEnterArea(pLoopPlot->getTeam(), pLoopPlot->area()) &&
-						!isEnemy(pLoopPlot->getTeam(), pLoopPlot))
+				if (canEnterArea(kLoopPlot.getTeam(), kLoopPlot.area()) &&
+						!isEnemy(kLoopPlot.getTeam(), &kLoopPlot))
 				{
-					FAssertMsg(!atPlot(pLoopPlot), "atPlot(pLoopPlot) did not return false as expected");
+					FAssert(!atPlot(&kLoopPlot));
 
 					if (getDomainType() != DOMAIN_AIR ||
-							pLoopPlot->isFriendlyCity(*this, true))
+							kLoopPlot.isFriendlyCity(*this, true))
 					{
-						if (pLoopPlot->isRevealed(getTeam(), false))
+						if (kLoopPlot.isRevealed(getTeam(), false))
 						{
-							int iValue = (plotDistance(getX(), getY(),
-									pLoopPlot->getX(), pLoopPlot->getY())
-									* 2);
+							int iValue = (::plotDistance(plot(), &kLoopPlot) * 2);
 							// K-mod, 2/jan/11, karadoc - bForceMove functionality
 							if (bForceMove && iValue == 0)
 								continue;
@@ -2983,41 +2979,41 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 
 							if (pNearestCity != NULL)
 							{
-								iValue += plotDistance(pLoopPlot->getX(), pLoopPlot->getY(), pNearestCity->getX(), pNearestCity->getY());
+								iValue += ::plotDistance(&kLoopPlot, pNearestCity->plot());
 							} /* <advc.003b> Apart from performance, this also
 								 makes it easier to test advc.046 through the debugger. */
 							if(iValue >= iBestValue)
 								continue; // </advc.003b>
 							if (getDomainType() == DOMAIN_SEA && !plot()->isWater())
 							{
-								if (!pLoopPlot->isWater() || !pLoopPlot->isAdjacentToArea(area()))
+								if (!kLoopPlot.isWater() || !kLoopPlot.isAdjacentToArea(area()))
 								{
 									iValue *= 3;
 								}
 							}
 							else
 							{
-								if (pLoopPlot->area() != area())
+								if (kLoopPlot.area() != area())
 								{
 									//iValue *= 3;
 									// <advc.046>
 									int iMult = 3;
-									if(pLoopPlot->area()->getCitiesPerPlayer(
+									if(kLoopPlot.area()->getCitiesPerPlayer(
 											getOwner()) <= 0) {
 										iValue += 4;
 										iMult += 1;
-										if(pLoopPlot->area()->getNumCities() == 0)
+										if(kLoopPlot.area()->getNumCities() == 0)
 											iValue += 6;
 									}
 									iValue *= iMult; // </advc.046>
 								}
 							} // <advc.046> Perhaps not really needed, but can't hurt.
-							if(pLoopPlot->isLake() && !plot()->isLake())
+							if(kLoopPlot.isLake() && !plot()->isLake())
 								iValue *= 2; // </advc.046>
 							if (iValue < iBestValue)
 							{
 								iBestValue = iValue;
-								pBestPlot = pLoopPlot;
+								pBestPlot = &kLoopPlot;
 							}
 						}
 					}
@@ -3912,19 +3908,16 @@ bool CvUnit::canAirlift(const CvPlot* pPlot) const
 
 bool CvUnit::canAirliftAt(const CvPlot* pPlot, int iX, int iY) const
 {
-	CvPlot* pTargetPlot;
-	CvCity* pTargetCity;
-
 	if (!canAirlift(pPlot))
 	{
 		return false;
 	}
 
-	pTargetPlot = GC.getMap().plot(iX, iY);
+	CvPlot const& kTargetPlot = GC.getMap().getPlot(iX, iY);
 
 	// canMoveInto use to be here
 
-	pTargetCity = pTargetPlot->getPlotCity();
+	CvCity* pTargetCity = kTargetPlot.getPlotCity();
 
 	if (pTargetCity == NULL)
 	{
@@ -3941,7 +3934,7 @@ bool CvUnit::canAirliftAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 	}
 
-	if (!canMoveInto(pTargetPlot)) // moved by K-Mod
+	if (!canMoveInto(kTargetPlot)) // moved by K-Mod
 	{
 		return false;
 	}
@@ -4399,7 +4392,7 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 	}
 
-	if (!canMoveInto(pTargetPlot, false, false, true))
+	if (!canMoveInto(*pTargetPlot, false, false, true))
 	{
 		return false;
 	}
@@ -4553,25 +4546,25 @@ bool CvUnit::airBomb(int iX, int iY)
 		return false;
 	}
 
-	CvPlot* pPlot = GC.getMap().plot(iX, iY);
+	CvPlot& kPlot = GC.getMap().getPlot(iX, iY); // advc.003: was CvMap::plot
 
-	/* if (!isEnemy(pPlot->getTeam()))
+	/* if (!isEnemy(kPlot.getTeam()))
 		getGroup()->groupDeclareWar(pPlot, true);*/
 	// Disabled by K-Mod
 
-	if (!isEnemy(pPlot->getTeam()))
+	if (!isEnemy(kPlot.getTeam()))
 	{
 		return false;
 	}
 
-	if (interceptTest(pPlot))
+	if (interceptTest(&kPlot))
 	{
 		return true;
 	}
 
 	CvWString szBuffer;
 
-	CvCity* pCity = pPlot->getPlotCity();
+	CvCity* pCity = kPlot.getPlotCity();
 	if (pCity != NULL)
 	{
 		/*  <advc.004c> Same as in CvUnit::bombard except that IgnoreBuildingDefense
@@ -4593,38 +4586,38 @@ bool CvUnit::airBomb(int iX, int iY)
 	}
 	else
 	{
-		if (pPlot->getImprovementType() != NO_IMPROVEMENT)
+		if (kPlot.getImprovementType() != NO_IMPROVEMENT)
 		{
 			if (GC.getGame().getSorenRandNum(airBombCurrRate(), "Air Bomb - Offense") >=
-					GC.getGame().getSorenRandNum(GC.getImprovementInfo(pPlot->getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
+					GC.getGame().getSorenRandNum(GC.getImprovementInfo(kPlot.getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
 			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(), GC.getImprovementInfo(kPlot.getImprovementType()).getTextKeyWide());
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), kPlot.getX(), kPlot.getY());
 
-				if (pPlot->isOwned())
+				if (kPlot.isOwned())
 				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
-					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwner(),
+					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED", GC.getImprovementInfo(kPlot.getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(kPlot.getTeam()));
+					gDLL->getInterfaceIFace()->addHumanMessage(kPlot.getOwner(),
 							true, // advc.106j
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
+							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), kPlot.getX(), kPlot.getY(), true, true);
 				}
 
-				pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
+				kPlot.setImprovementType((ImprovementTypes)(GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage()));
 			}
 			else
 			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP", getNameKey(), GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP", getNameKey(), GC.getImprovementInfo(kPlot.getImprovementType()).getTextKeyWide());
+				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), kPlot.getX(), kPlot.getY());
 			}
 		}
 	}
 
-	setReconPlot(pPlot);
+	setReconPlot(&kPlot);
 
 	setMadeAttack(true);
 	changeMoves(GC.getMOVE_DENOMINATOR());
 
-	if (pPlot->isActiveVisible(false))
+	if (kPlot.isActiveVisible(false))
 	{
 		CvAirMissionDefinition kAirMission;
 		kAirMission.setMissionType(MISSION_AIRBOMB);
@@ -4632,7 +4625,7 @@ bool CvUnit::airBomb(int iX, int iY)
 		kAirMission.setUnit(BATTLE_UNIT_DEFENDER, NULL);
 		kAirMission.setDamage(BATTLE_UNIT_DEFENDER, 0);
 		kAirMission.setDamage(BATTLE_UNIT_ATTACKER, 0);
-		kAirMission.setPlot(pPlot);
+		kAirMission.setPlot(&kPlot);
 		kAirMission.setMissionTime(GC.getMissionInfo((MissionTypes)MISSION_AIRBOMB).getTime() * gDLL->getSecsPerTurn());
 
 		gDLL->getEntityIFace()->AddMission(&kAirMission);
@@ -4977,7 +4970,7 @@ bool CvUnit::canPlunder(const CvPlot* pPlot, bool bTestVisible) const
 	}
 	// <advc.033>
 	if(!pPlot->isRevealed(getTeam(), false) ||
-			(pPlot != plot() && !canMoveInto(pPlot) && !canMoveInto(pPlot, true)))
+			(pPlot != plot() && !canMoveInto(*pPlot) && !canMoveInto(*pPlot, true)))
 		return false; // </advc.033>
 	// advc.003:
 	bool bPirate = (isAlwaysHostile(pPlot) || m_pUnitInfo->isHiddenNationality());
@@ -5041,7 +5034,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
 					//GC.getMap().calculatePathDistance(plot(), pLoopPlot);
 					/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
 						issue described below b/c still uses FAStar. */
-					plot()->calculatePathDistanceToPlot(BARBARIAN_TEAM, pLoopPlot,
+					plot()->calculatePathDistanceToPlot(BARBARIAN_TEAM, *pLoopPlot,
 					BARBARIAN_TEAM, bImpassables ? DOMAIN_IMMOBILE : getDomainType(),
 					iRange + iExtra); // </advc.033>
 			// BBAI NOTES (jdog5000, 06/01/09):
@@ -12536,8 +12529,7 @@ bool CvUnit::rangeStrike(int iX, int iY)
 
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 	if (pPlot == NULL) {
-		// advc.003: I don't think this should happen; assertion added.
-		FAssertMsg(pPlot != NULL, "Range strike off the map");
+		FAssertMsg(pPlot != NULL, "Range strike off the map"); // advc.003
 		return false;
 	}
 	/* original bts code

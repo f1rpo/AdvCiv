@@ -187,7 +187,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
 		bool bDone = false;
 		if(!bSurrender && pFirstList != NULL && pSecondList != NULL &&
-				GC.getDefineBOOL("ANNOUNCE_REPARATIONS")) {
+				GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS)) {
 			int iFirstLength = pFirstList->getLength();
 			int iSecondLength = pSecondList->getLength();
 			// Call makePeace on the recipient of reparations

@@ -1760,7 +1760,7 @@ double WarAndPeaceCache::City::estimateMovementSpeed(PlayerTypes civId,
 
 // <advc.104b>
 bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
-		CvPlot* start, CvPlot* dest, int* r) {
+		CvPlot const* start, CvPlot const* dest, int* r) {
 
 	PROFILE_FUNC();
 	/*  Caveat: dom can be IMMOBILE, which means Galley. Should compare dom
@@ -1824,7 +1824,7 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		won't take detours around ice into account though. */
 	if(dom != DOMAIN_LAND && !start->isAdjacentToArea(dest->area()))
 		return false;
-	*r = start->calculatePathDistanceToPlot(start->getTeam(), dest, destTeam,
+	*r = start->calculatePathDistanceToPlot(start->getTeam(), *dest, destTeam,
 			/*  Path distance counts each step as 1 move; upper bound needs to
 				account for faster movement. */
 			dom, (int)::ceil(maxDist * speedEstimate));

@@ -4983,8 +4983,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				which may not be a safe thing to do in multiplayer. */
 			&& !bConstCache)
 	{
-		int iPlotDanger = GET_PLAYER(kPlot.getOwner()).AI_getPlotDanger(
-				const_cast<CvPlot*>(&kPlot), /* advc.135c: */ 2);
+		int iPlotDanger = GET_PLAYER(kPlot.getOwner()).AI_getPlotDanger(kPlot,
+				2); // advc.135c
 		if (iPlotDanger > 0)
 			szString.append(CvWString::format(L"\nPlot Danger = %d", iPlotDanger));
 	}

@@ -122,7 +122,7 @@ bool CySelectionGroup::canMoveOrAttackInto(CyPlot* pPlot, bool bDeclareWar)
 
 bool CySelectionGroup::canMoveThrough(CyPlot* pPlot)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->canMoveThrough(pPlot->getPlot()) : false;
+	return m_pSelectionGroup ? m_pSelectionGroup->canMoveThrough(*pPlot->getPlot()) : false;
 }
 
 bool CySelectionGroup::canFight()

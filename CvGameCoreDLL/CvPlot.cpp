@@ -2985,8 +2985,8 @@ bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer
 	to twist it to my purpose. I don't think it had ever been tested either
 	b/c it didn't seem to work at all until I changed the GetLastNode call
 	at the end. */
-int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
-		TeamTypes eTargetTeam, DomainTypes eDomain, int iMaxPath) // advc.104b
+int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPlot,
+		TeamTypes eTargetTeam, DomainTypes eDomain, int iMaxPath) const // advc.104b
 {
 	PROFILE_FUNC();
 	FAssert(eTeam != NO_TEAM);
@@ -3005,8 +3005,8 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 	aStepData[0] = eTeam;
 	aStepData[1] = eTargetTeam;
 	aStepData[2] = eDomain;
-	aStepData[3] = pTargetPlot->getX();
-	aStepData[4] = pTargetPlot->getY();
+	aStepData[3] = kTargetPlot.getX();
+	aStepData[4] = kTargetPlot.getY();
 	aStepData[5] = iMaxPath; // </advc.104b>
 	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
 	gDLL->getFAStarIFace()->Initialize(pStepFinder,
@@ -3020,9 +3020,8 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 	gDLL->getFAStarIFace()->SetData(pStepFinder, aStepData);
 
 	int iPathDistance = -1;
-	gDLL->getFAStarIFace()->GeneratePath(pStepFinder,
-			getX(), getY(), pTargetPlot->getX(),
-			pTargetPlot->getY(), false, 0, true);
+	gDLL->getFAStarIFace()->GeneratePath(pStepFinder, getX(), getY(),
+			kTargetPlot.getX(), kTargetPlot.getY(), false, 0, true);
 	// advc.104b, advc.001: was &GC.getStepFinder() instead of pStepFinder
 	FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(pStepFinder);
 	if (pNode != NULL)

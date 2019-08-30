@@ -62,7 +62,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 		gDLL->callUpdater();
 		for (int iY = 0; iY < getGridHeight(); iY++)
 		{
-			plotSoren(iX, iY)->init(iX, iY);
+			getPlot(iX, iY).init(iX, iY);
 		}
 	}
 	calculateAreas();
@@ -509,8 +509,8 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 	CLLNode<XYCoords>* pPlotNode = pOldPlotGroup->headPlotsNode();
 	while (pPlotNode != NULL)
 	{
-		CvPlot* pPlot = plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-		pNewPlotGroup->addPlot(pPlot);
+		CvPlot& kPlot = getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		pNewPlotGroup->addPlot(&kPlot);
 		pPlotNode = pOldPlotGroup->deletePlotsNode(pPlotNode);
 	}
 }
@@ -622,8 +622,8 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 		{	// <advc.004r>
 			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
 				continue; // </advc.004r>
-			if (!bSameArea || pLoopCity->area() == plot(iX, iY)->area() ||
-					(bCoastalOnly && pLoopCity->waterArea() == plot(iX, iY)->area()))
+			if (!bSameArea || pLoopCity->area() == getPlot(iX, iY).area() ||
+					(bCoastalOnly && pLoopCity->waterArea() == getPlot(iX, iY).area()))
 			{
 				if ((!bCoastalOnly || pLoopCity->isCoastal()) &&
 					eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith) &&

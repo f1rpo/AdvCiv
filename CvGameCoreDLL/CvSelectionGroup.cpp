@@ -8,6 +8,7 @@
 #include "FAStarNode.h"
 #include "CvInfo_Command.h"
 #include "CvInfo_Terrain.h" // for getBestBuildRoute
+#include "CvInfo_Unit.h" // for canAnyMoveAllTerrain
 #include "CySelectionGroup.h"
 
 
@@ -206,7 +207,8 @@ void CvSelectionGroup::doTurn()
 
 	if (AI_isControlled())
 	{
-		if (getActivityType() != ACTIVITY_MISSION || (!canFight() && GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)))
+		if (getActivityType() != ACTIVITY_MISSION ||
+			(!canFight() && GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2)))
 		{
 			setForceUpdate(true);
 			// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
@@ -238,7 +240,7 @@ void CvSelectionGroup::doTurn()
 			// sometimes produces unintuitive results in some situations. So now 'ignore danger' only ignores range==2.
 
 			//if (bNonSpy && GET_PLAYER(getOwner()).AI_getPlotDanger(plot(), 2) > 0)
-			if (bNonSpy && GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), bBrave ? 1 : 2, true, false))
+			if (bNonSpy && GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), bBrave ? 1 : 2, true, false))
 				clearMissionQueue();
 			// K-Mod end
 		}
@@ -584,7 +586,7 @@ bool CvSelectionGroup::autoMission() // K-Mod changed this from void to bool.
 				//if (bVisibleHuman && GET_PLAYER(getOwner()).AI_getPlotDanger(plot(), 1) > 0)
 				// K-Mod. I want to allow players to queue actions when in danger without being overruled by this clause.
 				if (bVisibleHuman && headMissionQueueNode()->m_data.iPushTurn != GC.getGame().getGameTurn() && !(headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER) &&
-					GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 1, true, false))
+					GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 1, true, false))
 				// K-Mod end
 				{
 					clearMissionQueue();
@@ -789,16 +791,15 @@ void CvSelectionGroup::startMission()
 		{
 		case MISSION_MOVE_TO:
 			// K-Mod. Prevent human players from accidentally attacking units that they can't see.
-			if (isHuman() && !GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2)->isVisible(getTeam(), false))
+			if (isHuman() && !GC.getMap().getPlot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2).isVisible(getTeam(), false))
 				headMissionQueueNode()->m_data.iFlags |= MOVE_NO_ATTACK;
 
 			// also, we should allow an amphibious landing even if we are out of moves.
 			if (!canAllMove())
 			{
-				if (groupAmphibMove(GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2), headMissionQueueNode()->m_data.iFlags))
-				{
+				if (groupAmphibMove(GC.getMap().getPlot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2),
+						headMissionQueueNode()->m_data.iFlags))
 					bDelete = true;
-				}
 			}
 			// K-Mod end
 		case MISSION_ROUTE_TO:
@@ -933,7 +934,7 @@ void CvSelectionGroup::startMission()
 		// K-Mod. If the worker is already in danger when the command is issued, use the MOVE_IGNORE_DANGER flag.
 		case MISSION_BUILD:
 			if (!AI_isControlled() && headMissionQueueNode()->m_data.iPushTurn == GC.getGame().getGameTurn() &&
-				GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2, true, false)) // cf. condition used in CvSelectionGroup::doTurn.
+				GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2, true, false)) // cf. condition used in CvSelectionGroup::doTurn.
 			{
 				headMissionQueueNode()->m_data.iFlags |= MOVE_IGNORE_DANGER;
 			}
@@ -1033,7 +1034,7 @@ void CvSelectionGroup::startMission()
 					{
 						bAction = true;
 
-						if (GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2)->isVisibleToWatchingHuman())
+						if (GC.getMap().getPlot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2).isVisibleToWatchingHuman())
 						{
 							bNuke = true;
 						}
@@ -1389,7 +1390,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 				if (getNumUnits() > 0 && !canAllMove() && pHeadMission != NULL)
 				{
 					missionData = pHeadMission->m_data;
-					if (groupAmphibMove(GC.getMap().plot(
+					if (groupAmphibMove(GC.getMap().getPlot(
 							missionData.iData1, missionData.iData2), missionData.iFlags))
 					{
 						bAction = false;
@@ -2018,7 +2019,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_AIRSTRIKE:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canMoveInto(pPlot, true, false, false, false))
+				if (pLoopUnit->canMoveInto(*pPlot, true, false, false, false))
 				{
 					return true;
 				}
@@ -2028,7 +2029,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 		case INTERFACEMODE_REBASE:
 			if (pLoopUnit != NULL)
 			{
-				if (pLoopUnit->canMoveInto(pPlot))
+				if (pLoopUnit->canMoveInto(*pPlot))
 				{
 					return true;
 				}
@@ -2443,7 +2444,7 @@ bool CvSelectionGroup::canMoveInto(CvPlot* pPlot, bool bAttack)
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		if (pLoopUnit->canMoveInto(pPlot, bAttack))
+		if (pLoopUnit->canMoveInto(*pPlot, bAttack))
 		{
 			return true;
 		}
@@ -2453,13 +2454,13 @@ bool CvSelectionGroup::canMoveInto(CvPlot* pPlot, bool bAttack)
 }
 
 
-bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar,
+bool CvSelectionGroup::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar,
 		bool bCheckMoves, bool bAssumeVisible) const // K-Mod
 {
 	if(getNumUnits() <= 0)
 		return false;
 
-	bool bVisible = bAssumeVisible || pPlot->isVisible(getHeadTeam(), false); // K-Mod
+	bool bVisible = bAssumeVisible || kPlot.isVisible(getHeadTeam(), false); // K-Mod
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
@@ -2469,7 +2470,8 @@ bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar,
 
 		//if (pLoopUnit->canMoveOrAttackInto(pPlot, bDeclareWar))
 		if ((!bCheckMoves || pLoopUnit->canMove()) && // K-Mod
-			(bVisible ? pLoopUnit->canMoveOrAttackInto(pPlot, bDeclareWar) : pLoopUnit->canMoveInto(pPlot, false, bDeclareWar, false, false)))
+			(bVisible ? pLoopUnit->canMoveOrAttackInto(kPlot, bDeclareWar) :
+			pLoopUnit->canMoveInto(kPlot, false, bDeclareWar, false, false)))
 		{
 			return true;
 		}
@@ -2479,7 +2481,7 @@ bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar,
 }
 
 
-bool CvSelectionGroup::canMoveThrough(CvPlot* pPlot, bool bDeclareWar, bool bAssumeVisible) const
+bool CvSelectionGroup::canMoveThrough(CvPlot const& kPlot, bool bDeclareWar, bool bAssumeVisible) const
 {
 	if(getNumUnits() <= 0)
 		return false;
@@ -2490,9 +2492,8 @@ bool CvSelectionGroup::canMoveThrough(CvPlot* pPlot, bool bDeclareWar, bool bAss
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
-
-		//if (!pLoopUnit->canMoveThrough(pPlot))
-		if (!pLoopUnit->canMoveInto(pPlot, false, bDeclareWar, true, bAssumeVisible)) // K-Mod
+		//if (!pLoopUnit->canMoveThrough(kPlot))
+		if (!pLoopUnit->canMoveInto(kPlot, false, bDeclareWar, true, bAssumeVisible)) // K-Mod
 		{
 			return false;
 		}
@@ -2689,8 +2690,11 @@ bool CvSelectionGroup::isStranded() const
 
 bool CvSelectionGroup::canMoveAllTerrain() const
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC();
+	/*  <advc.003b> This function doesn't get called often, but I guess that could
+		change. Make sure not to waste time checking for an unused ability. */
+	if (!CvUnitInfo::canAnyMoveAllTerrain())
+		return false; // </advc.003b>
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
@@ -3150,7 +3154,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 					/*  advc.001: This condition was removed in K-Mod 1.44, but is needed
 						b/c canMoveOrAttackInto doesn't cover it (perhaps it should). */
 					!(pLoopUnit->isNoCapture() && pPlot->isEnemyCity(*pLoopUnit)) &&
-					(bCombat ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot)))
+					(bCombat ? pLoopUnit->canMoveOrAttackInto(*pPlot) : pLoopUnit->canMoveInto(*pPlot)))
 				pLoopUnit->move(pPlot, true);
 			else
 			{
@@ -3242,7 +3246,7 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, int iFlags)
 		pPathPlot = final_path.GetPathFirstPlot();
 		// K-Mod end
 
-		if (groupAmphibMove(pPathPlot, iFlags))
+		if (groupAmphibMove(*pPathPlot, iFlags))
 		{
 			return false;
 		}
@@ -3517,7 +3521,7 @@ bool CvSelectionGroup::isAmphibPlot(const CvPlot* pPlot) const
 }
 
 // Returns true if attempted an amphib landing...
-bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
+bool CvSelectionGroup::groupAmphibMove(CvPlot const& kPlot, int iFlags) // advc.003: 1st param was CvPlot*
 {
 	bool bLanding = false;
 
@@ -3528,9 +3532,9 @@ bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
 		return true;*/
 	// K-Mod. I've disabled this groupDeclareWar for a bunch of reasons. Suffice to say, it shouldn't be here.
 
-	if (isAmphibPlot(pPlot))
+	if (isAmphibPlot(&kPlot))
 	{
-		if (stepDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) == 1)
+		if (stepDistance(getX(), getY(), kPlot.getX(), kPlot.getY()) == 1)
 		{
 			CLLNode<IDInfo>* pUnitNode1 = headUnitNode();
 
@@ -3561,8 +3565,8 @@ bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
 				CvSelectionGroup* pGroup = aCargoGroups[i];
 				if (pGroup->canAllMove())
 				{
-					FAssert(!pGroup->at(pPlot->getX(), pPlot->getY()));
-					pGroup->pushMission(MISSION_MOVE_TO, pPlot->getX(), pPlot->getY(), (MOVE_IGNORE_DANGER | iFlags));
+					FAssert(!pGroup->at(kPlot.getX(), kPlot.getY()));
+					pGroup->pushMission(MISSION_MOVE_TO, kPlot.getX(), kPlot.getY(), (MOVE_IGNORE_DANGER | iFlags));
 					bLanding = true;
 				}
 			}
@@ -4881,7 +4885,7 @@ bool CvSelectionGroup::canDisembark() const {
 		return true;
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 		CvPlot* pAdj = plotDirection(getX(), getY(), (DirectionTypes)i);
-		if(pAdj != NULL && canMoveOrAttackInto(pAdj, false, true, false))
+		if(pAdj != NULL && canMoveOrAttackInto(*pAdj, false, true, false))
 			return true;
 	}
 	return false;

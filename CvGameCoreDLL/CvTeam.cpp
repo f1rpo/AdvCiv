@@ -6756,18 +6756,16 @@ void CvTeam::testCircumnavigated()
 	{
 		return;
 	}
-
-	if (GC.getMap().isWrapX())
+	CvMap const& kMap = GC.getMap(); // advc.003
+	if (kMap.isWrapX())
 	{
-		for (iX = 0; iX < GC.getMap().getGridWidth(); iX++)
+		for (iX = 0; iX < kMap.getGridWidth(); iX++)
 		{
 			bool bFoundVisible = false;
 
-			for (iY = 0; iY < GC.getMap().getGridHeight(); iY++)
+			for (iY = 0; iY < kMap.getGridHeight(); iY++)
 			{
-				CvPlot* pPlot = GC.getMap().plotSoren(iX, iY);
-
-				if (pPlot->isRevealed(getID(), false))
+				if (kMap.getPlot(iX, iY).isRevealed(getID(), false))
 				{
 					bFoundVisible = true;
 					break;
@@ -6781,17 +6779,15 @@ void CvTeam::testCircumnavigated()
 		}
 	}
 
-	if (GC.getMap().isWrapY())
+	if (kMap.isWrapY())
 	{
-		for (iY = 0; iY < GC.getMap().getGridHeight(); iY++)
+		for (iY = 0; iY < kMap.getGridHeight(); iY++)
 		{
 			bool bFoundVisible = false;
 
-			for (iX = 0; iX < GC.getMap().getGridWidth(); iX++)
+			for (iX = 0; iX < kMap.getGridWidth(); iX++)
 			{
-				CvPlot* pPlot = GC.getMap().plotSoren(iX, iY);
-
-				if (pPlot->isRevealed(getID(), false))
+				if (kMap.getPlot(iX, iY).isRevealed(getID(), false))
 				{
 					bFoundVisible = true;
 					break;

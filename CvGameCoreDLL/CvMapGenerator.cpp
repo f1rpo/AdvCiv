@@ -565,7 +565,7 @@ void CvMapGenerator::addBonuses()
 	//for (int iOrder = 0; iOrder < GC.getNumBonusInfos(); iOrder++)
 	for (size_t i = 0; i < aiOrdinals.size(); i++)
 	{
-		int iOrder = aiOrdinals[i];	
+		int iOrder = aiOrdinals[i];
 		/*  Break ties in the order randomly (perhaps better not to do this though
 			if the assertion above fails) */
 		int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), GC.getGame().getMapRand());
@@ -777,7 +777,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 			iPlaced++;
 		}
 	}
-	delete[] aiShuffledIndices;
+	SAFE_DELETE_ARRAY(aiShuffledIndices);
 	FAssert(iLimit >= 0);
 	return iPlaced;
 } // </advc.129>

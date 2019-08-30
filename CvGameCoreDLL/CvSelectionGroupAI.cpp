@@ -361,7 +361,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 		if (!bCanAttack || (!bForce && !kLoopUnit.canMove()))
 			continue;
 
-		if (!bForce && !kLoopUnit.canMoveInto(pPlot, /*bAttack*/ true, /*bDeclareWar*/ bPotentialEnemy))
+		if (!bForce && !kLoopUnit.canMoveInto(*pPlot, /*bAttack*/ true, /*bDeclareWar*/ bPotentialEnemy))
 			continue;
 
 		// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
@@ -459,7 +459,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 			{
 				if (bForce || pLoopUnit->canMove())
 				{
-					if (bForce || pLoopUnit->canMoveInto(pPlot, true))
+					if (bForce || pLoopUnit->canMoveInto(*pPlot, true))
 					{
 						int iValue = pLoopUnit->AI_sacrificeValue(pPlot);
 						/* advc.006: > 0 not guaranteed if unit has no
@@ -562,14 +562,16 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 			{
 				if (pLoopUnit->getDomainType() == DOMAIN_AIR)
 				{
-					if (!pLoopUnit->canAirAttack() || !pLoopUnit->canMove() || (pAttackedPlot && bDefenders && !pLoopUnit->canMoveInto(pAttackedPlot, true, true)))
+					if (!pLoopUnit->canAirAttack() || !pLoopUnit->canMove() ||
+							(pAttackedPlot && bDefenders &&
+							!pLoopUnit->canMoveInto(*pAttackedPlot, true, true)))
 						continue; // can't attack.
 				}
 				else
 				{
-					if (!pLoopUnit->canAttack() || !pLoopUnit->canMove()
-						|| (pAttackedPlot && bDefenders && !pLoopUnit->canMoveInto(pAttackedPlot, true, true))
-						|| //(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+					if (!pLoopUnit->canAttack() || !pLoopUnit->canMove() ||
+							(pAttackedPlot && bDefenders && !pLoopUnit->canMoveInto(*pAttackedPlot, true, true)) ||
+							//(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
 							pLoopUnit->isMadeAllAttacks()) // advc.164
 						continue; // can't attack.
 				}

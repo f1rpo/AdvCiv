@@ -48,8 +48,8 @@ public:
 	void addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI = NO_UNITAI);
 
 	int startingPlotRange() const;																																									// Exposed to Python
-	bool startingPlotWithinRange(CvPlot* pPlot, PlayerTypes ePlayer, int iRange, int iPass) const;									// Exposed to Python
-	int startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int iRange) const;
+	bool startingPlotWithinRange(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange, int iPass) const;									// Exposed to Python
+	int startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange) const;
 	//int findStartingArea() const;
 	std::vector<std::pair<int,int> > findStartingAreas() const; // dlph.35
 	// advc.027: New auxiliary function (public only for Debug mode info)
@@ -1173,11 +1173,10 @@ public:
 	virtual void AI_conquerCity(CvCity* pCity) = 0;
 	virtual short AI_foundValue(int iX, int iY, int iMinUnitRange = -1, bool bStartingLoc = false) const = 0; // Exposed to Python. K-Mod changed return value from int to short
 	virtual bool AI_isCommercePlot(CvPlot* pPlot) const = 0;
-	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true,
-		/*  advc.104: Shouldn't add params to virtual functions b/c the EXE
-			might call them. However, most AI functions are never called by the EXE. */
+	virtual int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, // advc.003: 1st param was CvPlot* (apparently this function isn't called by the EXE)
+			// <advc.104>
 			bool bCheckBorder = true, int* piLowHealth = NULL, int iHPLimit = 60,
-			int iLimit = -1, PlayerTypes eEnemy = NO_PLAYER) const = 0;
+			int iLimit = -1, PlayerTypes eEnemy = NO_PLAYER) const = 0; // </advc.104>
 	virtual bool AI_isFinancialTrouble() const = 0;																											// Exposed to Python
 	virtual TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false,
 			bool bAsync = false, TechTypes eIgnoreTech = NO_TECH,

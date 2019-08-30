@@ -91,10 +91,10 @@ public:
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
 	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
-		return canMoveOrAttackInto(pPlot, bDeclareWar, false);
-	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: const
-	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true) const;
-	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible
+		return canMoveOrAttackInto(*pPlot, bDeclareWar, false);
+	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: 2x const, CvPlot&
+	bool canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar = false, bool bCheckMoves = false, bool bAssumeVisible = true) const;
+	bool canMoveThrough(CvPlot const& kPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible; advc.003: CvPlot const&
 	bool canFight() const;																																										// Exposed to Python
 	bool canDefend() const;																																										// Exposed to Python
 	bool canBombard(const CvPlot* pPlot) const;
@@ -125,6 +125,7 @@ public:
 	bool at(int iX, int iY) const;																																								// Exposed to Python
 	bool atPlot(const CvPlot* pPlot) const;																																				// Exposed to Python
 	DllExport CvPlot* plot() const;																																								// Exposed to Python
+	inline CvPlot& getPlot() const { return *plot(); } // advc.003
 	int getArea() const;
 	CvArea* area() const;																																													// Exposed to Python
 	DomainTypes getDomainType() const;
@@ -142,7 +143,7 @@ public:
 	void setTransportUnit(CvUnit* pTransportUnit, CvSelectionGroup** pOtherGroup = NULL); // bbai added pOtherGroup
 
 	bool isAmphibPlot(const CvPlot* pPlot) const;																																		// Exposed to Python
-	bool groupAmphibMove(CvPlot* pPlot, int iFlags);
+	bool groupAmphibMove(CvPlot const& kPlot, int iFlags);
 
 	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python
 	bool readyToMove(bool bAny = false) const; // Exposed to Python
@@ -165,10 +166,9 @@ public:
 	inline void setForceUpdate(bool bNewValue) { m_bForceUpdate = bNewValue; } // K-Mod made inline
 	// void doForceUpdate(); // K-Mod. (disabled. force update doesn't work the same way anymore.)
 
-	/*PlayerTypes getOwner() const;
-	#ifdef _USRDLL*/ // advc.003f: The EXE doesn't call this, so no need for an external version.
+	//PlayerTypes getOwner() const;
+	// advc.003f: The EXE doesn't call this, so no need for an external version.
 	inline PlayerTypes getOwner() const { return m_eOwner; }
-	//#endif
 	TeamTypes getTeam() const;																																					// Exposed to Python
 
 	ActivityTypes getActivityType() const;																															// Exposed to Python

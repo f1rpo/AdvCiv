@@ -133,10 +133,9 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 		int iOccupationTimer) // advc.122
 {
 	int iI=-1;
-	CvGame& g = GC.getGame();
-	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 
-	reset(iID, eOwner, pPlot->getX(), pPlot->getY()); // Reset serialized data
+	CvPlot& kPlot = GC.getMap().getPlot(iX, iY);
+	reset(iID, eOwner, kPlot.getX(), kPlot.getY()); // Reset serialized data
 
 	setupGraphical();
 
@@ -152,12 +151,12 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	updateCultureLevel(false);
 
 	int const iFreeCityCulture = GC.getDefineINT("FREE_CITY_CULTURE"); // advc.003b
-	if (pPlot->getCulture(getOwner()) < iFreeCityCulture)
+	if (kPlot.getCulture(getOwner()) < iFreeCityCulture)
 	{
-		pPlot->setCulture(getOwner(), iFreeCityCulture, bBumpUnits, false);
+		kPlot.setCulture(getOwner(), iFreeCityCulture, bBumpUnits, false);
 	}
-	pPlot->setOwner(getOwner(), bBumpUnits, false);
-	pPlot->setPlotCity(this);
+	kPlot.setOwner(getOwner(), bBumpUnits, false);
+	kPlot.setPlotCity(this);
 
 	int const iFreeCityAdjacentCulture = GC.getDefineINT("FREE_CITY_ADJACENT_CULTURE"); // advc.003b
 	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
@@ -179,37 +178,37 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	{
 		if (GET_TEAM(getTeam()).isVassal((TeamTypes)iI))
 		{
-			pPlot->changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), true, NULL, false);
+			kPlot.changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), true, NULL, false);
 		}
 	}
 
 	if (GC.getPythonCaller()->isCitiesDestroyFeatures(iX, iY))
 	{
-		if (pPlot->getFeatureType() != NO_FEATURE)
+		if (kPlot.getFeatureType() != NO_FEATURE)
 		{
-			pPlot->setFeatureType(NO_FEATURE);
+			kPlot.setFeatureType(NO_FEATURE);
 		}
 	}
 
-	pPlot->setImprovementType(NO_IMPROVEMENT);
-	pPlot->updateCityRoute(false);
+	kPlot.setImprovementType(NO_IMPROVEMENT);
+	kPlot.updateCityRoute(false);
 
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
-			if (pPlot->isVisible(((TeamTypes)iI), false))
+			if (kPlot.isVisible(((TeamTypes)iI), false))
 			{
 				setRevealed(((TeamTypes)iI), true);
 			}
 		}
 	}
 
-	changeMilitaryHappinessUnits(pPlot->plotCount(PUF_isMilitaryHappiness));
+	changeMilitaryHappinessUnits(kPlot.plotCount(PUF_isMilitaryHappiness));
 
 	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 	{
-		changeCommerceHappinessPer(((CommerceTypes)iI), GC.getCommerceInfo((CommerceTypes)iI).getInitialHappiness());
+		changeCommerceHappinessPer((CommerceTypes)iI, GC.getCommerceInfo((CommerceTypes)iI).getInitialHappiness());
 	}
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
@@ -222,9 +221,12 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	area()->changeCitiesPerPlayer(getOwner(), 1);
 	// <advc.030b>
-	CvArea* wa = waterArea(true);
-	if(wa != NULL)
-		wa->changeCitiesPerPlayer(getOwner(), 1); // </advc.030b>
+	{
+		CvArea* pWaterArea = waterArea(true);
+		if(pWaterArea != NULL)
+			pWaterArea->changeCitiesPerPlayer(getOwner(), 1);
+	} // </advc.030b>
+	CvGame& g = GC.getGame();
 	GET_TEAM(getTeam()).changeNumCities(1);
 	g.changeNumCities(1);
 
@@ -417,6 +419,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	m_iCitySizeBoost = 0;
 	m_iSpecialistFreeExperience = 0;
 	m_iEspionageDefenseModifier = 0;
+	m_iPopRushHurryCount = 0; // advc.912d
 
 	m_bNeverLost = true;
 	m_bBombarded = false;
@@ -488,7 +491,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	{
 		m_abEspionageVisibility[iI] = false;
 	}
-	m_iPopRushHurryCount = 0; // advc.912d
+
 	// <advc.004x>
 	mrWasUnit = false;
 	mrOrder = -1; // </advc.004x>
@@ -643,9 +646,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	}
 }
 
-//////////////////////////////////////
 // graphical only setup
-//////////////////////////////////////
 void CvCity::setupGraphical()
 {
 	if (!GC.IsGraphicsInitialized())
@@ -763,11 +764,11 @@ void CvCity::kill(bool bUpdatePlotGroups)
 
 	area()->changeCitiesPerPlayer(getOwner(), -1);
 	// <advc.030b>
-	CvArea* wa = waterArea(true);
+	CvArea* pWaterArea = waterArea(true);
 	/*  Can't really handle ice melted by global warming, but at least ensure
 		that CitiesPerPlayer doesn't become negative. */
-	if(wa != NULL && wa->getCitiesPerPlayer(getOwner(), true) > 0)
-		wa->changeCitiesPerPlayer(getOwner(), -1); // </advc.030b>
+	if(pWaterArea != NULL && pWaterArea->getCitiesPerPlayer(getOwner(), true) > 0)
+		pWaterArea->changeCitiesPerPlayer(getOwner(), -1); // </advc.030b>
 	GET_TEAM(getTeam()).changeNumCities(-1);
 
 	GC.getGame().changeNumCities(-1);
@@ -5196,13 +5197,13 @@ int CvCity::getYExternal() const
 } // </advc.003f>
 
 
-bool CvCity::at(int iX,  int iY) const
+bool CvCity::at(int iX, int iY) const
 {
 	return (getX() == iX && getY() == iY);
 }
 
 
-bool CvCity::at(CvPlot* pPlot) const
+bool CvCity::at(CvPlot const* pPlot) const // advc.003: const CvPlot*
 {
 	return (plot() == pPlot);
 }

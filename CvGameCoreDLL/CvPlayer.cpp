@@ -1364,7 +1364,7 @@ int CvPlayer::startingPlotRange() const
 }
 
 
-bool CvPlayer::startingPlotWithinRange(CvPlot* pPlot, PlayerTypes ePlayer, int iRange, int iPass) const
+bool CvPlayer::startingPlotWithinRange(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange, int iPass) const // advc.003: 1st param was CvPlot*
 {
 	//PROFILE_FUNC();
 
@@ -1373,7 +1373,7 @@ bool CvPlayer::startingPlotWithinRange(CvPlot* pPlot, PlayerTypes ePlayer, int i
 	return false;
 }
 
-int CvPlayer::startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int iRange) const
+int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange) const // advc.003: 1st param was CvPlot*
 {
 	PROFILE_FUNC();
 
@@ -1401,8 +1401,8 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int
 		}
 	}
 
-	int iDistance = stepDistance(pPlot->getX(), pPlot->getY(), pStartingPlot->getX(), pStartingPlot->getY());
-	if (pStartingPlot->getArea() != pPlot->getArea())
+	int iDistance = ::stepDistance(&kPlot, pStartingPlot);
+	if (pStartingPlot->getArea() != kPlot.getArea())
 	{
 		iDistance *= 4;
 		iDistance /= 3;

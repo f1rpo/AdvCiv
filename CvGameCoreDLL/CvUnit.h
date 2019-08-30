@@ -56,10 +56,10 @@ public:
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
 	TeamTypes getDeclareWarMove(const CvPlot* pPlot) const;															// Exposed to Python
-	bool canMoveInto(const CvPlot* pPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false,										// Exposed to Python
+	bool canMoveInto(CvPlot const& kPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false,										// Exposed to Python
 			bool bAssumeVisible = true, // K-Mod
 			bool bDangerCheck = false) const; // advc.001k
-	bool canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar = false,										// Exposed to Python
+	bool canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar = false,										// Exposed to Python
 			bool bDangerCheck = false) const; // advc.001k
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
 	bool canEnterArea(CvArea const& kArea) const; // advc.030
@@ -404,14 +404,11 @@ public:
 	void setHotKeyNumber(int iNewValue);																											// Exposed to Python
 
 	int getXExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-	#ifdef _USRDLL
 	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
-	#endif
 	int getYExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-	#ifdef _USRDLL
 	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
-	#endif
 	void setXY(int iX, int iY, bool bGroup = false, bool bUpdate = true, bool bShow = false, bool bCheckPlotVisible = false);	// Exposed to Python
+	
 	bool at(int iX, int iY) const;																														// Exposed to Python
 	DllExport bool atPlot(const CvPlot* pPlot) const;																					// Exposed to Python
 	DllExport CvPlot* plot() const;																														// Exposed to Python
@@ -606,12 +603,10 @@ public:
 	void collectBlockadeGold();
 
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-	#ifdef _USRDLL
 	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
 	{
 		return m_eOwner;
 	}
-	#endif
 	DllExport PlayerTypes getVisualOwner(TeamTypes eForTeam = NO_TEAM) const;																									// Exposed to Python
 	PlayerTypes getCombatOwner(TeamTypes eForTeam, const CvPlot* pPlot) const;																									// Exposed to Python
 	DllExport TeamTypes getTeam() const;																										// Exposed to Python

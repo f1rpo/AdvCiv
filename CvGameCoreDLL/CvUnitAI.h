@@ -63,8 +63,8 @@ protected:
 	int m_iAutomatedAbortTurn;
 	int m_iSearchRangeRandPercent; // advc.128
 
-	bool AI_considerDOW(CvPlot* pPlot); // K-Mod
-	bool AI_considerPathDOW(CvPlot* pPlot, int iFlags); // K-Mod
+	bool AI_considerDOW(CvPlot const& kPlot); // K-Mod
+	bool AI_considerPathDOW(CvPlot const& kPlot, int iFlags); // K-Mod
 	// K-Mod
 	CvUnit* AI_findTransport(UnitAITypes eUnitAI, int iFlags = 0,
 			int iMaxPath = MAX_INT, UnitAITypes eTransportedUnitAI = NO_UNITAI,

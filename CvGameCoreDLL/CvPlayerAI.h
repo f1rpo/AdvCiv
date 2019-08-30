@@ -21,14 +21,12 @@ public:
 	virtual ~CvPlayerAI();
 
   // inlined for performance reasons
-#ifdef _USRDLL
 	static CvPlayerAI& getPlayer(PlayerTypes ePlayer)
 	{
 		FAssertMsg(ePlayer != NO_PLAYER, "Player is not assigned a valid value");
 		FAssertMsg(ePlayer < MAX_PLAYERS, "Player is not assigned a valid value");
 		return m_aPlayers[ePlayer];
 	}
-#endif
 
 	DllExport static CvPlayerAI& getPlayerNonInl(PlayerTypes ePlayer);
 
@@ -151,8 +149,8 @@ public:
 
 	// BETTER_BTS_AI_MOD, 08/20/09, jdog5000: START
 	bool isSafeRangeCacheValid() const; // K-Mod
-	bool AI_getAnyPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true, bool bCheckBorder = true) const; // K-Mod added bCheckBorder
-	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true,
+	bool AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, bool bCheckBorder = true) const; // K-Mod added bCheckBorder
+	int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true,
 			// <advc.104> Same as in AI_getAnyPlotDanger
 			bool bCheckBorder = true,
 			/*  Out-parameter that counts enemy units in range with at most

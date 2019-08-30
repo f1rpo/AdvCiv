@@ -231,7 +231,7 @@ public:
 		static CvCity* cityById(int id);
 		// Wrapper for CvUnit::generatePath
 		static bool measureDistance(PlayerTypes civId, DomainTypes dom,
-				CvPlot* start, CvPlot* dest, int* r);
+				CvPlot const* start, CvPlot const* dest, int* r);
 		static double estimateMovementSpeed(PlayerTypes civId, DomainTypes dom, int dist);
 		/* For sorting cities. None of these are currently used, and I'm not
 			sure if they handle -1 distance/attackPriority/targetValue correctly. */

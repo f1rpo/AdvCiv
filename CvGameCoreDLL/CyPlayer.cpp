@@ -46,10 +46,11 @@ bool CyPlayer::startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlaye
 {
 	if (m_pPlayer && pPlot != NULL && !pPlot->isNone())
 	{
-		CvPlot *pcvPlot = pPlot->getPlot();
-		if (pPlot)
+		CvPlot* pCvPlot = pPlot->getPlot();
+		//if (pPlot)
+		if (pCvPlot != NULL) // advc.001
 		{
-			return m_pPlayer->startingPlotWithinRange(pcvPlot, (PlayerTypes)ePlayer, iRange, iPass);
+			return m_pPlayer->startingPlotWithinRange(*pCvPlot, (PlayerTypes)ePlayer, iRange, iPass);
 		}
 	}
 	return NULL;

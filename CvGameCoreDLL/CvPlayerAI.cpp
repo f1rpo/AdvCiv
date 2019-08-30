@@ -525,7 +525,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	iUpgradeBudget = std::max(iUpgradeBudget,1);
 	// BETTER_BTS_AI_MOD: END
 
-	CvPlot* pLastUpgradePlot = NULL;
+	CvPlot const* pLastUpgradePlot = NULL;
 	for (int iPass = 0; iPass < 4; iPass++)
 	{
 		FOR_EACH_UNITAI_VAR(pLoopUnit, *this)
@@ -541,25 +541,26 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				if (AI_unitImpassableCount(pLoopUnit->getUnitType()) > 0)
 					bValid = true;
 				break;
-			case 1: {
-				CvPlot* pUnitPlot = pLoopUnit->plot();
-				if (pUnitPlot->isCity())
+			case 1:
+			{
+				CvPlot const& kUnitPlot = *pLoopUnit->plot(); // advc.003: was CvPlot*
+				if (kUnitPlot.isCity())
 				{
-					if (pUnitPlot->getBestDefender(getID()) == pLoopUnit)
+					if (kUnitPlot.getBestDefender(getID()) == pLoopUnit)
 					{
 						bNoDisband = true;
 						bValid = true;
-						pLastUpgradePlot = pUnitPlot;
+						pLastUpgradePlot = &kUnitPlot;
 					}
 					// <advc.650>
 					if(GC.getUnitInfo(pLoopUnit->getUnitType()).getNukeRange() >= 0)
 						bValid = false; // </advc.650>
 					// try to upgrade units which are in danger... but don't get obsessed
-					if (!bValid && pLastUpgradePlot != pUnitPlot && AI_getAnyPlotDanger(pUnitPlot, 1, false))
+					if (!bValid && pLastUpgradePlot != &kUnitPlot && AI_getAnyPlotDanger(kUnitPlot, 1, false))
 					{
 						bNoDisband = true;
 						bValid = true;
-						pLastUpgradePlot = pUnitPlot;
+						pLastUpgradePlot = &kUnitPlot;
 					}
 				}
 				break;
@@ -622,7 +623,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 							if (iExp < iCityExp && GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated() > 8)
 							{
 								int iDefenders = pLoopUnit->plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getID(), NO_TEAM, PUF_isCityAIType);
-								if (iDefenders > pPlotCity->AI_minDefenders() && !AI_getAnyPlotDanger(pLoopUnit->plot(), 2, false))
+								if (iDefenders > pPlotCity->AI_minDefenders() && !AI_getAnyPlotDanger(*pLoopUnit->plot(), 2, false))
 								{
 									if (iCostPerMil > AI_maxUnitCostPerMil(pLoopUnit->area(), 100) + 2*iExp + 4*std::max(0, pPlotCity->AI_neededDefenders() - iDefenders))
 									{
@@ -2757,18 +2758,18 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		return 0;
 // CONSTS
 	CvGame const& g = GC.getGame();
-	CvPlot* const pPlot = GC.getMap().plot(iX, iY);
-	CvArea* const pArea = pPlot->area();
-	bool const bCoastal = pPlot->isCoastalLand(-1);
+	CvPlot const& kPlot = GC.getMap().getPlot(iX, iY);
+	CvArea* const pArea = kPlot.area();
+	bool const bCoastal = kPlot.isCoastalLand(-1);
 	int const iNumAreaCities = pArea->getCitiesPerPlayer(getID());
 	CvCity const* const pCapital = getCapitalCity();
 	// advc.108: Barbarians shouldn't distinguish between earlier and later cities
 	int const iCities = (isBarbarian() ? 5 : getNumCities());
-	/*  advc.003: New variable, BtS comment moved up. Originally, pPlot->isStartingPlot()
+	/*  advc.003: New variable, BtS comment moved up. Originally, kPlot.isStartingPlot()
 		was used; K-Mod corrected that to pPlot==getStartingPlot()
 		("isStartingPlot is not automatically set"). */
 	//nice hacky way to avoid messing with normalizer
-	bool const bNormalize = (kSet.bStartingLoc && pPlot == getStartingPlot());
+	bool const bNormalize = (kSet.bStartingLoc && &kPlot == getStartingPlot());
 // END OF CONSTS
 // INITIAL DON'T-FOUND-HERE CHECKS
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
@@ -2809,7 +2810,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	}
 	if (kSet.bStartingLoc)
 	{
-		if (pPlot->isGoody())
+		if (kPlot.isGoody())
 		{
 			return 0;
 		}
@@ -2836,7 +2837,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iOwnedTiles++;
 				/*  <advc.031> Count tiles only half if they're in our inner ring
 					and can't be worked by any foreign city. */
-				if(!::isInnerRing(pLoopPlot, pPlot) || pLoopPlot->isCityRadius())
+				if(!::isInnerRing(pLoopPlot, &kPlot) || pLoopPlot->isCityRadius())
 					iOwnedTiles++; // </advc.031>
 			}
 		}
@@ -2869,12 +2870,12 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		for (int iJ = 0; iJ < AI_getNumCitySites(); iJ++)
 		{
 			CvPlot* pCitySitePlot = AI_getCitySite(iJ);
-			if (pCitySitePlot == pPlot)
+			if (pCitySitePlot == &kPlot)
 				continue;
 			FAssert(pCitySitePlot != NULL);
 			if (!kSet.bDebug && // advc.007
 				plotDistance(iX, iY, pCitySitePlot->getX(), pCitySitePlot->getY()) <= GC.getDefineINT(CvGlobals::MIN_CITY_RANGE) &&
-				pPlot->area() == pCitySitePlot->area())
+				kPlot.area() == pCitySitePlot->area())
 			{
 				// this tile is too close to one of the sites we've already chosen.
 				return 0; // we can't settle here.
@@ -2922,11 +2923,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// <advc.040>
 	bool bFirstColony =
 			(bCoastal && iNumAreaCities <= 0 && !isBarbarian() && getNumCities() > 0 &&
-			(pPlot->isFreshWater() ||
+			(kPlot.isFreshWater() ||
 			/*  Don't apply first-colony logic to tundra, snow and desert b/c
 				these are likely surrounded by more (unrevealed) bad terrain. */
-			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
-			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1));
+			kPlot.calculateNatureYield(YIELD_FOOD, getTeam(), true) +
+			kPlot.calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1));
 	int iUnrev = 0;
 	int iRevDecentLand = 0;
 	// </advc.040>
@@ -2936,7 +2937,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	{
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
 		// <advc.303>
-		if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot)) {
+		if(isBarbarian() && !::isInnerRing(pLoopPlot, &kPlot)) {
 			/*  Rational Barbarians wouldn't mind settling one off the coast,
 				but human players do mind, and some really hate this.
 				Therefore, count the outer ring coast as bad if !bCoastal. */
@@ -3023,11 +3024,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			(isBarbarian() && iBadTile > 3))) { // advc.303
 		bool bHasGoodBonus = false;
 		int iMediocreBonus = 0; // advc.031
-		int iFreshw = (pPlot->isFreshWater() ? 1 : 0); // advc.031
+		int iFreshw = (kPlot.isFreshWater() ? 1 : 0); // advc.031
 		for(int iI = 0; iI < NUM_CITY_PLOTS; iI++) {
 			CvPlot* pLoopPlot = plotCity(iX, iY, iI);
 			// <advc.303>
-			if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
+			if(isBarbarian() && !::isInnerRing(pLoopPlot, &kPlot))
 				continue; // </advc.303>
 			if(pLoopPlot == NULL || (!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false)))
 				continue;
@@ -3097,7 +3098,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	{
 // SKIP UNWORKABLE TILES
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-		bool const bInnerRing = ::isInnerRing(pLoopPlot, pPlot);
+		bool const bInnerRing = ::isInnerRing(pLoopPlot, &kPlot);
 		// <advc.303>
 		if(isBarbarian() && !bInnerRing)
 			continue; // </advc.303>
@@ -3150,7 +3151,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					continue;
 				if(pOtherCity != NULL && AI_deduceCitySite(pOtherCity)) {
 					bOtherInnerRing = ::isInnerRing(pLoopPlot, pOtherCity->plot());
-					FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->area() != pPlot->area());
+					FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->area() != kPlot.area());
 					if(bForeignOwned && (bOtherInnerRing ||
 							// Don't try to overlap with team member or master
 							TEAMID(eOwner) == getTeam() ||
@@ -3310,7 +3311,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			// <advc.099b>
 			if(!bCityRadius && bForeignOwned) {
 				double exclRadiusWeight = AI_exclusiveRadiusWeight(
-						::plotDistance(pLoopPlot, pPlot));
+						::plotDistance(pLoopPlot, &kPlot));
 				iCultureMultiplier = std::min(100, ::round(iCultureMultiplier *
 						(1 + exclRadiusWeight))); // </advc.099b>
 				if(bOwnExl) {
@@ -3532,7 +3533,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							/*  I'm guessing this K-Mod clause is supposed to
 								steer the AI toward settling at rivers rather
 								than trying to make all river plots workable. */
-							if(pPlot->isRiver()) {
+							if(kPlot.isRiver()) {
 								iFreshWaterVal += (
 										iCities <= 0 // advc.108
 										? 10 : 4);
@@ -3650,7 +3651,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iBonusValue = std::max(iBonusValue, 0);
 						} // </advc.031>
 						if (pLoopPlot->getOwner() != getID() &&
-								::stepDistance(pPlot->getX(), pPlot->getY(),
+								::stepDistance(kPlot.getX(), kPlot.getY(),
 								pLoopPlot->getX(), pLoopPlot->getY()) > 1)
 						{
 							if (!kSet.bEasyCulture)
@@ -3669,7 +3670,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				bool bEasyAccess =
 						// K-Mod added water case (!!)
 						((pLoopPlot->isWater() && bCoastal) ||
-						pLoopPlot->area() == pPlot->area() ||
+						pLoopPlot->area() == kPlot.area() ||
 						pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0);
 				/*  <advc.040> It still takes the AI a long time to hook up
 					resources on a landmass w/o cities. Therefore reduce the
@@ -3921,7 +3922,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				int iSeaValue = 0; // advc.031: was 50; instead:
 				iValue += 50;
 				// Push players to get more coastal cities so they can build navies
-				CvArea* pWaterArea = pPlot->waterArea(true);
+				CvArea* pWaterArea = kPlot.waterArea(true);
 				if (pWaterArea != NULL)
 				{	// advc.031: Replacing the line below
 					iSeaValue += (kSet.bSeafaring ? 140 : 80);
@@ -3933,11 +3934,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					{	// advc.031: Replacing the line below
 						iSeaValue += (kSet.bSeafaring ? 240 : 125);
 						//iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
-						//if (countNumCoastalCities() < getNumCities() / 4 || countNumCoastalCitiesByArea(pPlot->area()) == 0)
+						//if (countNumCoastalCities() < getNumCities() / 4 || countNumCoastalCitiesByArea(kPlot.area()) == 0)
 						if (
 							// advc.031: Disabled this clause
 							//countNumCoastalCities() < getNumCities()/4 ||
-							(pPlot->area()->getCitiesPerPlayer(getID()) > 0 && countNumCoastalCitiesByArea(pPlot->area()) == 0))
+							(kPlot.area()->getCitiesPerPlayer(getID()) > 0 && countNumCoastalCitiesByArea(kPlot.area()) == 0))
 						{
 							iSeaValue += 200;
 						}
@@ -3963,7 +3964,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						/*  ... but not if there is so little land that some city
 							will probably create a canal in any case */
 						iLand >= 8) {
-					CvArea* water2 = pPlot->secondWaterArea();
+					CvArea* water2 = kPlot.secondWaterArea();
 					if(water2 != NULL && water2 != pWaterArea) {
 						int sz1 = pWaterArea->getNumTiles();
 						int sz2 = water2->getNumTiles();
@@ -3990,7 +3991,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 	}
 
-	if (pPlot->isHills())
+	if (kPlot.isHills())
 	{
 		// iValue += 200;
 		// K-Mod	// advc.031: Reduced from 100+100 to 75+75 b/c counted again
@@ -3998,7 +3999,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		iValue += 75 + (kSet.bDefensive ? 75 : 0);
 	}
 
-	if (pPlot->isFreshWater())
+	if (kPlot.isFreshWater())
 	{
 		// iValue += 40; // K-Mod (commented this out, compensated by the river bonuses I added.)
 		iValue += (GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE) * 30);
@@ -4131,7 +4132,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				{
 					if (iJ != getID())
 					{
-						int iClosenessFactor = GET_PLAYER((PlayerTypes)iJ).startingPlotDistanceFactor(pPlot, getID(), iMinRange);
+						int iClosenessFactor = GET_PLAYER((PlayerTypes)iJ).startingPlotDistanceFactor(kPlot, getID(), iMinRange);
 						iMinDistanceFactor = std::min(iClosenessFactor, iMinDistanceFactor);
 
 						if (iClosenessFactor < 1000)
@@ -4162,7 +4163,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iValue /= 1000;
 			}
 
-			if (pPlot->getBonusType() != NO_BONUS)
+			if (kPlot.getBonusType() != NO_BONUS)
 			{
 				iValue /= 2;
 			}
@@ -4171,7 +4172,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF STARTING SURROUNDINGS
 	if (bAdvancedStart)
 	{
-		if (pPlot->getBonusType() != NO_BONUS)
+		if (kPlot.getBonusType() != NO_BONUS)
 		{
 			iValue *= 70;
 			iValue /= 100;
@@ -4190,7 +4191,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			jungle. Something's not quite correct in the baseProduction
 			computation, but it isn't worth fretting over. */
 		baseProduction = std::max(baseProduction, (double)GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
-		//FAssert(!pPlot->isRevealed(getTeam(), false) || baseProduction >= GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
+		//FAssert(!kPlot.isRevealed(getTeam(), false) || baseProduction >= GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
 		int iThreshold = 9; // pretty arbitrary
 		// <advc.303> Can't expect that much production from just the inner ring.
 		if(isBarbarian())
@@ -4313,7 +4314,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						getLimitedWarPowerRatio());
 				if(kSet.bDefensive)
 					diploFactor += 33;
-				if(pPlot->isHills())
+				if(kPlot.isHills())
 					diploFactor += 16;
 				// The importance of a few stolen tiles decreases over time
 				diploFactor += getCurrentEra() * 13;
@@ -4326,7 +4327,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 		if (pNearestCity != NULL)
 		{
-			int iDistance = plotDistance(iX, iY, pNearestCity->getX(), pNearestCity->getY());
+			int iDistance = ::plotDistance(&kPlot, pNearestCity->plot());
 			int iNumCities = getNumCities();
 			/*  advc.003: BtS code dealing with iDistance deleted;
 				K-Mod comment: Close cities are penalised in other ways */
@@ -4353,7 +4354,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					This is not primarly about maintenance but more about empire
 					shape as such[, so] forbidden palace/state property are not
 					[a] big deal. */ // advc.003: "so" added b/c the comment didn't make sense to me
-				int iDistanceToCapital = plotDistance(pCapital->plot(), pPlot);
+				int iDistanceToCapital = ::plotDistance(pCapital->plot(), &kPlot);
 				FAssert(iMaxDistanceFromCapital > 0);
 				/* original bts code
 				iValue *= 100 + (((bAdvancedStart ? 80 : 50) * std::max(0, (iMaxDistanceFromCapital - iDistance))) / iMaxDistanceFromCapital);
@@ -4382,11 +4383,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			{
 				int iDistance = // advc.031:
 						std::min(GC.getMap().maxMaintenanceDistance(),
-						plotDistance(iX, iY, pNearestCity->getX(),
+						::plotDistance(iX, iY, pNearestCity->getX(),
 						pNearestCity->getY()));
 				// <advc.031> Don't discourage settling on small nearby landmasses
 				if(pCapital == NULL || pArea == pCapital->area() ||
-						plotDistance(pPlot, pCapital->plot()) >= 10 ||
+						::plotDistance(&kPlot, pCapital->plot()) >= 10 ||
 						pArea->getNumTiles() >= NUM_CITY_PLOTS) {
 					int iDistPenalty = 7000 - getCurrentEra() * 1000; // (was just 8000)
 					iDistPenalty = std::max(3000, iDistPenalty);
@@ -4452,7 +4453,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			is especially greedy. (I think this section is about not grabbing all
 			the resources with a single city when there are a lot of resources
 			in one place.) */
-		if(pPlot->getBonusType(kSet.bAllSeeing ? NO_TEAM : getTeam()) != NO_BONUS)
+		if(kPlot.getBonusType(kSet.bAllSeeing ? NO_TEAM : getTeam()) != NO_BONUS)
 			iBonusCount++; // </advc.052>
 		int iUniqueBonusCount = 0;
 		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
@@ -4483,7 +4484,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if (!kSet.bStartingLoc
 			&& !isBarbarian()) // advc.303
 	{
-		int iDeadLockCount = AI_countDeadlockedBonuses(pPlot);
+		int iDeadLockCount = AI_countDeadlockedBonuses(&kPlot);
 		if (bAdvancedStart && (iDeadLockCount > 0))
 		{
 			iDeadLockCount += 2;
@@ -4836,7 +4837,7 @@ bool CvPlayerAI::isSafeRangeCacheValid() const
 	//return isTurnActive() && !GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1;
 }
 
-bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves, bool bCheckBorder) const
+bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMoves, bool bCheckBorder) const  // advc.003: 1st param was CvPlot*
 {
 	PROFILE_FUNC();
 
@@ -4847,37 +4848,37 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	{ if (iRange <= DANGER_RANGE && pPlot->getActivePlayerNoDangerCache())
 			return false; } */
 	// K-Mod
-	if(bTestMoves && isSafeRangeCacheValid() && iRange <= pPlot->getActivePlayerSafeRangeCache())
+	if(bTestMoves && isSafeRangeCacheValid() && iRange <= kPlot.getActivePlayerSafeRangeCache())
 		return false;
 	// K-Mod end
 
 	TeamTypes eTeam = getTeam();
-	//bool bCheckBorder = (!isHuman() && !pPlot->isCity());
+	//bool bCheckBorder = (!isHuman() && !kPlot.isCity());
 	/*  K-Mod. I don't want auto-workers on the frontline. Cities need to be
 		excluded for some legacy AI code. (cf. condition in AI_getPlotDanger) */
-	bCheckBorder = bCheckBorder && !pPlot->isCity() &&
-			(!isHuman() || pPlot->plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0);
+	bCheckBorder = bCheckBorder && !kPlot.isCity() &&
+			(!isHuman() || kPlot.plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0);
 	// K-Mod end
 
 	if(bCheckBorder) {
-		//if (iRange >= DANGER_RANGE && pPlot->isTeamBorderCache(eTeam))
-		if(iRange >= BORDER_DANGER_RANGE && pPlot->getBorderDangerCache(eTeam)) // K-Mod. border danger doesn't count anything further than range 2.
+		//if (iRange >= DANGER_RANGE && kPlot.isTeamBorderCache(eTeam))
+		if(iRange >= BORDER_DANGER_RANGE && kPlot.getBorderDangerCache(eTeam)) // K-Mod. border danger doesn't count anything further than range 2.
 			return true;
 	}
 
-	CvArea* pPlotArea = pPlot->area();
+	CvArea* pPlotArea = kPlot.area();
 	for(int iDX = -(iRange); iDX <= iRange; iDX++)
 	{
 		for(int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(kPlot.getX(), kPlot.getY(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue; // advc.003
-			//if(pLoopPlot->area() != pPlotArea)
+			//if(pLookPlot.area() != pPlotArea)
 			// advc.030: Replacing the above
 			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue;
-			int iDistance = ::stepDistance(pPlot->getX(), pPlot->getY(),
+			int iDistance = ::stepDistance(kPlot.getX(), kPlot.getY(),
 					pLoopPlot->getX(), pLoopPlot->getY());
 			if(bCheckBorder
 					// advc.030: For CheckBorder, it's a helpful precondition.
@@ -4889,29 +4890,29 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 				{	/* original bbai code
 					// Border cache is reversible, set for both team and enemy.
 					if (iDistance == 1) {
-						pPlot->setBorderDangerCache(eTeam, true);
-						pPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
+						kPlot.setBorderDangerCache(eTeam, true);
+						kPlot.setBorderDangerCache(pLoopPlot->getTeam(), true);
 						pLoopPlot->setBorderDangerCache(eTeam, true);
 						pLoopPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
 						return true; }
 					else if ((iDistance == 2) && (pLoopPlot->isRoute())) {
-						pPlot->setBorderDangerCache(eTeam, true);
-						pPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
+						kPlot.setBorderDangerCache(eTeam, true);
+						kPlot.setBorderDangerCache(pLoopPlot->getTeam(), true);
 						pLoopPlot->setBorderDangerCache(eTeam, true);
 						pLoopPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
 						return true; } */
 					// K-Mod. reversible my arse.
 					if (iDistance == 1)
 					{
-						pPlot->setBorderDangerCache(eTeam, true);
+						kPlot.setBorderDangerCache(eTeam, true);
 						// pLoopPlot is in enemy territory, so this is fine.
 						pLoopPlot->setBorderDangerCache(eTeam, true);
 						/*  only set the cache for the pLoopPlot team if pPlot is
 							owned by us! (ie. owned by their enemy) */
-						if (pPlot->getTeam() == eTeam)
+						if (kPlot.getTeam() == eTeam)
 						{
 							pLoopPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
-							pPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
+							kPlot.setBorderDangerCache(pLoopPlot->getTeam(), true);
 						}
 						return true;
 					}
@@ -4919,15 +4920,15 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 							// advc.001i:
 							getRevealedRouteType(eTeam, false) != NO_ROUTE)
 					{
-						pPlot->setBorderDangerCache(eTeam, true);
+						kPlot.setBorderDangerCache(eTeam, true);
 						pLoopPlot->setBorderDangerCache(eTeam, true); // owned by our enemy
-						if (pPlot->//isRoute()
+						if (kPlot.//isRoute()
 								// advc.001i:
 								getRevealedRouteType(pLoopPlot->getTeam(), false) != NO_ROUTE
-								&& pPlot->getTeam() == eTeam)
+								&& kPlot.getTeam() == eTeam)
 						{
 							pLoopPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
-							pPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
+							kPlot.setBorderDangerCache(pLoopPlot->getTeam(), true);
 						}
 						return true;
 					} // K-Mod end
@@ -4958,7 +4959,7 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						// advc.315: was pLoopUnit->canAttack()
 						AI_canBeAttackedBy(*pLoopUnit) &&
 						!pLoopUnit->isInvisible(eTeam, false) &&
-						pLoopUnit->canMoveOrAttackInto(pPlot,
+						pLoopUnit->canMoveOrAttackInto(kPlot,
 						false, true)) // advc.001k
 				{
 					if (!bTestMoves)
@@ -4967,14 +4968,14 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 					{	// <advc.128>
 						if(isHuman()) {
 							return (iDistance <= 3 && pLoopUnit->generatePath(
-									pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
+									&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
 									false, NULL, 1, true));
 						} // Prevent sneak attacks by human Woodsmen and Guerilla
 						if(pLoopUnit->isHuman() && pLoopPlot->isVisible(getTeam(), false) &&
 								// Make sure we're not getting into trouble performance-wise
 								getCurrentEra() <= 1 && iDistance <= 3) {
 							return pLoopUnit->generatePath(
-									pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
+									&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
 									false, NULL, 1, true);
 						} // </advc.128>
 						int iDangerRange = pLoopUnit->baseMoves();
@@ -4997,13 +4998,13 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	/* bbai code {
 		if (isTurnActive()) {
 			if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1)
-				pPlot->setActivePlayerNoDangerCache(true);
+				kPlot.setActivePlayerNoDangerCache(true);
 		}
 	}*/
 	// K-Mod. The above bbai code is flawed in that it flags the plot as safe regardless
 	// of what iRange is and then reports that the plot is safe for any iRange <= DANGER_RANGE.
-	if (isSafeRangeCacheValid() && iRange > pPlot->getActivePlayerSafeRangeCache())
-		pPlot->setActivePlayerSafeRangeCache(iRange);
+	if (isSafeRangeCacheValid() && iRange > kPlot.getActivePlayerSafeRangeCache())
+		kPlot.setActivePlayerSafeRangeCache(iRange);
 	// K-Mod end
 	return false;
 }
@@ -5013,7 +5014,7 @@ bool byDamage(CvUnit* left, CvUnit* right) {
 	return left->getDamage() < right->getDamage();
 } // </advc.104>
 
-int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
+int CvPlayerAI::AI_getPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMoves,  // advc.003: 1st param was CvPlot*
 		// advc.104:
 		bool bCheckBorder, int* piLowHealth, int iMaxHP, int iLimit, PlayerTypes eEnemyPlayer) const
 {
@@ -5028,22 +5029,22 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 		iRange = DANGER_RANGE;
 	/* bbai
 	if(bTestMoves && isTurnActive()) {
-		if (iRange <= DANGER_RANGE && pPlot->getActivePlayerNoDangerCache())
+		if (iRange <= DANGER_RANGE && kPlot.getActivePlayerNoDangerCache())
 			return 0;
 	}*/
 	// K-Mod
-	if (bTestMoves && isSafeRangeCacheValid() && iRange <= pPlot->getActivePlayerSafeRangeCache())
+	if (bTestMoves && isSafeRangeCacheValid() && iRange <= kPlot.getActivePlayerSafeRangeCache())
 		return 0;
 	// K-Mod end
 
-	CvArea* pPlotArea = pPlot->area();
+	CvArea* pPlotArea = kPlot.area();
 	int iBorderDanger = 0;
 	int iCount = 0;
 	for(int iDX = -(iRange); iDX <= iRange; iDX++)
 	{
 		for(int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(kPlot.getX(), kPlot.getY(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue;
 			//if(pLoopPlot->area() != pPlotArea)
@@ -5051,7 +5052,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue;
 			// Moved up
-			int iDistance = ::stepDistance(pPlot->getX(), pPlot->getY(),
+			int iDistance = ::stepDistance(kPlot.getX(), kPlot.getY(),
 					pLoopPlot->getX(), pLoopPlot->getY());
 			// </advc.030>
 			if(bCheckBorder // advc.104
@@ -5093,7 +5094,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						// advc.315: was pLoopUnit->canAttack()
 						AI_canBeAttackedBy(*pLoopUnit) &&
 						!pLoopUnit->isInvisible(getTeam(), false) &&
-						pLoopUnit->canMoveOrAttackInto(pPlot,
+						pLoopUnit->canMoveOrAttackInto(kPlot,
 						false, true)) { // advc.001k
 					// <advc.104>
 					if(eEnemyPlayer == NO_PLAYER || pLoopUnit->getOwner() == eEnemyPlayer)
@@ -5121,7 +5122,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 					// <advc.128> Replacing the above
 					if((!isHuman() && iDangerRange >= iDistance) ||
 							(isHuman() && iDistance <= 3 && pLoopUnit->generatePath(
-							pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
+							&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
 							false, NULL, 1, true))) // </advc.128>
 					{
 						iCount++;
@@ -5141,18 +5142,18 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	}
 
 	// K-Mod
-	if (iCount == 0 && isSafeRangeCacheValid() && iRange > pPlot->getActivePlayerSafeRangeCache())
-		pPlot->setActivePlayerSafeRangeCache(iRange);
+	if (iCount == 0 && isSafeRangeCacheValid() && iRange > kPlot.getActivePlayerSafeRangeCache())
+		kPlot.setActivePlayerSafeRangeCache(iRange);
 	// K-Mod end
 
 	if (iBorderDanger > 0)
 	{	/* original bts code
-		if(!isHuman() && !pPlot->isCity())
+		if(!isHuman() && !kPlot.isCity())
 			iCount += iBorderDanger;*/
 		// K-Mod. I don't want auto-workers on the frontline. So count border danger for humans too, unless the plot is defended.
 		// but on the other hand, I don't think two border tiles are really more dangerous than one border tile.
 		// (cf. condition used in AI_getAnyPlotDanger. Note that here we still count border danger in cities - because I want it for AI_cityThreat)
-		if (!isHuman() || pPlot->plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0)
+		if (!isHuman() || kPlot.plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0)
 			iCount++;
 		// K-Mod end
 	}
@@ -27445,7 +27446,7 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 						AI_canBeAttackedBy(*pLoopUnit) &&
 						!pLoopUnit->isInvisible(getTeam(), false))
 				{
-					if(pLoopUnit->canMoveOrAttackInto(pPlot,
+					if(pLoopUnit->canMoveOrAttackInto(*pPlot,
 							false, true)) // advc.001k
 					{
 						if(!bTestMoves)

@@ -112,11 +112,11 @@ void CvPlotGroup::recalculatePlots()
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	if (pPlotNode != NULL)
 	{
-		CvPlot* pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		CvPlot const& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 
 		int iCount = 0;
 		gDLL->getFAStarIFace()->SetData(&GC.getPlotGroupFinder(), &iCount);
-		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), pPlot->getX(), pPlot->getY(),
+		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), kPlot.getX(), kPlot.getY(),
 				-1, -1, false, eOwner);
 		if (iCount == getLengthPlots())
 			return;
@@ -139,19 +139,18 @@ void CvPlotGroup::recalculatePlots()
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 1");
 
-			CvPlot* pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			CvPlot& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 			// <advc.064d>
-			CvCity* pPlotCity = pPlot->getPlotCity();
+			CvCity* pPlotCity = kPlot.getPlotCity();
 			if (pPlotCity != NULL)
 				apOldCities.push_back(pPlotCity);
 			// </advc.064d>
-			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
 
-			xy.iX = pPlot->getX();
-			xy.iY = pPlot->getY();
+			xy.iX = kPlot.getX();
+			xy.iY = kPlot.getY();
 
 			oldPlotGroup.insertAtEnd(xy);
-			pPlot->setPlotGroup(eOwner, NULL);
+			kPlot.setPlotGroup(eOwner, NULL);
 			pPlotNode = deletePlotsNode(pPlotNode); // will delete this PlotGroup...
 		}
 
@@ -160,9 +159,8 @@ void CvPlotGroup::recalculatePlots()
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 2");
 
-			CvPlot* pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
-			pPlot->updatePlotGroup(eOwner, true);
+			CvPlot& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			kPlot.updatePlotGroup(eOwner, true);
 			pPlotNode = oldPlotGroup.deleteNode(pPlotNode);
 		}
 	}
@@ -217,7 +215,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 
 	while (pPlotNode != NULL)
 	{
-		CvCity* pCity = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		CvCity* pCity = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL)
 		{
 			if (pCity->getOwner() == getOwner())
@@ -239,7 +237,7 @@ void CvPlotGroup::verifyCityProduction() {
 	CvMap const& m = GC.getMap();
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL) {
-		CvCity* pCity = m.plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		CvCity* pCity = m.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
 		pPlotNode = nextPlotsNode(pPlotNode);

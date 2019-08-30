@@ -272,15 +272,12 @@ public:
 	int plotNum() const; // advc.104
 
 	int getXExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	#ifdef _USRDLL
 	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
-	#endif
 	int getYExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	#ifdef _USRDLL
 	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
-	#endif
+
 	bool at(int iX, int iY) const;																				// Exposed to Python
-	bool at(CvPlot* pPlot) const;																					// Exposed to Python - atPlot
+	bool at(CvPlot const* pPlot) const;																					// Exposed to Python - atPlot
 	DllExport CvPlot* plot() const;																	// Exposed to Python
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
 	bool isConnectedTo(CvCity const* pCity) const;															// Exposed to Python
@@ -651,9 +648,7 @@ public:
 	void setPlundered(bool bNewValue);												// Exposed to Python
 
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file			// Exposed to Python
-	#ifdef _USRDLL
 	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.003f: Renamed from getOwnerINLINE
-	#endif
 	DllExport TeamTypes getTeam() const;											// Exposed to Python
 
 	PlayerTypes getPreviousOwner() const;											// Exposed to Python
@@ -1204,6 +1199,7 @@ protected:
 	int m_iCitySizeBoost;
 	int m_iSpecialistFreeExperience;
 	int m_iEspionageDefenseModifier;
+	int m_iPopRushHurryCount; // advc.912d
 
 	bool m_bNeverLost;
 	bool m_bBombarded;
@@ -1248,7 +1244,7 @@ protected:
 	bool* m_abTradeRoute;
 	bool* m_abRevealed;
 	bool* m_abEspionageVisibility;
-	int m_iPopRushHurryCount; // advc.912d
+
 	// <advc.004x> Most recently completed order
 	int mrOrder;
 	bool mrWasUnit; // </advc.004x>

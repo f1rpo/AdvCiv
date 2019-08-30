@@ -192,7 +192,7 @@ private:
 	static inline int toBool(long l)
 	{
 		FAssert(l >= 0);
-		return (l == 1);
+		return (l == TRUE);
 	}
 };
 
