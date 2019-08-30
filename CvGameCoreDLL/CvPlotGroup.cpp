@@ -177,12 +177,6 @@ void CvPlotGroup::recalculatePlots()
 }
 
 
-int CvPlotGroup::getID() const
-{
-	return m_iID;
-}
-
-
 void CvPlotGroup::setID(int iID)
 {
 	m_iID = iID;

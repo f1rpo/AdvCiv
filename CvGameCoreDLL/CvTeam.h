@@ -9,10 +9,11 @@
 
 class CvArea;
 
+
 class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
-
 public:
+
 	CvTeam();
 	virtual ~CvTeam();
 

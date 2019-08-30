@@ -516,12 +516,6 @@ bool CvDeal::isDisengage() const {
 /*bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const {
 //... }*/
 
-int CvDeal::getID() const
-{
-	return m_iID;
-}
-
-
 void CvDeal::setID(int iID)
 {
 	m_iID = iID;

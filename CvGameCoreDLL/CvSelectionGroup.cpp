@@ -3916,12 +3916,6 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 }
 // K-Mod end
 
-int CvSelectionGroup::getID() const
-{
-	return m_iID;
-}
-
-
 void CvSelectionGroup::setID(int iID)
 {
 	m_iID = iID;

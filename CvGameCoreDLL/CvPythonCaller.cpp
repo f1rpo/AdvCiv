@@ -1078,7 +1078,7 @@ bool CvPythonCaller::doCombat(CvSelectionGroup const& kGroup, CvPlot const& kPlo
 	if (!isUse(DO_COMBAT))
 		return false;
 	ARGSLIST(false);
-		CySelectionGroup* pyGroup = new CySelectionGroup(kGroup);
+	CySelectionGroup* pyGroup = new CySelectionGroup(kGroup);
 	argsList.add(m_python.makePythonObject(pyGroup));
 	CyPlot* pyPlot = new CyPlot(kPlot);
 	argsList.add(m_python.makePythonObject(pyPlot));

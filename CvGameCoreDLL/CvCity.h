@@ -15,9 +15,11 @@ class CvArtInfoBuilding;
 class CvCityAI; // advc.003u
 class CvCivilization; // advc.003w
 
+
 class CvCity : public CvDLLEntity
 {
 public:
+
 	CvCity();
 	virtual ~CvCity();
 
@@ -26,7 +28,6 @@ public:
 	void uninit();
 	void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, int iX = 0, int iY = 0, bool bConstructorCall = false);
 	void setupGraphical();
-
 	void kill(bool bUpdatePlotGroups);																								// Exposed to Python
 
 	void doTurn();
@@ -262,10 +263,11 @@ public:
 
 	int getReligionCount() const;																						// Exposed to Python
 	int getCorporationCount() const;																						// Exposed to Python
-
-	DllExport int getID() const;																			// Exposed to Python
-	int getIndex() const;
-	DllExport IDInfo getIDInfo() const;
+	// <advc.003f> inline
+	DllExport inline int getID() const { return m_iID; }													// Exposed to Python
+	inline int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
+	DllExport inline IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
+	// </advc.003f>
 	void setID(int iID);
 	int plotNum() const; // advc.104
 

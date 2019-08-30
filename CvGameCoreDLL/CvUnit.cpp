@@ -9393,40 +9393,9 @@ int CvUnit::getUnitAICargo(UnitAITypes eUnitAI) const
 }
 
 
-int CvUnit::getID() const
-{
-	return m_iID;
-}
-
-
-int CvUnit::getIndex() const
-{
-	return (getID() & FLTA_INDEX_MASK);
-}
-
-
-IDInfo CvUnit::getIDInfo() const
-{
-	IDInfo unit(getOwner(), getID());
-	return unit;
-}
-
-
 void CvUnit::setID(int iID)
 {
 	m_iID = iID;
-}
-
-
-int CvUnit::getGroupID() const
-{
-	return m_iGroupID;
-}
-
-
-bool CvUnit::isInGroup() const
-{
-	return(getGroupID() != FFreeList::INVALID_INDEX);
 }
 
 

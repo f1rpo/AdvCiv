@@ -51,6 +51,7 @@
     <ClCompile Include="..\CvDLLButtonPopup.cpp" />
     <ClCompile Include="..\CvDLLEntity.cpp" />
     <ClCompile Include="..\CvDLLInterfaceIBase.cpp" />
+    <ClCompile Include="..\CvDLLLogger.cpp" />
     <ClCompile Include="..\CvDLLPython.cpp" />
     <ClCompile Include="..\CvDllPythonEvents.cpp" />
     <ClCompile Include="..\CvDllTranslator.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="..\CvDLLFlagEntityIFaceBase.h" />
     <ClInclude Include="..\CvDLLIniParserIFaceBase.h" />
     <ClInclude Include="..\CvDLLInterfaceIFaceBase.h" />
+    <ClInclude Include="..\CvDLLLogger.h" />
     <ClInclude Include="..\CvDLLPlotBuilderIFaceBase.h" />
     <ClInclude Include="..\CvDllPythonEvents.h" />
     <ClInclude Include="..\CvDLLPythonIFaceBase.h" />

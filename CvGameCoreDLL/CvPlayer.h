@@ -30,9 +30,11 @@ typedef std::vector< std::pair<UnitCombatTypes, PromotionTypes> > UnitCombatProm
 typedef std::vector< std::pair<UnitClassTypes, PromotionTypes> > UnitClassPromotionArray;
 typedef std::vector< std::pair<CivilizationTypes, LeaderHeadTypes> > CivLeaderArray;
 
+
 class CvPlayer /* advc.003e: */ : private boost::noncopyable
 {
 public:
+
 	CvPlayer();
 	virtual ~CvPlayer();
 

@@ -5,13 +5,13 @@
 #ifndef CIV4_DEAL_H
 #define CIV4_DEAL_H
 
+
 class CvDeal
 {
-
 public:
 
 	CvDeal();
-	virtual ~CvDeal();
+	~CvDeal();
 
 	void init(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer);
 	void uninit();
@@ -26,7 +26,6 @@ public:
 	void addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList, bool bCheckAllowed);
 
 	void doTurn();
-
 	void verify();
 
 	bool isPeaceDeal() const;
@@ -38,7 +37,8 @@ public:
 		need a function that checks if this deal is a tribute deal between a vassal and a master. */
 	bool isVassalTributeDeal() const;
 	bool isDisengage() const; // advc.034
-	DllExport int getID() const;
+
+	DllExport inline int getID() const { return m_iID; } // advc.003f: inline
 	void setID(int iID);
 
 	int getInitialGameTurn() const;

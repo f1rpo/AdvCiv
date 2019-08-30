@@ -5172,25 +5172,6 @@ int CvCity::getCorporationCount() const
 }
 
 
-int CvCity::getID() const
-{
-	return m_iID;
-}
-
-
-int CvCity::getIndex() const
-{
-	return (getID() & FLTA_INDEX_MASK);
-}
-
-
-IDInfo CvCity::getIDInfo() const
-{
-	IDInfo city(getOwner(), getID());
-	return city;
-}
-
-
 void CvCity::setID(int iID)
 {
 	m_iID = iID;

@@ -12,9 +12,9 @@ class CvPlot;
 class CvArea;
 class FAStarNode;
 
+
 class CvSelectionGroup
 {
-
 public:
 
 	CvSelectionGroup();
@@ -23,7 +23,6 @@ public:
 	DllExport void init(int iID, PlayerTypes eOwner);
 	DllExport void uninit();
 	DllExport void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, bool bConstructorCall = false);
-
 	void kill();
 
 	void doTurn();
@@ -154,7 +153,7 @@ public:
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 
-	int getID() const;																																												// Exposed to Python
+	inline int getID() const { return m_iID; } // advc.003f: inline																																// Exposed to Python
 	void setID(int iID);
 
 	int getMissionTimer() const;

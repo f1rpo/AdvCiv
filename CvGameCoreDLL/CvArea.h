@@ -5,19 +5,18 @@
 #ifndef CIV4_AREA_H
 #define CIV4_AREA_H
 
-
 class CvCity;
 class CvPlot;
 
+
 class CvArea
 {
-
 public:
 
-  CvArea();
-  virtual ~CvArea();
+	CvArea();
+	virtual ~CvArea();
 
-  void init(int iID, bool bWater);
+	void init(int iID, bool bWater);
 	void uninit();
 	void reset(int iID = 0, bool bWater = false, bool bConstructorCall = false);
 

@@ -9,10 +9,11 @@
 
 class CvPlot;
 
+
 class CvPlotGroup
 {
-
 public:
+
 	CvPlotGroup();
 	virtual ~CvPlotGroup();
 
@@ -24,7 +25,7 @@ public:
 	void removePlot(CvPlot* pPlot);
 	void recalculatePlots();
 
-	int getID() const;
+	inline int getID() const { return m_iID; } // advc.003f
 	void setID(int iID);
 
 	/*PlayerTypes getOwner() const;

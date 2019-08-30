@@ -13,15 +13,14 @@ class CvPlot;
 class CvArea;
 class CvUnitInfo;
 class CvSelectionGroup;
-//class FAStarNode;
 class CvArtInfoUnit;
 class KmodPathFinder;
 class CvUnitAI; // advc.003u
-struct CombatDetails;										// Exposed to Python
+struct CombatDetails;
+
 
 class CvUnit : public CvDLLEntity
 {
-
 public:
 
 	void setupGraphical();
@@ -387,14 +386,15 @@ public:
 	//bool canCargoAllMove() const; // disabled by K-Mod (was exposed to Python)
 	bool canCargoEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage) const;
 	int getUnitAICargo(UnitAITypes eUnitAI) const;																		// Exposed to Python
-
-	DllExport int getID() const;																											// Exposed to Python
-	int getIndex() const;
-	DllExport IDInfo getIDInfo() const;
+	// <advc.003f> inline
+	DllExport inline int getID() const { return m_iID; }																					// Exposed to Python
+	int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
+	DllExport IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
+	// </advc.003f>
 	void setID(int iID);
 
-	int getGroupID() const;																														// Exposed to Python
-	bool isInGroup() const;																														// Exposed to Python
+	int getGroupID() const { return m_iGroupID; }	// advc.003f: inline																	// Exposed to Python
+	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); } // advc.003f: inline																														// Exposed to Python
 	bool isGroupHead() const;																								// Exposed to Python
 	DllExport CvSelectionGroup* getGroup() const;																			// Exposed to Python
 	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup) const;
@@ -909,7 +909,7 @@ private:
 };
 
 // advc.003: Moved from the beginning of the file
-struct CombatDetails
+struct CombatDetails											// Exposed to Python
 {
 	int iExtraCombatPercent;
 	int iAnimalCombatModifierTA;
