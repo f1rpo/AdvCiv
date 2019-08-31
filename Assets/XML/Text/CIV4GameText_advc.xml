@@ -2336,6 +2336,58 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
+
+	<!-- advc.005b: From Civ4GameTextInfos_Objects.xml.
+		 The adjective was "Malinese"; "Malian" appears to be more correct.
+		 Also corrected the German and Italian adjectives. -->
+	<TEXT>
+		<Tag>TXT_KEY_CIV_MALI_ADJECTIVE</Tag>
+		<English>Malian</English>
+		<French>
+			<Text>Maliens</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>
+			<Text>Malisch:malischen:malische</Text>
+			<Gender>Neuter:Neuter:Neuter</Gender>
+			<Plural>0:0:0</Plural>
+		</German>
+		<Italian>
+			<Text>Maliano:Maliana:Maliani:Maliani</Text>
+			<Gender>Male:Female:Male:Female</Gender>
+			<Plural>0:0:1:1</Plural>
+		</Italian>
+		<Spanish>
+			<Text>mal&#237;:mal&#237;:mal&#237;es:mal&#237;es</Text>
+			<Gender>Male:Female:Male:Female</Gender>
+			<Plural>0:0:1:1</Plural>
+		</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV_MALI_DESC</Tag>
+		<English>Mali Empire</English>
+		<French>
+			<Text>Empire malien</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Malireich:Malireich:Malireich</Text>
+			<Gender>Neuter:Neuter:Neuter</Gender>
+			<Plural>0:0:0</Plural>
+		</German>
+		<Italian>
+			<Text>Impero del Mali</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Imperio Mal&#237;</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 	
 	<!-- advc.004l: Similar to TXT_KEY_MISSION_SENTRY and
 		 TXT_KEY_MISSION_HEAL in Civ4GameTextInfos.xml.
