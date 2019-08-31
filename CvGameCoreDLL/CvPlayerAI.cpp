@@ -738,6 +738,7 @@ bool CvPlayerAI::AI_upholdPeaceOffer(PlayerTypes eHuman,
 	therefore not a CvTeamAI function. */
 bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iOurBenefit) {
 
+	FAssert(!isHuman());
 	CvPlayerAI& kOther = GET_PLAYER(eOther);
 	TechTypes eBestReceiveTech = NO_TECH;
 	TechTypes eBestGiveTech = NO_TECH;
@@ -761,8 +762,15 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 	// <advc.134a> Handle low human benefit separately (after filling the lists)
 	if((!kOther.isHuman() && 5 * iTheirBenefit < 3 * iOurBenefit) ||
 			5 * iOurBenefit < (kOther.isHuman() ? 4 : 3) * iTheirBenefit)
-		return false;
-	// </advc.134a>
+		return false; // </advc.134a>
+	// <advc.039> Don't want to announce odd amounts of gold
+	if (GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS) && !kOther.isHuman())
+	{
+		if (iReceiveGold > 10)
+			AI_roundTradeVal(iReceiveGold);
+		if (iGiveGold > 10)
+			AI_roundTradeVal(iGiveGold);
+	} // </advc.039>
 	CLinkList<TradeData> weGive;
 	CLinkList<TradeData> theyGive;
 	TradeData item;
@@ -829,7 +837,6 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 	return true;
 }
 
-
 // Auxiliary function to reduce the amount of duplicate or dual code
 int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 		int iDelta, int* iGold, TechTypes* eBestTech, CvCity const** pBestCity) {
@@ -862,7 +869,7 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 					(TechTypes)j, kGiver.getTeam(), true, true) - iDelta) +
 					GC.getGame().getSorenRandNum(::round(
 					std::pow((double)GET_TEAM(kRecipient.getTeam()).
-					AI_getAtWarCounter(kGiver.getTeam()), 1.65)),"AI Peace Trading");
+					AI_getAtWarCounter(kGiver.getTeam()), 1.65)), "AI Peace Trading");
 			// BtS code:
 			//iValue = (1 + GC.getGame().getSorenRandNum(10000, "AI Peace Trading (Tech #1)"));
 			if(iValue > iBestValue) {
@@ -881,13 +888,15 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 	// to work out the gold's value gained by the receiver and the gold's value lost by the giver.
 	// Instead, we just pretend that the receiver gets 1 point per gold, and the giver loses nothing.
 	// (effectively a value of 2)
-	int tradeGold = std::min(iDelta - r, kGiver.AI_maxGoldTrade(eRecipient,
-			true)); // advc.134a
-	if(tradeGold > 0) {
-		setTradeItem(&item, TRADE_GOLD, tradeGold);
-		if(kGiver.canTradeItem(eRecipient, item, true)) {
-			*iGold = tradeGold;
-			r += tradeGold;
+	{
+		int iTradeGold = std::min(iDelta - r, kGiver.AI_maxGoldTrade(eRecipient,
+				true)); // advc.134a
+		if(iTradeGold > 0) {
+			setTradeItem(&item, TRADE_GOLD, iTradeGold);
+			if(kGiver.canTradeItem(eRecipient, item, true)) {
+				*iGold = iTradeGold;
+				r += iTradeGold;
+			}
 		}
 	}
 	// advc.104h: Don't add a city to the trade if it's already almost square
