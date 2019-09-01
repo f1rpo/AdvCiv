@@ -13070,15 +13070,16 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		else return NO_DENIAL;
 	} // </advc.037>
 	// Replacing the JOKING clause further up
-	if(kPlayer.isHuman() && iAvailThem <= 0 ? /*  Don't presume value
+	if(kPlayer.isHuman() && (iAvailThem + iChange <= 1 ? /*  Don't presume value
 			for human unless human only needs the resource for a corp */
 			(iValueForUs >= iTradeValThresh +
 			/*  bonusVal gives every city equal weight, but early on,
 				it's mostly about the capital, which can grow fast. */
 			std::min(2, (getNumCities() - 1) / 2)) :
 			(3 * iValueForUs >= 2 * iValueForThem ||
-			iValueForThem - iValueForUs < iTradeValThresh ||
-			iValueForUs > iTradeValThresh + 2))
+			iValueForThem <= 0 ||
+			(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
+			iValueForUs > iTradeValThresh + 2)))
 		return DENIAL_NO_GAIN;
 	// </advc.036>
 	return NO_DENIAL;
@@ -19569,7 +19570,10 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
 		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, 0) != NO_DENIAL)
+		{
+			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - denial");
 			return DO_CANCEL;
+		}
 	} /* Need to check their DENIAL_JOKING in case they're giving us a resource that
 		 we no longer need */
 	for(pNode = kTheyGive.head(); pNode != NULL; pNode = kTheyGive.next(pNode)) {
