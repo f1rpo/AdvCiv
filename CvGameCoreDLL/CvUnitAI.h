@@ -23,13 +23,9 @@ public:
 
 	bool AI_update();
 	bool AI_follow(/* K-Mod: */ bool bFirst = true);
-	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT,
-			// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000:
-			int iMaxTransportPath = MAX_INT);
 	void AI_upgrade();
 	void AI_promote();
 
-	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
 	int AI_groupFirstVal() const;
 	int AI_groupSecondVal() const;
 
@@ -87,14 +83,8 @@ protected:
 	void AI_cityDefenseExtraMove();
 	void AI_exploreMove();
 	void AI_missionaryMove();
-	void AI_prophetMove();
-	void AI_artistMove();
-	void AI_scientistMove();
 	void AI_generalMove();
-	void AI_merchantMove();
-	void AI_engineerMove();
-	void AI_greatSpyMove(); // K-Mod
-	bool AI_greatPersonMove(); // K-Mod
+	void AI_greatPersonMove(); // K-Mod
 	void AI_spyMove();
 	void AI_ICBMMove();
 	void AI_workerSeaMove();
@@ -127,6 +117,10 @@ protected:
 	// K-Mod. I've created AI_omniGroup with the intention of using it to phase out AI_group and AI_groupMergeRange.
 	bool AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, bool bStackOfDoom = false, int iFlags = 0, int iMaxPath = -1, bool bMergeGroups = true, bool bSafeOnly = true, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bBiggerOnly = true, int iMinUnitAI = -1, bool bWithCargoOnly = false, bool bIgnoreBusyTransports = false);
 	bool AI_group(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, int iMinUnitAI = -1, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bStackOfDoom = false, int iMaxPath = MAX_INT, bool bAllowRegrouping = false, bool bWithCargoOnly = false, bool bInCityOnly = false, MissionAITypes eIgnoreMissionAIType = NO_MISSIONAI);
+	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT,
+			// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000:
+			int iMaxTransportPath = MAX_INT);
+	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
 
 	bool AI_guardCityBestDefender();
 	bool AI_guardCityOnlyDefender(); // K-Mod

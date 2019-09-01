@@ -232,9 +232,10 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 
 	setGameTurnCreated(g.getGameTurn());
 	g.incrementUnitCreatedCount(getUnitType());
-	g.incrementUnitClassCreatedCount((UnitClassTypes)m_pUnitInfo->getUnitClassType());
-	GET_TEAM(getTeam()).changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
-	kOwner.changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), 1);
+	UnitClassTypes eUnitClass = getUnitClassType();
+	g.incrementUnitClassCreatedCount(eUnitClass);
+	GET_TEAM(getTeam()).changeUnitClassCount(eUnitClass, 1);
+	kOwner.changeUnitClassCount(eUnitClass, 1);
 	kOwner.changeExtraUnitCost(m_pUnitInfo->getExtraCost());
 
 	if (m_pUnitInfo->getNukeRange() != -1)
@@ -245,7 +246,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 
 	kOwner.changeAssets(m_pUnitInfo->getAssetValue());
 	kOwner.changePower(m_pUnitInfo->getPowerValue()
-			/ (m_pUnitInfo->getDomainType() == DOMAIN_SEA ? 2 : 1) // advc.104e
+			/ (getDomainType() == DOMAIN_SEA ? 2 : 1) // advc.104e
 	);
 
 	// advc.104: To enable more differentiated tracking of power values
@@ -312,7 +313,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 	if (kOwner.getID() == g.getActivePlayer())
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 
-	if (isWorldUnitClass((UnitClassTypes)m_pUnitInfo->getUnitClassType()))
+	if (isWorldUnitClass(eUnitClass))
 	{
 		for (int i = 0; i < MAX_PLAYERS; i++)
 		{
@@ -371,7 +372,8 @@ void CvUnit::convert(CvUnit* pUnit)
 {
 	for (int iI = 0; iI < GC.getNumPromotionInfos(); iI++)
 	{
-		setHasPromotion((PromotionTypes)iI, pUnit->isHasPromotion((PromotionTypes)iI) || m_pUnitInfo->getFreePromotions(iI));
+		setHasPromotion((PromotionTypes)iI, pUnit->isHasPromotion((PromotionTypes)iI) ||
+				m_pUnitInfo->getFreePromotions(iI));
 	}
 
 	setGameTurnCreated(pUnit->getGameTurnCreated());
@@ -548,20 +550,19 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	// XXX this is NOT a hack, without it, the game crashes.
 	gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
 
-	//FAssertMsg(!isCombat(), "isCombat did not return false as expected");
+	//FAssert(!isCombat());
 	FAssert(!isFighting()); // K-Mod. With simultaneous turns, a unit can be captured while trying to execute an attack order. (eg. a bomber)
+	//FAssert(getAttackPlot() == NULL);
+	FAssert(getCombatUnit() == NULL); // advc.003: moved up
 
 	setTransportUnit(NULL);
-
-	setReconPlot(NULL);
 	setBlockading(false);
+	setReconPlot(NULL);
 
-	//FAssertMsg(getAttackPlot() == NULL, "The current unit instance's attack plot is expected to be NULL");
-	FAssertMsg(getCombatUnit() == NULL, "The current unit instance's combat unit is expected to be NULL");
-
-	GET_TEAM(getTeam()).changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), -1);
-	kOwner.changeUnitClassCount((UnitClassTypes)m_pUnitInfo->getUnitClassType(), -1);
-	kOwner.changeExtraUnitCost(-(m_pUnitInfo->getExtraCost()));
+	UnitClassTypes eUnitClass = getUnitClassType();
+	GET_TEAM(getTeam()).changeUnitClassCount(eUnitClass, -1);
+	kOwner.changeUnitClassCount(eUnitClass, -1);
+	kOwner.changeExtraUnitCost(-m_pUnitInfo->getExtraCost());
 
 	if (m_pUnitInfo->getNukeRange() != -1)
 	{
@@ -575,7 +576,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 	kOwner.changeAssets(-(m_pUnitInfo->getAssetValue()));
 	kOwner.changePower(-(m_pUnitInfo->getPowerValue()
-			/ (m_pUnitInfo->getDomainType() == DOMAIN_SEA ? 2 : 1))); // advc.104e
+			/ (getDomainType() == DOMAIN_SEA ? 2 : 1))); // advc.104e
 
 	// advc.104: To enable more differentiated tracking of power values
 	kOwner.warAndPeaceAI().getCache().reportUnitDestroyed(*m_pUnitInfo);
@@ -1650,7 +1651,7 @@ void CvUnit::updateCombat(bool bQuick)
 			}
 			else
 			{
-				bAdvance = canAdvance(pPlot, ((pDefender->canDefend()) ? 1 : 0));
+				bAdvance = canAdvance(pPlot, pDefender->canDefend() ? 1 : 0);
 
 				if (bAdvance)
 				{
@@ -3230,7 +3231,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport)
 	ReligionTypes eRecipientReligion = kRecipient.getStateReligion();
 	if(eRecipientReligion != NO_RELIGION && AI_getUnitAIType() == UNITAI_MISSIONARY &&
 			kRecipient.isNoNonStateReligionSpread() &&
-			eRecipientReligion != GC.getUnitInfo(getUnitType()).getReligionType())
+			eRecipientReligion != m_pUnitInfo->getReligionType())
 		return false;
 	// <dlph.4>
 	std::vector<CvUnit*> apCargoUnits;
@@ -4771,7 +4772,7 @@ bool CvUnit::bombard()
 
 bool CvUnit::canPillage(const CvPlot* pPlot) const
 {
-	if (!(m_pUnitInfo->isPillage()))
+	if (!m_pUnitInfo->isPillage())
 	{
 		return false;
 	}
@@ -5142,7 +5143,7 @@ int CvUnit::sabotageProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) const
 
 bool CvUnit::canSabotage(const CvPlot* pPlot, bool bTestVisible) const
 {
-	if (!(m_pUnitInfo->isSabotage()))
+	if (!m_pUnitInfo->isSabotage())
 	{
 		return false;
 	}
@@ -5310,7 +5311,7 @@ bool CvUnit::canDestroy(const CvPlot* pPlot, bool bTestVisible) const
 {
 	CvCity* pCity;
 
-	if (!(m_pUnitInfo->isDestroy()))
+	if (!m_pUnitInfo->isDestroy())
 	{
 		return false;
 	}
@@ -5450,7 +5451,7 @@ int CvUnit::stealPlansProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) con
 		iCounterSpyCount = 0;
 	}
 
-	int iProb = ((pCity->isGovernmentCenter()) ? 20 : 0); // XXX
+	int iProb = (pCity->isGovernmentCenter() ? 20 : 0); // XXX
 	iProb += (20 / (iDefenseCount + 1)); // XXX
 
 	if (eProbStyle != PROBABILITY_LOW)
@@ -5464,7 +5465,7 @@ int CvUnit::stealPlansProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) con
 
 bool CvUnit::canStealPlans(const CvPlot* pPlot, bool bTestVisible) const
 {
-	if (!(m_pUnitInfo->isStealPlans()))
+	if (!m_pUnitInfo->isStealPlans())
 	{
 		return false;
 	}
@@ -5698,7 +5699,7 @@ bool CvUnit::spread(ReligionTypes eReligion)
 					{
 						int iInfluence = pCity->getReligionGrip((ReligionTypes)iI);
 						iInfluence += GC.getGame().getSorenRandNum(iRandomWeight, "Religion influence");
-						iInfluence += (iI == eReligion) ? m_pUnitInfo->getReligionSpreads(eReligion)/2 : 0;
+						iInfluence += (iI == eReligion ? m_pUnitInfo->getReligionSpreads(eReligion)/2 : 0);
 
 						rankedReligions.push_back(std::make_pair(iInfluence, (ReligionTypes)iI));
 					}
@@ -5903,7 +5904,7 @@ bool CvUnit::canJoin(const CvPlot* pPlot, SpecialistTypes eSpecialist) const
 		return false;
 	}
 
-	if (!(m_pUnitInfo->getGreatPeoples(eSpecialist)))
+	if (!m_pUnitInfo->getGreatPeoples(eSpecialist))
 	{
 		return false;
 	}
@@ -6958,7 +6959,6 @@ int CvUnit::canLead(const CvPlot* pPlot, int iUnitId) const
 	}
 
 	int iNumUnits = 0;
-	CvUnitInfo& kUnitInfo = getUnitInfo();
 
 	if (-1 == iUnitId)
 	{
@@ -6968,7 +6968,8 @@ int CvUnit::canLead(const CvPlot* pPlot, int iUnitId) const
 			CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = pPlot->nextUnitNode(pUnitNode);
 
-			if (pUnit && pUnit != this && pUnit->getOwner() == getOwner() && pUnit->canPromote((PromotionTypes)kUnitInfo.getLeaderPromotion(), getID()))
+			if (pUnit && pUnit != this && pUnit->getOwner() == getOwner() &&
+				pUnit->canPromote((PromotionTypes)m_pUnitInfo->getLeaderPromotion(), getID()))
 			{
 				++iNumUnits;
 			}
@@ -6977,7 +6978,8 @@ int CvUnit::canLead(const CvPlot* pPlot, int iUnitId) const
 	else
 	{
 		CvUnit* pUnit = GET_PLAYER(getOwner()).getUnit(iUnitId);
-		if (pUnit && pUnit != this && pUnit->canPromote((PromotionTypes)kUnitInfo.getLeaderPromotion(), getID()))
+		if (pUnit && pUnit != this && pUnit->canPromote((PromotionTypes)
+			m_pUnitInfo->getLeaderPromotion(), getID()))
 		{
 			iNumUnits = 1;
 		}
@@ -7090,7 +7092,7 @@ bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, 
 	if (iCount > GC.getNumUnitClassInfos())
 		return false;
 
-	CvUnitInfo &kFromUnit = GC.getUnitInfo(eFromUnit);
+	CvUnitInfo const& kFromUnit = GC.getUnitInfo(eFromUnit);
 
 	if (kFromUnit.getUpgradeUnitClass(eToUnitClass))
 		return true;
@@ -7230,19 +7232,19 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	}
 
 	CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
-	CvUnitInfo& kUnitInfo = GC.getUnitInfo(eUnit);
+	CvUnitInfo& kToUnit = GC.getUnitInfo(eUnit);
 
-	if (GC.getCivilizationInfo(kPlayer.getCivilizationType()).getCivilizationUnits(kUnitInfo.getUnitClassType()) != eUnit)
+	if (GC.getCivilizationInfo(kPlayer.getCivilizationType()).getCivilizationUnits(kToUnit.getUnitClassType()) != eUnit)
 	{
 		return NULL;
 	}
 
-	if (!upgradeAvailable(getUnitType(), ((UnitClassTypes)(kUnitInfo.getUnitClassType()))))
+	if (!upgradeAvailable(getUnitType(), (UnitClassTypes)kToUnit.getUnitClassType()))
 	{
 		return NULL;
 	}
 
-	if (kUnitInfo.getCargoSpace() < getCargo())
+	if (kToUnit.getCargoSpace() < getCargo())
 	{
 		return NULL;
 	}
@@ -7254,20 +7256,19 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = plot()->nextUnitNode(pUnitNode);
-
 			if (pLoopUnit->getTransportUnit() == this)
 			{
-				if (kUnitInfo.getSpecialCargo() != NO_SPECIALUNIT)
+				if (kToUnit.getSpecialCargo() != NO_SPECIALUNIT)
 				{
-					if (kUnitInfo.getSpecialCargo() != pLoopUnit->getSpecialUnitType())
+					if (kToUnit.getSpecialCargo() != pLoopUnit->getSpecialUnitType())
 					{
 						return NULL;
 					}
 				}
 
-				if (kUnitInfo.getDomainCargo() != NO_DOMAIN)
+				if (kToUnit.getDomainCargo() != NO_DOMAIN)
 				{
-					if (kUnitInfo.getDomainCargo() != pLoopUnit->getDomainType())
+					if (kToUnit.getDomainCargo() != pLoopUnit->getDomainType())
 					{
 						return NULL;
 					}
@@ -7469,7 +7470,7 @@ int CvUnit::getNumSeeInvisibleTypes() const
 
 InvisibleTypes CvUnit::getSeeInvisibleType(int i) const
 {
-	return (InvisibleTypes)(m_pUnitInfo->getSeeInvisibleType(i));
+	return (InvisibleTypes)m_pUnitInfo->getSeeInvisibleType(i);
 }
 
 
@@ -7502,8 +7503,10 @@ int CvUnit::baseMoves() const
 	//return (m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType()));
 	// <advc.905b>
 	int r = m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType());
-	for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(); i++) {
-		if(m_pUnitInfo->getSpeedBonuses(i) >= 0) {
+	for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(); i++)
+	{
+		if(m_pUnitInfo->getSpeedBonuses(i) >= 0)
+		{
 			BonusTypes eBonus = (BonusTypes)m_pUnitInfo->getSpeedBonuses(i);
 			CvPlotGroup* pPlotGroup = plot()->getPlotGroup(getOwner());
 			CvCity* pCapital = GET_PLAYER(getOwner()).getCapitalCity();
@@ -8384,7 +8387,7 @@ bool CvUnit::canSiege(TeamTypes eTeam) const
 // <dlph.8> "Added function for checking whether a unit is a combat unit."
 bool CvUnit::canCombat() const {
 
-	// avdc: Check getUnitInfo().isMilitaryProduction() instead?
+	// avdc: Check m_pUnitInfo->isMilitaryProduction() instead?
 	return (baseCombatStr() > 0 || airBaseCombatStr() > 0 || nukeRange() >= 0);
 } // </dlph.8>
 
@@ -8594,7 +8597,7 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 		}
 	}
 
-	int iAssetValue = std::max(1, getUnitInfo().getAssetValue());
+	int iAssetValue = std::max(1, m_pUnitInfo->getAssetValue());
 	int iCargoAssetValue = 0;
 	std::vector<CvUnit*> aCargoUnits;
 	getCargoUnits(aCargoUnits);
@@ -8990,26 +8993,25 @@ int CvUnit::maxXPValue() const
 
 int CvUnit::firstStrikes() const
 {
-	return std::max(0, (m_pUnitInfo->getFirstStrikes() + getExtraFirstStrikes()));
+	return std::max(0, m_pUnitInfo->getFirstStrikes() + getExtraFirstStrikes());
 }
 
 
 int CvUnit::chanceFirstStrikes() const
 {
-	return std::max(0, (m_pUnitInfo->getChanceFirstStrikes() + getExtraChanceFirstStrikes()));
+	return std::max(0, m_pUnitInfo->getChanceFirstStrikes() + getExtraChanceFirstStrikes());
 }
 
 
 int CvUnit::maxFirstStrikes() const
 {
-	return (firstStrikes() + chanceFirstStrikes());
+	return firstStrikes() + chanceFirstStrikes();
 }
 
 
 bool CvUnit::isRanged() const
 {
-	CvUnitInfo * pkUnitInfo = &getUnitInfo();
-	for (int i = 0; i < pkUnitInfo->getGroupDefinitions(); i++)
+	for (int i = 0; i < m_pUnitInfo->getGroupDefinitions(); i++)
 	{
 		if (!getArtInfo(i, GET_PLAYER(getOwner()).getCurrentEra())->getActAsRanged())
 		{
@@ -11251,17 +11253,6 @@ void CvUnit::setCapturingPlayer(PlayerTypes eNewValue)
 }
 
 
-const UnitTypes CvUnit::getUnitType() const
-{
-	return m_eUnitType;
-}
-
-CvUnitInfo &CvUnit::getUnitInfo() const
-{
-	return *m_pUnitInfo;
-}
-
-
 UnitClassTypes CvUnit::getUnitClassType() const
 {
 	return (UnitClassTypes)m_pUnitInfo->getUnitClassType();
@@ -12850,12 +12841,12 @@ int CvUnit::computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMa
 	int aiDesiredSize[BATTLE_UNIT_COUNT];
 	if (bRangedRound)
 	{
-		aiDesiredSize[BATTLE_UNIT_ATTACKER] = getUnitInfo().getRangedWaveSize();
+		aiDesiredSize[BATTLE_UNIT_ATTACKER] = m_pUnitInfo->getRangedWaveSize();
 		aiDesiredSize[BATTLE_UNIT_DEFENDER] = getCombatUnit()->getUnitInfo().getRangedWaveSize();
 	}
 	else
 	{
-		aiDesiredSize[BATTLE_UNIT_ATTACKER] = getUnitInfo().getMeleeWaveSize();
+		aiDesiredSize[BATTLE_UNIT_ATTACKER] = m_pUnitInfo->getMeleeWaveSize();
 		aiDesiredSize[BATTLE_UNIT_DEFENDER] = getCombatUnit()->getUnitInfo().getMeleeWaveSize();
 	}
 
@@ -12868,7 +12859,6 @@ int CvUnit::computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMa
 bool CvUnit::isTargetOf(const CvUnit& attacker) const
 {
 	CvUnitInfo& attackerInfo = attacker.getUnitInfo();
-	CvUnitInfo& ourInfo = getUnitInfo();
 
 	if (!plot()->isCity(true, getTeam()))
 	{
@@ -12883,12 +12873,12 @@ bool CvUnit::isTargetOf(const CvUnit& attacker) const
 		}
 	}
 
-	if (NO_UNITCLASS != attackerInfo.getUnitClassType() && ourInfo.getDefenderUnitClass(attackerInfo.getUnitClassType()))
+	if (NO_UNITCLASS != attackerInfo.getUnitClassType() && m_pUnitInfo->getDefenderUnitClass(attackerInfo.getUnitClassType()))
 	{
 		return true;
 	}
 
-	if (NO_UNITCOMBAT != attackerInfo.getUnitCombatType() && ourInfo.getDefenderUnitCombat(attackerInfo.getUnitCombatType()))
+	if (NO_UNITCOMBAT != attackerInfo.getUnitCombatType() && m_pUnitInfo->getDefenderUnitCombat(attackerInfo.getUnitCombatType()))
 	{
 		return true;
 	}
@@ -13426,7 +13416,7 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 		// This part is taken directly from the standard method
 		// Reduces value if a unit is carrying other units
 		/* (disabled by K-Mod)
-		int iAssetValue = std::max(1, getUnitInfo().getAssetValue());
+		int iAssetValue = std::max(1, m_pUnitInfo->getAssetValue());
 		int iCargoAssetValue = 0;
 		std::vector<CvUnit*> aCargoUnits;
 		getCargoUnits(aCargoUnits);
@@ -13481,7 +13471,7 @@ int CvUnit::LFBgetValueAdjustedOdds(int iOdds, bool bDefender) const
 	// (This replaces the adjustment from LFBgetDefenderOdds. For more info, see the comments in that function.)
 	if (hasCargo())
 	{
-		int iAssetValue = std::max(1, getUnitInfo().getAssetValue());
+		int iAssetValue = std::max(1, m_pUnitInfo->getAssetValue());
 		int iCargoAssetValue = 0;
 		std::vector<CvUnit*> aCargoUnits;
 		getCargoUnits(aCargoUnits);

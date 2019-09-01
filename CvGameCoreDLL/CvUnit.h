@@ -613,9 +613,10 @@ public:
 
 	PlayerTypes getCapturingPlayer() const;
 	void setCapturingPlayer(PlayerTypes eNewValue);
-
-	DllExport const UnitTypes getUnitType() const;																					// Exposed to Python
-	CvUnitInfo &getUnitInfo() const;
+	// <advc.003f> inline (return type was already const)
+	DllExport inline const UnitTypes getUnitType() const { return m_eUnitType; }																			// Exposed to Python
+	__forceinline CvUnitInfo& getUnitInfo() const { return *m_pUnitInfo; }
+	// </advc.003f>
 	UnitClassTypes getUnitClassType() const;	// Exposed to Python
 
 	DllExport const UnitTypes getLeaderUnitType() const;

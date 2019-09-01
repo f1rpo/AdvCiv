@@ -192,213 +192,188 @@ bool CvUnitAI::AI_update()
 		// if no longer automated, then we want to bail
 		return !getGroup()->isAutomated();
 	}
-	else
-	{	// <advc.139>
-		UnitAITypes const uai = AI_getUnitAIType();
-		static UnitAITypes evacAITypes[] = {
-			/*  The other AI types are obscure or already have routines for
-				escaping untenable cities. */
-			UNITAI_ATTACK, UNITAI_ATTACK_CITY, UNITAI_COLLATERAL, UNITAI_PILLAGE,
-			UNITAI_RESERVE, UNITAI_COUNTER, UNITAI_CITY_DEFENSE, UNITAI_CITY_COUNTER,
-			UNITAI_CITY_SPECIAL,
-		};
-		bool bEvacAI = false;
-		for(int i = 0; i < sizeof(evacAITypes) / sizeof(UnitAITypes); i++) {
-			if(uai == evacAITypes[i]) {
-				bEvacAI = true;
-				break;
-			}
+	// <advc.139>
+	UnitAITypes const uai = AI_getUnitAIType();
+	static UnitAITypes evacAITypes[] = {
+		/*  The other AI types are obscure or already have routines for
+			escaping untenable cities. */
+		UNITAI_ATTACK, UNITAI_ATTACK_CITY, UNITAI_COLLATERAL, UNITAI_PILLAGE,
+		UNITAI_RESERVE, UNITAI_COUNTER, UNITAI_CITY_DEFENSE, UNITAI_CITY_COUNTER,
+		UNITAI_CITY_SPECIAL,
+	};
+	bool bEvacAI = false;
+	for(int i = 0; i < sizeof(evacAITypes) / sizeof(UnitAITypes); i++) {
+		if(uai == evacAITypes[i]) {
+			bEvacAI = true;
+			break;
 		}
-		if(plot()->isCity() && plot()->getTeam() == getTeam() &&
-				!isBarbarian() && bEvacAI && AI_evacuateCity())
+	}
+	if(plot()->isCity() && plot()->getTeam() == getTeam() &&
+			!isBarbarian() && bEvacAI)
+	{
+		if (AI_evacuateCity())
 			return false;
-		switch(uai) // </advc.139>
-		{
-		case UNITAI_UNKNOWN:
-			getGroup()->pushMission(MISSION_SKIP);
-			break;
+	}
+	switch(uai) // </advc.139>
+	{
+	case UNITAI_UNKNOWN:
+		getGroup()->pushMission(MISSION_SKIP);
+		break;
 
-		case UNITAI_ANIMAL:
-			AI_animalMove();
-			break;
+	case UNITAI_ANIMAL:
+		AI_animalMove();
+		break;
 
-		case UNITAI_SETTLE:
-			AI_settleMove();
-			break;
+	case UNITAI_SETTLE:
+		AI_settleMove();
+		break;
 
-		case UNITAI_WORKER:
-			AI_workerMove();
-			break;
+	case UNITAI_WORKER:
+		AI_workerMove();
+		break;
 
-		case UNITAI_ATTACK:
-			if (isBarbarian())
-			{
-				AI_barbAttackMove();
-			}
-			else
-			{
-				AI_attackMove();
-			}
-			break;
+	case UNITAI_ATTACK:
+		if (isBarbarian())
+			AI_barbAttackMove();
+		else AI_attackMove();
+		break;
 
-		case UNITAI_ATTACK_CITY:
-			AI_attackCityMove();
-			break;
+	case UNITAI_ATTACK_CITY:
+		AI_attackCityMove();
+		break;
 
-		case UNITAI_COLLATERAL:
-			AI_collateralMove();
-			break;
+	case UNITAI_COLLATERAL:
+		AI_collateralMove();
+		break;
 
-		case UNITAI_PILLAGE:
-			AI_pillageMove();
-			break;
+	case UNITAI_PILLAGE:
+		AI_pillageMove();
+		break;
 
-		case UNITAI_RESERVE:
-			AI_reserveMove();
-			break;
+	case UNITAI_RESERVE:
+		AI_reserveMove();
+		break;
 
-		case UNITAI_COUNTER:
-			AI_counterMove();
-			break;
+	case UNITAI_COUNTER:
+		AI_counterMove();
+		break;
 
-		case UNITAI_PARADROP:
-			AI_paratrooperMove();
-			break;
+	case UNITAI_PARADROP:
+		AI_paratrooperMove();
+		break;
 
-		case UNITAI_CITY_DEFENSE:
-			AI_cityDefenseMove();
-			break;
+	case UNITAI_CITY_DEFENSE:
+		AI_cityDefenseMove();
+		break;
 
-		case UNITAI_CITY_COUNTER:
-		case UNITAI_CITY_SPECIAL:
-			AI_cityDefenseExtraMove();
-			break;
+	case UNITAI_CITY_COUNTER:
+	case UNITAI_CITY_SPECIAL:
+		AI_cityDefenseExtraMove();
+		break;
 
-		case UNITAI_EXPLORE:
-			AI_exploreMove();
-			break;
+	case UNITAI_EXPLORE:
+		AI_exploreMove();
+		break;
 
-		case UNITAI_MISSIONARY:
-			AI_missionaryMove();
-			break;
+	case UNITAI_MISSIONARY:
+		AI_missionaryMove();
+		break;
 
-		case UNITAI_PROPHET:
-			AI_prophetMove();
-			break;
+	case UNITAI_GENERAL:
+		AI_generalMove();
+		break;
 
-		case UNITAI_ARTIST:
-			AI_artistMove();
-			break;
+	case UNITAI_PROPHET: // advc.003: Fall through. They all use the same routine.
+	case UNITAI_ARTIST:
+	case UNITAI_SCIENTIST:
+	case UNITAI_MERCHANT:
+	case UNITAI_ENGINEER:
+	// K-Mod
+	case UNITAI_GREAT_SPY:
+		//AI_greatSpyMove();
+		AI_greatPersonMove(); // advc.003
+		break;
+	// K-Mod end
+	case UNITAI_SPY:
+		AI_spyMove();
+		break;
 
-		case UNITAI_SCIENTIST:
-			AI_scientistMove();
-			break;
+	case UNITAI_ICBM:
+		AI_ICBMMove();
+		break;
 
-		case UNITAI_GENERAL:
-			AI_generalMove();
-			break;
+	case UNITAI_WORKER_SEA:
+		AI_workerSeaMove();
+		break;
 
-		case UNITAI_MERCHANT:
-			AI_merchantMove();
-			break;
+	case UNITAI_ATTACK_SEA:
+		if (isBarbarian())
+			AI_barbAttackSeaMove();
+		else AI_attackSeaMove();
+		break;
 
-		case UNITAI_ENGINEER:
-			AI_engineerMove();
-			break;
+	case UNITAI_RESERVE_SEA:
+		AI_reserveSeaMove();
+		break;
 
-		// K-Mod
-		case UNITAI_GREAT_SPY:
-			AI_greatSpyMove();
-			break;
-		// K-Mod end
+	case UNITAI_ESCORT_SEA:
+		AI_escortSeaMove();
+		break;
 
-		case UNITAI_SPY:
-			AI_spyMove();
-			break;
+	case UNITAI_EXPLORE_SEA:
+		AI_exploreSeaMove();
+		break;
 
-		case UNITAI_ICBM:
-			AI_ICBMMove();
-			break;
+	case UNITAI_ASSAULT_SEA:
+		AI_assaultSeaMove();
+		break;
 
-		case UNITAI_WORKER_SEA:
-			AI_workerSeaMove();
-			break;
+	case UNITAI_SETTLER_SEA:
+		AI_settlerSeaMove();
+		break;
 
-		case UNITAI_ATTACK_SEA:
-			if (isBarbarian())
-			{
-				AI_barbAttackSeaMove();
-			}
-			else
-			{
-				AI_attackSeaMove();
-			}
-			break;
+	case UNITAI_MISSIONARY_SEA:
+		AI_missionarySeaMove();
+		break;
 
-		case UNITAI_RESERVE_SEA:
-			AI_reserveSeaMove();
-			break;
+	case UNITAI_SPY_SEA:
+		AI_spySeaMove();
+		break;
 
-		case UNITAI_ESCORT_SEA:
-			AI_escortSeaMove();
-			break;
+	case UNITAI_CARRIER_SEA:
+		AI_carrierSeaMove();
+		break;
 
-		case UNITAI_EXPLORE_SEA:
-			AI_exploreSeaMove();
-			break;
+	case UNITAI_MISSILE_CARRIER_SEA:
+		AI_missileCarrierSeaMove();
+		break;
 
-		case UNITAI_ASSAULT_SEA:
-			AI_assaultSeaMove();
-			break;
+	case UNITAI_PIRATE_SEA:
+		AI_pirateSeaMove();
+		break;
 
-		case UNITAI_SETTLER_SEA:
-			AI_settlerSeaMove();
-			break;
+	case UNITAI_ATTACK_AIR:
+		AI_attackAirMove();
+		break;
 
-		case UNITAI_MISSIONARY_SEA:
-			AI_missionarySeaMove();
-			break;
+	case UNITAI_DEFENSE_AIR:
+		AI_defenseAirMove();
+		break;
 
-		case UNITAI_SPY_SEA:
-			AI_spySeaMove();
-			break;
+	case UNITAI_CARRIER_AIR:
+		AI_carrierAirMove();
+		break;
 
-		case UNITAI_CARRIER_SEA:
-			AI_carrierSeaMove();
-			break;
+	case UNITAI_MISSILE_AIR:
+		AI_missileAirMove();
+		break;
 
-		case UNITAI_MISSILE_CARRIER_SEA:
-			AI_missileCarrierSeaMove();
-			break;
+	case UNITAI_ATTACK_CITY_LEMMING:
+		AI_attackCityLemmingMove();
+		break;
 
-		case UNITAI_PIRATE_SEA:
-			AI_pirateSeaMove();
-			break;
-
-		case UNITAI_ATTACK_AIR:
-			AI_attackAirMove();
-			break;
-
-		case UNITAI_DEFENSE_AIR:
-			AI_defenseAirMove();
-			break;
-
-		case UNITAI_CARRIER_AIR:
-			AI_carrierAirMove();
-			break;
-
-		case UNITAI_MISSILE_AIR:
-			AI_missileAirMove();
-			break;
-
-		case UNITAI_ATTACK_CITY_LEMMING:
-			AI_attackCityLemmingMove();
-			break;
-
-		default:
-			FAssert(false);
-			break;
-		}
+	default:
+		FAssertMsg(false, "Unknown Unit AI type");
 	}
 
 	return false;
@@ -1068,12 +1043,12 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	if (getDomainType() == DOMAIN_AIR)
 	{
 		iValue = 128 * (100 + currInterceptionProbability());
-		if (m_pUnitInfo->getNukeRange() != -1)
+		if (getUnitInfo().getNukeRange() != -1)
 		{
 			iValue += 25000;
 		}
-		//iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
-		iValue /= m_pUnitInfo->getProductionCost() > 0 ? m_pUnitInfo->getProductionCost() : 180; // K-Mod
+		//iValue /= std::max(1, (1 + getUnitInfo().getProductionCost()));
+		iValue /= getUnitInfo().getProductionCost() > 0 ? getUnitInfo().getProductionCost() : 180; // K-Mod
 		iValue *= (maxHitPoints() - getDamage());
 		iValue /= 100;
 	}
@@ -1093,7 +1068,7 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		iValue /= std::max(1, 100 + iCityDefenseModifier); // </advc.001>
 		iValue *= (100 + withdrawalProbability());
 		// BETTER_BTS_AI_MOD, General AI, 05/14/10, jdog5000: START
-		/*iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
+		/*iValue /= std::max(1, (1 + getUnitInfo().getProductionCost()));
 		iValue /= (10 + getExperience());*/ // BtS code
 		iValue /= 100; // K-Mod
 
@@ -1122,8 +1097,8 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		iValue /= 100;
 		// K-Mod end
 
-		//iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
-		iValue /= m_pUnitInfo->getProductionCost() > 0 ? m_pUnitInfo->getProductionCost() : 180; // K-Mod
+		//iValue /= std::max(1, (1 + getUnitInfo().getProductionCost()));
+		iValue /= getUnitInfo().getProductionCost() > 0 ? getUnitInfo().getProductionCost() : 180; // K-Mod
 		// BETTER_BTS_AI_MOD: END
 	}
 
@@ -1292,7 +1267,6 @@ void CvUnitAI::AI_animalMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -1615,7 +1589,6 @@ void CvUnitAI::AI_settleMove()
 	if (AI_safety())
 		return;
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // advc.113b: Cut from AI_workerMove
@@ -2014,7 +1987,6 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 		return;
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -2192,7 +2164,6 @@ void CvUnitAI::AI_barbAttackMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // This function has been heavily edited by K-Mod
@@ -2659,7 +2630,6 @@ void CvUnitAI::AI_attackMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -2785,7 +2755,6 @@ void CvUnitAI::AI_paratrooperMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // This function has been heavily edited by K-Mod and by BBAI
@@ -3597,7 +3566,6 @@ void CvUnitAI::AI_attackCityMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 void CvUnitAI::AI_attackCityLemmingMove()
@@ -3786,8 +3754,8 @@ void CvUnitAI::AI_collateralMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
+
 
 void CvUnitAI::AI_pillageMove()
 {
@@ -3943,7 +3911,6 @@ void CvUnitAI::AI_pillageMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -4112,7 +4079,6 @@ void CvUnitAI::AI_reserveMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -4308,7 +4274,6 @@ void CvUnitAI::AI_counterMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -4477,7 +4442,6 @@ void CvUnitAI::AI_cityDefenseMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -4569,7 +4533,6 @@ void CvUnitAI::AI_cityDefenseExtraMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -4650,7 +4613,7 @@ void CvUnitAI::AI_exploreMove()
 		}
 	} // <advc.315> Idle explorers can help guard city sites
 	if(!isHuman() && !GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS) &&
-			(m_pUnitInfo->getCombat() * (100 + barbarianCombatModifier())) / 100 >=
+			(getUnitInfo().getCombat() * (100 + barbarianCombatModifier())) / 100 >=
 			(GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1) * 2) {
 		if(AI_guardCitySite())
 			return;
@@ -4696,7 +4659,6 @@ void CvUnitAI::AI_exploreMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -4778,163 +4740,6 @@ void CvUnitAI::AI_missionaryMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
-}
-
-
-void CvUnitAI::AI_prophetMove()
-{
-	PROFILE_FUNC();
-
-	/* original bts code
-	if (AI_construct(1))
-		return;
-	if (AI_discover(true, true))
-		return;
-	if (AI_construct(3))
-		return;
-	int iGoldenAgeValue = (GET_PLAYER(getOwner()).AI_calculateGoldenAgeValue() / (GET_PLAYER(getOwner()).unitsRequiredForGoldenAge()));
-	int iDiscoverValue = std::max(1, getDiscoverResearch(NO_TECH));
-	if (((iGoldenAgeValue * 100) / iDiscoverValue) > 60) {
-		if (AI_goldenAge())
-			return;
-		if (iDiscoverValue > iGoldenAgeValue) {
-			if (AI_discover())
-				return;
-			if (GET_PLAYER(getOwner()).getUnitClassCount(getUnitClassType()) > 1) {
-				if (AI_join())
-					return;
-			}
-		}
-	}
-	else {
-		if (AI_discover())
-			return;
-		if (AI_join())
-			return;
-	} */
-	// K-Mod
-	if (AI_greatPersonMove())
-		return;
-
-	/* original bts code
-	if ((GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)) ||
-		(getGameTurnCreated() < (GC.getGame().getGameTurn() - 25))) */
-	if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2)) // K-Mod (there are good reasons for saving a great person)
-	{
-		if (AI_discover())
-		{
-			return;
-		}
-	}
-
-	if (AI_retreatToCity())
-	{
-		return;
-	}
-
-	// K-Mod
-	if (AI_handleStranded())
-		return;
-	// K-Mod end
-
-	if (AI_safety())
-	{
-		return;
-	}
-
-	getGroup()->pushMission(MISSION_SKIP);
-	return;
-}
-
-
-void CvUnitAI::AI_artistMove()
-{
-	PROFILE_FUNC();
-
-	/* original bts code (replaced by K-Mod)
-	if (AI_artistCultureVictoryMove())
-		return;
-	... // advc.003: deleted most of it
-	if ((GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)) ||
-		(getGameTurnCreated() < (GC.getGame().getGameTurn() - 25)))*/
-
-	// K-Mod
-	if (AI_greatPersonMove())
-		return;
-
-	if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2))
-	{
-		if (AI_discover())
-		{
-			return;
-		}
-	}
-	// K-Mod end
-
-	if (AI_retreatToCity())
-	{
-		return;
-	}
-
-	// K-Mod
-	if (AI_handleStranded())
-		return;
-	// K-Mod end
-
-	if (AI_safety())
-	{
-		return;
-	}
-
-	getGroup()->pushMission(MISSION_SKIP);
-	return;
-}
-
-
-void CvUnitAI::AI_scientistMove()
-{
-	PROFILE_FUNC();
-
-	/* original bts code (replaced by K-Mod)
-	if (AI_discover(true, true))
-		return;
-	... // advc.003: deleted most of it
-	if ((GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)) ||
-		(getGameTurnCreated() < (GC.getGame().getGameTurn() - 25))) {
-		if (AI_discover())
-			return;
-	}*/
-	// K-Mod
-	if (AI_greatPersonMove())
-		return;
-
-	if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2))
-	{
-		if (AI_discover())
-		{
-			return;
-		}
-	}
-	// K-Mod end
-
-	if (AI_retreatToCity())
-	{
-		return;
-	}
-
-	// K-Mod
-	if (AI_handleStranded())
-		return;
-	// K-Mod end
-
-	if (AI_safety())
-	{
-		return;
-	}
-
-	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -5029,134 +4834,12 @@ void CvUnitAI::AI_generalMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
-}
-
-
-void CvUnitAI::AI_merchantMove()
-{
-	PROFILE_FUNC();
-
-	/* original bts code (replaced by K-Mod)
-	if (AI_construct())
-		return;
-	... // advc.003: deleted most of it
-	else {
-		if (AI_discover())
-			return;
-		if (AI_join())
-			return;
-	}*/
-	// K-Mod
-	if (AI_greatPersonMove())
-		return;
-
-	/* original bts code
-	if ((GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)) ||
-		(getGameTurnCreated() < (GC.getGame().getGameTurn() - 25))) */
-	if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2)) // K-Mod (there are good reasons for saving a great person)
-	{
-		if (AI_discover())
-		{
-			return;
-		}
-	}
-
-	if (AI_retreatToCity())
-	{
-		return;
-	}
-
-	// K-Mod
-	if (AI_handleStranded())
-		return;
-	// K-Mod end
-
-	if (AI_safety())
-	{
-		return;
-	}
-
-	getGroup()->pushMission(MISSION_SKIP);
-	return;
-}
-
-
-void CvUnitAI::AI_engineerMove()
-{
-	PROFILE_FUNC();
-
-	/* original bts code (replaced by K-Mod)
-	if (AI_construct())
-		return;
-	... // advc.003: deleted most of it
-	else {
-		if (AI_discover())
-			return;
-		if (AI_join())
-			return;
-	}*/
-	// K-Mod
-	if (AI_greatPersonMove())
-		return;
-
-	/* original bts code
-	if ((GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)) ||
-		(getGameTurnCreated() < (GC.getGame().getGameTurn() - 25))) */
-	if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2)) // K-Mod (there are good reasons for saving a great person)
-	{
-		if (AI_discover())
-		{
-			return;
-		}
-	}
-
-	if (AI_retreatToCity())
-	{
-		return;
-	}
-
-	// K-Mod
-	if (AI_handleStranded())
-		return;
-	// K-Mod end
-
-	if (AI_safety())
-	{
-		return;
-	}
-
-	getGroup()->pushMission(MISSION_SKIP);
-	return;
-}
-
-// K-Mod, the previously missing great spy ai function...
-void CvUnitAI::AI_greatSpyMove()
-{
-	if (AI_greatPersonMove())
-		return;
-
-	// Note: spies can't be seen, and can't be attacked. So we don't need to worry about retreating to safety.
-	FAssert(alwaysInvisible());
-
-	if (area()->getNumCities() > area()->getCitiesPerPlayer(getOwner()))
-	{
-		if (AI_reconSpy(5))
-		{
-			return;
-		}
-	}
-
-	if (AI_handleStranded())
-		return;
-
-	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // K-Mod. For most great people, the AI needs to do similar checks and calculations.
 // I've made this general function to do those calculations for all types of great people.
-bool CvUnitAI::AI_greatPersonMove()
+// advc.003: Now handles the entire GP move (except Great General)
+void CvUnitAI::AI_greatPersonMove()
 {
 	const CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
 
@@ -5179,7 +4862,7 @@ bool CvUnitAI::AI_greatPersonMove()
 	int iBestValue = 1;
 	int iBestPathTurns = MAX_INT; // just used as a tie-breaker.
 	int iMoveFlags = alwaysInvisible() ? 0 : MOVE_NO_ENEMY_TERRITORY;
-	bool bCanHurry = m_pUnitInfo->getBaseHurry() > 0 || m_pUnitInfo->getHurryMultiplier() > 0;
+	bool bCanHurry = getUnitInfo().getBaseHurry() > 0 || getUnitInfo().getHurryMultiplier() > 0;
 
 	FOR_EACH_CITYAI(pLoopCity, kPlayer)
 	{
@@ -5211,8 +4894,8 @@ bool CvUnitAI::AI_greatPersonMove()
 		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
 			BuildingTypes eBuilding = kCiv.buildingAt(i);
-			if ((//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
-					m_pUnitInfo->getBuildings(eBuilding)) &&
+			if ((//getUnitInfo().getForceBuildings(eBuilding) || // advc.003t
+					getUnitInfo().getBuildings(eBuilding)) &&
 					canConstruct(pLoopCity->plot(), eBuilding))
 			{
 				// Note, building value is roughly 4x the value of the commerce it provides.
@@ -5408,7 +5091,7 @@ bool CvUnitAI::AI_greatPersonMove()
 			{
 				getGroup()->pushMission(MISSION_DISCOVER);
 				if (gUnitLogLevel > 2) logBBAI("    %S chooses 'discover' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getTechInfo(eDiscoverTech).getDescription(), getName(0).GetCString(), iDiscoverValue, iChoice);
-				return true;
+				return;
 			}
 			break;
 
@@ -5418,7 +5101,7 @@ bool CvUnitAI::AI_greatPersonMove()
 				if (AI_doTradeMission(pBestTradePlot))
 				{
 					if (gUnitLogLevel > 2) logBBAI("    %S %s 'trade mission' with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), eOldMission == MISSIONAI_TRADE?"continues" :"chooses", getName(0).GetCString(), iTradeValue, iChoice);
-					return true;
+					return;
 				}
 				break;
 			}
@@ -5429,7 +5112,7 @@ bool CvUnitAI::AI_greatPersonMove()
 				if (AI_doGreatWork(pBestCulturePlot))
 				{
 					if (gUnitLogLevel > 2) logBBAI("    %S %s 'great work' with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), eOldMission == MISSIONAI_TRADE?"continues" :"chooses", getName(0).GetCString(), iCultureValue, iChoice);
-					return true;
+					return;
 				}
 				break;
 			}
@@ -5438,7 +5121,7 @@ bool CvUnitAI::AI_greatPersonMove()
 			if (AI_goldenAge())
 			{
 				if (gUnitLogLevel > 2) logBBAI("    %S chooses 'golden age' with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), getName(0).GetCString(), iGoldenAgeValue, iChoice);
-				return true;
+				return;
 			}
 			else if (kPlayer.AI_totalUnitAIs(AI_getUnitAIType()) < 2)
 			{
@@ -5480,12 +5163,12 @@ bool CvUnitAI::AI_greatPersonMove()
 					if (atPlot(pBestPlot))
 					{
 						getGroup()->pushMission(MISSION_JOIN, eBestSpecialist);
-						return true;
+						return;
 					}
 					else
 					{
 						getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(), iMoveFlags, false, false, MISSIONAI_JOIN_CITY);
-						return true;
+						return;
 					}
 				}
 
@@ -5516,15 +5199,15 @@ bool CvUnitAI::AI_greatPersonMove()
 							else
 							{
 								FAssertMsg(false, "great person cannot hurry what it intended to hurry.");
-								return false;
+								break;
 							}
 						}
-						return true;
+						return;
 					}
 					else
 					{
 						getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(), iMoveFlags, false, false, eMissionAI);
-						return true;
+						return;
 					}
 				}
 			}
@@ -5536,10 +5219,41 @@ bool CvUnitAI::AI_greatPersonMove()
 		iChoice++;
 	}
 	FAssert(iScoreThreshold > 0);
+	// advc.003: Branch for Great Spy - cut from the deleted AI_greatSpyMove.
+	if (alwaysInvisible())
+	{	// K-Mod note: spies can't be seen, and can't be attacked. So we don't need to worry about retreating to safety.
+		if (area()->getNumCities() > area()->getCitiesPerPlayer(getOwner()))
+		{
+			if (AI_reconSpy(5))
+				return;
+		}
+		if (AI_handleStranded())
+			return;
+
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	}
+	/*  advc.003: I've cut and pasted the rest of this function from AI_greatEngineerMove;
+		the exact same thing was being done for Prophet, Merchant, Artist and Scientist. */
+	/*if ((GET_PLAYER(getOwner()).AI_getAnyPlotDanger(plot(), 2)) ||
+		(getGameTurnCreated() < (GC.getGame().getGameTurn() - 25)))*/ // BtS
+	if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2)) // K-Mod (there are good reasons for saving a great person)
+	{
+		if (AI_discover())
+			return;
+	}
 	if (gUnitLogLevel > 2) logBBAI("    %S chooses 'wait' with their %S (value: %d, dead time: %d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), getName(0).GetCString(), iScoreThreshold, GC.getGame().getGameTurn() - getGameTurnCreated());
-	return false;
-}
-// K-Mod end
+	if (AI_retreatToCity())
+		return;
+	// K-Mod
+	if (AI_handleStranded())
+		return;
+	// K-Mod end
+	if (AI_safety())
+		return;
+
+	getGroup()->pushMission(MISSION_SKIP);
+} // K-Mod end
 
 // Edited heavily for K-Mod
 void CvUnitAI::AI_spyMove()
@@ -5912,7 +5626,6 @@ void CvUnitAI::AI_spyMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 void CvUnitAI::AI_ICBMMove()
@@ -6072,7 +5785,6 @@ void CvUnitAI::AI_workerSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -6194,7 +5906,6 @@ void CvUnitAI::AI_barbAttackSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // BETTER_BTS_AI_MOD, Pirate AI several changes, 02/23/10, jdog5000: START
@@ -6288,7 +5999,6 @@ void CvUnitAI::AI_pirateSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -6319,7 +6029,7 @@ void CvUnitAI::AI_attackSeaMove()
 			// <advc.017b>
 			CvArea* pWaterArea = plot()->waterArea();
 			if(pWaterArea != NULL) {
-				if(m_pUnitInfo->getDefaultUnitAIType() == UNITAI_EXPLORE_SEA &&
+				if(getUnitInfo().getDefaultUnitAIType() == UNITAI_EXPLORE_SEA &&
 						kOwner.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_EXPLORE_SEA) <
 						kOwner.AI_neededExplorers(pWaterArea))
 					AI_setUnitAIType(UNITAI_EXPLORE_SEA);
@@ -6519,7 +6229,6 @@ void CvUnitAI::AI_attackSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -6684,7 +6393,6 @@ void CvUnitAI::AI_reserveSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -6865,7 +6573,6 @@ void CvUnitAI::AI_escortSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -6973,7 +6680,7 @@ void CvUnitAI::AI_exploreSeaMove()
 				transformTypes.push_back(UNITAI_MISSIONARY_SEA);
 			} // </advc.017b>
 			for(size_t i = 0; i < transformTypes.size(); i++) {
-				if(m_pUnitInfo->getUnitAIType(transformTypes[i]) &&
+				if(getUnitInfo().getUnitAIType(transformTypes[i]) &&
 						kOwner.AI_unitValue(getUnitType(), transformTypes[i], pWaterArea) > 0) {
 					// Before transforming a Work Boat, check if there is sth. to improve.
 					if(transformTypes[i] == UNITAI_WORKER_SEA &&
@@ -7033,7 +6740,6 @@ void CvUnitAI::AI_exploreSeaMove()
 		return;
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -7752,7 +7458,6 @@ void CvUnitAI::AI_assaultSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -8102,7 +7807,6 @@ void CvUnitAI::AI_settlerSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -8187,7 +7891,6 @@ void CvUnitAI::AI_missionarySeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -8275,7 +7978,6 @@ void CvUnitAI::AI_spySeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -8383,7 +8085,6 @@ void CvUnitAI::AI_carrierSeaMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -8749,7 +8450,6 @@ void CvUnitAI::AI_attackAirMove()
 	// BETTER_BTS_AI_MOD: END
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // This function has been rewritten for K-Mod. (The new version is much simpler.)
@@ -8874,7 +8574,6 @@ void CvUnitAI::AI_defenseAirMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -8963,7 +8662,6 @@ void CvUnitAI::AI_carrierAirMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -9062,7 +8760,6 @@ void CvUnitAI::AI_missileAirMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -9135,7 +8832,6 @@ void CvUnitAI::AI_networkAutomated()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 
@@ -9186,7 +8882,6 @@ void CvUnitAI::AI_cityAutomated()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 }
 
 // XXX make sure we include any new UnitAITypes...
@@ -9417,7 +9112,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 	iTemp = GC.getPromotionInfo(ePromotion).getWithdrawalChange();
 	if (iTemp != 0)
 	{
-		iExtra = (m_pUnitInfo->getWithdrawalProbability() + (getExtraWithdrawal() * 4));
+		iExtra = (getUnitInfo().getWithdrawalProbability() + (getExtraWithdrawal() * 4));
 		iTemp *= (100 + iExtra);
 		iTemp /= 100;
 		if ((AI_getUnitAIType() == UNITAI_ATTACK_CITY))
@@ -9584,9 +9279,9 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 	iTemp = GC.getPromotionInfo(ePromotion).getCityAttackPercent();
 	if (iTemp != 0)
 	{
-		if (m_pUnitInfo->getUnitAIType(UNITAI_ATTACK) || m_pUnitInfo->getUnitAIType(UNITAI_ATTACK_CITY) || m_pUnitInfo->getUnitAIType(UNITAI_ATTACK_CITY_LEMMING))
+		if (getUnitInfo().getUnitAIType(UNITAI_ATTACK) || getUnitInfo().getUnitAIType(UNITAI_ATTACK_CITY) || getUnitInfo().getUnitAIType(UNITAI_ATTACK_CITY_LEMMING))
 		{
-			iExtra = (m_pUnitInfo->getCityAttackModifier() + (getExtraCityAttackPercent() * 2));
+			iExtra = (getUnitInfo().getCityAttackModifier() + (getExtraCityAttackPercent() * 2));
 			iTemp *= (100 + iExtra);
 			iTemp /= 100;
 			if (AI_getUnitAIType() == UNITAI_ATTACK_CITY)
@@ -9606,7 +9301,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
 			  (AI_getUnitAIType() == UNITAI_CITY_SPECIAL))
 		{
-			iExtra = m_pUnitInfo->getCityDefenseModifier() + (getExtraCityDefensePercent() * 2);
+			iExtra = getUnitInfo().getCityDefenseModifier() + (getExtraCityDefensePercent() * 2);
 			iValue += ((iTemp * (100 + iExtra)) / 100);
 		}
 		else
@@ -9635,7 +9330,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 	iTemp = GC.getPromotionInfo(ePromotion).getHillsDefensePercent();
 	if (iTemp != 0)
 	{
-		iExtra = (m_pUnitInfo->getHillsDefenseModifier() + (getExtraHillsDefensePercent() * 2));
+		iExtra = (getUnitInfo().getHillsDefenseModifier() + (getExtraHillsDefensePercent() * 2));
 		iTemp *= (100 + iExtra);
 		iTemp /= 100;
 		if (AI_getUnitAIType() == UNITAI_CITY_DEFENSE)
@@ -10140,8 +9835,7 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 	}
 
 	return false;
-}
-// K-Mod end
+} // K-Mod end
 
 // Returns true if a group was joined or a mission was pushed...
 bool CvUnitAI::AI_group(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitAI,
@@ -11256,7 +10950,7 @@ bool CvUnitAI::AI_guardCitySite()
 			for(int dy = -1; dy <= 1; dy++) {
 				CvPlot* pAdj = m.plot(pBestGuardPlot->getX() + dx,
 						pBestGuardPlot->getY() + dy);
-				if(pAdj == NULL || (pAdj->isImpassable() && !m_pUnitInfo->isCanMoveImpassable()))
+				if(pAdj == NULL || (pAdj->isImpassable() && !getUnitInfo().isCanMoveImpassable()))
 					continue;
 				int iGuardValue = pAdj->defenseModifier(getTeam(), true);
 				iGuardValue += pAdj->seeFromLevel(getTeam()) * 30;
@@ -11698,7 +11392,7 @@ bool CvUnitAI::AI_spreadReligion()
 	ReligionTypes eReligion = NO_RELIGION;
 	if (kOwner.getStateReligion() != NO_RELIGION)
 	{
-		if (m_pUnitInfo->getReligionSpreads(kOwner.getStateReligion()) > 0)
+		if (getUnitInfo().getReligionSpreads(kOwner.getStateReligion()) > 0)
 			eReligion = kOwner.getStateReligion();
 	}
 
@@ -11707,7 +11401,7 @@ bool CvUnitAI::AI_spreadReligion()
 		for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		{
 			//if (bCultureVictory || GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
-			if (m_pUnitInfo->getReligionSpreads((ReligionTypes)iI) > 0)
+			if (getUnitInfo().getReligionSpreads((ReligionTypes)iI) > 0)
 			{
 				eReligion = ((ReligionTypes)iI);
 				break;
@@ -11886,7 +11580,7 @@ bool CvUnitAI::AI_spreadCorporation()
 
 	for (int iI = 0; iI < GC.getNumCorporationInfos(); ++iI)
 	{
-		if (m_pUnitInfo->getCorporationSpreads((CorporationTypes)iI) > 0)
+		if (getUnitInfo().getCorporationSpreads((CorporationTypes)iI) > 0)
 		{
 			eCorporation = ((CorporationTypes)iI);
 			break;
@@ -12059,7 +11753,7 @@ bool CvUnitAI::AI_spreadReligionAirlift()
 	{
 		if (GET_PLAYER(getOwner()).getStateReligion() != NO_RELIGION)
 		{
-			if (m_pUnitInfo->getReligionSpreads(GET_PLAYER(getOwner()).getStateReligion()) > 0)
+			if (getUnitInfo().getReligionSpreads(GET_PLAYER(getOwner()).getStateReligion()) > 0)
 			{
 				eReligion = GET_PLAYER(getOwner()).getStateReligion();
 			}
@@ -12072,7 +11766,7 @@ bool CvUnitAI::AI_spreadReligionAirlift()
 		{
 			//if (bCultureVictory || GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
 			{
-				if (m_pUnitInfo->getReligionSpreads((ReligionTypes)iI) > 0)
+				if (getUnitInfo().getReligionSpreads((ReligionTypes)iI) > 0)
 				{
 					eReligion = ((ReligionTypes)iI);
 					break;
@@ -12170,7 +11864,7 @@ bool CvUnitAI::AI_spreadCorporationAirlift()
 
 	for (int iI = 0; iI < GC.getNumCorporationInfos(); ++iI)
 	{
-		if (m_pUnitInfo->getCorporationSpreads((CorporationTypes)iI) > 0)
+		if (getUnitInfo().getCorporationSpreads((CorporationTypes)iI) > 0)
 		{
 			eCorporation = ((CorporationTypes)iI);
 			break;
@@ -12452,7 +12146,7 @@ bool CvUnitAI::AI_join(int iMaxCount)
 					{
 						bool bDoesJoin = false;
 						SpecialistTypes eSpecialist = (SpecialistTypes)iI;
-						if (m_pUnitInfo->getGreatPeoples(eSpecialist))
+						if (getUnitInfo().getGreatPeoples(eSpecialist))
 							bDoesJoin = true;
 						if (bDoesJoin)
 						{
@@ -12505,7 +12199,7 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 {
 	PROFILE_FUNC();
 	// <advc.003t>
-	if (!m_pUnitInfo->isAnyBuildings())
+	if (!getUnitInfo().isAnyBuildings())
 		return false; // </advc.003t>
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
@@ -12525,8 +12219,8 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 		{
 			BuildingTypes eBuilding = kCiv.buildingAt(i);
 			bool bDoesBuild = false;
-			if (//m_pUnitInfo->getForceBuildings(eBuilding) || // advc.003t
-					m_pUnitInfo->getBuildings(eBuilding))
+			if (//getUnitInfo().getForceBuildings(eBuilding) || // advc.003t
+					getUnitInfo().getBuildings(eBuilding))
 				bDoesBuild = true;
 			if (bDoesBuild && (pLoopCity->getNumBuilding(eBuilding) > 0))
 			{
@@ -13052,11 +12746,10 @@ bool CvUnitAI::AI_patrol() // advc.003: refactored
 		if(isAnimal())
 		{
 			CvPlot const& kPlot = *pAdjacentPlot;
-			CvUnitInfo const& u = *m_pUnitInfo;
 			// Same check as in CvGame::createAnimals
 			if((kPlot.getFeatureType() != NO_FEATURE) ?
-					u.getFeatureNative(kPlot.getFeatureType()) :
-					u.getTerrainNative(kPlot.getTerrainType()))
+					getUnitInfo().getFeatureNative(kPlot.getFeatureType()) :
+					getUnitInfo().getTerrainNative(kPlot.getTerrainType()))
 				iValue += g.getSorenRandNum(10000, "advc.309");
 		}
 		else // (Animals shouldn't follow a consistent direction)
@@ -14631,9 +14324,9 @@ bool CvUnitAI::AI_evacuateCity() {
 	/*  Units that don't receive def. modifiers should always evacuate.
 		AI_defensiveCollateral can still happen, but not when the threat ratio is
 		this high. */
-	if(m_pUnitInfo->getCombat() > 0 && !m_pUnitInfo->isNoDefensiveBonus()) {
+	if(getUnitInfo().getCombat() > 0 && !getUnitInfo().isNoDefensiveBonus()) {
 		if(AI_getUnitAIType() == UNITAI_CITY_DEFENSE)
-			prEvac = 0;
+			prEvac -= 1;
 		else {
 			prEvac = 1.8 - currHitPoints() / (maxHitPoints()+0.001);
 			int defenseMod = fortifyModifier() + plot()->defenseModifier(getTeam(),
@@ -14928,7 +14621,7 @@ bool CvUnitAI::AI_pirateBlockade()
 		advc: I'm re-using parts of the body of that loop for a more limited
 		danger check. */
 	bool bInDanger = false;
-	int iRange = m_pUnitInfo->getMoves();
+	int const iRange = baseMoves();
 	int iCurrEffStr = currEffectiveStr(plot(), NULL, NULL);
 	for(int dx = -iRange; dx <= iRange; dx++) {
 		for(int dy = -iRange; dy <= iRange; dy++) {
@@ -15034,7 +14727,7 @@ bool CvUnitAI::AI_pirateBlockade()
 								std::pow((double)GET_PLAYER(getOwner()).
 								AI_getAttitude(pPlotCity->getOwner()), 1.5)));
 						iCityValue *= iAttitudeFactor;
-						TechTypes eTechReq = (TechTypes)m_pUnitInfo->getPrereqAndTech();
+						TechTypes eTechReq = (TechTypes)getUnitInfo().getPrereqAndTech();
 						int iOurEra = (eTechReq == NO_TECH ?
 								GET_PLAYER(getOwner()).getCurrentEra() :
 								GC.getTechInfo(eTechReq).getEra());
@@ -20014,7 +19707,8 @@ bool CvUnitAI::AI_airStrike(int iThreshold)
 
 	int iSearchRange = airRange();
 
-	int iBestValue = iThreshold + isSuicide() && m_pUnitInfo->getProductionCost() > 0 ? m_pUnitInfo->getProductionCost() * 5 / 6 : 0;
+	int iBestValue = iThreshold + isSuicide() && getUnitInfo().getProductionCost() > 0 ?
+			getUnitInfo().getProductionCost() * 5 / 6 : 0;
 	CvPlot* pBestPlot = NULL;
 	bool bBombard = false; // K-Mod. bombard (city / improvement), rather than air strike (damage)
 
@@ -20151,7 +19845,8 @@ bool CvUnitAI::AI_defendBaseAirStrike()
 	// Only search around base
 	int iSearchRange = 2;
 
-	int iBestValue = (isSuicide() && m_pUnitInfo->getProductionCost() > 0) ? (15 * m_pUnitInfo->getProductionCost()) : 0;
+	int iBestValue = (isSuicide() && getUnitInfo().getProductionCost() > 0) ? 
+			15 * getUnitInfo().getProductionCost() : 0;
 	CvPlot* pBestPlot = NULL;
 	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
 	{
@@ -20468,7 +20163,6 @@ void CvUnitAI::AI_exploreAirMove()
 	}
 
 	getGroup()->pushMission(MISSION_SKIP);
-	return;
 } // BETTER_BTS_AI_MOD: END
 
 // This function has been completely rewritten for K-Mod.
@@ -22131,7 +21825,7 @@ bool CvUnitAI::AI_plotValid(CvPlot const* pPlot) /* advc.003: */ const
 		Regarding the XXX comment above: I don't think this function could be
 		easily removed at this point. */
 	//PROFILE_FUNC();
-	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(pPlot))
+	if (getUnitInfo().isNoRevealMap() && willRevealByMove(pPlot))
 		return false;
 
 	switch (getDomainType())
