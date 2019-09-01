@@ -13070,15 +13070,16 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		else return NO_DENIAL;
 	} // </advc.037>
 	// Replacing the JOKING clause further up
-	if(kPlayer.isHuman() && iAvailThem <= 0 ? /*  Don't presume value
+	if(kPlayer.isHuman() && (iAvailThem + iChange <= 1 ? /*  Don't presume value
 			for human unless human only needs the resource for a corp */
 			(iValueForUs >= iTradeValThresh +
 			/*  bonusVal gives every city equal weight, but early on,
 				it's mostly about the capital, which can grow fast. */
 			std::min(2, (getNumCities() - 1) / 2)) :
 			(3 * iValueForUs >= 2 * iValueForThem ||
-			iValueForThem - iValueForUs < iTradeValThresh ||
-			iValueForUs > iTradeValThresh + 2))
+			iValueForThem <= 0 ||
+			(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
+			iValueForUs > iTradeValThresh + 2)))
 		return DENIAL_NO_GAIN;
 	// </advc.036>
 	return NO_DENIAL;
@@ -19569,7 +19570,10 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 		if(data.m_eItemType != TRADE_RESOURCES)
 			continue;
 		if(AI_bonusTrade((BonusTypes)data.m_iData, ePlayer, 0) != NO_DENIAL)
+		{
+			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - denial");
 			return DO_CANCEL;
+		}
 	} /* Need to check their DENIAL_JOKING in case they're giving us a resource that
 		 we no longer need */
 	for(pNode = kTheyGive.head(); pNode != NULL; pNode = kTheyGive.next(pNode)) {
@@ -27502,10 +27506,12 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 		// K-Mod end
 		/*  <advc.036> A little extra when unhappiness is very high because that
 			may lead to good tiles not getting worked. */
-		// Not sure how bPercent works; better exclude that.
-		if(iCurrentHappy < 0 && !bPercent)
-			iValue += ::round(std::pow(-iCurrentHappy/100 - 1.0 - iExtraPop, 1.5));
-		// </advc.036>
+		if (!bPercent) // Not sure how bPercent works; better exclude that.
+		{
+			double base = -iCurrentHappy / 100.0 - 1 - iExtraPop;
+			if (base > 0)
+				iValue += ::round(std::pow(base, 1.5));
+		}
 		/* original bts code - (huh?)
 		if (iCount > 6)
 			break;*/
@@ -27543,9 +27549,12 @@ int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) co
 		// K-Mod end
 		/*  <advc.036> A little extra when health is very poor because that may
 			well lead to population loss and good tiles not getting worked. */
-		// Not sure how bPercent works; better exclude that.
-		if(iCurrentHealth < 0 && !bPercent)
-			iValue += ::round(std::pow(-iCurrentHealth/100 - 1.0 - iExtraPop, 1.5));
+		if (!bPercent) // Not sure how bPercent works; better exclude that.
+		{
+			double base = -iCurrentHealth / 100.0 - 1 - iExtraPop;
+			if (base > 0)
+				iValue += ::round(std::pow(base, 1.5));
+		}
 		// </advc.036>
 		/* original bts code
 		if (iCount > 6)
