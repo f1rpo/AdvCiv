@@ -15212,26 +15212,21 @@ void CvCity::liberate(bool bConquest, /* advc.122: */ bool bCede)
 	}*/
 }
 
-PlayerTypes CvCity::getLiberationPlayer(bool bConquest,
-		TeamTypes eWarTeam) const // advc.122
+PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.122: */ TeamTypes eWarTeam) const
 {
 	if (isCapital())
-	{
 		return NO_PLAYER;
-	}
 
-	for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if (kLoopPlayer.isAlive() && kLoopPlayer.getParent() == getOwner())
 		{
 			CvCity* pLoopCapital = kLoopPlayer.getCapitalCity();
-			if (NULL != pLoopCapital)
+			if (pLoopCapital != NULL)
 			{
 				if (pLoopCapital->area() == area())
-				{
-					return (PlayerTypes)iPlayer;
-				}
+					return kLoopPlayer.getID();
 			}
 		}
 	}
@@ -15255,12 +15250,9 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest,
 	// K-Mod end
 
 	// K-Mod. I've flattened the if blocks into if! continue conditions.
-	// and I've changed the type of the iterator of the loop, from int to PlayerTypes
-
-	//for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
-	for (PlayerTypes ePlayer = (PlayerTypes)0; ePlayer < MAX_CIV_PLAYERS; ePlayer = (PlayerTypes)(ePlayer+1))
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		CvPlayerAI& kLoopPlayer = GET_PLAYER(ePlayer);
+		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 
 		if (!kLoopPlayer.isAlive())
 			continue;
@@ -15279,12 +15271,12 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest,
 			iCapitalDistance *= 2;
 		}
 
-		//int iCultureTimes100 = getCultureTimes100(ePlayer);
-		int iCultureTimes100 = iBaseCulture + getCultureTimes100(ePlayer);// K-Mod
+		//int iCultureTimes100 = getCultureTimes100(kLoopPlayer.getID());
+		int iCultureTimes100 = iBaseCulture + getCultureTimes100(kLoopPlayer.getID());// K-Mod
 
 		if (bConquest)
 		{
-			if (ePlayer == getOriginalOwner())
+			if (kLoopPlayer.getID() == getOriginalOwner())
 			{
 				iCultureTimes100 *= 3;
 				iCultureTimes100 /= 2;
@@ -15313,7 +15305,7 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest,
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
-			eBestPlayer = ePlayer;
+			eBestPlayer = kLoopPlayer.getID();
 		}
 	}
 

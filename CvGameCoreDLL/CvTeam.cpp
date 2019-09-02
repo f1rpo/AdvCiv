@@ -936,8 +936,9 @@ void CvTeam::shareItems(TeamTypes eTeam)
 void CvTeam::shareCounters(TeamTypes eTeam)
 {
 	CvTeamAI& kShareTeam = GET_TEAM(eTeam); // K-Mod
-	for (TeamTypes eLoopTeam = (TeamTypes)0; eLoopTeam < MAX_TEAMS; eLoopTeam=(TeamTypes)(eLoopTeam+1))
+	for (int i = 0; i < MAX_TEAMS; i++)
 	{
+		TeamTypes eLoopTeam = (TeamTypes)i; // advc.003
 		if (eLoopTeam != getID() && eLoopTeam != eTeam)
 		{
 			if (kShareTeam.getWarWeariness(eLoopTeam) > getWarWeariness(eLoopTeam))

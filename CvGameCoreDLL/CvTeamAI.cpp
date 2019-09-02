@@ -311,43 +311,42 @@ int CvTeamAI::AI_estimateTotalYieldRate(YieldTypes eYield) const
 	const int iTurn = GC.getGame().getGameTurn();
 
 	int iTotal = 0;
-	for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
-		if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
+		const CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)i);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue; // advc.003
+
+		int iSubTotal = 0;
+		int iBase = 0;
+		for (int j = 0; j < iSampleSize; j++)
 		{
-			int iSubTotal = 0;
-			int iBase = 0;
-			for (int i = 0; i < iSampleSize; i++)
+			int p = 0;
+			switch (eYield)
 			{
-				int p = 0;
-				switch (eYield)
-				{
-				case YIELD_PRODUCTION:
-					p = kLoopPlayer.getIndustryHistory(iTurn - (i+1));
-					break;
-				case YIELD_COMMERCE:
-					p = kLoopPlayer.getEconomyHistory(iTurn - (i+1));
-					break;
-				case YIELD_FOOD:
-					p = kLoopPlayer.getAgricultureHistory(iTurn - (i+1));
-					break;
-				default:
-					FAssertMsg(false, "invalid yield type in AI_estimateTotalYieldRate");
-					break;
-				}
-				if (p > 0)
-				{
-					iSubTotal += (iSampleSize - i) * p;
-					iBase += iSampleSize - i;
-				}
+			case YIELD_PRODUCTION:
+				p = kMember.getIndustryHistory(iTurn - (j+1));
+				break;
+			case YIELD_COMMERCE:
+				p = kMember.getEconomyHistory(iTurn - (j+1));
+				break;
+			case YIELD_FOOD:
+				p = kMember.getAgricultureHistory(iTurn - (j+1));
+				break;
+			default:
+				FAssertMsg(false, "invalid yield type in AI_estimateTotalYieldRate");
+				break;
 			}
-			iTotal += iSubTotal / std::max(1, iBase);
+			if (p > 0)
+			{
+				iSubTotal += (iSampleSize - j) * p;
+				iBase += iSampleSize - j;
+			}
 		}
+		iTotal += iSubTotal / std::max(1, iBase);
 	}
 	return iTotal;
-}
-// K-Mod end
+} // K-Mod end
 
 // K-Mod. return true if is fair enough for the AI to know there is a city here
 bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
@@ -877,20 +876,20 @@ int CvTeamAI::AI_calculateCapitalProximity(TeamTypes eTeam) const
 bool CvTeamAI::AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly, int iMinimum) const
 {
 	int iCount = 0;
-	for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
-		if (kLoopPlayer.getTeam() == eTeam)
+		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
+		if (kMember.getTeam() != eTeam)
+			continue; // advc.003
+
+		FOR_EACH_CITY(pLoopCity, kMember)
 		{
-			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+			if (AI_deduceCitySite(pLoopCity))
 			{
-				if (AI_deduceCitySite(pLoopCity))
+				if (!bPrimaryAreaOnly || AI_isPrimaryArea(pLoopCity->area()))
 				{
-					if (!bPrimaryAreaOnly || AI_isPrimaryArea(pLoopCity->area()))
-					{
-						if (++iCount >= iMinimum)
-							return true;
-					}
+					if (++iCount >= iMinimum)
+						return true;
 				}
 			}
 		}
@@ -1268,9 +1267,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	if (iRankDelta > 0)
 	{
 		int iRankHate = 0;
-		for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_CIV_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+			const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 			if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
 				iRankHate += GC.getLeaderHeadInfo(kLoopPlayer.getPersonalityType()).getWorseRankDifferenceAttitudeChange(); // generally around 0-3
 		}
@@ -1278,7 +1277,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		if (iRankHate > 0)
 		{
 			int iTotalTeams = GC.getGame().getCivTeamsEverAlive();
-			iDenyFactor += (100 - AI_getAttitudeWeight(eTarget)) * (iRankHate * iRankDelta + (iTotalTeams+1)/2) / std::max(1, 8*(iTotalTeams + 1)*getAliveCount());
+			iDenyFactor += (100 - AI_getAttitudeWeight(eTarget)) *
+					(iRankHate * iRankDelta + (iTotalTeams+1)/2) /
+					std::max(1, 8*(iTotalTeams + 1)*getAliveCount());
 			// that's a max of around 200 * 3 / 8. ~ 75
 		}
 	}
@@ -1294,9 +1295,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	// Cities & Land
 	int iPopCap = 2 + getTotalPopulation(false) / std::max(1, getNumCities()); // max number of plots to consider the value of.
 	int iYieldMultiplier = 0; // multiplier for the value of plot yields.
-	for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+		CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if (kLoopPlayer.getTeam() != getID() || !kLoopPlayer.isAlive())
 			continue;
 		int iFoodMulti = kLoopPlayer.AI_averageYieldMultiplier(YIELD_FOOD);
@@ -1311,9 +1312,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	//
 
 	std::set<int> close_areas; // set of area IDs for which the enemy has cities close to ours.
-	for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+		const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if (kLoopPlayer.getTeam() != eTarget || !kLoopPlayer.isAlive())
 			continue;
 
@@ -1329,9 +1330,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 			// plots
 			std::vector<int> plot_values;
-			for (int i = 1; i < NUM_CITY_PLOTS; i++) // don't count city plot
+			for (int j = 1; j < NUM_CITY_PLOTS; j++) // don't count city plot
 			{
-				CvPlot* pLoopPlot = pLoopCity->getCityIndexPlot(i);
+				CvPlot* pLoopPlot = pLoopCity->getCityIndexPlot(j);
 				if (!pLoopPlot || !pLoopPlot->isRevealed(getID(), false) || pLoopPlot->getWorkingCity() != pLoopCity)
 					continue;
 
@@ -1376,7 +1377,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 			// denied
 			iDeniedValue += iCityValue * iDenyFactor / 100;
-			if (2*pLoopCity->getCulture(eLoopPlayer) > pLoopCity->getCultureThreshold(GC.getGame().culturalVictoryCultureLevel()))
+			if (2*pLoopCity->getCulture(kLoopPlayer.getID()) > pLoopCity->getCultureThreshold(GC.getGame().culturalVictoryCultureLevel()))
 			{
 				iDeniedValue += (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ? 100 : 30) * iDenyFactor / 100;
 			}
@@ -1444,9 +1445,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		{
 			int iBonusValue = 0;
 			int iMissing = 0;
-			for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+			for (int j = 0; j < MAX_PLAYERS; j++)
 			{
-				const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+				const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)j);
 				if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
 				{
 					iBonusValue += kLoopPlayer.AI_bonusVal(i, 0, true);
@@ -1455,7 +1456,10 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 				}
 			}
 			iBonusValue += GC.getBonusInfo(i).getAIObjective(); // (support for mods.)
-			iBonusValue = iBonusValue * getNumCities() * (std::min(100*iMissing, bonuses[i]) + std::max(0, bonuses[i] - 100*iMissing)/8) / std::max(1, 400 * getAliveCount());
+			iBonusValue = iBonusValue * getNumCities() *
+					(std::min(100*iMissing, bonuses[i]) +
+					std::max(0, bonuses[i] - 100*iMissing)/8) /
+					std::max(1, 400 * getAliveCount());
 			//
 			iGainedValue += iBonusValue;
 			// ignore denied value.
@@ -1469,11 +1473,11 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		CvArea* pLoopArea = GC.getMap().getArea(*it);
 		if (AI_isPrimaryArea(pLoopArea))
 		{
-			for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+			for (int i = 0; i < MAX_PLAYERS; i++)
 			{
-				const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+				const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 				if (kLoopPlayer.getTeam() == eTarget)
-					iCloseCities += pLoopArea->getCitiesPerPlayer(eLoopPlayer);
+					iCloseCities += pLoopArea->getCitiesPerPlayer(kLoopPlayer.getID());
 			}
 		}
 	}
@@ -1650,9 +1654,9 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 			// sometimes are resources are more in demand than other times...
 			int iPoolMultiplier = 0;
-			for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+			for (int i = 0; i < MAX_PLAYERS; i++)
 			{
-				const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+				const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 				if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
 				{
 					iPoolMultiplier += 100;
@@ -1695,9 +1699,9 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	{
 		int iS = isAtWar(eTarget) ? -1 : 1;
 		int iWwCost = 0;
-		for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_CIV_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+			const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 			if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
 			{
 				int iEstimatedPercentAnger = kLoopPlayer.getModifiedWarWearinessPercentAnger(iTotalWw) / 10; // (ugly, I know. But that's just how it's done.)
@@ -1757,9 +1761,9 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 	// scale the diplo cost based the personality of the team.
 	{
 		int iPeaceWeight = 0;
-		for (PlayerTypes eLoopPlayer = (PlayerTypes)0; eLoopPlayer < MAX_CIV_PLAYERS; eLoopPlayer=(PlayerTypes)(eLoopPlayer+1))
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			const CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
+			const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 			if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
 			{
 				iPeaceWeight += kLoopPlayer.AI_getPeaceWeight(); // usually between 0-10.
@@ -2369,17 +2373,18 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
 	CvTeamAI& kMasterTeam = GET_TEAM(eTeam);
-	for (TeamTypes iLoopTeam = (TeamTypes)0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam = (TeamTypes)(iLoopTeam + 1)) // advc.003n: was MAX_TEAMS
+	for (int i = 0; i < MAX_CIV_TEAMS; i++) // advc.003n: was MAX_TEAMS
 	{
-		CvTeam& kLoopTeam = GET_TEAM(iLoopTeam);
-		if (kLoopTeam.isAlive() && iLoopTeam != getID() && iLoopTeam != kMasterTeam.getID())
+		TeamTypes eLoopTeam = (TeamTypes)i; // advc.003
+		CvTeam& kLoopTeam = GET_TEAM(eLoopTeam);
+		if (kLoopTeam.isAlive() && eLoopTeam != getID() && eLoopTeam != kMasterTeam.getID())
 		{
 			if (!kLoopTeam.isAtWar(kMasterTeam.getID()) && kLoopTeam.isAtWar(getID()))
 			{
-				if (kMasterTeam.isForcePeace(iLoopTeam) ||
-						!kMasterTeam.canChangeWarPeace(iLoopTeam)
+				if (kMasterTeam.isForcePeace(eLoopTeam) ||
+						!kMasterTeam.canChangeWarPeace(eLoopTeam)
 						// advc.112: Don't ask master who hasn't met vassal's war enemies
-						|| !kMasterTeam.isHasMet(iLoopTeam))
+						|| !kMasterTeam.isHasMet(eLoopTeam))
 				{
 					if (!kLoopTeam.isAVassal())
 					{
@@ -2390,7 +2395,7 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 				if (!kMasterTeam.isHuman() &&
 						!getWPAI.isEnabled()) // advc.104o: Handled in the next loop
 				{
-					DenialTypes eWarDenial = kMasterTeam.AI_declareWarTrade((TeamTypes)iLoopTeam, getID(), true);
+					DenialTypes eWarDenial = kMasterTeam.AI_declareWarTrade(eLoopTeam, getID(), true);
 					if (NO_DENIAL != eWarDenial)
 					{
 						return DENIAL_WAR_NOT_POSSIBLE_YOU;
@@ -2399,7 +2404,7 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 			}
 			else if (kLoopTeam.isAtWar(kMasterTeam.getID()) && !kLoopTeam.isAtWar(getID()))
 			{
-				if (!kMasterTeam.canChangeWarPeace(iLoopTeam))
+				if (!kMasterTeam.canChangeWarPeace(eLoopTeam))
 				{
 					if (!kLoopTeam.isAVassal())
 					{
@@ -2409,7 +2414,7 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 
 				if (!kMasterTeam.isHuman())
 				{
-					DenialTypes ePeaceDenial = kMasterTeam.AI_makePeaceTrade(iLoopTeam, getID());
+					DenialTypes ePeaceDenial = kMasterTeam.AI_makePeaceTrade(eLoopTeam, getID());
 					if (NO_DENIAL != ePeaceDenial)
 					{
 						return DENIAL_PEACE_NOT_POSSIBLE_YOU;
@@ -5754,8 +5759,9 @@ void CvTeamAI::AI_doWar()
 	int iEnemyPowerPercent = AI_getEnemyPowerPercent();
 
 	// K-Mod note: This first section also used for vassals, and for human players.
-	for (TeamTypes eLoopTeam = (TeamTypes)0; eLoopTeam < MAX_CIV_TEAMS; eLoopTeam=(TeamTypes)(eLoopTeam+1))
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
 	{
+		TeamTypes eLoopTeam = (TeamTypes)i; // advc.003
 		if (!GET_TEAM(eLoopTeam).isAlive())
 			continue;
 		if (!isHasMet(eLoopTeam))
@@ -5982,8 +5988,9 @@ void CvTeamAI::AI_doWar()
 	bool bTotalWarPlan = false;
 	bool bAnyWarPlan = false;
 	bool bLocalWarPlan = false;
-	for (TeamTypes eLoopTeam = (TeamTypes)0; eLoopTeam < MAX_CIV_TEAMS; eLoopTeam=(TeamTypes)(eLoopTeam+1))
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
 	{
+		TeamTypes eLoopTeam = (TeamTypes)i; // advc.003
 		if (GET_TEAM(eLoopTeam).isAlive() && !GET_TEAM(eLoopTeam).isMinorCiv())
 		{
 			bAtWar = bAtWar || isAtWar(eLoopTeam);
@@ -6008,8 +6015,9 @@ void CvTeamAI::AI_doWar()
 	// Note: this section relates to automatic peace deals for inactive wars.
 	if (bAtWar && kGame.getSorenRandNum(AI_makePeaceRand(), "AI Make Peace") == 0)
 	{
-		for (TeamTypes eLoopTeam = (TeamTypes)0; eLoopTeam < MAX_CIV_TEAMS; eLoopTeam=(TeamTypes)(eLoopTeam+1))
+		for (int i = 0; i < MAX_CIV_TEAMS; i++)
 		{
+			TeamTypes eLoopTeam = (TeamTypes)i; // advc.003
 			if (!GET_TEAM(eLoopTeam).isAlive())
 				continue;
 			if (eLoopTeam == getID())
@@ -6035,9 +6043,9 @@ void CvTeamAI::AI_doWar()
 					{
 						bool bValid = true;
 
-						for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+						for (PlayerTypes j = (PlayerTypes)0; j < MAX_CIV_PLAYERS; j=(PlayerTypes)(j+1))
 						{
-							CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
+							CvPlayerAI& kLoopPlayer = GET_PLAYER(j);
 							if (kLoopPlayer.getTeam() == getID())
 							{
 								if (kLoopPlayer.AI_enemyTargetMissions(eLoopTeam) > 0)
