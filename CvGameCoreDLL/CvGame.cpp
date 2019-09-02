@@ -1205,13 +1205,17 @@ void CvGame::assignStartingPlots()
 			}
 		}
 	}
-	std::vector<std::pair<int,CvPlot*> > startPlots;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	/*  The second component is the starting plot - but don't want std::sort to use
+		an address as a tiebreaker, hence not <int,CvPlot*>. */
+	std::vector<std::pair<int,int> > startPlots;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isAlive())
 			continue;
 		CvPlot* p = kPlayer.getStartingPlot();
-		if(p == NULL) {
+		if(p == NULL)
+		{
 			FAssertMsg(p != NULL, "Player has no starting plot");
 			kPlayer.setStartingPlot(kPlayer.findStartingPlot(), true);
 		}
@@ -1223,17 +1227,18 @@ void CvGame::assignStartingPlots()
 		int iValue = kPlayer.AI_foundValue(p->getX(), p->getY(), -1, true);
 		FAssertMsg(iValue > 0, "Bad starting position");
 		// minus iValue for descending order
-		startPlots.push_back(std::make_pair(-iValue, p));
+		startPlots.push_back(std::make_pair(-iValue, p->getMapIndex()));
 	}
 	FAssert(startPlots.size() == playerOrder.size());
 	std::sort(startPlots.begin(), startPlots.end());
-	for(size_t i = 0; i < playerOrder.size(); i++) {
-		if(playerOrder[i] == NO_PLAYER) {
+	for(size_t i = 0; i < playerOrder.size(); i++)
+	{
+		if(playerOrder[i] == NO_PLAYER)
+		{
 			FAssert(playerOrder[i] != NO_PLAYER);
 			continue;
 		}
-		GET_PLAYER(playerOrder[i]).setStartingPlot(
-				startPlots[i].second, true);
+		GET_PLAYER(playerOrder[i]).setStartingPlot(GC.getMap().plotByIndex(startPlots[i].second), true);
 	} // </advc.108b>
 }
 

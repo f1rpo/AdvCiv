@@ -375,13 +375,13 @@ double WarAndPeaceCache::goldPerProdSites() {
 
 	PROFILE_FUNC();
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	std::vector<double> foundVals;
+	std::vector<int> foundVals;
 	for(int i = 0; i < owner.AI_getNumCitySites(); i++) {
 		CvPlot* site = owner.AI_getCitySite(i);
 		if(site != NULL)
 			foundVals.push_back(site->getFoundValue(owner.getID()));
 	}
-	std::sort(foundVals.begin(), foundVals.end(), std::greater<double>());
+	std::sort(foundVals.begin(), foundVals.end(), std::greater<int>());
 	int const sitesMax = 5;
 	double weights[sitesMax] = { 1, 0.8, 0.6, 0.4, 0.2 };
 	double sites = 0;

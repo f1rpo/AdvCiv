@@ -4010,10 +4010,16 @@ bool CvPlot::at(int iX, int iY) const
 }
 
 // <advc.tsl>
-void CvPlot::setLatitude(int iLatitude) {
-
+void CvPlot::setLatitude(int iLatitude)
+{
 	m_iLatitude = iLatitude;
 } // </advc.tsl>
+
+// <advc.003>
+int CvPlot::getMapIndex() const
+{
+	return GC.getMap().plotNum(getX(), getY());
+} // </advc.003>
 
 
 int CvPlot::getLatitude() const
