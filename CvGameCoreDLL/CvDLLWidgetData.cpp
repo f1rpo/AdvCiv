@@ -4878,7 +4878,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	if(c.isOccupation()) { // </advc.101>
 		// <advc.023>
 		// Show probability of decrementing occupation - unless it's always 1
-		if(GC.getDefineINT("OCCUPATION_COUNTDOWN_EXPONENT") > 0) {
+		if(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT) > 0) {
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_OCCUPATION_TIMER",
 					c.getOccupationTimer()));

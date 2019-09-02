@@ -1192,7 +1192,9 @@ double WarAndPeaceAI::Team::limitedWarWeight() const {
 		limited or total war. */
 	double const exp = 0.75;
 	// Bias for total war b/c the WarRand values are biased toward limited war
-	return std::pow(0.8 * GET_TEAM(agentId).AI_maxWarRand() / limitedWarRand, exp);
+	double const base = 0.8 * GET_TEAM(agentId).AI_maxWarRand() / limitedWarRand;
+	FAssert(base >= 0);
+	return std::pow(base, exp);
 }
 
 struct TargetData {
@@ -1301,6 +1303,7 @@ void WarAndPeaceAI::Team::scheme() {
 			I.e. peaceful leaders hesitate longer before starting war preparations;
 			warlike leaders have more drive. */
 		double div = (total ? agent.AI_maxWarRand() : agent.AI_limitedWarRand());
+		FAssert(div >= 0);
 		// Let's make the AI a bit less patient, especially the peaceful types
 		div = std::pow(div, 0.95); // This maps e.g. 400 to 296 and 40 to 33
 		if(div < 0.01)
@@ -1308,9 +1311,9 @@ void WarAndPeaceAI::Team::scheme() {
 		else drive /= div;
 		/*  Delay preparations probabilistically (by lowering drive) when there's
 			still a peace treaty */
-		double peacePortionRemaining = agent.turnsOfForcedPeaceRemaining(targetId) /
+		double peacePortionRemaining = std::min(0.95, agent.turnsOfForcedPeaceRemaining(targetId) /
 				// +1.0 b/c I don't want 0 drive at this point
-				(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) + 1.0);
+				(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) + 1.0));
 		drive *= std::pow(1 - peacePortionRemaining, 1.0); // was ^1.5; let's try it w/o exponentiation
 		targets.push_back(TargetData(drive, targetId, total, u));
 		totalDrive += drive;
@@ -2217,8 +2220,9 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 	ourUtility += 45 * prideRating() - 5;
 	/*  The more prior demands we remember, the more recalcitrant we become
 		(does not count the current demand) */
-	ourUtility += std::pow((double)
-			we.AI_getMemoryCount(theyId, MEMORY_MADE_DEMAND), 2);
+	int iMemoryDemand = we.AI_getMemoryCount(theyId, MEMORY_MADE_DEMAND);
+	if (iMemoryDemand > 0)
+		ourUtility += std::pow((double)iMemoryDemand, 2);
 	if(ourUtility >= 0) // Bring it on!
 		return false;
 	WarEvalParameters theirParams(TEAMID(theyId), we.getTeam(), silentReport);

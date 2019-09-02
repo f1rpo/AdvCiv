@@ -4904,7 +4904,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	int iEra = g.getCurrentEra();
 	if(GET_PLAYER(ePlayer).isAlive())
 		iEra = GET_PLAYER(ePlayer).getCurrentEra();
-	double eraFactor = 1 + std::pow((double)iEra, 1.3);
+	double eraFactor = 1 + (iEra > 0 ? std::pow((double)iEra, 1.3) : 0);
 	// To put a cap on the initial revolt chance in large cities:
 	pop = std::min(pop, 1.5 * eraFactor);
 	int iTimeOwned = g.getGameTurn() - getGameTurnAcquired();
@@ -5056,11 +5056,14 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 		pUnitNode = plot()->nextUnitNode(pUnitNode);
 
 		int iGarrisonLoop = pLoopUnit->getUnitInfo().getCultureGarrisonValue();
-		/*  advc.101: Culture garrison values increase a bit too slowly over the
+		// <advc.101>
+		if (iGarrisonLoop <= 0)
+			continue;
+		/*  Culture garrison values increase a bit too slowly over the
 			course of the game. Easier to adjust that here than through XML.
 			Note that this exponentiation is partly canceled out by exponentiation
 			of the current game era in CvCity::cultureStrength. */
-		iGarrisonLoop = ::round(std::pow(iGarrisonLoop * 2 / 3.0, 1.4));
+		iGarrisonLoop = ::round(std::pow(iGarrisonLoop * 2 / 3.0, 1.4)); // </advc.101>
 		// <advc.023>
 		iGarrisonLoop *= pLoopUnit->maxHitPoints() - pLoopUnit->getDamage();
 		iGarrisonLoop /= 100;
@@ -5069,8 +5072,9 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 	// Commented out: </advc.023>
 	/*if (atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
 		iGarrison *= 2; */
-	// advc.101: Exponentiate again to give strength in numbers a superlinear effect
-	iGarrison = ::round(std::pow((double)iGarrison, 1.2));
+	// <advc.101> Exponentiate again to give strength in numbers a superlinear effect
+	if (iGarrison > 0)
+		iGarrison = ::round(std::pow((double)iGarrison, 1.2)); // </advc.101>
 	return iGarrison;
 }
 
@@ -9911,8 +9915,10 @@ double CvCity::probabilityOccupationDecrement() const {
 		if(eCulturalOwner != NO_PLAYER && TEAMREF(eCulturalOwner).isAtWar(getTeam()))
 			return 0;
 	}
-	double r = std::pow(1 - revoltProbability(true, false, true),
-			GC.getDefineINT("OCCUPATION_COUNTDOWN_EXPONENT"));
+	double r = 0;
+	double prRevolt = revoltProbability(true, false, true);
+	if (prRevolt < 1)
+		r = std::pow(1 - prRevolt, GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT));
 	// Don't use probabilities that are too small to be displayed
 	if(r < 0.001)
 		return 0;

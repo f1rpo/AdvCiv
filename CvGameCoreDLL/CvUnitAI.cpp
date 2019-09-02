@@ -14723,9 +14723,14 @@ bool CvUnitAI::AI_pirateBlockade()
 							GET_TEAM(getTeam()).isVassal(pPlotCity->getTeam()))
 						iCityValue = 0;
 					if(!isBarbarian()) {
-						int iAttitudeFactor = std::max(1, 10 - ::round(
-								std::pow((double)GET_PLAYER(getOwner()).
-								AI_getAttitude(pPlotCity->getOwner()), 1.5)));
+						int iAttitudeFactor = 10;
+						int iAttitudeLevel = GET_PLAYER(getOwner()).
+								AI_getAttitude(pPlotCity->getOwner());
+						if (iAttitudeLevel > 0)
+						{
+							std::max(1, iAttitudeFactor - ::round(
+									std::pow((double)iAttitudeLevel, 1.5)));
+						}
 						iCityValue *= iAttitudeFactor;
 						TechTypes eTechReq = (TechTypes)getUnitInfo().getPrereqAndTech();
 						int iOurEra = (eTechReq == NO_TECH ?

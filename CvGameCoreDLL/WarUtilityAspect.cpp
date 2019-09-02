@@ -2293,6 +2293,7 @@ void KingMaking::evaluate() {
 	/*  Over the course of the game, we become more willing to take out rivals even
 		if several rivals are still in competition. */
 	double progressFactor = std::max(2/3.0 - (1/3.0) * GC.getGame().gameTurnProgress(), 1/3.0);
+	FAssert(progressFactor > 0);
 	double div = 1 + std::pow(progressFactor * winningRivals, 2.0);
 	double competitionMultiplier = 1.0 / div;
 	log("Winning civs: %d (%d rivals)", ::round(winningFuture.size()),
@@ -2957,6 +2958,7 @@ void Affection::evaluate() {
 		There's already a diplo penalty for having an unpopular vassal, so
 		I'm only applying a minor penalty here. */
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we->getPersonalityType());
+	double uMinus = 0;
 	if(noWarPercent > 0) { // for efficiency
 		double vassalPenalty = 0;
 		for(size_t i = 0; i < properCivs.size(); i++) {
@@ -2975,9 +2977,8 @@ void Affection::evaluate() {
 			log("No-war-chance for %s reduced by %d b/c of peace vassals",
 					report.leaderName(theyId), iVassalPenalty);
 		}
+		uMinus = std::pow(noWarPercent / 100.0, 5.5) * 75;
 	}
-	double pr = noWarPercent / 100.0;
-	double uMinus = std::pow(pr, 5.5) * 75;
 	if(noWarPercent >= 100) {
 		uMinus += 5;
 		if(towardsThem >= ATTITUDE_FRIENDLY)
@@ -3018,7 +3019,7 @@ void Affection::evaluate() {
 	if(uMinus > 0.5) {
 		log("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent,"
 				" for direct war plan: %d percent, for game turn: %d percent",
-				::round(100 * pr), towardsThem, ::round(100 * linkedWarFactor),
+				noWarPercent, towardsThem, ::round(100 * linkedWarFactor),
 				::round(100 * directPlanFactor), ::round(100 * gameProgressFactor));
 		u -= ::round(uMinus);
 	}
@@ -3452,18 +3453,17 @@ void FairPlay::evaluate() {
 	if(gameEra > 1) // Dogpiling remains an issue in the Classical era
 		return;
 	// Don't dogpile when human has lost cities in the early game
-	int citiesBuilt = they->getPlayerRecord()->getNumCitiesBuilt();
+	int theyFounded = they->getPlayerRecord()->getNumCitiesBuilt();
+	int theyHave = they->getNumCities();
 	double fromCityLoss = 0;
-	if(citiesBuilt > 0) {
-		fromCityLoss = 100 * std::pow((1 -
-				they->getNumCities() / (double)citiesBuilt), 0.85);
-	}
+	if(theyFounded > 0 && theyHave < theyFounded)
+		fromCityLoss = 100 * std::pow(1 - theyHave / (double)theyFounded, 0.85);
 	if(fromCityLoss >= 0.5) {
 		log("From lost human cities: %d", ::round(fromCityLoss));
 		uMinus += fromCityLoss;
 	}
 	// If no cities gained nor lost, at least don't DoW in quick succession.
-	else if(they->getNumCities() == citiesBuilt) {
+	else if(they->getNumCities() == theyFounded) {
 		int fromRecentDoW = 35 * TEAMREF(theyId).getWarPlanCount(WARPLAN_ATTACKED_RECENT);
 		log("From recent DoW: %d", fromRecentDoW);
 		uMinus += fromRecentDoW;
@@ -3706,7 +3706,10 @@ void TacticalSituation::evalOperational() {
 			ourCache->getPowerValues()[LOGISTICS]->getTypicalUnitType() == NO_UNIT))
 		return;
 	// Similar to CvUnitAI::AI_stackOfDoomExtra
-	double targetAttackers = 4 + std::pow((double)they->getCurrentEra(), 1.3);
+	double targetAttackers = 4;
+	int theyEra = they->getCurrentEra();
+	if(theyEra > 0)
+		targetAttackers += std::pow((double)theyEra, 1.3);
 	if(params.isNaval())
 		targetAttackers *= 1.3;
 	double trainMod = GC.getHandicapInfo(GC.getGame().
@@ -3764,7 +3767,8 @@ void TacticalSituation::evalOperational() {
 				// escort not totally crucial
 				0.5 * (readiness + escort / targetEscort)));
 	}
-	if(readiness > 0.99) return;
+	if(readiness > 0.99)
+		return;
 	int remaining = params.getPreparationTime();
 	FAssert(remaining >= 0);
 	int initialPrepTime = 0;

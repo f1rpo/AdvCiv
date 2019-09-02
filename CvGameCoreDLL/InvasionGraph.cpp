@@ -1135,6 +1135,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	/* Needs to be updated in any case in order to take into account potential
 	   losses from clash. */
 	armyPowMod = armyPow * armyModAttCorr * confAtt;
+	FAssertMsg(armyPowMod >= 0, "Base for std::pow will be negative");
 	FAssert(remainingCitiesDef > 0);
 	/* Assume that the defenders stationed in a city are 50% static city defenders
 	   and 50% floating defenders that can move to reinforce a nearby city that is

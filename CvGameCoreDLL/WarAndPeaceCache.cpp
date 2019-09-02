@@ -397,7 +397,8 @@ double WarAndPeaceCache::goldPerProdSites() {
 	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER)) {
 		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c)) {
 			int const targetVal = owner.AI_targetCityValue(c, false, true);
-			sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
+			if (targetVal > 0)
+				sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
 		}
 	}
 	CvGame& g = GC.getGame();

@@ -3365,8 +3365,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				{
 					//aiYield[eYield] -= GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, eYield);
 					// <advc.031> Replacing the above
-					CvImprovementInfo& impr = GC.getImprovementInfo(eBonusImprovement);
-					int imprYieldChg = impr.getImprovementBonusYield(eBonus, eYield);
+					CvImprovementInfo& kImpr = GC.getImprovementInfo(eBonusImprovement);
+					int iImprBonusYield = kImpr.getImprovementBonusYield(eBonus, eYield);
 					double const exp = 1.41;
 					/*  Add this, exponentiate, then subtract it again.
 						This should discourage the AI from settling on
@@ -3375,11 +3375,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						can't be evened out by fitting a plains hill instead
 						of a desert hill into the BFC -- the Copper would be
 						worked much sooner than the plains hill!) */
-					int nonBonusYieldChg = impr.getYieldChange(eYield) +
-							iBasePlotYield;
-					aiYield[eYield] -= imprYieldChg <= 0 ? imprYieldChg :
-							::round(std::pow((double)imprYieldChg +
-							nonBonusYieldChg, exp) - nonBonusYieldChg);
+					int iNonBonusImprYield = kImpr.getYieldChange(eYield) + iBasePlotYield;
+					if (iImprBonusYield <= 0)
+						aiYield[eYield] -= iImprBonusYield;
+					else if (iImprBonusYield + iNonBonusImprYield > 0)
+					{
+						aiYield[eYield] -= ::round(std::pow((double)iImprBonusYield +
+								iNonBonusImprYield, exp) - iNonBonusImprYield);
+					}
 				} // </advc.031>
 				/*  (K-Mod) and subtract the base yield, so as to emphasise
 					city plots which add yield rather than remove it.
@@ -5478,42 +5481,6 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	CvWString szPlayerName = getName();
 	DEBUGLOG("AI_bestTech:%S\n", szPlayerName.GetCString());
 #endif
-	// k146: Commented out
-	/*for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-	{
-		if ((eIgnoreTech == NO_TECH) || (iI != eIgnoreTech))
-		{
-			if ((eIgnoreAdvisor == NO_ADVISOR) || (GC.getTechInfo((TechTypes)iI).getAdvisorType() != eIgnoreAdvisor))
-			{
-				if (canEverResearch((TechTypes)iI))
-				{
-					if (!(kTeam.isHasTech((TechTypes)iI)))
-					{
-						if (GC.getTechInfo((TechTypes)iI).getEra() <= (getCurrentEra() + 1))
-						{
-							iPathLength = findPathLength(((TechTypes)iI), false);
-
-							if (iPathLength <= iMaxPathLength)
-							{
-								iValue = AI_techValue((TechTypes)iI, iPathLength, bIgnoreCost, bAsync, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave);
-
-								if (gPlayerLogLevel >= 3)
-								{
-									logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo((TechTypes)iI).getDescription(), iValue);
-								}
-
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									eBestTech = ((TechTypes)iI);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}*/
 	// <k146>
 	/*  Instead of choosing a tech anywhere inside the max path length with no
 		adjustments for how deep the tech is, we'll evaluate all techs inside
@@ -5606,10 +5573,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			//values.push_back(iValue);
 			++iTechCount;
 
-			if (iDepth == 0 && gPlayerLogLevel >= 3)
-			{
-				logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eTech).getDescription(), iValue);
-			}
+			if (!bAsync && iDepth == 0 && gPlayerLogLevel >= 3) logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eTech).getDescription(), iValue); // advc.007: Don't log when bAsync
 		}
 	}
 	// We need this to ensure techs_to_depth[1] exists.
@@ -6644,8 +6608,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						iYieldValue = iYieldValue * 2/3;
 					/*  <advc.036> Since iBonusVal no longer overestimates early-game health,
 						high-yield tiles need to be appreciated more. */
-					// This makes iYieldValue=225 a fixpoint
-					iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
+					if (iYieldValue > 0)
+					{
+						// This makes iYieldValue=225 a fixpoint
+						iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
+					}
 					/*  At the start of the game, extra yields are very important,
 						but we need to be sure that the tile isn't blocked by a feature
 						before increasing iYieldValue further. Will have to check
@@ -7454,7 +7421,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	/*  K-Mod, 12/sep/10, Karadoc
 		Use a random _factor_ at the end. */
 	// advc.003: Renamed from iRandomFactor, which is already defined (though unused).
-	int iFinalRandomFactor = (bAsync ? getASyncRand().get(
+	int iFinalRandomFactor = (bAsync ? getASyncRand().get( // advc (comment): Should randomness be used at all when recommending tech (bAsync)?
 			200, "AI Research factor ASYNC") : // k146: was 100
 			GC.getGame().getSorenRandNum(
 			200, "AI Research factor")); // k146: was 100
@@ -9464,7 +9431,8 @@ int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const {
 	double tradeValDiff = AI_getPeacetimeTradeValue(ePlayer) -
 			(5/6.0) * GET_PLAYER(ePlayer).AI_getPeacetimeTradeValue(getID());
 	r += std::max(0.0, tradeValDiff);
-	r = 11.5 * std::pow((double)r, 2/3.0); // Diminishing returns
+	if (r > 0)
+		r = 11.5 * std::pow((double)r, 2/3.0); // Diminishing returns
 	return range(::round(r * TEAMREF(ePlayer).AI_recentlyMetMultiplier(getTeam()))
 			/ AI_peacetimeTradeValDivisor(false), 0, PEACETIME_TRADE_RELATIONS_LIMIT);
 	/*  (Adjustment to game progress now happens when recording grant and trade values;
@@ -9487,7 +9455,8 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 	TeamTypes eTeam = TEAMID(ePlayer);
 	int r = kOurTeam.AI_getEnemyPeacetimeGrantValue(eTeam) +
 			(kOurTeam.AI_getEnemyPeacetimeTradeValue(eTeam) / 2);
-	r = ::round(11.5 * std::pow((double)r, 2/3.0)); // Diminishing returns
+	if (r > 0)
+		r = ::round(11.5 * std::pow((double)r, 2/3.0)); // Diminishing returns
 	// OB hurt our feelings also
 	TeamTypes eEnemy = kOurTeam.AI_getWorstEnemy();
 	/*  Checking enemyValue here should - hopefully - fix an oscillation problem,
@@ -12299,15 +12268,16 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		/* original bts code
 		... */ // advc.003: deleted
 		// K-Mod. Similar, but much better. (maybe)
-		const int iBaseValue = //30;
-			/*  <advc.031> This value gets multiplied by the number of cities
-				when converted to gold per turn, but AI_foundValue does not do
-				this, and a civ that never expands beyond 6 cities should still
-				value access to e.g. nukes more than to Swordsmen, if only
-				because gold is more readily available in the late game. */
-				std::max(10,
-				::round(12 * std::pow((double)kLoopUnit.getPowerValue(), 0.5)));
-				// </advc.031>
+		int iBaseValue = /* <advc.031> */ 10; // was 30
+		int iPowerValue = kLoopUnit.getPowerValue();
+		/*  iBaseValue gets multiplied by the number of cities when converted to
+			gold per turn, but AI_foundValue does not do this, and a civ that
+			never expands beyond 6 cities should still value access to e.g. nukes
+			more than to Swordsmen, if only because gold is more readily available
+			in the late game. */
+		if (iPowerValue > 0)
+			iBaseValue = std::max(iBaseValue, ::round(12 * std::pow((double)iPowerValue, 0.5)));
+		// </advc.031>
 		int iUnitValue = 0;
 		if(kLoopUnit.getPrereqAndBonus() == eBonus)
 			iUnitValue = iBaseValue;
@@ -12539,6 +12509,17 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 			if(GC.getRouteInfo(eRoute).getPrereqOrBonus(iJ) == eBonus)
 				iTempValue += 40;
 		}
+		// <advc.036> The usual tech checks
+		TechTypes eTech = (TechTypes)GC.getBuildInfo((BuildTypes)iI).getTechPrereq();
+		if(eTech != NO_TECH && !GET_TEAM(getTeam()).isHasTech(eTech)) {
+			if(bTrade)
+				continue;
+			iTempValue /= 2;
+			int iTechEra = GC.getTechInfo(eTech).getEra();
+			int iEraDiff = iTechEra - getCurrentEra();
+			if(iEraDiff > 0)
+				iTempValue /= iEraDiff;
+		} // </advc.036>
 		if (eBestRoute != NO_ROUTE &&
 				/*  advc.003b: Was GC.getRouteInfo(getBestRoute()), which iterates
 					through all builds. */
@@ -12546,17 +12527,6 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 				getValue() <= GC.getRouteInfo(eRoute).getValue())
 			dValue += iTempValue;
 		else dValue += iTempValue / 2;
-		// <advc.036> The usual tech checks
-		TechTypes eTech = (TechTypes)GC.getBuildInfo((BuildTypes)iI).getTechPrereq();
-		if(eTech != NO_TECH && !GET_TEAM(getTeam()).isHasTech(eTech)) {
-			iTempValue /= 2;
-			int iTechEra = GC.getTechInfo(eTech).getEra();
-			int iEraDiff = iTechEra - getCurrentEra();
-			if(iEraDiff > 0)
-				iTempValue /= iEraDiff;
-			if(bTrade)
-				iTempValue = 0;
-		} // </advc.036>
 	}
 
 	/*int iCorporationValue = AI_corporationBonusVal(eBonus);
@@ -12691,7 +12661,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iCh
 	ourVal *= getNumCities(); // bonusVal is per city
 	/*  Don't pay fully b/c trade doesn't give us permanent access to the
 		resource, and b/c it tends to be (and should be) a buyer's market. */
-	ourVal = std::pow(ourVal, 0.7);
+	if (ourVal > 0)
+		ourVal = std::pow(ourVal, 0.7);
 	/*  What else could ePlayer do with the resource? Trade it to somebody else.
 		I'm assuming that trade denial has already filtered out resources that
 		ePlayer (really) needs domestically. */
@@ -13132,7 +13103,8 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 				(TEAMREF(ePlayer).getPower(false) +
 				(GET_TEAM(eTradeTeam).isAtWar(getTeam()) ?
 				GET_TEAM(getTeam()).getPower(false) / 4 : 0));
-		iModifier += ::round(std::pow((double)iPowRatioPercent, 1.9) / 100);
+		if (iPowRatioPercent > 0)
+			iModifier += ::round(std::pow((double)iPowRatioPercent, 1.9) / 100);
 	}
 	int iAlive = GC.getGame().countCivPlayersAlive();
 	iModifier += 200 / iAlive - 10;
@@ -18004,6 +17976,7 @@ double CvPlayerAI::AI_peacetimeTradeMultiplier(PlayerTypes eOtherPlayer,
 	int iAssets = (bTeam ? GET_TEAM(getTeam()).getAssets() : getAssets());
 	int iOtherAssets = (bTeam ? GET_TEAM(eOtherTeam).getAssets() :
 			GET_PLAYER(eOtherPlayer).getAssets());
+	FAssertMsg(iAssets + iOtherAssets > 0, "Negative base for std::pow");
 	CvHandicapInfo const& h = GC.getHandicapInfo(GC.getGame().getHandicapType());
 	/*  Far more AI assets if difficulty is high; trade values not affected
 		by difficulty as much. */
@@ -22229,12 +22202,14 @@ double CvPlayerAI::AI_exclusiveRadiusWeight(int iDist) const {
 		distMultiplier = 2;
 	else if(iDist == 2)
 		distMultiplier = 1;
+	double base = 1 - (distMultiplier * GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) /
+			1000.0);
+	FAssertMsg(base > 0, "CITY_RADIUS_DECAY too great; negative base for std::pow.");
 	/*  Between 0 and 1. Expresses our confidence about winning culturally
 		contested tiles that are within the working radius of our cities
 		exclusively. Since the decay of tile culture isn't based on game speed,
 		that confidence is greater on the slower speed settings. */
-	return 1 - std::pow(1 - (distMultiplier * GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) /
-			1000.0), 25 * GC.getGameSpeedInfo(GC.getGame().
+	return 1 - std::pow(base, 25 * GC.getGameSpeedInfo(GC.getGame().
 			getGameSpeedType()).getGoldenAgePercent() / 100.0);
 } // </advc.099b>
 

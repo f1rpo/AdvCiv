@@ -21,12 +21,13 @@
 # YOURMOD2 and YOURLOGS (see under "Paths").
 # PROJECT_Profile_CFLAGS added to Makefile.project. So that the internal profiler
 # can be enabled from there.
-# CvGameCoreDLL.rc used only for final release.
 # Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
 # devolution (Erik) has added the target 'Final_Release' with
-#   additional optimizations. [There is also a Firaxis define called
+#   whole-program optimization. [There is also a Firaxis define called
 #   FINAL_RELEASE, which merely disables the OutputDebugString function from
 #   debugapi.h. That's used for all non-debug builds.]
+# CvGameCoreDLL.rc used only for final release.
+# Use /arch:SSE2 for all release builds (Erik had added it only final releases).
 
 ## User setup
 ##
@@ -186,8 +187,8 @@ GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(P
 Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS)
 # (DebugMem: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
 DebugMem_CFLAGS=/MD /O2 /Zi /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
-Release_CFLAGS= /MD /O2 /Oy /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
-Final_Release_CFLAGS= /MD /O2 /Oy /Oi /G7 /arch:SSE2 /GL $(Release_DEFINES) $(GLOBAL_CFLAGS)
+Release_CFLAGS=/MD /O2 /Oy /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
+Final_Release_CFLAGS=$(Release_CFLAGS) /GL
 
 PRECOMPILE_CFLAGS1 = /Yu"
 PRECOMPILE_CFLAGS2 = CvGameCoreDLL.h" /Fp"$(Target_PCH)"
