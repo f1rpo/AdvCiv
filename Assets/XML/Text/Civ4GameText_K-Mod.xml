@@ -7,11 +7,13 @@
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 	<!-- The word "obsolete", used to describe bonuses after they are made obsolete. -->
+	<!-- advc.002c : Use German translation from
+		 TXT_KEY_BUILDING_OBSOLETE_WITH (Civ4GameTextInfos.xml) -->
 	<TEXT>
 		<Tag>TXT_KEY_BONUS_OBSOLETE</Tag>
 		<English>[COLOR_LIGHT_GREY][SPACE](Obsolete)[SPACE][COLOR_REVERT]</English>
 		<French>[COLOR_LIGHT_GREY][SPACE](Obsolète)[SPACE][COLOR_REVERT]</French>
-		<German>[COLOR_LIGHT_GREY][SPACE](Obsolet)[SPACE][COLOR_REVERT]</German>
+		<German>[COLOR_LIGHT_GREY][SPACE](Veraltet)[SPACE][COLOR_REVERT]</German>
 		<Italian>[COLOR_LIGHT_GREY][SPACE](Obsoleto)[SPACE][COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_LIGHT_GREY][SPACE](Obsoleto)[SPACE][COLOR_REVERT]</Spanish>
 	</TEXT>
@@ -39,15 +41,16 @@
 		<Tag>TXT_KEY_UNIT_GREAT_WORK</Tag>
 		<English>[ICON_BULLET]Can Create a Great Work (%D1_Change[ICON_CULTURE] per era)</English>
 		<French>[ICON_BULLET]Peut cr&#233;er un chef d'oeuvre (%D1_Change[ICON_CULTURE] par epoque)</French>
-		<German>[ICON_BULLET]Kann ein Gro&#223;es Bauwerk errichten (%D1_Change[ICON_CULTURE] pro zeitalter)</German>
+		<German>[ICON_BULLET]Kann ein Gro&#223;es Bauwerk errichten (%D1_Change[ICON_CULTURE] pro Zeitalter)</German>
 		<Italian>[ICON_BULLET]Pu&#242; creare una Grande Opera (%D1_Change[ICON_CULTURE] per era)</Italian>
 		<Spanish>[ICON_BULLET]Puede crear una gran obra (%D1_Change [ICON_CULTURE] por &#233;poca)</Spanish>
 	</TEXT>
+	<!-- advc.002c: German was garbled/ ungrammatical -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_RELIGION_REMOVE</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]%s1_RelName[COLOR_REVERT] has died out in %s2_CityName.</English>
 		<French>Cette religion ([COLOR_HIGHLIGHT_TEXT]%s1_RelName[COLOR_REVERT]) s'est &#233;teinte &#224; %s2_CityName.</French>
-		<German>Die Religion [COLOR_HIGHLIGHT_TEXT]%s1_RelName[COLOR_REVERT] hat aus %s2_CityName entfernt worden.</German>
+		<German>Die Religion [COLOR_HIGHLIGHT_TEXT]%s1_RelName[COLOR_REVERT] wird in %s2_CityName nicht mehr praktiziert.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1_RelName[COLOR_REVERT] ha [NUM1:lasciato:lasciata] %s2_CityName</Italian>
 		<Spanish>El [COLOR_HIGHLIGHT_TEXT]%s1_RelName[COLOR_REVERT] ha abandonado %s2_CityName.</Spanish>
 	</TEXT>
@@ -581,11 +584,12 @@
 	[end of unused tags] -->
 
 	<!-- New diplomacy text -->
+	<!-- advc.002c: German was unidiomatic -->
 	<TEXT>
 		<Tag>USER_DIPLO_WARPLAN_1</Tag>
 		<English>Join us in preparing for war...</English>
 		<French>Rejoignez-nous dans la préparation de la guerre...</French>
-		<German>Bereiten Sie sich vor, auf Krieg...</German>
+		<German>Trefft Kriegsvorbereitungen gegen ...</German>
 		<Italian>Unitevi a noi nella preparazione per la guerra...</Italian>
 		<Spanish>Únase a nosotros en la preparación para la guerra...</Spanish>
 	</TEXT>
@@ -593,15 +597,18 @@
 		<Tag>USER_DIPLO_WARPLAN_CANCEL_1</Tag>
 		<English>Your war preparations are no longer required.</English>
 		<French>Vos préparatifs de guerre ne sont plus nécessaires.</French>
-		<German>Ihre Kriegsvorbereitungen sind nicht mehr erforderlich.</German>
+		<German>Eure Kriegsvorbereitungen sind nicht mehr erforderlich.</German>
 		<Italian>I vostri preparativi di guerra non sono più necessari.</Italian>
 		<Spanish>Ya no se requieren sus preparativos de guerra.</Spanish>
 	</TEXT>
+	<!-- advc.002c : Was "OK, we'll cancel our war preparations" (German:
+		 "Gut, wir beenden unsere Kriegsvorbereitungen."). I've tried to
+		 enliven it a little. -->
 	<TEXT>
 		<Tag>AI_DIPLO_WARPLAN_CANCEL_1</Tag>
-		<English>OK, we'll cancel our war preparations.</English>
+		<English>All right, swords to plowshares it is.</English>
 		<French>D'accord, nous allons annuler notre préparatifs de guerre.</French>
-		<German>Gut, wir beenden unsere Kriegsvorbereitungen.</German>
+		<German>Na dann - Schwerter zu Pflugscharen!</German>
 		<Italian>Ok, provvederemo ad annullare i nostri preparativi di guerra.</Italian>
 		<Spanish>Bueno, no cancelaremos nuestros preparativos para la guerra.</Spanish>
 	</TEXT>
