@@ -876,12 +876,14 @@
 					<iProductonModifier>100</iProductonModifier>
 				</BonusProductionModifier>
 			</BonusProductionModifiers>
-			<UnitCombatFreeExperiences>
+			<!-- advc.200: Revert this K-Mod change -->
+			<!--UnitCombatFreeExperiences>
 				<UnitCombatFreeExperience>
 					<UnitCombatType>UNITCOMBAT_MELEE</UnitCombatType>
 					<iExperience>1</iExperience>
 				</UnitCombatFreeExperience>
-			</UnitCombatFreeExperiences>
+			</UnitCombatFreeExperiences-->
+			<UnitCombatFreeExperiences/>
 			<DomainFreeExperiences/>
 			<DomainProductionModifiers/>
 			<BuildingHappinessChanges/>
@@ -5658,10 +5660,8 @@
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
 			<GlobalSeaPlotYieldChanges/>
-			<YieldChanges>
-				<iYield>0</iYield>
-				<iYield>2</iYield>
-			</YieldChanges>
+			<!-- advc.200: was +2 production in K-Mod -->
+			<YieldChanges/>
 			<YieldModifiers>
 				<iYield>0</iYield>
 				<iYield>25</iYield>
