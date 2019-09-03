@@ -77,14 +77,14 @@ bool KmodPathFinder::ValidateNodeMap()
 		map_width = GC.getMap().getGridWidth();
 		map_height = GC.getMap().getGridHeight();
 		//node_data = (FAStarNode*)
-		// <advc.003> According to cppcheck, the above is a "common realloc mistake".
+		// <advc> According to cppcheck, the above is a "common realloc mistake".
 		FAStarNode* new_node_data = static_cast<FAStarNode*>(
 				realloc(node_data, sizeof(*node_data)*map_width*map_height));
 		if(new_node_data == NULL) {
 			free(node_data);
 			FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
 		}
-		else node_data = new_node_data; // </advc.003>
+		else node_data = new_node_data; // </advc>
 		end_node = NULL;
 	}
 	return true;

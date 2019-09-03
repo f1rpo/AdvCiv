@@ -1924,7 +1924,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 	{
 		MissionTypes eMission = (MissionTypes)kAction.getMissionType();
 		if(eMission != NO_MISSION) {
-			// advc.003: Moved into subroutine
+			// advc: Moved into subroutine
 			parseActionHelp_Mission(kAction, *pHeadSelectedUnit, eMission, szBuffer);
 		}
 		if (kAction.getCommandType() != NO_COMMAND)
@@ -1940,7 +1940,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 			}
 			else if (kAction.getCommandType() == COMMAND_UPGRADE)
 			{
-				UnitTypes eTo = (UnitTypes)kAction.getCommandData(); // advc.003
+				UnitTypes eTo = (UnitTypes)kAction.getCommandData(); // advc
 				GAMETEXT.setBasicUnitHelp(szBuffer, eTo);
 
 				// <advc.080>
@@ -2142,7 +2142,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 }
 
 
-// advc.003: Cut from parseActionHelp, refactored.
+// advc: Cut from parseActionHelp, refactored.
 void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		CvUnit const& kUnit, MissionTypes eMission, CvWStringBuffer& szBuffer) {
 
@@ -2162,7 +2162,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			*kUnit.plot());
 	CvCity* pMissionCity = kMissionPlot.getPlotCity();
 
-	switch(eMission) { // advc.003: was if/else
+	switch(eMission) { // advc: was if/else
 	case MISSION_SENTRY_HEAL: // advc.004l
 	case MISSION_HEAL:
 	{
@@ -3075,7 +3075,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_SUSPEND_WORK"));
 		} // </advc.011b>
-		break; // advc.003: Last case of switch(eMission)
+		break; // advc: Last case of switch(eMission)
 	}
 	} // end of switch
 
@@ -3091,7 +3091,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 }
 
 
-void CvDLLWidgetData::parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: style changes
+void CvDLLWidgetData::parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL || widgetDataStruct.m_iData1 == NO_SPECIALIST)
@@ -3123,7 +3123,7 @@ void CvDLLWidgetData::parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct,
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
-		return; // advc.003
+		return; // advc
 
 	SpecialistTypes eSpecialist = (SpecialistTypes)widgetDataStruct.m_iData1;
 	if (NO_SPECIALIST != eSpecialist)
@@ -3136,7 +3136,7 @@ void CvDLLWidgetData::parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct,
 }
 
 
-void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: style changes
+void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL || widgetDataStruct.m_iData1 == NO_SPECIALIST)
@@ -3156,7 +3156,7 @@ void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStr
 	{
 		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 		if (GC.getBuildingInfo(eLoopBuilding).getSpecialistCount(widgetDataStruct.m_iData1) <= 0)
-			continue; // advc.003
+			continue; // advc
 
 		if (pHeadSelectedCity->getNumBuilding(eLoopBuilding) <= 0 &&
 			!::isLimitedWonderClass(eLoopBuilding))
@@ -3191,7 +3191,7 @@ void CvDLLWidgetData::parseAngryCitizenHelp(CvWidgetDataStruct &widgetDataStruct
 }
 
 
-void CvDLLWidgetData::parseChangeSpecialistHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: style changes
+void CvDLLWidgetData::parseChangeSpecialistHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 
@@ -3278,7 +3278,7 @@ void CvDLLWidgetData::parseChangePercentHelp(CvWidgetDataStruct &widgetDataStruc
 }
 
 // advc (comment): Could this function be merged into CvGameTextMgr::parseLeaderHeadHelp?
-void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: Some style changes
+void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: Some style changes
 {
 	PlayerTypes ePlayer = (PlayerTypes)widgetDataStruct.m_iData1;
 	// do not execute if player is not a real civ
@@ -3395,7 +3395,7 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		CvWStringBuffer szWorstEnemyString;
 		bool bFirst = true;
 		bool bFirst2 = true;
-		// advc.003: Variables renamed to ...Loop... in order to avoid shadowing
+		// advc: Variables renamed to ...Loop... in order to avoid shadowing
 		for (int iLoopTeam = 0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam++)
 		{
 			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iLoopTeam);
@@ -3969,7 +3969,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		bool	bValid;
 		bool	bLandTarget;
 		bool	bVictory4;
-		//bool	bAnyCapitalAreaAlone; // advc.003: unused
+		//bool	bAnyCapitalAreaAlone; // advc: unused
 		bool	bAdjacentCheckPassed;
 		bool	bMaxWarNearbyPowerRatio;
 		bool	bMaxWarDistantPowerRatio;
@@ -4518,7 +4518,7 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	}
 
 	if (eWhoFrom == NO_PLAYER || eWhoTo == NO_PLAYER)
-		return; // advc.003
+		return; // advc
 
 	PlayerTypes eWhoDenies = eWhoFrom;
 	TradeableItems eItemType = (TradeableItems)widgetDataStruct.m_iData1;
@@ -4717,13 +4717,13 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 
 	if (pHeadSelectedCity == NULL)
-		return; // advc.003
+		return; // advc
 
 	if (pHeadSelectedCity->isWeLoveTheKingDay())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_WE_LOVE_KING_MAINT"));
-		return; // advc.003
+		return; // advc
 	}
 
 	int iInflationFactor = 100 + GET_PLAYER(pHeadSelectedCity->getOwner()).calculateInflationRate(); // K-Mod
@@ -4801,7 +4801,7 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
-		return; // advc.003
+		return; // advc
 
 	GAMETEXT.setBadHealthHelp(szBuffer, *pHeadSelectedCity);
 	szBuffer.append(L"\n=======================\n");
@@ -4817,7 +4817,7 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 }
 
 
-void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: style changes
+void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
 	wchar szTempBuffer[1024];
 
@@ -4898,7 +4898,7 @@ void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, C
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
-		return; // advc.003
+		return; // advc
 
 	GAMETEXT.setAngerHelp(szBuffer, *pHeadSelectedCity);
 	szBuffer.append(L"\n=======================\n");
@@ -4947,7 +4947,7 @@ void CvDLLWidgetData::parseCultureHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
-		return; // advc.003
+		return; // advc
 
 	int iCultureTimes100 = pHeadSelectedCity->getCultureTimes100(pHeadSelectedCity->getOwner());
 	if (iCultureTimes100%100 == 0)
@@ -4986,9 +4986,9 @@ void CvDLLWidgetData::parseGreatGeneralHelp(CvWidgetDataStruct &widgetDataStruct
 }
 
 
-void CvDLLWidgetData::parseSelectedHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: style changes
+void CvDLLWidgetData::parseSelectedHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	//CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit(); // advc.003: unused
+	//CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit(); // advc: unused
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return;

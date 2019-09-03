@@ -200,7 +200,7 @@ int CvEraInfo::getSoundtracks(int i) const
 
 int CvEraInfo::getCitySoundscapeScriptId(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCitySizeTypes(), i, "CvEraInfo::getCitySoundscapeScriptId"); // advc.003: Check for upper bound added
+	FASSERT_BOUNDS(0, GC.getNumCitySizeTypes(), i, "CvEraInfo::getCitySoundscapeScriptId"); // advc: Check for upper bound added
 	return m_paiCitySoundscapeScriptIds ? m_paiCitySoundscapeScriptIds[i] : 0; // advc.003t
 }
 
@@ -353,7 +353,7 @@ int CvGameSpeedInfo::getNumTurnIncrements() const
 
 GameTurnInfo& CvGameSpeedInfo::getGameTurnInfo(int iIndex) const
 {
-	FASSERT_BOUNDS(0, getNumTurnIncrements(), iIndex, "CvGameSpeedInfo::getGameTurnInfo"); // advc.003: added
+	FASSERT_BOUNDS(0, getNumTurnIncrements(), iIndex, "CvGameSpeedInfo::getGameTurnInfo"); // advc: added
 	return m_pGameTurnInfo[iIndex];
 }
 

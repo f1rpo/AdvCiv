@@ -39,7 +39,7 @@ public:
 
 	void AI_makeAssignWorkDirty();
 
-	void AI_updateAreaStrategies(bool bTargets = true); // advc.003: "Stragies"->"Strategies"
+	void AI_updateAreaStrategies(bool bTargets = true); // advc: "Stragies"->"Strategies"
 	void AI_updateAreaTargets();
 
 	int AI_countFinancialTrouble() const; // addvc.003j (comment): unused
@@ -68,7 +68,7 @@ public:
 	bool AI_isLandTarget(TeamTypes eTeam) const;
 	bool AI_isAllyLandTarget(TeamTypes eTeam) const;
 	bool AI_shareWar(TeamTypes eTeam) const;
-	 // advc.003, advc.130e:
+	 // advc, advc.130e:
 	void AI_updateAttitudeCache(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
@@ -219,9 +219,9 @@ public:
 	bool isAnyChosenWar() const; // advc.105
 	bool AI_isSneakAttackReady(TeamTypes eIndex
 			= NO_TEAM) const; // K-Mod (any team)
-	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc.003: */= NO_TEAM) const;
+	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
-	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc.003: Moved from CvTeam; made const.)
+	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc: Moved from CvTeam; made const.)
 	bool AI_isMasterPlanningLandWar(CvArea* pArea) const;
 	bool AI_isMasterPlanningSeaWar(CvArea* pArea) const;
 	// BETTER_BTS_AI_MOD: END
@@ -256,7 +256,7 @@ public:
 
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
 
-	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc.003: */ const;
+	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc: */ const;
 
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
@@ -304,7 +304,7 @@ protected:
 	void AI_doCounter();
 	void AI_doWar();
 
-	// advc.003: Chunk of code that occured twice in doWar
+	// advc: Chunk of code that occured twice in doWar
 	void AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes eTarget,
 			bool bLimited, int iEnemyPowerPercent);
 	// advc.104o:
@@ -326,9 +326,9 @@ protected:
 #define GET_TEAM CvTeamAI::getTeamNonInl
 #endif
 
-// <advc.003> Easier access to team-level functions when given a PlayerTypes value
+// <advc> Easier access to team-level functions when given a PlayerTypes value
 #define TEAMID(ePlayer) GET_PLAYER(ePlayer).getTeam()
 #define TEAMREF(ePlayer) GET_TEAM(TEAMID(ePlayer))
-// </advc.003>
+// </advc>
 
 #endif

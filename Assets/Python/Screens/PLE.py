@@ -1861,9 +1861,8 @@ class PLE:
 			pOwner = gc.getPlayer(pUnit.getOwner())
 			szOwner = pOwner.getName()
 			#szOwner = localText.changeTextColor(szOwner, pOwner.getPlayerColor())
-			# <advc.069> ^Doesn't seem to be the proper use of changeTextColor. Tagging advc.001.
+			# advc.069: ^Doesn't seem to be the proper use of changeTextColor. Tagging advc.001.
 			szOwner = u"<color=%d,%d,%d,%d>%s</color>" % (pOwner.getPlayerTextColorR(), pOwner.getPlayerTextColorG(), pOwner.getPlayerTextColorB(), pOwner.getPlayerTextColorA(), szOwner)
-			# </advc.069>
 			szOwner = u"<font=2> [" + szOwner + u"]</font>"
 		else:
 			szOwner = u""
@@ -2186,7 +2185,7 @@ class PLE:
 			# is unit led by a GG?
 			#iLeaderPromo = gc.getInfoTypeForString('PROMOTION_LEADER')
 			#if (iLeaderPromo != -1 and pLoopUnit.isHasPromotion(iLeaderPromo)):
-			# advc.003: Replacing the above
+			# advc: Replacing the above
 			if pLoopUnit.getLeaderUnitType() >= 0:
 				szDotState += "_GG"
 				xSize = 16

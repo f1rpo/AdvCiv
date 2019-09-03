@@ -64,10 +64,10 @@ public:
 	bool isHuman() const; // advc.002i: const																																									// Exposed to Python
 
 	DllExport bool isBusy()
-	// <advc.003> Need a const version of this
+	// <advc> Need a const version of this
 	{	CvSelectionGroup const& kThis = *this;
 		return kThis.isBusy();
-	} bool isBusy() const; // </advc.003>
+	} bool isBusy() const; // </advc>
 	bool isCargoBusy() const;
 	int baseMoves() const;																																										// Exposed to Python
 	int maxMoves() const; // K-Mod
@@ -80,10 +80,10 @@ public:
 	int getCargo() const;
 	int cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo = NO_SPECIALUNIT, DomainTypes eDomainCargo = NO_DOMAIN) const; // K-Mod
 	DllExport bool canAllMove()																																				// Exposed to Python
-	// <advc.003> Need a const version fo this
+	// <advc> Need a const version fo this
 	{	CvSelectionGroup const& kThis = *this;
 		return kThis.canAllMove();
-	} bool canAllMove() const; // </advc.003>
+	} bool canAllMove() const; // </advc>
 	bool canAnyMove() const; // Exposed to Python
 	bool canCargoAllMove() const; // K-Mod (moved from CvUnit)
 	bool hasMoved() const; // Exposed to Python
@@ -92,9 +92,9 @@ public:
 	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
 	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
 		return canMoveOrAttackInto(*pPlot, bDeclareWar, false);
-	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: 2x const, CvPlot&
+	} // K-Mod. (hack to avoid breaking the DllExport)			advc: 2x const, CvPlot&
 	bool canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar = false, bool bCheckMoves = false, bool bAssumeVisible = true) const;
-	bool canMoveThrough(CvPlot const& kPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible; advc.003: CvPlot const&
+	bool canMoveThrough(CvPlot const& kPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible; advc: CvPlot const&
 	bool canFight() const;																																										// Exposed to Python
 	bool canDefend() const;																																										// Exposed to Python
 	bool canBombard(const CvPlot* pPlot) const;
@@ -125,7 +125,7 @@ public:
 	bool at(int iX, int iY) const;																																								// Exposed to Python
 	bool atPlot(const CvPlot* pPlot) const;																																				// Exposed to Python
 	DllExport CvPlot* plot() const;																																								// Exposed to Python
-	inline CvPlot& getPlot() const { return *plot(); } // advc.003
+	inline CvPlot& getPlot() const { return *plot(); } // advc
 	int getArea() const;
 	CvArea* area() const;																																													// Exposed to Python
 	DomainTypes getDomainType() const;
@@ -162,7 +162,7 @@ public:
 	void changeMissionTimer(int iChange);
 	void updateMissionTimer(int iSteps = 0, /* advc.102: */ CvPlot* pFromPlot = NULL);
 
-	inline bool isForceUpdate() const { return m_bForceUpdate; } // K-Mod made inline // advc.003: const
+	inline bool isForceUpdate() const { return m_bForceUpdate; } // K-Mod made inline // advc: const
 	inline void setForceUpdate(bool bNewValue) { m_bForceUpdate = bNewValue; } // K-Mod made inline
 	// void doForceUpdate(); // K-Mod. (disabled. force update doesn't work the same way anymore.)
 
@@ -236,7 +236,7 @@ public:
 	virtual void AI_cancelGroupAttack() = 0;
 	virtual bool AI_isGroupAttack() const = 0; // K-Mod made const
 
-	virtual bool AI_isControlled() /* advc.003: */ const = 0;
+	virtual bool AI_isControlled() /* advc: */ const = 0;
 	virtual bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const = 0;
 	virtual CvPlot* AI_getMissionAIPlot() const = 0;
 	virtual bool AI_isForceSeparate() = 0;
@@ -245,7 +245,7 @@ public:
 	//virtual MissionAITypes AI_getMissionAIType() = 0;
 	virtual MissionAITypes AI_getMissionAIType() const = 0; // K-Mod
 	virtual void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
-			CvUnit const* pNewUnit) = 0; // advc.003: const
+			CvUnit const* pNewUnit) = 0; // advc: const
 	virtual CvUnit* AI_getMissionAIUnit() const = 0;
 	virtual CvUnit* AI_ejectBestDefender(CvPlot* pTargetPlot) = 0;
 	virtual void AI_separateNonAI(UnitAITypes eUnitAI) = 0;

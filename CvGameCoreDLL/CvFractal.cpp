@@ -39,7 +39,7 @@ void CvFractal::reset()
 	m_iFlags = 0;
 	m_iFracX = -1;
 	m_iFracY = -1;
-	m_iXInc = m_iYInc = -1; // advc.003: Risky not to initialize these
+	m_iXInc = m_iYInc = -1; // advc: Risky not to initialize these
 }
 
 void CvFractal::fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random, int iFlags, CvFractal* pRifts, int iFracXExp/*=7*/, int iFracYExp/*=6*/)
@@ -370,12 +370,12 @@ void CvFractal::tectonicAction(CvFractal* pRifts)  //  Assumes FRAC_WRAP_X is on
 						if it's correct now. The maps look as before to me. */
 					(((pRifts->m_aaiFrac[iRift1x][iY] - 128) * m_iFracX) / 128) / 8)
 					- iX);
-			// <advc.003> No functional change
+			// <advc> No functional change
 			int const iDeep = 0;
 			/*  This term was used in the two assignments below. I've called it iShift,
 				but I'm not sure what it's for. It's 0. A bug? */
 			int iShift = iDeep * (iWidth - iX);
-			// </advc.003>
+			// </advc>
 			m_aaiFrac[iRx][iY] = (((m_aaiFrac[iRx][iY] * iX) +
 					iShift)
 					/ iWidth);

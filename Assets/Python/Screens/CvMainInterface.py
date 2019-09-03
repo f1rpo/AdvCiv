@@ -3095,7 +3095,7 @@ class CvMainInterface:
 			screen.hide(szString)
 
 		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_ADVANCED_START:
-			return 0 # advc.003: Reduce indentation
+			return 0 # advc: Reduce indentation
 
 		# Percent of commerce
 		if gc.getPlayer(ePlayer).isAlive():
@@ -5052,7 +5052,7 @@ class CvMainInterface:
 		screen.hide( "ScoreBackground" )
 		
 # BUG - Align Icons - start
-		for i in range( gc.getMAX_CIV_PLAYERS() ): # advc.003: Was MAX_PLAYERS
+		for i in range( gc.getMAX_CIV_PLAYERS() ): # advc: Was MAX_PLAYERS
 			szName = "ScoreText" + str(i)
 			screen.hide( szName )
 			szName = "ScoreTech" + str(i)
@@ -5070,7 +5070,7 @@ class CvMainInterface:
 		iWidth = 0
 		iCount = 0
 		iBtnHeight = 22
-		yCoord = 0 # advc.003: Make sure this is defined when needed
+		yCoord = 0 # advc: Make sure this is defined when needed
 		
 		if ((CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY)):
 			# <advc.004z>
@@ -5086,11 +5086,11 @@ class CvMainInterface:
 				bAlignIcons = ScoreOpt.isAlignIcons()
 				if (bAlignIcons):
 					scores = Scoreboard.Scoreboard()
-				# <advc.003> Need to assign a value
+				# <advc> Need to assign a value
 				else:
-					scores = None # </advc.003>
+					scores = None # </advc>
 # BUG - Align Icons - end
-				# (BUG - Power Rating)  advc.003: Moved into the loop
+				# (BUG - Power Rating)  advc: Moved into the loop
 				i = gc.getMAX_CIV_TEAMS() - 1
 				while (i > -1):
 					eTeam = gc.getGame().getRankTeam(i)
@@ -5118,7 +5118,7 @@ class CvMainInterface:
 											if (bAlignIcons):
 												scores.addPlayer(gc.getPlayer(ePlayer), j)
 # BUG - Align Icons - end
-											# advc.003: Code moved into auxiliary function
+											# advc: Code moved into auxiliary function
 											szBuffer += self.playerScoreString(ePlayer, scores, bAlignIcons)
 											szBuffer = szBuffer + "</font>"
 # BUG - Align Icons - start
@@ -5160,7 +5160,7 @@ class CvMainInterface:
 					screen.show( "ScoreBackground" )
 # BUG - Align Icons - end
 
-	# <advc.003> Body cut from updateScoreStrings in order to reduce indentation
+	# <advc> Body cut from updateScoreStrings in order to reduce indentation
 	def playerScoreString(self, ePlayer, scores, bAlignIcons):
 		pPlayer = gc.getPlayer(ePlayer)
 		eTeam = pPlayer.getTeam()
@@ -5170,7 +5170,7 @@ class CvMainInterface:
 		eActiveTeam = g.getActiveTeam()
 		pActivePlayer = gc.getPlayer(eActivePlayer)
 		pActiveTeam = gc.getTeam(eActiveTeam)
-		szBuffer = "" # </advc.003>
+		szBuffer = "" # </advc>
 # BUG: Align Icons throughout -- if (bAlignIcons): scores.setFoo(foo)
 		if g.isGameMultiPlayer():
 			if not pPlayer.isTurnActive():
@@ -5329,7 +5329,7 @@ class CvMainInterface:
 			# K-Mod (original code deleted)
 			if g.isDebugMode() or (pActivePlayer.canSeeResearch(ePlayer) and (eTeam != eActiveTeam or pActiveTeam.getNumMembers() > 1)):
 			# K-Mod end
-				eCurrentResearch = pPlayer.getCurrentResearch() # advc.003
+				eCurrentResearch = pPlayer.getCurrentResearch() # advc
 				iProgressPercent = 0 # advc.085: Show that even when no current research
 				if eCurrentResearch != -1:
 					szTempBuffer = u"-%s" %gc.getTechInfo(eCurrentResearch).getDescription()
@@ -5512,7 +5512,7 @@ class CvMainInterface:
 
 		kEngine = CyEngine()
 		kGLM = CyGlobeLayerManager()
-		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
+		#iNumLayers = kGLM.getNumLayers() # advc: unused
 		iCurrentLayerID = kGLM.getCurrentLayerID()
 		# <advc.004m>
 		# The layer id is meaningless to the DLL. Translate to enum type.
@@ -5555,7 +5555,7 @@ class CvMainInterface:
 			screen.hide(szName)
 
 		# Setup the GlobeLayer panel
-		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
+		#iNumLayers = kGLM.getNumLayers() # advc: unused
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
 			# <advc.004z>
@@ -5704,7 +5704,7 @@ class CvMainInterface:
 		
 		kEngine = CyEngine()
 		kGLM = CyGlobeLayerManager()
-		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
+		#iNumLayers = kGLM.getNumLayers() # advc: unused
 
 		for i in range (kGLM.getNumLayers()):
 			szButtonID = "GlobeLayer" + str(i)

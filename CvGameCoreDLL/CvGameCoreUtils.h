@@ -39,7 +39,7 @@ double percentileRank(std::vector<double>& distribution, double score,
 		an element of the distribution? If yes, the percentile rank is going to be
 		positive. Either way, the caller shouldn't include 'score' in the distribution. */
 // </advc.003g>
-// <advc.003>
+// <advc>
 /*  Hash based on the components of x. Plot index of capital factored in for
 	increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
 	Result between 0 and 1. Returns float b/c CvRandom uses float (not double). */
@@ -53,7 +53,7 @@ float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
 	For iterating over tiles in the radius of a CvCity, CvCity::getCityIndexPlot
 	is faster; but cityCross doesn't require a CvCity to exist in p. */
 void cityCross(CvPlot const& p, std::vector<CvPlot*>& r);
-// </advc.003>
+// </advc>
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
 // <advc.008e>
 bool needsArticle(BuildingTypes eBuilding);
@@ -66,7 +66,7 @@ template<typename T> void removeDuplicates(std::vector<T>& v) {
 } // </advc.130h>
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
-void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc.003
+void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
@@ -104,7 +104,7 @@ inline double dRange(double d, double low, double high) {
 	return d;
 } // </advc.003g>
 
-// advc.003: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
+// advc: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
 inline int longLongToInt(long long x) {
 
 	FAssert(x < MAX_INT);

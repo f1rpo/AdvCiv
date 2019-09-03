@@ -1052,7 +1052,7 @@ class TerrainGenerator:
 		self.iDesertBottomPercent = max(0,int(100-iDesertPercent))
 		self.iPlainsTopPercent = 100
 		self.iPlainsBottomPercent = max(0,int(100-iDesertPercent-iPlainsPercent))
-		# advc.003: Unused
+		# advc: Unused
 		#self.iMountainTopPercent = 75
 		#self.iMountainBottomPercent = 60
 

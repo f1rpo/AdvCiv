@@ -20,7 +20,7 @@ void CyGlobalContextPythonInterface3(python::class_<CyGlobalContext>& x)
 		.def("getNumPlayerOptionInfos", &CyGlobalContext::getNumPlayerOptionInfos)
 		.def("getPlayerOptionsInfo", &CyGlobalContext::getPlayerOptionsInfoByIndex, python::return_value_policy<python::reference_existing_object>(), "(PlayerOptionsInfoID) - PlayerOptionsInfo for PlayerOptionsInfo")
 		.def("getPlayerOptionsInfoByIndex", &CyGlobalContext::getPlayerOptionsInfoByIndex, python::return_value_policy<python::reference_existing_object>(), "(PlayerOptionsInfoID) - PlayerOptionsInfo for PlayerOptionsInfo")
-		// advc.003:
+		// advc:
 		.def("IsGraphicsInitialized", &CyGlobalContext::IsGraphicsInitialized, "bool ()")
 		.def("getGraphicOptionsInfo", &CyGlobalContext::getGraphicOptionsInfoByIndex, python::return_value_policy<python::reference_existing_object>(), "(GraphicOptionsInfoID) - GraphicOptionsInfo for GraphicOptionsInfo")
 		.def("getGraphicOptionsInfoByIndex", &CyGlobalContext::getGraphicOptionsInfoByIndex, python::return_value_policy<python::reference_existing_object>(), "(GraphicOptionsInfoID) - GraphicOptionsInfo for GraphicOptionsInfo")

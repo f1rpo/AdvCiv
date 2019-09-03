@@ -14,7 +14,7 @@
 // advc.003x: Include this with the other info classes that aren't needed in the DLL
 #include "CvInfo_Water.h"
 
-// advc.003: Appear to be unnecessary; perhaps needed for compiling the EXE.
+// advc: Appear to be unnecessary; perhaps needed for compiling the EXE.
 //#pragma warning(disable: 4251) // "needs to have dll-interface to be used by clients of class"
 //#pragma warning(disable: 4127)
 

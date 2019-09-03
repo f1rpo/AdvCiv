@@ -66,11 +66,11 @@ public:
 
 	DllExport CvUnit* getPlotUnit(const CvPlot* pPlot, int iIndex) const
 	{
-		return getPlotUnits(pPlot, NULL, iIndex); // advc.003
+		return getPlotUnits(pPlot, NULL, iIndex); // advc
 	}
 	DllExport void getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit*>& plotUnits) const
 	{
-		getPlotUnits(pPlot, &plotUnits, -1); // advc.003
+		getPlotUnits(pPlot, &plotUnits, -1); // advc
 	}
 
 	DllExport void cycleCities(bool bForward = true, bool bAdd = false) const;																				// Exposed to Python
@@ -141,18 +141,18 @@ public:
 	int countTotalCivPower();																								// Exposed to Python
 	int countTotalNukeUnits();																							// Exposed to Python
 	int countKnownTechNumTeams(TechTypes eTech);														// Exposed to Python
-	int getNumFreeBonuses(BuildingTypes eBuilding) const;	// advc.003: const										// Exposed to Python
+	int getNumFreeBonuses(BuildingTypes eBuilding) const;	// advc: const										// Exposed to Python
 
-	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python
+	int countReligionLevels(ReligionTypes eReligion) /* advc: */ const;							// Exposed to Python
 	int calculateReligionPercent(ReligionTypes eReligion,								// Exposed to Python
 			bool bIgnoreOtherReligions = false) const; // advc.115b
-	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python
+	int countCorporationLevels(CorporationTypes eCorporation) /* advc: */ const;							// Exposed to Python
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
 	int goldenAgeLength() const;																					// Exposed to Python
 	int victoryDelay(VictoryTypes eVictory) const;										// Exposed to Python
 	int getImprovementUpgradeTime(ImprovementTypes eImprovement) const;					// Exposed to Python
-	double gameSpeedFactor() const; // advc.003
+	double gameSpeedFactor() const; // advc
 
 	bool canTrainNukes() const;																		// Exposed to Python
 	EraTypes getCurrentEra() const;														// Exposed to Python
@@ -165,21 +165,21 @@ public:
 	DllExport bool isGameMultiPlayer() const;																			// Exposed to Python
 	DllExport bool isTeamGame() const;																						// Exposed to Python
 
-	bool isModem() const; // advc.003: const
+	bool isModem() const; // advc: const
 	void setModem(bool bModem);
 
 	DllExport void reviveActivePlayer();																		// Exposed to Python
 	DllExport int getNumHumanPlayers();													// Exposed to Python
 	DllExport int getGameTurn() 																		// Exposed to Python
-	// <advc.003> Need a const version
+	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getGameTurn();
-	} int getGameTurn() const; // </advc.003>
+	} int getGameTurn() const; // </advc>
 	void setGameTurn(int iNewValue);															// Exposed to Python
 	void incrementGameTurn();
-	// <advc.003> const
+	// <advc> const
 	int getTurnYear(int iGameTurn) const;																// Exposed to Python
-	int getGameTurnYear() const; // </advc.003>																	// Exposed to Python
+	int getGameTurnYear() const; // </advc>																	// Exposed to Python
 	int getElapsedGameTurns() const;																		// Exposed to Python
 	void incrementElapsedGameTurns();
 	int AIHandicapAdjustment() const; // advc.251
@@ -202,7 +202,7 @@ public:
 
 	int getEstimateEndTurn() const;																// Exposed to Python
 	void setEstimateEndTurn(int iNewValue);												// Exposed to Python
-	double gameTurnProgress(int iDelay = 0) const; // advc.003
+	double gameTurnProgress(int iDelay = 0) const; // advc
 
 	DllExport int getTurnSlice() const;																			// Exposed to Python
 	int getMinutesPlayed() const;																	// Exposed to Python
@@ -213,11 +213,11 @@ public:
 	void setCutoffSlice(int iNewValue);
 	void changeCutoffSlice(int iChange);
 	DllExport int getTurnSlicesRemaining()
-	// <advc.003> Need a const version
+	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getTurnSlicesRemaining();
 	} inline int getTurnSlicesRemaining() const { return getCutoffSlice() - getTurnSlice(); };
-	// </advc.003>
+	// </advc>
 	void resetTurnTimer();
 	void incrementTurnTimer(int iNumTurnSlices);
 	int getMaxTurnLen();
@@ -268,7 +268,7 @@ public:
 	int getInitWonders() const;																		// Exposed to Python
 	DllExport void initScoreCalculation();
 
-	int getAIAutoPlay() const; // advc.003: const																// Exposed to Python
+	int getAIAutoPlay() const; // advc: const																// Exposed to Python
 	DllExport void setAIAutoPlay(int iNewValue) {										// Exposed to Python
 		// <advc.127>
 		setAIAutoPlay(iNewValue, true);
@@ -414,10 +414,10 @@ public:
 
 	bool isForcedControl(ForceControlTypes eIndex) const;												// Exposed to Python
 	void setForceControl(ForceControlTypes eIndex, bool bEnabled);
-	// <advc.003>
+	// <advc>
 	bool canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const;
 	bool canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) const;
-	// </advc.003>
+	// </advc>
 	int getUnitCreatedCount(UnitTypes eIndex) const; // Exposed to Python
 	void incrementUnitCreatedCount(UnitTypes eIndex);
 
@@ -444,10 +444,10 @@ public:
 
 	bool isVictoryValid(VictoryTypes eIndex) const;															// Exposed to Python
 	void setVictoryValid(VictoryTypes eIndex, bool bValid);
-												// advc.003: const
+												// advc: const
 	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python
 	void makeSpecialUnitValid(SpecialUnitTypes eIndex);													// Exposed to Python
-												// advc.003: const
+												// advc: const
 	bool isSpecialBuildingValid(SpecialBuildingTypes eIndex) const;										// Exposed to Python
 	void makeSpecialBuildingValid(SpecialBuildingTypes eIndex, bool bAnnounce = false);									// Exposed to Python
 
@@ -496,14 +496,14 @@ public:
 	int getNumDeals();																													// Exposed to Python
 
 	DllExport CvDeal* getDeal(int iID)																			// Exposed to Python
-	// <advc.003> Need a const version
+	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return const_cast<CvDeal*>(kThis.getDeal(iID));
-	} CvDeal const* getDeal(int iID) const; // </advc.003>
+	} CvDeal const* getDeal(int iID) const; // </advc>
 
 	CvDeal* addDeal();
 	void deleteDeal(int iID);
-	// iteration (advc.003: const)
+	// iteration (advc: const)
 	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const;													// Exposed to Python
 	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const;														// Exposed to Python
 	// <advc.072>
@@ -547,9 +547,9 @@ public:
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 	virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
-	// <advc.003>
+	// <advc>
 	void allGameDataRead();
-	void onGraphicsInitialized(); // </advc.003>
+	void onGraphicsInitialized(); // </advc>
 	// <advc.003u>
 	inline CvGameAI& AI() {
 		//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
@@ -587,7 +587,7 @@ public:
 	BuildingTypes getShrineBuilding(int eIndex, ReligionTypes eReligion = NO_RELIGION);
 	void changeShrineBuilding(BuildingTypes eBuilding, ReligionTypes eReligion, bool bRemove = false);
 
-	// advc.003: Made these three const
+	// advc: Made these three const
 	bool culturalVictoryValid() const;
 	int culturalVictoryNumCultureCities() const;
 	CultureLevelTypes culturalVictoryCultureLevel() const;
@@ -674,7 +674,7 @@ public:
 	CvCity* getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver,
 			bool bDebug = false) const;
 	// </advc.127b>
-	bool isFreeStartEraBuilding(BuildingTypes eBuilding) const; // advc.003
+	bool isFreeStartEraBuilding(BuildingTypes eBuilding) const; // advc
 	/*  advc.250b: Used for exposing a StartPointsAsHandicap member function
 		to Python. (Don't want to create a Python wrapper just for that one function.) */
 	StartPointsAsHandicap& startPointsAsHandicap();
@@ -685,7 +685,7 @@ public:
 	RiseFall& getRiseFall();
 	// </advc.703>
 	void setHallOfFame(CvHallOfFameInfo* pHallOfFame); // advc.106i
-	std::set<int>& getActivePlayerCycledGroups(); // advc.003
+	std::set<int>& getActivePlayerCycledGroups(); // advc
 
 protected:
 	int m_iElapsedGameTurns;
@@ -715,7 +715,7 @@ protected:
 	int m_iTurnLoadedFromSave; // advc.044
 	int m_iNormalizationLevel; // advc.108
 	// <advc.003b>
-	int m_iStartingPlotRange; // advc.003b
+	int m_iStartingPlotRange;
 	int m_iCivPlayersEverAlive;
 	int m_iCivTeamsEverAlive;
 	// </advc.003b>
@@ -735,7 +735,7 @@ protected:
 	bool m_bInBetweenTurns; // advc.106b
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
-	bool m_bAllGameDataRead; // advc.003
+	bool m_bAllGameDataRead; // advc
 	bool m_bDoMShown; // advc.004x
 	bool m_bLayerFromSavegame; // advc.004m
 	bool b_mFPTestDone; // advc.003g
@@ -811,7 +811,7 @@ protected:
 
 	/*  K-Mod. This is used to track which groups have been cycled through in the current turn.
 		Note: it does not need to be kept in sync for multiplayer games. */
-	std::set<int> m_ActivePlayerCycledGroups; // advc.003: Was public; public getter added.
+	std::set<int> m_ActivePlayerCycledGroups; // advc: Was public; public getter added.
 
 	// CACHE: cache frequently used values
 	int		m_iShrineBuildingCount;
@@ -888,18 +888,18 @@ protected:
 	void normalizeAddFoodBonuses();
 	void normalizeAddGoodTerrain();
 	void normalizeAddExtras();
-	// <advc.003>
+	// <advc>
 	bool placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 			bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature);
 	bool isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kPlot,
-			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc.003>
+			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc>
 	// advc.108:
 	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
 	void doUpdateCacheOnTurn();
-	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex = -1) const; // advc.003
+	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex = -1) const; // advc
 };
 
 #endif

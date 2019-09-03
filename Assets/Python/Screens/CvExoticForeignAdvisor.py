@@ -935,14 +935,14 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		else:
 			columns = ( IconGrid_BUG.GRID_ICON_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN )
 		self.NUM_RESOURCE_COLUMNS = len(columns) - 1
-		# <advc.003> Intermediate values leftSpace and topSpace added
+		# <advc> Intermediate values leftSpace and topSpace added
 		leftSpace = self.MIN_LEFT_RIGHT_SPACE + 10
 		topSpace = self.MIN_TOP_BOTTOM_SPACE + 10
 		gridX = leftSpace
 		gridY = topSpace + self.RES_SURPLUS_HEIGHT + self.RES_PANEL_SPACE + self.TITLE_HEIGHT
 		gridWidth = self.W_SCREEN - gridX - leftSpace 
 		gridHeight = self.H_SCREEN - gridY - topSpace
-		# </advc.003>
+		# </advc>
 		self.resIconGridName = self.getNextWidgetName()
 		self.resIconGrid = IconGrid_BUG.IconGrid_BUG( self.resIconGridName, screen, gridX, gridY, gridWidth, gridHeight, columns, True, self.SHOW_LEADER_NAMES, self.SHOW_ROW_BORDERS )
 
@@ -1062,7 +1062,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			for iLoopPlayer in range(gc.getMAX_PLAYERS()):
 				currentPlayer = gc.getPlayer(iLoopPlayer)
 				if not currentPlayer.isAlive() or currentPlayer.isBarbarian() or currentPlayer.isMinorCiv() or not gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) or iLoopPlayer == self.iActiveLeader or not activePlayer.canTradeItem(iLoopPlayer, tradeData, False):
-					continue # advc.003
+					continue # advc
 				if activePlayer.getNumTradeableBonuses(iLoopBonus) > 1:
 					listSurplus.append(iLoopBonus)
 					bSurplus = True # advc.073

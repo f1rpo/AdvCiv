@@ -124,17 +124,17 @@ public: /*  All the const functions are exposed to Python except for those deali
 	inline int getYieldChange(int i) const
 	{
 		FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvFeatureInfo::getYieldChange");
-		return m_piYieldChange[i]; // advc.003: Don't branch to check for NULL
+		return m_piYieldChange[i]; // advc: Don't branch to check for NULL
 	}
 	inline int getRiverYieldChange(int i) const
 	{
 		FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvFeatureInfo::getRiverYieldChange");
-		return m_piRiverYieldChange[i]; // advc.003: see above
+		return m_piRiverYieldChange[i]; // advc: see above
 	}
 	inline int getHillsYieldChange(int i) const
 	{
 		FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvFeatureInfo::getHillsYieldChange");
-		return m_piHillsYieldChange[i]; // advc.003: see above
+		return m_piHillsYieldChange[i]; // advc: see above
 	}
 	int get3DAudioScriptFootstepIndex(int i) const;
 

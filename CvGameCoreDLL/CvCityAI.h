@@ -77,7 +77,7 @@ public:
 	bool AI_isEvacuating() const;
 	bool AI_isSafe() const; // </advc.139>
 
-	// advc.003: Moved from CvCity b/c it's part of the AI
+	// advc: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
 	int AI_getEmphasizeAvoidGrowthCount() const;
 	bool AI_isEmphasizeAvoidGrowth() const;
@@ -115,7 +115,7 @@ public:
 	int AI_countWorkedPoorPlots() const;
 	int AI_getTargetPopulation() const;
 	void AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const;
-		// advc.003: Made the plot param const
+		// advc: Made the plot param const
 	int AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const;
 	// K-Mod end
 	BuildTypes AI_getBestBuild(int iIndex) const;
@@ -178,12 +178,12 @@ protected:
 	int* m_aiSpecialYieldMultiplier;
 
 	int* m_aiPlayerCloseness;
-	// <advc.003> Made mutable (and made the cache accessor functions const)
+	// <advc> Made mutable (and made the cache accessor functions const)
 	mutable int m_iCachePlayerClosenessTurn;
 	mutable int m_iCachePlayerClosenessDistance;
 
 	mutable int m_iNeededFloatingDefenders;
-	mutable int m_iNeededFloatingDefendersCacheTurn; // </advc.003>
+	mutable int m_iNeededFloatingDefendersCacheTurn; // </advc>
 	// <advc.139>
 	bool m_bEvacuate;
 	bool m_bSafe;
@@ -227,7 +227,7 @@ protected:
 	// K-Mod. Note: iGrowthValue < 0 means "automatic". It will use AI_growthValuePerFood. iGrowthValue == 0 means "ignore growth".
 	int AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, bool bWorkerOptimization, int iGrowthValue) const;
 	int AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, int> old_job, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const; // value gained by swapping jobs. (bIsSpecialist, iIndex) pairs.
-		// advc.003: Made plot param const in these two functions
+		// advc: Made plot param const in these two functions
 	int AI_plotValue(CvPlot const* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const;
 	bool AI_finalImprovementYieldDifference(CvPlot const* pPlot, short* piYields) const; // difference between current yields and yields after plot improvement reaches final upgrade.
 	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement, int time_scale, std::vector<float>& weighted_yields) const; // time-weighted yields for improvements which have upgrades
@@ -244,7 +244,7 @@ protected:
 	void AI_barbChooseProduction(); // K-Mod
 
 	int AI_getYieldMagicValue(const int* piYieldsTimes100, bool bHealthy) const;
-		// advc.003: Made plot param const
+		// advc: Made plot param const
 	int AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWorkerOptimization = false) const;
 	int AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshold = 50, bool bWorkerOptimization = false) const;
 	int AI_countGoodSpecialists(bool bHealthy) const;

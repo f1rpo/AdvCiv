@@ -169,7 +169,7 @@ public:
 
 	int findBestFoundValue() const;																																				// Exposed to Python
 
-	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const; // advc.003: const
+	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const; // advc: const
 	// advc.080:
 	int upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const;
 
@@ -203,7 +203,7 @@ public:
 	int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes eFromPlayer) const;																								// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
-	// advc.003: Said "IncludeCancelable", but actually does the opposite.
+	// advc: Said "IncludeCancelable", but actually does the opposite.
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;
 	bool canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading = false) const;																										// Exposed to Python
 	void stopTradingWithTeam(TeamTypes eTeam,																										// Exposed to Python
@@ -400,7 +400,7 @@ public:
 
 	void doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd,
 			int iData2 = -1); // advc.250c
-	// advc.003: Made all the pointer params const
+	// advc: Made all the pointer params const
 	int getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
 	int getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot = NULL) const;																													// Exposed to Python
 	int getAdvancedStartPopCost(bool bAdd, CvCity const* pCity = NULL) const;																													// Exposed to Python
@@ -768,9 +768,9 @@ public:
 
 	PlayerTypes getParent() const;
 	void setParent(PlayerTypes eParent);
-	// <advc.003> Convenient to have these team-level functions directly at CvPlayer
+	// <advc> Convenient to have these team-level functions directly at CvPlayer
 	TeamTypes getMasterTeam() const;
-	bool isAVassal() const; // </advc.003>
+	bool isAVassal() const; // </advc>
 	DllExport inline TeamTypes getTeam() const { return m_eTeamType; } // advc.003f																				// Exposed to Python
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
@@ -1080,7 +1080,7 @@ public:
 	int getUnitExtraCost(UnitClassTypes eUnitClass) const;
 	void setUnitExtraCost(UnitClassTypes eUnitClass, int iCost);
 
-	bool splitEmpire(int iArea); // advc.003: Keep this one around for CvMessageData
+	bool splitEmpire(int iArea); // advc: Keep this one around for CvMessageData
 	bool splitEmpire(CvArea& kArea);
 	bool canSplitEmpire() const;
 	bool canSplitArea(CvArea const& kArea) const;
@@ -1173,7 +1173,7 @@ public:
 	virtual void AI_conquerCity(CvCity* pCity) = 0;
 	virtual short AI_foundValue(int iX, int iY, int iMinUnitRange = -1, bool bStartingLoc = false) const = 0; // Exposed to Python. K-Mod changed return value from int to short
 	virtual bool AI_isCommercePlot(CvPlot* pPlot) const = 0;
-	virtual int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, // advc.003: 1st param was CvPlot* (apparently this function isn't called by the EXE)
+	virtual int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, // advc: 1st param was CvPlot* (apparently this function isn't called by the EXE)
 			// <advc.104>
 			bool bCheckBorder = true, int* piLowHealth = NULL, int iHPLimit = 60,
 			int iLimit = -1, PlayerTypes eEnemy = NO_PLAYER) const = 0; // </advc.104>
@@ -1200,7 +1200,7 @@ public:
 	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
 	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			int iChange = 0) const = 0; // advc.133
-	virtual int AI_cityTradeVal(CvCity const* pCity) const = 0; // advc.003: CvCity const*
+	virtual int AI_cityTradeVal(CvCity const* pCity) const = 0; // advc: CvCity const*
 	virtual DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) const = 0;
@@ -1210,7 +1210,7 @@ public:
 	virtual int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const = 0;											// Exposed to Python
 	virtual int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const = 0;									// Exposed to Python
 	virtual int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const = 0;
-	virtual int AI_unitTargetMissionAIs(CvUnit const* pUnit, // advc.003: const
+	virtual int AI_unitTargetMissionAIs(CvUnit const* pUnit, // advc: const
 			MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const = 0;
 	virtual int AI_civicValue(CivicTypes eCivic) const = 0;   // Exposed to Python
 	virtual int AI_getNumAIUnits(UnitAITypes eIndex) const = 0;																					// Exposed to Python
@@ -1234,12 +1234,12 @@ public:
 	virtual int AI_getExtraGoldTarget() const = 0;
 	virtual void AI_setExtraGoldTarget(int iNewValue) = 0;
 	virtual int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const = 0;
-	// advc.003: The EXE calls this (when a human player adds AI gold to the trade table)
+	// advc: The EXE calls this (when a human player adds AI gold to the trade table)
 	virtual int AI_maxGoldTrade(PlayerTypes ePlayer) const = 0;
 
 protected:
 
-	PlayerTypes m_eID; // advc.003: Moved here for easier access in the debugger
+	PlayerTypes m_eID; // advc: Moved here for easier access in the debugger
 	int m_iStartingX;
 	int m_iStartingY;
 	int m_iTotalPopulation;
@@ -1500,7 +1500,7 @@ protected:
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 
-	//void doUpdateCacheOnTurn(); // advc.003: unused
+	//void doUpdateCacheOnTurn(); // advc: unused
 	int getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const;
 
 	void getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview trade layer

@@ -934,7 +934,7 @@ class CvVictoryScreen:
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (activePlayer.getNameKey(), activePlayer.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(activePlayer.getLeaderType(), activePlayer.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		g = gc.getGame() # advc.003
+		g = gc.getGame() # advc
 		#screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_DIFFICULTY", (gc.getHandicapInfo(activePlayer.getHandicapType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# K-Mod. In multiplayer games, show both the game difficulty and the player difficulty
 		if activePlayer.getHandicapType() == g.getHandicapType():
@@ -1304,7 +1304,7 @@ class CvVictoryScreen:
 
 				if (victory.getTotalCultureRatio() > 0):
 					iRow = screen.appendTableRow(szTable)
-					# <advc.003> Moved down to have this stuff in one place
+					# <advc> Moved down to have this stuff in one place
 					ourCulture = activePlayer.getTeam().countTotalCulture()
 					iBestCultureTeam = -1
 					bestCulture = 0
@@ -1315,7 +1315,7 @@ class CvVictoryScreen:
 								if (teamCulture > bestCulture):
 									bestCulture = teamCulture
 									iBestCultureTeam = iLoopTeam
-					# </advc.003>
+					# </advc>
 					#iCulturePercent = int((100.0 * bestCulture) / victory.getTotalCultureRatio())
 					# advc.004: The above is neither helpful nor really a percentage. Let's simply show the target ratio for now. What's really needed is, I think, the ratio of bestCulture to secondBestCulture, where secondBestCulture is computed w/o checking isHasMet. Or possibly that ratio divided by victory.getTotalCultureRatio (meaning that 100% is needed for victory). 
 					iCulturePercent = victory.getTotalCultureRatio()

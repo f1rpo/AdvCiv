@@ -17,7 +17,7 @@
 #ifndef CV_WATERINFO_H
 #define CV_WATERINFO_H
 
-// advc.003: Was probably never needed here
+// advc: Was probably never needed here
 //#pragma warning(disable: 4251) // "needs to have dll-interface to be used by clients of class"
 //class CvXMLLoadUtility;
 

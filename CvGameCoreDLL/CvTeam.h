@@ -63,7 +63,7 @@ public:
 	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
 	void signDisengage(TeamTypes otherId); // advc.034
 	void signDefensivePact(TeamTypes eTeam);																			// Exposed to Python
-	bool canSignDefensivePact(TeamTypes eTeam) /* advc.003: */ const;
+	bool canSignDefensivePact(TeamTypes eTeam) /* advc: */ const;
 
 	int getAssets() const;																															// Exposed to Python
 	int getPower(bool bIncludeVassals) const;																																// Exposed to Python
@@ -74,7 +74,7 @@ public:
 	bool isVotingMember(VoteSourceTypes eVoteSource) const;
 	bool isFullMember(VoteSourceTypes eVoteSource) const;
 
-	/*  advc.003: Adding a default value for bIgnoreMinors to all WarPlan functions.
+	/*  advc: Adding a default value for bIgnoreMinors to all WarPlan functions.
 		Also: beware of confusing getAtWarCount with CvTeamAI::AI_getAtWarCounter. */
 	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: bIgnoreVassals added
 	int getAtWarCount(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;																				// Exposed to Python
@@ -405,7 +405,7 @@ public:
 	DllExport void getCompletedSpaceshipProjects(std::map<ProjectTypes, int>& mapProjects) const;
 	DllExport int getProjectPartNumber(ProjectTypes projectType, bool bAssert) const;
 	DllExport bool hasLaunched() const;
-	// advc.003:
+	// advc:
 	bool hasTechToClear(FeatureTypes eFeature, TechTypes eCurrentResearch = NO_TECH) const;
 	void testCircumnavigated(); // advc.136a: Made public
 	/*  <advc.127b> Both return -1 if no team member has a capital or
@@ -464,7 +464,7 @@ public:
 
 protected:
 
-	TeamTypes m_eID; // advc.003: Moved here for easier access in the debugger
+	TeamTypes m_eID; // advc: Moved here for easier access in the debugger
 	int m_iNumMembers;
 	int m_iAliveCount;
 	int m_iEverAliveCount;
@@ -560,10 +560,10 @@ protected:
 	// </dlph.26>
 
 	void doWarWeariness();
-	void doBarbarianResearch(); // advc.003
+	void doBarbarianResearch(); // advc
 	void updateTechShare(TechTypes eTech);
 	void updateTechShare();
-	void updatePlotGroupBonus(TechTypes eTech, bool bAdd); // advc.003
+	void updatePlotGroupBonus(TechTypes eTech, bool bAdd); // advc
 
 	void processTech(TechTypes eTech, int iChange);
 

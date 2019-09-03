@@ -144,7 +144,7 @@ class CvGlobals
 {
 //	friend class CvDLLUtilityIFace;
 	friend class CvXMLLoadUtility;
-	/*  advc.003: Removed the std::vector<Cv...Info*>& getters for each info type.
+	/*  advc: Removed the std::vector<Cv...Info*>& getters for each info type.
 		Comments in CvGlobals.cpp had said that those getters were
 		"For Moose - XML Load Util and CvInfos."
 		The only calls came from CvXMLLoadUtility (mostly the three
@@ -1309,17 +1309,17 @@ public:
 	//
 
 	DllExport FVariableSystem* getDefinesVarSystem()
-	// <advc.003> Need a const version
+	// <advc> Need a const version
 	{	CvGlobals const& kThis = *this;
 		return const_cast<FVariableSystem*>(kThis.getDefinesVarSystem());
 	} FVariableSystem const* getDefinesVarSystem() const { return m_VarSystem; }
-	// </advc.003>
+	// </advc>
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
 	DllExport inline int getDefineINT(const char * szName) const
 	{
-		return getDefineINT(szName, 0); // advc.003: Call the BBAI version
+		return getDefineINT(szName, 0); // advc: Call the BBAI version
 	}
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000:
 	int getDefineINT(const char * szName, const int iDefault) const;
@@ -1474,7 +1474,7 @@ public:
 	inline int getUNIT_MULTISELECT_MAX() const { return getDefineINT(UNIT_MULTISELECT_MAX); }
 	DllExport inline int getEVENT_MESSAGE_TIME() { CvGlobals const& kThis = *this; return kThis.getEVENT_MESSAGE_TIME(); }
 	inline int getEVENT_MESSAGE_TIME() const { return getDefineINT(EVENT_MESSAGE_TIME); }
-	inline int getEVENT_MESSAGE_TIME_LONG() const { return getDefineINT(EVENT_MESSAGE_TIME_LONG); } // advc.003: Treat these two the same
+	inline int getEVENT_MESSAGE_TIME_LONG() const { return getDefineINT(EVENT_MESSAGE_TIME_LONG); } // advc: Treat these two the same
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 	inline int getWAR_SUCCESS_CITY_CAPTURING() const { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
 	inline int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }

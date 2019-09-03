@@ -18,7 +18,7 @@
 		<section id="Main">
 		
 			<!-- Options Screen Shortcut Reminder -->
-			<!-- advc.003 (note): Now unused -->
+			<!-- advc (note): Now unused -->
 			<option id="OptionsKey" key="Options Shortcut Reminder" 
 					type="boolean" default="False" 
 					get="isShowOptionsKeyReminder" set="setShowOptionsKeyReminder" dirtyBit="GameData"/>

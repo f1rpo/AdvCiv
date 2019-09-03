@@ -223,7 +223,7 @@ void CvActionInfo::setOriginalIndex(int i)
 
 bool CvActionInfo::isConfirmCommand() const
 {
-	switch(getSubType()) // advc.003 (replacing if/else)
+	switch(getSubType()) // advc (replacing if/else)
 	{
 	case ACTIONSUBTYPE_COMMAND:
 		return GC.getCommandInfo((CommandTypes)m_iOriginalIndex).getConfirmCommand();
@@ -598,7 +598,7 @@ bool CvInterfaceModeInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
-// advc.003: Removed this pointless function
+// advc: Removed this pointless function
 /*bool CvControlInfo::read(CvXMLLoadUtility* pXML)
 {
 	return CvHotkeyInfo::read(pXML);

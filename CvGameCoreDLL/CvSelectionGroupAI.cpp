@@ -347,7 +347,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (kLoopUnit.isDead())
-			continue; // advc.003
+			continue; // advc
 
 		bool bCanAttack = false;
 		if (kLoopUnit.getDomainType() == DOMAIN_AIR)
@@ -625,7 +625,7 @@ bool CvSelectionGroupAI::AI_isControlled() const
 }
 
 
-bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc.003: */ const
+bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc: */ const
 {
 	FAssert(getHeadUnit() != NULL);
 
@@ -741,7 +741,7 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc.003: */ co
 }
 
 
-CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot() /* advc.003: */ const
+CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot() /* advc: */ const
 {
 	return GC.getMap().plotSoren(m_iMissionAIX, m_iMissionAIY);
 }
@@ -794,7 +794,7 @@ void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* p
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc.003: */ const
+CvUnit* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc: */ const
 {
 	return ::getUnit(m_missionAIUnit);
 }

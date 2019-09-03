@@ -99,7 +99,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	//--------------------------------
 	// Init non-serialized data
 
-	m_bAllGameDataRead = true; // advc.003: Not loading from savegame
+	m_bAllGameDataRead = true; // advc: Not loading from savegame
 	// <advc.108>
 	m_iNormalizationLevel = (GC.getDefineBOOL("NORMALIZE_STARTPLOTS_AGGRESSIVELY") ?
 			3 : 1);
@@ -250,7 +250,7 @@ void CvGame::setInitialItems()
 				::round // dlph.22
 				(iTotal / (10.0 * iHumanPlayers)));
 		}
-		else // advc.003: Moved K-Mod comment into AssertMsg.
+		else // advc: Moved K-Mod comment into AssertMsg.
 			FAssertMsg(false, "All-AI game. Not necessarily wrong, but unexpected.");
 	}
 	// K-Mod end
@@ -319,7 +319,7 @@ void CvGame::regenerateMap()
 		return;
 
 	int iI;
-	CvMap& m = GC.getMap(); // advc.003
+	CvMap& m = GC.getMap(); // advc
 	/*  <advc.004j> Not sure if the unmodded game or any mod included with AdvCiv
 		uses script data, but can't hurt to reset it. CvDLLButtonPopup::
 		launchMainMenuPopup wants to disallow map regeneration once script data
@@ -470,7 +470,7 @@ void CvGame::uninit()
 	// </advc.072>
 	m_voteSelections.uninit();
 	m_votesTriggered.uninit();
-	// advc.003: Removed CvRandom::uninit; there was nothing to be done.
+	// advc: Removed CvRandom::uninit; there was nothing to be done.
 	/*m_mapRand.uninit();
 	m_sorenRand.uninit();*/
 
@@ -491,7 +491,7 @@ void CvGame::uninit()
 void CvGame::setStartTurnYear(int iTurn) {
 
 	int iI;
-	CvGameSpeedInfo const& kSpeed = GC.getGameSpeedInfo(getGameSpeedType()); // advc.003
+	CvGameSpeedInfo const& kSpeed = GC.getGameSpeedInfo(getGameSpeedType()); // advc
 	// <advc.250c>
 	if(iTurn > 0)
 		setGameTurn(iTurn);
@@ -548,7 +548,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 
 	uninit();
 
-	m_bAllGameDataRead = false; // advc.003;
+	m_bAllGameDataRead = false; // advc;
 	// <advc.106i>
 	if(m_pHallOfFame != NULL)
 		m_pHallOfFame->uninit(); // Don't keep HoF in memory indefinitely
@@ -772,7 +772,7 @@ void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
 
-	for(int i = 0; i < MAX_TEAMS; i++) {  // advc.003: style changes
+	for(int i = 0; i < MAX_TEAMS; i++) {  // advc: style changes
 		CvTeam& t = GET_TEAM((TeamTypes)i);
 		t.meet(t.getID(), false);
 		if(i == BARBARIAN_TEAM || t.isMinorCiv()) {
@@ -857,7 +857,7 @@ void CvGame::initFreeState()
 		for (int iJ = 0; iJ < MAX_TEAMS; iJ++)
 		{
 			if(!GET_TEAM((TeamTypes)iJ).isAlive())
-				continue; // advc.003
+				continue; // advc
 			bool bValid = false;
 			if (//(GC.getHandicapInfo(getHandicapType()).isFreeTechs(iI)) || // disabled by K-Mod. (moved & changed. See below)
 					(!GET_TEAM((TeamTypes)iJ).isHuman() && GC.getHandicapInfo(getHandicapType()).isAIFreeTechs(iI)
@@ -871,7 +871,7 @@ void CvGame::initFreeState()
 				{
 					CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iK); // K-Mod
 					if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != iJ)
-						continue; // advc.003
+						continue; // advc
 					/*  <advc.250b> <advc.250c> Always grant civ-specific tech,
 						but not tech from handicap if Advanced Start except to
 						human civs that don't actually start Advanced (SPaH option). */
@@ -1002,7 +1002,7 @@ void CvGame::assignStartingPlots()
 {
 	PROFILE_FUNC();
 
-	// (original bts code deleted) // advc.003
+	// (original bts code deleted) // advc
 	// K-Mod. Same functionality, but much faster and easier to read.
 	//
 	// First, make a list of all the pre-marked starting plots on the map.
@@ -1031,7 +1031,7 @@ void CvGame::assignStartingPlots()
 	if (GC.getPythonCaller()->callMapFunction("assignStartingPlots"))
 		return;
 
-	std::vector<PlayerTypes> playerOrder; // advc.003: was <int>
+	std::vector<PlayerTypes> playerOrder; // advc: was <int>
 	std::vector<bool> newPlotFound(MAX_CIV_PLAYERS, false); // advc.108b
 	if (isTeamGame())
 	{	/*  advc (comment): This assignment is just a starting point for
@@ -1040,7 +1040,7 @@ void CvGame::assignStartingPlots()
 		{
 			bool bStartFound = false;
 			int iRandOffset = getSorenRandNum(countCivTeamsAlive(), "Team Starting Plot");
-			gDLL->callUpdater(); // advc.003 (seems like a better place than the one I commented out above)
+			gDLL->callUpdater(); // advc (seems like a better place than the one I commented out above)
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
 				int iLoopTeam = ((iI + iRandOffset) % MAX_CIV_TEAMS);
@@ -1051,7 +1051,7 @@ void CvGame::assignStartingPlots()
 				{
 					CvPlayer& kMember = GET_PLAYER((PlayerTypes)iJ);
 					if(!kMember.isAlive())
-						continue; // advc.003
+						continue; // advc
 					if (kMember.getTeam() == iLoopTeam
 							// <advc.108b>
 							&& !newPlotFound[iJ]) {
@@ -1107,7 +1107,7 @@ void CvGame::assignStartingPlots()
 		}
 	}
 	else
-	{	// advc.003 (Comment): The minus 1 prevents humans from getting the worst plot
+	{	// advc (Comment): The minus 1 prevents humans from getting the worst plot
 		int const upperBound = countCivPlayersAlive() - 1;
 		int iHumanSlot = range(((upperBound * GC.getHandicapInfo(getHandicapType()).
 				getStartingLocationPercent()) / 100), 0, upperBound);
@@ -1384,7 +1384,7 @@ int CvGame::getStartingPlotRange() const
 } // </advc.003b>
 
 
-void CvGame::normalizeAddRiver()  // advc.003: style changes
+void CvGame::normalizeAddRiver()  // advc: style changes
 {
 	CvMap const& m = GC.getMap();
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -1438,7 +1438,7 @@ void CvGame::normalizeAddRiver()  // advc.003: style changes
 }
 
 
-void CvGame::normalizeRemovePeaks()  // advc.003: style changes
+void CvGame::normalizeRemovePeaks()  // advc: style changes
 {
 	// <advc.108>
 	double prRemoval = 1;
@@ -1488,7 +1488,7 @@ void CvGame::normalizeAddLakes()
 	}
 }
 
-CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)  // advc.003: style changes
+CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)  // advc: style changes
 {
 	if (!GET_PLAYER(ePlayer).isAlive())
 		return NULL;
@@ -1531,7 +1531,7 @@ CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)  // advc.003: style c
 }
 
 
-void CvGame::normalizeRemoveBadFeatures()  // advc.003: style changes
+void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 {
 	// advc.108
 	int const iThreshBadFeatPerCity = GC.getDefineINT("THRESH-BAD-FEAT-PER-CITY");
@@ -1622,7 +1622,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc.003: style changes
 }
 
 
-void CvGame::normalizeRemoveBadTerrain()  // advc.003: style changes
+void CvGame::normalizeRemoveBadTerrain()  // advc: style changes
 {
 	// <advc.108>
 	double prKeep = 0;
@@ -1710,7 +1710,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc.003: style changes
 }
 
 
-void CvGame::normalizeAddFoodBonuses()  // advc.003: style changes
+void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 {
 	bool bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	int iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION(); // K-Mod
@@ -1959,7 +1959,7 @@ void CvGame::normalizeAddGoodTerrain()
 }
 
 
-void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentation
+void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 {
 	bool bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	int iTotalValue = 0;
@@ -2103,7 +2103,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 					{
 						if (pLoopPlot->getBonusType() != NO_BONUS)
 							continue;
-						// advc.003: Selection and placement moved into auxiliary function
+						// advc: Selection and placement moved into auxiliary function
 						if (placeExtraBonus(kLoopPlayer.getID(), *pLoopPlot,
 								iPass == 0, bIgnoreLatitude, false))
 						{
@@ -2119,7 +2119,7 @@ void CvGame::normalizeAddExtras()  // advc.003: Some changes to reduce indentati
 								&& iCoastFoodCount + iOceanFoodCount > 2 &&
 								getSorenRandNum(2, "Clear feature to add bonus") == 0)
 						{
-							// advc.003: Selection, clearing of feature and placement moved into auxiliary function.
+							// advc: Selection, clearing of feature and placement moved into auxiliary function.
 							if (placeExtraBonus(kLoopPlayer.getID(), *pLoopPlot,
 									iPass == 0, bIgnoreLatitude, true))
 								iOtherCount++;
@@ -2257,7 +2257,7 @@ void CvGame::updateStartingPlotRange()
 	m_iStartingPlotRange = std::max(iRange, GC.getDefineINT("MIN_CIV_STARTING_DISTANCE"));
 }
 
-// <advc.003> Cut, pasted, refactored from normalizeAddExtras
+// <advc> Cut, pasted, refactored from normalizeAddExtras
 bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature)
 {
@@ -2308,7 +2308,7 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return true;
 
 	return false;
-} // </advc.003>
+} // </advc>
 
 // <advc.108>
 bool CvGame::isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const {
@@ -2496,11 +2496,11 @@ void CvGame::updateScore(bool bForce)
 				}
 			}
 		}
-		// <advc.003>
+		// <advc>
 		if(eBestPlayer == NO_PLAYER) {
 			FAssert(eBestPlayer != NO_PLAYER);
 			continue;
-		} // </advc.003>
+		} // </advc>
 		abPlayerScored[eBestPlayer] = true;
 		// <advc.001>
 		if(iI != getPlayerRank(eBestPlayer))
@@ -2663,7 +2663,7 @@ void CvGame::updateGwPercentAnger()
 		iGlobalPollution = calculateGlobalPollution();
 		iGwSeverityRating = calculateGwSeverityRating();
 		iGlobalDefence = calculateGwLandDefence(NO_PLAYER);
-	} // advc.003: Ensure initialization
+	} // advc: Ensure initialization
 	else iGlobalPollution = iGwSeverityRating = iGlobalDefence = -1;
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
@@ -3630,7 +3630,7 @@ void CvGame::replaceCorporation(CorporationTypes eCorporation1, CorporationTypes
 
 
 int CvGame::calculateReligionPercent(ReligionTypes eReligion,
-		bool bIgnoreOtherReligions) const // advc.115b: Param added  // advc.003: style changes
+		bool bIgnoreOtherReligions) const // advc.115b: Param added  // advc: style changes
 {
 	if (getTotalPopulation() == 0)
 		return 0;
@@ -3701,13 +3701,13 @@ int CvGame::getImprovementUpgradeTime(ImprovementTypes eImprovement) const
 	return iTime;
 }
 
-/*  advc.003: 3 for Marathon, 0.67 for Quick. Based on VictoryDelay. For cases where
+/*  advc: 3 for Marathon, 0.67 for Quick. Based on VictoryDelay. For cases where
 	there isn't a more specific game speed modifier that could be applied. (E.g.
 	tech costs should be adjusted based on iResearchPercent, not on this function.) */
 double CvGame::gameSpeedFactor() const {
 
 	return GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent() / 100.0;
-} // </advc.003>
+} // </advc>
 
 bool CvGame::canTrainNukes() const
 {
@@ -3815,7 +3815,7 @@ bool CvGame::isTeamGame() const
 }
 
 
-bool CvGame::isModem() /* advc.003: */ const
+bool CvGame::isModem() /* advc: */ const
 {
 	return gDLL->IsModem();
 }
@@ -3882,14 +3882,14 @@ void CvGame::incrementGameTurn()
 }
 
 
-int CvGame::getTurnYear(int iGameTurn) /* advc.003: */ const
+int CvGame::getTurnYear(int iGameTurn) /* advc: */ const
 {
 	// moved the body of this method to Game Core Utils so we have access for other games than the current one (replay screen in HOF)
 	return getTurnYearForGame(iGameTurn, getStartYear(), getCalendar(), getGameSpeedType());
 }
 
 
-int CvGame::getGameTurnYear() const // advc.003: const
+int CvGame::getGameTurnYear() const // advc: const
 {
 	//return getTurnYear(getGameTurn()); // To work aorund non-const getGameTurn
 	return getTurnYear(getGameTurn());
@@ -4002,7 +4002,7 @@ void CvGame::setEstimateEndTurn(int iNewValue)
 	m_iEstimateEndTurn = iNewValue;
 }
 
-/*  <advc.003> Ratio of turns played to total estimated game length; between 0 and 1.
+/*  <advc> Ratio of turns played to total estimated game length; between 0 and 1.
 	iDelay is added to the number of turns played. */
 double CvGame::gameTurnProgress(int iDelay) const {
 
@@ -4010,7 +4010,7 @@ double CvGame::gameTurnProgress(int iDelay) const {
 		beyond 2050. So, no need to check if it's disabled. */
 	double gameLength = getEstimateEndTurn() - getStartTurn();
 	return std::min(1.0, (getElapsedGameTurns() + iDelay) / gameLength);
-} // </advc.003>
+} // </advc>
 
 int CvGame::getTurnSlice() const
 {
@@ -4446,7 +4446,7 @@ void CvGame::initScoreCalculation()
 }
 
 
-int CvGame::getAIAutoPlay() /* advc.003: */ const
+int CvGame::getAIAutoPlay() /* advc: */ const
 {
 	return m_iAIAutoPlay;
 }
@@ -4750,7 +4750,7 @@ void CvGame::changeDiploVote(VoteSourceTypes eVoteSource, int iChange)
 
 bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
 {
-	CvVoteInfo const& kVote = GC.getVoteInfo(kData.eVote); // advc.003
+	CvVoteInfo const& kVote = GC.getVoteInfo(kData.eVote); // advc
 	if (kVote.isVictory())
 	{
 		int iVotesRequired = getVoteRequired(kData.eVote, eVoteSource); // K-Mod
@@ -4895,7 +4895,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 
-		if(kPlayer.isAVassal()) // advc.003
+		if(kPlayer.isAVassal()) // advc
 			return false;
 		//if (!kPlayer.isFullMember(eVoteSource))
 		// dlph.25: 'These are not necessarily the same.'
@@ -5208,7 +5208,7 @@ void CvGame::setFinalInitialized(bool bNewValue)
 	PROFILE_FUNC();
 
 	if (isFinalInitialized() == bNewValue)
-		return; // advc.003
+		return; // advc
 	m_bFinalInitialized = bNewValue;
 	if (!isFinalInitialized())
 		return;
@@ -5538,7 +5538,7 @@ GameStateTypes CvGame::getGameState() const
 void CvGame::setGameState(GameStateTypes eNewValue)
 {
 	if (getGameState() == eNewValue)
-		return; // advc.003
+		return; // advc
 
 	m_eGameState = eNewValue;
 	if (eNewValue == GAMESTATE_OVER)
@@ -5747,7 +5747,7 @@ void CvGame::setForceControl(ForceControlTypes eIndex, bool bEnabled)
 	GC.getInitCore().setForceControl(eIndex, bEnabled);
 }
 
-// advc.003: Mostly cut from CvPlayer::canConstruct
+// advc: Mostly cut from CvPlayer::canConstruct
 bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const
 {
 	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
@@ -5797,7 +5797,7 @@ bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestV
 	return true;
 }
 
-// advc.003: Cut from CvPlayer::canTrain
+// advc: Cut from CvPlayer::canTrain
 bool CvGame::canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) const
 {
 	CvUnitInfo const& kUnit = GC.getUnitInfo(eUnit);
@@ -6209,7 +6209,7 @@ CvCity* CvGame::getHolyCity(ReligionTypes eIndex)
 }
 
 
-void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc.003: refactored (note: almost the same as setHeadquarters)
+void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc: refactored (note: almost the same as setHeadquarters)
 {
 	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::setHolyCity");
 
@@ -6275,7 +6275,7 @@ CvCity* CvGame::getHeadquarters(CorporationTypes eIndex) const
 }
 
 
-void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc.003: refactored (note: almost the same as setHolyCity)
+void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc: refactored (note: almost the same as setHolyCity)
 {
 	FASSERT_BOUNDS(0, GC.getNumCorporationInfos(), eIndex, "CvGame::setHeadquarters");
 
@@ -6821,15 +6821,15 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 		/*  advc (comment): Should arguably just create a new flag RANDPLOT_GLOBAL_WARMING
 			and let synRandPlot handle the randomized selection. */ 
 		CvPlot* pTestPlot = NULL;
-		/*  advc.003: Was < 100. If we want to be certain not to miss, then we should
+		/*  advc: Was < 100. If we want to be certain not to miss, then we should
 			check the whole map. But a 1% failure chance is fine with me. */
 		for (int j = 0; j < 25; j++)
 		{
 			pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_NOT_CITY,
-					NULL, -1, 20); // advc.003: iTimeout was 100 - don't need to draw that many cities to conclude that sth. is wrong.
+					NULL, -1, 20); // advc: iTimeout was 100 - don't need to draw that many cities to conclude that sth. is wrong.
 			if (pTestPlot == NULL)
 			{
-				FAssert(pTestPlot != NULL); // advc.003
+				FAssert(pTestPlot != NULL); // advc
 				break; // give up
 			}
 			// check for ice
@@ -6848,7 +6848,7 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 			// not a suitable plot, try again.
 		}
 
-		if (pTestPlot == NULL/* || j == 100*/) // advc.003: Unnecessary as I'm resetting pTestPlot in the outer loop
+		if (pTestPlot == NULL/* || j == 100*/) // advc: Unnecessary as I'm resetting pTestPlot in the outer loop
 			continue;
 
 		// if only I could do this with a switch...  [advc: one cannot b/c the case labels need to be constant expressions]
@@ -6874,7 +6874,7 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 } // K-Mod end
 
 
-void CvGame::doHolyCity()  // advc.003: many style changes
+void CvGame::doHolyCity()  // advc: many style changes
 {
 	if (GC.getPythonCaller()->doHolyCity())
 		return;
@@ -7121,7 +7121,7 @@ void CvGame::doDiploVote()
 }
 
 
-void CvGame::createBarbarianCities()  // advc.003 some style changes
+void CvGame::createBarbarianCities()  // advc some style changes
 {
 	if (getMaxCityElimination() > 0)
 		return;
@@ -7224,7 +7224,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 	{
 		CvPlot* pLoopPlot = m.plotByIndex(iI);
 		if(pLoopPlot->isWater() || pLoopPlot->isVisibleToCivTeam())
-			continue; // advc.003
+			continue; // advc
 		// <advc.300>
 		CvArea& a = *pLoopPlot->area();
 		int const iAreaSz = a.getNumTiles();
@@ -7440,7 +7440,7 @@ void CvGame::createBarbarianUnits()
 }
 
 
-void CvGame::createAnimals()  // advc.003: style changes
+void CvGame::createAnimals()  // advc: style changes
 {
 	if (GC.getEraInfo(getCurrentEra()).isNoAnimals()
 			|| isOption(GAMEOPTION_NO_ANIMALS)) // advc.309
@@ -7994,7 +7994,7 @@ void CvGame::updateTimers()
 }
 
 
-void CvGame::updateTurnTimer()  // advc.003: style changes
+void CvGame::updateTurnTimer()  // advc: style changes
 {
 	if (!isMPOption(MPOPTION_TURN_TIMER)) // Are we using a turn timer?
 		return;
@@ -8023,7 +8023,7 @@ void CvGame::testAlive()
 		GET_PLAYER((PlayerTypes)iI).verifyAlive();
 }
 
-bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const  // advc.003: simplified this function a bit
+bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const  // advc: simplified this function a bit
 {
 	FASSERT_BOUNDS(0, GC.getNumVictoryInfos(), eVictory, "CvGame::testVictory");
 	FASSERT_BOUNDS(0, MAX_CIV_TEAMS, eTeam, "CvGame::testVictory");
@@ -8180,7 +8180,7 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 	return true;
 }
 
-void CvGame::testVictory()  // advc.003: style changes
+void CvGame::testVictory()  // advc: style changes
 {
 	bool bEndScore = false;
 
@@ -8195,7 +8195,7 @@ void CvGame::testVictory()  // advc.003: style changes
 	if (getElapsedGameTurns() <= 10 || !GC.getPythonCaller()->isVictoryPossible())
 		return; // </advc.003y>
 
-	std::vector<std::pair<TeamTypes,VictoryTypes> > aeeWinners; // advc.003: was vector<vector<int> >
+	std::vector<std::pair<TeamTypes,VictoryTypes> > aeeWinners; // advc: was vector<vector<int> >
 	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		CvTeam& kTeam = GET_TEAM((TeamTypes)iI);
@@ -8319,7 +8319,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 							pLoopDeal->kill();
 							break;
 						}
-					} // advc.003: Don't bother with SecondTrades; DPs are dual.
+					} // advc: Don't bother with SecondTrades; DPs are dual.
 				}
 			} // </dlph.25>
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
@@ -8623,7 +8623,7 @@ int CvGame::calculateSyncChecksum()
 					break; // </advc.003n>
 				for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
-					if(iI != iJ) // advc.003: self-attitude should never matter
+					if(iI != iJ) // advc: self-attitude should never matter
 						iMultiplier += kPlayer.AI_getAttitudeVal((PlayerTypes)iJ, false) << iJ;
 				}
 				// strategy hash
@@ -9389,7 +9389,7 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 	}
 }
 
-/*  <advc.003> When loading a savegame, this function is called once all
+/*  <advc> When loading a savegame, this function is called once all
 	read functions have been called. */
 void CvGame::allGameDataRead() {
 
@@ -9409,7 +9409,7 @@ void CvGame::onGraphicsInitialized() {
 
 	// (Nothing to be done here currently)
 }
-// </advc.003>
+// </advc>
 
 void CvGame::saveReplay(PlayerTypes ePlayer)
 {	// advc.106i: Hack to prepend sth. to the replay file name
@@ -9916,17 +9916,17 @@ void CvGame::changeShrineBuilding(BuildingTypes eBuilding, ReligionTypes eReligi
 
 }
 
-bool CvGame::culturalVictoryValid() /* advc.003: */ const
+bool CvGame::culturalVictoryValid() /* advc: */ const
 {
 	return (m_iNumCultureVictoryCities > 0);
 }
 
-int CvGame::culturalVictoryNumCultureCities() /* advc.003: */ const
+int CvGame::culturalVictoryNumCultureCities() /* advc: */ const
 {
 	return m_iNumCultureVictoryCities;
 }
 
-CultureLevelTypes CvGame::culturalVictoryCultureLevel() /* advc.003: */  const
+CultureLevelTypes CvGame::culturalVictoryCultureLevel() /* advc: */  const
 {
 	if (m_iNumCultureVictoryCities > 0)
 	{
@@ -10246,7 +10246,7 @@ void CvGame::doVoteResults()
 	{
 		CvWString szBuffer;
 		CvWString szMessage;
-		VoteSelectionSubData subdata = pVoteTriggered->kVoteOption; // advc.003
+		VoteSelectionSubData subdata = pVoteTriggered->kVoteOption; // advc
 		VoteTypes eVote = subdata.eVote;
 		VoteSourceTypes eVoteSource = pVoteTriggered->eVoteSource;
 		bool bPassed = false;
@@ -10508,13 +10508,13 @@ void CvGame::doVoteResults()
 						pInfo->setText(szBuffer);
 						gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
 					}
-				} // <advc.003>
+				} // <advc>
 				if(!bShow && iI == subdata.ePlayer && GET_PLAYER(subdata.ePlayer).
 						isVotingMember(pVoteTriggered->eVoteSource))
 					bShow = true;
 				if(!bShow && iI == subdata.eOtherPlayer && GET_PLAYER(subdata.eOtherPlayer).
 						isVotingMember(pVoteTriggered->eVoteSource))
-					bShow = true; // </advc.003>
+					bShow = true; // </advc>
 				if (bPassed && (bShow // <advc.127>
 						|| kPlayer.isSpectator()))
 				{
@@ -10667,7 +10667,7 @@ void CvGame::doVoteSelection()
 
 bool CvGame::isEventActive(EventTriggerTypes eTrigger) const
 {
-	return (std::find(m_aeInactiveTriggers.begin(), m_aeInactiveTriggers.end(), // advc.003: Use STL (or better make this a std::set?)
+	return (std::find(m_aeInactiveTriggers.begin(), m_aeInactiveTriggers.end(), // advc: Use STL (or better make this a std::set?)
 			eTrigger) == m_aeInactiveTriggers.end());
 }
 
@@ -10849,7 +10849,7 @@ CvCity* CvGame::getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver, bool
 	return NULL;
 }
 
-// <advc.003> Used in several places and I want to make a small change
+// <advc> Used in several places and I want to make a small change
 bool CvGame::isFreeStartEraBuilding(BuildingTypes eBuilding) const {
 
 	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
@@ -10858,7 +10858,7 @@ bool CvGame::isFreeStartEraBuilding(BuildingTypes eBuilding) const {
 			// <advc.126>
 			(kBuilding.getMaxStartEra() == NO_ERA ||
 			kBuilding.getMaxStartEra() >= getStartEra())); // </advc.126>
-} // </advc.003>
+} // </advc>
 
 
 BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes eVS) const {
@@ -10904,8 +10904,8 @@ void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame) {
 	m_pHallOfFame = pHallOfFame;
 } // </advc.106i>
 
-// <advc.003>
+// <advc>
 std::set<int>& CvGame::getActivePlayerCycledGroups() {
 
 	return m_ActivePlayerCycledGroups; // Was public; now protected.
-} // </advc.003>
+} // </advc>

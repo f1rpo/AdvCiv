@@ -5,7 +5,7 @@
 #include "FAStarNode.h"
 #include "CvInfo_All.h"
 
-using std::vector; // advc.003
+using std::vector; // advc
 
 #define PATH_MOVEMENT_WEIGHT    (1000)
 //#define PATH_RIVER_WEIGHT     (100)
@@ -107,7 +107,7 @@ double percentileRank(vector<double>& distribution, double score,
 		return 1;
 	return iLEq / (double)n;
 } // </advc.003g>
-// <advc.003>
+// <advc>
 float hash(vector<long> const& x, PlayerTypes ePlayer) {
 
 	int const iPrime = 31;
@@ -165,7 +165,7 @@ void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r) {
 		}
 	}
 	FAssert(pos == 21);
-} // </advc.003>
+} // </advc>
 // <advc.035>
 void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 
@@ -237,7 +237,7 @@ void applyColorToString(CvWString& s, char const* szColor, bool bLink) {
 		s.Format(L"<link=literal>%s</link>", s.GetCString());
 	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
 } // </advc.004w>
-/*  <advc.003> Tbd.: Take into account the locale - perhaps through
+/*  <advc> Tbd.: Take into account the locale - perhaps through
 	boost::locale::conv - and/ or check for characters that can't be narrowed.
 	So far, it's the same code that CvInitCore::refreshCustomMapOptions had
 	been using. */
@@ -1846,7 +1846,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 {
 	PROFILE_FUNC();
 
-	CvMap const& m = GC.getMap(); // advc.003: ... and use CvPlot references:
+	CvMap const& m = GC.getMap(); // advc: ... and use CvPlot references:
 	CvPlot const& kFromPlot = m.getPlot(parent->m_iX, parent->m_iY);
 	CvPlot const& kToPlot = m.getPlot(node->m_iX, node->m_iY);
 
@@ -2202,7 +2202,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	return iWorstCost;
 }
 
-int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc.003: style changes
+int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc: style changes
 {
 	CvMap const& kMap = GC.getMap();
 	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
@@ -2217,7 +2217,7 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 	return TRUE;
 }
 
-int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc.003: some style changes
+int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc: some style changes
 {
 	PROFILE_FUNC();
 	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
@@ -2336,7 +2336,7 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 
 	if(parent == NULL)
 		return TRUE;
-	// advc.003: Was unused (apart from an assertion)
+	// advc: Was unused (apart from an assertion)
 	/*CvPlot* pFromPlot = ...;
 	CvPlot* pToPlot = ...; */
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
@@ -2376,7 +2376,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 		// K-Mod end
 	}
 	else
-	{	// advc.003: use plot references
+	{	// advc: use plot references
 		CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 		CvPlot const& kToPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
 
@@ -2620,7 +2620,7 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 /*  BETTER_BTS_AI_MOD, 02/02/09, jdog5000: START
 	Find paths that a team's units could follow without declaring war */
 // advc (comment): This does assume a DoW on pointer[1] (eTargetTeam)
-int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc.003: some style changes (CvMap::getPlot)
+int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: some style changes (CvMap::getPlot)
 {
 	if (parent == NULL)
 	{
@@ -2732,7 +2732,7 @@ int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* point
 }
 
 
-int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc.003: style changes
+int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
 	if (parent == NULL)
 		return TRUE;
@@ -2775,7 +2775,7 @@ int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 }
 
 
-int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc.003: style changes
+int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
 	if (parent == NULL)
 		return TRUE;

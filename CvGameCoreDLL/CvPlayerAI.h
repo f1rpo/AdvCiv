@@ -14,7 +14,7 @@ class CvDeal;
 
 class CvPlayerAI : public CvPlayer
 {
-	friend CvPlayer; // advc.003: for CvPlayer::AI
+	friend CvPlayer; // advc: for CvPlayer::AI
 public:
 
 	CvPlayerAI();
@@ -96,7 +96,7 @@ public:
 	void AI_updateAssignWork();
 
 	void AI_makeProductionDirty();
-	#if 0 // advc.003
+	#if 0 // advc
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 	#endif
 	void AI_conquerCity(CvCity* pCity);
@@ -251,7 +251,7 @@ public:
 
 	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList,
 			bool bIgnoreAnnual = false,
-			int iChange = 1, /* advc.003: was called iExtra, which didn't make sense
+			int iChange = 1, /* advc: was called iExtra, which didn't make sense
 								and differed from the parameter name in CvPlayerAI.cpp. */
 			bool bIgnoreDiscount = false, // advc.550a
 			bool bIgnorePeace = false) const; // advc.130p
@@ -457,7 +457,7 @@ public:
 
 	int AI_getMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2) const;
 	void AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, int iChange);
-	// advc.003: setter added
+	// advc: setter added
 	inline void AI_setMemoryCount(PlayerTypes eAboutPlayer, MemoryTypes eMemoryType, int iValue);
 	// advc.130j: Increases memory count according to (hardcoded) granularity
 	void AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType);
@@ -551,7 +551,7 @@ public:
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
 
 	int AI_getNumCitySites() const;
-	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc.003: Made plot param const
+	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc: Made plot param const
 	int AI_getNumAreaCitySites(int iAreaID, int& iBestValue) const;
 	int AI_getNumAdjacentAreaCitySites(int iWaterAreaID, int iExcludeArea, int& iBestValue) const;
 	int AI_getNumPrimaryAreaCitySites(int iMinimumValue = 0) const; // K-Mod
@@ -603,7 +603,7 @@ public:
 	bool AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iOurBenefit);
 	void AI_offerCapitulation(PlayerTypes eTo);
 	// </advc.104h>
-	bool AI_willOfferPeace(PlayerTypes eTo) const; // advc.003
+	bool AI_willOfferPeace(PlayerTypes eTo) const; // advc
 	// advc.130h:
 	bool AI_disapprovesOfDoW(TeamTypes eAggressor, TeamTypes eVictim) const;
 	bool AI_isDangerFromSubmarines() const; // advc.651
@@ -615,14 +615,14 @@ public:
 	// advc.001: needed for bNeighbouringReligion in AI_techValue
 	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const;
 
-	// <advc.003> <advc.104m>
+	// <advc.104m>
 	bool AI_proposeEmbargo(PlayerTypes eHuman);
 	bool AI_contactReligion(PlayerTypes eHuman);
 	bool AI_contactCivics(PlayerTypes eHuman);
 	bool AI_askHelp(PlayerTypes eHuman);
 	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
 	bool AI_demandTribute(PlayerTypes eHuman, int iTributeType);
-	// </advc.104m> </advc.003>
+	// </advc.104m>
 	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
 	// advc.104r: Made public and param added
 	void AI_doSplit(bool bForce = false);
@@ -720,13 +720,13 @@ protected:
 	void AI_doReligion();
 	void AI_doDiplo();
 	void AI_doCheckFinancialTrouble();
-	/*  <advc.003> Overlaps with CvTeamAI::roundTradeVal. Could call that function,
+	/*  <advc> Overlaps with CvTeamAI::roundTradeVal. Could call that function,
 		but don't want to include CvTeamAI.h here. (And want inlining.) */
 	inline void AI_roundTradeVal(int& iTradeVal) const
 	{
 		iTradeVal -= iTradeVal % GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER);
 	}
-	bool AI_proposeJointWar(PlayerTypes eHuman); // </advc.003>
+	bool AI_proposeJointWar(PlayerTypes eHuman); // </advc>
 	// advc.130t:
 	int AI_rivalPactAttitude(PlayerTypes ePlayer, bool bVassalPacts) const;
 	double AI_expansionistHate(PlayerTypes ePlayer) const;
@@ -761,7 +761,7 @@ protected:
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
 			double leniency) const; // </advc.705>
-	// <advc.003>
+	// <advc>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
 			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore,
@@ -779,7 +779,7 @@ protected:
 	enum CancelCode { NO_CANCEL = -1, RENEGOTIATE, DO_CANCEL };
 	CancelCode AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer);
 	bool AI_doDeals(PlayerTypes eOther);
-	// </advc.003>
+	// </advc>
 	bool AI_proposeResourceTrade(PlayerTypes eTo); // advc.133
 	// advc.132:
 	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;

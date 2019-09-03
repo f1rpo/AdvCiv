@@ -505,7 +505,7 @@ CvTextureBlendSlotList &CvArtInfoTerrain::getBlendList(int blendMask)
 	FAssert(blendMask>0 && blendMask<16);
 	return *m_pTextureSlots[blendMask];
 }
-namespace // advc.003
+namespace // advc
 {
 	void BuildSlotList(CvTextureBlendSlotList &list, CvString &numlist)
 	{

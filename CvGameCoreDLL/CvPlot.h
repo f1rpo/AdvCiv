@@ -169,7 +169,7 @@ public:
 	int getNumCultureRangeCities(PlayerTypes ePlayer) const;																				// Exposed to Python
 
 	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
-			// advc.003: const qualifier added to these two
+			// advc: const qualifier added to these two
 	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
 	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
 	int calculatePathDistanceToPlot(TeamTypes eTeam, // <advc.104b>
@@ -179,9 +179,9 @@ public:
 	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
 	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)
 	inline int getActivePlayerSafeRangeCache() const { return m_iActivePlayerSafeRangeCache; }
-	inline void setActivePlayerSafeRangeCache(int range) const { m_iActivePlayerSafeRangeCache = range; } // advc.003: const
+	inline void setActivePlayerSafeRangeCache(int range) const { m_iActivePlayerSafeRangeCache = range; } // advc: const
 	inline bool getBorderDangerCache(TeamTypes eTeam) const { return m_abBorderDangerCache[eTeam]; }
-	inline void setBorderDangerCache(TeamTypes eTeam, bool bNewValue) const { m_abBorderDangerCache[eTeam] = bNewValue; } // advc.003: const
+	inline void setBorderDangerCache(TeamTypes eTeam, bool bNewValue) const { m_abBorderDangerCache[eTeam] = bNewValue; } // advc: const
 	void invalidateBorderDangerCache();
 	// BETTER_BTS_AI_MOD: END
 	PlayerTypes calculateCulturalOwner(
@@ -255,7 +255,7 @@ public:
 	bool isNetworkTerrain(TeamTypes eTeam) const;																											// Exposed to Python
 	bool isBonusNetwork(TeamTypes eTeam) const;																												// Exposed to Python
 	bool isTradeNetwork(TeamTypes eTeam) const;																												// Exposed to Python
-	bool isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const; // advc.003: param was CvPlot const*								// Exposed to Python
+	bool isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const; // advc: param was CvPlot const*								// Exposed to Python
 	bool isRiverNetwork(TeamTypes eTeam) const;
 
 	bool isValidDomainForLocation(const CvUnit& unit) const;																					// Exposed to Python
@@ -267,7 +267,7 @@ public:
 	int getYExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
 	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
 	bool at(int iX, int iY) const;																																		// Exposed to Python
-	int getMapIndex() const; // advc.003
+	int getMapIndex() const; // advc
 	int getLatitude() const;																																					// Exposed to Python
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
 	int getFOWIndex() const;
@@ -626,7 +626,7 @@ protected:
 	//bool m_bActivePlayerNoDangerCache;
 	mutable int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
 	mutable bool* m_abBorderDangerCache;
-	// BETTER_BTS_AI_MOD: END  // advc.003: 2x mutable
+	// BETTER_BTS_AI_MOD: END  // advc: 2x mutable
 
 	short* m_aiYield;
 	int* m_aiCulture;

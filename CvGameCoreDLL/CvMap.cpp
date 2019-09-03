@@ -264,7 +264,7 @@ void CvMap::doTurn()
 // K-Mod
 void CvMap::setFlagsDirty()
 {
-	for(int i = 0; i < numPlots(); i++) // advc.003
+	for(int i = 0; i < numPlots(); i++) // advc
 		plotByIndex(i)->setFlagDirty(true);
 }
 // K-Mod end
@@ -564,7 +564,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 	return NULL;
 }
 
-// advc.003: Body cut from syncRandPlot
+// advc: Body cut from syncRandPlot
 bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
 		int iMinCivUnitDistance) const
 {
@@ -597,7 +597,7 @@ bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea
 }
 
 
-CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc.003: style changes
+CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc: style changes
 		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity* pSkipCity,
 		TeamTypes eObserver) const // advc.004r
 {
@@ -618,7 +618,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 		if (eTeam != NO_TEAM && kLoopPlayer.getTeam() != eTeam)
 			continue;
 
-		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer) // advc.003: Body refactored
+		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer) // advc: Body refactored
 		{	// <advc.004r>
 			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
 				continue; // </advc.004r>
@@ -645,7 +645,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 }
 
 
-CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,  // advc.003: some style changes
+CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,  // advc: some style changes
 		bool bReadyToSelect, bool bWorkers) const
 {
 	int iBestValue = MAX_INT;
@@ -721,7 +721,7 @@ int CvMap::getMapFractalFlags() const
 
 
 //"Check plots for wetlands or seaWater.  Returns true if found"
-bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc.003: const CvPlot*
+bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc: const CvPlot*
 {
 	PROFILE("CvMap::findWater()");
 
@@ -935,7 +935,7 @@ bool CvMap::isWrapExternal() // advc.003f
 	return isWrap();
 }
 
-// advc.003: const replacement for DllExport getWorldSize
+// advc: const replacement for DllExport getWorldSize
 WorldSizeTypes CvMap::getWorldSize() const
 {
 	return GC.getInitCore().getWorldSize();
@@ -1031,7 +1031,7 @@ int CvMap::getNumAreas() const
 }
 
 
-int CvMap::getNumLandAreas() const  // advc.003: style changes
+int CvMap::getNumLandAreas() const  // advc: style changes
 {
 	int iNumLandAreas = 0;
 	FOR_EACH_AREA(pLoopArea)
@@ -1115,7 +1115,7 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 
 
 
-// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc.003: unnecessary NULL checks removed
+// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc: unnecessary NULL checks removed
 void CvMap::invalidateActivePlayerSafeRangeCache()
 {
 	PROFILE_FUNC();

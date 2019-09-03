@@ -142,7 +142,7 @@ public:
 	bool canPlunder(const CvPlot* pPlot, bool bTestVisible = false) const;																					// Exposed to Python
 	bool plunder();
 	void updatePlunder(int iChange, bool bUpdatePlotGroups);
-	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0) const; // advc.003
+	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0) const; // advc
 
 	int sabotageCost(const CvPlot* pPlot) const;																									// Exposed to Python
 	int sabotageProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle = PROBABILITY_REAL) const;	// Exposed to Python
@@ -301,10 +301,10 @@ public:
 	bool canAttack() const;																														// Exposed to Python
 	bool canAttack(const CvUnit& defender) const;
 	bool canDefend(const CvPlot* pPlot = NULL) const;																	// Exposed to Python
-	// <advc.003>
+	// <advc>
 	bool canDefendAtCurrentPlot(PlayerTypes eAttackingPlayer,
 			CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
-			bool bTestCanMove, bool bTestVisible) const; // </advc.003>
+			bool bTestCanMove, bool bTestVisible) const; // </advc>
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python
 
 	int airBaseCombatStr() const;																						// Exposed to Python
@@ -785,9 +785,9 @@ protected:
 
 	int m_iID;
 	int m_iGroupID;
-	// <advc.003> Moved up for easier access in debugger
+	// <advc> Moved up for easier access in debugger
 	PlayerTypes m_eOwner;
-	CvUnitInfo *m_pUnitInfo; // </advc.003>
+	CvUnitInfo *m_pUnitInfo; // </advc>
 	int m_iX;
 	int m_iY;
 	int m_iLastMoveTurn;
@@ -904,7 +904,7 @@ private:
 	// </advc.003u>
 };
 
-// advc.003: Moved from the beginning of the file
+// advc: Moved from the beginning of the file
 struct CombatDetails											// Exposed to Python
 {
 	int iExtraCombatPercent;

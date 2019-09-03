@@ -302,7 +302,7 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 	{
 		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eOldID, "CvInitCore::reassignPlayer (eOldID)");
 		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eNewID, "CvInitCore::reassignPlayer (eNewID)");
-		return; // advc.003
+		return; // advc
 	}
 	// *** SAVE TARGET SLOT DETAILS TEMPORARILY
 	// Temp civ details
@@ -490,7 +490,7 @@ void CvInitCore::resetGame()
 	// </advc.003c>
 	// Map-specific custom parameters
 	clearCustomMapOptions();
-	/*  advc.003: Unused as far as I can tell, but still better to ensure that it
+	/*  advc: Unused as far as I can tell, but still better to ensure that it
 		gets initialized. */
 	m_iNumHiddenCustomMapOptions = 0;
 	// Data-defined victory conditions
@@ -543,7 +543,7 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 		resetGame();
 	}
 	if(!pSource)
-		return; // advc.003
+		return; // advc
 
 	// Only copy over saved data
 
@@ -576,10 +576,10 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 	// Standard game options
 	int i;
 	for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
-	{	// <advc.003>
+	{	// <advc>
 		GameOptionTypes eLoopOption = (GameOptionTypes)i;
 		bool b = pSource->getOption(eLoopOption);
-		// </advc.003>
+		// </advc>
 		// <dlph.18>
 		CvGameOptionInfo const& kLoopOption = GC.getGameOptionInfo(eLoopOption);
 		if(kLoopOption.getVisible() == 0)
@@ -955,7 +955,7 @@ void CvInitCore::refreshCustomMapOptions()  // advc.003y: refactored
 	::narrowUnsafe(getMapScriptName(), szMapScriptNameNarrow);
 	char const* szMapScriptName = szMapScriptNameNarrow.GetCString();
 	if (!gDLL->pythonMapExists(szMapScriptName))
-	{	// advc.003: Map script doesn't have to be present when loading a game
+	{	// advc: Map script doesn't have to be present when loading a game
 		FAssertMsg(getType() == GAME_SP_LOAD, "Map script not found");
 		return;
 	}
@@ -1882,7 +1882,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	{
 		for (int i = 0; i < MAX_PLAYERS; i++)
 		{
-			CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i); // advc.003
+			CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i); // advc
 			/*  <advc.706> Had a reproducible crash when loading a non-R&F game
 				from within an R&F game right after inspecting a city.
 				Resetting the human players before reading any other player data

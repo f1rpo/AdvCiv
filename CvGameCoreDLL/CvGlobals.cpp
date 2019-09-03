@@ -1425,7 +1425,7 @@ int CvGlobals::getMaxCivPlayers() const
 
 bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
 
-// advc.003: onGraphicsInitialized call added
+// advc: onGraphicsInitialized call added
 void CvGlobals::SetGraphicsInitialized(bool bVal) {
 
 	if(bVal == m_bGraphicsInitialized)

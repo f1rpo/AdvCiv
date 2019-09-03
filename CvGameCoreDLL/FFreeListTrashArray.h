@@ -478,7 +478,7 @@ inline void FFreeListTrashArray< T >::Write( FDataStreamBase* pStream )
 //-------------------------------
 // Serialization helper templates:
 //-------------------------------
-namespace // advc.003: Make these inaccessible to files that include this header
+namespace // advc: Make these inaccessible to files that include this header
 {
 //
 // use when list contains streamable types
@@ -543,5 +543,5 @@ inline void WriteStreamableFFreeListTrashArray( FFreeListTrashArray< T >& flist,
 		}
 	}
 }
-} // advc.003: end of unnamed namespace
+} // advc: end of unnamed namespace
 #endif	//FFREELISTTRASHARRAY_H

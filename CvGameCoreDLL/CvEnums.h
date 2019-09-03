@@ -1898,7 +1898,7 @@ enum TradeableItems						// Exposed to Python
 #ifdef _USRDLL
 	/*NUM_BASIC_ITEMS,
 	TRADE_TECHNOLOGIES = NUM_BASIC_ITEMS,*/
-	// advc.003: Switch this so that TRADE_TECHNOLOGIES is shown in Visual Studio
+	// advc: Switch this so that TRADE_TECHNOLOGIES is shown in Visual Studio
 	TRADE_TECHNOLOGIES,
 	NUM_BASIC_ITEMS = TRADE_TECHNOLOGIES,
 #else

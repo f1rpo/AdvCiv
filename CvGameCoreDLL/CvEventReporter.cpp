@@ -543,7 +543,7 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 {
 	m_kStatistics.reset();
 	m_kStatistics.read(pStream);
-	GC.getGame().allGameDataRead(); // advc.003
+	GC.getGame().allGameDataRead(); // advc
 }
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {

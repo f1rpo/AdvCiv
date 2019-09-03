@@ -142,7 +142,7 @@ public:
 	bool setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& city, CommerceTypes eIndex, const CvWString& szStart, bool bStarted = false);
 	bool setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional info - end
-	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);  // advc.003: const city in this function and the next 2
+	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);  // advc: const city in this function and the next 2
 	void setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, CommerceTypes eCommerce);
 	void setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, YieldTypes eYield);
 	void setConvertHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, ReligionTypes eReligion);
@@ -218,7 +218,7 @@ public:
 	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
 			PlayerTypes ePlayer1, PlayerTypes ePlayer2,
 			int iTurnsToCancel = -1); // advc.004w
-	void getDealString(CvWStringBuffer& szString, /* advc.003: const */ CvDeal const& deal,
+	void getDealString(CvWStringBuffer& szString, /* advc: const */ CvDeal const& deal,
 			PlayerTypes ePlayerPerspective = NO_PLAYER,
 			bool bCancel = false); // advc.004w
 	void getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective = NO_PLAYER,
@@ -294,13 +294,13 @@ private:
 	//void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false);
 	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue);
 	void setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive = false, bool bMakeWhitespace = false);
-	// <advc.003>
+	// <advc>
 	void appendNegativeModifiers(CvWStringBuffer& szString,
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
 	void appendPositiveModifiers(CvWStringBuffer& szString,
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
 	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
-	// </advc.003>
+	// </advc>
 	// <advc.004w>
 	void setProductionSpeedHelp(CvWStringBuffer& szString, OrderTypes eInfoType,
 			CvInfoBase const* pInfo, CvCity* pCity, bool bCivilopediaText);

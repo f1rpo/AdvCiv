@@ -25,7 +25,7 @@ CvMapGenerator::CvMapGenerator() {}
 CvMapGenerator::~CvMapGenerator() {}
 
 
-bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)  // advc.003: style changes
+bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)  // advc: style changes
 {
 	PROFILE_FUNC();
 
@@ -203,7 +203,7 @@ void CvMapGenerator::addLakes()
 	}
 }
 
-void CvMapGenerator::addRivers()  // advc.003: Refactored
+void CvMapGenerator::addRivers()  // advc: Refactored
 {
 	PROFILE_FUNC();
 
@@ -634,7 +634,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 
 		// Place the bonuses:
 
-		CvMap& m = GC.getMap(); // advc.003 (and some stype changes in the following)
+		CvMap& m = GC.getMap(); // advc (and some stype changes in the following)
 		int* aiShuffledIndices = shuffle(m.numPlots(), GC.getGame().getMapRand());
 		for (int iI = 0; iI < m.numPlots(); iI++)
 		{
@@ -720,7 +720,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	{
 		CvPlot& kPlot = *GC.getMap().plotByIndex(aiShuffledIndices[iI]);
 		if (!canPlaceBonusAt(eBonusType, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
-			continue; // advc.003
+			continue; // advc
 
 		kPlot.setBonusType(eBonusType);
 		iBonusCount--;
@@ -783,7 +783,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 } // </advc.129>
 
 
-void CvMapGenerator::addGoodies()  // advc.003: some style changes
+void CvMapGenerator::addGoodies()  // advc: some style changes
 {
 	PROFILE("CvMapGenerator::addGoodies");
 

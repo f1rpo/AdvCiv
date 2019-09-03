@@ -19,7 +19,7 @@
 
 bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
 {
-	// advc.003: Handle successful read upfront
+	// advc: Handle successful read upfront
 	if (gDLL->cacheRead(cache, szXMLFileName)) {		// src data file name
 		logMsg("Read GlobalDefines from cache");
 		return true;
@@ -529,7 +529,7 @@ bool CvXMLLoadUtility::SetGlobalArtDefines()
 bool CvXMLLoadUtility::LoadGlobalText()
 {
 	CvCacheObject* cache = gDLL->createGlobalTextCacheObject("GlobalText.dat");	// cache file name
-	// advc.003: Handle successful read upfront
+	// advc: Handle successful read upfront
 	if (gDLL->cacheRead(cache)) {
 		logMsg("Read GlobalText from cache");
 		gDLL->destroyCache(cache);
@@ -650,7 +650,7 @@ bool CvXMLLoadUtility::LoadBasicInfos()
 	if (!CreateFXml())
 		return false;
 
-	/* advc.003: Replaced all GC.get...Info() calls with direct accesses; see the
+	/* advc: Replaced all GC.get...Info() calls with direct accesses; see the
 		comment under the friend declaration in CvGlobals.h. */
 
 	LoadGlobalClassInfo(GC.m_paConceptInfo, "CIV4BasicInfos", "BasicInfos", "Civ4BasicInfos/ConceptInfos/ConceptInfo", false);
@@ -681,7 +681,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	if (!CreateFXml())
 		return false;
 
-	/* advc.003: Replaced all GC.get...Info() calls with direct accesses; see the
+	/* advc: Replaced all GC.get...Info() calls with direct accesses; see the
 		comment under the friend declaration in CvGlobals.h. */
 
 	LoadGlobalClassInfo(GC.m_paGameSpeedInfo, "CIV4GameSpeedInfo", "GameInfo", "Civ4GameSpeedInfo/GameSpeedInfos/GameSpeedInfo", false);
@@ -807,7 +807,7 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	if (!CreateFXml())
 		return false;
 
-	/* advc.003: Replaced all GC.get...Info() calls with direct accesses; see the
+	/* advc: Replaced all GC.get...Info() calls with direct accesses; see the
 		comment under the friend declaration in CvGlobals.h. */
 
 	//throne room disabled

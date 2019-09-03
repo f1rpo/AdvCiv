@@ -2301,13 +2301,13 @@ bool CyPlayer::canSplitEmpire() const
 bool CyPlayer::canSplitArea(int iAreaId) const
 {
 	if (m_pPlayer)
-	{	// <advc.003> Handle the area lookup here
+	{	// <advc> Handle the area lookup here
 		CvArea* pArea = GC.getMap().getArea(iAreaId);
 		if (pArea == NULL)
 		{
 			FAssert(pArea != NULL);
 			return false;
-		} // </advc.003>
+		} // </advc>
 		return m_pPlayer->canSplitArea(*pArea);
 	}
 

@@ -58,7 +58,7 @@ public:
 
 	CLLNode<tVARTYPE>* next(CLLNode<tVARTYPE>* pNode) const;
 	CLLNode<tVARTYPE>* prev(CLLNode<tVARTYPE>* pNode) const;
-	static CLLNode<tVARTYPE>* static_next(CLLNode<tVARTYPE>* pNode); // advc.003
+	static CLLNode<tVARTYPE>* static_next(CLLNode<tVARTYPE>* pNode); // advc
 
 	CLLNode<tVARTYPE>* nodeNum(int iNum) const;
 
@@ -375,7 +375,7 @@ inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::prev(CLLNode<tVARTYPE>* pNode) co
 	return pNode->m_pPrev;
 }
 
-/*  <advc.003> Since the next node doesn't depend on the list at all, let's allow
+/*  <advc> Since the next node doesn't depend on the list at all, let's allow
 	traversal without a list object. */
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::static_next(CLLNode<tVARTYPE>* pNode)
@@ -383,7 +383,7 @@ inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::static_next(CLLNode<tVARTYPE>* pN
 	//assert(pNode != NULL);
 	return pNode->m_pNext;
 }
-// </advc.003>
+// </advc>
 
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::nodeNum(int iNum) const

@@ -43,7 +43,7 @@ void CvGame::updateColoredPlots()
 		pHeadSelectedUnit->updateFoundingBorder();
 	// </advc.004h>
 
-	// advc.003: (also removed unnecessary NULL checks after m.plotByIndex calls)
+	// advc: (also removed unnecessary NULL checks after m.plotByIndex calls)
 	CvMap const& m = GC.getMap();
 	int iPlots = m.numPlots();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
@@ -173,11 +173,11 @@ void CvGame::updateColoredPlots()
 					}
 				}
 			}
-		} // <advc.003>
+		} // <advc>
 		return;
 	}
 	if (pHeadSelectedUnit == NULL)
-		return; // </advc.003>
+		return; // </advc>
 
 	if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 	{
@@ -348,7 +348,7 @@ void CvGame::updateColoredPlots()
 		{
 			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 			if(kPlayer.getTeam() != getActiveTeam())
-				continue; // advc.003
+				continue; // advc
 			FOR_EACH_UNIT(pLoopUnit, kPlayer)
 			{
 				if (pLoopUnit->isBlockading())
@@ -432,7 +432,7 @@ void CvGame::updateSelectionList()
 }
 
 
-void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ return statements
+void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ return statements
 {
 	if (!GET_PLAYER(getActivePlayer()).isTurnActive())
 		return;
@@ -491,7 +491,7 @@ void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ 
 	gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
 }
 
-// advc.003: Merge of two BtS functions that had largely the same body
+// advc: Merge of two BtS functions that had largely the same body
 CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex) const
 {
 	PROFILE_FUNC();
@@ -870,7 +870,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL || pHeadSelectedUnit->getOwner() != getActivePlayer())
-		return; // advc.003
+		return; // advc
 
 	CLLNode<IDInfo>* pSelectedUnitNode;
 	CvUnit* pSelectedUnit;
@@ -1050,7 +1050,7 @@ void CvGame::selectedCitiesGameNetMessage(int eMessage, int iData2, int iData3, 
 }
 
 
-bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const  // advc.003: style changes
+bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const  // advc: style changes
 {
 	PROFILE_FUNC();
 
@@ -1359,9 +1359,9 @@ void CvGame::doControl(ControlTypes eControl)
 
 	if (!canDoControl(eControl))
 		return;
-	// <advc.003>
+	// <advc>
 	CvDLLInterfaceIFaceBase* pInterface = gDLL->getInterfaceIFace();
-	CvDLLEngineIFaceBase* pEngine = gDLL->getEngineIFace(); // </advc.003>
+	CvDLLEngineIFaceBase* pEngine = gDLL->getEngineIFace(); // </advc>
 	switch (eControl)
 	{
 	case CONTROL_CENTERONSELECTION:
@@ -1930,7 +1930,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			{
 				UnitTypes eLoopUnit = kCiv.unitAt(i);
 				if (!pCity->canTrain(eLoopUnit))
-					continue; // advc.003
+					continue; // advc
 				szBuffer = GC.getUnitInfo(eLoopUnit).getDescription();
 				int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
 				if(iTurns < MAX_INT) // advc.004x
@@ -1942,7 +1942,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			{
 				BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 				if (!pCity->canConstruct(eLoopBuilding))
-					continue; // advc.003
+					continue; // advc
 				szBuffer = GC.getBuildingInfo(eLoopBuilding).getDescription();
 				int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
 				if(iTurns < MAX_INT) // advc.004x
@@ -1954,7 +1954,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			{
 				ProjectTypes eLoopProject = (ProjectTypes) iI;
 				if (!pCity->canCreate(eLoopProject))
-					continue; // advc.003
+					continue; // advc
 				szBuffer = GC.getProjectInfo(eLoopProject).getDescription();
 				int iTurns = pCity->getProductionTurnsLeft(eLoopProject, 0);
 				if(iTurns < MAX_INT) // advc.004x
@@ -1966,7 +1966,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			{
 				ProcessTypes eLoopProcess = (ProcessTypes)iI;
 				if (!pCity->canMaintain(eLoopProcess))
-					continue; // advc.003
+					continue; // advc
 				szBuffer = GC.getProcessInfo(eLoopProcess).getDescription();
 				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
 						pPlot->getX(), pPlot->getY(), szBuffer));
@@ -2212,7 +2212,7 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 	}
 }
 
-CvPlot* CvGame::getNewHighlightPlot() const  // advc.003: refactored
+CvPlot* CvGame::getNewHighlightPlot() const  // advc: refactored
 {
 	if (gDLL->GetWorldBuilderMode())
 		return GC.getPythonCaller()->WBGetHighlightPlot();
@@ -2222,7 +2222,7 @@ CvPlot* CvGame::getNewHighlightPlot() const  // advc.003: refactored
 }
 
 
-ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc.003: refactored
+ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc: refactored
 {
 	if (pPlot == NULL)
 		return NO_COLOR;
@@ -2658,7 +2658,7 @@ bool CvGame::shouldShowResearchButtons() const
 {
 	if (!gDLL->GetWorldBuilderMode())
 	{
-		CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer()); // advc.003
+		CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer()); // advc
 		if(kActivePlayer.isAlive() && !gDLL->getInterfaceIFace()->isCityScreenUp()) {
 			if(kActivePlayer.isResearch() && // advc.004x
 					kActivePlayer.getCurrentResearch() == NO_TECH)

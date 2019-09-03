@@ -51,7 +51,7 @@ void *__cdecl operator new(size_t size)
 			memset(result, 0xDA, size);
 			PROFILE_TRACK_ALLOC(result);
 		}
-		catch(std::exception const&) // advc.003: Better to catch it by reference
+		catch(std::exception const&) // advc: Better to catch it by reference
 		{
 			OutputDebugString("Allocation failure\n");
 		}
@@ -569,9 +569,9 @@ CMemoryTrack::CMemoryTrack(const char* name, bool valid)
 	m_highWater = 0;
 	m_name = name;
 	m_valid = valid;
-	// <advc.003> Safer to initialize this
+	// <advc> Safer to initialize this
 	for(int i = 0; i < MAX_TRACKED_ALLOCS; i++)
-		m_track[i] = NULL; // </advc.003>
+		m_track[i] = NULL; // </advc>
 	if ( m_trackStackDepth < MAX_TRACK_DEPTH )
 	{
 		trackStack[m_trackStackDepth++] = this;

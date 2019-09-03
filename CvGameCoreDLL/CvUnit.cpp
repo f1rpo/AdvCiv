@@ -178,7 +178,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 
 	CvGame& g = GC.getGame();
 	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	int iCreated = g.getUnitCreatedCount(getUnitType()); // advc.003: was called "iUnitName"
+	int iCreated = g.getUnitCreatedCount(getUnitType()); // advc: was called "iUnitName"
 	int iNumNames = m_pUnitInfo->getNumUnitNames();
 	if (iCreated < iNumNames)
 	{	// <advc.005b>
@@ -319,7 +319,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 		{
 			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 			if(!kObs.isAlive())
-				continue; // advc.003
+				continue; // advc
 
 			CvWString szBuffer;
 			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam())
@@ -453,7 +453,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 		}
 	}
 
-	CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // advc.003
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // advc
 	if (ePlayer != NO_PLAYER)
 	{
 		CvEventReporter::getInstance().unitKilled(this, ePlayer);
@@ -466,11 +466,11 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 			CvWString szBuffer;
 			// advc.004u: szBuffer now set inside the loop
 			//szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey());
-			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1)) // advc.003: was MAX_PLAYERS
+			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1)) // advc: was MAX_PLAYERS
 			{
 				CvPlayer& kObs = GET_PLAYER(i);
 				if(!kObs.isAlive())
-					continue; // advc.003
+					continue; // advc
 				ColorTypes eColor = NO_COLOR;
 				TCHAR const* szSound = NULL;
 				// <advc.004u>
@@ -553,7 +553,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	//FAssert(!isCombat());
 	FAssert(!isFighting()); // K-Mod. With simultaneous turns, a unit can be captured while trying to execute an attack order. (eg. a bomber)
 	//FAssert(getAttackPlot() == NULL);
-	FAssert(getCombatUnit() == NULL); // advc.003: moved up
+	FAssert(getCombatUnit() == NULL); // advc: moved up
 
 	setTransportUnit(NULL);
 	setBlockading(false);
@@ -1755,7 +1755,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	if(pPlot == NULL)
 		pPlot = plot();
 
-	MissionTypes eMission = (MissionTypes)GC.getActionInfo(iAction).getMissionType(); // advc.003
+	MissionTypes eMission = (MissionTypes)GC.getActionInfo(iAction).getMissionType(); // advc
 	if (eMission == MISSION_FORTIFY)
 	{
 		if (pPlot->isCity(true, getTeam()))
@@ -2370,7 +2370,7 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 /*  K-Mod. I've rearranged a few things to make the function slightly faster,
 	and added "bAssumeVisible" which signals that we should check for units on
 	the plot regardless of whether we can actually see. */
-bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible, // advc.003: 1st param was a pointer
+bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible, // advc: 1st param was a pointer
 		bool bDangerCheck) const // advc.001k
 {
 	PROFILE_FUNC();
@@ -2702,7 +2702,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 }
 
 
-bool CvUnit::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar, // advc.003: 1st param was a pointer
+bool CvUnit::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar, // advc: 1st param was a pointer
 		bool bDangerCheck) const // advc.001k
 {
 	return (canMoveInto(kPlot, false, bDeclareWar) || canMoveInto(kPlot, true, bDeclareWar,
@@ -2956,7 +2956,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot const& kLoopPlot = *GC.getMap().plotByIndex(iI); // advc.003: was CvPlot*
+		CvPlot const& kLoopPlot = *GC.getMap().plotByIndex(iI); // advc: was CvPlot*
 
 		if (kLoopPlot.isValidDomainForLocation(*this))
 		{
@@ -3028,7 +3028,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 	{
 		// K-Mod. If a unit is bumped, we should clear their mission queue
 		if(pBestPlot != plot()) {
-			CvSelectionGroup* gr = getGroup(); // advc.003
+			CvSelectionGroup* gr = getGroup(); // advc
 			//gr->splitGroup(1); // advc.163: Safer to split? Hopefully no need.
 			gr->clearMissionQueue();
 			// K-Mod end
@@ -3170,7 +3170,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport)
 	{
 		return false;
 	}
-	CvPlayerAI const& kRecipient = GET_PLAYER(pPlot->getOwner()); // advc.003
+	CvPlayerAI const& kRecipient = GET_PLAYER(pPlot->getOwner()); // advc
 	if (kRecipient.getID() == getOwner())
 	{
 		return false;
@@ -3758,7 +3758,7 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 	int iTotalHeal = 0;
 
 	if (bLocation) // K-Mod
-	{	// advc.003:
+	{	// advc:
 		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam());
 		if (pPlot->isCity(true, getTeam()))
 		{
@@ -4547,7 +4547,7 @@ bool CvUnit::airBomb(int iX, int iY)
 		return false;
 	}
 
-	CvPlot& kPlot = GC.getMap().getPlot(iX, iY); // advc.003: was CvMap::plot
+	CvPlot& kPlot = GC.getMap().getPlot(iX, iY); // advc: was CvMap::plot
 
 	/* if (!isEnemy(kPlot.getTeam()))
 		getGroup()->groupDeclareWar(pPlot, true);*/
@@ -4973,7 +4973,7 @@ bool CvUnit::canPlunder(const CvPlot* pPlot, bool bTestVisible) const
 	if(!pPlot->isRevealed(getTeam(), false) ||
 			(pPlot != plot() && !canMoveInto(*pPlot) && !canMoveInto(*pPlot, true)))
 		return false; // </advc.033>
-	// advc.003:
+	// advc:
 	bool bPirate = (isAlwaysHostile(pPlot) || m_pUnitInfo->isHiddenNationality());
 	if (!bTestVisible)
 	{
@@ -5066,7 +5066,7 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 			if(t.isAlive() && isEnemy(t.getID()) && !t.isVassal(getTeam()) &&
 					!GET_TEAM(getTeam()).isVassal(t.getID())) { // </advc.033>
 				if(iChange == -1 && pLoopPlot->getBlockadedCount(t.getID()) <= 0)
-					continue; // advc.003
+					continue; // advc
 				bool bOldTradeNet = false;
 				if(!abChanged[iTeam])
 					bOldTradeNet = pLoopPlot->isTradeNetwork(t.getID());
@@ -6107,7 +6107,7 @@ bool CvUnit::discover()
 }
 
 
-int CvUnit::getMaxHurryProduction(CvCity const* pCity) const // advc.003: const CvCity*
+int CvUnit::getMaxHurryProduction(CvCity const* pCity) const // advc: const CvCity*
 {
 	int iProduction = m_pUnitInfo->getBaseHurry() +
 			m_pUnitInfo->getHurryMultiplier() * pCity->getPopulation();
@@ -6471,7 +6471,7 @@ bool CvUnit::canEspionage(const CvPlot* pPlot, bool bTestVisible) const
 			return false;
 		}
 
-		if (//kTarget.getTeam() != getTeam() && // advc.003: Already guaranteed
+		if (//kTarget.getTeam() != getTeam() && // advc: Already guaranteed
 				!isInvisible(kTarget.getTeam(), false))
 		{
 			return false;
@@ -7010,7 +7010,7 @@ int CvUnit::canGiveExperience(const CvPlot* pPlot) const
 	return iNumUnits;
 }
 
-bool CvUnit::giveExperience()  // advc.003: some style changes
+bool CvUnit::giveExperience()  // advc: some style changes
 {
 	CvPlot* pPlot = plot();
 	if(pPlot == NULL)
@@ -7087,7 +7087,7 @@ int CvUnit::upgradeXPChange(UnitTypes eUnit) const {
 } // </advc.080>
 
 
-bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount) const  // advc.003: style changes
+bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount) const  // advc: style changes
 {
 	if (iCount > GC.getNumUnitClassInfos())
 		return false;
@@ -8452,7 +8452,7 @@ bool CvUnit::canDefend(const CvPlot* pPlot) const
 	return true;
 }
 
-// advc.003: Body cut from CvPlot::getBestDefender
+// advc: Body cut from CvPlot::getBestDefender
 bool CvUnit::canDefendAtCurrentPlot(PlayerTypes eAttackingPlayer,
 	CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
 	bool bTestCanMove, bool bTestVisible) const
@@ -8829,7 +8829,7 @@ int CvUnit::rangeCombatDamage(const CvUnit* pDefender) const
 }
 
 
-CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const  // advc.003: some style changes
+CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const  // advc: some style changes
 {
 	int iBestValue = 0;
 	CvUnit* pBestUnit = NULL;
@@ -8871,7 +8871,7 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 	int pBestUnitRank = -1; // BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
 	for (int iDX = -1; iDX <= 1; ++iDX)
 	{
-		for (int iDY = -1; iDY <= 1; ++iDY)  // advc.003: some changes to reduce indentation
+		for (int iDY = -1; iDY <= 1; ++iDY)  // advc: some changes to reduce indentation
 		{
 			CvPlot* pLoopPlot = plotXY(pPillager->getX(), pPillager->getY(), iDX, iDY);
 			if (pLoopPlot == NULL)
@@ -9343,7 +9343,7 @@ bool CvUnit::hasCargo() const
 
 /* bool CvUnit::canCargoAllMove() const
 {
-	// Deprecated and commented out by K-Mod, deleted by advc.003.
+	// Deprecated and commented out by K-Mod, deleted by advc.
 }*/
 
 
@@ -12520,7 +12520,7 @@ bool CvUnit::rangeStrike(int iX, int iY)
 
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 	if (pPlot == NULL) {
-		FAssertMsg(pPlot != NULL, "Range strike off the map"); // advc.003
+		FAssertMsg(pPlot != NULL, "Range strike off the map"); // advc
 		return false;
 	}
 	/* original bts code
@@ -13452,12 +13452,12 @@ int CvUnit::LFBgetValueAdjustedOdds(int iOdds, bool bDefender) const
 		iValue = std::max(0, iValue);
 	}
 	// K-Mod end
-	int iAdjustment = -250; // advc.003: Was long, which is pointless. Seems like long long isn't needed.
+	int iAdjustment = -250; // advc: Was long, which is pointless. Seems like long long isn't needed.
 	if (GC.getDefineBOOL(CvGlobals::LFB_USESLIDINGSCALE))
 		iAdjustment = (iOdds - 990);
 	// Value Adjustment = (odds-990)*(value*num/denom)^2
 	//long iValueAdj = (long)(iValue * GC.getDefineINT(CvGlobals::LFBAdjustNumerator));
-	int iValueAdj = iValue * GC.getDefineINT(CvGlobals::LFB_ADJUSTNUMERATOR); // advc.003
+	int iValueAdj = iValue * GC.getDefineINT(CvGlobals::LFB_ADJUSTNUMERATOR); // advc
 	//iValueAdj *= iValueAdj;
 	iValueAdj *= iAdjustment;
 	FAssertMsg(iValueAdj < MAX_INT / 100, "Dangerously close to overflow"); // advc.test

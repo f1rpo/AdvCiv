@@ -31,7 +31,7 @@ public:
 	void kill(bool bUpdatePlotGroups);																								// Exposed to Python
 
 	void doTurn();
-	void doRevolt(); // advc.003: previously in CvPlot::doCulture
+	void doRevolt(); // advc: previously in CvPlot::doCulture
 	/*  K-Mod. I've made this function public so that I can use it for the "insert culture" espionage mission.
 		(I've also changed the functionality of it quite a bit.) */
 	void doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture);
@@ -194,7 +194,7 @@ public:
 
 	bool isCapital() const;																				// Exposed to Python
 	bool isPrereqBonusSea() const; // advc.041
-	/* advc.003: -1 means use MIN_WATER_SIZE_FOR_OCEAN. Removed MIN_WATER_SIZE_FOR_OCEAN
+	/* advc: -1 means use MIN_WATER_SIZE_FOR_OCEAN. Removed MIN_WATER_SIZE_FOR_OCEAN
 	   from all calls to this function (except those from Python). */
 	bool isCoastal(int iMinWaterSize = -1) const;																									// Exposed to Python
 	bool isDisorder() const;																			// Exposed to Python
@@ -282,7 +282,7 @@ public:
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
 	bool isConnectedTo(CvCity const* pCity) const;															// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;				// Exposed to Python
-	int getArea() const;							// advc.003: Exposed to Python
+	int getArea() const;							// advc: Exposed to Python
 	CvArea* area() const;																						// Exposed to Python
 	// BETTER_BTS_AI_MOD, 01/02/09, jdog5000: START
 	CvArea* waterArea(bool bNoImpassable = false) const;																			// Exposed to Python
@@ -1070,7 +1070,7 @@ public:
 	virtual int AI_countGoodPlots() const = 0;
 	virtual void AI_getYieldMultipliers( int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const = 0;
 
-	virtual int AI_getImprovementValue(CvPlot /* advc.003: */ const& kPlot,
+	virtual int AI_getImprovementValue(CvPlot /* advc: */ const& kPlot,
 			ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const = 0;
 	// K-Mod end
 	virtual int AI_totalBestBuildValue(CvArea* pArea) const = 0;
@@ -1092,7 +1092,7 @@ public:
 			bool bConstCache = false) const = 0; // advc.001n
 	virtual int AI_cityThreat(bool bDangerPercent = false) const = 0;
 	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) const = 0;
-	// advc.003: 2x const. I very much doubt that the EXE calls these.
+	// advc: 2x const. I very much doubt that the EXE calls these.
 	virtual int AI_getWorkersHave() const = 0;
 	virtual int AI_getWorkersNeeded() const = 0;
 	virtual void AI_changeWorkersHave(int iChange) = 0;
@@ -1108,9 +1108,9 @@ public:
 
 protected:
 
-	// <advc.003> Moved here for quicker inspection in debugger
+	// <advc> Moved here for quicker inspection in debugger
 	CvWString m_szName;
-	PlayerTypes m_eOwner; // </advc.003>
+	PlayerTypes m_eOwner; // </advc>
 	int m_iID;
 	int m_iX;
 	int m_iY;
@@ -1345,7 +1345,7 @@ protected:
 	// </advc.064b
 	void doPopOrder(CLLNode<OrderData>* pOrder); // advc.064d
 	// BETTER_BTS_AI_MOD (from BUG), 02/24/10, EmperorFool: START
-		// advc.003: These were declared outside of CvCity (global)
+		// advc: These were declared outside of CvCity (global)
 	static void addGoodOrBad(int iValue, int& iGood, int& iBad);
 	static void subtractGoodOrBad(int iValue, int& iGood, int& iBad);
 	// BETTER_BTS_AI_MOD: END

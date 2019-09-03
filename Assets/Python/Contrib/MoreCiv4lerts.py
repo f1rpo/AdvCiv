@@ -172,7 +172,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 
 	def onBeginActivePlayerTurn(self, argsList):
 		"Called when the active player can start making their moves."
-		#iGameTurn = argsList[0] # advc.003: Unused
+		#iGameTurn = argsList[0] # advc: Unused
 		# <advc.127>
 		if not gc.getPlayer(self.iOwner).isHuman():
 			return # </advc.127>

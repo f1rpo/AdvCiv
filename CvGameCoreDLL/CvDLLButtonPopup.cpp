@@ -222,7 +222,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		{
 			CvSelectionGroup* pSelectionGroup = gDLL->getInterfaceIFace()->getSelectionList();
 			if (pSelectionGroup == NULL)
-				break; // advc.003
+				break; // advc
 
 			CvPlot* pPlot = pSelectionGroup->plot();
 			int iCount = pPopupReturn->getButtonClicked();
@@ -248,11 +248,11 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 
 	case BUTTONPOPUP_LEADUNIT: {
 		if (pPopupReturn->getButtonClicked() == 0)
-			break; // advc.003
+			break; // advc
 
 		CvSelectionGroup* pSelectionGroup = gDLL->getInterfaceIFace()->getSelectionList();
 		if (NULL == pSelectionGroup)
-			break; // advc.003
+			break; // advc
 
 		CvPlot* pPlot = pSelectionGroup->plot();
 		int iCount = pPopupReturn->getButtonClicked();
@@ -513,7 +513,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			if (!g.isGameMultiPlayer())
 			{
 				if (pPopupReturn->getCheckboxBitfield(2)
-					//advc.003: Redundant
+					//advc: Redundant
 					/*&& pPopupReturn->getCheckboxBitfield(2) > 0*/)
 				{
 					gDLL->setChtLvl(1);
@@ -1173,7 +1173,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
 		if (eLoopUnit == eProductionUnit || !pCity->canTrain(eLoopUnit))
-			continue; // advc.003
+			continue; // advc
 		UnitClassTypes eUnitClass = kCiv.unitClassAt(i);
 		int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
 		// advc.004x:
@@ -1190,7 +1190,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 		if (eLoopBuilding == eProductionBuilding || !pCity->canConstruct(eLoopBuilding))
-			continue; // advc.003
+			continue; // advc
 		BuildingClassTypes eBuildingClass = kCiv.buildingClassAt(i);
 		int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
 		// advc.004x:
@@ -1206,7 +1206,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		ProjectTypes eLoopProject = (ProjectTypes)iI;
 		if (eLoopProject == eProductionProject || !pCity->canCreate(eLoopProject))
-			continue; // advc.003
+			continue; // advc
 		int iTurns = pCity->getProductionTurnsLeft((ProjectTypes)iI, 0);
 		// advc.004x:
 		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CREATE, eLoopProject);
@@ -1220,7 +1220,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		ProcessTypes eLoopProcess = (ProcessTypes)iI;
 		if (eLoopProcess == eProductionProcess || !pCity->canMaintain(eLoopProcess))
-			continue; // advc.003
+			continue; // advc
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,
 				GC.getProcessInfo(eLoopProcess).getDescription(),
 				GC.getProcessInfo(eLoopProcess).getButton(), eLoopProcess, WIDGET_MAINTAIN,
@@ -1517,10 +1517,10 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 		for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 		{
 			if((iI == eBestTech || iI == eNextBestTech) != (iPass == 0))
-				continue; // advc.003
+				continue; // advc
 			TechTypes eTech = (TechTypes)iI;
 			if(!kActivePlayer.canResearch(eTech))
-				continue; // advc.003
+				continue; // advc
 
 			CvWString szBuffer;
 			// <advc.004x>
@@ -1538,7 +1538,7 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 			}
 
 			CvString szButton = GC.getTechInfo(eTech).getButton();
-			CvGame const& g = GC.getGame(); // advc.003
+			CvGame const& g = GC.getGame(); // advc
 			for (int iJ = 0; iJ < GC.getNumReligionInfos(); iJ++)
 			{
 				ReligionTypes eReligion = (ReligionTypes)iJ;
@@ -1571,7 +1571,7 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 
-bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc.003: some style changes
+bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc: some style changes
 {
 	CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
 	if (paeNewCivics == NULL)
@@ -1926,7 +1926,7 @@ bool CvDLLButtonPopup::launchLeadUnitPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 
-bool CvDLLButtonPopup::launchDoEspionagePopup(CvPopup* pPopup, CvPopupInfo &info)  // advc.003: style changes
+bool CvDLLButtonPopup::launchDoEspionagePopup(CvPopup* pPopup, CvPopupInfo &info)  // advc: style changes
 {
 	CvUnit* pUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 	if (pUnit == NULL)
@@ -1977,7 +1977,7 @@ bool CvDLLButtonPopup::launchDoEspionagePopup(CvPopup* pPopup, CvPopupInfo &info
 	return true;
 }
 
-bool CvDLLButtonPopup::launchDoEspionageTargetPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc.003: some style changes
+bool CvDLLButtonPopup::launchDoEspionageTargetPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc: some style changes
 {
 	CvUnit* pUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 	if (pUnit == NULL)
@@ -2572,7 +2572,7 @@ bool CvDLLButtonPopup::launchEventPopup(CvPopup* pPopup, CvPopupInfo &info)
 	return true;
 }
 
-bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc.003: style changes
+bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc: style changes
 {
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_FREE_COLONY"));
 
@@ -2635,7 +2635,7 @@ bool CvDLLButtonPopup::launchLaunchPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if (NO_VICTORY == eVictory)
 		return false;
 
-	CvTeam const& kTeam = GET_TEAM(GC.getGame().getActiveTeam()); // advc.003
+	CvTeam const& kTeam = GET_TEAM(GC.getGame().getActiveTeam()); // advc
 	// K-Mod. Cancel the popup if something has happened to prevent the launch.
 	if (!kTeam.canLaunch(eVictory))
 		return false;

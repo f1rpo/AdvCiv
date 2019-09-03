@@ -67,7 +67,7 @@ int CvTerrainInfo::getHillsYieldChange(int i) const
 
 int CvTerrainInfo::get3DAudioScriptFootstepIndex(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFootstepAudioTypes(), i, "CvTerrainInfo::get3DAudioScriptFootstepIndex"); // advc.003: Check for upper bound added
+	FASSERT_BOUNDS(0, GC.getNumFootstepAudioTypes(), i, "CvTerrainInfo::get3DAudioScriptFootstepIndex"); // advc: Check for upper bound added
 	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i]
 			: 0; // advc.003t: see get3DAudioScriptFootstepIndex
 }
@@ -292,7 +292,7 @@ int CvFeatureInfo::getEffectProbability() const
 
 int CvFeatureInfo::get3DAudioScriptFootstepIndex(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFootstepAudioTypes(), i, "CvTerrainInfo::get3DAudioScriptFootstepIndex"); // advc.003: Check for upper bound added
+	FASSERT_BOUNDS(0, GC.getNumFootstepAudioTypes(), i, "CvTerrainInfo::get3DAudioScriptFootstepIndex"); // advc: Check for upper bound added
 	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i]
 			// advc.003t: Was -1. CvTerrainInfo::read sets 0 as the default, so 0 works apparently.
 			: 0;
@@ -1392,7 +1392,7 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 	}
 	else pXML->InitImprovementBonusList(&m_paImprovementBonus, GC.getNumBonusInfos());
 
-	for (int i = 0; i < 2; i++) // advc.003: Reduce code duplication
+	for (int i = 0; i < 2; i++) // advc: Reduce code duplication
 	{
 		bool bTech = (i == 0);
 		int iNumInfos = (bTech ? GC.getNumTechInfos() : GC.getNumRouteInfos());

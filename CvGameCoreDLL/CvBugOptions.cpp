@@ -31,7 +31,7 @@ int getDefineINT(const char* xmlKey, int iDefault) {
 	else return iDefault;
 }*/
 
-// <advc.003>
+// <advc>
 bool checkBUGStatus(const char* optionKey, bool bWarn) {
 
 	if(!GC.IsGraphicsInitialized() || GC.getGame().getActivePlayer() == NO_PLAYER) {
@@ -45,15 +45,15 @@ bool checkBUGStatus(const char* optionKey, bool bWarn) {
 		return false;
 	}
 	return true;
-} // </advc.003>
+} // </advc>
 
 
 bool getBugOptionBOOL(const char* id, bool bDefault, bool bWarn)
-{	// <advc.003>
+{	// <advc>
 	PROFILE_FUNC();
 	if(!checkBUGStatus(id, bWarn))
 		return bDefault;
-	// </advc.003>
+	// </advc>
 	CyArgsList argsList;
 	long lResult = 0;
 	argsList.add(id);
@@ -63,10 +63,10 @@ bool getBugOptionBOOL(const char* id, bool bDefault, bool bWarn)
 }
 
 int getBugOptionINT(const char* id, int iDefault, bool bWarn)
-{	// <advc.003>
+{	// <advc>
 	if(!checkBUGStatus(id, bWarn))
 		return iDefault;
-	// </advc.003>
+	// </advc>
 	CyArgsList argsList;
 	long lResult = 0;
 	argsList.add(id);

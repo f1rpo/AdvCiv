@@ -97,7 +97,7 @@ bool CvSelectionGroup::sentryAlert(
 	}
 
 	if(pHeadUnit == NULL)
-		return false; // advc.003
+		return false; // advc
 	bool r = false; // advc.004l
 	for (int iX = -iMaxRange; iX <= iMaxRange; ++iX)
 	{
@@ -105,7 +105,7 @@ bool CvSelectionGroup::sentryAlert(
 		{
 			CvPlot* pPlot = ::plotXY(pHeadUnit->getX(), pHeadUnit->getY(), iX, iY);
 			if(NULL == pPlot)
-				continue; // advc.003
+				continue; // advc
 			if(pHeadUnit->plot()->canSeePlot(pPlot, pHeadUnit->getTeam(), iMaxRange - 1, NO_DIRECTION))
 			{	// <advc.004l>
 				CLLNode<IDInfo>* pNode = pPlot->headUnitNode();
@@ -147,14 +147,14 @@ void CvSelectionGroup::doTurn()
 	PROFILE_FUNC();
 
 	FAssert(getOwner() != NO_PLAYER);
-	// <advc.003>
+	// <advc>
 	if(getNumUnits() <= 0) {
 		doDelayedDeath();
 		return;
-	} // </advc.003>
+	} // </advc>
 
 	bool bCouldAllMove = canAllMove(); // K-Mod
-	CvUnit* pHeadUnit = getHeadUnit(); // advc.003
+	CvUnit* pHeadUnit = getHeadUnit(); // advc
 	// K-Mod. Wake spies when they reach max fortify turns in foreign territory. I'm only checking the head unit.
 	// Note: We only want to wake once. So this needs to be done before the fortify counter is increased.
 	if (isHuman() && getActivityType() == ACTIVITY_SLEEP)
@@ -313,7 +313,7 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if(!kLoopPlayer.isAlive() || !kLoopPlayer.isHuman())
-			continue; // advc.003
+			continue; // advc
 		CvUnit* pHeadUnit = getHeadUnit();
 		if(pHeadUnit == NULL)
 			continue;
@@ -491,7 +491,7 @@ void CvSelectionGroup::playActionSound()
 
 void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2,
 		int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI,
-		CvPlot* pMissionAIPlot, CvUnit const* pMissionAIUnit, // advc.003: const CvUnit*
+		CvPlot* pMissionAIPlot, CvUnit const* pMissionAIUnit, // advc: const CvUnit*
 		bool bModified) { // advc.011b
 
 	PROFILE_FUNC();
@@ -1310,7 +1310,7 @@ void CvSelectionGroup::continueMission()
 }
 
 // return true if we are ready to take another step
-bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style changes
+bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 {
 	FAssert(!isBusy());
 	FAssert(getOwner() != NO_PLAYER);
@@ -1384,7 +1384,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc.003: style chan
 			else if (groupPathTo(missionData.iData1, missionData.iData2, missionData.iFlags))
 			{
 				bAction = true;
-				/*  advc.003: Not sure if groupPathTo can pop the head mission;
+				/*  advc: Not sure if groupPathTo can pop the head mission;
 					safer to update pHeadMission. */
 				pHeadMission = headMissionQueueNode();
 				if (getNumUnits() > 0 && !canAllMove() && pHeadMission != NULL)
@@ -2093,7 +2093,7 @@ bool CvSelectionGroup::isBusy() const
 }
 
 
-bool CvSelectionGroup::isCargoBusy() /* advc.003: */ const
+bool CvSelectionGroup::isCargoBusy() /* advc: */ const
 {
 	if (getNumUnits() == 0)
 	{
@@ -2198,7 +2198,7 @@ bool CvSelectionGroup::isWaiting() const
 }
 
 
-bool CvSelectionGroup::isFull() /* advc.003: */ const
+bool CvSelectionGroup::isFull() /* advc: */ const
 {
 	if(getNumUnits() <= 0)
 		return false;
@@ -2250,7 +2250,7 @@ bool CvSelectionGroup::isFull() /* advc.003: */ const
 }
 
 
-bool CvSelectionGroup::hasCargo() /* advc.003: */ const
+bool CvSelectionGroup::hasCargo() /* advc: */ const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
@@ -2503,7 +2503,7 @@ bool CvSelectionGroup::canMoveThrough(CvPlot const& kPlot, bool bDeclareWar, boo
 }
 
 
-bool CvSelectionGroup::canFight() /* advc.003: */ const
+bool CvSelectionGroup::canFight() /* advc: */ const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
@@ -2521,7 +2521,7 @@ bool CvSelectionGroup::canFight() /* advc.003: */ const
 }
 
 
-bool CvSelectionGroup::canDefend() /* advc.003: */ const
+bool CvSelectionGroup::canDefend() /* advc: */ const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
@@ -2538,7 +2538,7 @@ bool CvSelectionGroup::canDefend() /* advc.003: */ const
 	return false;
 }
 
-bool CvSelectionGroup::canBombard(const CvPlot* pPlot) /* advc.003: */ const
+bool CvSelectionGroup::canBombard(const CvPlot* pPlot) /* advc: */ const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
@@ -2555,7 +2555,7 @@ bool CvSelectionGroup::canBombard(const CvPlot* pPlot) /* advc.003: */ const
 	return false;
 }
 
-bool CvSelectionGroup::visibilityRange() /* advc.003: */ const
+bool CvSelectionGroup::visibilityRange() /* advc: */ const
 {
 	int iMaxRange = 0;
 
@@ -2577,7 +2577,7 @@ bool CvSelectionGroup::visibilityRange() /* advc.003: */ const
 
 /*  BETTER_BTS_AI_MOD, General AI, 03/30/10, jdog5000: START
 	Approximate how many turns this group would take to reduce pCity's defense modifier to zero */
-int CvSelectionGroup::getBombardTurns(CvCity const* pCity) const // advc.003: 2x const
+int CvSelectionGroup::getBombardTurns(CvCity const* pCity) const // advc: 2x const
 {
 	PROFILE_FUNC();
 
@@ -2655,7 +2655,7 @@ bool CvSelectionGroup::isHasPathToAreaEnemyCity(bool bIgnoreMinors, int iFlags, 
 {
 	PROFILE_FUNC();
 
-	//int iPass = 0; // advc.003: unused
+	//int iPass = 0; // advc: unused
 
 	for(int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -2772,7 +2772,7 @@ bool CvSelectionGroup::isInvisible(TeamTypes eTeam) const
 }
 
 
-int CvSelectionGroup::countNumUnitAIType(UnitAITypes eUnitAI) /* advc.003: */ const
+int CvSelectionGroup::countNumUnitAIType(UnitAITypes eUnitAI) /* advc: */ const
 {
 	FAssertMsg(headUnitNode() != NULL, "headUnitNode() is not expected to be equal with NULL");
 
@@ -3018,11 +3018,11 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 	FAssertMsg(pDestPlot != NULL, "DestPlot is not assigned a valid value");
 
 	if (getNumUnits() <= 0)
-		return false; // advc.003
+		return false; // advc
 
 	if(getDomainType() != DOMAIN_AIR && stepDistance(getX(), getY(),
 			pDestPlot->getX(), pDestPlot->getY()) != 1)
-		return false; // advc.003
+		return false; // advc
 
 	bool bAttack = false;
 	//if ((iFlags & MOVE_DIRECT_ATTACK) || (getDomainType() == DOMAIN_AIR) || (iFlags & MOVE_THROUGH_ENEMY) || (generatePath(plot(), pDestPlot, iFlags) && (getPathFirstPlot() == pDestPlot)))
@@ -3034,7 +3034,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 		int iAttackOdds;
 		CvUnit* pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
 		if (pBestAttackUnit == NULL)
-			return false; // advc.003
+			return false; // advc
 		// K-Mod, bugfix. This needs to happen before hadDefender, since hasDefender tests for war..
 		// (note: this check is no longer going to be important at all once my new AI DOW code is complete.)
 		/*if (groupDeclareWar(pDestPlot))
@@ -3300,7 +3300,7 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 	if (!AI_isControlled() || !at(iX, iY) || getLengthMissionQueue() == 1)
 	{
 		BuildTypes eBestBuild = NO_BUILD;
-		//RouteTypes eBestRoute = // advc.003: unused
+		//RouteTypes eBestRoute = // advc: unused
 			getBestBuildRoute(plot(), &eBestBuild);
 		if (eBestBuild != NO_BUILD)
 		{
@@ -3359,7 +3359,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		pUnitNode = nextUnitNode(pUnitNode);
 		FAssertMsg(pLoopUnit->atPlot(pPlot), "pLoopUnit is expected to be at pPlot");
 		if(!pLoopUnit->canBuild(pPlot, eBuild))
-			continue; // advc.003
+			continue; // advc
 
 		bContinue = true;
 		if (pLoopUnit->build(eBuild))
@@ -3521,7 +3521,7 @@ bool CvSelectionGroup::isAmphibPlot(const CvPlot* pPlot) const
 }
 
 // Returns true if attempted an amphib landing...
-bool CvSelectionGroup::groupAmphibMove(CvPlot const& kPlot, int iFlags) // advc.003: 1st param was CvPlot*
+bool CvSelectionGroup::groupAmphibMove(CvPlot const& kPlot, int iFlags) // advc: 1st param was CvPlot*
 {
 	bool bLanding = false;
 
@@ -3584,7 +3584,7 @@ bool CvSelectionGroup::readyToSelect(bool bAny)
 }
 
 
-bool CvSelectionGroup::readyToMove(bool bAny) /* advc.003: */ const
+bool CvSelectionGroup::readyToMove(bool bAny) /* advc: */ const
 {
 	//return (((bAny) ? canAnyMove() : canAllMove()) && (headMissionQueueNode() == NULL) && (getActivityType() == ACTIVITY_AWAKE) && !isBusy() && !isCargoBusy());
 	// K-Mod:
@@ -3595,7 +3595,7 @@ bool CvSelectionGroup::readyToMove(bool bAny) /* advc.003: */ const
 }
 
 
-bool CvSelectionGroup::readyToAuto() /* advc.003: */ const
+bool CvSelectionGroup::readyToAuto() /* advc: */ const
 {
 	//return (canAllMove() && (headMissionQueueNode() != NULL));
 	return readyForMission() || (isAutomated() && getActivityType() == ACTIVITY_AWAKE && canAllMove());
@@ -3607,7 +3607,7 @@ bool CvSelectionGroup::readyToAuto() /* advc.003: */ const
 // CvSelectionGroup::readyForMission, which basically just calls canDoMission for the current mission, as direct replacement for the canAllMove condition.
 // (canStartMission now calls canDoMission.)
 // (K-Mod note: I'd make this function const, but it would conflict with some dllexport functions)
-// ^advc.003: I guess canAllMove was the problem; fixed.
+// ^advc: I guess canAllMove was the problem; fixed.
 bool CvSelectionGroup::readyForMission() const
 {
 	if (headMissionQueueNode() == NULL)

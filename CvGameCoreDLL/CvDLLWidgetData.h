@@ -63,7 +63,7 @@ protected:
 
 	static CvDLLWidgetData* m_pInst;
 
-	//	Help parsing (advc.003: These were all public)
+	//	Help parsing (advc: These were all public)
 	void parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseCityNameHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -74,9 +74,9 @@ protected:
 	void parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-	// <advc.003>
+	// <advc>
 	void parseActionHelp_Mission(CvActionInfo const& kAction, CvUnit const& kUnit,
-			MissionTypes eMission, CvWStringBuffer& szBuffer); // </advc.003>
+			MissionTypes eMission, CvWStringBuffer& szBuffer); // </advc>
 	void parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);

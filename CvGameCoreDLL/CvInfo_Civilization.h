@@ -391,9 +391,9 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvDiplomacyResponse
 {
-public: // advc.003: All the const functions are exposed to Python (some const qualifiers added by me)
+public: // advc: All the const functions are exposed to Python (some const qualifiers added by me)
 	CvDiplomacyResponse();
-	~CvDiplomacyResponse(); // advc.003: was virtual
+	~CvDiplomacyResponse(); // advc: was virtual
 
 	int getNumDiplomacyText() const;
 	// advc.003j: Disabled the unused setters and bool* getters
@@ -440,9 +440,9 @@ protected:
 class CvDiplomacyInfo : public CvInfoBase
 {
 friend class CvXMLLoadUtility;
-public: // advc.003: All the const functions are exposed to Python
+public: // advc: All the const functions are exposed to Python
 	~CvDiplomacyInfo();
-	//void uninit(); // advc.003: Merged into destructor
+	//void uninit(); // advc: Merged into destructor
 
 	const CvDiplomacyResponse& getResponse(int iNum) const;
 	int getNumResponses() const;

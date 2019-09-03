@@ -25,7 +25,7 @@ CvReplayInfo::CvReplayInfo() :
 	m_iMapHeight(0),
 	m_iMapWidth(0),
 	m_pcMinimapPixels(NULL),
-	m_eCalendar(NO_CALENDAR), // advc.003: Safer to initialize it here
+	m_eCalendar(NO_CALENDAR), // advc: Safer to initialize it here
 	m_iNormalizedScore(0),
 	m_bMultiplayer(false),
 	m_iStartYear(0)

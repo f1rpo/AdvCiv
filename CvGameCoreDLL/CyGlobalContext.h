@@ -126,7 +126,7 @@ public:
 	CvPlayerOptionInfo* getPlayerOptionInfo(int i) const;
 	CvPlayerOptionInfo* getPlayerOptionsInfoByIndex(int i) const;
 
-	bool IsGraphicsInitialized() const; // advc.003
+	bool IsGraphicsInitialized() const; // advc
 	CvGraphicOptionInfo* getGraphicOptionInfo(int i) const;
 	CvGraphicOptionInfo* getGraphicOptionsInfoByIndex(int i) const;
 

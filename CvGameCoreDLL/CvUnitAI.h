@@ -156,7 +156,7 @@ protected:
 	//bool AI_greatWork(); // disabled by K-Mod
 	bool AI_offensiveAirlift();
 	bool AI_paradrop(int iRange);
-	#if 0 // advc.003: unused
+	#if 0 // advc: unused
 	bool AI_protect(int iOddsThreshold, int iFlags = 0, int iMaxPathTurns = MAX_INT);
 	#endif
 	bool AI_patrol();
@@ -224,7 +224,7 @@ protected:
 	// BETTER_BTS_AI_MOD, Naval AI, 01/15/09, jdog5000: START
 	bool AI_pickup(UnitAITypes eUnitAI, bool bCountProduction = false, int iMaxPath = MAX_INT);
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);
-	// advc.003: New auxiliary function
+	// advc: New auxiliary function
 	bool AI_considerPickup(UnitAITypes eUnitAI, CvCityAI const& kCity) const;
 	// BETTER_BTS_AI_MOD: END
 	bool AI_airOffensiveCity();
@@ -288,7 +288,7 @@ protected:
 	bool AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const;
 	// </advc.121>
 	int AI_searchRange(int iRange);
-	bool AI_plotValid(CvPlot /* advc.003: */ const* pPlot) const;
+	bool AI_plotValid(CvPlot /* advc: */ const* pPlot) const;
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
 	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false); // K-Mod

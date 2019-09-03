@@ -63,7 +63,7 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvActionInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// advc.003: Replaced if/else sequences with switch statements in the implementation of this class
+// advc: Replaced if/else sequences with switch statements in the implementation of this class
 class CvActionInfo :
 	// advc.003e (Note that CvActionInfo is wrapped around CvHotkeyInfo rather than being derived from it)
 	private boost::noncopyable

@@ -9764,7 +9764,7 @@
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
-				<!-- advc.003 (comment): No MEMORY_STOPPED_TRADING, nor
+				<!-- advc (comment): No MEMORY_STOPPED_TRADING, nor
 					 DENIED_JOIN_WAR, HIRED_TRADE_EMBARGO, maybe some more
 					 missing. Probably deliberate; treated as 0. -->
 				<!-- advc.143 -->

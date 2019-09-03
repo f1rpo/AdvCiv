@@ -16,7 +16,7 @@
 	 url="http://forums.civfanatics.com/forumdisplay.php?f=268">
 	 
 	<options id="Core" file="BUG Core.ini">
-		<!-- advc.003 (note): Since isShowOptionsKeyReminder in
+		<!-- advc (note): Since isShowOptionsKeyReminder in
 			 'BUG Main Interface.xml' isn't used anymore, this setting
 			 is obsolete. -->
 		<section id="General">

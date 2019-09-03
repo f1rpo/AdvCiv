@@ -49,7 +49,7 @@ class CvHallOfFameScreen:
 		self.REPLAY_BUTTON_ID = "HallOfFameReplayButton"
 
 		self.X_SCREEN = 500
-		#self.Y_SCREEN = 396 advc.003: unused
+		#self.Y_SCREEN = 396 advc: unused
 		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
 		self.Y_TITLE = 12

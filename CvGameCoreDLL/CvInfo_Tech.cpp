@@ -116,7 +116,7 @@ void CvTechInfo::setSoundMP(const TCHAR* szVal)
 
 int CvTechInfo::getDomainExtraMoves(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvTechInfo::getDomainExtraMoves"); // advc.003: check bounds
+	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvTechInfo::getDomainExtraMoves"); // advc: check bounds
 	return m_piDomainExtraMoves ? m_piDomainExtraMoves[i] : 0; // advc.003t
 }
 
@@ -155,7 +155,7 @@ bool CvTechInfo::isCommerceFlexible(int i) const
 
 bool CvTechInfo::isTerrainTrade(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvTechInfo::isTerrainTrade"); // advc.003: check bounds
+	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvTechInfo::isTerrainTrade"); // advc: check bounds
 	return m_pbTerrainTrade ? m_pbTerrainTrade[i] : false;
 }
 #if SERIALIZE_CVINFOS

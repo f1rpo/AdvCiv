@@ -1988,7 +1988,7 @@ class CvInfoScreen:
 					pBuilding = gc.getBuildingInfo(iBuildingLoop)
 
 					# If this building is a wonder...
-					# advc.003:
+					# advc:
 					if isWorldWonderClass(pBuilding.getBuildingClassType()):
 
 						if (pCity.getNumBuilding(iBuildingLoop) > 0):
@@ -2531,7 +2531,7 @@ class CvInfoScreen:
 							pBuilding = gc.getBuildingInfo(iBuildingLoop)
 
 							# World Wonder Mode
-							# advc.003:
+							# advc:
 							if self.szWonderDisplayMode == self.szWDM_WorldWonder and isWorldWonderClass(pBuilding.getBuildingClassType()):
 
 								# Is this city building a wonder?
@@ -2551,7 +2551,7 @@ class CvInfoScreen:
 									self.iNumWonders += 1
 
 							# National/Team Wonder Mode
-							#advc.003
+							#advc:
 							elif self.szWonderDisplayMode == self.szWDM_NatnlWonder and (isNationalWonderClass(pBuilding.getBuildingClassType()) or isTeamWonderClass(pBuilding.getBuildingClassType())):
 
 								# Is this city building a wonder?
@@ -2663,7 +2663,7 @@ class CvInfoScreen:
 							if pBuilding.isCapital():
 								continue
 							# World Wonder Mode
-							# advc.003
+							# advc:
 							if self.szWonderDisplayMode == self.szWDM_WorldWonder and isWorldWonderClass(pBuilding.getBuildingClassType()):
 								# Is this city building a wonder?
 								if (iBuildingProd == iBuildingLoop):

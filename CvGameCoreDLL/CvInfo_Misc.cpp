@@ -4,7 +4,7 @@
 #include "CvDLLXMLIFaceBase.h"
 #include "CvGameTextMgr.h" // for CvGameText::read
 
-// advc.003: Better leave these alone b/c they're DLLExports
+// advc: Better leave these alone b/c they're DLLExports
 CvUnitFormationInfo::CvUnitFormationInfo() {}
 CvUnitFormationInfo::~CvUnitFormationInfo() {}
 
@@ -952,7 +952,7 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 					{
 						if (!pXML->GetNextXmlVal(szTmp))
 							break;
-						// advc.003: renamed to avoid shadowing of eAnimationPath
+						// advc: renamed to avoid shadowing of eAnimationPath
 						AnimationPathTypes eLoopAnimationPath = (AnimationPathTypes)CvXMLLoadUtility::FindInInfoClass(szTmp);
 						if (eLoopAnimationPath > ANIMATIONPATH_NONE)
 							m_vctAnimationPathType.push_back(eLoopAnimationPath);
@@ -981,7 +981,7 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 					{
 						if (!pXML->GetNextXmlVal(szTmp))
 							break;
-						// advc.003: renamed to avoid shadowing of eEffectType
+						// advc: renamed to avoid shadowing of eEffectType
 						EffectTypes eLoopEffectType = (EffectTypes)CvXMLLoadUtility::FindInInfoClass(szTmp);
 						if (eLoopEffectType > NO_EFFECT)
 							m_vctEffectTypes.push_back(eLoopEffectType);

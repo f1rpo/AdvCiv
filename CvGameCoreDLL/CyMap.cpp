@@ -46,10 +46,10 @@ void CyMap::updateVisibility()
 
 CyPlot* CyMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout)
 {
-	// <advc.003> No longer takes an area id
+	// <advc> No longer takes an area id
 	if (m_pMap == NULL)
 		return NULL;
-	CvArea* pArea = m_pMap->getArea(iArea); // </advc.003>
+	CvArea* pArea = m_pMap->getArea(iArea); // </advc>
 	return new CyPlot(m_pMap->syncRandPlot(iFlags, pArea, iMinUnitDistance, iTimeout));
 }
 

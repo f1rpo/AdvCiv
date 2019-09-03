@@ -146,7 +146,7 @@ public:
 		else return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 
-	inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc.003: take params as references
+	inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc: take params as references
 	{
 		return directionXY(
 				dxWrap(kToPlot.getX() - kFromPlot.getX()),
@@ -218,7 +218,7 @@ protected:
 	void uninit();
 	void setup();
 
-public: // advc.003: made several functions const
+public: // advc: made several functions const
 
 	DllExport void erasePlots();																			// Exposed to Python
 	void setRevealedPlots(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly = false);		// Exposed to Python
@@ -244,12 +244,12 @@ public: // advc.003: made several functions const
 	void verifyUnitValidPlot();
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);
 
-	CvPlot* syncRandPlot(int iFlags = 0, CvArea const* pArea = NULL, // advc.003: was iArea								// Exposed to Python
+	CvPlot* syncRandPlot(int iFlags = 0, CvArea const* pArea = NULL, // advc: was iArea								// Exposed to Python
 			int iMinCivUnitDistance = -1,
 			int iTimeout = -1, int* piValidCount = NULL); // advc.304 (default timeout was 100)
-	// <advc.003>
+	// <advc>
 	bool isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
-			int iMinCivUnitDistance) const; // </advc.003>
+			int iMinCivUnitDistance) const; // </advc>
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
 		// <advc.004r>
@@ -331,10 +331,10 @@ public: // advc.003: made several functions const
 	}
 
 	DllExport WorldSizeTypes getWorldSize()															// Exposed to Python
-	// <advc.003> Need a const version
+	// <advc> Need a const version
 	{	CvMap const& kThis = *this;
 		return kThis.getWorldSize();
-	} WorldSizeTypes getWorldSize() const; // </advc.003>
+	} WorldSizeTypes getWorldSize() const; // </advc>
 	ClimateTypes getClimate() const;																	// Exposed to Python
 	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
@@ -370,7 +370,7 @@ public: // advc.003: made several functions const
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 			return NULL;
-		FAssert(isPlot(iX, iY)); // advc.003: Assertion added
+		FAssert(isPlot(iX, iY)); // advc: Assertion added
 		return &(m_pMapPlots[plotNum(iX, iY)]);
 	} // <advc.003f> Even faster and less confusingly named; replacing the above in most places.
 	__forceinline CvPlot& getPlot(int x, int y) const

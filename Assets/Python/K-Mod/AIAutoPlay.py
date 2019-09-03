@@ -247,7 +247,7 @@ class AIAutoPlay :
 		eventType,key,mx,my,px,py = argsList
 		# Get it?  Shift ... control ... to the AI
 		if eventType != 6 or not self.customEM.bShift or not self.customEM.bCtrl:
-			return # advc.003
+			return # advc
 		self.bBenchmark = False # advc (for BM1)
 		theKey=int(key)
 		# advc: B for benchmark added (for BM1)

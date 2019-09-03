@@ -201,7 +201,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 	FAssertMsg(eBonus < GC.getNumBonusInfos(), "eBonus is expected to be within maximum bounds (invalid Index)");
 
 	if (iChange == 0)
-		return; // advc.003
+		return; // advc
 
 	//iOldNumBonuses = getNumBonuses(eBonus);
 	m_paiNumBonuses[eBonus] = (m_paiNumBonuses[eBonus] + iChange);
