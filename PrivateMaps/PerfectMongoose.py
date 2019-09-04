@@ -269,17 +269,22 @@ class MapConstants:
 		#depending on map size, meteors, and which landmass generator was selected.
 		#self.landPercent   = 0.2889
 		# advc.021b: See comments about sea level above. Gets further modified in initInGameOptions.
-		self.landPercent = 0.253
+		self.landPercent = 0.26
 
 		#Percentage of land squares high enough to be Hills or Peaks.
 		self.HillPercent   = 0.30 # advc.021b: was 42
 
 		#Percentage of land squares high enough to be Peaks.
 		# advc.021b: was 0.12
-		self.PeakPercent   = 0.045
+		self.PeakPercent = 0.045
 
 		#Percentage of land squares cold enough to be Snow.
-		self.SnowPercent   = 0.08 # advc.021b: was 0.15
+		# <advc.021b>
+		self.SnowPercent = 0.08 # was 0.15
+		# These can convert Snow and Tundra to Grassland, Plains or Desert, meaning that the final terrain distribution will deviate a bit from the target [Terrain]Percent values.
+		self.snowPlateauMinLatitude = 67 # (polar circles)
+		self.snowHillMinLatitude = 24 # (tropics)
+		self.tundraMinLatitude = 24 # </advc.021b>
 
 		#Percentage of land squares cold enough to be Snow or Tundra.
 		# advc.021b: was 0.2 (+ ...)
@@ -288,14 +293,14 @@ class MapConstants:
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert.
 		#(Use the first number to set the percent of TOTAL land area. I'm using 18%, while the
 		#Google Consensus for a Real Earth Desert Value seems to be 20%.)
-		# advc.021b: I'm using 16%
-		self.DesertPercent = 0.16 / (1.0 - self.TundraPercent)
+		# advc.021b: Since it's the ratio among non-Snow/Tundra, I'm using 15.5%.
+		self.DesertPercent = 0.155 / (1.0 - self.TundraPercent)
 
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert or Plains.
 		#The remainder will be Grassland. (This code auto-sets Plains and Grassland to be equal.)
 		#self.PlainsPercent = ((1.0 - self.DesertPercent) / 2.0) + self.DesertPercent
-		# advc.021b: Replacing the above. 43% Plains instead of 50%.
-		self.PlainsPercent = ((1.0 - self.DesertPercent) * 0.43) + self.DesertPercent
+		# advc.021b: Replacing the above. 39% Plains instead of 50%. (And a portion of that will be placed under Jungle.)
+		self.PlainsPercent = ((1.0 - self.DesertPercent) * 0.39) + self.DesertPercent
 
 		#---The following variables are not based on percentages. Because temperature
 		#---is so strongly tied to latitude, using percentages for things like ice and
@@ -317,14 +322,14 @@ class MapConstants:
 		#Chance Forest and Jungle will be placed when their temperature and rainfall conditions are met.
 		#Note there will be plenty of tiles without tree coverage even when this is at maximum.
 		#Use a value between 0.0 and 1.0.
-		# <advc.021b> Was 1.0; but for Forests, that chance is further multiplied by the new setting below.
+		# <advc.021b> Was 1.0; but, for Forests, that chance is further multiplied by the new setting below.
 		self.MaxTreeChance = 0.85
-		self.ForestChance = 0.45 # </advc.021b>
+		self.ForestChance = 0.5 # </advc.021b>
 
 		#The percent chance that an Oasis will appear. A tile must be Desert, and not be next to any
 		#non-Desert tiles.
 		# Was 0.16, but I'm lifting the enclosure restriction in addFeatures.
-		self.OasisChance = 0.045
+		self.OasisChance = 0.05
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
 		#People often want lots of bonuses, and for those people, this variable is definitely a bonus.
@@ -651,7 +656,8 @@ class MapConstants:
 
 		#This sets the amount of heat lost at the highest altitude. 1.0 loses all heat
 		#0.0 loses no heat.
-		self.heatLostAtOne = 1.0
+		# advc.021b: Was 1.0. Don't want snow at the equator.
+		self.heatLostAtOne = 0.67
 
 		#This value is an exponent that controls the curve associated with
 		#temperature loss. Higher values create a steeper curve.
@@ -3293,11 +3299,12 @@ class TerrainMap:
 				if self.pData[i] != mc.OCEAN and self.pData[i] != mc.PEAK:
 					flatTiles.append(cm.TemperatureMap.data[i])
 					flatLength += 1
-		snowThreshold   = FindValueFromPercent(flatTiles, flatLength, mc.SnowPercent,   False)
+		snowThreshold = FindValueFromPercent(flatTiles, flatLength, mc.SnowPercent, False)
 		tundraThreshold = FindValueFromPercent(flatTiles, flatLength, mc.TundraPercent, False)
 		warmTiles  = []
 		warmLength = 0
 		for y in range(mc.height):
+			latitude = em.GetLatitudeForY(y) # advc.021b
 			for x in range(mc.width):
 				i = GetIndex(x, y)
 				if self.pData[i] == mc.OCEAN:
@@ -3306,23 +3313,31 @@ class TerrainMap:
 						ii = GetIndex(xx, yy)
 						if ii >= 0 and self.pData[ii] != mc.OCEAN:
 							self.tData[i] = mc.COAST
-				elif cm.TemperatureMap.data[i] < snowThreshold:
+				# advc.021b: No snow near the equator, especially no flat snow.
+				elif cm.TemperatureMap.data[i] < snowThreshold and ((tm.pData[i] == mc.HILLS and latitude >= mc.snowHillMinLatitude) or (tm.pData[i] != mc.HILLS and latitude >= mc.snowPlateauMinLatitude)):
 					self.tData[i] = mc.SNOW
-				elif cm.TemperatureMap.data[i] < tundraThreshold:
+				# advc.021b: No tundra near the equator
+				elif cm.TemperatureMap.data[i] < tundraThreshold and latitude >= mc.tundraMinLatitude:
 					self.tData[i] = mc.TUNDRA
 				elif self.pData[i] != mc.PEAK:
 					warmTiles.append(cm.RainfallMap.data[i])
 					warmLength += 1
 		desertThreshold      = FindValueFromPercent(warmTiles, warmLength, mc.DesertPercent, False)
-		self.plainsThreshold = FindValueFromPercent(warmTiles, warmLength, mc.PlainsPercent, False)
+		# <advc.021b> Reserve a small portion of plains for the wettest climate
+		steppePlainsPercent = mc.PlainsPercent * 0.9
+		junglePlainsPercent = mc.PlainsPercent - steppePlainsPercent
+		junglePlainsThreshold = FindValueFromPercent(warmTiles, warmLength, 1 - junglePlainsPercent, False)
+		self.plainsThreshold = FindValueFromPercent(warmTiles, warmLength, steppePlainsPercent, False) # </advc.021b>
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = GetIndex(x, y)
-				if self.pData[i] != mc.OCEAN and cm.TemperatureMap.data[i] >= tundraThreshold:
+				# advc.021b: Can no longer rely on the tundraThreshold here. Instead simply treat all unassigned land as warm .
+				if self.pData[i] != mc.OCEAN and self.tData[i] == mc.OCEAN:#cm.TemperatureMap.data[i] >= tundraThreshold:
 					# advc.021b: Temperature clause added to reduce the frequency of cold deserts
 					if cm.RainfallMap.data[i] < desertThreshold and cm.TemperatureMap.data[i] >= tundraThreshold * 1.3:
 						self.tData[i] = mc.DESERT
-					elif cm.RainfallMap.data[i] < self.plainsThreshold:
+					# advc.021b: '>' clause added
+					elif cm.RainfallMap.data[i] < self.plainsThreshold or cm.RainfallMap.data[i] > junglePlainsThreshold:
 						self.tData[i] = mc.PLAINS
 					else:
 						self.tData[i] = mc.GRASS
@@ -5732,7 +5747,7 @@ def generateTerrainTypes():
 	gc = CyGlobalContext()
 	terrainDesert = gc.getInfoTypeForString("TERRAIN_DESERT")
 	terrainPlains = gc.getInfoTypeForString("TERRAIN_PLAINS")
-	terrainIce    = gc.getInfoTypeForString("TERRAIN_SNOW")
+	terrainSnow   = gc.getInfoTypeForString("TERRAIN_SNOW") # advc.004g: Now officially called "Snow"
 	terrainTundra = gc.getInfoTypeForString("TERRAIN_TUNDRA")
 	terrainGrass  = gc.getInfoTypeForString("TERRAIN_GRASS")
 	terrainHill   = gc.getInfoTypeForString("TERRAIN_HILL")
@@ -5754,7 +5769,7 @@ def generateTerrainTypes():
 		elif tm.tData[i] == mc.TUNDRA:
 			terrainTypes[i] = terrainTundra
 		elif tm.tData[i] == mc.SNOW:
-			terrainTypes[i] = terrainIce
+			terrainTypes[i] = terrainSnow
 	return terrainTypes
 
 
