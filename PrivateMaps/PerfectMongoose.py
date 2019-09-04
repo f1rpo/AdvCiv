@@ -3304,7 +3304,7 @@ class TerrainMap:
 		warmTiles  = []
 		warmLength = 0
 		for y in range(mc.height):
-			latitude = em.GetLatitudeForY(y) # advc.021b
+			latitude = abs(em.GetLatitudeForY(y)) # advc.021b
 			for x in range(mc.width):
 				i = GetIndex(x, y)
 				if self.pData[i] == mc.OCEAN:
