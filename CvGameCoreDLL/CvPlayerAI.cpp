@@ -21211,7 +21211,7 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 	setTradeItem(&item, TRADE_TECHNOLOGIES, eBestReceiveTech);
 	// <advc.144>
 	if (!GET_PLAYER(eHuman).canTradeItem(getID(), item))
-		return; // </advc.144>
+		return false; // </advc.144>
 	CLinkList<TradeData> theirList;
 	theirList.insertAtEnd(item);
 	AI_changeContactTimer(eHuman, CONTACT_ASK_FOR_HELP,
