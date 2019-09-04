@@ -6,7 +6,7 @@
 #include "CvDLLXMLIFaceBase.h"
 
 
-bool CvUnitInfo::m_bCanAnyMoveAllTerrain = false; // advc.003b (static initialization)
+bool CvUnitInfo::m_bCanAnyMoveAllTerrain = false; // advc.opt (static initialization)
 
 CvUnitInfo::CvUnitInfo() :
 m_iAIWeight(0),
@@ -1162,9 +1162,9 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_bIgnoreBuildingDefense);
 	stream->Read(&m_bCanMoveImpassable);
 	stream->Read(&m_bCanMoveAllTerrain);
-	// <advc.003b>
+	// <advc.opt>
 	if (m_bCanMoveAllTerrain)
-		m_bCanAnyMoveAllTerrain = true; // </advc.003b>
+		m_bCanAnyMoveAllTerrain = true; // </advc.opt>
 	stream->Read(&m_bFlatMovementCost);
 	stream->Read(&m_bIgnoreTerrainCost);
 	stream->Read(&m_bNukeImmune);
@@ -1565,9 +1565,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bIgnoreBuildingDefense, "bIgnoreBuildingDefense");
 	pXML->GetChildXmlValByName(&m_bCanMoveImpassable, "bCanMoveImpassable");
 	pXML->GetChildXmlValByName(&m_bCanMoveAllTerrain, "bCanMoveAllTerrain");
-	// <advc.003b>
+	// <advc.opt>
 	if (m_bCanMoveAllTerrain)
-		m_bCanAnyMoveAllTerrain = true; // </advc.003b>
+		m_bCanAnyMoveAllTerrain = true; // </advc.opt>
 	pXML->GetChildXmlValByName(&m_bFlatMovementCost, "bFlatMovementCost");
 	pXML->GetChildXmlValByName(&m_bIgnoreTerrainCost, "bIgnoreTerrainCost");
 	pXML->GetChildXmlValByName(&m_bNukeImmune, "bNukeImmune");

@@ -262,7 +262,7 @@ int CvArea::countNumUniqueBonusTypes() const
 int CvArea::countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner) const
 {
 	int iCount = 0;
-	// <advc.003b> Don't go through all players if eOwner is given
+	// <advc.opt> Don't go through all players if eOwner is given
 	if (eOwner == NO_PLAYER)
 	{
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -271,7 +271,7 @@ int CvArea::countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner) const
 				iCount += countHasReligion(eReligion, (PlayerTypes)iI);
 		}
 		return iCount;
-	} // </advc.003b>
+	} // </advc.opt>
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
 	{
 		if (pLoopCity->area()->getID() == getID())
@@ -286,7 +286,7 @@ int CvArea::countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner) const
 int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner) const
 {
 	int iCount = 0;
-	// <advc.003b> Don't go through all players if eOwner is given
+	// <advc.opt> Don't go through all players if eOwner is given
 	if (eOwner == NO_PLAYER)
 	{
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -295,7 +295,7 @@ int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwne
 				iCount += countHasCorporation(eCorporation, (PlayerTypes)iI);
 		}
 		return iCount;
-	} // </advc.003b>
+	} // </advc.opt>
 	
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
 	{

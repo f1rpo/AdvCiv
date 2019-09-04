@@ -115,7 +115,7 @@ void CvCityAI::AI_reset()
 	{
 		m_aeBestBuild[iI] = NO_BUILD;
 	}
-	m_eBestBuild = NO_BUILD; // advc.003b
+	m_eBestBuild = NO_BUILD; // advc.opt
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
 		m_aiSpecialYieldMultiplier[iI] = 0;
@@ -2795,9 +2795,9 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	int foo=-1;
 	if (!bFinancialTrouble && (bPrimaryArea ?
 			//kOwner.findBestFoundValue() > 0 : area()->getBestFoundValue(getOwner()) > 0
-			// <advc.003b>
+			// <advc.opt>
 			kOwner.AI_getNumCitySites() > 0 :
-			kOwner.AI_getNumAreaCitySites(area()->getID(), foo) > 0)) // </advc.003b>
+			kOwner.AI_getNumAreaCitySites(area()->getID(), foo) > 0)) // </advc.opt>
 		aiUnitAIVal[UNITAI_SETTLE]++;
 
 	aiUnitAIVal[UNITAI_WORKER] += kOwner.AI_neededWorkers(area());
@@ -3365,7 +3365,7 @@ BuildingTypes CvCityAI::AI_bestBuilding(int iFocusFlags, int iMaxTurns, bool bAs
 
 BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns, int iMinThreshold, bool bAsync, AdvisorTypes eIgnoreAdvisor) /* advc: */ const
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod (and I've replaced all other GET_PLAYER calls in this function)
 	CvGame& g = GC.getGame(); // advc
 
@@ -4603,7 +4603,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					if ((kLoopBuilding.getPrereqNumOfBuildingClass(eBuildingClass) <= 0 &&
 						!kLoopBuilding.isBuildingClassNeededInCity(eBuildingClass)) ||
 						(iLimitForLoopBuilding > 0 &&
-						// advc.003b: Was getBuildingClassMaking; no need to call canConstruct for that.
+						// advc.opt: Was getBuildingClassMaking; no need to call canConstruct for that.
 						kOwner.getBuildingClassCountPlusMaking(eLoopClass) >= iLimitForLoopBuilding) ||
 						!kOwner.canConstruct(eLoopBuilding, false, true, false))
 					{	// either we don't need eBuilding in order to build eLoopBuilding, or we can't construct eLoopBuilding anyway
@@ -6635,7 +6635,7 @@ CvCity* CvCityAI::AI_getRouteToCity() const
 
 void CvCityAI::AI_updateRouteToCity()  // advc: some style changes
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 
 	gDLL->getFAStarIFace()->ForceReset(&GC.getRouteFinder());
 
@@ -7682,9 +7682,9 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 
 BuildTypes CvCityAI::AI_getBestBuild(int iIndex) const
 {
-	// <advc.003b> Now also store the best build among all city plots
+	// <advc.opt> Now also store the best build among all city plots
 	if(iIndex == -1)
-		return m_eBestBuild; // </advc.003b>
+		return m_eBestBuild; // </advc.opt>
 	FAssertMsg(iIndex >= 0, "iIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(iIndex < NUM_CITY_PLOTS, "eIndex is expected to be within maximum bounds (invalid Index)");
 	return m_aeBestBuild[iIndex];
@@ -7971,9 +7971,9 @@ void CvCityAI::AI_updateBestBuild()
 	{
 		//m_aiBestBuildValue[iBestPlot] *= 2;
 		m_aiBestBuildValue[iBestPlot] = m_aiBestBuildValue[iBestPlot] * 3 / 2; // K-Mod
-		m_eBestBuild = m_aeBestBuild[iBestPlot]; // advc.003b
+		m_eBestBuild = m_aeBestBuild[iBestPlot]; // advc.opt
 	}
-	else m_eBestBuild = NO_BUILD; // advc.003b
+	else m_eBestBuild = NO_BUILD; // advc.opt
 
 	//Prune plots which are sub-par.
 	// K-Mod. I've rearranged the following code. But kept most of the original functionality.
@@ -11663,7 +11663,7 @@ int CvCityAI::AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWor
 //if healthy is false it assumes bad health conditions.
 int CvCityAI::AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshold, bool bWorkerOptimization) const
 {
-	//PROFILE_FUNC(); // advc.003b: Apparently not responsible for AI_yieldValue being somewhat slow
+	//PROFILE_FUNC(); // advc.opt: Apparently not responsible for AI_yieldValue being somewhat slow
 	int iCount = 0;
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
@@ -12096,7 +12096,7 @@ int CvCityAI::AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtr
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		if(iI == CITY_HOME_PLOT)
-			continue; // advc.003b
+			continue; // advc.opt
 		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot == NULL)
 			continue;
@@ -12875,9 +12875,9 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bForceEmphasizeCulture);
 	pStream->Read(NUM_CITY_PLOTS, m_aiBestBuildValue);
 	pStream->Read(NUM_CITY_PLOTS, (int*)m_aeBestBuild);
-	// <advc.003b>
+	// <advc.opt>
 	if(uiFlag >= 4)
-		pStream->Read((int*)&m_eBestBuild); // </advc.003b>
+		pStream->Read((int*)&m_eBestBuild); // </advc.opt>
 	pStream->Read(GC.getNumEmphasizeInfos(), m_pbEmphasize);
 	pStream->Read(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
 	pStream->Read(&m_iCachePlayerClosenessTurn);
@@ -12910,7 +12910,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 
 	uint uiFlag=2;
 	uiFlag = 3; // advc.139
-	uiFlag = 4; // advc.003b (m_eBestBuild)
+	uiFlag = 4; // advc.opt (m_eBestBuild)
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iEmphasizeAvoidGrowthCount);
@@ -12926,7 +12926,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_bForceEmphasizeCulture);
 	pStream->Write(NUM_CITY_PLOTS, m_aiBestBuildValue);
 	pStream->Write(NUM_CITY_PLOTS, (int*)m_aeBestBuild);
-	pStream->Write(m_eBestBuild); // advc.003b
+	pStream->Write(m_eBestBuild); // advc.opt
 	pStream->Write(GC.getNumEmphasizeInfos(), m_pbEmphasize);
 	pStream->Write(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
 	pStream->Write(m_iCachePlayerClosenessTurn);

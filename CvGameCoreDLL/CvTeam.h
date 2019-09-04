@@ -92,7 +92,7 @@ public:
 	bool isInContactWithBarbarians() const; // advc.302
 	int getDefensivePactCount(TeamTypes eTeam = NO_TEAM) const;																									// Exposed to Python
 	int getVassalCount(TeamTypes eTeam = NO_TEAM) const;
-	// advc.003b, advc.003f:
+	// advc.opt, advc.003f:
 	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }																						// Exposed to Python
 	bool canVassalRevolt(TeamTypes eMaster) const;
 	bool isLossesAllowRevolt(TeamTypes eMaster) const; // advc.112
@@ -134,7 +134,7 @@ public:
 	void updateMinorCiv() { m_bMinorTeam = checkMinorCiv(); }
 	// </advc.003m>
 	PlayerTypes getLeaderID() const;																										// Exposed to Python
-	void updateLeaderID(); // advc.003b
+	void updateLeaderID(); // advc.opt
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
 	HandicapTypes getHandicapType() const;																							// Exposed to Python
 	CvWString getName() const;																								// Exposed to Python
@@ -340,7 +340,7 @@ public:
 	int getVictoryCountdown(VictoryTypes eIndex) const;																							// Exposed to Python
 	void setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft);
 	void changeVictoryCountdown(VictoryTypes eIndex, int iChange);
-	bool isAnyVictoryCountdown() const; // advc.003b
+	bool isAnyVictoryCountdown() const; // advc.opt
 	int getVictoryDelay(VictoryTypes eVictory) const;
 	bool canLaunch(VictoryTypes eVictory) const;									// Exposed to Python
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
@@ -497,7 +497,7 @@ protected:
 	// </advc.003m>
 	bool m_bMapCentering;
 	bool m_bCapitulated;
-	bool m_bAnyVictoryCountdown; // advc.003b
+	bool m_bAnyVictoryCountdown; // advc.opt
 
 	int* m_aiStolenVisibilityTimer;
 	int* m_aiWarWeariness;
@@ -516,10 +516,10 @@ protected:
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;
-	// <advc.003b>
+	// <advc.opt>
 	TeamTypes m_eMaster;
 	PlayerTypes m_eLeader;
-	// </advc.003b>
+	// </advc.opt>
 	bool* m_abCanLaunch;
 
 	int* m_paiRouteChange;

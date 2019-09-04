@@ -1789,9 +1789,9 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 		bool bIndicator) // advc.061, advc.007
 {
 	PROFILE_FUNC();
-	// <advc.003b>
+	// <advc.opt>
 	if(!pPlot->isVisible(GC.getGame().getActiveTeam(), true))
-		return; // </advc.003b>
+		return; // </advc.opt>
 
 	if (//(gDLL->getChtLvl() > 0)
 			GC.getGame().isDebugMode() // advc.135c

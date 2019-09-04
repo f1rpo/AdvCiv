@@ -160,11 +160,11 @@ m_fCAMERA_MAX_TURN_OFFSET(0), m_fCAMERA_MIN_DISTANCE(0),
 m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
-// <advc.003b>
+// <advc.opt>
 m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
-	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.003b>
+	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.opt>
 }
 
 CvGlobals::~CvGlobals() {}
@@ -827,7 +827,7 @@ void CvGlobals::cacheGlobals()
 	CvEventReporter::getInstance().initPythonCallbackGuards();
 }
 
-// <advc.003b>
+// <advc.opt>
 void CvGlobals::setRUINS_IMPROVEMENT(int iValue) {
 
 	m_iRUINS_IMPROVEMENT = iValue;
@@ -841,7 +841,7 @@ void CvGlobals::setWATER_TERRAIN(bool bShallow, int iValue) {
 void CvGlobals::setDEFAULT_SPECIALIST(int iValue) {
 
 	m_iDEFAULT_SPECIALIST = iValue;
-} // </advc.003b>
+} // </advc.opt>
 
 int CvGlobals::getDefineINT(const char * szName,
 		// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
@@ -895,7 +895,7 @@ void CvGlobals::setDefineFLOAT(const char * szName, float fValue,
 }
 
 void CvGlobals::setDefineSTRING(const char * szName, const char * szValue,
-		bool bUpdateCache) // advc.003b
+		bool bUpdateCache) // advc.opt
 {
 	getDefinesVarSystem()->SetValue(szName, szValue);
 	//cacheGlobals();

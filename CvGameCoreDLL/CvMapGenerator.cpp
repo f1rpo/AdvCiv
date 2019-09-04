@@ -180,10 +180,10 @@ void CvMapGenerator::addLakes()
 		return;
 
 	gDLL->NiTextOut("Adding Lakes...");
-	int const iLAKE_PLOT_RAND = GC.getDefineINT("LAKE_PLOT_RAND"); // advc.003b
+	int const iLAKE_PLOT_RAND = GC.getDefineINT("LAKE_PLOT_RAND"); // advc.opt
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		//gDLL->callUpdater(); // advc.003b: Not needed I reckon
+		//gDLL->callUpdater(); // advc.opt: Not needed I reckon
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
 
@@ -253,7 +253,7 @@ void CvMapGenerator::addRivers()  // advc: Refactored
 			if (!bValid)
 				continue;
 
-			gDLL->callUpdater(); // advc.003b: Moved down; shouldn't need to update the UI in every iteration.
+			gDLL->callUpdater(); // advc.opt: Moved down; shouldn't need to update the UI in every iteration.
 			if (!GC.getMap().findWater(pLoopPlot, iRiverSourceRange, true) &&
 				!GC.getMap().findWater(pLoopPlot, iSeaWaterRange, false))
 			{
@@ -577,7 +577,7 @@ void CvMapGenerator::addBonuses()
 			if (GC.getBonusInfo(eBonus).getPlacementOrder() != iOrder)
 				continue;
 
-			gDLL->callUpdater(); // advc.003b: Moved down; don't need to update the UI quite so frequently.
+			gDLL->callUpdater(); // advc.opt: Moved down; don't need to update the UI quite so frequently.
 			if (!py.addBonusType(eBonus))
 			{
 				if (GC.getBonusInfo(eBonus).isOneArea())
@@ -599,7 +599,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
 	int const iBonusCount = calculateNumBonusesToAdd(eBonusType);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
-	// advc.003b: Don't waste time trying to place land resources in the ocean
+	// advc.opt: Don't waste time trying to place land resources in the ocean
 	bool const bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
 			pBonusInfo.isTerrain(GC.getWATER_TERRAIN(false)));
 	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
@@ -609,9 +609,9 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 		int iBestValue = 0;
 		CvArea *pBestArea = NULL;
 		FOR_EACH_AREA_VAR(pLoopArea)
-		{	// <advc.003b>
+		{	// <advc.opt>
 			if (pLoopArea->isWater() && !bWater)
-				continue; // </advc.003b>
+				continue; // </advc.opt>
 			if (areas_tried.count(pLoopArea->getID()) == 0)
 			{
 				int iNumUniqueBonusesOnArea = pLoopArea->countNumUniqueBonusTypes() + 1; // number of unique bonuses starting on the area, plus this one
@@ -819,7 +819,7 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 					kPlot.setImprovementType(eImprov);
 			}
 		}
-		gDLL->callUpdater(); // advc.003b: Moved out of the loop
+		gDLL->callUpdater(); // advc.opt: Moved out of the loop
 	}
 	SAFE_DELETE_ARRAY(aiShuffledIndices);
 }
@@ -936,7 +936,7 @@ void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 {
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		//gDLL->callUpdater(); // advc.003b: Not needed I reckon
+		//gDLL->callUpdater(); // advc.opt: Not needed I reckon
 		GC.getMap().plotByIndex(iI)->setPlotType((PlotTypes)paiPlotTypes[iI], false, false);
 	}
 
@@ -944,7 +944,7 @@ void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		//gDLL->callUpdater(); // advc.003b
+		//gDLL->callUpdater(); // advc.opt
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		if (pLoopPlot->isWater())
 		{

@@ -824,11 +824,11 @@ void CvUnit::resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionD
 
 	// Air v air is more like standard comabt
 	// Round damage in this case will now depend on strength and interception probability
-	// <advc.003b>
+	// <advc.opt>
 	static bool const bBBAI_AIR_COMBAT = GC.getDefineBOOL("BBAI_AIR_COMBAT");
 	static int const iINTERCEPTION_MAX_ROUNDS = GC.getDefineINT("INTERCEPTION_MAX_ROUNDS");
 	static int const iMIN_INTERCEPTION_DAMAGE = GC.getDefineINT("MIN_INTERCEPTION_DAMAGE");
-	static int const iMAX_INTERCEPTION_DAMAGE = GC.getDefineINT("MAX_INTERCEPTION_DAMAGE"); // </advc.003b>
+	static int const iMAX_INTERCEPTION_DAMAGE = GC.getDefineINT("MAX_INTERCEPTION_DAMAGE"); // </advc.opt>
 	if (bBBAI_AIR_COMBAT && DOMAIN_AIR == pInterceptor->getDomainType() && DOMAIN_AIR == getDomainType())
 	{
 		int iBaseDamage = GC.getDefineINT(CvGlobals::AIR_COMBAT_DAMAGE);
@@ -2390,7 +2390,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 	{
 		return false;
 	}
-	static bool const bUSE_SPIES_NO_ENTER_BORDERS = GC.getDefineBOOL("USE_SPIES_NO_ENTER_BORDERS"); // advc.003b
+	static bool const bUSE_SPIES_NO_ENTER_BORDERS = GC.getDefineBOOL("USE_SPIES_NO_ENTER_BORDERS"); // advc.opt
 	if (m_pUnitInfo->isSpy() && bUSE_SPIES_NO_ENTER_BORDERS)
 	{
 		if (kPlot.getOwner() != NO_PLAYER && !GET_PLAYER(getOwner()).canSpiesEnterBorders(kPlot.getOwner()))
@@ -2981,10 +2981,10 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 							if (pNearestCity != NULL)
 							{
 								iValue += ::plotDistance(&kLoopPlot, pNearestCity->plot());
-							} /* <advc.003b> Apart from performance, this also
+							} /* <advc.opt> Apart from performance, this also
 								 makes it easier to test advc.046 through the debugger. */
 							if(iValue >= iBestValue)
-								continue; // </advc.003b>
+								continue; // </advc.opt>
 							if (getDomainType() == DOMAIN_SEA && !plot()->isWater())
 							{
 								if (!kLoopPlot.isWater() || !kLoopPlot.isAdjacentToArea(area()))
@@ -3241,7 +3241,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport)
 			return false; // </dlph.4>
 	// </advc.123a>
 
-	// advc.003b: Moved down (check all the one-liners first)
+	// advc.opt: Moved down (check all the one-liners first)
 	for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); iCorp++)
 	{
 		if (m_pUnitInfo->getCorporationSpreads(iCorp) > 0)
@@ -3748,12 +3748,12 @@ bool CvUnit::canSentry(const CvPlot* pPlot) const
 int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 {
 	//PROFILE_FUNC(); // advc.003o
-	// <advc.003b>
+	// <advc.opt>
 	static int const iCITY_HEAL_RATE = GC.getDefineINT("CITY_HEAL_RATE");
 	static int const iFRIENDLY_HEAL_RATE = GC.getDefineINT("FRIENDLY_HEAL_RATE");
 	static int const iNEUTRAL_HEAL_RATE = GC.getDefineINT("NEUTRAL_HEAL_RATE");
 	static int const iENEMY_HEAL_RATE = GC.getDefineINT("ENEMY_HEAL_RATE");
-	// </advc.003b>
+	// </advc.opt>
 	CvCity* pCity = pPlot->getPlotCity();
 	int iTotalHeal = 0;
 
@@ -5100,7 +5100,7 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 
 int CvUnit::sabotageCost(const CvPlot* pPlot) const
 {
-	static int const iBASE_SPY_SABOTAGE_COST = GC.getDefineINT("BASE_SPY_SABOTAGE_COST"); // advc.003b
+	static int const iBASE_SPY_SABOTAGE_COST = GC.getDefineINT("BASE_SPY_SABOTAGE_COST"); // advc.opt
 	return iBASE_SPY_SABOTAGE_COST;
 }
 
@@ -5258,10 +5258,10 @@ int CvUnit::destroyCost(const CvPlot* pPlot) const
 		bLimited = ::isLimitedWonderClass(pCity->getProductionBuilding());
 	else if (pCity->isProductionProject())
 		bLimited = ::isLimitedProject(pCity->getProductionProject());
-	// <advc.003b>
+	// <advc.opt>
 	static int const iBASE_SPY_DESTROY_COST = GC.getDefineINT("BASE_SPY_DESTROY_COST");
 	static int const iSPY_DESTROY_COST_MULTIPLIER_LIMITED = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER_LIMITED");
-	static int const iSPY_DESTROY_COST_MULTIPLIER = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER"); // </advc.003b>
+	static int const iSPY_DESTROY_COST_MULTIPLIER = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER"); // </advc.opt>
 	return iBASE_SPY_DESTROY_COST + (pCity->getProduction() * (bLimited ?
 			iSPY_DESTROY_COST_MULTIPLIER_LIMITED : iSPY_DESTROY_COST_MULTIPLIER));
 }
@@ -5416,8 +5416,8 @@ int CvUnit::stealPlansCost(const CvPlot* pPlot) const
 	if (pCity == NULL)
 		return 0;
 
-	static int const iBASE_SPY_STEAL_PLANS_COST = GC.getDefineINT("BASE_SPY_STEAL_PLANS_COST"); // advc.003b
-	static int const iSPY_STEAL_PLANS_COST_MULTIPLIER = GC.getDefineINT("SPY_STEAL_PLANS_COST_MULTIPLIER"); // advc.003b
+	static int const iBASE_SPY_STEAL_PLANS_COST = GC.getDefineINT("BASE_SPY_STEAL_PLANS_COST"); // advc.opt
+	static int const iSPY_STEAL_PLANS_COST_MULTIPLIER = GC.getDefineINT("SPY_STEAL_PLANS_COST_MULTIPLIER"); // advc.opt
 	return iBASE_SPY_STEAL_PLANS_COST + (GET_TEAM(pCity->getTeam()).getTotalLand() +
 			GET_TEAM(pCity->getTeam()).getTotalPopulation()) * iSPY_STEAL_PLANS_COST_MULTIPLIER;
 }
@@ -6603,7 +6603,7 @@ bool CvUnit::testSpyIntercepted(PlayerTypes eTargetPlayer, bool bMission, int iM
 	CvWString szBuffer = gDLL->getText(szFormatReveal.GetCString(), GET_PLAYER(getOwner()).getCivilizationAdjectiveKey(), getNameKey(), kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
 	gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 
-	static int const iESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT = GC.getDefineINT("ESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT"); // advc.003b
+	static int const iESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT = GC.getDefineINT("ESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT"); // advc.opt
 	if (GC.getGame().getSorenRandNum(100, "Spy Reveal identity") < iESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT)
 	{
 		if (!isEnemy(kTargetPlayer.getTeam()))
@@ -6633,12 +6633,12 @@ int CvUnit::getSpyInterceptPercent(TeamTypes eTargetTeam, bool bMission) const
 {
 	FAssert(isSpy());
 	FAssert(getTeam() != eTargetTeam);
-	// <advc.003b>
+	// <advc.opt>
 	static int const iESPIONAGE_INTERCEPT_SPENDING_MAX = GC.getDefineINT("ESPIONAGE_INTERCEPT_SPENDING_MAX");
 	static int const iESPIONAGE_INTERCEPT_COUNTERSPY = GC.getDefineINT("ESPIONAGE_INTERCEPT_COUNTERSPY");
 	static int const iESPIONAGE_INTERCEPT_COUNTERESPIONAGE_MISSION = GC.getDefineINT("ESPIONAGE_INTERCEPT_COUNTERESPIONAGE_MISSION");
 	static int const iESPIONAGE_INTERCEPT_RECENT_MISSION = GC.getDefineINT("ESPIONAGE_INTERCEPT_RECENT_MISSION");
-	 // </advc.003b>
+	 // </advc.opt>
 	int iSuccess = 0;
 
 	/* original bts code
@@ -8822,7 +8822,7 @@ int CvUnit::rangeCombatDamage(const CvUnit* pDefender) const
 	int iTheirStrength = pDefender->maxCombatStr(pPlot, this);
 
 	int iStrengthFactor = ((iOurStrength + iTheirStrength + 1) / 2);
-	static int const iRANGE_COMBAT_DAMAGE = GC.getDefineINT("RANGE_COMBAT_DAMAGE"); // advc.003b
+	static int const iRANGE_COMBAT_DAMAGE = GC.getDefineINT("RANGE_COMBAT_DAMAGE"); // advc.opt
 	int iDamage = std::max(1, ((iRANGE_COMBAT_DAMAGE * (iOurStrength + iStrengthFactor)) / (iTheirStrength + iStrengthFactor)));
 
 	return iDamage;
@@ -11699,11 +11699,11 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 {
 	if (!::isPromotionValid(ePromotion, getUnitType(), true))
 		return false;
-	// <advc.003b>
+	// <advc.opt>
 	static int const iMAX_WITHDRAWAL_PROBABILITY = GC.getDefineINT("MAX_WITHDRAWAL_PROBABILITY");
 	static int const iMAX_INTERCEPTION_PROBABILITY = GC.getDefineINT("MAX_INTERCEPTION_PROBABILITY");
 	static int const iMAX_EVASION_PROBABILITY = GC.getDefineINT("MAX_EVASION_PROBABILITY");
-	// </advc.003b>
+	// </advc.opt>
 	CvPromotionInfo& promotionInfo = GC.getPromotionInfo(ePromotion);
 	if (promotionInfo.getWithdrawalChange() + m_pUnitInfo->getWithdrawalProbability() + getExtraWithdrawal() > iMAX_WITHDRAWAL_PROBABILITY)
 	{

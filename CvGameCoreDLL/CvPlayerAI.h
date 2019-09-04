@@ -329,7 +329,7 @@ public:
 	int AI_countCargoSpace(UnitAITypes eUnitAI) const;
 
 	int AI_neededExplorers(CvArea* pArea) const;
-	void AI_updateNeededExplorers(); // advc.003b
+	void AI_updateNeededExplorers(); // advc.opt
 	// <advc.017b>
 	bool AI_isExcessSeaExplorers(CvArea* pWaterArea, int iChange = 0) const;
 	bool AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea* pArea) const;
@@ -697,7 +697,7 @@ protected:
 	bool m_abTheyFarAhead[MAX_CIV_PLAYERS];
 	bool m_abTheyBarelyAhead[MAX_CIV_PLAYERS]; // </advc.130c>
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
-	std::map<int,int> m_neededExplorersByArea; // advc.003b
+	std::map<int,int> m_neededExplorersByArea; // advc.opt
 	static int const m_iSingleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;
 	std::vector<int> m_aiCloseBordersAttitudeCache; // K-Mod. (the original system was prone to mistakes.)
@@ -806,7 +806,7 @@ protected:
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
 	void AI_updateCityAttitude(CvPlot const& kCityPlot); // advc.130w
-	int AI_neededExplorers_bulk(CvArea const* pArea) const; // advc.003b
+	int AI_neededExplorers_bulk(CvArea const* pArea) const; // advc.opt
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START
 	// (advc: moved here from the public section)
 	int AI_calculateSpaceVictoryStage() const;

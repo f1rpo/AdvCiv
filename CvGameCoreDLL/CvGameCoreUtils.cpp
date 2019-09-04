@@ -1271,7 +1271,7 @@ int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
 	int iPopScale = 5 * GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities();
 	int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
 	int iOurPoints = 10 * kOurTeam.getEspionagePointsEver() / std::max(1, iPopScale + kOurTeam.getTotalPopulation(false));
-	static int const iESPIONAGE_SPENDING_MULTIPLIER = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER"); // advc.003b
+	static int const iESPIONAGE_SPENDING_MULTIPLIER = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER"); // advc.opt
 	return iESPIONAGE_SPENDING_MULTIPLIER *
 			std::max(1, 2 * iTargetPoints + iOurPoints) /
 			std::max(1, iTargetPoints + 2 * iOurPoints);

@@ -1808,7 +1808,7 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 int CvTeamAI::AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		bool bConstCache) const // advc.001n
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 	TeamTypes eTargetMaster = GET_TEAM(eTarget).getMasterTeam(); // we need this for checking defensive pacts.
 	bool bPendingDoW = !isAtWar(eTarget) && eWarPlan != WARPLAN_ATTACKED && eWarPlan != WARPLAN_ATTACKED_RECENT;
 	/*  advc.001n: These subroutines call the (cached) AI closeness funtions.
@@ -1849,7 +1849,7 @@ int CvTeamAI::AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan,
 // XXX this should consider area power...
 int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 	FAssertMsg(isAtWar(eTeam), "Current AI Team instance is expected to be at war with eTeam");
 

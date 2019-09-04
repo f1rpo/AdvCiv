@@ -232,11 +232,11 @@ public: /*  All const functions are exposed to Python except some related to art
 	inline bool isMostlyDefensive() const {
 		return isOnlyDefensive() || isOnlyAttackAnimals() || isOnlyAttackBarbarians();
 	} // </advc.315>
-	// advc.003b:
+	// advc.opt:
 	static inline bool canAnyMoveAllTerrain() { return m_bCanAnyMoveAllTerrain; }
 
 protected:
-	static bool m_bCanAnyMoveAllTerrain; // advc.003b
+	static bool m_bCanAnyMoveAllTerrain; // advc.opt
 
 	int m_iAIWeight;
 	int m_iProductionCost;

@@ -70,7 +70,7 @@ class CvActionInfo :
 {
 public:
 	CvActionInfo();
-	// advc.003b: virtual destructor deleted
+	// advc.opt: virtual destructor deleted
 
 	// functions to replace the CvInfoBase calls
 	const TCHAR* getType() const;

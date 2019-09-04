@@ -46,10 +46,10 @@ CvTeam::CvTeam()
 	m_abDefensivePact = new bool[MAX_TEAMS];
 	m_abForcePeace = new bool[MAX_TEAMS];
 	m_abVassal = new bool[MAX_TEAMS];
-	// <advc.003b>
+	// <advc.opt>
 	m_eMaster = NO_TEAM;
 	m_eLeader = NO_PLAYER;
-	// </advc.003b>
+	// </advc.opt>
 	m_abCanLaunch = NULL;
 
 	m_paiRouteChange = NULL;
@@ -185,17 +185,17 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 	m_bMinorTeam = false; // </advc.003m>
 	m_bMapCentering = false;
 	m_bCapitulated = false;
-	m_bAnyVictoryCountdown = false; // advc.003b
+	m_bAnyVictoryCountdown = false; // advc.opt
 
 	m_eID = eID;
 	// <advc.134a>
 	m_eOfferingPeace = NO_TEAM;
 	m_iPeaceOfferStage = 0;
 	// </advc.134a>
-	// <advc.003b>
+	// <advc.opt>
 	m_eMaster = NO_TEAM;
 	m_eLeader = NO_PLAYER;
-	// </advc.003b>
+	// </advc.opt>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		m_aiStolenVisibilityTimer[iI] = 0;
@@ -622,7 +622,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			GET_PLAYER((PlayerTypes)iI).setTeam(getID());
 		}
 	}
-	updateLeaderID(); // advc.003b
+	updateLeaderID(); // advc.opt
 	// <dlph.13>
 	// "AP resident and UN secretary general teams need to be updated if that team will not be used anymore."
 	for (iI = 0; iI < GC.getNumVoteSourceInfos(); iI++)
@@ -1355,7 +1355,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		{
 			CvPlayerAI& kPlayer_j = GET_PLAYER(j);
 
-			if (!kPlayer_j.isAlive() /* advc.003b: */ || kPlayer_j.isMinorCiv())
+			if (!kPlayer_j.isAlive() /* advc.opt: */ || kPlayer_j.isMinorCiv())
 				continue;
 
 			// <advc.130o>
@@ -1795,7 +1795,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
 	{
 		CvPlayer& kMember = GET_PLAYER((PlayerTypes)iI);
 		if(!kMember.isAlive())
-			continue; // advc.003b
+			continue; // advc.opt
 		if (kMember.getTeam() == getID() || kMember.getTeam() == eTeam)
 			kMember.updatePlunder(-1, false);
 	}
@@ -1805,7 +1805,7 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
 	{
 		CvPlayer& kMember = GET_PLAYER((PlayerTypes)iI);
 		if(!kMember.isAlive())
-			continue; // advc.003b
+			continue; // advc.opt
 		if (kMember.getTeam() == getID() || kMember.getTeam() == eTeam)
 			kMember.updatePlunder(1, false);
 	}
@@ -2443,7 +2443,7 @@ int CvTeam::getChosenWarCount(bool bIgnoreMinors) const
 
 int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
 {
-	PROFILE_FUNC(); // advc.003b: Would be easy enough to cache this
+	PROFILE_FUNC(); // advc.opt: Would be easy enough to cache this
 	int iCount = 0;
 	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
@@ -3102,7 +3102,7 @@ bool CvTeam::checkMinorCiv() const // advc.003m: Renamed
 	return bValid;
 }
 
-// <advc.003b> This gets called a lot; now precomputed.
+// <advc.opt> This gets called a lot; now precomputed.
 PlayerTypes CvTeam::getLeaderID() const {
 
 	return m_eLeader;
@@ -3138,7 +3138,7 @@ void CvTeam::updateLeaderID() {
 		 // </advc.104t>
 	}
 	else m_eLeader = NO_PLAYER;
-} // </advc.003b>
+} // </advc.opt>
 
 
 PlayerTypes CvTeam::getSecretaryID() const
@@ -3271,9 +3271,9 @@ void CvTeam::changeAliveCount(int iChange)
 				// </advc.003m>
 			}
 		}
-	} // <advc.003b>
+	} // <advc.opt>
 	if(!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
-		GC.getGame().changeCivTeamsEverAlive(1); // </advc.003b>
+		GC.getGame().changeCivTeamsEverAlive(1); // </advc.opt>
 }
 
 
@@ -4441,7 +4441,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	}
 
 	m_abVassal[eMaster] = bNewValue;
-	m_eMaster = (bNewValue ? eMaster : NO_TEAM); // advc.003b
+	m_eMaster = (bNewValue ? eMaster : NO_TEAM); // advc.opt
 	// <advc.003m>
 	for(int i = 0; i < MAX_TEAMS; i++) {
 		CvTeam& t = GET_TEAM((TeamTypes)i);
@@ -4789,7 +4789,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 // K-Mod. Return the team which is the master of this team. (if this team is free, return getID())
 TeamTypes CvTeam::getMasterTeam() const
 {
-	/*  advc.003b: Since I use this function a lot, I've serialized the master team.
+	/*  advc.opt: Since I use this function a lot, I've serialized the master team.
 		Also speeds up isAVassal. */
 	return (m_eMaster == NO_TEAM ? getID() : m_eMaster);
 	/*for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1)) {
@@ -5487,7 +5487,7 @@ void CvTeam::setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumVictoryInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 	m_aiVictoryCountdown[eIndex] = iTurnsLeft;
-	// <advc.003b>
+	// <advc.opt>
 	if (iTurnsLeft >= 0)
 		m_bAnyVictoryCountdown = true;
 	else
@@ -5498,7 +5498,7 @@ void CvTeam::setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft)
 			if (i != eIndex && getVictoryCountdown((VictoryTypes)i) >= 0)
 				m_bAnyVictoryCountdown = true;
 		}
-	} // </advc.003b>
+	} // </advc.opt>
 }
 
 
@@ -5507,11 +5507,11 @@ void CvTeam::changeVictoryCountdown(VictoryTypes eIndex, int iChange)
 	setVictoryCountdown(eIndex, getVictoryCountdown(eIndex) + iChange); // advc: was m_aiVictoryCountdown[eIndex] += iChange
 }
 
-// <advc.003b>
+// <advc.opt>
 bool CvTeam::isAnyVictoryCountdown() const
 {
 	return m_bAnyVictoryCountdown;
-} // </advc.003b>
+} // </advc.opt>
 
 
 int CvTeam::getVictoryDelay(VictoryTypes eVictory) const
@@ -5573,9 +5573,9 @@ int CvTeam::getLaunchSuccessRate(VictoryTypes eVictory) const
 }
 
 void CvTeam::resetVictoryProgress()
-{	// <advc.003b>
+{	// <advc.opt>
 	if (!isAnyVictoryCountdown() || GC.getGame().getGameState() != GAMESTATE_ON)
-		return; // </advc.003b>
+		return; // </advc.opt>
 	for (int iI = 0; iI < GC.getNumVictoryInfos(); ++iI)
 	{
 		if (getVictoryCountdown((VictoryTypes)iI) < 0)
@@ -5618,9 +5618,9 @@ void CvTeam::resetVictoryProgress()
 
 // K-Mod, code moved from CvPlayer::hasSpaceshipArrived. (it makes more sense to be here)
 bool CvTeam::hasSpaceshipArrived() const
-{	// <advc.003b>
+{	// <advc.opt>
 	if (!isAnyVictoryCountdown())
-		return false; // </advc.003b>
+		return false; // </advc.opt>
 	VictoryTypes eSpaceVictory = GC.getGame().getSpaceVictory();
 	if (eSpaceVictory != NO_VICTORY)
 	{
@@ -7200,9 +7200,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_bMapCentering);
 	pStream->Read(&m_bCapitulated);
-	// <advc.003b>
+	// <advc.opt>
 	if (uiFlag >= 7)
-		pStream->Read(&m_bAnyVictoryCountdown); // </advc.003b>
+		pStream->Read(&m_bAnyVictoryCountdown); // </advc.opt>
 
 	pStream->Read((int*)&m_eID);
 
@@ -7238,12 +7238,12 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_abDefensivePact);
 	pStream->Read(MAX_TEAMS, m_abForcePeace);
 	pStream->Read(MAX_TEAMS, m_abVassal);
-	// <advc.003b>
+	// <advc.opt>
 	pStream->Read((int*)&m_eMaster);
 	if(uiFlag >= 2)
 		pStream->Read((int*)&m_eLeader);
 	else updateLeaderID();
-	// </advc.003b>
+	// </advc.opt>
 	pStream->Read(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Read(GC.getNumRouteInfos(), m_paiRouteChange);
@@ -7269,13 +7269,13 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumTechInfos(), m_paiTechCount);
 	pStream->Read(GC.getNumTerrainInfos(), m_paiTerrainTradeCount);
 	pStream->Read(GC.getNumVictoryInfos(), m_aiVictoryCountdown);
-	// <advc.003b>
+	// <advc.opt>
 	if (uiFlag < 7)
 	{
 		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
 			if (getVictoryCountdown((VictoryTypes)i) >= 0)
 				m_bAnyVictoryCountdown = true;
-	} // </advc.003b>
+	} // </advc.opt>
 
 	pStream->Read(GC.getNumTechInfos(), m_pabHasTech);
 	pStream->Read(GC.getNumTechInfos(), m_pabNoTradeTech);
@@ -7319,12 +7319,12 @@ void CvTeam::write(FDataStreamBase* pStream)
 	int iI;
 
 	uint uiFlag = 1;
-	uiFlag = 2; // advc.003b: m_eLeader added
+	uiFlag = 2; // advc.opt: m_eLeader added
 	uiFlag = 3; // advc.034
 	uiFlag = 4; // advc.162
 	uiFlag = 5; // advc.003m
 	uiFlag = 6; // advc.120g
-	uiFlag = 7; // advc.003b: m_bAnyVictoryCountdown
+	uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
@@ -7359,7 +7359,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	// </advc.003m>
 	pStream->Write(m_bMapCentering);
 	pStream->Write(m_bCapitulated);
-	pStream->Write(m_bAnyVictoryCountdown); // advc.003b
+	pStream->Write(m_bAnyVictoryCountdown); // advc.opt
 
 	pStream->Write(m_eID);
 
@@ -7383,10 +7383,10 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_TEAMS, m_abDefensivePact);
 	pStream->Write(MAX_TEAMS, m_abForcePeace);
 	pStream->Write(MAX_TEAMS, m_abVassal);
-	// <advc.003b>
+	// <advc.opt>
 	pStream->Write(m_eMaster);
 	pStream->Write(m_eLeader);
-	// </advc.003b>
+	// </advc.opt>
 	pStream->Write(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Write(GC.getNumRouteInfos(), m_paiRouteChange);
@@ -7476,9 +7476,9 @@ int CvTeam::getProjectPartNumber(ProjectTypes eProject, bool bAssert) const
 }
 
 bool CvTeam::hasLaunched() const
-{	// <advc.003b>
+{	// <advc.opt>
 	if (!isAnyVictoryCountdown())
-		return false; // </advc.003b>
+		return false; // </advc.opt>
 	VictoryTypes spaceVictory = GC.getGame().getSpaceVictory();
 	if (spaceVictory != NO_VICTORY)
 	{

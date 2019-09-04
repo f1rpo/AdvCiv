@@ -1633,7 +1633,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 
 	bool bCanRoute = canBuildRoute();
 	bool bNextCity = false;
-	bool bCanRetreat = true; // advc.003b: Try only once (uses of this variable not marked with comments)
+	bool bCanRetreat = true; // advc.opt: Try only once (uses of this variable not marked with comments)
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
 	// XXX could be trouble...
@@ -1835,7 +1835,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 
 		if (AI_routeCity())
 			return;
-		bCanRoute = false; // advc.003b: Don't try again
+		bCanRoute = false; // advc.opt: Don't try again
 	}
 
 	if (AI_irrigateTerritory())
@@ -3325,7 +3325,7 @@ void CvUnitAI::AI_attackCityMove()
 	}
 
 	if (bReadyToAttack)
-	{	// advc.003b: Moved into the bReadyToAttack branch
+	{	// advc.opt: Moved into the bReadyToAttack branch
 		bool bAnyWarPlan = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
 		/* BBAI code
 		if (isBarbarian()) {
@@ -7426,7 +7426,7 @@ void CvUnitAI::AI_assaultSeaMove()
 		{
 			// Enemy units in this player's territory
 			if (kOwner.AI_countNumAreaHostileUnits(area(),true,false,false,false,
-					/* <advc.003b> */ plot() /* </advc.003b> */) > iCargo/2)
+					/* <advc.opt> */ plot() /* </advc.opt> */) > iCargo/2)
 			{
 				getGroup()->unloadAll();
 				getGroup()->pushMission(MISSION_SKIP);
@@ -9899,7 +9899,7 @@ CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, int iFlags, int iMaxPath
 		UnitAITypes eTransportedUnitAI, int iMinCargo, int iMinCargoSpace,
 		int iMaxCargoSpace, int iMaxCargoOurUnitAI)
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 	/*if (getDomainType() == DOMAIN_LAND && !canMoveAllTerrain()) {
 		if (area()->getNumAIUnits(getOwner(), eUnitAI) == 0)
 			return false;
@@ -10563,9 +10563,9 @@ bool CvUnitAI::AI_guardBonus(int iMinValue)
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		// <advc.003b> Might make this expensive loop a tad cheaper
+		// <advc.opt> Might make this expensive loop a tad cheaper
 		if(pLoopPlot->getOwner() != getOwner())
-			continue; // </advc.003b>
+			continue; // </advc.opt>
 		if (!AI_plotValid(pLoopPlot))
 			continue; // advc
 		//if (pLoopPlot->getOwner() == getOwner()) {
@@ -12999,7 +12999,7 @@ bool CvUnitAI::AI_hide()  // advc: style changes
 			if (pLoopPlot == NULL || !AI_plotValid(pLoopPlot))
 				continue;
 
-			if (pLoopPlot->isVisibleEnemyUnit(this)) // advc.003b: Moved up
+			if (pLoopPlot->isVisibleEnemyUnit(this)) // advc.opt: Moved up
 				continue;
 
 			bool bValid = true;
@@ -14609,7 +14609,7 @@ bool CvUnitAI::AI_blockade()  // advc: some style changes
 }
 
 // K-Mod todo: this function is very slow on large maps. Consider rewriting it!
-// k146, advc.003b (comment): Performance might be OK now
+// k146, advc.opt (comment): Performance might be OK now
 bool CvUnitAI::AI_pirateBlockade()
 {
 	PROFILE_FUNC();
@@ -14670,13 +14670,13 @@ bool CvUnitAI::AI_pirateBlockade()
 	CvPlot* pBestBlockadePlot = NULL;
 	bool bBestIsForceMove = false;
 	bool bBestIsMove = false;
-	int turnNumberSalt = GC.getGame().getGameTurn() % 7; // advc.003b
+	int turnNumberSalt = GC.getGame().getGameTurn() % 7; // advc.opt
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		// advc: Reduce indentation
 		if(!AI_plotValid(pLoopPlot) ||
-				!pLoopPlot->isRevealed(getTeam(), false) || // advc.003b
+				!pLoopPlot->isRevealed(getTeam(), false) || // advc.opt
 				pLoopPlot->isVisibleEnemyUnit(this) || !canPlunder(pLoopPlot) ||
 				//GC.getGame().getSorenRandNum(4, "AI Pirate Blockade") != 0 ||
 				/*  advc.033: Replacing the above. Should make Privateers a bit
@@ -14684,7 +14684,7 @@ bool CvUnitAI::AI_pirateBlockade()
 				::hash(iI + turnNumberSalt, getOwner()) > 0.25f ||
 				GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
 				pLoopPlot, MISSIONAI_BLOCKADE, getGroup(), 3) != 0 ||
-				// advc.003b:
+				// advc.opt:
 				(!pLoopPlot->isOwned() && pLoopPlot->isAdjacentOwned()))
 			continue;
 		// BETTER_BTS_AI_MOD, Pirate AI, 01/17/09, jdog5000: MOVE_AVOID_ENEMY_WEIGHT_3
@@ -14783,7 +14783,7 @@ bool CvUnitAI::AI_pirateBlockade()
 		// k146: Some bInDanger code deleted
 		if (bInDanger && iPathTurns <= 2 && iPopulationValue == 0 &&
 				getPathFinder().GetFinalMoves() == 0) // advc
-				// advc.003b: AdjacentOwned now guaranteed
+				// advc.opt: AdjacentOwned now guaranteed
 				//&& !pLoopPlot->isAdjacentOwned()
 		{
 			int iRand = GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
@@ -15489,7 +15489,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			continue;
 		if (!bAttackBarbs && pLoopPlot->isBarbarian() && !kOwner.isMinorCiv())
 			continue;
-		if (!pLoopPlot->isCoastalLand(-1)) // advc.003b: -1: skip lakes too
+		if (!pLoopPlot->isCoastalLand(-1)) // advc.opt: -1: skip lakes too
 			continue;
 		if (!isPotentialEnemy(pLoopPlot->getTeam(), pLoopPlot))
 			continue;
@@ -15980,7 +15980,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 		return AI_transportGoTo(pBestPlot, pBestAssaultPlot, iFlags, MISSIONAI_REINFORCE);
 
 	// assist master in attacking
-	TeamTypes eMasterTeam = GET_TEAM(getTeam()).getMasterTeam(); // advc.003b: Replacing a loop
+	TeamTypes eMasterTeam = GET_TEAM(getTeam()).getMasterTeam(); // advc.opt: Replacing a loop
 	if (eMasterTeam != NO_TEAM && GET_TEAM(getTeam()).isOpenBorders(eMasterTeam))
 	{
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -16646,7 +16646,7 @@ bool CvUnitAI::AI_specialSeaTransportMissionary()
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 
-		if (!pLoopPlot->isCoastalLand(/* advc.003b: */ -1))
+		if (!pLoopPlot->isCoastalLand(/* advc.opt: */ -1))
 			continue;
 
 		CvCity* pCity = pLoopPlot->getPlotCity();
@@ -16858,7 +16858,7 @@ bool CvUnitAI::AI_specialSeaTransportSpy()
 
 		// only consider coast plots, owned by civ teams, with base value greater than the current best
 		if (ePlotOwner == NO_PLAYER || ePlotOwner >= MAX_CIV_PLAYERS ||
-				!pLoopPlot->isCoastalLand(/* advc.003b: */ -1) ||
+				!pLoopPlot->isCoastalLand(/* advc.opt: */ -1) ||
 				iBestValue >= base_value[ePlotOwner] ||
 				pLoopPlot->area()->getCitiesPerPlayer(ePlotOwner) == 0)
 			continue;
@@ -17460,7 +17460,7 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 			continue;
 
 		CvPlot* pPlot = NULL; BuildTypes eBuild = NO_BUILD;
-		if (/* advc.003b: */ pLoopCity->AI_getBestBuild(-1) == NO_BUILD ||
+		if (/* advc.opt: */ pLoopCity->AI_getBestBuild(-1) == NO_BUILD ||
 				!AI_bestCityBuild(pLoopCity, &pPlot, &eBuild, NULL, this))
 			continue;
 		FAssert(pPlot != NULL);
@@ -17643,7 +17643,7 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 		int iPathTurns; // XXX should this actually be at the top of the loop? (with saved paths and all...)
 		if (generatePath(&kLoopPlot, 0, true, &iPathTurns))
 		{
-			const int iValue = 10000 - iPathTurns; // advc.003b: Instead of dividing by iPathTurns+1
+			const int iValue = 10000 - iPathTurns; // advc.opt: Instead of dividing by iPathTurns+1
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;

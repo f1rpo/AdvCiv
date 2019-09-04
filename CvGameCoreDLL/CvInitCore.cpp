@@ -1833,6 +1833,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		FAssert(uiSaveFlag == 2);
 		pStream->Read(NUM_GAMEOPTION_TYPES, m_abOptions);
 	} // </advc.912d>
+
 	pStream->Read(NUM_MPOPTION_TYPES, m_abMPOptions);
 
 	pStream->Read(&m_bStatReporting);

@@ -246,7 +246,7 @@ void WarAndPeaceCache::update() {
 		updateCities(getWPAI.properCivs()[i]);
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
-	/*  advc.003b: Disable latestTurnReachable fallback
+	/*  Disable latestTurnReachable fallback
 		(The update is actually cheap, but I'm not sure about the very numerous
 		getDistance calls.) */
 	//updateLatestTurnReachableBySea();
@@ -1423,7 +1423,7 @@ bool WarAndPeaceCache::City::canReach() const {
 		return false;
 	if(distance >= 0)
 		return true;
-	return false; // advc.003b: Disable latestTurnReachable fallback
+	return false; // Disable latestTurnReachable fallback
 
 	// Should perhaps pass outer object in constructor instead
 	/*std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
@@ -1447,7 +1447,7 @@ int WarAndPeaceCache::City::getDistance(bool forceCurrentVal) const {
 		std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 		if(pos != ltr.end())
 			return pos->second.second;
-	}*/  // advc.003b: Disable latestTurnReachable fallback
+	}*/  // Disable latestTurnReachable fallback
 	return distance;
 }
 

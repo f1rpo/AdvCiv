@@ -150,7 +150,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	m_iOccupationTimer = iOccupationTimer;
 	updateCultureLevel(false);
 
-	int const iFreeCityCulture = GC.getDefineINT("FREE_CITY_CULTURE"); // advc.003b
+	int const iFreeCityCulture = GC.getDefineINT("FREE_CITY_CULTURE"); // advc.opt
 	if (kPlot.getCulture(getOwner()) < iFreeCityCulture)
 	{
 		kPlot.setCulture(getOwner(), iFreeCityCulture, bBumpUnits, false);
@@ -158,7 +158,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	kPlot.setOwner(getOwner(), bBumpUnits, false);
 	kPlot.setPlotCity(this);
 
-	int const iFreeCityAdjacentCulture = GC.getDefineINT("FREE_CITY_ADJACENT_CULTURE"); // advc.003b
+	int const iFreeCityAdjacentCulture = GC.getDefineINT("FREE_CITY_ADJACENT_CULTURE"); // advc.opt
 	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
@@ -167,7 +167,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 			if (pAdjacentPlot->getCulture(getOwner()) < iFreeCityAdjacentCulture)
 			{
 				pAdjacentPlot->setCulture(getOwner(), iFreeCityAdjacentCulture,
-						// advc.003b: Updated in the next line in any case
+						// advc.opt: Updated in the next line in any case
 						false/*was bBumpUnits*/, false);
 			}
 			pAdjacentPlot->updateCulture(bBumpUnits, false);
@@ -1705,7 +1705,7 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount,
 		BonusTypes eAssumeAvailable) const // advc.001u
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 
 	FAssertMsg(eUnit != NO_UNIT, "eUnit is expected to be assigned (not NO_UNIT)");
 
@@ -1832,10 +1832,10 @@ int CvCity::getNumNationalWondersLeft() const {
 
 bool CvCity::isBuildingsMaxed() const
 {
-	// <advc.003b> -1 unless a mod-mod changes it
+	// <advc.opt> -1 unless a mod-mod changes it
 	static int const iMaxBuildingsPerCity = GC.getDefineINT("MAX_BUILDINGS_PER_CITY");
 	if (iMaxBuildingsPerCity < 0)
-		return false; // </advc.003b>
+		return false; // </advc.opt>
 
 	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
 		return false;
@@ -1855,7 +1855,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		bool bCheckAirUnitCap, // advc.001b
 		BonusTypes eAssumeAvailable) const // advc.001u
 {
-	PROFILE_FUNC(); // advc.003b
+	PROFILE_FUNC(); // advc.opt
 
 	if(eUnit == NO_UNIT) // advc.test: Safe to remove this check?
 	{
@@ -1881,7 +1881,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 			eAssumeAvailable)) // advc.001u
 		return false;
 
-	// advc.003b: Moved down. Seems a bit slower than CvPlot::canTrain.
+	// advc.opt: Moved down. Seems a bit slower than CvPlot::canTrain.
 	if (!bIgnoreUpgrades)
 	{
 		if (allUpgradesAvailable(eUnit) != NO_UNIT)
@@ -3461,14 +3461,14 @@ int CvCity::getConscriptPopulation() const
 
 int CvCity::conscriptMinCityPopulation() const
 {
-	static int const iCONSCRIPT_MIN_CITY_POPULATION = GC.getDefineINT("CONSCRIPT_MIN_CITY_POPULATION"); // advc.003b
+	static int const iCONSCRIPT_MIN_CITY_POPULATION = GC.getDefineINT("CONSCRIPT_MIN_CITY_POPULATION"); // advc.opt
 	return getConscriptPopulation() + iCONSCRIPT_MIN_CITY_POPULATION;
 }
 
 
 int CvCity::flatConscriptAngerLength() const
 {
-	static int const iConscriptAngerDivisor = GC.getDefineINT("CONSCRIPT_ANGER_DIVISOR"); // advc.003b
+	static int const iConscriptAngerDivisor = GC.getDefineINT("CONSCRIPT_ANGER_DIVISOR"); // advc.opt
 	int iAnger = iConscriptAngerDivisor;
 	iAnger *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getHurryConscriptAngerPercent();
 	iAnger /= 100;
@@ -3503,7 +3503,7 @@ bool CvCity::canConscript() const
 	{
 		return false;
 	}
-	static int const iCONSCRIPT_MIN_CULTURE_PERCENT = GC.getDefineINT("CONSCRIPT_MIN_CULTURE_PERCENT"); // advc.003b
+	static int const iCONSCRIPT_MIN_CULTURE_PERCENT = GC.getDefineINT("CONSCRIPT_MIN_CULTURE_PERCENT"); // advc.opt
 	if (plot()->calculateTeamCulturePercent(getTeam()) < iCONSCRIPT_MIN_CULTURE_PERCENT)
 	{
 		return false;
@@ -4188,12 +4188,12 @@ int CvCity::getNoMilitaryPercentAnger() const
 
 int CvCity::getCulturePercentAnger() const
 {
-	int iTotalCulture = plot()->getTotalCulture(); // advc.003b: was countTotalCulture
+	int iTotalCulture = plot()->getTotalCulture(); // advc.opt: was countTotalCulture
 	if (iTotalCulture == 0)
 		return 0;
 
 	int iAngryCulture = 0;
-	static int const iCulturePercentAnger = GC.getDefineINT("CULTURE_PERCENT_ANGER"); // advc.003b
+	static int const iCulturePercentAnger = GC.getDefineINT("CULTURE_PERCENT_ANGER"); // advc.opt
 	// <advc.099>
 	static int const iAngerModCB = GC.getDefineINT("CLOSED_BORDERS_CULTURE_ANGER_MODIFIER");
 	static int const iAngerModWar = GC.getDefineINT("AT_WAR_CULTURE_ANGER_MODIFIER");
@@ -4249,7 +4249,7 @@ double CvCity::getReligionPercentAnger(PlayerTypes ePlayer) const {
 		return 0;
 	double sameFaithCityRatio = kPlayer.getHasReligionCount(eReligion) / (double)g.getNumCities();
 	// normally 800
-	static int const iRELIGION_PERCENT_ANGER = GC.getDefineINT("RELIGION_PERCENT_ANGER"); // advc.003b
+	static int const iRELIGION_PERCENT_ANGER = GC.getDefineINT("RELIGION_PERCENT_ANGER"); // advc.opt
 	double angerFactor = iRELIGION_PERCENT_ANGER / (double)getReligionCount();
 	return sameFaithCityRatio * angerFactor;
 } // </advc.104>
@@ -4284,7 +4284,7 @@ int CvCity::getDefyResolutionPercentAnger(int iExtra) const
 	if (getDefyResolutionAngerTimer() == 0)
 		return 0;
 
-	static int const iDEFY_RESOLUTION_POP_ANGER = GC.getDefineINT("DEFY_RESOLUTION_POP_ANGER"); // advc.003b
+	static int const iDEFY_RESOLUTION_POP_ANGER = GC.getDefineINT("DEFY_RESOLUTION_POP_ANGER"); // advc.opt
 	return ((((((getDefyResolutionAngerTimer() - 1) /
 			flatDefyResolutionAngerLength()) + 1) *
 			iDEFY_RESOLUTION_POP_ANGER *
@@ -4333,10 +4333,10 @@ int CvCity::getVassalHappiness() const
 }
 
 int CvCity::getVassalUnhappiness() const
-{	// <advc.003b> Replacing the BtS code below
+{	// <advc.opt> Replacing the BtS code below
 	if(GET_TEAM(getTeam()).isAVassal())
 		return GC.getDefineINT(CvGlobals::VASSAL_HAPPINESS);
-	return 0; // </advc.003b>
+	return 0; // </advc.opt>
 	/*int iUnhappy = 0;
 	for (int i = 0; i < MAX_TEAMS; i++) {
 		if (getTeam() != i) {
@@ -4418,7 +4418,7 @@ int CvCity::happyLevel() const
 
 	if (getHappinessTimer() > 0)
 	{
-		static int const iTEMP_HAPPY = GC.getDefineINT("TEMP_HAPPY"); // advc.003b
+		static int const iTEMP_HAPPY = GC.getDefineINT("TEMP_HAPPY"); // advc.opt
 		iHappiness += iTEMP_HAPPY;
 	}
 
@@ -4739,7 +4739,7 @@ int CvCity::getHurryCostModifier(int iBaseModifier, int iProduction, bool bIgnor
 
 	if (iProduction == 0 && !bIgnoreNew)
 	{
-		static int const iNEW_HURRY_MODIFIER = GC.getDefineINT("NEW_HURRY_MODIFIER"); // advc.003b
+		static int const iNEW_HURRY_MODIFIER = GC.getDefineINT("NEW_HURRY_MODIFIER"); // advc.opt
 		iModifier *= std::max(0, iNEW_HURRY_MODIFIER + 100);
 		iModifier /= 100;
 	}
@@ -4993,10 +4993,10 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	}
 	// advc.101: Apply them all at once
 	double grievanceModifier = 0;
-	// <advc.003b>
+	// <advc.opt>
 	static int const iREVOLT_OFFENSE_STATE_RELIGION_MODIFIER = GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER");
 	static int const iREVOLT_DEFENSE_STATE_RELIGION_MODIFIER = GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER");
-	static int const iREVOLT_TOTAL_CULTURE_MODIFIER = GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER"); // </advc.003b>
+	static int const iREVOLT_TOTAL_CULTURE_MODIFIER = GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER"); // </advc.opt>
 	/*  100 in BtS XML; I've increased it to 200 to keep pace with K-Mod's
 		changes to culture spread */
 	grievanceModifier += -1 + (iREVOLT_TOTAL_CULTURE_MODIFIER / 100.0);
@@ -5556,7 +5556,7 @@ int CvCity::getTotalGreatPeopleRateModifier() const
 
 	if (GET_PLAYER(getOwner()).isGoldenAge())
 	{
-		static int const iGOLDEN_AGE_GREAT_PEOPLE_MODIFIER = GC.getDefineINT("GOLDEN_AGE_GREAT_PEOPLE_MODIFIER"); // advc.003b
+		static int const iGOLDEN_AGE_GREAT_PEOPLE_MODIFIER = GC.getDefineINT("GOLDEN_AGE_GREAT_PEOPLE_MODIFIER"); // advc.opt
 		iModifier += iGOLDEN_AGE_GREAT_PEOPLE_MODIFIER;
 	}
 
@@ -7141,7 +7141,7 @@ void CvCity::changeDefyResolutionAngerTimer(int iChange)
 
 int CvCity::flatDefyResolutionAngerLength() const
 {
-	static int const iDEFY_RESOLUTION_ANGER_DIVISOR = GC.getDefineINT("DEFY_RESOLUTION_ANGER_DIVISOR"); // advc.003b
+	static int const iDEFY_RESOLUTION_ANGER_DIVISOR = GC.getDefineINT("DEFY_RESOLUTION_ANGER_DIVISOR"); // advc.opt
 	int iAnger = iDEFY_RESOLUTION_ANGER_DIVISOR;
 
 	iAnger *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getHurryConscriptAngerPercent();
@@ -8745,8 +8745,8 @@ int CvCity::getTradeYield(YieldTypes eIndex) const
 
 int CvCity::totalTradeModifier(CvCity const* pOtherCity) const // advc: const CvCity*
 {
-	static int const iCAPITAL_TRADE_MODIFIER = GC.getDefineINT("CAPITAL_TRADE_MODIFIER"); // advc.003b
-	static int const iOVERSEAS_TRADE_MODIFIER = GC.getDefineINT("OVERSEAS_TRADE_MODIFIER"); // advc.003b
+	static int const iCAPITAL_TRADE_MODIFIER = GC.getDefineINT("CAPITAL_TRADE_MODIFIER"); // advc.opt
+	static int const iOVERSEAS_TRADE_MODIFIER = GC.getDefineINT("OVERSEAS_TRADE_MODIFIER"); // advc.opt
 	int iModifier = 100;
 
 	iModifier += getTradeRouteModifier();
@@ -8772,8 +8772,8 @@ int CvCity::totalTradeModifier(CvCity const* pOtherCity) const // advc: const Cv
 
 int CvCity::getPopulationTradeModifier() const
 {
-	static int const iOUR_POPULATION_TRADE_MODIFIER = GC.getDefineINT("OUR_POPULATION_TRADE_MODIFIER"); // advc.003b
-	static int const iOUR_POPULATION_TRADE_MODIFIER_OFFSET = GC.getDefineINT("OUR_POPULATION_TRADE_MODIFIER_OFFSET"); // advc.003b
+	static int const iOUR_POPULATION_TRADE_MODIFIER = GC.getDefineINT("OUR_POPULATION_TRADE_MODIFIER"); // advc.opt
+	static int const iOUR_POPULATION_TRADE_MODIFIER_OFFSET = GC.getDefineINT("OUR_POPULATION_TRADE_MODIFIER_OFFSET"); // advc.opt
 	return std::max(0, (getPopulation() + iOUR_POPULATION_TRADE_MODIFIER_OFFSET) * iOUR_POPULATION_TRADE_MODIFIER);
 }
 
@@ -8785,8 +8785,8 @@ int CvCity::getPeaceTradeModifier(TeamTypes eTeam) const
 	if (atWar(eTeam, getTeam()))
 		return 0;
 
-	static int const iFOREIGN_TRADE_FULL_CREDIT_PEACE_TURNS = GC.getDefineINT("FOREIGN_TRADE_FULL_CREDIT_PEACE_TURNS"); // advc.003b
-	static int const iFOREIGN_TRADE_MODIFIER = GC.getDefineINT("FOREIGN_TRADE_MODIFIER"); // advc.003b
+	static int const iFOREIGN_TRADE_FULL_CREDIT_PEACE_TURNS = GC.getDefineINT("FOREIGN_TRADE_FULL_CREDIT_PEACE_TURNS"); // advc.opt
+	static int const iFOREIGN_TRADE_MODIFIER = GC.getDefineINT("FOREIGN_TRADE_MODIFIER"); // advc.opt
 	int iPeaceTurns = std::min(iFOREIGN_TRADE_FULL_CREDIT_PEACE_TURNS, GET_TEAM(getTeam()).AI_getAtPeaceCounter(eTeam));
 
 	if (GC.getGame().getElapsedGameTurns() <= iPeaceTurns)
@@ -8798,8 +8798,8 @@ int CvCity::getPeaceTradeModifier(TeamTypes eTeam) const
 
 int CvCity::getBaseTradeProfit(CvCity const* pCity) const // advc: const CvCity*
 {
-	static int const iTHEIR_POPULATION_TRADE_PERCENT = GC.getDefineINT("THEIR_POPULATION_TRADE_PERCENT"); // advc.003b
-	static int const iTRADE_PROFIT_PERCENT = GC.getDefineINT("TRADE_PROFIT_PERCENT"); // advc.003b
+	static int const iTHEIR_POPULATION_TRADE_PERCENT = GC.getDefineINT("THEIR_POPULATION_TRADE_PERCENT"); // advc.opt
+	static int const iTRADE_PROFIT_PERCENT = GC.getDefineINT("TRADE_PROFIT_PERCENT"); // advc.opt
 	int iProfit = std::min(pCity->getPopulation() * iTHEIR_POPULATION_TRADE_PERCENT,
 			plotDistance(getX(), getY(), pCity->getX(), pCity->getY()) *
 			GC.getWorldInfo(GC.getMap().getWorldSize()).getTradeProfitPercent());
@@ -10074,7 +10074,7 @@ double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 	}
 	iBestModifier = range(iBestModifier, 0, 100);
 
-	static int const iREVOLT_TEST_PROB = GC.getDefineINT("REVOLT_TEST_PROB"); // advc.003b
+	static int const iREVOLT_TEST_PROB = GC.getDefineINT("REVOLT_TEST_PROB"); // advc.opt
 	return std::min(1.0, // advc.101: Upper bound used to be handled by the caller
 			((iREVOLT_TEST_PROB * (100 - iBestModifier)) / 100.0)
 			// advc.101: Speed scaling as in K-Mod
@@ -11705,7 +11705,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 	PROFILE_FUNC();
 	if (!GC.getGame().isReligionFounded(eReligion))
 		return 0;
-	// <advc.003b>
+	// <advc.opt>
 	static int const iRELIGION_INFLUENCE_POPULATION_WEIGHT = GC.getDefineINT("RELIGION_INFLUENCE_POPULATION_WEIGHT");
 	static int const iRELIGION_INFLUENCE_STATE_RELIGION_WEIGHT = GC.getDefineINT("RELIGION_INFLUENCE_STATE_RELIGION_WEIGHT");
 	static int const iRELIGION_INFLUENCE_BUILDING_WEIGHT = GC.getDefineINT("RELIGION_INFLUENCE_BUILDING_WEIGHT");
@@ -11713,7 +11713,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 	static int const iRELIGION_INFLUENCE_DISTANCE_WEIGHT = GC.getDefineINT("RELIGION_INFLUENCE_DISTANCE_WEIGHT");
 	static int const iRELIGION_INFLUENCE_TIME_SCALE = GC.getDefineINT("RELIGION_INFLUENCE_TIME_SCALE");
 	static int const iRELIGION_INFLUENCE_TIME_WEIGHT = GC.getDefineINT("RELIGION_INFLUENCE_TIME_WEIGHT");
-	// </advc.003b>
+	// </advc.opt>
 	int iScore = 0;
 
 	if (isHasReligion(eReligion))
@@ -12011,7 +12011,7 @@ void CvCity::updateTradeRoutes() // advc: refactored
 	if (!isDisorder() && !isPlundered())
 	{
 		int iTradeRoutes = getTradeRoutes();
-		static bool const bIgnorePlotGroups = (GC.getDefineBOOL("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES")); // advc.003b
+		static bool const bIgnorePlotGroups = (GC.getDefineBOOL("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES")); // advc.opt
 		FAssert(iTradeRoutes <= iMaxTradeRoutes);
 		int* paiBestValue = new int[iMaxTradeRoutes](); // value-initialize
 		for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -13165,7 +13165,7 @@ void CvCity::doReligion()
 	std::vector<std::pair<int, ReligionTypes> > religion_grips;
 	ReligionTypes eWeakestReligion = NO_RELIGION; // weakest religion already in the city
 	int iWeakestGrip = MAX_INT;
-	static int const iRandomWeight = GC.getDefineINT("RELIGION_INFLUENCE_RANDOM_WEIGHT"); // advc.003b: 3x static
+	static int const iRandomWeight = GC.getDefineINT("RELIGION_INFLUENCE_RANDOM_WEIGHT"); // advc.opt: 3x static
 	static int const iDivisorBase = GC.getDefineINT("RELIGION_SPREAD_DIVISOR_BASE");
 	static int const iDistanceFactor = GC.getDefineINT("RELIGION_SPREAD_DISTANCE_FACTOR");
 

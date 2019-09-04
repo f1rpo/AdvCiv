@@ -210,7 +210,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		bBumpUnits = true;
 		// K-Mod end
 	}
-	if(bUpdateAttitude) { // advc.003b: Don't update unnecessarily
+	if(bUpdateAttitude) { // advc.opt: Don't update unnecessarily
 		// K-Mod
 		GET_PLAYER(getFirstPlayer()).AI_updateAttitudeCache(getSecondPlayer());
 		GET_PLAYER(getSecondPlayer()).AI_updateAttitudeCache(getFirstPlayer());

@@ -577,11 +577,11 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iAIAutoPlay = 0;
 	m_iGlobalWarmingIndex = 0;// K-Mod
 	m_iGwEventTally = -1; // K-Mod (-1 means Gw tally has not been activated yet)
-	// <advc.003b>
+	// <advc.opt>
 	m_iStartingPlotRange = 0; // (not serialized)
 	m_iCivPlayersEverAlive = 0;
 	m_iCivTeamsEverAlive = 0;
-	// </advc.003b>
+	// </advc.opt>
 	m_uiInitialTime = 0;
 
 	m_bScoreDirty = false;
@@ -1008,7 +1008,7 @@ void CvGame::assignStartingPlots()
 	// First, make a list of all the pre-marked starting plots on the map.
 	std::vector<CvPlot*> starting_plots;
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
-	{	// advc.003b: Shouldn't be necessary; the loop body is very fast.
+	{	// advc.opt: Shouldn't be necessary; the loop body is very fast.
 		//gDLL->callUpdater(); // allow window updates during launch
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
 		if (pLoopPlot->isStartingPlot())
@@ -1027,7 +1027,7 @@ void CvGame::assignStartingPlots()
 			starting_plots.pop_back();
 		}
 	} // K-Mod end
-	updateStartingPlotRange(); // advc.003b
+	updateStartingPlotRange(); // advc.opt
 	if (GC.getPythonCaller()->callMapFunction("assignStartingPlots"))
 		return;
 
@@ -1245,9 +1245,9 @@ void CvGame::assignStartingPlots()
 // Swaps starting locations until we have reached the optimal closeness between teams
 // (caveat: this isn't quite "optimal" because we could get stuck in local minima, but it's pretty good)
 void CvGame::normalizeStartingPlotLocations()
-{	// <advc.003b> This function is only for team games
+{	// <advc.opt> This function is only for team games
 	if(!isTeamGame())
-		return; // </advc.003b>
+		return; // </advc.opt>
 	CvPlot* apNewStartPlots[MAX_CIV_PLAYERS];
 	int* aaiDistances[MAX_CIV_PLAYERS];
 	int aiStartingLocs[MAX_CIV_PLAYERS];
@@ -1375,13 +1375,13 @@ int CvGame::getStartingPlotNormalizationLevel() const
 	return m_iNormalizationLevel;
 } // </advc.108
 
-/*  <advc.003b> Replacing CvPlayer::startingPlotRange. And now precomputed through
+/*  <advc.opt> Replacing CvPlayer::startingPlotRange. And now precomputed through
 	CvGame::updateStartingPlotRange. */
 int CvGame::getStartingPlotRange() const
 {
 	FAssertMsg(m_iStartingPlotRange > 0, "CvGame::updateStartingPlotRange hasn't been called");
 	return m_iStartingPlotRange;
-} // </advc.003b>
+} // </advc.opt>
 
 
 void CvGame::normalizeAddRiver()  // advc: style changes
@@ -2239,7 +2239,7 @@ void CvGame::normalizeStartingPlots()
 		normalizeAddExtras();
 }
 
-/*  advc.003b: Body cut from CvPlayer::startingPlotRange. Not player-dependent,
+/*  advc.opt: Body cut from CvPlayer::startingPlotRange. Not player-dependent,
 	and there's no need to recompute it for every prospective starting plot. */
 void CvGame::updateStartingPlotRange()
 {
@@ -2682,7 +2682,7 @@ void CvGame::updateGwPercentAnger()
 			// amplify the affects of responsibility
 			iResponsibilityFactor = std::max(0, 2*iResponsibilityFactor-100);
 
-			static int const iGLOBAL_WARMING_BASE_ANGER_PERCENT = GC.getDefineINT("GLOBAL_WARMING_BASE_ANGER_PERCENT"); // advc.003b
+			static int const iGLOBAL_WARMING_BASE_ANGER_PERCENT = GC.getDefineINT("GLOBAL_WARMING_BASE_ANGER_PERCENT"); // advc.opt
 			iAngerPercent = iGLOBAL_WARMING_BASE_ANGER_PERCENT * iGwSeverityRating * iResponsibilityFactor;
 			iAngerPercent = ROUND_DIVIDE(iAngerPercent, 10000);// div, 100 * 100
 		}
@@ -3421,7 +3421,7 @@ int CvGame::countCivPlayersAlive() const
 
 
 int CvGame::countCivPlayersEverAlive() const
-{	// advc.003b:
+{	// advc.opt:
 	FAssertMsg(!m_bAllGameDataRead, "Should use getCivPlayersEverAlive instead");
 	int iCount = 0;
 
@@ -3458,7 +3458,7 @@ int CvGame::countCivTeamsAlive() const
 
 
 int CvGame::countCivTeamsEverAlive() const
-{	// advc.003b:
+{	// advc.opt:
 	FAssertMsg(!m_bAllGameDataRead, "Should use getCivTeamsEverAlive instead");
 	std::set<int> setTeamsEverAlive;
 
@@ -3663,7 +3663,7 @@ int CvGame::calculateReligionPercent(ReligionTypes eReligion,
 
 int CvGame::goldenAgeLength() const
 {
-	static int const iGOLDEN_AGE_LENGTH = GC.getDefineINT("GOLDEN_AGE_LENGTH"); // advc.003b
+	static int const iGOLDEN_AGE_LENGTH = GC.getDefineINT("GOLDEN_AGE_LENGTH"); // advc.opt
 	int iLength = iGOLDEN_AGE_LENGTH;
 
 	iLength *= GC.getGameSpeedInfo(getGameSpeedType()).getGoldenAgePercent();
@@ -3734,7 +3734,7 @@ bool CvGame::canTrainNukes() const
 
 EraTypes CvGame::getCurrentEra() const
 {
-	//PROFILE_FUNC(); // advc.003b: OK - negligble
+	//PROFILE_FUNC(); // advc.opt: OK - negligble
 
 	int iEra = 0;
 	int iCount = 0;
@@ -4491,7 +4491,7 @@ void CvGame::changeAIAutoPlay(int iChange, /* advc.127: */ bool changePlayerStat
 	setAIAutoPlay(getAIAutoPlay() + iChange, /* advc.127: */ changePlayerStatus);
 }
 
-// <advc.003b>
+// <advc.opt>
 int CvGame::getCivPlayersEverAlive() const {
 
 	// Could pose a savegame compatibility problem (uiFlag<4)
@@ -4524,7 +4524,7 @@ void CvGame::changeCivTeamsEverAlive(int iChange) {
 
 	m_iCivTeamsEverAlive += iChange;
 	FASSERT_BOUNDS(0, MAX_CIV_TEAMS + 1, m_iCivTeamsEverAlive, "CvGame::changeCivTeamsEverAlive");
-} // </advc.003b>
+} // </advc.opt>
 
 /*  K-mod, 6/dec/10, karadoc
 	18/dec/10 - added Gw calc functions */
@@ -4696,7 +4696,7 @@ void CvGame::makeCircumnavigated()
 
 bool CvGame::circumnavigationAvailable() const
 {
-	static bool const bCIRCUMNAVIGATE_FREE_MOVES = GC.getDefineBOOL("CIRCUMNAVIGATE_FREE_MOVES"); // advc.003b
+	static bool const bCIRCUMNAVIGATE_FREE_MOVES = GC.getDefineBOOL("CIRCUMNAVIGATE_FREE_MOVES"); // advc.opt
 	if (!bCIRCUMNAVIGATE_FREE_MOVES)
 		return false;
 
@@ -5390,7 +5390,7 @@ void CvGame::updateUnitEnemyGlow()
 	{
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if (!kPlayer.isAlive())
-			continue; // advc.003b
+			continue; // advc.opt
 		FOR_EACH_UNIT_VAR(pLoopUnit, kPlayer)
 			gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getUnitEntity());
 	}
@@ -5709,12 +5709,12 @@ void CvGame::setTeamScore(TeamTypes eTeam, int iScore)
 
 
 bool CvGame::isOption(GameOptionTypes eIndex) const
-{	// <advc.003b>
+{	// <advc.opt>
 	if(eIndex < 0 || eIndex >= NUM_GAMEOPTION_TYPES) {
 		FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eIndex, "No such game option");
 		return false;
 	} // Use inline functions. Probably doesn't matter, but feels better.
-	return GC.getInitCore().getOptions()[eIndex]; // </advc.003b>
+	return GC.getInitCore().getOptions()[eIndex]; // </advc.opt>
 }
 
 
@@ -6695,7 +6695,7 @@ void CvGame::doGlobalWarming()
 
 	// Apply the effects of GW
 
-	// advc.003b: Can't hurt to make these static
+	// advc.opt: Can't hurt to make these static
 	static TerrainTypes const eWarmingTerrain = ((TerrainTypes)(GC.getDefineINT("GLOBAL_WARMING_TERRAIN")));
 	static TerrainTypes const eFrozenTerrain = ((TerrainTypes)(GC.getDefineINT("FROZEN_TERRAIN")));
 	static TerrainTypes const eColdTerrain = ((TerrainTypes)(GC.getDefineINT("COLD_TERRAIN")));
@@ -6803,7 +6803,7 @@ void CvGame::doGlobalWarming()
 
 // Choose the best plot for global warming to strike from a set of iPool random plots
 CvPlot* CvGame::getRandGWPlot(int iPool)
-{	// advc.003b: Can't hurt to make these static
+{	// advc.opt: Can't hurt to make these static
 	static const TerrainTypes eFrozenTerrain = (TerrainTypes)GC.getDefineINT("FROZEN_TERRAIN");
 	static const TerrainTypes eColdTerrain = (TerrainTypes)GC.getDefineINT("COLD_TERRAIN");
 	static const TerrainTypes eTemperateTerrain = (TerrainTypes)GC.getDefineINT("TEMPERATE_TERRAIN");
@@ -8536,9 +8536,9 @@ int CvGame::getSorenRandNum(int iNum, const char* pszLog,
 int CvGame::calculateSyncChecksum()
 {
 	//PROFILE_FUNC(); // advc.003o
-	// <advc.003b>
+	// <advc.opt>
 	if(!isNetworkMultiPlayer())
-		return 0; // </advc.003b>
+		return 0; // </advc.opt>
 
 	int iValue = 0;
 	iValue += getMapRand().getSeed();
@@ -8977,13 +8977,13 @@ void CvGame::read(FDataStreamBase* pStream)
 	m_iAIAutoPlay = 0;
 	pStream->Read(&m_iGlobalWarmingIndex); // K-Mod
 	pStream->Read(&m_iGwEventTally); // K-Mod
-	// <advc.003b>
+	// <advc.opt>
 	if(uiFlag >= 4) {
 		pStream->Read(&m_iCivPlayersEverAlive);
 		pStream->Read(&m_iCivTeamsEverAlive);
 	} /* The else case is handled in allGameDataRead - need to read the players and
 		 teams first. */
-	// </advc.003b>
+	// </advc.opt>
 	// m_uiInitialTime not saved
 
 	pStream->Read(&m_bScoreDirty);
@@ -9207,7 +9207,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	uint uiFlag=1;
 	uiFlag = 2; // advc.701: R&F option
 	uiFlag = 3; // advc.052
-	uiFlag = 4; // advc.003b: Civs and teams EverAlive tracked
+	uiFlag = 4; // advc.opt: Civs and teams EverAlive tracked
 	uiFlag = 5; // advc.004m
 	uiFlag = 6; // advc.106h
 	pStream->Write(uiFlag);		// flag for expansion
@@ -9236,10 +9236,10 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_iAIAutoPlay);
 	pStream->Write(m_iGlobalWarmingIndex); // K-Mod
 	pStream->Write(m_iGwEventTally); // K-Mod
-	// <advc.003b>
+	// <advc.opt>
 	pStream->Write(m_iCivPlayersEverAlive);
 	pStream->Write(m_iCivTeamsEverAlive);
-	// </advc.003b>
+	// </advc.opt>
 	// m_uiInitialTime not saved
 
 	pStream->Write(m_bScoreDirty);
@@ -9393,12 +9393,12 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 	read functions have been called. */
 void CvGame::allGameDataRead() {
 
-	// <advc.003b> Savegame compatibility (uiFlag<4)
+	// <advc.opt> Savegame compatibility (uiFlag<4)
 	if(m_iCivPlayersEverAlive == 0)
 		m_iCivPlayersEverAlive = countCivPlayersEverAlive();
 	if(m_iCivTeamsEverAlive == 0)
 		m_iCivTeamsEverAlive = countCivTeamsEverAlive();
-	// </advc.003b>
+	// </advc.opt>
 	getWPAI.update(); // advc.104
 	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
 	m_bAllGameDataRead = true;
@@ -9941,7 +9941,7 @@ int CvGame::getCultureThreshold(CultureLevelTypes eLevel) const
 	int iThreshold = GC.getCultureLevelInfo(eLevel).getSpeedThreshold(getGameSpeedType());
 	if (isOption(GAMEOPTION_NO_ESPIONAGE))
 	{
-		static int const iNO_ESPIONAGE_CULTURE_LEVEL_MODIFIER = GC.getDefineINT("NO_ESPIONAGE_CULTURE_LEVEL_MODIFIER"); // advc.003b
+		static int const iNO_ESPIONAGE_CULTURE_LEVEL_MODIFIER = GC.getDefineINT("NO_ESPIONAGE_CULTURE_LEVEL_MODIFIER"); // advc.opt
 		iThreshold *= 100 + iNO_ESPIONAGE_CULTURE_LEVEL_MODIFIER;
 		iThreshold /= 100;
 	} // <advc.126>

@@ -184,7 +184,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	// BETTER_BTS_AI_MOD: END
 	m_iTurnsBuildsInterrupted = -2; // advc.011: Meaning none in progress
 	m_szMostRecentCityName = ""; // advc.005c
-	m_iTotalCulture = 0; // advc.003b
+	m_iTotalCulture = 0; // advc.opt
 	// <advc.tsl>
 	if(!bConstructorCall)
 		m_iLatitude = calculateLatitude(); // </advc.tsl>
@@ -483,7 +483,7 @@ void CvPlot::updateFog()
 			gDLL->getEngineIFace()->LightenVisibility(getFOWIndex());
 		else
 		{
-			static bool const bCityScreenFogEnabled = GC.getDefineBOOL("CITY_SCREEN_FOG_ENABLED"); // advc.003b: static
+			static bool const bCityScreenFogEnabled = GC.getDefineBOOL("CITY_SCREEN_FOG_ENABLED"); // advc.opt: static
 			if (bCityScreenFogEnabled && gDLL->getInterfaceIFace()->isCityScreenUp() &&
 					gDLL->getInterfaceIFace()->getHeadSelectedCity() != getWorkingCity())
 				gDLL->getEngineIFace()->DarkenVisibility(getFOWIndex());
@@ -604,7 +604,7 @@ void CvPlot::updateSymbols()
 
 	if(maxYield>0)
 	{
-		static int maxYieldStack = GC.getDefineINT("MAX_YIELD_STACK"); // advc.003b: static
+		static int maxYieldStack = GC.getDefineINT("MAX_YIELD_STACK"); // advc.opt: static
 		int layers = maxYield /maxYieldStack + 1;
 
 		CvSymbol *pSymbol= NULL;
@@ -1379,9 +1379,9 @@ bool CvPlot::canHavePotentialIrrigation() const
 	if (isCity() && !isHills())
 	{
 		return true;
-	} // <advc.003b>
+	} // <advc.opt>
 	if(isWater())
-		return false; // </advc.003b>
+		return false; // </advc.opt>
 	for (iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
 	{
 		if (GC.getImprovementInfo((ImprovementTypes)iI).isCarriesIrrigation())
@@ -4176,7 +4176,7 @@ int CvPlot::getOwnershipDuration() const
 
 bool CvPlot::isOwnershipScore() const
 {
-	static int const iOWNERSHIP_SCORE_DURATION_THRESHOLD = GC.getDefineINT("OWNERSHIP_SCORE_DURATION_THRESHOLD"); // advc.003b
+	static int const iOWNERSHIP_SCORE_DURATION_THRESHOLD = GC.getDefineINT("OWNERSHIP_SCORE_DURATION_THRESHOLD"); // advc.opt
 	return (getOwnershipDuration() >= iOWNERSHIP_SCORE_DURATION_THRESHOLD);
 }
 
@@ -4580,7 +4580,7 @@ bool CvPlot::isPotentialCityWorkForArea(CvArea* pArea) const
 {
 	PROFILE_FUNC();
 
-	static bool const bWATER_POTENTIAL_CITY_WORK_FOR_AREA = GC.getDefineBOOL("WATER_POTENTIAL_CITY_WORK_FOR_AREA"); // advc.003b
+	static bool const bWATER_POTENTIAL_CITY_WORK_FOR_AREA = GC.getDefineBOOL("WATER_POTENTIAL_CITY_WORK_FOR_AREA"); // advc.opt
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 	{
@@ -5043,7 +5043,7 @@ bool CvPlot::isPeak() const
 void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)  // advc: some style changes
 {
 	bool bRecalculateAreas = false; // advc.030
-	static TerrainTypes const eLAND_TERRAIN = (TerrainTypes)GC.getDefineINT("LAND_TERRAIN"); // advc.003b
+	static TerrainTypes const eLAND_TERRAIN = (TerrainTypes)GC.getDefineINT("LAND_TERRAIN"); // advc.opt
 	if (getPlotType() != eNewValue)
 	{
 		if (getPlotType() == PLOT_OCEAN || eNewValue == PLOT_OCEAN)
@@ -6371,11 +6371,11 @@ int CvPlot::countTotalCulture() const
 	return iTotal;
 }
 
-// <advc.003b>
+// <advc.opt>
 int CvPlot::getTotalCulture() const {
 
 	return m_iTotalCulture;
-} // </advc.003b>
+} // </advc.opt>
 
 
 TeamTypes CvPlot::findHighestCultureTeam() const
@@ -6411,7 +6411,7 @@ PlayerTypes CvPlot::findHighestCulturePlayer(/* advc.035: */ bool bAlive) const
 
 int CvPlot::calculateCulturePercent(PlayerTypes eIndex) const
 {
-	int iTotalCulture = getTotalCulture(); // advc.003b: was countTotalCulture
+	int iTotalCulture = getTotalCulture(); // advc.opt: was countTotalCulture
 	if(iTotalCulture <= 0)
 		return 0;
 	return ((getCulture(eIndex) * 100) / iTotalCulture);
@@ -6449,12 +6449,12 @@ void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bU
 		return;
 
 	if(m_aiCulture == NULL)
-	{	// <advc.003b>
+	{	// <advc.opt>
 		m_aiCulture = new int[MAX_PLAYERS](); // value-initialize
 		m_iTotalCulture = 0;
 	}
 	if(GET_PLAYER(eIndex).isEverAlive())
-		m_iTotalCulture += iNewValue - m_aiCulture[eIndex]; // </advc.003b>
+		m_iTotalCulture += iNewValue - m_aiCulture[eIndex]; // </advc.opt>
 	m_aiCulture[eIndex] = iNewValue;
 	FAssert(getCulture(eIndex) >= 0);
 
@@ -8519,7 +8519,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 
 	pStream->Read(&bVal);
 	m_bStartingPlot = bVal;
-	if(uiFlag < 4) // advc.003b: m_bHills removed
+	if(uiFlag < 4) // advc.opt: m_bHills removed
 		pStream->Read(&bVal);
 	pStream->Read(&bVal);
 	m_bNOfRiver = bVal;
@@ -8674,7 +8674,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	}
 	pStream->Read(&m_iTurnsBuildsInterrupted); // advc.011
 	pStream->ReadString(m_szMostRecentCityName); // advc.005c
-	// <advc.003b>
+	// <advc.opt>
 	if(uiFlag >= 2)
 		pStream->Read(&m_iTotalCulture);
 	else if(m_aiCulture != NULL) {//m_iTotalCulture = countTotalCulture();
@@ -8683,7 +8683,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 			can't make a difference in this case. */
 		for(int i = 0; i < MAX_PLAYERS; i++)
 			m_iTotalCulture += m_aiCulture[i];
-	} // </advc.003b>
+	} // </advc.opt>
 	if (NULL != m_apaiCultureRangeCities)
 	{
 		for (iI = 0; iI < MAX_PLAYERS; ++iI)
@@ -8749,9 +8749,9 @@ void CvPlot::write(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	uiFlag = 1; // advc.035
-	uiFlag = 2; // advc.003b
+	uiFlag = 2; // advc.opt
 	uiFlag = 3; // advc.tsl
-	uiFlag = 4; // advc.003b: m_bHills removed
+	uiFlag = 4; // advc.opt: m_bHills removed
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iX);
@@ -8932,7 +8932,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	}
 	pStream->Write(m_iTurnsBuildsInterrupted); // advc.011
 	pStream->WriteString(m_szMostRecentCityName); // advc.005c
-	pStream->Write(m_iTotalCulture); // advc.003b
+	pStream->Write(m_iTotalCulture); // advc.opt
 
 	if (NULL == m_apaiCultureRangeCities)
 	{

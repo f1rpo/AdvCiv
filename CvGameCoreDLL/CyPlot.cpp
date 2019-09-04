@@ -873,7 +873,7 @@ int CyPlot::getCulture(int /*PlayerTypes*/ eIndex)
 }
 
 int CyPlot::countTotalCulture()
-{	// advc.003b: was calling CvPlot::countTotalCulture
+{	// advc.opt: was calling CvPlot::countTotalCulture
 	return m_pPlot ? m_pPlot->getTotalCulture() : -1;
 }
 

@@ -362,7 +362,7 @@ inline void CLinkList<tVARTYPE>::moveToEnd(CLLNode<tVARTYPE>* pNode)
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::next(CLLNode<tVARTYPE>* pNode) const
 {
-  //assert(pNode != NULL); // advc.003b: I suspect that this slows assert builds down more than it's worth
+  //assert(pNode != NULL); // advc.opt: I suspect that this slows assert builds down more than it's worth
   return pNode->m_pNext;
 }
 

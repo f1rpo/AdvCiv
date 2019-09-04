@@ -1360,7 +1360,7 @@ public:
 		DO(RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER) /* advc.156 */ \
 		DO(WORKER_RESERVE_PERCENT) /* advc.113 */ \
 		DO(CITY_DEFENSE_DAMAGE_HEAL_RATE) /* cdtw.2 */ \
-		/* <advc.003b> */ \
+		/* <advc.opt> */ \
 		DO(DIPLOMACY_VALUE_REMAINDER) \
 		DO(PEACE_TREATY_LENGTH) \
 		DO(PLOT_VISIBILITY_RANGE) \
@@ -1399,7 +1399,7 @@ public:
 		DO(SHIP_BLOCKADE_RANGE) \
 		DO(MAX_TRADE_ROUTES) \
 		DO(ENABLE_DEBUG_TOOLS_MULTIPLAYER) \
-		/* </advc.003b> */ \
+		/* </advc.opt> */ \
 		DO(PATH_DAMAGE_WEIGHT) \
 		DO(HILLS_EXTRA_DEFENSE) \
 		DO(RIVER_ATTACK_MODIFIER) \
@@ -1481,7 +1481,7 @@ public:
 	inline int getCOMBAT_DAMAGE() const { return getDefineINT(COMBAT_DAMAGE); }
 	// BETTER_BTS_AI_MOD: END
 	// </advc.003t>
-	/*  <advc.003b> (TextVals can't be loaded by cacheGlobals. Hence also won't be
+	/*  <advc.opt> (TextVals can't be loaded by cacheGlobals. Hence also won't be
 		updated when a setDefine... function is called.) */
 	inline ImprovementTypes getRUINS_IMPROVEMENT() const
 	{
@@ -1502,7 +1502,7 @@ public:
 		return (TerrainTypes)r;
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
-	// </advc.003b>
+	// </advc.opt>
 	// <advc.003t> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
 	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit = NO_UNIT) const;
 	// <advc.905b> No parameter here
@@ -1912,10 +1912,10 @@ protected:
 	FVariableSystem* m_VarSystem;
 
 	int* m_aiGlobalDefinesCache; // advc.003t
-	// <advc.003b>
+	// <advc.opt>
 	int m_iRUINS_IMPROVEMENT;
 	int m_iDEFAULT_SPECIALIST;
-	int m_aiWATER_TERRAIN[2]; // </advc.003b>
+	int m_aiWATER_TERRAIN[2]; // </advc.opt>
 	float m_fPOWER_CORRECTION; // advc.104
 
 	float m_fCAMERA_MIN_YAW;

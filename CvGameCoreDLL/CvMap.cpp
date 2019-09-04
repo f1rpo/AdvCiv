@@ -605,9 +605,9 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 
 	int iBestValue = MAX_INT;
 	CvCity* pBestCity = NULL;
-	for (int i = // <advc.003b> Don't go through all players if eOwner is given
+	for (int i = // <advc.opt> Don't go through all players if eOwner is given
 		(eOwner != NO_PLAYER ? eOwner : 0);
-		i < (eOwner != NO_PLAYER ? eOwner + 1 : // </advc.003b>
+		i < (eOwner != NO_PLAYER ? eOwner + 1 : // </advc.opt>
 		MAX_PLAYERS); i++) // XXX look for barbarian cities???
 	{
 		/*if (eOwner != NO_PLAYER && i != eOwner)
@@ -650,9 +650,9 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, 
 {
 	int iBestValue = MAX_INT;
 	CvSelectionGroup* pBestSelectionGroup = NULL;
-	for (int i =  // <advc.003b> Don't go through all players if eOwner is given
+	for (int i =  // <advc.opt> Don't go through all players if eOwner is given
 		(eOwner != NO_PLAYER ? eOwner : 0);
-		i < (eOwner != NO_PLAYER ? eOwner + 1 : // </advc.003b>
+		i < (eOwner != NO_PLAYER ? eOwner + 1 : // </advc.opt>
 		MAX_PLAYERS); i++) // XXX look for barbarian groups???
 	{
 		/*if (eOwner != NO_PLAYER && i != eOwner)

@@ -427,7 +427,7 @@ public:
 	int getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUpgrade) const;
 
 	int getCulture(PlayerTypes eIndex) const;																									// Exposed to Python
-		// advc.003b: Replaced by getTotalCulture
+		// advc.opt: Replaced by getTotalCulture
 		private: int countTotalCulture() const; public:
 	int getTotalCulture() const;
 	int countFriendlyCulture(TeamTypes eTeam) const;
@@ -649,7 +649,7 @@ protected:
 	short* m_paiBuildProgress;
 	int m_iTurnsBuildsInterrupted; // advc.011
 	CvWString m_szMostRecentCityName; // advc.005c
-	int m_iTotalCulture; // advc.003b
+	int m_iTotalCulture; // advc.opt
 
 	CvFeature* m_pFeatureSymbol;
 	CvRoute* m_pRouteSymbol;

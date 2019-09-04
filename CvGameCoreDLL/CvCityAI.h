@@ -171,7 +171,7 @@ protected:
 
 	int m_aiBestBuildValue[NUM_CITY_PLOTS];
 	BuildTypes m_aeBestBuild[NUM_CITY_PLOTS];
-	BuildTypes m_eBestBuild; // advc.003b
+	BuildTypes m_eBestBuild; // advc.opt
 
 	bool* m_pbEmphasize;
 

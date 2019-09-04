@@ -133,7 +133,7 @@ public:
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
-	// advc.003b: inlined
+	// advc.opt: inlined
 	inline const bool * getOptions() const	{ return m_abOptions; }
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
@@ -149,7 +149,7 @@ public:
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.003b
+	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.opt
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
 	int getMaxTurns() const	{ return m_iMaxTurns; }

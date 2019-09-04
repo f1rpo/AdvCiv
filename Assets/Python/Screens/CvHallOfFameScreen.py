@@ -386,7 +386,7 @@ class CvHallOfFameScreen:
 		count = 0
 		while msgNum >= 0:
 			msg = replay.getReplayMessageText(msgNum)
-			if count > 25: # advc.003b: was 100
+			if count > 25: # advc.opt: was 100
 				BugUtil.debug("no victory message in first 100; skipping")
 				break
 			matches = reWinText.match(msg)

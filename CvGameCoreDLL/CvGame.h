@@ -41,7 +41,7 @@ public:
 	DllExport void initDiplomacy();
 	DllExport void initFreeUnits();
 	int getStartingPlotNormalizationLevel() const; // advc.108
-	int getStartingPlotRange() const; // advc.003b (exposed to Python via CyPlayer)
+	int getStartingPlotRange() const; // advc.opt (exposed to Python via CyPlayer)
 
 	DllExport void update();
 	void updateScore(bool bForce = false);
@@ -276,12 +276,12 @@ public:
 	void setAIAutoPlay(int iNewValue, bool bChangePlayerStatus); // </advc.127>
 	void changeAIAutoPlay(int iChange,
 			bool bChangePlayerStatus = true); // advc.127
-	// <advc.003b>
+	// <advc.opt>
 	int getCivPlayersEverAlive() const;
 	void changeCivPlayersEverAlive(int iChange);
 	int getCivTeamsEverAlive() const;
 	void changeCivTeamsEverAlive(int iChange);
-	// </advc.003b>
+	// </advc.opt>
 	// K-mod, 6/dec/10, karadoc
 	int getGlobalWarmingIndex() const;													// Exposed to Python
 	void setGlobalWarmingIndex(int iNewValue);
@@ -714,11 +714,11 @@ protected:
 	int m_iGwEventTally;		// K-Mod
 	int m_iTurnLoadedFromSave; // advc.044
 	int m_iNormalizationLevel; // advc.108
-	// <advc.003b>
+	// <advc.opt>
 	int m_iStartingPlotRange;
 	int m_iCivPlayersEverAlive;
 	int m_iCivTeamsEverAlive;
-	// </advc.003b>
+	// </advc.opt>
 	int m_iUnitUpdateAttempts; // advc.001y
 	unsigned int m_uiInitialTime;
 
@@ -835,7 +835,7 @@ protected:
 	void initFreeState();
 	void assignStartingPlots();
 	void normalizeStartingPlots(); // </advc.003i>
-	void updateStartingPlotRange(); // advc.003b
+	void updateStartingPlotRange(); // advc.opt
 	void applyOptionEffects(bool bEnableAll = false); // advc.310
 	void doTurn();
 	void doDeals();

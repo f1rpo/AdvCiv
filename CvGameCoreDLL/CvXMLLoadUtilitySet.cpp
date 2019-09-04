@@ -262,12 +262,12 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("DEEP_WATER_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("DEEP_WATER_TERRAIN", idx);
-		GC.setWATER_TERRAIN(false, idx); // advc.003b
+		GC.setWATER_TERRAIN(false, idx); // advc.opt
 
 		SetGlobalDefine("SHALLOW_WATER_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("SHALLOW_WATER_TERRAIN", idx);
-		GC.setWATER_TERRAIN(true, idx); // advc.003b
+		GC.setWATER_TERRAIN(true, idx); // advc.opt
 //GWMod Start M.A.
 		SetGlobalDefine("FROZEN_TERRAIN", szVal);
 		idx = FindInInfoClass(szVal);
@@ -313,7 +313,7 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("RUINS_IMPROVEMENT", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("RUINS_IMPROVEMENT", idx);
-		GC.setRUINS_IMPROVEMENT(idx); // advc.003b
+		GC.setRUINS_IMPROVEMENT(idx); // advc.opt
 
 		SetGlobalDefine("NUKE_FEATURE", szVal);
 		idx = FindInInfoClass(szVal);
@@ -330,7 +330,7 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("DEFAULT_SPECIALIST", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("DEFAULT_SPECIALIST", idx);
-		GC.setDEFAULT_SPECIALIST(idx); // advc.003b
+		GC.setDEFAULT_SPECIALIST(idx); // advc.opt
 
 		SetGlobalDefine("INITIAL_CITY_ROUTE_TYPE", szVal);
 		idx = FindInInfoClass(szVal);

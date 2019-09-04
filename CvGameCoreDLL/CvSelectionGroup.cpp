@@ -2691,10 +2691,10 @@ bool CvSelectionGroup::isStranded() const
 bool CvSelectionGroup::canMoveAllTerrain() const
 {
 	//PROFILE_FUNC();
-	/*  <advc.003b> This function doesn't get called often, but I guess that could
+	/*  <advc.opt> This function doesn't get called often, but I guess that could
 		change. Make sure not to waste time checking for an unused ability. */
 	if (!CvUnitInfo::canAnyMoveAllTerrain())
-		return false; // </advc.003b>
+		return false; // </advc.opt>
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{

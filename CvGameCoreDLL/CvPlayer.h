@@ -197,7 +197,7 @@ public:
 	bool canTradeWith_bulk(PlayerTypes eWhoTo) const; // advc.122
 	bool canReceiveTradeCity() const;
 	DllExport bool canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial = false) const;			// Exposed to Python
-	bool canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const; // advc.003b
+	bool canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const; // advc.opt
 	DllExport DenialTypes getTradeDenial(PlayerTypes eWhoTo, TradeData item) const;												// Exposed to Python
 	bool canTradeNetworkWith(PlayerTypes ePlayer) const;																									// Exposed to Python
 	int getNumAvailableBonuses(BonusTypes eBonus) const;																									// Exposed to Python
@@ -759,7 +759,7 @@ public:
 	DllExport LeaderHeadTypes getLeaderType() const;																									// Exposed to Python
 	LeaderHeadTypes getPersonalityType() const;																												// Exposed to Python
 	void setPersonalityType(LeaderHeadTypes eNewValue);																					// Exposed to Python
-	// advc.003b: Inlined
+	// advc.opt: Inlined
 	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }																										// Exposed to Python
 	void setCurrentEra(EraTypes eNewValue);
 
