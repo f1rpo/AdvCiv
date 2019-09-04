@@ -531,7 +531,8 @@ void CvPythonCaller::applyEvent(EventTypes eEvent, EventTriggeredData const& kTr
 	argsList.add(eEvent);
 	argsList.add(m_python.makePythonObject(&kTriggered));
 	// lResult is unused, but I guess it's expected on the Python side(?).
-	call(szFunctionName, argsList, lResult, PYRandomEventModule);
+	call(szFunctionName, argsList, lResult, PYRandomEventModule,
+			false); // Many of the apply functions named in XML don't exist
 }
 
 bool CvPythonCaller::checkExpireEvent(EventTypes eEvent, EventTriggeredData const& kTriggered) const

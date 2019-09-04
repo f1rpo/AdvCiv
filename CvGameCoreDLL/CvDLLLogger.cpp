@@ -14,12 +14,7 @@ CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)
 void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 		unsigned long ulSeed, int iData1, int iData2)
 {
-	if (!isEnabled(true)
-			/*  advc.135c: Should perhaps impose an additional hurdle here; easy
-				to cheat by consulting the MPLog. But don't want players to miss
-				log output for OOS errors that might be non-reproducible. */
-			/*|| (!getDefineBOOL(CvGlobals::ENABLE_DEBUG_TOOLS_MULTIPLAYER) &&
-			getGame().isNetworkMultiPlayer())*/)
+	if (!isEnabled(true))
 		return;
 	int const iTurnSlice = GC.getGame().getTurnSlice();
 	if (iTurnSlice <= 0)
