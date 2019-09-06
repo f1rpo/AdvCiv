@@ -597,112 +597,129 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	std::set<int> areas_tried;
 
 	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
-	int const iBonusCount = calculateNumBonusesToAdd(eBonusType);
+	int const iTarget = calculateNumBonusesToAdd(eBonusType);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	// advc.opt: Don't waste time trying to place land resources in the ocean
 	bool const bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
 			pBonusInfo.isTerrain(GC.getWATER_TERRAIN(false)));
 	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
-
-	while (true)
-	{
-		int iBestValue = 0;
-		CvArea *pBestArea = NULL;
-		FOR_EACH_AREA_VAR(pLoopArea)
-		{	// <advc.opt>
-			if (pLoopArea->isWater() && !bWater)
-				continue; // </advc.opt>
-			if (areas_tried.count(pLoopArea->getID()) == 0)
-			{
-				int iNumUniqueBonusesOnArea = pLoopArea->countNumUniqueBonusTypes() + 1; // number of unique bonuses starting on the area, plus this one
-				int iNumTiles = pLoopArea->getNumTiles();
-				//int iValue = iNumTiles / iNumUniqueBonusesOnArea;
-				int iValue = (iNumTiles + (iNumTiles >= 4*NUM_CITY_PLOTS ? GC.getGame().getMapRandNum(3*NUM_CITY_PLOTS, "addUniqueBonusType area value"): 0)) / iNumUniqueBonusesOnArea; // K-Mod
-
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					pBestArea = pLoopArea;
-				}
-			}
-		}
-
-		if (pBestArea == NULL)
-			break; // can't place bonus on any area
-
-		areas_tried.insert(pBestArea->getID());
-
-		// Place the bonuses:
-
-		CvMap& m = GC.getMap(); // advc (and some stype changes in the following)
-		int* aiShuffledIndices = shuffle(m.numPlots(), GC.getGame().getMapRand());
-		for (int iI = 0; iI < m.numPlots(); iI++)
+	CvMap& kMap = GC.getMap(); // advc
+	// <advc.129>
+	for (int iPass = 0; iPass < 2; iPass++)
+	{	/*  Two passes - just to make sure that the new per-area limit doesn't
+			lead to fewer resources overall. */
+		bool bIgnoreAreaLimit = (iPass == 1); // </advc.129>
+		while (/* advc.129: */kMap.getNumBonuses(eBonusType) < iTarget)
 		{
-			CvPlot& kRandPlot = *m.plotByIndex(aiShuffledIndices[iI]);
-
-			if (m.getNumBonuses(eBonusType) >= iBonusCount)
-				break; // We already have enough
-
-			if (pBestArea != kRandPlot.area())
-				continue;
-
-			int const x = kRandPlot.getX();
-			int const y = kRandPlot.getY();
-			if (!canPlaceBonusAt(eBonusType, x, y, bIgnoreLatitude))
-				continue;
-
-			/*	<advc.129> About to place a cluster of eBonusType. Don't place that
-				cluster near an earlier cluster (or any instance) of the same bonus class
-				- that's what can lead to e.g. starts with 5 Gold. canPlaceBonusAt
-				can't enforce this well b/c it doesn't know whether a cluster starts
-				(distance needs to be heeded) or continues (distance mustn't be heeded). */
-			int iClassToAvoid = pBonusInfo.getBonusClassType();
-			/*  Only resources that occur in clusters are problematic. Not sure about
-				the iClassToAvoid>0 clause. 0 is the "general" bonus class containing
-				all the clustered resources except for Gold, Silver, Gems which I've
-				moved to a separate class "precious". I.e. currently only double clusters
-				of precious bonuses are avoided. Eliminating all double clusters might
-				get in the way of (early) resource trades too much, and make the map
-				less exciting than it could be. */
-			if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0) {
-				bool bSkip = false;
-				/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
-					0 for bonuses that appear in clusters. 5 hardcoded. */
-				int const iDist = 5;
-				for(int dx = -iDist; dx <= iDist; dx++)
-				for(int dy = -iDist; dy <= iDist; dy++) {
-					CvPlot* pLoopPlot = plotXY(x, y, dx, dy);
-					if(pLoopPlot == NULL) continue; CvPlot& p = *pLoopPlot;
-					if(p.getArea() != kRandPlot.getArea() ||
-							plotDistance(x, y, p.getX(), p.getY()) > iDist)
+			int iBestValue = 0;
+			CvArea *pBestArea = NULL;
+			FOR_EACH_AREA_VAR(pLoopArea)
+			{	// <advc.opt>
+				if (pLoopArea->isWater() && !bWater)
+					continue; // </advc.opt>
+				if (areas_tried.count(pLoopArea->getID()) == 0)
+				{
+					int iNumTiles = pLoopArea->getNumTiles();
+					int iAddedTotal = kMap.getNumBonuses(eBonusType);
+					if (iAddedTotal * 3 < 2 * iTarget &&
+							iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
 						continue;
-					BonusTypes eOtherBonus = p.getBonusType();
-					if(eOtherBonus != NO_BONUS && GC.getBonusInfo(eOtherBonus).
-							getBonusClassType() == iClassToAvoid &&
-							GC.getBonusInfo(eOtherBonus).getGroupRand() > 0) {
-						bSkip = true;
-						break;
+
+					// number of unique bonuses starting on the area, plus this one
+					int iNumUniqueBonusesOnArea = 1 + pLoopArea->countNumUniqueBonusTypes();
+					//int iValue = iNumTiles / iNumUniqueBonusesOnArea;
+					int iValue = ((iNumTiles *
+							// advc.129: Decrease the impact of iNumTiles when approaching the target resource count
+							(iTarget - iAddedTotal)) / iTarget +
+							GC.getGame().getMapRandNum(3 * NUM_CITY_PLOTS,
+							"addUniqueBonusType area value (K-Mod)")) / iNumUniqueBonusesOnArea; 
+					if (iValue > iBestValue)
+					{
+						iBestValue = iValue;
+						pBestArea = pLoopArea;
 					}
 				}
-				if(bSkip)
-					continue;
 			}
-			// </advc.129>
-			kRandPlot.setBonusType(eBonusType);
-			// advc.129: Replacing the code below
-			placeGroup(eBonusType, kRandPlot, bIgnoreLatitude);
-			/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
-				for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
-					if (GC.getMap().getNumBonuses(eBonusType) < iBonusCount) {
-						CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-						if (pLoopPlot != NULL && (pLoopPlot->area() == pBestArea)) {
-							if (canPlaceBonusAt(eBonusType, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
-								if (GC.getGame().getMapRandNum(100, "addUniqueBonusType") < pBonusInfo.getGroupRand())
-									pLoopPlot->setBonusType(eBonusType);
-			} } } } }*/
 
+			if (pBestArea == NULL)
+				break; // can't place bonus on any area
+
+			areas_tried.insert(pBestArea->getID());
+			// <advc.129>
+			int iAdded = 0;
+			int const iAreaLimit = std::min(2, 3 * pBestArea->getNumTiles()) +
+					pBestArea->getNumTiles() / 25; // </advc.129>
+
+			// Place the bonuses: (advc: some style changes from here on)
+
+			int* aiShuffledIndices = shuffle(kMap.numPlots(), GC.getGame().getMapRand());
+			for (int iI = 0; iI < kMap.numPlots() &&
+				(bIgnoreAreaLimit || iAdded < iAreaLimit) && // advc.129
+				kMap.getNumBonuses(eBonusType) < iTarget; iI++)
+			{
+				CvPlot& kRandPlot = *kMap.plotByIndex(aiShuffledIndices[iI]);
+
+				if (pBestArea != kRandPlot.area())
+					continue;
+
+				int const x = kRandPlot.getX();
+				int const y = kRandPlot.getY();
+				if (!canPlaceBonusAt(eBonusType, x, y, bIgnoreLatitude))
+					continue;
+
+				/*	<advc.129> About to place a cluster of eBonusType. Don't place that
+					cluster near an earlier cluster (or any instance) of the same bonus class
+					- that's what can lead to e.g. starts with 5 Gold. canPlaceBonusAt
+					can't enforce this well b/c it doesn't know whether a cluster starts
+					(distance needs to be heeded) or continues (distance mustn't be heeded). */
+				int iClassToAvoid = pBonusInfo.getBonusClassType();
+				/*  Only resources that occur in clusters are problematic. Not sure about
+					the iClassToAvoid>0 clause. 0 is the "general" bonus class containing
+					all the clustered resources except for Gold, Silver, Gems which I've
+					moved to a separate class "precious". I.e. currently only double clusters
+					of precious bonuses are avoided. Eliminating all double clusters might
+					get in the way of (early) resource trades too much, and make the map
+					less exciting than it could be. */
+				if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0) {
+					bool bSkip = false;
+					/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
+						0 for bonuses that appear in clusters. 5 hardcoded. */
+					int const iDist = 5;
+					for(int dx = -iDist; dx <= iDist; dx++)
+					for(int dy = -iDist; dy <= iDist; dy++) {
+						CvPlot* pLoopPlot = plotXY(x, y, dx, dy);
+						if(pLoopPlot == NULL) continue; CvPlot& p = *pLoopPlot;
+						if(p.getArea() != kRandPlot.getArea() ||
+								plotDistance(x, y, p.getX(), p.getY()) > iDist)
+							continue;
+						BonusTypes eOtherBonus = p.getBonusType();
+						if(eOtherBonus != NO_BONUS && GC.getBonusInfo(eOtherBonus).
+								getBonusClassType() == iClassToAvoid &&
+								GC.getBonusInfo(eOtherBonus).getGroupRand() > 0) {
+							bSkip = true;
+							break;
+						}
+					}
+					if(bSkip)
+						continue;
+				} // </advc.129>
+				kRandPlot.setBonusType(eBonusType);
+				// <dvc.129>
+				iAdded++;
+				iAdded += placeGroup(eBonusType, kRandPlot, bIgnoreLatitude); // Replacing the code below
+				/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
+					for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
+						if (GC.getMap().getNumBonuses(eBonusType) < iBonusCount) {
+							CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+							if (pLoopPlot != NULL && (pLoopPlot->area() == pBestArea)) {
+								if (canPlaceBonusAt(eBonusType, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
+									if (GC.getGame().getMapRandNum(100, "addUniqueBonusType") < pBonusInfo.getGroupRand())
+										pLoopPlot->setBonusType(eBonusType);
+				} } } } }*/
+
+			}
+			SAFE_DELETE_ARRAY(aiShuffledIndices);
 		}
-		SAFE_DELETE_ARRAY(aiShuffledIndices);
 	}
 }
 
