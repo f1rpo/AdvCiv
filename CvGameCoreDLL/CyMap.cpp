@@ -183,7 +183,11 @@ CustomMapOptionTypes CyMap::getCustomMapOption(int iOption)
 {
 	return m_pMap ? m_pMap->getCustomMapOption(iOption) : NO_CUSTOM_MAPOPTION;
 }
-
+// <advc.004>
+std::wstring CyMap::getNonDefaultCustomMapOptionDesc(int iOption)
+{
+	return m_pMap == NULL ? "" : m_pMap->getNonDefaultCustomMapOptionDesc(iOption);
+} // </advc.004>
 int CyMap::getNumBonuses(int /* BonusTypes */ eIndex)
 {
 	return m_pMap ? m_pMap->getNumBonuses((BonusTypes)eIndex) : -1;

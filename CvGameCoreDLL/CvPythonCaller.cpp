@@ -171,7 +171,8 @@ CvPlot* CvPythonCaller::WBGetHighlightPlot() const
 
 void CvPythonCaller::onOKClicked(CvPopupInfo const& kInfo, int iButtonClicked) const
 {
-	if (kInfo.getOnClickedPythonCallback().IsEmpty())
+	char const* szFunctionName = kInfo.getOnClickedPythonCallback().c_str();
+	if (std::strlen(szFunctionName) <= 0)
 		return;
 	FAssertMsg(!GC.getGame().isNetworkMultiPlayer(), "Danger: Out of Sync");
 	CyArgsList argsList;
@@ -183,10 +184,8 @@ void CvPythonCaller::onOKClicked(CvPopupInfo const& kInfo, int iButtonClicked) c
 	argsList.add(kInfo.getText());
 	argsList.add(kInfo.getOption1());
 	argsList.add(kInfo.getOption2());
-	m_bLastCallSuccessful = m_python.callFunction(kInfo.getPythonModule().IsEmpty() ?
-			PYScreensModule : kInfo.getPythonModule(),
-			kInfo.getOnClickedPythonCallback(), argsList.makeFunctionArgs());
-	FAssert(m_bLastCallSuccessful);
+	call(szFunctionName, argsList, kInfo.getPythonModule().IsEmpty() ?
+			PYScreensModule : kInfo.getPythonModule());
 }
 
 bool CvPythonCaller::onFocus(CvPopupInfo const& kInfo) const
@@ -1204,6 +1203,21 @@ CustomMapOptionTypes CvPythonCaller::customMapOptionDefault(char const* szMapScr
 	call("getCustomMapOptionDefault", argsList, lResult, szMapScriptName);
 	return (CustomMapOptionTypes)toInt(lResult);
 }
+// <advc.004>
+CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName,
+	int iOption, CustomMapOptionTypes eOptionValue) const
+{
+	CvWString szResult;
+	CyArgsList argsList;
+	argsList.add(iOption);
+	argsList.add(eOptionValue);
+	m_bLastCallSuccessful = m_python.callFunction(szMapScriptName, "getCustomMapOptionDescAt",
+			argsList.makeFunctionArgs(), &szResult);
+	/*  If the game was started from a savegame, then the map script may have been
+		uninstalled; that's OK. */
+	FAssert(m_bLastCallSuccessful || GC.getInitCore().getSavedGame());
+	return szResult;
+} // </advc.004>
 
 void CvPythonCaller::mapGridDimensions(WorldSizeTypes eWorldSize, int& iWidth, int& iHeight) const
 {

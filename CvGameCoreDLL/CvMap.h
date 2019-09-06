@@ -339,7 +339,8 @@ public: // advc: made several functions const
 	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
 	int getNumCustomMapOptions() const;
-	CustomMapOptionTypes getCustomMapOption(int iOption);											// Exposed to Python
+	CustomMapOptionTypes getCustomMapOption(int iOption) const;											// Exposed to Python
+	CvWString getNonDefaultCustomMapOptionDesc(int iOption) const; // advc.004 (exposed to Python)
 
 	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);

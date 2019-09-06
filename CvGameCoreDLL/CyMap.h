@@ -62,6 +62,7 @@ public:
 	SeaLevelTypes getSeaLevel();
 	int getNumCustomMapOptions();
 	CustomMapOptionTypes getCustomMapOption(int iOption);
+	std::wstring getNonDefaultCustomMapOptionDesc(int iOption); // advc.004
 	int getNumBonuses(int /* BonusTypes */ eIndex);
 	int getNumBonusesOnLand(int /* BonusTypes */ eIndex);
 

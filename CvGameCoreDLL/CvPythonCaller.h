@@ -136,6 +136,9 @@ public:
 	bool callMapFunction(char const* szFunctionName) const;
 	int numCustomMapOptions(char const* szMapScriptName, bool bHidden) const;
 	CustomMapOptionTypes customMapOptionDefault(char const* szMapScriptName, int iOption) const;
+	// <advc.004>
+	CvWString customMapOptionDescription(char const* szMapScriptName, int iOption,
+			CustomMapOptionTypes eOptionValue) const; // </advc.004>
 	void mapGridDimensions(WorldSizeTypes eWorldSize, int& iWidth, int& iHeight) const;
 	void mapLatitudeExtremes(int& iTop, int& iBottom) const;
 	void mapWraps(bool& bWrapX, bool& bWrapY) const;
