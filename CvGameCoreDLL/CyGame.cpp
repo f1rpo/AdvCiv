@@ -1233,22 +1233,22 @@ void CyGame::saveGame(std::string szFileName) const
 } // BULL - AutoSave - end
 
 // <advc.104>
-bool CyGame::useKModAI() {
-
+bool CyGame::useKModAI()
+{
 	if(m_pGame == NULL)
 		return false;
 	return !getWPAI.isEnabled();
 } // </advc.104>
 // <advc.300>
-int CyGame::getBarbarianStartTurn() {
-
+int CyGame::getBarbarianStartTurn()
+{
 	if(m_pGame == NULL)
 		return -1;
 	return m_pGame->getBarbarianStartTurn();
 } // </advc.300>
 // <advc.250b>
-std::wstring CyGame::SPaHPointsForSettingsScreen() {
-
+std::wstring CyGame::SPaHPointsForSettingsScreen()
+{
 	if(m_pGame == NULL)
 		return L"";
 	std::wstring* r = m_pGame->startPointsAsHandicap().forSettingsScreen();
@@ -1257,36 +1257,43 @@ std::wstring CyGame::SPaHPointsForSettingsScreen() {
 	return *r;
 } // </advc.250b>
 // <advc.250>
-int CyGame::getDifficultyForEndScore() {
-
+int CyGame::getDifficultyForEndScore()
+{
 	if(m_pGame == NULL)
 		return 0;
 	return m_pGame->getDifficultyForEndScore();
 } // </advc.250>
 // <advc.703>
-int CyGame::getMaxChapters() {
+int CyGame::getMaxChapters()
+{
 	return m_pGame ? m_pGame->getRiseFall().getMaxChapters() : -1;
 }
-int CyGame::getCurrentChapter() {
+int CyGame::getCurrentChapter()
+{
 	return m_pGame ? m_pGame->getRiseFall().getCurrentChapter() : -1;
 }
-int CyGame::getChapterStart(int chapter) {
+int CyGame::getChapterStart(int chapter)
+{
 	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getStartTurn() : -1;
 }
-int CyGame::getChapterEnd(int chapter) {
+int CyGame::getChapterEnd(int chapter)
+{
 	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getEndTurn() : -1;
 }
-int CyGame::getChapterScore(int chapter) {
+int CyGame::getChapterScore(int chapter)
+{
 	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).computeScore() : -1;
 }
-int CyGame::getChapterScoreTurn(int chapter) {
+int CyGame::getChapterScoreTurn(int chapter)
+{
 	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getScoreTurn() : -1;
 }
-int CyGame::getChapterCiv(int chapter) {
+int CyGame::getChapterCiv(int chapter)
+{
 	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getCiv() : -1;
 }
-std::wstring CyGame::chapterScoreBreakdown() {
-
+std::wstring CyGame::chapterScoreBreakdown()
+{
 	if(m_pGame == NULL)
 		return L"";
 	std::wstring* r = m_pGame->getRiseFall().chapterScoreBreakdown();
@@ -1294,8 +1301,8 @@ std::wstring CyGame::chapterScoreBreakdown() {
 		return L"";
 	return *r;
 }
-std::wstring CyGame::riseScoreBreakdown() {
-
+std::wstring CyGame::riseScoreBreakdown()
+{
 	if(m_pGame == NULL)
 		return L"";
 	std::wstring* r = m_pGame->getRiseFall().riseScoreBreakdown();
@@ -1304,20 +1311,23 @@ std::wstring CyGame::riseScoreBreakdown() {
 	return *r;
 } // </advc.703>
 // <advc.706>
-bool CyGame::isRFInterlude() {
+bool CyGame::isRFInterlude()
+{
 	if(m_pGame == NULL)
 		return false;
 	return (m_pGame->isOption(GAMEOPTION_RISE_FALL) &&
 			m_pGame->getRiseFall().getInterludeCountdown() >= 0);
 }
-bool CyGame::isRFBlockPopups() {
+bool CyGame::isRFBlockPopups()
+{
 	if(m_pGame == NULL)
 		return false;
 	return (m_pGame->isOption(GAMEOPTION_RISE_FALL) &&
 			m_pGame->getRiseFall().isBlockPopups());
 } // </advc.706>
 // <advc.004m>
-void CyGame::reportCurrentLayer(int iLayer) {
+void CyGame::reportCurrentLayer(int iLayer)
+{
 	if(m_pGame != NULL)
 		m_pGame->reportCurrentLayer((GlobeLayerTypes)iLayer);
 } // </advc.004m>

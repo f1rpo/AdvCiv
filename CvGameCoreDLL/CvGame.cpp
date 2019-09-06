@@ -4150,22 +4150,15 @@ int CvGame::getNumGameTurnActive()
 
 int CvGame::countNumHumanGameTurnActive() const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isHuman())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isTurnActive())
-			{
 				iCount++;
-			}
 		}
 	}
-
 	return iCount;
 }
 
@@ -6964,13 +6957,15 @@ int CvGame::religionPriority(TeamTypes eTeam, ReligionTypes eReligion) const {
 
 	int iMembers = 0;
 	int r = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		if(i != eTeam || !GET_PLAYER((PlayerTypes)i).isAlive())
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
+		if(!kMember.isAlive() || kMember.getTeam() != eTeam)
 			continue;
 		iMembers++;
-		r += religionPriority(GET_PLAYER((PlayerTypes)i).getID(), eReligion);
+		r += religionPriority(kMember.getID(), eReligion);
 	}
-	if(iMembers == 0)
+	if (iMembers <= 0)
 		return 0;
 	return r / iMembers;
 }
@@ -6980,23 +6975,24 @@ int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 
 	int r = 0;
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
+	for(int i = 0; i < GC.getNumTraitInfos(); i++)
+	{
 		TraitTypes eNoAnarchyTrait = (TraitTypes)i;
-		if(!kPlayer.hasTrait(eNoAnarchyTrait) ||
+		if (!kPlayer.hasTrait(eNoAnarchyTrait) ||
 				GC.getTraitInfo(eNoAnarchyTrait).getMaxAnarchy() != 0)
 			continue;
 		r += 5;
 		/*  Spiritual human should be sure to get a religion (so long as
 			difficulty isn't above Noble). Not quite sure if my choice of
 			numbers in this function and in doHolyCity accomplishes that. */
-		if(kPlayer.isHuman())
+		if (kPlayer.isHuman())
 			r += 6;
 		break;
 	}
 	r += ((100 - GC.getHandicapInfo(kPlayer.getHandicapType()).
 			getStartingLocationPercent()) * 31) / 100;
 	// With the pick-rel option, eReligion will change later on anyway.
-	if(!isOption(GAMEOPTION_PICK_RELIGION)) {
+	if (!isOption(GAMEOPTION_PICK_RELIGION)) {
 		/*  Not excluding human here means that choosing a leader with an early
 			fav religion can make a difference in human getting a religion.
 			Unexpected, as fav. religions are pretty obscure knowledge. On the
@@ -7004,7 +7000,7 @@ int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 			e.g. Buddhism would fit so well for Ashoka.
 			Don't use PersonalityType here; fav. religion is always a matter
 			of LeaderType. */
-		if(GC.getLeaderHeadInfo(kPlayer.getLeaderType()).getFavoriteReligion() == eReligion)
+		if (GC.getLeaderHeadInfo(kPlayer.getLeaderType()).getFavoriteReligion() == eReligion)
 			r += 6;
 	}
 	return r;
@@ -7156,8 +7152,8 @@ void CvGame::createBarbarianCities()  // advc some style changes
 }
 
 
-void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
-
+void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
+{
 	int iCreationProb = GC.getHandicapInfo(getHandicapType()).getBarbarianCityCreationProb();
 	/* No cities past Medieval, so it's either +0 (Ancient), +1 (Classical)
 	   or +4 (Medieval). */
@@ -7201,7 +7197,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 	kFoundSet.iBarbDiscouragedRange = 5 + getSorenRandNum(7, "advc.300 (discouraged range)");
 	CvMap const& m = GC.getMap();
 	std::map<int,int> unownedPerArea; // Precomputed for efficiency
-	FOR_EACH_AREA(pArea) {
+	FOR_EACH_AREA(pArea)
+	{
 		/* Plots owned by Barbarians are counted in BtS, and I count them when
 		   creating units because it makes some sense that Barbarians get fewer free
 		   units once they have cities, but for cities, I'm not sure.
@@ -7223,22 +7220,23 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 	for (int iI = 0; iI < m.numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = m.plotByIndex(iI);
-		if(pLoopPlot->isWater() || pLoopPlot->isVisibleToCivTeam())
+		if (pLoopPlot->isWater() || pLoopPlot->isVisibleToCivTeam())
 			continue; // advc
 		// <advc.300>
 		CvArea& a = *pLoopPlot->area();
 		int const iAreaSz = a.getNumTiles();
 		bool bCivArea = (a.getNumCities() > a.getCitiesPerPlayer(BARBARIAN_PLAYER));
-		if(bSkipCivAreas && bCivArea)
+		if (bSkipCivAreas && bCivArea)
 			continue;
 		std::map<int,int>::const_iterator unowned = unownedPerArea.find(a.getID());
 		FAssert(unowned != unownedPerArea.end());
 		int iTargetCities = unowned->second;
-		if(bRage) { // Didn't previously affect city density
+		if (bRage) { // Didn't previously affect city density
 			iTargetCities *= 7;
 			iTargetCities /= 5;
 		}
-		if(!bCivArea) {
+		if(!bCivArea)
+		{
 			/*  BtS triples iTargetCities here. Want to make it era-based.
 				Important that the multiplier is rather small in the first four eras
 				so that civs get a chance to settle small landmasses before
@@ -7249,7 +7247,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 			iTargetCities = ::round(mult * iTargetCities); // </advc.300>
 		}
 		int iUnownedTilesThreshold = GC.getHandicapInfo(getHandicapType()).getUnownedTilesPerBarbarianCity();
-		if(iAreaSz < iUnownedTilesThreshold / 3) {
+		if (iAreaSz < iUnownedTilesThreshold / 3)
+		{
 			iTargetCities *= iTargetCitiesMultiplier;
 			iTargetCities /= 100;
 		} // <advc.304>
@@ -7332,7 +7331,6 @@ void CvGame::createBarbarianUnits()
 
 	if (bAnimals)
 		createAnimals();
-
 	// <advc.300>
 	if(bAnimals)
 		return;
@@ -7341,7 +7339,8 @@ void CvGame::createBarbarianUnits()
 	// Divided by 10 b/c now only shelf water tiles count
 	int iBaseTilesPerSeaUnit = kGameHandicap.getUnownedWaterTilesPerBarbarianUnit() / 8;
 	// </advc.300>
-	FOR_EACH_AREA_VAR(pLoopArea) {
+	FOR_EACH_AREA_VAR(pLoopArea)
+	{
 		// <advc.300>
 		CvArea& a = *pLoopArea;
 		/*  For each land area, first spawn sea Barbarians for each shelf attached
@@ -7349,11 +7348,12 @@ void CvGame::createBarbarianUnits()
 			land area. Shelves go first b/c units can now spawn in cargo;
 			spawn fewer land units then. No units in unsettled areas.
 			(Need to at least spawn a Barbarian city before that). */
-		if(a.isWater() || a.getNumCities() == 0)
+		if (a.isWater() || a.getNumCities() == 0)
 			continue;
 		int iUnowned = 0, iTiles = 0;
 		std::vector<Shelf*> shelves; GC.getMap().getShelves(a.getID(), shelves);
-		for(size_t i = 0; i < shelves.size(); i++) {
+		for (size_t i = 0; i < shelves.size(); i++)
+		{
 			// Shelves also count for land Barbarians, ...
 			iUnowned += shelves[i]->countUnownedPlots();
 			iTiles += shelves[i]->size();
@@ -7366,7 +7366,7 @@ void CvGame::createBarbarianUnits()
 			can have a lot of those. */
 		int iTotal = a.getNumTiles() + iTiles;
 		int iUnownedTotal = a.getNumUnownedTiles() + iUnowned;
-		if(iUnownedTotal >= iTotal)
+		if (iUnownedTotal >= iTotal)
 			continue;
 
 		/*  In the following, only care about "habitable" tiles, i.e. with a
@@ -7389,19 +7389,20 @@ void CvGame::createBarbarianUnits()
 		int iBarbCities = a.getCitiesPerPlayer(BARBARIAN_PLAYER);
 		int iNeededLand = numBarbariansToCreate(iBaseTilesPerLandUnit, iTiles,
 				iUnowned, iLandUnits, iBarbCities);
-		for(size_t i = 0; i < shelves.size(); i++) {
+		for (size_t i = 0; i < shelves.size(); i++)
+		{
 			int iShips = shelves[i]->countBarbarians();
-			if(killBarbarian(iShips, shelves[i]->size(), a.getPopulationPerPlayer(BARBARIAN_PLAYER),
+			if (killBarbarian(iShips, shelves[i]->size(), a.getPopulationPerPlayer(BARBARIAN_PLAYER),
 					a, shelves[i]))
 				iShips--;
-			if(!bCreateBarbarians)
+			if (!bCreateBarbarians)
 				continue;
 			int iNeededSea = numBarbariansToCreate(iBaseTilesPerSeaUnit,
 					shelves[i]->size(), shelves[i]->countUnownedPlots(), iShips);
 			/* 'BETTER_BTS_AI_MOD 9/25/08 jdog5000
 				Limit construction of barb ships based on player navies' */
 			// advc: BBAI code deleted -- sanity check based on Barbarian cities instead:
-			if(iShips > iBarbCities + 2)
+			if (iShips > iBarbCities + 2)
 				iNeededSea = 0;
 			iNeededLand -= createBarbarianUnits(iNeededSea, a, shelves[i],
 					iNeededLand > 0); // advc.306
@@ -7411,7 +7412,7 @@ void CvGame::createBarbarianUnits()
 		int iCivCities = a.countCivCities();
 		int iBarbarianCities = a.getNumCities() - iCivCities;
 		FAssert(iBarbarianCities >= 0);
-		if(iCivCities > iBarbarianCities && bCreateBarbarians)
+		if (iCivCities > iBarbarianCities && bCreateBarbarians)
 			createBarbarianUnits(iNeededLand, a, NULL);
 		/*  Rest of the creation code: moved into functions numBarbariansToCreate and
 			createBarbarians */
@@ -7427,7 +7428,8 @@ void CvGame::createBarbarianUnits()
 			break;
 		}
 	} // <advc.300>
-	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER)) {
+	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER))
+	{
 		/*  Large Barb congregations are only a problem if they have nothing
 			to attack */
 		if(c->area()->countCivCities() > 0)
@@ -7513,8 +7515,8 @@ void CvGame::createAnimals()  // advc: style changes
 }
 
 // <advc.307>
-bool CvGame::isBarbarianCreationEra() const {
-
+bool CvGame::isBarbarianCreationEra() const
+{
 	if(isOption(GAMEOPTION_NO_BARBARIANS))
 		return false;
 	EraTypes eCurrentEra = getCurrentEra();
@@ -7525,8 +7527,8 @@ bool CvGame::isBarbarianCreationEra() const {
 }
 
 // <advc.300>
-int CvGame::getBarbarianStartTurn() const {
-
+int CvGame::getBarbarianStartTurn() const
+{
 	int iTargetElapsed = GC.getHandicapInfo(getHandicapType()).
 		   getBarbarianCreationTurnsElapsed();
 	iTargetElapsed *= GC.getGameSpeedInfo(getGameSpeedType()).getBarbPercent();
@@ -7546,28 +7548,31 @@ int CvGame::getBarbarianStartTurn() const {
 
 // Based on code originally in createBarbarianUnits, but modified beyond recognition.
 int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
-		int iUnitsPresent, int iBarbarianCities) {
-
+		int iUnitsPresent, int iBarbarianCities)
+{
 	int iOwned = iTiles - iUnowned;
 	int iPeakPercent = ::range(GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT), 0, 100);
-	if(iOwned == 0 || iPeakPercent == 0)
+	if (iOwned == 0 || iPeakPercent == 0)
 		return 0;
 	double peak = iPeakPercent / 100.0;
 	double ownedRatio = iOwned / (double)iTiles;
 	bool bPeakReached = (ownedRatio > peak);
 	double divisor = iTilesPerUnit;
 	double dividend = -1;
-	if(bPeakReached) {
+	if (bPeakReached)
+	{
 		divisor *= (1 - peak);
 		dividend = iUnowned;
 	}
-	else {
+	else
+	{
 		divisor *= peak;
 		dividend = iOwned;
 	}
 	/*	For Rage, reduce divisor to 60% (50% in BtS), but
 		<advc.307> reduces it further based on the game era. */
-	if(isOption(GAMEOPTION_RAGING_BARBARIANS)) {
+	if (isOption(GAMEOPTION_RAGING_BARBARIANS))
+	{
 		int iCurrentEra = getCurrentEra();
 		/*  Don't reduce divisor in start era (gets too tough on Classical
 			and Medieval starts b/c the starting defenders are mere Archers). */
@@ -7588,30 +7593,24 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 
 	int iInitialDefenders = GC.getHandicapInfo(getHandicapType()).
 			getBarbarianInitialDefenders();
-	int iNeeded = (int)((target - iUnitsPresent)
-	/*  The (BtS) term above counts city defenders when determining
-		how many more Barbarians should be placed. That means, Barbarian cities can
-		decrease Barbarian aggressiveness in two ways: By reducing the number of
-		unowned tiles, and by shifting 2 units (standard size of a city garrison)
-		per city to defensive behavior. While settled Barbarians being less aggressive
-		is plausible, this goes a bit over the top. Also don't want units produced in
-		Barbarian cities to reduce the number of spawned Barbarians one-to-one.
-		Subtract the defenders. (Alt. idea: Subtract half the Barbarian population in
-		this area.)
-		Old Firaxis to-do comment on this subject:
-		'XXX eventually need to measure how many barbs of eBarbUnitAI we have
-		 in this area...' */
-			+ iBarbarianCities * std::max(0, iInitialDefenders));
-	if(iNeeded <= 0)
-		return 0;
+	double r = target - std::max(0, iUnitsPresent
+	/*  Don't count city defenders. Settled Barbarians being less aggressive makes
+		sense, but cities also reduce the number of unowned tiles; that's enough.
+		(Alt. idea: Subtract half the Barbarian population in this area.)
+		Old Firaxis to-do comment on this subject: 'XXX eventually need to measure
+		how many barbs of eBarbUnitAI we have in this area...' */
+			- iBarbarianCities * std::max(0, iInitialDefenders));
+	if (r < 1)
+		return 0; // Avoid very small creation probabilities
 	double creationRate = 0.25; // the BtS rate
 	// Novel: adjusted to game speed
 	creationRate /= (GC.getGameSpeedInfo(getGameSpeedType()).getBarbPercent() / 100.0);
-	double r = iNeeded * creationRate;
-	/*  BtS always spawns at least one unit, but, on Marathon, this could be too fast.
+	r *= creationRate;
+	/*  BtS always created at least one unit, but, on Marathon, this could be too fast.
 		Probabilistic instead. */
-	if(r < 1) {
-		if(::bernoulliSuccess(r, "advc.300 (numBarbariansToCreate)"))
+	if (r < 1)
+	{
+		if (::bernoulliSuccess(r, "advc.300 (numBarbariansToCreate)"))
 			return 1;
 		else return 0;
 	}
@@ -7619,27 +7618,29 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 }
 
 // Returns the number of land units spawned (possibly in cargo). The first half is new code.
-int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAllowed) { // </advc.300>
-
+int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAllowed) // </advc.300>
+{
 	/* <advc.306> Spawn cargo load before ships. Otherwise, the newly placed ship
 	   would always be an eligible target and too many ships would carry cargo. */
 	FAssert(!bCargoAllowed || pShelf != NULL);
 	int r = 0;
-	if(bCargoAllowed) {
+	if(bCargoAllowed)
+	{
 		CvUnit* pTransport = pShelf->randomBarbarianCargoUnit();
-		if(pTransport != NULL) {
+		if (pTransport != NULL)
+		{
 			UnitAITypes eLoadAI = UNITAI_ATTACK;
-			for(int i = 0; i < 2; i++)
+			for (int i = 0; i < 2; i++)
 			{
 				UnitTypes eLoadUnit = randomBarbarianUnit(eLoadAI, a);
-				if(eLoadUnit == NO_UNIT)
+				if (eLoadUnit == NO_UNIT)
 					break;
 				CvUnit* pLoadUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(
 						eLoadUnit, pTransport->getX(), pTransport->getY(), eLoadAI);
 				/*  Don't set pTransport to UNITAI_ASSAULT_SEA -- that's for
 					medium-/large-scale invasions, and too laborious to adjust.
 					Instead add an unload routine to CvUnitAI::barbAttackSeaMove. */
-				if(pLoadUnit == NULL)
+				if (pLoadUnit == NULL)
 					break;
 				pLoadUnit->setTransportUnit(pTransport);
 				r++;
@@ -7647,7 +7648,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 					way, i.e. a ship receiving a second passenger while travelling
 					to its target through fog of war. (I don't think that happens
 					often enough though ...) */
-				if(pTransport->getCargo() > 1 || ::bernoulliSuccess(0.7, "advc.306"))
+				if (pTransport->getCargo() > 1 || ::bernoulliSuccess(0.7, "advc.306"))
 					break;
 			}
 		}
@@ -7662,13 +7663,13 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 			pPlot = randomBarbarianPlot(a, pShelf);
 			/*  If we can't find a plot once, we won't find one in a later
 				iteration either. */
-			if(pPlot == NULL)
+			if (pPlot == NULL)
 				return r;
 			int iTotalYield = 0;
-			for(int j = 0; j < GC.getNUM_YIELD_TYPES(); j++)
+			for (int j = 0; j < GC.getNUM_YIELD_TYPES(); j++)
 				iTotalYield += pPlot->getYield((YieldTypes)j);
 			// Want to re-roll flat Tundra Forest as well
-			if(iTotalYield == 2 && pPlot->getImprovementType() == NO_IMPROVEMENT)
+			if (iTotalYield == 2 && pPlot->getImprovementType() == NO_IMPROVEMENT)
 			{
 				iTotalYield = 0;
 				for(int j = 0; j < GC.getNUM_YIELD_TYPES(); j++)
@@ -7677,19 +7678,19 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 							NO_TEAM, /* bIgnoreFeature=*/ true);
 				}
 			}
-			if(iTotalYield >= 2)
+			if (iTotalYield >= 2)
 				break;
 		}
 		UnitAITypes eUnitAI = UNITAI_ATTACK;
-		if(pShelf != NULL)
+		if (pShelf != NULL)
 			eUnitAI = UNITAI_ATTACK_SEA;
 		// Original code moved into new function:
 		UnitTypes eUnitType = randomBarbarianUnit(eUnitAI, a);
-		if(eUnitType == NO_UNIT)
+		if (eUnitType == NO_UNIT)
 			return r;
 		CvUnit* pNewUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(eUnitType,
 				pPlot->getX(), pPlot->getY(), eUnitAI);
-		if(pNewUnit != NULL && !pPlot->isWater())
+		if (pNewUnit != NULL && !pPlot->isWater())
 			r++;
 		// </advc.300>
 		// K-Mod. Give a combat penalty to barbarian boats.
@@ -7708,8 +7709,8 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 }
 
 // <advc.300>
-CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const {
-
+CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const
+{
 	int restrictionFlags = RANDPLOT_NOT_VISIBLE_TO_CIV |
 			/*  Shelves already ensure this and one-tile islands
 				can't spawn Barbarians anyway. */
@@ -7725,14 +7726,16 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const {
 	// <advc.304> Sometimes don't pick a plot if there are few legal plots
 	int iLegal = 0;
 	CvPlot* r = NULL;
-	if(shelf == NULL)
+	if (shelf == NULL)
 		r = GC.getMap().syncRandPlot(restrictionFlags, &a, iDist, -1, &iLegal);
-	else {
+	else
+	{
 		r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
 		if(r != NULL && iLegal * 100 < shelf->size())
 			r = NULL;
 	}
-	if(r != NULL) {
+	if (r != NULL)
+	{
 		double prSkip = 0;
 		if(iLegal > 0 && iLegal < 4)
 			prSkip = 1 - 1.0 / (5 - iLegal); // Tbd.: Should perhaps be based on a.getNumTiles()
@@ -7743,25 +7746,27 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const {
 }
 
 
-bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Shelf* shelf) {
-
-	if(iPresent <= 5) // 5 is never a crowd
+bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Shelf* shelf)
+{
+	if (iPresent <= 5) // 5 is never a crowd
 		return false;
 	double divisor = 4 * iBarbPop;
-	if(shelf != NULL)
+	if (shelf != NULL)
 		divisor += shelf->size();
 	else divisor += iTiles; /*  Includes 50% shelf (given the way this function
 								is currently used). */
 	// Don't want large Barbarian continents crawling with units
 	divisor = 5 * std::pow(divisor, 0.7);
-	if(::bernoulliSuccess(iPresent / divisor, "advc.300 (kill_2)")) {
+	if (::bernoulliSuccess(iPresent / divisor, "advc.300 (kill_2)"))
+	{
 		if(shelf != NULL)
 			return shelf->killBarbarian();
 		/*  Tbd.: Be a bit more considerate about which unit to sacrifice.
 			Currently, it's the same (arbitrary) method as for animal culling. */
-		FOR_EACH_UNIT_VAR(pUnit, GET_PLAYER(BARBARIAN_PLAYER)) {
+		FOR_EACH_UNIT_VAR(pUnit, GET_PLAYER(BARBARIAN_PLAYER))
+		{
 			CvUnit& u = *pUnit;
-			if(u.isAnimal() || u.plot()->area()->getID() != a.getID() ||
+			if (u.isAnimal() || u.plot()->area()->getID() != a.getID() ||
 					u.getUnitCombatType() == NO_UNITCOMBAT)
 				continue;
 			u.kill(false);
@@ -7772,10 +7777,11 @@ bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Sh
 }
 
 // Based on BtS code originally in createBarbarianUnits
-UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
-
+UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
+{
 	bool bSea;
-	switch(eUnitAI) {
+	switch(eUnitAI)
+	{
 	case UNITAI_ATTACK_SEA: bSea = true; break;
 	case UNITAI_ATTACK: bSea = false; break;
 	default: return NO_UNIT;
@@ -7796,7 +7802,8 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 		// <advc.301>
 		BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
 		TechTypes eAndBonusTech = NO_TECH;
-		if(eAndBonus != NO_BONUS) {
+		if (eAndBonus != NO_BONUS)
+		{
 			eAndBonusTech = (TechTypes)GC.getBonusInfo(eAndBonus).getTechCityTrade();
 			if((eAndBonusTech != NO_TECH && !GET_TEAM(BARBARIAN_TEAM).
 					isHasTech(eAndBonusTech)) || !a.hasAnyAreaPlayerBonus(eAndBonus))
@@ -7808,45 +7815,48 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 			(they only will if they can't train anything better). */
 		TechTypes eAndTech = (TechTypes)kUnit.getPrereqAndTech();
 		int iUnitEra = 0;
-		if(eAndTech != NO_TECH)
+		if (eAndTech != NO_TECH)
 			iUnitEra = GC.getTechInfo(eAndTech).getEra();
-		if(eAndBonusTech != NO_TECH)
+		if (eAndBonusTech != NO_TECH)
 			iUnitEra = std::max(iUnitEra, GC.getTechInfo(eAndBonusTech).getEra());
-		if(iUnitEra + 1 < getCurrentEra())
+		if (iUnitEra + 1 < getCurrentEra())
 			continue; // </advc.301>
 		bool bFound = false;
 		bool bRequires = false;
-		for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++) {
+		for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++)
+		{
 			BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(j);
 			if(eOrBonus == NO_BONUS)
 				continue;
 			CvBonusInfo const& kOrBonus = GC.getBonusInfo(eOrBonus);
 			TechTypes eOrBonusTech = (TechTypes)kOrBonus.getTechCityTrade();
-			if(eOrBonusTech != NO_TECH) {
+			if (eOrBonusTech != NO_TECH) {
 				bRequires = true;
-				if(GET_TEAM(BARBARIAN_TEAM).isHasTech(eOrBonusTech)
+				if (GET_TEAM(BARBARIAN_TEAM).isHasTech(eOrBonusTech)
 						/*  advc.301: Also require the resource to be connected by
 							someone on this continent; in particular, don't spawn
 							Horse Archers on a horseless continent. */
-						&& a.hasAnyAreaPlayerBonus(eOrBonus)) {
+						&& a.hasAnyAreaPlayerBonus(eOrBonus))
+				{
 					bFound = true;
 					break;
 				}
 			}
 		}
-		if(bRequires && !bFound)
+		if (bRequires && !bFound)
 			continue;
 		/*  <advc.301>: The code above only checks if they can build the improvements
 			necessary to obtain the required resources; it does not check if they
 			can see/use the resource. This means that Spearmen often appear before
 			Archers b/c they require only Hunting and Mining, and not Bronze Working.
 			Correction: */
-		if(!GET_TEAM(BARBARIAN_TEAM).canSeeReqBonuses(eUnit))
+		if (!GET_TEAM(BARBARIAN_TEAM).canSeeReqBonuses(eUnit))
 			continue; // </advc.301>
 		int iValue = (1 + getSorenRandNum(1000, "Barb Unit Selection"));
-		if(kUnit.getUnitAIType(eUnitAI))
+		if (kUnit.getUnitAIType(eUnitAI))
 			iValue += 200;
-		if(iValue > iBestValue) {
+		if (iValue > iBestValue)
+		{
 			r = eUnit;
 			iBestValue = iValue;
 		}
@@ -7857,16 +7867,14 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a) {
 
 void CvGame::updateWar()
 {
-	int iI, iJ;
-
 	if (isOption(GAMEOPTION_ALWAYS_WAR))
 	{
-		for (iI = 0; iI < MAX_TEAMS; iI++)
+		for (int iI = 0; iI < MAX_TEAMS; iI++)
 		{
 			CvTeam& kTeam1 = GET_TEAM((TeamTypes)iI);
 			if (kTeam1.isAlive() && kTeam1.isHuman())
 			{
-				for (iJ = 0; iJ < MAX_TEAMS; iJ++)
+				for (int iJ = 0; iJ < MAX_TEAMS; iJ++)
 				{
 					CvTeam& kTeam2 = GET_TEAM((TeamTypes)iJ);
 					if (kTeam2.isAlive() && !kTeam2.isHuman())
