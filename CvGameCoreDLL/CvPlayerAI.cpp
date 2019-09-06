@@ -7369,9 +7369,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		}
 	} // </k146>
 	else if (iValue > 0)
-	{	//this stops quick speed messing up.... might want to adjust by other things too...
+	{
+		// this stops quick speed messing up.... might want to adjust by other things too... (Firaxis comment)
 		int iAdjustment = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getResearchPercent();
-
 		int iTurnsLeft = getResearchTurnsLeftTimes100((eTech), false);
 		bool bCheapBooster = (iTurnsLeft >= 0 && // advc.004x
 				iTurnsLeft < (2 * iAdjustment) &&
@@ -7382,7 +7382,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			assume a usual time to research. */
 		if(iTurnsLeft < 0)
 			iTurnsLeft = 10; // </advc.004x>
-		/*  <advc.144> Will get it immediately, but eFromCiv is less likely to
+		/*  <advc.144> Will get it immediately, but eFromPlayer is less likely to
 			give it to us if it's an expensive tech. */
 		if(eFromPlayer != NO_PLAYER)
 			iTurnsLeft /= 2; // </advc.144>

@@ -5107,45 +5107,38 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		szString.append(CvWString::format(L"\n\nWorkers H/N (%d , %d)", iWorkersHave, iWorkersNeeded));
 		int iWorkBoatsNeeded = pPlotCity->AI_neededSeaWorkers();
 		szString.append(CvWString::format(L"\n\nWorkboats Needed = %d", iWorkBoatsNeeded));
-		/*  <advc.001n> AI_getNumAreaCitySites and AI_getNumAdjacentAreaCitySites
-			call CvPlot::getFoundValue, which may cache its result. */
-		if(!bConstCache) {
-			int iAreaSiteBestValue = 0;
-			int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iAreaSiteBestValue);
-			int iOtherSiteBestValue = 0;
-			int iNumOtherCitySites = (kPlot.waterArea() == NULL) ? 0 : kPlayer.AI_getNumAdjacentAreaCitySites(kPlot.waterArea()->getID(), kPlot.getArea(), iOtherSiteBestValue);
-			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
-			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
-		}
-	}
-	else if (kPlot.getOwner() != NO_PLAYER)
-	{
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwner()); // advc
 		/* original code
 		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 			szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), kOwner.AI_civicValue((CivicTypes)iI)));*/
-		// BETTER_BTS_AI_MOD (K-Mod edited, advc: mostly disabled), Debug, 11/30/08, jdog5000
-		// advc.007: Commented out
-		/*if(bShift && !bAlt) {
+		// BETTER_BTS_AI_MOD (K-Mod edited), Debug, 11/30/08, jdog5000
+		// advc.007: Moved up; show this only on the capital.
+		if(bAlt && kPlot.getPlotCity()->isCapital())
+		{
 			std::vector<int> viBonusClassRevealed(GC.getNumBonusClassInfos(), 0);
 			std::vector<int> viBonusClassUnrevealed(GC.getNumBonusClassInfos(), 0);
 			std::vector<int> viBonusClassHave(GC.getNumBonusClassInfos(), 0);
-			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++) {
+			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+			{
 				TechTypes eRevealTech = (TechTypes)GC.getBonusInfo((BonusTypes)iI).getTechReveal();
 				BonusClassTypes eBonusClass = (BonusClassTypes)GC.getBonusInfo((BonusTypes)iI).getBonusClassType();
-				if (eRevealTech != NO_TECH) {
+				if (eRevealTech != NO_TECH)
+				{
 					if ((GET_TEAM(kPlot.getTeam()).isHasTech(eRevealTech)))
 						viBonusClassRevealed[eBonusClass]++;
 					else viBonusClassUnrevealed[eBonusClass]++;
 					if (kOwner.getNumAvailableBonuses((BonusTypes)iI) > 0)
 						viBonusClassHave[eBonusClass]++;
-					else if (kOwner.countOwnedBonuses((BonusTypes)iI) > 0)
+					else if (kOwner.AI_countOwnedBonuses((BonusTypes)iI) > 0)
 						viBonusClassHave[eBonusClass]++;
 				}
-			} bool bDummy;
-			for (int iI = 0; iI < GC.getNumTechInfos(); iI++) {
+			}
+			bool bDummy;
+			for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
+			{
 				int iPathLength = kOwner.findPathLength(((TechTypes)iI), false);
-				if (iPathLength <= 3 && !GET_TEAM(kPlot.getTeam()).isHasTech((TechTypes)iI)) {
+				if (iPathLength <= 3 && !GET_TEAM(kPlot.getTeam()).isHasTech((TechTypes)iI))
+				{
 					szString.append(CvWString::format(L"\n%s(%d)=%8d",
 							GC.getTechInfo((TechTypes)iI).getDescription(),
 							iPathLength, kOwner.AI_techValue((TechTypes)iI,
@@ -5164,7 +5157,21 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				}
 			}
 		}
-		else*/ if(bAlt && !bShift)
+		/*  <advc.001n> AI_getNumAreaCitySites and AI_getNumAdjacentAreaCitySites
+			call CvPlot::getFoundValue, which may cache its result. */
+		if(!bConstCache)
+		{
+			int iAreaSiteBestValue = 0;
+			int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iAreaSiteBestValue);
+			int iOtherSiteBestValue = 0;
+			int iNumOtherCitySites = (kPlot.waterArea() == NULL) ? 0 : kPlayer.AI_getNumAdjacentAreaCitySites(kPlot.waterArea()->getID(), kPlot.getArea(), iOtherSiteBestValue);
+			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
+			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
+		}
+	}
+	else if (kPlot.getOwner() != NO_PLAYER)
+	{
+		if(bAlt && !bShift)
 		{
 			if (kPlot.isHasPathToEnemyCity(kPlot.getTeam()))
 			{
@@ -5194,7 +5201,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					szString.append(CvWString::format(L"\n"));
 					// <advc.007>
 					szString.append(CvString::format("Bonus trade counter: %d\n",
-							kOwner.AI_getBonusTradeCounter((PlayerTypes)iI)));
+							GET_PLAYER(kPlot.getOwner()).AI_getBonusTradeCounter((PlayerTypes)iI)));
 					// </advc.007>
 				}
 			}
@@ -5205,7 +5212,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			{
 				szString.append(CvWString::format(L"\n %s = %d",
 						GC.getCivicInfo((CivicTypes)iI).getDescription(),
-						kOwner.AI_civicValue((CivicTypes)iI)));
+						GET_PLAYER(kPlot.getOwner()).AI_civicValue((CivicTypes)iI)));
 			}
 		}
 		// advc.007: Commented out
