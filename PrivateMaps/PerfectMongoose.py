@@ -5960,6 +5960,9 @@ def makeHarbor(x, y, oceanMap):
 	i = oceanMap.getIndex(x, y)
 	if oceanMap.data[i] != oceanID:
 		return
+	# <advc.021b> Most tiles are near a coast; but shouldn't eliminate most lakes that are fed by rivers. And bays are rather too common.
+	if PRand.randint(0, 1) != 0:
+		return # </advc.021b>
 	#N
 	ii = oceanMap.getIndex(x, y + 2)
 	if ii >= 0 and oceanMap.getAreaByID(oceanMap.data[ii]).water and oceanMap.data[ii] != oceanID:
@@ -6028,7 +6031,7 @@ def makeChannel(x, y):
 	terrainCoast = gc.getInfoTypeForString("TERRAIN_COAST")
 	plot = mmap.plot(x, y)
 	cleanUpLake(x, y)
-	plot.setTerrainType(terrainCoast, True, True)
+	plot.setTerrainType(terrainCoast, False, False) # advc.opt: was True,True
 	plot.setRiverID(-1)
 	plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
 	plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
@@ -6115,6 +6118,7 @@ def addLakes():
 		for x in range(mc.width):
 			i = GetIndex(x, y)
 			makeHarbor(x, y, oceanMap)
+	mmap.recalculateAreas(); # advc.opt: No longer done in makeChannel
 
 
 def addFeatures():
