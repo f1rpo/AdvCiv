@@ -101,9 +101,9 @@ public:
 
 	AreaAITypes getAreaAIType(TeamTypes eIndex) const;												// Exposed to Python
 	void setAreaAIType(TeamTypes eIndex, AreaAITypes eNewValue);
-
-	CvCity* getTargetCity(PlayerTypes eIndex) const;													// Exposed to Python
-	void setTargetCity(PlayerTypes eIndex, CvCity* pNewValue);
+	// advc.003u: Renamed these two from get/setTargetCity and changed types to CvCityAI. Target cities are an AI thing.
+	CvCityAI* AI_getTargetCity(PlayerTypes eIndex) const;													// Exposed to Python
+	void AI_setTargetCity(PlayerTypes eIndex, CvCityAI* pNewValue);
 
 	int getYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2) const;	// Exposed to Python
 	void changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, int iChange);

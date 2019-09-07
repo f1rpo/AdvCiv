@@ -786,7 +786,7 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 			else if (pCity->isDisorder() || pCity->isProductionAutomated())
 			{
 				gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
-				pCity->AI_setChooseProductionDirty(true);
+				pCity->setChooseProductionDirty(true);
 				break;
 			}
 			// K-Mod end
@@ -990,7 +990,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	CvString szArtFilename;
 	CvWString szTemp;
 
-	CvCity* pCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(info.getData1());
+	CvCityAI* pCity = GET_PLAYER(GC.getGame().getActivePlayer()).AI_getCity(info.getData1());
 	if (pCity == NULL || pCity->isProductionAutomated())
 		return false;
 
@@ -1409,14 +1409,14 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	if (GC.getDefineINT("PLAYER_ALWAYS_RAZES_CITIES") != 0)
 	{
-		player.raze(pNewCity);
+		player.raze(*pNewCity);
 		return false;
 	}
 
 	PlayerTypes eHighestCulturePlayer = (PlayerTypes)info.getData2();
 
 	int iCaptureGold = info.getData3();
-	bool bRaze = player.canRaze(pNewCity);
+	bool bRaze = player.canRaze(*pNewCity);
 	bool bGift = ((eHighestCulturePlayer != NO_PLAYER)
 		&& (eHighestCulturePlayer != player.getID())
 		&& ((player.getTeam() == GET_PLAYER(eHighestCulturePlayer).getTeam()) || GET_TEAM(player.getTeam()).isOpenBorders(GET_PLAYER(eHighestCulturePlayer).getTeam()) || GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(player.getTeam())));

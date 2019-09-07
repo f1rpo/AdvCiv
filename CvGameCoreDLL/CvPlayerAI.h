@@ -38,6 +38,9 @@ public:
 	void AI_uninit();
 	void AI_reset(bool bConstructor);
 	// <advc.003u> Access to AI-type members. Code mostly duplicated from CvPlayer.
+	inline CvCityAI* AI_getCapitalCity() const {
+		return AI_getCity(m_iCapitalCityID);
+	}
 	inline CvCityAI* AI_firstCity(int *pIterIdx) const {
 		return m_cities->beginIter(pIterIdx);
 	}
@@ -99,7 +102,7 @@ public:
 	#if 0 // advc
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 	#endif
-	void AI_conquerCity(CvCity* pCity);
+	void AI_conquerCity(CvCityAI& kCity);
 	double AI_razeMemoryScore(CvCity const& c) const; // advc.130q
 	bool AI_acceptUnit(CvUnit* pUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const;
@@ -107,7 +110,7 @@ public:
 	DomainTypes AI_unitAIDomainType(UnitAITypes eUnitAI) const;
 
 	int AI_yieldWeight(YieldTypes eYield, const CvCity* pCity = 0) const; // K-Mod added city argument
-	int AI_commerceWeight(CommerceTypes eCommerce, const CvCity* pCity = NULL) const;
+	int AI_commerceWeight(CommerceTypes eCommerce, const CvCityAI* pCity = NULL) const;
 	void AI_updateCommerceWeights(); // K-Mod
 
 	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;
@@ -142,7 +145,7 @@ public:
 	int AI_militaryWeight(CvArea* pArea) const;
 
 	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
-	CvCity* AI_findTargetCity(CvArea* pArea) const;
+	CvCityAI* AI_findTargetCity(CvArea* pArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
 
 	bool AI_isCommercePlot(CvPlot* pPlot) const;
@@ -306,8 +309,8 @@ public:
 	// advc.036:
 	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const;
 
-	int AI_cityTradeVal(CvCity const* pCity) const;
-	DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const;
+	int AI_cityTradeVal(CvCityAI const& kCity) const;
+	DenialTypes AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer) const;
 
 	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
 			bool bWarTrade = false) const; // advc.104o
@@ -352,7 +355,7 @@ public:
 	int AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, PlayerTypes* peBestPlayer = NULL, bool bSpreadOnly = false) const;
 	// advc.171:
 	bool AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes eReligion) const;
-	int AI_corporationValue(CorporationTypes eCorporation, const CvCity* pCity = NULL) const;
+	int AI_corporationValue(CorporationTypes eCorporation, CvCityAI const* pCity = NULL) const;
 
 	int AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove = false) const;
 	int AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;

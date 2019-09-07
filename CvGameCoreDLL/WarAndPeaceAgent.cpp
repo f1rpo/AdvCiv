@@ -348,7 +348,7 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 		if(capital == NULL)
 			continue;
 		CvArea& a = *capital->area();
-		CvCity* targetCity = a.getTargetCity(member.getID());
+		CvCity* targetCity = a.AI_getTargetCity(member.getID());
 		bool bAlign = true;
 		if(isNaval) {
 			if(targetCity!= NULL && (GET_TEAM(targetCity->getTeam()).
@@ -2394,7 +2394,7 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 		int* r, bool ignoreCities) const {
 
 	int totalTradeVal = 0;
-	CvPlayer const& human = GET_PLAYER(humanId);
+	CvPlayerAI const& human = GET_PLAYER(humanId);
 	TradeData item;
 	setTradeItem(&item, TRADE_GOLD, human.getGold());
 	if(human.canTradeItem(weId, item, true))
@@ -2413,12 +2413,12 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 	int cityLimit = (int)std::ceil(human.getNumCities() / 6.0);
 	int cityCount = 0;
 	if(!ignoreCities) {
-		FOR_EACH_CITY(c, human) {
+		FOR_EACH_CITYAI(c, human) {
 			setTradeItem(&item, TRADE_CITIES, c->getID());
 			if(human.canTradeItem(weId, item, true)) {
 				if(totalTradeVal < targetTradeVal)
 					cityCount++;
-				totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
+				totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(*c);
 				if(cityCount > cityLimit) {
 					if(r == NULL)
 						return false;

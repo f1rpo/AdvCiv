@@ -11,18 +11,15 @@ typedef std::vector<std::pair<UnitAITypes, int> > UnitTypeWeightArray;
 
 class CvCityAI : public CvCity
 {
-
 public:
 
 	CvCityAI();
-	virtual ~CvCityAI();
-
-	void AI_init();
-	void AI_uninit();
-	void AI_reset();
+	~CvCityAI();
+	// advc.003u: Override replacing AI_init. Parameter list copied from CvCity::init.
+	void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
+			int iOccupationTimer = 0); // advc.122
 
 	void AI_doTurn();
-
 	void AI_assignWorkingPlots();
 	void AI_updateAssignWork();
 
@@ -47,9 +44,8 @@ public:
 	// <advc.179>
 	double AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
 			std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
-	ProjectTypes AI_bestProject(int* piBestValue = 0,
-			bool bAsync = false); // advc.001n
-	int AI_projectValue(ProjectTypes eProject);
+	ProjectTypes AI_bestProject(int* piBestValue = 0, /* advc.001n: */ bool bAsync = false) const;
+	int AI_projectValue(ProjectTypes eProject) const;
 
 	/*  K-Mod note, I've deleted the single-argument version of the following two functions.
 		They were completely superfluous. */
@@ -61,7 +57,7 @@ public:
 	bool AI_isDefended(int iExtra = 0) const;
 	//bool AI_isAirDefended(int iExtra = 0);
 	// BETTER_BTS_AI_MOD, Air AI, 9/19/08, jdog5000:
-	bool AI_isAirDefended(bool bCountLand = false, int iExtra = 0);
+	bool AI_isAirDefended(bool bCountLand = false, int iExtra = 0) const;
 	bool AI_isDanger() const;
 	int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
 			bool bConstCache = false) const; // advc.001n
@@ -88,8 +84,8 @@ public:
 	bool AI_isAssignWorkDirty() const;
 	void AI_setAssignWorkDirty(bool bNewValue);
 
-	bool AI_isChooseProductionDirty() const; // advc.003u (comment): Move to CvCity? It's also used for human choose-production popups.
-	void AI_setChooseProductionDirty(bool bNewValue);
+	//bool AI_isChooseProductionDirty() const; // advc.003u: Moved to CvCity
+	//void AI_setChooseProductionDirty(bool bNewValue);
 
 	CvCity* AI_getRouteToCity() const;
 	void AI_updateRouteToCity();
@@ -136,7 +132,7 @@ public:
 	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const;
 	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false) const; // BBAI
 
-	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
+	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
 			bool bConstCache = false) const; // advc.001n
 	int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
 			bool bConstCache) const; // advc.001n
@@ -157,42 +153,38 @@ public:
 
 protected:
 
+	int m_iCultureWeight; // K-Mod
 	int m_iEmphasizeAvoidGrowthCount;
 	int m_iEmphasizeGreatPeopleCount;
+	int m_iWorkersNeeded;
+	int m_iWorkersHave;
 
 	bool m_bAssignWorkDirty;
-	bool m_bChooseProductionDirty;
+	// <advc.139>
+	bool m_bEvacuate;
+	bool m_bSafe;
+	// </advc.139>
 
 	IDInfo m_routeToCity;
 
 	int* m_aiEmphasizeYieldCount;
 	int* m_aiEmphasizeCommerceCount;
 	bool m_bForceEmphasizeCulture; // advc.003j (comment): unused
-
-	int m_aiBestBuildValue[NUM_CITY_PLOTS];
-	BuildTypes m_aeBestBuild[NUM_CITY_PLOTS];
-	BuildTypes m_eBestBuild; // advc.opt
-
 	bool* m_pbEmphasize;
 
-	int* m_aiSpecialYieldMultiplier;
+	BuildTypes* m_aeBestBuild;
+	BuildTypes m_eBestBuild; // advc.opt
 
+	int* m_aiSpecialYieldMultiplier;
+	int* m_aiBestBuildValue;
 	int* m_aiPlayerCloseness;
 	// <advc> Made mutable (and made the cache accessor functions const)
 	mutable int m_iCachePlayerClosenessTurn;
 	mutable int m_iCachePlayerClosenessDistance;
-
 	mutable int m_iNeededFloatingDefenders;
 	mutable int m_iNeededFloatingDefendersCacheTurn; // </advc>
-	// <advc.139>
-	bool m_bEvacuate;
-	bool m_bSafe;
-	// </advc.139>
-	int m_iWorkersNeeded;
-	int m_iWorkersHave;
 
 	std::vector<int> m_aiConstructionValue; // K-Mod. (cache)
-	int m_iCultureWeight; // K-Mod
 
 	void AI_doDraft(bool bForce = false);
 	void AI_doHurry(bool bForce = false);
@@ -204,20 +196,18 @@ protected:
 	bool AI_doPanic();
 	//int AI_calculateCulturePressure(bool bGreatWork = false) const; // disabled by K-Mod
 
+	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue);
 	bool AI_chooseUnit(UnitAITypes eUnitAI = NO_UNITAI, int iOdds = -1); // bbai added iOdds
 	bool AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI);
-
 	bool AI_chooseDefender();
 	bool AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, int iOdds = -1); // bbai added iOdds
 	bool AI_chooseBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, int iMinThreshold = 0, int iOdds = -1); // bbai added iOdds.
 	//bool AI_chooseProject(); // advc.003j
 	bool AI_chooseProcess(CommerceTypes eCommerceType = NO_COMMERCE);
 
-	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue);
 	bool AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPlot = NULL, SpecialistTypes* peBestSpecialist = NULL);
 	bool AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist = NO_SPECIALIST);
 	void AI_juggleCitizens();
-
 	int AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel = 0, int iNewAnger = 0, int iAngerTimer = 0); // K-Mod
 
 	bool AI_potentialPlot(short* piYields) const;
@@ -236,15 +226,13 @@ protected:
 	// K-mod end
 
 	int AI_experienceWeight();
-	int AI_buildUnitProb(
-			bool bDraft = false); // advc.017
+	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false);
 	void AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
 
 	void AI_buildGovernorChooseProduction();
 	void AI_barbChooseProduction(); // K-Mod
 
 	int AI_getYieldMagicValue(const int* piYieldsTimes100, bool bHealthy) const;
-		// advc: Made plot param const
 	int AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWorkerOptimization = false) const;
 	int AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshold = 50, bool bWorkerOptimization = false) const;
 	int AI_countGoodSpecialists(bool bHealthy) const;
@@ -264,6 +252,7 @@ protected:
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
+	friend class CvCity; // advc.003u: So that protected functions can be called through CvCity::AI
 };
 
 #endif

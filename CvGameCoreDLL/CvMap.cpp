@@ -597,8 +597,8 @@ bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea
 }
 
 
-CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc: style changes
-		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity* pSkipCity,
+CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc: style changes, const pSkipCity
+		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity const* pSkipCity,
 		TeamTypes eObserver) const // advc.004r
 {
 	PROFILE_FUNC();

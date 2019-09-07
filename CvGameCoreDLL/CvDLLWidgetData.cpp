@@ -1526,13 +1526,13 @@ void CvDLLWidgetData::doAutomateProduction()
 
 void CvDLLWidgetData::doEmphasize(CvWidgetDataStruct &widgetDataStruct)
 {
-	CvCity* pHeadSelectedCity;
-
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
+	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
-		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_SET_EMPHASIZE, widgetDataStruct.m_iData1, -1, !(pHeadSelectedCity->AI_isEmphasize((EmphasizeTypes)(widgetDataStruct.m_iData1))));
+		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK,
+				TASK_SET_EMPHASIZE, widgetDataStruct.m_iData1, -1,
+				!pHeadSelectedCity->AI().AI_isEmphasize((EmphasizeTypes)
+				widgetDataStruct.m_iData1));
 	}
 }
 
@@ -3719,7 +3719,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		int iLegendaryCulture = GC.getGame().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
 		std::vector<std::pair<int,int> > city_list; // (weight, city id)
 
-		FOR_EACH_CITY(pLoopCity, kPlayer)
+		FOR_EACH_CITYAI(pLoopCity, kPlayer)
 			city_list.push_back(std::make_pair(kPlayer.AI_commerceWeight(COMMERCE_CULTURE, pLoopCity), pLoopCity->getID()));
 
 		int iListCities = std::min((int)city_list.size(), 3);
@@ -4463,15 +4463,12 @@ void CvDLLWidgetData::parseAutomateProductionHelp(CvWidgetDataStruct &widgetData
 
 void CvDLLWidgetData::parseEmphasizeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity;
-
 	szBuffer.clear();
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
+	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
-		if (pHeadSelectedCity->AI_isEmphasize((EmphasizeTypes)widgetDataStruct.m_iData1))
+		if (pHeadSelectedCity->AI().AI_isEmphasize((EmphasizeTypes)widgetDataStruct.m_iData1))
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_TURN_OFF"));
 		}

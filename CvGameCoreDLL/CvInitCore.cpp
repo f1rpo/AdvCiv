@@ -683,12 +683,11 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 
 	FAssertMsg(!bClear || !bSaveSlotInfo, "Should not be clearing data while trying to preserve slot info in CvInitCore::resetPlayer");
 
-	if ( checkBounds(eID, 0, MAX_PLAYERS) )
+	if (checkBounds(eID, 0, MAX_PLAYERS))
 	{
 		if (bClear || !pSource)
-		{
 			resetPlayer(eID);
-		}
+
 		if (pSource)
 		{
 			// Civ details
@@ -720,9 +719,9 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 				setLeaderName(eID, pSource->getLeaderName(eID));
 				setSlotStatus(eID, pSource->getSlotStatus(eID));
 				setSlotClaim(eID, pSource->getSlotClaim(eID));
-				// <advc.001p>
-				FOR_EACH_CITY_VAR(c, GET_PLAYER(eID))
-					c->reset(); // </advc.001p>
+				// <advc.001p> Reset players while loading from within a game to avoid crash
+				if (pSource->getSavedGame() && GET_PLAYER(eID).isEverAlive())
+					GET_PLAYER(eID).reset(eID); // </advc.001p>
 			}
 		}
 	}
@@ -736,7 +735,7 @@ CvWString CvInitCore::getMapScriptName() const
 		if (!getWBMapScript())
 		{
 			// If it's a transferred Python file, we have to hack in the transferred extension
-			return ( m_szMapScriptName + CvWString(MAP_TRANSFER_EXT) );
+			return (m_szMapScriptName + CvWString(MAP_TRANSFER_EXT));
 		}
 	}
 	return m_szMapScriptName;

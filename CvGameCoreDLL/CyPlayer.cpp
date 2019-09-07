@@ -351,19 +351,19 @@ int CyPlayer::getNumGovernmentCenters()
 
 bool CyPlayer::canRaze(CyCity* pCity)
 {
-	return m_pPlayer ? m_pPlayer->canRaze(pCity->getCity()) : false;
+	return m_pPlayer ? m_pPlayer->canRaze(*pCity->getCity()) : false;
 }
 
 void CyPlayer::raze(CyCity* pCity)
 {
 	if (m_pPlayer)
-		m_pPlayer->raze(pCity->getCity());
+		m_pPlayer->raze(*pCity->getCity());
 }
 
 void CyPlayer::disband(CyCity* pCity)
 {
 	if (m_pPlayer)
-		m_pPlayer->disband(pCity->getCity());
+		m_pPlayer->disband(*pCity->getCity());
 }
 
 bool CyPlayer::canReceiveGoody(CyPlot* pPlot, int /*GoodyTypes*/ iIndex, CyUnit* pUnit)

@@ -1811,11 +1811,11 @@ bool CvUnit::isActionRecommended(int iAction)
 				RouteTypes eRoute = (RouteTypes)(GC.getBuildInfo(eBuild).getRoute());
 				//eBonus = pPlot->getBonusType(getTeam());
 				BonusTypes eBonus = pPlot->getNonObsoleteBonusType(getTeam()); // K-Mod
-				CvCity* pWorkingCity = pPlot->getWorkingCity();
+				CvCityAI* pWorkingCity = pPlot->AI_getWorkingCity();
 
 				// if (pPlot->getImprovementType() == NO_IMPROVEMENT) { // Disabled by K-Mod (this looks like a bug to me)
 				BuildTypes eBestBuild = NO_BUILD; // K-Mod. (I use this again later.)
-				if (pWorkingCity)
+				if (pWorkingCity != NULL)
 				{
 					int iIndex = pWorkingCity->getCityPlotIndex(pPlot);
 					FAssert(iIndex != -1); // K-Mod. this use to be an if statement in the release code
@@ -7301,7 +7301,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 			CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 			if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == eTeam)
 			{
-				FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer)
+				FOR_EACH_CITYAI_VAR(pLoopCity, kLoopPlayer)
 				{
 					// if coastal only, then make sure we are coast
 					CvArea* pWaterArea = NULL;

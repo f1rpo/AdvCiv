@@ -13,9 +13,7 @@
 //
 
 #include "CvPlot.h"
-// <advc.003u>
-class CvArea;
-class CvAreaList; // </advc.003u>
+class CvAreaList; // advc.003u
 // <advc.300>
 #include "Shelf.h"
 #include <map> // </advc.300>
@@ -251,14 +249,14 @@ public: // advc: made several functions const
 	bool isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
 			int iMinCivUnitDistance) const; // </advc>
 
-	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
-		// <advc.004r>
+	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL)	// Exposed to Python
+	{	// <advc.004r>
 		return findCity(iX, iY, eOwner, eTeam, bSameArea, bCoastalOnly,
 				eTeamAtWarWith, eDirection, pSkipCity, NO_TEAM);
 	}
 	CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM,
 			bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM,
-			DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
+			DirectionTypes eDirection = NO_DIRECTION, CvCity const* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
 	// </advc.004r>
 	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
 

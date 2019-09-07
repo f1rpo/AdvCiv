@@ -810,27 +810,19 @@ void CvArea::setAreaAIType(TeamTypes eIndex, AreaAITypes eNewValue)
 }
 
 
-CvCity* CvArea::getTargetCity(PlayerTypes eIndex) const
+CvCityAI* CvArea::AI_getTargetCity(PlayerTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
-	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
-	return getCity(m_aTargetCities[eIndex]);
+	FASSERT_BOUNDS(0, MAX_PLAYERS, eIndex, "CvArea::AI_getTargetCity");
+	return ::AI_getCity(m_aTargetCities[eIndex]);
 }
 
 
-void CvArea::setTargetCity(PlayerTypes eIndex, CvCity* pNewValue)
+void CvArea::AI_setTargetCity(PlayerTypes eIndex, CvCityAI* pNewValue) // advc.003u: CvCityAI param only for consistency with getTargetCity
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
-	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
-
+	FASSERT_BOUNDS(0, MAX_PLAYERS, eIndex, "CvArea::AI_setTargetCity");
 	if (pNewValue != NULL)
-	{
 		m_aTargetCities[eIndex] = pNewValue->getIDInfo();
-	}
-	else
-	{
-		m_aTargetCities[eIndex].reset();
-	}
+	else m_aTargetCities[eIndex].reset();
 }
 
 

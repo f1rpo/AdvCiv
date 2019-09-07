@@ -1318,7 +1318,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		if (kLoopPlayer.getTeam() != eTarget || !kLoopPlayer.isAlive())
 			continue;
 
-		FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+		FOR_EACH_CITYAI(pLoopCity, kLoopPlayer)
 		{
 			if (!AI_deduceCitySite(pLoopCity))
 				continue;
@@ -1416,7 +1416,6 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			}
 
 			iGainedValue += iCityValue * iGainFactor / 100;
-			//
 		}
 	}
 
@@ -3362,9 +3361,9 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 		if (!kSurrenderCiv.isAlive() || kSurrenderCiv.getTeam() != eSurrenderTeam)
 			continue;
 
-		FOR_EACH_CITY(pLoopCity, kSurrenderCiv)
+		FOR_EACH_CITYAI(pLoopCity, kSurrenderCiv)
 		{
-			CvCity const& kCity = *pLoopCity;
+			CvCityAI const& kCity = *pLoopCity;
 			bool bValuable = (kCity.isHolyCity() || kCity.isHeadquarters() ||
 					kCity.hasActiveWorldWonder() ||
 					(AI_isPrimaryArea(kCity.area()) &&
@@ -3438,7 +3437,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 				CvPlayerAI const& kOurMember = GET_PLAYER((PlayerTypes)iJ);
 				if (!kOurMember.isAlive() || kOurMember.getTeam() != getID())
 					continue;
-				if (pLoopCity->AI_playerCloseness(kOurMember.getID(),
+				if (kCity.AI_playerCloseness(kOurMember.getID(),
 						/* <advc.001n> */ DEFAULT_PLAYER_CLOSENESS, true /* </advc.001n> */) > 5)
 				{
 					iValuableCities++;

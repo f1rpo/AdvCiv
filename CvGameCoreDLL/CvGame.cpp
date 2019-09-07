@@ -4728,7 +4728,7 @@ void CvGame::changeDiploVote(VoteSourceTypes eVoteSource, int iChange)
 	{
 		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 		{
-			GET_PLAYER((PlayerTypes)iPlayer).processVoteSourceBonus(eVoteSource, false);
+			GET_PLAYER((PlayerTypes)iPlayer).processVoteSource(eVoteSource, false);
 		}
 
 		m_aiDiploVote[eVoteSource] += iChange;
@@ -4736,7 +4736,7 @@ void CvGame::changeDiploVote(VoteSourceTypes eVoteSource, int iChange)
 
 		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 		{
-			GET_PLAYER((PlayerTypes)iPlayer).processVoteSourceBonus(eVoteSource, true);
+			GET_PLAYER((PlayerTypes)iPlayer).processVoteSource(eVoteSource, true);
 		}
 	}
 }

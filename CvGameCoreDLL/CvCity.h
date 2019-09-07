@@ -20,21 +20,13 @@ class CvCity : public CvDLLEntity
 {
 public:
 
-	CvCity();
-	virtual ~CvCity();
-
-	void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
-			int iOccupationTimer = 0); // advc.122
-	void uninit();
-	void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, int iX = 0, int iY = 0, bool bConstructorCall = false);
 	void setupGraphical();
 	void kill(bool bUpdatePlotGroups);																								// Exposed to Python
-
 	void doTurn();
 	void doRevolt(); // advc: previously in CvPlot::doCulture
-	/*  K-Mod. I've made this function public so that I can use it for the "insert culture" espionage mission.
-		(I've also changed the functionality of it quite a bit.) */
+	// K-Mod. public for the "insert culture" espionage mission. (I've also changed the functionality of it quite a bit.)
 	void doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture);
+
 	bool isCitySelected();
 	DllExport bool canBeSelected() const;
 	DllExport void updateSelectedCity(bool bTestProduction);
@@ -46,6 +38,9 @@ public:
 	void createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience) const;		// Exposed to Python
 	void doTask(TaskTypes eTask, int iData1 = -1, int iData2 = -1, bool bOption = false, bool bAlt = false, bool bShift = false, bool bCtrl = false);		// Exposed to Python
 	void chooseProduction(UnitTypes eTrainUnit = NO_UNIT, BuildingTypes eConstructBuilding = NO_BUILDING, ProjectTypes eCreateProject = NO_PROJECT, bool bFinish = false, bool bFront = false);		// Exposed to Python
+	// <advc.003u>
+	bool isChooseProductionDirty() const;
+	void setChooseProductionDirty(bool bNewValue); // </advc.003u>
 
 	int getCityPlotIndex(const CvPlot* pPlot) const;								// Exposed to Python
 	CvPlot* getCityIndexPlot(int iIndex) const;															// Exposed to Python
@@ -177,6 +172,7 @@ public:
 	void processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolete = false);
 	void processProcess(ProcessTypes eProcess, int iChange);
 	void processSpecialist(SpecialistTypes eSpecialist, int iChange);
+	void processVoteSource(VoteSourceTypes eVoteSource, bool bActive);
 
 	HandicapTypes getHandicapType() const;												// Exposed to Python
 	CivilizationTypes getCivilizationType() const;										// Exposed to Python
@@ -200,6 +196,7 @@ public:
 	bool isDisorder() const;																			// Exposed to Python
 	bool isHolyCity(ReligionTypes eIndex) const;									// Exposed to Python
 	bool isHolyCity() const;																			// Exposed to Python
+	bool hasShrine(ReligionTypes eReligion) const;
 	bool isHeadquarters(CorporationTypes eIndex) const;									// Exposed to Python
 	bool isHeadquarters() const;																			// Exposed to Python
 	void setHeadquarters(CorporationTypes eIndex);
@@ -296,69 +293,54 @@ public:
 
 	int getGameTurnFounded() const;																				// Exposed to Python
 	void setGameTurnFounded(int iNewValue);
-
 	int getGameTurnAcquired() const;																			// Exposed to Python
 	void setGameTurnAcquired(int iNewValue);
 
 	int getPopulation() const;														// Exposed to Python
 	void setPopulation(int iNewValue);												// Exposed to Python
 	void changePopulation(int iChange);												// Exposed to Python
-
 	long getRealPopulation() const;																	// Exposed to Python
-
 	int getHighestPopulation() const;																			// Exposed to Python
 	void setHighestPopulation(int iNewValue);
-
 	int getWorkingPopulation() const;																			// Exposed to Python
 	void changeWorkingPopulation(int iChange);
-
 	int getSpecialistPopulation() const;																	// Exposed to Python
 	void changeSpecialistPopulation(int iChange);
 
 	int getNumGreatPeople() const;																				// Exposed to Python
 	void changeNumGreatPeople(int iChange);
-
 	int getBaseGreatPeopleRate() const;																		// Exposed to Python
 	int getGreatPeopleRate() const;																				// Exposed to Python
 	int getTotalGreatPeopleRateModifier() const;													// Exposed to Python
 	void changeBaseGreatPeopleRate(int iChange);										// Exposed to Python
-
 	int getGreatPeopleRateModifier() const;																// Exposed to Python
 	void changeGreatPeopleRateModifier(int iChange);
-
 	// BUG - Building Additional Great People - start
 	int getAdditionalGreatPeopleRateByBuilding(BuildingTypes eBuilding) const;
 	int getAdditionalBaseGreatPeopleRateByBuilding(BuildingTypes eBuilding) const;
 	int getAdditionalGreatPeopleRateModifierByBuilding(BuildingTypes eBuilding) const;
 	// BUG - Building Additional Great People - end
-
 	// BUG - Specialist Additional Great People - start
 	int getAdditionalGreatPeopleRateBySpecialist(SpecialistTypes eSpecialist, int iChange = 1) const;
 	int getAdditionalBaseGreatPeopleRateBySpecialist(SpecialistTypes eSpecialist, int iChange = 1) const;
 	// BUG - Specialist Additional Great People - end
-
 	int getGreatPeopleProgress() const;													// Exposed to Python
 	void changeGreatPeopleProgress(int iChange);										// Exposed to Python
 
 	int getNumWorldWonders() const;																				// Exposed to Python
 	void changeNumWorldWonders(int iChange);
-
 	int getNumTeamWonders() const;																				// Exposed to Python
 	void changeNumTeamWonders(int iChange);
-
 	int getNumNationalWonders() const;																		// Exposed to Python
 	void changeNumNationalWonders(int iChange);
-
 	int getNumBuildings() const;																					// Exposed to Python
 	void changeNumBuildings(int iChange);
 
 	int getGovernmentCenterCount() const;
 	bool isGovernmentCenter() const;														// Exposed to Python
 	void changeGovernmentCenterCount(int iChange);
-
 	// BUG - Building Saved Maintenance:
 	int getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const;
-
 	int getMaintenance() const;																	// Exposed to Python
 	int getMaintenanceTimes100() const;																	// Exposed to Python
 	void updateMaintenance();
@@ -389,7 +371,6 @@ public:
 
 	int getWarWearinessModifier() const;																	// Exposed to Python
 	void changeWarWearinessModifier(int iChange);
-
 	int getHurryAngerModifier() const;																	// Exposed to Python
 	void changeHurryAngerModifier(int iChange);
 
@@ -398,7 +379,6 @@ public:
 
 	int getEspionageHealthCounter() const;														// Exposed to Python
 	void changeEspionageHealthCounter(int iChange);													// Exposed to Python
-
 	int getEspionageHappinessCounter() const;														// Exposed to Python
 	void changeEspionageHappinessCounter(int iChange);													// Exposed to Python
 
@@ -476,23 +456,18 @@ public:
 
 	int getExtraHappiness() const;																				// Exposed to Python
 	void changeExtraHappiness(int iChange);													// Exposed to Python
-
 	int getExtraHealth() const;																				// Exposed to Python
 	void changeExtraHealth(int iChange);													// Exposed to Python
 
 	int getHurryAngerTimer() const;																				// Exposed to Python
 	void changeHurryAngerTimer(int iChange);												// Exposed to Python
-
 	int getConscriptAngerTimer() const;																		// Exposed to Python
 	void changeConscriptAngerTimer(int iChange);										// Exposed to Python
-
 	int getDefyResolutionAngerTimer() const;																		// Exposed to Python
 	void changeDefyResolutionAngerTimer(int iChange);										// Exposed to Python
 	int flatDefyResolutionAngerLength() const;																				// Exposed to Python
-
 	int getHappinessTimer() const;																				// Exposed to Python
 	void changeHappinessTimer(int iChange);												// Exposed to Python
-
 	int getNoUnhappinessCount() const;
 	bool isNoUnhappiness() const;																					// Exposed to Python
 	void changeNoUnhappinessCount(int iChange);
@@ -513,11 +488,9 @@ public:
 	int getFood() const;																				// Exposed to Python
 	void setFood(int iNewValue);																		// Exposed to Python
 	void changeFood(int iChange);																		// Exposed to Python
-
 	int getFoodKept() const;																							// Exposed to Python
 	void setFoodKept(int iNewValue);
 	void changeFoodKept(int iChange);
-
 	int getMaxFoodKeptPercent() const;																		// Exposed to Python
 	void changeMaxFoodKeptPercent(int iChange);
 
@@ -533,20 +506,17 @@ public:
 
 	int getMilitaryProductionModifier() const;														// Exposed to Python
 	void changeMilitaryProductionModifier(int iChange);
-
 	int getSpaceProductionModifier() const;																// Exposed to Python
 	void changeSpaceProductionModifier(int iChange);
 
 	int getExtraTradeRoutes() const;												// Exposed to Python
 	void changeExtraTradeRoutes(int iChange);										// Exposed to Python
-
 	int getTradeRouteModifier() const;												// Exposed to Python
 	void changeTradeRouteModifier(int iChange);
-
 	int getForeignTradeRouteModifier() const;										// Exposed to Python
 	void changeForeignTradeRouteModifier(int iChange);
 
-	// K-Mod, 26/sep/10, Karadoc (Trade culture calculation):
+	// K-Mod, 26/sep/10 (Trade culture calculation)
 	int getTradeCultureRateTimes100(int iLevel) const;								// Exposed to Python
 
 	int getBuildingDefense() const;													// Exposed to Python
@@ -563,7 +533,6 @@ public:
 	int getCurrAirlift() const;														// Exposed to Python
 	void setCurrAirlift(int iNewValue);
 	void changeCurrAirlift(int iChange);
-
 	int getMaxAirlift() const;														// Exposed to Python
 	void changeMaxAirlift(int iChange);
 
@@ -591,7 +560,6 @@ public:
 	int getDefenseDamage() const;													// Exposed to Python
 	void changeDefenseDamage(int iChange);											// Exposed to Python
 	void changeDefenseModifier(int iChange);										// Exposed to Python
-
 	int getLastDefenseDamage() const;												// Exposed to Python
 	void setLastDefenseDamage(int iNewValue);
 
@@ -629,18 +597,16 @@ public:
 
 	bool isCitizensAutomated() const;												// Exposed to Python
 	void setCitizensAutomated(bool bNewValue);										// Exposed to Python
-
 	bool isProductionAutomated() const;												// Exposed to Python
 	void setProductionAutomated(bool bNewValue, bool bClear);						// Exposed to Python
 
-	/* allows you to programmatically specify a cities walls rather than having them be generated automagically */
+	// allows you to programmatically specify a cities walls rather than having them be generated automagically
 	DllExport bool isWallOverride() const;
 	void setWallOverride(bool bOverride);
 	void addGreatWall(); // advc.310: Wrapper for CvEngine::AddGreatWall
 
 	DllExport bool isInfoDirty() const;
 	DllExport void setInfoDirty(bool bNewValue);
-
 	DllExport bool isLayoutDirty() const;
 	DllExport void setLayoutDirty(bool bNewValue);
 
@@ -650,10 +616,8 @@ public:
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file			// Exposed to Python
 	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.003f: Renamed from getOwnerINLINE
 	DllExport TeamTypes getTeam() const;											// Exposed to Python
-
 	PlayerTypes getPreviousOwner() const;											// Exposed to Python
 	void setPreviousOwner(PlayerTypes eNewValue);
-
 	PlayerTypes getOriginalOwner() const;											// Exposed to Python
 	void setOriginalOwner(PlayerTypes eNewValue);
 
@@ -667,7 +631,6 @@ public:
 
 	int getSeaPlotYield(YieldTypes eIndex) const;									// Exposed to Python
 	void changeSeaPlotYield(YieldTypes eIndex, int iChange);
-
 	int getRiverPlotYield(YieldTypes eIndex) const;									// Exposed to Python
 	void changeRiverPlotYield(YieldTypes eIndex, int iChange);
 
@@ -692,10 +655,8 @@ public:
 
 	int getPowerYieldRateModifier(YieldTypes eIndex) const;							// Exposed to Python
 	void changePowerYieldRateModifier(YieldTypes eIndex, int iChange);
-
 	int getBonusYieldRateModifier(YieldTypes eIndex) const;							// Exposed to Python
 	void changeBonusYieldRateModifier(YieldTypes eIndex, int iChange);
-
 	int getTradeYield(YieldTypes eIndex) const;										// Exposed to Python
 	int totalTradeModifier(CvCity const* pOtherCity = NULL) const;						// Exposed to Python
 	int getPopulationTradeModifier() const;
@@ -737,10 +698,8 @@ public:
 	int getAdditionalCommerceRateModifierByBuilding(CommerceTypes eIndex, BuildingTypes eBuilding) const;
 	int getAdditionalCommerceRateModifierByBuildingImpl(CommerceTypes eIndex, BuildingTypes eBuilding) const;
 	// BUG - Building Additional Commerce - end
-
 	int getSpecialistCommerce(CommerceTypes eIndex) const;											// Exposed to Python
 	void changeSpecialistCommerce(CommerceTypes eIndex, int iChange);			// Exposed to Python
-
 	// BUG - Specialist Additional Commerce - start
 	int getAdditionalCommerceBySpecialist(CommerceTypes eIndex, SpecialistTypes eSpecialist, int iChange = 1) const;				// Exposed to Python
 	int getAdditionalCommerceTimes100BySpecialist(CommerceTypes eIndex, SpecialistTypes eSpecialist, int iChange = 1) const;		// Exposed to Python
@@ -825,7 +784,6 @@ public:
 
 	int getFreeBonus(BonusTypes eIndex) const;																		// Exposed to Python
 	void changeFreeBonus(BonusTypes eIndex, int iChange);																		// Exposed to Python
-
 	int getNumBonuses(BonusTypes eIndex) const;																		// Exposed to Python
 	bool hasBonus(BonusTypes eIndex) const;															// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
@@ -927,7 +885,6 @@ public:
 	void setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true,
 			PlayerTypes eSpreadPlayer = NO_PLAYER); // advc.106e
 	int getReligionGrip(ReligionTypes eReligion) const; // K-Mod
-
 	bool isHasCorporation(CorporationTypes eIndex) const;
 	void setHasCorporation(CorporationTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true);
 
@@ -1007,106 +964,36 @@ public:
 
 	DllExport void getBuildQueue(std::vector<std::string>& astrQueue) const;
 
+	void invalidatePopulationRankCache();
+	void invalidateYieldRankCache(YieldTypes eYield = NO_YIELD);
+	void invalidateCommerceRankCache(CommerceTypes eCommerce = NO_COMMERCE);
+	int getBestYieldAvailable(YieldTypes eYield) const; // (advc: unused)
+
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 	// <advc.003u>
-	inline CvCityAI& AI() {
-		//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
+	inline CvCityAI& AI()
+	{	//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvCityAI is derived from CvCity */
 		return *reinterpret_cast<CvCityAI*>(this);
 	}
-	inline CvCityAI const& AI() const {
-		//return *static_cast<CvCityAI const*>(this);
+	inline CvCityAI const& AI() const
+	{	//return *static_cast<CvCityAI const*>(this);
 		return *reinterpret_cast<CvCityAI const*>(this);
-	} // </advc.003u>
-	virtual void AI_init() = 0;
-	virtual void AI_reset() = 0;
-	virtual void AI_doTurn() = 0;
-	virtual void AI_assignWorkingPlots() = 0;
-	virtual void AI_updateAssignWork() = 0;
-	//virtual bool AI_avoidGrowth() = 0; // disabled by K-Mod (was exposed to python)
-	//virtual int AI_specialistValue(SpecialistTypes eSpecialist, bool bAvoidGrowth, bool bRemove) const = 0;
-	virtual int AI_specialistValue(SpecialistTypes eSpecialist, bool bRemove, bool bIgnoreFood, int iGrowthValue) const = 0; // K-Mod
-	virtual int AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const = 0; // K-Mod
-	virtual void AI_chooseProduction() = 0;
-	virtual UnitTypes AI_bestUnit(bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, UnitAITypes* peBestUnitAI = NULL) const = 0;
-	virtual UnitTypes AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const = 0;
-	virtual BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const = 0;
-	virtual int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0,
-			// K-Mod:
-			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
-			bool bIgnoreSpecialists = false) const = 0; // advc.121b
-	virtual int AI_projectValue(ProjectTypes eProject) = 0;
-	virtual int AI_neededSeaWorkers() const = 0;
-	virtual bool AI_isDefended(int iExtra = 0) const = 0;
-	//virtual bool AI_isAirDefended(int iExtra = 0) = 0;
-	// BETTER_BTS_AI_MOD, Air AI, 9/19/08, jdog5000:
-	virtual bool AI_isAirDefended(bool bCountLand = 0, int iExtra = 0) = 0;
-
-	virtual bool AI_isDanger() const = 0;
-
-	virtual int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			bool bConstCache = false) const = 0; // advc.001n
-	virtual int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			bool bConstCache = false) const = 0; // advc.001n
-	// <advc.139> Frequently used, so I don't want to have to downcast all the time.
-	virtual bool AI_isEvacuating() const = 0;
-	virtual bool AI_isSafe() const = 0;
-	// </advc.139>
-	virtual int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) const = 0;
-	virtual int AI_minDefenders() const = 0;
-	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;
-	virtual bool AI_isAssignWorkDirty() const = 0;
-	virtual CvCity* AI_getRouteToCity() const = 0;
+	}
+	/*  Keep one pure virtual function to make the class abstract; remove all
+		the others - the EXE doesn't call them. */ // </advc.003u>
 	virtual void AI_setAssignWorkDirty(bool bNewValue) = 0;
-	virtual bool AI_isChooseProductionDirty() const = 0;
-	virtual void AI_setChooseProductionDirty(bool bNewValue) = 0;
-	virtual bool AI_isEmphasize(EmphasizeTypes eIndex) const = 0;											// Exposed to Python
-	virtual void AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue) = 0;
-	virtual int AI_getBestBuildValue(int iIndex) const = 0;
-	// K-Mod
-	virtual int AI_getTargetPopulation() const = 0;
-	virtual int AI_countGoodPlots() const = 0;
-	virtual void AI_getYieldMultipliers( int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const = 0;
-
-	virtual int AI_getImprovementValue(CvPlot /* advc: */ const& kPlot,
-			ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const = 0;
-	// K-Mod end
-	virtual int AI_totalBestBuildValue(CvArea* pArea) const = 0;
-	virtual int AI_countBestBuilds(CvArea* pArea) const = 0;													// Exposed to Python
-	virtual BuildTypes AI_getBestBuild(int iIndex) const = 0;
-	virtual void AI_updateBestBuild() = 0;
-	virtual int AI_cityValue() const = 0;
-	virtual int AI_clearFeatureValue(int iIndex) = 0;
-
-	//virtual int AI_calculateCulturePressure(bool bGreatWork = false) const = 0; // disabled by K-Mod
-	virtual int AI_calculateWaterWorldPercent() = 0;
-	virtual int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const = 0;
-	virtual int AI_yieldMultiplier(YieldTypes eYield) const = 0;
-	virtual int AI_getCultureWeight() const = 0; // K-Mod
-	virtual void AI_setCultureWeight(int iWeight) = 0; // K-Mod
-	virtual int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
-			bool bConstCache = false) const = 0; // advc.001n
-	virtual int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
-			bool bConstCache = false) const = 0; // advc.001n
-	virtual int AI_cityThreat(bool bDangerPercent = false) const = 0;
-	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) const = 0;
-	// advc: 2x const. I very much doubt that the EXE calls these.
-	virtual int AI_getWorkersHave() const = 0;
-	virtual int AI_getWorkersNeeded() const = 0;
-	virtual void AI_changeWorkersHave(int iChange) = 0;
-
-	bool hasShrine(ReligionTypes eReligion) const;
-	void processVoteSourceBonus(VoteSourceTypes eVoteSource, bool bActive);
-
-	void invalidatePopulationRankCache();
-	void invalidateYieldRankCache(YieldTypes eYield = NO_YIELD);
-	void invalidateCommerceRankCache(CommerceTypes eCommerce = NO_COMMERCE);
-
-	int getBestYieldAvailable(YieldTypes eYield) const;
 
 protected:
+	// <advc.003u>
+	CvCity();
+	virtual ~CvCity();
+	/*  Subclasses need to call this; not called by base.
+		May also want to override it. </advc.003u> */
+	virtual void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
+			int iOccupationTimer); // advc.122
 
 	// <advc> Moved here for quicker inspection in debugger
 	CvWString m_szName;
@@ -1168,7 +1055,6 @@ protected:
 	int m_iExtraHappiness;
 	int m_iExtraHealth;
 	int m_iNoUnhappinessCount;
-	//int m_iNoUnhealthyPopulationCount;
 	int m_iUnhealthyPopulationModifier; // K-Mod
 	int m_iBuildingOnlyHealthyCount;
 	int m_iFood;
@@ -1200,6 +1086,7 @@ protected:
 	int m_iSpecialistFreeExperience;
 	int m_iEspionageDefenseModifier;
 	int m_iPopRushHurryCount; // advc.912d
+	int m_iMostRecentOrder; // advc.004x
 
 	bool m_bNeverLost;
 	bool m_bBombarded;
@@ -1213,6 +1100,8 @@ protected:
 	bool m_bLayoutDirty;
 	bool m_bPlundered;
 	bool m_bInvestigate; // advc.103: Refers to the active team
+	bool m_bMostRecentUnit; // advc.004x
+	bool m_bChooseProductionDirty; // advc.003u: Moved from CvCityAI
 
 	PlayerTypes m_ePreviousOwner;
 	PlayerTypes m_eOriginalOwner;
@@ -1245,9 +1134,6 @@ protected:
 	bool* m_abRevealed;
 	bool* m_abEspionageVisibility;
 
-	// <advc.004x> Most recently completed order
-	int mrOrder;
-	bool mrWasUnit; // </advc.004x>
 	CvWString m_szPreviousName; // advc.106k
 	CvString m_szScriptData;
 
@@ -1292,7 +1178,7 @@ protected:
 	BuildingChangeArray m_aBuildingHappyChange;
 	BuildingChangeArray m_aBuildingHealthChange;
 
-	// CACHE: cache frequently used values
+	// Rank cache
 	mutable int	m_iPopulationRank;
 	mutable bool m_bPopulationRankValid;
 	int*	m_aiBaseYieldRank;
@@ -1325,9 +1211,6 @@ protected:
 	int getHurryGold(HurryTypes eHurry, int iHurryCost) const;
 	bool canHurryUnit(HurryTypes eHurry, UnitTypes eUnit, bool bIgnoreNew) const;
 	bool canHurryBuilding(HurryTypes eHurry, BuildingTypes eBuilding, bool bIgnoreNew) const;
-
-	virtual bool AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPlot = NULL, SpecialistTypes* peBestSpecialist = NULL) = 0;
-	virtual bool AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist = NO_SPECIALIST) = 0;
 
 	double garrisonStrength() const; // advc.500b
 	//int calculateMaintenanceDistance() const;

@@ -3680,8 +3680,8 @@ void TacticalSituation::evalEngagement() {
 int TacticalSituation::evacPop(PlayerTypes ownerId, PlayerTypes invaderId) {
 
 	int r = 0;
-	CvPlayer const& o = GET_PLAYER(ownerId);
-	FOR_EACH_CITY(c, o) {
+	CvPlayerAI const& o = GET_PLAYER(ownerId);
+	FOR_EACH_CITYAI(c, o) {
 		/*  Check PlotDanger b/c we don't want to count cities that are threatened
 			by a third party */
 		if(c->AI_isEvacuating() && o.AI_getPlotDanger(*c->plot(),

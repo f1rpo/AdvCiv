@@ -73,9 +73,8 @@ void CvGame::updateColoredPlots()
 			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 			{
 				CvPlot* pLoopPlot = m.plotByIndex(iPlotLoop);
-				CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
+				CvCityAI const* pWorkingCity = pLoopPlot->AI_getWorkingCity();
 				ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
-
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
 					int iPlotIndex = pWorkingCity->getCityPlotIndex(pLoopPlot);
@@ -86,7 +85,9 @@ void CvGame::updateColoredPlots()
 					{
 						if (GC.getBuildInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getBuildInfo(eBestBuild).getImprovement())
 						{
-							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_RED")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
+							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+									GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_RED")).getColor(),
+									PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
 					}
 				}
@@ -275,13 +276,13 @@ void CvGame::updateColoredPlots()
 				if (pCity != NULL)
 				{
 					CvPlot* pBestPlot = NULL;
-					if (kRecommendUnit.AI_bestCityBuild(pCity, &pBestPlot) &&
+					if (kRecommendUnit.AI_bestCityBuild(*pCity, &pBestPlot) &&
 						pCity->AI_getBestBuildValue(plotCityXY(pCity, pBestPlot)) > 1)
 					{
 						FAssert(pBestPlot != NULL);
 						gDLL->getEngineIFace()->addColoredPlot(pBestPlot->getX(), pBestPlot->getY(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						CvPlot* pNextBestPlot = NULL;
-						if (kRecommendUnit.AI_bestCityBuild(pCity, &pNextBestPlot, NULL, pBestPlot) &&
+						if (kRecommendUnit.AI_bestCityBuild(*pCity, &pNextBestPlot, NULL, pBestPlot) &&
 							pCity->AI_getBestBuildValue(plotCityXY(pCity, pNextBestPlot)) > 1)
 						{
 							FAssert(pNextBestPlot != NULL);

@@ -5,13 +5,9 @@
 #include "CyArea.h"
 #include "CvArea.h"
 
-CyArea::CyArea() : m_pArea(NULL)
-{
-}
+CyArea::CyArea() : m_pArea(NULL) {}
 
-CyArea::CyArea(CvArea* pArea) : m_pArea(pArea)
-{
-}
+CyArea::CyArea(CvArea* pArea) : m_pArea(pArea) {}
 
 int CyArea::calculateTotalBestNatureYield()
 {
@@ -170,7 +166,7 @@ int /*AreaAITypes*/ CyArea::getAreaAIType(int /*TeamTypes*/ eIndex)
 
 CyCity* CyArea::getTargetCity(int /*PlayerTypes*/ eIndex)
 {
-	return m_pArea ? new CyCity(m_pArea->getTargetCity((PlayerTypes) eIndex)) : NULL;
+	return m_pArea ? new CyCity(m_pArea->AI_getTargetCity((PlayerTypes) eIndex)) : NULL;
 }
 
 int CyArea::getYieldRateModifier(int /*PlayerTypes*/ eIndex1, int /*YieldTypes*/ eIndex2)

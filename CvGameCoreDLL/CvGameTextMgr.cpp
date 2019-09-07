@@ -2372,7 +2372,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				szTempBuffer.Format(L"\n Area AI = NEUTRAL"); break;
 			default: szTempBuffer.Format(L"\n Unknown Area AI type"); break;
 			}
-			CvCity* pTargetCity = kArea.getTargetCity(pHeadGroup->getOwner());
+			CvCity* pTargetCity = kArea.AI_getTargetCity(pHeadGroup->getOwner());
 			if(pTargetCity != NULL) {
 				szString.append(CvWString::format(L"\nTarget City: %s (%d)",
 						pTargetCity->getName().c_str(), pTargetCity->getOwner()));
@@ -4989,7 +4989,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			szString.append(CvWString::format(L"\nPlot Danger = %d", iPlotDanger));
 	}
 
-	CvCity* pPlotCity = kPlot.getPlotCity();
+	CvCityAI const* pPlotCity = kPlot.AI_getPlotCity();
 	if (pPlotCity != NULL)
 	{
 		PlayerTypes ePlayer = kPlot.getOwner();
@@ -5393,8 +5393,8 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		szTempBuffer.Format(L"\nFound Value: %d, (%d, %d)", iActualFoundValue, iCalcFoundValue, iStartingFoundValue);
 		szString.append(szTempBuffer);
 	}*/
-	CvCity* pWorkingCity = kPlot.getWorkingCity();
-	if (NULL != pWorkingCity)
+	CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
+	if (pWorkingCity != NULL)
 	{
 		int iPlotIndex = pWorkingCity->getCityPlotIndex(&kPlot);
 		int iBuildValue = pWorkingCity->AI_getBestBuildValue(iPlotIndex);
@@ -5403,7 +5403,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		szString.append(NEWLINE);
 
 		int iFoodMultiplier, iProductionMultiplier, iCommerceMultiplier, iDesiredFoodChange;
-		pWorkingCity->AI_getYieldMultipliers( iFoodMultiplier, iProductionMultiplier, iCommerceMultiplier, iDesiredFoodChange);
+		pWorkingCity->AI_getYieldMultipliers(iFoodMultiplier, iProductionMultiplier, iCommerceMultiplier, iDesiredFoodChange);
 
 		szTempBuffer.Format(L"\n%s yield multipliers: ", pWorkingCity->getName().c_str());
 		szString.append(szTempBuffer);
@@ -5418,7 +5418,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		{
 
 			if (GC.getBuildInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT &&
-					eImprovement != NO_IMPROVEMENT && eImprovement != GC.getBuildInfo(eBestBuild).getImprovement())
+				eImprovement != NO_IMPROVEMENT && eImprovement != GC.getBuildInfo(eBestBuild).getImprovement())
 			{
 				szTempBuffer.Format(SETCOLR L"\nBest Build: %s (%d) replacing %s" ENDCOLR,
 						/*  advc.007: Was RED; now same color as in the else branch
@@ -5767,7 +5767,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			}
 		}
 
-		CvCity* pTargetCity = kPlot.area()->getTargetCity(kPlot.getOwner());
+		CvCity* pTargetCity = kPlot.area()->AI_getTargetCity(kPlot.getOwner());
 		if (pTargetCity)
 		{
 			szString.append(CvWString::format(L"\nTarget City: %s", pTargetCity->getName().c_str()));
@@ -6206,7 +6206,7 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 	}
 } // BULL - Leaderhead Relations - end
 
-void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue)
+void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue) // advc.003u: Param was CvCity*; this function is for AI debugging.
 {
 	PROFILE_FUNC();
 
@@ -6218,12 +6218,10 @@ void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCit
 	if (pPlot != NULL && pPlot->getWorkingCity() == pCity)
 	{
 		bool bWorkingPlot = pCity->isWorkingPlot(iIndex);
-		int iValue = pCity->AI().AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
-
+		int iValue = pCity->AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
 		setYieldValueString(szString, iValue, /*bActive*/ bWorkingPlot);
 	}
-	else
-		setYieldValueString(szString, 0, /*bActive*/ false, /*bMakeWhitespace*/ true);
+	else setYieldValueString(szString, 0, /*bActive*/ false, /*bMakeWhitespace*/ true);
 }
 
 void CvGameTextMgr::setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive, bool bMakeWhitespace)
@@ -11416,12 +11414,12 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		}
 	} // </advc.004w>
 	// K-Mod. Moved from inside that }, above.
-	if (pCity &&
+	if (pCity != NULL &&
 			//gDLL->getChtLvl() > 0
 			GC.getGame().isDebugMode() // advc.135c
 			&& GC.ctrlKey())
 	{
-		int iBuildingValue = pCity->AI_buildingValue(eBuilding, 0, 0, true);
+		int iBuildingValue = pCity->AI().AI_buildingValue(eBuilding, 0, 0, true);
 		szBuffer.append(CvWString::format(L"\nAI Building Value = %d", iBuildingValue));
 	} // K-Mod end
 
@@ -12202,15 +12200,16 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	}
 
 	// K-Mod
-	if (pCity &&
+	if (pCity != NULL &&
 			//gDLL->getChtLvl() > 0
 			GC.getGame().isDebugMode() // advc.135c
 			&& GC.ctrlKey())
 	{
-		int iValue = pCity->AI_projectValue(eProject);
+		CvCityAI const& kCityAI = pCity->AI();
+		int iValue = kCityAI.AI_projectValue(eProject);
 		szBuffer.append(CvWString::format(L"\nProject Value (base) = %d", iValue));
 
-		ProjectTypes eBestProject = pCity->AI().AI_bestProject(&iValue, // advc (cast replaced)
+		ProjectTypes eBestProject = kCityAI.AI_bestProject(&iValue, // advc (cast replaced)
 				true); // advc.001n
 		if (eBestProject == eProject)
 		{
@@ -17687,7 +17686,6 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 void CvGameTextMgr::buildCityBillboardCityNameString( CvWStringBuffer& szBuffer, CvCity* pCity)
 {
 	szBuffer.assign(pCity->getName());
-
 	if (pCity->canBeSelected())
 	{
 		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL))
@@ -17695,13 +17693,10 @@ void CvGameTextMgr::buildCityBillboardCityNameString( CvWStringBuffer& szBuffer,
 			if (pCity->foodDifference() > 0)
 			{
 				int iTurns = pCity->getFoodTurnsLeft();
-
-				if ((iTurns > 1) || !(pCity->AI_isEmphasizeAvoidGrowth()))
+				if (iTurns > 1 || !pCity->AI().AI_isEmphasizeAvoidGrowth())
 				{
 					if (iTurns < MAX_INT)
-					{
 						szBuffer.append(CvWString::format(L" (%d)", iTurns));
-					}
 				}
 			}
 		}

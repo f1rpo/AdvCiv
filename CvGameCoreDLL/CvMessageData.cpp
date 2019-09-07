@@ -190,7 +190,7 @@ void CvNetPushOrder::Execute()
 			pCity->pushOrder(m_eOrder, m_iData, -1, m_bSave, m_bPop, m_iPosition); // K-Mod
 			// K-Mod. We don't want automated cities to overrules our production choice.
 			if (pCity->isHuman())
-				pCity->AI_setChooseProductionDirty(false);
+				pCity->setChooseProductionDirty(false);
 			// K-Mod end
 		}
 

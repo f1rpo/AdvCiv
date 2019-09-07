@@ -29,18 +29,21 @@ void CvGameAI::AI_init()
 	sure if this has always been the case, if it has to do with K-Mod changes to
 	the turn order (team turns vs. player turns) or is a problem I introduced.
 	Amendment: */
-void CvGameAI::AI_initScenario() {
-
+void CvGameAI::AI_initScenario()
+{
 	// Citizens not properly assigned
-	for(int i = 0; i < MAX_PLAYERS; i++) {
+	for(int i = 0; i < MAX_PLAYERS; i++)
+	{
 		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isAlive())
 			continue;
 
-		FOR_EACH_CITY_VAR(c, kPlayer) {
+		FOR_EACH_CITYAI_VAR(c, kPlayer)
+		{
 			/*  Added after getting failed assertions in CvCity::doTurn in the
 				Europe1000AD scenario (I'm guessing due to production from Apostolic Palace). */
-			for(int j = 0; j < NUM_YIELD_TYPES; j++) {
+			for(int j = 0; j < NUM_YIELD_TYPES; j++)
+			{
 				YieldTypes y = (YieldTypes)j;
 				c->setBaseYieldRate(y, c->calculateBaseYieldRate(y));
 			}
@@ -48,7 +51,8 @@ void CvGameAI::AI_initScenario() {
 		}
 	}
 	// Ensure UWAI initialization
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+	for(int i = 0; i < MAX_CIV_TEAMS; i++)
+	{
 		CvTeamAI& t = GET_TEAM((TeamTypes)i);
 		if(t.isAlive())
 			t.AI_doTurnPre();
@@ -60,20 +64,23 @@ void CvGameAI::AI_initScenario() {
 	A bit of a hack, but less invasive than changing all the
 	isOption(AGGRESSIVE_AI) checks. And I don't want two separate options because
 	the new war/peace AI implies Aggressive AI. */
-void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame) {
-
-	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE")) {
+void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame)
+{
+	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE"))
+	{
 		m_wpai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, false);
 		return;
 	}
-	if(GC.getDefineINT("DISABLE_UWAI")) {
+	if(GC.getDefineINT("DISABLE_UWAI"))
+	{
 		m_wpai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
 	m_wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
-	if(bFromSaveGame) {
+	if(bFromSaveGame)
+	{
 		if(m_wpai.isEnabled() || m_wpai.isEnabled(true))
 			setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
@@ -86,9 +93,7 @@ void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame) {
 } // </advc.104>
 
 
-void CvGameAI::AI_uninit()
-{
-}
+void CvGameAI::AI_uninit() {}
 
 
 void CvGameAI::AI_reset()
@@ -101,9 +106,7 @@ void CvGameAI::AI_reset()
 
 void CvGameAI::AI_makeAssignWorkDirty()
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -115,9 +118,7 @@ void CvGameAI::AI_makeAssignWorkDirty()
 
 void CvGameAI::AI_updateAssignWork()
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (GET_TEAM(kLoopPlayer.getTeam()).isHuman() && kLoopPlayer.isAlive())
@@ -130,9 +131,7 @@ void CvGameAI::AI_updateAssignWork()
 
 int CvGameAI::AI_combatValue(UnitTypes eUnit) const
 {
-	int iValue;
-
-	iValue = 100;
+	int iValue = 100;
 
 	if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_AIR)
 	{

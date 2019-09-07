@@ -16,9 +16,10 @@ class CyCity
 {
 public:
 	CyCity();
-	DllExport CyCity(CvCity* pCity);		// Call from C++
+	DllExport CyCity(CvCity* pCity); // Call from C++
+	CyCity(CvCityAI* pCity); // advc.003u
 	CyCity(CvCity const& kCity); // advc.003y
-	CvCity* getCity() { return m_pCity;	}	// Call from C++
+	CvCity* getCity(); // Call from C++  // advc.003u: definition moved to CyCity.cpp
 	bool isNone() { return (m_pCity==NULL); }
 	void kill();
 
@@ -485,7 +486,7 @@ public:
 	void setScriptData(std::string szNewValue);
 
 private:
-	CvCity* m_pCity;
+	CvCityAI* m_pCity; // advc.003u: was CvCity*
 };
 
 #endif	// CyCity_h

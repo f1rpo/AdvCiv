@@ -12,13 +12,12 @@ class CvSelectionGroupAI; // advc.003u
 
 class CvUnitAI : public CvUnit
 {
-
 public:
 
 	CvUnitAI();
 	~CvUnitAI();
-	// advc.003u: Parameter list from CvUnit::init moved here
-	void AI_init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner,
+	// advc.003u: Override replacing AI_init. Parameter list copied from CvUnit::init.
+	void init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner,
 			int iX, int iY, DirectionTypes eFacingDirection);
 
 	bool AI_update();
@@ -31,7 +30,7 @@ public:
 
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const;
 
-	bool AI_bestCityBuild(CvCity const* pCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL,
+	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL,
 			CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL) const;
 
 	bool AI_isCityAIType() const;
@@ -50,6 +49,7 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
+
 	void finalizeInit(); // advc.003u: override
 
 	int m_iBirthmark;
@@ -201,11 +201,11 @@ protected:
 	bool AI_specialSeaTransportSpy();
 	bool AI_carrierSeaTransport();
 	bool AI_connectPlot(CvPlot* pPlot, int iRange = 0);
-	CvCity* AI_getCityToImprove() const; // advc.113b
-	bool AI_improveCity(CvCity* pCity);
-	bool AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity,
+	CvCityAI* AI_getCityToImprove() const; // advc.113b
+	bool AI_improveCity(CvCityAI const& kCity);
+	bool AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity,
 			int iMissingWorkersInArea = 0); // advc.117
-	bool AI_nextCityToImprove(CvCity* pCity);
+	bool AI_nextCityToImprove(CvCity const* pCity);
 	bool AI_nextCityToImproveAirlift();
 	bool AI_irrigateTerritory();
 	bool AI_fortTerritory(bool bCanal, bool bAirbase);

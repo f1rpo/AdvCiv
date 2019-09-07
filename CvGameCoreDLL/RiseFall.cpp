@@ -613,7 +613,7 @@ void RiseFall::showQuests() {
 
 void RiseFall::abandonPlans(PlayerTypes civId) {
 
-	CvPlayer& civ = GET_PLAYER(civId);
+	CvPlayerAI& civ = GET_PLAYER(civId);
 	bool active = (civId == GC.getGame().getActivePlayer() && civ.isHuman());
 	FOR_EACH_GROUP_VAR(gr, civ)
 		gr->splitGroup(1);
@@ -663,7 +663,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 	if(currentTech == NO_TECH)
 		civ.clearResearchQueue();
 	else civ.pushResearch(currentTech, true);
-	FOR_EACH_CITY_VAR(c, civ) {
+	FOR_EACH_CITYAI_VAR(c, civ) {
 		// Turn off production emphasis. AvoidGrowth is also a type of emphasis.
 		for(int i = 0; i < GC.getNumEmphasizeInfos(); i++)
 			c->AI_setEmphasize((EmphasizeTypes)i, false);

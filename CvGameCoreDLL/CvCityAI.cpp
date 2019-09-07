@@ -14,55 +14,61 @@
 #include "BBAI_Defines.h"
 
 
-#define BUILDINGFOCUS_FOOD					(1 << 1)
-#define BUILDINGFOCUS_PRODUCTION			(1 << 2)
-#define BUILDINGFOCUS_GOLD					(1 << 3)
-#define BUILDINGFOCUS_RESEARCH				(1 << 4)
-#define BUILDINGFOCUS_CULTURE				(1 << 5)
-#define BUILDINGFOCUS_DEFENSE				(1 << 6)
-#define BUILDINGFOCUS_HAPPY					(1 << 7)
-#define BUILDINGFOCUS_HEALTHY				(1 << 8)
-#define BUILDINGFOCUS_EXPERIENCE			(1 << 9)
-#define BUILDINGFOCUS_MAINTENANCE			(1 << 10)
-#define BUILDINGFOCUS_SPECIALIST			(1 << 11)
-#define BUILDINGFOCUS_ESPIONAGE				(1 << 12)
-#define BUILDINGFOCUS_BIGCULTURE			(1 << 13)
-//#define BUILDINGFOCUS_WORLDWONDER			(1 << 14)
-#define BUILDINGFOCUS_WORLDWONDER			(1 << 14 | 1 << 16) // K-Mod (WORLDWONDER implies WONDEROK)
-#define BUILDINGFOCUS_DOMAINSEA				(1 << 15)
-#define BUILDINGFOCUS_WONDEROK				(1 << 16)
-#define BUILDINGFOCUS_CAPITAL				(1 << 17)
-
-
 CvCityAI::CvCityAI()
 {
-	m_aiEmphasizeYieldCount = new int[NUM_YIELD_TYPES];
-	m_aiEmphasizeCommerceCount = new int[NUM_COMMERCE_TYPES];
+	FAssert(GC.getNumEmphasizeInfos() > 0);
+	m_pbEmphasize = new bool[GC.getNumEmphasizeInfos()]();
+	/*  (Could also declare these as arrays in CvCityAI.h, but would then have to
+		use loops to zero-initialize them) */
+	m_aiPlayerCloseness = new int[MAX_PLAYERS]();
+	m_aiEmphasizeYieldCount = new int[NUM_YIELD_TYPES]();
+	m_aiEmphasizeCommerceCount = new int[NUM_COMMERCE_TYPES]();
+	m_aiSpecialYieldMultiplier = new int[NUM_YIELD_TYPES]();
+	// (These two were declared as arrays, but it's neater to treat them all alike.)
+	m_aiBestBuildValue = new int[NUM_CITY_PLOTS];
+	for (int i = 0; i < NUM_CITY_PLOTS; i++)
+		m_aiBestBuildValue[i] = NO_BUILD;
+	m_aeBestBuild = new BuildTypes[NUM_CITY_PLOTS];
+	for (int i = 0; i < NUM_CITY_PLOTS; i++)
+		m_aeBestBuild[i] = NO_BUILD;
+	m_eBestBuild = NO_BUILD; // advc.opt
+
+	AI_ClearConstructionValueCache(); // K-Mod
+
+	m_iCultureWeight = 30; // K-Mod
+	m_iEmphasizeAvoidGrowthCount = 0;
+	m_iEmphasizeGreatPeopleCount = 0;
+	m_iWorkersNeeded = 0;
+	m_iWorkersHave = 0;
+	m_iCachePlayerClosenessTurn = -1;
+	m_iCachePlayerClosenessDistance = -1;
+	m_iNeededFloatingDefenders = -1;
+	m_iNeededFloatingDefendersCacheTurn = -1;
+
 	m_bForceEmphasizeCulture = false;
-	m_aiSpecialYieldMultiplier = new int[NUM_YIELD_TYPES];
-	m_aiPlayerCloseness = new int[MAX_PLAYERS];
-	m_aiConstructionValue.assign(GC.getNumBuildingClassInfos(), -1); // K-Mod
-
-	m_pbEmphasize = NULL;
-
-	AI_reset();
+	m_bAssignWorkDirty = false;
+	m_bEvacuate = m_bSafe = false; // advc.139
 }
 
 
 CvCityAI::~CvCityAI()
 {
-	AI_uninit();
-
+	SAFE_DELETE_ARRAY(m_pbEmphasize); // advc.003u: Moved from deleted AI_uninit
 	SAFE_DELETE_ARRAY(m_aiEmphasizeYieldCount);
 	SAFE_DELETE_ARRAY(m_aiEmphasizeCommerceCount);
 	SAFE_DELETE_ARRAY(m_aiSpecialYieldMultiplier);
 	SAFE_DELETE_ARRAY(m_aiPlayerCloseness);
+
+	SAFE_DELETE_ARRAY(m_aiBestBuildValue);
+	SAFE_DELETE_ARRAY(m_aeBestBuild);
 }
 
-
-void CvCityAI::AI_init()
+// Instead of having CvCity::init call CvCityAI::AI_init
+void CvCityAI::init(int iID, PlayerTypes eOwner, int iX, int iY,
+	bool bBumpUnits, bool bUpdatePlotGroups, /* advc.122: */ int iOccupationTimer)
 {
-	AI_reset(); // Reset serialized data
+	CvCity::init(iID, eOwner, iX, iY, bBumpUnits, bUpdatePlotGroups, iOccupationTimer);
+	//AI_reset(); // advc.003u: Merged into constructor
 	AI_assignWorkingPlots();
 	/*AI_updateWorkersHaveAndNeeded();
 	AI_updateBestBuild();*/
@@ -73,80 +79,6 @@ void CvCityAI::AI_init()
 }
 
 
-void CvCityAI::AI_uninit()
-{
-	SAFE_DELETE_ARRAY(m_pbEmphasize);
-}
-
-
-// FUNCTION: AI_reset()
-// Initializes data members that are serialized.
-void CvCityAI::AI_reset()
-{
-	int iI;
-
-	AI_uninit();
-
-	m_iEmphasizeAvoidGrowthCount = 0;
-	m_iEmphasizeGreatPeopleCount = 0;
-	m_bForceEmphasizeCulture = false;
-
-	m_bAssignWorkDirty = false;
-	m_bChooseProductionDirty = false;
-
-	m_routeToCity.reset();
-
-	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		m_aiEmphasizeYieldCount[iI] = 0;
-	}
-
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-	{
-		m_aiEmphasizeCommerceCount[iI] = 0;
-	}
-
-	for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-	{
-		m_aiBestBuildValue[iI] = NO_BUILD;
-	}
-
-	for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-	{
-		m_aeBestBuild[iI] = NO_BUILD;
-	}
-	m_eBestBuild = NO_BUILD; // advc.opt
-	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		m_aiSpecialYieldMultiplier[iI] = 0;
-	}
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		m_aiPlayerCloseness[iI] = 0;
-	}
-	AI_ClearConstructionValueCache(); // K-Mod
-	m_iCultureWeight = 30; // K-Mod
-
-	m_iCachePlayerClosenessTurn = -1;
-	m_iCachePlayerClosenessDistance = -1;
-
-	m_iNeededFloatingDefenders = -1;
-	m_iNeededFloatingDefendersCacheTurn = -1;
-	m_bEvacuate = m_bSafe = false; // advc.139
-
-	m_iWorkersNeeded = 0;
-	m_iWorkersHave = 0;
-
-	FAssertMsg(m_pbEmphasize == NULL, "m_pbEmphasize not NULL!!!");
-	FAssertMsg(GC.getNumEmphasizeInfos() > 0,  "GC.getNumEmphasizeInfos() is not greater than zero but an array is being allocated in CvCityAI::AI_reset");
-	m_pbEmphasize = new bool[GC.getNumEmphasizeInfos()];
-	for (iI = 0; iI < GC.getNumEmphasizeInfos(); iI++)
-	{
-		m_pbEmphasize[iI] = false;
-	}
-}
-
-
 void CvCityAI::AI_doTurn()
 {
 	PROFILE_FUNC();
@@ -154,16 +86,9 @@ void CvCityAI::AI_doTurn()
 	if (!isHuman())
 	{
 		for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
-		{
 			setForceSpecialistCount(((SpecialistTypes)iI), 0);
-		}
-	}
-
-	if (!isHuman())
-	{
 		AI_stealPlots();
 	}
-
 	/*AI_updateWorkersHaveAndNeeded();
 	AI_updateBestBuild();*/
 	// BETTER_BTS_AI_MOD, City AI, Worker AI, 11/14/09, jdog5000: START
@@ -176,18 +101,12 @@ void CvCityAI::AI_doTurn()
 	if (isHuman())
 	{
 		if (isProductionAutomated())
-		{
 			AI_doHurry();
-		}
 		return;
 	}
-
 	AI_doPanic();
-
 	AI_doDraft();
-
 	AI_doHurry();
-
 	AI_doEmphasize();
 }
 
@@ -196,11 +115,8 @@ void CvCityAI::AI_assignWorkingPlots()
 {
 	PROFILE_FUNC();
 
-	/* original bts code
-	if (0 != GC.getDefineINT("AI_SHOULDNT_MANAGE_PLOT_ASSIGNMENT"))
-	{
-		return;
-	} */ // K-Mod. that option would break a bunch of stuff.
+	/*if (0 != GC.getDefineINT("AI_SHOULDNT_MANAGE_PLOT_ASSIGNMENT"))
+		return;*/ // K-Mod. that bts option would break a bunch of stuff.
 
 	// remove any plots we can no longer work for any reason
 	verifyWorkingPlots();
@@ -259,12 +175,9 @@ void CvCityAI::AI_assignWorkingPlots()
 	AI_updateSpecialYieldMultiplier();
 
 	// Remove all assigned plots before automatic assignment.
-	/*if (!isHuman() || isCitizensAutomated())
-	{
+	/*if (!isHuman() || isCitizensAutomated()) {
 		for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-		{
 			setWorkingPlot(iI, false);
-		}
 	}*/
 
 	// make sure at least the forced amount of specialists are assigned
@@ -341,9 +254,7 @@ void CvCityAI::AI_assignWorkingPlots()
 void CvCityAI::AI_updateAssignWork()
 {
 	if (AI_isAssignWorkDirty())
-	{
 		AI_assignWorkingPlots();
-	}
 }
 
 // advc.003j: Unused K-Mod function (one call commented out in CvGameTextMgr)
@@ -428,14 +339,12 @@ int CvCityAI::AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const
 		/* Actually... don't do that. That's not the kind of thing we should take into account for permanent specialists.
 		int iCityRate = getGreatPeopleRate();
 		int iHighestRate = 0;
-		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()))
-		{
+		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner())) {
 			int x = pLoopCity->getGreatPeopleRate();
 			if (x > iHighestRate)
 				iHighestRate = x;
 		}
-		if (iHighestRate > iCityRate)
-		{
+		if (iHighestRate > iCityRate) {
 			iTempValue *= 100;
 			iTempValue /= (2*100*(iHighestRate+3))/(iCityRate+3) - 100;
 		} */
@@ -469,6 +378,25 @@ int CvCityAI::AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const
 
 	return iValue;
 }
+
+#define BUILDINGFOCUS_FOOD					(1 << 1)
+#define BUILDINGFOCUS_PRODUCTION			(1 << 2)
+#define BUILDINGFOCUS_GOLD					(1 << 3)
+#define BUILDINGFOCUS_RESEARCH				(1 << 4)
+#define BUILDINGFOCUS_CULTURE				(1 << 5)
+#define BUILDINGFOCUS_DEFENSE				(1 << 6)
+#define BUILDINGFOCUS_HAPPY					(1 << 7)
+#define BUILDINGFOCUS_HEALTHY				(1 << 8)
+#define BUILDINGFOCUS_EXPERIENCE			(1 << 9)
+#define BUILDINGFOCUS_MAINTENANCE			(1 << 10)
+#define BUILDINGFOCUS_SPECIALIST			(1 << 11)
+#define BUILDINGFOCUS_ESPIONAGE				(1 << 12)
+#define BUILDINGFOCUS_BIGCULTURE			(1 << 13)
+//#define BUILDINGFOCUS_WORLDWONDER			(1 << 14)
+#define BUILDINGFOCUS_WORLDWONDER			(1 << 14 | 1 << 16) // K-Mod (WORLDWONDER implies WONDEROK)
+#define BUILDINGFOCUS_DOMAINSEA				(1 << 15)
+#define BUILDINGFOCUS_WONDEROK				(1 << 16)
+#define BUILDINGFOCUS_CAPITAL				(1 << 17)
 
 // Heavily edited by K-Mod. (note, I've deleted a lot of the old code from BtS and from BBAI, and some of my changes are unmarked.)
 void CvCityAI::AI_chooseProduction()
@@ -542,7 +470,7 @@ void CvCityAI::AI_chooseProduction()
 		return;
 
 	// only clear the dirty bit if we actually do a check, multiple items might be queued
-	AI_setChooseProductionDirty(false);
+	setChooseProductionDirty(false);
 	if (bWasFoodProduction)
 		AI_assignWorkingPlots();
 
@@ -1002,7 +930,7 @@ void CvCityAI::AI_chooseProduction()
 			}
 		}
 	}*/ // <cdtw.6>
-	CvCity* pCapital = kPlayer.getCapitalCity();
+	CvCityAI* pCapital = kPlayer.AI_getCapitalCity();
 	if(!kPlayer.isHuman() && kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
 			!isCoastal() && !isCapital() && bCapitalArea && !bDanger && !bLandWar &&
 			pCapital != NULL && pCapital->isCoastal() &&
@@ -2301,11 +2229,12 @@ void CvCityAI::AI_chooseProduction()
 						// advc.018: Was 6 in the Crush case
 						(bCrushStrategy ? 2 : 3)));
 				// <advc.081>
-				CvCity* pTargetCity = area()->getTargetCity(kPlayer.getID());
+				CvCity* pTargetCity = area()->AI_getTargetCity(kPlayer.getID());
 				if(pTargetCity != NULL && pTargetCity->area() == area() &&
 						pWaterArea != NULL && pWaterArea == pTargetCity->waterArea(true)
 						&& (!pTargetCity->isVisible(kPlayer.getTeam(), false) ||
-						pTargetCity->getDefenseModifier(true) > 10)) {
+						pTargetCity->getDefenseModifier(true) > 10))
+				{
 					bAssaultAlongCoast = true;
 					UnitTypes eBestNavalSiege = AI_bestUnitAI(UNITAI_ATTACK_SEA);
 					if(eBestNavalSiege != NO_UNIT && GC.getUnitInfo(eBestNavalSiege).
@@ -4657,7 +4586,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							int iHighestValue = 0;
 							if (iCanBuildPrereq >= iPrereqBuildings)
 							{
-								FOR_EACH_CITY(pLoopCity, kOwner)
+								FOR_EACH_CITYAI(pLoopCity, kOwner)
 								{
 									if (pLoopCity->getProductionBuilding() != eLoopBuilding &&
 										/*  advc (comment): bVisible=true means: check only if the building
@@ -5716,8 +5645,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 
 // This function has been significantly modified for K-Mod
-ProjectTypes CvCityAI::AI_bestProject(int* piBestValue,
-		bool bAsync) // advc.001n
+ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bAsync) /* advc: */ const
 {
 	// <advc.014>
 	if(TEAMREF(getOwner()).isCapitulated())
@@ -5853,7 +5781,7 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue,
 // This function has been completely rewritten for K-Mod
 // The return value is roughly in units of 4 * commerce per turn, to match AI_buildingValue.
 // However, note that most projects don't actually give commerce per turn - so the evaluation is quite rough.
-int CvCityAI::AI_projectValue(ProjectTypes eProject)
+int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 {
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
 	const CvTeam& kTeam = GET_TEAM(kOwner.getTeam());
@@ -6259,7 +6187,8 @@ bool CvCityAI::AI_isAirDefended(int iExtra) {
 // K-Mod. I've reverted AI_isAirDefended back to its original simple functionality.
 // I've done this because my new version of AI_neededAirDefenders is not suitable for use in the bbai version of AI_isAirDefended.
 // I may put some more work into this stuff in the future if I ever work through CvUnitAI::AI_defenseAirMove
-bool CvCityAI::AI_isAirDefended(bool bCountLand, int iExtra) // function signature changed to match bbai usage.
+// function signature changed to match bbai usage.
+bool CvCityAI::AI_isAirDefended(bool bCountLand, int iExtra) /* advc: */ const
 {
 	PROFILE_FUNC();
 	return plot()->plotCount(PUF_isAirIntercept, -1, -1, getOwner()) + iExtra >= AI_neededAirDefenders();
@@ -6612,18 +6541,6 @@ bool CvCityAI::AI_isAssignWorkDirty() const
 void CvCityAI::AI_setAssignWorkDirty(bool bNewValue)
 {
 	m_bAssignWorkDirty = bNewValue;
-}
-
-
-bool CvCityAI::AI_isChooseProductionDirty() const
-{
-	return m_bChooseProductionDirty;
-}
-
-
-void CvCityAI::AI_setChooseProductionDirty(bool bNewValue)
-{
-	m_bChooseProductionDirty = bNewValue;
 }
 
 
@@ -8463,7 +8380,6 @@ void CvCityAI::AI_doHurry(bool bForce)
 	}
 }
 
-
 // Improved use of emphasize by Blake, to go with his whipping strategy - thank you!
 //Note from Blake:
 //Emphasis proved to be too clumsy to manage AI economies,
@@ -8476,114 +8392,88 @@ void CvCityAI::AI_doEmphasize()
 	PROFILE_FUNC();
 
 	FAssert(!isHuman());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000:
-	bool bCultureVictory = GET_PLAYER(getOwner()).AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2);
+	bool bCultureVictory = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2);
 
 	bool bFirstTech = false;
-	if (GET_PLAYER(getOwner()).getCurrentResearch() != NO_TECH)
-	{
-		bFirstTech = GET_PLAYER(getOwner()).AI_isFirstTech(GET_PLAYER(getOwner()).getCurrentResearch());
-	}
+	if (kOwner.getCurrentResearch() != NO_TECH)
+		bFirstTech = kOwner.AI_isFirstTech(kOwner.getCurrentResearch());
 
 	int iPopulationRank = findPopulationRank();
 
 	for (int iI = 0; iI < GC.getNumEmphasizeInfos(); iI++)
 	{
 		bool bEmphasize = false;
+		/*if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getYieldChange(YIELD_FOOD) > 0)
+		{}*/
+		/*if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getYieldChange(YIELD_PRODUCTION) > 0)
+		{}*/ // advc: Empty branches commented out
+		if (AI_specialYieldMultiplier(YIELD_PRODUCTION) >= 50)
+			continue; // advc
 
-		if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getYieldChange(YIELD_FOOD) > 0)
+		if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getYieldChange(YIELD_COMMERCE) > 0)
 		{
-
+			if (bFirstTech)
+				bEmphasize = true;
 		}
-
-		if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getYieldChange(YIELD_PRODUCTION) > 0)
+		if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getCommerceChange(COMMERCE_RESEARCH) > 0)
 		{
-
-		}
-
-		if (AI_specialYieldMultiplier(YIELD_PRODUCTION) < 50)
-		{
-			if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getYieldChange(YIELD_COMMERCE) > 0)
+			if (bFirstTech && !bCultureVictory)
 			{
-				if (bFirstTech)
-				{
+				if (iPopulationRank < kOwner.getNumCities() / 4 + 1)
 					bEmphasize = true;
+			}
+		}
+		if (GC.getEmphasizeInfo((EmphasizeTypes)iI).isGreatPeople())
+		{
+			int iHighFoodTotal = 0;
+			int iHighFoodPlotCount = 0;
+			int iHighHammerPlotCount = 0;
+			int iHighHammerTotal = 0;
+			int iGoodFoodSink = 0;
+			int iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+			for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; iPlot++)
+			{
+				CvPlot* pLoopPlot = plotCity(getX(), getY(), iPlot);
+				if (pLoopPlot != NULL && pLoopPlot->getWorkingCity() == this)
+				{
+					int iFood = pLoopPlot->getYield(YIELD_FOOD);
+					if (iFood > iFoodPerPop)
+					{
+						iHighFoodTotal += iFood;
+						iHighFoodPlotCount++;
+					}
+					int iHammers = pLoopPlot->getYield(YIELD_PRODUCTION);
+					if ((iHammers >= 3) && ((iHammers + iFood) >= 4))
+					{
+						iHighHammerPlotCount++;
+						iHighHammerTotal += iHammers;
+					}
+					int iCommerce = pLoopPlot->getYield(YIELD_COMMERCE);
+					if (iCommerce * 2 + iHammers * 3 > 9)
+						iGoodFoodSink += std::max(0, iFoodPerPop - iFood);
 				}
 			}
-
-			if (GC.getEmphasizeInfo((EmphasizeTypes)iI).getCommerceChange(COMMERCE_RESEARCH) > 0)
+			if (iHighFoodTotal + iHighFoodPlotCount - iGoodFoodSink >= foodConsumption(true))
 			{
-				if (bFirstTech && !bCultureVictory)
+				if (iHighHammerPlotCount < 2 && iHighHammerTotal < getPopulation())
 				{
-					if (iPopulationRank < ((GET_PLAYER(getOwner()).getNumCities() / 4) + 1))
-					{
+					if (AI_countGoodTiles(true, false, 100, true) < getPopulation())
 						bEmphasize = true;
-					}
-				}
-			}
-
-			if (GC.getEmphasizeInfo((EmphasizeTypes)iI).isGreatPeople())
-			{
-				int iHighFoodTotal = 0;
-				int iHighFoodPlotCount = 0;
-				int iHighHammerPlotCount = 0;
-				int iHighHammerTotal = 0;
-				int iGoodFoodSink = 0;
-				int iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION();
-				for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; iPlot++)
-				{
-					CvPlot* pLoopPlot = plotCity(getX(), getY(), iPlot);
-					if (pLoopPlot != NULL && pLoopPlot->getWorkingCity() == this)
-					{
-						int iFood = pLoopPlot->getYield(YIELD_FOOD);
-						if (iFood > iFoodPerPop)
-						{
-							iHighFoodTotal += iFood;
-							iHighFoodPlotCount++;
-						}
-						int iHammers = pLoopPlot->getYield(YIELD_PRODUCTION);
-						if ((iHammers >= 3) && ((iHammers + iFood) >= 4))
-						{
-							iHighHammerPlotCount++;
-							iHighHammerTotal += iHammers;
-						}
-						int iCommerce = pLoopPlot->getYield(YIELD_COMMERCE);
-						if ((iCommerce * 2 + iHammers * 3) > 9)
-						{
-							iGoodFoodSink += std::max(0, iFoodPerPop - iFood);
-						}
-					}
-				}
-
-				if ((iHighFoodTotal + iHighFoodPlotCount - iGoodFoodSink) >= foodConsumption(true))
-				{
-					if ((iHighHammerPlotCount < 2) && (iHighHammerTotal < (getPopulation())))
-					{
-						if (AI_countGoodTiles(true, false, 100, true) < getPopulation())
-						{
-							bEmphasize = true;
-						}
-					}
 				}
 			}
 		}
-
-		AI_setEmphasize(((EmphasizeTypes)iI), bEmphasize);
+		AI_setEmphasize((EmphasizeTypes)iI, bEmphasize);
 	}
 }
 
 bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, int iOdds)
 {
 	UnitTypes eBestUnit;
-
 	if (eUnitAI != NO_UNITAI)
-	{
 		eBestUnit = AI_bestUnitAI(eUnitAI);
-	}
-	else
-	{
-		eBestUnit = AI_bestUnit(false, NO_ADVISOR, &eUnitAI);
-	}
+	else eBestUnit = AI_bestUnit(false, NO_ADVISOR, &eUnitAI);
 
 	if (eBestUnit != NO_UNIT)
 	{	// <advc.033> Don't build outdated pirates
@@ -8629,23 +8519,17 @@ bool CvCityAI::AI_chooseDefender()
 	if (plot()->plotCheck(PUF_isUnitAIType, UNITAI_CITY_SPECIAL, -1, getOwner()) == NULL)
 	{
 		if (AI_chooseUnit(UNITAI_CITY_SPECIAL))
-		{
 			return true;
-		}
 	}
 
 	if (plot()->plotCheck(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwner()) == NULL)
 	{
 		if (AI_chooseUnit(UNITAI_CITY_COUNTER))
-		{
 			return true;
-		}
 	}
 
 	if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
-	{
 		return true;
-	}
 
 	return false;
 }
@@ -8832,7 +8716,6 @@ bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThresho
 {
 	BuildingTypes eBestBuilding = NO_BUILDING; // advc
 	eBestBuilding = AI_bestBuildingThreshold(iFocusFlags, iMaxTurns, iMinThreshold);
-
 	if (eBestBuilding != NO_BUILDING)
 	{
 		/* bbai code
@@ -8877,7 +8760,7 @@ bool CvCityAI::AI_chooseProcess(CommerceTypes eCommerceType)
 	return false;
 }
 
-// Returns true if a worker was added to a plot...
+// Returns true if a citizen was added to a plot...
 bool CvCityAI::AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPlot, SpecialistTypes* peBestSpecialist)
 {
 	PROFILE_FUNC();
@@ -8963,8 +8846,7 @@ bool CvCityAI::AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPl
 	return false;
 }
 
-
-// Returns true if a worker was removed from a plot...
+// Returns true if a citizen was removed from a plot...
 bool CvCityAI::AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist)
 {
 	// if we are using more specialists than the free ones we get
@@ -9021,22 +8903,17 @@ bool CvCityAI::AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist)
 	// check all the plots we working
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		if (iI != CITY_HOME_PLOT)
+		if (iI != CITY_HOME_PLOT && isWorkingPlot(iI))
 		{
-			if (isWorkingPlot(iI))
+			CvPlot* pLoopPlot = getCityIndexPlot(iI);
+			if (pLoopPlot != NULL)
 			{
-				CvPlot* pLoopPlot = getCityIndexPlot(iI);
-
-				if (pLoopPlot != NULL)
+				int iValue = AI_plotValue(pLoopPlot, true, false, false, iGrowthValue);
+				if (iValue < iWorstValue)
 				{
-					int iValue = AI_plotValue(pLoopPlot, true, false, false, iGrowthValue);
-
-					if (iValue < iWorstValue)
-					{
-						iWorstValue = iValue;
-						eWorstSpecialist = NO_SPECIALIST;
-						iWorstPlot = iI;
-					}
+					iWorstValue = iValue;
+					eWorstSpecialist = NO_SPECIALIST;
+					iWorstPlot = iI;
 				}
 			}
 		}
@@ -9065,7 +8942,6 @@ bool CvCityAI::AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist)
 			if (getSpecialistCount((SpecialistTypes)iI) > 0)
 			{
 				int iValue = AI_specialistValue((SpecialistTypes)iI, true, false, iGrowthValue);
-
 				if (iValue < iWorstValue)
 				{
 					iWorstValue = iValue;
@@ -11159,7 +11035,7 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 {
 	PROFILE_FUNC();
 
-	AI_setChooseProductionDirty(false);
+	setChooseProductionDirty(false);
 	clearOrderQueue();
 
 	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
@@ -11619,7 +11495,7 @@ int CvCityAI::AI_getYieldMagicValue(const int* piYieldsTimes100, bool bHealthy) 
 //50-100 means it's okay.
 //Above 100 means it's definitely decent - seriously question ever not working it.
 //This function deliberately doesn't use emphasize settings.
-int CvCityAI::AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWorkerOptimization) const
+int CvCityAI::AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWorkerOptimization) const // advc: const CvPlot
 {	// <k146>
 	int aiYields[NUM_YIELD_TYPES];
 	bool bFinalBuildAssumed = (bWorkerOptimization &&
@@ -12860,12 +12736,18 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	CvCity::read(pStream);
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iEmphasizeAvoidGrowthCount);
 	pStream->Read(&m_iEmphasizeGreatPeopleCount);
 	pStream->Read(&m_bAssignWorkDirty);
-	pStream->Read(&m_bChooseProductionDirty);
+	//pStream->Read(&m_bChooseProductionDirty);
+	// <advc.003u>
+	if (uiFlag < 5)
+	{
+		bool bTmp;
+		pStream->Read(&bTmp);
+	} // </advc.003u>
 
 	pStream->Read((int*)&m_routeToCity.eOwner);
 	pStream->Read(&m_routeToCity.iID);
@@ -12911,12 +12793,13 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	uint uiFlag=2;
 	uiFlag = 3; // advc.139
 	uiFlag = 4; // advc.opt (m_eBestBuild)
-	pStream->Write(uiFlag);		// flag for expansion
+	uiFlag = 5; // advc.003u: Move m_bChooseProductionDirty to CvCity
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iEmphasizeAvoidGrowthCount);
 	pStream->Write(m_iEmphasizeGreatPeopleCount);
 	pStream->Write(m_bAssignWorkDirty);
-	pStream->Write(m_bChooseProductionDirty);
+	//pStream->Write(m_bChooseProductionDirty); // advc.003u
 
 	pStream->Write(m_routeToCity.eOwner);
 	pStream->Write(m_routeToCity.iID);

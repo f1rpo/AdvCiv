@@ -3,17 +3,22 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CyCity.h"
-#include "CvCity.h"
+#include "CvCityAI.h" // advc.003u
 #include "CyArea.h"
 #include "CvDLLPythonIFaceBase.h"
 
 CyCity::CyCity() : m_pCity(NULL) {}
 
-CyCity::CyCity(CvCity* pCity) : m_pCity(pCity) {}
+/*  <advc.003u, advc.003y>: The casts can't be helped, but at least they're
+	in a single place. */
+CyCity::CyCity(CvCity* pCity) : m_pCity(pCity == NULL ? NULL : &pCity->AI()) {}
+CyCity::CyCity(CvCityAI* pCity) : m_pCity(pCity) {}
+CyCity::CyCity(CvCity const& kCity) : m_pCity(static_cast<CvCityAI*>(const_cast<CvCity*>(&kCity))) {}
 
-/*  advc.003y: The cast can't be helped, but at least, this way, it's in a
-	single place. */
-CyCity::CyCity(CvCity const& kCity) : m_pCity(const_cast<CvCity*>(&kCity)) {}
+CvCity* CyCity::getCity() // Definition moved from CyCity.h
+{
+	return m_pCity;
+} // </advc>
 
 void CyCity::kill()
 {

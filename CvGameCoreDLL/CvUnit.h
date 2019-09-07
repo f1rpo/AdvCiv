@@ -752,33 +752,16 @@ public:
 		//return *static_cast<CvUnitAI const*>(this);
 		return *reinterpret_cast<CvUnitAI const*>(this);
 	}
-	// I'll bet that the EXE calls none of these
-	/*virtual void AI_init(UnitAITypes eUnitAI) = 0;
-	virtual void AI_uninit() = 0;
-	virtual void AI_reset(UnitAITypes eUnitAI = NO_UNITAI) = 0;
-	virtual bool AI_update() = 0;
-	virtual bool AI_follow(bool bFirst = true) = 0;
-	virtual void AI_upgrade() = 0;
-	virtual void AI_promote() = 0;
-	virtual int AI_groupFirstVal() = 0;
-	virtual int AI_groupSecondVal() = 0;
-	virtual int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const = 0;
-	virtual bool AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL) = 0;
-	virtual bool AI_isCityAIType() const = 0;
-	virtual void AI_setUnitAIType(UnitAITypes eNewValue) = 0;
-	virtual int AI_sacrificeValue(const CvPlot* pPlot) const = 0;
-	virtual bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT) = 0;*/
-	/*  Keep this one b/c it has many call locations. And keeping one pure virtual function
-		is important to keep this an abstract class. */ // </advc.003u>
+	/*  Keep one pure virtual function to make the class abstract; remove all
+		the others - the EXE doesn't call them. */ // </advc.003u>
 	virtual UnitAITypes AI_getUnitAIType() const = 0;
 
 protected:
-
 	// <advc.003u>
 	CvUnit();
 	virtual ~CvUnit();
-	/*  Subclasses need to call these two init functions; not called by base. May
-		also want to override them. */
+	/*  Subclasses need to call these two init functions; not called by base.
+		May also want to override them. */
 	virtual void init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY,
 			DirectionTypes eFacingDirection);
 	virtual void finalizeInit(); // </advc.003u>

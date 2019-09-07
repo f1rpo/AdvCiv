@@ -4772,12 +4772,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				}
 			}
 
-			UnitTypes eBestUnit = pNewCity->AI_bestUnitAI(UNITAI_CITY_DEFENSE);
-
+			UnitTypes eBestUnit = pNewCity->AI().AI_bestUnitAI(UNITAI_CITY_DEFENSE);
 			if (eBestUnit == NO_UNIT)
-			{
-				eBestUnit = pNewCity->AI_bestUnitAI(UNITAI_ATTACK);
-			}
+				eBestUnit = pNewCity->AI().AI_bestUnitAI(UNITAI_ATTACK);
 
 			if (eBestUnit != NO_UNIT)
 			{
@@ -8440,9 +8437,9 @@ void CvPlot::processArea(CvArea* pArea, int iChange)
 
 		for (iI = 0; iI < MAX_PLAYERS; ++iI)
 		{
-			if (pArea->getTargetCity((PlayerTypes)iI) == pCity)
+			if (pArea->AI_getTargetCity((PlayerTypes)iI) == pCity)
 			{
-				pArea->setTargetCity(((PlayerTypes)iI), NULL);
+				pArea->AI_setTargetCity((PlayerTypes)iI, NULL);
 			}
 		}
 	}

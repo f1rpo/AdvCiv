@@ -61,7 +61,7 @@ public:
 	CvCity* initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,																																// Exposed to Python
 			int iOccupationTimer = 0); // advc.122
 	void acquireCity(CvCity* pCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups);																							// Exposed to Python
-	void killCities();																																												// Exposed to Python
+	void killCities();													// Exposed to Python
 	CvWString getNewCityName() const;																																								// Exposed to Python
 	void getCivilizationCityName(CvWString& szBuffer, CivilizationTypes eCivilization) const;
 	bool isCityNameValid(CvWString& szName, bool bTestDestroyed = true) const;
@@ -216,9 +216,9 @@ public:
 	void findNewCapital();																																					// Exposed to Python
 	int getNumGovernmentCenters() const;																												// Exposed to Python
 
-	bool canRaze(CvCity* pCity) const;																													// Exposed to Python
-	void raze(CvCity* pCity);																																				// Exposed to Python
-	void disband(CvCity* pCity);																																		// Exposed to Python
+	bool canRaze(CvCity const& kCity) const;																													// Exposed to Python
+	void raze(CvCity& kCity);																																				// Exposed to Python
+	void disband(CvCity& kCity);																																		// Exposed to Python
 
 	bool canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) const;													// Exposed to Python
 	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,															// Exposed to Python
@@ -666,7 +666,10 @@ public:
 	int getStateReligionFreeExperience() const;																																// Exposed to Python
 	void changeStateReligionFreeExperience(int iChange);
 
-	DllExport CvCity* getCapitalCity() const;																																	// Exposed to Python
+	DllExport inline CvCity* getCapitalCity() const // advc.003f: inline																							// Exposed to Python
+	{
+		return getCity(m_iCapitalCityID);
+	}
 	void setCapitalCity(CvCity* pNewCapitalCity);
 	// <advc.127b> -1 if no capital or (eObserver!=NO_TEAM) unrevealed to eObserver
 	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
@@ -1092,7 +1095,7 @@ public:
 
 	bool hasShrine(ReligionTypes eReligion);
 	int getVotes(VoteTypes eVote, VoteSourceTypes eVoteSource) const;   // Exposed to Python
-	void processVoteSourceBonus(VoteSourceTypes eVoteSource, bool bActive);
+	void processVoteSource(VoteSourceTypes eVoteSource, bool bActive);
 	bool canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const;
 	bool canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const;
 	void setDefiedResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData);
@@ -1171,7 +1174,7 @@ public:
 	virtual void AI_assignWorkingPlots() = 0;
 	virtual void AI_updateAssignWork() = 0;
 	virtual void AI_makeProductionDirty() = 0;
-	virtual void AI_conquerCity(CvCity* pCity) = 0;
+	virtual void AI_conquerCity(CvCityAI& kCity) = 0; // advc.003u: param was CvCity*
 	virtual short AI_foundValue(int iX, int iY, int iMinUnitRange = -1, bool bStartingLoc = false) const = 0; // Exposed to Python. K-Mod changed return value from int to short
 	virtual bool AI_isCommercePlot(CvPlot* pPlot) const = 0;
 	virtual int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, // advc: 1st param was CvPlot* (apparently this function isn't called by the EXE)
@@ -1201,8 +1204,8 @@ public:
 	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
 	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			int iChange = 0) const = 0; // advc.133
-	virtual int AI_cityTradeVal(CvCity const* pCity) const = 0; // advc: CvCity const*
-	virtual DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const = 0;
+	virtual int AI_cityTradeVal(CvCityAI const& pCity) const = 0; // advc: param was CvCity*
+	virtual DenialTypes AI_cityTrade(CvCityAI const& pCity, PlayerTypes ePlayer) const = 0; // advc: param was CvCity*
 	virtual DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const = 0;
