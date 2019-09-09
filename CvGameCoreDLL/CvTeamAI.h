@@ -11,24 +11,19 @@
 
 class CvTeamAI : public CvTeam
 {
-
 public:
 
-	CvTeamAI();
-	virtual ~CvTeamAI();
-
-	// inlined for performance reasons, only in the dll
-	static CvTeamAI& getTeam(TeamTypes eTeam)
+	static inline CvTeamAI& getTeam(TeamTypes eTeam) // advc.003f: inline keyword added
 	{
-		FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
-		FAssertMsg(eTeam < MAX_TEAMS, "eTeam is not assigned a valid value");
+		FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvTeamAI::getTeam");
 		return m_aTeams[eTeam];
 	}
 	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam);
-
 	static void initStatics();
 	static void freeStatics();
 
+	CvTeamAI();
+	~CvTeamAI();
 	void AI_init();
 	void AI_initMemory(); // K-Mod. (needs game map to be initialized first)
 	void AI_uninit();
@@ -38,6 +33,8 @@ public:
 	void AI_doTurnPost();
 
 	void AI_makeAssignWorkDirty();
+
+	int AI_chooseElection(const VoteSelectionData& kVoteSelectionData) const;
 
 	void AI_updateAreaStrategies(bool bTargets = true); // advc: "Stragies"->"Strategies"
 	void AI_updateAreaTargets();
@@ -67,23 +64,18 @@ public:
 	bool AI_isWarPossible() const;
 	bool AI_isLandTarget(TeamTypes eTeam) const;
 	bool AI_isAllyLandTarget(TeamTypes eTeam) const;
-	bool AI_shareWar(TeamTypes eTeam) const;
+	bool AI_shareWar(TeamTypes eTeam) const;								// Exposed to Python
 	 // advc, advc.130e:
 	void AI_updateAttitudeCache(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
-
-	int AI_chooseElection(const VoteSelectionData& kVoteSelectionData) const;
-
-	// K-Mod
-	int AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
-			bool bConstCache) const; // advc.001n
-	int AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
-			bool bConstCache) const; // advc.001n
-	int AI_warDiplomacyCost(TeamTypes eTarget) const;
-	// K-Mod end
-
+	// <advc>
+	void AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool bPrimaryDoW,
+			PlayerTypes eSponsor); // advc.100
+	void AI_postDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan);
+	void AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData>* pReparations);
+	void AI_postMakePeace(TeamTypes eTarget);
 	//int AI_startWarVal(TeamTypes eTeam) const;
 	int AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan, // K-Mod
 			bool bConstCache = false) const; // advc.001n
@@ -153,6 +145,7 @@ public:
 	DenialTypes AI_permanentAllianceTrade(TeamTypes eTeam) const;
 
 	int AI_roundTradeVal(int iVal) const; // advc.104k
+	void AI_makeUnwillingToTalk(TeamTypes eOther); // advc.104i
 	// <advc.130y>
 	void AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFreed);
 	void AI_thankLiberator(TeamTypes eLiberator);
@@ -164,13 +157,13 @@ public:
 	double AI_getDiploDecay() const;
 	double AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
-	// advc.130k: Public visibility b/c CvPlayerAI needs it too
+	// advc.130k: Public b/c CvPlayerAI needs it too
 	int AI_randomCounterChange(int iUpperCap = -1, double pr = 0.5) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const;
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);
 
-	int AI_getAtWarCounter(TeamTypes eIndex) const;
+	int AI_getAtWarCounter(TeamTypes eIndex) const;							// Exposed to Python
 	void AI_setAtWarCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeAtWarCounter(TeamTypes eIndex, int iChange);
 
@@ -194,7 +187,7 @@ public:
 	void AI_setShareWarCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeShareWarCounter(TeamTypes eIndex, int iChange);
 
-	int AI_getWarSuccess(TeamTypes eIndex) const;
+	int AI_getWarSuccess(TeamTypes eIndex) const;							 // Exposed to Python
 	void AI_setWarSuccess(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarSuccess(TeamTypes eIndex, int iChange);
 	// <advc.130m>
@@ -258,8 +251,8 @@ public:
 
 	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc: */ const;
 
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
+	void read(FDataStreamBase* pStream);
+	void write(FDataStreamBase* pStream);
 
 
 	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
@@ -303,6 +296,13 @@ protected:
 
 	void AI_doCounter();
 	void AI_doWar();
+	// K-Mod
+	int AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
+			bool bConstCache) const; // advc.001n
+	int AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
+			bool bConstCache) const; // advc.001n
+	int AI_warDiplomacyCost(TeamTypes eTarget) const;
+	// K-Mod end
 
 	// advc: Chunk of code that occured twice in doWar
 	void AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes eTarget,
@@ -313,7 +313,7 @@ protected:
 	double AI_OpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
 	bool AI_isPursuingCircumnavigation() const; // advc.136a
 
-
+	friend class CvTeam; // advc.003u: So that protected functions can be called through CvTeam::AI
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
 	friend class CvDLLWidgetData;

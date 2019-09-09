@@ -32,7 +32,7 @@ CvSelectionGroup::~CvSelectionGroup()
 void CvSelectionGroup::init(int iID, PlayerTypes eOwner)
 {
 	reset(iID, eOwner); // Reset serialized data
-	AI_init();
+	AI().AI_init();
 }
 
 
@@ -62,7 +62,7 @@ void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 	m_bIsBusyCache = false;
 
 	if (!bConstructorCall)
-		AI_reset();
+		AI().AI_reset();
 }
 
 
@@ -213,7 +213,7 @@ void CvSelectionGroup::doTurn()
 			setForceUpdate(true);
 			// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
 			clearMissionQueue();
-			AI_cancelGroupAttack();
+			AI().AI_cancelGroupAttack();
 			// K-Mod end
 		}
 	}
@@ -287,8 +287,8 @@ void CvSelectionGroup::doTurn()
 }
 
 // <advc.004l>
-void CvSelectionGroup::doTurnPost() {
-
+void CvSelectionGroup::doTurnPost()
+{
 	/*  In particular: If an enemy unit moves out of range and returns, it's
 		no longer a known enemy. */
 	m->knownEnemies.clear();
@@ -337,7 +337,7 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 				eObs == TEAMID(eToOwner)));
 		bool bEnteringOrLeaving = (plot()->isVisible(eObs, false) != kFromPlot.isVisible(eObs, false));
 		bool bSeaPatrol = (getDomainType() == DOMAIN_SEA &&
-				AI_getMissionAIType() == MISSIONAI_PATROL);
+				AI().AI_getMissionAIType() == MISSIONAI_PATROL);
 		// Just to avoid cycling through the units
 		if(bInSpectatorsBorders && (bEnteringOrLeaving || !bSeaPatrol))
 			return true;
@@ -518,7 +518,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 	mission.bModified = bModified; //advc.011b
 
 	if (canAllMove()) // K-Mod. Do not set the AI mission type if this is just a "follow" command!
-		AI_setMissionAI(eMissionAI, pMissionAIPlot, pMissionAIUnit);
+		AI().AI_setMissionAI(eMissionAI, pMissionAIPlot, pMissionAIUnit);
 
 	insertAtEndMissionQueue(mission, !bAppend
 			|| AI_isControlled()); // K-Mod (AI commands should execute immediately)
@@ -987,7 +987,7 @@ void CvSelectionGroup::startMission()
 				case MISSION_SKIP:
 					// If the unit has some particular purpose for its 'skip' mission, automatically unload it.
 					// (eg. if a unit in a boat wants to do MISSIONAI_GUARD_CITY; we should unload it here.)
-					switch (AI_getMissionAIType())
+					switch (AI().AI_getMissionAIType())
 					{
 					case NO_MISSIONAI:
 					case MISSIONAI_LOAD_ASSAULT:
@@ -1418,17 +1418,18 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 					break;
 				}
 			}
-			CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)missionData.iData1).getUnit(missionData.iData2);
+			CvUnitAI const* pTargetUnit = GET_PLAYER((PlayerTypes)missionData.iData1).AI_getUnit(missionData.iData2);
 			if (pTargetUnit == NULL)
 			{
 				bDone = true;
 				break;
 			}
-			if (AI_getMissionAIType() != MISSIONAI_SHADOW && AI_getMissionAIType() != MISSIONAI_GROUP)
+			MissionAITypes eMissionAI = AI().AI_getMissionAIType(); // advc.003u
+			if (eMissionAI != MISSIONAI_SHADOW && eMissionAI != MISSIONAI_GROUP)
 			{
 				if (!plot()->isOwned() || plot()->getOwner() == getOwner())
 				{
-					CvPlot* pMissionPlot = pTargetUnit->getGroup()->AI_getMissionAIPlot();
+					CvPlot* pMissionPlot = pTargetUnit->AI_getGroup()->AI_getMissionAIPlot();
 					if (pMissionPlot != NULL && NO_TEAM != pMissionPlot->getTeam())
 					{
 						if (pMissionPlot->isOwned() && pTargetUnit->isPotentialEnemy(pMissionPlot->getTeam(), pMissionPlot))
@@ -2684,7 +2685,7 @@ bool CvSelectionGroup::isStranded() const
 	}
 	return m_bIsStrandedCache; */
 
-	return AI_getMissionAIType() == MISSIONAI_STRANDED; // K-Mod
+	return (AI().AI_getMissionAIType() == MISSIONAI_STRANDED); // K-Mod
 }
 
 
@@ -3032,7 +3033,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 			final_path.GetPathFirstPlot() == pDestPlot)) // K-Mod end
 	{
 		int iAttackOdds;
-		CvUnit* pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
+		CvUnit* pBestAttackUnit = AI().AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
 		if (pBestAttackUnit == NULL)
 			return false; // advc
 		// K-Mod, bugfix. This needs to happen before hadDefender, since hasDefender tests for war..
@@ -3057,11 +3058,9 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 		/*if (groupDeclareWar(pDestPlot))
 			return true; */ // K-Mod, moved up.
 		while (true)
-		{	// <advc.048>
-			// (Don't want to add another pure virtual function to the messed up CvSelectionGroup class)
-			pBestAttackUnit = static_cast<CvSelectionGroupAI*>(this)-> // </advc.048>
-					AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds,
-					false, /* advc.164: */ !bBlitz,
+		{
+			pBestAttackUnit = AI().AI_getBestGroupAttacker(pDestPlot, false,
+					iAttackOdds, false, /* advc.164: */ !bBlitz,
 					!bMaxSurvival, bMaxSurvival); // advc.048
 			if (pBestAttackUnit == NULL)
 				break;
@@ -3101,7 +3100,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 						// K-Mod: if this is AI stack, follow through with the attack to the end
 						!(iFlags & MOVE_SINGLE_ATTACK))
 				{	//AI_queueGroupAttack(iX, iY);
-					AI_queueGroupAttack(pDestPlot->getX(), pDestPlot->getY()); // K-Mod
+					AI().AI_queueGroupAttack(pDestPlot->getX(), pDestPlot->getY()); // K-Mod
 				}
 				break;
 			}
@@ -4022,12 +4021,6 @@ void CvSelectionGroup::updateMissionTimer(int iSteps, /* advc.102: */ CvPlot* pF
 }*/
 // K-Mod end
 
-ActivityTypes CvSelectionGroup::getActivityType() const
-{
-	return m_eActivityType;
-}
-
-
 void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 {
 
@@ -4090,18 +4083,6 @@ void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 		gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
 	}
-}
-
-
-AutomateTypes CvSelectionGroup::getAutomateType() const
-{
-	return m->eAutomateType;
-}
-
-
-bool CvSelectionGroup::isAutomated() const
-{
-	return (getAutomateType() != NO_AUTOMATE);
 }
 
 
@@ -4330,16 +4311,11 @@ CLLNode<IDInfo>* CvSelectionGroup::deleteUnitNode(CLLNode<IDInfo>* pNode)
 }
 
 
-CLLNode<IDInfo>* CvSelectionGroup::nextUnitNode(CLLNode<IDInfo>* pNode) const
-{
-	return m_units.next(pNode);
-}
-
-
 int CvSelectionGroup::getNumUnits() const
 {
 	return m_units.getLength();
 }
+
 
 void CvSelectionGroup::mergeIntoGroup(CvSelectionGroup* pSelectionGroup)
 {
@@ -4521,12 +4497,16 @@ CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize, CvUnit* pNewHeadU
 	// K-Mod
 	// if the remainder group doesn't have the same unitAI, then it should be split up, so that we don't get any strange groups forming.
 	// Note: the force split can be overridden by the calling function if need be.
-	/*  <advc.706> Uncommented this old K-Mod code b/c my splitGroup(1) calls
-		failed the FAssert below. */
-	if (GC.getGame().isOption(GAMEOPTION_RISE_FALL) && pRemainderGroup && pRemainderGroup->getHeadUnitAIType() != eOldHeadAI)
-		pRemainderGroup->AI_setForceSeparate(); // </advc.706>
-	FAssert(!pRemainderGroup || pRemainderGroup->getHeadUnitAIType() == eOldHeadAI || pRemainderGroup->AI_isForceSeparate()); // this should now be automatic, because of my other edits.
-	// K-Mod end
+	if (pRemainderGroup != NULL)
+	{
+		CvSelectionGroupAI& kRemainderGroup = pRemainderGroup->AI(); // advc.003u
+		/*  <advc.706> Uncommented this old K-Mod code b/c my splitGroup(1) calls
+			failed the FAssert below. */
+		if (GC.getGame().isOption(GAMEOPTION_RISE_FALL) && kRemainderGroup.getHeadUnitAIType() != eOldHeadAI)
+			kRemainderGroup.AI_setForceSeparate(); // </advc.706>
+		// this should now be automatic, because of my other edits.
+		FAssert(kRemainderGroup.getHeadUnitAIType() == eOldHeadAI || kRemainderGroup.AI_isForceSeparate());
+	} // K-Mod end
 
 	if (ppOtherGroup != NULL)
 		*ppOtherGroup = pRemainderGroup;
@@ -4599,17 +4579,13 @@ int CvSelectionGroup::getUnitIndex(CvUnit* pUnit, int maxIndex /* = -1 */) const
 	return -1;
 }
 
-CLLNode<IDInfo>* CvSelectionGroup::headUnitNode() const
-{
-	return m_units.head();
-}
-
 
 CvUnit* CvSelectionGroup::getHeadUnit() const // advc.003u (comment): The body of this function is duplicated in CvSelectionGroupAI::AI_getHeadUnitAI
 {
 	CLLNode<IDInfo>* pNode = headUnitNode();
 	return (pNode != NULL ? ::getUnit(pNode->m_data) : NULL);
 }
+
 
 CvUnit* CvSelectionGroup::getUnitAt(int index) const
 {

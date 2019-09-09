@@ -1,19 +1,18 @@
 #pragma once
 
-
 #ifndef CIV4_GAME_AI_H
 #define CIV4_GAME_AI_H
 
 #include "CvGame.h"
 #include "WarAndPeaceAI.h" // advc.104
 
+
 class CvGameAI : public CvGame
 {
-
 public:
 
   CvGameAI();
-  virtual ~CvGameAI();
+  ~CvGameAI();
 
   void AI_init();
   void AI_initScenario(); // advc.104u
@@ -27,8 +26,8 @@ public:
 
   int AI_turnsPercent(int iTurns, int iPercent);
 
-  virtual void read(FDataStreamBase* pStream);
-  virtual void write(FDataStreamBase* pStream);
+  void read(FDataStreamBase* pStream);
+  void write(FDataStreamBase* pStream);
 
   inline WarAndPeaceAI& warAndPeaceAI() { return m_wpai; } // advc.104
 

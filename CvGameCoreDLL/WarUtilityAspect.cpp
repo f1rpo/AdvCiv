@@ -3564,7 +3564,7 @@ void TacticalSituation::evalEngagement() {
 	int ourTotal = 0;
 	double ourMissions = 0;
 	int const hpThresh = 60;
-	FOR_EACH_GROUP(gr, *we) {
+	FOR_EACH_GROUPAI(gr, *we) {
 		int groupSize = gr->getNumUnits();
 		if(groupSize <= 0)
 			continue;

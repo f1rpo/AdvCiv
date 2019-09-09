@@ -2687,7 +2687,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 			else if (!isHuman())
 			{
 				if (!GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam) ||
-						!getGroup()->AI_isDeclareWar(&kPlot))
+						!AI().AI_getGroup()->AI_isDeclareWar(&kPlot))
 				{
 					return false;
 				}
@@ -3034,7 +3034,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 			// K-Mod end
 			// <advc.163>
 			if(!isHuman())
-				gr->AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
+				gr->AI().AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
 			gr->setAutomateType(NO_AUTOMATE);
 			gr->setActivityType(ACTIVITY_AWAKE);
 			setMoves(maxMoves());
@@ -9406,14 +9406,12 @@ CvSelectionGroup* CvUnit::getGroup() const // advc.003u (comment): The body is d
 }
 
 
-bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup) const
+bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const // advc: const pSelectionGroup
 {
 	// do not allow someone to join a group that is about to be split apart
 	// this prevents a case of a never-ending turn
-	if (pSelectionGroup->AI_isForceSeparate())
-	{
+	if (pSelectionGroup->AI().AI_isForceSeparate())
 		return false;
-	}
 
 	if (pSelectionGroup->getOwner() == NO_PLAYER)
 	{
@@ -9437,7 +9435,7 @@ bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup
 
 	if (pSelectionGroup->getNumUnits() > 0)
 	{
-		if (!(pSelectionGroup->atPlot(pPlot)))
+		if (!pSelectionGroup->atPlot(pPlot))
 		{
 			return false;
 		}
@@ -9492,19 +9490,14 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 				FAssert(pOldSelectionGroup->getHeadUnit() != NULL);
 				if (pOldSelectionGroup->getHeadUnit()->AI_getUnitAIType() != AI_getUnitAIType())
 				{
-					pOldSelectionGroup->AI_setForceSeparate();
+					pOldSelectionGroup->AI().AI_setForceSeparate();
 				}
 			}
 		}
 
-		if ((pNewSelectionGroup != NULL) && pNewSelectionGroup->addUnit(this, false))
-		{
+		if (pNewSelectionGroup != NULL && pNewSelectionGroup->addUnit(this, false))
 			m_iGroupID = pNewSelectionGroup->getID();
-		}
-		else
-		{
-			m_iGroupID = FFreeList::INVALID_INDEX;
-		}
+		else m_iGroupID = FFreeList::INVALID_INDEX;
 
 		if (getGroup() != NULL)
 		{
@@ -9527,7 +9520,7 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 					// K-Mod note. the mission queue has to be cleared, because when the shift key is released, the exe automatically sends the autoMission net message.
 					// (if the mission queue isn't cleared, the units will immediately begin their message whenever units are added using shift.)
 				}
-				else if (getGroup()->AI_getMissionAIType() == MISSIONAI_GROUP || getLastMoveTurn() == GC.getGame().getTurnSlice())
+				else if (getGroup()->AI().AI_getMissionAIType() == MISSIONAI_GROUP || getLastMoveTurn() == GC.getGame().getTurnSlice())
 					getGroup()->setActivityType(ACTIVITY_AWAKE);
 				else if (getGroup()->getActivityType() != ACTIVITY_AWAKE)
 					getGroup()->setActivityType(ACTIVITY_HOLD); // don't let them cheat.
@@ -11881,7 +11874,7 @@ bool CvUnit::potentialWarAction(const CvPlot* pPlot) const
 		return true;
 	}
 
-	if (getGroup()->AI_isDeclareWar(pPlot) && GET_TEAM(eUnitTeam).AI_getWarPlan(ePlotTeam) != NO_WARPLAN)
+	if (getGroup()->AI().AI_isDeclareWar(pPlot) && GET_TEAM(eUnitTeam).AI_getWarPlan(ePlotTeam) != NO_WARPLAN)
 	{
 		return true;
 	}

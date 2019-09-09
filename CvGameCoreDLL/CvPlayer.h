@@ -1129,18 +1129,6 @@ public:
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes eYield, int iSamples = 5) const;
 	void setSavingReplay(bool b); // advc.106i
-
-	// <advc.003u> A bit nicer than GET_PLAYER(getID())
-	inline CvPlayerAI& AI() {
-		//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));
-		/*  The above won't work in an inline function b/c the compiler doesn't know
-			that CvPlayerAI is derived from CvPlayer */
-		return *reinterpret_cast<CvPlayerAI*>(this);
-	}
-	inline CvPlayerAI const& AI() const {
-		//return *static_cast<CvPlayerAI const*>(this);
-		return *reinterpret_cast<CvPlayerAI const*>(this);
-	} // </advc.003u>
 	// <advc.085> (both exposed to Python)
 	void setScoreboardExpanded(bool b);
 	bool isScoreboardExpanded() const;
@@ -1157,91 +1145,24 @@ public:
 	DllExport void cheat(bool bCtrl, bool bAlt, bool bShift);
 	DllExport const CvArtInfoUnit* getUnitArtInfo(UnitTypes eUnit, int iMeshGroup = 0) const;
 	DllExport bool hasSpaceshipArrived() const;
-
-	// K-Mod note: Adding new virtual functions to this list seems to cause unpredictable behaviour during the initialization of the game.
-	// So beware!
-	virtual void AI_init() = 0;
-	virtual void AI_reset(bool bConstructor) = 0;
-	virtual void AI_doTurnPre() = 0;
-	virtual void AI_doTurnPost() = 0;
-	virtual void AI_doTurnUnitsPre() = 0;
-	virtual void AI_doTurnUnitsPost() = 0;
-	//virtual void AI_updateFoundValues(bool bStartingLoc = false) const = 0;
-	// K-Mod. (Can I fix the const-correctness without breaking compatibility? No problems so far...)
-	virtual void AI_updateFoundValues(bool bStartingLoc = false) = 0;
-	virtual void AI_unitUpdate() = 0;
-	virtual void AI_makeAssignWorkDirty() = 0;
-	virtual void AI_assignWorkingPlots() = 0;
-	virtual void AI_updateAssignWork() = 0;
-	virtual void AI_makeProductionDirty() = 0;
-	virtual void AI_conquerCity(CvCityAI& kCity) = 0; // advc.003u: param was CvCity*
-	virtual short AI_foundValue(int iX, int iY, int iMinUnitRange = -1, bool bStartingLoc = false) const = 0; // Exposed to Python. K-Mod changed return value from int to short
-	virtual bool AI_isCommercePlot(CvPlot* pPlot) const = 0;
-	virtual int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, // advc: 1st param was CvPlot* (apparently this function isn't called by the EXE)
-			// <advc.104>
-			bool bCheckBorder = true, int* piLowHealth = NULL, int iHPLimit = 60,
-			int iLimit = -1, PlayerTypes eEnemy = NO_PLAYER) const = 0; // </advc.104>
-	virtual bool AI_isFinancialTrouble() const = 0;																											// Exposed to Python
-	virtual TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false,
-			bool bAsync = false, TechTypes eIgnoreTech = NO_TECH,
-			AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
-			PlayerTypes eFromPlayer = NO_PLAYER) const = 0; // advc.144
-	virtual void AI_chooseFreeTech() = 0;
-	virtual void AI_chooseResearch() = 0;
-	virtual bool AI_isWillingToTalk(PlayerTypes ePlayer) const = 0; // Exposed to Python
-	virtual bool AI_demandRebukedSneak(PlayerTypes ePlayer) const = 0;
-	virtual bool AI_demandRebukedWar(PlayerTypes ePlayer) const = 0;																		// Exposed to Python
-	virtual AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const = 0;																// Exposed to Python
-	virtual PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose) = 0;
-	virtual int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList,
-			bool bIgnoreAnnual = false, int iExtra = 0,
-			bool bIgnoreDiscount = false, // advc.550a
-			bool bIgnorePeace = false) const = 0; // advc.130p
-	virtual bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) = 0;
-	virtual bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const = 0;
-	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, // K-Mod added bAssumeEnabled
-			bool bTrade = false) const = 0; // advc.036
-	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
-	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
-			int iChange = 0) const = 0; // advc.133
-	virtual int AI_cityTradeVal(CvCityAI const& pCity) const = 0; // advc: param was CvCity*
-	virtual DenialTypes AI_cityTrade(CvCityAI const& pCity, PlayerTypes ePlayer) const = 0; // advc: param was CvCity*
-	virtual DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const = 0;
-	virtual DenialTypes AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) const = 0;
-	virtual DenialTypes AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const = 0;
-	virtual int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea) const = 0;						// Exposed to Python
-	virtual int AI_totalUnitAIs(UnitAITypes eUnitAI) const = 0;																					// Exposed to Python
-	virtual int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const = 0;											// Exposed to Python
-	virtual int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const = 0;									// Exposed to Python
-	virtual int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const = 0;
-	virtual int AI_unitTargetMissionAIs(CvUnit const* pUnit, // advc: const
-			MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const = 0;
-	virtual int AI_civicValue(CivicTypes eCivic) const = 0;   // Exposed to Python
-	virtual int AI_getNumAIUnits(UnitAITypes eIndex) const = 0;																					// Exposed to Python
-	// <advc.130p> Renamed; let's hope the EXE doesn't call these.
-	virtual void AI_processPeacetimeTradeValue(PlayerTypes eIndex, int iChange) = 0;
-	virtual void AI_processPeacetimeGrantValue(PlayerTypes eIndex, int iChange) = 0;
-	// </advc.130p>
-	virtual int AI_getAttitudeExtra(PlayerTypes eIndex) const = 0;																			// Exposed to Python
-	virtual void AI_setAttitudeExtra(PlayerTypes eIndex, int iNewValue) = 0;											// Exposed to Python
-	virtual void AI_changeAttitudeExtra(PlayerTypes eIndex, int iChange) = 0;											// Exposed to Python
-	virtual void AI_setFirstContact(PlayerTypes eIndex, bool bNewValue) = 0;
-	virtual int AI_getMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2) const = 0;
-	virtual void AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, int iChange) = 0;
-	virtual void AI_doCommerce() = 0;
-	virtual EventTypes AI_chooseEvent(int iTriggeredId) const = 0;
-	virtual void AI_launch(VictoryTypes eVictory) = 0;
-	virtual void AI_doAdvancedStart(bool bNoExit = false) = 0;
-	virtual void AI_updateBonusValue() = 0;
-	virtual void AI_updateBonusValue(BonusTypes eBonus) = 0;
-	virtual ReligionTypes AI_chooseReligion() = 0;
-	virtual int AI_getExtraGoldTarget() const = 0;
-	virtual void AI_setExtraGoldTarget(int iNewValue) = 0;
-	virtual int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const = 0;
-	// advc: The EXE calls this (when a human player adds AI gold to the trade table)
-	virtual int AI_maxGoldTrade(PlayerTypes ePlayer) const = 0;
+	// <advc.003u>
+	__forceinline CvPlayerAI& AI()
+	{	//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvPlayerAI is derived from CvPlayer */
+		return *reinterpret_cast<CvPlayerAI*>(this);
+	}
+	__forceinline CvPlayerAI const& AI() const
+	{	//return *static_cast<CvPlayerAI const*>(this);
+		return *reinterpret_cast<CvPlayerAI const*>(this);
+	} // </advc.003u>	
 
 protected:
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
+	// advc.003u: Keep one pure virtual function so that this class is abstract
+	virtual void AI_makeAssignWorkDirty() = 0;
+	// advc.003u: See the comments in the private section before adding any virtual functions!
 
 	PlayerTypes m_eID; // advc: Moved here for easier access in the debugger
 	int m_iStartingX;
@@ -1500,10 +1421,6 @@ protected:
 	int doCaptureGold(CvCity const& kOldCity); // advc.003y
 	void processCivics(CivicTypes eCivic, int iChange);
 
-	// for serialization
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
-
 	//void doUpdateCacheOnTurn(); // advc: unused
 	int getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const;
 
@@ -1512,6 +1429,96 @@ protected:
 	void getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview resource layer
 	void getReligionLayerColors(ReligionTypes eSelectedReligion, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview religion layer
 	void getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;  // used by Globeview culture layer
+
+private:
+	/*  advc.003u: The remaining virtual functions should not be called within
+		the DLL. (Call the respective CvPlayerAI functions instead.)
+		The signatures have to be preserved for the EXE though, and in this exact
+		order. Additional virtual functions for use within the DLL can be added
+		in the public and protected sections above, but, for each function added,
+		another external function needs to be removed. (I've already removed three
+		in order to reposition CvPlayer::read, write and AI_makeAssignWorkDirty.)
+		The first few should be safe to remove; I don't think the EXE ever calls them.
+		I've removed all const qualifiers. They're not enforced at runtime and thus
+		irrelevant on functions called only from the EXE (so long as it remains closed-source).
+		The default arguments are important though. Changing them should be fine (if needs be).
+	/*  K-Mod note: Adding new virtual functions to this list seems to cause unpredictable behaviour during the initialization of the game.
+		So beware! */
+	// ^advc: Right - messing things up here will mess things up at runtime.
+	/*virtual void AI_initExternal();
+	virtual void AI_resetExternal(bool bConstructor);
+	virtual void AI_doTurnPreExternal();*/
+	virtual void AI_doTurnPostExternal();
+	virtual void AI_doTurnUnitsPreExternal();
+	virtual void AI_doTurnUnitsPostExternal();
+	virtual void AI_updateFoundValuesExternal(
+			bool bStartingLoc = false);
+	virtual void AI_unitUpdateExternal();
+	virtual void AI_makeAssignWorkDirtyExternal();
+	virtual void AI_assignWorkingPlotsExternal();
+	virtual void AI_updateAssignWorkExternal();
+	virtual void AI_makeProductionDirtyExternal();
+	virtual void AI_conquerCityExternal(CvCity* pCity);
+	virtual int AI_foundValueExternal(int iX, int iY,
+			int iMinUnitRange = -1, bool bStartingLoc = false);
+	virtual bool AI_isCommercePlotExternal(CvPlot* pPlot);
+	virtual int AI_getPlotDangerExternal(CvPlot* pPlot,
+			int iRange = -1, bool bTestMoves = true);
+	virtual bool AI_isFinancialTroubleExternal();
+	virtual TechTypes AI_bestTechExternal(
+			int iMaxPathLength = 1, bool bIgnoreCost = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR);
+	virtual void AI_chooseFreeTechExternal();
+	virtual void AI_chooseResearchExternal();
+	virtual bool AI_isWillingToTalkExternal(PlayerTypes ePlayer);
+	virtual bool AI_demandRebukedSneakExternal(PlayerTypes ePlayer);
+	virtual bool AI_demandRebukedWarExternal(PlayerTypes ePlayer);
+	virtual AttitudeTypes AI_getAttitudeExternal(PlayerTypes ePlayer,
+			bool bForced = true);
+	virtual PlayerVoteTypes AI_diploVoteExternal(VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose);
+	virtual int AI_dealValExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pList,
+			bool bIgnoreAnnual = false, int iExtra = 1);
+	virtual bool AI_considerOfferExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pTheirList, CLinkList<TradeData>* pOurList,
+			int iChange = 1);
+	virtual bool AI_counterProposeExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pTheirList, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter);
+	virtual int AI_bonusValExternal(BonusTypes eBonus, int iChange);
+	virtual int AI_bonusTradeValExternal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange);
+	virtual DenialTypes AI_bonusTradeExternal(BonusTypes eBonus, PlayerTypes ePlayer);
+	virtual int AI_cityTradeValExternal(CvCity* pCity);
+	virtual DenialTypes AI_cityTradeExternal(CvCity* pCity, PlayerTypes ePlayer);
+	virtual DenialTypes AI_stopTradingTradeExternal(TeamTypes eTradeTeam, PlayerTypes ePlayer);
+	virtual DenialTypes AI_civicTradeExternal(CivicTypes eCivic, PlayerTypes ePlayer);
+	virtual DenialTypes AI_religionTradeExternal(ReligionTypes eReligion, PlayerTypes ePlayer);
+	virtual int AI_unitValueExternal(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea);
+	virtual int AI_totalUnitAIsExternal(UnitAITypes eUnitAI);
+	virtual int AI_totalAreaUnitAIsExternal(CvArea* pArea, UnitAITypes eUnitAI);
+	virtual int AI_totalWaterAreaUnitAIsExternal(CvArea* pArea, UnitAITypes eUnitAI);
+	virtual int AI_plotTargetMissionAIsExternal(CvPlot* pPlot, MissionAITypes eMissionAI,
+			CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0);
+	virtual int AI_unitTargetMissionAIsExternal(CvUnit* pUnit, MissionAITypes eMissionAI,
+			CvSelectionGroup* pSkipSelectionGroup = NULL);
+	virtual int AI_civicValueExternal(CivicTypes eCivic);
+	virtual int AI_getNumAIUnitsExternal(UnitAITypes eIndex);
+	virtual void AI_changePeacetimeTradeValueExternal(PlayerTypes eIndex, int iChange);
+	virtual void AI_changePeacetimeGrantValueExternal(PlayerTypes eIndex, int iChange);
+	virtual int AI_getAttitudeExtraExternal(PlayerTypes eIndex);
+	virtual void AI_setAttitudeExtraExternal(PlayerTypes eIndex, int iNewValue);
+	virtual void AI_changeAttitudeExtraExternal(PlayerTypes eIndex, int iChange);
+	virtual void AI_setFirstContactExternal(PlayerTypes eIndex, bool bNewValue);
+	virtual int AI_getMemoryCountExternal(PlayerTypes eIndex1, MemoryTypes eIndex2);
+	virtual void AI_changeMemoryCountExternal(PlayerTypes eIndex1, MemoryTypes eIndex2, int iChange);
+	virtual void AI_doCommerceExternal();
+	virtual EventTypes AI_chooseEventExternal(int iTriggeredId);
+	virtual void AI_launchExternal(VictoryTypes eVictory);
+	virtual void AI_doAdvancedStartExternal(bool bNoExit = false);
+	virtual void AI_updateBonusValueExternal();
+	virtual void AI_updateBonusValueExternal(BonusTypes eBonus);
+	virtual ReligionTypes AI_chooseReligionExternal();
+	virtual int AI_getExtraGoldTargetExternal();
+	virtual void AI_setExtraGoldTargetExternal(int iNewValue);
+	virtual int AI_maxGoldPerTurnTradeExternal(PlayerTypes ePlayer);
+	virtual int AI_maxGoldTradeExternal(PlayerTypes ePlayer);
+	virtual void readExternal(FDataStreamBase* pStream);
+	virtual void writeExternal(FDataStreamBase* pStream);
 };
 
 #endif

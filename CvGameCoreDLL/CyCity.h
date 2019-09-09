@@ -19,7 +19,7 @@ public:
 	DllExport CyCity(CvCity* pCity); // Call from C++
 	CyCity(CvCityAI* pCity); // advc.003u
 	CyCity(CvCity const& kCity); // advc.003y
-	CvCity* getCity(); // Call from C++  // advc.003u: definition moved to CyCity.cpp
+	CvCity* getCity(); // Call from C++  // advc.003u: Definition moved to CyCity.cpp
 	bool isNone() { return (m_pCity==NULL); }
 	void kill();
 

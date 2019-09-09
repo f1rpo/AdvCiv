@@ -12056,7 +12056,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				pUnit->automate(AUTOMATE_RELIGION);
 		}
 		CvEventReporter::getInstance().unitBuilt(this, pUnit);
-		if(gCityLogLevel >= 1) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+		if(gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+		{
 			CvWString szString; getUnitAIString(szString, pUnit->AI_getUnitAIType());
 			logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString());
 		}

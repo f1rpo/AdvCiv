@@ -5784,7 +5784,7 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 {
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	const CvTeam& kTeam = GET_TEAM(kOwner.getTeam());
+	const CvTeamAI& kTeam = GET_TEAM(kOwner.getTeam());
 	const CvProjectInfo& kProject = GC.getProjectInfo(eProject);
 
 	int iValue = 0;
@@ -6418,8 +6418,8 @@ bool CvCityAI::AI_isDanger() /* advc: */ const
 }
 
 // <advc.139>
-void CvCityAI::AI_updateSafety(double relativeCityVal) {
-
+void CvCityAI::AI_updateSafety(double relativeCityVal)
+{
 	PROFILE_FUNC();
 	m_bEvacuate = false;
 	m_bSafe = true;
@@ -6438,13 +6438,15 @@ void CvCityAI::AI_updateSafety(double relativeCityVal) {
 	int iDefStrength = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 3);
 	m_bSafe = (iAttStrength * 2 < iDefStrength);
 	// Potentially expensive
-	if(m_bSafe && GET_TEAM(getTeam()).getAtWarCount(false, true) > 0) {
+	if(m_bSafe && GET_TEAM(getTeam()).getAtWarCount(false, true) > 0)
+	{
 		int iAttStrengthWiderRange = kOwner.AI_localAttackStrength(plot(), NO_TEAM,
 				DOMAIN_LAND, 3);
 		m_bSafe = (iAttStrengthWiderRange * 2 < iDefStrength);
 	}
 	// Only bail if they can take the city in one turn or almost
-	if(iAttackers + 1 >= plot()->getNumDefenders(getOwner())) {
+	if(iAttackers + 1 >= plot()->getNumDefenders(getOwner()))
+	{
 		static int const iAI_EVACUATION_THRESH = GC.getDefineINT("AI_EVACUATION_THRESH");
 		int iThresh = iAI_EVACUATION_THRESH;
 		//  Higher threshold for important cities

@@ -11,6 +11,7 @@
 class CvPlot;
 class CvArea;
 class FAStarNode;
+class CvSelectionGroupAI; // advc.003u
 
 
 class CvSelectionGroup
@@ -171,11 +172,11 @@ public:
 	inline PlayerTypes getOwner() const { return m_eOwner; }
 	TeamTypes getTeam() const;																																					// Exposed to Python
 
-	ActivityTypes getActivityType() const;																															// Exposed to Python
+	ActivityTypes getActivityType() const { return m_eActivityType; } // advc.003f: inline																	// Exposed to Python
 	void setActivityType(ActivityTypes eNewValue);																											// Exposed to Python
-
-	AutomateTypes getAutomateType() const;																																		// Exposed to Python
-	bool isAutomated() const; // Exposed to Python
+	// advc.003f: 2x inline
+	AutomateTypes getAutomateType() const { return m->eAutomateType; }																									// Exposed to Python
+	bool isAutomated() const { return (getAutomateType() != NO_AUTOMATE); }							// Exposed to Python
 	void setAutomateType(AutomateTypes eNewValue);																											// Exposed to Python
 
 	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use path_finder methods instead.
@@ -192,10 +193,13 @@ public:
 	void regroupSeparatedUnits(); // K-Mod
 
 	DllExport CLLNode<IDInfo>* deleteUnitNode(CLLNode<IDInfo>* pNode);
-	DllExport CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const;
+	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
+	{
+		return m_units.next(pNode); // advc.003f: inline
+	}
 	DllExport int getNumUnits() const;																												// Exposed to Python
 	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
-	DllExport CLLNode<IDInfo>* headUnitNode() const;
+	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.003f: inline
 	DllExport CvUnit* getHeadUnit() const;
 	CvUnit* getUnitAt(int index) const;
 	UnitAITypes getHeadUnitAIType() const; // advc.003u: was getHeadUnitAI
@@ -214,48 +218,22 @@ public:
 	int getMissionType(int iNode) const;																														// Exposed to Python
 	int getMissionData1(int iNode) const;																														// Exposed to Python
 	int getMissionData2(int iNode) const;																														// Exposed to Python
+	// <advc.003u>
+	__forceinline CvSelectionGroupAI& AI()
+	{	//return *static_cast<CvSelectionGroupAI*>(const_cast<CvSelectionGroup*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvSelectionGroupAI is derived from CvSelectionGroup */
+		return *reinterpret_cast<CvSelectionGroupAI*>(this);
+	}
+	__forceinline CvSelectionGroupAI const& AI() const
+	{	//return *static_cast<CvSelectionGroupAI const*>(this);
+		return *reinterpret_cast<CvSelectionGroupAI const*>(this);
+	} // </advc.003u>
 
-	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
-
-	virtual void AI_init() = 0;
-	virtual void AI_reset() = 0;
-	virtual void AI_separate() = 0;
-	virtual bool AI_update() = 0;
-	virtual int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const = 0;
-	virtual CvUnit* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds, bool bForce = false, bool bNoBlitz = false) const = 0;
-	virtual CvUnit* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce = false, bool bNoBlitz = false) const = 0;
-	//virtual int AI_compareStacks(const CvPlot* pPlot, bool bPotentialEnemy, bool bCheckCanAttack = false, bool bCheckCanMove = false) const = 0;
-	//virtual int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false, bool bCheckCanMove = false) const = 0;
-	// K-Mod. (hopefully the core game doesn't rely on these function signatures.)
-	virtual int AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack = false) const = 0;
-	virtual int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false) const = 0;
-	// K-Mod end
-	virtual void AI_queueGroupAttack(int iX, int iY) = 0;
-	virtual void AI_cancelGroupAttack() = 0;
-	virtual bool AI_isGroupAttack() const = 0; // K-Mod made const
-
+	// advc.003u: Keep one pure virtual function so that this class is abstract
 	virtual bool AI_isControlled() /* advc: */ const = 0;
-	virtual bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const = 0;
-	virtual CvPlot* AI_getMissionAIPlot() const = 0;
-	virtual bool AI_isForceSeparate() = 0;
-	//virtual void AI_makeForceSeparate() = 0;
-	virtual void AI_setForceSeparate(bool bNewValue = true) = 0; // K-Mod
-	//virtual MissionAITypes AI_getMissionAIType() = 0;
-	virtual MissionAITypes AI_getMissionAIType() const = 0; // K-Mod
-	virtual void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
-			CvUnit const* pNewUnit) = 0; // advc: const
-	virtual CvUnit* AI_getMissionAIUnit() const = 0;
-	virtual CvUnit* AI_ejectBestDefender(CvPlot* pTargetPlot) = 0;
-	virtual void AI_separateNonAI(UnitAITypes eUnitAI) = 0;
-	virtual void AI_separateAI(UnitAITypes eUnitAI) = 0;
-	// BETTER_BTS_AI_MOD, General AI, 06/02/09, jdog5000: START
-	virtual bool AI_separateImpassable() = 0; // K-Mod added bool return value.
-	virtual bool AI_separateEmptyTransports() = 0; // same
-	// BETTER_BTS_AI_MOD: END
-
-	virtual bool AI_isFull() = 0;
 
 protected:
 	// WARNING: adding to this class will cause the civ4 exe to crash
@@ -296,10 +274,11 @@ protected:
 	void resetBoarded();
 	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
 	// </advc.075>
-	bool sentryAlert(/*  advc.004l: */ bool bUpdateKnownEnemies = false);
+	bool sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies = false);
 
 	// <advc.003k>
-	class Data {
+	class Data
+	{
 		CLinkList<IDInfo> knownEnemies; // advc.004l
 		bool bInitiallyVisible; // advc.102
 		// Moved here in order to bring sizeof down to 80
@@ -309,6 +288,37 @@ protected:
 
 public:
 	static KmodPathFinder path_finder; // K-Mod! I'd rather this not be static, but I can't do that here.
+private: // advc.003u: (See comments in the private section of CvPlayer.h)
+	//virtual void AI_initExternal();
+	virtual void AI_resetExternal();
+	virtual void AI_separateExternal();
+	virtual bool AI_updateExternal();
+	virtual int AI_attackOddsExternal(CvPlot* pPlot, bool bPotentialEnemy);
+	virtual CvUnit* AI_getBestGroupAttackerExternal(CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds,
+			bool bForce = false, bool bNoBlitz = false);
+	virtual CvUnit* AI_getBestGroupSacrificeExternal(CvPlot* pPlot, bool bPotentialEnemy,
+			bool bForce = false, bool bNoBlitz = false);
+	virtual int AI_compareStacksExternal(CvPlot* pPlot, bool bPotentialEnemy,
+			bool bCheckCanAttack = false, bool bCheckCanMove = false);
+	virtual int AI_sumStrengthExternal(
+			CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false, bool bCheckCanMove = false);
+	virtual void AI_queueGroupAttackExternal(int iX, int iY);
+	virtual void AI_cancelGroupAttackExternal();
+	virtual bool AI_isGroupAttackExternal();
+	virtual bool AI_isControlledExternal();
+	virtual bool AI_isDeclareWarExternal(
+			CvPlot* pPlot = NULL);
+	virtual CvPlot* AI_getMissionAIPlotExternal();
+	virtual bool AI_isForceSeparateExternal();
+	virtual void AI_makeForceSeparateExternal();
+	virtual MissionAITypes AI_getMissionAITypeExternal();
+	virtual void AI_setMissionAIExternal(MissionAITypes eNewMissionAI, CvPlot* pNewPlot, CvUnit* pNewUnit);
+	virtual CvUnit* AI_getMissionAIUnitExternal();
+	virtual CvUnit* AI_ejectBestDefenderExternal(CvPlot* pTargetPlot);
+	virtual void AI_separateNonAIExternal(UnitAITypes eUnitAI);
+	virtual void AI_separateAIExternal(UnitAITypes eUnitAI);
+	// advc.003u: Not called; could probably remove more (up until the bottommost one that the EXE calls).
+	//virtual bool AI_isFull();
 };
 /*  advc.003k: A trick from
 https://stackoverflow.com/questions/19401887/how-to-check-the-size-of-a-structure-at-compile-time/19402038

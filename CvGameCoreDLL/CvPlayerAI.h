@@ -14,17 +14,11 @@ class CvDeal;
 
 class CvPlayerAI : public CvPlayer
 {
-	friend CvPlayer; // advc: for CvPlayer::AI
 public:
 
-	CvPlayerAI();
-	virtual ~CvPlayerAI();
-
-  // inlined for performance reasons
-	static CvPlayerAI& getPlayer(PlayerTypes ePlayer)
+	static inline CvPlayerAI& getPlayer(PlayerTypes ePlayer) // advc.003f: inline keyword added
 	{
-		FAssertMsg(ePlayer != NO_PLAYER, "Player is not assigned a valid value");
-		FAssertMsg(ePlayer < MAX_PLAYERS, "Player is not assigned a valid value");
+		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayerAI::getPlayer");
 		return m_aPlayers[ePlayer];
 	}
 
@@ -34,9 +28,12 @@ public:
 	static void freeStatics();
 	DllExport static bool areStaticsInitialized();
 
+	CvPlayerAI();
+	~CvPlayerAI();
 	void AI_init();
 	void AI_uninit();
 	void AI_reset(bool bConstructor);
+
 	// <advc.003u> Access to AI-type members. Code mostly duplicated from CvPlayer.
 	inline CvCityAI* AI_getCapitalCity() const {
 		return AI_getCity(m_iCapitalCityID);
@@ -91,7 +88,7 @@ public:
 	void AI_updateFoundValues(bool bStartingLoc = false);
 	void AI_updateAreaTargets();
 
-	int AI_movementPriority(CvSelectionGroup* pGroup) const;
+	int AI_movementPriority(CvSelectionGroupAI const& kGroup) const;
 	void AI_unitUpdate();
 
 	void AI_makeAssignWorkDirty();
@@ -113,7 +110,7 @@ public:
 	int AI_commerceWeight(CommerceTypes eCommerce, const CvCityAI* pCity = NULL) const;
 	void AI_updateCommerceWeights(); // K-Mod
 
-	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;
+	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;		// Exposed to Python
 	// K-Mod. (note, I also changed AI_foundValue to return short instead of int)
 	struct CvFoundSettings
 	{
@@ -173,7 +170,7 @@ public:
 
 	bool AI_avoidScience() const;
 	int AI_financialTroubleMargin() const; // advc.110
-	bool AI_isFinancialTrouble() const;
+	bool AI_isFinancialTrouble() const;							// Exposed to Python
 	//int AI_goldTarget() const;
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod
 
@@ -198,11 +195,8 @@ public:
 	void AI_chooseResearch();
 
 	DllExport DiploCommentTypes AI_getGreeting(PlayerTypes ePlayer) const;
-	bool AI_isWillingToTalk(PlayerTypes ePlayer) const {								 // Exposed to Python
-		// <advc.104l> ^Virtual function that the EXE may well call; mustn't change signature.
-		return AI_isWillingToTalk(ePlayer, false);
-	}
-	bool AI_isWillingToTalk(PlayerTypes ePlayer, bool bAsync) const; // </advc.104l>
+	bool AI_isWillingToTalk(PlayerTypes ePlayer,
+			bool bAsync = false) const; // advc.104l
 	int AI_refuseToTalkTurns(PlayerTypes ePlayer) const; // advc.104i
 	bool AI_demandRebukedSneak(PlayerTypes ePlayer) const;
 	bool AI_demandRebukedWar(PlayerTypes ePlayer) const;
@@ -212,7 +206,7 @@ public:
 	void AI_updateAttitudeCache(PlayerTypes ePlayer,		// K-Mod
 			bool bUpdateWorstEnemy = true); // advc.130e
 	void AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange); // K-Mod
-	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const;
+	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const;		// Exposed to Python
 	int AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced = true) const;
 	static AttitudeTypes AI_getAttitudeFromValue(int iAttitudeVal);
 
@@ -260,54 +254,27 @@ public:
 			bool bIgnorePeace = false) const; // advc.130p
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
-	/*  advc.130o: Removed const qualifier - function may now change diplo memory.
-		While this function lacks the DLLExport macro, it still gets called from
-		outside the SDK (pure virtual base). Changing const-ness seems to be OK. */
-	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList,
-			const CLinkList<TradeData>* pOurList, int iChange = 1) {
-			// <advc.133> Can't add a param though, so ...
-		return AI_considerOffer(ePlayer, *pTheirList, *pOurList, iChange, 0); }
-	bool AI_considerOffer(PlayerTypes ePlayer,
-			CLinkList<TradeData> const& kTheyGive,
-			CLinkList<TradeData> const& kWeGive,
-			int iChange, int iDealAge); // </advc.133>
+	// advc.130o: Removed const qualifier - function may now change diplo memory
+	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
+			CLinkList<TradeData> const& kWeGive, int iChange = 1,
+			int iDealAge = 0); // advc.133
 	double AI_prDenyHelp() const; // advc.144
-	bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList,
-			const CLinkList<TradeData>* pOurList,
-			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
-			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const {
-		/*  advc.705: This virtual function gets called from the EXE.
-			See the protected section for my replacement. */
-		return AI_counterPropose(ePlayer, pTheirList, pOurList, pTheirInventory,
-				pOurInventory, pTheirCounter, pOurCounter, 1);
-	}
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
-	int AI_maxGoldTrade(PlayerTypes ePlayer) const {									// Exposed to Python
-		// <advc.134a> Can't add a param b/c the EXE calls this virtual function
-		return AI_maxGoldTrade(ePlayer, false);
-	}
-	int AI_maxGoldTrade(PlayerTypes ePlayer, bool bTeamTrade) const; // </advc.134a>
+	int AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeamTrade = false) const;
 	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;								// Exposed to Python
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	int AI_bonusVal(BonusTypes eBonus, int iChange,
 			bool bAssumeEnabled = false, // K-Mod
 			// advc.036: Whether baseBonusVal is computed for a resource trade
 			bool bTrade = false) const;
-	int AI_baseBonusVal(BonusTypes eBonus,
-			bool bTrade = false) const; // advc.036
-	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const {
-		// <advc.036>
-		return AI_bonusTradeVal(eBonus, ePlayer, iChange, false);
-	}
+	int AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange,
-			bool bExtraHappyOrHealth) const; // <advc.036>
+			bool bExtraHappyOrHealth = false) const; // advc.036
 	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			int iChange = 0) const; // advc.133
 	// advc.210e: Exposed to Python
-	int AI_corporationBonusVal(BonusTypes eBonus,
-			bool bTrade = false) const; // advc.036
-	// advc.036:
-	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const;
+	int AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
+	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const; // advc.036
 
 	int AI_cityTradeVal(CvCityAI const& kCity) const;
 	DenialTypes AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer) const;
@@ -323,10 +290,10 @@ public:
 	DenialTypes AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const;
 
 	int AI_unitImpassableCount(UnitTypes eUnit) const;
-	int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea) const;
-	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;
-	int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;
-	int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;
+	int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea) const;				// Exposed to Python
+	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;												// Exposed to Python
+	int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;							// Exposed to Python
+	int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;						// Exposed to Python
 	// advc.081:
 	int AI_totalWaterAreaUnitAIs(CvArea* pArea, std::vector<UnitAITypes> const& aeUnitAI) const;
 	int AI_countCargoSpace(UnitAITypes eUnitAI) const;
@@ -380,7 +347,7 @@ public:
 	// BBAI end
 
 	CivicTypes AI_bestCivic(CivicOptionTypes eCivicOption, int* iBestValue = 0) const;
-	int AI_civicValue(CivicTypes eCivic) const;
+	int AI_civicValue(CivicTypes eCivic) const;						// Exposed to Python
 
 	ReligionTypes AI_bestReligion() const;
 	int AI_religionValue(ReligionTypes eReligion) const;
@@ -413,7 +380,7 @@ public:
 	int AI_getNumTrainAIUnits(UnitAITypes eIndex) const;
 	void AI_changeNumTrainAIUnits(UnitAITypes eIndex, int iChange);
 
-	int AI_getNumAIUnits(UnitAITypes eIndex) const;
+	int AI_getNumAIUnits(UnitAITypes eIndex) const;							// Exposed to Python
 	void AI_changeNumAIUnits(UnitAITypes eIndex, int iChange);
 
 	int AI_getSameReligionCounter(PlayerTypes eIndex) const;
@@ -448,9 +415,9 @@ public:
 	int AI_getGoldTradedTo(PlayerTypes eIndex) const;
 	void AI_changeGoldTradedTo(PlayerTypes eIndex, int iChange);
 
-	int AI_getAttitudeExtra(PlayerTypes eIndex) const;
-	void AI_setAttitudeExtra(PlayerTypes eIndex, int iNewValue);
-	void AI_changeAttitudeExtra(PlayerTypes eIndex, int iChange);
+	int AI_getAttitudeExtra(PlayerTypes eIndex) const;							// Exposed to Python
+	void AI_setAttitudeExtra(PlayerTypes eIndex, int iNewValue);				// Exposed to Python
+	void AI_changeAttitudeExtra(PlayerTypes eIndex, int iChange);				// Exposed to Python
 
 	bool AI_isFirstContact(PlayerTypes eIndex) const;
 	void AI_setFirstContact(PlayerTypes eIndex, bool bNewValue);
@@ -476,7 +443,7 @@ public:
 	void AI_doCommerce();
 
 	EventTypes AI_chooseEvent(int iTriggeredId) const;
-	virtual void AI_launch(VictoryTypes eVictory);
+	void AI_launch(VictoryTypes eVictory);
 
 	int AI_calculateCultureVictoryStage(
 			int iCountdownThresh = -1) const; // advc.115
@@ -577,7 +544,7 @@ public:
 	int AI_getUnitCombatWeight(UnitCombatTypes eUnitCombat) const;
 	int AI_calculateUnitAIViability(UnitAITypes eUnitAI, DomainTypes eDomain) const;
 
-	int AI_disbandValue(const CvUnit* pUnit, bool bMilitaryOnly = true) const; // K-Mod
+	int AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly = true) const; // K-Mod
 
 	int AI_getAttitudeWeight(PlayerTypes ePlayer) const;
 
@@ -631,8 +598,8 @@ public:
 	void AI_doSplit(bool bForce = false);
 
 	// for serialization
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
+	void read(FDataStreamBase* pStream);
+	void write(FDataStreamBase* pStream);
 
 protected:
 
@@ -758,12 +725,11 @@ protected:
 	// <advc.104h>
 	int AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver, int iDelta,
 			int* iGold, TechTypes* eBestTech, CvCity const** pBestCity); // </advc.104h>
-	// <advc.705> Replacement for the virtual function AI_counterPropose
-	bool AI_counterPropose(PlayerTypes ePlayer,
+	bool AI_counterPropose(PlayerTypes ePlayer, // advc: was public
 			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
-			double leniency) const; // </advc.705>
+			double leniency = 1) const; // advc.705
 	// <advc>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
@@ -830,6 +796,7 @@ protected:
 	void AI_setHumanDisabled(bool bDisabled); // advc.127
 
 	friend class CvGameTextMgr;
+	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI
 };
 
 // helper for accessing static functions

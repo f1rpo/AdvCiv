@@ -1972,8 +1972,9 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot) {
 
 	CLLNode<IDInfo>* pUnitNode = kPlot.headUnitNode();
-	while(pUnitNode != NULL) {
-		CvUnit* pHeadUnit = ::getUnit(pUnitNode->m_data);
+	while(pUnitNode != NULL)
+	{
+		CvUnitAI const* pHeadUnit = ::AI_getUnit(pUnitNode->m_data);
 		pUnitNode = kPlot.nextUnitNode(pUnitNode);
 		// is this unit the head of a group, not cargo, and visible?
 		if(pHeadUnit == NULL || !pHeadUnit->isGroupHead() || pHeadUnit->isCargo())
@@ -2006,7 +2007,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 		}
 
 		// group
-		CvSelectionGroup* pHeadGroup = pHeadUnit->getGroup();
+		CvSelectionGroupAI const* pHeadGroup = pHeadUnit->AI_getGroup();
 		FAssertMsg(pHeadGroup != NULL, "unit has NULL group");
 		if (pHeadGroup->getNumUnits() > 1)
 		{
@@ -2692,7 +2693,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	int iOdds;
 	CvUnit* pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
 			false, false, !bMaxSurvival, bMaxSurvival); // advc.048
-	if (pAttacker == NULL) {
+	if (pAttacker == NULL)
+	{
 		pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
 				true, // bypass checks for moves and war etc.
 				false, !bMaxSurvival, bMaxSurvival); // advc.048
@@ -2706,17 +2708,20 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 	// <advc.048>
 	bool bBestOddsHelp = false;
-	if(!bMaxSurvival && GC.getDefineINT("GROUP_ATTACK_BEST_ODDS_HELP") > 0) {
+	if(!bMaxSurvival && GC.getDefineINT("GROUP_ATTACK_BEST_ODDS_HELP") > 0)
+	{
 		CvUnit* pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
 				false, false, false, true);
-		if(pBestOddsAttacker == NULL) {
+		if(pBestOddsAttacker == NULL)
+		{
 			pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
 					true, false, false, true);
 		}
 		if(pBestOddsAttacker != pAttacker)
 			bBestOddsHelp = true;
 	}
-	if(!ACO_enabled && bBestOddsHelp) {
+	if(!ACO_enabled && bBestOddsHelp)
+	{
 		szString.append(gDLL->getText("TXT_KEY_GROUP_ATTACK_BEST_ODDS_HELP"));
 		szString.append(NEWLINE);
 	} // </advc.048>
@@ -19238,7 +19243,7 @@ void CvGameTextMgr::getTradeScreenIcons(std::vector< std::pair<CvString, CvWidge
 
 void CvGameTextMgr::getTradeScreenHeader(CvWString& szHeader, PlayerTypes ePlayer, PlayerTypes eOtherPlayer, bool bAttitude)
 {
-	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	szHeader.Format(L"%s - %s", CvWString(kPlayer.getName()).GetCString(), CvWString(kPlayer.getCivilizationDescription()).GetCString());
 	if (bAttitude)
 	{

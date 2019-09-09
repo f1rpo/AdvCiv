@@ -639,7 +639,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 				CLinkList<TradeData> theirList;
 				theirList.insertAtEnd(item);
 
-				if (GET_PLAYER(eVassal).AI_considerOffer(g.getActivePlayer(), &ourList, &theirList))
+				if (GET_PLAYER(eVassal).AI_considerOffer(g.getActivePlayer(), ourList, theirList))
 				{
 					gDLL->sendImplementDealMessage(eVassal, &ourList, &theirList);
 
@@ -1475,7 +1475,7 @@ bool CvDLLButtonPopup::launchDisbandCityPopup(CvPopup* pPopup, CvPopupInfo &info
 
 bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	CvPlayer& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvPlayerAI& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 
 	if (GC.getPythonCaller()->isSkipResearchPopup(kActivePlayer.getID()))
 		return false;

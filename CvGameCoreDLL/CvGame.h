@@ -23,14 +23,19 @@ class RiseFall; // advc.700
 
 typedef std::vector<const CvReplayMessage*> ReplayMessageList;
 
-class CvGame
-		: private boost::noncopyable // advc.003e
-{
 
+class CvGame /* advc.003e: */ : private boost::noncopyable
+{
 public:
 
 	CvGame();
 	virtual ~CvGame();
+	// (advc: These three are only called externally)
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
+	virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
+	// advc.003u: Keep one pure virtual function so that this class is abstract
+	virtual void AI_makeAssignWorkDirty() = 0;
 
 	DllExport void init(HandicapTypes eHandicap);
 	DllExport void reset(HandicapTypes eHandicap, bool bConstructorCall = false);
@@ -543,31 +548,9 @@ public:
 	LPCWSTR getReplayMessageText(uint i) const;
 	uint getNumReplayMessages() const;
 	ColorTypes getReplayMessageColor(uint i) const;
-
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
-	virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
 	// <advc>
 	void allGameDataRead();
 	void onGraphicsInitialized(); // </advc>
-	// <advc.003u>
-	inline CvGameAI& AI() {
-		//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
-		/*  The above won't work in an inline function b/c the compiler doesn't know
-			that CvGameAI is derived from CvGame */
-		return *reinterpret_cast<CvGameAI*>(this);
-	}
-	inline CvGameAI const& AI() const {
-		//return *static_cast<CvGameAI const*>(this);
-		return *reinterpret_cast<CvGameAI const*>(this);
-	} // </advc.003u>
-	/*  advc (warning): Mustn't add any pure virtual functions to this class.
-		(Or perhaps adding them at the end would be ok?) */
-	virtual void AI_init() = 0;
-	virtual void AI_reset() = 0;
-	virtual void AI_makeAssignWorkDirty() = 0;
-	virtual void AI_updateAssignWork() = 0;
-	virtual int AI_combatValue(UnitTypes eUnit) /* K-Mod! */ const = 0; 
 
 	CvReplayInfo* getReplayInfo() const;
 	DllExport void setReplayInfo(CvReplayInfo* pReplay);
@@ -660,12 +643,10 @@ public:
 	// <advc.004m>
 	GlobeLayerTypes getCurrentLayer() const;
 	void reportCurrentLayer(GlobeLayerTypes eLayer);		// (exposed to Python)
-	// </advc.004m>
-	// <advc.052>
+	// </advc.004m>  <advc.052>
 	bool isScenario() const;
 	void setScenario(bool b);
-	// </advc.052>
-	// <advc.127b>
+	// </advc.052>  <advc.127b>
 	/*  Returns (-1,-1) if 'vs' doesn't exist in any city or (eObserver!=NO_TEAM)
 		isn't revealed to eObserver */
 	std::pair<int,int> getVoteSourceXY(VoteSourceTypes eVS, TeamTypes eObserver,
@@ -686,6 +667,17 @@ public:
 	// </advc.703>
 	void setHallOfFame(CvHallOfFameInfo* pHallOfFame); // advc.106i
 	std::set<int>& getActivePlayerCycledGroups(); // advc
+	// <advc.003u>
+	__forceinline CvGameAI& AI()
+	{	//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvGameAI is derived from CvGame */
+		return *reinterpret_cast<CvGameAI*>(this);
+	}
+	__forceinline CvGameAI const& AI() const
+	{	//return *static_cast<CvGameAI const*>(this);
+		return *reinterpret_cast<CvGameAI const*>(this);
+	} // </advc.003u>
 
 protected:
 	int m_iElapsedGameTurns;
@@ -755,12 +747,12 @@ protected:
 
 	int m_aiUpdateTimers[NUM_UPDATE_TIMER_TYPES]; // advc.003r
 
-	int* m_aiRankPlayer;		// Ordered by rank...
-	int* m_aiPlayerRank;		// Ordered by player ID...
-	int* m_aiPlayerScore;	   // Ordered by player ID...
-	int* m_aiRankTeam;						// Ordered by rank...
-	int* m_aiTeamRank;						// Ordered by team ID...
-	int* m_aiTeamScore;						// Ordered by team ID...
+	int* m_aiRankPlayer; // Ordered by rank
+	int* m_aiPlayerRank; // Ordered by player ID
+	int* m_aiPlayerScore; // Ordered by player ID
+	int* m_aiRankTeam; // Ordered by rank
+	int* m_aiTeamRank; // Ordered by team ID
+	int* m_aiTeamScore; // Ordered by team ID
 
 	int* m_paiUnitCreatedCount;
 	int* m_paiUnitClassCreatedCount;
@@ -813,13 +805,12 @@ protected:
 		Note: it does not need to be kept in sync for multiplayer games. */
 	std::set<int> m_ActivePlayerCycledGroups; // advc: Was public; public getter added.
 
-	// CACHE: cache frequently used values
-	int		m_iShrineBuildingCount;
-	int*	m_aiShrineBuilding;
-	int*	m_aiShrineReligion;
-
-	int		m_iNumCultureVictoryCities;
-	int		m_eCultureVictoryCultureLevel;
+	// cache some frequently used values
+	int	m_iShrineBuildingCount;
+	int* m_aiShrineBuilding;
+	int* m_aiShrineReligion;
+	int	m_iNumCultureVictoryCities;
+	int	m_eCultureVictoryCultureLevel;
 
 	StartPointsAsHandicap* m_pSpah; // advc.250b
 	RiseFall* m_pRiseFall; // advc.700
@@ -900,6 +891,13 @@ protected:
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
 	void doUpdateCacheOnTurn();
 	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex = -1) const; // advc
+
+private: // advc.003u: (See comments in the private section of CvPlayer.h)
+	//virtual void AI_initExternal();
+	virtual void AI_resetExternal();
+	virtual void AI_makeAssignWorkDirtyExternal();
+	virtual void AI_updateAssignWorkExternal();
+	virtual int AI_combatValueExternal(UnitTypes eUnit);
 };
 
 #endif

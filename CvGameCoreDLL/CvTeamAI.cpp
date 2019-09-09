@@ -1223,6 +1223,183 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 	return iBestVote;
 }
 
+// <advc> Code cut from CvTeam::declareWar in order to reduce entanglement of AI and game rule code
+void CvTeamAI::AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool bPrimaryDoW,
+	PlayerTypes eSponsor) // advc.100
+{
+	CvTeamAI& kTarget = GET_TEAM(eTarget);
+	/*  <advc.104q> At this point, the state counter says how long war has been
+		imminent - that's no longer important once war is declared. Should instead
+		count the war duration. (Note that AI_getAtWarCounter isn't an accurate counter.) */
+	AI_setWarPlanStateCounter(eTarget, 0);
+	kTarget.AI_setWarPlanStateCounter(getID(), 0);
+	// </advc.104q>
+	/*  advc.130h: Moved this loop into AI_preDeclareWar b/c I'm adding code that
+		depends on the atWarWithPartner status before the DoW */
+	// K-Mod. Same functionality as in BtS, but a bit cleaner and a bit faster.
+	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))  // advc.003n: was MAX_PLAYERS
+	{
+		CvPlayerAI& kPlayer_i = GET_PLAYER(i);
+		if (!kPlayer_i.isAlive() || kPlayer_i.getTeam() != getID())
+			continue;
+		// player i is a member of this team.
+
+		for (PlayerTypes j = (PlayerTypes)0; j < MAX_CIV_PLAYERS; j = (PlayerTypes)(j+1)) // advc.003n: was MAX_PLAYERS
+		{
+			CvPlayerAI& kPlayer_j = GET_PLAYER(j);
+			if (!kPlayer_j.isAlive() /* advc.opt: */ || kPlayer_j.isMinorCiv())
+				continue;
+			// <advc.130o>
+			if(bPrimaryDoW && kPlayer_i.isHuman() && !kPlayer_j.isHuman() &&
+					kTarget.AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
+					TEAMREF(j).getMasterTeam() != getMasterTeam() &&
+					kTarget.isHasMet(kPlayer_j.getTeam()))
+			{
+				// Raise it to 8 (or what XML says)
+				int iMemory = kPlayer_j.AI_getMemoryCount(i, MEMORY_MADE_DEMAND_RECENT);
+				int iDelta = GC.getDefineINT("WAR_DESPITE_TRIBUTE_MEMORY");
+				iDelta = std::max(iMemory, iDelta) - iMemory;
+				kPlayer_j.AI_changeMemoryCount(i, MEMORY_MADE_DEMAND_RECENT, iDelta);
+			}
+			if(bPrimaryDoW && i != j)
+				kPlayer_i.AI_setMemoryCount(j, MEMORY_MADE_DEMAND, 0);
+			// </advc.130o>
+			if (kPlayer_j.getTeam() == eTarget)
+			{
+				if(bPrimaryDoW) // advc.130y
+					kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR); // advc.130j
+				// advc.130y:
+				else kPlayer_j.AI_changeMemoryCount(i, MEMORY_DECLARED_WAR, 2);
+			} // advc.130h:
+			if(kPlayer_j.AI_disapprovesOfDoW(getID(), eTarget)) // advc.130j:
+				kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
+		}
+	} // K-Mod end.
+	// <advc.104i>
+	if(eSponsor != NO_PLAYER)
+	{
+		AI_makeUnwillingToTalk(eTarget);
+		if(TEAMREF(eSponsor).isAtWar(eTarget))
+			TEAMREF(eSponsor).AI_makeUnwillingToTalk(eTarget);
+	} // </advc.104i>
+}
+
+void CvTeamAI::AI_postDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan)
+{
+	CvTeamAI& kTarget = GET_TEAM(eTarget);
+
+	AI_setAtPeaceCounter(eTarget, 0);
+	kTarget.AI_setAtPeaceCounter(getID(), 0);
+	AI_setShareWarCounter(eTarget, 0);
+	kTarget.AI_setShareWarCounter(getID(), 0);
+	kTarget.AI_setWarPlan(getID(), (isBarbarian() || isMinorCiv()) ?
+			WARPLAN_ATTACKED : WARPLAN_ATTACKED_RECENT);
+	if (!getWPAI.isEnabled()) // advc.104
+	{
+		for (int i = 0; i < MAX_TEAMS; i++)
+		{
+			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)i);
+			if (!kLoopTeam.isAlive())
+				continue;
+
+			if (!kLoopTeam.isAtWar(eTarget) && kTarget.AI_isChosenWar(kLoopTeam.getID()))
+				kTarget.AI_setWarPlan(kLoopTeam.getID(), NO_WARPLAN);
+		}
+	}
+	if (eWarPlan != NO_WARPLAN)
+		AI_setWarPlan(eTarget, eWarPlan);
+
+	FAssert(!AI_isSneakAttackPreparing(eTarget)
+		/*  advc.104o: Can happen when hired to declare war while preparing.
+			BtS/K-Mod doesn't allow hired war while preparing, but UWAI does.
+			The K-Mod code below already handles WARPLAN_PREPARING_..., so, no problem. */
+			|| getWPAI.isEnabled());
+	if (AI_getWarPlan(eTarget) == NO_WARPLAN || AI_isSneakAttackPreparing(eTarget))
+	{
+		if (isHuman()
+				// K-Mod. (for vassals that have been told to prepare for war)
+				|| AI_getWarPlan(eTarget) == WARPLAN_PREPARING_TOTAL)
+			AI_setWarPlan(eTarget, WARPLAN_TOTAL);
+		else if (isMinorCiv() || isBarbarian() || kTarget.getAtWarCount(true) == 1)
+			AI_setWarPlan(eTarget, WARPLAN_LIMITED);
+		else AI_setWarPlan(eTarget, WARPLAN_DOGPILE);
+	}
+}
+
+
+void CvTeamAI::AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData>* pReparations)
+{
+	CvTeamAI& kTarget = GET_TEAM(eTarget);
+	// <advc.104> Report who won the war before war success is reset
+	warAndPeaceAI().reportWarEnding(eTarget, pReparations, NULL);
+	kTarget.warAndPeaceAI().reportWarEnding(getID(), NULL, pReparations);
+	// </advc.104>
+	/*  <advc.130y> Don't know if they started the war, but, if we did and they had
+		started a war against us some time earlier, we may as well forgive them for
+		that. (If there's no declared-war-on-us memory, then this call has no effect.) */
+	AI_forgiveEnemy(eTarget, isCapitulated(), false);
+	kTarget.AI_forgiveEnemy(getID(), kTarget.isCapitulated(), false);
+	// </advc.130y>  <advc.130i>
+	if (getWPAI.isEnabled() && !isAVassal() && !kTarget.isAVassal())
+	{
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+		{
+			CvPlayerAI& kDPPlayer = GET_PLAYER((PlayerTypes)i);
+			if (!kDPPlayer.isAlive() || kDPPlayer.getTeam() == getID() ||
+					kDPPlayer.getTeam() == eTarget)
+				continue;
+			CvTeam const& kDPTeam = GET_TEAM(kDPPlayer.getTeam());
+			if (!kDPTeam.isDefensivePact(eTarget) && !kDPTeam.isDefensivePact(getID()))
+				continue;
+			FAssert(!kDPTeam.isAVassal());
+			for (int j = 0; j < MAX_CIV_PLAYERS; j++)
+			{
+				CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)j);
+				if(!kMember.isAlive() || (kMember.getTeam() != eTarget &&
+						kMember.getTeam() != getID()))
+					continue;
+				kDPPlayer.AI_setMemoryCount(kMember.getID(), MEMORY_DECLARED_WAR_RECENT, 0);
+				kMember.AI_setMemoryCount(kDPPlayer.getID(), MEMORY_DECLARED_WAR_RECENT, 0);
+			}
+		}
+	} // </advc.130i>	
+}
+
+
+void CvTeamAI::AI_postMakePeace(TeamTypes eTarget)
+{
+	CvTeamAI& kTarget = GET_TEAM(eTarget);
+	AI_setAtWarCounter(eTarget, 0);
+	kTarget.AI_setAtWarCounter(getID(), 0);
+
+	AI_setWarSuccess(eTarget, 0);
+	kTarget.AI_setWarSuccess(getID(), 0);
+
+	AI_setWarPlan(eTarget, NO_WARPLAN);
+	kTarget.AI_setWarPlan(getID(), NO_WARPLAN);
+
+	// K-Mod. update attitude
+	if (!GC.getGame().isFinalInitialized())
+		return;
+
+	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+	{
+		const CvTeam& kTeam_i = GET_TEAM(GET_PLAYER(i).getTeam());
+		if (kTeam_i.getID() == eTarget || kTeam_i.getID() == getID() ||
+			kTeam_i.isAtWar(eTarget) || kTeam_i.isAtWar(getID()))
+		{
+			for (PlayerTypes j = (PlayerTypes)0; j < MAX_CIV_PLAYERS; j=(PlayerTypes)(j+1))
+			{	// <advc.001>
+				if(i == j)
+					continue; // </advc.001>
+				TeamTypes eTeam_j = GET_PLAYER(j).getTeam();
+				if (eTeam_j == eTarget || eTeam_j == getID())
+					GET_PLAYER(i).AI_updateAttitudeCache(j);
+			}
+		}
+	} // K-Mod end
+} // </advc>
+
 // K-Mod. New war evaluation functions. WIP
 // Very rough estimate of what would be gained by conquering the target - in units of Gold/turn (kind of).
 int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
@@ -1797,12 +1974,10 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 }
 // K-Mod end.
 
-/// \brief Relative value of starting a war against eTeam.
-///
-/// This function computes the value of starting a war against eTeam.
-/// The returned value should be compared against other possible targets
-/// to pick the best target.
-
+/*  Relative value of starting a war against eTeam.
+	This function computes the value of starting a war against eTeam.
+	The returned value should be compared against other possible targets
+	to pick the best target. */ // advc.104: UWAI bypasses this function
 // K-Mod. Complete remake of the function.
 int CvTeamAI::AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		bool bConstCache) const // advc.001n
@@ -1852,7 +2027,7 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 	FAssertMsg(isAtWar(eTeam), "Current AI Team instance is expected to be at war with eTeam");
 
-	const CvTeam& kWarTeam = GET_TEAM(eTeam); // K-Mod
+	const CvTeamAI& kWarTeam = GET_TEAM(eTeam); // K-Mod
 
 	int iValue = 100;
 
@@ -2735,7 +2910,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 		{
 			if (iTeam != eTeam && iTeam != getID())
 			{
-				CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
+				CvTeamAI const& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
 				/*  <advc.112> War success of a vassal shouldn't spoil its
 					master's chances of winning another vassal. */
 				if(kLoopTeam.isVassal(eTeam))
@@ -3143,7 +3318,7 @@ int CvTeamAI::AI_getWarSuccessRating() const
 
 	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
-		const CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
+		CvTeamAI const& kLoopTeam = GET_TEAM((TeamTypes)iI);
 		if (iI != getID() && isAtWar((TeamTypes)iI) && kLoopTeam.isAlive() && !kLoopTeam.isAVassal())
 		{
 			int iThisTeamSuccess = AI_getWarSuccess((TeamTypes)iI);
@@ -3482,7 +3657,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 	{	// Accept if we have other wars to fight
 		for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
 		{
-			const CvTeam& kLoopTeam = GET_TEAM(i);
+			CvTeamAI const& kLoopTeam = GET_TEAM(i);
 			if (isAtWar(i) && kLoopTeam.isAlive() && !kLoopTeam.isMinorCiv() &&
 					i != eSurrenderTeam && !kLoopTeam.isVassal(eSurrenderTeam))
 			{
@@ -3759,16 +3934,60 @@ int CvTeamAI::AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const
 }
 
 // <advc.104k> Same procedure as in BtS mostly
-int CvTeamAI::AI_roundTradeVal(int iVal) const {
-
+int CvTeamAI::AI_roundTradeVal(int iVal) const
+{
 	int rem = GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER);
 	iVal -= iVal % rem;
 	/*  Not sure if this lower bound is really needed. The BtS code
 		(see CvPlayerAI::AI_roundTradeVal) doesn't have it. */
-	if(isHuman()) 
+	if (isHuman()) 
 		return std::max(iVal, rem);
 	return iVal;
 } // </advc.104k>
+
+// <advc.104i>
+void CvTeamAI::AI_makeUnwillingToTalk(TeamTypes eOther)
+{
+	if (!getWPAI.isEnabled())
+		return;
+	// No need to make vassals unwilling to talk; can't negotiate war/ peace anyway.
+	if (eOther == NO_TEAM || isAVassal() || GET_TEAM(eOther).isAVassal())
+		return;
+	/*  Make each leading member i of our team unwilling to talk to every
+		leading member j of the other team. "Leading": team leader or human;
+		only these can make peace. */
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		CvPlayerAI& kOurMember = GET_PLAYER((PlayerTypes)i);
+		if(!kOurMember.isAlive() || kOurMember.getTeam() != getID() ||
+				(!kOurMember.isHuman() && kOurMember.getID() != getLeaderID()))
+			continue;
+		for (int j = 0; j < MAX_CIV_PLAYERS; j++)
+		{
+			CvPlayerAI& kTheirMember = GET_PLAYER((PlayerTypes)j);
+			if(!kTheirMember.isAlive() || kTheirMember.getTeam() != eOther ||
+					(!kTheirMember.isHuman() && kTheirMember.getID() !=
+					GET_TEAM(eOther).getLeaderID()))
+				continue;
+			if (!kOurMember.isHuman() &&
+					kOurMember.AI_getMemoryCount(kTheirMember.getID(),
+					MEMORY_DECLARED_WAR_RECENT) < 2)
+			{
+				kOurMember.AI_rememberEvent(kTheirMember.getID(),
+						MEMORY_DECLARED_WAR_RECENT);
+			}
+			/*  Memory has no effect on humans. Make the other side unwilling then.
+				Could simply always make both sides unwilling, but then, the
+				expected RTT duration would become longer. */
+			else if(kOurMember.isHuman() && kTheirMember.AI_getMemoryCount(
+					kOurMember.getID(), MEMORY_DECLARED_WAR_RECENT) < 2)
+			{
+				kTheirMember.AI_rememberEvent(kOurMember.getID(),
+						MEMORY_DECLARED_WAR_RECENT);
+			}
+		}
+	}
+} // </advc.104i>
 
 DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eTeam) const
 {
@@ -4560,7 +4779,7 @@ void CvTeamAI::AI_reportSharedWarSuccess(int iIntensity, TeamTypes eWarAlly,
 			// advc.test: To assert that eEnemy is among our enemies
 			//std::set<TeamTypes> ourEnemies;
 			for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-				CvTeam const& kLoopEnemy = GET_TEAM((TeamTypes)i);
+				CvTeamAI const& kLoopEnemy = GET_TEAM((TeamTypes)i);
 				if(kLoopEnemy.isAlive() && !kLoopEnemy.isMinorCiv() &&
 						isAtWar(kLoopEnemy.getID())) {
 					//ourEnemies.insert(kLoopEnemy.getID()); // advc.test

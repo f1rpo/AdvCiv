@@ -120,7 +120,7 @@ void CvGameAI::AI_updateAssignWork()
 {
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (GET_TEAM(kLoopPlayer.getTeam()).isHuman() && kLoopPlayer.isAlive())
 		{
 			kLoopPlayer.AI_updateAssignWork();
@@ -129,7 +129,7 @@ void CvGameAI::AI_updateAssignWork()
 }
 
 
-int CvGameAI::AI_combatValue(UnitTypes eUnit) const
+int CvGameAI::AI_combatValue(UnitTypes eUnit) /* K-Mod: */ const
 {
 	int iValue = 100;
 

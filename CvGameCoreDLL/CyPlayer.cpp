@@ -4,19 +4,17 @@
 
 #include "CvGameCoreDLL.h"
 #include "CyPlayer.h"
+#include "CvPlayerAI.h"
 #include "CyArea.h"
 #include "CySelectionGroup.h"
-#include "CvPlayerAI.h"
 #include "CvMap.h"
 #include "CvDLLPythonIFaceBase.h"
 
-CyPlayer::CyPlayer() : m_pPlayer(NULL)
-{
-}
-
-CyPlayer::CyPlayer(CvPlayer* pPlayer) : m_pPlayer(pPlayer)
-{
-}
+CyPlayer::CyPlayer() : m_pPlayer(NULL) {}
+CyPlayer::CyPlayer(CvPlayer* pPlayer) : m_pPlayer(
+	pPlayer == NULL ? NULL : &pPlayer->AI()) // advc.003u
+{}
+//CvPlayer* CyPlayer::getPlayer() { return m_pPlayer; } // advc: unused
 
 // CHANGE_PLAYER, 08/27/08. jdog5000:
 void CyPlayer::changeLeader(int /*LeaderHeadTypes*/ eNewLeader)

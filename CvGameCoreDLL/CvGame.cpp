@@ -208,7 +208,7 @@ void CvGame::init(HandicapTypes eHandicap)
 		}
 	}
 
-	AI_init();
+	AI().AI_init();
 
 	doUpdateCacheOnTurn();
 }
@@ -306,7 +306,7 @@ void CvGame::setInitialItems()
 	// </advc.251>
 	for (int i = 0; i < MAX_PLAYERS; ++i)
 	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
+		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if (kPlayer.isAlive())
 			kPlayer.AI_updateFoundValues();
 	}
@@ -744,10 +744,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iNumCultureVictoryCities = 0;
 	m_eCultureVictoryCultureLevel = NO_CULTURELEVEL;
 	m_bScenario = false; // advc.052
+
 	if (!bConstructorCall)
-	{
-		AI_reset();
-	}
+		AI().AI_reset();
+
 	m_ActivePlayerCycledGroups.clear(); // K-Mod
 	m_bInBetweenTurns = false; // advc.106b
 	m_iUnitUpdateAttempts = 0; // advc.001y
@@ -1210,7 +1210,7 @@ void CvGame::assignStartingPlots()
 	std::vector<std::pair<int,int> > startPlots;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
+		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isAlive())
 			continue;
 		CvPlot* p = kPlayer.getStartingPlot();
@@ -1993,7 +1993,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI); // K-Mod
+		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI); // K-Mod
 		// K-Mod note: The following two 'continue' conditions were originally enourmous if blocks. I just changed it for readability.
 
 		if (!kLoopPlayer.isAlive())
@@ -2431,19 +2431,12 @@ void CvGame::update()
 				doTurn();
 			}
 		}
-
 		updateScore();
-
 		updateWar();
-
 		updateMoves();
-
 		updateTimers();
-
 		updateTurnTimer();
-
-		AI_updateAssignWork();
-
+		AI().AI_updateAssignWork();
 		testAlive();
 		AI().warAndPeaceAI().invalidateUICache(); // advc.104l
 		if (getAIAutoPlay() == 0 && !gDLL->GetAutorun() && GAMESTATE_EXTENDED != getGameState())
@@ -2452,10 +2445,10 @@ void CvGame::update()
 					&& !isOption(GAMEOPTION_RISE_FALL)) // advc.707
 				setGameState(GAMESTATE_OVER);
 		}
-
 		changeTurnSlice(1);
 
-		if (NO_PLAYER != getActivePlayer() && GET_PLAYER(getActivePlayer()).getAdvancedStartPoints() >= 0 && !gDLL->getInterfaceIFace()->isInAdvancedStart())
+		if (getActivePlayer() != NO_PLAYER && GET_PLAYER(getActivePlayer()).getAdvancedStartPoints() >= 0 &&
+			!gDLL->getInterfaceIFace()->isInAdvancedStart())
 		{
 			gDLL->getInterfaceIFace()->setInAdvancedStart(true);
 			gDLL->getInterfaceIFace()->setWorldBuilder(true);
@@ -3034,7 +3027,7 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 	CvDeal* pDeal = addDeal();
 	pDeal->init(pDeal->getID(), eWho, eOtherWho);
 	pDeal->addTrades(pOurList, pTheirList, !bForce);
-	if ((pDeal->getLengthFirstTrades() == 0) && (pDeal->getLengthSecondTrades() == 0))
+	if (pDeal->getLengthFirstTrades() == 0 && pDeal->getLengthSecondTrades() == 0)
 	{
 		pDeal->kill();
 		return NULL; // advc.036
@@ -6352,7 +6345,7 @@ void CvGame::castVote(PlayerTypes eOwnerIndex, int iVoteId, PlayerVoteTypes ePla
 		if (kVote.isAssignCity())
 		{
 			FAssert(pTriggeredData->kVoteOption.ePlayer != NO_PLAYER);
-			CvPlayer& kCityPlayer = GET_PLAYER(pTriggeredData->kVoteOption.ePlayer);
+			CvPlayerAI& kCityPlayer = GET_PLAYER(pTriggeredData->kVoteOption.ePlayer);
 
 			if (GET_PLAYER(eOwnerIndex).getTeam() != kCityPlayer.getTeam())
 			{
@@ -6377,7 +6370,7 @@ void CvGame::castVote(PlayerTypes eOwnerIndex, int iVoteId, PlayerVoteTypes ePla
 			{
 				for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 				{
-					CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+					CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 					if (kLoopPlayer.isAlive())
 					{
 						if (kLoopPlayer.getTeam() != GET_PLAYER(eOwnerIndex).getTeam() && kLoopPlayer.getTeam() == (TeamTypes)ePlayerVote)
@@ -8384,7 +8377,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 						CvTeam::queueWar(kLoopPlayer.getTeam(), kPlayer.getTeam(),
 								false, WARPLAN_DOGPILE); // </dlph.26>
 						// advc.104i:
-						GET_TEAM(kPlayer.getTeam()).makeUnwillingToTalk(kLoopPlayer.getTeam());
+						GET_TEAM(kPlayer.getTeam()).AI_makeUnwillingToTalk(kLoopPlayer.getTeam());
 					}
 				}
 			}

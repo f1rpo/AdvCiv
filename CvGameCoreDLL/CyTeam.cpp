@@ -7,13 +7,13 @@
 #include "CvTeamAI.h"
 #include "CyArea.h"
 
-CyTeam::CyTeam() : m_pTeam(NULL)
-{
-}
+CyTeam::CyTeam() : m_pTeam(NULL) {}
 
-CyTeam::CyTeam(CvTeam* pTeam) : m_pTeam(pTeam)
-{
-}
+CyTeam::CyTeam(CvTeam* pTeam) : m_pTeam(
+	pTeam == NULL ? NULL : &pTeam->AI()) // advc.003u
+{}
+
+//CvTeam* CyTeam::getTeam() { return m_pTeam; } // advc: unused
 
 void CyTeam::addTeam(int /*TeamTypes*/ eTeam)
 {

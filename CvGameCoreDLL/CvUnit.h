@@ -397,7 +397,7 @@ public:
 	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); } // advc.003f: inline																														// Exposed to Python
 	bool isGroupHead() const;																								// Exposed to Python
 	DllExport CvSelectionGroup* getGroup() const;																			// Exposed to Python
-	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup) const;
+	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const;
 	void joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected = false, bool bRejoin = true);
 
 	DllExport int getHotKeyNumber();																													// Exposed to Python
@@ -742,14 +742,14 @@ public:
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 	// <advc.003u>
-	inline CvUnitAI& AI() {
-		//return *static_cast<CvUnitAI*>(const_cast<CvUnit*>(this));
+	__forceinline CvUnitAI& AI()
+	{	//return *static_cast<CvUnitAI*>(const_cast<CvUnit*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvUnitAI is derived from CvUnit */
 		return *reinterpret_cast<CvUnitAI*>(this);
 	}
-	inline CvUnitAI const& AI() const {
-		//return *static_cast<CvUnitAI const*>(this);
+	__forceinline CvUnitAI const& AI() const
+	{	//return *static_cast<CvUnitAI const*>(this);
 		return *reinterpret_cast<CvUnitAI const*>(this);
 	}
 	/*  Keep one pure virtual function to make the class abstract; remove all

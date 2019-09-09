@@ -14,6 +14,7 @@
 // 2 - Many decisions
 // 3 - All logging
 #ifdef LOG_AI
+#define gLogBBAI true // advc.007: So that LOG_AI can be checked in FAssert
 #define gPlayerLogLevel		3
 #define gTeamLogLevel		3
 #define gCityLogLevel		3
@@ -21,6 +22,7 @@
 #define gMapLogLevel		3 // K-Mod
 #define gDealCancelLogLevel 1 // advc.133
 #else
+#define gLogBBAI false // advc.007
 #define gPlayerLogLevel		0
 #define gTeamLogLevel		0
 #define gCityLogLevel		0

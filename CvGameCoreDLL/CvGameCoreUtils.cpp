@@ -3,6 +3,7 @@
 #include "CvGamePlay.h"
 #include "CvMap.h"
 #include "FAStarNode.h"
+#include "BBAILog.h" // advc.007
 #include "CvInfo_All.h"
 
 using std::vector; // advc
@@ -1665,7 +1666,7 @@ bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner
 	CvCity* pCity = GET_PLAYER((PlayerTypes)iCityOwner).getCity(iCity);
 	if(pCity == NULL || pUnit->isCargo())
 		return false;
-	CvPlot* pMissionPlot = pUnit->getGroup()->AI_getMissionAIPlot();
+	CvPlot* pMissionPlot = pUnit->AI().AI_getGroup()->AI_getMissionAIPlot();
 	if(pMissionPlot == NULL)
 		pMissionPlot = pUnit->plot();
 	return (pMissionPlot->getWorkingCity() == pCity);
@@ -1694,7 +1695,7 @@ bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iD
 // K-Mod
 bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2)
 {
-	return pUnit->getGroup()->AI_getMissionAIType() == iData1;
+	return pUnit->AI().AI_getGroup()->AI_getMissionAIType() == iData1;
 }
 
 bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2)
@@ -1751,7 +1752,7 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 	if (pSelectionGroup->getDomainType() == DOMAIN_IMMOBILE)
 		return FALSE;
 
-	bool bAIControl = pSelectionGroup->AI_isControlled();
+	bool const bAIControl = pSelectionGroup->AI_isControlled();
 
 	if (bAIControl)
 	{	/*  BETTER_BTS_AI_MOD, Efficiency, 11/04/09, jdog5000: START
@@ -1984,7 +1985,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// So let the AI prefer diagonal movement.
 	// However, diagonal zig-zags will probably seem unnatural and weird to humans who are just trying to move in a straight line.
 	// So let the pathfinding for human groups prefer cardinal movement.
-	bool bAIControl = pSelectionGroup->AI_isControlled();
+	bool const bAIControl = pSelectionGroup->AI_isControlled();
 	if (bAIControl)
 	{
 		if (kFromPlot.getX() == kToPlot.getX() || kFromPlot.getY() == kToPlot.getY())
@@ -2037,7 +2038,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		if (iEnemyDefence > 0)
 		{
 			iWorstCost += PATH_COMBAT_WEIGHT;
-			int iAttackRatio = std::max(10, 100 * pSelectionGroup->AI_sumStrength(&kToPlot) / iEnemyDefence);
+			int iAttackRatio = std::max(10, 100 * pSelectionGroup->AI().AI_sumStrength(&kToPlot) / iEnemyDefence);
 			// Note. I half intend to have pathValid return false whenever the above ratio is less than 100.
 			// I just haven't done that yet, mostly because I'm worried about performance.
 			if (iAttackRatio < 400)
@@ -2250,7 +2251,7 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 			atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))
 		return FALSE;
 
-	bool bAIControl = pSelectionGroup->AI_isControlled();
+	bool const bAIControl = pSelectionGroup->AI_isControlled();
 	if (bAIControl)
 	{
 		if (parent->m_iData2 > 1 || parent->m_iData1 == 0)
@@ -2919,7 +2920,7 @@ void getDirectionTypeString(CvWString& szString, DirectionTypes eDirectionType)
 	/*  advc.007: Turned this comment
 		"these string functions should only be used under chipotle cheat code (not internationalized)"
 		into an assertion: */
-	FAssertMsg(GC.getGame().isDebugMode(), "getDirectionTypeString should only be used for Debug output");
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getDirectionTypeString should only be used for Debug output");
 	switch (eDirectionType)
 	{
 	case NO_DIRECTION: szString = L"NO_DIRECTION"; break;
@@ -2945,7 +2946,7 @@ void getCardinalDirectionTypeString(CvWString& szString, CardinalDirectionTypes 
 // advc.007: Removed the "ACTIVITY_" prefix from the strings b/c it takes up too much space.
 void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 {
-	FAssertMsg(GC.getGame().isDebugMode(), "getActivityTypeString should only be used for Debug output"); // advc.007
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getActivityTypeString should only be used for Debug output"); // advc.007
 	switch (eActivityType)
 	{
 	case NO_ACTIVITY: szString = L"NO_ACTIVITY"; break;
@@ -2974,7 +2975,7 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 
 void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 {
-	FAssertMsg(GC.getGame().isDebugMode(), "getMissionTypeString should only be used for Debug output"); // advc.007
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getMissionTypeString should only be used for Debug output"); // advc.007
 	switch (eMissionType)
 	{
 	case NO_MISSION: szString = L"NO_MISSION"; break;
@@ -3035,7 +3036,7 @@ void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 // advc.007: Removed the "MISSIONAI_" prefix from the strings b/c it takes up too much space.
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 {
-	FAssertMsg(GC.getGame().isDebugMode(), "getMissionAIString should only be used for Debug output"); // advc.007
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getMissionAIString should only be used for Debug output"); // advc.007
 	switch (eMissionAI)
 	{
 	case NO_MISSIONAI: szString = L"NO_MISSIONAI"; break;
@@ -3080,14 +3081,13 @@ void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 	mission_string(MISSIONAI_STRANDED)
 #undef mission_string
 // K-Mod end
-
 	default: szString = CvWString::format(L"UNKOWN_MISSION_AI(%d)", eMissionAI); break;
 	}
 }
 
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI)
 {
-	FAssertMsg(GC.getGame().isDebugMode(), "getUnitAIString should only be used for Debug output"); // advc.007
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getUnitAIString should only be used for Debug output"); // advc.007
 
 	// note, GC.getUnitAIInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
 

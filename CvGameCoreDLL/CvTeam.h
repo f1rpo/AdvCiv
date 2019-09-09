@@ -13,23 +13,17 @@ class CvArea;
 class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
 public:
+	// <dlph.26>
+	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
+			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
+	static void triggerWars(/* advc: */ bool bForceUpdateAttitude = false);
+	// </dlph.26>
 
 	CvTeam();
 	virtual ~CvTeam();
 
 	DllExport void init(TeamTypes eID);
 	DllExport void reset(TeamTypes eID = NO_TEAM, bool bConstructorCall = false);
-
-protected:
-
-	void uninit();
-
-public:
-	// <dlph.26>
-	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
-			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
-	static void triggerWars(/* advc: */ bool bForceUpdateAttitude = false);
-	// </dlph.26>
 
 	void resetPlotAndCityData(); // BETTER_BTS_AI_MOD, 12/30/08, jdog5000
 	void addTeam(TeamTypes eTeam);																								// Exposed to Python
@@ -50,7 +44,7 @@ public:
 			bool bPrimaryDoW = true, // K-Mod added bPrimaryDoW, Exposed to Python
 			PlayerTypes eSponsor = NO_PLAYER, // advc.100
 			bool bRandomEvent = false); // advc.106g
-	void makePeace(TeamTypes eTeam, bool bBumpUnits = true,																		// Exposed to Python
+	void makePeace(TeamTypes eTarget, bool bBumpUnits = true,																		// Exposed to Python
 			TeamTypes eBroker = NO_TEAM, // advc.100b
 			bool bCapitulate = false, // advc.034
 			CLinkList<TradeData>* pReparations = NULL, // advc.039
@@ -114,7 +108,7 @@ public:
 	int countNumAIUnitsByArea(CvArea* pArea, UnitAITypes eUnitAI) const;								// Exposed to Python
 	int countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam = NO_TEAM) const;																		// Exposed to Python
 	EraTypes getCurrentEra() const; // advc.112b
-	// K-Mod
+	// K-Mod:
 	int getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain = NO_DOMAIN) const;
 
 	int getResearchCost(TechTypes eTech, bool bGlobalModifiers = true, bool bTeamSizeModifiers = true) const; // (K-Mod added bools) Exposed to Python
@@ -132,9 +126,9 @@ public:
 	// <advc.003m> cached
 	inline bool isMinorCiv() const { return m_bMinorTeam; }																							// Exposed to Python
 	void updateMinorCiv() { m_bMinorTeam = checkMinorCiv(); }
-	// </advc.003m>
-	PlayerTypes getLeaderID() const;																										// Exposed to Python
-	void updateLeaderID(); // advc.opt
+	// </advc.003m>  <advc.opt> This gets called a lot. Now precomputed.
+	PlayerTypes getLeaderID() const { return m_eLeader; }																					// Exposed to Python
+	void updateLeaderID(); // </advc.opt>
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
 	HandicapTypes getHandicapType() const;																							// Exposed to Python
 	CvWString getName() const;																								// Exposed to Python
@@ -252,9 +246,8 @@ public:
 	bool isHasMet(TeamTypes eIndex) const;																		// Exposed to Python
 	void makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 			FirstContactData* pData = NULL); // advc.071
-	// K-Mod
-	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen[eIndex]; };
-	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen[eIndex] = true; }; // K-Mod end
+	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen[eIndex]; }; // K-Mod
+	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen[eIndex] = true; }; // K-Mod
 	// <advc.134a>
 	bool isAtWarExternal(TeamTypes eIndex) const; // Exported through .def file
 	inline bool isAtWar(TeamTypes eIndex) const																	// Exposed to Python
@@ -391,7 +384,6 @@ public:
 
 	void setForceRevealedBonus(BonusTypes eBonus, bool bRevealed);
 	bool isForceRevealedBonus(BonusTypes eBonus) const;
-
 	bool isBonusRevealed(BonusTypes eBonus) const; // K-Mod. (the definitive answer)
 
 	void revealSurroundingPlots(CvPlot const& kCenter, int iRange) const; // advc.108
@@ -414,55 +406,24 @@ public:
 	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
 	CvCity* getLeaderCapital(TeamTypes eObserver, bool bDebug = false) const;
 	// </advc.127b>
-	void makeUnwillingToTalk(TeamTypes eOther); // advc.104i
-
-	// <advc.003u> A bit nicer than GET_TEAM(getID())
-	inline CvTeamAI& AI() {
-		//return *static_cast<CvTeamAI*>(const_cast<CvTeam*>(this));
+	// <advc.003u>
+	__forceinline CvTeamAI& AI()
+	{	//return *static_cast<CvTeamAI*>(const_cast<CvTeam*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvTeamAI is derived from CvTeam */
 		return *reinterpret_cast<CvTeamAI*>(this);
 	}
-	inline CvTeamAI const& AI() const {
-		//return *static_cast<CvTeamAI const*>(this);
+	__forceinline CvTeamAI const& AI() const
+	{	//return *static_cast<CvTeamAI const*>(this);
 		return *reinterpret_cast<CvTeamAI const*>(this);
 	} // </advc.003u>
 
-	virtual void AI_init() = 0;
-	virtual void AI_reset(bool bConstructor) = 0;
-	virtual void AI_doTurnPre() = 0;
-	virtual void AI_doTurnPost() = 0;
-	virtual void AI_makeAssignWorkDirty() = 0;
-	virtual void AI_updateAreaStrategies(bool bTargets = true) = 0;
-	virtual bool AI_shareWar(TeamTypes eTeam) const = 0;								// Exposed to Python
-	virtual void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade = true) = 0;
-	virtual int AI_getAtWarCounter(TeamTypes eIndex) const = 0;							// Exposed to Python
-	virtual void AI_setAtWarCounter(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getAtPeaceCounter(TeamTypes eIndex) const = 0;
-	virtual void AI_setAtPeaceCounter(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getHasMetCounter(TeamTypes eIndex) const = 0;
-	virtual void AI_setHasMetCounter(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getOpenBordersCounter(TeamTypes eIndex) const = 0;
-	virtual void AI_setOpenBordersCounter(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getDefensivePactCounter(TeamTypes eIndex) const = 0;
-	virtual void AI_setDefensivePactCounter(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getShareWarCounter(TeamTypes eIndex) const = 0;
-	virtual void AI_setShareWarCounter(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getWarSuccess(TeamTypes eIndex) const = 0;							 // Exposed to Python
-	virtual void AI_setWarSuccess(TeamTypes eIndex, int iNewValue) = 0;
-	virtual void AI_changeWarSuccess(TeamTypes eIndex, int iChange) = 0;
-	virtual int AI_getEnemyPeacetimeTradeValue(TeamTypes eIndex) const = 0;
-	virtual void AI_setEnemyPeacetimeTradeValue(TeamTypes eIndex, int iNewValue) = 0;
-	virtual int AI_getEnemyPeacetimeGrantValue(TeamTypes eIndex) const = 0;
-	virtual void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue) = 0;
-	virtual WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const = 0;
-	virtual bool AI_isChosenWar(TeamTypes eIndex) const = 0;
-	virtual bool AI_isSneakAttackPreparing(TeamTypes eIndex) const = 0;
-	virtual bool AI_isSneakAttackReady(TeamTypes eIndex) const = 0;
-	virtual void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true) = 0;
-	// advc (warning): Mustn't add virtual functions to this class
-
 protected:
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
+	// advc.003u: Keep one pure virtual function so that this class is abstract
+	virtual void AI_makeAssignWorkDirty() = 0;
+	// advc.003u: See the comments in the private section of CvPlayer.h before adding any virtual functions!
 
 	TeamTypes m_eID; // advc: Moved here for easier access in the debugger
 	int m_iNumMembers;
@@ -559,6 +520,8 @@ protected:
 	static bool bTriggeringWars;
 	// </dlph.26>
 
+	void uninit();
+
 	void doWarWeariness();
 	void doBarbarianResearch(); // advc
 	void updateTechShare(TechTypes eTech);
@@ -582,8 +545,43 @@ protected:
 			PlayerTypes eDiscoverPlayer, // advc.156
 			bool bPartial = false);
 
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
+private: // advc.003u: (See comments in the private section of CvPlayer.h)
+	/*virtual void AI_initExternal();
+	virtual void AI_resetExternal(bool bConstructor);
+	virtual void AI_doTurnPreExternal();*/
+	virtual void AI_doTurnPostExternal();
+	virtual void AI_makeAssignWorkDirtyExternal();
+	virtual void AI_updateAreaStrategiesExternal(
+			bool bTargets = true);
+	virtual bool AI_shareWarExternal(TeamTypes eTeam);
+	virtual void AI_updateWorstEnemyExternal();
+	virtual int AI_getAtWarCounterExternal(TeamTypes eIndex);
+	virtual void AI_setAtWarCounterExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getAtPeaceCounterExternal(TeamTypes eIndex);
+	virtual void AI_setAtPeaceCounterExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getHasMetCounterExternal(TeamTypes eIndex);
+	virtual void AI_setHasMetCounterExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getOpenBordersCounterExternal(TeamTypes eIndex);
+	virtual void AI_setOpenBordersCounterExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getDefensivePactCounterExternal(TeamTypes eIndex);
+	virtual void AI_setDefensivePactCounterExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getShareWarCounterExternal(TeamTypes eIndex);
+	virtual void AI_setShareWarCounterExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getWarSuccessExternal(TeamTypes eIndex);
+	virtual void AI_setWarSuccessExternal(TeamTypes eIndex, int iNewValue);
+	virtual void AI_changeWarSuccessExternal(TeamTypes eIndex, int iChange);
+	virtual int AI_getEnemyPeacetimeTradeValueExternal(TeamTypes eIndex);
+	virtual void AI_setEnemyPeacetimeTradeValueExternal(TeamTypes eIndex, int iNewValue);
+	virtual int AI_getEnemyPeacetimeGrantValueExternal(TeamTypes eIndex);
+	virtual void AI_setEnemyPeacetimeGrantValueExternal(TeamTypes eIndex, int iNewValue);
+	virtual WarPlanTypes AI_getWarPlanExternal(TeamTypes eIndex);
+	virtual bool AI_isChosenWarExternal(TeamTypes eIndex);
+	virtual bool AI_isSneakAttackPreparingExternal(TeamTypes eIndex);
+	virtual bool AI_isSneakAttackReadyExternal(TeamTypes eIndex);
+	virtual void AI_setWarPlanExternal(TeamTypes eIndex, WarPlanTypes eNewValue,
+			bool bWar = true);
+	virtual void readExternal(FDataStreamBase* pStream);
+	virtual void writeExternal(FDataStreamBase* pStream);
 };
 
 #endif

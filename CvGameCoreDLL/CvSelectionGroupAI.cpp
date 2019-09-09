@@ -302,29 +302,22 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 {
 	PROFILE_FUNC();
 
-	CvUnit* pAttacker;
-
 	FAssert(getOwner() != NO_PLAYER);
 	//if (pPlot->getBestDefender(NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy) == NULL)
 	// BETTER_BTS_AI_MOD, Efficiency, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
 	if (!pPlot->hasDefender(false, NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy))
-	{
 		return 100;
-	}
 
 	int iOdds = 0;
-	pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
-
+	CvUnit* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
 	if (pAttacker == NULL)
-	{
 		return 0;
-	}
 
 	return iOdds;
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
+CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 		bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz,
 		// <advc.048>
 		bool bSacrifice, bool bMaxSurvival) const
@@ -335,7 +328,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 
 	int iBestValue = 0;
 	int iBestOdds = 0;
-	CvUnit* pBestUnit = NULL;
+	CvUnitAI* pBestUnit = NULL;
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	bool bHuman = (pUnitNode == NULL ? true :
@@ -407,11 +400,14 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	}
 	iUnitOdds = iBestOdds;
 	// <advc.048> Cut from CvSelectionGroup::groupAttack
-	if(bSacrifice) {
-		if(iUnitOdds < iOddsThresh) {
-			CvUnit* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
+	if(bSacrifice)
+	{
+		if(iUnitOdds < iOddsThresh)
+		{
+			CvUnitAI* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
 					bPotentialEnemy, bForce, /* advc.164: */ bNoBlitz);
-			if(pBestSacrifice != NULL) {
+			if(pBestSacrifice != NULL)
+			{
 				pBestUnit = pBestSacrifice;
 				/*  I.e. caller mustn't use these odds. Don't want to compute them here
 					if the caller doesn't need them. */
@@ -422,7 +418,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	return pBestUnit;
 }
 
-CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
+CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 		bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
 {
 	int iBestValue = -1; // advc.048: was 0
@@ -747,21 +743,9 @@ CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot() /* advc: */ const
 }
 
 
-bool CvSelectionGroupAI::AI_isForceSeparate()
+bool CvSelectionGroupAI::AI_isForceSeparate() /* advc: */ const
 {
 	return m_bForceSeparate;
-}
-
-
-/* void CvSelectionGroupAI::AI_makeForceSeparate()
-{
-	m_bForceSeparate = true;
-} */
-
-
-MissionAITypes CvSelectionGroupAI::AI_getMissionAIType() const
-{
-	return m_eMissionAIType;
 }
 
 
@@ -794,9 +778,9 @@ void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* p
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc: */ const
+CvUnitAI* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc: */ const
 {
-	return ::getUnit(m_missionAIUnit);
+	return ::AI_getUnit(m_missionAIUnit);
 }
 
 bool CvSelectionGroupAI::AI_isFull()
@@ -857,7 +841,7 @@ bool CvSelectionGroupAI::AI_isFull()
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
+CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 {
 	CvUnitAI* pBestUnit = NULL;
 	int iBestUnitValue = 0;

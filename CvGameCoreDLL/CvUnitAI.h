@@ -37,13 +37,13 @@ public:
 
 	inline int AI_getBirthmark() const { return m_iBirthmark; }
 	void AI_setBirthmark(int iNewValue);
-
-	UnitAITypes AI_getUnitAIType() const;																				// Exposed to Python
+	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.003f: inline (now that it's no longer virtual)			// Exposed to Python
 	void AI_setUnitAIType(UnitAITypes eNewValue);
+	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
 
 	int AI_sacrificeValue(const CvPlot* pPlot) const;
 	// Lead From Behind by UncutDragon (edited for K-Mod):
-	void LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue);
+	void LFBgetBetterAttacker(CvUnitAI** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue);
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
@@ -120,7 +120,6 @@ protected:
 	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT,
 			// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000:
 			int iMaxTransportPath = MAX_INT);
-	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
 
 	bool AI_guardCityBestDefender();
 	bool AI_guardCityOnlyDefender(); // K-Mod
@@ -317,7 +316,7 @@ protected:
 	int AI_getEspionageTargetValue(CvPlot* pPlot); // K-Mod
 
 	bool AI_canGroupWithAIType(UnitAITypes eUnitAI) const;
-	bool AI_allowGroup(const CvUnit* pUnit, UnitAITypes eUnitAI) const;
+	bool AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const;
 	bool AI_moveSettlerToCoast(int iMaxPathTurns = 5); // advc.040
 
 	// added so under cheat mode we can call protected functions for testing

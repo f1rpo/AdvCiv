@@ -972,13 +972,13 @@ public:
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 	// <advc.003u>
-	inline CvCityAI& AI()
+	__forceinline CvCityAI& AI()
 	{	//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvCityAI is derived from CvCity */
 		return *reinterpret_cast<CvCityAI*>(this);
 	}
-	inline CvCityAI const& AI() const
+	__forceinline CvCityAI const& AI() const
 	{	//return *static_cast<CvCityAI const*>(this);
 		return *reinterpret_cast<CvCityAI const*>(this);
 	}
