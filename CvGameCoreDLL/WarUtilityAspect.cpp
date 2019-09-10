@@ -2625,7 +2625,7 @@ void Risk::evaluate() {
 	double fromNukes = 400 * lossesFromNukes(weId, theyId);
 	double const scareCost = 28;
 	if(they->getNumNukeUnits() > 0 && m->getWarsDeclaredBy(weId).count(theyId) > 0 &&
-			TEAMREF(theyId).getAtWarCount() <= 0 && fromNukes <= scareCost) {
+			TEAMREF(theyId).getNumWars() <= 0 && fromNukes <= scareCost) {
 		log("Nuke cost raised to %d for fear", ::round(scareCost));
 		fromNukes = scareCost;
 	}
@@ -3377,7 +3377,7 @@ void FairPlay::evaluate() {
 		else if(TEAMREF(theyId).AI_shareWar(other.getTeam())) {
 			log("An ally of %s: %s", report.leaderName(theyId),
 					report.leaderName(other.getID()));
-			otherEnemies -= 1.0 / std::max(1, GET_TEAM(other.getTeam()).getAtWarCount(true, true));
+			otherEnemies -= 1.0 / std::max(1, GET_TEAM(other.getTeam()).getNumWars(true, true));
 		}
 		if(other.AI_getMemoryAttitude(theyId,
 				MEMORY_DECLARED_WAR) <= -2) {
@@ -3464,7 +3464,7 @@ void FairPlay::evaluate() {
 	}
 	// If no cities gained nor lost, at least don't DoW in quick succession.
 	else if(they->getNumCities() == theyFounded) {
-		int fromRecentDoW = 35 * TEAMREF(theyId).getWarPlanCount(WARPLAN_ATTACKED_RECENT);
+		int fromRecentDoW = 35 * TEAMREF(theyId).AI_getNumWarPlans(WARPLAN_ATTACKED_RECENT);
 		log("From recent DoW: %d", fromRecentDoW);
 		uMinus += fromRecentDoW;
 	}
@@ -3497,7 +3497,7 @@ void Bellicosity::evaluate() {
 			!agent.warAndPeaceAI().canReach(TEAMID(theyId)))
 		return;
 	// One war is enough
-	if(agent.getAtWarCount() > 0 && !agent.isAtWar(TEAMID(theyId)))
+	if(agent.getNumWars() > 0 && !agent.isAtWar(TEAMID(theyId)))
 		return;
 	/*  This is what makes units attack against the odds. 6 for Napoleon and Ragnar,
 		4 for Alexander, Boudica, Brennus, Genghis, Gilgamesh, Hannibal, Montezuma,

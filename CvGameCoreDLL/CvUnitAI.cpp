@@ -1858,7 +1858,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 		bCanRoute = false; // advc.113: Don't try again
 	}
 	double prLoad = 0; // advc.113: Needed for the scrap decision
-	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getAtWarCount(true) == 0))
+	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getNumWars() <= 0))
 	{
 		if (!isHuman() || getGameTurnCreated() < GC.getGame().getGameTurn())
 		{
@@ -2558,7 +2558,7 @@ void CvUnitAI::AI_attackMove()
 					return;
 				}
 
-				if (GET_TEAM(getTeam()).getAtWarCount(true) > 0 && !getGroup()->isHasPathToAreaEnemyCity())
+				if (GET_TEAM(getTeam()).getNumWars() > 0 && !getGroup()->isHasPathToAreaEnemyCity())
 				{
 					if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT, NO_UNITAI, -1, -1, -1, -1, MOVE_SAFE_TERRITORY, 4))
 					{
@@ -2828,7 +2828,7 @@ void CvUnitAI::AI_attackCityMove()
 		decide on the proper size of the attack stack. But if there is nothing else
 		to attack, it's easy. */
 	bool bHuntOnlyBarbs = (bHuntBarbs && !GET_TEAM(getTeam()).AI_isSneakAttackReady() &&
-			GET_TEAM(getTeam()).getAtWarCount() <= 0);
+			GET_TEAM(getTeam()).getNumWars() <= 0);
 	if(!bTurtle) {
 		int iGroupSz = getGroup()->getNumUnits();
 		if(!bHuntOnlyBarbs && iGroupSz >= AI_stackOfDoomExtra())
@@ -3312,7 +3312,7 @@ void CvUnitAI::AI_attackCityMove()
 
 	if (bReadyToAttack)
 	{	// advc.opt: Moved into the bReadyToAttack branch
-		bool bAnyWarPlan = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
+		bool bAnyWarPlan = GET_TEAM(getTeam()).AI_isAnyWarPlan();
 		/* BBAI code
 		if (isBarbarian()) {
 			if (AI_goToTargetCity(iMoveFlags, 12))
@@ -3437,7 +3437,7 @@ void CvUnitAI::AI_attackCityMove()
 							(it's a pretty ugly function, so I /hope/ we don't need it.) */
 						FAssertMsg(false, "AI_attackCityMove is resorting to AI_solveBlockageProblem");
 						if (AI_solveBlockageProblem(pAreaTargetCity->plot(),
-								(GET_TEAM(getTeam()).getAtWarCount(true) == 0)))
+								(GET_TEAM(getTeam()).getNumWars() <= 0)))
 							return;
 						// advc.006:
 						FAssertMsg(false, "AI_solveBlockageProblem returned false");
@@ -3503,7 +3503,7 @@ void CvUnitAI::AI_attackCityMove()
 
 	if (plot()->getOwner() == getOwner() && bLandWar)
 	{
-		if ((GET_TEAM(getTeam()).getAtWarCount(true) > 0))
+		if (GET_TEAM(getTeam()).getNumWars() > 0)
 		{
 			// if no land path to enemy cities, try getting there another way
 			if (AI_offensiveAirlift())
@@ -4684,7 +4684,7 @@ void CvUnitAI::AI_missionaryMove()
 		return;
 	}
 
-	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getAtWarCount(true) == 0))
+	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getNumWars() <= 0))
 	{
 		if (!isHuman() || (getGameTurnCreated() < GC.getGame().getGameTurn()))
 		{
@@ -6805,7 +6805,7 @@ void CvUnitAI::AI_assaultSeaMove()
 
 	bool bReinforce = false;
 	bool bAttack = false;
-	bool bNoWarPlans = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) == 0);
+	bool bNoWarPlans = !GET_TEAM(getTeam()).AI_isAnyWarPlan();
 	bool bAttackBarbarian = false;
 	//bool bLandWar = false;
 	bool bBarbarian = isBarbarian();
@@ -19166,7 +19166,7 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot* pPlot)
 		return 0;
 	}
 
-	bool bAnyWar = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
+	bool bAnyWar = GET_TEAM(getTeam()).AI_isAnyWarPlan();
 
 	int iValue = 0;
 
@@ -22056,7 +22056,7 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 	// A little extra for naval assault
 	if(area()->getAreaAIType(kOurTeam.getID()) == AREAAI_ASSAULT)
 		mult += 0.225;
-	if(kOurTeam.getWarPlanCount(WARPLAN_TOTAL) <= 0)
+	if(kOurTeam.AI_getNumWarPlans(WARPLAN_TOTAL) <= 0)
 		mult *= 0.85;
 	r = ::round(mult * r);
 	FAssert(r > 0);

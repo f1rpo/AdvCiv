@@ -4988,7 +4988,7 @@ bool CvUnit::canPlunder(const CvPlot* pPlot, bool bTestVisible) const
 		// </advc.033>
 	}
 	// <advc.033>
-	if(!bPirate && GET_TEAM(getTeam()).getAtWarCount(false, true) <= 0)
+	if(!bPirate && GET_TEAM(getTeam()).getNumWars(false, true) <= 0)
 		return false; // </advc.033>
 
 	return true;

@@ -117,10 +117,12 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				/* If neither side can reach the other, the war doesn't count
 				   because it doesn't (or shouldn't) lead to additional buildup. */
 				reachEither) {
-			iWars++;
-			if(iWars <= 1)
-				singleWarEnemy = loopTeam.getID();
-			else singleWarEnemy = NO_TEAM;
+			if(!loopTeam.isAVassal()) {
+				iWars++;
+				if(iWars <= 1)
+					singleWarEnemy = loopTeam.getID();
+				else singleWarEnemy = NO_TEAM;
+			}
 			if(intensity == NORMAL)
 				intensity = INCREASED;
 			// t recently attacked by loopTeam
@@ -144,7 +146,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				iTotalWars++;
 		}
 	}
-	int iWarPlans = t.getAnyWarPlanCount(true);
+	int iWarPlans = t.AI_countWarPlans();
 	/*  Assume that we don't pursue any (aggressive) war preparations in the
 		peace scenario. (Should only be relevant when considering an immediate DoW,
 		e.g. on request of another civ, while already planning war. I think the
@@ -173,7 +175,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   Must definitely be disregarded for weId b/c the war preparations
 			   currently under consideration may lead to abandonment of
 			   concurrent war preparations. */
-			(t.getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0 &&
+			(t.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 &&
 			master != ourMaster))
 		intensity = FULL;
 	bool attackedUnprepared = attackedRecently && iWarPlans == 0;

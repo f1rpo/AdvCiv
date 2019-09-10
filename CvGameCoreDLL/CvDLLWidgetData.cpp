@@ -3791,8 +3791,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		}
 	}
 
-	// double space if had any war
-	if (kTeam.getAnyWarPlanCount(true) > 0)
+	if (kTeam.AI_isAnyWarPlan()) // double space if had any war
 	{
 		int iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent();
 		szBuffer.append(CvWString::format(SETCOLR L"\nEnemy Power Percent: %d" ENDCOLR, TEXT_COLOR((iEnemyPowerPercent < 100) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), iEnemyPowerPercent));
@@ -3803,7 +3802,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		int iWarSuccessRating = kTeam.AI_getWarSuccessRating();
 		szBuffer.append(CvWString::format(SETCOLR L"\nWar Success Ratio: %d" ENDCOLR, TEXT_COLOR((iWarSuccessRating > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), iWarSuccessRating));
 	}
-	if (bHadAny || kTeam.getAnyWarPlanCount(true) > 0)
+	if (bHadAny || kTeam.AI_isAnyWarPlan())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(NEWLINE);
@@ -3946,7 +3945,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 
 	// team power (if agressive, we use higher value)
 	int iTeamPower = kTeam.getPower(true);
-	if (bAggressive && kTeam.getAnyWarPlanCount(true) == 0)
+	if (bAggressive && !kTeam.AI_isAnyWarPlan())
 	{
 		iTeamPower *= 4;
 		iTeamPower /= 3;

@@ -19,6 +19,7 @@ public:
 		return m_aTeams[eTeam];
 	}
 	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam);
+	static bool AI_isChosenWarPlan(WarPlanTypes eWarPlanType); // advc.105
 	static void initStatics();
 	static void freeStatics();
 
@@ -207,11 +208,25 @@ public:
 	void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
 
-	WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const;
+	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.003f: inline
+	{
+		FASSERT_BOUNDS(0, MAX_TEAMS, eIndex, "CvTeamAI::AI_getWarPlan");
+		return m_aeWarPlan[eIndex];
+	}
 	bool AI_isChosenWar(TeamTypes eIndex) const;
-	bool isAnyChosenWar() const; // advc.105
-	bool AI_isSneakAttackReady(TeamTypes eIndex
-			= NO_TEAM) const; // K-Mod (any team)
+	bool AI_isAnyChosenWar() const; // advc.105
+	int AI_countChosenWars(bool bIgnoreMinors = true) const; // advc: Moved from CvTeam; unused.			// Exposed to Python
+	// <advc> Replacing the deleted CvTeam::getWarPlanCount and getAnyWarPlanCount
+	int AI_countWarPlans(WarPlanTypes eWarPlanType = NUM_WARPLAN_TYPES, bool bIgnoreMinors = true,			// Exposed to Python (through getWarPlanCount, getAnyWarPlanCount)
+			unsigned int iMaxCount = MAX_PLAYERS) const; // </advc>
+	// <advc.opt> Less flexible (ignores minors, vassals) but much faster
+	inline int AI_getNumWarPlans(WarPlanTypes eWarPlanType) const
+	{
+		FASSERT_BOUNDS(0, NUM_WARPLAN_TYPES, eWarPlanType, "CvTeamAI::AI_getNumWarPlans");
+		return m_aiWarPlanCounts[eWarPlanType];
+	}
+	inline bool AI_isAnyWarPlan() const { return m_bAnyWarPlan; } // </advc.opt>
+	bool AI_isSneakAttackReady(TeamTypes eIndex /* K-Mod (any team): */ = NO_TEAM) const;
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
 	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc: Moved from CvTeam; made const.)
@@ -285,8 +300,10 @@ protected:
 	std::map<ReligionTypes,int> m_religionKnownSince; // advc.130n
 	int* m_aiEnemyPeacetimeTradeValue;
 	int* m_aiEnemyPeacetimeGrantValue;
+	int* m_aiWarPlanCounts; // advc.opt
 	WarPlanTypes* m_aeWarPlan;
 
+	bool m_bAnyWarPlan; // advc.opt
 	bool m_bLonely; // advc.109
 
 	WarAndPeaceAI::Team* m_pWpai; // advc.104
@@ -307,6 +324,8 @@ protected:
 	// advc: Chunk of code that occured twice in doWar
 	void AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes eTarget,
 			bool bLimited, int iEnemyPowerPercent);
+	// advc.opt:
+	void AI_updateWarPlanCounts(TeamTypes eTarget, WarPlanTypes eOldPlan, WarPlanTypes eNewPlan);
 	// advc.104o:
 	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i

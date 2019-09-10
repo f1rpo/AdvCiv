@@ -898,6 +898,7 @@ void CvMapGenerator::generateRandomMap()
 {
 	PROFILE("generateRandomMap()");
 
+	GC.getPythonCaller()->callMapFunction("beforeGeneration");
 	if (GC.getPythonCaller()->generateRandomMap())
 		return;
 

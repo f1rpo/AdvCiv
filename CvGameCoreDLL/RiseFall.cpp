@@ -1045,7 +1045,7 @@ void RiseFall::assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 		else wss << gDLL->getText("TXT_KEY_RF_CIV_SELECTION_VOLVASSAL") << L" " <<
 					knownName(masterLeader, true);
 	}
-	if(t.getAtWarCount() > 0) {
+	if(t.getNumWars() > 0) {
 		wss <<  L"\n" << gDLL->getText("TXT_KEY_RF_CIV_SELECTION_WAR") << L": ";
 		vector<PlayerTypes> warEnemies; // To get the commas right
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {

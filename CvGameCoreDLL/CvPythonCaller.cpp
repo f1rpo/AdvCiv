@@ -1200,7 +1200,8 @@ CustomMapOptionTypes CvPythonCaller::customMapOptionDefault(char const* szMapScr
 {
 	ARGSLIST(NO_CUSTOM_MAPOPTION);
 	argsList.add(iOption);
-	call("getCustomMapOptionDefault", argsList, lResult, szMapScriptName);
+	call("getCustomMapOptionDefault", argsList, lResult, szMapScriptName,
+			!GC.getInitCore().getSavedGame());
 	return (CustomMapOptionTypes)toInt(lResult);
 }
 // <advc.004>
@@ -1252,13 +1253,13 @@ void CvPythonCaller::mapWraps(bool& bWrapX, bool& bWrapY) const
 	bool bWrapXTmp = false;
 	{
 		long lResult = iError;
-		call("getWrapX", lResult, m_python.getMapScriptModule());
+		call("getWrapX", lResult, m_python.getMapScriptModule(), false);
 		if (lResult == iError || !isOverride())
 			return;
 		bWrapXTmp = (lResult != 0); // As it was in CvMap::reset; perhaps the usual ==1 would also work.
 	}
 	long lResult = iError;
-	call("getWrapY", lResult, m_python.getMapScriptModule());
+	call("getWrapY", lResult, m_python.getMapScriptModule(), false);
 	if (lResult == iError || !isOverride())
 		return;
 	bWrapX = bWrapXTmp; // Don't set bWrapX until we know that bWrapY can also be set

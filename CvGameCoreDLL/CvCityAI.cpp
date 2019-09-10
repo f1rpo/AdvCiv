@@ -506,10 +506,9 @@ void CvCityAI::AI_chooseProduction()
 	bool bLandWar = kPlayer.AI_isLandWar(pArea); // K-Mod
 	bool bDefenseWar = (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
 	bool bAssaultAssist = (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_ASSIST);
-	bool bTotalWar = kTeam.getWarPlanCount(WARPLAN_TOTAL) // K-Mod
-			// <advc.104s>
-			+ (getWPAI.isEnabled() ?
-			kTeam.getWarPlanCount(WARPLAN_PREPARING_TOTAL) : 0); // </advc.104s>
+	bool bTotalWar = (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) // K-Mod
+			/* <advc.104s> */ + (!getWPAI.isEnabled() ? 0 :
+			kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL)) > 0); // </advc.104s>
 	bool bAssault = (bAssaultAssist || (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT) || (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_MASSING));
 	bool bPrimaryArea = kPlayer.AI_isPrimaryArea(pArea);
 	bool bFinancialTrouble = kPlayer.AI_isFinancialTrouble();
@@ -1583,8 +1582,8 @@ void CvCityAI::AI_chooseProduction()
 					//kPlayer.AI_isFocusWar(area())
 					/*  <advc.120> ... but actually, I don't think training extra
 						spies during war is a good idea at all. */
-					kTeam.getWarPlanCount(WARPLAN_PREPARING_LIMITED) +
-					kTeam.getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0
+					kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_LIMITED) +
+					kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0
 					// </advc.120>
 				) ? 45 : 35;
 			iOdds *= 50 + std::max(iProjectValue, iBestBuildingValue);
@@ -1700,10 +1699,12 @@ void CvCityAI::AI_chooseProduction()
 	}
 	// <advc.081>
 	if(pWaterArea != NULL && !bUnitExempt && !bImportantCity &&
-			iEnemyPowerPerc - iWarSuccessRating < 150 && // else give up at sea
-			kTeam.getAtWarCount(false, true) > 0) { // for performance
+		iEnemyPowerPerc - iWarSuccessRating < 150 && // else give up at sea
+		kTeam.getNumWars(false, true) > 0) // for performance
+	{
 		int iHostile = kPlayer.AI_countNumAreaHostileUnits(pWaterArea, true, false, false, false, plot());
-		if(iHostile > 0) {
+		if(iHostile > 0)
+		{
 			int iOurWarships = 0;
 			std::vector<UnitAITypes> aeSeaAttackTypes;
 			aeSeaAttackTypes.push_back(UNITAI_ATTACK_SEA);
@@ -1711,12 +1712,15 @@ void CvCityAI::AI_chooseProduction()
 			aeSeaAttackTypes.push_back(UNITAI_RESERVE_SEA);
 			for(size_t i = 0; i < aeSeaAttackTypes.size(); i++)
 				iOurWarships += kPlayer.AI_getNumTrainAIUnits(aeSeaAttackTypes[i]);
-			if(3 * iOurWarships < 4 * iHostile) { // for performance
+			if(3 * iOurWarships < 4 * iHostile) // for performance
+			{
 				iOurWarships += kPlayer.AI_totalWaterAreaUnitAIs(pWaterArea, aeSeaAttackTypes);
-				if(3 * iOurWarships < 4 * iHostile) { // Odds: 0.75*35% to 70% plus 2*XP
+				if(3 * iOurWarships < 4 * iHostile) // Odds: 0.75*35% to 70% plus 2*XP
+				{
 					int iOdds = (35 * iHostile) / std::max(iHostile/2, std::max(1, iOurWarships));
 					iOdds += 2 * iFreeSeaExperience;
-					if(AI_chooseUnit(UNITAI_ATTACK_SEA, iOdds)) {
+					if(AI_chooseUnit(UNITAI_ATTACK_SEA, iOdds))
+					{
 						if (gCityLogLevel >= 2) logBBAI("      City %S trains warship to attack hostiles in territory", getName().GetCString());
 						return;
 					}
@@ -1762,7 +1766,7 @@ void CvCityAI::AI_chooseProduction()
 			// If on offensive and can't reach enemy cities from here, act like using AREAAI_ASSAULT
 			if (pAssaultWaterArea != NULL && !bBuildAssault)
 			{
-				if (kTeam.getAnyWarPlanCount(true) > 0)
+				if (kTeam.AI_isAnyWarPlan())
 				{
 					if (pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
 					{	// <advc.030b>
@@ -2835,7 +2839,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 				}
 			}
 			// K-Mod
-			if (bLandWar && !bDefense && !isHuman() && GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_TOTAL, true))
+			if (bLandWar && !bDefense && !isHuman() && GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) > 0)
 			{
 				// if we're winning, then focus on capturing cities.
 				int iSuccessRatio = GET_TEAM(getTeam()).AI_getWarSuccessRating();
@@ -6438,7 +6442,7 @@ void CvCityAI::AI_updateSafety(double relativeCityVal)
 	int iDefStrength = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 3);
 	m_bSafe = (iAttStrength * 2 < iDefStrength);
 	// Potentially expensive
-	if(m_bSafe && GET_TEAM(getTeam()).getAtWarCount(false, true) > 0)
+	if(m_bSafe && GET_TEAM(getTeam()).getNumWars(false, true) > 0)
 	{
 		int iAttStrengthWiderRange = kOwner.AI_localAttackStrength(plot(), NO_TEAM,
 				DOMAIN_LAND, 3);
@@ -7356,7 +7360,12 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	iTimeScale += (100*GC.getGame().getElapsedGameTurns()/GC.getGame().getEstimateEndTurn() < 30 ? 10 : 0);
 	iTimeScale -= (kOwner.AI_isDoVictoryStrategyLevel4() ? 30 : (100*GC.getGame().getElapsedGameTurns()/GC.getGame().getEstimateEndTurn() > 70 ? 10 : 0));
 	iTimeScale += (kOwner.AI_isDoVictoryStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 50 : 0);
-	iTimeScale -= (GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_TOTAL, true) ? 20 : (kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0) ? 10 : 0);
+	if (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) +
+			// advc.001: Surely(?) preparations should count here as well
+			GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0)
+		iTimeScale -= 20;
+	else if (kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0)
+		iTimeScale -= 10;
 	if (eNonObsoleteBonus != NO_BONUS && !kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
 		iTimeScale = std::min(30, iTimeScale);
 	iTimeScale = std::max(iTimeScale, 20);

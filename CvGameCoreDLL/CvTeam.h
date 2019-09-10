@@ -68,13 +68,12 @@ public:
 	bool isVotingMember(VoteSourceTypes eVoteSource) const;
 	bool isFullMember(VoteSourceTypes eVoteSource) const;
 
-	/*  advc: Adding a default value for bIgnoreMinors to all WarPlan functions.
-		Also: beware of confusing getAtWarCount with CvTeamAI::AI_getAtWarCounter. */
+	/*  advc: Added a default value for bIgnoreMinors to all WarPlan functions.
+		getAtWarCount renamed to getNumWars to avoid confusion with CvTeamAI::AI_getAtWarCounter. */
 	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: bIgnoreVassals added
-	int getAtWarCount(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;																				// Exposed to Python
-	int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;								// Exposed to Python
-	int getAnyWarPlanCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
-	int getChosenWarCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
+	int getNumWars(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;																				// Exposed to Python
+	// advc: Replaced by CvTeamAI::AI_countWarPlans
+	//int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;
 	int getHasMetCivCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
 
 	bool anyWarShared(TeamTypes eOther) const; // advc.130s
@@ -102,6 +101,8 @@ public:
 	int countNumCitiesByArea(CvArea* pArea) const;																			// Exposed to Python
 	int countTotalPopulationByArea(CvArea* pArea) const;																// Exposed to Python
 	int countPowerByArea(CvArea* pArea) const;																					// Exposed to Python
+	/*  advc.003u (tbd.): The countEnemy... functions should arguably be
+		AI functions as they count wars in preparation */
 	int countEnemyPowerByArea(CvArea* pArea) const;																			// Exposed to Python
 	int countEnemyCitiesByArea(CvArea* pArea) const; // K-Mod
 	int countEnemyPopulationByArea(CvArea* pArea) const; // bbai
@@ -145,7 +146,7 @@ public:
 	int isEverAlive() const;																														// Exposed to Python
 	void changeEverAliveCount(int iChange);
 
-	int getNumCities() const;																														// Exposed to Python
+	inline int getNumCities() const { return m_iNumCities; } // advc.003f: inline																							// Exposed to Python
 	void changeNumCities(int iChange);
 
 	int getTotalPopulation(bool bCheckVassals = true) const;																											// Exposed to Python

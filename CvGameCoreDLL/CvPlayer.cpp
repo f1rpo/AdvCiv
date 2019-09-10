@@ -2619,22 +2619,25 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 	// Not sure if this is needed:
 	bool const bActive = (g.getActivePlayer() == getID());
 	CvWString szReplayText;
-	if(bNewVal && !m_bDisableHuman) {
+	if(bNewVal && !m_bDisableHuman)
+	{
 		AI().AI_setHumanDisabled(true);
-		if(bActive) {
-			// advc.004h:
+		if(bActive)
+		{	// advc.004h:
 			gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
 			gDLL->getInterfaceIFace()->clearQueuedPopups();
 			szReplayText = gDLL->getText("TXT_KEY_AUTO_PLAY_STARTED");
 		}
 	}
-	else if(!bNewVal && m_bDisableHuman) {
+	else if(!bNewVal && m_bDisableHuman)
+	{
 		AI().AI_setHumanDisabled(false);
 		m_iNewMessages = 0; // Don't open Event Log when coming out of Auto Play
 		if(bActive)
 			szReplayText = gDLL->getText("TXT_KEY_AUTO_PLAY_ENDED");
 	}
-	if(!szReplayText.empty()) {
+	if(!szReplayText.empty())
+	{
 		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szReplayText, -1, -1,
 				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	} // </advc.127>
@@ -2649,14 +2652,14 @@ bool CvPlayer::isHumanDisabled() /* advc.127: */ const
 }
 
 // <advc.127>
-bool CvPlayer::isSpectator() const {
-
+bool CvPlayer::isSpectator() const
+{
 	return isHumanDisabled() && GC.getGame().isDebugMode();
 }
 
 
-bool CvPlayer::isAutoPlayJustEnded() const {
-
+bool CvPlayer::isAutoPlayJustEnded() const
+{
 	return m_bAutoPlayJustEnded;
 } // </advc.127>
 // AI_AUTO_PLAY_MOD: END
@@ -2678,8 +2681,8 @@ void CvPlayer::updateHuman()
 }
 
 // K-Mod
-static bool concealUnknownCivs() {
-
+static bool concealUnknownCivs()
+{
 	CvGame const& g = GC.getGame();
 	return g.getActiveTeam() != NO_TEAM &&
 			//gDLL->getChtLvl() == 0
@@ -2689,8 +2692,8 @@ static bool concealUnknownCivs() {
 }
 
 // <advc.106i>
-void CvPlayer::setSavingReplay(bool b) {
-
+void CvPlayer::setSavingReplay(bool b)
+{
 	m_bSavingReplay = b;
 } // </advc.106i>
 
@@ -3957,7 +3960,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 	case DIPLOEVENT_SET_WARPLAN:
 	{
 		CvTeamAI& kOurTeam = GET_TEAM(getTeam());
-		FAssert(kOurTeam.getAtWarCount(true) == 0);
+		FAssert(kOurTeam.getNumWars() <= 0);
 		if (iData1 == NO_TEAM)
 		{
 			FAssert(iData2 == NO_WARPLAN);
@@ -4303,7 +4306,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 		{
 			/*  <dlph.3> 'Added possibility of signing defensive pact while in war
 				if BBAI defensive pact option is >= 1' */
-			if ((kOurTeam.getAtWarCount(true) <= 0 && kToTeam.getAtWarCount(true) <= 0) ||
+			if ((kOurTeam.getNumWars() <= 0 && kToTeam.getNumWars() <= 0) ||
 				(GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) >= 1
 				/*  advc: Prohibit DP when not all wars shared?
 					Enough to have the AI refuse such pacts I think
@@ -4319,7 +4322,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 	case TRADE_PERMANENT_ALLIANCE:
 		return (!kOurTeam.isAVassal() && !kToTeam.isAVassal() &&
 				getTeam() != kToTeam.getID() && //!kToTeam.isVassal(getTeam()) // advc: redundant
-				kOurTeam.isAtWar(kToTeam.getID()) &&
+				!kOurTeam.isAtWar(kToTeam.getID()) &&
 				(kOurTeam.isPermanentAllianceTrading() || kToTeam.isPermanentAllianceTrading()) &&
 				kOurTeam.getNumMembers() == 1 && kToTeam.getNumMembers() == 1);
 	case TRADE_PEACE_TREATY:
@@ -10131,7 +10134,7 @@ void CvPlayer::onTurnLogging() const
 			}
 		}
 
-		if (GET_TEAM(getTeam()).getAtWarCount(false) > 0)
+		if (GET_TEAM(getTeam()).getNumWars(false) > 0)
 		{
 			szBuffer.append(CvWString::format(L";  at war with: "));
 
@@ -10147,7 +10150,7 @@ void CvPlayer::onTurnLogging() const
 			}
 		}
 
-		if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0)
+		if (GET_TEAM(getTeam()).AI_isAnyWarPlan())
 		{
 			szBuffer.append(CvWString::format(L";  planning war with: "));
 
@@ -10167,10 +10170,9 @@ void CvPlayer::onTurnLogging() const
 
 		szBuffer.clear();
 
-		if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0) logBBAI("    Enemy power perc: %d (%d with others reduction)", GET_TEAM(getTeam()).AI_getEnemyPowerPercent(), GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true));
+		if (GET_TEAM(getTeam()).AI_isAnyWarPlan()) logBBAI("    Enemy power perc: %d (%d with others reduction)", GET_TEAM(getTeam()).AI_getEnemyPowerPercent(), GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true));
 	}
-}
-// K-Mod end
+} // K-Mod end
 
 bool CvPlayer::isAutoMoves() const
 {
@@ -20733,7 +20735,7 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 					return false;
 				}
 
-				if ((kOurTeam.getAtWarCount(true) > 0 || GET_TEAM((TeamTypes)iTeam2).getAtWarCount(true) > 0)
+				if ((kOurTeam.getNumWars() > 0 || GET_TEAM((TeamTypes)iTeam2).getNumWars() > 0)
 						// dlph.25: 'Sometimes defensive pact can be signed while at war'
 						&& GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) == 0)
 				{

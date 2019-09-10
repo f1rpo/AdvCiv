@@ -1693,7 +1693,8 @@ enum WarPlanTypes					// Exposed to Python
 	WARPLAN_PREPARING_TOTAL,
 	WARPLAN_LIMITED,
 	WARPLAN_TOTAL,
-	WARPLAN_DOGPILE
+	WARPLAN_DOGPILE,
+	NUM_WARPLAN_TYPES // advc.opt
 };
 
 enum AreaAITypes					// Exposed to Python

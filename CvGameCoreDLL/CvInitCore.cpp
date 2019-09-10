@@ -231,13 +231,13 @@ bool CvInitCore::getPitboss() const
 
 bool CvInitCore::getHotseat() const
 {
-	return ( (getType() == GAME_HOTSEAT_NEW) || (getType() == GAME_HOTSEAT_SCENARIO) || (getType() == GAME_HOTSEAT_LOAD) );
+	return (getType() == GAME_HOTSEAT_NEW || getType() == GAME_HOTSEAT_SCENARIO || getType() == GAME_HOTSEAT_LOAD);
 }
 
 
 bool CvInitCore::getPbem() const
 {
-	return ( (getType() == GAME_PBEM_NEW) || (getType() == GAME_PBEM_SCENARIO) || (getType() == GAME_PBEM_LOAD) );
+	return (getType() == GAME_PBEM_NEW || getType() == GAME_PBEM_SCENARIO || getType() == GAME_PBEM_LOAD);
 }
 
 
@@ -264,11 +264,9 @@ bool CvInitCore::getSlotVacant(PlayerTypes eID) const
 
 PlayerTypes CvInitCore::getAvailableSlot()
 {
-	int i;
-
 	// Get the next ID available ID
 	// First check for open slots only
-	for (i = 0; i < MAX_CIV_PLAYERS; ++i)
+	for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
 	{
 		PlayerTypes eID = (PlayerTypes)i;
 		if ( (getSlotClaim(eID) == SLOTCLAIM_UNASSIGNED) && (getSlotStatus(eID) == SS_OPEN) )
@@ -281,7 +279,7 @@ PlayerTypes CvInitCore::getAvailableSlot()
 	// That didn't work, check to see if we can assign computer slots
 	if (getMPOption(MPOPTION_TAKEOVER_AI))
 	{
-		for (i = 0; i < MAX_CIV_PLAYERS; ++i)
+		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
 		{
 			PlayerTypes eID = (PlayerTypes)i;
 			if ( (getSlotClaim(eID) == SLOTCLAIM_UNASSIGNED) && (getSlotStatus(eID) == SS_COMPUTER) )
@@ -1669,7 +1667,12 @@ bool CvInitCore::getMinorNationCiv(PlayerTypes eID) const
 void CvInitCore::setMinorNationCiv(PlayerTypes eID, bool bMinorNationCiv)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
+	{
+		/*  advc.003m: Not just a matter of calling CvTeam::updateMinorCiv -
+			wars would have to be declared etc. */
+		FAssertMsg(bMinorNationCiv == m_abMinorNationCiv[eID] || !GET_PLAYER(eID).isAlive(), "Minor civ status has changed after game start; this isn't supported.");
 		m_abMinorNationCiv[eID] = bMinorNationCiv;
+	}
 	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setMinorNationCiv");
 }
 

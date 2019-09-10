@@ -20,8 +20,7 @@ class FDataStreamBase;
 
 #define getWPAI GC.getGame().warAndPeaceAI()
 
-class WarAndPeaceAI
-		: private boost::noncopyable { // advc.003e
+class WarAndPeaceAI /* advc.003e: */ : private boost::noncopyable {
 
 public:
 

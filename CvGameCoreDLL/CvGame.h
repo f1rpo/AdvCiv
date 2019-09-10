@@ -30,10 +30,11 @@ public:
 
 	CvGame();
 	virtual ~CvGame();
-	// (advc: These three are only called externally)
+protected: // advc.003u: Can't easily move these past AI_makeAssignWorkDirty (the EXE relies on the order)
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 	virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
+public:
 	// advc.003u: Keep one pure virtual function so that this class is abstract
 	virtual void AI_makeAssignWorkDirty() = 0;
 
@@ -806,11 +807,11 @@ protected:
 	std::set<int> m_ActivePlayerCycledGroups; // advc: Was public; public getter added.
 
 	// cache some frequently used values
-	int	m_iShrineBuildingCount;
+	int m_iShrineBuildingCount;
 	int* m_aiShrineBuilding;
 	int* m_aiShrineReligion;
-	int	m_iNumCultureVictoryCities;
-	int	m_eCultureVictoryCultureLevel;
+	int m_iNumCultureVictoryCities;
+	int m_eCultureVictoryCultureLevel;
 
 	StartPointsAsHandicap* m_pSpah; // advc.250b
 	RiseFall* m_pRiseFall; // advc.700

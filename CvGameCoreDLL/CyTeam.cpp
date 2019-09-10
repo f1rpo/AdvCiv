@@ -110,22 +110,22 @@ int CyTeam::getNumNukeUnits()
 
 int CyTeam::getAtWarCount(bool bIgnoreMinors)
 {
-	return m_pTeam ? m_pTeam->getAtWarCount(bIgnoreMinors) : -1;
+	return m_pTeam ? m_pTeam->getNumWars(bIgnoreMinors) : -1;
 }
 
 int CyTeam::getWarPlanCount(int /*WarPlanTypes*/ eWarPlan, bool bIgnoreMinors)
 {
-	return m_pTeam ? m_pTeam->getWarPlanCount((WarPlanTypes) eWarPlan, bIgnoreMinors) : -1;
+	return m_pTeam ? m_pTeam->AI_countWarPlans((WarPlanTypes)eWarPlan, bIgnoreMinors, MAX_CIV_PLAYERS) : -1;
 }
 
 int CyTeam::getAnyWarPlanCount(bool bIgnoreMinors)
 {
-	return m_pTeam ? m_pTeam->getAnyWarPlanCount(bIgnoreMinors) : -1;
+	return m_pTeam ? m_pTeam->AI_countWarPlans(NUM_WARPLAN_TYPES, bIgnoreMinors, MAX_CIV_PLAYERS) : -1;
 }
 
 int CyTeam::getChosenWarCount(bool bIgnoreMinors)
 {
-	return m_pTeam ? m_pTeam->getChosenWarCount(bIgnoreMinors) : -1;
+	return m_pTeam ? m_pTeam->AI_countChosenWars(bIgnoreMinors) : -1;
 }
 
 int CyTeam::getHasMetCivCount(bool bIgnoreMinors)

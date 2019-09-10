@@ -5039,7 +5039,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					if(bFirst)
 					{
 						bFirst = false;
-						szString.append(CvWString::format(L"\n\nCloseness + War: (in %d wars)", GET_TEAM(kPlayer.getTeam()).getAtWarCount(true)));
+						szString.append(CvWString::format(L"\n\nCloseness + War: (in %d wars)", GET_TEAM(kPlayer.getTeam()).getNumWars()));
 					}
 					szString.append(CvWString::format(L"\n%s(%d) : %d ", kLoopPlayer.getName(), DEFAULT_PLAYER_CLOSENESS, iCloseness));
 					szString.append(CvWString::format(L" [%d, ", iPlayerCloseness));
@@ -5729,7 +5729,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 		szString.append(szTempBuffer);
 		CvTeamAI const& kPlotTeam = GET_TEAM(kPlot.getTeam()); // advc
-		szString.append(CvWString::format(L"\n\nNum Wars: %d + %d minor", kPlotTeam.getAtWarCount(true), kPlotTeam.getAtWarCount(false) - kPlotTeam.getAtWarCount(true)));
+		szString.append(CvWString::format(L"\n\nNum Wars: %d + %d minor", kPlotTeam.getNumWars(), kPlotTeam.getNumWars(false) - kPlotTeam.getNumWars()));
 		szString.append(CvWString::format(L"\nWarplans:"));
 		for (int iK = 0; iK < MAX_TEAMS; ++iK)
 		{

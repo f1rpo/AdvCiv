@@ -5381,7 +5381,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		else
 		{
 			int iSuccessRating = kTeam.AI_getWarSuccessRating();
-			if (iSuccessRating < -10 || (iSuccessRating < 10 && kTeam.getWarPlanCount(WARPLAN_ATTACKED_RECENT, true) > 0))
+			if (iSuccessRating < -10 || (iSuccessRating < 10 && kTeam.AI_getNumWarPlans(WARPLAN_ATTACKED_RECENT) > 0))
 				iUpgradeBudget *= 2; // cf. iTargetTurns in AI_doCommerce
 			else if (iSuccessRating > 50 || AI_isFinancialTrouble())
 			{
@@ -8743,7 +8743,7 @@ bool CvPlayerAI::AI_demandRebukedSneak(PlayerTypes ePlayer) const
 		// The 50 value is arbitrary. zero would probably be fine. 50 war rating is also arbitrary, but zero would be too low!
 		const CvTeamAI& kTeam = GET_TEAM(getTeam());
 		if (kTeam.AI_getWarPlan(GET_PLAYER(ePlayer).getTeam()) == NO_WARPLAN  &&
-				(kTeam.getAnyWarPlanCount(true) == 0 || kTeam.AI_getWarSuccessRating() > 50) &&
+				(!kTeam.AI_isAnyWarPlan() || kTeam.AI_getWarSuccessRating() > 50) &&
 				// advc.001n (comment): This should be synchronized code, so no need to set bConstCache.
 				kTeam.AI_startWarVal(GET_PLAYER(ePlayer).getTeam(), WARPLAN_LIMITED) > 50)
 		// K-Mod end
@@ -9450,7 +9450,7 @@ int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 		return 0;
 	bool bShareAny = kOurTeam.AI_shareWar(TEAMID(ePlayer));
 	double nonSharedModifier = 1;
-	if(kOurTeam.getAtWarCount() > 0)
+	if(kOurTeam.getNumWars() > 0)
 	{
 		int iWSThresh = ::round((3.0 * warSuccessAttitudeDivisor()) / 4);
 		for(int i = 0; i < MAX_CIV_TEAMS; i++)
@@ -9643,7 +9643,7 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 	{
 		CvTeam const& kOurTeam = GET_TEAM(getTeam());
 		static bool bJOIN_WAR_DIPLO_BONUS = GC.getDefineBOOL("ENABLE_JOIN_WAR_DIPLO_BONUS");
-		if(!bJOIN_WAR_DIPLO_BONUS || (kOurTeam.getAtWarCount() > 0 &&
+		if(!bJOIN_WAR_DIPLO_BONUS || (kOurTeam.getNumWars() > 0 &&
 				!kOurTeam.anyWarShared(TEAMID(ePlayer))) ||
 				kOurTeam.isAtWar(TEAMID(ePlayer)))
 			return 0;
@@ -10145,7 +10145,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					else if (GET_TEAM(ePeaceTeam).AI_getAtWarCounter(kOtherTeam.getID()) < 10)
 					{	// Not winning, just recently attacked, and in multiple wars, be pessimistic
 						// Counts ties from no actual battles
-						if (GET_TEAM(ePeaceTeam).getAtWarCount(true) > 1 &&
+						if (GET_TEAM(ePeaceTeam).getNumWars() > 1 &&
 								!GET_TEAM(ePeaceTeam).AI_isChosenWar(kOtherTeam.getID()))
 							iWarsLosing++;
 					}
@@ -10237,7 +10237,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if (bValid)
 					{
 						bValid = bWinningBig || (iWarsWinning > iWarsLosing) ||
-								(kOurTeam.getAtWarCount(true, true) > 1);
+								(kOurTeam.getNumWars(true, true) > 1);
 					}
 
 					if (!getWPAI.isEnabled()) // advc.104n
@@ -10245,7 +10245,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						if(!bValid && bThisPlayerWinning &&
 							(iWarsLosing >= iWarsWinning) && !bPropose && !isAVassal())
 						{
-							if (kOurTeam.getAtWarCount(true) == 1 || bLosingBig)
+							if (kOurTeam.getNumWars(true) == 1 || bLosingBig)
 							{
 								// Can we continue this war with defiance penalties?
 								if (!AI_isFinancialTrouble())
@@ -10445,7 +10445,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						// Vassals always deny war trade requests and thus previously always voted no
 						bValid = false;
 
-						if (kOurTeam.getAnyWarPlanCount(true) == 0)
+						if (!kOurTeam.AI_isAnyWarPlan())
 						{
 							if (eSecretaryGeneral == NO_TEAM || kOurTeam.AI_getAttitude(eSecretaryGeneral) > GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarRefuseAttitudeThreshold())
 							{
@@ -13403,7 +13403,7 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 	if(kTeam.isOpenBorders(eTradeTeam))
 	{
 		iModifier += 50;
-		if(kTeam.getAtWarCount() > 0 && GET_PLAYER(ePlayer).AI_isFocusWar() &&
+		if(kTeam.getNumWars() > 0 && GET_PLAYER(ePlayer).AI_isFocusWar() &&
 				!kTeam.allWarsShared(getTeam(), false))
 		{
 			/*  <advc.104o> Will probably want to focus on the new war then.
@@ -15289,7 +15289,11 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea* pArea, int iBuildProb) const
 	if (iBuildProb < 0)
 		iBuildProb = GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb() + 6; // a rough estimate.
 
-	bool bTotalWar = GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_TOTAL, true);
+	bool bTotalWar = (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) > 0);
+	// <advc.104s>
+	if (!bTotalWar && getWPAI.isEnabled())
+		bTotalWar = (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0);
+	// </advc.104s>
 	bool bAggressiveAI = GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI);
 
 	int iMaxUnitSpending = (bAggressiveAI ? 30 : 20) + iBuildProb*4/3;
@@ -15411,16 +15415,13 @@ int CvPlayerAI::AI_nukeWeight() const
 			break;
 		}
 	}
-
 	// increase the weight for total war, or for the home-stretch to victory, or for losing wars.
 	if (kTeam.AI_isAnyMemberDoVictoryStrategyLevel4())
-	{
 		iNukeWeight = iNukeWeight*3/2;
-	}
-	else if (kTeam.getWarPlanCount(WARPLAN_TOTAL, true) > 0 || kTeam.AI_getWarSuccessRating() < -20)
-	{
+	else if (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0 ||
+			kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 || // advc.650
+			kTeam.AI_getWarSuccessRating() < -20)
 		iNukeWeight = iNukeWeight*4/3;
-	}
 
 	return iNukeWeight;
 }
@@ -15452,7 +15453,7 @@ bool CvPlayerAI::AI_isFocusWar(CvArea* pArea) const
 	/*  Chosen wars (ongoing or in preparation) are always worth focusing on;
 		others only when on the defensive. (In CvTeamAI::AI_calculateAreaAIType,
 		bTargets and bDeclaredTargets are computed in a similar way .) */
-	return (GET_TEAM(getTeam()).isAnyChosenWar() ||
+	return (GET_TEAM(getTeam()).AI_isAnyChosenWar() ||
 			pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ||
 			AI_isDoStrategy(AI_STRATEGY_ALERT2));
 } // </advc.105>
@@ -16409,7 +16410,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 	int iS = isCivic(eCivic)? -1 :1;// K-Mod, sign for whether we should be considering gaining a bonus, or losing a bonus
 
-	bool bWarPlan = (kTeam.getAnyWarPlanCount(true) > 0);
+	bool bWarPlan = kTeam.AI_isAnyWarPlan();
 	if (bWarPlan)
 	{
 		bWarPlan = false;
@@ -20232,7 +20233,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					if(div > 0) {
 						prVassal = (8.0 / div) * ::dRange(g.getPlayerRank(civId) /
 								(double)g.countCivPlayersAlive(), 0.25, 0.5);
-						if(ourTeam.getAtWarCount() > 0)
+						if(ourTeam.getNumWars() > 0)
 							prVassal *= 4;
 					}
 					if(::bernoulliSuccess(prVassal, "advc.112")) { // </advc.112>
@@ -20893,7 +20894,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					}
 				}
 				else // </advc.104o>
-				if (GET_TEAM((TeamTypes)iJ).getAtWarCount(true) < std::max(2, (g.countCivTeamsAlive() / 2)))
+				if (GET_TEAM((TeamTypes)iJ).getNumWars() < std::max(2, (g.countCivTeamsAlive() / 2)))
 				{
 					setTradeItem(&item, TRADE_WAR, iJ);
 
@@ -21054,7 +21055,7 @@ bool CvPlayerAI::AI_proposeJointWar(PlayerTypes eHuman)
 	if(AI_getContactTimer(eHuman, CONTACT_JOIN_WAR) > 0)
 		return false;
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	if(kOurTeam.getAtWarCount(true, true) == 0)
+	if(kOurTeam.getNumWars(true, true) <= 0)
 		return false;
 	CvPlayerAI const& kHuman = GET_PLAYER(eHuman);
 	CvGame& g = GC.getGame();
@@ -23948,7 +23949,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 			// Note: although AI_commerceWeight is doubled for Big Espionage,
 			// the value here is unaffected because the strategy hash has been cleared.
 			iTempValue += kTeam.getBestKnownTechScorePercent() < 85 ? 3 : 0;
-			iTempValue += kTeam.getAnyWarPlanCount(true) > kTeam.getAtWarCount(true) ? 2 : 0; // build up espionage before the start of a war
+			 // build up espionage before the start of a war
+			iTempValue += kTeam.AI_countWarPlans() > kTeam.getNumWars(true, true) ? 2 : 0;
 			if (iWarSuccessRating < 0)
 				iTempValue += iWarSuccessRating/15 - 1;
 			iTempValue += AI_getStrategyRand(10) % 8;
@@ -23980,7 +23982,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 	// K-Mod end
 
 	// Turtle strategy
-	if (kTeam.getAtWarCount(true) > 0 && getNumCities() > 0)
+	if (kTeam.getNumWars() > 0 && getNumCities() > 0)
 	{
 		int iMaxWarCounter = 0;
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
@@ -24022,7 +24024,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			continue;
 		// <advc.022> Don't fear (AI) civs that are busy
 		if(!kLoopPlayer.isHuman() && kLoopPlayer.AI_isFocusWar() &&
-				kLoopTeam.getAtWarCount() > 0 &&
+				kLoopTeam.getNumWars() > 0 &&
 				kLoopTeam.AI_getWarSuccessRating() < 50)
 			continue; // </advc.022>
 		bool bCitiesInPrime = kTeam.AI_hasCitiesInPrimaryArea(kLoopPlayer.getTeam()); // K-Mod
@@ -28151,7 +28153,7 @@ int CvPlayerAI::AI_anarchyTradeVal(CivicTypes eCivic) const
 bool CvPlayerAI::AI_feelsSafe() const
 {
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	if(kOurTeam.getAnyWarPlanCount(false) > 0)
+	if(kOurTeam.AI_countWarPlans(NUM_WARPLAN_TYPES, false) > 0)
 		return false;
 	CvGame const& g = GC.getGame();
 	CvCity* pCapital = getCapitalCity();

@@ -82,10 +82,10 @@ void WarAndPeaceAI::Team::doWar() {
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!agent.isAlive() || agent.isBarbarian() || agent.isMinorCiv())
 		return;
-	FAssertMsg(!agent.isAVassal() || agent.getAtWarCount() > 0 ||
-			agent.getWarPlanCount(WARPLAN_DOGPILE) +
-			agent.getWarPlanCount(WARPLAN_LIMITED) +
-			agent.getWarPlanCount(WARPLAN_TOTAL) <= 0,
+	FAssertMsg(!agent.isAVassal() || agent.getNumWars() > 0 ||
+			agent.AI_getNumWarPlans(WARPLAN_DOGPILE) +
+			agent.AI_getNumWarPlans(WARPLAN_LIMITED) +
+			agent.AI_getNumWarPlans(WARPLAN_TOTAL) <= 0,
 			"Vassals shouldn't have non-preparatory war plans unless at war");
 	startReport();
 	if(agent.isHuman() || agent.isAVassal()) {
@@ -264,7 +264,7 @@ struct PlanData {
 bool WarAndPeaceAI::Team::reviewWarPlans() {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
-	if(agent.getAnyWarPlanCount(true) <= 0) {
+	if(!agent.AI_isAnyWarPlan()) {
 		report->log("%s has no war plans to review", report->teamName(agentId));
 		return true;
 	}
@@ -908,7 +908,7 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 		int timeRemaining) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
-	if(agent.getAnyWarPlanCount() > agent.getAtWarCount() + 1) {
+	if(agent.AI_countWarPlans() > agent.getNumWars(true, true) + 1) {
 		/*  Only one war imminent or preparing at a time.
 			(WarEvaluator doesn't handle this properly, i.e. would ignore the
 			all but one plan). Can only occur here if UWAI was running in the
@@ -1015,8 +1015,8 @@ bool WarAndPeaceAI::Team::considerConcludePreparations(TeamTypes targetId, int u
 		int timeRemaining) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
-	if(agent.getAnyWarPlanCount() > agent.getAtWarCount() + 1)
-		return true; // Let considerAbandonPreparations handle it
+	if(agent.AI_countWarPlans() > agent.getNumWars(true, true) + 1)
+		return true; // More than 1 war in preparation; let considerAbandonPreparations handle it.
 	int turnsOfPeace = agent.turnsOfForcedPeaceRemaining(targetId);
 	if(turnsOfPeace > 3) {
 		report->log("Can't finish preparations b/c of peace treaty (%d turns"
@@ -1209,7 +1209,7 @@ struct TargetData {
 void WarAndPeaceAI::Team::scheme() {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
-	if(agent.getAnyWarPlanCount() > agent.getAtWarCount()) {
+	if(agent.AI_countWarPlans() > agent.getNumWars(true, true)) {
 		report->log("No scheming b/c already a war in preparation");
 		return;
 	}
@@ -1240,7 +1240,7 @@ void WarAndPeaceAI::Team::scheme() {
 		bool shortWork = isPushover(targetId);
 		if(shortWork)
 			report->log("Target assumed to be short work");
-		bool skipTotal = agent.getAnyWarPlanCount() > 0 || shortWork;
+		bool skipTotal = (agent.AI_isAnyWarPlan() || shortWork);
 		/*  Skip scheming entirely if already in a total war? Probably too
 			restrictive in the lategame. Perhaps have reviewWarPlans compute the
 			smallest utility among current war plans, and skip scheming if that

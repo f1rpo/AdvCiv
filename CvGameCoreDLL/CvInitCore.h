@@ -8,8 +8,8 @@
 
 class CvInitCore
 {
-
 public:
+
 	CvInitCore();
 	virtual ~CvInitCore();
 
@@ -133,8 +133,7 @@ public:
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
-	// advc.opt: inlined
-	inline const bool * getOptions() const	{ return m_abOptions; }
+	inline const bool * getOptions() const	{ return m_abOptions; } // advc.003f: inline
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 
@@ -149,7 +148,7 @@ public:
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.opt
+	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.003f
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
 	int getMaxTurns() const	{ return m_iMaxTurns; }

@@ -1028,7 +1028,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		if(bSurrender)
 			bDeniedHelp = (TEAMREF(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
 					// Doesn't count if losses obviously only from cultural borders
-					&& TEAMREF(eFromPlayer).getAnyWarPlanCount(true) > 0);
+					&& TEAMREF(eFromPlayer).AI_isAnyWarPlan());
 		else {
 			DenialTypes eReason = TEAMREF(eFromPlayer).
 					AI_surrenderTrade(TEAMID(eToPlayer));
