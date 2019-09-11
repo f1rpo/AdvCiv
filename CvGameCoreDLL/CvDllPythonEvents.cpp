@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDllPythonEvents.h"
 #include "CvDLLPythonIFaceBase.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvPlot.h"
 #include "CvSelectionGroup.h"
 #include "CvUnit.h"

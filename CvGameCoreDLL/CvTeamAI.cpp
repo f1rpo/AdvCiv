@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_City.h"
@@ -164,7 +165,8 @@ void CvTeamAI::AI_doTurnPre()
 		return;*/
 	// <advc.104>
 	if((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && !isBarbarian() &&
-			!isMinorCiv() && isAlive()) {
+			!isMinorCiv() && isAlive())
+	{
 		getWPAI.update();
 		/*  Calls turnPre on the team members, i.e. WarAndPeaceAI::Civ::turnPre
 			happens before CvPlayerAI::AI_turnPre. Needs to be this way b/c
@@ -172,8 +174,10 @@ void CvTeamAI::AI_doTurnPre()
 		m_pWpai->turnPre();
 	} // </advc.104>
 	// <advc.130n> Game turn increment can affect attitudes now
-	if(isHuman()) {
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	if(isHuman())
+	{
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		{
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 			if(kPlayer.isAlive())
 				kPlayer.AI_updateAttitudeCache();

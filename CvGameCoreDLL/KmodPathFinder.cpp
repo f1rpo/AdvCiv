@@ -1,7 +1,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "KmodPathFinder.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvTeamAI.h"
 #include "CvInfo_Terrain.h"
 #include "CvSelectionGroup.h"

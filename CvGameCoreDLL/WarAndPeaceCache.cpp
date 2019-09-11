@@ -8,6 +8,7 @@
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "BBAI_Defines.h"
 #include "CvMap.h"
 #include "CvArea.h"

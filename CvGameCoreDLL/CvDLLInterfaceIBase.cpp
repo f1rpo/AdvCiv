@@ -3,7 +3,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvDLLInterfaceIFaceBase.h" // </advc.127>
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvPlayerAI.h"
 #include "RiseFall.h" // advc.700
 

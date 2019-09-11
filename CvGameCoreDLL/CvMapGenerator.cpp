@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvMapGenerator.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvFractal.h"

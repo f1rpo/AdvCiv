@@ -5,14 +5,12 @@
 
 /*  advc.make: I've created this wrapper header file to improve the readability of
 	the ca. 40 .cpp files that require CvGameAI.h, CvPlayerAI.h and CvTeamAI.h.
-	Note that CvGame.h, CvPlayer.h, CvTeam.h and several other frequently used
-	headers are recursively included (for better or worse).
+	Note that CvPlayer.h, CvTeam.h are recursively included.
 	Most of the client code has nothing to do with the AI; it's just that the
-	very commonly used GET_PLAYER and GET_TEAM macros and the getGame inline
-	function are defined in the ...AI header files and can't be easily moved
-	from there b/c they're tied to exported functions that the EXE calls. */
+	very commonly used GET_PLAYER and GET_TEAM macros are defined in the
+	...AI header files. (I may soon move them elsewhere though.) */
 
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvPlayerAI.h"
 #include "CvCivilization.h" // advc.003w
 #include "CvTeamAI.h"

@@ -18,7 +18,7 @@ class FDataStreamBase;
 
 	The main method for war planning is WarAndPeaceAI::Team::doWar. */
 
-#define getWPAI GC.getGame().warAndPeaceAI()
+#define getWPAI GC.AI_getGame().warAndPeaceAI()
 
 class WarAndPeaceAI /* advc.003e: */ : private boost::noncopyable {
 

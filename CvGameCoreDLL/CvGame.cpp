@@ -4,6 +4,7 @@
 #include "CvGame.h"
 #include "CvDealList.h" // advc.003u
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvMapGenerator.h"

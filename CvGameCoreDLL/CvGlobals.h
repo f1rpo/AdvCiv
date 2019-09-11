@@ -24,6 +24,7 @@ class CvDLLUtilityIFaceBase;
 class CvPythonCaller; // advc.003y
 class CvDLLLogger; // advc.003t
 class CvRandom;
+class CvGame; // advc.003u
 class CvGameAI;
 class CMessageControl;
 class CvDropMgr;
@@ -188,8 +189,13 @@ public:
 	DllExport int getMaxCivPlayers() const;
 	// inlined for perf reasons, do not use outside of dll  // advc.003f: Both renamed
 	#ifdef _USRDLL
-	CvMap& getMap() const { return *m_map; } // was getMapINLINE
-	CvGameAI& getGame() const { return *m_game; } // was getGameINLINE
+	// advc.003f: These three were defined in-line, but didn't have any inline keyword.
+	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
+	__forceinline CvGame& getGame() const // was getGameINLINE; advc.003u: return type was CvGameAI&
+	{	// Can't be helped; this function has to be inlined, and I won't include CvGameAI.h here.
+		return *reinterpret_cast<CvGame*>(m_game);
+	} 
+	__forceinline CvGameAI& AI_getGame() const { return *m_game; } // advc.003u
 	#endif
 	CvMap& getMapExternal(); // advc.003f: Exported through .def file
 	CvGameAI& getGameExternal(); // advc.003f: Exported through .def file

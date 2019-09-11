@@ -5,6 +5,7 @@
 #include "WarAndPeaceAgent.h"
 #include "WarEvaluator.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvMap.h"
 #include <iterator>
 

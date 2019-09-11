@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvCityAI.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "WarAndPeaceAgent.h" // advc.031b (for trait checks)
 #include "CvMap.h"
 #include "CvArea.h"

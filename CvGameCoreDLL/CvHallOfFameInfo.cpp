@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvHallOfFameInfo.h"
 #include "CvReplayInfo.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 
 CvHallOfFameInfo::CvHallOfFameInfo()
 {

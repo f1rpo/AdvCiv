@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarEvalParameters.h"
-#include "WarAndPeaceAI.h"
 #include "CvGameAI.h"
 #include "CvTeamAI.h"
 

@@ -5,6 +5,7 @@
 #include "CvGlobals.h"
 #include "FVariableSystem.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvInfo_All.h"
 #include "CvPlayerAI.h"
@@ -1415,7 +1416,7 @@ int CvGlobals::getNumGlobeLayers() const { return NUM_GLOBE_LAYER_TYPES; }
 // non-inline versions
 // <advc.003f>
 CvMap& CvGlobals::getMapExternal() { return getMap(); }
-CvGameAI& CvGlobals::getGameExternal() { return getGame(); } // </advc.003f>
+CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.003f>
 CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
 
 int CvGlobals::getMaxCivPlayers() const

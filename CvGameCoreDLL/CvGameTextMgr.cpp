@@ -12,6 +12,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"
 #include "CvInfo_All.h"
@@ -5051,7 +5052,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					/*  advc.001n: Only relevant for the K-Mod war AI, and I'm not totally sure that
 						CvTeamAI::AI_startWarVal is safe for networked games
 						(despite the bConstCache param that I've added). */
-						if(!getWPAI.isEnabled()) {
+						if(!getWPAI.isEnabled())
+						{
 							if(GET_TEAM(kPlayer.getTeam()).isHasMet(kLoopPlayer.getTeam()) &&
 									GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam()) != ATTITUDE_FRIENDLY)
 							{

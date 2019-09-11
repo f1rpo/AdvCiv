@@ -13,7 +13,7 @@ Created:	2009-01-21
 #include "CvGameCoreDLL.h"
 #include "CvBugOptions.h"
 #include "CvDLLPythonIFaceBase.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "FVariableSystem.h"
 
 // advc.003t: Replaced by functions in CvGlobals

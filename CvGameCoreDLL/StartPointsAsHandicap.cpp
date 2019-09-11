@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "StartPointsAsHandicap.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
 #include <cmath>

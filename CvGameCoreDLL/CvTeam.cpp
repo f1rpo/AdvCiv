@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvTeam.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104t
 #include "CvMap.h"
@@ -793,7 +794,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 	AI().AI_updateWorstEnemy();
 	// <advc.104t>
-	if(getWPAI.isEnabled()) {
+	if(getWPAI.isEnabled())
+	{
 		AI().warAndPeaceAI().addTeam(eTeamLeader);
 		getWPAI.update();
 	} // </advc.104t>

@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "RFChapter.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 

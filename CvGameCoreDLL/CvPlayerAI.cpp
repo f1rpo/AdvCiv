@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlayerAI.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDealList.h" // advc.003s
 #include "BBAILog.h"
 #include "BBAI_Defines.h"
@@ -716,8 +717,8 @@ bool CvPlayerAI::AI_upholdPeaceOffer(PlayerTypes eHuman,
 {
 	int iOurBenefit = AI_dealVal(eHuman, &kOffer.getTheirOfferList());
 	int iTheirBenefit = GET_PLAYER(eHuman).AI_dealVal(getID(), &kOffer.getOurOfferList());
-	if(getWPAI.isEnabled()) {
-		/*  Need some padding b/c WarAndPeaceAI::Team::endWarVal is always 0
+	if(getWPAI.isEnabled())
+	{	/*  Need some padding b/c WarAndPeaceAI::Team::endWarVal is always 0
 			for at least one side. */
 		int iPadding = ::round(warAndPeaceAI().utilityToTradeVal(5));
 		iOurBenefit += iPadding;
@@ -8215,7 +8216,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				// K-Mod
 				if (AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS) && kLoopUnit.getDomainType() == DOMAIN_LAND)
 				{
-					iMilitaryValue += 3 * GC.getGame().AI_combatValue(eLoopUnit);
+					iMilitaryValue += 3 * GC.AI_getGame().AI_combatValue(eLoopUnit);
 					iMilitaryValue *= 3;
 					iMilitaryValue /= 2;
 				}
@@ -14184,7 +14185,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		return 0;
 	}
 
-	int iCombatValue = GC.getGame().AI_combatValue(eUnit);
+	int iCombatValue = GC.AI_getGame().AI_combatValue(eUnit);
 
 	int iValue = 1;
 
@@ -16390,7 +16391,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	PROFILE_FUNC();
 
 	const CvTeamAI& kTeam = GET_TEAM(getTeam()); // K-Mod
-	const CvGameAI& kGame = GC.getGame(); // K-Mod
+	const CvGameAI& kGame = GC.AI_getGame(); // K-Mod
 
 	int iCities = getNumCities();
 

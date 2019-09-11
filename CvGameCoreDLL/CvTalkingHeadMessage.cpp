@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvTalkingHeadMessage.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 
 CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType, LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY, bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
 	m_iTurn(iMessageTurn),
@@ -18,12 +18,9 @@ CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR p
 	m_eTarget(NO_CHATTARGET),
 	m_bShown(false),
 	bSoundPlayed(false) // advc.106b
-{
-}
+{}
 
-CvTalkingHeadMessage::~CvTalkingHeadMessage(void)
-{
-}
+CvTalkingHeadMessage::~CvTalkingHeadMessage(void) {}
 
 
 void CvTalkingHeadMessage::read(FDataStreamBase& stream)

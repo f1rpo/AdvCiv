@@ -9,6 +9,7 @@
 #include "CvInfo_Building.h" // Just for vote-related info
 #include "CvInfo_Unit.h" // for WarAndPeaceAI::Civ::militaryPower
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "BBAI_Defines.h"
 #include "CvDiploParameters.h"
 #include "CvMap.h"

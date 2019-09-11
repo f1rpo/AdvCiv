@@ -5,6 +5,7 @@
 #include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDealList.h" // advc.003s
 #include "RiseFall.h" // advc.706
 #include <iterator>

@@ -8,6 +8,7 @@
 #include "WarAndPeaceAgent.h"
 #include "MilitaryAnalyst.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDealList.h"
 #include "BBAI_Defines.h"
 #include "CvMap.h"

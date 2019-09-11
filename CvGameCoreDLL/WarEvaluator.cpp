@@ -8,6 +8,7 @@
 #include "WarAndPeaceReport.h"
 #include "WarEvalParameters.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvInfo_GameOption.h"
 #include <sstream>
 

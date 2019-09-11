@@ -3,7 +3,7 @@
 #include "CvDLLPythonIFaceBase.h"
 #include "CvCity.h"
 #include "CvUnit.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvMap.h"
 #include "CvPopupInfo.h"
 #include "CySelectionGroup.h"

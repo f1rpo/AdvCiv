@@ -4,6 +4,7 @@
 #include "RiseFall.h"
 #include "CvInfo_GameOption.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDeal.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "BBAI_Defines.h"

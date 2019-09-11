@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvReplayInfo.h"
-#include "CvGameAI.h"
+#include "CvGameAI.h" // advc.104
 #include "CvPlayerAI.h"
 #include "CvInfo_GameOption.h"
 #include "CvMap.h"

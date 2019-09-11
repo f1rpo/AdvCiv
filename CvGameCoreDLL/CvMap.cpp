@@ -9,7 +9,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003u
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvPlayerAI.h"
 #include "CvPlotGroup.h"
 #include "CvFractal.h"

@@ -8,6 +8,7 @@
 #include "CvSelectionGroupList.h" // </advc.003u>
 #include "CvCivilization.h" // advc.003w
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
@@ -8441,7 +8442,7 @@ int CvPlayer::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) cons
 			canTrain(eLoopUnit))
 		{
 			// Note: currently the above checks do not consider any resource prerequites.
-			int iValue = GC.getGame().AI_combatValue(eLoopUnit);
+			int iValue = GC.AI_getGame().AI_combatValue(eLoopUnit);
 			if (iValue > iHighestValue)
 			{
 				iHighestValue = iValue;

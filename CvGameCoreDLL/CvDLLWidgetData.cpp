@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLWidgetData.h"
 #include "CvGamePlay.h"
+#include "CvGameAI.h"
 #include "CvDeal.h"
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
@@ -3238,20 +3239,15 @@ void CvDLLWidgetData::parseResearchHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 	TechTypes eTech = (TechTypes)widgetDataStruct.m_iData1;
 	if (eTech == NO_TECH)
 	{
-		//	No Technology
-		if (GET_PLAYER(GC.getGame().getActivePlayer()).getCurrentResearch() != NO_TECH)
+		TechTypes eCurrentResearch = GET_PLAYER(GC.getGame().getActivePlayer()).getCurrentResearch(); //advc
+		if (eCurrentResearch != NO_TECH)
 		{
-			CvGameAI& game = GC.getGame();
-			CvPlayer& activePlayer = GET_PLAYER(game.getActivePlayer());
 			szBuffer.assign(gDLL->getText("TXT_KEY_MISC_CHANGE_RESEARCH"));
 			szBuffer.append(NEWLINE);
-			GAMETEXT.setTechHelp(szBuffer, activePlayer.getCurrentResearch(), false, true);
+			GAMETEXT.setTechHelp(szBuffer, eCurrentResearch, false, true);
 		}
 	}
-	else
-	{
-		GAMETEXT.setTechHelp(szBuffer, eTech, false, true, widgetDataStruct.m_bOption);
-	}
+	else GAMETEXT.setTechHelp(szBuffer, eTech, false, true, widgetDataStruct.m_bOption);
 }
 
 
@@ -3766,7 +3762,8 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 				CvWStringBuffer szWarplan;
 				GAMETEXT.getWarplanString(szWarplan, eWarPlan);
 				// <advc.104>
-				if(getWPAI.isEnabled()) {
+				if(getWPAI.isEnabled())
+				{
 					szBuffer.append(CvWString::format(
 							SETCOLR L" %s (%d) with %s\n" ENDCOLR,
 							TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
@@ -3774,7 +3771,8 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 							kTeam.AI_getWarPlanStateCounter(eLoopTeam),
 							kLoopTeam.getName().GetCString()));
 				}
-				else { // </advc.104>
+				else // </advc.104>
+				{
 					int iOtherValue = kTeam.AI_endWarVal(eLoopTeam);
 					int iTheirValue = kLoopTeam.AI_endWarVal(eTeam);
 					szBuffer.append(CvWString::format(SETCOLR L" %s " ENDCOLR SETCOLR L"(%d, %d)" ENDCOLR SETCOLR L" with %s " ENDCOLR  SETCOLR L"(%d, %d)\n" ENDCOLR,
