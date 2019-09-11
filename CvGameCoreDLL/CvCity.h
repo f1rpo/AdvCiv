@@ -900,8 +900,8 @@ public:
 	void popOrder(int iNum, bool bFinish = false, bool bChoose = false);			// Exposed to Python
 	void startHeadOrder();
 	void stopHeadOrder();
-	int getOrderQueueLength();																		// Exposed to Python
-	OrderData* getOrderFromQueue(int iIndex);											// Exposed to Python
+	int getOrderQueueLength() const;																// Exposed to Python
+	OrderData* getOrderFromQueue(int iIndex) const;											// Exposed to Python
 	CLLNode<OrderData>* nextOrderQueueNode(CLLNode<OrderData>* pNode) const;
 	CLLNode<OrderData>* headOrderQueueNode() const;
 	DllExport int getNumOrdersQueued() const;

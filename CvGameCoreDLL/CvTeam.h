@@ -9,17 +9,27 @@
 
 class CvArea;
 
-
 class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
 public:
+	// <advc.003u>
+	static inline CvTeam& getTeam(TeamTypes eTeam)
+	{
+		FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvTeam::getTeam(TeamTypes)");
+		// Needs to be inline and I don't want to include CvTeamAI.h here
+		return *reinterpret_cast<CvTeam*>(m_aTeams[eTeam]);
+	}
+	// static functions moved from CvTeamAI
+	static void initStatics();
+	static void freeStatics(); // </advc.003u>
+
 	// <dlph.26>
 	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
 			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
 	static void triggerWars(/* advc: */ bool bForceUpdateAttitude = false);
 	// </dlph.26>
 
-	CvTeam();
+	explicit CvTeam(TeamTypes eID);
 	virtual ~CvTeam();
 
 	DllExport void init(TeamTypes eID);
@@ -426,7 +436,10 @@ protected:
 	virtual void AI_makeAssignWorkDirty() = 0;
 	// advc.003u: See the comments in the private section of CvPlayer.h before adding any virtual functions!
 
-	TeamTypes m_eID; // advc: Moved here for easier access in the debugger
+	TeamTypes m_eID; // advc: Moved up for easier access in the debugger
+
+	static CvTeamAI** m_aTeams; // advc.003u: Moved from CvTeamAI.h; and store only pointers.
+
 	int m_iNumMembers;
 	int m_iAliveCount;
 	int m_iEverAliveCount;

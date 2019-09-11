@@ -7,9 +7,7 @@
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
-#include "BBAI_Defines.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_Building.h"
@@ -276,7 +274,7 @@ void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 	CvPlayerAI& civ = GET_PLAYER(civId);
 	FOR_EACH_CITY(c, civ) {
 		// c.isRevealed() impedes the AI too much
-		if(TEAMREF(ownerId).AI_deduceCitySite(c)) {
+		if(GET_TEAM(ownerId).AI_deduceCitySite(c)) {
 			City* cacheCity = new City(ownerId, *c);
 			v.push_back(cacheCity);
 			cityMap.insert(std::make_pair(cacheCity->id(), cacheCity));
@@ -419,7 +417,7 @@ double WarAndPeaceCache::goldPerProdSites() {
 
 double WarAndPeaceCache::goldPerProdVictory() {
 
-	CvTeamAI const& ourTeam = TEAMREF(ownerId);
+	CvTeamAI const& ourTeam = GET_TEAM(ownerId);
 	int ourVictLevel = 0;
 	if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
 			ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE3))
@@ -460,11 +458,11 @@ void WarAndPeaceCache::updateWarUtility() {
 		somewhat costly. Want to do this only once per team, but don't have a
 		class for AI values cached per team, and I don't want to create one
 		just for this. Hence do it only for the leader. */
-	if(ownerId != TEAMREF(ownerId).getLeaderID())
+	if(ownerId != GET_TEAM(ownerId).getLeaderID())
 		return;
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes targetId = getWPAI.properTeams()[i];
-		if(TEAMREF(ownerId).warAndPeaceAI().isPotentialWarEnemy(targetId))
+		if(GET_TEAM(ownerId).warAndPeaceAI().isPotentialWarEnemy(targetId))
 			updateWarUtilityIgnDistraction(targetId);
 	}
 }
@@ -514,7 +512,7 @@ void WarAndPeaceCache::updateWarAnger() {
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		/*  Never mind all the modifiers in CvPlayer::updateWarWearinessPercentAnger;
 			they apply equally to each contribution. */
-		double contrib = TEAMREF(ownerId).getWarWeariness((TeamTypes)i, true);
+		double contrib = GET_TEAM(ownerId).getWarWeariness((TeamTypes)i, true);
 		wwContribs[i] = contrib;
 		totalWeight += contrib;
 	}
@@ -523,7 +521,7 @@ void WarAndPeaceCache::updateWarAnger() {
 		if(totalWeight == 0)
 			wwAnger[i] = 0;
 		else wwAnger[i] = totalWWAnger * (wwContribs[TEAMID(civId)] / totalWeight) /
-				TEAMREF(civId).getNumMembers(); // Turn per-team into per-civ
+				GET_TEAM(civId).getNumMembers(); // Turn per-team into per-civ
 	}
 }
 
@@ -545,7 +543,7 @@ void WarAndPeaceCache::updateCanScrub() {
 		BuildTypes bt = (BuildTypes)i;
 		CvBuildInfo& b = GC.getBuildInfo(bt);
 		TechTypes featTech = (TechTypes)b.getFeatureTech(fallout);
-		if(featTech != NO_TECH && TEAMREF(ownerId).isHasTech(featTech)) {
+		if(featTech != NO_TECH && GET_TEAM(ownerId).isHasTech(featTech)) {
 			canScrub = true;
 			break;
 		}
@@ -716,17 +714,17 @@ bool WarAndPeaceCache::isFocusOnPeacefulVictory() const {
 
 WarAndPeaceCache const& WarAndPeaceCache::leaderCache() const {
 
-	if(ownerId == TEAMREF(ownerId).getLeaderID())
+	if(ownerId == GET_TEAM(ownerId).getLeaderID())
 		return *this;
-	else return GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().
+	else return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().
 			getCache();
 }
 
 WarAndPeaceCache& WarAndPeaceCache::leaderCache() {
 	// Same code as above; no elegant way to avoid this, I think.
-	if(ownerId == TEAMREF(ownerId).getLeaderID())
+	if(ownerId == GET_TEAM(ownerId).getLeaderID())
 		return *this;
-	else return GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().
+	else return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().
 			getCache();
 }
 
@@ -904,7 +902,7 @@ void WarAndPeaceCache::updateVassalScores() {
 
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];
-		if(TEAMREF(civId).isHasMet(TEAMID(ownerId)))
+		if(GET_TEAM(civId).isHasMet(TEAMID(ownerId)))
 			updateVassalScore(civId);
 	}
 }
@@ -929,7 +927,7 @@ void WarAndPeaceCache::updateLostTilesAtWar() {
 	//PROFILE_FUNC();
 	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return;
-	CvTeam const& ownerTeam = TEAMREF(ownerId);
+	CvTeam const& ownerTeam = GET_TEAM(ownerId);
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		TeamTypes tId = (TeamTypes)i;
 		std::vector<CvPlot*> flipped;
@@ -956,7 +954,7 @@ void WarAndPeaceCache::updateRelativeNavyPower() {
 
 			Intelligence ratio (100%: assume we know all their positions;
 			0: we know nothing, in particular if
-			!TEAMREF(civId).isHasMet(TEAMID(ownerId))).
+			!GET_TEAM(civId).isHasMet(TEAMID(ownerId))).
 
 			-100%
 			+100% * #(their cities visible to us) / #(their cities)
@@ -1091,7 +1089,7 @@ void WarAndPeaceCache::updateVassalScore(PlayerTypes civId) {
 		TradeData item;
 		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
 		if(GET_PLAYER(civId).canTradeItem(ownerId, item, false))
-			techScore += TEAMREF(ownerId).AI_techTradeVal((TechTypes)i,
+			techScore += GET_TEAM(ownerId).AI_techTradeVal((TechTypes)i,
 					TEAMID(civId), true);
 	}
 	vassalTechScores[civId] = techScore;
@@ -1099,11 +1097,11 @@ void WarAndPeaceCache::updateVassalScore(PlayerTypes civId) {
 	int nTribute = 0;
 	for(int i = 0; i < GC.getNumBonusInfos(); i++) {
 		BonusTypes res = (BonusTypes)i;
-		if(TEAMREF(ownerId).isBonusObsolete(res))
+		if(GET_TEAM(ownerId).isBonusObsolete(res))
 			continue;
 		TechTypes revealTech = (TechTypes)GC.getBonusInfo(res).getTechReveal();
 		bool availableToMaster = false;
-		if(TEAMREF(ownerId).isHasTech(revealTech)) {
+		if(GET_TEAM(ownerId).isHasTech(revealTech)) {
 			if(GET_PLAYER(ownerId).getNumAvailableBonuses(res) > 0) {
 				nMasterResources++;
 				availableToMaster = true;
@@ -1112,8 +1110,8 @@ void WarAndPeaceCache::updateVassalScore(PlayerTypes civId) {
 		/*  Don't mind if we can't use it yet (TechCityTrade), but we can't know
 			that they have it if we can't see it. If we can see it, but they can't,
 			we might know, or not (if the plot is unrevealed). */
-		if(!TEAMREF(ownerId).isHasTech(revealTech)
-				|| !TEAMREF(civId).isHasTech(revealTech))
+		if(!GET_TEAM(ownerId).isHasTech(revealTech)
+				|| !GET_TEAM(civId).isHasTech(revealTech))
 			continue;
 		if(GET_PLAYER(civId).getNumAvailableBonuses(res) && !availableToMaster)
 			nTribute++;
@@ -1202,7 +1200,7 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 			bForceFailure = true;
 	}
 	// Evaluate war success
-	int iOurSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
+	int iOurSuccess = GET_TEAM(ownerId).AI_getWarSuccess(enemyId);
 	int iTheirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
 	if(iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING() &&
 			!bForceFailure && !bForceSuccess)
@@ -1219,8 +1217,8 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 		successRatio *= 1.33;
 	if(GET_PLAYER(ownerId).isHuman())
 		successRatio /= 1.33;
-	bool bChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
-	int iDuration = TEAMREF(ownerId).AI_getAtWarCounter(enemyId);
+	bool bChosenWar = GET_TEAM(ownerId).AI_isChosenWar(enemyId);
+	int iDuration = GET_TEAM(ownerId).AI_getAtWarCounter(enemyId);
 	double durationFactor = 0.365 * std::sqrt((double)std::max(1, iDuration));
 	/*  Don't be easily emboldened by winning a defensive war. Past war score is
 		intended to discourage war more than encourage it. */
@@ -1235,7 +1233,7 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 
 void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 
-	if(!TEAMREF(ownerId).AI_deduceCitySite(c) || c->getOwner() ==
+	if(!GET_TEAM(ownerId).AI_deduceCitySite(c) || c->getOwner() ==
 			BARBARIAN_PLAYER)
 		return;
 	/*  I didn't think I'd need to update the city cache during turns, so this
@@ -1296,7 +1294,7 @@ void WarAndPeaceCache::reportSponsoredWar(CLinkList<TradeData> const& sponsorshi
 bool WarAndPeaceCache::isReadyToCapitulate(TeamTypes masterId) const {
 
 	FAssert(GET_TEAM(masterId).isHuman());
-	if(TEAMREF(ownerId).getLeaderID() == ownerId)
+	if(GET_TEAM(ownerId).getLeaderID() == ownerId)
 		return readyToCapitulate.count(masterId) > 0;
 	/*  Not nice; if I add a few more team-related items, I should really put
 		them in a separate class. */
@@ -1308,12 +1306,12 @@ void WarAndPeaceCache::setReadyToCapitulate(TeamTypes masterId, bool b) {
 	FAssert(GET_TEAM(masterId).isHuman());
 	if(b == isReadyToCapitulate(masterId))
 		return;
-	if(TEAMREF(ownerId).getLeaderID() == ownerId) {
+	if(GET_TEAM(ownerId).getLeaderID() == ownerId) {
 		if(b)
 			readyToCapitulate.insert(masterId);
 		else readyToCapitulate.erase(masterId);
 	}
-	else GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().getCache().
+	else GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache().
 			setReadyToCapitulate(masterId, b);
 }
 
@@ -1338,16 +1336,16 @@ void WarAndPeaceCache::onTeamLeaderChanged(PlayerTypes formerLeaderId) {
 
 	if(formerLeaderId == NO_PLAYER)
 		return;
-	PlayerTypes leaderId =  TEAMREF(ownerId).getLeaderID();
+	PlayerTypes leaderId =  GET_TEAM(ownerId).getLeaderID();
 	if(leaderId == NO_PLAYER || formerLeaderId == leaderId)
 		return;
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes tId = getWPAI.properTeams()[i];
 		if(GET_TEAM(tId).isHuman())
-			GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().getCache().
+			GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache().
 					setReadyToCapitulate(tId, GET_PLAYER(formerLeaderId).
 					warAndPeaceAI().getCache().readyToCapitulate.count(tId) > 0);
-		GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().getCache().
+		GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache().
 				warUtilityIgnDistraction[tId] = GET_PLAYER(formerLeaderId).
 				warAndPeaceAI().getCache().warUtilityIgnDistraction[tId];
 	}
@@ -1374,7 +1372,7 @@ void WarAndPeaceCache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity const& c)
 		: cacheOwnerId(cacheOwnerId) {
 
-	canDeduce = TEAMREF(cacheOwnerId).AI_deduceCitySite(&c);
+	canDeduce = GET_TEAM(cacheOwnerId).AI_deduceCitySite(&c);
 	// Use plot index as city id (the pointer 'c' isn't serializable)
 	plotIndex = c.plotNum();
 	updateDistance(c);
@@ -1416,7 +1414,7 @@ bool WarAndPeaceCache::City::canReach() const {
 	CvCity* const cp = city();
 	if(cp == NULL ||
 			// A bit slow:
-			// !TEAMREF(cacheOwnerId).AI_deduceCitySite(city())
+			// !GET_TEAM(cacheOwnerId).AI_deduceCitySite(city())
 			/*  Check isRevealed first b/c I'm only updating canDeduce
 				once per turn */
 			(!cp->isRevealed(TEAMID(cacheOwnerId), false) &&
@@ -1499,7 +1497,7 @@ void WarAndPeaceCache::City::read(FDataStreamBase* stream) {
 	if(savegameVersion >= 1)
 		stream->Read(&canDeduce);
 	else {
-		/*  Can't call TEAMREF(cacheOwnerId).AI_deduceCitySite(city()) here b/c
+		/*  Can't call GET_TEAM(cacheOwnerId).AI_deduceCitySite(city()) here b/c
 			City::city() calls CvPlot::getPlotCity, which requires the city owner
 			(CvPlayer object) to be initialized. At this point, only the civs
 			up to cacheOwnerId are initialized.
@@ -1754,7 +1752,7 @@ double WarAndPeaceCache::City::estimateMovementSpeed(PlayerTypes civId,
 		chance of it traversing unpaved ground. */
 	else if(era >= 1) {
 		r *= ::dRange((20.0 + 6 * gameEra) / (dist + 10), 1.0, 2.0);
-		if(TEAMREF(civId).warAndPeaceAI().isFastRoads())
+		if(GET_TEAM(civId).warAndPeaceAI().isFastRoads())
 			r *= 1.4;
 	}
 	return r;
@@ -1859,7 +1857,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		is sth. like 50% gpt. Important for the effect of trade routes and
 		maintenance.*/
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
-	CvTeam& t = TEAMREF(cacheOwnerId);
+	CvTeam& t = GET_TEAM(cacheOwnerId);
 	double r = cacheOwner.AI_cityWonderVal(c);
 	r += 1.4 * cacheOwner.getTradeRoutes();
 	PlayerTypes cityOwnerId = c.getOwner();

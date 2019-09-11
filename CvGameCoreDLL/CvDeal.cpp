@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDeal.h"
 #include "CvDealList.h" // advc.003s
-#include "CvGamePlay.h"
+#include "CvAI.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
@@ -65,7 +65,7 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 				break;
 			}
 		} // </advc.106j>
-		if (TEAMREF(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
+		if (GET_TEAM(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
 		{
 			// advc: Auxiliary function to remove duplicate code
 			announceCancel(getFirstPlayer(), getSecondPlayer(), /* advc.106j: */ bForce);
@@ -389,7 +389,7 @@ bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 			if ((kGiver.getNumTradeableBonuses(eBonus) < 0) ||
 					!kGiver.canTradeNetworkWith(eRecipient) ||
 					GET_TEAM(kGiver.getTeam()).isBonusObsolete(eBonus) ||
-					TEAMREF(eRecipient).isBonusObsolete(eBonus))
+					GET_TEAM(eRecipient).isBonusObsolete(eBonus))
 				return false;
 		}
 	}
@@ -438,9 +438,9 @@ bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReaso
 	if (eMaster != GET_PLAYER(getSecondPlayer()).getMasterTeam())
 		return false; // There is no vassal deal, so this can't be one.
 	TeamTypes eVassal;
-	if (TEAMREF(getFirstPlayer()).isVassal(eMaster))
+	if (GET_TEAM(getFirstPlayer()).isVassal(eMaster))
 		eVassal = TEAMID(getFirstPlayer());
-	else if(TEAMREF(getSecondPlayer()).isVassal(eMaster))
+	else if(GET_TEAM(getSecondPlayer()).isVassal(eMaster))
 		eVassal = TEAMID(getSecondPlayer());
 	else return false; // sibling vassals
 
@@ -493,11 +493,11 @@ bool CvDeal::isVassalTributeDeal() const {
 
 	PlayerTypes eVassalPlayer = NO_PLAYER;
 	PlayerTypes eMasterPlayer = NO_PLAYER;
-	if(TEAMREF(getFirstPlayer()).isVassal(TEAMID(getSecondPlayer()))) {
+	if(GET_TEAM(getFirstPlayer()).isVassal(TEAMID(getSecondPlayer()))) {
 		eVassalPlayer = getFirstPlayer();
 		eMasterPlayer = getSecondPlayer();
 	}
-	else if(TEAMREF(getSecondPlayer()).isVassal(TEAMID(getFirstPlayer()))) {
+	else if(GET_TEAM(getSecondPlayer()).isVassal(TEAMID(getFirstPlayer()))) {
 		eVassalPlayer = getSecondPlayer();
 		eMasterPlayer = getFirstPlayer();
 	}
@@ -760,9 +760,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	{	// <advc.550e> Code moved into subroutine and modified there
 		bool bSignificantTech = GET_PLAYER(eToPlayer).isSignificantDiscovery(
 				(TechTypes)trade.m_iData); // </advc.550e>
-		TEAMREF(eToPlayer).setHasTech(((TechTypes)trade.m_iData), true, eToPlayer, true, true);
+		GET_TEAM(eToPlayer).setHasTech(((TechTypes)trade.m_iData), true, eToPlayer, true, true);
 		if(bSignificantTech) // advc.550e
-			TEAMREF(eToPlayer).setNoTradeTech(((TechTypes)trade.m_iData), true);
+			GET_TEAM(eToPlayer).setNoTradeTech(((TechTypes)trade.m_iData), true);
 
 		if (gTeamLogLevel >= 2)
 		{
@@ -878,18 +878,18 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		//GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).makePeace((TeamTypes)trade.m_iData);
 		// K-Mod. (units will be bumped after the rest of the trade deals are completed.)
 		// <advc.100b>
-		TEAMREF(eFromPlayer).makePeace((TeamTypes)trade.m_iData, false, TEAMID(eToPlayer));
-		TEAMREF(eFromPlayer).signPeaceTreaty((TeamTypes)trade.m_iData); // K-Mod. Use a standard peace treaty rather than a simple cease-fire.
+		GET_TEAM(eFromPlayer).makePeace((TeamTypes)trade.m_iData, false, TEAMID(eToPlayer));
+		GET_TEAM(eFromPlayer).signPeaceTreaty((TeamTypes)trade.m_iData); // K-Mod. Use a standard peace treaty rather than a simple cease-fire.
 		// </advc.100b>
 		// K-Mod todo: this team should offer something fair to the peace-team if this teams endWarVal is higher.
 		break;
 
 	case TRADE_WAR:
 		if (gTeamLogLevel >= 2) logBBAI("    Team %d (%S) declares war on team %d due to TRADE_WAR with %d (%S)", GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
-		TEAMREF(eFromPlayer).declareWar(((TeamTypes)trade.m_iData), true, NO_WARPLAN,
+		GET_TEAM(eFromPlayer).declareWar(((TeamTypes)trade.m_iData), true, NO_WARPLAN,
 				true, eToPlayer); // advc.100
 		// advc.146:
-		TEAMREF(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
+		GET_TEAM(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			CvPlayerAI& kAttacked = GET_PLAYER((PlayerTypes)iI); // advc
@@ -912,7 +912,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		GET_PLAYER(eFromPlayer).stopTradingWithTeam(eTargetTeam);
 		/*  <advc.130f> The instigator needs to stop too. (If an AI suggested
 			the embargo to a human, that's not handled here but by CvPlayer::handleDiploEvent.) */
-		if(!TEAMREF(eFromPlayer).isCapitulated() || !TEAMREF(eFromPlayer).isVassal(TEAMID(eToPlayer)))
+		if(!GET_TEAM(eFromPlayer).isCapitulated() || !GET_TEAM(eFromPlayer).isVassal(TEAMID(eToPlayer)))
 			GET_PLAYER(eToPlayer).stopTradingWithTeam(eTargetTeam, false);
 		// </advc.130f>
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -957,7 +957,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		if (trade.m_iData == 0)
 		{
 			startTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
-			TEAMREF(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), true);
+			GET_TEAM(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S_1) signs open borders due to TRADE_OPEN_BORDERS with player %d (%S_2)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		}
 		else
@@ -989,7 +989,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		if(trade.m_iData == 0) {
 			startTeamTrade(TRADE_DISENGAGE, TEAMID(eFromPlayer),
 					TEAMID(eToPlayer), true);
-			TEAMREF(eFromPlayer).setDisengage(TEAMID(eToPlayer), true);
+			GET_TEAM(eFromPlayer).setDisengage(TEAMID(eToPlayer), true);
 		}
 		else bSave = true;
 		break;
@@ -1026,15 +1026,15 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		// Canceled b/c of failure to protect vassal?
 		bool bDeniedHelp = false;
 		if(bSurrender)
-			bDeniedHelp = (TEAMREF(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
+			bDeniedHelp = (GET_TEAM(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
 					// Doesn't count if losses obviously only from cultural borders
-					&& TEAMREF(eFromPlayer).AI_isAnyWarPlan());
+					&& GET_TEAM(eFromPlayer).AI_isAnyWarPlan());
 		else {
-			DenialTypes eReason = TEAMREF(eFromPlayer).
+			DenialTypes eReason = GET_TEAM(eFromPlayer).
 					AI_surrenderTrade(TEAMID(eToPlayer));
 			bDeniedHelp = (eReason == DENIAL_POWER_YOUR_ENEMIES);
 		}
-		TEAMREF(eFromPlayer).setVassal(TEAMID(eToPlayer), false, bSurrender);
+		GET_TEAM(eFromPlayer).setVassal(TEAMID(eToPlayer), false, bSurrender);
 		if(bTeam) {
 			if(bSurrender)
 				endTeamTrade(TRADE_SURRENDER, TEAMID(eFromPlayer), TEAMID(eToPlayer));
@@ -1052,7 +1052,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		break;
 	} // </advc.143>
 	case TRADE_OPEN_BORDERS:
-		TEAMREF(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), false);
+		GET_TEAM(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), false);
 		if(bTeam) {
 			endTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			bTeamTradeEnded = true; // advc.133
@@ -1060,7 +1060,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 			/*  Don't check this after all -- if the other side loses all visible
 				territory and then regains some, they may still not really be worth
 				trading with. */
-			/*if(eCancelPlayer == NULL || TEAMREF(eCancelPlayer).AI_openBordersTrade(
+			/*if(eCancelPlayer == NULL || GET_TEAM(eCancelPlayer).AI_openBordersTrade(
 					TEAMID(eCancelPlayer == eToPlayer ? eFromPlayer : eToPlayer)) !=
 					DENIAL_NO_GAIN)*/
 			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
@@ -1071,7 +1071,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		break;
 
 	case TRADE_DEFENSIVE_PACT:
-		TEAMREF(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), false);
+		GET_TEAM(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), false);
 		if(bTeam) {
 			endTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			bTeamTradeEnded = true; // advc.133
@@ -1081,11 +1081,11 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		break;
 
 	case TRADE_PEACE_TREATY:
-		TEAMREF(eFromPlayer).setForcePeace(TEAMID(eToPlayer), false);
+		GET_TEAM(eFromPlayer).setForcePeace(TEAMID(eToPlayer), false);
 		break;
 	// <advc.034>
 	case TRADE_DISENGAGE:
-		TEAMREF(eFromPlayer).setDisengage(TEAMID(eToPlayer), false);
+		GET_TEAM(eFromPlayer).setDisengage(TEAMID(eToPlayer), false);
 		if(bTeam)
 			endTeamTrade(TRADE_DISENGAGE, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 		return; // No need to update attitude
@@ -1097,7 +1097,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	// <advc.133> (I think this is needed even w/o change 133 canceling more deals)
 	if(!bTeamTradeEnded)
 		GET_PLAYER(eFromPlayer).AI_updateAttitudeCache(eToPlayer);
-	else TEAMREF(eFromPlayer).AI_updateAttitudeCache(TEAMID(eToPlayer));
+	else GET_TEAM(eFromPlayer).AI_updateAttitudeCache(TEAMID(eToPlayer));
 	// </advc.133>
 }
 

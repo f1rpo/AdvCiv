@@ -5,9 +5,7 @@
 #include "WarEvalParameters.h"
 #include "WarAndPeaceAgent.h"
 #include "InvasionGraph.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
-#include "BBAI_Defines.h"
+#include "CvAI.h"
 #include "CvInfo_GameOption.h"
 #include <sstream>
 #include <iterator>
@@ -39,7 +37,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	for(int i = 0; i < MAX_CIV_TEAMS; i++)
 		capitulationsAcceptedPerTeam[i] = new set<TeamTypes>();
 	report.log("Military analysis from the pov of %s", report.leaderName(weId));
-	CvTeamAI& agent = TEAMREF(weId);
+	CvTeamAI& agent = GET_TEAM(weId);
 	set<PlayerTypes> currentlyAtWar; // 'atWar' is already a name of a global-context function
 	set<PlayerTypes> ourFutureOpponents;
 	set<PlayerTypes> ourSide;
@@ -54,16 +52,16 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			continue;
 		/*  Civs already at war (not necessarily with us).
 			If we are at war, our vassals are covered here as well. */
-		if(TEAMREF(civId).warAndPeaceAI().isKnownToBeAtWar(agent.getID()))
+		if(GET_TEAM(civId).warAndPeaceAI().isKnownToBeAtWar(agent.getID()))
 			currentlyAtWar.insert(civId);
 		TeamTypes masterTeamId = GET_PLAYER(civId).getMasterTeam();
 		if(masterTeamId == GET_PLAYER(weId).getMasterTeam())
 			weAndOurVassals.insert(civId);
 		if(masterTeamId == GET_TEAM(theyId).getMasterTeam())
 			theyAndTheirVassals.insert(civId);
-		if(warEvalParams.isWarAlly(TEAMREF(civId).getMasterTeam()))
+		if(warEvalParams.isWarAlly(GET_TEAM(civId).getMasterTeam()))
 			ourAllies.insert(civId);
-		if(warEvalParams.isExtraTarget(TEAMREF(civId).getMasterTeam()))
+		if(warEvalParams.isExtraTarget(GET_TEAM(civId).getMasterTeam()))
 			theirSide.insert(civId);
 		// Civs soon to be at war with us or an ally that we bring in
 		if(doWePlanToDeclWar(civId) || (warEvalParams.isAnyWarAlly() &&
@@ -73,15 +71,15 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			theirSide.insert(civId);
 			// Defensive pacts that our war plans will trigger.
 			for(size_t j = 0; j < getWPAI.properCivs().size(); j++) {
-				CvTeamAI& ally = TEAMREF(getWPAI.properCivs()[j]);
+				CvTeamAI& ally = GET_TEAM(getWPAI.properCivs()[j]);
 				/* If we attack our own ally, we still won't be at war with
 				   ourselves. */
-				if(ally.getMasterTeam() == TEAMREF(weId).getMasterTeam())
+				if(ally.getMasterTeam() == GET_TEAM(weId).getMasterTeam())
 					continue;
 				// Can happen b/c of the dlph.3 change
 				if(ally.isAtWar(TEAMID(weId)))
 					continue;
-				if(TEAMREF(civId).warAndPeaceAI().hasDefactoDefensivePact(
+				if(GET_TEAM(civId).warAndPeaceAI().hasDefactoDefensivePact(
 						ally.getID()))
 					ourFutureOpponents.insert(getWPAI.properCivs()[j]);
 			}
@@ -99,7 +97,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 				it != declaringWar.end(); it++) {
 			for(set<PlayerTypes>::iterator it2 = theirSide.begin();
 					it2 != theirSide.end(); it2++) {
-				if(!TEAMREF(*it).isAtWar(TEAMID(*it2))) {
+				if(!GET_TEAM(*it).isAtWar(TEAMID(*it2))) {
 					DoWBy[*it]->insert(*it2);
 					DoWOn[*it2]->insert(*it);
 				}
@@ -108,9 +106,9 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		set<PlayerTypes> theirDPAllies;
 		for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 			PlayerTypes civId = getWPAI.properCivs()[i];
-			if(TEAMREF(civId).getMasterTeam() == TEAMREF(weId).getMasterTeam())
+			if(GET_TEAM(civId).getMasterTeam() == GET_TEAM(weId).getMasterTeam())
 				continue;
-			if(TEAMREF(civId).isAtWar(TEAMID(weId)))
+			if(GET_TEAM(civId).isAtWar(TEAMID(weId)))
 				continue;
 			if(isOnTheirSide(TEAMID(civId), true) && theirSide.count(civId) <= 0)
 				theirDPAllies.insert(civId);
@@ -134,7 +132,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		PlayerTypes civId = getWPAI.properCivs()[i];
 		for(size_t j = 0; j < getWPAI.properCivs().size(); j++) {
 			PlayerTypes opponentId = getWPAI.properCivs()[j];
-			if(TEAMREF(civId).isAtWar(TEAMID(opponentId)) &&
+			if(GET_TEAM(civId).isAtWar(TEAMID(opponentId)) &&
 					(declaringWar.count(civId) <= 0 ||
 					!peaceScenario || theirSide.count(opponentId) <= 0) &&
 					(declaringWar.count(opponentId) <= 0 ||
@@ -244,7 +242,7 @@ PlayerTypes MilitaryAnalyst::ourId() const {
 
 bool MilitaryAnalyst::isOnOurSide(TeamTypes tId) const {
 
-	return GET_TEAM(tId).getMasterTeam() == TEAMREF(weId).getMasterTeam() ||
+	return GET_TEAM(tId).getMasterTeam() == GET_TEAM(weId).getMasterTeam() ||
 			warEvalParams.isWarAlly(tId);
 }
 
@@ -269,7 +267,7 @@ bool MilitaryAnalyst::isPeaceScenario() const {
 
 bool MilitaryAnalyst::doWePlanToDeclWar(PlayerTypes civId) const {
 
-	CvTeamAI& agent = TEAMREF(weId);
+	CvTeamAI& agent = GET_TEAM(weId);
 	TeamTypes teamId = TEAMID(civId);
 	/* Ongoing war preparations will be replaced by the war plan under
 	   consideration if adopted; disregard those. */
@@ -284,7 +282,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	if(isEliminated(weId) || we.getNumCities() <= 0)
 		return; // Who cares then
-	CvTeamAI const& agent = TEAMREF(weId);
+	CvTeamAI const& agent = GET_TEAM(weId);
 	WarAndPeaceCache const& ourCache = we.warAndPeaceAI().getCache();
 	/*  Counts the number of nukes. Assume no further build-up of nukes throughout
 		the military analysis. (They take long to build.) */

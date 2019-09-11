@@ -2,7 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
-#include "CvGamePlay.h"
+#include "CvAI.h"
+#include "CvCity.h"
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
@@ -453,7 +454,7 @@ void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 	if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) && eCulturalOwner != NO_PLAYER) {
 		PlayerTypes eSecondOwner = calculateCulturalOwner(false, true);
 		if(eSecondOwner != NO_PLAYER) {
-			if(!TEAMREF(eSecondOwner).isAtWar(TEAMID(eCulturalOwner)))
+			if(!GET_TEAM(eSecondOwner).isAtWar(TEAMID(eCulturalOwner)))
 				eCulturalOwner = eSecondOwner;
 			else setSecondOwner(eSecondOwner);
 		}
@@ -3131,7 +3132,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			if(pLoopCity == NULL)
 				continue;
 			if(pLoopCity->getTeam() != TEAMID(eBestPlayer) &&
-					!TEAMREF(eBestPlayer).isVassal(pLoopCity->getTeam()))
+					!GET_TEAM(eBestPlayer).isVassal(pLoopCity->getTeam()))
 				continue;
 			if(getCulture(pLoopCity->getOwner()) <= 0)
 				continue;
@@ -4720,7 +4721,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				continue;
 			ColorTypes eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
 			InterfaceMessageTypes eMsgType = MESSAGE_TYPE_MAJOR_EVENT;
-			if(TEAMREF(eNewValue).isVassal(kObs.getTeam()))
+			if(GET_TEAM(eNewValue).isVassal(kObs.getTeam()))
 				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
 			else if(GET_TEAM(pOldCity->getTeam()).isVassal(kObs.getTeam()))
 				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
@@ -4974,8 +4975,8 @@ bool CvPlot::isContestedByRival(PlayerTypes eRival) const {
 		return eSecondOwner != NO_PLAYER && eFirstOwner != NO_PLAYER &&
 				eFirstOwner != eSecondOwner && (eRival == NO_PLAYER ||
 				eSecondOwner == eRival || eFirstOwner == eRival) &&
-				TEAMREF(eFirstOwner).getMasterTeam() !=
-				TEAMREF(eSecondOwner).getMasterTeam();
+				GET_TEAM(eFirstOwner).getMasterTeam() !=
+				GET_TEAM(eSecondOwner).getMasterTeam();
 	} // <advc.099b>
 	else if(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) > 0) {
 		if(eFirstOwner == eRival) // No longer contested; they own it.

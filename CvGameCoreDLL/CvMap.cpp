@@ -8,13 +8,16 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
-#include "CvAreaList.h" // advc.003u
+#include "CvAreaList.h"
+#include "CvCityList.h"
+#include "CvSelectionGroupList.h"
 #include "CvGame.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
+#include "CvUnit.h"
 #include "CvPlotGroup.h"
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
-#include "FAStarNode.h"
+#include "KmodPathFinder.h"
 #include "CvInfo_GameOption.h"
 #include "CvDLLIniParserIFaceBase.h"
 #include <stack> // advc.030

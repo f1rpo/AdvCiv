@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvReplayInfo.h"
 #include "CvGameAI.h" // advc.104
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
 #include "CvInfo_GameOption.h"
 #include "CvMap.h"
 #include "CvReplayMessage.h"
@@ -71,7 +71,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	}
 	if (NO_PLAYER != ePlayer)
 	{
-		CvPlayer& player = GET_PLAYER(ePlayer);
+		CvPlayer const& player = GET_PLAYER(ePlayer);
 
 		m_eDifficulty = player.getHandicapType();
 		m_szLeaderName = player.getName();
@@ -142,7 +142,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	int iPlayerIndex = 0;
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
 	{
-		CvPlayer& player = GET_PLAYER((PlayerTypes)iPlayer);
+		CvPlayer const& player = GET_PLAYER((PlayerTypes)iPlayer);
 		if (player.isEverAlive())
 		{
 			mapPlayers[(PlayerTypes)iPlayer] = iPlayerIndex;

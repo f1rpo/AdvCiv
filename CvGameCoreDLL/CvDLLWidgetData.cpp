@@ -1,7 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLWidgetData.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvDeal.h"
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
@@ -4532,17 +4531,17 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		break;
 	case TRADE_PEACE:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_PEACE",
-				TEAMREF(eWhoFrom).getName().GetCString(),
+				GET_TEAM(eWhoFrom).getName().GetCString(),
 				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
 		break;
 	case TRADE_WAR:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_WAR",
-				TEAMREF(eWhoFrom).getName().GetCString(),
+				GET_TEAM(eWhoFrom).getName().GetCString(),
 				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
 		break;
 	case TRADE_EMBARGO:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_STOP_TRADING",
-				TEAMREF(eWhoFrom).getName().GetCString(),
+				GET_TEAM(eWhoFrom).getName().GetCString(),
 				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
 		break;
 	case TRADE_CIVIC:
@@ -5921,7 +5920,7 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 	CvString szFlavorKey("TXT_KEY_FLAVOR_" + szFlavor + "_TECH");
 	r.append(gDLL->getText(szFlavorKey));
 	r.append(L". ");
-	CvTeam& kTeam = TEAMREF(ePlayer);
+	CvTeam& kTeam = GET_TEAM(ePlayer);
 	/*  The same discovery could be enabled by multiple currently researchable techs.
 		The map lists the alt. reqs for each target tech. */
 	std::map<TechTypes,std::set<TechTypes>*> discoverMap;

@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvEventReporter.h"
 #include "CvGame.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
 
 //
 // static, singleton accessor

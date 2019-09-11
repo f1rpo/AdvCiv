@@ -5,6 +5,7 @@
 #include "RiseFall.h"
 #include "RFChapter.h"
 #include "CvGamePlay.h"
+#include "CvPlayerAI.h"
 
 
 RFChapterScore::RFChapterScore() {

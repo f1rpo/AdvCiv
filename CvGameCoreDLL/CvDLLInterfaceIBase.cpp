@@ -4,7 +4,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLInterfaceIFaceBase.h" // </advc.127>
 #include "CvGame.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
 #include "RiseFall.h" // advc.700
 
 void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,

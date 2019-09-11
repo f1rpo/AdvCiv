@@ -3,11 +3,9 @@
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
 #include "CvInfo_GameOption.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvDeal.h"
 #include "WarAndPeaceAgent.h" // advc.104
-#include "BBAI_Defines.h"
 #include "CvPopupInfo.h"
 #include "CvReplayInfo.h"
 #include "CvPlot.h"
@@ -493,10 +491,10 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
 		if(!other.isAlive() || other.isMinorCiv())
 			continue;
-		if(other.getID() != civId && TEAMREF(civId).isHasMet(other.getTeam()))
+		if(other.getID() != civId && GET_TEAM(civId).isHasMet(other.getTeam()))
 			other.AI_updateAttitudeCache(civId);
 		if(b && formerHumanCiv != NO_PLAYER && civId != formerHumanCiv &&
-				other.getID() != formerHumanCiv && TEAMREF(formerHumanCiv).
+				other.getID() != formerHumanCiv && GET_TEAM(formerHumanCiv).
 				isHasMet(other.getTeam()))
 			other.AI_updateAttitudeCache(formerHumanCiv);
 	}
@@ -1036,7 +1034,7 @@ void RiseFall::assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 	}
 	wss << gDLL->getText("TXT_KEY_RF_CIV_SELECTION_SCORE",
 			g.getPlayerScore(selectedCiv));
-	CvTeam& t = TEAMREF(selectedCiv);
+	CvTeam& t = GET_TEAM(selectedCiv);
 	if(t.isAVassal()) {
 		wss << L"\n";
 		PlayerTypes masterLeader = GET_TEAM(t.getMasterTeam()).getLeaderID();
@@ -1075,7 +1073,7 @@ CvWString RiseFall::knownName(PlayerTypes civId, bool nameNumber) const {
 	for(size_t i = 0; i < chapters.size(); i++) {
 		if(!chapters[i]->hasEnded())
 			break;
-		if(TEAMREF(chapters[i]->getCiv()).isHasMet(TEAMID(civId))) {
+		if(GET_TEAM(chapters[i]->getCiv()).isHasMet(TEAMID(civId))) {
 			hasMet = true;
 			break;
 		}
@@ -1147,8 +1145,8 @@ bool RiseFall::byRecommendation(PlayerTypes one, PlayerTypes two) {
 
 	CvPlayer const& p1 = GET_PLAYER(one);
 	CvPlayer const& p2 = GET_PLAYER(two);
-	CvTeam const& t1 = TEAMREF(one);
-	CvTeam const& t2 = TEAMREF(two);
+	CvTeam const& t1 = GET_TEAM(one);
+	CvTeam const& t2 = GET_TEAM(two);
 	if(t1.isCapitulated() && !t2.isCapitulated())
 		return false;
 	if(t2.isCapitulated() && !t1.isCapitulated())

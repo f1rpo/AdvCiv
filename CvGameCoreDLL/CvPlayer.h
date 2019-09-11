@@ -30,13 +30,35 @@ typedef std::vector< std::pair<UnitCombatTypes, PromotionTypes> > UnitCombatProm
 typedef std::vector< std::pair<UnitClassTypes, PromotionTypes> > UnitClassPromotionArray;
 typedef std::vector< std::pair<CivilizationTypes, LeaderHeadTypes> > CivLeaderArray;
 
+// <advc.003u>
+#ifndef GET_PLAYER // Prefer the definition in CvPlayerAI.h
+#define GET_PLAYER(x) CvPlayer::getPlayer(x)
+#endif // </advc.003u>
 
 class CvPlayer /* advc.003e: */ : private boost::noncopyable
 {
 public:
+	// <advc.003u>
+	static inline CvPlayer& getPlayer(PlayerTypes ePlayer)
+	{
+		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayer::getPlayer(PlayerTypes)");
+		// Needs to be inline and I don't want to include CvPlayerAI.h here
+		return *reinterpret_cast<CvPlayer*>(m_aPlayers[ePlayer]);
+	}
+	// static functions moved from CvPlayerAI:
+	static void initStatics();
+	static void freeStatics();
+	static bool areStaticsInitialized() { return (m_aPlayers != NULL); }
+	// </advc.003u>
 
-	CvPlayer();
+	explicit CvPlayer(PlayerTypes eID);
 	virtual ~CvPlayer();
+protected: // advc.003u: Can't easily move these past AI_makeAssignWorkDirty (the EXE relies on the order)
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
+public:
+	// advc.003u: Keep one pure virtual function so that this class is abstract
+	virtual void AI_makeAssignWorkDirty() = 0;
 
 	DllExport void init(PlayerTypes eID);
 	DllExport void setupGraphical();
@@ -1158,13 +1180,10 @@ public:
 	} // </advc.003u>	
 
 protected:
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
-	// advc.003u: Keep one pure virtual function so that this class is abstract
-	virtual void AI_makeAssignWorkDirty() = 0;
-	// advc.003u: See the comments in the private section before adding any virtual functions!
+	PlayerTypes m_eID; // advc: Moved up for easier access in the debugger
 
-	PlayerTypes m_eID; // advc: Moved here for easier access in the debugger
+	static CvPlayerAI** m_aPlayers; // advc.003u: Moved from CvPlayerAI.h; and store only pointers.
+
 	int m_iStartingX;
 	int m_iStartingY;
 	int m_iTotalPopulation;
@@ -1319,8 +1338,8 @@ protected:
 	int* m_paiFreeBuildingCount;
 	int* m_paiExtraBuildingHappiness;
 	int* m_paiExtraBuildingHealth;
-	int** m_paiExtraBuildingYield;
-	int** m_paiExtraBuildingCommerce;
+	/*int** m_paiExtraBuildingYield;
+	int** m_paiExtraBuildingCommerce;*/ // advc: unused
 	int* m_paiFeatureHappiness;
 	int* m_paiUnitClassCount;
 	int* m_paiUnitClassMaking;
@@ -1332,7 +1351,7 @@ protected:
 	int* m_paiNoCivicUpkeepCount;
 	int* m_paiHasReligionCount;
 	int* m_paiHasCorporationCount;
-	int* m_paiUpkeepCount; // advc.003j (comment): unused
+	int* m_paiUpkeepCount; // advc (comment): unused (but accessible)
 	int* m_paiSpecialistValidCount;
 
 	bool* m_pabResearchingTech;

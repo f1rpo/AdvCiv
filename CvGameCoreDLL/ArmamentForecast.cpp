@@ -6,9 +6,7 @@
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
 #include "WarAndPeaceReport.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
-#include "BBAI_Defines.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_GameOption.h"
@@ -527,8 +525,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 
 bool ArmamentForecast::canReachEither(TeamTypes t1, TeamTypes t2) const {
 
-	return GET_TEAM(t1).warAndPeaceAI().canReach(t2) ||
-				GET_TEAM(t2).warAndPeaceAI().canReach(t1);
+	return GET_TEAM(t1).warAndPeaceAI().canReach(t2) || GET_TEAM(t2).warAndPeaceAI().canReach(t1);
 }
 
 char const* ArmamentForecast::strIntensity(Intensity in) {

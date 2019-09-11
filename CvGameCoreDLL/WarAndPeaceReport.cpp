@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceReport.h"
 #include "CvGamePlay.h"
+#include "CvCity.h"
 #include <sstream>
 
 using std::ostringstream;

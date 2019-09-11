@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvSelectionGroup.h"
 #include "CvGamePlay.h"
+#include "CvPlayerAI.h"
 #include "CvMap.h"
 #include "BBAILog.h"
 #include "FAStarNode.h"

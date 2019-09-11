@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDllTranslator.h"
 #include "CvGame.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
 
 void CvDllTranslator::initializeTags(CvWString& szTagStartIcon, CvWString& szTagStartOur, CvWString& szTagStartCT, CvWString& szTagStartColor, CvWString& szTagStartLink, CvWString& szTagEndLink, CvWString& szEndLinkReplacement, std::map<std::wstring, CvWString>& aIconMap, std::map<std::wstring, CvWString>& aColorMap)
 {
@@ -65,7 +65,7 @@ void CvDllTranslator::initializeTags(CvWString& szTagStartIcon, CvWString& szTag
 
 bool CvDllTranslator::replaceOur(const CvWString& szKey, int iForm, CvWString& szReplacement)
 {
-	CvPlayerAI& player = GET_PLAYER((PlayerTypes) gDLL->getDiplomacyPlayer());
+	CvPlayer const& player = GET_PLAYER((PlayerTypes) gDLL->getDiplomacyPlayer());
 	if (szKey == L"[OUR_NAME")
 	{
 		szReplacement = player.getName(iForm);
@@ -104,7 +104,7 @@ bool CvDllTranslator::replaceOur(const CvWString& szKey, int iForm, CvWString& s
 
 bool CvDllTranslator::replaceCt(const CvWString& szKey, int iForm, CvWString& szReplacement)
 {
-	CvPlayerAI& player = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvPlayer const& player = GET_PLAYER(GC.getGame().getActivePlayer());
 	if (szKey == L"[CT_NAME")
 	{
 		szReplacement = player.getName(iForm);

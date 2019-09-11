@@ -2,13 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlayer.h"
-// <advc.003u>
-#include "CvCityList.h"
-#include "CvUnitList.h"
-#include "CvSelectionGroupList.h" // </advc.003u>
-#include "CvCivilization.h" // advc.003w
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
@@ -20,13 +14,31 @@
 #include "RiseFall.h" // advc.700
 #include "AdvCiv4lerts.h" // advc.210
 #include "CvBugOptions.h" // advc.106b
-//bbai
-#include "CvDLLFlagEntityIFaceBase.h"
-#include "BBAILog.h"
-//bbai end
+#include "CvDLLFlagEntityIFaceBase.h" // BBAI
+#include "BBAILog.h" // BBAI
 
-CvPlayer::CvPlayer() :
-	/* <advc.003u> */ m_cities(new CvCityList()), m_units(new CvUnitList()),
+// advc.003u: Statics moved from CvPlayerAI
+CvPlayerAI** CvPlayer::m_aPlayers = NULL;
+
+void CvPlayer::initStatics()
+{
+	/*  advc.003u (comment): If further concrete classes derived from CvPlayer are
+		added, then this function will have to decide which constructor to call. */
+	m_aPlayers = new CvPlayerAI*[MAX_PLAYERS];
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		m_aPlayers[i] = new CvPlayerAI((PlayerTypes)i);
+}
+
+void CvPlayer::freeStatics()
+{
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		SAFE_DELETE(m_aPlayers[i]);
+	SAFE_DELETE_ARRAY(m_aPlayers);
+}
+
+
+CvPlayer::CvPlayer(/* <advc.003u> */ PlayerTypes eID) :
+	m_cities(new CvCityList()), m_units(new CvUnitList()),
 	m_selectionGroups(new CvSelectionGroupList()), // </advc.003u>
 	m_pCivilization(NULL) // advc.003w
 {
@@ -87,7 +99,7 @@ CvPlayer::CvPlayer() :
 	m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0; // K-Mod
 
-	reset(NO_PLAYER, true);
+	reset(eID, true);
 }
 
 
@@ -1175,7 +1187,7 @@ void CvPlayer::initFreeUnits()
 		{
 			/*  advc.108: BtS code moved into a new function (b/c I need the same
 				behavior elsewhere). */
-			TEAMREF(getID()).revealSurroundingPlots(*pStartingPlot,
+			GET_TEAM(getID()).revealSurroundingPlots(*pStartingPlot,
 					GC.getDefineINT("ADVANCED_START_SIGHT_RANGE"));
 		}
 	}
@@ -1352,7 +1364,7 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 	// <advc.108> Centered on the Settler, not on the starting plot.
 	if(bFound)
 	{
-		TEAMREF(getID()).revealSurroundingPlots(*pBestPlot,
+		GET_TEAM(getID()).revealSurroundingPlots(*pBestPlot,
 				GC.getDefineINT("START_SIGHT_RANGE"));
 	} // </advc.108>
 	initUnit(eUnit, pBestPlot->getX(), pBestPlot->getY(), eUnitAI);
@@ -1900,9 +1912,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			}
 			if(bEverOwned)
 			{
-				TEAMREF(eOldOwner).AI_changeWarSuccess(t.getID(),
+				GET_TEAM(eOldOwner).AI_changeWarSuccess(t.getID(),
 						-std::min(GC.getWAR_SUCCESS_CITY_CAPTURING(),
-						TEAMREF(eOldOwner).AI_getWarSuccess(t.getID())));
+						GET_TEAM(eOldOwner).AI_getWarSuccess(t.getID())));
 			}
 		} // </advc.123d>
 	}
@@ -3880,7 +3892,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer));
 		if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 			logBBAI("    Team %d (%S) declares war on team %d due to DIPLOEVENT", getTeam(), getCivilizationDescription(0), ePlayer);
-		TEAMREF(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
+		GET_TEAM(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
 				true, getID()); // advc.100
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
@@ -3900,7 +3912,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		AI().AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_STOP_TRADING); // advc.130j
 		GET_PLAYER(ePlayer).stopTradingWithTeam((TeamTypes)iData1);
 		// <advc.130f> We also stop trading (unless ePlayer is our capitulated vassal)
-		if(!TEAMREF(ePlayer).isCapitulated() || !TEAMREF(ePlayer).isVassal(getTeam()))
+		if(!GET_TEAM(ePlayer).isCapitulated() || !GET_TEAM(ePlayer).isVassal(getTeam()))
 			stopTradingWithTeam((TeamTypes)iData1, false); // </advc.130f>
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
@@ -4068,7 +4080,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		return false; // </advc.opt>
 
 	CvTeam const& kOurTeam = GET_TEAM(getTeam());
-	CvTeam const& kToTeam = TEAMREF(eWhoTo);
+	CvTeam const& kToTeam = GET_TEAM(eWhoTo);
 	switch (item.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
@@ -4240,7 +4252,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const // advc.opt
 {
 	CvTeam const& kOurTeam = GET_TEAM(getTeam());
-	CvTeam const& kToTeam = TEAMREF(eWhoTo);
+	CvTeam const& kToTeam = GET_TEAM(eWhoTo);
 	switch (eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
@@ -4312,7 +4324,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 				/*  advc: Prohibit DP when not all wars shared?
 					Enough to have the AI refuse such pacts I think
 					(in CvTeamAI::AI_defensivePactTrade). */
-					//&& TEAMREF(getID()).allWarsShared(theirTeam.getID())
+					//&& GET_TEAM(getID()).allWarsShared(theirTeam.getID())
 				)) // </dlph.3>
 			{
 				if (kOurTeam.canSignDefensivePact(kToTeam.getID()))
@@ -13029,7 +13041,7 @@ void CvPlayer::validateDiplomacy() {
 			CLLNode<TradeData>* pNode = pDiplo->getOurOfferList().head(); // Can be NULL!
 			// Worst enemy may have changed
 			if(pDiplo->getDiploComment() == GC.getInfoTypeForString("AI_DIPLOCOMMENT_STOP_TRADING") &&
-					pDiplo->getData() != TEAMREF(pDiplo->getWhoTalkingTo()).AI_getWorstEnemy()) {
+					pDiplo->getData() != GET_TEAM(pDiplo->getWhoTalkingTo()).AI_getWorstEnemy()) {
 				CvPlayerAI& who = GET_PLAYER(pDiplo->getWhoTalkingTo());
 				/*  Recipient isn't getting contacted after all. Ideally,
 					this should also be done for any contact attempts that the
@@ -13623,7 +13635,7 @@ bool CvPlayer::canSeeTech(PlayerTypes eOther) const {
 	if(eOther == NO_PLAYER)
 		return false;
 	CvTeam const& ourTeam = GET_TEAM(getTeam());
-	CvTeam const& otherTeam = TEAMREF(eOther);
+	CvTeam const& otherTeam = GET_TEAM(eOther);
 	if(ourTeam.getID() == otherTeam.getID())
 		return true;
 	if(otherTeam.isVassal(ourTeam.getID()))
@@ -13676,7 +13688,7 @@ int CvPlayer::adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlay
 
 	// Don't compute anything when the teams have equal size
 	int iOurTeamSize = GET_TEAM(getTeam()).getNumMembers();
-	int iTheirTeamSize = TEAMREF(eTargetPlayer).getNumMembers();
+	int iTheirTeamSize = GET_TEAM(eTargetPlayer).getNumMembers();
 	if(iOurTeamSize == iTheirTeamSize)
 		return iBaseCost;
 	// Tie it to the tech cost modifier
@@ -17666,7 +17678,7 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 		{
 			// advc: Moved out of the loop
 			bool bMetOtherPlayer = (kTriggeredData.m_eOtherPlayer == NO_PLAYER ||
-					TEAMREF(kTriggeredData.m_eOtherPlayer).isHasMet(getTeam()));
+					GET_TEAM(kTriggeredData.m_eOtherPlayer).isHasMet(getTeam()));
 			for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 			{
 				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
@@ -20092,7 +20104,7 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	if (eNewPlayer == NO_PLAYER)
 		return false;
 
-	bool bPlayerExists = TEAMREF(eNewPlayer).isAlive();
+	bool bPlayerExists = GET_TEAM(eNewPlayer).isAlive();
 	FAssert(!bPlayerExists);
 	CvGame& g = GC.getGame();
 	CvWString szMessage; // advc.127b
@@ -20892,7 +20904,7 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	{
 		if (!::atWar(getTeam(), TEAMID(kData.ePlayer))
 				// dlph.25: 'Cannot defy war declaration against itself'
-				&& TEAMREF(kData.ePlayer).getMasterTeam() != getMasterTeam()
+				&& GET_TEAM(kData.ePlayer).getMasterTeam() != getMasterTeam()
 				&& isFullMember(eVoteSource)) // advc
 		{
 			// BETTER_BTS_AI_MOD, 12/31/08, jdog5000: Vassals can't defy declarations of war
@@ -21041,7 +21053,7 @@ bool CvPlayer::canHaveTradeRoutesWith(PlayerTypes ePlayer) const
 
 bool CvPlayer::canStealTech(PlayerTypes eTarget, TechTypes eTech) const
 {
-	if (TEAMREF(eTarget).isHasTech(eTech))
+	if (GET_TEAM(eTarget).isHasTech(eTech))
 	{
 		if (canResearch(eTech, /* K-Mod: */ false, true))
 		{
@@ -21764,7 +21776,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		szString = gDLL->getText("TXT_KEY_TRADE_PERMANENT_ALLIANCE_STRING");
 		break;
 	case TRADE_PEACE_TREATY:
-		if(TEAMREF(eOtherPlayer).isAtWar(getTeam())) // advc.072
+		if(GET_TEAM(eOtherPlayer).isAtWar(getTeam())) // advc.072
 		{
 			szString = gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STRING",
 					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
@@ -22874,7 +22886,7 @@ void CvPlayer::announceEspionageToThirdParties(EspionageMissionTypes eMission, P
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 			if(kObs.isAlive() && kObs.getID() != getID() && kObs.getID() != eTarget &&
-					TEAMREF(eTarget).isHasMet(kObs.getTeam())) {
+					GET_TEAM(eTarget).isHasMet(kObs.getTeam())) {
 				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						NULL, MESSAGE_TYPE_INFO, NULL, NO_COLOR, x, y);

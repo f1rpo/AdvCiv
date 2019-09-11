@@ -4,15 +4,9 @@
 #include "WarAndPeaceAI.h"
 #include "WarAndPeaceAgent.h"
 #include "WarEvaluator.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include <iterator>
-
-/*  advc.make: Include this for debugging with Visual Leak Detector
-	(if installed). Doesn't matter which file includes it; preferrable a cpp file
-	such as this b/c it doesn't cause (much) unnecessary recompilation this way. */
-//#include <vld.h>
 
 using std::vector;
 
@@ -68,7 +62,7 @@ void WarAndPeaceAI::update() {
 void WarAndPeaceAI::processNewCivInGame(PlayerTypes newCivId) {
 
 	update();
-	TEAMREF(newCivId).warAndPeaceAI().init(TEAMID(newCivId));
+	GET_TEAM(newCivId).warAndPeaceAI().init(TEAMID(newCivId));
 	WarAndPeaceAI::Civ& newAI = GET_PLAYER(newCivId).warAndPeaceAI();
 	newAI.init(newCivId);
 	// Need to set the typical units before updating the caches of the old civs

@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
-#include "CvGamePlay.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "FAStarNode.h"
 #include "BBAILog.h" // advc.007

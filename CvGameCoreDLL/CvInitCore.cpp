@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
 #include "CvInfo_Unit.h"
 #include "CvInfo_GameOption.h"
 #include "CvDLLUtilityIFaceBase.h"
@@ -397,7 +397,7 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 	else if (getActivePlayer() == eNewID)
 		setActivePlayer(eOldID);
 
-	if(CvPlayerAI::areStaticsInitialized())
+	if(CvPlayer::areStaticsInitialized())
 	{
 		GET_PLAYER(eOldID).updateTeamType();
 		GET_PLAYER(eNewID).updateTeamType();
@@ -667,7 +667,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 	m_aszPythonCheck[eID].clear();
 	m_aszXMLCheck[eID].clear();
 
-	if(CvPlayerAI::areStaticsInitialized())
+	if(CvPlayer::areStaticsInitialized())
 	{
 		GET_PLAYER(eID).updateTeamType();
 		GET_PLAYER(eID).updateHuman();
@@ -1175,7 +1175,7 @@ void CvInitCore::setType(GameType eType)
 			// Otherwise as set in XML
 			else kOption.setVisible(kOption.getVisibleXML());
 		} // </advc.054>
-		if(CvPlayerAI::areStaticsInitialized())
+		if(CvPlayer::areStaticsInitialized())
 		{
 			for (int i = 0; i < MAX_PLAYERS; ++i)
 			{
@@ -1208,7 +1208,7 @@ void CvInitCore::setMode(GameMode eMode)
 	{
 		m_eMode = eMode;
 
-		if(CvPlayerAI::areStaticsInitialized())
+		if(CvPlayer::areStaticsInitialized())
 		{
 			for (int i = 0; i < MAX_PLAYERS; ++i)
 			{
@@ -1509,7 +1509,7 @@ void CvInitCore::setTeam(PlayerTypes eID, TeamTypes eTeam)
 		if (getTeam(eID) != eTeam)
 		{
 			m_aeTeam[eID] = eTeam;
-			if(CvPlayerAI::areStaticsInitialized())
+			if(CvPlayer::areStaticsInitialized())
 				GET_PLAYER(eID).updateTeamType();
 		}
 	}
@@ -1581,7 +1581,7 @@ void CvInitCore::setSlotStatus(PlayerTypes eID, SlotStatus eSlotStatus)
 		if (getSlotStatus(eID) != eSlotStatus)
 		{
 			m_aeSlotStatus[eID] = eSlotStatus;
-			if(CvPlayerAI::areStaticsInitialized())
+			if(CvPlayer::areStaticsInitialized())
 				GET_PLAYER(eID).updateHuman();
 		}
 	}
@@ -1881,7 +1881,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_PLAYERS, m_abPlayableCiv);
 	pStream->Read(MAX_PLAYERS, m_abMinorNationCiv);
 
-	if (CvPlayerAI::areStaticsInitialized())
+	if (CvPlayer::areStaticsInitialized())
 	{
 		for (int i = 0; i < MAX_PLAYERS; i++)
 		{

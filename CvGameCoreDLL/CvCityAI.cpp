@@ -2,8 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvCityAI.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "WarAndPeaceAgent.h" // advc.031b (for trait checks)
 #include "CvMap.h"
 #include "CvArea.h"
@@ -12,7 +11,6 @@
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Civics.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-#include "BBAI_Defines.h"
 
 
 CvCityAI::CvCityAI()
@@ -1625,7 +1623,7 @@ void CvCityAI::AI_chooseProduction()
 		for(int i = 0; i < GC.getNumTerrainInfos(); i++) {
 			TerrainTypes eTerrain = (TerrainTypes)i;
 			if(GC.getTerrainInfo(eTerrain).isWater() &&
-					TEAMREF(getOwner()).isTerrainTrade(eTerrain)) {
+					GET_TEAM(getOwner()).isTerrainTrade(eTerrain)) {
 				bNavalTrade = true;
 				break;
 			}
@@ -1861,10 +1859,11 @@ void CvCityAI::AI_chooseProduction()
 				/*  Use max, not sum, b/c multiple war enemies are unlikely
 					to coordinate an attack on our transports. */
 				double maxThreat = 0;
-				for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+				{
 					CvPlayerAI const& kEnemy = GET_PLAYER((PlayerTypes)i);
-					if(kEnemy.isAlive() && kTeam.AI_getWarPlan(
-							kEnemy.getMasterTeam()) != NO_WARPLAN) {
+					if(kEnemy.isAlive() && kTeam.AI_getWarPlan(kEnemy.getMasterTeam()) != NO_WARPLAN)
+					{
 						/*  Tbd.: Should perhaps check if the enemy sea attackers even
 							pose a danger to our cargo ships; could be Frigates
 							against Industrial-era Transports. */
@@ -1872,8 +1871,10 @@ void CvCityAI::AI_chooseProduction()
 						double threat = 0;
 						/*  Don't want to just count the enemy ships (not open info);
 							count their coastal cities instead. */
-						FOR_EACH_CITY(c, kEnemy) {
-							if(c->plot()->isAdjacentToArea(pAssaultWaterArea)) {
+						FOR_EACH_CITY(c, kEnemy)
+						{
+							if(c->plot()->isAdjacentToArea(pAssaultWaterArea))
+							{
 								// Isolated civs tend to build more ships
 								threat += bAreaAlone ? 1.4 : 1;
 							}
@@ -1938,9 +1939,9 @@ void CvCityAI::AI_chooseProduction()
 					// K-Mod
 					if (iUnitSpending < iMaxUnitSpending ||
 						g.getSorenRandNum(100, "Build Transport") <
-								// advc.104p: Changed 100 to 350
-								(350 * (iTargetCapacity - iTransportCapacity)) /
-								std::max(1, iTransportCapacity))
+						// advc.104p: Changed 100 to 350
+						(350 * (iTargetCapacity - iTransportCapacity)) /
+						std::max(1, iTransportCapacity))
 					// K-Mod end
 					{
 						if (AI_chooseUnit(UNITAI_ASSAULT_SEA))
@@ -2950,7 +2951,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 			aiUnitAIVal[iI] /= 100;
 		}
 	} // <advc.033>
-	if(TEAMREF(getOwner()).isCapitulated()) {
+	if(GET_TEAM(getOwner()).isCapitulated()) {
 		aiUnitAIVal[UNITAI_PIRATE_SEA] = 0;
 		aiUnitAIVal[UNITAI_ICBM] = 0; // advc.143b
 	} // </advc.033>
@@ -3602,7 +3603,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	if (kBuilding.isCapital())
 		return 0;
 	// <advc.014>
-	if(TEAMREF(getOwner()).isCapitulated() && isWorldWonderClass(eBuildingClass) &&
+	if(GET_TEAM(getOwner()).isCapitulated() && isWorldWonderClass(eBuildingClass) &&
 			kBuilding.getHolyCity() == NO_RELIGION)
 		return 0;
 	// </advc.014>
@@ -3729,12 +3730,15 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			// <dlph.16> Replacing the line above.
 			// DarkLunaPhantom - "Bomb Shelters should be of much higher value, I copied and adjusted rough estimates from AI_projectValue()."
 			int iNukeDefense = -kBuilding.getNukeModifier();
-			if(iNukeDefense > 0) {
+			if(iNukeDefense > 0)
+			{
 				int iNukeEvasionProbability = 0;
 				int iNukeUnitTypes = 0;
-				for(int i = 0; i < GC.getNumUnitInfos(); i++) {
+				for(int i = 0; i < GC.getNumUnitInfos(); i++)
+				{
 					CvUnitInfo const& kLoopUnit = GC.getUnitInfo((UnitTypes)i);
-					if(kLoopUnit.getNukeRange() >= 0) {
+					if(kLoopUnit.getNukeRange() >= 0)
+					{
 						iNukeEvasionProbability += kLoopUnit.getEvasionProbability();
 						iNukeUnitTypes++;
 					}
@@ -3747,7 +3751,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				/*  "Lazy attempt to estimate the value of the strongest
 					unit stack this shelter might defend." */
 				int iStackValue = 0;
-				for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+				{
 					CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 					if(kLoopPlayer.getTeam() == kOwner.getTeam())
 						iStackValue += area()->getPower(kLoopPlayer.getID());
@@ -3764,12 +3769,12 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			} // </dlph.16>
 		}
 
-		if ((iFocusFlags & BUILDINGFOCUS_ESPIONAGE) || (iPass > 0))
+		if ((iFocusFlags & BUILDINGFOCUS_ESPIONAGE) || iPass > 0)
 		{
 			iValue += kBuilding.getEspionageDefenseModifier() / 8;
 		}
 
-		if (((iFocusFlags & BUILDINGFOCUS_HAPPY) || (iPass > 0)) && !isNoUnhappiness())
+		if (((iFocusFlags & BUILDINGFOCUS_HAPPY) || iPass > 0) && !isNoUnhappiness())
 		{
 			int iBestHappy = 0;
 			for (int iI = 0; iI < GC.getNumHurryInfos(); iI++)
@@ -5653,7 +5658,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bAsync) /* advc: */ const
 {
 	// <advc.014>
-	if(TEAMREF(getOwner()).isCapitulated())
+	if(GET_TEAM(getOwner()).isCapitulated())
 		return NO_PROJECT;
 	// </advc.014>
 	int iProductionRank = findYieldRateRank(YIELD_PRODUCTION);
@@ -5855,9 +5860,9 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 		//if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH | AI_STRATEGY_DAGGER) || kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
 		CvGame& g = GC.getGame();
 		if(!GET_TEAM(getTeam()).AI_isAnyMemberDoVictoryStrategyLevel4() &&
-				g.getTeamRank(getTeam()) != 0 &&
-				GET_TEAM(getTeam()).AI_getAttitude(g.getRankTeam(0)) < ATTITUDE_PLEASED)
-				// </advc.650>
+			g.getTeamRank(getTeam()) != 0 &&
+			GET_TEAM(getTeam()).AI_getAttitude(g.getRankTeam(0)) < ATTITUDE_PLEASED)
+			// </advc.650>
 		{
 			int iNukeValue = 0;
 			int const iEverAlive = g.countCivPlayersAlive(); // advc.650
@@ -5882,7 +5887,8 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						(kLoopPlayer.getTeam() == kOwner.getTeam() || kTeam.isHasMet(kLoopPlayer.getTeam())))
 					{
 						int iTemp=0; // advc
-						if (kLoopPlayer.getID() == kOwner.getID()) {
+						if (kLoopPlayer.getID() == kOwner.getID())
+						{
 							iTemp = GC.getLeaderHeadInfo(kOwner.getPersonalityType()).
 									// victory weight is between 0 and 100. (usually around 30).
 									getConquestVictoryWeight()/2
@@ -5896,8 +5902,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 								|| kLoopPlayer.isHuman()) // advc.650
 							iTemp = -100;
 						else
-							iTemp = std::max(-100,
-									(kOwner.AI_getAttitudeWeight(j) - 125)/
+							iTemp = std::max(-100, (kOwner.AI_getAttitudeWeight(j) - 125) /
 									3); // advc.650: was 2
 
 						// tech prereqs.  reduce the value for each missing prereq

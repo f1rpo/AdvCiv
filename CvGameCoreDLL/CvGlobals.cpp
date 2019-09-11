@@ -8,7 +8,6 @@
 #include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvInfo_All.h"
-#include "CvPlayerAI.h"
 #include "CvGameTextMgr.h"
 #include "CvXMLLoadUtility.h" // advc.003v
 #include "CvDLLUtilityIFaceBase.h"
@@ -305,8 +304,8 @@ void CvGlobals::init()
 	m_game = new CvGameAI();
 	m_map = new CvMap();
 
-	CvPlayerAI::initStatics();
-	CvTeamAI::initStatics();
+	CvPlayer::initStatics();
+	CvTeam::initStatics();
 
 	//m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f); // advc.003j: unused
 
@@ -345,8 +344,8 @@ void CvGlobals::uninit()
 	SAFE_DELETE(m_game);
 	SAFE_DELETE(m_map);
 
-	CvPlayerAI::freeStatics();
-	CvTeamAI::freeStatics();
+	CvPlayer::freeStatics();
+	CvTeam::freeStatics();
 
 	SAFE_DELETE(m_asyncRand);
 	SAFE_DELETE(m_pPythonCaller); // advc.003y

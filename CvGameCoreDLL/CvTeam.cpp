@@ -2,8 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeam.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104t
 #include "CvMap.h"
@@ -15,10 +14,26 @@
 #include "CvDiploParameters.h"
 #include "CvPopupInfo.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-#include "BBAI_Defines.h"
 #include "CvBugOptions.h" // advc.071
 
-// <dlph.26> "Initializations of static variables."
+// advc.003u: Statics moved from CvTeamAI
+CvTeamAI** CvTeam::m_aTeams = NULL;
+
+void CvTeam::initStatics()
+{
+	m_aTeams = new CvTeamAI*[MAX_TEAMS];
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		m_aTeams[i] = new CvTeamAI((TeamTypes)i);
+}
+
+void CvTeam::freeStatics()
+{
+	for (int i = 0; i < MAX_TEAMS; i++)
+		SAFE_DELETE(m_aTeams[i]);
+	SAFE_DELETE_ARRAY(m_aTeams);
+}
+
+// <dlph.26>
 std::queue<TeamTypes> CvTeam::attacking_queue;
 std::queue<TeamTypes> CvTeam::defending_queue;
 std::queue<bool> CvTeam::newdiplo_queue;
@@ -27,7 +42,7 @@ std::queue<bool> CvTeam::primarydow_queue;
 bool CvTeam::bTriggeringWars = false;
 // </dlph.26>
 
-CvTeam::CvTeam()
+CvTeam::CvTeam(/* advc.003u: */ TeamTypes eID)
 {
 	m_aiStolenVisibilityTimer = new int[MAX_TEAMS];
 	m_aiWarWeariness = new int[MAX_TEAMS];
@@ -72,7 +87,7 @@ CvTeam::CvTeam()
 
 	m_ppaaiImprovementYieldChange = NULL;
 
-	reset((TeamTypes)0, true);
+	reset(eID, true);
 }
 
 
@@ -1462,7 +1477,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 				|| kObs.isSpectator()) // advc.127
 			{	// <advc.100> Inform third parties about sponsor
 				if(eSponsor != NO_PLAYER && eSponsor != kObs.getID() &&
-						(TEAMREF(eSponsor).isHasMet(kObs.getTeam()) ||
+						(GET_TEAM(eSponsor).isHasMet(kObs.getTeam()) ||
 						kObs.isSpectator())) // advc.127
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HIRED_WAR",

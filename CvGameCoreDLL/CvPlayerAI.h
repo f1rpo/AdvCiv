@@ -12,23 +12,26 @@
 
 class CvDeal;
 
+/*  <advc.003u> Overwrite definition in CvPlayer.h (should perhaps instead define a
+	new macro "PLAYERAI" - a lot of call locations to change though ...) */
+#undef GET_PLAYER
+#define GET_PLAYER(x) CvPlayerAI::AI_getPlayer(x)
+// // </advc.003u>
+
 class CvPlayerAI : public CvPlayer
 {
 public:
-
-	static inline CvPlayerAI& getPlayer(PlayerTypes ePlayer) // advc.003f: inline keyword added
+	// advc.003u: Renamed from getPlayer
+	static inline CvPlayerAI& AI_getPlayer(PlayerTypes ePlayer) // advc.003f: inline keyword added
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayerAI::getPlayer");
-		return m_aPlayers[ePlayer];
+		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayerAI::AI_getPlayer");
+		return *m_aPlayers[ePlayer];
 	}
-
+	// Only for the EXE:
 	DllExport static CvPlayerAI& getPlayerNonInl(PlayerTypes ePlayer);
-
-	static void initStatics();
-	static void freeStatics();
 	DllExport static bool areStaticsInitialized();
 
-	CvPlayerAI();
+	explicit CvPlayerAI(PlayerTypes eID);
 	~CvPlayerAI();
 	void AI_init();
 	void AI_uninit();
@@ -603,8 +606,6 @@ public:
 
 protected:
 
-	static CvPlayerAI* m_aPlayers;
-
 	int m_iPeaceWeight;
 	int m_iEspionageWeight;
 	int m_iAttackOddsChange;
@@ -798,12 +799,5 @@ protected:
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI
 };
-
-// helper for accessing static functions
-#ifdef _USRDLL
-#define GET_PLAYER CvPlayerAI::getPlayer
-#else
-#define GET_PLAYER CvPlayerAI::getPlayerNonInl
-#endif
 
 #endif

@@ -3,8 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvDealList.h" // advc.003u
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvMapGenerator.h"
@@ -2300,7 +2299,7 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return false;
 	/*  advc: BtS had checked this only for seafood; doesn't really matter though
 		b/c all of the isNormalize resources are revealed from the start. */
-	if (!TEAMREF(eStartPlayer).isHasTech((TechTypes)kBonus.getTechReveal()))
+	if (!GET_TEAM(eStartPlayer).isHasTech((TechTypes)kBonus.getTechReveal()))
 		return false;
 
 	if (bCheckCanPlace ? CvMapGenerator::GetInstance().
@@ -3016,7 +3015,7 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 	FAssert(eOtherWho != NO_PLAYER);
 	FAssert(eWho != eOtherWho);
 	// <advc.032>
-	if(TEAMREF(eWho).isForcePeace(TEAMID(eOtherWho))) {
+	if(GET_TEAM(eWho).isForcePeace(TEAMID(eOtherWho))) {
 		for(CLLNode<TradeData>* pNode = pOurList->head(); pNode != NULL;
 				pNode = pOurList->next(pNode)) {
 			if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) {
@@ -8307,10 +8306,10 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 			FOR_EACH_DEAL_VAR(pLoopDeal)
 			{
 				if ((TEAMID(pLoopDeal->getFirstPlayer()) == kPlayer.getTeam() &&
-					TEAMREF(pLoopDeal->getSecondPlayer()).
+					GET_TEAM(pLoopDeal->getSecondPlayer()).
 					isVotingMember(kData.eVoteSource)) ||
 					(TEAMID(pLoopDeal->getSecondPlayer()) == kPlayer.getTeam() &&
-					TEAMREF(pLoopDeal->getFirstPlayer()).
+					GET_TEAM(pLoopDeal->getFirstPlayer()).
 					isVotingMember(kData.eVoteSource)))
 				{
 					for(CLLNode<TradeData>* pNode = pLoopDeal->headFirstTradesNode();

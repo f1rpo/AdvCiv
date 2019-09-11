@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
-#include "CvGamePlay.h"
+#include "CvAI.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
 #include "CvMap.h"
@@ -13,7 +13,6 @@
 #include "CvInfo_GameOption.h"
 #include "CvPopupInfo.h"
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
-#include "BBAI_Defines.h"
 #include "CvBugOptions.h" // advc.002e
 #include "CvDLLPythonIFaceBase.h" // for CvEventReporter::genericEvent
 
@@ -1548,7 +1547,7 @@ void CvUnit::updateCombat(bool bQuick)
 						ePlotMaster != GET_TEAM(getTeam()).getMasterTeam() &&
 						(isBarbarian() || m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(ePlotOwner).AI_reportSharedWarSuccess(
+					GET_TEAM(ePlotOwner).AI_reportSharedWarSuccess(
 							iWS, pDefender->getTeam(), getTeam(), true);
 				// Same for the owner of the dead unit
 				if(ePlotMaster != GET_TEAM(pDefender->getTeam()).getMasterTeam() &&
@@ -1556,7 +1555,7 @@ void CvUnit::updateCombat(bool bQuick)
 						(pDefender->isBarbarian() ||
 						pDefender->m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(pDefender->getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(ePlotOwner).AI_reportSharedWarSuccess(
+					GET_TEAM(ePlotOwner).AI_reportSharedWarSuccess(
 							iWS, getTeam(), pDefender->getTeam(), true);
 			} // <advc.130m>
 
@@ -1603,14 +1602,14 @@ void CvUnit::updateCombat(bool bQuick)
 						ePlotMaster != GET_TEAM(getTeam()).getMasterTeam() &&
 						(isBarbarian() || m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(ePlotOwner).AI_reportSharedWarSuccess(
+					GET_TEAM(ePlotOwner).AI_reportSharedWarSuccess(
 							iWS, pDefender->getTeam(), getTeam(), true);
 				if(ePlotMaster != GET_TEAM(pDefender->getTeam()).getMasterTeam() &&
 						ePlotMaster != GET_TEAM(getTeam()).getMasterTeam() &&
 						(pDefender->isBarbarian() ||
 						pDefender->m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(pDefender->getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(ePlotOwner).AI_reportSharedWarSuccess(
+					GET_TEAM(ePlotOwner).AI_reportSharedWarSuccess(
 							iWS, getTeam(), pDefender->getTeam(), true);
 			} // <advc.130m>
 
@@ -11203,7 +11202,7 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 					/* If it's in the same tile as a revealed unit and it's always
 						hostile, then the nationality is obvious. (A teammate could
 						be the owner, but that wouldn't make a big difference.) */
-					//TEAMREF(r).getNumMembers() > 1 ||
+					//GET_TEAM(r).getNumMembers() > 1 ||
 					(!plot()->isCity(true, getTeam())
 					&& plot()->plotCheck(PUF_isPlayer, r, eForTeam) == NULL))
 			// </advc.061>

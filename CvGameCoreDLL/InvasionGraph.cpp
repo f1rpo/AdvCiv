@@ -6,8 +6,7 @@
 #include "ArmamentForecast.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvPlot.h"
 #include "CvArea.h"
 #include "CvInfo_Unit.h"
@@ -207,7 +206,7 @@ void InvasionGraph::Node::addWarOpponents(std::set<PlayerTypes> const& wo) {
 		if(!isWarOpponent[*it] &&
 				/*  Should arguably be guaranteed somewhere higher up; not currently
 					guaranteed when there is a holy war vote. */
-				TEAMREF(id).getMasterTeam() != TEAMREF(*it).getMasterTeam()) {
+				GET_TEAM(id).getMasterTeam() != GET_TEAM(*it).getMasterTeam()) {
 			isWarOpponent[*it] = true;
 			warOpponents.insert(*it);
 		}
@@ -298,7 +297,7 @@ void InvasionGraph::Node::findAndLinkTarget() {
 	}
 	primaryTarget = outer.nodeMap[targetId];
 	if(primaryTarget == NULL) {
-		FAssert(!TEAMREF(weId).isHasMet(TEAMID(targetId)));
+		FAssert(!GET_TEAM(weId).isHasMet(TEAMID(targetId)));
 		report.log("%s hasn't met the above target yet, ignores it.",
 				report.leaderName(weId));
 	}
@@ -329,7 +328,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 			// First hit is best target b/c cache is sorted
 			if(likeliestTarget == NO_PLAYER) {
 				PlayerTypes owner = city->cityOwner();
-				if(!TEAMREF(id).isAtWar(TEAMID(owner)))
+				if(!GET_TEAM(id).isAtWar(TEAMID(owner)))
 					return owner;
 				/*  Otherwise, check unit missions, but may still fall back
 					on likeliestTarget. */
@@ -536,7 +535,7 @@ void InvasionGraph::Node::predictArmament(int duration, bool noUpgrading) {
 			params.isWarAlly(masterTeamId)) {
 		TeamTypes targetId = params.targetId();
 		if(!outer.isPeaceScenario && !outer.allWarPartiesKnown &&
-				!TEAMREF(weId).isAtWar(targetId)) {
+				!GET_TEAM(weId).isAtWar(targetId)) {
 			report.setMute(true);
 			PlayerTypes actualTarget = findTarget(targetId);
 			tC = targetCity(actualTarget);
@@ -1191,7 +1190,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	nGarrisons = std::min(remainingCitiesDef + 1, nGarrisons);
 	// Recently conquered city likely to lack a garrison
 	if(cvCity->isEverOwned(id) && cvCity->isOccupation() &&
-			TEAMREF(id).isAtWar(TEAMID(defender.id)))
+			GET_TEAM(id).isAtWar(TEAMID(defender.id)))
 		nGarrisons = 1;
 	nLocalGarrisons = std::min(nGarrisons, nLocalGarrisons);
 	double guardPowUnmodified = nGarrisons * powerPerGarrison;
@@ -1480,8 +1479,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 			   count when computing garrison strength. However, mustn't treat
 			   units left behind as losses; record them in shiftedPower. */
 			attacker.shiftedPower[ARMY] += powLeftBehind;
-			CvTeamAI const& attackerTeam = TEAMREF(attacker.id);
-			CvTeamAI const& nodeTeam = TEAMREF(id);
+			CvTeamAI const& attackerTeam = GET_TEAM(attacker.id);
+			CvTeamAI const& nodeTeam = GET_TEAM(id);
 			if(!isEliminated() && !nodeTeam.isAVassal() &&
 					!attackerTeam.isAVassal() &&
 					attackerTeam.isVassalStateTrading() &&
@@ -1503,7 +1502,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				bool bWar = attackerTeam.isAtWar(TEAMID(id));
 				if(!GET_PLAYER(id).isHuman() &&
 						// Last team member standing
-						TEAMREF(id).getAliveCount() <= 1 &&
+						GET_TEAM(id).getAliveCount() <= 1 &&
 						GET_PLAYER(id).getNumNukeUnits() <= 0 && // advc.143b
 						/*  To decide whether to capitulate to a given team, we need
 							to know what will happen if we don't capitulate. */
@@ -1832,7 +1831,7 @@ double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) cons
 bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
 		bool bClash) const {
 
-	if((id != weId && (!bClash || other.id != weId)) || TEAMREF(id).isAtWar(TEAMID(other.getId())))
+	if((id != weId && (!bClash || other.id != weId)) || GET_TEAM(id).isAtWar(TEAMID(other.getId())))
 		return false;
 	if(!bClash) {
 		for(size_t i = 0; i < conquests.size(); i++)
@@ -1846,7 +1845,7 @@ bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
 
 bool InvasionGraph::Node::isContinuedWar(Node const& other) const {
 
-	return TEAMREF(id).isAtWar(TEAMID(other.getId())) && conquests.empty();
+	return GET_TEAM(id).isAtWar(TEAMID(other.getId())) && conquests.empty();
 }
 
 double InvasionGraph::Node::powerCorrect(double multiplier) {
@@ -2078,9 +2077,9 @@ double InvasionGraph::willingness(PlayerTypes agg, PlayerTypes def) const {
 
 	if(m.evaluationParameters().getSponsor() != agg)
 		return 1;
-	return dRange((TEAMREF(agg).AI_getWarSuccess(TEAMID(def)) +
-			TEAMREF(def).AI_getWarSuccess(TEAMID(agg))) /
-			(TEAMREF(agg).getNumCities() * 4.0), 0.5, 1.0);
+	return dRange((GET_TEAM(agg).AI_getWarSuccess(TEAMID(def)) +
+			GET_TEAM(def).AI_getWarSuccess(TEAMID(agg))) /
+			(GET_TEAM(agg).getNumCities() * 4.0), 0.5, 1.0);
 }
 
 SimulationStep::SimulationStep(PlayerTypes attacker,

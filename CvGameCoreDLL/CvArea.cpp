@@ -3,6 +3,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvArea.h"
 #include "CvAreaList.h" // advc.003s
+#include "CvCityList.h"
+#include "CvUnitList.h"
 #include "CvMap.h"
 #include "CvGamePlay.h"
 #include "CvInfo_Terrain.h"

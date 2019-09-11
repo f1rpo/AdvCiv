@@ -2,44 +2,24 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
 #include "BBAILog.h"
-#include "BBAI_Defines.h"
 #include "WarAndPeaceAgent.h" // advc.104
 #include <numeric> // K-Mod. used in AI_warSpoilsValue
 
-// statics
-
-CvTeamAI* CvTeamAI::m_aTeams = NULL;
-
-void CvTeamAI::initStatics()
-{
-	m_aTeams = new CvTeamAI[MAX_TEAMS];
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		m_aTeams[iI].m_eID = ((TeamTypes)iI);
-	}
-}
-
-void CvTeamAI::freeStatics()
-{
-	SAFE_DELETE_ARRAY(m_aTeams);
-}
-
-// inlined for performance reasons
+// statics: (advc.003u: Mostly moved to CvTeam)
 DllExport CvTeamAI& CvTeamAI::getTeamNonInl(TeamTypes eTeam)
 {
-	return getTeam(eTeam);
+	return AI_getTeam(eTeam);
 }
 
 
-CvTeamAI::CvTeamAI()
+CvTeamAI::CvTeamAI(/* advc.003u: */ TeamTypes eID) : CvTeam(eID)
 {
 	m_aiWarPlanStateCounter = new int[MAX_TEAMS];
 	m_aiAtWarCounter = new int[MAX_TEAMS];
@@ -1261,7 +1241,7 @@ void CvTeamAI::AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool b
 			// <advc.130o>
 			if(bPrimaryDoW && kPlayer_i.isHuman() && !kPlayer_j.isHuman() &&
 					kTarget.AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
-					TEAMREF(j).getMasterTeam() != getMasterTeam() &&
+					GET_TEAM(j).getMasterTeam() != getMasterTeam() &&
 					kTarget.isHasMet(kPlayer_j.getTeam()))
 			{
 				// Raise it to 8 (or what XML says)
@@ -1288,8 +1268,8 @@ void CvTeamAI::AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool b
 	if(eSponsor != NO_PLAYER)
 	{
 		AI_makeUnwillingToTalk(eTarget);
-		if(TEAMREF(eSponsor).isAtWar(eTarget))
-			TEAMREF(eSponsor).AI_makeUnwillingToTalk(eTarget);
+		if(GET_TEAM(eSponsor).isAtWar(eTarget))
+			GET_TEAM(eSponsor).AI_makeUnwillingToTalk(eTarget);
 	} // </advc.104i>
 }
 

@@ -2,7 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlotGroup.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
+#include "CvCity.h"
 #include "CvMap.h"
 
 int CvPlotGroup::m_iRecalculating = 0; // advc.064d

@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "StartPointsAsHandicap.h"
 #include "CvGame.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
 #include "CvMap.h"
 #include <cmath>
 #include <sstream>

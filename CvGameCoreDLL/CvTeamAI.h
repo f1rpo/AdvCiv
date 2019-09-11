@@ -8,22 +8,25 @@
 #include "CvTeam.h"
 #include "WarAndPeaceAI.h"  // advc.104
 
+/*  <advc.003u> Overwrite definition in CvTeam.h (should perhaps instead define a
+	new macro "TEAMAI" - a lot of call locations to change though ...) */
+#undef GET_TEAM
+#define GET_TEAM(x) CvTeamAI::AI_getTeam(x) // </advc.003u>
 
 class CvTeamAI : public CvTeam
 {
 public:
-
-	static inline CvTeamAI& getTeam(TeamTypes eTeam) // advc.003f: inline keyword added
+	// advc.003u: Renamed from getTeam
+	static inline CvTeamAI& AI_getTeam(TeamTypes eTeam) // advc.003f: inline keyword added
 	{
-		FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvTeamAI::getTeam");
-		return m_aTeams[eTeam];
+		FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvTeamAI::AI_getTeam");
+		return *m_aTeams[eTeam];
 	}
-	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam);
-	static bool AI_isChosenWarPlan(WarPlanTypes eWarPlanType); // advc.105
-	static void initStatics();
-	static void freeStatics();
+	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam); // Only for the EXE
 
-	CvTeamAI();
+	static bool AI_isChosenWarPlan(WarPlanTypes eWarPlanType); // advc.105
+
+	explicit CvTeamAI(TeamTypes eID);
 	~CvTeamAI();
 	void AI_init();
 	void AI_initMemory(); // K-Mod. (needs game map to be initialized first)
@@ -284,8 +287,6 @@ protected:
 	void AI_updateStrengthMemory();
 	// K-Mod end
 
-	static CvTeamAI* m_aTeams;
-
 	TeamTypes m_eWorstEnemy;
 
 	int* m_aiWarPlanStateCounter;
@@ -337,17 +338,5 @@ protected:
 	friend class CvGameTextMgr;
 	friend class CvDLLWidgetData;
 };
-
-// helper for accessing static functions
-#ifdef _USRDLL
-#define GET_TEAM CvTeamAI::getTeam
-#else
-#define GET_TEAM CvTeamAI::getTeamNonInl
-#endif
-
-// <advc> Easier access to team-level functions when given a PlayerTypes value
-#define TEAMID(ePlayer) GET_PLAYER(ePlayer).getTeam()
-#define TEAMREF(ePlayer) GET_TEAM(TEAMID(ePlayer))
-// </advc>
 
 #endif

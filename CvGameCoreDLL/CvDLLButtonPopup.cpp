@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLButtonPopup.h"
 #include "CvPopupInfo.h"
-#include "CvGamePlay.h"
+#include "CvAI.h"
 #include "RiseFall.h" // advc.706
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
@@ -197,9 +197,9 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			CvPlot* pAt = (pUnit == NULL ? NULL : pUnit->plot());
 			// Don't move ahead if the tile we're on is going to flip
 			if(pAt != NULL && (!pAt->isOwned() ||
-					(TEAMREF(pAt->getSecondOwner()).getMasterTeam() !=
+					(GET_TEAM(pAt->getSecondOwner()).getMasterTeam() !=
 					GET_TEAM((TeamTypes)info.getData1()).getMasterTeam() &&
-					!GET_TEAM(TEAMREF(pAt->getSecondOwner()).getMasterTeam()).
+					!GET_TEAM(GET_TEAM(pAt->getSecondOwner()).getMasterTeam()).
 					isDefensivePact(GET_TEAM((TeamTypes)info.getData1()).
 					getMasterTeam())))) { // </advc.035>
 				//g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());

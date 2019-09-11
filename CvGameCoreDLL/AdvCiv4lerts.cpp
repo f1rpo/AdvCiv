@@ -4,8 +4,7 @@
 #include "AdvCiv4lerts.h"
 #include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "RiseFall.h" // advc.706
 #include <iterator>
@@ -299,8 +298,8 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data,
 		return;
 	// Don't report unseen trades
 	if(!GET_PLAYER(ownerId).isSpectator() && // advc.127
-			(!TEAMREF(ownerId).isHasMet(from.getTeam()) ||
-			!TEAMREF(ownerId).isHasMet(to.getTeam())))
+			(!GET_TEAM(ownerId).isHasMet(from.getTeam()) ||
+			!GET_TEAM(ownerId).isHasMet(to.getTeam())))
 		return;
 	int bonusChar = GC.getBonusInfo(bonusId).getChar();
 	CvWString msgStr;

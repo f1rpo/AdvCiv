@@ -186,6 +186,7 @@
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
+    <ClInclude Include="..\CvAI.h" />
     <ClInclude Include="..\CvArea.h" />
     <ClInclude Include="..\CvAreaList.h" />
     <ClInclude Include="..\CvArtFileMgr.h" />

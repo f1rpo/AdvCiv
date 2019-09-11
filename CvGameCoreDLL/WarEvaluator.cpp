@@ -7,8 +7,7 @@
 #include "MilitaryAnalyst.h"
 #include "WarAndPeaceReport.h"
 #include "WarEvalParameters.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvInfo_GameOption.h"
 #include <sstream>
 
@@ -327,7 +326,7 @@ void WarEvaluator::evaluate(PlayerTypes weId, vector<WarUtilityAspect*>& aspects
 	MilitaryAnalyst m(weId, params, peaceScenario);
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];
-		if(!TEAMREF(civId).isCapitulated() && TEAMREF(civId).isHasMet(agentId))
+		if(!GET_TEAM(civId).isCapitulated() && GET_TEAM(civId).isHasMet(agentId))
 			m.logResults(civId);
 	}
 	report.log("\nh4.\nComputing utility of %s\n", report.leaderName(weId, 16));

@@ -2,9 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "RFChapter.h"
-#include "CvGame.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvAI.h"
 
 
 RFChapter::RFChapter() { reset(); }
@@ -209,7 +207,7 @@ int RFChapter::computeScore() {
 		/*  If current Civ score unknown to active player, provide the last known
 			chapter score instead. */
 		if(activeId != NO_PLAYER && getCiv() != NO_PLAYER &&
-				!TEAMREF(activeId).isHasMet(TEAMID(getCiv())))
+				!GET_TEAM(activeId).isHasMet(TEAMID(getCiv())))
 			return scoreAtEnd;
 	}
 	breakdown.update();

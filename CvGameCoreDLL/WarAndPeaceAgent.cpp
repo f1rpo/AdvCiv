@@ -8,9 +8,7 @@
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // Just for vote-related info
 #include "CvInfo_Unit.h" // for WarAndPeaceAI::Civ::militaryPower
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
-#include "BBAI_Defines.h"
+#include "CvAI.h"
 #include "CvDiploParameters.h"
 #include "CvMap.h"
 #include "CvArea.h"
@@ -2211,7 +2209,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 		return false;
 	/*  (I don't think the interface even allows demanding tribute when there's a
 		peace treaty) */
-	if(!TEAMREF(theyId).canDeclareWar(we.getTeam()))
+	if(!GET_TEAM(theyId).canDeclareWar(we.getTeam()))
 		return false;
 	WarAndPeaceReport silentReport(true);
 	WarEvalParameters ourParams(we.getTeam(), TEAMID(theyId), silentReport);
@@ -2234,7 +2232,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 	if(theirUtility < 0)
 		return false; // Call their bluff
 	// Willing to pay at most this much
-	double paymentCap = TEAMREF(weId).warAndPeaceAI().reparationsToHuman(
+	double paymentCap = GET_TEAM(weId).warAndPeaceAI().reparationsToHuman(
 			// Interpret theirUtility as a probability of attack
 			-ourUtility * 2 * (4 + theirUtility) / 100.0);
 	return paymentCap >= (double)tradeVal;
@@ -2244,7 +2242,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 
 bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 
-	FAssert(TEAMREF(weId).getLeaderID() == weId);
+	FAssert(GET_TEAM(weId).getLeaderID() == weId);
 	CvPlayerAI& we = GET_PLAYER(weId);
 	// Lower contact probabilities in later eras
 	int era = we.getCurrentEra();
@@ -2308,12 +2306,12 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 
 	/*  Just check war utility and peace treaty here; all the other conditions
 		are handled by CvPlayerAI::AI_considerOffer. */
-	if(TEAMREF(weId).isForcePeace(TEAMID(theyId)) && GET_PLAYER(weId).
+	if(GET_TEAM(weId).isForcePeace(TEAMID(theyId)) && GET_PLAYER(weId).
 			AI_getMemoryAttitude(theyId, MEMORY_GIVE_HELP) <= 0)
 		return false;
 	// If war not possible, might as well sign a peace treaty
-	if(!TEAMREF(weId).canDeclareWar(TEAMID(theyId)) ||
-			!TEAMREF(theyId).canDeclareWar(TEAMID(weId)))
+	if(!GET_TEAM(weId).canDeclareWar(TEAMID(theyId)) ||
+			!GET_TEAM(theyId).canDeclareWar(TEAMID(weId)))
 		return true;
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	/*  Accept probabilistically regardless of war utility (so long as we're
@@ -2327,7 +2325,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	if(::hash(inputs, weId) < prSuccess)
 		return true;
 	// Probably won't want to attack theyId then
-	if(TEAMREF(weId).AI_isSneakAttackReady())
+	if(GET_TEAM(weId).AI_isSneakAttackReady())
 		return true;
 	WarAndPeaceReport silentReport(true);
 	WarEvalParameters params(we.getTeam(), TEAMID(theyId), silentReport);
@@ -2351,7 +2349,7 @@ int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter, bool useC
 
 int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter) const {
 
-	CvTeamAI const& agent = TEAMREF(weId);
+	CvTeamAI const& agent = GET_TEAM(weId);
 	if(agent.AI_surrenderTrade(TEAMID(theyId)) == NO_DENIAL)
 		return 1;
 	// 1 turn RTT and let the team leader handle peace negotiation
@@ -2382,10 +2380,10 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL) &&
 			g.getRiseFall().isCooperationRestricted(weId) &&
-			TEAMREF(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 20)
+			GET_TEAM(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 20)
 		return false;
 	// </advc.705>
-	int targetTradeVal = TEAMREF(humanId).warAndPeaceAI().endWarVal(TEAMID(weId));
+	int targetTradeVal = GET_TEAM(humanId).warAndPeaceAI().endWarVal(TEAMID(weId));
 	if(targetTradeVal <= 0)
 		return true;
 	return canTradeAssets(targetTradeVal, humanId);
@@ -2405,7 +2403,7 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 	for(int i = 0; i < GC.getNumTechInfos(); i++) {
 		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
 		if(human.canTradeItem(weId, item, true)) {
-			totalTradeVal += TEAMREF(weId).AI_techTradeVal((TechTypes)i,
+			totalTradeVal += GET_TEAM(weId).AI_techTradeVal((TechTypes)i,
 					human.getTeam(), true, true);
 			if(totalTradeVal >= targetTradeVal && r == NULL)
 				return true;
@@ -2457,12 +2455,12 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 
 double WarAndPeaceAI::Civ::utilityToTradeVal(double u) const {
 
-	return TEAMREF(weId).warAndPeaceAI().utilityToTradeVal(u);
+	return GET_TEAM(weId).warAndPeaceAI().utilityToTradeVal(u);
 }
 
 double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
 
-	return TEAMREF(weId).warAndPeaceAI().tradeValToUtility(tradeVal);
+	return GET_TEAM(weId).warAndPeaceAI().tradeValToUtility(tradeVal);
 }
 
 double WarAndPeaceAI::Civ::amortizationMultiplier() const {
@@ -2663,7 +2661,7 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
 double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId,
 		bool ignoreDefOnly) const {
 
-	double fromWarSuccess = TEAMREF(weId).warAndPeaceAI().confidenceFromWarSuccess(
+	double fromWarSuccess = GET_TEAM(weId).warAndPeaceAI().confidenceFromWarSuccess(
 			TEAMID(targetId));
 	double fromPastWars = confidenceFromPastWars(TEAMID(targetId));
 	if(ignoreDefOnly == (fromPastWars > 1))

@@ -33,6 +33,12 @@ void DumpMemUsage(const char* fn, int line)
 #define	PROFILE_TRACK_DEALLOC(x)
 #endif
 
+/*  advc.make: For debugging with Visual Leak Detector (if installed). It doesn't
+	matter which file includes it. I've put it here with the other memory tracking
+	code, but it would actually be better to include vld.h in some other .cpp file
+	instead b/c changes to CvGameCoreDLL.cpp cause the entire project to be recompiled. */
+//#include <vld.h>
+
 #ifdef USE_MEMMANAGER // K-Mod. There is a similar #ifdef in the header file, so I assume it's meant to be here as well...
 //
 // operator global new and delete override for gamecore DLL

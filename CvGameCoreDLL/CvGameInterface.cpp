@@ -1,8 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
-#include "CvPlayerAI.h"
-#include "CvCivilization.h"
-#include "CvTeamAI.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Command.h"
@@ -2803,7 +2801,7 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 	if (GC.getInfoTypeForString("AI_DIPLOCOMMENT_ACCEPT_ASK") == eComment ||
 		GC.getInfoTypeForString("AI_DIPLOCOMMENT_ACCEPT_DEMAND") == eComment)
 	{
-		if (!GET_TEAM(getActiveTeam()).isAVassal() && !TEAMREF(eOtherPlayer).isAVassal())
+		if (!GET_TEAM(getActiveTeam()).isAVassal() && !GET_TEAM(eOtherPlayer).isAVassal())
 		{
 			CLinkList<TradeData> playerList;
 			CLinkList<TradeData> loopPlayerList;

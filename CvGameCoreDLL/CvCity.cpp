@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvCity.h"
-#include "CvGamePlay.h"
+#include "CvAI.h"
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
@@ -568,7 +568,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 	}
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
-		if (TEAMREF(eOwner).isVassal((TeamTypes)iI))
+		if (GET_TEAM(eOwner).isVassal((TeamTypes)iI))
 		{
 			pPlot->changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), false, NULL, false);
 		}
@@ -588,7 +588,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 	if (bCapital != NULL)
 	{
 		GET_PLAYER(eOwner).findNewCapital();
-		TEAMREF(eOwner).resetVictoryProgress();
+		GET_TEAM(eOwner).resetVictoryProgress();
 	}
 
 	if (bUpdatePlotGroups)
@@ -3269,47 +3269,30 @@ bool CvCity::canConscript() const
 
 CvUnit* CvCity::initConscriptedUnit()
 {
-	UnitAITypes eCityAI = NO_UNITAI;
 	UnitTypes eConscriptUnit = getConscriptUnit();
-
-	if (NO_UNIT == eConscriptUnit)
-	{
+	if (eConscriptUnit == NO_UNIT)
 		return NULL;
-	}
 
-	if (GET_PLAYER(getOwner()).AI_unitValue(eConscriptUnit, UNITAI_ATTACK, area()) > 0)
-	{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+
+	UnitAITypes eCityAI = NO_UNITAI;
+	if (kOwner.AI_unitValue(eConscriptUnit, UNITAI_ATTACK, area()) > 0)
 		eCityAI = UNITAI_ATTACK;
-	}
-	else if (GET_PLAYER(getOwner()).AI_unitValue(eConscriptUnit, UNITAI_CITY_DEFENSE, area()) > 0)
-	{
+	else if (kOwner.AI_unitValue(eConscriptUnit, UNITAI_CITY_DEFENSE, area()) > 0)
 		eCityAI = UNITAI_CITY_DEFENSE;
-	}
-	else if (GET_PLAYER(getOwner()).AI_unitValue(eConscriptUnit, UNITAI_CITY_COUNTER, area()) > 0)
-	{
+	else if (kOwner.AI_unitValue(eConscriptUnit, UNITAI_CITY_COUNTER, area()) > 0)
 		eCityAI = UNITAI_CITY_COUNTER;
-	}
-	else if (GET_PLAYER(getOwner()).AI_unitValue(eConscriptUnit, UNITAI_CITY_SPECIAL, area()) > 0)
-	{
+	else if (kOwner.AI_unitValue(eConscriptUnit, UNITAI_CITY_SPECIAL, area()) > 0)
 		eCityAI = UNITAI_CITY_SPECIAL;
-	}
-	else
-	{
-		eCityAI = NO_UNITAI;
-	}
+	else eCityAI = NO_UNITAI;
 
-	CvUnit* pUnit = GET_PLAYER(getOwner()).initUnit(eConscriptUnit, getX(), getY(), eCityAI);
-	FAssertMsg(pUnit != NULL, "pUnit expected to be assigned (not NULL)");
+	CvUnit* pUnit = kOwner.initUnit(eConscriptUnit, getX(), getY(), eCityAI);
+	FAssertMsg(pUnit != NULL, "Failed to allocate CvUnit object");
 
-	if (NULL != pUnit)
-	{
-		addProductionExperience(pUnit, true);
-
-		pUnit->setMoves(0);
-// K-Mod, karadoc, 26/Jun/2011: Conscription counts as building the unit
-		CvEventReporter::getInstance().unitBuilt(this, pUnit);
-// K-Mod end
-	}
+	addProductionExperience(pUnit, true);
+	pUnit->setMoves(0);
+	// K-Mod, 26/Jun/2011: Conscription counts as building the unit
+	CvEventReporter::getInstance().unitBuilt(this, pUnit);
 
 	return pUnit;
 }
@@ -4680,7 +4663,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 		// <advc.035>
 		PlayerTypes eLoopOwner = pLoopPlot->getOwner();
 		if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) && eLoopOwner != NO_PLAYER &&
-				!TEAMREF(eLoopOwner).isAtWar(kOwner.getTeam())) {
+				!GET_TEAM(eLoopOwner).isAtWar(kOwner.getTeam())) {
 			PlayerTypes const eSecondOwner = pLoopPlot->getSecondOwner();
 			if(eSecondOwner != eLoopOwner) // Checked only for easier debugging
 				eLoopOwner = eSecondOwner;
@@ -9652,7 +9635,7 @@ double CvCity::probabilityOccupationDecrement() const {
 	// While at war, require an occupying force.
 	if(getMilitaryHappinessUnits() <= 0 && !isBarbarian() && !GET_TEAM(getTeam()).isMinorCiv()) {
 		PlayerTypes eCulturalOwner = calculateCulturalOwner();
-		if(eCulturalOwner != NO_PLAYER && TEAMREF(eCulturalOwner).isAtWar(getTeam()))
+		if(eCulturalOwner != NO_PLAYER && GET_TEAM(eCulturalOwner).isAtWar(getTeam()))
 			return 0;
 	}
 	double r = 0;
@@ -9676,7 +9659,7 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer,
 	// <advc.099c> Actually still guaranteed by caller, but shouldn't rely on it
 	if(eToPlayer == NO_PLAYER || !GET_PLAYER(eToPlayer).isAlive() ||
 			eToPlayer == BARBARIAN_PLAYER || // Not guaranteed by caller
-			TEAMREF(eToPlayer).isVassal(getTeam()))
+			GET_TEAM(eToPlayer).isVassal(getTeam()))
 		return false; // </advc.099c>
 	return !GC.getGame().isOption(GAMEOPTION_NO_CITY_FLIPPING) &&
 		// advc.101: City flipping option negated (now has inverse meaning)
@@ -9884,16 +9867,17 @@ void CvCity::setRevealed(TeamTypes eIndex, bool bNewValue)
 	m_abRevealed[eIndex] = bNewValue;
 
 	// K-Mod
-	if (bNewValue) {
+	if (bNewValue)
+	{
 		GET_TEAM(eIndex).makeHasSeen(getTeam());
-	// K-Mod end
 		// <advc.130n>
-		for(int i = 0; i < GC.getNumReligionInfos(); i++) {
+		for(int i = 0; i < GC.getNumReligionInfos(); i++)
+		{
 			ReligionTypes eReligion = (ReligionTypes)i;
 			if(isHasReligion(eReligion))
 				GET_TEAM(eIndex).AI_reportNewReligion(eReligion);
 		} // </advc.130n>
-	}
+	} // K-Mod end
 
 	updateVisibility();
 
@@ -11119,16 +11103,12 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 		if (bFirst)
 		{
 			if (GC.getBuildingInfo(eIndex).isCapital())
-			{
 				GET_PLAYER(getOwner()).setCapitalCity(this);
-			}
 
 			if (GC.getGame().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 			{
 				if (GC.getBuildingInfo(eIndex).isGoldenAge())
-				{
 					GET_PLAYER(getOwner()).changeGoldenAgeTurns(iChangeNumRealBuilding * (GET_PLAYER(getOwner()).getGoldenAgeLength() + 1));
-				}
 
 				if (GC.getBuildingInfo(eIndex).getGlobalPopulationChange() != 0)
 				{
@@ -11155,9 +11135,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 					for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 					{
 						if (GC.getBuildingInfo(eIndex).getReligionChange(iI) > 0)
-						{
 							setHasReligion(((ReligionTypes)iI), true, true, true);
-						}
 					}
 				}
 				if (GC.getBuildingInfo(eIndex).getFreeTechs() > 0)
@@ -11167,9 +11145,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 						for (iI = 0; iI < GC.getBuildingInfo(eIndex).getFreeTechs(); iI++)
 						{
 							for (int iLoop = 0; iLoop < iChangeNumRealBuilding; iLoop++)
-							{
 								GET_PLAYER(getOwner()).AI_chooseFreeTech();
-							}
 						}
 					}
 					else
@@ -11199,7 +11175,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 						if(!kMsgTarget.isAlive())
 							continue;
 						bool bRevealed = isRevealed(kMsgTarget.getTeam(), true);
-						bool bMet = TEAMREF(kMsgTarget.getID()).isHasMet(getTeam());
+						bool bMet = GET_TEAM(kMsgTarget.getID()).isHasMet(getTeam());
 						if(bRevealed /* advc.127: */ || kMsgTarget.isSpectator())
 							// <advc.008e>
 							szBuffer = gDLL->getText(::needsArticle(eIndex) ?
@@ -12018,8 +11994,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 	int maxedBuildingOrProject = NO_BUILDING; // advc.123f
 
 	OrderTypes eOrderType = pOrderNode->m_data.eOrderType;
-	switch(eOrderType) { // advc: Many style changes in this block
-	case ORDER_TRAIN: {
+	switch(eOrderType) // advc: Many style changes in this block
+	{
+	case ORDER_TRAIN:
+	{
 		eTrainUnit = (UnitTypes)pOrderNode->m_data.iData1;
 		UnitAITypes eTrainAIUnit = (UnitAITypes)pOrderNode->m_data.iData2;
 		FAssertMsg(eTrainUnit != NO_UNIT, "eTrainUnit is expected to be assigned a valid unit type");
@@ -12049,7 +12027,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		CvPlot* pRallyPlot = getRallyPlot();
 		if(pRallyPlot != NULL)
 			pUnit->getGroup()->pushMission(MISSION_MOVE_TO, pRallyPlot->getX(), pRallyPlot->getY());
-		if(isHuman()) {
+		if(isHuman())
+		{
 			if(kOwner.isOption(PLAYEROPTION_START_AUTOMATED))
 				pUnit->automate(AUTOMATE_BUILD);
 			if(kOwner.isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
@@ -12062,13 +12041,15 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString());
 		}
 		CvUnitInfo const& kUnitInfo = GC.getUnitInfo(eTrainUnit);
-		if(kUnitInfo.getDomainType() == DOMAIN_AIR) {
+		if(kUnitInfo.getDomainType() == DOMAIN_AIR)
+		{
 			if(plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
 				pUnit->jumpToNearestValidPlot();  // can destroy unit
 		}
 		break;
 	}
-	case ORDER_CONSTRUCT: {
+	case ORDER_CONSTRUCT:
+	{
 		eConstructBuilding = (BuildingTypes)(pOrderNode->m_data.iData1);
 		BuildingClassTypes bct = (BuildingClassTypes)GC.getBuildingInfo(
 				eConstructBuilding).getBuildingClassType();
@@ -12098,7 +12079,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			logBBAI("    City %S finishes production of building %S", getName().GetCString(), GC.getBuildingInfo(eConstructBuilding).getDescription());
 		break;
 	}
-	case ORDER_CREATE: {
+	case ORDER_CREATE:
+	{
 		eCreateProject = (ProjectTypes)pOrderNode->m_data.iData1;
 		GET_TEAM(getTeam()).changeProjectMaking(eCreateProject, -1);
 		doPopOrder(pOrderNode); // advc.064d
@@ -12114,11 +12096,13 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			if(NO_VICTORY != eVictory && GET_TEAM(getTeam()).canLaunch(eVictory)) {
 				if(isHuman()) {
 					CvPopupInfo* pInfo = NULL;
-					if (GC.getGame().isNetworkMultiPlayer()) {
+					if (GC.getGame().isNetworkMultiPlayer())
+					{
 						pInfo = new CvPopupInfo(BUTTONPOPUP_LAUNCH,
 								GC.getProjectInfo(eCreateProject).getVictoryPrereq());
 					}
-					else {
+					else
+					{
 						pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
 						pInfo->setText(L"showSpaceShip");
 						needsArtType = false;
@@ -12127,11 +12111,14 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				}
 				else kOwner.AI_launch(eVictory);
 			}
-			else { //show the spaceship progress
+			else //show the spaceship progress
+			{
 				if(isHuman() &&
 						// advc.060:
-						getBugOptionBOOL("TechWindow__ShowSSScreen", false)) {
-					if(!GC.getGame().isNetworkMultiPlayer()) {
+						getBugOptionBOOL("TechWindow__ShowSSScreen", false))
+				{
+					if(!GC.getGame().isNetworkMultiPlayer())
+					{
 						CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
 						pInfo->setText(L"showSpaceShip");
 						gDLL->getInterfaceIFace()->addPopup(pInfo, getOwner());
@@ -12139,7 +12126,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					}
 				}
 			}
-			if(needsArtType) {
+			if(needsArtType)
+			{
 				int defaultArtType = GET_TEAM(getTeam()).getProjectDefaultArtType(eCreateProject);
 				int projectCount = GET_TEAM(getTeam()).getProjectCount(eCreateProject);
 				GET_TEAM(getTeam()).setProjectArtType(eCreateProject, projectCount - 1, defaultArtType);
@@ -12170,7 +12158,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		from within the switch block)  */
 	pOrderNode = NULL; // for safety
 	// <advc.123f> Fail gold from great wonders and world projects
-	if(maxedBuildingOrProject != NO_BUILDING) { int foo=-1;
+	if(maxedBuildingOrProject != NO_BUILDING)
+	{
 		bool bProject = (eOrderType == ORDER_CREATE);
 		ProjectTypes pt = (bProject ? (ProjectTypes)maxedBuildingOrProject :
 				NO_PROJECT);
@@ -12178,7 +12167,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				(BuildingTypes)maxedBuildingOrProject);
 		BuildingClassTypes bct = (bProject ? NO_BUILDINGCLASS :
 				(BuildingClassTypes)GC.getBuildingInfo(bt).getBuildingClassType());
-		for(int i = 0; i < MAX_PLAYERS; i++) {
+		for(int i = 0; i < MAX_PLAYERS; i++)
+		{
 			if(i == getOwner()) // No fail gold for the city owner
 				continue;
 			CvPlayer& p = GET_PLAYER((PlayerTypes)i);
@@ -12187,7 +12177,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			// Just for efficiency
 			if(!bProject && p.getBuildingClassMaking(bct) <= 0)
 				continue;
-			for(CvCity* c = p.firstCity(&foo); c != NULL; c = p.nextCity(&foo)) {
+			FOR_EACH_CITY_VAR(c, p)
+			{
 				// Fail gold only for queued orders
 				/*  If a mod-mod allows e.g. a wonder with up to 2 instances
 					and p is building 2 instances in parallel when this city
@@ -12195,7 +12186,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					the one with less production invested. */
 				CvCity* pMinProductionCity = NULL;
 				int iMinProduction = 0;
-				for(int j = 0; j < c->getOrderQueueLength(); j++) {
+				for(int j = 0; j < c->getOrderQueueLength(); j++)
+				{
 					OrderData* od = c->getOrderFromQueue(j);
 					if(od == NULL || od->eOrderType != (bProject ? ORDER_CREATE :
 							ORDER_CONSTRUCT) ||
@@ -12204,12 +12196,14 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					int productionInvested = (bProject ?
 							c->getProjectProduction(pt) :
 							c->getBuildingProduction(bt));
-					if(productionInvested > iMinProduction) {
+					if(productionInvested > iMinProduction)
+					{
 						iMinProduction = productionInvested;
 						pMinProductionCity = c;
 					}
 				}
-				if(pMinProductionCity != NULL) {
+				if(pMinProductionCity != NULL)
+				{
 					// 0 fail gold for teammates
 					if(p.getTeam() == getTeam())
 						iMinProduction = 0;
@@ -12352,26 +12346,18 @@ void CvCity::stopHeadOrder()
 }
 
 
-int CvCity::getOrderQueueLength()
+int CvCity::getOrderQueueLength() /* advc: */ const
 {
 	return m_orderQueue.getLength();
 }
 
 
-OrderData* CvCity::getOrderFromQueue(int iIndex)
+OrderData* CvCity::getOrderFromQueue(int iIndex) /* advc: */ const
 {
-	CLLNode<OrderData>* pOrderNode;
-
-	pOrderNode = m_orderQueue.nodeNum(iIndex);
-
+	CLLNode<OrderData>* pOrderNode = m_orderQueue.nodeNum(iIndex);
 	if (pOrderNode != NULL)
-	{
 		return &(pOrderNode->m_data);
-	}
-	else
-	{
-		return NULL;
-	}
+	return NULL;
 }
 
 
@@ -14916,8 +14902,8 @@ void CvCity::liberate(bool bConquest, /* advc.122: */ bool bCede)
 	if(!bCede) // advc.122
 		GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES); // advc.130j
 	// <advc>
-	CvTeam& kTeam = TEAMREF(ePlayer);
-	CvTeam const& kOwnerTeam = TEAMREF(eOwner); // </advc>
+	CvTeam& kTeam = GET_TEAM(ePlayer);
+	CvTeam const& kOwnerTeam = GET_TEAM(eOwner); // </advc>
 	if (kTeam.isVassal(kOwnerTeam.getID()))
 	{
 		int iNewMasterLand = kOwnerTeam.getTotalLand();
@@ -14986,7 +14972,7 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.122: */ TeamType
 	// K-Mod. I've flattened the if blocks into if! continue conditions.
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 
 		if (!kLoopPlayer.isAlive())
 			continue;
@@ -15312,7 +15298,7 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 			iNumVassalCities += kLoopPlayer.getNumCities();
 	}
 
-	iNumVassalCities /= std::max(1, TEAMREF(eOwner).getNumMembers());
+	iNumVassalCities /= std::max(1, GET_TEAM(eOwner).getNumMembers());
 	/* original BTS code
 	int iNumCitiesMaintenance = (GET_PLAYER(getOwner()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;
 	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getHandicapInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100); */

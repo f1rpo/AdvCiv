@@ -11,8 +11,7 @@
 //---------------------------------------------------------------------------------------
 
 #include "CvGameCoreDLL.h"
-#include "CvGamePlay.h"
-#include "CvGameAI.h"
+#include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"
 #include "CvInfo_All.h"
@@ -20,7 +19,6 @@
 #include "CvMap.h"
 #include "CvArea.h"
 #include "RiseFall.h" // advc.700
-#include "BBAI_Defines.h"
 #include "CvBugOptions.h"
 #include "CvPopupInfo.h"
 #include "CvDLLUtilityIFaceBase.h"
@@ -270,9 +268,9 @@ void CvGameTextMgr::setResearchStr(CvWString& szString, PlayerTypes ePlayer)
 	szString = gDLL->getText("TXT_KEY_MISC_RESEARCH_STRING",
 			GC.getTechInfo(kPlayer.getCurrentResearch()).getTextKeyWide());
 	CvWString szTempBuffer;
-	if (TEAMREF(ePlayer).getTechCount(GET_PLAYER(ePlayer).getCurrentResearch()) > 0)
+	if (GET_TEAM(ePlayer).getTechCount(GET_PLAYER(ePlayer).getCurrentResearch()) > 0)
 	{
-		szTempBuffer.Format(L" %d", TEAMREF(ePlayer).getTechCount(kPlayer.
+		szTempBuffer.Format(L" %d", GET_TEAM(ePlayer).getTechCount(kPlayer.
 				getCurrentResearch()) + 1);
 		szString += szTempBuffer;
 	} // <advc.004x>
@@ -10142,7 +10140,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		bInBuildingList = true;
 	bool bObsolete = true;
 	if(pPlayer != NULL)
-		bObsolete = TEAMREF(ePlayer).isObsoleteBuilding(eBuilding);
+		bObsolete = GET_TEAM(ePlayer).isObsoleteBuilding(eBuilding);
 	CvWString szObsoleteWithTag = bObsolete ? L"TXT_KEY_BUILDING_OBSOLETE_WITH" :
 			L"TXT_KEY_BUILDING_NOT_OBSOLETE";
 	// </advc.004w>
@@ -10337,7 +10335,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			}
 			else { // <advc.004w>
 				iMaxGlobal -= (g.getBuildingClassCreatedCount(bct) +
-						TEAMREF(ePlayer).getBuildingClassMaking(bct));
+						GET_TEAM(ePlayer).getBuildingClassMaking(bct));
 				if(iMaxGlobal == 1 || (iMaxGlobal == 0 && bConstruct))
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_WORLD_WONDER1"));
 				else {
@@ -10366,7 +10364,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				} // </advc.004w>
 			}
 			else { // <advc.004w>
-				iMaxTeam -= TEAMREF(ePlayer).getBuildingClassCountPlusMaking(bct);
+				iMaxTeam -= GET_TEAM(ePlayer).getBuildingClassCountPlusMaking(bct);
 				if(iMaxTeam == 1)
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDER1"));
 				else {
@@ -11922,7 +11920,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	if (!bCivilopediaText
 			&& ePlayer != NO_PLAYER) // advc.004w: Civilopedia from main menu
 	{
-		int iMaking = TEAMREF(ePlayer).getProjectMaking(eProject); // advc.004w
+		int iMaking = GET_TEAM(ePlayer).getProjectMaking(eProject); // advc.004w
 		if (isWorldProject(eProject))
 		{	// <advc.004w>
 			int iMaxGlobal = kProject.getMaxGlobalInstances();
@@ -11960,7 +11958,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 				if(iMaxTeam == 1)
 					szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TEAM1"));
 				else szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TEAM_NUM_LEFT",
-						iMaxTeam - TEAMREF(ePlayer).getProjectCount(eProject) -
+						iMaxTeam - GET_TEAM(ePlayer).getProjectCount(eProject) -
 						iMaking)); // </advc.004w>
 			}
 		}
@@ -13338,7 +13336,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 
 		// K-Mod. Bonuses now display "(Obsolete)" instead of "(player has 0)" when the bonus is obsolete.
 		if (NO_PLAYER != eActivePlayer && // advc.004w
-				TEAMREF(eActivePlayer).isBonusObsolete(eBonus))
+				GET_TEAM(eActivePlayer).isBonusObsolete(eBonus))
 			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_OBSOLETE"));
 		else
 		{
@@ -13402,7 +13400,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		// <advc.004w> Only show reveal tech if we don't have it yet
 		TechTypes eRevealTech = (TechTypes)GC.getBonusInfo(eBonus).getTechReveal();
 		if (eRevealTech != NO_TECH && (eActivePlayer == NO_PLAYER ||
-				!TEAMREF(eActivePlayer).isHasTech(eRevealTech))) // </advc.004w>
+				!GET_TEAM(eActivePlayer).isHasTech(eRevealTech))) // </advc.004w>
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_REVEALED_BY", GC.getTechInfo((TechTypes)GC.getBonusInfo(eBonus).getTechReveal()).getTextKeyWide()));
@@ -13411,7 +13409,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 
 	if(bCivilopediaText || eActivePlayer == NO_PLAYER ||
 			// K-Mod. Only display the perks of the bonus if it is not already obsolete
-			!TEAMREF(eActivePlayer).isBonusObsolete(eBonus)) {
+			!GET_TEAM(eActivePlayer).isBonusObsolete(eBonus)) {
 		// advc.004w: Effects from buildings, projects and units in a subroutine
 		setBonusExtraHelp(szBuffer, eBonus, bCivilopediaText, eTradePlayer, bDiplo, pCity);
 	}
@@ -13433,7 +13431,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 					continue;
 				CvPlayerAI const& kTaker = GET_PLAYER((PlayerTypes)i);
 				if(!kTaker.isAlive() || kTaker.isHuman() ||
-						!TEAMREF(eActivePlayer).isHasMet(kTaker.getTeam()))
+						!GET_TEAM(eActivePlayer).isHasMet(kTaker.getTeam()))
 					continue;
 				if(pActivePlayer->canTradeItem(kTaker.getID(), item, true) &&
 						kTaker.AI_isWillingToTalk(eActivePlayer, true))
@@ -13578,14 +13576,14 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 						iCurrentEra <= 0 && pActivePlayer->getNumCities() <= 2))
 					bCanEverConstruct = false;
 			}
-			if(bCanEverConstruct && TEAMREF(eActivePlayer).isObsoleteBuilding(eLoopBuilding))
+			if(bCanEverConstruct && GET_TEAM(eActivePlayer).isObsoleteBuilding(eLoopBuilding))
 				bCanEverConstruct = false;
 			if(bCanEverConstruct) {
 				VictoryTypes eVict = (VictoryTypes)kBuilding.getVictoryPrereq();
 				if(eVict != NO_VICTORY && !g.isVictoryValid(eVict))
 					bCanEverConstruct = false;
 			}
-			if(bCanEverConstruct && (TEAMREF(eActivePlayer).isBuildingClassMaxedOut(eBuildingClass) ||
+			if(bCanEverConstruct && (GET_TEAM(eActivePlayer).isBuildingClassMaxedOut(eBuildingClass) ||
 					pActivePlayer->isBuildingClassMaxedOut(eBuildingClass)))
 				bCanEverConstruct = false;
 			if(bCanEverConstruct) {
@@ -13721,7 +13719,7 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				VictoryTypes eVict = (VictoryTypes)kProject.getVictoryPrereq();
 				if(eVict != NO_VICTORY && !g.isVictoryValid(eVict))
 					continue;
-				if(g.isProjectMaxedOut(eLoopProject) && TEAMREF(eActivePlayer).
+				if(g.isProjectMaxedOut(eLoopProject) && GET_TEAM(eActivePlayer).
 						getProjectCount(eLoopProject) <= 0)
 					continue;
 				if(kProject.isSpaceship() && (pActivePlayer->getCapitalCity() == NULL ||
@@ -14934,7 +14932,7 @@ void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 		bool bAlreadyHas = false;
 		if(bPlayerContext) {
 			PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
-			bAlreadyHas = TEAMREF(eActivePlayer).isHasTech(eLeadsTo);
+			bAlreadyHas = GET_TEAM(eActivePlayer).isHasTech(eLeadsTo);
 			bCanAlreadyResearch = (!bAlreadyHas && GET_PLAYER(eActivePlayer).canResearch(eLeadsTo));
 		}
 		if (bAlreadyHas)
@@ -16804,10 +16802,10 @@ void CvGameTextMgr::parseWarTradesHelp(CvWStringBuffer& szBuffer,
 	if(TEAMID(eOtherPlayer) == TEAMID(eActivePlayer) ||
 			eOtherPlayer == NO_PLAYER || TEAMID(eThisPlayer) == TEAMID(eActivePlayer) ||
 			TEAMID(eThisPlayer) == TEAMID(eOtherPlayer) || eThisPlayer == NO_PLAYER ||
-			TEAMREF(eThisPlayer).isAtWar(TEAMID(eOtherPlayer)) ||
-			TEAMREF(eOtherPlayer).isHuman())
+			GET_TEAM(eThisPlayer).isAtWar(TEAMID(eOtherPlayer)) ||
+			GET_TEAM(eOtherPlayer).isHuman())
 		return;
-	if(TEAMREF(eThisPlayer).AI_declareWarTrade(TEAMID(eOtherPlayer),
+	if(GET_TEAM(eThisPlayer).AI_declareWarTrade(TEAMID(eOtherPlayer),
 			TEAMID(eActivePlayer)) == NO_DENIAL) {
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_WILLING_START_WAR",
