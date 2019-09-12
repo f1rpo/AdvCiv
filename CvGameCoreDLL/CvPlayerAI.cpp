@@ -18720,8 +18720,8 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 					if(iAvail > 1)
 						exportable += std::min(iAvail - 1, 3);
 				} /* Mean of capBonuses and a multiple of exportable, but
-					 no more than 1.5 times capBonuses. */
-				double weight1 = (capBonuses + std::min(capBonuses * 2,
+					 no more than 1.33 times capBonuses. */
+				double weight1 = (capBonuses + std::min(capBonuses * (5/3.0),
 						2.4 * std::max(bonusVal, exportable))) / 2;
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
