@@ -5013,9 +5013,9 @@ bool CvUnit::plunder()
 /*  <advc.033> For code shared by updatePlunder, collectBlockadeGold and
 	CvGame::updateColoredPlots.
 	See BBAI notes below about the iExtra param. */
-void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
-
-	if(!canPlunder(plot()))
+void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ bool bCheckCanPlunder) const
+{
+	if(bCheckCanPlunder && !canPlunder(plot()))
 		return;
 	// advc: From an old BBAI bugfix; apparently obsolete.
 	//gDLL->getFAStarIFace()->ForceReset(&GC.getStepFinder());
@@ -5023,11 +5023,13 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
 	bool bImpassables = (getDomainType() == DOMAIN_SEA && GET_PLAYER(getOwner()).
 			AI_unitImpassableCount(getUnitType()) > 0);
 	int const iRange = GC.getDefineINT(CvGlobals::SHIP_BLOCKADE_RANGE);
-	for(int i = -iRange; i <= iRange; i++) {
-		for(int j = -iRange; j <= iRange; j++) {
+	for(int i = -iRange; i <= iRange; i++)
+	{
+		for(int j = -iRange; j <= iRange; j++)
+		{
 			CvPlot* pLoopPlot = ::plotXY(getX(), getY(), i, j);
 			if(pLoopPlot == NULL || pLoopPlot->area() != area() ||
-					!canPlunder(pLoopPlot)) // advc.033
+					(bCheckCanPlunder && !canPlunder(pLoopPlot))) // advc.033
 				continue;
 			// BBAI (jdog5000, 12/11/08): No blockading on other side of an isthmus
 			int iPathDist =
@@ -5053,17 +5055,20 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 {
 	// <advc.033> Code moved into new function blockadeRange
 	std::vector<CvPlot*> apRange;
-	blockadeRange(apRange, iChange == -1 ? 2 : 0);
+	blockadeRange(apRange, iChange == -1 ? 2 : 0, iChange >= 0);
 	// To avoid updating plot groups unnecessarily
 	bool abChanged[MAX_TEAMS] = { false };
-	for(size_t i = 0; i < apRange.size(); i++) {
+	for(size_t i = 0; i < apRange.size(); i++)
+	{
 		CvPlot* pLoopPlot = apRange[i]; // </advc.033>
-		for(int iTeam = 0; iTeam < MAX_TEAMS; iTeam++) {
+		for(int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
+		{
 			CvTeam const& t = GET_TEAM((TeamTypes)iTeam);
 			//if (isEnemy(t.getID()))
 			// <advc.033> Replacing the above
 			if(t.isAlive() && isEnemy(t.getID()) && !t.isVassal(getTeam()) &&
-					!GET_TEAM(getTeam()).isVassal(t.getID())) { // </advc.033>
+				!GET_TEAM(getTeam()).isVassal(t.getID())) // </advc.033>
+			{
 				if(iChange == -1 && pLoopPlot->getBlockadedCount(t.getID()) <= 0)
 					continue; // advc
 				bool bOldTradeNet = false;
@@ -5087,8 +5092,10 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 			|| GC.suppressCycling()))
 		g.updateColoredPlots();
 	gDLL->getInterfaceIFace()->setDirty(BlockadedPlots_DIRTY_BIT, true);
-	if(bUpdatePlotGroups) {
-		for(int i = 0; i < MAX_PLAYERS; i++) {
+	if(bUpdatePlotGroups)
+	{
+		for(int i = 0; i < MAX_PLAYERS; i++)
+		{
 			CvPlayer& p = GET_PLAYER((PlayerTypes)i);
 			if(p.isAlive() && abChanged[p.getTeam()])
 				p.updatePlotGroups();

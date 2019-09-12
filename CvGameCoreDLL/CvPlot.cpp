@@ -4837,8 +4837,8 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			}
 
 			if (pLoopUnit->isBlockading()
-					// advc.033: Owner change shouldn't normally disrupt blockade
-					&& !pLoopUnit->canPlunder(pLoopUnit->plot()))
+				// advc.033: Owner change shouldn't normally disrupt blockade
+				&& !pLoopUnit->canPlunder(pLoopUnit->plot()))
 			{
 				pLoopUnit->setBlockading(false);
 				pLoopUnit->getGroup()->clearMissionQueue();
