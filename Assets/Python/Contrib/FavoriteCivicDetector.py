@@ -62,7 +62,8 @@ def getFavoriteCivicInfo (iPlayer):
 
 def doUpdate ():
 	""" Goes through the current diplomacy situation to determine potential favorite civics for each civ. """
-	if gDetectionNecessary:
+	# advc.009b: None check added
+	if gDetectionNecessary and not gFavoriteByPlayer is None:
 		BugUtil.debug("FavoriteCivicDetector.doUpdate() START")
 		pActivePlayer = gc.getActivePlayer()
 		pActiveTeam = gc.getTeam(pActivePlayer.getTeam())
