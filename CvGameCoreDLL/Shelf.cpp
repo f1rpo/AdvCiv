@@ -10,20 +10,20 @@
 using std::vector;
 
 
-void Shelf::add(CvPlot* plot) {
-
+void Shelf::add(CvPlot* plot)
+{
 	plots.push_back(plot);
 }
 
 
-CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
-		int* legalCount) const {
-
+CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance, int* legalCount) const
+{
 	/*  Based on CvMap::syncRandPlot, but shelves are (normally) so small
 		that random sampling isn't efficient. Instead, compute the legal
 		plots first, then return one of those at random (NULL if none). */
 	vector<CvPlot*> legal;
-	for(unsigned int i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i];
 		bool isLegal =
 		 plot != NULL &&
@@ -49,16 +49,17 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
 }
 
 
-int Shelf::size() const {
-
+int Shelf::size() const
+{
 	return (int)plots.size();
 }
 
 
-int Shelf::countUnownedPlots() const {
-
+int Shelf::countUnownedPlots() const
+{
 	int r = 0;
-	for(unsigned int i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i];
 		if(plot != NULL && !plot->isOwned())
 			r++;
@@ -67,10 +68,11 @@ int Shelf::countUnownedPlots() const {
 }
 
 
-int Shelf::countBarbarians() const {
-
+int Shelf::countBarbarians() const
+{
 	int r = 0;
-	for(size_t i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i];
 		if(plot == NULL)
 			continue;
@@ -85,15 +87,17 @@ int Shelf::countBarbarians() const {
 }
 
 
-bool Shelf::killBarbarian() {
-
-	for(size_t i = 0; i < plots.size(); i++) {
+bool Shelf::killBarbarian()
+{
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i]; if(plot == NULL) continue;
 		CLLNode<IDInfo>* unitNode = plot->headUnitNode();
 		if(unitNode == NULL) continue;
 		CvUnit* anyUnit = ::getUnit(unitNode->m_data);
 		if(anyUnit != NULL && anyUnit->isBarbarian() &&
-				anyUnit->getUnitCombatType() != NO_UNITCOMBAT) {
+			anyUnit->getUnitCombatType() != NO_UNITCOMBAT)
+		{
 			anyUnit->kill(false);
 			return true;
 		}
@@ -102,14 +106,16 @@ bool Shelf::killBarbarian() {
 }
 
 // <advc.306>
-CvUnit* Shelf::randomBarbarianCargoUnit() const {
-
+CvUnit* Shelf::randomBarbarianCargoUnit() const
+{
 	vector<CvUnit*> legal;
-	for(size_t i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		if(plots[i] == NULL) continue; CvPlot const& plot = * plots[i];
 		if(plot.isVisibleToCivTeam())
 			continue;
-		for(int j = 0; j < plot.getNumUnits(); j++) {
+		for(int j = 0; j < plot.getNumUnits(); j++)
+		{
 			CvUnit* u = plot.getUnitByIndex(j); if(u == NULL) continue;
 			if(u->getOwner() != BARBARIAN_PLAYER)
 				break;

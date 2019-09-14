@@ -8,29 +8,32 @@
 #include "RiseFall.h" // advc.700
 
 void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
-		int iLength, CvWString szString, LPCTSTR pszSound,
-		InterfaceMessageTypes eType, LPCSTR pszIcon, ColorTypes eFlashColor,
-		int iFlashX, int iFlashY, bool bShowOffScreenArrows,
-		bool bShowOnScreenArrows) {
+	int iLength, CvWString szString, LPCTSTR pszSound,
+	InterfaceMessageTypes eType, LPCSTR pszIcon, ColorTypes eFlashColor,
+	int iFlashX, int iFlashY, bool bShowOffScreenArrows,
+	bool bShowOnScreenArrows)
+{
 
 	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 	if(kPlayer.isHuman() ||
 		/*  <advc.700> Want message archive to be available when human
 			takes over. AI messages expire just like human messages. */
-			(GC.getGame().isOption(GAMEOPTION_RISE_FALL) &&
-			!kPlayer.isHumanDisabled() &&
-			GC.getGame().getRiseFall().isDeliverMessages(ePlayer))) {
-			// </advc.700>
+		(GC.getGame().isOption(GAMEOPTION_RISE_FALL) &&
+		!kPlayer.isHumanDisabled() &&
+		GC.getGame().getRiseFall().isDeliverMessages(ePlayer)))
+	{	// </advc.700>
 		addMessage(ePlayer, bForce, iLength, szString, pszSound, eType,
 				pszIcon, eFlashColor, iFlashX, iFlashY, bShowOffScreenArrows,
 				bShowOnScreenArrows);
 	}
 	//else if (GC.getGame().getActivePlayer() == ePlayer)
 	// advc.700: Replacing the above
-	else if(!kPlayer.isHuman() && kPlayer.isHumanDisabled()) {
+	else if(!kPlayer.isHuman() && kPlayer.isHumanDisabled())
+	{
 		// this means ePlayer is human, but currently using auto-play (K-Mod)
 		if(eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT ||
-				eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) { // advc.106b
+				eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) // advc.106b
+		{
 			addMessage(ePlayer,
 				/*  advc.127: bForce=true causes the event to be announced
 					immediately, whereas bForce=false seems to delay the

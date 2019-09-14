@@ -25,9 +25,7 @@ void CvSelectionGroupAI::AI_init()
 }
 
 
-void CvSelectionGroupAI::AI_uninit()
-{
-}
+void CvSelectionGroupAI::AI_uninit() {}
 
 
 void CvSelectionGroupAI::AI_reset()
@@ -186,14 +184,12 @@ bool CvSelectionGroupAI::AI_update()
 		if (AI_isGroupAttack())
 		{
 			AI_cancelGroupAttack();
-
 			groupAttack(m_iGroupAttackX, m_iGroupAttackY, MOVE_DIRECT_ATTACK, bFailedAlreadyFighting);
 		}
 		// else pick AI action
 		else
 		{
 			CvUnitAI* pHeadUnit = AI_getHeadUnit();
-
 			//if (pHeadUnit == NULL || pHeadUnit->isDelayedDeath())
 			if (pHeadUnit == NULL || pHeadUnit->doDelayedDeath()) // K-Mod
 				break;
@@ -262,23 +258,18 @@ bool CvSelectionGroupAI::AI_update()
 							if (!readyToMove(true))
 								break;
 						}
-						else
-							bFirst = false;
+						else bFirst = false;
 					}
 				} // </k146>
 			}
 
 			if (doDelayedDeath())
-			{
 				bDead = true;
-			}
 
 			if (!bDead)
 			{
 				if (!bFollow && readyToMove(true))
-				{
 					pushMission(MISSION_SKIP);
-				}
 			}
 		}
 	}
@@ -318,9 +309,9 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 
 
 CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
-		bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz,
-		// <advc.048>
-		bool bSacrifice, bool bMaxSurvival) const
+	bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz,
+	// <advc.048>
+	bool bSacrifice, bool bMaxSurvival) const
 {
 	int const iOddsThresh = 68; // Should this be lower if bHuman?
 	FAssert(!bMaxSurvival || !bSacrifice); // </advc.048>
@@ -329,7 +320,6 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	int iBestValue = 0;
 	int iBestOdds = 0;
 	CvUnitAI* pBestUnit = NULL;
-
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	bool bHuman = (pUnitNode == NULL ? true :
 			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwner()).isHuman());
@@ -383,13 +373,12 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			/*  if non-human, prefer the last unit that has the best value
 				(so as to avoid splitting the group) */
 			if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue)
-					/*  <advc.048> For human, use sacrifice value to break ties in order
-						to match the choice made in the !bMaxSurvival branch above
-						and the bSacrifice branch below. */
-					|| (bHuman && iValue < iOddsThresh && iValue == iBestValue &&
-					(pBestUnit == NULL || kLoopUnit.AI_sacrificeValue(pPlot) >
-					kLoopUnit.AI_sacrificeValue(pPlot))))
-					// </advc.048>
+				/*  <advc.048> For human, use sacrifice value to break ties in order
+					to match the choice made in the !bMaxSurvival branch above
+					and the bSacrifice branch below. */
+				|| (bHuman && iValue < iOddsThresh && iValue == iBestValue &&
+				(pBestUnit == NULL || kLoopUnit.AI_sacrificeValue(pPlot) >
+				kLoopUnit.AI_sacrificeValue(pPlot)))) // </advc.048>
 			{
 				iBestValue = iValue;
 				iBestOdds = iOdds;
@@ -438,19 +427,13 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 		{
 			bool bCanAttack = false;
 			if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-			{
 				bCanAttack = pLoopUnit->canAirAttack();
-			}
 			else
 			{
 				bCanAttack = pLoopUnit->canAttack();
-
 				if (bCanAttack && bNoBlitz && pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
-				{
 					bCanAttack = false;
-				}
 			}
-
 			if (bCanAttack)
 			{
 				if (bForce || pLoopUnit->canMove())
@@ -475,7 +458,6 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 			}
 		}
 	}
-
 	return pBestUnit;
 }
 
@@ -493,8 +475,7 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	{
 		if (pPlot->isWater())
 			eDomainType = DOMAIN_SEA;
-		else
-			eDomainType = DOMAIN_LAND;
+		else eDomainType = DOMAIN_LAND;
 	}
 
 	compareRatio = AI_sumStrength(pPlot, eDomainType, bCheckCanAttack);
@@ -502,9 +483,8 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 
 	PlayerTypes eOwner = getOwner();
 	if (eOwner == NO_PLAYER)
-	{
 		eOwner = getHeadOwner();
-	}
+
 	FAssert(eOwner != NO_PLAYER);
 
 	// K-Mod. Note. This function currently does not support bPotentialEnemy == false.
@@ -532,7 +512,7 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 /*  K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks
 	for moves, and for hasAlreadyAttacked / blitz */
 int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
-		DomainTypes eDomainType, bool bCheckCanAttack) const
+	DomainTypes eDomainType, bool bCheckCanAttack) const
 {
 	CLLNode<IDInfo>* pUnitNode;
 	CvUnit* pLoopUnit;
@@ -626,113 +606,91 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc: */ const
 	FAssert(getHeadUnit() != NULL);
 
 	if (isHuman())
-	{
 		return false;
-	}
-	else
+	// K-Mod
+	if (AI_getMissionAIType() == MISSIONAI_EXPLORE)
+		return false;
+	// K-Mod end
+
+	bool bLimitedWar = false;
+	if (pPlot != NULL)
 	{
-		// K-Mod
-		if (AI_getMissionAIType() == MISSIONAI_EXPLORE)
-			return false;
-		// K-Mod end
-
-		bool bLimitedWar = false;
-		if (pPlot != NULL)
+		TeamTypes ePlotTeam = pPlot->getTeam();
+		if (ePlotTeam != NO_TEAM)
 		{
-			TeamTypes ePlotTeam = pPlot->getTeam();
-			if (ePlotTeam != NO_TEAM)
-			{
-				WarPlanTypes eWarplan = GET_TEAM(getTeam()).AI_getWarPlan(
-						GET_TEAM(ePlotTeam).getMasterTeam()); // advc.104j
-				if (eWarplan == WARPLAN_LIMITED)
-				{
-					bLimitedWar = true;
-				}
-			}
-		}
-
-		CvUnit* pHeadUnit = getHeadUnit();
-
-		if (pHeadUnit != NULL)
-		{
-			switch (pHeadUnit->AI_getUnitAIType())
-			{
-			case UNITAI_UNKNOWN:
-			case UNITAI_ANIMAL:
-			case UNITAI_SETTLE:
-			case UNITAI_WORKER:
-				break;
-			case UNITAI_ATTACK_CITY:
-			case UNITAI_ATTACK_CITY_LEMMING:
-				return true;
-				break;
-
-			case UNITAI_ATTACK:
-			case UNITAI_COLLATERAL:
-			case UNITAI_PILLAGE:
-				if (bLimitedWar)
-				{
-					return true;
-				}
-				break;
-
-			case UNITAI_PARADROP:
-			case UNITAI_RESERVE:
-			case UNITAI_COUNTER:
-			case UNITAI_CITY_DEFENSE:
-			case UNITAI_CITY_COUNTER:
-			case UNITAI_CITY_SPECIAL:
-			case UNITAI_EXPLORE:
-			case UNITAI_MISSIONARY:
-			case UNITAI_PROPHET:
-			case UNITAI_ARTIST:
-			case UNITAI_SCIENTIST:
-			case UNITAI_GENERAL:
-			case UNITAI_MERCHANT:
-			case UNITAI_ENGINEER:
-			case UNITAI_GREAT_SPY: // K-Mod
-			case UNITAI_SPY:
-			case UNITAI_ICBM:
-			case UNITAI_WORKER_SEA:
-				break;
-
-			case UNITAI_ATTACK_SEA:
-			case UNITAI_RESERVE_SEA:
-			case UNITAI_ESCORT_SEA:
-				if (bLimitedWar)
-				{
-					return true;
-				}
-				break;
-			case UNITAI_EXPLORE_SEA:
-				break;
-
-			case UNITAI_ASSAULT_SEA:
-				if (hasCargo())
-				{
-					return true;
-				}
-				break;
-
-			case UNITAI_SETTLER_SEA:
-			case UNITAI_MISSIONARY_SEA:
-			case UNITAI_SPY_SEA:
-			case UNITAI_CARRIER_SEA:
-			case UNITAI_MISSILE_CARRIER_SEA:
-			case UNITAI_PIRATE_SEA:
-			case UNITAI_ATTACK_AIR:
-			case UNITAI_DEFENSE_AIR:
-			case UNITAI_CARRIER_AIR:
-			case UNITAI_MISSILE_AIR:
-				break;
-
-			default:
-				FAssert(false);
-				break;
-			}
+			WarPlanTypes eWarplan = GET_TEAM(getTeam()).AI_getWarPlan(
+					GET_TEAM(ePlotTeam).getMasterTeam()); // advc.104j
+			if (eWarplan == WARPLAN_LIMITED)
+				bLimitedWar = true;
 		}
 	}
 
+	CvUnit* pHeadUnit = getHeadUnit();
+	if (pHeadUnit != NULL)
+	{
+		switch (pHeadUnit->AI_getUnitAIType())
+		{
+		case UNITAI_UNKNOWN:
+		case UNITAI_ANIMAL:
+		case UNITAI_SETTLE:
+		case UNITAI_WORKER:
+			break;
+		case UNITAI_ATTACK_CITY:
+		case UNITAI_ATTACK_CITY_LEMMING:
+			return true;
+		case UNITAI_ATTACK:
+		case UNITAI_COLLATERAL:
+		case UNITAI_PILLAGE:
+			if (bLimitedWar)
+				return true;
+			break;
+		case UNITAI_PARADROP:
+		case UNITAI_RESERVE:
+		case UNITAI_COUNTER:
+		case UNITAI_CITY_DEFENSE:
+		case UNITAI_CITY_COUNTER:
+		case UNITAI_CITY_SPECIAL:
+		case UNITAI_EXPLORE:
+		case UNITAI_MISSIONARY:
+		case UNITAI_PROPHET:
+		case UNITAI_ARTIST:
+		case UNITAI_SCIENTIST:
+		case UNITAI_GENERAL:
+		case UNITAI_MERCHANT:
+		case UNITAI_ENGINEER:
+		case UNITAI_GREAT_SPY: // K-Mod
+		case UNITAI_SPY:
+		case UNITAI_ICBM:
+		case UNITAI_WORKER_SEA:
+			break;
+		case UNITAI_ATTACK_SEA:
+		case UNITAI_RESERVE_SEA:
+		case UNITAI_ESCORT_SEA:
+			if (bLimitedWar)
+				return true;
+			break;
+		case UNITAI_EXPLORE_SEA:
+			break;
+		case UNITAI_ASSAULT_SEA:
+			if (hasCargo())
+				return true;
+			break;
+		case UNITAI_SETTLER_SEA:
+		case UNITAI_MISSIONARY_SEA:
+		case UNITAI_SPY_SEA:
+		case UNITAI_CARRIER_SEA:
+		case UNITAI_MISSILE_CARRIER_SEA:
+		case UNITAI_PIRATE_SEA:
+		case UNITAI_ATTACK_AIR:
+		case UNITAI_DEFENSE_AIR:
+		case UNITAI_CARRIER_AIR:
+		case UNITAI_MISSILE_AIR:
+			break;
+		default:
+			FAssert(false);
+			break;
+		}
+	}
 	return false;
 }
 
@@ -768,13 +726,8 @@ void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* p
 	}
 
 	if (pNewUnit != NULL)
-	{
 		m_missionAIUnit = pNewUnit->getIDInfo();
-	}
-	else
-	{
-		m_missionAIUnit.reset();
-	}
+	else m_missionAIUnit.reset();
 }
 
 
@@ -782,6 +735,7 @@ CvUnitAI* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc: */ const
 {
 	return ::AI_getUnit(m_missionAIUnit);
 }
+
 
 bool CvSelectionGroupAI::AI_isFull()
 {
@@ -802,18 +756,12 @@ bool CvSelectionGroupAI::AI_isFull()
 		if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
 		{
 			if (pLoopUnit->cargoSpace() > 0)
-			{
 				iCargoCount++;
-			}
 
 			if (pLoopUnit->specialCargo() != NO_SPECIALUNIT)
-			{
 				iSpecialCargoCount++;
-			}
 			else if (!(pLoopUnit->isFull()))
-			{
 				return false;
-			}
 		}
 	}
 
@@ -825,19 +773,15 @@ bool CvSelectionGroupAI::AI_isFull()
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
-
 			if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
 			{
 				if (!(pLoopUnit->isFull()))
-				{
 					return false;
-				}
 			}
 		}
 	}
 
 	return true;
-
 }
 
 
@@ -850,7 +794,6 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 	{
 		CvUnitAI* pLoopUnit = ::AI_getUnit(pEntityNode->m_data); // advc.003u
 		pEntityNode = nextUnitNode(pEntityNode);
-
 		//if (!pLoopUnit->noDefensiveBonus())
 		// commented out by K-Mod. The noDefBonus thing is already taken into account.
 		{
@@ -876,9 +819,7 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 	}
 
 	if (NULL != pBestUnit && getNumUnits() > 1)
-	{
 		pBestUnit->joinGroup(NULL);
-	}
 
 	return pBestUnit;
 }
@@ -896,7 +837,7 @@ void CvSelectionGroupAI::read(FDataStreamBase* pStream)
 	CvSelectionGroup::read(pStream);
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iMissionAIX);
 	pStream->Read(&m_iMissionAIY);
@@ -919,7 +860,7 @@ void CvSelectionGroupAI::write(FDataStreamBase* pStream)
 	CvSelectionGroup::write(pStream);
 
 	uint uiFlag=0;
-	pStream->Write(uiFlag);		// flag for expansion
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iMissionAIX);
 	pStream->Write(m_iMissionAIY);

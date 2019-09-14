@@ -752,8 +752,8 @@ bool CvInitCore::getWBMapScript() const
 
 /*  <advc.030> This only works at the start of a game b/c all savegames have
 	type GAME_..._LOAD. Use CvGame::isScenario if it's not the start of a game. */
-bool CvInitCore::isScenario() const {
-
+bool CvInitCore::isScenario() const
+{
 	return m_eType == GAME_SP_SCENARIO || m_eType == GAME_MP_SCENARIO ||
 			m_eType == GAME_HOTSEAT_SCENARIO || m_eType == GAME_PBEM_SCENARIO;
 } // </advc.030>
@@ -1165,7 +1165,8 @@ void CvInitCore::setType(GameType eType)
 		aeHideMP.push_back(GAMEOPTION_LOCK_MODS);
 		aeHideMP.push_back(GAMEOPTION_NEW_RANDOM_SEED);
 		aeHideMP.push_back(GAMEOPTION_RISE_FALL); // advc.701
-		for(size_t i = 0; i < aeHideMP.size(); i++) {
+		for(size_t i = 0; i < aeHideMP.size(); i++)
+		{
 			CvGameOptionInfo& kOption = GC.getGameOptionInfo(aeHideMP[i]);
 			if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
 					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
@@ -1769,9 +1770,10 @@ void CvInitCore::resetAdvancedStartPoints()
 }
 
 // <advc.250c>
-int CvInitCore::getAdvancedStartMinPoints() const {
-
-	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+int CvInitCore::getAdvancedStartMinPoints() const
+{
+	for(int i = 0; i < GC.getNumUnitClassInfos(); i++)
+	{
 		CvUnitInfo& u = GC.getUnitInfo((UnitTypes)GC.getUnitClassInfo(
 				(UnitClassTypes)i).getDefaultUnitIndex());
 		if(u.isFound())
@@ -1827,11 +1829,13 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		m_abOptions[NUM_GAMEOPTION_TYPES - 2] = false;
 		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
 	}
-	else if(uiSaveFlag == 1) {
+	else if(uiSaveFlag == 1)
+	{
 		pStream->Read(NUM_GAMEOPTION_TYPES - 1, m_abOptions);
 		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
 	}
-	else {
+	else
+	{
 		FAssert(uiSaveFlag == 2);
 		pStream->Read(NUM_GAMEOPTION_TYPES, m_abOptions);
 	} // </advc.912d>
@@ -1890,7 +1894,8 @@ void CvInitCore::read(FDataStreamBase* pStream)
 				from within an R&F game right after inspecting a city.
 				Resetting the human players before reading any other player data
 				seems to have fixed it. */
-			if(kLoopPlayer.isHuman()) {
+			if(kLoopPlayer.isHuman())
+			{
 				kLoopPlayer.reset((PlayerTypes)i);
 				kLoopPlayer.setIsHuman(true);
 			} // </advc.706>

@@ -14,8 +14,6 @@ class CvMapGenerator
 public:
 	DllExport static CvMapGenerator& GetInstance();
 	DllExport static void FreeInstance() { SAFE_DELETE(m_pInst); }
-	CvMapGenerator();
-	virtual ~CvMapGenerator();
 
 	bool canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude);		// Exposed to Python
 	bool canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int iY);							// Exposed to Python

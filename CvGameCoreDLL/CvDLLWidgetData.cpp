@@ -18,9 +18,7 @@ CvDLLWidgetData* CvDLLWidgetData::m_pInst = NULL;
 CvDLLWidgetData& CvDLLWidgetData::getInstance()
 {
 	if (m_pInst == NULL)
-	{
 		m_pInst = new CvDLLWidgetData;
-	}
 	return *m_pInst;
 }
 
@@ -42,10 +40,12 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		WIDGET_LEADERHEAD, WIDGET_LEADERHEAD_RELATIONS, WIDGET_LEADER_LINE,
 		WIDGET_CONTACT_CIV, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
 		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY };
-	for(int i = 0; i < sizeof(aePlayerAsData1) / sizeof(WidgetTypes); i++) {
+	for(int i = 0; i < sizeof(aePlayerAsData1) / sizeof(WidgetTypes); i++)
+	{
 		if(widgetDataStruct.m_eWidgetType == aePlayerAsData1[i] &&
-				(widgetDataStruct.m_iData1 <= NO_PLAYER ||
-				widgetDataStruct.m_iData1 >= MAX_PLAYERS)) {
+			(widgetDataStruct.m_iData1 <= NO_PLAYER ||
+			widgetDataStruct.m_iData1 >= MAX_PLAYERS))
+		{
 			FAssertMsg(false, "Player id missing in widget data");
 			return;
 		}
@@ -678,7 +678,8 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		WIDGET_EXPAND_SCORES, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
 		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY
 	};
-	for(int i = 0; i < sizeof(aeExpandTypes) / sizeof(WidgetTypes); i++) {
+	for(int i = 0; i < sizeof(aeExpandTypes) / sizeof(WidgetTypes); i++)
+	{
 		if((widgetDataStruct.m_eWidgetType == aeExpandTypes[i] &&
 				widgetDataStruct.m_iData2 == 0) ||
 				// Need iData2 for sth. else; must only use these WidgetTypes on the scoreboard.
@@ -698,7 +699,6 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 	int const iData2 = widgetDataStruct.m_iData2; // </advc.003y>
 	switch (widgetDataStruct.m_eWidgetType)
 	{
-
 	case WIDGET_PLOT_LIST:
 		doPlotList(widgetDataStruct);
 		break;
@@ -1759,25 +1759,29 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			bReasonGiven = true; // advc.064b
 		}
 	}
-
 	// BUG - Hurry Overflow - start (advc.064)
-	if(getBugOptionBOOL("MiscHover__HurryOverflow", true)) {
+	if(getBugOptionBOOL("MiscHover__HurryOverflow", true))
+	{
 		int iOverflowProduction = 0;
 		int iOverflowGold = 0;
 		bool bIncludeCurrent = getBugOptionBOOL("MiscHover__HurryOverflowIncludeCurrent", false);
-		if(kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent)) {
-			if(iOverflowProduction > 0 || iOverflowGold > 0) {
+		if(kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent))
+		{
+			if(iOverflowProduction > 0 || iOverflowGold > 0)
+			{
 				bool bFirst = true;
 				CvWStringBuffer szOverflowBuffer;
 				CvWString szTempBuffer;
 				// advc: Plus signs added if !bIncludeCurrent
-				if(iOverflowProduction > 0) {
+				if(iOverflowProduction > 0)
+				{
 					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
 							iOverflowProduction, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
 					bFirst = false;
 				}
-				if(iOverflowGold > 0) {
+				if(iOverflowGold > 0)
+				{
 					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
 							iOverflowGold, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
@@ -1806,7 +1810,8 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		bReasonGiven = true; // advc.064b
 	}
 
-	if(!kCity.canHurry(eHurry, false)) { // advc.064b
+	if(!kCity.canHurry(eHurry, false)) // advc.064b
+	{
 		bool bFirst = true;
 		if (!GET_PLAYER(kCity.getOwner()).canHurry(eHurry))
 		{
@@ -1825,15 +1830,17 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		if(!bFirst)
 			bReasonGiven = true;
 		if(!bReasonGiven && kCity.getProduction() < kCity.getProductionNeeded() &&
-				kCity.getCurrentProductionDifference(true, true, false, true, true)
-				+ kCity.getProduction() >= kCity.getProductionNeeded()) {
+			kCity.getCurrentProductionDifference(true, true, false, true, true)
+			+ kCity.getProduction() >= kCity.getProductionNeeded())
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_OVERFLOW_BLOCKS_HURRY"
 					/*,kCity.getProductionNameKey()*/)); // (gets too long)
 			bReasonGiven = true;
 		}
 		if(!bReasonGiven && GC.getHurryInfo(eHurry).getGoldPerProduction() > 0 &&
-				iHurryGold <= 0) {
+			iHurryGold <= 0)
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRODUCTION_BLOCKS_HURRY"));
 		} // </advc.064b>
@@ -1923,7 +1930,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 	if (pHeadSelectedUnit != NULL)
 	{
 		MissionTypes eMission = (MissionTypes)kAction.getMissionType();
-		if(eMission != NO_MISSION) {
+		if(eMission != NO_MISSION)
+		{
 			// advc: Moved into subroutine
 			parseActionHelp_Mission(kAction, *pHeadSelectedUnit, eMission, szBuffer);
 		}
@@ -1974,7 +1982,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 							bSingleUnit = false; // </advc.080>
 					}
 				} // <advc.080>
-				if(iLostXP > 0) {
+				if(iLostXP > 0)
+				{
 					szBuffer.append(NEWLINE);
 					if(bSingleUnit)
 						szBuffer.append(gDLL->getText("TXT_KEY_MISC_LOST_XP", iLostXP));
@@ -2032,7 +2041,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 					szBuffer.append(kCommand.getHelp());
 			}
 			// <advc.004b>
-			if(kAction.getCommandType() == COMMAND_DELETE) {
+			if(kAction.getCommandType() == COMMAND_DELETE)
+			{
 				CvPlayer const& kActivePl = GET_PLAYER(GC.getGame().getActivePlayer());
 				szBuffer.append(L" (");
 				int iCurrentUnitExpenses = kActivePl.calculateUnitSupply() +
@@ -2047,7 +2057,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				int iExtraCost = 0;
 				int iUnits = 0;
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-				while(pSelectedUnitNode != NULL) {
+				while(pSelectedUnitNode != NULL)
+				{
 					CvUnit const& u = *::getUnit(pSelectedUnitNode->m_data);
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 					iExtraCost += u.getUnitInfo().getExtraCost();
@@ -2056,7 +2067,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 						a transport and its cargo at the same time */
 					std::vector<CvUnit*> apCargo;
 					u.getCargoUnits(apCargo);
-					for(size_t i = 0; i < apCargo.size(); i++) {
+					for(size_t i = 0; i < apCargo.size(); i++)
+					{
 						iExtraCost += apCargo[i]->getUnitInfo().getExtraCost();
 						iUnits--;
 					}
@@ -2071,16 +2083,19 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 						(iInflationPercent + 100)) / 100;
 				FAssert(iExtraCost >= 0 && iProjectedExpenses >= 0);
 				int iGold = iCurrentExpenses - iProjectedExpenses;
-				if(iGold > 0) {
+				if(iGold > 0)
+				{
 					szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_DECREASE",
 							iGold));
 				}
-				else {
+				else
+				{
 					FAssert(iGold == 0);
 					int iMaxTries = 5;
 					int iDeltaUnits = 0;
 					int iOldProj = iProjectedExpenses;
-					for(int i = 1; i <= iMaxTries; i++) {
+					for(int i = 1; i <= iMaxTries; i++)
+					{
 						/*  Assume that the additional units are inside borders:
 							only recompute UnitCost. */
 						iProjectedExpenses = iProjectedSupply - iExtraCost +
@@ -2088,12 +2103,14 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 						iProjectedExpenses += kActivePl.calculateUnitCost(0, iUnits - i);
 						iProjectedExpenses = (iProjectedExpenses *
 								(iInflationPercent + 100)) / 100;
-						if(iProjectedExpenses < iOldProj) {
+						if(iProjectedExpenses < iOldProj)
+						{
 							iDeltaUnits = i;
 							break;
 						}
 					}
-					if(iDeltaUnits > 0) {
+					if(iDeltaUnits > 0)
+					{
 						if(iDeltaUnits == 1)
 							szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_ONE_MORE"));
 						else szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_MORE",
@@ -2141,11 +2158,10 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 	}
 }
 
-
 // advc: Cut from parseActionHelp, refactored.
 void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
-		CvUnit const& kUnit, MissionTypes eMission, CvWStringBuffer& szBuffer) {
-
+	CvUnit const& kUnit, MissionTypes eMission, CvWStringBuffer& szBuffer)
+{
 	CLLNode<IDInfo>* pSelectedUnitNode=NULL;
 	CvUnit* pSelectedUnit=NULL;
 
@@ -2341,7 +2357,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 		}
 		// <advc.004b> Show the projected increase in city maintenance
-		else {
+		else
+		{
 			// No projection for the initial city
 			if(kUnitOwner.getNumCities() > 0)
 				szBuffer.append(getFoundCostText(kMissionPlot, kUnitOwner.getID()));
@@ -2471,7 +2488,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		if(pMissionCity == NULL)
 			break;
 		if (/*!kUnit.getUnitInfo().getForceBuildings(eBuilding) &&*/ // advc.003t
-				!pMissionCity->canConstruct(eBuilding, false, false, true))
+			!pMissionCity->canConstruct(eBuilding, false, false, true))
 		{
 			if (!g.isBuildingClassMaxedOut((BuildingClassTypes)
 					(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
@@ -2945,9 +2962,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 							getTechReveal())))
 					{
 						if (kImprov.getImprovementBonusDiscoverRand(iI) > 0
-								// advc.rom3:
-								&& kMissionPlot.canHaveBonus(eRandBonus, false,
-								true)) // advc.129
+							&& kMissionPlot.canHaveBonus(eRandBonus, false, // advc.rom3
+							true)) // advc.129
 						{
 							szFirstBuffer.Format(L"%s%s", NEWLINE,
 									gDLL->getText("TXT_KEY_ACTION_CHANCE_DISCOVER").c_str());
@@ -3071,7 +3087,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			szBuffer.append(NEWLINE);
 			szBuffer.append(kBuild.getHelp());
 		} // <advc.011b>
-		if(bValid && iTurns > 1 && GC.ctrlKey()) {
+		if(bValid && iTurns > 1 && GC.ctrlKey())
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_SUSPEND_WORK"));
 		} // </advc.011b>
@@ -3083,7 +3100,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	{	// <advc.004a>
 		if(eMission == MISSION_DISCOVER)
 			szBuffer.append(getDiscoverPathText(kUnit.getUnitType(), kUnitOwner.getID()));
-		else { // </advc.004a>
+		else // </advc.004a>
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(GC.getMissionInfo(eMission).getHelp());
 		}
@@ -3194,7 +3212,6 @@ void CvDLLWidgetData::parseAngryCitizenHelp(CvWidgetDataStruct &widgetDataStruct
 void CvDLLWidgetData::parseChangeSpecialistHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
 	if (pHeadSelectedCity == NULL)
 		return;
 
@@ -3290,7 +3307,7 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 	// if alt down and cheat on, show extra info
 	if (GC.altKey() && //gDLL->getChtLvl() > 0)
-			GC.getGame().isDebugMode()) // advc.135c
+		GC.getGame().isDebugMode()) // advc.135c
 	{
 		// K-Mod. I've moved the code from here into its own function, just to get it out of the way.
 		parseScoreboardCheatText(widgetDataStruct, szBuffer);
@@ -3326,7 +3343,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 				"TXT_KEY_MISC_CONTACT_LEADER",
 				kPlayer.getNameKey(), kPlayer.getCivilizationShortDescription()));
 		// <advc.085>
-		if(eActivePlayer == ePlayer) {
+		if(eActivePlayer == ePlayer)
+		{
 			szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
 					TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), szTmp.GetCString()));
 		}
@@ -3427,7 +3445,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 				GC.getGame().isDebugMode()) // advc.135c
 				&& !kPlayer.isHuman() && bWillTalk
 				&& ePlayer != eActivePlayer); // advc.085
-		if (bShowCtrlTrade) {
+		if (bShowCtrlTrade)
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
 		} // </advc.004>
@@ -3828,12 +3847,12 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 				CvWStringBuffer szWarplan;
 				GAMETEXT.getWarplanString(szWarplan, eWarPlan);
 				szBuffer.append(CvWString::format(SETCOLR L" %s (%d) with %s\n" ENDCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
-					szWarplan.getCString(),
-					// advc.104: Show war plan age instead of K-Mod's startWarVal
-					getWPAI.isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
-					kTeam.AI_startWarVal(eLoopTeam, eWarPlan,
-					true), // advc.001n
-					kLoopTeam.getName().GetCString()));
+						szWarplan.getCString(),
+						// advc.104: Show war plan age instead of K-Mod's startWarVal
+						getWPAI.isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
+						kTeam.AI_startWarVal(eLoopTeam, eWarPlan,
+						true), // advc.001n
+						kLoopTeam.getName().GetCString()));
 			}
 		}
 	}
@@ -4592,14 +4611,17 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		break; // </advc.034>
 	}
 	// <advc.072>
-	if(CvDeal::isAnnual(eItemType) || eItemType == TRADE_PEACE_TREATY) {
+	if(CvDeal::isAnnual(eItemType) || eItemType == TRADE_PEACE_TREATY)
+	{
 		CvDeal* pDeal = g.nextCurrentDeal(eWhoFrom, eWhoTo, eItemType,
 				widgetDataStruct.m_iData2, true);
-		if(pDeal != NULL) {
+		if(pDeal != NULL)
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(NEWLINE);
 			CvWString szReason;
-			if(pDeal->isCancelable(g.getActivePlayer(), &szReason)) {
+			if(pDeal->isCancelable(g.getActivePlayer(), &szReason))
+			{
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
 						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 						gDLL->getText("TXT_KEY_MISC_CLICK_TO_CANCEL").GetCString());
@@ -4682,7 +4704,8 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 	CvWString szTempBuffer;
 	// <advc.135c>
 	CvGame const& g = GC.getGame();
-	if(g.isNetworkMultiPlayer() && g.isDebugToolsAllowed(false)) {
+	if(g.isNetworkMultiPlayer() && g.isDebugToolsAllowed(false))
+	{
 		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"),
 				L"Cheats enabled");
 		szBuffer.append(szTempBuffer);
@@ -4691,7 +4714,8 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getCivilizationInfo(GC.getGame().getActiveCivilizationType()).getDescription());
 	szBuffer.append(szTempBuffer);
 	// <advc.700>
-	if(g.isOption(GAMEOPTION_RISE_FALL)) {
+	if(g.isOption(GAMEOPTION_RISE_FALL))
+	{
 		std::pair<int,int> rfCountdown = g.getRiseFall().getChapterCountdown();
 		if(rfCountdown.second >= 0)
 			szBuffer.append(L" (" + gDLL->getText("TXT_KEY_RF_CHAPTER_COUNTDOWN",
@@ -4708,7 +4732,6 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 	wchar szTempBuffer[1024];
 
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
 	if (pHeadSelectedCity == NULL)
 		return; // advc
 
@@ -4822,7 +4845,8 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	/*  <advc.099> Replaced "Alive" with "EverAlive", and sorted to match the
 		order in updateCityScreen (CvMainInterface.py) */
 	std::vector<std::pair<int,PlayerTypes> > sorted;
-	for(int i = 0; i < MAX_PLAYERS; i++) {
+	for(int i = 0; i < MAX_PLAYERS; i++)
+	{
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isEverAlive())
 			continue;
@@ -4832,7 +4856,8 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	}
 	std::sort(sorted.begin(), sorted.end());
 	std::reverse(sorted.begin(), sorted.end());
-	for(size_t i = 0; i < sorted.size(); i++) {
+	for(size_t i = 0; i < sorted.size(); i++)
+	{
 		CvPlayer const& kPlayer = GET_PLAYER(sorted[i].second);
 		int iCulturePercent = sorted[i].first; // </advc.099>
 		swprintf(szTempBuffer, L"\n%d%% " SETCOLR L"%s" ENDCOLR,
@@ -4843,14 +4868,16 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	// <advc.101> <advc.023>
 	double prDecr = c.probabilityOccupationDecrement();
 	double prDisplay = c.revoltProbability(true, false, true);
-	if(prDisplay > 0) {
+	if(prDisplay > 0)
+	{
 		double truePr = c.revoltProbability() * (1 - prDecr);
 		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.1f"),
 				(float)(100 * truePr)); // </advc.023></advc.101>
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT", szTempBuffer));
 		// <advc.023> Probability after occupation
-		if(truePr != prDisplay) {
+		if(truePr != prDisplay)
+		{
 			szBuffer.append(NEWLINE);
 			swprintf(szTempBuffer, L"%.1f", (float)(100 * prDisplay));
 			if(eCulturalOwner == BARBARIAN_PLAYER || !GET_PLAYER(eCulturalOwner).isAlive())
@@ -4863,15 +4890,18 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		swprintf(szTempBuffer, L"%d", c.getNumRevolts(eCulturalOwner));
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRIOR_REVOLTS", szTempBuffer));
-		if(truePr > 0 && c.canCultureFlip(eCulturalOwner)) {
+		if(truePr > 0 && c.canCultureFlip(eCulturalOwner))
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_FLIP_WARNING", szTempBuffer));
 		}
 	}
-	if(c.isOccupation()) { // </advc.101>
+	if(c.isOccupation()) // </advc.101>
+	{
 		// <advc.023>
 		// Show probability of decrementing occupation - unless it's always 1
-		if(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT) > 0) {
+		if(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT) > 0)
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_OCCUPATION_TIMER",
 					c.getOccupationTimer()));
@@ -4921,7 +4951,8 @@ void CvDLLWidgetData::parseProductionHelp(CvWidgetDataStruct &widgetDataStruct, 
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL &&
-		pHeadSelectedCity->getProductionNeeded() != MAX_INT) {
+		pHeadSelectedCity->getProductionNeeded() != MAX_INT)
+	{
 		CvWString szTemp;
 		szTemp.Format(L"%s: %d/%d %c", pHeadSelectedCity->getProductionName(),
 				pHeadSelectedCity->getProduction(),
@@ -5086,7 +5117,8 @@ void CvDLLWidgetData::parseTechTradeEntryHelp(CvWidgetDataStruct &widgetDataStru
 {
 	if (widgetDataStruct.m_iData2 == -1)
 		parseTechEntryHelp(widgetDataStruct, szBuffer);
-	else {
+	else
+	{
 		GAMETEXT.setTechTradeHelp(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
 				(PlayerTypes)widgetDataStruct.m_iData2);
 	}
@@ -5407,14 +5439,16 @@ void CvDLLWidgetData::parseBonusTradeHelp(CvWidgetDataStruct &widgetDataStruct, 
 {
 	if (widgetDataStruct.m_iData2 == -1)
 		parseBonusHelp(widgetDataStruct, szBuffer);
-	else { /* <advc.073> Hack. Need the bOption field to distinguish between the
-			  import (bOption=true) and export columns, but setImageButton
-			  (in the EXE) has only the two iData parameters. I'm adding 1000
-			  to the bonus id in Python (CvExoticForeignAdvisor: drawResourceDeals)
-			  to signal that the widget is in the import column. Proper solution:
-			  Two separate widget types - probably wouldn't be that much work to
-			  implement either. */
-		if(widgetDataStruct.m_iData1 >= 1000) {
+	else /* <advc.073> Hack. Need the bOption field to distinguish between the
+			import (bOption=true) and export columns, but setImageButton
+			(in the EXE) has only the two iData parameters. I'm adding 1000
+			to the bonus id in Python (CvExoticForeignAdvisor: drawResourceDeals)
+			to signal that the widget is in the import column. Proper solution:
+			Two separate widget types - probably wouldn't be that much work to
+			implement either. */
+	{
+		if(widgetDataStruct.m_iData1 >= 1000)
+		{
 			widgetDataStruct.m_iData1 -= 1000;
 			widgetDataStruct.m_bOption = true;
 		} // </advc.073>
@@ -5766,8 +5800,8 @@ void CvDLLWidgetData::parseFoodModHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 }
 // BUG - Food Rate Hover - end
 // <advc.085>
-void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer) {
-
+void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+{
 	CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1);
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 	bool bThemVsYou = (getBugOptionINT("Scores__PowerFormula", 0, false) == 0);
@@ -5789,7 +5823,8 @@ void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, 
 			gDLL->getText(szCompareTag).GetCString()));
 	ColorTypes eRatioColor = widgetDataStruct.m_iData2 <= 0 ? NO_COLOR :
 			(ColorTypes)widgetDataStruct.m_iData2;
-	if(eRatioColor != NO_COLOR) {
+	if(eRatioColor != NO_COLOR)
+	{
 		NiColorA const& kRatioColor = GC.getColorInfo(eRatioColor).getColor();
 		szBuffer.append(CvWString::format(L" " SETCOLR L"%d%%" ENDCOLR,
 				// Based on the TEXT_COLOR macro
@@ -5810,7 +5845,8 @@ void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, 
 	szBuffer.append(NEWLINE);
 	CvWString szSeeWhat;
 	int iNeeded = iNeededDemographics;
-	if(iNeededResearch <= 0) {
+	if(iNeededResearch <= 0)
+	{
 		iNeeded = iNeededResearch;
 		szSeeWhat = gDLL->getText("TXT_KEY_COMMERCE_RESEARCH");
 	}
@@ -5821,15 +5857,17 @@ void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 
 void CvDLLWidgetData::parseGoldenAgeAnarchyHelp(PlayerTypes ePlayer, int iData2,
-		bool bAnarchy, CvWStringBuffer &szBuffer) {
-
+	bool bAnarchy, CvWStringBuffer &szBuffer)
+{
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	if(bAnarchy) {
+	if(bAnarchy)
+	{
 		int iTurns = kPlayer.getAnarchyTurns();
 		FAssert(iTurns > 0);
 		szBuffer.append(gDLL->getText("INTERFACE_ANARCHY", iTurns));
 	}
-	else {
+	else
+	{
 		szBuffer.append(gDLL->getText("TXT_KEY_CONCEPT_GOLDEN_AGE"));
 		int iTurns = kPlayer.getGoldenAgeTurns();
 		FAssert(iTurns > 0);
@@ -5843,7 +5881,6 @@ void CvDLLWidgetData::parseGoldenAgeAnarchyHelp(PlayerTypes ePlayer, int iData2,
 void CvDLLWidgetData::parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_OFFSETS_HELP"));
-
 	for (int iI = 0; iI < GC.getNumFeatureInfos(); ++iI)
 	{
 		int iWarmingDefence = GC.getFeatureInfo((FeatureTypes)iI).getWarmingDefense();
@@ -5897,15 +5934,18 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 	FlavorTypes eGPFlavor = NO_FLAVOR;
 	int iMaxFlavor = -1;
 	CvUnitInfo& u = GC.getUnitInfo(eUnit);
-	for(int i = 0; i < GC.getNumFlavorTypes(); i++) {
+	for(int i = 0; i < GC.getNumFlavorTypes(); i++)
+	{
 		int iFlavor = u.getFlavorValue(i);
-		if(iFlavor > iMaxFlavor) {
+		if(iFlavor > iMaxFlavor)
+		{
 			eGPFlavor = (FlavorTypes)i;
 			iMaxFlavor = iFlavor;
 		}
 	}
 	CvString szFlavor;
-	switch(eGPFlavor) {
+	switch(eGPFlavor)
+	{
 		case FLAVOR_SCIENCE: szFlavor = "SCIENCE"; break;
 		case FLAVOR_MILITARY: szFlavor = "MILITARY"; break;
 		case FLAVOR_RELIGION: szFlavor = "RELIGION"; break;
@@ -5924,7 +5964,8 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 	/*  The same discovery could be enabled by multiple currently researchable techs.
 		The map lists the alt. reqs for each target tech. */
 	std::map<TechTypes,std::set<TechTypes>*> discoverMap;
-	for(int i = 0; i < GC.getNumTechInfos(); i++) {
+	for(int i = 0; i < GC.getNumTechInfos(); i++)
+	{
 		TechTypes eResearchOption = (TechTypes)i;
 		if(!GET_PLAYER(ePlayer).canResearch(eResearchOption))
 			continue;
@@ -5934,7 +5975,8 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 		if(eNextDiscover == eCurrentDiscover || eNextDiscover == NO_TECH)
 			continue;
 		std::set<TechTypes>* discoverSet = NULL;
-		if(discoverMap.find(eNextDiscover) == discoverMap.end()) {
+		if(discoverMap.find(eNextDiscover) == discoverMap.end())
+		{
 			discoverSet = new std::set<TechTypes>();
 			discoverMap.insert(std::make_pair(eNextDiscover, discoverSet));
 		}
@@ -5953,7 +5995,8 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 	}
 	r.append(L": ");
 	for(std::map<TechTypes,std::set<TechTypes>*>::iterator it = discoverMap.begin();
-			it != discoverMap.end(); it++) {
+		it != discoverMap.end(); it++)
+	{
 		if(it != discoverMap.begin())
 			r.append(L", ");
 		CvTechInfo const& kNextDiscover = GC.getTechInfo(it->first);
@@ -5966,8 +6009,10 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 		r.append(L" ");
 		std::set<TechTypes> discoverSet = *it->second;
 		for(std::set<TechTypes>::iterator sit = discoverSet.begin();
-				sit != discoverSet.end(); sit++) {
-			if(sit != discoverSet.begin()) {
+			sit != discoverSet.end(); sit++)
+		{
+			if(sit != discoverSet.begin())
+			{
 				r.append(L" ");
 				r.append(gDLL->getText("TXT_KEY_MISSION_DISCOVER_OR"));
 				r.append(L" ");
@@ -5985,14 +6030,15 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 } // </advc.004a>
 
 // <advc.004b>
-CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes eOwner) const {
-
+CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes eOwner) const
+{
 	CvPlayer& kOwner = GET_PLAYER(eOwner);
 	if(kOwner.isAnarchy())
 		return "";
 	int iProjPreInfl = 0;
 	// New city increases other cities' maintenance
-	FOR_EACH_CITY(c, kOwner) {
+	FOR_EACH_CITY(c, kOwner)
+	{
 		if(c->isDisorder()) // Can't account for these
 			continue;
 		int iProjected = // Distance and corp. maintenance stay the same
@@ -6033,11 +6079,12 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes eOwner)
 }
 
 CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
-		PlayerTypes eOwner) const {
-
+		PlayerTypes eOwner) const
+{
 	int iGoodHealthPercent = 0;
 	int iBadHealthPercent = 0;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	{
 		if(i == CITY_HOME_PLOT) // Feature gets removed upon founding
 			continue;
 		CvPlot* pPlot = plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
@@ -6050,18 +6097,21 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 		else iBadHealthPercent -= iHealthPercent;
 	}
 	CvWString r;
-	if(kCityPlot.isFreshWater()) {
+	if(kCityPlot.isFreshWater())
+	{
 		r.append(NEWLINE);
 		r.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_FRESH_WATER",
 				GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE)));
 	}
 	int iGoodHealth = iGoodHealthPercent / 100;
 	int iBadHealth = iBadHealthPercent / 100;
-	if(iGoodHealth > 0 || iBadHealth > 0) {
+	if(iGoodHealth > 0 || iBadHealth > 0)
+	{
 		r.append(NEWLINE);
 		r.append(L"+");
 		int icon = 0;
-		if(iGoodHealth > 0) {
+		if(iGoodHealth > 0)
+		{
 			icon = gDLL->getSymbolID(HEALTHY_CHAR);
 			/*  Turns out good and bad health are rounded individually;
 				no need, then, to show fractions. */
@@ -6070,7 +6120,8 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 			//		L"%.1f%c" : L"%.2f%c"), goodHealth, icon));
 			r.append(CvWString::format(L"%d%c", iGoodHealth, icon));
 		}
-		if(iBadHealth > 0) {
+		if(iBadHealth > 0)
+		{
 			if(iGoodHealth > 0)
 				r.append(CvWString::format(L", "));
 			icon = gDLL->getSymbolID(UNHEALTHY_CHAR);
@@ -6079,15 +6130,18 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 		r.append(gDLL->getText("TXT_KEY_FROM_FEATURES"));
 	}
 	int iExtraHealth = GET_PLAYER(eOwner).getExtraHealth();
-	if(iExtraHealth != 0) {
+	if(iExtraHealth != 0)
+	{
 		r.append(NEWLINE);
 		int iIcon = 0;
 		r.append(L"+");
-		if(iExtraHealth > 0) {
+		if(iExtraHealth > 0)
+		{
 			iIcon = gDLL->getSymbolID(HEALTHY_CHAR);
 			r.append(CvWString::format(L"%d%c", iExtraHealth, iIcon));
 		}
-		else {
+		else
+		{
 			iIcon = gDLL->getSymbolID(UNHEALTHY_CHAR);
 			r.append(CvWString::format(L"%d%c", iBadHealth, iIcon));
 		}
@@ -6096,11 +6150,12 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 	return r;
 }
 
-CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot const& p, PlayerTypes eOwner) const {
-
+CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot const& p, PlayerTypes eOwner) const
+{
 	CvWString r = NEWLINE;
 	r.append(gDLL->getText("TXT_KEY_HOME_TILE_YIELD"));
-	for(int i = 0; i < NUM_YIELD_TYPES; i++) {
+	for(int i = 0; i < NUM_YIELD_TYPES; i++)
+	{
 		YieldTypes eYield = (YieldTypes)i;
 		int y = p.calculateNatureYield(eYield, TEAMID(eOwner), true);
 		CvYieldInfo& kYield = GC.getYieldInfo(eYield);

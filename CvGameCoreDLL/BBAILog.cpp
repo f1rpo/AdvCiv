@@ -19,8 +19,8 @@ void logBBAI(TCHAR* format, ... )
 }
 
 // <advc.133>
-void logBBAICancel(CvDeal const& d, PlayerTypes eCancelPlayer, wchar const* szReason) {
-
+void logBBAICancel(CvDeal const& d, PlayerTypes eCancelPlayer, wchar const* szReason)
+{
 	CvWStringBuffer szTmpBuffer;
 	GAMETEXT.getDealString(szTmpBuffer, d, eCancelPlayer, false);
 	CvWString szBuffer;

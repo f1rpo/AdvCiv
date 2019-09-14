@@ -115,10 +115,13 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 
 		m_iNormalizedScore = player.calculateScore(true, player.getTeam() == GC.getGame().getWinner());
 		// <advc.707> Treat R&F games as "Score" victory (previously unused)
-		if(game.isOption(GAMEOPTION_RISE_FALL)) {
-			for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
+		if(game.isOption(GAMEOPTION_RISE_FALL))
+		{
+			for(int i = 0; i < GC.getNumVictoryInfos(); i++)
+			{
 				VictoryTypes eVictory = (VictoryTypes)i;
-				if(GC.getVictoryInfo(eVictory).isTargetScore()) {
+				if(GC.getVictoryInfo(eVictory).isTargetScore())
+				{
 					m_eVictoryType = eVictory;
 					break;
 				}
@@ -219,8 +222,8 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 }
 
 // <advc.106h>
-void CvReplayInfo::addSettingsMsg() {
-
+void CvReplayInfo::addSettingsMsg()
+{
 	CvGame& g = GC.getGame();
 	PlayerTypes ePlayer = g.getInitialActivePlayer();
 	if(ePlayer == NO_PLAYER)
@@ -230,7 +233,8 @@ void CvReplayInfo::addSettingsMsg() {
 	CvWString const szWBEnding = L".CivBeyondSwordWBSave";
 	CvWString szMapName = getMapScriptName();
 	if(szMapName.length() > szWBEnding.length() && szMapName.substr(szMapName.length() -
-			szWBEnding.length(), szWBEnding.length()).compare(szWBEnding) == 0) {
+		szWBEnding.length(), szWBEnding.length()).compare(szWBEnding) == 0)
+	{
 		szMapName = szMapName.substr(0, szMapName.length() - szWBEnding.length());
 		bScenario = true;
 	}
@@ -260,12 +264,14 @@ void CvReplayInfo::addSettingsMsg() {
 			gDLL->getText("TXT_KEY_SETTINGS_STARTING_ERA",
 			GC.getEraInfo(getEra()).getTextKeyWide()))) + L"\n";
 	// <advc.250b>
-	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH)) {
+	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH))
+	{
 		szSettings += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
 				+ CvWString::format(L"%d", g.getNumAdvancedStartPoints()) + L"\n";
 	} // </advc.250b>
 	int iDisabled = 0;
-	for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
+	for(int i = 0; i < GC.getNumVictoryInfos(); i++)
+	{
 		VictoryTypes eVictory = (VictoryTypes)i;
 		if(g.isVictoryValid(eVictory))
 			continue;
@@ -273,18 +279,21 @@ void CvReplayInfo::addSettingsMsg() {
 		szSettings += GC.getVictoryInfo(eVictory).getDescription();
 		szSettings += L", ";
 	}
-	if(iDisabled > 0) {
+	if(iDisabled > 0)
+	{
 		szSettings = szSettings.substr(0, szSettings.length() - 2) + L" "; // Drop the final comma
 		szSettings += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
 	} // <advc.250b>
-	if(g.isOption(GAMEOPTION_SPAH)) {
+	if(g.isOption(GAMEOPTION_SPAH))
+	{
 		// bTab=false b/c that's a bit too much indentation
 		std::wstring* pszPointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
 		if(pszPointDistrib != NULL)
 			szSettings += *pszPointDistrib;
 	} // </advc.250b>
 	int iOptions = 0;
-	for(int i = 0; i < GC.getNumGameOptionInfos(); i++) {
+	for(int i = 0; i < GC.getNumGameOptionInfos(); i++)
+	{
 		GameOptionTypes eOption = (GameOptionTypes)i;
 		// advc.250b:
 		if(eOption == GAMEOPTION_ADVANCED_START || eOption == GAMEOPTION_SPAH ||
@@ -304,7 +313,8 @@ void CvReplayInfo::addSettingsMsg() {
 	// Don't list mod name if the tag isn't present
 	if(szKey.compare(szModName) == 0)
 		szSettings = szSettings.substr(0, szSettings.length() - 1); // drop \n
-	else {
+	else
+	{
 		// Remove brackets
 		if(szModName.at(0) == '[' && szModName.at(szModName.length() - 1) == ']')
 			szModName = szModName.substr(1, szModName.length() - 2);
@@ -704,7 +714,8 @@ const char* CvReplayInfo::getModName() const
 bool CvReplayInfo::read(FDataStreamBase& stream)
 {
 	bool bSuccess = true;
-	try {
+	try
+	{
 		int iType;
 		int iNumTypes;
 		int iVersion;
@@ -713,7 +724,8 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		int iAdvCivID = GC.getDefineINT("SAVE_VERSION");
 		int iModID = -1;
 		m->bDisplayOtherMods = (GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0);
-		if(iVersion >= 100 * iAdvCivID) {
+		if(iVersion >= 100 * iAdvCivID)
+		{
 			iModID = iVersion / 100;
 			iVersion = iVersion % 100;
 			/*  This would have to be an AdvCiv modmod with a different id, or
@@ -842,15 +854,19 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		stream.Read(&m_bMultiplayer);
 		if (iVersion > 2)
 		{	// <advc.106i>
-			try { /* I've had some issues with m_szModName sometimes remaining
-					 uninitialized, so I've added a separate try block. */
+			try /*  I've had some issues with m_szModName sometimes remaining
+					uninitialized, so I've added a separate try block. */
+			{
 				stream.ReadString(m_szModName);
 				m_szModName.GetLength(); // To check if bad ptr
-			} catch(...) {
+			}
+			catch(...)
+			{
 				FAssertMsg(false, "Failed to read replay file");
 				return false;
 			}
-			if(m_szModName.empty()) {
+			if(m_szModName.empty())
+			{
 				if(iModID < 0 && GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") <= 0)
 					return false;
 			}
@@ -862,7 +878,9 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		if(iVersion == 5)
 			stream.Read(&m->iFinalScore);
 		// </advc.707>
-	} catch(...) {
+	}
+	catch(...)
+	{
 		FAssertMsg(false, "Failed to read replay file");
 		return false;
 	} // <advc.707>
@@ -941,8 +959,8 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 }
 
 // <advc.106i>
-bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const {
-
+bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
+{
 	/*  If CvReplayInfo::read encounters a replay from another mod, it won't be able
 		to tell until it reaches the mod name at the end of the stream. I'm not aware
 		of any mods that change the replay format, but, if they do, the read function
@@ -953,7 +971,8 @@ bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const {
 		folder, it's not such an exceptional thing to encounter a strange replay. */
 	if(m->bDisplayOtherMods) // Still want sanity checks then, but be more generous.
 		iUpper *= 2;
-	if(iValue < iLower || iValue > iUpper) {
+	if(iValue < iLower || iValue > iUpper)
+	{
 		/*  The assertion is only there to warn me when an AdvCiv replay gets
 			rejected. If another mod has changed the replay format, then probably
 			just once, from version 4 to 5, but not to REPLAY_VERSION. */

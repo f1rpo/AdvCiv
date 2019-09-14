@@ -216,7 +216,6 @@ public:
 	void contact(PlayerTypes ePlayer);																															// Exposed to Python
 	DllExport void handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2);
 	bool canTradeWith(PlayerTypes eWhoTo) const;																													// Exposed to Python
-	bool canTradeWith_bulk(PlayerTypes eWhoTo) const; // advc.122
 	bool canReceiveTradeCity() const;
 	DllExport bool canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial = false) const;			// Exposed to Python
 	bool canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const; // advc.opt

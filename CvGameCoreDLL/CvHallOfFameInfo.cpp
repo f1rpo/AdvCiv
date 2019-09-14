@@ -13,8 +13,8 @@ CvHallOfFameInfo::~CvHallOfFameInfo()
 	uninit();
 }
 
-void CvHallOfFameInfo::uninit() {
-
+void CvHallOfFameInfo::uninit()
+{
 	GC.getGame().setHallOfFame(NULL);
 	CvGlobals::getInstance().setHoFScreenUp(false);
 	for(size_t i = 0; i < m_aReplays.size(); i++)

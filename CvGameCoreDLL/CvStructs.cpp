@@ -570,24 +570,28 @@ PBGameSetupData::PBGameSetupData()
 
 // <advc.071>
 FirstContactData::FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2,
-		CvUnit const* pUnit1, CvUnit const* pUnit2) {
-
+	CvUnit const* pUnit1, CvUnit const* pUnit2)
+{
 	/*  Don't need to worry here about which unit is where and who sees whom - can
 		figure that out when we know which teams are meeting. */
 
-	if(pAt1 != NULL) {
+	if(pAt1 != NULL)
+	{
 		x1 = pAt1->getX();
 		y1 = pAt1->getY();
 	}
-	if(pAt2 != NULL) {
+	if(pAt2 != NULL)
+	{
 		x2 = pAt2->getX();
 		y2 = pAt2->getY();
 	}
-	if(pUnit1 != NULL) {
+	if(pUnit1 != NULL)
+	{
 		u1.eOwner = pUnit1->getOwner();
 		u1.iID = pUnit1->getID();
 	}
-	if(pUnit2 != NULL) {
+	if(pUnit2 != NULL)
+	{
 		u2.eOwner = pUnit2->getOwner();
 		u2.iID = pUnit2->getID();
 	}

@@ -480,7 +480,8 @@ CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
 	FAssert(e > -1);
 	/*  <advc.106i> So that AdvCiv is able to show replays from mods with
 		extra colors. And anyway, a bad color value shouldn't lead to a crash. */
-	if(e >= getNumColorInfos()) {
+	if(e >= getNumColorInfos())
+	{
 		FAssert(m_bHoFScreenUp || e < getNumColorInfos());
 		// +7: Skip colors from COLOR_CLEAR to COLOR_LIGHT_GREY
 		e = (ColorTypes)((e + 7) % getNumColorInfos());
@@ -828,18 +829,18 @@ void CvGlobals::cacheGlobals()
 }
 
 // <advc.opt>
-void CvGlobals::setRUINS_IMPROVEMENT(int iValue) {
-
+void CvGlobals::setRUINS_IMPROVEMENT(int iValue)
+{
 	m_iRUINS_IMPROVEMENT = iValue;
 }
 
-void CvGlobals::setWATER_TERRAIN(bool bShallow, int iValue) {
-
+void CvGlobals::setWATER_TERRAIN(bool bShallow, int iValue)
+{
 	m_aiWATER_TERRAIN[bShallow] = iValue;
 } 
 
-void CvGlobals::setDEFAULT_SPECIALIST(int iValue) {
-
+void CvGlobals::setDEFAULT_SPECIALIST(int iValue)
+{
 	m_iDEFAULT_SPECIALIST = iValue;
 } // </advc.opt>
 
@@ -876,8 +877,7 @@ const char * CvGlobals::getDefineSTRING(const char * szName) const
 	return szReturn;
 }
 
-void CvGlobals::setDefineINT(const char * szName, int iValue,
-		bool bUpdateCache) // advc.003t
+void CvGlobals::setDefineINT(const char * szName, int iValue, /* advc.003t: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, iValue);
 	// <advc.003t>
@@ -885,8 +885,7 @@ void CvGlobals::setDefineINT(const char * szName, int iValue,
 		cacheGlobalInts(szName, iValue); // Pinpoint update </advc.003t>
 }
 
-void CvGlobals::setDefineFLOAT(const char * szName, float fValue,
-		bool bUpdateCache) // advc.003t
+void CvGlobals::setDefineFLOAT(const char * szName, float fValue, /* advc.003t: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, fValue);
 	// <advc.003t>
@@ -894,8 +893,7 @@ void CvGlobals::setDefineFLOAT(const char * szName, float fValue,
 		cacheGlobalFloats(); // </advc.003t>
 }
 
-void CvGlobals::setDefineSTRING(const char * szName, const char * szValue,
-		bool bUpdateCache) // advc.opt
+void CvGlobals::setDefineSTRING(const char * szName, const char * szValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, szValue);
 	//cacheGlobals();
@@ -1335,14 +1333,14 @@ void CvGlobals::deleteInfoArrays()
 }
 
 // <advc.003c>
-bool CvGlobals::isCachingDone() const {
-
+bool CvGlobals::isCachingDone() const
+{
 	return m_aiGlobalDefinesCache != NULL;
 } // </advc.003c>
 
 // <advc.106i>
-void CvGlobals::setHoFScreenUp(bool b) {
-
+void CvGlobals::setHoFScreenUp(bool b)
+{
 	m_bHoFScreenUp = b;
 } // </advc.106i>
 
@@ -1426,8 +1424,8 @@ int CvGlobals::getMaxCivPlayers() const
 bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
 
 // advc: onGraphicsInitialized call added
-void CvGlobals::SetGraphicsInitialized(bool bVal) {
-
+void CvGlobals::SetGraphicsInitialized(bool bVal)
+{
 	if(bVal == m_bGraphicsInitialized)
 		return;
 	m_bGraphicsInitialized = bVal;

@@ -46,20 +46,16 @@ CvDLLButtonPopup& CvDLLButtonPopup::getInstance()
 	return *m_pInst;
 }
 
+
 void CvDLLButtonPopup::freeInstance()
 {
 	delete m_pInst;
 	m_pInst = NULL;
 }
 
-CvDLLButtonPopup::CvDLLButtonPopup()
-{
-}
 
+CvDLLButtonPopup::~CvDLLButtonPopup() {}
 
-CvDLLButtonPopup::~CvDLLButtonPopup()
-{
-}
 
 void CvDLLButtonPopup::OnAltExecute(CvPopup& popup, const PopupReturn& popupReturn, CvPopupInfo &info)
 {
@@ -201,7 +197,8 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 					GET_TEAM((TeamTypes)info.getData1()).getMasterTeam() &&
 					!GET_TEAM(GET_TEAM(pAt->getSecondOwner()).getMasterTeam()).
 					isDefensivePact(GET_TEAM((TeamTypes)info.getData1()).
-					getMasterTeam())))) { // </advc.035>
+					getMasterTeam())))) // </advc.035>
+			{
 				//g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());
 				g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags() | MOVE_DECLARE_WAR, false, info.getOption1()); // K-Mod
 				// (See comments in CvGame::selectionListGameNetMessage for an explanation for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.)
@@ -246,7 +243,8 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
-	case BUTTONPOPUP_LEADUNIT: {
+	case BUTTONPOPUP_LEADUNIT:
+	{
 		if (pPopupReturn->getButtonClicked() == 0)
 			break; // advc
 
@@ -835,7 +833,8 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
 	// <advc.706>
 	CvGame& g = GC.getGame();
-	if(g.isOption(GAMEOPTION_RISE_FALL)) {
+	if(g.isOption(GAMEOPTION_RISE_FALL))
+	{
 		ButtonPopupTypes bpt = info.getButtonPopupType();
 		if(bpt == BUTTONPOPUP_RF_CHOOSECIV)
 			return g.getRiseFall().launchCivSelectionPopup(pPopup, info);
@@ -1049,6 +1048,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 			if(GC.getProjectInfo(eCreateProject).isSpaceship())
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_SPACESHIP", GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 			else
+			{
 				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ?
 						// <advc.108e>
 						(::needsArticle(eCreateProject) ?
@@ -1056,6 +1056,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED")
 						// </advc.108e>
 						: "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+			}
 		}
 		else
 		{
@@ -1525,13 +1526,15 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 			CvWString szBuffer;
 			// <advc.004x>
 			int iTurnsLeft = kActivePlayer.getResearchTurnsLeft(eTech, true);
-			if(iDiscover > 0 || iTurnsLeft >= 0) { // </advc.004x>
+			if(iDiscover > 0 || iTurnsLeft >= 0) // </advc.004x>
+			{
 				szBuffer.Format(L"%s (%d)", GC.getTechInfo(eTech).getDescription(),
 						(iDiscover > 0 ? 0 : iTurnsLeft));
 			} // advc.004x:
 			else szBuffer.Format(L"%s", GC.getTechInfo(eTech).getDescription());
 
-			if(iI == eBestTech || iI == eNextBestTech) {
+			if(iI == eBestTech || iI == eNextBestTech)
+			{
 				szBuffer += gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_ONLY_ADV",
 						GC.getAdvisorInfo((AdvisorTypes)(GC.getTechInfo(eTech).
 						getAdvisorType())).getTextKeyWide());
@@ -1637,7 +1640,8 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 						Marathon. That's what I meant to do initially, but now
 						I think the button shouldn't be there in any case, so,
 						1000 is just an arbitrary high number. */
-					getAnarchyPercent() > 1000) { // </advc.004o>
+					getAnarchyPercent() > 1000) // </advc.004o>
+			{
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_YES_START_REVOLUTION");
 				int iAnarchyLength = GET_PLAYER(GC.getGame().getActivePlayer()).getCivicAnarchyLength(paeNewCivics);
 				if (iAnarchyLength > 0)
@@ -1652,7 +1656,8 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			/*  <advc.001> The EXE tries to show the first-revolution pop-up twice
 				when playing Advanced Start in a later era; perhaps also with
 				other settings. */
-			if(GC.getGame().getGameTurn() != GC.getGame().getStartTurn()) {
+			if(GC.getGame().getGameTurn() != GC.getGame().getStartTurn())
+			{
 				SAFE_DELETE_ARRAY(paeNewCivics)
 				return false;
 			} // </advc.001>
@@ -1715,7 +1720,8 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 		Tbd.: Put (efficient) code for anticipating the effects of a DoW in a single place. */
 	std::vector<PlayerTypes> aeTargets;
 	//std::vector<PlayerTypes> aeAllies;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isAlive())
 			continue;
@@ -1730,8 +1736,10 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	std::vector<PlayerTypes> aeDP;
 	std::vector<PlayerTypes> aeDisapproving;
 	bool bReceivedTribute = false; // advc.130o
-	for(size_t i = 0; i < aeTargets.size(); i++) {
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+	for(size_t i = 0; i < aeTargets.size(); i++)
+	{
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++)
+		{
 			CvPlayerAI const& kPlayer = GET_PLAYER((PlayerTypes)j);
 			if(!kPlayer.isAlive())
 				continue;
@@ -1758,12 +1766,14 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	/*  If eRivalPlayer is set, it means that the DoW popup has only mentioned one
 		team member; then the others need to be listed here. */
 	uint uiMentioned = (eRivalPlayer != NO_PLAYER ? 1 : GET_TEAM(eRivalTeam).getNumMembers());
-	if(aeTargets.size() > uiMentioned) {
+	if(aeTargets.size() > uiMentioned)
+	{
 		szBuffer += NEWLINE;
 		bFirst = false;
 		szBuffer += NEWLINE + gDLL->getText("TXT_KEY_POPUP_DOW_EXTRA_TARGETS") + NEWLINE;
 		bool bFirstInner = true;
-		for(size_t i = 0; i < aeTargets.size(); i++) {
+		for(size_t i = 0; i < aeTargets.size(); i++)
+		{
 			if((eRivalPlayer != NO_PLAYER && aeTargets[i] == eRivalPlayer) ||
 					(eRivalPlayer == NO_PLAYER && TEAMID(aeTargets[i]) == eRivalTeam))
 				continue;
@@ -1774,30 +1784,37 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 		}
 	}
 	// <advc.130o>
-	if(bReceivedTribute) {
+	if(bReceivedTribute)
+	{
 		szBuffer += NEWLINE;
 		bFirst = false;
 		szBuffer += NEWLINE + gDLL->getText("TXT_KEY_POPUP_DOW_TRIBUTE") + NEWLINE;
 	} // </advc.130o>
-	if(!aeDP.empty()) {
-		if(bFirst) {
+	if(!aeDP.empty())
+	{
+		if(bFirst)
+		{
 			szBuffer += NEWLINE;
 			bFirst = false;
 		}
 		szBuffer += NEWLINE + gDLL->getText("TXT_KEY_POPUP_DOW_DP") + NEWLINE;
-		for(size_t i = 0; i < aeDP.size(); i++) {
+		for(size_t i = 0; i < aeDP.size(); i++)
+		{
 			szBuffer += GET_PLAYER(aeDP[i]).getName();
 			if(i < aeDP.size() - 1)
 				szBuffer += L", ";
 		}
 	}
-	if(!aeDisapproving.empty()) {
-		if(bFirst) {
+	if(!aeDisapproving.empty())
+	{
+		if(bFirst)
+		{
 			szBuffer += NEWLINE;
 			bFirst = false;
 		}
 		szBuffer += NEWLINE + gDLL->getText("TXT_KEY_POPUP_DOW_PENALTIES") + NEWLINE;
-		for(size_t i = 0; i < aeDisapproving.size(); i++) {
+		for(size_t i = 0; i < aeDisapproving.size(); i++)
+		{
 			szBuffer += GET_PLAYER(aeDisapproving[i]).getName();
 			if(i < aeDisapproving.size() - 1)
 				szBuffer += L", ";

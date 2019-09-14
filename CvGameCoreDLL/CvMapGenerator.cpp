@@ -19,12 +19,6 @@ CvMapGenerator& CvMapGenerator::GetInstance() // singleton accessor
 }
 
 
-CvMapGenerator::CvMapGenerator() {}
-
-
-CvMapGenerator::~CvMapGenerator() {}
-
-
 bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)  // advc: style changes
 {
 	PROFILE_FUNC();
@@ -83,12 +77,14 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 	}
 	// <advc.129> Prevent more than one adjacent copy regardless of range.
 	int iFound = 0;
-	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+	for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+	{
 		CvPlot* pp = plotDirection(iX, iY, (DirectionTypes)i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
 		if(p.area() != pArea)
 			continue;
-		if(p.getBonusType() == eBonus) {
+		if(p.getBonusType() == eBonus)
+		{
 			iFound++;
 			if(iFound >= 2)
 				return false;
@@ -678,15 +674,17 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					all the clustered resources except for Gold, Silver, Gems which I've
 					moved to a separate class "precious". I.e. currently only double clusters
 					of precious bonuses are avoided. Eliminating all double clusters might
-					get in the way of (early) resource trades too much, and make the map
+					get in the way of (early) resource trades too much and make the map
 					less exciting than it could be. */
-				if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0) {
+				if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0)
+				{
 					bool bSkip = false;
 					/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
 						0 for bonuses that appear in clusters. 5 hardcoded. */
 					int const iDist = 5;
 					for(int dx = -iDist; dx <= iDist; dx++)
-					for(int dy = -iDist; dy <= iDist; dy++) {
+					for(int dy = -iDist; dy <= iDist; dy++)
+					{
 						CvPlot* pLoopPlot = plotXY(x, y, dx, dy);
 						if(pLoopPlot == NULL) continue; CvPlot& p = *pLoopPlot;
 						if(p.getArea() != kRandPlot.getArea() ||
@@ -694,8 +692,9 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 							continue;
 						BonusTypes eOtherBonus = p.getBonusType();
 						if(eOtherBonus != NO_BONUS && GC.getBonusInfo(eOtherBonus).
-								getBonusClassType() == iClassToAvoid &&
-								GC.getBonusInfo(eOtherBonus).getGroupRand() > 0) {
+							getBonusClassType() == iClassToAvoid &&
+							GC.getBonusInfo(eOtherBonus).getGroupRand() > 0)
+						{
 							bSkip = true;
 							break;
 						}
@@ -763,14 +762,16 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 
 // <advc.129>
 int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
-		bool bIgnoreLatitude, int iLimit) {
-
+		bool bIgnoreLatitude, int iLimit)
+{
 	CvBonusInfo const& kBonus = GC.getBonusInfo(eBonusType);
 	// The one in the center is already placed, but that doesn't count here.
 	int iPlaced = 0;
 	std::vector<CvPlot*> apGroupRange;
-	for(int iDX = -kBonus.getGroupRange(); iDX <= kBonus.getGroupRange(); iDX++) {
-		for(int iDY = -kBonus.getGroupRange(); iDY <= kBonus.getGroupRange(); iDY++) {
+	for(int iDX = -kBonus.getGroupRange(); iDX <= kBonus.getGroupRange(); iDX++)
+	{
+		for(int iDY = -kBonus.getGroupRange(); iDY <= kBonus.getGroupRange(); iDY++)
+		{
 			CvPlot* p = plotXY(kCenter.getX(), kCenter.getY(), iDX, iDY);
 			if(p != NULL && canPlaceBonusAt(eBonusType, p->getX(), p->getY(), bIgnoreLatitude))
 				apGroupRange.push_back(p);
@@ -785,10 +786,12 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 	for(int i = 0; i < sz; i++)
 		aiShuffledIndices[i] = i;
 	::shuffleArray(aiShuffledIndices, sz, GC.getGame().getMapRand());
-	for(int j = 0; j < sz && iLimit > 0; j++) {
+	for(int j = 0; j < sz && iLimit > 0; j++)
+	{
 		int iProb = kBonus.getGroupRand();
 		iProb = ::round(iProb * std::pow(2/3.0, iPlaced));
-		if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < iProb) {
+		if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < iProb)
+		{
 			apGroupRange[aiShuffledIndices[j]]->setBonusType(eBonusType);
 			iLimit--;
 			iPlaced++;
@@ -848,13 +851,9 @@ void CvMapGenerator::eraseRivers()
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		if (pPlot->isNOfRiver())
-		{
 			pPlot->setNOfRiver(false, NO_CARDINALDIRECTION);
-		}
 		if (pPlot->isWOfRiver())
-		{
 			pPlot->setWOfRiver(false, NO_CARDINALDIRECTION);
-		}
 	}
 }
 
@@ -882,24 +881,17 @@ void CvMapGenerator::eraseGoodies()
 	{
 		CvPlot* pPlot = GC.getMap().plotByIndex(i);
 		if (pPlot->isGoody())
-		{
 			pPlot->removeGoody();
-		}
 	}
 }
 
-//------------------------------------------------------------------------------------------------
-//
-// Call python function to generate random map
-// It will call applyMapData when it's done
-//
 
 void CvMapGenerator::generateRandomMap()
 {
 	PROFILE("generateRandomMap()");
 
 	GC.getPythonCaller()->callMapFunction("beforeGeneration");
-	if (GC.getPythonCaller()->generateRandomMap())
+	if (GC.getPythonCaller()->generateRandomMap()) // will call applyMapData when done
 		return;
 
 	char buf[256];
@@ -1027,14 +1019,16 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 			}
 		}
 		// <advc.129>
-		if(GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES")) {
+		if(GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES"))
+		{
 			int iSubtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
 			int iRemainder = iNumPossible;
 			int iResult = 0;
 			/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
 			   i.e. number of resources placed grows sublinearly with the number of
 			   eligible plots. */
-			while(true) {
+			while(true)
+			{
 				iRemainder -= iSubtrahend;
 				if(iRemainder < 0)
 					break;

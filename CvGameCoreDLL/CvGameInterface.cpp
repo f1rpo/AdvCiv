@@ -603,9 +603,7 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 {
 	CvSelectionGroup* pNextSelectionGroup;
-
 	CvUnit* pCycleUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
 	if (pCycleUnit != NULL)
 	{
 		if (pCycleUnit->getOwner() != getActivePlayer())
@@ -648,7 +646,8 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		gDLL->getInterfaceIFace()->clearSelectionList();
 		updateTestEndTurn();
 		// <advc.002e> Hide glow when all units moved
-		if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
+		if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false))
+		{
 			CvPlayer const& kOwner = GET_PLAYER(pCycleUnit->getOwner());
 			FOR_EACH_UNIT_VAR(u, kOwner)
 				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
@@ -968,9 +967,9 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 						the player doesn't have OB or a vassal treaty with, then
 						only a DoW on the third party makes sense. */
 						if((pPlot->getTeam() != NO_TEAM &&
-								!GET_TEAM(pSelectedUnit->getTeam()).
-								isFriendlyTerritory(pPlot->getTeam())) ||
-								!pPlot->isVisibleEnemyUnit(pSelectedUnit))
+							!GET_TEAM(pSelectedUnit->getTeam()).
+							isFriendlyTerritory(pPlot->getTeam())) ||
+							!pPlot->isVisibleEnemyUnit(pSelectedUnit))
 						{ // </advc.001>
 							CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
 							if (NULL != pInfo)
@@ -1586,7 +1585,8 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_RETIRE: // <advc.706> Need three buttons, so no BUTTONPOPUP_CONFIRM_MENU.
-		if(isOption(GAMEOPTION_RISE_FALL)) {
+		if(isOption(GAMEOPTION_RISE_FALL))
+		{
 			pInfo = new CvPopupInfo(BUTTONPOPUP_RF_RETIRE);
 			if(pInfo != NULL)
 				pInterface->addPopup(pInfo, getActivePlayer(), true);
@@ -1626,15 +1626,18 @@ void CvGame::doControl(ControlTypes eControl)
 			/*  Loading works fine in windowed mode, and when a debugger is
 				attached, exitingToMainMenu can actually be quite slow.
 				(Fullscreen pretty much rules out that a debugger is attached.) */
-			if(gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN)) {
+			if(gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN))
+			{
 				/*  On my system, it's "C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
 					the user directory can vary. */
 				CvString szQuickSavePath(::getUserDirPath());
-				if(!szQuickSavePath.empty()) {
+				if(!szQuickSavePath.empty())
+				{
 					szQuickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
 					// CTD if loading fails, so let's make sure that the file is good.
 					std::ifstream quickSaveFile(szQuickSavePath);
-					if(quickSaveFile.good()) {
+					if(quickSaveFile.good())
+					{
 						pInterface->exitingToMainMenu(szQuickSavePath.c_str());
 						break;
 					}
@@ -1764,7 +1767,8 @@ void CvGame::doControl(ControlTypes eControl)
 		// <advc.007>
 		if(isDebugMode())
 			enterWorldBuilder();
-		else { // </advc.007>
+		else // </advc.007>
+		{
 			pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
 			if (pInfo != NULL)
 			{
@@ -2674,7 +2678,8 @@ bool CvGame::shouldShowResearchButtons() const
 	if (!gDLL->GetWorldBuilderMode())
 	{
 		CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer()); // advc
-		if(kActivePlayer.isAlive() && !gDLL->getInterfaceIFace()->isCityScreenUp()) {
+		if(kActivePlayer.isAlive() && !gDLL->getInterfaceIFace()->isCityScreenUp())
+		{
 			if(kActivePlayer.isResearch() && // advc.004x
 					kActivePlayer.getCurrentResearch() == NO_TECH)
 				return true;
@@ -2746,7 +2751,8 @@ void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool 
 	if (pCity != NULL && pPlot != NULL)
 	{	/*  <advc.004t> Can't assign a working city to the city plot, so use this
 			for exiting the screen. */
-		if(pCity->plot() == pPlot) {
+		if(pCity->plot() == pPlot)
+		{
 			CvPlot const* pCityPlot = (gDLL->getInterfaceIFace()->isCityScreenUp() ?
 					gDLL->getInterfaceIFace()->getHeadSelectedCity()->plot() : NULL);
 			gDLL->getInterfaceIFace()->clearSelectedCities();
@@ -2770,19 +2776,12 @@ void CvGame::handleCityPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, 
 	if (pPlot != NULL)
 	{
 		if (pCity != NULL && gDLL->getInterfaceIFace()->isCitySelected(pCity))
-		{
 			selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_CLEAR_RALLY_PLOT);
-		}
 		else
 		{
 			if (bShift)
-			{
 				selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_RALLY_PLOT, pPlot->getX(), pPlot->getY());
-			}
-			else
-			{
-				gDLL->getInterfaceIFace()->clearSelectedCities();
-			}
+			else gDLL->getInterfaceIFace()->clearSelectedCities();
 		}
 	}
 }
@@ -2790,23 +2789,14 @@ void CvGame::handleCityPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, 
 void CvGame::handleMiddleMouse(bool bCtrl, bool bAlt, bool bShift)
 {
 	if (gDLL->getInterfaceIFace()->isCitySelection())
-	{
 		gDLL->getInterfaceIFace()->clearSelectedCities();
-	}
 	else
 	{
 		if (bAlt)
-		{
 			doControl(CONTROL_SELECTYUNITALL);
-		}
 		else if (bCtrl)
-		{
 			doControl(CONTROL_SELECTYUNITTYPE);
-		}
-		else
-		{
-			doControl(CONTROL_CENTERONSELECTION);
-		}
+		else doControl(CONTROL_CENTERONSELECTION);
 	}
 }
 

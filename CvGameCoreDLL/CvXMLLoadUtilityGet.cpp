@@ -1147,7 +1147,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* pfVal, const TCHAR* szName, f
 //
 //------------------------------------------------------------------------------------------------------
 bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
-		/* <advc.006b> */ bool bMandatory /* </advc.006b> */, bool bDefault)
+	/* <advc.006b> */ bool bMandatory /* </advc.006b> */, bool bDefault)
 {
 	*pbVal = bDefault; // set the boolean value to it's default value
 	// advc.006b: See GetChildXmlValByName(wchar*...)
@@ -1190,8 +1190,8 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
 }
 
 // <advc.006b>
-void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b) {
-
+void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b)
+{
 	m_bAssertMandatory = b;
 } // </advc.006b>
 

@@ -272,6 +272,7 @@ public:
 	bool isPermanentWarPeace(TeamTypes eIndex) const;																		// Exposed to Python
 	void setPermanentWarPeace(TeamTypes eIndex, bool bNewValue);									// Exposed to Python
 
+	bool canTradeWith(TeamTypes eWhoTo) const; // advc
 	bool isFreeTrade(TeamTypes eIndex) const;																	// Exposed to Python
 	bool isOpenBorders(TeamTypes eIndex) const;																// Exposed to Python
 	void setOpenBorders(TeamTypes eIndex, bool bNewValue);

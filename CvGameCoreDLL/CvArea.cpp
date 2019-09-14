@@ -399,13 +399,13 @@ void CvArea::changeNumOwnedTiles(int iChange)
 	FAssert(getNumUnownedTiles() >= 0);
 }
 
-
 // <advc.300>
-std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const {
-
+std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const
+{
 	std::pair<int,int> r(0, 0);
 	CvMap const& kMap = GC.getMap();
-	for(int i = 0; i < kMap.numPlots(); i++) {
+	for(int i = 0; i < kMap.numPlots(); i++)
+	{
 		CvPlot* pPlot = kMap.plotByIndex(i);
 		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
 				|| !pPlot->isHabitable())
@@ -418,20 +418,21 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 	return r;
 }
 
-int CvArea::countCivCities() const {
-
+int CvArea::countCivCities() const
+{
 	int r = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		r += getCitiesPerPlayer((PlayerTypes)i);
 	return r;
 }
 
-int CvArea::countCivs(bool bSubtractOCC) const {
-
+int CvArea::countCivs(bool bSubtractOCC) const
+{
 	/* Perhaps an owned tile (across the sea) should suffice, but tiles-per-civ
 	   aren't cached/ serialized (yet). */
 	int r = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
 		PlayerTypes ePlayer = (PlayerTypes)i;
 		if(getCitiesPerPlayer(ePlayer) > 0 &&
 				(!bSubtractOCC || !GET_PLAYER(ePlayer).isHuman() ||
@@ -442,9 +443,10 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 }
 
 
-bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const {
-
-	for(int i = 0; i < MAX_PLAYERS; i++) {
+bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const
+{
+	for(int i = 0; i < MAX_PLAYERS; i++)
+	{
 		PlayerTypes ePlayer = (PlayerTypes)i;
 		// Barbarian, minor civ, anything goes so long as there's a city.
 		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(eBonus))
@@ -453,13 +455,13 @@ bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const {
 	return false;
 }
 
-int CvArea::getBarbarianCitiesEverCreated() const {
-
+int CvArea::getBarbarianCitiesEverCreated() const
+{
 	return m_iBarbarianCitiesEver;
 }
 
-void CvArea::reportBarbarianCityCreated() {
-
+void CvArea::reportBarbarianCityCreated()
+{
 	m_iBarbarianCitiesEver++;
 } // </advc.300>
 
@@ -520,9 +522,8 @@ void CvArea::changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getCitiesPerPlayer(PlayerTypes eIndex,
-		// <advc.030b>
-		bool bCheckAdjacentCoast) const {
+int CvArea::getCitiesPerPlayer(PlayerTypes eIndex, /* <advc.030b> */ bool bCheckAdjacentCoast) const
+{
 	/*  Perhaps this parameter isn't really needed, but this function gets called
 		from so many places that I can't check if one of them might have a problem
 		with water areas having a positive city count. */
@@ -633,14 +634,14 @@ void CvArea::changeBuildingHappiness(PlayerTypes eIndex, int iChange)
 }
 
 // <advc.310>
-int CvArea::getTradeRoutes(PlayerTypes eIndex) const {
-
+int CvArea::getTradeRoutes(PlayerTypes eIndex) const
+{
 	FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
 	return m_aiTradeRoutes[eIndex];
 }
 
-void CvArea::changeTradeRoutes(PlayerTypes eIndex, int iChange) {
-
+void CvArea::changeTradeRoutes(PlayerTypes eIndex, int iChange)
+{
 	FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
 	if(iChange == 0)
 		return;
@@ -687,7 +688,8 @@ void CvArea::changePower(PlayerTypes eIndex, int iChange)
 	m_aiPower[eIndex] = (m_aiPower[eIndex] + iChange);
 	/*  <advc.006> Can happen when continuing a game after changing a
 		unit power value in XML */
-	if(m_aiPower[eIndex] < 0) {
+	if(m_aiPower[eIndex] < 0)
+	{
 		m_aiPower[eIndex] = 0; // </advc.006>
 		FAssertMsg(getPower(eIndex) >= 0, "OK when playing from an old savegame "
 				"with an updated version of the mod");
@@ -894,7 +896,8 @@ int CvArea::getNumAIUnits(PlayerTypes eIndex1, UnitAITypes eIndex2) const
 	FAssertMsg(eIndex2 < NUM_UNITAI_TYPES, "eIndex2 is expected to be < NUM_UNITAI_TYPES");
 	// <advc.124> NO_UNITAI counts all units of eIndex1
 	//FAssertMsg(eIndex2 >= 0, "eIndex2 is expected to be >= 0");
-	if(eIndex2 < 0) {
+	if(eIndex2 < 0)
+	{
 		int r = 0;
 		for(int i = 0; i < NUM_UNITAI_TYPES; i++)
 			r += m_aaiNumAIUnits[eIndex1][i];
@@ -984,11 +987,13 @@ void CvArea::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_bWater);
 	// <advc.030>
-	if(uiFlag >= 1) {
+	if(uiFlag >= 1)
+	{
 		pStream->Read(&m_bLake);
 		pStream->Read(&m_iRepresentativeAreaId);
 	}
-	else {
+	else
+	{
 		updateLake(false);
 		m_iRepresentativeAreaId = m_iID;
 	} // </advc.030>

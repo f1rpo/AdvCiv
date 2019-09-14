@@ -230,14 +230,15 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 }
 
 // <advc.064d>
-void CvPlotGroup::verifyCityProduction() {
-
+void CvPlotGroup::verifyCityProduction()
+{
 	PROFILE_FUNC(); // About 1 permille of the runtime (July 2019)
 	if (m_iRecalculating > 0)
 		return;
 	CvMap const& m = GC.getMap();
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-	while (pPlotNode != NULL) {
+	while (pPlotNode != NULL)
+	{
 		CvCity* pCity = m.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
@@ -255,15 +256,10 @@ void CvPlotGroup::insertAtEndPlots(XYCoords xy)
 CLLNode<XYCoords>* CvPlotGroup::deletePlotsNode(CLLNode<XYCoords>* pNode)
 {
 	CLLNode<XYCoords>* pPlotNode;
-
 	pPlotNode = m_plots.deleteNode(pNode);
-
 	if (getLengthPlots() == 0)
-	{
 		GET_PLAYER(getOwner()).deletePlotGroup(getID());
-	}
-
-  return pPlotNode;
+	return pPlotNode;
 }
 
 
@@ -287,11 +283,10 @@ CLLNode<XYCoords>* CvPlotGroup::headPlotsNode()
 
 void CvPlotGroup::read(FDataStreamBase* pStream)
 {
-	// Init saved data
 	reset();
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iID);
 
@@ -307,7 +302,7 @@ void CvPlotGroup::read(FDataStreamBase* pStream)
 void CvPlotGroup::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
-	pStream->Write(uiFlag);		// flag for expansion
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
 

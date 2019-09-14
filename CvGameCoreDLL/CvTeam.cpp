@@ -3878,18 +3878,28 @@ void CvTeam::setPermanentWarPeace(TeamTypes eIndex, bool bNewValue)
 	m_abPermanentWarPeace[eIndex] = bNewValue;
 }
 
+// advc: Body cut from CvPlayer::canTradeWith
+bool CvTeam::canTradeWith(TeamTypes eWhoTo) const
+{
+	CvTeam const& kToTeam = GET_TEAM(eWhoTo);
+	return (isAtWar(eWhoTo) ||
+			isTechTrading() || kToTeam.isTechTrading() ||
+			isGoldTrading() || kToTeam.isGoldTrading() ||
+			isMapTrading() || kToTeam.isMapTrading() ||
+			isOpenBordersTrading() || kToTeam.isOpenBordersTrading() ||
+			isDefensivePactTrading() || kToTeam.isDefensivePactTrading() ||
+			isPermanentAllianceTrading() || kToTeam.isPermanentAllianceTrading() ||
+			isVassalStateTrading() || kToTeam.isVassalStateTrading());
+}
+
 
 bool CvTeam::isFreeTrade(TeamTypes eIndex) const
 {
 	if (isAtWar(eIndex))
-	{
 		return false;
-	}
 
 	if (!isHasMet(eIndex))
-	{
 		return false;
-	}
 
 	return (isOpenBorders(eIndex) || GC.getGame().isFreeTrade());
 }

@@ -520,9 +520,9 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 
 
 CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
-		int iMinCivUnitDistance, // advc.300: Renamed from iMinUnitDistance
-		int iTimeout,
-		int* piValidCount) // advc.304: Number of valid tiles
+	int iMinCivUnitDistance, // advc.300: Renamed from iMinUnitDistance
+	int iTimeout,
+	int* piValidCount) // advc.304: Number of valid tiles
 {
 	/*  <advc.304> Look exhaustively for a valid plot by default. Rationale:
 		The biggest maps have about 10000 plots. If there is only one valid plot,
@@ -534,7 +534,8 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 	if (iTimeout < 0)
 	{
 		std::vector<CvPlot*> apValidPlots;
-		for(int i = 0; i < numPlots(); i++) {
+		for(int i = 0; i < numPlots(); i++)
+		{
 			CvPlot& kPlot = *plotByIndex(i);
 			if (isValidRandPlot(kPlot, iFlags, pArea, iMinCivUnitDistance))
 				apValidPlots.push_back(&kPlot);
@@ -550,7 +551,8 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 	/*  BtS code (refactored): Limited number of trials
 		(can be faster or slower than the above; that's not really the point) */
 	// </advc.304>
-	for (int i = 0; i < iTimeout; i++) {
+	for (int i = 0; i < iTimeout; i++)
+	{
 		CvPlot& kTestPlot = *plotSoren(
 				GC.getGame().getSorenRandNum(getGridWidth(), "Rand Plot Width"),
 				GC.getGame().getSorenRandNum(getGridHeight(), "Rand Plot Height"));
@@ -854,8 +856,8 @@ int CvMap::maxStepDistance() const
 }
 
 // <advc.140>
-int CvMap::maxMaintenanceDistance() const {
-
+int CvMap::maxMaintenanceDistance() const
+{
 	return ::round(1 + maxPlotDistance() * (10.0 /
 			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE)));
 } // </advc.140>
@@ -1144,22 +1146,17 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 	{
 		plotByIndex(iI)->setBorderDangerCache(eTeam, false);
 	}
-}
-// BETTER_BTS_AI_MOD: END
+} // BETTER_BTS_AI_MOD: END
 
-//
-// read object from a stream
-// used during load
-//
+// read object from a stream. used during load
 void CvMap::read(FDataStreamBase* pStream)
 {
 	CvMapInitData defaultMapData;
 
-	// Init data before load
 	reset(&defaultMapData);
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iGridWidth);
 	pStream->Read(&m_iGridHeight);
@@ -1179,8 +1176,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	if (numPlots() > 0)
 	{
 		m_pMapPlots = new CvPlot[numPlots()];
-		int iI;
-		for (iI = 0; iI < numPlots(); iI++)
+		for (int iI = 0; iI < numPlots(); iI++)
 		{
 			m_pMapPlots[iI].read(pStream);
 		}
@@ -1198,12 +1194,10 @@ void CvMap::read(FDataStreamBase* pStream)
 }
 
 // save object to a stream
-// used during save
-//
 void CvMap::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
-	pStream->Write(uiFlag);		// flag for expansion
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iGridWidth);
 	pStream->Write(m_iGridHeight);
@@ -1230,10 +1224,7 @@ void CvMap::write(FDataStreamBase* pStream)
 	WriteStreamableFFreeListTrashArray(*m_areas, pStream);
 }
 
-
-//
 // used for loading WB maps
-//
 void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude, bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel, int iNumCustomMapOptions, CustomMapOptionTypes * aeCustomMapOptions)
 {
 	CvMapInitData initData(iGridW, iGridH, iTopLatitude, iBottomLatitude, bWrapX, bWrapY);
@@ -1253,7 +1244,8 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 void CvMap::calculateAreas()
 {
 	PROFILE("CvMap::calculateAreas"); // <advc.030>
-	if(GC.getDefineINT("PASSABLE_AREAS") > 0) {
+	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
+	{
 		/*  Will recalculate from CvGame::setinitialItems once normalization is
 			through. But need preliminary areas because normalization is done
 			based on areas. Also, some scenarios don't call CvGame::
@@ -1283,12 +1275,15 @@ void CvMap::calculateAreas()
 }
 
 // <advc.030>
-void CvMap::calculateAreas_030() {
-
-	for(int pass = 0; pass <= 1; pass++) {
-		for(int i = 0; i < numPlots(); i++) {
+void CvMap::calculateAreas_030()
+{
+	for(int pass = 0; pass <= 1; pass++)
+	{
+		for(int i = 0; i < numPlots(); i++)
+		{
 			CvPlot& p = *plotByIndex(i);
-			if(pass == 0) {
+			if(pass == 0)
+			{
 				/*  Second pass for impassables; can't handle
 					all-peak/ice areas otherwise. */
 				if(p.isImpassable())
@@ -1307,12 +1302,13 @@ void CvMap::calculateAreas_030() {
 	}
 }
 
-void CvMap::updateLakes() {
-
+void CvMap::updateLakes()
+{
 	// CvArea::getNumTiles no longer sufficient for identifying lakes
 	FOR_EACH_AREA_VAR(a)
 		a->updateLake();
-	for(int i = 0; i < numPlots(); i++) {
+	for(int i = 0; i < numPlots(); i++)
+	{
 		CvPlot* pPlot = plotByIndex(i);
 		if(pPlot->isLake())
 			pPlot->updateYield();
@@ -1320,8 +1316,8 @@ void CvMap::updateLakes() {
 	computeShelves(); // advc.300
 }
 
-void CvMap::calculateReprAreas() {
-
+void CvMap::calculateReprAreas()
+{
 	/*  Still need areas as in BtS for submarine movement. Store at each CvArea
 		an area id representing all areas that would be encompassed by the same
 		BtS area. To decide if a submarine move is possible, only need to
@@ -1329,13 +1325,16 @@ void CvMap::calculateReprAreas() {
 		that of its target area. That's done in CvArea::canBeEntered. */
 	int iLoop = 0;
 	int iReprChanged = 0; // For debugging; otherwise a bool would suffice.
-	do {
+	do
+	{
 		iReprChanged = 0;
-		for(int i = 0; i < numPlots(); i++) {
+		for(int i = 0; i < numPlots(); i++)
+		{
 			CvPlot& p = *plotByIndex(i);
 			int const x = p.getX();
 			int const y = p.getY();
-			for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
+			for(int j = 0; j < NUM_DIRECTION_TYPES; j++)
+			{
 				CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)j);
 				if(pAdjacent == NULL)
 					continue;
@@ -1345,7 +1344,8 @@ void CvMap::calculateReprAreas() {
 					continue;
 				int const pReprArea = p.area()->getRepresentativeArea();
 				int const qReprArea = q.area()->getRepresentativeArea();
-				if(pReprArea != qReprArea && p.isWater() == q.isWater()) {
+				if(pReprArea != qReprArea && p.isWater() == q.isWater())
+				{
 					if(qReprArea < pReprArea)
 						p.area()->setRepresentativeArea(qReprArea);
 					else q.area()->setRepresentativeArea(pReprArea);
@@ -1353,7 +1353,8 @@ void CvMap::calculateReprAreas() {
 				}
 			}
 		}
-		if(++iLoop > 10) {
+		if(++iLoop > 10)
+		{
 			FAssert(iLoop <= 10);
 			/*  Will have to write a faster algorithm then, based on the BtS code at
 				the beginning of this function. That would also make it easier to
@@ -1365,8 +1366,8 @@ void CvMap::calculateReprAreas() {
 }
 
 
-void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
-
+void CvMap::calculateAreas_DFS(CvPlot const& kStart)
+{
 	/*  Explicit stack b/c memory can be an issue if a map has dimensions
 		considerably larger than Huge and very large areas.
 		I've run out of memory with a recursive implementation (with an attached
@@ -1375,12 +1376,14 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 		be pretty safe. */
 	std::stack<CvPlot const*> stack;
 	stack.push(&kStart);
-	while(!stack.empty()) {
+	while(!stack.empty())
+	{
 		CvPlot const& p = *stack.top();
 		stack.pop();
 		int const x = p.getX();
 		int const y = p.getY();
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+		for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+		{
 			CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)i);
 			if(pAdjacent == NULL)
 				continue;
@@ -1391,14 +1394,15 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 			CvPlot* t = plot(q.getX(), p.getY());
 			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
-					// For water tiles, orthogonal adjacency is unproblematic.
-					(!p.isWater() || x == q.getX() || y == q.getY() ||
-					// Diagonal adjacency only works if either s or t are water
-					s == NULL || s->isWater() || t == NULL || t->isWater()) &&
-					/*  Depth-first search that doesn't continue at impassables
-						except to other impassables so that mountain ranges and
-						ice packs end up in one CvArea. */
-					(!p.isImpassable() || q.isImpassable())) {
+				// For water tiles, orthogonal adjacency is unproblematic.
+				(!p.isWater() || x == q.getX() || y == q.getY() ||
+				// Diagonal adjacency only works if either s or t are water
+				s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+				/*  Depth-first search that doesn't continue at impassables
+					except to other impassables so that mountain ranges and
+					ice packs end up in one CvArea. */
+				(!p.isImpassable() || q.isImpassable()))
+			{
 				q.setArea(p.getArea());
 				stack.push(&q);
 			}
@@ -1408,24 +1412,24 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 
 // <advc.300>
 // All shelves adjacent to a continent
-void CvMap::getShelves(int iArea, std::vector<Shelf*>& r) const {
-
-	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin();
-			it != shelves.end(); it++) {
+void CvMap::getShelves(int iArea, std::vector<Shelf*>& r) const
+{
+	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin(); it != shelves.end(); it++)
+	{
 		if(it->first.first == iArea)
 			r.push_back(it->second);
 	}
 }
 
 
-void CvMap::computeShelves() {
-
-	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();
-			it != shelves.end(); it++)
+void CvMap::computeShelves()
+{
+	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();it != shelves.end(); it++)
 		SAFE_DELETE(it->second);
 	shelves.clear();
 
-	for(int i = 0; i < numPlots(); i++) {
+	for(int i = 0; i < numPlots(); i++)
+	{
 		CvPlot& p = *plotByIndex(i);
 		// For each passable marine water plot
 		if(!p.isWater() || p.isLake() || p.isImpassable() || !p.isHabitable())
@@ -1433,11 +1437,13 @@ void CvMap::computeShelves() {
 		// Add plot to shelves of all adjacent land areas
 		std::set<int> adjLands;
 		p.getAdjacentLandAreaIds(adjLands);
-		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++) {
+		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++)
+		{
 			Shelf::Id shelfID(*it, p.getArea());
 			std::map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(shelfID);
 			Shelf* pShelf;
-			if(shelfPos == shelves.end()) {
+			if(shelfPos == shelves.end())
+			{
 				pShelf = new Shelf();
 				shelves.insert(std::make_pair(shelfID, pShelf));
 			}

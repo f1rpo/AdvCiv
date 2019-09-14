@@ -31,8 +31,6 @@ public:
 	~CvPlot();
 
 	void init(int iX, int iY);
-	void uninit();
-	void reset(int iX = 0, int iY = 0, bool bConstructorCall=false);
 	void setupGraphical();
 	void updateGraphicEra();
 

@@ -243,7 +243,8 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 	if(bHuman)
 		return iExpireTurn;
 	iExpireTurn = getTurn();
-	switch(m_eMessageType) {
+	switch(m_eMessageType)
+	{
 	case MESSAGE_TYPE_INFO: iExpireTurn += 1; break;
 	case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
 	case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;

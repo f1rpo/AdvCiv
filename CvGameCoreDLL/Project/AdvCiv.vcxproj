@@ -39,12 +39,10 @@
     <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
-    <ClCompile Include="..\CvAreaList.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
     <ClCompile Include="..\CvBugOptions.cpp" />
     <ClCompile Include="..\CvCity.cpp" />
     <ClCompile Include="..\CvCityAI.cpp" />
-    <ClCompile Include="..\CvCityList.cpp" />
     <ClCompile Include="..\CvCivilization.cpp" />
     <ClCompile Include="..\CvDeal.cpp" />
     <ClCompile Include="..\CvDiploParameters.cpp" />
@@ -100,7 +98,6 @@
     <ClCompile Include="..\CvReplayMessage.cpp" />
     <ClCompile Include="..\CvSelectionGroup.cpp" />
     <ClCompile Include="..\CvSelectionGroupAI.cpp" />
-    <ClCompile Include="..\CvSelectionGroupList.cpp" />
     <ClCompile Include="..\CvStatistics.cpp" />
     <ClCompile Include="..\CvStructs.cpp" />
     <ClCompile Include="..\CvTalkingHeadMessage.cpp" />
@@ -108,7 +105,6 @@
     <ClCompile Include="..\CvTeamAI.cpp" />
     <ClCompile Include="..\CvUnit.cpp" />
     <ClCompile Include="..\CvUnitAI.cpp" />
-    <ClCompile Include="..\CvUnitList.cpp" />
     <ClCompile Include="..\CvVirtualWrappers.cpp" />
     <ClCompile Include="..\CvXMLLoadUtility.cpp" />
     <ClCompile Include="..\CvXMLLoadUtilityGet.cpp" />

@@ -439,15 +439,18 @@ void CvEventReporter::preSave()
 			"Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;
-	if(bAutoSave) {
+	if(bAutoSave)
+	{
 		szDefineName = "AUTO_SAVING_MESSAGE_TIME";
 		szMsgTag = L"TXT_KEY_AUTO_SAVING2";
 	}
-	else if(bQuickSave) {
+	else if(bQuickSave)
+	{
 		szDefineName = "QUICK_SAVING_MESSAGE_TIME";
 		szMsgTag = L"TXT_KEY_QUICK_SAVING2";
 	}
-	else {
+	else
+	{
 		szDefineName = "SAVING_MESSAGE_TIME";
 		szMsgTag = L"TXT_KEY_SAVING_GAME2";
 	}
@@ -455,7 +458,8 @@ void CvEventReporter::preSave()
 	if(iLength <= 0)
 		return;
 	PlayerTypes eActivePlayer = g.getActivePlayer();
-	if(eActivePlayer == NO_PLAYER) {
+	if(eActivePlayer == NO_PLAYER)
+	{
 		FAssert(eActivePlayer != NO_PLAYER);
 		return;
 	}
@@ -463,15 +467,15 @@ void CvEventReporter::preSave()
 			iLength, gDLL->getText(szMsgTag), NULL, MESSAGE_TYPE_DISPLAY_ONLY);
 }
 
-void CvEventReporter::preAutoSave() {
-
+void CvEventReporter::preAutoSave()
+{
 	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
 			"Should've been reset by preSave");
 	m_bPreAutoSave = true;
 }
 
-void CvEventReporter::preQuickSave() {
-
+void CvEventReporter::preQuickSave()
+{
 	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
 			"Should've been reset by preSave");
 	m_bPreQuickSave = true;
