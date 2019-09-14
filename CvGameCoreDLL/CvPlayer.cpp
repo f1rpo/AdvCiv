@@ -2981,7 +2981,8 @@ void CvPlayer::doTurn()  // advc: style changes
 	CvGame& g = GC.getGame();
 	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
 	   need assistance from CvPlayer. */
-	g.setInBetweenTurns(true);
+	if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+		g.setInBetweenTurns(true);
 	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty())
 	{
@@ -21478,7 +21479,9 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				/*  Hack: Check if we're expecting a renegotiate-popup from the EXE.
 					Don't want any resources in the canceled deal to be excluded
 					from the trade table. */
-				if(!bValid && !GC.getGame().isInBetweenTurns())
+				if(!bValid && !GC.getGame().isInBetweenTurns() &&
+					// Probably too complicated to get this right with simultaneous turns
+					!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 				{
 					for(CLLNode<std::pair<PlayerTypes,BonusTypes> >* pNode =
 						m_cancelingExport.head(); pNode != NULL; pNode =
