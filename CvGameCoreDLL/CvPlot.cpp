@@ -151,6 +151,7 @@ void CvPlot::init(int iX, int iY)
 {
 	m_iX = iX;
 	m_iY = iY;
+	m_iLatitude = calculateLatitude(); // advc.tsl
 }
 
 
