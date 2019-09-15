@@ -510,81 +510,58 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 }
 
 /*  K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks
-	for moves, and for hasAlreadyAttacked / blitz */
+	for moves, and for hasAlreadyAttacked / blitz */ // advc: style changes
+/*  advc.159: No longer simply a sum of combat strength values; see the comment
+	above CvPlayerAI::AI_localDefenceStrength. */
 int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	DomainTypes eDomainType, bool bCheckCanAttack) const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	int	strSum = 0;
-	bool bDefenders = pAttackedPlot ? pAttackedPlot->isVisibleEnemyUnit(getHeadOwner()) : false; // K-Mod
-	bool bCountCollateral = pAttackedPlot && pAttackedPlot != plot(); // K-Mod
-
-	pUnitNode = headUnitNode();
-
-	int iBaseCollateral = bCountCollateral
-		? estimateCollateralWeight(pAttackedPlot, getTeam())
-		: 0;
-
-	while (pUnitNode != NULL)
+	bool bDefenders = (pAttackedPlot ? pAttackedPlot->isVisibleEnemyUnit(getHeadOwner()) : false); // K-Mod
+	bool bCountCollateral = (pAttackedPlot && pAttackedPlot != plot()); // K-Mod
+	int iBaseCollateral = (bCountCollateral
+		? estimateCollateralWeight(pAttackedPlot, getTeam()) : 0);
+	int	iSum = 0;
+	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-
-		if (!pLoopUnit->isDead())
+		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
+		if (kLoopUnit.isDead())
+			continue;
+		// K-Mod. (original checks deleted.)
+		if (bCheckCanAttack)
 		{
-			// K-Mod. (original checks deleted.)
-			if (bCheckCanAttack)
+			if (kLoopUnit.getDomainType() == DOMAIN_AIR)
 			{
-				if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-				{
-					if (!pLoopUnit->canAirAttack() || !pLoopUnit->canMove() ||
-							(pAttackedPlot && bDefenders &&
-							!pLoopUnit->canMoveInto(*pAttackedPlot, true, true)))
-						continue; // can't attack.
-				}
-				else
-				{
-					if (!pLoopUnit->canAttack() || !pLoopUnit->canMove() ||
-							(pAttackedPlot && bDefenders && !pLoopUnit->canMoveInto(*pAttackedPlot, true, true)) ||
-							//(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
-							pLoopUnit->isMadeAllAttacks()) // advc.164
-						continue; // can't attack.
-				}
+				if (!kLoopUnit.canAirAttack() || !kLoopUnit.canMove() ||
+						(pAttackedPlot && bDefenders &&
+						!kLoopUnit.canMoveInto(*pAttackedPlot, true, true)))
+					continue; // can't attack.
 			}
+			else
+			{
+				if (!kLoopUnit.canAttack() || !kLoopUnit.canMove() ||
+						(pAttackedPlot && bDefenders && !kLoopUnit.canMoveInto(*pAttackedPlot, true, true)) ||
+						//(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+						kLoopUnit.isMadeAllAttacks()) // advc.164
+					continue; // can't attack.
+			}
+		} // K-Mod end
+
+		if (eDomainType == NO_DOMAIN || kLoopUnit.getDomainType() == eDomainType)
+		{
+			// iSum += pLoopUnit->currEffectiveStr(pAttackedPlot, pLoopUnit);
+			// K-Mod estimate the value of first strike, and the attack power of collateral units.
+			// (cf with calculation in CvPlayerAI::AI_localAttackStrength)
+			/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
+				Adjustments for first strikes and collateral damage moved into
+				that new function. */
+			int const iUnitStr = kLoopUnit.AI_currEffectiveStr(pAttackedPlot, &kLoopUnit,
+					bCountCollateral, iBaseCollateral, bCheckCanAttack);
+			// </advc.159>
+			iSum += iUnitStr;
 			// K-Mod end
-
-			if (eDomainType == NO_DOMAIN || pLoopUnit->getDomainType() == eDomainType)
-			{
-				// strSum += pLoopUnit->currEffectiveStr(pAttackedPlot, pLoopUnit);
-
-				// K-Mod estimate the value of first strike, and the attack power of collateral units.
-				// (cf with calculation in CvPlayerAI::AI_localAttackStrength)
-				int iUnitStr = pLoopUnit->currEffectiveStr(pAttackedPlot, pLoopUnit);
-				iUnitStr *= 100 + 4 * pLoopUnit->firstStrikes() + 2 * pLoopUnit->chanceFirstStrikes();
-				iUnitStr /= 100;
-
-				if (bCountCollateral && pLoopUnit->collateralDamage() > 0)
-				{
-					int iPossibleTargets = pLoopUnit->collateralDamageMaxUnits();
-					// If !bCheckCanAttack, then lets not assume pAttackPlot won't get more units on it.
-					if (bCheckCanAttack && pAttackedPlot->isVisible(getTeam(), false))
-						iPossibleTargets = std::min(iPossibleTargets, pAttackedPlot->getNumVisibleEnemyDefenders(pLoopUnit) - 1);
-
-					if (iPossibleTargets > 0)
-					{
-						// collateral damage is not trivial to calculate. This estimate is pretty rough.
-						// (Note: collateralDamage() and iBaseCollateral both include factors of 100.)
-						iUnitStr += pLoopUnit->baseCombatStr() * iBaseCollateral * pLoopUnit->collateralDamage() * iPossibleTargets / 10000;
-					}
-				}
-				strSum += iUnitStr;
-				// K-Mod end
-			}
 		}
 	}
-
-	return strSum;
+	return iSum;
 }
 
 void CvSelectionGroupAI::AI_queueGroupAttack(int iX, int iY)
@@ -796,8 +773,9 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 		pEntityNode = nextUnitNode(pEntityNode);
 		//if (!pLoopUnit->noDefensiveBonus())
 		// commented out by K-Mod. The noDefBonus thing is already taken into account.
-		{
-			int iValue = pLoopUnit->currEffectiveStr(pDefendPlot, NULL) * 100;
+		{	/*  advc.159: Call AI_currEffectiveStr instead of currEffectiveStr
+				And reduce the precision multiplier from 100 to 10. */
+			int iValue = pLoopUnit->AI_currEffectiveStr(pDefendPlot) * 10;
 
 			if (pDefendPlot->isCity(true, getTeam()))
 			{

@@ -41,6 +41,12 @@ public:
 	void AI_setUnitAIType(UnitAITypes eNewValue);
 	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
 
+	// <advc.159>
+	int AI_currEffectiveStr(CvPlot const* pPlot = NULL, CvUnit const* pOther = NULL,
+			bool bCountCollateral = false, int iBaseCollateral = 0,
+			bool bCheckCanAttack = false,
+			int iCurrentHP = -1, bool bAssumePromotion = false) const; // advc.139
+	// </advc.159>
 	int AI_sacrificeValue(const CvPlot* pPlot) const;
 	// Lead From Behind by UncutDragon (edited for K-Mod):
 	void LFBgetBetterAttacker(CvUnitAI** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue);

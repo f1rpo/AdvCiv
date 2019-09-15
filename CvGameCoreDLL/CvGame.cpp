@@ -2860,7 +2860,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 		FOR_EACH_UNIT_VAR(u, kOwner)
 		{
 			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
-					u->atPlot(pUnit->plot()) && u->isReadyForPromotion());
+					u->atPlot(pUnit->plot()) && u->isPromotionReady());
 		}
 	} // </advc.002e>
 	// K-Mod. the hack (see above)
@@ -5345,11 +5345,6 @@ void CvGame::updateUnitEnemyGlow()
 		FOR_EACH_UNIT_VAR(pLoopUnit, kPlayer)
 			gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getUnitEntity());
 	}
-}
-
-HandicapTypes CvGame::getHandicapType() const
-{
-	return m_eHandicap;
 }
 
 void CvGame::setHandicapType(HandicapTypes eHandicap)

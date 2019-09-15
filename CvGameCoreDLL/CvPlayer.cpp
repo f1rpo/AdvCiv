@@ -13478,7 +13478,7 @@ void CvPlayer::doEspionagePoints()  // advc: some style changes
 
 int CvPlayer::getEspionageSpending(TeamTypes eAgainstTeam) const  // advc: style changes
 {
-	PROFILE_FUNC(); // advc.opt
+	PROFILE_FUNC(); // advc (runtime seems totally negligible)
 	int iTotalWeight = 0; // Get sum of all weights to be used later on
 	int iBestWeight = 0;
 	bool bFoundTeam = false;
@@ -19438,7 +19438,7 @@ void CvPlayer::showForeignPromoGlow(bool b)
 		FOR_EACH_UNIT_VAR(u, kPlayer)
 		{
 			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
-					u->isReadyForPromotion() && b);
+					u->isPromotionReady() && b);
 		}
 	}
 }// </advc.002e>

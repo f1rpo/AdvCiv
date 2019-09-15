@@ -6842,7 +6842,7 @@ int CvTeamAI::AI_getLowestVictoryCountdown() const
 
 int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const  // advc: style changes
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // advc: called not that infrequently
 	//bool bWarPlan = (getAnyWarPlanCount(eTeam) > 0);
 	bool bWarPlan = (AI_getWarPlan(eTeam) != NO_WARPLAN); // advc.001
 	int iValue = 0;

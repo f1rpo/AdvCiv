@@ -187,6 +187,8 @@ static ProfileSample* lastExit = NULL;
 static int exitCount = 0;
 static bool detailedTraceEnabled = false;
 
+#include "CvDLLPythonIFaceBase.h" // advc.make
+
 static void GenerateTabString(char* buffer,int n)
 {
 	while(n-- > 0)

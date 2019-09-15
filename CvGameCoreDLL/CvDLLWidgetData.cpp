@@ -3383,7 +3383,7 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		if (!((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0))
 			GC.getGame().isDebugMode())) // advc.135c
 		{
-			if(eActivePlayer != ePlayer) // advc.085
+			if(eActivePlayer != ePlayer && kActiveTeam.isHasMet(eTeam)) // advc.085
 				GAMETEXT.getAttitudeString(szBuffer, ePlayer, eActivePlayer);
 			GAMETEXT.getWarWearinessString(szBuffer, ePlayer, // K-Mod
 					eActivePlayer == ePlayer ? NO_PLAYER : // advc.085

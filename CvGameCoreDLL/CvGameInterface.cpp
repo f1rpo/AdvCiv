@@ -14,11 +14,10 @@
 #include "CvBugOptions.h"
 #include <fstream> // advc.003d
 
-/*  advc: This file was, reportedly, added by patch 3.17.
-	https://forums.civfanatics.com/threads/sdk-using-microsoft-visual-c-2005-express-edition.196283/page-7#post-6942578
-	Functions previously implemented in CvGame.cpp were moved here. Almost all of
-	those were DLLExports (exceptions: canDoControl, doControl) -- however, many
-	other DLLExports remain in CvGame.cpp (for reasons that elude me). */
+/*  advc: This file was, reportedly, added by patch 3.17:
+	forums.civfanatics.com/threads/sdk-using-microsoft-visual-c-2005-express-edition.196283/page-7#post-6942578
+	Functions previously implemented in CvGame.cpp were moved here. Some of those
+	functions are exposed to Python by the EXE and accessed via CyInterface() in Python. */
 
 void CvGame::updateColoredPlots()
 {

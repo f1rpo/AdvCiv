@@ -2605,7 +2605,7 @@ int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam) const
 // <advc.112b>
 EraTypes CvTeam::getCurrentEra() const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // (seems entirely unproblematic)
 	double sum = 0;
 	int iDiv = 0;
 	for (int i = 0; i < MAX_PLAYERS; i++)

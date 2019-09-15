@@ -69,9 +69,12 @@ public:
 	// was void AI_updateNeededFloatingDefenders()
 	int AI_calculateNeededFloatingDefenders(bool bConstCache) const; // </advc.001n>
 	// <advc.139>
-	void AI_updateSafety(double relativeCityVal);
-	bool AI_isEvacuating() const;
-	bool AI_isSafe() const; // </advc.139>
+	void AI_updateSafety();
+	inline bool AI_isEvacuating() const { return m_bEvacuate; }
+	inline bool AI_isSafe() const { return m_bSafe; }
+	void AI_setCityValPercent(int iValue);
+	inline int AI_getCityValPercent() const { return m_iCityValPercent; }
+	// </advc.139>
 
 	// advc: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
@@ -158,6 +161,7 @@ protected:
 	int m_iEmphasizeGreatPeopleCount;
 	int m_iWorkersNeeded;
 	int m_iWorkersHave;
+	int m_iCityValPercent; // advc.139
 
 	bool m_bAssignWorkDirty;
 	// <advc.139>

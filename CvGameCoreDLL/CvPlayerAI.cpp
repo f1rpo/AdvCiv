@@ -356,7 +356,9 @@ void CvPlayerAI::updateCacheData()
 	int i = 0;
 	FOR_EACH_CITYAI_VAR(c, *this)
 	{
-		c->AI_updateSafety(1 - ::percentileRank(cityValues, cityValues[i]));
+		c->AI_setCityValPercent(::round(100 *
+				(1 - ::percentileRank(cityValues, cityValues[i]))));
+		c->AI_updateSafety();
 		i++;
 	} // </advc.139>
 }
@@ -15938,7 +15940,12 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes* aeMission
 // K-Mod
 
 // Total defensive strength of units that can move iRange steps to reach pDefencePlot
-int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType, int iRange, bool bAtTarget, bool bCheckMoves, bool bNoCache) const
+/*  advc.159 (note): This is not simply the sum of the relevant combat strength values.
+	The result should only be compared with AI_localAttackStrength, AI_localDefenceStrength,
+	AI_cityTargetStrengthByPath or CvSelectionGroupAI::AI_sumStrength. */
+int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam,  // advc: some style changes in the body
+	DomainTypes eDomainType, int iRange, bool bAtTarget, bool bCheckMoves, bool bNoCache,
+	bool bPredictPromotions) const // advc.139
 {
 	PROFILE_FUNC();
 
@@ -15954,38 +15961,43 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
 				continue;
 
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-
 			int iPlotTotal = 0;
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+				CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
 
-				if (pLoopUnit->getTeam() == eDefenceTeam
-					|| (eDefenceTeam != NO_TEAM && GET_TEAM(pLoopUnit->getTeam()).isVassal(eDefenceTeam))
-					|| (eDefenceTeam == NO_TEAM && isPotentialEnemy(getTeam(), pLoopUnit->getTeam())))
+				if (kLoopUnit.getTeam() == eDefenceTeam
+					|| (eDefenceTeam != NO_TEAM && GET_TEAM(kLoopUnit.getTeam()).isVassal(eDefenceTeam))
+					|| (eDefenceTeam == NO_TEAM && isPotentialEnemy(getTeam(), kLoopUnit.getTeam())))
 				{
-					if (eDomainType == NO_DOMAIN || (pLoopUnit->getDomainType() == eDomainType))
+					if (eDomainType == NO_DOMAIN || kLoopUnit.getDomainType() == eDomainType)
 					{
 						if (bCheckMoves)
 						{
 							// unfortunately, we can't use the global pathfinder here
 							// - because the calling function might be waiting to use some pathfinding results
 							// So this check will have to be really rough. :(
-							int iMoves = pLoopUnit->baseMoves();
-							if(pLoopPlot->isValidRoute(pLoopUnit, /* advc.001i: */ false))
+							int iMoves = kLoopUnit.baseMoves();
+							if(pLoopPlot->isValidRoute(&kLoopUnit, /* advc.001i: */ false))
 								iMoves++;
 							int iDistance = std::max(std::abs(iDX), std::abs(iDY));
 							if (iDistance > iMoves)
 								continue; // can't make it. (maybe?)
 						}
-						int iUnitStr = pLoopUnit->currEffectiveStr(bAtTarget ? pDefencePlot : pLoopPlot, NULL);
-						// first strikes are not counted in currEffectiveStr.
-						// actually, the value of first strikes is non-trivial to calculate... but we should do /something/ to take them into account.
-						iUnitStr *= 100 + 4 * pLoopUnit->firstStrikes() + 2 * pLoopUnit->chanceFirstStrikes();
-						iUnitStr /= 100;
-						// note. Most other parts of the code use 5% per first strike, but I figure we should go lower because this unit may get clobbered by collateral damage before fighting.
+						// <advc.139>
+						int iHP = kLoopUnit.currHitPoints();
+						bool const bAssumePromo = (bPredictPromotions && kLoopUnit.isPromotionReady());
+						if (bAssumePromo && kLoopUnit.getDamage() > 0)
+						{
+							iHP += kLoopUnit.promotionHeal();
+							iHP = std::min(kLoopUnit.maxHitPoints(), iHP);
+						} // </advc.139>
+						/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
+							Adjustments for first strikes are handled by that new function. */
+						int const iUnitStr = kLoopUnit.AI_currEffectiveStr(
+								bAtTarget ? pDefencePlot : pLoopPlot, // </advc.159>
+								NULL, false, 0, false, iHP, bAssumePromo); // advc.139
 						iPlotTotal += iUnitStr;
 					}
 				}
@@ -16005,7 +16017,9 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 }
 
 // Total attack strength of units that can move iRange steps to reach pAttackPlot
-int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType, int iRange, bool bUseTarget, bool bCheckMoves, bool bCheckCanAttack,
+// advc.159: See note above AI_localDefenceStrength  
+int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam,  // advc: some style changes in the body
+	DomainTypes eDomainType, int iRange, bool bUseTarget, bool bCheckMoves, bool bCheckCanAttack,
 	int* piAttackerCount) const // advc.139
 {
 	PROFILE_FUNC();
@@ -16015,6 +16029,9 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 		: estimateCollateralWeight(0, getTeam());
 
 	int	iTotal = 0;
+	// <advc.139>
+	if(piAttackerCount != NULL)
+		*piAttackerCount = 0; // </advc.139>
 
 	for (int iDX = -iRange; iDX <= iRange; iDX++)
 	{
@@ -16024,28 +16041,27 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
 				continue;
 
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-				if (pLoopUnit->getTeam() == eAttackTeam	|| (eAttackTeam == NO_TEAM && atWar(getTeam(), pLoopUnit->getTeam())))
+				CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
+				if (kLoopUnit.getTeam() == eAttackTeam || (eAttackTeam == NO_TEAM &&
+					::atWar(getTeam(), kLoopUnit.getTeam())))
 				{
-					if (eDomainType == NO_DOMAIN || (pLoopUnit->getDomainType() == eDomainType))
+					if (eDomainType == NO_DOMAIN || kLoopUnit.getDomainType() == eDomainType)
 					{
-						if (!pLoopUnit->canAttack()) // bCheckCanAttack means something else.
+						if (!kLoopUnit.canAttack()) // bCheckCanAttack means something else.
 							continue;
 						// <advc.315> See comment in AI_adjacentPotentialAttackers
-						if(pLoopUnit->getUnitInfo().isMostlyDefensive())
+						if(kLoopUnit.getUnitInfo().isMostlyDefensive())
 							continue; // </advc.315>
 						if (bCheckMoves)
 						{
 							// unfortunately, we can't use the global pathfinder here
 							// - because the calling function might be waiting to use some pathfinding results
 							// So this check will have to be really rough. :(
-							int iMoves = pLoopUnit->baseMoves();
-							if(pLoopPlot->isValidRoute(pLoopUnit,
-									false)) // advc.001i
+							int iMoves = kLoopUnit.baseMoves();
+							if(pLoopPlot->isValidRoute(&kLoopUnit, /* advc.001i: */ false))
 								iMoves++;
 							int iDistance = std::max(std::abs(iDX), std::abs(iDY));
 							if (iDistance > iMoves)
@@ -16053,34 +16069,26 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 						}
 						if (bCheckCanAttack)
 						{
-							if (!pLoopUnit->canMove() ||
-									//(pLoopUnit->isMadeAttack() && !pLoopUnit->isBlitz())
-									pLoopUnit->isMadeAllAttacks() // advc.164
-									|| (bUseTarget && pLoopUnit->combatLimit() < 100 && pLoopPlot->isWater() && !pTargetPlot->isWater()))
-								continue; // can't attack
-						}
-
-						int iUnitStr = pLoopUnit->currEffectiveStr(bUseTarget ? pTargetPlot : NULL, bUseTarget ? pLoopUnit : NULL);
-						// first strikes. (see comments in AI_localDefenceStrength... although, maybe 5% would be better here?)
-						iUnitStr *= 100 + 4 * pLoopUnit->firstStrikes() + 2 * pLoopUnit->chanceFirstStrikes();
-						iUnitStr /= 100;
-						//
-						if (pLoopUnit->collateralDamage() > 0)
-						{
-							int iPossibleTargets = std::min(bUseTarget ? pTargetPlot->getNumVisibleEnemyDefenders(pLoopUnit) - 1 : MAX_INT, pLoopUnit->collateralDamageMaxUnits());
-
-							if (iPossibleTargets > 0)
+							if (!kLoopUnit.canMove() ||
+								//(pLoopUnit->isMadeAttack() && !pLoopUnit->isBlitz())
+								kLoopUnit.isMadeAllAttacks() // advc.164
+								|| (bUseTarget && kLoopUnit.combatLimit() < 100 &&
+								pLoopPlot->isWater() && !pTargetPlot->isWater()))
 							{
-								// collateral damage is not trivial to calculate. This estimate is pretty rough. (cf with calculation in AI_sumStrength)
-								// (Note: collateralDamage() and iBaseCollateral both include factors of 100.)
-								iUnitStr += pLoopUnit->baseCombatStr() * iBaseCollateral * pLoopUnit->collateralDamage() * iPossibleTargets / 10000;
+								continue; // can't attack
 							}
 						}
+						/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
+							Adjustments for first strikes and collateral damage are handled
+							by that new function. */
+						int const iUnitStr = kLoopUnit.AI_currEffectiveStr(
+								bUseTarget ? pTargetPlot : NULL, bUseTarget ? &kLoopUnit : NULL,
+								true, iBaseCollateral, bCheckCanAttack); // </advc.159>
 						iTotal += iUnitStr;
 						// <advc.139>
-						if(piAttackerCount != NULL && pLoopUnit->getDamage() < 30)
+						if(piAttackerCount != NULL && kLoopUnit.getDamage() < 30)
 						{
-							CvUnitInfo& u = GC.getUnitInfo(pLoopUnit->getUnitType());
+							CvUnitInfo& u = GC.getUnitInfo(kLoopUnit.getUnitType());
 							// 80 is Cannon; don't count the early siege units.
 							if(u.getCombatLimit() >= 80)
 								(*piAttackerCount)++;
@@ -16139,6 +16147,33 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const
 	//return iCount;
 	return iTotalStrength;
 }
+/*  <advc.139> May have to update city safety status after one of our units
+	has attacked (possible relief). kDefender can be dead, but all its data
+	should still be acurate. */
+void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
+{
+	// Same checks as in AI_localAttackStrength essentially
+	if (kDefender.getDomainType() != DOMAIN_LAND || !kDefender.canAttack() ||
+			kDefender.getUnitInfo().isMostlyDefensive() || // advc.315
+			kDefender.plot()->isCity())
+		return;
+	int const iRange = kDefender.baseMoves() + (kDefender.plot()->isValidRoute(
+			&kDefender, /* advc.001i: */ false) ? 1 : 0);
+	CvMap const& kMap = GC.getMap();
+	for (int dx = -iRange; dx <= iRange; dx++)
+	{
+		for (int dy = -iRange; dy <= iRange; dy++)
+		{
+			CvPlot const* pPlot = kMap.plot(kDefender.getX(), kDefender.getY());
+			if (pPlot != NULL && pPlot->getOwner() == getID() && pPlot->isCity())
+			{
+				CvCityAI& kCity = *pPlot->AI_getPlotCity();
+				if (!kCity.AI_isSafe()) // It's only going to get safer
+					kCity.AI_updateSafety();
+			}
+		}
+	}
+} // </advc.139>
 
 int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const // advc: const CvUnit*
 {

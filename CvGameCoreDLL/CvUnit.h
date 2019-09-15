@@ -212,6 +212,7 @@ public:
 
 	bool canPromote(PromotionTypes ePromotion, int iLeaderUnitId) const;																												// Exposed to Python
 	void promote(PromotionTypes ePromotion, int iLeaderUnitId);																																// Exposed to Python
+	int promotionHeal(PromotionTypes ePromotion = NO_PROMOTION) const; // advc
 
 	int canLead(const CvPlot* pPlot, int iUnitId) const;
 	bool lead(int iUnitId);
@@ -292,7 +293,8 @@ public:
 	int maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails = NULL) const;		// Exposed to Python
 	int currCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails = NULL) const;	// Exposed to Python
 	int currFirepower(const CvPlot* pPlot, const CvUnit* pAttacker) const;																				// Exposed to Python
-	int currEffectiveStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails = NULL) const;
+	int currEffectiveStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails = NULL,
+			int iCurrentHP = -1) const; // advc.139
 	DllExport float maxCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;																	// Exposed to Python
 	DllExport float currCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;																	// Exposed to Python
 
@@ -585,8 +587,8 @@ public:
 	bool isMadeInterception() const;																													// Exposed to Python
 	void setMadeInterception(bool bNewValue);																				// Exposed to Python
 
-	DllExport bool isPromotionReady() const;																									// Exposed to Python
-	bool isReadyForPromotion() const; // advc.002e
+	bool isPromotionReadyExternal() const; // advc.002e: exported through .def file
+	inline bool isPromotionReady() const { return m_bPromotionReady; } // advc.003f: inline									// Exposed to Python
 	void setPromotionReady(bool bNewValue);																					// Exposed to Python
 	void testPromotionReady();
 

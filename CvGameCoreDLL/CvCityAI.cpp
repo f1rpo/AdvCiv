@@ -43,6 +43,7 @@ CvCityAI::CvCityAI()
 	m_iCachePlayerClosenessDistance = -1;
 	m_iNeededFloatingDefenders = -1;
 	m_iNeededFloatingDefendersCacheTurn = -1;
+	m_iCityValPercent = 0; // advc.139
 
 	m_bForceEmphasizeCulture = false;
 	m_bAssignWorkDirty = false;
@@ -6452,7 +6453,7 @@ bool CvCityAI::AI_isDanger() /* advc: */ const
 }
 
 // <advc.139>
-void CvCityAI::AI_updateSafety(double relativeCityVal)
+void CvCityAI::AI_updateSafety()
 {
 	PROFILE_FUNC();
 	m_bEvacuate = false;
@@ -6469,7 +6470,18 @@ void CvCityAI::AI_updateSafety(double relativeCityVal)
 			DOMAIN_LAND, 1, true, false, false, &iAttackers);
 	if(iAttStrength <= 0) // shortcut
 		return;
-	int iDefStrength = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 3);
+	int iDefStrength = kOwner.AI_localDefenceStrength(plot(), getTeam(),
+			DOMAIN_LAND, 3, true, false, false, /*bPredictPromotions*/ true);
+	/*  Could let AI_localDefenceStrength do the counting, but I don't want to
+		rely on defenders that could possibly(!) be rallied too much. */
+	int iDefenders = plot()->getNumDefenders(getOwner());
+	// Check if we'll finish a defender at the end of our turn
+	if (iDefenders > 0 && isProductionUnit() && getProductionTurnsLeft() == 1)
+	{
+		CvUnitInfo const& kProductionUnit = GC.getUnitInfo(getProductionUnit());
+		if (kProductionUnit.getCombat() > 0) // Assume an average defender
+			iDefStrength = (iDefStrength * (iDefenders + 1)) / iDefenders;
+	}
 	m_bSafe = (iAttStrength * 2 < iDefStrength);
 	// Potentially expensive
 	if(m_bSafe && GET_TEAM(getTeam()).getNumWars(false, true) > 0)
@@ -6479,11 +6491,12 @@ void CvCityAI::AI_updateSafety(double relativeCityVal)
 		m_bSafe = (iAttStrengthWiderRange * 2 < iDefStrength);
 	}
 	// Only bail if they can take the city in one turn or almost
-	if(iAttackers + 1 >= plot()->getNumDefenders(getOwner()))
+	if(iAttackers + 1 >= iDefenders)
 	{
 		static int const iAI_EVACUATION_THRESH = GC.getDefineINT("AI_EVACUATION_THRESH");
 		int iThresh = iAI_EVACUATION_THRESH;
 		//  Higher threshold for important cities
+		double relativeCityVal = AI_getCityValPercent() / 100.0;
 		if(relativeCityVal > 0.5)
 			iThresh = ::round(iThresh * (0.5 + relativeCityVal));
 		if(kOwner.getNumCities() <= 2 && isCapital())
@@ -6493,17 +6506,10 @@ void CvCityAI::AI_updateSafety(double relativeCityVal)
 }
 
 
-bool CvCityAI::AI_isEvacuating() const {
-
-	return m_bEvacuate;
-}
-
-
-bool CvCityAI::AI_isSafe() const
+void CvCityAI::AI_setCityValPercent(int iValue)
 {
-	return m_bSafe;
+	m_iCityValPercent = iValue;
 } // </advc.139>
-
 
 // K-Mod (advc: Moved from CvCity)
 int CvCityAI::AI_culturePressureFactor() const
@@ -12840,9 +12846,7 @@ void CvCityAI::read(FDataStreamBase* pStream)
 		pStream->Read(GC.getNumBuildingClassInfos(), &m_aiConstructionValue[0]);
 	}
 	if (uiFlag >= 2)
-	{
 		pStream->Read(&m_iCultureWeight);
-	}
 	// K-Mod end
 }
 
@@ -12878,7 +12882,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_PLAYERS, m_aiPlayerCloseness);
 	pStream->Write(m_iNeededFloatingDefenders);
 	pStream->Write(m_iNeededFloatingDefendersCacheTurn);
-	pStream->Write(m_bEvacuate); // advc.139 (No need to save m_bSafe)
+	pStream->Write(m_bEvacuate); // advc.139 (No need to save m_bSafe, m_iCityValPercent)
 	//This needs to be serialized for human workers.
 	pStream->Write(m_iWorkersNeeded);
 	pStream->Write(m_iWorkersHave);

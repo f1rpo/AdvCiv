@@ -97,7 +97,6 @@ public:
 	ProcessTypes getProductionProcess() const;													// Exposed to Python
 	const wchar* getProductionName() const;															// Exposed to Python
 	const wchar* getProductionNameKey() const;													// Exposed to Python
-	int getGeneralProductionTurnsLeft() const;										// Exposed to Python
 
 	bool isFoodProduction() const;																								// Exposed to Python
 	bool isFoodProduction(UnitTypes eUnit) const;																	// Exposed to Python
@@ -111,6 +110,7 @@ public:
 	int getProductionNeeded(UnitTypes eUnit) const;
 	int getProductionNeeded(BuildingTypes eBuilding) const;
 	int getProductionNeeded(ProjectTypes eProject) const;
+	//int getGeneralProductionTurnsLeft() const; // advc: Redundant; use the function below.			// Exposed to Python
 	int getProductionTurnsLeft() const;																	// Exposed to Python
 	int getProductionTurnsLeft(UnitTypes eUnit, int iNum) const;					// Exposed to Python
 	int getProductionTurnsLeft(BuildingTypes eBuilding, int iNum) const;			// Exposed to Python

@@ -512,7 +512,7 @@ void CvUnitAI::AI_promote()
 	PROFILE_FUNC();
 
 	// K-Mod. A quick check to see if we can rule out all promotions in one hit, before we go through them one by one.
-	if (!isReadyForPromotion()) // advc.002e
+	if (!isPromotionReady())
 		return; // can't get any normal promotions. (see CvUnit::canPromote)
 	// K-Mod end
 
@@ -1013,6 +1013,64 @@ void CvUnitAI::AI_setUnitAIType(UnitAITypes eNewValue)
 	}
 }
 
+/*  <advc.159> Like CvUnit::currEffectiveStr, but takes into account first strikes,
+	collateral damage and that combat odds increase superlinearly with combat strength.
+	The scale is arbitrary, i.e. one should only compare the returned values with each other. */
+int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
+	bool bCountCollateral, int iBaseCollateral, bool bCheckCanAttack,
+	int iCurrentHP, bool bAssumePromotion) const // advc.139
+{
+	PROFILE_FUNC(); // Called frequently but not extremely so; fine as it is.
+	int iCombatStrengthPercent = currEffectiveStr(pPlot, pOther, NULL, iCurrentHP);
+	/*  <K-Mod> (Moved from CvSelectionGroupAI::AI_sumStrength. Some of the code
+		had been duplicated in CvPlayerAI::AI_localDefenceStrength, AI_localAttackStrength). */
+	/*  first strikes are not counted in currEffectiveStr.
+		actually, the value of first strikes is non-trivial to calculate...
+		but we should do /something/ to take them into account. */
+	/*  note. Most other parts of the code use 5% per first strike, but I figure
+		we should go lower because this unit may get clobbered by collateral damage
+		before fighting. */
+	// (bCountCollateral means that we're the ones dealing collateral damage)
+	int const iFirstStrikeMultiplier = (bCountCollateral ? 5 : 4);
+	iCombatStrengthPercent *= 100 + iFirstStrikeMultiplier * firstStrikes() +
+			(iFirstStrikeMultiplier / 2) * chanceFirstStrikes()
+			+ (bAssumePromotion ? 7 : 0); // advc.139
+	iCombatStrengthPercent /= 100;
+	if (bCountCollateral && collateralDamage() > 0)
+	{
+		int iPossibleTargets = collateralDamageMaxUnits();
+		if (bCheckCanAttack && pPlot != NULL && pPlot->isVisible(getTeam(), false))
+			iPossibleTargets = std::min(iPossibleTargets, pPlot->getNumVisibleEnemyDefenders(this) - 1);
+		// If !bCheckCanAttack, then lets not assume kPlot won't get more units on it.
+		// advc: But let's put some cap on the number of targets
+		else iPossibleTargets = std::min(10, iPossibleTargets);
+		if (iPossibleTargets > 0)
+		{
+			// collateral damage is not trivial to calculate. This estimate is pretty rough.
+			// (Note: collateralDamage() and iBaseCollateral both include factors of 100.)
+			iCombatStrengthPercent += baseCombatStr() * iBaseCollateral *
+					collateralDamage() * iPossibleTargets / 10000;
+		}
+	} // </K-Mod>
+	FAssert(iCombatStrengthPercent < 100000); // A conservative guard against overflow
+	/*  Generally, there's a good chance that a strong unit can kill a weak unit
+		and then heal ("defeat in detail"). However, this function is used for
+		evaluating imminent stack-on-stack combat. When we already know that
+		a stack of stronger units is facing a larger stack of weaker units
+		we need to assume a high chance of having to fight multiple enemies in a row. */
+	static double exponent = std::max(1.0, 0.75 * GC.getPOWER_CORRECTION());
+	static double const normalizationFactor = (exponent < 1.05 ? 1 :
+			// Pretty arbitrary; only need to weigh rounding errors against the danger of overflow.
+			20000 / std::pow(10000.0, exponent));
+	/*  Make the AI overestimate weak units a little bit on the low and medium difficulty settings.
+		(Not static b/c difficulty can change through load/ new game.) */
+	exponent -= GC.getHandicapInfo(GC.getGame().getHandicapType()).getFreeWinsVsBarbs() / 25.0;
+	return std::min(20000, // Guard against overflow problems for caller
+			::round(std::pow((double)iCombatStrengthPercent, exponent) *
+			normalizationFactor));
+} // </advc.159>
+
+
 int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 {
 	int iCollateralDamageValue = 0;
@@ -1048,7 +1106,7 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	}
 	else
 	{
-		iValue  = 128 * (currEffectiveStr(pPlot, ((pPlot == NULL) ? NULL : this)));
+		iValue = 128 * (currEffectiveStr(pPlot, ((pPlot == NULL) ? NULL : this)));
 		iValue *= (100 + iCollateralDamageValue);
 
 		//iValue /= (100 + cityDefenseModifier());
@@ -4852,13 +4910,12 @@ void CvUnitAI::AI_greatPersonMove()
 	bool bCanHurry = getUnitInfo().getBaseHurry() > 0 || getUnitInfo().getHurryMultiplier() > 0;
 
 	FOR_EACH_CITYAI(pLoopCity, kPlayer)
-	{
-		if (pLoopCity->area() != area())
-			continue; // advc
-
+	{	// <advc.139>
+		if (!pLoopCity->AI_isSafe())
+			continue; // </advc.139>
 		int iPathTurns;
-		if (!generatePath(pLoopCity->plot(), iMoveFlags, true, &iPathTurns))
-			continue;
+		if (pLoopCity->area() != area() || !generatePath(pLoopCity->plot(), iMoveFlags, true, &iPathTurns))
+			continue; // advc
 		// Join
 		for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
 		{
@@ -5903,8 +5960,12 @@ void CvUnitAI::AI_pirateSeaMove()
 	PROFILE_FUNC();
 
 	// heal in defended, unthreatened forts and cities
-	if (plot()->isCity(true) && GET_PLAYER(getOwner()).AI_localDefenceStrength(plot(), getTeam()) > 0 &&
-		!GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2, false))
+	CvPlot const& kPlot = *plot();
+	// advc.139: Better and faster safety check (though not for Forts)
+	if ((kPlot.isCity(false) && kPlot.AI_getPlotCity()->AI_isSafe()) ||
+		(kPlot.isCity(true) && GET_PLAYER(getOwner()).
+		AI_localDefenceStrength(&kPlot, getTeam()) > 0 &&
+		!GET_PLAYER(getOwner()).AI_getAnyPlotDanger(kPlot, 2, false)))
 	{
 		if (AI_heal())
 		{
@@ -5946,7 +6007,6 @@ void CvUnitAI::AI_pirateSeaMove()
 	if (GC.getGame().getSorenRandNum(10, "AI Pirate Explore") == 0)
 	{
 		CvArea* pWaterArea = plot()->waterArea();
-
 		if (pWaterArea != NULL)
 		{
 			if (pWaterArea->getNumUnrevealedTiles(getTeam()) > 0)
@@ -12128,6 +12188,8 @@ bool CvUnitAI::AI_lead(std::vector<UnitAITypes>& aeUnitAITypes)
 }
 
 // iMaxCounts = 1 would mean join a city if there's no existing joined GP of that type.
+/*  advc (note): This function has been replaced by K-Mod's AI_greatPersonMove for
+	all GP except GG. Should probably also use the K-Mod code for GG. (Tbd.) */
 bool CvUnitAI::AI_join(int iMaxCount)
 {
 	PROFILE_FUNC();
@@ -12145,7 +12207,8 @@ bool CvUnitAI::AI_join(int iMaxCount)
 			canEnterArea(*pLoopCity->area())
 			&& AI_plotValid(pLoopCity->plot()))
 		{
-			if (!pLoopCity->plot()->isVisibleEnemyUnit(this))
+			//if (!pLoopCity->plot()->isVisibleEnemyUnit(this))
+			if (pLoopCity->AI_isSafe()) // advc.139: ^How could there be an enemy in our city?
 			{
 				if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true))
 				// BETTER_BTS_AI_MOD: END
@@ -12203,6 +12266,7 @@ bool CvUnitAI::AI_join(int iMaxCount)
 }
 
 // iMaxCount = 1 would mean construct only if there are no existing buildings constructed by this GP type.
+// advc (note): Only used for Great General; see comment above AI_join.
 bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThreshold)
 {
 	PROFILE_FUNC();
@@ -12217,7 +12281,8 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 	FOR_EACH_CITYAI(pLoopCity, GET_PLAYER(getOwner()))
 	{
 		if (!AI_plotValid(pLoopCity->plot()) || pLoopCity->area() != area() ||
-				pLoopCity->plot()->isVisibleEnemyUnit(this))
+				//pLoopCity->plot()->isVisibleEnemyUnit(this))
+				pLoopCity->AI_isSafe()) // advc.139: Replacing the above
 			continue; // advc
 
 		//if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_CONSTRUCT, getGroup()) == 0)
@@ -15438,48 +15503,43 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 	int iCollateralDamageScale = estimateCollateralWeight(0, getTeam());
 	std::map<CvCityAI const*, int> city_defence_cache; // advc: const
 
-	std::vector<CvUnit*> aGroupCargo;
-	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
-	while (pUnitNode != NULL)
+	std::vector<CvUnit const*> aGroupCargo;
+	for (CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
+		pUnitNode = plot()->nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = plot()->nextUnitNode(pUnitNode);
-		CvUnit* pTransport = pLoopUnit->getTransportUnit();
-		if (pTransport != NULL && pTransport->getGroup() == getGroup())
+		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data); // advc
+		CvUnit* pTransport = kLoopUnit.getTransportUnit();
+		if (pTransport == NULL || pTransport->getGroup() != getGroup())
+			continue; // advc
+
+		aGroupCargo.push_back(&kLoopUnit);
+		// K-Mod. Gather some data for later...
+		iLimitedAttackers += (kLoopUnit.combatLimit() < 100 ? 1 : 0);
+		iAmphibiousAttackers += (kLoopUnit.isAmphib() ? 1 : 0);
+
+		// Estimate attack strength, both for landed assaults and amphibious assaults.
+		//
+		/*  Unfortunately, we can't use AI_localAttackStrength because that may miscount
+			depending on whether there is another group on this plot and things like that,
+			and we can't use AI_sumStrength because that currently only works for groups.
+			What we have here is a list of cargo units rather than a group. */
+		if (!kLoopUnit.canAttack())
+			continue; // advc
+		//int iUnitStr = pLoopUnit->currEffectiveStr(NULL, NULL);
+		// advc.159: Also handles first strikes and coll. damage (code here deleted)
+		int iUnitStr = kLoopUnit.AI_currEffectiveStr(NULL, NULL, true, iCollateralDamageScale);
+		iLandedAttackStrength += iUnitStr;
+		if (kLoopUnit.combatLimit() >= 100 && kLoopUnit.canMove() &&
+			!kLoopUnit.isMadeAllAttacks()) // advc.164
 		{
-			aGroupCargo.push_back(pLoopUnit);
-			// K-Mod. Gather some data for later...
-			iLimitedAttackers += (pLoopUnit->combatLimit() < 100 ? 1 : 0);
-			iAmphibiousAttackers += (pLoopUnit->isAmphib() ? 1 : 0);
-
-			// Estimate attack strength, both for landed assaults and amphibious assaults.
-			//
-			// Unfortunately, we can't use AI_localAttackStrength because that may miscount
-			// depending on whether there is another group on this plot and things like that,
-			// and we can't use AI_sumStrength because that currently only works for groups.
-			// What we have here is a list of cargo units rather than a group.
-			if (pLoopUnit->canAttack())
+			if (!kLoopUnit.isAmphib())
 			{
-				int iUnitStr = pLoopUnit->currEffectiveStr(NULL, NULL);
-
-				iUnitStr *= 100 + 4 * pLoopUnit->firstStrikes() + 2 * pLoopUnit->chanceFirstStrikes();
-				iUnitStr /= 100;
-
-				if (pLoopUnit->collateralDamage() > 0)
-					iUnitStr += pLoopUnit->baseCombatStr() * iCollateralDamageScale * pLoopUnit->collateralDamage() * pLoopUnit->collateralDamageMaxUnits() / 10000;
-
-				iLandedAttackStrength += iUnitStr;
-
-				if (pLoopUnit->combatLimit() >= 100 && pLoopUnit->canMove() && (!pLoopUnit->isMadeAttack() || pLoopUnit->isBlitz()))
-				{
-					if (!pLoopUnit->isAmphib())
-						iUnitStr += iUnitStr * GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER) / 100;
-
-					iAmphibiousAttackStrength += iUnitStr;
-				}
+				// advc (note): The (BtS) modifier is negative
+				iUnitStr += iUnitStr * GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER) / 100;
 			}
-			// K-Mod end
+			iAmphibiousAttackStrength += iUnitStr;
 		}
+		// K-Mod end
 	}
 
 	int iFlags = MOVE_AVOID_ENEMY_WEIGHT_3 | MOVE_DECLARE_WAR; // K-Mod

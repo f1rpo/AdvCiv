@@ -2225,40 +2225,6 @@ const wchar* CvCity::getProductionName() const
 }
 
 
-int CvCity::getGeneralProductionTurnsLeft() const
-{
-	CLLNode<OrderData>* pOrderNode = headOrderQueueNode();
-
-	if (pOrderNode != NULL)
-	{
-		switch (pOrderNode->m_data.eOrderType)
-		{
-		case ORDER_TRAIN:
-			return getProductionTurnsLeft((UnitTypes)pOrderNode->m_data.iData1, 0);
-			break;
-
-		case ORDER_CONSTRUCT:
-			return getProductionTurnsLeft((BuildingTypes)pOrderNode->m_data.iData1, 0);
-			break;
-
-		case ORDER_CREATE:
-			return getProductionTurnsLeft((ProjectTypes)pOrderNode->m_data.iData1, 0);
-			break;
-
-		case ORDER_MAINTAIN:
-			return 0;
-			break;
-
-		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
-			break;
-		}
-	}
-
-	return 0;
-}
-
-
 const wchar* CvCity::getProductionNameKey() const
 {
 	CLLNode<OrderData>* pOrderNode = headOrderQueueNode();
@@ -2507,6 +2473,7 @@ int CvCity::getProductionNeeded(UnitTypes eUnit) const
 	return GET_PLAYER(getOwner()).getProductionNeeded(eUnit);
 }
 
+
 int CvCity::getProductionNeeded(BuildingTypes eBuilding) const
 {
 	int iProductionNeeded = GET_PLAYER(getOwner()).getProductionNeeded(eBuilding);
@@ -2526,35 +2493,34 @@ int CvCity::getProductionNeeded(ProjectTypes eProject) const
 	return GET_PLAYER(getOwner()).getProductionNeeded(eProject);
 }
 
-int CvCity::getProductionTurnsLeft() const
+/*  advc: Deleted. Did exactly the same thing as getProductionTurnsLeft below
+	except returning 0 instead of MAX_INT for processes. Was unused in the DLL.
+	Python export still in place (see CyCity.cpp). */
+/*int CvCity::getGeneralProductionTurnsLeft() const {
+	// ...
+	return 0;
+} */
+
+
+int CvCity::getProductionTurnsLeft() const  // advc: some style changes
 {
 	CLLNode<OrderData>* pOrderNode = headOrderQueueNode();
-
 	if (pOrderNode != NULL)
 	{
+		int iData = pOrderNode->m_data.iData1;
 		switch (pOrderNode->m_data.eOrderType)
 		{
 		case ORDER_TRAIN:
-			return getProductionTurnsLeft(((UnitTypes)(pOrderNode->m_data.iData1)), 0);
-			break;
-
+			return getProductionTurnsLeft((UnitTypes)iData, 0);
 		case ORDER_CONSTRUCT:
-			return getProductionTurnsLeft(((BuildingTypes)(pOrderNode->m_data.iData1)), 0);
-			break;
-
+			return getProductionTurnsLeft((BuildingTypes)iData, 0);
 		case ORDER_CREATE:
-			return getProductionTurnsLeft(((ProjectTypes)(pOrderNode->m_data.iData1)), 0);
-			break;
-
+			return getProductionTurnsLeft((ProjectTypes)iData, 0);
 		case ORDER_MAINTAIN:
 			break;
-
-		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
-			break;
+		default: FAssertMsg(false, "Unknown order type");
 		}
 	}
-
 	return MAX_INT;
 }
 

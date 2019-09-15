@@ -70,7 +70,7 @@ public:
 	int /*ProcessTypes*/ getProductionProcess();
 	std::wstring getProductionName();
 	std::wstring getProductionNameKey();
-	int getGeneralProductionTurnsLeft();
+	//int getGeneralProductionTurnsLeft(); // advc: redundant
 	bool isFoodProduction();
 	int getFirstUnitOrder(int /*UnitTypes*/ eUnit);
 	int getFirstProjectOrder(int /*ProjectTypes*/ eProject);

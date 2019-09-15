@@ -231,14 +231,6 @@ std::wstring CyCity::getProductionName()
 	return m_pCity ? m_pCity->getProductionName() : L"";
 }
 
-int CyCity::getGeneralProductionTurnsLeft()
-{
-	if(m_pCity == NULL)
-		return -1;
-	int r = m_pCity->getGeneralProductionTurnsLeft();
-	return (r == MAX_INT ? -1 : r); // advc.004x
-}
-
 std::wstring CyCity::getProductionNameKey()
 {
 	return m_pCity ? m_pCity->getProductionNameKey() : L"";

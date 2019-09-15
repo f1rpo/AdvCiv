@@ -1272,7 +1272,7 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 						/ (pDefender->isBarbarian() ? 2 : 1)); // advc.312
 				changeExperience(iExperience, pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(), !pDefender->isBarbarian());
 			}
-
+			GET_PLAYER(getOwner()).AI_attackMadeAgainst(*pDefender); // advc.139
 			break;
 		}
 	}
@@ -1746,7 +1746,7 @@ bool CvUnit::isActionRecommended(int iAction)
 			CvUnit* pUnit = ::getUnit(pNode->m_data);
 			if(pUnit != NULL)
 			{
-				bool bGlow = pUnit->isReadyForPromotion();
+				bool bGlow = pUnit->isPromotionReady();
 				gDLL->getEntityIFace()->showPromotionGlow(pUnit->getUnitEntity(), bGlow);
 			}
 		}
@@ -6145,12 +6145,7 @@ bool CvUnit::canPromote(PromotionTypes ePromotion, int iLeaderUnitId) const
 		}
 		return false;
 	}
-	else
-	{
-		if (!isReadyForPromotion()) // advc.002e
-			return false;
-	}
-	return true;
+	return isPromotionReady();
 }
 
 void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
@@ -6175,7 +6170,7 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 	if (!GC.getPromotionInfo(ePromotion).isLeader())
 	{
 		changeLevel(1);
-		changeDamage(-(getDamage() / 2));
+		changeDamage(-promotionHeal(ePromotion)); // advc: Heal moved into new function
 	}
 
 	setHasPromotion(ePromotion, true);
@@ -6193,6 +6188,15 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 
 	CvEventReporter::getInstance().unitPromoted(this, ePromotion);
 }
+/*  <advc> Extracted from 'promote' above.
+	Tbd.: Have any AI code that assumes HP from promotions call this.
+	Also: Should set the percentage through XML. */
+int CvUnit::promotionHeal(PromotionTypes ePromotion) const
+{
+	int iHealPercent = (ePromotion != NO_PROMOTION && GC.getPromotionInfo(ePromotion).isLeader() ?
+			0 : 50);
+	return (getDamage() * iHealPercent) / 100;
+} // </advc>
 
 bool CvUnit::lead(int iUnitId)
 {
@@ -7537,11 +7541,13 @@ int CvUnit::currFirepower(const CvPlot* pPlot, const CvUnit* pAttacker) const
 // this nomalizes str by firepower, useful for quick odds calcs
 // the effect is that a damaged unit will have an effective str lowered by firepower/maxFirepower
 // doing the algebra, this means we mulitply by 1/2(1 + currHP)/maxHP = (maxHP + currHP) / (2 * maxHP)
-int CvUnit::currEffectiveStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails) const
+int CvUnit::currEffectiveStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails,
+	int iCurrentHP) const // advc.139
 {
 	int currStr = currCombatStr(pPlot, pAttacker, pCombatDetails);
 
-	currStr *= (maxHitPoints() + currHitPoints());
+	currStr *= (maxHitPoints() + /* advc.139: */ (iCurrentHP > 0 ? iCurrentHP :
+			currHitPoints()));
 	currStr /= (2 * maxHitPoints());
 
 	return currStr;
@@ -10010,23 +10016,18 @@ void CvUnit::setMadeInterception(bool bNewValue)
 }
 
 /*  <advc.002e> Lying to the EXE seems to be the only way to stop it from
-	showing promotion glows after loading a savegame. isReadyForPromotion takes
-	over the calls from the DLL and Python.
+	showing promotion glow after loading a savegame.
 	The EXE also calls isPromotionReady when showing enemy moves. Should be OK
 	to show the glow on those only once the human turn starts (in CvPlayer::doWarnings). */
-bool CvUnit::isPromotionReady() const
+bool CvUnit::isPromotionReadyExternal() const
 {
-	return m_bPromotionReady && getBugOptionBOOL("PLE__ShowPromotionGlow", false);
-}
-
-bool CvUnit::isReadyForPromotion() const
-{
-	return m_bPromotionReady;
+	return isPromotionReady() && getBugOptionBOOL("PLE__ShowPromotionGlow", false);
 } // </advc.002e>
+
 
 void CvUnit::setPromotionReady(bool bNewValue)
 {
-	if(isReadyForPromotion() == bNewValue) // advc.002e
+	if(isPromotionReady() == bNewValue)
 		return;
 
 	m_bPromotionReady = bNewValue;

@@ -2037,9 +2037,10 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				still roam the map, the DefenceStrength computation will crash
 				when it gets to the point where the UnitCombatType is accessed.
 				(Actually, not so exotic b/c advc.300 allows animals to survive
-				in continents w/o civ cities). */
+				in continents w/o civ cities.) */
 			CvUnit* pUnit = kToPlot.getUnitByIndex(0);
-			if(pUnit != NULL && !pUnit->isAnimal()) { // </advc.001>
+			if(pUnit != NULL && !pUnit->isAnimal()) // </advc.001>
+			{
 				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).
 						AI_localDefenceStrength(&kToPlot, NO_TEAM,
 						pSelectionGroup->getDomainType(), 0, true, false,
