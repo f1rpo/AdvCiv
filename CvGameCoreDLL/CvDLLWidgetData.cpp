@@ -3541,68 +3541,68 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	CvWString szTempBuffer;
 	szTempBuffer.Format(L"");
 
-	//kPlayer.AI_getStrategyHash();
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER))
+	// advc.007: bDebug=true param added so that human strategies get shown as well
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER, true))
 	{
 		szTempBuffer.Format(L"Dagger, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_CRUSH))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_CRUSH, true))
 	{
 		szTempBuffer.Format(L"Crush, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT1))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT1, true))
 	{
 		szTempBuffer.Format(L"Alert1, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT2))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT2, true))
 	{
 		szTempBuffer.Format(L"Alert2, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE, true))
 	{
 		szTempBuffer.Format(L"Turtle, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_LAST_STAND, true))
 	{
 		szTempBuffer.Format(L"LastStand, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR, true))
 	{
 		szTempBuffer.Format(L"FinalWar, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS, true))
 	{
 		szTempBuffer.Format(L"GetBetterUnits, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_PRODUCTION, true))
 	{
 		szTempBuffer.Format(L"Production, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_MISSIONARY, true))
 	{
 		szTempBuffer.Format(L"Missionary, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE))
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE, true))
 	{
 		szTempBuffer.Format(L"BigEspionage, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS, true)) // K-Mod
 	{
 		szTempBuffer.Format(L"EconomyFocus, ");
 		szBuffer.append(szTempBuffer);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)) // K-Mod
+	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY, true)) // K-Mod
 	{
 		szTempBuffer.Format(L"EspionageEconomy, ");
 		szBuffer.append(szTempBuffer);
@@ -3880,7 +3880,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
 			{
-				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER)
+				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER, /* advc.007: */ true)
 					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)
 					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
 				{

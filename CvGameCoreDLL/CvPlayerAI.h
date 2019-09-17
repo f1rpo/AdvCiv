@@ -465,7 +465,7 @@ public:
 	int AI_getStrategyRand(int iShift) const;
 	// BETTER_BTS_AI_MOD: END
 	bool isCloseToReligiousVictory() const;
-	bool AI_isDoStrategy(int iStrategy) const;
+	bool AI_isDoStrategy(int iStrategy, /* advc.007: */ bool bDebug = false) const;
 
 	void AI_updateGreatPersonWeights(); // K-Mod
 	int AI_getGreatPersonWeight(UnitClassTypes eGreatPerson) const; // K-Mod

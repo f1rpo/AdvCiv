@@ -2336,88 +2336,88 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 			CvWString szTempBuffer;
 			CvPlayerAI const& kOwner = GET_PLAYER(pHeadGroup->getOwner());
 
-			//AI strategies
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER))
+			//AI strategies  // advc.007: bDebug=true added so that human strategies are displayed
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER, true))
 			{
 				szTempBuffer.Format(L"Dagger, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH, true))
 			{
 				szTempBuffer.Format(L"Crush, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1, true))
 			{
 				szTempBuffer.Format(L"Alert1, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2, true))
 			{
 				szTempBuffer.Format(L"Alert2, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE, true))
 			{
 				szTempBuffer.Format(L"Turtle, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND, true))
 			{
 				szTempBuffer.Format(L"Last Stand, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR, true))
 			{
 				szTempBuffer.Format(L"FinalWar, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS, true))
 			{
 				szTempBuffer.Format(L"GetBetterUnits, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_FASTMOVERS, true))
 			{
 				szTempBuffer.Format(L"FastMovers, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ, true))
 			{
 				szTempBuffer.Format(L"LandBlitz, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ, true))
 			{
 				szTempBuffer.Format(L"AirBlitz, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_OWABWNW))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_OWABWNW, true))
 			{
 				szTempBuffer.Format(L"OWABWNW, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_PRODUCTION, true))
 			{
 				szTempBuffer.Format(L"Production, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY, true))
 			{
 				szTempBuffer.Format(L"Missionary, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE))
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE, true))
 			{
 				szTempBuffer.Format(L"BigEspionage, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS, true)) // K-Mod
 			{
 				szTempBuffer.Format(L"EconomyFocus, ");
 				szString.append(szTempBuffer);
 			}
-			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)) // K-Mod
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY, true)) // K-Mod
 			{
 				szTempBuffer.Format(L"EspionageEconomy, ");
 				szString.append(szTempBuffer);
@@ -5102,7 +5102,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				false, true))); // advc.001n
 		szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)",
 				kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()),
-				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area())));
+				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area(),
+				true))); // advc.007
 		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)",
 				pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1,
 				pPlotCity->getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR),
@@ -5717,88 +5718,88 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 		szString.append(NEWLINE);
 
 		// BETTER_BTS_AI_MOD, Debug, 06/11/08, jdog5000: START
-		//AI strategies
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER))
+		//AI strategies  // advc.007: bDebug=true argument added
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER, true))
 		{
 			szTempBuffer.Format(L"Dagger, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH, true))
 		{
 			szTempBuffer.Format(L"Crush, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1, true))
 		{
 			szTempBuffer.Format(L"Alert1, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2, true))
 		{
 			szTempBuffer.Format(L"Alert2, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE, true))
 		{
 			szTempBuffer.Format(L"Turtle, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND, true))
 		{
 			szTempBuffer.Format(L"LastStand, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR, true))
 		{
 			szTempBuffer.Format(L"FinalWar, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS, true))
 		{
 			szTempBuffer.Format(L"GetBetterUnits, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_FASTMOVERS, true))
 		{
 			szTempBuffer.Format(L"FastMovers, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ, true))
 		{
 			szTempBuffer.Format(L"LandBlitz, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ, true))
 		{
 			szTempBuffer.Format(L"AirBlitz, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_OWABWNW))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_OWABWNW, true))
 		{
 			szTempBuffer.Format(L"OWABWNW, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_PRODUCTION, true))
 		{
 			szTempBuffer.Format(L"Production, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY, true))
 		{
 			szTempBuffer.Format(L"Missionary, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE))
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE, true))
 		{
 			szTempBuffer.Format(L"BigEspionage, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS, true)) // K-Mod
 		{
 			szTempBuffer.Format(L"EconomyFocus, ");
 			szString.append(szTempBuffer);
 		}
-		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)) // K-Mod
+		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY, true)) // K-Mod
 		{
 			szTempBuffer.Format(L"EspionageEconomy, ");
 			szString.append(szTempBuffer);

@@ -23598,9 +23598,10 @@ bool CvPlayerAI::isCloseToReligiousVictory() const
 	return GC.getGame().getVoteSourceReligion(eVS) == getStateReligion();
 }// </advc.115b>
 
-bool CvPlayerAI::AI_isDoStrategy(int iStrategy) const
+bool CvPlayerAI::AI_isDoStrategy(int iStrategy, /* advc.007: */ bool bDebug) const
 {
-	if (isHuman() || isBarbarian() || isMinorCiv() || !isAlive())
+	if (!isAlive() || isBarbarian() || isMinorCiv() ||
+			(isHuman() && /* advc.007: */ !bDebug))
 		return false;
 	return (iStrategy & AI_getStrategyHash());
 }
