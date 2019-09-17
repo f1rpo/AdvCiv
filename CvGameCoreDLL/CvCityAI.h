@@ -183,8 +183,8 @@ protected:
 	int* m_aiBestBuildValue;
 	int* m_aiPlayerCloseness;
 	// <advc> Made mutable (and made the cache accessor functions const)
-	mutable int m_iCachePlayerClosenessTurn;
-	mutable int m_iCachePlayerClosenessDistance;
+	mutable int* m_iCachePlayerClosenessTurn;
+	mutable int* m_iCachePlayerClosenessDistance;
 	mutable int m_iNeededFloatingDefenders;
 	mutable int m_iNeededFloatingDefendersCacheTurn; // </advc>
 

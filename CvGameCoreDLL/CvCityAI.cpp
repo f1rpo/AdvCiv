@@ -19,10 +19,17 @@ CvCityAI::CvCityAI()
 	m_pbEmphasize = new bool[GC.getNumEmphasizeInfos()]();
 	/*  (Could also declare these as arrays in CvCityAI.h, but would then have to
 		use loops to zero-initialize them) */
-	m_aiPlayerCloseness = new int[MAX_PLAYERS]();
 	m_aiEmphasizeYieldCount = new int[NUM_YIELD_TYPES]();
 	m_aiEmphasizeCommerceCount = new int[NUM_COMMERCE_TYPES]();
 	m_aiSpecialYieldMultiplier = new int[NUM_YIELD_TYPES]();
+	m_aiPlayerCloseness = new int[MAX_PLAYERS]();
+	// <advc.opt> Store closeness cache meta data for each player separately
+	m_iCachePlayerClosenessTurn = new int[MAX_PLAYERS];
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		m_iCachePlayerClosenessTurn[i] = -1;
+	m_iCachePlayerClosenessDistance = new int[MAX_PLAYERS];
+	for (int i = 0; i < MAX_PLAYERS; i++)
+		m_iCachePlayerClosenessDistance[i] = -1; // </advc.opt>
 	// (These two were declared as arrays, but it's neater to treat them all alike.)
 	m_aiBestBuildValue = new int[NUM_CITY_PLOTS];
 	for (int i = 0; i < NUM_CITY_PLOTS; i++)
@@ -39,8 +46,6 @@ CvCityAI::CvCityAI()
 	m_iEmphasizeGreatPeopleCount = 0;
 	m_iWorkersNeeded = 0;
 	m_iWorkersHave = 0;
-	m_iCachePlayerClosenessTurn = -1;
-	m_iCachePlayerClosenessDistance = -1;
 	m_iNeededFloatingDefenders = -1;
 	m_iNeededFloatingDefendersCacheTurn = -1;
 	m_iCityValPercent = 0; // advc.139
@@ -12097,8 +12102,9 @@ int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 	FAssert(GET_PLAYER(eIndex).isAlive());
 
 	int r = m_aiPlayerCloseness[eIndex];
-	if ((m_iCachePlayerClosenessTurn != GC.getGame().getGameTurn()
-			|| m_iCachePlayerClosenessDistance != iMaxDistance)) {
+	if ((m_iCachePlayerClosenessTurn[eIndex] != GC.getGame().getGameTurn()
+		|| m_iCachePlayerClosenessDistance[eIndex] != iMaxDistance))
+	{
 		r = AI_calculatePlayerCloseness(iMaxDistance,
 				eIndex, bConstCache); // advc.001n
 	}
@@ -12113,9 +12119,9 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc: some style 
 
 	int r = 0; // advc.001n
 	// BETTER_BTS_AI_MOD, General AI, closeness changes, 5/16/10, jdog5000: START
-	// <advc.001n> A little messy I'll admit
+	// <advc.opt> A little messy I'll admit
 	for (int iI = (ePlayer == NO_PLAYER ? 0 : ePlayer); iI <=
-			(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.001n>
+			(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.opt>
 	{
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (!kPlayer.isAlive() ||  !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
@@ -12167,16 +12173,15 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc: some style 
 				iTempValue /= (pLoopCity->isCoastal() ? 2 : 3); // </advc.107>
 			iValue += iTempValue;
 			iBestValue = std::max(iBestValue, iTempValue);
-		} // <advc.001n> (No change to the formula)
+		} // <advc.opt> (No change to the formula)
 		r = iBestValue + iValue / 4;
-		if(!bConstCache)
+		if(!bConstCache) // advc.001n
+		{
 			m_aiPlayerCloseness[iI] = r;
+			m_iCachePlayerClosenessTurn[ePlayer] = GC.getGame().getGameTurn();
+			m_iCachePlayerClosenessDistance[ePlayer] = iMaxDistance;
+		} // </advc.opt>
 	} // BETTER_BTS_AI_MOD: END
-	if(!bConstCache) // </advc.001n>
-	{
-		m_iCachePlayerClosenessTurn = GC.getGame().getGameTurn();
-		m_iCachePlayerClosenessDistance = iMaxDistance;
-	}
 	return r; // advc.001n
 }
 
@@ -12829,8 +12834,18 @@ void CvCityAI::read(FDataStreamBase* pStream)
 		pStream->Read((int*)&m_eBestBuild); // </advc.opt>
 	pStream->Read(GC.getNumEmphasizeInfos(), m_pbEmphasize);
 	pStream->Read(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
-	pStream->Read(&m_iCachePlayerClosenessTurn);
-	pStream->Read(&m_iCachePlayerClosenessDistance);
+	// <advc.opt>
+	if (uiFlag < 6)
+	{
+		int iTmp; // Discard old closeness cache meta data
+		pStream->Read(&iTmp);
+		pStream->Read(&iTmp);
+	}
+	else
+	{
+		pStream->Read(MAX_PLAYERS, m_iCachePlayerClosenessTurn);
+		pStream->Read(MAX_PLAYERS, m_iCachePlayerClosenessDistance);
+	} // </advc.opt>
 	pStream->Read(MAX_PLAYERS, m_aiPlayerCloseness);
 	pStream->Read(&m_iNeededFloatingDefenders);
 	pStream->Read(&m_iNeededFloatingDefendersCacheTurn);
@@ -12859,6 +12874,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	uiFlag = 3; // advc.139
 	uiFlag = 4; // advc.opt (m_eBestBuild)
 	uiFlag = 5; // advc.003u: Move m_bChooseProductionDirty to CvCity
+	uiFlag = 6; // advc.opt: Per-player meta data for closeness cache
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iEmphasizeAvoidGrowthCount);
@@ -12877,8 +12893,8 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_eBestBuild); // advc.opt
 	pStream->Write(GC.getNumEmphasizeInfos(), m_pbEmphasize);
 	pStream->Write(NUM_YIELD_TYPES, m_aiSpecialYieldMultiplier);
-	pStream->Write(m_iCachePlayerClosenessTurn);
-	pStream->Write(m_iCachePlayerClosenessDistance);
+	pStream->Write(/*<advc.opt>*/MAX_PLAYERS/*</advc.opt>*/, m_iCachePlayerClosenessTurn);
+	pStream->Write(/*<advc.opt>*/MAX_PLAYERS/*</advc.opt>*/, m_iCachePlayerClosenessDistance);
 	pStream->Write(MAX_PLAYERS, m_aiPlayerCloseness);
 	pStream->Write(m_iNeededFloatingDefenders);
 	pStream->Write(m_iNeededFloatingDefendersCacheTurn);
