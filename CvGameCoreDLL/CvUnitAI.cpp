@@ -1064,9 +1064,10 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 			20000 / std::pow(10000.0, exponent));
 	/*  Make the AI overestimate weak units a little bit on the low and medium difficulty settings.
 		(Not static b/c difficulty can change through load/ new game.) */
-	exponent -= GC.getHandicapInfo(GC.getGame().getHandicapType()).getFreeWinsVsBarbs() / 25.0;
+	double exponentAdjusted = exponent - GC.getHandicapInfo(
+			GC.getGame().getHandicapType()).getFreeWinsVsBarbs() / 25.0;
 	return std::min(20000, // Guard against overflow problems for caller
-			::round(std::pow((double)iCombatStrengthPercent, exponent) *
+			::round(std::pow((double)iCombatStrengthPercent, exponentAdjusted) *
 			normalizationFactor));
 } // </advc.159>
 
