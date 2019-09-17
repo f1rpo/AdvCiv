@@ -503,8 +503,8 @@ public:
 	int AI_getTotalAreaCityThreat(CvArea* pArea) const;
 	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
 			CvPlot* pCenter = NULL) const; // advc.081
-	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const;
-	int AI_getTotalFloatingDefenders(CvArea* pArea) const;
+	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
+			bool bDebug = false) const; // advc.007TotalFloatingDefenders(CvArea* pArea) const;
 	int AI_getTotalAirDefendersNeeded() const; // K-Mod
 
 	RouteTypes AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValue = NULL) const;

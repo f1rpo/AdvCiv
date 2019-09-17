@@ -25329,119 +25329,141 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bT
 }
 
 //this doesn't include the minimal one or two garrison units in each city.
-int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
+int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
+	bool bDebug) const // advc.007: For displaying the correct count for humans in Debug text
 {
-	//PROFILE_FUNC(); // advc.003o
-
-	int iAreaCities = pArea->getCitiesPerPlayer(getID());
-	int iCurrentEra = getCurrentEra();
-	CvGame const& g = GC.getGame(); // advc
-	iCurrentEra = std::max(0, iCurrentEra - g.getStartEra() / 2);
-	/* original bts code
-	iDefenders = 1 + ((iCurrentEra + ((g.getMaxCityElimination() > 0) ? 3 : 2)) * iAreaCities);
+	PROFILE_FUNC();
+	// <advc>
+	FAssert(!isBarbarian());
+	CvGame const& g = GC.getGame();
+	AreaAITypes const eAreaAI = pArea->getAreaAIType(getTeam()); // advc
+	/*iDefenders = 1 + ((iCurrentEra + ((g.getMaxCityElimination() > 0) ? 3 : 2)) * iAreaCities);
 	iDefenders /= 3;
-	iDefenders += pArea->getPopulationPerPlayer(getID()) / 7; */
-	// K-Mod
-	int iDefenders = 1 + iAreaCities + AI_totalAreaUnitAIs(pArea, UNITAI_SETTLE);
-	iDefenders += pArea->getPopulationPerPlayer(getID()) / 7;
-	if (AI_isLandWar(pArea))
-		iDefenders += 1 + (2+GET_TEAM(getTeam()).countEnemyCitiesByArea(pArea))/3;
-	iDefenders *= iCurrentEra + (g.getMaxCityElimination() > 0 ? 3 : 2);
-	iDefenders /= 3;
+	iDefenders += pArea->getPopulationPerPlayer(getID()) / 7;*/ // BtS
+	// K-Mod  // advc.107: Use times-1000 precision
+	int const iCityFactor = ::round(1000 *
+			// Don't quite want floating defenders to increase linearly with the number of cities
+			std::pow((double)pArea->getCitiesPerPlayer(getID()), 0.85));
+	int iDefendersPermil = iCityFactor;
+	iDefendersPermil += 1000 * (1 + AI_totalAreaUnitAIs(pArea, UNITAI_SETTLE));
+	iDefendersPermil += (1000 * pArea->getPopulationPerPlayer(getID())) / 8; // advc.107: was /7 (but rounding loss was much higher)
+	if (AI_isLandWar(pArea) /* advc.107: */ && AI_isFocusWar(pArea))
+	{
+		int iEnemyCityFactor = 1000 * GET_TEAM(getTeam()).countEnemyCitiesByArea(pArea);
+		// advc.107:
+		iEnemyCityFactor = std::min(iEnemyCityFactor, (2 * iCityFactor) / 3);
+		iDefendersPermil += 1000 + // (2000 +
+				/*  advc.107: Want to focus on aggressive build-up while preparing.
+					Can still train some extra defenders once war is imminent. */
+				((!GET_TEAM(getTeam()).AI_isSneakAttackPreparing() ? 0 : 2000) +
+				iEnemyCityFactor) / 3;
+	}
+	int const iEra = std::max(0, getCurrentEra() - g.getStartEra() / 2);
+	iDefendersPermil *= iEra + (g.getMaxCityElimination() > 0 ? 5 : 4); // advc.107: was 3:2
+	iDefendersPermil /= 6; // advc.107: was /=3
 	// K-Mod end
 
-	if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
+	if (eAreaAI == AREAAI_DEFENSIVE)
 	{
 		//iDefenders *= 2;
 		// <advc.107>
-		iDefenders *= 3;
-		iDefenders /= 2;
+		iDefendersPermil *= 3;
+		iDefendersPermil /= 2;
 		// </advc.107>
 	}
 	else
 	{
-		if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
-			iDefenders *= 2;
-		else if (AI_isDoStrategy(AI_STRATEGY_ALERT1))
+		if (AI_isDoStrategy(AI_STRATEGY_ALERT2, /* advc.007: */ bDebug))
 		{
-			iDefenders *= 3;
-			iDefenders /= 2;
+			//iDefendersPermil *= 2;  // <advc.107>
+			iDefendersPermil *= 5;
+			iDefendersPermil /= 3; // </advc.107>
+		}
+		else if (AI_isDoStrategy(AI_STRATEGY_ALERT1, /* advc.007: */ bDebug))
+		{
+			iDefendersPermil *= 3;
+			iDefendersPermil /= 2;
 		}
 		//else // advc.022: Allow AreaAI to cancel out alertness
-		if (pArea->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE)
+		if (eAreaAI == AREAAI_OFFENSIVE)
 		{
-			iDefenders *= 2;
-			iDefenders /= 3;
+			iDefendersPermil *= 2;
+			iDefendersPermil /= 3;
 		}
-		else if (pArea->getAreaAIType(getTeam()) == AREAAI_MASSING)
-		{	// bbai
-			if (GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) <
-					(10 + GC.getLeaderHeadInfo(getPersonalityType()).
-					getMaxWarNearbyPowerRatio()))
+		else if (eAreaAI == AREAAI_MASSING)
+		{
+			if (GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) < // bbai
+				10 + GC.getLeaderHeadInfo(getPersonalityType()).getMaxWarNearbyPowerRatio())
 			{
-				iDefenders *= 2;
-				iDefenders /= 3;
+				iDefendersPermil *= 2;
+				iDefendersPermil /= 3;
 			}
 		}
 	}
 
-	if (AI_getTotalAreaCityThreat(pArea) == 0)
-		iDefenders /= 2;
+	/*if (AI_getTotalAreaCityThreat(pArea) == 0)
+		iDefendersPermil /= 2;*/
+	/*  <advc.107> Faster. Not per-area, but I don't much have confidence in
+		AI_getTotalAreaCityThreat==0 identifying safe areas either. */
+	if (AI_feelsSafe())
+		iDefendersPermil = (2 * iDefendersPermil) / 5; // </advc.107>
 
-	// advc.107: Don't want even more rounding artifacts
-	double mod = 1;
 	if (!g.isOption(GAMEOPTION_AGGRESSIVE_AI))
-	{	/*iDefenders *= 2;
-		iDefenders /= 3;*/
-		mod *= (2/3.0); // advc.107: Replacing the above
-	} /* <advc.107> Fewer defenders on low difficulty, more on high difficulty.
-		 Times 0.95 b/c I don't actually want more defenders on moderately high
-		 difficulty. Replacing the two lines under the Culture victory check. */
-	mod /= ::dRange(trainingModifierFromHandicap() * 0.95, 0.75, 1.5);
-	iDefenders = ::round(mod * iDefenders); // </advc.107>
+	{
+		iDefendersPermil *= 2;
+		iDefendersPermil /= 3;
+	}
 
 	// BBAI: Removed AI_STRATEGY_GET_BETTER_UNITS reduction, it was reducing defenses twice
 
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
 	{
-		iDefenders += 2 * iAreaCities;
-		if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE
+		iDefendersPermil += (3 * iCityFactor) / 2; // advc.107: instead of +=2*iCityFactor
+		if (eAreaAI == AREAAI_DEFENSIVE
 			&& AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)) // K-Mod
 		{
-			iDefenders *= 2; //go crazy
+			iDefendersPermil *= 2; //go crazy
 		}
 	}
-	/*  advc.107: Replaced by the trainingModifierFromHandicap call above, which
-		takes into account the progressive AI modifier as well. */
-	/*iDefenders *= 60;
-	iDefenders /= std::max(30, (GC.getHandicapInfo(g.getHandicapType()).getAITrainPercent() - 20));*/
-
-	// <advc.107> Replacing code below (extra defenses vs. Raging Barbarians)
+	/*iDefendersPermil *= 60;
+	iDefendersPermil /= std::max(30, (GC.getHandicapInfo(g.getHandicapType()).getAITrainPercent() - 20));*/
+	/*  <advc.107> Replacing the above, which doesn't take into account the
+		progressive AI discounts. Fewer defenders on low difficulty, more on
+		high difficulty. Times 0.95 for normalization. */
+	iDefendersPermil = ::round((iDefendersPermil * 0.95) /
+			::dRange(trainingModifierFromHandicap(), 0.75, 1.5));
+	// Replacing code below (extra defenses vs. Raging Barbarians)
 	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
 		!GC.getEraInfo(getCurrentEra()).isNoBarbUnits())
 	{
 		int iStartEra = g.getStartEra();
 		if(g.getCurrentEra() <= 1 + iStartEra)
-			iDefenders += 1 + iStartEra;
+			iDefendersPermil += 1000 * (1 + iStartEra);
 	}
-	/*if ((iCurrentEra < 3) && (GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)))
-		iDefenders += 2;*/ // </advc.107>
+	/*if (iEra < 3 && GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS))
+		iDefendersPermil += 2;*/ // </advc.107>
 
 	if (getCapitalCity() != NULL && getCapitalCity()->area() != pArea)
-	{	//Defend offshore islands only lightly.
+	{
+		// Defend offshore islands only lightly.
+		int iUpperBound = ((iCityFactor * iCityFactor) / 1000 - 1000);
+		//iDefendersPermil = std::min(iDefendersPermil, iUpperBound);
 		// UNOFFICIAL_PATCH, Bugfix, War tactics AI, 01/23/09, jdog5000: START
-		/* original BTS code
-		iDefenders = std::min(iDefenders, iAreaCities * iAreaCities - 1);*/
 		// Lessen defensive requirements only if not being attacked locally
-		if (pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
-		{	// This may be our first city captured on a large enemy continent, need defenses to scale up based
-			// on total number of area cities not just ours
-			iDefenders = std::min(iDefenders, iAreaCities * iAreaCities + pArea->getNumCities() - iAreaCities - 1);
-		}
-		// UNOFFICIAL_PATCH: END
+		/*  This may be our first city captured on a large enemy continent,
+			need defenses to scale up based on total number of area cities,
+			not just ours. */
+		if (//eAreaAI != AREAAI_DEFENSIVE
+			// advc.107: Check if we actually have plans to expand our presence
+			eAreaAI == AREAAI_OFFENSIVE || eAreaAI == AREAAI_MASSING)
+		{
+			iUpperBound += 1000 * (pArea->getNumCities() - pArea->getCitiesPerPlayer(getID()));
+		} // UNOFFICIAL_PATCH: END
+		// advc.107: Apply an upper bound in any case!
+		iDefendersPermil = std::min(iDefendersPermil, iUpperBound);
 	}
 
-	return iDefenders;
+	return iDefendersPermil / 1000;
 }
 
 int CvPlayerAI::AI_getTotalFloatingDefenders(CvArea* pArea) const
