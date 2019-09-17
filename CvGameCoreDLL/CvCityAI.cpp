@@ -13,7 +13,7 @@
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 
-CvCityAI::CvCityAI()
+CvCityAI::CvCityAI() // advc.003u: Merged with AI_reset
 {
 	FAssert(GC.getNumEmphasizeInfos() > 0);
 	m_pbEmphasize = new bool[GC.getNumEmphasizeInfos()]();
@@ -12260,7 +12260,14 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 			// This evaluation may be expensive (when I finish writing it), so only do it if there is reason to be concerned.
 			if (kOwner.AI_isDoVictoryStrategyLevel4() ||
 				GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN ||
-				(!kOwner.AI_isLandWar(area()) && kLoopPlayer.AI_getAttitude(getOwner()) < ATTITUDE_PLEASED))
+				(!kOwner.AI_isLandWar(area()) &&
+				//kLoopPlayer.AI_getAttitude(getOwner()) < ATTITUDE_PLEASED))
+				/*  <advc.109> Don't presume human attitude. Using PLEASED as the
+					AI threshold (instead of calling CvTeamAI::AI_isAvoidWar)
+					seems OK as the AI tends to be reluctant to start naval wars. */
+				((kLoopPlayer.isHuman() && kOwner.AI_getAttitude(kLoopPlayer.getID()) < ATTITUDE_FRIENDLY) ||
+				(!kLoopPlayer.isHuman() && kLoopPlayer.AI_getAttitude(getOwner()) < ATTITUDE_PLEASED))))
+				// </advc.109>
 			{
 				int iNavalAccess = 0;
 
@@ -12295,13 +12302,12 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 			else
 			{	// <advc.022>
 				AttitudeTypes eTowardThem = kOwner.AI_getAttitude(kLoopPlayer.getID());
-				AttitudeTypes eTowardUs = kLoopPlayer.AI_getAttitude(kOwner.getID());
+				AttitudeTypes eTowardUs = kLoopPlayer.AI_getAttitude(kOwner.getID(), true, false);
 				// Humans like us at most as much as we like them
 				if(kLoopPlayer.isHuman())
 				{
 					if(eTowardThem < eTowardUs)
 						eTowardUs = eTowardThem;
-					// Normally humans are at best Cautious (see advc.130u)
 					if(eTowardThem >= ATTITUDE_FRIENDLY)
 						eTowardUs = ATTITUDE_PLEASED;
 				}

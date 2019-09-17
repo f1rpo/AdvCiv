@@ -2112,9 +2112,9 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 			r -= pop;
 			continue;
 		}
-		/*  Friendly rivals as 80% supportive b/c relations may soon sour, and b/c
-			t may like the counter candidate even better */
-		if(t.AI_getAttitude(agentId) >= ATTITUDE_FRIENDLY) {
+		/*  Count Friendly rivals as 80% supportive b/c relations may soon sour,
+			and b/c the rival may like the counter candidate even better. */
+		if(!t.isHuman() && t.AI_getAttitude(agentId) >= ATTITUDE_FRIENDLY) {
 			votesFromOthers += (4 * pop) / 5.0;
 			continue;
 		}

@@ -209,8 +209,10 @@ public:
 	void AI_updateAttitudeCache(PlayerTypes ePlayer,		// K-Mod
 			bool bUpdateWorstEnemy = true); // advc.130e
 	void AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange); // K-Mod
-	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const;		// Exposed to Python
-	int AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced = true) const;
+	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true,		// Exposed to Python
+			bool bAssertNonHuman = true) const; // advc.130u
+	int AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced = true,
+			bool bAssertNonHuman = true) const; // advc.130u
 	static AttitudeTypes AI_getAttitudeFromValue(int iAttitudeVal);
 
 	int AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
@@ -504,7 +506,8 @@ public:
 	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
 			CvPlot* pCenter = NULL) const; // advc.081
 	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
-			bool bDebug = false) const; // advc.007TotalFloatingDefenders(CvArea* pArea) const;
+			bool bDebug = false) const; // advc.007
+	int AI_getTotalFloatingDefenders(CvArea* pArea) const;
 	int AI_getTotalAirDefendersNeeded() const; // K-Mod
 
 	RouteTypes AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValue = NULL) const;
@@ -551,7 +554,7 @@ public:
 
 	int AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly = true) const; // K-Mod
 
-	int AI_getAttitudeWeight(PlayerTypes ePlayer) const;
+	int AI_getAttitudeWeight(PlayerTypes ePlayer, /* advc.130u: */ bool bAssertNonHuman = true) const;
 
 	ReligionTypes AI_chooseReligion();
 

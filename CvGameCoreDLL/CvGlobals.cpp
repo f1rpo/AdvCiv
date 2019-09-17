@@ -1136,8 +1136,6 @@ int CvGlobals::getTypesEnum(const char* szType, /* advc.006: */ bool bHideAssert
 		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
 		CvString szError;
 		szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
-		//FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, szError.c_str());
-		// advc.006: Adding an assert (the one above was already commented out)
 		FAssertMsg(false, szError.c_str());
 		gDLL->logMsg("xml.log", szError);
 	}

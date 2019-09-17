@@ -99,8 +99,13 @@ int WarUtilityAspect::evaluate(PlayerTypes theyId) {
 	this->theyId = theyId;
 	they = &(GET_PLAYER(theyId));
 	theyAI = &they->warAndPeaceAI();
-	valTowardsThem = we->AI_getAttitudeVal(theyId);
-	valTowardsUs = they->AI_getAttitudeVal(weId);
+	/*  Should never use human attitude, but using an error value like MIN_INT
+		wouldn't help here. Better to use a sane value (0 -> Cautious). */
+	valTowardsUs = (they->isHuman() ? 0 : they->AI_getAttitudeVal(weId));
+	/*  If we're human, it can mean that another AI civ is evaluating war from
+		the point of view of a human rival. Should therefore also disregard
+		our attitude. */
+	valTowardsThem = (we->isHuman() ? 0 : we->AI_getAttitudeVal(theyId));
 	/*  In the very early game, war preparations take a long time, and diplo
 		will often improve during that time b/c of "years of peace". If this
 		brings attitude to Pleased, the war is usually off, and the preparations
@@ -108,21 +113,21 @@ int WarUtilityAspect::evaluate(PlayerTypes theyId) {
 		not considered here). Need to anticipate the change in attitude. */
 	/*  No worries once preparations are well underway or when asked to
 		declare war immediately (or when already at war) */
-	if(params.getPreparationTime() > 5 && GC.getGame().
-			gameTurnProgress() < 0.18 &&
+	if(!we->isHuman() && params.getPreparationTime() > 5 &&
+			GC.getGame().gameTurnProgress() < 0.18 &&
 			we->AI_getPeaceAttitude(theyId) == 0 &&
 			agent.AI_getAtPeaceCounter(TEAMID(theyId)) >
 			GC.getLeaderHeadInfo(we->getPersonalityType()).
 			getAtPeaceAttitudeDivisor() / 2)
 		valTowardsThem++;
-	towardsThem = we->AI_getAttitudeFromValue(valTowardsThem);
+	towardsThem = (we->isHuman() ? ATTITUDE_CAUTIOUS : we->AI_getAttitudeFromValue(valTowardsThem));
 	/*  advc.130o: If recently received tribute, we're pleased as far
 		as war plans go. */
-	if(!params.isConsideringPeace() &&
+	if(!we->isHuman() && !params.isConsideringPeace() &&
 			we->AI_getMemoryCount(theyId, MEMORY_ACCEPT_DEMAND) > 0 &&
 			they->AI_getMemoryCount(weId, MEMORY_MADE_DEMAND_RECENT) > 0)
 		towardsThem = std::max(towardsThem, ATTITUDE_PLEASED);
-	towardsUs = they->AI_getAttitudeFromValue(valTowardsUs);
+	towardsUs = (they->isHuman() ? ATTITUDE_CAUTIOUS : they->AI_getAttitudeFromValue(valTowardsUs));
 	for(iSetIt it = m->conqueredCities(weId).begin();
 			it != m->conqueredCities(weId).end();
 			it++)
@@ -384,7 +389,8 @@ double WarUtilityAspect::partnerUtilFromTech() {
 	// How good our and their attitude needs to be at least to allow tech trade
 	AttitudeTypes ourThresh = techRefuseThresh(weId),
 				  theirThresh = techRefuseThresh(theyId);
-	if(towardsThem < ourThresh || towardsUs < theirThresh) {
+	if(!they->isHuman() && !we->isHuman() &&
+			(towardsThem < ourThresh || towardsUs < theirThresh)) {
 		log("No tech trade b/c of attitude");
 		return 0;
 	}
@@ -983,6 +989,8 @@ Loathing::Loathing(WarEvalParameters& params)
 void Loathing::evaluate() {
 
 	PROFILE_FUNC();
+	if (we->isHuman())
+		return;
 	/*  Only count this if at war with them? No, that could lead to us joining
 		a war despite not contributing anything to their losses.
 		Can't tell who causes their losses. */
@@ -1452,9 +1460,11 @@ double MilitaryVictory::progressRatingDiplomacy() {
 void MilitaryVictory::addConquestsByPartner(map<int,double>& r,
 		AttitudeTypes attThresh, double weight) {
 
-	// Humans won't vote for us unless vassal'd
-	if((GET_TEAM(theyId).isHuman() && !GET_TEAM(theyId).isVassal(agentId)) ||
-			towardsUs < attThresh)
+	if(GET_TEAM(theyId).isHuman()) { // Humans won't vote for us unless vassal'd
+		if(!GET_TEAM(theyId).isVassal(agentId))
+			return;
+	}
+	else if(towardsUs < attThresh)
 		return;
 	set<int> const& conq = m->conqueredCities(theyId);
 	for(iSetIt it = conq.begin(); it != conq.end(); it++) {
@@ -1501,7 +1511,7 @@ void Assistance::evaluate() {
 			m->getWarsDeclaredOn(weId).count(theyId) > 0)
 		return;
 	// Shared-war bonus handled under SuckingUp
-	if((we->isHuman() && towardsUs < ATTITUDE_CAUTIOUS) ||
+	if((we->isHuman() && (they->isHuman() || towardsUs < ATTITUDE_CAUTIOUS)) ||
 			(!we->isHuman() && towardsThem < ATTITUDE_PLEASED))
 		return;
 	double assistRatio = assistanceRatio();
@@ -1899,8 +1909,10 @@ void SuckingUp::evaluate() {
 			// Don't bet on a loser
 			m->lostCities(theyId).size() > m->conqueredCities(theyId).size() ||
 			g.getPlayerScore(weId) * 6 > g.getPlayerScore(theyId) * 10 ||
-			valTowardsUs <= -7 || // Hopeless case
-			valTowardsUs >= 14) // No need to improve relations further
+			// Hopeless case:
+			valTowardsUs <= GC.getDefineINT(CvGlobals::RELATIONS_THRESH_FURIOUS) + 1 ||
+			// No need to improve relations further:
+			100 * valTowardsUs >= 140 * GC.getDefineINT(CvGlobals::RELATIONS_THRESH_FRIENDLY))
 		return;
 	/*  If they don't need the assist or if we don't actually fight, there'll
 		be no diplo bonus. The 10*nCities threshold is very arbitrary. */
@@ -2666,7 +2678,8 @@ int IllWill::preEvaluate() {
 	int hostiles = 0;
 	for(size_t i = 0; i < properCivs.size(); i++)
 		if(properCivs[i] != weId && (m->isWar(weId, properCivs[i]) ||
-				GET_PLAYER(properCivs[i]).AI_getAttitude(weId) <= ATTITUDE_ANNOYED))
+				(!GET_PLAYER(properCivs[i]).isHuman() &&
+				GET_PLAYER(properCivs[i]).AI_getAttitude(weId) <= ATTITUDE_ANNOYED)))
 			hostiles++;
 	int partners = numKnownRivals - hostiles;
 	altPartnerFactor = std::sqrt(1.0 / std::max(1, partners - 3));
@@ -2706,7 +2719,9 @@ void IllWill::evaluate() {
 
 double IllWill::nukeCost(double nukes) {
 
-	if(they->isHuman() || valTowardsUs > 12 || towardsUs <= ATTITUDE_FURIOUS ||
+	if(they->isHuman() || 100 * valTowardsUs >
+			120 * GC.getDefineINT(CvGlobals::RELATIONS_THRESH_FRIENDLY) ||
+			towardsUs <= ATTITUDE_FURIOUS ||
 			towardsThem <= ATTITUDE_FURIOUS)
 		return 0;
 	double r = 0;
@@ -2739,7 +2754,8 @@ void IllWill::evalLostPartner() {
 	double diploFactor = 0.7;
 	if(!they->isHuman()) {
 		if(!theyCapit && (towardsUs <= ATTITUDE_FURIOUS ||
-				towardsThem <= ATTITUDE_FURIOUS || // Takes two to tango
+				// Takes two to tango
+				(!we->isHuman() && towardsThem <= ATTITUDE_FURIOUS) ||
 				// If not Furious now, this may do it:
 				m->getWarsDeclaredBy(weId).count(theyId) > 0))
 			diploFactor += 0.3;
@@ -2813,13 +2829,15 @@ void IllWill::evalRevenge() {
 		revengeCost += 4;
 	powRatio = ::dRange(powRatio - 1, 0.0, 1.0);
 	double attitudeMultiplier = 1;
-	if(towardsUs <= ATTITUDE_FURIOUS)
+	if (they->isHuman())
+		attitudeMultiplier = 0.67;
+	else if(towardsUs <= ATTITUDE_FURIOUS)
 		attitudeMultiplier = 0.2;
 	else if(towardsUs == ATTITUDE_ANNOYED)
 		attitudeMultiplier = 0.5;
 	else if(towardsUs == ATTITUDE_CAUTIOUS)
 		attitudeMultiplier = 0.85;
-	revengeCost += powRatio * (they->isHuman() ? 24 : 28) * attitudeMultiplier;
+	revengeCost += powRatio * 28 * attitudeMultiplier;
 	if(revengeCost > 0.5)
 		log("Cost for possible revenge: %d (attitude mult.: %d percent)",
 				::round(revengeCost), ::round(attitudeMultiplier * 100));
@@ -2852,7 +2870,8 @@ double IllWill::powerRatio() { // theirs divided by ours
 void IllWill::evalAngeredPartners() {
 
 	if(they->isHuman() || m->isWar(weId, theyId) ||
-			valTowardsUs > 12 || // Nothing can alienate them
+			// If nothing can alienate them
+			100 * valTowardsUs > 120 * GC.getDefineINT(CvGlobals::RELATIONS_THRESH_FRIENDLY) ||
 			they->getTeam() == agentId)
 		return;
 	// 2 only for Gandhi; else 1
@@ -2890,7 +2909,7 @@ void IllWill::evalAngeredPartners() {
 		mostly about trading, and trading becomes less relevant in the lategame. */
 	double diploWeight = 1 + (weAI->diploWeight() - 1) * weAI->amortizationMultiplier();
 	// The bad diplo hurts us, but our anger at theyId is difficult to contain.
-	if(towardsThem <= ATTITUDE_FURIOUS)
+	if(!we->isHuman() && towardsThem <= ATTITUDE_FURIOUS)
 		diploWeight /= 2;
 	/*  We've actually one partner less b/c we're considering alternatives to a
 		partner that (probably) isn't counted by preEvaluate as hostile. */
@@ -3265,6 +3284,8 @@ UlteriorMotives::UlteriorMotives(WarEvalParameters& params) :
 
 void UlteriorMotives::evaluate() {
 
+	if (we->isHuman())
+		return;
 	/*  Difference between ourCache->sponsorAgainst(TeamTypes t) and
 		params.getSponsor (returns t):
 		The former tells us that our war against t has been sponsored; so, we've

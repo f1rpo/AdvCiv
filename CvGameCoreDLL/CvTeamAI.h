@@ -71,8 +71,10 @@ public:
 	bool AI_shareWar(TeamTypes eTeam) const;								// Exposed to Python
 	 // advc, advc.130e:
 	void AI_updateAttitudeCache(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
-	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
-	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
+	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true,
+			bool bAssertNonHuman = true) const; // advc.130u
+	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true,
+			bool bAssertNonHuman = true) const; // advc.130u
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
 	// <advc>
 	void AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool bPrimaryDoW,
@@ -257,7 +259,7 @@ public:
 	int AI_makePeaceRand() const;
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
 	// <advc.104y>
-	int AI_noWarProbAdjusted(TeamTypes eOther) const;
+	int AI_noWarProbAdjusted(TeamTypes eOther, /* advc.130u: */ bool bAssertNonHuman = true) const;
 	bool AI_isAvoidWar(TeamTypes eOther) const; // </advc.104y>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	// advc.012:

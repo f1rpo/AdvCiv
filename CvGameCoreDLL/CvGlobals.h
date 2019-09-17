@@ -4,7 +4,7 @@
 
 #ifndef CIV4_GLOBALS_H
 #define CIV4_GLOBALS_H
-// advc.003t: Disable warnings about unknown pragma
+// advc.003t: Disable warnings about unknown pragma (VS2010 knows pragma region, MSVC03 apparently does not)
 #pragma warning(disable:4068)
 
 // K-Mod. Created the following function for rounded integer division
@@ -18,7 +18,7 @@ static inline int ROUND_DIVIDE(int a, int b)
 // 'global' vars for Civ IV.  singleton class.
 // All globals and global types should be contained in this class
 //
-
+#pragma region ForwardDeclarations
 class FProfiler;
 class CvDLLUtilityIFaceBase;
 class CvPythonCaller; // advc.003y
@@ -139,7 +139,7 @@ class CvEspionageMissionInfo;
 class CvUnitArtStyleTypeInfo;
 class CvVoteSourceInfo;
 class CvMainMenuInfo;
-
+#pragma endregion ForwardDeclarations
 
 class CvGlobals
 {
@@ -1366,6 +1366,12 @@ public:
 		DO(RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER) /* advc.156 */ \
 		DO(WORKER_RESERVE_PERCENT) /* advc.113 */ \
 		DO(CITY_DEFENSE_DAMAGE_HEAL_RATE) /* cdtw.2 */ \
+		/* <advc.148> */ \
+		DO(RELATIONS_THRESH_FRIENDLY) \
+		DO(RELATIONS_THRESH_PLEASED) \
+		DO(RELATIONS_THRESH_FURIOUS) \
+		DO(RELATIONS_THRESH_ANNOYED) \
+		/* </advc.148> */ \
 		/* <advc.opt> */ \
 		DO(DIPLOMACY_VALUE_REMAINDER) \
 		DO(PEACE_TREATY_LENGTH) \
@@ -1599,6 +1605,7 @@ public:
 	DllExport void SetGraphicsInitialized(bool bVal);
 
 	// for caching
+#pragma region ReadInfoArrays
 	DllExport bool readBuildingInfoArray(FDataStreamBase* pStream);
 	DllExport void writeBuildingInfoArray(FDataStreamBase* pStream);
 
@@ -1637,10 +1644,9 @@ public:
 
 	DllExport bool readEventTriggerInfoArray(FDataStreamBase* pStream);
 	DllExport void writeEventTriggerInfoArray(FDataStreamBase* pStream);
+#pragma endregion ReadInfoArrays
 
-	//
-	// additional accessors for initting globals
-	//
+	// additional accessors for initializing globals ...
 
 	DllExport void setInterface(CvInterface* pVal);
 	DllExport void setDiplomacyScreen(CvDiplomacyScreen* pVal);
@@ -1760,7 +1766,7 @@ protected:
 	typedef stdext::hash_map<std::string /* type string */, int /* info index */> InfosMap;
 	InfosMap m_infosMap;
 	std::vector<std::vector<CvInfoBase *> *> m_aInfoVectors;
-
+#pragma region InfoVectors
 	std::vector<CvColorInfo*> m_paColorInfo;
 	std::vector<CvPlayerColorInfo*> m_paPlayerColorInfo;
 	std::vector<CvAdvisorInfo*> m_paAdvisorInfo;
@@ -1864,7 +1870,7 @@ protected:
 	std::vector<CvEventInfo*> m_paEventInfo;
 	std::vector<CvEspionageMissionInfo*> m_paEspionageMissionInfo;
 	std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleTypeInfo;
-
+#pragma endregion InfoVectors
 	// Game Text
 	std::vector<CvGameText*> m_paGameTextXML;
 
@@ -1896,11 +1902,8 @@ protected:
 	int m_iNumCitySizeTypes;
 
 	CvString *m_paszContactTypes;
-
 	CvString *m_paszDiplomacyPowerTypes;
-
 	CvString *m_paszAutomateTypes;
-
 	CvString *m_paszDirectionTypes;
 
 	CvString *m_paszFootstepAudioTypes;

@@ -2128,7 +2128,11 @@ bool CyPlayer::AI_demandRebukedWar(int /*PlayerTypes*/ ePlayer)
 
 AttitudeTypes CyPlayer::AI_getAttitude(int /*PlayerTypes*/ ePlayer)
 {
-	return m_pPlayer ? m_pPlayer->AI_getAttitude((PlayerTypes)ePlayer) : NO_ATTITUDE;
+	return (m_pPlayer == NULL ? NO_ATTITUDE :m_pPlayer->AI_getAttitude((PlayerTypes)ePlayer,
+			/*  advc.130u: There's no good reason for non-Debug Python code to compute
+				the AI attitude of human players, but an assertion doesn't help much -
+				can't trace the origin of the Python call. */
+			true, /*bAssertNonHuman*/false));
 }
 
 int CyPlayer::AI_unitValue(int /*UnitTypes*/ eUnit, int /*UnitAITypes*/ eUnitAI, CyArea* pArea)
