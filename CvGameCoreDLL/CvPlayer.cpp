@@ -9745,8 +9745,11 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		{	// K-Mod. Attitude cache
 			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 			{
-				GET_PLAYER(i).AI_updateAttitudeCache(getID());
-				AI().AI_updateAttitudeCache(i);
+				/*GET_PLAYER(i).AI_updateAttitudeCache(getID());
+				AI().AI_updateAttitudeCache(i);*/
+				/*  advc.001: E.g. AI_getRankDifferenceAttitude can change between
+					any two civs. */
+				GET_PLAYER(i).AI_updateAttitudeCache();
 			} // K-Mod end
 		}
 	}
