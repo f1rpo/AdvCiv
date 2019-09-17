@@ -1222,18 +1222,17 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 
 bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason) const
 {
-	// <advc.001> Not really a bug, but you'd really expect this function to check this.
-	if (!involves(eByPlayer))
-		return false; // </advc.001>
-
-	if (isUncancelableVassalDeal(eByPlayer, pszReason))
-		return false;
-
+	if (eByPlayer != NO_PLAYER)
+	{
+		// <advc.001> Not really a bug, but you'd really expect this function to check this.
+		if (!involves(eByPlayer))
+			return false; // </advc.001>
+		if (isUncancelableVassalDeal(eByPlayer, pszReason))
+			return false;
+	}
 	int iTurns = turnsToCancel(eByPlayer);
-
 	if (pszReason != NULL && iTurns > 0)
 		*pszReason = gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL", iTurns);
-
 	return (iTurns <= 0);
 }
 
