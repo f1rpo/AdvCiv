@@ -15983,7 +15983,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		iTotal != iTotalCached && !g.isNetworkMultiPlayer())
 	{
 		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date "
-				"(OK after loading a save created during AI Auto play or prior to v0.95)");
+				"(OK after loading a save created prior to v0.95 or Alt+Z)");
 		kPlayer.AI_updateAttitudeCache(eTargetPlayer, true);
 		// Try again, this time without recursion. szBuffer hasn't been changed yet.
 		getAttitudeString(szBuffer, ePlayer, eTargetPlayer, true);

@@ -8911,7 +8911,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	reset(NO_HANDICAP);
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	if (uiFlag < 1)
 	{
@@ -8940,10 +8940,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iInitTech);
 	pStream->Read(&m_iInitWonders);
 	pStream->Read(&m_iAIAutoPlay);
-	/*  advc.127: m_iAIAutoPlay really shouldn't be stored in savegames.
-		Auto Play is off when a savegame is loaded, even if it's an autosave
-		created during Auto Play, so m_iAIAutoPlay needs to be 0. */
-	m_iAIAutoPlay = 0;
+	m_iAIAutoPlay = -1; // advc.127: allGameDataRead will handle it properly
 	pStream->Read(&m_iGlobalWarmingIndex); // K-Mod
 	pStream->Read(&m_iGwEventTally); // K-Mod
 	// <advc.opt>
@@ -9372,6 +9369,17 @@ void CvGame::allGameDataRead()
 	getWPAI.update(); // advc.104
 	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
 	m_bAllGameDataRead = true;
+	// <advc.127> Save created during AI Auto Play
+	if (m_iAIAutoPlay != 0 && !isNetworkMultiPlayer())
+	{
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+		{
+			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
+			if (kPlayer.isAlive())
+				kPlayer.AI_updateAttitudeCache();
+		}
+	}
+	m_iAIAutoPlay = 0; // </advc.127>
 }
 
 // Called once the EXE signals that graphics have been initialized (w/e that means exactly)
