@@ -1,6 +1,6 @@
-
 ## "not too Big or Small". A modified version of "big and small" to scale better with larger maps.
 ## by Karadoc. version 1.4
+# advc: Some tweaks; see in-inline comments. Changes tagged with "advc.mxc" were ported from Mixed_Continents.
 
 from CvPythonExtensions import *
 import CvUtil
@@ -11,19 +11,19 @@ from CvMapGeneratorUtil import FeatureGenerator
 
 def getDescription():
 	return "A modified version of Big and Small, designed to scale better for large maps."
-	
+
 # <advc.165>
 def getGridSize(argsList):
 	[iWorldSize] = argsList
 	if iWorldSize < 0:
 		return ()
 	sizeModifiers = {
-		WorldSizeTypes.WORLDSIZE_DUEL:		(0, 0),
-		WorldSizeTypes.WORLDSIZE_TINY:		(0, -1),
-		WorldSizeTypes.WORLDSIZE_SMALL:		(-1,-1),
-		WorldSizeTypes.WORLDSIZE_STANDARD:	(-2,-1),
-		WorldSizeTypes.WORLDSIZE_LARGE:		(-2,-2),
-		WorldSizeTypes.WORLDSIZE_HUGE:		(-4,-2)
+		WorldSizeTypes.WORLDSIZE_DUEL:		( 0, 0),
+		WorldSizeTypes.WORLDSIZE_TINY:		( 0,-1),
+		WorldSizeTypes.WORLDSIZE_SMALL:		(-1, 0),
+		WorldSizeTypes.WORLDSIZE_STANDARD:	(-1,-1),
+		WorldSizeTypes.WORLDSIZE_LARGE:		(-2,-1),
+		WorldSizeTypes.WORLDSIZE_HUGE:		(-2,-2)
 	}
 	wi = CyGlobalContext().getWorldInfo(iWorldSize)
 	return (sizeModifiers[iWorldSize][0] + wi.getGridWidth(), sizeModifiers[iWorldSize][1] + wi.getGridHeight())
@@ -35,7 +35,7 @@ def isAdvancedMap():
 
 def getNumCustomMapOptions():
 	return 3 # dlph.32
-	
+
 def getCustomMapOptionName(argsList):
 	[iOption] = argsList
 	option_names = {
@@ -45,7 +45,7 @@ def getCustomMapOptionName(argsList):
 		}
 	translated_text = unicode(CyTranslator().getText(option_names[iOption], ()))
 	return translated_text
-	
+
 def getNumCustomMapOptionValues(argsList):
 	[iOption] = argsList
 	option_values = {
@@ -54,7 +54,7 @@ def getNumCustomMapOptionValues(argsList):
 		2:	3 # dlph.32
 		}
 	return option_values[iOption]
-	
+
 def getCustomMapOptionDescAt(argsList):
 	[iOption, iSelection] = argsList
 	selection_names = {
@@ -76,7 +76,7 @@ def getCustomMapOptionDescAt(argsList):
 		}
 	translated_text = unicode(CyTranslator().getText(selection_names[iOption][iSelection], ()))
 	return translated_text
-	
+
 def getCustomMapOptionDefault(argsList):
 	[iOption] = argsList
 	option_defaults = {
@@ -96,7 +96,7 @@ def minStartingDistanceModifier():
 	return -12
 
 def beforeGeneration():
-	#global xShiftRoll
+	#global xShiftRoll # advc (comment): Overlap option disabled by K-Mod
 	gc = CyGlobalContext()
 	dice = gc.getGame().getMapRand()
 
@@ -106,15 +106,11 @@ def beforeGeneration():
 
 class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 	def generatePlotsByRegion(self):
-		# Sirian's MultilayeredFractal class, controlling function.
-		# You -MUST- customize this function for each use of the class.
 		#global xShiftRoll
 		iContinentsGrain = 1 + self.map.getCustomMapOption(0)
 		iIslandsGrain = 4 + self.map.getCustomMapOption(1)
 
-		# Water variables need to differ if Overlap is set. Defining default here.
-		iWater = 74
-
+		# <K-Mod>
 		iTargetSize = 30 + self.dice.get(min(36, self.iW/3), "zone target size (horiz)")
 		iHorizontalZones = max(1, (self.iW+iTargetSize/2) / iTargetSize)
 		iTargetSize = 30 + self.dice.get(min(34, self.iH/2), "zone target size (vert)")
@@ -126,9 +122,9 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		iTotalZones = iHorizontalZones * iVerticalZones
 		iContinentZones = (iTotalZones+1)/2 + self.dice.get(1+(iTotalZones-1)/2, "number of 'big' zones")
 		iIslandZones = iTotalZones - iContinentZones
-
-		# Add a few random patches of Tiny Islands first. (originaly 1 + r(4))
+		# Add a few random patches of Tiny Islands first. (originally 1 + r(4))
 		numTinies = iContinentZones + self.dice.get(2 + iTotalZones, "number of Tiny Islands")
+		# </K-Mod>
 		print("Patches of Tiny Islands: ", numTinies)
 		if numTinies:
 			for tiny_loop in range(numTinies):
@@ -138,18 +134,15 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				tinySouthY = int(self.iH * tinyWestLon)
 				tinyWidth = int(self.iW * 0.15)
 				tinyHeight = int(self.iH * 0.15)
-
+				iHillGrain = 5 # advc.mxc: was 3
 				self.generatePlotsInRegion(80,
 				                           tinyWidth, tinyHeight,
 				                           tinyWestX, tinySouthY,
-				                           4, 3,
+				                           4, iHillGrain,
 				                           0, self.iTerrainFlags,
 				                           6, 5,
-				                           True, 3,
-				                           -1, False,
-				                           False
-				                           )
-
+				                           True, 3)
+		# <K-Mod>
 		zone_types = [0] * iTotalZones
 		i = 0
 		while i < iContinentZones:
@@ -161,14 +154,21 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				j += 1
 			zone_types[x] = 1
 			i += 1
-		
+
 		iZoneWidth = int(self.iW / iHorizontalZones)
 		iZoneHeight = int(self.iH / iVerticalZones)
 
 		xExp = 6
-		
 		iMaxOverLap = 5
-
+		#iWater = 74
+		# <advc.mxc> Moved down.
+		# Use a slightly higher base percentage to match Fractal  more closely (but not quite - island maps should have a little extra land and I'm also shrinking the dimensions a little through advc.165).
+		iWater = 75
+		# Take into account sea level (crazy that the official Big/Medium&Small maps don't do that).
+		iSeaLevelChange = CyGlobalContext().getSeaLevelInfo(self.map.getSeaLevel()).getSeaLevelChange()
+		# This is what FractalWorld does and it seems to work well enough here as well:
+		iWater += iSeaLevelChange
+		# </advc.mxc>
 		for i in range(iTotalZones):
 			iWestX = max(0, (i % iHorizontalZones) * iZoneWidth - self.dice.get(iMaxOverLap, "zone overlap (west)"))
 			iEastX = min(self.iW - 1, (i % iHorizontalZones + 1) * iZoneWidth + self.dice.get(iMaxOverLap, "zone overlap (east)"))
@@ -179,7 +179,7 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 			iHeight = iNorthY - iSouthY + 1
 
 			if (zone_types[i] == 1):
-				# continent zone
+				# continent zone </K-Mod>
 				self.generatePlotsInRegion(iWater,
 										   iWidth, iHeight,
 										   iWestX, iSouthY,
@@ -190,8 +190,9 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 										   -1, False,
 										   False
 										   )
+			# <K-Mod>
 			else:
-				# islands zone
+				# islands zone # </K-Mod>
 				self.generatePlotsInRegion(iWater,
 										   iWidth, iHeight,
 										   iWestX, iSouthY,
