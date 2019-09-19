@@ -98,7 +98,8 @@
 	
 	<event type="gameUpdate" module="BugUtil" function="doDeferredCalls"/>
 	<event type="BeginPlayerTurn" module="BugUtil" function="doHotSeatCheck"/>
-	<event type="SwitchHotSeatPlayer" module="CvMainInterface" function="onSwitchHotSeatPlayer"/>
+	<!-- advc.009b: Moved from CvMainInterface to BugUtil. There was some (circular dependency?) problem with accessing it in CvMainInterface upon reloading. -->
+	<event type="SwitchHotSeatPlayer" module="BugUtil" function="onSwitchHotSeatPlayer"/>
 	
 	<!-- Game ScriptData -->
 	<event type="GameStart" module="BugData" function="onGameStart"/>

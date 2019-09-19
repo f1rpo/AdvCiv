@@ -202,21 +202,16 @@ HELP_TEXT_MINIMUM_WIDTH = 300
 
 g_pSelectedUnit = 0
 
-# BUG - start
-g_mainInterface = None
-def onSwitchHotSeatPlayer(argsList):
-	g_mainInterface.resetEndTurnObjects()
-# BUG - end
 
 class CvMainInterface:
 	"Main Interface Screen"
 	
 	def __init__(self):
-	
-# BUG - start
-		global g_mainInterface
-		g_mainInterface = self
-# BUG - end
+		# advc.009b: This hack is no longer needed. I've moved the global onSwitchHotSeatPlayer function to BugUtil.py.
+		# BUG - start
+		#global g_mainInterface
+		#g_mainInterface = self
+		# BUG - end
 
 # BUG - draw method
 		self.DRAW_METHOD_PLE = "DRAW_METHOD_PLE"
@@ -2080,20 +2075,9 @@ class CvMainInterface:
 #		BugUtil.debug("updatePlotListButtons_BUG - C")
 
 #		self.BupPanel.UpdateBUGOptions()
-
 		timer = BugUtil.Timer("draw plot list")
 		self.BupPanel.Draw()
 		timer.log()
-
-
-
-#
-
-
-
-
-
-
 
 #		iVisibleUnits = CyInterface().getNumVisibleUnits()
 #		iCount = -(CyInterface().getPlotListColumn())

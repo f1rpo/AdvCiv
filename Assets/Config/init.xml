@@ -13,13 +13,7 @@
 	<load mod="BUG Config"/>
 	<load mod="BUG Core"/>
 	
-	
-	<!-- Civilization Core -->
-	
-	<!-- Domestic and Military Advisors and Civilopedia are chosen by options -->
-	<init module="CvScreensInterface"/>
-	
-	
+
 	<!-- Utility Modules -->
 	
 	<init module="FontUtil" immediate="True"/>
@@ -133,7 +127,14 @@
 
 	<event type="OnLoad" module="CvTechChooser" function="resetTechPrefs"/>
 	<event type="GameStart" module="CvTechChooser" function="resetTechPrefs"/>
-	
+
+
+	<!-- Civilization Core -->
+
+	<!-- Domestic and Military Advisors and Civilopedia are chosen by options -->
+	<!-- advc.009b: Moved down (was crashing on reload), and use BugScreenInit as a wrapper for CvScreensInterface. -->
+	<init module="BugScreenInit"/>
+
 	
 	<!-- Mods -->
 	

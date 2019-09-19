@@ -21,7 +21,8 @@
 				<choice id="Original" get="isOriginalView"/>
 				<choice id="Detailed" get="isDetailedView"/>
 				<choice id="Wide" get="isWideView"/>
-				<change module="CvScreensInterface" function="deleteTechSplash"/>
+				<!-- advc.009b: Use BugScreenInit as a wrapper for CvScreensInterface -->
+				<change module="BugScreenInit" function="deleteTechSplash"/>
 			</list>
 			<option id="CivilopediaText" key="Civilopedia Text" 
 					type="boolean" default="False"

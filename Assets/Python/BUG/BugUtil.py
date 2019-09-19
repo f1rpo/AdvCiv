@@ -135,7 +135,6 @@
 
 from CvPythonExtensions import *
 import ColorUtil
-import CvEventInterface
 import sys
 import time
 import traceback
@@ -825,7 +824,13 @@ def doHotSeatCheck(args):
 	iGameTurn, ePlayer = args
 	game = gc.getGame()
 	if game.isHotSeat() and ePlayer == game.getActivePlayer():
+		import CvEventInterface # advc.009b: Avoid mutual import (not sure if that was a problem here)
 		CvEventInterface.getEventManager().fireEvent("SwitchHotSeatPlayer", ePlayer)
+
+# advc.009b: Moved here from CvMainInterface.py
+def onSwitchHotSeatPlayer(argsList):
+	import CvScreensInterface
+	CvScreensInterface.resetEndTurnObjects()
 
 def isNoEspionage():
 	"""
