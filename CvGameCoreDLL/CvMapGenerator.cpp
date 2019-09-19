@@ -518,7 +518,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 
 void CvMapGenerator::addFeatures()
 {
-	PROFILE("CvMapGenerator::addFeatures");
+	PROFILE_FUNC();
 
 	if (GC.getPythonCaller()->addFeatures())
 		return;
@@ -540,7 +540,7 @@ void CvMapGenerator::addFeatures()
 
 void CvMapGenerator::addBonuses()
 {
-	PROFILE("CvMapGenerator::addBonuses");
+	PROFILE_FUNC();
 	gDLL->NiTextOut("Adding Bonuses...");
 
 	CvPythonCaller const& py = *GC.getPythonCaller();
@@ -805,7 +805,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 
 void CvMapGenerator::addGoodies()  // advc: some style changes
 {
-	PROFILE("CvMapGenerator::addGoodies");
+	PROFILE_FUNC();
 
 	if (GC.getPythonCaller()->addGoodies())
 		return;
@@ -888,7 +888,7 @@ void CvMapGenerator::eraseGoodies()
 
 void CvMapGenerator::generateRandomMap()
 {
-	PROFILE("generateRandomMap()");
+	PROFILE_FUNC();
 
 	GC.getPythonCaller()->callMapFunction("beforeGeneration");
 	if (GC.getPythonCaller()->generateRandomMap()) // will call applyMapData when done
@@ -921,25 +921,27 @@ void CvMapGenerator::generatePlotTypes()
 
 void CvMapGenerator::generateTerrain()
 {
-	PROFILE("generateTerrain()");
+	PROFILE_FUNC();
 
-	int iNumPlots = GC.getMap().numPlots();
 	std::vector<int> pyTerrain;
-	if (GC.getPythonCaller()->generateTerrainTypes(pyTerrain, iNumPlots))
+	CvMap const& kMap = GC.getMap();
+	if (GC.getPythonCaller()->generateTerrainTypes(pyTerrain, kMap.numPlots()))
 	{
-		for (int i = 0; i < iNumPlots; i++)
+		for (int i = 0; i < kMap.numPlots(); i++)
 		{
 			//gDLL->callUpdater(); // addvc.003b
-			GC.getMap().plotByIndex(i)->setTerrainType((TerrainTypes)pyTerrain[i], false, false);
+			kMap.plotByIndex(i)->setTerrainType((TerrainTypes)pyTerrain[i], false, false);
 		}
 	}
 }
 
-// Allows for user-defined Python Actions for map generation after it's already been created
+
 void CvMapGenerator::afterGeneration()
 {
-	PROFILE("CvMapGenerator::afterGeneration");
+	PROFILE_FUNC();
+	// Allows for user-defined Python Actions for map generation after it's already been created
 	GC.getPythonCaller()->callMapFunction("afterGeneration");
+	GC.getLogger().logMapStats(); // advc.mapstat
 }
 
 void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)

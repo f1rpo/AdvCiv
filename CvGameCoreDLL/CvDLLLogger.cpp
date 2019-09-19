@@ -5,7 +5,13 @@
 #include "CvPlayer.h"
 #include "CvCity.h"
 #include "CvUnit.h"
-
+// <advc.mapstat>
+#include "CvMap.h"
+#include "CvPlot.h"
+#include "CvAreaList.h"
+#include "CvInfo_Terrain.h"
+#include <sstream>
+// </advc.mapstat>
 
 CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)
 	: m_bEnabled(bEnabled), m_bRandEnabled(bRandEnabled) {}
@@ -94,3 +100,151 @@ void CvDLLLogger::logUnitStuck(CvUnit const& kUnit)
 			kUnit.getX(), kUnit.getY(), szTempString.GetCString());
 	gDLL->messageControlLog(szOut);
 }
+
+// <advc.mapstat>
+// Don't really want to include sstream in the header. Hence free functions.
+void appendPercentage(std::ostringstream& os, char const* szLabel, int iAbsolute, int iTotal)
+{
+	FAssert(iAbsolute <= iTotal);
+	if (iAbsolute <= 0)
+		return;
+	os.precision(1);
+	os << szLabel << ": " << std::fixed << (100 * iAbsolute / (float)iTotal) <<
+			"%% (" << iAbsolute << ")\n";
+}
+
+void appendPercentage(std::ostringstream& os, wchar const* szLabel, int iAbsolute, int iTotal)
+{
+	CvWString szWide(szLabel);
+	CvString szNarrow;
+	::narrowUnsafe(szWide, szNarrow);
+	appendPercentage(os, szNarrow.c_str(), iAbsolute, iTotal);
+}
+
+void CvDLLLogger::logMapStats()
+{
+	if (!isEnabled() || !GC.getDefineBOOL("LOG_MAP_STATS"))
+		return;
+	std::ostringstream out;
+	out << "\nMap stats:\n\n";
+	/*  As for map settings - will have to go to the Victory screen
+		and maybe take a screenshot. */
+	std::vector<int> plotTypeCounts;
+	plotTypeCounts.resize(NUM_PLOT_TYPES);
+	std::vector<int> landTerrainCounts;
+	landTerrainCounts.resize(GC.getNumTerrainInfos());
+	std::vector<int> waterTerrainCounts;
+	waterTerrainCounts.resize(GC.getNumTerrainInfos());
+	std::vector<int> landFeatureCounts;
+	landFeatureCounts.resize(GC.getNumFeatureInfos());
+	std::vector<int> waterFeatureCounts;
+	waterFeatureCounts.resize(GC.getNumFeatureInfos());
+	std::vector<int> landResourceCounts;
+	landResourceCounts.resize(GC.getNumBonusInfos());
+	std::vector<int> waterResourceCounts;
+	waterResourceCounts.resize(GC.getNumBonusInfos());
+	int iResourceTotal = 0;
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
+	{
+		CvPlot const& kPlot = *kMap.plotByIndex(i);
+		plotTypeCounts[kPlot.getPlotType()]++;
+		BonusTypes eBonus = kPlot.getBonusType();
+		if (eBonus != NO_BONUS)
+			iResourceTotal++;
+		if (kPlot.isWater())
+		{
+			waterTerrainCounts[kPlot.getTerrainType()]++;
+			waterFeatureCounts[kPlot.getFeatureType()]++;
+			if (eBonus != NO_BONUS)
+				waterResourceCounts[eBonus]++;
+		}
+		else
+		{
+			landTerrainCounts[kPlot.getTerrainType()]++;
+			landFeatureCounts[kPlot.getFeatureType()]++;
+			if (eBonus != NO_BONUS)
+				landResourceCounts[eBonus]++;
+		}
+	}
+	int iTotal = kMap.numPlots();
+	out << "Total tile count: " << iTotal << " (" << kMap.getGridWidth()
+			<< "x" << kMap.getGridHeight() << ")\n";
+	int iWater = plotTypeCounts[PLOT_OCEAN];
+	int iLand = iTotal - iWater;
+	FAssert(iLand > 0);
+	appendPercentage(out, "Land", iLand, iTotal);
+	float fResourcesPerPlayer = iResourceTotal / (float)GC.getGame().getCivPlayersEverAlive();
+	out.precision(2);
+	out << "Resource total: " << iResourceTotal << " (" << std::fixed << fResourcesPerPlayer <<
+			" per player)\n";
+	for (int iPass = 0; iPass < 2; iPass++)
+	{
+		bool const bWater = (iPass == 1);
+		out << (bWater ? "Water" : "Land") << " breakdown:\n";
+		if (!bWater)
+		{
+			appendPercentage(out, "Hills", plotTypeCounts[PLOT_HILLS], iLand);
+			appendPercentage(out, "Peak", plotTypeCounts[PLOT_PEAK], iLand);
+		}
+		int iTiles = (bWater ? iWater : iLand);
+		std::vector<int>& terrainCounts = (bWater ? waterTerrainCounts : landTerrainCounts);
+		std::vector<int>& featureCounts = (bWater ? waterFeatureCounts : landFeatureCounts);
+		std::vector<int>& resourceCounts = (bWater ? waterResourceCounts : landResourceCounts);
+		for (size_t i = 0; i < terrainCounts.size(); i++)
+		{
+			CvTerrainInfo const& kTerrain = GC.getTerrainInfo((TerrainTypes)i);
+			appendPercentage(out, kTerrain.getDescription(), terrainCounts[i], iTiles);
+		}
+		for (size_t i = 0; i < featureCounts.size(); i++)
+		{
+			CvFeatureInfo const& kFeature = GC.getFeatureInfo((FeatureTypes)i);
+			appendPercentage(out, kFeature.getDescription(), featureCounts[i], iTiles);
+		}
+		int iResources = 0;
+		for (size_t i = 0; i < resourceCounts.size(); i++)
+			iResources += resourceCounts[i];
+		out << "Resources: " << iResources << "\n";
+		for (size_t i = 0; i < resourceCounts.size(); i++)
+		{
+			if (resourceCounts[i] <= 0)
+				continue;
+			CvBonusInfo const& kBonus = GC.getBonusInfo((BonusTypes)i);
+			CvWString szWide(kBonus.getDescription());
+			CvString szNarrow;
+			::narrowUnsafe(szWide, szNarrow);
+			out << szNarrow.c_str() << ": " << resourceCounts[i] << "\n";
+		}
+	}
+	std::vector<int> majorLandmassSizes;
+	int iIslands = 0;
+	int iLargeIslands = 0;
+	int iContinents = 0;
+	FOR_EACH_AREA(pArea)
+	{
+		if (pArea->isWater())
+			continue;
+		int iSize = pArea->getNumTiles();
+		if (iSize >= NUM_CITY_PLOTS)
+		{
+			majorLandmassSizes.push_back(iSize);
+			if (iSize >= 3 * NUM_CITY_PLOTS)
+				iContinents++;
+			else iLargeIslands++;
+		}
+		else iIslands++;
+	}
+	out << "Continents: " << iContinents << ", large islands: " << iLargeIslands <<
+			", islands: " << iIslands << "\n";
+	std::sort(majorLandmassSizes.rbegin(), majorLandmassSizes.rend());
+	if (!majorLandmassSizes.empty())
+		out << "Major landmass sizes:\n";
+	for (size_t i = 0; i < majorLandmassSizes.size(); i++)
+	{
+		out << majorLandmassSizes[i];
+		if (i + 1 < majorLandmassSizes.size())
+			out << ", ";
+	}
+	out << std::endl;
+	gDLL->messageControlLog(const_cast<char*>(out.str().c_str()));
+} // </advc.mapstat>
