@@ -18185,7 +18185,7 @@ void CvPlayerAI::AI_processPeacetimeValue(PlayerTypes eIndex, int iChange,
 				for helping a war enemy. */
 			int iDelta = ::range(t.AI_getAttitudeVal(TEAMID(eIndex), true, false) -
 					(bOtherWar ? 2 : 0) -
-					(t.AI_getAttitudeVal(t.AI_getWorstEnemy()) -
+					(t.AI_getAttitudeVal(t.AI_getWorstEnemy(), true, false) -
 					(bWar ? 2 : 0)),
 					0, 7);
 			mult *= iDelta / 5.0;

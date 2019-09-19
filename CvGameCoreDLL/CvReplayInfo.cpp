@@ -242,7 +242,7 @@ void CvReplayInfo::addSettingsMsg()
 		added by advc.137 (same issue in CvVictoryScreen.py) */
 	int iSeaLevelChange = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	CvWString szSettings = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
+	CvWString szSettings(gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
 			GC.getLeaderHeadInfo(kPlayer.getLeaderType()).getTextKeyWide(),
@@ -257,12 +257,27 @@ void CvReplayInfo::addSettingsMsg()
 			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
-			GC.getClimateInfo(getClimate()).getTextKeyWide()))) + L"\n" +
-			gDLL->getText("TXT_KEY_SETTINGS_GAME_SPEED",
-			GC.getGameSpeedInfo(getGameSpeed()).getTextKeyWide()) +
-			(getEra() == 0 ? L"" : (L", " +
-			gDLL->getText("TXT_KEY_SETTINGS_STARTING_ERA",
-			GC.getEraInfo(getEra()).getTextKeyWide()))) + L"\n";
+			GC.getClimateInfo(getClimate()).getTextKeyWide()))));
+	// <advc.004>
+	CvMap const& kMap = GC.getMap();
+	for(int i = 0; i < kMap.getNumCustomMapOptions(); i++)
+	{
+		CvWString szDesc(kMap.getNonDefaultCustomMapOptionDesc(i));
+		if (szDesc.empty()) // Meaning that the option is set to its default value
+			continue;
+		szSettings.append(L", ");
+		szSettings.append(szDesc);
+	} // </advc.004>
+	szSettings.append(NEWLINE);
+	szSettings.append(gDLL->getText("TXT_KEY_SETTINGS_GAME_SPEED",
+			GC.getGameSpeedInfo(getGameSpeed()).getTextKeyWide()));
+	if (getEra() != 0)
+	{
+		szSettings.append(L", ");
+		szSettings.append(gDLL->getText("TXT_KEY_SETTINGS_STARTING_ERA",
+			GC.getEraInfo(getEra()).getTextKeyWide()));
+	}
+	szSettings.append(NEWLINE);
 	// <advc.250b>
 	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH))
 	{

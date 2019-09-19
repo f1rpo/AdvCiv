@@ -401,7 +401,8 @@ void CvGame::regenerateMap()
 			(!isOption(GAMEOPTION_ADVANCED_START) || isOption(GAMEOPTION_SPAH)));
 	// </advc.004j>
 	// <advc.700>
-	if(isOption(GAMEOPTION_RISE_FALL)) {
+	if(isOption(GAMEOPTION_RISE_FALL))
+	{
 		m_pRiseFall->reset();
 		m_pRiseFall->init();
 		bShowDawn = false;
