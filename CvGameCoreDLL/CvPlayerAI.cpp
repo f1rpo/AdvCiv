@@ -25456,14 +25456,17 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
 		/*  This may be our first city captured on a large enemy continent,
 			need defenses to scale up based on total number of area cities,
 			not just ours. */
-		if (//eAreaAI != AREAAI_DEFENSIVE
-			// advc.107: Check if we actually have plans to expand our presence
-			eAreaAI == AREAAI_OFFENSIVE || eAreaAI == AREAAI_MASSING)
-		{
+		// advc.107: Check if we actually have plans to expand our presence
+		if (eAreaAI == AREAAI_OFFENSIVE || eAreaAI == AREAAI_MASSING)
 			iUpperBound += 1000 * (pArea->getNumCities() - pArea->getCitiesPerPlayer(getID()));
-		} // UNOFFICIAL_PATCH: END
-		// advc.107: Apply an upper bound in any case!
-		iDefendersPermil = std::min(iDefendersPermil, iUpperBound);
+		if (eAreaAI == AREAAI_DEFENSIVE)
+		{
+			// UNOFFICIAL_PATCH: END
+			/*  <advc.107> Still apply an upper bound in that case.
+				Defending colonies may well be a lost cause. */
+			iUpperBound += pArea->getNumCities() / 2;
+		}
+		iDefendersPermil = std::min(iDefendersPermil, iUpperBound); // </advc.107>
 	}
 
 	return iDefendersPermil / 1000;
