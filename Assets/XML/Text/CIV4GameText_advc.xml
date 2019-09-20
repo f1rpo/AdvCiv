@@ -920,6 +920,17 @@
 		<Italian>Per muovere un'unit&#224; a bordo di un trasporto.</Italian>
 		<Spanish>Con esto subir&#233;is la unidad a un transporte.</Spanish>
 	</TEXT>
+
+	<!-- From CIV4GameText_Misc1.xml. Make clearer that the personalities
+		 are just shuffled around (not randomly generated or resampled). -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_RANDOM_PERSONALITIES_HELP</Tag>
+		<English>Each AI leader is secretly given a random personality (e.g. Shaka could have Roosevelt's personality)</English>
+		<French>La personnalit&#233; des h&#233;ros g&#233;r&#233;s par l'IA est d&#233;termin&#233;e al&#233;atoirement au d&#233;but du jeu.</French>
+		<German>Jedem KI-Staatsoberhaupt wird ein zufällig und geheim ausgewähltes Persönlichkeitsprofil zugewiesen (z.B. könnte Shaka sich wie Bismarck verhalten)</German>
+		<Italian>L'IA dei leader viene determinata casualmente all'inizio della partita</Italian>
+		<Spanish>La personalidad de cada l&#237;der se determinar&#225; al azar al comienzo de la partida.</Spanish>
+	</TEXT>
 	
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
