@@ -90,7 +90,7 @@ public:
 	//bool AI_isChooseProductionDirty() const; // advc.003u: Moved to CvCity
 	//void AI_setChooseProductionDirty(bool bNewValue);
 
-	CvCity* AI_getRouteToCity() const;
+	CvCityAI* AI_getRouteToCity() const;
 	void AI_updateRouteToCity();
 
 	int AI_getEmphasizeYieldCount(YieldTypes eIndex) const;

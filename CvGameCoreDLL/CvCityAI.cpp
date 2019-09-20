@@ -6591,9 +6591,9 @@ void CvCityAI::AI_setAssignWorkDirty(bool bNewValue)
 }
 
 
-CvCity* CvCityAI::AI_getRouteToCity() const
+CvCityAI* CvCityAI::AI_getRouteToCity() const // advc.003u: return type was CvCity*
 {
-	return getCity(m_routeToCity);
+	return AI_getCity(m_routeToCity);
 }
 
 
