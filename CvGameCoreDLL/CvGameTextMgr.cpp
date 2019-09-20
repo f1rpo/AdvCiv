@@ -15956,7 +15956,8 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 				/*  <advc.004q> Cap attitude change at 1 for memory types that
 					can give away a leader's hidden personality. */
 				int iAbsAttitudeChange = std::abs(iAttitudeChange);
-				if (iAbsAttitudeChange > 1 && bObscurePersonality)
+				if (iAbsAttitudeChange > 1 && bObscurePersonality &&
+					kPlayer.AI_getMemoryCount(eTargetPlayer, (MemoryTypes)iI) <= 2)
 				{
 					for (int j = 0; j < iNumObscureMemoryTypes; j++)
 					{
