@@ -2494,7 +2494,7 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 			int iTheirPoints = kLoopTeam.getEspionagePointsAgainstTeam(getTeam());
 			int iOurPoints = kOurTeam.getEspionagePointsAgainstTeam(eLoopTeam);
 			iTotalUnspent += iOurPoints;
-			int iAttitude = ::range(kOurTeam.AI_getAttitudeVal(eLoopTeam),
+			int iAttitude = ::range(kOurTeam.AI_getAttitudeVal(eLoopTeam, true, false),
 					-12, 12);
 			iTheirPoints -= (iTheirPoints*iAttitude)/(2*12);
 
@@ -8918,7 +8918,7 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced,
 	if (isHuman())
 	{
 		/*  It's OK to use it for keeping data members of the proxy AI up to date
-			(e.g. worst enemy, strategies) */
+			(e.g. worst enemy, commerce weight, strategies) */
 		FAssertMsg(!bAssertNonHuman || (GC.getGame().isDebugMode() && GC.ctrlKey()),
 				"Attitude of human (proxy) AI shouldn't matter"); 
 		return 0;

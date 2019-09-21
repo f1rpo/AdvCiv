@@ -216,8 +216,7 @@ public:
 	DllExport bool isCity(bool bCheckImprovement, TeamTypes eForTeam = NO_TEAM) const;																																		// Exposed to Python
 	// advc.003f: Faster version, inlined for CvArea::canBeEntered
 	__forceinline bool isCity() const
-	{	// advc.tmp: (Should perhaps simply turn m_plotCity into a CvCity pointer.)
-		FAssert((getPlotCity() == NULL) == (m_plotCity.iID == NO_PLAYER));
+	{	// (Should perhaps simply turn m_plotCity into a CvCity pointer.)
 		return (m_plotCity.iID != NO_PLAYER); // avoid ::getCity call
 	}
 	bool isFriendlyCity(const CvUnit& kUnit, bool bCheckImprovement) const;																												// Exposed to Python

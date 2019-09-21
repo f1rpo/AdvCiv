@@ -6506,7 +6506,7 @@ void CvCityAI::AI_updateSafety()
 			iThresh = ::round(iThresh * (0.5 + relativeCityVal));
 		if(kOwner.getNumCities() <= 2 && isCapital())
 			iThresh *= 2;
-		m_bEvacuate = (::round((iAttStrength * 100) / (iDefStrength + 1.0)) > iThresh);
+		m_bEvacuate = ((iAttStrength * 100) / (iDefStrength + 1.0) > iThresh);
 	}
 }
 

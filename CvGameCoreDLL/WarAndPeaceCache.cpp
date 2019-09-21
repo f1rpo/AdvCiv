@@ -1021,8 +1021,7 @@ double WarAndPeaceCache::teamThreat(TeamTypes tId) const {
 
 	CvTeamAI const& t = GET_TEAM(tId);
 	TeamTypes ownerTeam = TEAMID(ownerId);
-	AttitudeTypes towardsOwner = t.AI_getAttitude(ownerTeam);
-	if(t.isHuman()) towardsOwner = ATTITUDE_CAUTIOUS;
+	AttitudeTypes towardsOwner = (t.isHuman() ? ATTITUDE_CAUTIOUS : t.AI_getAttitude(ownerTeam));
 	if(t.isAVassal() || towardsOwner >= ATTITUDE_FRIENDLY ||
 			// Don't worry about long-term threat if they're already close to victory
 			t.AI_isAnyMemberDoVictoryStrategyLevel3())
