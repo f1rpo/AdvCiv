@@ -316,12 +316,9 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 			print("Region ", iPass + 1, " West: ", iWestX, "East: ", iEastX, "Width: ", iWidth)
 			# <advc.mxc> This was 4 for the "continents" region and 5 for the "islands" region.
 			iHillGrain = 4
-			#  Could set it based on aiLandmassGrain[iPass] ...
-			#if aiLandmassGrain[iPass] <= 0: # Massive
-			#	iHillGrain = 3
-			#elif aiLandmassGrain[iPass] >= 3: # Islands or tiny islands
-			#	iHillGrain = 5
-			# ... but I'm not convinced that the hill distribution should depend on the landmass size much.
+			# Higher grain for islands. Also higher grain for snaky continents unless the map is Large or bigger (landmasses tend to get bulkier as the map size increases).
+			if aiLandmassGrain[iPass] >= 1 or (aiLandmassGrain[iPass] >= 2 and self.map.getWorldSize() <= 3):
+				iHillGrain = 5
 			# </advc.mxc>
 			self.generatePlotsInRegion(iWater, iWidth, iHeight, iWestX, iSouthY, aiLandmassGrain[iPass], iHillGrain, self.iRoundFlags, self.iTerrainFlags, xExp, 6)#, True, 15, -1, False, False) # advc.mxc: Last params are the same as the defaults; better use the defaults then.
 
