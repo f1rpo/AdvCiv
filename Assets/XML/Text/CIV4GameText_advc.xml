@@ -5357,6 +5357,16 @@
 		<Italian>Non pu&#242; commerciare</Italian>
 		<Spanish>No intercambia</Spanish>
 	</TEXT>
+
+	<!-- advc.553: From Civ4GameTextInfos.xml. Shortened. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_NO_TECH_TRADING</Tag>
+		<English>Tech Trading Not Allowed</English>
+		<French>Aucun échange de tech</French>
+		<German>Kein Technologiehandel</German>
+		<Italian>Nessun scambio di tecnologie</Italian>
+		<Spanish>Intercambio no permitido</Spanish>
+	</TEXT>
 	
 	<!-- advc.004y: Like TXT_KEY_MAIN_MENU_CIVILOPEDIA (CIV4GameTextInfos.xml),
 		 but all capitalized. -->

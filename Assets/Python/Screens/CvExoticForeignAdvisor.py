@@ -1293,7 +1293,6 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 				# advc.120d: Make sure that Tech tab is consistent with Espionage screen
 				if not activePlayer.canSeeTech(iLoopPlayer):
 					message = localText.getText("TXT_KEY_FOREIGN_ADVISOR_NO_TECH_TRADING", ())
-
 				self.techIconGrid.appendRow(currentPlayer.getName(), message)
 				self.techIconGrid.addIcon( currentRow, iTechColLeader, gc.getLeaderHeadInfo(currentPlayer.getLeaderType()).getButton()
 										 , 64, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader )
@@ -1332,8 +1331,14 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 							else: # won't trade
 								# advc.073: Changed so that WIDGET_PEDIA_JUMP_TO_TECH_TRADE works w/o BugDll
 								self.techIconGrid.addIcon( currentRow, iTechColWont, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH_TRADE, iLoopTech, iLoopPlayer )
-						elif (gc.getTeam(currentPlayer.getTeam()).isHasTech(iLoopTech) and activePlayer.canResearch(iLoopTech, False)):
-							self.techIconGrid.addIcon( currentRow, iTechColCantThem, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
+						else:
+							# <advc.553> If tech trading disabled, show a hint about that only once (in row 0).
+							if currentRow == 0 and gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_TECH_TRADING):
+								message = gc.getGameOptionInfo(GameOptionTypes.GAMEOPTION_NO_TECH_TRADING).getDescription()
+								self.techIconGrid.setText(currentRow, iTechColWill, message)
+							# </advc.553>
+							if (gc.getTeam(currentPlayer.getTeam()).isHasTech(iLoopTech) and activePlayer.canResearch(iLoopTech, False)):
+								self.techIconGrid.addIcon( currentRow, iTechColCantThem, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 				currentRow += 1
 		self.techIconGrid.refresh()
 
@@ -1346,14 +1351,18 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		gridY = self.MIN_TOP_BOTTOM_SPACE + 10
 		gridWidth = self.W_SCREEN - self.MIN_LEFT_RIGHT_SPACE * 2 - 20
 		gridHeight = self.H_SCREEN - self.MIN_TOP_BOTTOM_SPACE * 2 - 20
-		
+		willTradeColumnType = IconGrid_BUG.GRID_MULTI_LIST_COLUMN
+		# <advc.553> Make the will-trade column a text column so that the no-tech-trading hint can be placed there
+		if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_TECH_TRADING):
+			willTradeColumnType = IconGrid_BUG.GRID_TEXT_COLUMN
+		# </advc.553>
 		columns = ( IconGrid_BUG.GRID_ICON_COLUMN,
 					IconGrid_BUG.GRID_TEXT_COLUMN,
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN,
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN,
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN,
 					IconGrid_BUG.GRID_TEXT_COLUMN,
-					IconGrid_BUG.GRID_MULTI_LIST_COLUMN,
+					willTradeColumnType,
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN,
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN)
 		self.techIconGridName = self.getNextWidgetName()
@@ -1374,6 +1383,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.techIconGrid.setHeader( iTechColGold, (u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
 		self.techIconGrid.setTextColWidth( iTechColGold, self.TECH_GOLD_COL_WIDTH )
 		self.techIconGrid.setHeader( iTechColWill, localText.getText("TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2", ()) )
+		# <advc.553>
+		if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_TECH_TRADING):
+			self.techIconGrid.setTextColWidth(iTechColWill, 2 * self.TECH_GOLD_COL_WIDTH) # </advc.553>
 		self.techIconGrid.setHeader( iTechColWont, localText.getText("TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2", ()) )
 		self.techIconGrid.setHeader( iTechColCantThem, localText.getText("TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE", ()) )
 		

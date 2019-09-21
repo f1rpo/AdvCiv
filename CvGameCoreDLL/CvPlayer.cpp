@@ -6889,6 +6889,29 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 	return iTurnsLeft; // advc.004x
 }
 
+// <advc.104>  (also used for advc.079)
+bool CvPlayer::canSeeTech(PlayerTypes eOther) const
+{
+	// Partly based on drawTechDeals in ExoticForeignAdvisor.py
+	if(eOther == NO_PLAYER)
+		return false;
+	CvTeam const& ourTeam = GET_TEAM(getTeam());
+	CvTeam const& otherTeam = GET_TEAM(eOther);
+	if(ourTeam.getID() == otherTeam.getID())
+		return true;
+	if(otherTeam.isVassal(ourTeam.getID()))
+		return true; // Can see tech through "we'd like you to research ..."
+	// advc.553: Make tech visible despite No Tech Trading (as in BtS)
+	/*if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && !canSeeResearch(eOther))
+		return false;*/
+	if(!ourTeam.isAlive() || !otherTeam.isAlive() ||
+			ourTeam.isBarbarian() || otherTeam.isBarbarian() ||
+			ourTeam.isMinorCiv() || otherTeam.isMinorCiv())
+		return false;
+	return ourTeam.isHasMet(otherTeam.getID()) &&
+			(ourTeam.isTechTrading() || otherTeam.isTechTrading());
+} // </advc.104>
+
 // K-Mod. Return true if this player can see what ePlayer is researching
 bool CvPlayer::canSeeResearch(PlayerTypes ePlayer, /* advc.085: */ bool bCheckPoints) const
 {
@@ -13607,27 +13630,6 @@ TechTypes CvPlayer::getStealCostTech(PlayerTypes eTargetPlayer) const
 	return r;
 }
 
-// <advc.104>  (also used for advc.079)
-bool CvPlayer::canSeeTech(PlayerTypes eOther) const
-{
-	// Partly based on drawTechDeals in ExoticForeignAdvisor.py
-	if(eOther == NO_PLAYER)
-		return false;
-	CvTeam const& ourTeam = GET_TEAM(getTeam());
-	CvTeam const& otherTeam = GET_TEAM(eOther);
-	if(ourTeam.getID() == otherTeam.getID())
-		return true;
-	if(otherTeam.isVassal(ourTeam.getID()))
-		return true; // Can see tech through "we'd like you to research ..."
-	if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING))
-		return false;
-	if(!ourTeam.isAlive() || !otherTeam.isAlive() ||
-			ourTeam.isBarbarian() || otherTeam.isBarbarian() ||
-			ourTeam.isMinorCiv() || otherTeam.isMinorCiv())
-		return false;
-	return ourTeam.isHasMet(otherTeam.getID()) &&
-			(ourTeam.isTechTrading() || otherTeam.isTechTrading());
-} // </advc.104>
 
 bool CvPlayer::canSpy() const
 {
