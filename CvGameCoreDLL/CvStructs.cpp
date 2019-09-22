@@ -99,11 +99,11 @@ void VoteSelectionData::write(FDataStreamBase* pStream)
 	pStream->Write(aVoteOptions.size());
 	for (std::vector<VoteSelectionSubData>::iterator it = aVoteOptions.begin(); it != aVoteOptions.end(); ++it)
 	{
-		pStream->Write((*it).eVote);
-		pStream->Write((*it).ePlayer);
-		pStream->Write((*it).iCityId);
-		pStream->Write((*it).eOtherPlayer);
-		pStream->WriteString((*it).szText);
+		pStream->Write(it->eVote);
+		pStream->Write(it->ePlayer);
+		pStream->Write(it->iCityId);
+		pStream->Write(it->eOtherPlayer);
+		pStream->WriteString(it->szText);
 	}
 }
 

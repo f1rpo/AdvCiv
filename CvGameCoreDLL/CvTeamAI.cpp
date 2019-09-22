@@ -2715,7 +2715,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	} // <advc>
 	CvGame const& g = GC.getGame();
 	CvMap& m = GC.getMap();
-	AttitudeTypes eTowardThem = AI_getAttitude(eTeam, false); // </advc>
+	// (Cautious if human)
+	AttitudeTypes eTowardThem = AI_getAttitude(eTeam, false, false); // </advc>
 	if(isVassal(eTeam) && eTowardThem >= ATTITUDE_PLEASED)
 	{
 		// Moved up // </advc.112>

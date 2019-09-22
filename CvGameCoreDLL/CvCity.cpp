@@ -1000,17 +1000,16 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool 
 		GET_PLAYER(getOwner()).disband(*this);
 		break;
 	// <advc.122>
-	case TASK_CEDE:
+	case TASK_CEDE: // Meaning (in this context): as part of a peace deal
 		bCede = true;
 		// fall through // </advc.122>
 	case TASK_GIFT:
 		if (getLiberationPlayer(false) == iData1)
-		{
 			liberate(false, /* advc.122: */ bCede);
-		}
 		else
 		{
-			GET_PLAYER((PlayerTypes)iData1).acquireCity(this, false, true, true);
+			GET_PLAYER((PlayerTypes)iData1).acquireCity(this, false, true, true,
+					bCede); // advc.122
 		}
 		break;
 
@@ -14772,71 +14771,88 @@ int CvCity::getBuildingHealthChange(BuildingClassTypes eBuildingClass) const
 	return 0;
 }
 
-void CvCity::liberate(bool bConquest, /* advc.122: */ bool bCede)
+// <advc.071>
+void CvCity::meetNewOwner(TeamTypes eOtherTeam, TeamTypes eNewOwner) const
+{
+	if (!isRevealed(eOtherTeam, false) || GET_TEAM(eOtherTeam).isHasMet(eNewOwner))
+		return;
+	FirstContactData fcData;
+	fcData.x1 = getX();
+	fcData.x2 = getY();
+	// advc.test:
+	FAssertMsg(false, "Contact made through ceded city; untested. Will this work correctly?");
+	GET_TEAM(eOtherTeam).meet(eNewOwner, true, &fcData);
+} // </advc.071>
+
+
+void CvCity::liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal)
 {
 	PlayerTypes ePlayer = getLiberationPlayer(bConquest);
 	if(ePlayer == NO_PLAYER)
 		return; // advc
-	PlayerTypes eOwner = getOwner();
 	// dlph.23: No longer used
 	/*CvPlot* pPlot = plot();
-	int iOldOwnerCulture = getCultureTimes100(eOwner);
+	int iOldOwnerCulture = getCultureTimes100(getOwner());
 	bool bPreviouslyOwned = isEverOwned(ePlayer);*/ // K-Mod, for use below
 	int iOldMasterLand = 0;
 	int iOldVassalLand = 0;
+	CvTeam& kLiberationTeam = GET_TEAM(ePlayer); // advc
 
-	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
+	if (kLiberationTeam.isVassal(getTeam()))
 	{
-		iOldMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
+		iOldMasterLand = GET_TEAM(getTeam()).getTotalLand();
 		iOldVassalLand = std::max(10, // advc.112: Lower bound added
-			GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
+				kLiberationTeam.getTotalLand(false));
 	}
 
-	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(), GET_PLAYER(eOwner).getNameKey(), GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(),
+			GET_PLAYER(getOwner()).getNameKey(), GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)  // advc: style changes
 	{
-		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc
-		if (civ.isAlive())
+		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
+		if (!kObs.isAlive())
+			continue;
+		// advc.071: Meet before the announcement (with indicator at city coordinates)
+		meetNewOwner(kObs.getTeam(), TEAMID(ePlayer));
+		if (isRevealed(kObs.getTeam(), false) /* advc.127: */ || kObs.isSpectator())
 		{
-			if (isRevealed(civ.getTeam(), false)
-					|| civ.isSpectator()) // advc.127
-			{
-				gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
+			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
 					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), getX(), getY(), true, true);
-			}
+					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
+					(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+					getX(), getY(), true, true);
 		}
 	}
-	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, eOwner, szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szBuffer,
+			getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
-	if(!bCede) // advc.122
-		GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES); // advc.130j
-	// <advc>
-	CvTeam& kTeam = GET_TEAM(ePlayer);
-	CvTeam const& kOwnerTeam = GET_TEAM(eOwner); // </advc>
-	if (kTeam.isVassal(kOwnerTeam.getID()))
-	{
-		int iNewMasterLand = kOwnerTeam.getTotalLand();
-		int iNewVassalLand = std::max(10, // advc.112: Lower bound added
-				kTeam.getTotalLand(false));
+	if(!bPeaceDeal) // advc.122
+		GET_PLAYER(ePlayer).AI_rememberEvent(getOwner(), MEMORY_LIBERATED_CITIES); // advc.130j
 
-		kTeam.setMasterPower(kTeam.getMasterPower() + iNewMasterLand - iOldMasterLand);
-		kTeam.setVassalPower(kTeam.getVassalPower() + iNewVassalLand - iOldVassalLand);
+	if (kLiberationTeam.isVassal(getTeam()))
+	{
+		int iNewMasterLand = GET_TEAM(getTeam()).getTotalLand();
+		int iNewVassalLand = std::max(10, // advc.112: Lower bound added
+				kLiberationTeam.getTotalLand(false));
+
+		kLiberationTeam.setMasterPower(kLiberationTeam.getMasterPower() + iNewMasterLand - iOldMasterLand);
+		kLiberationTeam.setVassalPower(kLiberationTeam.getVassalPower() + iNewVassalLand - iOldVassalLand);
 	}
-	GET_PLAYER(ePlayer).AI_updateAttitudeCache(eOwner); // advc.122
+	GET_PLAYER(ePlayer).AI_updateAttitudeCache(getOwner()); // advc.122
 	// dlph.23: Commented out. setCulture now done by advc.122 in acquireCity.
 	/*if (NULL != pPlot) {
 		CvCity* pCity = pPlot->getPlotCity();
 		if (NULL != pCity) {
-			// K-Mod, 7/jan/11, karadoc
+			// K-Mod, 7/jan/11:
 			// This mechanic was exploitable. Players could increase their culture indefinitely in a single turn by gifting cities backwards and forwards.
 			// I've attempted to close the exploit.
-			if (!bPreviouslyOwned) // K-Mod
+			if (!bPreviouslyOwned)
 				pCity->setCultureTimes100(ePlayer, pCity->getCultureTimes100(ePlayer) + iOldOwnerCulture / 2, true, true);
 			// K-Mod end
 		}
-		if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isAVassal()) {
+		if (kLiberationTeam.isAVassal()) {
 			for (int i = 0; i < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); ++i)
 				pCity->initConscriptedUnit();
 		}

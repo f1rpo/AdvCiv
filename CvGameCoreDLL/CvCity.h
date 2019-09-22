@@ -950,7 +950,8 @@ public:
 
 	PlayerTypes getLiberationPlayer(bool bConquest,									   // Exposed to Python
 			TeamTypes eWarTeam = NO_TEAM) const; // advc.122
-	void liberate(bool bConquest, /* advc.122: */ bool bCede = false);							   // Exposed to Python
+	void liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal = false);							   // Exposed to Python
+	void meetNewOwner(TeamTypes eOtherTeam, TeamTypes eNewOwner) const; // advc.071
 
 	void changeNoBonusCount(BonusTypes eBonus, int iChange);						  // Exposed to Python
 	int getNoBonusCount(BonusTypes eBonus) const;

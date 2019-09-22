@@ -617,7 +617,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 		if (!bLoaded)
 		{
 			char	szMessage[1024];
-			sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", (*it).c_str(), GC.getCurrentXMLFile().GetCString());
+			sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", it->c_str(), GC.getCurrentXMLFile().GetCString());
 			gDLL->MessageBox(szMessage, "XML Load Error");
 		}
 		if (bLoaded)
@@ -1571,7 +1571,7 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 					if (!bLoaded)
 					{
 						char szMessage[1024];
-						sprintf(szMessage, "LoadXML call failed for %s.", (*it).GetCString());
+						sprintf(szMessage, "LoadXML call failed for %s.", it->GetCString());
 						gDLL->MessageBox(szMessage, "XML Load Error");
 					}
 					else

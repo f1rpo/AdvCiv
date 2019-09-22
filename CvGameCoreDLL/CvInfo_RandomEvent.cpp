@@ -734,21 +734,21 @@ void CvEventInfo::write(FDataStreamBase* stream)
 		stream->WriteString(*it);
 	stream->Write(m_aBuildingYieldChanges.size());
 	for (std::vector<BuildingYieldChange>::iterator it = m_aBuildingYieldChanges.begin(); it != m_aBuildingYieldChanges.end(); ++it)
-		(*it).write(stream);
+		it->write(stream);
 	stream->Write(m_aBuildingCommerceChanges.size());
 	for (std::vector<BuildingCommerceChange>::iterator it = m_aBuildingCommerceChanges.begin(); it != m_aBuildingCommerceChanges.end(); ++it)
-		(*it).write(stream);
+		it->write(stream);
 	stream->Write(m_aBuildingHappyChanges.size());
 	for (BuildingChangeArray::iterator it = m_aBuildingHappyChanges.begin(); it != m_aBuildingHappyChanges.end(); ++it)
 	{
-		stream->Write((*it).first);
-		stream->Write((*it).second);
+		stream->Write(it->first);
+		stream->Write(it->second);
 	}
 	stream->Write(m_aBuildingHealthChanges.size());
 	for (BuildingChangeArray::iterator it = m_aBuildingHealthChanges.begin(); it != m_aBuildingHealthChanges.end(); ++it)
 	{
-		stream->Write((*it).first);
-		stream->Write((*it).second);
+		stream->Write(it->first);
+		stream->Write(it->second);
 	}
 	stream->WriteString(m_szUnitName);
 	stream->WriteString(m_szOtherPlayerPopup);

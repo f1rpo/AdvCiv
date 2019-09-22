@@ -9311,13 +9311,13 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_aPlotExtraYields.size());
 	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
 	{
-		(*it).write(pStream);
+		it->write(pStream);
 	}
 
 	pStream->Write(m_aPlotExtraCosts.size());
 	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
 	{
-		(*it).write(pStream);
+		it->write(pStream);
 	}
 
 	pStream->Write(m_mapVoteSourceReligions.size());
@@ -9645,9 +9645,9 @@ int CvGame::getPlotExtraYield(int iX, int iY, YieldTypes eYield) const
 {
 	for (std::vector<PlotExtraYield>::const_iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
 	{
-		if ((*it).m_iX == iX && (*it).m_iY == iY)
+		if (it->m_iX == iX && it->m_iY == iY)
 		{
-			return (*it).m_aeExtraYield[eYield];
+			return it->m_aeExtraYield[eYield];
 		}
 	}
 
@@ -9660,9 +9660,9 @@ void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYiel
 
 	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
 	{
-		if ((*it).m_iX == iX && (*it).m_iY == iY)
+		if (it->m_iX == iX && it->m_iY == iY)
 		{
-			(*it).m_aeExtraYield[eYield] += iExtraYield;
+			it->m_aeExtraYield[eYield] += iExtraYield;
 			bFound = true;
 			break;
 		}
@@ -9698,7 +9698,7 @@ void CvGame::removePlotExtraYield(int iX, int iY)
 {
 	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
 	{
-		if ((*it).m_iX == iX && (*it).m_iY == iY)
+		if (it->m_iX == iX && it->m_iY == iY)
 		{
 			m_aPlotExtraYields.erase(it);
 			break;
@@ -9716,9 +9716,9 @@ int CvGame::getPlotExtraCost(int iX, int iY) const
 {
 	for (std::vector<PlotExtraCost>::const_iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
 	{
-		if ((*it).m_iX == iX && (*it).m_iY == iY)
+		if (it->m_iX == iX && it->m_iY == iY)
 		{
-			return (*it).m_iCost;
+			return it->m_iCost;
 		}
 	}
 
@@ -9731,9 +9731,9 @@ void CvGame::changePlotExtraCost(int iX, int iY, int iCost)
 
 	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
 	{
-		if ((*it).m_iX == iX && (*it).m_iY == iY)
+		if (it->m_iX == iX && it->m_iY == iY)
 		{
-			(*it).m_iCost += iCost;
+			it->m_iCost += iCost;
 			bFound = true;
 			break;
 		}
@@ -9753,7 +9753,7 @@ void CvGame::removePlotExtraCost(int iX, int iY)
 {
 	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
 	{
-		if ((*it).m_iX == iX && (*it).m_iY == iY)
+		if (it->m_iX == iX && it->m_iY == iY)
 		{
 			m_aPlotExtraCosts.erase(it);
 			break;

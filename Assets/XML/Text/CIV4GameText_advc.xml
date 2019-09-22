@@ -5626,4 +5626,14 @@
 		<Spanish>%d1 ciudades con cultura %s2_Level (%d3_Thresh [ICON_CULTURE])</Spanish>
 	</TEXT>
 
+	<!-- advc.122 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CITY_CEDED_TO</Tag>
+		<English>%s1_Ldr has ceded %s2_City to %s3_Ldr.</English>
+		<French>%s1_Ldr a cédé %s2_City à %s3_Ldr.</French>
+		<German>%s1_Ldr hat %s2_City an %s3_Ldr abgetreten.</German>
+		<Italian>%s1_Ldr ha ceduto %s2_City a %s3_Ldr.</Italian>
+		<Spanish>%s1_Ldr ha cedido %s2_City a %s3_Ldr.</Spanish>
+	</TEXT>
+
 </Civ4GameText>
