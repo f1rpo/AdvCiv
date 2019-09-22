@@ -1658,10 +1658,10 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 				if(bRaze) logBBAI("  Razing enemy cultural victory city");
 			}
 		} // </advc.116>
-	} // <advc.122>
+	} // <advc.ctr>
 	if(!isBarbarian() && !kCity.isHolyCity() && !kCity.isEverOwned(getID()) &&
 			!kCity.hasActiveWorldWonder() && AI_isAwfulSite(kCity))
-		bRaze = true; // </advc.122>
+		bRaze = true; // </advc.ctr>
 
 	if(!bRaze)
 	{
@@ -13245,16 +13245,16 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer)
 	CvPlot const& p = *kCity.plot();
 	/*if(pCity->getLiberationPlayer(false) == ePlayer)
 		return NO_DENIAL;*/
-	// advc.122: Not so fast
+	// advc.ctr: Not so fast
 	bool const bLib = kCity.getLiberationPlayer(false, getTeam()) == ePlayer;
 	if(!bLib && !kPlayer.isHuman() && kPlayer.getTeam() != getTeam() &&
 		!kCity.isEverOwned(ePlayer))
 	{
-		// <advc.122> "We don't want to trade this" seems appropriate
+		// <advc.ctr> "We don't want to trade this" seems appropriate
 		if(GET_PLAYER(ePlayer).AI_isAwfulSite(kCity))
-			return DENIAL_UNKNOWN; // </advc.122>
+			return DENIAL_UNKNOWN; // </advc.ctr>
 		if(kPlayer.getNumCities() > 3 &&
-			/*  advc.122 (comment): Now covered by CvPlayer::canTradeItem,
+			/*  advc.ctr (comment): Now covered by CvPlayer::canTradeItem,
 				but threshold there can be disabled through XML. */
 			p.calculateCulturePercent(ePlayer) == 0)
 		{
@@ -13275,7 +13275,7 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer)
 			return DENIAL_TOO_MUCH;
 		return NO_DENIAL;
 	}*/
-	// <advc.122> work in progress
+	// <advc.ctr> work in progress
 	CvPlot const& kCityPlot = *kCity.plot();
 	if(kCityPlot.getCulture(getID()) > kCityPlot.getCulture(ePlayer))
 		return DENIAL_NEVER; // Tbd.: This condition is too coarse
@@ -13302,7 +13302,7 @@ return DENIAL_NEVER;
 			eTowardThem < ATTITUDE_FRIENDLY)
 		return DENIAL_ATTITUDE;
 	return NO_DENIAL;
-	// </advc.122>
+	// </advc.ctr>
 }
 
 /*  advc (comment): This player pays for the embargo and ePlayer stops trading
@@ -26720,7 +26720,7 @@ bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const
 	return false;
 } // </advc.121>
 
-/*  <advc.122> Says whether kCity is in a spot where probably no city belongs.
+/*  <advc.ctr> Says whether kCity is in a spot where probably no city belongs.
 	This player is the AI civ considering to obtain the city.
 	Some overlap with CvPlayerAI::AI_foundValue, but it's difficult to make
 	that function work for plots with an actual city. */
@@ -26769,7 +26769,7 @@ bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity) const
 			decentTiles += 0.4;
 	}
 	return decentTiles < 6.99;
-} // </advc.122>
+} // </advc.ctr>
 
 // K-Mod
 bool CvPlayerAI::AI_deduceCitySite(const CvCity* pCity) const

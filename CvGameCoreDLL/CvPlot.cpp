@@ -3204,12 +3204,12 @@ bool CvPlot::isVisibleEnemyUnit(PlayerTypes ePlayer) const
 {
 	return (plotCheck(PUF_isEnemy, ePlayer, false, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
 }
-// <advc.122>
+// <advc.ctr>
 bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace) const
 {
 	return (plotCheck(PUF_isEnemyCityAttacker, eDefender, eAssumePeace,
 			NO_PLAYER, NO_TEAM, PUF_isVisible, eDefender) != NULL);
-} // </advc.122>
+} // </advc.ctr>
 // K-Mod
 bool CvPlot::isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const
 {

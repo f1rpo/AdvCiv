@@ -5626,7 +5626,7 @@
 		<Spanish>%d1 ciudades con cultura %s2_Level (%d3_Thresh [ICON_CULTURE])</Spanish>
 	</TEXT>
 
-	<!-- advc.122 -->
+	<!-- advc.ctr -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CITY_CEDED_TO</Tag>
 		<English>%s1_Ldr has ceded %s2_City to %s3_Ldr.</English>

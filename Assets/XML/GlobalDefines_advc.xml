@@ -851,7 +851,7 @@
 		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.122] To receive a city through trade, a civ needs to have at
+	<!-- advc.ctr: To receive a city through trade, a civ needs to have at
 		 least this percentage of tile culture in the city tile.
 		 0 for BtS behavior; recommended: 10. -->
 	<Define>

@@ -536,7 +536,7 @@ public:
 	CvPlot* AI_getCitySite(int iIndex) const;
 	// advc.117, advc.121:
 	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
-	bool AI_isAwfulSite(CvCity const& kCity) const; // advc.122
+	bool AI_isAwfulSite(CvCity const& kCity) const; // advc.ctr
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
 	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true, bool bCheckForeignTradePolicy = true, CvArea* pIgnoreArea = 0) const; // K-Mod
 

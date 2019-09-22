@@ -233,7 +233,7 @@ public:
 	int getNumVisibleEnemyDefenders(const CvUnit* pUnit) const;																				// Exposed to Python
 	int getNumVisiblePotentialEnemyDefenders(const CvUnit* pUnit) const;															// Exposed to Python
 	DllExport bool isVisibleEnemyUnit(PlayerTypes ePlayer) const;																			// Exposed to Python
-	// advc.122:
+	// advc.ctr:
 	bool isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace = NO_TEAM) const;
 	bool isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const; // K-Mod
 	DllExport int getNumVisibleUnits(PlayerTypes ePlayer) const;

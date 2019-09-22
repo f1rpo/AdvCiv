@@ -70,7 +70,7 @@ CvCityAI::~CvCityAI()
 
 // Instead of having CvCity::init call CvCityAI::AI_init
 void CvCityAI::init(int iID, PlayerTypes eOwner, int iX, int iY,
-	bool bBumpUnits, bool bUpdatePlotGroups, /* advc.122: */ int iOccupationTimer)
+	bool bBumpUnits, bool bUpdatePlotGroups, /* advc.ctr: */ int iOccupationTimer)
 {
 	CvCity::init(iID, eOwner, iX, iY, bBumpUnits, bUpdatePlotGroups, iOccupationTimer);
 	//AI_reset(); // advc.003u: Merged into constructor

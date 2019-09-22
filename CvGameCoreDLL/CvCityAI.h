@@ -17,7 +17,7 @@ public:
 	~CvCityAI();
 	// advc.003u: Override replacing AI_init. Parameter list copied from CvCity::init.
 	void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
-			int iOccupationTimer = 0); // advc.122
+			int iOccupationTimer = 0); // advc.ctr
 
 	void AI_doTurn();
 	void AI_assignWorkingPlots();

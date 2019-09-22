@@ -298,7 +298,7 @@ CvCity::~CvCity() // advc.003u: Merged with the deleted uninit function
 
 
 void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
-	bool bUpdatePlotGroups, /* advc.122: */ int iOccupationTimer)
+	bool bUpdatePlotGroups, /* advc.ctr: */ int iOccupationTimer)
 {
 	//reset(iID, eOwner, kPlot.getX(), kPlot.getY());
 	// <advc.003u> Reset merged into constructor
@@ -314,7 +314,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 	setName(kOwner.getNewCityName(), /* advc.106k: */ false, true);
 
 	setEverOwned(getOwner(), true);
-	/*  advc.122: To prevent updateCultureLevel from bumping units in
+	/*  advc.ctr: To prevent updateCultureLevel from bumping units in
 		surrounding tiles after trading a city under occupation. Don't call
 		setOccupationTimer though -- don't need all those updates. */
 	m_iOccupationTimer = iOccupationTimer;
@@ -989,7 +989,7 @@ void CvCity::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThresh
 
 void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool bAlt, bool bShift, bool bCtrl)
 {
-	bool bCede = false; // advc.122
+	bool bCede = false; // advc.ctr
 	switch (eTask)
 	{
 	case TASK_RAZE:
@@ -999,17 +999,17 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool 
 	case TASK_DISBAND:
 		GET_PLAYER(getOwner()).disband(*this);
 		break;
-	// <advc.122>
+	// <advc.ctr>
 	case TASK_CEDE: // Meaning (in this context): as part of a peace deal
 		bCede = true;
-		// fall through // </advc.122>
+		// fall through // </advc.ctr>
 	case TASK_GIFT:
 		if (getLiberationPlayer(false) == iData1)
-			liberate(false, /* advc.122: */ bCede);
+			liberate(false, /* advc.ctr: */ bCede);
 		else
 		{
 			GET_PLAYER((PlayerTypes)iData1).acquireCity(this, false, true, true,
-					bCede); // advc.122
+					bCede); // advc.ctr
 		}
 		break;
 
@@ -14785,7 +14785,7 @@ void CvCity::meetNewOwner(TeamTypes eOtherTeam, TeamTypes eNewOwner) const
 } // </advc.071>
 
 
-void CvCity::liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal)
+void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 {
 	PlayerTypes ePlayer = getLiberationPlayer(bConquest);
 	if(ePlayer == NO_PLAYER)
@@ -14828,7 +14828,7 @@ void CvCity::liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal)
 			getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
-	if(!bPeaceDeal) // advc.122
+	if(!bPeaceDeal) // advc.ctr
 		GET_PLAYER(ePlayer).AI_rememberEvent(getOwner(), MEMORY_LIBERATED_CITIES); // advc.130j
 
 	if (kLiberationTeam.isVassal(getTeam()))
@@ -14840,8 +14840,8 @@ void CvCity::liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal)
 		kLiberationTeam.setMasterPower(kLiberationTeam.getMasterPower() + iNewMasterLand - iOldMasterLand);
 		kLiberationTeam.setVassalPower(kLiberationTeam.getVassalPower() + iNewVassalLand - iOldVassalLand);
 	}
-	GET_PLAYER(ePlayer).AI_updateAttitudeCache(getOwner()); // advc.122
-	// dlph.23: Commented out. setCulture now done by advc.122 in acquireCity.
+	GET_PLAYER(ePlayer).AI_updateAttitudeCache(getOwner()); // advc.ctr
+	// dlph.23: Commented out. setCulture now done by advc.ctr in acquireCity.
 	/*if (NULL != pPlot) {
 		CvCity* pCity = pPlot->getPlotCity();
 		if (NULL != pCity) {
@@ -14859,7 +14859,7 @@ void CvCity::liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal)
 	}*/
 }
 
-PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.122: */ TeamTypes eWarTeam) const
+PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamTypes eWarTeam) const
 {
 	if (isCapital())
 		return NO_PLAYER;
@@ -14968,7 +14968,7 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.122: */ TeamType
 			CvPlot* pLoopPlot = ::plotCity(getX(), getY(), iPlot);
 
 			if (NULL != pLoopPlot)
-			{	// advc.122: was VisibleEnemyUnit; and eWarTeam added.
+			{	// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
 				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
 				{
 					return NO_PLAYER;

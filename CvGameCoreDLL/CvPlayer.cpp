@@ -1645,7 +1645,7 @@ CvPlotGroup* CvPlayer::initPlotGroup(CvPlot* pPlot)
 
 
 CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
-	int iOccupationTimer) // advc.122
+	int iOccupationTimer) // advc.ctr
 {
 	//PROFILE_FUNC(); // advc.003o
 	CvCityAI* pCity = m_cities->add(); // advc.003u: was = addCity()
@@ -1656,7 +1656,7 @@ CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGrou
 	}
 	FAssertMsg(!GC.getMap().plot(iX, iY)->isCity(), "No city is expected at this plot when initializing new city");
 	pCity->init(pCity->getID(), getID(), iX, iY, bBumpUnits, bUpdatePlotGroups,
-			iOccupationTimer); // advc.122
+			iOccupationTimer); // advc.ctr
 	/*  advc.104: Moved out of CvCity::init so that the new city is
 		already fully initialized */
 	setFoundedFirstCity(true);
@@ -1665,7 +1665,7 @@ CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGrou
 
 
 void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups,  // advc: style changes; comments (there was only one before)
-	bool bPeaceDeal) // advc.122
+	bool bPeaceDeal) // advc.ctr
 {
 	CvPlot& kCityPlot = *pOldCity->plot();
 	{	// Kill ICBMs
@@ -1764,7 +1764,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		}
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szCapturedBy,
 				pOldCity->getX(), pOldCity->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
-	} // <advc.122> City-ceded announcement, replay msg
+	} // <advc.ctr> City-ceded announcement, replay msg
 	else if (bTrade &&  // CvCity::liberate handles liberation announcement and replay msg.
 		pOldCity->getLiberationPlayer(false) != getID())
 	{
@@ -1796,7 +1796,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szHasCeded,
 				kCityPlot.getX(), kCityPlot.getY(), (ColorTypes)GC.getInfoTypeForString(
 				"COLOR_HIGHLIGHT_TEXT"));
-	} // </advc.122>
+	} // </advc.ctr>
 
 	// Capture gold
 	int iCaptureGold = 0;
@@ -1906,7 +1906,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	if (bTrade) // Repercussions of cession: tile culture, war success (city culture: further down)
 	{
-		// <advc.122>
+		// <advc.ctr>
 		for(int i = 0; i < NUM_CITY_PLOTS; i++)
 		{
 			CvPlot* pPlot = ::plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
@@ -1924,7 +1924,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			pPlot->changeCulture(eOldOwner, -convertedCulture, false);
 			pPlot->changeCulture(getID(), convertedCulture, false);
 		}
-		// BtS code replaced by the loop above // </advc.122>
+		// BtS code replaced by the loop above // </advc.ctr>
 		/*for (int iDX = -1; iDX <= 1; iDX++) {
 			for (int iDY = -1; iDY <= 1; iDY++) {
 				CvPlot* pLoopPlot = ::plotXY(kCityPlot.getX(), kCityPlot.getY(), iDX, iDY);
@@ -1961,7 +1961,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	// Create new city and assign data from temporary variables
 	CvCity* pNewCity = initCity(kCityPlot.getX(), kCityPlot.getY(), !bConquest, false,
-			// advc.122: Moved (way) up
+			// advc.ctr: Moved (way) up
 			(bTrade && !bRecapture) ? iOccupationTimer : 0);
 	FAssert(pNewCity != NULL);
 	CvCityAI& kNewCity = pNewCity->AI(); // advc.003u
@@ -2058,14 +2058,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bTrade)
 	{
 		//if (isHuman() || getTeam() == TEAMID(eOldOwner))
-		// advc.122: Only copy the anger timers if a reset to 0 could be exploited
+		// advc.ctr: Only copy the anger timers if a reset to 0 could be exploited
 		if (isHuman() && (GET_TEAM(eOldOwner).isHuman() || TEAMID(eOldOwner) == getTeam()))
 		{
 			kNewCity.changeHurryAngerTimer(iHurryAngerTimer);
 			kNewCity.changeConscriptAngerTimer(iConscriptAngerTimer);
 			kNewCity.changeDefyResolutionAngerTimer(iDefyResolutionAngerTimer);
 		}
-		/*if (!bRecapture) // advc.122: Moved up
+		/*if (!bRecapture) // advc.ctr: Moved up
 			kNewCity.changeOccupationTimer(iOccupationTimer);*/
 	}
 
@@ -4009,7 +4009,7 @@ bool CvPlayer::canTradeWith(PlayerTypes eWhoTo) const
 	// advc: Team-level checks moved to new CvTeam function
 	if(!GET_TEAM(getTeam()).canTradeWith(TEAMID(eWhoTo)) && !canTradeNetworkWith(eWhoTo))
 		return false;
-	// <advc.122>
+	// <advc.ctr>
 	CLinkList<TradeData> items;
 	// Speed is not an issue; canTradeWith is only called during human-AI diplo.
 	buildTradeTable(eWhoTo, items);
@@ -4017,7 +4017,7 @@ bool CvPlayer::canTradeWith(PlayerTypes eWhoTo) const
 		return true;
 	items.clear();
 	GET_PLAYER(eWhoTo).buildTradeTable(getID(), items);
-	return (items.getLength() > 0); // </advc.122>
+	return (items.getLength() > 0); // </advc.ctr>
 }
 
 
@@ -4083,9 +4083,9 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			break;
 		}
 		CvCity const& kCity = *pCity;
-		if (kCity.getLiberationPlayer(false, /* advc.122: */ getTeam()) == eWhoTo)
+		if (kCity.getLiberationPlayer(false, /* advc.ctr: */ getTeam()) == eWhoTo)
 			return true;
-		// <advc.122>
+		// <advc.ctr>
 		if(kCity.isCapital() || !kCity.isRevealed(kToTeam.getID(), false))
 			break;
 		// Can't trade so long as the previous owner hasn't accepted the loss (let's ignore kCity.getOriginalOwner())
@@ -4111,7 +4111,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				// Tile culture, not city culture.
 				kCityPlot.getCulture(eWhoTo) > kCityPlot.getCulture(getID())))
 			return true;
-		// </advc.122>
+		// </advc.ctr>
 		break;
 	}
 	case TRADE_GOLD:
@@ -4225,7 +4225,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 	case TRADE_CITIES:
 		return (GET_PLAYER(eWhoTo).canReceiveTradeCity() &&
 				GC.getGame().getMaxCityElimination() <= 0 &&
-				// advc.122: Can't buy cities from rival-capitulated vassals
+				// advc.ctr: Can't buy cities from rival-capitulated vassals
 				(!kOurTeam.isCapitulated() || kOurTeam.isVassal(kToTeam.getID())));
 	case TRADE_GOLD:
 	case TRADE_GOLD_PER_TURN:
@@ -21930,7 +21930,7 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			if (!::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam())) // K-Mod
 			{
 				for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL; pNode = ourInventory.next(pNode))
-				{	// advc.122: Allow cities to be bought
+				{	// advc.ctr: Allow cities to be bought
 					/*if (pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES)
 						pNode->m_data.m_bHidden = true;
 					else*/

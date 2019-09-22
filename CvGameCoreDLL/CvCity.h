@@ -949,8 +949,8 @@ public:
 	void setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange);			// Exposed to Python
 
 	PlayerTypes getLiberationPlayer(bool bConquest,									   // Exposed to Python
-			TeamTypes eWarTeam = NO_TEAM) const; // advc.122
-	void liberate(bool bConquest, /* advc.122: */ bool bPeaceDeal = false);							   // Exposed to Python
+			TeamTypes eWarTeam = NO_TEAM) const; // advc.ctr
+	void liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal = false);							   // Exposed to Python
 	void meetNewOwner(TeamTypes eOtherTeam, TeamTypes eNewOwner) const; // advc.071
 
 	void changeNoBonusCount(BonusTypes eBonus, int iChange);						  // Exposed to Python
@@ -994,7 +994,7 @@ protected:
 	/*  Subclasses need to call this; not called by base.
 		May also want to override it. </advc.003u> */
 	virtual void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
-			int iOccupationTimer); // advc.122
+			int iOccupationTimer); // advc.ctr
 
 	// <advc> Moved here for quicker inspection in debugger
 	CvWString m_szName;

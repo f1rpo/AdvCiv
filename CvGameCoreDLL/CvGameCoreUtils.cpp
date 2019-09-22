@@ -1490,7 +1490,7 @@ bool PUF_isEnemy(const CvUnit* pUnit, int iData1, int iData2)
 
 	return (iData2 ? eOtherTeam != eOurTeam : atWar(eOtherTeam, eOurTeam));
 }
-// <advc.122>
+// <advc.ctr>
 bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
 {
 	if(iData2 >= 0)
@@ -1508,7 +1508,7 @@ bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
 			return false;
 	}
 	return PUF_isEnemy(pUnit, iData1, false);
-} // </advc.122>
+} // </advc.ctr>
 
 bool PUF_isVisible(const CvUnit* pUnit, int iData1, int iData2)
 {
