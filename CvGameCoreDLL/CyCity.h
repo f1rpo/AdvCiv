@@ -159,6 +159,8 @@ public:
 	int cultureDistance(int iDX, int iDY);
 	int cultureStrength(int /*PlayerTypes*/ ePlayer);
 	int cultureGarrison(int /*PlayerTypes*/ ePlayer);
+	float revoltProbability(); // advc.ctr
+	bool canCultureFlip(); // advc.ctr
 	int getNumBuilding(int /*BuildingTypes*/ iIndex);
 	bool isHasBuilding(int /*BuildingTypes*/ iIndex);		// This is a function to help modders out, since it was replaced with getNumBuildings() in the C++
 	int getNumActiveBuilding(int /*BuildingTypes*/ iIndex);

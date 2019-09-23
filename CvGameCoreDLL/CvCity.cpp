@@ -9576,9 +9576,11 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer, /* advc.101: */ bool bCheckPr
 {
 	/*if (isBarbarian()) // advc.101: Commented out
 		return true;*/
-	// <advc.099c> Actually still guaranteed by caller, but shouldn't rely on it
-	if(eToPlayer == NO_PLAYER || !GET_PLAYER(eToPlayer).isAlive() ||
-			eToPlayer == BARBARIAN_PLAYER || // Not guaranteed by caller
+	// <advc.099c>
+	if (eToPlayer == NO_PLAYER)
+		eToPlayer = calculateCulturalOwner();
+	if(eToPlayer == NO_PLAYER || eToPlayer == getOwner() ||
+			!GET_PLAYER(eToPlayer).isAlive() || eToPlayer == BARBARIAN_PLAYER ||
 			GET_TEAM(eToPlayer).isVassal(getTeam()))
 		return false; // </advc.099c>
 	return (!GC.getGame().isOption(GAMEOPTION_NO_CITY_FLIPPING) &&

@@ -154,6 +154,10 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("cultureDistance", &CyCity::cultureDistance, "int (iDX, iDY) - culture distance")
 		.def("cultureStrength", &CyCity::cultureStrength, "int (ePlayer)")
 		.def("cultureGarrison", &CyCity::cultureGarrison, "int (ePlayer)")
+		// <advc.ctr>
+		.def("revoltProbability", &CyCity::revoltProbability, "float ()")
+		.def("canCultureFlip", &CyCity::canCultureFlip, "bool ()")
+		// </advc.ctr>
 		.def("getNumBuilding", &CyCity::getNumBuilding, "int - (BuildingID) - How many BuildingID does this city have (real or free)?")
 		.def("isHasBuilding", &CyCity::isHasBuilding, "bool (int iBuildingID) - This function actually no longer exists in C++, this is a helper function which hooks up to getNumBuilding() to help mod backwards compatibility")
 		.def("getNumActiveBuilding", &CyCity::getNumActiveBuilding, "bool (BuildingID) - is BuildingID active in the city (present & not obsolete)?")

@@ -209,8 +209,9 @@ protected:
 		Environmental advisor mouse-over text */
 	void parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parsePollutionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-	// K-Mod end
-
+	// K-Mod end  <advc.ctr>
+	bool parseCityTradeHelp(CvWidgetDataStruct const& kWidget, CvCity*& pCity,
+			PlayerTypes& eWhoTo) const; // </advc.ctr>
 	// <advc.004a> Additional help text:
 	 // Discover ("bulb") button
 	CvWString getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePlayer) const;

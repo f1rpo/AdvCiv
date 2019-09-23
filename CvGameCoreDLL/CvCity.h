@@ -740,13 +740,14 @@ public:
 	int getCultureTimes100(PlayerTypes eIndex) const;													// Exposed to Python
 	int countTotalCultureTimes100() const;																							// Exposed to Python
 	PlayerTypes findHighestCulture() const;																			// Exposed to Python
-	// advc.101:
+	// advc.101:  (advc.ctr: exposed to Python)
 	double revoltProbability( // <advc.023>
 			bool bIgnoreWar = false, bool biIgnoreGarrison = false,
 			bool bIgnoreOccupation = false) const;
 	double probabilityOccupationDecrement() const; // </advc.023>
-	bool canCultureFlip(PlayerTypes eToPlayer, // K-Mod
-			bool bCheckPriorRevolts = true) const; // advc.101
+	// K-Mod: (advc.ctr: exposed to Python)
+	bool canCultureFlip(PlayerTypes eToPlayer /* <advc.101> */ = NO_PLAYER,
+			bool bCheckPriorRevolts = true) const; // </advc.101>
 	int calculateCulturePercent(PlayerTypes eIndex) const;											// Exposed to Python
 	int calculateTeamCulturePercent(TeamTypes eIndex) const;										// Exposed to Python
 	void setCulture(PlayerTypes eIndex, int iNewValue, bool bPlots, bool bUpdatePlotGroups);			// Exposed to Python

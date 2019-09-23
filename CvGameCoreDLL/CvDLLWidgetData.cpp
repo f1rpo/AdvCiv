@@ -645,7 +645,16 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_RF_CIV_CHOICE:
 		GC.getGame().getRiseFall().assignCivSelectionHelp(szBuffer,
 				(PlayerTypes)widgetDataStruct.m_iData1);
-		break; // </advc.706>  <advc.106i>
+		break; // </advc.706>  <advc.ctr>
+	case WIDGET_CITY_TRADE:
+	{
+		CvCity* pCity = NULL;
+		PlayerTypes eWhoTo = NO_PLAYER;
+		bool bListMore = parseCityTradeHelp(widgetDataStruct, pCity, eWhoTo);
+		if (pCity != NULL)
+			GAMETEXT.setCityTradeHelp(szBuffer, *pCity, eWhoTo, bListMore);
+		break;
+	} // </advc.ctr>  <advc.106i>
 	case WIDGET_SHOW_REPLAY:
 		szBuffer.append(gDLL->getText(widgetDataStruct.m_iData1 == 0 ?
 				"TXT_KEY_HOF_SHOW_REPLAY" : "TXT_KEY_HOF_WARN"));
@@ -956,16 +965,30 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		py.refreshMilitaryAdvisor(iData1, iData2);
 		break;
 
-	case WIDGET_CHOOSE_EVENT:
-		break;
-
-	case WIDGET_ZOOM_CITY:
-		break;
 	// <advc.706>
 	case WIDGET_RF_CIV_CHOICE:
 		GC.getGame().getRiseFall().handleCivSelection((PlayerTypes)iData1);
 		break;
-	// </advc.706>
+	// </advc.706>  <advc.ctr>
+	case WIDGET_CITY_TRADE:
+	{
+		CvCity* pCity = NULL;
+		PlayerTypes foo;
+		parseCityTradeHelp(widgetDataStruct, pCity, foo);
+		// Can't move the camera while Foreign Advisor is up
+		//gDLL->getInterfaceIFace()->lookAt(pCity->plot()->getPoint(), CAMERALOOKAT_NORMAL);
+		// Better than nothing: open city screen (while Foreign Advisor remains open too)
+		if (pCity != NULL)
+		{	// Close city screen with another click on WIDGET_CITY_TRADE
+			if (gDLL->getInterfaceIFace()->isCitySelected(pCity))
+				gDLL->getInterfaceIFace()->clearSelectedCities();
+			else if (pCity->canBeSelected()) // (Tbd.: Could we otherwise at least highlight it on the minimap?)
+				gDLL->getInterfaceIFace()->selectCity(pCity);
+		}
+		break;
+	} // </advc.ctr>
+	case WIDGET_CHOOSE_EVENT:
+	case WIDGET_ZOOM_CITY:
 	case WIDGET_HELP_TECH_PREPREQ:
 	case WIDGET_HELP_OBSOLETE:
 	case WIDGET_HELP_OBSOLETE_BONUS:
@@ -1112,8 +1135,12 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 	case WIDGET_LH_GLANCE: // advc.152
 	case WIDGET_LEADERHEAD:
 		doContactCiv(widgetDataStruct);
-		break;
-
+		break;  // <advc.ctr>
+	case WIDGET_CITY_TRADE:
+		// Both left and right click close the city screen
+		if (gDLL->getInterfaceIFace()->isCityScreenUp())
+			return executeAction(widgetDataStruct);
+		break; // </advc.ctr>
 	default:
 		bHandled = false;
 		break;
@@ -5920,6 +5947,30 @@ void CvDLLWidgetData::parsePollutionHelp(CvWidgetDataStruct &widgetDataStruct, C
 		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_POWER", GC.getDefineINT("GLOBAL_WARMING_POWER_WEIGHT")));
 	}
 } // K-Mod end
+
+// <advc.ctr>
+bool CvDLLWidgetData::parseCityTradeHelp(CvWidgetDataStruct const& kWidget, CvCity*& pCity,
+	PlayerTypes& eWhoTo) const
+{
+	bool bListMore = false;
+	// bListMore, eOwner and eWhoTo are all folded into data1
+	int iPlayerCode = kWidget.m_iData1;
+	FAssert(iPlayerCode >= 100);
+	// Undo the computation in drawCityDeals (CvExoticForeignAdvisor.py)
+	if (iPlayerCode >= 10000)
+	{
+		bListMore = true;
+		iPlayerCode /= 100;
+		iPlayerCode--;
+	}
+	PlayerTypes eOwner = (PlayerTypes)(iPlayerCode % 100);
+	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eOwner, "CvDLLWidgetData::parseCityTradeHelp");
+	eWhoTo = (PlayerTypes)((iPlayerCode / 100) - 1);
+	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eWhoTo, "CvDLLWidgetData::parseCityTradeHelp");
+	pCity = ::getCity(IDInfo(eOwner, kWidget.m_iData2));
+	FAssert(pCity != NULL);
+	return bListMore;
+} // </advc.ctr>
 
 // <advc.004a>
 CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePlayer) const {

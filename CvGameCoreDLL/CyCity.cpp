@@ -670,7 +670,16 @@ int CyCity::cultureGarrison(int /*PlayerTypes*/ ePlayer)
 {
 	return m_pCity ? m_pCity->cultureGarrison((PlayerTypes)ePlayer) : -1;
 }
+// <advc.ctr>
+float CyCity::revoltProbability()
+{
+	return m_pCity ? static_cast<float>(m_pCity->revoltProbability()) : -1;
+}
 
+bool CyCity::canCultureFlip()
+{
+	return m_pCity ? m_pCity->canCultureFlip() : false;
+} // </advc.ctr>
 int CyCity::getNumBuilding(int /*BuildingTypes*/ iIndex)
 {
 	return m_pCity ? m_pCity->getNumBuilding((BuildingTypes) iIndex) : -1;

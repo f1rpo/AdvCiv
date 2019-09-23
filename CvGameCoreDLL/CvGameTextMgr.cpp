@@ -4435,7 +4435,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",
 							floatBuffer));
 					int iPriorRevolts = c.getNumRevolts();
-					if(c.canCultureFlip(c.calculateCulturalOwner()))
+					if(c.canCultureFlip())
 					{
 						szString.append(L" (");
 						szString.append(gDLL->getText("TXT_KEY_MISC_WILL_FLIP"));
@@ -8857,6 +8857,81 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 		}
 	}
 }
+
+// <advc.ctr>
+void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kCity,
+	PlayerTypes eWhoTo, bool bListMore)
+{
+	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
+	PlayerTypes eOtherPlayer = (eWhoTo == eActivePlayer ? kCity.getOwner() : eWhoTo);
+	bool bLiberate = (eWhoTo == eOtherPlayer && kCity.getLiberationPlayer(false) == eWhoTo);
+	DenialTypes eDenial = NO_DENIAL;
+	if (kCity.getOwner() == eActivePlayer)
+		eDenial = GET_PLAYER(eActivePlayer).AI_cityTrade(kCity.AI(), eOtherPlayer);
+	else eDenial = GET_PLAYER(eOtherPlayer).AI_cityTrade(kCity.AI(), eActivePlayer);
+	bool bWilling = (eDenial == NO_DENIAL);
+	CvWString szReason;
+	if (!bWilling)
+	{
+		szReason = CvWString::format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+				GC.getDenialInfo(eDenial).getText());
+	}
+	szBuffer.append(GET_PLAYER(eOtherPlayer).getName());
+	szBuffer.append(L" ");
+	CvWString szAction;
+	if (eWhoTo == eActivePlayer && bWilling)
+		szAction = gDLL->getText("TXT_KEY_WILLING_TO_CEDE");
+	else if (eWhoTo != eActivePlayer && bWilling)
+	{
+		if (bLiberate && !bListMore)
+			szAction = gDLL->getText("TXT_KEY_WANTS_LIBERATED");
+		else szAction = gDLL->getText("TXT_KEY_WILLING_TO_TRADE_FOR");
+	}
+	else if (eWhoTo == eActivePlayer && !bWilling)
+		szAction = gDLL->getText("TXT_KEY_REFUSES_TO_CEDE");
+	else
+	{
+		FAssert(eWhoTo != eActivePlayer && !bWilling)
+		szAction = gDLL->getText("TXT_KEY_REFUSES_TO_ACCEPT");
+	}
+	szBuffer.append(szAction + L" ");
+	szBuffer.append(kCity.getName());
+	if (bListMore)
+	{
+		CvWString szLiberate = L" (" + gDLL->getText("TXT_KEY_LIBERATE_CITY") + ")";
+		if (bLiberate)
+			szBuffer.append(szLiberate);
+		bool bFound = false;
+		FOR_EACH_CITYAI(pLoopCity, GET_PLAYER(kCity.getOwner()))
+		{
+			// Skip to kCity
+			if (!bFound && pLoopCity != &kCity)
+				continue;
+			bFound = true;
+			TradeData item;
+			::setTradeItem(&item, TRADE_CITIES, pLoopCity->getID());
+			if (!GET_PLAYER(kCity.getOwner()).canTradeItem(eWhoTo, item))
+				continue;
+			// Needs to be in the same column of the "Cities" tab as kCity
+			if ((GET_PLAYER(kCity.getOwner()).AI_cityTrade(*pLoopCity, eWhoTo) ==
+					NO_DENIAL) != bWilling)
+				continue;
+			szBuffer.append(L", ");
+			szBuffer.append(pLoopCity->getName());
+			if (kCity.getOwner() == eActivePlayer && pLoopCity->getLiberationPlayer(false) == eWhoTo)
+				szBuffer.append(szLiberate);
+		}
+	}
+	/*  If the texts on the Cities tab show population counts, then this should
+		be shown as an explanation. */
+	/*szBuffer.append(CvWString::format(L" (%d %s)", kCity.getPopulation(),
+			gDLL->getText("TXT_KEY_DEMO_SCREEN_POPULATION_TEXT").GetCString()));*/
+	if (!szReason.empty() && !bListMore)
+	{
+		szBuffer.append(L":\n");
+		szBuffer.append(szReason);
+	}
+} // </advc.ctr>
 
 // <advc.910>
 void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes eTech)

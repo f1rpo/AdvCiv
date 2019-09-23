@@ -423,6 +423,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_POWER_RATIO", WIDGET_POWER_RATIO)
 		.value("WIDGET_GOLDEN_AGE", WIDGET_GOLDEN_AGE)
 		.value("WIDGET_ANARCHY", WIDGET_ANARCHY) // </advc.085>
+		.value("WIDGET_CITY_TRADE", WIDGET_CITY_TRADE) // advc.ctr
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
 	/*  K-Mod, 5/jan/11, karadoc

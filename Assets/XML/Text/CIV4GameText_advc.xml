@@ -3063,24 +3063,6 @@
 
 	<!-- advc.152 -->
 	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAWARTRADES_TEXT</Tag>
-		<English>War Trades</English>
-		<French>Guerres commanditées</French>
-		<German>Kriegsbereitschaft</German>
-		<Italian>Volontà di guerra</Italian>
-		<Spanish>Guerras patrocinadas</Spanish>
-	</TEXT>
-	<!-- Translations based on TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCETAB_TEXT in
-		 BUG Advisors Options.xml -->
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAWARTRADES_HOVER</Tag>
-		<English>When checked, the Glance tab shows fist icons to indicate which leaders are currently willing to start a war at your request.</English>
-		<French>La page Coup d'Oeil affiche les icônes poings pour indiquer quels héros sont prêts à commencer une guerre à votre demande.</French>
-		<German>Zeigt auf dem Reiter "Überblick" durch Faust-Symbole an, welche Gegner bereit sind, auf Ihr Geheiß einen Krieg zu beginnen.</German>
-		<Italian>Mostra dei pugni nella tabella "Occhiata" per indicare quali leader sono disposti ad iniziare una guerra su vostra richiesta.</Italian>
-		<Spanish>Si se activa, la pestaña Mirar muestra iconos de puño para indicar qué líderes están dispuestos a iniciar una guerra a su petición.</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>TXT_KEY_WILLING_START_WAR</Tag>
 		<English>Willing to [COLOR_NEGATIVE_TEXT]declare war[COLOR_REVERT] on %s1_LdrName</English>
 		<French>Prêt à [COLOR_NEGATIVE_TEXT]déclarer la guerre[COLOR_REVERT] à %s1_LdrName</French>
@@ -5634,6 +5616,79 @@
 		<German>%s1_Ldr hat %s2_City an %s3_Ldr abgetreten.</German>
 		<Italian>%s1_Ldr ha ceduto %s2_City a %s3_Ldr.</Italian>
 		<Spanish>%s1_Ldr ha cedido %s2_City a %s3_Ldr.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_REJECTS</Tag>
+		<English>Rejects</English>
+		<French>Rejette</French>
+		<German>Lehnt ab</German>
+		<Italian>Declina</Italian>
+		<Spanish>Rechaza</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_CEDE</Tag>
+		<English>Will Cede</English>
+		<French>Cédera</French>
+		<German>Tritt ab</German>
+		<Italian>Ceder&#224;</Italian>
+		<Spanish>Ceder&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WONT_CEDE</Tag>
+		<English>Won't Cede</English>
+		<French>Dénie</French>
+		<German>Verweigert</German>
+		<Italian>Tiene</Italian>
+		<Spanish>Deniega</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_MORE_CITIES</Tag>
+		<English>... (%d1 more)</English>
+		<French>... (%d1 autres)</French>
+		<German>... (%d1 weitere)</German>
+		<Italian>... (%d1 altre)</Italian>
+		<Spanish>... (%d1 otras)</Spanish>
+	</TEXT>
+	<!-- For WIDGET_CITY_TRADE -->
+	<TEXT>
+		<Tag>TXT_KEY_WILLING_TO_CEDE</Tag>
+		<English>is willing to cede</English>
+		<French>est prêt à céder</French>
+		<German>ist bereit zur Abtretung von</German>
+		<Italian>&#232; disposto a cedere</Italian>
+		<Spanish>está dispuesto a ceder</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WANTS_LIBERATED</Tag>
+		<English>wants you to liberate</English>
+		<French>veut qu'on libère</French>
+		<German>fordert die Übergabe von</German>
+		<Italian>vuole che liberiamo</Italian>
+		<Spanish>quiere que liberemos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WILLING_TO_TRADE_FOR</Tag>
+		<English>is willing to trade for</English>
+		<French>est prêt à faire un échange pour</French>
+		<German>ist interessiert an</German>
+		<Italian>&#232; disposto a scambiare per</Italian>
+		<Spanish>está dispuesto a cambiar por</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_REFUSES_TO_CEDE</Tag>
+		<English>refuses to cede</English>
+		<French>refuse de céder</French>
+		<German>verweigert die Abtretung von</German>
+		<Italian>si rifiuta di cedere</Italian>
+		<Spanish>se niega a ceder</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_REFUSES_TO_ACCEPT</Tag>
+		<English>refuses to accept</English>
+		<French>refuse d'accepter</French>
+		<German>hat kein Interesse an</German>
+		<Italian>rifiuta di accettare</Italian>
+		<Spanish>se niega a aceptar</Spanish>
 	</TEXT>
 
 </Civ4GameText>

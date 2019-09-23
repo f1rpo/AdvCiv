@@ -68,8 +68,8 @@ class GameFontDisplay:
 			infoPointer = gc.getBonusInfo(iLoopIndex)
 			if infoPointer.getChar() == iIndex:
 				return infoPointer
-
-		if iIndex >= CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) and iIndex <= (CyGame().getSymbolID(FontSymbols.POWER_CHAR)):
+		# advc.002f: BULL symbols (CITIZEN, GREAT_GENERAL, AIRPORT) added
+		if iIndex >= CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) and iIndex <= (CyGame().getSymbolID(FontSymbols.AIRPORT_CHAR)):
 
 				list = [ "HAPPY_CHAR",
 				"UNHAPPY_CHAR",
@@ -94,7 +94,9 @@ class GameFontDisplay:
 				"MAP_CHAR",
 				"OCCUPATION_CHAR",
 				"POWER_CHAR",
-
+				"CITIZEN_CHAR",
+				"GREAT_GENERAL_CHAR",
+				"AIRPORT_CHAR"
 				]
 
 				return list[iIndex - CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)]

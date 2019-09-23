@@ -574,6 +574,7 @@ enum WidgetTypes					// Exposed to Python
 	WIDGET_POWER_RATIO,
 	WIDGET_GOLDEN_AGE,
 	WIDGET_ANARCHY, // </advc.085>
+	WIDGET_CITY_TRADE, // advc.ctr
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
 #endif
