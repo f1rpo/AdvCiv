@@ -10640,11 +10640,14 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	static int const iMAX_EVASION_PROBABILITY = GC.getDefineINT("MAX_EVASION_PROBABILITY");
 	// </advc.opt>
 	CvPromotionInfo& promotionInfo = GC.getPromotionInfo(ePromotion);
-	if (promotionInfo.getWithdrawalChange() + m_pUnitInfo->getWithdrawalProbability() + getExtraWithdrawal() > iMAX_WITHDRAWAL_PROBABILITY)
+	if (promotionInfo.getWithdrawalChange() > 0 && // advc.001: Make sure to block only promotions that increase withdrawal chance
+			promotionInfo.getWithdrawalChange() + m_pUnitInfo->getWithdrawalProbability() + getExtraWithdrawal() > iMAX_WITHDRAWAL_PROBABILITY)
 		return false;
-	if (promotionInfo.getInterceptChange() + maxInterceptionProbability() > iMAX_INTERCEPTION_PROBABILITY)
+	if (promotionInfo.getInterceptChange() > 0 && // advc.001
+			promotionInfo.getInterceptChange() + maxInterceptionProbability() > iMAX_INTERCEPTION_PROBABILITY)
 		return false;
-	if (promotionInfo.getEvasionChange() + evasionProbability() > iMAX_EVASION_PROBABILITY)
+	if (promotionInfo.getEvasionChange() > 0 && // advc.001
+			promotionInfo.getEvasionChange() + evasionProbability() > iMAX_EVASION_PROBABILITY)
 		return false;
 	// <advc.164> Moved from ::isPromotionValid. The paradrop clause is new.
 	if(promotionInfo.getBlitz() != 0 && maxMoves() <= 1 && getDropRange() <= 0)
@@ -10652,8 +10655,9 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	// </advc.164>
 	// <advc.124>
 	PromotionTypes ePrereq = (PromotionTypes)promotionInfo.getPrereqPromotion();
-	// Unit extra moves can currently only come from promotions
-	if(promotionInfo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
+	if(promotionInfo.getMovesChange() > 0 &&
+		// Note: Unit extra moves can currently only come from promotions
+		promotionInfo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
 		GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType()) > 0 &&
 		// Allow Morale
 		(ePrereq == NO_PROMOTION || !GC.getPromotionInfo(ePrereq).isLeader()))
