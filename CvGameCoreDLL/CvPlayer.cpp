@@ -90,11 +90,6 @@ CvPlayer::CvPlayer(/* <advc.003u> */ PlayerTypes eID) :
 	m_ppaaiImprovementYieldChange = NULL;
 
 	m_aszBonusHelp = NULL; // advc.003p
-	/*  advc.210: The order of this array needs to correspond to the ids returned
-		by the AdvCiv4lers.getID functions in Civ4lerts.py */
-	m_paAlerts.push_back(new WarTradeAlert()); // advc.210a
-	m_paAlerts.push_back(new RevoltAlert()); // advc.210b
-	m_paAlerts.push_back(new BonusThirdPartiesAlert()); // advc.210d
 
 	m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0; // K-Mod
@@ -124,9 +119,6 @@ CvPlayer::~CvPlayer()
 	SAFE_DELETE_ARRAY(m_aiEspionageSpendingWeightAgainstTeam);
 	SAFE_DELETE_ARRAY(m_abFeatAccomplished);
 	SAFE_DELETE_ARRAY(m_abOptions);
-	// <advc.210>
-	for(size_t i = 0; i < m_paAlerts.size(); i++)
-		SAFE_DELETE(m_paAlerts[i]); // </advc.210>
 	// <advc.003u>
 	SAFE_DELETE(m_cities);
 	SAFE_DELETE(m_units);
@@ -178,7 +170,9 @@ bool CvPlayer::initOtherData()
 	SlotStatus eStatus = GC.getInitCore().getSlotStatus(getID());
 	if (eStatus != SS_TAKEN && eStatus != SS_COMPUTER)
 		return false;
-
+	// <advc.210>
+	if (getID() == GC.getGame().getActivePlayer())
+		initAlerts(); // </advc.210>
 	setAlive(true);
 	int iI, iJ;
 	if (GC.getGame().isOption(GAMEOPTION_RANDOM_PERSONALITIES) &&
@@ -321,6 +315,30 @@ void CvPlayer::initInGame(PlayerTypes eID)
 	AI().AI_init();
 }
 
+// <advc.210>
+void CvPlayer::initAlerts()
+{
+	if (!m_paAlerts.empty())
+	{
+		FAssertMsg(false, "initAlerts called redundantly");
+		uninitAlerts();
+	}
+	/*  The order of this array needs to correspond to the ids returned
+		by the AdvCiv4lers.getID functions in Civ4lerts.py */
+	m_paAlerts.push_back(new WarTradeAlert(getID())); // advc.210a
+	m_paAlerts.push_back(new RevoltAlert(getID())); // advc.210b
+	m_paAlerts.push_back(new BonusThirdPartiesAlert(getID())); // advc.210d
+	m_paAlerts.push_back(new CityTradeAlert(getID())); // advc.ctr
+}
+
+
+void CvPlayer::uninitAlerts()
+{
+	for(size_t i = 0; i < m_paAlerts.size(); i++)
+		SAFE_DELETE(m_paAlerts[i]);
+	m_paAlerts.clear();
+} // </advc.210>
+
 // Reset all data for this player stored in plot and city objects
 void CvPlayer::resetPlotAndCityData()
 {
@@ -410,6 +428,7 @@ void CvPlayer::uninit()
 	clearMessages();
 	clearPopups();
 	clearDiplomacy();
+	uninitAlerts(); // advc.210
 }
 
 // Initialize data members that are serialized.
@@ -541,13 +560,8 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	updateTeamType();
 	updateHuman();
 	if (m_eID != NO_PLAYER)
-	{
 		m_ePersonalityType = GC.getInitCore().getLeader(m_eID); //??? Is this repeated data???
-	}
-	else
-	{
-		m_ePersonalityType = NO_LEADER;
-	}
+	else m_ePersonalityType = NO_LEADER;
 	m_eCurrentEra = ((EraTypes)0);  //??? Is this repeated data???
 	m_eLastStateReligion = NO_RELIGION;
 	m_eParent = NO_PLAYER;
@@ -791,12 +805,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_eventsTriggered.removeAll();
 
 	if (!bConstructorCall)
-	{
 		AI().AI_reset(false);
-		// <advc.210>
-		for(size_t i = 0; i < m_paAlerts.size(); i++)
-			m_paAlerts[i]->init(getID()); // </advc.210>
-	}
 }
 
 // CHANGE_PLAYER, 08/17/08, jdog5000: START
@@ -997,6 +1006,10 @@ void CvPlayer::setIsHuman(bool bNewValue)
 
 	GC.getInitCore().setSlotStatus(getID(), bNewValue ? SS_TAKEN :
 			SS_COMPUTER); // or SS_OPEN for multiplayer?
+	// <advc.210> Only human players need alerts
+	if (bNewValue)
+		initAlerts();
+	else uninitAlerts(); // </advc.210>
 }
 // CHANGE_PLAYER: END
 // CHANGE_PLAYER, 05/09/09, jdog5000: START
@@ -9932,18 +9945,14 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		if (bDoTurn)
 		{
 			if (isAlive() && !isHuman() && !isBarbarian() && (getAdvancedStartPoints() >= 0))
-			{
 				AI().AI_doAdvancedStart();
-			}
 
 			if (g.getElapsedGameTurns() > 0)
 			{
 				if (isAlive())
 				{
 					if (g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
-					{
 						doTurn();
-					}
 					// K-Mod. Call CvTeam::doTurn at the start of this team's turn. ie. when the leader's turn is activated.
 					// Note: in simultaneous turns mode this is called by CvGame::doTurn,
 					// because from here we can't tell which player in each team will be activated first.
@@ -9962,20 +9971,20 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			{
 				if (g.isNetworkMultiPlayer())
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_TURN_BEGINS").GetCString(), "AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
+					gDLL->getInterfaceIFace()->addHumanMessage(getID(), true,
+							GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_TURN_BEGINS").GetCString(),
+							"AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
 				}
-				else
-				{
-					gDLL->getInterfaceIFace()->playGeneralSound("AS2D_NEWTURN");
-				}
+				else gDLL->getInterfaceIFace()->playGeneralSound("AS2D_NEWTURN");
 			}
 			// <advc.706> Skip warnings and messages if only pausing for civ selection
 			if(!g.isOption(GAMEOPTION_RISE_FALL) ||
-					!g.getRiseFall().isSelectingCiv()) // </advc.706>
+				!g.getRiseFall().isSelectingCiv()) // </advc.706>
 			{
 				doWarnings();
 				// <advc.106b>
-				if(isHuman()) {
+				if(isHuman())
+				{
 					validateDiplomacy(); // advc.001e
 					if(g.getActivePlayer() == getID())
 					{
@@ -10004,10 +10013,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		if (getID() == g.getActivePlayer())
 		{
 			if (gDLL->getInterfaceIFace()->getLengthSelectionList() == 0)
-			{
 				g.cycleSelectionGroups_delayed(1, false);
-			}
-
 			gDLL->getInterfaceIFace()->setDirty(SelectionCamera_DIRTY_BIT, true);
 		}
 	}
@@ -10022,11 +10028,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			gDLL->getInterfaceIFace()->flushTalkingHeadMessages();
 		}
 
-		// start profiling DLL if desired
 		if (getID() == g.getActivePlayer())
-		{
-			startProfilingDLL(true);
-		}
+			startProfilingDLL(true); // start profiling DLL if desired
 
 		g.changeNumGameTurnActive(-1);
 
@@ -10035,12 +10038,10 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 			{
 				if (isAlive())
-				{
 					doTurn();
-				}
 
 				if ((g.isPbem() || g.isHotSeat()) && isHuman() &&
-						g.countHumanPlayersAlive() > 1)
+					g.countHumanPlayersAlive() > 1)
 				{
 					g.setHotPbemBetweenTurns(true);
 				}
@@ -10068,14 +10069,9 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 							if (g.isPbem() && GET_PLAYER((PlayerTypes)iI).isHuman())
 							{
 								if (!g.getPbemTurnSent())
-								{
 									gDLL->sendPbemTurn((PlayerTypes)iI);
-								}
 							}
-							else
-							{
-								GET_PLAYER((PlayerTypes)iI).setTurnActive(true);
-							}
+							else GET_PLAYER((PlayerTypes)iI).setTurnActive(true);
 							break;
 						}
 					}
@@ -10083,11 +10079,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			}
 		}
 	}
-
 	gDLL->getInterfaceIFace()->updateCursorType();
-
 	gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-
 	GC.getMap().invalidateActivePlayerSafeRangeCache();
 }
 
@@ -16887,8 +16880,8 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	if(!isAlive())
 		return; // advc
 	// <advc.210>
-	for(size_t i = 0; i < m_paAlerts.size(); i++)
-		m_paAlerts[i]->init(getID()); // </advc.210>
+	if (getID() == GC.getGame().getActivePlayer())
+		initAlerts(); // </advc.210>
 	/*  <advc.706> Loading into retirement. Can't do this in RiseFall::read b/c
 		CvPlayer::reset has to be through first. */
 	CvGame& g = GC.getGame();
@@ -22655,6 +22648,11 @@ bool CvPlayer::hasSpaceshipArrived() const
 // <advc.210>
 void CvPlayer::checkAlert(int iAlertID, bool bSilent)
 {
+	if (m_paAlerts.empty())
+	{
+		FAssertMsg(false, "Alerts not initialized for this player")
+		return;
+	}
 	if(iAlertID < 0 || iAlertID > (int)m_paAlerts.size())
 	{
 		FAssertMsg(false, "Invalid alert");

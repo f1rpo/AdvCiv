@@ -3,23 +3,19 @@
 #ifndef ADVCIV4LERTS_H
 #define ADVCIV4LERTS_H
 
-/*  <advc.210>: I can't write this in Python, so I'm having Civ4lerts.py call
+/*  advc.210: I can't write this in Python, so I'm having Civ4lerts.py call
 	this class. Will need to make changes in Civ4lerts.py, Civ4lerts.xml,
-	BugAlertsOptionsTab.py, CvPlayer.h, CvPlayer.cpp and some file for game text
+	BugAlertsOptionsTab.py, CvPlayer.cpp and some file for game text
 	(like CIV4GameText_advc.xml) to add more alerts. */
 class AdvCiv4lert {
 
 public:
-	AdvCiv4lert();
-	void init(PlayerTypes ownerId);
+	AdvCiv4lert(PlayerTypes eOwner);
 	// Silent calls are for initializing data after loading a savegame
 	void check(bool silent);
 
 protected:
-	// Subclasses should overwrite this ...
 	virtual void check()=0;
-	// and this, probably
-	virtual void reset();
 	void msg(CvWString s, LPCSTR icon = NULL, int x = -1, int y = -1,
 			ColorTypes colorId = NO_COLOR) const;
 	PlayerTypes ownerId;
@@ -30,10 +26,9 @@ protected:
 // <advc.210a>
 class WarTradeAlert : public AdvCiv4lert {
 public:
-	WarTradeAlert();
+	WarTradeAlert(PlayerTypes eOwner);
 protected:
 	void check();
-	void reset();
 private:
 	void msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, bool bTrade);
 	bool willWar[MAX_CIV_TEAMS][MAX_CIV_TEAMS];
@@ -42,10 +37,9 @@ private:
 // <advc.210b>
 class RevoltAlert : public AdvCiv4lert {
 public:
-	RevoltAlert();
+	RevoltAlert(PlayerTypes eOwner);
 protected:
 	void check();
-	void reset();
 private:
 	std::set<int> revoltPossible;
 	std::set<int> occupation;
@@ -54,10 +48,9 @@ private:
 // <advc.210d>
 class BonusThirdPartiesAlert : public AdvCiv4lert {
 public:
-	BonusThirdPartiesAlert();
+	BonusThirdPartiesAlert(PlayerTypes eOwner);
 protected:
 	void check();
-	void reset();
 private:
 	void getExportData(CLinkList<TradeData> const* list, PlayerTypes toId,
 			std::vector<int>& r) const;
@@ -66,6 +59,21 @@ private:
 	std::multiset<int> exportDeals[MAX_CIV_PLAYERS];
 }; // </advc.210d>
 
-// </advc.210>
+// <advc.ctr>
+class CvCity;
+
+class CityTradeAlert : public AdvCiv4lert
+{
+public:
+	CityTradeAlert(PlayerTypes eOwner);
+protected:
+	void check();
+private:
+	void msgWilling(std::vector<CvCity const*> const& cities, PlayerTypes ePlayer, bool bCede) const;
+	void msgLiberate(std::vector<CvCity const*> const& cities, PlayerTypes ePlayer) const;
+	std::vector<int> willCede[MAX_CIV_PLAYERS];
+	std::vector<int> willBuy[MAX_CIV_PLAYERS];
+	std::vector<int> canLiberate[MAX_CIV_PLAYERS];
+}; // </advc.ctr>
 
 #endif

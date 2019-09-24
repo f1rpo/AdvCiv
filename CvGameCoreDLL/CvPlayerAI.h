@@ -259,10 +259,16 @@ public:
 			bool bIgnorePeace = false) const; // advc.130p
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
-	// advc.130o: Removed const qualifier - function may now change diplo memory
 	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
-			CLinkList<TradeData> const& kWeGive, int iChange = 1,
-			int iDealAge = 0); // advc.133
+			CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0,
+			// <advc.130o> May change diplo memory if true; const qualifier removed.
+			bool bHypothetical = false);
+	// const wrapper
+	bool AI_considerHypotheticalOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
+			CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0) const
+	{
+		return const_cast<CvPlayerAI*>(this)->AI_considerOffer(ePlayer, kTheyGive, kWeGive, iChange, iDealAge, true);
+	} // </advc.130o>
 	double AI_prDenyHelp() const; // advc.144
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	int AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeamTrade = false) const;

@@ -115,6 +115,7 @@ class Civ4lerts:
 		WarTrade(eventManager) # advc.210a
 		Revolt(eventManager) # advc.210b
 		BonusThirdParties(eventManager) # advc.210d
+		CityTrade(eventManager) # advc.ctr
 		GoldTrade(eventManager)
 		GoldPerTurnTrade(eventManager)
 		RefusesToTalk(eventManager)
@@ -1145,3 +1146,14 @@ class BonusThirdParties(AdvCiv4lert):
 	def getID():
 		return 2
 # </advc.210d>
+
+# <advc.ctr>
+class CityTrade(AdvCiv4lert):
+
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowCityTradeAlert()
+
+	@staticmethod
+	def getID():
+		return 3
+# </advc.ctr>

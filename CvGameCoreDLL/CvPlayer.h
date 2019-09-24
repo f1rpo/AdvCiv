@@ -1147,7 +1147,7 @@ public:
 			int& iDomesticRoutes, int& iForeignYield, int& iForeignRoutes,
 			PlayerTypes eWithPlayer = NO_PLAYER) const;
 	// BULL - Trade Hover - end
-	void checkAlert(int iAlertID, bool bSilent); // advc.210
+	void checkAlert(int iAlertID, bool bSilent); // advc.210 (exposed to Python)
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes eYield, int iSamples = 5) const;
 	void setSavingReplay(bool b); // advc.106i
@@ -1179,7 +1179,10 @@ public:
 		return *reinterpret_cast<CvPlayerAI const*>(this);
 	} // </advc.003u>	
 
-protected:
+protected:  // <advc.210>
+	void initAlerts();
+	void uninitAlerts(); // </advc.210>
+
 	PlayerTypes m_eID; // advc: Moved up for easier access in the debugger
 
 	static CvPlayerAI** m_aPlayers; // advc.003u: Moved from CvPlayerAI.h; and store only pointers.

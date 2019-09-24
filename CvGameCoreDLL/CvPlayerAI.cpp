@@ -10678,8 +10678,8 @@ bool CvPlayerAI::isAnnualDeal(CLinkList<TradeData> const& itemList) const
 bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	// advc: Renamed, turned into references (b/c caller ensures non-NULL). Also some other style changes in the body.
 	CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive,
-	int iChange,
-	int iDealAge) // advc.133
+	int iChange, /* advc.133: */ int iDealAge,
+	bool bHypothetical) // advc.130o
 {
 	const CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
@@ -10956,31 +10956,34 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 				bAccept = warAndPeaceAI().considerGiftRequest(ePlayer, iTheyReceive);
 			// </advc.144>
 		} // <advc.130o>
-		if (bDemand)
+		if (!bHypothetical)
 		{
-			/*  Moved here from CvPlayer::handleDiploEvent b/c that handler
-				can't distinguish whether the AI accepts a human demand */
-			if (bAccept)
+			if (bDemand)
 			{
-				/*  ePlayer is human; could still let the proxy AI remember,
-					but that gets confusing in R&F games when a human demands
-					tribute from a civ and later takes control of that civ.
-					So don't do this after all: */
-				  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_ACCEPT_DEMAND);
-				AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND);
-			}
-			else
-			{
-				// See above
-				  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_REJECTED_DEMAND);
-				/*  Here's where we don't increase MEMORY_MADE_DEMAND b/c the
-					demand isn't accepted. CvPlayer::handleDiploEvent deals
-					with the MADE_DEMAND_RECENT memory. */
-			}
-		} // <advc.155> Previously handled by CvPlayer::handleDiploEvent
-		else if (bAccept && bSameTeam)
-			AI_changeMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT, 1);
-		// </advc.155>
+				/*  Moved here from CvPlayer::handleDiploEvent b/c that handler
+					can't distinguish whether the AI accepts a human demand */
+				if (bAccept)
+				{
+					/*  ePlayer is human; could still let the proxy AI remember,
+						but that gets confusing in R&F games when a human demands
+						tribute from a civ and later takes control of that civ.
+						So don't do this after all: */
+					  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_ACCEPT_DEMAND);
+					AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND);
+				}
+				else
+				{
+					// See above
+					  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_REJECTED_DEMAND);
+					/*  Here's where we don't increase MEMORY_MADE_DEMAND b/c the
+						demand isn't accepted. CvPlayer::handleDiploEvent deals
+						with the MADE_DEMAND_RECENT memory. */
+				}
+			} // <advc.155> Previously handled by CvPlayer::handleDiploEvent
+			else if (bAccept && bSameTeam)
+				AI_changeMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT, 1);
+			// </advc.155>
+		}
 		return bAccept; // </advc.130o>
 	} // <advc.036>
 	if (!AI_checkResourceLimits(kWeGive, kTheyGive, ePlayer, iChange))

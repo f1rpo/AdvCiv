@@ -440,9 +440,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 void CvCity::setupGraphical()
 {
 	if (!GC.IsGraphicsInitialized())
-	{
 		return;
-	}
 
 	CvDLLEntity::setup();
 
