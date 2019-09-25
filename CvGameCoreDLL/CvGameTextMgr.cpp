@@ -8864,7 +8864,7 @@ void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kC
 {
 	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
 	PlayerTypes eOtherPlayer = (eWhoTo == eActivePlayer ? kCity.getOwner() : eWhoTo);
-	bool bLiberate = (eWhoTo == eOtherPlayer && kCity.getLiberationPlayer(false) == eWhoTo);
+	bool bLiberate = (eWhoTo == eOtherPlayer && kCity.getLiberationPlayer() == eWhoTo);
 	DenialTypes eDenial = NO_DENIAL;
 	if (kCity.getOwner() == eActivePlayer)
 		eDenial = GET_PLAYER(eActivePlayer).AI_cityTrade(kCity.AI(), eOtherPlayer);
@@ -8918,7 +8918,7 @@ void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kC
 				continue;
 			szBuffer.append(L", ");
 			szBuffer.append(pLoopCity->getName());
-			if (kCity.getOwner() == eActivePlayer && pLoopCity->getLiberationPlayer(false) == eWhoTo)
+			if (kCity.getOwner() == eActivePlayer && pLoopCity->getLiberationPlayer() == eWhoTo)
 				szBuffer.append(szLiberate);
 		}
 	}

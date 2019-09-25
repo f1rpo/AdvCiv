@@ -6008,21 +6008,26 @@ bool CvTeam::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTyp
 		return false;
 
 	return kImprovementInfo.isImprovementBonusTrade(eBonus) || kImprovementInfo.isActsAsCity();
-}
-// K-Mod end
+} // K-Mod end
 
-bool CvTeam::isFriendlyTerritory(TeamTypes eTeam) const
+// <advc>
+bool CvTeam::canPeacefullyEnter(TeamTypes eTerritoryOwner) const
 {
-	if (eTeam == NO_TEAM)
+	return (isOpenBorders(eTerritoryOwner) || isFriendlyTerritory(eTerritoryOwner));
+} // </advc>
+
+bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const // advc: Param renamed from eTeam in order to clarify its role
+{
+	if (eTerritoryOwner == NO_TEAM)
 		return false;
 
-	if (eTeam == getID())
+	if (eTerritoryOwner == getID())
 		return true;
 
-	if (GET_TEAM(eTeam).isVassal(getID()))
+	if (GET_TEAM(eTerritoryOwner).isVassal(getID()))
 		return true;
 
-	if (isVassal(eTeam) && isOpenBorders(eTeam))
+	if (isVassal(eTerritoryOwner) && isOpenBorders(eTerritoryOwner))
 		return true;
 
 	return false;

@@ -296,43 +296,43 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
-	case BUTTONPOPUP_RAZECITY:
-		if (pPopupReturn->getButtonClicked() == 1)
+	case BUTTONPOPUP_RAZECITY:  // advc: Refactored this case a bit
+	{
+		CvCity* pCity = GET_PLAYER(g.getActivePlayer()).getCity(info.getData1());
+		if (pCity == NULL)
 		{
-			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_RAZE, -1, -1, false, false, false, false);
+			FAssert(pCity != NULL);
+			return;
 		}
-		else if (pPopupReturn->getButtonClicked() == 2)
+		switch(pPopupReturn->getButtonClicked())
 		{
-			CvCity* pCity = GET_PLAYER(g.getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
-			{
-				CvEventReporter::getInstance().cityAcquiredAndKept(g.getActivePlayer(), pCity);
-			}
-
-			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_GIFT, info.getData2(), -1, false, false, false, false);
-		}
-		else if (pPopupReturn->getButtonClicked() == 3)
-		{
-			CvCity* pCity = GET_PLAYER(g.getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
-			{
-				gDLL->getInterfaceIFace()->selectCity(pCity, false);
-			}
-
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RAZECITY, info.getData1(), info.getData2(), info.getData3());
-			gDLL->getInterfaceIFace()->addPopup(pInfo, g.getActivePlayer(), false, true);
-		}
-		else if (pPopupReturn->getButtonClicked() == 0)
-		{
-			CvCity* pCity = GET_PLAYER(g.getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
-			{
-				pCity->chooseProduction();
-				CvEventReporter::getInstance().cityAcquiredAndKept(g.getActivePlayer(), pCity);
-			}
+		case 0:
+			pCity->chooseProduction();
+			CvEventReporter::getInstance().cityAcquiredAndKept(g.getActivePlayer(), pCity);
+			break;
+		case 1:
+			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_RAZE,
+					-1, -1, false, false, false, false);
+			break;
+		case 2:
+			CvEventReporter::getInstance().cityAcquiredAndKept(g.getActivePlayer(), pCity);
+			CvMessageControl::getInstance().sendDoTask(info.getData1(), //TASK_GIFT
+					/*  advc.ctr: TASK_GIFT doesn't call CvCity::liberate if the
+						bConquest=true liberation player differs from the normal
+						liberation player */
+					TASK_LIBERATE,
+					info.getData2(), -1, false, false, false, false);
+			break;
+		case 3:
+			gDLL->getInterfaceIFace()->selectCity(pCity, false);
+			gDLL->getInterfaceIFace()->addPopup(new CvPopupInfo(BUTTONPOPUP_RAZECITY,
+					info.getData1(), info.getData2(), info.getData3()),
+					g.getActivePlayer(), false, true);
+			break;
+		default: FAssertMsg(false, "Clicked button not recognized");
 		}
 		break;
-
+	}
 	case BUTTONPOPUP_DISBANDCITY:
 		if (pPopupReturn->getButtonClicked() == 1)
 		{
@@ -1407,30 +1407,26 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 		FAssert(false);
 		return false;
 	}
-
 	if (GC.getDefineINT("PLAYER_ALWAYS_RAZES_CITIES") != 0)
 	{
 		player.raze(*pNewCity);
 		return false;
 	}
 
-	PlayerTypes eHighestCulturePlayer = (PlayerTypes)info.getData2();
-
 	int iCaptureGold = info.getData3();
 	bool bRaze = player.canRaze(*pNewCity);
-	bool bGift = ((eHighestCulturePlayer != NO_PLAYER)
-		&& (eHighestCulturePlayer != player.getID())
-		&& ((player.getTeam() == GET_PLAYER(eHighestCulturePlayer).getTeam()) || GET_TEAM(player.getTeam()).isOpenBorders(GET_PLAYER(eHighestCulturePlayer).getTeam()) || GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(player.getTeam())));
-
+	PlayerTypes eLiberationPlayer = (PlayerTypes)info.getData2(); // advc: Was still named eHighestCulturePlayer as in Vanilla Civ 4
+	bool bGift = (eLiberationPlayer != NO_PLAYER);
+	/*  <advc> This was part of the bGift condition above - was already computed by
+		CvPlayer::acquireCity; surely it can't have changed in betweentimes? */
+	FAssert(eLiberationPlayer != player.getID() &&
+			GET_TEAM(player.getTeam()).canPeacefullyEnter(TEAMID(eLiberationPlayer)));
+	// </advc>
 	CvWString szBuffer;
 	if (iCaptureGold > 0)
-	{
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_GOLD_CITY_CAPTURE", iCaptureGold, pNewCity->getNameKey());
-	}
-	else
-	{
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_CITY_CAPTURE_KEEP", pNewCity->getNameKey());
-	}
+	else szBuffer = gDLL->getText("TXT_KEY_POPUP_CITY_CAPTURE_KEEP", pNewCity->getNameKey());
+
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_KEEP_CAPTURED_CITY").c_str(), NULL, 0, WIDGET_GENERAL);
 
@@ -1439,13 +1435,15 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_CAPTURED_CITY").c_str(), NULL, 1, WIDGET_GENERAL);
 	}
 	if (bGift)
-	{
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RETURN_ALLIED_CITY", GET_PLAYER(eHighestCulturePlayer).getCivilizationDescriptionKey());
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, NULL, 2, WIDGET_GENERAL, 2, eHighestCulturePlayer);
+	{	// <advc.ctr> 
+		bool bReturnCity = pNewCity->isEverOwned(eLiberationPlayer);
+		szBuffer = gDLL->getText(bReturnCity ? "TXT_KEY_POPUP_RETURN_ALLIED_CITY" :
+				"TXT_KEY_POPUP_LIBERATE_ALLIED_CITY", // </advc.ctr>
+				GET_PLAYER(eLiberationPlayer).getCivilizationDescriptionKey());
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, NULL, 2, WIDGET_GENERAL, 2, eLiberationPlayer);
 	}
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_CITY_WARNING_ANSWER3").c_str(), NULL, 3, WIDGET_GENERAL, -1, -1);
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
-
 	//gDLL->getInterfaceIFace()->playGeneralSound("AS2D_CITYCAPTURE"); // disabled by K-Mod (I've put this somewhere else.)
 
 	return true;

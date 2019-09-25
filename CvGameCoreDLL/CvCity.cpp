@@ -1002,7 +1002,7 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool 
 		bCede = true;
 		// fall through // </advc.ctr>
 	case TASK_GIFT:
-		if (getLiberationPlayer(false) == iData1)
+		if (getLiberationPlayer() == iData1)
 			liberate(false, /* advc.ctr: */ bCede);
 		else
 		{
@@ -14859,15 +14859,18 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 	}*/
 }
 
+// advc: style changes and renamed some variables
 PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamTypes eWarTeam) const
 {
 	if (isCapital())
 		return NO_PLAYER;
 
+	CvPlayer& kOwner = GET_PLAYER(getOwner());
+
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
-		if (kLoopPlayer.isAlive() && kLoopPlayer.getParent() == getOwner())
+		if (kLoopPlayer.isAlive() && kLoopPlayer.getParent() == kOwner.getID())
 		{
 			CvCity* pLoopCapital = kLoopPlayer.getCapitalCity();
 			if (pLoopCapital != NULL)
@@ -14878,77 +14881,67 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 		}
 	}
 
-	CvPlayer& kOwner = GET_PLAYER(getOwner());
+	/*  advc (note): Not sure if this is needed for anything. The splitEmpirePlayer
+		isn't alive, so one probably can't gift cities to it. */
 	if (kOwner.canSplitEmpire() && kOwner.canSplitArea(*area()))
 	{
-		PlayerTypes ePlayer = GET_PLAYER(getOwner()).getSplitEmpirePlayer(*area());
-		if (ePlayer != NO_PLAYER && GET_PLAYER(ePlayer).isAlive())
-			return ePlayer;
+		PlayerTypes eSplitPlayer = kOwner.getSplitEmpirePlayer(*area());
+		if (eSplitPlayer != NO_PLAYER && GET_PLAYER(eSplitPlayer).isAlive())
+			return eSplitPlayer;
 	}
 
 	PlayerTypes eBestPlayer = NO_PLAYER;
 	int iBestValue = 0;
-
-	int iTotalCultureTimes100 = countTotalCultureTimes100();
+	int const iTotalCityCultureTimes100 = countTotalCultureTimes100();
 	// K-Mod - Base culture which is added to dilute the true culture values
-	const int iBaseCulture = GC.getNumCultureLevelInfos() > 1
+	int const iBaseCulture = (GC.getNumCultureLevelInfos() > 1
 		? 50 * GC.getCultureLevelInfo((CultureLevelTypes)1).getSpeedThreshold(GC.getGame().getGameSpeedType())
-		: 100;
-	// K-Mod end
-
-	// K-Mod. I've flattened the if blocks into if! continue conditions.
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+		: 100); // K-Mod end
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++) // K-Mod. I've flattened the if blocks into if! continue conditions.
 	{
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
-
-		if (!kLoopPlayer.isAlive())
+		if (!kLoopPlayer.isAlive() || !kLoopPlayer.canReceiveTradeCity())
 			continue;
-
-		if (!kLoopPlayer.canReceiveTradeCity())
-			continue;
+		/*  <advc.ctr> The iBaseCulture term added by K-Mod had allowed liberation
+			at culture level 0, i.e. to players who never owned the city. */
+		if (!isEverOwned(kLoopPlayer.getID()))
+			continue; // </advc.ctr>
 
 		CvCity* pCapital = kLoopPlayer.getCapitalCity();
 		if (pCapital == NULL)
 			continue;
-
-		int iCapitalDistance = ::plotDistance(getX(), getY(),
-				pCapital->getX(), pCapital->getY());
+		int iCapitalDistance = ::plotDistance(getX(), getY(), pCapital->getX(), pCapital->getY());
 		if (area() != pCapital->area())
-		{
 			iCapitalDistance *= 2;
-		}
 
-		//int iCultureTimes100 = getCultureTimes100(kLoopPlayer.getID());
-		int iCultureTimes100 = iBaseCulture + getCultureTimes100(kLoopPlayer.getID());// K-Mod
-
+		int iCultureScore = getCultureTimes100(kLoopPlayer.getID())
+				+ iBaseCulture; // K-Mod
 		if (bConquest)
 		{
 			if (kLoopPlayer.getID() == getOriginalOwner())
 			{
-				iCultureTimes100 *= 3;
-				iCultureTimes100 /= 2;
+				iCultureScore *= 3;
+				iCultureScore /= 2;
 			}
 		}
-
 		if (kLoopPlayer.getTeam() == getTeam()
-				|| GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam())
-				|| GET_TEAM(getTeam()).isVassal(kLoopPlayer.getTeam()))
+			|| GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam())
+			|| GET_TEAM(getTeam()).isVassal(kLoopPlayer.getTeam()))
 		{
 			// K-Mod: I don't see why the total culture should be used in this way. (I haven't changed anything)
 			/*iCultureTimes100 *= 2;
 			iCultureTimes100 = (iCultureTimes100 + iTotalCultureTimes100) / 2;*/
-			// advc: Simplified (no functional change)
-			iCultureTimes100 += iTotalCultureTimes100 / 2;
+			/*  advc: Simplified (no functional change). I guess this is a sort of
+				50% bonus for non-rivals. */
+			iCultureScore += iTotalCityCultureTimes100 / 2;
 		}
-
 		// K-Mod - adjust culture score based on plot ownership.
-		iCultureTimes100 *= 100 + plot()->calculateTeamCulturePercent(kLoopPlayer.getTeam());
-		iCultureTimes100 /= 100;
+		iCultureScore *= 100 + plot()->calculateTeamCulturePercent(kLoopPlayer.getTeam());
+		iCultureScore /= 100;
 		// K-Mod end
 
 		//int iValue = std::max(100, iCultureTimes100) / std::max(1, iCapitalDistance);
-		int iValue = iCultureTimes100 / std::max(1, iCapitalDistance); // K-Mod (minimum culture moved higher up)
-
+		int iValue = iCultureScore / std::max(1, iCapitalDistance); // K-Mod (minimum culture moved higher up)
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
@@ -14956,23 +14949,18 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 		}
 	}
 
-	if (NO_PLAYER != eBestPlayer)
+	if (eBestPlayer != NO_PLAYER)
 	{
-		if (getOwner() == eBestPlayer)
-		{
+		if (kOwner.getID() == eBestPlayer)
 			return NO_PLAYER;
-		}
 
 		for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; ++iPlot)
 		{
 			CvPlot* pLoopPlot = ::plotCity(getX(), getY(), iPlot);
-
-			if (NULL != pLoopPlot)
+			if (pLoopPlot != NULL)
 			{	// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
 				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
-				{
 					return NO_PLAYER;
-				}
 			}
 		}
 	}

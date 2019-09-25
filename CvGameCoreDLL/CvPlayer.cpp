@@ -1779,7 +1779,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				pOldCity->getX(), pOldCity->getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 	} // <advc.ctr> City-ceded announcement, replay msg
 	else if (bTrade &&  // CvCity::liberate handles liberation announcement and replay msg.
-		pOldCity->getLiberationPlayer(false) != getID())
+		pOldCity->getLiberationPlayer() != getID())
 	{
 		CvWString szHasCeded(gDLL->getText("TXT_KEY_MISC_CITY_CEDED_TO",
 				GET_PLAYER(pOldCity->getOwner()).getReplayName(),
@@ -2162,19 +2162,25 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				AI().AI_conquerCity(kNewCity); // could delete the pointer...
 			else
 			{	// popup raze option
-				eHighestCulturePlayer = kNewCity.getLiberationPlayer(true);
 				bool bRaze = canRaze(kNewCity);
-				bool bGift = (eHighestCulturePlayer != NO_PLAYER &&
-						eHighestCulturePlayer != getID() &&
-						(getTeam() == GET_PLAYER(eHighestCulturePlayer).getTeam() ||
-						GET_TEAM(getTeam()).isOpenBorders(TEAMID(eHighestCulturePlayer)) ||
-						GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(getTeam())));
-
+				// <advc> Simplified
+				PlayerTypes eLiberationPlayer = kNewCity.getLiberationPlayer(true);
+				bool bGift = (eLiberationPlayer != NO_PLAYER &&
+						eLiberationPlayer != getID() &&
+						GET_TEAM(getTeam()).canPeacefullyEnter(TEAMID(eLiberationPlayer)));
+				// </advc>  <advc.ctr> Make sure that the ownership change is legal
+				if (bGift)
+				{
+					TradeData item;
+					::setTradeItem(&item, TRADE_CITIES, kNewCity.getID());
+					// Don't check denial though; recipient can't refuse.
+					bGift = canTradeItem(eLiberationPlayer, item);
+				} // </advc.ctr>
 				if (bRaze || bGift)
 				{
 					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RAZECITY);
 					pInfo->setData1(kNewCity.getID());
-					pInfo->setData2(eHighestCulturePlayer);
+					pInfo->setData2(eLiberationPlayer);
 					pInfo->setData3(iCaptureGold);
 					gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
 				} // <advc.003y> (based on K-Mod code)
@@ -4037,10 +4043,7 @@ bool CvPlayer::canTradeWith(PlayerTypes eWhoTo) const
 bool CvPlayer::canReceiveTradeCity() const
 {
 	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-	{
 		return false;
-	}
-
 	return true;
 }
 
@@ -4099,7 +4102,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		if (kCity.getLiberationPlayer(false, /* advc.ctr: */ getTeam()) == eWhoTo)
 			return true;
 		// <advc.ctr>
-		if(kCity.isCapital() || !kCity.isRevealed(kToTeam.getID(), false))
+		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID(), false))
 			break;
 		// Can't trade so long as the previous owner hasn't accepted the loss (let's ignore kCity.getOriginalOwner())
 		PlayerTypes ePreviousOwner = kCity.getPreviousOwner();
@@ -4113,9 +4116,11 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		}
 		CvPlot const& kCityPlot = *kCity.plot();
 		// Can't trade an endangered city to a third party
-		if(!kToTeam.isAtWar(getTeam()) && kCityPlot.isVisibleEnemyCityAttacker(getID()))
+		if (!kToTeam.isAtWar(getTeam()) && kCityPlot.isVisibleEnemyCityAttacker(getID()))
 			break;
-		if(kCityPlot.calculateCulturePercent(eWhoTo) < GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
+		if (kCityPlot.calculateCulturePercent(eWhoTo) < GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
+			break;
+		if (!kOurTeam.isAtWar(TEAMID(eWhoTo)) && 2 * kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
 			break;
 		// The BtS condition:
 		if ((!kOurTeam.isAVassal() && !kToTeam.isVassal(getTeam())) ||
@@ -21077,13 +21082,12 @@ bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit& kUnit) const
 	}
 
 	// Can't buy units if they are not in a legal plot
-	if (!GET_TEAM(getTeam()).isFriendlyTerritory(GET_PLAYER(eTarget).getTeam()) && !GET_TEAM(getTeam()).isOpenBorders(GET_PLAYER(eTarget).getTeam()))
+	if (!GET_TEAM(getTeam()).canPeacefullyEnter(TEAMID(eTarget)))
 	{
 		return false;
 	}
 
 	CLLNode<IDInfo>* pUnitNode = kUnit.plot()->headUnitNode();
-
 	while (pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -21758,7 +21762,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		else pCity = getCity(zTradeData.m_iData);
 		if (pCity != NULL)
 		{
-			if (pCity->getLiberationPlayer(false) == eOtherPlayer)
+			if (pCity->getLiberationPlayer() == eOtherPlayer)
 			{
 				szString.Format(L"%s (%s)", pCity->getName().GetCString(),
 						gDLL->getText("TXT_KEY_LIBERATE_CITY").GetCString());

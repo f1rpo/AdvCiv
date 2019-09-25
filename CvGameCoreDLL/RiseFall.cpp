@@ -1363,7 +1363,7 @@ bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 			allVassal = false;
 		if(item == TRADE_CITIES) {
 			CvCity* c = GET_PLAYER(from).getCity(node->m_data.m_iData);
-			if(c == NULL || c->getLiberationPlayer(false) != to)
+			if(c == NULL || c->getLiberationPlayer() != to)
 				allLiberation = false;
 		}
 		else allLiberation = false;

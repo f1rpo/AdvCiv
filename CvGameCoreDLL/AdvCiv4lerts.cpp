@@ -423,7 +423,7 @@ void CityTradeAlert::check()
 					::setTradeItem(&item, TRADE_CITIES, iCity);
 					if(kAlertPlayer.canTradeItem(kPlayer.getID(), item, true))
 					{
-						bool bLiberate = (pCity->getLiberationPlayer(false) == kPlayer.getID());
+						bool bLiberate = (pCity->getLiberationPlayer() == kPlayer.getID());
 						if(bLiberate)
 							canLiberateNow.push_back(iCity);
 						else willBuyNow.push_back(iCity);

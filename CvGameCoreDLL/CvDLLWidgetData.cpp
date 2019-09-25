@@ -1672,7 +1672,7 @@ void CvDLLWidgetData::parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
-		PlayerTypes ePlayer = pHeadSelectedCity->getLiberationPlayer(false);
+		PlayerTypes ePlayer = pHeadSelectedCity->getLiberationPlayer();
 		if (NO_PLAYER != ePlayer)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_LIBERATE_CITY_HELP", pHeadSelectedCity->getNameKey(), GET_PLAYER(ePlayer).getNameKey()));

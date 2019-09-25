@@ -5715,5 +5715,23 @@
 		<Italian>rifiuta di accettare</Italian>
 		<Spanish>se niega a aceptar</Spanish>
 	</TEXT>
+	<!-- From CIV4GameTextInfos.xml. "liberate" added (English, German only) -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_RETURN_ALLIED_CITY</Tag>
+		<English>No, return control to the %s1_CivName (liberate).</English>
+		<French>Non, rendez-la aux %s1_CivName.</French>
+		<German>Nein, &#252;bergebt sie wieder an das %s1:2_CivName (Befreiung).</German>
+		<Italian>No, restituisci il controllo all'%s1_CivName</Italian>
+		<Spanish>No, devolvedle el control al %s1_CivName</Spanish>
+	</TEXT>
+	<!-- For cases when control is not "returned". FIS as above. -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_LIBERATE_ALLIED_CITY</Tag>
+		<English>No, let the %s1_CivName assume control (liberate).</English>
+		<French>Non, rendez-la aux %s1_CivName.</French>
+		<German>Nein, überlasst die Stadt dem %s1:2_CivName (Befreiung).</German>
+		<Italian>No, restituisci il controllo all'%s1_CivName</Italian>
+		<Spanish>No, devolvedle el control al %s1_CivName</Spanish>
+	</TEXT>
 
 </Civ4GameText>

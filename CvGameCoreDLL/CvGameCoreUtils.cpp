@@ -2576,7 +2576,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 		return TRUE;
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
-	if(kTeam.isFriendlyTerritory(ePlotTeam) || kTeam.isOpenBorders(ePlotTeam))
+	if(kTeam.canPeacefullyEnter(ePlotTeam))
 		return TRUE;
 	// A war plan isn't enough; war against eTargetTeam could supplant that plan.
 	if(kTeam.isAtWar(ePlotTeam) &&
@@ -2687,18 +2687,13 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return TRUE;
 	}
 
-	if (kTeam.isFriendlyTerritory(ePlotTeam))
+	if (kTeam.canPeacefullyEnter(ePlotTeam)
+		|| kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
 		return TRUE;
 	}
 
 	if (kTeam.AI_getWarPlan(ePlotTeam) != NO_WARPLAN)
-	{
-		return TRUE;
-	}
-
-	if (kTeam.isOpenBorders(ePlotTeam)
-			|| kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
 		return TRUE;
 	}

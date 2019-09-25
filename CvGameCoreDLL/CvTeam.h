@@ -371,8 +371,8 @@ public:
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python
 
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
-
-	bool isFriendlyTerritory(TeamTypes eTeam) const;
+	bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const; // advc
+	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
 
 	int getEspionagePointsAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
 	void setEspionagePointsAgainstTeam(TeamTypes eIndex, int iValue);																							// Exposed to Python

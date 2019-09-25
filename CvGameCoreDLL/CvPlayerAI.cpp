@@ -15490,8 +15490,7 @@ bool CvPlayerAI::AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes e
 		return false;
 	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(kTarget.getTeam())) // advc
 		return false;
-	if(!GET_TEAM(kTarget.getTeam()).isOpenBorders(getTeam()) &&
-			!GET_TEAM(getTeam()).isFriendlyTerritory(kTarget.getTeam())) // advc.001j
+	if(!GET_TEAM(kTarget.getTeam()).canPeacefullyEnter(getTeam())) // advc.001j
 		return false;
 	if(kTarget.isNoNonStateReligionSpread() && kTarget.getStateReligion() != eReligion &&
 			kTarget.getStateReligion() != NO_RELIGION)
@@ -15690,7 +15689,7 @@ int CvPlayerAI::AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, 
 		int iNumCities = pArea ? pArea->getCitiesPerPlayer((PlayerTypes)iPlayer) : kLoopPlayer.getNumCities();
 		if (kLoopPlayer.isAlive() && iNumCities > 0)
 		{
-			if (GET_TEAM(getTeam()).isFriendlyTerritory(kLoopPlayer.getTeam()) || GET_TEAM(kLoopPlayer.getTeam()).isOpenBorders(getTeam()))
+			if (GET_TEAM(getTeam()).canPeacefullyEnter(kLoopPlayer.getTeam()))
 			{
 				if (!kLoopPlayer.isNoCorporations() && (iPlayer == getID() || !kLoopPlayer.isNoForeignCorporations()))
 				{
@@ -23848,9 +23847,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 						continue;
 					if (GET_PLAYER((PlayerTypes)iI).isAlive() && kTeam.isHasMet(TEAMID((PlayerTypes)iI)))
 					{
-						if (kTeam.isOpenBorders(TEAMID((PlayerTypes)iI)) ||
-							// advc.001j:
-							kTeam.isFriendlyTerritory(TEAMID((PlayerTypes)iI)))
+						if (kTeam.canPeacefullyEnter(TEAMID((PlayerTypes)iI))) // advc.001j:
 						{
 							if ((GET_PLAYER((PlayerTypes)iI).getStateReligion() == getStateReligion()))
 								iMissionary += 10;
