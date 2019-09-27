@@ -2267,15 +2267,16 @@ bool CvTeam::canVassalRevolt(TeamTypes eMaster) const
 	if(isLossesAllowRevolt(eMaster))
 		return true; // </advc.112>
 
-	if (GC.getDefineINT("FREE_VASSAL_LAND_PERCENT") < 0 ||
-			100 * std::max(10, getTotalLand(false)) < // advc.112: Lower bound added
-			kMaster.getTotalLand(false) * GC.getDefineINT("FREE_VASSAL_LAND_PERCENT"))
+	int const iFREE_VASSAL_LAND_PERCENT = GC.getDefineINT(CvGlobals::FREE_VASSAL_LAND_PERCENT); // advc
+	if (iFREE_VASSAL_LAND_PERCENT < 0 ||
+		100 * std::max(10, getTotalLand(false)) < // advc.112: Lower bound added
+		kMaster.getTotalLand(false) * iFREE_VASSAL_LAND_PERCENT)
 	{
 		return false;
 	}
-
-	if (GC.getDefineINT("FREE_VASSAL_POPULATION_PERCENT") < 0 ||
-		100 * getTotalPopulation(false) < kMaster.getTotalPopulation(false) * GC.getDefineINT("FREE_VASSAL_POPULATION_PERCENT"))
+	int const iFREE_VASSAL_POPULATION_PERCENT = GC.getDefineINT(CvGlobals::FREE_VASSAL_POPULATION_PERCENT); // advc
+	if (iFREE_VASSAL_POPULATION_PERCENT < 0 || 100 * getTotalPopulation(false) <
+		kMaster.getTotalPopulation(false) * iFREE_VASSAL_POPULATION_PERCENT)
 	{
 		return false;
 	}

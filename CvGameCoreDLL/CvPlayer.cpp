@@ -316,7 +316,7 @@ void CvPlayer::initInGame(PlayerTypes eID)
 }
 
 // <advc.210>
-void CvPlayer::initAlerts()
+void CvPlayer::initAlerts(bool bSilentCheck)
 {
 	if (!m_paAlerts.empty())
 	{
@@ -329,6 +329,11 @@ void CvPlayer::initAlerts()
 	m_paAlerts.push_back(new RevoltAlert(getID())); // advc.210b
 	m_paAlerts.push_back(new BonusThirdPartiesAlert(getID())); // advc.210d
 	m_paAlerts.push_back(new CityTradeAlert(getID())); // advc.ctr
+	if (bSilentCheck)
+	{
+		for (size_t i = 0; i < m_paAlerts.size(); i++)
+			checkAlert(i, true);
+	}
 }
 
 
@@ -1008,7 +1013,11 @@ void CvPlayer::setIsHuman(bool bNewValue)
 			SS_COMPUTER); // or SS_OPEN for multiplayer?
 	// <advc.210> Only human players need alerts
 	if (bNewValue)
-		initAlerts();
+	{
+		/*  Tbd. (advc.106c): The Python Civ4lerts should also do a silent check
+			here; to avoid alerts right after assuming control of the player. */
+		initAlerts(true);
+	}
 	else uninitAlerts(); // </advc.210>
 }
 // CHANGE_PLAYER: END
@@ -1928,14 +1937,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			int iDist = ::plotDistance(pPlot, &kCityPlot);
 			CvCity* pWorkingCity = pPlot->getWorkingCity();
 			/*  Always reduce eOldOwner culture in the inner circle. Outer circle:
-				Only if tiles not worked by other cities of eOldOwner. */
+				Only if tiles not assigned to other cities of eOldOwner. */
 			if(iDist > 1 && pWorkingCity != NULL && pWorkingCity->plot() != &kCityPlot &&
 					pWorkingCity->getOwner() != eOldOwner)
 				continue;
-			int convertedCulture = std::min(pPlot->getCulture(eOldOwner) / 2,
+			int iConvertedCulture = std::min(pPlot->getCulture(eOldOwner) / 2,
 					2 * pPlot->getCulture(getID()));
-			pPlot->changeCulture(eOldOwner, -convertedCulture, false);
-			pPlot->changeCulture(getID(), convertedCulture, false);
+			pPlot->changeCulture(eOldOwner, -iConvertedCulture, false);
+			pPlot->changeCulture(getID(), iConvertedCulture, false);
 		}
 		// BtS code replaced by the loop above // </advc.ctr>
 		/*for (int iDX = -1; iDX <= 1; iDX++) {
@@ -4115,20 +4124,21 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				break;
 		}
 		CvPlot const& kCityPlot = *kCity.plot();
-		// Can't trade an endangered city to a third party
 		if (!kToTeam.isAtWar(getTeam()) && kCityPlot.isVisibleEnemyCityAttacker(getID()))
-			break;
+			break; // Can't trade an endangered city to a third party
 		if (kCityPlot.calculateCulturePercent(eWhoTo) < GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
 			break;
-		if (!kOurTeam.isAtWar(TEAMID(eWhoTo)) && 2 * kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
+		if (!kOurTeam.isAtWar(TEAMID(eWhoTo)) &&
+			// Prevent back-and-forth trades between humans
+			(kCity.isEverOwned(eWhoTo) && isHuman() && GET_PLAYER(eWhoTo).isHuman() ? 1 : 2) * 
+			kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
+		{
 			break;
-		// The BtS condition:
-		if ((!kOurTeam.isAVassal() && !kToTeam.isVassal(getTeam())) ||
-				// Alternative condition:
-				(kToTeam.isVassal(getTeam()) &&
-				// Tile culture, not city culture.
-				kCityPlot.getCulture(eWhoTo) > kCityPlot.getCulture(getID())))
-			return true;
+		}
+		if (kToTeam.isVassal(getTeam()) &&
+				kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
+			break;
+		return true;
 		// </advc.ctr>
 		break;
 	}
@@ -4242,9 +4252,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 	case TRADE_RESOURCES: return canTradeNetworkWith(eWhoTo);
 	case TRADE_CITIES:
 		return (GET_PLAYER(eWhoTo).canReceiveTradeCity() &&
-				GC.getGame().getMaxCityElimination() <= 0 &&
-				// advc.ctr: Can't buy cities from rival-capitulated vassals
-				(!kOurTeam.isCapitulated() || kOurTeam.isVassal(kToTeam.getID())));
+				GC.getGame().getMaxCityElimination() <= 0);
 	case TRADE_GOLD:
 	case TRADE_GOLD_PER_TURN:
 		return (kOurTeam.isGoldTrading() || kToTeam.isGoldTrading());
@@ -21504,12 +21512,21 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			FOR_EACH_CITY(pLoopCity, *this)
 			{
 				//if (AI_cityTrade(pLoopCity, eOtherPlayer) != DENIAL_NEVER) // K-Mod
-				/*  advc.opt: Replace the above b/c TradeDenial tests are slower
-					than canTradeItem (though in this case the difference should be negligible). */
 				setTradeItem(&item, TRADE_CITIES, pLoopCity->getID());
 				if (canTradeItem(eOtherPlayer, item))
-				{	// advc.opt:
-					if(!bOtherHuman || getTradeDenial(eOtherPlayer, item) != DENIAL_NEVER)
+				{
+					/*  advc.ctr: If "never" cities are excluded, then "too much"
+						should be excluded as well and the check should be done
+						after the faster canTradeItem check. But I don't want to
+						exclude either anymore. */
+					/*bool bValid = !bOtherHuman;
+					if (!bValid) 
+					{
+						DenialTypes eDenial = getTradeDenial(eOtherPlayer, item);
+						if (eDenial != DENIAL_NEVER && eDenial != DENIAL_TOO_MUCH)
+							bValid = true;
+					}
+					if (bValid)*/
 					{
 						bFoundItemUs = true;
 						ourList.insertAtEnd(item);
@@ -21846,7 +21863,8 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 	return true;
 }
 
-void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory, const CLinkList<TradeData>& ourOffer, const CLinkList<TradeData>& theirOffer) const
+void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
+	const CLinkList<TradeData>& ourOffer, const CLinkList<TradeData>& theirOffer) const
 {
 	for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL; pNode = ourInventory.next(pNode))
 	{
@@ -21855,14 +21873,15 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 		// Don't show peace treaties when not at war
 		if (!::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam()))
 		{
-			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY || pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY ||
+				pNode->m_data.m_eItemType == TRADE_SURRENDER)
 			{
 				pNode->m_data.m_bHidden = true;
 			}
 		}
-
 		// Don't show technologies with no tech trading game option
-		if (GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
+		if (GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) &&
+			pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
 		{
 			pNode->m_data.m_bHidden = true;
 		}
@@ -21908,8 +21927,21 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				}
 			}
 			break;
-		default:
-			break;
+		/*// <advc.004> Only one side can pay gold [better keep gold on display I guess]
+		case TRADE_GOLD:
+		case TRADE_GOLD_PER_TURN:
+			// Perhaps better to keep AI gold on display (human treasury is always visible anyway)
+			if (isHuman())
+			{
+				for (CLLNode<TradeData>* pOfferNode = theirOffer.head(); pOfferNode != NULL;
+					pOfferNode = theirOffer.next(pOfferNode))
+				{
+					TradeableItems eItemType = pOfferNode->m_data.m_eItemType;
+					if (eItemType == TRADE_GOLD || eItemType == TRADE_GOLD_PER_TURN)
+						pNode->m_data.m_bHidden = true;
+				}
+				break;
+			} // </advc.004>*/
 		}
 	}
 
@@ -21917,10 +21949,7 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 	{
 		CLLNode<TradeData>* pFirstOffer = ourOffer.head();
 		if (pFirstOffer == NULL)
-		{
 			pFirstOffer = theirOffer.head();
-		}
-
 		if (pFirstOffer != NULL)
 		{
 			//if (!CvDeal::isEndWar(pFirstOffer->m_data.m_eItemType) || !::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam()))
@@ -21931,12 +21960,8 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 					/*if (pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES)
 						pNode->m_data.m_bHidden = true;
 					else*/
-// advc.tmp:
-if(pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES) pNode->m_data.m_bHidden = true; else
 					if (CvDeal::isAnnual(pFirstOffer->m_data.m_eItemType) != CvDeal::isAnnual(pNode->m_data.m_eItemType))
-					{
 						pNode->m_data.m_bHidden = true;
-					}
 				}
 			}
 		}

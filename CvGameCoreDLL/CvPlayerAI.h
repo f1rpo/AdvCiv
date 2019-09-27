@@ -287,7 +287,7 @@ public:
 	int AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
 	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const; // advc.036
 
-	int AI_cityTradeVal(CvCityAI const& kCity) const;
+	int AI_cityTradeVal(CvCityAI const& kCity, /* advc.ctr: */ PlayerTypes eToPlayer = NO_PLAYER) const;
 	DenialTypes AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer) const;
 
 	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
@@ -616,6 +616,8 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
+	// advc.ctr:
+	AttitudeTypes AI_cityTradeAttitudeThresh(CvCity const& kCity, PlayerTypes eToPlayer, bool bLiberate) const;
 
 	int m_iPeaceWeight;
 	int m_iEspionageWeight;

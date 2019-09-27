@@ -2670,7 +2670,7 @@ void CvPlot::invalidateBorderDangerCache()
 // K-Mod end
 
 PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureRange,
-		bool bOwnExclusiveRadius) const // advc.035
+	bool bOwnExclusiveRadius) const // advc.035
 {
 	PROFILE_FUNC();
 	int iI;

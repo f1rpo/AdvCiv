@@ -14953,16 +14953,15 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 	{
 		if (kOwner.getID() == eBestPlayer)
 			return NO_PLAYER;
-
-		for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; ++iPlot)
-		{
+		// advc.ctr: Now handled by denial check (CvPlayerAI::AI_cityTrade)
+		/*for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; ++iPlot) {
 			CvPlot* pLoopPlot = ::plotCity(getX(), getY(), iPlot);
-			if (pLoopPlot != NULL)
-			{	// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
+			if (pLoopPlot != NULL) {
+				// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
 				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
 					return NO_PLAYER;
 			}
-		}
+		}*/
 	}
 
 	return eBestPlayer;

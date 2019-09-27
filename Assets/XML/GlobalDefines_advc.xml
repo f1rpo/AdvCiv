@@ -852,8 +852,11 @@
 	</Define>
 
 	<!-- advc.ctr: To receive a city through trade, a civ needs to have at
-		 least this percentage of tile culture in the city tile.
-		 0 for BtS behavior; recommended: 10. -->
+		 least this percentage of tile culture in the city tile. Moreover,
+		 an AI civ applies a stricter attitude threshold when it has this much or
+		 more culture in a city and needs to decide whether to trade (not
+		 liberate) the city to another civ.
+		 Recommended: 10 -->
 	<Define>
 		<DefineName>CITY_TRADE_CULTURE_THRESH</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>

@@ -176,6 +176,9 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getDemandTributeAttitudeThreshold() const;
 	int getNoGiveHelpAttitudeThreshold() const;
 	int getTechRefuseAttitudeThreshold() const;
+	// <advc.ctr>
+	int getCityRefuseAttitudeThreshold() const;
+	int getNativeCityRefuseAttitudeThreshold() const; // </advc.ctr>
 	int getStrategicBonusRefuseAttitudeThreshold() const;
 	int getHappinessBonusRefuseAttitudeThreshold() const;
 	int getHealthBonusRefuseAttitudeThreshold() const;
@@ -288,6 +291,9 @@ protected:
 	int m_iDemandTributeAttitudeThreshold;
 	int m_iNoGiveHelpAttitudeThreshold;
 	int m_iTechRefuseAttitudeThreshold;
+	// <advc.ctr>
+	int m_iCityRefuseAttitudeThreshold;
+	int m_iNativeCityRefuseAttitudeThreshold; // </advc.ctr>
 	int m_iStrategicBonusRefuseAttitudeThreshold;
 	int m_iHappinessBonusRefuseAttitudeThreshold;
 	int m_iHealthBonusRefuseAttitudeThreshold;

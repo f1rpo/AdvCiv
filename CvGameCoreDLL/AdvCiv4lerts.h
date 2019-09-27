@@ -11,6 +11,7 @@ class AdvCiv4lert {
 
 public:
 	AdvCiv4lert(PlayerTypes eOwner);
+	virtual ~AdvCiv4lert() {}
 	// Silent calls are for initializing data after loading a savegame
 	void check(bool silent);
 

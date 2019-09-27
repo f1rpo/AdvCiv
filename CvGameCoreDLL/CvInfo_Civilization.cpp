@@ -476,6 +476,9 @@ m_iFavoriteCivicAttitudeChangeLimit(0),
 m_iDemandTributeAttitudeThreshold(NO_ATTITUDE),
 m_iNoGiveHelpAttitudeThreshold(NO_ATTITUDE),
 m_iTechRefuseAttitudeThreshold(NO_ATTITUDE),
+// <advc.ctr> Default values
+m_iCityRefuseAttitudeThreshold(ATTITUDE_CAUTIOUS),
+m_iNativeCityRefuseAttitudeThreshold(ATTITUDE_PLEASED), // </advc.ctr>
 m_iStrategicBonusRefuseAttitudeThreshold(NO_ATTITUDE),
 m_iHappinessBonusRefuseAttitudeThreshold(NO_ATTITUDE),
 m_iHealthBonusRefuseAttitudeThreshold(NO_ATTITUDE),
@@ -830,6 +833,16 @@ int CvLeaderHeadInfo::getTechRefuseAttitudeThreshold() const
 {
 	return m_iTechRefuseAttitudeThreshold;
 }
+// <advc.ctr>
+int CvLeaderHeadInfo::getCityRefuseAttitudeThreshold() const
+{
+	return m_iCityRefuseAttitudeThreshold;
+}
+
+int CvLeaderHeadInfo::getNativeCityRefuseAttitudeThreshold() const
+{
+	return m_iNativeCityRefuseAttitudeThreshold;
+} // </advc.ctr>
 
 int CvLeaderHeadInfo::getStrategicBonusRefuseAttitudeThreshold() const
 {
@@ -1097,6 +1110,9 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iDemandTributeAttitudeThreshold);
 	stream->Read(&m_iNoGiveHelpAttitudeThreshold);
 	stream->Read(&m_iTechRefuseAttitudeThreshold);
+	// <advc.ctr>
+	stream->Read(&m_iCityRefuseAttitudeThreshold);
+	stream->Read(&m_iNativeCityRefuseAttitudeThreshold); // </advc.ctr>
 	stream->Read(&m_iStrategicBonusRefuseAttitudeThreshold);
 	stream->Read(&m_iHappinessBonusRefuseAttitudeThreshold);
 	stream->Read(&m_iHealthBonusRefuseAttitudeThreshold);
@@ -1233,6 +1249,9 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iDemandTributeAttitudeThreshold);
 	stream->Write(m_iNoGiveHelpAttitudeThreshold);
 	stream->Write(m_iTechRefuseAttitudeThreshold);
+	// <advc.ctr>
+	stream->Write(m_iCityRefuseAttitudeThreshold);
+	stream->Write(m_iNativeCityRefuseAttitudeThreshold); // </advc.ctr>
 	stream->Write(m_iStrategicBonusRefuseAttitudeThreshold);
 	stream->Write(m_iHappinessBonusRefuseAttitudeThreshold);
 	stream->Write(m_iHealthBonusRefuseAttitudeThreshold);
@@ -1345,14 +1364,22 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iFreedomAppreciation, "iFreedomAppreciation");
 
 	pXML->GetChildXmlValByName(szTextVal, "DemandTributeAttitudeThreshold");
-	m_iDemandTributeAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iDemandTributeAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "NoGiveHelpAttitudeThreshold");
-	m_iNoGiveHelpAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iNoGiveHelpAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "TechRefuseAttitudeThreshold");
 	m_iTechRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
-
+	// <advc.ctr>
+	pXML->GetChildXmlValByName(szTextVal, "CityRefuseAttitudeThreshold", "");
+	if (!szTextVal.empty())
+		m_iCityRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
+	// (Keep initial value otherwise)
+	pXML->GetChildXmlValByName(szTextVal, "NativeCityRefuseAttitudeThreshold", "");
+	if (!szTextVal.empty())
+		m_iNativeCityRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
+	// </advc.ctr>
 	pXML->GetChildXmlValByName(szTextVal, "StrategicBonusRefuseAttitudeThreshold");
 	m_iStrategicBonusRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
@@ -1360,40 +1387,40 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 	m_iHappinessBonusRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "HealthBonusRefuseAttitudeThreshold");
-	m_iHealthBonusRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iHealthBonusRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "MapRefuseAttitudeThreshold");
-	m_iMapRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iMapRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "DeclareWarRefuseAttitudeThreshold");
-	m_iDeclareWarRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iDeclareWarRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "DeclareWarThemRefuseAttitudeThreshold");
-	m_iDeclareWarThemRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iDeclareWarThemRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "StopTradingRefuseAttitudeThreshold");
-	m_iStopTradingRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iStopTradingRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "StopTradingThemRefuseAttitudeThreshold");
-	m_iStopTradingThemRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iStopTradingThemRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "AdoptCivicRefuseAttitudeThreshold");
-	m_iAdoptCivicRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iAdoptCivicRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "ConvertReligionRefuseAttitudeThreshold");
-	m_iConvertReligionRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iConvertReligionRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "OpenBordersRefuseAttitudeThreshold");
-	m_iOpenBordersRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iOpenBordersRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "DefensivePactRefuseAttitudeThreshold");
-	m_iDefensivePactRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iDefensivePactRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "PermanentAllianceRefuseAttitudeThreshold");
-	m_iPermanentAllianceRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iPermanentAllianceRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "VassalRefuseAttitudeThreshold");
-	m_iVassalRefuseAttitudeThreshold = pXML->FindInInfoClass( szTextVal);
+	m_iVassalRefuseAttitudeThreshold = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "FavoriteCivic");
 	m_iFavoriteCivic = pXML->FindInInfoClass(szTextVal);

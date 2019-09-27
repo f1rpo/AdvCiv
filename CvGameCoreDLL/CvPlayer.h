@@ -1180,7 +1180,7 @@ public:
 	} // </advc.003u>	
 
 protected:  // <advc.210>
-	void initAlerts();
+	void initAlerts(bool bSilentCheck = false);
 	void uninitAlerts(); // </advc.210>
 
 	PlayerTypes m_eID; // advc: Moved up for easier access in the debugger

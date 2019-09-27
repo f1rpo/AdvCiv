@@ -70,6 +70,12 @@
 	<ElementType name="DemandTributeAttitudeThreshold" content="textOnly"/>
 	<ElementType name="NoGiveHelpAttitudeThreshold" content="textOnly"/>
 	<ElementType name="TechRefuseAttitudeThreshold" content="textOnly"/>
+	<!-- advc.ctr (start): As usual the attitude level needs to be one better
+		 than this to make the AI willing to trade. I.e. Friendly means that
+		 the AI will never trade. -->
+	<ElementType name="CityRefuseAttitudeThreshold" content="textOnly"/>
+	<ElementType name="NativeCityRefuseAttitudeThreshold" content="textOnly"/>
+	<!-- advc.ctr: end -->
 	<ElementType name="StrategicBonusRefuseAttitudeThreshold" content="textOnly"/>
 	<ElementType name="HappinessBonusRefuseAttitudeThreshold" content="textOnly"/>
 	<ElementType name="HealthBonusRefuseAttitudeThreshold" content="textOnly"/>
@@ -256,6 +262,12 @@
 		<element type="DemandTributeAttitudeThreshold"/>
 		<element type="NoGiveHelpAttitudeThreshold"/>
 		<element type="TechRefuseAttitudeThreshold"/>
+		<!-- advc.ctr (start): These are optional. As default values, the DLL
+			 (CvGlobals constructor) assigns ATTITUDE_CAUTIOUS to the first and
+			 ATTITUDE_PLEASED to the second. -->
+		<element type="CityRefuseAttitudeThreshold" minOccurs="0"/>
+		<element type="NativeCityRefuseAttitudeThreshold" minOccurs="0"/>
+		<!-- advc.ctr: end -->
 		<element type="StrategicBonusRefuseAttitudeThreshold"/>
 		<element type="HappinessBonusRefuseAttitudeThreshold"/>
 		<element type="HealthBonusRefuseAttitudeThreshold"/>

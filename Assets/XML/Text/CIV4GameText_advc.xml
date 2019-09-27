@@ -2598,8 +2598,19 @@
 		<Italian>Vassallo (volontario) di %s1_CivDesc</Italian>
 		<Spanish>Vasallo (volontario) del %s1_CivDesc</Spanish>
 	</TEXT>
+	<!-- Based on TXT_KEY_DENIAL_ATTITUDE (CIV4GameTextInfos.xml); kept all the
+		 translations from there. -->
+	<TEXT>
+		<Tag>TXT_KEY_DENIAL_TRUE_ATTITUDE</Tag>
+		<English>"We don't truly like you that much."</English>
+		<French>"Nous ne vous appr&#233;cions pas suffisamment."</French>
+		<German>"Ganz so nah stehen wir Euch dann eigentlich doch nicht."</German>
+		<Italian>"Non ci piaci abbastanza."</Italian>
+		<Spanish>"No nos ca&#233;is lo bastante bien."</Spanish>
+	</TEXT>
+	
 
-	<!-- advc.130w] Explanation text for new diplo modifier -->
+	<!-- advc.130w: Explanation text for new diplo modifier -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_ATTITUDE_EXPANSIONIST</Tag>
 		<English>%D1: "We oppose your ruthless expansionism!"</English>

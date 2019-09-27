@@ -75,6 +75,10 @@
 			<DemandTributeAttitudeThreshold>NONE</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>NONE</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>NONE</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>NONE</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>NONE</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>NONE</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>NONE</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>NONE</HealthBonusRefuseAttitudeThreshold>
@@ -276,6 +280,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -922,6 +930,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -1583,6 +1595,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -2240,6 +2256,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -2891,6 +2911,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -3537,6 +3561,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -4185,6 +4213,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>NONE</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -4831,6 +4863,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -5480,6 +5516,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -6134,6 +6174,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -6785,6 +6829,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -7438,6 +7486,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -8093,6 +8145,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -8747,6 +8803,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -9394,6 +9454,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>NONE</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>NONE</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>NONE</HealthBonusRefuseAttitudeThreshold>
@@ -10016,6 +10080,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -10662,6 +10730,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -11308,6 +11380,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -11950,6 +12026,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -12600,6 +12680,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -13257,6 +13341,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -13913,6 +14001,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -14573,6 +14665,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -15222,6 +15318,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -15871,6 +15971,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -16523,6 +16627,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -17176,6 +17284,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -17825,6 +17937,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -18471,6 +18587,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>NONE</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>NONE</HealthBonusRefuseAttitudeThreshold>
@@ -19118,6 +19238,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -19767,6 +19891,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -20413,6 +20541,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -21062,6 +21194,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -21716,6 +21852,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -22368,6 +22508,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -23021,6 +23165,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -23683,6 +23831,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -24334,6 +24486,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -24989,6 +25145,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_PLEASED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_PLEASED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -25637,6 +25797,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -26297,6 +26461,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -26953,6 +27121,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -27592,6 +27764,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -28240,6 +28416,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -28899,6 +29079,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -29552,6 +29736,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -30203,6 +30391,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_PLEASED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -30861,6 +31053,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -31502,6 +31698,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -32158,6 +32358,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_PLEASED</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</HealthBonusRefuseAttitudeThreshold>
@@ -32826,6 +33030,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>
@@ -33481,6 +33689,10 @@
 			<DemandTributeAttitudeThreshold>ATTITUDE_CAUTIOUS</DemandTributeAttitudeThreshold>
 			<NoGiveHelpAttitudeThreshold>ATTITUDE_CAUTIOUS</NoGiveHelpAttitudeThreshold>
 			<TechRefuseAttitudeThreshold>ATTITUDE_FURIOUS</TechRefuseAttitudeThreshold>
+			<!-- advc.ctr: start -->
+			<CityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</CityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</NativeCityRefuseAttitudeThreshold>
+			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_ANNOYED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
 			<HealthBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HealthBonusRefuseAttitudeThreshold>

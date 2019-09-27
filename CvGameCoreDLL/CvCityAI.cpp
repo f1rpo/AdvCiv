@@ -4791,14 +4791,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 								kBrother.getStateReligion() != eStateReligion ||
 								!GET_TEAM(kOwner.getTeam()).isHasMet(kBrother.getTeam()))
 							continue;
-						AttitudeTypes eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
+						AttitudeTypes eTowardThem;
+						if (!isHuman())
+						{
+							eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
+							if(GET_TEAM(getTeam()).AI_getWarPlan(kBrother.getTeam()) != NO_WARPLAN)
+							{
+								eTowardThem = (AttitudeTypes)std::min((int)eTowardThem,
+										(int)ATTITUDE_ANNOYED);
+							}
+						}
+						else eTowardThem = kOwner.AI_getAttitude(kBrother.getID(), true, false);
 						if(kBrother.isMinorCiv())
 							eTowardThem = ATTITUDE_FURIOUS;
-						if(GET_TEAM(getTeam()).AI_getWarPlan(kBrother.getTeam()) != NO_WARPLAN)
-						{
-							eTowardThem = (AttitudeTypes)std::min((int)eTowardThem,
-									(int)ATTITUDE_ANNOYED);
-						}
 						bool bTheyAhead = (g.getPlayerRank(kBrother.getID()) <
 								std::min(g.getPlayerRank(kOwner.getID()),
 								iEverAlive / 2));

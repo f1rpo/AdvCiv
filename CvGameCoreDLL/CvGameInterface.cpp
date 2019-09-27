@@ -2451,20 +2451,20 @@ void CvGame::nextActivePlayer(bool bForward)
 	for (int i = 1; i < MAX_PLAYERS; ++i)
 	{
 		if (bForward)
-		{
 			iNewPlayer += 1;
-		}
-		else
-		{
-			iNewPlayer += MAX_PLAYERS - 1;
-		}
+		else iNewPlayer += MAX_PLAYERS - 1;
 		iNewPlayer %= MAX_PLAYERS;
 
-		PlayerTypes eNewPlayer = (PlayerTypes) iNewPlayer;
-		if (GET_PLAYER(eNewPlayer).isAlive() && !(GET_PLAYER(eNewPlayer).isBarbarian()))
+		PlayerTypes eNewPlayer = (PlayerTypes)iNewPlayer;
+		if (GET_PLAYER(eNewPlayer).isAlive() && !GET_PLAYER(eNewPlayer).isBarbarian())
 		{
-			GC.getInitCore().setSlotStatus(getActivePlayer(), SS_COMPUTER);
-			GC.getInitCore().setSlotStatus(eNewPlayer, SS_TAKEN);
+			/*GC.getInitCore().setSlotStatus(getActivePlayer(), SS_COMPUTER);
+			GC.getInitCore().setSlotStatus(eNewPlayer, SS_TAKEN);*/
+			/*  <advc.210> The CHANGE_PLAYER component added a wrapper for that
+				(which now also initializes alerts) */
+			GET_PLAYER(getActivePlayer()).setIsHuman(false);
+			GET_PLAYER(eNewPlayer).setIsHuman(true);
+			// </advc.210>
 			GET_PLAYER(getActivePlayer()).setTurnActive(false, false);
 			GET_PLAYER(eNewPlayer).setTurnActive(true, false);
 			setActivePlayer(eNewPlayer, true);

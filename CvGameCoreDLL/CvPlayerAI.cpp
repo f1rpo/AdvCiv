@@ -8920,7 +8920,7 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced,
 		/*  It's OK to use it for keeping data members of the proxy AI up to date
 			(e.g. worst enemy, commerce weight, strategies) */
 		FAssertMsg(!bAssertNonHuman || (GC.getGame().isDebugMode() && GC.ctrlKey()),
-				"Attitude of human (proxy) AI shouldn't matter"); 
+				"Attitude of human (proxy) AI shouldn't matter");
 		return 0;
 	} // </advc.130u>
 	// <advc.003n> Moved out of the bForced branch and assert added
@@ -10587,7 +10587,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 		{
 			CvCityAI* pCity = GET_PLAYER(ePlayer).AI_getCity(pNode->m_data.m_iData);
 			if (pCity != NULL)
-				iValue += AI_cityTradeVal(*pCity);
+				iValue += AI_cityTradeVal(*pCity, /* advc.ctr: */ getID());
 			break;
 		}
 		case TRADE_GOLD:
@@ -13162,21 +13162,38 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	return NO_DENIAL;
 }
 
-// K-Mod note: the way this function is currently used is that it actually represents
-// how much the current owner values _not giving the city to this player_.
-//
-// For example, if this player currently controls most of the city's culture,
-// the value should be _lower_ rather than higher, so that the current owner
-// is more likely to give up the city.
-//
-// Ideally the value of receiving the city and the cost of giving the city away would be
-// separate things; but that's currently not how trades are made.
-int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity) const  // advc.003u: param was CvCity*
-{	// <advc>
-	CvGame const& g = GC.getGame();
-	PlayerTypes const eOwner = kCity.getOwner(); // </advc>
-	FAssert(eOwner != getID());
-
+/*  K-Mod note: the way this function is currently used is that it actually represents
+	how much the current owner values _not giving the city to this player_.
+	For example, if this player currently controls most of the city's culture,
+	the value should be _lower_ rather than higher, so that the current owner
+	is more likely to give up the city.
+	Ideally the value of receiving the city and the cost of giving the city away would be
+	separate things; but that's currently not how trades are made. */
+/*  advc.ctr: Now this function computes three different things depending on the
+	parameters.
+	1)  If eToPlayer is this player: How much this player values acquiring kCity
+		from its current owner.
+	2)  If eToPlayer is a different player: How much this player values holding
+		onto kCity and not giving it to eToPlayer.
+	3)	If eToPlayer is NO_PLAYER: The sum of 1) and 2). That's useful for
+		balancing out trade deals - which is the main purpose of this function.
+	I'm keeping it in one function b/c all three require similar computations. */
+int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was CvCity*
+	// <advc.ctr>
+	PlayerTypes eToPlayer) const
+{
+	PROFILE_FUNC(); // (to be profiled)
+	if (eToPlayer == NO_PLAYER)
+	{
+		return AI_cityTradeVal(kCity, getID()) +
+				GET_PLAYER(kCity.getOwner()).AI_cityTradeVal(kCity, getID());
+	}
+	PlayerTypes const eOwner = kCity.getOwner();
+	FAssert(eToPlayer != eOwner);
+	CvPlayerAI const& kToPlayer = GET_PLAYER(eToPlayer);
+	//bool bKeep = (eToPlayer != getID()); // Case 2) in the comment on top
+	// </advc.ctr>
+	CvGame const& g = GC.getGame(); // advc
 	int iValue = 300;
 
 	//iValue += (kCity.getPopulation() * 50); // advc: Call this iPopValue
@@ -13189,7 +13206,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity) const  // advc.003u: para
 			/*  advc.001: I think karadoc's intention was to add at most
 				200 * CultureLevel, namely when the city owner has 0 culture,
 				but without the addition below, the increment would actually be
-				200 * CultureLevel * this player's city culture, i.e. millions. */
+				200 * CultureLevel * this player's city culture -- way too much. */
 			+ kCity.getCulture(getID()));
 
 	//iValue += (((((kCity.getPopulation() * 50) + g.getElapsedGameTurns() + 100) * 4) * kCity.plot()->calculateCulturePercent(eOwner)) / 100);
@@ -13199,7 +13216,8 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity) const  // advc.003u: para
 	iCityTurns = iCityTurns * GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getVictoryDelayPercent() / 100;
 	iValue += ((iPopValue + iCityTurns * 3 / 2 + 80) * 4 * (kCity.plot()->
-			calculateCulturePercent(eOwner) + 10)) / 110;
+			calculateCulturePercent(/*eOwner*/eToPlayer) // advc.ctr
+			+ 10)) / 110;
 	// K-Mod end
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
@@ -13213,12 +13231,15 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity) const  // advc.003u: para
 			// K-Mod. Use average of our value for gaining the bonus, and their value for losing it.
 			int iBonusValue = 0;
 			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-				iBonusValue += AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true);
-			if (pLoopPlot->getBonusType(TEAMID(eOwner)) != NO_BONUS)
 			{
+				iBonusValue += /* advc.ctr: */ kToPlayer.
+						AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true);
+			}
+			// advc.ctr: That's (mostly) handled by the recursive call upfront now
+			/*if (pLoopPlot->getBonusType(TEAMID(eOwner)) != NO_BONUS) {
 				iBonusValue += GET_PLAYER(eOwner).AI_bonusVal(
 						pLoopPlot->getBonusType(TEAMID(eOwner)), -1, true);
-			}
+			}*/
 			iBonusValue *= plotDistance(pLoopPlot, kCity.plot()) <= 1 ? 5 : 4;
 			iValue += iBonusValue;
 			// K-Mod end
@@ -13241,72 +13262,160 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity) const  // advc.003u: para
 }
 
 
-DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer) const // advc: refactored; advc.003u: param was CvCity*
+DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlayer) const // advc: refactored; advc.003u: param was CvCity*
 {
+	PROFILE_FUNC(); // advc.ctr (to be profiled)
 	FAssert(kCity.getOwner() == getID());
-	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
-	CvPlot const& p = *kCity.plot();
+	CvPlayerAI const& kToPlayer = GET_PLAYER(eToPlayer); // advc: Renamed from kPlayer/ ePlayer
+	CvPlot const& kCityPlot = *kCity.plot();
 	/*if(pCity->getLiberationPlayer(false) == ePlayer)
 		return NO_DENIAL;*/
 	// advc.ctr: Not so fast
-	bool const bLib = kCity.getLiberationPlayer(false, getTeam()) == ePlayer;
-	if(!bLib && !kPlayer.isHuman() && kPlayer.getTeam() != getTeam() &&
-		!kCity.isEverOwned(ePlayer))
+	bool const bLib = (kCity.getLiberationPlayer(false, getTeam()) == eToPlayer);
+	if (!bLib && !kToPlayer.isHuman() && kToPlayer.getTeam() != getTeam() &&
+		!kCity.isEverOwned(eToPlayer))
 	{
 		// <advc.ctr> "We don't want to trade this" seems appropriate
-		if(GET_PLAYER(ePlayer).AI_isAwfulSite(kCity))
+		if(GET_PLAYER(eToPlayer).AI_isAwfulSite(kCity)) // Tbd.: AI_cityTradeVal should handle this
 			return DENIAL_UNKNOWN; // </advc.ctr>
-		if(kPlayer.getNumCities() > 3 &&
-			/*  advc.ctr (comment): Now covered by CvPlayer::canTradeItem,
-				but threshold there can be disabled through XML. */
-			p.calculateCulturePercent(ePlayer) == 0)
-		{
+		// advc.ctr: Now covered by CvPlayer::canTradeItem
+		/*if(kCityPlot.calculateCulturePercent(ePlayer) <= 0 && kPlayer.getNumCities() > 3) {
 			if(kPlayer.AI_isFinancialTrouble())
 				return DENIAL_UNKNOWN;
-			CvCity* pNearestCity = GC.getMap().findCity(
-					p.getX(), p.getY(), ePlayer, NO_TEAM, true, false,
-					NO_TEAM, NO_DIRECTION, &kCity);
-			if(pNearestCity == NULL || plotDistance(p.getX(), p.getY(),
+			CvCity* pNearestCity = GC.getMap().findCity(kCityPlot.getX(), kCityPlot.getY(), ePlayer,
+					NO_TEAM, true, false, NO_TEAM, NO_DIRECTION, &kCity);
+			if(pNearestCity == NULL || plotDistance(kCityPlot.getX(), kCityPlot.getY(),
 					pNearestCity->getX(), pNearestCity->getY()) > 9)
 				return DENIAL_UNKNOWN;
-		}
+		}*/
 	}
-	if(isHuman() || atWar(getTeam(), kPlayer.getTeam()))
+	if (isHuman())
 		return NO_DENIAL;
+
 	/*if(kPlayer.getTeam() == getTeam()) {
 		if(pCity->calculateCulturePercent(getID()) > 50)
 			return DENIAL_TOO_MUCH;
 		return NO_DENIAL;
-	}*/
-	// <advc.ctr> work in progress
-	CvPlot const& kCityPlot = *kCity.plot();
-	if(kCityPlot.getCulture(getID()) > kCityPlot.getCulture(ePlayer))
-		return DENIAL_NEVER; // Tbd.: This condition is too coarse
-// <advc.tmp>
-if(kPlayer.getTeam() == getTeam() || bLib)
-	return NO_DENIAL;
-return DENIAL_NEVER;
-// </advc.tmp>
-	/*  TOO_MUCH would be nicer than NEVER if on the same team, but these cities
-		are hidden by CvPlayer::buildTradeTable anyway. */
-	if(kCity.isCapital())
-		return DENIAL_NEVER;
-	/*  Tbd.: Other major cities, DENIAL_VICTORY, vassal-related clauses,
-		DENIAL_RECENT_CANCEL if recently acquired. */
-	AttitudeTypes eTowardThem = AI_getAttitude(ePlayer, false);
-	if(eTowardThem < ATTITUDE_ANNOYED) // Liberation threshold
+	}*/ // <advc.ctr> No special treatment for same team
+	// Vassal-related conditions
+	CvTeam const& kToTeam = GET_TEAM(kToPlayer.getTeam());
+	CvTeam const& kOurTeam = GET_TEAM(getTeam());
+	int const iFREE_VASSAL_POPULATION_PERCENT = GC.getDefineINT(CvGlobals::FREE_VASSAL_POPULATION_PERCENT);
+	if (kOurTeam.isCapitulated())
+	{
+		if (getMasterTeam() != kToPlayer.getTeam())
+			return DENIAL_VASSAL;
+		if (!bLib && iFREE_VASSAL_POPULATION_PERCENT > 0)
+		{
+			// Make sure not to ruin our chances of breaking away (don't bother checking getTotalLand)
+			int iMasterPop = (kOurTeam.isVassal(kToTeam.getID()) ?
+					kToTeam.getTotalPopulation(false) + kCity.getPopulation() :
+					GET_TEAM(getMasterTeam()).getTotalPopulation(false));
+			if ((kOurTeam.getTotalPopulation(false) - kCity.getPopulation()) * 100 < iMasterPop)
+				return DENIAL_TOO_MUCH;
+		}
+	}
+	if (kToTeam.isCapitulated() && kToTeam.getMasterTeam() == getMasterTeam() &&
+		iFREE_VASSAL_POPULATION_PERCENT > 0)
+	{	// Don't (somehow) accidentally help free a non-rival capitulated vassal
+		int iMasterPop = (kToTeam.isVassal(getTeam()) ?
+				kOurTeam.getTotalPopulation(false) - kCity.getPopulation() :
+				GET_TEAM(kToTeam.getMasterTeam()).getTotalPopulation(false));
+		if ((kToTeam.getTotalPopulation(false) + kCity.getPopulation()) * 100 >= iMasterPop)
+			return DENIAL_POWER_YOU;
+	}
+
+	bool const bWar = ::atWar(getTeam(), kToPlayer.getTeam());
+
+	// Trade value conditions
+	if (!bLib)
+	{
+		// Be more polite to non-rivals
+		DenialTypes eNever = (getMasterTeam() == kToPlayer.getMasterTeam() ?
+				DENIAL_TOO_MUCH : DENIAL_NEVER);
+		int const iKeepCityVal = AI_cityTradeVal(kCity, eToPlayer);
+		// This could lead to trouble when the capital is in disorder. Alternatives?
+		int const iReferenceVal = AI_cityTradeVal(getCapitalCity()->AI(), eToPlayer);
+		if (!bWar && 7 * iKeepCityVal > 4 * iReferenceVal)
+			return eNever;
+		if (getTeam() != kToPlayer.getTeam())
+		{
+			if (iKeepCityVal < 0)
+				return DENIAL_UNKNOWN;
+		}
+	}
+
+	if (bWar)
+		return NO_DENIAL;
+
+	// Don't delay victory
+	if (getTeam() != kToPlayer.getTeam())
+	{
+		if (AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+			return DENIAL_VICTORY;
+		if ((AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) && kCity.isProductionProject()) ||
+				// In part, to avoid revealing all the project sites in the endgame.
+				(AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
+				4 * kCity.getYieldRate(YIELD_PRODUCTION) > getCapitalCity()->getYieldRate(YIELD_PRODUCTION)))
+			return DENIAL_VICTORY;
+	}
+
+	// Attitude-based conditions
+	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == kToPlayer.getTeam())
+		return DENIAL_WORST_ENEMY;
+	int iAttitudeThresh = AI_cityTradeAttitudeThresh(kCity, eToPlayer, bLib);
+	int iForcedAttitude = AI_getAttitude(eToPlayer, true, false);
+	/*  <advc.130v> Use the true attitude of capitulated vassals - unless its higher
+		than the forced attitude. Not sure if capitulated vassals would otherwise
+		give away cities. Not to rivals certainly - that's already addressed above.  */
+	int iAttitude = std::min((int)AI_getAttitude(eToPlayer, false, false), iForcedAttitude);
+	// Let the player know when displayed (forced) attitude is misleading
+	if (iAttitude <= iAttitudeThresh && iForcedAttitude > iAttitudeThresh)
+		return DENIAL_TRUE_ATTITUDE; // </advc.130v>
+	else if (iAttitudeThresh >= ATTITUDE_FRIENDLY)
+	{	// Trade with non-rivals if Friendly
+		if (getMasterTeam() == kToTeam.getMasterTeam())
+			iAttitudeThresh = ATTITUDE_PLEASED;
+		else return DENIAL_NEVER;
+	}
+	if (iAttitude <= iAttitudeThresh)
 		return DENIAL_ATTITUDE;
-	// Tbd.: Make these thresholds personality-based
-	if(!bLib && eTowardThem < ATTITUDE_PLEASED)
-		return DENIAL_ATTITUDE;
-	if(!bLib && kCity.plot()->calculateCulturePercent(getID()) >
-			// Tbd.: Mention this use of the threshold in a comment in GlobalDefines
-			GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH) &&
-			eTowardThem < ATTITUDE_FRIENDLY)
-		return DENIAL_ATTITUDE;
-	return NO_DENIAL;
+
+	// Temporary obstacles
+	if (!kToPlayer.isHuman())
+	{
+		// Don't accept cities with resistance from third-party culture
+		if (!bLib && kCity.isOccupation() && kCity.plot()->findHighestCulturePlayer() != eToPlayer)
+			return DENIAL_RECENT_CANCEL;
+		/*  Should perhaps instead check if there is _any_ danger; not sure how
+			likely it is that the new owner has defensive units nearby ... */
+		int iThirdPartyAttack = kToPlayer.AI_localAttackStrength(&kCityPlot, NO_TEAM);
+		if (iThirdPartyAttack > 0)
+		{
+			int iToPlayerDefense = kToPlayer.AI_localDefenceStrength(&kCityPlot,
+					kToPlayer.getTeam(), DOMAIN_LAND, 1);
+			if (iToPlayerDefense < 2 * iThirdPartyAttack)
+				return DENIAL_POWER_THEM;
+		}
+	}
 	// </advc.ctr>
+	return NO_DENIAL;
 }
+
+/*  <advc.ctr> For ceding kCity to eToPlayer, the attitude level of this AI player
+	needs to greater than the return value. */
+AttitudeTypes CvPlayerAI::AI_cityTradeAttitudeThresh(CvCity const& kCity,
+	PlayerTypes eToPlayer, bool bLiberate) const
+{
+	if (bLiberate)
+		return ATTITUDE_FURIOUS;
+	CvLeaderHeadInfo const& kPersonality = GC.getLeaderHeadInfo(getPersonalityType());
+	int r = (kCity.plot()->calculateCulturePercent(getID()) >=
+			GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH) ? 
+			kPersonality.getNativeCityRefuseAttitudeThreshold() :
+			kPersonality.getCityRefuseAttitudeThreshold());
+	return (AttitudeTypes)r;
+} // </advc.ctr>
 
 /*  advc (comment): This player pays for the embargo and ePlayer stops trading
 	with eTradeTeam. */
@@ -17562,7 +17671,7 @@ int CvPlayerAI::AI_religionValue(ReligionTypes eReligion) const
 			iTotalCivs += 2;
 			if (kLoopPlayer.getStateReligion() == eReligion)
 			{
-				AttitudeTypes eAttitude = AI_getAttitude((PlayerTypes)i, false);
+				AttitudeTypes eAttitude = AI_getAttitude((PlayerTypes)i, false, false);
 				if (eAttitude >= ATTITUDE_PLEASED)
 				{
 					iLikedReligionCivs++;
@@ -17762,7 +17871,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	{
 		if (pCity != NULL)
 		{
-			iValue += AI_cityTradeVal(*pCity);
+			iValue += AI_cityTradeVal(*pCity, /* advc.ctr: */ getID());
 		}
 	}
 
@@ -26740,8 +26849,9 @@ bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity) const
 		if(p.getPlayerCityRadiusCount(kCity.getOwner()) > 1 || p.isImpassable())
 			continue;
 		// Third-party culture
-		PlayerTypes eCulturalOwner = p.calculateCulturalOwner(true);
-		if(eCulturalOwner != getID() && eCulturalOwner != kCity.getOwner())
+		PlayerTypes eCulturalOwner = p.calculateCulturalOwner();
+		if(eCulturalOwner != NO_PLAYER && eCulturalOwner != getID() &&
+				eCulturalOwner != kCity.getOwner())
 			continue;
 		// Flood plains, oases
 		if(p.calculateNatureYield(YIELD_FOOD, getTeam()) >= 3)
@@ -27897,7 +28007,7 @@ bool CvPlayerAI::AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAtt
 		CvPlayer const& kPartner = GET_PLAYER((PlayerTypes)i);
 		if(kPartner.isAlive() && kPartner.getTeam() != getTeam() &&
 			!kPartner.isMinorCiv() && GET_TEAM(eOtherTeam).isAtWar(kPartner.getTeam()) &&
-			AI_getAttitude(kPartner.getID()) >= ATTITUDE_PLEASED)
+			AI_getAttitude(kPartner.getID(), true, false) >= ATTITUDE_PLEASED)
 		{
 			if(!bCheckPartnerAttacked)
 				return true;
