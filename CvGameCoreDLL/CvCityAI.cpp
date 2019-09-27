@@ -4801,7 +4801,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 										(int)ATTITUDE_ANNOYED);
 							}
 						}
-						else eTowardThem = kOwner.AI_getAttitude(kBrother.getID(), true, false);
+						else eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
 						if(kBrother.isMinorCiv())
 							eTowardThem = ATTITUDE_FURIOUS;
 						bool bTheyAhead = (g.getPlayerRank(kBrother.getID()) <
@@ -12307,16 +12307,8 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 			else
 			{	// <advc.022>
 				AttitudeTypes eTowardThem = kOwner.AI_getAttitude(kLoopPlayer.getID());
-				AttitudeTypes eTowardUs = kLoopPlayer.AI_getAttitude(kOwner.getID(), true, false);
-				// Humans like us at most as much as we like them
-				if(kLoopPlayer.isHuman())
-				{
-					if(eTowardThem < eTowardUs)
-						eTowardUs = eTowardThem;
-					if(eTowardThem >= ATTITUDE_FRIENDLY)
-						eTowardUs = ATTITUDE_PLEASED;
-				}
-				else
+				AttitudeTypes eTowardUs = kLoopPlayer.AI_getAttitude(kOwner.getID());
+				if (!kLoopPlayer.isHuman())
 				{
 					// Round toward eTowardUs
 					int iTowardThem = eTowardThem;

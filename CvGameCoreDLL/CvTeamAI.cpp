@@ -1023,8 +1023,7 @@ void CvTeamAI::AI_updateAttitudeCache(TeamTypes eTeam, /* advc.130e: */ bool bUp
 	}
 } // </advc>
 
-AttitudeTypes CvTeamAI::AI_getAttitude(TeamTypes eTeam, bool bForced,
-	bool bAssertNonHuman) const // advc.130u
+AttitudeTypes CvTeamAI::AI_getAttitude(TeamTypes eTeam, bool bForced) const
 {
 	PROFILE_FUNC(); // advc
 	//FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
@@ -1051,8 +1050,7 @@ AttitudeTypes CvTeamAI::AI_getAttitude(TeamTypes eTeam, bool bForced,
 						{
 							//iAttitude += GET_PLAYER((PlayerTypes)iI).AI_getAttitude((PlayerTypes)iJ, bForced);
 							// bbai. Average values rather than attitudes directly.
-							iAttitude += GET_PLAYER((PlayerTypes)iI).AI_getAttitudeVal((PlayerTypes)iJ, bForced,
-									bAssertNonHuman); // advc.130u
+							iAttitude += GET_PLAYER((PlayerTypes)iI).AI_getAttitudeVal((PlayerTypes)iJ, bForced);
 							iCount++;
 						}
 					}
@@ -1070,8 +1068,7 @@ AttitudeTypes CvTeamAI::AI_getAttitude(TeamTypes eTeam, bool bForced,
 }
 
 
-int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced,  // advc: style changes
-	bool bAssertNonHuman) const // advc.130u
+int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced) const  // advc: style changes
 {
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
@@ -1087,8 +1084,7 @@ int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced,  // advc: style c
 			CvPlayer const& kTheirMember = GET_PLAYER((PlayerTypes)j);
 			if (!kTheirMember.isAlive() || kTheirMember.getTeam() != eTeam)
 				continue;
-			iAttitudeVal += kOurMember.AI_getAttitudeVal(kTheirMember.getID(), bForced,
-					bAssertNonHuman); // advc.130u
+			iAttitudeVal += kOurMember.AI_getAttitudeVal(kTheirMember.getID(), bForced);
 			iCount++;
 		}
 	}
@@ -2715,8 +2711,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	} // <advc>
 	CvGame const& g = GC.getGame();
 	CvMap& m = GC.getMap();
-	// (Cautious if human)
-	AttitudeTypes eTowardThem = AI_getAttitude(eTeam, false, false); // </advc>
+	AttitudeTypes eTowardThem = AI_getAttitude(eTeam, false); // </advc>
 	if(isVassal(eTeam) && eTowardThem >= ATTITUDE_PLEASED)
 	{
 		// Moved up // </advc.112>
@@ -4540,10 +4535,9 @@ int CvTeamAI::AI_enmityValue(TeamTypes eEnemy) const
 			isVassal(eEnemy) || // advc.130d
 			kEnemy.isMinorCiv() || // wasn't excluded in BtS
 			!isHasMet(eEnemy) ||
-			(AI_getAttitude(eEnemy, true, false) >= ATTITUDE_CAUTIOUS &&
-			!isAtWar(eEnemy)))
+			(AI_getAttitude(eEnemy) >= ATTITUDE_CAUTIOUS && !isAtWar(eEnemy)))
 		return 0;
-	int r = 100 - AI_getAttitudeVal(eEnemy, true, false);
+	int r = 100 - AI_getAttitudeVal(eEnemy);
 	if(isAtWar(eEnemy) && AI_getWarPlan(eEnemy) != WARPLAN_DOGPILE)
 		r += 100;
 	return r;
@@ -5789,9 +5783,9 @@ int CvTeamAI::AI_noWarAttitudeProb(AttitudeTypes eAttitude) const
 }
 
 // <advc.104y>
-int CvTeamAI::AI_noWarProbAdjusted(TeamTypes eOther, /* advc.130u: */ bool bAssertNonHuman) const
+int CvTeamAI::AI_noWarProbAdjusted(TeamTypes eOther) const
 {
-	AttitudeTypes eTowardThem = AI_getAttitude(eOther, true, /* advc.130u: */ bAssertNonHuman);
+	AttitudeTypes eTowardThem = AI_getAttitude(eOther, true);
 	int r = AI_noWarAttitudeProb(eTowardThem);
 	if(r < 100 || isOpenBorders(eOther) || eTowardThem == ATTITUDE_FURIOUS)
 		return r;
