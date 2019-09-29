@@ -7607,9 +7607,10 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 			}
 		}
 	} // </advc.306>
-	// From here on, mostly cut and pasted from the oiginal createBarbarianUnits.
 
-	for (int iI = 0; iI < n; iI++) { // <advc.300>
+	for (int iI = 0; iI < n; iI++) 
+	{
+		// <advc.300>
 		CvPlot* pPlot = NULL;
 		// Reroll twice if the tile has poor yield
 		for(int i = 0; i < 3; i++)

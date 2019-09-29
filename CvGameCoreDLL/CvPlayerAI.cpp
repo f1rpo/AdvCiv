@@ -16206,9 +16206,8 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 						// <advc.139>
 						if(piAttackerCount != NULL && kLoopUnit.getDamage() < 30)
 						{
-							CvUnitInfo& u = GC.getUnitInfo(kLoopUnit.getUnitType());
 							// 80 is Cannon; don't count the early siege units.
-							if(u.getCombatLimit() >= 80)
+							if(kLoopUnit.combatLimit() >= 80)
 								(*piAttackerCount)++;
 						} // </advc.139>
 					}

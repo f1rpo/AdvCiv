@@ -352,8 +352,8 @@ class CvImprovementBonusInfo;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvImprovementInfo : public CvInfoBase
 {
-public: /*  All the const functions are exposed to Python except those dealing with sound
-			and those added by mods */ // advc.003f: Inlined many of the getters
+public: /*  All the const functions are exposed to Python except those dealing with sound,
+			Advanced Start and those added by mods */ // advc.003f: Inlined many of the getters
 	CvImprovementInfo();
 	~CvImprovementInfo();
 

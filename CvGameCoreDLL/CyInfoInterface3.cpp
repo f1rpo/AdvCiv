@@ -10,42 +10,7 @@ void CyInfoPythonInterface3()
 {
 	OutputDebugString("Python Extension Module - CyInfoPythonInterface3\n");
 
-	python::class_<CvYieldInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvYieldInfo")
-		.def("getChar", &CvYieldInfo::getChar, "int ()")
-		.def("getHillsChange", &CvYieldInfo::getHillsChange, "int ()")
-		.def("getPeakChange", &CvYieldInfo::getPeakChange, "int ()")
-		.def("getLakeChange", &CvYieldInfo::getLakeChange, "int ()")
-		.def("getCityChange", &CvYieldInfo::getCityChange, "int ()")
-		.def("getPopulationChangeOffset", &CvYieldInfo::getPopulationChangeOffset, "int ()")
-		.def("getPopulationChangeDivisor", &CvYieldInfo::getPopulationChangeDivisor, "int ()")
-		.def("getMinCity", &CvYieldInfo::getMinCity, "int ()")
-		.def("getTradeModifier", &CvYieldInfo::getTradeModifier, "int ()")
-		.def("getGoldenAgeYield", &CvYieldInfo::getGoldenAgeYield, "int ()")
-		.def("getGoldenAgeYieldThreshold", &CvYieldInfo::getGoldenAgeYieldThreshold, "int ()")
-		.def("getAIWeightPercent", &CvYieldInfo::getAIWeightPercent, "int ()")
-		.def("getColorType", &CvYieldInfo::getColorType, "int ()")
-		;
-	// advc.003e:
-	python::class_<CvTerrainInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvTerrainInfo")
-
-		.def("getMovementCost", &CvTerrainInfo::getMovementCost, "int ()")
-		.def("getSeeFromLevel", &CvTerrainInfo::getSeeFromLevel, "int ()")
-		.def("getSeeThroughLevel", &CvTerrainInfo::getSeeThroughLevel, "int ()")
-		.def("getBuildModifier", &CvTerrainInfo::getBuildModifier, "int ()")
-		.def("getDefenseModifier", &CvTerrainInfo::getDefenseModifier, "int ()")
-
-		.def("isWater", &CvTerrainInfo::isWater, "bool ()")
-		.def("isImpassable", &CvTerrainInfo::isImpassable, "bool ()")
-		.def("isFound", &CvTerrainInfo::isFound, "bool ()")
-		.def("isFoundCoast", &CvTerrainInfo::isFoundCoast, "bool ()")
-		.def("isFoundFreshWater", &CvTerrainInfo::isFoundFreshWater, "bool ()")
-
-		// Arrays
-
-		.def("getYield", &CvTerrainInfo::getYield, "int (int i)")
-		.def("getRiverYieldChange", &CvTerrainInfo::getRiverYieldChange, "int (int i)")
-		.def("getHillsYieldChange", &CvTerrainInfo::getHillsYieldChange, "int (int i)")
-		;
+	// advc: CvYieldInfo and CvTerrainInfo interface moved to CyInfoInterface2.cpp
 
 	python::class_<CvInterfaceModeInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvInterfaceModeInfo")
 
