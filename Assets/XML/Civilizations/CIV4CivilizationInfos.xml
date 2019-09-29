@@ -2774,7 +2774,8 @@
 			</Buildings>
 			<Units>
 				<Unit>
-					<UnitClassType>UNITCLASS_GALLEON</UnitClassType>
+					<!-- advc.905b: was GALLEON -->
+					<UnitClassType>UNITCLASS_FRIGATE</UnitClassType>
 					<UnitType>UNIT_NETHERLANDS_OOSTINDIEVAARDER</UnitType>
 				</Unit>
 			</Units>
