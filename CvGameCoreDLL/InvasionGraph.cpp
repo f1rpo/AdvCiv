@@ -1555,7 +1555,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 	if(attacker.military[ARMY]->power() <= attacker.lostPower[ARMY] &&
 			attacker.primaryTarget != NULL) {
 		armyElimId = attacker.id;
-		changePrimaryTarget(NULL);
+		attacker.changePrimaryTarget(NULL);
 	}
 	if(armyElimId != NO_PLAYER)
 		report.log("Army of %s eliminated", report.leaderName(armyElimId));
