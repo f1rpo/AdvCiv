@@ -15600,7 +15600,8 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 				abs(info.getHappiness()), (info.getHappiness() > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
 	}
 
-	if (info.isActsAsCity())
+	//if (info.isActsAsCity())
+	if (info.get(CvImprovementInfo::ActsAsCity)) // advc.tag, advc.test: As an example
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_DEFENSE_MODIFIER_EXTRA"));

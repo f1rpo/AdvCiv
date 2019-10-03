@@ -67,6 +67,7 @@ public: // All the const functions are exposed to Python
 
 protected:
 	bool doneReadingXML(CvXMLLoadUtility* pXML);
+
 	bool m_bGraphicalOnly;
 
 	CvString m_szType;
@@ -173,5 +174,87 @@ protected:
 	CvWString m_szHotKeyAltDescriptionKey;
 	CvWString m_szHotKeyString;
 };
+// <advc.tag> Abstract class that allows XML elements to be added and accessed through enum values
+class CvInfoEnum : public CvInfoBase
+{
+public:
+	enum IntElementTypes // To be extended by derived classes (see CvImprovementInfo for an example)
+	{
+		NUM_INT_ELEMENT_TYPES
+	};
+	enum BoolElementTypes
+	{
+		TestElement, // advc.test
+		NUM_BOOL_ELEMENT_TYPES
+	};
+	__forceinline int get(IntElementTypes e) const
+	{
+		FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvInfoBase::get(IntElementTypes)");
+		return m_aiData[e];
+	}
+	__forceinline int get(BoolElementTypes e) const
+	{
+		FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvInfoBase::get(BoolElementTypes)");
+		return m_abData[e];
+	}
+	bool read(CvXMLLoadUtility* pXML);
+	#if SERIALIZE_CVINFOS
+	void read(FDataStreamBase* pStream);
+	void write(FDataStreamBase* pStream);
+	#endif
+
+protected:
+	enum ElementDataType
+	{
+		INT_ELEMENT,
+		BOOL_ELEMENT,
+	};
+	class XMLElement
+	{
+	public:
+		XMLElement(int iEnumValue, CvString szName);
+		XMLElement(int iEnumValue, CvString szName, bool bMandatory);
+		virtual ~XMLElement() {};
+		virtual ElementDataType getDataType() const = 0;
+		int getEnumValue() const;
+		CvString getName() const;
+		bool isMandatory() const;
+	private:
+		CvString m_szName;
+		int m_iEnumValue;
+		bool m_bMandatory;
+	};
+	class IntElement : public XMLElement
+	{
+	public:
+		IntElement(int iEnumValue, CvString szName);
+		IntElement(int iEnumValue, CvString szName, int iDefault);
+		ElementDataType getDataType() const;
+		int getDefaultValue() const;
+	private:
+		int m_iDefaultValue;
+	};
+	class BoolElement : public XMLElement
+	{
+	public:
+		BoolElement(int iEnumValue, CvString szName);
+		BoolElement(int iEnumValue, CvString szName, bool bDefault);
+		ElementDataType getDataType() const;
+		int getDefaultValue() const;
+	private:
+		int m_bDefaultValue;
+	};
+	/*  Derived classes that extend any of the element type enums need to override this.
+		The overridden function needs to call the base function and then append its
+		own elements to r. */
+	virtual void addElements(std::vector<XMLElement*>& r) const;
+	// Allow derived classes to overwrite data (but don't expose the data structures)
+	void set(IntElementTypes e, int iNewValue);
+	void set(BoolElementTypes e, bool bNewValue);
+
+private:
+	std::vector<int> m_aiData;
+	std::vector<bool> m_abData;
+}; // </advc.tag>
 
 #endif

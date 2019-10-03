@@ -916,11 +916,9 @@ m_iFeatureGrowthProbability(0),
 m_iUpgradeTime(0),
 m_iAirBombDefense(0),
 m_iDefenseModifier(0),
-m_iHappiness(0),
 m_iPillageGold(0),
 m_iImprovementPillage(NO_IMPROVEMENT),
 m_iImprovementUpgrade(NO_IMPROVEMENT),
-m_bActsAsCity(true),
 m_bHillsMakesValid(false),
 m_bFreshWaterMakesValid(false),
 m_bRiverSideMakesValid(false),
@@ -1178,7 +1176,7 @@ void CvArtInfoImprovement::setShaderNIF(const TCHAR* szDesc)
 #if SERIALIZE_CVINFOS
 void CvImprovementInfo::read(FDataStreamBase* stream)
 {
-	CvInfoBase::read(stream);
+	CvInfoEnum::read(stream); // advc.tag
 	uint uiFlag=0;
 	stream->Read(&uiFlag);
 
@@ -1190,11 +1188,11 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iUpgradeTime);
 	stream->Read(&m_iAirBombDefense);
 	stream->Read(&m_iDefenseModifier);
-	stream->Read(&m_iHappiness);
+	//stream->Read(&m_iHappiness); // advc.tag
 	stream->Read(&m_iPillageGold);
 	stream->Read(&m_iImprovementPillage);
 	stream->Read(&m_iImprovementUpgrade);
-	stream->Read(&m_bActsAsCity);
+	//stream->Read(&m_bActsAsCity); // advc.tag
 	stream->Read(&m_bHillsMakesValid);
 	stream->Read(&m_bFreshWaterMakesValid);
 	stream->Read(&m_bRiverSideMakesValid);
@@ -1265,7 +1263,7 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 
 void CvImprovementInfo::write(FDataStreamBase* stream)
 {
-	CvInfoBase::write(stream);
+	CvInfoEnum::write(stream); // advc.tag
 	uint uiFlag=0;
 	stream->Write(uiFlag);
 
@@ -1277,11 +1275,11 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iUpgradeTime);
 	stream->Write(m_iAirBombDefense);
 	stream->Write(m_iDefenseModifier);
-	stream->Write(m_iHappiness);
+	//stream->Write(m_iHappiness); // advc.tag
 	stream->Write(m_iPillageGold);
 	stream->Write(m_iImprovementPillage);
 	stream->Write(m_iImprovementUpgrade);
-	stream->Write(m_bActsAsCity);
+	//stream->Write(m_bActsAsCity); // advc.tag
 	stream->Write(m_bHillsMakesValid);
 	stream->Write(m_bFreshWaterMakesValid);
 	stream->Write(m_bRiverSideMakesValid);
@@ -1312,9 +1310,17 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 		stream->Write(NUM_YIELD_TYPES, m_ppiRouteYieldChanges[i]);
 }
 #endif
+// <advc.tag>
+void CvImprovementInfo::addElements(std::vector<XMLElement*>& r) const
+{
+	CvInfoEnum::addElements(r);
+	r.push_back(new IntElement(Happiness, "Happiness"));
+	r.push_back(new BoolElement(ActsAsCity, "ActsAsCity"));
+} // </advc.tag>
+
 bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
-	if (!CvInfoBase::read(pXML))
+	if (!CvInfoEnum::read(pXML)) // advc.tag
 		return false;
 
 	CvString szTextVal;
@@ -1359,7 +1365,6 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCost, "iAdvancedStartCost");
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCostIncrease, "iAdvancedStartCostIncrease");
-	pXML->GetChildXmlValByName(&m_bActsAsCity, "bActsAsCity");
 	pXML->GetChildXmlValByName(&m_bHillsMakesValid, "bHillsMakesValid");
 	pXML->GetChildXmlValByName(&m_bFreshWaterMakesValid, "bFreshWaterMakesValid");
 	pXML->GetChildXmlValByName(&m_bRiverSideMakesValid, "bRiverSideMakesValid");
@@ -1378,7 +1383,6 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iUpgradeTime, "iUpgradeTime");
 	pXML->GetChildXmlValByName(&m_iAirBombDefense, "iAirBombDefense");
 	pXML->GetChildXmlValByName(&m_iDefenseModifier, "iDefenseModifier");
-	pXML->GetChildXmlValByName(&m_iHappiness, "iHappiness");
 	pXML->GetChildXmlValByName(&m_iPillageGold, "iPillageGold");
 	pXML->GetChildXmlValByName(&m_bOutsideBorders, "bOutsideBorders");
 

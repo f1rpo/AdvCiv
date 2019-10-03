@@ -6554,7 +6554,9 @@ void CvCity::updateFeatureHappiness()
 
 			if (NO_IMPROVEMENT != eImprovement)
 			{
-				int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
+				//int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
+				// advc.tag, advc.test: As an example:
+				int iHappy = GC.getImprovementInfo(eImprovement).get(CvImprovementInfo::Happiness);
 				if (iHappy > 0)
 				{
 					iNewFeatureGoodHappiness += iHappy;

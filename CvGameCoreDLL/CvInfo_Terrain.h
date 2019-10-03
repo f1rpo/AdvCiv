@@ -350,12 +350,32 @@ class CvImprovementBonusInfo;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvImprovementInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvImprovementInfo : public CvInfoBase
+class CvImprovementInfo : /* advc.tag: */ public CvInfoEnum
 {
 public: /*  All the const functions are exposed to Python except those dealing with sound,
 			Advanced Start and those added by mods */ // advc.003f: Inlined many of the getters
 	CvImprovementInfo();
 	~CvImprovementInfo();
+	// <advc.tag>
+	enum IntElementTypes
+	{
+		Happiness = CvInfoEnum::NUM_INT_ELEMENT_TYPES,
+		NUM_INT_ELEMENT_TYPES
+	};
+	enum BoolElementTypes
+	{
+		ActsAsCity = CvInfoEnum::NUM_BOOL_ELEMENT_TYPES,
+		NUM_BOOL_ELEMENT_TYPES
+	};
+	using CvInfoEnum::get; // unhide
+	__forceinline int get(IntElementTypes e) const
+	{
+		return get(static_cast<CvInfoEnum::IntElementTypes>(e));
+	}
+	__forceinline int get(BoolElementTypes e) const
+	{
+		return get(static_cast<CvInfoEnum::BoolElementTypes>(e));
+	} // </advc.tag>
 
 	int getAdvancedStartCost() const;
 	int getAdvancedStartCostIncrease() const;
@@ -366,12 +386,13 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	int getUpgradeTime() const;
 	inline int getAirBombDefense() const { return m_iAirBombDefense; }
 	inline int getDefenseModifier() const { return m_iDefenseModifier; }
-	inline int getHappiness() const { return m_iHappiness; }
+	// advc.tag: As an example
+	inline int getHappiness() const { return get(Happiness); }
 	int getPillageGold() const;
 	int getImprovementPillage() const;
 	int getImprovementUpgrade() const;
 
-	inline bool isActsAsCity() const { return m_bActsAsCity; }
+	inline bool isActsAsCity() const { return get(ActsAsCity); } // advc.tag: Bool example
 	inline bool isHillsMakesValid() const { return m_bHillsMakesValid; }
 	inline bool isFreshWaterMakesValid() const { return m_bFreshWaterMakesValid; }
 	inline bool isRiverSideMakesValid() const { return m_bRiverSideMakesValid; }
@@ -430,6 +451,8 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	bool readPass2(CvXMLLoadUtility* pXML);
 
 protected:
+	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
+
 	int m_iAdvancedStartCost;
 	int m_iAdvancedStartCostIncrease;
 
@@ -439,7 +462,6 @@ protected:
 	int m_iUpgradeTime;
 	int m_iAirBombDefense;
 	int m_iDefenseModifier;
-	int m_iHappiness;
 	int m_iPillageGold;
 	int m_iImprovementPillage;
 	int m_iImprovementUpgrade;
@@ -447,7 +469,6 @@ protected:
 
 	CvString m_szArtDefineTag;
 
-	bool m_bActsAsCity;
 	bool m_bHillsMakesValid;
 	bool m_bFreshWaterMakesValid;
 	bool m_bRiverSideMakesValid;
