@@ -5745,4 +5745,24 @@
 		<Spanish>No, devolvedle el control al %s1_CivName</Spanish>
 	</TEXT>
 
-</Civ4GameText>
+<!-- advc.004g: From CIV4GameText_BTS.xml. Said "terrain", which is
+		 misleading. I've used TXT_KEY_PEDIA_CATEGORY_FEATURE
+		 (CIV4GameTextInfos_Objects.xml; engl.: "Terrain Features" for the
+		 Romance languages, but I like "vegetation" best. -->
+	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_MORE_GROWTH</Tag>
+		<English>[ICON_BULLET]Gives vegetation a higher chance to spread</English>
+		<French>[ICON_BULLET]Augmente les chances de d&#233;veloppement des caract&#233;ristiques du terrain</French>
+		<German>[ICON_BULLET]Vegetation hat eine h&#246;here Ausbreitungsschance</German>
+		<Italian>[ICON_BULLET]D&#224; alle caratteristiche del terreno una maggiore probabilit&#224; di espandersi</Italian>
+		<Spanish>[ICON_BULLET]Da a los accidentes del terreno una mayor posibilidad de propagación</Spanish>
+	</TEXT>
+	<!-- advc.001: Used by the DLL; was missing from XML. -->
+	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_LESS_GROWTH</Tag>
+		<English>[ICON_BULLET]Gives vegetation a lower chance to spread</English>
+		<French>[ICON_BULLET]Diminue les chances de d&#233;veloppement des caract&#233;ristiques du terrain</French>
+		<German>[ICON_BULLET]Vegetation hat eine geringere Ausbreitungsschance</German>
+		<Italian>[ICON_BULLET]D&#224; alle caratteristiche del terreno una minore probabilit&#224; di espandersi</Italian>
+		<Spanish>[ICON_BULLET]Da a los accidentes del terreno una menor posibilidad de propagación</Spanish>
+	</TEXT></Civ4GameText>
