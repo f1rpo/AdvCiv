@@ -6,7 +6,7 @@
 <!-- "A negative event that afflicts one of your rivals is, in effect, like a
 	 positive event for you!" Messages about roads washed away in Beijing are
 	 just annoying, and this hint feels like a taunt. -->
-<!-- advc.130v -->
+<!-- advc.130v (replacement): -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_70</Tag>
 	<English>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</English>
@@ -144,6 +144,17 @@
 	<German>Wenn beim Laden eines Spielstands für längere Zeit "Wird initialisiert" angezeigt wird, kann es helfen, das Spiel per [ALT + TAB] für einen Augenblick zu minimieren.</German>
 	<Italian>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Italian>
 	<Spanish>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Spanish>
+</TEXT>
+
+<!-- Said that the screenshot gets saved in Civ4\Screenshots, which is no
+	 longer true in BtS. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_13</Tag>
+	<English>Press [PRINT SCREEN] to take a screenshot. It gets saved in the screenshots folder under "My Games\Beyond the Sword".</English>
+	<French>Appuyez sur [IMPR ECRAN] pour faire une capture d'&#233;cran (sauvegard&#233;e dans le r&#233;pertoire Beyond the Sword\Screenshots).</French>
+	<German>Dr&#252;cken Sie [DRUCK], um einen Screenshot zu machen und unter "Beyond the Sword\Screenshots" zu speichern.</German>
+	<Italian>Premi [STAMP] per scattare una foto che verr&#224; salvata nella directory Beyond the Sword\Screenshots...</Italian>
+	<Spanish>Pulsar [IMPR PANT] para hacer una captura de pantalla (se guardar&#225; en la carpeta Beyond the Sword\Screenshots)...</Spanish>
 </TEXT>
 
 <!-- advc.002g: "Press [ESC] to bring up the in-game Options Menu..."
