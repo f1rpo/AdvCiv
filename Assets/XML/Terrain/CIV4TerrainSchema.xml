@@ -454,6 +454,8 @@
 		<element type="iUpgradeTime"/>
 		<element type="iAirBombDefense"/>
 		<element type="iDefenseModifier"/>
+		<!-- advc.tag: (default value in DLL: 0) -->
+		<element type="iHealthPercent" minOccurs="0"/>
 		<element type="iHappiness"/>
 		<element type="iPillageGold"/>
 		<element type="bOutsideBorders"/>

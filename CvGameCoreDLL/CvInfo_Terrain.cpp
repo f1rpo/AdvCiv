@@ -920,7 +920,7 @@ m_iHappiness(0),
 m_iPillageGold(0),
 m_iImprovementPillage(NO_IMPROVEMENT),
 m_iImprovementUpgrade(NO_IMPROVEMENT),
-m_bActsAsCity(true),
+m_bActsAsCity(false), // advc: was true
 m_bHillsMakesValid(false),
 m_bFreshWaterMakesValid(false),
 m_bRiverSideMakesValid(false),
@@ -1178,7 +1178,7 @@ void CvArtInfoImprovement::setShaderNIF(const TCHAR* szDesc)
 #if SERIALIZE_CVINFOS
 void CvImprovementInfo::read(FDataStreamBase* stream)
 {
-	CvInfoBase::read(stream);
+	CvInfoEnum::read(stream); // advc.tag
 	uint uiFlag=0;
 	stream->Read(&uiFlag);
 
@@ -1265,7 +1265,7 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 
 void CvImprovementInfo::write(FDataStreamBase* stream)
 {
-	CvInfoBase::write(stream);
+	CvInfoEnum::write(stream); // advc.tag
 	uint uiFlag=0;
 	stream->Write(uiFlag);
 
@@ -1312,9 +1312,16 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 		stream->Write(NUM_YIELD_TYPES, m_ppiRouteYieldChanges[i]);
 }
 #endif
+// <advc.tag>
+void CvImprovementInfo::addElements(std::vector<XMLElement*>& r) const
+{
+	CvInfoEnum::addElements(r);
+	r.push_back(new IntElement(HealthPercent, "HealthPercent", 0)); // advc.901
+} // </advc.tag>
+
 bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
-	if (!CvInfoBase::read(pXML))
+	if (!CvInfoEnum::read(pXML)) // advc.tag
 		return false;
 
 	CvString szTextVal;

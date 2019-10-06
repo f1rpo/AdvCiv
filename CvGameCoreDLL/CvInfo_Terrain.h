@@ -350,12 +350,31 @@ class CvImprovementBonusInfo;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvImprovementInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvImprovementInfo : public CvInfoBase
+class CvImprovementInfo : /* advc.tag: */ public CvInfoEnum
 {
 public: /*  All the const functions are exposed to Python except those dealing with sound,
 			Advanced Start and those added by mods */ // advc.003f: Inlined many of the getters
 	CvImprovementInfo();
 	~CvImprovementInfo();
+	// <advc.tag>
+	enum IntElementTypes
+	{
+		HealthPercent = CvInfoEnum::NUM_INT_ELEMENT_TYPES, // advc.901
+		NUM_INT_ELEMENT_TYPES
+	};
+	enum BoolElementTypes // unused so far
+	{
+		NUM_BOOL_ELEMENT_TYPES = CvInfoEnum::NUM_BOOL_ELEMENT_TYPES
+	};
+	using CvInfoEnum::get; // unhide
+	__forceinline int get(IntElementTypes e) const
+	{
+		return get(static_cast<CvInfoEnum::IntElementTypes>(e));
+	}
+	__forceinline int get(BoolElementTypes e) const
+	{
+		return get(static_cast<CvInfoEnum::BoolElementTypes>(e));
+	} // </advc.tag>
 
 	int getAdvancedStartCost() const;
 	int getAdvancedStartCostIncrease() const;
@@ -410,10 +429,10 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	inline bool isAnyFeatureMakesValid() const { return (m_pbFeatureMakesValid != NULL); } // advc.003t
 
 	int getTechYieldChanges(int i, int j) const;
-	int* getTechYieldChangesArray(int i) const; // advc.003: const
+	int* getTechYieldChangesArray(int i) /* advc: */ const;
 	int getRouteYieldChanges(int i, int j) const;
 	// For Moose - CvWidgetData XXX
-	int* getRouteYieldChangesArray(int i) const; // advc.003: const
+	int* getRouteYieldChangesArray(int i) /* advc: */ const;
 
 	int getImprovementBonusYield(int i, int j) const;
 	bool isImprovementBonusMakesValid(int i) const;
@@ -430,6 +449,8 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	bool readPass2(CvXMLLoadUtility* pXML);
 
 protected:
+	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
+
 	int m_iAdvancedStartCost;
 	int m_iAdvancedStartCostIncrease;
 

@@ -3295,7 +3295,7 @@ void CvPlayer::updateExtraBuildingHealth()
 void CvPlayer::updateFeatureHappiness()
 {
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
-		pLoopCity->updateFeatureHappiness();
+		pLoopCity->updateSurroundingHealthHappiness();
 }
 
 
@@ -16911,25 +16911,22 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	{
 		for(int i = 0; i < GC.getNumCivicInfos(); i++)
 		{
-			CivicTypes cvId = (CivicTypes)i;
-			if(!isCivic(cvId))
+			CivicTypes eCivic = (CivicTypes)i;
+			if(!isCivic(eCivic))
 				continue;
-			CvCivicInfo& cv = GC.getCivicInfo(cvId);
-			if(cv.getLuxuryModifier() <= 0)
+			CvCivicInfo& kCivic = GC.getCivicInfo(eCivic);
+			if(kCivic.getLuxuryModifier() <= 0)
 				continue;
-			int previousHappyPer = (uiFlag < 6 ? 1 : 0);
-			int previousLux =  (uiFlag < 6 ? 0 : 50);
-			changeHappyPerMilitaryUnit(cv.getHappyPerMilitaryUnit() -
-					previousHappyPer);
-			changeLuxuryModifier(cv.getLuxuryModifier() - previousLux);
+			int iPreviousHappyPer = (uiFlag < 6 ? 1 : 0);
+			int iPreviousLux =  (uiFlag < 6 ? 0 : 50);
+			changeHappyPerMilitaryUnit(kCivic.getHappyPerMilitaryUnit() -
+					iPreviousHappyPer);
+			changeLuxuryModifier(kCivic.getLuxuryModifier() - iPreviousLux);
 		}
 	} // </advc.912c>
 }
 
-//
 // save object to a stream
-// used during save
-//
 void CvPlayer::write(FDataStreamBase* pStream)
 {
 	int iI;
@@ -16940,7 +16937,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uiFlag = 8; // advc.004x
 	uiFlag = 9; // advc.078
 	uiFlag = 10; // advc.064b
-	pStream->Write(uiFlag);		// flag for expansion
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iStartingX);
 	pStream->Write(m_iStartingY);

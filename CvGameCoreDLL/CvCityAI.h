@@ -114,7 +114,6 @@ public:
 	int AI_countWorkedPoorPlots() const;
 	int AI_getTargetPopulation() const;
 	void AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const;
-		// advc: Made the plot param const
 	int AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const;
 	// K-Mod end
 	BuildTypes AI_getBestBuild(int iIndex) const;
@@ -227,7 +226,10 @@ protected:
 	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement, int time_scale, std::vector<float>& weighted_yields) const; // time-weighted yields for improvements which have upgrades
 	int AI_specialPlotImprovementValue(CvPlot* pPlot) const; // value for working a plot in addition to its yields
 	int AI_growthValuePerFood() const;
-	// K-mod end
+	// K-mod end  // <advc.901>
+	int AI_healthHappyImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement,
+			ImprovementTypes eFinalImprovement, bool bIgnoreFeature,
+			bool bIgnoreOtherCities = true) const; // </advc.901>
 
 	int AI_experienceWeight();
 	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false);

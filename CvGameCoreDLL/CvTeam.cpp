@@ -6034,6 +6034,16 @@ bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const // advc: Param
 	return false;
 }
 
+// <advc.901>
+bool CvTeam::canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprovement,
+	bool bHealth) const
+{
+	int iHealthOrHappy = (bHealth ?
+			GC.getImprovementInfo(eImprovement).get(CvImprovementInfo::HealthPercent) :
+			GC.getImprovementInfo(eImprovement).getHappiness());
+	return (iHealthOrHappy <= 0 || !kPlot.isOwned() || canPeacefullyEnter(kPlot.getTeam()));
+} // </advc.901>
+
 int CvTeam::getEspionagePointsAgainstTeam(TeamTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");

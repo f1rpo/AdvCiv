@@ -656,6 +656,47 @@
 		<Italian>Necessità di eliminare un'altra unità per ridurre le spese.</Italian>
 		<Spanish>Necesidad de borrar una unidad más para disminuir los gastos.</Spanish>
 	</TEXT>
+
+	<!-- advc.059: Based on TXT_KEY_MISC_WONDER_COMPLETED_CITY -->
+	<TEXT>
+		<Tag>TXT_KEY_IN_CITY</Tag>
+		<English>in %s1_CityName</English>
+		<French>dans %s1_CityName</French>
+		<German>in %s1_CityName</German>
+		<Italian>a %s1_CityName</Italian>
+		<Spanish>en %s1_CityName</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_BTS.xml. Take the modifier as a string b/c,
+		 for health, it could be fractional. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ICON_CHANGE_NEARBY_CITIES</Tag>
+		<English>[ICON_BULLET]+%s1%F2 in nearby cities</English>
+		<French>[ICON_BULLET]+%s1%F2 dans les villes voisines</French>
+		<German>[ICON_BULLET]+%s1%F2 in umliegenden St&#228;dten</German>
+		<Italian>[ICON_BULLET]+%s1%F2 nelle citt&#224; vicine</Italian>
+		<Spanish>[ICON_BULLET]+%s1 %F2 en las ciudades cercanas</Spanish>
+	</TEXT>
+	<!-- Replacing TXT_KEY_HAPPY_FEATURES (CIV4GameTextInfos.xml),
+		 which was misleadingly named and said "National Parks"; that was
+		 OK in Vanilla Civ 4, but BtS introduced a building with that name. -->
+	<TEXT>
+		<Tag>TXT_KEY_HAPPY_SURROUNDINGS</Tag>
+		<English>+%d1_Change[ICON_HAPPY]: "We love our recreation areas!"</English>
+		<French>+%d1_Change[ICON_HAPPY] : "Nous appr&#233;cions la beaut&#233; de nos parcs nationaux !"</French>
+		<German>+%d1_Change[ICON_HAPPY]: "Wir lieben unsere Naherholungsgebiete!"</German>
+		<Italian>+%d1_Change[ICON_HAPPY]: "Amiamo il nostro parco nazionale!"</Italian>
+		<Spanish>+%d1_Change [ICON_HAPPY]: "&#161;Adoramos nuestros parques nacionales!"</Spanish>
+	</TEXT>
+	<!-- More likely to be used for improvements than features. Can't come up
+		 with a good generic line. -->
+	<TEXT>
+		<Tag>TXT_KEY_ANGER_SURROUNDINGS</Tag>
+		<English>+%d1_Change[ICON_UNHAPPY]: "Some 'improvements' are a blight on our countryside."</English>
+		<French>+%d1_Change[ICON_UNHAPPY] : "Toute cette &#233;cologie me rend fou !"</French>
+		<German>+%d1_Change[ICON_UNHAPPY]: "Manche 'Modernisierungen' verschandeln unser Umland."</German>
+		<Italian>+%d1_Change[ICON_UNHAPPY]: "Tutto questo movimento mi rende pazzo!"</Italian>
+		<Spanish>+%d1_Change [ICON_UNHAPPY]: "&#161;Eso de abrazar arbolitos nos saca de quicio!"</Spanish>
+	</TEXT>
 	
 	<!-- advc.550
 		 Just added the word "better"; the rest is copied from vanilla
@@ -5745,7 +5786,7 @@
 		<Spanish>No, devolvedle el control al %s1_CivName</Spanish>
 	</TEXT>
 
-<!-- advc.004g: From CIV4GameText_BTS.xml. Said "terrain", which is
+	<!-- advc.004g: From CIV4GameText_BTS.xml. Said "terrain", which is
 		 misleading. I've used TXT_KEY_PEDIA_CATEGORY_FEATURE
 		 (CIV4GameTextInfos_Objects.xml; engl.: "Terrain Features" for the
 		 Romance languages, but I like "vegetation" best. -->
@@ -5765,4 +5806,29 @@
 		<German>[ICON_BULLET]Vegetation hat eine geringere Ausbreitungsschance</German>
 		<Italian>[ICON_BULLET]D&#224; alle caratteristiche del terreno una minore probabilit&#224; di espandersi</Italian>
 		<Spanish>[ICON_BULLET]Da a los accidentes del terreno una menor posibilidad de propagación</Spanish>
-	</TEXT></Civ4GameText>
+	</TEXT>
+
+	<!-- advc.901: Replacing TXT_KEY_MISC_FEATURES 
+		 (CIV4GameTextInfos_Objects.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_SURROUNDINGS</Tag>
+		<English>Surroundings</English>
+		<French>
+			<Text>Caract&#233;ristiques</Text>
+			<Gender>Female</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>Umland</German>
+		<Italian>
+			<Text>Caratteristiche</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Accidentes</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</Spanish>
+	</TEXT>
+
+</Civ4GameText>

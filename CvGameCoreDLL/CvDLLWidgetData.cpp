@@ -2766,20 +2766,25 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 			if (iYield != 0)
 			{
-				szTempBuffer.Format(L", %s%d%c", ((iYield > 0) ? "+" : ""), iYield,
+				szTempBuffer.Format(L", %s%d%c", iYield > 0 ? "+" : "", iYield,
 						GC.getYieldInfo((YieldTypes) iI).getChar());
 				szBuffer.append(szTempBuffer);
 			}
 		}
-		if (NO_IMPROVEMENT != eImprovement)
+		// advc.059: Moved into new function (and rewritten)
+		GAMETEXT.setHealthHappyBuildActionHelp(szBuffer, kMissionPlot, eBuild);
+		// advc.059: Feature production (moved up)
+		if (kMissionPlot.getFeatureType() != NO_FEATURE &&
+			GC.getBuildInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType()))
 		{
-			int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
-			if (iHappy != 0)
+			CvCity* pProductionCity=NULL;
+			int iProduction = kMissionPlot.getFeatureProduction(eBuild,
+					kUnitTeam.getID(), &pProductionCity);
+			if (iProduction > 0)
 			{
-				szTempBuffer.Format(L", +%d%c", abs(iHappy),
-						(iHappy > 0 ? gDLL->getSymbolID(HAPPY_CHAR) :
-						gDLL->getSymbolID(UNHAPPY_CHAR)));
-				szBuffer.append(szTempBuffer);
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CHANGE_PRODUCTION",
+						iProduction, pProductionCity->getNameKey()));
 			}
 		}
 		bool bValid = false;
@@ -2923,23 +2928,15 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		{
 			if (GC.getBuildInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType()))
 			{
-				CvCity* pProductionCity=NULL;
-				int iProduction = kMissionPlot.getFeatureProduction(eBuild,
-						kUnitTeam.getID(), &pProductionCity);
-				if (iProduction > 0)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CHANGE_PRODUCTION",
-							iProduction, pProductionCity->getNameKey()));
-				}
+				// (advc.059: Feature production moved up)
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_REMOVE_FEATURE",
 						GC.getFeatureInfo(kMissionPlot.getFeatureType()).getTextKeyWide()));
 				// UNOFFICIAL_PATCH, Bugfix, 06/10/10, EmperorFool
 				if (eImprovement == NO_IMPROVEMENT &&
-						kMissionPlot.getImprovementType() != NO_IMPROVEMENT &&
-						GC.getImprovementInfo(kMissionPlot.getImprovementType()).
-						getFeatureMakesValid(kMissionPlot.getFeatureType()))
+					kMissionPlot.getImprovementType() != NO_IMPROVEMENT &&
+					GC.getImprovementInfo(kMissionPlot.getImprovementType()).
+					getFeatureMakesValid(kMissionPlot.getFeatureType()))
 				{
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP",

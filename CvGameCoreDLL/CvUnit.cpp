@@ -7059,7 +7059,7 @@ int CvUnit::baseCombatStr() const
 //			values may be unexpectedly reversed in this case (iModifierTotal will be the negative sum)
 int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails) const
 {
-	FAssertMsg((pPlot == NULL) || (pPlot->getTerrainType() != NO_TERRAIN), "(pPlot == NULL) || (pPlot->getTerrainType() is not expected to be equal with NO_TERRAIN)");
+	FAssert(pPlot == NULL || pPlot->getTerrainType() != NO_TERRAIN);
 
 	// handle our new special case
 	const	CvPlot*	pAttackedPlot = NULL;
@@ -7075,9 +7075,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 	}
 	// otherwise, attack plot is the plot of us (the defender)
 	else if (pAttacker != NULL)
-	{
 		pAttackedPlot = plot();
-	}
 
 	if (pCombatDetails != NULL)
 	{
@@ -7126,9 +7124,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 	}
 
 	if (baseCombatStr() == 0)
-	{
 		return 0;
-	}
 
 	int iModifier = 0;
 	int iExtraModifier;
@@ -7136,9 +7132,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 	iExtraModifier = getExtraCombatPercent();
 	iModifier += iExtraModifier;
 	if (pCombatDetails != NULL)
-	{
 		pCombatDetails->iExtraCombatPercent = iExtraModifier;
-	}
 
 	// do modifiers for animals and barbarians (leaving these out for bAttackingUnknownDefender case)
 	if (pAttacker != NULL)

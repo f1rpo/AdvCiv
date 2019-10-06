@@ -413,6 +413,7 @@ public:
 	void setXY(int iX, int iY, bool bGroup = false, bool bUpdate = true, bool bShow = false, bool bCheckPlotVisible = false);	// Exposed to Python
 	
 	bool at(int iX, int iY) const;																														// Exposed to Python
+	inline bool at(CvPlot const& kPlot) const { return atPlot(&kPlot); } // advc
 	DllExport bool atPlot(const CvPlot* pPlot) const;																					// Exposed to Python
 	DllExport CvPlot* plot() const;																														// Exposed to Python
 	int getArea() const;																																			// Exposed to Python

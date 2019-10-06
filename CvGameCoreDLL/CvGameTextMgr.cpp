@@ -1,14 +1,4 @@
-//---------------------------------------------------------------------------------------
-//
-//  *****************   Civilization IV   ********************
-//
-//  FILE:    CvGameTextMgr.cpp
-//
-//  PURPOSE: Interfaces with GameText XML Files to manage the paths of art files
-//	(advc: Looks like this class has expanded far beyond its original purpose)
-//---------------------------------------------------------------------------------------
-//  Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
-//---------------------------------------------------------------------------------------
+//  CvGameTextMgr.cpp
 
 #include "CvGameCoreDLL.h"
 #include "CvAI.h"
@@ -4577,27 +4567,40 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			}
 		}
 	}
+	bool bAnyYield = false; // advc.059
 	/*  advc.001w: hasYield is based on getYield, which is not always consistent
 		with calculateYield. */
 	//if (pPlot->hasYield())
 	{
 		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 		{
-			int iYield = pPlot->calculateYield(((YieldTypes)iI), true);
-
+			int iYield = pPlot->calculateYield((YieldTypes)iI, true);
 			if (iYield != 0)
 			{
 				szTempBuffer.Format(L", %d%c", iYield, GC.getYieldInfo((YieldTypes) iI).getChar());
 				szString.append(szTempBuffer);
+				bAnyYield = true;
 			}
 		}
 	}
+	// <advc.001> Moved up. BtS was using getImprovementType in the eBonus code
+	ImprovementTypes ePlotImprovement = pPlot->getRevealedImprovementType(
+			eActiveTeam, true); // </advc.001>
+	// <advc.059>
+	bool bHealthHappyShown = false; // Show it later if improved
+	if (ePlotImprovement == NO_IMPROVEMENT ||
+		(GC.getImprovementInfo(ePlotImprovement).get(CvImprovementInfo::HealthPercent) == 0 && // advc.901
+		GC.getImprovementInfo(ePlotImprovement).getHappiness() == 0))
+	{
+		setPlotHealthHappyHelp(szString, *pPlot);
+		bHealthHappyShown = true;
+	} // </advc.059>
 
 	if (pPlot->isFreshWater())
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_PLOT_FRESH_WATER"));
-		// <advc.004b>
+		// <advc.059>
 		if(pHeadSelectedUnit != NULL &&
 			// advc.004h:
 			pHeadSelectedUnit->canFound() && pHeadSelectedUnit->atPlot(pPlot))
@@ -4606,7 +4609,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE),
 					gDLL->getSymbolID(HEALTHY_CHAR));
 			szString.append(szTempBuffer);
-		} // </advc.004b>
+		} // </advc.059>
 	}
 
 	if (pPlot->isLake())
@@ -4620,28 +4623,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_PLOT_IMPASSABLE"));
 	}
-	// <advc.004b>
-	if(pHeadSelectedUnit != NULL &&
-		// advc.004h:
-		pHeadSelectedUnit->canFound() && pPlot->getFeatureType() != NO_FEATURE)
-	{
-		int iHealthPercent = GC.getFeatureInfo(pPlot->getFeatureType()).
-				getHealthPercent();
-		if(iHealthPercent != 0)
-		{
-			szString.append(NEWLINE);
-			float health = abs(iHealthPercent / 100.0f);
-			int iIcon = (iHealthPercent > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) :
-						gDLL->getSymbolID(UNHEALTHY_CHAR));
-			if(iHealthPercent % 10 == 0)
-				szTempBuffer.Format(L"+%.1f%c", health, iIcon);
-			else szTempBuffer.Format(L"+%.2f%c", health, iIcon);
-		}
-		szString.append(szTempBuffer);
-	} // </advc.004b>
-	// <advc.001> Moved up. BtS was using getImprovementType in the eBonus code
-	ImprovementTypes ePlotImprovement = pPlot->getRevealedImprovementType(
-			eActiveTeam, true); // </advc.001>
+
 	BonusTypes eBonus = NO_BONUS;
 	if (g.isDebugMode())
 		eBonus = pPlot->getBonusType();
@@ -4913,7 +4895,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 		if (GC.getImprovementInfo(ePlotImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
 		{
-			if ((pPlot->getUpgradeProgress() > 0) || pPlot->isBeingWorked())
+			if (pPlot->getUpgradeProgress() > 0 || pPlot->isBeingWorked())
 			{
 				int iTurns = pPlot->getUpgradeTimeLeft(ePlotImprovement, eRevealedOwner);
 
@@ -4925,7 +4907,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			}
 		}
 	}
-
+	// <advc.059>
+	if (!bHealthHappyShown)
+		setPlotHealthHappyHelp(szString, *pPlot); // </advc.059>
 	if (pPlot->getRevealedRouteType(eActiveTeam, true) != NO_ROUTE)
 	{
 		szString.append(NEWLINE);
@@ -5024,6 +5008,186 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		} // UNOFFICIAL_PATCH: END
 	}
 }
+
+// <advc.059>
+void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot const& kPlot) const
+{
+	CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
+	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	// advc.004b:
+	bool bFound = (pHeadSelectedUnit != NULL && /* advc.004h: */ pHeadSelectedUnit->canFound());
+	bool bBuild = (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER && pHeadSelectedUnit->at(kPlot));
+	if(!bFound && !bBuild && !kPlot.isCityRadius())
+		return;
+	bool bNearSelectedCity = false;
+	if (!bFound && !bBuild)
+	{
+		bool bOurCity = false;
+		for (int i = 0; i < NUM_CITY_PLOTS; i++) // Look for a city
+		{
+			CvPlot* pLoopPlot = ::plotCity(kPlot.getX(), kPlot.getY(), i);
+			if (pLoopPlot != NULL && pLoopPlot->isCity() &&
+				(pLoopPlot->getPlotCity()->getOwner() == kActivePlayer.getID() ||
+				(kPlot.getOwner() == kActivePlayer.getID() && pLoopPlot->
+				getPlotCity()->isRevealed(kActiveTeam.getID(), true))))
+			{
+				bOurCity = true;
+				if (gDLL->getInterfaceIFace()->isCitySelected(pLoopPlot->getPlotCity()))
+				{
+					bNearSelectedCity = true;
+					break;
+				}
+			}
+		}
+		if (!bOurCity)
+			return;
+	}
+	int iHealthPercent = 0;
+	int iHappy = 0;
+	FeatureTypes eFeature = kPlot.getFeatureType();
+	if (eFeature != NO_FEATURE)
+	{
+		iHealthPercent = GC.getFeatureInfo(eFeature).getHealthPercent();
+		iHappy = kActivePlayer.getFeatureHappiness(eFeature);
+	}
+	ImprovementTypes eImprov = kPlot.getRevealedImprovementType(kActiveTeam.getID(), true);
+	if (eImprov != NO_IMPROVEMENT)
+	{
+		CvImprovementInfo const& kImprov = GC.getImprovementInfo(eImprov);
+		if (kActiveTeam.canAccessImprovement(kPlot, eImprov, false)) // advc.901
+			iHappy += kImprov.getHappiness();  // <advc.901>
+		if (kActiveTeam.canAccessImprovement(kPlot, eImprov, true))
+			iHealthPercent += kImprov.get(CvImprovementInfo::HealthPercent); // </advc.901>
+	}
+	bool bCitySelected = (gDLL->getInterfaceIFace()->getHeadSelectedCity() != NULL);
+	bool bAlwaysShow = (bFound || bBuild || bNearSelectedCity);
+	if (iHappy != 0)
+	{
+		if (bAlwaysShow || !bCitySelected)
+		{
+			szBuffer.append(", ");
+			int iIcon = gDLL->getSymbolID(iHappy > 0 ? HAPPY_CHAR : UNHAPPY_CHAR);
+			szBuffer.append(CvWString::format(L"%d%c", abs(iHappy), iIcon));
+		}
+	}
+	if (iHealthPercent != 0)
+	{
+		int iAbsHealthPercent = abs(iHealthPercent);
+		if (bAlwaysShow || (!bCitySelected &&
+			// Basically anything that isn't an ordinary Forest, Jungle, Flood Plains
+			(iAbsHealthPercent >= 100 || iHealthPercent <= -50)))
+		{
+			szBuffer.append(", ");
+			float fAbsHealth = iAbsHealthPercent / 100.0f;
+			int iIcon = gDLL->getSymbolID(iHealthPercent > 0 ? HEALTHY_CHAR : UNHEALTHY_CHAR);
+			if(iHealthPercent % 100 == 0)
+				szBuffer.append(CvWString::format(L"%d%c", iAbsHealthPercent / 100, iIcon));
+			else if(iHealthPercent % 10 == 0)
+				szBuffer.append(CvWString::format(L"%.1f%c", fAbsHealth, iIcon));
+			else szBuffer.append(CvWString::format(L"%.2f%c", fAbsHealth, iIcon));
+		}
+	}
+}
+
+// Replacing code originally in CvWidgetData::parseActionHelp
+void CvGameTextMgr::setHealthHappyBuildActionHelp(CvWStringBuffer& szBuffer, CvPlot const& kPlot, BuildTypes eBuild) const
+{
+	CvBuildInfo const& kBuild = GC.getBuildInfo(eBuild);
+	ImprovementTypes const eNewImprov = (ImprovementTypes)kBuild.getImprovement();
+	bool const bRemoveFeature = (kPlot.getFeatureType() != NO_FEATURE &&
+			kBuild.isFeatureRemove(kPlot.getFeatureType()));
+	TeamTypes eActiveTeam = GC.getGame().getActiveTeam();
+	if (kPlot.isCityRadius() && (eNewImprov != NO_IMPROVEMENT || bRemoveFeature))
+	{
+		ImprovementTypes eOldImprov = kPlot.getRevealedImprovementType(eActiveTeam, true);
+		std::vector<CvPlot*> cityCross;
+		::cityCross(kPlot, cityCross);
+		CvWString szNewItem;
+		szNewItem.Format(NEWLINE L"%c", gDLL->getSymbolID(BULLET_CHAR));
+		for (size_t i = 0; i < cityCross.size(); i++)
+		{
+			if (cityCross[i] == NULL)
+				continue;
+			CvCity* pCity = cityCross[i]->getPlotCity();
+			if (pCity == NULL || !pCity->isRevealed(eActiveTeam, true))
+				continue;
+			int iHappyChange, iUnhappyChange, iGoodHealthChange, iBadHealthChange,
+					iGoodHealthPercentChange, iBadHealthPercentChange;
+			pCity->goodBadHealthHappyChange(kPlot, eNewImprov == NO_IMPROVEMENT ?
+					eOldImprov : eNewImprov, eOldImprov, bRemoveFeature,
+					iHappyChange, iUnhappyChange, iGoodHealthChange, iBadHealthChange,
+					iGoodHealthPercentChange, iBadHealthPercentChange);
+			// Anger and bad health are counted as negative values (not my idea)
+			iUnhappyChange *= -1;
+			iBadHealthChange *= -1;
+			iBadHealthPercentChange *= -1;
+			bool bFirst = true;
+			if (iHappyChange != 0)
+			{
+				szBuffer.append(bFirst ? szNewItem : L", "); bFirst = false;
+				szBuffer.append(CvWString::format(L"%s%d%c", iHappyChange > 0 ? "+" : "",
+						iHappyChange, gDLL->getSymbolID(HAPPY_CHAR)));
+			}
+			if (iUnhappyChange != 0)
+			{
+				szBuffer.append(bFirst ? szNewItem : L", "); bFirst = false;
+				szBuffer.append(CvWString::format(L"%s%d%c", iUnhappyChange > 0 ? "+" : "",
+						iUnhappyChange, gDLL->getSymbolID(UNHAPPY_CHAR)));
+			}
+			if (iGoodHealthPercentChange != 0)
+			{
+				szBuffer.append(bFirst ? szNewItem : L", "); bFirst = false;
+				setHealthChangeBuildActionHelp(szBuffer, iGoodHealthChange,
+						iGoodHealthPercentChange, gDLL->getSymbolID(HEALTHY_CHAR));
+			}
+			if (iBadHealthPercentChange != 0)
+			{
+				szBuffer.append(bFirst ? szNewItem : L", "); bFirst = false;
+				setHealthChangeBuildActionHelp(szBuffer, iBadHealthChange,
+						iBadHealthPercentChange, gDLL->getSymbolID(UNHEALTHY_CHAR));
+			}
+			if (!bFirst)
+			{
+				szBuffer.append(L" ");
+				szBuffer.append(gDLL->getText("TXT_KEY_IN_CITY", pCity->getNameKey()));
+			}
+		}
+	}
+}
+
+
+void CvGameTextMgr::setHealthChangeBuildActionHelp(CvWStringBuffer& szBuffer,
+	int iChange, int iChangePercent, int iIcon) const
+{
+	char const* szSign = (iChangePercent > 0 ? "+" : "");
+	CvWString szFraction;
+	if (iChangePercent != iChange * 100)
+	{
+		float fAbsHealth = iChangePercent / 100.0f;
+		bool bChange = (iChange != 0);
+		if (bChange)
+			szFraction.append(L"(");
+		szFraction += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_LIGHT_GREY"));
+		if (iChangePercent % 10 == 0)
+			szFraction += CvWString::format(L"%s%.1f", szSign, fAbsHealth);
+		else szFraction += CvWString::format(L"%s%.2f", szSign, fAbsHealth);
+		szFraction.append(ENDCOLR);
+		if (bChange)
+			szFraction.append(L")");
+		else szFraction.append(CvWString::format(L"%c", iIcon));
+	}
+	if (iChange != 0)
+	{
+		szBuffer.append(CvWString::format(L"%s%d%c", szSign, iChange, iIcon));
+		if (!szFraction.empty())
+		{
+			szBuffer.append(L" ");
+			szBuffer.append(szFraction);
+		}
+	}
+	else szBuffer.append(szFraction);
+} // </advc.059>
 
 // advc.135c:
 void CvGameTextMgr::setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot) {
@@ -12497,36 +12661,38 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		szBuffer.append(NEWLINE);
 	}
 
-	iHealth = -(city.getFeatureBadHealth());
+	iHealth = -(city.getSurroundingBadHealth());
 	if (iHealth > 0)
 	{
 		FeatureTypes eFeature = NO_FEATURE;
-
 		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
 			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
-
-			if (pLoopPlot != NULL)
+			if (pLoopPlot == NULL || pLoopPlot->getFeatureType() == NO_FEATURE)
+				continue; // advc
+			// <advc.901>
+			int iHealthPercent = GC.getFeatureInfo(pLoopPlot->getFeatureType()).getHealthPercent();
+			if (pLoopPlot->getOwner() == city.getOwner())
 			{
-				if (pLoopPlot->getFeatureType() != NO_FEATURE)
+				ImprovementTypes eImprov = pLoopPlot->getImprovementType();
+				if (eImprov != NO_IMPROVEMENT)
+					iHealthPercent += GC.getImprovementInfo(eImprov).get(CvImprovementInfo::HealthPercent);
+			}
+			if (iHealthPercent < 0) // </advc.901>
+			{
+				if (eFeature == NO_FEATURE)
+					eFeature = pLoopPlot->getFeatureType();
+				else if (eFeature != pLoopPlot->getFeatureType())
 				{
-					if (GC.getFeatureInfo(pLoopPlot->getFeatureType()).getHealthPercent() < 0)
-					{
-						if (eFeature == NO_FEATURE)
-						{
-							eFeature = pLoopPlot->getFeatureType();
-						}
-						else if (eFeature != pLoopPlot->getFeatureType())
-						{
-							eFeature = NO_FEATURE;
-							break;
-						}
-					}
+					eFeature = NO_FEATURE;
+					break;
 				}
 			}
 		}
-
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_FEAT_HEALTH", iHealth, ((eFeature == NO_FEATURE) ? L"TXT_KEY_MISC_FEATURES" : GC.getFeatureInfo(eFeature).getTextKeyWide())));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_FEAT_HEALTH", iHealth,
+				(eFeature == NO_FEATURE ?
+				L"TXT_KEY_MISC_SURROUNDINGS" : // advc.901: was TXT_KEY_MISC_FEATURES
+				GC.getFeatureInfo(eFeature).getTextKeyWide())));
 		szBuffer.append(NEWLINE);
 	}
 
@@ -12585,25 +12751,16 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	if (iHealth > 0)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_POP", iHealth));
-/*
-** K-Mod, 29/dec/10, karadoc
-** added modifier text
-*/
+		// K-Mod, 29/dec/10: added modifier text
 		if (city.getUnhealthyPopulationModifier() != 0)
 		{
 			wchar szTempBuffer[1024];
-
 			swprintf(szTempBuffer, 1024, L" (%+d%%)", city.getUnhealthyPopulationModifier());
 			szBuffer.append(szTempBuffer);
-		}
-/*
-** K-Mod end
-*/
+		} // K-Mod end
 		szBuffer.append(NEWLINE);
 	}
-
 	szBuffer.append(L"-----------------------\n");
-
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_TOTAL_UNHEALTHY", city.badHealth()));
 }
 
@@ -12619,36 +12776,38 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		szBuffer.append(NEWLINE);
 	}
 
-	iHealth = city.getFeatureGoodHealth();
+	iHealth = city.getSurroundingGoodHealth();
 	if (iHealth > 0)
 	{
 		FeatureTypes eFeature = NO_FEATURE;
-
 		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
 			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
-
-			if (pLoopPlot != NULL)
+			if (pLoopPlot == NULL || pLoopPlot->getFeatureType() == NO_FEATURE)
+				continue; // advc
+			// <advc.901>
+			int iHealthPercent = GC.getFeatureInfo(pLoopPlot->getFeatureType()).getHealthPercent();
+			if (pLoopPlot->getOwner() == city.getOwner())
 			{
-				if (pLoopPlot->getFeatureType() != NO_FEATURE)
+				ImprovementTypes eImprov = pLoopPlot->getImprovementType();
+				if (eImprov != NO_IMPROVEMENT)
+					iHealthPercent += GC.getImprovementInfo(eImprov).get(CvImprovementInfo::HealthPercent);
+			}
+			if (iHealthPercent > 0) // </advc.901>
+			{
+				if (eFeature == NO_FEATURE)
+					eFeature = pLoopPlot->getFeatureType();
+				else if (eFeature != pLoopPlot->getFeatureType())
 				{
-					if (GC.getFeatureInfo(pLoopPlot->getFeatureType()).getHealthPercent() > 0)
-					{
-						if (eFeature == NO_FEATURE)
-						{
-							eFeature = pLoopPlot->getFeatureType();
-						}
-						else if (eFeature != pLoopPlot->getFeatureType())
-						{
-							eFeature = NO_FEATURE;
-							break;
-						}
-					}
+					eFeature = NO_FEATURE;
+					break;
 				}
 			}
 		}
-
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_FEAT_GOOD_HEALTH", iHealth, ((eFeature == NO_FEATURE) ? L"TXT_KEY_MISC_FEATURES" : GC.getFeatureInfo(eFeature).getTextKeyWide())));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_FEAT_GOOD_HEALTH", iHealth,
+				(eFeature == NO_FEATURE ?
+				L"TXT_KEY_MISC_SURROUNDINGS" : // advc.004g: was TXT_KEY_MISC_FEATURES
+				GC.getFeatureInfo(eFeature).getTextKeyWide())));
 		szBuffer.append(NEWLINE);
 	}
 
@@ -12936,11 +13095,12 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		}
 		iOldAnger = iNewAnger;
 
-		iNewAnger -= std::min(0, city.getFeatureBadHappiness());
+		iNewAnger -= std::min(0, city.getSurroundingBadHappiness());
 		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
 		if (iAnger > 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_FEATURES", iAnger));
+			// advc.059: Text key was ..._FEATURES
+			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_SURROUNDINGS", iAnger));
 			szBuffer.append(NEWLINE);
 		}
 		iOldAnger = iNewAnger;
@@ -13065,11 +13225,12 @@ void CvGameTextMgr::setHappyHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		szBuffer.append(NEWLINE);
 	}
 
-	iHappy = city.getFeatureGoodHappiness();
+	iHappy = city.getSurroundingGoodHappiness();
 	if (iHappy > 0)
 	{
 		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_FEATURES", iHappy));
+		// advc.059: Text key was ..._FEATURES
+		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_SURROUNDINGS", iHappy));
 		szBuffer.append(NEWLINE);
 	}
 
@@ -15591,15 +15752,33 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_DEFENSE_MODIFIER", info.getDefenseModifier()));
 	}
-
-	if (info.getHappiness() != 0)
 	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ICON_CHANGE_NEARBY_CITIES",
-				// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
-				abs(info.getHappiness()), (info.getHappiness() > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
-	}
-
+		int iHappiness = info.getHappiness();
+		if (iHappiness != 0)
+		{
+			szBuffer.append(NEWLINE);
+			szTempBuffer.Format(L"%d", abs(iHappiness)); // advc.901
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ICON_CHANGE_NEARBY_CITIES",
+					szTempBuffer.GetCString(), // advc.901: Pass number as string
+					// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
+					gDLL->getSymbolID(iHappiness > 0 ? HAPPY_CHAR :UNHAPPY_CHAR)));
+		}
+	}  // <advc.901>
+	{
+		int iHealthPercent = info.get(CvImprovementInfo::HealthPercent);
+		if (iHealthPercent != 0)
+		{
+			szBuffer.append(NEWLINE);
+			float fAbsHealth = abs(iHealthPercent) / 100.0f;
+			if (iHealthPercent % 10 == 0)
+				szTempBuffer.Format(L"%.1f", fAbsHealth);
+			else szTempBuffer.Format(L"%.2f", fAbsHealth);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ICON_CHANGE_NEARBY_CITIES",
+					szTempBuffer.GetCString(),
+					iHealthPercent > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) :
+					gDLL->getSymbolID(UNHEALTHY_CHAR)));
+		}
+	} // </advc.901>
 	if (info.isActsAsCity())
 	{
 		szBuffer.append(NEWLINE);

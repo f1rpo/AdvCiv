@@ -439,3 +439,136 @@ void CvHotkeyInfo::setHotKeyDescription(const wchar* szHotKeyDescKey, const wcha
 	m_szHotKeyAltDescriptionKey = szHotKeyAltDescKey;
 	m_szHotKeyString = szHotKeyString;
 }
+
+// <advc.tag>
+CvInfoEnum::XMLElement::XMLElement(int iEnumValue, CvString szName) :
+		m_iEnumValue(iEnumValue), m_szName(szName), m_bMandatory(true) {}
+
+CvInfoEnum::XMLElement::XMLElement(int iEnumValue, CvString szName, bool bMandatory) :
+		m_iEnumValue(iEnumValue), m_szName(szName), m_bMandatory(bMandatory) {}
+
+int CvInfoEnum::XMLElement::getEnumValue() const { return m_iEnumValue; }
+
+CvString CvInfoEnum::XMLElement::getName() const { return m_szName; }
+	
+bool CvInfoEnum::XMLElement::isMandatory() const { return m_bMandatory; }
+
+CvInfoEnum::IntElement::IntElement(int iEnumValue, CvString szName) :
+		XMLElement(iEnumValue, szName), m_iDefaultValue(0) {}
+
+CvInfoEnum::IntElement::IntElement(int iEnumValue, CvString szName, int iDefault) :
+		XMLElement(iEnumValue, szName, false), m_iDefaultValue(iDefault) {}
+
+CvInfoEnum::ElementDataType CvInfoEnum::IntElement::getDataType() const
+{
+	return INT_ELEMENT;
+}
+
+int CvInfoEnum::IntElement::getDefaultValue() const { return m_iDefaultValue; }
+
+CvInfoEnum::BoolElement::BoolElement(int iEnumValue, CvString szName) :
+		XMLElement(iEnumValue, szName), m_bDefaultValue(false) {}
+
+CvInfoEnum::BoolElement::BoolElement(int iEnumValue, CvString szName, bool bDefault) :
+		XMLElement(iEnumValue, szName, false), m_bDefaultValue(bDefault) {}
+
+CvInfoEnum::ElementDataType CvInfoEnum::BoolElement::getDataType() const
+{
+	return BOOL_ELEMENT;
+}
+
+int CvInfoEnum::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
+
+void CvInfoEnum::addElements(std::vector<XMLElement*>& r) const
+{
+	// Could add elements common to all info classes here
+}
+
+void CvInfoEnum::set(IntElementTypes e, int iNewValue)
+{
+	FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvInfoBase::set(IntElementTypes,int)");
+	m_aiData[e] = iNewValue;
+}
+
+void CvInfoEnum::set(BoolElementTypes e, bool bNewValue)
+{
+	FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvInfoBase::set(BoolElementTypes,bool)");
+	m_abData[e] = bNewValue;
+}
+
+bool CvInfoEnum::read(CvXMLLoadUtility* pXML)
+{
+	CvInfoBase::read(pXML);
+
+	std::vector<XMLElement*> apElements;
+	addElements(apElements);
+	{	// Allocate space in data vectors
+		int iIntElements = 0;
+		int iBoolElements = 0;
+		for (size_t i = 0; i < apElements.size(); i++)
+		{
+			switch(apElements[i]->getDataType())
+			{
+			case INT_ELEMENT: iIntElements++; break;
+			case BOOL_ELEMENT: iBoolElements++; break;
+			default: FAssertMsg(false, "Data type misses element counting code");
+			}
+		}
+		m_aiData.resize(iIntElements);
+		m_abData.resize(iBoolElements);
+	}
+	for (size_t i = 0; i < apElements.size(); i++)
+	{
+		XMLElement& kElement = *apElements[i];
+		int const iEnumValue = kElement.getEnumValue();
+		CvString szName = kElement.getName();
+		switch(kElement.getDataType())
+		{
+		case INT_ELEMENT:
+			szName.insert(0, "i");
+			int iTmp;
+			if (kElement.isMandatory())
+				pXML->GetChildXmlValByName(&iTmp, szName.GetCString());
+			else
+			{
+				pXML->GetChildXmlValByName(&iTmp, szName.GetCString(),
+						static_cast<IntElement&>(kElement).getDefaultValue());
+			}
+			FASSERT_BOUNDS(0, (int)m_aiData.size(), iEnumValue, "CvInfoBase::read");
+			m_aiData[iEnumValue] = iTmp;
+			break;
+		case BOOL_ELEMENT:
+			szName.insert(0, "b");
+			bool bTmp;
+			if (kElement.isMandatory())
+				pXML->GetChildXmlValByName(&bTmp, szName.GetCString());
+			else
+			{
+				pXML->GetChildXmlValByName(&bTmp, szName.GetCString(),
+						static_cast<BoolElement&>(kElement).getDefaultValue());
+			}
+			FASSERT_BOUNDS(0, (int)m_abData.size(), iEnumValue, "CvInfoBase::read");
+			m_abData[iEnumValue] = bTmp;
+			break;
+		default: FAssertMsg(false, "Data type misses XML loading code");
+		}
+		delete &kElement;
+	}
+	return true;
+}
+
+#if SERIALIZE_CVINFOS
+void CvInfoEnum::read(FDataStreamBase* pStream)
+{
+	CvInfoBase::read(pStream);
+	pStream->Read((int)m_aiData.size(), m_aiData.data());
+	pStream->Read((int)m_abData.size(), m_abData.data());
+}
+
+void CvInfoEnum::write(FDataStreamBase* pStream)
+{
+	CvInfoBase::write(pStream);
+	pStream->Write((int)m_aiData.size(), m_aiData.data());
+	pStream->Write((int)m_abData.size(), m_abData.data());
+}
+#endif // </advc.tag>

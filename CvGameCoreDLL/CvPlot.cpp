@@ -4829,10 +4829,7 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 		{
 			CvCity* pLoopCity = pLoopPlot->getPlotCity();
 			if (pLoopCity != NULL)
-			{
-				pLoopCity->updateFeatureHealth();
-				pLoopCity->updateFeatureHappiness();
-			}
+				pLoopCity->updateSurroundingHealthHappiness();
 		}
 	}
 
@@ -5030,7 +5027,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 		{
 			CvCity* pLoopCity = pLoopPlot->getPlotCity();
 			if (pLoopCity != NULL)
-				pLoopCity->updateFeatureHappiness();
+				pLoopCity->updateSurroundingHealthHappiness();
 		}
 	}
 

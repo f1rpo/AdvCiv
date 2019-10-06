@@ -25516,7 +25516,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
 
 	/*if (AI_getTotalAreaCityThreat(pArea) == 0)
 		iDefendersPermil /= 2;*/
-	/*  <advc.107> Faster. Not per-area, but I don't much have confidence in
+	/*  <advc.107> Faster. Not per-area, but I don't have much confidence in
 		AI_getTotalAreaCityThreat==0 identifying safe areas either. */
 	if (AI_feelsSafe())
 		iDefendersPermil = (2 * iDefendersPermil) / 5; // </advc.107>

@@ -998,12 +998,12 @@ int CyCity::getBuildingBadHealth()
 
 int CyCity::getFeatureGoodHealth()
 {
-	return m_pCity ? m_pCity->getFeatureGoodHealth() : -1;
+	return m_pCity ? m_pCity->getSurroundingGoodHealth() : -1;
 }
 
 int CyCity::getFeatureBadHealth()
 {
-	return m_pCity ? m_pCity->getFeatureBadHealth() : -1;
+	return m_pCity ? m_pCity->getSurroundingBadHealth() : -1;
 }
 
 int CyCity::getBuildingHealth(int /*BuildingTypes*/ eBuilding)
@@ -1068,12 +1068,12 @@ int CyCity::getExtraBuildingBadHappiness()
 
 int CyCity::getFeatureGoodHappiness()
 {
-	return m_pCity ? m_pCity->getFeatureGoodHappiness() : -1;
+	return m_pCity ? m_pCity->getSurroundingGoodHappiness() : -1;
 }
 
 int CyCity::getFeatureBadHappiness()
 {
-	return m_pCity ? m_pCity->getFeatureBadHappiness() : -1;
+	return m_pCity ? m_pCity->getSurroundingBadHappiness() : -1;
 }
 
 int CyCity::getBonusGoodHappiness()

@@ -48,8 +48,8 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 	m_iEspionageHappinessCounter = 0;
 	m_iFreshWaterGoodHealth = 0;
 	m_iFreshWaterBadHealth = 0;
-	m_iFeatureGoodHealth = 0;
-	m_iFeatureBadHealth = 0;
+	m_iSurroundingGoodHealth = 0;
+	m_iSurroundingBadHealth = 0;
 	m_iBuildingGoodHealth = 0;
 	m_iBuildingBadHealth = 0;
 	m_iPowerGoodHealth = 0;
@@ -67,8 +67,8 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 	m_iExtraBuildingBadHappiness = 0;
 	m_iExtraBuildingGoodHealth = 0;
 	m_iExtraBuildingBadHealth = 0;
-	m_iFeatureGoodHappiness = 0;
-	m_iFeatureBadHappiness = 0;
+	m_iSurroundingGoodHappiness = 0;
+	m_iSurroundingBadHappiness = 0;
 	m_iBonusGoodHappiness = 0;
 	m_iBonusBadHappiness = 0;
 	m_iReligionGoodHappiness = 0;
@@ -400,8 +400,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 	changeAirUnitCapacity(GC.getDefineINT(CvGlobals::CITY_AIR_UNIT_CAPACITY));
 
 	updateFreshWaterHealth();
-	updateFeatureHealth();
-	updateFeatureHappiness();
+	updateSurroundingHealthHappiness();
 	updatePowerHealth();
 
 	kOwner.updateMaintenance();
@@ -696,6 +695,8 @@ void CvCity::doTurn()  // advc: style changes
 
 	if (getEspionageHappinessCounter() > 0)
 		changeEspionageHappinessCounter(-1);
+
+	updateSurroundingHealthHappiness(); // advc.901
 
 	if (isOccupation() || (angryPopulation() > 0) || (healthRate() < 0))
 		setWeLoveTheKingDay(false);
@@ -3821,7 +3822,7 @@ int CvCity::getNoMilitaryPercentAnger() const
 		int iAnger = 0;
 		if (getMilitaryHappinessUnits() == 0)
 			iAnger += GC.getDefineINT(CvGlobals::NO_MILITARY_PERCENT_ANGER);
-		return iAnger; // <advc.500b>
+		return iAnger;  // <advc.500b>
 	}
 	double actualGarrStr = garrisonStrength();
 	double targetGarrStr = getPopulation() / 2.0;
@@ -4033,7 +4034,7 @@ int CvCity::unhappyLevel(int iExtra) const
 	iUnhappiness -= std::min(0, getCurrentStateReligionHappiness());
 	iUnhappiness -= std::min(0, getBuildingBadHappiness());
 	iUnhappiness -= std::min(0, getExtraBuildingBadHappiness());
-	iUnhappiness -= std::min(0, getFeatureBadHappiness());
+	iUnhappiness -= std::min(0, getSurroundingBadHappiness());
 	iUnhappiness -= std::min(0, getBonusBadHappiness());
 	iUnhappiness -= std::min(0, getReligionBadHappiness());
 	iUnhappiness -= std::min(0, getCommerceHappiness());
@@ -4056,7 +4057,7 @@ int CvCity::happyLevel() const
 	iHappiness += std::max(0, getCurrentStateReligionHappiness());
 	iHappiness += std::max(0, getBuildingGoodHappiness());
 	iHappiness += std::max(0, getExtraBuildingGoodHappiness());
-	iHappiness += std::max(0, getFeatureGoodHappiness());
+	iHappiness += std::max(0, getSurroundingGoodHappiness());
 	iHappiness += std::max(0, getBonusGoodHappiness());
 	iHappiness += std::max(0, getReligionGoodHappiness());
 	iHappiness += std::max(0, getCommerceHappiness());
@@ -4139,9 +4140,9 @@ int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 	/* original bts code
 	if (isNoUnhealthyPopulation())
 		return 0;
-	return std::max(0, ((getPopulation() + iExtra - ((bNoAngry) ? angryPopulation(iExtra) : 0))));*/
-	int iUnhealth = getPopulation() + iExtra - ((bNoAngry)? angryPopulation(iExtra) : 0);
-	iUnhealth *= std::max(0, 100+getUnhealthyPopulationModifier());
+	return std::max(0, getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0));*/
+	int iUnhealth = getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0);
+	iUnhealth *= std::max(0, 100 + getUnhealthyPopulationModifier());
 	iUnhealth = ROUND_DIVIDE(iUnhealth, 100);
 	return std::max(0, iUnhealth);
 	// K-Mod end
@@ -4150,7 +4151,8 @@ int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 
 int CvCity::totalGoodBuildingHealth() const
 {
-	return (getBuildingGoodHealth() + area()->getBuildingGoodHealth(getOwner()) + GET_PLAYER(getOwner()).getBuildingGoodHealth() + getExtraBuildingGoodHealth());
+	return (getBuildingGoodHealth() + area()->getBuildingGoodHealth(getOwner()) +
+			GET_PLAYER(getOwner()).getBuildingGoodHealth() + getExtraBuildingGoodHealth());
 }
 
 
@@ -4158,7 +4160,8 @@ int CvCity::totalBadBuildingHealth() const
 {
 	if (!isBuildingOnlyHealthy())
 	{
-		return (getBuildingBadHealth() + area()->getBuildingBadHealth(getOwner()) + GET_PLAYER(getOwner()).getBuildingBadHealth() + getExtraBuildingBadHealth());
+		return (getBuildingBadHealth() + area()->getBuildingBadHealth(getOwner()) +
+				GET_PLAYER(getOwner()).getBuildingBadHealth() + getExtraBuildingBadHealth());
 	}
 
 	return 0;
@@ -4167,52 +4170,34 @@ int CvCity::totalBadBuildingHealth() const
 
 int CvCity::goodHealth() const
 {
-	int iTotalHealth;
-	int iHealth;
-
-	iTotalHealth = 0;
-
-	iHealth = getFreshWaterGoodHealth();
+	int iTotalHealth = 0;
+	int iHealth = getFreshWaterGoodHealth();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
-	iHealth = getFeatureGoodHealth();
+	iHealth = getSurroundingGoodHealth();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = getPowerGoodHealth();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = getBonusGoodHealth();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = totalGoodBuildingHealth();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = GET_PLAYER(getOwner()).getExtraHealth() + getExtraHealth();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = GC.getHandicapInfo(getHandicapType()).getHealthBonus();
 	if (iHealth > 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	return iTotalHealth;
 }
@@ -4220,64 +4205,42 @@ int CvCity::goodHealth() const
 
 int CvCity::badHealth(bool bNoAngry, int iExtra) const
 {
-	int iTotalHealth;
-	int iHealth;
-
-	iTotalHealth = 0;
-
-	iHealth = getEspionageHealthCounter();
+	int iTotalHealth = 0;
+	int iHealth = getEspionageHealthCounter();
 	if (iHealth > 0)
-	{
 		iTotalHealth -= iHealth;
-	}
 
 	iHealth = getFreshWaterBadHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
-	iHealth = getFeatureBadHealth();
+	iHealth = getSurroundingBadHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = getPowerBadHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = getBonusBadHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = totalBadBuildingHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = GET_PLAYER(getOwner()).getExtraHealth() + getExtraHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = GC.getHandicapInfo(getHandicapType()).getHealthBonus();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	iHealth = getExtraBuildingBadHealth();
 	if (iHealth < 0)
-	{
 		iTotalHealth += iHealth;
-	}
 
 	return (unhealthyPopulation(bNoAngry, iExtra) - iTotalHealth);
 }
@@ -4291,35 +4254,26 @@ int CvCity::healthRate(bool bNoAngry, int iExtra) const
 
 int CvCity::foodConsumption(bool bNoAngry, int iExtra) const
 {
-	return ((((getPopulation() + iExtra) - ((bNoAngry) ? angryPopulation(iExtra) : 0)) * GC.getFOOD_CONSUMPTION_PER_POPULATION()) - healthRate(bNoAngry, iExtra));
+	return (((getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0)) *
+			GC.getFOOD_CONSUMPTION_PER_POPULATION()) - healthRate(bNoAngry, iExtra));
 }
 
 
 int CvCity::foodDifference(bool bBottom, bool bIgnoreProduction) const
 {
-	int iDifference;
-
 	if (isDisorder())
-	{
 		return 0;
-	}
 
+	int iDifference;
 	//if (isFoodProduction())
 	if (!bIgnoreProduction && isFoodProduction()) // K-Mod
-	{
 		iDifference = std::min(0, (getYieldRate(YIELD_FOOD) - foodConsumption()));
-	}
-	else
-	{
-		iDifference = (getYieldRate(YIELD_FOOD) - foodConsumption());
-	}
+	else iDifference = (getYieldRate(YIELD_FOOD) - foodConsumption());
 
 	if (bBottom)
 	{
-		if ((getPopulation() == 1) && (getFood() == 0))
-		{
+		if (getPopulation() == 1 && getFood() == 0)
 			iDifference = std::max(0, iDifference);
-		}
 	}
 
 	return iDifference;
@@ -5751,117 +5705,236 @@ void CvCity::updateFreshWaterHealth()
 }
 
 
-int CvCity::getFeatureGoodHealth() const
+int CvCity::getSurroundingGoodHealth() const
 {
-	return m_iFeatureGoodHealth;
+	return m_iSurroundingGoodHealth;
 }
 
 
-int CvCity::getFeatureBadHealth() const
+int CvCity::getSurroundingBadHealth() const
 {
-	return m_iFeatureBadHealth;
+	return m_iSurroundingBadHealth;
 }
 
-
-void CvCity::updateFeatureHealth()
+// advc.901: Use one update function for both health and happiness
+void CvCity::updateSurroundingHealthHappiness()
 {
-	int iNewGoodHealth = 0;
-	int iNewBadHealth = 0;
-
+	PROFILE_FUNC(); // advc.901: Now called once per turn; a problem?
+	int iNewGoodHappiness = 0;
+	int iNewBadHappiness = 0;
+	CvTeam const& kTeam = GET_TEAM(getTeam()); // advc.901
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot != NULL)
+		if (pLoopPlot == NULL)
+			continue;
 		{
 			FeatureTypes eFeature = pLoopPlot->getFeatureType();
 			if (eFeature != NO_FEATURE)
 			{
-				if (GC.getFeatureInfo(eFeature).getHealthPercent() > 0)
-				{
-					iNewGoodHealth += GC.getFeatureInfo(eFeature).getHealthPercent();
-				}
-				else
-				{
-					iNewBadHealth += GC.getFeatureInfo(eFeature).getHealthPercent();
-				}
+				int iHappy = GET_PLAYER(getOwner()).getFeatureHappiness(eFeature);
+				(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
+			}
+		}
+		{
+			ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+			if (eImprovement != NO_IMPROVEMENT &&
+				kTeam.canAccessImprovement(*pLoopPlot, eImprovement, false)) // advc.901
+			{
+				int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
+				(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
 			}
 		}
 	}
-
-	iNewGoodHealth /= 100;
-	iNewBadHealth /= 100;
-
-	if (getFeatureGoodHealth() != iNewGoodHealth || getFeatureBadHealth() != iNewBadHealth)
+	if (getSurroundingGoodHappiness() != iNewGoodHappiness)
 	{
-		m_iFeatureGoodHealth = iNewGoodHealth;
-		m_iFeatureBadHealth = iNewBadHealth;
-		FAssert(getFeatureGoodHealth() >= 0);
-		FAssert(getFeatureBadHealth() <= 0);
-
+		m_iSurroundingGoodHappiness = iNewGoodHappiness;
+		FAssert(getSurroundingGoodHappiness() >= 0);
 		AI_setAssignWorkDirty(true);
+	}
+	if (getSurroundingBadHappiness() != iNewBadHappiness)
+	{
+		m_iSurroundingBadHappiness = iNewBadHappiness;
+		FAssert(getSurroundingBadHappiness() <= 0);
+		AI_setAssignWorkDirty(true);
+	}
 
+	std::pair<int,int> iiGoodBad = calculateSurroundingHealth(); // advc.901: Moved into new function
+	if (getSurroundingGoodHealth() != iiGoodBad.first || getSurroundingBadHealth() != iiGoodBad.second)
+	{
+		m_iSurroundingGoodHealth = iiGoodBad.first;
+		m_iSurroundingBadHealth = iiGoodBad.second;
+		FAssert(getSurroundingGoodHealth() >= 0);
+		FAssert(getSurroundingBadHealth() <= 0);
+		AI_setAssignWorkDirty(true);
 		if (getTeam() == GC.getGame().getActiveTeam())
-		{
 			setInfoDirty(true);
-		}
 	}
 }
 
+// advc.901: Body cut from updateFeatureHealth; the parameter is new.
+std::pair<int,int> CvCity::calculateSurroundingHealth(int iGoodExtraPercent, int iBadExtraPercent) const
+{
+	int iGoodHealth = iGoodExtraPercent;
+	int iBadHealth = iBadExtraPercent;
+	CvTeam const& kTeam = GET_TEAM(getTeam()); // advc.901
+	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	{
+		CvPlot* pLoopPlot = getCityIndexPlot(iI);
+		if (pLoopPlot == NULL)
+			continue;
+		{
+			FeatureTypes eFeature = pLoopPlot->getFeatureType();
+			if (eFeature != NO_FEATURE)
+			{
+				int iHealthPercent = GC.getFeatureInfo(eFeature).getHealthPercent();
+				(iHealthPercent > 0 ? iGoodHealth : iBadHealth) += iHealthPercent;
+			}
+		}  // <advc.901> (based on updateFeatureHappiness)
+		{
+			ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+			if (eImprovement != NO_IMPROVEMENT &&
+				kTeam.canAccessImprovement(*pLoopPlot, eImprovement, true)) // advc.901
+			{
+				int iHealthPercent = GC.getImprovementInfo(eImprovement).get(CvImprovementInfo::HealthPercent);
+				(iHealthPercent > 0 ? iGoodHealth : iBadHealth) += iHealthPercent;
+			}
+		} // </advc.901>
+	}
+	return std::make_pair(iGoodHealth / 100, iBadHealth / 100);
+}
+
+/*  <advc.901> This was previously handled (badly) by CvCityAI::AI_getImprovementValue.
+	Returns the change in health, rounded (iHealthChange) and as a percentage
+	(iHealthChangePercent), and the change in happiness (iHappyChange) that would
+	result from replacing eOldImprov with eNewImprov in kPlot and possibly
+	removing kPlot's feature.
+	This function is for AI purposes (no need to tally good and bad effects
+	separately), the one below is for UI purposes. */
+void CvCity::calculateHealthHappyChange(CvPlot const& kPlot,
+	ImprovementTypes eNewImprov, ImprovementTypes eOldImprov, bool bRemoveFeature,
+	int& iHappyChange, int& iHealthChange, int& iHealthPercentChange) const
+{
+	int iGoodHappyChange, iBadHappyChange, iGoodHealthChange, iBadHealthChange,
+			iGoodHealthPercentChange, iBadHealthPercentChange;
+	goodBadHealthHappyChange(kPlot, eNewImprov, eOldImprov, bRemoveFeature,
+			iGoodHappyChange, iBadHappyChange, iGoodHealthChange, iBadHealthChange,
+			iGoodHealthPercentChange, iBadHealthPercentChange);
+	iHappyChange = iGoodHappyChange + iBadHappyChange;
+	iHealthChange = iGoodHealthChange + iBadHealthChange;
+	iHealthPercentChange = iGoodHealthPercentChange + iBadHealthPercentChange;
+}
+
+/*  Positive and negative effects need to be tallied separately for "correct"
+	rounding - as in BtS: bad jungle health and good forest health are rounded
+	separately. */
+void CvCity::goodBadHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNewImprov,
+	ImprovementTypes eOldImprov, bool bRemoveFeature, int& iHappyChange,
+	int& iUnhappyChange, int& iGoodHealthChange, int& iBadHealthChange,
+	int& iGoodHealthPercentChange, int& iBadHealthPercentChange) const
+{
+	iHappyChange = iUnhappyChange = iGoodHealthChange = iBadHealthChange =
+			iGoodHealthPercentChange = iBadHealthPercentChange = 0;
+	if (eNewImprov == eOldImprov && !bRemoveFeature)
+		return;
+
+	int iFeatureHappy = 0;
+	int iFeatureGoodHealthPercent = 0;
+	int iFeatureUnhappy = 0;
+	int iFeatureBadHealthPercent = 0;
+	if (bRemoveFeature)
+	{
+		FeatureTypes eFeature = kPlot.getFeatureType();
+		if (eFeature != NO_FEATURE)
+		{
+			int iHappy = GET_PLAYER(getOwner()).getFeatureHappiness(eFeature);
+			(iHappy > 0 ? iFeatureHappy : iFeatureUnhappy) = iHappy;
+			int iHealthPercent = GC.getFeatureInfo(eFeature).getHealthPercent();
+			(iHealthPercent > 0 ? iFeatureGoodHealthPercent : iFeatureBadHealthPercent) += iHealthPercent;
+		}
+	}
+	int iNewHappy = 0;
+	int iNewUnhappy = 0;
+	int iNewGoodHealthPercent = 0;
+	int iNewBadHealthPercent = 0;
+	if (eNewImprov != NO_IMPROVEMENT)
+	{
+		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eNewImprov, false))
+		{
+			int iHappy = GC.getImprovementInfo(eNewImprov).getHappiness();
+			(iHappy > 0 ? iNewHappy : iNewUnhappy) = iHappy;
+		}
+		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eNewImprov, true))
+		{
+			int iHealthPercent = GC.getImprovementInfo(eNewImprov).get(CvImprovementInfo::HealthPercent);
+			(iHealthPercent > 0 ? iNewGoodHealthPercent : iNewBadHealthPercent) += iHealthPercent;
+		}
+	}
+	int iOldHappy = 0;
+	int iOldUnhappy = 0;
+	int iOldGoodHealthPercent = 0;
+	int iOldBadHealthPercent = 0;
+	if (eOldImprov != NO_IMPROVEMENT)
+	{
+		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eOldImprov, false))
+		{
+			int iHappy = GC.getImprovementInfo(eOldImprov).getHappiness();
+			(iHappy > 0 ? iOldHappy : iOldUnhappy) = iHappy;
+		}
+		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eOldImprov, true))
+		{
+			int iHealthPercent = GC.getImprovementInfo(eOldImprov).get(CvImprovementInfo::HealthPercent);
+			(iHealthPercent > 0 ? iOldGoodHealthPercent : iOldBadHealthPercent) += iHealthPercent;
+		}
+	}
+	iHappyChange = iNewHappy - iOldHappy - iFeatureHappy;
+	iUnhappyChange = iNewUnhappy - iOldUnhappy - iFeatureUnhappy;
+
+	iGoodHealthPercentChange = iNewGoodHealthPercent - iOldGoodHealthPercent - iFeatureGoodHealthPercent;
+	iBadHealthPercentChange = iNewBadHealthPercent - iOldBadHealthPercent - iFeatureBadHealthPercent;
+	std::pair<int,int> iiNewHealth = calculateSurroundingHealth(iGoodHealthPercentChange, iBadHealthPercentChange);
+	std::pair<int,int> iiOldHealth = calculateSurroundingHealth();
+	iGoodHealthChange = iiNewHealth.first - iiOldHealth.first;
+	iBadHealthChange = iiNewHealth.second - iiOldHealth.second;
+}// </advc.901>
+
 // BUG - Actual Effects - start
-/*
- * Returns the additional angry population caused by the given happiness changes.
- *
- * Positive values for iBad mean an increase in unhappiness.
- */
+/*	Returns the additional angry population caused by the given happiness changes.
+	Positive values for iBad mean an increase in unhappiness. */
 int CvCity::getAdditionalAngryPopuplation(int iGood, int iBad) const
 {
 	int iHappy = happyLevel();
 	int iUnhappy = unhappyLevel();
 	int iPop = getPopulation();
-
 	return range((iUnhappy + iBad) - (iHappy + iGood), 0, iPop) - range(iUnhappy - iHappy, 0, iPop);
 }
 
-/*
- * Returns the additional spoiled food caused by the given health changes.
- *
- * Positive values for iBad mean an increase in unhealthiness.
- */
+/*  Returns the additional spoiled food caused by the given health changes.
+	Positive values for iBad mean an increase in unhealthiness. */
 int CvCity::getAdditionalSpoiledFood(int iGood, int iBad) const
 {
 	int iHealthy = goodHealth();
 	int iUnhealthy = badHealth();
 	int iRate = iHealthy - iUnhealthy;
-
 	return std::min(0, iRate) - std::min(0, iRate + iGood - iBad);
 }
 
-/*
- * Returns the additional starvation caused by the given spoiled food.
- */
+// Returns the additional starvation caused by the given spoiled food.
 int CvCity::getAdditionalStarvation(int iSpoiledFood) const
 {
 	int iFood = getYieldRate(YIELD_FOOD) - foodConsumption();
-
 	if (iSpoiledFood > 0)
 	{
 		if (iFood <= 0)
-		{
 			return iSpoiledFood;
-		}
-		else if (iSpoiledFood > iFood)
-		{
+		if (iSpoiledFood > iFood)
 			return iSpoiledFood - iFood;
-		}
 	}
 	else if (iSpoiledFood < 0)
 	{
 		if (iFood < 0)
-		{
 			return std::max(iFood, iSpoiledFood);
-		}
 	}
-
 	return 0;
 } // BUG - Actual Effects - end
 
@@ -6512,76 +6585,15 @@ void CvCity::updateExtraBuildingHealth()
 }
 
 
-int CvCity::getFeatureGoodHappiness() const
+int CvCity::getSurroundingGoodHappiness() const
 {
-	return m_iFeatureGoodHappiness;
+	return m_iSurroundingGoodHappiness;
 }
 
 
-int CvCity::getFeatureBadHappiness() const
+int CvCity::getSurroundingBadHappiness() const
 {
-	return m_iFeatureBadHappiness;
-}
-
-
-void CvCity::updateFeatureHappiness()
-{
-	int iNewFeatureGoodHappiness = 0;
-	int iNewFeatureBadHappiness = 0;
-
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-
-		if (pLoopPlot != NULL)
-		{
-			FeatureTypes eFeature = pLoopPlot->getFeatureType();
-
-			if (eFeature != NO_FEATURE)
-			{
-				int iHappy = GET_PLAYER(getOwner()).getFeatureHappiness(eFeature);
-				if (iHappy > 0)
-				{
-					iNewFeatureGoodHappiness += iHappy;
-				}
-				else
-				{
-					iNewFeatureBadHappiness += iHappy;
-				}
-			}
-
-			ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
-
-			if (NO_IMPROVEMENT != eImprovement)
-			{
-				int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
-				if (iHappy > 0)
-				{
-					iNewFeatureGoodHappiness += iHappy;
-				}
-				else
-				{
-					iNewFeatureBadHappiness += iHappy;
-				}
-			}
-		}
-	}
-
-	if (getFeatureGoodHappiness() != iNewFeatureGoodHappiness)
-	{
-		m_iFeatureGoodHappiness = iNewFeatureGoodHappiness;
-		FAssert(getFeatureGoodHappiness() >= 0);
-
-		AI_setAssignWorkDirty(true);
-	}
-
-	if (getFeatureBadHappiness() != iNewFeatureBadHappiness)
-	{
-		m_iFeatureBadHappiness = iNewFeatureBadHappiness;
-		FAssert(getFeatureBadHappiness() <= 0);
-
-		AI_setAssignWorkDirty(true);
-	}
+	return m_iSurroundingBadHappiness;
 }
 
 
@@ -13091,8 +13103,8 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iEspionageHappinessCounter);
 	pStream->Read(&m_iFreshWaterGoodHealth);
 	pStream->Read(&m_iFreshWaterBadHealth);
-	pStream->Read(&m_iFeatureGoodHealth);
-	pStream->Read(&m_iFeatureBadHealth);
+	pStream->Read(&m_iSurroundingGoodHealth);
+	pStream->Read(&m_iSurroundingBadHealth);
 	pStream->Read(&m_iBuildingGoodHealth);
 	pStream->Read(&m_iBuildingBadHealth);
 	pStream->Read(&m_iPowerGoodHealth);
@@ -13110,8 +13122,8 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iExtraBuildingBadHappiness);
 	pStream->Read(&m_iExtraBuildingGoodHealth);
 	pStream->Read(&m_iExtraBuildingBadHealth);
-	pStream->Read(&m_iFeatureGoodHappiness);
-	pStream->Read(&m_iFeatureBadHappiness);
+	pStream->Read(&m_iSurroundingGoodHappiness);
+	pStream->Read(&m_iSurroundingBadHappiness);
 	pStream->Read(&m_iBonusGoodHappiness);
 	pStream->Read(&m_iBonusBadHappiness);
 	pStream->Read(&m_iReligionGoodHappiness);
@@ -13361,8 +13373,8 @@ void CvCity::write(FDataStreamBase* pStream)
 	pStream->Write(m_iEspionageHappinessCounter);
 	pStream->Write(m_iFreshWaterGoodHealth);
 	pStream->Write(m_iFreshWaterBadHealth);
-	pStream->Write(m_iFeatureGoodHealth);
-	pStream->Write(m_iFeatureBadHealth);
+	pStream->Write(m_iSurroundingGoodHealth);
+	pStream->Write(m_iSurroundingBadHealth);
 	pStream->Write(m_iBuildingGoodHealth);
 	pStream->Write(m_iBuildingBadHealth);
 	pStream->Write(m_iPowerGoodHealth);
@@ -13380,8 +13392,8 @@ void CvCity::write(FDataStreamBase* pStream)
 	pStream->Write(m_iExtraBuildingBadHappiness);
 	pStream->Write(m_iExtraBuildingGoodHealth);
 	pStream->Write(m_iExtraBuildingBadHealth);
-	pStream->Write(m_iFeatureGoodHappiness);
-	pStream->Write(m_iFeatureBadHappiness);
+	pStream->Write(m_iSurroundingGoodHappiness);
+	pStream->Write(m_iSurroundingBadHappiness);
 	pStream->Write(m_iBonusGoodHappiness);
 	pStream->Write(m_iBonusBadHappiness);
 	pStream->Write(m_iReligionGoodHappiness);
@@ -15281,7 +15293,6 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	FAssert(iMaintenance >= 0);
 	return iMaintenance;
 }
-// </advc.004b>
 
 // <advc.500b>
 double CvCity::garrisonStrength() const

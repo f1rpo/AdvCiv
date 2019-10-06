@@ -6779,8 +6779,7 @@ int CvCityAI::AI_clearFeatureValue(int iIndex)
 
 	CvFeatureInfo& kFeatureInfo = GC.getFeatureInfo(eFeature);
 
-	/* original bts code
-	int iValue = 0;
+	/*int iValue = 0;
 	iValue += kFeatureInfo.getYieldChange(YIELD_FOOD) * 100;
 	iValue += kFeatureInfo.getYieldChange(YIELD_PRODUCTION) * 60;
 	iValue += kFeatureInfo.getYieldChange(YIELD_COMMERCE) * 40;
@@ -6797,7 +6796,7 @@ int CvCityAI::AI_clearFeatureValue(int iIndex)
 					iValue *= 4;
 			}
 		}
-	}*/
+	}*/ // BtS
 	// K-Mod. All that yield change stuff is taken into account by the improvement evaluation function anyway.
 	// ... except the bit about keeping good features on top of bonuses
 	int iValue = 0;
@@ -6816,49 +6815,39 @@ int CvCityAI::AI_clearFeatureValue(int iIndex)
 	if (kFeatureInfo.getHealthPercent() != 0)
 	{
 		int iHealth = goodHealth() - badHealth();
-
-		/* original bts code
-		iHealthValue += (6 * kFeatureInfo.getHealthPercent()) / std::max(3, 1 + iHealth);
+		/*iHealthValue += (6 * kFeatureInfo.getHealthPercent()) / std::max(3, 1 + iHealth);
 		if (iHealthValue > 0 && !pPlot->isBeingWorked()) {
 			iHealthValue *= 3;
 			iHealthValue /= 2;
-		} */
-		// K-Mod -
+		}*/ // BtS
+		// K-Mod start
 		iHealthValue += (iHealth < 0 ? 100 : 400/(4+iHealth)) + 100 * pPlot->getPlayerCityRadiusCount(getOwner());
 		iHealthValue *= kFeatureInfo.getHealthPercent();
 		iHealthValue /= 100;
-		// note: health is not any more valuable when we aren't working it.
-		// That kind of thing should be handled by the chop code.
-		// K-Mod end
+		/*  note: health is not any more valuable when we aren't working it.
+			That kind of thing should be handled by the chop code. */ // K-Mod end
 	}
 	iValue += iHealthValue;
 
 	// K-Mod
 	// We don't want defensive features adjacent to our city
 	if (iIndex <= 8) // inner ring
-	{
 		iValue -= kFeatureInfo.getDefenseModifier()/2;
-	}
 	if (GC.getGame().getGwEventTally() >= 0) // if GW Threshold has been reached
 	{
-		iValue += kFeatureInfo.getWarmingDefense() * (150 + 5 * GET_PLAYER(getOwner()).getGwPercentAnger()) / 100;
-	}
-	// K-Mod end
+		iValue += kFeatureInfo.getWarmingDefense() *
+				(150 + 5 * GET_PLAYER(getOwner()).getGwPercentAnger()) / 100;
+	} // K-Mod end
 
 	if (iValue > 0)
 	{
 		if (pPlot->getImprovementType() != NO_IMPROVEMENT)
 		{
 			if (GC.getImprovementInfo(pPlot->getImprovementType()).isRequiresFeature())
-			{
 				iValue += 500;
-			}
 		}
-
 		if (GET_PLAYER(getOwner()).getAdvancedStartPoints() >= 0)
-		{
 			iValue += 400;
-		}
 	}
 
 	return -iValue;
@@ -7258,81 +7247,58 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 // advc: Made the plot param const
 int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue, bool bEmphasizeIrrigation, BuildTypes* peBestBuild) const
 {
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-
-	// first check if the improvement is valid on this plot
-	// this also allows us work out whether or not the improvement will remove the plot feature...
-	int iBestTempBuildValue = 0;
-	BuildTypes eBestTempBuild = NO_BUILD;
-
-	bool bIgnoreFeature = false;
-	bool bValid = false;
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
 	BonusTypes eBonus = kPlot.getBonusType(getTeam());
 	BonusTypes eNonObsoleteBonus = kPlot.getNonObsoleteBonusType(getTeam());
 
+	int iBestTempBuildValue = 0;
+	BuildTypes eBestTempBuild = NO_BUILD;
+	// first check if the improvement is valid on this plot
+	// this also allows us work out whether or not the improvement will remove the plot feature...
+	bool bValid = false;
+	bool bIgnoreFeature = false;
 	if (eImprovement == kPlot.getImprovementType())
-	{
 		bValid = true;
-	}
 	else
 	{
 		int iValue;
 		for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
 		{
-			BuildTypes eBuild = ((BuildTypes)iJ);
-
-			if (GC.getBuildInfo(eBuild).getImprovement() == eImprovement)
+			BuildTypes eBuild = (BuildTypes)iJ;
+			if (GC.getBuildInfo(eBuild).getImprovement() != eImprovement)
+				continue; // advc
+			if (kOwner.canBuild(&kPlot, eBuild, false))
 			{
-				if (kOwner.canBuild(&kPlot, eBuild, false))
+				iValue = 10000;
+				iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);
+				// XXX feature production???  // advc: I think the chop decision (AI_updateBestBuild) will handle that
+				if (iValue > iBestTempBuildValue)
 				{
-					iValue = 10000;
-
-					iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);
-
-					// XXX feature production???
-
-					if (iValue > iBestTempBuildValue)
-					{
-						iBestTempBuildValue = iValue;
-						eBestTempBuild = eBuild;
-					}
+					iBestTempBuildValue = iValue;
+					eBestTempBuild = eBuild;
 				}
 			}
 		}
-
 		if (eBestTempBuild != NO_BUILD)
 		{
 			bValid = true;
-
-			if (kPlot.getFeatureType() != NO_FEATURE)
+			if (kPlot.getFeatureType() != NO_FEATURE &&
+				GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 			{
-				if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
+				bIgnoreFeature = true;
+				if (GC.getFeatureInfo(kPlot.getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0 &&
+					eNonObsoleteBonus == NO_BONUS)
 				{
-					bIgnoreFeature = true;
-
-					if (GC.getFeatureInfo(kPlot.getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
-					{
-						if (eNonObsoleteBonus == NO_BONUS)
-						{
-							if (kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
-							{
-								bValid = false;
-							}
-							else if (healthRate() < 0 && GC.getFeatureInfo(kPlot.getFeatureType()).getHealthPercent() > 0)
-							{
-								bValid = false;
-							}
-							else if (kOwner.getFeatureHappiness(kPlot.getFeatureType()) > 0)
-							{
-								bValid = false;
-							}
-						}
-					}
+					if (kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
+						bValid = false;
+					else if (healthRate() < 0 && GC.getFeatureInfo(kPlot.getFeatureType()).getHealthPercent() > 0)
+						bValid = false;
+					else if (kOwner.getFeatureHappiness(kPlot.getFeatureType()) > 0)
+						bValid = false;
 				}
 			}
 		}
 	}
-
 	if (!bValid)
 	{
 		if (peBestBuild != NULL)
@@ -7340,53 +7306,45 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		return 0;
 	}
 
-	// Now get the valid of the improvement itself.
+	// Now get the value of the improvement itself.
 	ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eImprovement);
-
 	if (eFinalImprovement == NO_IMPROVEMENT)
-	{
 		eFinalImprovement = eImprovement;
-	}
 
 	int iValue = 0;
 	//int aiDiffYields[NUM_YIELD_TYPES]; // removed by K-Mod (replaced by time-weighted yields!)
 	//int aiFinalYields[NUM_YIELD_TYPES];
 
-	if (eBonus != NO_BONUS)
+	if (eBonus != NO_BONUS && eNonObsoleteBonus != NO_BONUS)
 	{
-		if (eNonObsoleteBonus != NO_BONUS)
+		//if (GC.getImprovementInfo(eFinalImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
+		if (kOwner.doesImprovementConnectBonus(eFinalImprovement, eNonObsoleteBonus))
 		{
-			//if (GC.getImprovementInfo(eFinalImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
-			if (kOwner.doesImprovementConnectBonus(eFinalImprovement, eNonObsoleteBonus))
+			// K-Mod
+			iValue += (kOwner.AI_bonusVal(eNonObsoleteBonus, 1) * 50);
+			iValue += 100;
+			// K-Mod end
+			/* <advc.121> Make sure the AI prefers improvements with yields over
+				Forts. Don't want to rule out Forts altogether b/c of Gems in a
+				Jungle -- w/o IW, a Fort is the only way to connect the resource. */
+			CvImprovementInfo& imp = GC.getImprovementInfo(eImprovement);
+			int iImprYieldChange = 0;
+			for(int i = 0; i < NUM_YIELD_TYPES; i++)
+				iImprYieldChange += imp.getYieldChange(i);
+			if(iImprYieldChange <= 0 && kPlot.getWorkingCity() != NULL)
+				iValue /= 5;
+			// </advc.121>
+		}
+		else
+		{
+			// K-Mod, bug fix. (original code deleted now.)
+			/*  Presumably the original author wanted to subtract 1000 if eBestBuild would
+				take away the bonus; not ... the nonsense they actually wrote. */
+			if (kOwner.doesImprovementConnectBonus(kPlot.getImprovementType(), eNonObsoleteBonus))
 			{
-				// K-Mod
-				iValue += (kOwner.AI_bonusVal(eNonObsoleteBonus, 1) * 50);
-				iValue += 100;
-				// K-Mod end
-
-				/* <advc.121> Make sure the AI prefers improvements with yields
-				   over Forts. Don't want to rule out Forts altogether b/c
-				   of Gems in a Jungle -- w/o IW, a Fort is the only way
-				   to connect the resource. */
-				CvImprovementInfo& imp = GC.getImprovementInfo(eImprovement);
-				int iImprYieldChange = 0;
-				for(int i = 0; i < NUM_YIELD_TYPES; i++)
-					iImprYieldChange += imp.getYieldChange(i);
-				if(iImprYieldChange <= 0 && kPlot.getWorkingCity() != NULL)
-					iValue /= 5;
-				// </advc.121>
-			}
-			else
-			{
-				// K-Mod, bug fix. (original code deleted now.)
-				/*  Presumably the original author wanted to subtract 1000 if eBestBuild would
-					take away the bonus; not ... the nonsense they actually wrote. */
-				if (kOwner.doesImprovementConnectBonus(kPlot.getImprovementType(), eNonObsoleteBonus))
-				{
-					// By the way, AI_bonusVal is typically 10 for the first bonus, and 2 for subsequent.
-					iValue -= (kOwner.AI_bonusVal(eNonObsoleteBonus, -1) * 50);
-					iValue -= 100;
-				}
+				// By the way, AI_bonusVal is typically 10 for the first bonus, and 2 for subsequent.
+				iValue -= (kOwner.AI_bonusVal(eNonObsoleteBonus, -1) * 50);
+				iValue -= 100;
 			}
 		}
 	}
@@ -7395,9 +7353,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		for (int iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
 		{
 			if (GC.getImprovementInfo(eFinalImprovement).getImprovementBonusDiscoverRand(iJ) > 0)
-			{
 				iValue++;
-			}
 		}
 	}
 
@@ -7517,141 +7473,197 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	}
 
 	if (bEmphasizeIrrigation && GC.getImprovementInfo(eFinalImprovement).isCarriesIrrigation())
-	{
 		iValue += 500;
-	}
 	if (getImprovementFreeSpecialists(eFinalImprovement) > 0)
-	{
 		iValue += 2000;
+	if (kOwner.getAdvancedStartPoints() < 0)
+	{	// <advc.901> Code moved into (recursive) auxiliary function
+		iValue += AI_healthHappyImprovementValue(kPlot, eImprovement, eFinalImprovement,
+				bIgnoreFeature, false); // </advc.901>
 	}
-	int iHappiness = GC.getImprovementInfo(eFinalImprovement).getHappiness();
-	if ((iHappiness != 0) && !(kOwner.getAdvancedStartPoints() >= 0))
+	/*  <advc.131> When considering to replace an improvement, iValue is
+		based on the yield difference. A small negative value means that the
+		new improvement is almost as good as the old one. Temporarily increase
+		the value to allow ImprovementWeightModifier to tip the scales. */
+	int const iPadding = 50;
+	iValue += iPadding; // </advc.131>
+	if (!isHuman() /* advc.131: */ && iValue > 0)
+	{
+		iValue *= std::max(0, GC.getLeaderHeadInfo(getPersonalityType()).
+				// advc.005a: was +200
+				getImprovementWeightModifier(eFinalImprovement) + 100);
+		iValue /= 100; // advc.005a: was /=200
+	}
+	iValue -= iPadding; // advc.131
+	if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+	{
+		if (kPlot.isBeingWorked()
+			// K-Mod. (don't boost the value if it means removing a good feature.)
+			&& (iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD ||
+			!GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())))
+		{
+			iValue *= 5;
+			iValue /= 4;
+		}
+		/*if (eBestTempBuild != NO_BUILD) {
+			if (kPlot.getFeatureType() != NO_FEATURE) {
+				if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())) {
+					CvCity* pCity;
+					iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2;
+					FAssert(pCity == this);
+					iValue += iClearFeatureValue;
+				}
+			}
+		}*/ // K-Mod. I've moved this out of the if statement, because it should apply regardless of whether there is already an improvement on the plot.
+	}
+	else
+	{
+		// cottage/villages (don't want to chop them up if turns have been invested)
+		ImprovementTypes eImprovementDowngrade = (ImprovementTypes)GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage();
+		/*while (eImprovementDowngrade != NO_IMPROVEMENT) {
+			CvImprovementInfo& kImprovementDowngrade = GC.getImprovementInfo(eImprovementDowngrade);
+			iValue -= kImprovementDowngrade.getUpgradeTime() * 8;
+			eImprovementDowngrade = (ImprovementTypes)kImprovementDowngrade.getImprovementPillage();
+		}*/ // BtS
+		// K-Mod. Be careful not to get trapped in an infinite loop of improvement downgrades.
+		if (eImprovementDowngrade != NO_IMPROVEMENT)
+		{
+			std::set<ImprovementTypes> cited_improvements;
+			while (eImprovementDowngrade != NO_IMPROVEMENT && cited_improvements.insert(eImprovementDowngrade).second)
+			{
+				const CvImprovementInfo& kImprovementDowngrade = GC.getImprovementInfo(eImprovementDowngrade);
+				iValue -= kImprovementDowngrade.getUpgradeTime() * 8;
+				eImprovementDowngrade = (ImprovementTypes)kImprovementDowngrade.getImprovementPillage();
+			}
+		} // K-Mod end
+
+		if (GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
+		{
+			iValue -= (GC.getImprovementInfo(kPlot.getImprovementType()).
+					getUpgradeTime() * 8 * (kPlot.getUpgradeProgress())) / std::max(1,
+					GC.getGame().getImprovementUpgradeTime(kPlot.getImprovementType()));
+		}
+		if (eNonObsoleteBonus == NO_BONUS)
+		{
+			if (isWorkingPlot(&kPlot))
+			{
+				if ((iCorrectedFoodPriority < 100 &&
+					weighted_final_yields[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION()) ||
+					GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage() != NO_IMPROVEMENT)
+				{
+					iValue -= 70;
+					iValue *= 2;
+					iValue /= 3;
+				}
+			}
+		}
+		if (kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION))
+			iValue /= 4;	//Greatly prefer builds which are legal.
+	}
+	// K-Mod. Feature value. (moved from the 'no improvement' block above.)
+	if (kPlot.getFeatureType() != NO_FEATURE && eBestTempBuild != NO_BUILD && GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
+	{
+		/*CvCity* pCity; iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2; // handle chop value elsewhere
+		FAssert(pCity == this);*/
+		iValue += iClearFeatureValue;
+	} // K-Mod end
+	if (peBestBuild != NULL)
+		*peBestBuild = eBestTempBuild;
+
+	return iValue;
+}
+
+/*  advc.901: Cut from AI_getImprovementValue so that benefits for nearby team cities
+	can be taken into account (through recursive calls). */
+int CvCityAI::AI_healthHappyImprovementValue(CvPlot const& kPlot,
+	ImprovementTypes eImprovement, ImprovementTypes eFinalImprovement,
+	bool bIgnoreFeature, bool bIgnoreOtherCities) const
+{
+	PROFILE_FUNC(); // advc.901: To be tested: see if the recursive calls are a problem
+	int r = 0;
+	// <advc.901>
+	int iHappyChange, iHealthChange, iHealthPercentChange;
+	// Complicated calculation (and also needed for the UI) -> another auxiliary function
+	calculateHealthHappyChange(kPlot, eFinalImprovement, kPlot.getImprovementType(),
+			bIgnoreFeature, iHappyChange, iHealthChange, iHealthPercentChange);
+	// </advc.901>
+	if (iHappyChange != 0)
 	{
 		//int iHappyLevel = iHappyAdjust + (happyLevel() - unhappyLevel(0));
-		int iHappyLevel = happyLevel() - unhappyLevel(0); // iHappyAdjust isn't currently being used.
+		int iHappyLevel = happyLevel() - unhappyLevel(); // iHappyAdjust isn't currently being used.
 		if (eImprovement == kPlot.getImprovementType())
-		{
-			iHappyLevel -= iHappiness;
-		}
-
-		int iHappyValue = 0;
-		if (iHappyLevel <= 0)
-		{
-			iHappyValue += 400;
-		}
-		bool bCanGrow = true;// (getYieldRate(YIELD_FOOD) > foodConsumption());
-
-		/* original bts code
-		int iHealthLevel = (goodHealth() - badHealth(false, 0));
+			iHappyLevel -= iHappyChange;
+		bool const bCanGrow = true;// (getYieldRate(YIELD_FOOD) > foodConsumption());
+		/*int iHealthLevel = goodHealth() - badHealth(false, 0);
 		if (iHappyLevel <= iHealthLevel)
 			iHappyValue += 200 * std::max(0, (bCanGrow ? std::min(6, 2 + iHealthLevel - iHappyLevel) : 0) - iHappyLevel);
-		else */ // commented out by K-Mod
-		iHappyValue += 200 * std::max(0, (bCanGrow ? 1 : 0) - iHappyLevel);
+		else*/ // BtS code commented out by K-Mod
+		int iHappyValue = 200 * std::max(0, (bCanGrow ? 1 : 0) - iHappyLevel);
+		if (iHappyLevel <= 0) // advc: moved down
+			iHappyValue += 400;
+		iHappyValue = std::max(iHappyValue, 5); // advc.901: Count at least a marginal value
 		if (!kPlot.isBeingWorked())
 		{
 			iHappyValue *= 4;
 			iHappyValue /= 3;
 		}
-		//iHappyValue += std::max(0, (kPlot.getCityRadiusCount() - 1)) * ((iHappyValue > 0) ? iHappyLevel / 2 : 200);
-		// K-Mod
-		iHappyValue *= (kPlot.getPlayerCityRadiusCount(getOwner()) + 1);
-		iHappyValue /= 2;
-		//
-		iValue += iHappyValue * iHappiness;
-	} /* <advc.131> When considering to replace an improvement, iValue is
-		 based on the yield difference. A small negative value means that the
-		 new improvement is almost as good as the old one. Temporarily increase
-		 the value to allow ImprovementWeightModifier to tip the scales. */
-		int const iPadding = 50;
-		iValue += iPadding; // </advc.131>
-		if (!isHuman() /* advc.131: */ && iValue > 0)
+		//iHappyValue += std::max(0, kPlot.getCityRadiusCount() - 1) * (iHappyValue > 0 ? iHappyLevel / 2 : 200); // BtS
+		/*iHappyValue *= (kPlot.getPlayerCityRadiusCount(getOwner()) + 1);
+		iHappyValue /= 2;*/ // K-Mod (advc.901: Replaced with recursive call at the end)
+		r += iHappyValue * iHappyChange;
+	}  // <advc.901> Similar treatment for health (but the fractions complicate things)
+	if (iHealthPercentChange != 0)
+	{
+		// The fractional health lost to rounding (don't treat that as having 0 value)
+		int iHealthTendency = 0;
+		int iDeltaPercent = iHealthPercentChange - 100 * iHealthChange;
+		if (iDeltaPercent >= 0)
+			iHealthTendency = iDeltaPercent % 100;
+		else iHealthTendency = -(-iDeltaPercent % 100);
+		/*  Health changes from clearing features are already taken into account by
+			AI_clearFeatureValue. That function can't deal with rounding, but it's
+			needed for chop evaluation, which doesn't currently involve _this_ function.
+			Perhaps the way to untangle this would be to use AI_getImprovementValue
+			also for evaluating chopping (with eImprovement=NO_IMPROVEMENT). For now,
+			let's at least subtract the double counted health from the tendency value. */
+		if (bIgnoreFeature)
 		{
-			iValue *= std::max(0, GC.getLeaderHeadInfo(getPersonalityType()).
-					// advc.005a: was +200
-					getImprovementWeightModifier(eFinalImprovement) + 100);
-			iValue /= 100; // advc.005a: was /=200
+			FeatureTypes const eFeature = kPlot.getFeatureType();
+			if (eFeature != NO_FEATURE)
+				iHealthTendency += GC.getFeatureInfo(eFeature).getHealthPercent();
+			FAssert(eFeature != NO_FEATURE); // Caller arguably shouldn't set bIgnoreFeature otherwise
 		}
-		iValue -= iPadding; // advc.131
-		if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+
+		int iHealthLevel = goodHealth() - badHealth();
+		if (eImprovement == kPlot.getImprovementType())
+			iHealthLevel -= iHealthChange;
+		int iHealthValue = 75 * std::max(0, 1 - iHealthLevel);
+		if (iHealthLevel <= 0)
+			iHealthValue += 150;
+		iHealthValue = std::max(iHealthValue, 2);
+		if (!kPlot.isBeingWorked())
 		{
-			//if (kPlot.isBeingWorked())
-			if (kPlot.isBeingWorked()  // K-Mod. (don't boost the value if it means removing a good feature.)
-				&& (iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD || !GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())))
-			{
-				iValue *= 5;
-				iValue /= 4;
-			}
-			/* original bts code
-			if (eBestTempBuild != NO_BUILD) {
-				if (kPlot.getFeatureType() != NO_FEATURE) {
-					if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())) {
-						CvCity* pCity;
-						iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2;
-						FAssert(pCity == this);
-						iValue += iClearFeatureValue;
-					}
-				}
-			}*/ // K-Mod. I've moved this out of the if statement, because it should apply regardless of whether there is already an improvement on the plot.
+			iHealthValue *= 4;
+			iHealthValue /= 3;
 		}
-		else
+		r += (iHealthValue * (iHealthChange * 400 + iHealthTendency)) / 400;
+	}
+	// Other affected team cities matter just as much
+	if (!bIgnoreOtherCities && r != 0) // Slightly reckless; for performance.
+	{
+		std::vector<CvPlot*> cityCross;
+		::cityCross(kPlot, cityCross);
+		for (size_t i = 0; i < cityCross.size(); i++)
 		{
-			// cottage/villages (don't want to chop them up if turns have been invested)
-			ImprovementTypes eImprovementDowngrade = (ImprovementTypes)GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage();
-			/* original bts code
-			while (eImprovementDowngrade != NO_IMPROVEMENT) {
-				CvImprovementInfo& kImprovementDowngrade = GC.getImprovementInfo(eImprovementDowngrade);
-				iValue -= kImprovementDowngrade.getUpgradeTime() * 8;
-				eImprovementDowngrade = (ImprovementTypes)kImprovementDowngrade.getImprovementPillage();
-			} */
-			// K-Mod. Be careful not to get trapped in an infinite loop of improvement downgrades.
-			if (eImprovementDowngrade != NO_IMPROVEMENT)
-			{
-				std::set<ImprovementTypes> cited_improvements;
-				while (eImprovementDowngrade != NO_IMPROVEMENT && cited_improvements.insert(eImprovementDowngrade).second)
-				{
-					const CvImprovementInfo& kImprovementDowngrade = GC.getImprovementInfo(eImprovementDowngrade);
-					iValue -= kImprovementDowngrade.getUpgradeTime() * 8;
-					eImprovementDowngrade = (ImprovementTypes)kImprovementDowngrade.getImprovementPillage();
-				}
-			}
-			// K-Mod end
-
-			if (GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
-			{
-				iValue -= (GC.getImprovementInfo(kPlot.getImprovementType()).getUpgradeTime() * 8 * (kPlot.getUpgradeProgress())) / std::max(1, GC.getGame().getImprovementUpgradeTime(kPlot.getImprovementType()));
-			}
-
-			if (eNonObsoleteBonus == NO_BONUS)
-			{
-				if (isWorkingPlot(&kPlot))
-				{
-					if (((iCorrectedFoodPriority < 100) && (weighted_final_yields[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())) || (GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage() != NO_IMPROVEMENT))
-					{
-						iValue -= 70;
-						iValue *= 2;
-						iValue /= 3;
-					}
-				}
-			}
-
-			if (kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION))
-			{
-				iValue /= 4;	//Greatly prefer builds which are legal.
-			}
+			if (cityCross[i] == NULL)
+				continue;
+			CvCityAI* pCity = cityCross[i]->AI_getPlotCity();
+			if (pCity == NULL || pCity == this || pCity->getTeam() != getTeam())
+				continue;
+			r += AI_healthHappyImprovementValue(kPlot, eImprovement, eFinalImprovement, bIgnoreFeature);
 		}
-		// K-Mod. Feature value. (moved from the 'no improvement' block above.)
-		if (kPlot.getFeatureType() != NO_FEATURE && eBestTempBuild != NO_BUILD && GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
-		{
-			//CvCity* pCity;
-			//iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2; // handle chop value elsewhere
-			//FAssert(pCity == this);
-			iValue += iClearFeatureValue;
-		}
-		// K-Mod end
-	if (peBestBuild != NULL)
-		*peBestBuild = eBestTempBuild;
-
-	return iValue;
+	} // </advc.901>
+	return r;
 }
 
 
@@ -12630,7 +12642,9 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc: some style changes
 			if (eImprovement != NO_IMPROVEMENT)
 			{
 				if (getImprovementFreeSpecialists(eImprovement) > 0 ||
-						GC.getImprovementInfo(eImprovement).getHappiness() > 0)
+						GC.getImprovementInfo(eImprovement).getHappiness() > 0||
+						// advc.901:
+						GC.getImprovementInfo(eImprovement).get(CvImprovementInfo::HealthPercent) >= 50)
 					iSpecialCount++;
 				// <advc.117>
 				FeatureTypes eFeature = pLoopPlot->getFeatureType();

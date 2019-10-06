@@ -385,11 +385,19 @@ public:
 	int getFreshWaterGoodHealth() const;																	// Exposed to Python
 	int getFreshWaterBadHealth() const;													// Exposed to Python
 	void updateFreshWaterHealth();
-
-	int getFeatureGoodHealth() const;																			// Exposed to Python
-	int getFeatureBadHealth() const;														// Exposed to Python
-	void updateFeatureHealth();
-
+	// advc.901: Renamed everything with "featureHealth/Happiness" in its name
+	int getSurroundingGoodHealth() const;																			// Exposed to Python
+	int getSurroundingBadHealth() const;														// Exposed to Python
+	void updateSurroundingHealthHappiness();
+	// <advc.901>
+	void calculateHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNewImprov,
+			ImprovementTypes eOldImprov, bool bRemoveFeature, int& iHappyChange,
+			int& iHealthChange, int& iHealthPercentChange) const;
+	void goodBadHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNewImprov,
+			ImprovementTypes eOldImprov, bool bRemoveFeature, int& iHappyChange,
+			int& iUnhappyChange, int& iGoodHealthChange, int& iBadHealthChange,
+			int& iGoodHealthPercentChange, int& iBadHealthPercentChange) const;
+	// </advc.901>
 	// BUG - Actual Effects - start
 	int getAdditionalAngryPopuplation(int iGood, int iBad) const;
 	int getAdditionalSpoiledFood(int iGood, int iBad) const;
@@ -440,9 +448,9 @@ public:
 	int getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad,
 			bool bAssumeStrategicBonuses = false) const; // advc.001h
 
-	int getFeatureGoodHappiness() const;																	// Exposed to Python
-	int getFeatureBadHappiness() const;																		// Exposed to Python
-	void updateFeatureHappiness();
+	int getSurroundingGoodHappiness() const;																	// Exposed to Python
+	int getSurroundingBadHappiness() const;																		// Exposed to Python
+	//void updateFeatureHappiness(); // advc.901: Replaced by updateSurroundingHealthHappiness
 
 	int getBonusGoodHappiness(/* advc.912c: */ bool bIgnoreModifier = false) const;												// Exposed to Python
 	int getBonusBadHappiness() const;																			// Exposed to Python
@@ -1029,8 +1037,8 @@ protected:
 	int m_iEspionageHappinessCounter;
 	int m_iFreshWaterGoodHealth;
 	int m_iFreshWaterBadHealth;
-	int m_iFeatureGoodHealth;
-	int m_iFeatureBadHealth;
+	int m_iSurroundingGoodHealth;
+	int m_iSurroundingBadHealth;
 	int m_iBuildingGoodHealth;
 	int m_iBuildingBadHealth;
 	int m_iPowerGoodHealth;
@@ -1048,8 +1056,8 @@ protected:
 	int m_iExtraBuildingBadHappiness;
 	int m_iExtraBuildingGoodHealth;
 	int m_iExtraBuildingBadHealth;
-	int m_iFeatureGoodHappiness;
-	int m_iFeatureBadHappiness;
+	int m_iSurroundingGoodHappiness;
+	int m_iSurroundingBadHappiness;
 	int m_iBonusGoodHappiness;
 	int m_iBonusBadHappiness;
 	int m_iReligionGoodHappiness;
@@ -1229,6 +1237,8 @@ protected:
 			int iProductionModifier, bool bFoodProduction, int iNum) const;
 	// </advc.064b
 	void doPopOrder(CLLNode<OrderData>* pOrder); // advc.064d
+	// advc.901:
+	std::pair<int,int> calculateSurroundingHealth(int iExtraGoodPercent = 0, int iExtraBadPercent = 0) const;
 	// BETTER_BTS_AI_MOD (from BUG), 02/24/10, EmperorFool: START
 		// advc: These were declared outside of CvCity (global)
 	static void addGoodOrBad(int iValue, int& iGood, int& iBad);

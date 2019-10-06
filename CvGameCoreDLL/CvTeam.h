@@ -373,6 +373,9 @@ public:
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
 	bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const; // advc
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
+	// <advc.901>
+	bool canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprovement,
+			bool bHealth) const; // </advc.901>
 
 	int getEspionagePointsAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
 	void setEspionagePointsAgainstTeam(TeamTypes eIndex, int iValue);																							// Exposed to Python
