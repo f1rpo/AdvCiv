@@ -2261,7 +2261,7 @@ int CvPlot::getUnitPower(PlayerTypes eOwner) const
 
 int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	TeamTypes eAttacker, // advc.012
-	bool bHelp) const
+	bool bHelp, /* advc.500b: */ bool bGarrisonStrength) const
 {
 	FAssert(getTerrainType() != NO_TERRAIN);
 	int iModifier = GC.getTerrainInfo(getTerrainType()).getDefenseModifier();
@@ -2291,7 +2291,12 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	{
 		CvCity* pCity = getPlotCity();
 		if (pCity != NULL)
-			iModifier += pCity->getDefenseModifier(bIgnoreBuilding);
+		{	// <advc.500b>
+			if (bGarrisonStrength)
+				iModifier += pCity->getBuildingDefense();
+			else // </advc.500b>
+				iModifier += pCity->getDefenseModifier(bIgnoreBuilding);
+		}
 	}
 
 	return iModifier;
@@ -2299,7 +2304,7 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 
 
 int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
-		bool bAssumeRevealed) const // advc.001i
+	bool bAssumeRevealed) const // advc.001i
 {
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 	// <advc.162>
@@ -2309,11 +2314,10 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	if (pUnit->flatMovementCost() || (pUnit->getDomainType() == DOMAIN_AIR))
 		return GC.getMOVE_DENOMINATOR();
 
-	/* original bts code
-	if (pUnit->isHuman()) {
+	/*if (pUnit->isHuman()) {
 		if (!isRevealed(pUnit->getTeam(), false))
 			return pUnit->maxMoves();
-	} */
+	}*/
 	// K-Mod. Why let the AI cheat this?
 	if ( /* advc.001i: The K-Mod condition is OK, but now that the pathfinder passes
 			bAssumeRevealed=false, it's cleaner to check that too. */
@@ -2325,8 +2329,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 		else return GC.getMOVE_DENOMINATOR() + 1;
 		*/ // (further weight adjustments are now done in the pathfinder's moveCost function.)
 		return GC.getMOVE_DENOMINATOR();
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	if (!pFromPlot->isValidDomainForLocation(*pUnit))
 		return pUnit->maxMoves();

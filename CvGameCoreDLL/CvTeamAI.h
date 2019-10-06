@@ -261,7 +261,8 @@ public:
 	bool AI_isAvoidWar(TeamTypes eOther) const; // </advc.104y>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	// advc.012:
-	int AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding = false) const;
+	int AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding = false,
+			bool bGarrisonStrength = false) const; // advc.500b
 
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
 

@@ -9055,7 +9055,7 @@ void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kC
 		szAction = gDLL->getText("TXT_KEY_REFUSES_TO_CEDE");
 	else
 	{
-		FAssert(eWhoTo != eActivePlayer && !bWilling)
+		FAssert(eWhoTo != eActivePlayer && !bWilling);
 		szAction = gDLL->getText("TXT_KEY_REFUSES_TO_ACCEPT");
 	}
 	szBuffer.append(szAction + L" ");

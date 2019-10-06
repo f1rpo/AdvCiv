@@ -1025,7 +1025,7 @@ void CvTeamAI::AI_updateAttitudeCache(TeamTypes eTeam, /* advc.130e: */ bool bUp
 
 AttitudeTypes CvTeamAI::AI_getAttitude(TeamTypes eTeam, bool bForced) const
 {
-	PROFILE_FUNC(); // advc
+	PROFILE_FUNC(); // advc: Not _entirely_ negligible currently, but pretty much.
 	//FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 	// K-Mod
 	if (eTeam == getID())
@@ -5326,7 +5326,8 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 }
 
 // <advc.012>
-int CvTeamAI::AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding) const
+int CvTeamAI::AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding,
+	bool bGarrisonStrength) const // advc.500b
 {
 	TeamTypes eAttacker = NO_TEAM;
 	/*  We could also be attacked in p by a second war enemy that doesn't own the
@@ -5334,7 +5335,8 @@ int CvTeamAI::AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding) const
 		though. */
 	if(kPlot.getOwner() != NO_PLAYER && GET_TEAM(getID()).isAtWar(kPlot.getTeam()))
 		eAttacker = kPlot.getTeam();
-	return kPlot.defenseModifier(getID(), bIgnoreBuilding, eAttacker);
+	return kPlot.defenseModifier(getID(), bIgnoreBuilding, eAttacker,
+			bGarrisonStrength); // advc.500b
 } // </advc.012>
 
 // <advc.130y> ('bFreed' is unused; not needed after all, I guess.)

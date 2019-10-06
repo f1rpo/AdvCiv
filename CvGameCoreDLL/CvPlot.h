@@ -150,10 +150,11 @@ public:
 	CvUnit* getSelectedUnit() const;																																// Exposed to Python
 	int getUnitPower(PlayerTypes eOwner = NO_PLAYER) const;																					// Exposed to Python
 
-	int defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
+	int defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,												// Exposed to Python
 		/*  advc.012: NO_TEAM means rival defense applies; moved bHelp to the
 			end b/c that parameter is rarely set */
-			TeamTypes eAttacker = NO_TEAM, bool bHelp = false) const;									// Exposed to Python
+			TeamTypes eAttacker = NO_TEAM, bool bHelp = false,
+			bool bGarrisonStrength = false) const; // advc.500b
 	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python
 			bool bAssumeRevealed = true) const; // advc.001i
 

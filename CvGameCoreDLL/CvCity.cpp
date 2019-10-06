@@ -3824,8 +3824,8 @@ int CvCity::getNoMilitaryPercentAnger() const
 			iAnger += GC.getDefineINT(CvGlobals::NO_MILITARY_PERCENT_ANGER);
 		return iAnger;  // <advc.500b>
 	}
-	double actualGarrStr = garrisonStrength();
 	double targetGarrStr = getPopulation() / 2.0;
+	double actualGarrStr = garrisonStrength(targetGarrStr);
 	if(actualGarrStr >= targetGarrStr)
 		return 0;
 	/* Currently (as per vanilla) 334, meaning 33.4% of the population get angry.
@@ -5719,7 +5719,7 @@ int CvCity::getSurroundingBadHealth() const
 // advc.901: Use one update function for both health and happiness
 void CvCity::updateSurroundingHealthHappiness()
 {
-	PROFILE_FUNC(); // advc.901: Now called once per turn; a problem?
+	PROFILE_FUNC(); // advc.901: Now called once per turn; seems fine.
 	int iNewGoodHappiness = 0;
 	int iNewBadHappiness = 0;
 	CvTeam const& kTeam = GET_TEAM(getTeam()); // advc.901
@@ -7406,11 +7406,10 @@ int CvCity::getTotalDefense(bool bIgnoreBuilding) const
 int CvCity::getDefenseModifier(bool bIgnoreBuilding) const
 {
 	if (isOccupation())
-	{
 		return 0;
-	}
-
-	return ((getTotalDefense(bIgnoreBuilding) * (GC.getMAX_CITY_DEFENSE_DAMAGE() - getDefenseDamage())) / GC.getMAX_CITY_DEFENSE_DAMAGE());
+	return ((getTotalDefense(bIgnoreBuilding) *
+			(GC.getMAX_CITY_DEFENSE_DAMAGE() - getDefenseDamage())) /
+			GC.getMAX_CITY_DEFENSE_DAMAGE());
 }
 
 
@@ -15294,55 +15293,30 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	return iMaintenance;
 }
 
-// <advc.500b>
-double CvCity::garrisonStrength() const
+// <advc.500b> (The parameter is important for performance)
+double CvCity::garrisonStrength(double stopCountingAt) const
 {
-	PROFILE_FUNC(); // To be tested
+	/*  Time is now acceptable, but still not negligible (slightly above 1%).
+		Probably b/c of the allUpgradesAvailable check. Should probably simply
+		cache the result of getNoMilitaryPercentAnger. */
+	PROFILE_FUNC();
 	double r = 0;
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
-	for(int i = 0; i < plot()->getNumUnits(); i++)
+	CvPlot const& kPlot = *plot();
+	for(int i = 0; i < kPlot.getNumUnits(); i++)
 	{
-		CvUnit* pUnit = plot()->getUnitByIndex(i);
-		if(pUnit == NULL)
-		{
-			FAssert(pUnit != NULL); // Can this happen?
-			continue;
-		}
+		CvUnit* pUnit = kPlot.getUnitByIndex(i);
 		CvUnitInfo const& u = pUnit->getUnitInfo();
 		// Exclude naval units but not Explorer and Gunship
 		if(!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
 			continue;
-		double defStr = u.getCombat(); // Or use pUnit->currCombatStr(NULL, NULL) ?
-		bool bDefModifier = !u.isNoDefensiveBonus();
-		int iModifier = 0;
-		if (bDefModifier)
-		{
-			iModifier += getBuildingDefense(); // e.g. Walls
-			iModifier += kOwner.getCityDefenseModifier(); // e.g. Chichen Itza
-			// CvPlot::defenseModifier doesn't deliver exactly what's needed
-			if(plot()->isHills())
-			{
-				iModifier += GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) +
-						u.getHillsDefenseModifier();
-			}
-			iModifier += u.getCityDefenseModifier();
-		}
-		// Combat and Garrison promotions
-		for(int j = 0; j < GC.getNumPromotionInfos(); j++)
-		{
-			PromotionTypes ePromotion = (PromotionTypes)j;
-			if(!pUnit->isHasPromotion(ePromotion))
-				continue;
-			CvPromotionInfo const& kPromotion = GC.getPromotionInfo(ePromotion);
-			iModifier += kPromotion.getCombatPercent();
-			if (bDefModifier)
-				iModifier += kPromotion.getCityDefensePercent();
-		}
-		defStr *= 1 + iModifier / 100.0;
+		double defStr = pUnit->maxCombatStr(&kPlot, NULL, NULL, true); // Or use currCombatStr?
 		// Outdated units count half
 		if(allUpgradesAvailable(pUnit->getUnitType()) != NO_UNIT)
 			defStr /= 2;
 		r += defStr;
+		if (stopCountingAt > 0 && r > stopCountingAt)
+			return r;
 	}
 	return r;
 } // </advc.500b>

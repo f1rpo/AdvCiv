@@ -7057,7 +7057,8 @@ int CvUnit::baseCombatStr() const
 //		pPlot valid, pAttacker == this (new case), when the defender is unknown, but we want to calc approx str
 //			note, in this last case, it is expected pCombatDetails == NULL, it does not have to be, but some
 //			values may be unexpectedly reversed in this case (iModifierTotal will be the negative sum)
-int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails) const
+int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails,
+	bool bGarrisonStrength) const // advc.500b
 {
 	FAssert(pPlot == NULL || pPlot->getTerrainType() != NO_TERRAIN);
 
@@ -7254,126 +7255,99 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 					pAttacker->ignoreBuildingDefense() :
 					ignoreBuildingDefense());
 			if(pAttacker == NULL)
-				iExtraModifier = GET_TEAM(getTeam()).AI_plotDefense(*pPlot, bIgnoreBuildings);
+			{
+				iExtraModifier = GET_TEAM(getTeam()).AI_plotDefense(*pPlot, bIgnoreBuildings,
+						bGarrisonStrength); // advc.500b
+			}
 			else iExtraModifier = pPlot->defenseModifier(getTeam(),
-					bIgnoreBuildings, pAttacker->getTeam());
-			// </advc.012>
-
+					bIgnoreBuildings, pAttacker->getTeam(), // </advc.012>
+					false, bGarrisonStrength); // advc.500b
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iPlotDefenseModifier = iExtraModifier;
-			}
 		}
-
-		iExtraModifier = fortifyModifier();
+		if (!bGarrisonStrength) // advc.500b
+			iExtraModifier = fortifyModifier();
 		iModifier += iExtraModifier;
 		if (pCombatDetails != NULL)
-		{
 			pCombatDetails->iFortifyModifier = iExtraModifier;
-		}
 
 		if (pPlot->isCity(true, getTeam()))
 		{
 			iExtraModifier = cityDefenseModifier();
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iCityDefenseModifier = iExtraModifier;
-			}
 		}
-
 		if (pPlot->isHills())
 		{
 			iExtraModifier = hillsDefenseModifier();
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iHillsDefenseModifier = iExtraModifier;
-			}
 		}
-
 		if (pPlot->getFeatureType() != NO_FEATURE)
 		{
 			iExtraModifier = featureDefenseModifier(pPlot->getFeatureType());
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iFeatureDefenseModifier = iExtraModifier;
-			}
 		}
 		else
 		{
 			iExtraModifier = terrainDefenseModifier(pPlot->getTerrainType());
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iTerrainDefenseModifier = iExtraModifier;
-			}
 		}
 	}
 
 	// if we are attacking to an plot with an unknown defender, the calc the modifier in reverse
 	if (bAttackingUnknownDefender)
-	{
 		pAttacker = this;
-	}
 
 	// calc attacker bonueses
 	if (pAttacker != NULL && pAttackedPlot != NULL)
 	{
 		int iTempModifier = 0;
-
 		if (pAttackedPlot->isCity(true, getTeam()))
 		{
 			iExtraModifier = -pAttacker->cityAttackModifier();
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iCityAttackModifier = iExtraModifier;
-			}
 
 			if (pAttacker->isBarbarian())
 			{
 				iExtraModifier = GC.getDefineINT("CITY_BARBARIAN_DEFENSE_MODIFIER");
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iCityBarbarianDefenseModifier = iExtraModifier;
-				}
 			}
 		}
-
 		if (pAttackedPlot->isHills())
 		{
 			iExtraModifier = -pAttacker->hillsAttackModifier();
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iHillsAttackModifier = iExtraModifier;
-			}
 		}
-
 		if (pAttackedPlot->getFeatureType() != NO_FEATURE)
 		{
 			iExtraModifier = -pAttacker->featureAttackModifier(pAttackedPlot->getFeatureType());
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iFeatureAttackModifier = iExtraModifier;
-			}
 		}
 		else
 		{
 			iExtraModifier = -pAttacker->terrainAttackModifier(pAttackedPlot->getTerrainType());
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iTerrainAttackModifier = iExtraModifier;
-			}
 		}
 
-		// only compute comparisions if we are the defender with a known attacker
+		// only compute comparisons if we are the defender with a known attacker
 		if (!bAttackingUnknownDefender)
 		{
 			FAssertMsg(pAttacker != this, "pAttacker is not expected to be equal with this");
@@ -7381,116 +7355,84 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 			iExtraModifier = unitClassDefenseModifier(pAttacker->getUnitClassType());
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iClassDefenseModifier = iExtraModifier;
-			}
 
 			iExtraModifier = -pAttacker->unitClassAttackModifier(getUnitClassType());
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iClassAttackModifier = iExtraModifier;
-			}
 
 			if (pAttacker->getUnitCombatType() != NO_UNITCOMBAT)
 			{
 				iExtraModifier = unitCombatModifier(pAttacker->getUnitCombatType());
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iCombatModifierA = iExtraModifier;
-				}
 			}
 			if (getUnitCombatType() != NO_UNITCOMBAT)
 			{
 				iExtraModifier = -pAttacker->unitCombatModifier(getUnitCombatType());
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iCombatModifierT = iExtraModifier;
-				}
 			}
-
 			iExtraModifier = domainModifier(pAttacker->getDomainType());
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iDomainModifierA = iExtraModifier;
-			}
 
 			iExtraModifier = -pAttacker->domainModifier(getDomainType());
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iDomainModifierT = iExtraModifier;
-			}
 
 			if (pAttacker->isAnimal())
 			{
 				iExtraModifier = animalCombatModifier();
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAnimalCombatModifierA = iExtraModifier;
-				}
 			}
-
 			if (isAnimal())
 			{
 				iExtraModifier = -pAttacker->animalCombatModifier();
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAnimalCombatModifierT = iExtraModifier;
-				}
 			}
 		}
-
-		if (!(pAttacker->isRiver()))
+		if (!pAttacker->isRiver())
 		{
 			if (pAttacker->plot()->isRiverCrossing(directionXY(pAttacker->plot(), pAttackedPlot)))
 			{
 				iExtraModifier = -GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iRiverAttackModifier = iExtraModifier;
-				}
 			}
 		}
-
-		if (!(pAttacker->isAmphib()))
+		if (!pAttacker->isAmphib())
 		{
-			if (!(pAttackedPlot->isWater()) && pAttacker->plot()->isWater())
+			if (!pAttackedPlot->isWater() && pAttacker->plot()->isWater())
 			{
 				iExtraModifier = -GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER);
 				iTempModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAmphibAttackModifier = iExtraModifier;
-				}
 			}
 		}
-
 		if (pAttacker->getKamikazePercent() != 0)
 		{
 			iExtraModifier = pAttacker->getKamikazePercent();
 			iTempModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
-			{
 				pCombatDetails->iKamikazeModifier = iExtraModifier;
-			}
 		}
 
 		// if we are attacking an unknown defender, then use the reverse of the modifier
 		if (bAttackingUnknownDefender)
-		{
 			iModifier -= iTempModifier;
-		}
-		else
-		{
-			iModifier += iTempModifier;
-		}
+		else iModifier += iTempModifier;
 	}
 
 	if (pCombatDetails != NULL)
@@ -7500,13 +7442,8 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 	}
 	int iCombat;
 	if (iModifier > 0)
-	{
 		iCombat = (baseCombatStr() * (iModifier + 100));
-	}
-	else
-	{
-		iCombat = ((baseCombatStr() * 10000) / (100 - iModifier));
-	}
+	else iCombat = ((baseCombatStr() * 10000) / (100 - iModifier));
 
 	if (pCombatDetails != NULL)
 	{
@@ -7514,7 +7451,8 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		pCombatDetails->iMaxCombatStr = std::max(1, iCombat);
 		pCombatDetails->iCurrHitPoints = currHitPoints();
 		pCombatDetails->iMaxHitPoints = maxHitPoints();
-		pCombatDetails->iCurrCombatStr = ((pCombatDetails->iMaxCombatStr * pCombatDetails->iCurrHitPoints) / pCombatDetails->iMaxHitPoints);
+		pCombatDetails->iCurrCombatStr = (pCombatDetails->iMaxCombatStr *
+				pCombatDetails->iCurrHitPoints) / pCombatDetails->iMaxHitPoints;
 	}
 
 	return std::max(1, iCombat);

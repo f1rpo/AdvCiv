@@ -22676,7 +22676,7 @@ void CvPlayer::checkAlert(int iAlertID, bool bSilent)
 {
 	if (m_paAlerts.empty())
 	{
-		FAssertMsg(false, "Alerts not initialized for this player")
+		FAssertMsg(false, "Alerts not initialized for this player");
 		return;
 	}
 	if(iAlertID < 0 || iAlertID > (int)m_paAlerts.size())
