@@ -606,8 +606,9 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		imprList = self.getSortedList(gc.getNumImprovementInfos(), gc.getImprovementInfo)
 		r = []
 		for descr,i in imprList:
-			# Requires feature: for Forest preserve (yields 0 pillage gold)
-			if gc.getImprovementInfo(i).getPillageGold() > 0 or gc.getImprovementInfo(i).isRequiresFeature() > 0:
+			info = gc.getImprovementInfo(i)
+			# The alt. conditions are for Forest Preserve and Fort
+			if info.getPillageGold() > 0 or info.isRequiresFeature() or info.isOutsideBorders():
 				r.append((descr,i))
 		return r # </advc.004y>
 
