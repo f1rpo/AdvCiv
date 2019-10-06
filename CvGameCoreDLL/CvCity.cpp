@@ -15286,37 +15286,50 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 // <advc.500b>
 double CvCity::garrisonStrength() const
 {
+	PROFILE_FUNC(); // To be tested
 	double r = 0;
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	for(int i = 0; i < plot()->getNumUnits(); i++)
 	{
-		CvUnit* pu = plot()->getUnitByIndex(i);
-		if(pu == NULL)
+		CvUnit* pUnit = plot()->getUnitByIndex(i);
+		if(pUnit == NULL)
+		{
+			FAssert(pUnit != NULL); // Can this happen?
 			continue;
-		CvUnitInfo const& u = pu->getUnitInfo();
-		// Excludes Scout, Explorer, Gunship, naval units
-		if(!u.isMilitaryHappiness())
+		}
+		CvUnitInfo const& u = pUnit->getUnitInfo();
+		// Exclude naval units but not Explorer and Gunship
+		if(!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
 			continue;
-		double defStr = u.getCombat();
-		CvPlayer const& kOwner = GET_PLAYER(getOwner());
-		int iModifier = getBuildingDefense(); // e.g. Walls
-		iModifier += kOwner.getCityDefenseModifier(); // e.g. Chichen Itza
-		// CvPlot::getDefense doesn't deliver exactly what's needed
-		if(plot()->isHills())
-			iModifier += GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) + u.getHillsDefenseModifier();
-		iModifier += u.getCityDefenseModifier();
+		double defStr = u.getCombat(); // Or use pUnit->currCombatStr(NULL, NULL) ?
+		bool bDefModifier = !u.isNoDefensiveBonus();
+		int iModifier = 0;
+		if (bDefModifier)
+		{
+			iModifier += getBuildingDefense(); // e.g. Walls
+			iModifier += kOwner.getCityDefenseModifier(); // e.g. Chichen Itza
+			// CvPlot::defenseModifier doesn't deliver exactly what's needed
+			if(plot()->isHills())
+			{
+				iModifier += GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) +
+						u.getHillsDefenseModifier();
+			}
+			iModifier += u.getCityDefenseModifier();
+		}
 		// Combat and Garrison promotions
 		for(int j = 0; j < GC.getNumPromotionInfos(); j++)
 		{
 			PromotionTypes ePromotion = (PromotionTypes)j;
-			if(!pu->isHasPromotion(ePromotion))
+			if(!pUnit->isHasPromotion(ePromotion))
 				continue;
 			CvPromotionInfo const& kPromotion = GC.getPromotionInfo(ePromotion);
 			iModifier += kPromotion.getCombatPercent();
-			iModifier += kPromotion.getCityDefensePercent();
+			if (bDefModifier)
+				iModifier += kPromotion.getCityDefensePercent();
 		}
 		defStr *= 1 + iModifier / 100.0;
 		// Outdated units count half
-		if(allUpgradesAvailable(pu->getUnitType()) != NO_UNIT)
+		if(allUpgradesAvailable(pUnit->getUnitType()) != NO_UNIT)
 			defStr /= 2;
 		r += defStr;
 	}
