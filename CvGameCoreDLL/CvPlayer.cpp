@@ -13739,8 +13739,8 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		iMissionCost = -1;
 		if(eTech == NO_TECH)
 			eTech = getStealCostTech(eTargetPlayer);
-		int iProdCost = (eTech == NO_TECH ? -1 :
-				GET_TEAM(getTeam()).getResearchCost(eTech));
+		int iProdCost = (eTech == NO_TECH ? -1 : GET_TEAM(getTeam()).//getResearchCost(eTech)
+				getResearchLeft(eTech)); // advc.120i: Count own progress
 		// </advc.120d>
 		if (NO_TECH != eTech && canStealTech(eTargetPlayer, eTech))
 			iMissionCost = iBaseMissionCost + ((100 + kMission.getBuyTechCostFactor()) * iProdCost) / 100;
