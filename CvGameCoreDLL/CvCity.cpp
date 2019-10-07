@@ -15297,22 +15297,26 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 double CvCity::garrisonStrength(double stopCountingAt) const
 {
 	/*  Time is now acceptable, but still not negligible (slightly above 1%).
-		Probably b/c of the allUpgradesAvailable check. Should probably simply
+		Probably b/c of the allUpgradesAvailable check. Should simply
 		cache the result of getNoMilitaryPercentAnger. */
 	PROFILE_FUNC();
 	double r = 0;
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	CvPlot const& kPlot = *plot();
+	CvCity const* pCapital = kOwner.getCapitalCity();
+	if (pCapital == this)
+		pCapital = NULL;
 	for(int i = 0; i < kPlot.getNumUnits(); i++)
 	{
-		CvUnit* pUnit = kPlot.getUnitByIndex(i);
-		CvUnitInfo const& u = pUnit->getUnitInfo();
+		CvUnit const& kUnit = *kPlot.getUnitByIndex(i);
+		CvUnitInfo const& u = kUnit.getUnitInfo();
 		// Exclude naval units but not Explorer and Gunship
 		if(!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
 			continue;
-		double defStr = pUnit->maxCombatStr(&kPlot, NULL, NULL, true); // Or use currCombatStr?
+		double defStr = kUnit.maxCombatStr(&kPlot, NULL, NULL, true);
 		// Outdated units count half
-		if(allUpgradesAvailable(pUnit->getUnitType()) != NO_UNIT)
+		if(allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
+				(pCapital != NULL && pCapital->allUpgradesAvailable(kUnit.getUnitType())))
 			defStr /= 2;
 		r += defStr;
 		if (stopCountingAt > 0 && r > stopCountingAt)
