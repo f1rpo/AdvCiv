@@ -1948,7 +1948,7 @@ void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey)
 	CvWString szBuffer = gDLL->getText(txtKey,
 			GET_TEAM(agentId).getName().GetCString(),
 			GET_TEAM(targetId).getName().GetCString());
-	gDLL->getInterfaceIFace()->addHumanMessage(activePl.getID(), false,
+	gDLL->getInterfaceIFace()->addMessage(activePl.getID(), false,
 			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT,
 			// <advc.127b>
 			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(activePl.getTeam(), true),

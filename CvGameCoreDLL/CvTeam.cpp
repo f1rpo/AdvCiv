@@ -416,7 +416,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			{
 				CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_PLAYER_PERMANENT_ALLIANCE",
 						getName().GetCString(), GET_TEAM(eTeam).getName().GetCString()));
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 						GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIRALLIANCE",
 						MESSAGE_TYPE_MAJOR_EVENT, // advc.106b
 						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -1447,7 +1447,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DECLARED_WAR_ON",
 						kTarget.getName().GetCString());
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), true,
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(), true,
 						GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						szSoundYou, // advc.106b
 						MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)
@@ -1464,7 +1464,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 							getName().GetCString(), cpSponsorName);
 				else // </advc.100>
 					szBuffer = gDLL->getText("TXT_KEY_MISC_DECLARED_WAR_ON_YOU", getName().GetCString());
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 						true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						szSoundYou, // advc.106b
 						MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
@@ -1488,7 +1488,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_DECLARED_WAR",
 							getName().GetCString(), kTarget.getName().GetCString());
 				}
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						// <advc.106b>
 						szSoundThey, (isAVassal() || kTarget.isAVassal() ?
@@ -1682,7 +1682,7 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 		{
 			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH",
 					kTarget.getName().GetCString()));
-			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+			gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 					true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 					szSoundYou, // advc.106b
 					MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -1696,7 +1696,7 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 		{
 			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH",
 					getName().GetCString()));
-			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+			gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 					true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 					szSoundYou, // advc.106b
 					MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -1744,7 +1744,7 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE",
 						getName().GetCString(), kTarget.getName().GetCString());
 			}
-			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+			gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 					false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 					// <advc.106b>
 					szSoundThey, (isAVassal() || kTarget.isAVassal() ?
@@ -3766,7 +3766,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 			CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
 			if (kMember.isAlive() && kMember.isHuman() && kMember.getTeam() == getID())
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(kMember.getID(),
+				gDLL->getInterfaceIFace()->addMessage(kMember.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szMsg, NULL,
 						MESSAGE_TYPE_MINOR_EVENT, icon, (ColorTypes)ePlayerColor,
 						pAt == NULL ? -1 : pAt->getX(), pAt == NULL ? -1 : pAt->getY(),
@@ -4023,7 +4023,7 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 				if ((isHasMet(kObs.getTeam()) && kOther.isHasMet(kObs.getTeam()))
 						|| kObs.isSpectator()) // advc.127
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						"AS2D_THEIRALLIANCE", MESSAGE_TYPE_MAJOR_EVENT, NULL,
 						(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -4050,7 +4050,7 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 			if ((isHasMet(kObs.getTeam()) && kOther.isHasMet(kObs.getTeam()))
 					|| kObs.isSpectator()) // advc.127
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 						GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL,
 						//"AS2D_DEAL_CANCELLED" // Rather use no sound
 						MESSAGE_TYPE_MAJOR_EVENT, NULL, NO_COLOR,
@@ -4354,7 +4354,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 				if ((isHasMet(kObs.getTeam()) && GET_TEAM(eMaster).isHasMet(kObs.getTeam()))
 					|| kObs.isSpectator()) // advc.127
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szReplayMessage,
 							"AS2D_WELOVEKING", MESSAGE_TYPE_MAJOR_EVENT, NULL,
 							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -4403,7 +4403,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 
 				if (!szBuffer.empty())
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							"AS2D_REVOLTSTART", MESSAGE_TYPE_MAJOR_EVENT, NULL,
 							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -4897,7 +4897,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 						"TXT_KEY_MISC_SOMEONE_HAS_COMPLETED_THE" :
 						"TXT_KEY_MISC_SOMEONE_HAS_COMPLETED", // </advc.008e>
 						getName().GetCString(), kProject.getTextKeyWide());
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						"AS2D_PROJECT_COMPLETED", MESSAGE_TYPE_MAJOR_EVENT, NULL,
 						(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -5350,7 +5350,7 @@ void CvTeam::resetVictoryProgress()
 			CvPlayer& kObs = GET_PLAYER((PlayerTypes)iJ);
 			if(!kObs.isAlive())
 				continue; // advc
-			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+			gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 					false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 					"AS2D_MELTDOWN", MESSAGE_TYPE_MAJOR_EVENT,
 					// <advc.127b>
@@ -5515,7 +5515,7 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex,
 					"TXT_KEY_MISC_PROGRESS_TOWARDS_TECH" :
 					"TXT_KEY_MISC_YOU_DISCOVERED_TECH"),
 					GC.getTechInfo(eIndex).getTextKeyWide());
-			gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false,
+			gDLL->getInterfaceIFace()->addMessage((PlayerTypes)iI, false,
 					bSound ? GC.getEVENT_MESSAGE_TIME() : -1, szBuffer,
 					szSound, // advc.156
 					MESSAGE_TYPE_MINOR_EVENT, // advc.106b
@@ -5764,7 +5764,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					}
 					else szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH",
 							GC.getTechInfo(eIndex).getTextKeyWide());
-					gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							(bMajor ? "AS2D_FIRSTTOTECH" : 0),
 							(bMajor ? MESSAGE_TYPE_MAJOR_EVENT :
@@ -5829,7 +5829,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					if (!kMember.isAlive() || kMember.getTeam() != getID())
 						continue;
 					bMessageSent = true;
-					gDLL->getInterfaceIFace()->addHumanMessage(kMember.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kMember.getID(),
 					// </advc.004r>
 							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							"AS2D_DISCOVERBONUS", MESSAGE_TYPE_INFO,
@@ -5858,7 +5858,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 						CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
 						if (!kMember.isAlive() || kMember.getTeam() != getID())
 							continue;
-						gDLL->getInterfaceIFace()->addHumanMessage(kMember.getID(),
+						gDLL->getInterfaceIFace()->addMessage(kMember.getID(),
 								false, GC.getEVENT_MESSAGE_TIME(), szBuffer
 								// Don't play the sound
 								/*,"AS2D_DISCOVERBONUS"*/);
@@ -6597,7 +6597,7 @@ void CvTeam::testCircumnavigated()
 							getName().GetCString());
 				}
 				else szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_CIRC_GLOBE");
-				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(),
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						"AS2D_GLOBECIRCUMNAVIGATED", MESSAGE_TYPE_MAJOR_EVENT,
 						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),

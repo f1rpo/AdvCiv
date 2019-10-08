@@ -358,7 +358,7 @@ void CvPlot::doImprovement()
 							if (pCity != NULL)
 							{
 								szBuffer = gDLL->getText("TXT_KEY_MISC_DISCOVERED_NEW_RESOURCE", GC.getBonusInfo((BonusTypes) iI).getTextKeyWide(), pCity->getNameKey());
-								gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DISCOVERBONUS", MESSAGE_TYPE_MINOR_EVENT, GC.getBonusInfo((BonusTypes) iI).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
+								gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DISCOVERBONUS", MESSAGE_TYPE_MINOR_EVENT, GC.getBonusInfo((BonusTypes) iI).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
 							}
 
 							break;
@@ -4221,8 +4221,8 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		const wchar* szOldOwnerDescr = GET_PLAYER(pOldCity->getOwner()).getCivilizationDescriptionKey();
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_CITY_REVOLTED_JOINED", pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey(),
 				szOldOwnerDescr)); // advc.101
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT,  ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
-		gDLL->getInterfaceIFace()->addHumanMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP",
+		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT,  ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+		gDLL->getInterfaceIFace()->addMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP",
 				MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
 				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
 		// <advc.101> Tell other civs about it (akin to code in CvCity::doRevolt)
@@ -4240,7 +4240,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			else if(GET_TEAM(pOldCity->getTeam()).isVassal(kObs.getTeam()))
 				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
 			else eMsgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY; // advc.106b
-			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+			gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 					GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, eMsgType,
 					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
 					eColor, getX(), getY(), true, true);
@@ -6733,7 +6733,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
 			szBuffer = gDLL->getText("TXT_KEY_MISC_CLEARING_FEATURE_BONUS",
 					GC.getFeatureInfo(getFeatureType()).getTextKeyWide(),
 					iProduction, pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwner(),
+			gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(),
 					false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
 					MESSAGE_TYPE_INFO, GC.getFeatureInfo(getFeatureType()).getButton(),
@@ -7405,7 +7405,7 @@ void CvPlot::doFeature()  // advc: some style changes
 						CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_FEATURE_GROWN_NEAR_CITY",
 								GC.getFeatureInfo(eFeature).getTextKeyWide(), pCity->getNameKey()));
 						
-						gDLL->getInterfaceIFace()->addHumanMessage(
+						gDLL->getInterfaceIFace()->addMessage(
 								/*getOwner()*/ pCity->getOwner(), // K-Mod (bugfix)
 								false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 								"AS2D_FEATUREGROWTH", MESSAGE_TYPE_INFO,

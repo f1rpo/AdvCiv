@@ -74,12 +74,14 @@ public:
 	virtual bool isCitySelection() = 0;
 	virtual CLLNode<IDInfo>* nextSelectedCitiesNode(CLLNode<IDInfo>* pNode) = 0;
 	virtual CLLNode<IDInfo>* headSelectedCitiesNode() = 0;
-
-	virtual void addMessage(PlayerTypes ePlayer, bool bForce, int iLength, CvWString szString, LPCTSTR pszSound = NULL,
+	// advc.127: Renamed from "addMessage"; protected.
+protected: virtual void addMessageExternal(PlayerTypes ePlayer, bool bForce, int iLength, CvWString szString, LPCTSTR pszSound = NULL,
 		InterfaceMessageTypes eType = MESSAGE_TYPE_INFO, LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
 		int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false, bool bShowOnScreenArrows = false) = 0;
+public:
 	// K-Mod - block messages from being send to AI players. (because the game doesn't ever clear AI messages)
-	void addHumanMessage(PlayerTypes ePlayer, bool bForce, int iLength,
+	// advc.127: Renamed from "addHumanMessage"
+	void addMessage(PlayerTypes ePlayer, bool bForce, int iLength,
 			CvWString szString, LPCTSTR pszSound = NULL,
 			InterfaceMessageTypes eType = MESSAGE_TYPE_INFO,
 			LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,

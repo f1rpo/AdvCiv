@@ -583,7 +583,7 @@ void RiseFall::showDoW() {
 		CvPlayer& enemy = GET_PLAYER((PlayerTypes)i);
 		if(!enemy.isAlive() || enemy.isMinorCiv() || !activeTeam.isAtWar(enemy.getTeam()))
 			continue;
-		gDLL->getInterfaceIFace()->addHumanMessage(g.getActivePlayer(), true,
+		gDLL->getInterfaceIFace()->addMessage(g.getActivePlayer(), true,
 				GC.getEVENT_MESSAGE_TIME(),
 				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
 				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
@@ -602,7 +602,7 @@ void RiseFall::showQuests() {
 			it != archive.end(); it++) {
 		// CvPlayer::expireEvent should ensure that only ongoing quests are listed
 		if(it->getMessageType() == MESSAGE_TYPE_QUEST) {
-			gDLL->getInterfaceIFace()->addHumanMessage(p.getID(), true,
+			gDLL->getInterfaceIFace()->addMessage(p.getID(), true,
 				GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_GOT_QUESTS"),
 				NULL, MESSAGE_TYPE_INFO, NULL);
 			return;
@@ -1512,7 +1512,7 @@ void RiseFall::shutOff(CvWString errorMsg) {
 
 void RiseFall::showError(CvWString errorMsg) {
 
-	gDLL->getInterfaceIFace()->addHumanMessage(
+	gDLL->getInterfaceIFace()->addMessage(
 			GC.getGame().getActivePlayer(), true,
 			GC.getEVENT_MESSAGE_TIME(), errorMsg, NULL, MESSAGE_TYPE_MAJOR_EVENT,
 			NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"));

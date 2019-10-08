@@ -6108,7 +6108,7 @@ void CvGame::makeSpecialBuildingValid(SpecialBuildingTypes eIndex, bool bAnnounc
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PROJECT_COMPLETED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+					gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PROJECT_COMPLETED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 				}
 			}
 		}
@@ -6206,7 +6206,7 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 			continue;
 		bool bRevealed = (pHolyCity->isRevealed(kObs.getTeam(), false)
 				|| kObs.isSpectator()); // advc.127
-		gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
 				bRevealed ? szMsgRevealed : szMsgUnknown,
 				GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
@@ -6268,7 +6268,7 @@ void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bA
 			continue;
 		bool bRevealed =  (pHeadquarters->isRevealed(kObs.getTeam(), false)
 				|| kObs.isSpectator()); // advc.127
-		gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
 				bRevealed ? szMsgRevealed : szMsgUnknown,
 				GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
@@ -6620,7 +6620,7 @@ void CvGame::doGlobalWarming()
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+				gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 			}
 
 			// Tell human players that the threshold has been reached
@@ -6732,7 +6732,7 @@ void CvGame::doGlobalWarming()
 						if (pPlot->isVisible(pCity->getTeam(), false))
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
+							gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 						}
 					}
 					changeGwEventTally(1);
@@ -8732,7 +8732,7 @@ void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer)
 	if(iChecksum == FPChecksum())
 		return; // Active player is able to reproduce checksum received over the net
 
-	gDLL->getInterfaceIFace()->addHumanMessage(getActivePlayer(), true, GC.getEVENT_MESSAGE_TIME(),
+	gDLL->getInterfaceIFace()->addMessage(getActivePlayer(), true, GC.getEVENT_MESSAGE_TIME(),
 			CvWString::format(L"Your machine's FP test computation has yielded a"
 				 L" different result than that of %s. The game may frequently go"
 				 L" out of sync due to floating point calculations in the AdvCiv mod.",
@@ -9792,7 +9792,7 @@ void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eR
 				{	// <advc.127b>
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource,
 							TEAMID(ePlayer), true); // </advc.127>
-					gDLL->getInterfaceIFace()->addHumanMessage(ePlayer, false,
+					gDLL->getInterfaceIFace()->addMessage(ePlayer, false,
 							GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							GC.getReligionInfo(eReligion).getSound(),
 							MESSAGE_TYPE_MAJOR_EVENT, NULL,
@@ -10239,7 +10239,7 @@ void CvGame::doVoteResults()
 					szMessage.Format(L"%s: %s", gDLL->getText("TXT_KEY_ELECTION_CANCELLED").GetCString(), GC.getVoteInfo(eVote).getDescription());
 					// advc.127b:
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource, kPlayer.getTeam());
-					gDLL->getInterfaceIFace()->addHumanMessage(kPlayer.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kPlayer.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szMessage,
 							"AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL, (ColorTypes)
 							GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
@@ -10517,7 +10517,7 @@ void CvGame::doVoteResults()
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource,
 							kPlayer.getTeam(), true);
 					// </advc.127b>
-					gDLL->getInterfaceIFace()->addHumanMessage(kPlayer.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kPlayer.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA",
 							// <advc.127> was always MINOR
 							kVote.isSecretaryGeneral() ? MESSAGE_TYPE_MINOR_EVENT :

@@ -3116,7 +3116,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 						szBuild.substr(posClosing + 1, szBuild.length() - posClosing - 1));
 			}
 			CvWString szBuffer = gDLL->getText("TXT_KEY_BUILD_NOT_FINISHED", szBuild.c_str());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false,
+			gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
 					GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO,
 					GC.getBuildInfo(eBuild).getButton()/*getHeadUnit()->getButton()*/,
 					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"/*"COLOR_BUILDING_TEXT"*/),

@@ -868,7 +868,7 @@ void CvCity::doRevolt()
 				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
 			else eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
 		}
-		gDLL->getInterfaceIFace()->addHumanMessage(kCiv.getID(), false,
+		gDLL->getInterfaceIFace()->addMessage(kCiv.getID(), false,
 				GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound, eMsg,
 				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
 				eColor, getX(), getY(), true, true);
@@ -7595,7 +7595,7 @@ void CvCity::setWeLoveTheKingDay(bool bNewValue)
 	if (eCivic != NO_CIVIC)
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_CITY_CELEBRATE", getNameKey(), GC.getCivicInfo(eCivic).getWeLoveTheKing());
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WELOVEKING", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_HAPPY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
+		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WELOVEKING", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_HAPPY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
 	}
 }
 
@@ -7813,7 +7813,7 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 	if (GC.getGame().isFinalInitialized() && getCultureLevel() > eOldValue && getCultureLevel() > 1)
 	{ // advc: Some style changes in this block
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_BORDERS_EXPANDED", getNameKey()));
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false,
+		gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
 				GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREEXPANDS",
 				MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_CULTURE).
 				getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
@@ -7843,7 +7843,7 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				if (isRevealed(kLoopPlayer.getTeam(), false)
 						|| kLoopPlayer.isSpectator()) // advc.127
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(
+					gDLL->getInterfaceIFace()->addMessage(
 							kLoopPlayer.getID(), false, GC.getEVENT_MESSAGE_TIME(),
 							szMsg, "AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
 							GC.getCommerceInfo(COMMERCE_CULTURE).getButton(),
@@ -7854,7 +7854,7 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_CULTURE_LEVEL_UNKNOWN",
 							GC.getCultureLevelInfo(getCultureLevel()).getTextKeyWide());
-					gDLL->getInterfaceIFace()->addHumanMessage(kLoopPlayer.getID(),
+					gDLL->getInterfaceIFace()->addMessage(kLoopPlayer.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							"AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
 							GC.getCommerceInfo(COMMERCE_CULTURE).getButton(),
@@ -9938,7 +9938,7 @@ void CvCity::doFoundMessage()
 	CvWString szBuffer;
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_FOUNDED", getNameKey());
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, -1, szBuffer, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
+	gDLL->getInterfaceIFace()->addMessage(getOwner(), false, -1, szBuffer, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
 			MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
 			NULL, NO_COLOR, getX(), getY());
 
@@ -11117,7 +11117,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 									"TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN",
 									GC.getBuildingInfo(eIndex).getTextKeyWide());
 						}
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), false,
+						gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)i), false,
 								GC.getEVENT_MESSAGE_TIME(), szBuffer,
 								"AS2D_WONDER_BUILDING_BUILD",
 								MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
@@ -11266,7 +11266,7 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 					{
 						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_SPREAD",
 								GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
-						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+						gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 								GC.getEVENT_MESSAGE_TIME(), // (K-Mod note: event time was originally "long".)
 								szBuffer, GC.getReligionInfo(eIndex).getSound(),
 								MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
@@ -11310,7 +11310,7 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 						kOwner.getID() != kObs.getID() && !kObs.hasHolyCity(eIndex))
 					continue; // </advc.106e>
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
-				gDLL->getInterfaceIFace()->addHumanMessage(
+				gDLL->getInterfaceIFace()->addMessage(
 						kObs.getID(), // advc.106e: was getOwner() in K-Mod
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BLIGHT",
 						MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
@@ -11562,13 +11562,13 @@ void CvCity::setHasCorporation(CorporationTypes eIndex, bool bNewValue, bool bAn
 
 						CvWString szBuffer;
 						szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_SPREAD_BONUS", GC.getCorporationInfo(eIndex).getTextKeyWide(), szBonusString.getCString(), getNameKey(), szBonusList.GetCString());
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MINOR_EVENT, GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), bArrows, bArrows);
+						gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getCorporationInfo(eIndex).getSound(), MESSAGE_TYPE_MINOR_EVENT, GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), bArrows, bArrows);
 					}
 					// K-Mod. We don't need two announcements every time a corp spreads. So I've put the general announcement inside this 'else' block.
 					else
 					{
 						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_SPREAD", GC.getCorporationInfo(eIndex).getTextKeyWide(), getNameKey());
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getCorporationInfo(eIndex).getSound(),
+						gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getCorporationInfo(eIndex).getSound(),
 								MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
 								GC.getCorporationInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), bArrows, bArrows);
 					}
@@ -12214,7 +12214,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			swprintf(szTempBuffer, gDLL->getText((isProductionLimited() ? "TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" : "TXT_KEY_MISC_WORK_HAS_BEGUN"), getProductionNameKey()).GetCString());
 			wcscat(szBuffer, szTempBuffer);
 		}
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound,
+		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound,
 				MESSAGE_TYPE_INFO, // advc.106b: was MINOR_EVENT
 				szIcon, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
 	}
@@ -12570,7 +12570,7 @@ bool CvCity::doCheckProduction()  // advc:some style changes
 			if (iProductionGold > 0) {
 				owner.changeGold(iProductionGold);
 				szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getUnitInfo((UnitTypes)iI).getTextKeyWide(), iProductionGold);
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+				gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 			}*/
 			setUnitProduction((UnitTypes)iI, 0);
 		}
@@ -12586,7 +12586,7 @@ bool CvCity::doCheckProduction()  // advc:some style changes
 			if(iProductionGold > 0) {
 				owner.changeGold(iProductionGold);
 				szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getBuildingInfo((BuildingTypes)iI).getTextKeyWide(), iProductionGold);
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+				gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 			}*/
 			setBuildingProduction((BuildingTypes)iI, 0);
 		}
@@ -12602,7 +12602,7 @@ bool CvCity::doCheckProduction()  // advc:some style changes
 			if(iProductionGold > 0) {
 				owner.changeGold(iProductionGold);
 				szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getProjectInfo((ProjectTypes)iI).getTextKeyWide(), iProductionGold);
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+				gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 			}*/
 			setProjectProduction((ProjectTypes)iI, 0);
 		}
@@ -13060,7 +13060,7 @@ void CvCity::doMeltdown()
 			plot()->nukeExplosion(1, 0, false); // K-Mod
 
 			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+			gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
 
 			break;
 		}
@@ -14257,7 +14257,7 @@ void CvCity::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredD
 							if (NO_IMPROVEMENT != pPlot->getImprovementType() && !GC.getImprovementInfo(pPlot->getImprovementType()).isPermanent())
 							{
 								CvWString szBuffer = gDLL->getText("TXT_KEY_EVENT_CITY_IMPROVEMENT_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide());
-								gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, GC.getImprovementInfo(pPlot->getImprovementType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
+								gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, GC.getImprovementInfo(pPlot->getImprovementType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
 								pPlot->setImprovementType(NO_IMPROVEMENT);
 								++iNumPillaged;
 								break;
@@ -14276,7 +14276,7 @@ void CvCity::applyEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredD
 			if (NO_PLAYER != eOtherPlayer)
 			{
 				CvWString szBuffer = gDLL->getText("TXT_KEY_EVENT_NUM_CITY_IMPROVEMENTS_DESTROYED", iNumPillaged, GET_PLAYER(getOwner()).getCivilizationAdjectiveKey());
-				gDLL->getInterfaceIFace()->addHumanMessage(eOtherPlayer, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO);
+				gDLL->getInterfaceIFace()->addMessage(eOtherPlayer, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO);
 			}
 		}
 
@@ -14827,7 +14827,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 		meetNewOwner(kObs.getTeam(), TEAMID(ePlayer));
 		if (isRevealed(kObs.getTeam(), false) /* advc.127: */ || kObs.isSpectator())
 		{
-			gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+			gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 					GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
 					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
 					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
@@ -15352,7 +15352,7 @@ void CvCity::failProduction(int iOrderData, int iInvestedProduction, bool bProje
 			GC.getProjectInfo((ProjectTypes)iOrderData).getTextKeyWide() :
 			GC.getBuildingInfo((BuildingTypes)iOrderData).getTextKeyWide(),
 			iProductionGold);
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false,
+	gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
 			GC.getEVENT_MESSAGE_TIME(), msg, "AS2D_WONDERGOLD",
 			MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).
 			getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
@@ -15399,7 +15399,7 @@ void CvCity::payOverflowGold(int iLostProduction, int iProductionGold)
 	kOwner.changeGold(iProductionGold);
 	CvWString szMsg(gDLL->getText("TXT_KEY_MISC_OVERFLOW_GOLD", iLostProduction,
 			getNameKey(), iProductionGold));
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwner(), false,
+	gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
 			GC.getEVENT_MESSAGE_TIME(), szMsg, "AS2D_WONDERGOLD",
 			MESSAGE_TYPE_INFO, GC.getCommerceInfo(COMMERCE_GOLD).
 			getButton(), NO_COLOR, getX(), getY(), false, false);

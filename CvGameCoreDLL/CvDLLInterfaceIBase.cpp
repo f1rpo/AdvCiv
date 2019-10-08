@@ -7,7 +7,7 @@
 #include "CvPlayer.h"
 #include "RiseFall.h" // advc.700
 
-void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
+void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
 	int iLength, CvWString szString, LPCTSTR pszSound,
 	InterfaceMessageTypes eType, LPCSTR pszIcon, ColorTypes eFlashColor,
 	int iFlashX, int iFlashY, bool bShowOffScreenArrows,
@@ -22,7 +22,7 @@ void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 		!kPlayer.isHumanDisabled() &&
 		GC.getGame().getRiseFall().isDeliverMessages(ePlayer)))
 	{	// </advc.700>
-		addMessage(ePlayer, bForce, iLength, szString, pszSound, eType,
+		addMessageExternal(ePlayer, bForce, iLength, szString, pszSound, eType,
 				pszIcon, eFlashColor, iFlashX, iFlashY, bShowOffScreenArrows,
 				bShowOnScreenArrows);
 	}
@@ -34,7 +34,7 @@ void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 		if(eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT ||
 				eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) // advc.106b
 		{
-			addMessage(ePlayer,
+			addMessageExternal(ePlayer,
 				/*  advc.127: bForce=true causes the event to be announced
 					immediately, whereas bForce=false seems to delay the
 					announcement until the start of the next turn (until the

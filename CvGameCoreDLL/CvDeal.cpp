@@ -85,7 +85,7 @@ void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bFo
 	CvWString szCancelString = gDLL->getText("TXT_KEY_POPUP_DEAL_CANCEL");
 	GAMETEXT.getDealString(szDealString, *this, eMsgTarget, /* advc.004w: */ true);
 	szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-	gDLL->getInterfaceIFace()->addHumanMessage(eMsgTarget,
+	gDLL->getInterfaceIFace()->addMessage(eMsgTarget,
 			bForce, // advc.106j
 			GC.getEVENT_MESSAGE_TIME(), szString,
 			bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j

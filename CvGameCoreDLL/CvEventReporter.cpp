@@ -463,7 +463,7 @@ void CvEventReporter::preSave()
 		FAssert(eActivePlayer != NO_PLAYER);
 		return;
 	}
-	gDLL->getInterfaceIFace()->addHumanMessage(eActivePlayer, true,
+	gDLL->getInterfaceIFace()->addMessage(eActivePlayer, true,
 			iLength, gDLL->getText(szMsgTag), NULL, MESSAGE_TYPE_DISPLAY_ONLY);
 }
 
