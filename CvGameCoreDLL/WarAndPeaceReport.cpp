@@ -11,6 +11,10 @@ using std::string;
 
 WarAndPeaceReport::WarAndPeaceReport(bool silent) { // default : false
 
+	/*  The log could be used to cheat in multiplayer. It's OK if MessageLog
+		is enabled; the game will warn the other player about that. */
+	if (GC.getGame().isNetworkMultiPlayer() && !GC.isLogging())
+		silent = true;
 	setSilent(silent);
 }
 

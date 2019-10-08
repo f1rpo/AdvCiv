@@ -8,9 +8,11 @@
 		 If logging is enabled in /My Games/
 		 Beyond The Sword/CivilizationIV.ini, a log file is written to
 		 /My Games/Beyond The Sword/Logs every REPORT_INTERVAL turns.
-		 It's not necessary to compile a debug DLL in order
-		 to see the reports. Each report records the war planning of all
-		 AI civs during a single turn. Set to 0 or less to disable logging. -->
+		 For multiplayer games, the MessageLog (CivilizationIV.ini) needs to be
+		 enabled in addition.
+		 It's not necessary to compile a debug DLL in order to see the reports.
+		 Each report records the war planning of all AI civs during a single 
+		 turn. Set to 0 or less to disable logging. -->
     <Define>
         <DefineName>REPORT_INTERVAL</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
