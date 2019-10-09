@@ -1,7 +1,12 @@
+/*  advc.enum: From the "We the People" (WtP) mod for Civ4Col, original author: Nightinggale,
+	who is still working on the EnumMap classes. This version is from 8 Oct 2019.
+	I have -for now- omitted the WtP serialization functions, and uncoupled the
+	SET_ARRAY_XML_ENUM calls from the Perl-generated enums that WtP uses.
+	Formatting: linebreaks added before scope resolution operators. */
+
 #ifndef ENUM_MAP_H
 #define ENUM_MAP_H
 #pragma once
-
 
 //
 // EnumMap is a special case of map where there is a <key,value> pair for each key in an enum.
@@ -89,15 +94,8 @@ private:
 	void allocate();
 
 public:
-
-	// used to allow structs.cpp to save using EnumMap savegame code.
-	// We can't change the memory layout defined in Structs.h, hence we are struck with vectors.
-	// This workaround allows gaining the savegame benefits of xml index conversion and reduced filesize.
-	void copyToVector(std::vector<T>& thisVector) const;
-	void copyFromVector(const std::vector<T>& thisVector);
-
-	void Read(CvSavegameReader& reader);
-	void Write(CvSavegameWriter& writer) const;
+	void Read(/* advc: */ FDataStreamBase* pStream);
+	void Write(/* advc: */ FDataStreamBase* pStream) const;
 
 	// operator overload
 	EnumMapBase& operator=(const EnumMapBase &rhs);
@@ -164,8 +162,8 @@ private:
 
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::EnumMapBase()
-	: m_pArrayFull(NULL)
+inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::EnumMapBase() : m_pArrayFull(NULL)
 {
 	FAssertMsg(sizeof(*this) == 4, "EnumMap is supposed to only contain a pointer");
 	FAssertMsg(getLength() >= 0 && getLength() <= ArrayLength((LengthType)0), "Custom length out of range");
@@ -173,31 +171,36 @@ inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::EnumMapBa
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::~EnumMapBase()
+inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::~EnumMapBase()
 {
 	reset();
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-__forceinline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::getDefault() const
+__forceinline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::getDefault() const
 {
 	return (T)DEFAULT;
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-__forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::First() const
+__forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::First() const
 {
 	return ArrayStart((T_SUBSET)0);
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-__forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::getLength() const
+__forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::getLength() const
 {
 	return ArrayLength((T_SUBSET)0);
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-__forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::numElements() const
+__forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::numElements() const
 {
 	// apparently subtracting two LengthTypes results in int, not LengthType
 	return (LengthType)(getLength() - First());
@@ -205,7 +208,8 @@ __forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZ
 
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::get(LengthType eIndex) const
+inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::get(LengthType eIndex) const
 {
 	FAssert(eIndex >= First() && eIndex < getLength());
 
@@ -218,7 +222,8 @@ inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::get(Len
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::set(LengthType eIndex, T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::set(LengthType eIndex, T eValue)
 {
 	FAssert(eIndex >= First() && eIndex < getLength());
 	if (m_pArrayFull == NULL)
@@ -239,7 +244,8 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::set(
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::add(LengthType eIndex, T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::add(LengthType eIndex, T eValue)
 {
 	FAssert(eIndex >= First() && eIndex < getLength());
 	if (eValue != 0)
@@ -249,7 +255,8 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::add(
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::safeSet(LengthType eIndex, T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::safeSet(LengthType eIndex, T eValue)
 {
 	if (eIndex >= First() && eIndex < getLength())
 	{
@@ -258,7 +265,8 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::safe
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::safeAdd(LengthType eIndex, T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::safeAdd(LengthType eIndex, T eValue)
 {
 	if (eIndex >= First() && eIndex < getLength())
 	{
@@ -267,7 +275,8 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::safe
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::addAll(T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::addAll(T eValue)
 {
 	if (eValue != 0)
 	{
@@ -279,13 +288,15 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::addA
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::isAllocated() const
+inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::isAllocated() const
 {
 	return m_pArrayFull != NULL;
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::hasContent() const
+inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::hasContent() const
 {
 	if (m_pArrayFull != NULL)
 	{
@@ -305,7 +316,8 @@ inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::hasC
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::getMin() const
+inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::getMin() const
 {
 	if (m_pArray == NULL)
 	{
@@ -315,7 +327,8 @@ inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::getMin(
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::getMax() const
+inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::getMax() const
 {
 	if (m_pArray == NULL)
 	{
@@ -325,7 +338,8 @@ inline T EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::getMax(
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::keepMin(LengthType eIndex, T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::keepMin(LengthType eIndex, T eValue)
 {
 	FAssert(eIndex >= First() && eIndex < getLength());
 	if (get(eIndex) > eValue)
@@ -335,7 +349,8 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::keep
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::keepMax(LengthType eIndex, T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::keepMax(LengthType eIndex, T eValue)
 {
 	FAssert(eIndex >= First() && eIndex < getLength());
 	if (get(eIndex) < eValue)
@@ -345,14 +360,16 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::keep
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::reset()
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::reset()
 {
 	// doesn't matter which one we free. They all point to the same memory address, which is what matters here.
 	SAFE_DELETE_ARRAY(m_pArrayFull);
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::setAll(T eValue)
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::setAll(T eValue)
 {
 	if (m_pArrayChar == NULL)
 	{
@@ -378,7 +395,8 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::setA
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::allocate()
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::allocate()
 {
 	FAssert(m_pArrayChar == NULL);
 
@@ -386,285 +404,49 @@ inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::allo
 
 	// memset is a whole lot faster. However it only works on bytes.
 	// Optimize for the default case where default is 0.
+	int const iElements = numElements(); // advc
 	if (SIZE_OF_T == 1 || DEFAULT == 0)
 	{
-		memset(m_pArrayFull, DEFAULT, numElements() * SIZE_OF_T);
+		memset(m_pArrayFull, DEFAULT, iElements * SIZE_OF_T);
 	}
 	else if (SIZE == 2)
 	{
-		std::fill_n(m_pArrayShort, numElements(), (T)DEFAULT);
+		std::fill_n(m_pArrayShort, iElements, (T)DEFAULT);
 	}
 	else
 	{
-		std::fill_n(m_pArrayFull, numElements(), (T)DEFAULT);
+		std::fill_n(m_pArrayFull, iElements, (T)DEFAULT);
 	}
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::copyToVector(std::vector<T>& thisVector) const
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::Read(/* <advc> */ FDataStreamBase* pStream)
 {
-	thisVector.reserve(getLength());
-	thisVector.resize(getLength(), (T)DEFAULT);
-
-	if (isAllocated())
-	{
-		if (SIZE == 0)
-		{
-			memcpy(&thisVector[0], m_pArrayFull, getLength() * sizeof(T));
-		}
-		else
-		{
-			for (LengthType eIndex = First(); eIndex < getLength(); ++eIndex)
-			{
-				thisVector[eIndex] = get(eIndex);
-			}
-		}
-	}
-}
-
-template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::copyFromVector(const std::vector<T>& thisVector)
-{
-	FAssert((unsigned int)getLength() == thisVector.size());
-
-	if (!isAllocated())
-	{
-		allocate();
-	}
-
-	if (SIZE == 0)
-	{
-		memcpy(m_pArrayFull, &thisVector[0], getLength() * sizeof(T));
-	}
-	else
-	{
-		for (LengthType eIndex = First(); eIndex < getLength(); ++eIndex)
-		{
-			set(eIndex, thisVector[eIndex]);
-		}
-	}
-}
-
-//
-// Savegame code
-//
-
-template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::Read(CvSavegameReader& reader)
-{
-	// savegame format is as follows:
-	// first index
-	// last index
-	// loop writing contents from first to last, both inclusive.
-	// An array can be split into multiple subarrays, called tokens.
-	// Any data not saved will be set to the default value on load.
-	// This will greatly reduce savegame size if just a few entries have non-default data.
-	//
-	// To reduce overhead, the size of the indexes are shortened to be as short as possible, but still contain the max value.
-	// There are two bools in each token. One states it's the last token and the other says first == last.
-	// Those two are saved together with the first index, meaning only 14 bits are available for saved array length.
-	// If the length of the array can fit in 6 bits, then first index is saved in just a single byte.
-	// CvSavegameReader takes care of saving the last index, meaning it's a single byte if the length is max 250.
-	// Last index is not saved if the bool for first == last is set.
-	// As a result, the overhead for each token can be 1-4 bytes.
-
-	const int iLength = ArrayType((LengthType)0) == NO_JIT_ARRAY_TYPE ? ArrayLength((LengthType)0) : reader.GetXmlSize(ArrayType((LengthType)0));
-	const bool bUseTwoByteStart = iLength > 64;
-
-	int iBuffer;
-
-	if (bUseTwoByteStart)
-	{
-		unsigned short iReadBuffer;
-		reader.Read(iReadBuffer);
-		iBuffer = iReadBuffer;
-		if (iBuffer == SAVE_ARRAY_EMPTY_BYTE)
-		{
-			// empty array
-			return;
-		}
-	}
-	else
-	{
-		byte iReadBuffer;
-		reader.Read(iReadBuffer);
-		iBuffer = iReadBuffer;
-		if (iBuffer == SAVE_ARRAY_EMPTY_SHORT)
-		{
-			// empty array
-			return;
-		}
-	}
-
-	while (true)
-	{
-		LengthType iFirst = (LengthType)(iBuffer >> SAVE_ARRAY_INDEX_OFFSET);
-		bool bMultiByte = HasBit(iBuffer, SAVE_ARRAY_MULTI_BYTE);
-		bool bLast = HasBit(iBuffer, SAVE_ARRAY_LAST_TOKEN);
-
-		if (bMultiByte)
-		{
-			LengthType iLast;
-			if (iLength > 256)
-			{
-				unsigned short iReadBuffer;
-				reader.Read(iReadBuffer);
-				iLast = (LengthType)iReadBuffer;
-			}
-			else
-			{
-				byte iReadBuffer;
-				reader.Read(iReadBuffer);
-				iLast = (LengthType)iReadBuffer;
-			}
-			
-			for (LengthType i = iFirst; i <= iLast; ++i)
-			{
-				// use a buffer because then it doesn't matter if T, array size and save size differs.
-				T tBuffer;
-				reader.Read(tBuffer);
-				LengthType iIndex = (LengthType)reader.ConvertIndex(ArrayType((LengthType)0), i);
-				set(iIndex, tBuffer);
-			}
-		}
-		else
-		{
-			// single variable token
-			T tBuffer;
-			reader.Read(tBuffer);
-			LengthType iIndex = (LengthType)reader.ConvertIndex(ArrayType((LengthType)0), iFirst);
-			set(iIndex, tBuffer);
-		}
-
-		if (bLast)
-		{
-			return;
-		}
-		if (bUseTwoByteStart)
-		{
-			unsigned short iReadBuffer;
-			reader.Read(iReadBuffer);
-			iBuffer = iReadBuffer;
-		}
-		else
-		{
-			byte iReadBuffer;
-			reader.Read(iReadBuffer);
-			iBuffer = iReadBuffer;
-		}
-	}
-}
-
-
-template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::Write(CvSavegameWriter& writer) const
-{
-	const int iLength = ArrayType((LengthType)0) == NO_JIT_ARRAY_TYPE ? ArrayLength((LengthType)0) : writer.GetXmlSize(ArrayType((LengthType)0));
-	const bool bUseTwoByteStart = iLength > 64;
-
-	// first support writing an empty array
-	// this is likely never needed, but support it for completeness and stability
-	if (!hasContent())
-	{
-		if (bUseTwoByteStart)
-		{
-			unsigned short iBuffer = SAVE_ARRAY_EMPTY_SHORT;
-			writer.Write(iBuffer);
-		}
-		else
-		{
-			byte iBuffer = SAVE_ARRAY_EMPTY_BYTE;
-			writer.Write(iBuffer);
-		}
-		return;
-	}
-
-	std::vector<interval> tokens(0);
-	interval* pInterval = NULL;
-
-	// generate tokens
-	// pInterval points to the token currently being created
-	// this means it both acts as a pointer to where to store iLast, but also storing the state
 	for (LengthType eIndex = First(); eIndex < getLength(); ++eIndex)
 	{
-		if (get(eIndex) != getDefault())
-		{
-			if (pInterval == NULL)
-			{
-				interval eTemp;
-				tokens.push_back(eTemp);
-				pInterval = &tokens[tokens.size() - 1];
-				pInterval->first = eIndex;
-			}
-			pInterval->last = eIndex;
-		}
-		else
-		{
-			pInterval = NULL;
-		}
-	}
-
-	int iEnd = tokens.size() - 1;
-
-	// save the tokens
-	for (int i = 0; i <= iEnd; ++i)
-	{
-		LengthType iFirst = tokens[i].first;
-		LengthType iLast = tokens[i].last;
-
-		int iBuffer = iFirst << SAVE_ARRAY_INDEX_OFFSET;
-
-		if (i == iEnd)
-		{
-			SetBit(iBuffer, SAVE_ARRAY_LAST_TOKEN);
-		}
-
-		if (iFirst == iLast)
-		{
-			if (bUseTwoByteStart)
-			{
-				writer.Write((unsigned short)iBuffer);
-			}
-			else
-			{
-				writer.Write((byte)iBuffer);
-			}
-			writer.Write(get(iFirst));
-		}
-		else
-		{
-			SetBit(iBuffer, SAVE_ARRAY_MULTI_BYTE);
-			if (bUseTwoByteStart)
-			{
-				writer.Write((unsigned short)iBuffer);
-			}
-			else
-			{
-				writer.Write((byte)iBuffer);
-			}
-			if (iLength > 256)
-			{
-				writer.Write((unsigned short)iLast);
-			}
-			else
-			{
-				writer.Write((byte)iLast);
-			}
-			
-			for (int i = iFirst; i <= iLast; ++i)
-			{
-				writer.Write(get((LengthType)i));
-			}
-		}
-	}
+		int iTmp;
+		pStream->Read(&iTmp);
+		set(eIndex, static_cast<T>(iTmp));
+	} // </advc>
 }
+
+template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
+inline void EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::Write(/* <advc> */ FDataStreamBase* pStream) const
+{
+	for (LengthType eIndex = First(); eIndex < getLength(); ++eIndex)
+		pStream->Write(static_cast<int>(get(eIndex))); // </advc>
+}
+
 
 //
 // operator overloads
 //
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
-inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::operator=(const EnumMapBase &rhs)
+inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::operator=(const EnumMapBase &rhs)
 {
 	if (rhs.isAllocated())
 	{
@@ -680,7 +462,8 @@ inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBa
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T> template<class T2, int DEFAULT2, int SIZE2, int SIZE_OF_T2>
-inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::operator=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs)
+inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::operator=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs)
 {
 	if (rhs.isAllocated())
 	{
@@ -698,7 +481,8 @@ inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBa
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T> template<class T2, int DEFAULT2, int SIZE2, int SIZE_OF_T2>
-inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::operator+=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs)
+inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::operator+=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs)
 {
 	if (rhs.isAllocated())
 	{
@@ -716,7 +500,8 @@ inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBa
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T> template<class T2, int DEFAULT2, int SIZE2, int SIZE_OF_T2>
-inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::operator-=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs)
+inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::operator-=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs)
 {
 	if (rhs.isAllocated())
 	{
@@ -734,7 +519,8 @@ inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>& EnumMapBa
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T> template<class T2, int DEFAULT2, int SIZE2, int SIZE_OF_T2>
-inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::operator==(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs) const
+inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::operator==(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs) const
 {
 	if (!rhs.isAllocated() && !isAllocated())
 	{
@@ -757,7 +543,8 @@ inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::oper
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T> template<class T2, int DEFAULT2, int SIZE2, int SIZE_OF_T2>
-inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::operator!=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs) const
+inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
+::operator!=(const EnumMapBase<LengthType, T2, DEFAULT2, T_SUBSET, SIZE2, SIZE_OF_T2> &rhs) const
 {
 	if (!rhs.isAllocated() && !isAllocated())
 	{
@@ -779,12 +566,15 @@ inline bool EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>::oper
 	return true;
 }
 
+
 //
 //
 // type setup
 // most of this aims at being set up at compile time
 //
 //
+namespace // advc: anonymous namespace
+{
 
 template <class T>
 struct EnumMapGetDefault
@@ -805,72 +595,81 @@ SET_ARRAY_DEFAULT(unsigned int);
 SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
 
-#define SET_ARRAY_XML_ENUM( VAR, NUM_TYPES, JIT_TYPE, VAR_SIZE ) \
+/*  advc: VAR_SIZE param removed. Since NUM_TYPES is known at compile-time,
+	SIZE can be derived from that. JITarrayType accessor removed. */
+#define SET_ARRAY_XML_ENUM( VAR, NUM_TYPES ) \
 __forceinline VAR ArrayStart(VAR var) { return (VAR)0; } \
 __forceinline VAR ArrayLength(VAR var) { return NUM_TYPES; } \
-__forceinline JITarrayTypes ArrayType(VAR var) { return JIT_TYPE; } \
 template <> struct EnumMapGetDefault<VAR> \
 { \
-	enum { value = -1, SIZE = VAR_SIZE, SIZE_OF_T = SIZE }; \
+	enum { value = -1, SIZE = (NUM_TYPES < 128 ? 1 : 2), SIZE_OF_T = SIZE }; \
 };
 
 // Byte size is set in enums
 // If the length isn't known at compile time, 2 is assumed.
 // Setting the byte size means say PlayerTypes will use 1 byte instead of 4. Works because MAX_PLAYERS <= 0x7F
 
-//                 type                , length                   , JIT_ARRAY type            , byte size
-SET_ARRAY_XML_ENUM(ArtStyleTypes       , NUM_ARTSTYLE_TYPES       , JIT_ARRAY_ART_STYLE       , BYTESIZE_ARTSTYLE_TYPES       );
-SET_ARRAY_XML_ENUM(BonusTypes          , NUM_BONUS_TYPES          , JIT_ARRAY_BONUS           , BYTESIZE_BONUS_TYPES          );
-SET_ARRAY_XML_ENUM(BuildTypes          , NUM_BUILD_TYPES          , JIT_ARRAY_BUILD           , BYTESIZE_BUILD_TYPES          );
-SET_ARRAY_XML_ENUM(BuildingTypes       , NUM_BUILDING_TYPES       , JIT_ARRAY_BUILDING        , BYTESIZE_BUILDING_TYPES       );
-SET_ARRAY_XML_ENUM(BuildingClassTypes  , NUM_BUILDINGCLASS_TYPES  , JIT_ARRAY_BUILDING_CLASS  , BYTESIZE_BUILDINGCLASS_TYPES  );
-SET_ARRAY_XML_ENUM(SpecialBuildingTypes, NUM_SPECIALBUILDING_TYPES, JIT_ARRAY_BUILDING_SPECIAL, BYTESIZE_SPECIALBUILDING_TYPES);
-SET_ARRAY_XML_ENUM(CivEffectTypes      , NUM_CIV_EFFECT_TYPES     , JIT_ARRAY_CIV_EFFECT      , BYTESIZE_CIV_EFFECT_TYPES     );
-SET_ARRAY_XML_ENUM(CivicTypes          , NUM_CIVIC_TYPES          , JIT_ARRAY_CIVIC           , BYTESIZE_CIVIC_TYPES          );
-SET_ARRAY_XML_ENUM(CivicOptionTypes    , NUM_CIVICOPTION_TYPES    , JIT_ARRAY_CIVIC_OPTION    , BYTESIZE_CIVICOPTION_TYPES    );
-SET_ARRAY_XML_ENUM(CivilizationTypes   , NUM_CIVILIZATION_TYPES   , JIT_ARRAY_CIVILIZATION    , BYTESIZE_CIVILIZATION_TYPES   );
-SET_ARRAY_XML_ENUM(ClimateTypes        , NUM_CLIMATE_TYPES        , JIT_ARRAY_CLIMATE         , BYTESIZE_CLIMATE_TYPES        );
-SET_ARRAY_XML_ENUM(ColorTypes          , NUM_COLOR_TYPES          , JIT_ARRAY_COLOR           , BYTESIZE_COLOR_TYPES          );
-SET_ARRAY_XML_ENUM(CultureLevelTypes   , NUM_CULTURELEVEL_TYPES   , JIT_ARRAY_CULTURE         , BYTESIZE_CULTURELEVEL_TYPES   );
-SET_ARRAY_XML_ENUM(DiplomacyTypes      , NUM_DIPLOMACY_TYPES      , JIT_ARRAY_DIPLO           , BYTESIZE_DIPLOMACY_TYPES      );
-SET_ARRAY_XML_ENUM(EraTypes            , NUM_ERA_TYPES            , JIT_ARRAY_ERA             , BYTESIZE_ERA_TYPES            );
-SET_ARRAY_XML_ENUM(EmphasizeTypes      , NUM_EMPHASIZE_TYPES      , JIT_ARRAY_EMPHASIZE       , BYTESIZE_EMPHASIZE_TYPES      );
-SET_ARRAY_XML_ENUM(EuropeTypes         , NUM_EUROPE_TYPES         , JIT_ARRAY_EUROPE          , BYTESIZE_EUROPE_TYPES         );
-SET_ARRAY_XML_ENUM(EventTypes          , NUM_EVENT_TYPES          , JIT_ARRAY_EVENT           , BYTESIZE_EVENT_TYPES          );
-SET_ARRAY_XML_ENUM(EventTriggerTypes   , NUM_EVENTTRIGGER_TYPES   , JIT_ARRAY_EVENT_TRIGGER   , BYTESIZE_EVENTTRIGGER_TYPES   );
-SET_ARRAY_XML_ENUM(FatherTypes         , NUM_FATHER_TYPES         , JIT_ARRAY_FATHER          , BYTESIZE_FATHER_TYPES         );
-SET_ARRAY_XML_ENUM(FatherPointTypes    , NUM_FATHER_POINT_TYPES   , JIT_ARRAY_FATHER_POINT    , BYTESIZE_FATHER_POINT_TYPES   );
-SET_ARRAY_XML_ENUM(FeatureTypes        , NUM_FEATURE_TYPES        , JIT_ARRAY_FEATURE         , BYTESIZE_FEATURE_TYPES        );
-SET_ARRAY_XML_ENUM(GameOptionTypes     , NUM_GAMEOPTION_TYPES     , JIT_ARRAY_GAME_OPTION     , BYTESIZE_GAMEOPTION_TYPES     );
-SET_ARRAY_XML_ENUM(GameSpeedTypes      , NUM_GAMESPEED_TYPES      , JIT_ARRAY_GAME_SPEED      , BYTESIZE_GAMESPEED_TYPES      );
-SET_ARRAY_XML_ENUM(GoodyTypes          , NUM_GOODY_TYPES          , JIT_ARRAY_GOODY           , BYTESIZE_GOODY_TYPES          );
-SET_ARRAY_XML_ENUM(HandicapTypes       , NUM_HANDICAP_TYPES       , JIT_ARRAY_HANDICAP        , BYTESIZE_HANDICAP_TYPES       );
-SET_ARRAY_XML_ENUM(HurryTypes          , NUM_HURRY_TYPES          , JIT_ARRAY_HURRY           , BYTESIZE_HURRY_TYPES          );
-SET_ARRAY_XML_ENUM(ImprovementTypes    , NUM_IMPROVEMENT_TYPES    , JIT_ARRAY_IMPROVEMENT     , BYTESIZE_IMPROVEMENT_TYPES    );
-SET_ARRAY_XML_ENUM(InvisibleTypes      , NUM_INVISIBLE_TYPES      , JIT_ARRAY_INVISIBLE       , BYTESIZE_INVISIBLE_TYPES      );
-SET_ARRAY_XML_ENUM(LeaderHeadTypes     , NUM_LEADER_TYPES         , JIT_ARRAY_LEADER_HEAD     , BYTESIZE_LEADER_TYPES         );
-SET_ARRAY_XML_ENUM(MemoryTypes         , NUM_MEMORY_TYPES         , JIT_ARRAY_MEMORY          , BYTESIZE_MEMORY_TYPES         );
-SET_ARRAY_XML_ENUM(PlayerColorTypes    , NUM_PLAYERCOLOR_TYPES    , JIT_ARRAY_PLAYER_COLOR    , BYTESIZE_PLAYERCOLOR_TYPES    );
-SET_ARRAY_XML_ENUM(PlayerOptionTypes   , NUM_PLAYEROPTION_TYPES   , JIT_ARRAY_PLAYER_OPTION   , BYTESIZE_PLAYEROPTION_TYPES   );
-SET_ARRAY_XML_ENUM(ProfessionTypes     , NUM_PROFESSION_TYPES     , JIT_ARRAY_PROFESSION      , BYTESIZE_PROFESSION_TYPES     );
-SET_ARRAY_XML_ENUM(PromotionTypes      , NUM_PROMOTION_TYPES      , JIT_ARRAY_PROMOTION       , BYTESIZE_PROMOTION_TYPES      );
-SET_ARRAY_XML_ENUM(RouteTypes          , NUM_ROUTE_TYPES          , JIT_ARRAY_ROUTE           , BYTESIZE_ROUTE_TYPES          );
-SET_ARRAY_XML_ENUM(SeaLevelTypes       , NUM_SEALEVEL_TYPES       , JIT_ARRAY_SEA_LEVEL       , BYTESIZE_SEALEVEL_TYPES       );
-SET_ARRAY_XML_ENUM(TerrainTypes        , NUM_TERRAIN_TYPES        , JIT_ARRAY_TERRAIN         , BYTESIZE_TERRAIN_TYPES        );
-SET_ARRAY_XML_ENUM(TraitTypes          , NUM_TRAIT_TYPES          , JIT_ARRAY_TRAIT           , BYTESIZE_TRAIT_TYPES          );
-SET_ARRAY_XML_ENUM(UnitTypes           , NUM_UNIT_TYPES           , JIT_ARRAY_UNIT            , BYTESIZE_UNIT_TYPES           );
-SET_ARRAY_XML_ENUM(UnitAITypes         , NUM_UNITAI_TYPES         , JIT_ARRAY_UNIT_AI         , BYTESIZE_UNITAI_TYPES         );
-SET_ARRAY_XML_ENUM(UnitClassTypes      , NUM_UNITCLASS_TYPES      , JIT_ARRAY_UNIT_CLASS      , BYTESIZE_UNITCLASS_TYPES      );
-SET_ARRAY_XML_ENUM(UnitCombatTypes     , NUM_UNITCOMBAT_TYPES     , JIT_ARRAY_UNIT_COMBAT     , BYTESIZE_UNITCOMBAT_TYPES     );
-SET_ARRAY_XML_ENUM(SpecialUnitTypes    , NUM_SPECIALUNIT_TYPES    , JIT_ARRAY_UNIT_SPECIAL    , BYTESIZE_SPECIALUNIT_TYPES    );
-SET_ARRAY_XML_ENUM(VictoryTypes        , NUM_VICTORY_TYPES        , JIT_ARRAY_VICTORY         , BYTESIZE_VICTORY_TYPES        );
-SET_ARRAY_XML_ENUM(WorldSizeTypes      , NUM_WORLDSIZE_TYPES      , JIT_ARRAY_WORLD_SIZE      , BYTESIZE_WORLDSIZE_TYPES      );
-SET_ARRAY_XML_ENUM(YieldTypes          , NUM_YIELD_TYPES          , JIT_ARRAY_YIELD           , BYTESIZE_YIELD_TYPES          );
+// (advc: Most lengths aren't know at compile time)
+//                 type            , length
+SET_ARRAY_XML_ENUM(AreaAITypes     , NUM_AREAAI_TYPES         );
+SET_ARRAY_XML_ENUM(UnitAITypes     , NUM_UNITAI_TYPES         );
+SET_ARRAY_XML_ENUM(MemoryTypes     , NUM_MEMORY_TYPES         );
+SET_ARRAY_XML_ENUM(WorldSizeTypes  , NUM_WORLDSIZE_TYPES      );
+SET_ARRAY_XML_ENUM(YieldTypes      , NUM_YIELD_TYPES          );
+SET_ARRAY_XML_ENUM(CommerceTypes   , NUM_COMMERCE_TYPES       );
+SET_ARRAY_XML_ENUM(PlayerTypes     , (PlayerTypes)MAX_PLAYERS );
+SET_ARRAY_XML_ENUM(TeamTypes       , (TeamTypes)MAX_TEAMS     );
 
+/*  <advc> Although the lengths aren't known to the compiler, I know that many
+	types have fewer than 128 values and no reasonable XML change will change that.
+	Based on the macro above: */
+#define SET_ARRAY_XML_ENUM_GC(VAR, VAR_SIZE) \
+	__forceinline VAR##Types ArrayStart(VAR##Types var) { return (VAR##Types)0; } \
+	__forceinline VAR##Types ArrayLength(VAR##Types var) { return (VAR##Types)GC.getNum##VAR##Infos(); } \
+	template <> struct EnumMapGetDefault<VAR##Types> \
+	{ \
+		enum { value = -1, SIZE = VAR_SIZE, SIZE_OF_T = SIZE }; \
+	};
 
-SET_ARRAY_XML_ENUM(PlayerTypes         , NUM_PLAYER_TYPES         , NO_JIT_ARRAY_TYPE         , BYTESIZE_PLAYER_TYPES         );
-SET_ARRAY_XML_ENUM(TeamTypes           , NUM_TEAM_TYPES           , NO_JIT_ARRAY_TYPE         , BYTESIZE_TEAM_TYPES           );
-
+SET_ARRAY_XML_ENUM_GC(SpecialBuilding, 1);
+SET_ARRAY_XML_ENUM_GC(Civic, 1);
+SET_ARRAY_XML_ENUM_GC(CivicOption, 1);
+SET_ARRAY_XML_ENUM_GC(Climate, 1);
+SET_ARRAY_XML_ENUM_GC(CultureLevel, 1);
+SET_ARRAY_XML_ENUM_GC(Era, 1);
+SET_ARRAY_XML_ENUM_GC(Emphasize, 1);
+SET_ARRAY_XML_ENUM_GC(Feature, 1);
+SET_ARRAY_XML_ENUM_GC(GameOption, 1);
+SET_ARRAY_XML_ENUM_GC(GameSpeed, 1);
+SET_ARRAY_XML_ENUM_GC(Goody, 1);
+SET_ARRAY_XML_ENUM_GC(Handicap, 1);
+SET_ARRAY_XML_ENUM_GC(Hurry, 1);
+SET_ARRAY_XML_ENUM_GC(Improvement, 1);
+SET_ARRAY_XML_ENUM_GC(Invisible, 1);
+SET_ARRAY_XML_ENUM_GC(PlayerOption, 1);
+SET_ARRAY_XML_ENUM_GC(Route, 1);
+SET_ARRAY_XML_ENUM_GC(SeaLevel, 1);
+SET_ARRAY_XML_ENUM_GC(Terrain, 1);
+SET_ARRAY_XML_ENUM_GC(Trait, 1);
+SET_ARRAY_XML_ENUM_GC(UnitCombat, 1);
+SET_ARRAY_XML_ENUM_GC(SpecialUnit, 1);
+SET_ARRAY_XML_ENUM_GC(Victory, 1);
+// 2 being the default apparently does not mean that these can be omitted:
+SET_ARRAY_XML_ENUM_GC(Bonus, 2);
+SET_ARRAY_XML_ENUM_GC(LeaderHead, 2);
+SET_ARRAY_XML_ENUM_GC(Event, 2);
+SET_ARRAY_XML_ENUM_GC(EventTrigger, 2);
+SET_ARRAY_XML_ENUM_GC(Build, 2);
+SET_ARRAY_XML_ENUM_GC(Building, 2);
+SET_ARRAY_XML_ENUM_GC(BuildingClass, 2);
+SET_ARRAY_XML_ENUM_GC(Civilization, 2);
+SET_ARRAY_XML_ENUM_GC(Color, 2);
+SET_ARRAY_XML_ENUM_GC(PlayerColor, 2);
+SET_ARRAY_XML_ENUM_GC(Promotion, 2);
+SET_ARRAY_XML_ENUM_GC(Unit, 2);
+SET_ARRAY_XML_ENUM_GC(UnitClass, 2);
+SET_ARRAY_XML_ENUM_GC(Tech, 2);
+} // </advc>
 
 //
 // List of various types of EnumMaps

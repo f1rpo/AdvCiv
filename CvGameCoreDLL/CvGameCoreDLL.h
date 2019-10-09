@@ -263,6 +263,7 @@ namespace python = boost::python;
 // advc.make: Removed most of these. (Don't know what the comment above means.)
 #include "CvGameCoreUtils.h"
 #include "CvGlobals.h"
+#include "EnumMap2D.h" // advc.enum: includes EnumMap.h
 #include "CvPythonCaller.h" // advc.003y
 #include "CvDLLLogger.h" // advc.003t
 #include "FProfiler.h"

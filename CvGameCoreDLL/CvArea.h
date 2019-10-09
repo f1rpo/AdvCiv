@@ -137,35 +137,31 @@ protected:
 	// <advc.030>
 	bool m_bLake;
 	int m_iRepresentativeAreaId;
-	// </advc.030>
-	int* m_aiUnitsPerPlayer;
-	int* m_aiAnimalsPerPlayer;
-	int* m_aiCitiesPerPlayer;
-	int* m_aiPopulationPerPlayer;
-	int* m_aiBuildingGoodHealth;
-	int* m_aiBuildingBadHealth;
-	int* m_aiBuildingHappiness;
-	int* m_aiTradeRoutes; // advc.310
-	int* m_aiFreeSpecialist;
-	int* m_aiPower;
-	int* m_aiBestFoundValue;
-	int* m_aiNumRevealedTiles;
-	int* m_aiCleanPowerCount;
-	int* m_aiBorderObstacleCount;
-
-	AreaAITypes* m_aeAreaAIType;
+	// </advc.030>  // <advc.enum>
+	EnumMap<PlayerTypes,int> m_aiUnitsPerPlayer;
+	EnumMap<PlayerTypes,int> m_aiAnimalsPerPlayer;
+	EnumMap<PlayerTypes,int> m_aiCitiesPerPlayer;
+	EnumMap<PlayerTypes,int> m_aiPopulationPerPlayer;
+	EnumMap<PlayerTypes,int> m_aiBuildingGoodHealth;
+	EnumMap<PlayerTypes,int> m_aiBuildingBadHealth;
+	EnumMap<PlayerTypes,int> m_aiBuildingHappiness;
+	EnumMap<PlayerTypes,int> m_aiTradeRoutes; // advc.310
+	EnumMap<PlayerTypes,int> m_aiFreeSpecialist;
+	EnumMap<PlayerTypes,int> m_aiPower;
+	EnumMap<PlayerTypes,int> m_aiBestFoundValue;
+	EnumMap<TeamTypes,int> m_aiNumRevealedTiles;
+	EnumMap<TeamTypes,int> m_aiCleanPowerCount;
+	EnumMap<TeamTypes,int> m_aiBorderObstacleCount;
+	EnumMap<TeamTypes,AreaAITypes> m_aeAreaAIType;
+	EnumMap<BonusTypes, int> m_aiBonuses;
+	EnumMap<ImprovementTypes, int> m_aiImprovements;
+	EnumMap2D<PlayerTypes, YieldTypes, short> m_aaiYieldRateModifier;
+	EnumMap2D<PlayerTypes, UnitAITypes, int> m_aaiNumTrainAIUnits;
+	EnumMap2D<PlayerTypes, UnitAITypes, int> m_aaiNumAIUnits; // </advc.enum>
 
 	IDInfo* m_aTargetCities;
 
-	int** m_aaiYieldRateModifier;
-	int** m_aaiNumTrainAIUnits;
-	int** m_aaiNumAIUnits;
-
-	int* m_paiNumBonuses;
-	int* m_paiNumImprovements;
-
 public:
-
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);

@@ -77,7 +77,7 @@ void CyEnumsPythonInterface()
 		;
 
 	python::enum_<PlotStyles>("PlotStyles")
-		.value("PLOT_STYLE_NONE", PLOT_STYLE_NONE)
+		.value("PLOT_STYLE_NONE", NO_PLOT_STYLE) // advc.enum
 		.value("PLOT_STYLE_NUMPAD_1", PLOT_STYLE_NUMPAD_1)
 		.value("PLOT_STYLE_NUMPAD_2", PLOT_STYLE_NUMPAD_2)
 		.value("PLOT_STYLE_NUMPAD_3", PLOT_STYLE_NUMPAD_3)
@@ -1555,7 +1555,7 @@ void CyEnumsPythonInterface()
 		.value("NO_GAMEMODE", NO_GAMEMODE)
 		.value("GAMEMODE_NORMAL", GAMEMODE_NORMAL)
 		.value("GAMEMODE_PITBOSS", GAMEMODE_PITBOSS)
-		.value("NUM_GAMEMODES", NUM_GAMEMODES)
+		.value("NUM_GAMEMODES", NUM_GAMEMODE_TYPES) // advc.enum
 		;
 
 	python::enum_<InterfaceVisibility>("InterfaceVisibility")
@@ -1585,7 +1585,7 @@ void CyEnumsPythonInterface()
 		.value("WBPOPUP_FEATURE", WBPOPUP_FEATURE)
 		.value("WBPOPUP_IMPROVEMENT", WBPOPUP_IMPROVEMENT)
 		.value("WBPOPUP_GAME", WBPOPUP_GAME)
-		.value("NUM_WBPOPUP", NUM_WBPOPUP)
+		.value("NUM_WBPOPUP", NUM_WBPOPUP_TYPES) // advc.emum
 		;
 
 	python::enum_<EventType>("EventType")
