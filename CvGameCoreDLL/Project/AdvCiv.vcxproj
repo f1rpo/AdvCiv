@@ -252,7 +252,6 @@
     <ClInclude Include="..\CvPlayer.h" />
     <ClInclude Include="..\CvPlayerAI.h" />
     <ClInclude Include="..\CvPythonCaller.h" />
-    <ClInclude Include="..\FLTALoopCounter.h" />
     <ClInclude Include="..\CvPlot.h" />
     <ClInclude Include="..\CvPlotGroup.h" />
     <ClInclude Include="..\CvPopupInfo.h" />
@@ -292,6 +291,8 @@
     <ClInclude Include="..\CySelectionGroup.h" />
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
+    <ClInclude Include="..\EnumMap.h" />
+    <ClInclude Include="..\EnumMap2D.h" />
     <ClInclude Include="..\FAssert.h" />
     <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\FDataStreamBase.h" />
