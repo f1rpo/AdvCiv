@@ -16,6 +16,13 @@ class CvReplayScreen:
 	"Replay Screen for end of game"
 
 	def __init__(self, screenId):
+		# (advc: Moved these fives lines up )
+		self.replayInfo = None
+		self.bPlaying = False
+		self.NUM_SLIDER_STOPS = 5
+		self.nWidgetCount = 0
+		self.TIME_STEP = (1.0, 0.5, 0.25, 0.125, 0.0625)
+
 		self.screenId = screenId
 		self.REPLAY_SCREEN_NAME = "ReplayScreen"
 		self.INTERFACE_ART_INFO = "TECH_BG"
@@ -27,52 +34,102 @@ class CvReplayScreen:
 		self.Z_BACKGROUND = -6.1
 		self.Z_CONTROLS = self.Z_BACKGROUND - 0.2
 		self.DZ = -0.2
+		# <advc.106m> Use this to avoid calling calculateLayout more than once
+		self.bLayoutDone = False
 
-		self.X_SCREEN = 500
-		self.Y_SCREEN = 396
+	# Moved into a new function b/c getScreen can't be called in __init__
+	def calculateLayout(self):
+		if self.bLayoutDone:
+			return
+		self.bLayoutDone = True # </advc.106m>
 		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
+		#self.X_SCREEN = 500
+		#self.Y_SCREEN = 396
+		# <advc.106m>
+		self.HORIZONTAL_MARGIN = 25
+		self.VERTICAL_MARGIN = 20
+		iXRes = self.getScreen().getXResolution()
+		self.W_SCREEN = max(self.W_SCREEN, iXRes - 2 * self.HORIZONTAL_MARGIN)
+		iYRes = self.getScreen().getYResolution()
+		self.H_SCREEN = max(self.H_SCREEN, iYRes - 2 * self.VERTICAL_MARGIN)
+		self.HORIZONTAL_MARGIN = min(self.HORIZONTAL_MARGIN, (iXRes - self.W_SCREEN) / 2)
+		self.VERTICAL_MARGIN = min(self.VERTICAL_MARGIN, (iYRes - self.H_SCREEN) / 2)
+		# Those margins are outside of the screen dimensions
+		self.X_SCREEN = self.HORIZONTAL_MARGIN
+		self.Y_SCREEN = self.VERTICAL_MARGIN
+		# </advc.106m>
 		self.Y_TITLE = 8
-		self.BORDER_WIDTH = 4
-		self.W_HELP_AREA = 200
-
-		self.X_EXIT = 994
-		self.Y_EXIT = 726
-
-		self.X_PLAY = 50
-		self.Y_PLAY = 730
-
-		self.X_FORWARD = 200
-		self.Y_FORWARD = 730
-
-		self.X_SPEED = 520
-		self.Y_SPEED = 745
-
-		self.X_SLIDER = 475
-		self.Y_SLIDER = 725
-		self.W_SLIDER = 100
+		# advc: unused
+		#self.BORDER_WIDTH = 4
+		#self.W_HELP_AREA = 200
+		# <advc.106m>
+		self.X_TITLE = self.W_SCREEN / 2
+		self.H_PANELS = 55 # As before; just put it in a variable.
+		self.Y_TOP_PANEL = 0
+		# These were, in effect, ca 50 in BtS.
+		self.INNER_H_MARGIN = 20
+		self.INNER_V_MARGIN = 15
+		# Was hardcoded as 713
+		self.Y_BOTTOM_PANEL = self.H_SCREEN - self.H_PANELS
+		# </advc.106m>
+		#self.X_EXIT = 994
+		#self.Y_EXIT = 726
+		# <advc.106m>
+		self.X_EXIT = self.W_SCREEN - self.INNER_H_MARGIN # Right-justified
+		self.Y_BOTTOM_LABELS = self.Y_BOTTOM_PANEL + self.H_PANELS / 2 - 10
+		# As before, a bit higher than the other labels.
+		self.Y_EXIT = self.Y_BOTTOM_LABELS - 4
+		# </advc.106m>
+		#self.X_PLAY = 50
+		#self.Y_PLAY = 730
+		#self.X_FORWARD = 200
+		#self.Y_FORWARD = 730
+		# <advc.106m>
+		self.X_PLAY = self.INNER_H_MARGIN
+		self.Y_PLAY = self.Y_BOTTOM_LABELS
+		self.X_FORWARD = self.X_PLAY + 150
+		self.Y_FORWARD = self.Y_BOTTOM_LABELS
+		# </advc.106m>
+		#self.X_SPEED = 520
+		#self.Y_SPEED = 745
+		#self.X_SLIDER = 475
+		#self.Y_SLIDER = 725
+		#self.W_SLIDER = 100
 		self.H_SLIDER = 15
-		self.NUM_SLIDER_STOPS = 5
-
-		self.nWidgetCount = 0
-
-		self.X_MAP = 50
-		self.Y_MAP = 100
-		self.W_MAP = 550
-		self.H_MAP_MAX = 400
-
-		self.X_TEXT = 625
-		self.Y_TEXT = 100
-		self.W_TEXT = 350
-		self.H_TEXT = 580
-
-		self.TIME_STEP = (1.0, 0.5, 0.25, 0.125, 0.0625)
-
-		self.X_GRAPH = 50
-		self.W_GRAPH = 550
-
-		self.replayInfo = None
-		self.bPlaying = False
+		# <advc.106m>
+		self.W_SLIDER = (15 * self.W_SCREEN) / 100
+		self.X_SLIDER = (self.W_SCREEN - self.W_SLIDER) / 2
+		self.Y_SLIDER = self.Y_BOTTOM_LABELS - 5
+		self.Y_SPEED = self.Y_SLIDER + 20
+		self.X_SPEED = self.X_SLIDER + (40 * self.W_SLIDER) / 100
+		# </advc.106m>
+		#self.X_MAP = 50
+		#self.Y_MAP = 100
+		#self.W_MAP = 550
+		#self.H_MAP_MAX = 400
+		#self.X_GRAPH = 50
+		#self.W_GRAPH = 550
+		#self.X_TEXT = 625
+		#self.Y_TEXT = 100
+		#self.W_TEXT = 350
+		#self.H_TEXT = 580
+		# <advc.106m>
+		self.X_MAP = self.INNER_H_MARGIN
+		self.X_GRAPH = self.X_MAP
+		self.Y_TEXT = self.H_PANELS + self.INNER_V_MARGIN
+		self.W_TEXT = max(350, (333 * self.W_SCREEN) / 1000)
+		self.Y_MAP = self.Y_TEXT
+		W_MAP_TEXT_GAP = 15
+		self.W_MAP = self.W_SCREEN - self.X_MAP - self.INNER_H_MARGIN - W_MAP_TEXT_GAP - self.W_TEXT
+		self.X_TEXT = self.X_MAP + self.W_MAP + W_MAP_TEXT_GAP
+		self.H_TEXT = self.H_SCREEN - 2 * (self.INNER_V_MARGIN + self.H_PANELS)
+		self.W_GRAPH = self.W_MAP
+		H_GRAPH_MIN = min(230, self.H_SCREEN / 3)
+		self.H_MAP_GRAPH_GAP = W_MAP_TEXT_GAP
+		self.H_MAP_MAX = self.H_TEXT - H_GRAPH_MIN - self.H_MAP_GRAPH_GAP
+		# H_GRAPH and Y_GRAPH can't be set until the minimap has been initialized
+		# </advc.106m>
 
 	def setReplayInfo(self, replayInfo):
 		self.replayInfo = replayInfo
@@ -91,6 +148,7 @@ class CvReplayScreen:
 		screen = self.getScreen()
 		if screen.isActive():
 			return
+		self.calculateLayout() # advc.106m
 		screen.setRenderInterfaceOnly(True);
 		screen.showScreen(PopupStates.POPUPSTATE_IMMEDIATE, False)
 
@@ -122,16 +180,18 @@ class CvReplayScreen:
 		self.szPlayId = self.getNextWidgetName()
 
 		# Set the background widget and exit button
-		screen.setDimensions(screen.centerX(0), screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
+		# advc.106m: x, y were screen.centerX(0), screen.centerY(0)
+		screen.setDimensions(self.X_SCREEN, self.Y_SCREEN, self.W_SCREEN, self.H_SCREEN)
 		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
-		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, 713, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
+		screen.addPanel( "TopPanel", u"", u"", True, False, 0, self.Y_TOP_PANEL, self.W_SCREEN, self.H_PANELS, PanelStyles.PANEL_STYLE_TOPBAR )
+		screen.addPanel( "BottomPanel", u"", u"", True, False, 0, self.Y_BOTTOM_PANEL, self.W_SCREEN, self.H_PANELS, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.showWindowBackground(False)
 		screen.setText(self.EXIT_ID, "", self.EXIT_TEXT, CvUtil.FONT_RIGHT_JUSTIFY, self.X_EXIT, self.Y_EXIT, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# Header...
 		self.szHeader = self.getNextWidgetName()
-		screen.setLabel(self.szHeader, "Background", u"<font=4b>" + localText.getText("TXT_KEY_REPLAY_SCREEN_TITLE", ()).upper() + u"</font>", CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.Y_TITLE, self.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# advc.106m: X position was self.X_SCREEN; that doesn't work anymore.
+		screen.setLabel(self.szHeader, "Background", u"<font=4b>" + localText.getText("TXT_KEY_REPLAY_SCREEN_TITLE", ()).upper() + u"</font>", CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, self.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# Minimap initialization
 		self.H_MAP = (self.W_MAP * self.replayInfo.getMapHeight()) / self.replayInfo.getMapWidth()
@@ -150,8 +210,10 @@ class CvReplayScreen:
 		screen.addListBoxGFC(self.szAreaId, "", self.X_TEXT, self.Y_TEXT, self.W_TEXT, self.H_TEXT, TableStyles.TABLE_STYLE_STANDARD)
 		screen.enableSelect(self.szAreaId, False)
 
-		self.Y_GRAPH = self.Y_MAP + self.H_MAP + 15
-		self.H_GRAPH = 680 - self.Y_GRAPH
+		self.Y_GRAPH = self.Y_MAP + self.H_MAP + self.H_MAP_GRAPH_GAP
+		#self.H_GRAPH = 680 - self.Y_GRAPH
+		# advc.106m:
+		self.H_GRAPH = self.H_TEXT - self.H_MAP - self.H_MAP_GRAPH_GAP
 		self.szGraph = self.getNextWidgetName()
 		screen.addGraphWidget(self.szGraph, "Background", ArtFileMgr.getInterfaceArtInfo("POPUPS_BACKGROUND_TRANSPARENT").getPath(), self.X_GRAPH, self.Y_GRAPH, self.Z_CONTROLS, self.W_GRAPH, self.H_GRAPH, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
@@ -194,7 +256,8 @@ class CvReplayScreen:
 
 		szTurnDate = CyGameTextMgr().getDateStr(self.iTurn, false, self.replayInfo.getCalendar(), self.replayInfo.getStartYear(), self.replayInfo.getGameSpeed())
 		screen.deleteWidget(self.szHeader)
-		screen.setLabel(self.szHeader, "Background", u"<font=4b>" + szTurnDate + u"<font>", CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.Y_TITLE, self.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# advc.106m: x was X_SCREEN; that doesn't work anymore.
+		screen.setLabel(self.szHeader, "Background", u"<font=4b>" + szTurnDate + u"<font>", CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, self.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		events = []
 		bFound = False
