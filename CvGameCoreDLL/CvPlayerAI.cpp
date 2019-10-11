@@ -18887,23 +18887,23 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 	int iBaseWarAttitude = GC.getDefineINT(CvGlobals::AT_WAR_ATTITUDE_CHANGE); // advc.130g
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		PlayerTypes eCiv = (PlayerTypes)iI;
-		if(!GET_PLAYER(eCiv).isAlive())
+		PlayerTypes ePlayer = (PlayerTypes)iI;
+		if(!GET_PLAYER(ePlayer).isAlive())
 			continue;
 		for (iJ = 0; iJ < NUM_MEMORY_TYPES; iJ++)
 		{
 			MemoryTypes eMem = (MemoryTypes)iJ;
-			int c = AI_getMemoryCount(eCiv, eMem);
+			int c = AI_getMemoryCount(ePlayer, eMem);
 			int iDecayRand = GC.getLeaderHeadInfo(getPersonalityType()).
 					getMemoryDecayRand(eMem);
 			if(c <= 0 || iDecayRand <= 0)
 				continue;
 			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
 			if(eMem == MEMORY_MADE_DEMAND_RECENT &&
-					kOurTeam.isForcePeace(TEAMID(eCiv)))
+					kOurTeam.isForcePeace(TEAMID(ePlayer)))
 				continue; // </advc.144>
 			// <advc.130r>
-			if(kOurTeam.isAtWar(TEAMID(eCiv)))
+			if(kOurTeam.isAtWar(TEAMID(ePlayer)))
 			{
 				// No decay while war ongoing
 				if(eMem == MEMORY_DECLARED_WAR)
@@ -18916,10 +18916,10 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 					continue;
 			}
 			if(eMem == MEMORY_DECLARED_WAR_ON_FRIEND &&
-					AI_atWarWithPartner(TEAMID(eCiv)))
+					AI_atWarWithPartner(TEAMID(ePlayer)))
 				continue;
 			if((eMem == MEMORY_STOPPED_TRADING || eMem == MEMORY_HIRED_TRADE_EMBARGO) &&
-					AI_getMemoryCount(eCiv, MEMORY_STOPPED_TRADING_RECENT) > 0)
+					AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0)
 				continue;
 			// </advc.130r> <advc.130j>
 			/*  Need to decay at least twice as fast b/c each
@@ -18940,26 +18940,26 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 			double abolishMultiplier = 4;
 			if(eMem == MEMORY_ACCEPTED_CIVIC)
 			{
-				if(eFavCivic != NO_CIVIC && (!GET_PLAYER(eCiv).isCivic(eFavCivic) ||
+				if(eFavCivic != NO_CIVIC && (!GET_PLAYER(ePlayer).isCivic(eFavCivic) ||
 						!isCivic(eFavCivic)))
 					div *= abolishMultiplier;
 			}
 			if(eMem == MEMORY_ACCEPTED_RELIGION)
 			{
-				if(isStateReligion() && GET_PLAYER(eCiv).getStateReligion() !=
+				if(isStateReligion() && GET_PLAYER(ePlayer).getStateReligion() !=
 						getStateReligion())
 					div *= abolishMultiplier;
 			}
 			double adoptMultiplier = 3.5;
 			if(eMem == MEMORY_DENIED_CIVIC)
 			{
-				if(eFavCivic == NO_CIVIC || GET_PLAYER(eCiv).isCivic(eFavCivic) ||
+				if(eFavCivic == NO_CIVIC || GET_PLAYER(ePlayer).isCivic(eFavCivic) ||
 						!isCivic(eFavCivic))
 					div *= adoptMultiplier;
 			}
 			if(eMem == MEMORY_DENIED_RELIGION)
 			{
-				if(!isStateReligion() || GET_PLAYER(eCiv).getStateReligion() ==
+				if(!isStateReligion() || GET_PLAYER(ePlayer).getStateReligion() ==
 						getStateReligion())
 					div *= adoptMultiplier;
 			} // </advc.145>
@@ -18974,15 +18974,15 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 				division above makes it 0, it should mean fast decay. */
 			if(iDecayRand == 0)
 				iDecayRand = 1;
-			if(g.getSorenRandNum(iDecayRand, "Memory Decay", eCiv, eMem) == 0)
+			if(g.getSorenRandNum(iDecayRand, "Memory Decay", ePlayer, eMem) == 0)
 			// </advc.130j>
-				AI_changeMemoryCount(eCiv, eMem, -1);
+				AI_changeMemoryCount(ePlayer, eMem, -1);
 		}
 		// <advc.130g>
-		int iRebuke = AI_getMemoryCount(eCiv, MEMORY_REJECTED_DEMAND);
-		if((iRebuke > 0  && AI_getWarAttitude(eCiv) < iBaseWarAttitude - 1 &&
-				GET_TEAM(getTeam()).AI_isChosenWar(TEAMID(eCiv))) || isAVassal())
-			AI_changeMemoryCount(eCiv, MEMORY_REJECTED_DEMAND, -iRebuke);
+		int iRebuke = AI_getMemoryCount(ePlayer, MEMORY_REJECTED_DEMAND);
+		if((iRebuke > 0  && AI_getWarAttitude(ePlayer) < iBaseWarAttitude - 1 &&
+				GET_TEAM(getTeam()).AI_isChosenWar(TEAMID(ePlayer))) || isAVassal())
+			AI_changeMemoryCount(ePlayer, MEMORY_REJECTED_DEMAND, -iRebuke);
 			// </advc.130g>
 	}
 }

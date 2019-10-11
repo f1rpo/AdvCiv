@@ -1568,7 +1568,7 @@ public:
 	DllExport int getUSE_FINISH_TEXT_CALLBACK();
 	// advc.003y: Moved the other callback getters to CvPythonCaller
 #pragma endregion GlobalDefines
-	// more reliable versions of the 'gDLL->xxxKey' functions:
+	// K-Mod: more reliable versions of the 'gDLL->xxxKey' functions
 	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
 	inline bool altKey() const { return (GetKeyState(VK_MENU) & 0x8000); }
 	inline bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }

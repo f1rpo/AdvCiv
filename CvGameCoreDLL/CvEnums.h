@@ -33,7 +33,7 @@ static inline T operator++(T& c, int)
 #define ENUM_ONLY(PREFIX) ENUM_FIRST(PREFIX, FIRST)
 // Could wrap this in #ifdef _USRDLL #endif - let's worry about that if the source of the EXE is ever released
 #define ENUM_LAST(INFIX) NUM_##INFIX##_TYPES
-// (The macros are only used in this file; uses not tagged with comments.) </advc.enum>
+// (The macros are only used in this file; uses aren't tagged with comments.) </advc.enum>
 
 enum GameStateTypes						// Exposed to Python
 {

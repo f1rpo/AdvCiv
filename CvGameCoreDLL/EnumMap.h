@@ -609,7 +609,7 @@ template <> struct EnumMapGetDefault<VAR> \
 // If the length isn't known at compile time, 2 is assumed.
 // Setting the byte size means say PlayerTypes will use 1 byte instead of 4. Works because MAX_PLAYERS <= 0x7F
 
-// (advc: Most lengths aren't know at compile time)
+// (advc: Most lengths aren't known at compile time)
 //                 type            , length
 SET_ARRAY_XML_ENUM(AreaAITypes     , NUM_AREAAI_TYPES         );
 SET_ARRAY_XML_ENUM(UnitAITypes     , NUM_UNITAI_TYPES         );
