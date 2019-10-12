@@ -110,14 +110,9 @@ DiploCommentTypes CvDiploParameters::getDiploComment() const
 
 void CvDiploParameters::setOurOfferList(const CLinkList<TradeData>& ourOffer)
 {
-	CLLNode<TradeData> *pNode;
-
 	m_ourOffer.clear();
-
-	for (pNode = ourOffer.head(); pNode; pNode = ourOffer.next(pNode))
-	{
+	for (CLLNode<TradeData> const* pNode = ourOffer.head(); pNode != NULL; pNode = ourOffer.next(pNode))
 		m_ourOffer.insertAtEnd(pNode->m_data);
-	}
 }
 
 const CLinkList<TradeData>& CvDiploParameters::getOurOfferList() const
@@ -127,14 +122,9 @@ const CLinkList<TradeData>& CvDiploParameters::getOurOfferList() const
 
 void CvDiploParameters::setTheirOfferList(const CLinkList<TradeData>& theirOffer)
 {
-	CLLNode<TradeData> *pNode;
-
 	m_theirOffer.clear();
-
-	for (pNode = theirOffer.head(); pNode; pNode = theirOffer.next(pNode))
-	{
+	for (CLLNode<TradeData> const* pNode = theirOffer.head(); pNode; pNode = theirOffer.next(pNode))
 		m_theirOffer.insertAtEnd(pNode->m_data);
-	}
 }
 
 const CLinkList<TradeData>& CvDiploParameters::getTheirOfferList() const

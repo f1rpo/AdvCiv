@@ -471,7 +471,7 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 		// Handle OB and DP separately (AI_dealVal just counts cities for those)
 		bool skip = false;
 		bool weReceiveResource = false;
-		for(CLLNode<TradeData>* item = d.headReceivesNode(weId); item != NULL;
+		for(CLLNode<TradeData> const* item = d.headReceivesNode(weId); item != NULL;
 				item = d.nextReceivesNode(item, weId)) {
 			if(CvDeal::isDual(item->m_data.m_eItemType)) {
 				skip = true;
@@ -808,7 +808,7 @@ void GreedForAssets::initCitiesPerArea() {
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		citiesPerArea[i] = new map<int,int>();
 	for(int i = 0; i < ourCache->size(); i++) {
-		City* cp = ourCache->getCity(i);
+		City const* cp = ourCache->getCity(i);
 		if(cp == NULL) continue; City const& c = *cp;
 		PlayerTypes ownerId = c.city()->getOwner();
 		// City may have been conquered by barbarians since the last update
@@ -3621,8 +3621,9 @@ void TacticalSituation::evalEngagement() {
 		theirExposed += theirDamaged;
 		int ourDamaged = 0;
 		if(pairs > 0) {
-			for(CLLNode<IDInfo>* node = gr->headUnitNode(); node != NULL; node =
-					gr->nextUnitNode(node)) { CvUnit& u = *::getUnit(node->m_data);
+			for(CLLNode<IDInfo> const* node = gr->headUnitNode(); node != NULL; node =
+					gr->nextUnitNode(node)) { 
+				CvUnit const& u = *::getUnit(node->m_data);
 				if(u.maxHitPoints() - u.getDamage() <= hpThresh)
 					ourDamaged++;
 			}

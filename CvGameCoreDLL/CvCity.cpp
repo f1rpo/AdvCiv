@@ -878,13 +878,12 @@ void CvCity::doRevolt()
 void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 {
 	CLinkList<IDInfo> oldUnits;
-	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
-	while(pUnitNode != NULL)
 	{
-		oldUnits.insertAtEnd(pUnitNode->m_data);
-		pUnitNode = plot()->nextUnitNode(pUnitNode);
+		for(CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode();
+				pUnitNode != NULL; pUnitNode = plot()->nextUnitNode(pUnitNode))
+			oldUnits.insertAtEnd(pUnitNode->m_data);
 	}
-	pUnitNode = oldUnits.head();
+	CLLNode<IDInfo>* pUnitNode = oldUnits.head();
 	while(pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -1621,7 +1620,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 
 	/*  <advc.041> Don't allow any ships to be trained at lakes, except
 		Work Boat if there are resources in the lake. */
-	CvUnitInfo& u = GC.getUnitInfo(eUnit);
+	CvUnitInfo const& u = GC.getUnitInfo(eUnit);
 	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
 			(!u.isPrereqBonuses() || !isPrereqBonusSea()))
 		return false; // </advc.041>
@@ -4658,12 +4657,10 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 		return 0; // </advc.101>
 
 	int iGarrison = 1;
-	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
-	while (pUnitNode != NULL)
+	for(CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
+		pUnitNode = plot()->nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = plot()->nextUnitNode(pUnitNode);
-
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		int iGarrisonLoop = pLoopUnit->getUnitInfo().getCultureGarrisonValue();
 		// <advc.101>
 		if (iGarrisonLoop <= 0)
@@ -9699,16 +9696,12 @@ double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 {
 	int iBestModifier = 0;
 
-	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
-	while (pUnitNode)
+	for (CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
+		pUnitNode = plot()->nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = plot()->nextUnitNode(pUnitNode);
-
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit->getRevoltProtection() > iBestModifier)
-		{
 			iBestModifier = pLoopUnit->getRevoltProtection();
-		}
 	}
 	iBestModifier = range(iBestModifier, 0, 100);
 

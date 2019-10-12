@@ -350,42 +350,39 @@ void CvMap::updateIrrigated()
 
 // The original implementation simply updated every plot on the map. This is a bad idea because it scales badly for big maps, and the update function on each plot can be expensive.
 // The new functionality attempts to only update plots that are in movement range of the selected group; with a very generous approximation for what might be in range.
-void CvMap::updateCenterUnit()
+void CvMap::updateCenterUnit()  // advc: some style changes
 {
-	/* original bts code
-	int iI;
-	for (iI = 0; iI < numPlots(); iI++)
-		plotByIndex(iI)->updateCenterUnit();*/
+	/*for (int iI = 0; iI < numPlots(); iI++)
+		plotByIndex(iI)->updateCenterUnit();*/ // BtS
 	PROFILE_FUNC();
 	int iRange = -1;
 
-	CLLNode<IDInfo>* pSelectionNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-	while (pSelectionNode)
+	for (CLLNode<IDInfo> const* pSelectionNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectionNode != NULL; pSelectionNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectionNode))
 	{
-		const CvUnit* pLoopUnit = ::getUnit(pSelectionNode->m_data);
-		pSelectionNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectionNode);
-
+		CvUnit const& kLoopUnit = *::getUnit(pSelectionNode->m_data);
 		int iLoopRange;
-		if (pLoopUnit->getDomainType() == DOMAIN_AIR)
-		{
-			iLoopRange = pLoopUnit->airRange();
-		}
+		if (kLoopUnit.getDomainType() == DOMAIN_AIR)
+			iLoopRange = kLoopUnit.airRange();
 		else
 		{
-			int iStepCost = pLoopUnit->getDomainType() == DOMAIN_LAND ? KmodPathFinder::MinimumStepCost(pLoopUnit->baseMoves()) : GC.getMOVE_DENOMINATOR();
-			iLoopRange = pLoopUnit->maxMoves() / iStepCost + (pLoopUnit->canParadrop(pLoopUnit->plot()) ? pLoopUnit->getDropRange() : 0);
+			int iStepCost = (kLoopUnit.getDomainType() == DOMAIN_LAND ?
+					KmodPathFinder::MinimumStepCost(kLoopUnit.baseMoves()) :
+					GC.getMOVE_DENOMINATOR());
+			iLoopRange = kLoopUnit.maxMoves() / iStepCost +
+					(kLoopUnit.canParadrop(kLoopUnit.plot()) ?
+					kLoopUnit.getDropRange() : 0);
 		}
 		iRange = std::max(iRange, iLoopRange);
-		// Note: technically we only really need the minimum range; but I'm using the maximum range because I think it will produce more intuitive and useful information for the player.
+		/*  Note: technically we only really need the minimum range; but I'm using the maximum range
+			because I think it will produce more intuitive and useful information for the player. */
 	}
 
 	if (iRange < 0 || iRange*iRange > numPlots() / 2)
 	{
 		// update the whole map
 		for (int i = 0; i < numPlots(); i++)
-		{
 			plotByIndex(i)->updateCenterUnit();
-		}
 	}
 	else
 	{

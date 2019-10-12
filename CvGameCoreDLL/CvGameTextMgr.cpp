@@ -303,7 +303,7 @@ void CvGameTextMgr::setNetStats(CvWString& szString, PlayerTypes ePlayer)  // ad
 
 void CvGameTextMgr::setMinimizePopupHelp(CvWString& szString, const CvPopupInfo & info)
 {
-	CvCity* pCity;
+	CvCity const* pCity;
 	UnitTypes eTrainUnit;
 	BuildingTypes eConstructBuilding;
 	ProjectTypes eCreateProject;
@@ -1580,11 +1580,10 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	int const OTHER = 3;
 	int const ALL = 4;
 	std::vector<CvUnit const*> perOwner[iRogueIndex + 1][ALL+1];
-	CLLNode<IDInfo>* pNode = kPlot.headUnitNode();
-	while(pNode != NULL)
+	for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
+		pNode = kPlot.nextUnitNode(pNode))
 	{
-		CvUnit* pUnit = ::getUnit(pNode->m_data);
-		pNode = kPlot.nextUnitNode(pNode);
+		CvUnit const* pUnit = ::getUnit(pNode->m_data);
 		if(pUnit == NULL)
 		{
 			FAssert(pUnit != NULL);
@@ -1879,16 +1878,12 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 	int iNumVisibleUnits = 0;
 	if (pPlot->isVisible(GC.getGame().getActiveTeam(), true))
 	{
-		CLLNode<IDInfo>* pUnitNode5 = pPlot->headUnitNode();
-		while(pUnitNode5 != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode5 = pPlot->headUnitNode();
+			pUnitNode5 != NULL; pUnitNode5 = pPlot->nextUnitNode(pUnitNode5))
 		{
-			CvUnit* pUnit = ::getUnit(pUnitNode5->m_data);
-			pUnitNode5 = pPlot->nextUnitNode(pUnitNode5);
-
+			CvUnit const* pUnit = ::getUnit(pUnitNode5->m_data);
 			if (pUnit && !pUnit->isInvisible(GC.getGame().getActiveTeam(), true))
-			{
-				++iNumVisibleUnits;
-			}
+				iNumVisibleUnits++;
 		}
 	}
 
@@ -2027,11 +2022,10 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 // advc: Cut and pasted from setPlotListHelp, and refactored.
 void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot)
 {
-	CLLNode<IDInfo>* pUnitNode = kPlot.headUnitNode();
-	while(pUnitNode != NULL)
+	for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode(); pUnitNode != NULL;
+		pUnitNode = kPlot.nextUnitNode(pUnitNode))
 	{
 		CvUnitAI const* pHeadUnit = ::AI_getUnit(pUnitNode->m_data);
-		pUnitNode = kPlot.nextUnitNode(pUnitNode);
 		// is this unit the head of a group, not cargo, and visible?
 		if(pHeadUnit == NULL || !pHeadUnit->isGroupHead() || pHeadUnit->isCargo())
 			continue;
@@ -2078,11 +2072,13 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 
 			// get average damage
 			int iAverageDamage = 0;
-			pUnitNode = pHeadGroup->headUnitNode();
-			while (pUnitNode != NULL)
-			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pHeadGroup->nextUnitNode(pUnitNode);
+			/*pUnitNode = pHeadGroup->headUnitNode();
+			while (pUnitNode != NULL)*/
+			// <advc.001> ^Looks like an error. We don't want to disrupt the outer loop.
+			for (CLLNode<IDInfo> const* pNode = pHeadGroup->headUnitNode();
+				pNode != NULL; pNode = pHeadGroup->nextUnitNode(pNode))
+			{ // </advc.001>
+				CvUnit const* pLoopUnit = ::getUnit(pNode->m_data);
 				iAverageDamage += (pLoopUnit->getDamage() * pLoopUnit->maxHitPoints()) / 100;
 			}
 			iAverageDamage /= pHeadGroup->getNumUnits();
@@ -2253,12 +2249,12 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 			}
 
 			// display grouped units
-			CLLNode<IDInfo>* pUnitNode3 = kPlot.headUnitNode();
-			while(pUnitNode3 != NULL)
+			/*CLLNode<IDInfo>* pUnitNode3 = kPlot.headUnitNode();
+			while(pUnitNode3 != NULL)*/ // advc: What happened to pUnitNode2? Let's just use pNode.
+			for (CLLNode<IDInfo>* pNode = kPlot.headUnitNode(); pNode != NULL;
+				pNode = kPlot.nextUnitNode(pNode))
 			{
-				CvUnit* pUnit = ::getUnit(pUnitNode3->m_data);
-				pUnitNode3 = kPlot.nextUnitNode(pUnitNode3);
-
+				CvUnit const* pUnit = ::getUnit(pNode->m_data);
 				// is this unit not head, in head's group and visible?
 				if (pUnit && pUnit != pHeadUnit && pUnit->getGroupID() == pHeadUnit->getGroupID() &&
 						!pUnit->isInvisible(eActiveTeam, true))
@@ -2429,8 +2425,9 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				szTempBuffer.Format(L"\n Area AI = NEUTRAL"); break;
 			default: szTempBuffer.Format(L"\n Unknown Area AI type"); break;
 			}
-			CvCity* pTargetCity = kArea.AI_getTargetCity(pHeadGroup->getOwner());
-			if(pTargetCity != NULL) {
+			CvCity const* pTargetCity = kArea.AI_getTargetCity(pHeadGroup->getOwner());
+			if(pTargetCity != NULL)
+			{
 				szString.append(CvWString::format(L"\nTarget City: %s (%d)",
 						pTargetCity->getName().c_str(), pTargetCity->getOwner()));
 			}
@@ -4953,11 +4950,10 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				pPlot->decayBuildProgress(true));
 		if(bDecay) // Check if Workers are getting on the task this turn
 		{
-			CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-			while(pUnitNode != NULL)
+			for (CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pPlot->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pPlot->nextUnitNode(pUnitNode);
+				CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
 				if(pUnit->getTeam() == eActiveTeam && pUnit->movesLeft() > 0 &&
 					pUnit->getGroup()->getMissionType(0) == MISSION_BUILD)
 				{
@@ -6034,7 +6030,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			}
 		}
 
-		CvCity* pTargetCity = kPlot.area()->AI_getTargetCity(kPlot.getOwner());
+		CvCity const* pTargetCity = kPlot.area()->AI_getTargetCity(kPlot.getOwner());
 		if (pTargetCity)
 		{
 			szString.append(CvWString::format(L"\nTarget City: %s", pTargetCity->getName().c_str()));
@@ -8768,13 +8764,8 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			{
 				UnitTypes eLoopUnit;
 				if (eActivePlayer != NO_PLAYER)
-				{
 					eLoopUnit = g.getActiveCivilization()->getUnit((UnitClassTypes)iI);
-				}
-				else
-				{
-					eLoopUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex();
-				}
+				else eLoopUnit = (UnitTypes)GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex();
 
 				if (eLoopUnit != NO_UNIT)
 				{
@@ -15832,7 +15823,7 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 	CvWStringBuffer szDealOne;
 	if (NULL != pListPlayer1 && pListPlayer1->getLength() > 0)
 	{
-		CLLNode<TradeData>* pTradeNode;
+		CLLNode<TradeData> const* pTradeNode;
 		bool bFirst = true;
 		for (pTradeNode = pListPlayer1->head(); pTradeNode; pTradeNode = pListPlayer1->next(pTradeNode))
 		{
@@ -15847,7 +15838,7 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 	CvWStringBuffer szDealTwo;
 	if (NULL != pListPlayer2 && pListPlayer2->getLength() > 0)
 	{
-		CLLNode<TradeData>* pTradeNode;
+		CLLNode<TradeData> const* pTradeNode;
 		bool bFirst = true;
 		for (pTradeNode = pListPlayer2->head(); pTradeNode; pTradeNode = pListPlayer2->next(pTradeNode))
 		{
@@ -15864,8 +15855,7 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 		for(int pass = 0; pass < 2; pass++)
 		{
 			CLinkList<TradeData> const& list = *(pass == 0 ? pListPlayer1 : pListPlayer2);
-			for(CLLNode<TradeData>* node = list.head(); node != NULL;
-					node = list.next(node))
+			for(CLLNode<TradeData> const* node = list.head(); node != NULL; node = list.next(node))
 			{
 				TradeableItems item = node->m_data.m_eItemType;
 				if(!CvDeal::isDual(item))
@@ -18387,10 +18377,10 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 		return;
 
 
-	CvCity* pCity = kActivePlayer.getCity(pTriggeredData->m_iCityId);
-	CvCity* pOtherPlayerCity = NULL;
-	CvPlot* pPlot = GC.getMap().plot(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
-	CvUnit* pUnit = kActivePlayer.getUnit(pTriggeredData->m_iUnitId);
+	CvCity const* pCity = kActivePlayer.getCity(pTriggeredData->m_iCityId);
+	CvCity const* pOtherPlayerCity = NULL;
+	CvPlot const* pPlot = GC.getMap().plot(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
+	CvUnit const* pUnit = kActivePlayer.getUnit(pTriggeredData->m_iUnitId);
 
 	if (NO_PLAYER != pTriggeredData->m_eOtherPlayer)
 	{

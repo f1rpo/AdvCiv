@@ -63,6 +63,13 @@ public:
 		return m_secondTrades.next(pNode); }
 	// </advc.003f>
 	// <advc> More convenient interface for iteration
+	/*  Want to make all the CLLNodes const - should generally not modify deal lists
+		while traversing them. (Though this means that CLLNode::m_data also can't be
+		changed; make that mutable?) */
+	inline CLLNode<TradeData> const* nextFirstTradesNode(CLLNode<TradeData> const* pNode) const {
+		return m_firstTrades.next(pNode); }
+	inline CLLNode<TradeData> const* nextSecondTradesNode(CLLNode<TradeData> const* pNode) const {
+		return m_secondTrades.next(pNode); }
 	bool isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const;
 	bool isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const;
 	bool isBetween(PlayerTypes ePlayer, TeamTypes eTeam) const;
@@ -72,18 +79,18 @@ public:
 	// Caller has to ensure that ePlayer/ eTeam is involved in the trade!
 	CLinkList<TradeData> const& getGivesList(PlayerTypes ePlayer) const;
 	CLinkList<TradeData> const& getGivesList(TeamTypes eTeam) const;
-	CLLNode<TradeData>* headGivesNode(PlayerTypes ePlayer) const;
-	CLLNode<TradeData>* nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const;
-	CLLNode<TradeData>* headGivesNode(TeamTypes eTeam) const;
-	CLLNode<TradeData>* nextGivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const;
+	CLLNode<TradeData> const* headGivesNode(PlayerTypes ePlayer) const;
+	CLLNode<TradeData> const* nextGivesNode(CLLNode<TradeData> const* pNode, PlayerTypes ePlayer) const;
+	CLLNode<TradeData> const* headGivesNode(TeamTypes eTeam) const;
+	CLLNode<TradeData> const* nextGivesNode(CLLNode<TradeData> const* pNode, TeamTypes eTeam) const;
 	CLinkList<TradeData> const& getReceivesList(PlayerTypes ePlayer) const;
 	CLinkList<TradeData> const& getReceivesList(TeamTypes eTeam) const;
-	CLLNode<TradeData>* headReceivesNode(PlayerTypes ePlayer) const;
-	CLLNode<TradeData>* nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const;
-	CLLNode<TradeData>* headReceivesNode(TeamTypes eTeam) const;
-	CLLNode<TradeData>* nextReceivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const;
-	CLLNode<TradeData>* headTradesNode() const;
-	CLLNode<TradeData>* nextTradesNode(CLLNode<TradeData>* pNode) const;
+	CLLNode<TradeData> const* headReceivesNode(PlayerTypes ePlayer) const;
+	CLLNode<TradeData> const* nextReceivesNode(CLLNode<TradeData> const* pNode, PlayerTypes ePlayer) const;
+	CLLNode<TradeData> const* headReceivesNode(TeamTypes eTeam) const;
+	CLLNode<TradeData> const* nextReceivesNode(CLLNode<TradeData> const* pNode, TeamTypes eTeam) const;
+	CLLNode<TradeData> const* headTradesNode() const;
+	CLLNode<TradeData> const* nextTradesNode(CLLNode<TradeData> const* pNode) const;
 	// </advc>
 
 	void clearFirstTrades(); // advc.003j (comment): unused
@@ -119,7 +126,6 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
-
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			bool bPeace); // advc.ctr
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,

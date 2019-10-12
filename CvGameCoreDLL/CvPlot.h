@@ -373,7 +373,10 @@ public:
 	void setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroup);																															// Exposed to Python
 	void updateCityRoute(bool bUpdatePlotGroup);
 
-	DllExport CvCity* getPlotCity() const;																														// Exposed to Python
+	DllExport inline CvCity* getPlotCity() const // advc.003f: inline																												// Exposed to Python
+	{
+		return ::getCity(m_plotCity);
+	}
 	// <advc.003u>
 	inline CvCityAI* AI_getPlotCity() const
 	{
@@ -541,8 +544,24 @@ public:
 	CvUnit* getUnitByIndex(int iIndex) const;																													// Exposed to Python
 	void addUnit(CvUnit* pUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);
-	DllExport CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const;
-	CLLNode<IDInfo>* prevUnitNode(CLLNode<IDInfo>* pNode) const;
+	// advc.003f: 2x inline
+	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
+	{
+		return m_units.next(pNode);
+	}
+	inline CLLNode<IDInfo>* prevUnitNode(CLLNode<IDInfo>* pNode) const
+	{
+		return m_units.prev(pNode);
+	}
+	// <advc> Safer in 'for' loops
+	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
+	{
+		return m_units.next(pNode);
+	}
+	inline CLLNode<IDInfo> const* prevUnitNode(CLLNode<IDInfo> const* pNode) const
+	{
+		return m_units.prev(pNode);
+	} // </advc>
 	DllExport CLLNode<IDInfo>* headUnitNode() const;
 	CLLNode<IDInfo>* tailUnitNode() const;
 

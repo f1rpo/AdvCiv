@@ -104,7 +104,7 @@ public:
 	#endif
 	void AI_conquerCity(CvCityAI& kCity);
 	double AI_razeMemoryScore(CvCity const& c) const; // advc.130q
-	bool AI_acceptUnit(CvUnit* pUnit) const;
+	bool AI_acceptUnit(CvUnit const& kUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const;
 
 	DomainTypes AI_unitAIDomainType(UnitAITypes eUnitAI) const;

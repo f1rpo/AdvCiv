@@ -1331,7 +1331,7 @@ bool RiseFall::isSquareDeal(CLinkList<TradeData> const& humanReceives,
 bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const {
 
 	CvPlayerAI const& human = GET_PLAYER(GC.getGame().getActivePlayer());
-	for(CLLNode<TradeData>* node = humanReceives.head();
+	for(CLLNode<TradeData> const* node = humanReceives.head();
 			node != NULL; node = humanReceives.next(node)) {
 		if(node->m_data.m_eItemType == TRADE_WAR) {
 			TeamTypes targetId = (TeamTypes)node->m_data.m_iData;
@@ -1354,7 +1354,7 @@ bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 	bool allVassal = true;
 	bool allDual = true;
 	bool allLiberation = true;
-	for(CLLNode<TradeData>* node = list.head();
+	for(CLLNode<TradeData> const* node = list.head();
 			node != NULL; node = list.next(node)) {
 		TradeableItems item = node->m_data.m_eItemType;
 		if(!CvDeal::isDual(item))
@@ -1362,7 +1362,7 @@ bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 		if(item != TRADE_SURRENDER && item != TRADE_VASSAL)
 			allVassal = false;
 		if(item == TRADE_CITIES) {
-			CvCity* c = GET_PLAYER(from).getCity(node->m_data.m_iData);
+			CvCity const* c = GET_PLAYER(from).getCity(node->m_data.m_iData);
 			if(c == NULL || c->getLiberationPlayer() != to)
 				allLiberation = false;
 		}
@@ -1387,7 +1387,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 	CvTeamAI const& humanTeam = GET_TEAM(humanTeamId);
 	CvPlayerAI const& humanCiv = GET_PLAYER(humanCivId);
 	// Loop based on CvPlayerAI::AI_dealVal
-	for(CLLNode<TradeData>* node = humanReceives.head(); node != NULL;
+	for(CLLNode<TradeData> const* node = humanReceives.head(); node != NULL;
 			node = humanReceives.next(node)) {
 		int itemVal = 0;
 		/*  What the AI thinks that the item should be worth to the human civ.

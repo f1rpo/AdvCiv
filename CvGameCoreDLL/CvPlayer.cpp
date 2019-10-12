@@ -813,6 +813,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 		AI().AI_reset(false);
 }
 
+
 // CHANGE_PLAYER, 08/17/08, jdog5000: START
 // for stripping obsolete trait bonuses
 // for complete reset, use in conjunction with addTraitBonuses
@@ -1693,7 +1694,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	{	// Kill ICBMs
 		CLinkList<IDInfo> oldUnits; // (I doubt that it's necessary to copy the plot's unit list here)
 		{
-			for (CLLNode<IDInfo>* pUnitNode = kCityPlot.headUnitNode(); pUnitNode != NULL;
+			for (CLLNode<IDInfo> const* pUnitNode = kCityPlot.headUnitNode(); pUnitNode != NULL;
 					pUnitNode = kCityPlot.nextUnitNode(pUnitNode))
 				oldUnits.insertAtEnd(pUnitNode->m_data);
 		}
@@ -2254,14 +2255,13 @@ void CvPlayer::killCities()
 CvWString CvPlayer::getNewCityName() const
 {
 	CvWString szName;
-	/* original bts code
-	for (pNode = headCityNameNode(); (pNode != NULL); pNode = nextCityNameNode(pNode)) {
+	/*for (pNode = headCityNameNode(); (pNode != NULL); pNode = nextCityNameNode(pNode)) {
 		szName = gDLL->getText(pNode->m_data);
 		if (isCityNameValid(szName, true)) {
 			szName = pNode->m_data;
 			break;
 		}
-	} */
+	}*/ // BtS
 	// K-Mod
 	for (CLLNode<CvWString>* pNode = headCityNameNode(); pNode && szName.empty(); pNode = nextCityNameNode(pNode))
 	{
@@ -3380,7 +3380,6 @@ void CvPlayer::updateTradeRoutes()
 		while (pCityNode != NULL)
 		{
 			CvCity* pListCity = getCity(pCityNode->m_data);
-
 			if (iTotalTradeModifier > pListCity->totalTradeModifier())
 			{
 				cityList.insertBefore(pLoopCity->getID(), pCityNode);
@@ -4516,8 +4515,8 @@ int CvPlayer::getNumTradeBonusImports(PlayerTypes eFromPlayer) const // advc: Si
 		if (!pLoopDeal->isBetween(getID(), eFromPlayer))
 			continue;
 
-		for (CLLNode<TradeData>*pNode = pLoopDeal->headGivesNode(eFromPlayer); pNode != NULL;
-			pNode = pLoopDeal->nextGivesNode(pNode, eFromPlayer))
+		for (CLLNode<TradeData> const* pNode = pLoopDeal->headGivesNode(eFromPlayer);
+			pNode != NULL; pNode = pLoopDeal->nextGivesNode(pNode, eFromPlayer))
 		{
 			if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
 				iCount++;
@@ -13032,7 +13031,7 @@ void CvPlayer::validateDiplomacy()
 		for(CvDiploQueue::iterator it = m_listDiplomacy.begin(); it != m_listDiplomacy.end(); ++it)
 		{
 			CvDiploParameters* pDiplo = *it;
-			CLLNode<TradeData>* pNode = pDiplo->getOurOfferList().head(); // Can be NULL!
+			CLLNode<TradeData> const* pNode = pDiplo->getOurOfferList().head(); // Can be NULL!
 			// Worst enemy may have changed
 			if(pDiplo->getDiploComment() == GC.getInfoTypeForString("AI_DIPLOCOMMENT_STOP_TRADING") &&
 				pDiplo->getData() != GET_TEAM(pDiplo->getWhoTalkingTo()).AI_getWorstEnemy())
@@ -13091,7 +13090,7 @@ void CvPlayer::validateDiplomacy()
 			apInvalid.push_back(pDiplo);
 			continue;
 		}
-		CLLNode<TradeData>* pNode = NULL;
+		CLLNode<TradeData> const* pNode = NULL;
 		bool bCapitulate = false;
 		bool bValid = true;
 		for(pNode = pDiplo->getOurOfferList().head(); pNode != NULL;
@@ -13839,39 +13838,33 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 	else if (kMission.getDestroyUnitCostFactor() > 0)
 	{
 		// Destroys Unit
-		CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iExtraData);
+		CvUnit const* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iExtraData);
 		int iCost = MAX_INT;
-		if (NULL == pUnit)
+		if (pUnit == NULL && pPlot != NULL)
 		{
-			if (NULL != pPlot)
+			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
+				pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
 			{
-				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-
-				while (pUnitNode != NULL)
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+				if (canSpyDestroyUnit(eTargetPlayer, *pLoopUnit))
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
-					if (canSpyDestroyUnit(eTargetPlayer, *pLoopUnit))
+					int iValue = getProductionNeeded(pLoopUnit->getUnitType());
+					if (iValue < iCost)
 					{
-						int iValue = getProductionNeeded(pLoopUnit->getUnitType());
-						if (iValue < iCost)
-						{
-							iCost = iValue;
-							pUnit = pLoopUnit;
-						}
+						iCost = iValue;
+						pUnit = pLoopUnit;
 					}
 				}
-
 			}
 		}
 		else iCost = getProductionNeeded(pUnit->getUnitType());
 
-		if (NULL != pUnit)
+		if (pUnit != NULL)
 		{
 			if (canSpyDestroyUnit(eTargetPlayer, *pUnit))
 			{
-				iMissionCost = iBaseMissionCost + ((100 + kMission.getDestroyUnitCostFactor()) * iCost) / 100;
+				iMissionCost = iBaseMissionCost +
+						((100 + kMission.getDestroyUnitCostFactor()) * iCost) / 100;
 			}
 		}
 	}
@@ -13917,19 +13910,15 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 	else if (kMission.getBuyUnitCostFactor() > 0)
 	{
 		// Buy Unit
-		CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iExtraData);
+		CvUnit const* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iExtraData);
 		int iCost = MAX_INT;
 
-		if (NULL == pUnit)
+		if (pUnit == NULL && pPlot != NULL)
 		{
-			if (NULL != pPlot)
-			{
-				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-				while (pUnitNode != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
+				pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
+					CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 					if (canSpyBribeUnit(eTargetPlayer, *pLoopUnit))
 					{
 						int iValue = getProductionNeeded(pLoopUnit->getUnitType());
@@ -13940,16 +13929,14 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 						}
 					}
 				}
-
-			}
 		}
 		else iCost = getProductionNeeded(pUnit->getUnitType());
-
-		if (NULL != pUnit)
+		if (pUnit != NULL)
 		{
 			if (canSpyBribeUnit(eTargetPlayer, *pUnit))
 			{
-				iMissionCost = iBaseMissionCost + ((100 + kMission.getBuyUnitCostFactor()) * iCost) / 100;
+				iMissionCost = iBaseMissionCost +
+						((100 + kMission.getBuyUnitCostFactor()) * iCost) / 100;
 			}
 		}
 	}
@@ -14358,9 +14345,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		if (NO_PLAYER != eTargetPlayer)
 		{
 			int iTargetUnitID = iExtraData;
-
 			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
-
 			if (NULL != pUnit)
 			{
 				FAssert(pUnit->plot() == pPlot);
@@ -14381,9 +14366,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		if (NO_PLAYER != eTargetPlayer)
 		{
 			int iTargetUnitID = iExtraData;
-
 			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
-
 			if (NULL != pUnit)
 			{
 				FAssert(pUnit->plot() == pPlot);
@@ -14898,7 +14881,6 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 				if (pUnitNode != NULL)
 				{
 					CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
-
 					iCost = getAdvancedStartUnitCost(pUnit->getUnitType(), false,
 							pPlot); // dlph.11
 					FAssertMsg(iCost != -1, "If this is -1 then that means it's going to try to delete a unit which shouldn't exist");
@@ -15429,23 +15411,15 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 		else
 		{
 			bool bUnitFound = false;
-
-			CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
+				pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				if (pLoopUnit->getUnitType() == eUnit)
-				{
 					bUnitFound = true;
-				}
 			}
-
 			if (!bUnitFound)
-			{
 				return -1;
-			}
 		}
 	}
 
@@ -21053,7 +21027,7 @@ bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) co
 	return kTarget.isMajorReligion(eReligion); // </advc.132>
 }
 
-bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit& kUnit) const
+bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 {
 	if (kUnit.getTeam() == getTeam())
 	{
@@ -21073,7 +21047,7 @@ bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit& kUnit) const
 	return true;
 }
 
-bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit& kUnit) const
+bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 {
 	if (!canSpyDestroyUnit(eTarget, kUnit))
 	{
@@ -21092,12 +21066,11 @@ bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit& kUnit) const
 		return false;
 	}
 
-	CLLNode<IDInfo>* pUnitNode = kUnit.plot()->headUnitNode();
-	while (pUnitNode != NULL)
+	for (CLLNode<IDInfo> const* pUnitNode = kUnit.plot()->headUnitNode(); pUnitNode != NULL;
+		pUnitNode = kUnit.plot()->nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = kUnit.plot()->nextUnitNode(pUnitNode);
-		if (NULL != pLoopUnit && pLoopUnit != &kUnit)
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		if (pLoopUnit != NULL && pLoopUnit != &kUnit)
 		{
 			if (pLoopUnit->isEnemy(getTeam()))
 			{
@@ -21208,7 +21181,7 @@ bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
 	{
 		if(d->isBetween(getID(), ePlayer) && d->getFirstTrades() != NULL)
 		{
-			for(CLLNode<TradeData>* pNode = d->getFirstTrades()->head();
+			for(CLLNode<TradeData> const* pNode = d->getFirstTrades()->head();
 				pNode != NULL; pNode = d->getFirstTrades()->next(pNode))
 			{
 				if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
@@ -21863,7 +21836,8 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
 	const CLinkList<TradeData>& ourOffer, const CLinkList<TradeData>& theirOffer) const
 {
-	for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL; pNode = ourInventory.next(pNode))
+	for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL;
+		pNode = ourInventory.next(pNode))
 	{
 		pNode->m_data.m_bHidden = false;
 
@@ -22170,11 +22144,10 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 			float fPlotStrength = 0.0f;
 			bool bShowIndicator = false;
 
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+				CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
 				if (pUnit->getVisualOwner() != iPlayer ||
 						pUnit->isInvisible(getTeam(), true))
 					continue;

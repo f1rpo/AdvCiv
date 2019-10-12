@@ -39,7 +39,15 @@ public:
 
 	void insertAtEndPlots(XYCoords xy);
 	CLLNode<XYCoords>* deletePlotsNode(CLLNode<XYCoords>* pNode);
-	CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode);
+	// advc.003f: inline
+	inline CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode)
+	{
+		return m_plots.next(pNode);
+	} // <advc> Safer in 'for' loops
+	inline CLLNode<XYCoords> const* nextPlotsNode(CLLNode<XYCoords> const* pNode)
+	{
+		return m_plots.next(pNode);
+	} // </advc>
 	int getLengthPlots();
 	CLLNode<XYCoords>* headPlotsNode();
 

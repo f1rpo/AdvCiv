@@ -689,7 +689,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		if (!pLoopDeal->involves(getID())) // advc: Replacing the K-Mod replacement
 			continue;
 
-		for (CLLNode<TradeData>* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
+		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
 			pNode = pLoopDeal->nextTradesNode(pNode))
 		{
 			if ((pNode->m_data.m_eItemType == TRADE_OPEN_BORDERS) ||
@@ -1721,8 +1721,8 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_PEACE_IN_EXCHANGE",
 						getName().GetCString(), kTarget.getName().GetCString()) + L" ";
-				for (CLLNode<TradeData>* pNode = pReparations->head(); pNode != NULL;
-						pNode = pReparations->next(pNode))
+				for (CLLNode<TradeData> const* pNode = pReparations->head(); pNode != NULL;
+					pNode = pReparations->next(pNode))
 				{
 					CvWString const szItem(tradeItemString(pNode->m_data.m_eItemType, pNode->m_data.m_iData, eTarget));
 					if (szItem.length() <= 0)
@@ -4225,7 +4225,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			if (!pLoopDeal->involves(getID()))
 				continue;
 
-			for (CLLNode<TradeData>* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
+			for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
 				pNode = pLoopDeal->nextTradesNode(pNode))
 			{
 				if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT ||
@@ -4588,7 +4588,7 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 		if (!pLoopDeal->isBetween(getID(), eVassal))
 			continue;
 
-		for (CLLNode<TradeData>* pNode = pLoopDeal->headGivesNode(eVassal); pNode != NULL;
+		for (CLLNode<TradeData> const* pNode = pLoopDeal->headGivesNode(eVassal); pNode != NULL;
 			pNode = pLoopDeal->nextGivesNode(pNode, eVassal))
 		{
 			if (pNode->m_data.m_eItemType == TRADE_VASSAL ||
@@ -6864,7 +6864,7 @@ void CvTeam::cancelDefensivePacts()
 		if (!pLoopDeal->involves(getID()))
 			continue;
 
-		for (CLLNode<TradeData>* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
+		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
 			pNode = pLoopDeal->nextTradesNode(pNode))
 		{
 			if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)

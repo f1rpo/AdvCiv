@@ -28,7 +28,6 @@ struct XYCoords
 
 struct IDInfo
 {
-
 	IDInfo(PlayerTypes eOwner=NO_PLAYER, int iID=FFreeList::INVALID_INDEX) : eOwner(eOwner), iID(iID) {}
 	PlayerTypes eOwner;
 	int iID;

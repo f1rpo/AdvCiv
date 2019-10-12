@@ -165,11 +165,10 @@ void CvGame::updateColoredPlots()
 		}
 		else
 		{
-			CLLNode<IDInfo>* pSelectedCityNode = gDLL->getInterfaceIFace()->headSelectedCitiesNode();
-			while (pSelectedCityNode != NULL)
+			for (CLLNode<IDInfo> const* pSelectedCityNode = gDLL->getInterfaceIFace()->headSelectedCitiesNode();
+				pSelectedCityNode != NULL; pSelectedCityNode = gDLL->getInterfaceIFace()->nextSelectedCitiesNode(pSelectedCityNode))
 			{
-				CvCity* pSelectedCity = ::getCity(pSelectedCityNode->m_data);
-				pSelectedCityNode = gDLL->getInterfaceIFace()->nextSelectedCitiesNode(pSelectedCityNode);
+				CvCity const* pSelectedCity = ::getCity(pSelectedCityNode->m_data);
 				if (pSelectedCity != NULL)
 				{
 					CvPlot* pRallyPlot = pSelectedCity->getRallyPlot();
@@ -213,11 +212,10 @@ void CvGame::updateColoredPlots()
 	{
 		int iMaxAirRange = 0;
 
-		CLLNode<IDInfo>* pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-		while (pSelectedUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+			pSelectedUnitNode != NULL; pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode))
 		{
-			CvUnit* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			CvUnit const* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
 			if (pSelectedUnit != NULL)
 				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->airRange());
 		}
@@ -523,7 +521,7 @@ CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUni
 	TeamTypes eActiveTeam = getActiveTeam();
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		for (CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
 			pUnitNode = pPlot->nextUnitNode(pUnitNode))
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -542,7 +540,7 @@ CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUni
 			if (!pLoopUnit->hasCargo())
 				continue;
 
-			for (CLLNode<IDInfo>* pCargoUnitNode = pPlot->headUnitNode(); pCargoUnitNode != NULL;
+			for (CLLNode<IDInfo> const* pCargoUnitNode = pPlot->headUnitNode(); pCargoUnitNode != NULL;
 				pCargoUnitNode = pPlot->nextUnitNode(pCargoUnitNode))
 			{
 				CvUnit* pCargoUnit = ::getUnit(pCargoUnitNode->m_data);
@@ -694,117 +692,83 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 	}
 } // K-Mod end
 
-// Returns true if unit was cycled...
+// Returns true if unit was cycled...  // advc: style changes
 bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount) const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit = NULL;
+	FAssert(iCount >= -1);
 
-	FAssertMsg(iCount >= -1, "iCount expected to be >= -1");
-
+	CvUnit const* pUnit = NULL;
+	CLLNode<IDInfo> const* pUnitNode = NULL;
 	if (iCount == -1)
 	{
-		pUnitNode = pPlot->headUnitNode();
-
-		while (pUnitNode != NULL)
+		for (pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pPlot->nextUnitNode(pUnitNode))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-
-			if (pLoopUnit->IsSelected())
-			{
+			pUnit = ::getUnit(pUnitNode->m_data);
+			if (pUnit->IsSelected())
 				break;
-			}
-
-			pUnitNode = pPlot->nextUnitNode(pUnitNode);
 		}
 	}
 	else
 	{
-		pUnitNode = pPlot->headUnitNode();
-
-		while (pUnitNode != NULL)
+		for (pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pPlot->nextUnitNode(pUnitNode))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-
-			if ((iCount - 1) == 0)
-			{
+			pUnit = ::getUnit(pUnitNode->m_data);
+			if (iCount - 1 == 0)
 				break;
-			}
-
 			if (iCount > 0)
-			{
 				iCount--;
-			}
-
-			pUnitNode = pPlot->nextUnitNode(pUnitNode);
 		}
-
 		if (pUnitNode == NULL)
 		{
 			pUnitNode = pPlot->tailUnitNode();
-
 			if (pUnitNode != NULL)
-			{
-				pLoopUnit = ::getUnit(pUnitNode->m_data);
-			}
+				pUnit = ::getUnit(pUnitNode->m_data);
 		}
 	}
+	if (pUnitNode == NULL)
+		return false;
 
-	if (pUnitNode != NULL)
+	CvUnit const* pSelectedUnit = pUnit;
+	while (true)
 	{
-		CvUnit* pSelectedUnit = pLoopUnit;
-
-		while (true)
+		if (bForward)
 		{
-			if (bForward)
+			pUnitNode = pPlot->nextUnitNode(pUnitNode);
+			if (pUnitNode == NULL)
+				pUnitNode = pPlot->headUnitNode();
+		}
+		else
+		{
+			pUnitNode = pPlot->prevUnitNode(pUnitNode);
+			if (pUnitNode == NULL)
+				pUnitNode = pPlot->tailUnitNode();
+		}
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		if (iCount == -1)
+		{
+			if (pLoopUnit == pSelectedUnit)
+				break;
+		}
+		if (pLoopUnit->getOwner() == getActivePlayer())
+		{
+			if (bAuto)
 			{
-				pUnitNode = pPlot->nextUnitNode(pUnitNode);
-				if (pUnitNode == NULL)
+				if (pLoopUnit->getGroup()->readyToSelect())
 				{
-					pUnitNode = pPlot->headUnitNode();
+					gDLL->getInterfaceIFace()->selectUnit(pLoopUnit, true);
+					return true;
 				}
 			}
 			else
 			{
-				pUnitNode = pPlot->prevUnitNode(pUnitNode);
-				if (pUnitNode == NULL)
-				{
-					pUnitNode = pPlot->tailUnitNode();
-				}
-			}
-
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-
-			if (iCount == -1)
-			{
-				if (pLoopUnit == pSelectedUnit)
-				{
-					break;
-				}
-			}
-
-			if (pLoopUnit->getOwner() == getActivePlayer())
-			{
-				if (bAuto)
-				{
-					if (pLoopUnit->getGroup()->readyToSelect())
-					{
-						gDLL->getInterfaceIFace()->selectUnit(pLoopUnit, true);
-						return true;
-					}
-				}
-				else
-				{
-					gDLL->getInterfaceIFace()->insertIntoSelectionList(pLoopUnit, true, false);
-					return true;
-				}
-			}
-
-			if (pLoopUnit == pSelectedUnit)
-			{
-				break;
+				gDLL->getInterfaceIFace()->insertIntoSelectionList(pLoopUnit, true, false);
+				return true;
 			}
 		}
+		if (pLoopUnit == pSelectedUnit)
+			break;
 	}
 
 	return false;
@@ -886,7 +850,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 		return; // advc
 
 	CLLNode<IDInfo>* pSelectedUnitNode;
-	CvUnit* pSelectedUnit;
+	CvUnit const* pSelectedUnit;
 	if (eMessage == GAMEMESSAGE_JOIN_GROUP)
 	{
 		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
@@ -1003,61 +967,49 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 
 void CvGame::selectedCitiesGameNetMessage(int eMessage, int iData2, int iData3, int iData4, bool bOption, bool bAlt, bool bShift, bool bCtrl) const
 {
-	CLLNode<IDInfo>* pSelectedCityNode = gDLL->getInterfaceIFace()->headSelectedCitiesNode();
-
-	while (pSelectedCityNode != NULL)
+	for (CLLNode<IDInfo> const* pSelectedCityNode = gDLL->getInterfaceIFace()->
+		headSelectedCitiesNode(); pSelectedCityNode != NULL;
+		pSelectedCityNode = gDLL->getInterfaceIFace()->nextSelectedCitiesNode(pSelectedCityNode))
 	{
 		CvCity* pSelectedCity = ::getCity(pSelectedCityNode->m_data);
-		pSelectedCityNode = gDLL->getInterfaceIFace()->nextSelectedCitiesNode(pSelectedCityNode);
-
-		if (pSelectedCity != NULL)
+		if (pSelectedCity == NULL || pSelectedCity->getOwner() != getActivePlayer())
+			continue;
+		switch (eMessage)
 		{
-			if (pSelectedCity->getOwner() == getActivePlayer())
+		case GAMEMESSAGE_PUSH_ORDER:
+			cityPushOrder(pSelectedCity, (OrderTypes)iData2, iData3, bAlt, bShift, bCtrl);
+			break;
+		case GAMEMESSAGE_POP_ORDER:
+			/*if (pSelectedCity->getOrderQueueLength() > 1)
+				CvMessageControl::getInstance().sendPopOrder(pSelectedCity->getID(), iData2);
+			*/ // BtS
+			// K-Mod. Some additional controls
+			if (bAlt || (bShift != bCtrl))
 			{
-				switch (eMessage)
+				// bCtrl moves the order up, bShift moves the order down.
+				// bAlt toggles bSave (ie. repeat)
+				int iNewPos = iData2 + (bShift ? 1 : 0) + (bCtrl ? -1 : 0);
+				if (pSelectedCity->getOrderQueueLength() > iNewPos && iNewPos >= 0)
 				{
-				case GAMEMESSAGE_PUSH_ORDER:
-					cityPushOrder(pSelectedCity, ((OrderTypes)iData2), iData3, bAlt, bShift, bCtrl);
-					break;
-
-				case GAMEMESSAGE_POP_ORDER:
-					/* original bts code
-					if (pSelectedCity->getOrderQueueLength() > 1)
+					OrderData order = pSelectedCity->getOrderData(iData2);
+					if (order.eOrderType != NO_ORDER && (bShift || bCtrl || order.eOrderType == ORDER_TRAIN))
 					{
+						order.bSave = order.bSave != (bAlt && order.eOrderType == ORDER_TRAIN);
 						CvMessageControl::getInstance().sendPopOrder(pSelectedCity->getID(), iData2);
-					} */
-					// K-Mod. Some additional controls
-					if (bAlt || (bShift != bCtrl))
-					{
-						// bCtrl moves the order up, bShift moves the order down.
-						// bAlt toggles bSave (ie. repeat)
-						int iNewPos = iData2 + (bShift ? 1 : 0) + (bCtrl ? -1 : 0);
-						if (pSelectedCity->getOrderQueueLength() > iNewPos && iNewPos >= 0)
-						{
-							OrderData order = pSelectedCity->getOrderData(iData2);
-							if (order.eOrderType != NO_ORDER && (bShift || bCtrl || order.eOrderType == ORDER_TRAIN))
-							{
-								order.bSave = order.bSave != (bAlt && order.eOrderType == ORDER_TRAIN);
-								CvMessageControl::getInstance().sendPopOrder(pSelectedCity->getID(), iData2);
-								CvMessageControl::getInstance().sendPushOrder(pSelectedCity->getID(), order.eOrderType, order.iData1, order.bSave, false, iNewPos);
-							}
-						}
+						CvMessageControl::getInstance().sendPushOrder(pSelectedCity->getID(), order.eOrderType, order.iData1, order.bSave, false, iNewPos);
 					}
-					// Allow us to cancel the final order for automated cities. (The governor can choose production at the end of the turn.)
-					else if (pSelectedCity->getOrderQueueLength() > 1 || pSelectedCity->isProductionAutomated())
-						CvMessageControl::getInstance().sendPopOrder(pSelectedCity->getID(), iData2);
-					// K-Mod end
-					break;
-
-				case GAMEMESSAGE_DO_TASK:
-					CvMessageControl::getInstance().sendDoTask(pSelectedCity->getID(), ((TaskTypes)iData2), iData3, iData4, bOption, bAlt, bShift, bCtrl);
-					break;
-
-				default:
-					FAssert(false);
-					break;
 				}
 			}
+			// Allow us to cancel the final order for automated cities. (The governor can choose production at the end of the turn.)
+			else if (pSelectedCity->getOrderQueueLength() > 1 || pSelectedCity->isProductionAutomated())
+				CvMessageControl::getInstance().sendPopOrder(pSelectedCity->getID(), iData2);
+			// K-Mod end
+			break;
+		case GAMEMESSAGE_DO_TASK:
+			CvMessageControl::getInstance().sendDoTask(pSelectedCity->getID(), ((TaskTypes)iData2), iData3, iData4, bOption, bAlt, bShift, bCtrl);
+			break;
+		default:
+			FAssert(false);
 		}
 	}
 }
@@ -1902,7 +1854,7 @@ void CvGame::getGlobeLayers(std::vector<CvGlobeLayerData>& aLayers) const
 	aLayers.push_back(kReligion);
 }
 
-void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>& aFlyoutItems) const
+void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>& aFlyoutItems) const  // advc: some style changes
 {
 	aFlyoutItems.clear();
 
@@ -1910,119 +1862,101 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 	bool bFortifyUnit = false;
 	bool bSleepUnit = false;
 	bool bWakeUnit = false;
-	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-	while (pUnitNode != NULL)
+
+	for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+		pUnitNode = pPlot->nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
-		if (pLoopUnit->getOwner() == getActivePlayer())
-		{
-			bUnits = true;
-
-			if (pLoopUnit->canFortify(pPlot))
-			{
-				bFortifyUnit = true;
-			}
-			else if (pLoopUnit->canSleep(pPlot))
-			{
-				bSleepUnit = true;
-			}
-			else if (pLoopUnit->isWaiting())
-			{
-				bWakeUnit = true;
-			}
-		}
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		if (pLoopUnit->getOwner() != getActivePlayer())
+			continue;
+		bUnits = true;
+		if (pLoopUnit->canFortify(pPlot))
+			bFortifyUnit = true;
+		else if (pLoopUnit->canSleep(pPlot))
+			bSleepUnit = true;
+		else if (pLoopUnit->isWaiting())
+			bWakeUnit = true;
 	}
 
 	CvWString szBuffer;
 	CvCity* pCity = pPlot->getPlotCity();
-	if (pCity != NULL)
+	if (pCity != NULL && pCity->getOwner() == getActivePlayer())
 	{
-		if (pCity->getOwner() == getActivePlayer())
+		szBuffer = gDLL->getText("TXT_KEY_CHANGE_PRODUCTION");
+		aFlyoutItems.push_back(CvFlyoutMenuData(NO_FLYOUT, -1, -1, -1, szBuffer));
+		CvCivilization const& kCiv = pCity->getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumUnits(); i++)
 		{
-			szBuffer = gDLL->getText("TXT_KEY_CHANGE_PRODUCTION");
-			aFlyoutItems.push_back(CvFlyoutMenuData(NO_FLYOUT, -1, -1, -1, szBuffer));
-			CvCivilization const& kCiv = pCity->getCivilization(); // advc.003w
-			for (int i = 0; i < kCiv.getNumUnits(); i++)
+			UnitTypes eLoopUnit = kCiv.unitAt(i);
+			if (!pCity->canTrain(eLoopUnit))
+				continue;
+			szBuffer = GC.getUnitInfo(eLoopUnit).getDescription();
+			int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
+			if(iTurns < MAX_INT) // advc.004x
+				szBuffer.append(CvWString::format(L" (%d)", iTurns));
+			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_TRAIN, eLoopUnit,
+					pPlot->getX(), pPlot->getY(), szBuffer));
+		}
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
+		{
+			BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
+			if (!pCity->canConstruct(eLoopBuilding))
+				continue;
+			szBuffer = GC.getBuildingInfo(eLoopBuilding).getDescription();
+			int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
+			if(iTurns < MAX_INT) // advc.004x
+				szBuffer.append(CvWString::format(L" (%d)", iTurns));
+			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSTRUCT, eLoopBuilding,
+					pPlot->getX(), pPlot->getY(), szBuffer));
+		}
+		for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
+		{
+			ProjectTypes eLoopProject = (ProjectTypes) iI;
+			if (!pCity->canCreate(eLoopProject))
+				continue;
+			szBuffer = GC.getProjectInfo(eLoopProject).getDescription();
+			int iTurns = pCity->getProductionTurnsLeft(eLoopProject, 0);
+			if(iTurns < MAX_INT) // advc.004x
+				szBuffer.append(CvWString::format(L" (%d)", iTurns));
+			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CREATE, eLoopProject,
+					pPlot->getX(), pPlot->getY(), szBuffer));
+		}
+		for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
+		{
+			ProcessTypes eLoopProcess = (ProcessTypes)iI;
+			if (!pCity->canMaintain(eLoopProcess))
+				continue; // advc
+			szBuffer = GC.getProcessInfo(eLoopProcess).getDescription();
+			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
+					pPlot->getX(), pPlot->getY(), szBuffer));
+		}
+
+		aFlyoutItems.push_back(CvFlyoutMenuData(NO_FLYOUT, -1, -1, -1, L""));
+		for (int iI = 0; iI < GC.getNumHurryInfos(); iI++)
+		{
+			if (pCity->canHurry((HurryTypes)iI))
 			{
-				UnitTypes eLoopUnit = kCiv.unitAt(i);
-				if (!pCity->canTrain(eLoopUnit))
-					continue; // advc
-				szBuffer = GC.getUnitInfo(eLoopUnit).getDescription();
-				int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
-				if(iTurns < MAX_INT) // advc.004x
-					szBuffer.append(CvWString::format(L" (%d)", iTurns));
-				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_TRAIN, eLoopUnit,
-						pPlot->getX(), pPlot->getY(), szBuffer));
+				szBuffer = gDLL->getText("TXT_KEY_HURRY_PRODUCTION");
+
+				int iHurryGold = pCity->hurryGold((HurryTypes)iI);
+				if (iHurryGold > 0)
+					szBuffer += gDLL->getText("TXT_KEY_HURRY_PRODUCTION_GOLD", iHurryGold);
+
+				int iHurryPopulation = pCity->hurryPopulation((HurryTypes)iI);
+				if (iHurryPopulation > 0)
+					szBuffer += gDLL->getText("TXT_KEY_HURRY_PRODUCTION_POP", iHurryPopulation);
+
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_HURRY, iI, pPlot->getX(), pPlot->getY(), szBuffer));
 			}
-			for (int i = 0; i < kCiv.getNumBuildings(); i++)
+		}
+
+		if (pCity->canConscript())
+		{
+			UnitTypes eConscriptUnit = pCity->getConscriptUnit();
+			if (eConscriptUnit != NO_UNIT)
 			{
-				BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
-				if (!pCity->canConstruct(eLoopBuilding))
-					continue; // advc
-				szBuffer = GC.getBuildingInfo(eLoopBuilding).getDescription();
-				int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
-				if(iTurns < MAX_INT) // advc.004x
-					szBuffer.append(CvWString::format(L" (%d)", iTurns));
-				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSTRUCT, eLoopBuilding,
-						pPlot->getX(), pPlot->getY(), szBuffer));
-			}
-			for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
-			{
-				ProjectTypes eLoopProject = (ProjectTypes) iI;
-				if (!pCity->canCreate(eLoopProject))
-					continue; // advc
-				szBuffer = GC.getProjectInfo(eLoopProject).getDescription();
-				int iTurns = pCity->getProductionTurnsLeft(eLoopProject, 0);
-				if(iTurns < MAX_INT) // advc.004x
-					szBuffer.append(CvWString::format(L" (%d)", iTurns));
-				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CREATE, eLoopProject,
-						pPlot->getX(), pPlot->getY(), szBuffer));
-			}
-			for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
-			{
-				ProcessTypes eLoopProcess = (ProcessTypes)iI;
-				if (!pCity->canMaintain(eLoopProcess))
-					continue; // advc
-				szBuffer = GC.getProcessInfo(eLoopProcess).getDescription();
-				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
-						pPlot->getX(), pPlot->getY(), szBuffer));
-			}
-
-
-			aFlyoutItems.push_back(CvFlyoutMenuData(NO_FLYOUT, -1, -1, -1, L""));
-
-			for (int iI = 0; iI < GC.getNumHurryInfos(); iI++)
-			{
-				if (pCity->canHurry((HurryTypes)iI))
-				{
-					szBuffer = gDLL->getText("TXT_KEY_HURRY_PRODUCTION");
-
-					int iHurryGold = pCity->hurryGold((HurryTypes)iI);
-					if (iHurryGold > 0)
-					{
-						szBuffer += gDLL->getText("TXT_KEY_HURRY_PRODUCTION_GOLD", iHurryGold);
-					}
-
-					int iHurryPopulation = pCity->hurryPopulation((HurryTypes)iI);
-					if (iHurryPopulation > 0)
-					{
-						szBuffer += gDLL->getText("TXT_KEY_HURRY_PRODUCTION_POP", iHurryPopulation);
-					}
-
-					aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_HURRY, iI, pPlot->getX(), pPlot->getY(), szBuffer));
-				}
-			}
-
-			if (pCity->canConscript())
-			{
-				UnitTypes eConscriptUnit = pCity->getConscriptUnit();
-				if (eConscriptUnit != NO_UNIT)
-				{
-					szBuffer = gDLL->getText("TXT_KEY_DRAFT_UNIT", GC.getUnitInfo(eConscriptUnit).getDescription(), pCity->getConscriptPopulation());
-					aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSCRIPT, GC.getNumHurryInfos(), pPlot->getX(), pPlot->getY(), szBuffer));
-				}
+				szBuffer = gDLL->getText("TXT_KEY_DRAFT_UNIT", GC.getUnitInfo(eConscriptUnit).getDescription(), pCity->getConscriptPopulation());
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSCRIPT, GC.getNumHurryInfos(), pPlot->getX(), pPlot->getY(), szBuffer));
 			}
 		}
 	}
@@ -2032,19 +1966,19 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 	{
 		gDLL->getFAStarIFace()->SetData(&GC.getInterfacePathFinder(), gDLL->getInterfaceIFace()->getSelectionList());
 		if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR ||
-				gDLL->getFAStarIFace()->GeneratePath(&GC.getInterfacePathFinder(),
-				pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(),
-				pPlot->getX(), pPlot->getY(), false, MOVE_DECLARE_WAR, true))
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getInterfacePathFinder(),
+			pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(),
+			pPlot->getX(), pPlot->getY(), false, MOVE_DECLARE_WAR, true))
 		{
 			if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR)
-			{
 				szBuffer = gDLL->getText("TXT_KEY_FLYOUT_MENU_FLY_TO");
-			}
 			else
 			{
-				szBuffer = gDLL->getText("TXT_KEY_FLYOUT_MENU_MOVE_TO", gDLL->getFAStarIFace()->GetLastNode(&GC.getInterfacePathFinder())->m_iData2);
+				szBuffer = gDLL->getText("TXT_KEY_FLYOUT_MENU_MOVE_TO", gDLL->getFAStarIFace()->
+						GetLastNode(&GC.getInterfacePathFinder())->m_iData2);
 			}
-			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MOVE_TO, 0, pPlot->getX(), pPlot->getY(), szBuffer));
+			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MOVE_TO, 0,
+					pPlot->getX(), pPlot->getY(), szBuffer));
 		}
 	}
 
@@ -2072,14 +2006,16 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 
 		static std::vector<CvUnit*> plotUnits;
 		getPlotUnits(pPlot, plotUnits);
-		for (int iI = 0; iI < (int) plotUnits.size(); iI++)
+		for (int iI = 0; iI < (int)plotUnits.size(); iI++)
 		{
 			CvUnit* pLoopUnit = plotUnits[iI];
 			if (pLoopUnit->getOwner() == getActivePlayer())
 			{
 				CvWStringBuffer szTempBuffer;
 				GAMETEXT.setUnitHelp(szTempBuffer, pLoopUnit, true);
-				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_SELECT_UNIT, pLoopUnit->getID(), pPlot->getX(), pPlot->getY(), szTempBuffer.getCString()));
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_SELECT_UNIT,
+						pLoopUnit->getID(), pPlot->getX(), pPlot->getY(),
+						szTempBuffer.getCString()));
 			}
 		}
 	}
@@ -2181,48 +2117,42 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 			break;
 
 		case FLYOUT_SELECT_UNIT:
-			{
-				CvUnit* pUnit = GET_PLAYER(getActivePlayer()).getUnit(kItem.m_iID);
-				if (pUnit != NULL)
-				{
-					gDLL->getInterfaceIFace()->selectUnit(pUnit, true);
-				}
-			}
+		{
+			CvUnit* pUnit = GET_PLAYER(getActivePlayer()).getUnit(kItem.m_iID);
+			if (pUnit != NULL)
+				gDLL->getInterfaceIFace()->selectUnit(pUnit, true);
 			break;
+		}
 
 		case FLYOUT_SELECT_ALL:
 			gDLL->getInterfaceIFace()->selectAll(pPlot);
 			break;
 
 		case FLYOUT_WAKE_ALL:
+			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pPlot->nextUnitNode(pUnitNode))
 			{
-				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-				while (pUnitNode != NULL)
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+				if (pLoopUnit->isGroupHead() &&
+					pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-					//if (pLoopUnit->isGroupHead())
-					if (pLoopUnit->isGroupHead() && pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
-					{
-						CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(), COMMAND_WAKE, -1, -1, false);
-					}
+					CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(),
+							COMMAND_WAKE, -1, -1, false);
 				}
 			}
 			break;
 
 		case FLYOUR_FORTIFY_ALL:
 		case FLYOUR_SLEEP_ALL:
+			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pPlot->nextUnitNode(pUnitNode))
 			{
-				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-				while (pUnitNode != NULL)
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+				if (pLoopUnit->isGroupHead() && pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-					if (pLoopUnit->isGroupHead() && pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
-					{
-						CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(), ((pLoopUnit->isFortifyable()) ? MISSION_FORTIFY : MISSION_SLEEP), -1, -1, 0, false,
-								GC.ctrlKey()); // advc.011b
-					}
+					CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(),
+							pLoopUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
+							-1, -1, 0, false, /* advc.011b: */ GC.ctrlKey());
 				}
 			}
 			break;

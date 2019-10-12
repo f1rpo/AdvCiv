@@ -1166,7 +1166,7 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 	bool bForceFailure = false;
 	bool bForceNoFailure = false;
 	bool bForceNoSuccess = false;
-	CLLNode<TradeData>* node = NULL;
+	CLLNode<TradeData> const* node = NULL;
 	TradeableItems ti;
 	if(weReceive != NULL) {
 		int iTechs = 0;

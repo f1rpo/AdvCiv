@@ -2034,19 +2034,16 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 					szBuffer.append(szTempBuffer);
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
 					while (pSelectedUnitNode != NULL)
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-						if (!(GET_PLAYER(eGiftPlayer).AI_acceptUnit(pSelectedUnit)))
+						if (!GET_PLAYER(eGiftPlayer).AI_acceptUnit(*pSelectedUnit))
 						{
 							szBuffer.append(NEWLINE);
 							szBuffer.append(gDLL->getText("TXT_KEY_REFUSE_GIFT",
 									GET_PLAYER(eGiftPlayer).getNameKey()));
 							break;
 						}
-
 						pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 					}
 				}
@@ -3767,7 +3764,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 
 		for (int i = 0; i < iListCities; i++)
 		{
-			CvCity* pLoopCity = kPlayer.getCity(city_list[i].second);
+			CvCity const* pLoopCity = kPlayer.getCity(city_list[i].second);
 			int iEstimatedRate = pLoopCity->getCommerceRate(COMMERCE_CULTURE);
 			iEstimatedRate += (100 - iGoldCommercePercent - kPlayer.getCommercePercent(COMMERCE_CULTURE)) * pLoopCity->getYieldRate(YIELD_COMMERCE) * pLoopCity->getTotalCommerceRateModifier(COMMERCE_CULTURE) / 10000;
 			int iCountdown = (iLegendaryCulture - pLoopCity->getCulture(kPlayer.getID())) / std::max(1, iEstimatedRate);

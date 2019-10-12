@@ -95,10 +95,7 @@ void CvPlotGroup::removePlot(CvPlot* pPlot)
 			pPlotNode = deletePlotsNode(pPlotNode); // can delete this PlotGroup...
 			break;
 		}
-		else
-		{
-			pPlotNode = nextPlotsNode(pPlotNode);
-		}
+		else pPlotNode = nextPlotsNode(pPlotNode);
 	}
 }
 
@@ -213,18 +210,14 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 	// (This isn't my fault. I haven't changed it. It has always been like this.)
 
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-
 	while (pPlotNode != NULL)
 	{
 		CvCity* pCity = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL)
 		{
 			if (pCity->getOwner() == getOwner())
-			{
 				pCity->changeNumBonuses(eBonus, iChange);
-			}
 		}
-
 		pPlotNode = nextPlotsNode(pPlotNode);
 	}
 }
@@ -236,13 +229,12 @@ void CvPlotGroup::verifyCityProduction()
 	if (m_iRecalculating > 0)
 		return;
 	CvMap const& m = GC.getMap();
-	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-	while (pPlotNode != NULL)
+	for (CLLNode<XYCoords> const* pPlotNode = headPlotsNode(); pPlotNode != NULL;
+		pPlotNode = nextPlotsNode(pPlotNode))
 	{
 		CvCity* pCity = m.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
-		pPlotNode = nextPlotsNode(pPlotNode);
 	}
 } // </advc.064d>
 
@@ -260,12 +252,6 @@ CLLNode<XYCoords>* CvPlotGroup::deletePlotsNode(CLLNode<XYCoords>* pNode)
 	if (getLengthPlots() == 0)
 		GET_PLAYER(getOwner()).deletePlotGroup(getID());
 	return pPlotNode;
-}
-
-
-CLLNode<XYCoords>* CvPlotGroup::nextPlotsNode(CLLNode<XYCoords>* pNode)
-{
-	return m_plots.next(pNode);
 }
 
 

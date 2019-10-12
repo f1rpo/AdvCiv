@@ -468,18 +468,16 @@ bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionG
 	CvPlot* pPlot = pFirstGroup->plot();
 	//int iGroup2Units = pSecondGroup->getNumUnits();
 
-	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-	while (pUnitNode)// && iGroup2Units > 0)
+	for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
+		pUnitNode != NULL;// && iGroup2Units > 0
+		pUnitNode = pPlot->nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit->getGroup() == pFirstGroup)
 			return true;
 		if (pLoopUnit->getGroup() == pSecondGroup)
 			return false;
 			//iGroup2Units--;
-
-		pUnitNode = pPlot->nextUnitNode(pUnitNode);
 	}
 
 	FAssert(false);
@@ -1234,13 +1232,10 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 		int iResistanceSum = 0;
 		int iUnits = 0;
 
-		CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-
-		while (pUnitNode)
+		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pPlot->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			if (!pLoopUnit->canDefend(pPlot))
 				continue;
 			if (eDefenceTeam != NO_TEAM && pLoopUnit->getTeam() != eDefenceTeam)
@@ -1799,24 +1794,17 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 	{
 		if (pSelectionGroup->isAmphibPlot(&kToPlot))
 		{
-			CLLNode<IDInfo>* pUnitNode1 = pSelectionGroup->headUnitNode();
-
-			while (pUnitNode1 != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode1 = pSelectionGroup->headUnitNode();
+				pUnitNode1 != NULL; pUnitNode1 = pSelectionGroup->nextUnitNode(pUnitNode1))
 			{
-				CvUnit* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
-				pUnitNode1 = pSelectionGroup->nextUnitNode(pUnitNode1);
-
-				if ((pLoopUnit1->getCargo() > 0) && (pLoopUnit1->domainCargo() == DOMAIN_LAND))
+				CvUnit const* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
+				if (pLoopUnit1->getCargo() > 0 && pLoopUnit1->domainCargo() == DOMAIN_LAND)
 				{
 					bool bValid = false;
-
-					CLLNode<IDInfo>* pUnitNode2 = pLoopUnit1->plot()->headUnitNode();
-
-					while (pUnitNode2 != NULL)
+					for (CLLNode<IDInfo> const* pUnitNode2 = pLoopUnit1->plot()->headUnitNode();
+						pUnitNode2 != NULL; pUnitNode2 = pLoopUnit1->plot()->nextUnitNode(pUnitNode2))
 					{
-						CvUnit* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
-						pUnitNode2 = pLoopUnit1->plot()->nextUnitNode(pUnitNode2);
-
+						CvUnit const* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
 						if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
 						{
 							if (pLoopUnit2->isGroupHead())
@@ -1830,11 +1818,8 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 							}
 						}
 					}
-
 					if (bValid)
-					{
 						return TRUE;
-					}
 				}
 			}
 
@@ -1842,8 +1827,10 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 		}
 		else
 		{
-			//if (!(pSelectionGroup->canMoveOrAttackInto(kToPlot, (pSelectionGroup->AI_isDeclareWar(pToPlot) || (iFlags & MOVE_DECLARE_WAR)))))
-			if (!pSelectionGroup->canMoveOrAttackInto(kToPlot, iFlags & MOVE_DECLARE_WAR, false, bAIControl)) // K-Mod. The new AI must be explicit about declaring war.
+			if (!pSelectionGroup->canMoveOrAttackInto(kToPlot,
+				//pSelectionGroup->AI_isDeclareWar(pToPlot) || (iFlags & MOVE_DECLARE_WAR))
+				// K-Mod. The new AI must be explicit about declaring war.
+				iFlags & MOVE_DECLARE_WAR, false, bAIControl))
 			{
 				return FALSE;
 			}
@@ -1926,11 +1913,10 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 	} // </advc.035>
 	{
-		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
-		while (pUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
+			pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
 
 			int iMaxMoves = parent->m_iData1 > 0 ? parent->m_iData1 : pLoopUnit->maxMoves();
@@ -2100,7 +2086,6 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 
 		// defence modifiers
-		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
 		int iDefenceMod = 0;
 		int iDefenceCount = 0;
 		int iFromDefenceMod = 0; // defence bonus for our attacking units left behind
@@ -2108,56 +2093,53 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		int iAttackCount = 0;
 		int iEnemies = kToPlot.getNumVisibleEnemyDefenders(pSelectionGroup->getHeadUnit());
 
-		while (pUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
+			pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
-
-			if (pLoopUnit->canFight())
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			if (!pLoopUnit->canFight())
+				continue; // advc
+			iDefenceCount++;
+			if (pLoopUnit->canDefend(&kToPlot))
 			{
-				iDefenceCount++;
-				if (pLoopUnit->canDefend(&kToPlot))
-					iDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 :
-							//pToPlot->defenseModifier(eTeam, false);
-							GET_TEAM(eTeam).AI_plotDefense(kToPlot); // advc.012
-				else iDefenceMod -= 100; // we don't want to be here.
+				iDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 :
+						//pToPlot->defenseModifier(eTeam, false);
+						GET_TEAM(eTeam).AI_plotDefense(kToPlot); // advc.012
+			}
+			else iDefenceMod -= 100; // we don't want to be here.
 
-				// K-Mod note. the above code doesn't count all defensive bonuses, unfortunately.
-				// We could count everything like this:
-				/*
-				CombatDetails combat_details;
-				pLoopUnit->maxCombatStr(pToPlot, NULL, &combat_details);
-				iDefenceMod += combat_details.iModifierTotal;
-				*/
-				// but that seems like overkill. I'm worried it would be too slow.
+			// K-Mod note. the above code doesn't count all defensive bonuses, unfortunately.
+			// We could count everything like this:
+			/*CombatDetails combat_details;
+			pLoopUnit->maxCombatStr(pToPlot, NULL, &combat_details);
+			iDefenceMod += combat_details.iModifierTotal;*/
+			// but that seems like overkill. I'm worried it would be too slow.
 
-				// defence for units who stay behind after attacking an enemy.
-				if (iEnemies > 0)
+			// defence for units who stay behind after attacking an enemy.
+			if (iEnemies > 0)
+			{
+				// For human-controlled units, only apply the following effects for multi-step moves.
+				// (otherwise this might prevent the user from attacking from where they want to attack from.)
+				if (bAIControl || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
 				{
-					// For human-controlled units, only apply the following effects for multi-step moves.
-					// (otherwise this might prevent the user from attacking from where they want to attack from.)
-					if (bAIControl || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
+					iAttackCount++;
+					iFromDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 : kFromPlot.defenseModifier(eTeam, false);
+
+					if (!kFromPlot.isCity())
 					{
-						iAttackCount++;
-						iFromDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 : kFromPlot.defenseModifier(eTeam, false);
-
-						if (!kFromPlot.isCity())
-						{
-							iAttackWeight += PATH_CITY_WEIGHT;
-							// it's done this way around rather than subtracting when in a city so that the overall adjustment can't be negative.
-						}
-
-						if (pLoopUnit->canAttack() && !pLoopUnit->isRiver() && kFromPlot.isRiverCrossing(m.directionXY(kFromPlot, kToPlot)))
-						{
-							iAttackWeight -= PATH_RIVER_WEIGHT * GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER); // Note, river modifier will be negative.
-							//iAttackMod -= (PATH_MOVEMENT_WEIGHT * iMovesLeft);
-						}
+						iAttackWeight += PATH_CITY_WEIGHT;
+						// it's done this way around rather than subtracting when in a city so that the overall adjustment can't be negative.
 					}
-					// If this is a direct attack move from a human player, make sure it is the best value move possible. (This allows humans to choose which plot they attack from.)
-					// (note: humans have no way of ordering units to attack units en-route, so the fact that this is an attack move means we are at the destination.)
-					else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !bAIControl
-						return PATH_STEP_WEIGHT; // DONE!
+					if (pLoopUnit->canAttack() && !pLoopUnit->isRiver() && kFromPlot.isRiverCrossing(m.directionXY(kFromPlot, kToPlot)))
+					{
+						iAttackWeight -= PATH_RIVER_WEIGHT * GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER); // Note, river modifier will be negative.
+						//iAttackMod -= (PATH_MOVEMENT_WEIGHT * iMovesLeft);
+					}
 				}
+				// If this is a direct attack move from a human player, make sure it is the best value move possible. (This allows humans to choose which plot they attack from.)
+				// (note: humans have no way of ordering units to attack units en-route, so the fact that this is an attack move means we are at the destination.)
+				else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !bAIControl
+					return PATH_STEP_WEIGHT; // DONE!
 			}
 		}
 		//
@@ -2421,15 +2403,15 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			iTurns++;
 			iStartMoves = pSelectionGroup->maxMoves();
 		}
-		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
+		CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
 		int iMoveCost = kToPlot.movementCost(::getUnit(pUnitNode->m_data), &kFromPlot,
 				false); // advc.001i
 		bool bUniformCost = true;
 
-		for (pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode); pUnitNode && bUniformCost; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
+		for (pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
+			bUniformCost && pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			int iLoopCost = kToPlot.movementCost(pLoopUnit, &kFromPlot,
 					false); // advc.001i
 			if (iLoopCost != iMoveCost)
@@ -2460,8 +2442,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 
 			for (pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				int iUnitMoves = bMaxMoves ? pLoopUnit->maxMoves() : pLoopUnit->movesLeft();
 				for (size_t i = plot_list.size()-1; i > 0; i--)
 				{

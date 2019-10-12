@@ -3016,7 +3016,7 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 	// <advc.032>
 	if(GET_TEAM(eWho).isForcePeace(TEAMID(eOtherWho)))
 	{
-		for(CLLNode<TradeData>* pNode = pOurList->head(); pNode != NULL; pNode = pOurList->next(pNode))
+		for(CLLNode<TradeData> const* pNode = pOurList->head(); pNode != NULL; pNode = pOurList->next(pNode))
 		{
 			if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
 			{
@@ -8270,7 +8270,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 					GET_TEAM(pLoopDeal->getFirstPlayer()).
 					isVotingMember(kData.eVoteSource)))
 				{
-					for(CLLNode<TradeData>* pNode = pLoopDeal->headFirstTradesNode();
+					for(CLLNode<TradeData> const* pNode = pLoopDeal->headFirstTradesNode();
 						pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode))
 					{
 						if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
@@ -8431,8 +8431,8 @@ CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePla
 				continue;
 			CLinkList<TradeData> const& kGiveList = *(d->getFirstPlayer() == eGivePlayer ?
 					d->getFirstTrades() : d->getSecondTrades());
-			for(CLLNode<TradeData>* pNode = kGiveList.head(); pNode != NULL;
-					pNode = kGiveList.next(pNode))
+			for(CLLNode<TradeData> const* pNode = kGiveList.head(); pNode != NULL;
+				pNode = kGiveList.next(pNode))
 			{
 				if(!CvDeal::isAnnual(pNode->m_data.m_eItemType) &&
 						pNode->m_data.m_eItemType != TRADE_PEACE_TREATY)

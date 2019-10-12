@@ -93,7 +93,8 @@ bool Shelf::killBarbarian()
 	{
 		CvPlot* plot = plots[i]; if(plot == NULL) continue;
 		CLLNode<IDInfo>* unitNode = plot->headUnitNode();
-		if(unitNode == NULL) continue;
+		if(unitNode == NULL)
+			continue;
 		CvUnit* anyUnit = ::getUnit(unitNode->m_data);
 		if(anyUnit != NULL && anyUnit->isBarbarian() &&
 			anyUnit->getUnitCombatType() != NO_UNITCOMBAT)

@@ -56,8 +56,8 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 	if (getLengthFirstTrades() > 0 || getLengthSecondTrades() > 0)
 	{	// <advc.106j>
 		bool bForce = false;
-		for(CLLNode<TradeData>* pNode = headTradesNode(); pNode != NULL;
-				pNode = nextTradesNode(pNode))
+		for(CLLNode<TradeData> const* pNode = headTradesNode(); pNode != NULL;
+			pNode = nextTradesNode(pNode))
 		{
 			if(isDual(pNode->m_data.m_eItemType) ||
 					(pNode->m_data.m_eItemType == TRADE_RESOURCES &&
@@ -99,7 +99,7 @@ void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bFo
 void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
 	PlayerTypes eCancelPlayer) // advc.130p
 {
-	CLLNode<TradeData>* pNode;
+	CLLNode<TradeData> const* pNode;
 	for (pNode = headFirstTradesNode(); pNode != NULL; pNode = nextFirstTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(), bKillTeam,
@@ -125,7 +125,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	TeamTypes ePeaceTradeTarget = NO_TEAM; // </advc.130p>
 	if (pFirstList != NULL)
 	{
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pFirstList->head(); pNode != NULL;
+			pNode = pFirstList->next(pNode))
 		{	// <advc.130p>
 			if(pNode->m_data.m_eItemType == TRADE_WAR)
 				eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
@@ -140,7 +141,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 
 	if (pSecondList != NULL)
 	{
-		for (CLLNode<TradeData>* pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pSecondList->head(); pNode != NULL;
+			pNode = pSecondList->next(pNode))
 		{	// <advc.130p>
 			if(pNode->m_data.m_eItemType == TRADE_WAR)
 				eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
@@ -169,7 +171,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if(recordTradeValue(pFirstList, pSecondList, getFirstPlayer(),
 			getSecondPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
 		bUpdateAttitude = true;
-	if(bPeace) {
+	if(bPeace)
+	{
 		bUpdateAttitude = true; // </advc.130p>
 		// free vassals of capitulating team before peace is signed
 		/*  advc.130y: Deleted; let CvTeam::setVassal free the vassals
@@ -225,19 +228,21 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	}
 
 	bool bAlliance = false;
+	// advc (fixme): This block is mostly duplicated in the block below
 	if (pFirstList != NULL)
 	{
 		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
+		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode != NULL;
+			pNode = pFirstList->next(pNode))
 		{
 			if (isVassal(pNode->m_data.m_eItemType))
 			{
 				pFirstList->moveToEnd(pNode);
 				break;
 			}
-		}
-		// K-Mod end
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
+		} // K-Mod end
+		for (CLLNode<TradeData> const* pNode = pFirstList->head(); pNode != NULL;
+			pNode = pFirstList->next(pNode))
 		{	// <advc.104> Allow UWAI to record the value of the sponsorship
 			if(pNode->m_data.m_eItemType == TRADE_WAR && pSecondList != NULL)
 			{
@@ -259,7 +264,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if (pSecondList != NULL)
 	{
 		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
+		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode != NULL;
+			pNode = pFirstList->next(pNode))
 		{
 			if (isVassal(pNode->m_data.m_eItemType))
 			{
@@ -268,7 +274,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 			}
 		}
 		// K-Mod end
-		for (CLLNode<TradeData>* pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pSecondList->head(); pNode!= NULL;
+			pNode = pSecondList->next(pNode))
 		{	// <advc.104> As above
 			if(pNode->m_data.m_eItemType == TRADE_WAR && pFirstList != NULL)
 			{
@@ -282,7 +289,6 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 
 			if (bSave)
 				insertAtEndSecondTrades(pNode->m_data);
-
 			if (pNode->m_data.m_eItemType == TRADE_PERMANENT_ALLIANCE)
 				bAlliance = true;
 		}
@@ -291,13 +297,9 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if (bAlliance)
 	{
 		if (eFirstTeam < eSecondTeam)
-		{
 			GET_TEAM(eFirstTeam).addTeam(eSecondTeam);
-		}
 		else if (eSecondTeam < eFirstTeam)
-		{
 			GET_TEAM(eSecondTeam).addTeam(eFirstTeam);
-		}
 	}
 
 	// K-Mod
@@ -390,7 +392,7 @@ void CvDeal::verify()
 bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 {
 	CvPlayer& kGiver = GET_PLAYER(eGiver);
-	for (CLLNode<TradeData>* pNode = this->headReceivesNode(eRecipient); pNode != NULL;
+	for (CLLNode<TradeData> const* pNode = this->headReceivesNode(eRecipient); pNode != NULL;
 		pNode = nextReceivesNode(pNode, eRecipient))
 	{
 		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
@@ -410,7 +412,7 @@ bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 
 bool CvDeal::isPeaceDeal() const  // advc: simplified
 {
-	for (CLLNode<TradeData>* pNode = headTradesNode(); pNode != NULL;
+	for (CLLNode<TradeData> const* pNode = headTradesNode(); pNode != NULL;
 		pNode = nextTradesNode(pNode))
 	{
 		if (pNode->m_data.m_eItemType == getPeaceItem())
@@ -428,7 +430,7 @@ bool CvDeal::isVassalTrade(const CLinkList<TradeData>* pList)
 {
 	if (pList != NULL)
 	{
-		for (CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
 		{
 			if (isVassal(pNode->m_data.m_eItemType))
 				return true;
@@ -455,8 +457,8 @@ bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReaso
 		eVassal = TEAMID(getSecondPlayer());
 	else return false; // sibling vassals
 
-	for (CLLNode<TradeData>* pNode = headGivesNode(eVassal); pNode != NULL;
-			pNode = nextGivesNode(pNode, eVassal))
+	for (CLLNode<TradeData> const* pNode = headGivesNode(eVassal); pNode != NULL;
+		pNode = nextGivesNode(pNode, eVassal))
 	{
 		if (!isVassal(pNode->m_data.m_eItemType))
 			continue;
@@ -490,7 +492,8 @@ bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReaso
 
 bool CvDeal::isVassalTributeDeal(const CLinkList<TradeData>* pList)
 {
-	for (CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
+	for (CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL;
+		pNode = pList->next(pNode))
 	{
 		if (pNode->m_data.m_eItemType != TRADE_RESOURCES)
 			return false;
@@ -621,28 +624,28 @@ CLinkList<TradeData> const& CvDeal::getReceivesList(TeamTypes eTeam) const
 }
 
 
-CLLNode<TradeData>* CvDeal::headGivesNode(PlayerTypes ePlayer) const
+CLLNode<TradeData> const* CvDeal::headGivesNode(PlayerTypes ePlayer) const
 {
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return (ePlayer == getFirstPlayer() ? headFirstTradesNode() : headSecondTradesNode());
 }
 
 
-CLLNode<TradeData>* CvDeal::headReceivesNode(PlayerTypes ePlayer) const
+CLLNode<TradeData> const* CvDeal::headReceivesNode(PlayerTypes ePlayer) const
 {
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return (ePlayer == getFirstPlayer() ? headSecondTradesNode() : headFirstTradesNode());
 }
 
 
-CLLNode<TradeData>* CvDeal::headGivesNode(TeamTypes eTeam) const
+CLLNode<TradeData> const* CvDeal::headGivesNode(TeamTypes eTeam) const
 {
 	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
 	return (TEAMID(getFirstPlayer()) == eTeam ? headFirstTradesNode() : headSecondTradesNode());
 }
 
 
-CLLNode<TradeData>* CvDeal::headReceivesNode(TeamTypes eTeam) const
+CLLNode<TradeData> const* CvDeal::headReceivesNode(TeamTypes eTeam) const
 {
 	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
 	return (TEAMID(getFirstPlayer()) == eTeam ? headSecondTradesNode() : headFirstTradesNode());
@@ -653,41 +656,45 @@ CLLNode<TradeData>* CvDeal::headReceivesNode(TeamTypes eTeam) const
 	Due to the implementation of CLinkList, all the next functions return the same
 	result. So one could actually remove all except nextTradesNode. But I guess it's
 	better not to set the CLinkList implementation in stone. */
-CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const
+CLLNode<TradeData> const* CvDeal::nextGivesNode(CLLNode<TradeData> const* pNode,
+	PlayerTypes ePlayer) const
 {
 	return (ePlayer == getFirstPlayer() ? nextFirstTradesNode(pNode) :
 			nextSecondTradesNode(pNode));
 }
 
 
-CLLNode<TradeData>* CvDeal::nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const
+CLLNode<TradeData> const* CvDeal::nextReceivesNode(CLLNode<TradeData> const* pNode,
+	PlayerTypes ePlayer) const
 {
 	return (ePlayer == getFirstPlayer() ? nextSecondTradesNode(pNode) :
 			nextFirstTradesNode(pNode));
 }
 
 
-CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const
+CLLNode<TradeData> const* CvDeal::nextGivesNode(CLLNode<TradeData> const* pNode,
+	TeamTypes eTeam) const
 {
 	return (TEAMID(getFirstPlayer()) == eTeam ? nextFirstTradesNode(pNode) :
 			nextSecondTradesNode(pNode));
 }
 
 
-CLLNode<TradeData>* CvDeal::nextReceivesNode(CLLNode<TradeData>* pNode, TeamTypes eTeam) const
+CLLNode<TradeData> const* CvDeal::nextReceivesNode(CLLNode<TradeData> const* pNode,
+	TeamTypes eTeam) const
 {
 	return (TEAMID(getFirstPlayer()) == eTeam ? nextSecondTradesNode(pNode) :
 			nextFirstTradesNode(pNode));
 }
 
 
-CLLNode<TradeData>* CvDeal::headTradesNode() const
+CLLNode<TradeData> const* CvDeal::headTradesNode() const
 {
 	return (headFirstTradesNode() == NULL ? headSecondTradesNode() : headFirstTradesNode());
 }
 
 
-CLLNode<TradeData>* CvDeal::nextTradesNode(CLLNode<TradeData>* pNode) const
+CLLNode<TradeData> const* CvDeal::nextTradesNode(CLLNode<TradeData> const* pNode) const
 {
 	if (pNode == getFirstTrades()->tail())
 		return headSecondTradesNode();
@@ -1182,7 +1189,7 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 
 void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam)  // advc: style changes
 {
-	CLLNode<TradeData>* pNode = NULL;
+	CLLNode<TradeData> const* pNode = NULL;
 	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		if (pLoopDeal == this)
@@ -1190,7 +1197,7 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 
 		bool bValid = true;
 		if (TEAMID(pLoopDeal->getFirstPlayer()) == eFromTeam &&
-				TEAMID(pLoopDeal->getSecondPlayer()) == eToTeam)
+			TEAMID(pLoopDeal->getSecondPlayer()) == eToTeam)
 		{
 			if (pLoopDeal->getFirstTrades() != NULL)
 			{
@@ -1257,7 +1264,7 @@ int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 // <advc>
 bool CvDeal::isAllDual() const
 {
-	CLLNode<TradeData>* pNode;
+	CLLNode<TradeData> const* pNode;
 	for(pNode = headTradesNode(); pNode != NULL; pNode = nextTradesNode(pNode))
 	{
 		if(!CvDeal::isDual(pNode->m_data.m_eItemType))

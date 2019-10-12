@@ -42,7 +42,7 @@ public:
 
 	bool isUnowned() const; // advc.061
 
-	bool canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible = false, bool bTestBusy = true);	// Exposed to Python
+	bool canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible = false, bool bTestBusy = true) const;	// Exposed to Python
 	void doCommand(CommandTypes eCommand, int iData1, int iData2);																// Exposed to Python
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
@@ -77,7 +77,7 @@ public:
 	bool canScrap() const;																																				// Exposed to Python
 	void scrap();
 
-	bool canGift(bool bTestVisible = false, bool bTestTransport = true);																											// Exposed to Python
+	bool canGift(bool bTestVisible = false, bool bTestTransport = true) const;																											// Exposed to Python
 	void gift(bool bTestTransport = true);
 
 	bool canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot, 															// Exposed to Python

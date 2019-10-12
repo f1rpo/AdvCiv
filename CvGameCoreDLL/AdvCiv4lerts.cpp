@@ -268,7 +268,7 @@ void BonusThirdPartiesAlert::getExportData(CLinkList<TradeData> const* list,
 	if(list == NULL)
 		return;
 	CLinkList<TradeData> const& li = *list;
-	for(CLLNode<TradeData>* node = li.head(); node != NULL; node = li.next(node))
+	for(CLLNode<TradeData> const* node = li.head(); node != NULL; node = li.next(node))
 	{
 		TradeData tdata = node->m_data;
 		if(tdata.m_eItemType == TRADE_RESOURCES)
@@ -326,7 +326,7 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity
 			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
 				UnitTypes ut = kCiv.unitAt(i);
-				CvUnitInfo& ui = GC.getUnitInfo(ut);
+				CvUnitInfo const& ui = GC.getUnitInfo(ut);
 				if(ui.getPrereqAndBonus() == bonusId)
 				{
 					// Only report Ivory while it's relevant

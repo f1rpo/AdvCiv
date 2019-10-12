@@ -414,8 +414,9 @@ public:
 	bool canStealTech(PlayerTypes eTarget, TechTypes eTech) const;
 	bool canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const;
 	bool canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) const;
-	bool canSpyDestroyUnit(PlayerTypes eTarget, CvUnit& kUnit) const;
-	bool canSpyBribeUnit(PlayerTypes eTarget, CvUnit& kUnit) const;
+		// advc: 2x const CvUnit&
+	bool canSpyDestroyUnit(PlayerTypes eTarget, CvUnit const& kUnit) const;
+	bool canSpyBribeUnit(PlayerTypes eTarget, CvUnit const& kUnit) const;
 	bool canSpyDestroyBuilding(PlayerTypes eTarget, BuildingTypes eBuilding) const;
 	bool canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) const;
 	// advc.120d: Exposed to Python

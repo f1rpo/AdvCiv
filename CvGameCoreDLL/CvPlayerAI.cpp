@@ -1993,33 +1993,33 @@ double CvPlayerAI::AI_razeMemoryScore(CvCity const& c) const
 			std::max((double)c.getPopulation(), std::sqrt((double)getTotalPopulation()));
 } // </advc.130q>
 
-bool CvPlayerAI::AI_acceptUnit(CvUnit* pUnit) const
+bool CvPlayerAI::AI_acceptUnit(CvUnit const& kUnit) const // advc: param was CvUnit*
 {
 	if (isHuman())
 		return true;
 
 	if (AI_isFinancialTrouble())
 	{
-		if (pUnit->AI_getUnitAIType() == UNITAI_WORKER)
+		if (kUnit.AI_getUnitAIType() == UNITAI_WORKER)
 		{
-			if (AI_neededWorkers(pUnit->area()) > 0)
+			if (AI_neededWorkers(kUnit.area()) > 0)
 			{
 				return true;
 			}
 		}
 
-		if (pUnit->AI_getUnitAIType() == UNITAI_WORKER_SEA)
+		if (kUnit.AI_getUnitAIType() == UNITAI_WORKER_SEA)
 		{
 			return true;
 		}
 
-		if (pUnit->AI_getUnitAIType() == UNITAI_MISSIONARY)
+		if (kUnit.AI_getUnitAIType() == UNITAI_MISSIONARY)
 		{
 			return true; //XXX
 		}
 
 		// K-Mod
-		switch (pUnit->AI_getUnitAIType())
+		switch (kUnit.AI_getUnitAIType())
 		{
 		case UNITAI_PROPHET:
 		case UNITAI_ARTIST:
@@ -4980,11 +4980,10 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTest
 				}
 			}
 			bool bFirst = true; // advc.128
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				// No need to loop over tiles full of our own units
 				if (pLoopUnit->getTeam() == eTeam)
 				{
@@ -5122,11 +5121,10 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMove
 			}
 			std::vector<CvUnit*> aPlotUnits; // advc.104
 			bool bFirst = true; // advc.128
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
+				pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 				// No need to loop over tiles full of our own units
 				if(pLoopUnit->getTeam() == getTeam())
 				{
@@ -5243,7 +5241,7 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 				continue;
 
 			bool bFirst = true; // advc.128
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
 			// <advc.128>
 			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false))
 			{
@@ -10552,7 +10550,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 	// <advc.036>
 	int iHealthBonuses = 0;
 	int iHappyBonuses = 0; // </advc.036>
-	for (CLLNode<TradeData>* pNode = pList->head(); pNode; pNode = pList->next(pNode))
+	for (CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
 	{
 		FAssert(!pNode->m_data.m_bHidden);
 		/*  <advc.130p> Replacing the checks in the individual cases. Previously,
@@ -10643,11 +10641,9 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 
 bool CvPlayerAI::AI_goldDeal(const CLinkList<TradeData>* pList) const
 {
-	CLLNode<TradeData>* pNode;
-	for (pNode = pList->head(); pNode; pNode = pList->next(pNode))
+	for (CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
 	{
-		FAssert(!(pNode->m_data.m_bHidden));
-
+		FAssert(!pNode->m_data.m_bHidden);
 		switch (pNode->m_data.m_eItemType)
 		{
 		case TRADE_GOLD:
@@ -10663,7 +10659,7 @@ bool CvPlayerAI::AI_goldDeal(const CLinkList<TradeData>* pList) const
 // <advc.705>
 bool CvPlayerAI::isAnnualDeal(CLinkList<TradeData> const& itemList) const
 {
-	for(CLLNode<TradeData>* pNode = itemList.head(); pNode != NULL; pNode = itemList.next(pNode))
+	for(CLLNode<TradeData> const* pNode = itemList.head(); pNode != NULL; pNode = itemList.next(pNode))
 	{
 		if(!CvDeal::isAnnual(pNode->m_data.m_eItemType))
 			return false;
@@ -10682,7 +10678,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	int iChange, /* advc.133: */ int iDealAge,
 	bool bHypothetical) // advc.130o
 {
-	const CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
+	CvTeamAI const& kOurTeam = GET_TEAM(getTeam()); // K-Mod
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	bool bHuman = kPlayer.isHuman();
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
@@ -10693,7 +10689,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 
 	if (iChange > -1)
 	{
-		for (CLLNode<TradeData>* pNode = kWeGive.head(); pNode; pNode = kWeGive.next(pNode))
+		for (CLLNode<TradeData> const* pNode = kWeGive.head(); pNode; pNode = kWeGive.next(pNode))
 		{
 			if (getTradeDenial(ePlayer, pNode->m_data) != NO_DENIAL)
 				return false;
@@ -10701,10 +10697,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 			 This matters for "Care to negotiate". */
 		if(bHuman)
 		{
-			for (CLLNode<TradeData>* tdn = kTheyGive.head(); tdn != NULL;
-					tdn = kTheyGive.next(tdn))
+			for (CLLNode<TradeData> const* pNode = kTheyGive.head(); pNode != NULL;
+					pNode = kTheyGive.next(pNode))
 			{
-				TradeData tdata = tdn->m_data;
+				TradeData tdata = pNode->m_data;
 				if(tdata.m_eItemType == TRADE_RESOURCES &&
 						kPlayer.getTradeDenial(getID(), tdata) != NO_DENIAL)
 					return false;
@@ -10726,7 +10722,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		/*if(kTheyGive.getLength() + kWeGive.getLength() <= 0)
 			;*/ // </advc>
 		bool bEndWar = false;
-		CLLNode<TradeData>* pNode;
+		CLLNode<TradeData> const* pNode;
 		for (pNode = kTheyGive.head(); !bEndWar && pNode; pNode = kTheyGive.next(pNode))
 		{
 			if (CvDeal::isEndWar(pNode->m_data.m_eItemType))
@@ -10746,7 +10742,8 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	bool bVassalTrade = false;
 	if (iChange > -1) // K-Mod
 	{
-		for (CLLNode<TradeData>* pNode = kTheyGive.head(); pNode; pNode = kTheyGive.next(pNode))
+		for (CLLNode<TradeData> const* pNode = kTheyGive.head(); pNode != NULL;
+			pNode = kTheyGive.next(pNode))
 		{
 			if (pNode->m_data.m_eItemType == TRADE_VASSAL)
 			{
@@ -10778,7 +10775,8 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	// K-Mod. This is our opportunity for canceling a vassal deal.
 	else
 	{
-		for (CLLNode<TradeData>* pNode = kWeGive.head(); pNode; pNode = kWeGive.next(pNode))
+		for (CLLNode<TradeData> const* pNode = kWeGive.head(); pNode != NULL;
+			pNode = kWeGive.next(pNode))
 		{
 			if (pNode->m_data.m_eItemType == TRADE_VASSAL || pNode->m_data.m_eItemType == TRADE_SURRENDER)
 			{
@@ -11065,7 +11063,7 @@ double CvPlayerAI::AI_prDenyHelp() const
 }
 
 // K-Mod. Helper fuction for AI_counterPropose. (lambas would be really nice here, but we can't have nice things.)
-bool maxValueCompare(const std::pair<TradeData*, int>& a, const std::pair<TradeData*, int>& b)
+bool maxValueCompare(const std::pair<TradeData const*, int>& a, const std::pair<TradeData const*, int>& b)
 {
 	return a.second > b.second;
 }
@@ -11084,13 +11082,13 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 		a canceled deal with a human. */
 	if (GET_PLAYER(ePlayer).isHuman())
 	{
-		for (CLLNode<TradeData>* pNode = pOurList->head(); pNode != NULL;
+		for (CLLNode<TradeData> const* pNode = pOurList->head(); pNode != NULL;
 				pNode = pOurList->next(pNode))
 		{
 			if(getTradeDenial(ePlayer, pNode->m_data) != NO_DENIAL)
 				return false;
 		}
-		for (CLLNode<TradeData>* pNode = pTheirList->head(); pNode != NULL;
+		for (CLLNode<TradeData> const* pNode = pTheirList->head(); pNode != NULL;
 				pNode = pTheirList->next(pNode))
 		{
 			if (GET_PLAYER(ePlayer).getTradeDenial(getID(), pNode->m_data) != NO_DENIAL)
@@ -11118,7 +11116,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 	{
 		// Check to see if there is already an end-war item on the table
 		bool bEndWar = false;
-		for (CLLNode<TradeData>* pNode = pTheirList->head(); !bEndWar && pNode; pNode = pTheirList->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pTheirList->head();
+			!bEndWar && pNode != NULL; pNode = pTheirList->next(pNode))
 		{
 			if (CvDeal::isEndWar(pNode->m_data.m_eItemType))
 			{
@@ -11126,7 +11125,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 				break;
 			}
 		}
-		for (CLLNode<TradeData>* pNode = pOurList->head(); !bEndWar && pNode; pNode = pOurList->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pOurList->head();
+			!bEndWar && pNode != NULL; pNode = pOurList->next(pNode))
 		{
 			if (CvDeal::isEndWar(pNode->m_data.m_eItemType))
 			{
@@ -11190,7 +11190,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 		iHappyLeft = iHealthLeft = MAX_INT;
 	else
 	{
-		for(CLLNode<TradeData>* pNode = pGiverList->head(); pNode != NULL; pNode = pGiverList->next(pNode))
+		for(CLLNode<TradeData> const* pNode = pGiverList->head(); pNode != NULL;
+			pNode = pGiverList->next(pNode))
 		{
 			if(pNode->m_data.m_eItemType != TRADE_RESOURCES)
 				continue;
@@ -11273,7 +11274,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 			/*  <advc.550b> About the really bad deals: 4 to 1 is OK
 				when the human doesn't give away tech. */
 			bool bTech = false;
-			for(CLLNode<TradeData>* pNode = pOurCounter->head(); pNode != NULL; pNode = pOurCounter->next(pNode))
+			for(CLLNode<TradeData> const* pNode = pOurCounter->head(); pNode != NULL;
+				pNode = pOurCounter->next(pNode))
 			{
 				if(pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
 				{
@@ -11347,7 +11349,8 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 	CLLNode<TradeData>* pGoldNode = NULL;
 	if (!bGoldDeal)
 	{
-		for (CLLNode<TradeData>* pNode = pInventory->head(); pNode != NULL; pNode = pInventory->next(pNode))
+		for (CLLNode<TradeData>* pNode = pInventory->head(); pNode != NULL;
+			pNode = pInventory->next(pNode))
 		{
 			TradeData data = pNode->m_data;
 			if (data.m_bOffering || data.m_bHidden)
@@ -11411,18 +11414,18 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 			pGoldPerTurnNode = NULL;
 		}
 	} // </advc.036>
-	std::pair<TradeData*, int> final_item(NULL, 0); // An item we may or may not use to finalise the deal. (See later)
+	std::pair<TradeData const*, int> final_item(NULL, 0); // An item we may or may not use to finalise the deal. (See later)
 	// <advc.036>
 	bool bSingleResource = (iOtherListLength <= 1 && (isHuman() || kPlayer.isHuman()) &&
 			pList->getLength() == 1 &&
 			pList->head()->m_data.m_eItemType == TRADE_RESOURCES);
-	std::vector<std::pair<TradeData*, int> > nonsurplusItems; // </advc.036>
+	std::vector<std::pair<TradeData const*, int> > nonsurplusItems; // </advc.036>
 	if (iGreaterVal > iSmallerVal)
 	{
 		// We were unable to balance the trade with just gold. So lets look at all the other items.
 		// Exclude bonuses that we've already put on the table
 		std::vector<bool> vbBonusDeal(GC.getNumBonusInfos(), false);
-		for(CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
+		for(CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
 		{
 			TradeData data = pNode->m_data;
 			FAssert(!data.m_bHidden);
@@ -11432,11 +11435,12 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		// We're only going to allow one city on the list. (For flavour reasons.)
 		int iBestCityValue = 0;
 		int iBestCityWeight = 0;
-		CLLNode<TradeData>* pBestCityNode = NULL;
+		CLLNode<TradeData> const* pBestCityNode = NULL;
 		// Evaluate everything they're willing to trade.
-		std::vector<std::pair<TradeData*, int> > item_value_list; // (item*, value)
+		std::vector<std::pair<TradeData const*, int> > item_value_list; // (item*, value)
 		CvGame const& g = GC.getGame();
-		for (CLLNode<TradeData>* pNode = pInventory->head(); pNode != NULL; pNode = pInventory->next(pNode))
+		for (CLLNode<TradeData> const* pNode = pInventory->head(); pNode != NULL;
+			pNode = pInventory->next(pNode))
 		{
 			TradeData data = pNode->m_data;
 			if (data.m_bOffering || data.m_bHidden)
@@ -11561,7 +11565,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 				pCounter->getLength() <= 0 && iOtherListLength <= 0 &&
 				bSingleResource && eItemType == TRADE_RESOURCES)))
 			{
-				std::pair<TradeData*,int> itemValue = std::make_pair(&pNode->m_data, iItemValue);
+				std::pair<TradeData const*,int> itemValue = std::make_pair(&pNode->m_data, iItemValue);
 				if(bNonsurplus)
 					nonsurplusItems.push_back(itemValue);
 				else item_value_list.push_back(itemValue); // </advc.036>
@@ -11583,7 +11587,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 				// Note: We're not doing this for perfect balance. We're counter-proposing so that the deal favours us!
 				//   If we wanted to get closer to a balanced deal, we just remove that first condition.
 				//   (Maybe that's what we should be doing for AI-AI trades; but there are still flavour considersations...)
-				std::vector<std::pair<TradeData*, int> >::iterator it, best_it;
+				std::vector<std::pair<TradeData const*, int> >::iterator it, best_it;
 				for (best_it = it = item_value_list.begin();
 						it != item_value_list.end(); it++)
 				{
@@ -11613,7 +11617,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 			// Sort the values from largest to smallest
 			std::sort(item_value_list.begin(), item_value_list.end(), maxValueCompare);
 			// Use the list to balance the trade.
-			for (std::vector<std::pair<TradeData*, int> >::iterator it =
+			for (std::vector<std::pair<TradeData const*, int> >::iterator it =
 					item_value_list.begin(); it != item_value_list.end() &&
 					iGreaterVal > iSmallerVal; it++) {
 				int iItemValue = it->second;
@@ -11725,7 +11729,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		while (iGreaterVal > iSmallerVal && !nonsurplusItems.empty())
 		{
 			int value_gap = iGreaterVal - iSmallerVal;
-			std::vector<std::pair<TradeData*, int> >::iterator it, best_it;
+			std::vector<std::pair<TradeData const*, int> >::iterator it, best_it;
 			for (best_it = it = nonsurplusItems.begin();
 					it != nonsurplusItems.end(); it++)
 			{
@@ -11872,7 +11876,7 @@ bool CvPlayerAI::AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tr
 {
 	std::set<int> civicOptions;
 	int iReligionChanges = 0;
-	for(CLLNode<TradeData>* pNode = tradeItems.head(); pNode != NULL; pNode = tradeItems.next(pNode))
+	for(CLLNode<TradeData> const* pNode = tradeItems.head(); pNode != NULL; pNode = tradeItems.next(pNode))
 	{
 		if(pNode->m_data.m_eItemType == TRADE_CIVIC)
 		{
@@ -11909,8 +11913,8 @@ bool CvPlayerAI::AI_checkResourceLimits(CLinkList<TradeData> const& kWeGive,
 		int iNonSurplusHealth = 0;
 		int iHappy, iHealth;
 		iHappy = iHealth = 0;
-		for(CLLNode<TradeData>* pNode = apTradeItems[i]->head(); pNode != NULL;
-				pNode = apTradeItems[i]->next(pNode))
+		for(CLLNode<TradeData> const* pNode = apTradeItems[i]->head(); pNode != NULL;
+			pNode = apTradeItems[i]->next(pNode))
 		{
 			if(pNode->m_data.m_eItemType != TRADE_RESOURCES)
 				continue;
@@ -12087,14 +12091,14 @@ void CvPlayerAI::AI_foldDeals() const
 			continue;
 		if(d->getFirstTrades() == NULL || d->getSecondTrades() == NULL)
 			continue;
-		CLinkList<TradeData> const* tdList[2] = { d->getFirstTrades(), d->getSecondTrades() };
+		CLinkList<TradeData> const* pList[2] = { d->getFirstTrades(), d->getSecondTrades() };
 		int iGPTItems = 0;
 		int iBonusItems = 0;
 		bool bValid = true;
 		int iGPTItemIndex = -1;
 		for(int i = 0; i < 2; i++)
 		{
-			CLLNode<TradeData>* pNode = tdList[i]->head();
+			CLLNode<TradeData> const* pNode = pList[i]->head();
 			if(pNode != NULL)
 			{
 				TradeableItems data = pNode->m_data.m_eItemType;
@@ -13619,7 +13623,7 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes eP
 				continue;
 			bool bPeaceTreaty = false;
 			bool bAnnualPayment = false;
-			for(CLLNode<TradeData>* pNode = d->headTradesNode(); pNode != NULL;
+			for(CLLNode<TradeData> const* pNode = d->headTradesNode(); pNode != NULL;
 				pNode = d->nextTradesNode(pNode))
 			{
 				TradeableItems eItem = pNode->m_data.m_eItemType;
@@ -15540,11 +15544,10 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 		// Replacing the above (negated):
 		if(!kPlotArea.canBeEntered(kFromArea))
 			continue; // </advc.030>
-		CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-		while (pUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 		{
 			CvUnitAI* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
-			pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 			if (pLoopUnit->getOwner() != getID())
 				continue; // advc
 			//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
@@ -16080,7 +16083,7 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 				continue;
 
 			int iPlotTotal = 0;
-			for (CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
 				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
 				CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
@@ -16159,7 +16162,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
 				continue;
 
-			for (CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
+			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
 				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
 				CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
@@ -18998,7 +19001,7 @@ double CvPlayerAI::AI_bonusImportValue(PlayerTypes eFrom) const
 		bool bTribute = d->isVassalTributeDeal();
 		/*if(bTribute)
 			continue;*/ // Let's reduce the value instead
-		for(CLLNode<TradeData>* pNode = d->headGivesNode(eFrom); pNode != NULL;
+		for(CLLNode<TradeData> const* pNode = d->headGivesNode(eFrom); pNode != NULL;
 			pNode = d->nextGivesNode(pNode, eFrom))
 		{
 			if(pNode->m_data.m_eItemType == TRADE_RESOURCES)
@@ -19818,7 +19821,7 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 		is all right. AI_considerOffer will not cancel these b/c the trade values
 		of dual trades are always considered fair.
 		Worst enmity is treated separately elsewhere. */
-	CLLNode<TradeData>* pNode = d.headGivesNode(getID());
+	CLLNode<TradeData> const* pNode = d.headGivesNode(getID());
 	if(pNode != NULL && CvDeal::isDual(pNode->m_data.m_eItemType, true))
 	{
 		DenialTypes eDenial = getTradeDenial(ePlayer, pNode->m_data);
@@ -19888,7 +19891,7 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 			CLinkList<TradeData> ourList;
 			CLinkList<TradeData> theirList;
 			bool bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
-			CLLNode<TradeData>* pNode;
+			CLLNode<TradeData> const* pNode;
 			for (pNode = pLoopDeal->headGivesNode(getID()); pNode != NULL;
 					pNode = pLoopDeal->nextGivesNode(pNode, getID()))
 			{
@@ -19988,7 +19991,8 @@ bool CvPlayerAI::AI_checkMaxGold(CLinkList<TradeData> const& items, PlayerTypes 
 {
 	int const iMaxGold = AI_maxGoldTrade(eTo);
 	int const iMaxGPT = AI_maxGoldPerTurnTrade(eTo);
-	for(CLLNode<TradeData>* pNode = items.head(); pNode != NULL; pNode = items.next(pNode)) {
+	for(CLLNode<TradeData> const* pNode = items.head(); pNode != NULL; pNode = items.next(pNode))
+	{
 		if(pNode->m_data.m_eItemType == TRADE_GOLD && pNode->m_data.m_iData > iMaxGold)
 			return false;
 		if(pNode->m_data.m_eItemType == TRADE_GOLD_PER_TURN && pNode->m_data.m_iData > iMaxGPT)
@@ -27105,61 +27109,59 @@ void CvPlayerAI::AI_doEnemyUnitData()
 		int iAdjacentAttackers = -1;
 		if (pLoopPlot->isVisible(getTeam(), false))
 		{
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-			while (pUnitNode != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
+				pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-				if (pLoopUnit->canFight())
+				if (!pLoopUnit->canFight())
+					continue; // advc
+
+				int iUnitValue = 1;
+				//if (atWar(getTeam(), pLoopUnit->getTeam()))
+				// BETTER_BTS_AI_MOD, War Strategy AI, 03/18/10, jdog5000:
+				if (GET_TEAM(getTeam()).AI_getWarPlan(pLoopUnit->getTeam()) != NO_WARPLAN)
 				{
-					int iUnitValue = 1;
-					//if (atWar(getTeam(), pLoopUnit->getTeam()))
-					// BETTER_BTS_AI_MOD, War Strategy AI, 03/18/10, jdog5000:
-					if (GET_TEAM(getTeam()).AI_getWarPlan(pLoopUnit->getTeam()) != NO_WARPLAN)
+					iUnitValue += 10;
+					if (pLoopPlot->getOwner() == getID())
 					{
-						iUnitValue += 10;
-						if (pLoopPlot->getOwner() == getID())
+						iUnitValue += 15;
+						// <cdtw> try a little harder to counter city attack units
+						if(pLoopUnit->combatLimit() == GC.getMAX_HIT_POINTS())
+							iUnitValue += pLoopUnit->cityAttackModifier() / 10;
+						// </cdtw>
+					}
+					else if (atWar(getTeam(), pLoopPlot->getTeam()))
+					{
+						if (iAdjacentAttackers == -1)
 						{
+							iAdjacentAttackers = GET_PLAYER(pLoopPlot->getOwner()).
+									AI_adjacentPotentialAttackers(pLoopPlot);
+						}
+						if (iAdjacentAttackers > 0)
 							iUnitValue += 15;
-							// <cdtw> try a little harder to counter city attack units
-							if(pLoopUnit->combatLimit() == GC.getMAX_HIT_POINTS())
-								iUnitValue += pLoopUnit->cityAttackModifier() / 10;
-							// </cdtw>
-						}
-						else if (atWar(getTeam(), pLoopPlot->getTeam()))
-						{
-							if (iAdjacentAttackers == -1)
-							{
-								iAdjacentAttackers = GET_PLAYER(pLoopPlot->getOwner()).
-										AI_adjacentPotentialAttackers(pLoopPlot);
-							}
-							if (iAdjacentAttackers > 0)
-								iUnitValue += 15;
-						}
 					}
-					else if (pLoopUnit->getOwner() != getID())
-					{
-						int iTmp = ((pLoopUnit->canAttack() &&
-								// advc.315:
-								!pLoopUnit->getUnitInfo().isMostlyDefensive()) ?
-								4 : 1);
-						iUnitValue += iTmp;
-						if (pLoopPlot->getCulture(getID()) > 0)
-						{
-							//iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
-							iUnitValue += iTmp; // advc.315
-						}
-					}
-
-					// If we hadn't seen any of this class before
-					if (m_aiUnitClassWeights[pLoopUnit->getUnitClassType()] == 0)
-						iUnitValue *= 4;
-
-					iUnitValue *= pLoopUnit->baseCombatStr();
-					aiUnitCounts[pLoopUnit->getUnitType()] += iUnitValue;
-					aiDomainSums[pLoopUnit->getDomainType()] += iUnitValue;
-					iNewTotal += iUnitValue;
 				}
+				else if (pLoopUnit->getOwner() != getID())
+				{
+					int iTmp = ((pLoopUnit->canAttack() &&
+							// advc.315:
+							!pLoopUnit->getUnitInfo().isMostlyDefensive()) ?
+							4 : 1);
+					iUnitValue += iTmp;
+					if (pLoopPlot->getCulture(getID()) > 0)
+					{
+						//iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+						iUnitValue += iTmp; // advc.315
+					}
+				}
+				// If we hadn't seen any of this class before
+				if (m_aiUnitClassWeights[pLoopUnit->getUnitClassType()] == 0)
+					iUnitValue *= 4;
+
+				iUnitValue *= pLoopUnit->baseCombatStr();
+				aiUnitCounts[pLoopUnit->getUnitType()] += iUnitValue;
+				aiDomainSums[pLoopUnit->getDomainType()] += iUnitValue;
+				iNewTotal += iUnitValue;
 			}
 		}
 	}
@@ -27816,17 +27818,15 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue; // </advc.030>
 			// <advc.128>
-			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
 			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false))
 			{
 				if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 					continue;
 			} // </advc.128>
-			// advc: Use a while loop for the units as in the plotDanger functions
-			while (pUnitNode != NULL)
+			for (; pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 				if (pLoopUnit->isEnemy(getTeam()) &&
 					// advc.315: was pLoopUnit->canAttack()
 					AI_canBeAttackedBy(*pLoopUnit) &&

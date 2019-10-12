@@ -196,7 +196,11 @@ public:
 	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
 	{
 		return m_units.next(pNode); // advc.003f: inline
-	}
+	} // <advc> Safer in 'for' loops
+	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
+	{
+		return m_units.next(pNode);
+	} // </advc>
 	DllExport int getNumUnits() const;																												// Exposed to Python
 	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
 	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.003f: inline
@@ -263,7 +267,7 @@ protected:
 
 	CLinkList<IDInfo> m_units;
 	CLinkList<MissionData> m_missionQueue;
-	std::vector<CvUnit*> m_aDifferentUnitCache;
+	std::vector<CvUnit const*> m_aDifferentUnitCache; // advc: const
 	bool m_bIsBusyCache;
 
 	void activateHeadMission();

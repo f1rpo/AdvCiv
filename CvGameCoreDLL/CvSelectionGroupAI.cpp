@@ -54,7 +54,6 @@ void CvSelectionGroupAI::AI_separate()
 	{
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
-
 		pLoopUnit->joinGroup(NULL);
 	}
 }
@@ -67,9 +66,7 @@ void CvSelectionGroupAI::AI_separateNonAI(UnitAITypes eUnitAI)
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
 		if (pLoopUnit->AI_getUnitAIType() != eUnitAI)
-		{
 			pLoopUnit->joinGroup(NULL);
-		}
 	}
 }
 
@@ -81,9 +78,7 @@ void CvSelectionGroupAI::AI_separateAI(UnitAITypes eUnitAI)
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
 		if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
-		{
 			pLoopUnit->joinGroup(NULL);
-		}
 	}
 }
 
@@ -93,7 +88,6 @@ bool CvSelectionGroupAI::AI_separateImpassable()
 	bool bSeparated = false;
 
 	CLLNode<IDInfo>* pEntityNode = headUnitNode();
-
 	while (pEntityNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
@@ -112,12 +106,11 @@ bool CvSelectionGroupAI::AI_separateEmptyTransports()
 	bool bSeparated = false;
 
 	CLLNode<IDInfo>* pEntityNode = headUnitNode();
-
 	while (pEntityNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
-		if ((pLoopUnit->AI_getUnitAIType() == UNITAI_ASSAULT_SEA) && (pLoopUnit->getCargo() == 0))
+		if (pLoopUnit->AI_getUnitAIType() == UNITAI_ASSAULT_SEA && pLoopUnit->getCargo() == 0)
 		{
 			pLoopUnit->joinGroup(NULL);
 			bSeparated = true;
@@ -238,7 +231,7 @@ bool CvSelectionGroupAI::AI_update()
 				/*  What we do here might split the group. So to avoid problems,
 					lets make a list of our units. */
 				std::vector<IDInfo> originalGroup;
-				for(CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+				for(CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
  				{
 					originalGroup.push_back(pUnitNode->m_data);
 				}
@@ -320,7 +313,7 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	int iBestValue = 0;
 	int iBestOdds = 0;
 	CvUnitAI* pBestUnit = NULL;
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	CLLNode<IDInfo> const* pUnitNode = headUnitNode();
 	bool bHuman = (pUnitNode == NULL ? true :
 			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwner()).isHuman());
 	FAssert(!bMaxSurvival || bHuman); // advc.048
@@ -413,7 +406,7 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 	int iBestValue = -1; // advc.048: was 0
 	CvUnitAI* pBestUnit = NULL;
 
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	CLLNode<IDInfo> const* pUnitNode = headUnitNode();
 	// <advc.048> Copied from AI_getBestGroupAttacker
 	bool bHuman = (pUnitNode == NULL ? true :
 			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwner()).isHuman());
@@ -521,7 +514,7 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	int iBaseCollateral = (bCountCollateral
 		? estimateCollateralWeight(pAttackedPlot, getTeam()) : 0);
 	int	iSum = 0;
-	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
 	{
 		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
 		if (kLoopUnit.isDead())
@@ -725,11 +718,10 @@ bool CvSelectionGroupAI::AI_isFull()
 	int iCargoCount = 0;
 
 	// first pass, count but ignore special cargo units
-	CLLNode<IDInfo>*  pUnitNode = headUnitNode();
-	while (pUnitNode != NULL)
+	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
+		pUnitNode = nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
 		{
 			if (pLoopUnit->cargoSpace() > 0)
@@ -737,7 +729,7 @@ bool CvSelectionGroupAI::AI_isFull()
 
 			if (pLoopUnit->specialCargo() != NO_SPECIALUNIT)
 				iSpecialCargoCount++;
-			else if (!(pLoopUnit->isFull()))
+			else if (!pLoopUnit->isFull())
 				return false;
 		}
 	}
@@ -745,14 +737,13 @@ bool CvSelectionGroupAI::AI_isFull()
 	// if every unit in the group has special cargo, then check those, otherwise, consider ourselves full
 	if (iSpecialCargoCount >= iCargoCount)
 	{
-		pUnitNode = headUnitNode();
-		while (pUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
+			pUnitNode = nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
 			{
-				if (!(pLoopUnit->isFull()))
+				if (!pLoopUnit->isFull())
 					return false;
 			}
 		}
