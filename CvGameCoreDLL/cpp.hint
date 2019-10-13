@@ -20,3 +20,5 @@
 #define FOR_EACH_GROUPAI(pCity, kOwner)
 #define FOR_EACH_GROUP_VAR(pCity, kOwner)
 #define FOR_EACH_GROUPAI_VAR(pCity, kOwner)
+
+#define FOR_EACH_ENUM(TypeName)

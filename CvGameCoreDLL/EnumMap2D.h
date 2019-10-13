@@ -78,7 +78,7 @@ template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
 __forceinline OuterArrayType EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::Length() const
 {
-	return ArrayLength((OuterArrayType)0);
+	return getEnumLength((OuterArrayType)0); // advc.enum: was ArrayLength
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>

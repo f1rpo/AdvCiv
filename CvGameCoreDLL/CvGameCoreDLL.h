@@ -226,7 +226,8 @@ void DumpMemUsage(const char* fn, int line);
 #ifdef _CODE_EDITOR
 namespace boost
 {
-	namespace python {
+	namespace python
+	{
 		class tuple;
 		template<typename x, typename y> class class_;
 		template<typename x> class return_value_policy;
@@ -253,9 +254,9 @@ namespace python = boost::python;
 #include "FFreeListArrayBase.h"
 #include "FFreeListTrashArray.h"
 #include "FFreeListArray.h"
-//#include "FVariableSystem.h"
 #include "CvString.h"
-#include "CvEnums.h" // includes CvDefines.h
+#include "CvDefines.h"
+#include "CvEnums.h"
 #include "CvStructs.h"
 #include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 

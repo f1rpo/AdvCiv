@@ -1,7 +1,9 @@
 /*  advc.enum: From the "We the People" (WtP) mod for Civ4Col, original author: Nightinggale,
 	who is still working on the EnumMap classes. This version is from 8 Oct 2019.
 	I have -for now- omitted the WtP serialization functions, and uncoupled the
-	SET_ARRAY_XML_ENUM calls from the Perl-generated enums that WtP uses.
+	code from the Perl-generated enums that WtP uses. Instead of defining
+	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
+	CvEnums.h and CvGlobals.h are used.
 	Formatting: linebreaks added before scope resolution operators. */
 
 #ifndef ENUM_MAP_H
@@ -166,7 +168,7 @@ inline EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
 ::EnumMapBase() : m_pArrayFull(NULL)
 {
 	FAssertMsg(sizeof(*this) == 4, "EnumMap is supposed to only contain a pointer");
-	FAssertMsg(getLength() >= 0 && getLength() <= ArrayLength((LengthType)0), "Custom length out of range");
+	FAssertMsg(getLength() >= 0 && getLength() <= getEnumLength((LengthType)0), "Custom length out of range");
 	FAssertMsg(First() >= 0 && First() <= getLength(), "Custom length out of range");
 }
 
@@ -188,14 +190,15 @@ template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int S
 __forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
 ::First() const
 {
-	return ArrayStart((T_SUBSET)0);
+	//return ArrayStart((T_SUBSET)0);
+	return (T_SUBSET)0; // advc: Get rid of the ArrayStart function
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
 __forceinline LengthType EnumMapBase<LengthType, T, DEFAULT, T_SUBSET, SIZE, SIZE_OF_T>
 ::getLength() const
 {
-	return ArrayLength((T_SUBSET)0);
+	return getEnumLength((T_SUBSET)0);
 }
 
 template<class LengthType, class T, int DEFAULT, class T_SUBSET, int SIZE, int SIZE_OF_T>
@@ -596,11 +599,10 @@ SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
 
 /*  advc: VAR_SIZE param removed. Since NUM_TYPES is known at compile-time,
-	SIZE can be derived from that. JITarrayType accessor removed. */
-#define SET_ARRAY_XML_ENUM( VAR, NUM_TYPES ) \
-__forceinline VAR ArrayStart(VAR var) { return (VAR)0; } \
-__forceinline VAR ArrayLength(VAR var) { return NUM_TYPES; } \
-template <> struct EnumMapGetDefault<VAR> \
+	SIZE can be derived from that. JITarrayType accessor, ArrayStart and ArrayLength
+	functions removed. Renamed the macro from SET_ARRAY_XML_ENUM to SET_XML_ENUM_SIZE. */
+#define SET_XML_ENUM_SIZE(Name, NUM_TYPES) \
+template <> struct EnumMapGetDefault<Name> \
 { \
 	enum { value = -1, SIZE = (NUM_TYPES < 128 ? 1 : 2), SIZE_OF_T = SIZE }; \
 };
@@ -610,66 +612,77 @@ template <> struct EnumMapGetDefault<VAR> \
 // Setting the byte size means say PlayerTypes will use 1 byte instead of 4. Works because MAX_PLAYERS <= 0x7F
 
 // (advc: Most lengths aren't known at compile time)
-//                 type            , length
-SET_ARRAY_XML_ENUM(AreaAITypes     , NUM_AREAAI_TYPES         );
-SET_ARRAY_XML_ENUM(UnitAITypes     , NUM_UNITAI_TYPES         );
-SET_ARRAY_XML_ENUM(MemoryTypes     , NUM_MEMORY_TYPES         );
-SET_ARRAY_XML_ENUM(WorldSizeTypes  , NUM_WORLDSIZE_TYPES      );
-SET_ARRAY_XML_ENUM(YieldTypes      , NUM_YIELD_TYPES          );
-SET_ARRAY_XML_ENUM(CommerceTypes   , NUM_COMMERCE_TYPES       );
-SET_ARRAY_XML_ENUM(PlayerTypes     , (PlayerTypes)MAX_PLAYERS );
-SET_ARRAY_XML_ENUM(TeamTypes       , (TeamTypes)MAX_TEAMS     );
+SET_XML_ENUM_SIZE(AreaAITypes, NUM_AREAAI_TYPES)
+SET_XML_ENUM_SIZE(UnitAITypes, NUM_UNITAI_TYPES)
+SET_XML_ENUM_SIZE(MemoryTypes, NUM_MEMORY_TYPES)
+SET_XML_ENUM_SIZE(WorldSizeTypes, NUM_WORLDSIZE_TYPES)
+SET_XML_ENUM_SIZE(YieldTypes, NUM_YIELD_TYPES)
+SET_XML_ENUM_SIZE(CommerceTypes, NUM_COMMERCE_TYPES)
+SET_XML_ENUM_SIZE(PlayerTypes, MAX_PLAYERS)
+SET_XML_ENUM_SIZE(TeamTypes, MAX_TEAMS)
 
-/*  <advc> Although the lengths aren't known to the compiler, I know that many
-	types have fewer than 128 values and no reasonable XML change will change that.
-	Based on the macro above: */
-#define SET_ARRAY_XML_ENUM_GC(VAR, VAR_SIZE) \
-	__forceinline VAR##Types ArrayStart(VAR##Types var) { return (VAR##Types)0; } \
-	__forceinline VAR##Types ArrayLength(VAR##Types var) { return (VAR##Types)GC.getNum##VAR##Infos(); } \
-	template <> struct EnumMapGetDefault<VAR##Types> \
+/*  <advc> Although the lengths aren't known to the compiler, I know that many types
+	have fewer than 128 values and no reasonable XML change will change that. */
+#define SET_XML_ENUM_SIZE1(Name) \
+	template <> struct EnumMapGetDefault<Name##Types> \
 	{ \
-		enum { value = -1, SIZE = VAR_SIZE, SIZE_OF_T = SIZE }; \
+		enum { value = -1, SIZE = 1, SIZE_OF_T = SIZE }; \
 	};
+SET_XML_ENUM_SIZE1(SpecialBuilding)
+SET_XML_ENUM_SIZE1(Civic)
+SET_XML_ENUM_SIZE1(CivicOption)
+SET_XML_ENUM_SIZE1(Climate)
+SET_XML_ENUM_SIZE1(CultureLevel)
+SET_XML_ENUM_SIZE1(Era)
+SET_XML_ENUM_SIZE1(Emphasize)
+SET_XML_ENUM_SIZE1(Feature)
+SET_XML_ENUM_SIZE1(GameOption)
+SET_XML_ENUM_SIZE1(GameSpeed)
+SET_XML_ENUM_SIZE1(Goody)
+SET_XML_ENUM_SIZE1(Handicap)
+SET_XML_ENUM_SIZE1(Hurry)
+SET_XML_ENUM_SIZE1(Improvement)
+SET_XML_ENUM_SIZE1(Invisible)
+SET_XML_ENUM_SIZE1(PlayerOption)
+SET_XML_ENUM_SIZE1(Route)
+SET_XML_ENUM_SIZE1(SeaLevel)
+SET_XML_ENUM_SIZE1(Terrain)
+SET_XML_ENUM_SIZE1(Trait)
+SET_XML_ENUM_SIZE1(UnitCombat)
+SET_XML_ENUM_SIZE1(SpecialUnit)
+SET_XML_ENUM_SIZE1(Victory)
 
-SET_ARRAY_XML_ENUM_GC(SpecialBuilding, 1);
-SET_ARRAY_XML_ENUM_GC(Civic, 1);
-SET_ARRAY_XML_ENUM_GC(CivicOption, 1);
-SET_ARRAY_XML_ENUM_GC(Climate, 1);
-SET_ARRAY_XML_ENUM_GC(CultureLevel, 1);
-SET_ARRAY_XML_ENUM_GC(Era, 1);
-SET_ARRAY_XML_ENUM_GC(Emphasize, 1);
-SET_ARRAY_XML_ENUM_GC(Feature, 1);
-SET_ARRAY_XML_ENUM_GC(GameOption, 1);
-SET_ARRAY_XML_ENUM_GC(GameSpeed, 1);
-SET_ARRAY_XML_ENUM_GC(Goody, 1);
-SET_ARRAY_XML_ENUM_GC(Handicap, 1);
-SET_ARRAY_XML_ENUM_GC(Hurry, 1);
-SET_ARRAY_XML_ENUM_GC(Improvement, 1);
-SET_ARRAY_XML_ENUM_GC(Invisible, 1);
-SET_ARRAY_XML_ENUM_GC(PlayerOption, 1);
-SET_ARRAY_XML_ENUM_GC(Route, 1);
-SET_ARRAY_XML_ENUM_GC(SeaLevel, 1);
-SET_ARRAY_XML_ENUM_GC(Terrain, 1);
-SET_ARRAY_XML_ENUM_GC(Trait, 1);
-SET_ARRAY_XML_ENUM_GC(UnitCombat, 1);
-SET_ARRAY_XML_ENUM_GC(SpecialUnit, 1);
-SET_ARRAY_XML_ENUM_GC(Victory, 1);
-// 2 being the default apparently does not mean that these can be omitted:
-SET_ARRAY_XML_ENUM_GC(Bonus, 2);
-SET_ARRAY_XML_ENUM_GC(LeaderHead, 2);
-SET_ARRAY_XML_ENUM_GC(Event, 2);
-SET_ARRAY_XML_ENUM_GC(EventTrigger, 2);
-SET_ARRAY_XML_ENUM_GC(Build, 2);
-SET_ARRAY_XML_ENUM_GC(Building, 2);
-SET_ARRAY_XML_ENUM_GC(BuildingClass, 2);
-SET_ARRAY_XML_ENUM_GC(Civilization, 2);
-SET_ARRAY_XML_ENUM_GC(Color, 2);
-SET_ARRAY_XML_ENUM_GC(PlayerColor, 2);
-SET_ARRAY_XML_ENUM_GC(Promotion, 2);
-SET_ARRAY_XML_ENUM_GC(Unit, 2);
-SET_ARRAY_XML_ENUM_GC(UnitClass, 2);
-SET_ARRAY_XML_ENUM_GC(Tech, 2);
-} // </advc>
+/*  2 being the default apparently does not mean that these can be omitted
+	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */
+#define SET_XML_ENUM_SIZE2(Name) \
+	template <> struct EnumMapGetDefault<Name##Types> \
+	{ \
+		enum { value = -1, SIZE = 2, SIZE_OF_T = SIZE }; \
+	};
+SET_XML_ENUM_SIZE2(Bonus)
+SET_XML_ENUM_SIZE2(LeaderHead)
+SET_XML_ENUM_SIZE2(Event)
+SET_XML_ENUM_SIZE2(EventTrigger)
+SET_XML_ENUM_SIZE2(Build)
+SET_XML_ENUM_SIZE2(Building)
+SET_XML_ENUM_SIZE2(BuildingClass)
+SET_XML_ENUM_SIZE2(Civilization)
+SET_XML_ENUM_SIZE2(Color)
+SET_XML_ENUM_SIZE2(PlayerColor)
+SET_XML_ENUM_SIZE2(Promotion)
+SET_XML_ENUM_SIZE2(Unit)
+SET_XML_ENUM_SIZE2(UnitClass)
+SET_XML_ENUM_SIZE2(Tech)
+
+#define SET_NONXML_ENUM_LENGTH(TypeName, eLength) \
+	__forceinline TypeName getEnumLength(TypeName) { return eLength; }
+/*  Don't want to set these in CvEnums.h or anywhere in the global namespace b/c
+	the FOR_EACH_ENUM macro shouldn't be used for them */
+SET_NONXML_ENUM_LENGTH(PlayerTypes, (PlayerTypes)MAX_PLAYERS)
+SET_NONXML_ENUM_LENGTH(TeamTypes, (TeamTypes)MAX_TEAMS)
+} // End of anonymous namespace
+// </advc>
+
 
 //
 // List of various types of EnumMaps

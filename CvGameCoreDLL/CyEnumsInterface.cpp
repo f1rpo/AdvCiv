@@ -775,7 +775,7 @@ void CyEnumsPythonInterface()
 		.value("VOICETARGET_DIPLO", VOICETARGET_DIPLO)
 		.value("VOICETARGET_TEAM", VOICETARGET_TEAM)
 		.value("VOICETARGET_ALL", VOICETARGET_ALL)
-		.value("NUM_VOICETARGETS", NUM_VOICETARGETS)
+		.value("NUM_VOICETARGETS", NUM_VOICETARGET_TYPES) // advc.enum
 		;
 
 	python::enum_<TeamTypes>("TeamTypes")
@@ -1555,7 +1555,7 @@ void CyEnumsPythonInterface()
 		.value("NO_GAMEMODE", NO_GAMEMODE)
 		.value("GAMEMODE_NORMAL", GAMEMODE_NORMAL)
 		.value("GAMEMODE_PITBOSS", GAMEMODE_PITBOSS)
-		.value("NUM_GAMEMODES", NUM_GAMEMODE_TYPES) // advc.enum
+		.value("NUM_GAMEMODES", NUM_GAMEMODES)
 		;
 
 	python::enum_<InterfaceVisibility>("InterfaceVisibility")
@@ -1585,7 +1585,7 @@ void CyEnumsPythonInterface()
 		.value("WBPOPUP_FEATURE", WBPOPUP_FEATURE)
 		.value("WBPOPUP_IMPROVEMENT", WBPOPUP_IMPROVEMENT)
 		.value("WBPOPUP_GAME", WBPOPUP_GAME)
-		.value("NUM_WBPOPUP", NUM_WBPOPUP_TYPES) // advc.emum
+		.value("NUM_WBPOPUP", NUM_WBPOPUP)
 		;
 
 	python::enum_<EventType>("EventType")

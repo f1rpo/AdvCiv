@@ -672,8 +672,8 @@ int CvArea::getNumAIUnits(PlayerTypes eIndex1, UnitAITypes eIndex2) const
 	if(eIndex2 < 0)
 	{
 		int r = 0;
-		for(UnitAITypes eUnitAI = FIRST_UNITAI; eUnitAI < NUM_UNITAI_TYPES; eUnitAI++)
-			r += m_aaiNumAIUnits.get(eIndex1, eUnitAI);
+		FOR_EACH_ENUM(UnitAI)
+			r += m_aaiNumAIUnits.get(eIndex1, eLoopUnitAI);
 		return r;
 	} // </advc.124>
 	return m_aaiNumAIUnits.get(eIndex1, eIndex2);
@@ -696,8 +696,8 @@ int CvArea::getNumBonuses(BonusTypes eBonus) const
 int CvArea::getNumTotalBonuses() const
 {
 	int iTotal = 0;
-	for (BonusTypes eBonus = FIRST_BONUS; eBonus < GC.getNumBonusInfos(); eBonus++)
-		iTotal += m_aiBonuses.get(eBonus);
+	FOR_EACH_ENUM(Bonus)
+		iTotal += m_aiBonuses.get(eLoopBonus);
 	return iTotal;
 }
 

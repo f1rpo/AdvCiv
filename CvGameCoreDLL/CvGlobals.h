@@ -1973,6 +1973,11 @@ __forceinline CvGlobals const& CvGlobals::getConstInstance()
 	return gGlobals;
 } // </advc.003t>
 
+/*  advc.enum: These aren't member functions because they need to overload the
+	SET_ENUM_LENGTH_STATIC functions defined in CvEnums.h. I'd rather not make
+	those functions members of CvGlobals. (Though that could make it easier for
+	the compiler to remove unused functions. Hmm.) */
+ENUMERATE_INFO_TYPES(SET_ENUM_LENGTH)
 
 //
 // helpers
