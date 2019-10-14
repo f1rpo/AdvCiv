@@ -4327,7 +4327,7 @@ bool CvUnit::airBomb(int iX, int iY)
 		FAssertMsg(iDefSansBuildings > 0 || isHuman(),
 				"The AI shoudn't bombard cities whose def is already 0");
 		double chg = -airBombCurrRate() * (iDefWithBuildings / (double)iDefSansBuildings);
-		pCity->changeDefenseModifier(std::min(0, (int)::floor(chg)));
+		pCity->changeDefenseModifier(std::min(0, ::round(chg)));
 		// Replacing this line: // </advc.004c>
 		//pCity->changeDefenseModifier(-airBombCurrRate());
 
