@@ -255,8 +255,7 @@ namespace python = boost::python;
 #include "FFreeListTrashArray.h"
 #include "FFreeListArray.h"
 #include "CvString.h"
-#include "CvDefines.h"
-#include "CvEnums.h"
+#include "CvEnums.h" // includes CvDefines.h
 #include "CvStructs.h"
 #include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 

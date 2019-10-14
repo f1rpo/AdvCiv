@@ -213,6 +213,7 @@
     <ClInclude Include="..\CvDLLUtilityIFaceBase.h" />
     <ClInclude Include="..\CvDLLWidgetData.h" />
     <ClInclude Include="..\CvDLLXMLIFaceBase.h" />
+    <ClInclude Include="..\CvEnumHelpers.h" />
     <ClInclude Include="..\CvEnums.h" />
     <ClInclude Include="..\CvEventReporter.h" />
     <ClInclude Include="..\CvFractal.h" />
