@@ -1977,7 +1977,7 @@ __forceinline CvGlobals const& CvGlobals::getConstInstance()
 	SET_ENUM_LENGTH_STATIC functions defined in CvEnums.h. I'd rather not make
 	those functions members of CvGlobals. (Though that could make it easier for
 	the compiler to remove unused functions. Hmm.) */
-ENUMERATE_INFO_TYPES(SET_ENUM_LENGTH)
+DO_FOR_EACH_INFO_TYPE(SET_ENUM_LENGTH)
 
 //
 // helpers

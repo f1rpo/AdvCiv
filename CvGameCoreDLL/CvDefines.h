@@ -73,10 +73,11 @@
 #define INVALID_PLOT_COORD										(-(MAX_INT))	// don't use -1 since that is a valid wrap coordinate
 #define DIRECTION_RADIUS											(1)
 #define DIRECTION_DIAMETER										((DIRECTION_RADIUS * 2) + 1)
-#define NUM_CITY_PLOTS												(21)
-#define CITY_HOME_PLOT												(0)
-#define CITY_PLOTS_RADIUS											(2)
-#define CITY_PLOTS_DIAMETER										((CITY_PLOTS_RADIUS*2) + 1)
+// advc.enum: Moved to CvEnums.h
+/*#define NUM_CITY_PLOTS (21)
+#define CITY_HOME_PLOT    (0)
+#define CITY_PLOTS_RADIUS (2)
+#define CITY_PLOTS_DIAMETER	((CITY_PLOTS_RADIUS*2) + 1)*/
 
 #define GAME_NAME															("Game")
 

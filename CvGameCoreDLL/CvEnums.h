@@ -34,15 +34,16 @@ static inline T operator++(T& c, int)
 #define NUM_ENUM_TYPES(INFIX) NUM_##INFIX##_TYPES
 #define NO_ENUM_TYPE(SUFFIX) NO_##SUFFIX = -1
 
+// (See SET_NONXML_ENUM_LENGTH in EnumMap.h about the bAllowForEach parameter)
 #define SET_ENUM_LENGTH_STATIC(Name, INFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types) \
+	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowForEach = true) \
 	{ \
 		return NUM_ENUM_TYPES(INFIX); \
 	}
 /*  This gets used in CvGlobals.h. (I wanted to do it here in MAKE_INFO_ENUM, but
 	that lead to a circular dependency.) */
 #define SET_ENUM_LENGTH(Name, PREFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types) \
+	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowForEach = true) \
 	{ \
 		return static_cast<Name##Types>(gGlobals.getNum##Name##Infos()); \
 	}
@@ -70,7 +71,7 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 // (Let's worry about #ifdef _USRDLL only when the source of the EXE is released, i.e. probably never.)
 
-#define ENUMERATE_INFO_TYPES(DO) \
+#define DO_FOR_EACH_INFO_TYPE(DO) \
 	DO(Color, COLOR) \
 	DO(PlayerColor, PLAYERCOLOR) \
 	DO(Effect, EFFECT) \
@@ -132,7 +133,7 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 	have been moved to the end. */
 #pragma endregion EnumMacros
 // This generates most of the enums with associated XML data
-ENUMERATE_INFO_TYPES(MAKE_INFO_ENUM)
+DO_FOR_EACH_INFO_TYPE(MAKE_INFO_ENUM)
 // </advc.enum>
 
 ENUM_START(GameState, GAMESTATE)
@@ -2350,5 +2351,22 @@ enum UnitSubEntityTypes
 	UNIT_SUB_ENTITY_COUNT
 };
 
-#pragma warning(default:4068) // advc.enum: Re-enable warnings about unknown pragma
+// <advc.enum> (idea from "We the People")
+enum CityPlotTypes
+{
+	CITY_HOME_PLOT,
+	CITY_PLOTS_RADIUS = 2,
+	CITY_PLOTS_DIAMETER = CITY_PLOTS_RADIUS * 2 + 1,
+	NUM_CITYPLOT_TYPES = 21,
+};
+// (I don't think FOR_EACH_ENUM(CityPlot) is the best way to loop over city plots.)
+/*ENUM_START(CityPlot, CITYPLOT)
+	CITY_HOME_PLOT,
+	CITY_PLOTS_RADIUS = 2,
+	CITY_PLOTS_DIAMETER = CITY_PLOTS_RADIUS * 2 + 1,
+	LAST_CITY_PLOT = 20,
+ENUM_END(CityPlot, CITYPLOT)*/
+#define NUM_CITY_PLOTS (int)NUM_CITYPLOT_TYPES
+
+#pragma warning(default:4068) // Re-enable "unknown pragma" warning </advc.enum>
 #endif	// CVENUMS_h
