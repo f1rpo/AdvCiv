@@ -302,10 +302,10 @@ private:
 	void setHealthChangeBuildActionHelp(CvWStringBuffer& szBuffer, int iChange,
 			int iChangePercent, int iIcon) const; // </advc.059>
 	// <advc>
-	void appendNegativeModifiers(CvWStringBuffer& szString,
-			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
-	void appendPositiveModifiers(CvWStringBuffer& szString,
-			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
+	void appendNegativeModifiers(CvWStringBuffer& szString, CvUnit const* pAttacker,
+			CvUnit const* pDefender, CvPlot const* pPlot);
+	void appendPositiveModifiers(CvWStringBuffer& szString, CvUnit const* pAttacker,
+			CvUnit const* pDefender, CvPlot const* pPlot, bool bNegative);
 	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc>
 	// <advc.004w>

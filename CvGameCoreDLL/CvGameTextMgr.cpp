@@ -4182,7 +4182,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 			szString.append(L' ');//XXX
 			// advc: Another batch of repeated modifiers
-			appendPositiveModifiers(szString, pAttacker, pDefender, pPlot);
+			appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, true);
 		}
 
 		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
@@ -4238,7 +4238,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH", iModifier));
 		}
 		// advc: Same code as in the ACO_enabled branch; use subroutine instead.
-		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot);
+		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, false);
 
 		if (!(pDefender->immuneToFirstStrikes()))
 		{
@@ -5011,9 +5011,16 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 	CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-	// advc.004b:
-	bool bFound = (pHeadSelectedUnit != NULL && /* advc.004h: */ pHeadSelectedUnit->canFound());
-	bool bBuild = (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER && pHeadSelectedUnit->at(kPlot));
+	bool bBuild = false;
+	// <advc.004b>
+	bool bFound = false;
+	if (pHeadSelectedUnit != NULL)
+	{
+		if (pHeadSelectedUnit->canFound()) // advc.004h
+			bFound = true; // </advc.004b>
+		if (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER && pHeadSelectedUnit->at(kPlot))
+			bBuild = true;
+	}
 	if(!bFound && !bBuild && !kPlot.isCityRadius())
 		return;
 	bool bNearSelectedCity = false;
@@ -16336,7 +16343,8 @@ void CvGameTextMgr::getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes
 	else
 	{
 		const CvPlayer& kTargetPlayer = GET_PLAYER(eTargetPlayer);
-		if (atWar(kPlayer.getTeam(), kTargetPlayer.getTeam()) && (GC.getGame().isDebugMode() || GET_PLAYER(GC.getGame().getActivePlayer()).canSeeDemographics(ePlayer)))
+		if (atWar(kPlayer.getTeam(), kTargetPlayer.getTeam()) &&
+			(GC.getGame().isDebugMode() || GET_PLAYER(GC.getGame().getActivePlayer()).canSeeDemographics(ePlayer)))
 		{
 			iWarWeariness = kPlayer.getModifiedWarWearinessPercentAnger(GET_TEAM(kPlayer.getTeam()).getWarWeariness(kTargetPlayer.getTeam(), true)/100);
 		}
@@ -21005,48 +21013,41 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 		CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot)
 {
 	int iModifier = 0;
-	if (!(pAttacker->isRiver()))
+	if (!pAttacker->isRiver())
 	{
-		if (pAttacker->plot()->isRiverCrossing(directionXY(pAttacker->plot(),
+		if (pAttacker->plot()->isRiverCrossing(::directionXY(pAttacker->plot(),
 				pPlot)))
 		{
 			iModifier = GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
-
 			if (iModifier != 0)
 			{
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_RIVER_MOD",
-						-(iModifier)));
+						-iModifier));
 			}
 		}
 	}
-
-	if (!(pAttacker->isAmphib()))
+	if (!pAttacker->isAmphib())
 	{
-		if (!(pPlot->isWater()) && pAttacker->plot()->isWater())
+		if (!pPlot->isWater() && pAttacker->plot()->isWater())
 		{
 			iModifier = GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER);
-
 			if (iModifier != 0)
 			{
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_AMPHIB_MOD",
-						-(iModifier)));
+						-iModifier));
 			}
 		}
 	}
-
 	iModifier = pDefender->getExtraCombatPercent();
-
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH",
 				iModifier));
 	}
-
 	iModifier = pDefender->unitClassDefenseModifier(pAttacker->getUnitClassType());
-
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
@@ -21054,11 +21055,9 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 				iModifier, GC.getUnitClassInfo(pAttacker->getUnitClassType()).
 				getTextKeyWide()));
 	}
-
 	if (pAttacker->getUnitCombatType() != NO_UNITCOMBAT)
 	{
 		iModifier = pDefender->unitCombatModifier(pAttacker->getUnitCombatType());
-
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
@@ -21067,9 +21066,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 					getTextKeyWide()));
 		}
 	}
-
 	iModifier = pDefender->domainModifier(pAttacker->getDomainType());
-
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
@@ -21077,7 +21074,6 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 				iModifier, GC.getDomainInfo(pAttacker->getDomainType()).
 				getTextKeyWide()));
 	}
-
 	if (!pDefender->noDefensiveBonus())
 	{
 		// <advc.012> Show feature defense unless in a hostile tile
@@ -21098,20 +21094,16 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 					iModifier));
 		}
 	}
-
 	iModifier = pDefender->fortifyModifier();
-
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_FORTIFY_MOD",
 				iModifier));
 	}
-
 	if (pPlot->isCity(true, pDefender->getTeam()))
 	{
 		iModifier = pDefender->cityDefenseModifier();
-
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
@@ -21119,11 +21111,9 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 					iModifier));
 		}
 	}
-
 	if (pPlot->isHills())
 	{
 		iModifier = pDefender->hillsDefenseModifier();
-
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
@@ -21135,7 +21125,6 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 	if (pPlot->getFeatureType() != NO_FEATURE)
 	{
 		iModifier = pDefender->featureDefenseModifier(pPlot->getFeatureType());
-
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
@@ -21147,7 +21136,6 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 	else
 	{
 		iModifier = pDefender->terrainDefenseModifier(pPlot->getTerrainType());
-
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
@@ -21160,17 +21148,17 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 
 // advc: Body cut and pasted from setCombatPlotHelp
 void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
-	CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot)
+	CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot, bool bNegative)
 {
+	int const iSign = (bNegative ? -1 : 1);
 	int iModifier = pAttacker->unitClassAttackModifier(pDefender->getUnitClassType());
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				-iModifier, GC.getUnitClassInfo(pDefender->getUnitClassType()).
+				iSign * iModifier, GC.getUnitClassInfo(pDefender->getUnitClassType()).
 				getTextKeyWide()));
 	}
-
 	if (pDefender->getUnitCombatType() != NO_UNITCOMBAT)
 	{
 		iModifier = pAttacker->unitCombatModifier(pDefender->getUnitCombatType());
@@ -21178,40 +21166,38 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-					-iModifier, GC.getUnitCombatInfo(
+					iSign * iModifier, GC.getUnitCombatInfo(
 					pDefender->getUnitCombatType()).getTextKeyWide()));
 		}
 	}
-
 	iModifier = pAttacker->domainModifier(pDefender->getDomainType());
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				-iModifier, GC.getDomainInfo(pDefender->getDomainType()).
+				iSign * iModifier, GC.getDomainInfo(pDefender->getDomainType()).
 				getTextKeyWide()));
 	}
-
 	if (pPlot->isCity(true, pDefender->getTeam()))
 	{
 		iModifier = pAttacker->cityAttackModifier();
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_CITY_MOD", -iModifier));
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_CITY_MOD",
+					iSign * iModifier));
 		}
 	}
-
 	if (pPlot->isHills())
 	{
 		iModifier = pAttacker->hillsAttackModifier();
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HILLS_MOD", -iModifier));
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HILLS_MOD",
+					iSign * iModifier));
 		}
 	}
-
 	if (pPlot->getFeatureType() != NO_FEATURE)
 	{
 		iModifier = pAttacker->featureAttackModifier(pPlot->getFeatureType());
@@ -21219,7 +21205,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					-iModifier, GC.getFeatureInfo(pPlot->getFeatureType()).
+					iSign * iModifier, GC.getFeatureInfo(pPlot->getFeatureType()).
 					getTextKeyWide()));
 		}
 	}
@@ -21230,19 +21216,17 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					-iModifier, GC.getTerrainInfo(pPlot->getTerrainType()).
+					iSign * iModifier, GC.getTerrainInfo(pPlot->getTerrainType()).
 					getTextKeyWide()));
 		}
 	}
-
 	iModifier = pAttacker->getKamikazePercent();
 	if (iModifier != 0)
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_KAMIKAZE_MOD",
-				-iModifier));
+				iSign * iModifier));
 	}
-
 	if (pDefender->isAnimal())
 	{	// advc.315c: Moved into the isBarbarian block below
 		//iModifier = -GC.getHandicapInfo(GC.getGame().getHandicapType()).getAnimalCombatModifier();
@@ -21250,10 +21234,10 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		if (iModifier != 0)
 		{
 			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD", -iModifier));
+			szString.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD",
+					iSign * iModifier));
 		}
 	}
-
 	if (pDefender->isBarbarian())
 	{	// advc.315c:
 		iModifier = -pAttacker->getUnitInfo().getBarbarianCombatModifier();
@@ -21261,7 +21245,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD",
-					-iModifier));
+					iSign * iModifier));
 		}
 		// <advc.315c> Show modifier from difficulty separately from unit abilities
 		iModifier = GC.getHandicapInfo(
@@ -21278,7 +21262,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_MISC_FROM_HANDICAP",
-					-iModifier));
+					iSign * iModifier));
 		} // </advc.315c>
 	}
 }
