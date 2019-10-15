@@ -14105,52 +14105,45 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iFlags, int iMin
 bool CvUnitAI::AI_rangeAttack(int iRange)
 {
 	PROFILE_FUNC();
-
 	FAssert(canMove());
-
 	if (!canRangeStrike())
-	{
 		return false;
-	}
 
-	int iSearchRange = AI_searchRange(iRange);
-
-	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
-
-	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+	int iBestValue = 0;
+	int iSearchRange = AI_searchRange(iRange);
+	/*  advc.opt: I don't think MISSION_RANGE_ATTACK will cause the unit to move
+		toward the target. No point in searching beyond the air range then. */
+	iSearchRange = std::min(iSearchRange, airRange());	
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
 	{
-		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
-			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
+			CvPlot* pLoopPlot = ::plotXY(getX(), getY(), iDX, iDY);
+			if (pLoopPlot == NULL || atPlot(pLoopPlot))
+				continue; // advc
 
-			if (pLoopPlot != NULL)
+			//if (pLoopPlot->isVisibleEnemyUnit(this) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam())))
+			if (pLoopPlot->isVisibleEnemyUnit(this)) // K-Mod
 			{
-				//if (pLoopPlot->isVisibleEnemyUnit(this) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam())))
-				if (pLoopPlot->isVisibleEnemyUnit(this)) // K-Mod
+				if (canRangeStrikeAt(plot(), pLoopPlot->getX(), pLoopPlot->getY()))
 				{
-					if (!atPlot(pLoopPlot) && canRangeStrikeAt(plot(), pLoopPlot->getX(), pLoopPlot->getY()))
+					int iValue = AI_getGroup()->AI_attackOdds(pLoopPlot, true);
+					if (iValue > iBestValue)
 					{
-						int iValue = AI_getGroup()->AI_attackOdds(pLoopPlot, true);
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
+						iBestValue = iValue;
+						pBestPlot = pLoopPlot;
 					}
 				}
 			}
 		}
 	}
-
 	if (pBestPlot != NULL)
 	{
-		FAssert(!atPlot(pBestPlot));
 		// K-Mod note: no AI_considerDOW here.
 		getGroup()->pushMission(MISSION_RANGE_ATTACK, pBestPlot->getX(), pBestPlot->getY(), 0);
 		return true;
 	}
-
 	return false;
 }
 
