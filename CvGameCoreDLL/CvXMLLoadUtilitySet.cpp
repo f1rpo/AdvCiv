@@ -878,6 +878,10 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 		FAssertMsg(GC.m_pa##Name##Info.size() == NUM_ENUM_TYPES(INFIX), \
 		"The number of "#Name " types loaded from XML does not match "#Name"Types");
 	DO_FOR_EACH_STATIC_INFO_TYPE(ASSERT_SIZE_EQUALS_ENUM_LENGTH);
+	#define ASSERT_FITS_IN_SIGNED_CHAR(Name, INFIX) \
+		FAssertMsg(GC.m_pa##Name##Info.size() <= MAX_CHAR, \
+		"The number of "#Name " types loaded from XML exceeds the limit assumed by EnumMap");
+	DO_FOR_EACH_SMALL_DYN_INFO_TYPE(ASSERT_FITS_IN_SIGNED_CHAR);
 	// </advc.enum>
 	return true;
 }

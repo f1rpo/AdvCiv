@@ -31,35 +31,24 @@ static inline T operator++(T& c, int)
 #define _kLoop_(TypeName) \
 	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)
 
-
 // Type lists ...
 
-// Number of instances not known at compile time
-#define DO_FOR_EACH_DYN_INFO_TYPE(DO) \
-	/* getInfo function exported */ \
-	DO(Color, COLOR) \
-	DO(AnimationCategory, ANIMCAT) \
-	DO(EntityEvent, ENTITYEVENT) \
-	DO(Effect, EFFECT) \
-	DO(Attachable, ATTACHABLE) \
-	DO(Build, BUILD) \
+/*  Number of instances not known at compile time, but it's safe to say, even in
+	mod-mods, that it's not going to be greater than MAX_CHAR. (CvXMLLoadUtility
+	will verify this too.) */
+#define DO_FOR_EACH_SMALL_DYN_INFO_TYPE(DO) \
 	/* getNumInfos function exported */ \
 	DO(Route, ROUTE) \
-	/* both exported */ \
-	DO(PlayerColor, PLAYERCOLOR) \
+	/* getInfo function and getNumInfos function exported */ \
 	DO(Climate, CLIMATE) \
 	DO(SeaLevel, SEALEVEL) \
 	DO(Terrain, TERRAIN) \
 	DO(Feature, FEATURE) \
-	DO(Bonus, BONUS) \
+	DO(TurnTimer, TURNTIMER) \
 	DO(Improvement, IMPROVEMENT) \
 	DO(Handicap, HANDICAP) \
 	DO(GameSpeed, GAMESPEED) \
-	DO(TurnTimer, TURNTIMER) \
 	DO(Era, ERA) \
-	DO(Civilization, CIVILIZATION) \
-	DO(LeaderHead, LEADER) \
-	DO(Cursor, CURSOR) \
 	DO(Victory, VICTORY) \
 	/* internal only */ \
 	/*DO(Camera, CAMERAANIMATION)*/ /* advc.003j: unused */ \
@@ -69,36 +58,58 @@ static inline T operator++(T& c, int)
 	DO(River, RIVER) \
 	DO(Goody, GOODY) \
 	DO(Trait, TRAIT) \
-	DO(BuildingClass, BUILDINGCLASS) \
-	DO(Building, BUILDING) \
-	DO(SpecialBuilding, SPECIALBUILDING) \
-	DO(Project, PROJECT) \
 	DO(Process, PROCESS) \
-	DO(Vote, VOTE) \
-	DO(Concept, CONCEPT) \
-	DO(NewConcept, NEW_CONCEPT) \
 	DO(Season, SEASON) \
 	DO(Month, MONTH) \
-	DO(UnitClass, UNITCLASS) \
-	DO(Unit, UNIT) \
-	DO(SpecialUnit, SPECIALUNIT) \
 	DO(UnitCombat, UNITCOMBAT) \
 	DO(Invisible, INVISIBLE) \
 	DO(VoteSource, VOTESOURCE) \
-	DO(Promotion, PROMOTION) \
-	DO(Tech, TECH) \
 	DO(Specialist, SPECIALIST) \
 	DO(Religion, RELIGION) \
 	DO(Corporation, CORPORATION) \
 	DO(Hurry, HURRY) \
 	DO(Upkeep, UPKEEP) \
 	DO(CultureLevel, CULTURELEVEL) \
-	DO(CivicOption, CIVICOPTION) \
+	DO(CivicOption, CIVICOPTION)
+
+// Number of instances not known at compile time; might be greater than MAX_CHAR.
+#define DO_FOR_EACH_BIG_DYN_INFO_TYPE(DO) \
+	/* getInfo function exported */ \
+	DO(Color, COLOR) \
+	DO(AnimationCategory, ANIMCAT) \
+	DO(EntityEvent, ENTITYEVENT) \
+	DO(Effect, EFFECT) \
+	DO(Attachable, ATTACHABLE) \
+	DO(Build, BUILD) \
+	/* both exported */ \
+	DO(PlayerColor, PLAYERCOLOR) \
+	DO(Bonus, BONUS) \
+	DO(Civilization, CIVILIZATION) \
+	DO(LeaderHead, LEADER) \
+	DO(Cursor, CURSOR) \
+	/* internal only */ \
+	DO(BuildingClass, BUILDINGCLASS) \
+	DO(Building, BUILDING) \
+	DO(SpecialBuilding, SPECIALBUILDING) \
+	DO(Project, PROJECT) \
+	DO(Vote, VOTE) \
+	DO(Concept, CONCEPT) \
+	DO(NewConcept, NEW_CONCEPT) \
+	DO(UnitClass, UNITCLASS) \
+	DO(Unit, UNIT) \
+	DO(SpecialUnit, SPECIALUNIT) \
+	DO(Promotion, PROMOTION) \
+	DO(Tech, TECH) \
 	DO(Civic, CIVIC) \
 	DO(Event, EVENT) \
 	DO(EventTrigger, EVENTTRIGGER) \
 	DO(EspionageMission, ESPIONAGEMISSION) \
 	DO(UnitArtStyle, UNIT_ARTSTYLE)
+
+// Number of instances not known at compile time
+#define DO_FOR_EACH_DYN_INFO_TYPE(DO) \
+	DO_FOR_EACH_SMALL_DYN_INFO_TYPE(DO) \
+	DO_FOR_EACH_BIG_DYN_INFO_TYPE(DO)
 
 /*  Number of instances not known at compile time; no associated enum type.
 	(I've enter upper-case prefixes though in case that enums are desired at a

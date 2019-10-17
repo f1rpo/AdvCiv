@@ -615,80 +615,40 @@ SET_ARRAY_DEFAULT(byte);
 
 /*  advc: VAR_SIZE param removed. Since NUM_TYPES is known at compile-time,
 	SIZE can be derived from that. JITarrayType accessor, ArrayStart and ArrayLength
-	functions removed. Renamed the macro from SET_ARRAY_XML_ENUM to SET_XML_ENUM_SIZE. */
-#define SET_XML_ENUM_SIZE(Name, NUM_TYPES) \
-template <> struct EnumMapGetDefault<Name> \
+	functions removed. Renamed the macro from SET_ARRAY_XML_ENUM to SET_XML_ENUM_SIZE.
+	And some minor changes for compatibility with the DO_FOR_EACH... macro. */
+#define SET_XML_ENUM_SIZE(Name, INFIX) \
+	template <> struct EnumMapGetDefault<Name##Types> \
 { \
-	enum { value = -1, SIZE = (NUM_TYPES < 128 ? 1 : 2), SIZE_OF_T = SIZE }; \
+	enum { value = -1, SIZE = (NUM_ENUM_TYPES(INFIX) <= MAX_CHAR ? 1 : 2), SIZE_OF_T = SIZE }; \
 };
 
 // Byte size is set in enums
 // If the length isn't known at compile time, 2 is assumed.
 // Setting the byte size means say PlayerTypes will use 1 byte instead of 4. Works because MAX_PLAYERS <= 0x7F
 
-// (advc: Most lengths aren't known at compile time)
-SET_XML_ENUM_SIZE(AreaAITypes, NUM_AREAAI_TYPES)
-SET_XML_ENUM_SIZE(UnitAITypes, NUM_UNITAI_TYPES)
-SET_XML_ENUM_SIZE(MemoryTypes, NUM_MEMORY_TYPES)
-SET_XML_ENUM_SIZE(YieldTypes, NUM_YIELD_TYPES)
-SET_XML_ENUM_SIZE(CommerceTypes, NUM_COMMERCE_TYPES)
-SET_XML_ENUM_SIZE(PlayerTypes, MAX_PLAYERS)
-SET_XML_ENUM_SIZE(TeamTypes, MAX_TEAMS)
-SET_XML_ENUM_SIZE(CityPlotTypes, NUM_CITY_PLOTS)
+// <advc>
+DO_FOR_EACH_STATIC_INFO_TYPE(SET_XML_ENUM_SIZE)
+SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 
-/*  <advc> Although the lengths aren't known to the compiler, I know that many types
-	have fewer than 128 values and no reasonable XML change will change that. */
-#define SET_XML_ENUM_SIZE1(Name) \
+#define SET_XML_ENUM_SIZE1(Name, Dummy) \
 	template <> struct EnumMapGetDefault<Name##Types> \
 	{ \
 		enum { value = -1, SIZE = 1, SIZE_OF_T = SIZE }; \
 	};
-SET_XML_ENUM_SIZE1(SpecialBuilding)
-SET_XML_ENUM_SIZE1(Civic)
-SET_XML_ENUM_SIZE1(CivicOption)
-SET_XML_ENUM_SIZE1(WorldSize)
-SET_XML_ENUM_SIZE1(Climate)
-SET_XML_ENUM_SIZE1(CultureLevel)
-SET_XML_ENUM_SIZE1(Era)
-SET_XML_ENUM_SIZE1(Emphasize)
-SET_XML_ENUM_SIZE1(Feature)
-SET_XML_ENUM_SIZE1(GameOption)
-SET_XML_ENUM_SIZE1(GameSpeed)
-SET_XML_ENUM_SIZE1(Goody)
-SET_XML_ENUM_SIZE1(Handicap)
-SET_XML_ENUM_SIZE1(Hurry)
-SET_XML_ENUM_SIZE1(Improvement)
-SET_XML_ENUM_SIZE1(Invisible)
-SET_XML_ENUM_SIZE1(PlayerOption)
-SET_XML_ENUM_SIZE1(Route)
-SET_XML_ENUM_SIZE1(SeaLevel)
-SET_XML_ENUM_SIZE1(Terrain)
-SET_XML_ENUM_SIZE1(Trait)
-SET_XML_ENUM_SIZE1(UnitCombat)
-SET_XML_ENUM_SIZE1(SpecialUnit)
-SET_XML_ENUM_SIZE1(Victory)
+	DO_FOR_EACH_SMALL_DYN_INFO_TYPE(SET_XML_ENUM_SIZE1)
+	// These are dynamic but have some static values; not included in the list above.
+	SET_XML_ENUM_SIZE1(WorldSize, Dummy)
+	SET_XML_ENUM_SIZE1(Flavor, Dummy)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */
-#define SET_XML_ENUM_SIZE2(Name) \
+#define SET_XML_ENUM_SIZE2(Name, DUmmy) \
 	template <> struct EnumMapGetDefault<Name##Types> \
 	{ \
 		enum { value = -1, SIZE = 2, SIZE_OF_T = SIZE }; \
 	};
-SET_XML_ENUM_SIZE2(Bonus)
-SET_XML_ENUM_SIZE2(LeaderHead)
-SET_XML_ENUM_SIZE2(Event)
-SET_XML_ENUM_SIZE2(EventTrigger)
-SET_XML_ENUM_SIZE2(Build)
-SET_XML_ENUM_SIZE2(Building)
-SET_XML_ENUM_SIZE2(BuildingClass)
-SET_XML_ENUM_SIZE2(Civilization)
-SET_XML_ENUM_SIZE2(Color)
-SET_XML_ENUM_SIZE2(PlayerColor)
-SET_XML_ENUM_SIZE2(Promotion)
-SET_XML_ENUM_SIZE2(Unit)
-SET_XML_ENUM_SIZE2(UnitClass)
-SET_XML_ENUM_SIZE2(Tech)
+	DO_FOR_EACH_BIG_DYN_INFO_TYPE(SET_XML_ENUM_SIZE2)
 
 /*  The other getEnumLength functions are generated through macros in CvEnums.h.
 	For players and teams, I don't want the FOR_EACH_ENUM macro to be used, so
