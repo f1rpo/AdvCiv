@@ -5598,7 +5598,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		CvEventReporter::getInstance().techAcquired(eIndex, getID(), ePlayer, bAnnounce);
 
 		bool bReligionFounded = false;
-		bool bFirstBonus = false;
+		bool bFirstPerk = false; // advc: Reneamed from bFirstBonus
 		bool firstToDiscover = (g.countKnownTechNumTeams(eIndex) == 1); // advc.106
 		if (bFirst && firstToDiscover &&
 			!GC.getPythonCaller()->doOrganizationTech(getID(), ePlayer, eIndex))
@@ -5652,7 +5652,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				}
 				else GET_PLAYER(eBestPlayer).foundReligion(eReligion, eReligion, true);
 				bReligionFounded = true;
-				bFirstBonus = true;
+				bFirstPerk = true;
 			}
 			for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
 			{
@@ -5684,24 +5684,20 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					continue;
 
 				GET_PLAYER(eBestPlayer).foundCorporation(eCorp);
-				bFirstBonus = true;
+				bFirstPerk = true;
 			}
 		}
 
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int i = 0; i < MAX_PLAYERS; i++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).isResearchingTech(eIndex))
-				{
-					GET_PLAYER((PlayerTypes)iI).popResearch(eIndex);
-				}
-
-				// notify the player they now have the tech, if they want to make immediate changes
-				GET_PLAYER((PlayerTypes)iI).AI_nowHasTech(eIndex);
-
-				GET_PLAYER((PlayerTypes)iI).invalidateYieldRankCache();
-			}
+			CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)i);
+			if (kMember.getTeam() != getID())
+				continue;
+			if (kMember.isResearchingTech(eIndex))
+				kMember.popResearch(eIndex);
+			// notify the player they now have the tech, if they want to make immediate changes
+			kMember.AI_nowHasTech(eIndex);
+			kMember.invalidateYieldRankCache();
 		}
 
 		if (bFirst && firstToDiscover)
@@ -5711,19 +5707,16 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			UnitTypes eFreeUnit = GET_PLAYER(ePlayer).getTechFreeUnit(eIndex);
 			if (eFreeUnit != NO_UNIT)
 			{
-				bFirstBonus = true;
+				bFirstPerk = true;
 				bAnnounceFirst = true; // advc.004
 				CvCity* pCapitalCity = GET_PLAYER(ePlayer).getCapitalCity();
-
 				if (pCapitalCity != NULL)
-				{
 					pCapitalCity->createGreatPeople(eFreeUnit, false, false);
-				}
 			}
 
 			if (GC.getInfo(eIndex).getFirstFreeTechs() > 0)
 			{
-				bFirstBonus = true;
+				bFirstPerk = true;
 				bAnnounceFirst = true; // advc.004
 
 				if (!isHuman())
@@ -5775,19 +5768,16 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							getCapitalY(kObs.getTeam(), true)); // </advc.127b>
 				}
 			} // </advc.004>
-			if (bFirstBonus)
+			if (bFirstPerk)
 			{
-				for (int iI = 0; iI < MAX_PLAYERS; iI++)
+				for (int i = 0; i < MAX_PLAYERS; i++)
 				{
-					if (GET_PLAYER((PlayerTypes)iI).isAlive())
+					CvPlayerAI& kOther = GET_PLAYER((PlayerTypes)i);
+					if (kOther.isAlive() && !kOther.isHuman() &&
+						kOther.isResearchingTech(eIndex))
 					{
-						if (!(GET_PLAYER((PlayerTypes)iI).isHuman()))
-						{
-							if (GET_PLAYER((PlayerTypes)iI).isResearchingTech(eIndex))
-							{
-								GET_PLAYER((PlayerTypes)iI).clearResearchQueue(); // K-Mod note: we just want to flag it for re-evaluation. Clearing the queue is currently the only way to do that.
-							}
-						}
+						// K-Mod note: we just want to flag it for re-evaluation. Clearing the queue is currently the only way to do that.
+						kOther.clearResearchQueue();
 					}
 				}
 			}
@@ -5874,9 +5864,9 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			{	// advc: Un-nested the conditions
 				CvPlayer& kMember = GET_PLAYER((PlayerTypes)iI);
 				if (kMember.isAlive() && kMember.getTeam() == getID() && kMember.isHuman() &&
-						(kMember.getID() != ePlayer || !bReligionFounded ||
-						kMember.getLastStateReligion() != NO_RELIGION) /*&&
-						kMember.canRevolution(NULL)*/) // advc.004x
+					(kMember.getID() != ePlayer || !bReligionFounded ||
+					kMember.getLastStateReligion() != NO_RELIGION) /*&&
+					kMember.canRevolution(NULL)*/) // advc.004x
 				{
 					CivicTypes eCivic = NO_CIVIC;
 					for (int iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
@@ -5905,9 +5895,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			if (GET_TEAM((TeamTypes)iI).isAlive())
 			{
 				if (iI != getID())
-				{
 					GET_TEAM((TeamTypes)iI).updateTechShare(eIndex);
-				}
 			}
 		}
 		// <advc.106>
@@ -6080,8 +6068,7 @@ int CvTeam::getTotalUnspentEspionage() const
 	for (int i = 0; i < MAX_CIV_TEAMS; i++)
 		iTotal += getEspionagePointsAgainstTeam((TeamTypes)i);
 	return iTotal;
-}
-// K-Mod end
+} // K-Mod end
 
 int CvTeam::getEspionagePointsEver() const
 {
@@ -6178,39 +6165,27 @@ void CvTeam::verifySpyUnitsValidPlot()
 	}
 
 	for (uint i = 0; i < aUnits.size(); ++i)
-	{
 		aUnits[i]->jumpToNearestValidPlot();
-	}
 }
 
 void CvTeam::setForceRevealedBonus(BonusTypes eBonus, bool bRevealed)
 {
 	if (isForceRevealedBonus(eBonus) == bRevealed)
-	{
 		return;
-	}
-
 	for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
 		if (pLoopPlot->getBonusType() == eBonus)
 		{
 			if (pLoopPlot->getTeam() == getID())
-			{
 				pLoopPlot->updatePlotGroupBonus(false);
-			}
 		}
 	}
-
 	if (bRevealed)
-	{
 		m_aeRevealedBonuses.push_back(eBonus);
-	}
 	else
 	{
 		std::vector<BonusTypes>::iterator it;
-
 		for (it = m_aeRevealedBonuses.begin(); it != m_aeRevealedBonuses.end(); ++it)
 		{
 			if (*it == eBonus)
@@ -6224,20 +6199,16 @@ void CvTeam::setForceRevealedBonus(BonusTypes eBonus, bool bRevealed)
 	for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
 		if (pLoopPlot->getBonusType() == eBonus)
 		{
 			if (pLoopPlot->getTeam() == getID())
-			{
 				pLoopPlot->updatePlotGroupBonus(true);
-			}
 		}
 	}
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
 		if (pLoopPlot->getBonusType() == eBonus)
 		{
 			pLoopPlot->updateYield();
@@ -6248,17 +6219,10 @@ void CvTeam::setForceRevealedBonus(BonusTypes eBonus, bool bRevealed)
 
 bool CvTeam::isForceRevealedBonus(BonusTypes eBonus) const
 {
-	std::vector<BonusTypes>::const_iterator it;
-
-	for (it = m_aeRevealedBonuses.begin(); it != m_aeRevealedBonuses.end(); ++it)
-	{
-		if (*it == eBonus)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	// <advc> Replacing equivalent BtS code
+	return (!m_aeRevealedBonuses.empty() && // To make sure we're not wasting any more time than necessary with this
+			std::find(m_aeRevealedBonuses.begin(), m_aeRevealedBonuses.end(), eBonus) != m_aeRevealedBonuses.end());
+	// </advc>
 }
 
 // K-Mod
@@ -6272,7 +6236,8 @@ bool CvTeam::isBonusRevealed(BonusTypes eBonus) const
 // <advc.108> Based on CvPlayer::initFreeUnits
 void CvTeam::revealSurroundingPlots(CvPlot const& kCenter, int iRange) const {
 
-	for(int i = 0; i < GC.getMap().numPlots(); i++) {
+	for(int i = 0; i < GC.getMap().numPlots(); i++)
+	{
 		CvPlot& kPlot = *GC.getMap().plotByIndex(i);
 		if(plotDistance(&kPlot, &kCenter) <= iRange)
 			kPlot.setRevealed(getID(), true, false, NO_TEAM, false);
@@ -6282,20 +6247,15 @@ void CvTeam::revealSurroundingPlots(CvPlot const& kCenter, int iRange) const {
 int CvTeam::countNumHumanGameTurnActive() const
 {
 	int iCount = 0;
-
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-
 		if (kLoopPlayer.isHuman() && kLoopPlayer.getTeam() == getID())
 		{
 			if (kLoopPlayer.isTurnActive())
-			{
-				++iCount;
-			}
+				iCount++;
 		}
 	}
-
 	return iCount;
 }
 
@@ -6307,9 +6267,7 @@ void CvTeam::setTurnActive(bool bNewValue, bool bDoTurn)
 	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 		if (kPlayer.isAlive() && kPlayer.getTeam() == getID())
-		{
 			kPlayer.setTurnActive(bNewValue, bDoTurn);
-		}
 	}
 }
 
@@ -6323,27 +6281,29 @@ bool CvTeam::isTurnActive() const
 		if (kPlayer.getTeam() == getID())
 		{
 			if (kPlayer.isTurnActive())
-			{
 				return true;
-			}
 		}
 	}
-
 	return false;
 }
 
 
 void CvTeam::doWarWeariness()
 {
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
+	static int const iWW_DECAY_RATE = GC.getDefineINT("WW_DECAY_RATE"); // advc.opt
+	static int const iWW_DECAY_PEACE_PERCENT = GC.getDefineINT("WW_DECAY_PEACE_PERCENT"); // advc.opt
+	CvGame const& g = GC.getGame();
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
 	{
-		if (getWarWeariness((TeamTypes)iI) > 0)
+		TeamTypes eLoopTeam = (TeamTypes)i;
+		if (getWarWeariness(eLoopTeam) > 0)
 		{
-			changeWarWeariness(((TeamTypes)iI), 100 * GC.getDefineINT("WW_DECAY_RATE"));
-
-			if (!(GET_TEAM((TeamTypes)iI).isAlive()) || !isAtWar((TeamTypes)iI) || GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) || GC.getGame().isOption(GAMEOPTION_NO_CHANGING_WAR_PEACE))
+			changeWarWeariness(eLoopTeam, 100 * iWW_DECAY_RATE);
+			if (!GET_TEAM(eLoopTeam).isAlive() || !isAtWar(eLoopTeam) ||
+				g.isOption(GAMEOPTION_ALWAYS_WAR) || g.isOption(GAMEOPTION_NO_CHANGING_WAR_PEACE))
 			{
-				setWarWeariness(((TeamTypes)iI), ((getWarWeariness((TeamTypes)iI) * GC.getDefineINT("WW_DECAY_PEACE_PERCENT")) / 100));
+				setWarWeariness(eLoopTeam, (getWarWeariness(eLoopTeam) *
+						iWW_DECAY_PEACE_PERCENT) / 100);
 			}
 		}
 	}
