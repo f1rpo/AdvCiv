@@ -200,7 +200,7 @@ int CvEraInfo::getSoundtracks(int i) const
 
 int CvEraInfo::getCitySoundscapeScriptId(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCitySizeTypes(), i, "CvEraInfo::getCitySoundscapeScriptId"); // advc: Check for upper bound added
+	FASSERT_BOUNDS(0, NUM_CITYSIZE_TYPES, i, "CvEraInfo::getCitySoundscapeScriptId"); // advc: Check for upper bound added
 	return m_paiCitySoundscapeScriptIds ? m_paiCitySoundscapeScriptIds[i] : 0; // advc.003t
 }
 
@@ -260,7 +260,7 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPairForAudioScripts(&m_paiCitySoundscapeScriptIds,
 		"CitySoundscapes", CvGlobals::getInstance().getCitySizeTypes(),
 		//sizeof(GC.getCitySizeTypes((CitySizeTypes)0))
-		GC.getNumCitySizeTypes()); // advc.001 (The above was greater than the correct value, so it didn't do any real harm.)
+		NUM_CITYSIZE_TYPES); // advc.001 (The above was greater than the correct value, so it didn't do any real harm.)
 
 	return true;
 }

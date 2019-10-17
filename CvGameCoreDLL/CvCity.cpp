@@ -744,7 +744,8 @@ int CvCity::calculateBaseYieldRate(YieldTypes y)
 	int r = 0;
 	for(int i = 0; i < NUM_CITY_PLOTS; i++)
 	{
-		if(isWorkingPlot(i)) {
+		if(isWorkingPlot(i))
+		{
 			CvPlot* pl = getCityIndexPlot(i);
 			if(pl != NULL)
 				r += pl->getYield(y);

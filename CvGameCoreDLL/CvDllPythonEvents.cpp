@@ -10,7 +10,7 @@
 	(i.e. move some here and the rest to CvPythonCaller). */
 /*  See CvGlobals.h about this macro. Would like to add more, but most of the
 	callbacks are actually in use - by Autolog, EventSigns or Civ4lerts. */
-#define ENUMERATE_CALLBACK_DEFINES(DO) \
+#define DO_FOR_EACH_CALLBACK_DEFINE(DO) \
 	DO(ON_UPDATE) \
 	DO(ON_UNIT_SET_XY) \
 	DO(ON_UNIT_SELECTED) \
@@ -23,10 +23,10 @@
 	/* </advc> */
 enum CallbackDefines
 {
-	ENUMERATE_CALLBACK_DEFINES(MAKE_ENUM)
+	DO_FOR_EACH_CALLBACK_DEFINE(MAKE_ENUMERATOR)
 	NUM_CALLBACK_DEFINES
 };
-#define MAKE_STRINGS(VAR) "USE_"#VAR"_CALLBACK",
+#define MAKE_STRING(VAR) "USE_"#VAR"_CALLBACK",
 
 CvDllPythonEvents::CvDllPythonEvents() : m_abUseCallback(NULL) {}
 
@@ -39,7 +39,7 @@ void CvDllPythonEvents::initCallbackGuards()
 {
 	// Duplicate code unfortunately (cf. CvPythonCaller)
 	const char* const aszGlobalCallbackTagNames[] = {
-		ENUMERATE_CALLBACK_DEFINES(MAKE_STRINGS)
+		DO_FOR_EACH_CALLBACK_DEFINE(MAKE_STRING)
 	};
 	FAssert(sizeof(aszGlobalCallbackTagNames) / sizeof(char*) == NUM_CALLBACK_DEFINES);
 	m_abUseCallback = new bool[NUM_CALLBACK_DEFINES];

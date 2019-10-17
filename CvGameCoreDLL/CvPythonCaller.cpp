@@ -11,8 +11,7 @@
 
 // advc.003y: New file; see CvPythonCaller.h.
 
-// See CvGlobals.h about this macro
-#define ENUMERATE_CALLBACK_DEFINES(DO) \
+#define DO_FOR_EACH_CALLBACK_DEFINE(DO) \
 	DO(FINISH_TEXT) \
 	DO(CANNOT_FOUND_CITY) \
 	DO(CAN_FOUND_CITIES_ON_WATER) \
@@ -72,16 +71,16 @@
 	/* </advc.003y> */
 enum CallbackDefines
 {
-	ENUMERATE_CALLBACK_DEFINES(MAKE_ENUM)
+	DO_FOR_EACH_CALLBACK_DEFINE(MAKE_ENUMERATOR)
 	NUM_CALLBACK_DEFINES
 };
-#define MAKE_STRINGS(VAR) "USE_"#VAR"_CALLBACK",
+#define MAKE_STRING(VAR) "USE_"#VAR"_CALLBACK",
 
 CvPythonCaller::CvPythonCaller() : m_python(*gDLL->getPythonIFace()), m_bLastCallSuccessful(false)
 {
 	// Load global defines - see CvGlobals::cacheGlobalInts for comments.
 	const char* const aszGlobalCallbackTagNames[] = {
-		ENUMERATE_CALLBACK_DEFINES(MAKE_STRINGS)
+		DO_FOR_EACH_CALLBACK_DEFINE(MAKE_STRING)
 	};
 	FAssert(sizeof(aszGlobalCallbackTagNames) / sizeof(char*) == NUM_CALLBACK_DEFINES);
 	m_abUseCallback = new bool[NUM_CALLBACK_DEFINES];

@@ -956,7 +956,7 @@ const TCHAR* CvUnitInfo::getEarlyArtDefineTag(int i, UnitArtStyleTypes eStyle) c
 		int iIndex = GC.getInfoTypeForString(getType());
 		if (iIndex != -1)
 		{
-			const TCHAR* pcTag = GC.getUnitArtStyleTypeInfo(eStyle).getEarlyArtDefineTag(i, iIndex);
+			const TCHAR* pcTag = GC.getUnitArtStyleInfo(eStyle).getEarlyArtDefineTag(i, iIndex);
 			if (pcTag != NULL)
 				return pcTag;
 		}
@@ -978,7 +978,7 @@ const TCHAR* CvUnitInfo::getLateArtDefineTag(int i, UnitArtStyleTypes eStyle) co
 		int iIndex = GC.getInfoTypeForString(getType());
 		if (iIndex != -1)
 		{
-			const TCHAR* pcTag = GC.getUnitArtStyleTypeInfo(eStyle).getLateArtDefineTag(i, iIndex);
+			const TCHAR* pcTag = GC.getUnitArtStyleInfo(eStyle).getLateArtDefineTag(i, iIndex);
 			if (pcTag != NULL)
 				return pcTag;
 		}
@@ -1000,7 +1000,7 @@ const TCHAR* CvUnitInfo::getMiddleArtDefineTag(int i, UnitArtStyleTypes eStyle) 
 		int iIndex = GC.getInfoTypeForString(getType());
 		if (iIndex != -1)
 		{
-			const TCHAR* pcTag = GC.getUnitArtStyleTypeInfo(eStyle).getMiddleArtDefineTag(i, iIndex);
+			const TCHAR* pcTag = GC.getUnitArtStyleInfo(eStyle).getMiddleArtDefineTag(i, iIndex);
 			if (pcTag != NULL)
 				return pcTag;
 		}
@@ -1872,10 +1872,10 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
-const TCHAR* CvUnitArtStyleTypeInfo::getEarlyArtDefineTag(int i, int j) const
+const TCHAR* CvUnitArtStyleInfo::getEarlyArtDefineTag(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleTypeInfo::getEarlyArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleTypeInfo::getEarlyArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::getEarlyArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::getEarlyArtDefineTag");
 	for (ArtDefineArray::const_iterator it = m_azEarlyArtDefineTags.begin(); it != m_azEarlyArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1884,10 +1884,10 @@ const TCHAR* CvUnitArtStyleTypeInfo::getEarlyArtDefineTag(int i, int j) const
 	return NULL;
 }
 
-void CvUnitArtStyleTypeInfo::setEarlyArtDefineTag(int i, int j, const TCHAR* szVal)
+void CvUnitArtStyleInfo::setEarlyArtDefineTag(int i, int j, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleTypeInfo::setEarlyArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleTypeInfo::setEarlyArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::setEarlyArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::setEarlyArtDefineTag");
 	for (ArtDefineArray::iterator it = m_azEarlyArtDefineTags.begin(); it != m_azEarlyArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1903,10 +1903,10 @@ void CvUnitArtStyleTypeInfo::setEarlyArtDefineTag(int i, int j, const TCHAR* szV
 	m_azEarlyArtDefineTags.push_back(kTag);
 }
 
-const TCHAR* CvUnitArtStyleTypeInfo::getLateArtDefineTag(int i, int j) const
+const TCHAR* CvUnitArtStyleInfo::getLateArtDefineTag(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleTypeInfo::getLateArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleTypeInfo::getLateArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::getLateArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::getLateArtDefineTag");
 	for (ArtDefineArray::const_iterator it = m_azLateArtDefineTags.begin(); it != m_azLateArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1915,10 +1915,10 @@ const TCHAR* CvUnitArtStyleTypeInfo::getLateArtDefineTag(int i, int j) const
 	return NULL;
 }
 
-void CvUnitArtStyleTypeInfo::setLateArtDefineTag(int i, int j, const TCHAR* szVal)
+void CvUnitArtStyleInfo::setLateArtDefineTag(int i, int j, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleTypeInfo::setLateArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleTypeInfo::setLateArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::setLateArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::setLateArtDefineTag");
 	for (ArtDefineArray::iterator it = m_azLateArtDefineTags.begin(); it != m_azLateArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1934,10 +1934,10 @@ void CvUnitArtStyleTypeInfo::setLateArtDefineTag(int i, int j, const TCHAR* szVa
 	m_azLateArtDefineTags.push_back(kTag);
 }
 
-const TCHAR* CvUnitArtStyleTypeInfo::getMiddleArtDefineTag(int i, int j) const
+const TCHAR* CvUnitArtStyleInfo::getMiddleArtDefineTag(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleTypeInfo::getMiddleArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleTypeInfo::getMiddleArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::getMiddleArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::getMiddleArtDefineTag");
 	for (ArtDefineArray::const_iterator it = m_azMiddleArtDefineTags.begin(); it != m_azMiddleArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1946,10 +1946,10 @@ const TCHAR* CvUnitArtStyleTypeInfo::getMiddleArtDefineTag(int i, int j) const
 	return NULL;
 }
 
-void CvUnitArtStyleTypeInfo::setMiddleArtDefineTag(int i, int j, const TCHAR* szVal)
+void CvUnitArtStyleInfo::setMiddleArtDefineTag(int i, int j, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleTypeInfo::setMiddleArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleTypeInfo::setMiddleArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::setMiddleArtDefineTag");
+	FASSERT_BOUNDS(0, GC.getUnitInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::setMiddleArtDefineTag");
 	for (ArtDefineArray::iterator it = m_azMiddleArtDefineTags.begin(); it != m_azMiddleArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1965,7 +1965,7 @@ void CvUnitArtStyleTypeInfo::setMiddleArtDefineTag(int i, int j, const TCHAR* sz
 	m_azMiddleArtDefineTags.push_back(kTag);
 }
 
-bool CvUnitArtStyleTypeInfo::read(CvXMLLoadUtility* pXML)
+bool CvUnitArtStyleInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;

@@ -498,7 +498,10 @@ void CyEnumsPythonInterface()
 		.value("WORLDSIZE_STANDARD", WORLDSIZE_STANDARD)
 		.value("WORLDSIZE_LARGE", WORLDSIZE_LARGE)
 		.value("WORLDSIZE_HUGE", WORLDSIZE_HUGE)
-		.value("NUM_WORLDSIZE_TYPES", NUM_WORLDSIZE_TYPES)
+		/*  advc.enum: Don't assume that all sizes are hardcoded.
+			NUM_WORLDSIZE_TYPES is unused in AdvCiv/BtS Python. If it's needed
+			in a mod-mod, one could use WORLDSIZE_HUGE+1. */
+		//.value("NUM_WORLDSIZE_TYPES", NUM_WORLDSIZE_TYPES)
 		;
 
 	python::enum_<TerrainTypes>("TerrainTypes")
@@ -1288,7 +1291,7 @@ void CyEnumsPythonInterface()
 		;
 
 	python::enum_<EntityEventTypes>("EntityEventTypes")
-		.value( "ENTITY_EVENT_NONE", ENTITY_EVENT_NONE )
+		.value( "NO_ENTITY_EVENT_NONE", NO_ENTITYEVENT )
 		;
 
 	python::enum_<AnimationPathTypes>("AnimationPathTypes")
@@ -1316,7 +1319,7 @@ void CyEnumsPythonInterface()
 		;
 
 	python::enum_<AnimationCategoryTypes>("AnimationCategoryTypes")
-		.value("ANIMCAT_NONE", ANIMCAT_NONE)
+		.value("ANIMCAT_NONE", NO_ANIMCAT)
 		;
 
 	python::enum_<CursorTypes>("CursorTypes")

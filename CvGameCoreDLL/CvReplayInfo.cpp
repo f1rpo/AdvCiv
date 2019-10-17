@@ -307,7 +307,7 @@ void CvReplayInfo::addSettingsMsg()
 			szSettings += *pszPointDistrib;
 	} // </advc.250b>
 	int iOptions = 0;
-	for(int i = 0; i < GC.getNumGameOptionInfos(); i++)
+	for(int i = 0; i < NUM_GAMEOPTION_TYPES; i++)
 	{
 		GameOptionTypes eOption = (GameOptionTypes)i;
 		// advc.250b:
@@ -793,11 +793,11 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		m_eGameSpeed = (GameSpeedTypes)iType;
 		if(!checkBounds(m_eGameSpeed, 0, GC.getNumGameSpeedInfos() - 1)) return false; // advc.106i
 		stream.Read(&iNumTypes);
-		if(!checkBounds(iNumTypes, 0, GC.getNumGameOptionInfos() - 1)) return false; // advc.106i
+		if(!checkBounds(iNumTypes, 0, NUM_GAMEOPTION_TYPES - 1)) return false; // advc.106i
 		for (int i = 0; i < iNumTypes; i++)
 		{
 			stream.Read(&iType);
-			if(!checkBounds(iType, 0, GC.getNumGameOptionInfos() - 1)) return false; // advc.106i
+			if(!checkBounds(iType, 0, NUM_GAMEOPTION_TYPES - 1)) return false; // advc.106i
 			m_listGameOptions.push_back((GameOptionTypes)iType);
 		}
 		stream.Read(&iNumTypes);
@@ -831,7 +831,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		if(!checkBounds(m_szFinalDate.length(), 4, 50)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eCalendar = (CalendarTypes)iType;
-		if(!checkBounds(m_eCalendar, 0, GC.getNumCalendarInfos() - 1)) return false; // advc.106i
+		if(!checkBounds(m_eCalendar, 0, NUM_CALENDAR_TYPES - 1)) return false; // advc.106i
 		stream.Read(&m_iNormalizedScore);
 		if(!checkBounds(m_iNormalizedScore, -10000, 1000000)) return false; // advc.106i
 		stream.Read(&iNumTypes);

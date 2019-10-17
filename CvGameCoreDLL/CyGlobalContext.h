@@ -93,7 +93,7 @@ public:
 	CvSeaLevelInfo * getSeaLevelInfo(int i) const;
 	CvInfoBase * getUnitAIInfo(int i) const;
 	CvColorInfo* getColorInfo(int i) const;
-	CvUnitArtStyleTypeInfo* getUnitArtStyleTypeInfo(int i) const;
+	CvUnitArtStyleInfo* getUnitArtStyleTypeInfo(int i) const;
 
 	int getInfoTypeForString(const char* szInfoType) const;
 	int getTypesEnum(const char* szType) const;
@@ -151,7 +151,7 @@ public:
 	const char* getFunctionTypes(int i) const { return kGlobals.getFunctionTypes((FunctionTypes) i); }
 	const char* getFlavorTypes(int i) const { return kGlobals.getFlavorTypes((FlavorTypes) i); }
 	const char* getArtStyleTypes(int i) const { return kGlobals.getArtStyleTypes((ArtStyleTypes) i); }
-	const char* getCitySizeTypes(int i) const { return kGlobals.getCitySizeTypes(i); }
+	const char* getCitySizeTypes(int i) const { return kGlobals.getCitySizeTypes((CitySizeTypes) i); }
 	const char* getContactTypes(int i) const { return kGlobals.getContactTypes((ContactTypes) i); }
 	const char* getDiplomacyPowerTypes(int i) const { return kGlobals.getDiplomacyPowerTypes((DiplomacyPowerTypes) i); }
 	const char *getFootstepAudioTypes(int i) { return kGlobals.getFootstepAudioTypes(i); }
@@ -179,10 +179,11 @@ public:
 	int getNumBuildingInfos() const { return kGlobals.getNumBuildingInfos(); }
 	int getNumUnitClassInfos() const { return kGlobals.getNumUnitClassInfos(); }
 	int getNumUnitCombatInfos() const { return kGlobals.getNumUnitCombatInfos(); }
-	int getNumAutomateInfos() const { return kGlobals.getNumAutomateInfos(); }
-	int getNumCommandInfos() const { return kGlobals.getNumCommandInfos(); }
-	int getNumControlInfos() const { return kGlobals.getNumControlInfos(); }
-	int getNumMissionInfos() const { return kGlobals.getNumMissionInfos(); }
+	// <advc.enum>
+	int getNumAutomateInfos() const { return NUM_AUTOMATE_TYPES; }
+	int getNumCommandInfos() const { return NUM_COMMAND_TYPES; }
+	int getNumControlInfos() const { return NUM_CONTROL_TYPES; }
+	int getNumMissionInfos() const { return NUM_MISSION_TYPES; } // </advc.enum>
 	int getNumActionInfos() const { return kGlobals.getNumActionInfos(); }
 	int getNumPromotionInfos() const { return kGlobals.getNumPromotionInfos(); }
 	int getNumTechInfos() const { return kGlobals.getNumTechInfos(); }
@@ -206,22 +207,24 @@ public:
 	int getNumClimateInfos() const { return kGlobals.getNumClimateInfos(); }
 	int getNumConceptInfos() const { return kGlobals.getNumConceptInfos(); }
 	int getNumNewConceptInfos() const { return kGlobals.getNumNewConceptInfos(); }
-	int getNumCityTabInfos() const { return kGlobals.getNumCityTabInfos(); }
-	int getNumCalendarInfos() const { return kGlobals.getNumCalendarInfos(); }
-	int getNumPlayerOptionInfos() const { return kGlobals.getNumPlayerOptionInfos(); }
-	int getNumGameOptionInfos() const { return kGlobals.getNumGameOptionInfos(); }
-	int getNumMPOptionInfos() const { return kGlobals.getNumMPOptionInfos(); }
-	int getNumForceControlInfos() const { return kGlobals.getNumForceControlInfos(); }
+	// <advc.enum> Return hardcoded values instead of GC.getNum...
+	int getNumCityTabInfos() const { return NUM_CITYTAB_TYPES; }
+	int getNumCalendarInfos() const { return NUM_CALENDAR_TYPES; }
+	int getNumPlayerOptionInfos() const { return NUM_PLAYEROPTION_TYPES; }
+	int getNumGameOptionInfos() const { return NUM_GAMEOPTION_TYPES; }
+	int getNumMPOptionInfos() const { return NUM_MPOPTION_TYPES; }
+	// </advc.enum>
+	int getNumForceControlInfos() const { return NUM_FORCECONTROL_TYPES; }
 	int getNumSeasonInfos() const { return kGlobals.getNumSeasonInfos(); }
 	int getNumMonthInfos() const { return kGlobals.getNumMonthInfos(); }
-	int getNumDenialInfos() const { return kGlobals.getNumDenialInfos(); }
+	int getNumDenialInfos() const { return NUM_DENIAL_TYPES; } // advc.enum
 	//int getNumQuestInfos() const { return kGlobals.getNumQuestInfos(); } // advc.003j
 	int getNumTutorialInfos() const { return kGlobals.getNumTutorialInfos(); }
 	int getNumEventTriggerInfos() const { return kGlobals.getNumEventTriggerInfos(); }
 	int getNumEventInfos() const { return kGlobals.getNumEventInfos(); }
 	int getNumEspionageMissionInfos() const { return kGlobals.getNumEspionageMissionInfos(); }
 	int getNumHints() const { return kGlobals.getNumHints(); }
-	int getNumMainMenus() const { return kGlobals.getNumMainMenus(); }
+	int getNumMainMenus() const { return kGlobals.getNumMainMenuInfos(); }
 	int getNumInvisibleInfos() const { return kGlobals.getNumInvisibleInfos(); }
 	int getNumVoteSourceInfos() const { return kGlobals.getNumVoteSourceInfos(); }
 
@@ -237,16 +240,16 @@ public:
 	int getNumBonusArtInfos() const { return ARTFILEMGR.getNumBonusArtInfos(); }
 	int getNumTerrainArtInfos() const { return ARTFILEMGR.getNumTerrainArtInfos(); }
 	int getNumFeatureArtInfos() const { return ARTFILEMGR.getNumFeatureArtInfos(); }
-	int getNumAnimationPathInfos() const { return kGlobals.getNumAnimationPathInfos(); }
+	int getNumAnimationPathInfos() const { return NUM_ANIMATIONPATH_TYPES; } // advc.enum
 	int getNumAnimationCategoryInfos() const { return kGlobals.getNumAnimationCategoryInfos(); }
-	int getNumUnitArtStyleTypeInfos() const { return kGlobals.getNumUnitArtStyleTypeInfos(); }
+	int getNumUnitArtStyleTypeInfos() const { return kGlobals.getNumUnitArtStyleInfos(); }
 
 
 	int getNumEntityEventTypes() const { return kGlobals.getNumEntityEventTypes(); }
 	int getNumAnimationOperatorTypes() const { return kGlobals.getNumAnimationOperatorTypes(); }
 	int getNumArtStyleTypes() const { return kGlobals.getNumArtStyleTypes(); }
 	int getNumFlavorTypes() const { return kGlobals.getNumFlavorTypes(); }
-	int getNumCitySizeTypes() const { return kGlobals.getNumCitySizeTypes(); }
+	int getNumCitySizeTypes() const { return NUM_CITYSIZE_TYPES; } // advc.enum
 	int getNumFootstepAudioTypes() const { return kGlobals.getNumFootstepAudioTypes(); }
 
 	//////////////////////
@@ -297,15 +300,15 @@ public:
 	float getSHADOW_SCALE() const { return kGlobals.getSHADOW_SCALE(); }
 	float getUNIT_MULTISELECT_DISTANCE() const { return kGlobals.getUNIT_MULTISELECT_DISTANCE(); }
 
-	int getMAX_CIV_PLAYERS() const { return kGlobals.getMAX_CIV_PLAYERS(); }
-	int getMAX_PLAYERS() const { return kGlobals.getMAX_PLAYERS(); }
-	int getMAX_CIV_TEAMS() const { return kGlobals.getMAX_CIV_TEAMS(); }
-	int getMAX_TEAMS() const { return kGlobals.getMAX_TEAMS(); }
-	int getBARBARIAN_PLAYER() const { return kGlobals.getBARBARIAN_PLAYER(); }
-	int getBARBARIAN_TEAM() const { return kGlobals.getBARBARIAN_TEAM(); }
-	int getINVALID_PLOT_COORD() const { return kGlobals.getINVALID_PLOT_COORD(); }
-	int getNUM_CITY_PLOTS() const { return kGlobals.getNUM_CITY_PLOTS(); }
-	int getCITY_HOME_PLOT() const { return kGlobals.getCITY_HOME_PLOT(); }
+	int getMAX_CIV_PLAYERS() const { return MAX_CIV_PLAYERS; }
+	int getMAX_PLAYERS() const { return MAX_PLAYERS; }
+	int getMAX_CIV_TEAMS() const { return MAX_CIV_TEAMS; }
+	int getMAX_TEAMS() const { return MAX_TEAMS; }
+	int getBARBARIAN_PLAYER() const { return BARBARIAN_PLAYER; }
+	int getBARBARIAN_TEAM() const { return BARBARIAN_TEAM; }
+	int getINVALID_PLOT_COORD() const { return INVALID_PLOT_COORD; }
+	int getNUM_CITY_PLOTS() const { return NUM_CITY_PLOTS; }
+	int getCITY_HOME_PLOT() const { return CITY_HOME_PLOT; }
 // <advc.003t> Non-const global context (previously the member functions had used GC)
 private:
 	CvGlobals& kGlobals; // </advc.003t>

@@ -213,7 +213,6 @@
     <ClInclude Include="..\CvDLLUtilityIFaceBase.h" />
     <ClInclude Include="..\CvDLLWidgetData.h" />
     <ClInclude Include="..\CvDLLXMLIFaceBase.h" />
-    <ClInclude Include="..\CvEnumHelpers.h" />
     <ClInclude Include="..\CvEnums.h" />
     <ClInclude Include="..\CvEventReporter.h" />
     <ClInclude Include="..\CvFractal.h" />
@@ -245,6 +244,7 @@
     <ClInclude Include="..\CvInfo_Terrain.h" />
     <ClInclude Include="..\CvInfo_Unit.h" />
     <ClInclude Include="..\CvInfo_Water.h" />
+    <ClInclude Include="..\CvInfoEnums.h" />
     <ClInclude Include="..\CvInitCore.h" />
     <ClInclude Include="..\CvMap.h" />
     <ClInclude Include="..\CvMapGenerator.h" />

@@ -5,7 +5,7 @@
 
 /*  advc.003x: Cut from CvInfos.h. Unit-related classes:
 	CvUnitInfo
-	CvUnitArtStyleTypeInfo (not derived from CvAssetInfoBase; doesn't belong in CvInfo_Asset.h)
+	CvUnitArtStyleInfo (not derived from CvAssetInfoBase; doesn't belong in CvInfo_Asset.h)
 	CvUnitClassInfo (for the mapping to CvUnitInfo, CvCivilizationInfo gets precompiled)
 	CvSpecialUnitInfo
 	CvPromotionInfo
@@ -409,9 +409,9 @@ protected:
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//  class : CvUnitArtStyleTypeInfo
+//  class : CvUnitArtStyleInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvUnitArtStyleTypeInfo : public CvInfoBase
+class CvUnitArtStyleInfo : public CvInfoBase // advc.enum: Renamed from CvUnitArtStyleTypeInfo (to be consistent with other info class/ enum names)
 {
 public:
 	const TCHAR* getEarlyArtDefineTag(int /*Mesh Index*/ i, int /*UnitType*/ j) const;
@@ -435,6 +435,7 @@ protected:
 	ArtDefineArray m_azLateArtDefineTags;
 	ArtDefineArray m_azMiddleArtDefineTags;
 };
+typedef CvUnitArtStyleInfo CvUnitArtStyleTypeInfo; // advc.enum: for any legacy code
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvUnitClassInfo

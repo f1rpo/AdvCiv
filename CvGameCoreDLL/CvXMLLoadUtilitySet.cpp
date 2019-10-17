@@ -429,7 +429,8 @@ bool CvXMLLoadUtility::SetGlobalTypes()
 		SetGlobalStringArray(&GC.getFunctionTypes(), "Civ4Types/FunctionTypes/FunctionType", &iEnumVal, true);
 		SetGlobalStringArray(&GC.getFlavorTypes(), "Civ4Types/FlavorTypes/FlavorType", &GC.getNumFlavorTypes());
 		SetGlobalStringArray(&GC.getArtStyleTypes(), "Civ4Types/ArtStyleTypes/ArtStyleType", &GC.getNumArtStyleTypes());
-		SetGlobalStringArray(&GC.getCitySizeTypes(), "Civ4Types/CitySizeTypes/CitySizeType", &GC.getNumCitySizeTypes());
+		iEnumVal = NUM_CITYSIZE_TYPES; // advc
+		SetGlobalStringArray(&GC.getCitySizeTypes(), "Civ4Types/CitySizeTypes/CitySizeType", &iEnumVal, true);
 		iEnumVal = NUM_CONTACT_TYPES;
 		SetGlobalStringArray(&GC.getContactTypes(), "Civ4Types/ContactTypes/ContactType", &iEnumVal, true);
 		iEnumVal = NUM_DIPLOMACYPOWER_TYPES;
@@ -691,7 +692,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paSeaLevelInfo, "CIV4SeaLevelInfo", "GameInfo", "Civ4SeaLevelInfo/SeaLevelInfos/SeaLevelInfo", false);
 	LoadGlobalClassInfo(GC.m_paAdvisorInfo, "CIV4AdvisorInfos", "Interface", "Civ4AdvisorInfos/AdvisorInfos/AdvisorInfo", false);
 	LoadGlobalClassInfo(GC.m_paTerrainInfo, "CIV4TerrainInfos", "Terrain", "Civ4TerrainInfos/TerrainInfos/TerrainInfo", false);
-	LoadGlobalClassInfo(GC.m_aEraInfo, "CIV4EraInfos", "GameInfo", "Civ4EraInfos/EraInfos/EraInfo", false);
+	LoadGlobalClassInfo(GC.m_paEraInfo, "CIV4EraInfos", "GameInfo", "Civ4EraInfos/EraInfos/EraInfo", false);
 	LoadGlobalClassInfo(GC.m_paUnitClassInfo, "CIV4UnitClassInfos", "Units", "Civ4UnitClassInfos/UnitClassInfos/UnitClassInfo", false);
 	LoadGlobalClassInfo(GC.m_paSpecialistInfo, "CIV4SpecialistInfos", "GameInfo", "Civ4SpecialistInfos/SpecialistInfos/SpecialistInfo", false);
 	LoadGlobalClassInfo(GC.m_paVoteSourceInfo, "CIV4VoteSourceInfos", "GameInfo", "Civ4VoteSourceInfos/VoteSourceInfos/VoteSourceInfo", false);
@@ -740,10 +741,10 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	{
 		GC.getUnitClassInfo((UnitClassTypes)i).readPass3();
 	}
-	LoadGlobalClassInfo(GC.m_paUnitArtStyleTypeInfo, "CIV4UnitArtStyleTypeInfos", "Civilizations", "Civ4UnitArtStyleTypeInfos/UnitArtStyleTypeInfos/UnitArtStyleTypeInfo", false);
+	LoadGlobalClassInfo(GC.m_paUnitArtStyleInfo, "CIV4UnitArtStyleTypeInfos", "Civilizations", "Civ4UnitArtStyleTypeInfos/UnitArtStyleTypeInfos/UnitArtStyleTypeInfo", false);
 	LoadGlobalClassInfo(GC.m_paCivilizationInfo, "CIV4CivilizationInfos", "Civilizations", "Civ4CivilizationInfos/CivilizationInfos/CivilizationInfo", true, &CvDLLUtilityIFaceBase::createCivilizationInfoCacheObject);
-	LoadGlobalClassInfo(GC.m_paHints, "CIV4Hints", "GameInfo", "Civ4Hints/HintInfos/HintInfo", false);
-	LoadGlobalClassInfo(GC.m_paMainMenus, "CIV4MainMenus", "Art", "Civ4MainMenus/MainMenus/MainMenu", false);
+	LoadGlobalClassInfo(GC.m_paHintInfo, "CIV4Hints", "GameInfo", "Civ4Hints/HintInfos/HintInfo", false);
+	LoadGlobalClassInfo(GC.m_paMainMenuInfo, "CIV4MainMenus", "Art", "Civ4MainMenus/MainMenus/MainMenu", false);
 	LoadGlobalClassInfo(GC.m_paSlideShowInfo, "CIV4SlideShowInfos", "Interface", "Civ4SlideShowInfos/SlideShowInfos/SlideShowInfo", false);
 	LoadGlobalClassInfo(GC.m_paSlideShowRandomInfo, "CIV4SlideShowRandomInfos", "Interface", "Civ4SlideShowRandomInfos/SlideShowRandomInfos/SlideShowRandomInfo", false);
 	LoadGlobalClassInfo(GC.m_paWorldPickerInfo, "CIV4WorldPickerInfos", "Interface", "Civ4WorldPickerInfos/WorldPickerInfos/WorldPickerInfo", false);
@@ -847,7 +848,8 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paVoteInfo, "CIV4VoteInfo", "GameInfo", "Civ4VoteInfo/VoteInfos/VoteInfo", false);
 
 	UpdateProgressCB("Global Interface");
-	LoadGlobalClassInfo(GC.m_paCameraInfo, "CIV4CameraInfos", "Interface", "Civ4CameraInfos/CameraInfos/CameraInfo", false);
+	// advc.003j:
+	//LoadGlobalClassInfo(GC.m_paCameraInfo, "CIV4CameraInfos", "Interface", "Civ4CameraInfos/CameraInfos/CameraInfo", false);
 	LoadGlobalClassInfo(GC.m_paInterfaceModeInfo, "CIV4InterfaceModeInfos", "Interface", "Civ4InterfaceModeInfos/InterfaceModeInfos/InterfaceModeInfo", false);
 
 	SetGlobalActionInfo();
@@ -871,7 +873,12 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paEspionageMissionInfo, "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
 
 	DestroyFXml();
-
+	// <advc.enum>
+	#define ASSERT_SIZE_EQUALS_ENUM_LENGTH(Name, INFIX) \
+		FAssertMsg(GC.m_pa##Name##Info.size() == NUM_ENUM_TYPES(INFIX), \
+		"The number of "#Name " types loaded from XML does not match "#Name"Types");
+	DO_FOR_EACH_STATIC_INFO_TYPE(ASSERT_SIZE_EQUALS_ENUM_LENGTH);
+	// </advc.enum>
 	return true;
 }
 
@@ -900,7 +907,7 @@ bool CvXMLLoadUtility::LoadThroneRoomInfo()
 	if (!CreateFXml())
 		return false;
 	FAssert(GC.getGame().isDebugMode());
-	LoadGlobalClassInfo(GC.m_paThroneRoomCamera, "CIV4ThroneRoomCameraInfos", "Interface", "Civ4ThroneRoomCameraInfos/ThroneRoomCameraInfos/ThroneRoomCamera", false);
+	LoadGlobalClassInfo(GC.m_paThroneRoomCameraInfo, "CIV4ThroneRoomCameraInfos", "Interface", "Civ4ThroneRoomCameraInfos/ThroneRoomCameraInfos/ThroneRoomCamera", false);
 	LoadGlobalClassInfo(GC.m_paThroneRoomInfo, "CIV4ThroneRoomInfos", "Interface", "Civ4ThroneRoomInfos/ThroneRoomInfos/ThroneRoomInfo", false);
 	LoadGlobalClassInfo(GC.m_paThroneRoomStyleInfo, "CIV4ThroneRoomStyleInfos", "Interface", "Civ4ThroneRoomStyleInfos/ThroneRoomStyleInfos/ThroneRoomStyleInfo", false);
 	DestroyFXml();
@@ -1027,7 +1034,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		sprintf( szMessage, "NUM_CONTROL_TYPES is not greater than zero in CvXMLLoadUtility::SetGlobalActionInfo \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
 		gDLL->MessageBox(szMessage, "XML Error");
 	}
-	if(!(GC.getNumAutomateInfos() > 0) )
+	if(!(NUM_AUTOMATE_TYPES > 0) )
 	{
 		char	szMessage[1024];
 		sprintf( szMessage, "GC.getNumAutomateInfos() is not greater than zero in CvXMLLoadUtility::SetGlobalActionInfo \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
@@ -1061,7 +1068,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		GC.getNumBuildingInfos() +
 		NUM_CONTROL_TYPES +
 		NUM_COMMAND_TYPES +
-		GC.getNumAutomateInfos() +
+		NUM_AUTOMATE_TYPES +
 		NUM_MISSION_TYPES;
 
 	int* piIndexList = new int[iNumActionInfos];
@@ -1151,7 +1158,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		iTotalActionInfoCount++;
 	}
 
-	for (i=0;i<GC.getNumAutomateInfos();i++)
+	for (i=0;i<NUM_AUTOMATE_TYPES;i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
 		piPriorityList[iTotalActionInfoCount] = GC.getAutomateInfo((AutomateTypes)i).getOrderPriority();

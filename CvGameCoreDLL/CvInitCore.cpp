@@ -911,7 +911,7 @@ const CvWString & CvInitCore::getTurnTimerKey(CvWString & szBuffer) const
 
 void CvInitCore::setCalendar(const CvWString & szCalendar)
 {
-	for (int i = 0; i < GC.getNumCalendarInfos(); i++)
+	for (int i = 0; i < NUM_CALENDAR_TYPES; i++)
 	{
 		if ( wcsicmp(szCalendar.GetCString(), CvWString(GC.getCalendarInfo((CalendarTypes)i).getType()).GetCString()) == 0 )
 		{
@@ -922,7 +922,7 @@ void CvInitCore::setCalendar(const CvWString & szCalendar)
 
 const CvWString & CvInitCore::getCalendarKey(CvWString & szBuffer) const
 {
-	if ( checkBounds(getCalendar(), 0, GC.getNumCalendarInfos()) )
+	if ( checkBounds(getCalendar(), 0, NUM_CALENDAR_TYPES) )
 	{
 		szBuffer = GC.getCalendarInfo(getCalendar()).getType();
 		return szBuffer;

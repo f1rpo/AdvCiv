@@ -1557,7 +1557,7 @@ bool CvAttachableInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
-bool CvCameraInfo::read(CvXMLLoadUtility* pXML)
+/*bool CvCameraInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
@@ -1567,7 +1567,7 @@ bool CvCameraInfo::read(CvXMLLoadUtility* pXML)
 	setPath(szTextVal);
 
 	return true;
-}
+}*/ // advc.003j: unused
 
 // advc.003j: unused
 /*CvQuestInfo::CvQuestInfo() :

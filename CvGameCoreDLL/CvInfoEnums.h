@@ -1,9 +1,10 @@
 #pragma once
 
-#ifndef CV_ENUM_HELPERS_H
-#define CV_ENUM_HELPERS_H
+#ifndef CV_INFO_ENUMS_H
+#define CV_INFO_ENUMS_H
 
-// advc.enum: New header for inclusion in CvEnums.h
+/*  advc.enum: New header; mostly for macros dealing with CvInfo classes and their
+	associated enum types. */
 
 /*  operator++ functions copied from "We the People" (original author: Nightinggale).
 	For iterating over an enum when FOR_EACH_ENUM isn't applicable. Also used by EnumMap. */
@@ -26,6 +27,161 @@ static inline T operator++(T& c, int)
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)0; \
 			eLoop##TypeName != getEnumLength(eLoop##TypeName); \
 			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName + 1))
+// For accessing an info object in a loop over an info enum (tentative and unused)
+#define _kLoop_(TypeName) \
+	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)
+
+
+// Type lists ...
+
+// Number of instances not known at compile time
+#define DO_FOR_EACH_DYN_INFO_TYPE(DO) \
+	/* getInfo function exported */ \
+	DO(Color, COLOR) \
+	DO(AnimationCategory, ANIMCAT) \
+	DO(EntityEvent, ENTITYEVENT) \
+	DO(Effect, EFFECT) \
+	DO(Attachable, ATTACHABLE) \
+	DO(Build, BUILD) \
+	/* getNumInfos function exported */ \
+	DO(Route, ROUTE) \
+	/* both exported */ \
+	DO(PlayerColor, PLAYERCOLOR) \
+	DO(Climate, CLIMATE) \
+	DO(SeaLevel, SEALEVEL) \
+	DO(Terrain, TERRAIN) \
+	DO(Feature, FEATURE) \
+	DO(Bonus, BONUS) \
+	DO(Improvement, IMPROVEMENT) \
+	DO(Handicap, HANDICAP) \
+	DO(GameSpeed, GAMESPEED) \
+	DO(TurnTimer, TURNTIMER) \
+	DO(Era, ERA) \
+	DO(Civilization, CIVILIZATION) \
+	DO(LeaderHead, LEADER) \
+	DO(Cursor, CURSOR) \
+	DO(Victory, VICTORY) \
+	/* internal only */ \
+	/*DO(Camera, CAMERAANIMATION)*/ /* advc.003j: unused */ \
+	DO(Advisor, ADVISOR) \
+	DO(Emphasize, EMPHASIZE) \
+	DO(BonusClass, BONUSCLASS) \
+	DO(River, RIVER) \
+	DO(Goody, GOODY) \
+	DO(Trait, TRAIT) \
+	DO(BuildingClass, BUILDINGCLASS) \
+	DO(Building, BUILDING) \
+	DO(SpecialBuilding, SPECIALBUILDING) \
+	DO(Project, PROJECT) \
+	DO(Process, PROCESS) \
+	DO(Vote, VOTE) \
+	DO(Concept, CONCEPT) \
+	DO(NewConcept, NEW_CONCEPT) \
+	DO(Season, SEASON) \
+	DO(Month, MONTH) \
+	DO(UnitClass, UNITCLASS) \
+	DO(Unit, UNIT) \
+	DO(SpecialUnit, SPECIALUNIT) \
+	DO(UnitCombat, UNITCOMBAT) \
+	DO(Invisible, INVISIBLE) \
+	DO(VoteSource, VOTESOURCE) \
+	DO(Promotion, PROMOTION) \
+	DO(Tech, TECH) \
+	DO(Specialist, SPECIALIST) \
+	DO(Religion, RELIGION) \
+	DO(Corporation, CORPORATION) \
+	DO(Hurry, HURRY) \
+	DO(Upkeep, UPKEEP) \
+	DO(CultureLevel, CULTURELEVEL) \
+	DO(CivicOption, CIVICOPTION) \
+	DO(Civic, CIVIC) \
+	DO(Event, EVENT) \
+	DO(EventTrigger, EVENTTRIGGER) \
+	DO(EspionageMission, ESPIONAGEMISSION) \
+	DO(UnitArtStyle, UNIT_ARTSTYLE)
+
+/*  Number of instances not known at compile time; no associated enum type.
+	(I've enter upper-case prefixes though in case that enums are desired at a
+	later time.) */
+#define DO_FOR_EACH_INT_INFO_TYPE(DO) \
+	/* getInfo function exported */ \
+	DO(ThroneRoomCamera, THRONEROOMCAM) \
+	DO(MainMenu, MAINMENU) \
+	DO(WaterPlane, WATERPLANE) \
+	DO(Landscape, LANDSCAPE) \
+	/* getNumInfos function exported */ \
+	DO(CameraOverlay, CAMERAOVERLAY) \
+	DO(UnitFormation, UNITFORMATION) \
+	/* both exported */ \
+	DO(RouteModel, ROUTEMODEL) \
+	DO(RiverModel, RIVERMODEL) \
+	DO(TerrainPlane, TERRAINPLANE) \
+	DO(ThroneRoom, THRONEROOM) \
+	DO(ThroneRoomStyle, THRONEROOMSTYLE) \
+	DO(SlideShow, SLIDESHOW) \
+	DO(SlideShowRandom, SLIDESHOWRAND) \
+	DO(WorldPicker, WORLDPICKER) \
+	DO(SpaceShip, SPACESHIP) \
+	DO(Action, ACTION) \
+	DO(Hint, HINT) \
+	/* internal only */ \
+	/* DO(Quest, QUEST) */ /* advc.003j: unused */ \
+	DO(Diplomacy, DIPLOMACY) \
+	DO(Tutorial, TUTORIAL)
+
+#undef DOMAIN // defined in math.h
+// Number of instances hardcoded in CvEnums.h
+#define DO_FOR_EACH_STATIC_INFO_TYPE(DO) \
+	/* exported */ \
+	DO(AnimationPath, ANIMATIONPATH) \
+	DO(InterfaceMode, INTERFACEMODE) \
+	DO(GameOption, GAMEOPTION) \
+	DO(MPOption, MPOPTION) \
+	DO(PlayerOption, PLAYEROPTION) \
+	DO(GraphicOption, GRAPHICOPTION) \
+	DO(ForceControl, FORCECONTROL) \
+	DO(Mission, MISSION) \
+	/* internal only */ \
+	DO(Yield, YIELD) \
+	DO(Commerce, COMMERCE) \
+	DO(Control, CONTROL) \
+	DO(Command, COMMAND) \
+	DO(Automate, AUTOMATE) \
+	DO(Domain, DOMAIN) \
+	DO(Attitude, ATTITUDE) \
+	DO(Memory, MEMORY) \
+	DO(CityTab, CITYTAB) \
+	DO(Calendar, CALENDAR) \
+	DO(UnitAI, UNITAI) \
+	DO(Denial, DENIAL)
+
+#define DO_FOR_EACH_INFO_TYPE(DO) \
+	DO_FOR_EACH_DYN_INFO_TYPE(DO) \
+	DO_FOR_EACH_STATIC_INFO_TYPE(DO) \
+	DO_FOR_EACH_INT_INFO_TYPE(DO)
+
+/*  These don't have a dedicated CvInfo class, and the macros for generating
+	getter functions can't deal with that. (typedef would make it impossible
+	to forward declare them in CvGlobals.h.) */
+#define CvHintInfo CvInfoBase
+#define CvConceptInfo CvInfoBase
+#define CvNewConceptInfo CvInfoBase
+#define CvSeasonInfo CvInfoBase
+#define CvMonthInfo CvInfoBase
+#define CvUnitCombatInfo CvInfoBase
+#define CvInvisibleInfo CvInfoBase
+#define CvUnitCombatInfo CvInfoBase
+#define CvDomainInfo CvInfoBase
+#define CvAttitudeInfo CvInfoBase
+#define CvMemoryInfo CvInfoBase
+#define CvCityTabInfo CvInfoBase
+#define CvCalendarInfo CvInfoBase
+#define CvUnitAIInfo CvInfoBase
+#define CvDenialInfo CvInfoBase
+// This one just has an irregular, exported name
+#define CvThroneRoomCameraInfo CvThroneRoomCamera
+
+// Macros for generating enum definitions and getEnumLength functions (CvEnums, CvGlobals) ...
 
 #define NUM_ENUM_TYPES(INFIX) NUM_##INFIX##_TYPES
 #define NO_ENUM_TYPE(SUFFIX) NO_##SUFFIX = -1
@@ -36,8 +192,8 @@ static inline T operator++(T& c, int)
 	{ \
 		return NUM_ENUM_TYPES(INFIX); \
 	}
-/*  This gets used in CvGlobals.h. (I wanted to do it here in MAKE_INFO_ENUM, but
-	that lead to a circular dependency.) */
+/*  This gets used in CvGlobals.h. (I wanted to do it in MAKE_INFO_ENUM, which is
+	used in CvEnums.h, but that lead to a circular dependency.) */
 #define SET_ENUM_LENGTH(Name, PREFIX) \
 	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowForEach = true) \
 	{ \
@@ -67,61 +223,48 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 // (Let's worry about #ifdef _USRDLL only when the source of the EXE is released, i.e. probably never.)
 
-#define DO_FOR_EACH_INFO_TYPE(DO) \
-	DO(Color, COLOR) \
-	DO(PlayerColor, PLAYERCOLOR) \
-	DO(Effect, EFFECT) \
-	DO(Attachable, ATTACHABLE) \
-	DO(Climate, CLIMATE) \
-	DO(SeaLevel, SEALEVEL) \
-	DO(Terrain, TERRAIN) \
-	DO(Advisor, ADVISOR) \
-	DO(Emphasize, EMPHASIZE) \
-	DO(Victory, VICTORY) \
-	DO(Feature, FEATURE) \
-	DO(Bonus, BONUS) \
-	DO(BonusClass, BONUSCLASS) \
-	DO(Improvement, IMPROVEMENT) \
-	DO(Route, ROUTE) \
-	DO(River, RIVER) \
-	DO(Goody, GOODY) \
-	DO(Build, BUILD) \
-	DO(Handicap, HANDICAP) \
-	DO(GameSpeed, GAMESPEED) \
-	DO(TurnTimer, TURNTIMER) \
-	DO(Era, ERA) \
-	DO(Civilization, CIVILIZATION) \
-	DO(LeaderHead, LEADER) \
-	DO(Trait, TRAIT) \
-	DO(BuildingClass, BUILDINGCLASS) \
-	DO(Building, BUILDING) \
-	DO(SpecialBuilding, SPECIALBUILDING) \
-	DO(Project, PROJECT) \
-	DO(Process, PROCESS) \
-	DO(Vote, VOTE) \
-	DO(Concept, CONCEPT) \
-	DO(NewConcept, NEW_CONCEPT) \
-	DO(Season, SEASON) \
-	DO(Month, MONTH) \
-	DO(UnitClass, UNITCLASS) \
-	DO(Unit, UNIT) \
-	DO(SpecialUnit, SPECIALUNIT) \
-	DO(UnitCombat, UNITCOMBAT) \
-	DO(Invisible, INVISIBLE) \
-	DO(VoteSource, VOTESOURCE) \
-	DO(Promotion, PROMOTION) \
-	DO(Tech, TECH) \
-	DO(Specialist, SPECIALIST) \
-	DO(Religion, RELIGION) \
-	DO(Corporation, CORPORATION) \
-	DO(Hurry, HURRY) \
-	DO(Upkeep, UPKEEP) \
-	DO(CultureLevel, CULTURELEVEL) \
-	DO(CivicOption, CIVICOPTION) \
-	DO(Civic, CIVIC) \
-	DO(Cursor, CURSOR) \
-	DO(Event, EVENT) \
-	DO(EventTrigger, EVENTTRIGGER) \
-	DO(EspionageMission, ESPIONAGEMISSION)
+// Macros for generating CvInfo accessor functions (CvGlobals) ...
+
+#define MAKE_GET_INFO_DYN(Name, Dummy) \
+	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
+	{ \
+		FASSERT_BOUNDS(0, getNum##Name##Infos(), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
+		return *m_pa##Name##Info[e##Name]; \
+	}
+#define MAKE_GET_INFO_STATIC(Name, INFIX) \
+	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
+	{ \
+		FASSERT_BOUNDS(0, NUM_ENUM_TYPES(INFIX), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
+		return *m_pa##Name##Info[e##Name]; \
+	}
+
+#define MAKE_INFO_ACCESSORS_DYN(Name, Dummy) \
+	inline int getNum##Name##Infos() const \
+	{ \
+		return m_pa##Name##Info.size(); \
+	} \
+	MAKE_GET_INFO_DYN(Name, Dummy) \
+	/* Deprecated: */ \
+	__forceinline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
+	{ \
+		return getInfo(e##Name); \
+	}
+#define MAKE_INFO_ACCESSORS_INT(Name, Dummy) \
+	inline int getNum##Name##Infos() const \
+	{ \
+		return m_pa##Name##Info.size(); \
+	} \
+	inline Cv##Name##Info& get##Name##Info(int i##Name) const \
+	{ \
+		FASSERT_BOUNDS(0, getNum##Name##Infos(), i##Name, "CvGlobals::get"#Name"Info"); \
+		return *m_pa##Name##Info[i##Name]; \
+	}
+#define MAKE_INFO_ACCESSORS_STATIC(Name, INFIX) \
+	MAKE_GET_INFO_STATIC(Name, INFIX) \
+	/* Deprecated: */ \
+	__forceinline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
+	{ \
+		return getInfo(e##Name); \
+	}
 
 #endif

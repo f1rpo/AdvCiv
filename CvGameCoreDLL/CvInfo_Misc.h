@@ -632,13 +632,11 @@ private:
 	float m_fUpdateRate;
 };
 
-
-
+// advc.003j: unused
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 //  class : CvCameraInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvCameraInfo : public CvInfoBase
+/*class CvCameraInfo : public CvInfoBase
 {
 public:
 	CvCameraInfo() {}
@@ -650,7 +648,7 @@ public:
 
 private:
 	CvString m_szPath;
-};
+};*/
 
 // advc.003j: unused
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -241,7 +241,7 @@ CvActionInfo* CyGlobalContext::getActionInfo(int i) const
 
 CvAutomateInfo* CyGlobalContext::getAutomateInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumAutomateInfos()) ? &GC.getAutomateInfo((AutomateTypes)i) : NULL;
+	return (i>=0 && i<NUM_AUTOMATE_TYPES) ? &GC.getAutomateInfo((AutomateTypes)i) : NULL;
 }
 
 CvCommandInfo* CyGlobalContext::getCommandInfo(int i) const
@@ -336,7 +336,7 @@ CvProcessInfo* CyGlobalContext::getProcessInfo(int i) const
 
 CvAnimationPathInfo* CyGlobalContext::getAnimationPathInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumAnimationPathInfos()) ? &GC.getAnimationPathInfo((AnimationPathTypes)i) : NULL;
+	return (i>=0 && i<NUM_ANIMATIONPATH_TYPES) ? &GC.getAnimationPathInfo((AnimationPathTypes)i) : NULL;
 }
 
 
@@ -420,13 +420,13 @@ CvPlayerColorInfo* CyGlobalContext::getPlayerColorInfo(int i) const
 
 CvInfoBase* CyGlobalContext::getHints(int i) const
 {
-	return ((i >= 0 && i < GC.getNumHints()) ? &GC.getHints(i) : NULL);
+	return ((i >= 0 && i < GC.getNumHintInfos()) ? &GC.getHintInfo(i) : NULL);
 }
 
 
 CvMainMenuInfo* CyGlobalContext::getMainMenus(int i) const
 {
-	return ((i >= 0 && i < GC.getNumMainMenus()) ? &GC.getMainMenus(i) : NULL);
+	return ((i >= 0 && i < GC.getNumMainMenuInfos()) ? &GC.getMainMenuInfo(i) : NULL);
 }
 
 
@@ -486,31 +486,31 @@ CvInfoBase* CyGlobalContext::getNewConceptInfo(int i) const
 
 CvInfoBase* CyGlobalContext::getCityTabInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumCityTabInfos()) ? &GC.getCityTabInfo((CityTabTypes)i) : NULL;
+	return (i>=0 && i<NUM_CITYTAB_TYPES) ? &GC.getCityTabInfo((CityTabTypes)i) : NULL;
 }
 
 
 CvInfoBase* CyGlobalContext::getCalendarInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumCalendarInfos()) ? &GC.getCalendarInfo((CalendarTypes)i) : NULL;
+	return (i>=0 && i<NUM_CALENDAR_TYPES) ? &GC.getCalendarInfo((CalendarTypes)i) : NULL;
 }
 
 
 CvInfoBase* CyGlobalContext::getGameOptionInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumGameOptionInfos()) ? &GC.getGameOptionInfo((GameOptionTypes)i) : NULL;
+	return (i>=0 && i<NUM_GAMEOPTION_TYPES) ? &GC.getGameOptionInfo((GameOptionTypes)i) : NULL;
 }
 
 
 CvInfoBase* CyGlobalContext::getMPOptionInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumMPOptionInfos()) ? &GC.getMPOptionInfo((MultiplayerOptionTypes)i) : NULL;
+	return (i>=0 && i<NUM_MPOPTION_TYPES) ? &GC.getMPOptionInfo((MultiplayerOptionTypes)i) : NULL;
 }
 
 
 CvInfoBase* CyGlobalContext::getForceControlInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumForceControlInfos()) ? &GC.getForceControlInfo((ForceControlTypes)i) : NULL;
+	return (i>=0 && i<NUM_FORCECONTROL_TYPES) ? &GC.getForceControlInfo((ForceControlTypes)i) : NULL;
 }
 
 
@@ -528,7 +528,7 @@ CvInfoBase* CyGlobalContext::getMonthInfo(int i) const
 
 CvInfoBase* CyGlobalContext::getDenialInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumDenialInfos()) ? &GC.getDenialInfo((DenialTypes)i) : NULL;
+	return (i>=0 && i<NUM_DENIAL_TYPES) ? &GC.getDenialInfo((DenialTypes)i) : NULL;
 }
 
 // advc.003j:
@@ -562,9 +562,9 @@ CvEspionageMissionInfo* CyGlobalContext::getEspionageMissionInfo(int i) const
 }
 
 
-CvUnitArtStyleTypeInfo* CyGlobalContext::getUnitArtStyleTypeInfo(int i) const
+CvUnitArtStyleInfo* CyGlobalContext::getUnitArtStyleTypeInfo(int i) const
 {
-	return (i>=0 && i<GC.getNumUnitArtStyleTypeInfos()) ? &GC.getUnitArtStyleTypeInfo((UnitArtStyleTypes)i) : NULL;
+	return (i>=0 && i<GC.getNumUnitArtStyleInfos()) ? &GC.getUnitArtStyleInfo((UnitArtStyleTypes)i) : NULL;
 }
 
 

@@ -7,13 +7,45 @@
 	CyEnumsInterface.cpp -- unless a comment states otherwise */
 // <advc.enum>
 #include "CvDefines.h"
-#include "CvEnumHelpers.h"
+#include "CvInfoEnums.h"
+
 // This generates most of the enums with associated XML data
-DO_FOR_EACH_INFO_TYPE(MAKE_INFO_ENUM)
+DO_FOR_EACH_DYN_INFO_TYPE(MAKE_INFO_ENUM)
 
 /*  The order of the enums is mostly as in BtS (i.e. arbitrary) except that the
 	info enums are generated upfront and enums that don't support FOR_EACH_ENUM
 	have been moved to the end. */ // </advc.enum>
+
+/*  advc: WorldSize and Flavor are special -- there are hardcoded values, but it's
+	still possible to add values through XML only.
+	(The harcoded world sizes are used by map scripts.) */
+enum WorldSizeTypes
+{
+	NO_WORLDSIZE = -1,
+	WORLDSIZE_DUEL,
+	WORLDSIZE_TINY,
+	WORLDSIZE_SMALL,
+	WORLDSIZE_STANDARD,
+	WORLDSIZE_LARGE,
+	WORLDSIZE_HUGE,
+};
+
+enum FlavorTypes
+{
+	NO_FLAVOR = -1,
+	// K-Mod. These are the current flavors defined in GlobalTypes.xml
+	FLAVOR_MILITARY,
+	FLAVOR_RELIGION,
+	FLAVOR_PRODUCTION,
+	FLAVOR_GOLD,
+	FLAVOR_SCIENCE,
+	FLAVOR_CULTURE,
+	FLAVOR_GROWTH,
+	// K-Mod end
+	/*  <advc.001> Added by BtS, missing in karadoc's list. Not a bug really, just
+		means that it was impossible to base AI code on FLAVOR_ESPIONAGE. */
+	FLAVOR_ESPIONAGE,
+};
 
 ENUM_START(GameState, GAMESTATE)
 	GAMESTATE_ON,
@@ -453,15 +485,6 @@ ENUM_START(ButtonPopup, BUTTONPOPUP)
 	BUTTONPOPUP_RF_RETIRE, // </advc.706>
 ENUM_END(ButtonPopup, BUTTONPOPUP)
 
-ENUM_START(WorldSize, WORLDSIZE)
-	WORLDSIZE_DUEL,
-	WORLDSIZE_TINY,
-	WORLDSIZE_SMALL,
-	WORLDSIZE_STANDARD,
-	WORLDSIZE_LARGE,
-	WORLDSIZE_HUGE,
-ENUM_END(WorldSize, WORLDSIZE)
-
 ENUM_START(Plot, PLOT)
 	PLOT_PEAK,
 	PLOT_HILLS,
@@ -481,21 +504,6 @@ ENUM_START(Commerce, COMMERCE)
 	COMMERCE_CULTURE,
 	COMMERCE_ESPIONAGE,
 ENUM_END(Commerce, COMMERCE)
-
-ENUM_START(Flavor, FLAVOR)
-	// K-Mod. These are the current flavors defined in GlobalTypes.xml
-	FLAVOR_MILITARY,
-	FLAVOR_RELIGION,
-	FLAVOR_PRODUCTION,
-	FLAVOR_GOLD,
-	FLAVOR_SCIENCE,
-	FLAVOR_CULTURE,
-	FLAVOR_GROWTH,
-	// K-Mod end
-	/*  <advc.001> Added by BtS, missing in karadoc's list. Not a bug really, just
-		means that it was impossible to base AI code on FLAVOR_ESPIONAGE. */
-	FLAVOR_ESPIONAGE,
-ENUM_END(Flavor, FLAVOR)
 
 ENUM_START(GameOption, GAMEOPTION)
 	GAMEOPTION_ADVANCED_START,
@@ -534,6 +542,7 @@ ENUM_START(MultiplayerOption, MPOPTION)
 	MPOPTION_ANONYMOUS,
 	MPOPTION_TURN_TIMER,
 ENUM_END(MultiplayerOption, MPOPTION)
+typedef MultiplayerOptionTypes MPOptionTypes; // advc.enum
 
 ENUM_START(SpecialOption, SPECIALOPTION)
 	SPECIALOPTION_REPORT_STATS,
@@ -708,7 +717,6 @@ ENUM_START(Denial, DENIAL)
 	DENIAL_TRUE_ATTITUDE, // advc.130v
 ENUM_END(Denial, DENIAL)
 
-#undef DOMAIN // advc.enum: Defined in math.h
 ENUM_START(Domain, DOMAIN)
 	DOMAIN_SEA,
 	DOMAIN_AIR,
@@ -1016,8 +1024,10 @@ ENUM_START(Function, FUNC)
 	FUNC_STEPKEY,	// = NiAnimationKey::STEPKEY,
 ENUM_END(Function, FUNC)
 
-ENUM_START(TradeItem, TRADE_ITEM)
-	TRADE_ITEM_NONE = -1,
+enum TradeableItems
+{
+	NO_TRADE_ITEM = -1,
+	TRADE_ITEM_NONE = NO_TRADE_ITEM,
 	TRADE_GOLD,
 	TRADE_GOLD_PER_TURN,
 	TRADE_MAPS,
@@ -1051,8 +1061,10 @@ ENUM_START(TradeItem, TRADE_ITEM)
 	/*  advc.034: Don't need to include this in iterations over TradeableItems
 		(although I suppose it wouldn't hurt) */
 	TRADE_DISENGAGE,
-ENUM_END_HIDDEN(TradeItem, TRADE_ITEM)
-typedef TradeItemTypes TradeableItems;
+}; /* <advc.enum> Need a more regular name for this enum, but the enum itself
+	  can't be renamed b/c it's used in the signatures of DLL-exported functions. */
+typedef TradeableItems TradeItemTypes;
+SET_ENUM_LENGTH_STATIC(TradeItem, TRADE_ITEM)
 
 ENUM_START(DiploEvent, DIPLOEVENT)
 	DIPLOEVENT_CONTACT,
@@ -1431,6 +1443,61 @@ ENUM_START(AdvancedStartAction, ADVANCEDSTARTACTION)
 	ADVANCEDSTARTACTION_AUTOMATE,
 ENUM_END(AdvancedStartAction, ADVANCEDSTARTACTION)
 
+ENUM_START(AnimationPath, ANIMATIONPATH)
+	ANIMATIONPATH_NONE = -1,
+
+	// Default animation paths
+	ANIMATIONPATH_IDLE,
+	ANIMATIONPATH_MOVE,
+	ANIMATIONPATH_DAMAGE,				//!< Updates the damage state for the unit
+
+	// Combat related animation paths
+	ANIMATIONPATH_RANDOMIZE_ANIMATION_SET,
+	ANIMATIONPATH_NUKE_STRIKE,
+	ANIMATIONPATH_MELEE_STRIKE,
+	ANIMATIONPATH_MELEE_HURT,
+	ANIMATIONPATH_MELEE_DIE,
+	ANIMATIONPATH_MELEE_FORTIFIED,
+	ANIMATIONPATH_MELEE_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
+	ANIMATIONPATH_MELEE_FLEE,			//!< Used only by settler children, so they don't die in combat
+
+	// Ranged combat related animation paths
+	ANIMATIONPATH_RANGED_STRIKE,
+	ANIMATIONPATH_RANGED_DIE,
+	ANIMATIONPATH_RANGED_FORTIFIED,
+	ANIMATIONPATH_RANGED_RUNHIT,
+	ANIMATIONPATH_RANGED_RUNDIE,
+	ANIMATIONPATH_RANGED_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
+	ANIMATIONPATH_LEADER_COMMAND,
+
+	// Air Units animation paths
+	ANIMATIONPATH_AIRFADEIN,
+	ANIMATIONPATH_AIRFADEOUT,
+	ANIMATIONPATH_AIRSTRIKE,
+	ANIMATIONPATH_AIRBOMB,
+
+	//mission related animation paths
+	ANIMATIONPATH_HEAL,
+	ANIMATIONPATH_SLEEP,
+	ANIMATIONPATH_FORTIFY,
+	ANIMATIONPATH_MELEE_FORTIFY,
+	ANIMATIONPATH_PILLAGE,
+	ANIMATIONPATH_SENTRY,
+	ANIMATIONPATH_FOUND,
+	ANIMATIONPATH_IRRIGATE,
+	ANIMATIONPATH_BUILD,
+	ANIMATIONPATH_MINE,
+	ANIMATIONPATH_CHOP,
+	ANIMATIONPATH_SHOVEL,
+	ANIMATIONPATH_RAILROAD,
+	ANIMATIONPATH_SABOTAGE,
+	ANIMATIONPATH_DESTROY,
+	ANIMATIONPATH_STEAL_PLANS,
+	ANIMATIONPATH_GREAT_EVENT,
+	ANIMATIONPATH_SURRENDER,
+	ANIMATIONPATH_AIRPATROL,
+ENUM_END(AnimationPath, ANIMATIONPATH)
+
 
 enum CivilopediaWidgetShowTypes
 {
@@ -1438,8 +1505,6 @@ enum CivilopediaWidgetShowTypes
 	CIVILOPEDIA_WIDGET_SHOW_LAND,
 	CIVILOPEDIA_WIDGET_SHOW_WATER,
 };
-
-enum CameraAnimationTypes {};
 
 enum ZoomLevelTypes
 {
@@ -1594,11 +1659,6 @@ enum ArtStyleTypes // Used for managing Art Differences based on nationality
 	NO_ARTSTYLE = -1
 };
 
-enum UnitArtStyleTypes
-{
-	NO_UNIT_ARTSTYLE = -1
-};
-
 enum FootstepAudioTypes
 {
 	NO_FOOTSTEPAUDIO = -1
@@ -1704,73 +1764,6 @@ enum AnimationTypes
 	IMPROVEMENTANIMATION_ON_EXTRA_2,
 	IMPROVEMENTANIMATION_ON_EXTRA_3,
 	IMPROVEMENTANIMATION_ON_EXTRA_4,
-};
-
-enum EntityEventTypes
-{
-	ENTITY_EVENT_NONE = -1,			//!< Invalid event
-};
-
-enum AnimationPathTypes
-{
-	ANIMATIONPATH_NONE = -1,
-
-	// Default animation paths
-	ANIMATIONPATH_IDLE,
-	ANIMATIONPATH_MOVE,
-	ANIMATIONPATH_DAMAGE,				//!< Updates the damage state for the unit
-
-	// Combat related animation paths
-	ANIMATIONPATH_RANDOMIZE_ANIMATION_SET,
-	ANIMATIONPATH_NUKE_STRIKE,
-	ANIMATIONPATH_MELEE_STRIKE,
-	ANIMATIONPATH_MELEE_HURT,
-	ANIMATIONPATH_MELEE_DIE,
-	ANIMATIONPATH_MELEE_FORTIFIED,
-	ANIMATIONPATH_MELEE_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
-	ANIMATIONPATH_MELEE_FLEE,			//!< Used only by settler children, so they don't die in combat
-
-	// Ranged combat related animation paths
-	ANIMATIONPATH_RANGED_STRIKE,
-	ANIMATIONPATH_RANGED_DIE,
-	ANIMATIONPATH_RANGED_FORTIFIED,
-	ANIMATIONPATH_RANGED_RUNHIT,
-	ANIMATIONPATH_RANGED_RUNDIE,
-	ANIMATIONPATH_RANGED_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
-	ANIMATIONPATH_LEADER_COMMAND,
-
-	// Air Units animation paths
-	ANIMATIONPATH_AIRFADEIN,
-	ANIMATIONPATH_AIRFADEOUT,
-	ANIMATIONPATH_AIRSTRIKE,
-	ANIMATIONPATH_AIRBOMB,
-
-	//mission related animation paths
-	ANIMATIONPATH_HEAL,
-	ANIMATIONPATH_SLEEP,
-	ANIMATIONPATH_FORTIFY,
-	ANIMATIONPATH_MELEE_FORTIFY,
-	ANIMATIONPATH_PILLAGE,
-	ANIMATIONPATH_SENTRY,
-	ANIMATIONPATH_FOUND,
-	ANIMATIONPATH_IRRIGATE,
-	ANIMATIONPATH_BUILD,
-	ANIMATIONPATH_MINE,
-	ANIMATIONPATH_CHOP,
-	ANIMATIONPATH_SHOVEL,
-	ANIMATIONPATH_RAILROAD,
-	ANIMATIONPATH_SABOTAGE,
-	ANIMATIONPATH_DESTROY,
-	ANIMATIONPATH_STEAL_PLANS,
-	ANIMATIONPATH_GREAT_EVENT,
-	ANIMATIONPATH_SURRENDER,
-	ANIMATIONPATH_AIRPATROL,
-};
-
-//!<  Enumeration for the animation category types.
-enum AnimationCategoryTypes
-{
-	ANIMCAT_NONE = -1,
 };
 
 //!< Animation category operators.

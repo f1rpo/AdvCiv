@@ -472,7 +472,7 @@ m_bSound(false),
 m_bTarget(false),
 m_bBuild(false),
 m_bVisible(false),
-m_eEntityEvent(ENTITY_EVENT_NONE)
+m_eEntityEvent(NO_ENTITYEVENT)
 {}
 
 int CvMissionInfo::getTime() const
@@ -526,7 +526,7 @@ bool CvMissionInfo::read(CvXMLLoadUtility* pXML)
 
 	if (pXML->GetChildXmlValByName(szTmp, "EntityEventType", /* advc.006b: */ ""))
 		m_eEntityEvent = (EntityEventTypes)pXML->FindInInfoClass(szTmp);
-	else m_eEntityEvent = ENTITY_EVENT_NONE;
+	else m_eEntityEvent = NO_ENTITYEVENT;
 
 	return true;
 }

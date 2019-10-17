@@ -1,6 +1,4 @@
-//
-// globals.cpp
-//
+// globals.cpp  // advc: Rearranged a lot of things in this file
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
 #include "FVariableSystem.h"
@@ -13,86 +11,8 @@
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLXMLIFaceBase.h"
 
-#define COPY(dst, src, typeName) \
-	{ \
-		int iNum = sizeof(src)/sizeof(typeName); \
-		dst = new typeName[iNum]; \
-		for (int i =0;i<iNum;i++) \
-			dst[i] = src[i]; \
-	}
+CvGlobals gGlobals; // singleton instance
 
-template <class T>
-void deleteInfoArray(std::vector<T*>& array)
-{
-	for (std::vector<T*>::iterator it = array.begin(); it != array.end(); ++it)
-	{
-		SAFE_DELETE(*it);
-	}
-
-	array.clear();
-}
-
-template <class T>
-bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
-{
-#if SERIALIZE_CVINFOS
-	addToInfosVectors(&array);
-
-	int iSize;
-	pStream->Read(&iSize);
-	FAssertMsg(iSize==sizeof(T), CvString::format("class size doesn't match cache size - check info read/write functions:%s", szClassName).c_str());
-	if (iSize!=sizeof(T))
-		return false;
-	pStream->Read(&iSize);
-
-	deleteInfoArray(array);
-
-	for (int i = 0; i < iSize; ++i)
-	{
-		array.push_back(new T);
-	}
-
-	int iIndex = 0;
-	for (std::vector<T*>::iterator it = array.begin(); it != array.end(); ++it)
-	{
-		(*it)->read(pStream);
-		setInfoTypeFromString((*it)->getType(), iIndex);
-		++iIndex;
-	}
-
-	return true;
-#else
-	FAssert(false);
-	return false;
-#endif
-}
-
-template <class T>
-bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
-{
-#if SERIALIZE_CVINFOS
-	int iSize = sizeof(T);
-	pStream->Write(iSize);
-	pStream->Write(array.size());
-	for (std::vector<T*>::iterator it = array.begin(); it != array.end(); ++it)
-	{
-		(*it)->write(pStream);
-	}
-	return true;
-#else
-	FAssert(false);
-	return false;
-#endif
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-CvGlobals gGlobals;
-
-//
-// CONSTRUCTOR
-//
 CvGlobals::CvGlobals() :
 m_bGraphicsInitialized(false),
 m_bLogging(false),
@@ -136,21 +56,8 @@ m_areaFinder(NULL),
 m_plotGroupFinder(NULL),
 m_pXMLLoadUtility(NULL), // advc.003v
 m_pDLL(NULL),
-m_aiPlotDirectionX(NULL),
-m_aiPlotDirectionY(NULL),
-m_aiPlotCardinalDirectionX(NULL),
-m_aiPlotCardinalDirectionY(NULL),
-m_aiCityPlotX(NULL),
-m_aiCityPlotY(NULL),
-m_aiCityPlotPriority(NULL),
-m_aeTurnLeftDirection(NULL),
-m_aeTurnRightDirection(NULL),
-//m_aGameOptionsInfo(NULL),
-//m_aPlayerOptionsInfo(NULL),
 m_Profiler(NULL),
 m_VarSystem(NULL),
-m_paHints(NULL),
-m_paMainMenus(NULL),
 m_aiGlobalDefinesCache(NULL), // advc.003t, advc.003c
 m_bHoFScreenUp(false), // advc.106i
 m_fCAMERA_MIN_YAW(0), m_fCAMERA_MAX_YAW(0), m_fCAMERA_FAR_CLIP_Z_HEIGHT(0),
@@ -160,24 +67,34 @@ m_fCAMERA_MAX_TURN_OFFSET(0), m_fCAMERA_MIN_DISTANCE(0),
 m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
-// <advc.opt>
+// <advc> Safer to initialize these
+m_paszEntityEventTypes2(NULL),
+m_paszEntityEventTypes(NULL),
+m_paszAnimationOperatorTypes(NULL),
+m_paszFunctionTypes(NULL),
+m_paszFlavorTypes(NULL),
+m_paszArtStyleTypes(NULL),
+m_paszCitySizeTypes(NULL),
+m_paszContactTypes(NULL),
+m_paszDiplomacyPowerTypes(NULL),
+m_paszAutomateTypes(NULL),
+m_paszDirectionTypes(NULL),
+m_paszFootstepAudioTypes(NULL),
+m_paszFootstepAudioTags(NULL),
+m_iNumEntityEventTypes(0),
+m_iNumAnimationOperatorTypes(0),
+m_iNumFlavorTypes(0),
+m_iNumArtStyleTypes(0),
+m_iNumFootstepAudioTypes(0),
+// </advc> <advc.opt>
 m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
 	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.opt>
 }
 
-CvGlobals::~CvGlobals() {}
-
-//
-// allocate
-//
-void CvGlobals::init()
+void CvGlobals::init() // allocate
 {
-	//
-	// These vars are used to initialize the globals.
-	//
-
 	int aiPlotDirectionX[NUM_DIRECTION_TYPES] =
 	{
 		0,	// DIRECTION_NORTH
@@ -255,25 +172,25 @@ void CvGlobals::init()
 	DirectionTypes aeTurnRightDirection[NUM_DIRECTION_TYPES] =
 	{
 		DIRECTION_NORTHEAST,	// DIRECTION_NORTH
-		DIRECTION_EAST,				// DIRECTION_NORTHEAST
+		DIRECTION_EAST,			// DIRECTION_NORTHEAST
 		DIRECTION_SOUTHEAST,	// DIRECTION_EAST
-		DIRECTION_SOUTH,			// DIRECTION_SOUTHEAST
+		DIRECTION_SOUTH,		// DIRECTION_SOUTHEAST
 		DIRECTION_SOUTHWEST,	// DIRECTION_SOUTH
-		DIRECTION_WEST,				// DIRECTION_SOUTHWEST
+		DIRECTION_WEST,			// DIRECTION_SOUTHWEST
 		DIRECTION_NORTHWEST,	// DIRECTION_WEST
-		DIRECTION_NORTH,			// DIRECTION_NORTHWEST
+		DIRECTION_NORTH,		// DIRECTION_NORTHWEST
 	};
 
 	DirectionTypes aeTurnLeftDirection[NUM_DIRECTION_TYPES] =
 	{
 		DIRECTION_NORTHWEST,	// DIRECTION_NORTH
-		DIRECTION_NORTH,			// DIRECTION_NORTHEAST
+		DIRECTION_NORTH,		// DIRECTION_NORTHEAST
 		DIRECTION_NORTHEAST,	// DIRECTION_EAST
-		DIRECTION_EAST,				// DIRECTION_SOUTHEAST
+		DIRECTION_EAST,			// DIRECTION_SOUTHEAST
 		DIRECTION_SOUTHEAST,	// DIRECTION_SOUTH
-		DIRECTION_SOUTH,			// DIRECTION_SOUTHWEST
+		DIRECTION_SOUTH,		// DIRECTION_SOUTHWEST
 		DIRECTION_SOUTHWEST,	// DIRECTION_WEST
-		DIRECTION_WEST,				// DIRECTION_NORTHWEST
+		DIRECTION_WEST,			// DIRECTION_NORTHWEST
 	};
 
 	DirectionTypes aaeXYDirection[DIRECTION_DIAMETER][DIRECTION_DIAMETER] =
@@ -299,7 +216,7 @@ void CvGlobals::init()
 	m_initCore = new CvInitCore();
 	m_loadedInitCore = new CvInitCore();
 	m_iniInitCore = new CvInitCore();
-	gDLL->initGlobals();	// some globals need to be allocated outside the dll
+	gDLL->initGlobals(); // some globals need to be allocated outside the dll
 	m_pLogger = new CvDLLLogger(isLogging(), isRandLogging()); // advc.003t
 	m_game = new CvGameAI();
 	m_map = new CvMap();
@@ -309,36 +226,31 @@ void CvGlobals::init()
 
 	//m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f); // advc.003j: unused
 
-	COPY(m_aiPlotDirectionX, aiPlotDirectionX, int);
-	COPY(m_aiPlotDirectionY, aiPlotDirectionY, int);
-	COPY(m_aiPlotCardinalDirectionX, aiPlotCardinalDirectionX, int);
-	COPY(m_aiPlotCardinalDirectionY, aiPlotCardinalDirectionY, int);
-	COPY(m_aiCityPlotX, aiCityPlotX, int);
-	COPY(m_aiCityPlotY, aiCityPlotY, int);
-	COPY(m_aiCityPlotPriority, aiCityPlotPriority, int);
-	COPY(m_aeTurnLeftDirection, aeTurnLeftDirection, DirectionTypes);
-	COPY(m_aeTurnRightDirection, aeTurnRightDirection, DirectionTypes);
+	memcpy(m_aiPlotDirectionX, aiPlotDirectionX, sizeof(m_aiPlotDirectionX));
+	memcpy(m_aiPlotDirectionY, aiPlotDirectionY, sizeof(m_aiPlotDirectionY));
+	memcpy(m_aiPlotCardinalDirectionX, aiPlotCardinalDirectionX, sizeof(m_aiPlotCardinalDirectionX));
+	memcpy(m_aiPlotCardinalDirectionY, aiPlotCardinalDirectionY, sizeof(m_aiPlotCardinalDirectionY));
+	memcpy(m_aiCityPlotX, aiCityPlotX, sizeof(m_aiCityPlotX));
+	memcpy(m_aiCityPlotY, aiCityPlotY, sizeof(m_aiCityPlotY));
+	memcpy(m_aiCityPlotPriority, aiCityPlotPriority, sizeof(m_aiCityPlotPriority));
+	memcpy(m_aeTurnLeftDirection, aeTurnLeftDirection, sizeof(m_aeTurnLeftDirection));
+	memcpy(m_aeTurnRightDirection, aeTurnRightDirection, sizeof(m_aeTurnRightDirection));
 	memcpy(m_aaiXYCityPlot, aaiXYCityPlot, sizeof(m_aaiXYCityPlot));
 	memcpy(m_aaeXYDirection, aaeXYDirection,sizeof(m_aaeXYDirection));
 }
+// advc: Not needed anymore
+/*#define COPY(dst, src, typeName) \
+	{ \
+		int iNum = sizeof(src) / sizeof(typeName); \
+		dst = new typeName[iNum]; \
+		for (int i = 0; i < iNum; i++) \
+			dst[i] = src[i]; \
+	}*/
 
-//
-// free
-//
-void CvGlobals::uninit()
+void CvGlobals::uninit() // free
 {
-	//
-	// See also CvXMLLoadUtilityInit.cpp::CleanUpGlobalVariables()
-	//
-	SAFE_DELETE_ARRAY(m_aiPlotDirectionX);
-	SAFE_DELETE_ARRAY(m_aiPlotDirectionY);
-	SAFE_DELETE_ARRAY(m_aiPlotCardinalDirectionX);
-	SAFE_DELETE_ARRAY(m_aiPlotCardinalDirectionY);
-	SAFE_DELETE_ARRAY(m_aiCityPlotX);
-	SAFE_DELETE_ARRAY(m_aiCityPlotY);
-	SAFE_DELETE_ARRAY(m_aiCityPlotPriority);
-	SAFE_DELETE_ARRAY(m_aeTurnLeftDirection);
-	SAFE_DELETE_ARRAY(m_aeTurnRightDirection);
+	// See also CvXMLLoadUtilityInit::CleanUpGlobalVariables()
+
 	SAFE_DELETE_ARRAY(m_aiGlobalDefinesCache); // advc.003t
 
 	SAFE_DELETE(m_game);
@@ -372,9 +284,7 @@ void CvGlobals::clearTypesMap()
 {
 	m_typesMap.clear();
 	if (m_VarSystem)
-	{
 		m_VarSystem->UnInit();
-	}
 }
 
 
@@ -458,43 +368,35 @@ CvDropMgr& CvGlobals::getDropMgr()
 	return *m_dropMgr;
 }
 
-// advc.003j: Was DLLExport, but actually unused.
-/*NiPoint3& CvGlobals::getPt3Origin()
-{
-	return m_pt3Origin;
-}*/
+// advc.003j: unused
+//NiPoint3& CvGlobals::getPt3Origin() { return m_pt3Origin; }
+//NiPoint3& CvGlobals::getPt3CameraDir() { return m_pt3CameraDir; }
 
 std::vector<CvInterfaceModeInfo*>& CvGlobals::getInterfaceModeInfo()
 {
 	return m_paInterfaceModeInfo;
 }
 
-// advc.003j: Was DLLExport, but actually neither called internally nor externally.
-/*NiPoint3& CvGlobals::getPt3CameraDir()
+CvColorInfo& CvGlobals::getColorInfo(ColorTypes eColor)
 {
-	return m_pt3CameraDir;
-}*/
-
-CvColorInfo& CvGlobals::getColorInfo(ColorTypes e) const
-{
-	FAssert(e > -1);
+	FAssert(eColor > -1);
 	/*  <advc.106i> So that AdvCiv is able to show replays from mods with
-		extra colors. And anyway, a bad color value shouldn't lead to a crash. */
-	if(e >= getNumColorInfos())
+		extra colors. */
+	if(eColor >= getNumColorInfos())
 	{
-		FAssert(m_bHoFScreenUp || e < getNumColorInfos());
+		FAssert(m_bHoFScreenUp || eColor < getNumColorInfos());
 		// +7: Skip colors from COLOR_CLEAR to COLOR_LIGHT_GREY
-		e = (ColorTypes)((e + 7) % getNumColorInfos());
+		eColor = (ColorTypes)((eColor + 7) % getNumColorInfos());
 	} // </advc.106i>
-	return *(m_paColorInfo[e]);
+	return getInfo(eColor); // advc.enum
 }
 
 int CvGlobals::getNumThroneRoomInfos()
 {
 	loadThroneRoomInfo(); // advc.003v: Load it as late as possible
-	// <advc.130t>
+	// <advc.enum>
 	CvGlobals const& kThis = *this;
-	return kThis.getNumThroneRoomInfos(); // </advc.130t>
+	return kThis.getNumThroneRoomInfos(); // </advc.enum>
 }
 
 void CvGlobals::setActiveLandscapeID(int iLandscapeID)
@@ -534,8 +436,7 @@ CvString*& CvGlobals::getEntityEventTypes()
 
 CvString& CvGlobals::getEntityEventTypes(EntityEventTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < getNumEntityEventTypes());
+	FASSERT_BOUNDS(0, getNumEntityEventTypes(), e, "CvGlobals::getEntityEventTypes");
 	return m_paszEntityEventTypes[e];
 }
 
@@ -551,8 +452,7 @@ CvString*& CvGlobals::getAnimationOperatorTypes()
 
 CvString& CvGlobals::getAnimationOperatorTypes(AnimationOperatorTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < getNumAnimationOperatorTypes());
+	FASSERT_BOUNDS(0, getNumAnimationOperatorTypes(), e, "CvGlobals::getAnimationOperatorTypes");
 	return m_paszAnimationOperatorTypes[e];
 }
 
@@ -563,8 +463,7 @@ CvString*& CvGlobals::getFunctionTypes()
 
 CvString& CvGlobals::getFunctionTypes(FunctionTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < NUM_FUNC_TYPES);
+	FASSERT_BOUNDS(0, NUM_FUNC_TYPES, e, "CvGlobals::getFunctionTypes");
 	return m_paszFunctionTypes[e];
 }
 
@@ -575,8 +474,7 @@ CvString*& CvGlobals::getFlavorTypes()
 
 CvString& CvGlobals::getFlavorTypes(FlavorTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < getNumFlavorTypes());
+	FASSERT_BOUNDS(0, getNumFlavorTypes(), e, "CvGlobals::getFlavorTypes");
 	return m_paszFlavorTypes[e];
 }
 
@@ -592,8 +490,7 @@ CvString*& CvGlobals::getArtStyleTypes()
 
 CvString& CvGlobals::getArtStyleTypes(ArtStyleTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < getNumArtStyleTypes());
+	FASSERT_BOUNDS(0, getNumArtStyleTypes(), e, "CvGlobals::getArtStyleTypes");
 	return m_paszArtStyleTypes[e];
 }
 
@@ -602,11 +499,10 @@ CvString*& CvGlobals::getCitySizeTypes()
 	return m_paszCitySizeTypes;
 }
 
-CvString& CvGlobals::getCitySizeTypes(int i)
+CvString& CvGlobals::getCitySizeTypes(CitySizeTypes e)
 {
-	FAssertMsg(i < getNumCitySizeTypes(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
-	return m_paszCitySizeTypes[i];
+	FASSERT_BOUNDS(0, NUM_CITYSIZE_TYPES, e, "CvGlobals::getCitySizeTypes");
+	return m_paszCitySizeTypes[e];
 }
 
 CvString*& CvGlobals::getContactTypes()
@@ -616,8 +512,7 @@ CvString*& CvGlobals::getContactTypes()
 
 CvString& CvGlobals::getContactTypes(ContactTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < NUM_CONTACT_TYPES);
+	FASSERT_BOUNDS(0, NUM_CONTACT_TYPES, e, "CvGlobals::getContactTypes");
 	return m_paszContactTypes[e];
 }
 
@@ -628,8 +523,7 @@ CvString*& CvGlobals::getDiplomacyPowerTypes()
 
 CvString& CvGlobals::getDiplomacyPowerTypes(DiplomacyPowerTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < NUM_DIPLOMACYPOWER_TYPES);
+	FASSERT_BOUNDS(0, NUM_DIPLOMACYPOWER_TYPES, e, "CvGlobals::getDiplomacyPowerTypes");
 	return m_paszDiplomacyPowerTypes[e];
 }
 
@@ -640,8 +534,7 @@ CvString*& CvGlobals::getAutomateTypes()
 
 CvString& CvGlobals::getAutomateTypes(AutomateTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < NUM_AUTOMATE_TYPES);
+	FASSERT_BOUNDS(0, NUM_AUTOMATE_TYPES, e, "CvGlobals::getAutomateTypes");
 	return m_paszAutomateTypes[e];
 }
 
@@ -652,9 +545,13 @@ CvString*& CvGlobals::getDirectionTypes()
 
 CvString& CvGlobals::getDirectionTypes(AutomateTypes e)
 {
-	FAssert(e > -1);
-	FAssert(e < NUM_DIRECTION_TYPES);
+	FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, e, "CvGlobals::getDirectionTypes");
 	return m_paszDirectionTypes[e];
+}
+
+int& CvGlobals::getNumFootstepAudioTypes()
+{
+	return m_iNumFootstepAudioTypes;
 }
 
 CvString*& CvGlobals::getFootstepAudioTypes()
@@ -664,20 +561,15 @@ CvString*& CvGlobals::getFootstepAudioTypes()
 
 CvString& CvGlobals::getFootstepAudioTypes(int i)
 {
-	FAssertMsg(i < getNumFootstepAudioTypes(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
+	FASSERT_BOUNDS(0, getNumFootstepAudioTypes(), i, "CvGlobals::getFootstepAudioTypes");
 	return m_paszFootstepAudioTypes[i];
 }
 
 int CvGlobals::getFootstepAudioTypeByTag(CvString strTag)
 {
 	int iIndex = -1;
-
 	if (strTag.GetLength() <= 0)
-	{
 		return iIndex;
-	}
-
 	for (int i = 0; i < m_iNumFootstepAudioTypes; i++)
 	{
 		if (strTag.CompareNoCase(m_paszFootstepAudioTypes[i]) == 0)
@@ -686,7 +578,6 @@ int CvGlobals::getFootstepAudioTypeByTag(CvString strTag)
 			break;
 		}
 	}
-
 	return iIndex;
 }
 
@@ -697,8 +588,9 @@ CvString*& CvGlobals::getFootstepAudioTags()
 
 CvString& CvGlobals::getFootstepAudioTags(int i)
 {
-//	FAssertMsg(i < getNumFootstepAudioTags(), "Index out of bounds")
-	FAssertMsg(i > -1, "Index out of bounds");
+	/*  advc: Upper-bound check added; apparently, there are as many types a tags.
+		A variable m_iNumFootstepAudioTags was unused, so I removed it. */
+	FASSERT_BOUNDS(0, getNumFootstepAudioTypes(), i, "CvGlobals::getFootstepAudioTags");
 	return m_paszFootstepAudioTags[i];
 }
 
@@ -734,12 +626,12 @@ void CvGlobals::loadThroneRoomInfo()
 	FAssertMsg(bSuccess, "Failed to load XML data for Throne Room");
 } // </advc.003v>
 // advc.003t:
-#define MAKE_STRINGS(VAR) #VAR,
+#define MAKE_STRING(VAR) #VAR,
 // <advc.003t>
 void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 {
 	const char* const aszGlobalDefinesTagNames[] = {
-		ENUMERATE_GLOBAL_DEFINES(MAKE_STRINGS)
+		DO_FOR_EACH_GLOBAL_DEFINE(MAKE_STRING)
 	};
 	FAssert(sizeof(aszGlobalDefinesTagNames) / sizeof(char*) == NUM_GLOBAL_DEFINES);
 
@@ -899,47 +791,52 @@ void CvGlobals::setDefineSTRING(const char * szName, const char * szValue, /* ad
 	//cacheGlobals();
 	FAssertMsg(!bUpdateCache, "No strings to update"); // advc.003t
 }
+
+int CvGlobals::getMAX_CIV_PLAYERS()
+{
+	return MAX_CIV_PLAYERS;
+}
 /*  <advc.003t> Optional parameters added. The return value is only an upper bound,
 	even if an argument is given. */
 int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
 {
-	return (eUnit == NO_UNIT || getUnitInfo(eUnit).isAnyPrereqOrBonus() ?
+	return (eUnit == NO_UNIT || getInfo(eUnit).isAnyPrereqOrBonus() ?
 			getDefineINT(NUM_UNIT_PREREQ_OR_BONUSES) : 0);
 }
 
 int CvGlobals::getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const
 {
-	return (eUnit == NO_UNIT || getUnitInfo(eUnit).isAnyPrereqAndTech() ?
+	return (eUnit == NO_UNIT || getInfo(eUnit).isAnyPrereqAndTech() ?
 			getDefineINT(NUM_UNIT_AND_TECH_PREREQS) : 0);
 }
 
 int CvGlobals::getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const
 {
-	return (eBuilding == NO_BUILDING || getBuildingInfo(eBuilding).isAnyPrereqOrBonus() ?
+	return (eBuilding == NO_BUILDING || getInfo(eBuilding).isAnyPrereqOrBonus() ?
 			getDefineINT(NUM_BUILDING_PREREQ_OR_BONUSES) : 0);
 }
 
 int CvGlobals::getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const
 {
-	return (eBuilding == NO_BUILDING || getBuildingInfo(eBuilding).isAnyPrereqAndTech() ?
+	return (eBuilding == NO_BUILDING || getInfo(eBuilding).isAnyPrereqAndTech() ?
 			getDefineINT(NUM_BUILDING_AND_TECH_PREREQS) : 0);
 }
 
 int CvGlobals::getNUM_AND_TECH_PREREQS(TechTypes eTech) const
 {
-	return (eTech == NO_TECH || getTechInfo(eTech).isAnyPrereqAndTech() ?
+	return (eTech == NO_TECH || getInfo(eTech).isAnyPrereqAndTech() ?
 			getDefineINT(NUM_AND_TECH_PREREQS) : 0);
 }
 
 int CvGlobals::getNUM_OR_TECH_PREREQS(TechTypes eTech) const
 {
-	return (eTech == NO_TECH || getTechInfo(eTech).isAnyPrereqOrTech() ?
+	return (eTech == NO_TECH || getInfo(eTech).isAnyPrereqOrTech() ?
 			getDefineINT(NUM_OR_TECH_PREREQS) : 0);
 }
 
 int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
 {
-	return (eRoute == NO_ROUTE || getRouteInfo(eRoute).isAnyPrereqOrBonus() ?
+	return (eRoute == NO_ROUTE || getInfo(eRoute).isAnyPrereqOrBonus() ?
 			getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES) : 0);
 }
 // </advc.003t>
@@ -983,6 +880,206 @@ bool CvGlobals::isDLLProfilerEnabled() const
 	return false;
 #endif
 	// K-Mod end
+}
+
+
+//
+// Global Types Hash Map
+//
+
+int CvGlobals::getTypesEnum(const char* szType, /* advc.006: */ bool bHideAssert) const
+{
+	FAssertMsg(szType, "null type string");
+	TypesMap::const_iterator it = m_typesMap.find(szType);
+	if (it != m_typesMap.end())
+		return it->second;
+	/*FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, CvString::format("type %s not found", szType).c_str());
+	return -1;*/
+	/*  advc.006: Replacing the above with code from getInfoTypeForString, which
+		now calls this function. */
+	//if(!bHideAssert)
+	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "")==0 || strcmp(szType, "NONE")==0))
+	{
+		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
+		CvString szError;
+		szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
+		FAssertMsg(false, szError.c_str());
+		gDLL->logMsg("xml.log", szError);
+	}
+	return -1;
+}
+
+void CvGlobals::setTypesEnum(const char* szType, int iEnum)
+{
+	FAssertMsg(szType, "null type string");
+	FAssertMsg(m_typesMap.find(szType)==m_typesMap.end(), "types entry already exists");
+	m_typesMap[szType] = iEnum;
+}
+
+// <advc.003c>
+bool CvGlobals::isCachingDone() const
+{
+	return m_aiGlobalDefinesCache != NULL;
+} // </advc.003c>
+
+// <advc.106i>
+void CvGlobals::setHoFScreenUp(bool b)
+{
+	m_bHoFScreenUp = b;
+} // </advc.106i>
+
+//
+// Global Infos Hash Map
+//
+
+int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
+{
+	FAssertMsg(szType, "null info type string");
+	InfosMap::const_iterator it = m_infosMap.find(szType);
+	if (it != m_infosMap.end())
+		return it->second;
+	/*  advc.006: Fall back on getTypesEnum. (Needed for advc.003x - though I don't
+		quite understand why it worked before I split up CvInfos.h.)
+		Assertion code moved there. */
+	return getTypesEnum(szType, bHideAssert);
+}
+
+void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
+{
+	FAssertMsg(szType, "null info type string");
+#ifdef _DEBUG
+	InfosMap::const_iterator it = m_infosMap.find(szType);
+	int iExisting = (it!=m_infosMap.end()) ? it->second : -1;
+	FAssertMsg(iExisting==-1 || iExisting==idx || strcmp(szType, "ERROR")==0, CvString::format("xml info type entry %s already exists", szType).c_str());
+#endif
+	m_infosMap[szType] = idx;
+}
+
+void CvGlobals::infoTypeFromStringReset()
+{
+	m_infosMap.clear();
+}
+
+//
+// non-inline versions
+// <advc.003f>
+CvMap& CvGlobals::getMapExternal() { return getMap(); }
+CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.003f>
+CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
+
+int CvGlobals::getMaxCivPlayers() const
+{
+	return MAX_CIV_PLAYERS;
+}
+
+bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
+
+// advc: onGraphicsInitialized call added
+void CvGlobals::SetGraphicsInitialized(bool bVal)
+{
+	if(bVal == m_bGraphicsInitialized)
+		return;
+	m_bGraphicsInitialized = bVal;
+	if(m_bGraphicsInitialized)
+		getGame().onGraphicsInitialized();
+}
+
+namespace // advc: Hide in unnamed namespace
+{
+	template <class T>
+	void deleteInfoArray(std::vector<T*>& array)
+	{
+		for (std::vector<T*>::iterator it = array.begin(); it != array.end(); ++it)
+		{
+			SAFE_DELETE(*it);
+		}
+
+		array.clear();
+	}
+
+	template <class T>
+	bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
+	{
+	#if SERIALIZE_CVINFOS
+		addToInfosVectors(&array);
+
+		int iSize;
+		pStream->Read(&iSize);
+		FAssertMsg(iSize==sizeof(T), CvString::format("class size doesn't match cache size - check info read/write functions:%s", szClassName).c_str());
+		if (iSize!=sizeof(T))
+			return false;
+		pStream->Read(&iSize);
+
+		deleteInfoArray(array);
+
+		for (int i = 0; i < iSize; ++i)
+		{
+			array.push_back(new T);
+		}
+
+		int iIndex = 0;
+		for (std::vector<T*>::iterator it = array.begin(); it != array.end(); ++it)
+		{
+			(*it)->read(pStream);
+			setInfoTypeFromString((*it)->getType(), iIndex);
+			++iIndex;
+		}
+
+		return true;
+	#else
+		FAssert(false);
+		return false;
+	#endif
+	}
+
+	template <class T>
+	bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
+	{
+	#if SERIALIZE_CVINFOS
+		int iSize = sizeof(T);
+		pStream->Write(iSize);
+		pStream->Write(array.size());
+		for (std::vector<T*>::iterator it = array.begin(); it != array.end(); ++it)
+		{
+			(*it)->write(pStream);
+		}
+		return true;
+	#else
+		FAssert(false);
+		return false;
+	#endif
+	}
+} // advc: end of unnamed namespace
+
+void CvGlobals::deleteInfoArrays()
+{
+	deleteInfoArray(m_paWorldInfo);
+	// <advc.enum>
+	#define DELETE_INFO_ARRAY(Name, Dummy) deleteInfoArray(m_pa##Name##Info);
+	DO_FOR_EACH_INFO_TYPE(DELETE_INFO_ARRAY); // </advc.enum>
+
+	SAFE_DELETE_ARRAY(getEntityEventTypes());
+	SAFE_DELETE_ARRAY(getAnimationOperatorTypes());
+	SAFE_DELETE_ARRAY(getFunctionTypes());
+	SAFE_DELETE_ARRAY(getFlavorTypes());
+	SAFE_DELETE_ARRAY(getArtStyleTypes());
+	SAFE_DELETE_ARRAY(getCitySizeTypes());
+	SAFE_DELETE_ARRAY(getContactTypes());
+	SAFE_DELETE_ARRAY(getDiplomacyPowerTypes());
+	SAFE_DELETE_ARRAY(getAutomateTypes());
+	SAFE_DELETE_ARRAY(getDirectionTypes());
+	SAFE_DELETE_ARRAY(getFootstepAudioTypes());
+	SAFE_DELETE_ARRAY(getFootstepAudioTags());
+
+	clearTypesMap();
+	m_aInfoVectors.clear();
+}
+
+// (advc.003i: Only used by readInfoArray, i.e. unused if XML cache disabled.)
+void CvGlobals::addToInfosVectors(void* infoVector)
+{
+	std::vector<CvInfoBase*>* infoBaseVector = reinterpret_cast<std::vector<CvInfoBase*>*>(infoVector);
+	m_aInfoVectors.push_back(infoBaseVector);
 }
 
 bool CvGlobals::readBuildingInfoArray(FDataStreamBase* pStream)
@@ -1115,41 +1212,6 @@ void CvGlobals::writeEventTriggerInfoArray(FDataStreamBase* pStream)
 	writeInfoArray(pStream, m_paEventTriggerInfo);
 }
 
-
-//
-// Global Types Hash Map
-//
-
-int CvGlobals::getTypesEnum(const char* szType, /* advc.006: */ bool bHideAssert) const
-{
-	FAssertMsg(szType, "null type string");
-	TypesMap::const_iterator it = m_typesMap.find(szType);
-	if (it != m_typesMap.end())
-		return it->second;
-	/*FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, CvString::format("type %s not found", szType).c_str());
-	return -1;*/
-	/*  advc.006: Replacing the above with code from getInfoTypeForString, which
-		now calls this function. */
-	//if(!bHideAssert)
-	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "")==0 || strcmp(szType, "NONE")==0))
-	{
-		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
-		CvString szError;
-		szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
-		FAssertMsg(false, szError.c_str());
-		gDLL->logMsg("xml.log", szError);
-	}
-	return -1;
-}
-
-void CvGlobals::setTypesEnum(const char* szType, int iEnum)
-{
-	FAssertMsg(szType, "null type string");
-	FAssertMsg(m_typesMap.find(szType)==m_typesMap.end(), "types entry already exists");
-	m_typesMap[szType] = iEnum;
-}
-
-
 int CvGlobals::getNUM_ENGINE_DIRTY_BITS() const
 {
 	return NUM_ENGINE_DIRTY_BITS;
@@ -1163,11 +1225,6 @@ int CvGlobals::getNUM_INTERFACE_DIRTY_BITS() const
 int CvGlobals::getNUM_YIELD_TYPES() const
 {
 	return NUM_YIELD_TYPES;
-}
-
-int CvGlobals::getNUM_COMMERCE_TYPES() const
-{
-	return NUM_COMMERCE_TYPES;
 }
 
 int CvGlobals::getNUM_FORCECONTROL_TYPES() const
@@ -1185,207 +1242,17 @@ int CvGlobals::getNUM_HEALTHBAR_TYPES() const
 	return NUM_HEALTHBAR_TYPES;
 }
 
-int CvGlobals::getNUM_CONTROL_TYPES() const
-{
-	return NUM_CONTROL_TYPES;
-}
-
 int CvGlobals::getNUM_LEADERANIM_TYPES() const
 {
 	return NUM_LEADERANIM_TYPES;
 }
 
-
-void CvGlobals::deleteInfoArrays()
-{
-	deleteInfoArray(m_paBuildingClassInfo);
-	deleteInfoArray(m_paBuildingInfo);
-	deleteInfoArray(m_paSpecialBuildingInfo);
-
-	deleteInfoArray(m_paLeaderHeadInfo);
-	deleteInfoArray(m_paTraitInfo);
-	deleteInfoArray(m_paCivilizationInfo);
-	deleteInfoArray(m_paUnitArtStyleTypeInfo);
-
-	deleteInfoArray(m_paVoteSourceInfo);
-	deleteInfoArray(m_paHints);
-	deleteInfoArray(m_paMainMenus);
-	deleteInfoArray(m_paGoodyInfo);
-	deleteInfoArray(m_paHandicapInfo);
-	deleteInfoArray(m_paGameSpeedInfo);
-	deleteInfoArray(m_paTurnTimerInfo);
-	deleteInfoArray(m_paVictoryInfo);
-	deleteInfoArray(m_paHurryInfo);
-	deleteInfoArray(m_paWorldInfo);
-	deleteInfoArray(m_paSeaLevelInfo);
-	deleteInfoArray(m_paClimateInfo);
-	deleteInfoArray(m_paProcessInfo);
-	deleteInfoArray(m_paVoteInfo);
-	deleteInfoArray(m_paProjectInfo);
-	deleteInfoArray(m_paReligionInfo);
-	deleteInfoArray(m_paCorporationInfo);
-	deleteInfoArray(m_paCommerceInfo);
-	deleteInfoArray(m_paEmphasizeInfo);
-	deleteInfoArray(m_paUpkeepInfo);
-	deleteInfoArray(m_paCultureLevelInfo);
-
-	deleteInfoArray(m_paColorInfo);
-	deleteInfoArray(m_paPlayerColorInfo);
-	deleteInfoArray(m_paInterfaceModeInfo);
-	deleteInfoArray(m_paCameraInfo);
-	deleteInfoArray(m_paAdvisorInfo);
-	deleteInfoArray(m_paThroneRoomCamera);
-	deleteInfoArray(m_paThroneRoomInfo);
-	deleteInfoArray(m_paThroneRoomStyleInfo);
-	deleteInfoArray(m_paSlideShowInfo);
-	deleteInfoArray(m_paSlideShowRandomInfo);
-	deleteInfoArray(m_paWorldPickerInfo);
-	deleteInfoArray(m_paSpaceShipInfo);
-
-	deleteInfoArray(m_paCivicInfo);
-	deleteInfoArray(m_paImprovementInfo);
-
-	deleteInfoArray(m_paRouteInfo);
-	deleteInfoArray(m_paRouteModelInfo);
-	deleteInfoArray(m_paRiverInfo);
-	deleteInfoArray(m_paRiverModelInfo);
-
-	deleteInfoArray(m_paWaterPlaneInfo);
-	deleteInfoArray(m_paTerrainPlaneInfo);
-	deleteInfoArray(m_paCameraOverlayInfo);
-
-	deleteInfoArray(m_aEraInfo);
-	deleteInfoArray(m_paEffectInfo);
-	deleteInfoArray(m_paAttachableInfo);
-
-	deleteInfoArray(m_paTechInfo);
-	deleteInfoArray(m_paDiplomacyInfo);
-
-	deleteInfoArray(m_paBuildInfo);
-	deleteInfoArray(m_paUnitClassInfo);
-	deleteInfoArray(m_paUnitInfo);
-	deleteInfoArray(m_paSpecialUnitInfo);
-	deleteInfoArray(m_paSpecialistInfo);
-	deleteInfoArray(m_paActionInfo);
-	deleteInfoArray(m_paMissionInfo);
-	deleteInfoArray(m_paControlInfo);
-	deleteInfoArray(m_paCommandInfo);
-	deleteInfoArray(m_paAutomateInfo);
-	deleteInfoArray(m_paPromotionInfo);
-
-	deleteInfoArray(m_paConceptInfo);
-	deleteInfoArray(m_paNewConceptInfo);
-	deleteInfoArray(m_paCityTabInfo);
-	deleteInfoArray(m_paCalendarInfo);
-	deleteInfoArray(m_paSeasonInfo);
-	deleteInfoArray(m_paMonthInfo);
-	deleteInfoArray(m_paDenialInfo);
-	deleteInfoArray(m_paInvisibleInfo);
-	deleteInfoArray(m_paUnitCombatInfo);
-	deleteInfoArray(m_paDomainInfo);
-	deleteInfoArray(m_paUnitAIInfo);
-	deleteInfoArray(m_paAttitudeInfo);
-	deleteInfoArray(m_paMemoryInfo);
-	deleteInfoArray(m_paGameOptionInfo);
-	deleteInfoArray(m_paMPOptionInfo);
-	deleteInfoArray(m_paForceControlInfo);
-	deleteInfoArray(m_paPlayerOptionInfo);
-	deleteInfoArray(m_paGraphicOptionInfo);
-
-	deleteInfoArray(m_paYieldInfo);
-	deleteInfoArray(m_paTerrainInfo);
-	deleteInfoArray(m_paFeatureInfo);
-	deleteInfoArray(m_paBonusClassInfo);
-	deleteInfoArray(m_paBonusInfo);
-	deleteInfoArray(m_paLandscapeInfo);
-
-	deleteInfoArray(m_paUnitFormationInfo);
-	deleteInfoArray(m_paCivicOptionInfo);
-	deleteInfoArray(m_paCursorInfo);
-
-	SAFE_DELETE_ARRAY(getEntityEventTypes());
-	SAFE_DELETE_ARRAY(getAnimationOperatorTypes());
-	SAFE_DELETE_ARRAY(getFunctionTypes());
-	SAFE_DELETE_ARRAY(getFlavorTypes());
-	SAFE_DELETE_ARRAY(getArtStyleTypes());
-	SAFE_DELETE_ARRAY(getCitySizeTypes());
-	SAFE_DELETE_ARRAY(getContactTypes());
-	SAFE_DELETE_ARRAY(getDiplomacyPowerTypes());
-	SAFE_DELETE_ARRAY(getAutomateTypes());
-	SAFE_DELETE_ARRAY(getDirectionTypes());
-	SAFE_DELETE_ARRAY(getFootstepAudioTypes());
-	SAFE_DELETE_ARRAY(getFootstepAudioTags());
-	//deleteInfoArray(m_paQuestInfo); // advc.003j
-	deleteInfoArray(m_paTutorialInfo);
-
-	deleteInfoArray(m_paEventInfo);
-	deleteInfoArray(m_paEventTriggerInfo);
-	deleteInfoArray(m_paEspionageMissionInfo);
-
-	deleteInfoArray(m_paEntityEventInfo);
-	deleteInfoArray(m_paAnimationCategoryInfo);
-	deleteInfoArray(m_paAnimationPathInfo);
-
-	clearTypesMap();
-	m_aInfoVectors.clear();
-}
-
-// <advc.003c>
-bool CvGlobals::isCachingDone() const
-{
-	return m_aiGlobalDefinesCache != NULL;
-} // </advc.003c>
-
-// <advc.106i>
-void CvGlobals::setHoFScreenUp(bool b)
-{
-	m_bHoFScreenUp = b;
-} // </advc.106i>
-
-//
-// Global Infos Hash Map
-//
-
-int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
-{
-	FAssertMsg(szType, "null info type string");
-	InfosMap::const_iterator it = m_infosMap.find(szType);
-	if (it != m_infosMap.end())
-		return it->second;
-	/*  advc.006: Fall back on getTypesEnum. (Needed for advc.003x - though I don't
-		quite understand why it worked before I split up CvInfos.h.)
-		Assertion code moved there. */
-	return getTypesEnum(szType, bHideAssert);
-}
-
-void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
-{
-	FAssertMsg(szType, "null info type string");
-#ifdef _DEBUG
-	InfosMap::const_iterator it = m_infosMap.find(szType);
-	int iExisting = (it!=m_infosMap.end()) ? it->second : -1;
-	FAssertMsg(iExisting==-1 || iExisting==idx || strcmp(szType, "ERROR")==0, CvString::format("xml info type entry %s already exists", szType).c_str());
-#endif
-	m_infosMap[szType] = idx;
-}
-
-void CvGlobals::infoTypeFromStringReset()
-{
-	m_infosMap.clear();
-}
-
-void CvGlobals::addToInfosVectors(void *infoVector)
-{
-	std::vector<CvInfoBase *> *infoBaseVector = (std::vector<CvInfoBase *> *) infoVector;
-	m_aInfoVectors.push_back(infoBaseVector);
-}
-
 void CvGlobals::infosReset()
 {
-	for(int i=0;i<(int)m_aInfoVectors.size();i++)
+	for (int i = 0; i < (int)m_aInfoVectors.size(); i++)
 	{
 		std::vector<CvInfoBase *> *infoBaseVector = m_aInfoVectors[i];
-		for(int j=0;j<(int)infoBaseVector->size();j++)
+		for (int j = 0; j < (int)infoBaseVector->size(); j++)
 			infoBaseVector->at(j)->reset();
 	}
 }
@@ -1398,38 +1265,10 @@ int CvGlobals::getNumGraphicOptions() const { return NUM_GRAPHICOPTION_TYPES; }
 int CvGlobals::getNumTradeableItems() const { return NUM_TRADEABLE_ITEMS; }
 int CvGlobals::getNumBasicItems() const { return NUM_BASIC_ITEMS; }
 int CvGlobals::getNumTradeableHeadings() const { return NUM_TRADEABLE_HEADINGS; }
-int CvGlobals::getNumCommandInfos() const { return NUM_COMMAND_TYPES; }
-int CvGlobals::getNumControlInfos() const { return NUM_CONTROL_TYPES; }
-int CvGlobals::getNumMissionInfos() const { return NUM_MISSION_TYPES; }
 int CvGlobals::getNumPlayerOptionInfos() const { return NUM_PLAYEROPTION_TYPES; }
 int CvGlobals::getMaxNumSymbols() const { return MAX_NUM_SYMBOLS; }
 int CvGlobals::getNumGraphicLevels() const { return NUM_GRAPHICLEVELS; }
-int CvGlobals::getNumGlobeLayers() const { return NUM_GLOBE_LAYER_TYPES; }
 
-
-//
-// non-inline versions
-// <advc.003f>
-CvMap& CvGlobals::getMapExternal() { return getMap(); }
-CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.003f>
-CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
-
-int CvGlobals::getMaxCivPlayers() const
-{
-	return MAX_CIV_PLAYERS;
-}
-
-bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
-
-// advc: onGraphicsInitialized call added
-void CvGlobals::SetGraphicsInitialized(bool bVal)
-{
-	if(bVal == m_bGraphicsInitialized)
-		return;
-	m_bGraphicsInitialized = bVal;
-	if(m_bGraphicsInitialized)
-		getGame().onGraphicsInitialized();
-}
 void CvGlobals::setInterface(CvInterface* pVal) { m_interface = pVal; }
 void CvGlobals::setDiplomacyScreen(CvDiplomacyScreen* pVal) { m_diplomacyScreen = pVal; }
 void CvGlobals::setMPDiplomacyScreen(CMPDiplomacyScreen* pVal) { m_mpDiplomacyScreen = pVal; }

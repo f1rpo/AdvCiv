@@ -10659,7 +10659,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	if (NO_BUILDING != eDefaultBuilding && eDefaultBuilding != eBuilding
 		&& !bInBuildingList) // advc.004w
 	{
-		for (int iI  = 0; iI < GC.getNumCivilizationInfos(); ++iI)
+		for (int iI = 0; iI < GC.getNumCivilizationInfos(); ++iI)
 		{
 			BuildingTypes eUniqueBuilding = (BuildingTypes)GC.getCivilizationInfo((CivilizationTypes)iI).getCivilizationBuildings(bct);
 			if (eUniqueBuilding == eBuilding)
@@ -17477,8 +17477,8 @@ void CvGameTextMgr::buildHintsList(CvWStringBuffer& szBuffer)
 	/*  Hopefully this uses a decent hash function, but, since it's only called
 		when opening the Hints section of Civilopedia, it doesn't really matter. */
 	std::set<CvWString> uniqueHints;
-	for(int i = 0; i < GC.getNumHints(); i++)
-		uniqueHints.insert(CvWString(GC.getHints(i).getText()));
+	for(int i = 0; i < GC.getNumHintInfos(); i++)
+		uniqueHints.insert(CvWString(GC.getHintInfo(i).getText()));
 	for(std::set<CvWString>::const_iterator it = uniqueHints.begin(); // </advc.008d>
 		it != uniqueHints.end(); it++)
 	{
@@ -20630,7 +20630,7 @@ void CvGameTextMgr::assignFontIds(int iFirstSymbolCode, int iPadAmount)
 	} while (iCurSymbolID % iPadAmount != 0);
 
 	// set commerce symbols
-	for (int i=0;i<GC.getNUM_COMMERCE_TYPES();i++)
+	for (int i = 0; i < NUM_COMMERCE_TYPES; i++)
 	{
 		GC.getCommerceInfo((CommerceTypes) i).setChar(iCurSymbolID);
 		++iCurSymbolID;
