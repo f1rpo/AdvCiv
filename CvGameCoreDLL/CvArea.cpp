@@ -125,7 +125,7 @@ int CvArea::countNumUniqueBonusTypes() const
 	{
 		if (getNumBonuses((BonusTypes)iI) > 0)
 		{
-			if (GC.getBonusInfo((BonusTypes)iI).isOneArea())
+			if (GC.getInfo((BonusTypes)iI).isOneArea())
 				iCount++;
 		}
 	}

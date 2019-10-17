@@ -193,12 +193,12 @@ void CvDLLLogger::logMapStats()
 		std::vector<int>& resourceCounts = (bWater ? waterResourceCounts : landResourceCounts);
 		for (size_t i = 0; i < terrainCounts.size(); i++)
 		{
-			CvTerrainInfo const& kTerrain = GC.getTerrainInfo((TerrainTypes)i);
+			CvTerrainInfo const& kTerrain = GC.getInfo((TerrainTypes)i);
 			appendPercentage(out, kTerrain.getDescription(), terrainCounts[i], iTiles);
 		}
 		for (size_t i = 0; i < featureCounts.size(); i++)
 		{
-			CvFeatureInfo const& kFeature = GC.getFeatureInfo((FeatureTypes)i);
+			CvFeatureInfo const& kFeature = GC.getInfo((FeatureTypes)i);
 			appendPercentage(out, kFeature.getDescription(), featureCounts[i], iTiles);
 		}
 		int iResources = 0;
@@ -209,7 +209,7 @@ void CvDLLLogger::logMapStats()
 		{
 			if (resourceCounts[i] <= 0)
 				continue;
-			CvBonusInfo const& kBonus = GC.getBonusInfo((BonusTypes)i);
+			CvBonusInfo const& kBonus = GC.getInfo((BonusTypes)i);
 			CvWString szWide(kBonus.getDescription());
 			CvString szNarrow;
 			::narrowUnsafe(szWide, szNarrow);

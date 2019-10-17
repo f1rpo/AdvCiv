@@ -451,7 +451,7 @@ void CvSelectionGroup::playActionSound()
 	if (iScriptId == -1 && pHeadUnit)
 	{
 		CvCivilizationInfo *pCivInfo;
-		pCivInfo = &GC.getCivilizationInfo(pHeadUnit->getCivilizationType());
+		pCivInfo = &GC.getInfo(pHeadUnit->getCivilizationType());
 		if (pCivInfo)
 		{
 			iScriptId = pCivInfo->getActionSoundScriptId();
@@ -508,7 +508,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 	{
 		if (getOwner() == GC.getGame().getActivePlayer())
 		{
-			if (isBusy() && GC.getMissionInfo(eMission).isSound())
+			if (isBusy() && GC.getInfo(eMission).isSound())
 				playActionSound();
 
 			gDLL->getInterfaceIFace()->setHasMovedUnit(true);
@@ -1133,7 +1133,7 @@ void CvSelectionGroup::startMission()
 					if (headMissionQueueNode()->m_data.iData1 != -1)
 					{
 						CvMissionDefinition kMission;
-						kMission.setMissionTime(GC.getMissionInfo(MISSION_GOLDEN_AGE).getTime() * gDLL->getSecsPerTurn());
+						kMission.setMissionTime(GC.getInfo(MISSION_GOLDEN_AGE).getTime() * gDLL->getSecsPerTurn());
 						kMission.setUnit(BATTLE_UNIT_ATTACKER, pLoopUnit);
 						kMission.setUnit(BATTLE_UNIT_DEFENDER, NULL);
 						kMission.setPlot(pLoopUnit->plot());
@@ -1212,7 +1212,7 @@ void CvSelectionGroup::startMission()
 			}
 		}
 		if (bNuke)
-			setMissionTimer(GC.getMissionInfo(MISSION_NUKE).getTime());
+			setMissionTimer(GC.getInfo(MISSION_NUKE).getTime());
 		if (!isBusy())
 		{
 			if (bDelete)
@@ -2632,12 +2632,12 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBest
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{
-			RouteTypes eRoute = (RouteTypes)GC.getBuildInfo((BuildTypes)iI).getRoute();
+			RouteTypes eRoute = (RouteTypes)GC.getInfo((BuildTypes)iI).getRoute();
 			if (eRoute == NO_ROUTE)
 				continue; // advc
 			if (pLoopUnit->canBuild(pPlot, ((BuildTypes)iI)))
 			{
-				int iValue = GC.getRouteInfo(eRoute).getValue();
+				int iValue = GC.getInfo(eRoute).getValue();
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -2820,7 +2820,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			{
 				/* original bts code
 				pLoopUnit->joinGroup(NULL, true);
-				pLoopUnit->ExecuteMove(((float)(GC.getMissionInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false); */
+				pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false); */
 
 				// K-Mod. all units left behind should stay in the same group. (unless it would mean a change of group AI)
 				// (Note: it is important that units left behind are not in the original group.
@@ -2837,7 +2837,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			// K-Mod. If the unit is no longer in the original group; then display it's movement animation now.
 			// (this replaces the ExecuteMove line commented out in the above block, and it also handles the case of loading units onto boats.)
 			if (pLoopUnit->getGroupID() != getID())
-				pLoopUnit->ExecuteMove(((float)(GC.getMissionInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);
+				pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);
 			// K-Mod end
 		}
 	} // advc.001: end of iStage loop
@@ -2850,7 +2850,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
-			pLoopUnit->ExecuteMove(((float)(GC.getMissionInfo(MISSION_MOVE_TO).
+			pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).
 					getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);
 		}
 	}
@@ -2972,14 +2972,14 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 	bool bContinue = false;
 	CvPlot* pPlot = plot();
 	/* original bts code
-	ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
+	ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
 	if (eImprovement != NO_IMPROVEMENT) {
 		if (AI_isControlled()) {
 			if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION)) {
 				if ((pPlot->getImprovementType() != NO_IMPROVEMENT) && (pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT())) {
 					BonusTypes eBonus = (BonusTypes)pPlot->getNonObsoleteBonusType(GET_PLAYER(getOwner()).getTeam());
-					if ((eBonus == NO_BONUS) || !GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus)) {
-						if (GC.getImprovementInfo(eImprovement).getImprovementPillage() != NO_IMPROVEMENT)
+					if ((eBonus == NO_BONUS) || !GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus)) {
+						if (GC.getInfo(eImprovement).getImprovementPillage() != NO_IMPROVEMENT)
 							return false;
 	}}}}}*/
 	/*  K-Mod. Leave old improvements should mean _all_ improvements,
@@ -2987,10 +2987,10 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		Note. The only time this bit of code might matter is if the automated unit has orders queued.
 		Ideally, the AI should never issue orders which violate the leave old improvements rule. */
 	if (isAutomated() && GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
-		GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT && pPlot->getImprovementType() != NO_IMPROVEMENT &&
+		GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT && pPlot->getImprovementType() != NO_IMPROVEMENT &&
 		pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT()
 		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
-		&& (!GC.getImprovementInfo((ImprovementTypes)GC.getBuildInfo(eBuild).
+		&& (!GC.getInfo((ImprovementTypes)GC.getInfo(eBuild).
 		getImprovement()).isActsAsCity() || pPlot->getWorkingCity() == NULL)
 		) // </advc.121>
 	{
@@ -3018,7 +3018,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		if(!bFinish && isHuman() && pPlot->getBuildTurnsLeft(eBuild, getOwner()) == 1)
 		{
 			// <advc.011b>
-			CvWString szBuild = GC.getBuildInfo(eBuild).getDescription();
+			CvWString szBuild = GC.getInfo(eBuild).getDescription();
 			// Get rid of the LINK tags b/c these result in an underscore
 			for(int i = 0; i < 2; i++)
 			{
@@ -3034,7 +3034,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 			CvWString szBuffer = gDLL->getText("TXT_KEY_BUILD_NOT_FINISHED", szBuild.c_str());
 			gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
 					GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO,
-					GC.getBuildInfo(eBuild).getButton()/*getHeadUnit()->getButton()*/,
+					GC.getInfo(eBuild).getButton()/*getHeadUnit()->getButton()*/,
 					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"/*"COLOR_BUILDING_TEXT"*/),
 					getX(), getY(), true, false);
 			// </advc.011b>
@@ -3056,7 +3056,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 				pSelectionGroup->getOwner() == getOwner() &&
 				pSelectionGroup->getActivityType() == ACTIVITY_MISSION &&
 				pSelectionGroup->getLengthMissionQueue() > 0 &&
-				pSelectionGroup->getMissionType(0) == GC.getBuildInfo(eBuild).getMissionType() &&
+				pSelectionGroup->getMissionType(0) == GC.getInfo(eBuild).getMissionType() &&
 				pSelectionGroup->getMissionData1(0) == eBuild)
 			{
 				pSelectionGroup->deleteMissionQueueNode(pSelectionGroup->headMissionQueueNode());
@@ -3601,7 +3601,7 @@ void CvSelectionGroup::updateMissionTimer(int iSteps, /* advc.102: */ CvPlot* pF
 		iTime = 0;
 	else if (headMissionQueueNode() != NULL)
 	{
-		iTime = GC.getMissionInfo((MissionTypes)(headMissionQueueNode()->m_data.eMissionType)).getTime();
+		iTime = GC.getInfo((MissionTypes)(headMissionQueueNode()->m_data.eMissionType)).getTime();
 
 		if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
 			(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||

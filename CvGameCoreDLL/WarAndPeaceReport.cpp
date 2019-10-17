@@ -64,7 +64,7 @@ void WarAndPeaceReport::deleteBuffer() {
 
 char const* WarAndPeaceReport::leaderName(PlayerTypes civId, int charLimit) {
 															// default: 8
-	CvLeaderHeadInfo& leader = GC.getLeaderHeadInfo(
+	CvLeaderHeadInfo& leader = GC.getInfo(
 			GET_PLAYER(civId).getLeaderType());
 	return narrow(leader.getDescription(), charLimit);
 }
@@ -127,7 +127,7 @@ char const* WarAndPeaceReport::teamName(TeamTypes teamId) {
 
 char const* WarAndPeaceReport::techName(TechTypes techId, int charLimit) {
 
-	return narrow(GC.getTechInfo(techId).getDescription(), charLimit);
+	return narrow(GC.getInfo(techId).getDescription(), charLimit);
 }
 
 char const* WarAndPeaceReport::warPlanName(WarPlanTypes wp) const {

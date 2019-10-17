@@ -128,11 +128,11 @@ void CvInitCore::setDefaults()
 {
 	for (int i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
 	{
-		m_abOptions[i] = GC.getGameOptionInfo((GameOptionTypes)i).getDefault();
+		m_abOptions[i] = GC.getInfo((GameOptionTypes)i).getDefault();
 	}
 	for (int i = 0; i < NUM_MPOPTION_TYPES; ++i)
 	{
-		m_abMPOptions[i] = GC.getMPOptionInfo((MultiplayerOptionTypes)i).getDefault();
+		m_abMPOptions[i] = GC.getInfo((MultiplayerOptionTypes)i).getDefault();
 	}
 }
 
@@ -579,7 +579,7 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 		bool b = pSource->getOption(eLoopOption);
 		// </advc>
 		// <dlph.18>
-		CvGameOptionInfo const& kLoopOption = GC.getGameOptionInfo(eLoopOption);
+		CvGameOptionInfo const& kLoopOption = GC.getInfo(eLoopOption);
 		if(kLoopOption.getVisible() == 0)
 			b = kLoopOption.getDefault(); // </dlph.18>
 		setOption(eLoopOption, b);
@@ -763,7 +763,7 @@ void CvInitCore::setWorldSize(const CvWString & szWorldSize)
 {
 	for (int i = 0; i < GC.getNumWorldInfos(); i++)
 	{
-		if ( wcsicmp(szWorldSize.GetCString(), CvWString(GC.getWorldInfo((WorldSizeTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szWorldSize.GetCString(), CvWString(GC.getInfo((WorldSizeTypes)i).getType()).GetCString()) == 0 )
 		{
 			setWorldSize((WorldSizeTypes)i);
 		}
@@ -774,7 +774,7 @@ const CvWString & CvInitCore::getWorldSizeKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getWorldSize(), 0, GC.getNumWorldInfos()) )
 	{
-		szBuffer = GC.getWorldInfo(getWorldSize()).getType();
+		szBuffer = GC.getInfo(getWorldSize()).getType();
 		return szBuffer;
 	}
 	else
@@ -788,7 +788,7 @@ void CvInitCore::setClimate(const CvWString & szClimate)
 {
 	for (int i = 0; i < GC.getNumClimateInfos(); i++)
 	{
-		if ( wcsicmp(szClimate.GetCString(), CvWString(GC.getClimateInfo((ClimateTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szClimate.GetCString(), CvWString(GC.getInfo((ClimateTypes)i).getType()).GetCString()) == 0 )
 		{
 			setClimate((ClimateTypes)i);
 		}
@@ -799,7 +799,7 @@ const CvWString & CvInitCore::getClimateKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getClimate(), 0, GC.getNumClimateInfos()) )
 	{
-		szBuffer = GC.getClimateInfo(getClimate()).getType();
+		szBuffer = GC.getInfo(getClimate()).getType();
 		return szBuffer;
 	}
 	else
@@ -813,7 +813,7 @@ void CvInitCore::setSeaLevel(const CvWString & szSeaLevel)
 {
 	for (int i = 0; i < GC.getNumSeaLevelInfos(); i++)
 	{
-		if ( wcsicmp(szSeaLevel.GetCString(), CvWString(GC.getSeaLevelInfo((SeaLevelTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szSeaLevel.GetCString(), CvWString(GC.getInfo((SeaLevelTypes)i).getType()).GetCString()) == 0 )
 		{
 			setSeaLevel((SeaLevelTypes)i);
 		}
@@ -824,7 +824,7 @@ const CvWString & CvInitCore::getSeaLevelKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getSeaLevel(), 0, GC.getNumSeaLevelInfos()) )
 	{
-		szBuffer = GC.getSeaLevelInfo(getSeaLevel()).getType();
+		szBuffer = GC.getInfo(getSeaLevel()).getType();
 		return szBuffer;
 	}
 	else
@@ -838,7 +838,7 @@ void CvInitCore::setEra(const CvWString & szEra)
 {
 	for (int i = 0; i < GC.getNumEraInfos(); i++)
 	{
-		if ( wcsicmp(szEra.GetCString(), CvWString(GC.getEraInfo((EraTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szEra.GetCString(), CvWString(GC.getInfo((EraTypes)i).getType()).GetCString()) == 0 )
 		{
 			setEra((EraTypes)i);
 		}
@@ -849,7 +849,7 @@ const CvWString & CvInitCore::getEraKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getEra(), 0, GC.getNumEraInfos()) )
 	{
-		szBuffer = GC.getEraInfo(getEra()).getType();
+		szBuffer = GC.getInfo(getEra()).getType();
 		return szBuffer;
 	}
 	else
@@ -863,7 +863,7 @@ void CvInitCore::setGameSpeed(const CvWString & szGameSpeed)
 {
 	for (int i = 0; i < GC.getNumGameSpeedInfos(); i++)
 	{
-		if ( wcsicmp(szGameSpeed.GetCString(), CvWString(GC.getGameSpeedInfo((GameSpeedTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szGameSpeed.GetCString(), CvWString(GC.getInfo((GameSpeedTypes)i).getType()).GetCString()) == 0 )
 		{
 			setGameSpeed((GameSpeedTypes)i);
 		}
@@ -874,7 +874,7 @@ const CvWString & CvInitCore::getGameSpeedKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getGameSpeed(), 0, GC.getNumGameSpeedInfos()) )
 	{
-		szBuffer = GC.getGameSpeedInfo(getGameSpeed()).getType();
+		szBuffer = GC.getInfo(getGameSpeed()).getType();
 		return szBuffer;
 	}
 	else
@@ -888,7 +888,7 @@ void CvInitCore::setTurnTimer(const CvWString & szTurnTimer)
 {
 	for (int i = 0; i < GC.getNumTurnTimerInfos(); i++)
 	{
-		if ( wcsicmp(szTurnTimer.GetCString(), CvWString(GC.getTurnTimerInfo((TurnTimerTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szTurnTimer.GetCString(), CvWString(GC.getInfo((TurnTimerTypes)i).getType()).GetCString()) == 0 )
 		{
 			setTurnTimer((TurnTimerTypes)i);
 		}
@@ -899,7 +899,7 @@ const CvWString & CvInitCore::getTurnTimerKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getTurnTimer(), 0, GC.getNumTurnTimerInfos()) )
 	{
-		szBuffer = GC.getTurnTimerInfo(getTurnTimer()).getType();
+		szBuffer = GC.getInfo(getTurnTimer()).getType();
 		return szBuffer;
 	}
 	else
@@ -913,7 +913,7 @@ void CvInitCore::setCalendar(const CvWString & szCalendar)
 {
 	for (int i = 0; i < NUM_CALENDAR_TYPES; i++)
 	{
-		if ( wcsicmp(szCalendar.GetCString(), CvWString(GC.getCalendarInfo((CalendarTypes)i).getType()).GetCString()) == 0 )
+		if ( wcsicmp(szCalendar.GetCString(), CvWString(GC.getInfo((CalendarTypes)i).getType()).GetCString()) == 0 )
 		{
 			setCalendar((CalendarTypes)i);
 		}
@@ -924,7 +924,7 @@ const CvWString & CvInitCore::getCalendarKey(CvWString & szBuffer) const
 {
 	if ( checkBounds(getCalendar(), 0, NUM_CALENDAR_TYPES) )
 	{
-		szBuffer = GC.getCalendarInfo(getCalendar()).getType();
+		szBuffer = GC.getInfo(getCalendar()).getType();
 		return szBuffer;
 	}
 	else
@@ -1154,7 +1154,7 @@ void CvInitCore::setType(GameType eType)
 		m_eType = eType;
 		// <advc.054>
 		// Permanent war/peace always visible in scenarios
-		CvGameOptionInfo& kPermWarPeace = GC.getGameOptionInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
+		CvGameOptionInfo& kPermWarPeace = GC.getInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
 		if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO ||
 				eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
 			kPermWarPeace.setVisible(true);
@@ -1167,7 +1167,7 @@ void CvInitCore::setType(GameType eType)
 		aeHideMP.push_back(GAMEOPTION_RISE_FALL); // advc.701
 		for(size_t i = 0; i < aeHideMP.size(); i++)
 		{
-			CvGameOptionInfo& kOption = GC.getGameOptionInfo(aeHideMP[i]);
+			CvGameOptionInfo& kOption = GC.getInfo(aeHideMP[i]);
 			if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
 					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
 					eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
@@ -1631,7 +1631,7 @@ bool CvInitCore::getPlayableCiv(PlayerTypes eID) const
 		else
 		{
 			if (getCiv(eID) != NO_CIVILIZATION)
-				return GC.getCivilizationInfo(getCiv(eID)).isPlayable();
+				return GC.getInfo(getCiv(eID)).isPlayable();
 			else
 			{
 				// Don't allow people to play the barb civ
@@ -1751,17 +1751,17 @@ void CvInitCore::resetAdvancedStartPoints()
 
 	if (NO_ERA != getEra())
 	{
-		iPoints += GC.getEraInfo(getEra()).getAdvancedStartPoints();
+		iPoints += GC.getInfo(getEra()).getAdvancedStartPoints();
 	}
 
 	if (NO_WORLDSIZE != getWorldSize())
 	{
-		iPoints *= GC.getWorldInfo(getWorldSize()).getAdvancedStartPointsMod();
+		iPoints *= GC.getInfo(getWorldSize()).getAdvancedStartPointsMod();
 		iPoints /= 100;
 	}
 	// <advc.250c> Reduce start-point costs based on game speed instead.
 	/*if (NO_GAMESPEED != getGameSpeed()) {
-		iPoints *= GC.getGameSpeedInfo(getGameSpeed()).getGrowthPercent();
+		iPoints *= GC.getInfo(getGameSpeed()).getGrowthPercent();
 		iPoints /= 100;
 	}*/
 	// (Effect of world size removed through WorldInfo XML)
@@ -1774,7 +1774,7 @@ int CvInitCore::getAdvancedStartMinPoints() const
 {
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++)
 	{
-		CvUnitInfo& u = GC.getUnitInfo((UnitTypes)GC.getUnitClassInfo(
+		CvUnitInfo& u = GC.getInfo((UnitTypes)GC.getInfo(
 				(UnitClassTypes)i).getDefaultUnitIndex());
 		if(u.isFound())
 			return u.getAdvancedStartCost();

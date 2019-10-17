@@ -117,7 +117,7 @@ int WarUtilityAspect::evaluate(PlayerTypes theyId) {
 			GC.getGame().gameTurnProgress() < 0.18 &&
 			we->AI_getPeaceAttitude(theyId) == 0 &&
 			agent.AI_getAtPeaceCounter(TEAMID(theyId)) >
-			GC.getLeaderHeadInfo(we->getPersonalityType()).
+			GC.getInfo(we->getPersonalityType()).
 			getAtPeaceAttitudeDivisor() / 2)
 		valTowardsThem++;
 	towardsThem = (we->isHuman() ? ATTITUDE_CAUTIOUS : we->AI_getAttitudeFromValue(valTowardsThem));
@@ -453,7 +453,7 @@ AttitudeTypes WarUtilityAspect::techRefuseThresh(PlayerTypes civId) {
 	if(GET_PLAYER(civId).isHuman())
 		return ATTITUDE_FURIOUS;
 	// The XML value is mostly ANNOYED; they'll trade at one above that
-	return (AttitudeTypes)(GC.getLeaderHeadInfo(we->getPersonalityType()).
+	return (AttitudeTypes)(GC.getInfo(we->getPersonalityType()).
 			getTechRefuseAttitudeThreshold() + 1);
 }
 
@@ -671,7 +671,7 @@ double GreedForAssets::defensibilityCost() {
 		return 0;
 	// A little arcane
 	double personalityPercent = 12;
-	int mwmalp = GC.getLeaderHeadInfo(we->getPersonalityType()).
+	int mwmalp = GC.getInfo(we->getPersonalityType()).
 			getMaxWarMinAdjacentLandPercent();
 	personalityPercent += 3 * mwmalp;
 	/*  In BtS, 0 has a special role b/c it ignores shared borders entirely.
@@ -1248,7 +1248,7 @@ double MilitaryVictory::progressRatingDomination() {
 		(Same thing is done in CvPlayerAI::AI_calculateDominationVictoryStage.) */
 	for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
 		VictoryTypes victId = (VictoryTypes)i;
-		CvVictoryInfo& vict = GC.getVictoryInfo(victId);
+		CvVictoryInfo& vict = GC.getInfo(victId);
 		if(vict.getLandPercent() > 0) {
 			dom = victId;
 			break;
@@ -1345,7 +1345,7 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		log("No vote source yet"); // DIPLO3 should normally rule that out
 		return 0;
 	}
-	bool isUN = GC.getVoteSourceInfo(voteSource).getVoteInterval() < 7;
+	bool isUN = GC.getInfo(voteSource).getVoteInterval() < 7;
 	ReligionTypes apRel = GC.getGame().getVoteSourceReligion(voteSource);
 	double popGained = 0;
 	map<int,double> conquestsWithWeights;
@@ -1612,7 +1612,7 @@ void Rebuke::evaluate() {
 	if(we->AI_getContactTimer(theyId, CONTACT_PEACE_TREATY) > 0) {
 		/*  Don't want to use the remaining time here b/c that gets doubled when
 			capitulation is offered */
-		int rejectedPeaceCost = GC.getLeaderHeadInfo(we->getPersonalityType()).
+		int rejectedPeaceCost = GC.getInfo(we->getPersonalityType()).
 				getContactDelay(CONTACT_PEACE_TREATY) / 5;
 		u += rejectedPeaceCost;
 		log("+%d for rejected peace offer", rejectedPeaceCost);
@@ -1623,7 +1623,7 @@ void Rebuke::evaluate() {
 		/*  This would have humans care a little about rebukes; -100 like
 			most leaders; however, humans don't normally follow up on rejected
 			tribute demands. */
-		/*rebukeDiplo = ::round(rebukeDiplo * -100.0 / GC.getLeaderHeadInfo(we->getLeaderType()).
+		/*rebukeDiplo = ::round(rebukeDiplo * -100.0 / GC.getInfo(we->getLeaderType()).
 				getMemoryAttitudePercent(MEMORY_REJECTED_DEMAND));
 		rebukeDiplo *= -1 * we->AI_getMemoryCount(theyId, MEMORY_REJECTED_DEMAND) / 2;*/
 	}
@@ -1696,7 +1696,7 @@ void Fidelity::evaluate() {
 		return;
 	/*  Only Gandhi applies a penalty of 2 for war on friend (-200% memory-attitude).
 		Not sure if I want him to act as a peacekeeper ... Let's try it. */
-	double leaderFactor = ::sqrt(-0.01 * GC.getLeaderHeadInfo(we->getPersonalityType()).
+	double leaderFactor = ::sqrt(-0.01 * GC.getInfo(we->getPersonalityType()).
 			getMemoryAttitudePercent(MEMORY_DECLARED_WAR_ON_FRIEND));
 	if(we->isHuman())
 		leaderFactor = 1;
@@ -1727,7 +1727,7 @@ void HiredHand::evaluate() {
 	FAssert((sponsor == NO_PLAYER) == (originalUtility <= 0));
 	double uPlus = 0;
 	if(sponsor != NO_PLAYER && originalUtility > 0 && we->AI_getAttitude(sponsor) >=
-			GC.getLeaderHeadInfo(we->getPersonalityType()).
+			GC.getInfo(we->getPersonalityType()).
 			/*  Between Annoyed and Pleased; has to be strictly better to allow
 				sponsorship. If it becomes strictly worse, we bail. */
 			getDeclareWarRefuseAttitudeThreshold()) {
@@ -1826,7 +1826,7 @@ void BorderDisputes::evaluate() {
 	/*  Assume CloseBordersAttitudeChange of -4 for human instead of the value
 		from XML (which is between -2 and -4). Humans don't like having their cities
 		culture-pressed. */
-	int cbac = GC.getLeaderHeadInfo(we->getPersonalityType()).
+	int cbac = GC.getInfo(we->getPersonalityType()).
 			getCloseBordersAttitudeChange();
 	if(we->isHuman() && cbac != 0)
 		diplo = ::round((-4.0 * diplo) / cbac);
@@ -1935,7 +1935,7 @@ void SuckingUp::evaluate() {
 	if(sharedWars == 0 || ourWars > sharedWars)
 		return;
 	// Between 2 (Ashoka) and 6 (DeGaulle)
-	int diplo = GC.getLeaderHeadInfo(they->getPersonalityType()).
+	int diplo = GC.getInfo(they->getPersonalityType()).
 			getShareWarAttitudeChangeLimit();
 	double uPlus = 1.6 * diplo; // Should sharedWars have an impact?
 	log("Sharing a war with %s; up to +%d diplo", report.leaderName(theyId), diplo);
@@ -2444,7 +2444,7 @@ int Effort::preEvaluate() {
 		UnitTypes ut = ourCache->getPowerValues()[mb]->getTypicalUnitType();
 		if(ut == NO_UNIT)
 			continue;
-		CvUnitInfo const& u = GC.getUnitInfo(ut);
+		CvUnitInfo const& u = GC.getInfo(ut);
 		double lost = m->lostPower(weId, mb);
 		/*  Really shouldn't be negative, but sometimes is minus 0.0-something;
 			probably not a bug worth chasing. */
@@ -2467,7 +2467,7 @@ int Effort::preEvaluate() {
 	bool bHuman = we->isHuman();
 	futureUse = std::pow(futureUse, bHuman ? 0.9 : 0.74); // sqrt would be a bit much
 	if(!bHuman) {
-		futureUse += std::max(0.0, GC.getLeaderHeadInfo(we->getPersonalityType()).
+		futureUse += std::max(0.0, GC.getInfo(we->getPersonalityType()).
 				// I.e. add between 3 (Gandhi) and 8 (Ragnar) percentage points
 				getBuildUnitProb() / 500.0);
 	}
@@ -2511,7 +2511,7 @@ int Effort::preEvaluate() {
 		WarAndPeaceCache. */
 	int extraDuration = duration - giveWarAChanceDuration;
 	if(extraDuration > 0) {
-		double gameSpeedDiv = GC.getGameSpeedInfo(
+		double gameSpeedDiv = GC.getInfo(
 				GC.getGame().getGameSpeedType()).getResearchPercent() / 100.0;
 		goldVal = std::min(5.0, goldVal * (1 + vagueOpportunityWeight * 0.025 *
 				std::min(extraDuration, 40) / gameSpeedDiv));
@@ -2875,7 +2875,7 @@ void IllWill::evalAngeredPartners() {
 			they->getTeam() == agentId)
 		return;
 	// 2 only for Gandhi; else 1
-	int penaltyPerDoW = ::round(GC.getLeaderHeadInfo(they->getPersonalityType()).
+	int penaltyPerDoW = ::round(GC.getInfo(they->getPersonalityType()).
 			getMemoryAttitudePercent(MEMORY_DECLARED_WAR_ON_FRIEND) / -100);
 	int penalties = 0;
 	for(set<PlayerTypes>::const_iterator it = m->getWarsDeclaredBy(weId).begin();
@@ -2975,7 +2975,7 @@ void Affection::evaluate() {
 		attacking the vassal.
 		There's already a diplo penalty for having an unpopular vassal, so
 		I'm only applying a minor penalty here. */
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we->getPersonalityType());
+	CvLeaderHeadInfo& lh = GC.getInfo(we->getPersonalityType());
 	double uMinus = 0;
 	if(noWarPercent > 0) { // for efficiency
 		double vassalPenalty = 0;
@@ -3326,7 +3326,7 @@ void UlteriorMotives::evaluate() {
 		demand extra payment to allay our suspicions. Use DWRAT (greater than
 		Annoyed, Cautious or Pleased respectively) as an indicator of how
 		suspicious we are. */
-	int const delta = GC.getLeaderHeadInfo(we->getPersonalityType()).
+	int const delta = GC.getInfo(we->getPersonalityType()).
 			getDeclareWarRefuseAttitudeThreshold() - towardsThem + 1;
 	int uMinus = 8 + 4 * (delta - (towardsThem == ATTITUDE_FRIENDLY ? 1 : 0));
 	if(!jointWar)
@@ -3436,10 +3436,10 @@ void FairPlay::evaluate() {
 
 	/*  Mostly care about Archery, which has power 6. The Wheel isn't unfair
 		(power 4). BW and IW have power 8 and 10. */
-	/*CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
+	/*CvHandicapInfo& h = GC.getInfo(g.getHandicapType());
 	bool powerTechFound = false;
 	for(int i = 0; i < GC.getNumTechInfos(); i++) {
-		if(h.isAIFreeTechs(i) && GC.getTechInfo((TechTypes)i).
+		if(h.isAIFreeTechs(i) && GC.getInfo((TechTypes)i).
 				getPowerValue() >= 5) {
 			powerTechFound = true;
 			break;
@@ -3450,8 +3450,8 @@ void FairPlay::evaluate() {
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
 		on low difficulty either. */
 	EraTypes startEra = g.getStartEra();
-	int trainMod = GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent() *
-			GC.getEraInfo(startEra).getTrainPercent();
+	int trainMod = GC.getInfo(g.getGameSpeedType()).getTrainPercent() *
+			GC.getInfo(startEra).getTrainPercent();
 	if(trainMod <= 0) {
 		FAssert(trainMod > 0);
 		return;
@@ -3466,7 +3466,7 @@ void FairPlay::evaluate() {
 				((1 + 1.5 * (g.getRecommendedPlayers() /
 				(double)g.getCivPlayersEverAlive())) / 2.5));
 		int iElapsed = ::round(g.getElapsedGameTurns() / (trainMod / 10000.0));
-		int iTurnsRemaining = iTargetTurn - iElapsed - GC.getEraInfo(startEra).getStartPercent();
+		int iTurnsRemaining = iTargetTurn - iElapsed - GC.getInfo(startEra).getStartPercent();
 		if(iTurnsRemaining > 0)
 			uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
 	}
@@ -3500,7 +3500,7 @@ void FairPlay::evaluate() {
 /*int FairPlay::initialMilitaryUnits(PlayerTypes civId) {
 
 	CvPlayer const& civ = GET_PLAYER(civId);
-	CvHandicapInfo& h = GC.getHandicapInfo(civ.getHandicapType());
+	CvHandicapInfo& h = GC.getInfo(civ.getHandicapType());
 	// DefenseUnits aren't all that defensive
 	return h.getStartingDefenseUnits() +
 			(civ.isHuman() ? 0 : h.getAIStartingDefenseUnits());
@@ -3524,7 +3524,7 @@ void Bellicosity::evaluate() {
 		Peter, Shaka and Sitting Bull. Just the suicidal types I need except
 		for Sitting Bull. Subtract peace-weight to exclude him - all the others
 		have a peace-weight near 0. */
-	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we->getPersonalityType());
+	CvLeaderHeadInfo const& lh = GC.getInfo(we->getPersonalityType());
 	int bellicosity = lh.getBaseAttackOddsChange() - lh.getBasePeaceWeight();
 	if(bellicosity <= 0)
 		return;
@@ -3733,7 +3733,7 @@ void TacticalSituation::evalOperational() {
 		targetAttackers += std::pow((double)theyEra, 1.3);
 	if(params.isNaval())
 		targetAttackers *= 1.3;
-	double trainMod = GC.getHandicapInfo(GC.getGame().
+	double trainMod = GC.getInfo(GC.getGame().
 			getHandicapType()).getAITrainPercent() / 100.0;
 	// Smaller target on lower difficulty
 	targetAttackers /= ::dRange(trainMod, 1.0, 1.5);

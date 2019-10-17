@@ -775,7 +775,7 @@ CvNetPushMission::CvNetPushMission(PlayerTypes ePlayer, int iUnitID,
 
 void CvNetPushMission::Debug(char* szAddendum)
 {
-	sprintf(szAddendum, "Do Mission, who is %d, unit ID is %d, mission is %S", m_ePlayer, m_iUnitID, GC.getMissionInfo(m_eMission).getDescription());
+	sprintf(szAddendum, "Do Mission, who is %d, unit ID is %d, mission is %S", m_ePlayer, m_iUnitID, GC.getInfo(m_eMission).getDescription());
 }
 
 void CvNetPushMission::Execute()
@@ -880,7 +880,7 @@ void CvNetDoCommand::Execute()
 		CvUnit* pUnit = GET_PLAYER(m_ePlayer).getUnit(m_iUnitID);
 		if (pUnit != NULL)
 		{
-			if (m_bAlt && GC.getCommandInfo(m_eCommand).getAll())
+			if (m_bAlt && GC.getInfo(m_eCommand).getAll())
 			{
 				/*FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(m_ePlayer)) // BtS
 					if (pLoopUnit->getUnitType() == pUnit->getUnitType())*/

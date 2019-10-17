@@ -136,9 +136,9 @@ int CvActionInfo::getCommandData() const
 	case ACTIONSUBTYPE_UNIT:
 		return m_iOriginalIndex;
 	case ACTIONSUBTYPE_COMMAND:
-		return GC.getCommandInfo((CommandTypes)m_iOriginalIndex).getAutomate();
+		return GC.getInfo((CommandTypes)m_iOriginalIndex).getAutomate();
 	case ACTIONSUBTYPE_AUTOMATE:
-		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getAutomate();
+		return GC.getInfo((AutomateTypes)m_iOriginalIndex).getAutomate();
 	default:
 		return -1;
 	}
@@ -149,9 +149,9 @@ int CvActionInfo::getAutomateType() const
 	switch(getSubType())
 	{
 	case ACTIONSUBTYPE_COMMAND:
-		return GC.getCommandInfo((CommandTypes)m_iOriginalIndex).getAutomate();
+		return GC.getInfo((CommandTypes)m_iOriginalIndex).getAutomate();
 	case ACTIONSUBTYPE_AUTOMATE:
-		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getAutomate();
+		return GC.getInfo((AutomateTypes)m_iOriginalIndex).getAutomate();
 	default:
 		return NO_AUTOMATE;
 	}
@@ -170,15 +170,15 @@ int CvActionInfo::getMissionType() const
 	switch(getSubType())
 	{
 	case ACTIONSUBTYPE_BUILD:
-		return (MissionTypes)GC.getBuildInfo((BuildTypes)m_iOriginalIndex).getMissionType();
+		return (MissionTypes)GC.getInfo((BuildTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_RELIGION:
-		return (MissionTypes)GC.getReligionInfo((ReligionTypes)m_iOriginalIndex).getMissionType();
+		return (MissionTypes)GC.getInfo((ReligionTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_CORPORATION:
-		return (MissionTypes)GC.getCorporationInfo((CorporationTypes)m_iOriginalIndex).getMissionType();
+		return (MissionTypes)GC.getInfo((CorporationTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_SPECIALIST:
-		return (MissionTypes)GC.getSpecialistInfo((SpecialistTypes)m_iOriginalIndex).getMissionType();
+		return (MissionTypes)GC.getInfo((SpecialistTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_BUILDING:
-		return (MissionTypes)GC.getBuildingInfo((BuildingTypes)m_iOriginalIndex).getMissionType();
+		return (MissionTypes)GC.getInfo((BuildingTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_MISSION:
 		return (MissionTypes)m_iOriginalIndex;
 	default:
@@ -191,11 +191,11 @@ int CvActionInfo::getCommandType() const
 	switch(getSubType())
 	{
 	case ACTIONSUBTYPE_PROMOTION:
-		return (CommandTypes)GC.getPromotionInfo((PromotionTypes)m_iOriginalIndex).getCommandType();
+		return (CommandTypes)GC.getInfo((PromotionTypes)m_iOriginalIndex).getCommandType();
 	case ACTIONSUBTYPE_UNIT:
-		return (CommandTypes)GC.getUnitInfo((UnitTypes)m_iOriginalIndex).getCommandType();
+		return (CommandTypes)GC.getInfo((UnitTypes)m_iOriginalIndex).getCommandType();
 	case ACTIONSUBTYPE_AUTOMATE:
-		return (CommandTypes)GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getCommand();
+		return (CommandTypes)GC.getInfo((AutomateTypes)m_iOriginalIndex).getCommand();
 	case ACTIONSUBTYPE_COMMAND:
 		return (CommandTypes)m_iOriginalIndex;
 	default:
@@ -226,9 +226,9 @@ bool CvActionInfo::isConfirmCommand() const
 	switch(getSubType()) // advc (replacing if/else)
 	{
 	case ACTIONSUBTYPE_COMMAND:
-		return GC.getCommandInfo((CommandTypes)m_iOriginalIndex).getConfirmCommand();
+		return GC.getInfo((CommandTypes)m_iOriginalIndex).getConfirmCommand();
 	case ACTIONSUBTYPE_AUTOMATE:
-		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getConfirmCommand();
+		return GC.getInfo((AutomateTypes)m_iOriginalIndex).getConfirmCommand();
 	default:
 		return false;
 	}
@@ -241,13 +241,13 @@ bool CvActionInfo::isVisible() const
 	case ACTIONSUBTYPE_CONTROL:
 		return false;
 	case ACTIONSUBTYPE_COMMAND:
-		return GC.getCommandInfo((CommandTypes)m_iOriginalIndex).getVisible();
+		return GC.getInfo((CommandTypes)m_iOriginalIndex).getVisible();
 	case ACTIONSUBTYPE_AUTOMATE:
-		return GC.getAutomateInfo((AutomateTypes)m_iOriginalIndex).getVisible();
+		return GC.getInfo((AutomateTypes)m_iOriginalIndex).getVisible();
 	case ACTIONSUBTYPE_MISSION:
-		return GC.getMissionInfo((MissionTypes)m_iOriginalIndex).getVisible();
+		return GC.getInfo((MissionTypes)m_iOriginalIndex).getVisible();
 	case ACTIONSUBTYPE_INTERFACEMODE:
-		return GC.getInterfaceModeInfo((InterfaceModeTypes)m_iOriginalIndex).getVisible();
+		return GC.getInfo((InterfaceModeTypes)m_iOriginalIndex).getVisible();
 	default:
 		return true;
 	}
@@ -269,29 +269,29 @@ CvHotkeyInfo* CvActionInfo::getHotkeyInfo() const
 	switch(getSubType())
 	{
 		case ACTIONSUBTYPE_INTERFACEMODE:
-			return &GC.getInterfaceModeInfo((InterfaceModeTypes)iData);
+			return &GC.getInfo((InterfaceModeTypes)iData);
 		case ACTIONSUBTYPE_COMMAND:
-			return &GC.getCommandInfo((CommandTypes)iData);
+			return &GC.getInfo((CommandTypes)iData);
 		case ACTIONSUBTYPE_BUILD:
-			return &GC.getBuildInfo((BuildTypes)iData);
+			return &GC.getInfo((BuildTypes)iData);
 		case ACTIONSUBTYPE_PROMOTION:
-			return &GC.getPromotionInfo((PromotionTypes)iData);
+			return &GC.getInfo((PromotionTypes)iData);
 		case ACTIONSUBTYPE_UNIT:
-			return &GC.getUnitInfo((UnitTypes)iData);
+			return &GC.getInfo((UnitTypes)iData);
 		case ACTIONSUBTYPE_RELIGION:
-			return &GC.getReligionInfo((ReligionTypes)iData);
+			return &GC.getInfo((ReligionTypes)iData);
 		case ACTIONSUBTYPE_CORPORATION:
-			return &GC.getCorporationInfo((CorporationTypes)iData);
+			return &GC.getInfo((CorporationTypes)iData);
 		case ACTIONSUBTYPE_SPECIALIST:
-			return &GC.getSpecialistInfo((SpecialistTypes)iData);
+			return &GC.getInfo((SpecialistTypes)iData);
 		case ACTIONSUBTYPE_BUILDING:
-			return &GC.getBuildingInfo((BuildingTypes)iData);
+			return &GC.getInfo((BuildingTypes)iData);
 		case ACTIONSUBTYPE_CONTROL:
-			return &GC.getControlInfo((ControlTypes)iData);
+			return &GC.getInfo((ControlTypes)iData);
 		case ACTIONSUBTYPE_AUTOMATE:
-			return &GC.getAutomateInfo((AutomateTypes)iData);
+			return &GC.getInfo((AutomateTypes)iData);
 		case ACTIONSUBTYPE_MISSION:
-			return &GC.getMissionInfo((MissionTypes)iData);
+			return &GC.getInfo((MissionTypes)iData);
 		default:
 		FAssertMsg((0) ,"Unknown Action Subtype in CvActionInfo::getHotkeyInfo");
 		return NULL;

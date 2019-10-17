@@ -51,7 +51,6 @@ DO_FOR_EACH_INFO_TYPE(FORWARD_DECLARE_INFO_CLASS) // </advc.enum>
 
 class CvGlobals
 {
-//	friend class CvDLLUtilityIFace;
 	friend class CvXMLLoadUtility;
 	/*  advc: Removed the std::vector<Cv...Info*>& getters for each info type.
 		Comments in CvGlobals.cpp had said that those getters were
@@ -73,7 +72,6 @@ public:
 	__forceinline static CvGlobals const& getConstInstance(); // advc.003t
 
 	CvGlobals();
-	virtual ~CvGlobals() {} // advc (comment) Probably has to stay virtual for the EXE
 
 	DllExport void init();
 	DllExport void uninit();
@@ -85,8 +83,9 @@ public:
 	DllExport FMPIManager*& getFMPMgrPtr();
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
-	DllExport inline CvInitCore& getInitCore() { return *m_initCore; }
-	inline CvInitCore& getInitCore() const { return *m_initCore; } // advc.003t: const replacement
+	DllExport CvInitCore& getInitCore()  // <advc.003t> const replacement
+	{ CvGlobals const& kThis = *this; return kThis.getInitCore(); }
+	inline CvInitCore& getInitCore() const { return *m_initCore; } // </advc.003t>
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -95,8 +94,7 @@ public:
 	DllExport CvInterface& getInterface();
 	DllExport CvInterface* getInterfacePtr();
 	DllExport int getMaxCivPlayers() const;
-	// inlined for perf reasons, do not use outside of dll  // advc.003f: Both renamed
-	#ifdef _USRDLL
+	#ifdef _USRDLL // inlined for perf reasons, do not use outside of dll
 	// advc.003f: These three were defined in-line, but didn't have any inline keyword.
 	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
 	__forceinline CvGame& getGame() const // was getGameINLINE; advc.003u: return type was CvGameAI&
@@ -107,13 +105,13 @@ public:
 	#endif
 	CvMap& getMapExternal(); // advc.003f: Exported through .def file
 	CvGameAI& getGameExternal(); // advc.003f: Exported through .def file
-	DllExport CvGameAI *getGamePointer();
+	DllExport CvGameAI* getGamePointer();
 	// <advc.003y>
 	inline CvPythonCaller const* getPythonCaller() const
 	{
 		return m_pPythonCaller;
 	} // </advc.003y>
-	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.003t: inline
+	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.003f: inline
 	DllExport CMessageQueue& getMessageQueue();
 	DllExport CMessageQueue& getHotMessageQueue();
 	DllExport CMessageControl& getMessageControl();
@@ -121,29 +119,27 @@ public:
 	/*  advc.003t: inlined and constified. The caller is certainly going to change
 		the returned FAStar objects, but CvGlobals doesn't own those objects, so
 		it shouldn't be our concern. */
-	DllExport inline FAStar& getPathFinder() { CvGlobals const& kThis = *this; return kThis.getPathFinder(); }
+	DllExport FAStar& getPathFinder() { CvGlobals const& kThis = *this; return kThis.getPathFinder(); }
 	inline FAStar& getPathFinder() const { return *m_pathFinder; }
-	DllExport inline FAStar& getInterfacePathFinder() { CvGlobals const& kThis = *this; return kThis.getInterfacePathFinder(); }
+	DllExport FAStar& getInterfacePathFinder() { CvGlobals const& kThis = *this; return kThis.getInterfacePathFinder(); }
 	inline FAStar& getInterfacePathFinder() const { return *m_interfacePathFinder; }
-	DllExport inline FAStar& getStepFinder() { CvGlobals const& kThis = *this; return kThis.getStepFinder(); }
+	DllExport FAStar& getStepFinder() { CvGlobals const& kThis = *this; return kThis.getStepFinder(); }
 	inline FAStar& getStepFinder() const { return *m_stepFinder; }
-	DllExport inline FAStar& getRouteFinder() { CvGlobals const& kThis = *this; return kThis.getRouteFinder(); }
+	DllExport FAStar& getRouteFinder() { CvGlobals const& kThis = *this; return kThis.getRouteFinder(); }
 	inline FAStar& getRouteFinder() const { return *m_routeFinder; }
-	DllExport inline FAStar& getBorderFinder() { CvGlobals const& kThis = *this; return kThis.getBorderFinder(); }
+	DllExport FAStar& getBorderFinder() { CvGlobals const& kThis = *this; return kThis.getBorderFinder(); }
 	inline FAStar& getBorderFinder() const { return *m_borderFinder; }
-	DllExport inline FAStar& getAreaFinder() { CvGlobals const& kThis = *this; return kThis.getAreaFinder(); }
+	DllExport FAStar& getAreaFinder() { CvGlobals const& kThis = *this; return kThis.getAreaFinder(); }
 	inline FAStar& getAreaFinder() const { return *m_areaFinder; }
-	DllExport inline FAStar& getPlotGroupFinder() { CvGlobals const& kThis = *this; return kThis.getPlotGroupFinder(); }
+	DllExport FAStar& getPlotGroupFinder() { CvGlobals const& kThis = *this; return kThis.getPlotGroupFinder(); }
 	inline FAStar& getPlotGroupFinder() const { return *m_plotGroupFinder; }
 	//NiPoint3& getPt3Origin(); // advc.003j: unused
-
 	//NiPoint3& getPt3CameraDir(); // advc.003j: unused
-	// advc.003t: inlined
-	DllExport inline bool& getLogging() { return m_bLogging; }
-	DllExport inline bool& getRandLogging() { return m_bRandLogging; }
-	DllExport inline bool& getSynchLogging() { return m_bSynchLogging; }
-	DllExport inline bool& overwriteLogs() { return m_bOverwriteLogs; }
-	// <advc.003t> const versions of the above
+	DllExport bool& getLogging() { return m_bLogging; }
+	DllExport bool& getRandLogging() { return m_bRandLogging; }
+	DllExport bool& getSynchLogging() { return m_bSynchLogging; }
+	DllExport bool& overwriteLogs() { return m_bOverwriteLogs; }
+	// <advc.003t> const inline versions of the above
 	// The first two are exposed to Python for dlph.27
 	inline bool isLogging() const { return m_bLogging; }
 	inline bool isRandLogging() const { return m_bRandLogging; }
@@ -156,15 +152,15 @@ public:
 	} // </advc.003t>
 
 	// advc.003t: Inlined and constified
-	DllExport inline int* getPlotDirectionX() { return m_aiPlotDirectionX; }
+	DllExport int* getPlotDirectionX() { return m_aiPlotDirectionX; }
 	inline int const* getPlotDirectionX() const { return m_aiPlotDirectionX; }
-	DllExport inline int* getPlotDirectionY() { return m_aiPlotDirectionY; }
+	DllExport int* getPlotDirectionY() { return m_aiPlotDirectionY; }
 	inline int const* getPlotDirectionY() const { return m_aiPlotDirectionY; }
-	DllExport inline int* getPlotCardinalDirectionX() { return m_aiPlotCardinalDirectionX; };
+	DllExport int* getPlotCardinalDirectionX() { return m_aiPlotCardinalDirectionX; };
 	inline int const* getPlotCardinalDirectionX() const { return m_aiPlotCardinalDirectionX; };
-	DllExport inline int* getPlotCardinalDirectionY() { return m_aiPlotCardinalDirectionY; };
+	DllExport int* getPlotCardinalDirectionY() { return m_aiPlotCardinalDirectionY; };
 	inline int const* getPlotCardinalDirectionY() const { return m_aiPlotCardinalDirectionY; };
-	DllExport inline DirectionTypes getXYDirection(int i, int j) { CvGlobals const& kThis = *this; return kThis.getXYDirection(i,j); }
+	DllExport DirectionTypes getXYDirection(int i, int j) { CvGlobals const& kThis = *this; return kThis.getXYDirection(i,j); }
 	inline DirectionTypes getXYDirection(int i, int j) const
 	{
 		FASSERT_BOUNDS(0, DIRECTION_DIAMETER, i, "CvGlobals::getXYDirection");
@@ -220,7 +216,7 @@ public:
 	// Start with those that have no associated enum type
 	DllExport std::vector<CvInterfaceModeInfo*>& getInterfaceModeInfo(); // (advc: deprecated)
 	DllExport int getNumRouteModelInfos() { CvGlobals const& kThis = *this; return kThis.getNumRouteModelInfos(); }
-	DllExport int getNumRiverModelInfos()  { CvGlobals const& kThis = *this; return kThis.getNumRiverModelInfos(); }
+	DllExport int getNumRiverModelInfos() { CvGlobals const& kThis = *this; return kThis.getNumRiverModelInfos(); }
 	DllExport int getNumTerrainPlaneInfos() { CvGlobals const& kThis = *this; return kThis.getNumTerrainPlaneInfos(); }
 	DllExport int getNumUnitFormationInfos() { CvGlobals const& kThis = *this; return kThis.getNumUnitFormationInfos(); }
 	DllExport int getNumThroneRoomInfos(); // 003v: No in-line definition; needs to do some extra work.
@@ -299,826 +295,10 @@ public:
 	DllExport CvEraInfo& getEraInfo(EraTypes eEra) { return getInfo(eEra); }
 	DllExport CvVictoryInfo& getVictoryInfo(VictoryTypes eVictory) { return getInfo(eVictory); }
 
-	/*  Could let the preprocessor generate all the functions below, but I guess
-		it's better for debugging to keep them spelled out. */
-//#define GENERATE_INFO_ACCESSORS
-#ifdef GENERATE_INFO_ACCESSORS
+	// Generate accessors for use within the DLL
 	DO_FOR_EACH_STATIC_INFO_TYPE(MAKE_INFO_ACCESSORS_STATIC)
 	DO_FOR_EACH_DYN_INFO_TYPE(MAKE_INFO_ACCESSORS_DYN)
 	DO_FOR_EACH_INT_INFO_TYPE(MAKE_INFO_ACCESSORS_INT)
-#else
-	DO_FOR_EACH_STATIC_INFO_TYPE(MAKE_GET_INFO_STATIC)
-	DO_FOR_EACH_DYN_INFO_TYPE(MAKE_GET_INFO_DYN)
-
-	// Info count known at compile time:
-	inline CvGameOptionInfo& getGameOptionInfo(GameOptionTypes eGameOption) const
-	{
-		FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eGameOption, "CvGlobals::getGameOptionInfo");
-		return *m_paGameOptionInfo[eGameOption];
-	}
-	inline CvMPOptionInfo& getMPOptionInfo(MultiplayerOptionTypes eMPOption) const
-	{
-		FASSERT_BOUNDS(0, NUM_MPOPTION_TYPES, eMPOption, "CvGlobals::getMPOptionInfo");
-		return *m_paMPOptionInfo[eMPOption];
-	}
-	inline CvForceControlInfo& getForceControlInfo(ForceControlTypes eForceControl) const
-	{
-		FASSERT_BOUNDS(0, NUM_FORCECONTROL_TYPES, eForceControl, "CvGlobals::getForceControlInfo");
-		return *m_paForceControlInfo[eForceControl];
-	}
-	inline CvPlayerOptionInfo& getPlayerOptionInfo(PlayerOptionTypes ePlayerOption) const
-	{
-		FASSERT_BOUNDS(0, NUM_PLAYEROPTION_TYPES, ePlayerOption, "CvGlobals::getPlayerOptionInfo");
-		return *m_paPlayerOptionInfo[ePlayerOption];
-	}
-	inline CvGraphicOptionInfo& getGraphicOptionInfo(GraphicOptionTypes eGraphicOption) const
-	{
-		FASSERT_BOUNDS(0, NUM_GRAPHICOPTION_TYPES, eGraphicOption, "CvGlobals::getGraphicOptionInfo");
-		return *m_paGraphicOptionInfo[eGraphicOption];
-	}
-	inline CvYieldInfo& getYieldInfo(YieldTypes eYield) const
-	{
-		FASSERT_BOUNDS(0, NUM_YIELD_TYPES, eYield, "CvGlobals::getYieldInfo");
-		return *m_paYieldInfo[eYield];
-	}
-	inline CvCommerceInfo& getCommerceInfo(CommerceTypes eCommerce) const
-	{
-		FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, eCommerce, "CvGlobals::getCommerceInfo");
-		return *m_paCommerceInfo[eCommerce];
-	}
-	inline CvInfoBase& getCityTabInfo(CityTabTypes eCityTab) const
-	{
-		FASSERT_BOUNDS(0, NUM_CITYTAB_TYPES, eCityTab, "CvGlobals::getCityTabInfo");
-		return *m_paCityTabInfo[eCityTab];
-	}
-	inline CvInfoBase& getCalendarInfo(CalendarTypes eCalendar) const
-	{
-		FASSERT_BOUNDS(0, NUM_CALENDAR_TYPES, eCalendar, "CvGlobals::getCalendarInfo");
-		return *m_paCalendarInfo[eCalendar];
-	}
-	inline CvInfoBase& getDenialInfo(DenialTypes eDenial) const
-	{
-		FASSERT_BOUNDS(0, NUM_DENIAL_TYPES, eDenial, "CvGlobals::getDenialInfo");
-		return *m_paDenialInfo[eDenial];
-	}
-	inline CvInfoBase& getDomainInfo(DomainTypes eDomain) const
-	{
-		FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, eDomain, "CvGlobals::getDomainInfo");
-		return *m_paDomainInfo[eDomain];
-	}
-	inline CvInfoBase& getUnitAIInfo(UnitAITypes eUnitAI) const
-	{
-		FASSERT_BOUNDS(0, NUM_UNITAI_TYPES, eUnitAI, "CvGlobals::getUnitAIInfo");
-		return *m_paUnitAIInfo[eUnitAI];
-	}
-	inline CvInfoBase& getAttitudeInfo(AttitudeTypes eAttitude) const
-	{
-		FASSERT_BOUNDS(0, NUM_ATTITUDE_TYPES, eAttitude, "CvGlobals::getAttitudeInfo");
-		return *m_paAttitudeInfo[eAttitude];
-	}
-	inline CvInfoBase& getMemoryInfo(MemoryTypes eMemory) const
-	{
-		FASSERT_BOUNDS(0, NUM_MEMORY_TYPES, eMemory, "CvGlobals::getMemoryInfo");
-		return *m_paMemoryInfo[eMemory];
-	}
-	inline CvMissionInfo& getMissionInfo(MissionTypes eMission) const
-	{
-		FASSERT_BOUNDS(0, NUM_MISSION_TYPES, eMission, "CvGlobals::getMissionInfo");
-		return *m_paMissionInfo[eMission];
-	}
-	inline CvControlInfo& getControlInfo(ControlTypes eControl) const
-	{
-		FASSERT_BOUNDS(0, NUM_CONTROL_TYPES, eControl, "CvGlobals::getControlInfo");
-		return *m_paControlInfo[eControl];
-	}
-	inline CvCommandInfo& getCommandInfo(CommandTypes eCommand) const
-	{
-		FASSERT_BOUNDS(0, NUM_COMMAND_TYPES, eCommand, "CvGlobals::getCommandInfo");
-		return *m_paCommandInfo[eCommand];
-	}
-	inline CvAutomateInfo& getAutomateInfo(AutomateTypes eAutomate) const
-	{
-		FASSERT_BOUNDS(0, NUM_AUTOMATE_TYPES, eAutomate, "CvGlobals::getAutomateInfo");
-		return *m_paAutomateInfo[eAutomate];
-	}
-	// advc: Should use NUM_..._TYPES instead
-	/*inline int getNumGameOptionInfos() const { return (int)m_paGameOptionInfo.size(); }
-	inline int getNumMPOptionInfos() const { return (int)m_paMPOptionInfo.size(); }*
-	inline int getNumForceControlInfos() const { return (int)m_paForceControlInfo.size(); }
-	inline int getNumCityTabInfos() const { return (int)m_paCityTabInfo.size(); }
-	inline int getNumCalendarInfos() const { return (int)m_paCalendarInfo.size(); }
-	inline int getNumDenialInfos() const { return (int)m_paDenialInfo.size(); }
-	inline int getNumAutomateInfos() const { return (int)m_paAutomateInfo.size(); }
-	inline int getNumAnimationPathInfos() const { return (int)m_paAnimationPathInfo.size(); }*/
-
-	// Info count not known at compile time:
-
-	inline int getNumClimateInfos() const
-	{
-		return (int)m_paClimateInfo.size();
-	}
-	inline CvClimateInfo& getClimateInfo(ClimateTypes eClimate) const
-	{
-		FASSERT_BOUNDS(0, getNumClimateInfos(), eClimate, "CvGlobals::getClimateInfo");
-		return *m_paClimateInfo[eClimate];
-	}
-	inline int getNumSeaLevelInfos() const
-	{
-		return (int)m_paSeaLevelInfo.size();
-	}
-	inline CvSeaLevelInfo& getSeaLevelInfo(SeaLevelTypes eSeaLevel) const
-	{
-		FASSERT_BOUNDS(0, getNumSeaLevelInfos(), eSeaLevel, "CvGlobals::getSeaLevelInfo");
-		return *m_paSeaLevelInfo[eSeaLevel];
-	}
-	inline int getNumColorInfos() const
-	{
-		return (int)m_paColorInfo.size();
-	}
-	inline CvColorInfo& getColorInfo(ColorTypes eColor) const
-	{
-		FASSERT_BOUNDS(0, getNumColorInfos(), eColor, "CvGlobals::getColorInfo");
-		return *(m_paColorInfo[eColor]);
-	}
-	inline int getNumPlayerColorInfos() const
-	{
-		return (int)m_paPlayerColorInfo.size();
-	}
-	inline CvPlayerColorInfo& getPlayerColorInfo(PlayerColorTypes ePlayerColor) const
-	{
-		FASSERT_BOUNDS(0, getNumPlayerColorInfos(), ePlayerColor, "CvGlobals::getPlayerColorInfo");
-		return *m_paPlayerColorInfo[ePlayerColor];
-	}
-	inline int getNumAdvisorInfos() const
-	{
-		return (int)m_paAdvisorInfo.size();
-	}
-	inline CvAdvisorInfo& getAdvisorInfo(AdvisorTypes eAdvisor) const
-	{
-		return *m_paAdvisorInfo[eAdvisor];
-	}
-	inline int getNumRiverInfos() const
-	{
-		return (int)m_paRiverInfo.size();
-	}
-	inline CvRiverInfo& getRiverInfo(RiverTypes eRiver) const
-	{
-		FASSERT_BOUNDS(0, getNumRiverInfos(), eRiver, "CvGlobals::getRiverInfo");
-		return *m_paRiverInfo[eRiver];
-	}
-	inline CvAnimationPathInfo& getAnimationPathInfo(AnimationPathTypes eAnimationPath) const
-	{
-		FASSERT_BOUNDS(0, NUM_ANIMATIONPATH_TYPES, eAnimationPath, "CvGlobals::getAnimationPathInfo");
-		return *m_paAnimationPathInfo[eAnimationPath];
-	}
-	inline int getNumAnimationCategoryInfos() const
-	{
-		return (int)m_paAnimationCategoryInfo.size();
-	}
-	inline CvAnimationCategoryInfo& getAnimationCategoryInfo(AnimationCategoryTypes eAnimationCategory) const
-	{
-		FASSERT_BOUNDS(0, getNumAnimationCategoryInfos(), eAnimationCategory, "CvGlobals::getAnimationCategoryInfo");
-		return *m_paAnimationCategoryInfo[eAnimationCategory];
-	}
-	inline int getNumEntityEventInfos() const
-	{
-		return (int)m_paEntityEventInfo.size();
-	}
-	inline CvEntityEventInfo& getEntityEventInfo(EntityEventTypes eEntityEvent) const
-	{
-		FASSERT_BOUNDS(0, getNumEntityEventInfos(), eEntityEvent, "CvGlobals::getEntityEventInfo");
-		return *m_paEntityEventInfo[eEntityEvent];
-	}
-	inline int getNumEffectInfos() const
-	{
-		return (int)m_paEffectInfo.size();
-	}
-	inline CvEffectInfo& getEffectInfo(EffectTypes eEffect) const
-	{
-		FASSERT_BOUNDS(0, getNumEffectInfos(), eEffect, "CvGlobals::getEffectInfo");
-		return *m_paEffectInfo[eEffect];
-	}
-	inline int getNumAttachableInfos() const
-	{
-		return (int)m_paAttachableInfo.size();
-	}
-	inline CvAttachableInfo& getAttachableInfo(AttachableTypes eAttachable) const
-	{
-		FASSERT_BOUNDS(0, getNumAttachableInfos(), eAttachable, "CvGlobals::getAttachableInfo");
-		return *m_paAttachableInfo[eAttachable];
-	}
-	inline int getNumTerrainInfos() const
-	{
-		return (int)m_paTerrainInfo.size();
-	}
-	inline CvTerrainInfo& getTerrainInfo(TerrainTypes eTerrain) const
-	{
-		FASSERT_BOUNDS(0, getNumTerrainInfos(), eTerrain, "CvGlobals::getTerrainInfo");
-		return *m_paTerrainInfo[eTerrain];
-	}
-	inline int getNumBonusClassInfos() const
-	{
-		return (int)m_paBonusClassInfo.size();
-	}
-	inline CvBonusClassInfo& getBonusClassInfo(BonusClassTypes eBonusClass) const
-	{
-		FASSERT_BOUNDS(0, getNumBonusClassInfos(), eBonusClass, "CvGlobals::getBonusClassInfo");
-		return *m_paBonusClassInfo[eBonusClass];
-	}
-	inline int getNumBonusInfos() const
-	{
-		return (int)m_paBonusInfo.size();
-	}
-	inline CvBonusInfo& getBonusInfo(BonusTypes eBonus) const
-	{
-		FASSERT_BOUNDS(0, getNumBonusInfos(), eBonus, "CvGlobals::getBonusInfo");
-		return *m_paBonusInfo[eBonus];
-	}
-	inline int getNumFeatureInfos() const
-	{
-		return (int)m_paFeatureInfo.size();
-	}
-	inline CvFeatureInfo& getFeatureInfo(FeatureTypes eFeature) const
-	{
-		FASSERT_BOUNDS(0, getNumFeatureInfos(), eFeature, "CvGlobals::getFeatureInfo");
-		return *m_paFeatureInfo[eFeature];
-	}
-	inline int getNumCivilizationInfos() const
-	{
-		return (int)m_paCivilizationInfo.size();
-	}
-	inline CvCivilizationInfo& getCivilizationInfo(CivilizationTypes eCivilization) const
-	{
-		FASSERT_BOUNDS(0, getNumCivilizationInfos(), eCivilization, "CvGlobals::getCivilizationInfo");
-		return *m_paCivilizationInfo[eCivilization];
-	}
-	inline int getNumLeaderHeadInfos() const
-	{
-		return (int)m_paLeaderHeadInfo.size();
-	}
-	inline CvLeaderHeadInfo& getLeaderHeadInfo(LeaderHeadTypes eLeaderHead) const
-	{
-		FASSERT_BOUNDS(0, getNumLeaderHeadInfos(), eLeaderHead, "CvGlobals::getLeaderHeadInfo");
-		return *m_paLeaderHeadInfo[eLeaderHead];
-	}
-	inline int getNumTraitInfos() const
-	{
-		return (int)m_paTraitInfo.size();
-	}
-	inline CvTraitInfo& getTraitInfo(TraitTypes eTrait) const
-	{
-		FASSERT_BOUNDS(0, getNumTraitInfos(), eTrait, "CvGlobals::getTraitInfo");
-		return *m_paTraitInfo[eTrait];
-	}
-	inline int getNumCursorInfos() const
-	{
-		return (int)m_paCursorInfo.size();
-	}
-	inline CvCursorInfo& getCursorInfo(CursorTypes eCursor) const
-	{
-		FASSERT_BOUNDS(0, getNumCursorInfos(), eCursor, "CvGlobals::getCursorInfo");
-		return *m_paCursorInfo[eCursor];
-	}
-	inline int getNumUnitInfos() const
-	{
-		return (int)m_paUnitInfo.size();
-	}
-	inline CvUnitInfo& getUnitInfo(UnitTypes eUnit) const
-	{
-		FASSERT_BOUNDS(0, getNumUnitInfos(), eUnit, "CvGlobals::getUnitInfo");
-		return *m_paUnitInfo[eUnit];
-	}
-	inline int getNumSpecialUnitInfos() const
-	{
-		return (int)m_paSpecialUnitInfo.size();
-	}
-	inline CvSpecialUnitInfo& getSpecialUnitInfo(SpecialUnitTypes eSpecialUnit) const
-	{
-		FASSERT_BOUNDS(0, getNumSpecialUnitInfos(), eSpecialUnit, "CvGlobals::getSpecialUnitInfo");
-		return *m_paSpecialUnitInfo[eSpecialUnit];
-	}
-	inline int getNumConceptInfos() const
-	{
-		return (int)m_paConceptInfo.size();
-	}
-	inline CvInfoBase& getConceptInfo(ConceptTypes eConcept) const
-	{
-		FASSERT_BOUNDS(0, getNumConceptInfos(), eConcept, "CvGlobals::getConceptInfo");
-		return *m_paConceptInfo[eConcept];
-	}
-	inline int getNumNewConceptInfos() const
-	{
-		return (int)m_paNewConceptInfo.size();
-	}
-	inline CvInfoBase& getNewConceptInfo(NewConceptTypes eNewConcept) const
-	{
-		FASSERT_BOUNDS(0, getNumNewConceptInfos(), eNewConcept, "CvGlobals::getNewConceptInfo");
-		return *m_paNewConceptInfo[eNewConcept];
-	}
-	inline int getNumSeasonInfos() const
-	{
-		return (int)m_paSeasonInfo.size();
-	}
-	inline CvInfoBase& getSeasonInfo(SeasonTypes eSeason) const
-	{
-		FASSERT_BOUNDS(0, getNumSeasonInfos(), eSeason, "CvGlobals::getSeasonInfo");
-		return *m_paSeasonInfo[eSeason];
-	}
-	inline int getNumMonthInfos() const
-	{
-		return (int)m_paMonthInfo.size();
-	}
-	inline CvInfoBase& getMonthInfo(MonthTypes eMonth) const
-	{
-		FASSERT_BOUNDS(0, getNumMonthInfos(), eMonth, "CvGlobals::getMonthInfo");
-		return *m_paMonthInfo[eMonth];
-	}
-	inline int getNumInvisibleInfos() const
-	{
-		return (int)m_paInvisibleInfo.size();
-	}
-	inline CvInfoBase& getInvisibleInfo(InvisibleTypes eInvisible) const
-	{
-		FASSERT_BOUNDS(0, getNumInvisibleInfos(), eInvisible, "CvGlobals::getInvisibleInfo");
-		return *m_paInvisibleInfo[eInvisible];
-	}
-	inline int getNumVoteSourceInfos() const
-	{
-		return (int)m_paVoteSourceInfo.size();
-	}
-	inline CvVoteSourceInfo& getVoteSourceInfo(VoteSourceTypes eVoteSource) const
-	{
-		FASSERT_BOUNDS(0, getNumVoteSourceInfos(), eVoteSource, "CvGlobals::getVoteSourceInfo");
-		return *m_paVoteSourceInfo[eVoteSource];
-	}
-	inline int getNumUnitCombatInfos() const
-	{
-		return (int)m_paUnitCombatInfo.size();
-	}
-	inline CvInfoBase& getUnitCombatInfo(UnitCombatTypes eUnitCombat) const
-	{
-		FASSERT_BOUNDS(0, getNumUnitCombatInfos(), eUnitCombat, "CvGlobals::getUnitCombatInfo");
-		return *m_paUnitCombatInfo[eUnitCombat];
-	}
-	inline int getNumRouteInfos() const
-	{
-		return (int)m_paRouteInfo.size();
-	}
-	inline CvRouteInfo& getRouteInfo(RouteTypes eRoute) const
-	{
-		FASSERT_BOUNDS(0, getNumRouteInfos(), eRoute, "CvGlobals::getRouteInfo");
-		return *m_paRouteInfo[eRoute];
-	}
-	inline int getNumImprovementInfos() const
-	{
-		return (int)m_paImprovementInfo.size();
-	}
-	inline CvImprovementInfo& getImprovementInfo(ImprovementTypes eImprovement) const
-	{
-		FASSERT_BOUNDS(0, getNumImprovementInfos(), eImprovement, "CvGlobals::getImprovementInfo");
-		return *m_paImprovementInfo[eImprovement];
-	}
-	inline int getNumGoodyInfos() const
-	{
-		return (int)m_paGoodyInfo.size();
-	}
-	inline CvGoodyInfo& getGoodyInfo(GoodyTypes eGoody) const
-	{
-		FASSERT_BOUNDS(0, getNumGoodyInfos(), eGoody, "CvGlobals::getGoodyInfo");
-		return *m_paGoodyInfo[eGoody];
-	}
-	inline int getNumBuildInfos() const
-	{
-		return (int)m_paBuildInfo.size();
-	}
-	inline CvBuildInfo& getBuildInfo(BuildTypes eBuild) const
-	{
-		FASSERT_BOUNDS(0, getNumBuildInfos(), eBuild, "CvGlobals::getBuildInfo");
-		return *m_paBuildInfo[eBuild];
-	}
-	inline int getNumHandicapInfos() const
-	{
-		return (int)m_paHandicapInfo.size();
-	}
-	inline CvHandicapInfo& getHandicapInfo(HandicapTypes eHandicap) const
-	{
-		FASSERT_BOUNDS(0, getNumHandicapInfos(), eHandicap, "CvGlobals::getHandicapInfo");
-		return *m_paHandicapInfo[eHandicap];
-	}
-	inline int getNumGameSpeedInfos() const
-	{
-		return (int)m_paGameSpeedInfo.size();
-	}
-	inline CvGameSpeedInfo& getGameSpeedInfo(GameSpeedTypes eGameSpeed) const
-	{
-		FASSERT_BOUNDS(0, getNumGameSpeedInfos(), eGameSpeed, "CvGlobals::getGameSpeedInfo");
-		return *m_paGameSpeedInfo[eGameSpeed];
-	}
-	inline int getNumTurnTimerInfos() const
-	{
-		return (int)m_paTurnTimerInfo.size();
-	}
-	inline CvTurnTimerInfo& getTurnTimerInfo(TurnTimerTypes eTurnTimer) const
-	{
-		FASSERT_BOUNDS(0, getNumTurnTimerInfos(), eTurnTimer, "CvGlobals::getTurnTimerInfo");
-		return *m_paTurnTimerInfo[eTurnTimer];
-	}
-	inline int getNumProcessInfos() const
-	{
-		return (int)m_paProcessInfo.size();
-	}
-	inline CvProcessInfo& getProcessInfo(ProcessTypes eProcess) const
-	{
-		FASSERT_BOUNDS(0, getNumProcessInfos(), eProcess, "CvGlobals::getProcessInfo");
-		return *m_paProcessInfo[eProcess];
-	}
-	inline int getNumVoteInfos() const
-	{
-		return (int)m_paVoteInfo.size();
-	}
-	inline CvVoteInfo& getVoteInfo(VoteTypes eVote) const
-	{
-		FASSERT_BOUNDS(0, getNumVoteInfos(), eVote, "CvGlobals::getVoteInfo");
-		return *m_paVoteInfo[eVote];
-	}
-	inline int getNumProjectInfos() const
-	{
-		return (int)m_paProjectInfo.size();
-	}
-	inline CvProjectInfo& getProjectInfo(ProjectTypes eProject) const
-	{
-		FASSERT_BOUNDS(0, getNumProjectInfos(), eProject, "CvGlobals::getProjectInfo");
-		return *m_paProjectInfo[eProject];
-	}
-	inline int getNumBuildingClassInfos() const
-	{
-		return (int)m_paBuildingClassInfo.size();
-	}
-	inline CvBuildingClassInfo& getBuildingClassInfo(BuildingClassTypes eBuildingClass) const
-	{
-		FASSERT_BOUNDS(0, getNumBuildingClassInfos(), eBuildingClass, "CvGlobals::getBuildingClassInfo");
-		return *m_paBuildingClassInfo[eBuildingClass];
-	}
-	inline int getNumBuildingInfos() const
-	{
-		return (int)m_paBuildingInfo.size();
-	}
-	inline CvBuildingInfo& getBuildingInfo(BuildingTypes eBuilding) const
-	{
-		FASSERT_BOUNDS(0, getNumBuildingInfos(), eBuilding, "CvGlobals::getBuildingInfo");
-		return *m_paBuildingInfo[eBuilding];
-	}
-	inline int getNumSpecialBuildingInfos() const
-	{
-		return (int)m_paSpecialBuildingInfo.size();
-	}
-	inline CvSpecialBuildingInfo& getSpecialBuildingInfo(SpecialBuildingTypes eSpecialBuilding) const
-	{
-		FASSERT_BOUNDS(0, getNumSpecialBuildingInfos(), eSpecialBuilding, "CvGlobals::getSpecialBuildingInfo");
-		return *m_paSpecialBuildingInfo[eSpecialBuilding];
-	}
-	inline int getNumUnitClassInfos() const
-	{
-		return (int)m_paUnitClassInfo.size();
-	}
-	inline CvUnitClassInfo& getUnitClassInfo(UnitClassTypes eUnitClass) const
-	{
-		FASSERT_BOUNDS(0, getNumUnitClassInfos(), eUnitClass, "CvGlobals::getUnitClassInfo");
-		return *m_paUnitClassInfo[eUnitClass];
-	}
-	inline int getNumPromotionInfos() const
-	{
-		return (int)m_paPromotionInfo.size();
-	}
-	inline CvPromotionInfo& getPromotionInfo(PromotionTypes ePromotion) const
-	{
-		FASSERT_BOUNDS(0, getNumPromotionInfos(), ePromotion, "CvGlobals::getPromotionInfo");
-		return *m_paPromotionInfo[ePromotion];
-	}
-	inline int getNumTechInfos() const
-	{
-		return (int)m_paTechInfo.size();
-	}
-	inline CvTechInfo& getTechInfo(TechTypes eTech) const
-	{
-		FASSERT_BOUNDS(0, getNumTechInfos(), eTech, "CvGlobals::getTechInfo");
-		return *m_paTechInfo[eTech];
-	}
-	inline int getNumReligionInfos() const
-	{
-		return (int)m_paReligionInfo.size();
-	}
-	inline CvReligionInfo& getReligionInfo(ReligionTypes eReligion) const
-	{
-		FASSERT_BOUNDS(0, getNumReligionInfos(), eReligion, "CvGlobals::getReligionInfo");
-		return *m_paReligionInfo[eReligion];
-	}
-	inline int getNumCorporationInfos() const
-	{
-		return (int)m_paCorporationInfo.size();
-	}
-	inline CvCorporationInfo& getCorporationInfo(CorporationTypes eCorporation) const
-	{
-		FASSERT_BOUNDS(0, getNumCorporationInfos(), eCorporation, "CvGlobals::getCorporationInfo");
-		return *m_paCorporationInfo[eCorporation];
-	}
-	inline int getNumSpecialistInfos() const
-	{
-		return (int)m_paSpecialistInfo.size();
-	}
-	inline CvSpecialistInfo& getSpecialistInfo(SpecialistTypes eSpecialist) const
-	{
-		FASSERT_BOUNDS(0, getNumSpecialistInfos(), eSpecialist, "CvGlobals::getSpecialistInfo");
-		return *m_paSpecialistInfo[eSpecialist];
-	}
-	inline int getNumCivicOptionInfos() const
-	{
-		return (int)m_paCivicOptionInfo.size();
-	}
-	inline CvCivicOptionInfo& getCivicOptionInfo(CivicOptionTypes eCivicOption) const
-	{
-		FASSERT_BOUNDS(0, getNumCivicOptionInfos(), eCivicOption, "CvGlobals::getCivicOptionInfo");
-		return *m_paCivicOptionInfo[eCivicOption];
-	}
-	inline int getNumCivicInfos() const
-	{
-		return (int)m_paCivicInfo.size();
-	}
-	inline CvCivicInfo& getCivicInfo(CivicTypes eCivic) const
-	{
-		FASSERT_BOUNDS(0, getNumCivicInfos(), eCivic, "CvGlobals::getCivicInfo");
-		return *m_paCivicInfo[eCivic];
-	}
-	inline int getNumDiplomacyInfos() const
-	{
-		return (int)m_paDiplomacyInfo.size();
-	}
-	inline CvDiplomacyInfo& getDiplomacyInfo(int iDiplomacy) const
-	{
-		FASSERT_BOUNDS(0, getNumDiplomacyInfos(), iDiplomacy, "CvGlobals::getDiplomacyInfo");
-		return *m_paDiplomacyInfo[iDiplomacy];
-	}
-	inline int getNumEraInfos() const
-	{
-		return (int)m_paEraInfo.size();
-	}
-	inline CvEraInfo& getEraInfo(EraTypes eEra) const
-	{
-		FASSERT_BOUNDS(0, getNumEraInfos(), eEra, "CvGlobals::getEraInfo");
-		return *m_paEraInfo[eEra];
-	}
-	inline int getNumHurryInfos() const
-	{
-		return (int)m_paHurryInfo.size();
-	}
-	inline CvHurryInfo& getHurryInfo(HurryTypes eHurry) const
-	{
-		FASSERT_BOUNDS(0, getNumHurryInfos(), eHurry, "CvGlobals::getHurryInfo");
-		return *m_paHurryInfo[eHurry];
-	}
-	inline int getNumEmphasizeInfos() const
-	{
-		return (int)m_paEmphasizeInfo.size();
-	}
-	inline CvEmphasizeInfo& getEmphasizeInfo(EmphasizeTypes eEmphasize) const
-	{
-		FASSERT_BOUNDS(0, getNumEmphasizeInfos(), eEmphasize, "CvGlobals::getEmphasizeInfo");
-		return *m_paEmphasizeInfo[eEmphasize];
-	}
-	inline int getNumUpkeepInfos() const
-	{
-		return (int)m_paUpkeepInfo.size();
-	}
-	inline CvUpkeepInfo& getUpkeepInfo(UpkeepTypes eUpkeep) const
-	{
-		FASSERT_BOUNDS(0, getNumUpkeepInfos(), eUpkeep, "CvGlobals::getUpkeepInfo");
-		return *m_paUpkeepInfo[eUpkeep];
-	}
-	inline int getNumCultureLevelInfos() const
-	{
-		return (int)m_paCultureLevelInfo.size();
-	}
-	inline CvCultureLevelInfo& getCultureLevelInfo(CultureLevelTypes eCultureLevel) const
-	{
-		FASSERT_BOUNDS(0, getNumCultureLevelInfos(), eCultureLevel, "CvGlobals::getCultureLevelInfo");
-		return *m_paCultureLevelInfo[eCultureLevel];
-	}
-	inline int getNumVictoryInfos() const
-	{
-		return (int)m_paVictoryInfo.size();
-	}
-	inline CvVictoryInfo& getVictoryInfo(VictoryTypes eVictory) const
-	{
-		FASSERT_BOUNDS(0, getNumVictoryInfos(), eVictory, "CvGlobals::getVictoryInfo");
-		return *m_paVictoryInfo[eVictory];
-	}
-	inline int getNumTutorialInfos() const
-	{
-		return (int)m_paTutorialInfo.size();
-	}
-	inline CvTutorialInfo& getTutorialInfo(int iTutorial) const
-	{
-		FASSERT_BOUNDS(0, getNumTutorialInfos(), iTutorial, "CvGlobals::getTutorialInfo");
-		return *m_paTutorialInfo[iTutorial];
-	}
-	inline int getNumEventTriggerInfos() const
-	{
-		return (int)m_paEventTriggerInfo.size();
-	}
-	inline CvEventTriggerInfo& getEventTriggerInfo(EventTriggerTypes eEventTrigger) const
-	{
-		FASSERT_BOUNDS(0, getNumEventTriggerInfos(), eEventTrigger, "CvGlobals::getEventTriggerInfo");
-		return *m_paEventTriggerInfo[eEventTrigger];
-	}
-	inline int getNumEventInfos() const
-	{
-		return (int)m_paEventInfo.size();
-	}
-	inline CvEventInfo& getEventInfo(EventTypes eEvent) const
-	{
-		FASSERT_BOUNDS(0, getNumEventInfos(), eEvent, "CvGlobals::getEventInfo");
-		return *m_paEventInfo[eEvent];
-	}
-	inline int getNumEspionageMissionInfos() const
-	{
-		return (int)m_paEspionageMissionInfo.size();
-	}
-	inline CvEspionageMissionInfo& getEspionageMissionInfo(EspionageMissionTypes eEspionageMission) const
-	{
-		FASSERT_BOUNDS(0, getNumEspionageMissionInfos(), eEspionageMission, "CvGlobals::getEspionageMissionInfo");
-		return *m_paEspionageMissionInfo[eEspionageMission];
-	}
-	inline int getNumUnitArtStyleInfos() const
-	{
-		return (int)m_paUnitArtStyleInfo.size();
-	}
-	inline CvUnitArtStyleInfo& getUnitArtStyleInfo(UnitArtStyleTypes eUnitArtStyle) const
-	{
-		FASSERT_BOUNDS(0, getNumUnitArtStyleInfos(), eUnitArtStyle, "CvGlobals::getUnitArtStyleInfo");
-		return *m_paUnitArtStyleInfo[eUnitArtStyle];
-	}
-		inline CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e) const
-	{
-		FASSERT_BOUNDS(0, NUM_INTERFACEMODE_TYPES, e, "CvGlobals::getInterfaceModeInfo");
-		return *(m_paInterfaceModeInfo[e]);
-	}
-
-	// No associated enum type ...
-
-	inline int getNumLandscapeInfos() const
-	{
-		return (int)m_paLandscapeInfo.size();
-	}
-	inline CvLandscapeInfo& getLandscapeInfo(int iLandscape) const
-	{
-		FASSERT_BOUNDS(0, getNumLandscapeInfos(), iLandscape, "CvGlobals::getLandscapeInfo");
-		return *m_paLandscapeInfo[iLandscape];
-	}
-	inline int getNumActionInfos() const
-	{
-		return (int)m_paActionInfo.size();
-	}
-	inline CvActionInfo& getActionInfo(int iAction) const
-	{
-		FASSERT_BOUNDS(0, getNumActionInfos(), iAction, "CvGlobals::getActionInfo");
-		return *m_paActionInfo[iAction];
-	}
-	int getNumRouteModelInfos() const
-	{
-		return (int)m_paRouteModelInfo.size();
-	}
-	CvRouteModelInfo& getRouteModelInfo(int iRouteModel) const
-	{
-		FASSERT_BOUNDS(0, getNumRouteModelInfos(), iRouteModel, "CvGlobals::getRouteModelInfo");
-		return *m_paRouteModelInfo[iRouteModel];
-	}
-	int getNumRiverModelInfos() const
-	{
-		return (int)m_paRiverModelInfo.size();
-	}
-	CvRiverModelInfo& getRiverModelInfo(int iRiverModel) const
-	{
-		FASSERT_BOUNDS(0, getNumRiverModelInfos(), iRiverModel, "CvGlobals::getRiverModelInfo");
-		return *m_paRiverModelInfo[iRiverModel];
-	}
-	int getNumTerrainPlaneInfos() const
-	{
-		return (int)m_paTerrainPlaneInfo.size();
-	}
-	CvTerrainPlaneInfo& getTerrainPlaneInfo(int iTerrainPlane) const
-	{
-		FASSERT_BOUNDS(0, getNumTerrainPlaneInfos(), iTerrainPlane, "CvGlobals::getTerrainPlaneInfo");
-		return *m_paTerrainPlaneInfo[iTerrainPlane];
-	}
-	int getNumCameraOverlayInfos() const
-	{
-		return (int)m_paCameraOverlayInfo.size();
-	}
-	CvCameraOverlayInfo& getCameraOverlayInfo(int iCameraOverlay) const
-	{
-		FASSERT_BOUNDS(0, getNumCameraOverlayInfos(), iCameraOverlay, "CvGlobals::getCameraOverlayInfo");
-		return *m_paCameraOverlayInfo[iCameraOverlay];
-	}
-	int getNumUnitFormationInfos() const
-	{
-		return (int)m_paUnitFormationInfo.size();
-	}
-	CvUnitFormationInfo& getUnitFormationInfo(int iUnitFormation) const
-	{
-		FASSERT_BOUNDS(0, getNumUnitFormationInfos(), iUnitFormation, "CvGlobals::getUnitFormationInfo");
-		return *m_paUnitFormationInfo[iUnitFormation];
-	}
-	int getNumThroneRoomInfos() const
-	{
-		return (int)m_paThroneRoomInfo.size();
-	}
-	CvThroneRoomInfo& getThroneRoomInfo(int iThroneRoom) const
-	{
-		FASSERT_BOUNDS(0, getNumThroneRoomInfos(), iThroneRoom, "CvGlobals::getThroneRoomInfo");
-		return *m_paThroneRoomInfo[iThroneRoom];
-	}
-	int getNumThroneRoomStyleInfos() const
-	{
-		return (int)m_paThroneRoomStyleInfo.size();
-	}
-	CvThroneRoomStyleInfo& getThroneRoomStyleInfo(int iThroneRoomStyle) const
-	{
-		FASSERT_BOUNDS(0, getNumThroneRoomStyleInfos(), iThroneRoomStyle, "CvGlobals::getThroneRoomStyleInfo");
-		return *m_paThroneRoomStyleInfo[iThroneRoomStyle];
-	}
-	int getNumThroneRoomCameraInfos() const
-	{
-		return (int)m_paThroneRoomCameraInfo.size();
-	}
-	int getNumSlideShowInfos() const
-	{
-		return (int)m_paSlideShowInfo.size();
-	}
-	CvSlideShowInfo& getSlideShowInfo(int iSlideShow) const
-	{
-		FASSERT_BOUNDS(0, getNumSlideShowInfos(), iSlideShow, "CvGlobals::getSlideShowInfo");
-		return *m_paSlideShowInfo[iSlideShow];
-	}
-	int getNumSlideShowRandomInfos() const
-	{
-		return (int)m_paSlideShowRandomInfo.size();
-	}
-	CvSlideShowRandomInfo& getSlideShowRandomInfo(int iSlideShowRandom) const
-	{
-		FASSERT_BOUNDS(0, getNumSlideShowRandomInfos(), iSlideShowRandom, "CvGlobals::getSlideShowRandomInfo");
-		return *m_paSlideShowRandomInfo[iSlideShowRandom];
-	}
-	int getNumWorldPickerInfos() const
-	{
-		return (int)m_paWorldPickerInfo.size();
-	}
-	CvWorldPickerInfo& getWorldPickerInfo(int iWorldPicker) const
-	{
-		FASSERT_BOUNDS(0, getNumWorldPickerInfos(), iWorldPicker, "CvGlobals::getWorldPickerInfo");
-		return *m_paWorldPickerInfo[iWorldPicker];
-	}
-	int getNumSpaceShipInfos() const
-	{
-		return (int)m_paSpaceShipInfo.size();
-	}
-	CvSpaceShipInfo& getSpaceShipInfo(int iSpaceShip) const
-	{
-		FASSERT_BOUNDS(0, getNumSpaceShipInfos(), iSpaceShip, "CvGlobals::getSpaceShipInfo");
-		return *m_paSpaceShipInfo[iSpaceShip];
-	}
-	int getNumHintInfos() const
-	{
-		return (int)m_paHintInfo.size();
-	}
-	CvInfoBase& getHintInfo(int iHint) const
-	{
-		FASSERT_BOUNDS(0, getNumHintInfos(), iHint, "CvGlobals::getHintInfo");
-		return *m_paHintInfo[iHint];
-	}
-	int getNumMainMenuInfos() const
-	{
-		return (int)m_paMainMenuInfo.size();
-	}
-	CvMainMenuInfo& getMainMenuInfo(int iMainMenu) const
-	{
-		FASSERT_BOUNDS(0, getNumMainMenuInfos(), iMainMenu, "CvGlobals::getMainMenuInfo");
-		return *m_paMainMenuInfo[iMainMenu];
-	}
-	int getNumWaterPlaneInfos() const
-	{
-		return (int)m_paWaterPlaneInfo.size();
-	}
-	CvWaterPlaneInfo& getWaterPlaneInfo(int iWaterPlane) const
-	{
-		FASSERT_BOUNDS(0, getNumWaterPlaneInfos(), iWaterPlane, "CvGlobals::getWaterPlaneInfo");
-		return *m_paWaterPlaneInfo[iWaterPlane];
-	}
-	CvThroneRoomCamera& getThroneRoomCameraInfo(int iThroneRoomCamera) const
-	{
-		FASSERT_BOUNDS(0, getNumThroneRoomCameraInfos(), iThroneRoomCamera, "CvGlobals::getThroneRoomCameraInfo");
-		return *m_paThroneRoomCameraInfo[iThroneRoomCamera];
-	}
-#endif // GENERATE_INFO_ACCESSORS
 	// World(Size)Info: awkward to generate through a macro
 	inline CvWorldInfo& getInfo(WorldSizeTypes eWorld) const
 	{
@@ -1129,7 +309,7 @@ public:
 	{
 		return (int)m_paWorldInfo.size();
 	}
-	__forceinline CvWorldInfo& getWorldInfo(WorldSizeTypes eWorld) const // deprecated
+	inline CvWorldInfo& getWorldInfo(WorldSizeTypes eWorld) const // deprecated
 	{
 		return getInfo(eWorld);
 	}
@@ -1182,7 +362,7 @@ public:
 	CvString*& getDirectionTypes();
 	CvString& getDirectionTypes(AutomateTypes e);
 
-	DllExport inline int& getNumFootstepAudioTypes();
+	DllExport int& getNumFootstepAudioTypes();
 	int getNumFootstepAudioTypes() const { return m_iNumFootstepAudioTypes; } // advc.003t: const version
 	CvString*& getFootstepAudioTypes();
 	CvString& getFootstepAudioTypes(int i);
@@ -1468,7 +648,7 @@ public:
 	DllExport void setDLLIFace(CvDLLUtilityIFaceBase* pDll);
 #ifdef _USRDLL
 	// inlined for perf reasons, do not use outside of dll
-	CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc.003t: const
+	inline CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc.003t: const, inline keyword added
 #endif
 	DllExport CvDLLUtilityIFaceBase* getDLLIFaceNonInl();
 	DllExport void setDLLProfiler(FProfiler* prof);

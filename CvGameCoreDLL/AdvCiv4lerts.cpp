@@ -292,7 +292,7 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity
 			(!GET_TEAM(ownerId).isHasMet(from.getTeam()) ||
 			!GET_TEAM(ownerId).isHasMet(to.getTeam())))
 		return;
-	int bonusChar = GC.getBonusInfo(bonusId).getChar();
+	int bonusChar = GC.getInfo(bonusId).getChar();
 	CvWString msgStr;
 	CvWString quantityStr;
 	if(!isDebug || newQuantity == 0 || oldQuantity == 0)
@@ -318,7 +318,7 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity
 	{
 		if((newQuantity > 0) == (oldQuantity > 0))
 			return;
-		CvBonusInfo& bi = GC.getBonusInfo(bonusId);
+		CvBonusInfo& bi = GC.getInfo(bonusId);
 		bool strategic = (bi.getHappiness() + bi.getHealth() <= 0);
 		if(!strategic) // Don't bother with buildings (only need to cover Ivory)
 		{
@@ -326,13 +326,13 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity
 			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
 				UnitTypes ut = kCiv.unitAt(i);
-				CvUnitInfo const& ui = GC.getUnitInfo(ut);
+				CvUnitInfo const& ui = GC.getInfo(ut);
 				if(ui.getPrereqAndBonus() == bonusId)
 				{
 					// Only report Ivory while it's relevant
 					TechTypes tt = (TechTypes)ui.getPrereqAndTech();
 					if(tt != NO_TECH && to.getCurrentEra() -
-							GC.getTechInfo(tt).getEra() < 2)
+							GC.getInfo(tt).getEra() < 2)
 						strategic = true;
 				}
 			}

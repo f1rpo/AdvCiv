@@ -579,7 +579,7 @@ double ArmamentForecast::productionFromUpgrades() {
 			GC.getDefineINT(CvGlobals::BASE_UNIT_UPGRADE_COST));
 	r *= baseCostModifier;
 	if(!civ.isHuman()) {
-		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGame().getHandicapType());
+		CvHandicapInfo& gameHandicap = GC.getInfo(GC.getGame().getHandicapType());
 		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
 		// advc.250d: The per-era modifier no longer applies to upgrade cost
 			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();

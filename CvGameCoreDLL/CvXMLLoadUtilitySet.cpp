@@ -721,14 +721,14 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paBuildingInfo, "CIV4BuildingInfos", "Buildings", "Civ4BuildingInfos/BuildingInfos/BuildingInfo", false, &CvDLLUtilityIFaceBase::createBuildingInfoCacheObject);
 	for (int i=0; i < GC.getNumBuildingClassInfos(); ++i)
 	{
-		GC.getBuildingClassInfo((BuildingClassTypes)i).readPass3();
+		GC.getInfo((BuildingClassTypes)i).readPass3();
 	}
 	LoadGlobalClassInfo(GC.m_paSpecialUnitInfo, "CIV4SpecialUnitInfos", "Units", "Civ4SpecialUnitInfos/SpecialUnitInfos/SpecialUnitInfo", false);
 	LoadGlobalClassInfo(GC.m_paProjectInfo, "CIV4ProjectInfo", "GameInfo", "Civ4ProjectInfo/ProjectInfos/ProjectInfo", true);
 	LoadGlobalClassInfo(GC.m_paCivicInfo, "CIV4CivicInfos", "GameInfo", "Civ4CivicInfos/CivicInfos/CivicInfo", false, &CvDLLUtilityIFaceBase::createCivicInfoCacheObject);
 	for (int i=0; i < GC.getNumVoteSourceInfos(); ++i)
 	{
-		GC.getVoteSourceInfo((VoteSourceTypes)i).readPass3();
+		GC.getInfo((VoteSourceTypes)i).readPass3();
 	}
 	LoadGlobalClassInfo(GC.m_paLeaderHeadInfo, "CIV4LeaderHeadInfos", "Civilizations", "Civ4LeaderHeadInfos/LeaderHeadInfos/LeaderHeadInfo", false, &CvDLLUtilityIFaceBase::createLeaderHeadInfoCacheObject);
 	LoadGlobalClassInfo(GC.m_paColorInfo, "CIV4ColorVals", "Interface", "Civ4ColorVals/ColorVals/ColorVal", false);
@@ -739,7 +739,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paUnitInfo, "CIV4UnitInfos", "Units", "Civ4UnitInfos/UnitInfos/UnitInfo", false, &CvDLLUtilityIFaceBase::createUnitInfoCacheObject);
 	for (int i=0; i < GC.getNumUnitClassInfos(); ++i)
 	{
-		GC.getUnitClassInfo((UnitClassTypes)i).readPass3();
+		GC.getInfo((UnitClassTypes)i).readPass3();
 	}
 	LoadGlobalClassInfo(GC.m_paUnitArtStyleInfo, "CIV4UnitArtStyleTypeInfos", "Civilizations", "Civ4UnitArtStyleTypeInfos/UnitArtStyleTypeInfos/UnitArtStyleTypeInfo", false);
 	LoadGlobalClassInfo(GC.m_paCivilizationInfo, "CIV4CivilizationInfos", "Civilizations", "Civ4CivilizationInfos/CivilizationInfos/CivilizationInfo", true, &CvDLLUtilityIFaceBase::createCivilizationInfoCacheObject);
@@ -760,7 +760,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	for (int i = 0; i < GC.getNumCursorInfos(); ++i)
 	{
 		int iVal;
-		CvString szType = GC.getCursorInfo((CursorTypes)i).getType();
+		CvString szType = GC.getInfo((CursorTypes)i).getType();
 		if (GC.getDefinesVarSystem()->GetValue(szType, iVal))
 		{
 			char szMessage[1024];
@@ -774,13 +774,13 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	for (int i=0; i < GC.getNumCivilizationInfos(); ++i)
 	{
 		// if the civilization is playable we will increment the playable var
-		if (GC.getCivilizationInfo((CivilizationTypes) i).isPlayable())
+		if (GC.getInfo((CivilizationTypes) i).isPlayable())
 		{
 			GC.getNumPlayableCivilizationInfos() += 1;
 		}
 
 		// if the civilization is playable by AI increments num playable
-		if (GC.getCivilizationInfo((CivilizationTypes) i).isAIPlayable())
+		if (GC.getInfo((CivilizationTypes) i).isAIPlayable())
 		{
 			GC.getNumAIPlayableCivilizationInfos() += 1;
 		}
@@ -975,8 +975,6 @@ void CvXMLLoadUtility::SetGlobalStringArray(CvString **ppszString, char* szTagNa
 }
 
 
-
-
 //------------------------------------------------------------------------------------------------------
 //
 //  FUNCTION:   SetGlobalActionInfo(CvActionInfo** ppActionInfo, int* iNumVals)
@@ -1081,7 +1079,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<NUM_COMMAND_TYPES;i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getCommandInfo((CommandTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((CommandTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_COMMAND;
 		iTotalActionInfoCount++;
 	}
@@ -1089,7 +1087,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<NUM_INTERFACEMODE_TYPES;i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInterfaceModeInfo((InterfaceModeTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((InterfaceModeTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_INTERFACEMODE;
 		iTotalActionInfoCount++;
 	}
@@ -1097,7 +1095,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumBuildInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getBuildInfo((BuildTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((BuildTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_BUILD;
 		iTotalActionInfoCount++;
 	}
@@ -1105,7 +1103,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumPromotionInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getPromotionInfo((PromotionTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((PromotionTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_PROMOTION;
 		iTotalActionInfoCount++;
 	}
@@ -1113,7 +1111,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumUnitInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getUnitInfo((UnitTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((UnitTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_UNIT;
 		iTotalActionInfoCount++;
 	}
@@ -1121,7 +1119,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumReligionInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getReligionInfo((ReligionTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((ReligionTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_RELIGION;
 		iTotalActionInfoCount++;
 	}
@@ -1129,7 +1127,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumCorporationInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getCorporationInfo((CorporationTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((CorporationTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_CORPORATION;
 		iTotalActionInfoCount++;
 	}
@@ -1137,7 +1135,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumSpecialistInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getSpecialistInfo((SpecialistTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((SpecialistTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_SPECIALIST;
 		iTotalActionInfoCount++;
 	}
@@ -1145,7 +1143,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<GC.getNumBuildingInfos();i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getBuildingInfo((BuildingTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((BuildingTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_BUILDING;
 		iTotalActionInfoCount++;
 	}
@@ -1153,7 +1151,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<NUM_CONTROL_TYPES;i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getControlInfo((ControlTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((ControlTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_CONTROL;
 		iTotalActionInfoCount++;
 	}
@@ -1161,7 +1159,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<NUM_AUTOMATE_TYPES;i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getAutomateInfo((AutomateTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((AutomateTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_AUTOMATE;
 		iTotalActionInfoCount++;
 	}
@@ -1169,7 +1167,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	for (i=0;i<NUM_MISSION_TYPES;i++)
 	{
 		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getMissionInfo((MissionTypes)i).getOrderPriority();
+		piPriorityList[iTotalActionInfoCount] = GC.getInfo((MissionTypes)i).getOrderPriority();
 		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_MISSION;
 		iTotalActionInfoCount++;
 	}
@@ -1178,71 +1176,79 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	piOrderedIndex = new int[iNumActionInfos];
 
 	orderHotkeyInfo(&piOrderedIndex, piPriorityList, iNumActionInfos);
-	for (i=0;i<iNumActionInfos;i++)
+	for (i = 0; i < iNumActionInfos; i++)
 	{
 		CvActionInfo* pActionInfo = new CvActionInfo;
-		pActionInfo->setOriginalIndex(piIndexList[piOrderedIndex[i]]);
-		pActionInfo->setSubType((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]]);
-		if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_COMMAND)
+		// <advc>
+		int const iOrdered = piOrderedIndex[i];
+		int const iInfo = piIndexList[iOrdered]; // <advc>
+		pActionInfo->setOriginalIndex(iInfo);
+		pActionInfo->setSubType((ActionSubTypes)piActionInfoTypeList[iOrdered]);
+		if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_COMMAND)
 		{
-			GC.getCommandInfo((CommandTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
+			GC.getInfo((CommandTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_INTERFACEMODE)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_INTERFACEMODE)
 		{
-			GC.getInterfaceModeInfo((InterfaceModeTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
+			GC.getInfo((InterfaceModeTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_BUILD)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILD)
 		{
-			GC.getBuildInfo((BuildTypes)piIndexList[piOrderedIndex[i]]).setMissionType(FindInInfoClass("MISSION_BUILD"));
-			GC.getBuildInfo((BuildTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
+			GC.getInfo((BuildTypes)iInfo).setMissionType(FindInInfoClass("MISSION_BUILD"));
+			GC.getInfo((BuildTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_PROMOTION)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_CONTROL)
 		{
-			GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).setCommandType(FindInInfoClass("COMMAND_PROMOTION"));
-			GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
-			GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).setHotKeyDescription(GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).getTextKeyWide(), GC.getCommandInfo((CommandTypes)(GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).getCommandType())).getTextKeyWide(), CreateHotKeyFromDescription(GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).getHotKey(), GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).isShiftDown(), GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).isAltDown(), GC.getPromotionInfo((PromotionTypes)piIndexList[piOrderedIndex[i]]).isCtrlDown()));
+			GC.getControlInfo((ControlTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_UNIT)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_AUTOMATE)
 		{
-			GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).setCommandType(FindInInfoClass("COMMAND_UPGRADE"));
-			GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
-			GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).setHotKeyDescription(GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).getTextKeyWide(), GC.getCommandInfo((CommandTypes)(GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).getCommandType())).getTextKeyWide(), CreateHotKeyFromDescription(GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).getHotKey(), GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).isShiftDown(), GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).isAltDown(), GC.getUnitInfo((UnitTypes)piIndexList[piOrderedIndex[i]]).isCtrlDown()));
+			GC.getAutomateInfo((AutomateTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_RELIGION)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_MISSION)
 		{
-			GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).setMissionType(FindInInfoClass("MISSION_SPREAD"));
-			GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
-			GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).setHotKeyDescription(GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).getTextKeyWide(), GC.getMissionInfo((MissionTypes)(GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).getMissionType())).getTextKeyWide(), CreateHotKeyFromDescription(GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).getHotKey(), GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).isShiftDown(), GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).isAltDown(), GC.getReligionInfo((ReligionTypes)piIndexList[piOrderedIndex[i]]).isCtrlDown()));
+			GC.getMissionInfo((MissionTypes)iInfo).setActionInfoIndex(i + iNumOrigVals);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_CORPORATION)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_PROMOTION)
 		{
-			GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).setMissionType(FindInInfoClass("MISSION_SPREAD_CORPORATION"));
-			GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
-			GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).setHotKeyDescription(GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).getTextKeyWide(), GC.getMissionInfo((MissionTypes)(GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).getMissionType())).getTextKeyWide(), CreateHotKeyFromDescription(GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).getHotKey(), GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).isShiftDown(), GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).isAltDown(), GC.getCorporationInfo((CorporationTypes)piIndexList[piOrderedIndex[i]]).isCtrlDown()));
+			CvPromotionInfo& kPromo = GC.getInfo((PromotionTypes)iInfo);
+			kPromo.setCommandType(FindInInfoClass("COMMAND_PROMOTION"));
+			setActionData(kPromo, i, (CommandTypes)kPromo.getCommandType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_SPECIALIST)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_UNIT)
 		{
-			GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).setMissionType(FindInInfoClass("MISSION_JOIN"));
-			GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
-			GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).setHotKeyDescription(GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).getTextKeyWide(), GC.getMissionInfo((MissionTypes)(GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).getMissionType())).getTextKeyWide(), CreateHotKeyFromDescription(GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).getHotKey(), GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).isShiftDown(), GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).isAltDown(), GC.getSpecialistInfo((SpecialistTypes)piIndexList[piOrderedIndex[i]]).isCtrlDown()));
+			CvUnitInfo& kUnit = GC.getInfo((UnitTypes)iInfo);
+			kUnit.setCommandType(FindInInfoClass("COMMAND_UPGRADE"));
+			kUnit.setActionInfoIndex(i);
+			setActionData(kUnit, i, (CommandTypes)kUnit.getCommandType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_BUILDING)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_RELIGION)
 		{
-			GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).setMissionType(FindInInfoClass("MISSION_CONSTRUCT"));
-			GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
-			GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).setHotKeyDescription(GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).getTextKeyWide(), GC.getMissionInfo((MissionTypes)(GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).getMissionType())).getTextKeyWide(), CreateHotKeyFromDescription(GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).getHotKey(), GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).isShiftDown(), GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).isAltDown(), GC.getBuildingInfo((BuildingTypes)piIndexList[piOrderedIndex[i]]).isCtrlDown()));
+			CvReligionInfo& kReligion = GC.getInfo((ReligionTypes)iInfo);
+			kReligion.setMissionType(FindInInfoClass("MISSION_SPREAD"));
+			kReligion.setActionInfoIndex(i);
+			setActionData(kReligion, i, (MissionTypes)kReligion.getMissionType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_CONTROL)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_CORPORATION)
 		{
-			GC.getControlInfo((ControlTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
+			CvCorporationInfo& kCorp = GC.getInfo((CorporationTypes)iInfo);
+			kCorp.setMissionType(FindInInfoClass("MISSION_SPREAD_CORPORATION"));
+			kCorp.setActionInfoIndex(i);
+			setActionData(kCorp, i, (MissionTypes)kCorp.getMissionType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_AUTOMATE)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_SPECIALIST)
 		{
-			GC.getAutomateInfo((AutomateTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i);
+			CvSpecialistInfo& kSpecialist = GC.getInfo((SpecialistTypes)iInfo);
+			kSpecialist.setMissionType(FindInInfoClass("MISSION_JOIN"));
+			kSpecialist.setActionInfoIndex(i);
+			setActionData(kSpecialist, i, (MissionTypes)kSpecialist.getMissionType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[piOrderedIndex[i]] == ACTIONSUBTYPE_MISSION)
+		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILDING)
 		{
-			GC.getMissionInfo((MissionTypes)piIndexList[piOrderedIndex[i]]).setActionInfoIndex(i + iNumOrigVals);
+			CvBuildingInfo& kBuilding = GC.getInfo((BuildingTypes)iInfo);
+			kBuilding.setMissionType(FindInInfoClass("MISSION_CONSTRUCT"));
+			kBuilding.setActionInfoIndex(i);
+			//setActionData(kBuilding, i, (MissionTypes)kBuilding.getMissionType());
 		}
 
 		GC.m_paActionInfo.push_back(pActionInfo);
@@ -1252,6 +1258,16 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	SAFE_DELETE_ARRAY(piIndexList);
 	SAFE_DELETE_ARRAY(piPriorityList);
 	SAFE_DELETE_ARRAY(piActionInfoTypeList);
+}
+
+// advc: To get rid of some duplicate code in SetGlobalActionInfo
+template <class T, typename /* enum */ E>
+void CvXMLLoadUtility::setActionData(T& kInfo, int iAction, E eMissionCommand)
+{
+	kInfo.setHotKeyDescription(kInfo.getTextKeyWide(),
+			GC.getInfo(eMissionCommand).getTextKeyWide(),
+			CreateHotKeyFromDescription(kInfo.getHotKey(),
+			kInfo.isShiftDown(), kInfo.isAltDown(), kInfo.isCtrlDown()));
 }
 
 

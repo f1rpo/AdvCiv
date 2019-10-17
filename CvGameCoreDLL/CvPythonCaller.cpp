@@ -426,7 +426,7 @@ void CvPythonCaller::sendEmailReminder(CvString szEmailAddress) const
 
 bool CvPythonCaller::canTriggerEvent(CvCity const& kCity, EventTriggerTypes eTrigger) const
 {
-	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(eTrigger);
+	CvEventTriggerInfo& kTrigger = GC.getInfo(eTrigger);
 	char const* szFunctionName = kTrigger.getPythonCanDoCity();
 	if (std::strlen(szFunctionName) <= 0)
 		return true;
@@ -440,7 +440,7 @@ bool CvPythonCaller::canTriggerEvent(CvCity const& kCity, EventTriggerTypes eTri
 
 bool CvPythonCaller::canTriggerEvent(CvUnit const& kUnit, EventTriggerTypes eTrigger) const
 {
-	char const* szFunctionName = GC.getEventTriggerInfo(eTrigger).getPythonCanDoUnit();
+	char const* szFunctionName = GC.getInfo(eTrigger).getPythonCanDoUnit();
 	if (std::strlen(szFunctionName) <= 0)
 		return true;
 	ARGSLIST(false);
@@ -453,7 +453,7 @@ bool CvPythonCaller::canTriggerEvent(CvUnit const& kUnit, EventTriggerTypes eTri
 
 CvWString CvPythonCaller::eventHelp(EventTypes eEvent, EventTriggeredData const* pTriggered) const
 {
-	char const* szHelp = GC.getEventInfo(eEvent).getPythonHelp();
+	char const* szHelp = GC.getInfo(eEvent).getPythonHelp();
 	if (std::strlen(szHelp) <= 0)
 		return L"";
 	CvWString szResult;
@@ -474,7 +474,7 @@ bool CvPythonCaller::doEventTrigger(PlayerTypes ePlayer, EventTriggeredData cons
 	CvCity*& pOtherPlayerCity, ReligionTypes& eReligion,
 	CorporationTypes& eCorporation, BuildingTypes& eBuilding) const
 {
-	char const* szFunctionName = GC.getEventTriggerInfo(kTriggered.m_eTrigger).
+	char const* szFunctionName = GC.getInfo(kTriggered.m_eTrigger).
 			getPythonCanDo();
 	if (std::strlen(szFunctionName) <= 0)
 		return true; // Allow the event to trigger
@@ -498,7 +498,7 @@ bool CvPythonCaller::doEventTrigger(PlayerTypes ePlayer, EventTriggeredData cons
 
 void CvPythonCaller::afterEventTriggered(EventTriggeredData const& kTriggered) const
 {
-	char const* szFunctionName = GC.getEventTriggerInfo(kTriggered.m_eTrigger).
+	char const* szFunctionName = GC.getInfo(kTriggered.m_eTrigger).
 			getPythonCallback();
 	if (std::strlen(szFunctionName) <= 0)
 		return; // Note: None of the BtS event triggers have a callback function
@@ -510,7 +510,7 @@ void CvPythonCaller::afterEventTriggered(EventTriggeredData const& kTriggered) c
 
 bool CvPythonCaller::canDoEvent(EventTypes eEvent, EventTriggeredData const& kTriggered) const
 {
-	char const* szFunctionName = GC.getEventInfo(eEvent).getPythonCanDo();
+	char const* szFunctionName = GC.getInfo(eEvent).getPythonCanDo();
 	if (std::strlen(szFunctionName) <= 0)
 		return true;
 	ARGSLIST(false);
@@ -522,7 +522,7 @@ bool CvPythonCaller::canDoEvent(EventTypes eEvent, EventTriggeredData const& kTr
 
 void CvPythonCaller::applyEvent(EventTypes eEvent, EventTriggeredData const& kTriggered) const
 {
-	char const* szFunctionName = GC.getEventInfo(eEvent).getPythonCallback();
+	char const* szFunctionName = GC.getInfo(eEvent).getPythonCallback();
 	if (std::strlen(szFunctionName) <= 0)
 		return;
 	ARGSLIST(0);
@@ -535,7 +535,7 @@ void CvPythonCaller::applyEvent(EventTypes eEvent, EventTriggeredData const& kTr
 
 bool CvPythonCaller::checkExpireEvent(EventTypes eEvent, EventTriggeredData const& kTriggered) const
 {
-	char const* szFunctionName = GC.getEventInfo(eEvent).getPythonExpireCheck();
+	char const* szFunctionName = GC.getInfo(eEvent).getPythonExpireCheck();
 	if (std::strlen(szFunctionName) <= 0)
 		return false;
 	ARGSLIST(false);

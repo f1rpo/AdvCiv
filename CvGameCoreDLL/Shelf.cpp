@@ -120,7 +120,7 @@ CvUnit* Shelf::randomBarbarianCargoUnit() const
 			CvUnit* u = plot.getUnitByIndex(j); if(u == NULL) continue;
 			if(u->getOwner() != BARBARIAN_PLAYER)
 				break;
-			CvUnitInfo const& ui = GC.getUnitInfo(u->getUnitType());
+			CvUnitInfo const& ui = GC.getInfo(u->getUnitType());
 			int cargoSpace = std::min(2, ui.getCargoSpace()); // Load at most 2
 			cargoSpace -= std::max(0, u->getCargo());
 			if(cargoSpace > 0)

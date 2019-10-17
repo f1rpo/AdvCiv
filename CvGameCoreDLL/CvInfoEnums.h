@@ -224,28 +224,19 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 // (Let's worry about #ifdef _USRDLL only when the source of the EXE is released, i.e. probably never.)
 
 // Macros for generating CvInfo accessor functions (CvGlobals) ...
-
-#define MAKE_GET_INFO_DYN(Name, Dummy) \
-	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
-	{ \
-		FASSERT_BOUNDS(0, getNum##Name##Infos(), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
-		return *m_pa##Name##Info[e##Name]; \
-	}
-#define MAKE_GET_INFO_STATIC(Name, INFIX) \
-	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
-	{ \
-		FASSERT_BOUNDS(0, NUM_ENUM_TYPES(INFIX), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
-		return *m_pa##Name##Info[e##Name]; \
-	}
-
+	
 #define MAKE_INFO_ACCESSORS_DYN(Name, Dummy) \
 	inline int getNum##Name##Infos() const \
 	{ \
 		return m_pa##Name##Info.size(); \
 	} \
-	MAKE_GET_INFO_DYN(Name, Dummy) \
+	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
+	{ \
+		FASSERT_BOUNDS(0, getNum##Name##Infos(), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
+		return *m_pa##Name##Info[e##Name]; \
+	} \
 	/* Deprecated: */ \
-	__forceinline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
+	inline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
 	{ \
 		return getInfo(e##Name); \
 	}
@@ -260,9 +251,13 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 		return *m_pa##Name##Info[i##Name]; \
 	}
 #define MAKE_INFO_ACCESSORS_STATIC(Name, INFIX) \
-	MAKE_GET_INFO_STATIC(Name, INFIX) \
+	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
+	{ \
+		FASSERT_BOUNDS(0, NUM_ENUM_TYPES(INFIX), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
+		return *m_pa##Name##Info[e##Name]; \
+	} \
 	/* Deprecated: */ \
-	__forceinline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
+	inline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
 	{ \
 		return getInfo(e##Name); \
 	}

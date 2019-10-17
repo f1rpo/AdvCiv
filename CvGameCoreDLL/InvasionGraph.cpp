@@ -786,7 +786,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double deploymentDistAttacker = 0;
 	double mwmalpFactor = 1;
 	if(id == weId) {
-		int mwmalp = GC.getLeaderHeadInfo(GET_PLAYER(id). // in the interval [0,4]
+		int mwmalp = GC.getInfo(GET_PLAYER(id). // in the interval [0,4]
 				getPersonalityType()).getMaxWarMinAdjacentLandPercent();
 		mwmalpFactor = std::max(1, mwmalp + 5 - (mwmalp == 0 ? 1 : 0)) / 6.0;
 		// NB: mwmalp also factors into defensibilityCost (WarUtilityAspect::Greed)
@@ -1510,7 +1510,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 						outer.m.evaluationParameters().getCapitulationTeam()) &&
 						nConqueredByAtt >= std::max(nConqueredByOther + 1,
 						(bWar ? 1 : 2))) {
-					double powModPercent = GC.getLeaderHeadInfo(GET_PLAYER(id).
+					double powModPercent = GC.getInfo(GET_PLAYER(id).
 							getPersonalityType()).getVassalPowerModifier();
 					bool powModNegative = (powModPercent < 0);
 					powModPercent = (powModNegative ? -1 : 1) *

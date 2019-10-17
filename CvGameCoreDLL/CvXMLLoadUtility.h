@@ -302,6 +302,8 @@ private:
 	// special cases of set class info which don't use the template because of extra code they have
 	//
 	void SetGlobalActionInfo();
+	// advc:
+	template <class T, typename E> void setActionData(T& kInfo, int iAction, E eMissionCommand);
 	void SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimationPathInfo, char* szTagName, int* iNumVals);
 	//void SetGameText(const char* szTextGroup, const char* szTagName);
 	void SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name); // K-Mod

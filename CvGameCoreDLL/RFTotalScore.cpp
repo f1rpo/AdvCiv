@@ -118,7 +118,7 @@ void RFTotalScore::update(std::vector<RFChapter*> const& chapters) {
 	/*fromRemainingTime = std::max(0, ::round((total - compensation) *
 			(remainingTimePercent / 200.0)));*/
 	total += fromRemainingTime + fromScored + fromFinishedUnscored;
-	CvHandicapInfo& handicap = GC.getHandicapInfo(GC.getGame().getHandicapType());
+	CvHandicapInfo& handicap = GC.getInfo(GC.getGame().getHandicapType());
 	difficultyPercent = ::round(100 *
 			((handicap.getDifficulty() + 10) / 40.0) - 100);
 	fromDifficulty = (total <= 0 ? 0 : ::round((difficultyPercent / 100.0) * total));
@@ -134,7 +134,7 @@ void RFTotalScore::updateString() {
 			fromVictory, unstarted, -fromInitialRank, initialRank,
 			initialRivals + 1, fromRemainingTime, remainingTimePercent,
 			fromDifficulty, difficultyPercent,
-			GC.getHandicapInfo(GC.getGame().getHandicapType()).getDescription(),
+			GC.getInfo(GC.getGame().getHandicapType()).getDescription(),
 			total,
 			RiseFall::fillWS(fromScored, true),
 			RiseFall::fillWS(fromFinishedUnscored, true),

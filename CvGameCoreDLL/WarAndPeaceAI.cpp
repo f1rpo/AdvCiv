@@ -169,7 +169,7 @@ void WarAndPeaceAI::applyPersonalityWeight() {
 	for(int i = 0; i < GC.getNumLeaderHeadInfos(); i++) {
 		if(i == GET_PLAYER(BARBARIAN_PLAYER).getLeaderType())
 			continue;
-		CvLeaderHeadInfo& kLeader = GC.getLeaderHeadInfo((LeaderHeadTypes)i);
+		CvLeaderHeadInfo& kLeader = GC.getInfo((LeaderHeadTypes)i);
 		/*  Basically serialize CvLeaderHeadInfo to avoid writing any more code
 			per member variable than necessary. Tempting to use CvLeaderHeadInfo::
 			write(FDataStreamBase*) for this, but some members have to be excluded. */

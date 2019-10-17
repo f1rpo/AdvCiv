@@ -264,7 +264,7 @@ void CvXMLLoadUtility::InitBuildingDefaults(int **ppiDefaults)
 	// loop through all the pointers and set their default values
 	for (i=0;i<GC.getNumBuildingClassInfos();i++)
 	{
-		piDefaults[i] = GC.getBuildingClassInfo((BuildingClassTypes) i).getDefaultBuildingIndex();
+		piDefaults[i] = GC.getInfo((BuildingClassTypes) i).getDefaultBuildingIndex();
 	}
 
 }
@@ -293,7 +293,7 @@ void CvXMLLoadUtility::InitUnitDefaults(int **ppiDefaults)
 	// loop through all the pointers and set their default values
 	for (i=0;i<GC.getNumUnitClassInfos();i++)
 	{
-		piDefaults[i] = GC.getUnitClassInfo((UnitClassTypes) i).getDefaultUnitIndex();
+		piDefaults[i] = GC.getInfo((UnitClassTypes) i).getDefaultUnitIndex();
 	}
 }
 

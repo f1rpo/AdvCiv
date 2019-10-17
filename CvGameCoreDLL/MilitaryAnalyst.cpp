@@ -178,7 +178,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	if(prepTime <= 0 && warEvalParams.isTotal())
 		timeHorizon += 5;
 	// Look a bit farther on Marathon speed
-	if(GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+	if(GC.getInfo(GC.getGame().getGameSpeedType()).
 			getGoldenAgePercent() >= 150)
 		timeHorizon += 5;
 	/*  Skip phase 1 if it would be short (InvasionGraph::Node::isSneakAttack

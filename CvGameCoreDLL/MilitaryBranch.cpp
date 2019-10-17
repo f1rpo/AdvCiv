@@ -56,14 +56,14 @@ void MilitaryBranch::updateTypicalUnit() {
 	CvCivilization const& civ = owner.getCivilization();
 	for (int i = 0; i < civ.getNumUnits(); i++) {
 		UnitTypes ut = civ.unitAt(i);
-		CvUnitInfo const& u = GC.getUnitInfo(ut);
+		CvUnitInfo const& u = GC.getInfo(ut);
 		// Siege and air units count for power but aren't typical
 		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
 				u.getDomainType() == DOMAIN_AIR || u.getDomainType() == DOMAIN_IMMOBILE)
 			continue;
 		/*  I may want to give some combat unit (e.g. War Elephant) a national limit
 			or an instance cost modifier at some point */
-		CvUnitClassInfo const& uci = GC.getUnitClassInfo((UnitClassTypes)i);
+		CvUnitClassInfo const& uci = GC.getInfo((UnitClassTypes)i);
 		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
 				(GC.getGame().getCurrentEra() + 1) * 4)
@@ -109,14 +109,14 @@ void MilitaryBranch::NuclearArsenal::updateTypicalUnit() {
 	double bestVal = 0;
 	CvPlayerAI& civ = GET_PLAYER(ownerId);
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
+		UnitTypes ut = (UnitTypes)(GC.getInfo(
 				civ.getCivilizationType()).getCivilizationUnits(i));
 		if(ut == NO_UNIT)
 			continue;
 		CvCity* capital = civ.getCapitalCity();
 		if(capital == NULL || !capital->canTrain(ut))
 			continue;
-		CvUnitInfo const& u = GC.getUnitInfo(ut);
+		CvUnitInfo const& u = GC.getInfo(ut);
 		double unitPow = unitPower(u, true);
 		if(unitPow < 0.01)
 			continue;
@@ -136,7 +136,7 @@ CvUnitInfo const* MilitaryBranch::getTypicalUnit() const {
 
 	if(typicalUnitType == NO_UNIT)
 		return NULL;
-	return &GC.getUnitInfo(typicalUnitType);
+	return &GC.getInfo(typicalUnitType);
 }
 
 UnitTypes MilitaryBranch::getTypicalUnitType() const {
@@ -284,7 +284,7 @@ double MilitaryBranch::HomeGuard::unitPower(CvUnitInfo const& u,
 		double defMod = 1 + u.getCityDefenseModifier() / 100.0;
 		// Prefer potential garrisons
 		for(int i = 0; i < GC.getNumPromotionInfos(); i++) {
-			CvPromotionInfo const& prom = GC.getPromotionInfo((PromotionTypes)i);
+			CvPromotionInfo const& prom = GC.getInfo((PromotionTypes)i);
 			if(prom.getCityDefensePercent() >= 20
 					&& prom.getUnitCombat(u.getUnitCombatType())) {
 				defMod += 0.1;
@@ -331,7 +331,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 			return -1;
 		// Prefer potential city raiders
 		for(int i = 0; i < GC.getNumPromotionInfos(); i++) {
-			CvPromotionInfo const& prom = GC.getPromotionInfo((PromotionTypes)i);
+			CvPromotionInfo const& prom = GC.getInfo((PromotionTypes)i);
 			if(prom.getCityAttackPercent() >= 20
 					&& prom.getUnitCombat(u.getUnitCombatType())) {
 				r *= 1.1;
@@ -466,11 +466,11 @@ bool MilitaryBranch::Army::canTrainSiege() const {
 
 	CvPlayerAI const& civ = GET_PLAYER(ownerId);
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
+		UnitTypes ut = (UnitTypes)(GC.getInfo(
 				civ.getCivilizationType()).getCivilizationUnits(i));
 		if(ut == NO_UNIT)
 			continue;
-		CvUnitInfo const& u = GC.getUnitInfo(ut);
+		CvUnitInfo const& u = GC.getInfo(ut);
 		if(((u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_LAND) ||
 				(u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_AIR)) &&
 				civ.AI_canBeExpectedToTrain(ut))
@@ -485,11 +485,11 @@ bool MilitaryBranch::Army::canTrainCollateral() const {
 
 	CvPlayerAI const& civ = GET_PLAYER(ownerId);
 	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
-		UnitTypes ut = (UnitTypes)(GC.getCivilizationInfo(
+		UnitTypes ut = (UnitTypes)(GC.getInfo(
 				civ.getCivilizationType()).getCivilizationUnits(i));
 		if(ut == NO_UNIT)
 			continue;
-		CvUnitInfo const& u = GC.getUnitInfo(ut);
+		CvUnitInfo const& u = GC.getInfo(ut);
 		if(u.getCollateralDamage() > 0 &&
 				isValidDomain((DomainTypes)u.getDomainType()) &&
 				civ.AI_canBeExpectedToTrain(ut))

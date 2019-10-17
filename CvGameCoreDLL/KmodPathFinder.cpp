@@ -24,7 +24,7 @@ void KmodPathFinder::InitHeuristicWeights()
 	admissible_scaled_weight = GC.getMOVE_DENOMINATOR()/2;
 	for (int r = 0; r < GC.getNumRouteInfos(); r++)
 	{
-		const CvRouteInfo& kInfo = GC.getRouteInfo((RouteTypes)r);
+		const CvRouteInfo& kInfo = GC.getInfo((RouteTypes)r);
 		int iCost = kInfo.getMovementCost();
 		for (int t = 0; t < GC.getNumTechInfos(); t++)
 		{

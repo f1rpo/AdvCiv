@@ -133,15 +133,15 @@ int CvGameAI::AI_combatValue(UnitTypes eUnit) /* K-Mod: */ const
 {
 	int iValue = 100;
 
-	if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_AIR)
+	if (GC.getInfo(eUnit).getDomainType() == DOMAIN_AIR)
 	{
-		iValue *= GC.getUnitInfo(eUnit).getAirCombat();
+		iValue *= GC.getInfo(eUnit).getAirCombat();
 	}
 	else
 	{
-		iValue *= GC.getUnitInfo(eUnit).getCombat();
+		iValue *= GC.getInfo(eUnit).getCombat();
 
-		iValue *= ((((GC.getUnitInfo(eUnit).getFirstStrikes() * 2) + GC.getUnitInfo(eUnit).getChanceFirstStrikes()) * (GC.getCOMBAT_DAMAGE() / 5)) + 100);
+		iValue *= ((((GC.getInfo(eUnit).getFirstStrikes() * 2) + GC.getInfo(eUnit).getChanceFirstStrikes()) * (GC.getCOMBAT_DAMAGE() / 5)) + 100);
 		iValue /= 100;
 	}
 

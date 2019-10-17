@@ -120,7 +120,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 			for(int i = 0; i < GC.getNumVictoryInfos(); i++)
 			{
 				VictoryTypes eVictory = (VictoryTypes)i;
-				if(GC.getVictoryInfo(eVictory).isTargetScore())
+				if(GC.getInfo(eVictory).isTargetScore())
 				{
 					m_eVictoryType = eVictory;
 					break;
@@ -157,8 +157,8 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 
 			PlayerInfo playerInfo;
 			playerInfo.m_eLeader = player.getLeaderType();
-			//playerInfo.m_eColor = (ColorTypes)GC.getPlayerColorInfo(player.getPlayerColor()).getColorTypePrimary();
-			playerInfo.m_eColor = (ColorTypes)GC.getPlayerColorInfo(GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary(); // K-Mod. (bypass the conceal colour check.)
+			//playerInfo.m_eColor = (ColorTypes)GC.getInfo(player.getPlayerColor()).getColorTypePrimary();
+			playerInfo.m_eColor = (ColorTypes)GC.getInfo(GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary(); // K-Mod. (bypass the conceal colour check.)
 			for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
 			{
 				TurnData score;
@@ -240,24 +240,24 @@ void CvReplayInfo::addSettingsMsg()
 	}
 	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
 		added by advc.137 (same issue in CvVictoryScreen.py) */
-	int iSeaLevelChange = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
+	int iSeaLevelChange = GC.getInfo(getSeaLevel()).getSeaLevelChange();
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	CvWString szSettings(gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
-			GC.getLeaderHeadInfo(kPlayer.getLeaderType()).getTextKeyWide(),
+			GC.getInfo(kPlayer.getLeaderType()).getTextKeyWide(),
 			kPlayer.getCivilizationShortDescriptionKey(), kPlayer.getReplayName()) + L"\n" +
 			gDLL->getText("TXT_KEY_SETTINGS_DIFFICULTY",
-			GC.getHandicapInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
+			GC.getInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
 			(bScenario ? szMapName : gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
-			GC.getWorldInfo(getWorldSize()).getTextKeyWide(),
+			GC.getInfo(getWorldSize()).getTextKeyWide(),
 			getMapScriptName().GetCString()) + L" " +
 			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
-			(iSeaLevelChange == 0 ? GC.getSeaLevelInfo(getSeaLevel()).getTextKeyWide() :
+			(iSeaLevelChange == 0 ? GC.getInfo(getSeaLevel()).getTextKeyWide() :
 			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
-			GC.getClimateInfo(getClimate()).getTextKeyWide()))));
+			GC.getInfo(getClimate()).getTextKeyWide()))));
 	// <advc.004>
 	CvMap const& kMap = GC.getMap();
 	for(int i = 0; i < kMap.getNumCustomMapOptions(); i++)
@@ -270,12 +270,12 @@ void CvReplayInfo::addSettingsMsg()
 	} // </advc.004>
 	szSettings.append(NEWLINE);
 	szSettings.append(gDLL->getText("TXT_KEY_SETTINGS_GAME_SPEED",
-			GC.getGameSpeedInfo(getGameSpeed()).getTextKeyWide()));
+			GC.getInfo(getGameSpeed()).getTextKeyWide()));
 	if (getEra() != 0)
 	{
 		szSettings.append(L", ");
 		szSettings.append(gDLL->getText("TXT_KEY_SETTINGS_STARTING_ERA",
-			GC.getEraInfo(getEra()).getTextKeyWide()));
+			GC.getInfo(getEra()).getTextKeyWide()));
 	}
 	szSettings.append(NEWLINE);
 	// <advc.250b>
@@ -291,7 +291,7 @@ void CvReplayInfo::addSettingsMsg()
 		if(g.isVictoryValid(eVictory))
 			continue;
 		iDisabled++;
-		szSettings += GC.getVictoryInfo(eVictory).getDescription();
+		szSettings += GC.getInfo(eVictory).getDescription();
 		szSettings += L", ";
 	}
 	if(iDisabled > 0)
@@ -317,7 +317,7 @@ void CvReplayInfo::addSettingsMsg()
 				(eOption == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
 			continue;
 		iOptions++;
-		szSettings += GC.getGameOptionInfo(eOption).getDescription();
+		szSettings += GC.getInfo(eOption).getDescription();
 		szSettings += L", ";
 	}
 	if(iOptions > 0)

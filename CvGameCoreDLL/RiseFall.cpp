@@ -64,12 +64,12 @@ void RiseFall::init() {
 	for(size_t i = 0; i < incompatible.size(); i++) {
 		if(g.isOption(incompatible[i])) {
 			shutOff(gDLL->getText("TXT_KEY_RF_INVALID_OPTION",
-					GC.getGameOptionInfo(incompatible[i]).getTextKeyWide()));
+					GC.getInfo(incompatible[i]).getTextKeyWide()));
 			return;
 		}
 	}
 	int maxChapters = GC.getDefineINT("RF_CHAPTERS_BASE");
-	CvGameSpeedInfo& speed = GC.getGameSpeedInfo(g.getGameSpeedType());
+	CvGameSpeedInfo& speed = GC.getInfo(g.getGameSpeedType());
 	double chapterModifier = (speed.getGoldenAgePercent() + 100) / 200.0;
 	int startTurn = g.getStartTurn();
 	int endTurn = g.getEstimateEndTurn();
@@ -412,7 +412,7 @@ void RiseFall::atActiveTurnStart() {
 			CvWString text;
 			/*  Bypass CvPlayer::getCivilizationDescription
 				(which obscures unknown civs) */
-			wchar const* civDescr = GC.getCivilizationInfo(
+			wchar const* civDescr = GC.getInfo(
 					GET_PLAYER(chapters[i]->getCiv()).getCivilizationType()).
 					getShortDescription();
 			if(GET_PLAYER(chapters[i]->getCiv()).isAlive())
@@ -474,7 +474,7 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		civ.setIsHuman(false);
 		GC.getInitCore().setHandicap(civId, g.getAIHandicap());
 		GC.getInitCore().setLeaderName(civId,
-				GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription());
+				GC.getInfo(civ.getLeaderType()).getDescription());
 		gDLL->getInterfaceIFace()->flushTalkingHeadMessages();
 		gDLL->getInterfaceIFace()->clearEventMessages();
 		gDLL->getInterfaceIFace()->clearSelectedCities();
@@ -518,7 +518,7 @@ void RiseFall::setUIHidden(bool b) {
 void RiseFall::setPlayerName() {
 
 	PlayerTypes activeCiv = GC.getGame().getActivePlayer();
-	CvWString newName = GC.getLeaderHeadInfo(GET_PLAYER(activeCiv).getLeaderType()).getDescription();
+	CvWString newName = GC.getInfo(GET_PLAYER(activeCiv).getLeaderType()).getDescription();
 	/*  Must only use characters that are allowed in file names; otherwise,
 		no replay file gets created for the HoF. */
 	newName += L"'";
@@ -1089,13 +1089,13 @@ CvWString RiseFall::knownName(PlayerTypes civId, bool nameNumber) const {
 				break;
 			}
 		} // Bypass CvPlayer::getCivDescription
-		wchar const* civDescr = GC.getCivilizationInfo(civ.getCivilizationType()).
+		wchar const* civDescr = GC.getInfo(civ.getCivilizationType()).
 				getShortDescription();
 		/*  Nicer to show civ names, but if one civ is in the game multiple times,
 			will have to show the leader name. */
 		if(unique)
 			return civDescr;
-		return CvWString(GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription()) +
+		return CvWString(GC.getInfo(civ.getLeaderType()).getDescription()) +
 				L"'s " + civDescr;
 	}
 	if(!nameNumber)

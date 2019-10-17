@@ -59,7 +59,7 @@ void CvGame::updateColoredPlots()
 						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(*pLoopPlot))
 						{
 							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-									GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(
+									GC.getInfo((ColorTypes)GC.getInfo(
 									GET_PLAYER((PlayerTypes)iI).getPlayerColor()).getColorTypePrimary()).getColor(),
 									PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
@@ -84,10 +84,10 @@ void CvGame::updateColoredPlots()
 
 					if (NO_BUILD != eBestBuild)
 					{
-						if (GC.getBuildInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getBuildInfo(eBestBuild).getImprovement())
+						if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getInfo(eBestBuild).getImprovement())
 						{
 							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-									GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_RED")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
 					}
@@ -120,18 +120,18 @@ void CvGame::updateColoredPlots()
 				}
 				if (bStartingPlot)
 				{
-					gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
+					gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(), GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
 				else if (GET_PLAYER(getActivePlayer()).AI_isPlotCitySite(*pLoopPlot))
 				{
 					gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-							GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+							GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
 
 				if (pLoopPlot->isRevealed(getActiveTeam(), false))
 				{
-					NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+					NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_WHITE")).getColor());
 					color.a = 0.4f;
 					gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
@@ -154,7 +154,7 @@ void CvGame::updateColoredPlots()
 
 					if (pLoopPlot != NULL)
 					{
-						NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+						NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_WHITE")).getColor());
 						color.a = 0.7f;
 						gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
@@ -175,7 +175,7 @@ void CvGame::updateColoredPlots()
 					if (pRallyPlot != NULL)
 					{
 						gDLL->getEngineIFace()->addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
-								GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+								GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_YELLOW")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 					}
 				}
@@ -198,8 +198,8 @@ void CvGame::updateColoredPlots()
 				{
 					if (pLoopPlot->getWorkingCity() != NULL)
 					{
-						NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
-								"COLOR_HIGHLIGHT_TEXT")/*(GC.getPlayerColorInfo(GET_PLAYER(pHeadSelectedUnit->getOwner()).getPlayerColor()).getColorTypePrimary())*/).getColor());
+						NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
+								"COLOR_HIGHLIGHT_TEXT")/*(GC.getInfo(GET_PLAYER(pHeadSelectedUnit->getOwner()).getPlayerColor()).getColorTypePrimary())*/).getColor());
 						color.a = 1.0f;
 						gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
 								color, AREA_BORDER_LAYER_CITY_RADIUS);
@@ -230,7 +230,7 @@ void CvGame::updateColoredPlots()
 					{
 						if (m.plotDistance(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), pLoopPlot->getX(), pLoopPlot->getY()) <= iMaxAirRange)
 						{
-							NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+							NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_YELLOW")).getColor());
 							color.a = 0.5f;
 							gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
@@ -255,7 +255,7 @@ void CvGame::updateColoredPlots()
 					{
 						if (pHeadSelectedUnit->plot()->canSeePlot(pTargetPlot, pHeadSelectedUnit->getTeam(), iRange, pHeadSelectedUnit->getFacingDirection(true)))
 						{
-							NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+							NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_YELLOW")).getColor());
 							color.a = 0.5f;
 							gDLL->getEngineIFace()->fillAreaBorderPlot(pTargetPlot->getX(), pTargetPlot->getY(),
@@ -286,7 +286,7 @@ void CvGame::updateColoredPlots()
 					{
 						FAssert(pBestPlot != NULL);
 						gDLL->getEngineIFace()->addColoredPlot(pBestPlot->getX(), pBestPlot->getY(),
-								GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+								GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						CvPlot* pNextBestPlot = NULL;
 						if (kRecommendUnit.AI_bestCityBuild(*pCity, &pNextBestPlot, NULL, pBestPlot) &&
@@ -294,7 +294,7 @@ void CvGame::updateColoredPlots()
 						{
 							FAssert(pNextBestPlot != NULL);
 							gDLL->getEngineIFace()->addColoredPlot(pNextBestPlot->getX(), pNextBestPlot->getY(),
-									GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						}
 					}
@@ -317,7 +317,7 @@ void CvGame::updateColoredPlots()
 				if (pSite && site_path.GeneratePath(pSite))
 				{
 					gDLL->getEngineIFace()->addColoredPlot(pSite->getX(), pSite->getY(),
-							GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+							GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
 			}
@@ -344,7 +344,7 @@ void CvGame::updateColoredPlots()
 						if (site_path.GeneratePath(pLoopPlot))
 						{
 							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-									GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(
+									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						}
 					}
@@ -369,7 +369,7 @@ void CvGame::updateColoredPlots()
 					pLoopUnit->blockadeRange(apRange);
 					for(size_t j = 0; j < apRange.size(); j++) // </advc.033>
 					{
-						NiColorA color(GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(
+						NiColorA color(GC.getInfo((ColorTypes)GC.getInfo(
 							GET_PLAYER(getActivePlayer()).getPlayerColor()).
 							getColorTypePrimary()).getColor());
 						color.a = 0.5f;
@@ -396,7 +396,7 @@ void CvGame::updateBlockadedPlots()
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
 		if (pLoopPlot->getBlockadedCount(getActiveTeam()) > 0 && pLoopPlot->isRevealed(getActiveTeam(), false))
 		{
-			NiColorA color(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_BLACK")).getColor());
+			NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_BLACK")).getColor());
 			color.a = 0.35f;
 			gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(), color, AREA_BORDER_LAYER_BLOCKADED);
 		}
@@ -1098,12 +1098,12 @@ void CvGame::handleAction(int iAction)
 		CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
-			if (GC.getInterfaceModeInfo((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType()).getSelectAll())
+			if (GC.getInfo((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType()).getSelectAll())
 			{
 				//gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, false, true);
 				gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, true, true); // K-Mod
 			}
-			else if (GC.getInterfaceModeInfo((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType()).getSelectType())
+			else if (GC.getInfo((InterfaceModeTypes)GC.getActionInfo(iAction).getInterfaceModeType()).getSelectType())
 			{
 				gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, true, false);
 			}
@@ -1890,7 +1890,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			UnitTypes eLoopUnit = kCiv.unitAt(i);
 			if (!pCity->canTrain(eLoopUnit))
 				continue;
-			szBuffer = GC.getUnitInfo(eLoopUnit).getDescription();
+			szBuffer = GC.getInfo(eLoopUnit).getDescription();
 			int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
 			if(iTurns < MAX_INT) // advc.004x
 				szBuffer.append(CvWString::format(L" (%d)", iTurns));
@@ -1902,7 +1902,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 			if (!pCity->canConstruct(eLoopBuilding))
 				continue;
-			szBuffer = GC.getBuildingInfo(eLoopBuilding).getDescription();
+			szBuffer = GC.getInfo(eLoopBuilding).getDescription();
 			int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
 			if(iTurns < MAX_INT) // advc.004x
 				szBuffer.append(CvWString::format(L" (%d)", iTurns));
@@ -1914,7 +1914,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			ProjectTypes eLoopProject = (ProjectTypes) iI;
 			if (!pCity->canCreate(eLoopProject))
 				continue;
-			szBuffer = GC.getProjectInfo(eLoopProject).getDescription();
+			szBuffer = GC.getInfo(eLoopProject).getDescription();
 			int iTurns = pCity->getProductionTurnsLeft(eLoopProject, 0);
 			if(iTurns < MAX_INT) // advc.004x
 				szBuffer.append(CvWString::format(L" (%d)", iTurns));
@@ -1926,7 +1926,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			ProcessTypes eLoopProcess = (ProcessTypes)iI;
 			if (!pCity->canMaintain(eLoopProcess))
 				continue; // advc
-			szBuffer = GC.getProcessInfo(eLoopProcess).getDescription();
+			szBuffer = GC.getInfo(eLoopProcess).getDescription();
 			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
 					pPlot->getX(), pPlot->getY(), szBuffer));
 		}
@@ -1955,7 +1955,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			UnitTypes eConscriptUnit = pCity->getConscriptUnit();
 			if (eConscriptUnit != NO_UNIT)
 			{
-				szBuffer = gDLL->getText("TXT_KEY_DRAFT_UNIT", GC.getUnitInfo(eConscriptUnit).getDescription(), pCity->getConscriptPopulation());
+				szBuffer = gDLL->getText("TXT_KEY_DRAFT_UNIT", GC.getInfo(eConscriptUnit).getDescription(), pCity->getConscriptPopulation());
 				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSCRIPT, GC.getNumHurryInfos(), pPlot->getX(), pPlot->getY(), szBuffer));
 			}
 		}
@@ -2164,7 +2164,7 @@ CvPlot* CvGame::getNewHighlightPlot() const  // advc: refactored
 {
 	if (gDLL->GetWorldBuilderMode())
 		return GC.getPythonCaller()->WBGetHighlightPlot();
-	if (GC.getInterfaceModeInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
+	if (GC.getInfo(gDLL->getInterfaceIFace()->getInterfaceMode()).getHighlightPlot())
 		return gDLL->getInterfaceIFace()->getMouseOverPlot();
 	return NULL;
 }
@@ -2205,7 +2205,7 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
-		if (GC.getUnitInfo(eUnit).getType() == strItem)
+		if (GC.getInfo(eUnit).getType() == strItem)
 		{
 			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_TRAIN,
 					eUnit, -1, false, false, true);
@@ -2215,7 +2215,7 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
-		if (GC.getBuildingInfo(eBuilding).getType() == strItem)
+		if (GC.getInfo(eBuilding).getType() == strItem)
 		{
 			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CONSTRUCT,
 					eBuilding, -1, false, false, true);
@@ -2224,7 +2224,7 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 	}
 	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
 	{
-		if (strItem == GC.getProjectInfo((ProjectTypes)iI).getType())
+		if (strItem == GC.getInfo((ProjectTypes)iI).getType())
 		{
 			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_CREATE,
 					(ProjectTypes)iI, -1, false, false, true);
@@ -2234,7 +2234,7 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 
 	for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
 	{
-		if (strItem == GC.getProcessInfo((ProcessTypes)iI).getType())
+		if (strItem == GC.getInfo((ProcessTypes)iI).getType())
 		{
 			selectedCitiesGameNetMessage(GAMEMESSAGE_PUSH_ORDER, ORDER_MAINTAIN,
 					(ProcessTypes)iI, -1, false, false, true);
@@ -2252,7 +2252,7 @@ void CvGame::cheatSpaceship() const
 	for (int i = 0; i < GC.getNumProjectInfos(); i++)
 	{
 		ProjectTypes eProject = (ProjectTypes) i;
-		CvProjectInfo& kProject = GC.getProjectInfo(eProject);
+		CvProjectInfo& kProject = GC.getInfo(eProject);
 		if (kProject.isSpaceship())
 		{
 			//cheat required projects
@@ -2288,17 +2288,17 @@ void CvGame::cheatSpaceship() const
 
 DomainTypes CvGame::getUnitDomain(UnitTypes eUnit) const
 {
-	return (DomainTypes) GC.getUnitInfo(eUnit).getDomainType();
+	return (DomainTypes) GC.getInfo(eUnit).getDomainType();
 }
 
 const CvArtInfoBuilding* CvGame::getBuildingArtInfo(BuildingTypes eBuilding) const
 {
-	return GC.getBuildingInfo(eBuilding).getArtInfo();
+	return GC.getInfo(eBuilding).getArtInfo();
 }
 
 bool CvGame::isWaterBuilding(BuildingTypes eBuilding) const
 {
-	return GC.getBuildingInfo(eBuilding).isWater();
+	return GC.getInfo(eBuilding).isWater();
 }
 
 CivilopediaWidgetShowTypes CvGame::getWidgetShow(BonusTypes eBonus) const
@@ -2309,7 +2309,7 @@ CivilopediaWidgetShowTypes CvGame::getWidgetShow(BonusTypes eBonus) const
 
 	for (int i = 0; i < GC.getNumTerrainInfos(); i++)
 	{
-		if (GC.getBonusInfo(eBonus).isTerrain(i))
+		if (GC.getInfo(eBonus).isTerrain(i))
 		{
 			bShowWidget = true;
 			break;
@@ -2320,7 +2320,7 @@ CivilopediaWidgetShowTypes CvGame::getWidgetShow(BonusTypes eBonus) const
 	{
 		for (int i = 0; i < GC.getNumFeatureInfos(); i++)
 		{
-			if (GC.getBonusInfo(eBonus).isFeature(i))
+			if (GC.getInfo(eBonus).isFeature(i))
 			{
 				bShowWidget = true;
 				break;
@@ -2336,9 +2336,9 @@ CivilopediaWidgetShowTypes CvGame::getWidgetShow(BonusTypes eBonus) const
 	CivilopediaWidgetShowTypes eType = CIVILOPEDIA_WIDGET_SHOW_LAND;
 	for (int i = 0; i < GC.getNumTerrainInfos(); i++)
 	{
-		if (GC.getTerrainInfo((TerrainTypes) i).isWater())
+		if (GC.getInfo((TerrainTypes) i).isWater())
 		{
-			if (GC.getBonusInfo(eBonus).isTerrain(i))
+			if (GC.getInfo(eBonus).isTerrain(i))
 			{
 				eType = CIVILOPEDIA_WIDGET_SHOW_WATER;
 			}
@@ -2351,7 +2351,7 @@ CivilopediaWidgetShowTypes CvGame::getWidgetShow(BonusTypes eBonus) const
 CivilopediaWidgetShowTypes CvGame::getWidgetShow(ImprovementTypes eImprovement) const
 {
 	CivilopediaWidgetShowTypes eType = CIVILOPEDIA_WIDGET_SHOW_LAND;
-	if (GC.getImprovementInfo(eImprovement).isWater())
+	if (GC.getInfo(eImprovement).isWater())
 	{
 		eType = CIVILOPEDIA_WIDGET_SHOW_WATER;
 	}
@@ -2364,9 +2364,9 @@ VictoryTypes CvGame::getSpaceVictory() const
 	for (int i=0; i < GC.getNumProjectInfos(); i++)
 	{
 		ProjectTypes eProject = (ProjectTypes) i;
-		if (GC.getProjectInfo(eProject).isSpaceship())
+		if (GC.getInfo(eProject).isSpaceship())
 		{
-			eVictory = (VictoryTypes) GC.getProjectInfo(eProject).getVictoryPrereq();
+			eVictory = (VictoryTypes) GC.getInfo(eProject).getVictoryPrereq();
 			break;
 		}
 	}
@@ -2407,7 +2407,7 @@ void CvGame::nextActivePlayer(bool bForward)
 int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 {
 	EraTypes eCurEra = GET_PLAYER(getActivePlayer()).getCurrentEra();
-	CvEraInfo& kCurrentEra = GC.getEraInfo(eCurEra);
+	CvEraInfo& kCurrentEra = GC.getInfo(eCurEra);
 	if (kCurrentEra.getNumSoundtracks() == 0)
 	{
 		return -1;
@@ -2424,7 +2424,7 @@ int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 
 int CvGame::getSoundtrackSpace() const
 {
-	return std::max(1, GC.getEraInfo(GET_PLAYER(getActivePlayer()).getCurrentEra()).getSoundtrackSpace());
+	return std::max(1, GC.getInfo(GET_PLAYER(getActivePlayer()).getCurrentEra()).getSoundtrackSpace());
 }
 
 bool CvGame::isSoundtrackOverride(CvString& strSoundtrack) const

@@ -647,7 +647,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		{
 			for (iJ = 0; iJ < GC.getNumVoteInfos(); iJ++)
 			{
-				if (GC.getVoteInfo((VoteTypes)iJ).isVoteSourceType((VoteSourceTypes)iI) && GC.getVoteInfo((VoteTypes)iJ).isSecretaryGeneral())
+				if (GC.getInfo((VoteTypes)iJ).isVoteSourceType((VoteSourceTypes)iI) && GC.getInfo((VoteTypes)iJ).isSecretaryGeneral())
 				{
 					VoteTriggeredData kData;
 					kData.iId = FFreeList::INVALID_INDEX;
@@ -895,7 +895,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 				if(iCityBuildings <= 0 ||
 						isObsoleteBuilding(eBuilding))
 					continue;
-				if(GC.getBuildingInfo(eBuilding).isTeamShare()) {
+				if(GC.getInfo(eBuilding).isTeamShare()) {
 					for(iK = 0; iK < MAX_PLAYERS; iK++) {
 						if(GET_PLAYER((PlayerTypes)iK).getTeam() == getID()) {
 							GET_PLAYER((PlayerTypes)iK).processBuilding(eBuilding,
@@ -921,7 +921,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 				if(iCityBuildings <= 0 ||
 						isObsoleteBuilding(eBuilding))
 					continue;
-				if(GC.getBuildingInfo(eBuilding).isTeamShare()) {
+				if(GC.getInfo(eBuilding).isTeamShare()) {
 					for(iK = 0; iK < MAX_PLAYERS; iK++) {
 						if(GET_PLAYER((PlayerTypes)iK).getTeam() == eTeam) {
 							GET_PLAYER((PlayerTypes)iK).processBuilding(eBuilding,
@@ -1091,13 +1091,13 @@ void CvTeam::processBuilding(BuildingTypes eBuilding, int iChange)
 {
 	for (int i = 0; i < GC.getNumVoteSourceInfos(); ++i)
 	{
-		if (GC.getBuildingInfo(eBuilding).getVoteSourceType() == i)
+		if (GC.getInfo(eBuilding).getVoteSourceType() == i)
 		{
-			changeForceTeamVoteEligibilityCount((VoteSourceTypes)i, (GC.getBuildingInfo(eBuilding).isForceTeamVoteEligible()) ? iChange : 0);
+			changeForceTeamVoteEligibilityCount((VoteSourceTypes)i, (GC.getInfo(eBuilding).isForceTeamVoteEligible()) ? iChange : 0);
 		}
 	}
 
-	if (GC.getBuildingInfo(eBuilding).isMapCentering())
+	if (GC.getInfo(eBuilding).isMapCentering())
 	{
 		if (iChange > 0)
 		{
@@ -1105,7 +1105,7 @@ void CvTeam::processBuilding(BuildingTypes eBuilding, int iChange)
 		}
 	}
 
-	changeEnemyWarWearinessModifier(GC.getBuildingInfo(eBuilding).getEnemyWarWearinessModifier() * iChange);
+	changeEnemyWarWearinessModifier(GC.getInfo(eBuilding).getEnemyWarWearinessModifier() * iChange);
 }
 
 
@@ -2408,7 +2408,7 @@ bool CvTeam::isInContactWithBarbarians() const
 	if(g.isOption(GAMEOPTION_NO_BARBARIANS))
 		return true; // Needed for advc.314 (free unit from goody hut)
 	bool bCheckCity = g.getElapsedGameTurns() >=
-			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent();
+			GC.getInfo(g.getGameSpeedType()).getBarbPercent();
 	// (Perhaps just iUnitThresh=1 would have the same effect)
 	int iUnitThresh = g.getCurrentEra();
 	CvTeam const& kBarbarianTeam = GET_TEAM(BARBARIAN_TEAM);
@@ -2645,18 +2645,18 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	CvGame const& g = GC.getGame();
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
-	double cost = GC.getTechInfo(eTech).getResearchCost();
-	cost *= 0.01 * GC.getHandicapInfo(getHandicapType()).getResearchPercent();
+	double cost = GC.getInfo(eTech).getResearchCost();
+	cost *= 0.01 * GC.getInfo(getHandicapType()).getResearchPercent();
 	// <advc.251>
 	if (!isHuman() && !isBarbarian())
 	{
 		// Important to use game handicap here (not team handicap)
-		cost *= 0.01 * (GC.getHandicapInfo(g.getHandicapType()).
+		cost *= 0.01 * (GC.getInfo(g.getHandicapType()).
 				getAIResearchPercent() + g.AIHandicapAdjustment());
 	}
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
-	EraTypes eTechEra = (EraTypes)GC.getTechInfo(eTech).getEra();
-	int iModifier = 100 + GC.getEraInfo(eTechEra).getTechCostModifier();
+	EraTypes eTechEra = (EraTypes)GC.getInfo(eTech).getEra();
+	int iModifier = 100 + GC.getInfo(eTechEra).getTechCostModifier();
 	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
 	static int const iTECH_COST_MODIFIER = GC.getDefineINT("TECH_COST_MODIFIER");
@@ -2664,14 +2664,14 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	// </advc.910>
 	if (bGlobalModifiers) // K-Mod
 	{	// advc:
-		CvWorldInfo const& kWorld = GC.getWorldInfo(GC.getMap().getWorldSize());
+		CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
 		if(eTechEra > 0) { // advc.910
 			cost *= 0.01 * kWorld.getResearchPercent();
 			// advc.910:
-			cost *= 0.01 * GC.getSeaLevelInfo(GC.getMap().getSeaLevel()).getResearchPercent();
+			cost *= 0.01 * GC.getInfo(GC.getMap().getSeaLevel()).getResearchPercent();
 		}
-		cost *= 0.01 * GC.getGameSpeedInfo(g.getGameSpeedType()).getResearchPercent();
-		cost *= 0.01 * GC.getEraInfo(g.getStartEra()).getResearchPercent();
+		cost *= 0.01 * GC.getInfo(g.getGameSpeedType()).getResearchPercent();
+		cost *= 0.01 * GC.getInfo(g.getStartEra()).getResearchPercent();
 		// <advc.308>
 		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == 0) {
 			switch(eTechEra) {
@@ -2756,7 +2756,7 @@ bool CvTeam::hasBonus(BonusTypes eBonus) const
 
 bool CvTeam::isBonusObsolete(BonusTypes eBonus) const
 {
-	TechTypes eObsoleteTech = (TechTypes) GC.getBonusInfo(eBonus).getTechObsolete();
+	TechTypes eObsoleteTech = (TechTypes) GC.getInfo(eBonus).getTechObsolete();
 	if (eObsoleteTech != NO_TECH && isHasTech(eObsoleteTech))
 		return true;
 	return false;
@@ -2767,7 +2767,7 @@ bool CvTeam::isBonusObsolete(BonusTypes eBonus) const
 	which isn't relevant for Barbarians. */
 bool CvTeam::canSeeReqBonuses(UnitTypes eUnit)
 {
-	CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+	CvUnitInfo& kUnit = GC.getInfo(eUnit);
 	BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
 	if (eAndBonus != NO_BONUS && !isBonusRevealed(eAndBonus))
 		return false;
@@ -2882,7 +2882,7 @@ HandicapTypes CvTeam::getHandicapType() const
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
-				iGameHandicap += GC.getHandicapInfo(GET_PLAYER((PlayerTypes)iI).
+				iGameHandicap += GC.getInfo(GET_PLAYER((PlayerTypes)iI).
 						getHandicapType()).getDifficulty(); // advc.250a
 				iCount++;
 			}
@@ -3759,7 +3759,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 		CvWString szMsg = gDLL->getText("TXT_KEY_MISC_TEAM_MET",
 				GET_PLAYER(ePlayerMet).getCivilizationAdjectiveKey());
 		ColorTypes ePlayerColor = GET_PLAYER(ePlayerMet).getPlayerTextColor();
-		LPCSTR icon = (pUnitMet == NULL ? GC.getLeaderHeadInfo(GET_PLAYER(ePlayerMet).
+		LPCSTR icon = (pUnitMet == NULL ? GC.getInfo(GET_PLAYER(ePlayerMet).
 				getLeaderType()).getButton() : pUnitMet->getButton());
 		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
@@ -4739,9 +4739,9 @@ bool CvTeam::isProjectMaxedOut(ProjectTypes eIndex, int iExtra) const
 		return false;
 	}
 
-	FAssertMsg(getProjectCount(eIndex) <= GC.getProjectInfo(eIndex).getMaxTeamInstances(), "Current Project count is expected to not exceed the maximum number of instances for this project");
+	FAssertMsg(getProjectCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances(), "Current Project count is expected to not exceed the maximum number of instances for this project");
 
-	return ((getProjectCount(eIndex) + iExtra) >= GC.getProjectInfo(eIndex).getMaxTeamInstances());
+	return ((getProjectCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxTeamInstances());
 }
 
 bool CvTeam::isProjectAndArtMaxedOut(ProjectTypes eIndex) const
@@ -4749,7 +4749,7 @@ bool CvTeam::isProjectAndArtMaxedOut(ProjectTypes eIndex) const
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumProjectInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if(getProjectCount(eIndex) >= GC.getProjectInfo(eIndex).getMaxTeamInstances())
+	if(getProjectCount(eIndex) >= GC.getInfo(eIndex).getMaxTeamInstances())
 	{
 		int count = getProjectCount(eIndex);
 		for(int i=0;i<count;i++)
@@ -4815,7 +4815,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 	}
 	FAssertMsg(getProjectCount(eIndex) == (int)m_pavProjectArtTypes[eIndex].size(), "[Jason] Unbalanced project art types.");
 
-	CvProjectInfo& kProject = GC.getProjectInfo(eIndex);
+	CvProjectInfo& kProject = GC.getInfo(eIndex);
 
 	changeNukeInterception(kProject.getNukeInterception() * iChange);
 
@@ -4861,8 +4861,8 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 
 						for (int iJ = 0; iJ < GC.getNumProjectInfos(); iJ++)
 						{
-							if ((getProjectCount(eIndex) >= GC.getProjectInfo((ProjectTypes)iJ).getProjectsNeeded(eIndex)) &&
-								(iOldProjectCount < GC.getProjectInfo((ProjectTypes)iJ).getProjectsNeeded(eIndex)))
+							if ((getProjectCount(eIndex) >= GC.getInfo((ProjectTypes)iJ).getProjectsNeeded(eIndex)) &&
+								(iOldProjectCount < GC.getInfo((ProjectTypes)iJ).getProjectsNeeded(eIndex)))
 							{
 								bChangeProduction = true;
 								break;
@@ -4945,9 +4945,9 @@ bool CvTeam::isUnitClassMaxedOut(UnitClassTypes eIndex, int iExtra) const
 		return false;
 	}
 
-	FAssertMsg(getUnitClassCount(eIndex) <= GC.getUnitClassInfo(eIndex).getMaxTeamInstances(), "The current unit class count is expected not to exceed the maximum number of instances allowed for this team");
+	FAssertMsg(getUnitClassCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances(), "The current unit class count is expected not to exceed the maximum number of instances allowed for this team");
 
-	return ((getUnitClassCount(eIndex) + iExtra) >= GC.getUnitClassInfo(eIndex).getMaxTeamInstances());
+	return ((getUnitClassCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxTeamInstances());
 }
 
 
@@ -4978,9 +4978,9 @@ bool CvTeam::isBuildingClassMaxedOut(BuildingClassTypes eIndex, int iExtra) cons
 		return false;
 	}
 
-	FAssertMsg(getBuildingClassCount(eIndex) <= GC.getBuildingClassInfo(eIndex).getMaxTeamInstances(), "The current building class count is expected not to exceed the maximum number of instances allowed for this team");
+	FAssertMsg(getBuildingClassCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances(), "The current building class count is expected not to exceed the maximum number of instances allowed for this team");
 
-	return ((getBuildingClassCount(eIndex) + iExtra) >= GC.getBuildingClassInfo(eIndex).getMaxTeamInstances());
+	return ((getBuildingClassCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxTeamInstances());
 }
 
 
@@ -5271,7 +5271,7 @@ int CvTeam::getVictoryDelay(VictoryTypes eVictory) const
 	int iExtraDelayPercent = 0;
 	for (int iProject = 0; iProject < GC.getNumProjectInfos(); ++iProject)
 	{
-		CvProjectInfo& kProject = GC.getProjectInfo((ProjectTypes)iProject);
+		CvProjectInfo& kProject = GC.getInfo((ProjectTypes)iProject);
 		int iCount = getProjectCount((ProjectTypes)iProject);
 
 		if (iCount < kProject.getVictoryMinThreshold(eVictory))
@@ -5304,7 +5304,7 @@ int CvTeam::getLaunchSuccessRate(VictoryTypes eVictory) const
 	int iSuccessRate = 100;
 	for (int iProject = 0; iProject < GC.getNumProjectInfos(); ++iProject)
 	{
-		CvProjectInfo& kProject = GC.getProjectInfo((ProjectTypes)iProject);
+		CvProjectInfo& kProject = GC.getInfo((ProjectTypes)iProject);
 		int iCount = getProjectCount((ProjectTypes)iProject);
 
 		if (iCount < kProject.getVictoryMinThreshold(eVictory))
@@ -5337,13 +5337,13 @@ void CvTeam::resetVictoryProgress()
 
 		for (int iK = 0; iK < GC.getNumProjectInfos(); iK++)
 		{
-			if (GC.getProjectInfo((ProjectTypes)iK).getVictoryMinThreshold((VictoryTypes)iI) > 0)
+			if (GC.getInfo((ProjectTypes)iK).getVictoryMinThreshold((VictoryTypes)iI) > 0)
 			{
 				changeProjectCount((ProjectTypes)iK, -getProjectCount((ProjectTypes)iK));
 			}
 		}
 
-		CvWString szBuffer = gDLL->getText("TXT_KEY_VICTORY_RESET", getReplayName().GetCString(), GC.getVictoryInfo((VictoryTypes)iI).getTextKeyWide());
+		CvWString szBuffer = gDLL->getText("TXT_KEY_VICTORY_RESET", getReplayName().GetCString(), GC.getInfo((VictoryTypes)iI).getTextKeyWide());
 
 		for (int iJ = 0; iJ < MAX_PLAYERS; ++iJ)
 		{
@@ -5443,14 +5443,14 @@ CvWString const CvTeam::tradeItemString(TradeableItems eItem, int iData, TeamTyp
 		CivicTypes eCivic = (CivicTypes)iData;
 		if (eCivic == NO_CIVIC)
 			return L"";
-		return gDLL->getText("TXT_KEY_MISC_ADOPTING_CIVIC", GC.getCivicInfo(eCivic).getTextKeyWide());
+		return gDLL->getText("TXT_KEY_MISC_ADOPTING_CIVIC", GC.getInfo(eCivic).getTextKeyWide());
 	}
 	case TRADE_RELIGION:
 	{
 		ReligionTypes eReligion = (ReligionTypes)iData;
 		if (eReligion == NO_RELIGION)
 			return L"";
-		return gDLL->getText("TXT_KEY_MISC_CONVERTING_RELIGION", GC.getReligionInfo(eReligion).getTextKeyWide());
+		return gDLL->getText("TXT_KEY_MISC_CONVERTING_RELIGION", GC.getInfo(eReligion).getTextKeyWide());
 	}
 	case TRADE_EMBARGO:
 	{
@@ -5476,7 +5476,7 @@ CvWString const CvTeam::tradeItemString(TradeableItems eItem, int iData, TeamTyp
 			return L"";
 		return CvWString::format(SETCOLR L"%s" ENDCOLR,
 				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
-				GC.getTechInfo(eTech).getDescription());
+				GC.getInfo(eTech).getDescription());
 	}
 	case TRADE_PEACE:
 	{
@@ -5508,20 +5508,20 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex,
 			TCHAR const* szSound = NULL;
 			if(bSound) {
 				if(kPlayer.getID() == eDiscoverPlayer)
-					szSound = GC.getTechInfo(eIndex).getSound();
-				else szSound = GC.getTechInfo(eIndex).getSoundMP();
+					szSound = GC.getInfo(eIndex).getSound();
+				else szSound = GC.getInfo(eIndex).getSoundMP();
 			} // </advc.156>
 			CvWString szBuffer = gDLL->getText((bPartial ?
 					"TXT_KEY_MISC_PROGRESS_TOWARDS_TECH" :
 					"TXT_KEY_MISC_YOU_DISCOVERED_TECH"),
-					GC.getTechInfo(eIndex).getTextKeyWide());
+					GC.getInfo(eIndex).getTextKeyWide());
 			gDLL->getInterfaceIFace()->addMessage((PlayerTypes)iI, false,
 					bSound ? GC.getEVENT_MESSAGE_TIME() : -1, szBuffer,
 					szSound, // advc.156
 					MESSAGE_TYPE_MINOR_EVENT, // advc.106b
 					NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
 			// K-Mod. Play the quote sound always, the "MP" sound is boring.
-					//(bSound ? GC.getTechInfo(eIndex).getSound() : NULL)
+					//(bSound ? GC.getInfo(eIndex).getSound() : NULL)
 		}
 	}
 }
@@ -5546,7 +5546,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 	CvGame& g = GC.getGame();
 
-	if (GC.getTechInfo(eIndex).isRepeat())
+	if (GC.getInfo(eIndex).isRepeat())
 	{
 		m_paiTechCount[eIndex]++;
 		setResearchProgress(eIndex, 0, ePlayer);
@@ -5568,27 +5568,27 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 	if (isHasTech(eIndex))
 	{
 		if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000: START
-			logBBAI("    Team %d (%S) acquires tech %S", getID(), getName().GetCString(), GC.getTechInfo(eIndex).getDescription());
+			logBBAI("    Team %d (%S) acquires tech %S", getID(), getName().GetCString(), GC.getInfo(eIndex).getDescription());
 
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
-				if (GET_PLAYER((PlayerTypes)iI).getCurrentEra() < GC.getTechInfo(eIndex).getEra())
+				if (GET_PLAYER((PlayerTypes)iI).getCurrentEra() < GC.getInfo(eIndex).getEra())
 				{
-					GET_PLAYER((PlayerTypes)iI).setCurrentEra((EraTypes)(GC.getTechInfo(eIndex).getEra()));
+					GET_PLAYER((PlayerTypes)iI).setCurrentEra((EraTypes)(GC.getInfo(eIndex).getEra()));
 				}
 			}
 		}
 
-		if (GC.getTechInfo(eIndex).isMapVisible())
+		if (GC.getInfo(eIndex).isMapVisible())
 		{
 			GC.getMap().setRevealedPlots(getID(), true, true);
 		}
 
 		for (int iI = 0; iI < GC.getNumSpecialBuildingInfos(); ++iI)
 		{
-			if (eIndex == GC.getSpecialBuildingInfo((SpecialBuildingTypes)iI).getTechPrereqAnyone())
+			if (eIndex == GC.getInfo((SpecialBuildingTypes)iI).getTechPrereqAnyone())
 			{
 				g.makeSpecialBuildingValid((SpecialBuildingTypes)iI, bAnnounce);
 			}
@@ -5606,7 +5606,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
 			{
 				ReligionTypes eReligion = (ReligionTypes)iI;
-				if (GC.getReligionInfo(eReligion).getTechPrereq() != eIndex)
+				if (GC.getInfo(eReligion).getTechPrereq() != eIndex)
 					continue;
 
 				int iBestValue = MAX_INT;
@@ -5657,7 +5657,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
 			{
 				CorporationTypes eCorp = (CorporationTypes)iI;
-				if (GC.getCorporationInfo(eCorp).getTechPrereq() != eIndex ||
+				if (GC.getInfo(eCorp).getTechPrereq() != eIndex ||
 						g.isCorporationFounded(eCorp))
 					continue;
 				/*  advc (comment): From here on unused and thus not properly tested;
@@ -5721,35 +5721,35 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				}
 			}
 
-			if (GC.getTechInfo(eIndex).getFirstFreeTechs() > 0)
+			if (GC.getInfo(eIndex).getFirstFreeTechs() > 0)
 			{
 				bFirstBonus = true;
 				bAnnounceFirst = true; // advc.004
 
 				if (!isHuman())
 				{
-					for (int iI = 0; iI < GC.getTechInfo(eIndex).getFirstFreeTechs(); iI++)
+					for (int iI = 0; iI < GC.getInfo(eIndex).getFirstFreeTechs(); iI++)
 					{
 						GET_PLAYER(ePlayer).AI_chooseFreeTech();
 					}
 				}
 				else
 				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_FIRST_TECH_CHOOSE_FREE", GC.getTechInfo(eIndex).getTextKeyWide());
-					GET_PLAYER(ePlayer).chooseTech(GC.getTechInfo(eIndex).getFirstFreeTechs(), szBuffer.GetCString());
+					szBuffer = gDLL->getText("TXT_KEY_MISC_FIRST_TECH_CHOOSE_FREE", GC.getInfo(eIndex).getTextKeyWide());
+					GET_PLAYER(ePlayer).chooseTech(GC.getInfo(eIndex).getFirstFreeTechs(), szBuffer.GetCString());
 				}
 				// advc.004: Announcement code moved into next block
 				// advc.106: Do it at the end instead
 				if (GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") <= 0)
 				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getReplayName(), GC.getTechInfo(eIndex).getTextKeyWide());
+					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getReplayName(), GC.getInfo(eIndex).getTextKeyWide());
 					g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 				} // advc.106
 			} // <advc.004>
 			if (bAnnounceFirst) // Cut, pasted, refactored from above
 			{
 				// Free GP only minor event
-				bool bMajor = (GC.getTechInfo(eIndex).getFirstFreeTechs() > 0);
+				bool bMajor = (GC.getInfo(eIndex).getFirstFreeTechs() > 0);
 				for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 				{
 					CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
@@ -5760,10 +5760,10 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					{
 						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
 							GET_PLAYER(ePlayer).getNameKey(),
-							GC.getTechInfo(eIndex).getTextKeyWide());
+							GC.getInfo(eIndex).getTextKeyWide());
 					}
 					else szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH",
-							GC.getTechInfo(eIndex).getTextKeyWide());
+							GC.getInfo(eIndex).getTextKeyWide());
 					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							(bMajor ? "AS2D_FIRSTTOTECH" : 0),
@@ -5812,7 +5812,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				BonusTypes eBonus = kLoopPlot.getBonusType();
 				if (eBonus == NO_BONUS)
 					continue;
-				if (GC.getBonusInfo(eBonus).getTechReveal() != eIndex ||
+				if (GC.getInfo(eBonus).getTechReveal() != eIndex ||
 						isForceRevealedBonus(eBonus))
 					continue;
 				CvCity* pCity = GC.getMap().findCity(kLoopPlot.getX(), kLoopPlot.getY(), NO_PLAYER,
@@ -5820,7 +5820,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 						NO_TEAM, false, false, NO_TEAM, NO_DIRECTION, NULL, getID());
 				if (pCity == NULL)
 					continue;
-				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DISCOVERED_BONUS", GC.getBonusInfo(eBonus).getTextKeyWide(), pCity->getNameKey());
+				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DISCOVERED_BONUS", GC.getInfo(eBonus).getTextKeyWide(), pCity->getNameKey());
 				/*  <advc.004r> Announce to all team members (instead of
 					plot owner, which may not even be alive) */
 				for (int i = 0; i < MAX_CIV_PLAYERS; i++)
@@ -5833,7 +5833,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					// </advc.004r>
 							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 							"AS2D_DISCOVERBONUS", MESSAGE_TYPE_INFO,
-							GC.getBonusInfo(eBonus).getButton(), (ColorTypes)
+							GC.getInfo(eBonus).getButton(), (ColorTypes)
 							GC.getInfoTypeForString("COLOR_WHITE"),
 							kLoopPlot.getX(), kLoopPlot.getY(), true, true);
 				}
@@ -5845,7 +5845,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				for (int i = 0; i < GC.getNumBonusInfos() && eBonus == NO_BONUS; i++)
 				{
 					BonusTypes b = (BonusTypes)i;
-					if(GC.getBonusInfo(b).getTechReveal() == eIndex)
+					if(GC.getInfo(b).getTechReveal() == eIndex)
 						eBonus = b;
 				}
 				if (eBonus != NO_BONUS)
@@ -5854,7 +5854,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					{
 						CvWString szBuffer = gDLL->getText(
 								"TXT_KEY_MISC_DISCOVERED_NO_BONUS",
-								GC.getBonusInfo(eBonus).getTextKeyWide());
+								GC.getInfo(eBonus).getTextKeyWide());
 						CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
 						if (!kMember.isAlive() || kMember.getTeam() != getID())
 							continue;
@@ -5886,9 +5886,9 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 						for (int iK = 0; iK < GC.getNumCivicInfos(); iK++)
 						{
 							CivicTypes eLoopCivic = (CivicTypes)iK;
-							if (GC.getCivicInfo(eLoopCivic).getCivicOptionType() != iJ)
+							if (GC.getInfo(eLoopCivic).getCivicOptionType() != iJ)
 								continue;
-							if (GC.getCivicInfo(eLoopCivic).getTechPrereq() == eIndex)
+							if (GC.getInfo(eLoopCivic).getTechPrereq() == eIndex)
 								eCivic = eLoopCivic;
 						}
 					} // <advc.004x>
@@ -5916,7 +5916,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
 					GET_PLAYER(ePlayer).getReplayName(),
-					GC.getTechInfo(eIndex).getTextKeyWide());
+					GC.getInfo(eIndex).getTextKeyWide());
 			g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer,
 					-1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
 		} // </advc.106>
@@ -6002,8 +6002,8 @@ bool CvTeam::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTyp
 	if (eImprovement == NO_IMPROVEMENT || eBonus == NO_BONUS)
 		return false;
 
-	const CvImprovementInfo& kImprovementInfo = GC.getImprovementInfo(eImprovement);
-	const CvBonusInfo& kBonusInfo = GC.getBonusInfo(eBonus);
+	const CvImprovementInfo& kImprovementInfo = GC.getInfo(eImprovement);
+	const CvBonusInfo& kBonusInfo = GC.getInfo(eBonus);
 
 	if (!isHasTech((TechTypes)kBonusInfo.getTechCityTrade()) || (kBonusInfo.getTechObsolete() != NO_TECH && isHasTech((TechTypes)kBonusInfo.getTechObsolete())))
 		return false;
@@ -6039,8 +6039,8 @@ bool CvTeam::canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprove
 	bool bHealth) const
 {
 	int iHealthOrHappy = (bHealth ?
-			GC.getImprovementInfo(eImprovement).get(CvImprovementInfo::HealthPercent) :
-			GC.getImprovementInfo(eImprovement).getHappiness());
+			GC.getInfo(eImprovement).get(CvImprovementInfo::HealthPercent) :
+			GC.getInfo(eImprovement).getHappiness());
 	return (iHealthOrHappy <= 0 || !kPlot.isOwned() || canPeacefullyEnter(kPlot.getTeam()));
 } // </advc.901>
 
@@ -6265,7 +6265,7 @@ bool CvTeam::isForceRevealedBonus(BonusTypes eBonus) const
 bool CvTeam::isBonusRevealed(BonusTypes eBonus) const
 {
 	FAssert(eBonus >= 0 && eBonus < GC.getNumBonusInfos());
-	return isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechReveal()) || isForceRevealedBonus(eBonus);
+	return isHasTech((TechTypes)GC.getInfo(eBonus).getTechReveal()) || isForceRevealedBonus(eBonus);
 }
 // K-Mod end
 
@@ -6380,7 +6380,7 @@ void CvTeam::doBarbarianResearch()
 		}
 	} // </dlph.28>
 	// <advc.307>
-	bool bNoBarbCities = GC.getEraInfo(g.getCurrentEra()).isNoBarbCities();
+	bool bNoBarbCities = GC.getInfo(g.getCurrentEra()).isNoBarbCities();
 	bool bIgnorePrereqs = bNoBarbCities;
 			/*  Barbs get all tech from earlier eras for free. Don't need
 				to catch up. */ //|| g.getStartEra() > 0;
@@ -6388,9 +6388,9 @@ void CvTeam::doBarbarianResearch()
 	/*  K-Mod. Delay the start of the barbarian research. (This is an
 		experimental change. It is currently compensated by an increase in
 		the barbarian tech rate.) */
-	if (iElapsed < GC.getHandicapInfo(g.getHandicapType()).
+	if (iElapsed < GC.getInfo(g.getHandicapType()).
 			getBarbarianCreationTurnsElapsed() *
-			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent() / 200)
+			GC.getInfo(g.getGameSpeedType()).getBarbPercent() / 200)
 		return;
 
 	CvPlayerAI const& kBarbPlayer = GET_PLAYER(BARBARIAN_PLAYER);
@@ -6429,7 +6429,7 @@ void CvTeam::doBarbarianResearch()
 					iCount = std::max(iCount, (2 * iHasTech) / 3);
 				//changeResearchProgress(((TechTypes)iI), ((getResearchCost((TechTypes)iI) * ((GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount) / iPossibleCount)) / 100), getLeaderID());
 				// K-Mod. Adjust research rate for game-speed & start-era - but _not_ world-size. And fix the rounding error.
-				int iBaseCost = getResearchCost(i, false) * GC.getWorldInfo(GC.getMap().getWorldSize()).getResearchPercent() / 100;
+				int iBaseCost = getResearchCost(i, false) * GC.getInfo(GC.getMap().getWorldSize()).getResearchPercent() / 100;
 				changeResearchProgress(i, std::max(1, iBaseCost *
 						GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount /
 						(100 * iPossible)), kBarbPlayer.getID());
@@ -6504,7 +6504,7 @@ void CvTeam::updatePlotGroupBonus(TechTypes eTech, bool bAdd)
 		BonusTypes eBonus = kPlot.getBonusType();
 		if (eBonus == NO_BONUS)
 			continue;
-		CvBonusInfo const& kBonus = GC.getBonusInfo(eBonus);
+		CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 		if (kBonus.getTechReveal() == eTech || kBonus.getTechCityTrade() == eTech ||
 				kBonus.getTechObsolete() == eTech)
 			kPlot.updatePlotGroupBonus(bAdd);
@@ -6661,12 +6661,12 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 
 	int iI, iJ;
 
-	if (GC.getTechInfo(eTech).isExtraWaterSeeFrom())
+	if (GC.getInfo(eTech).isExtraWaterSeeFrom())
 	{
 		changeExtraWaterSeeFromCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isMapCentering())
+	if (GC.getInfo(eTech).isMapCentering())
 	{
 		if (iChange > 0)
 		{
@@ -6674,103 +6674,103 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 		}
 	}
 
-	if (GC.getTechInfo(eTech).isMapTrading())
+	if (GC.getInfo(eTech).isMapTrading())
 	{
 		changeMapTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isTechTrading())
+	if (GC.getInfo(eTech).isTechTrading())
 	{
 		changeTechTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isGoldTrading())
+	if (GC.getInfo(eTech).isGoldTrading())
 	{
 		changeGoldTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isOpenBordersTrading())
+	if (GC.getInfo(eTech).isOpenBordersTrading())
 	{
 		changeOpenBordersTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isDefensivePactTrading())
+	if (GC.getInfo(eTech).isDefensivePactTrading())
 	{
 		changeDefensivePactTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isPermanentAllianceTrading())
+	if (GC.getInfo(eTech).isPermanentAllianceTrading())
 	{
 		changePermanentAllianceTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isVassalStateTrading())
+	if (GC.getInfo(eTech).isVassalStateTrading())
 	{
 		changeVassalTradingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isBridgeBuilding())
+	if (GC.getInfo(eTech).isBridgeBuilding())
 	{
 		changeBridgeBuildingCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isIrrigation())
+	if (GC.getInfo(eTech).isIrrigation())
 	{
 		changeIrrigationCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isIgnoreIrrigation())
+	if (GC.getInfo(eTech).isIgnoreIrrigation())
 	{
 		changeIgnoreIrrigationCount(iChange);
 	}
 
-	if (GC.getTechInfo(eTech).isWaterWork())
+	if (GC.getInfo(eTech).isWaterWork())
 	{
 		changeWaterWorkCount(iChange);
 	}
 
 	for (iI = 0; iI < GC.getNumRouteInfos(); iI++)
 	{
-		changeRouteChange(((RouteTypes)iI), (GC.getRouteInfo((RouteTypes) iI).getTechMovementChange(eTech) * iChange));
+		changeRouteChange(((RouteTypes)iI), (GC.getInfo((RouteTypes) iI).getTechMovementChange(eTech) * iChange));
 	}
 
 	for (iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 	{
-		changeExtraMoves(((DomainTypes)iI), (GC.getTechInfo(eTech).getDomainExtraMoves(iI) * iChange));
+		changeExtraMoves(((DomainTypes)iI), (GC.getInfo(eTech).getDomainExtraMoves(iI) * iChange));
 	}
 
 	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 	{
-		if (GC.getTechInfo(eTech).isCommerceFlexible(iI))
+		if (GC.getInfo(eTech).isCommerceFlexible(iI))
 		{
 			changeCommerceFlexibleCount(((CommerceTypes)iI), iChange);
 		}
 	}
-	if (GC.getTechInfo(eTech).isAnyTerrainTrade()) // advc.003t
+	if (GC.getInfo(eTech).isAnyTerrainTrade()) // advc.003t
 	{
 		for (iI = 0; iI < GC.getNumTerrainInfos(); iI++)
 		{
-			if (GC.getTechInfo(eTech).isTerrainTrade(iI))
+			if (GC.getInfo(eTech).isTerrainTrade(iI))
 			{
 				changeTerrainTradeCount(((TerrainTypes)iI), iChange);
 			}
 		}
 	}
-	if (GC.getTechInfo(eTech).isRiverTrade())
+	if (GC.getInfo(eTech).isRiverTrade())
 	{
 		changeRiverTradeCount(iChange);
 	}
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
-		if (GC.getBuildingInfo((BuildingTypes) iI).getObsoleteTech() == eTech)
+		if (GC.getInfo((BuildingTypes) iI).getObsoleteTech() == eTech)
 		{
 			changeObsoleteBuildingCount(((BuildingTypes)iI), iChange);
 		}
 
-		if (GC.getBuildingInfo((BuildingTypes) iI).getSpecialBuildingType() != NO_SPECIALBUILDING)
+		if (GC.getInfo((BuildingTypes) iI).getSpecialBuildingType() != NO_SPECIALBUILDING)
 		{
-			if (GC.getSpecialBuildingInfo((SpecialBuildingTypes) GC.getBuildingInfo((BuildingTypes) iI).getSpecialBuildingType()).getObsoleteTech() == eTech)
+			if (GC.getInfo((SpecialBuildingTypes) GC.getInfo((BuildingTypes) iI).getSpecialBuildingType()).getObsoleteTech() == eTech)
 			{
 				changeObsoleteBuildingCount(((BuildingTypes)iI), iChange);
 			}
@@ -6781,7 +6781,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 	{
 		for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
 		{
-			changeImprovementYieldChange(((ImprovementTypes)iI), ((YieldTypes)iJ), (GC.getImprovementInfo((ImprovementTypes)iI).getTechYieldChanges(eTech, iJ) * iChange));
+			changeImprovementYieldChange(((ImprovementTypes)iI), ((YieldTypes)iJ), (GC.getInfo((ImprovementTypes)iI).getTechYieldChanges(eTech, iJ) * iChange));
 		}
 	}
 
@@ -6791,21 +6791,21 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 		if (kLoopPlayer.getTeam() != getID())
 			continue; // advc
 
-		kLoopPlayer.changeFeatureProductionModifier(GC.getTechInfo(eTech).getFeatureProductionModifier() * iChange);
-		kLoopPlayer.changeWorkerSpeedModifier(GC.getTechInfo(eTech).getWorkerSpeedModifier() * iChange);
-		kLoopPlayer.changeTradeRoutes(GC.getTechInfo(eTech).getTradeRoutes() * iChange);
-		kLoopPlayer.changeExtraHealth(GC.getTechInfo(eTech).getHealth() * iChange);
-		kLoopPlayer.changeExtraHappiness(GC.getTechInfo(eTech).getHappiness() * iChange);
+		kLoopPlayer.changeFeatureProductionModifier(GC.getInfo(eTech).getFeatureProductionModifier() * iChange);
+		kLoopPlayer.changeWorkerSpeedModifier(GC.getInfo(eTech).getWorkerSpeedModifier() * iChange);
+		kLoopPlayer.changeTradeRoutes(GC.getInfo(eTech).getTradeRoutes() * iChange);
+		kLoopPlayer.changeExtraHealth(GC.getInfo(eTech).getHealth() * iChange);
+		kLoopPlayer.changeExtraHappiness(GC.getInfo(eTech).getHappiness() * iChange);
 
-		kLoopPlayer.changeAssets(((GC.getTechInfo(eTech).getAssetValue()
+		kLoopPlayer.changeAssets(((GC.getInfo(eTech).getAssetValue()
 				* 6) / 8) // advc.131: Makes it 6 per era instead of 8
 				* iChange);
-		kLoopPlayer.changePower(GC.getTechInfo(eTech).getPowerValue() * iChange);
+		kLoopPlayer.changePower(GC.getInfo(eTech).getPowerValue() * iChange);
 		kLoopPlayer.changeTechScore(getTechScore(eTech) * iChange);
 		// K-Mod. Extra commerce for specialist (new xml field)
 		for (CommerceTypes eCommerce = (CommerceTypes)0; eCommerce < NUM_COMMERCE_TYPES; eCommerce=(CommerceTypes)(eCommerce+1))
 		{
-			kLoopPlayer.changeSpecialistExtraCommerce(eCommerce, GC.getTechInfo(eTech).getSpecialistExtraCommerce(eCommerce) * iChange);
+			kLoopPlayer.changeSpecialistExtraCommerce(eCommerce, GC.getInfo(eTech).getSpecialistExtraCommerce(eCommerce) * iChange);
 		}
 		// K-Mod end
 	}
@@ -6816,7 +6816,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 		BonusTypes eBonus = pLoopPlot->getBonusType();
 		if (eBonus != NO_BONUS)
 		{
-			if (GC.getBonusInfo(eBonus).getTechReveal() == eTech)
+			if (GC.getInfo(eBonus).getTechReveal() == eTech)
 			{
 				pLoopPlot->updateYield();
 				pLoopPlot->setLayoutDirty(true);
@@ -6826,9 +6826,9 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 
 	for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
 	{
-		if (GC.getBuildInfo((BuildTypes) iI).getTechPrereq() == eTech)
+		if (GC.getInfo((BuildTypes) iI).getTechPrereq() == eTech)
 		{
-			if (GC.getBuildInfo((BuildTypes) iI).getRoute() != NO_ROUTE)
+			if (GC.getInfo((BuildTypes) iI).getRoute() != NO_ROUTE)
 			{	// <kmodx> was iI=0 etc.
 				for (iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
 				{
@@ -7181,7 +7181,7 @@ void CvTeam::getCompletedSpaceshipProjects(std::map<ProjectTypes, int>& mapProje
 	for (int i = 0; i < GC.getNumProjectInfos(); i++)
 	{
 		ProjectTypes eProject = (ProjectTypes) i;
-		if (GC.getProjectInfo(eProject).isSpaceship())
+		if (GC.getInfo(eProject).isSpaceship())
 		{
 			mapProjects[eProject] = getProjectCount(eProject);
 		}
@@ -7207,7 +7207,7 @@ int CvTeam::getProjectPartNumber(ProjectTypes eProject, bool bAssert) const
 	}
 
 	//return the last one
-	return std::min(iNumBuilt, GC.getProjectInfo(eProject).getMaxTeamInstances() - 1);
+	return std::min(iNumBuilt, GC.getInfo(eProject).getMaxTeamInstances() - 1);
 }
 
 bool CvTeam::hasLaunched() const
@@ -7226,7 +7226,7 @@ bool CvTeam::hasLaunched() const
 bool CvTeam::hasTechToClear(FeatureTypes eFeature, TechTypes eCurrentResearch) const {
 
 	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
-		CvBuildInfo const& kBuild = GC.getBuildInfo((BuildTypes)i);
+		CvBuildInfo const& kBuild = GC.getInfo((BuildTypes)i);
 		if(kBuild.getFeatureTime(eFeature) <= 0)
 			continue;
 		TechTypes aeReqs[2] = { (TechTypes)kBuild.getTechPrereq(),

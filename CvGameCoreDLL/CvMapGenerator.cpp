@@ -46,8 +46,8 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 			return false;
 	}
 
-	CvBonusInfo& pInfo = GC.getBonusInfo(eBonus);
-	CvBonusClassInfo& pClassInfo = GC.getBonusClassInfo((BonusClassTypes)
+	CvBonusInfo& pInfo = GC.getInfo(eBonus);
+	CvBonusClassInfo& pClassInfo = GC.getInfo((BonusClassTypes)
 			pInfo.getBonusClassType());
 
 	if(pPlot->isWater()) {
@@ -70,7 +70,7 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 			if(eBonus == eOtherBonus)
 				return false;
 			// Make sure there are no bonuses of the same class nearby:
-			if(GC.getBonusInfo(eOtherBonus).getBonusClassType() ==
+			if(GC.getInfo(eOtherBonus).getBonusClassType() ==
 					pInfo.getBonusClassType())
 				return false;
 		}
@@ -113,7 +113,7 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 	PROFILE_FUNC();
 
 	FAssertMsg(eImprovement != NO_IMPROVEMENT, "Improvement is not assigned a valid value");
-	FAssertMsg(GC.getImprovementInfo(eImprovement).isGoody(), "ImprovementType eImprovement is expected to be a goody");
+	FAssertMsg(GC.getInfo(eImprovement).isGoody(), "ImprovementType eImprovement is expected to be a goody");
 
 	if (GC.getGame().isOption(GAMEOPTION_NO_GOODY_HUTS))
 		return false;
@@ -131,7 +131,7 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 			pPlot->isImpassable())
 		return false;
 
-	int iUniqueRange = GC.getImprovementInfo(eImprovement).getGoodyUniqueRange();
+	int iUniqueRange = GC.getInfo(eImprovement).getGoodyUniqueRange();
 	for (int iDX = -iUniqueRange; iDX <= iUniqueRange; iDX++)
 	{
 		for (int iDY = -iUniqueRange; iDY <= iUniqueRange; iDY++)
@@ -531,7 +531,7 @@ void CvMapGenerator::addFeatures()
 			if (kPlot.canHaveFeature((FeatureTypes)iJ))
 			{
 				if (GC.getGame().getMapRandNum(10000, "addFeaturesAtPlot") <
-						GC.getFeatureInfo((FeatureTypes)iJ).getAppearanceProbability())
+						GC.getInfo((FeatureTypes)iJ).getAppearanceProbability())
 					kPlot.setFeatureType((FeatureTypes)iJ);
 			}
 		}
@@ -551,7 +551,7 @@ void CvMapGenerator::addBonuses()
 	std::vector<int> aiOrdinals;
 	for (int i = 0; i < GC.getNumBonusInfos(); i++)
 	{
-		int iOrder = GC.getBonusInfo((BonusTypes)i).getPlacementOrder();
+		int iOrder = GC.getInfo((BonusTypes)i).getPlacementOrder();
 		if (iOrder >= 0) // The negative ones aren't supposed to be placed at all
 			aiOrdinals.push_back(iOrder);
 	}
@@ -570,13 +570,13 @@ void CvMapGenerator::addBonuses()
 		{
 			BonusTypes eBonus = (BonusTypes)aiShuffledIndices[j]; // advc.129
 			//gDLL->callUpdater();
-			if (GC.getBonusInfo(eBonus).getPlacementOrder() != iOrder)
+			if (GC.getInfo(eBonus).getPlacementOrder() != iOrder)
 				continue;
 
 			gDLL->callUpdater(); // advc.opt: Moved down; don't need to update the UI quite so frequently.
 			if (!py.addBonusType(eBonus))
 			{
-				if (GC.getBonusInfo(eBonus).isOneArea())
+				if (GC.getInfo(eBonus).isOneArea())
 					addUniqueBonusType(eBonus);
 				else addNonUniqueBonusType(eBonus);
 			}
@@ -592,7 +592,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	// (But it is now slightly more efficient and easier to read.)
 	std::set<int> areas_tried;
 
-	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
+	CvBonusInfo const& pBonusInfo = GC.getInfo(eBonusType);
 	int const iTarget = calculateNumBonusesToAdd(eBonusType);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	// advc.opt: Don't waste time trying to place land resources in the ocean
@@ -691,9 +691,9 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 								plotDistance(x, y, p.getX(), p.getY()) > iDist)
 							continue;
 						BonusTypes eOtherBonus = p.getBonusType();
-						if(eOtherBonus != NO_BONUS && GC.getBonusInfo(eOtherBonus).
+						if(eOtherBonus != NO_BONUS && GC.getInfo(eOtherBonus).
 							getBonusClassType() == iClassToAvoid &&
-							GC.getBonusInfo(eOtherBonus).getGroupRand() > 0)
+							GC.getInfo(eOtherBonus).getGroupRand() > 0)
 						{
 							bSkip = true;
 							break;
@@ -730,7 +730,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 
 	int *aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
 	// advc.129: Moved into placeGroup
-	//CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
+	//CvBonusInfo& pBonusInfo = GC.getInfo(eBonusType);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
@@ -764,7 +764,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 		bool bIgnoreLatitude, int iLimit)
 {
-	CvBonusInfo const& kBonus = GC.getBonusInfo(eBonusType);
+	CvBonusInfo const& kBonus = GC.getInfo(eBonusType);
 	// The one in the center is already placed, but that doesn't count here.
 	int iPlaced = 0;
 	std::vector<CvPlot*> apGroupRange;
@@ -812,15 +812,15 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 
 	gDLL->NiTextOut("Adding Goodies...");
 
-	if (GC.getEraInfo(GC.getGame().getStartEra()).isNoGoodies())
+	if (GC.getInfo(GC.getGame().getStartEra()).isNoGoodies())
 		return;
 
 	int* aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
 	for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 	{
 		ImprovementTypes eImprov = (ImprovementTypes)iI;
-		if (!GC.getImprovementInfo(eImprov).isGoody() ||
-				GC.getImprovementInfo(eImprov).getTilesPerGoody() <= 0)
+		if (!GC.getInfo(eImprov).isGoody() ||
+				GC.getInfo(eImprov).getTilesPerGoody() <= 0)
 			continue;
 
 		for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
@@ -832,8 +832,8 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 			CvArea const& kArea = *GC.getMap().getArea(kPlot.getArea());
 			if (kArea.getNumImprovements(eImprov) <
 				(kArea.getNumTiles() +
-				GC.getImprovementInfo(eImprov).getTilesPerGoody() / 2) /
-				GC.getImprovementInfo(eImprov).getTilesPerGoody())
+				GC.getInfo(eImprov).getTilesPerGoody() / 2) /
+				GC.getInfo(eImprov).getTilesPerGoody())
 			{
 				if (canPlaceGoodyAt(eImprov, kPlot.getX(), kPlot.getY()))
 					kPlot.setImprovementType(eImprov);
@@ -896,7 +896,7 @@ void CvMapGenerator::generateRandomMap()
 
 	char buf[256];
 
-	sprintf(buf, "Generating Random Map %S, %S...", gDLL->getMapScriptName().GetCString(), GC.getWorldInfo(GC.getMap().getWorldSize()).getDescription());
+	sprintf(buf, "Generating Random Map %S, %S...", gDLL->getMapScriptName().GetCString(), GC.getInfo(GC.getMap().getWorldSize()).getDescription());
 	gDLL->NiTextOut(buf);
 
 	generatePlotTypes();
@@ -994,7 +994,7 @@ int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
 
 int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 {
-	CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
+	CvBonusInfo& pBonusInfo = GC.getInfo(eBonusType);
 
 	// Calculate iBonusCount, the amount of this bonus to be placed:
 

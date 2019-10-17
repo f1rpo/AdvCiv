@@ -226,7 +226,7 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
 // <advc.008e>
 bool needsArticle(BuildingTypes eBuilding)
 {
-	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 	if(!isWorldWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
 		return false; // Should only be called for wonders really
 	CvWString szKey = kBuilding.getTextKeyWide();
@@ -237,7 +237,7 @@ bool needsArticle(BuildingTypes eBuilding)
 }
 bool needsArticle(ProjectTypes eProject)
 {
-	CvProjectInfo const& kProject = GC.getProjectInfo(eProject);
+	CvProjectInfo const& kProject = GC.getInfo(eProject);
 	if(!isLimitedProject(eProject))
 		return false;
 	CvWString szKey = kProject.getTextKeyWide();
@@ -537,8 +537,8 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 
 bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 {
-	CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
-	CvPromotionInfo& kPromotion = GC.getPromotionInfo(ePromotion);
+	CvUnitInfo& kUnit = GC.getInfo(eUnit);
+	CvPromotionInfo& kPromotion = GC.getInfo(ePromotion);
 
 	if (kUnit.getFreePromotions(ePromotion))
 	{
@@ -688,7 +688,7 @@ int getLandPlotsScore(int iLandPlots)
 
 int getTechScore(TechTypes eTech)
 {
-	return (GC.getTechInfo(eTech).getEra() + 1);
+	return (GC.getInfo(eTech).getEra() + 1);
 }
 
 int getWonderScore(BuildingClassTypes eWonderClass)
@@ -713,9 +713,9 @@ ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCou
 		return NO_IMPROVEMENT;
 	}
 
-	if (GC.getImprovementInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
+	if (GC.getInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
 	{
-		return finalImprovementUpgrade(((ImprovementTypes)(GC.getImprovementInfo(eImprovement).getImprovementUpgrade())), (iCount + 1));
+		return finalImprovementUpgrade(((ImprovementTypes)(GC.getInfo(eImprovement).getImprovementUpgrade())), (iCount + 1));
 	}
 	else
 	{
@@ -732,8 +732,8 @@ ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement)
 
 	int iLoopDetector = GC.getNumImprovementInfos();
 
-	while (GC.getImprovementInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT && --iLoopDetector > 0)
-		eImprovement = (ImprovementTypes)GC.getImprovementInfo(eImprovement).getImprovementUpgrade();
+	while (GC.getInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT && --iLoopDetector > 0)
+		eImprovement = (ImprovementTypes)GC.getInfo(eImprovement).getImprovementUpgrade();
 
 	return iLoopDetector == 0 ? NO_IMPROVEMENT : eImprovement;
 }
@@ -743,9 +743,9 @@ int getWorldSizeMaxConscript(CivicTypes eCivic)
 {
 	int iMaxConscript;
 
-	iMaxConscript = GC.getCivicInfo(eCivic).getMaxConscript();
+	iMaxConscript = GC.getInfo(eCivic).getMaxConscript();
 
-	iMaxConscript *= std::max(0, (GC.getWorldInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100));
+	iMaxConscript *= std::max(0, (GC.getInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100));
 	iMaxConscript /= 100;
 
 	return iMaxConscript;
@@ -757,7 +757,7 @@ bool isReligionTech(TechTypes eTech)
 
 	for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 	{
-		if (GC.getReligionInfo((ReligionTypes)iI).getTechPrereq() == eTech)
+		if (GC.getInfo((ReligionTypes)iI).getTechPrereq() == eTech)
 		{
 			return true;
 		}
@@ -772,7 +772,7 @@ bool isCorporationTech(TechTypes eTech)
 
 	for (iI = 0; iI < GC.getNumCorporationInfos(); iI++)
 	{
-		if (GC.getCorporationInfo((CorporationTypes)iI).getTechPrereq() == eTech)
+		if (GC.getInfo((CorporationTypes)iI).getTechPrereq() == eTech)
 		{
 			return true;
 		}
@@ -784,7 +784,7 @@ bool isCorporationTech(TechTypes eTech)
 bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit)
 {
 	int iI;
-	CvUnitInfo& info = GC.getUnitInfo(eUnit);
+	CvUnitInfo& info = GC.getInfo(eUnit);
 
 	if (info.getPrereqAndTech() == eTech)
 	{
@@ -805,7 +805,7 @@ bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit)
 bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding)
 {
 	int iI;
-	CvBuildingInfo& info = GC.getBuildingInfo(eBuilding);
+	CvBuildingInfo& info = GC.getInfo(eBuilding);
 
 	if (info.getPrereqAndTech() == eTech)
 	{
@@ -821,7 +821,7 @@ bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding)
 	}
 
 	SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)info.getSpecialBuildingType();
-	if (NO_SPECIALBUILDING != eSpecial && GC.getSpecialBuildingInfo(eSpecial).getTechPrereq() == eTech)
+	if (NO_SPECIALBUILDING != eSpecial && GC.getInfo(eSpecial).getTechPrereq() == eTech)
 	{
 		return true;
 	}
@@ -831,7 +831,7 @@ bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding)
 
 bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject)
 {
-	if (GC.getProjectInfo(eProject).getTechPrereq() == eTech)
+	if (GC.getInfo(eProject).getTechPrereq() == eTech)
 	{
 		return true;
 	}
@@ -841,17 +841,17 @@ bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject)
 
 bool isWorldUnitClass(UnitClassTypes eUnitClass)
 {
-	return (GC.getUnitClassInfo(eUnitClass).getMaxGlobalInstances() != -1);
+	return (GC.getInfo(eUnitClass).getMaxGlobalInstances() != -1);
 }
 
 bool isTeamUnitClass(UnitClassTypes eUnitClass)
 {
-	return (GC.getUnitClassInfo(eUnitClass).getMaxTeamInstances() != -1);
+	return (GC.getInfo(eUnitClass).getMaxTeamInstances() != -1);
 }
 
 bool isNationalUnitClass(UnitClassTypes eUnitClass)
 {
-	return (GC.getUnitClassInfo(eUnitClass).getMaxPlayerInstances() != -1);
+	return (GC.getInfo(eUnitClass).getMaxPlayerInstances() != -1);
 }
 
 bool isLimitedUnitClass(UnitClassTypes eUnitClass)
@@ -867,17 +867,17 @@ bool isMundaneBuildingClass(BuildingClassTypes eBC)
 
 bool isWorldWonderClass(BuildingClassTypes eBuildingClass)
 {
-	return (GC.getBuildingClassInfo(eBuildingClass).getMaxGlobalInstances() != -1);
+	return (GC.getInfo(eBuildingClass).getMaxGlobalInstances() != -1);
 }
 
 bool isTeamWonderClass(BuildingClassTypes eBuildingClass)
 {
-	return (GC.getBuildingClassInfo(eBuildingClass).getMaxTeamInstances() != -1);
+	return (GC.getInfo(eBuildingClass).getMaxTeamInstances() != -1);
 }
 
 bool isNationalWonderClass(BuildingClassTypes eBuildingClass)
 {
-	return (GC.getBuildingClassInfo(eBuildingClass).getMaxPlayerInstances() != -1);
+	return (GC.getInfo(eBuildingClass).getMaxPlayerInstances() != -1);
 }
 
 bool isLimitedWonderClass(BuildingClassTypes eBuildingClass)
@@ -887,22 +887,22 @@ bool isLimitedWonderClass(BuildingClassTypes eBuildingClass)
 // <advc.003w>
 bool isWorldUnitClass(UnitTypes eUnit)
 {
-	return isWorldUnitClass((UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType());
+	return isWorldUnitClass((UnitClassTypes)GC.getInfo(eUnit).getUnitClassType());
 }
 
 bool isLimitedUnitClass(UnitTypes eUnit)
 {
-	return isLimitedUnitClass((UnitClassTypes)GC.getUnitInfo(eUnit).getUnitClassType());
+	return isLimitedUnitClass((UnitClassTypes)GC.getInfo(eUnit).getUnitClassType());
 }
 
 bool isWorldWonderClass(BuildingTypes eBuilding)
 {
-	return isWorldWonderClass((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType());
+	return isWorldWonderClass((BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType());
 }
 
 bool isLimitedWonderClass(BuildingTypes eBuilding)
 {
-	return isLimitedWonderClass((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType());
+	return isLimitedWonderClass((BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType());
 }
 // </advc.003w>
 int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
@@ -911,21 +911,21 @@ int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
 	int iCount = 0;
 	bool bLimited = false;
 
-	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxGlobalInstances();
+	iMax = GC.getInfo(eBuildingClass).getMaxGlobalInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
 		bLimited = true;
 	}
 
-	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxTeamInstances();
+	iMax = GC.getInfo(eBuildingClass).getMaxTeamInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
 		bLimited = true;
 	}
 
-	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxPlayerInstances();
+	iMax = GC.getInfo(eBuildingClass).getMaxPlayerInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
@@ -937,12 +937,12 @@ int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
 
 bool isWorldProject(ProjectTypes eProject)
 {
-	return (GC.getProjectInfo(eProject).getMaxGlobalInstances() != -1);
+	return (GC.getInfo(eProject).getMaxGlobalInstances() != -1);
 }
 
 bool isTeamProject(ProjectTypes eProject)
 {
-	return (GC.getProjectInfo(eProject).getMaxTeamInstances() != -1);
+	return (GC.getInfo(eProject).getMaxTeamInstances() != -1);
 }
 
 bool isLimitedProject(ProjectTypes eProject)
@@ -1278,7 +1278,7 @@ int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
 	const CvTeam& kOurTeam = GET_TEAM(eOurTeam);
 	const CvTeam& kTargetTeam = GET_TEAM(eTargetTeam);
 
-	int iPopScale = 5 * GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities();
+	int iPopScale = 5 * GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
 	int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
 	int iOurPoints = 10 * kOurTeam.getEspionagePointsEver() / std::max(1, iPopScale + kOurTeam.getTotalPopulation(false));
 	static int const iESPIONAGE_SPENDING_MULTIPLIER = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER"); // advc.opt
@@ -1300,7 +1300,7 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 
 bool isPlotEventTrigger(EventTriggerTypes eTrigger)
 {
-	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(eTrigger);
+	CvEventTriggerInfo& kTrigger = GC.getInfo(eTrigger);
 
 	if (kTrigger.getNumPlotsRequired() > 0)
 	{
@@ -1361,7 +1361,7 @@ TechTypes getDiscoveryTech(UnitTypes eUnit, PlayerTypes ePlayer)
 
 			for (int iJ = 0; iJ < GC.getNumFlavorTypes(); iJ++)
 			{
-				iValue += (GC.getTechInfo((TechTypes) iI).getFlavorValue(iJ) * GC.getUnitInfo(eUnit).getFlavorValue(iJ));
+				iValue += (GC.getInfo((TechTypes) iI).getFlavorValue(iJ) * GC.getInfo(eUnit).getFlavorValue(iJ));
 			}
 
 			if (iValue > iBestValue)
@@ -2075,7 +2075,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			if (kToPlot.getFeatureType() != NO_FEATURE)
 			{
 				iWorstCost += (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) *
-						std::max(0, GC.getFeatureInfo(kToPlot.getFeatureType()).getTurnDamage())) /
+						std::max(0, GC.getInfo(kToPlot.getFeatureType()).getTurnDamage())) /
 						GC.getMAX_HIT_POINTS();
 			}
 
@@ -2858,16 +2858,16 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 	{
 		int iTurnCount = 0;
 
-		for (int iI = 0; iI < GC.getGameSpeedInfo(eSpeed).getNumTurnIncrements(); iI++)
+		for (int iI = 0; iI < GC.getInfo(eSpeed).getNumTurnIncrements(); iI++)
 		{
-			if (iGameTurn > (iTurnCount + GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement))
+			if (iGameTurn > (iTurnCount + GC.getInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement))
 			{
-				iTurnMonth += (GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement);
-				iTurnCount += GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
+				iTurnMonth += (GC.getInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * GC.getInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement);
+				iTurnCount += GC.getInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
 			}
 			else
 			{
-				iTurnMonth += (GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * (iGameTurn - iTurnCount));
+				iTurnMonth += (GC.getInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * (iGameTurn - iTurnCount));
 				iTurnCount += (iGameTurn - iTurnCount);
 				break;
 			}
@@ -2875,7 +2875,7 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 
 		if (iGameTurn > iTurnCount)
 		{
-			iTurnMonth += (GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(GC.getGameSpeedInfo(eSpeed).getNumTurnIncrements() - 1).iMonthIncrement * (iGameTurn - iTurnCount));
+			iTurnMonth += (GC.getInfo(eSpeed).getGameTurnInfo(GC.getInfo(eSpeed).getNumTurnIncrements() - 1).iMonthIncrement * (iGameTurn - iTurnCount));
 		}
 		break;
 	}
@@ -3082,7 +3082,7 @@ void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI)
 {
 	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getUnitAIString should only be used for Debug output"); // advc.007
 
-	// note, GC.getUnitAIInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
+	// note, GC.getInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
 
 	switch (eUnitAI)
 	{

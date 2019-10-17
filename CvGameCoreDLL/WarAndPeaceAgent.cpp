@@ -594,7 +594,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		}
 		else {
 			// 5 to 10%
-			prPeace = 1.0 / std::max(1, GC.getLeaderHeadInfo(agentLeader.
+			prPeace = 1.0 / std::max(1, GC.getInfo(agentLeader.
 					getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY));
 			// Adjust probability based on whether peace looks like win-win or zero-sum
 			theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
@@ -808,7 +808,7 @@ bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
 			ourList.insertAtEnd(item);
 			if(master.isHuman()) {
 				ourLeader.AI_changeContactTimer(masterLeader.getID(),
-						CONTACT_PERMANENT_ALLIANCE, GC.getLeaderHeadInfo(
+						CONTACT_PERMANENT_ALLIANCE, GC.getInfo(
 						ourLeader.getPersonalityType()).getContactDelay(
 						CONTACT_PERMANENT_ALLIANCE));
 				CvDiploParameters* pDiplo = new CvDiploParameters(ourLeader.getID());
@@ -1226,7 +1226,7 @@ void WarAndPeaceAI::Team::scheme() {
 	}
 	vector<TargetData> targets;
 	double totalDrive = 0;
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+	CvLeaderHeadInfo& lh = GC.getInfo(GET_PLAYER(agent.getLeaderID()).
 			getPersonalityType());
 	WarAndPeaceCache& cache = leaderCache();
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
@@ -2042,7 +2042,7 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	bool isUN = false;
 	if(voteSource == NO_VOTESOURCE)
 		isUN = true;
-	else isUN = (GC.getVoteSourceInfo(voteSource).getVoteInterval() < 7);
+	else isUN = (GC.getInfo(voteSource).getVoteInterval() < 7);
 	ReligionTypes apRel = g.getVoteSourceReligion(voteSource);
 	FAssert((apRel == NO_RELIGION) == isUN);
 	if(forceUN)
@@ -2051,7 +2051,7 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	VoteTypes victVote = NO_VOTE;
 	for(int i = 0; i < GC.getNumVoteInfos(); i++) {
 		VoteTypes voteId = (VoteTypes)i;
-		CvVoteInfo& vote = GC.getVoteInfo(voteId);
+		CvVoteInfo& vote = GC.getInfo(voteId);
 		if((vote.getStateReligionVotePercent() == 0) == isUN && vote.isVictory()) {
 			popThresh = vote.getPopulationThreshold();
 			victVote = voteId;
@@ -2061,7 +2061,7 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	if(popThresh < 0) {
 		// OK if a mod removes the UN victory vote
 		for(int i = 0; i < GC.getNumVoteInfos(); i++) {
-			CvVoteInfo& vote = GC.getVoteInfo((VoteTypes)i);
+			CvVoteInfo& vote = GC.getInfo((VoteTypes)i);
 			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory()) {
 				FAssertMsg(false, "Could not determine vote threshold");
 				break;
@@ -2082,7 +2082,7 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	double relVoteNormalizer = 1;
 	if(!isUN)
 		relVoteNormalizer = 100.0 /
-			(100 + GC.getVoteInfo(victVote).getStateReligionVotePercent());
+			(100 + GC.getInfo(victVote).getStateReligionVotePercent());
 	CvTeam const& agent = GET_TEAM(agentId);
 	double r = targetPop;
 	double ourVotes = agent.getTotalPopulation();
@@ -2246,7 +2246,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	CvPlayerAI& we = GET_PLAYER(weId);
 	// Lower contact probabilities in later eras
 	int era = we.getCurrentEra();
-	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo const& lh = GC.getInfo(we.getPersonalityType());
 	if(we.AI_getAttitude(humanId) <= lh.getDemandTributeAttitudeThreshold()) {
 		// Try all four types of tribute demands
 		for(int i = 0; i < 4; i++) {
@@ -2438,7 +2438,7 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 
 	// Based on how long it would take us to produce as much trade value
 	double speedFactor = 1;
-	int trainPercent = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+	int trainPercent = GC.getInfo(GC.getGame().getGameSpeedType()).
 			getTrainPercent();
 	if(trainPercent > 0)
 		speedFactor = 100.0 / trainPercent;
@@ -2560,7 +2560,7 @@ double WarAndPeaceAI::Civ::buildUnitProb() const {
 	CvPlayerAI& we = GET_PLAYER(weId);
 	if(we.isHuman())
 		return humanBuildUnitProb();
-	return GC.getLeaderHeadInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
+	return GC.getInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
 }
 
 double WarAndPeaceAI::Civ::shipSpeed() const {
@@ -2586,7 +2586,7 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
 
 	CvGame const& g = GC.getGame();
-	period *= GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent();
+	period *= GC.getInfo(g.getGameSpeedType()).getTrainPercent();
 	period /= 100;
 	if(g.getElapsedGameTurns() < period + 1)
 		return 0;
@@ -2610,7 +2610,7 @@ double WarAndPeaceAI::Civ::confidenceFromPastWars(TeamTypes targetId) const {
 
 double WarAndPeaceAI::Civ::distrustRating() const {
 
-	int result = GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
+	int result = GC.getInfo(GET_PLAYER(weId).getPersonalityType()).
 			getEspionageWeight() - 10;
 	if(cache.hasProtectiveTrait())
 		result += 30;
@@ -2632,7 +2632,7 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
 		return we.trainingModifierFromHandicap() /
 				GET_PLAYER(vs).trainingModifierFromHandicap();
 	}
-	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo const& lh = GC.getInfo(we.getPersonalityType());
 	int const maxWarNearbyPR = lh.getMaxWarNearbyPowerRatio();
 	int const maxWarDistPR = lh.getMaxWarDistantPowerRatio();
 	int const limWarPR = lh.getLimitedWarPowerRatio();
@@ -2684,7 +2684,7 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	// AI assumes that humans have normal confidence
 	if(we.isHuman())
 		return 0.8;
-	double dpwr = GC.getLeaderHeadInfo(we.getPersonalityType()).getDogpileWarRand();
+	double dpwr = GC.getInfo(we.getPersonalityType()).getDogpileWarRand();
 	if(dpwr <= 0)
 		return 0;
 	/* dpwr is between 20 (DeGaulle, high confidence) and
@@ -2734,7 +2734,7 @@ int WarAndPeaceAI::Civ::vengefulness() const {
 		BasePeaceWeight (between 0 and 10) now has a dual use; continues to be
 		used for inter-AI diplo modifiers.
 		The result is between 0 (Gandhi) and 10 (Montezuma). */
-	CvLeaderHeadInfo& lhi = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo& lhi = GC.getInfo(we.getPersonalityType());
 	return std::max(0, lhi.getRefuseToTalkWarThreshold()
 			- lhi.getBasePeaceWeight());
 }
@@ -2748,7 +2748,7 @@ double WarAndPeaceAI::Civ::protectiveInstinct() const {
 		Persian leaders do that at Cautious, while Pleased is generally more
 		common. Subtract WarMongerRespect to sort out the ones that just like
 		DP because they're fearful, e.g. Boudica or de Gaulle. */
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo& lh = GC.getInfo(we.getPersonalityType());
 	int dpVal = 2 * (ATTITUDE_FRIENDLY - lh.getDefensivePactRefuseAttitudeThreshold());
 	int wmrVal = lh.getWarmongerRespect();
 	wmrVal *= wmrVal;
@@ -2760,7 +2760,7 @@ double WarAndPeaceAI::Civ::diploWeight() const {
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	if(we.isHuman())
 		return 0;
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo& lh = GC.getInfo(we.getPersonalityType());
 	int ctr = lh.getContactRand(CONTACT_TRADE_TECH);
 	if(ctr <= 1)
 		return 1.75;
@@ -2779,7 +2779,7 @@ double WarAndPeaceAI::Civ::prideRating() const {
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	if(we.isHuman())
 		return 0;
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo& lh = GC.getInfo(we.getPersonalityType());
 	return ::dRange(lh.getMakePeaceRand() / 110.0 - 0.09, 0.0, 1.0);
 }
 

@@ -324,7 +324,7 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 		int buildings = 0, wonders = 0;
 		for(int i = 0; i < GC.getNumBuildingInfos(); i++) {
 			BuildingTypes bId = (BuildingTypes)i;
-			CvBuildingInfo& b = GC.getBuildingInfo(bId);
+			CvBuildingInfo& b = GC.getInfo(bId);
 			if(c.canConstruct(bId) && !b.isCapital() && // exclude Palace
 					c.getProductionBuilding() != bId &&
 					// Wonder in construction elsewhere:
@@ -333,7 +333,7 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 				if(b.getReligionType() != NO_RELIGION) {
 					// No Monasteries when they're about to go obsolete
 					TechTypes obsTech = (TechTypes)b.getObsoleteTech();
-					if(obsTech != NO_TECH && GC.getTechInfo(obsTech).getEra() <=
+					if(obsTech != NO_TECH && GC.getInfo(obsTech).getEra() <=
 							ownerEra)
 						continue;
 					// If state religion, count only buildings of that religion.
@@ -356,7 +356,7 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 			owner.AI_getNumCitySites())); i++)
 		buildingCounts.push_back(::dMax(buildingCounts));
 	int era = owner.getCurrentEra();
-	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(owner.getPersonalityType());
+	CvLeaderHeadInfo const& lh = GC.getInfo(owner.getPersonalityType());
 	double missing = ::dMedian(buildingCounts) + std::max(0.0, ::dMedian(wonderCounts) -
 			/*  Assume one useless (small or great) wonder per era, but two for
 				Classical and none for Future. */
@@ -530,7 +530,7 @@ void WarAndPeaceCache::updateCanScrub() {
 	FeatureTypes fallout = NO_FEATURE;
 	for(int i = 0; i < GC.getNumFeatureInfos(); i++) {
 		FeatureTypes feat = (FeatureTypes)i;
-		if(GC.getFeatureInfo(feat).getHealthPercent() <= -50) {
+		if(GC.getInfo(feat).getHealthPercent() <= -50) {
 			fallout = feat;
 			break;
 		}
@@ -541,7 +541,7 @@ void WarAndPeaceCache::updateCanScrub() {
 	}
 	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
 		BuildTypes bt = (BuildTypes)i;
-		CvBuildInfo& b = GC.getBuildInfo(bt);
+		CvBuildInfo& b = GC.getInfo(bt);
 		TechTypes featTech = (TechTypes)b.getFeatureTech(fallout);
 		if(featTech != NO_TECH && GET_TEAM(ownerId).isHasTech(featTech)) {
 			canScrub = true;
@@ -556,7 +556,7 @@ void WarAndPeaceCache::updateTrainCargo() {
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	for(int i = 0; i < GC.getNumUnitInfos(); i++) {
 		UnitTypes ut = (UnitTypes)i;
-		CvUnitInfo& info = GC.getUnitInfo(ut);
+		CvUnitInfo& info = GC.getInfo(ut);
 		if(info.getUnitAIType(UNITAI_ASSAULT_SEA) && owner.canTrain(ut)) {
 			trainAnyCargo = true;
 			/*  A check for GC.getWATER_TERRAIN(false) would be better for
@@ -837,10 +837,10 @@ void WarAndPeaceCache::updateHasAggressiveTrait() {
 	bHasAggressiveTrait = false;
 	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
 		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i) &&
-				GC.getTraitInfo((TraitTypes)i).isAnyFreePromotion()) {
+				GC.getInfo((TraitTypes)i).isAnyFreePromotion()) {
 			for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
-				if(GC.getPromotionInfo((PromotionTypes)j).getCombatPercent() > 0
-						&& GC.getTraitInfo((TraitTypes)i).isFreePromotion(j)) {
+				if(GC.getInfo((PromotionTypes)j).getCombatPercent() > 0
+						&& GC.getInfo((TraitTypes)i).isFreePromotion(j)) {
 					bHasAggressiveTrait = true;
 					return;
 				}
@@ -866,11 +866,11 @@ void WarAndPeaceCache::updateHasProtectiveTrait() {
 	bHasProtectiveTrait = false;
 	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
 		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i) &&
-				GC.getTraitInfo((TraitTypes)i).isAnyFreePromotion()) {
+				GC.getInfo((TraitTypes)i).isAnyFreePromotion()) {
 			for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
-				if(GC.getPromotionInfo((PromotionTypes)j).
+				if(GC.getInfo((PromotionTypes)j).
 						getCityDefensePercent() > 0
-						&& GC.getTraitInfo((TraitTypes)i).isFreePromotion(j)) {
+						&& GC.getInfo((TraitTypes)i).isFreePromotion(j)) {
 					bHasProtectiveTrait = true;
 					return;
 				}
@@ -1098,7 +1098,7 @@ void WarAndPeaceCache::updateVassalScore(PlayerTypes civId) {
 		BonusTypes res = (BonusTypes)i;
 		if(GET_TEAM(ownerId).isBonusObsolete(res))
 			continue;
-		TechTypes revealTech = (TechTypes)GC.getBonusInfo(res).getTechReveal();
+		TechTypes revealTech = (TechTypes)GC.getInfo(res).getTechReveal();
 		bool availableToMaster = false;
 		if(GET_TEAM(ownerId).isHasTech(revealTech)) {
 			if(GET_PLAYER(ownerId).getNumAvailableBonuses(res) > 0) {
@@ -1896,7 +1896,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 			// getBonusType ensures that we can see the resource
 			if(p.getNonObsoleteBonusType(t.getID()) != NO_BONUS) {
 				// It's OK if we can't use it yet
-				//&& !t.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechCityTrade())
+				//&& !t.isHasTech((TechTypes)GC.getInfo(eBonus).getTechCityTrade())
 				baseTileScore = 2;
 			}
 			cultureTestPlot = pp;

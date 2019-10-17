@@ -1064,7 +1064,7 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 			20000 / std::pow(10000.0, exponent));
 	/*  Make the AI overestimate weak units a little bit on the low and medium difficulty settings.
 		(Not static b/c difficulty can change through load/ new game.) */
-	double exponentAdjusted = exponent - GC.getHandicapInfo(
+	double exponentAdjusted = exponent - GC.getInfo(
 			GC.getGame().getHandicapType()).getFreeWinsVsBarbs() / 25.0;
 	return std::min(20000, // Guard against overflow problems for caller
 			::round(std::pow((double)iCombatStrengthPercent, exponentAdjusted) *
@@ -1251,7 +1251,7 @@ bool CvUnitAI::AI_considerDOW(CvPlot const& kPlot) // advc: param was CvPlot*
 					getMasterTeam() != ePlotTeam)*/
 			if (kOurTeam.canDeclareWar(ePlotTeam))
 			{
-				if (gUnitLogLevel > 0) logBBAI("    %S declares war on %S with AI_considerDOW (%S - %S).", kOurTeam.getName().GetCString(), GET_TEAM(ePlotTeam).getName().GetCString(), getName(0).GetCString(), GC.getUnitAIInfo(AI_getUnitAIType()).getDescription());
+				if (gUnitLogLevel > 0) logBBAI("    %S declares war on %S with AI_considerDOW (%S - %S).", kOurTeam.getName().GetCString(), GET_TEAM(ePlotTeam).getName().GetCString(), getName(0).GetCString(), GC.getInfo(AI_getUnitAIType()).getDescription());
 				kOurTeam.declareWar(ePlotTeam, true, NO_WARPLAN);
 				getPathFinder().Reset();
 				return true;
@@ -1302,7 +1302,7 @@ void CvUnitAI::AI_animalMove()
 {
 	PROFILE_FUNC();
 
-	if (GC.getGame().getSorenRandNum(100, "Animal Attack") < GC.getHandicapInfo(GC.getGame().getHandicapType()).getAnimalAttackProb())
+	if (GC.getGame().getSorenRandNum(100, "Animal Attack") < GC.getInfo(GC.getGame().getHandicapType()).getAnimalAttackProb())
 	{
 		if (AI_anyAttack(1, 0))
 		{
@@ -1335,7 +1335,7 @@ void CvUnitAI::AI_settleMove()
 	{	// advc.108: Merged this from the Better BUG AI mod
 		// Afforess & Fuyu, Check for Good City Sites Near Starting Location, 09/18/10, START:
 		// <advc>
-		CvGameSpeedInfo const& kSpeed = GC.getGameSpeedInfo(g.getGameSpeedType());
+		CvGameSpeedInfo const& kSpeed = GC.getInfo(g.getGameSpeedType());
 		/*  Earlier exploreMove may have revealed more tiles. Don't set bStartingLoc;
 			that setting rules out e.g. plots with a goody hut or at the edge of a
 			flat map. I've added some getNumCities()<=0 checks to AI_foundValue. */
@@ -1726,7 +1726,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 			if (!plot()->isConnectedToCapital())
 			{
 				ImprovementTypes eImprovement = plot()->getImprovementType();
-				//if (NO_IMPROVEMENT != eImprovement && GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
+				//if (NO_IMPROVEMENT != eImprovement && GC.getInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
 				if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
 				{
 					if (AI_connectPlot(plot()))
@@ -1767,7 +1767,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 						if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT) {
 							if (pCity->AI_getBestBuildValue(iI) > 0) {
 								ImprovementTypes eImprovement;
-								eImprovement = (ImprovementTypes)GC.getBuildInfo((BuildTypes)pCity->AI_getBestBuild(iI)).getImprovement();
+								eImprovement = (ImprovementTypes)GC.getInfo((BuildTypes)pCity->AI_getBestBuild(iI)).getImprovement();
 								if (eImprovement != NO_IMPROVEMENT) {
 									bMoreBuilds = true;
 									break;
@@ -1978,10 +1978,10 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 	{	/*if (GC.getGame().getElapsedGameTurns() > 10) {
 			if (GET_PLAYER(getOwner()).AI_totalUnitAIs(UNITAI_WORKER) > GET_PLAYER(getOwner()).getNumCities()) */
 		// K-Mod
-		if (GC.getGame().getElapsedGameTurns() > GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getResearchPercent()/6
+		if (GC.getGame().getElapsedGameTurns() > GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent()/6
 			&& iMissingWorkersInArea < 0) // advc.113: Cheap initial check
 		{
-			int iTotalThresh = std::max(GC.getWorldInfo(GC.getMap().getWorldSize()).
+			int iTotalThresh = std::max(GC.getInfo(GC.getMap().getWorldSize()).
 					/*  advc (comment): 3/2 * NumCities is fine and, in itself,
 						not at all a reason to scrap. But having way too many
 						workers in the area is a problem. */
@@ -1990,7 +1990,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 			// Higher threshold if climate is tropical
 			if (iOwnerEra <= 3 || iOwnerEra == GC.getGame().getStartEra())
 			{	// Between 2 (Tropical) and 6 (Arid, Cold). Temperate: 5
-				int iJungleLatitude = ::range(GC.getClimateInfo(GC.getMap().getClimate()).
+				int iJungleLatitude = ::range(GC.getInfo(GC.getMap().getClimate()).
 						getJungleLatitude(), 0, 9);
 				iTotalThresh = (iTotalThresh * (32 - iJungleLatitude)) / 27;
 			}
@@ -2097,7 +2097,7 @@ void CvUnitAI::AI_barbAttackMove()
 			((iCivsInArea > 1 ?
 			(3 * iCivCitiesInArea > 5 * iCivsInArea) :
 			(2 * iCivCities > 3 * iCivs)) ||
-			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent() <= 100))
+			GC.getInfo(g.getGameSpeedType()).getBarbPercent() <= 100))
 			// </advc.300>
 		{
 			if (AI_pillageRange(4))
@@ -2564,7 +2564,7 @@ void CvUnitAI::AI_attackMove()
 		/* BBAI code
 		else if (area()->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE) {
 			if (area()->getCitiesPerPlayer(BARBARIAN_PLAYER) > 0) {
-				if (getGroup()->getNumUnits() >= GC.getHandicapInfo(GC.getGame().getHandicapType()).getBarbarianInitialDefenders()) {
+				if (getGroup()->getNumUnits() >= GC.getInfo(GC.getGame().getHandicapType()).getBarbarianInitialDefenders()) {
 					if (AI_goToTargetBarbCity(10))
 						return;
 				}
@@ -4591,7 +4591,7 @@ void CvUnitAI::AI_exploreMove()
 
 	if (getDamage() > 0)
 	{
-		if (plot()->getFeatureType() == NO_FEATURE || GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() == 0)
+		if (plot()->getFeatureType() == NO_FEATURE || GC.getInfo(plot()->getFeatureType()).getTurnDamage() == 0)
 		{
 			getGroup()->pushMission(MISSION_HEAL);
 			return;
@@ -5021,7 +5021,7 @@ void CvUnitAI::AI_greatPersonMove()
 			iDiscoverValue *= 2;
 		}
 		// amplify the 'undiscovered' bonus based on how likely we are to try to trade the tech.
-		iDiscoverValue *= 100 + (200 - GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getTechTradeKnownPercent())*GET_TEAM(getTeam()).AI_knownTechValModifier(eDiscoverTech)/100;
+		iDiscoverValue *= 100 + (200 - GC.getInfo(kPlayer.getPersonalityType()).getTechTradeKnownPercent())*GET_TEAM(getTeam()).AI_knownTechValModifier(eDiscoverTech)/100;
 		iDiscoverValue /= 100;
 		if(GET_PLAYER(getOwner()).AI_isFocusWar()) // advc.105
 		//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) || kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT2))
@@ -5046,7 +5046,7 @@ void CvUnitAI::AI_greatPersonMove()
 		iSlowValue *= GC.getGame().getEstimateEndTurn() - GC.getGame().getGameTurn();
 
 		// construct a modifier based on what victory we might like to aim for with our personality & situation
-		const CvLeaderHeadInfo& kLeader = GC.getLeaderHeadInfo(kPlayer.getPersonalityType());
+		const CvLeaderHeadInfo& kLeader = GC.getInfo(kPlayer.getPersonalityType());
 		int iModifier =
 			2 * std::max(kLeader.getSpaceVictoryWeight(), kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ? 35 : 0) +
 			1 * std::max(kLeader.getCultureVictoryWeight(), kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1) ? 35 : 0) +
@@ -5127,7 +5127,7 @@ void CvUnitAI::AI_greatPersonMove()
 			if (canDiscover(plot()))
 			{
 				getGroup()->pushMission(MISSION_DISCOVER);
-				if (gUnitLogLevel > 2) logBBAI("    %S chooses 'discover' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getTechInfo(eDiscoverTech).getDescription(), getName(0).GetCString(), iDiscoverValue, iChoice);
+				if (gUnitLogLevel > 2) logBBAI("    %S chooses 'discover' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getInfo(eDiscoverTech).getDescription(), getName(0).GetCString(), iDiscoverValue, iChoice);
 				return;
 			}
 			break;
@@ -5183,7 +5183,7 @@ void CvUnitAI::AI_greatPersonMove()
 				{
 					int iRelativeWaitTime = iMinTurns + (GC.getGame().getGameTurn() - getGameTurnCreated());
 					iRelativeWaitTime *= 100;
-					iRelativeWaitTime /= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
+					iRelativeWaitTime /= GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 					// lets say 1% per turn.
 					iScoreThreshold = std::max(iScoreThreshold, it->first * (100 - iRelativeWaitTime) / 100);
 				}
@@ -5213,7 +5213,7 @@ void CvUnitAI::AI_greatPersonMove()
 				{
 					MissionAITypes eMissionAI = canConstruct(pBestPlot, eBestBuilding) ? MISSIONAI_CONSTRUCT : MISSIONAI_HURRY;
 
-					if (gUnitLogLevel > 2) logBBAI("    %S %s 'build' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), AI_getGroup()->AI_getMissionAIType() == eMissionAI?"continues" :"chooses", GC.getBuildingInfo(eBestBuilding).getDescription(), getName(0).GetCString(), iSlowValue, iChoice);
+					if (gUnitLogLevel > 2) logBBAI("    %S %s 'build' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), AI_getGroup()->AI_getMissionAIType() == eMissionAI?"continues" :"chooses", GC.getInfo(eBestBuilding).getDescription(), getName(0).GetCString(), iSlowValue, iChoice);
 					if (atPlot(pBestPlot))
 					{
 						if (eMissionAI == MISSIONAI_CONSTRUCT)
@@ -5465,7 +5465,7 @@ void CvUnitAI::AI_spyMove()
 			// I think this spontaneous thing is bad. I'm leaving it in, but with greatly diminished probability.
 			// scale for game speed
 			iSpontaneousChance *= 100;
-			iSpontaneousChance /= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
+			iSpontaneousChance /= GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 			if (GC.getGame().getSorenRandNum(1500, "AI Spy Espionage") < iSpontaneousChance)
 			{
 				if (AI_espionageSpy())
@@ -5554,11 +5554,11 @@ void CvUnitAI::AI_spyMove()
 				? 3 : 1;
 		iAttackChance /= plot()->area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ? 2 : 1;
 		iAttackChance /= (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) || kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3)) ? 2 : 1;
-		iAttackChance *= GC.getLeaderHeadInfo(kOwner.getPersonalityType()).getEspionageWeight();
+		iAttackChance *= GC.getInfo(kOwner.getPersonalityType()).getEspionageWeight();
 		iAttackChance /= 100;
 		// scale for game speed
 		iAttackChance *= 100;
-		iAttackChance /= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
+		iAttackChance /= GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 
 		iTransportChance = (100 * iTotalPoints - 130 * iLocalPoints) / std::max(1, iTotalPoints);
 	}
@@ -6491,7 +6491,7 @@ void CvUnitAI::AI_escortSeaMove()
 	// Galleon escorts are much less useful once Frigates or later are available
 	if (!isHuman() && !isBarbarian())
 	{
-		if (getCargo() > 0 && (GC.getUnitInfo(getUnitType()).getSpecialCargo() == NO_SPECIALUNIT))
+		if (getCargo() > 0 && (GC.getInfo(getUnitType()).getSpecialCargo() == NO_SPECIALUNIT))
 		{
 			//Obsolete?
 			int iValue = kOwner.AI_unitValue(getUnitType(), AI_getUnitAIType(), area());
@@ -6652,7 +6652,7 @@ void CvUnitAI::AI_exploreSeaMove()
 	if (getDamage() > 0)
 	{
 		if (plot()->getFeatureType() == NO_FEATURE ||
-			GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() <= 0)
+			GC.getInfo(plot()->getFeatureType()).getTurnDamage() <= 0)
 		{
 			getGroup()->pushMission(MISSION_HEAL);
 			return;
@@ -7770,7 +7770,7 @@ void CvUnitAI::AI_settlerSeaMove()
 		{
 			if (eBestSettlerTransport != getUnitType() && kOwner.AI_unitImpassableCount(eBestSettlerTransport) == 0)
 			{
-				UnitClassTypes ePotentialUpgradeClass = (UnitClassTypes)GC.getUnitInfo(eBestSettlerTransport).getUnitClassType();
+				UnitClassTypes ePotentialUpgradeClass = (UnitClassTypes)GC.getInfo(eBestSettlerTransport).getUnitClassType();
 				if (!upgradeAvailable(getUnitType(), ePotentialUpgradeClass))
 				{
 					getGroup()->unloadAll();
@@ -8385,7 +8385,7 @@ void CvUnitAI::AI_attackAirMove()
 			kPlayer.AI_bestAreaUnitAIValue(UNITAI_CARRIER_SEA, NULL, &eBestCarrierUnit);
 			if (eBestCarrierUnit != NO_UNIT)
 			{
-				int iCarrierAirNeeded = iCarriers * GC.getUnitInfo(eBestCarrierUnit).getCargoSpace();
+				int iCarrierAirNeeded = iCarriers * GC.getInfo(eBestCarrierUnit).getCargoSpace();
 				if (kPlayer.AI_totalUnitAIs(UNITAI_CARRIER_AIR) < iCarrierAirNeeded)
 				{
 					AI_setUnitAIType(UNITAI_CARRIER_AIR);
@@ -8934,15 +8934,15 @@ void CvUnitAI::AI_cityAutomated()
 // XXX make sure we include any new UnitAITypes...
 int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 {
-	if (GC.getPromotionInfo(ePromotion).isLeader())
+	if (GC.getInfo(ePromotion).isLeader())
 	{
 		// Don't consume the leader as a regular promotion
 		return 0;
 	}
 	int iValue = 0;
-	//if (GC.getPromotionInfo(ePromotion).isBlitz())
+	//if (GC.getInfo(ePromotion).isBlitz())
 	// <advc.164>
-	int iBlitz = GC.getPromotionInfo(ePromotion).getBlitz();
+	int iBlitz = GC.getInfo(ePromotion).getBlitz();
 	if(iBlitz != 0)
 	{
 		if(iBlitz < 0)
@@ -8965,7 +8965,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isAmphib())
+	if (GC.getInfo(ePromotion).isAmphib())
 	{
 		if ((AI_getUnitAIType() == UNITAI_ATTACK) ||
 			  (AI_getUnitAIType() == UNITAI_ATTACK_CITY))
@@ -8978,7 +8978,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isRiver())
+	if (GC.getInfo(ePromotion).isRiver())
 	{
 		if ((AI_getUnitAIType() == UNITAI_ATTACK) ||
 			  (AI_getUnitAIType() == UNITAI_ATTACK_CITY))
@@ -8991,7 +8991,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isEnemyRoute())
+	if (GC.getInfo(ePromotion).isEnemyRoute())
 	{
 		if (AI_getUnitAIType() == UNITAI_PILLAGE)
 		{
@@ -9012,7 +9012,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isAlwaysHeal())
+	if (GC.getInfo(ePromotion).isAlwaysHeal())
 	{
 		if ((AI_getUnitAIType() == UNITAI_ATTACK) ||
 			  (AI_getUnitAIType() == UNITAI_ATTACK_CITY) ||
@@ -9031,7 +9031,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isHillsDoubleMove())
+	if (GC.getInfo(ePromotion).isHillsDoubleMove())
 	{
 		if (AI_getUnitAIType() == UNITAI_EXPLORE)
 		{
@@ -9043,7 +9043,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isImmuneToFirstStrikes()
+	if (GC.getInfo(ePromotion).isImmuneToFirstStrikes()
 		&& !immuneToFirstStrikes())
 	{
 		if ((AI_getUnitAIType() == UNITAI_ATTACK_CITY))
@@ -9062,7 +9062,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 
 	int iExtra = 0;
 	int iTemp;
-	iTemp = GC.getPromotionInfo(ePromotion).getVisibilityChange();
+	iTemp = GC.getInfo(ePromotion).getVisibilityChange();
 	if ((AI_getUnitAIType() == UNITAI_EXPLORE_SEA) ||
 		(AI_getUnitAIType() == UNITAI_EXPLORE))
 	{
@@ -9073,7 +9073,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp * 20);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getMovesChange();
+	iTemp = GC.getInfo(ePromotion).getMovesChange();
 	if ((AI_getUnitAIType() == UNITAI_ATTACK_SEA) ||
 		(AI_getUnitAIType() == UNITAI_PIRATE_SEA) ||
 		  (AI_getUnitAIType() == UNITAI_RESERVE_SEA) ||
@@ -9092,7 +9092,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp * 4);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getMoveDiscountChange();
+	iTemp = GC.getInfo(ePromotion).getMoveDiscountChange();
 	if (AI_getUnitAIType() == UNITAI_PILLAGE)
 	{
 		iValue += (iTemp * 10);
@@ -9102,7 +9102,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp * 2);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getAirRangeChange();
+	iTemp = GC.getInfo(ePromotion).getAirRangeChange();
 	if (AI_getUnitAIType() == UNITAI_ATTACK_AIR ||
 		AI_getUnitAIType() == UNITAI_CARRIER_AIR)
 	{
@@ -9113,7 +9113,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp * 10);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getInterceptChange();
+	iTemp = GC.getInfo(ePromotion).getInterceptChange();
 	if (AI_getUnitAIType() == UNITAI_DEFENSE_AIR)
 	{
 		iValue += (iTemp * 3);
@@ -9127,7 +9127,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 10);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getEvasionChange();
+	iTemp = GC.getInfo(ePromotion).getEvasionChange();
 	if (AI_getUnitAIType() == UNITAI_ATTACK_AIR || AI_getUnitAIType() == UNITAI_CARRIER_AIR)
 	{
 		iValue += (iTemp * 3);
@@ -9137,8 +9137,8 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 10);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getFirstStrikesChange() * 2;
-	iTemp += GC.getPromotionInfo(ePromotion).getChanceFirstStrikesChange();
+	iTemp = GC.getInfo(ePromotion).getFirstStrikesChange() * 2;
+	iTemp += GC.getInfo(ePromotion).getChanceFirstStrikesChange();
 	if ((AI_getUnitAIType() == UNITAI_RESERVE) ||
 		  (AI_getUnitAIType() == UNITAI_COUNTER) ||
 			(AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
@@ -9158,7 +9158,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 	}
 
 
-	iTemp = GC.getPromotionInfo(ePromotion).getWithdrawalChange();
+	iTemp = GC.getInfo(ePromotion).getWithdrawalChange();
 	if (iTemp != 0)
 	{
 		iExtra = (getUnitInfo().getWithdrawalProbability() + (getExtraWithdrawal() * 4));
@@ -9181,7 +9181,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getCollateralDamageChange();
+	iTemp = GC.getInfo(ePromotion).getCollateralDamageChange();
 	if (iTemp != 0)
 	{
 		iExtra = (getExtraCollateralDamage());//collateral has no strong synergy (not like retreat)
@@ -9202,7 +9202,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getBombardRateChange();
+	iTemp = GC.getInfo(ePromotion).getBombardRateChange();
 	if (AI_getUnitAIType() == UNITAI_ATTACK_CITY)
 	{
 		iValue += (iTemp * 2);
@@ -9212,7 +9212,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 8);
 	}
 	// BETTER_BTS_AI_MOD, Unit AI, 04/26/10, jdog5000: START
-	iTemp = GC.getPromotionInfo(ePromotion).getEnemyHealChange();
+	iTemp = GC.getInfo(ePromotion).getEnemyHealChange();
 	if ((AI_getUnitAIType() == UNITAI_ATTACK) ||
 		(AI_getUnitAIType() == UNITAI_PILLAGE) ||
 		(AI_getUnitAIType() == UNITAI_ATTACK_SEA) ||
@@ -9227,10 +9227,10 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 8);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getNeutralHealChange();
+	iTemp = GC.getInfo(ePromotion).getNeutralHealChange();
 	iValue += (iTemp / 8);
 
-	iTemp = GC.getPromotionInfo(ePromotion).getFriendlyHealChange();
+	iTemp = GC.getInfo(ePromotion).getFriendlyHealChange();
 	if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
 		  (AI_getUnitAIType() == UNITAI_CITY_COUNTER) ||
 		  (AI_getUnitAIType() == UNITAI_CITY_SPECIAL))
@@ -9253,7 +9253,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			 AI_getUnitAIType() == UNITAI_ASSAULT_SEA)))
 	{
 	// BBAI / K-Mod
-		iTemp = GC.getPromotionInfo(ePromotion).getSameTileHealChange() + getSameTileHeal();
+		iTemp = GC.getInfo(ePromotion).getSameTileHealChange() + getSameTileHeal();
 		iExtra = getSameTileHeal();
 
 		iTemp *= (100 + iExtra * 5);
@@ -9271,7 +9271,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			}
 		}
 
-		iTemp = GC.getPromotionInfo(ePromotion).getAdjacentTileHealChange();
+		iTemp = GC.getInfo(ePromotion).getAdjacentTileHealChange();
 		iExtra = getAdjacentTileHeal();
 		iTemp *= (100 + iExtra * 5);
 		iTemp /= 100;
@@ -9286,29 +9286,29 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 	}
 
 	// try to use Warlords to create super-medic units
-	if (GC.getPromotionInfo(ePromotion).getAdjacentTileHealChange() > 0 || GC.getPromotionInfo(ePromotion).getSameTileHealChange() > 0)
+	if (GC.getInfo(ePromotion).getAdjacentTileHealChange() > 0 || GC.getInfo(ePromotion).getSameTileHealChange() > 0)
 	{
 		/* original bts code PromotionTypes eLeader = NO_PROMOTION;
 		for (iI = 0; iI < GC.getNumPromotionInfos(); iI++) {
-			if (GC.getPromotionInfo((PromotionTypes)iI).isLeader())
+			if (GC.getInfo((PromotionTypes)iI).isLeader())
 				eLeader = (PromotionTypes)iI;
 		}
 		if (isHasPromotion(eLeader) && eLeader != NO_PROMOTION)
-			iValue += GC.getPromotionInfo(ePromotion).getAdjacentTileHealChange() + GC.getPromotionInfo(ePromotion).getSameTileHealChange();*/
+			iValue += GC.getInfo(ePromotion).getAdjacentTileHealChange() + GC.getInfo(ePromotion).getSameTileHealChange();*/
 		// K-Mod, I've changed the way we work out if we are a leader or not.
 		// The original method would break if there was more than one "leader" promotion)
 		for (int iI = 0; iI < GC.getNumPromotionInfos(); iI++)
 		{
-			if (GC.getPromotionInfo((PromotionTypes)iI).isLeader() && isHasPromotion((PromotionTypes)iI))
+			if (GC.getInfo((PromotionTypes)iI).isLeader() && isHasPromotion((PromotionTypes)iI))
 			{
-				iValue += GC.getPromotionInfo(ePromotion).getAdjacentTileHealChange() + GC.getPromotionInfo(ePromotion).getSameTileHealChange();
+				iValue += GC.getInfo(ePromotion).getAdjacentTileHealChange() + GC.getInfo(ePromotion).getSameTileHealChange();
 				break;
 			}
 		}
 		// K-Mod end
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getCombatPercent();
+	iTemp = GC.getInfo(ePromotion).getCombatPercent();
 	UnitAITypes const eAI = AI_getUnitAIType();
 	// kmodx: Removed redundant clauses
 	if (eAI == UNITAI_ATTACK || eAI == UNITAI_COUNTER ||
@@ -9325,7 +9325,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp * 1);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getCityAttackPercent();
+	iTemp = GC.getInfo(ePromotion).getCityAttackPercent();
 	if (iTemp != 0)
 	{
 		if (getUnitInfo().getUnitAIType(UNITAI_ATTACK) || getUnitInfo().getUnitAIType(UNITAI_ATTACK_CITY) || getUnitInfo().getUnitAIType(UNITAI_ATTACK_CITY_LEMMING))
@@ -9344,7 +9344,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getCityDefensePercent();
+	iTemp = GC.getInfo(ePromotion).getCityDefensePercent();
 	if (iTemp != 0)
 	{
 		if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
@@ -9359,7 +9359,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getHillsAttackPercent();
+	iTemp = GC.getInfo(ePromotion).getHillsAttackPercent();
 	if (iTemp != 0)
 	{
 		iExtra = getExtraHillsAttackPercent();
@@ -9376,7 +9376,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getHillsDefensePercent();
+	iTemp = GC.getInfo(ePromotion).getHillsDefensePercent();
 	if (iTemp != 0)
 	{
 		iExtra = (getUnitInfo().getHillsDefenseModifier() + (getExtraHillsDefensePercent() * 2));
@@ -9406,7 +9406,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}
 	// advc.099e: Commented out
-	/*iTemp = GC.getPromotionInfo(ePromotion).getRevoltProtection();
+	/*iTemp = GC.getInfo(ePromotion).getRevoltProtection();
 	if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
 		(AI_getUnitAIType() == UNITAI_CITY_COUNTER) ||
 		(AI_getUnitAIType() == UNITAI_CITY_SPECIAL)) {
@@ -9417,7 +9417,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		}
 	}*/
 
-	iTemp = GC.getPromotionInfo(ePromotion).getCollateralDamageProtection();
+	iTemp = GC.getInfo(ePromotion).getCollateralDamageProtection();
 	if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
 		(AI_getUnitAIType() == UNITAI_CITY_COUNTER) ||
 		(AI_getUnitAIType() == UNITAI_CITY_SPECIAL))
@@ -9434,7 +9434,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 8);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getPillageChange();
+	iTemp = GC.getInfo(ePromotion).getPillageChange();
 	if (AI_getUnitAIType() == UNITAI_PILLAGE ||
 		AI_getUnitAIType() == UNITAI_ATTACK_SEA ||
 		AI_getUnitAIType() == UNITAI_PIRATE_SEA)
@@ -9446,10 +9446,10 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 16);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getUpgradeDiscount();
+	iTemp = GC.getInfo(ePromotion).getUpgradeDiscount();
 	iValue += (iTemp / 16);
 
-	iTemp = GC.getPromotionInfo(ePromotion).getExperiencePercent();
+	iTemp = GC.getInfo(ePromotion).getExperiencePercent();
 	if ((AI_getUnitAIType() == UNITAI_ATTACK) ||
 		(AI_getUnitAIType() == UNITAI_ATTACK_SEA) ||
 		(AI_getUnitAIType() == UNITAI_PIRATE_SEA) ||
@@ -9465,7 +9465,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		iValue += (iTemp / 2);
 	}
 
-	iTemp = GC.getPromotionInfo(ePromotion).getKamikazePercent();
+	iTemp = GC.getInfo(ePromotion).getKamikazePercent();
 	if (AI_getUnitAIType() == UNITAI_ATTACK_CITY)
 	{
 		iValue += (iTemp / 16);
@@ -9477,7 +9477,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 
 	for (int iI = 0; iI < GC.getNumTerrainInfos(); iI++)
 	{
-		iTemp = GC.getPromotionInfo(ePromotion).getTerrainAttackPercent(iI);
+		iTemp = GC.getInfo(ePromotion).getTerrainAttackPercent(iI);
 		if (iTemp != 0)
 		{
 			iExtra = getExtraTerrainAttackPercent((TerrainTypes)iI);
@@ -9494,7 +9494,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			}
 		}
 
-		iTemp = GC.getPromotionInfo(ePromotion).getTerrainDefensePercent(iI);
+		iTemp = GC.getInfo(ePromotion).getTerrainDefensePercent(iI);
 		if (iTemp != 0)
 		{
 			iExtra =  getExtraTerrainDefensePercent((TerrainTypes)iI);
@@ -9517,7 +9517,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			}
 		}
 
-		if (GC.getPromotionInfo(ePromotion).getTerrainDoubleMove(iI))
+		if (GC.getInfo(ePromotion).getTerrainDoubleMove(iI))
 		{
 			if (AI_getUnitAIType() == UNITAI_EXPLORE)
 			{
@@ -9536,7 +9536,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 
 	for (int iI = 0; iI < GC.getNumFeatureInfos(); iI++)
 	{
-		iTemp = GC.getPromotionInfo(ePromotion).getFeatureAttackPercent(iI);
+		iTemp = GC.getInfo(ePromotion).getFeatureAttackPercent(iI);
 		if (iTemp != 0)
 		{
 			iExtra = getExtraFeatureAttackPercent((FeatureTypes)iI);
@@ -9553,7 +9553,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			}
 		}
 
-		iTemp = GC.getPromotionInfo(ePromotion).getFeatureDefensePercent(iI);
+		iTemp = GC.getInfo(ePromotion).getFeatureDefensePercent(iI);
 		if (iTemp != 0)
 		{
 			iExtra = getExtraFeatureDefensePercent((FeatureTypes)iI);
@@ -9580,7 +9580,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			}
 		}
 
-		if (GC.getPromotionInfo(ePromotion).getFeatureDoubleMove(iI))
+		if (GC.getInfo(ePromotion).getFeatureDoubleMove(iI))
 		{
 			if (AI_getUnitAIType() == UNITAI_EXPLORE)
 			{
@@ -9614,7 +9614,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 
 	for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 	{
-		iTemp = GC.getPromotionInfo(ePromotion).getUnitCombatModifierPercent(iI);
+		iTemp = GC.getInfo(ePromotion).getUnitCombatModifierPercent(iI);
 		int iCombatWeight = 0;
 		//Fighting their own kind
 		if ((UnitCombatTypes)iI == getUnitCombatType())
@@ -9662,8 +9662,8 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 	for (int iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 	{
 		//WTF? why float and cast to int?
-		//iTemp = ((int)((GC.getPromotionInfo(ePromotion).getDomainModifierPercent(iI) + getExtraDomainModifier((DomainTypes)iI)) * 100.0f));
-		iTemp = GC.getPromotionInfo(ePromotion).getDomainModifierPercent(iI);
+		//iTemp = ((int)((GC.getInfo(ePromotion).getDomainModifierPercent(iI) + getExtraDomainModifier((DomainTypes)iI)) * 100.0f));
+		iTemp = GC.getInfo(ePromotion).getDomainModifierPercent(iI);
 		if (AI_getUnitAIType() == UNITAI_COUNTER)
 		{
 			iValue += (iTemp * 1);
@@ -10621,7 +10621,7 @@ bool CvUnitAI::AI_guardBonus(int iMinValue)
 		{
 			int iValue = GET_PLAYER(getOwner()).AI_bonusVal(eNonObsoleteBonus,
 					0); // K-Mod
-			iValue += std::max(0, 200 * GC.getBonusInfo(eNonObsoleteBonus).getAIObjective());
+			iValue += std::max(0, 200 * GC.getInfo(eNonObsoleteBonus).getAIObjective());
 			if (pLoopPlot->getPlotGroupConnectedBonus(getOwner(), eNonObsoleteBonus) == 1)
 				iValue *= 2;
 			if (iValue > iMinValue)
@@ -10863,7 +10863,7 @@ bool CvUnitAI::AI_guardFort(bool bSearch)
 		const ImprovementTypes eImprovement = plot()->getImprovementType();
 		if (eImprovement != NO_IMPROVEMENT)
 		{
-			const CvImprovementInfo& kImprovement = GC.getImprovementInfo(eImprovement);
+			const CvImprovementInfo& kImprovement = GC.getInfo(eImprovement);
 			if (kImprovement.isActsAsCity()
 				/*  Erik (AI2): Only consider guarding if we actually receive a defensive bonus from the improvement.
 					This is really only relevant for mods that have improvements that will act as a city without
@@ -10895,7 +10895,7 @@ bool CvUnitAI::AI_guardFort(bool bSearch)
 		const ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
 		if (eImprovement != NO_IMPROVEMENT)
 		{
-			const CvImprovementInfo& kImprovement = GC.getImprovementInfo(eImprovement);
+			const CvImprovementInfo& kImprovement = GC.getInfo(eImprovement);
 			if (kImprovement.isActsAsCity() && kImprovement.getDefenseModifier() > 0)
 			{
 				int iValue = AI_getPlotDefendersNeeded(pLoopPlot, 0);
@@ -11196,7 +11196,7 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 
 	if (plot()->getFeatureType() != NO_FEATURE)
 	{
-		if (GC.getFeatureInfo(plot()->getFeatureType()).getTurnDamage() != 0)
+		if (GC.getInfo(plot()->getFeatureType()).getTurnDamage() != 0)
 		{	//Pass through
 			//(actively seeking a safe spot may result in unit getting stuck)
 			return false;
@@ -12088,10 +12088,10 @@ bool CvUnitAI::AI_lead(std::vector<UnitAITypes>& aeUnitAITypes)
 								iCombatStrength *= 30 + pLoopUnit->getExperience();
 								iCombatStrength /= 30;
 
-								if (GC.getUnitClassInfo(pLoopUnit->getUnitClassType()).getMaxGlobalInstances() > -1)
+								if (GC.getInfo(pLoopUnit->getUnitClassType()).getMaxGlobalInstances() > -1)
 								{
-									iCombatStrength *= 1 + GC.getUnitClassInfo(pLoopUnit->getUnitClassType()).getMaxGlobalInstances();
-									iCombatStrength /= std::max(1, GC.getUnitClassInfo(pLoopUnit->getUnitClassType()).getMaxGlobalInstances());
+									iCombatStrength *= 1 + GC.getInfo(pLoopUnit->getUnitClassType()).getMaxGlobalInstances();
+									iCombatStrength /= std::max(1, GC.getInfo(pLoopUnit->getUnitClassType()).getMaxGlobalInstances());
 								}
 
 								if (iCombatStrength > iBestStrength)
@@ -12325,7 +12325,7 @@ bool CvUnitAI::AI_switchHurry()
 	{
 		if (isWorldWonderClass((BuildingClassTypes)iI))
 		{
-			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
+			BuildingTypes eBuilding = (BuildingTypes)GC.getInfo(getCivilizationType()).getCivilizationBuildings(iI);
 
 			if (NO_BUILDING != eBuilding)
 			{
@@ -12394,7 +12394,7 @@ bool CvUnitAI::AI_hurry()
 
 							if (pLoopCity->isProductionBuilding())
 							{
-								if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(pLoopCity->getProductionBuilding()).getBuildingClassType())))
+								if (isWorldWonderClass((BuildingClassTypes)(GC.getInfo(pLoopCity->getProductionBuilding()).getBuildingClassType())))
 								{
 									bHurry = true;
 								}
@@ -14761,7 +14761,7 @@ bool CvUnitAI::AI_pirateBlockade()
 						TechTypes eTechReq = (TechTypes)getUnitInfo().getPrereqAndTech();
 						int iOurEra = (eTechReq == NO_TECH ?
 								GET_PLAYER(getOwner()).getCurrentEra() :
-								GC.getTechInfo(eTechReq).getEra());
+								GC.getInfo(eTechReq).getEra());
 						int iTheirEra = GET_PLAYER(pPlotCity->getOwner()).
 								getCurrentEra();
 						double iEraFactor = 1.5;
@@ -16523,11 +16523,11 @@ bool CvUnitAI::AI_ferryWorkers()
 						getCityPlotIndex(&kPlot));
 				if(eBestBuild == NO_BUILD || !kWorker.canBuild(&kPlot, eBestBuild))
 					continue;
-				ImprovementTypes eBestImpr = (ImprovementTypes)GC.getBuildInfo(eBestBuild).getImprovement();
+				ImprovementTypes eBestImpr = (ImprovementTypes)GC.getInfo(eBestBuild).getImprovement();
 				if(eBestImpr == NO_IMPROVEMENT) // Don't go there just to chop
 					continue;
 				// Not going to build forts on workable tiles
-				if(GC.getImprovementInfo(eBestImpr).isActsAsCity())
+				if(GC.getInfo(eBestImpr).isActsAsCity())
 					continue;
 			}
 			else
@@ -17223,7 +17223,7 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 	FAssertMsg(eBestBuild != NO_BUILD, "BestBuild is not assigned a valid value");
 	FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
 	MissionTypes eMission;
-	if (plot()->getWorkingCity() != &kCity || GC.getBuildInfo(eBestBuild).getRoute() != NO_ROUTE)
+	if (plot()->getWorkingCity() != &kCity || GC.getInfo(eBestBuild).getRoute() != NO_ROUTE)
 		eMission = MISSION_ROUTE_TO;
 	else
 	{
@@ -17236,7 +17236,7 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 		else if (plot()->getRouteType() == NO_ROUTE)
 		{
 			int iPlotMoveCost = 0;
-			iPlotMoveCost = ((plot()->getFeatureType() == NO_FEATURE) ? GC.getTerrainInfo(plot()->getTerrainType()).getMovementCost() : GC.getFeatureInfo(plot()->getFeatureType()).getMovementCost());
+			iPlotMoveCost = ((plot()->getFeatureType() == NO_FEATURE) ? GC.getInfo(plot()->getTerrainType()).getMovementCost() : GC.getInfo(plot()->getFeatureType()).getMovementCost());
 
 			if (plot()->isHills())
 				iPlotMoveCost += GC.getDefineINT(CvGlobals::HILLS_EXTRA_MOVEMENT);
@@ -17288,7 +17288,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 					BuildTypes eBuild = (BuildTypes)i;
 					if(eBuild == NO_BUILD)
 						continue;
-					CvBuildInfo const& kBuild = GC.getBuildInfo(eBuild);
+					CvBuildInfo const& kBuild = GC.getInfo(eBuild);
 					if(kBuild.getImprovement() != NO_IMPROVEMENT)
 						continue;
 					if(!canBuild(pLoopPlot, eBuild))
@@ -17345,7 +17345,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 			}
 			/* original bts code
 			if (bAllowed) {
-				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT && GC.getBuildInfo(pCity->AI_getBestBuild(iIndex)).getImprovement() != NO_IMPROVEMENT)
+				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT && GC.getInfo(pCity->AI_getBestBuild(iIndex)).getImprovement() != NO_IMPROVEMENT)
 					bAllowed = false;
 			} */ /* K-Mod. I don't think it's a good idea to disallow improvement changes here.
 					So I'm changing it to have a cutoff value instead. */
@@ -17407,8 +17407,8 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 		{
 			int iPlotMoveCost = 0;
 			iPlotMoveCost = ((plot()->getFeatureType() == NO_FEATURE) ?
-					GC.getTerrainInfo(plot()->getTerrainType()).getMovementCost() :
-					GC.getFeatureInfo(plot()->getFeatureType()).getMovementCost());
+					GC.getInfo(plot()->getTerrainType()).getMovementCost() :
+					GC.getInfo(plot()->getFeatureType()).getMovementCost());
 
 			if (plot()->isHills())
 				iPlotMoveCost += GC.getDefineINT(CvGlobals::HILLS_EXTRA_MOVEMENT);
@@ -17500,7 +17500,7 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 	// advc.113b: Now handled by AI_workerMove
 	/*if (plot()->getWorkingCity() != NULL)
 		plot()->getWorkingCity()->AI_changeWorkersHave(-1);
-	FAssert(pBestPlot->getWorkingCity() != NULL || GC.getBuildInfo(eBestBuild).getImprovement() == NO_IMPROVEMENT);
+	FAssert(pBestPlot->getWorkingCity() != NULL || GC.getInfo(eBestBuild).getImprovement() == NO_IMPROVEMENT);
 	if (NULL != pBestPlot->getWorkingCity())
 		pBestPlot->getWorkingCity()->AI_changeWorkersHave(+1);*/
 
@@ -17562,10 +17562,10 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 	{
 		BuildTypes eBuild = ((BuildTypes)iI);
-		if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+		if (GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
 		{
-			ImprovementTypes eImprovement = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
-			if (GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
+			ImprovementTypes eImprovement = (ImprovementTypes)(GC.getInfo(eBuild).getImprovement());
+			if (GC.getInfo(eImprovement).isCarriesIrrigation())
 				irrigationCarryingBuilds.push_back(eBuild);
 		}
 	} // </OPT1>
@@ -17596,11 +17596,11 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 		{
 			if (bSafeAuto && eCurrentImprov != eRuins)
 				continue;
-			if (GC.getImprovementInfo(eCurrentImprov).isCarriesIrrigation())
+			if (GC.getInfo(eCurrentImprov).isCarriesIrrigation())
 				continue;
 			BonusTypes const eBonus = kLoopPlot.getNonObsoleteBonusType(getTeam());
 			if (eBonus != NO_BONUS &&
-					// !(GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus)))
+					// !(GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus)))
 					kOwner.doesImprovementConnectBonus(eCurrentImprov, eBonus)) // K-Mod
 				continue;
 		}
@@ -17613,12 +17613,12 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 		{
 			const BuildTypes eBuild = irrigationCarryingBuilds[iJ];
 			const ImprovementTypes eIrrigImprov = (ImprovementTypes)
-					(GC.getBuildInfo(eBuild).getImprovement());
+					(GC.getInfo(eBuild).getImprovement());
 			if (!canBuild(&kLoopPlot, eBuild))
 				continue;
 			/*  <advc.121> Was 10000/(...getTime()+1). Same problem as in
 				AI_improveBonus (see there). */
-			const int iValue = GC.getBuildInfo(eBuild).getTime();
+			const int iValue = GC.getInfo(eBuild).getTime();
 			// XXX feature production???
 			if (iValue < iBestTempBuildValue)
 			{
@@ -17630,9 +17630,9 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 			continue;
 
 		FeatureTypes const eFeature = kLoopPlot.getFeatureType();
-		if (eFeature != NO_FEATURE && GC.getBuildInfo(eBestTempBuild).isFeatureRemove(eFeature))
+		if (eFeature != NO_FEATURE && GC.getInfo(eBestTempBuild).isFeatureRemove(eFeature))
 		{
-			CvFeatureInfo const& kFeatureInfo = GC.getFeatureInfo(kLoopPlot.getFeatureType());
+			CvFeatureInfo const& kFeatureInfo = GC.getInfo(kLoopPlot.getFeatureType());
 			// K-Mod:
 			if ((iGwEventTally >= 0 && kFeatureInfo.getWarmingDefense() > 0) ||
 					(bLeaveForests && kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
@@ -17709,21 +17709,21 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 			BuildTypes eBuild = ((BuildTypes)iJ);
 			FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
 
-			if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+			if (GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
 			{ /* advc.121: Same problems as in AI_improveBonus, but there's
 				 only one type of Fort anyway (see also the K-Mod comment above). */
-				ImprovementTypes impId = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
-				if(GC.getImprovementInfo(impId).isActsAsCity() &&
-					GC.getImprovementInfo(impId).getDefenseModifier() > 0)
+				ImprovementTypes impId = (ImprovementTypes)(GC.getInfo(eBuild).getImprovement());
+				if(GC.getInfo(impId).isActsAsCity() &&
+					GC.getInfo(impId).getDefenseModifier() > 0)
 				{
 					if (canBuild(pLoopPlot, eBuild)
 						|| impId == pLoopPlot->getImprovementType()) // advc.121
 					{
 						/* int iValue = 10000;
-						iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
+						iValue /= (GC.getInfo(eBuild).getTime() + 1);*/
 						// <advc.121> Replacing the above
 						int iTempBuildValue = (impId == pLoopPlot->getImprovementType() ?
-								0 : GC.getBuildInfo(eBuild).getTime());
+								0 : GC.getInfo(eBuild).getTime());
 						// </advc.121>
 						if (iTempBuildValue < iBestTempBuildValue)
 						{
@@ -17745,8 +17745,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 				bool bValid = true;
 				if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_LEAVE_FORESTS) &&
 						pLoopPlot->getFeatureType() != NO_FEATURE &&
-						GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()) &&
-						GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
+						GC.getInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()) &&
+						GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
 					bValid = false;
 				if (bValid)
 				{
@@ -17832,7 +17832,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		bool bDoImprove = false;
 		if (eImprovement == NO_IMPROVEMENT)
 			bDoImprove = true;
-		else if (GC.getImprovementInfo(eImprovement).isActsAsCity() || GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
+		else if (GC.getInfo(eImprovement).isActsAsCity() || GC.getInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
 			bDoImprove = false;
 		else if (eImprovement == GC.getRUINS_IMPROVEMENT())
 			bDoImprove = true;
@@ -17862,7 +17862,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 			BuildTypes eBuild = pWorkingCity->AI_getBestBuild(plotCityXY(
 					pWorkingCity, pLoopPlot));
 			if (eBuild != NO_BUILD && kOwner.doesImprovementConnectBonus(
-				(ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement(),
+				(ImprovementTypes)GC.getInfo(eBuild).getImprovement(),
 				eNonObsoleteBonus) && canBuild(pLoopPlot, eBuild))
 			{
 				bDoImprove = true;
@@ -17906,19 +17906,19 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		int iValue = kOwner.AI_bonusVal(eNonObsoleteBonus, 1);
 		if (bDoImprove)
 		{
-			eImprovement = (ImprovementTypes)GC.getBuildInfo(eBestTempBuild).getImprovement();
+			eImprovement = (ImprovementTypes)GC.getInfo(eBestTempBuild).getImprovement();
 			FAssert(eImprovement != NO_IMPROVEMENT);
-			//iValue += (GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBestTempBuild).getImprovement()))
+			//iValue += (GC.getInfo((ImprovementTypes) GC.getInfo(eBestTempBuild).getImprovement()))
 			iValue += 5 * pLoopPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, getOwner(), false);
-			iValue += 5 * pLoopPlot->calculateNatureYield(YIELD_FOOD, getTeam(), (pLoopPlot->getFeatureType() == NO_FEATURE) ? true : GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()));
+			iValue += 5 * pLoopPlot->calculateNatureYield(YIELD_FOOD, getTeam(), (pLoopPlot->getFeatureType() == NO_FEATURE) ? true : GC.getInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()));
 		}
-		iValue += std::max(0, 100 * GC.getBonusInfo(eNonObsoleteBonus).getAIObjective());
+		iValue += std::max(0, 100 * GC.getInfo(eNonObsoleteBonus).getAIObjective());
 
 		if(kOwner.getNumTradeableBonuses(eNonObsoleteBonus) == 0)
 			iValue *= 2;
 
 		int iMaxWorkers = 1;
-		if (eBestTempBuild != NO_BUILD && !GC.getBuildInfo(eBestTempBuild).isKill())
+		if (eBestTempBuild != NO_BUILD && !GC.getInfo(eBestTempBuild).isKill())
 		{ //allow teaming.
 			iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBestTempBuild);
 			if (getPathFinder().GetFinalMoves() == 0)
@@ -17953,7 +17953,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 			{
 				FAssert(bCanRoute && !bConnected);
 				eImprovement = pLoopPlot->getImprovementType();
-				//if ((eImprovement != NO_IMPROVEMENT) && (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus)))
+				//if ((eImprovement != NO_IMPROVEMENT) && (GC.getInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus)))
 				if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
 				{
 					iValue *= 1000;
@@ -18070,7 +18070,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)  // ad
 	bool bClearFeature = false;
 	FeatureTypes eFeature = pPlot->getFeatureType();
 
-	CvBuildInfo& kOriginalBuildInfo = GC.getBuildInfo(eBuild);
+	CvBuildInfo& kOriginalBuildInfo = GC.getInfo(eBuild);
 	if (kOriginalBuildInfo.getRoute() != NO_ROUTE)
 		return eBuild;
 	//int iWorkersNeeded // advc: It's more like a prediction of how many workers will attend to the task
@@ -18094,7 +18094,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)  // ad
 	}
 	if (eFeature != NO_FEATURE)
 	{
-		CvFeatureInfo& kFeatureInfo = GC.getFeatureInfo(eFeature);
+		CvFeatureInfo& kFeatureInfo = GC.getInfo(eFeature);
 		if (kOriginalBuildInfo.isFeatureRemove(eFeature))
 		{
 			if (kOriginalBuildInfo.getImprovement() == NO_IMPROVEMENT ||
@@ -18125,7 +18125,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)  // ad
 	for (int iBuild = 0; iBuild < GC.getNumBuildInfos(); iBuild++)
 	{
 		BuildTypes eBuild = ((BuildTypes)iBuild);
-		CvBuildInfo& kBuildInfo = GC.getBuildInfo(eBuild);
+		CvBuildInfo& kBuildInfo = GC.getInfo(eBuild);
 		RouteTypes eRoute = (RouteTypes)kBuildInfo.getRoute();
 		if ((bBuildRoute && eRoute != NO_ROUTE) || (bClearFeature && kBuildInfo.isFeatureRemove(eFeature)))
 		{
@@ -18135,7 +18135,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)  // ad
 			int iValue = 10000;
 			if (bBuildRoute && eRoute != NO_ROUTE)
 			{
-				iValue *= (1 + GC.getRouteInfo(eRoute).getValue());
+				iValue *= (1 + GC.getInfo(eRoute).getValue());
 				iValue /= 2;
 				//if (pPlot->getBonusType() != NO_BONUS)
 				// BETTER_BTS_AI_MOD, Bugfix, 7/31/08, jdog5000:
@@ -18152,7 +18152,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)  // ad
 				ImprovementTypes eImprovement = (ImprovementTypes)kOriginalBuildInfo.getImprovement();
 				if (eImprovement != NO_IMPROVEMENT)
 				{
-					CvImprovementInfo const& kImprov = GC.getImprovementInfo(eImprovement);
+					CvImprovementInfo const& kImprov = GC.getInfo(eImprovement);
 					int iRouteMultiplier =
 						100 * kImprov.getRouteYieldChanges(eRoute, YIELD_FOOD) +
 						100 * kImprov.getRouteYieldChanges(eRoute, YIELD_PRODUCTION) +
@@ -18216,7 +18216,7 @@ bool CvUnitAI::AI_connectBonus(bool bTestTrade)
 				{
 					if (!(pLoopPlot->isConnectedToCapital()))
 					{
-						//if (!bTestTrade || ((pLoopPlot->getImprovementType() != NO_IMPROVEMENT) && (GC.getImprovementInfo(pLoopPlot->getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus))))
+						//if (!bTestTrade || ((pLoopPlot->getImprovementType() != NO_IMPROVEMENT) && (GC.getInfo(pLoopPlot->getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus))))
 						if (!bTestTrade || GET_PLAYER(getOwner()).doesImprovementConnectBonus(pLoopPlot->getImprovementType(), eNonObsoleteBonus))
 						{
 							if (AI_connectPlot(pLoopPlot))
@@ -18348,7 +18348,7 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 							{
 								for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
 								{
-									if (GC.getImprovementInfo(eImprovement).getRouteYieldChanges(eBestRoute, iJ) > 0)
+									if (GC.getInfo(eImprovement).getRouteYieldChanges(eBestRoute, iJ) > 0)
 									{
 										bValid = true;
 										break;
@@ -18808,7 +18808,7 @@ bool CvUnitAI::AI_pickup(UnitAITypes eUnitAI,  // advc: style changes
 				{
 					if (pCity->getProductionTurnsLeft() < 4)
 					{
-						CvUnitInfo& kUnitInfo = GC.getUnitInfo(pCity->getProductionUnit());
+						CvUnitInfo& kUnitInfo = GC.getInfo(pCity->getProductionUnit());
 						if (kUnitInfo.getDomainType() != DOMAIN_AIR || kUnitInfo.getAirRange() > 0)
 						{
 							iCount++;
@@ -18846,7 +18846,7 @@ bool CvUnitAI::AI_pickup(UnitAITypes eUnitAI,  // advc: style changes
 
 		if (bCountProduction && (pLoopCity->getProductionUnitAI() == eUnitAI))
 		{
-			CvUnitInfo& kUnitInfo = GC.getUnitInfo(pLoopCity->getProductionUnit());
+			CvUnitInfo& kUnitInfo = GC.getInfo(pLoopCity->getProductionUnit());
 			if (kUnitInfo.getDomainType() != DOMAIN_AIR || kUnitInfo.getAirRange() > 0)
 			{
 				iValue++;
@@ -20730,7 +20730,7 @@ bool CvUnitAI::AI_revoltCitySpy()
 
 	for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
 	{
-		CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
+		CvEspionageMissionInfo& kMissionInfo = GC.getInfo((EspionageMissionTypes)iMission);
 		if ((kMissionInfo.getCityRevoltCounter() > 0) || (kMissionInfo.getPlayerAnarchyCounter() > 0))
 		{
 			/* if (!GET_PLAYER(getOwner()).canDoEspionageMission((EspionageMissionTypes)iMission, pCity->getOwner(), pCity->plot(), -1, this))
@@ -21090,7 +21090,7 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 			// One espionage mission loop to rule them all.
 			for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
 			{
-				CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo((EspionageMissionTypes)iMission);
+				CvEspionageMissionInfo& kMissionInfo = GC.getInfo((EspionageMissionTypes)iMission);
 				int iTestData = 1;
 				if (kMissionInfo.getBuyTechCostFactor() > 0)
 				{
@@ -21170,8 +21170,8 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 	if (gUnitLogLevel > 2 && eBestMission != NO_ESPIONAGEMISSION)
 	{
 		// The following assert isn't a problem or a bug. I just want to know when it happens, for testing purposes.
-		//FAssertMsg(!kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) || GC.getEspionageMissionInfo(eBestMission).getBuyTechCostFactor() > 0 || GC.getEspionageMissionInfo(eBestMission).getDestroyProjectCostFactor() > 0, "Potentially wasteful AI use of espionage.");
-		logBBAI("      %S chooses %S as their best%s espionage mission (value: %d, cost: %d).", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getEspionageMissionInfo(eBestMission).getText(), bBigEspionage?" (big)":"", iBestValue, kPlayer.getEspionageMissionCost(eBestMission, eTargetPlayer, pPlot, iData, this));
+		//FAssertMsg(!kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) || GC.getInfo(eBestMission).getBuyTechCostFactor() > 0 || GC.getInfo(eBestMission).getDestroyProjectCostFactor() > 0, "Potentially wasteful AI use of espionage.");
+		logBBAI("      %S chooses %S as their best%s espionage mission (value: %d, cost: %d).", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getInfo(eBestMission).getText(), bBigEspionage?" (big)":"", iBestValue, kPlayer.getEspionageMissionCost(eBestMission, eTargetPlayer, pPlot, iData, this));
 	}
 
 	return eBestMission;
@@ -21510,12 +21510,12 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 
 		if (getDomainType() != DOMAIN_AIR)
 		{
-			iValue += GC.getImprovementInfo(eImprovement).getPillageGold();
+			iValue += GC.getInfo(eImprovement).getPillageGold();
 		}
 
 		if (eNonObsoleteBonus != NO_BONUS)
 		{
-			//if (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
+			//if (GC.getInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
 			if (GET_PLAYER(pPlot->getOwner()).doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus)) // K-Mod
 			{
 				int iTempValue = iBonusValue * 4;
@@ -21594,7 +21594,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 
 						if (eImprovement != NO_IMPROVEMENT)
 						{
-							const CvImprovementInfo& kImprovement = GC.getImprovementInfo(eImprovement);
+							const CvImprovementInfo& kImprovement = GC.getInfo(eImprovement);
 							if (!kImprovement.isPermanent())
 							{
 								// arbitrary values, sorry.
@@ -21671,7 +21671,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 							{
 								if (pLoopCity->getNumRealBuilding(i) > 0)
 								{
-									const CvBuildingInfo& kBuildingInfo = GC.getBuildingInfo(i);
+									const CvBuildingInfo& kBuildingInfo = GC.getInfo(i);
 									if (!kBuildingInfo.isNukeImmune())
 										iPlotValue += iCivilianTargetWeight * pLoopCity->getNumRealBuilding(i) * std::max(0, kBuildingInfo.getProductionCost());
 								}
@@ -21681,7 +21681,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 							if (!pLoopPlot->isVisible(getTeam(), false))
 							{
 								UnitTypes eBasicUnit = pLoopCity->getConscriptUnit();
-								int iBasicCost = std::max(10, eBasicUnit != NO_UNIT ? GC.getUnitInfo(eBasicUnit).getProductionCost() : 0);
+								int iBasicCost = std::max(10, eBasicUnit != NO_UNIT ? GC.getInfo(eBasicUnit).getProductionCost() : 0);
 								int iExpectedUnits = 1 + ((1 + pLoopCity->getCultureLevel()) * pLoopCity->getPopulation() + pLoopCity->getHighestPopulation()/2) / std::max(1, pLoopCity->getHighestPopulation());
 
 								iPlotValue += iMilitaryTargetWeight * iExpectedUnits * iBasicCost;
@@ -21710,7 +21710,7 @@ int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild, int iMissi
 	PROFILE_FUNC();
 	// BtS code (originally in AI_improveBonus):
 	/*int iValue = 10000;
-	iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
+	iValue /= (GC.getInfo(eBuild).getTime() + 1);*/
 	/*  <advc.121> The above means that the longer a build takes, the smaller is
 		its (cost) value. So Forts are always preferred over cheaper Plantations etc.
 		(There are similar issues in AI_irrigateTerritory and AI_fortifyTerritory,
@@ -21718,8 +21718,8 @@ int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild, int iMissi
 		by the build time, but that function gets it right as it computes a maximum.) */
 
 	// Ad-hoc heuristic for Fort building:  (overlaps with AI_getPlotDefendersNeeded; fixme?)
-	ImprovementTypes eImpr = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
-	CvImprovementInfo& kImpr = GC.getImprovementInfo(eImpr);
+	ImprovementTypes eImpr = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
+	CvImprovementInfo& kImpr = GC.getInfo(eImpr);
 	int iDefenseValue = kImpr.getDefenseModifier();
 	// The AI isn't going to station units on an island without cities
 	if(p.area()->getCitiesPerPlayer(getOwner()) <= 0 ||
@@ -21744,7 +21744,7 @@ int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild, int iMissi
 			This function is only called for unworkable tiles, which are usually
 			near a border.) */
 	}
-	int iCost = GC.getBuildInfo(eBuild).getTime();
+	int iCost = GC.getInfo(eBuild).getTime();
 	// No cost for leaving an existing improvement alone
 	if(eImpr == p.getImprovementType())
 		iCost = 0;
@@ -21784,14 +21784,14 @@ int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild, int iMissi
 	I guess taking into account safe automation makes this an AI function. */
 bool CvUnitAI::AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const
 {	// Some old BtS code
-	//if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
-	//if (GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBuild).getImprovement()).isImprovementBonusTrade(eNonObsoleteBonus) || (!pLoopPlot->isCityRadius() && GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBuild).getImprovement()).isActsAsCity()))
+	//if (GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+	//if (GC.getInfo((ImprovementTypes) GC.getInfo(eBuild).getImprovement()).isImprovementBonusTrade(eNonObsoleteBonus) || (!pLoopPlot->isCityRadius() && GC.getInfo((ImprovementTypes) GC.getInfo(eBuild).getImprovement()).isActsAsCity()))
 
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	BonusTypes eBonus = p.getNonObsoleteBonusType(kOwner.getTeam());
 	if(eBonus == NO_BONUS)
 		return false;
-	ImprovementTypes eLoopImpr = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
+	ImprovementTypes eLoopImpr = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
 	if(eLoopImpr == NO_IMPROVEMENT ||
 			!kOwner.doesImprovementConnectBonus(eLoopImpr, eBonus)) // K-Mod
 		return false;
@@ -21802,7 +21802,7 @@ bool CvUnitAI::AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const
 	if(!canBuild(&p, eBuild))
 		return false;
 	if(p.getFeatureType() != NO_FEATURE &&
-			GC.getBuildInfo(eBuild).isFeatureRemove(p.getFeatureType()) &&
+			GC.getInfo(eBuild).isFeatureRemove(p.getFeatureType()) &&
 			kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
 		return false;
 	return true;
@@ -22067,7 +22067,7 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 		not b/c bigger stacks are generally smarter) */
 	if(!kOwner.isHuman() && !isBarbarian())
 	{
-		double trainMod = GC.getHandicapInfo(GC.getGame().
+		double trainMod = GC.getInfo(GC.getGame().
 				getHandicapType()).getAITrainPercent() / 100.0;
 		mult /= std::max(0.75, trainMod);
 	}
