@@ -593,7 +593,7 @@ void CvPlot::updateCenterUnit()
 	{	// <advc.028>
 		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
 				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), true,
-				false, false, true); // advc.061
+				false, true); // advc.061
 		if(pBestDef != NULL)
 			setCenterUnit(pBestDef); // </advc.028>
 	} // disabled by K-Mod. I don't think it's relevant whether or not the best defender can move.
@@ -606,7 +606,7 @@ void CvPlot::updateCenterUnit()
 		// <advc.028> Replacing the above
 		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
 				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), false,
-				false, false, true); // advc.061
+				false, true); // advc.061
 		if(pBestDef != NULL)
 			setCenterUnit(pBestDef); // </advc.028>
 	}
@@ -616,7 +616,7 @@ void CvPlot::updateCenterUnit()
 		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGame().getActivePlayer()));
 		// <advc.028> Replacing the above
 		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer, NULL, false,
-				false, false, true); // advc.061
+				false, true); // advc.061
 		if(pBestDef != NULL)
 			setCenterUnit(pBestDef); // </advc.028>
 	}
@@ -2175,27 +2175,39 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** pp
 
 
 CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer,
-	CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
-	bool bTestCanMove, /* advc.028: */ bool bTestVisible) const
+	CvUnit const* pAttacker, bool bTestEnemy, bool bTestPotentialEnemy,
+	/* advc.028: */ bool bTestVisible,
+	bool bTestCanAttack, bool bAny) const // advc: new params (for CvPlot::hasDefender)
 {
-	FAssert(!bTestCanMove); // advc: Tbd.: Confirm that unused, then remove this param.
+	// <advc> Ensure consistency of parameters
+	if (pAttacker != NULL)
+	{
+		FAssert(pAttacker->getOwner() == eAttackingPlayer);
+		eAttackingPlayer = pAttacker->getOwner();
+	}
+	// isEnemy implies isPotentialEnemy
+	FAssert(!bTestEnemy || !bTestPotentialEnemy); // </advc>
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
 	int iBestUnitRank = -1;
 	CvUnit* pBestUnit = NULL;
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc: while loop replaced
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
-		{	// advc: Moved the other conditions into an auxiliary function
-			if(pLoopUnit->canDefendAtCurrentPlot(eAttackingPlayer, pAttacker,
-					bTestAtWar, bTestPotentialEnemy, bTestCanMove,
-					bTestVisible)) // advc.028
-			{
-				if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker,
-						&iBestUnitRank, // UncutDragon
-						bTestVisible)) // advc.061
-					pBestUnit = pLoopUnit;
-			}
+		CvUnit& kLoopUnit = *::getUnit(pUnitNode->m_data);
+		if (eOwner != NO_PLAYER && kLoopUnit.getOwner() != eOwner)
+			continue;
+		if (kLoopUnit.isCargo()) // advc: Was previously only checked with bTestCanMove - i.e. never.
+			continue;
+		// <advc> Moved the other conditions into an auxiliary function
+		if(eAttackingPlayer == NO_PLAYER || kLoopUnit.canBeAttackedBy(eAttackingPlayer,
+			pAttacker, bTestEnemy, bTestPotentialEnemy, /* advc.028: */ bTestVisible,
+			bTestCanAttack))
+		{
+			if (bAny)
+				return &kLoopUnit; // </advc>
+			if (kLoopUnit.isBetterDefenderThan(pBestUnit, pAttacker,
+					&iBestUnitRank, // UncutDragon
+					bTestVisible)) // advc.061
+				pBestUnit = &kLoopUnit;
 		}
 	}
 	// BETTER_BTS_AI_MOD: END
@@ -8780,43 +8792,13 @@ void CvPlot::killRandomUnit(PlayerTypes eOwner, DomainTypes eDomain)
 
 
 // BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
-bool CvPlot::hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer, const CvUnit* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove) const
+bool CvPlot::hasDefender(bool bTestCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer,
+	CvUnit const* pAttacker, bool bTestEnemy, bool bTestPotentialEnemy) const
 {
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
-	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		// advc: These were seven nested ifs
-		if ((eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner) &&
-			(
-				eAttackingPlayer == NO_PLAYER ||
-				!pLoopUnit->isInvisible(TEAMID(eAttackingPlayer), false)
-			) &&
-			(
-				!bTestAtWar || eAttackingPlayer == NO_PLAYER ||
-				pLoopUnit->isEnemy(TEAMID(eAttackingPlayer), this) ||
-				(NULL != pAttacker && pAttacker->isEnemy(pLoopUnit->getTeam(), this))
-			) &&
-			(
-				!bTestPotentialEnemy || eAttackingPlayer == NO_PLAYER ||
-				pLoopUnit->isPotentialEnemy(TEAMID(eAttackingPlayer), this) ||
-				(NULL != pAttacker &&
-				pAttacker->isPotentialEnemy(pLoopUnit->getTeam(), this))
-			) &&
-			(
-				!bTestCanMove || (pLoopUnit->canMove() && !pLoopUnit->isCargo())
-			) &&
-			(
-				pAttacker == NULL || pAttacker->getDomainType() != DOMAIN_AIR ||
-				pLoopUnit->getDamage() < pAttacker->airCombatLimit()
-			) &&
-			(!bCheckCanAttack || pAttacker == NULL || pAttacker->canAttack(*pLoopUnit))
-			)
-		{
-			return true;
-		}
-	}
-	return false;
+	/*  advc: BBAI had repeated parts of getBestDefender here. To avoid that, I've
+		moved bTestAttack into getBestDefender and gave that function a "bAny" param. */
+	return (getBestDefender(eOwner, eAttackingPlayer, pAttacker, bTestEnemy,
+			bTestPotentialEnemy, false, bTestCanAttack, /*bAny=*/true) != NULL);
 } // BETTER_BTS_AI_MOD: END
 
 // <advc.500a>

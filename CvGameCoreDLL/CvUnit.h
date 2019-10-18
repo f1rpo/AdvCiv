@@ -303,12 +303,12 @@ public:
 	bool canSiege(TeamTypes eTeam) const;																							// Exposed to Python
 	bool canCombat() const; // dlph.8
 	bool canAttack() const;																														// Exposed to Python
-	bool canAttack(const CvUnit& defender) const;
+	bool canAttack(const CvUnit& kDefender) const;
 	bool canDefend(const CvPlot* pPlot = NULL) const;																	// Exposed to Python
 	// <advc>
-	bool canDefendAtCurrentPlot(PlayerTypes eAttackingPlayer,
-			CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
-			bool bTestCanMove, bool bTestVisible) const; // </advc>
+	bool canBeAttackedBy(PlayerTypes eAttackingPlayer,
+			CvUnit const* pAttacker, bool bTestEnemy, bool bTestPotentialEnemy,
+			bool bTestVisible, bool bTestCanAttack) const; // </advc>
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python
 
 	int airBaseCombatStr() const;																						// Exposed to Python

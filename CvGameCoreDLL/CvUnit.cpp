@@ -7468,19 +7468,14 @@ bool CvUnit::canFight() const
 bool CvUnit::canSiege(TeamTypes eTeam) const
 {
 	if (!canDefend())
-	{
 		return false;
-	}
 
 	if (!isEnemy(eTeam))
-	{
 		return false;
-	}
 
 	if (!isNeverInvisible())
-	{
 		return false;
-	} // <advc.033>
+	// <advc.033>
 	if(eTeam != NO_TEAM && (GET_TEAM(eTeam).isVassal(getTeam()) ||
 			GET_TEAM(getTeam()).isVassal(eTeam)))
 		return false; // </advc.033>
@@ -7503,33 +7498,35 @@ bool CvUnit::canAttack() const
 		return false;
 	return true;
 }
-bool CvUnit::canAttack(const CvUnit& defender) const
+
+
+bool CvUnit::canAttack(const CvUnit& kDefender) const
 {
 	if(!canAttack())
 		return false;
 	// <advc.315a>
-	if(m_pUnitInfo->isOnlyAttackAnimals() && !defender.isAnimal())
+	if(m_pUnitInfo->isOnlyAttackAnimals() && !kDefender.isAnimal())
 		return false; // </advc.315a>
 	// <advc.315b>
-	if(m_pUnitInfo->isOnlyAttackBarbarians() && !defender.isBarbarian())
+	if(m_pUnitInfo->isOnlyAttackBarbarians() && !kDefender.isBarbarian())
 		return false; // </advc.315b>
-	if(defender.getDamage() >= combatLimit())
+	if(kDefender.getDamage() >= combatLimit())
 		return false;
 
 	// Artillery can't amphibious attack
-	if (plot()->isWater() && !defender.plot()->isWater())
+	if (plot()->isWater() && !kDefender.plot()->isWater())
 	{
 		if (combatLimit() < 100)
-		{
 			return false;
-		}
 	} /* <advc.050> This prevents combat odds from being shown when pressing
 		 ALT while hovering over one's own units */
-	if(getTeam() == defender.getTeam())
+	if(getTeam() == kDefender.getTeam())
 		return false; // </advc.050>
 	return true;
 }
 
+/*  advc (clarification): "defend" as in: fight back when attacked. May still
+	get chosen as a defender when canDefend returns false. */
 bool CvUnit::canDefend(const CvPlot* pPlot) const
 {
 	if(!canFight())
@@ -7547,27 +7544,49 @@ bool CvUnit::canDefend(const CvPlot* pPlot) const
 	return true;
 }
 
-// advc: Body cut from CvPlot::getBestDefender
-bool CvUnit::canDefendAtCurrentPlot(PlayerTypes eAttackingPlayer,
-	CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
-	bool bTestCanMove, bool bTestVisible) const
+// advc: Based on code removed from CvPlot::getBestDefender and CvPlot::hasDefender
+bool CvUnit::canBeAttackedBy(PlayerTypes eAttackingPlayer,
+	CvUnit const* pAttacker, bool bTestEnemy, bool bTestPotentialEnemy,
+	/* <advc.028> */ bool bTestVisible, /* </advc.028> */ bool bTestCanAttack) const
 {
-	return
-		((eAttackingPlayer == NO_PLAYER || /* advc.028: */ !bTestVisible ||
-		!isInvisible(TEAMID(eAttackingPlayer), /* advc.028: */ true)) 
-		&&
-		(!bTestAtWar || eAttackingPlayer == NO_PLAYER ||
-		isEnemy(TEAMID(eAttackingPlayer), plot()) ||
-		(pAttacker != NULL && pAttacker->isEnemy(getTeam(), plot())))
-		&&
-		(!bTestPotentialEnemy || eAttackingPlayer == NO_PLAYER ||
-		isPotentialEnemy(TEAMID(eAttackingPlayer), plot()) ||
-		(pAttacker != NULL && pAttacker->isPotentialEnemy(getTeam(), plot())))
-		&&
-		(!bTestCanMove || (canMove() && !isCargo()))
-		&&
-		(pAttacker == NULL || pAttacker->getDomainType() != DOMAIN_AIR ||
-		getDamage() < pAttacker->airCombatLimit()));
+	FAssert(eAttackingPlayer != NO_PLAYER);
+	if (/* advc.028: */ bTestVisible &&
+			isInvisible(TEAMID(eAttackingPlayer), /* advc.028: */ false))
+		return false;
+	if (bTestEnemy)
+	{
+		if (pAttacker == NULL)
+		{
+			if (!isEnemy(TEAMID(eAttackingPlayer), plot()))
+				return false;
+		}
+		else if (!pAttacker->isEnemy(getTeam(), plot()))
+			return false;
+	}
+	if (bTestPotentialEnemy)
+	{
+		if (pAttacker == NULL)
+		{
+			if (!isPotentialEnemy(TEAMID(eAttackingPlayer), plot()))
+				return false;
+		}
+		else if (!pAttacker->isPotentialEnemy(getTeam(), plot()))
+			return false;
+	}
+	// <advc>
+	if (pAttacker != NULL)
+	{
+		// Moved from CvPlot::hasDefender
+		if (bTestCanAttack && !pAttacker->canAttack(*this))
+			return false;
+		/*  Previously, only the air combat limit was checked here. If either limit
+			isn't reached, then some form of attack is possible. (A land or sea unit
+			with range attack ability could have a regular attack ability in addition.) */
+		int const iDamage = getDamage();
+		if (iDamage >= pAttacker->combatLimit() && iDamage >= pAttacker->airCombatLimit())
+			return false;
+	} // </advc>
+	return true;
 }
 
 
@@ -12021,7 +12040,7 @@ int CvUnit::LFBgetDefenderRank(const CvUnit* pAttacker) const
 {
 	int iRank = LFBgetDefenderOdds(pAttacker);
 	// Don't adjust odds for value if attacker is limited in their damage (i.e: no risk of death)
-	if ((pAttacker != NULL) && (maxHitPoints() <= pAttacker->combatLimit()))
+	if (pAttacker != NULL && maxHitPoints() <= pAttacker->combatLimit())
 		iRank = LFBgetValueAdjustedOdds(iRank, true);
 
 	return iRank;

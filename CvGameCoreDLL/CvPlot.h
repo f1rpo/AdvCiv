@@ -134,17 +134,22 @@ public:
 	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const;																// Exposed to Python
 
 	DllExport CvUnit* getBestDefender(PlayerTypes eOwner,													// Exposed to Python
-			PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL,
-			bool bTestAtWar = false, bool bTestPotentialEnemy = false,
-			bool bTestCanMove = false) const { // <advc.028>
+		PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL,
+		bool bTestAtWar = false, bool bTestPotentialEnemy = false,
+		// advc.028: Replacing unused bTestCanMove
+		bool bTestVisible = false) const  // <advc> Need some more params
+	{
 		return getBestDefender(eOwner, eAttackingPlayer, pAttacker, bTestAtWar,
-				bTestPotentialEnemy, bTestCanMove, false); }
+				bTestPotentialEnemy, bTestVisible, false, false);
+	}
 	CvUnit* getBestDefender(PlayerTypes eOwner,
 			PlayerTypes eAttackingPlayer, CvUnit const* pAttacker,
-			bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove,
-			bool bTestVisible) const; // </advc.028>
+			bool bTestEnemy, bool bTestPotentialEnemy,
+			bool bTestVisible, // advc.028
+			bool bTestCanAttack, bool bAny = false) const; // </advc>
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
-	bool hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;
+	bool hasDefender(bool bTestCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false
+			/*,bool bTestCanMove = false*/) const; // advc: param unused (and doesn't make sense to me)
 	// disabled by K-Mod:
 	//int AI_sumStrength(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, DomainTypes eDomainType = NO_DOMAIN, bool bDefensiveBonuses = true, bool bTestAtWar = false, bool bTestPotentialEnemy = false) const;
 	CvUnit* getSelectedUnit() const;																																// Exposed to Python
