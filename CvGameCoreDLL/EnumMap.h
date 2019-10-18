@@ -643,7 +643,7 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */
-#define SET_XML_ENUM_SIZE2(Name, DUmmy) \
+#define SET_XML_ENUM_SIZE2(Name, Dummy) \
 	template <> struct EnumMapGetDefault<Name##Types> \
 	{ \
 		enum { value = -1, SIZE = 2, SIZE_OF_T = SIZE }; \

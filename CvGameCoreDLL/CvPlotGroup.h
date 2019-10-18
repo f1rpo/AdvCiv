@@ -43,11 +43,11 @@ public:
 	inline CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode)
 	{
 		return m_plots.next(pNode);
-	} // <advc> Safer in 'for' loops
+	} // <advc.003s> Safer in 'for' loops
 	inline CLLNode<XYCoords> const* nextPlotsNode(CLLNode<XYCoords> const* pNode)
 	{
 		return m_plots.next(pNode);
-	} // </advc>
+	} // </advc.003s>
 	int getLengthPlots();
 	CLLNode<XYCoords>* headPlotsNode();
 

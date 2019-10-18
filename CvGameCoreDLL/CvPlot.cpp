@@ -7215,7 +7215,7 @@ void CvPlot::removeUnit(CvUnit* pUnit, bool bUpdate)
 			m_units.deleteNode(pUnitNode);
 			break;
 		}
-		else pUnitNode = nextUnitNode(pUnitNode);
+		pUnitNode = nextUnitNode(pUnitNode);
 	}
 
 	if (bUpdate)

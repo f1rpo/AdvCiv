@@ -62,11 +62,11 @@ public:
 	virtual int getSymbolID(int iSymbol) = 0;
 	virtual CLLNode<IDInfo>* deleteSelectionListNode(CLLNode<IDInfo>* pNode) = 0;
 	virtual CLLNode<IDInfo>* nextSelectionListNode(CLLNode<IDInfo>* pNode) = 0;
-	// <advc> Work around for missing const qualifiers
+	// <advc.003s> Work around for missing const qualifiers
 	inline CLLNode<IDInfo> const* nextSelectionListNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return const_cast<CvDLLInterfaceIFaceBase*>(this)->nextSelectionListNode(const_cast<CLLNode<IDInfo>*>(pNode));
-	} // </advc>
+	} // </advc.003s>
 	virtual int getLengthSelectionList() = 0;
 	virtual CLLNode<IDInfo>* headSelectionListNode() = 0;
 

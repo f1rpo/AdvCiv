@@ -8,12 +8,12 @@
 #define		LINKEDLIST_H
 #pragma		once
 
-/*  <advc> Only use this when it's obvious that the body of the loop won't delete
+/*  <advc.003s> Only use this when it's obvious that the body of the loop won't delete
 	a node through some side-effect. */
 // Not yet sure about this. The list objects are often wrapped and thus inaccessible.
 /*#define FOR_EACH_NODE(Type, list, pName) \
 	for (CLLNode<Type> const* pName = list.head(); pName != NULL; pName = list.next(pName))*/
-// </advc>
+// </advc.003s>
 
 template <class tVARTYPE> class CLinkList;
 
@@ -385,7 +385,7 @@ inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::prev(CLLNode<tVARTYPE>* pNode) co
 	return pNode->m_pPrev;
 }
 
-// <advc>
+// <advc.003s>
 // Safer in 'for' loops (those mustn't remove nodes)
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE> const* CLinkList<tVARTYPE>::next(CLLNode<tVARTYPE> const* pNode) const
@@ -413,7 +413,7 @@ inline CLLNode<tVARTYPE> const* CLinkList<tVARTYPE>::static_next(CLLNode<tVARTYP
 {
 	return pNode->m_pNext;
 }
-// </advc>
+// </advc.003s>
 
 template <class tVARTYPE>
 inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::nodeNum(int iNum) const

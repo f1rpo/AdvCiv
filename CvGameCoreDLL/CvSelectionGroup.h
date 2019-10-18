@@ -196,11 +196,11 @@ public:
 	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
 	{
 		return m_units.next(pNode); // advc.003f: inline
-	} // <advc> Safer in 'for' loops
+	} // <advc.003s> Safer in 'for' loops
 	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.next(pNode);
-	} // </advc>
+	} // </advc.003s>
 	DllExport int getNumUnits() const;																												// Exposed to Python
 	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
 	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.003f: inline

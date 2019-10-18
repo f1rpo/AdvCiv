@@ -553,7 +553,7 @@ public:
 	{
 		return m_units.prev(pNode);
 	}
-	// <advc> Safer in 'for' loops
+	// <advc.003s> Safer in 'for' loops
 	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.next(pNode);
@@ -561,7 +561,7 @@ public:
 	inline CLLNode<IDInfo> const* prevUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.prev(pNode);
-	} // </advc>
+	} // </advc.003s>
 	DllExport CLLNode<IDInfo>* headUnitNode() const;
 	CLLNode<IDInfo>* tailUnitNode() const;
 
