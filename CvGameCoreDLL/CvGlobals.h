@@ -637,7 +637,7 @@ public:
 	inline bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
 	// hold X to temporarily suppress automatic unit cycling.
 	inline bool suppressCycling() const { return (GetKeyState('X') & 0x8000) ||
-			((GetKeyState('U') & 0x8000) && shiftKey()); } // advc.088
+			((GetKeyState('U') & 0x8000) && shiftKey() && altKey()); } // advc.088
 	// K-Mod end
 
 	DllExport int getMAX_CIV_PLAYERS(); // advc: Shouldn't be used in the DLL

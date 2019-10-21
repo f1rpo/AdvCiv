@@ -119,5 +119,5 @@
 	<shortcut module="InputUtil" function="toggleDebugMode" keys="Ctrl Z"/>
 	<!-- advc.088: If the key combination is changed here, it'll also have to
 		 be changed in CvGlobals::suppressCycling. -->
-	<shortcut module="InputUtil" function="unselectAll" keys="Shift U"/>
+	<shortcut module="InputUtil" function="unselectAll" keys="Shift Alt U"/>
 </mod>
