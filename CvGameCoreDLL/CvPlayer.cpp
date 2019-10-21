@@ -7345,7 +7345,8 @@ void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligio
 	g.setHolyCity(eReligion, pBestCity, true);
 	if (bAward && kSlotReligion.getNumFreeUnits() > 0)
 	{
-		UnitTypes eFreeUnit = getCivilization().getUnit((UnitClassTypes)kSlotReligion.getFreeUnitClass());
+		UnitTypes eFreeUnit = getCivilization().getUnit((UnitClassTypes)
+				GC.getInfo(eReligion).getFreeUnitClass());
 		if (eFreeUnit != NO_UNIT)
 		{
 			for (int i = 0; i < kSlotReligion.getNumFreeUnits(); i++)
