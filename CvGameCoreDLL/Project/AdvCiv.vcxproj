@@ -9,8 +9,8 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugMem|Win32">
-      <Configuration>DebugMem</Configuration>
+    <ProjectConfiguration Include="Debug-opt|Win32">
+      <Configuration>Debug-opt</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Profile-fast|Win32">
@@ -182,6 +182,7 @@
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
+    <ClInclude Include="..\BitUtil.h" />
     <ClInclude Include="..\CvAI.h" />
     <ClInclude Include="..\CvArea.h" />
     <ClInclude Include="..\CvAreaList.h" />
@@ -346,7 +347,7 @@
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMem|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-opt|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
@@ -384,7 +385,7 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugMem|Win32'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug-opt|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -421,18 +422,20 @@ nmake dll /NOLOGO</NMakeReBuildCommandLine>
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /D_DEBUG /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMem|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-opt|Win32'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <NMakeBuildCommandLine>set TARGET=DebugMem
+    <NMakeBuildCommandLine>set TARGET=Debug-opt
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
-nmake dll /NOLOGO</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>set TARGET=DebugMem
+nmake precompile /NOLOGO
+bin\jom build</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>set TARGET=Debug-opt
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
-nmake dll /NOLOGO</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>set TARGET=DebugMem
+nmake precompile /NOLOGO
+bin\jom build</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>set TARGET=Debug-opt
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /DFASSERT_ENABLE /D_CODE_EDITOR</AdditionalOptions>
   </PropertyGroup>

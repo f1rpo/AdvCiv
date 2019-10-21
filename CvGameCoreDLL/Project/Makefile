@@ -13,8 +13,9 @@
 # Enabled parallel builds (jom) for the Profile configuration
 #   (now called "Profile-fast") and added a configuration Debug-fast. Both use
 #   precompiled headers through the Z7 option as recommended by billw2015.
-# Target 'DebugMem' added: an almost-Release build that is less likely than a
-#   Debug build to obscure accesses to uninitialized memory.
+# Target 'Debug-opt' added: An almost-Release build that is less likely than a
+#   Debug build to obscure accesses to uninitialized memory. Also for inspecting
+#   optimized assembly.
 # Removed the non-fast Assert configuration. [Parallel builds can make it
 #   difficult to associate error messages with a translation unit; but don't need
 #   a slow version of every config.]
@@ -185,8 +186,8 @@ FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 #### CFLAGS ####
 GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
 Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS)
-# (DebugMem: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
-DebugMem_CFLAGS=/MD /O2 /Zi /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
+# (Debug-opt: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
+Debug_Opt_CFLAGS=/MD /O2 /Z7 /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
 Release_CFLAGS=/MD /O2 /Oy /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
 Final_Release_CFLAGS=$(Release_CFLAGS) /GL
 
@@ -234,8 +235,8 @@ CFLAGS  = $(Debug_CFLAGS)
 LDFLAGS = $(Debug_LDFLAGS)
 LIBS    = $(LIBS) msvcprt.lib
 !ENDIF
-!IF "$(TARGET)" == "DebugMem"
-CFLAGS  = $(DebugMem_CFLAGS) /DFASSERT_ENABLE
+!IF "$(TARGET)" == "Debug-opt"
+CFLAGS  = $(Debug_Opt_CFLAGS) /DFASSERT_ENABLE
 LDFLAGS = $(Debug_LDFLAGS)
 # Leaving out msvcprt might help with debugging memory (but I doubt it)
 LIBS    = $(LIBS) msvcprt.lib
