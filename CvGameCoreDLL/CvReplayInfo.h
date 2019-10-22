@@ -147,6 +147,6 @@ protected:
 	};
 	Data* m;
 };
-typedef char assertSizeOfReplayInfo[(sizeof(CvReplayInfo)==340)*2-1];
+BOOST_STATIC_ASSERT(sizeof(CvReplayInfo) == 340);
 // </advc.003k>
 #endif

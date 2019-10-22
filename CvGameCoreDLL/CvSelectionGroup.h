@@ -324,10 +324,8 @@ private: // advc.003u: (See comments in the private section of CvPlayer.h)
 	// advc.003u: Not called; could probably remove more (up until the bottommost one that the EXE calls).
 	//virtual bool AI_isFull();
 };
-/*  advc.003k: A trick from
-https://stackoverflow.com/questions/19401887/how-to-check-the-size-of-a-structure-at-compile-time/19402038
-	to verify that the class has a safe size. If this won't compile, then you've
-	probably added a data member (directly) to CvSelectionGroup. */
-typedef char assertSizeOfSelectionGroup[(sizeof(CvSelectionGroup)==80)*2-1];
+/*  advc.003k: If this fails, then you've probably added a data member (directly)
+	to CvSelectionGroup. */
+BOOST_STATIC_ASSERT(sizeof(CvSelectionGroup) == 80);
 
 #endif
