@@ -4944,7 +4944,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 				for (int iDY = -(iOffset); iDY <= iOffset; iDY++)
 				{
 					CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-					if(pLoopPlot == NULL || pLoopPlot->isRevealed(getTeam(), false))
+					if(pLoopPlot == NULL || pLoopPlot->isRevealed(getTeam()))
 						continue; // advc
 					int iValue = (1 + g.getSorenRandNum(10000, "Goody Map"));
 					iValue *= plotDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
@@ -8985,7 +8985,6 @@ int CvPlayer::getWarWearinessPercentAnger() const
 void CvPlayer::updateWarWearinessPercentAnger()
 {
 	int iNewWarWearinessPercentAnger = 0;
-
 	if (!isBarbarian() && !isMinorCiv())
 	{
 		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
@@ -9001,13 +9000,10 @@ void CvPlayer::updateWarWearinessPercentAnger()
 			}
 		}
 	}
-
 	iNewWarWearinessPercentAnger = getModifiedWarWearinessPercentAnger(iNewWarWearinessPercentAnger);
-
 	if (getWarWearinessPercentAnger() != iNewWarWearinessPercentAnger)
 	{
 		m_iWarWearinessPercentAnger = iNewWarWearinessPercentAnger;
-
 		AI_makeAssignWorkDirty();
 	}
 }
@@ -10419,7 +10415,8 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue)
 
 			if (pLoopPlot->getRevealedImprovementType(GC.getGame().getActiveTeam(), true) != NO_IMPROVEMENT)
 			{
-				if ((pLoopPlot->getOwner() == getID()) || (!(pLoopPlot->isOwned()) && (getID() == GC.getGame().getActivePlayer())))
+				if (pLoopPlot->getOwner() == getID() || (!pLoopPlot->isOwned() &&
+					getID() == GC.getGame().getActivePlayer()))
 				{
 					pLoopPlot->setLayoutDirty(true);
 				}
@@ -13704,7 +13701,7 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		if (NULL == pPlot)
 			return -1;
 
-		if (!pPlot->isRevealed(getTeam(), false))
+		if (!pPlot->isRevealed(getTeam()))
 			return -1;
 	}
 
@@ -16086,13 +16083,13 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot) con
 	{
 		if(bAdd)
 		{
-			if(pPlot->isRevealed(getTeam(), false))
+			if(pPlot->isRevealed(getTeam()))
 				return -1;
 			if(!pPlot->isAdjacentRevealed(getTeam(),
 					GC.getGame().getStartEra() < 4)) // advc.250c
 				return -1;
 		}
-		else if (!pPlot->isRevealed(getTeam(), false))
+		else if (!pPlot->isRevealed(getTeam()))
 			return -1;
 	}
 
@@ -16104,16 +16101,13 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot) con
 		{
 			CvPlot* pPlot = GC.getMap().plotByIndex(iPlotLoop);
 
-			if (pPlot->isRevealed(getTeam(), false))
-			{
+			if (pPlot->isRevealed(getTeam()))
 				++iNumVisiblePlots;
-			}
 		}
 
 		if (!bAdd)
-		{
 			--iNumVisiblePlots;
-		}
+
 		iNumVisiblePlots -= NUM_CITY_PLOTS; // advc.210c
 		if (iNumVisiblePlots > 0)
 		{
@@ -16904,6 +16898,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 // save object to a stream
 void CvPlayer::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	int iI;
 
 	uint uiFlag = 4;
@@ -17606,7 +17601,7 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 					bool bShowPlot = kTrigger.isShowPlot();
 					if (bShowPlot && kLoopPlayer.getTeam() != getTeam())
 					{
-						if (pPlot == NULL || !pPlot->isRevealed(kLoopPlayer.getTeam(), false))
+						if (pPlot == NULL || !pPlot->isRevealed(kLoopPlayer.getTeam(), /* advc.106: */ true))
 							bShowPlot = false;
 					}
 					if (bShowPlot)
@@ -17632,7 +17627,7 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 		}
 		else if (!kTriggeredData.m_szText.empty())
 		{
-			if (kTrigger.isShowPlot() && NULL != pPlot && pPlot->isRevealed(getTeam(), false))
+			if (kTrigger.isShowPlot() && NULL != pPlot && pPlot->isRevealed(getTeam(), /* advc.106: */ true))
 			{
 				gDLL->getInterfaceIFace()->addMessage(getID(), false,
 						GC.getEVENT_MESSAGE_TIME(), kTriggeredData.m_szText,
@@ -19003,32 +18998,35 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 		{
 			CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+			if (!kLoopPlayer.isAlive())
+				continue;
 
-			if (kLoopPlayer.isAlive())
+			if (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()) &&
+				(NO_PLAYER == pTriggeredData->m_eOtherPlayer ||
+				GET_TEAM(GET_PLAYER(pTriggeredData->m_eOtherPlayer).getTeam()).isHasMet(getTeam())))
 			{
-				if (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()) && (NO_PLAYER == pTriggeredData->m_eOtherPlayer || GET_TEAM(GET_PLAYER(pTriggeredData->m_eOtherPlayer).getTeam()).isHasMet(getTeam())))
+				bool bShowPlot = GC.getInfo(pTriggeredData->m_eTrigger).isShowPlot();
+				if (bShowPlot)
 				{
-					bool bShowPlot = GC.getInfo(pTriggeredData->m_eTrigger).isShowPlot();
-
-					if (bShowPlot)
+					if (kLoopPlayer.getTeam() != getTeam())
 					{
-						if (kLoopPlayer.getTeam() != getTeam())
-						{
-							if (NULL == pPlot || !pPlot->isRevealed(kLoopPlayer.getTeam(), false))
-							{
-								bShowPlot = false;
-							}
-						}
+						if (NULL == pPlot || !pPlot->isRevealed(kLoopPlayer.getTeam()))
+							bShowPlot = false;
 					}
-
-					if (bShowPlot)
-					{
-						gDLL->getInterfaceIFace()->addMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), szGlobalText, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY, true, true);
-					}
-					else
-					{
-						gDLL->getInterfaceIFace()->addMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), szGlobalText, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT);
-					}
+				}
+				if (bShowPlot)
+				{
+					gDLL->getInterfaceIFace()->addMessage((PlayerTypes)iPlayer,
+							false, GC.getEVENT_MESSAGE_TIME(), szGlobalText,
+							"AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT, NULL,
+							(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+							pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY, true, true);
+				}
+				else
+				{
+					gDLL->getInterfaceIFace()->addMessage((PlayerTypes)iPlayer,
+							false, GC.getEVENT_MESSAGE_TIME(), szGlobalText,
+							"AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MINOR_EVENT);
 				}
 			}
 		}
@@ -20125,7 +20123,7 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 			aCultures.push_back(std::make_pair(iPlot, iCulture));
 		}
 
-		if (pLoopPlot->isRevealed(getTeam(), false))
+		if (pLoopPlot->isRevealed(getTeam()))
 			pLoopPlot->setRevealed(TEAMID(eNewPlayer), true, false, getTeam(), false);
 	}
 	std::vector<CvCity*> apAcquiredCities; // advc.104r
@@ -20156,7 +20154,7 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 
 		for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam)
 		{
-			if (pPlot->getRevealedOwner((TeamTypes)iTeam, false) == getID())
+			if (pPlot->getRevealedOwner((TeamTypes)iTeam) == getID())
 				pPlot->setRevealedOwner((TeamTypes)iTeam, eNewPlayer);
 		}
 	}
@@ -22364,10 +22362,10 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 		} // <advc.004z>
 		ImprovementTypes eImpr = NO_IMPROVEMENT;
 		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
-				isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
-				getBugOptionBOOL("MainInterface__TribalVillageIcons", true))
+			isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
+			getBugOptionBOOL("MainInterface__TribalVillageIcons", true))
 		{
-			eImpr = pLoopPlot->getRevealedImprovementType(getTeam(), false);
+			eImpr = pLoopPlot->getRevealedImprovementType(getTeam());
 			bOfInterest = (eImpr != NO_IMPROVEMENT && GC.getInfo(eImpr).
 					isGoody());
 		} // </advc.004z>

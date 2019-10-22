@@ -1790,7 +1790,7 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 		// BETTER_BTS_AI_MOD: END
 	}
 
-	if (bAIControl || kToPlot.isRevealed(pSelectionGroup->getHeadTeam(), false))
+	if (bAIControl || kToPlot.isRevealed(pSelectionGroup->getHeadTeam()))
 	{
 		if (pSelectionGroup->isAmphibPlot(&kToPlot))
 		{
@@ -1873,14 +1873,14 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// </advc.035>
 	// K-Mod
 	int iExploreModifier = 3; // (in thirds)
-	if (!kToPlot.isRevealed(eTeam, false))
+	if (!kToPlot.isRevealed(eTeam))
 	{
 		if (pSelectionGroup->getAutomateType() == AUTOMATE_EXPLORE ||
 			(!pSelectionGroup->isHuman() && (pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE || pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE_SEA)))
 		{
 			iExploreModifier = 2; // lower cost to encourage exploring unrevealed areas
 		}
-		else if (!kFromPlot.isRevealed(eTeam, false))
+		else if (!kFromPlot.isRevealed(eTeam))
 		{
 			iExploreModifier = 4; // higher cost to discourage pathfinding deep into the unknown
 		}
@@ -2007,7 +2007,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 	// end symmetry breaking.
 
-	if (!kToPlot.isRevealed(eTeam, false))
+	if (!kToPlot.isRevealed(eTeam))
 		return iWorstCost;
 
 	// the cost of battle...
@@ -2232,13 +2232,13 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 		if (kFromPlot.isOwned() && kFromPlot.getTeam() != pSelectionGroup->getHeadTeam())
 			return FALSE;
 
-		if (!kFromPlot.isRevealed(pSelectionGroup->getHeadTeam(), false))
+		if (!kFromPlot.isRevealed(pSelectionGroup->getHeadTeam()))
 			return FALSE;
 	}
 	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
 	if(iFlags & MOVE_ROUTE_TO)
 	{
-		if(kFromPlot.getRevealedRouteType(pSelectionGroup->getHeadTeam(), false) == NO_ROUTE &&
+		if(kFromPlot.getRevealedRouteType(pSelectionGroup->getHeadTeam()) == NO_ROUTE &&
 			!pSelectionGroup->isHuman())
 		{
 			PlayerTypes eOwner = kFromPlot.getOwner();
@@ -2269,10 +2269,9 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 		}
 	}
 
-	if (bAIControl || kFromPlot.isRevealed(pSelectionGroup->getHeadTeam(), false))
+	if (bAIControl || kFromPlot.isRevealed(pSelectionGroup->getHeadTeam()))
 	{
-		if (iFlags & (MOVE_THROUGH_ENEMY
-				| MOVE_ATTACK_STACK)) // K-Mod
+		if (iFlags & (MOVE_THROUGH_ENEMY /* K-Mod: */ | MOVE_ATTACK_STACK))
 		{
 			if (!pSelectionGroup->canMoveOrAttackInto(kFromPlot,
 					// K-Mod:

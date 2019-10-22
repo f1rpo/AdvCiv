@@ -732,7 +732,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			p.changeInvisibleVisibilityCount(getID(), eInv, p.getInvisibleVisibilityCount(eTeam, eInv));
 		}
 
-		if (p.isRevealed(eTeam, false))
+		if (p.isRevealed(eTeam))
 			p.setRevealed(getID(), true, false, eTeam, false);
 	}
 
@@ -5797,7 +5797,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				if ((eRevealedTeam != getID() && eRevealedTeam != NO_TEAM &&
 						eRevealedTeam != BARBARIAN_TEAM &&
 						!GET_TEAM(eRevealedTeam).isVassal(getID())) ||
-						!kLoopPlot.isRevealed(getID(), false)) // </advc.004r>
+						!kLoopPlot.isRevealed(getID())) // </advc.004r>
 					continue; // advc
 				BonusTypes eBonus = kLoopPlot.getBonusType();
 				if (eBonus == NO_BONUS)
@@ -6474,60 +6474,46 @@ void CvTeam::updatePlotGroupBonus(TechTypes eTech, bool bAdd)
 
 void CvTeam::testCircumnavigated()
 {
-	CvWString szBuffer;
-	int iX, iY;
-
 	if (isBarbarian())
-	{
 		return;
-	}
 
 	if (!GC.getGame().circumnavigationAvailable())
-	{
 		return;
-	}
+
 	CvMap const& kMap = GC.getMap(); // advc
 	if (kMap.isWrapX())
 	{
-		for (iX = 0; iX < kMap.getGridWidth(); iX++)
+		for (int iX = 0; iX < kMap.getGridWidth(); iX++)
 		{
 			bool bFoundVisible = false;
-
-			for (iY = 0; iY < kMap.getGridHeight(); iY++)
+			for (int iY = 0; iY < kMap.getGridHeight(); iY++)
 			{
-				if (kMap.getPlot(iX, iY).isRevealed(getID(), false))
+				if (kMap.getPlot(iX, iY).isRevealed(getID()))
 				{
 					bFoundVisible = true;
 					break;
 				}
 			}
-
 			if (!bFoundVisible)
-			{
 				return;
-			}
 		}
 	}
 
 	if (kMap.isWrapY())
 	{
-		for (iY = 0; iY < kMap.getGridHeight(); iY++)
+		for (int iY = 0; iY < kMap.getGridHeight(); iY++)
 		{
 			bool bFoundVisible = false;
-
-			for (iX = 0; iX < kMap.getGridWidth(); iX++)
+			for (int iX = 0; iX < kMap.getGridWidth(); iX++)
 			{
-				if (kMap.getPlot(iX, iY).isRevealed(getID(), false))
+				if (kMap.getPlot(iX, iY).isRevealed(getID()))
 				{
 					bFoundVisible = true;
 					break;
 				}
 			}
-
 			if (!bFoundVisible)
-			{
 				return;
-			}
 		}
 	}
 
@@ -6539,12 +6525,12 @@ void CvTeam::testCircumnavigated()
 		if (GC.getDefineINT("CIRCUMNAVIGATE_FREE_MOVES") != 0)
 		{
 			changeExtraMoves(DOMAIN_SEA, GC.getDefineINT("CIRCUMNAVIGATE_FREE_MOVES"));
-
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
 				if (!kObs.isAlive())
 					continue;
+				CvWString szBuffer;
 				if (getID() == kObs.getTeam())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_CIRC_GLOBE",
@@ -6565,9 +6551,9 @@ void CvTeam::testCircumnavigated()
 						getCapitalX(kObs.getTeam(), true),
 						getCapitalY(kObs.getTeam(), true)); // </advc.127b>
 			}
-
-			szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CIRC_GLOBE", getReplayName().GetCString());
-			GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SOMEONE_CIRC_GLOBE", getReplayName().GetCString()));
+			GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(),
+					szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 		}
 	}
 }
@@ -7010,6 +6996,7 @@ void CvTeam::read(FDataStreamBase* pStream)
 
 void CvTeam::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	int iI;
 
 	uint uiFlag = 1;

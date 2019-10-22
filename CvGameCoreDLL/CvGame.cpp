@@ -9171,6 +9171,7 @@ void CvGame::read(FDataStreamBase* pStream)
 
 void CvGame::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	int iI;
 
 	uint uiFlag=1;

@@ -6059,7 +6059,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 				// advc.001n: Might cache FoundValue
 				&& !GC.getGame().isNetworkMultiPlayer())
 		{ // <advc.007> Moved up, and skip unrevealed.
-			bool bRevealed = kPlot.isRevealed(kLoopPlayer.getTeam(), false);
+			bool bRevealed = kPlot.isRevealed(kLoopPlayer.getTeam());
 			if(!bRevealed)
 				continue; // </advc.007>
 			int iActualFoundValue = kPlot.getFoundValue(ePlayer, /* advc.052: */ true);

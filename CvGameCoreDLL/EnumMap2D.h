@@ -25,8 +25,8 @@ public:
 
 	void reset();
 
-	void Read(/* <advc> */ FDataStreamBase* pStream);
-	void Write(/* <advc> */ FDataStreamBase* pStream) const;
+	void Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt = true, bool bLazy = false);
+	void Write(/* <advc> */ FDataStreamBase* pStream, bool bAsInt = true, bool bLazy = false) const;
 
 private:
 	void allocate();
@@ -158,29 +158,49 @@ inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
 inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
-::Read(/* <advc> */ FDataStreamBase* pStream)
+::Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bLazy)
 {
 	if (m_pOuterArray == NULL)
 		allocate();
 	for (OuterArrayType eArray = First(); eArray < Length(); ++eArray)
-		m_pOuterArray[eArray].Read(pStream);
+	{
+		if (bLazy)
+		{
+			int iCount;
+			pStream->Read(&iCount);
+			if (iCount <= 0)
+				continue;
+		}
+		m_pOuterArray[eArray].Read(pStream, bAsInt);
+	}
 	hasContent(); // </advc>
 }
 
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
 inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
-::Write(/* <advc> */ FDataStreamBase* pStream) const
+::Write(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bLazy) const
 {
 	if (m_pOuterArray == NULL)
 		const_cast<EnumMap2DDefault*>(this)->allocate();
 	for (OuterArrayType eArray = First(); eArray < Length(); ++eArray)
-		m_pOuterArray[eArray].Write(pStream);
+	{
+		if (bLazy)
+		{
+			if(!m_pOuterArray[eArray].hasContent())
+			{
+				pStream->Write(0);
+				continue;
+			}
+			else pStream->Write(static_cast<int>(m_pOuterArray[eArray].getLength()));
+		}
+		m_pOuterArray[eArray].Write(pStream, bAsInt);
+	}
 	hasContent(); // </advc>
 }
 
 
 template<class OuterArrayType, class InnerArrayType, class T>
-class EnumMap2D : public EnumMap2DDefault < OuterArrayType, InnerArrayType, T, EnumMapGetDefault<T>::value > {};
+class EnumMap2D : public EnumMap2DDefault < OuterArrayType, InnerArrayType, T, EnumMapGetDefault<T>::DEFAULT_VALUE > {};
 
 #endif

@@ -263,7 +263,7 @@ namespace python = boost::python;
 // advc.make: Removed most of these. (Don't know what the comment above means.)
 #include "CvGameCoreUtils.h"
 #include "CvGlobals.h"
-#include "EnumMap2D.h" // advc.enum: includes EnumMap.h
+#include "EnumMap2D.h" // advc.enum: Includes EnumMap.h, which includes BitUtil.h.
 #include "CvPythonCaller.h" // advc.003y
 #include "CvDLLLogger.h" // advc.003t
 #include "FProfiler.h"
@@ -278,7 +278,7 @@ namespace python = boost::python;
 #include "CvInfo_RandomEvent.h" // </advc.003x>
 /*  advc.make: These I had removed (not _that_ frequently included),
 	but decided to add them back. */
-#include "CyGlobalContext.h" // includes CvArtFileMgr.h
+#include "CyGlobalContext.h" // Includes CvArtFileMgr.h
 #include "CyCity.h"
 #include "CvDLLEntityIFaceBase.h"
 // advc.make: New additions
@@ -286,7 +286,7 @@ namespace python = boost::python;
 #include "CvDLLFAStarIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
 #include "CvInitCore.h"
-#include "CvEventReporter.h" // includes CvStatistics.h and CvDllPythonEvents.h
+#include "CvEventReporter.h" // Includes CvStatistics.h and CvDllPythonEvents.h
 #include "CyArgsList.h"
 #include "CyPlot.h"
 #include "CyUnit.h"

@@ -62,7 +62,7 @@ public:
 	virtual int getSymbolID(int iSymbol) = 0;
 	virtual CLLNode<IDInfo>* deleteSelectionListNode(CLLNode<IDInfo>* pNode) = 0;
 	virtual CLLNode<IDInfo>* nextSelectionListNode(CLLNode<IDInfo>* pNode) = 0;
-	// <advc.003s> Work around for missing const qualifiers
+	// <advc.003s> Workaround for missing const qualifiers
 	inline CLLNode<IDInfo> const* nextSelectionListNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return const_cast<CvDLLInterfaceIFaceBase*>(this)->nextSelectionListNode(const_cast<CLLNode<IDInfo>*>(pNode));
@@ -78,7 +78,7 @@ public:
 	virtual CvCity* getHeadSelectedCity() = 0;
 	virtual bool isCitySelection() = 0;
 	virtual CLLNode<IDInfo>* nextSelectedCitiesNode(CLLNode<IDInfo>* pNode) = 0;
-	// <advc> Work around for missing const qualifiers
+	// <advc> Workaround for missing const qualifiers
 	inline CLLNode<IDInfo> const* nextSelectedCitiesNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return const_cast<CvDLLInterfaceIFaceBase*>(this)->nextSelectedCitiesNode(const_cast<CLLNode<IDInfo>*>(pNode));

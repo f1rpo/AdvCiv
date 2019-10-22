@@ -36,7 +36,6 @@ public:
 	bool isWater();
 
 	int getUnitsPerPlayer(int /*PlayerTypes*/ eIndex);
-	int getAnimalsPerPlayer(int /*PlayerTypes*/ eIndex);
 	int getCitiesPerPlayer(int /*PlayerTypes*/ eIndex);
 	int getPopulationPerPlayer(int /*PlayerTypes*/ eIndex);
 	int getBuildingGoodHealth(int /*PlayerTypes*/ eIndex);

@@ -13198,7 +13198,7 @@ bool CvUnitAI::AI_explore()  // advc: style changes
 				continue;
 		}
 
-		if (!pLoopPlot->isRevealed(getTeam(), false))
+		if (!pLoopPlot->isRevealed(getTeam()))
 			iValue += 10000;
 
 		for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++) // XXX is this too slow?
@@ -13210,7 +13210,7 @@ bool CvUnitAI::AI_explore()  // advc: style changes
 			if (pAdjacentPlot == NULL)
 				continue;
 
-			if (!pAdjacentPlot->isRevealed(getTeam(), false))
+			if (!pAdjacentPlot->isRevealed(getTeam()))
 				iValue += 1000;
 
 			/* original bts code
@@ -13221,8 +13221,8 @@ bool CvUnitAI::AI_explore()  // advc: style changes
 			// K-Mod. Not only is the original code cheating, it also doesn't help us meet anyone!
 			// The goal here is to try to meet teams which we have already seen through map trading.
 			if (bNoContact &&
-					// note: revealed owner can be set before the plot is actually revealed.
-					pAdjacentPlot->getRevealedOwner(kTeam.getID(), false) != NO_PLAYER)
+				// note: revealed owner can be set before the plot is actually revealed.
+				pAdjacentPlot->getRevealedOwner(kTeam.getID()) != NO_PLAYER)
 			{
 				if (!kTeam.isHasMet(pAdjacentPlot->getRevealedTeam(kTeam.getID(), false)))
 					iValue += 100;
@@ -13298,11 +13298,11 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 			if (pLoopPlot->isRevealedGoody(getTeam()))
 				iValue += 100000;
 
-			if (!pLoopPlot->isRevealed(getTeam(), false))
+			if (!pLoopPlot->isRevealed(getTeam()))
 				iValue += 10000;
 
 			// K-Mod. Try to meet teams that we have seen through map trading
-			if (pLoopPlot->getRevealedOwner(kTeam.getID(), false) != NO_PLAYER &&
+			if (pLoopPlot->getRevealedOwner(kTeam.getID()) != NO_PLAYER &&
 					!kTeam.isHasMet(pLoopPlot->getRevealedTeam(kTeam.getID(), false)))
 				iValue += 1000;
 			// K-Mod end
@@ -13316,7 +13316,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 				if (pAdjacentPlot == NULL)
 					continue;
 
-				if (!pAdjacentPlot->isRevealed(getTeam(), false))
+				if (!pAdjacentPlot->isRevealed(getTeam()))
 					iValue += 1000;
 			}
 
@@ -14701,7 +14701,7 @@ bool CvUnitAI::AI_pirateBlockade()
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		// advc: Reduce indentation
 		if(!AI_plotValid(pLoopPlot) ||
-				!pLoopPlot->isRevealed(getTeam(), false) || // advc.opt
+				!pLoopPlot->isRevealed(getTeam()) || // advc.opt
 				pLoopPlot->isVisibleEnemyUnit(this) || !canPlunder(pLoopPlot) ||
 				//GC.getGame().getSorenRandNum(4, "AI Pirate Blockade") != 0 ||
 				/*  advc.033: Replacing the above. Should make Privateers a bit
@@ -15481,7 +15481,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (!pLoopPlot->isRevealed(getTeam(), false))
+		if (!pLoopPlot->isRevealed(getTeam()))
 			continue;
 		if (!pLoopPlot->isOwned())
 			continue;
@@ -16324,7 +16324,8 @@ bool CvUnitAI::AI_settlerSeaTransport()
 		//if (pLoopPlot->isCoastalLand())
 		// K-Mod. Only consider areas we have explored, and only land if we know there is something we want to settle.
 		int iAreaBest; // (currently unused)
-		if (pLoopPlot->isCoastalLand() && pLoopPlot->isRevealed(getTeam(), false) && GET_PLAYER(getOwner()).AI_getNumAreaCitySites(pLoopPlot->getArea(), iAreaBest) > 0)
+		if (pLoopPlot->isCoastalLand() && pLoopPlot->isRevealed(getTeam()) &&
+			GET_PLAYER(getOwner()).AI_getNumAreaCitySites(pLoopPlot->getArea(), iAreaBest) > 0)
 		// K-Mod end
 		{
 			int iValue = pLoopPlot->getFoundValue(getOwner());
@@ -16855,7 +16856,7 @@ bool CvUnitAI::AI_specialSeaTransportSpy()
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
-		PlayerTypes ePlotOwner = pLoopPlot->getRevealedOwner(getTeam(), false);
+		PlayerTypes ePlotOwner = pLoopPlot->getRevealedOwner(getTeam());
 
 		// only consider coast plots, owned by civ teams, with base value greater than the current best
 		if (ePlotOwner == NO_PLAYER || ePlotOwner >= MAX_CIV_PLAYERS ||
@@ -19152,7 +19153,7 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot* pPlot)
 			{
 				if (pLoopPlot->area() == pPlot->area() && pLoopPlot->isOwned())
 				{	// <advc.001i>
-					if(!pLoopPlot->isRevealed(getTeam(), false))
+					if(!pLoopPlot->isRevealed(getTeam()))
 						continue; // </advc.001i>
 					int iDistance = stepDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
 					if(pLoopPlot->getTeam() != getTeam() &&
@@ -19171,7 +19172,7 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot* pPlot)
 							}
 							else if (iDistance == 2 && pLoopPlot->//isRoute()
 									// advc.001i:
-									getRevealedRouteType(getTeam(), false))
+									getRevealedRouteType(getTeam()))
 								iBorderDanger += 2;
 						}
 					}
@@ -20624,7 +20625,7 @@ bool CvUnitAI::AI_reconSpy(int iRange)  // advc: loops flattened
 				if (pAdjacentPlot == NULL)
 					continue;
 
-				if (!pAdjacentPlot->isRevealed(getTeam(), false))
+				if (!pAdjacentPlot->isRevealed(getTeam()))
 					iValue += 500;
 				else if (!pAdjacentPlot->isVisible(getTeam(), false))
 					iValue += 200;
@@ -21434,7 +21435,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 	int iBonusValue = 0;
 	BonusTypes eNonObsoleteBonus = pPlot->isRevealed(
 			// K-Mod:
-			getTeam(), false) ? pPlot->getNonObsoleteBonusType(pPlot->getTeam(), true) : NO_BONUS;
+			getTeam()) ? pPlot->getNonObsoleteBonusType(pPlot->getTeam(), true) : NO_BONUS;
 	if (eNonObsoleteBonus != NO_BONUS)
 	{
 		//iBonusValue = (GET_PLAYER(pPlot->getOwner()).AI_bonusVal(eNonObsoleteBonus));
@@ -21456,7 +21457,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 	if (getDomainType() != DOMAIN_AIR)
 	{
 		if (pPlot->//isRoute()
-			getRevealedRouteType(getTeam(), false) != NO_ROUTE) // advc.001i
+			getRevealedRouteType(getTeam()) != NO_ROUTE) // advc.001i
 		{
 			iValue++;
 			if (eNonObsoleteBonus != NO_BONUS)
@@ -21479,7 +21480,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 
 					//if (!pAdjacentPlot->isRoute())
 					// advc.001i:
-					if(pAdjacentPlot->getRevealedRouteType(getTeam(), false) == NO_ROUTE)
+					if(pAdjacentPlot->getRevealedRouteType(getTeam()) == NO_ROUTE)
 					{
 						if (!pAdjacentPlot->isWater() &&
 								!pAdjacentPlot->isImpassable())
@@ -21495,7 +21496,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 	else eImprovement = pPlot->getRevealedImprovementType(getTeam(), false);*/
 	ImprovementTypes eImprovement = pPlot->getImprovementDuration() > 20 ?
 			pPlot->getImprovementType() :
-			pPlot->getRevealedImprovementType(getTeam(), false);
+			pPlot->getRevealedImprovementType(getTeam());
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (pPlot->getWorkingCity() != NULL)
@@ -21588,7 +21589,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 						bool bEnemy = isEnemy(pLoopPlot->getTeam(), pLoopPlot);
 						FAssert(bEnemy || pLoopPlot->getTeam() == getTeam()); // it is owned, and we aren't allowed to nuke neutrals; so it is either enemy or ours.
 
-						ImprovementTypes eImprovement = pLoopPlot->getRevealedImprovementType(getTeam(), false);
+						ImprovementTypes eImprovement = pLoopPlot->getRevealedImprovementType(getTeam());
 						BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
 						const CvPlayerAI& kPlotOwner = GET_PLAYER(pLoopPlot->getOwner());
 

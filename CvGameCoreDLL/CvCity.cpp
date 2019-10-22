@@ -7772,11 +7772,11 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 					if (iCultureRange <= eOldValue)
 					{
 						FAssert(iCultureRange <= GC.getNumCultureLevelInfos());
-
 						CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
 						if (pLoopPlot != NULL)
 						{
-							pLoopPlot->changeCultureRangeCities(getOwner(), iCultureRange, -1, bUpdatePlotGroups);
+							pLoopPlot->changeCultureRangeCities(getOwner(),
+									(CultureLevelTypes)iCultureRange, -1, bUpdatePlotGroups);
 						}
 					}
 				}
@@ -7798,10 +7798,10 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 						FAssert(iCultureRange <= GC.getNumCultureLevelInfos());
 
 						CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-
 						if (pLoopPlot != NULL)
 						{
-							pLoopPlot->changeCultureRangeCities(getOwner(), iCultureRange, 1, bUpdatePlotGroups);
+							pLoopPlot->changeCultureRangeCities(getOwner(),
+									(CultureLevelTypes)iCultureRange, 1, bUpdatePlotGroups);
 						}
 					}
 				}
@@ -13327,6 +13327,7 @@ void CvCity::read(FDataStreamBase* pStream)
 
 void CvCity::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	int iI;
 	uint uiFlag = 1; // flag for expansion
 	uiFlag = 2; // advc.004x

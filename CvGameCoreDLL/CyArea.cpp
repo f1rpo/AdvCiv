@@ -94,11 +94,6 @@ int CyArea::getUnitsPerPlayer(int /*PlayerTypes*/ eIndex)
 	return m_pArea ? m_pArea->getUnitsPerPlayer((PlayerTypes) eIndex) : -1;
 }
 
-int CyArea::getAnimalsPerPlayer(int /*PlayerTypes*/ eIndex)
-{
-	return m_pArea ? m_pArea->getAnimalsPerPlayer((PlayerTypes) eIndex) : -1;
-}
-
 int CyArea::getCitiesPerPlayer(int /*PlayerTypes*/ eIndex)
 {
 	return m_pArea ? m_pArea->getCitiesPerPlayer((PlayerTypes) eIndex) : -1;

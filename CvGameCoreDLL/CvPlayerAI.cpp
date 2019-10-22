@@ -1003,7 +1003,7 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)  // advc: refactored
 	for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot& kLoopPlot = *GC.getMap().plotByIndex(iI);
-		if(!kLoopPlot.isRevealed(getTeam(), false))
+		if(!kLoopPlot.isRevealed(getTeam()))
 			//&& !AI_isPrimaryArea(kLoopPlot.area()))
 		/*  K-Mod: Clear out any junk found values.
 			(I've seen legacy AI code which makes use of the found values of unrevealed plots.
@@ -2955,7 +2955,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iBadTile += 2;
 				continue;
 			}
-			if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false))
+			if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam()))
 			{
 				iUnrev++; // advc.040
 				continue;
@@ -3034,7 +3034,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			// <advc.303>
 			if(isBarbarian() && !::isInnerRing(pLoopPlot, &kPlot))
 				continue; // </advc.303>
-			if(pLoopPlot == NULL || (!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false)))
+			if(pLoopPlot == NULL || (!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam())))
 				continue;
 			if(pLoopPlot->isOwned()
 					// <advc.031>
@@ -3114,7 +3114,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		} /* advc.031: Moved up. If we can't see the tile, we don't really know
 			 if it's already taken by a rival. (Will find out when our Settler
 			 gets there.) */
-		if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false))
+		if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam()))
 			continue;
 		// <advc.031>
 		bool const bCityRadius = pLoopPlot->isCityRadius();
@@ -4963,13 +4963,13 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTest
 						return true;
 					}
 					else if (iDistance == 2 && pLoopPlot->//isRoute()
-						getRevealedRouteType(eTeam, false) != NO_ROUTE) // advc.001i
+						getRevealedRouteType(eTeam) != NO_ROUTE) // advc.001i
 					{
 						kPlot.setBorderDangerCache(eTeam, true);
 						pLoopPlot->setBorderDangerCache(eTeam, true); // owned by our enemy
 						if (kPlot.//isRoute()
 								// advc.001i:
-								getRevealedRouteType(pLoopPlot->getTeam(), false) != NO_ROUTE
+								getRevealedRouteType(pLoopPlot->getTeam()) != NO_ROUTE
 								&& kPlot.getTeam() == eTeam)
 						{
 							pLoopPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
@@ -5115,7 +5115,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMove
 					}
 					else if (iDistance == 2 && pLoopPlot->//isRoute()
 							// advc.001i:
-							getRevealedRouteType(getTeam(), false) != NO_ROUTE)
+							getRevealedRouteType(getTeam()) != NO_ROUTE)
 						iBorderDanger++;
 				}
 			}
@@ -8885,7 +8885,7 @@ void CvPlayerAI::AI_updateCityAttitude(CvPlot const& kCityPlot)
 	{
 		CvPlayerAI& kOtherCiv = GET_PLAYER((PlayerTypes)i);
 		if(kOtherCiv.isAlive() && kOtherCiv.getID() != getID() && !kOtherCiv.isMinorCiv() &&
-				kCityPlot.isRevealed(kOtherCiv.getTeam(), false) &&
+				kCityPlot.isRevealed(kOtherCiv.getTeam()) &&
 				GET_TEAM(kOtherCiv.getTeam()).isHasMet(getTeam()))
 			kOtherCiv.AI_updateAttitudeCache(getID());
 	}
@@ -15172,7 +15172,7 @@ int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus) const
 			if (pLoopPlot->getBonusType(getTeam()) == eBonus)
 				iCount++;
 		}
-		else if (bAdvancedStart && pLoopPlot->isRevealed(getTeam(), false))
+		else if (bAdvancedStart && pLoopPlot->isRevealed(getTeam()))
 		{
 			if (pLoopPlot->getBonusType(getTeam()) == eBonus)
 				iCount++;
@@ -21846,6 +21846,7 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 // save object to a stream
 void CvPlayerAI::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	CvPlayer::write(pStream);
 
 	uint uiFlag=7;
@@ -26350,7 +26351,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 		{
 			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-			if (pLoopPlot->isRevealed(getTeam(), false))
+			if (pLoopPlot->isRevealed(getTeam()))
 			{
 				if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
 				{
@@ -26605,7 +26606,7 @@ void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int
 					pLoopPlot->setFoundValue(getID(), 0);
 				continue;
 			}
-			if (pLoopPlot != NULL && pLoopPlot->isRevealed(getTeam(), false))
+			if (pLoopPlot != NULL && pLoopPlot->isRevealed(getTeam()))
 			{
 				short iValue = GC.getPythonCaller()->AI_foundValue(getID(), *pLoopPlot);
 				if (iValue == -1)
@@ -26695,7 +26696,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)  // advc: some style changes
 		{
 			CvPlot const& kPlot = *GC.getMap().plotByIndex(iI);
-			if (!kPlot.isRevealed(getTeam(), false))
+			if (!kPlot.isRevealed(getTeam()))
 				continue;
 
 			int iValue = kPlot.getFoundValue(getID(), /* advc.052: */ true);

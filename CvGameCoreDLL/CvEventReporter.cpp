@@ -552,6 +552,7 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 }
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	m_kStatistics.write(pStream);
 }
 

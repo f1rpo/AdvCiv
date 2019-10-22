@@ -53,7 +53,6 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	m_bWater = bWater;
 
 	m_aiUnitsPerPlayer.reset();
-	m_aiAnimalsPerPlayer.reset();
 	m_aiCitiesPerPlayer.reset();
 	m_aiPopulationPerPlayer.reset();
 	m_aiBuildingGoodHealth.reset();
@@ -372,19 +371,6 @@ void CvArea::changeUnitsPerPlayer(PlayerTypes eIndex, int iChange)
 	FAssert(getUnitsPerPlayer(eIndex) >= 0);
 	m_iNumUnits += iChange;
 	FAssert(getNumUnits() >= 0);
-}
-
-
-int CvArea::getAnimalsPerPlayer(PlayerTypes eIndex) const
-{
-	return m_aiAnimalsPerPlayer.get(eIndex);
-}
-
-
-void CvArea::changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange)
-{
-	m_aiAnimalsPerPlayer.add(eIndex, iChange);
-	FAssert(getAnimalsPerPlayer(eIndex) >= 0);
 }
 
 
@@ -752,7 +738,16 @@ void CvArea::read(FDataStreamBase* pStream)
 		m_iRepresentativeAreaId = m_iID;
 	} // </advc.030>
 	m_aiUnitsPerPlayer.Read(pStream);
-	m_aiAnimalsPerPlayer.Read(pStream);
+	// <advc>
+	if (uiFlag < 2)
+	{
+		// Discard AnimalsPerPlayer
+		for (int i = 0; i < MAX_PLAYERS; i++)
+		{
+			int iTmp;
+			pStream->Read(&iTmp);
+		}
+	} // </advc>
 	m_aiCitiesPerPlayer.Read(pStream);
 	m_aiPopulationPerPlayer.Read(pStream);
 	m_aiBuildingGoodHealth.Read(pStream);
@@ -773,7 +768,7 @@ void CvArea::read(FDataStreamBase* pStream)
 		pStream->Read(&m_aTargetCities[i].iID);
 	}
 
-	m_aaiYieldRateModifier.Read(pStream);
+	m_aaiYieldRateModifier.Read(pStream, uiFlag < 2);
 	m_aaiNumTrainAIUnits.Read(pStream);
 	m_aaiNumAIUnits.Read(pStream);
 	m_aiBonuses.Read(pStream);
@@ -783,8 +778,10 @@ void CvArea::read(FDataStreamBase* pStream)
 
 void CvArea::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	uint uiFlag=0;
 	uiFlag = 1; // advc.030
+	uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
@@ -803,7 +800,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(m_iRepresentativeAreaId);
 	// </advc.030>
 	m_aiUnitsPerPlayer.Write(pStream);
-	m_aiAnimalsPerPlayer.Write(pStream);
+	//m_aiAnimalsPerPlayer.Write(pStream); // advc: removed
 	m_aiCitiesPerPlayer.Write(pStream);
 	m_aiPopulationPerPlayer.Write(pStream);
 	m_aiBuildingGoodHealth.Write(pStream);
@@ -824,7 +821,7 @@ void CvArea::write(FDataStreamBase* pStream)
 		pStream->Write(m_aTargetCities[i].iID);
 	}
 
-	m_aaiYieldRateModifier.Write(pStream);
+	m_aaiYieldRateModifier.Write(pStream, false);
 	m_aaiNumTrainAIUnits.Write(pStream);
 	m_aaiNumAIUnits.Write(pStream);
 	m_aiBonuses.Write(pStream);

@@ -1949,7 +1949,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	if(pGoToPlot == NULL)
 		pCenter = plot();
 	else pCenter = pGoToPlot;
-	if(pCenter == NULL || !pCenter->isRevealed(TEAMID(getOwner()), false) ||
+	if(pCenter == NULL || !pCenter->isRevealed(TEAMID(getOwner())) ||
 			(!atPlot(pCenter) && !canMoveInto(*pCenter)) || !canFound(pCenter))
 		return;
 	ColorTypes eColor = (ColorTypes)GC.getInfo(GET_PLAYER(getOwner()).
@@ -2340,7 +2340,8 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 			CvPlot* pLoopPlot = ::plotXY(pPlot->getX(), pPlot->getY(), i, j);
 			if (NULL != pLoopPlot)
 			{
-				if (!pLoopPlot->isRevealed(getTeam(), false) && pPlot->canSeePlot(pLoopPlot, getTeam(), visibilityRange(), NO_DIRECTION))
+				if (!pLoopPlot->isRevealed(getTeam()) && pPlot->canSeePlot(
+					pLoopPlot, getTeam(), visibilityRange(), NO_DIRECTION))
 				{
 					return true;
 				}
@@ -2935,7 +2936,7 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 					if (getDomainType() != DOMAIN_AIR ||
 							kLoopPlot.isFriendlyCity(*this, true))
 					{
-						if (kLoopPlot.isRevealed(getTeam(), false))
+						if (kLoopPlot.isRevealed(getTeam()))
 						{
 							int iValue = (::plotDistance(plot(), &kLoopPlot) * 2);
 							// K-mod, 2/jan/11, karadoc - bForceMove functionality
@@ -4283,7 +4284,7 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 			return false;*/
 		// K-Mod. Don't allow the player to bomb improvements that they don't know exist.
 		ImprovementTypes eActualImprovement = pTargetPlot->getImprovementType();
-		ImprovementTypes eRevealedImprovement = pTargetPlot->getRevealedImprovementType(getTeam(), false);
+		ImprovementTypes eRevealedImprovement = pTargetPlot->getRevealedImprovementType(getTeam());
 
 		if (eActualImprovement == NO_IMPROVEMENT || eRevealedImprovement == NO_IMPROVEMENT)
 			return false;
@@ -4673,7 +4674,7 @@ bool CvUnit::canPlunder(const CvPlot* pPlot, bool bTestVisible) const
 	if (!pPlot->isValidDomainForAction(*this))
 		return false;
 	// <advc.033>
-	if(!pPlot->isRevealed(getTeam(), false) ||
+	if(!pPlot->isRevealed(getTeam()) ||
 			(pPlot != plot() && !canMoveInto(*pPlot) && !canMoveInto(*pPlot, true)))
 		return false; // </advc.033>
 	// advc:
@@ -7580,8 +7581,10 @@ bool CvUnit::canBeAttackedBy(PlayerTypes eAttackingPlayer,
 		if (bTestCanAttack && !pAttacker->canAttack(*this))
 			return false;
 		/*  Previously, only the air combat limit was checked here. If either limit
-			isn't reached, then some form of attack is possible. (A land or sea unit
-			with range attack ability could have a regular attack ability in addition.) */
+			isn't reached, then some form of attack is possible. (For units that have
+			both a ranged attack and regular attack ability, the mode of attack
+			would have to be known in order to check the proper damage limit here.
+			So such units aren't supported.) */
 		int const iDamage = getDamage();
 		if (iDamage >= pAttacker->combatLimit() && iDamage >= pAttacker->airCombatLimit())
 			return false;
@@ -8711,8 +8714,8 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		if (AI_getUnitAIType() != NO_UNITAI)
 			pOldPlot->area()->changeNumAIUnits(getOwner(), AI_getUnitAIType(), -1);
 
-		if (isAnimal())
-			pOldPlot->area()->changeAnimalsPerPlayer(getOwner(), -1);
+		/*if (isAnimal()) // advc: No longer tracked
+			pOldPlot->area()->changeAnimalsPerPlayer(getOwner(), -1);*/
 
 		if (pOldPlot->getTeam() != getTeam() && (pOldPlot->getTeam() == NO_TEAM ||
 			!GET_TEAM(pOldPlot->getTeam()).isVassal(getTeam())))
@@ -8831,8 +8834,8 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		if (AI_getUnitAIType() != NO_UNITAI)
 			pNewPlot->area()->changeNumAIUnits(getOwner(), AI_getUnitAIType(), 1);
 
-		if (isAnimal())
-			pNewPlot->area()->changeAnimalsPerPlayer(getOwner(), 1);
+		/*if (isAnimal()) // advc: No longer tracked
+			pNewPlot->area()->changeAnimalsPerPlayer(getOwner(), 1);*/
 
 		if (pNewPlot->getTeam() != getTeam() && (pNewPlot->getTeam() == NO_TEAM || !GET_TEAM(pNewPlot->getTeam()).isVassal(getTeam())))
 			GET_PLAYER(getOwner()).changeNumOutsideUnits(1);

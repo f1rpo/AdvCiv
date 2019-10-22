@@ -56,9 +56,9 @@ public:
 
 	int getUnitsPerPlayer(PlayerTypes eIndex) const;													// Exposed to Python
 	void changeUnitsPerPlayer(PlayerTypes eIndex, int iChange);
-
-	int getAnimalsPerPlayer(PlayerTypes eIndex) const;												// Exposed to Python
-	void changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange);
+	// advc: Unused; removed.
+	/*int getAnimalsPerPlayer(PlayerTypes eIndex) const;												// Exposed to Python
+	void changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange);*/
 
 	int getCitiesPerPlayer(PlayerTypes eIndex,													// Exposed to Python
 			bool bCheckAdjacentCoast = false) const; // advc.030b
@@ -137,9 +137,8 @@ protected:
 	// <advc.030>
 	bool m_bLake;
 	int m_iRepresentativeAreaId;
-	// </advc.030>  // <advc.enum>
+	// </advc.030>  // <advc.enum> Tbd.: Use <...,short> for all of these?
 	EnumMap<PlayerTypes,int> m_aiUnitsPerPlayer;
-	EnumMap<PlayerTypes,int> m_aiAnimalsPerPlayer;
 	EnumMap<PlayerTypes,int> m_aiCitiesPerPlayer;
 	EnumMap<PlayerTypes,int> m_aiPopulationPerPlayer;
 	EnumMap<PlayerTypes,int> m_aiBuildingGoodHealth;
@@ -153,11 +152,11 @@ protected:
 	EnumMap<TeamTypes,int> m_aiCleanPowerCount;
 	EnumMap<TeamTypes,int> m_aiBorderObstacleCount;
 	EnumMap<TeamTypes,AreaAITypes> m_aeAreaAIType;
-	EnumMap<BonusTypes, int> m_aiBonuses;
-	EnumMap<ImprovementTypes, int> m_aiImprovements;
-	EnumMap2D<PlayerTypes, YieldTypes, short> m_aaiYieldRateModifier;
-	EnumMap2D<PlayerTypes, UnitAITypes, int> m_aaiNumTrainAIUnits;
-	EnumMap2D<PlayerTypes, UnitAITypes, int> m_aaiNumAIUnits; // </advc.enum>
+	EnumMap<BonusTypes,int> m_aiBonuses;
+	EnumMap<ImprovementTypes,int> m_aiImprovements;
+	EnumMap2D<PlayerTypes,YieldTypes,short> m_aaiYieldRateModifier;
+	EnumMap2D<PlayerTypes,UnitAITypes,int> m_aaiNumTrainAIUnits;
+	EnumMap2D<PlayerTypes,UnitAITypes,int> m_aaiNumAIUnits; // </advc.enum>
 
 	IDInfo* m_aTargetCities;
 

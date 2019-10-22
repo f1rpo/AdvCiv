@@ -213,7 +213,7 @@ protected:
 	void AI_juggleCitizens();
 	int AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel = 0, int iNewAnger = 0, int iAngerTimer = 0); // K-Mod
 
-	bool AI_potentialPlot(short* piYields) const;
+	bool AI_potentialPlot(CvPlot const& kPlot) const; // advc.enum: param was 'short* piYields'
 	bool AI_foodAvailable(int iExtra = 0) const;
 	//int AI_yieldValue(short* piYields, short* piCommerceYields, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false, bool bIgnoreGrowth = false, bool bIgnoreStarvation = false, bool bWorkerOptimization = false) const;
 	//int AI_plotValue(CvPlot* pPlot, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false, bool bIgnoreGrowth = false, bool bIgnoreStarvation = false) const;

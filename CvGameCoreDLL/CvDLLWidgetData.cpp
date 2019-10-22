@@ -1596,13 +1596,10 @@ void CvDLLWidgetData::doSelected(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doGotoTurnEvent(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvPlot* pPlot = GC.getMap().plot(widgetDataStruct.m_iData1, widgetDataStruct.m_iData2);
-
-	if (NULL != pPlot && !gDLL->getEngineIFace()->isCameraLocked())
+	if (pPlot != NULL && !gDLL->getEngineIFace()->isCameraLocked())
 	{
-		if (pPlot->isRevealed(GC.getGame().getActiveTeam(), false))
-		{
+		if (pPlot->isRevealed(GC.getGame().getActiveTeam()))
 			gDLL->getEngineIFace()->cameraLookAt(pPlot->getPoint());
-		}
 	}
 }
 
@@ -1611,10 +1608,8 @@ void CvDLLWidgetData::doMenu()
 	if (!gDLL->isGameInitializing())
 	{
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_MAIN_MENU);
-		if (NULL != pInfo)
-		{
+		if (pInfo != NULL)
 			gDLL->getInterfaceIFace()->addPopup(pInfo, NO_PLAYER, true);
-		}
 	}
 }
 
@@ -1623,10 +1618,8 @@ void CvDLLWidgetData::doLaunch(CvWidgetDataStruct &widgetDataStruct)
 	if (GET_TEAM(GC.getGame().getActiveTeam()).canLaunch((VictoryTypes)widgetDataStruct.m_iData1) && GC.getGame().testVictory((VictoryTypes)widgetDataStruct.m_iData1, GC.getGame().getActiveTeam()))
 	{
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_LAUNCH, widgetDataStruct.m_iData1);
-		if (NULL != pInfo)
-		{
+		if (pInfo != NULL)
 			gDLL->getInterfaceIFace()->addPopup(pInfo);
-		}
 	}
 }
 
@@ -1638,31 +1631,27 @@ void CvDLLWidgetData::parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 {
 	PROFILE_FUNC();
 
-	CvUnit* pUnit;
-
 	int iUnitIndex = widgetDataStruct.m_iData1 + gDLL->getInterfaceIFace()->getPlotListColumn() - gDLL->getInterfaceIFace()->getPlotListOffset();
 
 	CvPlot *selectionPlot = gDLL->getInterfaceIFace()->getSelectionPlot();
-	pUnit = gDLL->getInterfaceIFace()->getInterfacePlotUnit(selectionPlot, iUnitIndex);
+	CvUnit* pUnit = gDLL->getInterfaceIFace()->getInterfacePlotUnit(selectionPlot, iUnitIndex);
+	if (pUnit == NULL)
+		return;
 
-	if (pUnit != NULL)
+	GAMETEXT.setUnitHelp(szBuffer, pUnit,
+			// <advc.069>
+			false, false, false, // defaults
+			pUnit->getOwner() == GC.getGame().getActivePlayer());
+			// </advc.069>
+	if (pUnit->plot()->plotCount(PUF_isUnitType, pUnit->getUnitType(), -1, pUnit->getOwner()) > 1)
 	{
-		GAMETEXT.setUnitHelp(szBuffer, pUnit,
-				// <advc.069>
-				false, false, false, // defaults
-				pUnit->getOwner() == GC.getGame().getActivePlayer());
-				// </advc.069>
-		if (pUnit->plot()->plotCount(PUF_isUnitType, pUnit->getUnitType(), -1, pUnit->getOwner()) > 1)
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_SELECT", GC.getInfo(pUnit->getUnitType()).getTextKeyWide()));
-		}
-
-		if (pUnit->plot()->plotCount(NULL, -1, -1, pUnit->getOwner()) > 1)
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALT_SELECT"));
-		}
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_SELECT", GC.getInfo(pUnit->getUnitType()).getTextKeyWide()));
+	}
+	if (pUnit->plot()->plotCount(NULL, -1, -1, pUnit->getOwner()) > 1)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALT_SELECT"));
 	}
 }
 
@@ -6134,7 +6123,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 			continue;
 		CvPlot* pPlot = plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
 		if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
-		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(eOwner), false))
+		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(eOwner)))
 			continue;
 		int iHealthPercent = GC.getInfo(p.getFeatureType()).getHealthPercent();
 		if(iHealthPercent > 0)

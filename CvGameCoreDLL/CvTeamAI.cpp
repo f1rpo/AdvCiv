@@ -363,7 +363,7 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 
 			CvPlot* pLoopPlot = plotXY(pCity->getX(), pCity->getY(), iDX, iDY);
 
-			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID(), false) == pCity->getOwner())
+			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID()) == pCity->getOwner())
 			{
 				// if multiple cities have their plot in their range, then that will make it harder to deduce the precise city location.
 				iPoints += 1 + std::max(0, iLevel - iDist - pLoopPlot->getNumCultureRangeCities(pCity->getOwner())+1);
@@ -1483,7 +1483,8 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			for (int j = 1; j < NUM_CITY_PLOTS; j++) // don't count city plot
 			{
 				CvPlot* pLoopPlot = pLoopCity->getCityIndexPlot(j);
-				if (!pLoopPlot || !pLoopPlot->isRevealed(getID(), false) || pLoopPlot->getWorkingCity() != pLoopCity)
+				if (!pLoopPlot || !pLoopPlot->isRevealed(getID()) ||
+						pLoopPlot->getWorkingCity() != pLoopCity)
 					continue;
 
 				if (pLoopPlot->isWater() && !(bCoastal && pLoopPlot->calculateNatureYield(YIELD_FOOD, getID()) >= GC.getFOOD_CONSUMPTION_PER_POPULATION()))
@@ -1581,10 +1582,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getID());
 			if (eBonus != NO_BONUS)
 			{
-				if (pLoopPlot->isRevealed(getID(), false) && AI_isPrimaryArea(pLoopPlot->area()))
+				if (pLoopPlot->isRevealed(getID()) && AI_isPrimaryArea(pLoopPlot->area()))
 					bonuses[eBonus] += bTotalWar ? 60 : 20;
-				else
-					bonuses[eBonus] += bTotalWar ? 20 : 0;
+				else bonuses[eBonus] += bTotalWar ? 20 : 0;
 			}
 		}
 	}
@@ -2430,17 +2430,11 @@ int CvTeamAI::AI_mapTradeVal(TeamTypes eTeam) const
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-		if (!(pLoopPlot->isRevealed(getID(), false)) && pLoopPlot->isRevealed(eTeam, false))
+		if (!pLoopPlot->isRevealed(getID(), false) && pLoopPlot->isRevealed(eTeam))
 		{
 			if (pLoopPlot->isWater())
-			{
 				iValue++;
-			}
-			else
-			{
-				iValue += 5;
-			}
+			else iValue += 5;
 		}
 	}
 
@@ -2450,9 +2444,8 @@ int CvTeamAI::AI_mapTradeVal(TeamTypes eTeam) const
 		iValue *= 2; // </advc.136a>
 
 	if (GET_TEAM(eTeam).isVassal(getID()))
-	{
 		iValue /= 2;
-	}
+
 	return AI_roundTradeVal(iValue); // advc.104k
 }
 
@@ -4336,7 +4329,7 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const  // advc: some 
 	for(int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot const& kPlot = *GC.getMap().plotByIndex(i);
-		if(kPlot.getTeam() == eTeam && kPlot.isRevealed(getID(), false) && !kPlot.isWater())
+		if(kPlot.getTeam() == eTeam && kPlot.isRevealed(getID()) && !kPlot.isWater())
 		{
 			bTheirLandRevealed = true;
 			break;
@@ -5281,6 +5274,7 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 
 void CvTeamAI::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	CvTeam::write(pStream);
 
 	uint uiFlag=1;

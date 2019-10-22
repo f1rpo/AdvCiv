@@ -6,7 +6,7 @@
 /*  advc.enum: New header; mostly for macros dealing with CvInfo classes and their
 	associated enum types. */
 
-/*  operator++ functions copied from "We the People" (original author: Nightinggale).
+/*  Increment/decrement functions copied from "We the People" (original author: Nightinggale).
 	For iterating over an enum when FOR_EACH_ENUM isn't applicable. Also used by EnumMap. */
 template <class T>
 static inline T& operator++(T& c)
@@ -14,12 +14,24 @@ static inline T& operator++(T& c)
 	c = static_cast<T>(c + 1);
 	return c;
 }
-
 template <class T>
 static inline T operator++(T& c, int)
 {
 	T cache = c;
 	c = static_cast<T>(c + 1);
+	return cache;
+}
+template <class T>
+static inline T& operator--(T& c)
+{
+	c = static_cast<T>(c - 1);
+	return c;
+}
+template <class T>
+static inline T operator--(T& c, int)
+{
+	T cache = c;
+	c = static_cast<T>(c - 1);
 	return cache;
 }
 
@@ -44,8 +56,8 @@ static inline T operator++(T& c, int)
 	DO(SeaLevel, SEALEVEL) \
 	DO(Terrain, TERRAIN) \
 	DO(Feature, FEATURE) \
-	DO(TurnTimer, TURNTIMER) \
 	DO(Improvement, IMPROVEMENT) \
+	DO(TurnTimer, TURNTIMER) \
 	DO(Handicap, HANDICAP) \
 	DO(GameSpeed, GAMESPEED) \
 	DO(Era, ERA) \
@@ -81,7 +93,7 @@ static inline T operator++(T& c, int)
 	DO(Effect, EFFECT) \
 	DO(Attachable, ATTACHABLE) \
 	DO(Build, BUILD) \
-	/* both exported */ \
+	/* getInfo function and getNumInfos function exported */ \
 	DO(PlayerColor, PLAYERCOLOR) \
 	DO(Bonus, BONUS) \
 	DO(Civilization, CIVILIZATION) \

@@ -249,8 +249,8 @@ public:
 	// advc.251: Last param now ePlayer
 	bool changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*PlayerTypes*/ ePlayer);
 
-	int getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex);
-	bool isCultureRangeCity(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex);
+	int getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, /*CultureLevelTypes*/int eRangeIndex);
+	bool isCultureRangeCity(int /*PlayerTypes*/ eOwnerIndex, /*CultureLevelTypes*/int eRangeIndex);
 
 	int getInvisibleVisibilityCount(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible);
 	bool isInvisibleVisible(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible);

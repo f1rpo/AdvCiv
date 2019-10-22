@@ -9455,31 +9455,27 @@ int CvCityAI::AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel, int iNewAng
 	}
 
 	return iCost;
-}
-// K-Mod end
+} // K-Mod end
 
-bool CvCityAI::AI_potentialPlot(short* piYields) const
+/*  advc.enum: Param was a pointer to a CvPlot member array of yields.
+	Replaced all uses of that param with kPlot.getYield(YieldTypes), which,
+	due to inlining, should be just as fast. */ 
+bool CvCityAI::AI_potentialPlot(CvPlot const& kPlot) const
 {
-	int iNetFood = piYields[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION();
-
+	int iNetFood = kPlot.getYield(YIELD_FOOD) - GC.getFOOD_CONSUMPTION_PER_POPULATION();
 	if (iNetFood < 0)
 	{
- 		if (piYields[YIELD_FOOD] == 0)
+ 		if (kPlot.getYield(YIELD_FOOD) == 0)
 		{
-			if (piYields[YIELD_PRODUCTION] + piYields[YIELD_COMMERCE] < 2)
-			{
+			if (kPlot.getYield(YIELD_PRODUCTION) + kPlot.getYield(YIELD_COMMERCE) < 2)
 				return false;
-			}
 		}
 		else
 		{
-			if (piYields[YIELD_PRODUCTION] + piYields[YIELD_COMMERCE] == 0)
-			{
+			if (kPlot.getYield(YIELD_PRODUCTION) + kPlot.getYield(YIELD_COMMERCE) == 0)
 				return false;
-			}
 		}
 	}
-
 	return true;
 }
 
@@ -9488,40 +9484,30 @@ bool CvCityAI::AI_foodAvailable(int iExtra) const
 {
 	PROFILE_FUNC();
 
-	int iI;
 	int iFoodCount = 0;
-	bool abPlotAvailable[NUM_CITY_PLOTS] = { false };
 
-	for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	bool abPlotAvailable[NUM_CITY_PLOTS] = { false };
+	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-
-		if (pLoopPlot != NULL)
-		{
-			if (iI == CITY_HOME_PLOT)
-			{
-				iFoodCount += pLoopPlot->getYield(YIELD_FOOD);
-			}
-			else if ((pLoopPlot->getWorkingCity() == this) && AI_potentialPlot(pLoopPlot->getYield()))
-			{
-				abPlotAvailable[iI] = true;
-			}
-		}
+		if (pLoopPlot == NULL)
+			continue;
+		if (iI == CITY_HOME_PLOT)
+			iFoodCount += pLoopPlot->getYield(YIELD_FOOD);
+		else if (pLoopPlot->getWorkingCity() == this && AI_potentialPlot(*pLoopPlot))
+			abPlotAvailable[iI] = true;
 	}
 
 	int iPopulation = (getPopulation() + iExtra);
-
 	while (iPopulation > 0)
 	{
-		int iBestValue = 0;
 		int iBestPlot = CITY_HOME_PLOT;
-
-		for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		int iBestValue = 0;
+		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 		{
 			if (abPlotAvailable[iI])
 			{
 				int iValue = getCityIndexPlot(iI)->getYield(YIELD_FOOD);
-
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -9535,23 +9521,19 @@ bool CvCityAI::AI_foodAvailable(int iExtra) const
 			iFoodCount += iBestValue;
 			abPlotAvailable[iBestPlot] = false;
 		}
-		else
-		{
-			break;
-		}
+		else break;
 
 		iPopulation--;
 	}
 
-	for (iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+	FOR_EACH_ENUM(Specialist)
 	{
-		iFoodCount += (GC.getInfo((SpecialistTypes)iI).getYieldChange(YIELD_FOOD) * getFreeSpecialistCount((SpecialistTypes)iI));
+		iFoodCount += (GC.getInfo(eLoopSpecialist).getYieldChange(YIELD_FOOD) *
+				getFreeSpecialistCount(eLoopSpecialist));
 	}
 
 	if (iFoodCount < foodConsumption(false, iExtra))
-	{
 		return false;
-	}
 
 	return true;
 }

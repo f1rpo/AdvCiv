@@ -29,7 +29,8 @@ void CyAreaPythonInterface()
 		.def("isWater", &CyArea::isWater, "bool () - Returns whether or not this area is water")
 
 		.def("getUnitsPerPlayer", &CyArea::getUnitsPerPlayer, "int (int (PlayerTypes) iIndex) - Returns the number of units in this area for this player")
-		.def("getAnimalsPerPlayer", &CyArea::getAnimalsPerPlayer, "int (int (PlayerTypes) iIndex) - Returns the number of animal units in this area for this player")
+		// advc: Was unused. CvArea no longer keeps track of animal counts.
+		//.def("getAnimalsPerPlayer", &CyArea::getAnimalsPerPlayer, "int (int (PlayerTypes) iIndex) - Returns the number of animal units in this area for this player")
 		.def("getCitiesPerPlayer", &CyArea::getCitiesPerPlayer, "int (int (PlayerTypes) iIndex) - Returns the number of cities in this area for this player")
 		.def("getPopulationPerPlayer", &CyArea::getPopulationPerPlayer, "int (int (PlayerTypes) iIndex) - Returns the total population of this area for this player")
 		.def("getBuildingGoodHealth", &CyArea::getBuildingGoodHealth, "int (int (PlayerTypes) iIndex) - Returns ?")

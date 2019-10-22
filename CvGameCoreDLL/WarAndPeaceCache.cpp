@@ -107,6 +107,7 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 // Called when saving
 void WarAndPeaceCache::write(FDataStreamBase* stream) {
 
+	PROFILE_FUNC();
 	int savegameVersion = 1;
 	savegameVersion = 2; // advc.035
 	savegameVersion = 3; // hireAgainst added
@@ -1504,7 +1505,7 @@ void WarAndPeaceCache::City::read(FDataStreamBase* stream) {
 		CvPlot* cityPlot = GC.getMap().plotByIndex(plotIndex);
 		if(cityPlot == NULL)
 			canDeduce = false;
-		else canDeduce = cityPlot->isRevealed(TEAMID(cacheOwnerId), false);
+		else canDeduce = cityPlot->isRevealed(TEAMID(cacheOwnerId));
 	}
 }
 
@@ -1892,7 +1893,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		// Fall back on city tile for cultureModifier if p unrevealed
 		CvPlot const* cultureTestPlot = fc[0];
 		double baseTileScore = 1.0 / 3; // i.e. 1/6 of a resource tile
-		if(p.isRevealed(t.getID(), false)) {
+		if(p.isRevealed(t.getID())) {
 			// getBonusType ensures that we can see the resource
 			if(p.getNonObsoleteBonusType(t.getID()) != NO_BONUS) {
 				// It's OK if we can't use it yet

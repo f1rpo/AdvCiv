@@ -740,6 +740,7 @@ int CvDeal::getLengthSecondTrades() const
 
 void CvDeal::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	uint uiFlag=0;
 	pStream->Write(uiFlag);
 
@@ -853,10 +854,10 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 		{
 			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-			if (pLoopPlot->isRevealed(GET_PLAYER(eFromPlayer).getTeam(), false))
+			if (pLoopPlot->isRevealed(GET_PLAYER(eFromPlayer).getTeam()))
 			{
-				pLoopPlot->setRevealed(GET_PLAYER(eToPlayer).getTeam(), true, false, GET_PLAYER(eFromPlayer).getTeam(), false);
+				pLoopPlot->setRevealed(GET_PLAYER(eToPlayer).getTeam(), true,
+						false, GET_PLAYER(eFromPlayer).getTeam(), false);
 			}
 		}
 

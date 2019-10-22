@@ -129,7 +129,7 @@ void CvGame::updateColoredPlots()
 							"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
 
-				if (pLoopPlot->isRevealed(getActiveTeam(), false))
+				if (pLoopPlot->isRevealed(getActiveTeam()))
 				{
 					NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_WHITE")).getColor());
@@ -394,7 +394,7 @@ void CvGame::updateBlockadedPlots()
 	for (int i = 0; i < GC.getMap().numPlots(); ++i)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
-		if (pLoopPlot->getBlockadedCount(getActiveTeam()) > 0 && pLoopPlot->isRevealed(getActiveTeam(), false))
+		if (pLoopPlot->getBlockadedCount(getActiveTeam()) > 0 && pLoopPlot->isRevealed(getActiveTeam()))
 		{
 			NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_BLACK")).getColor());
 			color.a = 0.35f;
@@ -2489,15 +2489,11 @@ void CvGame::initSelection() const
 
 bool CvGame::canDoPing(CvPlot* pPlot, PlayerTypes ePlayer) const
 {
-	if (pPlot == NULL || !pPlot->isRevealed(getActiveTeam(), false))
-	{
+	if (pPlot == NULL || !pPlot->isRevealed(getActiveTeam()))
 		return false;
-	}
 
 	if (GET_PLAYER(ePlayer).getTeam() != getActiveTeam())
-	{
 		return false;
-	}
 
 	return true;
 }

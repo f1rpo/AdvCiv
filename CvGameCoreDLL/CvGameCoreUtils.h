@@ -67,7 +67,8 @@ bool needsArticle(BuildingTypes eBuilding);
 bool needsArticle(ProjectTypes eProject);
 // </advc.008e>
 // <advc.130h>
-template<typename T> void removeDuplicates(std::vector<T>& v) {
+template<typename T> void removeDuplicates(std::vector<T>& v)
+{
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
 } // </advc.130h>
@@ -102,8 +103,8 @@ inline float range(float fNum, float fLow, float fHigh)
 
 /*  <advc.003g> Don't want to work with float in places where memory usage isn't a
 	concern. */
-inline double dRange(double d, double low, double high) {
-
+inline double dRange(double d, double low, double high)
+{
 	if(d < low)
 		return low;
 	if(d > high)
@@ -112,8 +113,8 @@ inline double dRange(double d, double low, double high) {
 } // </advc.003g>
 
 // advc: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
-inline int longLongToInt(long long x) {
-
+inline int longLongToInt(long long x)
+{
 	FAssert(x < MAX_INT);
 	//return std::min((long)MAX_INT, iValue); // K-Mod
 	/*  Erik (BUG1): We cannot change the signature [of AI_sacrificeValue] due to
@@ -126,10 +127,16 @@ inline int longLongToInt(long long x) {
 	return static_cast<int>(std::min<long long>(MAX_INT, x));
 }
 
-inline short intToShort(int x) {
-
+inline short intToShort(int x)
+{
 	FAssert(x < MAX_SHORT);
 	return static_cast<short>(std::min<int>(MAX_SHORT, x));
+}
+
+inline char intToChar(int x)
+{
+	FAssert(x < MAX_CHAR);
+	return static_cast<char>(std::min<char>(MAX_CHAR, x));
 }
 
 // (advc.make: Distance functions moved into CvMap.h)
