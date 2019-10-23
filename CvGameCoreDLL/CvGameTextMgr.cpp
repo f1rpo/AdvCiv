@@ -5011,20 +5011,31 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 	CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-	bool bBuild = false;
+	bool bCanRemove = false;
 	// <advc.004b>
 	bool bFound = false;
 	if (pHeadSelectedUnit != NULL)
 	{
 		if (pHeadSelectedUnit->canFound()) // advc.004h
 			bFound = true; // </advc.004b>
-		if (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER && pHeadSelectedUnit->at(kPlot))
-			bBuild = true;
+		if (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER && pHeadSelectedUnit->at(kPlot) &&
+			kPlot.getFeatureType() != NO_FEATURE)
+		{
+			FOR_EACH_ENUM(Build)
+			{
+				if (GC.getInfo(eLoopBuild).isFeatureRemove(kPlot.getFeatureType()) &&
+					pHeadSelectedUnit->canBuild(&kPlot, eLoopBuild))
+				{
+					bCanRemove = true;
+					break;
+				}
+			}
+		}
 	}
-	if(!bFound && !bBuild && !kPlot.isCityRadius())
+	if(!bFound && !bCanRemove && !kPlot.isCityRadius())
 		return;
 	bool bNearSelectedCity = false;
-	if (!bFound && !bBuild)
+	if (!bFound && !bCanRemove)
 	{
 		bool bOurCity = false;
 		for (int i = 0; i < NUM_CITY_PLOTS; i++) // Look for a city
@@ -5064,7 +5075,7 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 			iHealthPercent += kImprov.get(CvImprovementInfo::HealthPercent); // </advc.901>
 	}
 	bool bCitySelected = (gDLL->getInterfaceIFace()->getHeadSelectedCity() != NULL);
-	bool bAlwaysShow = (bFound || bBuild || bNearSelectedCity);
+	bool bAlwaysShow = (bFound || bCanRemove || bNearSelectedCity);
 	if (iHappy != 0)
 	{
 		if (bAlwaysShow || !bCitySelected)

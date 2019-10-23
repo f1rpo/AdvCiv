@@ -1013,4 +1013,14 @@
 	<Spanish>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</Spanish>
 </TEXT>
 
+<!-- advc.059 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_40</Tag>
+	<English>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</English>
+	<French>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</French>
+	<German>(AdvCiv) Um zu sehen, welche Felder die Gesundheit einer Stadt beeinflussen, klicken Sie auf den Stadtnamen und bewegen Sie dann den Mauszeiger über die Felder in der Umgebung.</German>
+	<Italian>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</Italian>
+	<Spanish>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</Spanish>
+</TEXT>
+
 </Civ4GameText>
