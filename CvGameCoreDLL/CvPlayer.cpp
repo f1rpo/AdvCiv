@@ -174,20 +174,19 @@ bool CvPlayer::initOtherData()
 	if (getID() == GC.getGame().getActivePlayer())
 		initAlerts(); // </advc.210>
 	setAlive(true);
-	int iI, iJ;
+	LeaderHeadTypes ePersonality = NO_LEADER; // advc.104: Moved up
 	if (GC.getGame().isOption(GAMEOPTION_RANDOM_PERSONALITIES) &&
 		!isBarbarian() && !isMinorCiv())
 	{
 		int iBestValue = 0;
-		LeaderHeadTypes eBestPersonality = NO_LEADER;
 		int const iBARBARIAN_LEADER = GC.getDefineINT("BARBARIAN_LEADER"); // advc.opt
-		for (iI = 0; iI < GC.getNumLeaderHeadInfos(); iI++)
+		for (int iI = 0; iI < GC.getNumLeaderHeadInfos(); iI++)
 		{
 			if (iI == iBARBARIAN_LEADER) // XXX minor civ???
 				continue;
 
 			int iValue = (1 + GC.getGame().getSorenRandNum(10000, "Choosing Personality"));
-			for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
+			for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 			{
 				if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 				{
@@ -198,12 +197,14 @@ bool CvPlayer::initOtherData()
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				eBestPersonality = ((LeaderHeadTypes)iI);
+				ePersonality = ((LeaderHeadTypes)iI);
 			}
 		}
-		if (eBestPersonality != NO_LEADER)
-			setPersonalityType(eBestPersonality);
 	}
+	// <advc.104> Ensure that AI weights are updated
+	if (ePersonality == NO_LEADER)
+		ePersonality = getPersonalityType();
+	setPersonalityType(ePersonality); // </advc.104>
 
 	changeBaseFreeUnits(GC.getDefineINT("INITIAL_BASE_FREE_UNITS"));
 	changeBaseFreeMilitaryUnits(GC.getDefineINT("INITIAL_BASE_FREE_MILITARY_UNITS"));
@@ -214,13 +215,13 @@ bool CvPlayer::initOtherData()
 	changeStateReligionHappiness(GC.getDefineINT("INITIAL_STATE_RELIGION_HAPPINESS"));
 	changeNonStateReligionHappiness(GC.getDefineINT("INITIAL_NON_STATE_RELIGION_HAPPINESS"));
 
-	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
+	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
 		YieldTypes eYield = (YieldTypes)iI;
 		changeTradeYieldModifier(eYield, GC.getInfo(eYield).getTradeModifier());
 	}
 
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+	for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 	{
 		CommerceTypes eCommerce = (CommerceTypes)iI;
 		setCommercePercent(eCommerce, GC.getInfo(eCommerce).getInitialPercent(), true);
@@ -910,29 +911,22 @@ void CvPlayer::changePersonalityType()
 			continue;
 
 		int iValue = (1 + GC.getGame().getSorenRandNum(10000, "Choosing Personality"));
-
 		for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 		{
 			if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 			{
 				if (GET_PLAYER((PlayerTypes)iJ).getPersonalityType() == ((LeaderHeadTypes)iI))
-				{
 					iValue /= 2;
-				}
 			}
 		}
-
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
 			eBestPersonality = ((LeaderHeadTypes)iI);
 		}
 	}
-
 	if (eBestPersonality != NO_LEADER)
-	{
 		setPersonalityType(eBestPersonality);
-	}
 }
 
 // reset state of event logic, unit prices
@@ -996,8 +990,10 @@ void CvPlayer::changeLeader(LeaderHeadTypes eNewLeader)
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
 	}
-
-	AI().AI_init();
+	/*  advc.104: Re-initializing the AI here was probably always a bad idea,
+		but definitely mustn't re-initialize UWAI. Instead call AI_updatePersonality
+		from setPersonalityType. */
+	//AI().AI_init();
 }
 
 // (advc: Moved up so that all the CHANGE_PLAYER code dated 08/17/08 is in one place)
@@ -1042,7 +1038,6 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 				if (iK != GC.getInfo(eBarbarianCiv).getDefaultPlayerColor())
 				{
 					bool bValid = true;
-
 					for (int iL = 0; iL < MAX_CIV_PLAYERS; iL++)
 					{
 						if (GET_PLAYER((PlayerTypes)iL).getPlayerColor() == iK)
@@ -1051,7 +1046,6 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 							break;
 						}
 					}
-
 					if (bValid)
 					{
 						eColor = (PlayerColorTypes)iK;
@@ -1066,6 +1060,7 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 	CvInitCore& kInitCore = GC.getInitCore();
 	kInitCore.setCiv(getID(), eNewCiv);
 	kInitCore.setColor(getID(), eColor);
+	setCivilization(eNewCiv); // advc.003u
 	resetCivTypeEffects(/* advc.003q: */ false);
 	if (isAlive())
 	{
@@ -1078,11 +1073,11 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 		EraTypes eEra = getCurrentEra();
 		bool bAuto = m_bDisableHuman;
 		m_bDisableHuman = true;
-		//setCurrentEra((EraTypes)((eEra + 1)%GC.getNumEraInfos()));
-		setCurrentEra((EraTypes)0);
-		setCurrentEra((EraTypes)(GC.getNumEraInfos() - 1));
+		// advc.127c: bGraphicsOnly=true params added
+		setCurrentEra((EraTypes)0, true);
+		setCurrentEra((EraTypes)(GC.getNumEraInfos() - 1), true);
+		setCurrentEra(eEra, true);
 
-		setCurrentEra(eEra);
 		m_bDisableHuman = bAuto;
 		gDLL->getInterfaceIFace()->makeInterfaceDirty();
 
@@ -1120,9 +1115,7 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 		//update flag eras
 		gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
 		if (getID() == GC.getGame().getActivePlayer())
-		{
 			gDLL->getInterfaceIFace()->setDirty(Soundtrack_DIRTY_BIT, true);
-		}
 		gDLL->getInterfaceIFace()->makeInterfaceDirty();
 
 		// Need to force redraw
@@ -10395,10 +10388,11 @@ LeaderHeadTypes CvPlayer::getPersonalityType() const
 void CvPlayer::setPersonalityType(LeaderHeadTypes eNewValue)
 {
 	m_ePersonalityType = eNewValue;
+	AI().AI_updatePersonality(); // advc.104
 }
 
 
-void CvPlayer::setCurrentEra(EraTypes eNewValue)
+void CvPlayer::setCurrentEra(EraTypes eNewValue, /* advc.127c: */ bool bGraphicsOnly)
 {
 	if (getCurrentEra() == eNewValue)
 		return; // advc
@@ -10442,11 +10436,12 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue)
 	gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
 
 	if (getID() == GC.getGame().getActivePlayer())
-	{
 		gDLL->getInterfaceIFace()->setDirty(Soundtrack_DIRTY_BIT, true);
-	}
+	// <advc.127c>
+	if (bGraphicsOnly)
+		return; // </advc.127c>
 
-	if (isHuman() && (getCurrentEra() != GC.getGame().getStartEra()) && !GC.getGame().isNetworkMultiPlayer())
+	if (isHuman() && getCurrentEra() != GC.getGame().getStartEra() && !GC.getGame().isNetworkMultiPlayer())
 	{
 		if (GC.getGame().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 		{

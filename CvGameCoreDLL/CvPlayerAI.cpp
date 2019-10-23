@@ -126,12 +126,7 @@ void CvPlayerAI::AI_init()
 
 	//--------------------------------
 	// Init other game data
-
-	FAssert(getPersonalityType() != NO_LEADER);
-	AI_setPeaceWeight(GC.getInfo(getPersonalityType()).getBasePeaceWeight() + GC.getGame().getSorenRandNum(GC.getInfo(getPersonalityType()).getPeaceWeightRand(), "AI Peace Weight"));
-	AI_setEspionageWeight(GC.getInfo(getPersonalityType()).getEspionageWeight()
-			// K-Mod. (I've changed the meaning of this value)
-			*GC.getInfo(COMMERCE_ESPIONAGE).getAIWeightPercent()/100);
+	// (advc.104: Personality weight calculation now triggered by CvPlayer::setPersonalityType)
 	//AI_setCivicTimer(((getMaxAnarchyTurns() == 0) ? (GC.getDefineINT("MIN_REVOLUTION_TURNS") * 2) : CIVIC_CHANGE_DELAY) / 2);  // This was commented out by the BtS expansion
 	AI_setReligionTimer(1);
 	AI_setCivicTimer((getMaxAnarchyTurns() == 0) ? 1 : 2);
@@ -140,6 +135,18 @@ void CvPlayerAI::AI_init()
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		m_pWPAI->init(getID()); // </advc.104>
+}
+
+// advc.104: Body cut from AI_init
+void CvPlayerAI::AI_updatePersonality()
+{
+	FAssert(getPersonalityType() != NO_LEADER);
+	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
+	AI_setPeaceWeight(kPersonality.getBasePeaceWeight() +
+			GC.getGame().getSorenRandNum(kPersonality.getPeaceWeightRand(), "AI Peace Weight"));
+	AI_setEspionageWeight(kPersonality.getEspionageWeight()
+			// K-Mod. (I've changed the meaning of this value)
+			*GC.getInfo(COMMERCE_ESPIONAGE).getAIWeightPercent() / 100);
 }
 
 

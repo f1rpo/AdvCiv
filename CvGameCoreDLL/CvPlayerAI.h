@@ -36,6 +36,7 @@ public:
 	void AI_init();
 	void AI_uninit();
 	void AI_reset(bool bConstructor);
+	void AI_updatePersonality(); // advc.104
 
 	// <advc.003u> Access to AI-type members. Code mostly duplicated from CvPlayer.
 	inline CvCityAI* AI_getCapitalCity() const {

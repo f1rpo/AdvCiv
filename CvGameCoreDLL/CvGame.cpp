@@ -9607,6 +9607,9 @@ void CvGame::changeHumanPlayer(PlayerTypes eNewHuman)
 		gDLL->sendPlayerOption(((PlayerOptionTypes)iI),
 				GET_PLAYER(eNewHuman).isOption((PlayerOptionTypes)iI));
 	} // </advc.127>
+	// <advc.001> Otherwise, the selected unit will affect CvPlot::updateCenterUnit.
+	gDLL->getInterfaceIFace()->clearSelectionList();
+	gDLL->getInterfaceIFace()->clearSelectedCities(); // </advc.001>
 	setActivePlayer(eNewHuman, false);
 
 	GET_PLAYER(eCurHuman).setIsHuman(false);
