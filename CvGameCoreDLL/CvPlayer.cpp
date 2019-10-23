@@ -19873,8 +19873,9 @@ PlayerTypes CvPlayer::getSplitEmpirePlayer(CvArea const& kArea) const // advc: w
 		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
 		{
 			if (!GET_PLAYER((PlayerTypes)i).isAlive())
-			{	// advc.test (see under dlph.24 in manual)
-				FAssertMsg(false, "About to reuse a defeated player -- this may or may not work correctly");
+			{	/*  advc.test (see under dlph.24 in manual). No need for a warning if
+					there's only one city. AI_doSplit won't actually split then. */
+				FAssertMsg(kArea.getCitiesPerPlayer(getID()) <= 1 && !isHuman(), "About to reuse a defeated player -- this may or may not work correctly");
 				eNewPlayer = (PlayerTypes)i;
 				break;
 			}

@@ -6877,17 +6877,13 @@ bool CvCityAI::AI_isGoodPlot(int iPlot, int* aiYields) const
 
 		if (eBuild != NO_BUILD)
 		{
-			for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
-			{
-				aiYields[y] = pPlot->getYieldWithBuild(eBuild, y, true);
-			}
+			FOR_EACH_ENUM(Yield)
+				aiYields[eLoopYield] = pPlot->getYieldWithBuild(eBuild, eLoopYield, true);
 		}
 		else
 		{
-			for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
-			{
-				aiYields[y] = pPlot->getYield(y);
-			}
+			FOR_EACH_ENUM(Yield)
+				aiYields[eLoopYield] = pPlot->getYield(eLoopYield);
 		}
 	}
 
@@ -9457,10 +9453,11 @@ int CvCityAI::AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel, int iNewAng
 	return iCost;
 } // K-Mod end
 
-/*  advc.enum: Param was a pointer to a CvPlot member array of yields.
-	Replaced all uses of that param with kPlot.getYield(YieldTypes), which,
-	due to inlining, should be just as fast. */ 
-bool CvCityAI::AI_potentialPlot(CvPlot const& kPlot) const
+//  advc.enum: Param was a pointer to a CvPlot member array of yields.
+//	Replaced all uses of that param with kPlot.getYield(YieldTypes), which,
+//	due to inlining, should be just as fast.
+// Never mind - it's unused anyway.
+/*bool CvCityAI::AI_potentialPlot(CvPlot const& kPlot) const
 {
 	int iNetFood = kPlot.getYield(YIELD_FOOD) - GC.getFOOD_CONSUMPTION_PER_POPULATION();
 	if (iNetFood < 0)
@@ -9478,7 +9475,6 @@ bool CvCityAI::AI_potentialPlot(CvPlot const& kPlot) const
 	}
 	return true;
 }
-
 
 bool CvCityAI::AI_foodAvailable(int iExtra) const
 {
@@ -9536,7 +9532,7 @@ bool CvCityAI::AI_foodAvailable(int iExtra) const
 		return false;
 
 	return true;
-}
+}*/
 
 // K-Mod: I've rewritten large chunks of this function. I've deleted much of the original code, rather than commenting it; just to keep things a bit tidier and clearer.
 // Note. I've changed the scale to match the building evaluation code: ~4x commerce.

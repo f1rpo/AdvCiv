@@ -700,6 +700,7 @@ protected:
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 	//bool m_bActivePlayerNoDangerCache;
 	mutable int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
+	// <advc.enum>
 	mutable EnumMap<TeamTypes,bool> m_abBorderDangerCache;
 	// BETTER_BTS_AI_MOD: END  // advc: 2x mutable
 
@@ -719,7 +720,7 @@ protected:
 	EnumMap<BuildTypes,short> m_aiBuildProgress;
 	EnumMap2D<PlayerTypes,CultureLevelTypes,char> m_aaiCultureRangeCities;
 	EnumMap2D<TeamTypes,InvisibleTypes,short> m_aaiInvisibleVisibilityCount;
-
+	// </advc.enum>
 	CvFeature* m_pFeatureSymbol;
 	CvRoute* m_pRouteSymbol;
 	CvRiver* m_pRiverSymbol;

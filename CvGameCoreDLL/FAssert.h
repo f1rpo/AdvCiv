@@ -12,7 +12,9 @@
 #endif
 
 #ifdef FASSERT_ENABLE
-
+/*  advc.make: Inlining functions with assertions could be a bad choice. Let's
+	at least not force-inline. */
+#define __forceinline inline
 #ifdef WIN32
 
 bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
