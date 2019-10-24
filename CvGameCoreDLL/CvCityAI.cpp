@@ -12272,9 +12272,9 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc.003: some st
 
 	int r = 0; // advc.001n
 	// BETTER_BTS_AI_MOD, General AI, closeness changes, 5/16/10, jdog5000: START
-	// <advc.001n> A little messy I'll admit
-	for (int iI = (ePlayer == NO_PLAYER ? 0 : ePlayer); iI <=
-			(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.001n>
+	/*  advc.opt (comment): If ePlayer is given, then this loop should only be
+		executed for iI=ePlayer. But will then also need a per-player cache timestamp. */
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (!kPlayer.isAlive() ||  !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))

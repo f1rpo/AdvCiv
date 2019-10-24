@@ -195,7 +195,8 @@ public:
 	bool canPlunder(const CvPlot* pPlot, bool bTestVisible = false) const;																					// Exposed to Python
 	bool plunder();
 	void updatePlunder(int iChange, bool bUpdatePlotGroups);
-	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0) const; // advc.003
+	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0, // advc.003
+			bool bCheckCanPlunder = true) const; // advc.033
 
 	int sabotageCost(const CvPlot* pPlot) const;																									// Exposed to Python
 	int sabotageProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle = PROBABILITY_REAL) const;	// Exposed to Python

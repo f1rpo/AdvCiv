@@ -7651,30 +7651,24 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 
 	int iInitialDefenders = GC.getHandicapInfo(getHandicapType()).
 			getBarbarianInitialDefenders();
-	int iNeeded = (int)((target - iUnitsPresent)
-	/*  The (BtS) term above counts city defenders when determining
-		how many more Barbarians should be placed. That means, Barbarian cities can
-		decrease Barbarian aggressiveness in two ways: By reducing the number of
-		unowned tiles, and by shifting 2 units (standard size of a city garrison)
-		per city to defensive behavior. While settled Barbarians being less aggressive
-		is plausible, this goes a bit over the top. Also don't want units produced in
-		Barbarian cities to reduce the number of spawned Barbarians one-to-one.
-		Subtract the defenders. (Alt. idea: Subtract half the Barbarian population in
-		this area.)
-		Old Firaxis to-do comment on this subject:
-		'XXX eventually need to measure how many barbs of eBarbUnitAI we have
-		 in this area...' */
-			+ iBarbarianCities * std::max(0, iInitialDefenders));
-	if(iNeeded <= 0)
-		return 0;
+	double r = target - std::max(0, iUnitsPresent
+	/*  Don't count city defenders. Settled Barbarians being less aggressive makes
+		sense, but cities also reduce the number of unowned tiles; that's enough.
+		(Alt. idea: Subtract half the Barbarian population in this area.)
+		Old Firaxis to-do comment on this subject: 'XXX eventually need to measure
+		how many barbs of eBarbUnitAI we have in this area...' */
+			- iBarbarianCities * std::max(0, iInitialDefenders));
+	if (r < 1)
+		return 0; // Avoid very small creation probabilities
 	double creationRate = 0.25; // the BtS rate
 	// Novel: adjusted to game speed
 	creationRate /= (GC.getGameSpeedInfo(getGameSpeedType()).getBarbPercent() / 100.0);
-	double r = iNeeded * creationRate;
-	/*  BtS always spawns at least one unit, but, on Marathon, this could be too fast.
+	/*  BtS always created at least one unit, but, on Marathon, this could be too fast.
 		Probabilistic instead. */
-	if(r < 1) {
-		if(::bernoulliSuccess(r, "advc.300 (numBarbariansToCreate)"))
+	r *= creationRate;
+	if (r < 1)
+	{
+		if (::bernoulliSuccess(r, "advc.300 (numBarbariansToCreate)"))
 			return 1;
 		else return 0;
 	}

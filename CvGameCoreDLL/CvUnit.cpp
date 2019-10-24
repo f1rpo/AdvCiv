@@ -4885,7 +4885,7 @@ bool CvUnit::airBomb(int iX, int iY)
 		FAssertMsg(iDefSansBuildings > 0 || isHuman(),
 				"The AI shoudn't bombard cities whose def is already 0");
 		double chg = -airBombCurrRate() * (iDefWithBuildings / (double)iDefSansBuildings);
-		pCity->changeDefenseModifier(std::min(0, (int)::floor(chg)));
+		pCity->changeDefenseModifier(std::min(0, ::round(chg)));
 		// Replacing this line: // </advc.004c>
 		//pCity->changeDefenseModifier(-airBombCurrRate());
 
@@ -5345,9 +5345,9 @@ bool CvUnit::plunder()
 /*  <advc.033> For code shared by updatePlunder, collectBlockadeGold and
 	CvGame::updateColoredPlots.
 	See BBAI notes below about the iExtra param. */
-void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
+void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ bool bCheckCanPlunder) const {
 
-	if(!canPlunder(plot()))
+	if(bCheckCanPlunder && !canPlunder(plot()))
 		return;
 	// advc: From an old BBAI bugfix; apparently obsolete.
 	//gDLL->getFAStarIFace()->ForceReset(&GC.getStepFinder());
@@ -5359,7 +5359,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
 		for(int j = -iRange; j <= iRange; j++) {
 			CvPlot* pLoopPlot = ::plotXY(getX(), getY(), i, j);
 			if(pLoopPlot == NULL || pLoopPlot->area() != area() ||
-					!canPlunder(pLoopPlot)) // advc.033
+					(bCheckCanPlunder && !canPlunder(pLoopPlot))) // advc.033
 				continue;
 			// BBAI (jdog5000, 12/11/08): No blockading on other side of an isthmus
 			int iPathDist =
@@ -5385,7 +5385,7 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 {
 	// <advc.033> Code moved into new function blockadeRange
 	std::vector<CvPlot*> apRange;
-	blockadeRange(apRange, iChange == -1 ? 2 : 0);
+	blockadeRange(apRange, iChange == -1 ? 2 : 0, iChange >= 0);
 	// To avoid updating plot groups unnecessarily
 	bool abChanged[MAX_TEAMS] = { false };
 	for(size_t i = 0; i < apRange.size(); i++) {

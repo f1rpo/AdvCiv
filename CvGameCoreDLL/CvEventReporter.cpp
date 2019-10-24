@@ -457,15 +457,16 @@ void CvEventReporter::preSave()
 
 void CvEventReporter::preAutoSave() {
 
-	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
-			"Should've been reset by preSave");
+	/*  Can detect failed auto-saves here, but only if AutoSaveInterval=1 in the INI.
+		Can't test in the DLL if that's the case. (Can't parse the INI file either;
+		it could be any file passed to the EXE at startup through ini="...") */
+	//FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(), "Should've been reset by preSave");
 	m_bPreAutoSave = true;
 }
 
 void CvEventReporter::preQuickSave() {
 
-	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
-			"Should've been reset by preSave");
+	//FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(), "Should've been reset by preSave");
 	m_bPreQuickSave = true;
 } // </advc.106l>
 

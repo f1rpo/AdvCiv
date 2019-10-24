@@ -964,8 +964,13 @@ void CvPlayer::changeLeader(LeaderHeadTypes eNewLeader)
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
 	}
-
-	AI_init();
+	/*  advc.104: Re-initializing the AI here was probably always a bad idea,
+		but definitely mustn't re-initialize UWAI. */
+	//AI_init();
+	// <advc.tmp> Copy-pasted from AI_init. (AdvCiv 0.97 will clean this up.)
+	AI().AI_setPeaceWeight(GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight() + GC.getGame().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getPeaceWeightRand(), "AI Peace Weight"));
+	AI().AI_setEspionageWeight(GC.getLeaderHeadInfo(getPersonalityType()).getEspionageWeight() * GC.getCommerceInfo(COMMERCE_ESPIONAGE).getAIWeightPercent() / 100);
+	// </advc.tmp>
 }
 
 // (advc.003: Moved up so that all the CHANGE_PLAYER code dated 08/17/08 is in one place)
@@ -3072,7 +3077,8 @@ void CvPlayer::doTurn()  // advc.003: style changes
 	CvGame& g = GC.getGame();
 	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
 	   need assistance from CvPlayer. */
-	g.setInBetweenTurns(true);
+	if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+		g.setInBetweenTurns(true);
 	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
 		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0,
@@ -7885,7 +7891,7 @@ void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligio
 	if (bAward && kSlotReligion.getNumFreeUnits() > 0)
 	{
 		UnitTypes eFreeUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
-				getCivilizationUnits(kSlotReligion.getFreeUnitClass());
+				getCivilizationUnits(GC.getReligionInfo(eReligion).getFreeUnitClass());
 		if (eFreeUnit != NO_UNIT)
 		{
 			for (int i = 0; i < kSlotReligion.getNumFreeUnits(); i++)
@@ -14352,8 +14358,9 @@ bool CvPlayer::canSeeTech(PlayerTypes eOther) const {
 		return true;
 	if(otherTeam.isVassal(ourTeam.getID()))
 		return true; // Can see tech through "we'd like you to research ..."
-	if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING))
-		return false;
+	// advc.553: Make tech visible despite No Tech Trading (as in BtS)
+	/*if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING))
+		return false;*/
 	if(!ourTeam.isAlive() || !otherTeam.isAlive() ||
 			ourTeam.isBarbarian() || otherTeam.isBarbarian() ||
 			ourTeam.isMinorCiv() || otherTeam.isMinorCiv())
@@ -22485,7 +22492,10 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				/*  Hack: Check if we're expecting a renegotiate-popup from the EXE.
 					Don't want any resources in the canceled deal to be excluded
 					from the trade table. */
-				if(!bValid && !GC.getGame().isInBetweenTurns()) {
+				if(!bValid && !GC.getGame().isInBetweenTurns() &&
+					// Probably too complicated to get this right with simultaneous turns
+					!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+				{
 					for(CLLNode<std::pair<PlayerTypes,BonusTypes> >* pNode =
 							m_cancelingExport.head(); pNode != NULL; pNode =
 							m_cancelingExport.next(pNode)) {
@@ -23695,9 +23705,16 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const {
 } // </advc.104>
 
 // <advc.004x>
-void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1) {
-
-	if(getID() != GC.getGame().getActivePlayer() || !isHuman())
+void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
+{
+	CvGame const& g = GC.getGame();
+	if(getID() != g.getActivePlayer() || !isHuman() ||
+			 /* (If outdated non-minimized popups are also a problem, then this
+				check could just be removed; should work alright.) */
+			!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) ||
+			/*  I can't get this to work in network games. The delays introduced by
+				net messages cause popups to appear several times. */
+			g.isNetworkMultiPlayer())
 		return;
 	// Preserve the popups we don't want killed in newQueue
 	std::list<CvPopupInfo*> newQueue;

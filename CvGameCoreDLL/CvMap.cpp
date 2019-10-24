@@ -951,7 +951,8 @@ int CvMap::maxPlotDistance() const
 	// <advc.140> Replacing the above
 	CvGame const& g = GC.getGame();
 	double civRatio = g.getRecommendedPlayers() / (double)g.getCivPlayersEverAlive();
-	double seaLvlModifier = (100 - 5 * g.getSeaLevelChange()) / 100.0;
+	// Already factored into getRecommendedPlayers, but I want to give it a little extra weight.
+	double seaLvlModifier = (100 - 2.5 * g.getSeaLevelChange()) / 100.0;
 	int iWraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
 	if(isWrapX())
 		iWraps++;

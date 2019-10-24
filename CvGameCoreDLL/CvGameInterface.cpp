@@ -1795,23 +1795,12 @@ void CvGame::doControl(ControlTypes eControl)
 				(Fullscreen pretty much rules out that a debugger is attached.) */
 			if(gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN)) {
 				// Based on code in CvBugOptions.cpp
-<<<<<<< HEAD
-				CvString quickSavePath; //="C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
-=======
 				/*  On my system, it's "C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
 					the user directory can vary. */
-<<<<<<< HEAD
-				CvString quickSavePath;
->>>>>>> origin/master
-				gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &quickSavePath);
-				if(!quickSavePath.empty()) {
-					quickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
-=======
 				CvString szQuickSavePath;
 				gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &szQuickSavePath);
 				if(!szQuickSavePath.empty()) {
 					szQuickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
->>>>>>> da9993e66acba49458d1d7d93317088562358970
 					// CTD if loading fails, so let's make sure that the file is good.
 					std::ifstream quickSaveFile(szQuickSavePath);
 					if(quickSaveFile.good()) {

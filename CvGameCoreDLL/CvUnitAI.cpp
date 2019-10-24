@@ -5199,6 +5199,9 @@ bool CvUnitAI::AI_greatPersonMove()
 	int iLoop;
 	for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 	{
+		// <advc.139>
+		if (!pLoopCity->AI_isSafe())
+			continue; // </advc.139>
 		if (pLoopCity->area() != area())
 			continue; // advc.003
 
@@ -12552,7 +12555,8 @@ bool CvUnitAI::AI_join(int iMaxCount)
 				canEnterArea(*pLoopCity->area())
 				&& AI_plotValid(pLoopCity->plot()))
 		{
-			if (!(pLoopCity->plot()->isVisibleEnemyUnit(this)))
+			//if (!pLoopCity->plot()->isVisibleEnemyUnit(this))
+			if (pLoopCity->AI_isSafe()) // advc.139: ^How could there be an enemy in our city?
 			{
 				if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true))
 				// BETTER_BTS_AI_MOD: END
@@ -12629,7 +12633,8 @@ bool CvUnitAI::AI_construct(int iMaxCount, int iMaxSingleBuildingCount, int iThr
 	{
 		if (AI_plotValid(pLoopCity->plot()) && pLoopCity->area() == area())
 		{
-			if (!pLoopCity->plot()->isVisibleEnemyUnit(this))
+			//if (!pLoopCity->plot()->isVisibleEnemyUnit(this))
+			if (pLoopCity->AI_isSafe()) // advc.139: Replacing the above
 			{
 				//if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopCity->plot(), MISSIONAI_CONSTRUCT, getGroup()) == 0)
 				// above line disabled by K-Mod, because there are different types of buildings to construct...

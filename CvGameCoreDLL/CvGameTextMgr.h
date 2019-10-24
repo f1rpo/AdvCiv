@@ -297,10 +297,10 @@ private:
 	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue);
 	void setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive = false, bool bMakeWhitespace = false);
 	// <advc.003>
-	void appendNegativeModifiers(CvWStringBuffer& szString,
-			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
-	void appendPositiveModifiers(CvWStringBuffer& szString,
-			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
+	void appendNegativeModifiers(CvWStringBuffer& szString, CvUnit const* pAttacker,
+			CvUnit const* pDefender, CvPlot const* pPlot);
+	void appendPositiveModifiers(CvWStringBuffer& szString, CvUnit const* pAttacker,
+			CvUnit const* pDefender, CvPlot const* pPlot, bool bNegative);
 	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc.003>
 	// <advc.004w>
