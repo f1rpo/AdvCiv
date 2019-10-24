@@ -729,7 +729,7 @@ class AutoLogEvent(AbstractAutoLogEvent):
 			player = PyPlayer(iFounder)
 			iCityId = gc.getGame().getHeadquarters(iCorporation).getID()
 			# advc.001: was ==0
-			if (player.getTeamID() == CyGame.getActiveTeam()):
+			if (player.getTeamID() == CyGame().getActiveTeam()):
 				messageEnd = gc.getPlayer(iFounder).getCity(iCityId).getName()
 			else:
 				messageEnd = BugUtil.getPlainText("TXT_KEY_AUTOLOG_DISTANT_LAND")
