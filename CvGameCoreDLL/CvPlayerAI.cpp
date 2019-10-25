@@ -15235,6 +15235,9 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 
 	// advc.113: Let's focus on the workable bonuses (CvCityAI::AI_getWorkersNeeded)
 	int iCount = AI_countUnimprovedBonuses(pArea);// * 2;
+	// <advc.040> Areas w/o cities are ignored by the loop below
+	if (pArea->getCitiesPerPlayer(getID()) <= 0)
+		iCount *= 2; // </advc.040>
 	FOR_EACH_CITYAI(pLoopCity, *this)
 	{
 		if (pLoopCity->getArea() == pArea->getID())
@@ -25586,7 +25589,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
 			// UNOFFICIAL_PATCH: END
 			/*  <advc.107> Still apply an upper bound in that case.
 				Defending colonies may well be a lost cause. */
-			iUpperBound += pArea->getNumCities() / 2;
+			iUpperBound += 1000 * pArea->getNumCities() / 2;
 		}
 		iDefendersPermil = std::min(iDefendersPermil, iUpperBound); // </advc.107>
 	}
