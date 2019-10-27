@@ -1257,13 +1257,20 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			self.resIconGrid.scrollUp()
 		elif (self.iScreen == self.SCREEN_DICT["TECH"]):
 			self.techIconGrid.scrollUp()
-
+		# <advc.ctr>
+		elif (self.iScreen == self.SCREEN_DICT["CITIES"]):
+			self.cityIconGrid.scrollUp()
+		# </advc.ctr>
 
 	def scrollTradeTableDown(self):
 		if (self.iScreen == self.SCREEN_DICT["BONUS"]):
 			self.resIconGrid.scrollDown()
 		elif (self.iScreen == self.SCREEN_DICT["TECH"]):
 			self.techIconGrid.scrollDown()
+		# <advc.ctr>
+		elif (self.iScreen == self.SCREEN_DICT["CITIES"]):
+			self.cityIconGrid.scrollDown()
+		# </advc.ctr>
 				
 	def drawTechDeals(self, bInitial):
 		screen = self.getScreen()
@@ -1540,6 +1547,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 			currentRow += 1
 
+		self.cityIconGrid = iconGrid # for input handlers
 		iconGrid.refresh()
 
 	def getCityText(self, city, bLiberate, bGrayOut, bShort):
@@ -1612,7 +1620,10 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			return self.resIconGrid.handleInput(inputClass)
 		elif (self.iScreen == self.SCREEN_DICT["TECH"]):
 			return self.techIconGrid.handleInput(inputClass)
-
+		# <advc.ctr>
+		elif (self.iScreen == self.SCREEN_DICT["CITIES"]):
+			return self.cityIconGrid.handleInput(inputClass)
+		# </advc.ctr>
 		return 0
 
 def smallText(text):

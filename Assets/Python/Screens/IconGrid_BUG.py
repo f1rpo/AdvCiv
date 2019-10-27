@@ -344,7 +344,6 @@ class IconGrid_BUG:
 			self.screen.show(self.scrollUpArrow)
 			self.screen.show(self.pageUpArrow)
 			self.screen.show(self.scrollTopArrow)
-		
 		if (self.scrollPosition >= len(self.data) - self.numRows):
 			self.screen.hide(self.scrollDownArrow)
 			self.screen.hide(self.pageDownArrow)
@@ -420,6 +419,9 @@ class IconGrid_BUG:
 						textY = self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex + 8
 						if (self.showRowHeader):
 							textY += self.rowHeaderHeight
+						# Clear all lines
+						for iLine in range(MULTI_TEXT_MAX_LINES * 2):
+							self.screen.setText(self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "_" + str(iLine), "" , "", CvUtil.FONT_LEFT_JUSTIFY, currentX, textY, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 						iCount = 0
 						for textData in rowData.cells[startIndex + offset].multiText:
 							text = "<font=%i>%s</font>" % (rowData.cells[startIndex + offset].font, textData.text)
@@ -512,6 +514,9 @@ class IconGrid_BUG:
 				# <advc.ctr>
 				elif self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN:
 					textY = self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex + 8
+					# Clear all lines
+					for iLine in range(MULTI_TEXT_MAX_LINES * 2):
+						self.screen.setText(self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "_" + str(iLine), "" , "", CvUtil.FONT_LEFT_JUSTIFY, currentX, textY, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 					iCount = 0
 					for textData in rowData.cells[startIndex + offset].multiText:
 						text = "<font=%i>%s</font>" % (rowData.cells[startIndex + offset].font, textData.text)
