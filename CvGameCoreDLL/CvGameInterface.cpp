@@ -1317,16 +1317,14 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 
 void CvGame::doControl(ControlTypes eControl)
 {
-	CvPopupInfo* pInfo;
-	CvUnit* pHeadSelectedUnit;
-	CvUnit* pUnit;
-	CvPlot* pPlot;
-
 	if (!canDoControl(eControl))
 		return;
 	// <advc>
 	CvDLLInterfaceIFaceBase* pInterface = gDLL->getInterfaceIFace();
-	CvDLLEngineIFaceBase* pEngine = gDLL->getEngineIFace(); // </advc>
+	CvDLLEngineIFaceBase* pEngine = gDLL->getEngineIFace();
+	CvUnit* pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
+	CvPlot* pSelectionPlot = pInterface->getSelectionPlot();
+	// </advc>
 	switch (eControl)
 	{
 	case CONTROL_CENTERONSELECTION:
@@ -1334,7 +1332,6 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_SELECTYUNITTYPE:
-		pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
 			pInterface->selectGroup(pHeadSelectedUnit, false, true, false);
@@ -1342,50 +1339,44 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_SELECTYUNITALL:
-		pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
-			//pInterface->selectGroup(pHeadSelectedUnit, false, false, true);
-			pInterface->selectGroup(pHeadSelectedUnit, false, true, true); // K-Mod
+			pInterface->selectGroup(pHeadSelectedUnit, false,
+					/*false, true*/ true, true); // K-Mod
 		}
 		break;
 
-	case CONTROL_SELECT_HEALTHY:
+	case CONTROL_SELECT_HEALTHY:  // advc: Refactored this case
+		if (pHeadSelectedUnit != NULL)
 		{
-			CvUnit* pGroupHead = NULL;
-			pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
-			pInterface->clearSelectionList();
-			if (pHeadSelectedUnit != NULL)
+			/*  <advc.001z> Compute the units to be selected upfront b/c, if there
+				are none, then the current selection shouldn't be cleared. */
+			std::vector<CvUnit*> toBeSelected;
+			std::vector<CvUnit*> plotUnits;
+			getPlotUnits(pHeadSelectedUnit->plot(), plotUnits);
+			for (size_t i = 0; i < plotUnits.size(); i++)
 			{
-				pPlot = pHeadSelectedUnit->plot();
-				std::vector<CvUnit *> plotUnits;
-				getPlotUnits(pPlot, plotUnits);
+				CvUnit& kUnit = *plotUnits[i];
+				// disabled by K-Mod
+				//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - kUnit.getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) {
+				if (kUnit.getOwner() == getActivePlayer() && kUnit.isHurt() &&
+						// advc.001z: Can't select units of different domains
+						kUnit.getDomainType() == pHeadSelectedUnit->getDomainType())
+					toBeSelected.push_back(&kUnit);
+			}
+			if (!toBeSelected.empty()) // advc.001z
+			{
+				pInterface->clearSelectionList();
 				pInterface->selectionListPreChange();
-				for (int iI = 0; iI < (int) plotUnits.size(); iI++)
+				CvUnit const* pGroupHead = NULL;
+				for (size_t i = 0; i < toBeSelected.size(); i++) // advc.001z
 				{
-					pUnit = plotUnits[iI];
-
-					if (pUnit->getOwner() == getActivePlayer())
-					{
-						//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - pUnit->getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) // disabled by K-Mod
-						{
-							if (pUnit->isHurt())
-							{
-								if (pGroupHead != NULL)
-								{
-									CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), pGroupHead->getID());
-								}
-								else
-								{
-									pGroupHead = pUnit;
-								}
-
-								pInterface->insertIntoSelectionList(pUnit, false, false, true, true, true);
-							}
-						}
-					}
+					CvUnit* pUnit = toBeSelected[i]; // advc.001z
+					if (pGroupHead != NULL)
+						CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), pGroupHead->getID());
+					else pGroupHead = pUnit;
+					pInterface->insertIntoSelectionList(pUnit, false, false, true, true, true);
 				}
-
 				pInterface->selectionListPostChange();
 			}
 		}
@@ -1393,61 +1384,39 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_SELECTCITY:
 		if (pInterface->isCityScreenUp())
-		{
 			cycleCities();
-		}
-		else
-		{
-			pInterface->selectLookAtCity();
-		}
+		else pInterface->selectLookAtCity();
 		break;
 
-	case CONTROL_SELECTCAPITAL: {
+	case CONTROL_SELECTCAPITAL:
+	{
 		CvCity* pCapitalCity = GET_PLAYER(getActivePlayer()).getCapitalCity();
 		if (pCapitalCity != NULL)
-		{
 			pInterface->selectCity(pCapitalCity);
-		}
 		break;
 	}
 	case CONTROL_NEXTCITY:
 		if (pInterface->isCitySelection())
-		{
 			cycleCities(true, !(pInterface->isCityScreenUp()));
-		}
-		else
-		{
-			pInterface->selectLookAtCity(true);
-		}
+		else pInterface->selectLookAtCity(true);
 		pInterface->lookAtSelectionPlot();
 		break;
 
 	case CONTROL_PREVCITY:
 		if (pInterface->isCitySelection())
-		{
 			cycleCities(false, !(pInterface->isCityScreenUp()));
-		}
-		else
-		{
-			pInterface->selectLookAtCity(true);
-		}
+		else pInterface->selectLookAtCity(true);
 		pInterface->lookAtSelectionPlot();
 		break;
 
 	case CONTROL_NEXTUNIT:
-		pPlot = pInterface->getSelectionPlot();
-		if (pPlot != NULL)
-		{
-			cyclePlotUnits(pPlot);
-		}
+		if (pSelectionPlot != NULL)
+			cyclePlotUnits(pSelectionPlot);
 		break;
 
 	case CONTROL_PREVUNIT:
-		pPlot = pInterface->getSelectionPlot();
-		if (pPlot != NULL)
-		{
-			cyclePlotUnits(pPlot, false);
-		}
+		if (pSelectionPlot != NULL)
+			cyclePlotUnits(pSelectionPlot, false);
 		break;
 
 	case CONTROL_CYCLEUNIT:
@@ -1460,27 +1429,22 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_LASTUNIT:
-		pUnit = pInterface->getLastSelectedUnit();
-
+	{
+		CvUnit* pUnit = pInterface->getLastSelectedUnit();
 		if (pUnit != NULL)
 		{
 			pInterface->selectUnit(pUnit, true);
 			pInterface->lookAtSelectionPlot();
 		}
-		else
-		{
-			cycleSelectionGroups(true, false);
-		}
+		else cycleSelectionGroups(true, false);
 
 		pInterface->setLastSelectedUnit(NULL);
 		break;
-
+	}
 	case CONTROL_ENDTURN:
 	case CONTROL_ENDTURN_ALT:
 		if (pInterface->isEndTurnMessage())
-		{
 			CvMessageControl::getInstance().sendTurnComplete();
-		}
 		break;
 
 	case CONTROL_FORCEENDTURN:
@@ -1538,21 +1502,20 @@ void CvGame::doControl(ControlTypes eControl)
 	case CONTROL_RETIRE: // <advc.706> Need three buttons, so no BUTTONPOPUP_CONFIRM_MENU.
 		if(isOption(GAMEOPTION_RISE_FALL))
 		{
-			pInfo = new CvPopupInfo(BUTTONPOPUP_RF_RETIRE);
+			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RF_RETIRE);
 			if(pInfo != NULL)
 				pInterface->addPopup(pInfo, getActivePlayer(), true);
 		}
 		else // </advc.706>
 		// K-Mod. (original code moved into CvGame::retire)
 		{
-			pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
-			if (NULL != pInfo)
+			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
+			if (pInfo != NULL)
 			{
 				pInfo->setData1(2);
 				pInterface->addPopup(pInfo, getActivePlayer(), true);
 			}
-		}
-		// K-Mod end
+		} // K-Mod end
 		break;
 
 	case CONTROL_SAVE_GROUP:
@@ -1564,7 +1527,7 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_QUICK_SAVE:
-		if (!isNetworkMultiPlayer())	// SP only!
+		if (!isNetworkMultiPlayer()) // SP only!
 		{
 			CvEventReporter::getInstance().preQuickSave(); // advc.106l
 			gDLL->QuickSave();
@@ -1572,7 +1535,7 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_QUICK_LOAD:
-		if (!isNetworkMultiPlayer())	// SP only!
+		if (!isNetworkMultiPlayer()) // SP only!
 		{	// <advc.003d>
 			/*  Loading works fine in windowed mode, and when a debugger is
 				attached, exitingToMainMenu can actually be quite slow.
@@ -1700,8 +1663,8 @@ void CvGame::doControl(ControlTypes eControl)
 			pInterface->showAdminDetails();
 		else
 		{
-			pInfo = new CvPopupInfo(BUTTONPOPUP_ADMIN_PASSWORD);
-			if (NULL != pInfo)
+			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_ADMIN_PASSWORD);
+			if (pInfo != NULL)
 			{
 				pInfo->setData1((int)CONTROL_ADMIN_DETAILS);
 				pInterface->addPopup(pInfo, NO_PLAYER, true);
@@ -1720,7 +1683,7 @@ void CvGame::doControl(ControlTypes eControl)
 			enterWorldBuilder();
 		else // </advc.007>
 		{
-			pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
+			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
 			if (pInfo != NULL)
 			{
 				pInfo->setData1(4);
@@ -1735,20 +1698,19 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_FREE_COLONY:
 	{
-		pInfo = new CvPopupInfo(BUTTONPOPUP_FREE_COLONY);
+		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_FREE_COLONY);
 		if (pInfo != NULL)
 			pInterface->addPopup(pInfo);
 		break;
 	}
 	case CONTROL_DIPLOMACY:
-		pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOMACY);
+	{
+		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOMACY);
 		if (pInfo != NULL)
 			pInterface->addPopup(pInfo);
 		break;
-
-	default:
-		FAssertMsg(false, "eControl did not match any valid options");
-		break;
+	}
+	default: FAssertMsg(false, "Unknown control type");
 	}
 }
 
