@@ -38,7 +38,8 @@ class CvDomesticAdvisor:
 		screen = CyGInterfaceScreen( "DomesticAdvisor", CvScreenEnums.DOMESTIC_ADVISOR )
 
 		self.nScreenWidth = screen.getXResolution() - 30
-		self.nScreenHeight = screen.getYResolution() - 250
+		# advc.120c: Was -250. Need a little more space for the HUD.
+		self.nScreenHeight = screen.getYResolution() - 255
 		self.nTableWidth = self.nScreenWidth - 35
 		self.nTableHeight = self.nScreenHeight - 85
 		self.nNormalizedTableWidth = 970
@@ -60,7 +61,8 @@ class CvDomesticAdvisor:
 		self.nSpecTextOffsetY = 10
 
 		screen.setRenderInterfaceOnly(True)
-		screen.setDimensions(15, 100, self.nScreenWidth, self.nScreenHeight)
+		# advc.120c: y position changed from 100 to 85 so that the unit icons aren't obscured. The espionage slider isn't normally visible anyway.
+		screen.setDimensions(15, 85, self.nScreenWidth, self.nScreenHeight)
 		screen.showScreen(PopupStates.POPUPSTATE_IMMEDIATE, False)
 	
 		# Here we set the background widget and exit button, and we show the screen

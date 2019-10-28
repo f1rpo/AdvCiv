@@ -8623,9 +8623,10 @@ int CvGame::calculateSyncChecksum()
 					iMultiplier += pLoopCity->happyLevel() * 736373;
 					iMultiplier += pLoopCity->unhappyLevel() * 820622;
 					iMultiplier += pLoopCity->getFood() * 367291;
-					/*  advc.001n: FloatingDefenders should be good enough as closeness
+					/*  <advc.001n> FloatingDefenders should be good enough as closeness
 						factors into that */
-					iMultiplier += pLoopCity->AI_neededFloatingDefenders(false, true) * 324111;
+					if (!kPlayer.isBarbarian())
+						iMultiplier += pLoopCity->AI_neededFloatingDefenders(false, true) * 324111;
 					/*for(iJ = 0; iJ < MAX_PLAYERS; iJ++) {
 						if(GET_PLAYER((PlayerTypes)iJ).isAlive()) {
 							iMultiplier += (pLoopCity->AI_playerCloseness(

@@ -1589,7 +1589,7 @@ void CvUnitAI::AI_settleMove()
 			return;
 		}
 		// BBAI TODO: Go to a good city (like one with a transport) ...
-		// advc.: ^Now adressed in AI_moveSettlerToCoast
+		// (advc.040: ^Now adressed in AI_moveSettlerToCoast)
 	}
 
 	// K-Mod: sometimes an unescorted settler will join up with an escort mid-mission..
