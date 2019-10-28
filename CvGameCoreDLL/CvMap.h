@@ -422,10 +422,10 @@ protected:
 
 	bool m_bWrapX;
 	bool m_bWrapY;
-
-	int* m_paiNumBonus;
-	int* m_paiNumBonusOnLand;
-
+	// <advc.enum>
+	EnumMap<BonusTypes,int> m_aiNumBonus;
+	EnumMap<BonusTypes,int> m_aiNumBonusOnLand;
+	// </advc.enum>
 	CvPlot* m_pMapPlots;
 	std::map<Shelf::Id,Shelf*> shelves; // advc.300
 

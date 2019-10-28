@@ -1,12 +1,9 @@
 /*  advc.enum: From the "We the People" (WtP) mod for Civ4Col, original author: Nightinggale,
-	who is still working on the EnumMap classes. This version is from 18 Oct 2019.
+	who is still working on the EnumMap classes. This version is from 24 Oct 2019.
 	I have -for now- omitted the WtP serialization functions, and uncoupled the
 	code from the Perl-generated enums that WtP uses. Instead of defining
 	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
 	CvEnums.h and CvGlobals.h are used.
-	Removed some inline keywords and downgraded some __forceinline to inline.
-	In particular, I don't use an inline keyword when there is any conditional branching.
-	(Could experiment with this some more once the class is complete and used everywhere.)
 	Formatting: linebreaks added before scope resolution operators. */
 
 #ifndef ENUM_MAP_H
@@ -254,7 +251,7 @@ private:
 	void _setAll(T val);
 
 	template <bool bInline>
-	int _getNumBoolBlocks() const;
+	unsigned int _getNumBoolBlocks() const;
 
 	template <int iSize>
 	void _Read(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false);
@@ -369,7 +366,6 @@ private:
 	template<>
 	__forceinline void _setAll<false, ENUMMAP_SIZE_BOOL>(T eValue)
 	{
-		// advc: <bInline> param appears to have been missing
 		std::fill_n(m_pArrayBool, _getNumBoolBlocks<bINLINE_BOOL>(), eValue ? MAX_UNSIGNED_INT : 0);
 	}
 	template<>
@@ -449,13 +445,13 @@ private:
 	////
 
 	template <>
-	__forceinline int _getNumBoolBlocks<false>() const
+	__forceinline unsigned int _getNumBoolBlocks<false>() const
 	{
 		return (numElements() + 31) / 32;
 	}
 
 	template <>
-	__forceinline int _getNumBoolBlocks<true>() const
+	__forceinline unsigned int _getNumBoolBlocks<true>() const
 	{
 		return NUM_BOOL_BLOCKS;
 	}
@@ -497,6 +493,11 @@ private:
 // To actually force the compiler to inline, the keyword __forceinline can be used, but this one should really be used with care.
 // Actually inlining functions can slow down the code and inline is usually only good for very small functions, like get variable.
 //
+/*  advc: MSVC03 seems to treat member functions as implicitly inline when it comes
+	to the one-definition rule - even if the functions aren't defined within the
+	class definition. So I've removed some inline keywords b/c I don't want to
+	recommend any function with branching for inline expansion. I've also
+	downgraded some __forceinline keywords to inline. */
 
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>

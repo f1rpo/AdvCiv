@@ -26,12 +26,7 @@
 CvMap::CvMap() /* advc.003u: */ : m_areas(new CvAreaList())
 {
 	CvMapInitData defaultMapData;
-
-	m_paiNumBonus = NULL;
-	m_paiNumBonusOnLand = NULL;
-
 	m_pMapPlots = NULL;
-
 	reset(&defaultMapData);
 }
 
@@ -75,11 +70,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 
 void CvMap::uninit()
 {
-	SAFE_DELETE_ARRAY(m_paiNumBonus);
-	SAFE_DELETE_ARRAY(m_paiNumBonusOnLand);
-
 	SAFE_DELETE_ARRAY(m_pMapPlots);
-
 	m_areas->uninit();
 }
 
@@ -154,19 +145,8 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 		GC.getPythonCaller()->mapWraps(m_bWrapX, m_bWrapY);
 	}
 
-	if (GC.getNumBonusInfos())
-	{
-		FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvMap::reset");
-		FAssertMsg(m_paiNumBonus==NULL, "mem leak m_paiNumBonus");
-		m_paiNumBonus = new int[GC.getNumBonusInfos()];
-		FAssertMsg(m_paiNumBonusOnLand==NULL, "mem leak m_paiNumBonusOnLand");
-		m_paiNumBonusOnLand = new int[GC.getNumBonusInfos()];
-		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
-		{
-			m_paiNumBonus[iI] = 0;
-			m_paiNumBonusOnLand[iI] = 0;
-		}
-	}
+	m_aiNumBonus.reset();
+	m_aiNumBonusOnLand.reset();
 
 	m_areas->removeAll();
 }
@@ -330,9 +310,7 @@ void CvMap::updateMinimapColor()
 void CvMap::updateSight(bool bIncrement)
 {
 	for (int iI = 0; iI < numPlots(); iI++)
-	{
 		plotByIndex(iI)->updateSight(bIncrement, false);
-	}
 
 	GC.getGame().updatePlotGroups();
 }
@@ -343,7 +321,6 @@ void CvMap::updateIrrigated()
 	for(int iI = 0; iI < numPlots(); iI++)
 		plotByIndex(iI)->updateIrrigated();
 }
-
 
 // K-Mod. This function is called when the unit selection is changed, or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
 // The purpose is to update which unit is displayed in the center of each plot.
@@ -398,17 +375,13 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 			}
 		}
 	}
-}
-// K-Mod end
+} // K-Mod end
+
 
 void CvMap::updateWorkingCity()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlots(); iI++)
-	{
+	for (int iI = 0; iI < numPlots(); iI++)
 		plotByIndex(iI)->updateWorkingCity();
-	}
 }
 
 
@@ -417,45 +390,35 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 	PROFILE_FUNC();
 
 	CvPlot* pLoopPlot;
-	int iI, iJ;
-
-	for (iI = 0; iI < numPlots(); iI++)
+	for (int iI = 0; iI < numPlots(); iI++)
 	{
 		pLoopPlot = plotByIndex(iI);
-
 		if (pLoopPlot->area() == pArea)
-		{
 			pLoopPlot->setMinOriginalStartDist(-1);
-		}
 	}
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
+		if (pStartingPlot == NULL || pStartingPlot->area() != pArea)
+			continue; // advc
 
-		if (pStartingPlot != NULL)
+		for (int iJ = 0; iJ < numPlots(); iJ++)
 		{
-			if (pStartingPlot->area() == pArea)
+			pLoopPlot = plotByIndex(iJ);
+			if (pLoopPlot->area() == pArea &&
+				pLoopPlot != pStartingPlot) // K-Mod
 			{
-				for (iJ = 0; iJ < numPlots(); iJ++)
+				//iDist = calculatePathDistance(pStartingPlot, pLoopPlot);
+				int iDist = stepDistance(pStartingPlot, pLoopPlot);
+				if (iDist != -1)
 				{
-					pLoopPlot = plotByIndex(iJ);
-
-					//if (pLoopPlot->area() == pArea)
-					if (pLoopPlot->area() == pArea && pLoopPlot != pStartingPlot) // K-Mod
+					//int iCrowDistance = plotDistance(pStartingPlot, pLoopPlot);
+					//iDist = std::min(iDist,  iCrowDistance * 2);
+					if (pLoopPlot->getMinOriginalStartDist() == -1 ||
+						iDist < pLoopPlot->getMinOriginalStartDist())
 					{
-						//iDist = calculatePathDistance(pStartingPlot, pLoopPlot);
-						int iDist = stepDistance(pStartingPlot->getX(), pStartingPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
-
-						if (iDist != -1)
-						{
-							//int iCrowDistance = plotDistance(pStartingPlot->getX(), pStartingPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
-							//iDist = std::min(iDist,  iCrowDistance * 2);
-							if ((pLoopPlot->getMinOriginalStartDist() == -1) || (iDist < pLoopPlot->getMinOriginalStartDist()))
-							{
-								pLoopPlot->setMinOriginalStartDist(iDist);
-							}
-						}
+						pLoopPlot->setMinOriginalStartDist(iDist);
 					}
 				}
 			}
@@ -466,21 +429,15 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 
 void CvMap::updateYield()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlots(); iI++)
-	{
+	for (int iI = 0; iI < numPlots(); iI++)
 		plotByIndex(iI)->updateYield();
-	}
 }
 
 
 void CvMap::verifyUnitValidPlot()
 {
 	for (int iI = 0; iI < numPlots(); iI++)
-	{
 		plotByIndex(iI)->verifyUnitValidPlot();
-	}
 }
 
 
@@ -708,15 +665,11 @@ int CvMap::getMapFractalFlags() const
 {
 	int wrapX = 0;
 	if (isWrapX())
-	{
 		wrapX = (int)CvFractal::FRAC_WRAP_X;
-	}
 
 	int wrapY = 0;
 	if (isWrapY())
-	{
 		wrapY = (int)CvFractal::FRAC_WRAP_Y;
-	}
 
 	return (wrapX | wrapY);
 }
@@ -727,32 +680,21 @@ bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc
 {
 	PROFILE("CvMap::findWater()");
 
-	CvPlot* pLoopPlot;
-	int iDX, iDY;
-
-	for (iDX = -(iRange); iDX <= iRange; iDX++)
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
 	{
-		for (iDY = -(iRange); iDY <= iRange; iDY++)
+		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
-			pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+			if (pLoopPlot == NULL)
+				continue; // advc
 
-			if (pLoopPlot != NULL)
+			if (bFreshWater)
 			{
-				if (bFreshWater)
-				{
-					if (pLoopPlot->isFreshWater())
-					{
-						return true;
-					}
-				}
-				else
-				{
-					if (pLoopPlot->isWater())
-					{
-						return true;
-					}
-				}
+				if (pLoopPlot->isFreshWater())
+					return true;
 			}
+			else if (pLoopPlot->isWater())
+				return true;
 		}
 	}
 
@@ -984,34 +926,26 @@ CvWString CvMap::getNonDefaultCustomMapOptionDesc(int iOption) const
 
 int CvMap::getNumBonuses(BonusTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_paiNumBonus[eIndex];
+	return m_aiNumBonus.get(eIndex);
 }
 
 
 void CvMap::changeNumBonuses(BonusTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	m_paiNumBonus[eIndex] = (m_paiNumBonus[eIndex] + iChange);
+	m_aiNumBonus.add(eIndex, iChange);
 	FAssert(getNumBonuses(eIndex) >= 0);
 }
 
 
 int CvMap::getNumBonusesOnLand(BonusTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_paiNumBonusOnLand[eIndex];
+	return m_aiNumBonusOnLand.get(eIndex);
 }
 
 
 void CvMap::changeNumBonusesOnLand(BonusTypes eIndex, int iChange)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	m_paiNumBonusOnLand[eIndex] = (m_paiNumBonusOnLand[eIndex] + iChange);
+	m_aiNumBonusOnLand.add(eIndex, iChange);
 	FAssert(getNumBonusesOnLand(eIndex) >= 0);
 }
 
@@ -1111,8 +1045,7 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 		return -1;
 
 	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
-			pSource->getX(), pSource->getY(),
-			pDest->getX(), pDest->getY(), false, 0, true))
+		pSource->getX(), pSource->getY(), pDest->getX(), pDest->getY(), false, 0, true))
 	{
 		FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 		if (pNode != NULL)
@@ -1130,9 +1063,7 @@ void CvMap::invalidateActivePlayerSafeRangeCache()
 	PROFILE_FUNC();
 
 	for (int iI = 0; iI < numPlots(); iI++)
-	{
 		plotByIndex(iI)->setActivePlayerSafeRangeCache(-1);
-	}
 }
 
 
@@ -1141,9 +1072,7 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 	PROFILE_FUNC();
 
 	for(int iI = 0; iI < numPlots(); iI++)
-	{
 		plotByIndex(iI)->setBorderDangerCache(eTeam, false);
-	}
 } // BETTER_BTS_AI_MOD: END
 
 // read object from a stream. used during load
@@ -1168,16 +1097,14 @@ void CvMap::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bWrapY);
 
 	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated");
-	pStream->Read(GC.getNumBonusInfos(), m_paiNumBonus);
-	pStream->Read(GC.getNumBonusInfos(), m_paiNumBonusOnLand);
+	m_aiNumBonus.Read(pStream);
+	m_aiNumBonusOnLand.Read(pStream);
 
 	if (numPlots() > 0)
 	{
 		m_pMapPlots = new CvPlot[numPlots()];
 		for (int iI = 0; iI < numPlots(); iI++)
-		{
 			m_pMapPlots[iI].read(pStream);
-		}
 	}
 
 	// call the read of the free list CvArea class allocations
@@ -1209,14 +1136,11 @@ void CvMap::write(FDataStreamBase* pStream)
 	pStream->Write(m_bWrapY);
 
 	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated");
-	pStream->Write(GC.getNumBonusInfos(), m_paiNumBonus);
-	pStream->Write(GC.getNumBonusInfos(), m_paiNumBonusOnLand);
+	m_aiNumBonus.Write(pStream);
+	m_aiNumBonusOnLand.Write(pStream);
 
-	int iI;
-	for (iI = 0; iI < numPlots(); iI++)
-	{
+	for (int iI = 0; iI < numPlots(); iI++)
 		m_pMapPlots[iI].write(pStream);
-	}
 
 	// call the read of the free list CvArea class allocations
 	WriteStreamableFFreeListTrashArray(*m_areas, pStream);

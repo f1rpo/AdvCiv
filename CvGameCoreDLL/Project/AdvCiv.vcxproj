@@ -156,6 +156,7 @@
     <ClCompile Include="..\CyTeamInterface.cpp" />
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
+    <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
     <ClCompile Include="..\InvasionGraph.cpp" />
     <ClCompile Include="..\KmodPathFinder.cpp" />

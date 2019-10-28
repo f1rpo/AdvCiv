@@ -788,6 +788,9 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 
 	UpdateProgressCB("GlobalOther");
 	DestroyFXml();
+	// <advc.enum>
+	void TestEnumMap();
+	TestEnumMap(); // </advc.enum>
 	getWPAI.doXML(); // advc.104x
 	GC.setXMLLoadUtility(this); // advc.003v
 
