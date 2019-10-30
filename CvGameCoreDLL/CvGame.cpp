@@ -2422,7 +2422,7 @@ void CvGame::update()
 				autoSave(true); // advc.106l
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
-			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true))
+			if(bStartTurn && BUGOption::isEnabled("MainInterface__StartWithResourceIcons", true))
 				gDLL->getEngineIFace()->setResourceLayer(true);
 			// </advc.004m>
 		}
@@ -2699,7 +2699,7 @@ void CvGame::autoSave(bool bInitial)
 	CvEventReporter::getInstance().preAutoSave();
 	gDLL->getEngineIFace()->AutoSave(bInitial);
 	// BULL - AutoSave - start
-	if(bInitial && getBugOptionBOOL("AutoSave__CreateStartSave", false))
+	if(bInitial && BUGOption::isEnabled("AutoSave__CreateStartSave", false))
 		GC.getPythonCaller()->call("gameStartSave", PYCivModule);
 	// BULL - AutoSave - end
 } // </advc.106l>
@@ -2762,7 +2762,7 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 	// K-Mod. Redesigned to make selection more sensible and predictable
 	// In 'simple mode', shift always groups and always targets only a single unit.
 	// advc.001: Option id was SimpleSelectionMode here but SimpleSelection in XML
-	bool bSimpleMode = getBugOptionBOOL("MainInterface__SimpleSelection", true);
+	bool bSimpleMode = BUGOption::isEnabled("MainInterface__SimpleSelection", true);
 
 	bool bExplicitDeselect = false;
 	bool bSelectGroup = false;
@@ -2856,7 +2856,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 
 	FAssertMsg(pUnit != NULL, "pUnit == NULL unexpectedly");
 	// <advc.002e> Show glow (only) on selected unit
-	if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false))
+	if(!BUGOption::isEnabled("PLE__ShowPromotionGlow", false))
 	{
 		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner());
 		FOR_EACH_UNIT_VAR(u, kOwner)
@@ -4630,7 +4630,7 @@ void CvGame::setScoreDirty(bool bNewValue)
 // <advc.003r>
 void CvGame::setUpdateTimer(UpdateTimerTypes eTimerType, int iDelay)
 {	// <advc.001w>
-	if(eTimerType == UPDATE_MOUSE_FOCUS && getBugOptionBOOL("MainInterface__RapidUnitCycling", false)) {
+	if(eTimerType == UPDATE_MOUSE_FOCUS && BUGOption::isEnabled("MainInterface__RapidUnitCycling", false)) {
 		// No need for this hack when there is no unit-cycling delay
 		iDelay = -1;
 	} // </advc.001w>
@@ -5490,7 +5490,7 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 	{
 		CvEventReporter::getInstance().gameEnd();
 		// BULL - AutoSave - start
-		if (getBugOptionBOOL("AutoSave__CreateEndSave", false))
+		if (BUGOption::isEnabled("AutoSave__CreateEndSave", false))
 			GC.getPythonCaller()->call("gameEndSave", PYCivModule);
 		// BULL - AutoSave - end
 		// <advc.707>

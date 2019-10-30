@@ -9674,7 +9674,7 @@ void CvPlayer::setCombatExperience(int iExperience)
 			}
 		}
 	} // <advc.078>
-	if(getID() == g.getActivePlayer() && getBugOptionBOOL("MainInterface__Combat_Counter", false))
+	if(getID() == g.getActivePlayer() && BUGOption::isEnabled("MainInterface__Combat_Counter", false))
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 	// </advc.078>
 }
@@ -12861,9 +12861,9 @@ void CvPlayer::postProcessMessages()
 
 int CvPlayer::getStartOfTurnMessageLimit() const
 {
-	if(!getBugOptionBOOL("MainInterface__AutoOpenEventLog", true))
+	if(!BUGOption::isEnabled("MainInterface__AutoOpenEventLog", true))
 		return -1;
-	int r = getBugOptionINT("MainInterface__MessageLimit", 3);
+	int r = BUGOption::getValue("MainInterface__MessageLimit", 3);
 	if(!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) &&
 			GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
 		return -1;
@@ -19382,7 +19382,7 @@ void CvPlayer::decayBuildProgress()
 // <advc.002e>
 void CvPlayer::showForeignPromoGlow(bool b)
 {
-	if(getBugOptionBOOL("PLE__ShowPromotionGlow", false))
+	if(BUGOption::isEnabled("PLE__ShowPromotionGlow", false))
 		return;
 	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -21301,8 +21301,8 @@ void CvPlayer::setScoreboardExpanded(bool b)
 	m_bScoreboardExpanded = b;
 	if(b)
 	{
-		FAssert(getBugOptionBOOL("Scores__AlignIcons", true, false));
-		if(getBugOptionBOOL("Scores__ExpandOnHover", false, false))
+		FAssert(BUGOption::isEnabled("Scores__AlignIcons", true, false));
+		if(BUGOption::isEnabled("Scores__ExpandOnHover", false, false))
 			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 		else m_bScoreboardExpanded = false;
 	}
@@ -21633,7 +21633,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 	CvDeal* pDeal = NULL;
 	if(bShowingCurrent)
 	{
-		int iTurnsLeftMode = getBugOptionINT("Advisors__DealTurnsLeft", 3);
+		int iTurnsLeftMode = BUGOption::getValue("Advisors__DealTurnsLeft", 3);
 		if(iTurnsLeftMode == 2 || iTurnsLeftMode == 1)
 		{
 			TradeableItems eItemType = zTradeData.m_eItemType;
@@ -22341,7 +22341,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 		ImprovementTypes eImpr = NO_IMPROVEMENT;
 		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
 			isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
-			getBugOptionBOOL("MainInterface__TribalVillageIcons", true))
+			BUGOption::isEnabled("MainInterface__TribalVillageIcons", true))
 		{
 			eImpr = kPlot.getRevealedImprovementType(getTeam());
 			bOfInterest = (eImpr != NO_IMPROVEMENT && GC.getInfo(eImpr).

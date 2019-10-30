@@ -1778,11 +1778,11 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		}
 	}
 	// BUG - Hurry Overflow - start (advc.064)
-	if(getBugOptionBOOL("MiscHover__HurryOverflow", true))
+	if(BUGOption::isEnabled("MiscHover__HurryOverflow", true))
 	{
 		int iOverflowProduction = 0;
 		int iOverflowGold = 0;
-		bool bIncludeCurrent = getBugOptionBOOL("MiscHover__HurryOverflowIncludeCurrent", false);
+		bool bIncludeCurrent = BUGOption::isEnabled("MiscHover__HurryOverflowIncludeCurrent", false);
 		if(kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent))
 		{
 			if(iOverflowProduction > 0 || iOverflowGold > 0)
@@ -4818,7 +4818,7 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 
 // BUG - Building Saved Maintenance - start
 	if (pHeadSelectedCity->getOwner() == GC.getGame().getActivePlayer() &&
-			(getBugOptionBOOL("MiscHover__BuildingSavedMaintenance", false) ||
+			(BUGOption::isEnabled("MiscHover__BuildingSavedMaintenance", false) ||
 			GC.altKey())) // advc.063
 		GAMETEXT.setBuildingSavedMaintenanceHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
 // BUG - Building Saved Maintenance - end
@@ -4837,7 +4837,7 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 // BUG - Building Additional Health - start
 	if (pHeadSelectedCity->getOwner() == GC.getGame().getActivePlayer() &&
-			(getBugOptionBOOL("MiscHover__BuildingAdditionalHealth", false)
+			(BUGOption::isEnabled("MiscHover__BuildingAdditionalHealth", false)
 			|| GC.altKey())) // advc.063
 		GAMETEXT.setBuildingAdditionalHealthHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
 // BUG - Building Additional Health - end
@@ -4941,7 +4941,7 @@ void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, C
 
 // BUG - Building Additional Happiness - start
 	if (pHeadSelectedCity->getOwner() == GC.getGame().getActivePlayer() &&
-			(getBugOptionBOOL("MiscHover__BuildingAdditionalHappiness", false)
+			(BUGOption::isEnabled("MiscHover__BuildingAdditionalHappiness", false)
 			|| GC.altKey())) // advc.063
 		GAMETEXT.setBuildingAdditionalHappinessHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
 // BUG - Building Additional Happiness - end
@@ -5816,7 +5816,7 @@ void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, 
 {
 	CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1);
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-	bool bThemVsYou = (getBugOptionINT("Scores__PowerFormula", 0, false) == 0);
+	bool bThemVsYou = (BUGOption::getValue("Scores__PowerFormula", 0, false) == 0);
 	int iPow = std::max(1, kPlayer.getPower());
 	int iActivePow = std::max(1, kActivePlayer.getPower());
 	int iPowerRatioPercent = ::round(bThemVsYou ?

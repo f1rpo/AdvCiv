@@ -1736,7 +1736,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	/*  <advc.002e> This needs to be done in some CvUnit function that gets called
 		by the EXE after read, after isPromotionReady and late enough for IsSelected
 		to work. (E.g. setupGraphical and shouldShowEnemyGlow are too early.) */
-	if(iAction == 0 && !getBugOptionBOOL("PLE__ShowPromotionGlow", false))
+	if(iAction == 0 && !BUGOption::isEnabled("PLE__ShowPromotionGlow", false))
 	{
 		CvSelectionGroup* gr = getGroup();
 		for(CLLNode<IDInfo> const* pNode = gr->headUnitNode(); pNode != NULL; pNode = gr->nextUnitNode(pNode))
@@ -1930,8 +1930,8 @@ bool CvUnit::isActionRecommended(int iAction)
 // <advc.004h>
 void CvUnit::updateFoundingBorder(bool bForceClear) const
 {
-	int iMode = getBugOptionINT("MainInterface__FoundingBorder", 2);
-	if(getBugOptionBOOL("MainInterface__FoundingYields", false) && iMode == 1)
+	int iMode = BUGOption::getValue("MainInterface__FoundingBorder", 2);
+	if(BUGOption::isEnabled("MainInterface__FoundingYields", false) && iMode == 1)
 		return; // BtS behavior
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
 	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
@@ -3533,7 +3533,7 @@ bool CvUnit::canSeaPatrol(const CvPlot* pPlot) const
 	if (getGroup()->getActivityType() == ACTIVITY_PATROL) // K-Mod
 		return false;
 	// advc.004k: (Do the cheaper checks first)
-	return getBugOptionBOOL("MainInterface__SeaPatrol", false);
+	return BUGOption::isEnabled("MainInterface__SeaPatrol", false);
 }
 
 
@@ -4583,7 +4583,7 @@ bool CvUnit::pillage()
 		}
 	}
 	if (pPlot->isWater()
-		&& getBugOptionBOOL("MainInterface__SeaPatrol", false)) // advc.004k
+		&& BUGOption::isEnabled("MainInterface__SeaPatrol", false)) // advc.004k
 	{
 		CvUnit* pInterceptor = bestSeaPillageInterceptor(this, GC.getCOMBAT_DIE_SIDES() / 2);
 		if (pInterceptor != NULL)
@@ -6924,7 +6924,7 @@ bool CvUnit::isSpy() const
 // <advc.004h>
 bool CvUnit::isFound() const
 {
-	if(getBugOptionBOOL("MainInterface__FoundingYields", false))
+	if(BUGOption::isEnabled("MainInterface__FoundingYields", false))
 		return canFound();
 	return false;
 }
@@ -9925,7 +9925,7 @@ void CvUnit::setMadeInterception(bool bNewValue)
 	to show the glow on those only once the human turn starts (in CvPlayer::doWarnings). */
 bool CvUnit::isPromotionReadyExternal() const
 {
-	return isPromotionReady() && getBugOptionBOOL("PLE__ShowPromotionGlow", false);
+	return isPromotionReady() && BUGOption::isEnabled("PLE__ShowPromotionGlow", false);
 } // </advc.002e>
 
 
@@ -9943,7 +9943,7 @@ void CvUnit::setPromotionReady(bool bNewValue)
 		getGroup()->setActivityType(ACTIVITY_AWAKE);
 	}
 
-	if(getBugOptionBOOL("PLE__ShowPromotionGlow", false)) // advc.002e:
+	if(BUGOption::isEnabled("PLE__ShowPromotionGlow", false)) // advc.002e:
 		gDLL->getEntityIFace()->showPromotionGlow(getUnitEntity(), bNewValue);
 
 	if(IsSelected())

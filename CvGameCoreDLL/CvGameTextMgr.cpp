@@ -78,7 +78,7 @@ void CvGameTextMgr::setYearStr(CvWString& szString, int iGameTurn, bool bSave,
 	int iTurnYear = getTurnYearForGame(iGameTurn, iStartYear, eCalendar, eSpeed);
 	// <advc.002k>
 	enum NotationTypes { AD_PREFIX = 0, AD_POSTFIX = 1, COMMON_ERA = 2 };
-	NotationTypes eNotation = (NotationTypes)getBugOptionINT(
+	NotationTypes eNotation = (NotationTypes)BUGOption::getValue(
 			"NJAGC__YearNotation", 0, false);
 	// </advc.002k>
 	if (iTurnYear < 0)
@@ -505,7 +505,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	int iCurrMoves = (pUnit->movesLeft() / iDenom) +
 			(((pUnit->movesLeft() % iDenom) > 0) ? 1 : 0);
 	// <advc.069>
-	bool bFract = getBugOptionBOOL("MainInterface__UnitMovementPointsFraction", true);
+	bool bFract = BUGOption::isEnabled("MainInterface__UnitMovementPointsFraction", true);
 	if(pUnit->baseMoves() == (bFract ? pUnit->movesLeft() : iCurrMoves)
 			// </advc.069>
 			|| pUnit->getTeam() != g.getActiveTeam())
@@ -547,7 +547,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			if(pNode != NULL)
 			{
 				if(pNode->m_data.bModified && (GC.ctrlKey() ||
-						getBugOptionBOOL("MiscHover__PartialBuildsAlways", false)))
+						BUGOption::isEnabled("MiscHover__PartialBuildsAlways", false)))
 					bSuspend = true;
 			}
 		}
@@ -1857,7 +1857,7 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 		return;
 	}
 	// <advc.061>
-	if(getBugOptionBOOL("MainInterface__ListUnitsPerOwner", false))
+	if(BUGOption::isEnabled("MainInterface__ListUnitsPerOwner", false))
 	{
 		setPlotListHelpPerOwner(szString, kPlot, bIndicator, bShort);
 		return;
@@ -2510,7 +2510,7 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 	iAttackerOdds = GC.getCOMBAT_DIE_SIDES() - iDefenderOdds;
 	/*  advc.001: Replacing the check below. The BUG authors must've missed this
 		one when they integrated ACO into BUG. */
-	if(!getBugOptionBOOL("ACO__IgnoreBarbFreeWins", false)
+	if(!BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false)
 	//GC.getDefineINT("ACO_IgnoreBarbFreeWins")==0
 			&& !GC.getGame().isOption(GAMEOPTION_SPAH)) // advc.250b
 	{
@@ -2697,10 +2697,10 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	/*  Note that due to the large amount of extra content added to this function (setCombatPlotHelp), this should never be used in any function that needs to be called repeatedly (e.g. hundreds of times) quickly.
 		It is fine for a human player mouse-over (which is what it is used for). */
 	/* New Code */
-	bool ACO_enabled = getBugOptionBOOL("ACO__Enabled", false);
+	bool ACO_enabled = BUGOption::isEnabled("ACO__Enabled", false);
 	bool bShift = GC.shiftKey();
 	int iView = bShift ? 2 : 1;
-	if (getBugOptionBOOL("ACO__SwapViews", false))
+	if (BUGOption::isEnabled("ACO__SwapViews", false))
 	{
 		iView = 3 - iView; //swaps 1 and 2.
 	}
@@ -2798,7 +2798,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		bool bVictoryOddsAppended = false; // advc.048
 		if (pAttacker->combatLimit() >= GC.getMAX_HIT_POINTS())
 		{
-			if (!ACO_enabled || getBugOptionBOOL("ACO__ForceOriginalOdds", false))
+			if (!ACO_enabled || BUGOption::isEnabled("ACO__ForceOriginalOdds", false))
 			{
 				if (iCombatOdds > 999)
 				{
@@ -2834,7 +2834,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 		if (iWithdrawal > 0 || pAttacker->combatLimit() < GC.getMAX_HIT_POINTS())
 		{
-			if (!ACO_enabled || getBugOptionBOOL("ACO__ForceOriginalOdds", false))
+			if (!ACO_enabled || BUGOption::isEnabled("ACO__ForceOriginalOdds", false))
 			{
 				if (iWithdrawal > 99900)
 				{
@@ -2875,7 +2875,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			// </advc.312>
 			BOOL ACO_debug = false;
 			//Change this to true when you need to spot errors, particular in the expected hit points calculations
-			ACO_debug = getBugOptionBOOL("ACO__Debug", false);
+			ACO_debug = BUGOption::isEnabled("ACO__Debug", false);
 
 			/** phungus start **/
 			/*bool bctrl; bctrl = GC.ctrlKey();
@@ -2926,7 +2926,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			/*  advc.001: The section below deals with FreeWins, so it should
 				only be executed if !IgnoreBarbFreeWins. The condition was
 				checking the opposite. */
-			if (!getBugOptionBOOL("ACO__IgnoreBarbFreeWins", false)
+			if (!BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false)
 				&& !GC.getGame().isOption(GAMEOPTION_SPAH)) // advc.250b
 				//Are we not going to ignore barb free wins?  If not, skip this section...
 			{
@@ -3258,7 +3258,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 
 
-			if (iView & getBugOptionINT("ACO__ShowSurvivalOdds", 0))
+			if (iView & BUGOption::getValue("ACO__ShowSurvivalOdds", 0))
 			{
 				szTempBuffer.Format(L"%.2f%%",100.0f*(AttackerKillOdds+RetreatOdds+PullOutOdds));
 				szTempBuffer2.Format(L"%.2f%%", 100.0f*(RetreatOdds+PullOutOdds+DefenderKillOdds));
@@ -3439,7 +3439,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			szString.append(")");
 
 			// <advc.048> XP details moved up so that it appears right after the basic XP info above
-			bool bDoRange = ((iView & getBugOptionINT("ACO__ShowExperienceRange", 0))
+			bool bDoRange = ((iView & BUGOption::getValue("ACO__ShowExperienceRange", 0))
 					&& pAttacker->combatLimit() >= pDefender->maxHitPoints()); //medium and high only
 			/*  Had to leave behind the part that shows the combat ratio; don't want
 				that this early. */
@@ -3551,7 +3551,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			} // else if
 			//Finished Showing XP range display
 			// advc.048: Moved up so that it's shown right after the XP range
-			if (iView & getBugOptionINT("ACO__ShowUnroundedExperience", 2))
+			if (iView & BUGOption::getValue("ACO__ShowUnroundedExperience", 2))
 			{
 				szTempBuffer.Format(L"%.2f", AttXP);
 				szTempBuffer2.Format(L"%.2f", DefXP);
@@ -3560,7 +3560,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			}
 
 			float HP_percent_cutoff = 0.5f; // Probabilities lower than this (in percent) will not be shown individually for the HP detail section.
-			if (!getBugOptionBOOL("ACO__MergeShortBars", true))
+			if (!BUGOption::isEnabled("ACO__MergeShortBars", true))
 			{
 				HP_percent_cutoff = 0.0f;
 			}
@@ -3574,7 +3574,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 			//START ATTACKER DETAIL HP HERE
 			// Individual bars for each attacker HP outcome.
-			if (iView & getBugOptionINT("ACO__ShowAttackerHealthBars", 1))
+			if (iView & BUGOption::getValue("ACO__ShowAttackerHealthBars", 1))
 			{
 				for (int n_A = 0; n_A < iNeededRoundsDefender-1; n_A++)
 				{
@@ -3769,7 +3769,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 			//START DEFENDER DETAIL HP HERE
 			first_combined_HP_Def = pDefender->currHitPoints();
-			if (iView & getBugOptionINT("ACO__ShowDefenderHealthBars", 2))
+			if (iView & BUGOption::getValue("ACO__ShowDefenderHealthBars", 2))
 			{
 				float prob = 0.0f;
 				for (int n_D = iNeededRoundsAttacker; n_D >= 1; n_D--)//
@@ -3957,14 +3957,14 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			//END DEFENDER DETAIL HP HERE
 
 			// advc.048: Avg. health and unharmed odds move up; placed right after bar diagrams.
-			if (iView & getBugOptionINT("ACO__ShowAverageHealth", 2))
+			if (iView & BUGOption::getValue("ACO__ShowAverageHealth", 2))
 			{
 				szTempBuffer.Format(L"%.1f",E_HP_Att);
 				szTempBuffer2.Format(L"%.1f",E_HP_Def);
 				szString.append(gDLL->getText("TXT_ACO_AverageHP"));
 				szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
 			}
-			if (iView & getBugOptionINT("ACO__ShowUnharmedOdds", 0))
+			if (iView & BUGOption::getValue("ACO__ShowUnharmedOdds", 0))
 			{
 				szTempBuffer.Format(L"%.2f%%",100.0f*AttackerUnharmed);
 				szTempBuffer2.Format(L"%.2f%%",100.0f*DefenderUnharmed);
@@ -3972,7 +3972,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
 			}
 
-			if (iView & getBugOptionINT("ACO__ShowBasicInfo", 2))
+			if (iView & BUGOption::getValue("ACO__ShowBasicInfo", 2))
 			{	// advc.048: Opening parenthesis added
 				szTempBuffer.Format(L"(" SETCOLR L"%d" ENDCOLR L", " SETCOLR L"%d " ENDCOLR,
 					TEXT_COLOR("COLOR_POSITIVE_TEXT"), iDamageToDefender, TEXT_COLOR("COLOR_NEGATIVE_TEXT"), iDamageToAttacker);
@@ -3996,7 +3996,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				which has moved (way) up. */
 			if(!bDoRange)
 			{
-				if (iView & getBugOptionINT("ACO__ShowBasicInfo", 2))
+				if (iView & BUGOption::getValue("ACO__ShowBasicInfo", 2))
 				{	// advc.048: Semicolon instead of period
 					szTempBuffer.Format(L"; R=" SETCOLR L"%.2f" ENDCOLR,
 							TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio);
@@ -4006,7 +4006,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			// (advc.048: XP info, avg. health and unharmed odds moved up)
 			szString.append(NEWLINE);
 
-			if (iView & getBugOptionINT("ACO__ShowShiftInstructions", 1))
+			if (iView & BUGOption::getValue("ACO__ShowShiftInstructions", 1))
 			{	// <advc.048>
 				CvWString szShiftHelp(gDLL->getText("TXT_ACO_PressSHIFT"));
 				szString.append(szShiftHelp);
@@ -4063,7 +4063,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 		szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
 		// advc.048: Moved attacker info above the modifier label
-		if ((iView & getBugOptionINT("ACO__ShowAttackerInfo", 3)))
+		if ((iView & BUGOption::getValue("ACO__ShowAttackerInfo", 3)))
 		{
 			szString.append(NEWLINE);
 			setUnitHelp(szString, pAttacker, true, true);
@@ -4072,7 +4072,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		if (((!(pDefender->immuneToFirstStrikes())) && (pAttacker->maxFirstStrikes() > 0)) || (pAttacker->maxCombatStr(NULL,NULL)!=pAttacker->baseCombatStr()*100))
 		{
 			//if attacker uninjured strength is not the same as base strength (i.e. modifiers are in effect) or first strikes exist, then
-			if (getBugOptionBOOL("ACO__ShowModifierLabels", false))
+			if (BUGOption::isEnabled("ACO__ShowModifierLabels", false))
 			{
 				szString.append(gDLL->getText("TXT_ACO_AttackModifiers"));
 			}
@@ -4122,7 +4122,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		szString.append(L' ');//XXX
 
 		// advc.048: Moved defender info above the modifier label
-		if (iView & getBugOptionINT("ACO__ShowDefenderInfo", 3))
+		if (iView & BUGOption::getValue("ACO__ShowDefenderInfo", 3))
 		{
 			szString.append(NEWLINE);
 			setUnitHelp(szString, pDefender, true, true);
@@ -4131,14 +4131,14 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		if (((!(pAttacker->immuneToFirstStrikes())) && (pDefender->maxFirstStrikes() > 0)) || (pDefender->maxCombatStr(pPlot,pAttacker)!=pDefender->baseCombatStr()*100))
 		{
 			//if attacker uninjured strength is not the same as base strength (i.e. modifiers are in effect) or first strikes exist, then
-			if (getBugOptionBOOL("ACO__ShowModifierLabels", false))
+			if (BUGOption::isEnabled("ACO__ShowModifierLabels", false))
 			{
 				szString.append(gDLL->getText("TXT_ACO_DefenseModifiers"));
 			}
 		}
 
 
-		if (iView & getBugOptionINT("ACO__ShowDefenseModifiers", 3))
+		if (iView & BUGOption::getValue("ACO__ShowDefenseModifiers", 3))
 		{
 			//if defense modifiers are enabled - recommend leaving this on unless Total defense Modifier is enabled
 
@@ -4146,7 +4146,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 			szString.append(L' ');//XXX
 
-			if (!(pAttacker->immuneToFirstStrikes()))
+			if (!pAttacker->immuneToFirstStrikes())
 			{
 				if (pDefender->maxFirstStrikes() > 0)
 				{
@@ -4189,7 +4189,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 		szString.append(L' ');//XXX
 
-		if (iView & getBugOptionINT("ACO__ShowTotalDefenseModifier", 2))
+		if (iView & BUGOption::getValue("ACO__ShowTotalDefenseModifier", 2))
 		{
 			//szString.append(L' ');//XXX
 			if (pDefender->maxCombatStr(pPlot,pAttacker)>pDefender->baseCombatStr()*100) // modifier is positive
@@ -4397,7 +4397,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	PlayerTypes eRevealedOwner = pPlot->getRevealedOwner(eActiveTeam, true);
 	if (eRevealedOwner != NO_PLAYER
 		// advc.099f:
-		|| bShift || getBugOptionBOOL("MiscHover__CultureInUnownedTiles", false))
+		|| bShift || BUGOption::isEnabled("MiscHover__CultureInUnownedTiles", false))
 	{
 		if (pPlot->isActiveVisible(true))
 		{	/*  <advc.101> Similar to code added in
@@ -4962,7 +4962,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				}
 			}
 		}
-		if(GC.ctrlKey() || getBugOptionBOOL("MiscHover__PartialBuildsAlways", false))
+		if(GC.ctrlKey() || BUGOption::isEnabled("MiscHover__PartialBuildsAlways", false))
 		{
 			szString.append(NEWLINE);
 			szString.append(szBuildDescr);
@@ -7336,7 +7336,7 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 		}
 
 // BUG - Specialist Actual Effects - start
-		if (pCity && (GC.altKey() || getBugOptionBOOL("MiscHover__SpecialistActualEffects", false)) &&
+		if (pCity && (GC.altKey() || BUGOption::isEnabled("MiscHover__SpecialistActualEffects", false)) &&
 			(pCity->getOwner() == GC.getGame().getActivePlayer() ||
 			//gDLL->getChtLvl() > 0))
 			GC.getGame().isDebugMode())) // advc.135c
@@ -11752,7 +11752,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		else
 		{
 			// BUG - Building Actual Effects (edited and moved by K-Mod) - start
-			if (bActual && (GC.altKey() || getBugOptionBOOL("MiscHover__BuildingActualEffects", false)) &&
+			if (bActual && (GC.altKey() || BUGOption::isEnabled("MiscHover__BuildingActualEffects", false)) &&
 					(pCity->getOwner() == g.getActivePlayer() ||
 					//gDLL->getChtLvl() > 0))
 					GC.getGame().isDebugMode())) // advc.135c
@@ -15193,7 +15193,7 @@ void CvGameTextMgr::buildAdjustString(CvWStringBuffer &szBuffer, TechTypes eTech
 				GC.getInfo((CommerceTypes) iCommerceType).getChar()));
 		// <advc.120c>
 		if(!bList && iCommerceType == COMMERCE_ESPIONAGE &&
-				getBugOptionBOOL("MainInterface__Hide_EspSlider", true))
+				BUGOption::isEnabled("MainInterface__Hide_EspSlider", true))
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ADJUST_ON_ESPIONGAE_SCREEN"));
 		// </advc.120c>
 	}
@@ -16938,7 +16938,7 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& c
 
 	//if (city.getCurrentProductionDifference(false, true) == 0)
 // BUG - Building Additional Production - start
-	bool bBuildingAdditionalYield = (getBugOptionBOOL("MiscHover__BuildingAdditionalProduction", false)
+	bool bBuildingAdditionalYield = (BUGOption::isEnabled("MiscHover__BuildingAdditionalProduction", false)
 			|| GC.altKey()); // advc.063
 	if (city.getCurrentProductionDifference(false, true) == 0 && !bBuildingAdditionalYield)
 // BUG - Building Additional Production - end
@@ -17506,7 +17506,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	CommerceTypes eCommerce) // advc: style changes
 {
 	// BUG - Building Additional Commerce - start
-	bool bBuildingAdditionalCommerce = (getBugOptionBOOL("MiscHover__BuildingAdditionalCommerce", false)
+	bool bBuildingAdditionalCommerce = (BUGOption::isEnabled("MiscHover__BuildingAdditionalCommerce", false)
 			|| GC.altKey()); // advc.063
 	if(NO_COMMERCE == eCommerce ||
 			(kCity.getCommerceRateTimes100(eCommerce) == 0 &&
@@ -17990,7 +17990,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 
 	//if (city.getGreatPeopleRate() == 0)
 	// BUG - Building Additional Great People - start
-	bool bBuildingAdditionalGreatPeople = (getBugOptionBOOL("MiscHover__BuildingAdditionalGreatPeople", false)
+	bool bBuildingAdditionalGreatPeople = (BUGOption::isEnabled("MiscHover__BuildingAdditionalGreatPeople", false)
 			|| GC.altKey()); // advc.063
 	if (kCity.getGreatPeopleRate() == 0 && !bBuildingAdditionalGreatPeople)
 	// BUG - Building Additional Great People - end
@@ -18173,14 +18173,14 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		}*/
 
 		if (pCity->isConnectedToCapital()
-			&& getBugOptionBOOL("MainInterface__CityNetworkIcon", false)) // advc.002f
+			&& BUGOption::isEnabled("MainInterface__CityNetworkIcon", false)) // advc.002f
 		{
 			if (GET_PLAYER(pCity->getOwner()).countNumCitiesConnectedToCapital() > 1)
 				szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(TRADE_CHAR)));
 		}
 		// <advc.002f>
 		// BUG - Airport Icon - start
-		if (getBugOptionBOOL("MainInterface__AirportIcon", true))
+		if (BUGOption::isEnabled("MainInterface__AirportIcon", true))
 		{
 			BuildingClassTypes eAirportClass = (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT"
 					// Mod-mods that don't have an airport should set bHideAssert:
@@ -20231,7 +20231,7 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 	}
 	// BULL - Building Additional Food - start
 	if(kCity.getOwner() == GC.getGame().getActivePlayer() &&
-		(getBugOptionBOOL("MiscHover__BuildingAdditionalFood", false) || GC.altKey()))
+		(BUGOption::isEnabled("MiscHover__BuildingAdditionalFood", false) || GC.altKey()))
 	{
 		// ==========================
 		setBuildingAdditionalYieldHelp(szBuffer, kCity, YIELD_FOOD, DOUBLE_SEPARATOR);

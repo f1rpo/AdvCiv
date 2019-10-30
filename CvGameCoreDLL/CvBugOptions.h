@@ -30,10 +30,19 @@ void setIsBug(bool bIsBug);*/
 /*bool getDefineBOOL(const char* xmlKey, bool bDefault = false);
 int getDefineINT(const char* xmlKey, int iDefault = 0);*/
 
-/*  advc: Removed unused param char const* xmlKey = NULL
-	bWarn added */
-bool getBugOptionBOOL(const char* id, bool bDefault = true, bool bWarn = true);
-int getBugOptionINT(const char* id, int iDefault = 0, bool bWarn = true);
-CvString getUserDirPath(); // advc.003d
+namespace BUGOption // advc: Functions renamed from getBugOptionBOOL/INT
+{
+	/*  szOptionId is e.g. "MainInterface__RapidUnitCycling"
+		That is: The id of the enclosing option tag, two underscores and the id of
+		the proper (inner) option tag. */
+	/*  advc: Removed unused param char const* xmlKey = NULL
+		bWarn added */
+	bool isEnabled(const char* szOptionId, bool bDefault = true, bool bWarn = true);
+	/*  For options with a list of choices, the returned number indicates the position
+		of the selected choice starting at 0 for the topmost choice. That means, if
+		the choices are reordered in the config file, the C++ code needs to be adapted. */
+	int getValue(const char* szOptionId, int iDefault = 0, bool bWarn = true);
+	CvString userDirPath(); // advc.003d
+};
 
 #endif

@@ -637,7 +637,7 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		gDLL->getInterfaceIFace()->clearSelectionList();
 		updateTestEndTurn();
 		// <advc.002e> Hide glow when all units moved
-		if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false))
+		if(!BUGOption::isEnabled("PLE__ShowPromotionGlow", false))
 		{
 			CvPlayer const& kOwner = GET_PLAYER(pCycleUnit->getOwner());
 			FOR_EACH_UNIT_VAR(u, kOwner)
@@ -665,7 +665,7 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 	PlayerTypes eActive = getActivePlayer();
 	if (isFinalInitialized() &&
 		eActive != NO_PLAYER && GET_PLAYER(eActive).isHuman() &&
-		getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
+		BUGOption::isEnabled("MainInterface__RapidUnitCycling", false))
 	{
 		if (!bDelayOnly)
 		{
@@ -1538,7 +1538,7 @@ void CvGame::doControl(ControlTypes eControl)
 			{
 				/*  On my system, it's "C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
 					the user directory can vary. */
-				CvString szQuickSavePath(::getUserDirPath());
+				CvString szQuickSavePath(BUGOption::userDirPath());
 				if(!szQuickSavePath.empty())
 				{
 					szQuickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";

@@ -48,7 +48,7 @@ bool checkBUGStatus(const char* optionKey, bool bWarn) {
 } // </advc>
 
 
-bool getBugOptionBOOL(const char* id, bool bDefault, bool bWarn)
+bool BUGOption::isEnabled(const char* id, bool bDefault, bool bWarn)
 {	// <advc>
 	PROFILE_FUNC();
 	if(!checkBUGStatus(id, bWarn))
@@ -62,7 +62,7 @@ bool getBugOptionBOOL(const char* id, bool bDefault, bool bWarn)
 	return lResult != 0;
 }
 
-int getBugOptionINT(const char* id, int iDefault, bool bWarn)
+int BUGOption::getValue(const char* id, int iDefault, bool bWarn)
 {	// <advc>
 	if(!checkBUGStatus(id, bWarn))
 		return iDefault;
@@ -75,7 +75,7 @@ int getBugOptionINT(const char* id, int iDefault, bool bWarn)
 	return lResult;
 }
 // <advc.003d>
-CvString getUserDirPath()
+CvString BUGOption::userDirPath()
 {
 	CvString r;
 	gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &r);
