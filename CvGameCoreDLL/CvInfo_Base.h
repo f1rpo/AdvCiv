@@ -106,76 +106,8 @@ protected:
 	float m_fInterfaceScale; 
 };
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//  class : CvHotkeyInfo
-//  holds the hotkey info for an info class
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvHotkeyInfo : public CvInfoBase
-{
-public:
-	CvHotkeyInfo();
-
-	bool read(CvXMLLoadUtility* pXML);
-	#if SERIALIZE_CVINFOS
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
-	#endif
-	int getActionInfoIndex() const;
-	void setActionInfoIndex(int i);
-
-	int getHotKeyVal() const;
-	void setHotKeyVal(int i);
-	int getHotKeyPriority() const;
-	void setHotKeyPriority(int i);
-	int getHotKeyValAlt() const;
-	void setHotKeyValAlt(int i);
-	int getHotKeyPriorityAlt() const;
-	void setHotKeyPriorityAlt(int i);
-	int getOrderPriority() const;
-	void setOrderPriority(int i);
-
-	bool isAltDown() const;
-	void setAltDown(bool b);
-	bool isShiftDown() const;
-	void setShiftDown(bool b);
-	bool isCtrlDown() const;
-	void setCtrlDown(bool b);
-	bool isAltDownAlt() const;
-	void setAltDownAlt(bool b);
-	bool isShiftDownAlt() const;
-	void setShiftDownAlt(bool b);
-	bool isCtrlDownAlt() const;
-	void setCtrlDownAlt(bool b);
-
-	const TCHAR* getHotKey() const; // Exposed to Python
-	void setHotKey(const TCHAR* szVal);
-
-	std::wstring getHotKeyDescription() const;
-	void setHotKeyDescription(const wchar* szHotKeyDescKey, const wchar* szHotKeyAltDescKey,
-		const wchar* szHotKeyString);
-
-protected:
-	int m_iActionInfoIndex;
-	int m_iHotKeyVal;
-	int m_iHotKeyPriority;
-	int m_iHotKeyValAlt;
-	int m_iHotKeyPriorityAlt;
-	int m_iOrderPriority;
-
-	bool m_bAltDown;
-	bool m_bShiftDown;
-	bool m_bCtrlDown;
-	bool m_bAltDownAlt;
-	bool m_bShiftDownAlt;
-	bool m_bCtrlDownAlt;
-
-	CvString m_szHotKey;
-	CvWString m_szHotKeyDescriptionKey;
-	CvWString m_szHotKeyAltDescriptionKey;
-	CvWString m_szHotKeyString;
-};
 // <advc.tag> Abstract class that allows XML elements to be added and accessed through enum values
-class CvInfoEnum : public CvInfoBase
+class CvXMLInfo : public CvInfoBase
 {
 public:
 	enum IntElementTypes // To be extended by derived classes (see CvImprovementInfo for an example)
@@ -188,12 +120,12 @@ public:
 	};
 	__forceinline int get(IntElementTypes e) const
 	{
-		FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvInfoEnum::get(IntElementTypes)");
+		FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvXMLInfo::get(IntElementTypes)");
 		return m_aiData[e];
 	}
 	__forceinline int get(BoolElementTypes e) const
 	{
-		FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvInfoEnum::get(BoolElementTypes)");
+		FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvXMLInfo::get(BoolElementTypes)");
 		return m_abData[e];
 	}
 	bool read(CvXMLLoadUtility* pXML);
@@ -255,5 +187,94 @@ private:
 	std::vector<int> m_aiData;
 	std::vector<bool> m_abData;
 }; // </advc.tag>
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//  class : CvHotkeyInfo
+//  holds the hotkey info for an info class
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class CvHotkeyInfo : public /* advc.tag: */ CvXMLInfo
+{
+public:
+	CvHotkeyInfo();
+	// <advc.tag>
+	enum IntElementTypes // unused so far
+	{
+		NUM_INT_ELEMENT_TYPES = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES
+	};
+	enum BoolElementTypes // unused so far
+	{
+		NUM_BOOL_ELEMENT_TYPES = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES
+	};
+	using CvXMLInfo::get; // unhide
+	__forceinline int get(IntElementTypes e) const
+	{
+		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
+	}
+	__forceinline int get(BoolElementTypes e) const
+	{
+		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
+	} // </advc.tag>
+
+	bool read(CvXMLLoadUtility* pXML);
+	#if SERIALIZE_CVINFOS
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
+	#endif
+	int getActionInfoIndex() const;
+	void setActionInfoIndex(int i);
+
+	int getHotKeyVal() const;
+	void setHotKeyVal(int i);
+	int getHotKeyPriority() const;
+	void setHotKeyPriority(int i);
+	int getHotKeyValAlt() const;
+	void setHotKeyValAlt(int i);
+	int getHotKeyPriorityAlt() const;
+	void setHotKeyPriorityAlt(int i);
+	int getOrderPriority() const;
+	void setOrderPriority(int i);
+
+	bool isAltDown() const;
+	void setAltDown(bool b);
+	bool isShiftDown() const;
+	void setShiftDown(bool b);
+	bool isCtrlDown() const;
+	void setCtrlDown(bool b);
+	bool isAltDownAlt() const;
+	void setAltDownAlt(bool b);
+	bool isShiftDownAlt() const;
+	void setShiftDownAlt(bool b);
+	bool isCtrlDownAlt() const;
+	void setCtrlDownAlt(bool b);
+
+	const TCHAR* getHotKey() const; // Exposed to Python
+	void setHotKey(const TCHAR* szVal);
+
+	std::wstring getHotKeyDescription() const;
+	void setHotKeyDescription(const wchar* szHotKeyDescKey, const wchar* szHotKeyAltDescKey,
+		const wchar* szHotKeyString);
+
+protected:
+	int m_iActionInfoIndex;
+	int m_iHotKeyVal;
+	int m_iHotKeyPriority;
+	int m_iHotKeyValAlt;
+	int m_iHotKeyPriorityAlt;
+	int m_iOrderPriority;
+
+	bool m_bAltDown;
+	bool m_bShiftDown;
+	bool m_bCtrlDown;
+	bool m_bAltDownAlt;
+	bool m_bShiftDownAlt;
+	bool m_bCtrlDownAlt;
+
+	CvString m_szHotKey;
+	CvWString m_szHotKeyDescriptionKey;
+	CvWString m_szHotKeyAltDescriptionKey;
+	CvWString m_szHotKeyString;
+
+	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
+};
 
 #endif

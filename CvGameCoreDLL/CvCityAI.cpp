@@ -3575,8 +3575,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const {
 // This function has been heavily edited for K-Mod
 // Scale is roughly 4 = 1 commerce / turn
 int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
-	int iThreshold, bool bConstCache, bool bAllowRecursion,
-	bool bIgnoreSpecialists) const // advc.121b
+	int iThreshold, bool bConstCache, bool bAllowRecursion, /* advc.121b: */ bool bIgnoreSpecialists,
+	bool bObsolete) const // advc.004c
 {
 	PROFILE_FUNC();
 
@@ -3598,12 +3598,14 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	int iPriorityFactor = 100;
 
 	// bRemove means that we're evaluating the cost of losing this building rather than adding it.
-	// the definition used here is just a kludge because there currently isn't any other to tell the difference.
+	// the definition used here is just a kludge because there currently isn't any other way to tell the difference.
 	// Currently, bRemove is only in a few parts of the evaluation where it is particularly important;
 	// for example, bRemove is critical for calculating the lost value of obsoleting walls and castles.
 	// There are several sections which could, in the future, be improved using bRemove -
 	// but I don't see it as a high priority.
-	bool bRemove = getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS);
+	bool bRemove = (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS));
+	// advc.004c: bRemove && !bObsolete is OK; that means spy attack.
+	FAssert(!bObsolete || bRemove);
 
 	// Veto checks: return zero if the building is not suitable.
 	// Note: these checks are essentially the same as in the original code, they've just been moved.
@@ -3710,79 +3712,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 		//
 		// I've moved this condition to the end of the block, and tweaked it for better readability.
 
-		if ((iFocusFlags & BUILDINGFOCUS_DEFENSE) || (iPass > 0))
+		if ((iFocusFlags & BUILDINGFOCUS_DEFENSE) || iPass > 0)
 		{
-			// K-Mod. I've merged and modified the code from here and the code from higher up.
-			if (!bAreaAlone)
-			{
-				if (g.getBestLandUnit() == NO_UNIT || !GC.getInfo(g.getBestLandUnit()).isIgnoreBuildingDefense())
-				{
-					int iTemp = 0;
-					// bombard reduction
-					int iOldBombardMod = getBuildingBombardDefense() - (bRemove ? kBuilding.getBombardDefenseModifier() : 0);
-					iTemp += std::max((bRemove ?0 :kBuilding.getDefenseModifier()) + getBuildingDefense(), getNaturalDefense()) * std::min(kBuilding.getBombardDefenseModifier(), 100-iOldBombardMod) / std::max(80, 8 * (100 - iOldBombardMod));
-					// defence bonus
-					iTemp += std::max(0, std::min((bRemove? 0 :kBuilding.getDefenseModifier()) + getBuildingDefense() - getNaturalDefense() - 10, kBuilding.getDefenseModifier())) / 4;
-
-					iTemp *= (bWarPlan ? 3 : 2);
-					iTemp /= 3;
-					iValue += iTemp;
-				}
-			}
-			iValue += kBuilding.getAllCityDefenseModifier() * iNumCities / (bWarPlan ? 4 : 5);
-			iValue += kBuilding.getAirlift() * 10 + (iNumCitiesInArea < iNumCities && kBuilding.getAirlift() > 0 ? getPopulation()+25 : 0);
-
-			int iAirDefense = -kBuilding.getAirModifier();
-			if (iAirDefense > 0)
-			{
-				int iTemp = iAirDefense;
-				iTemp *= std::min(200, 100 * GET_TEAM(getTeam()).AI_getRivalAirPower() / std::max(1, GET_TEAM(getTeam()).AI_getAirPower()+4*iNumCities));
-				iTemp /= 200;
-				iValue += iTemp;
-			}
-
-			//iValue += -kBuilding.getNukeModifier() / (g.isNukesValid() && !g.isNoNukes() ? 4 : 40);
-			// K-Mod end
-			// <dlph.16> Replacing the line above.
-			// DarkLunaPhantom - "Bomb Shelters should be of much higher value, I copied and adjusted rough estimates from AI_projectValue()."
-			int iNukeDefense = -kBuilding.getNukeModifier();
-			if(iNukeDefense > 0)
-			{
-				int iNukeEvasionProbability = 0;
-				int iNukeUnitTypes = 0;
-				for(int i = 0; i < GC.getNumUnitInfos(); i++)
-				{
-					CvUnitInfo const& kLoopUnit = GC.getInfo((UnitTypes)i);
-					if(kLoopUnit.getNukeRange() >= 0)
-					{
-						iNukeEvasionProbability += kLoopUnit.getEvasionProbability();
-						iNukeUnitTypes++;
-					}
-				}
-				iNukeEvasionProbability /= std::max(1, iNukeUnitTypes);
-				/*  DarkLunaPhantom - "cf. iTargetValue in the SDI section of
-					AI_projectValue() (K-Mod)." */
-				int iTargetValue = 10 + (getYieldRate(YIELD_PRODUCTION) * 5 +
-						getYieldRate(YIELD_COMMERCE) * 3)/2;
-				/*  "Lazy attempt to estimate the value of the strongest
-					unit stack this shelter might defend." */
-				int iStackValue = 0;
-				for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-				{
-					CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
-					if(kLoopPlayer.getTeam() == kOwner.getTeam())
-						iStackValue += area()->getPower(kLoopPlayer.getID());
-				}
-				iStackValue *= 7;
-				iStackValue /= 20;
-				int iTempValue = iNukeDefense * (iStackValue + iTargetValue);
-				iTempValue /= 100;
-				iTempValue *= 10000 - kTeam.getNukeInterception() *
-						(100 - iNukeEvasionProbability);
-				iTempValue /= 10000;
-				iTempValue /= kOwner.AI_nukeDangerDivisor();
-				iValue += iTempValue;
-			} // </dlph.16>
+			// <advc> Moved into new function
+			iValue += AI_defensiveBuildingValue(eBuilding, bAreaAlone, bWarPlan,
+					iNumCities, iNumCitiesInArea, bRemove, bObsolete); // </advc>
 		}
 
 		if ((iFocusFlags & BUILDINGFOCUS_ESPIONAGE) || iPass > 0)
@@ -5684,6 +5618,135 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	// K-Mod end
 
 	return iValue;
+}
+
+/*  advc: Cut from AI_buildingValue.
+	bRemove means that eBuilding needs to be evaluated under the assumption
+	that eBuilding isn't already present. So it should generally be a
+	positive value; see also the comment above AI_buildingValue. */
+int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding,
+	bool bAreaAlone, bool bWarPlan, int iNumCities, int iNumCitiesInArea,
+	bool bRemove, bool bObsolete) const
+{
+	int r = 0;
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	if (!bAreaAlone && (GC.getGame().getBestLandUnit() == NO_UNIT ||
+		!GC.getInfo(GC.getGame().getBestLandUnit()).isIgnoreBuildingDefense()))
+	{
+		int const iBombardMod = kBuilding.getBombardDefenseModifier();
+		int const iDefMod = kBuilding.getDefenseModifier();
+		// <advc.004c>
+		int const iDefRaise = kBuilding.get(CvBuildingInfo::RaiseDefense);
+		if (iDefMod != 0 || iBombardMod != 0 || iDefRaise > 0)
+		{
+			int const iOwnerDefMod = GET_PLAYER(getOwner()).getCityDefenseModifier();
+			/*  Defense abilities don't go obsolete. Looks like K-Mod had gotten that wrong.
+				Tagging advc.001 (bugfix). */
+			bool bRemoveDef = (bRemove && !bObsolete);
+			if (bRemoveDef)
+			{
+				// Spy attack; don't know by whom. They don't know our preparations.
+				bWarPlan = (GET_TEAM(getTeam()).getNumWars() > 0);
+			} // </advc.004c>
+			// defence bonus
+			/*r += std::max(0, std::min(kBuilding.getDefenseModifier(),
+					(bRemoveDef ? 0 : kBuilding.getDefenseModifier()) +
+					getBuildingDefense() - getNaturalDefense() - 10)) / 4;*/
+			/*  <advc.004c> Don't quite see the logic behind the above. Might be pretty
+				good but idk how to extend it. */
+			int iOldDefenseModifier = getTotalDefense(false);
+			int iNewDefenseModifier = iOldDefenseModifier;
+			if (bRemoveDef)
+			{
+				if (iDefMod != 0)
+				{
+					iNewDefenseModifier = std::max(getNaturalDefense(),
+							iNewDefenseModifier - iDefMod) + iOwnerDefMod;
+				}
+				if (iDefRaise > 0)
+				{
+					// Don't bother checking if there'll be other defensive buildings left
+					iNewDefenseModifier = getNaturalDefense() + iOwnerDefMod;
+				}
+				std::swap(iOldDefenseModifier, iNewDefenseModifier);
+			}
+			else
+			{
+				iNewDefenseModifier = std::max(iDefRaise, std::max(getNaturalDefense(),
+						iNewDefenseModifier + iDefMod + iOwnerDefMod));
+			}
+			r += (iNewDefenseModifier - iOldDefenseModifier) / 4;
+			if (iBombardMod != 0) // </advc.004c>
+			{
+				// bombard reduction
+				int iOldBombardMod = getBuildingBombardDefense() - (bRemoveDef ? iBombardMod : 0);
+				r += /*std::max(getNaturalDefense(),
+						(bRemove ? 0 : iDefMod) + getBuildingDefense())*/
+						iNewDefenseModifier * // advc.004c
+						std::min(iBombardMod, 100 - iOldBombardMod) /
+						std::max(80, 8 * (100 - iOldBombardMod));
+			}
+			r *= (bWarPlan ? 3 : 2);
+			r /= 3;
+		}
+	}
+	// K-Mod. I've merged and modified the code from here and the code
+	// from higher up. [advc: i.e. from above the call location in AI_buildingValue]
+	r += kBuilding.getAllCityDefenseModifier() * iNumCities / (bWarPlan ? 4 : 5);
+	r += kBuilding.getAirlift() * 10 + (iNumCitiesInArea < iNumCities &&
+			kBuilding.getAirlift() > 0 ? getPopulation() + 25 : 0);
+	int iAirDefense = -kBuilding.getAirModifier();
+	if (iAirDefense > 0)
+	{
+		int iTemp = iAirDefense;
+		iTemp *= std::min(200, 100 * GET_TEAM(getTeam()).AI_getRivalAirPower() /
+				std::max(1, GET_TEAM(getTeam()).AI_getAirPower() + 4 * iNumCities));
+		iTemp /= 200;
+		r += iTemp;
+	}
+	//r += -kBuilding.getNukeModifier() / (g.isNukesValid() && !g.isNoNukes() ? 4 : 40);
+	// K-Mod end
+	// <dlph.16> Replacing the line above.
+	// DarkLunaPhantom - "Bomb Shelters should be of much higher value, I copied and adjusted rough estimates from AI_projectValue()."
+	int iNukeDefense = -kBuilding.getNukeModifier();
+	if(iNukeDefense > 0)
+	{
+		int iNukeEvasionProbability = 0;
+		int iNukeUnitTypes = 0;
+		for(int i = 0; i < GC.getNumUnitInfos(); i++)
+		{
+			CvUnitInfo const& kLoopUnit = GC.getInfo((UnitTypes)i);
+			if(kLoopUnit.getNukeRange() >= 0)
+			{
+				iNukeEvasionProbability += kLoopUnit.getEvasionProbability();
+				iNukeUnitTypes++;
+			}
+		}
+		iNukeEvasionProbability /= std::max(1, iNukeUnitTypes);
+		/*  DarkLunaPhantom - "cf. iTargetValue in the SDI section of
+			AI_projectValue() (K-Mod)." */
+		int iTargetValue = 10 + (getYieldRate(YIELD_PRODUCTION) * 5 +
+				getYieldRate(YIELD_COMMERCE) * 3)/2;
+		/*  "Lazy attempt to estimate the value of the strongest
+			unit stack this shelter might defend." */
+		int iStackValue = 0;
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		{
+			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+			if(kLoopPlayer.getTeam() == getTeam())
+				iStackValue += area()->getPower(kLoopPlayer.getID());
+		}
+		iStackValue *= 7;
+		iStackValue /= 20;
+		int iTempValue = iNukeDefense * (iStackValue + iTargetValue);
+		iTempValue /= 100;
+		iTempValue *= 10000 - GET_TEAM(getTeam()).getNukeInterception() *
+				(100 - iNukeEvasionProbability);
+		iTempValue /= 10000;
+		iTempValue /= GET_PLAYER(getOwner()).AI_nukeDangerDivisor();
+		r += iTempValue;
+	} // </dlph.16>
+	return r;
 }
 
 

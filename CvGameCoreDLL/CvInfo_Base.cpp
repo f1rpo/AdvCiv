@@ -192,7 +192,7 @@ m_bCtrlDownAlt(false)
 
 bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 {
-	if (!CvInfoBase::read(pXML))
+	if (!CvXMLInfo::read(pXML)) // advc.tag
 		return false;
 
 	int iVal;
@@ -243,7 +243,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 #if SERIALIZE_CVINFOS
 void CvHotkeyInfo::read(FDataStreamBase* pStream)
 {
-	CvInfoBase::read(pStream);
+	CvXMLInfo::read(pStream); // advc.tag
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
 
@@ -266,7 +266,7 @@ void CvHotkeyInfo::read(FDataStreamBase* pStream)
 
 void CvHotkeyInfo::write(FDataStreamBase* pStream)
 {
-	CvInfoBase::write(pStream);
+	CvXMLInfo::write(pStream); // advc.tag
 	uint uiFlag = 0;
 	pStream->Write(uiFlag);
 
@@ -287,6 +287,13 @@ void CvHotkeyInfo::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szHotKeyString);
 }
 #endif
+// <advc.tag>
+void CvHotkeyInfo::addElements(std::vector<XMLElement*>& r) const
+{
+	CvXMLInfo::addElements(r);
+	// (Could add CvHotKeyInfo elements here)
+} // </advc.tag>
+
 int CvHotkeyInfo::getActionInfoIndex() const
 {
 	return m_iActionInfoIndex;
@@ -441,62 +448,62 @@ void CvHotkeyInfo::setHotKeyDescription(const wchar* szHotKeyDescKey, const wcha
 }
 
 // <advc.tag>
-CvInfoEnum::XMLElement::XMLElement(int iEnumValue, CvString szName) :
+CvXMLInfo::XMLElement::XMLElement(int iEnumValue, CvString szName) :
 		m_iEnumValue(iEnumValue), m_szName(szName), m_bMandatory(true) {}
 
-CvInfoEnum::XMLElement::XMLElement(int iEnumValue, CvString szName, bool bMandatory) :
+CvXMLInfo::XMLElement::XMLElement(int iEnumValue, CvString szName, bool bMandatory) :
 		m_iEnumValue(iEnumValue), m_szName(szName), m_bMandatory(bMandatory) {}
 
-int CvInfoEnum::XMLElement::getEnumValue() const { return m_iEnumValue; }
+int CvXMLInfo::XMLElement::getEnumValue() const { return m_iEnumValue; }
 
-CvString CvInfoEnum::XMLElement::getName() const { return m_szName; }
+CvString CvXMLInfo::XMLElement::getName() const { return m_szName; }
 	
-bool CvInfoEnum::XMLElement::isMandatory() const { return m_bMandatory; }
+bool CvXMLInfo::XMLElement::isMandatory() const { return m_bMandatory; }
 
-CvInfoEnum::IntElement::IntElement(int iEnumValue, CvString szName) :
+CvXMLInfo::IntElement::IntElement(int iEnumValue, CvString szName) :
 		XMLElement(iEnumValue, szName), m_iDefaultValue(0) {}
 
-CvInfoEnum::IntElement::IntElement(int iEnumValue, CvString szName, int iDefault) :
+CvXMLInfo::IntElement::IntElement(int iEnumValue, CvString szName, int iDefault) :
 		XMLElement(iEnumValue, szName, false), m_iDefaultValue(iDefault) {}
 
-CvInfoEnum::ElementDataType CvInfoEnum::IntElement::getDataType() const
+CvXMLInfo::ElementDataType CvXMLInfo::IntElement::getDataType() const
 {
 	return INT_ELEMENT;
 }
 
-int CvInfoEnum::IntElement::getDefaultValue() const { return m_iDefaultValue; }
+int CvXMLInfo::IntElement::getDefaultValue() const { return m_iDefaultValue; }
 
-CvInfoEnum::BoolElement::BoolElement(int iEnumValue, CvString szName) :
+CvXMLInfo::BoolElement::BoolElement(int iEnumValue, CvString szName) :
 		XMLElement(iEnumValue, szName), m_bDefaultValue(false) {}
 
-CvInfoEnum::BoolElement::BoolElement(int iEnumValue, CvString szName, bool bDefault) :
+CvXMLInfo::BoolElement::BoolElement(int iEnumValue, CvString szName, bool bDefault) :
 		XMLElement(iEnumValue, szName, false), m_bDefaultValue(bDefault) {}
 
-CvInfoEnum::ElementDataType CvInfoEnum::BoolElement::getDataType() const
+CvXMLInfo::ElementDataType CvXMLInfo::BoolElement::getDataType() const
 {
 	return BOOL_ELEMENT;
 }
 
-int CvInfoEnum::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
+int CvXMLInfo::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
 
-void CvInfoEnum::addElements(std::vector<XMLElement*>& r) const
+void CvXMLInfo::addElements(std::vector<XMLElement*>& r) const
 {
 	// Could add elements common to all info classes here
 }
 
-void CvInfoEnum::set(IntElementTypes e, int iNewValue)
+void CvXMLInfo::set(IntElementTypes e, int iNewValue)
 {
 	FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvInfoBase::set(IntElementTypes,int)");
 	m_aiData[e] = iNewValue;
 }
 
-void CvInfoEnum::set(BoolElementTypes e, bool bNewValue)
+void CvXMLInfo::set(BoolElementTypes e, bool bNewValue)
 {
 	FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvInfoBase::set(BoolElementTypes,bool)");
 	m_abData[e] = bNewValue;
 }
 
-bool CvInfoEnum::read(CvXMLLoadUtility* pXML)
+bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvInfoBase::read(pXML);
 
@@ -558,14 +565,14 @@ bool CvInfoEnum::read(CvXMLLoadUtility* pXML)
 }
 
 #if SERIALIZE_CVINFOS
-void CvInfoEnum::read(FDataStreamBase* pStream)
+void CvXMLInfo::read(FDataStreamBase* pStream)
 {
 	CvInfoBase::read(pStream);
 	pStream->Read((int)m_aiData.size(), m_aiData.data());
 	pStream->Read((int)m_abData.size(), m_abData.data());
 }
 
-void CvInfoEnum::write(FDataStreamBase* pStream)
+void CvXMLInfo::write(FDataStreamBase* pStream)
 {
 	CvInfoBase::write(pStream);
 	pStream->Write((int)m_aiData.size(), m_aiData.data());

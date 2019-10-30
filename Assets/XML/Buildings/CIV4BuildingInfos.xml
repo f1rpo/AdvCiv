@@ -663,7 +663,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was also 50) -->
+			<iRaiseDefense>50</iRaiseDefense>
 			<iBombardDefense>50</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -843,7 +845,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was also 50) -->
+			<iRaiseDefense>50</iRaiseDefense>
 			<iBombardDefense>50</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -1028,7 +1032,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was 50) -->
+			<iRaiseDefense>100</iRaiseDefense>
 			<iBombardDefense>25</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -1228,7 +1234,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was 50) -->
+			<iRaiseDefense>100</iRaiseDefense>
 			<iBombardDefense>25</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>

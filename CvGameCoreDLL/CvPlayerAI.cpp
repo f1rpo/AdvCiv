@@ -7505,7 +7505,10 @@ int CvPlayerAI::AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) co
 		{
 			int n = pLoopCity->getNumActiveBuilding(eLoopBuilding);
 			if (n > 0)
-				iTotalPenalty += n * pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache);
+			{
+				iTotalPenalty += n * pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache,
+						true, false, /*bObsolete=*/true); // advc.004c
+			}
 		}
 	}
 	// iScale is set more or less arbitrarily based on trial and error.

@@ -5831,4 +5831,48 @@
 		</Spanish>
 	</TEXT>
 
+	<!-- advc.004c: Based on TXT_KEY_BUILDING_DEFENSE_MOD (see below).
+		 For the DefenseRaise XML tag. Use the defense icon and refer to
+		 non-gunpowder-based units as "pre-Renaissance". "Gunpowder-based" is
+		 too similar to "Gunpowder" (unit class). -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_DEFENSE_RAISE</Tag>
+		<English>[ICON_BULLET]Raises [ICON_DEFENSE] to %d1_Mod%% against pre-Renaissance Units</English>
+		<French>[ICON_BULLET]%d1_Mod%% en d&#233;fense (sauf contre les unit&#233;s avec armes &#224; feu)</French>
+		<German>[ICON_BULLET]Erhöht [ICON_DEFENSE] auf %d1_Mod%% gegen prä-Renaissance-Einheiten</German>
+		<Italian>[ICON_BULLET]%d1_Mod%% alla difesa (tranne contro le armi da fuoco)</Italian>
+		<Spanish>[ICON_BULLET]%d1_Mod%% a la defensa (excepto contra unidades con armas de p&#243;lvora)</Spanish>
+	</TEXT>
+	<!-- DEFENSE_MOD should be supplanted by DEFENSE_RAISE. But perhaps it
+		 won't be in a mod-mod. So let's update DEFENSE_MOD as well: Use the
+		 defense icon and state that it increases (only) building defense. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_DEFENSE_MOD</Tag>
+		<English>[ICON_BULLET]+%d1_Mod%% Building [ICON_DEFENSE] against pre-Renaissance Units</English>
+		<French>[ICON_BULLET]%d1_Mod%% en d&#233;fense (sauf contre les unit&#233;s avec armes &#224; feu)</French>
+		<German>[ICON_BULLET]+%d1_Mod%% Gebäude-[ICON_DEFENSE] gegen prä-Renaissance-Einheiten</German>
+		<Italian>[ICON_BULLET]%d1_Mod%% alla difesa (tranne contro le armi da fuoco)</Italian>
+		<Spanish>[ICON_BULLET]%d1_Mod%% a la defensa (excepto contra unidades con armas de p&#243;lvora)</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Warlords_Changed.xml.
+		 To be consistent with the above. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_BOMBARD_DEFENSE_MOD</Tag>
+		<English>[ICON_BULLET]%D1_Mod%% [ICON_DEFENSE] Bombardment by pre-Renaissance Units</English>
+		<French>[ICON_BULLET]%D1_Mod%% D&#233;g&#226;ts inflig&#233;s aux d&#233;fenses apr&#232;s un bombardement (sauf contre les unit&#233;s &#224; poudre)</French>
+		<German>[ICON_BULLET]%D1_Mod%% [ICON_DEFENSE]-Schaden durch bombardierende prä-Renaissance-Einheiten</German>
+		<Italian>[ICON_BULLET]%D1_Mod%% di danni alle difese a causa del bombardamento (tranne contro unit&#224; che utilizzano la povere da sparo)</Italian>
+		<Spanish>[ICON_BULLET]%D1_Mod%% de daño a las defensas por cañoneo (excepto contra unidades con armas de pólvora)</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml. Also for consistency. Chichen Itza
+		 actually is cumulative with culture defense. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_DEFENSE_MOD_ALL_CITIES</Tag>
+		<English>[ICON_BULLET]%d1_Mod%% [ICON_DEFENSE] in All Cities</English>
+		<French>[ICON_BULLET]%d1_Mod%% en d&#233;fense dans toutes les villes</French>
+		<German>[ICON_BULLET]%d1_Mod%% [ICON_DEFENSE] in allen St&#228;dten</German>
+		<Italian>[ICON_BULLET]%d1_Mod%% alla difesa in tutte le citt&#224;</Italian>
+		<Spanish>[ICON_BULLET]%d1_Mod%% a la defensa en todas las ciudades</Spanish>
+	</TEXT>
+
 </Civ4GameText>

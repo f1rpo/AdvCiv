@@ -1178,7 +1178,7 @@ void CvArtInfoImprovement::setShaderNIF(const TCHAR* szDesc)
 #if SERIALIZE_CVINFOS
 void CvImprovementInfo::read(FDataStreamBase* stream)
 {
-	CvInfoEnum::read(stream); // advc.tag
+	CvXMLInfo::read(stream); // advc.tag
 	uint uiFlag=0;
 	stream->Read(&uiFlag);
 
@@ -1265,7 +1265,7 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 
 void CvImprovementInfo::write(FDataStreamBase* stream)
 {
-	CvInfoEnum::write(stream); // advc.tag
+	CvXMLInfo::write(stream); // advc.tag
 	uint uiFlag=0;
 	stream->Write(uiFlag);
 
@@ -1315,13 +1315,13 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 // <advc.tag>
 void CvImprovementInfo::addElements(std::vector<XMLElement*>& r) const
 {
-	CvInfoEnum::addElements(r);
+	CvXMLInfo::addElements(r);
 	r.push_back(new IntElement(HealthPercent, "HealthPercent", 0)); // advc.901
 } // </advc.tag>
 
 bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
-	if (!CvInfoEnum::read(pXML)) // advc.tag
+	if (!CvXMLInfo::read(pXML)) // advc.tag
 		return false;
 
 	CvString szTextVal;

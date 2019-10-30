@@ -18,6 +18,25 @@ class CvBuildingInfo : public CvHotkeyInfo
 public: // All the const functions are exposed to Python // advc.130f (tbd.): inline most of these?
 	CvBuildingInfo();
 	~CvBuildingInfo();
+	// <advc.tag>
+	enum IntElementTypes
+	{
+		RaiseDefense = CvHotkeyInfo::NUM_INT_ELEMENT_TYPES, // advc.004c
+		NUM_INT_ELEMENT_TYPES
+	};
+	enum BoolElementTypes // unused so far
+	{
+		NUM_BOOL_ELEMENT_TYPES = CvHotkeyInfo::NUM_BOOL_ELEMENT_TYPES
+	};
+	using CvXMLInfo::get; // unhide
+	__forceinline int get(IntElementTypes e) const
+	{
+		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
+	}
+	__forceinline int get(BoolElementTypes e) const
+	{
+		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
+	} // </advc.tag>
 
 	inline int getBuildingClassType() const { return m_iBuildingClassType; } // advc.130f: inline
 	int getVictoryPrereq() const;
@@ -101,7 +120,7 @@ public: // All the const functions are exposed to Python // advc.130f (tbd.): in
 	int getGlobalHealth() const;
 	int getGlobalPopulationChange() const;
 	int getFreeTechs() const;
-	int getDefenseModifier() const;
+	inline int getDefenseModifier() const { return m_iDefenseModifier; } // advc.130f: inline
 	int getBombardDefenseModifier() const;
 	int getAllCityDefenseModifier() const;
 	int getEspionageDefenseModifier() const;
@@ -394,6 +413,8 @@ protected:
 	bool m_bAnySpecialistYieldChange;
 	bool m_bAnyBonusYieldModifier;
 	// UNOFFICIAL_PATCH: END
+
+	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
 	// <advc.310>
 	static bool m_bEnabledAreaBorderObstacle;
 	static bool m_bEnabledAreaTradeRoutes;

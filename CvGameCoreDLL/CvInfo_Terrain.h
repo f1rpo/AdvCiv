@@ -350,7 +350,7 @@ class CvImprovementBonusInfo;
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvImprovementInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvImprovementInfo : /* advc.tag: */ public CvInfoEnum
+class CvImprovementInfo : /* advc.tag: */ public CvXMLInfo
 {
 public: /*  All the const functions are exposed to Python except those dealing with sound,
 			Advanced Start and those added by mods */ // advc.003f: Inlined many of the getters
@@ -359,21 +359,21 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	// <advc.tag>
 	enum IntElementTypes
 	{
-		HealthPercent = CvInfoEnum::NUM_INT_ELEMENT_TYPES, // advc.901
+		HealthPercent = CvXMLInfo::NUM_INT_ELEMENT_TYPES, // advc.901
 		NUM_INT_ELEMENT_TYPES
 	};
 	enum BoolElementTypes // unused so far
 	{
-		NUM_BOOL_ELEMENT_TYPES = CvInfoEnum::NUM_BOOL_ELEMENT_TYPES
+		NUM_BOOL_ELEMENT_TYPES = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES
 	};
-	using CvInfoEnum::get; // unhide
+	using CvXMLInfo::get; // unhide
 	__forceinline int get(IntElementTypes e) const
 	{
-		return get(static_cast<CvInfoEnum::IntElementTypes>(e));
+		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
 	}
 	__forceinline int get(BoolElementTypes e) const
 	{
-		return get(static_cast<CvInfoEnum::BoolElementTypes>(e));
+		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
 	} // </advc.tag>
 
 	int getAdvancedStartCost() const;
@@ -449,8 +449,6 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	bool readPass2(CvXMLLoadUtility* pXML);
 
 protected:
-	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
-
 	int m_iAdvancedStartCost;
 	int m_iAdvancedStartCostIncrease;
 
@@ -496,6 +494,8 @@ protected:
 	int** m_ppiRouteYieldChanges;
 
 	CvImprovementBonusInfo* m_paImprovementBonus;
+
+	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

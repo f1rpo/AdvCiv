@@ -40,7 +40,8 @@ public:
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
 	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0,
 			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
-			bool bIgnoreSpecialists = false) const; // advc.121b
+			bool bIgnoreSpecialists = false, // advc.121b
+			bool bObsolete = false) const; // advc.004c
 	// <advc.179>
 	double AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
 			std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
@@ -230,6 +231,10 @@ protected:
 	int AI_healthHappyImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement,
 			ImprovementTypes eFinalImprovement, bool bIgnoreFeature,
 			bool bIgnoreOtherCities = true) const; // </advc.901>
+	// <advc>
+	int AI_defensiveBuildingValue(BuildingTypes eBuilding, bool bAreaAlone,
+			bool bWarPlan, int iNumCities, int iNumCitiesInArea,
+			bool bRemove, /* advc.004c: */ bool bObsolete) const; // </advc>
 
 	int AI_experienceWeight();
 	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false);

@@ -213,6 +213,12 @@ CvBuildingInfo::~CvBuildingInfo()
 		SAFE_DELETE_ARRAY(m_ppaiBonusYieldModifier);
 	}
 }
+// <advc.tag>
+void CvBuildingInfo::addElements(std::vector<XMLElement*>& r) const
+{
+	CvHotkeyInfo::addElements(r);
+	r.push_back(new IntElement(RaiseDefense, "RaiseDefense", 0)); // advc.004c
+} // </advc.tag>
 
 int CvBuildingInfo::getVictoryPrereq() const
 {
@@ -621,11 +627,6 @@ int CvBuildingInfo::getGlobalPopulationChange() const
 int CvBuildingInfo::getFreeTechs() const
 {
 	return m_iFreeTechs;
-}
-
-int CvBuildingInfo::getDefenseModifier() const
-{
-	return m_iDefenseModifier;
 }
 
 int CvBuildingInfo::getBombardDefenseModifier() const

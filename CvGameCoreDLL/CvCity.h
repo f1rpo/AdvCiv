@@ -1222,6 +1222,7 @@ protected:
 	bool canHurryUnit(HurryTypes eHurry, UnitTypes eUnit, bool bIgnoreNew) const;
 	bool canHurryBuilding(HurryTypes eHurry, BuildingTypes eBuilding, bool bIgnoreNew) const;
 
+	void updateBuildingDefense(); // advc.004c
 	double garrisonStrength(double stopCountingAt = -1) const; // advc.500b
 	//int calculateMaintenanceDistance() const;
 	// advc.004b: Replacing the above (which was public, but is only used internally)

@@ -682,6 +682,8 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 				widgetDataStruct.m_iData2, true, szBuffer);
 		break;
 	}
+	if (GC.getGame().getActivePlayer() == NO_PLAYER)
+		return;
 	static WidgetTypes aeExpandTypes[] = {
 		WIDGET_CONTACT_CIV, WIDGET_DEAL_KILL, WIDGET_PEDIA_JUMP_TO_TECH,
 		WIDGET_EXPAND_SCORES, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,

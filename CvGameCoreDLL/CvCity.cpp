@@ -3375,6 +3375,7 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 
 void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolete)
 {
+	PROFILE_FUNC(); // advc
 	int iI, iJ;
 	// <advc>
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
@@ -3392,7 +3393,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 
 		if (kBuilding.getNoBonus() != NO_BONUS)
 		{
-			changeNoBonusCount(((BonusTypes)(kBuilding.getNoBonus())), iChange);
+			changeNoBonusCount((BonusTypes)kBuilding.getNoBonus(), iChange);
 		}
 
 		if (kBuilding.getFreeBonus() != NO_BONUS)
@@ -3559,7 +3560,22 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 
 	if (!bObsolete)
 	{
-		changeBuildingDefense(kBuilding.getDefenseModifier() * iChange);
+		/*  <advc.004c> Can avoid an update (which loops over all buildings)
+			in the most common circumstances */
+		if (kBuilding.getDefenseModifier() != 0 && getBuildingDefense() > 0)
+			updateBuildingDefense();
+		else // </advc.004c>
+			changeBuildingDefense(kBuilding.getDefenseModifier() * iChange);
+		// <advc.004c>
+		if (kBuilding.get(CvBuildingInfo::RaiseDefense) > 0)
+		{
+			if (iChange >= 0)
+			{
+				changeBuildingDefense(std::max(kBuilding.get(CvBuildingInfo::RaiseDefense),
+						getBuildingDefense()) - getBuildingDefense());
+			}
+			else updateBuildingDefense();
+		} // </advc.004c>
 		changeBuildingBombardDefense(kBuilding.getBombardDefenseModifier() * iChange);
 		// advc.051: Moved
 		//changeBaseGreatPeopleRate(kBuilding.getGreatPeopleRateChange() * iChange);
@@ -3643,6 +3659,24 @@ void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)  // adv
 
 	changeSpecialistFreeExperience(kSpecialist.getExperience() * iChange);
 }
+
+// <advc.004c>
+void CvCity::updateBuildingDefense()
+{
+	int iMaxRaise = 0;
+	int iModifier = 0;
+	CvCivilization const& kCiv = getCivilization();
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingTypes eBuilding = kCiv.buildingAt(i);
+		if (getNumBuilding(eBuilding) <= 0)
+			continue;
+		// (No obsoletion to worry about)
+		iMaxRaise = std::max(iMaxRaise, GC.getInfo(eBuilding).get(CvBuildingInfo::RaiseDefense));
+		iModifier += GC.getInfo(eBuilding).getDefenseModifier();
+	}
+	changeBuildingDefense(std::max(iModifier, iMaxRaise) - getBuildingDefense());
+} // </advc.004c>
 
 
 HandicapTypes CvCity::getHandicapType() const
@@ -7128,11 +7162,13 @@ void CvCity::changeBuildingDefense(int iChange)
 // BUG - Building Additional Defense - start
 int CvCity::getAdditionalDefenseByBuilding(BuildingTypes eBuilding) const
 {
-	FAssertMsg(eBuilding >= 0, "eBuilding expected to be >= 0");
-	FAssertMsg(eBuilding < GC.getNumBuildingInfos(), "eBuilding expected to be < GC.getNumBuildingInfos()");
-
 	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
-	int iDefense = std::max(getBuildingDefense() + kBuilding.getDefenseModifier(), getNaturalDefense()) + GET_PLAYER(getOwner()).getCityDefenseModifier() + kBuilding.getAllCityDefenseModifier();
+	int iDefense = std::max(
+			std::max(kBuilding.get(CvBuildingInfo::RaiseDefense), // advc.004c
+			getBuildingDefense() + kBuilding.getDefenseModifier()),
+			getNaturalDefense()) +
+			GET_PLAYER(getOwner()).getCityDefenseModifier() +
+			kBuilding.getAllCityDefenseModifier();
 
 	// doesn't take bombardment into account
 	return iDefense - getTotalDefense(false);
@@ -7387,9 +7423,7 @@ bool CvCity::isBombardable(const CvUnit* pUnit) const
 int CvCity::getNaturalDefense() const
 {
 	if (getCultureLevel() == NO_CULTURELEVEL)
-	{
 		return 0;
-	}
 
 	return GC.getInfo(getCultureLevel()).getCityDefenseModifier();
 }
@@ -7397,7 +7431,8 @@ int CvCity::getNaturalDefense() const
 
 int CvCity::getTotalDefense(bool bIgnoreBuilding) const
 {
-	return (std::max(((bIgnoreBuilding) ? 0 : getBuildingDefense()), getNaturalDefense()) + GET_PLAYER(getOwner()).getCityDefenseModifier());
+	return std::max(bIgnoreBuilding ? 0 : getBuildingDefense(), getNaturalDefense()) +
+			GET_PLAYER(getOwner()).getCityDefenseModifier();
 }
 
 
@@ -13601,7 +13636,8 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 		CvBuildingInfo& kBuilding = GC.getInfo(eCurType);
 		bool bWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.
 				getBuildingClassType());
-		bool bDefense = (kBuilding.getDefenseModifier() > 0);
+		bool bDefense = (kBuilding.getDefenseModifier() > 0 ||
+				kBuilding.get(CvBuildingInfo::RaiseDefense) > 0); // advc.004c
 		if(!bAllVisible && !bWonder && !bDefense) {
 			bool visibleYieldChange = false;
 			int* seaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
