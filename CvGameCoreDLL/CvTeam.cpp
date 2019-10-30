@@ -378,15 +378,16 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 	for clearing data stored in plots and cities for this team */
 void CvTeam::resetPlotAndCityData()
 {
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		pLoopPlot->setRevealedOwner(getID(), NO_PLAYER);
-		pLoopPlot->setRevealedImprovementType(getID(), NO_IMPROVEMENT);
-		pLoopPlot->setRevealedRouteType(getID(), NO_ROUTE);
-		pLoopPlot->setRevealed(getID(), false, false, getID(), true);
+		CvPlot& kPlot = kMap.getPlotByIndex(iI);
+		kPlot.setRevealedOwner(getID(), NO_PLAYER);
+		kPlot.setRevealedImprovementType(getID(), NO_IMPROVEMENT);
+		kPlot.setRevealedRouteType(getID(), NO_ROUTE);
+		kPlot.setRevealed(getID(), false, false, getID(), true);
 
-		CvCity* pLoopCity = pLoopPlot->getPlotCity();
+		CvCity* pLoopCity = kPlot.getPlotCity();
 		if (pLoopCity != NULL)
 		{
 			pLoopCity->setRevealed(getID(), false);
@@ -622,7 +623,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 	/*  <dlph.26> "Fix for permanent alliance bug that caused permanent espionage visibility
 		for cities that only the players with the higher team number sees at the time of the merge. */
-	for(iI = 0; iI < GC.getMap().numPlots(); iI++) {
+	for(iI = 0; iI < GC.getMap().numPlots(); iI++)
+	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		if (pLoopPlot->isCity())
 			pLoopPlot->getPlotCity()->setEspionageVisibility(eTeam, false, true);
@@ -714,7 +716,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	CvMap const& m = GC.getMap();
 	for (iI = 0; iI < m.numPlots(); iI++)
 	{
-		CvPlot& p = *m.plotByIndex(iI); // advc
+		CvPlot& p = m.getPlotByIndex(iI); // advc
 
 		/*  dlph.26: This part is moved above to the part where members of the
 			other team still had their old team number. */
@@ -2587,16 +2589,13 @@ int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam) const
 	int iCount = 0;
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot != NULL)
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		if (kPlot.area() == pArea)
 		{
-			if (pLoopPlot->area() == pArea)
+			if (kPlot.getTeam() == getID())
 			{
-				if (pLoopPlot->getTeam() == getID())
-				{
-					iCount += pLoopPlot->plotCount(PUF_canDefendEnemy, getLeaderID(),
-							false, NO_PLAYER, eEnemyTeam, PUF_isVisible, getLeaderID());
-				}
+				iCount += kPlot.plotCount(PUF_canDefendEnemy, getLeaderID(),
+						false, NO_PLAYER, eEnemyTeam, PUF_isVisible, getLeaderID());
 			}
 		}
 	}
@@ -3465,13 +3464,14 @@ void CvTeam::setStolenVisibilityTimer(TeamTypes eIndex, int iNewValue)
 
 	if (bOldStolenVisibility != isStolenVisibility(eIndex))
 	{
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+		CvMap const& kMap = GC.getMap();
+		for (int iI = 0; iI < kMap.numPlots(); iI++)
 		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-			if (pLoopPlot->isVisible(eIndex, false))
+			CvPlot& kPlot = kMap.getPlotByIndex(iI);
+			if (kPlot.isVisible(eIndex, false))
 			{
-				pLoopPlot->changeStolenVisibilityCount(getID(), ((isStolenVisibility(eIndex)) ? 1 : -1));
+				kPlot.changeStolenVisibilityCount(getID(),
+						(isStolenVisibility(eIndex) ? 1 : -1));
 			}
 		}
 	}
@@ -4204,12 +4204,12 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		if (GET_PLAYER((PlayerTypes)i).getTeam() == getID())
 			GET_PLAYER((PlayerTypes)i).updateCitySight(true, false);
 	}
-
-	for (int i = 0; i < GC.getMap().numPlots(); ++i)
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); ++i)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
-		if (pLoopPlot && (pLoopPlot->getTeam() == getID() || pLoopPlot->getTeam() == eMaster))
-			pLoopPlot->updateCulture(true, false);
+		CvPlot& kLoopPlot = kMap.getPlotByIndex(i);
+		if (kLoopPlot.getTeam() == getID() || kLoopPlot.getTeam() == eMaster)
+			kLoopPlot.updateCulture(true, false);
 	}
 
 	GC.getGame().updatePlotGroups();
@@ -5791,7 +5791,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			bool bMessageSent = false; // advc.004r
 			for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 			{
-				CvPlot const& kLoopPlot = *GC.getMap().plotByIndex(iI);
+				CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(iI);
 				// <advc.004r>
 				TeamTypes eRevealedTeam = kLoopPlot.getRevealedTeam(getID(), false);
 				if ((eRevealedTeam != getID() && eRevealedTeam != NO_TEAM &&
@@ -6172,13 +6172,14 @@ void CvTeam::setForceRevealedBonus(BonusTypes eBonus, bool bRevealed)
 {
 	if (isForceRevealedBonus(eBonus) == bRevealed)
 		return;
-	for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); ++iI)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->getBonusType() == eBonus)
+		CvPlot& kPlot = kMap.getPlotByIndex(iI);
+		if (kPlot.getBonusType() == eBonus)
 		{
-			if (pLoopPlot->getTeam() == getID())
-				pLoopPlot->updatePlotGroupBonus(false);
+			if (kPlot.getTeam() == getID())
+				kPlot.updatePlotGroupBonus(false);
 		}
 	}
 	if (bRevealed)
@@ -6196,23 +6197,23 @@ void CvTeam::setForceRevealedBonus(BonusTypes eBonus, bool bRevealed)
 		}
 	}
 
-	for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
+	for (int iI = 0; iI < kMap.numPlots(); ++iI)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->getBonusType() == eBonus)
+		CvPlot& kPlot = kMap.getPlotByIndex(iI);
+		if (kPlot.getBonusType() == eBonus)
 		{
-			if (pLoopPlot->getTeam() == getID())
-				pLoopPlot->updatePlotGroupBonus(true);
+			if (kPlot.getTeam() == getID())
+				kPlot.updatePlotGroupBonus(true);
 		}
 	}
 
-	for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
+	for (int iI = 0; iI < kMap.numPlots(); ++iI)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->getBonusType() == eBonus)
+		CvPlot& kPlot = kMap.getPlotByIndex(iI);
+		if (kPlot.getBonusType() == eBonus)
 		{
-			pLoopPlot->updateYield();
-			pLoopPlot->setLayoutDirty(true);
+			kPlot.updateYield();
+			kPlot.setLayoutDirty(true);
 		}
 	}
 }
@@ -6238,7 +6239,7 @@ void CvTeam::revealSurroundingPlots(CvPlot const& kCenter, int iRange) const {
 
 	for(int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot& kPlot = *GC.getMap().plotByIndex(i);
+		CvPlot& kPlot = GC.getMap().getPlotByIndex(i);
 		if(plotDistance(&kPlot, &kCenter) <= iRange)
 			kPlot.setRevealed(getID(), true, false, NO_TEAM, false);
 	}
@@ -6456,9 +6457,10 @@ void CvTeam::updateTechShare()
 // advc: Duplicate code cut from setHasTech
 void CvTeam::updatePlotGroupBonus(TechTypes eTech, bool bAdd)
 {
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot& kPlot = *GC.getMap().plotByIndex(i);
+		CvPlot& kPlot = kMap.getPlotByIndex(i);
 		if (kPlot.getTeam() != getID())
 			continue;
 		BonusTypes eBonus = kPlot.getBonusType();
@@ -6601,18 +6603,16 @@ int CvTeam::getCapitalY(TeamTypes eObserver, bool bDebug) const
 	return pCapital->getY();
 } // </advc.127b>
 
-void CvTeam::processTech(TechTypes eTech, int iChange)
+void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 {
 	PROFILE_FUNC();
 
-	int iI, iJ;
+	CvTechInfo const& kTech = GC.getInfo(eTech);
 
-	if (GC.getInfo(eTech).isExtraWaterSeeFrom())
-	{
+	if (kTech.isExtraWaterSeeFrom())
 		changeExtraWaterSeeFromCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isMapCentering())
+	if (kTech.isMapCentering())
 	{
 		if (iChange > 0)
 		{
@@ -6620,185 +6620,149 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 		}
 	}
 
-	if (GC.getInfo(eTech).isMapTrading())
-	{
+	if (kTech.isMapTrading())
 		changeMapTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isTechTrading())
-	{
+	if (kTech.isTechTrading())
 		changeTechTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isGoldTrading())
-	{
+	if (kTech.isGoldTrading())
 		changeGoldTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isOpenBordersTrading())
-	{
+	if (kTech.isOpenBordersTrading())
 		changeOpenBordersTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isDefensivePactTrading())
-	{
+	if (kTech.isDefensivePactTrading())
 		changeDefensivePactTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isPermanentAllianceTrading())
-	{
+	if (kTech.isPermanentAllianceTrading())
 		changePermanentAllianceTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isVassalStateTrading())
-	{
+	if (kTech.isVassalStateTrading())
 		changeVassalTradingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isBridgeBuilding())
-	{
+	if (kTech.isBridgeBuilding())
 		changeBridgeBuildingCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isIrrigation())
-	{
+	if (kTech.isIrrigation())
 		changeIrrigationCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isIgnoreIrrigation())
-	{
+	if (kTech.isIgnoreIrrigation())
 		changeIgnoreIrrigationCount(iChange);
-	}
 
-	if (GC.getInfo(eTech).isWaterWork())
-	{
+	if (kTech.isWaterWork())
 		changeWaterWorkCount(iChange);
-	}
 
-	for (iI = 0; iI < GC.getNumRouteInfos(); iI++)
+	FOR_EACH_ENUM(Route)
 	{
-		changeRouteChange(((RouteTypes)iI), (GC.getInfo((RouteTypes) iI).getTechMovementChange(eTech) * iChange));
+		changeRouteChange(eLoopRoute, GC.getInfo(eLoopRoute).getTechMovementChange(eTech) * iChange);
 	}
-
-	for (iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
+	FOR_EACH_ENUM(Domain)
 	{
-		changeExtraMoves(((DomainTypes)iI), (GC.getInfo(eTech).getDomainExtraMoves(iI) * iChange));
+		changeExtraMoves(eLoopDomain, kTech.getDomainExtraMoves(eLoopDomain) * iChange);
 	}
-
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+	FOR_EACH_ENUM(Commerce)
 	{
-		if (GC.getInfo(eTech).isCommerceFlexible(iI))
+		if (kTech.isCommerceFlexible(eLoopCommerce))
+			changeCommerceFlexibleCount(eLoopCommerce, iChange);
+	}
+	if (kTech.isAnyTerrainTrade()) // advc.003t
+	{
+		FOR_EACH_ENUM(Terrain)
 		{
-			changeCommerceFlexibleCount(((CommerceTypes)iI), iChange);
+			if (kTech.isTerrainTrade(eLoopTerrain))
+				changeTerrainTradeCount(eLoopTerrain, iChange);
 		}
 	}
-	if (GC.getInfo(eTech).isAnyTerrainTrade()) // advc.003t
-	{
-		for (iI = 0; iI < GC.getNumTerrainInfos(); iI++)
-		{
-			if (GC.getInfo(eTech).isTerrainTrade(iI))
-			{
-				changeTerrainTradeCount(((TerrainTypes)iI), iChange);
-			}
-		}
-	}
-	if (GC.getInfo(eTech).isRiverTrade())
+	if (kTech.isRiverTrade())
 	{
 		changeRiverTradeCount(iChange);
 	}
-
-	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	FOR_EACH_ENUM(Building)
 	{
-		if (GC.getInfo((BuildingTypes) iI).getObsoleteTech() == eTech)
-		{
-			changeObsoleteBuildingCount(((BuildingTypes)iI), iChange);
-		}
+		if (GC.getInfo(eLoopBuilding).getObsoleteTech() == eTech)
+			changeObsoleteBuildingCount(eLoopBuilding, iChange);
 
-		if (GC.getInfo((BuildingTypes) iI).getSpecialBuildingType() != NO_SPECIALBUILDING)
+		if (GC.getInfo(eLoopBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
 		{
-			if (GC.getInfo((SpecialBuildingTypes) GC.getInfo((BuildingTypes) iI).getSpecialBuildingType()).getObsoleteTech() == eTech)
+			if (GC.getInfo((SpecialBuildingTypes)GC.getInfo(eLoopBuilding).
+				getSpecialBuildingType()).getObsoleteTech() == eTech)
 			{
-				changeObsoleteBuildingCount(((BuildingTypes)iI), iChange);
+				changeObsoleteBuildingCount(eLoopBuilding, iChange);
 			}
 		}
 	}
-
-	for (iI = 0; iI < GC.getNumImprovementInfos(); iI++)
+	FOR_EACH_ENUM(Improvement)
 	{
-		for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+		FOR_EACH_ENUM(Yield)
 		{
-			changeImprovementYieldChange(((ImprovementTypes)iI), ((YieldTypes)iJ), (GC.getInfo((ImprovementTypes)iI).getTechYieldChanges(eTech, iJ) * iChange));
+			changeImprovementYieldChange(eLoopImprovement, eLoopYield, GC.getInfo(eLoopImprovement).
+					getTechYieldChanges(eTech, eLoopYield) * iChange);
 		}
 	}
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (kLoopPlayer.getTeam() != getID())
 			continue; // advc
 
-		kLoopPlayer.changeFeatureProductionModifier(GC.getInfo(eTech).getFeatureProductionModifier() * iChange);
-		kLoopPlayer.changeWorkerSpeedModifier(GC.getInfo(eTech).getWorkerSpeedModifier() * iChange);
-		kLoopPlayer.changeTradeRoutes(GC.getInfo(eTech).getTradeRoutes() * iChange);
-		kLoopPlayer.changeExtraHealth(GC.getInfo(eTech).getHealth() * iChange);
-		kLoopPlayer.changeExtraHappiness(GC.getInfo(eTech).getHappiness() * iChange);
+		kLoopPlayer.changeFeatureProductionModifier(kTech.getFeatureProductionModifier() * iChange);
+		kLoopPlayer.changeWorkerSpeedModifier(kTech.getWorkerSpeedModifier() * iChange);
+		kLoopPlayer.changeTradeRoutes(kTech.getTradeRoutes() * iChange);
+		kLoopPlayer.changeExtraHealth(kTech.getHealth() * iChange);
+		kLoopPlayer.changeExtraHappiness(kTech.getHappiness() * iChange);
 
-		kLoopPlayer.changeAssets(((GC.getInfo(eTech).getAssetValue()
+		kLoopPlayer.changeAssets(((kTech.getAssetValue()
 				* 6) / 8) // advc.131: Makes it 6 per era instead of 8
 				* iChange);
-		kLoopPlayer.changePower(GC.getInfo(eTech).getPowerValue() * iChange);
+		kLoopPlayer.changePower(kTech.getPowerValue() * iChange);
 		kLoopPlayer.changeTechScore(getTechScore(eTech) * iChange);
 		// K-Mod. Extra commerce for specialist (new xml field)
 		for (CommerceTypes eCommerce = (CommerceTypes)0; eCommerce < NUM_COMMERCE_TYPES; eCommerce=(CommerceTypes)(eCommerce+1))
 		{
-			kLoopPlayer.changeSpecialistExtraCommerce(eCommerce, GC.getInfo(eTech).getSpecialistExtraCommerce(eCommerce) * iChange);
+			kLoopPlayer.changeSpecialistExtraCommerce(eCommerce, kTech.getSpecialistExtraCommerce(eCommerce) * iChange);
 		}
 		// K-Mod end
 	}
-
-	for (iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		BonusTypes eBonus = pLoopPlot->getBonusType();
+		CvPlot& kLoopPlot = kMap.getPlotByIndex(iI);
+		BonusTypes eBonus = kLoopPlot.getBonusType();
 		if (eBonus != NO_BONUS)
 		{
 			if (GC.getInfo(eBonus).getTechReveal() == eTech)
 			{
-				pLoopPlot->updateYield();
-				pLoopPlot->setLayoutDirty(true);
+				kLoopPlot.updateYield();
+				kLoopPlot.setLayoutDirty(true);
 			}
 		}
 	}
-
-	for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
+	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo((BuildTypes) iI).getTechPrereq() == eTech)
+		if (GC.getInfo(eLoopBuild).getTechPrereq() == eTech)
 		{
-			if (GC.getInfo((BuildTypes) iI).getRoute() != NO_ROUTE)
+			if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
 			{	// <kmodx> was iI=0 etc.
-				for (iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
+				for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
 				{
-					CvPlot* pLoopPlot = GC.getMap().plotByIndex(iJ);
+					CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(iJ);
 					// </kmodx>
-					CvCity* pCity = pLoopPlot->getPlotCity();
+					CvCity* pCity = kLoopPlot.getPlotCity();
 					if (pCity != NULL)
 					{
 						if (pCity->getTeam() == getID())
-						{
-							pLoopPlot->updateCityRoute(true);
-						}
+							kLoopPlot.updateCityRoute(true);
 					}
 				}
 			}
 		}
 	}
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-		{
+		if (TEAMID((PlayerTypes)iI) == getID())
 			GET_PLAYER((PlayerTypes)iI).updateCorporation();
-		}
 	}
 }
 

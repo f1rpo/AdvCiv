@@ -1957,7 +1957,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	NiColorA const& color = GC.getInfo(eColor).getColor();
 	for(int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = *GC.getMap().plotByIndex(i);
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		if(::plotDistance(pCenter, &kPlot) <= (iMode == 1 ? 1 : CITY_PLOTS_RADIUS))
 		{
 			gDLL->getEngineIFace()->fillAreaBorderPlot(kPlot.getX(), kPlot.getY(),
@@ -2916,14 +2916,11 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 	FAssertMsg(!isFighting(), "isFighting did not return false as expected");
 
 	CvCity* pNearestCity = GC.getMap().findCity(getX(), getY(), getOwner());
-
-	int iBestValue = MAX_INT;
 	CvPlot const* pBestPlot = NULL;
-
+	int iBestValue = MAX_INT;
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot const& kLoopPlot = *GC.getMap().plotByIndex(iI); // advc: was CvPlot*
-
+		CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(iI);
 		if (kLoopPlot.isValidDomainForLocation(*this))
 		{
 			if (canMoveInto(kLoopPlot))

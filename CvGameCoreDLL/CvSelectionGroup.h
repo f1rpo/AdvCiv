@@ -36,8 +36,9 @@ public:
 
 	void playActionSound();
 
-	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL,		// Exposed to Python
-			CvUnit const* pMissionAIUnit = NULL,
+	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0,		// Exposed to Python
+			bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI,
+			CvPlot const* pMissionAIPlot = NULL, CvUnit const* pMissionAIUnit = NULL,
 			bool bModified = false); // advc.011b
 	void popMission();																																										// Exposed to Python
 	//DllExport void autoMission();

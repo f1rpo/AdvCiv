@@ -684,17 +684,13 @@ int CvTeamAI::AI_calculateAdjacentLandPlots(TeamTypes eTeam) const
 	int iCount = 0;
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-		if (!(pLoopPlot->isWater()))
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		if (!kPlot.isWater())
 		{
-			if ((pLoopPlot->getTeam() == eTeam) && pLoopPlot->isAdjacentTeam(getID(), true))
-			{
+			if (kPlot.getTeam() == eTeam && kPlot.isAdjacentTeam(getID(), true))
 				iCount++;
-			}
 		}
 	}
-
 	return iCount;
 }
 
@@ -1575,7 +1571,6 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
-
 		if (pLoopPlot->getTeam() == eTarget)
 		{
 			// note: There are ways of knowning that the team has resources even if the plot cannot be seen; so my handling of isRevealed is a bit ad-hoc.
@@ -2429,10 +2424,10 @@ int CvTeamAI::AI_mapTradeVal(TeamTypes eTeam) const
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (!pLoopPlot->isRevealed(getID(), false) && pLoopPlot->isRevealed(eTeam))
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		if (!kPlot.isRevealed(getID(), false) && kPlot.isRevealed(eTeam))
 		{
-			if (pLoopPlot->isWater())
+			if (kPlot.isWater())
 				iValue++;
 			else iValue += 5;
 		}
@@ -4328,7 +4323,7 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const  // advc: some 
 	bool bTheirLandRevealed = false;
 	for(int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = *GC.getMap().plotByIndex(i);
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		if(kPlot.getTeam() == eTeam && kPlot.isRevealed(getID()) && !kPlot.isWater())
 		{
 			bTheirLandRevealed = true;
@@ -5489,8 +5484,8 @@ void CvTeamAI::AI_updateStrengthMemory()
 		if (m_aiStrengthMemory[i] == 0)
 			continue;
 
-		CvPlot* kLoopPlot = GC.getMap().plotByIndex(i);
-		if (kLoopPlot->isVisible(getID(), false) && !kLoopPlot->isVisibleEnemyUnit(getLeaderID()))
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
+		if (kPlot.isVisible(getID(), false) && !kPlot.isVisibleEnemyUnit(getLeaderID()))
 			m_aiStrengthMemory[i] = 0;
 		else
 			m_aiStrengthMemory[i] = 96 * m_aiStrengthMemory[i] / 100; // reduce by 4%, rounding down. (arbitrary number)

@@ -332,7 +332,8 @@ void CvGame::regenerateMap()
 	for(int i = 0; i < m.numPlots(); ++i)
 	{
 		CvPlot* p = m.plotByIndex(i);
-		if(p != NULL) {
+		if(p != NULL)
+		{
 			p->setScriptData("");
 			/*  advc.021b: Otherwise, assignStartingPlots runs into trouble upon
 				map regeneration when a script calls allowDefaultImpl after
@@ -1450,19 +1451,19 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 		// add floodplains to any desert tiles the new river passes through
 		for (int iJ = 0; iJ < m.numPlots(); iJ++)
 		{
-			CvPlot* pPlot = m.plotByIndex(iJ);
+			CvPlot& kPlot = m.getPlotByIndex(iJ);
 			for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
 			{
 				FeatureTypes eLoopFeature = (FeatureTypes)iK;
 				if (!GC.getInfo(eLoopFeature).isRequiresRiver() ||
-						!pPlot->canHaveFeature(eLoopFeature))
+						!kPlot.canHaveFeature(eLoopFeature))
 					continue;
 
 				if (GC.getInfo(eLoopFeature).getAppearanceProbability() == 10000)
 				{
-					if (pPlot->getBonusType() != NO_BONUS)
-						pPlot->setBonusType(NO_BONUS);
-					pPlot->setFeatureType(eLoopFeature);
+					if (kPlot.getBonusType() != NO_BONUS)
+						kPlot.setBonusType(NO_BONUS);
+					kPlot.setFeatureType(eLoopFeature);
 					break;
 				}
 			}
@@ -4344,13 +4345,12 @@ void CvGame::initScoreCalculation()
 {
 	// initialize score calculation
 	int iMaxFood = 0;
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-		if (!pPlot->isWater() || pPlot->isAdjacentToLand())
-		{
-			iMaxFood += pPlot->calculateBestNatureYield(YIELD_FOOD, NO_TEAM);
-		}
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
+		if (!kPlot.isWater() || kPlot.isAdjacentToLand())
+			iMaxFood += kPlot.calculateBestNatureYield(YIELD_FOOD, NO_TEAM);
 	}
 	m_iMaxPopulation = getPopulationScore(iMaxFood / std::max(1, GC.getFOOD_CONSUMPTION_PER_POPULATION()));
 	m_iMaxLand = getLandPlotsScore(GC.getMap().getLandPlots());
@@ -4547,17 +4547,14 @@ int CvGame::calculateGlobalPollution() const
 int CvGame::calculateGwLandDefence(PlayerTypes ePlayer) const
 {
 	int iTotal = 0;
-
-	for (int i = 0; i < GC.getMap().numPlots(); ++i)
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); ++i)
 	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-
-		if (pPlot->getFeatureType() != NO_FEATURE)
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
+		if (kPlot.getFeatureType() != NO_FEATURE)
 		{
-			if (ePlayer == NO_PLAYER || ePlayer == pPlot->getOwner())
-			{
-				iTotal += GC.getInfo(pPlot->getFeatureType()).getWarmingDefense();
-			}
+			if (ePlayer == NO_PLAYER || ePlayer == kPlot.getOwner())
+				iTotal += GC.getInfo(kPlot.getFeatureType()).getWarmingDefense();
 		}
 	}
 	return iTotal;
@@ -7169,15 +7166,15 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 	bool bRage = isOption(GAMEOPTION_RAGING_BARBARIANS);
 	// </advc.300>
 
+	CvPlot const* pBestPlot = NULL;
 	int iBestValue = 0;
-	CvPlot* pBestPlot = NULL;
 	for (int iI = 0; iI < m.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = m.plotByIndex(iI);
-		if (pLoopPlot->isWater() || pLoopPlot->isVisibleToCivTeam())
+		CvPlot& kPlot = m.getPlotByIndex(iI);
+		if (kPlot.isWater() || kPlot.isVisibleToCivTeam())
 			continue; // advc
 		// <advc.300>
-		CvArea& a = *pLoopPlot->area();
+		CvArea& a = *kPlot.area();
 		int const iAreaSz = a.getNumTiles();
 		bool bCivArea = (a.getNumCities() > a.getCitiesPerPlayer(BARBARIAN_PLAYER));
 		if (bSkipCivAreas && bCivArea)
@@ -7185,7 +7182,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 		std::map<int,int>::const_iterator unowned = unownedPerArea.find(a.getID());
 		FAssert(unowned != unownedPerArea.end());
 		int iTargetCities = unowned->second;
-		if (bRage) { // Didn't previously affect city density
+		if (bRage) // Didn't previously affect city density
+		{
 			iTargetCities *= 7;
 			iTargetCities /= 5;
 		}
@@ -7217,8 +7215,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 		{
 			//iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX(), pLoopPlot->getY(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
 			// K-Mod
-			int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue_bulk(
-					pLoopPlot->getX(), pLoopPlot->getY(), kFoundSet);
+			int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue_bulk(kPlot.getX(), kPlot.getY(), kFoundSet);
 			if (iTargetCitiesMultiplier > 100)
 			{/* <advc.300> This gives the area with the most owned tiles priority
 				over other areas unless the global city target is reached (rare),
@@ -7248,7 +7245,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				pBestPlot = pLoopPlot;
+				pBestPlot = &kPlot;
 			}
 		}
 	}
@@ -8623,16 +8620,17 @@ int CvGame::calculateSyncChecksum()
 					iMultiplier += pLoopCity->happyLevel() * 736373;
 					iMultiplier += pLoopCity->unhappyLevel() * 820622;
 					iMultiplier += pLoopCity->getFood() * 367291;
-					/*  <advc.001n> FloatingDefenders should be good enough as closeness
-						factors into that */
-					if (!kPlayer.isBarbarian())
-						iMultiplier += pLoopCity->AI_neededFloatingDefenders(false, true) * 324111;
 					/*for(iJ = 0; iJ < MAX_PLAYERS; iJ++) {
 						if(GET_PLAYER((PlayerTypes)iJ).isAlive()) {
 							iMultiplier += (pLoopCity->AI_playerCloseness(
 									(PlayerTypes)iJ, DEFAULT_PLAYER_CLOSENESS, true) + 1) * (iJ + 1);
 						}
 					}*/
+					/*  <advc.001n> FloatingDefenders should be good enough as closeness
+						factors into that */
+					if (!kPlayer.isBarbarian())
+						iMultiplier += pLoopCity->AI_neededFloatingDefenders(false, true) * 324111;
+					// </advc.001n>
 				}
 				break;
 			case 7: // city event history

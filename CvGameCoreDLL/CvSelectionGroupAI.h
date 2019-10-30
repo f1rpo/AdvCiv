@@ -56,8 +56,7 @@ public:
 	{
 		return m_eMissionAIType; // advc.003f: inline (now that it's no longer virtual)
 	}
-	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
-			CvUnit const* pNewUnit); // advc: const param
+	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot const* pNewPlot, CvUnit const* pNewUnit);
 	// advc.003u: These two had returned CvUnit*
 	CvUnitAI* AI_ejectBestDefender(CvPlot* pTargetPlot);
 	CvUnitAI* AI_getMissionAIUnit() const;

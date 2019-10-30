@@ -1837,13 +1837,13 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 } // </advc.061>
 
 
-void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
+void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPlot, // advc: was CvPlot*
 	bool bOneLine, bool bShort,
 	bool bIndicator) // advc.061, advc.007
 {
 	PROFILE_FUNC();
 	// <advc.opt>
-	if(!pPlot->isVisible(GC.getGame().getActiveTeam(), true))
+	if(!kPlot.isVisible(GC.getGame().getActiveTeam(), true))
 		return; // </advc.opt>
 
 	if (//(gDLL->getChtLvl() > 0)
@@ -1853,13 +1853,13 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 	{
 		/*  advc: Moved into subroutine. (Note: bShort and bOneLine are unused
 			in BtS; advc.061 gives bShort a minor use.) */
-		setPlotListHelpDebug(szString, *pPlot); // display grouping info
+		setPlotListHelpDebug(szString, kPlot); // display grouping info
 		return;
 	}
 	// <advc.061>
 	if(getBugOptionBOOL("MainInterface__ListUnitsPerOwner", false))
 	{
-		setPlotListHelpPerOwner(szString, *pPlot, bIndicator, bShort);
+		setPlotListHelpPerOwner(szString, kPlot, bIndicator, bShort);
 		return;
 	} // </advc.061>
 
@@ -1873,13 +1873,13 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 	static std::vector<int> aiUnitMaxStrength;
 	static std::vector<CvUnit *> plotUnits;
 
-	GC.getGame().getPlotUnits(pPlot, plotUnits);
+	GC.getGame().getPlotUnits(&kPlot, plotUnits);
 
 	int iNumVisibleUnits = 0;
-	if (pPlot->isVisible(GC.getGame().getActiveTeam(), true))
+	if (kPlot.isVisible(GC.getGame().getActiveTeam(), true))
 	{
-		for (CLLNode<IDInfo> const* pUnitNode5 = pPlot->headUnitNode();
-			pUnitNode5 != NULL; pUnitNode5 = pPlot->nextUnitNode(pUnitNode5))
+		for (CLLNode<IDInfo> const* pUnitNode5 = kPlot.headUnitNode();
+			pUnitNode5 != NULL; pUnitNode5 = kPlot.nextUnitNode(pUnitNode5))
 		{
 			CvUnit const* pUnit = ::getUnit(pUnitNode5->m_data);
 			if (pUnit && !pUnit->isInvisible(GC.getGame().getActiveTeam(), true))
@@ -1920,7 +1920,7 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 	{
 		CvUnit* pLoopUnit = plotUnits[iI];
 
-		if (pLoopUnit != NULL && pLoopUnit != pPlot->getCenterUnit())
+		if (pLoopUnit != NULL && pLoopUnit != kPlot.getCenterUnit())
 		{
 			apUnits.push_back(pLoopUnit);
 
@@ -1955,7 +1955,7 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 
 	if (iNumVisibleUnits > 0)
 	{
-		CvUnit* pCenterUnit = pPlot->getCenterUnit(); // advc
+		CvUnit* pCenterUnit = kPlot.getCenterUnit(); // advc
 		if (pCenterUnit != NULL)
 		{
 			setUnitHelp(szString, pCenterUnit, iNumVisibleUnits > iMaxNumUnits, true,
@@ -20330,13 +20330,9 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 	else
 	{
 		if (pCity != NULL)
-		{
 			setCityBarHelp(strHelp, pCity);
-		}
 		else if (pFlagPlot != NULL)
-		{
-			setPlotListHelp(strHelp, pFlagPlot, false, true);
-		}
+			setPlotListHelp(strHelp, *pFlagPlot, false, true);
 
 		if (strHelp.isEmpty())
 		{
@@ -20363,12 +20359,9 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 				{
 					if (pMouseOverPlot->isActiveVisible(true))
 					{
-						setPlotListHelp(strHelp, pMouseOverPlot, true, false);
-
+						setPlotListHelp(strHelp, *pMouseOverPlot, true, false);
 						if (!strHelp.isEmpty())
-						{
 							strHelp.append(L"\n");
-						}
 					}
 
 					setPlotHelp(strHelp, pMouseOverPlot);

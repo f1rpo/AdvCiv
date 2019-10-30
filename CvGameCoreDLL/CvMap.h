@@ -349,9 +349,12 @@ public: // advc: made several functions const
 	CvPlot* plotByIndexExternal(int iIndex) const; // advc.003f: Exported through .def file							// Exposed to Python
 	inline CvPlot* plotByIndex(int iIndex) const // advc.003f: Renamed from plotByIndexINLINE
 	{
-		return ((iIndex >= 0 && iIndex < getGridWidth() * getGridHeight()) ?
-				&(m_pMapPlots[iIndex]) : NULL);
-	}
+		return ((iIndex >= 0 && iIndex < numPlots()) ? &(m_pMapPlots[iIndex]) : NULL);
+	} // <advc.003f> Faster (w/o branching)
+	__forceinline CvPlot& getPlotByIndex(int iIndex) const
+	{
+		return m_pMapPlots[iIndex];
+	} // </advc.003f>
 	CvPlot* plotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
 	/*  advc.003f: Renamed from plotINLINE. Was inlined, but I'm getting slightly
 		better performance without that (having replaced some calls with getPlot) . */

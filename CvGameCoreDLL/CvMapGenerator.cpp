@@ -525,7 +525,7 @@ void CvMapGenerator::addFeatures()
 
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot& kPlot = *GC.getMap().plotByIndex(iI);
+		CvPlot& kPlot = GC.getMap().getPlotByIndex(iI);
 		for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
 		{
 			if (kPlot.canHaveFeature((FeatureTypes)iJ))
@@ -653,7 +653,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 				(bIgnoreAreaLimit || iAdded < iAreaLimit) && // advc.129
 				kMap.getNumBonuses(eBonusType) < iTarget; iI++)
 			{
-				CvPlot& kRandPlot = *kMap.plotByIndex(aiShuffledIndices[iI]);
+				CvPlot& kRandPlot = kMap.getPlotByIndex(aiShuffledIndices[iI]);
 
 				if (pBestArea != kRandPlot.area())
 					continue;
@@ -734,7 +734,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot& kPlot = *GC.getMap().plotByIndex(aiShuffledIndices[iI]);
+		CvPlot& kPlot = GC.getMap().getPlotByIndex(aiShuffledIndices[iI]);
 		if (!canPlaceBonusAt(eBonusType, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
 			continue; // advc
 
@@ -825,7 +825,7 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 
 		for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
 		{
-			CvPlot& kPlot = *GC.getMap().plotByIndex(aiShuffledIndices[iJ]);
+			CvPlot& kPlot = GC.getMap().getPlotByIndex(aiShuffledIndices[iJ]);
 			if (kPlot.isWater())
 				continue;
 
@@ -847,42 +847,37 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 
 void CvMapGenerator::eraseRivers()
 {
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-		if (pPlot->isNOfRiver())
-			pPlot->setNOfRiver(false, NO_CARDINALDIRECTION);
-		if (pPlot->isWOfRiver())
-			pPlot->setWOfRiver(false, NO_CARDINALDIRECTION);
+		CvPlot& kPlot = kMap.getPlotByIndex(i);
+		if (kPlot.isNOfRiver())
+			kPlot.setNOfRiver(false, NO_CARDINALDIRECTION);
+		if (kPlot.isWOfRiver())
+			kPlot.setWOfRiver(false, NO_CARDINALDIRECTION);
 	}
 }
 
 void CvMapGenerator::eraseFeatures()
 {
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
-	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-		pPlot->setFeatureType(NO_FEATURE);
-	}
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
+		kMap.getPlotByIndex(i).setFeatureType(NO_FEATURE);
 }
 
 void CvMapGenerator::eraseBonuses()
 {
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
-	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-		pPlot->setBonusType(NO_BONUS);
-	}
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
+		kMap.getPlotByIndex(i).setBonusType(NO_BONUS);
 }
 
 void CvMapGenerator::eraseGoodies()
 {
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
-	{
-		CvPlot* pPlot = GC.getMap().plotByIndex(i);
-		if (pPlot->isGoody())
-			pPlot->removeGoody();
-	}
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
+		kMap.getPlotByIndex(i).removeGoody();
+	// (advc: isGoody check moved into removeGoody)
 }
 
 
@@ -946,23 +941,24 @@ void CvMapGenerator::afterGeneration()
 
 void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 {
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
 		//gDLL->callUpdater(); // advc.opt: Not needed I reckon
-		GC.getMap().plotByIndex(iI)->setPlotType((PlotTypes)paiPlotTypes[iI], false, false);
+		kMap.getPlotByIndex(iI).setPlotType((PlotTypes)paiPlotTypes[iI], false, false);
 	}
 
-	GC.getMap().recalculateAreas();
+	kMap.recalculateAreas();
 
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
 		//gDLL->callUpdater(); // advc.opt
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->isWater())
+		CvPlot& kPlot = kMap.getPlotByIndex(iI);
+		if (kPlot.isWater())
 		{
-			if (pLoopPlot->isAdjacentToLand())
-				pLoopPlot->setTerrainType(GC.getWATER_TERRAIN(true), false, false);
-			else pLoopPlot->setTerrainType(GC.getWATER_TERRAIN(false), false, false);
+			if (kPlot.isAdjacentToLand())
+				kPlot.setTerrainType(GC.getWATER_TERRAIN(true), false, false);
+			else kPlot.setTerrainType(GC.getWATER_TERRAIN(false), false, false);
 		}
 	}
 }
@@ -1014,11 +1010,9 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 		int iNumPossible = 0;
 		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 		{
-			CvPlot* pPlot = GC.getMap().plotByIndex(iI);
-			if (pPlot->canHaveBonus(eBonusType, bIgnoreLatitude))
-			{
+			CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+			if (kPlot.canHaveBonus(eBonusType, bIgnoreLatitude))
 				iNumPossible++;
-			}
 		}
 		// <advc.129>
 		if(GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES"))

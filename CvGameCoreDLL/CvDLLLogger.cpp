@@ -147,7 +147,7 @@ void CvDLLLogger::logMapStats()
 	CvMap const& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot const& kPlot = *kMap.plotByIndex(i);
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
 		plotTypeCounts[kPlot.getPlotType()]++;
 		BonusTypes eBonus = kPlot.getBonusType();
 		if (eBonus != NO_BONUS)

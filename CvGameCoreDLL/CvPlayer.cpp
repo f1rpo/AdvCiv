@@ -348,14 +348,15 @@ void CvPlayer::uninitAlerts()
 // Reset all data for this player stored in plot and city objects
 void CvPlayer::resetPlotAndCityData()
 {
-	for (int iPlot = 0; iPlot < GC.getMap().numPlots(); ++iPlot)
+	CvMap const& kMap = GC.getMap();
+	for (int iPlot = 0; iPlot < kMap.numPlots(); ++iPlot)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iPlot);
+		CvPlot& kPlot = kMap.getPlotByIndex(iPlot);
 
-		pLoopPlot->setCulture(getID(), 0, false, false);
-		pLoopPlot->setFoundValue(getID(), 0);
+		kPlot.setCulture(getID(), 0, false, false);
+		kPlot.setFoundValue(getID(), 0);
 
-		CvCity* pLoopCity = pLoopPlot->getPlotCity();
+		CvCity* pLoopCity = kPlot.getPlotCity();
 		if (pLoopCity != NULL)
 		{
 			pLoopCity->setCulture(getID(), 0, false, false);
@@ -1020,38 +1021,40 @@ void CvPlayer::setIsHuman(bool bNewValue)
 // CHANGE_PLAYER: END
 // CHANGE_PLAYER, 05/09/09, jdog5000: START
 // for changing the civilization of this player
-void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
+void CvPlayer::changeCiv(CivilizationTypes eNewCiv)  // advc: style changes
 {
 	CivilizationTypes eOldCiv = getCivilizationType();
-	PlayerColorTypes eColor = (PlayerColorTypes)GC.getInfo(eNewCiv).getDefaultPlayerColor();
-
 	if (eOldCiv == eNewCiv)
 		return;
 
-	CivilizationTypes const eBarbarianCiv = (CivilizationTypes)GC.getDefineINT("BARBARIAN_CIVILIZATION"); // advc.opt
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	PlayerColorTypes eColor = (PlayerColorTypes)GC.getInfo(eNewCiv).getDefaultPlayerColor();
+	PlayerColorTypes const eBarbarianColor = (PlayerColorTypes)GC.getInfo((CivilizationTypes)
+			GC.getDefineINT("BARBARIAN_CIVILIZATION")).getDefaultPlayerColor();
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		if (eColor == NO_PLAYERCOLOR || (GET_PLAYER((PlayerTypes)iI).getPlayerColor() == eColor && iI != getID()))
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
+		if (eColor == NO_PLAYERCOLOR || (kPlayer.getPlayerColor() == eColor &&
+			kPlayer.getID() != getID()))
 		{
-			for (int iK = 0; iK < GC.getNumPlayerColorInfos(); iK++)
+			FOR_EACH_ENUM(PlayerColor)
 			{
-				if (iK != GC.getInfo(eBarbarianCiv).getDefaultPlayerColor())
+				if (eLoopPlayerColor == eBarbarianColor)
+					continue;
+
+				bool bValid = true;
+				for (int j = 0; j < MAX_CIV_PLAYERS; j++)
 				{
-					bool bValid = true;
-					for (int iL = 0; iL < MAX_CIV_PLAYERS; iL++)
+					if (GET_PLAYER((PlayerTypes)j).getPlayerColor() == eLoopPlayerColor)
 					{
-						if (GET_PLAYER((PlayerTypes)iL).getPlayerColor() == iK)
-						{
-							bValid = false;
-							break;
-						}
-					}
-					if (bValid)
-					{
-						eColor = (PlayerColorTypes)iK;
-						iI = MAX_CIV_PLAYERS;
+						bValid = false;
 						break;
 					}
+				}
+				if (bValid)
+				{
+					eColor = eLoopPlayerColor;
+					i = MAX_CIV_PLAYERS;
+					break;
 				}
 			}
 		}
@@ -1062,14 +1065,14 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 	kInitCore.setColor(getID(), eColor);
 	setCivilization(eNewCiv); // advc.003u
 	resetCivTypeEffects(/* advc.003q: */ false);
-	if (isAlive())
+	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace();
+	if (isAlive()) // if the player is alive and showing on scoreboard, etc
 	{
-		// if the player is alive and showing on scoreboard, etc
 		// change colors, graphics, flags, units
-		kInitCore.setFlagDecal(getID(), (CvWString)GC.getInfo(eNewCiv).getFlagTexture());
+		kInitCore.setFlagDecal(getID(), GC.getInfo(eNewCiv).getFlagTexture());
 		kInitCore.setArtStyle(getID(), (ArtStyleTypes)GC.getInfo(eNewCiv).getArtStyleType());
 
-		// Forces update of units flags
+		// Force update of units flags
 		EraTypes eEra = getCurrentEra();
 		bool bAuto = m_bDisableHuman;
 		m_bDisableHuman = true;
@@ -1079,23 +1082,17 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 		setCurrentEra(eEra, true);
 
 		m_bDisableHuman = bAuto;
-		gDLL->getInterfaceIFace()->makeInterfaceDirty();
+		kInterface.makeInterfaceDirty();
 
 		// dirty all of this player's cities...
 		FOR_EACH_CITY_VAR(pLoopCity, *this)
-		{
-			//if (pLoopCity->getOwner() == getID())
-			FAssert(pLoopCity->getOwner() == getID()); // K-Mod
-			{
-				pLoopCity->setLayoutDirty(true);
-			}
-		}
+			pLoopCity->setLayoutDirty(true);
 
 		//update unit eras
 		FOR_EACH_UNIT_VAR(pLoopUnit, *this)
 		{
 			pLoopUnit->reloadEntity();
-			CvPlot*  pLoopPlot = pLoopUnit->plot();
+			CvPlot* pLoopPlot = pLoopUnit->plot();
 			/*if (pLoopPlot != NULL) {
 				CvFlagEntity* pFlag = pLoopPlot->getFlagSymbol();
 				if (pFlag != NULL) {
@@ -1113,48 +1110,46 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 		}
 
 		//update flag eras
-		gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
+		kInterface.setDirty(Flag_DIRTY_BIT, true);
 		if (getID() == GC.getGame().getActivePlayer())
-			gDLL->getInterfaceIFace()->setDirty(Soundtrack_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->makeInterfaceDirty();
+			kInterface.setDirty(Soundtrack_DIRTY_BIT, true);
+		kInterface.makeInterfaceDirty();
 
 		// Need to force redraw
-		gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
-		gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
-		gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
-		gDLL->getEngineIFace()->SetDirty(GlobePartialTexture_DIRTY_BIT, true);
+		CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace();
+		kEngine.SetDirty(CultureBorders_DIRTY_BIT, true);
+		kEngine.SetDirty(MinimapTexture_DIRTY_BIT, true);
+		kEngine.SetDirty(GlobeTexture_DIRTY_BIT, true);
+		kEngine.SetDirty(GlobePartialTexture_DIRTY_BIT, true);
 
-		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(HighlightPlot_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+		kInterface.setDirty(ColoredPlots_DIRTY_BIT, true);
+		kInterface.setDirty(HighlightPlot_DIRTY_BIT, true);
+		kInterface.setDirty(CityInfo_DIRTY_BIT, true);
+		kInterface.setDirty(UnitInfo_DIRTY_BIT, true);
+		kInterface.setDirty(InfoPane_DIRTY_BIT, true);
+		kInterface.setDirty(GlobeLayer_DIRTY_BIT, true);
 		// <advc.003p>
 		if(getID() == GC.getGame().getActivePlayer())
 			setBonusHelpDirty(); // </advc.003p>
-		gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
-		gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(SelectionSound_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(GlobeInfo_DIRTY_BIT, true);
+		kInterface.setDirty(MinimapSection_DIRTY_BIT, true);
+		kEngine.SetDirty(MinimapTexture_DIRTY_BIT, true);
+		kInterface.setDirty(Score_DIRTY_BIT, true);
+		kInterface.setDirty(Foreign_Screen_DIRTY_BIT, true);
+		kInterface.setDirty(SelectionSound_DIRTY_BIT, true);
+		kInterface.setDirty(GlobeInfo_DIRTY_BIT, true);
 	}
 	else if (isEverAlive())
 	{
-		// Not currently alive, but may show on some people's scoreboard
-		// or graphs
+		// Not currently alive, but may show on some people's scoreboard or graphs
 		// change colors
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+		kInterface.setDirty(InfoPane_DIRTY_BIT, true);
+		kInterface.setDirty(Score_DIRTY_BIT, true);
 	}
 	setupGraphical();
 } // CHANGE_PLAYER: END
 
-//////////////////////////////////////
-// graphical only setup
-//////////////////////////////////////
-void CvPlayer::setupGraphical()
+
+void CvPlayer::setupGraphical() // graphical only setup
 {
 	if (!GC.IsGraphicsInitialized())
 		return;
@@ -1463,18 +1458,19 @@ int CvPlayer::coastRiverStartingAreaScore(CvArea const& a) const
 {
 	int r = 0;
 	// Loop based on CvArea::countCoastalLand
-	for(int i = 0; i < GC.getMap().numPlots(); i++)
+	CvMap const& kMap = GC.getMap();
+	for(int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot* p = GC.getMap().plotByIndex(i);
-		if(p->isPeak() || p->getArea() != a.getID())
+		CvPlot const& p = kMap.getPlotByIndex(i);
+		if(p.isPeak() || p.getArea() != a.getID())
 			continue;
-		int iTotalYield = p->calculateTotalBestNatureYield(getTeam());
-		int iFoodYield = p->calculateBestNatureYield(YIELD_FOOD, getTeam());
+		int iTotalYield = p.calculateTotalBestNatureYield(getTeam());
+		int iFoodYield = p.calculateBestNatureYield(YIELD_FOOD, getTeam());
 		if((iFoodYield > 0 && iTotalYield >= 2) || iTotalYield >= 3)
 		{
-			if(p->isCoastalLand())
+			if(p.isCoastalLand())
 				r += 2;
-			if(p->isRiver())
+			if(p.isRiver())
 				r++;
 		}
 	}
@@ -3242,9 +3238,9 @@ void CvPlayer::updatePlotGroups()
 	for(CvPlotGroup* pLoopPlotGroup = pLoopPlotGroup = firstPlotGroup(&iLoop);
 			pLoopPlotGroup != NULL; pLoopPlotGroup = nextPlotGroup(&iLoop))
 		pLoopPlotGroup->recalculatePlots();
-
-	for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
-		GC.getMap().plotByIndex(iI)->updatePlotGroup(getID(), false);
+	CvMap const& kMap = GC.getMap();
+	for(int iI = 0; iI < kMap.numPlots(); iI++)
+		kMap.getPlotByIndex(iI).updatePlotGroup(getID(), false);
 
 	updateTradeRoutes();
 }
@@ -10402,17 +10398,17 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue, /* advc.127c: */ bool bGraphics
 
 	if (GC.getGame().getActiveTeam() != NO_TEAM)
 	{
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+		CvMap const& kMap = GC.getMap();
+		for (int iI = 0; iI < kMap.numPlots(); iI++)
 		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-			pLoopPlot->updateGraphicEra();
-
-			if (pLoopPlot->getRevealedImprovementType(GC.getGame().getActiveTeam(), true) != NO_IMPROVEMENT)
+			CvPlot& kPlot = kMap.getPlotByIndex(iI);
+			kPlot.updateGraphicEra();
+			if (kPlot.getRevealedImprovementType(GC.getGame().getActiveTeam(), true) != NO_IMPROVEMENT)
 			{
-				if (pLoopPlot->getOwner() == getID() || (!pLoopPlot->isOwned() &&
+				if (kPlot.getOwner() == getID() || (!kPlot.isOwned() &&
 					getID() == GC.getGame().getActivePlayer()))
 				{
-					pLoopPlot->setLayoutDirty(true);
+					kPlot.setLayoutDirty(true);
 				}
 			}
 		}
@@ -16137,33 +16133,27 @@ void CvPlayer::doWarnings()
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		if (iMaxCount == 0)
-		{
 			break;
-		}
 
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->isAdjacentPlayer(getID()))
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		if (kPlot.isAdjacentPlayer(getID()) && !kPlot.isCity() &&
+			kPlot.isVisible(getTeam(), false))
 		{
-			if (!(pLoopPlot->isCity()))
+			CvUnit const* pUnit = kPlot.getVisibleEnemyDefender(getID());
+			if (pUnit != NULL && !pUnit->isAnimal())
 			{
-				if (pLoopPlot->isVisible(getTeam(), false))
+				CvCity* pNearestCity = GC.getMap().findCity(kPlot.getX(), kPlot.getY(),
+						getID(), NO_TEAM, !kPlot.isWater());
+				if (pNearestCity != NULL)
 				{
-					CvUnit *pUnit = pLoopPlot->getVisibleEnemyDefender(getID());
-					if (pUnit != NULL)
-					{
-						if (!pUnit->isAnimal())
-						{
-							CvCity* pNearestCity = GC.getMap().findCity(pLoopPlot->getX(), pLoopPlot->getY(), getID(), NO_TEAM, !(pLoopPlot->isWater()));
-							if (pNearestCity != NULL)
-							{
-								wchar szBuffer[1024];
-								swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_ENEMY_TROOPS_SPOTTED", pNearestCity->getNameKey()).GetCString());
-								gDLL->getInterfaceIFace()->addMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_ENEMY_TROOPS", MESSAGE_TYPE_INFO, pUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pLoopPlot->getX(), pLoopPlot->getY(), true, true);
-
-								iMaxCount--;
-							}
-						}
-					}
+					wchar szBuffer[1024];
+					swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_ENEMY_TROOPS_SPOTTED",
+							pNearestCity->getNameKey()).GetCString());
+					gDLL->getInterfaceIFace()->addMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(),
+							szBuffer, "AS2D_ENEMY_TROOPS", MESSAGE_TYPE_INFO, pUnit->getButton(),
+							(ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+							kPlot.getX(), kPlot.getY(), true, true);
+					iMaxCount--;
 				}
 			}
 		}
@@ -17795,14 +17785,12 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 
 		if (bPickPlot)
 		{
-			for (int iPlot = 0; iPlot < GC.getMap().numPlots(); ++iPlot)
+			CvMap const& kMap = GC.getMap();
+			for (int iPlot = 0; iPlot < kMap.numPlots(); ++iPlot)
 			{
-				CvPlot* pLoopPlot = GC.getMap().plotByIndex(iPlot);
-
-				if (pLoopPlot->canTrigger(eEventTrigger, getID()))
-				{
-					apPlots.push_back(pLoopPlot);
-				}
+				CvPlot& kLoopPlot = kMap.getPlotByIndex(iPlot);
+				if (kLoopPlot.canTrigger(eEventTrigger, getID()))
+					apPlots.push_back(&kLoopPlot);
 			}
 		}
 	}
@@ -19382,11 +19370,10 @@ void CvPlayer::doEvents()
 // <advc.011>
 void CvPlayer::decayBuildProgress()
 {
-	CvMap& m = GC.getMap();
-	for(int i = 0; i < m.numPlots(); i++)
+	CvMap const& kMap = GC.getMap();
+	for(int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot* pPlot = m.plotByIndex(i);
-		if(pPlot == NULL) continue; CvPlot& p = *pPlot;
+		CvPlot& p = kMap.getPlotByIndex(i);
 		if(!p.isWater() && p.getOwner() == getID())
 			p.decayBuildProgress();
 	}
@@ -19565,24 +19552,17 @@ bool CvPlayer::canTrigger(EventTriggerTypes eTrigger, PlayerTypes ePlayer, Relig
 	if (kTrigger.getOtherPlayerShareBorders() > 0)
 	{
 		int iCount = 0;
-
 		for (int iI = 0; iI < GC.getMap().numPlots(); ++iI)
 		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-			if (!pLoopPlot->isWater())
+			CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(iI);
+			if (!kLoopPlot.isWater())
 			{
-				if ((pLoopPlot->getOwner() == getID()) && pLoopPlot->isAdjacentPlayer(ePlayer, true))
-				{
-					++iCount;
-				}
+				if (kLoopPlot.getOwner() == getID() && kLoopPlot.isAdjacentPlayer(ePlayer, true))
+					iCount++;
 			}
 		}
-
 		if (iCount < kTrigger.getOtherPlayerShareBorders())
-		{
 			return false;
-		}
 	}
 
 	if (NO_RELIGION != eReligion)
@@ -20092,35 +20072,36 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	}
 
 	std::vector< std::pair<int, int> > aCultures;
-	for (int iPlot = 0; iPlot < GC.getMap().numPlots(); iPlot++)
+	CvMap const& kMap = GC.getMap();
+	for (int iPlot = 0; iPlot < kMap.numPlots(); iPlot++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iPlot);
+		CvPlot& kLoopPlot = kMap.getPlotByIndex(iPlot);
 		bool bTranferPlot = false;
-		if (pLoopPlot->area() == &kArea)
+		if (kLoopPlot.area() == &kArea)
 			bTranferPlot = true;
 
 		if (!bTranferPlot)
 		{
-			CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
+			CvCity* pWorkingCity = kLoopPlot.getWorkingCity();
 			if (pWorkingCity != NULL && pWorkingCity->getOwner() == getID() &&
 					pWorkingCity->area() == &kArea)
 				bTranferPlot = true;
 		}
 
-		if (!bTranferPlot && pLoopPlot->isWater() && pLoopPlot->isAdjacentToArea(&kArea))
+		if (!bTranferPlot && kLoopPlot.isWater() && kLoopPlot.isAdjacentToArea(&kArea))
 			bTranferPlot = true;
 
 		if (bTranferPlot)
 		{
-			int iCulture = pLoopPlot->getCulture(getID());
+			int iCulture = kLoopPlot.getCulture(getID());
 			if (bPlayerExists)
-				iCulture = std::max(iCulture, pLoopPlot->getCulture(eNewPlayer));
+				iCulture = std::max(iCulture, kLoopPlot.getCulture(eNewPlayer));
 
 			aCultures.push_back(std::make_pair(iPlot, iCulture));
 		}
 
-		if (pLoopPlot->isRevealed(getTeam()))
-			pLoopPlot->setRevealed(TEAMID(eNewPlayer), true, false, getTeam(), false);
+		if (kLoopPlot.isRevealed(getTeam()))
+			kLoopPlot.setRevealed(TEAMID(eNewPlayer), true, false, getTeam(), false);
 	}
 	std::vector<CvCity*> apAcquiredCities; // advc.104r
 	FOR_EACH_CITY_VAR(pOldCity, *this)
@@ -20174,15 +20155,17 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	} // </advc.104r>
 	/*  <advc.127b> Cut and pasted here b/c I want the announcement to point
 		to the new capital */
-	if(!bPlayerExists && eNewPlayer != NO_PLAYER) {
+	if(!bPlayerExists && eNewPlayer != NO_PLAYER)
+	{
 		FAssert(!szMessage.empty());
 		CvCity* pNewCapital = GET_PLAYER(eNewPlayer).getCapitalCity();
-		for (int i = 0; i < MAX_CIV_PLAYERS; ++i) {
+		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
+		{
 			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 			if(!kObs.isAlive())
 				continue;
 			if (i == getID() || i == eNewPlayer || GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) ||
-					kObs.isSpectator()) // advc.127
+				kObs.isSpectator()) // advc.127
 			{
 				bool bRev = (pNewCapital != NULL && pNewCapital->isRevealed(
 						kObs.getTeam(), true));
@@ -22022,8 +22005,8 @@ void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
 
 void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
-	CvMap const& m = GC.getMap();
-	aColors.resize(m.numPlots(), NiColorA(0, 0, 0, 0));
+	CvMap const& kMap = GC.getMap();
+	aColors.resize(kMap.numPlots(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 	// <advc.004z>
 	bool bShowForeign = (GC.getDefineINT("FOREIGN_GROUPS_ON_TRADE_LAYER") > 0);
@@ -22032,23 +22015,22 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 	typedef std::map< int, std::vector<int> > PlotGroupMap;
 	PlotGroupMap mapPlotGroups;
 	std::vector<int> aiNotConn; // advc.004z
-	for(int iI = 0; iI < m.numPlots(); iI++)
+	for(int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = m.plotByIndex(iI);
-		PlayerTypes ownerId = pLoopPlot->getOwner(); // advc.004z
-		CvPlotGroup* pPlotGroup = pLoopPlot->getPlotGroup(getID());
-		if (pPlotGroup != NULL && pLoopPlot->isRevealed(getTeam(), true) &&
-				(pLoopPlot->getTeam() == getTeam()
-				// <advc.004z>
-				|| (bShowForeign && !pLoopPlot->isImpassable() &&
-				ownerId != BARBARIAN_PLAYER &&
-				// Get rid of insignificant groups
-				(pPlotGroup->getLengthPlots() >= 5 ||
-				!pLoopPlot->isWater() || ownerId != NO_PLAYER))))
+		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+		PlayerTypes eOwner = kPlot.getOwner(); // advc.004z
+		CvPlotGroup* pPlotGroup = kPlot.getPlotGroup(getID());
+		if (pPlotGroup != NULL && kPlot.isRevealed(getTeam(), true) &&
+			(kPlot.getTeam() == getTeam()
+			// <advc.004z>
+			|| (bShowForeign && !kPlot.isImpassable() &&
+			eOwner != BARBARIAN_PLAYER &&
+			// Get rid of insignificant groups
+			(pPlotGroup->getLengthPlots() >= 5 ||
+			!kPlot.isWater() || eOwner != NO_PLAYER))))
 		{
-			if(bShowCapitalConn && pLoopPlot->isVisible(getTeam(), false) &&
-					pLoopPlot->isCity() && !pLoopPlot->getPlotCity()->
-					isConnectedToCapital())
+			if(bShowCapitalConn && kPlot.isVisible(getTeam(), false) &&
+					kPlot.isCity() && !kPlot.getPlotCity()->isConnectedToCapital())
 				aiNotConn.push_back(iI);
 			else // </advc.004z>
 				mapPlotGroups[pPlotGroup->getID()].push_back(iI);
@@ -22103,8 +22085,8 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 	if(eOption == 2) // Somehow, eOption==GLOBE_LAYER_UNIT_DUMMY doesn't work.
 		eOption = SHOW_ALL_MILITARY;
 	// </advc.004z>
-	CvMap const& m = GC.getMap();
-	aColors.resize(m.numPlots(), NiColorA(0, 0, 0, 0));
+	CvMap const& kMap = GC.getMap();
+	aColors.resize(kMap.numPlots(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 
 	std::vector< std::vector<float> > aafPlayerPlotStrength(MAX_PLAYERS);
@@ -22112,7 +22094,7 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 	{
 		if (GET_PLAYER((PlayerTypes)i).isAlive())
 		{
-			aafPlayerPlotStrength[i].resize(m.numPlots());
+			aafPlayerPlotStrength[i].resize(kMap.numPlots());
 		}
 	}
 
@@ -22129,18 +22111,18 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 	{
 		if (!GET_PLAYER((PlayerTypes)iPlayer).isAlive())
 			continue;
-		for (int iI = 0; iI < m.numPlots(); ++iI)
+		for (int iI = 0; iI < kMap.numPlots(); ++iI)
 		{
-			CvPlot* pLoopPlot = m.plotByIndex(iI);
-			int iNumUnits = pLoopPlot->getNumUnits();
-			if (iNumUnits <= 0 || !pLoopPlot->isVisible(getTeam(), true))
+			CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+			int iNumUnits = kPlot.getNumUnits();
+			if (iNumUnits <= 0 || !kPlot.isVisible(getTeam(), true))
 				continue;
 
 			float fPlotStrength = 0.0f;
 			bool bShowIndicator = false;
 
-			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
-				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
+			for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode(); pUnitNode != NULL;
+				pUnitNode = kPlot.nextUnitNode(pUnitNode))
 			{
 				CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
 				if (pUnit->getVisualOwner() != iPlayer ||
@@ -22219,7 +22201,7 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 						// Use unit owner as tiebreaker
 						for(int k = 0; k < 3; k++)
 						{
-							pUnit = pLoopPlot->plotCheck(PUF_isUnitAIType,
+							pUnit = kPlot.plotCheck(PUF_isUnitAIType,
 									priorityList[j], -1,
 									(k == 0 ? eActivePlayer : NO_PLAYER),
 									(k == 1 ? eActiveTeam : NO_TEAM),
@@ -22232,20 +22214,20 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 					}
 					if(pUnit == NULL)
 					{
-						pUnit = pLoopPlot->plotCheck(PUF_cannotDefend,
+						pUnit = kPlot.plotCheck(PUF_cannotDefend,
 								-1, -1, NO_PLAYER, NO_TEAM,
 								PUF_isVisibleDebug, eActivePlayer, -1);
 					}
 				}
 				else // </advc.004z>
-					pUnit = pLoopPlot->getBestDefender(NO_PLAYER);
+					pUnit = kPlot.getBestDefender(NO_PLAYER);
 				if (pUnit != NULL)
 				{
 					PlayerColorTypes eUnitColor = GET_PLAYER(pUnit->getVisualOwner()).getPlayerColor();
 					const NiColorA& kColor = GC.getInfo((ColorTypes) GC.getInfo(eUnitColor).getColorTypePrimary()).getColor();
 
 					szBuffer.clear();
-					GAMETEXT.setPlotListHelp(szBuffer, pLoopPlot, true, true,
+					GAMETEXT.setPlotListHelp(szBuffer, kPlot, true, true,
 							true); // advc.061, advc.007
 
 					CvPlotIndicatorData kIndicator;
@@ -22299,10 +22281,10 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 				PlayerColorTypes eCurPlayerColor = GET_PLAYER((PlayerTypes) iPlayer).getPlayerColor();
 				const NiColorA& kColor = GC.getInfo((ColorTypes) GC.getInfo(eCurPlayerColor).getColorTypePrimary()).getColor();
 
-				for (int iI = 0; iI < m.numPlots(); iI++)
+				for (int iI = 0; iI < kMap.numPlots(); iI++)
 				{
-					CvPlot* pLoopPlot = m.plotByIndex(iI);
-					if (pLoopPlot->isVisible(getTeam(), true))
+					CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+					if (kPlot.isVisible(getTeam(), true))
 					{
 						float fPlotStrength = aafPlayerPlotStrength[iPlayer][iI];
 						if (fPlotStrength > 0)
@@ -22328,13 +22310,13 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 
 	PlayerColorTypes ePlayerColor = getPlayerColor();
 	CvWStringBuffer szBuffer;
-	CvMap& m = GC.getMap();
-	for (int iI = 0; iI < m.numPlots(); iI++)
+	CvMap& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = m.plotByIndex(iI);
-		if(!pLoopPlot->isRevealed(getTeam(), true))
+		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+		if(!kPlot.isRevealed(getTeam(), true))
 			continue;
-		BonusTypes eLoopBonus = pLoopPlot->getBonusType(
+		BonusTypes eLoopBonus = kPlot.getBonusType(
 				(GC.getGame().isDebugMode()) ? NO_TEAM : getTeam());
 		bool bOfInterest = false; // advc.004z
 		if (eLoopBonus != NO_BONUS)
@@ -22346,13 +22328,13 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 				bOfInterest = true;
 				break;
 			case SHOW_STRATEGIC_RESOURCES:
-				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() == 0);
+				bOfInterest = (kBonusInfo.getHappiness() == 0 && kBonusInfo.getHealth() == 0);
 				break;
 			case SHOW_HAPPY_RESOURCES:
-				bOfInterest = (kBonusInfo.getHappiness() != 0) && (kBonusInfo.getHealth() == 0);
+				bOfInterest = (kBonusInfo.getHappiness() != 0 && kBonusInfo.getHealth() == 0);
 				break;
 			case SHOW_HEALTH_RESOURCES:
-				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() != 0);
+				bOfInterest = (kBonusInfo.getHappiness() == 0 && kBonusInfo.getHealth() != 0);
 				break;
 			}
 		} // <advc.004z>
@@ -22361,7 +22343,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
 			getBugOptionBOOL("MainInterface__TribalVillageIcons", true))
 		{
-			eImpr = pLoopPlot->getRevealedImprovementType(getTeam());
+			eImpr = kPlot.getRevealedImprovementType(getTeam());
 			bOfInterest = (eImpr != NO_IMPROVEMENT && GC.getInfo(eImpr).
 					isGoody());
 		} // </advc.004z>
@@ -22375,10 +22357,10 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 					getButton() // </advc.004z>
 					: GC.getInfo(eLoopBonus).getButton());
 
-			int x = pLoopPlot->getX();
-			int y = pLoopPlot->getY();
-			kData.m_Target = NiPoint2(m.plotXToPointX(x), m.plotYToPointY(y));
-			PlayerTypes eOwner = pLoopPlot->getRevealedOwner(getTeam(), true);
+			int x = kPlot.getX();
+			int y = kPlot.getY();
+			kData.m_Target = NiPoint2(kMap.plotXToPointX(x), kMap.plotYToPointY(y));
+			PlayerTypes eOwner = kPlot.getRevealedOwner(getTeam(), true);
 			if (eOwner == NO_PLAYER)
 			{
 				kData.m_kColor.r = 0.8f;
@@ -22388,7 +22370,8 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			else
 			{
 				PlayerColorTypes eCurPlayerColor = GET_PLAYER(eOwner).getPlayerColor();
-				const NiColorA& kColor = GC.getInfo((ColorTypes) GC.getInfo(eCurPlayerColor).getColorTypePrimary()).getColor();
+				const NiColorA& kColor = GC.getInfo((ColorTypes)GC.getInfo(eCurPlayerColor).
+						getColorTypePrimary()).getColor();
 				kData.m_kColor.r = kColor.r;
 				kData.m_kColor.g = kColor.g;
 				kData.m_kColor.b = kColor.b;
@@ -22397,7 +22380,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			szBuffer.clear();
 			// <advc.004z>
 			if(eLoopBonus == NO_BONUS)
-				GAMETEXT.setImprovementHelp(szBuffer, pLoopPlot->getImprovementType());
+				GAMETEXT.setImprovementHelp(szBuffer, kPlot.getImprovementType());
 			else { // </advc.004z>
 				//GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
 				// <advc.003p> Replacing the above
@@ -22477,7 +22460,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	int iMinTotalCulture = MAX_INT;
 	for (int iI = 0; iI < m.numPlots(); iI++)
 	{
-		CvPlot const& kLoopPlot = *m.plotByIndex(iI);
+		CvPlot const& kLoopPlot = m.getPlotByIndex(iI);
 		// <advc.004z>
 		if(!kLoopPlot.isVisible(getTeam(), true))
 			continue; // </advc.004z>
@@ -22496,7 +22479,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	// find culture percentages
 	for (int iI = 0; iI < m.numPlots(); iI++)
 	{
-		CvPlot const& kLoopPlot = *m.plotByIndex(iI);
+		CvPlot const& kLoopPlot = m.getPlotByIndex(iI);
 		PlayerTypes eOwner = kLoopPlot.getRevealedOwner(getTeam(), true);
 		if(eOwner == NO_PLAYER)
 			continue; // advc: Moved up

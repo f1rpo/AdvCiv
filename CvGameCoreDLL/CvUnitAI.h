@@ -136,7 +136,7 @@ protected:
 	bool AI_guardBonus(int iMinValue = 0);
 	bool AI_guardYield(); // advc.300
 	bool AI_barbAmphibiousCapture(); // advc.306
-	int AI_getPlotDefendersNeeded(CvPlot* pPlot, int iExtra);
+	int AI_getPlotDefendersNeeded(CvPlot const& kPlot, int iExtra);
 	bool AI_guardFort(bool bSearch = true);
 	bool AI_guardCitySite();
 	bool AI_guardSpy(int iRandomPercent);
@@ -198,14 +198,14 @@ protected:
 	bool AI_assaultSeaTransport(bool bAttackBarbs = false,
 			bool bLocal = false); // K-Mod
 	bool AI_assaultSeaReinforce(bool bAttackBarbs = false); // BBAI
-	bool AI_transportGoTo(CvPlot* pEndTurnPlot, CvPlot* pTargetPlot, int iFlags, MissionAITypes eMissionAI); // K-Mod
+	bool AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTargetPlot, int iFlags, MissionAITypes eMissionAI); // K-Mod
 
 	bool AI_settlerSeaTransport();
 	bool AI_ferryWorkers();
 	bool AI_specialSeaTransportMissionary();
 	bool AI_specialSeaTransportSpy();
 	bool AI_carrierSeaTransport();
-	bool AI_connectPlot(CvPlot* pPlot, int iRange = 0);
+	bool AI_connectPlot(CvPlot const& kPlot, int iRange = 0);
 	CvCityAI* AI_getCityToImprove() const; // advc.113b
 	bool AI_improveCity(CvCityAI const& kCity);
 	bool AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity,
@@ -217,8 +217,8 @@ protected:
 	//bool AI_improveBonus(int iMinValue = 0, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, int* piBestValue = NULL);
 	bool AI_improveBonus( // K-Mod
 			int iMissingWorkersInArea = 0); // advc.121
-	bool AI_improvePlot(CvPlot* pPlot, BuildTypes eBuild);
-	BuildTypes AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild);
+	bool AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild);
+	BuildTypes AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild);
 	bool AI_connectBonus(bool bTestTrade = true);
 	bool AI_connectCity();
 	bool AI_routeCity();
@@ -237,9 +237,10 @@ protected:
 	bool AI_airCarrier();
 	bool AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI = -1, bool bStealthOnly = false);
 	bool AI_airStrike(int iThreshold = 0); // K-Mod note. this function now handles bombing defences, and defensive strikes.
+	int AI_airStrikeValue(CvPlot const& kPlot, int iCurrentBest, bool& bBombard) const; // advc
 
 	// BETTER_BTS_AI_MOD, Air AI, 9/26/08, jdog5000: START
-	int AI_airOffenseBaseValue(CvPlot* pPlot);
+	int AI_airOffenseBaseValue(CvPlot const& kPlot);
 	//bool AI_defensiveAirStrike(); // disabled by K-Mod
 	bool AI_defendBaseAirStrike();
 	// BETTER_BTS_AI_MOD: END
@@ -283,7 +284,7 @@ protected:
 	bool AI_isAnyPiracyTarget(CvPlot const& p) const;
 	// </advc.033>
 	bool AI_defendPlot(CvPlot* pPlot);
-	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
+	int AI_pillageValue(CvPlot const& kPlot, int iBonusValueThreshold = 0);
 	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
 	//int AI_nukeValue(CvCity* pCity);
 	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
@@ -294,6 +295,11 @@ protected:
 	// </advc.121>
 	int AI_searchRange(int iRange);
 	bool AI_plotValid(CvPlot /* advc: */ const* pPlot) const;
+	// <advc> Allow a reference to be used
+	__forceinline bool AI_plotValid(CvPlot const& kPlot) const
+	{
+		return AI_plotValid(&kPlot);
+	} // </advc>
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
 	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false); // K-Mod
@@ -317,7 +323,7 @@ protected:
 
 	bool AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar);
 
-	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild) const;
+	int AI_calculatePlotWorkersNeeded(CvPlot const& kPlot, BuildTypes eBuild) const;
 	//int AI_getEspionageTargetValue(CvPlot* pPlot, int iMaxPath);
 	int AI_getEspionageTargetValue(CvPlot* pPlot); // K-Mod
 

@@ -124,7 +124,7 @@ static inline T operator--(T& c, int)
 	DO_FOR_EACH_BIG_DYN_INFO_TYPE(DO)
 
 /*  Number of instances not known at compile time; no associated enum type.
-	(I've enter upper-case prefixes though in case that enums are desired at a
+	(I've entered upper-case prefixes though in case that enums are desired at a
 	later time.) */
 #define DO_FOR_EACH_INT_INFO_TYPE(DO) \
 	/* getInfo function exported */ \

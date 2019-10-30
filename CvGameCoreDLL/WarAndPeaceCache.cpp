@@ -912,13 +912,13 @@ void WarAndPeaceCache::updateAdjacentLand() {
 
 	CvMap& m = GC.getMap();
 	for(int i = 0; i < m.numPlots(); i++) {
-		CvPlot* p = m.plotByIndex(i);
-		if(p->isWater()) continue;
-		PlayerTypes o = p->getOwner();
+		CvPlot const& p = m.getPlotByIndex(i);
+		if(p.isWater()) continue;
+		PlayerTypes o = p.getOwner();
 		if(o == NO_PLAYER || !GET_PLAYER(o).isAlive() || o == BARBARIAN_PLAYER ||
 				TEAMID(o) == TEAMID(ownerId) || GET_PLAYER(o).isMinorCiv())
 			continue;
-		if(p->isAdjacentPlayer(ownerId, true))
+		if(p.isAdjacentPlayer(ownerId, true))
 			adjacentLand[o]++;
 	}
 }

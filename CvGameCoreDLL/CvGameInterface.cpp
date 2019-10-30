@@ -23,19 +23,22 @@ void CvGame::updateColoredPlots()
 {
 	PROFILE_FUNC();
 
-	gDLL->getEngineIFace()->clearColoredPlots(PLOT_LANDSCAPE_LAYER_BASE);
-	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_CITY_RADIUS);
-	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_RANGED);
-	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_BLOCKADING);
+	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace(); // advc
+	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace(); // advc
 
-	if (!gDLL->GetWorldBuilderMode() || gDLL->getInterfaceIFace()->isInAdvancedStart())
-		gDLL->getEngineIFace()->clearColoredPlots(PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
+	kEngine.clearColoredPlots(PLOT_LANDSCAPE_LAYER_BASE);
+	kEngine.clearAreaBorderPlots(AREA_BORDER_LAYER_CITY_RADIUS);
+	kEngine.clearAreaBorderPlots(AREA_BORDER_LAYER_RANGED);
+	kEngine.clearAreaBorderPlots(AREA_BORDER_LAYER_BLOCKADING);
+
+	if (!gDLL->GetWorldBuilderMode() || kInterface.isInAdvancedStart())
+		kEngine.clearColoredPlots(PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 
 	if (GC.getPythonCaller()->updateColoredPlots())
 		return;
 	// <advc.004h>
 	// Moved up
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = kInterface.getHeadSelectedUnit();
 	if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->isHuman())
 		pHeadSelectedUnit->updateFoundingBorder();
 	// </advc.004h>
@@ -44,21 +47,21 @@ void CvGame::updateColoredPlots()
 	CvMap const& m = GC.getMap();
 	int iPlots = m.numPlots();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
-	if(gDLL->getInterfaceIFace()->isShowYields()) // advc.007
+	if(kInterface.isShowYields()) // advc.007
 	{
 		// City circles for debugging
 		if (isDebugMode())
 		{
 			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 			{
-				CvPlot* pLoopPlot = m.plotByIndex(iPlotLoop);
+				CvPlot& kPlot = m.getPlotByIndex(iPlotLoop);
 				for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 				{
 					if (GET_PLAYER((PlayerTypes)iI).isAlive())
 					{
-						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(*pLoopPlot))
+						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(kPlot))
 						{
-							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+							kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
 									GC.getInfo((ColorTypes)GC.getInfo(
 									GET_PLAYER((PlayerTypes)iI).getPlayerColor()).getColorTypePrimary()).getColor(),
 									PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
@@ -73,12 +76,12 @@ void CvGame::updateColoredPlots()
 		{
 			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 			{
-				CvPlot* pLoopPlot = m.plotByIndex(iPlotLoop);
-				CvCityAI const* pWorkingCity = pLoopPlot->AI_getWorkingCity();
-				ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+				CvPlot& kPlot = m.getPlotByIndex(iPlotLoop);
+				CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
+				ImprovementTypes eImprovement = kPlot.getImprovementType();
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
-					int iPlotIndex = pWorkingCity->getCityPlotIndex(pLoopPlot);
+					int iPlotIndex = pWorkingCity->getCityPlotIndex(&kPlot);
 					int iBuildValue = pWorkingCity->AI_getBestBuildValue(iPlotIndex);
 					BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(iPlotIndex);
 
@@ -86,7 +89,7 @@ void CvGame::updateColoredPlots()
 					{
 						if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getInfo(eBestBuild).getImprovement())
 						{
-							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+							kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
 									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_RED")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
@@ -98,12 +101,12 @@ void CvGame::updateColoredPlots()
 	// BETTER_BTS_AI_MOD: END
 
 	// City circles when in Advanced Start
-	if (gDLL->getInterfaceIFace()->isInAdvancedStart())
+	if (kInterface.isInAdvancedStart())
 	{
 		for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 		{
-			CvPlot* pLoopPlot = m.plotByIndex(iPlotLoop);
-			if (GET_PLAYER(getActivePlayer()).getAdvancedStartCityCost(true, pLoopPlot) > 0)
+			CvPlot& kPlot = m.getPlotByIndex(iPlotLoop);
+			if (GET_PLAYER(getActivePlayer()).getAdvancedStartCityCost(true, &kPlot) > 0)
 			{
 				bool bStartingPlot = false;
 				for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
@@ -111,7 +114,7 @@ void CvGame::updateColoredPlots()
 					CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iPlayer);
 					if (kPlayer.isAlive() && getActiveTeam() == kPlayer.getTeam())
 					{
-						if (pLoopPlot == kPlayer.getStartingPlot())
+						if (&kPlot == kPlayer.getStartingPlot())
 						{
 							bStartingPlot = true;
 							break;
@@ -120,44 +123,43 @@ void CvGame::updateColoredPlots()
 				}
 				if (bStartingPlot)
 				{
-					gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(), GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
+					kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(), GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
-				else if (GET_PLAYER(getActivePlayer()).AI_isPlotCitySite(*pLoopPlot))
+				else if (GET_PLAYER(getActivePlayer()).AI_isPlotCitySite(kPlot))
 				{
-					gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+					kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
 							GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
 
-				if (pLoopPlot->isRevealed(getActiveTeam()))
+				if (kPlot.isRevealed(getActiveTeam()))
 				{
 					NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_WHITE")).getColor());
 					color.a = 0.4f;
-					gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+					kEngine.fillAreaBorderPlot(kPlot.getX(), kPlot.getY(),
 							color, AREA_BORDER_LAYER_CITY_RADIUS);
 				}
 			}
 		}
 	}
 
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = kInterface.getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
-		if (gDLL->getInterfaceIFace()->isCityScreenUp())
+		if (kInterface.isCityScreenUp())
 		{
 			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 			{
 				if (pHeadSelectedCity->isWorkingPlot(iI))
 				{
 					CvPlot* pLoopPlot = plotCity(pHeadSelectedCity->getX(), pHeadSelectedCity->getY(), iI);
-
 					if (pLoopPlot != NULL)
 					{
 						NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_WHITE")).getColor());
 						color.a = 0.7f;
-						gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+						kEngine.addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
 								color, PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 					}
 				}
@@ -165,8 +167,8 @@ void CvGame::updateColoredPlots()
 		}
 		else
 		{
-			for (CLLNode<IDInfo> const* pSelectedCityNode = gDLL->getInterfaceIFace()->headSelectedCitiesNode();
-				pSelectedCityNode != NULL; pSelectedCityNode = gDLL->getInterfaceIFace()->nextSelectedCitiesNode(pSelectedCityNode))
+			for (CLLNode<IDInfo> const* pSelectedCityNode = kInterface.headSelectedCitiesNode();
+				pSelectedCityNode != NULL; pSelectedCityNode = kInterface.nextSelectedCitiesNode(pSelectedCityNode))
 			{
 				CvCity const* pSelectedCity = ::getCity(pSelectedCityNode->m_data);
 				if (pSelectedCity != NULL)
@@ -174,7 +176,7 @@ void CvGame::updateColoredPlots()
 					CvPlot* pRallyPlot = pSelectedCity->getRallyPlot();
 					if (pRallyPlot != NULL)
 					{
-						gDLL->getEngineIFace()->addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
+						kEngine.addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
 								GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_YELLOW")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 					}
@@ -188,20 +190,20 @@ void CvGame::updateColoredPlots()
 
 	if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 	{
-		//if (gDLL->getInterfaceIFace()->canSelectionListFound())
+		//if (kInterface.canSelectionListFound())
 		if(pHeadSelectedUnit->canFound()) // advc.004h
 		{
 			for (int iI = 0; iI < iPlots; iI++)
 			{
-				CvPlot* pLoopPlot = m.plotByIndex(iI);
-				if (pLoopPlot->getOwner() == pHeadSelectedUnit->getOwner())
+				CvPlot& kPlot = m.getPlotByIndex(iI);
+				if (kPlot.getOwner() == pHeadSelectedUnit->getOwner())
 				{
-					if (pLoopPlot->getWorkingCity() != NULL)
+					if (kPlot.getWorkingCity() != NULL)
 					{
 						NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_HIGHLIGHT_TEXT")/*(GC.getInfo(GET_PLAYER(pHeadSelectedUnit->getOwner()).getPlayerColor()).getColorTypePrimary())*/).getColor());
 						color.a = 1.0f;
-						gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+						kEngine.fillAreaBorderPlot(kPlot.getX(), kPlot.getY(),
 								color, AREA_BORDER_LAYER_CITY_RADIUS);
 					}
 				}
@@ -212,8 +214,8 @@ void CvGame::updateColoredPlots()
 	{
 		int iMaxAirRange = 0;
 
-		for (CLLNode<IDInfo> const* pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-			pSelectedUnitNode != NULL; pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode))
+		for (CLLNode<IDInfo> const* pSelectedUnitNode = kInterface.headSelectionListNode();
+			pSelectedUnitNode != NULL; pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode))
 		{
 			CvUnit const* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
 			if (pSelectedUnit != NULL)
@@ -233,7 +235,7 @@ void CvGame::updateColoredPlots()
 							NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_YELLOW")).getColor());
 							color.a = 0.5f;
-							gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+							kEngine.fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
 									color, AREA_BORDER_LAYER_RANGED);
 						}
 					}
@@ -258,7 +260,7 @@ void CvGame::updateColoredPlots()
 							NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_YELLOW")).getColor());
 							color.a = 0.5f;
-							gDLL->getEngineIFace()->fillAreaBorderPlot(pTargetPlot->getX(), pTargetPlot->getY(),
+							kEngine.fillAreaBorderPlot(pTargetPlot->getX(), pTargetPlot->getY(),
 									color, AREA_BORDER_LAYER_RANGED);
 						}
 					}
@@ -285,7 +287,7 @@ void CvGame::updateColoredPlots()
 						pCity->AI_getBestBuildValue(plotCityXY(pCity, pBestPlot)) > 1)
 					{
 						FAssert(pBestPlot != NULL);
-						gDLL->getEngineIFace()->addColoredPlot(pBestPlot->getX(), pBestPlot->getY(),
+						kEngine.addColoredPlot(pBestPlot->getX(), pBestPlot->getY(),
 								GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 								"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						CvPlot* pNextBestPlot = NULL;
@@ -293,7 +295,7 @@ void CvGame::updateColoredPlots()
 							pCity->AI_getBestBuildValue(plotCityXY(pCity, pNextBestPlot)) > 1)
 						{
 							FAssert(pNextBestPlot != NULL);
-							gDLL->getEngineIFace()->addColoredPlot(pNextBestPlot->getX(), pNextBestPlot->getY(),
+							kEngine.addColoredPlot(pNextBestPlot->getX(), pNextBestPlot->getY(),
 									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						}
@@ -316,7 +318,7 @@ void CvGame::updateColoredPlots()
 				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
 				if (pSite && site_path.GeneratePath(pSite))
 				{
-					gDLL->getEngineIFace()->addColoredPlot(pSite->getX(), pSite->getY(),
+					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
 							GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 							"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}
@@ -343,7 +345,7 @@ void CvGame::updateColoredPlots()
 					{
 						if (site_path.GeneratePath(pLoopPlot))
 						{
-							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
+							kEngine.addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
 									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
 									"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						}
@@ -373,7 +375,7 @@ void CvGame::updateColoredPlots()
 							GET_PLAYER(getActivePlayer()).getPlayerColor()).
 							getColorTypePrimary()).getColor());
 						color.a = 0.5f;
-						gDLL->getEngineIFace()->fillAreaBorderPlot(
+						kEngine.fillAreaBorderPlot(
 							apRange[j]->getX(),
 							apRange[j]->getY(), color,
 							AREA_BORDER_LAYER_BLOCKADING);
@@ -389,16 +391,17 @@ void CvGame::updateBlockadedPlots()
 {
 	PROFILE_FUNC();
 
-	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_BLOCKADED);
-
-	for (int i = 0; i < GC.getMap().numPlots(); ++i)
+	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace(); // advc
+	kEngine.clearAreaBorderPlots(AREA_BORDER_LAYER_BLOCKADED);
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); ++i)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
-		if (pLoopPlot->getBlockadedCount(getActiveTeam()) > 0 && pLoopPlot->isRevealed(getActiveTeam()))
+		CvPlot& kPlot = kMap.getPlotByIndex(i);
+		if (kPlot.getBlockadedCount(getActiveTeam()) > 0 && kPlot.isRevealed(getActiveTeam()))
 		{
 			NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_BLACK")).getColor());
 			color.a = 0.35f;
-			gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(), color, AREA_BORDER_LAYER_BLOCKADED);
+			kEngine.fillAreaBorderPlot(kPlot.getX(), kPlot.getY(), color, AREA_BORDER_LAYER_BLOCKADED);
 		}
 	}
 	/*  <advc.700> An odd place for initialization. Need graphics to be fully
@@ -411,34 +414,24 @@ void CvGame::updateBlockadedPlots()
 
 void CvGame::updateSelectionList()
 {
-	CvUnit* pHeadSelectedUnit;
-
 	//if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
 	if (GC.suppressCycling() || GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING)) // K-Mod
-	{
 		return;
-	}
 
-	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
-	if ((pHeadSelectedUnit == NULL) || !(pHeadSelectedUnit->getGroup()->readyToSelect(true)))
+	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace(); // advc
+	CvUnit* pHeadSelectedUnit = kInterface.getHeadSelectedUnit();
+	if (pHeadSelectedUnit == NULL || !pHeadSelectedUnit->getGroup()->readyToSelect(true))
 	{
-		if ((gDLL->getInterfaceIFace()->getOriginalPlot() == NULL) || !(cyclePlotUnits(gDLL->getInterfaceIFace()->getOriginalPlot(), true, true, gDLL->getInterfaceIFace()->getOriginalPlotCount())))
+		if (kInterface.getOriginalPlot() == NULL || !cyclePlotUnits(kInterface.getOriginalPlot(), true, true, kInterface.getOriginalPlotCount()))
 		{
-			if ((gDLL->getInterfaceIFace()->getSelectionPlot() == NULL) || !(cyclePlotUnits(gDLL->getInterfaceIFace()->getSelectionPlot(), true, true)))
-			{
+			if (kInterface.getSelectionPlot() == NULL || !cyclePlotUnits(kInterface.getSelectionPlot(), true, true))
 				cycleSelectionGroups(true);
-			}
 		}
-
-		pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
+		pHeadSelectedUnit = kInterface.getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
-			if (!(pHeadSelectedUnit->getGroup()->readyToSelect()))
-			{
-				gDLL->getInterfaceIFace()->clearSelectionList();
-			}
+			if (!pHeadSelectedUnit->getGroup()->readyToSelect())
+				kInterface.clearSelectionList();
 		}
 	}
 }
@@ -453,13 +446,14 @@ void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ retu
 	if(!b_mFPTestDone)
 		CvMessageControl::getInstance().sendFPTest(FPChecksum()); // </advc.003g>
 
-	bool bAny = (gDLL->getInterfaceIFace()->getHeadSelectedUnit() != NULL &&
+	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace(); // advc
+	bool bAny = (kInterface.getHeadSelectedUnit() != NULL &&
 			!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING));
 
-	if (gDLL->getInterfaceIFace()->isEndTurnMessage())
+	if (kInterface.isEndTurnMessage())
 	{
 		if (GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
-			gDLL->getInterfaceIFace()->setEndTurnMessage(false);
+			kInterface.setEndTurnMessage(false);
 		return;
 	}
 
@@ -469,10 +463,10 @@ void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ retu
 
 	bool bShift = GC.shiftKey();
 
-	if (!(gDLL->getInterfaceIFace()->isForcePopup()))
+	if (!kInterface.isForcePopup())
 	{
 		if (!bShift && !GC.suppressCycling()) // K-Mod
-			gDLL->getInterfaceIFace()->setForcePopup(true);
+			kInterface.setForcePopup(true);
 		return;
 	}
 
@@ -480,27 +474,27 @@ void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ retu
 	{
 		//if (!(GC.shiftKey()))
 		// K-Mod. Don't start automoves if we currently have a group selected which would move.
-		CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+		CvUnit* pSelectedUnit = kInterface.getHeadSelectedUnit();
 		if (!bShift && !GC.suppressCycling() && (pSelectedUnit == NULL || !pSelectedUnit->getGroup()->readyToAuto()))
 		// K-Mod end
 			CvMessageControl::getInstance().sendAutoMoves();
 		return;
 	}
 
-	if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !gDLL->getInterfaceIFace()->isHasMovedUnit() || isHotSeat() || isPbem())
+	if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !kInterface.isHasMovedUnit() || isHotSeat() || isPbem())
 	{
-		gDLL->getInterfaceIFace()->setEndTurnMessage(true);
+		kInterface.setEndTurnMessage(true);
 		return;
 	}
 
-	if (gDLL->getInterfaceIFace()->getEndTurnCounter() > 0)
+	if (kInterface.getEndTurnCounter() > 0)
 	{
-		gDLL->getInterfaceIFace()->changeEndTurnCounter(-1);
+		kInterface.changeEndTurnCounter(-1);
 		return;
 	}
 
 	CvMessageControl::getInstance().sendTurnComplete();
-	gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
+	kInterface.setEndTurnCounter(3); // XXX
 }
 
 // advc: Merge of two BtS functions that had largely the same body

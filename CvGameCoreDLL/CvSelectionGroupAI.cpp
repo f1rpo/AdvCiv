@@ -677,8 +677,8 @@ bool CvSelectionGroupAI::AI_isForceSeparate() /* advc: */ const
 }
 
 
-void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot,
-		CvUnit const* pNewUnit)
+void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI,
+	CvPlot const* pNewPlot, CvUnit const* pNewUnit) // advc: 2x const
 {
 	//PROFILE_FUNC();
 

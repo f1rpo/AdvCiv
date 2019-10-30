@@ -334,12 +334,13 @@ public:
 	bool AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes eReligion) const;
 	int AI_corporationValue(CorporationTypes eCorporation, CvCityAI const* pCity = NULL) const;
 
-	int AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove = false) const;
+	int AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove = false) const;
 	int AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	int AI_areaMissionAIs(CvArea* pArea, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
-	int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
-	int AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes* aeMissionAI, int iMissionAICount, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
+	// advc: const CvPlot*
+	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
+	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
+	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeMissionAI, int iMissionAICount, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
 	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	int AI_enemyTargetMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
@@ -563,8 +564,8 @@ public:
 
 	ReligionTypes AI_chooseReligion();
 
-	int AI_getPlotAirbaseValue(CvPlot* pPlot) const;
-	int AI_getPlotCanalValue(CvPlot* pPlot) const;
+	int AI_getPlotAirbaseValue(CvPlot const& kPlot) const;
+	int AI_getPlotCanalValue(CvPlot const& kPlot) const;
 
 	int AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent=false) const;
 	int AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent=false) const;

@@ -472,7 +472,7 @@ void CvSelectionGroup::playActionSound()
 
 void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2,
 	int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI,
-	CvPlot* pMissionAIPlot, CvUnit const* pMissionAIUnit, // advc: const CvUnit*
+	CvPlot const* pMissionAIPlot, CvUnit const* pMissionAIUnit, // advc: 2x const
 	bool bModified) // advc.011b
 {
 	PROFILE_FUNC();

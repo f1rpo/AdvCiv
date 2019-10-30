@@ -3000,6 +3000,9 @@ bool CvPlot::isRevealedGoody(TeamTypes eTeam) const
 
 void CvPlot::removeGoody()
 {
+	// <advc>
+	if (!isGoody())
+		return; // </advc>
 	setImprovementType(NO_IMPROVEMENT);
 	// <advc.004z>
 	if(GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE && isVisibleToWatchingHuman())

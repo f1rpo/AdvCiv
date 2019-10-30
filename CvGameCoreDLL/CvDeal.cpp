@@ -851,30 +851,26 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 
 	case TRADE_MAPS:
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	{
+		CvMap const& kMap = GC.getMap();
+		for (int iI = 0; iI < kMap.numPlots(); iI++)
 		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-			if (pLoopPlot->isRevealed(GET_PLAYER(eFromPlayer).getTeam()))
+			CvPlot& kPlot = kMap.getPlotByIndex(iI);
+			if (kPlot.isRevealed(TEAMID(eFromPlayer)))
 			{
-				pLoopPlot->setRevealed(GET_PLAYER(eToPlayer).getTeam(), true,
+				kPlot.setRevealed(GET_PLAYER(eToPlayer).getTeam(), true,
 						false, GET_PLAYER(eFromPlayer).getTeam(), false);
 			}
 		}
-
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(eToPlayer).getTeam())
-				{
-					GET_PLAYER((PlayerTypes)iI).updatePlotGroups();
-				}
-			}
+			CvPlayer& kToMember = GET_PLAYER((PlayerTypes)iI);
+			if (kToMember.isAlive() && kToMember.getTeam() == TEAMID(eToPlayer))
+				kToMember.updatePlotGroups();
 		}
-
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades maps due to TRADE_MAPS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		break;
-
+	}
 	case TRADE_SURRENDER:
 	case TRADE_VASSAL:
 		if (trade.m_iData == 0)
@@ -887,11 +883,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 				else logBBAI("    Player %d (%S) trades themselves as vassal due to TRADE_VASSAL with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 			}
 		}
-		else
-		{
-			bSave = true;
-		}
-
+		else bSave = true;
 
 		break;
 

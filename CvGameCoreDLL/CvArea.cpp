@@ -88,11 +88,12 @@ void CvArea::setID(int iID)
 int CvArea::calculateTotalBestNatureYield() const
 {
 	int iCount = 0;
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->getArea() == getID())
-			iCount += pLoopPlot->calculateTotalBestNatureYield(NO_TEAM);
+		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+		if (kPlot.getArea() == getID())
+			iCount += kPlot.calculateTotalBestNatureYield(NO_TEAM);
 	}
 	return iCount;
 }
@@ -104,12 +105,13 @@ int CvArea::countCoastalLand() const
 		return 0;
 
 	int iCount = 0;
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		if (pLoopPlot->getArea() == getID())
+		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+		if (kPlot.getArea() == getID())
 		{
-			if (pLoopPlot->isCoastalLand())
+			if (kPlot.isCoastalLand())
 				iCount++;
 		}
 	}
@@ -279,12 +281,10 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 	CvMap const& kMap = GC.getMap();
 	for(int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot* pPlot = kMap.plotByIndex(i);
-		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
-				|| !pPlot->isHabitable())
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
+		if(kPlot.area() == NULL || kPlot.area()->getID() != getID() || !kPlot.isHabitable())
 			continue;
-		if(pPlot->isOwned() && (!bIgnoreBarb ||
-				pPlot->getOwner() != BARBARIAN_PLAYER))
+		if(kPlot.isOwned() && (!bIgnoreBarb || kPlot.getOwner() != BARBARIAN_PLAYER))
 			r.first++;
 		else r.second++;
 	}
