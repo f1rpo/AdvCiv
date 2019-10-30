@@ -78,6 +78,8 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, panel, "MainInterface__SimpleSelection")
 		self.addCheckbox(screen, panel, "MainInterface__RapidUnitCycling")
 		# </advc.004>
+		# advc.004k:
+		self.addCheckbox(screen, panel, "MainInterface__SeaPatrol")
 		
 	def createTechSplashPanel(self, screen, panel):
 		self.addLabel(screen, panel, "TechWindow", "Tech Splash Screen:")

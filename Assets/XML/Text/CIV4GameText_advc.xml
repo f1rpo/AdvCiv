@@ -5875,4 +5875,15 @@
 		<Spanish>[ICON_BULLET]%d1_Mod%% a la defensa en todas las ciudades</Spanish>
 	</TEXT>
 
+	<!-- advc.004k: From CIV4GameText_BTS.xml. Clarify who attacks and
+		 under which circumstances. German was totally wrong. (FIS unchanged)-->
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_SEAPATROL_HELP</Tag>
+		<English>Guard improvements in adjacent water tiles. When attempting to pillage those tiles, weaker enemy units are forced to attack the unit on Sea Patrol.</English>
+		<French>Ordonner &#224; l'unit&#233; d'attaquer les navires ennemis se livrant au pillage de cases adjacentes</French>
+		<German>Bewache angrenzende Wasser-Geländefelder. Schwächere feindliche Schiffe, die versuchen, dort eine Modernisierung zu plündern, sind gezwungen, die Einheit auf Seepatroullie anzugreifen.</German>
+		<Italian>Questo ordine far&#224; in modo che l'unit&#224; attacchi le navi nemiche che cercano di saccheggiare le caselle circostanti</Italian>
+		<Spanish>Esta orden le dir&#225; a la unidad que ataque a los barcos enemigos que intenten saquear las casillas adyacentes.</Spanish>
+	</TEXT>
+
 </Civ4GameText>

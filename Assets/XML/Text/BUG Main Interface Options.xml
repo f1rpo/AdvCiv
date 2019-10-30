@@ -589,6 +589,24 @@
 		<Italian>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</Italian>
 		<Spanish>Activada, seleccionando unidades con la tecla [Mayús] sólo añadir una unidad cada vez.</Spanish>
 	</TEXT>
+
+	<!-- advc.004k: same as TXT_KEY_MISSION_SEAPATROL (CIV4GameText_BTS.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SEAPATROL_TEXT</Tag>
+		<English>Sea Patrol</English>
+		<French>Patrouille des mers</French>
+		<German>Seepatrouille</German>
+		<Italian>Pattuglia marina</Italian>
+		<Spanish>Patrulla mar&#237;tima</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SEAPATROL_HOVER</Tag>
+		<English>Enables the "Sea Patrol" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</English>
+		<French>Enables the "Sea Patrol" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</French>
+		<German>Erlaubt den Einheiten-Befehl "Seepatroullie"</German>
+		<Italian>Enables the "Sea Patrol" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</Italian>
+		<Spanish>Enables the "Sea Patrol" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</Spanish>
+	</TEXT>
 	
 	<!-- advc.004z -->
 	<TEXT>

@@ -3352,21 +3352,16 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 				return true; // note: this mission will automatically ungroup any unsuitable units.
 			break;
 
-		case MISSION_SEAPATROL: // <advc.004k>
-			if(isHuman())
-				return false;
-			else { // </advc.004k>
-				if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
-				{
-					if (!bCheckMoves)
-						return true;
-
-					bValid = true;
-				}
-				if (!pLoopUnit->canMove())
-					return false;
-				break;
+		case MISSION_SEAPATROL:
+			if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
+			{
+				if (!bCheckMoves)
+					return true;
+				bValid = true;
 			}
+			if (!pLoopUnit->canMove())
+				return false;
+			break;
 		case MISSION_HEAL:
 			if (pLoopUnit->canHeal(pPlot)
 					// advc.004l: AI control check only for performance

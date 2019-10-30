@@ -3532,8 +3532,8 @@ bool CvUnit::canSeaPatrol(const CvPlot* pPlot) const
 	//if (isWaiting())
 	if (getGroup()->getActivityType() == ACTIVITY_PATROL) // K-Mod
 		return false;
-
-	return true;
+	// advc.004k: (Do the cheaper checks first)
+	return getBugOptionBOOL("MainInterface__SeaPatrol", false);
 }
 
 
@@ -4582,11 +4582,11 @@ bool CvUnit::pillage()
 				return false;
 		}
 	}
-
-	if (pPlot->isWater())
+	if (pPlot->isWater()
+		&& getBugOptionBOOL("MainInterface__SeaPatrol", false)) // advc.004k
 	{
 		CvUnit* pInterceptor = bestSeaPillageInterceptor(this, GC.getCOMBAT_DIE_SIDES() / 2);
-		if (NULL != pInterceptor)
+		if (pInterceptor != NULL)
 		{
 			setMadeAttack(false);
 			int iWithdrawal = withdrawalProbability();
@@ -4596,7 +4596,6 @@ bool CvUnit::pillage()
 			return false;
 		}
 	}
-
 	if (pPlot->getImprovementType() != NO_IMPROVEMENT)
 	{
 		eTempImprovement = pPlot->getImprovementType();
@@ -7940,9 +7939,10 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 {
 	CvUnit* pBestUnit = NULL;
 	int pBestUnitRank = -1; // BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
-	for (int iDX = -1; iDX <= 1; ++iDX)
+	int const iRange = 1; // advc
+	for (int iDX = -iRange; iDX <= iRange; ++iDX)
 	{
-		for (int iDY = -1; iDY <= 1; ++iDY)  // advc: some changes to reduce indentation
+		for (int iDY = -iRange; iDY <= iRange; ++iDY)  // advc: some changes to reduce indentation
 		{
 			CvPlot* pLoopPlot = plotXY(pPillager->getX(), pPillager->getY(), iDX, iDY);
 			if (pLoopPlot == NULL)
@@ -7965,9 +7965,9 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 					pLoopUnit->getDomainType() == DOMAIN_SEA &&
 					pLoopUnit->getGroup()->getActivityType() == ACTIVITY_PATROL)
 				{
-					if (NULL == pBestUnit || pLoopUnit->isBetterDefenderThan(pBestUnit, this,
-							// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
-							&pBestUnitRank))
+					if (pBestUnit == NULL || pLoopUnit->isBetterDefenderThan(pBestUnit, this,
+						// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
+						&pBestUnitRank))
 					{
 						if (getCombatOdds(pPillager, pLoopUnit) < iMinOdds)
 							pBestUnit = pLoopUnit;
