@@ -11016,8 +11016,13 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	} // </advc.705>
 	if (iChange < 0)
 	{
-		// <advc.133> 125 flat in K-Mod, 110 in BtS
-		int iTolerance = (bHuman ? 145 : 155) - std::min(35, iDealAge);
+		// <advc.133>
+		int const iSpeedDivisor = GC.getInfo(g.getGameSpeedType()).getGoldenAgePercent();
+		int iDealAgeAdjusted = std::max(0,
+				((iDealAge - GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) / 2) *
+				100) / iSpeedDivisor);
+		// 125 flat in K-Mod, 110 in BtS
+		int iTolerance = std::max(120, 150 - iDealAgeAdjusted);
 		// <advc.155>
 		if(bSameTeam)
 		{
@@ -11025,19 +11030,31 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 				return true;
 			iTolerance = 150;
 		} // </advc.155>
-		if(iTolerance * // </advc.133>
-				iWeReceive >= iTheyReceive * 100)
+		if(iTolerance * iWeReceive >= iTheyReceive * 100)
 			return true;
-		/*  <advc.036> Need to make trades more stable in large games,
-			even to the detriment of the AI. But mustn't cling to a bad deal
-			indefinitely -> randomize it. */
+		// Additional conditions; to avoid bothering human players.
 		if(!bHuman)
 			return false;
-		double prCancel = (0.025 * iTolerance) /
-				(GET_TEAM(kPlayer.getTeam()).getHasMetCivCount() *
-				iTheyReceive / (double)iWeReceive);
-		return (prCancel < ::hash(g.getGameTurn(), getID()));
-		// </advc.036>
+		double relativeUnfairness = (iTolerance * iTheyReceive) / (100.0 * std::max(1, iWeReceive));
+		double relativeLoss = (iTheyReceive - iWeReceive) /
+				std::max(1.0, estimateYieldRate(YIELD_COMMERCE));
+		// Reduce frequency of diplo popups in large games
+		double hasMetFactor = 1 / std::pow((double)GET_TEAM(kPlayer.getTeam()).getHasMetCivCount(), 0.8);
+		double const magicScaleFactor = 2;
+		// Randomly delay cancellation b/c trade values might fluctuate
+		double prCancel = magicScaleFactor * relativeUnfairness * relativeLoss * hasMetFactor;
+		// Don't randomly cancel deals that are unimportant and not too unfair
+		if (prCancel < 0.1)
+			return true;
+		// If it's clearly a bad deal, then a random delay could seem strange.
+		if (prCancel > 0.5)
+			return false;
+		// Aim at more long-lasting deals in slow games
+		prCancel = (prCancel * 100) / iSpeedDivisor;
+		/*  (If cancellation were checked more than once per turn,
+			::hash would have to be used instead.) */
+		return !::bernoulliSuccess(prCancel, "advc.036 (cancel)");
+		// </advc.133>
 	}
 	// <advc.136b>
 	if (iWeReceive < 2 * GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER) &&
