@@ -23,7 +23,8 @@
 #include <vector>
 #include <list>
 #include <tchar.h>
-#include <math.h>
+//#include <math.h>
+#include <cmath> // advc
 #include <assert.h>
 #include <map>
 #include <hash_map>
