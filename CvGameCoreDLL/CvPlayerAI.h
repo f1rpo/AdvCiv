@@ -250,7 +250,7 @@ public:
 
 	PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose);
 
-	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList,
+	int AI_dealVal(PlayerTypes eFromPlayer, const CLinkList<TradeData>* pList,
 			bool bIgnoreAnnual = false,
 			int iChange = 1, /* advc: was called iExtra, which didn't make sense
 								and differed from the parameter name in CvPlayerAI.cpp. */
@@ -278,9 +278,9 @@ public:
 			// advc.036: Whether baseBonusVal is computed for a resource trade
 			bool bTrade = false) const;
 	int AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
-	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange,
+	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int iChange,
 			bool bExtraHappyOrHealth = false) const; // advc.036
-	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
+	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 			int iChange = 0) const; // advc.133
 	// advc.210e: Exposed to Python
 	int AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;

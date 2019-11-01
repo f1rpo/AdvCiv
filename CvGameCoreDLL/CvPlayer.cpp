@@ -4346,11 +4346,11 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 		if (!isHuman() && kOurTeam.isHuman())
 			return DENIAL_MYSTERY;
 		// K-Mod end
-		return kOurTeam.AI_techTrade(((TechTypes)(item.m_iData)), GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_techTrade((TechTypes)item.m_iData, TEAMID(eWhoTo));
 		break;
 
 	case TRADE_RESOURCES:
-		return AI().AI_bonusTrade(((BonusTypes)(item.m_iData)), eWhoTo,
+		return AI().AI_bonusTrade((BonusTypes)item.m_iData, eWhoTo,
 				1); // advc.036
 		break;
 
@@ -4366,11 +4366,11 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 		break;
 
 	case TRADE_MAPS:
-		return kOurTeam.AI_mapTrade(GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_mapTrade(TEAMID(eWhoTo));
 		break;
 
 	case TRADE_SURRENDER:
-		return kOurTeam.AI_surrenderTrade(GET_PLAYER(eWhoTo).getTeam(),
+		return kOurTeam.AI_surrenderTrade(TEAMID(eWhoTo),
 				// advc.104o: No functional change
 				CvTeamAI::VASSAL_POWER_MOD_SURRENDER);
 		break;
@@ -4380,31 +4380,31 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 		if (!isHuman() && kOurTeam.isHuman())
 			return DENIAL_MYSTERY;
 		// K-Mod end
-		return kOurTeam.AI_vassalTrade(GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_vassalTrade(TEAMID(eWhoTo));
 		break;
 
 	case TRADE_PEACE:
-		return kOurTeam.AI_makePeaceTrade(((TeamTypes)(item.m_iData)), GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_makePeaceTrade((TeamTypes)item.m_iData, TEAMID(eWhoTo));
 		break;
 
 	case TRADE_WAR:
-		return kOurTeam.AI_declareWarTrade(((TeamTypes)(item.m_iData)), GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_declareWarTrade((TeamTypes)item.m_iData, TEAMID(eWhoTo));
 		break;
 
 	case TRADE_EMBARGO:
-		return AI().AI_stopTradingTrade(((TeamTypes)(item.m_iData)), eWhoTo);
+		return AI().AI_stopTradingTrade((TeamTypes)item.m_iData, eWhoTo);
 		break;
 
 	case TRADE_CIVIC:
-		return AI().AI_civicTrade(((CivicTypes)(item.m_iData)), eWhoTo);
+		return AI().AI_civicTrade((CivicTypes)item.m_iData, eWhoTo);
 		break;
 
 	case TRADE_RELIGION:
-		return AI().AI_religionTrade(((ReligionTypes)(item.m_iData)), eWhoTo);
+		return AI().AI_religionTrade((ReligionTypes)item.m_iData, eWhoTo);
 		break;
 
 	case TRADE_OPEN_BORDERS:
-		return kOurTeam.AI_openBordersTrade(GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_openBordersTrade(TEAMID(eWhoTo));
 		break;
 
 	case TRADE_DEFENSIVE_PACT:
@@ -4412,7 +4412,7 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 		if (!isHuman() && kOurTeam.isHuman())
 			return DENIAL_MYSTERY;
 		// K-Mod end
-		return kOurTeam.AI_defensivePactTrade(GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_defensivePactTrade(TEAMID(eWhoTo));
 		break;
 
 	case TRADE_PERMANENT_ALLIANCE:
@@ -4420,12 +4420,12 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 		if (!isHuman() && kOurTeam.isHuman())
 			return DENIAL_MYSTERY;
 		// K-Mod end
-		return kOurTeam.AI_permanentAllianceTrade(GET_PLAYER(eWhoTo).getTeam());
+		return kOurTeam.AI_permanentAllianceTrade(TEAMID(eWhoTo));
 		break;
 
 	case TRADE_PEACE_TREATY:
 		// K-Mod
-		if (kOurTeam.AI_refusePeace(GET_PLAYER(eWhoTo).getTeam()))
+		if (kOurTeam.AI_refusePeace(TEAMID(eWhoTo)))
 			return DENIAL_VICTORY;
 		// K-Mod end
 		break;

@@ -87,16 +87,16 @@ public:
 
 	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
-	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
+	int AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 			bool bIgnoreDiscount = false, // advc.550a
 			bool bPeaceDeal = false) const; // advc.140h
-	DenialTypes AI_techTrade(TechTypes eTech, TeamTypes eTeam) const;
+	DenialTypes AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const;
 
-	int AI_mapTradeVal(TeamTypes eTeam) const;
-	DenialTypes AI_mapTrade(TeamTypes eTeam) const;
+	int AI_mapTradeVal(TeamTypes eFromTeam) const;
+	DenialTypes AI_mapTrade(TeamTypes eToTeam) const;
 
 	int AI_vassalTradeVal(TeamTypes eTeam) const;
-	DenialTypes AI_vassalTrade(TeamTypes eTeam) const;
+	DenialTypes AI_vassalTrade(TeamTypes eMasterTeam) const;
 
 	int AI_surrenderTradeVal(TeamTypes eTeam) const;
 	DenialTypes AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier = 100,
@@ -135,18 +135,18 @@ public:
 	bool AI_isAnyCloseToReligiousVictory() const; // </advc.115b>
 
 	int AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
-	DenialTypes AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
+	DenialTypes AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker) const;
 
-	int AI_declareWarTradeVal(TeamTypes eWarTeam, TeamTypes eTeam) const;
-	DenialTypes AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bool bConsiderPower = true) const;
+	int AI_declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const;
+	DenialTypes AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, bool bConsiderPower = true) const;
 
 	int AI_openBordersTradeVal(TeamTypes eTeam) const;
-	DenialTypes AI_openBordersTrade(TeamTypes eTeam) const;
+	DenialTypes AI_openBordersTrade(TeamTypes eWithTeam) const;
 
 	int AI_defensivePactTradeVal(TeamTypes eTeam) const;
-	DenialTypes AI_defensivePactTrade(TeamTypes eTeam) const;
+	DenialTypes AI_defensivePactTrade(TeamTypes eWithsTeam) const;
 
-	DenialTypes AI_permanentAllianceTrade(TeamTypes eTeam) const;
+	DenialTypes AI_permanentAllianceTrade(TeamTypes eWithTeam) const;
 
 	int AI_roundTradeVal(int iVal) const; // advc.104k
 	void AI_makeUnwillingToTalk(TeamTypes eOther); // advc.104i
