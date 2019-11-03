@@ -3561,7 +3561,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					{	// <advc.031>
 						if(kSet.bFinancial)
 							iFreshWaterVal += 8;
-						if(!bSteal) {
+						if(!bSteal)
+						{
 							iRiver++;
 							if(iCities <= 0) // advc.108
 								iFreshWaterVal += 10;
@@ -4062,76 +4063,63 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		int iRange = 6; // K-Mod (originally was 5)
 		int iGreaterBadTile = 0;
 
-		for (int iDX = -(iRange); iDX <= iRange; iDX++)
+		for (int iDX = -iRange; iDX <= iRange; iDX++)
 		{
-			for (int iDY = -(iRange); iDY <= iRange; iDY++)
+			for (int iDY = -iRange; iDY <= iRange; iDY++)
 			{
 				CvPlot* pLoopPlot = plotXY(iX, iY, iDX, iDY);
-
-				if (pLoopPlot != NULL)
+				if (pLoopPlot == NULL)
+					continue;
+				if ((pLoopPlot->isWater() || pLoopPlot->area() == pArea) &&
+					plotDistance(iX, iY, pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
 				{
-					if (pLoopPlot->isWater() || (pLoopPlot->area() == pArea)) // K-Mod
-					//if (pLoopPlot->isWater() || (pLoopPlot->area() == pArea))
+					/*int iTempValue = (pLoopPlot->getYield(YIELD_FOOD) * 15);
+					iTempValue += (pLoopPlot->getYield(YIELD_PRODUCTION) * 11);
+					iTempValue += (pLoopPlot->getYield(YIELD_COMMERCE) * 5);
+					iValue += iTempValue;
+					if (iTempValue < 21) {
+						iGreaterBadTile += 2;
+						if (pLoopPlot->getFeatureType() != NO_FEATURE) {
+							if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD,getTeam()) > 1)
+								iGreaterBadTile--;
+						}
+					}*/ // BtS
+					// K-Mod
+					int iTempValue = 0;
+					iTempValue += pLoopPlot->getYield(YIELD_FOOD) * 9;
+					iTempValue += pLoopPlot->getYield(YIELD_PRODUCTION) * 5;
+					iTempValue += pLoopPlot->getYield(YIELD_COMMERCE) * 3;
+					iTempValue += pLoopPlot->isRiver() ? 1 : 0;
+					iTempValue += pLoopPlot->isWater() ? -2 : 0;
+					if (iTempValue < 13)
 					{
-						if (plotDistance(iX, iY, pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
+						// 3 points for unworkable plots (desert, ice, far-ocean)
+						// 2 points for bad plots (ocean, tundra)
+						// 1 point for fixable bad plots (jungle)
+						iGreaterBadTile++;
+						if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD,getTeam()) < 2)
 						{
-							/* original bts code
-							int iTempValue = 0;
-							iTempValue += (pLoopPlot->getYield(YIELD_FOOD) * 15);
-							iTempValue += (pLoopPlot->getYield(YIELD_PRODUCTION) * 11);
-							iTempValue += (pLoopPlot->getYield(YIELD_COMMERCE) * 5);
-							iValue += iTempValue;
-							if (iTempValue < 21)
-							{
-								iGreaterBadTile += 2;
-								if (pLoopPlot->getFeatureType() != NO_FEATURE)
-								{
-									if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD,getTeam()) > 1)
-									{
-										iGreaterBadTile--;
-									}
-								}
-							} */
-							// K-Mod
-							int iTempValue = 0;
-							iTempValue += pLoopPlot->getYield(YIELD_FOOD) * 9;
-							iTempValue += pLoopPlot->getYield(YIELD_PRODUCTION) * 5;
-							iTempValue += pLoopPlot->getYield(YIELD_COMMERCE) * 3;
-							iTempValue += pLoopPlot->isRiver() ? 1 : 0;
-							iTempValue += pLoopPlot->isWater() ? -2 : 0;
-							if (iTempValue < 13)
-							{
-								// 3 points for unworkable plots (desert, ice, far-ocean)
-								// 2 points for bad plots (ocean, tundra)
-								// 1 point for fixable bad plots (jungle)
+							iGreaterBadTile++;
+							if (iTempValue <= 0)
 								iGreaterBadTile++;
-								if (pLoopPlot->calculateBestNatureYield(YIELD_FOOD,getTeam()) < 2)
-								{
-									iGreaterBadTile++;
-									if (iTempValue <= 0)
-										iGreaterBadTile++;
-								}
-							}
-							if (pLoopPlot->isWater() || pLoopPlot->area() == pArea)
-								iValue += iTempValue;
-							else if (iTempValue >= 13)
-								iGreaterBadTile++; // add at least 1 badness point for other islands.
-							// K-Mod end
 						}
 					}
+					if (pLoopPlot->isWater() || pLoopPlot->area() == pArea)
+						iValue += iTempValue;
+					else if (iTempValue >= 13)
+						iGreaterBadTile++; // add at least 1 badness point for other islands.
+					// K-Mod end
 				}
 			}
 		}
 
 		if (!bNormalize)
 		{
-			/* original bts code
-			iGreaterBadTile /= 2;
-			if (iGreaterBadTile > 12)
-			{
+			/*iGreaterBadTile /= 2;
+			if (iGreaterBadTile > 12) {
 				iValue *= 11;
 				iValue /= iGreaterBadTile;
-			} */
+			}*/ // BtS
 			// K-Mod. note: the range has been extended, and the 'bad' counting has been rescaled.
 			iGreaterBadTile /= 3;
 			int iGreaterRangePlots = 2*(iRange*iRange + iRange) + 1;
@@ -4159,11 +4147,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			// penality for a solo start. bonus for pairing with an existing solo start. penality for highly populated islands
 			iValue = iValue * (10 + std::max(-2, iPlayers ? 2 - iPlayers : -2)) / 10;
-			/* if (iPlayers == 0)
+			/*if (iPlayers == 0)
 				iValue = iValue * 85 / 100;
 			else if (iPlayers == 1)
-				iValue = iValue * 110 / 100; */
-
+				iValue = iValue * 110 / 100;*/
 			// K-Mod end
 		}
 
@@ -4214,9 +4201,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 
 			if (kPlot.getBonusType() != NO_BONUS)
-			{
 				iValue /= 2;
-			}
 		}
 	}
 // END OF STARTING SURROUNDINGS
@@ -15189,9 +15174,10 @@ int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus) const
 	int iCount = 0;
 
 	//count bonuses outside city radius
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
 		if (kPlot.getOwner() == getID() && !kPlot.isCityRadius())
 		{
 			if (kPlot.getBonusType(getTeam()) == eBonus)
@@ -17198,7 +17184,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 		int iProductionShareBuildings = 100 - iProductionShareUnits;
 
-		int iTempValue = getTotalPopulation() * kCivic.getMilitaryProductionModifier() + iBestReligionPopulation * kCivic.getStateReligionUnitProductionModifier();
+		int iTempValue = getTotalPopulation() * kCivic.getMilitaryProductionModifier() +
+				iBestReligionPopulation * kCivic.getStateReligionUnitProductionModifier();
 
 		int iExperience = getTotalPopulation() * kCivic.getFreeExperience() + iBestReligionPopulation * kCivic.getStateReligionFreeExperience();
 		if (iExperience)

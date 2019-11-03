@@ -236,7 +236,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	if (pXML->GetChildXmlValByName(&iVal, "iOrderPriority", 0))
 		setOrderPriority(iVal);
 
-	setHotKeyDescription(getTextKeyWide(), NULL, pXML->CreateHotKeyFromDescription(getHotKey(), m_bShiftDown, m_bAltDown, m_bCtrlDown));
+	setHotKeyDescription(getTextKeyWide(), NULL, pXML->HotKeyFromDescription(getHotKey(), m_bShiftDown, m_bAltDown, m_bCtrlDown));
 
 	return true;
 }
