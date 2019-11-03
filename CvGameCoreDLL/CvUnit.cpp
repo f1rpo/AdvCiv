@@ -4471,16 +4471,22 @@ bool CvUnit::bombard()
 			BombardDefense, also need to decrease DefenseModifier proportional
 			to the effect of buildings in order to properly ignore BuildingDefense. */
 		chg *= iDefWithBuildings / (double)iDefSansBuildings;
+	bool bFirstBombardment = !pBombardCity->isBombarded(); // advc.004g
 	pBombardCity->changeDefenseModifier(std::min(0, ::round(chg)));
 	// </advc.004c>
 	setMadeAttack(true);
 	changeMoves(GC.getMOVE_DENOMINATOR());
 
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO",
-			pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false),
-			GET_PLAYER(getOwner()).getNameKey());
+			getNameKey(), // advc.004g: Show unit name  (idea from MNAI)
+			pBombardCity->getDefenseModifier(false),
+			GET_PLAYER(getOwner())./*getNameKey()*/getCivilizationAdjectiveKey(), // advc.004g
+			pBombardCity->getNameKey());
 	gDLL->getInterfaceIFace()->addMessage(pBombardCity->getOwner(),
-			false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED",
+			true, // advc.004g
+			GC.getEVENT_MESSAGE_TIME(), szBuffer,
+			!bFirstBombardment ? NULL : // advc.004g: Don't bombard the owner with sound
+			"AS2D_BOMBARDED",
 			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
 			pBombardCity->getX(), pBombardCity->getY(), true, true);
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",

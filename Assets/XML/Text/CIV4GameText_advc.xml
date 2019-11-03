@@ -972,7 +972,19 @@
 		<Italian>L'IA dei leader viene determinata casualmente all'inizio della partita</Italian>
 		<Spanish>La personalidad de cada l&#237;der se determinar&#225; al azar al comienzo de la partida.</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.004g: From CIV4GameTextInfos.xml. Make it e.g.
+		 "English Catapult" instead of "Elizabeth".
+		 (German is clunky b/c I couldn't get the grammar right.) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO</Tag>
+		<English>Defenses in %s4_CityName reduced to %d2_NewVal%% by a %s3_CivAdj %s1_UnitName</English>
+		<French>[NUM1:Un:Une:Des:Des] %s1_UnitName des %s3_CivAdj a r&#233;duit les d&#233;fenses de %s4_CityName &#224; %d2_NewVal%%</French>
+		<German>Eine Einheit %s1_UnitName (%s3_CivAdj) hat den Verteidigungswert von %s4_CityName auf %d2_NewVal%% gesenkt</German>
+		<Italian>Le tue difese a %s4_CityName sono state ridotte [NUM1:da un:da una:dai:dalle] %s1_UnitName %s3:1</Italian>
+		<Spanish>Vuestras defensas en %s4_CityName han quedado reducidas al %d2_NewVal%% por [NUM1:un:una:unos:unas] %s1_UnitName %s3:1</Spanish>
+	</TEXT>
+
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
 	<TEXT>
