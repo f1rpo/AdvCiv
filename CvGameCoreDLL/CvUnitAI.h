@@ -145,6 +145,8 @@ protected:
 	bool AI_pickupTargetSpy();
 	bool AI_chokeDefend();
 	bool AI_heal(int iDamagePercent = 0, int iMaxPath = MAX_INT);
+	// advc.299:
+	bool AI_singleUnitHeal(int iMaxTurnsExposed = 1, int iMaxTurnsOutsideCity = 2);
 	bool AI_isThreatenedFromLand() const; // advc.139
 	bool AI_afterAttack();
 	bool AI_goldenAge();
