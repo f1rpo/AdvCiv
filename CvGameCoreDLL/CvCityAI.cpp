@@ -1184,20 +1184,15 @@ void CvCityAI::AI_chooseProduction()
 			defensiveTypes.push_back(std::make_pair(UNITAI_CITY_DEFENSE, 200));
 			defensiveTypes.push_back(std::make_pair(UNITAI_CITY_COUNTER, 50));
 		}
-
 		int iOdds = iBuildUnitProb;
 		if (iWarSuccessRating < -50)
-		{
-			iOdds += abs(iWarSuccessRating/3);
-		}
+			iOdds -= iWarSuccessRating / 3;
 		// K-Mod
-		iOdds *= (-iWarSuccessRating+20 + iBestBuildingValue);
+		iOdds *= (-iWarSuccessRating + 20 + iBestBuildingValue);
 		iOdds /= (-iWarSuccessRating + 2 * iBestBuildingValue);
 		// K-Mod end
 		if (bDanger)
-		{
 			iOdds += 10;
-		}
 
 		if (AI_chooseLeastRepresentedUnit(defensiveTypes, iOdds))
 		{
@@ -1206,7 +1201,7 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
-	if (!(bDefenseWar && iWarSuccessRating < -50))
+	if (!bDefenseWar && iWarSuccessRating < -50)
 	{
 	/*  K-Mod, 10/sep/10, Karadoc
 		Disabled iExistingWorkers == 0. Changed Pop > 3 to Pop >=3.
@@ -1551,12 +1546,13 @@ void CvCityAI::AI_chooseProduction()
 
 		if (!bLandWar && !bDanger && !bFinancialTrouble)
 		{
-			if (kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_EXPLORE) < (kPlayer.AI_neededExplorers(pArea)))
+			int iMissingExplorers = kPlayer.AI_neededExplorers(pArea) -
+					kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_EXPLORE);
+			if (iMissingExplorers > 0)
 			{
-				if (AI_chooseUnit(UNITAI_EXPLORE))
-				{
+				if (AI_chooseUnit(UNITAI_EXPLORE,
+						34 * iMissingExplorers)) //advc.131: was 100 flat
 					return;
-				}
 			}
 		}
 
@@ -1576,8 +1572,7 @@ void CvCityAI::AI_chooseProduction()
 		iNeededSpies -= (bDefenseWar ? 1 : 0);
 		if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY))
 			iNeededSpies++;
-		else
-			iNeededSpies /= kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 2 : 1;
+		else iNeededSpies /= kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 2 : 1;
 
 		if (iNumSpies < iNeededSpies)
 		{
@@ -1649,7 +1644,8 @@ void CvCityAI::AI_chooseProduction()
 				if(!kMember.isAlive() || kMember.isMinorCiv() || kMember.getTeam() != getTeam())
 					continue;
 				iWaterUnits += pWaterArea->getNumAIUnits(kMember.getID(), NO_UNITAI);
-				if(iWaterUnits >= 3) {
+				if(iWaterUnits >= 3)
+				{
 					bEnoughWaterUnits = true;
 					break;
 				}
