@@ -1,17 +1,13 @@
 #pragma once
 
-//  $Header:
-//------------------------------------------------------------------------------------------------
-//
 //  FILE:    CvXMLLoadUtility.h
-//
 //  AUTHOR:  Eric MacDonald  --  8/2003
-//
 //  PURPOSE: Group of functions to load in the xml files for Civilization 4
-//
-//------------------------------------------------------------------------------------------------
 //  Copyright (c) 2003 Firaxis Games, Inc. All rights reserved.
-//------------------------------------------------------------------------------------------------
+/*  advc: Deleted most of the comments in this file and moved some to the
+	implementation files (CvXMLLoadUtility.cpp, CvXMLLoadUtilityInit.cpp,
+	CvXMLLoadUtilityGet.cpp and CvXMLLoadUtilitySet.cpp). Also deleted many
+	non-informative comments from the implementation files. */
 #ifndef XML_LOAD_UTILITY_H
 #define XML_LOAD_UTILITY_H
 
@@ -21,20 +17,11 @@ class CvGameText;
 class CvCacheObject;
 class CvImprovementBonusInfo;
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//
-//  class : CvXMLLoadUtility
-//
-//  DESC:   Group of functions to load in the xml files for Civilization 4
-//
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 class CvXMLLoadUtility
 {
-//---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
-	// default constructor
 	DllExport CvXMLLoadUtility();
-	// default destructor
 	DllExport ~CvXMLLoadUtility(void);
 
 	bool CreateFXml();
@@ -49,21 +36,15 @@ public:
 	bool LoadOptionalGlobals();
 	bool LoadThroneRoomInfo(); // </advc.003v>
 
-	// read the global defines from a specific file
 	bool ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache);
-	// loads globaldefines.xml and calls various other functions to load relevant global variables
+	
 	DllExport bool SetGlobalDefines();
-	// loads globaltypes.xml and calls various other functions to load relevant global variables
 	DllExport bool SetGlobalTypes();
-	// loads calls various functions that load xml files that in turn load relevant global variables
-	bool SetGlobals();
-	// loads globaldefines.xml and calls various other functions to load relevant global variables
+	// advc.003j: Unused and has no definition
+	//bool SetGlobals(); // calls various functions that load xml files that in turn load relevant global variables
 	DllExport bool SetPostGlobalsGlobalDefines();
-
-	// calls various functions to release the memory associated with the global variables
 	DllExport void CleanUpGlobalVariables();
 
-	// releases global variables associated with items that can be reloaded
 	DllExport void ResetLandscapeInfo();
 	DllExport bool SetupGlobalLandscapeInfo();
 	DllExport bool SetGlobalArtDefines();
@@ -71,36 +52,28 @@ public:
 	bool SetHelpText();
 	DllExport void ResetGlobalEffectInfo();
 
-// for progress bars
+	// for progress bars
 	typedef void (*ProgressCB)(int iStepNum, int iTotalSteps, const char* szMessage);
 	static int GetNumProgressSteps();
-	void RegisterProgressCB(ProgressCB cbFxn) { m_pCBFxn = cbFxn; }
+	// advc (note): unused
+	void RegisterProgressCB(ProgressCB cbFxn);
 
-	// moves the current xml node from where it is now to the next non-comment node, returns false if it can't find one
 	bool SkipToNextVal();
 
-	// overloaded function that gets the child value of the tag with szName if there is only one child
-	// value of that name
-	void MapChildren();	// call this before GetChildXMLValByName to use fast searching
-	bool GetChildXmlValByName(std::string& pszVal, const TCHAR* szName, char* pszDefault = NULL);
-	bool GetChildXmlValByName(std::wstring& pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
-	// overloaded function that gets the child value of the tag with szName if there is only one child
-	// value of that name
-	bool GetChildXmlValByName(char* pszVal, const TCHAR* szName, char* pszDefault = NULL);
-	bool GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
-	// overloaded function that gets the child value of the tag with szName if there is only one child
-	// value of that name
-	bool GetChildXmlValByName(int* piVal, const TCHAR* szName,
+	void MapChildren();	// call this before GetChildXMLValByName for fast search
+	bool GetChildXmlValByName(std::string& r, TCHAR const* szName, char const* szDefault = NULL);
+	bool GetChildXmlValByName(std::wstring& r, TCHAR const* szName, wchar const* szDefault = NULL);
+	bool GetChildXmlValByName(char* r, TCHAR const* szName, char const* szDefault = NULL);
+	bool GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar const* szDefault = NULL);
+	/*  (advc: Returning by reference would be nicer than by pointer, but I don't want to change
+		hundreds of call locations.) */
+	bool GetChildXmlValByName(int* r, TCHAR const* szName,
 			/*  advc.006b: Was 0. Instead use a value that no one wants to use so that
 				the callee can check if the param was set. */
 			int iDefault = MIN_INT);
-	// overloaded function that gets the child value of the tag with szName if there is only one child
-	// value of that name
-	bool GetChildXmlValByName(float* pfVal, const TCHAR* szName,
+	bool GetChildXmlValByName(float* r, TCHAR const* szName,
 			float fDefault = FLT_MIN); // advc.006b: was 0.0f
-	// overloaded function that gets the child value of the tag with szName if there is only one child
-	// value of that name
-	bool GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
+	bool GetChildXmlValByName(bool* r, TCHAR const* szName,
 			/*  advc.006b: Caller will have to set this to false to avoid an error
 				if szName isn't found */
 			bool bMandatory = true,
@@ -110,105 +83,64 @@ public:
 		doesn't have tags which are normally mandatory. */
 	void setAssertMandatoryEnabled(bool b);
 
-	// loads an xml file into the FXml variable.  The szFilename parameter has
-	// the m_szXmlPath member variable pre-pended to it to form the full pathname
 	bool LoadCivXml(FXml* pFXml, const TCHAR* szFilename);
 
-	// overloaded function that gets either the current xml node's or the next non-comment xml node's string value
-	// depending on if the current node is a non-comment node or not
-	bool GetXmlVal(std::wstring& pszVal, wchar* pszDefault = NULL);
-	bool GetXmlVal(std::string& pszVal, char* pszDefault = NULL);
-	// overloaded function that gets either the current xml node's or the next non-comment xml node's string value
-	// depending on if the current node is a non-comment node or not
-	bool GetXmlVal(wchar* pszVal, wchar* pszDefault = NULL);
-	bool GetXmlVal(char* pszVal, char* pszDefault = NULL);
-	// overloaded function that gets either the current xml node's or the next non-comment xml node's int value
-	// depending on if the current node is a non-comment node or not
-	bool GetXmlVal(int* piVal, int iDefault = 0);
-	// overloaded function that gets either the current xml node's or the next non-comment xml node's float value
-	// depending on if the current node is a non-comment node or not
-	bool GetXmlVal(float* pfVal, float fDefault = 0.0f);
-	// overloaded function that gets either the current xml node's or the next non-comment xml node's boolean value
-	// depending on if the current node is a non-comment node or not
-	bool GetXmlVal(bool* pbVal, bool bDefault = false);
+	bool GetXmlVal(std::wstring& r, wchar const* szDefault = NULL);
+	bool GetXmlVal(std::string& r, char const* szDefault = NULL);
+	bool GetXmlVal(wchar* r, wchar const* szDefault = NULL);
+	bool GetXmlVal(char* r, char const* szDefault = NULL);
+	// advc: Return by reference (was pointer)
+	bool GetXmlVal(int& r, int iDefault = 0);
+	bool GetXmlVal(float& r, float fDefault = 0.0f);
+	bool GetXmlVal(bool& r, bool bDefault = false);
 
-	// overloaded function that sets the current xml node to it's next sibling and then
-	//	gets the next non-comment xml node's string value
-	bool GetNextXmlVal(std::string& pszVal, char* pszDefault = NULL);
-	bool GetNextXmlVal(std::wstring& pszVal, wchar* pszDefault = NULL);
-	// overloaded function that sets the current xml node to it's next sibling and then
-	//	gets the next non-comment xml node's string value
-	bool GetNextXmlVal(char* pszVal, char* pszDefault = NULL);
-	bool GetNextXmlVal(wchar* pszVal, wchar* pszDefault = NULL);
-	// overloaded function that sets the current xml node to it's next sibling and then
-	//	gets the next non-comment xml node's int value
-	bool GetNextXmlVal(int* piVal, int iDefault = 0);
-	// overloaded function that sets the current xml node to it's next sibling and then
-	//	gets the next non-comment xml node's float value
-	bool GetNextXmlVal(float* pfVal, float fDefault = 0.0f);
-	// overloaded function that sets the current xml node to it's next sibling and then
-	//	gets the next non-comment xml node's boolean value
-	bool GetNextXmlVal(bool* pbVal, bool bDefault = false);
+	bool GetNextXmlVal(std::string& r, char const* szDefault = NULL);
+	bool GetNextXmlVal(std::wstring& r, wchar const* szDefault = NULL);
+	bool GetNextXmlVal(char* r, char const* szDefault = NULL);
+	bool GetNextXmlVal(wchar* r, wchar const* szDefault = NULL);
+	// advc: Return by reference (was pointer)
+	bool GetNextXmlVal(int& r, int iDefault = 0);
+	bool GetNextXmlVal(float& r, float fDefault = 0.0f);
+	bool GetNextXmlVal(bool& r, bool bDefault = false);
 
-	// overloaded function that sets the current xml node to it's first non-comment child node
-	//	and then gets that node's string value
-	bool GetChildXmlVal(std::string& pszVal, char* pszDefault = NULL);
-	bool GetChildXmlVal(std::wstring& pszVal, wchar* pszDefault = NULL);
-	// overloaded function that sets the current xml node to it's first non-comment child node
-	//	and then gets that node's string value
-	bool GetChildXmlVal(char* pszVal, char* pszDefault = NULL);
-	bool GetChildXmlVal(wchar* pszVal, wchar* pszDefault = NULL);
-	// overloaded function that sets the current xml node to it's first non-comment child node
-	//	and then gets that node's integer value
-	bool GetChildXmlVal(int* piVal, int iDefault = 0);
-	// overloaded function that sets the current xml node to it's first non-comment child node
-	//	and then gets that node's float value
-	bool GetChildXmlVal(float* pfVal, float fDefault = 0.0f);
-	// overloaded function that sets the current xml node to it's first non-comment child node
-	//	and then gets that node's boolean value
-	bool GetChildXmlVal(bool* pbVal, bool bDefault = false);
+	bool GetChildXmlVal(std::string& r, char const* szDefault = NULL);
+	bool GetChildXmlVal(std::wstring& r, wchar const* szDefault = NULL);
+	bool GetChildXmlVal(char* r, char const* szDefault = NULL);
+	bool GetChildXmlVal(wchar* r, wchar const* szDefault = NULL);
+	// advc: Return by reference (was pointer)
+	bool GetChildXmlVal(int& r, int iDefault = 0);
+	bool GetChildXmlVal(float& r, float fDefault = 0.0f);
+	bool GetChildXmlVal(bool& r, bool bDefault = false);
 
-#ifdef _USRDLL
+	#ifdef _USRDLL
 	FXml* GetXML() { return m_pFXml; }
-#endif
+	#endif
 
-	// loads the local yield from the xml file
 	int SetYields(int** ppiYield);
 
-#ifdef _USRDLL
+	#ifdef _USRDLL
 	template <class T>
 	int SetCommerce(T** ppiCommerce);
-#endif
+	#endif
 
-	// allocate and set the feature struct variables for the CvBuildInfo class
 	void SetFeatureStruct(int** ppiFeatureTech, int** ppiFeatureTime, int** ppiFeatureProduction, bool** ppbFeatureRemove);
-	// loads the improvement bonuses from the xml file
 	void SetImprovementBonuses(CvImprovementBonusInfo** ppImprovementBonus);
 
-	// check through the pszList parameter for the pszVal and returns the location a match
-	// is found if one is found
 	static int FindInInfoClass(const TCHAR* pszVal, bool hideAssert = false);
 
-#ifdef _USRDLL
+	#ifdef _USRDLL
 	template <class T>
 	void InitList(T **ppList, int iListLen, T val = 0);
-#endif
+	#endif
 	void InitStringList(CvString **ppszList, int iListLen, CvString szString);
 
 	void InitImprovementBonusList(CvImprovementBonusInfo** ppImprovementBonus, int iListLen);
-	// allocate and initialize the civilization's default buildings
 	void InitBuildingDefaults(int **ppiDefaults);
-	// allocate and initialize the civilization's default units
 	void InitUnitDefaults(int **ppiDefaults);
-	// allocate and initialize a 2 dimensional array of int pointers
 	void Init2DIntList(int*** pppiList, int iSizeX, int iSizeY);
-	// allocate and initialize a 2 dimensional array of float pointers
 	void Init2DFloatList(float*** pppfList, int iSizeX, int iSizeY);
-	// allocate and initialize a 2D array of DirectionTypes
 	void Init2DDirectionTypesList(DirectionTypes*** pppiList, int iSizeX, int iSizeY);
-	// allocate an array of int pointers
 	void InitPointerIntList(int*** pppiList, int iSizeX);
-	// allocate an array of float pointers
 	void InitPointerFloatList(float*** pppfList, int iSizeX);
 
 	// allocate and initialize a list from a tag pair in the xml
@@ -222,43 +154,27 @@ public:
 	void SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, CvString szDefaultListVal = "");
 
-	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
 		CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = 0);
-
-	// allocate and initialize a list from a tag pair in the xml for audio scripts
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 		CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = -1);
-
-	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 		int iInfoBaseLength, int iDefaultListVal = -1);
-
-	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
 		CvString* m_paszTagList, int iTagListLength, bool bDefaultListVal = false);
-
-	// allocate and initialize a list from a tag pair in the xml
 	void SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
 		CvString* m_paszTagList, int iTagListLength, CvString szDefaultListVal = "");
 
-	// create a hot key from a description
-	CvWString CreateHotKeyFromDescription(const TCHAR* pszHotKey, bool bShift = false, bool bAlt = false, bool bCtrl = false);
-
-	// set the variable to a default and load it from the xml if there are any children
+	CvWString HotKeyFromDescription(const TCHAR* pszHotKey, bool bShift = false, bool bAlt = false, bool bCtrl = false);
 	bool SetAndLoadVar(int** ppiVar, int iDefault=0);
-
-	// function that sets the number of strings in a list, initializes the string to the correct length, and fills it from the
-	// current xml file, it assumes that the current node is the parent node of the string list children
 	bool SetStringList(CvString** ppszStringArray, int* piSize);
-
-	// get the integer value for the keyboard mapping of the hotkey if it exists
 	int GetHotKeyInt(const TCHAR* pszHotKeyVal);
 
-	//---------------------------------------PRIVATE MEMBER VARIABLES---------------------------------
+
 private:
-	FXml* m_pFXml;						// member variable pointer to the current FXml class
-	FXmlSchemaCache* m_pSchemaCache;	// keep a single schema cache, instead of loading the same schemas multiple times
+	FXml* m_pFXml;
+	// keep a single schema cache, instead of loading the same schemas multiple times
+	FXmlSchemaCache* m_pSchemaCache;
 	int m_iCurProgressStep;
 	ProgressCB m_pCBFxn;
 
@@ -267,37 +183,32 @@ private:
 	bool m_bAssertMandatory;
 	static CvString szAssertMsg;
 	// </advc.006b>
-//---------------------------------------PRIVATE INTERFACE---------------------------------
-private:
+
 	void UpdateProgressCB(const char* szMessage=NULL);
 
-	// take a character string of hex values and return their unsigned int value
+	void SetGlobalStringArray(CvString** ppszString, char* szTagName, int* iNumVals, bool bUseEnum = false);
+	void SetDiplomacyCommentTypes(CvString** ppszString, int* iNumVals);
 	//void MakeMaskFromString(unsigned int *puiMask, char* szMask); // advc.003j (unused)
+	//void SetGlobalUnitScales(float& fLargeScale, float& fSmallScale, char const* szTagName); // advc.003j (unused)
 
-	// find the tag name in the xml file and set the string parameter and num val parameter based on it's value
-	void SetGlobalStringArray(CvString** ppszString, char* szTagName, int* iNumVals, bool bUseEnum=false);
-	void SetDiplomacyCommentTypes(CvString** ppszString, int* iNumVals);	// sets diplomacy comments
-
-	void SetGlobalUnitScales(float* pfLargeScale, float* pfSmallScale, char* szTagName);
-
-#ifdef _USRDLL
+	#ifdef _USRDLL
 	template <class T>
 		void SetGlobalDefine(const char* szDefineName, T*& piDefVal)
-	{ GC.getDefinesVarSystem()->GetValue(szDefineName, piDefVal); }
-#endif
-	//
+	{
+		GC.getDefinesVarSystem()->GetValue(szDefineName, piDefVal); }
 	// template which can handle all info classes
-	//
 	// a dynamic value for the list size
-#ifdef _USRDLL
 	template <class T>
 	void SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName, bool bTwoPass);
 	template <class T>
-	void LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath, bool bTwoPass, CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*) = NULL);
-#endif
+	void LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* szFileRoot,
+			const char* szFileDirectory, const char* szXmlPath, bool bTwoPass,
+			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction)(const TCHAR*) = NULL);
+	#endif
 	void SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szTagName);
-	void LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath, CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*));
-
+	void LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szFileRoot,
+			const char* szFileDirectory, const char* szXmlPath,
+			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*));
 	//
 	// special cases of set class info which don't use the template because of extra code they have
 	//
@@ -308,23 +219,20 @@ private:
 	//void SetGameText(const char* szTextGroup, const char* szTagName);
 	void SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name); // K-Mod
 
-	// create a keyboard string from a KB code, Delete would be returned for KB_DELETE
-	CvWString CreateKeyStringFromKBCode(const TCHAR* pszHotKey);
+	CvWString KeyStringFromKBCode(const TCHAR* pszHotKey);
 
 	void orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength);
 	void logMsg(char* format, ...);
 };
 
 #ifdef _USRDLL
-//
-/////////////////////////// inlines / templates
-//
+// inlines / templates ...
+
 template <class T>
 void CvXMLLoadUtility::InitList(T **ppList, int iListLen, T val)
 {
-	FAssertMsg((0 <= iListLen),"list size to allocate is less than 0");
+	FAssertMsg( 0 <= iListLen, "list size to allocate is less than 0");
 	*ppList = new T[iListLen];
-
 	for (int i=0;i<iListLen;i++)
 		(*ppList)[i] = val;
 }
@@ -332,40 +240,30 @@ void CvXMLLoadUtility::InitList(T **ppList, int iListLen, T val)
 template <class T>
 int CvXMLLoadUtility::SetCommerce(T** ppbCommerce)
 {
-	int i=0;			//loop counter
-	int iNumSibs=0;		// the number of siblings the current xml node has
-	T *pbCommerce;	// local pointer for the Commerce memory
-
+	T *pbCommerce; // local pointer for the Commerce memory
 	// Skip any comments and stop at the next value we might want
-	if (SkipToNextVal())
-	{
-		// get the total number of children the current xml node has
-		iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
-		InitList(ppbCommerce, NUM_COMMERCE_TYPES);
+	if (!SkipToNextVal())
+		return 0;
 
-		pbCommerce = *ppbCommerce;
-		if (0 < iNumSibs)
+	int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
+	InitList(ppbCommerce, NUM_COMMERCE_TYPES);
+	pbCommerce = *ppbCommerce;
+	if (iNumSibs > 0)
+	{
+		if (GetChildXmlVal(pbCommerce[0]))
 		{
-			// if the call to the function that sets the current xml node to it's first non-comment
-			// child and sets the parameter with the new node's value succeeds
-			if (GetChildXmlVal(&pbCommerce[0]))
+			FAssertMsg((iNumSibs <= NUM_COMMERCE_TYPES) , "For loop iterator is greater than array size");
+			// loop through all the siblings, we start at 1 since we already have the first value
+			for (int i = 1; i < iNumSibs; i++)
 			{
-				FAssertMsg((iNumSibs <= NUM_COMMERCE_TYPES) , "For loop iterator is greater than array size");
-				// loop through all the siblings, we start at 1 since we already have the first value
-				for (i=1;i<iNumSibs;i++)
-				{
-					if (!GetNextXmlVal(&pbCommerce[i]))
-					{
-						break;
-					}
-				}
-				gDLL->getXMLIFace()->SetToParent(m_pFXml);
+				if (!GetNextXmlVal(pbCommerce[i]))
+					break;
 			}
+			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 		}
 	}
-
 	return iNumSibs;
 }
-#endif
+#endif // _USRDLL
 
-#endif	// XML_LOAD_UTILITY_H
+#endif

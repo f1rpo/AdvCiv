@@ -1,16 +1,8 @@
-//  $Header:
-//------------------------------------------------------------------------------------------------
-//
 //  FILE:    CvXMLLoadUtility.cpp
-//
 //  AUTHOR:  Eric MacDonald  --  8/2003
-//			Mustafa Thamer
-//
+//			 Mustafa Thamer
 //  PURPOSE: Group of functions to load in the xml files for Civilization 4
-//
-//------------------------------------------------------------------------------------------------
 //  Copyright (c) 2003 Firaxis Games, Inc. All rights reserved.
-//------------------------------------------------------------------------------------------------
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
@@ -19,9 +11,7 @@
 
 static const int kBufSize = 2048;
 
-//
-// for logging
-//
+
 void CvXMLLoadUtility::logMsg(char* format, ...)
 {
 	static char buf[kBufSize];
@@ -52,13 +42,7 @@ void CvXMLLoadUtility::DestroyFXml()
 	gDLL->getXMLIFace()->DestroyFXml(m_pFXml);
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   CvXMLLoadUtility()
-//
-//  PURPOSE :   Default constructor
-//
-//------------------------------------------------------------------------------------------------------
+
 CvXMLLoadUtility::CvXMLLoadUtility() :
 m_iCurProgressStep(0),
 m_pCBFxn(NULL),
@@ -69,25 +53,13 @@ m_bAssertMandatory(true) // advc.006b
 	m_pSchemaCache = gDLL->getXMLIFace()->CreateFXmlSchemaCache();
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   ~CvXMLLoadUtility()
-//
-//  PURPOSE :   Default destructor
-//
-//------------------------------------------------------------------------------------------------------
+
 CvXMLLoadUtility::~CvXMLLoadUtility(void)
 {
 	gDLL->getXMLIFace()->DestroyFXmlSchemaCache(m_pSchemaCache);
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   ResetLandscapeInfo()
-//
-//  PURPOSE :  Clean up items for in-game reloading
-//
-//------------------------------------------------------------------------------------------------------
+// Clean up items for in-game reloading
 void CvXMLLoadUtility::ResetLandscapeInfo()
 {
 	CvGlobals& kGlobals = CvGlobals::getInstance(); // advc.003t: non-const globals
@@ -97,13 +69,7 @@ void CvXMLLoadUtility::ResetLandscapeInfo()
 	SetupGlobalLandscapeInfo();
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   ResetGlobalEffectInfo()
-//
-//  PURPOSE :  Clean up items for in-game reloading
-//
-//------------------------------------------------------------------------------------------------------
+// Clean up items for in-game reloading
 void CvXMLLoadUtility::ResetGlobalEffectInfo()
 {
 	CvGlobals& kGlobals = CvGlobals::getInstance(); // advc.003t: non-const globals
@@ -113,24 +79,15 @@ void CvXMLLoadUtility::ResetGlobalEffectInfo()
 	LoadGlobalClassInfo(kGlobals.m_paEffectInfo, "CIV4EffectInfos", "Misc", "Civ4EffectInfos/EffectInfos/EffectInfo", false, false);
 }
 
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   MakeMaskFromString(unsigned int *puiMask, char* szMask)
-//
-//  PURPOSE :   takes a string of hex digits, 0-f and converts it into an unsigned integer
-//				mask value
-//
-//------------------------------------------------------------------------------------------------------
 // advc.003j: Unused (always was, apparently)
-/*void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
+// Takes a string of hex digits, 0-f and converts it into an unsigned integer mask value
+#if 0
+void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
 {
 	int iLength = (int)strlen(szMask); // kmodx: compute strlen only once
-
 	// loop through each character in the szMask parameter
 	for (int i=0;i<iLength;i++) // kmodx: see above
-	{
-		// if the current character in the string is a zero
+	{	// if the current character in the string is a zero
 		if (szMask[i] == '0')
 		{
 			// shift the current value of the mask to the left by 4 bits
@@ -273,16 +230,11 @@ void CvXMLLoadUtility::ResetGlobalEffectInfo()
 			*puiMask += 15;
 		}
 	}
-}*/
+}
+#endif
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   SkipToNextVal()
-//
-//  PURPOSE :   Go through the xml until we either reach a non-comment node or the end of the xml
-//		returns false if it can't find one
-//
-//------------------------------------------------------------------------------------------------------
+/*  Goes through the XML tree until reaching a non-comment node.
+	Returns false if it can't find one. */
 bool CvXMLLoadUtility::SkipToNextVal()
 {
 	// we will loop through and skip over any comment nodes
@@ -298,25 +250,15 @@ bool CvXMLLoadUtility::SkipToNextVal()
 	return true;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   FindInInfoClass(TCHAR* pszVal, CvInfoBase* pInfos, int iClassSize, int iListLen)
-//
-//  PURPOSE :   check through the pszList parameter for the pszVal and returns the location a match
-//				is found if one is found.
-//				returns -1 if no match is found
-//
-//------------------------------------------------------------------------------------------------------
+/*  Looks for pszVal in pszList and returns the location of the match or
+	-1 if no match is found. */
 int CvXMLLoadUtility::FindInInfoClass(const TCHAR* pszVal, bool hideAssert)
 {
 	int idx = GC.getInfoTypeForString(pszVal, hideAssert);
-
 	// if we found a match in the list we will return the value of the loop counter
 	// which will hold the location of the match in the list
 	if (idx != -1)
-	{
 		return idx;
-	}
 
 	if(!hideAssert)
 	{
@@ -331,16 +273,11 @@ int CvXMLLoadUtility::FindInInfoClass(const TCHAR* pszVal, bool hideAssert)
 	return idx;
 }
 
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   LoadCivXml(FXml* pFXml, TCHAR* szFilename)
-//
-//  PURPOSE :   Gets the full pathname for the xml file from the FileManager .
-//				If it is succesful we return true
-//				from the function and a valid FXml pointer to the pFXml parameter.
-//
-//------------------------------------------------------------------------------------------------------
+/*  Loads an XML file into the FXml variable. The szFilename parameter has the
+	m_szXmlPath member variable pre-pended to it to form the full pathname.
+	Gets the full pathname for the XML file from the FileManager.
+	If successful, we return true from the function and set pFXml to a
+	valid FXml pointer. */ // (advc: Comment from header file merged in)
 bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 {
 	char szLog[256];
@@ -353,9 +290,7 @@ bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 	CvString fsFilename = szFilename;
 
 	if (!gDLL->fileManagerEnabled())
-	{
 		szPath = "Assets//" + szPath;
-	}
 
 	logMsg("Loading XML file %s\n", szPath.c_str());
 
@@ -370,88 +305,63 @@ bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 	return true;	// success
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   CreateHotKeyFromDescription(bool bShift, bool bAlt, bool bCtrl)
-//
-//  PURPOSE :   create a hot key from a description and return it
-//
-//------------------------------------------------------------------------------------------------------
-CvWString CvXMLLoadUtility::CreateHotKeyFromDescription(const TCHAR* pszHotKey, bool bShift, bool bAlt, bool bCtrl)
+// see KeyStringFromKBCode
+// advc: Renamed from "CreateHotKeyFromDescription"; nothing is "created" here.
+CvWString CvXMLLoadUtility::HotKeyFromDescription(const TCHAR* pszHotKey, bool bShift, bool bAlt, bool bCtrl)
 {
 	// Delete <COLOR:140,255,40,255>Shift+Delete</COLOR>
 	CvWString szHotKey;
-
 	if (pszHotKey && strcmp(pszHotKey,"") != 0)
 	{
 		szHotKey += L" <color=140,255,40,255>";
 		szHotKey += L"&lt;";
 
 		if (bShift)
-		{
 			szHotKey += gDLL->getText("TXT_KEY_SHIFT");
-		}
 
 		if (bAlt)
-		{
 			szHotKey += gDLL->getText("TXT_KEY_ALT");
-		}
 
 		if (bCtrl)
-		{
 			szHotKey += gDLL->getText("TXT_KEY_CTRL");
-		}
 
-		szHotKey = szHotKey + CreateKeyStringFromKBCode(pszHotKey);
+		szHotKey = szHotKey + KeyStringFromKBCode(pszHotKey);
 		szHotKey += L">";
 		szHotKey += L"</color>";
 	}
-
 	return szHotKey;
 }
 
+/*	Sets the number of strings in a list, initializes the string to the correct length,
+	and fills it from the current XML file. Assumes that the current node is
+	the parent node of the string list children. */
 bool CvXMLLoadUtility::SetStringList(CvString** ppszStringArray, int* piSize)
 {
-	int i;
-	CvString* pszStringArray;
-
 	FAssertMsg(*ppszStringArray == NULL, "Possible memory leak");
 	*piSize = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
 	*ppszStringArray = NULL;
 	if (*piSize > 0)
 	{
 		*ppszStringArray = new CvString[*piSize];
-		pszStringArray = *ppszStringArray;
+		CvString* pszStringArray = *ppszStringArray;
 		if (GetChildXmlVal(pszStringArray[0]))
 		{
-			for (i=1;i<*piSize;i++)
+			for (int i = 1; i < *piSize; i++)
 			{
 				if (!GetNextXmlVal(pszStringArray[i]))
-				{
 					break;
-				}
 			}
-
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 		}
 	}
-
 	return true;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   CreateKeyStringFromKBCode(const TCHAR* pszHotKey)
-//
-//  PURPOSE :   Create a keyboard string from a KB code, Delete would be returned for KB_DELETE
-//
-//------------------------------------------------------------------------------------------------------
-CvWString CvXMLLoadUtility::CreateKeyStringFromKBCode(const TCHAR* pszHotKey)
+// KB code to string; e.g. KB_DELETE -> "Delete"
+// advc: Renamed from "CreateKeyStringFromKBCode"
+CvWString CvXMLLoadUtility::KeyStringFromKBCode(const TCHAR* pszHotKey)
 {
-	// SPEEDUP
 	PROFILE("CreateKeyStringFromKBCode");
-
-	int i;
 
 	struct CvKeyBoardMapping
 	{
@@ -573,37 +483,30 @@ CvWString CvXMLLoadUtility::CreateKeyStringFromKBCode(const TCHAR* pszHotKey)
 		{"KB_DELETE",gDLL->getText("TXT_KEY_KEYBOARD_DELETE_KEY")},
 	};
 
-	for (i=0;i<iNumKeyBoardMappings;i++)
+	for (int i = 0; i < iNumKeyBoardMappings; i++)
 	{
 		if (strcmp(asCvKeyBoardMapping[i].szDefineString, pszHotKey) == 0)
-		{
 			return asCvKeyBoardMapping[i].szKeyString;
-		}
 	}
 
 	return "";
 }
 
-//
 // call the progress updater fxn if it exists
-//
 void CvXMLLoadUtility::UpdateProgressCB(const char* szMessage)
 {
-	if (m_iCurProgressStep>GetNumProgressSteps())
-	{
-		m_iCurProgressStep=1;	// wrap
-	}
+	// advc: RegisterProgressCB is never called, so m_pCBFxn is alway NULL.
+	/*if (m_iCurProgressStep > GetNumProgressSteps())
+		m_iCurProgressStep = 1; // wrap
 
-	if (m_pCBFxn)
+	if (m_pCBFxn != NULL)
 	{
 		m_pCBFxn(++m_iCurProgressStep, GetNumProgressSteps(), CvString::format("Reading XML %s",
 			szMessage ? szMessage : "").c_str());
-	}
+	}*/
 }
 
-//
-// use for fast lookup of children by name
-//
+// for fast lookup of children by name
 void CvXMLLoadUtility::MapChildren()
 {
 	gDLL->getXMLIFace()->MapChildren(m_pFXml);

@@ -916,7 +916,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 							kChange.eBuildingClass = (BuildingClassTypes)pXML->FindInInfoClass(szTextVal);
 							pXML->GetNextXmlVal(szTextVal);
 							kChange.eYield = (YieldTypes)pXML->FindInInfoClass(szTextVal);
-							pXML->GetNextXmlVal(&kChange.iChange);
+							pXML->GetNextXmlVal(kChange.iChange);
 							m_aBuildingYieldChanges.push_back(kChange);
 
 							gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -949,7 +949,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 							kChange.eBuildingClass = (BuildingClassTypes)pXML->FindInInfoClass(szTextVal);
 							pXML->GetNextXmlVal(szTextVal);
 							kChange.eCommerce = (CommerceTypes)pXML->FindInInfoClass(szTextVal);
-							pXML->GetNextXmlVal(&kChange.iChange);
+							pXML->GetNextXmlVal(kChange.iChange);
 							m_aBuildingCommerceChanges.push_back(kChange);
 							gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 						}
@@ -980,7 +980,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 						{
 							BuildingClassTypes eBuildingClass = (BuildingClassTypes)pXML->FindInInfoClass(szTextVal);
 							int iChange;
-							pXML->GetNextXmlVal(&iChange);
+							pXML->GetNextXmlVal(iChange);
 							m_aBuildingHappyChanges.push_back(std::make_pair(eBuildingClass, iChange));
 
 							gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -1012,7 +1012,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 						{
 							BuildingClassTypes eBuildingClass = (BuildingClassTypes)pXML->FindInInfoClass(szTextVal);
 							int iChange;
-							pXML->GetNextXmlVal(&iChange);
+							pXML->GetNextXmlVal(iChange);
 							m_aBuildingHealthChanges.push_back(std::make_pair(eBuildingClass, iChange));
 							gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 

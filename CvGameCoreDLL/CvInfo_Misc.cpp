@@ -657,7 +657,7 @@ bool CvWorldPickerInfo::read(CvXMLLoadUtility* pXML)
 			do
 			{
 				float fVal;
-				pXML->GetXmlVal(&fVal);
+				pXML->GetXmlVal(fVal);
 				m_aSizes.push_back(fVal);
 			} while (gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "Size"));
 
@@ -1927,12 +1927,9 @@ bool CvPlayerOptionInfo::getDefault() const
 bool CvPlayerOptionInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
-	{
 		return false;
-	}
 
 	pXML->GetChildXmlValByName(&m_bDefault, "bDefault");
-
 	return true;
 }
 

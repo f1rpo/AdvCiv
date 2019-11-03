@@ -118,7 +118,7 @@ public:
 private: // Compile-time constants (advc: private)
 	static const int SIZE = EnumMapGetDefault<T>::SIZE;
 	static const int SIZE_OF_T = EnumMapGetDefault<T>::SIZE_OF_T;
-	// advc: Renamed from LENGTH; can't guarantee a length for types loaded from XML.
+	// advc: Renamed from "LENGTH"; can't guarantee a length for types loaded from XML.
 	static const int MAX_LENGTH = EnumMapGetDefault<LengthType>::MAX_LENGTH;
 
 	static const bool bINLINE_NATIVE = (SIZE == ENUMMAP_SIZE_NATIVE && (MAX_LENGTH * SIZE_OF_T) <= ENUMMAP_MAX_BYTES);
@@ -158,9 +158,9 @@ public:
 private:
 
 	// the actual memory in this class
-    // since it's a union, the goal is to keep all of them to 4 bytes
-    // the exception is when bINLINE is set and is allowed to use more than 4 bytes
-    // an example of this is <PlayerTypes, bool> has a bool for each player, hence 8 bytes
+	// since it's a union, the goal is to keep all of them to 4 bytes
+	// the exception is when bINLINE is set and is allowed to use more than 4 bytes
+	// an example of this is <PlayerTypes, bool> has a bool for each player, hence 8 bytes
 	union
 	{
 		T* m_pArrayFull;
@@ -386,7 +386,6 @@ private:
 	template<>
 	__forceinline void _setAll<true, ENUMMAP_SIZE_BOOL>(T eValue)
 	{
-		// advc: <bInline> param appears to have been missing
 		std::fill_n(&m_InlineBoolArray[0], _getNumBoolBlocks<bINLINE>(), eValue ? MAX_UNSIGNED_INT : 0);
 	}
 
@@ -465,7 +464,7 @@ private:
 			bool bTmp;
 			pStream->Read(&bTmp);
 			set(eIndex, bTmp);
-		}
+		} // </advc>
 	} 
 	
 	template<>
@@ -617,7 +616,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::addAll(T eValue)
 {
@@ -645,7 +644,7 @@ bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 	if (bINLINE_BOOL)
 	{
 		for (int i = 0; i < NUM_BOOL_BLOCKS; ++i)
-		{	// advc: was m_pArrayBool (bug? work in progress?)
+		{
 			if (m_InlineBoolArray[i] != BOOL_BLOCK_DEFAULT)
 			{
 				return true;
@@ -689,7 +688,7 @@ bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getMin() const
 {
@@ -703,7 +702,7 @@ T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getMax() const
 {
@@ -729,7 +728,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::keepMax(IndexType eIndex, T eValue)
 {
@@ -742,7 +741,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::reset()
 {
@@ -759,7 +758,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::setAll(T eValue)
 {
@@ -793,7 +792,7 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<int SIZE2>
-// advc: inline removed
+// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::_Read(/* advc: */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort)
 {
@@ -835,7 +834,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<int SIZE2>
-// advc: inline removed
+// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::_Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt) const
 {
@@ -868,7 +867,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 //
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator=(const EnumMapBase &rhs)
@@ -890,7 +889,7 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: inline removed
+// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs)
@@ -914,7 +913,7 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: inline removed
+// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator+=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs)
@@ -938,7 +937,7 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: inline removed
+// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator-=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs)
@@ -962,7 +961,7 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: inline removed
+// advc: was inline
 bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator==(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs) const
 {
@@ -990,7 +989,7 @@ bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: inline removed
+// advc: was inline
 bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator!=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs) const
 {
