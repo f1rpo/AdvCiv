@@ -426,10 +426,11 @@ void CvMap::verifyUnitValidPlot()
 }
 
 
-void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2)
+void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2,
+	bool bVerifyProduction) // advc.064d
 {
-	FAssertMsg(pPlotGroup1 != NULL, "pPlotGroup is not assigned to a valid value");
-	FAssertMsg(pPlotGroup2 != NULL, "pPlotGroup is not assigned to a valid value");
+	FAssert(pPlotGroup1 != NULL);
+	FAssert(pPlotGroup2 != NULL);
 
 	if(pPlotGroup1 == pPlotGroup2)
 		return;
@@ -452,7 +453,7 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 	while (pPlotNode != NULL)
 	{
 		CvPlot& kPlot = getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-		pNewPlotGroup->addPlot(&kPlot);
+		pNewPlotGroup->addPlot(&kPlot, /* advc.064d: */ bVerifyProduction);
 		pPlotNode = pOldPlotGroup->deletePlotsNode(pPlotNode);
 	}
 }

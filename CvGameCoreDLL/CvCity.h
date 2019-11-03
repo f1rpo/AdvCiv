@@ -1201,6 +1201,7 @@ protected:
 	void doGrowth();
 	void doCulture();
 	bool doCheckProduction();
+	bool checkCanContinueProduction(); // advc.064d
 	void doProduction(bool bAllowNoProduction);
 	void doDecay();
 	void doReligion();

@@ -25,15 +25,8 @@ CvPlotGroup::~CvPlotGroup()
 
 void CvPlotGroup::init(int iID, PlayerTypes eOwner, CvPlot* pPlot)
 {
-	//--------------------------------
-	// Init saved data
 	reset(iID, eOwner);
 
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other game data
 	addPlot(pPlot);
 }
 
@@ -49,10 +42,6 @@ void CvPlotGroup::uninit()
 // Initializes data members that are serialized.
 void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 {
-	int iI;
-
-	//--------------------------------
-	// Uninit class
 	uninit();
 
 	m_iID = iID;
@@ -60,9 +49,9 @@ void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 
 	if (!bConstructorCall)
 	{
-		FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset");
+		FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset");
 		m_paiNumBonuses = new int [GC.getNumBonusInfos()];
-		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			m_paiNumBonuses[iI] = 0;
 		}
@@ -70,29 +59,25 @@ void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 }
 
 
-void CvPlotGroup::addPlot(CvPlot* pPlot)
+void CvPlotGroup::addPlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduction)
 {
 	XYCoords xy;
-
 	xy.iX = pPlot->getX();
 	xy.iY = pPlot->getY();
-
 	insertAtEndPlots(xy);
-
-	pPlot->setPlotGroup(getOwner(), this);
+	pPlot->setPlotGroup(getOwner(), this, /* advc.064d: */ bVerifyProduction);
 }
 
 
-void CvPlotGroup::removePlot(CvPlot* pPlot)
+void CvPlotGroup::removePlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduction)
 {
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL)
 	{
 		if (GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY) == pPlot)
 		{
-			pPlot->setPlotGroup(getOwner(), NULL);
-
-			pPlotNode = deletePlotsNode(pPlotNode); // can delete this PlotGroup...
+			pPlot->setPlotGroup(getOwner(), NULL, /* advc.064d: */ bVerifyProduction);
+			pPlotNode = deletePlotsNode(pPlotNode); // can delete this CvPlotGroup
 			break;
 		}
 		else pPlotNode = nextPlotsNode(pPlotNode);
@@ -225,7 +210,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 // <advc.064d>
 void CvPlotGroup::verifyCityProduction()
 {
-	PROFILE_FUNC(); // About 1 permille of the runtime (July 2019)
+	PROFILE_FUNC(); // About 1 permille of the runtime [upd.: should be less now b/c CvCity::verifyProduction no longer calls doCheckProduction]
 	if (m_iRecalculating > 0)
 		return;
 	CvMap const& m = GC.getMap();

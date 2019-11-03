@@ -1647,11 +1647,8 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 CvPlotGroup* CvPlayer::initPlotGroup(CvPlot* pPlot)
 {
 	CvPlotGroup* pPlotGroup = addPlotGroup();
-
-	FAssertMsg(pPlotGroup != NULL, "PlotGroup is not assigned a valid value");
-
+	FAssert(pPlotGroup != NULL);
 	pPlotGroup->init(pPlotGroup->getID(), getID(), pPlot);
-
 	return pPlotGroup;
 }
 
@@ -3235,13 +3232,15 @@ void CvPlayer::updatePlotGroups()
 		return;
 
 	int iLoop;
-	for(CvPlotGroup* pLoopPlotGroup = pLoopPlotGroup = firstPlotGroup(&iLoop);
+	for(CvPlotGroup* pLoopPlotGroup = firstPlotGroup(&iLoop);
 			pLoopPlotGroup != NULL; pLoopPlotGroup = nextPlotGroup(&iLoop))
 		pLoopPlotGroup->recalculatePlots();
+
 	CvMap const& kMap = GC.getMap();
 	for(int iI = 0; iI < kMap.numPlots(); iI++)
-		kMap.getPlotByIndex(iI).updatePlotGroup(getID(), false);
+		kMap.getPlotByIndex(iI).updatePlotGroup(getID(), false, /* advc.064d: */ false);
 
+	verifyCityProduction(); // advc.064d
 	updateTradeRoutes();
 }
 
@@ -9381,34 +9380,21 @@ void CvPlayer::setCapitalCity(CvCity* pNewCapitalCity)
 	if (bUpdatePlotGroups)
 	{
 		if (pOldCapitalCity != NULL)
-		{
-			pOldCapitalCity->plot()->updatePlotGroupBonus(false);
-		}
+			pOldCapitalCity->plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
 		if (pNewCapitalCity != NULL)
-		{
 			pNewCapitalCity->plot()->updatePlotGroupBonus(false);
-		}
 	}
 
 	if (pNewCapitalCity != NULL)
-	{
 		m_iCapitalCityID = pNewCapitalCity->getID();
-	}
-	else
-	{
-		m_iCapitalCityID = FFreeList::INVALID_INDEX;
-	}
+	else m_iCapitalCityID = FFreeList::INVALID_INDEX;
 
 	if (bUpdatePlotGroups)
 	{
 		if (pOldCapitalCity != NULL)
-		{
-			pOldCapitalCity->plot()->updatePlotGroupBonus(true);
-		}
+			pOldCapitalCity->plot()->updatePlotGroupBonus(true, /* advc.064d: */ false);
 		if (pNewCapitalCity != NULL)
-		{
 			pNewCapitalCity->plot()->updatePlotGroupBonus(true);
-		}
 	}
 
 	updateMaintenance();
@@ -9417,13 +9403,11 @@ void CvPlayer::setCapitalCity(CvCity* pNewCapitalCity)
 	if (pOldCapitalCity != NULL)
 	{
 		pOldCapitalCity->updateCommerce();
-
 		pOldCapitalCity->setInfoDirty(true);
 	}
 	if (pNewCapitalCity != NULL)
 	{
 		pNewCapitalCity->updateCommerce();
-
 		pNewCapitalCity->setInfoDirty(true);
 	}
 }
@@ -11267,7 +11251,7 @@ void CvPlayer::changeBonusExport(BonusTypes eIndex, int iChange)
 		return; // advc
 	CvCity* pCapitalCity = getCapitalCity();
 	if (pCapitalCity != NULL)
-		pCapitalCity->plot()->updatePlotGroupBonus(false);
+		pCapitalCity->plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
 
 	m_paiBonusExport[eIndex] = (m_paiBonusExport[eIndex] + iChange);
 	FAssert(getBonusExport(eIndex) >= 0);
@@ -11295,7 +11279,7 @@ void CvPlayer::changeBonusImport(BonusTypes eIndex, int iChange)
 		return; // advc
 	CvCity* pCapitalCity = getCapitalCity();
 	if (pCapitalCity != NULL)
-		pCapitalCity->plot()->updatePlotGroupBonus(false);
+		pCapitalCity->plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
 
 	m_paiBonusImport[eIndex] = (m_paiBonusImport[eIndex] + iChange);
 	FAssert(getBonusImport(eIndex) >= 0);

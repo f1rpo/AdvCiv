@@ -74,7 +74,7 @@ public:
 	int getPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;													// Exposed to Python
 	bool isPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;								// Exposed to Python
 	bool isAdjacentPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;				// Exposed to Python
-	void updatePlotGroupBonus(bool bAdd);
+	void updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduction = true);
 
 	bool isAdjacentToArea(int iAreaID) const;
 	bool isAdjacentToArea(const CvArea* pArea) const;																						// Exposed to Python
@@ -472,9 +472,11 @@ public:
 
 	CvPlotGroup* getPlotGroup(PlayerTypes ePlayer) const;
 	CvPlotGroup* getOwnerPlotGroup() const;
-	void setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue);
+	void setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
+			bool bVerifyProduction = true); // advc.064d
 	void updatePlotGroup();
-	void updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate = true);
+	void updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate = true,
+			bool bVerifyProduction = true); // advc.064d
 
 	// advc.003f: inline
 	inline int getVisibilityCount(TeamTypes eTeam) const { return m_aiVisibilityCount.get(eTeam); }																				// Exposed to Python

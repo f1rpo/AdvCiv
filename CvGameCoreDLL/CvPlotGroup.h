@@ -21,8 +21,8 @@ public:
 	void uninit();
 	void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, bool bConstructorCall=false);
 
-	void addPlot(CvPlot* pPlot);
-	void removePlot(CvPlot* pPlot);
+	void addPlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduction = true);
+	void removePlot(CvPlot* pPlot, bool bVerifyProduction = true);
 	void recalculatePlots();
 
 	inline int getID() const { return m_iID; } // advc.003f

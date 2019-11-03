@@ -910,7 +910,7 @@ bool CvPlot::isAdjacentPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes e
 }
 
 
-void CvPlot::updatePlotGroupBonus(bool bAdd)  // advc style changes
+void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduction)  // advc: style changes
 {
 	PROFILE_FUNC();
 
@@ -961,11 +961,8 @@ void CvPlot::updatePlotGroupBonus(bool bAdd)  // advc style changes
 	if (eBonus != NO_BONUS && pPlotGroup && isBonusNetwork(getTeam()))
 		pPlotGroup->changeNumBonuses(eBonus, bAdd ? 1 : -1);
 	// K-Mod end
-	/*  <advc.064d> This function is always called with bAdd=false first and
-		then with bAdd=true. Verifying city production after the first call would
-		be wasteful and would result in spurious choose production popups (as the
-		bonus is taken away only temporarily). */
-	if(bAdd)
+	// <advc.064d>
+	if (bVerifyProduction)
 		pPlotGroup->verifyCityProduction(); // </advc.064d>
 }
 
@@ -3800,7 +3797,7 @@ void CvPlot::setNOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 
 	if (isNOfRiver() != bNewValue)
 	{
-		updatePlotGroupBonus(false);
+		updatePlotGroupBonus(false, /* advc.064d: */ false);
 		m_bNOfRiver = bNewValue;
 		updatePlotGroupBonus(true);
 
@@ -3846,7 +3843,7 @@ void CvPlot::setWOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 
 	if (isWOfRiver() != bNewValue)
 	{
-		updatePlotGroupBonus(false);
+		updatePlotGroupBonus(false, /* advc.064d: */ false);
 		m_bWOfRiver = bNewValue;
 		updatePlotGroupBonus(true);
 
@@ -4258,7 +4255,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), -1);
 			}
 
-			updatePlotGroupBonus(false);
+			updatePlotGroupBonus(false, /* advc.064d: */ false);
 		}
 
 		CLLNode<IDInfo>* pUnitNode = headUnitNode();
@@ -4886,7 +4883,7 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 			GC.getMap().changeNumBonusesOnLand(getBonusType(), -1);
 	}
 
-	updatePlotGroupBonus(false);
+	updatePlotGroupBonus(false, /* advc.064d: */ false);
 	m_eBonusType = eNewValue;
 	updatePlotGroupBonus(true);
 
@@ -4928,7 +4925,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 			GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), -1);
 	}
 
-	updatePlotGroupBonus(false);
+	updatePlotGroupBonus(false, /* advc.064d: */ false);
 	m_eImprovementType = eNewValue;
 	updatePlotGroupBonus(true);
 
@@ -5014,7 +5011,7 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 
 	bool bOldRoute = isRoute(); // XXX is this right???
 
-	updatePlotGroupBonus(false);
+	updatePlotGroupBonus(false, /* advc.064d: */ false);
 	m_eRouteType = eNewValue;
 	updatePlotGroupBonus(true);
 
@@ -5082,7 +5079,7 @@ void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 		}
 	}
 
-	updatePlotGroupBonus(false);
+	updatePlotGroupBonus(false, /* advc.064d: */ false);
 	if (isCity())
 	{
 		CvPlotGroup* pPlotGroup = getPlotGroup(getOwner());
@@ -5792,7 +5789,8 @@ CvPlotGroup* CvPlot::getOwnerPlotGroup() const
 }
 
 
-void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue)
+void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
+	bool bVerifyProduction) // advc.064d
 {
 	CvPlotGroup* pOldPlotGroup = getPlotGroup(ePlayer);
 	if(pOldPlotGroup == pNewValue)
@@ -5800,7 +5798,7 @@ void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue)
 
 	CvCity* pCity = getPlotCity();
 	if (ePlayer == getOwner())
-		updatePlotGroupBonus(false);
+		updatePlotGroupBonus(false, /* advc.064d: */ false);
 
 	if (pOldPlotGroup != NULL && pCity != NULL && pCity->getOwner() == ePlayer)
 	{
@@ -5819,7 +5817,7 @@ void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue)
 	}
 
 	if (ePlayer == getOwner())
-		updatePlotGroupBonus(true);
+		updatePlotGroupBonus(true, /* advc.064d: */ bVerifyProduction);
 }
 
 
@@ -5835,7 +5833,8 @@ void CvPlot::updatePlotGroup()
 }
 
 
-void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate)
+void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
+	bool bVerifyProduction) // advc.064d
 {
 	//PROFILE("CvPlot::updatePlotGroup(Player)");
 
@@ -5871,9 +5870,9 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate)
 			if (!bConnected)
 			{
 				bool bEmpty = (pPlotGroup->getLengthPlots() == 1);
-				FAssertMsg(pPlotGroup->getLengthPlots() > 0, "pPlotGroup should have more than 0 plots");
+				FAssert(pPlotGroup->getLengthPlots() > 0);
 
-				pPlotGroup->removePlot(this);
+				pPlotGroup->removePlot(this, /* advc.064d: */ bVerifyProduction);
 				if (!bEmpty)
 					pPlotGroup->recalculatePlots();
 			}
@@ -5884,6 +5883,7 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate)
 	if (!isTradeNetwork(eTeam))
 		return;
 
+	CvMap& kMap = GC.getMap();
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
@@ -5899,14 +5899,15 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate)
 				{
 					pAdjacentPlotGroup->addPlot(this);
 					pPlotGroup = pAdjacentPlotGroup;
-					FAssertMsg(getPlotGroup(ePlayer) == pPlotGroup, "ePlayer's plot group is expected to equal pPlotGroup");
+					FAssert(getPlotGroup(ePlayer) == pPlotGroup);
 				}
 				else
 				{
-					FAssertMsg(getPlotGroup(ePlayer) == pPlotGroup, "ePlayer's plot group is expected to equal pPlotGroup");
-					GC.getMap().combinePlotGroups(ePlayer, pPlotGroup, pAdjacentPlotGroup);
+					FAssert(getPlotGroup(ePlayer) == pPlotGroup);
+					kMap.combinePlotGroups(ePlayer, pPlotGroup, pAdjacentPlotGroup,
+							bVerifyProduction); // advc.064d
 					pPlotGroup = getPlotGroup(ePlayer);
-					FAssertMsg(pPlotGroup != NULL, "PlotGroup is not assigned a valid value");
+					FAssert(pPlotGroup != NULL);
 				}
 			}
 		}

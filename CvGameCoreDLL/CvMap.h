@@ -240,7 +240,8 @@ public: // advc: made several functions const
 	void updateYield();
 
 	void verifyUnitValidPlot();
-	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);
+	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2,
+			bool bVerifyProduction = true); // advc.064d
 
 	CvPlot* syncRandPlot(int iFlags = 0, CvArea const* pArea = NULL, // advc: was iArea								// Exposed to Python
 			int iMinCivUnitDistance = -1,

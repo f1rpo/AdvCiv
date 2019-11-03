@@ -6179,7 +6179,7 @@ void CvTeam::setForceRevealedBonus(BonusTypes eBonus, bool bRevealed)
 		if (kPlot.getBonusType() == eBonus)
 		{
 			if (kPlot.getTeam() == getID())
-				kPlot.updatePlotGroupBonus(false);
+				kPlot.updatePlotGroupBonus(false, /* advc.064d: */ false);
 		}
 	}
 	if (bRevealed)
