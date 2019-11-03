@@ -11165,12 +11165,12 @@ bool CvUnitAI::AI_singleUnitHeal(int iMaxTurnsExposed, int iMaxTurnsOutsideCity)
 {
 	CvSelectionGroup& kGroup = *getGroup();
 
-	if (isAlwaysHeal() || getDamage() <= 0 || kGroup.getNumUnits() <= 1)
+	if (isAlwaysHeal() || getDamage() <= 0 || kGroup.getNumUnits() != 1)
 		return false;
 	bool bHeal = false;
 	if (plot()->isCity())
 		bHeal = true;
-	else
+	else if (!isBarbarian())
 	{
 		int const iHealTurns = healTurns(plot());
 		if (iHealTurns >= 20) // advc: Feature damage
@@ -11206,14 +11206,11 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 	if (kGroup.getNumUnits() == 1)
 	{
 		// advc.299: Moved into new function
-		if (AI_singleUnitHeal())
-			return true;
-		return false;
+		return AI_singleUnitHeal();
 	}
 
-
 	FeatureTypes const eFeature = plot()->getFeatureType();
-	if (eFeature != NO_FEATURE && GC.getInfo(eFeature).getTurnDamage() != 0)
+	if (eFeature != NO_FEATURE && GC.getInfo(eFeature).getTurnDamage() > 0)
 	{
 		//Pass through (actively seeking a safe spot may result in unit getting stuck)
 		return false;
