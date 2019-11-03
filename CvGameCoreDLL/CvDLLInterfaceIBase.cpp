@@ -22,9 +22,10 @@ void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
 		!kPlayer.isHumanDisabled() &&
 		GC.getGame().getRiseFall().isDeliverMessages(ePlayer)))
 	{	// </advc.700>
-		addMessageExternal(ePlayer, bForce, iLength, szString, pszSound, eType,
-				pszIcon, eFlashColor, iFlashX, iFlashY, bShowOffScreenArrows,
-				bShowOnScreenArrows);
+		addMessageExternal(ePlayer, bForce
+				&& !gDLL->getEngineIFace()->isGlobeviewUp(), // advc.106
+				iLength, szString, pszSound, eType, pszIcon, eFlashColor, iFlashX, iFlashY,
+				bShowOffScreenArrows, bShowOnScreenArrows);
 	}
 	//else if (GC.getGame().getActivePlayer() == ePlayer)
 	// advc.700: Replacing the above
@@ -35,10 +36,8 @@ void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
 				eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) // advc.106b
 		{
 			addMessageExternal(ePlayer,
-				/*  advc.127: bForce=true causes the event to be announced
-					immediately, whereas bForce=false seems to delay the
-					announcement until the start of the next turn (until the
-					preceding event has been on display long enough?).
+				/*  advc.127: bForce=true causes the event to be announced immediately,
+					whereas bForce=false delays the announcement until the start of the next turn.
 					bForce=true should make Auto Play easier to follow.
 					Also set pszSound to NULL; no sounds during Auto Play. */
 					true, iLength, szString, NULL, eType, NULL,
