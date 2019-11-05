@@ -20,8 +20,8 @@
 #   difficult to associate error messages with a translation unit; but don't need
 #   a slow version of every config.]
 # YOURMOD2 and YOURLOGS (see under "Paths").
-# PROJECT_Profile_CFLAGS added to Makefile.project. So that the internal profiler
-# can be enabled from there.
+# PROJECT_Profile_CFLAGS and PROJECT_Debug_CFLAGS added to Makefile.project.
+# For selecting a profiler and for balancing speed vs. fidelity of debug builds.
 # Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
 # devolution (Erik) has added the target 'Final_Release' with
 #   whole-program optimization. [There is also a Firaxis define called
@@ -109,6 +109,7 @@ CUSTOM_LDFLAGS =
 
 PRECOMPILE_DEPENDENCIES =
 PROJECT_CFLAGS =
+PROJECT_Debug_CFLAGS =
 PROJECT_Profile_CFLAGS =
 PROJECT_LDFLAGS =
 SOURCE_DIR =
@@ -137,6 +138,8 @@ SUBDIRPATH15 = ../
 !IF [ECHO PROJECT_LDFLAGS = >> Makefile.project]
 !ENDIF
 !IF [ECHO PROJECT_Profile_CFLAGS = >> Makefile.project]
+!ENDIF
+!IF [ECHO PROJECT_Debug_CFLAGS = >> Makefile.project]
 !ENDIF
 !IF [ECHO PRECOMPILE_DEPENDENCIES = >> Makefile.project]
 !ENDIF
@@ -185,7 +188,7 @@ FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 
 #### CFLAGS ####
 GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
-Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS)
+Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_Debug_CFLAGS)
 # (Debug-opt: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
 Debug_Opt_CFLAGS=/MD /O2 /Z7 /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
 Release_CFLAGS=/MD /O2 /Oy /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
@@ -236,7 +239,9 @@ LDFLAGS = $(Debug_LDFLAGS)
 LIBS    = $(LIBS) msvcprt.lib
 !ENDIF
 !IF "$(TARGET)" == "Debug-opt"
-CFLAGS  = $(Debug_Opt_CFLAGS) /DFASSERT_ENABLE
+CFLAGS  = $(Debug_Opt_CFLAGS)
+# Should remove this line when inspecting assembly
+CFLAGS = $(CFLAGS) /DFASSERT_ENABLE
 LDFLAGS = $(Debug_LDFLAGS)
 # Leaving out msvcprt might help with debugging memory (but I doubt it)
 LIBS    = $(LIBS) msvcprt.lib

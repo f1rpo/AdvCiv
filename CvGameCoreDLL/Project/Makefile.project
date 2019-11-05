@@ -1,5 +1,10 @@
 SOURCE_DIR = ..
 PROJECT_CFLAGS = /WX
-PROJECT_Profile_CFLAGS = /DFP_PROFILE_ENABLE /DUSE_INTERNAL_PROFILER
+# Allow inline expansion of functions with an inline keyword even for debug builds
+PROJECT_Debug_CFLAGS = /Ob1
+# DLL-internal profiler: /DUSE_INTERNAL_PROFILER
+# Time Stamp Counter profiler: /DUSE_TSC_PROFILER
+# Standard Firaxis profiler (not sure if this can work w/o access to the EXE): /DFP_PROFILE_ENABLE
+PROJECT_Profile_CFLAGS = /DUSE_TSC_PROFILER
 PROJECT_LDFLAGS = /DEF:CvGameCoreDLL.def
 PRECOMPILE_DEPENDENCIES = 

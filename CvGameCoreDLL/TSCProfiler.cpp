@@ -1,6 +1,9 @@
-
 #include "CvGameCoreDLL.h"
-#include "Profile.h"
+#include "TSCProfiler.h"
+
+// advc.003o: Adopted from "We the People"; see comment in header file.
+
+#include <sstream> // advc.003o: Will use this instead of fprintf
 
 static __declspec(naked)unsigned __int64 __cdecl RDTSC(void)
 {
@@ -11,30 +14,35 @@ static __declspec(naked)unsigned __int64 __cdecl RDTSC(void)
 	}
 }
 
-Profiler::Profiler(const char* szName)
+TSCSample::TSCSample(const char* szName)
 	: m_szName(szName)
 	, m_iStartTime(RDTSC())
 {
 }
 
-Profiler::~Profiler()
+TSCSample::~TSCSample()
 {
 	unsigned __int64 iTime = RDTSC();
 	iTime -= m_iStartTime;
-	GC.getProfiler().addSample(iTime, m_szName);
+	TSCProfiler::getInstance().addSample(iTime, m_szName);
 }
 
-void ProfilerManager::addSample(unsigned __int64 iTime, const char* szName)
+// <advc.003o>
+TSCProfiler& TSCProfiler::getInstance()
+{
+	static TSCProfiler singleton;
+	return singleton;
+} // </advc.003o>
+
+void TSCProfiler::addSample(unsigned __int64 iTime, const char* szName)
 {
 	SampleStorageTypes::iterator pIterator;
 
-	// TODO: make thread safe without slowing down single threaded performance
+	// TODO: make thread-safe without slowing down single threaded performance
 
 	pIterator = this->m_Samples.find(szName);
 	if (pIterator == m_Samples.end())
-	{
 		m_Samples.insert(std::pair <std::string, storage>( szName, storage(1, iTime)));
-	}
 	else
 	{
 		pIterator->second.first++;
@@ -42,14 +50,26 @@ void ProfilerManager::addSample(unsigned __int64 iTime, const char* szName)
 	}
 }
 
-void ProfilerManager::writeFile() const
+void TSCProfiler::writeFile() const
 {
 	if (m_Samples.empty())
-	{
 		return;
-	}
 
-	CvString filename = gDLL->getModName();
+	// <advc.003o>
+	std::ostringstream out;
+	out << "Name\t\tAverage clocks\tNumber of calls\tTotal clocks\n";
+	for (SampleStorageTypes::const_iterator iterator = m_Samples.begin(); iterator != m_Samples.end(); ++iterator)
+	{
+		unsigned __int64 iCount = iterator->second.first;
+		unsigned __int64 iTime = iterator->second.second;
+		out << iterator->first.c_str() << "\t" << (iTime / iCount) << "\t\t"
+				<< iCount << "\t" << iTime << "\n";
+	}
+	out << std::endl;
+	gDLL->logMsg("TSCProfile.log", out.str().c_str(), false, false);
+	// </advc.003o>
+
+	/*CvString filename = gDLL->getModName();
 	filename.append("Profile output.txt");
 
 	// Using C style file writing
@@ -74,5 +94,5 @@ void ProfilerManager::writeFile() const
 			fprintf(f, "\n");
 		}
 		fclose(f);
-	}
+	}*/
 }
