@@ -1,5 +1,5 @@
 /*  advc.enum: From the "We the People" (WtP) mod for Civ4Col, original author: Nightinggale,
-	who is still working on the EnumMap classes. This version is from 24 Oct 2019.
+	who is still working on the EnumMap classes. This version is from 3 Nov 2019.
 	I have -for now- omitted the WtP serialization functions, and uncoupled the
 	code from the Perl-generated enums that WtP uses. Instead of defining
 	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
@@ -90,6 +90,9 @@ public:
 
 	// add a number to all indexes
 	void addAll(T eValue);
+
+	// get the sum of all elements
+	int getTotal() const;
 	
 	// Check if there is non-default contents.
 	// isAllocated() test for a null pointer while hasContent() will loop the array to test each index for default value.
@@ -627,6 +630,26 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 			add(eIndex, (T)eValue);
 		}
 	}
+}
+
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+// advc: was inline
+int EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getTotal() const
+{
+	// bINLINE is set at compile time and if true, isAllocated will always be true
+	// used here to tell the compiler that the true statement (not allocated) can be declared unreachable at compile time
+	if (!bINLINE && !isAllocated())
+	{
+		// no need to loop through unallocated memory
+		return DEFAULT * getLength();
+	}
+	int iReturnVal = 0;
+	const int iLength = getLength();
+	for (IndexType eIndex = First(); eIndex < iLength; ++eIndex)
+	{
+		iReturnVal += get(eIndex);
+	}
+	return iReturnVal;
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>

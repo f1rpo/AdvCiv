@@ -3080,7 +3080,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 			}
 			/*  This was '> 0' in CvPlot::canTrain, which is apparently a bug,
 				but doesn't really matter b/c no land unit has this prereq. */
-			else if(area()->getNumTotalBonuses() <= 0)
+			else if(!area()->isAnyBonus())
 				continue;
 		}
 		int iMinAreaSz = kUnit.getMinAreaSize();

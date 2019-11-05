@@ -681,10 +681,7 @@ int CvArea::getNumBonuses(BonusTypes eBonus) const
 
 int CvArea::getNumTotalBonuses() const
 {
-	int iTotal = 0;
-	FOR_EACH_ENUM(Bonus)
-		iTotal += m_aiBonuses.get(eLoopBonus);
-	return iTotal;
+	return m_aiBonuses.getTotal();
 }
 
 

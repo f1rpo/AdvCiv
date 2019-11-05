@@ -7,7 +7,7 @@
 void TestEnumMap()
 {
 	// advc: Moved into the function body
-	#if defined(_DEBUG) && defined(_TEST_ENUM_MAP)
+	#if /*defined(_DEBUG) &&*/ defined(_TEST_ENUM_MAP)
 	{
 		EnumMap<RouteTypes, int> test;
 		RouteTypes var = static_cast<RouteTypes>(0);

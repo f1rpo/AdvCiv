@@ -116,6 +116,7 @@ public:
 
 	int getNumBonuses(BonusTypes eBonus) const;																// Exposed to Python
 	int getNumTotalBonuses() const;																						// Exposed to Python
+	bool isAnyBonus() const { return m_aiBonuses.hasContent(); } // advc.opt
 	void changeNumBonuses(BonusTypes eBonus, int iChange);
 
 	int getNumImprovements(ImprovementTypes eImprovement) const;							// Exposed to Python

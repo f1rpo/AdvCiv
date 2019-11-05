@@ -3775,7 +3775,7 @@ bool CvCity::isPrereqBonusSea() const
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
 	{
 		CvPlot* p = plotDirection(getX(), getY(), (DirectionTypes)i);
-		if(p != NULL && p->isWater() && p->area()->getNumTotalBonuses() > 0)
+		if(p != NULL && p->isWater() && p->area()->isAnyBonus())
 			return true;
 	}
 	return false;
