@@ -171,6 +171,7 @@
     <ClCompile Include="..\RiseFall.cpp" />
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
+    <ClCompile Include="..\TSCProfiler.cpp" />
     <ClCompile Include="..\WarAndPeaceAgent.cpp" />
     <ClCompile Include="..\WarAndPeaceAI.cpp" />
     <ClCompile Include="..\WarAndPeaceCache.cpp" />
@@ -314,6 +315,7 @@
     <ClInclude Include="..\LinkedList.h" />
     <ClInclude Include="..\MilitaryAnalyst.h" />
     <ClInclude Include="..\MilitaryBranch.h" />
+    <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\RFChapter.h" />
     <ClInclude Include="..\RFChapterScore.h" />
