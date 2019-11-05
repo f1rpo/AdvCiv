@@ -84,6 +84,7 @@
     <ClCompile Include="..\CvInitCore.cpp" />
     <ClCompile Include="..\CvMap.cpp" />
     <ClCompile Include="..\CvMapGenerator.cpp" />
+    <ClCompile Include="..\CvMemoryManager.cpp" />
     <ClCompile Include="..\CvMessageControl.cpp" />
     <ClCompile Include="..\CvMessageData.cpp" />
     <ClCompile Include="..\CvPlayer.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="..\CyUnitInterface1.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
+    <ClCompile Include="..\FProfiler.cpp" />
     <ClCompile Include="..\InvasionGraph.cpp" />
     <ClCompile Include="..\KmodPathFinder.cpp" />
     <ClCompile Include="..\FAssert.cpp" />
