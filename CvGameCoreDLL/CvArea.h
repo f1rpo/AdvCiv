@@ -118,9 +118,9 @@ public:
 	int getNumTotalBonuses() const;																						// Exposed to Python
 	bool isAnyBonus() const { return m_aiBonuses.hasContent(); } // advc.opt
 	void changeNumBonuses(BonusTypes eBonus, int iChange);
-
-	int getNumImprovements(ImprovementTypes eImprovement) const;							// Exposed to Python
-	void changeNumImprovements(ImprovementTypes eImprovement, int iChange);
+	// advc.opt: No longer used
+	/*int getNumImprovements(ImprovementTypes eImprovement) const;							// Exposed to Python
+	void changeNumImprovements(ImprovementTypes eImprovement, int iChange);*/
 
 protected:
 
@@ -154,7 +154,7 @@ protected:
 	EnumMap<TeamTypes,int> m_aiBorderObstacleCount;
 	EnumMap<TeamTypes,AreaAITypes> m_aeAreaAIType;
 	EnumMap<BonusTypes,int> m_aiBonuses;
-	EnumMap<ImprovementTypes,int> m_aiImprovements;
+	//EnumMap<ImprovementTypes,int> m_aiImprovements; // advc.opt: was only used for CvMapGenerator::addGoodies
 	EnumMap2D<PlayerTypes,YieldTypes,short> m_aaiYieldRateModifier;
 	EnumMap2D<PlayerTypes,UnitAITypes,int> m_aaiNumTrainAIUnits;
 	EnumMap2D<PlayerTypes,UnitAITypes,int> m_aaiNumAIUnits; // </advc.enum>

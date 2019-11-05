@@ -66,7 +66,7 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	m_aiCleanPowerCount.reset();
 	m_aiBorderObstacleCount.reset();
 	m_aiBonuses.reset();
-	m_aiImprovements.reset();
+	//m_aiImprovements.reset(); // advc.opt
 	m_aeAreaAIType.reset();
 
 	for (int i = 0; i < MAX_PLAYERS; i++)
@@ -691,18 +691,17 @@ void CvArea::changeNumBonuses(BonusTypes eBonus, int iChange)
 	FAssert(getNumBonuses(eBonus) >= 0);
 }
 
-
-int CvArea::getNumImprovements(ImprovementTypes eImprovement) const
+// advc.opt: No longer used
+/*int CvArea::getNumImprovements(ImprovementTypes eImprovement) const
 {
 	return m_aiImprovements.get(eImprovement);
 }
-
 
 void CvArea::changeNumImprovements(ImprovementTypes eImprovement, int iChange)
 {
 	m_aiImprovements.add(eImprovement, iChange);
 	FAssert(getNumImprovements(eImprovement) >= 0);
-}
+}*/
 
 
 void CvArea::read(FDataStreamBase* pStream)
@@ -769,7 +768,13 @@ void CvArea::read(FDataStreamBase* pStream)
 	m_aaiNumTrainAIUnits.Read(pStream);
 	m_aaiNumAIUnits.Read(pStream);
 	m_aiBonuses.Read(pStream);
-	m_aiImprovements.Read(pStream);
+	//m_aiImprovements.Read(pStream);
+	// <advc.opt>
+	if (uiFlag < 3)
+	{
+		EnumMap<ImprovementTypes,int> dummy;
+		dummy.Read(pStream);
+	} // </advc.opt>
 }
 
 
@@ -779,6 +784,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	uint uiFlag=0;
 	uiFlag = 1; // advc.030
 	uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
+	uiFlag = 3; // advc.opt: Remove m_aiImprovements
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
@@ -822,5 +828,5 @@ void CvArea::write(FDataStreamBase* pStream)
 	m_aaiNumTrainAIUnits.Write(pStream);
 	m_aaiNumAIUnits.Write(pStream);
 	m_aiBonuses.Write(pStream);
-	m_aiImprovements.Write(pStream);
+	//m_aiImprovements.Write(pStream); // advc.opt
 }

@@ -4918,9 +4918,9 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 		return; // advc
 
 	if (getImprovementType() != NO_IMPROVEMENT)
-	{
-		if (area())
-			area()->changeNumImprovements(getImprovementType(), -1);
+	{	// advc.opt:
+		/*if (area())
+			area()->changeNumImprovements(getImprovementType(), -1);*/
 		if (isOwned())
 			GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), -1);
 	}
@@ -4944,9 +4944,9 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	}
 
 	if (getImprovementType() != NO_IMPROVEMENT)
-	{
-		if (area())
-			area()->changeNumImprovements(getImprovementType(), 1);
+	{	// advc.opt:
+		/*if (area())
+			area()->changeNumImprovements(getImprovementType(), 1);*/
 		if (isOwned())
 			GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), 1);
 	}
@@ -5611,7 +5611,6 @@ int CvPlot::countTotalCulture() const
 		if (GET_PLAYER((PlayerTypes)iI).isEverAlive()) // advc.099: was isAlive
 			iTotal += getCulture((PlayerTypes)iI);
 	}
-
 	return iTotal;
 }
 
@@ -7199,9 +7198,9 @@ void CvPlot::processArea(CvArea* pArea, int iChange)  // advc: style changes
 
 	if (getBonusType() != NO_BONUS)
 		pArea->changeNumBonuses(getBonusType(), iChange);
-
-	if (getImprovementType() != NO_IMPROVEMENT)
-		pArea->changeNumImprovements(getImprovementType(), iChange);
+	// advc.opt:
+	/*if (getImprovementType() != NO_IMPROVEMENT)
+		pArea->changeNumImprovements(getImprovementType(), iChange);*/
 
 	for (int i = 0; i < MAX_PLAYERS; i++)
 	{

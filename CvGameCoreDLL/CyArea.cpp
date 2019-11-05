@@ -189,11 +189,11 @@ int CyArea::getNumTotalBonuses()
 	return m_pArea ? m_pArea->getNumTotalBonuses() : -1;
 }
 
-
-int CyArea::getNumImprovements(int /*ImprovementTypes*/ eImprovement)
+// advc.opt: No longer used
+/*int CyArea::getNumImprovements(int eImprovement) // ImprovementTypes
 {
 	return m_pArea ? m_pArea->getNumImprovements( (ImprovementTypes)eImprovement) : -1;
-}
+}*/
 
 // <advc.021b>
 int CyArea::getNumHabitableTiles() {

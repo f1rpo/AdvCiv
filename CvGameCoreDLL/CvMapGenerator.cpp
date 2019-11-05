@@ -815,28 +815,33 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 	if (GC.getInfo(GC.getGame().getStartEra()).isNoGoodies())
 		return;
 
-	int* aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
+	CvMap const& kMap = GC.getMap();
+	int* aiShuffledIndices = shuffle(kMap.numPlots(), GC.getGame().getMapRand());
 	for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 	{
 		ImprovementTypes eImprov = (ImprovementTypes)iI;
-		if (!GC.getInfo(eImprov).isGoody() ||
-				GC.getInfo(eImprov).getTilesPerGoody() <= 0)
+		if (!GC.getInfo(eImprov).isGoody())
 			continue;
-
-		for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
+		int const iTilesPerGoody = GC.getInfo(eImprov).getTilesPerGoody();
+		if (iTilesPerGoody <= 0)
+			continue;
+		// advc.opt: Count the goodies here instead of storing the counts at CvArea
+		std::map<int,short> goodiesPerArea;
+		for (int iJ = 0; iJ < kMap.numPlots(); iJ++)
 		{
-			CvPlot& kPlot = GC.getMap().getPlotByIndex(aiShuffledIndices[iJ]);
+			CvPlot& kPlot = kMap.getPlotByIndex(aiShuffledIndices[iJ]);
 			if (kPlot.isWater())
 				continue;
 
 			CvArea const& kArea = *GC.getMap().getArea(kPlot.getArea());
-			if (kArea.getNumImprovements(eImprov) <
-				(kArea.getNumTiles() +
-				GC.getInfo(eImprov).getTilesPerGoody() / 2) /
-				GC.getInfo(eImprov).getTilesPerGoody())
+			if (goodiesPerArea[kArea.getID()] < // advc.opt: was kArea.getNumImprovements(eImprov)
+				(kArea.getNumTiles() + iTilesPerGoody / 2) / iTilesPerGoody)
 			{
 				if (canPlaceGoodyAt(eImprov, kPlot.getX(), kPlot.getY()))
+				{
 					kPlot.setImprovementType(eImprov);
+					goodiesPerArea[kArea.getID()]++; // advc.opt
+				}
 			}
 		}
 		gDLL->callUpdater(); // advc.opt: Moved out of the loop
