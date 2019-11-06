@@ -5561,13 +5561,13 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 
 bool CvPlot::hasYield() const
 {
-	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	/*for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 	{
 		if (getYield((YieldTypes)iI) > 0)
 			return true;
 	}
-
-	return false;
+	return false;*/
+	return m_aiYield.hasContent(); // advc.enum
 }
 
 

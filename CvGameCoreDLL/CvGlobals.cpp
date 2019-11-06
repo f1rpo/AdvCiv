@@ -10,6 +10,10 @@
 #include "CvXMLLoadUtility.h" // advc.003v
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLXMLIFaceBase.h"
+// <advc.003o>
+#ifdef USE_TSC_PROFILER
+#include "TSCProfiler.h"
+#endif // </advc.003o>
 
 CvGlobals gGlobals; // singleton instance
 
@@ -250,7 +254,10 @@ void CvGlobals::init() // allocate
 void CvGlobals::uninit() // free
 {
 	// See also CvXMLLoadUtilityInit::CleanUpGlobalVariables()
-
+	// <advc.003o>
+	#ifdef USE_TSC_PROFILER
+	TSCProfiler::getInstance().writeFile();
+	#endif // </advc.003o>
 	SAFE_DELETE_ARRAY(m_aiGlobalDefinesCache); // advc.003t
 
 	SAFE_DELETE(m_game);
