@@ -210,7 +210,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 // <advc.064d>
 void CvPlotGroup::verifyCityProduction()
 {
-	PROFILE_FUNC(); // About 1 permille of the runtime [upd.: should be less now b/c CvCity::verifyProduction no longer calls doCheckProduction]
+	PROFILE_FUNC(); // About 1 permille of the runtime
 	if (m_iRecalculating > 0)
 		return;
 	CvMap const& m = GC.getMap();

@@ -214,13 +214,10 @@ void CvTeamAI::AI_makeAssignWorkDirty()
 {
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				GET_PLAYER((PlayerTypes)iI).AI_makeAssignWorkDirty();
-			}
-		}
+		CvPlayer& kMember = GET_PLAYER((PlayerTypes)iI);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue;
+		kMember.AI_makeAssignWorkDirty();
 	}
 }
 
@@ -243,14 +240,11 @@ void CvTeamAI::AI_updateAreaTargets()
 {
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI); // K-Mod
-		if (kLoopPlayer.isAlive())
-		{
-			if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.AI_getCityTargetTimer() == 0) // K-Mod added timer check.
-			{
-				kLoopPlayer.AI_updateAreaTargets();
-			}
-		}
+		CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)iI);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue;
+		if (kMember.AI_getCityTargetTimer() == 0) // K-Mod added timer check.
+			kMember.AI_updateAreaTargets();
 	}
 }
 
@@ -260,16 +254,11 @@ int CvTeamAI::AI_countFinancialTrouble() const
 	int iCount = 0;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).AI_isFinancialTrouble())
-				{
-					iCount++;
-				}
-			}
-		}
+		CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iI);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue;
+		if (kMember.AI_isFinancialTrouble())
+			iCount++;
 	}
 	return iCount;
 }
@@ -280,13 +269,10 @@ int CvTeamAI::AI_countMilitaryWeight(CvArea* pArea) const
 	int iCount = 0;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				iCount += GET_PLAYER((PlayerTypes)iI).AI_militaryWeight(pArea);
-			}
-		}
+		CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iI);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue;
+		iCount += kMember.AI_militaryWeight(pArea);
 	}
 	return iCount;
 }
@@ -362,12 +348,10 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 				continue;
 
 			CvPlot* pLoopPlot = plotXY(pCity->getX(), pCity->getY(), iDX, iDY);
-
 			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID()) == pCity->getOwner())
 			{
 				// if multiple cities have their plot in their range, then that will make it harder to deduce the precise city location.
 				iPoints += 1 + std::max(0, iLevel - iDist - pLoopPlot->getNumCultureRangeCities(pCity->getOwner())+1);
-
 				if (iPoints > iLevel)
 					return true;
 			}
@@ -381,18 +365,12 @@ bool CvTeamAI::AI_isAnyCapitalAreaAlone() const
 {
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).AI_isCapitalAreaAlone())
-				{
-					return true;
-				}
-			}
-		}
+		CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iI);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue;
+		if (kMember.AI_isCapitalAreaAlone())
+			return true;
 	}
-
 	return false;
 }
 
@@ -401,18 +379,12 @@ bool CvTeamAI::AI_isPrimaryArea(CvArea* pArea) const
 {
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).AI_isPrimaryArea(pArea))
-				{
-					return true;
-				}
-			}
-		}
+		CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iI);
+		if (!kMember.isAlive() || kMember.getTeam() != getID())
+			continue;
+		if (kMember.AI_isPrimaryArea(pArea))
+			return true;
 	}
-
 	return false;
 }
 
@@ -436,15 +408,14 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 {
 	FAssert(eTeam != getID());
 
-	const CvTeamAI& kTeam = GET_TEAM(eTeam);
+	CvTeamAI const& kTeam = GET_TEAM(eTeam);
 	FOR_EACH_AREA_VAR(pLoopArea)
 	{
 		if (AI_isPrimaryArea(pLoopArea) && kTeam.AI_isPrimaryArea(pLoopArea))
 			return true;
 	}
 	return false;
-}
-// K-Mod end
+} // K-Mod end
 
 /*  advc.104s (note): If UWAI is enabled, AI_doWar may adjust (i.e. overwrite) the
 	result of this calculation through WarAndPeaceAgent::Team::alignAreaAI. */

@@ -3380,7 +3380,6 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 
 void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolete)
 {
-	PROFILE_FUNC(); // advc
 	int iI, iJ;
 	// <advc>
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
@@ -4912,36 +4911,24 @@ CvArea* CvCity::secondWaterArea() const
 CvArea* CvCity::sharedWaterArea(CvCity* pOtherCity) const
 {
 	CvArea* pWaterArea = waterArea(true);
-	if (pWaterArea != NULL)
+	if (pWaterArea == NULL)
+		return NULL; // advc
+
+	CvArea* pOtherWaterArea = pOtherCity->waterArea(true);
+	if (pOtherWaterArea != NULL)
 	{
-		CvArea* pOtherWaterArea = pOtherCity->waterArea(true);
-		if (pOtherWaterArea != NULL)
-		{
-			if (pWaterArea == pOtherWaterArea)
-			{
-				return pWaterArea;
-			}
-			else
-			{
-				CvArea* pSecondWaterArea = secondWaterArea();
-				CvArea* pOtherSecondWaterArea = pOtherCity->secondWaterArea();
+		if (pWaterArea == pOtherWaterArea)
+			return pWaterArea;
 
-				if (pSecondWaterArea != NULL && pSecondWaterArea == pOtherWaterArea)
-				{
-					return pSecondWaterArea;
-				}
-				else if (pOtherSecondWaterArea != NULL && pWaterArea == pOtherSecondWaterArea)
-				{
-					return pWaterArea;
-				}
-				else if (pSecondWaterArea != NULL && pOtherSecondWaterArea != NULL && pSecondWaterArea == pOtherSecondWaterArea)
-				{
-					return pSecondWaterArea;
-				}
-			}
-		}
+		CvArea* pSecondWaterArea = secondWaterArea();
+		CvArea* pOtherSecondWaterArea = pOtherCity->secondWaterArea();
+		if (pSecondWaterArea != NULL && pSecondWaterArea == pOtherWaterArea)
+			return pSecondWaterArea;
+		else if (pOtherSecondWaterArea != NULL && pWaterArea == pOtherSecondWaterArea)
+			return pWaterArea;
+		else if (pSecondWaterArea != NULL && pOtherSecondWaterArea != NULL && pSecondWaterArea == pOtherSecondWaterArea)
+			return pSecondWaterArea;
 	}
-
 	return NULL;
 }
 
@@ -4951,7 +4938,6 @@ bool CvCity::isBlockaded() const
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-
 		if (pAdjacentPlot != NULL)
 		{
 			if (pAdjacentPlot->getBlockadedCount(getTeam()) > 0)
@@ -4960,7 +4946,6 @@ bool CvCity::isBlockaded() const
 			}
 		}
 	}
-
 	return false;
 } // BETTER_BTS_AI_MOD: END
 
@@ -4987,9 +4972,7 @@ void CvCity::setRallyPlot(CvPlot* pPlot)
 		}
 
 		if (isCitySelected())
-		{
 			gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
-		}
 	}
 }
 
@@ -5034,33 +5017,24 @@ int CvCity::getPopulation() const
 void CvCity::setPopulation(int iNewValue)
 {
 	int iOldPopulation = getPopulation();
-
 	if (iOldPopulation != iNewValue)
 	{
 		m_iPopulation = iNewValue;
-
 		FAssert(getPopulation() >= 0);
-
 		GET_PLAYER(getOwner()).invalidatePopulationRankCache();
-
 		if (getPopulation() > getHighestPopulation())
-		{
 			setHighestPopulation(getPopulation());
-		}
 
-		area()->changePopulationPerPlayer(getOwner(), (getPopulation() - iOldPopulation));
+		CvArea& kArea = *area(); // advc
+		kArea.changePopulationPerPlayer(getOwner(), getPopulation() - iOldPopulation);
 		GET_PLAYER(getOwner()).changeTotalPopulation(getPopulation() - iOldPopulation);
 		GET_TEAM(getTeam()).changeTotalPopulation(getPopulation() - iOldPopulation);
 		GC.getGame().changeTotalPopulation(getPopulation() - iOldPopulation);
 
 		if (iOldPopulation > 0)
-		{
-			area()->changePower(getOwner(), -(getPopulationPower(iOldPopulation)));
-		}
+			kArea.changePower(getOwner(), -getPopulationPower(iOldPopulation));
 		if (getPopulation() > 0)
-		{
-			area()->changePower(getOwner(), getPopulationPower(getPopulation()));
-		}
+			kArea.changePower(getOwner(), getPopulationPower(getPopulation()));
 
 		plot()->updateYield();
 
@@ -5177,29 +5151,24 @@ int CvCity::getBaseGreatPeopleRate() const
 int CvCity::getGreatPeopleRate() const
 {
 	if (isDisorder())
-	{
 		return 0;
-	}
-
-	return ((getBaseGreatPeopleRate() * getTotalGreatPeopleRateModifier()) / 100);
+	return (getBaseGreatPeopleRate() * getTotalGreatPeopleRateModifier()) / 100;
 }
 
 
 int CvCity::getTotalGreatPeopleRateModifier() const
 {
 	int iModifier = getGreatPeopleRateModifier();
-
 	iModifier += GET_PLAYER(getOwner()).getGreatPeopleRateModifier();
 
-	if (GET_PLAYER(getOwner()).getStateReligion() != NO_RELIGION)
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
+	if (kOwner.getStateReligion() != NO_RELIGION)
 	{
-		if (isHasReligion(GET_PLAYER(getOwner()).getStateReligion()))
-		{
-			iModifier += GET_PLAYER(getOwner()).getStateReligionGreatPeopleRateModifier();
-		}
+		if (isHasReligion(kOwner.getStateReligion()))
+			iModifier += kOwner.getStateReligionGreatPeopleRateModifier();
 	}
 
-	if (GET_PLAYER(getOwner()).isGoldenAge())
+	if (kOwner.isGoldenAge())
 	{
 		static int const iGOLDEN_AGE_GREAT_PEOPLE_MODIFIER = GC.getDefineINT("GOLDEN_AGE_GREAT_PEOPLE_MODIFIER"); // advc.opt
 		iModifier += iGOLDEN_AGE_GREAT_PEOPLE_MODIFIER;
@@ -5228,16 +5197,10 @@ void CvCity::changeGreatPeopleRateModifier(int iChange)
 }
 
 // BUG - Building Additional Great People - start
-/*
- * Returns the total additional great people rate that adding one of the given buildings will provide.
- *
- * Doesn't check if the building can be constructed in this city.
- */
+/*  Returns the total additional great people rate that adding one of the given buildings will provide.
+	Doesn't check if the building can be constructed in this city. */
 int CvCity::getAdditionalGreatPeopleRateByBuilding(BuildingTypes eBuilding) const
 {
-	FAssertMsg(eBuilding >= 0, "eBuilding expected to be >= 0");
-	FAssertMsg(eBuilding < GC.getNumBuildingInfos(), "eBuilding expected to be < GC.getNumBuildingInfos()");
-
 	int iRate = getBaseGreatPeopleRate();
 	int iModifier = getTotalGreatPeopleRateModifier();
 	int iExtra = ((iRate + getAdditionalBaseGreatPeopleRateByBuilding(eBuilding)) * (iModifier + getAdditionalGreatPeopleRateModifierByBuilding(eBuilding)) / 100) - (iRate * iModifier / 100);
@@ -5245,53 +5208,33 @@ int CvCity::getAdditionalGreatPeopleRateByBuilding(BuildingTypes eBuilding) cons
 	return iExtra;
 }
 
-/*
- * Returns the additional great people rate that adding one of the given buildings will provide.
- *
- * Doesn't check if the building can be constructed in this city.
- */
+/*  Returns the additional great people rate that adding one of the given buildings will provide.
+	Doesn't check if the building can be constructed in this city. */
 int CvCity::getAdditionalBaseGreatPeopleRateByBuilding(BuildingTypes eBuilding) const
 {
-	FAssertMsg(eBuilding >= 0, "eBuilding expected to be >= 0");
-	FAssertMsg(eBuilding < GC.getNumBuildingInfos(), "eBuilding expected to be < GC.getNumBuildingInfos()");
-
 	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
-	bool bObsolete = GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding);
-	int iExtraRate = 0;
-
-	iExtraRate += kBuilding.getGreatPeopleRateChange();
-
-	// Specialists
-	if (!bObsolete)
+	int iExtraRate = kBuilding.getGreatPeopleRateChange();
+	if (!GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding))
 	{
-		for (int iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
+		FOR_EACH_ENUM(Specialist)
 		{
-			if (kBuilding.getFreeSpecialistCount((SpecialistTypes)iI) != 0)
+			if (kBuilding.getFreeSpecialistCount(eLoopSpecialist) != 0)
 			{
-				iExtraRate += getAdditionalBaseGreatPeopleRateBySpecialist((SpecialistTypes)iI, kBuilding.getFreeSpecialistCount((SpecialistTypes)iI));
+				iExtraRate += getAdditionalBaseGreatPeopleRateBySpecialist(eLoopSpecialist,
+						kBuilding.getFreeSpecialistCount(eLoopSpecialist));
 			}
 		}
 	}
-
 	return iExtraRate;
 }
 
-/*
- * Returns the additional great people rate modifier that adding one of the given buildings will provide.
- *
- * Doesn't check if the building can be constructed in this city.
- */
+// Doesn't check if the building can be constructed in this city.
 int CvCity::getAdditionalGreatPeopleRateModifierByBuilding(BuildingTypes eBuilding) const
 {
-	FAssertMsg(eBuilding >= 0, "eBuilding expected to be >= 0");
-	FAssertMsg(eBuilding < GC.getNumBuildingInfos(), "eBuilding expected to be < GC.getNumBuildingInfos()");
-
-	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
-	bool bObsolete = GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding);
 	int iExtraModifier = 0;
-
-	if (!bObsolete)
+	if (!GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding))
 	{
+		CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
 		iExtraModifier += kBuilding.getGreatPeopleRateModifier();
 		iExtraModifier += kBuilding.getGlobalGreatPeopleRateModifier();
 	}
@@ -5302,28 +5245,21 @@ int CvCity::getAdditionalGreatPeopleRateModifierByBuilding(BuildingTypes eBuildi
 
 
 // BUG - Specialist Additional Great People - start
-/*
- * Returns the total additional great people rate that changing the number of the given specialist will provide/remove.
- */
+/*  Returns the total additional great people rate that
+	changing the number of the given specialist will provide/remove. */
 int CvCity::getAdditionalGreatPeopleRateBySpecialist(SpecialistTypes eSpecialist, int iChange) const
 {
 	int iRate = getBaseGreatPeopleRate();
 	int iModifier = getTotalGreatPeopleRateModifier();
 	int iExtraRate = getAdditionalBaseGreatPeopleRateBySpecialist(eSpecialist, iChange);
-
 	int iExtra = ((iRate + iExtraRate) * iModifier / 100) - (iRate * iModifier / 100);
-
 	return iExtra;
 }
 
-/*
- * Returns the additional great people rate that changing the number of the given specialist will provide/remove.
- */
+/*  Returns the additional great people rate that
+	changing the number of the given specialist will provide/remove. */
 int CvCity::getAdditionalBaseGreatPeopleRateBySpecialist(SpecialistTypes eSpecialist, int iChange) const
 {
-	FAssertMsg(eSpecialist >= 0, "eSpecialist expected to be >= 0");
-	FAssertMsg(eSpecialist < GC.getNumSpecialistInfos(), "eSpecialist expected to be < GC.getNumSpecialistInfos()");
-
 	return iChange * GC.getInfo(eSpecialist).getGreatPeopleRateChange();
 }
 // BUG - Specialist Additional Great People - end
@@ -5422,25 +5358,19 @@ void CvCity::changeGovernmentCenterCount(int iChange)
 
 
 // BUG - Building Saved Maintenance - start
-/*
- * Returns the total additional gold from saved maintenance times 100 that adding one of the given buildings will provide.
- *
- * Doesn't check if the building can be constructed in this city.
- */
+/*  Returns the total additional gold from saved maintenance times 100 that adding one of the given buildings will provide.
+	Doesn't check if the building can be constructed in this city. */
 int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 {
-	FAssertMsg(eBuilding >= 0, "eBuilding expected to be >= 0");
-	FAssertMsg(eBuilding < GC.getNumBuildingInfos(), "eBuilding expected to be < GC.getNumBuildingInfos()");
-
 	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
 	int iModifier = kBuilding.getMaintenanceModifier();
-	if (iModifier != 0 && !isDisorder() && !isWeLoveTheKingDay() && (getPopulation() > 0))
+	if (iModifier != 0 && !isDisorder() && !isWeLoveTheKingDay() && getPopulation() > 0)
 	{
-		int iNewMaintenance = calculateBaseMaintenanceTimes100() * std::max(0, getMaintenanceModifier() + iModifier + 100) / 100;
-		//return getMaintenanceTimes100() - iNewMaintenance;
-		return ROUND_DIVIDE((getMaintenanceTimes100() - iNewMaintenance)*(100+GET_PLAYER(getOwner()).calculateInflationRate()), 100); // K-Mod
+		int iNewMaintenance = calculateBaseMaintenanceTimes100() *
+				std::max(0, getMaintenanceModifier() + iModifier + 100) / 100;
+		return ROUND_DIVIDE((getMaintenanceTimes100() - iNewMaintenance) *
+				(100 + GET_PLAYER(getOwner()).calculateInflationRate()), 100); // K-Mod
 	}
-
 	return 0;
 }
 // BUG - Building Saved Maintenance - end
@@ -5460,16 +5390,13 @@ void CvCity::updateMaintenance()
 {
 	PROFILE_FUNC();
 
-	int iOldMaintenance;
-	int iNewMaintenance;
+	int iOldMaintenance = getMaintenanceTimes100();
+	int iNewMaintenance = 0;
 
-	iOldMaintenance = getMaintenanceTimes100();
-
-	iNewMaintenance = 0;
-
-	if (!isDisorder() && !isWeLoveTheKingDay() && (getPopulation() > 0))
+	if (!isDisorder() && !isWeLoveTheKingDay() && getPopulation() > 0)
 	{
-		iNewMaintenance = (calculateBaseMaintenanceTimes100() * std::max(0, (getMaintenanceModifier() + 100))) / 100;
+		iNewMaintenance = (calculateBaseMaintenanceTimes100() *
+				std::max(0, getMaintenanceModifier() + 100)) / 100;
 	}
 
 	if (iOldMaintenance != iNewMaintenance)

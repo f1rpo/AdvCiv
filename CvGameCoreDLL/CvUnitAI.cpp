@@ -2955,9 +2955,7 @@ void CvUnitAI::AI_attackCityMove()
 
 	CvCity* pTargetCity = NULL;
 	if (isBarbarian())
-	{
 		pTargetCity = AI_pickTargetCity(iMoveFlags, 10); // was 12 (K-Mod)
-	}
 	else
 	{
 		//pTargetCity = AI_pickTargetCity(iMoveFlags, MAX_INT, bHuntBarbs);
@@ -2977,9 +2975,7 @@ void CvUnitAI::AI_attackCityMove()
 
 		// K-Mod - I'm going to scale the attack ratio based on our war strategy
 		if (isBarbarian())
-		{
 			iAttackRatio = 80;
-		}
 		else
 		{
 			int iAdjustment = 5;
@@ -13417,159 +13413,143 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 					}
 				}
 
-				if (iPathTurns < iMaxPathTurns)
+				if (iPathTurns >= iMaxPathTurns)
+					continue; // advc
+				// If city is visible and our force already in position is dominantly powerful or we have a huge force
+				// already on the way, pick a different target
+				int iEnemyDefence = -1; // used later.
+				int iOffenceEnRoute = kOwner.AI_cityTargetStrengthByPath(
+						pLoopCity, getGroup(), iPathTurns);
+				if (pLoopCity->isVisible(getTeam(), false))
 				{
-					// If city is visible and our force already in position is dominantly powerful or we have a huge force
-					// already on the way, pick a different target
-					int iEnemyDefence = -1; // used later.
-					int iOffenceEnRoute = kOwner.AI_cityTargetStrengthByPath(
-							pLoopCity, getGroup(), iPathTurns);
-					if (pLoopCity->isVisible(getTeam(), false))
+					iEnemyDefence = kOwner.AI_localDefenceStrength(pLoopCity->plot(),
+							NO_TEAM, DOMAIN_LAND, true, iPathTurns > 1 ? 2 : 0);
+					if (iPathTurns > 2)
 					{
-						iEnemyDefence = kOwner.AI_localDefenceStrength(
-								pLoopCity->plot(), NO_TEAM, DOMAIN_LAND, true,
-								iPathTurns > 1 ? 2 : 0);
-						if (iPathTurns > 2)
-						{
-							int iAttackRatio = ((GC.getMAX_CITY_DEFENSE_DAMAGE() -
-									pLoopCity->getDefenseDamage()) *
-									GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_BASE_STACK_RATIO) +
-									pLoopCity->getDefenseDamage() *
-									GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_MIN_STACK_RATIO)) /
-									std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
-							if (100 * iOffenceEnRoute > iAttackRatio * iEnemyDefence)
-								continue;
-						}
+						int iAttackRatio = ((GC.getMAX_CITY_DEFENSE_DAMAGE() -
+								pLoopCity->getDefenseDamage()) *
+								GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_BASE_STACK_RATIO) +
+								pLoopCity->getDefenseDamage() *
+								GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_MIN_STACK_RATIO)) /
+								std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
+						if (100 * iOffenceEnRoute > iAttackRatio * iEnemyDefence)
+							continue;
 					}
-					if (iOurOffence == -1)
-					{
-						/*  note: with bCheckCanAttack == false, AI_sumStrength should be
-							roughly the same regardless of which city we are targeting.
-							... except if lots of our units have a hills-attack promotion
-							or something like that. */
-						iOurOffence = AI_getGroup()->AI_sumStrength(pLoopCity->plot());
-					}
-					FAssert(iOurOffence > 0);
-					int iTotalOffence = iOurOffence + iOffenceEnRoute;
+				}
+				if (iOurOffence == -1)
+				{
+					/*  note: with bCheckCanAttack == false, AI_sumStrength should be
+						roughly the same regardless of which city we are targeting.
+						... except if lots of our units have a hills-attack promotion
+						or something like that. */
+					iOurOffence = AI_getGroup()->AI_sumStrength(pLoopCity->plot());
+				}
+				FAssert(iOurOffence > 0);
+				int iTotalOffence = iOurOffence + iOffenceEnRoute;
 
-					int iValue = 0;
-					if (AI_getUnitAIType() == UNITAI_ATTACK_CITY) //lemming?
-					{
-						iValue = kOwner.AI_targetCityValue(pLoopCity, false, false);
-					}
-					else
-					{
-						iValue = kOwner.AI_targetCityValue(pLoopCity, true, true);
-					}
-					// adjust value based on defensive bonuses
-					{
-						int iMod =
-								std::min(8, getGroup()->getBombardTurns(pLoopCity)) *
-								pLoopCity->getDefenseModifier(false) / 8
-								+ (pLoopCity->plot()->isHills() ?
-								GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) : 0);
-						iValue *= std::max(25, 125 - iMod);
-						iValue /= 25; // the denominator is arbitrary, and unimportant.
-						/*  note: the value reduction from high defences which are bombardable should not
-							be more than the value reduction from simply having higher iPathTurns. */
-					}
-					// prefer cities which are close to the main target.
-					if (pLoopCity == pTargetCity)
-					{
-						iValue *= 2;
-					}
-					else if (pTargetCity != NULL)
-					{
-						int iStepsFromTarget = stepDistance(
-							pLoopCity->getX(), pLoopCity->getY(),
+				int iValue = 0;
+				if (AI_getUnitAIType() == UNITAI_ATTACK_CITY) //lemming?
+					iValue = kOwner.AI_targetCityValue(pLoopCity, false, false);
+				else iValue = kOwner.AI_targetCityValue(pLoopCity, true, true);
+				// adjust value based on defensive bonuses
+				{
+					int iMod = std::min(8, getGroup()->getBombardTurns(pLoopCity)) *
+							pLoopCity->getDefenseModifier(false) / 8
+							+ (pLoopCity->plot()->isHills() ?
+							GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) : 0);
+					iValue *= std::max(25, 125 - iMod);
+					iValue /= 25; // the denominator is arbitrary, and unimportant.
+					/*  note: the value reduction from high defences which are bombardable should not
+						be more than the value reduction from simply having higher iPathTurns. */
+				}
+				// prefer cities which are close to the main target.
+				if (pLoopCity == pTargetCity)
+					iValue *= 2;
+				else if (pTargetCity != NULL)
+				{
+					int iStepsFromTarget = stepDistance(pLoopCity->getX(), pLoopCity->getY(),
 							pTargetCity->getX(), pTargetCity->getY());
-
-						iValue *= 124 - 2*std::min(12, iStepsFromTarget);
+					iValue *= 124 - 2*std::min(12, iStepsFromTarget);
+					iValue /= 100;
+				}
+				if (area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
+				{
+					iValue *= 100 + pLoopCity->calculateCulturePercent(getOwner()); // was 50
+					iValue /= 125; // was 50 (unimportant)
+				}
+				/*  boost value if we can see that the city is poorly defended,
+					or if our existing armies need help there */
+				if (pLoopCity->isVisible(getTeam(), false) && iPathTurns < 6)
+				{
+					FAssert(iEnemyDefence != -1);
+					if (iOffenceEnRoute > iEnemyDefence/3 && iOffenceEnRoute < iEnemyDefence)
+					{
+						iValue *= 100 + (9 * iTotalOffence > 10 * iEnemyDefence ? 30 : 15);
 						iValue /= 100;
 					}
-
-					if (area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
+					else if (iOurOffence > iEnemyDefence)
 					{
-						iValue *= 100 + pLoopCity->calculateCulturePercent(getOwner()); // was 50
-						iValue /= 125; // was 50 (unimportant)
-					}
-
-					/*  boost value if we can see that the city is poorly defended,
-						or if our existing armies need help there */
-					if (pLoopCity->isVisible(getTeam(), false) && iPathTurns < 6)
-					{
-						FAssert(iEnemyDefence != -1);
-						if (iOffenceEnRoute > iEnemyDefence/3 && iOffenceEnRoute < iEnemyDefence)
+						// don't boost it by too much, otherwise human players will exploit us. :(
+						int iCap = 100 + 100 * (6 - iPathTurns) / 5;
+						iValue *= std::min(iCap, 100 * iOurOffence / std::max(1, iEnemyDefence));
+						iValue /= 100;
+						// an additional bonus if we're already adjacent
+						// (we can afford to be generous with this bonus, because the enemy has no time to bring in reinforcements)
+						if (iPathTurns <= 1)
 						{
-							iValue *= 100 + (9 * iTotalOffence > 10 * iEnemyDefence ? 30 : 15);
-							iValue /= 100;
-						}
-						else if (iOurOffence > iEnemyDefence)
-						{
-							// don't boost it by too much, otherwise human players will exploit us. :(
-							int iCap = 100 + 100 * (6 - iPathTurns) / 5;
-							iValue *= std::min(iCap, 100 * iOurOffence / std::max(1, iEnemyDefence));
-							iValue /= 100;
-							// an additional bonus if we're already adjacent
-							// (we can afford to be generous with this bonus, because the enemy has no time to bring in reinforcements)
-							if (iPathTurns <= 1)
-							{
-								iValue *= std::min(300, 150 * iOurOffence / std::max(1, iEnemyDefence));
-								iValue /= 100;
-							}
-						}
-					}
-					// Reduce the value if we can see, or remember, that the city is well defended.
-					// Note. This adjustment can be more heavy handed because it is harder to feign strong defence than weak defence.
-					iEnemyDefence = GET_TEAM(getTeam()).AI_getStrengthMemory(pLoopCity->plot());
-					if (iEnemyDefence > iTotalOffence)
-					{
-						// a more sensitive adjustment than usual (w/ modifier on the denominator), so as not to be too deterred before bombarding.
-						iEnemyDefence *= 130;
-						iEnemyDefence /= 130 + (bombardRate() > 0 ? pLoopCity->getDefenseModifier(false) : 0);
-						WarPlanTypes eWarPlan = GET_TEAM(kOwner.getTeam()).AI_getWarPlan(pLoopCity->getTeam());
-						// If we aren't fully committed to the war, then focus on taking easy cities - but try not to be completely predictable.
-						bool bCherryPick = eWarPlan == WARPLAN_LIMITED || eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_DOGPILE;
-						bCherryPick = bCherryPick && (AI_unitBirthmarkHash(GC.getGame().getElapsedGameTurns()/4) % 4);
-
-						int iBase = bCherryPick ? 100 : 110;
-						if (100 * iEnemyDefence > iBase * iTotalOffence) // an uneven comparison, just in case we can get some air support or other help somehow.
-						{
-							iValue *= bCherryPick ?
-									std::max(20, (3 * iBase * iTotalOffence - iEnemyDefence) / (2*iEnemyDefence)) :
-									std::max(33, iBase * iTotalOffence / iEnemyDefence);
+							iValue *= std::min(300, 150 * iOurOffence / std::max(1, iEnemyDefence));
 							iValue /= 100;
 						}
 					}
-					// A const-random component, so that the AI doesn't always go for the same city.
-					iValue *= 80 + AI_unitPlotHash(pLoopCity->plot()) % 41;
-					iValue /= 100;
+				}
+				// Reduce the value if we can see, or remember, that the city is well defended.
+				// Note. This adjustment can be more heavy handed because it is harder to feign strong defence than weak defence.
+				iEnemyDefence = GET_TEAM(getTeam()).AI_getStrengthMemory(pLoopCity->plot());
+				if (iEnemyDefence > iTotalOffence)
+				{
+					// a more sensitive adjustment than usual (w/ modifier on the denominator), so as not to be too deterred before bombarding.
+					iEnemyDefence *= 130;
+					iEnemyDefence /= 130 + (bombardRate() > 0 ? pLoopCity->getDefenseModifier(false) : 0);
+					WarPlanTypes eWarPlan = GET_TEAM(kOwner.getTeam()).AI_getWarPlan(pLoopCity->getTeam());
+					// If we aren't fully committed to the war, then focus on taking easy cities - but try not to be completely predictable.
+					bool bCherryPick = (eWarPlan == WARPLAN_LIMITED || eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_DOGPILE);
+					bCherryPick = bCherryPick && (AI_unitBirthmarkHash(GC.getGame().getElapsedGameTurns()/4) % 4);
 
-					iValue *= 1000;
-
-					// If city is minor civ, less interesting
-					if (GET_PLAYER(pLoopCity->getOwner()).isMinorCiv() || GET_PLAYER(pLoopCity->getOwner()).isBarbarian())
+					int iBase = bCherryPick ? 100 : 110;
+					if (100 * iEnemyDefence > iBase * iTotalOffence) // an uneven comparison, just in case we can get some air support or other help somehow.
 					{
-						//iValue /= 2;
-						iValue /= 3; // K-Mod
+						iValue *= bCherryPick ?
+								std::max(20, (3 * iBase * iTotalOffence - iEnemyDefence) / (2*iEnemyDefence)) :
+								std::max(33, iBase * iTotalOffence / iEnemyDefence);
+						iValue /= 100;
 					}
-					// If stack has poor bombard, direct towards lower defense cities
-					//iPathTurns += std::min(12, getGroup()->getBombardTurns(pLoopCity)/4);
-					//iPathTurns += bombardRate() > 0 ? std::min(5, getGroup()->getBombardTurns(pLoopCity)/3) : 0; // K-Mod
-					// (already taken into account.)
+				}
+				// A const-random component, so that the AI doesn't always go for the same city.
+				iValue *= 80 + AI_unitPlotHash(pLoopCity->plot()) % 41;
+				iValue /= 100;
+				iValue *= 1000;
+				// If city is minor civ, less interesting
+				if (GET_PLAYER(pLoopCity->getOwner()).isMinorCiv() ||
+					GET_PLAYER(pLoopCity->getOwner()).isBarbarian())
+				{
+					//iValue /= 2;
+					iValue /= 3; // K-Mod
+				}
+				// If stack has poor bombard, direct towards lower defense cities
+				//iPathTurns += std::min(12, getGroup()->getBombardTurns(pLoopCity)/4);
+				//iPathTurns += bombardRate() > 0 ? std::min(5, getGroup()->getBombardTurns(pLoopCity)/3) : 0; // K-Mod
+				// (already taken into account.)
 
-					iValue /= 8 + iPathTurns*iPathTurns; // was 4+
-
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						pBestCity = pLoopCity;
-					}
+				iValue /= 8 + iPathTurns*iPathTurns; // was 4+
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					pBestCity = pLoopCity;
 				}
 			} // end if revealed.
 			// K-Mod. If no city in the area is revealed,
 			// then assume the AI is able to deduce the position of the closest city.
-			else if (iBestValue == 0 && !pLoopCity->isBarbarian() && (!pBestCity ||
+			else if (iBestValue == 0 && !pLoopCity->isBarbarian() && (pBestCity == NULL ||
 				stepDistance(getX(), getY(), pBestCity->getX(), pBestCity->getY()) >
 				stepDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY())))
 			{
@@ -22329,29 +22309,19 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 	CvPlot* pPlot = kUnit.plot();
 
 	if (&kUnit == this)
-	{
 		return false;
-	}
 
 	if (!kUnit.isGroupHead())
-	{
 		return false;
-	}
 
 	if (pGroup == getGroup())
-	{
 		return false;
-	}
 
 	if (kUnit.isCargo())
-	{
 		return false;
-	}
 
 	if (kUnit.AI_getUnitAIType() != eUnitAI)
-	{
 		return false;
-	}
 
 	switch (pGroup->AI_getMissionAIType())
 	{
@@ -22376,9 +22346,7 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 	}
 
 	if (!canJoinGroup(pPlot, pGroup))
-	{
 		return false;
-	}
 
 	if (eUnitAI == UNITAI_SETTLE)
 	{

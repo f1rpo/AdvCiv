@@ -2601,7 +2601,7 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 	bDefensive = false;
 	bSeafaring = false;
 	bExpansive = false;
-	bAllSeeing = bStartingLoc || kPlayer.isBarbarian();
+	bAllSeeing = (bStartingLoc || kPlayer.isBarbarian());
 	iBarbDiscouragedRange = 8; // advc.303
 	bDebug = false; // advc.007
 
@@ -4677,8 +4677,8 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			continue;
 		if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
 		{
-			iValue += std::max(1, AI_bonusVal(pLoopPlot->getBonusType(
-					getTeam()), 1, true) / 5);
+			iValue += std::max(1, AI_bonusVal(pLoopPlot->getBonusType(getTeam()),
+					1, true) / 5);
 		}
 		if (pLoopPlot->getOwner() == getID())
 			iValue++;
@@ -4722,9 +4722,8 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			}
 		} // <advc.104d> Against Space3, taking any high-production cities helps.
 		else if(!kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
-				!AI_isDoVictoryStrategyLevel4() &&
-				pCity->findYieldRateRank(YIELD_PRODUCTION) <
-				std::min(5, kOwner.getNumCities() / 4))
+			!AI_isDoVictoryStrategyLevel4() &&
+			pCity->findYieldRateRank(YIELD_PRODUCTION) < std::min(5, kOwner.getNumCities() / 4))
 		{
 			iValue += 3;
 			bThwartVictory = true;
@@ -16303,7 +16302,11 @@ void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
 			{
 				CvCityAI& kCity = *pPlot->AI_getPlotCity();
 				if (!kCity.AI_isSafe()) // It's only going to get safer
+				{
+					// advc.test:
+					FAssertMsg(false, "Only to see how frequently this happens (or rather: just how rarely)");
 					kCity.AI_updateSafety();
+				}
 			}
 		}
 	}

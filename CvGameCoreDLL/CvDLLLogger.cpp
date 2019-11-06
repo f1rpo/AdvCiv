@@ -103,6 +103,8 @@ void CvDLLLogger::logUnitStuck(CvUnit const& kUnit)
 
 // <advc.mapstat>
 // Don't really want to include sstream in the header. Hence free functions.
+namespace
+{
 void appendPercentage(std::ostringstream& os, char const* szLabel, int iAbsolute, int iTotal)
 {
 	FAssert(iAbsolute <= iTotal);
@@ -119,6 +121,7 @@ void appendPercentage(std::ostringstream& os, wchar const* szLabel, int iAbsolut
 	CvString szNarrow;
 	::narrowUnsafe(szWide, szNarrow);
 	appendPercentage(os, szNarrow.c_str(), iAbsolute, iTotal);
+}
 }
 
 void CvDLLLogger::logMapStats()
