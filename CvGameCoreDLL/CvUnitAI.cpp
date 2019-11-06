@@ -13348,7 +13348,10 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 	KmodPathFinder transport_path;
 	// K-Mod end
 
-	CvCity* pTargetCity = area()->AI_getTargetCity(getOwner());
+	CvArea const& kArea = *area();
+	CvCity* pTargetCity =  // advc.300:
+			(isBarbarian() && kArea.getCitiesPerPlayer(BARBARIAN_PLAYER) <= 0 ? NULL :
+			area()->AI_getTargetCity(getOwner()));
 
 	for (int iI = 0; iI < (bHuntBarbs ? MAX_PLAYERS : MAX_CIV_PLAYERS); iI++)
 	{
@@ -13359,14 +13362,10 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 
 		FOR_EACH_CITY_VAR(pLoopCity, kTargetPlayer)
 		{
-			if(!AI_plotValid(pLoopCity->plot()) || pLoopCity->area() != area())
+			if(pLoopCity->area() != area() || !AI_plotValid(pLoopCity->plot()))
 				continue; // advc
 			if(!AI_potentialEnemy(kTargetPlayer.getTeam(), pLoopCity->plot()))
 				continue;
-			/*  <advc.300> Assault barbs shouldn't target cities in areas where
-				they already have the upper hand. */
-			if(isBarbarian() && pLoopCity->area()->getAreaAIType(getTeam()) == AREAAI_ASSAULT)
-				continue; // </advc.300>
 			if (kOwner.AI_deduceCitySite(pLoopCity))
 			{
 				// K-Mod. Look for either a direct land path, or a sea transport path.
