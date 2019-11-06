@@ -2595,7 +2595,7 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 {
 	iMinRivalRange = -1;
 	iGreed = 120;
-	bEasyCulture = bStartingLoc;
+	bEasyCulture = (kPlayer.getNumCities() <= 0); // advc.108: from MNAI (was =bStartingLoc)
 	bAmbitious = false;
 	bFinancial = false;
 	bDefensive = false;

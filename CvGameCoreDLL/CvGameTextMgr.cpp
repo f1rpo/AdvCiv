@@ -9427,26 +9427,28 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 			bFirst = false;
 		}
 	}
-
-	for (iI = 0; iI < GC.getNumFeatureInfos(); ++iI)
+	if (u.isAnyFeatureImpassable()) // advc.003t
 	{
-		if (u.getFeatureImpassable(iI))
+		FOR_EACH_ENUM(Feature)
 		{
-			CvWString szFeature;
-			TechTypes eTech = (TechTypes)u.getTerrainPassableTech(iI);
-			if (NO_TECH == eTech)
+			if (u.getFeatureImpassable(eLoopFeature))
 			{
-				szFeature.Format(L"<link=literal>%s</link>", GC.getInfo((FeatureTypes)iI).getDescription());
+				// advc.001 (from MNAI): was getTerrainPassableTech
+				TechTypes eTech = (TechTypes)u.getFeaturePassableTech(iI);
+				CvWString szFeature;
+				if (eTech== NO_TECH)
+					szFeature.Format(L"<link=literal>%s</link>", GC.getInfo(eLoopFeature).getDescription());
+				else
+				{
+					szFeature = gDLL->getText("TXT_KEY_TERRAIN_UNTIL_TECH",
+							GC.getInfo(eLoopFeature).getTextKeyWide(),
+							GC.getInfo(eTech).getTextKeyWide());
+				}
+				setListHelp(szBuffer, szTempBuffer, szFeature, L", ", bFirst);
+				bFirst = false;
 			}
-			else
-			{
-				szFeature = gDLL->getText("TXT_KEY_TERRAIN_UNTIL_TECH", GC.getInfo((FeatureTypes)iI).getTextKeyWide(), GC.getInfo(eTech).getTextKeyWide());
-			}
-			setListHelp(szBuffer, szTempBuffer, szFeature, L", ", bFirst);
-			bFirst = false;
 		}
 	}
-
 	if (u.isInvisible())
 	{
 		szBuffer.append(NEWLINE);

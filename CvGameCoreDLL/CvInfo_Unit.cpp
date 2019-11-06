@@ -12,7 +12,7 @@ CvUnitInfo::CvUnitInfo() :
 m_iAIWeight(0),
 m_iProductionCost(0),
 m_iHurryCostModifier(0),
-m_iAdvancedStartCost(0),
+m_iAdvancedStartCost(100), // advc (from MNAI)
 m_iAdvancedStartCostIncrease(0),
 m_iMinAreaSize(0),
 m_iMoves(0),
@@ -1741,7 +1741,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIWeight, "iAIWeight");
 	pXML->GetChildXmlValByName(&m_iProductionCost, "iCost");
 	pXML->GetChildXmlValByName(&m_iHurryCostModifier, "iHurryCostModifier");
-	pXML->GetChildXmlValByName(&m_iAdvancedStartCost, "iAdvancedStartCost");
+	pXML->GetChildXmlValByName(&m_iAdvancedStartCost, "iAdvancedStartCost", /* advc: */ 100);
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCostIncrease, "iAdvancedStartCostIncrease");
 	pXML->GetChildXmlValByName(&m_iMinAreaSize, "iMinAreaSize");
 	pXML->GetChildXmlValByName(&m_iMoves, "iMoves");

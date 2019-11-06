@@ -7254,6 +7254,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 	{
 		FAssert(iBestValue > 0); // advc.300
 		GET_PLAYER(BARBARIAN_PLAYER).found(pBestPlot->getX(), pBestPlot->getY());
+		logBBAI("Barbarian city created at plot %d, %d", pBestPlot->getX(), pBestPlot->getY()); // advc.300 (from MNAI)
 	}
 }
 

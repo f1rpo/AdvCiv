@@ -22351,22 +22351,25 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 	if (eUnitAI == UNITAI_SETTLE)
 	{
 		// BETTER_BTS_AI_MOD, Unit AI, Efficiency, 08/20/09, jdog5000: was AI_getPlotDanger
-		if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*pPlot, 3))
-		{
+		if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*pPlot,
+				/* <advc.105> was 3 */ 1) &&
+				!GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 1))
+				// </advc.105>
+		{	// advc.test:
+			FAssertMsg(false, "Only to see how frequently this happens (or rather: just how rarely)");
 			return false;
 		}
 	}
 	else if (eUnitAI == UNITAI_ASSAULT_SEA)
 	{
 		if (!pGroup->hasCargo())
-		{
 			return false;
-		}
 	}
 
 	if (getGroup()->getHeadUnitAIType() == UNITAI_CITY_DEFENSE)
 	{
-		if (plot()->isCity() && plot()->getTeam() == getTeam() && plot()->getBestDefender(getOwner())->getGroup() == getGroup())
+		if (plot()->isCity() && plot()->getTeam() == getTeam() &&
+			plot()->getBestDefender(getOwner())->getGroup() == getGroup())
 		{
 			return false;
 		}
@@ -22375,7 +22378,6 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 	if (plot()->getOwner() == getOwner())
 	{
 		CvPlot* pTargetPlot = pGroup->AI_getMissionAIPlot();
-
 		if (pTargetPlot != NULL)
 		{
 			if (pTargetPlot->isOwned())
@@ -22392,9 +22394,7 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 	if (kUnit.getInvisibleType() != NO_INVISIBLE)
 	{
 		if (getInvisibleType() == NO_INVISIBLE)
-		{
 			return false;
-		}
 	}
 
 	return true;

@@ -165,9 +165,9 @@ def pyPrint(stuff):
 	sys.stdout.write(stuff)
 
 def pyAssert(cond, msg):
-	if (cond==False):
+	if not cond:
 		sys.stderr.write(msg)
-	assert(cond, msg)
+	assert cond, msg # advc.001 (from MNAI)
 	
 def getScoreComponent(iRawScore, iInitial, iMax, iFactor, bExponential, bFinal, bVictory):
 
