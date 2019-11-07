@@ -6330,11 +6330,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		iValue += 40 * iCityCount * AI_getHappinessWeight(kTechInfo.getHappiness(), 1) / 100;
 	}
 
-	for (int iJ = 0; iJ < GC.getNumRouteInfos(); iJ++)
+	FOR_EACH_ENUM(Route)
 	{
 		//iValue += -(GC.getInfo((RouteTypes)iJ).getTechMovementChange(eTech) * 100);
 		// K-Mod. Note: techMovementChange is O(10)
-		if (GC.getInfo((RouteTypes)iJ).getTechMovementChange(eTech))
+		if (GC.getInfo(eLoopRoute).getTechMovementChange(eTech))
 		{
 			int iTemp = 4 * (std::max(iCityCount, iCityTarget) - iCoastalCities/2);
 			if (bCapitalAlone)
@@ -6342,23 +6342,24 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			//if (kTeam.getAnyWarPlanCount(true))
 			if(AI_isFocusWar()) // advc.105
 				iTemp *= 2;
-			iValue -= GC.getInfo((RouteTypes)iJ).getTechMovementChange(eTech) * iTemp;
+			iValue -= GC.getInfo(eLoopRoute).getTechMovementChange(eTech) * iTemp;
 		}
 		// K-Mod end
 	}
 
-	for (int iJ = 0; iJ < NUM_DOMAIN_TYPES; iJ++)
+	FOR_EACH_ENUM(Domain)
 	{
-		iValue += kTechInfo.getDomainExtraMoves(iJ) * (iJ == DOMAIN_LAND ? 16 : 6) * iCityCount;
+		iValue += kTechInfo.getDomainExtraMoves(eLoopDomain) *
+				(eLoopDomain == DOMAIN_LAND ? 16 : 6) * iCityCount;
 	}
 
 	// K-Mod. Extra specialist commerce. (Based on my civic evaluation code)
 	bool bSpecialistCommerce = false;
 	int iTotalBonusSpecialists = -1;
 	int iTotalCurrentSpecialists = -1;
-	for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
+	FOR_EACH_ENUM(Commerce)
 	{
-		bSpecialistCommerce = kTechInfo.getSpecialistExtraCommerce(i) != 0;
+		bSpecialistCommerce = kTechInfo.getSpecialistExtraCommerce(eLoopCommerce) != 0;
 	}
 
 	if (bSpecialistCommerce)
@@ -6378,7 +6379,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	}
 	// K-Mod end
 	// <k146>
-	for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
+	FOR_EACH_ENUM(Commerce)
  	{
  		int iCommerceValue = 0;
 
@@ -6388,14 +6389,14 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			// If there are any bonuses, we need to count our specialists.
  			// (The value from the bonuses will be applied later.)
 			iTotalBonusSpecialists = iTotalCurrentSpecialists = 0;
- 			iCommerceValue += 4*AI_averageCommerceMultiplier(i)*
-					(kTechInfo.getSpecialistExtraCommerce(i) *
+ 			iCommerceValue += 4*AI_averageCommerceMultiplier(eLoopCommerce)*
+					(kTechInfo.getSpecialistExtraCommerce(eLoopCommerce) *
 					std::max((getTotalPopulation()+12*iTotalBonusSpecialists) /
 					12, iTotalCurrentSpecialists));
  		}
 
  		// Flexible commerce. (This is difficult to evaluate accurately without checking a lot of things - which I'm not going to do right now.)
- 		if (kTechInfo.isCommerceFlexible(i))
+ 		if (kTechInfo.isCommerceFlexible(eLoopCommerce))
  		{
 			iCommerceValue += 40 + 4 * iCityCount;
  			/* original
@@ -6408,7 +6409,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
  		if (iCommerceValue)
  		{
- 			iCommerceValue *= AI_commerceWeight(i);
+ 			iCommerceValue *= AI_commerceWeight(eLoopCommerce);
  			iCommerceValue /= 100;
 
  			iValue += iCommerceValue;
@@ -6416,11 +6417,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	} // </k146>
 	if (kTechInfo.isAnyTerrainTrade()) // advc.003t
 	{
-		for (int iJ = 0; iJ < GC.getNumTerrainInfos(); iJ++)
+		FOR_EACH_ENUM(Terrain)
 		{
-			if (!kTechInfo.isTerrainTrade(iJ))
+			if (!kTechInfo.isTerrainTrade(eLoopTerrain))
 				continue;
-			if (GC.getInfo((TerrainTypes)iJ).isWater())
+			if (GC.getInfo(eLoopTerrain).isWater())
 			{
 				if (pCapitalCity != NULL)
 				{
@@ -6430,7 +6431,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					int iCurrentForeignRoutes = AI_countPotentialForeignTradeCities(true, AI_getFlavorValue(FLAVOR_GOLD) == 0);
 					int iNewForeignRoutes = AI_countPotentialForeignTradeCities(false, AI_getFlavorValue(FLAVOR_GOLD) == 0) - iCurrentForeignRoutes;
 
-					int iNewOverseasRoutes = std::max(0, AI_countPotentialForeignTradeCities(false, AI_getFlavorValue(FLAVOR_GOLD) == 0, pCapitalCity->area()) - iCurrentForeignRoutes);
+					int iNewOverseasRoutes = std::max(0, AI_countPotentialForeignTradeCities(
+							false, AI_getFlavorValue(FLAVOR_GOLD) == 0, pCapitalCity->area()) -
+							iCurrentForeignRoutes);
 					/*  advc.131: Subtract 1 from city count (capital alone is
 						not going to have domestic trade routes). */
 					int iLocalRoutes = std::max(0, (iCityCount-1)*3 - iCurrentForeignRoutes);
@@ -6456,9 +6459,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	}
 
 	/* ------------------ Tile Improvement Value  ------------------ */
-	for (int iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
+	FOR_EACH_ENUM(Improvement)
 	{
-		for (int iK = 0; iK < NUM_YIELD_TYPES; iK++)
+		FOR_EACH_ENUM(Yield)
 		{
 			int iTempValue = 0;
 
@@ -6466,15 +6469,15 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			iTempValue += (GC.getInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK) * getImprovementCount((ImprovementTypes)iJ) * 50); */
 			// Often, an improvement only becomes viable after it gets the tech bonus.
 			// So it's silly to score the bonus proportionally to how many of the improvements we already have.
-			iTempValue += GC.getInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK)
-					* std::max(getImprovementCount((ImprovementTypes)iJ)
+			iTempValue += GC.getInfo(eLoopImprovement).getTechYieldChanges(eTech, eLoopYield)
+					* std::max(getImprovementCount(eLoopImprovement)
 					+iCityCount, // k146
 					3*iCityCount/2) * 4;
 			// This new version is still bork, but at least it won't be worthless.
-			iTempValue *= AI_averageYieldMultiplier((YieldTypes)iK);
+			iTempValue *= AI_averageYieldMultiplier(eLoopYield);
 			iTempValue /= 100;
 
-			iTempValue *= AI_yieldWeight((YieldTypes)iK);
+			iTempValue *= AI_yieldWeight(eLoopYield);
 			iTempValue /= 100;
 
 			iValue += iTempValue;
@@ -6482,282 +6485,275 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	}
 
 	int iBuildValue = 0;
-	for (BuildTypes eLoopBuild = (BuildTypes)0; eLoopBuild < GC.getNumBuildInfos(); eLoopBuild=(BuildTypes)(eLoopBuild+1))
+	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo(eLoopBuild).getTechPrereq() == eTech)
+		if (GC.getInfo(eLoopBuild).getTechPrereq() != eTech)
+			continue; // advc
+
+		ImprovementTypes eBuildImprovement = (ImprovementTypes)GC.getInfo(eLoopBuild).getImprovement();
+		ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eBuildImprovement);
+		// Note: finalImprovementUpgrade returns -1 for looping improvements; and that isn't handled well here.
+
+		if (eBuildImprovement == NO_IMPROVEMENT)
+			iBuildValue += 8*iCityCount;
+		else
 		{
-			ImprovementTypes eBuildImprovement = (ImprovementTypes)(GC.getInfo(eLoopBuild).getImprovement());
-			ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eBuildImprovement);
-			// Note: finalImprovementUpgrade returns -1 for looping improvements; and that isn't handled well here.
+			int iAccessibility = 0;
+			int iBestFeatureValue = 0; // O(100)
 
-			if (eBuildImprovement == NO_IMPROVEMENT)
+			const CvImprovementInfo& kBuildImprovement = GC.getInfo(eBuildImprovement);
 			{
-				iBuildValue += 8*iCityCount;
-			}
-			else
-			{
-				int iAccessibility = 0;
-				int iBestFeatureValue = 0; // O(100)
-
-				const CvImprovementInfo& kBuildImprovement = GC.getInfo(eBuildImprovement);
+				// iAccessibility represents the number of this improvement we expect to have per city.
+				iAccessibility += ((kBuildImprovement.isHillsMakesValid()) ? 150 : 0);
+				iAccessibility += ((kBuildImprovement.isFreshWaterMakesValid()) ? 150 : 0);
+				iAccessibility += ((kBuildImprovement.isRiverSideMakesValid()) ? 150 : 0);
+				if (kBuildImprovement.isAnyTerrainMakesValid()) // advc.003t
 				{
-					// iAccessibility represents the number of this improvement we expect to have per city.
-					iAccessibility += ((kBuildImprovement.isHillsMakesValid()) ? 150 : 0);
-					iAccessibility += ((kBuildImprovement.isFreshWaterMakesValid()) ? 150 : 0);
-					iAccessibility += ((kBuildImprovement.isRiverSideMakesValid()) ? 150 : 0);
-					if (kBuildImprovement.isAnyTerrainMakesValid()) // advc.003t
+					FOR_EACH_ENUM(Terrain)
 					{
-						for (int iK = 0; iK < GC.getNumTerrainInfos(); iK++)
-						{
-							iAccessibility += (kBuildImprovement.getTerrainMakesValid(iK) ? 75 : 0);
-						}
-					}
-					if (kBuildImprovement.isAnyFeatureMakesValid()) // advc.003t
-					{
-						for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
-						{
-							if (!kBuildImprovement.getFeatureMakesValid(iK))
-								continue;
-							iAccessibility += 75;
-							int iTempValue = 0;
-							for (YieldTypes i = (YieldTypes)0; i < NUM_YIELD_TYPES; i=(YieldTypes)(i+1))
-							{
-								iTempValue += GC.getInfo((FeatureTypes)iK).getYieldChange(i) * AI_yieldWeight(i) * AI_averageYieldMultiplier(i) / 100;
-							}
-							if (iTempValue > iBestFeatureValue)
-								iBestFeatureValue = iTempValue;
-						}
+						iAccessibility += (kBuildImprovement.getTerrainMakesValid(eLoopTerrain) ? 75 : 0);
 					}
 				}
-
-				if (eFinalImprovement == NO_IMPROVEMENT)
-					eFinalImprovement = eBuildImprovement;
-				const CvImprovementInfo& kFinalImprovement = GC.getInfo(eFinalImprovement);
-				if (iAccessibility > 0)
-				{  /* <advc.036> Don't need to improve every tile; just those
-					  we expect to work in the near future. */
-					if(pCapitalCity != NULL)
-					{
-						iAccessibility = std::min(iAccessibility, 100 *
-								(1 + getTotalPopulation() / getNumCities()));
-					} // </advc.036>
-					int iYieldValue = iBestFeatureValue;
-
-					for (int iK = 0; iK < NUM_YIELD_TYPES; iK++)
-					{
-						int iTempValue = 0;
-
-						// use average of final and initial improvements
-						iTempValue += kBuildImprovement.getYieldChange(iK) * 100;
-						iTempValue += kBuildImprovement.getRiverSideYieldChange(iK) * 50;
-						iTempValue += kBuildImprovement.getHillsYieldChange(iK) * 75;
-						iTempValue += kBuildImprovement.getIrrigatedYieldChange(iK) * 80;
-
-						iTempValue += kFinalImprovement.getYieldChange(iK) * 100;
-						iTempValue += kFinalImprovement.getRiverSideYieldChange(iK) * 50;
-						iTempValue += kFinalImprovement.getHillsYieldChange(iK) * 75;
-						iTempValue += kFinalImprovement.getIrrigatedYieldChange(iK) * 80;
-
-						iTempValue /= 2;
-
-						iTempValue *= AI_averageYieldMultiplier((YieldTypes)iK);
-						iTempValue /= 100;
-
-						iTempValue *= AI_yieldWeight((YieldTypes)iK);
-						iTempValue /= 100;
-
-						iYieldValue += iTempValue;
-					}
-
-					// The following are not yields, but close enough.
-					iYieldValue += kFinalImprovement.isActsAsCity() ? 100 : 0;
-					iYieldValue += kFinalImprovement.isCarriesIrrigation() ? 100 : 0;
-
-					if (getCurrentEra() > GC.getGame().getStartEra())
-						iYieldValue -= 100; // compare to a hypothetical low-value improvement
-					iBuildValue += std::max(0, iYieldValue) * iAccessibility *
-							(kFinalImprovement.isWater() ? iCoastalCities :
-							std::max(2, iCityCount)) / 2500;
-					// Note: we're converting from O(100)*O(100) to O(4)
-				}
-
-				for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
+				if (kBuildImprovement.isAnyFeatureMakesValid()) // advc.003t
 				{
-					const CvBonusInfo& kBonusInfo = GC.getInfo((BonusTypes)iK);
-
-					if (!kFinalImprovement.isImprovementBonusMakesValid(iK) && !kFinalImprovement.isImprovementBonusTrade(iK))
-						continue;
-
-					bool bRevealed = kTeam.isBonusRevealed((BonusTypes)iK);
-
-					int iNumBonuses = bRevealed
-						? AI_countOwnedBonuses((BonusTypes)iK) // actual count
-						: std::max(1, 2*getNumCities() / std::max(1, 3*iCityTarget)); // a guess
-					// <advc.131> Don't jump for fish when settled one off the coast
-					if(iNumBonuses > 0 && GC.getInfo(eBuildImprovement).
-							isWater() && iCoastalCities <= 0)
-						iNumBonuses = iNumBonuses / 2; // </advc.131>
-					//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
-					if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
-						continue; // advc
-					int iBonusValue = 0;
-
-					TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
-					if((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) &&
-							!kTeam.isBonusObsolete((BonusTypes)iK) &&
-							kBonusInfo.getTechObsolete() != eTech) {
-						// note: this is in addition to the getTechCityTrade evaluation lower in this function.
-						iBonusValue += AI_bonusVal((BonusTypes)iK, 1, true) * iCityCount;
-						if (bRevealed)
-							iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
-						else iBonusValue /= 2;
-					}
-					int iYieldValue = 0;
-					for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
+					FOR_EACH_ENUM(Feature)
 					{
+						if (!kBuildImprovement.getFeatureMakesValid(eLoopFeature))
+							continue;
+						iAccessibility += 75;
 						int iTempValue = 0;
-
-						iTempValue += kFinalImprovement.getImprovementBonusYield(iK, y) * 100;
-						iTempValue += kFinalImprovement.getIrrigatedYieldChange(y) * 75;
-
-						iTempValue *= AI_yieldWeight(y);
-						iTempValue /= 100;
-						iTempValue *= AI_averageYieldMultiplier(y);
-						iTempValue /= 100;
-
-						iYieldValue += iTempValue;
-					}
-					// advc.036: Apply this to later-era start too
-					if (getCurrentEra() > 0)//GC.getGame().getStartEra())
-						iYieldValue -= 100; // compare to a hypothetical low-value improvement
-
-					// Bonuses might be outside of our city borders.
-					iYieldValue *= 2*iNumBonuses;
-					iYieldValue /= (bRevealed ? 3 : 4);
-
-					if (kFinalImprovement.isWater())
-						iYieldValue = iYieldValue * 2/3;
-					/*  <advc.036> Since iBonusVal no longer overestimates early-game health,
-						high-yield tiles need to be appreciated more. */
-					if (iYieldValue > 0)
-					{
-						// This makes iYieldValue=225 a fixpoint
-						iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
-					}
-					/*  At the start of the game, extra yields are very important,
-						but we need to be sure that the tile isn't blocked by a feature
-						before increasing iYieldValue further. Will have to check
-						each tile -- OK, performance isn't an issue this early on. */
-					if(pCapitalCity != NULL && getNumCities() == 1)
-					{
-						bool bValid = false;
-						for(int i = 0; i < NUM_CITY_PLOTS; i++)
+						FOR_EACH_ENUM(Yield)
 						{
-							if(i == CITY_HOME_PLOT)
-								continue;
-							CvPlot* p = ::plotCity(pCapitalCity->getX(), pCapitalCity->getY(), i);
-							if(p != NULL && p->getBonusType() == iK)
-							{
-								FeatureTypes eLoopFeature = p->getFeatureType();
-								if(eLoopFeature == NO_FEATURE || GET_TEAM(getTeam()).
-										hasTechToClear(eLoopFeature, eTech))
-								{
-									bValid = true;
-									break;
-								}
-							}
+							iTempValue += GC.getInfo(eLoopFeature).getYieldChange(eLoopYield) *
+									AI_yieldWeight(eLoopYield) * AI_averageYieldMultiplier(eLoopYield) / 100;
 						}
-						if(bValid)
-							iYieldValue = ::round(iYieldValue * 1.5);
-					} // </advc.036>
-					// Convert to O(4)
-					iYieldValue /= 25;
-
-					iBuildValue += iBonusValue + std::max(0, iYieldValue);
+						if (iTempValue > iBestFeatureValue)
+							iBestFeatureValue = iTempValue;
+					}
 				}
 			}
 
-			RouteTypes eRoute = (RouteTypes)GC.getInfo(eLoopBuild).getRoute();
+			if (eFinalImprovement == NO_IMPROVEMENT)
+				eFinalImprovement = eBuildImprovement;
+			const CvImprovementInfo& kFinalImprovement = GC.getInfo(eFinalImprovement);
+			if (iAccessibility > 0)
+			{  /* <advc.036> Don't need to improve every tile; just those
+				  we expect to work in the near future. */
+				if(pCapitalCity != NULL)
+				{
+					iAccessibility = std::min(iAccessibility, 100 *
+							(1 + getTotalPopulation() / getNumCities()));
+				} // </advc.036>
+				int iYieldValue = iBestFeatureValue;
 
-			if (eRoute != NO_ROUTE)
-			{
-				int iRouteValue = 4 * (iCityCount - iCoastalCities/3) + (bAdvancedStart ? 2 : 0);
-				if (getBestRoute() == NO_ROUTE)
-					iRouteValue *= 4;
-				else if (GC.getInfo(getBestRoute()).getValue() < GC.getInfo(eRoute).getValue())
-					iRouteValue *= 2;
-
-				for (int iK = 0; iK < NUM_YIELD_TYPES; iK++)
+				FOR_EACH_ENUM(Yield)
 				{
 					int iTempValue = 0;
 
+					// use average of final and initial improvements
+					iTempValue += kBuildImprovement.getYieldChange(eLoopYield) * 100;
+					iTempValue += kBuildImprovement.getRiverSideYieldChange(eLoopYield) * 50;
+					iTempValue += kBuildImprovement.getHillsYieldChange(eLoopYield) * 75;
+					iTempValue += kBuildImprovement.getIrrigatedYieldChange(eLoopYield) * 80;
 
-					iTempValue += getNumCities() * GC.getInfo(eRoute).getYieldChange(iK) * 32; // epic bonus for epic effect
-					for (ImprovementTypes i = (ImprovementTypes)0; i < GC.getNumImprovementInfos(); i=(ImprovementTypes)(i+1))
-					{
-						iTempValue += GC.getInfo(i).getRouteYieldChanges(eRoute, iK) * std::max(getImprovementCount(i), 3*getNumCities()/2) * 4;
-					}
-					iTempValue *= AI_averageYieldMultiplier((YieldTypes)iK);
+					iTempValue += kFinalImprovement.getYieldChange(eLoopYield) * 100;
+					iTempValue += kFinalImprovement.getRiverSideYieldChange(eLoopYield) * 50;
+					iTempValue += kFinalImprovement.getHillsYieldChange(eLoopYield) * 75;
+					iTempValue += kFinalImprovement.getIrrigatedYieldChange(eLoopYield) * 80;
+
+					iTempValue /= 2;
+
+					iTempValue *= AI_averageYieldMultiplier(eLoopYield);
 					iTempValue /= 100;
 
-					iTempValue *= AI_yieldWeight((YieldTypes)iK);
+					iTempValue *= AI_yieldWeight(eLoopYield);
 					iTempValue /= 100;
 
-					//iBuildValue += iTempValue;
-					iRouteValue += iTempValue; // K-Mod
+					iYieldValue += iTempValue;
 				}
-				// K-Mod. Devalue it if we don't have the resources. (based on my code for unit evaluation)
-				bool bMaybeMissing = false; // if we don't know if we have the bonus or not
-				bool bDefinitelyMissing = false; // if we can see the bonuses, and we know we don't have any.
 
-				for (int iK = 0; iK < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); ++iK)
+				// The following are not yields, but close enough.
+				iYieldValue += kFinalImprovement.isActsAsCity() ? 100 : 0;
+				iYieldValue += kFinalImprovement.isCarriesIrrigation() ? 100 : 0;
+
+				if (getCurrentEra() > GC.getGame().getStartEra())
+					iYieldValue -= 100; // compare to a hypothetical low-value improvement
+				iBuildValue += std::max(0, iYieldValue) * iAccessibility *
+						(kFinalImprovement.isWater() ? iCoastalCities :
+						std::max(2, iCityCount)) / 2500;
+				// Note: we're converting from O(100)*O(100) to O(4)
+			}
+
+			FOR_EACH_ENUM(Bonus)
+			{
+				const CvBonusInfo& kBonusInfo = GC.getInfo(eLoopBonus);
+
+				if (!kFinalImprovement.isImprovementBonusMakesValid(eLoopBonus) &&
+					!kFinalImprovement.isImprovementBonusTrade(eLoopBonus))
+					continue;
+
+				bool bRevealed = kTeam.isBonusRevealed(eLoopBonus);
+
+				int iNumBonuses = bRevealed
+						? AI_countOwnedBonuses(eLoopBonus) // actual count
+						: std::max(1, 2*getNumCities() / std::max(1, 3*iCityTarget)); // a guess
+				// <advc.131> Don't jump for fish when settled one off the coast
+				if(iNumBonuses > 0 && GC.getInfo(eBuildImprovement).
+					isWater() && iCoastalCities <= 0)
+					iNumBonuses = iNumBonuses / 2; // </advc.131>
+				//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
+				if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
+					continue; // advc
+				int iBonusValue = 0;
+
+				TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
+				if((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) &&
+					!kTeam.isBonusObsolete(eLoopBonus) &&
+					kBonusInfo.getTechObsolete() != eTech) {
+						// note: this is in addition to the getTechCityTrade evaluation lower in this function.
+						iBonusValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount;
+						if (bRevealed)
+							iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
+						else iBonusValue /= 2;
+				}
+				int iYieldValue = 0;
+				FOR_EACH_ENUM(Yield)
 				{
-					BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqOrBonus(iK);
-					if (ePrereqBonus != NO_BONUS)
+					int iTempValue = 0;
+
+					iTempValue += kFinalImprovement.getImprovementBonusYield(eLoopBonus, eLoopYield) * 100;
+					iTempValue += kFinalImprovement.getIrrigatedYieldChange(eLoopYield) * 75;
+
+					iTempValue *= AI_yieldWeight(eLoopYield);
+					iTempValue /= 100;
+					iTempValue *= AI_averageYieldMultiplier(eLoopYield);
+					iTempValue /= 100;
+
+					iYieldValue += iTempValue;
+				}
+				// advc.036: Apply this to later-era start too
+				if (getCurrentEra() > 0)//GC.getGame().getStartEra())
+					iYieldValue -= 100; // compare to a hypothetical low-value improvement
+
+				// Bonuses might be outside of our city borders.
+				iYieldValue *= 2*iNumBonuses;
+				iYieldValue /= (bRevealed ? 3 : 4);
+
+				if (kFinalImprovement.isWater())
+					iYieldValue = iYieldValue * 2/3;
+				/*  <advc.036> Since iBonusVal no longer overestimates early-game health,
+				high-yield tiles need to be appreciated more. */
+				if (iYieldValue > 0)
+				{
+					// This makes iYieldValue=225 a fixpoint
+					iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
+				}
+				/*  At the start of the game, extra yields are very important,
+				but we need to be sure that the tile isn't blocked by a feature
+				before increasing iYieldValue further. Will have to check
+				each tile -- OK, performance isn't an issue this early on. */
+				if(pCapitalCity != NULL && getNumCities() == 1)
+				{
+					bool bValid = false;
+					for(int i = 0; i < NUM_CITY_PLOTS; i++)
 					{
-						if (hasBonus(ePrereqBonus))
+						if(i == CITY_HOME_PLOT)
+							continue;
+						CvPlot* p = ::plotCity(pCapitalCity->getX(), pCapitalCity->getY(), i);
+						if(p != NULL && p->getBonusType() == eLoopBonus)
 						{
-							bDefinitelyMissing = false;
-							bMaybeMissing = false;
-							break;
-						}
-						else
-						{
-							if (kTeam.isBonusRevealed(ePrereqBonus) && AI_countOwnedBonuses(ePrereqBonus) == 0)
+							FeatureTypes eLoopFeature = p->getFeatureType();
+							if(eLoopFeature == NO_FEATURE || GET_TEAM(getTeam()).
+								hasTechToClear(eLoopFeature, eTech))
 							{
-								bDefinitelyMissing = true;
-							}
-							else
-							{
-								bMaybeMissing = true;
+								bValid = true;
+								break;
 							}
 						}
 					}
-				}
-				BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqBonus();
-				if (ePrereqBonus != NO_BONUS && !hasBonus(ePrereqBonus))
+					if(bValid)
+						iYieldValue = ::round(iYieldValue * 1.5);
+				} // </advc.036>
+				// Convert to O(4)
+				iYieldValue /= 25;
+
+				iBuildValue += iBonusValue + std::max(0, iYieldValue);
+			}
+		}
+
+		RouteTypes eRoute = (RouteTypes)GC.getInfo(eLoopBuild).getRoute();
+
+		if (eRoute != NO_ROUTE)
+		{
+			int iRouteValue = 4 * (iCityCount - iCoastalCities/3) + (bAdvancedStart ? 2 : 0);
+			if (getBestRoute() == NO_ROUTE)
+				iRouteValue *= 4;
+			else if (GC.getInfo(getBestRoute()).getValue() < GC.getInfo(eRoute).getValue())
+				iRouteValue *= 2;
+
+			FOR_EACH_ENUM(Yield)
+			{
+				int iTempValue = 0;
+
+				// epic bonus for epic effect
+				iTempValue += getNumCities() * GC.getInfo(eRoute).getYieldChange(eLoopYield) * 32;
+				FOR_EACH_ENUM(Improvement)
 				{
-					if ((kTeam.isHasTech((TechTypes)(GC.getInfo(ePrereqBonus).getTechReveal())) || kTeam.isForceRevealedBonus(ePrereqBonus)) &&
-						AI_countOwnedBonuses(ePrereqBonus) == 0)
+					iTempValue += GC.getInfo(eLoopImprovement).getRouteYieldChanges(eRoute, eLoopYield) *
+							std::max(getImprovementCount(eLoopImprovement), 3*getNumCities()/2) * 4;
+				}
+				iTempValue *= AI_averageYieldMultiplier(eLoopYield);
+				iTempValue /= 100;
+
+				iTempValue *= AI_yieldWeight(eLoopYield);
+				iTempValue /= 100;
+
+				//iBuildValue += iTempValue;
+				iRouteValue += iTempValue; // K-Mod
+			}
+			// K-Mod. Devalue it if we don't have the resources. (based on my code for unit evaluation)
+			bool bMaybeMissing = false; // if we don't know if we have the bonus or not
+			bool bDefinitelyMissing = false; // if we can see the bonuses, and we know we don't have any.
+
+			for (int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); i++)
+			{
+				BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqOrBonus(i);
+				if (ePrereqBonus != NO_BONUS)
+				{
+					if (hasBonus(ePrereqBonus))
 					{
-						bDefinitelyMissing = true;
+						bDefinitelyMissing = false;
+						bMaybeMissing = false;
+						break;
 					}
 					else
 					{
-						bMaybeMissing = true;
+						if (kTeam.isBonusRevealed(ePrereqBonus) &&
+							AI_countOwnedBonuses(ePrereqBonus) == 0)
+						{
+							bDefinitelyMissing = true;
+						}
+						else bMaybeMissing = true;
 					}
 				}
-				if (bDefinitelyMissing)
-				{
-					iRouteValue /= 3;
-				}
-				else if (bMaybeMissing)
-				{
-					iRouteValue /= 2;
-				}
-				iBuildValue += iRouteValue;
-				// K-Mod end
 			}
+			BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqBonus();
+			if (ePrereqBonus != NO_BONUS && !hasBonus(ePrereqBonus))
+			{
+				if ((kTeam.isHasTech((TechTypes)(GC.getInfo(ePrereqBonus).getTechReveal())) ||
+					kTeam.isForceRevealedBonus(ePrereqBonus)) &&
+					AI_countOwnedBonuses(ePrereqBonus) == 0)
+				{
+					bDefinitelyMissing = true;
+				}
+				else bMaybeMissing = true;
+			}
+			if (bDefinitelyMissing)
+				iRouteValue /= 3;
+			else if (bMaybeMissing)
+				iRouteValue /= 2;
+			iBuildValue += iRouteValue;
+			// K-Mod end
 		}
 	}
 
@@ -6766,17 +6762,17 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	//to ensure the feature-remove is only counted once rather than once per build
 	//which could be a lot since nearly every build clears jungle...
 
-	for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
+	FOR_EACH_ENUM(Feature)
 	{
 		bool bFeatureRemove = false;
 		int iChopProduction = 0;
-		for (int iK = 0; iK < GC.getNumBuildInfos(); iK++)
+		FOR_EACH_ENUM(Build)
 		{
-			if (GC.getInfo((BuildTypes)iK).getFeatureTech(iJ) == eTech)
+			if (GC.getInfo(eLoopBuild).getFeatureTech(eLoopFeature) == eTech)
 			{
 				bFeatureRemove = true;
 				// I'll assume it's the same for all builds
-				iChopProduction = GC.getInfo((BuildTypes)iK).getFeatureProduction(iJ);
+				iChopProduction = GC.getInfo(eLoopBuild).getFeatureProduction(eLoopFeature);
 				break;
 			}
 		}
@@ -6784,7 +6780,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		if (bFeatureRemove)
 		{	// k146: Divisor was 8, K-Mod sets it to 4, advc: 7.
 			int iChopValue = iChopProduction / 7;
-			FeatureTypes eFeature = (FeatureTypes)iJ; // advc
+			FeatureTypes eFeature = eLoopFeature; // advc
 			CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
 			if(kFeature.getHealthPercent() < 0 || kFeature.getYieldChange(YIELD_FOOD) +
 				kFeature.getYieldChange(YIELD_PRODUCTION) +
@@ -6812,14 +6808,14 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	iValue += iBuildValue;
 
 	// does tech reveal bonus resources
-	for (int iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
+	FOR_EACH_ENUM(Bonus)
 	{
-		if (GC.getInfo((BonusTypes)iJ).getTechReveal() == eTech)
+		CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
+		if (kLoopBonus.getTechReveal() == eTech)
 		{
 			int iRevealValue = 8;
-			iRevealValue += AI_bonusVal((BonusTypes)iJ, 1, true) * iCityCount * 2/3;
-			BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo(
-					(BonusTypes)iJ).getBonusClassType();
+			iRevealValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount * 2/3;
+			BonusClassTypes eBonusClass = (BonusClassTypes)kLoopBonus.getBonusClassType();
 			int iBonusClassTotal = (viBonusClassRevealed[eBonusClass] +
 					viBonusClassUnrevealed[eBonusClass]);
 			//iMultiplier is basically a desperation value
@@ -6846,8 +6842,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 			// K-Mod
 			// If we don't yet have the 'enable' tech, reduce the value of the reveal.
-			if (GC.getInfo((BonusTypes)iJ).getTechCityTrade() != eTech &&
-				!kTeam.isHasTech((TechTypes)(GC.getInfo((BonusTypes)iJ).getTechCityTrade())))
+			if (kLoopBonus.getTechCityTrade() != eTech &&
+				!kTeam.isHasTech((TechTypes)kLoopBonus.getTechCityTrade()))
 			{
 				iRevealValue /= 3;
 			}
@@ -6856,14 +6852,15 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			iValue += iRevealValue;
 		}
 		// K-Mod: Value for enabling resources that are already revealed
-		else if (GC.getInfo((BonusTypes)iJ).getTechCityTrade() == eTech &&
-			(kTeam.isHasTech((TechTypes)GC.getInfo((BonusTypes)iJ).getTechReveal()) || kTeam.isForceRevealedBonus((BonusTypes)iJ)))
+		else if (kLoopBonus.getTechCityTrade() == eTech &&
+			(kTeam.isHasTech((TechTypes)kLoopBonus.getTechReveal()) ||
+			kTeam.isForceRevealedBonus(eLoopBonus)))
 		{
-			int iOwned = AI_countOwnedBonuses((BonusTypes)iJ);
+			int iOwned = AI_countOwnedBonuses(eLoopBonus);
 			if (iOwned > 0)
 			{
 				int iEnableValue = 4;
-				iEnableValue += AI_bonusVal((BonusTypes)iJ, 1, true) * iCityCount;
+				iEnableValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount;
 				iEnableValue *= (iOwned > 1) ? 120 : 100;
 				iEnableValue /= 100;
 
@@ -6936,35 +6933,30 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 	/* ------------------ Process Value  ------------------ */
 	bool bGoodProcess = false;
-	for (int iJ = 0; iJ < GC.getNumProcessInfos(); iJ++)
+	FOR_EACH_ENUM(Process)
 	{
-		if (GC.getInfo((ProcessTypes)iJ).getTechPrereq() == eTech)
+		CvProcessInfo const& kLoopProcess = GC.getInfo(eLoopProcess);
+		if (kLoopProcess.getTechPrereq() != eTech)
+			continue; // advc
+
+		iValue += 28;
+
+		FOR_EACH_ENUM(Commerce)
 		{
-			iValue += 28;
+			int iTempValue = (kLoopProcess.getProductionToCommerceModifier(eLoopCommerce) * 4);
 
-			for (int iK = 0; iK < NUM_COMMERCE_TYPES; iK++)
-			{
-				int iTempValue = (GC.getInfo((ProcessTypes)iJ).getProductionToCommerceModifier(iK) * 4);
+			if (iTempValue <= 0) // K-Mod (check out what would happen to "bGoodProcess" without this bit.  "oops.")
+				continue;
 
-				// K-Mod. (check out what would happen to "bGoodProcess" without this bit.  "oops.")
-				if (iTempValue <= 0)
-					continue;
-				// K-Mod end
+			iTempValue *= AI_commerceWeight(eLoopCommerce);
+			iTempValue /= 100;
 
-				iTempValue *= AI_commerceWeight((CommerceTypes)iK);
-				iTempValue /= 100;
+			if (eLoopCommerce == COMMERCE_GOLD || eLoopCommerce == COMMERCE_RESEARCH)
+				bGoodProcess = true;
+			else if (eLoopCommerce == COMMERCE_CULTURE && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+				iTempValue *= 2; // k146: was 3
 
-				if (iK == COMMERCE_GOLD || iK == COMMERCE_RESEARCH)
-				{
-					bGoodProcess = true;
-				}
-				else if ((iK == COMMERCE_CULTURE) && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
-				{
-					iTempValue *= 2; // k146: was 3
-				}
-
-				iValue += iTempValue * iCityCount / 100;
-			}
+			iValue += iTempValue * iCityCount / 100;
 		}
 	}
 	// <cdtw.3>
@@ -6978,19 +6970,18 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		if(iUnitCost * 20 > iNetCommerce)
 			bHighUnitCost = true;
 	}*/ // </cdtw.3>
-	if (bGoodProcess && (bFinancialTrouble
-			|| bHighUnitCost)) // cdtw.3
+	if (bGoodProcess && (bFinancialTrouble /* cdtw.3: */ || bHighUnitCost))
 	{
 		bool bHaveGoodProcess = false;
-		for (int iJ = 0; iJ < GC.getNumProcessInfos(); iJ++)
+		FOR_EACH_ENUM(Process)
 		{
-			if (kTeam.isHasTech((TechTypes)GC.getInfo((ProcessTypes)iJ).getTechPrereq()))
+			CvProcessInfo const& kLoopProcess = GC.getInfo(eLoopProcess);
+			if (kTeam.isHasTech((TechTypes)kLoopProcess.getTechPrereq()))
 			{
-				bHaveGoodProcess = (GC.getInfo((ProcessTypes)iJ).getProductionToCommerceModifier(COMMERCE_GOLD) + GC.getInfo((ProcessTypes)iJ).getProductionToCommerceModifier(COMMERCE_RESEARCH)) > 0;
+				bHaveGoodProcess = (kLoopProcess.getProductionToCommerceModifier(COMMERCE_GOLD) +
+						kLoopProcess.getProductionToCommerceModifier(COMMERCE_RESEARCH) > 0);
 				if (bHaveGoodProcess)
-				{
 					break;
-				}
 			}
 		}
 		if (!bHaveGoodProcess)
@@ -7000,16 +6991,16 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		}
 	}
 	/* ------------------ Civic Value  ------------------ */
-	for (int iJ = 0; iJ < GC.getNumCivicInfos(); iJ++)
+	FOR_EACH_ENUM(Civic)
 	{
-		if (GC.getInfo((CivicTypes)iJ).getTechPrereq() == eTech
-				 && !canDoCivics((CivicTypes)iJ)) // k146
+		CvCivicInfo const& kLoopCivic = GC.getInfo(eLoopCivic);
+		if (kLoopCivic.getTechPrereq() == eTech
+			&& !canDoCivics(eLoopCivic)) // k146
 		{
-			CivicTypes eCivic = getCivics((CivicOptionTypes)(GC.getInfo((CivicTypes)iJ).getCivicOptionType()));
+			CivicTypes eCivic = getCivics((CivicOptionTypes)kLoopCivic.getCivicOptionType());
 
 			int iCurrentCivicValue = AI_civicValue(eCivic); // Note: scale of AI_civicValue is 1 = commerce/turn
-			int iNewCivicValue = AI_civicValue((CivicTypes)iJ);
-
+			int iNewCivicValue = AI_civicValue(eLoopCivic);
 			if (iNewCivicValue > iCurrentCivicValue)
 			{
 				//iValue += std::min(2400, (2400 * (iNewCivicValue - iCurrentCivicValue)) / std::max(1, iCurrentCivicValue));
@@ -7022,13 +7013,13 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				iValue += 4 * std::min(iCityCount, iCityTarget); // </k146>
 			}
 
-			if (eCivic == GC.getInfo(getPersonalityType()).getFavoriteCivic()) {
+			if (eCivic == GC.getInfo(getPersonalityType()).getFavoriteCivic())
+			{
 				/*  k146: favourite civic is already taken into account in the
 					civic evaluation above. */
 				iValue += 6*iCityCount;
 			}
-			else
-				iValue += 4*iCityCount;
+			else iValue += 4*iCityCount;
 		}
 	}
 
@@ -7039,74 +7030,73 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		// K-Mod. Make a list of corporation HQs that this tech enables.
 		// (note: for convenience, I've assumed that each corp has at most one type of HQ building.)
 		std::vector<BuildingTypes> corpHQs(GC.getNumCorporationInfos(), NO_BUILDING);
-
-		for (int iB = 0; iB < GC.getNumBuildingInfos(); iB++)
+		FOR_EACH_ENUM(Building)
 		{
-			const CvBuildingInfo& kBuildingInfo = GC.getInfo((BuildingTypes)iB);
-			if (kBuildingInfo.getFoundsCorporation() != NO_CORPORATION)
+			CvBuildingInfo const& kLoopBuilding = GC.getInfo(eLoopBuilding);
+			if (kLoopBuilding.getFoundsCorporation() != NO_CORPORATION)
 			{
-				if (isTechRequiredForBuilding(eTech, (BuildingTypes)iB))
+				if (isTechRequiredForBuilding(eTech, eLoopBuilding))
 				{
-					FAssert(kBuildingInfo.getFoundsCorporation() < (int)corpHQs.size());
-					corpHQs[kBuildingInfo.getFoundsCorporation()] = (BuildingTypes)iB;
+					FAssert(kLoopBuilding.getFoundsCorporation() < (int)corpHQs.size());
+					corpHQs[kLoopBuilding.getFoundsCorporation()] = eLoopBuilding;
 				}
 			}
 		}
 		// K-Mod end (the corpHQs map is used in the next section)
 
 		// note: K-mod has moved this section from out of the first-discoverer block
-		for (int iJ = 0; iJ < GC.getNumCorporationInfos(); iJ++)
+		FOR_EACH_ENUM(Corporation)
 		{
 			/* original bts code
-			if (GC.getInfo((CorporationTypes)iJ).getTechPrereq() == eTech)
+			if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech)
 			{
-				if (!(GC.getGame().isCorporationFounded((CorporationTypes)iJ)))
+				if (!GC.getGame().isCorporationFounded(eLoopCorporation))
 				{
 					iValue += 100 + ((bAsync) ? getASyncRand().get(2400, "AI Research Corporation ASYNC") : GC.getGame().getSorenRandNum(2400, "AI Research Corporation"));
 				}
 			} */
 			// K-Mod
-			if (!GC.getGame().isCorporationFounded((CorporationTypes)iJ))
+			if (!GC.getGame().isCorporationFounded(eLoopCorporation))
 			{
 				int iMissingTechs = 0;
 				bool bCorpTech = false;
 
-				if (GC.getInfo((CorporationTypes)iJ).getTechPrereq() == eTech)
+				if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech)
 				{
 					bCorpTech = bFirst; // only good if we are the first to get the tech
 					// missing tech stays at 0, because this is a special case. (ie. no great person required)
 				}
-				else if (corpHQs[iJ] != NO_BUILDING)
+				else if (corpHQs[eLoopCorporation] != NO_BUILDING)
 				{
-					const CvBuildingInfo& kBuildingInfo = GC.getInfo(corpHQs[iJ]);
-					if (kBuildingInfo.getPrereqAndTech() == eTech ||
-						kTeam.isHasTech((TechTypes)kBuildingInfo.getPrereqAndTech()) ||
-						canResearch((TechTypes)kBuildingInfo.getPrereqAndTech()))
+					CvBuildingInfo const& kHQBuilding = GC.getInfo(corpHQs[eLoopCorporation]);
+					TechTypes eHQTech = (TechTypes)kHQBuilding.getPrereqAndTech();
+					if (eHQTech == eTech || kTeam.isHasTech(eHQTech) || canResearch(eHQTech))
 					{
 						bCorpTech = true;
 						// Count the required techs. (cf. isTechRequiredForBuilding)
 
-						iMissingTechs += !kTeam.isHasTech((TechTypes)kBuildingInfo.getPrereqAndTech()) ? 1 : 0;
+						iMissingTechs += (!kTeam.isHasTech(eHQTech) ? 1 : 0);
 
-						for (int iP = 0; iP < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iP++)
+						for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
 						{
-							iMissingTechs += !kTeam.isHasTech((TechTypes)kBuildingInfo.getPrereqAndTechs(iP)) ? 1 : 0;
+							iMissingTechs += (!kTeam.isHasTech((TechTypes)kHQBuilding.getPrereqAndTechs(i)) ? 1 : 0);
 						}
 
-						SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)kBuildingInfo.getSpecialBuildingType();
-						iMissingTechs += eSpecial != NO_SPECIALBUILDING && !kTeam.isHasTech((TechTypes)GC.getInfo(eSpecial).getTechPrereq()) ? 1 : 0;
+						SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)kHQBuilding.getSpecialBuildingType();
+						iMissingTechs += ((eSpecial != NO_SPECIALBUILDING &&
+								!kTeam.isHasTech((TechTypes)GC.getInfo(eSpecial).getTechPrereq()))
+								? 1 : 0);
 
 						FAssert(iMissingTechs > 0);
 					}
 				}
 				if (bCorpTech)
 				{
-					int iCorpValue = AI_corporationValue((CorporationTypes)iJ); // roughly 100x commerce / turn / city.
+					int iCorpValue = AI_corporationValue(eLoopCorporation); // roughly 100x commerce / turn / city.
 					iCorpValue = iCorpValue * iCityCount * 2 / 100; // rescaled
 					if (iMissingTechs == 0)
 						iCorpValue = 3 * iCorpValue / 2; // this won't happen in standard BtS - but it might in some mods.
-					else
-						iCorpValue /= iMissingTechs;
+					else iCorpValue /= iMissingTechs;
 
 					if (iCorpValue > 0)
 					{
@@ -7129,8 +7119,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						}
 					}
 				}
-			}
-			// K-Mod end
+			} // K-Mod end
 		}
 
 		//if (GC.getGame().countKnownTechNumTeams(eTech) == 0)
@@ -7160,9 +7149,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			int iReligionValue = 0;
 			int iPotentialReligions = 0;
 			int iAvailableReligions = 0; // K-Mod
-			for (int iJ = 0; iJ < GC.getNumReligionInfos(); iJ++)
+			FOR_EACH_ENUM(Religion)
 			{
-				TechTypes eReligionTech = (TechTypes)GC.getInfo((ReligionTypes)iJ).getTechPrereq();
+				TechTypes eReligionTech = (TechTypes)GC.getInfo(eLoopReligion).getTechPrereq();
 				/* original bts code
 				if (kTeam.isHasTech(eReligionTech))
 				{
@@ -7173,7 +7162,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				} */
 				// K-Mod. iPotentialReligions will only be non-zero during the first few turns of advanced start games. Otherwise it is always zero.
 				// Presumably that's what the original developers intended... so I'm going to leave that alone, and create a new value: iAvailableReligions.
-				if (!GC.getGame().isReligionSlotTaken((ReligionTypes)iJ))
+				if (!GC.getGame().isReligionSlotTaken(eLoopReligion))
 				{
 					iAvailableReligions++;
 					if (kTeam.isHasTech(eReligionTech))
@@ -7183,19 +7172,19 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 				if (eReligionTech == eTech)
 				{
-					if (!(GC.getGame().isReligionSlotTaken((ReligionTypes)iJ)))
+					if (!GC.getGame().isReligionSlotTaken(eLoopReligion))
 					{
 						int iRoll = 150; // k146: was 400
 
 						if (!GC.getGame().isOption(GAMEOPTION_PICK_RELIGION))
 						{
-							ReligionTypes eFavorite = (ReligionTypes)GC.getInfo(getLeaderType()).getFavoriteReligion();
+							ReligionTypes eFavorite = (ReligionTypes)GC.getInfo(getLeaderType()).
+									getFavoriteReligion();
 							if (eFavorite != NO_RELIGION)
 							{
-								if (iJ == eFavorite)
+								if (eLoopReligion == eFavorite)
 									iRoll = iRoll * 3/2;
-								else
-									iRoll = iRoll * 2/3;
+								else iRoll = iRoll * 2/3;
 							}
 						}
 
@@ -7224,12 +7213,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						iReligionValue += (iCityCount > 1 ? 100 : 0);
 					}
 				}
-				else
-				{
-					iReligionValue /= (1 + countHolyCities() + ((iPotentialReligions > 0) ? 1 : 0));
-				}
+				else iReligionValue /= 1 + countHolyCities() + (iPotentialReligions > 0 ? 1 : 0);
 
-				if ((countTotalHasReligion() == 0) && (iPotentialReligions == 0))
+				if (countTotalHasReligion() == 0 && iPotentialReligions == 0)
 				{
 					bool bNeighbouringReligions = false;
 					for (PlayerTypes i = (PlayerTypes)0; !bNeighbouringReligions && i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))
@@ -7240,13 +7226,12 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 							// <advc.001>
 							((getTeam() != kLoopPlayer.getTeam() && kTeam.AI_hasSharedPrimaryArea(kLoopPlayer.getTeam())) ||
 							(getTeam() == kLoopPlayer.getTeam() && getID() != kLoopPlayer.getID() && AI_hasSharedPrimaryArea(kLoopPlayer.getID()))))
-							/*  The case where both civs are on the same team previously led
-								to a failed assertion in CvTeamAI::hasSharedPrimaryArea.
-								Added a new clause that checks if the civs (not their
-								teams) share a primary area. Rationale: If a team member
-								on the same continent has already founded a religion,
-								we should be less inclined to found another (will soon
-								spread to us). </advc.001> */
+						/*  The case where both civs are on the same team previously led to a
+							failed assertion in CvTeamAI::hasSharedPrimaryArea.
+							Added a new clause that checks if the civs (not their teams)
+							share a primary area. Rationale: If a team member on the same
+							continent has already founded a religion, we should be less inclined
+							to found another (will soon spread to us). </advc.001> */
 						{
 							bNeighbouringReligions = true;
 						}
@@ -7309,11 +7294,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					int iMaxTechCost = 0;
 					int iTechCount = 0;
 
-					for (TechTypes iI = (TechTypes)0; iI < GC.getNumTechInfos(); iI=(TechTypes)(iI+1))
+					FOR_EACH_ENUM(Tech)
 					{
-						if (canResearch(iI, false, true))
+						if (canResearch(eLoopTech, false, true))
 						{
-							int iTechCost = kTeam.getResearchCost(iI);
+							int iTechCost = kTeam.getResearchCost(eLoopTech);
 							iTotalTechCost += iTechCost;
 							iTechCount++;
 							iMaxTechCost = std::max(iMaxTechCost, iTechCost);
@@ -7322,7 +7307,6 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					if (iTechCount > 0)
 					{
 						int iTechValue =  ((iTotalTechCost / iTechCount) + iMaxTechCost)/2;
-
 						iBase += iTechValue * 20 / GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent();
 					}
 				} // I'm expecting iRoll to be ~600.
@@ -7350,10 +7334,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		iValue += iFlavorValue * std::min(iCityCount, iCityTarget) / std::max(1, iCityTarget);
 	}*/ // <advc.020> Replacing the above
 	double flavorFactor = 1.0;
-	for(int i = 0; i < GC.getNumFlavorTypes(); i++)
+	FOR_EACH_ENUM(Flavor)
 	{
-		flavorFactor += 0.22 * AI_getFlavorValue((FlavorTypes)i) *
-				kTechInfo.getFlavorValue(i) * std::min(iCityCount, iCityTarget) /
+		flavorFactor += 0.22 * AI_getFlavorValue(eLoopFlavor) *
+				kTechInfo.getFlavorValue(eLoopFlavor) * std::min(iCityCount, iCityTarget) /
 				(100.0 * std::max(1, iCityTarget));
 	}
 	if(iValue > 0)
@@ -12293,7 +12277,7 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	int iTradeVal = 0;
 	// More valuable if we have few resources for trade
 	int iSurplus = 0;
-	if(!bTrade) /* Importing resources is not going to give us more resources
+	if(!bTrade) /*  Importing resources is not going to give us more resources
 					to trade with b/c we can't wheel and deal */
 	{
 		for(int i = 0; i < GC.getNumBonusInfos(); i++)
