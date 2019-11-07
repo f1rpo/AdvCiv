@@ -5323,17 +5323,21 @@ bool CvPlot::isHabitable(bool bIgnoreSea) const {
 
 int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnoreFeature) const
 {
+	// advc.016: Cut from calculateYield
+	int iYield = GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
 	if (isImpassable())
-		return 0;
-
-	FAssert(getTerrainType() != NO_TERRAIN);
-
-	int iYield = GC.getInfo(getTerrainType()).getYield(eYield);
+	{
+		//return 0;
+		/*  advc.016: Impassable tiles with extra yields can be worked -
+			as in BtS. This allows Python modders to make peaks workable. */
+		return iYield;
+	}
+	iYield += GC.getInfo(getTerrainType()).getYield(eYield);
 	if (isHills())
 		iYield += GC.getInfo(eYield).getHillsChange();
-	if (isPeak())
+	else if (isPeak())
 		iYield += GC.getInfo(eYield).getPeakChange();
-	if (isLake())
+	else if (isLake())
 		iYield += GC.getInfo(eYield).getLakeChange();
 	if (eTeam != NO_TEAM)
 	{
@@ -5366,8 +5370,7 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 		if (getFeatureType() != NO_FEATURE)
 			iYield += GC.getInfo(getFeatureType()).getYieldChange(eYield);
 	}
-	// advc.016: Cut from calculateYield
-	iYield += GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
+
 	return std::max(0, iYield);
 }
 
