@@ -4,7 +4,8 @@ PROJECT_CFLAGS = /WX
 PROJECT_Debug_CFLAGS = /Ob1
 # DLL-internal profiler: /DUSE_INTERNAL_PROFILER
 # Time Stamp Counter profiler: /DUSE_TSC_PROFILER
+# External profiler, e.g. Very Sleepy: /Z7 (for debugging symbols)
 # Standard Firaxis profiler (not sure if this can work w/o access to the EXE): /DFP_PROFILE_ENABLE
-PROJECT_Profile_CFLAGS = /DUSE_TSC_PROFILER
+PROJECT_Profile_CFLAGS = /DUSE_INTERNAL_PROFILER
 PROJECT_LDFLAGS = /DEF:CvGameCoreDLL.def
 PRECOMPILE_DEPENDENCIES = 
