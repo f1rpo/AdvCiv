@@ -4954,9 +4954,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				iTempValue /= 3000;
 
 				/*if (MAX_INT == aiCommerceRank[COMMERCE_GOLD])
-				{
-					aiCommerceRank[COMMERCE_GOLD] = findCommerceRateRank(COMMERCE_GOLD);
-				}*/
+					aiCommerceRank[COMMERCE_GOLD] = findCommerceRateRank(COMMERCE_GOLD);*/
 
 				// if this is a limited wonder, and we are not one of the top 4 in this category, subtract the value
 				// we do _not_ want to build this here (unless the value was small anyway)
@@ -4971,36 +4969,36 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 		if (iPass > 0)
 		{
-			for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+			FOR_EACH_ENUM(Commerce)
 			{
-				int iTempValue = kBuilding.getCommerceChange(iI) * 4;
-				iTempValue += kBuilding.getObsoleteSafeCommerceChange(iI) * 4;
+				int iTempValue = kBuilding.getCommerceChange(eLoopCommerce) * 4;
+				iTempValue += kBuilding.getObsoleteSafeCommerceChange(eLoopCommerce) * 4;
 				// BETTER_BTS_AI_MOD, City AI, 03/13/10, jdog5000: START
 				if (kBuilding.getReligionType() != NO_RELIGION &&
 						kBuilding.getReligionType() == kOwner.getStateReligion())
-					iTempValue += kOwner.getStateReligionBuildingCommerce((CommerceTypes)iI) * 3;
+					iTempValue += kOwner.getStateReligionBuildingCommerce(eLoopCommerce) * 3;
 				// BETTER_BTS_AI_MOD END
-				iTempValue += ((kBuilding.getSpecialistExtraCommerce(iI) * kOwner.getTotalPopulation()) / 3); // Moved from below (K-Mod)
-				//iTempValue *= 100 + kBuilding.getCommerceModifier(iI);
+				iTempValue += ((kBuilding.getSpecialistExtraCommerce(eLoopCommerce) * kOwner.getTotalPopulation()) / 3); // Moved from below (K-Mod)
+				//iTempValue *= 100 + kBuilding.getCommerceModifier(eLoopCommerce);
 				// K-Mod. Note that getTotalCommerceRateModifier() includes the +100.
-				iTempValue *= getTotalCommerceRateModifier((CommerceTypes)iI) +
-						kBuilding.getCommerceModifier(iI);
+				iTempValue *= getTotalCommerceRateModifier(eLoopCommerce) +
+						kBuilding.getCommerceModifier(eLoopCommerce);
 				iTempValue /= 100;
 
-				if (kBuilding.getCommerceChangeDoubleTime(iI) > 0)
+				if (kBuilding.getCommerceChangeDoubleTime(eLoopCommerce) > 0)
 				{
-					if ((kBuilding.getCommerceChange(iI) > 0) || (kBuilding.getObsoleteSafeCommerceChange(iI) > 0))
-					{	//iTempValue += (1000 / kBuilding.getCommerceChangeDoubleTime(iI));
-						iTempValue += iTempValue * 250 / kBuilding.getCommerceChangeDoubleTime(iI); // K-Mod (still very rough...)
+					if (kBuilding.getCommerceChange(eLoopCommerce) > 0 ||
+						kBuilding.getObsoleteSafeCommerceChange(eLoopCommerce) > 0)
+					{	//iTempValue += (1000 / kBuilding.getCommerceChangeDoubleTime(eLoopCommerce));
+						// K-Mod (still very rough...):
+						iTempValue += iTempValue * 250 / kBuilding.getCommerceChangeDoubleTime(eLoopCommerce);
 					}
 				}
 
-				if ((CommerceTypes)iI == COMMERCE_CULTURE)
+				if (eLoopCommerce == COMMERCE_CULTURE)
 				{
 					if (bCulturalVictory1)
-					{
 						iTempValue *= 2;
-					}
 
 					// K-Mod. Build culture buildings quickly to pop our borders (but not wonders / special buildings)
 					if (iTempValue > 0 && !bLimitedWonder && kBuilding.getProductionCost() > 0 &&
@@ -5015,8 +5013,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				// K-mod. the getCommerceChangeDoubleTime bit use to be here. I moved it up to be before the culture value boost.
 
 				// add value for a commerce modifier
-				int iCommerceModifier = kBuilding.getCommerceModifier(iI);
-				int iBaseCommerceRate = getBaseCommerceRate((CommerceTypes)iI);
+				int iCommerceModifier = kBuilding.getCommerceModifier(eLoopCommerce);
+				int iBaseCommerceRate = getBaseCommerceRate(eLoopCommerce);
 				// <advc.131> CapitalYieldRate is not included in BaseCommerceRate
 				if(isCapital())
 				{
@@ -5031,10 +5029,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					/*  <k146> But not for espionage. Because... reasons.
 						(Espionage gets a priority bonus later. That's good
 						enough.) */
-					int x = std::max(iI == COMMERCE_ESPIONAGE ? 0 : 5,
-							kOwner.getCommercePercent((CommerceTypes)iI));
+					int x = std::max(eLoopCommerce == COMMERCE_ESPIONAGE ? 0 : 5,
+							kOwner.getCommercePercent(eLoopCommerce));
 					// </k146>
-					if (iI == COMMERCE_CULTURE)
+					if (eLoopCommerce == COMMERCE_CULTURE)
 					{
 						x += x <= 45 && bCulturalVictory1 ? 10 : 0;
 						x += x <= 45 && bCulturalVictory2 ? 10 : 0;
@@ -5044,7 +5042,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				} // K-Mod end
 
 				int iCommerceMultiplierValue = iCommerceModifier * iBaseCommerceRate;
-				if (iI == COMMERCE_CULTURE && iCommerceModifier != 0)
+				if (eLoopCommerce == COMMERCE_CULTURE && iCommerceModifier != 0)
 				{	// K-Mod: bug fix, and improvement. (the old code was missing /= 100, and it was too conditional)
 					// (disabled indefinitely. culture pressure is counted in other ways; so I want to test without this boost.)
 					//iCommerceMultiplierValue *= culturePressureFactor() + 100;
@@ -5085,22 +5083,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							{
 								bHaveEnough = false;
 							}
-
-							for (int iJ = 0; bHaveEnough && iJ < GC.getNumBuildingClassInfos(); iJ++)
+							FOR_EACH_ENUM(BuildingClass)
 							{
 								// K-Mod: bug fix.
-								/* original bts code
-								// count excess the number of prereq buildings which do not have this building built for yet
-								int iPrereqBuildings = kOwner.getBuildingClassPrereqBuilding(eBuilding, (BuildingClassTypes) iJ, -iCountBuilt);
-
+								/*// count excess the number of prereq buildings which do not have this building built for yet
+								int iPrereqBuildings = kOwner.getBuildingClassPrereqBuilding(eBuilding, eLoopBuildingClass, -iCountBuilt);
 								// do we not have enough built (do not count ones in progress)
-								if (iPrereqBuildings > 0 && kOwner.getBuildingClassCount((BuildingClassTypes) iJ) <  iPrereqBuildings)
-									bHaveEnough = false;*/
-
+								if (iPrereqBuildings > 0 && kOwner.getBuildingClassCount(eLoopBuildingClass) < iPrereqBuildings)
+									bHaveEnough = false;*/ // BtS
 								// Whatever that code was meant to do, I'm pretty sure it was wrong.
-								int iPrereqBuildings = kOwner.getBuildingClassPrereqBuilding(eBuilding, (BuildingClassTypes) iJ, iCulturalVictoryNumCultureCities - iCountBuilt);
-								if (kOwner.getBuildingClassCount((BuildingClassTypes) iJ) < iPrereqBuildings)
-									bHaveEnough = false;
+								int iPrereqBuildings = kOwner.getBuildingClassPrereqBuilding(eBuilding, eLoopBuildingClass,
+										iCulturalVictoryNumCultureCities - iCountBuilt);
+								if (kOwner.getBuildingClassCount(eLoopBuildingClass) < iPrereqBuildings)
+									break;
 								// K-Mod end
 							}
 
@@ -5110,10 +5105,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 								iCommerceMultiplierValue /= 20; // was 12
 							}
 							// otherwise, we really do not want to build this here
-							else
-							{
-								iCommerceMultiplierValue /= 50; // was 30
-							}
+							else iCommerceMultiplierValue /= 50; // was 30
 						}
 					}
 					else
@@ -5133,74 +5125,72 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				iTempValue += iCommerceMultiplierValue;
 
 				// K-Mod. help get the ball rolling on espionage.
-				if (iI == COMMERCE_ESPIONAGE && iTempValue > 0 && !g.isOption(GAMEOPTION_NO_ESPIONAGE))
+				if (eLoopCommerce == COMMERCE_ESPIONAGE && iTempValue > 0 &&
+					!g.isOption(GAMEOPTION_NO_ESPIONAGE))
 				{
 					// priority += 1% per 1% increase in total espionage, more for big espionage strategy
-					iPriorityFactor += std::min(100, (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE)?150 : 100) * iTempValue/std::max(1, 4*kOwner.getCommerceRate(COMMERCE_ESPIONAGE)));
+					iPriorityFactor += std::min(100, (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) ? 150 : 100) *
+							iTempValue/std::max(1, 4 * kOwner.getCommerceRate(COMMERCE_ESPIONAGE)));
 				}
 
 				// ... and increase the priority of research buildings if aiming for a space victory.
-				if ((CommerceTypes)iI == COMMERCE_RESEARCH && bSpaceVictory1)
-				{
+				if (eLoopCommerce == COMMERCE_RESEARCH && bSpaceVictory1)
 					iPriorityFactor += std::min(25, iTempValue/2);
-				}
 				// K-Mod end
 
-				iTempValue += ((kBuilding.getGlobalCommerceModifier(iI) * iNumCities) / 4);
-				// iTempValue += ((kBuilding.getSpecialistExtraCommerce(iI) * kOwner.getTotalPopulation()) / 3); // moved up (K-Mod)
+				iTempValue += (kBuilding.getGlobalCommerceModifier(eLoopCommerce) * iNumCities) / 4;
+				// iTempValue += ((kBuilding.getSpecialistExtraCommerce(eLoopCommerce) * kOwner.getTotalPopulation()) / 3); // moved up (K-Mod)
 
-				/* original bts code
-				if (eStateReligion != NO_RELIGION)
-				{
-					iTempValue += (kBuilding.getStateReligionCommerce(iI) * kOwner.getHasReligionCount(eStateReligion) * 3);
-				} */
+				/*if (eStateReligion != NO_RELIGION)
+					iTempValue += (kBuilding.getStateReligionCommerce(eLoopCommerce) * kOwner.getHasReligionCount(eStateReligion) * 3);
+				*/ // BtS
 				// K-Mod. A more accurate calculation of the value from increasing commerce on all state religion buildings. (eg. Sankore)
-				if (eStateReligion != NO_RELIGION && kBuilding.getStateReligionCommerce(iI) != 0)
+				if (eStateReligion != NO_RELIGION &&
+					kBuilding.getStateReligionCommerce(eLoopCommerce) != 0)
 				{
 					int iCount = 0;
 					CvCivilization const& kCiv = getCivilization(); // advc.003w
-					for (int j = 0; j < kCiv.getNumBuildings(); j++)
+					for (int i = 0; i < kCiv.getNumBuildings(); i++)
 					{
-						BuildingTypes eLoopBuilding = kCiv.buildingAt(j);
+						BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 						if (GC.getInfo(eLoopBuilding).getReligionType() == eStateReligion &&
 							!GET_TEAM(kOwner.getTeam()).isObsoleteBuilding(eLoopBuilding))
 						{
-							iCount += kOwner.getBuildingClassCountPlusMaking(kCiv.buildingClassAt(j));
+							iCount += kOwner.getBuildingClassCountPlusMaking(kCiv.buildingClassAt(i));
 						}
 					}
 					iCount = std::max(iCount, kOwner.getHasReligionCount(eStateReligion));
-					iTempValue += iCount * 35 * kOwner.AI_averageCommerceMultiplier((CommerceTypes)iI) / 1000;
+					iTempValue += iCount * 35 * kOwner.AI_averageCommerceMultiplier(eLoopCommerce) / 1000;
 				}
 				// K-Mod end
 
 				if (kBuilding.getGlobalReligionCommerce() != NO_RELIGION)
 				{
-					/*iTempValue += (GC.getInfo((ReligionTypes)(kBuilding.getGlobalReligionCommerce())).getGlobalReligionCommerce(iI) * g.countReligionLevels((ReligionTypes)(kBuilding.getGlobalReligionCommerce())) * 2);
+					/*iTempValue += (GC.getInfo((ReligionTypes)(kBuilding.getGlobalReligionCommerce())).getGlobalReligionCommerce(eLoopCommerce) * g.countReligionLevels((ReligionTypes)kBuilding.getGlobalReligionCommerce()) * 2);
 					if (eStateReligion == (ReligionTypes)(kBuilding.getGlobalReligionCommerce()))
-					{
-						iTempValue += 10;
-					}*/
+						iTempValue += 10;*/
 					// K-Mod
 					int iExpectedSpread = g.countReligionLevels((ReligionTypes)kBuilding.getGlobalReligionCommerce());
-					iExpectedSpread += (GC.getNumEraInfos() - iOwnerEra + (eStateReligion == (ReligionTypes)(kBuilding.getGlobalReligionCommerce())? 2 : 0)) *
+					iExpectedSpread += (GC.getNumEraInfos() - iOwnerEra + (eStateReligion == (ReligionTypes)(kBuilding.getGlobalReligionCommerce()) ? 2 : 0)) *
 							g.getRecommendedPlayers(); // advc.137
 							//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers();
-					iTempValue += GC.getInfo((ReligionTypes)kBuilding.getGlobalReligionCommerce()).getGlobalReligionCommerce(iI) * iExpectedSpread * 4;
+					iTempValue += GC.getInfo((ReligionTypes)kBuilding.getGlobalReligionCommerce()).getGlobalReligionCommerce(eLoopCommerce) * iExpectedSpread * 4;
 				}
 
 				// K-Mod: I've moved the corporation stuff that use to be here to outside this loop so that it isn't quadriple counted
 
-				if (kBuilding.isCommerceFlexible(iI))
+				if (kBuilding.isCommerceFlexible(eLoopCommerce))
 				{
-					if (!(kOwner.isCommerceFlexible((CommerceTypes)iI)))
+					if (!kOwner.isCommerceFlexible(eLoopCommerce))
 					{
 						iTempValue += 40;
 					}
 				}
 
-				if (kBuilding.isCommerceChangeOriginalOwner(iI))
+				if (kBuilding.isCommerceChangeOriginalOwner(eLoopCommerce))
 				{
-					if ((kBuilding.getCommerceChange(iI) > 0) || (kBuilding.getObsoleteSafeCommerceChange(iI) > 0))
+					if (kBuilding.getCommerceChange(eLoopCommerce) > 0 ||
+						kBuilding.getObsoleteSafeCommerceChange(eLoopCommerce) > 0)
 					{
 						iTempValue++;
 					}
@@ -5208,47 +5198,41 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 				if (iTempValue != 0)
 				{
-					if (bFinancialTrouble && iI == COMMERCE_GOLD)
-					{
+					if (bFinancialTrouble && eLoopCommerce == COMMERCE_GOLD)
 						iTempValue *= 2;
-					}
 
-					iTempValue *= kOwner.AI_commerceWeight(((CommerceTypes)iI), this);
+					iTempValue *= kOwner.AI_commerceWeight(eLoopCommerce, this);
 					iTempValue = (iTempValue + 99) / 100;
 
 					// if this is a limited wonder, and we are not one of the top 4 in this category, subtract the value
 					// we do _not_ want to build this here (unless the value was small anyway)
-					/*if (MAX_INT == aiCommerceRank[iI])
-					{
-						aiCommerceRank[iI] = findCommerceRateRank((CommerceTypes) iI);
-					}*/
-					/* original bts code
-					if (bLimitedWonder && ((aiCommerceRank[iI] > (3 + iLimitedWonderLimit)))
-						|| (bCulturalVictory1 && (iI == COMMERCE_CULTURE) && (aiCommerceRank[iI] == 1)))
+					/*if (MAX_INT == aiCommerceRank[eLoopCommerce])
+						aiCommerceRank[eLoopCommerce] = findCommerceRateRank(eLoopCommerce);*/
+					/*if (bLimitedWonder && aiCommerceRank[eLoopCommerce] > 3 + iLimitedWonderLimit)
+						|| (bCulturalVictory1 && eLoopCommerce == COMMERCE_CULTURE && aiCommerceRank[eLoopCommerce] == 1))
 					{
 						iTempValue *= -1;
-
 						// for culture, just set it to zero, not negative, just about every wonder gives culture
-						if (iI == COMMERCE_CULTURE)
+						if (eLoopCommerce == COMMERCE_CULTURE)
 						{
 							iTempValue = 0;
 						}
-					} */
+					}*/ // BtS
 					// K-Mod, let us build culture wonders to defend againt culture pressure
 					// also, lets say top 1/3 instead. There are now other mechanisms to stop us from wasting buildings.
 					if (bLimitedWonder)
 					{
-						if (iI == COMMERCE_CULTURE)
+						if (eLoopCommerce == COMMERCE_CULTURE)
 						{
 							if (bCulturalVictory1 &&
-								((bCulturalVictory2 && findCommerceRateRank((CommerceTypes)iI) == 1) ||
-								findCommerceRateRank((CommerceTypes)iI) > iNumCities/3 + 1 + iLimitedWonderLimit))
+								((bCulturalVictory2 && findCommerceRateRank(eLoopCommerce) == 1) ||
+								findCommerceRateRank(eLoopCommerce) > iNumCities/3 + 1 + iLimitedWonderLimit))
 							{
 								iTempValue = 0;
 							}
 						}
 
-						else if (findCommerceRateRank((CommerceTypes)iI) > iNumCities/3 + 1 + iLimitedWonderLimit)
+						else if (findCommerceRateRank(eLoopCommerce) > iNumCities/3 + 1 + iLimitedWonderLimit)
 						{
 							iTempValue *= -1;
 						}
@@ -5273,17 +5257,17 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					// K-Mod: consider the corporation for the whole civ, not just this city.
 					iCorpValue = kOwner.AI_corporationValue(eCorporation);
 
-					for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); iCorp++)
+					FOR_EACH_ENUM(Corporation)
 					{
-						if (iCorp != eCorporation)
+						if (eLoopCorporation != eCorporation)
 						{
-							if (kOwner.hasHeadquarters((CorporationTypes)iCorp))
+							if (kOwner.hasHeadquarters(eLoopCorporation))
 							{
-								if (GC.getGame().isCompetingCorporation(eCorporation, (CorporationTypes)iCorp))
+								if (GC.getGame().isCompetingCorporation(eCorporation, eLoopCorporation))
 								{
 									// This new corp is no good to us if our competing corp is already better.
 									// note: evaluation of the competing corp for this particular city is ok.
-									if (kOwner.AI_corporationValue((CorporationTypes)iCorp, this) > iCorpValue)
+									if (kOwner.AI_corporationValue(eLoopCorporation, this) > iCorpValue)
 									{
 										iExpectedSpread = 0;
 										break;
@@ -5311,20 +5295,22 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 					if (iExpectedSpread > 0)
 					{
-						for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+						FOR_EACH_ENUM(Commerce)
 						{
-							int iHqValue = 4 * GC.getInfo((CorporationTypes)(kBuilding.getGlobalCorporationCommerce())).getHeadquarterCommerce(iI) * iExpectedSpread;
+							int iHqValue = 4 * GC.getInfo((CorporationTypes)
+									(kBuilding.getGlobalCorporationCommerce())).
+									getHeadquarterCommerce(eLoopCommerce) * iExpectedSpread;
 							if (iHqValue != 0)
 							{
-								iHqValue *= getTotalCommerceRateModifier((CommerceTypes)iI);
-								iHqValue *= kOwner.AI_commerceWeight((CommerceTypes)iI, this);
+								iHqValue *= getTotalCommerceRateModifier(eLoopCommerce);
+								iHqValue *= kOwner.AI_commerceWeight(eLoopCommerce, this);
 								iHqValue /= 10000;
 							}
 							// use rank as a tie-breaker... with number of national wonders thrown in to,
 							// (I'm trying to boost the chance that the AI will put wallstreet with its corp HQs.)
 							if (iHqValue > 0)
 							{
-								iHqValue *= 3*iNumCities - findCommerceRateRank((CommerceTypes)iI) - getNumNationalWonders()/2;
+								iHqValue *= 3*iNumCities - findCommerceRateRank(eLoopCommerce) - getNumNationalWonders() / 2;
 								iHqValue /= 2*iNumCities;
 							}
 							iCorpValue += iHqValue;
@@ -5333,28 +5319,25 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				}
 
 				if (iCorpValue > 0)
-				{
 					iValue += iCorpValue;
-				}
 			}
 			// K-Mod end (corp)
 			if (kBuilding.isAnyReligionChange()) // advc.003t
 			{
-				for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+				FOR_EACH_ENUM(Religion)
 				{
-					if (kBuilding.getReligionChange(iI) > 0)
+					if (kBuilding.getReligionChange(eLoopReligion) > 0)
 					{
-						if (GET_TEAM(getTeam()).hasHolyCity((ReligionTypes)iI))
+						if (GET_TEAM(getTeam()).hasHolyCity(eLoopReligion))
 						{
-							iValue += (kBuilding.getReligionChange(iI) * ((eStateReligion == iI) ? 10 : 1));
+							iValue += (kBuilding.getReligionChange(eLoopReligion) *
+									((eStateReligion == eLoopReligion) ? 10 : 1));
 						}
 					}
 				}
 			}
-			if (NO_VOTESOURCE != kBuilding.getVoteSourceType())
-			{
+			if (kBuilding.getVoteSourceType() != NO_VOTESOURCE)
 				iValue += 100;
-			}
 		}
 		else
 		{
@@ -8087,7 +8070,7 @@ int CvCityAI::AI_countBonusesToClear(FeatureTypes eFeature) const
 					no need to check getFeatureTech either. */
 				TechTypes eReq = (TechTypes)kBuild.getTechPrereq();
 				if(eReq == NO_TECH || GC.getInfo(eReq).getEra() <=
-						GET_PLAYER(getOwner()).getCurrentEra())
+					GET_PLAYER(getOwner()).getCurrentEra())
 				{
 					r++;
 					break;
@@ -10570,7 +10553,6 @@ int CvCityAI::AI_experienceWeight()
 	// K-Mod end
 }
 
-
 // BBAI / K-Mod // <advc.017> Draft param added; count XP weight only half then.
 int CvCityAI::AI_buildUnitProb(bool bDraft)
 {
@@ -10637,55 +10619,48 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 	return std::min(100, iProb); // experimental (K-Mod)
 }
 
-void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange)
+
+void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild,  // advc: some style changes
+	int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop,
+	int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange)
 {
 	PROFILE_FUNC();
 
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-
-	BuildTypes eBestBuild;
-
 	bool bEmphasizeIrrigation = false;
-	int iBestValue;
 
 	if (piBestValue != NULL)
-	{
 		*piBestValue = 0;
-	}
 	if (peBestBuild != NULL)
-	{
 		*peBestBuild = NO_BUILD;
-	}
 
 	if (pPlot->getWorkingCity() != this)
-	{
 		return;
-	}
 
 	//When improving new plots only, count emphasis twice
 	//helps to avoid too much tearing up of old improvements.
 
 	// K-Mod: I've deleted the section about counting emphasis twice...
 	// It's absurd to think it would help avoid tearing up old improvements.
-	// If the emphasis changes as soon as the improvment is built, then that is likely to cause us to tear up the improvement!
+	// If the emphasis changes as soon as the improvment is built, then that
+	// is likely to cause us to tear up the improvement!
 
 	FAssertMsg(pPlot->getOwner() == getOwner(), "pPlot must be owned by this city's owner");
 
 	BonusTypes eBonus = pPlot->getBonusType(getTeam());
 	BonusTypes eNonObsoleteBonus = pPlot->getNonObsoleteBonusType(getTeam());
 
-	/* original code
-	bool bHasBonusImprovement = false;
+	/*bool bHasBonusImprovement = false;
 	if (eNonObsoleteBonus != NO_BONUS) {
 		if (pPlot->getImprovementType() != NO_IMPROVEMENT) {
 			if (GC.getInfo(pPlot->getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus))
 				bHasBonusImprovement = true;
 		}
-	}*/
+	}*/ // BtS
+
 	bool bHasBonusImprovement = pPlot->getNonObsoleteBonusType(getTeam(), true) != NO_BONUS; // K-Mod
 
-	iBestValue = 0;
-	eBestBuild = NO_BUILD;
+	BuildTypes eBestBuild = NO_BUILD;
+	int iBestValue = 0;
 
 	int iClearFeatureValue = 0;
 	// K-Mod. I've removed the yield change evaluation from AI_clearFeatureValue (to avoid double counting it elsewhere)
@@ -10707,10 +10682,6 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	{
 		bEmphasizeIrrigation = false;
 
-		CvPlot* pAdjacentPlot;
-		CvPlot* pAdjacentPlot2;
-		BonusTypes eTempBonus;
-
 		//It looks unwieldly but the code has to be rigid to avoid "worker ADD"
 		//where they keep connecting then disconnecting a crops resource or building
 		//multiple farms to connect a single crop resource.
@@ -10718,76 +10689,68 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 		//really doesn't run that often.
 
 		//using logic along the lines of "Will irrigating me make crops wet"
-		//wont really work... it does have to "am i the tile the crops want to be irrigated"
+		//wont really work... it has to be "am i the tile the crops want to be irrigated"
 
 		//I optimized through the use of "isIrrigated" which is just checking a bool...
 		//once everything is nicely irrigated, this code should be really fast...
-		if ((pPlot->isIrrigated()) || (pPlot->isFreshWater() && pPlot->canHavePotentialIrrigation()))
+		if (pPlot->isIrrigated() || (pPlot->isFreshWater() && pPlot->canHavePotentialIrrigation()))
 		{
 			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 			{
-				pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
+				CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
+				if (pAdjacentPlot == NULL || pAdjacentPlot->getOwner() != getOwner() ||
+						!pAdjacentPlot->isCityRadius())
+					continue;
 
-				if ((pAdjacentPlot != NULL) && (pAdjacentPlot->getOwner() == getOwner()) && (pAdjacentPlot->isCityRadius()))
+				if (!pAdjacentPlot->isFreshWater() &&
+					//check for a city? cities can conduct irrigation and that effect is quite
+					//useful... so I think irrigate cities.
+					pAdjacentPlot->isPotentialIrrigation())
 				{
-					if (!pAdjacentPlot->isFreshWater())
+					CvPlot* eBestIrrigationPlot = NULL;
+					for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
 					{
-						//check for a city? cities can conduct irrigation and that effect is quite
-						//useful... so I think irrigate cities.
-						if (pAdjacentPlot->isPotentialIrrigation())
+						CvPlot* pAdjacentPlot2 = plotDirection(pAdjacentPlot->getX(), pAdjacentPlot->getY(), ((DirectionTypes)iJ));
+						if (pAdjacentPlot2 == NULL || pAdjacentPlot2->getOwner() != getOwner())
+							continue;
+						BonusTypes eTempBonus = pAdjacentPlot2->getNonObsoleteBonusType(getTeam());
+						if (pAdjacentPlot->isIrrigated())
 						{
-							CvPlot* eBestIrrigationPlot = NULL;
-
-
-							for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
+							//the irrigation has to be coming from somewhere
+							if (pAdjacentPlot2->isIrrigated())
 							{
-								pAdjacentPlot2 = plotDirection(pAdjacentPlot->getX(), pAdjacentPlot->getY(), ((DirectionTypes)iJ));
-								if ((pAdjacentPlot2 != NULL) && (pAdjacentPlot2->getOwner() == getOwner()))
+								//if we find a tile which is already carrying irrigation
+								//then lets not replace that one...
+								eBestIrrigationPlot = pAdjacentPlot2;
+								if (pAdjacentPlot2->isCity() || eTempBonus != NO_BONUS || !pAdjacentPlot2->isCityRadius())
 								{
-									eTempBonus = pAdjacentPlot2->getNonObsoleteBonusType(getTeam());
-									if (pAdjacentPlot->isIrrigated())
+									if (pAdjacentPlot2->isFreshWater())
 									{
-										//the irrigation has to be coming from somewhere
-										if (pAdjacentPlot2->isIrrigated())
-										{
-											//if we find a tile which is already carrying irrigation
-											//then lets not replace that one...
-											eBestIrrigationPlot = pAdjacentPlot2;
-
-											if ((pAdjacentPlot2->isCity()) || (eTempBonus != NO_BONUS) || (!pAdjacentPlot2->isCityRadius()))
-											{
-												if (pAdjacentPlot2->isFreshWater())
-												{
-													//these are all ideal for irrigation chains so stop looking.
-													break;
-												}
-											}
-										}
-
-									}
-									else
-									{
-										if (pAdjacentPlot2->getNonObsoleteBonusType(getTeam()) == NO_BONUS)
-										{
-											if (pAdjacentPlot2->canHavePotentialIrrigation() && pAdjacentPlot2->isIrrigationAvailable())
-											{
-												//could use more sophisticated logic
-												//however this would rely on things like smart irrigation chaining
-												//of out-of-city plots
-												eBestIrrigationPlot = pAdjacentPlot2;
-												break;
-											}
-										}
+										//these are all ideal for irrigation chains so stop looking.
+										break;
 									}
 								}
 							}
-
-							if (pPlot == eBestIrrigationPlot)
+						}
+						else
+						{
+							if (pAdjacentPlot2->getNonObsoleteBonusType(getTeam()) == NO_BONUS)
 							{
-								bEmphasizeIrrigation = true;
-								break;
+								if (pAdjacentPlot2->canHavePotentialIrrigation() && pAdjacentPlot2->isIrrigationAvailable())
+								{
+									//could use more sophisticated logic
+									//however this would rely on things like smart irrigation chaining
+									//of out-of-city plots
+									eBestIrrigationPlot = pAdjacentPlot2;
+									break;
+								}
 							}
 						}
+					}
+					if (pPlot == eBestIrrigationPlot)
+					{
+						bEmphasizeIrrigation = true;
+						break;
 					}
 				}
 			}
@@ -10796,9 +10759,11 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 
 	for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 	{
-		ImprovementTypes eImprovement = ((ImprovementTypes)iI);
+		ImprovementTypes eImprovement = (ImprovementTypes)iI;
 		BuildTypes eBestTempBuild;
-		int iValue = AI_getImprovementValue(*pPlot, eImprovement, iFoodPriority, iProductionPriority, iCommercePriority, iDesiredFoodChange, iClearFeatureValue, bEmphasizeIrrigation, &eBestTempBuild);
+		int iValue = AI_getImprovementValue(*pPlot, eImprovement, iFoodPriority,
+				iProductionPriority, iCommercePriority, iDesiredFoodChange,
+				iClearFeatureValue, bEmphasizeIrrigation, &eBestTempBuild);
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
@@ -10806,6 +10771,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 		}
 	}
 
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	// K-Mod. Don't chop the feature if we need it for our best improvement!
 	/* advc.117: This seems to be ok (no change). River-side and hill-side forests
 	   are still being chopped. */
@@ -10819,38 +10785,30 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	// K-Mod end
 	{
 		FAssert(pPlot->getFeatureType() != NO_FEATURE);
+		/*if ((GC.getInfo(pPlot->getFeatureType()).getHealthPercent() < 0) ||
+			((GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_FOOD) + GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) + GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_COMMERCE)) < 0)) {*/
+		// Disabled by K-Mod. That stuff is already taken into account by iClearValue_wYield.
 
+		for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{
-			/*if ((GC.getInfo(pPlot->getFeatureType()).getHealthPercent() < 0) ||
-				((GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_FOOD) + GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) + GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_COMMERCE)) < 0))*/
-			// Disabled by K-Mod. That stuff is already taken into account by iClearValue_wYield.
+			BuildTypes eBuild = ((BuildTypes)iI);
+			if (GC.getInfo(eBuild).getImprovement() == NO_IMPROVEMENT &&
+				GC.getInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()) &&
+				kOwner.canBuild(pPlot, eBuild))
 			{
-				for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
+				int iValue = iClearValue_wYield;
 				{
-					BuildTypes eBuild = ((BuildTypes)iI);
+					CvCity* pCity=NULL;
+					iValue += (pPlot->getFeatureProduction(eBuild, getTeam(), &pCity) * 5); // was * 10
+				}
+				iValue *= 400;
+				iValue /= std::max(1, GC.getInfo(eBuild).getFeatureTime(pPlot->getFeatureType()) + 100);
 
-					if (GC.getInfo(eBuild).getImprovement() == NO_IMPROVEMENT)
-					{
-						if (GC.getInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()))
-						{
-							if (kOwner.canBuild(pPlot, eBuild))
-							{
-								int iValue = iClearValue_wYield;
-								CvCity* pCity;
-								iValue += (pPlot->getFeatureProduction(eBuild, getTeam(), &pCity) * 5); // was * 10
-
-								iValue *= 400;
-								iValue /= std::max(1, (GC.getInfo(eBuild).getFeatureTime(pPlot->getFeatureType()) + 100));
-
-								//if ((iValue > iBestValue) || ((iValue > 0) && (eBestBuild == NO_BUILD)))
-								if (iValue > iBestValue) // K-Mod. (removed redundant checks)
-								{
-									iBestValue = iValue;
-									eBestBuild = eBuild;
-								}
-							}
-						}
-					}
+				if (iValue > iBestValue) // K-Mod. (removed redundant checks)
+					//|| (iValue > 0 && eBestBuild == NO_BUILD))
+				{
+					iBestValue = iValue;
+					eBestBuild = eBuild;
 				}
 			}
 		}
@@ -10864,116 +10822,99 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 		for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{
 			BuildTypes eBuild = ((BuildTypes)iI);
-			if (GC.getInfo(eBuild).getImprovement() == NO_IMPROVEMENT)
+			if (GC.getInfo(eBuild).getImprovement() == NO_IMPROVEMENT &&
+				GC.getInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()) &&
+				kOwner.canBuild(pPlot, eBuild))
 			{
-				if (GC.getInfo(eBuild).isFeatureRemove(pPlot->getFeatureType()))
+				CvCity* pCity=NULL;
+				int iValue = (pPlot->getFeatureProduction(eBuild, getTeam(), &pCity)) * 10;
+				FAssert(pCity == this);
+				if (iValue <= 0)
+					continue;
+				// K-Mod. Inflate the production value in the early expansion phase of the game.
+				int iCitiesTarget = GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
+				if (kOwner.getNumCities() < iCitiesTarget && kOwner.AI_getNumCitySites() > 0)
+					iValue = iValue * 3*iCitiesTarget / std::max(1, 2*kOwner.getNumCities() + iCitiesTarget);
+				// Increase the value if it is large compared to the city's natural production rate
+				// (note: iValue is chop production * 10)
+				iValue += iValue / (getBaseYieldRate(YIELD_PRODUCTION)*20 + iValue);
+				// K-Mod end
+
+				iValue += iClearValue_wYield;
+				// K-Mod
+				if (!pPlot->isBeingWorked() && iClearFeatureValue < 0)
+					iValue += iClearFeatureValue/2; // extra points for passive feature bonuses such as health
+				// K-Mod end
+				if (iValue <= 0)
+					continue;
+				if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER))
 				{
-					if (kOwner.canBuild(pPlot, eBuild))
-					{
-						CvCity* pCity;
-						int iValue = (pPlot->getFeatureProduction(eBuild, getTeam(), &pCity)) * 10;
-						FAssert(pCity == this);
-
-						if (iValue > 0)
-						{
-							// K-Mod. Inflate the production value in the early expansion phase of the game.
-							int iCitiesTarget = GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
-							if (kOwner.getNumCities() < iCitiesTarget && kOwner.AI_getNumCitySites() > 0)
-							{
-								iValue = iValue * 3*iCitiesTarget / std::max(1, 2*kOwner.getNumCities() + iCitiesTarget);
-							}
-							// Increase the value if it is large compared to the city's natural production rate
-							// (note: iValue is chop production * 10)
-							iValue += iValue / (getBaseYieldRate(YIELD_PRODUCTION)*20 + iValue);
-							// K-Mod end
-
-							iValue += iClearValue_wYield;
-							// K-Mod
-							if (!pPlot->isBeingWorked() && iClearFeatureValue < 0)
-							{
-								iValue += iClearFeatureValue/2; // extra points for passive feature bonuses such as health
-							}
-							// K-Mod end
-
-							if (iValue > 0)
-							{
-								if (kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER))
-								{
-									iValue += 20;
-									iValue *= 2;
-								}
-								// K-Mod, flavour production, military, and growth.
-								if (kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) > 0 || kOwner.AI_getFlavorValue(FLAVOR_MILITARY) + kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 2)
-								{
-									iValue *= 110 + 3 * kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) + 2 * kOwner.AI_getFlavorValue(FLAVOR_MILITARY) + 2 * kOwner.AI_getFlavorValue(FLAVOR_GROWTH);
-									iValue /= 100;
-								}
-								// K-Mod end
-								iValue *= 500;
-								iValue /= std::max(1, (GC.getInfo(eBuild).getFeatureTime(pPlot->getFeatureType()) + 100));
-
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									eBestBuild = eBuild;
-								}
-							}
-						}
-					}
+					iValue += 20;
+					iValue *= 2;
+				}
+				// K-Mod, flavour production, military, and growth.
+				if (kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) > 0 ||
+					kOwner.AI_getFlavorValue(FLAVOR_MILITARY) +
+					kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 2)
+				{
+					iValue *= 110 + 3 * kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) +
+							2 * kOwner.AI_getFlavorValue(FLAVOR_MILITARY) +
+							2 * kOwner.AI_getFlavorValue(FLAVOR_GROWTH);
+					iValue /= 100;
+				}
+				// K-Mod end
+				iValue *= 500;
+				iValue /= std::max(1, (GC.getInfo(eBuild).getFeatureTime(pPlot->getFeatureType()) + 100));
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					eBestBuild = eBuild;
 				}
 			}
 		}
 	}
 
-
 	for (int iI = 0; iI < GC.getNumRouteInfos(); iI++)
 	{
 		RouteTypes eRoute = (RouteTypes)iI;
 		RouteTypes eOldRoute = pPlot->getRouteType();
+		if (eRoute == eOldRoute)
+			continue;
 
-		if (eRoute != eOldRoute)
+		int iTempValue = 0;
+		if (pPlot->getImprovementType() != NO_IMPROVEMENT)
 		{
-			int iTempValue = 0;
-			if (pPlot->getImprovementType() != NO_IMPROVEMENT)
+			CvImprovementInfo const& kCurrentImprov = GC.getInfo(pPlot->getImprovementType());
+			if (eOldRoute == NO_ROUTE || GC.getInfo(eRoute).getValue() > GC.getInfo(eOldRoute).getValue())
 			{
-				if ((eOldRoute == NO_ROUTE) || (GC.getInfo(eRoute).getValue() > GC.getInfo(eOldRoute).getValue()))
-				{
-					iTempValue += ((GC.getInfo(pPlot->getImprovementType()).getRouteYieldChanges(eRoute, YIELD_FOOD)) * 100);
-					iTempValue += ((GC.getInfo(pPlot->getImprovementType()).getRouteYieldChanges(eRoute, YIELD_PRODUCTION)) * 80); // was 60
-					iTempValue += ((GC.getInfo(pPlot->getImprovementType()).getRouteYieldChanges(eRoute, YIELD_COMMERCE)) * 40);
-				}
-
-				if (pPlot->isBeingWorked())
-				{
-					iTempValue *= 2;
-				}
-				//road up bonuses if sort of bored.
-				//if ((eOldRoute == NO_ROUTE) && (eBonus != NO_BONUS))
-				if (!pPlot->isWater() && eOldRoute == NO_ROUTE && eBonus != NO_BONUS) // K-Mod
-				{
-					iTempValue += (pPlot->isConnectedToCapital() ? 10 : 30);
-				}
+				iTempValue += kCurrentImprov.getRouteYieldChanges(eRoute, YIELD_FOOD) * 100;
+				iTempValue += kCurrentImprov.getRouteYieldChanges(eRoute, YIELD_PRODUCTION) * 80; // was 60
+				iTempValue += kCurrentImprov.getRouteYieldChanges(eRoute, YIELD_COMMERCE) * 40;
 			}
-
-			if (iTempValue > 0)
+			if (pPlot->isBeingWorked())
+				iTempValue *= 2;
+			//road up bonuses if sort of bored.
+			if (!pPlot->isWater() && // K-Mod
+				eOldRoute == NO_ROUTE && eBonus != NO_BONUS)
 			{
-				for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
+				iTempValue += (pPlot->isConnectedToCapital() ? 10 : 30);
+			}
+		}
+		if (iTempValue > 0)
+		{
+			for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
+			{
+				BuildTypes eBuild = ((BuildTypes)iJ);
+				if (GC.getInfo(eBuild).getRoute() == eRoute &&
+					kOwner.canBuild(pPlot, eBuild, false))
 				{
-					BuildTypes eBuild = ((BuildTypes)iJ);
-					if (GC.getInfo(eBuild).getRoute() == eRoute)
+					//the value multiplier is based on the default time...
+					int iValue = iTempValue * 5 * 300;
+					iValue /= GC.getInfo(eBuild).getTime();
+					if (iValue > iBestValue || (iValue > 0 && eBestBuild == NO_BUILD))
 					{
-						if (kOwner.canBuild(pPlot, eBuild, false))
-						{
-							//the value multiplier is based on the default time...
-							int iValue = iTempValue * 5 * 300;
-							iValue /= GC.getInfo(eBuild).getTime();
-
-							if ((iValue > iBestValue) || ((iValue > 0) && (eBestBuild == NO_BUILD)))
-							{
-								iBestValue = iValue;
-								eBestBuild = eBuild;
-							}
-						}
+						iBestValue = iValue;
+						eBestBuild = eBuild;
 					}
 				}
 			}
@@ -10982,27 +10923,20 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 
 	if (eBestBuild != NO_BUILD)
 	{
-		FAssertMsg(iBestValue > 0, "iBestValue is expected to be greater than 0");
+		FAssert(iBestValue > 0);
 
 		/*//Now modify the priority for this build.
-		if (GET_PLAYER(getOwner()).AI_isFinancialTrouble())
-		{
-			if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT)
-			{
+		if (GET_PLAYER(getOwner()).AI_isFinancialTrouble()) {
+			if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT) {
 				iBestValue += (iBestValue * std::max(0, aiBestDiffYields[YIELD_COMMERCE])) / 4;
 				iBestValue = std::max(1, iBestValue);
 			}
-
 		}*/
 
 		if (piBestValue != NULL)
-		{
 			*piBestValue = iBestValue;
-		}
 		if (peBestBuild != NULL)
-		{
 			*peBestBuild = eBestBuild;
-		}
 	}
 }
 
