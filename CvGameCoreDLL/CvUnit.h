@@ -390,15 +390,15 @@ public:
 	//bool canCargoAllMove() const; // disabled by K-Mod (was exposed to Python)
 	bool canCargoEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage) const;
 	int getUnitAICargo(UnitAITypes eUnitAI) const;																		// Exposed to Python
-	// <advc.003f> inline
+	// <advc.inl>
 	DllExport inline int getID() const { return m_iID; }																					// Exposed to Python
 	int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
 	DllExport IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
-	// </advc.003f>
+	// </advc.inl>
 	void setID(int iID);
 
-	int getGroupID() const { return m_iGroupID; }	// advc.003f: inline																	// Exposed to Python
-	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); } // advc.003f: inline																														// Exposed to Python
+	int getGroupID() const { return m_iGroupID; }	// advc.inl																	// Exposed to Python
+	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); } // advc.inl																														// Exposed to Python
 	bool isGroupHead() const;																								// Exposed to Python
 	DllExport CvSelectionGroup* getGroup() const;																			// Exposed to Python
 	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const;
@@ -407,10 +407,10 @@ public:
 	DllExport int getHotKeyNumber();																													// Exposed to Python
 	void setHotKeyNumber(int iNewValue);																											// Exposed to Python
 
-	int getXExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
-	int getYExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
+	int getXExternal() const; // advc.inl: Exported through .def file																// Exposed to Python
+	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
+	int getYExternal() const; // advc.inl: Exported through .def file																// Exposed to Python
+	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
 	void setXY(int iX, int iY, bool bGroup = false, bool bUpdate = true, bool bShow = false, bool bCheckPlotVisible = false);	// Exposed to Python
 	
 	bool at(int iX, int iY) const;																														// Exposed to Python
@@ -590,7 +590,7 @@ public:
 	void setMadeInterception(bool bNewValue);																				// Exposed to Python
 
 	bool isPromotionReadyExternal() const; // advc.002e: exported through .def file
-	inline bool isPromotionReady() const { return m_bPromotionReady; } // advc.003f: inline									// Exposed to Python
+	inline bool isPromotionReady() const { return m_bPromotionReady; } // advc.inl									// Exposed to Python
 	void setPromotionReady(bool bNewValue);																					// Exposed to Python
 	void testPromotionReady();
 
@@ -607,8 +607,8 @@ public:
 	void setBlockading(bool bNewValue);
 	void collectBlockadeGold();
 
-	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																// Exposed to Python
-	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
+	PlayerTypes getOwnerExternal() const; // advc.inl: Exported through .def file																// Exposed to Python
+	inline PlayerTypes getOwner() const // advc.inl: Renamed from getOwnerINLINE
 	{
 		return m_eOwner;
 	}
@@ -618,10 +618,10 @@ public:
 
 	PlayerTypes getCapturingPlayer() const;
 	void setCapturingPlayer(PlayerTypes eNewValue);
-	// <advc.003f> inline (return type was already const)
+	// <advc.inl> inline (return type was already const)
 	DllExport inline const UnitTypes getUnitType() const { return m_eUnitType; }																			// Exposed to Python
 	__forceinline CvUnitInfo& getUnitInfo() const { return *m_pUnitInfo; }
-	// </advc.003f>
+	// </advc.inl>
 	UnitClassTypes getUnitClassType() const;	// Exposed to Python
 
 	DllExport const UnitTypes getLeaderUnitType() const;

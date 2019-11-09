@@ -266,17 +266,17 @@ public: // advc: made several functions const
 	int getMapFractalFlags() const;																												// Exposed to Python
 	bool findWater(CvPlot const* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
-	bool isPlotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-	inline int isPlot(int iX, int iY) const // advc.003f: Renamed from isPlotINLINE
+	bool isPlotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline int isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE
 	{
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
-	int numPlotsExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
-	inline int numPlots() const // advc.003f: Renamed from numPlotsINLINE
+	int numPlotsExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline int numPlots() const // advc.inl: Renamed from numPlotsINLINE
 	{
 		return getGridWidth() * getGridHeight();
 	}
-	inline int plotNum(int iX, int iY) const // advc.003f: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
+	inline int plotNum(int iX, int iY) const // advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
 	{
 		return ((iY * getGridWidth()) + iX);
 	}
@@ -296,13 +296,13 @@ public: // advc: made several functions const
 	int maxStepDistance() const;																								// Exposed to Python
 	int maxMaintenanceDistance() const; // advc.140
 
-	int getGridWidthExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
-	inline int getGridWidth() const // advc.003f: Renamed from getGridWidthINLINE
+	int getGridWidthExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline int getGridWidth() const // advc.inl: Renamed from getGridWidthINLINE
 	{
 		return m_iGridWidth;
 	}
-	int getGridHeightExternal() const; // advc.003f: Exported through .def file							// Exposed to Python																	// Exposed to Python
-	inline int getGridHeight() const // advc.003f: Renamed from getGridHeightINLINE
+	int getGridHeightExternal() const; // advc.inl: Exported through .def file							// Exposed to Python																	// Exposed to Python
+	inline int getGridHeight() const // advc.inl: Renamed from getGridHeightINLINE
 	{
 		return m_iGridHeight;
 	}
@@ -319,12 +319,12 @@ public: // advc: made several functions const
 	int getNextRiverID() const;																									// Exposed to Python
 	void incrementNextRiverID();																					// Exposed to Python
 
-	bool isWrapXExternal(); // advc.003f: Exported through .def file							// Exposed to Python
-	inline bool isWrapX() const { return m_bWrapX; } // advc.003f: Renamed from isWrapXINLINE
-	bool isWrapYExternal(); // advc.003f: Exported through .def file							// Exposed to Python
-	inline bool isWrapY() const { return m_bWrapY; } // advc.003f: Renamed from isWrapYINLINE
-	bool isWrapExternal(); // advc.003f: Exported through .def file
-	inline bool isWrap() const // advc.003f: Renamed from isWrapINLINE
+	bool isWrapXExternal(); // advc.inl: Exported through .def file							// Exposed to Python
+	inline bool isWrapX() const { return m_bWrapX; } // advc.inl: Renamed from isWrapXINLINE
+	bool isWrapYExternal(); // advc.inl: Exported through .def file							// Exposed to Python
+	inline bool isWrapY() const { return m_bWrapY; } // advc.inl: Renamed from isWrapYINLINE
+	bool isWrapExternal(); // advc.inl: Exported through .def file
+	inline bool isWrap() const // advc.inl: Renamed from isWrapINLINE
 	{
 		return m_bWrapX || m_bWrapY;
 	}
@@ -347,17 +347,17 @@ public: // advc: made several functions const
 	int getNumBonusesOnLand(BonusTypes eIndex) const;														// Exposed to Python
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
-	CvPlot* plotByIndexExternal(int iIndex) const; // advc.003f: Exported through .def file							// Exposed to Python
-	inline CvPlot* plotByIndex(int iIndex) const // advc.003f: Renamed from plotByIndexINLINE
+	CvPlot* plotByIndexExternal(int iIndex) const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline CvPlot* plotByIndex(int iIndex) const // advc.inl: Renamed from plotByIndexINLINE
 	{
 		return ((iIndex >= 0 && iIndex < numPlots()) ? &(m_pMapPlots[iIndex]) : NULL);
-	} // <advc.003f> Faster (w/o branching)
+	} // <advc.inl> Faster (w/o branching)
 	__forceinline CvPlot& getPlotByIndex(int iIndex) const
 	{
 		return m_pMapPlots[iIndex];
-	} // </advc.003f>
-	CvPlot* plotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-	/*  advc.003f: Renamed from plotINLINE. Was inlined, but I'm getting slightly
+	} // </advc.inl>
+	CvPlot* plotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
+	/*  advc.inl: Renamed from plotINLINE. Was inlined, but I'm getting slightly
 		better performance without that (having replaced some calls with getPlot) . */
 	CvPlot* plot(int iX, int iY) const
 	{
@@ -369,18 +369,18 @@ public: // advc: made several functions const
 		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
 		return (isPlot(iMapX, iMapY) ? &(m_pMapPlots[plotNum(iMapX, iMapY)]) : NULL);
 	}
-	__forceinline CvPlot* plotSoren(int iX, int iY) const // advc.003f: Renamed from plotSorenINLINE
+	__forceinline CvPlot* plotSoren(int iX, int iY) const // advc.inl: Renamed from plotSorenINLINE
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 			return NULL;
 		FAssert(isPlot(iX, iY)); // advc: Assertion added
 		return &(m_pMapPlots[plotNum(iX, iY)]);
-	} // <advc.003f> Even faster and less confusingly named; replacing the above in most places.
+	} // <advc.inl> Even faster and less confusingly named; replacing the above in most places.
 	__forceinline CvPlot& getPlot(int x, int y) const
 	{
 		FAssert(isPlot(x, y));
 		return m_pMapPlots[plotNum(x, y)];
-	} // </advc.003f>
+	} // </advc.inl>
 
 	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
 

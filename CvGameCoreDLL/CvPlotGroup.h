@@ -25,11 +25,11 @@ public:
 	void removePlot(CvPlot* pPlot, bool bVerifyProduction = true);
 	void recalculatePlots();
 
-	inline int getID() const { return m_iID; } // advc.003f
+	inline int getID() const { return m_iID; } // advc.inl
 	void setID(int iID);
 
 	//PlayerTypes getOwner() const;
-	// advc.003f: The EXE doesn't call this, so no need for an external version.
+	// advc.inl: The EXE doesn't call this, so no need for an external version.
 	inline PlayerTypes getOwner() const { return m_eOwner; }
 
 	int getNumBonuses(BonusTypes eBonus) const;
@@ -39,7 +39,7 @@ public:
 
 	void insertAtEndPlots(XYCoords xy);
 	CLLNode<XYCoords>* deletePlotsNode(CLLNode<XYCoords>* pNode);
-	// advc.003f: inline
+	// advc.inl
 	inline CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode)
 	{
 		return m_plots.next(pNode);

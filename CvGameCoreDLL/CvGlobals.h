@@ -95,7 +95,7 @@ public:
 	DllExport CvInterface* getInterfacePtr();
 	DllExport int getMaxCivPlayers() const;
 	#ifdef _USRDLL // inlined for perf reasons, do not use outside of dll
-	// advc.003f: These three were defined in-line, but didn't have any inline keyword.
+	// advc.inl: These three were defined in-line, but didn't have any inline keyword.
 	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
 	__forceinline CvGame& getGame() const // was getGameINLINE; advc.003u: return type was CvGameAI&
 	{	// Can't be helped; this function has to be inlined, and I won't include CvGameAI.h here.
@@ -103,15 +103,15 @@ public:
 	} 
 	__forceinline CvGameAI& AI_getGame() const { return *m_game; } // advc.003u
 	#endif
-	CvMap& getMapExternal(); // advc.003f: Exported through .def file
-	CvGameAI& getGameExternal(); // advc.003f: Exported through .def file
+	CvMap& getMapExternal(); // advc.inl: Exported through .def file
+	CvGameAI& getGameExternal(); // advc.inl: Exported through .def file
 	DllExport CvGameAI* getGamePointer();
 	// <advc.003y>
 	inline CvPythonCaller const* getPythonCaller() const
 	{
 		return m_pPythonCaller;
 	} // </advc.003y>
-	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.003f: inline
+	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.inl
 	DllExport CMessageQueue& getMessageQueue();
 	DllExport CMessageQueue& getHotMessageQueue();
 	DllExport CMessageControl& getMessageControl();

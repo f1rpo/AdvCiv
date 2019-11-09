@@ -118,10 +118,10 @@ public:
 	bool isSpectator() const; // advc.127
 	bool isAutoPlayJustEnded() const;		// advc.127: exposed to Python
 	// AI_AUTO_PLAY_MOD: END
-	// <advc.003f>
+	// <advc.inl>
 	DllExport inline bool isHuman() const { return m_bHuman; }																																							// Exposed to Python
 	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }																																		// Exposed to Python
-	// </advc.003f>
+	// </advc.inl>
 	DllExport void updateHuman();
 
 	/*  K-Mod note: I've changed getName, getCivilizationDescription,
@@ -693,7 +693,7 @@ public:
 	int getStateReligionFreeExperience() const;																																// Exposed to Python
 	void changeStateReligionFreeExperience(int iChange);
 
-	DllExport inline CvCity* getCapitalCity() const // advc.003f: inline																							// Exposed to Python
+	DllExport inline CvCity* getCapitalCity() const // advc.inl																							// Exposed to Python
 	{
 		return getCity(m_iCapitalCityID);
 	}
@@ -741,8 +741,8 @@ public:
 
 	bool isMinorCiv() const;																																									// Exposed to Python
 
-	DllExport bool isAlive() const { return m_bAlive; } // advc.003f																																	// Exposed to Python
-	bool isEverAlive() const { return m_bEverAlive; }; // advc.003f																															// Exposed to Python
+	DllExport bool isAlive() const { return m_bAlive; } // advc.inl																																	// Exposed to Python
+	bool isEverAlive() const { return m_bEverAlive; }; // advc.inl																															// Exposed to Python
 	void setAlive(bool bNewValue);
 	void verifyAlive();
 
@@ -774,7 +774,7 @@ public:
 	bool isStrike() const;																																	// Exposed to Python
 	void setStrike(bool bNewValue);
 
-	DllExport PlayerTypes getID() const { return m_eID; } // advc.003f																								// Exposed to Python
+	DllExport PlayerTypes getID() const { return m_eID; } // advc.inl																								// Exposed to Python
 
 	DllExport HandicapTypes getHandicapType() const;																									// Exposed to Python
 
@@ -802,7 +802,7 @@ public:
 	// <advc> Convenient to have these team-level functions directly at CvPlayer
 	TeamTypes getMasterTeam() const;
 	bool isAVassal() const; // </advc>
-	DllExport inline TeamTypes getTeam() const { return m_eTeamType; } // advc.003f																				// Exposed to Python
+	DllExport inline TeamTypes getTeam() const { return m_eTeamType; } // advc.inl																				// Exposed to Python
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
 
@@ -989,7 +989,7 @@ public:
 	CLLNode<CvWString>* headCityNameNode() const;
 
 	// plot groups iteration
-	// advc.003f: Inline most of these. Remove unused bRev param to avoid branching.
+	// advc.inl: Inline most of these. Remove unused bRev param to avoid branching.
 	inline CvPlotGroup* firstPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
 	{
 		return /*bRev ? m_plotGroups.endIter(pIterIdx) :*/ m_plotGroups.beginIter(pIterIdx);

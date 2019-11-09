@@ -303,7 +303,7 @@ namespace python = boost::python;
 #undef max
 #undef min
 #ifndef _USRDLL
-// use non inline functions when not in the dll  advc.003f: Renamed all these
+// use non inline functions when not in the dll  advc.inl: Renamed all these
 #define getMap	getMapExternal
 #define getGridHeight	getGridHeightExternal
 #define getGridWidth	getGridWidthExternal

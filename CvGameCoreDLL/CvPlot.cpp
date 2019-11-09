@@ -4080,7 +4080,7 @@ void CvPlot::setFlagDirty(bool bNewValue)
 }
 
 
-PlayerTypes CvPlot::getOwnerExternal() const // advc.003f
+PlayerTypes CvPlot::getOwnerExternal() const // advc.inl
 {
 	return getOwner();
 }
@@ -5966,7 +5966,7 @@ PlayerTypes CvPlot::getRevealedOwner(TeamTypes eTeam, bool bDebug) const
 	if (bDebug && GC.getGame().isDebugMode())
 		return getOwner();
 
-	return getRevealedOwner(eTeam); // advc.003f: Call inline version
+	return getRevealedOwner(eTeam); // advc.inl: Call inline version
 }
 
 
@@ -6148,7 +6148,7 @@ bool CvPlot::isRevealed(TeamTypes eTeam, bool bDebug) const
 	if (bDebug && GC.getGame().isDebugMode())
 		return true;
 
-	return isRevealed(eTeam); // advc.003f: Call inline version
+	return isRevealed(eTeam); // advc.inl: Call inline version
 }
 
 
@@ -6274,7 +6274,7 @@ ImprovementTypes CvPlot::getRevealedImprovementType(TeamTypes eTeam, bool bDebug
 	if (bDebug && GC.getGame().isDebugMode())
 		return getImprovementType();
 
-	return getRevealedImprovementType(eTeam); // advc.003f: Call inline version
+	return getRevealedImprovementType(eTeam); // advc.inl: Call inline version
 }
 
 
@@ -6299,7 +6299,7 @@ RouteTypes CvPlot::getRevealedRouteType(TeamTypes eTeam, bool bDebug) const
 	if (bDebug && GC.getGame().isDebugMode())
 		return getRouteType();
 
-	return getRevealedRouteType(eTeam); // advc.003f: Call inline version
+	return getRevealedRouteType(eTeam); // advc.inl: Call inline version
 }
 
 

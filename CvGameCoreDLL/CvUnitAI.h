@@ -37,7 +37,7 @@ public:
 
 	inline int AI_getBirthmark() const { return m_iBirthmark; }
 	void AI_setBirthmark(int iNewValue);
-	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.003f: inline (now that it's no longer virtual)			// Exposed to Python
+	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.inl: inline (now that it's no longer virtual)			// Exposed to Python
 	void AI_setUnitAIType(UnitAITypes eNewValue);
 	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
 

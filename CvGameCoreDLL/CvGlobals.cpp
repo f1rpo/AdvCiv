@@ -973,9 +973,9 @@ void CvGlobals::infoTypeFromStringReset()
 
 //
 // non-inline versions
-// <advc.003f>
+// <advc.inl>
 CvMap& CvGlobals::getMapExternal() { return getMap(); }
-CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.003f>
+CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.inl>
 CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
 
 int CvGlobals::getMaxCivPlayers() const

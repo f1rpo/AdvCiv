@@ -8591,7 +8591,7 @@ void CvUnit::setHotKeyNumber(int iNewValue)
 		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 }
 
-// <advc.003f>
+// <advc.inl>
 int CvUnit::getXExternal() const
 {
 	return getX();
@@ -8601,7 +8601,7 @@ int CvUnit::getXExternal() const
 int CvUnit::getYExternal() const
 {
 	return getY();
-} // </advc.003f>
+} // </advc.inl>
 
 
 void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool bCheckPlotVisible)
@@ -10065,7 +10065,7 @@ void CvUnit::collectBlockadeGold()
 }
 
 
-PlayerTypes CvUnit::getOwnerExternal() const // advc.003f
+PlayerTypes CvUnit::getOwnerExternal() const // advc.inl
 {
 	return getOwner();
 }

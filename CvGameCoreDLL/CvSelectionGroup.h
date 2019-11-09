@@ -156,7 +156,7 @@ public:
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 
-	inline int getID() const { return m_iID; } // advc.003f: inline																																// Exposed to Python
+	inline int getID() const { return m_iID; } // advc.inl																																// Exposed to Python
 	void setID(int iID);
 
 	int getMissionTimer() const;
@@ -169,13 +169,13 @@ public:
 	// void doForceUpdate(); // K-Mod. (disabled. force update doesn't work the same way anymore.)
 
 	//PlayerTypes getOwner() const;
-	// advc.003f: The EXE doesn't call this, so no need for an external version.
+	// advc.inl: The EXE doesn't call this, so no need for an external version.
 	inline PlayerTypes getOwner() const { return m_eOwner; }
 	TeamTypes getTeam() const;																																					// Exposed to Python
 
-	ActivityTypes getActivityType() const { return m_eActivityType; } // advc.003f: inline																	// Exposed to Python
+	ActivityTypes getActivityType() const { return m_eActivityType; } // advc.inl																	// Exposed to Python
 	void setActivityType(ActivityTypes eNewValue);																											// Exposed to Python
-	// advc.003f: 2x inline
+	// advc.inl: 2x inline
 	AutomateTypes getAutomateType() const { return m->eAutomateType; }																									// Exposed to Python
 	bool isAutomated() const { return (getAutomateType() != NO_AUTOMATE); }							// Exposed to Python
 	void setAutomateType(AutomateTypes eNewValue);																											// Exposed to Python
@@ -196,7 +196,7 @@ public:
 	DllExport CLLNode<IDInfo>* deleteUnitNode(CLLNode<IDInfo>* pNode);
 	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
 	{
-		return m_units.next(pNode); // advc.003f: inline
+		return m_units.next(pNode); // advc.inl
 	} // <advc.003s> Safer in 'for' loops
 	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
@@ -204,7 +204,7 @@ public:
 	} // </advc.003s>
 	DllExport int getNumUnits() const;																												// Exposed to Python
 	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
-	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.003f: inline
+	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
 	DllExport CvUnit* getHeadUnit() const;
 	CvUnit* getUnitAt(int index) const;
 	UnitAITypes getHeadUnitAIType() const; // advc.003u: was getHeadUnitAI

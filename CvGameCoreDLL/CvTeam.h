@@ -95,7 +95,7 @@ public:
 	bool isInContactWithBarbarians() const; // advc.302
 	int getDefensivePactCount(TeamTypes eTeam = NO_TEAM) const;																									// Exposed to Python
 	int getVassalCount(TeamTypes eTeam = NO_TEAM) const;
-	// advc.opt, advc.003f:
+	// advc.opt, advc.inl:
 	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }																						// Exposed to Python
 	bool canVassalRevolt(TeamTypes eMaster) const;
 	bool isLossesAllowRevolt(TeamTypes eMaster) const; // advc.112
@@ -132,7 +132,7 @@ public:
 	bool canSeeReqBonuses(UnitTypes eUnit); // advc.301
 
 	bool isHuman() const;																																// Exposed to Python
-	// advc.003f: inlined
+	// advc.inl
 	inline bool isBarbarian() const { return (m_eID == BARBARIAN_TEAM); }																				// Exposed to Python
 	// <advc.003m> cached
 	inline bool isMinorCiv() const { return m_bMinorTeam; }																							// Exposed to Python
@@ -149,14 +149,14 @@ public:
 	void changeNumMembers(int iChange);
 
 	int getAliveCount() const; // advc.155: Exposed to Python
-	inline int isAlive() const { return (m_iAliveCount > 0); } // advc.003f: inlined													// Exposed to Python
+	inline int isAlive() const { return (m_iAliveCount > 0); } // advc.inl													// Exposed to Python
 	void changeAliveCount(int iChange);
 
 	int getEverAliveCount() const;
 	int isEverAlive() const;																														// Exposed to Python
 	void changeEverAliveCount(int iChange);
 
-	inline int getNumCities() const { return m_iNumCities; } // advc.003f: inline																							// Exposed to Python
+	inline int getNumCities() const { return m_iNumCities; } // advc.inl																							// Exposed to Python
 	void changeNumCities(int iChange);
 
 	int getTotalPopulation(bool bCheckVassals = true) const;																											// Exposed to Python
@@ -232,7 +232,7 @@ public:
 	bool isMapCentering() const;																							// Exposed to Python
 	void setMapCentering(bool bNewValue);																					// Exposed to Python
 
-	TeamTypes getID() const { return m_eID; } // advc.003f (inlined)																// Exposed to Python
+	TeamTypes getID() const { return m_eID; } // advc.inl																// Exposed to Python
 
 	int getStolenVisibilityTimer(TeamTypes eIndex) const;
 	bool isStolenVisibility(TeamTypes eIndex) const;																		// Exposed to Python
@@ -254,7 +254,7 @@ public:
 	int getExtraMoves(DomainTypes eIndex) const;																				// Exposed to Python
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
-	inline bool isHasMet(TeamTypes eIndex) const /* advc.003f: inline */												// Exposed to Python
+	inline bool isHasMet(TeamTypes eIndex) const /* advc.inl */												// Exposed to Python
 	{
 		return m_abHasMet.get(eIndex);
 	}
@@ -278,7 +278,7 @@ public:
 	bool isFreeTrade(TeamTypes eIndex) const;																	// Exposed to Python
 	inline bool isOpenBorders(TeamTypes eIndex) const																// Exposed to Python
 	{
-		return m_abOpenBorders.get(eIndex); // advc.003f: inline
+		return m_abOpenBorders.get(eIndex); // advc.inl
 	}
 	void setOpenBorders(TeamTypes eIndex, bool bNewValue);
 	// <advc.034>
@@ -286,7 +286,7 @@ public:
 	void setDisengage(TeamTypes eIndex, bool bNewValue);
 	void cancelDisengage(TeamTypes otherId);
 	// </advc.034>
-	// advc.003f: inline
+	// advc.inl
 	inline bool isDefensivePact(TeamTypes eIndex) const { return m_abDefensivePact.get(eIndex); }															// Exposed to Python
 	void setDefensivePact(TeamTypes eIndex, bool bNewValue);
 
@@ -296,7 +296,7 @@ public:
 	// K-Mod. Return the team which is the master of this team. (if this team is free, return getID())
 	bool isVassal(TeamTypes eMaster) const																// Exposed to Python
 	{
-		return (m_eMaster == eMaster); // advc.opt, advc.003f
+		return (m_eMaster == eMaster); // advc.opt, advc.inl
 	}
 	void setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated);
 	// advc.155: Exposed to Python
@@ -309,19 +309,19 @@ public:
 	void freeVassal(TeamTypes eVassal) const;																// Exposed to Python
 
 	inline bool isCapitulated() const // advc.130v: Exposed to Python
-	{	// advc.003f: inline, disable K-Mod assertion
+	{	// advc.inl: inline, disable K-Mod assertion
 		//FAssert(!m_bCapitulated || isAVassal()); // K-Mod
 		return m_bCapitulated;
 	}
 	int getRouteChange(RouteTypes eIndex) const																				// Exposed to Python
 	{
-		return m_aiRouteChange.get(eIndex); // advc.003f
+		return m_aiRouteChange.get(eIndex); // advc.inl
 	}
 	void changeRouteChange(RouteTypes eIndex, int iChange);												// Exposed to Python
 
 	int getProjectCount(ProjectTypes eIndex) const														// Exposed to Python
 	{
-		return m_aiProjectCount.get(eIndex); // advc.003f: allow inlining
+		return m_aiProjectCount.get(eIndex); // advc.inl
 	}
 	DllExport int getProjectDefaultArtType(ProjectTypes eIndex) const;
 	DllExport void setProjectDefaultArtType(ProjectTypes eIndex, int iValue);
@@ -334,31 +334,31 @@ public:
 
 	int getProjectMaking(ProjectTypes eIndex) const																		// Exposed to Python
 	{
-		return m_aiProjectMaking.get(eIndex); // advc.003f
+		return m_aiProjectMaking.get(eIndex); // advc.inl
 	}
 	void changeProjectMaking(ProjectTypes eIndex, int iChange);
 
 	int getUnitClassCount(UnitClassTypes eIndex) const																	// Exposed to Python
 	{
-		return m_aiUnitClassCount.get(eIndex); // advc.003f
+		return m_aiUnitClassCount.get(eIndex); // advc.inl
 	}
 	bool isUnitClassMaxedOut(UnitClassTypes eIndex, int iExtra = 0) const;							// Exposed to Python
 	void changeUnitClassCount(UnitClassTypes eIndex, int iChange);
 
 	int getBuildingClassCount(BuildingClassTypes eIndex) const													// Exposed to Python
 	{
-		return m_aiBuildingClassCount.get(eIndex); // advc.003f
+		return m_aiBuildingClassCount.get(eIndex); // advc.inl
 	}
 	bool isBuildingClassMaxedOut(BuildingClassTypes eIndex, int iExtra = 0) const;			// Exposed to Python
 	void changeBuildingClassCount(BuildingClassTypes eIndex, int iChange);
 
 	int getObsoleteBuildingCount(BuildingTypes eIndex) const
 	{
-		return m_aiObsoleteBuildingCount.get(eIndex); // advc.003f
+		return m_aiObsoleteBuildingCount.get(eIndex); // advc.inl
 	}
 	bool isObsoleteBuilding(BuildingTypes eIndex) const																// Exposed to Python
 	{
-		return (getObsoleteBuildingCount(eIndex) > 0); // advc.003f
+		return (getObsoleteBuildingCount(eIndex) > 0); // advc.inl
 	}
 	void changeObsoleteBuildingCount(BuildingTypes eIndex, int iChange);
 
@@ -371,7 +371,7 @@ public:
 	// BETTER_BTS_AI_MOD, General AI, 07/27/09, jdog5000:
 	int getBestKnownTechScorePercent() const;
 
-	// advc.003f: inline (x2)
+	// advc.inl: inline (x2)
 	inline int getTerrainTradeCount(TerrainTypes eIndex) const
 	{
 		return m_aiTerrainTradeCount.get(eIndex);
@@ -417,7 +417,7 @@ public:
 
 	int getImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2) const										// Exposed to Python
 	{
-		return m_aaiImprovementYieldChange.get(eIndex1, eIndex2); // advc.003f
+		return m_aaiImprovementYieldChange.get(eIndex1, eIndex2); // advc.inl
 	}
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python
 

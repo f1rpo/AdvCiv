@@ -5,7 +5,7 @@
 
 /*  advc.003x: Cut from CvInfos.h. A few nuts-and-bolts classes to be precompiled:
 	CvYieldInfo, CvCommerceInfo, CvColorInfo, CvPlayerColorInfo
-	advc.003f: Inlined most of the CvYieldInfo getters */
+	advc.inl: Inlined most of the CvYieldInfo getters */
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvYieldInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

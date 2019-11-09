@@ -20,7 +20,7 @@
 class CvTerrainInfo : public CvInfoBase
 {
 public: // All the const functions are exposed to Python except for those related to sound
-		// advc.003f: Inlined most of the getters
+		// advc.inl: Inlined most of the getters
 	CvTerrainInfo();
 	~CvTerrainInfo();
 
@@ -82,7 +82,7 @@ class CvFeatureInfo : public CvInfoBase
 {
 public: /*  All the const functions are exposed to Python except for those dealing with art
 			and those added by mods */
-		// advc.003f: inlined some functions w/o giving it much thought
+		// advc.inl: inlined some functions w/o giving it much thought
 	CvFeatureInfo();
 	~CvFeatureInfo();
 
@@ -195,7 +195,7 @@ private:
 class CvBonusInfo : public CvInfoBase
 {
 public: // All the const functions are exposed to Python
-		// advc.003f: inlined a few getters w/o giving it much thought
+		// advc.inl: inlined a few getters w/o giving it much thought
 	CvBonusInfo();
 	virtual ~CvBonusInfo();
 
@@ -320,7 +320,7 @@ public: // All the const functions are exposed to Python except those added by m
 	int getAdvancedStartCostIncrease() const;
 
 	int getValue() const;
-	// advc.003f: inlined these three
+	// advc.inl: inlined these three
 	inline int getMovementCost() const { return m_iMovementCost; }
 	inline int getFlatMovementCost() const { return m_iFlatMovementCost; }
 	inline int getPrereqBonus() const { return m_iPrereqBonus; }
@@ -353,7 +353,7 @@ class CvImprovementBonusInfo;
 class CvImprovementInfo : /* advc.tag: */ public CvXMLInfo
 {
 public: /*  All the const functions are exposed to Python except those dealing with sound,
-			Advanced Start and those added by mods */ // advc.003f: Inlined many of the getters
+			Advanced Start and those added by mods */ // advc.inl: Inlined many of the getters
 	CvImprovementInfo();
 	~CvImprovementInfo();
 	// <advc.tag>

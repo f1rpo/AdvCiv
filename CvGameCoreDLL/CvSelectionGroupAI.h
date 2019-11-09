@@ -54,7 +54,7 @@ public:
 
 	inline MissionAITypes AI_getMissionAIType() /* K-Mod: */ const
 	{
-		return m_eMissionAIType; // advc.003f: inline (now that it's no longer virtual)
+		return m_eMissionAIType; // advc.inl: inline (now that it's no longer virtual)
 	}
 	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot const* pNewPlot, CvUnit const* pNewUnit);
 	// advc.003u: These two had returned CvUnit*

@@ -17,7 +17,7 @@ class CvTeamAI : public CvTeam
 {
 public:
 	// advc.003u: Renamed from getTeam
-	static inline CvTeamAI& AI_getTeam(TeamTypes eTeam) // advc.003f: inline keyword added
+	static inline CvTeamAI& AI_getTeam(TeamTypes eTeam) // advc.inl
 	{
 		FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvTeamAI::AI_getTeam");
 		return *m_aTeams[eTeam];
@@ -211,7 +211,7 @@ public:
 	void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
 
-	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.003f: inline
+	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.inl
 	{
 		FASSERT_BOUNDS(0, MAX_TEAMS, eIndex, "CvTeamAI::AI_getWarPlan");
 		return m_aeWarPlan[eIndex];

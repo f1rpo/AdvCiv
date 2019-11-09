@@ -688,13 +688,13 @@ bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc
 }
 
 
-bool CvMap::isPlotExternal(int iX, int iY) const // advc.003f
+bool CvMap::isPlotExternal(int iX, int iY) const // advc.inl
 {
 	return isPlot(iX, iY);
 }
 
 
-int CvMap::numPlotsExternal() const // advc.003f
+int CvMap::numPlotsExternal() const // advc.inl
 {
 	return numPlots();
 }
@@ -788,13 +788,13 @@ int CvMap::maxMaintenanceDistance() const
 			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE)));
 } // </advc.140>
 
-int CvMap::getGridWidthExternal() const // advc.003f
+int CvMap::getGridWidthExternal() const // advc.inl
 {
 	return getGridWidth();
 }
 
 
-int CvMap::getGridHeightExternal() const // advc.003f
+int CvMap::getGridHeightExternal() const // advc.inl
 {
 	return getGridHeight();
 }
@@ -850,18 +850,18 @@ void CvMap::incrementNextRiverID()
 }
 
 
-bool CvMap::isWrapXExternal() // advc.003f
+bool CvMap::isWrapXExternal() // advc.inl
 {
 	return isWrapX();
 }
 
 
-bool CvMap::isWrapYExternal() // advc.003f
+bool CvMap::isWrapYExternal() // advc.inl
 {
 	return isWrapY();
 }
 
-bool CvMap::isWrapExternal() // advc.003f
+bool CvMap::isWrapExternal() // advc.inl
 {
 	return isWrap();
 }
@@ -936,13 +936,13 @@ void CvMap::changeNumBonusesOnLand(BonusTypes eIndex, int iChange)
 }
 
 
-CvPlot* CvMap::plotByIndexExternal(int iIndex) const // advc.003f
+CvPlot* CvMap::plotByIndexExternal(int iIndex) const // advc.inl
 {
 	return plotByIndex(iIndex);
 }
 
 
-CvPlot* CvMap::plotExternal(int iX, int iY) const // advc.003f
+CvPlot* CvMap::plotExternal(int iX, int iY) const // advc.inl
 {
 	return plot(iX, iY);
 }

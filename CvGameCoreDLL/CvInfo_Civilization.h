@@ -144,7 +144,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getDemandRebukedSneakProb() const;
 	int getDemandRebukedWarProb() const;
 	int getRazeCityProb() const;
-	inline int getBuildUnitProb() const { return m_iBuildUnitProb; } // advc.003f
+	inline int getBuildUnitProb() const { return m_iBuildUnitProb; } // advc.inl
 	int getBaseAttackOddsChange() const;
 	int getAttackOddsChangeRand() const;
 	int getWorseRankDifferenceAttitudeChange() const;

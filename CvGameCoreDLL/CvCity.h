@@ -260,18 +260,18 @@ public:
 
 	int getReligionCount() const;																						// Exposed to Python
 	int getCorporationCount() const;																						// Exposed to Python
-	// <advc.003f> inline
+	// <advc.inl>
 	DllExport inline int getID() const { return m_iID; }													// Exposed to Python
 	inline int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
 	DllExport inline IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
-	// </advc.003f>
+	// </advc.inl>
 	void setID(int iID);
 	int plotNum() const; // advc.104
 
-	int getXExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
-	int getYExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
-	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
+	int getXExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
+	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
+	int getYExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
+	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
 
 	bool at(int iX, int iY) const;																				// Exposed to Python
 	bool at(CvPlot const* pPlot) const;																					// Exposed to Python - atPlot
@@ -621,8 +621,8 @@ public:
 	bool isPlundered() const;														// Exposed to Python
 	void setPlundered(bool bNewValue);												// Exposed to Python
 
-	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file			// Exposed to Python
-	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.003f: Renamed from getOwnerINLINE
+	PlayerTypes getOwnerExternal() const; // advc.inl: Exported through .def file			// Exposed to Python
+	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.inl: Renamed from getOwnerINLINE
 	DllExport TeamTypes getTeam() const;											// Exposed to Python
 	PlayerTypes getPreviousOwner() const;											// Exposed to Python
 	void setPreviousOwner(PlayerTypes eNewValue);

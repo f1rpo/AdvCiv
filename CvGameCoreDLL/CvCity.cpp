@@ -4833,7 +4833,7 @@ int CvCity::plotNum() const
 	return GC.getMap().plotNum(m_iX, m_iY);
 } // </advc.104>
 
-// <advc.003f>
+// <advc.inl>
 int CvCity::getXExternal() const
 {
 	return getX();
@@ -4843,7 +4843,7 @@ int CvCity::getXExternal() const
 int CvCity::getYExternal() const
 {
 	return getY();
-} // </advc.003f>
+} // </advc.inl>
 
 
 bool CvCity::at(int iX, int iY) const
@@ -7660,11 +7660,11 @@ void CvCity::setLayoutDirty(bool bNewValue)
 	m_bLayoutDirty = bNewValue;
 }
 
-// <advc.003f>
+// <advc.inl>
 PlayerTypes CvCity::getOwnerExternal() const
 {
 	return getOwner();
-} // </advc.003f>
+} // </advc.inl>
 
 
 PlayerTypes CvCity::getPreviousOwner() const

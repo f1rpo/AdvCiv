@@ -128,7 +128,7 @@ public: /*  All const functions are exposed to Python except some related to art
 	bool isFirstStrikeImmune() const;
 	bool isNoDefensiveBonus() const;
 	bool isIgnoreBuildingDefense() const;
-	// advc.003f: force-inlined for CvArea::canBeEntered
+	// advc.inl: force-inlined for CvArea::canBeEntered
 	__forceinline bool isCanMoveImpassable() const { return m_bCanMoveImpassable; }
 	inline bool isCanMoveAllTerrain() const { return m_bCanMoveAllTerrain; }
 	bool isFlatMovementCost() const;
@@ -644,8 +644,8 @@ class CvEspionageMissionInfo : public CvInfoBase
 public:
 	CvEspionageMissionInfo();
 
-	inline int getCost() const { return m_iCost; } // advc.003f: inline
-	inline bool isPassive() const { return m_bIsPassive; } // advc.003f: inline
+	inline int getCost() const { return m_iCost; } // advc.inl
+	inline bool isPassive() const { return m_bIsPassive; } // advc.inl
 	bool isTwoPhases() const;
 	bool isTargetsCity() const;
 	bool isSelectPlot() const;

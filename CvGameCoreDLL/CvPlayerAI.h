@@ -22,7 +22,7 @@ class CvPlayerAI : public CvPlayer
 {
 public:
 	// advc.003u: Renamed from getPlayer
-	static inline CvPlayerAI& AI_getPlayer(PlayerTypes ePlayer) // advc.003f: inline keyword added
+	static inline CvPlayerAI& AI_getPlayer(PlayerTypes ePlayer) // advc.inl
 	{
 		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayerAI::AI_getPlayer");
 		return *m_aPlayers[ePlayer];

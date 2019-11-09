@@ -38,13 +38,13 @@ public:
 	bool isVassalTributeDeal() const;
 	bool isDisengage() const; // advc.034
 
-	DllExport inline int getID() const { return m_iID; } // advc.003f: inline
+	DllExport inline int getID() const { return m_iID; } // advc.inl
 	void setID(int iID);
 
 	int getInitialGameTurn() const;
 	void setInitialGameTurn(int iNewValue);
 	int getAge() const; // advc.133
-	// <advc.003f> inlined
+	// <advc.inl>
 	DllExport inline PlayerTypes getFirstPlayer() const {
 		return m_eFirstPlayer; }
 	inline CLinkList<TradeData> const* getFirstTrades() const {
@@ -61,7 +61,7 @@ public:
 		return m_secondTrades.head(); }
 	DllExport inline CLLNode<TradeData>* nextSecondTradesNode(CLLNode<TradeData>* pNode) const {
 		return m_secondTrades.next(pNode); }
-	// </advc.003f>
+	// </advc.inl>
 	// <advc> More convenient interface for iteration
 	/*  Want to make all the CLLNodes const - should generally not modify deal lists
 		while traversing them. (Though this means that CLLNode::m_data also can't be

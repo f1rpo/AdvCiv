@@ -370,7 +370,7 @@ public:
 	bool isInBetweenTurns() const;
 	void setInBetweenTurns(bool b); // </advc.106b>
 
-	inline HandicapTypes getHandicapType() const { return m_eHandicap; } // advc.003f: inline
+	inline HandicapTypes getHandicapType() const { return m_eHandicap; } // advc.inl
 	void setHandicapType(HandicapTypes eHandicap);
 	HandicapTypes getAIHandicap() const; // advc.127
 

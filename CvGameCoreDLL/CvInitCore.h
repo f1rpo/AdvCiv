@@ -22,7 +22,7 @@ protected:
 
 	void setDefaults();
 
-	inline bool checkBounds(int iValue, int iLower, int iUpper) const // advc.003f: inline
+	inline bool checkBounds(int iValue, int iLower, int iUpper) const // advc.inl
 	{
 		return (iLower <= iValue &&  iValue < iUpper);
 	}
@@ -133,7 +133,7 @@ public:
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
-	inline const bool * getOptions() const	{ return m_abOptions; } // advc.003f: inline
+	inline const bool * getOptions() const	{ return m_abOptions; } // advc.inl
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 
@@ -148,7 +148,7 @@ public:
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.003f
+	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.inl
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
 	int getMaxTurns() const	{ return m_iMaxTurns; }

@@ -61,7 +61,7 @@ public: // All the const functions are exposed to Python except those added by m
 	int getStartingGold() const;
 	int getFreePopulation() const;
 	int getStartPercent() const;
-	// advc.003f: inlined some getters
+	// advc.inl: inlined some getters
 	inline int getGrowthPercent() const { return m_iGrowthPercent; }
 	inline int getTrainPercent() const { return m_iTrainPercent; }
 	inline int getConstructPercent() const { return m_iConstructPercent; }
@@ -132,7 +132,7 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvGameSpeedInfo : public CvInfoBase
 {
-public: // The const functions are exposed to Python // advc.003f: inlined some getters
+public: // The const functions are exposed to Python // advc.inl: inlined some getters
 	CvGameSpeedInfo();
 	~CvGameSpeedInfo();
 
@@ -285,7 +285,7 @@ public: // The const functions are exposed to Python except functions added by m
 	inline int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
 	inline int getCultureLevelPercent() const { return m_iCultureLevelPercent; }
 	// </advc.251>
-	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.003f: Let's inline this one too
+	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.inl: Let's inline this one too
 	// <advc.251>
 	inline int getTrainPercent() const { return m_iTrainPercent; }
 	inline int getConstructPercent() const { return m_iConstructPercent; }
