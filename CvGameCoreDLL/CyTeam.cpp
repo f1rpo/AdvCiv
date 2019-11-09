@@ -606,20 +606,20 @@ void CyTeam::changeWarWeariness(int /*TeamTypes*/ eIndex, int iChange)
 		m_pTeam->changeWarWeariness((TeamTypes)eIndex, iChange);
 }
 
-int CyTeam::getTechShareCount(int iIndex)
+int CyTeam::getTechShareCount(int /*TeamTypes*/eIndex)
 {
-	return m_pTeam ? m_pTeam->getTechShareCount(iIndex) : -1;
+	return m_pTeam ? m_pTeam->getTechShareCount((TeamTypes)eIndex) : -1;
 }
 
-bool CyTeam::isTechShare(int iIndex)
+bool CyTeam::isTechShare(int /*TeamTypes*/eIndex)
 {
-	return m_pTeam ? m_pTeam->isTechShare(iIndex) : false;
+	return m_pTeam ? m_pTeam->isTechShare((TeamTypes)eIndex) : false;
 }
 
-void CyTeam::changeTechShareCount(int iIndex, int iChange)
+void CyTeam::changeTechShareCount(int /*TeamTypes*/eIndex, int iChange)
 {
 	if (m_pTeam)
-		m_pTeam->changeTechShareCount(iIndex, iChange);
+		m_pTeam->changeTechShareCount((TeamTypes)eIndex, iChange);
 }
 
 int CyTeam::getCommerceFlexibleCount(int /*CommerceTypes*/ eIndex)

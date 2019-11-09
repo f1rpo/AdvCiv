@@ -3231,24 +3231,21 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 }
 
 
-bool CvPlot::isRoute() const
-{
-	return (getRouteType() != NO_ROUTE);
-}
-
-
-bool CvPlot::isValidRoute(const CvUnit* pUnit,
-		bool bAssumeRevealed) const // advc.001i
+bool CvPlot::isValidRoute(const CvUnit* pUnit, /* advc.001i: */ bool bAssumeRevealed) const
 {
 	//if (isRoute())
 	// <advc.001i> Replacing the above
-	RouteTypes eRoute = (bAssumeRevealed ? getRouteType() :
+	RouteTypes const eRoute = (bAssumeRevealed ? getRouteType() :
 			getRevealedRouteType(pUnit->getTeam()));
 	if(eRoute != NO_ROUTE) // </advc.001i>
 	{
-		if ((!pUnit->isEnemy(getTeam(), this) || pUnit->isEnemyRoute())
-				&& !GET_TEAM(pUnit->getTeam()).isDisengage(getTeam())) // advc.034
+		if ((!pUnit->isEnemy(getTeam(), this) &&
+			// advc.034:
+			(getTeam() == NO_TEAM || !GET_TEAM(pUnit->getTeam()).isDisengage(getTeam())))
+			|| pUnit->isEnemyRoute())
+		{
 			return true;
+		}
 	}
 
 	return false;

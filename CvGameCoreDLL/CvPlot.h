@@ -250,8 +250,11 @@ public:
 	DllExport bool isFighting() const;																																// Exposed to Python
 
 	bool canHaveFeature(FeatureTypes eFeature) const;																				// Exposed to Python
-
-	DllExport bool isRoute() const;																																		// Exposed to Python
+	// advc.003f: inline
+	DllExport inline bool isRoute() const																																		// Exposed to Python
+	{
+		return (getRouteType() != NO_ROUTE);
+	}
 	bool isValidRoute(const CvUnit* pUnit,																											// Exposed to Python
 			bool bAssumeRevealed) const; // advc.001i
 	bool isTradeNetworkImpassable(TeamTypes eTeam) const;																														// Exposed to Python
