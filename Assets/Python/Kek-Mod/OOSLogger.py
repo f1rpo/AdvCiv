@@ -19,8 +19,8 @@ SEPERATOR = "-----------------------------------------------------------------\n
 # variable so that it only happens once.
 def onGameUpdate(argsList):
 	global bWroteLog
-	# <advc> Same checks as for the MPLog in CvRandom::get plus a WorldBuilder check for advc.135c (WorldBuilder always leads to OOS)
-	if not gc.isLogging() or not gc.isRandLogging() or gc.getGame().GetWorldBuilderMode():
+	# <advc> The OOS log reveals some secret info. Require MessageLog (isLogging) so that players receive a popup about logging. Plus a WorldBuilder check for advc.135c (WorldBuilder always leads to OOS)
+	if not gc.isLogging() or gc.getGame().GetWorldBuilderMode():
 		return # </advc>
 
 	bOOS = CyInterface().isOOSVisible()
