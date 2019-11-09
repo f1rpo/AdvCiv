@@ -759,6 +759,9 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paEspionageMissionInfo, "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
 
 	DestroyFXml();
+
+	GC.setCurrentXMLFile(NULL); // advc.006e
+
 	// <advc.enum>
 	#define ASSERT_SIZE_EQUALS_ENUM_LENGTH(Name, INFIX) \
 		FAssertMsg(GC.m_pa##Name##Info.size() == NUM_ENUM_TYPES(INFIX), \

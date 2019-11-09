@@ -2844,7 +2844,9 @@ void CvUnitAI::AI_attackCityMove()
 		}*/ // <advc.299>
 		if (AI_singleUnitHeal(0, 0))
 			return; // </advc.299>
-
+		// <advc.114e> (from MNAI)
+		if (AI_leaveAttack(1, 70, 150))
+			return; // </advc.114e>
 		/*if (bIgnoreFaster) {
 			// BBAI TODO: split out slow units ... will need to test to make sure this doesn't cause loops
 		}*/
@@ -20168,7 +20170,9 @@ int CvUnitAI::AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold) // advc: 
 
 		FOR_EACH_CITY(pLoopCity, kPlayer)
 		{
-			if (!AI_plotValid(pLoopCity->plot()) || pLoopCity->plot()->isVisibleEnemyUnit(this))
+			if (!AI_plotValid(pLoopCity->plot()) ||
+					!pLoopCity->isRevealed(getTeam(), false) || // advc.001 (from MNAI)
+					pLoopCity->plot()->isVisibleEnemyUnit(this))
 				continue;
 
 			const int iValue = getTradeGold(pLoopCity->plot());

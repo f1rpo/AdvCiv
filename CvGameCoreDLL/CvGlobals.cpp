@@ -95,6 +95,7 @@ m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
 	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.opt>
+	setCurrentXMLFile(NULL); // advc.006e
 }
 
 void CvGlobals::init() // allocate
@@ -603,7 +604,10 @@ CvString& CvGlobals::getFootstepAudioTags(int i)
 
 void CvGlobals::setCurrentXMLFile(const TCHAR* szFileName)
 {
-	m_szCurrentXMLFile = szFileName;
+	// <advc.006e>
+	if (szFileName == NULL)
+		m_szCurrentXMLFile = "(None)"; // </advc.006e>
+	else m_szCurrentXMLFile = szFileName;
 }
 
 CvString const& CvGlobals::getCurrentXMLFile() const
