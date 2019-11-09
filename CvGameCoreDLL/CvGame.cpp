@@ -369,7 +369,7 @@ void CvGame::regenerateMap()
 		m.setRevealedPlots(((TeamTypes)iI), false);
 
 	gDLL->getEngineIFace()->clearSigns();
-
+	m_aPlotExtraYields.clear(); // advc.004j
 	m.erasePlots();
 
 	CvMapGenerator::GetInstance().generateRandomMap();
@@ -413,10 +413,10 @@ void CvGame::regenerateMap()
 	// <advc.004j>
 	if(bShowDawn)
 		showDawnOfMan(); // </advc.004j>
-	if (NO_PLAYER != getActivePlayer())
+	if (getActivePlayer()!= NO_PLAYER)
 	{
 		CvPlot* pPlot = GET_PLAYER(getActivePlayer()).getStartingPlot();
-		if (NULL != pPlot)
+		if (pPlot != NULL)
 		{
 			//gDLL->getInterfaceIFace()->lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
 			/*  <advc.004j> ^Comment by EmperorFool (from BULL):
@@ -9672,8 +9672,8 @@ int CvGame::getPlotExtraYield(int iX, int iY, YieldTypes eYield) const
 void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYield)
 {
 	bool bFound = false;
-
-	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
+	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin();
+		it != m_aPlotExtraYields.end(); ++it)
 	{
 		if (it->m_iX == iX && it->m_iY == iY)
 		{
@@ -9682,7 +9682,6 @@ void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYiel
 			break;
 		}
 	}
-
 	if (!bFound)
 	{
 		PlotExtraYield kExtraYield;
@@ -9691,22 +9690,14 @@ void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYiel
 		for (int i = 0; i < NUM_YIELD_TYPES; ++i)
 		{
 			if (eYield == i)
-			{
 				kExtraYield.m_aeExtraYield.push_back(iExtraYield);
-			}
-			else
-			{
-				kExtraYield.m_aeExtraYield.push_back(0);
-			}
+			else kExtraYield.m_aeExtraYield.push_back(0);
 		}
 		m_aPlotExtraYields.push_back(kExtraYield);
 	}
-
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
-	if (NULL != pPlot)
-	{
+	if (pPlot != NULL)
 		pPlot->updateYield();
-	}
 }
 
 void CvGame::removePlotExtraYield(int iX, int iY)
@@ -9721,10 +9712,8 @@ void CvGame::removePlotExtraYield(int iX, int iY)
 	}
 
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
-	if (NULL != pPlot)
-	{
+	if (pPlot != NULL)
 		pPlot->updateYield();
-	}
 }
 
 int CvGame::getPlotExtraCost(int iX, int iY) const
@@ -10868,6 +10857,10 @@ bool CvGame::isScenario() const
 void CvGame::setScenario(bool b)
 {
 	m_bScenario = b;
+	/*  These two apparently check the same thing, but both call the EXE ultimately,
+		so one can't be certain what they check and how long it might take. */
+	FAssert(m_bScenario == gDLL->isWBMapScript());
+	FAssert(m_bScenario == GC.getInitCore().getWBMapScript());
 } // </advc.052>
 
 // advc.250b:

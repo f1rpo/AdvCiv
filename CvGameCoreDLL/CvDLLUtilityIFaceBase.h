@@ -130,7 +130,10 @@ public:
 
 	virtual CvWString getMapScriptName() = 0;
 	virtual bool getTransferredMap() = 0;
+	/*  advc (comment): Presumably checks if szFileName has a WBSave ending.
+		"Desc" probably refers to the WBSave language. */
 	virtual bool isDescFileName(const char * szFileName) = 0;
+	// advc (comment): Might call isDescFileName. Should probably use CvGame::isScenario (advc.052) instead.
 	virtual bool isWBMapScript() = 0;
 	virtual bool isWBMapNoPlayers() = 0;
 	virtual bool pythonMapExists(const char * szMapName) = 0;
