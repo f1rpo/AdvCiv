@@ -1514,7 +1514,8 @@ void CvUnitAI::AI_settleMove()
 			{
 				// BETTER_BTS_AI_MOD, Unit AI, 11/30/08, jdog5000: guard added
 				if (kOwner.AI_unitTargetMissionAIs(getGroup()->getHeadUnit(), MISSIONAI_PICKUP) == 0)
-				{
+				{	// advc.test:
+					FAssertMsg(false, "Just to see how frequently the AI scraps settlers");
 					//may seem wasteful, but settlers confuse the AI.
 					scrap();
 					return;
@@ -2852,8 +2853,8 @@ void CvUnitAI::AI_attackCityMove()
 		}*/
 
 		if ((GC.getGame().getGameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1
-				// cdtw.9: (comment from Dave_uk) only do this in our own cities though
-				&& plot()->getOwner() == getOwner())
+			// cdtw.9: (comment from Dave_uk) only do this in our own cities though
+			&& plot()->getOwner() == getOwner())
 		{
 			CvSelectionGroupAI* pOldGroup = AI_getGroup();
 			pOldGroup->AI_separateNonAI(UNITAI_ATTACK_CITY);
@@ -3874,9 +3875,9 @@ void CvUnitAI::AI_pillageMove()
 			return;
 		}
 	}
-
-	//if (AI_group(UNITAI_PILLAGE, /*iMaxGroup*/ 1, /*iMaxOwnUnitAI*/ 1, -1, /*bIgnoreFaster*/ true, false, false, /*iMaxPath*/ 3))
-	if (AI_group(UNITAI_PILLAGE, /*iMaxGroup*/ 2, /*iMaxOwnUnitAI*/ 1, -1, /*bIgnoreFaster*/ true, false, false, /*iMaxPath*/ 3)) // K-Mod. (later, I might tell counter units to join up.)
+	/*  K-Mod: iMaxGroup was 1
+		(later, I might tell counter units to join up.) */
+	if (AI_group(UNITAI_PILLAGE, /*iMaxGroup*/ 2, /*iMaxOwnUnitAI*/ 1, -1, /*bIgnoreFaster*/ true, false, false, /*iMaxPath*/ 3))
 	{
 		return;
 	}
@@ -9867,10 +9868,10 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 
 // Returns true if a group was joined or a mission was pushed...
 bool CvUnitAI::AI_group(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitAI,
-		int iMinUnitAI, bool bIgnoreFaster, bool bIgnoreOwnUnitType, bool bStackOfDoom,
-		int iMaxPath, bool bAllowRegrouping,
-		/*  BETTER_BTS_AI_MOD, Unit AI, 02/22/10, jdog5000:
-			Added new options to aid transport grouping */
+	int iMinUnitAI, bool bIgnoreFaster, bool bIgnoreOwnUnitType, bool bStackOfDoom,
+	int iMaxPath, bool bAllowRegrouping,
+	/*  BETTER_BTS_AI_MOD, Unit AI, 02/22/10, jdog5000:
+		Added new options to aid transport grouping */
 	bool bWithCargoOnly, bool bInCityOnly, MissionAITypes eIgnoreMissionAIType)
 {
 	// K-Mod. I've completely gutted this function. It's now basically just a wrapper for AI_omniGroup.
@@ -10929,18 +10930,15 @@ bool CvUnitAI::AI_guardCitySite()
 		//if (owner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_GUARD_CITY, getGroup()) == 0)
 		// <advc.300> Need to check the adjacent tiles too
 		bool bValid = true;
-		for(int dx = -1; dx <= 1; dx++)
+		FOR_EACH_ENUM(Direction)
 		{
-			for(int dy = -1; dy <= 1; dy++)
+			CvPlot* pAdj = m.plotDirection(pLoopPlot->getX(),
+					pLoopPlot->getY(), eLoopDirection);
+			if(pAdj != NULL && kOwner.AI_plotTargetMissionAIs(
+				pAdj, MISSIONAI_GUARD_CITY, getGroup()) > 0)
 			{
-				CvPlot* pAdj = m.plot(pLoopPlot->getX() + dx,
-						pLoopPlot->getY() + dy);
-				if(pAdj != NULL && kOwner.AI_plotTargetMissionAIs(
-						pAdj, MISSIONAI_GUARD_CITY, getGroup()) > 0)
-				{
-					bValid = false;
-					dx = dy = 2; // break x2
-				}
+				bValid = false;
+				break;
 			}
 		}
 		if(bValid) // </advc.300>
@@ -16114,8 +16112,8 @@ bool CvUnitAI::AI_settlerSeaTransport()
 		if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pCitySitePlot, MISSIONAI_FOUND, getGroup()) == 0)
 		{
 			int iValue = pCitySitePlot->getFoundValue(getOwner());
-			//if (pCitySitePlot->getArea() == getArea())
-			if (pCitySitePlot->getArea() == getArea() && land_path.GeneratePath(pCitySitePlot)) // K-Mod
+			if (pCitySitePlot->getArea() == getArea() &&
+				land_path.GeneratePath(pCitySitePlot)) // K-Mod
 			{
 				if (iValue > iAreaBestFoundValue)
 				{
@@ -16982,7 +16980,7 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 					if (!kPlot.isConnectedTo(pLoopCity))
 					{
 						FAssert(kPlot.getPlotCity() != pLoopCity);
-						if (plot()->getPlotGroup(getOwner()) == pLoopCity->plot()->getPlotGroup(getOwner()))
+						if (plot()->isSamePlotGroup(*pLoopCity->plot(), getOwner()))
 						{
 							getGroup()->pushMission(MISSION_ROUTE_TO, kPlot.getX(), kPlot.getY(),
 									MOVE_SAFE_TERRITORY

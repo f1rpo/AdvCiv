@@ -581,10 +581,10 @@ public:
 	// </advc.opt>
 	// <advc.003t> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
 	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit = NO_UNIT) const;
-	// <advc.905b> No parameter here
-	inline int getNUM_UNIT_SPEED_BONUSES() const
+	// <advc.905b>
+	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit = NO_UNIT) const
 	{
-		return getNUM_UNIT_PREREQ_OR_BONUSES();
+		return getNUM_UNIT_PREREQ_OR_BONUSES(eUnit);
 	} // </advc.905b>
 	int getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit = NO_UNIT) const;
 	int getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding = NO_BUILDING) const;

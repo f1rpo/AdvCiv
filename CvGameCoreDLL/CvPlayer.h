@@ -989,12 +989,25 @@ public:
 	CLLNode<CvWString>* headCityNameNode() const;
 
 	// plot groups iteration
-	CvPlotGroup* firstPlotGroup(int *pIterIdx, bool bRev=false) const;
-	CvPlotGroup* nextPlotGroup(int *pIterIdx, bool bRev=false) const;
-	int getNumPlotGroups() const;
-	CvPlotGroup* getPlotGroup(int iID) const;
+	// advc.003f: Inline most of these. Remove unused bRev param to avoid branching.
+	inline CvPlotGroup* firstPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
+	{
+		return /*bRev ? m_plotGroups.endIter(pIterIdx) :*/ m_plotGroups.beginIter(pIterIdx);
+	}
+	inline CvPlotGroup* nextPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
+	{
+		return /*bRev ? m_plotGroups.prevIter(pIterIdx) :*/ m_plotGroups.nextIter(pIterIdx);
+	}
+	inline int getNumPlotGroups() const { return m_plotGroups.getCount(); }
+	inline CvPlotGroup* getPlotGroup(int iID) const
+	{
+		return (CvPlotGroup*)m_plotGroups.getAt(iID);
+	}
 	CvPlotGroup* addPlotGroup();
-	void deletePlotGroup(int iID);
+	inline void deletePlotGroup(int iID)
+	{
+		m_plotGroups.removeAt(iID);
+	}
 
 	// city iteration
 	DllExport CvCity* firstCity(int *pIterIdx, bool bRev=false) const;																// Exposed to Python

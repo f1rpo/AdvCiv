@@ -44,23 +44,16 @@ public:
 	DllExport float getSymbolOffsetX(int iID) const;
 	DllExport float getSymbolOffsetY(int iID) const;
 
-	TeamTypes getTeam() const;																																	// Exposed to Python
-
 	void doTurn();
-
 	void doImprovement();
 
 	void updateCulture(bool bBumpUnits, bool bUpdatePlotGroups);
-
 	void updateFog();
 	void updateVisibility();
-
 	void updateSymbolDisplay();
 	void updateSymbolVisibility();
 	void updateSymbols();
-
 	void updateMinimapColor();
-
 	void updateCenterUnit();
 
 	void verifyUnitValidPlot();
@@ -196,7 +189,10 @@ public:
 	int plotCount(ConstPlotUnitFunc funcA, int iData1A = -1, int iData2A = -1, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, ConstPlotUnitFunc funcB = NULL, int iData1B = -1, int iData2B = -1) const;
 	CvUnit* plotCheck(ConstPlotUnitFunc funcA, int iData1A = -1, int iData2A = -1, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, ConstPlotUnitFunc funcB = NULL, int iData1B = -1, int iData2B = -1) const;
 
-	bool isOwned() const;																																							// Exposed to Python
+	inline bool isOwned() const	/* advc.003f: inline */																																		// Exposed to Python
+	{
+		return (getOwner() != NO_PLAYER);
+	}
 	bool isBarbarian() const;																																					// Exposed to Python
 	bool isRevealedBarbarian() const;																																	// Exposed to Python
 
@@ -257,7 +253,11 @@ public:
 	}
 	bool isValidRoute(const CvUnit* pUnit,																											// Exposed to Python
 			bool bAssumeRevealed) const; // advc.001i
-	bool isTradeNetworkImpassable(TeamTypes eTeam) const;																														// Exposed to Python
+	// advc.003f: inline
+	inline bool isTradeNetworkImpassable(TeamTypes eTeam) const																														// Exposed to Python
+	{
+		return (isImpassable() && !isRiverNetwork(eTeam));
+	}
 	bool isNetworkTerrain(TeamTypes eTeam) const;																											// Exposed to Python
 	bool isBonusNetwork(TeamTypes eTeam) const;																												// Exposed to Python
 	bool isTradeNetwork(TeamTypes eTeam) const;																												// Exposed to Python
@@ -306,9 +306,15 @@ public:
 	bool isForceUnowned() const;																																			// Exposed to Python
 	void setForceUnownedTimer(int iNewValue);																													// Exposed to Python
 	void changeForceUnownedTimer(int iChange);																												// Exposed to Python
-
-	int getCityRadiusCount() const;																																		// Exposed to Python
-	bool isCityRadius() const; // Exposed to Python (K-Mod changed to bool)
+	// advc.003f: 2x inline
+	inline int getCityRadiusCount() const																																		// Exposed to Python
+	{
+		return m_iCityRadiusCount;
+	}
+	inline bool isCityRadius() const												// Exposed to Python (K-Mod: changed to bool)
+	{
+		return (getCityRadiusCount() > 0);
+	}
 	void changeCityRadiusCount(int iChange);
 
 	bool isStartingPlot() const;																																			// Exposed to Python
@@ -340,6 +346,10 @@ public:
 	bool isFlagDirty() const;																																										// Exposed to Python
 	void setFlagDirty(bool bNewValue);																																					// Exposed to Python
 
+	inline TeamTypes getTeam() const																																	// Exposed to Python
+	{
+		return (TeamTypes)m_eTeam; // advc.opt: Now cached
+	}
 	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
 	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
 	{
@@ -352,17 +362,39 @@ public:
 	void setSecondOwner(PlayerTypes eNewValue);
 	bool isContestedByRival(PlayerTypes eRival = NO_PLAYER) const;
 	// </advc.035>
-	PlotTypes getPlotType() const;																																			// Exposed to Python
-	DllExport bool isWater() const;																																								// Exposed to Python
-	bool isFlatlands() const;																																											// Exposed to Python
-	DllExport bool isHills() const;																																								// Exposed to Python
-	DllExport bool isPeak() const;																																								// Exposed to Python
+	// advc.003f: inline all plotType accessors
+	inline PlotTypes getPlotType() const																																			// Exposed to Python
+	{
+		return (PlotTypes)m_ePlotType;
+	}
+	DllExport inline bool isWater() const																																								// Exposed to Python
+	{
+		return (getPlotType() == PLOT_OCEAN);
+	}
+	inline bool isFlatlands() const																																											// Exposed to Python
+	{
+		return (getPlotType() == PLOT_LAND);
+	}
+	DllExport inline bool isHills() const																																								// Exposed to Python
+	{
+		return (getPlotType() == PLOT_HILLS);
+	}
+	DllExport inline bool isPeak() const																																								// Exposed to Python
+	{
+		return (getPlotType() == PLOT_PEAK);
+	}
 	void setPlotType(PlotTypes eNewValue, bool bRecalculate = true, bool bRebuildGraphics = true);			// Exposed to Python
-
-	DllExport TerrainTypes getTerrainType() const;																																	// Exposed to Python
+	// advc.003f: inline
+	DllExport inline TerrainTypes getTerrainType() const																																	// Exposed to Python
+	{
+		return (TerrainTypes)m_eTerrainType;
+	}
 	void setTerrainType(TerrainTypes eNewValue, bool bRecalculate = true, bool bRebuildGraphics = true);	// Exposed to Python
-
-	DllExport FeatureTypes getFeatureType() const;																																	// Exposed to Python
+	// advc.003f: inline
+	DllExport inline FeatureTypes getFeatureType() const																																	// Exposed to Python
+	{
+		return (FeatureTypes)m_eFeatureType;
+	}
 	void setFeatureType(FeatureTypes eNewValue, int iVariety = -1);																				// Exposed to Python
 	void setFeatureDummyVisibility(const char *dummyTag, bool show);																				// Exposed to Python
 	void addFeatureDummyModel(const char *dummyTag, const char *modelTag);
@@ -374,10 +406,16 @@ public:
 	BonusTypes getNonObsoleteBonusType(TeamTypes eTeam = NO_TEAM, bool bCheckConnected = false) const;																	// Exposed to Python
 	void setBonusType(BonusTypes eNewValue);																															// Exposed to Python
 
-	DllExport ImprovementTypes getImprovementType() const;																													// Exposed to Python
+	DllExport inline ImprovementTypes getImprovementType() const																													// Exposed to Python
+	{
+		return (ImprovementTypes)m_eImprovementType;
+	}
 	void setImprovementType(ImprovementTypes eNewValue);																									// Exposed to Python
-
-	RouteTypes getRouteType() const;																																			// Exposed to Python
+	// advc.003f: inline
+	inline RouteTypes getRouteType() const																																			// Exposed to Python
+	{
+		return (RouteTypes)m_eRouteType;
+	}
 	void setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroup);																															// Exposed to Python
 	void updateCityRoute(bool bUpdatePlotGroup);
 
@@ -393,8 +431,11 @@ public:
 	void setPlotCity(CvCity* pNewValue);
 	void setRuinsName(const CvWString& szName); // advc.005c
 	const wchar* getRuinsName() const; // advc.005c
-
-	CvCity* getWorkingCity() const;																																				// Exposed to Python
+	// advc.003f: inline
+	inline CvCity* getWorkingCity() const																																				// Exposed to Python
+	{
+		return ::getCity(m_workingCity);
+	}
 	void updateWorkingCity();
 	CvCity* getWorkingCityOverride() const;																															// Exposed to Python
 	void setWorkingCityOverride(const CvCity* pNewValue);
@@ -474,6 +515,11 @@ public:
 	void changePlayerCityRadiusCount(PlayerTypes eIndex, int iChange);
 
 	CvPlotGroup* getPlotGroup(PlayerTypes ePlayer) const;
+	// <advc.003f> New function. Can't inline the above w/o including CvPlayer.h.
+	inline bool isSamePlotGroup(CvPlot const& kOther, PlayerTypes ePlayer) const
+	{
+		return (m_aiPlotGroup.get(ePlayer) == kOther.m_aiPlotGroup.get(ePlayer));
+	} // </advc.003f>
 	CvPlotGroup* getOwnerPlotGroup() const;
 	void setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
 			bool bVerifyProduction = true); // advc.064d
@@ -686,6 +732,7 @@ protected:
 	bool m_bLayoutStateWorked:1;
 
 	char /*PlayerTypes*/ m_eOwner;
+	char /*TeamTypes*/ m_eTeam; // advc.opt: cache the owner's team
 	// advc.opt: These five were short int
 	char /*PlotTypes*/ m_ePlotType;
 	char /*TerrainTypes*/ m_eTerrainType;
@@ -744,6 +791,7 @@ protected:
 	void doCulture();
 
 	int countTotalCulture() const; // advc.opt: Was public; replaced by getTotalCulture.
+	void updateTeam(); // advc.opt
 	void processArea(CvArea* pArea, int iChange);
 	char calculateLatitude() const; // advc.tsl
 	void doImprovementUpgrade();

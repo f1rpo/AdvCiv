@@ -4456,9 +4456,7 @@ int CvPlayer::getNumAvailableBonuses(BonusTypes eBonus) const
 {
 	CvPlotGroup* pPlotGroup = ((getCapitalCity() != NULL) ? getCapitalCity()->plot()->getOwnerPlotGroup() : NULL);
 	if (pPlotGroup != NULL)
-	{
 		return pPlotGroup->getNumBonuses(eBonus);
-	}
 
 	return 0;
 }
@@ -12533,39 +12531,9 @@ CLLNode<CvWString>* CvPlayer::headCityNameNode() const
 }
 
 
-CvPlotGroup* CvPlayer::firstPlotGroup(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_plotGroups.beginIter(pIterIdx) : m_plotGroups.endIter(pIterIdx);
-}
-
-
-CvPlotGroup* CvPlayer::nextPlotGroup(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_plotGroups.nextIter(pIterIdx) : m_plotGroups.prevIter(pIterIdx);
-}
-
-
-int CvPlayer::getNumPlotGroups() const
-{
-	return m_plotGroups.getCount();
-}
-
-
-CvPlotGroup* CvPlayer::getPlotGroup(int iID) const
-{
-	return (CvPlotGroup*)m_plotGroups.getAt(iID);
-}
-
-
 CvPlotGroup* CvPlayer::addPlotGroup()
 {
 	return (CvPlotGroup*)m_plotGroups.add();
-}
-
-
-void CvPlayer::deletePlotGroup(int iID)
-{
-	m_plotGroups.removeAt(iID);
 }
 
 

@@ -87,7 +87,7 @@ void CvPlotGroup::removePlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduct
 
 void CvPlotGroup::recalculatePlots()
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // advc: The bulk of the time is spent by FAStar, specifically plotGroupValid (CvGameCoreUtils).
 
 	XYCoords xy;
 	PlayerTypes eOwner = getOwner();

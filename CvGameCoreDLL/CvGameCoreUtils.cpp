@@ -368,9 +368,7 @@ float directionAngle (DirectionTypes eDirection)
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
-	if(eTeamA == NO_TEAM || eTeamB == NO_TEAM)
-		return false;
-	return GET_TEAM(eTeamA).isAtWar(eTeamB);
+	return (eTeamA != NO_TEAM && eTeamB != NO_TEAM && GET_TEAM(eTeamA).isAtWar(eTeamB));
 }
 
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
@@ -2499,8 +2497,9 @@ int stepDestValid_advc(int iToX, int iToY, const void* pointer, FAStar* finder)
 int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	void const* pointer, FAStar* finder)
 {
-	if(parent == NULL)
-		return TRUE;
+	//PROFILE_FUNC(); // advc.003o
+	/*if(parent == NULL) // I don't think this can happen
+		return TRUE;*/
 	CvMap const& kMap = GC.getMap();
 	CvPlot const& kToPlot = kMap.getPlot(node->m_iX, node->m_iY);
 	if(kToPlot.isImpassable())
@@ -2511,7 +2510,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
 		return FALSE;
 	TeamTypes const ePlotTeam = kToPlot.getTeam();
-	int* v = (int*)pointer;
+	int* const v = (int*)pointer;
 	int const iMaxPath = v[5];
 	/*  As far as I understand the code, node (the pToPlot) is still set to 0
 		cost if it's visited for the first time, so we should look at parent
@@ -2523,8 +2522,6 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	TeamTypes const eTeam = (TeamTypes)v[0]; // The team that computes the path
 	TeamTypes const eTargetTeam = (TeamTypes)v[1];
 	DomainTypes eDom = (DomainTypes)v[2];
-	if(eDom == NO_DOMAIN)
-		eDom = DOMAIN_LAND;
 	// Check domain legality:
 	if(eDom == DOMAIN_LAND && kToPlot.isWater())
 		return FALSE;
@@ -2533,7 +2530,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFromPlot.isCity() &&
 			kFromPlot.getTeam() != BARBARIAN_TEAM)
 		return FALSE; // </advc.033>
-	bool const bCoastalCity = kToPlot.isCity(true) && kToPlot.isCoastalLand();
+	bool const bEnterCityFromCoast = (eDom != DOMAIN_LAND && kToPlot.isCity(true) && kToPlot.isCoastalLand());
 	bool const bDestination = kToPlot.at(v[3], v[4]);
 	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
 	bool bImpassableTerrain = false;
@@ -2542,10 +2539,10 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		bImpassableTerrain = true;
 		eDom = DOMAIN_SEA;
 	}
-	if(eDom == DOMAIN_SEA && !bCoastalCity && !kToPlot.isWater() &&
+	if(eDom == DOMAIN_SEA && !bEnterCityFromCoast && !kToPlot.isWater() &&
 			!bDestination) // Allow non-city land tile as cargo destination
 		return FALSE;
-	if(!bCoastalCity && !bDestination && ePlotTeam != eTeam && bImpassableTerrain &&
+	if(!bEnterCityFromCoast && !bDestination && ePlotTeam != eTeam && bImpassableTerrain &&
 			/*  This handles only Coast and no other water terrain types that a mod-mod 
 				might make passable */
 			kToPlot.getTerrainType() != GC.getWATER_TERRAIN(true))
@@ -2563,7 +2560,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			/*  Units can't just move through an enemy city, but they can conquer
 				it. Even ships can when part of a naval assault. They can't really
 				conquer forts though. */
-			(eDom == DOMAIN_LAND || !bCoastalCity || kToPlot.isCity()))
+			(eDom == DOMAIN_LAND || !bEnterCityFromCoast || kToPlot.isCity()))
 		return TRUE;
 	return FALSE;
 }
@@ -2620,24 +2617,18 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 // advc (comment): This does assume a DoW on pointer[1] (eTargetTeam)
 int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: some style changes (CvMap::getPlot)
 {
-	if (parent == NULL)
-	{
-		return TRUE;
-	}
+	/*if (parent == NULL)
+		return TRUE;*/ // advc: I don't think this can happen
+
 	CvMap const& kMap = GC.getMap();
 	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
 
 	if (kNewPlot.isImpassable())
-	{
 		return FALSE;
-	}
 
 	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-
 	if (pFromPlot->area() != kNewPlot.area())
-	{
 		return FALSE;
-	}
 
 	// Don't count diagonal hops across land isthmus
 	if (pFromPlot->isWater() && kNewPlot.isWater())
@@ -2657,15 +2648,11 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 	CvTeamAI& kTeam = GET_TEAM(eTeam);
 
 	if (ePlotTeam == NO_TEAM)
-	{
 		return TRUE;
-	}
 
 	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals.
 	if(eTargetTeam != NO_TEAM && GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
-	{
 		return TRUE;
-	}
 
 	if (kTeam.canPeacefullyEnter(ePlotTeam)
 		|| kTeam.isDisengage(ePlotTeam)) // advc.034
@@ -2770,16 +2757,16 @@ int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
+	//PROFILE_FUNC(); // advc.003o
 	if (parent == NULL)
 		return TRUE;
 
 	CvPlot const& kOldPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
 
-	PlayerTypes ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
-	TeamTypes eTeam = TEAMID(ePlayer);
-
-	if (kOldPlot.getPlotGroup(ePlayer) == kNewPlot.getPlotGroup(ePlayer) &&
+	PlayerTypes const ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
+	TeamTypes const eTeam = TEAMID(ePlayer);
+	if (kOldPlot.isSamePlotGroup(kNewPlot, ePlayer) &&
 			kNewPlot.isTradeNetwork(eTeam) &&
 			kNewPlot.isTradeNetworkConnected(kOldPlot, eTeam))
 		return TRUE;

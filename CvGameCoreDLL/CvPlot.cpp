@@ -65,6 +65,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_bLayoutStateWorked = false;
 	m_eSecondOwner = NO_PLAYER; // advc.035
 	m_eOwner = NO_PLAYER;
+	m_eTeam = NO_TEAM; // advc.opt
 	m_ePlotType = PLOT_OCEAN;
 	m_eTerrainType = NO_TERRAIN;
 	m_eFeatureType = NO_FEATURE;
@@ -222,14 +223,6 @@ float CvPlot::getSymbolOffsetY(int iOffset) const
 }
 
 
-TeamTypes CvPlot::getTeam() const
-{
-	if (isOwned())
-		return TEAMID(getOwner());
-	return NO_TEAM;
-}
-
-
 void CvPlot::doTurn()
 {
 	PROFILE_FUNC();
@@ -335,6 +328,8 @@ void CvPlot::doImprovementUpgrade()
 
 void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 {
+	PROFILE_FUNC(); // advc
+
 	if(isCity())
 		return; // advc
 
@@ -849,8 +844,8 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 bool CvPlot::isConnectedTo(const CvCity* pCity) const
 {
 	FAssert(isOwned());
-	return ((getPlotGroup(getOwner()) == pCity->plotGroup(getOwner())) ||
-			(getPlotGroup(pCity->getOwner()) == pCity->plotGroup(pCity->getOwner())));
+	return (isSamePlotGroup(*pCity->plot(), getOwner()) ||
+			isSamePlotGroup(*pCity->plot(), pCity->getOwner()));
 }
 
 
@@ -1037,7 +1032,7 @@ bool CvPlot::isAdjacentToLand() const
 
 bool CvPlot::isCoastalLand(int iMinWaterSize) const
 {
-	//PROFILE_FUNC(); // advc.003o: Called very frequently, probably mainly from CvUnitAI::AI_plotValid.
+	//PROFILE_FUNC(); // advc.003o: Called very frequently, probably mainly from CvUnitAI::AI_plotValid and teamStepValid_advc (CvGameCoreUtils).
 
 	if (isWater())
 		return false;
@@ -1261,11 +1256,9 @@ bool CvPlot::isRiver() const
 
 bool CvPlot::isRiverConnection(DirectionTypes eDirection) const
 {
-	if (eDirection == NO_DIRECTION)
-		return false;
-
 	switch (eDirection)
 	{
+	case NO_DIRECTION: return false; // advc.opt (faster than checking it upfront?)
 	case DIRECTION_NORTH:
 		return (isRiverCrossing(DIRECTION_EAST) || isRiverCrossing(DIRECTION_WEST));
 	case DIRECTION_NORTHEAST:
@@ -1328,8 +1321,6 @@ CvPlot* CvPlot::getNearestLandPlot() const
 
 int CvPlot::seeFromLevel(TeamTypes eTeam) const
 {
-	FAssert(getTerrainType() != NO_TERRAIN);
-
 	int iLevel = GC.getInfo(getTerrainType()).getSeeFromLevel();
 	if (isPeak())
 		iLevel += GC.getDefineINT(CvGlobals::PEAK_SEE_FROM_CHANGE);
@@ -1347,8 +1338,6 @@ int CvPlot::seeFromLevel(TeamTypes eTeam) const
 
 int CvPlot::seeThroughLevel() const
 {
-	FAssert(getTerrainType() != NO_TERRAIN);
-
 	int iLevel = GC.getInfo(getTerrainType()).getSeeThroughLevel();
 	if (getFeatureType() != NO_FEATURE)
 		iLevel += GC.getInfo(getFeatureType()).getSeeThroughChange();
@@ -1662,8 +1651,6 @@ void CvPlot::updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups)
 bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
 		bool bIgnoreFeature) const // advc.129
 {
-	FAssert(getTerrainType() != NO_TERRAIN);
-
 	if (eBonus == NO_BONUS)
 		return true;
 
@@ -1737,7 +1724,6 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 		return true;
 	// K-Mod end
 
-	FAssert(getTerrainType() != NO_TERRAIN);
 	// <dlph.9>
 	FAssertMsg(!bAnyBuild || eBuild == NO_BUILD,
 			"expected: if bAnyBuild is true then eBuild is NO_BUILD");
@@ -2007,8 +1993,6 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 
 int CvPlot::getBuildTime(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePlayer) const
 {
-	FAssert(getTerrainType() != NO_TERRAIN);
-
 	int iTime = GC.getInfo(eBuild).getTime();
 	if (getFeatureType() != NO_FEATURE)
 		iTime += GC.getInfo(eBuild).getFeatureTime(getFeatureType());
@@ -2194,7 +2178,6 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	TeamTypes eAttacker, // advc.012
 	bool bHelp, /* advc.500b: */ bool bGarrisonStrength) const
 {
-	FAssert(getTerrainType() != NO_TERRAIN);
 	int iModifier = GC.getInfo(getTerrainType()).getDefenseModifier();
 	FeatureTypes eFeature = getFeatureType();
 	if(eFeature != NO_FEATURE)
@@ -2237,7 +2220,6 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	bool bAssumeRevealed) const // advc.001i
 {
-	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 	// <advc.162>
 	if(pUnit->isInvasionMove(*pFromPlot, *this))
 		return pUnit->movesLeft(); // </advc.162>
@@ -2533,7 +2515,7 @@ bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer
 int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPlot,
 	TeamTypes eTargetTeam, DomainTypes eDomain, int iMaxPath) const // advc.104b
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
 	FAssert(eTeam != NO_TEAM);
 	FAssert(eTargetTeam != NO_TEAM);
 	/*  advc.104b: Commented out. Want to be able to measure paths between
@@ -2549,6 +2531,7 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPl
 	int aStepData[6] = {0};
 	aStepData[0] = eTeam;
 	aStepData[1] = eTargetTeam;
+	FAssert(eDomain != NO_DOMAIN); // (or could treat it as DOMAIN_LAND)
 	aStepData[2] = eDomain;
 	aStepData[3] = kTargetPlot.getX();
 	aStepData[4] = kTargetPlot.getY();
@@ -2793,12 +2776,6 @@ CvUnit* CvPlot::plotCheck(ConstPlotUnitFunc funcA, int iData1A, int iData2A, Pla
 }
 
 
-bool CvPlot::isOwned() const
-{
-	return (getOwner() != NO_PLAYER);
-}
-
-
 bool CvPlot::isBarbarian() const
 {
 	return (getOwner() == BARBARIAN_PLAYER);
@@ -3010,22 +2987,24 @@ void CvPlot::removeGoody()
 
 bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
 {
-	if(bCheckImprovement && getImprovementType() != NO_IMPROVEMENT
-			&& GC.getInfo(getImprovementType()).isActsAsCity())
+	//PROFILE_FUNC(); // advc.003o: Called from teamStepValid_advc (CvGameCoreUtils), CvPlot::isTradeNetworkConnected and many UnitAI routines.
+	if(bCheckImprovement && getImprovementType() != NO_IMPROVEMENT &&
+		GC.getInfo(getImprovementType()).isActsAsCity())
 	{
-		if(NO_TEAM == eForTeam || (NO_TEAM == getTeam() &&
-			GC.getInfo(getImprovementType()).isOutsideBorders()) ||
-			(GET_TEAM(eForTeam).isFriendlyTerritory(getTeam())
-			// <advc.124>
-			&& getRevealedImprovementType(eForTeam) != NO_IMPROVEMENT &&
-			GC.getInfo(getRevealedImprovementType(eForTeam)).isActsAsCity()))
-			// </advc.124>
-		{
+		if(eForTeam == NO_TEAM || (getTeam() == NO_TEAM &&
+				GC.getInfo(getImprovementType()).isOutsideBorders()))
 			return true;
+		if (GET_TEAM(eForTeam).isFriendlyTerritory(getTeam()))
+		{
+			// <advc.124>
+			ImprovementTypes const eRevealedImprov = getRevealedImprovementType(eForTeam);
+			if (eRevealedImprov != NO_IMPROVEMENT && GC.getInfo(eRevealedImprov).isActsAsCity())
+				return true; // </advc.124>
 		}
 	}
-	return (getPlotCity() != NULL   // advc.124:
-			&& (eForTeam == NO_TEAM || getPlotCity()->isRevealed(eForTeam, false)));
+	CvCity const* const pPlotCity = getPlotCity();
+	return (pPlotCity != NULL   // advc.124:
+			&& (eForTeam == NO_TEAM || pPlotCity->isRevealed(eForTeam, false)));
 }
 
 
@@ -3180,8 +3159,6 @@ bool CvPlot::isFighting() const
 
 bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 {
-	FAssert(getTerrainType() != NO_TERRAIN);
-
 	if (eFeature == NO_FEATURE)
 		return true;
 
@@ -3252,11 +3229,6 @@ bool CvPlot::isValidRoute(const CvUnit* pUnit, /* advc.001i: */ bool bAssumeReve
 }
 
 
-bool CvPlot::isTradeNetworkImpassable(TeamTypes eTeam) const
-{
-	return (isImpassable() && !isRiverNetwork(eTeam));
-}
-
 bool CvPlot::isRiverNetwork(TeamTypes eTeam) const
 {
 	if (!isRiver())
@@ -3275,9 +3247,6 @@ bool CvPlot::isRiverNetwork(TeamTypes eTeam) const
 
 bool CvPlot::isNetworkTerrain(TeamTypes eTeam) const
 {
-	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
-	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
-
 	if (GET_TEAM(eTeam).isTerrainTrade(getTerrainType()))
 		return true;
 
@@ -3305,9 +3274,9 @@ bool CvPlot::isBonusNetwork(TeamTypes eTeam) const
 
 bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 {
-	FAssert(eTeam != NO_TEAM);
+	//PROFILE_FUNC(); // advc.003o
 
-	if(::atWar(eTeam, getTeam())
+	if (getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) // advc.opt: faster than ::atWar
 			/*  advc.124: War blocks trade, but blockades against the plot owner
 				override this. If these blockades also affect eTeam, trade is again
 				blocked (by the next conditional). */
@@ -3330,12 +3299,13 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 
 bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const  // advc: some style changes
 {
-	FAssert(eTeam != NO_TEAM);
+	//PROFILE_FUNC(); // advc.003o
 
-	if ((::atWar(eTeam, getTeam())
+	if ((getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) // advc.opt: faster than ::atWar
 			// advc.124:
 			&& getBlockadedCount(getTeam()) <= getBlockadedCount(eTeam))
-			|| (::atWar(eTeam, kOther.getTeam())
+			||
+			(kOther.getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(kOther.getTeam())
 			// advc.124:
 			&& kOther.getBlockadedCount(kOther.getTeam()) <= kOther.getBlockadedCount(eTeam)))
 		return false;
@@ -3359,10 +3329,10 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		if (kOther.isNetworkTerrain(eTeam))
 			return true;
 	}
-	/*  <advc.124> The isCityRadius check is just for performance (though it
-		probably doesn't make a difference) */
-	if(isRoute() && isCityRadius() && kOther.isNetworkTerrain(eTeam)) {
-		CvCity* pWorkingCity = getWorkingCity();
+	// <advc.124> The isCityRadius check is just for performance
+	if(isRoute() && isCityRadius() && kOther.isNetworkTerrain(eTeam))
+	{
+		CvCity const* const pWorkingCity = getWorkingCity();
 		if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam)
 			return true;
 	} // </advc.124>
@@ -3383,7 +3353,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		// <advc.124>
 		if(kOther.isRoute() && kOther.isCityRadius())
 		{
-			CvCity* pWorkingCity = kOther.getWorkingCity();
+			CvCity const* const pWorkingCity = kOther.getWorkingCity();
 			if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam &&
 					area()->getCitiesPerPlayer(getOwner()) <= 0)
 				return true;
@@ -3412,9 +3382,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 bool CvPlot::isValidDomainForLocation(const CvUnit& unit) const
 {
 	if (isValidDomainForAction(unit))
-	{
 		return true;
-	}
 
 	return isCity(true, unit.getTeam());
 }
@@ -3440,11 +3408,13 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 
 bool CvPlot::isImpassable() const
 {
+	//PROFILE_FUNC(); // advc.003o: Most of the calls come from pathfinding
 	if (isPeak())
 		return true;
-	if (getTerrainType() == NO_TERRAIN)
-		return false;
-	return ((getFeatureType() == NO_FEATURE) ? GC.getInfo(getTerrainType()).isImpassable() : GC.getInfo(getFeatureType()).isImpassable());
+	return (getFeatureType() == NO_FEATURE ?
+			// advc.opt: Check NO_TERRAIN only if NO_FEATURE
+			(getTerrainType() != NO_TERRAIN && GC.getInfo(getTerrainType()).isImpassable()) :
+			GC.getInfo(getFeatureType()).isImpassable());
 }
 
 
@@ -3747,18 +3717,6 @@ void CvPlot::setForceUnownedTimer(int iNewValue)
 void CvPlot::changeForceUnownedTimer(int iChange)
 {
 	setForceUnownedTimer(getForceUnownedTimer() + iChange);
-}
-
-
-int CvPlot::getCityRadiusCount() const
-{
-	return m_iCityRadiusCount;
-}
-
-
-bool CvPlot::isCityRadius() const
-{
-	return (getCityRadiusCount() > 0);
 }
 
 
@@ -4278,6 +4236,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		}
 
 		m_eOwner = eNewValue;
+		updateTeam(); // advc.opt
 
 		setWorkingCityOverride(NULL);
 		updateWorkingCity();
@@ -4421,36 +4380,6 @@ bool CvPlot::isContestedByRival(PlayerTypes eRival) const
 	} // </advc.099b>
 	return false;
 } // </advc.035>
-
-
-PlotTypes CvPlot::getPlotType() const
-{
-	return (PlotTypes)m_ePlotType;
-}
-
-
-bool CvPlot::isWater() const
-{
-	return (getPlotType() == PLOT_OCEAN);
-}
-
-
-bool CvPlot::isFlatlands() const
-{
-	return (getPlotType() == PLOT_LAND);
-}
-
-
-bool CvPlot::isHills() const
-{
-	return (getPlotType() == PLOT_HILLS);
-}
-
-
-bool CvPlot::isPeak() const
-{
-	return (getPlotType() == PLOT_PEAK);
-}
 
 
 void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)  // advc: some style changes
@@ -4657,12 +4586,6 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 }
 
 
-TerrainTypes CvPlot::getTerrainType() const
-{
-	return (TerrainTypes)m_eTerrainType;
-}
-
-
 void CvPlot::setTerrainType(TerrainTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)
 {
 	if(getTerrainType() == eNewValue)
@@ -4699,12 +4622,6 @@ void CvPlot::setTerrainType(TerrainTypes eNewValue, bool bRecalculate, bool bReb
 		setPlotType(GC.getInfo(getTerrainType()).isWater() ? PLOT_OCEAN : PLOT_LAND,
 				bRecalculate, bRebuildGraphics);
 	}
-}
-
-
-FeatureTypes CvPlot::getFeatureType() const
-{
-	return (FeatureTypes)m_eFeatureType;
 }
 
 
@@ -4901,15 +4818,8 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 }
 
 
-ImprovementTypes CvPlot::getImprovementType() const
-{
-	return (ImprovementTypes)m_eImprovementType;
-}
-
-
 void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 {
-	int iI;
 	ImprovementTypes eOldImprovement = getImprovementType();
 	if(getImprovementType() == eNewValue)
 		return; // advc
@@ -4931,7 +4841,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 
 	setUpgradeProgress(0);
 
-	for (iI = 0; iI < MAX_TEAMS; ++iI)
+	for (int iI = 0; iI < MAX_TEAMS; ++iI)
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
@@ -4951,7 +4861,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	updateIrrigated();
 	updateYield();
 
-	for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 	{
 		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 		if (pLoopPlot != NULL)
@@ -4992,12 +4902,6 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	}
 
 	gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
-}
-
-
-RouteTypes CvPlot::getRouteType() const
-{
-	return (RouteTypes)m_eRouteType;
 }
 
 
@@ -5099,7 +5003,6 @@ void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 		CvPlotGroup* pPlotGroup = getPlotGroup(getOwner());
 		if (pPlotGroup != NULL)
 		{
-			FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlot::setPlotCity");
 			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
 				BonusTypes eLoopBonus = (BonusTypes)iI;
@@ -5138,12 +5041,6 @@ const wchar* CvPlot::getRuinsName() const
 {
 	return m_szMostRecentCityName;
 } // </advc.005c>
-
-
-CvCity* CvPlot::getWorkingCity() const
-{
-	return ::getCity(m_workingCity);
-}
 
 
 void CvPlot::updateWorkingCity()
@@ -5436,7 +5333,7 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 	else
 	{
 		iYield += GET_PLAYER(ePlayer).getImprovementYieldChange(eImprovement, eYield);
-		iYield += GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getImprovementYieldChange(eImprovement, eYield);
+		iYield += GET_TEAM(ePlayer).getImprovementYieldChange(eImprovement, eYield);
 	}
 
 	if (ePlayer != NO_PLAYER)
@@ -5455,7 +5352,7 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	if (bDisplay && GC.getGame().isDebugMode())
 		return getYield(eYield);
 
-	if (getTerrainType() == NO_TERRAIN)
+	if (getTerrainType() == NO_TERRAIN)  // (advc: Can happen during map initialization)
 		return 0;
 
 	if (!isPotentialCityWork())
@@ -5612,6 +5509,12 @@ int CvPlot::countTotalCulture() const
 			iTotal += getCulture((PlayerTypes)iI);
 	}
 	return iTotal;
+}
+
+
+void CvPlot::updateTeam() // advc.opt: What getTeam used to do
+{
+	m_eTeam = (isOwned() ? TEAMID(getOwner()) : NO_TEAM);
 }
 
 
@@ -5776,6 +5679,9 @@ void CvPlot::changePlayerCityRadiusCount(PlayerTypes eIndex, int iChange)
 
 CvPlotGroup* CvPlot::getPlotGroup(PlayerTypes ePlayer) const
 {
+	//PROFILE_FUNC();
+	/*  advc.003o: Inlining would require CvPlayer.h to be included in CvPlot.h.
+		Instead, I've redirected some calls to a new inline function isSamePlotGroup. */
 	return GET_PLAYER(ePlayer).getPlotGroup(m_aiPlotGroup.get(ePlayer));
 }
 
@@ -6841,6 +6747,7 @@ void CvPlot::changeCultureRangeCities(PlayerTypes eOwnerIndex, CultureLevelTypes
 
 	bool bOldCultureRangeCities = isCultureRangeCity(eOwnerIndex, eRangeIndex);
 	m_aaiCultureRangeCities.add(eOwnerIndex, eRangeIndex, iChange);
+	FAssert(m_aaiCultureRangeCities.get(eOwnerIndex, eRangeIndex) >= 0); // advc
 	if (bOldCultureRangeCities != isCultureRangeCity(eOwnerIndex, eRangeIndex))
 		updateCulture(true, bUpdatePlotGroups);
 }
@@ -6853,6 +6760,7 @@ void CvPlot::changeInvisibleVisibilityCount(TeamTypes eTeam, InvisibleTypes eInv
 
 	bool bOldInvisibleVisible = isInvisibleVisible(eTeam, eInvisible);
 	m_aaiInvisibleVisibilityCount.add(eTeam, eInvisible, iChange);
+	FAssert(m_aaiInvisibleVisibilityCount.get(eTeam, eInvisible) >= 0); // advc
 	if (bOldInvisibleVisible != isInvisibleVisible(eTeam, eInvisible))
 	{
 		if (eTeam == GC.getGame().getActiveTeam())
@@ -7381,6 +7289,9 @@ void CvPlot::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_eOwner);
 	// <advc.opt>
+	if (uiFlag >= 6)
+		pStream->Read(&m_eTeam);
+	else updateTeam(); // </advc.opt>
 	if (uiFlag < 5)
 	{
 		short sTmp;
@@ -7517,6 +7428,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	uiFlag = 3; // advc.tsl
 	uiFlag = 4; // advc.opt: m_bHills removed
 	uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
+	uiFlag = 6; // advc.opt: m_eTeam
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iX);
@@ -7546,6 +7458,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	// m_bLayoutStateWorked not saved
 
 	pStream->Write(m_eOwner);
+	pStream->Write(m_eTeam); // advc.opt
 	pStream->Write(m_ePlotType);
 	pStream->Write(m_eTerrainType);
 	pStream->Write(m_eFeatureType);

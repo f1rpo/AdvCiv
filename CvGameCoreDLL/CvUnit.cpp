@@ -6710,7 +6710,7 @@ int CvUnit::baseMoves() const
 	//return (m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType()));
 	// <advc.905b>
 	int r = m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType());
-	for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(); i++)
+	for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(getUnitType()); i++)
 	{
 		if(m_pUnitInfo->getSpeedBonuses(i) >= 0)
 		{
