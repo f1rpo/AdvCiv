@@ -570,7 +570,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	}
 	CvPlayerAI& targetLeader = GET_PLAYER(target.getLeaderID());
 	CvPlayerAI& agentLeader = GET_PLAYER(agent.getLeaderID());
-	if(!agentLeader.canContactAndTalk(targetLeader.getID())) {
+	if(!agentLeader.canContact(targetLeader.getID(), true)) {
 		report->log("Can't talk to %s about peace",
 				report->leaderName(targetLeader.getID()));
 		return true; // Can't contact them for capitulation either
@@ -777,7 +777,7 @@ bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
 		if(master.getID() == agentId || master.isAtWar(agentId) ||
 				// No point if they're already our ally
 				master.isAtWar(enemyId) ||
-				!ourLeader.canContactAndTalk(master.getLeaderID()))
+				!ourLeader.canContact(master.getLeaderID(), true))
 			continue;
 		// Based on code in CvPlayerAI::AI_doDiplo
 		CvPlayerAI& masterLeader = GET_PLAYER(master.getLeaderID());
@@ -820,7 +820,7 @@ bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
 				gDLL->beginDiplomacy(pDiplo, masterLeader.getID());
 			}
 			else GC.getGame().implementDeal(ourLeader.getID(),
-					masterLeader.getID(), &ourList, &theirList);
+					masterLeader.getID(), ourList, theirList);
 		}
 		return false;
 	}
@@ -1344,7 +1344,7 @@ void WarAndPeaceAI::Team::scheme() {
 		report->log("No preparations begun this turn");
 		if(GET_TEAM(targetId).isHuman() && targets[i].u <= 23) {
 			PlayerTypes theirLeaderId = GET_TEAM(targetId).getLeaderID();
-			if(GET_PLAYER(agent.getLeaderID()).canContactAndTalk(theirLeaderId)) {
+			if(GET_PLAYER(agent.getLeaderID()).canContact(theirLeaderId, true)) {
 				report->log("Trying to amend tensions with human %s",
 						report->teamName(targetId));
 				if(!inBackgr) {
@@ -1505,8 +1505,8 @@ DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId,
 		BtS allows it). */
 	if(GET_TEAM(brokerId).isAtWar(enemyId))
 		return DENIAL_JOKING;
-	if(!GET_PLAYER(GET_TEAM(agentId).getLeaderID()).canContactAndTalk(
-			GET_TEAM(enemyId).getLeaderID()))
+	if(!GET_PLAYER(GET_TEAM(agentId).getLeaderID()).canContact(
+			GET_TEAM(enemyId).getLeaderID(), true))
 		return DENIAL_RECENT_CANCEL;
 	int ourReluct = reluctanceToPeace(enemyId);
 	int enemyReluct = GET_TEAM(enemyId).warAndPeaceAI().reluctanceToPeace(agentId);
@@ -2001,8 +2001,8 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	return r;
 }
 
-void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId, CLinkList<TradeData>* weReceive,
-		CLinkList<TradeData>* wePay) {
+void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive,
+		CLinkList<TradeData> const* wePay) {
 
 	/*  This isn't really team-on-team data b/c each team member can have its
 		own interpretation of whether the war was successful. */

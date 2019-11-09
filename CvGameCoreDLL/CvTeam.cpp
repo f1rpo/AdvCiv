@@ -1612,7 +1612,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 	TeamTypes eBroker, // advc.100b
 	bool bCapitulate, // advc.034
-	CLinkList<TradeData>* pReparations, // advc.039
+	CLinkList<TradeData> const* pReparations, // advc.039
 	bool bRandomEvent) // advc.106g
 {
 	FAssert(eTarget != NO_TEAM);
@@ -1794,43 +1794,29 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 	}
 }
 
-// K-Mod. I've added bCheckWillingness.
-// note. I would have done this the same way in CvPlayer::canContact
-// but unfortunately, changing the signature of that function causes the game to crash - because it's a dll export.
+// K-Mod. I've added bCheckWillingness.  // advc: refactored
 bool CvTeam::canContact(TeamTypes eTeam, bool bCheckWillingness) const
 {
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		CvPlayer const& kOurMember = GET_PLAYER((PlayerTypes)i);
+		if (!kOurMember.isAlive() || kOurMember.getTeam() != getID())
+			continue;
+		for (int j = 0; j < MAX_PLAYERS; j++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
-				{
-					if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-					{
-						if (GET_PLAYER((PlayerTypes)iJ).getTeam() == eTeam)
-						{
-							//if (GET_PLAYER((PlayerTypes)iI).canContact((PlayerTypes)iJ))
-							if (bCheckWillingness
-								? GET_PLAYER((PlayerTypes)iI).canContactAndTalk((PlayerTypes)iJ)
-								: GET_PLAYER((PlayerTypes)iI).canContact((PlayerTypes)iJ))
-							{
-								return true;
-							}
-						}
-					}
-				}
-			}
+			CvPlayer const& kTheirMember = GET_PLAYER((PlayerTypes)j);
+			if (!kTheirMember.isAlive() || kTheirMember.getTeam() != eTeam)
+				continue;
+			if (kOurMember.canContact(kTheirMember.getID(), bCheckWillingness))
+				return true;
 		}
 	}
-
 	return false;
 }
 
 
 void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
-		FirstContactData* pData) // advc.071: Just passing this along
+	FirstContactData* pData) // advc.071: Just passing this along
 {
 	if (isHasMet(eTeam))
 		return; // advc
@@ -1853,33 +1839,29 @@ void CvTeam::signPeaceTreaty(TeamTypes eTeam)
 		ourList.insertAtEnd(item);
 		theirList.insertAtEnd(item);
 
-		GC.getGame().implementDeal(getLeaderID(), (GET_TEAM(eTeam).getLeaderID()), &ourList, &theirList);
+		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
 	}
-}
-// K-Mod end
+} // K-Mod end
+
 
 void CvTeam::signOpenBorders(TeamTypes eTeam)
 {
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
-	TradeData item;
-
 	FAssert(eTeam != NO_TEAM);
 	FAssert(eTeam != getID());
 
 	if (!isAtWar(eTeam) && (getID() != eTeam))
 	{
+		TradeData item;
 		setTradeItem(&item, TRADE_OPEN_BORDERS);
 
-		if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) && GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+		if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+			GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
 		{
-			ourList.clear();
-			theirList.clear();
-
+			CLinkList<TradeData> ourList;
+			CLinkList<TradeData> theirList;
 			ourList.insertAtEnd(item);
 			theirList.insertAtEnd(item);
-
-			GC.getGame().implementDeal(getLeaderID(), (GET_TEAM(eTeam).getLeaderID()), &ourList, &theirList);
+			GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
 		}
 	}
 }
@@ -1898,55 +1880,46 @@ void CvTeam::signDisengage(TeamTypes otherId)
 	ourList.insertAtEnd(item);
 	theirList.insertAtEnd(item);
 	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(),
-			&ourList, &theirList);
+			ourList, theirList);
 } // </advc.034>
 
 
-void CvTeam::signDefensivePact(TeamTypes eTeam)
+void CvTeam::signDefensivePact(TeamTypes eTeam)  // advc: style changes
 {
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
-	TradeData item;
+	if (isAtWar(eTeam))
+		return;
 
 	FAssert(eTeam != NO_TEAM);
 	FAssert(eTeam != getID());
 
-	if (!isAtWar(eTeam) && (getID() != eTeam))
+	TradeData item;
+	setTradeItem(&item, TRADE_DEFENSIVE_PACT);
+	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
 	{
-		setTradeItem(&item, TRADE_DEFENSIVE_PACT);
+		CLinkList<TradeData> ourList;
+		CLinkList<TradeData> theirList;
+		ourList.insertAtEnd(item);
+		theirList.insertAtEnd(item);
 
-		if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) && GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
-		{
-			ourList.clear();
-			theirList.clear();
-
-			ourList.insertAtEnd(item);
-			theirList.insertAtEnd(item);
-
-			GC.getGame().implementDeal(getLeaderID(), (GET_TEAM(eTeam).getLeaderID()), &ourList, &theirList);
-		}
+		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
 	}
 }
 
-bool CvTeam::canSignDefensivePact(TeamTypes eTeam) /* advc: */ const
+bool CvTeam::canSignDefensivePact(TeamTypes eTeam) const  // advc: const, style changes
 {
-	for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
+	for (int i = 0; i < MAX_CIV_TEAMS; i++)
 	{
-		if (iTeam != getID() && iTeam != eTeam)
-		{
-			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
-			if (kLoopTeam.isPermanentWarPeace(eTeam) != kLoopTeam.isPermanentWarPeace(getID()))
-			{
-				return false;
-			}
+		CvTeam& kThirdTeam = GET_TEAM((TeamTypes)i);
+		if (kThirdTeam.getID() == getID() || kThirdTeam.getID() == eTeam ||
+				!kThirdTeam.isAlive())
+			continue;
 
-			if (isPermanentWarPeace((TeamTypes)iTeam) != GET_TEAM(eTeam).isPermanentWarPeace((TeamTypes)iTeam))
-			{
-				return false;
-			}
-		}
+		if (kThirdTeam.isPermanentWarPeace(eTeam) != kThirdTeam.isPermanentWarPeace(getID()))
+			return false;
+		if (isPermanentWarPeace(kThirdTeam.getID()) != GET_TEAM(eTeam).isPermanentWarPeace(kThirdTeam.getID()))
+			return false;
 	}
-
 	return true;
 }
 

@@ -116,43 +116,38 @@ void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
 }
 
 
-void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList, bool bCheckAllowed)
+void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed) // advc: Take the lists as references
 {
-	if (isVassalTrade(pFirstList) && isVassalTrade(pSecondList))
+	if (isVassalTrade(kFirstList) && isVassalTrade(kSecondList))
 		return;
 	// <advc.130p>
 	TeamTypes eWarTradeTarget = NO_TEAM;
 	TeamTypes ePeaceTradeTarget = NO_TEAM; // </advc.130p>
-	if (pFirstList != NULL)
-	{
-		for (CLLNode<TradeData> const* pNode = pFirstList->head(); pNode != NULL;
-			pNode = pFirstList->next(pNode))
-		{	// <advc.130p>
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
-				eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			else if(pNode->m_data.m_eItemType == TRADE_PEACE)
-				ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			// </advc.130p>
-			if (bCheckAllowed && !GET_PLAYER(getFirstPlayer()).
-					canTradeItem(getSecondPlayer(), pNode->m_data))
-				return;
-		}
+
+	for (CLLNode<TradeData> const* pNode = kFirstList.head(); pNode != NULL;
+		pNode = kFirstList.next(pNode))
+	{	// <advc.130p>
+		if(pNode->m_data.m_eItemType == TRADE_WAR)
+			eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		else if(pNode->m_data.m_eItemType == TRADE_PEACE)
+			ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		// </advc.130p>
+		if (bCheckAllowed && !GET_PLAYER(getFirstPlayer()).
+				canTradeItem(getSecondPlayer(), pNode->m_data))
+			return;
 	}
 
-	if (pSecondList != NULL)
-	{
-		for (CLLNode<TradeData> const* pNode = pSecondList->head(); pNode != NULL;
-			pNode = pSecondList->next(pNode))
-		{	// <advc.130p>
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
-				eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			else if(pNode->m_data.m_eItemType == TRADE_PEACE)
-				ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			// </advc.130p>
-			if (bCheckAllowed && !GET_PLAYER(getSecondPlayer()).
-					canTradeItem(getFirstPlayer(), pNode->m_data))
-				return;
-		}
+	for (CLLNode<TradeData> const* pNode = kSecondList.head(); pNode != NULL;
+		pNode = kSecondList.next(pNode))
+	{	// <advc.130p>
+		if(pNode->m_data.m_eItemType == TRADE_WAR)
+			eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		else if(pNode->m_data.m_eItemType == TRADE_PEACE)
+			ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		// </advc.130p>
+		if (bCheckAllowed && !GET_PLAYER(getSecondPlayer()).
+				canTradeItem(getFirstPlayer(), pNode->m_data))
+			return;
 	}
 
 	TeamTypes eFirstTeam = GET_PLAYER(getFirstPlayer()).getTeam();
@@ -165,10 +160,10 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	bool bUpdateAttitude = false;
 	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
 		code duplication */
-	if(recordTradeValue(pSecondList, pFirstList, getSecondPlayer(),
+	if(recordTradeValue(kSecondList, kFirstList, getSecondPlayer(),
 			getFirstPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
 		bUpdateAttitude = true;
-	if(recordTradeValue(pFirstList, pSecondList, getFirstPlayer(),
+	if(recordTradeValue(kFirstList, kSecondList, getFirstPlayer(),
 			getSecondPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
 		bUpdateAttitude = true;
 	if(bPeace)
@@ -189,24 +184,23 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 			Note: the original code didn't bump units for vassal trades. This can
 			erroneously allow the vassal's units to stay in the master's land. */
 		// <advc.039>
-		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
+		bool bSurrender = isVassalTrade(kFirstList) || isVassalTrade(kSecondList);
 		bool bDone = false;
-		if(!bSurrender && pFirstList != NULL && pSecondList != NULL &&
-			GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS))
+		if(!bSurrender && GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS))
 		{
-			int iFirstLength = pFirstList->getLength();
-			int iSecondLength = pSecondList->getLength();
+			int iFirstLength = kFirstList.getLength();
+			int iSecondLength = kSecondList.getLength();
 			// Call makePeace on the recipient of reparations
 			if(iFirstLength == 1 && iSecondLength > 1)
 			{
 				GET_TEAM(eFirstTeam).makePeace(eSecondTeam, false, NO_TEAM,
-						false, pSecondList);
+						false, &kSecondList);
 				bDone = true;
 			}
 			else if(iSecondLength == 1 && iFirstLength > 1)
 			{
 				GET_TEAM(eSecondTeam).makePeace(eFirstTeam, false, NO_TEAM,
-						false, pFirstList);
+						false, &kFirstList);
 				bDone = true;
 			}
 		}
@@ -228,59 +222,50 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	}
 
 	bool bAlliance = false;
-	// advc (fixme): This block is mostly duplicated in the block below
-	if (pFirstList != NULL)
+
+	// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
+	/*for (CLLNode<TradeData>* pNode = kFirstList.head(); pNode != NULL; pNode = kFirstList.next(pNode)) {
+		if (isVassal(pNode->m_data.m_eItemType)) {
+			pFirstList->moveToEnd(pNode);
+			break;
+		}
+	}*/ // K-Mod end
+	// advc (fixme): This whole loop is mostly duplicated below
+	for (int iPass = 0; iPass < 2; iPass++) // advc: Replacing the K-Mod loop above
 	{
-		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode != NULL;
-			pNode = pFirstList->next(pNode))
-		{
-			if (isVassal(pNode->m_data.m_eItemType))
-			{
-				pFirstList->moveToEnd(pNode);
-				break;
-			}
-		} // K-Mod end
-		for (CLLNode<TradeData> const* pNode = pFirstList->head(); pNode != NULL;
-			pNode = pFirstList->next(pNode))
-		{	// <advc.104> Allow UWAI to record the value of the sponsorship
-			if(pNode->m_data.m_eItemType == TRADE_WAR && pSecondList != NULL)
+		for (CLLNode<TradeData> const* pNode = kFirstList.head(); pNode != NULL;
+			pNode = kFirstList.next(pNode))
+		{	// <advc>
+			if (isVassal(pNode->m_data.m_eItemType) == (iPass == 0))
+				continue; // </advc>
+			// <advc.104> Allow UWAI to record the value of the sponsorship
+			if(pNode->m_data.m_eItemType == TRADE_WAR)
 			{
 				GET_PLAYER(getFirstPlayer()).warAndPeaceAI().getCache().
-						reportSponsoredWar(*pSecondList, getSecondPlayer(),
+						reportSponsoredWar(kSecondList, getSecondPlayer(),
 						(TeamTypes)pNode->m_data.m_iData);
 			} // </advc.104>
 			bool bSave = startTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(),
 					bPeace); // advc.ctr
 			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
-
 			if (bSave)
 				insertAtEndFirstTrades(pNode->m_data);
 			if (pNode->m_data.m_eItemType == TRADE_PERMANENT_ALLIANCE)
 				bAlliance = true;
 		}
 	}
-
-	if (pSecondList != NULL)
+	for (int iPass = 0; iPass < 2; iPass++) // advc: Replacing deleted K-Mod code; tagging advc.001 b/c I think that code contained a copy-paste error.
 	{
-		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode != NULL;
-			pNode = pFirstList->next(pNode))
-		{
-			if (isVassal(pNode->m_data.m_eItemType))
-			{
-				pFirstList->moveToEnd(pNode);
-				break;
-			}
-		}
-		// K-Mod end
-		for (CLLNode<TradeData> const* pNode = pSecondList->head(); pNode!= NULL;
-			pNode = pSecondList->next(pNode))
-		{	// <advc.104> As above
-			if(pNode->m_data.m_eItemType == TRADE_WAR && pFirstList != NULL)
+		for (CLLNode<TradeData> const* pNode = kSecondList.head(); pNode!= NULL;
+			pNode = kSecondList.next(pNode))
+		{	// <advc>
+			if (isVassal(pNode->m_data.m_eItemType) == (iPass == 0))
+				continue; // </advc>
+			// <advc.104> As above
+			if(pNode->m_data.m_eItemType == TRADE_WAR)
 			{
 				GET_PLAYER(getSecondPlayer()).warAndPeaceAI().getCache().
-						reportSponsoredWar(*pFirstList, getFirstPlayer(),
+						reportSponsoredWar(kFirstList, getFirstPlayer(),
 						(TeamTypes)pNode->m_data.m_iData);
 			} // </advc.104>
 			bool bSave = startTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(),
@@ -310,28 +295,27 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 
 /*  <advc.130p> Based on code cut from addTrades. Return values says whether
 	attitude cache needs to be updated. */
-bool CvDeal::recordTradeValue(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList,
+bool CvDeal::recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList,
 	PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
 	TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget)
 {
-	if(pFirstList == NULL || pFirstList->getLength() <= 0 ||
+	if(kFirstList.getLength() <= 0 ||
 			/*  Given reparations should matter for RivalTrade; given Peace shouldn't.
 				Brokered peace (TRADE_PEACE) can't be filtered out here b/c other
 				items could be traded along with TRADE_PEACE. */
-			(pFirstList->getLength() == 1 && pFirstList->head()->m_data.m_eItemType ==
+			(kFirstList.getLength() == 1 && kFirstList.head()->m_data.m_eItemType ==
 			TRADE_PEACE_TREATY))
 		return false;
 	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
 		Hard to decide, apply half the discount for now. */
 	int iValue = ::round((GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			pFirstList, true, 1, true, true) +
+			kFirstList, true, 1, true, true) +
 			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			pFirstList, true, 1, false, true) / 2.0));
+			kFirstList, true, 1, false, true) / 2.0));
 	if(iValue <= 0)
 		return false;
 	GET_PLAYER(eSecondPlayer).AI_processPeacetimeValue(eFirstPlayer, iValue,
-			pSecondList == NULL || pSecondList->getLength() <= 0, bPeace,
-			ePeaceTradeTarget, eWarTradeTarget);
+			kSecondList.getLength() <= 0, bPeace, ePeaceTradeTarget, eWarTradeTarget);
 	return true;
 } // </advc.130p>
 
@@ -357,7 +341,7 @@ void CvDeal::doTurn()
 	{
 		if (getLengthSecondTrades() > 0)
 		{
-			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) /
+			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), *getSecondTrades()) /
 					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 			if (getLengthFirstTrades() > 0)
 				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeTradeValue(getSecondPlayer(), iValue);
@@ -366,7 +350,7 @@ void CvDeal::doTurn()
 
 		if (getLengthFirstTrades() > 0)
 		{
-			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) /
+			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), *getFirstTrades()) /
 					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 			if (getLengthSecondTrades() > 0)
 				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeTradeValue(getFirstPlayer(), iValue);
@@ -423,18 +407,15 @@ bool CvDeal::isPeaceDeal() const  // advc: simplified
 
 bool CvDeal::isVassalDeal() const
 {
-	return (isVassalTrade(&m_firstTrades) || isVassalTrade(&m_secondTrades));
+	return (isVassalTrade(m_firstTrades) || isVassalTrade(m_secondTrades));
 }
 
-bool CvDeal::isVassalTrade(const CLinkList<TradeData>* pList)
+bool CvDeal::isVassalTrade(CLinkList<TradeData> const& kList)
 {
-	if (pList != NULL)
+	for (CLLNode<TradeData> const* pNode = kList.head(); pNode != NULL; pNode = kList.next(pNode))
 	{
-		for (CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
-		{
-			if (isVassal(pNode->m_data.m_eItemType))
-				return true;
-		}
+		if (isVassal(pNode->m_data.m_eItemType))
+			return true;
 	}
 	return false;
 }
@@ -1175,7 +1156,7 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 			if (bDual)
 				theirList.insertAtEnd(item);
 			GC.getGame().implementDeal(kFromMember.getID(), kToMember.getID(),
-					&ourList, &theirList);
+					ourList, theirList);
 		}
 	}
 }

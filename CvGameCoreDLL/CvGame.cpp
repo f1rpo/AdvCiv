@@ -822,7 +822,7 @@ void CvGame::initDiplomacy()
 					{
 						if (GET_TEAM(kLoopPlayer1.getTeam()).canChangeWarPeace(kLoopPlayer2.getTeam()))
 						{
-							implementDeal((PlayerTypes)iPlayer1, (PlayerTypes)iPlayer2, &player1List, &player2List);
+							implementDeal((PlayerTypes)iPlayer1, (PlayerTypes)iPlayer2, player1List, player2List);
 						}
 					}
 				}
@@ -3003,12 +3003,22 @@ bool CvGame::selectionListIgnoreBuildingDefense() const
 
 void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce)
 {
-	// <advc.036>
-	implementAndReturnDeal(eWho, eOtherWho, pOurList, pTheirList, bForce);
+	// <advc> Not sure if the EXE ever calls implementDeal with a NULL list
+	CLinkList<TradeData> emptyList;
+	implementDeal(eWho, eOtherWho,
+			pOurList == NULL ? emptyList : *pOurList,
+			pTheirList == NULL ? emptyList : *pTheirList,
+			bForce);
+}
+
+void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList, bool bForce)
+{
+	// </advc>  <advc.036>
+	implementAndReturnDeal(eWho, eOtherWho, kOurList, kTheirList, bForce);
 }
 
 CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
-	CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList,
+	CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList,
 	bool bForce) // </advc.036>
 {
 	FAssert(eWho != NO_PLAYER);
@@ -3017,7 +3027,7 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 	// <advc.032>
 	if(GET_TEAM(eWho).isForcePeace(TEAMID(eOtherWho)))
 	{
-		for(CLLNode<TradeData> const* pNode = pOurList->head(); pNode != NULL; pNode = pOurList->next(pNode))
+		for(CLLNode<TradeData> const* pNode = kOurList.head(); pNode != NULL; pNode = kOurList.next(pNode))
 		{
 			if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
 			{
@@ -3028,8 +3038,8 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 	} // </advc.032>
 	CvDeal* pDeal = addDeal();
 	pDeal->init(pDeal->getID(), eWho, eOtherWho);
-	pDeal->addTrades(pOurList, pTheirList, !bForce);
-	if (pDeal->getLengthFirstTrades() == 0 && pDeal->getLengthSecondTrades() == 0)
+	pDeal->addTrades(kOurList, kTheirList, !bForce);
+	if (pDeal->getLengthFirstTrades() <= 0 && pDeal->getLengthSecondTrades() <= 0)
 	{
 		pDeal->kill();
 		return NULL; // advc.036

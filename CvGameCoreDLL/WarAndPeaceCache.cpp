@@ -1157,7 +1157,7 @@ void WarAndPeaceCache::reportUnitDestroyed(CvUnitInfo const& u) {
 }
 
 void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
-		CLinkList<TradeData>* weReceive, CLinkList<TradeData>* wePay) {
+		CLinkList<TradeData> const* weReceive, CLinkList<TradeData> const* wePay) {
 
 	// Forget sponsorship once a war ends
 	sponsorshipsAgainst[enemyId] = 0;
@@ -1282,7 +1282,7 @@ void WarAndPeaceCache::reportSponsoredWar(CLinkList<TradeData> const& sponsorshi
 				Should perhaps cap dealVal at AI_declareWarTradeVal. As it is now,
 				paying the AI more than it demands makes it a bit more reluctant
 				to end the war. */
-			tradeValToUtility(owner.AI_dealVal(sponsorId, &sponsorship)));
+			tradeValToUtility(owner.AI_dealVal(sponsorId, sponsorship)));
 	if(sponsorshipsAgainst[targetId] > 0)
 		sponsorsAgainst[targetId] = sponsorId;
 	else {

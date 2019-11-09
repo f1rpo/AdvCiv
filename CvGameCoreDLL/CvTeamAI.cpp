@@ -612,8 +612,8 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 			return AREAAI_DEFENSIVE;
 		}
 	}
-
-	if (iAreaCities > 0 && countEnemyDangerByArea(pArea) > iAreaCities)
+	// advc.107: 2*iAreaCities (from MNAI)
+	if (iAreaCities > 0 && countEnemyDangerByArea(pArea) > 2 * iAreaCities)
 		return AREAAI_DEFENSIVE;
 
 	if (bChosenTargets)
@@ -883,7 +883,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 		if (AI_isPrimaryArea(pLoopArea) && kOtherTeam.AI_isPrimaryArea(pLoopArea))
 			return true;
 	}
-
+	CvMap const& kMap = GC.getMap(); // advc
 	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
 	{
 		const CvPlayerAI& kOurPlayer = GET_PLAYER(i);
@@ -905,7 +905,9 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 				teamVec.push_back(getID());
 				teamVec.push_back(eTeam);
 				FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-				gDLL->getFAStarIFace()->Initialize(pTeamStepFinder, GC.getMap().getGridWidth(), GC.getMap().getGridHeight(), GC.getMap().isWrapX(), GC.getMap().isWrapY(), stepDestValid, stepHeuristic, stepCost, teamStepValid, stepAdd, NULL, NULL);
+				gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
+						kMap.getGridWidth(), kMap.getGridHeight(), kMap.isWrapX(), kMap.isWrapY(),
+						stepDestValid, stepHeuristic, stepCost, teamStepValid, stepAdd, NULL, NULL);
 				gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &teamVec);
 
 				FOR_EACH_CITY(pTheirCity, kTheirPlayer)
@@ -913,8 +915,9 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 					if (pTheirCity->area() != pOurCity->area())
 						continue;
 
-
-					if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, pOurCity->getX(), pOurCity->getY(), pTheirCity->getX(), pTheirCity->getY(), false, 0, true))
+					if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
+						pOurCity->getX(), pOurCity->getY(), pTheirCity->getX(), pTheirCity->getY(),
+						false, 0, true))
 					{
 						// good.
 						gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
@@ -1267,7 +1270,7 @@ void CvTeamAI::AI_postDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan)
 }
 
 
-void CvTeamAI::AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData>* pReparations)
+void CvTeamAI::AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData> const* pReparations)
 {
 	CvTeamAI& kTarget = GET_TEAM(eTarget);
 	// <advc.104> Report who won the war before war success is reset
@@ -3910,7 +3913,7 @@ DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker)
 	if(isAtWar(eBroker) && !GET_TEAM(ePeaceTeam).AI_refusePeace(getID()) &&
 			GET_PLAYER(GET_TEAM(ePeaceTeam).getLeaderID()).AI_isWillingToTalk(getLeaderID()))
 		return NO_DENIAL; // </advc.004d>
-	if (!GET_PLAYER(getLeaderID()).canContactAndTalk(GET_TEAM(ePeaceTeam).getLeaderID()) ||
+	if (!GET_PLAYER(getLeaderID()).canContact(GET_TEAM(ePeaceTeam).getLeaderID(), true) ||
 			GET_TEAM(ePeaceTeam).AI_refusePeace(getID()))
 		//return DENIAL_CONTACT_THEM;
 		return DENIAL_RECENT_CANCEL; // advc.004d: Contacting them is not helpful

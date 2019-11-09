@@ -87,7 +87,7 @@ void WarTradeAlert::check()
 				!warTeam.isMinorCiv() && !warTeam.isHuman() &&
 				warTeam.getID() != owner.getTeam() &&
 				!warTeam.isAtWar(owner.getTeam()) &&
-				owner.canContactAndTalk(warTeam.getLeaderID()));
+				owner.canContact(warTeam.getLeaderID(), true));
 		std::vector<TeamTypes> willTradeMsgTeams;
 		std::vector<TeamTypes> noLongerTradeMsgTeams;
 		for(int j = 0; j < MAX_CIV_TEAMS; j++)
@@ -377,7 +377,7 @@ void CityTradeAlert::check()
 		vector<CvCity const*> diffLiberate;
 		if(kPlayer.isAlive() && !kPlayer.isMinorCiv() && 
 			kPlayer.getTeam() != kAlertPlayer.getTeam() &&
-			kAlertPlayer.canContactAndTalk(kPlayer.getID()))
+			kAlertPlayer.canContact(kPlayer.getID(), true))
 		{
 			bool bWar = ::atWar(kAlertPlayer.getTeam(), kPlayer.getTeam());
 			/*  Don't report "will cede" when war enemy unwilling to pay for peace

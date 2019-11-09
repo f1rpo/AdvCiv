@@ -212,8 +212,12 @@ public:
 	int countPotentialForeignTradeCitiesConnected() const; */ // K-Mod: These functions were used exclusively for AI.  I've moved them to CvPlayerAI.
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
 
-	DllExport bool canContact(PlayerTypes ePlayer) const;																									// Exposed to Python
-	bool canContactAndTalk(PlayerTypes ePlayer) const; // K-Mod. this checks willingness to talk on both sides
+	DllExport bool canContact(PlayerTypes ePlayer) const																									// Exposed to Python
+	{	// <advc> To match CvTeam::canContact
+		return canContact(ePlayer, false);
+	}
+	bool canContact(PlayerTypes ePlayer, // </advc>
+			bool bCheckWillingness) const; // K-Mod. this checks willingness to talk on both sides
 	void contact(PlayerTypes ePlayer);																															// Exposed to Python
 	DllExport void handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2);
 	bool canTradeWith(PlayerTypes eWhoTo) const;																													// Exposed to Python

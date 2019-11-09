@@ -497,7 +497,7 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 		}
 		/*  AI_dealVal is supposed to be gold-per-turn, but seems a bit high for
 			that; hence divide by 1.5. Time horizon is ten turns (treaty length). */
-		double dealVal = we->AI_dealVal(theyId, &d.getReceivesList(weId)) /
+		double dealVal = we->AI_dealVal(theyId, d.getReceivesList(weId)) /
 				(1.5 * GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 		if(!weReceiveResource) {
 			int const maxTradeValFromGold = 40;
@@ -1677,7 +1677,7 @@ void Fidelity::evaluate() {
 		PlayerTypes civId = properCivs[i];
 		if(GET_TEAM(civId).AI_getWarPlan(TEAMID(theyId)) != WARPLAN_ATTACKED_RECENT ||
 				GET_TEAM(civId).isAtWar(agentId) ||
-				!we->canContactAndTalk(civId))
+				!we->canContact(civId, true))
 			continue;
 		// Assume that humans likes civs that like them back
 		AttitudeTypes att = (we->isHuman() ? GET_PLAYER(civId).AI_getAttitude(weId) :
@@ -1778,7 +1778,7 @@ void HiredHand::evaluate() {
 double HiredHand::eval(PlayerTypes allyId, int originalUtility, int obligationThresh) {
 
 	// (These conditions overlap with those under Fidelity)
-	if(allyId != NO_PLAYER && (!we->canContactAndTalk(allyId) ||
+	if(allyId != NO_PLAYER && (!we->canContact(allyId, true) ||
 			agent.isAtWar(TEAMID(allyId)) ||
 			agent.AI_getWorstEnemy() == TEAMID(allyId) ||
 			GET_TEAM(allyId).isAVassal())) { // Don't feel obliged to vassals

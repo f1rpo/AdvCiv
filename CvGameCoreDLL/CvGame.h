@@ -109,8 +109,10 @@ public:
 	// K-Mod end
 
 	DllExport void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce = false);
+	// advc: Take the lists as const&
+	void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList, bool bForce = false);
 	// advc.036:
-	CvDeal* implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce = false);
+	CvDeal* implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList, bool bForce = false);
 	void verifyDeals();
 
 	DllExport void getGlobeviewConfigurationParameters(TeamTypes eTeam, bool& bStarsVisible, bool& bWorldIsRound);

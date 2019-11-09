@@ -3706,61 +3706,46 @@ bool CvPlayer::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusT
 	return GET_TEAM(getTeam()).doesImprovementConnectBonus(eImprovement, eBonus);
 } // K-Mod end
 
-bool CvPlayer::canContact(PlayerTypes ePlayer) const
+bool CvPlayer::canContact(PlayerTypes ePlayer, /* K-Mod: */ bool bCheckWillingness) const
 {
 	if (ePlayer == getID())
-	{
 		return false;
-	}
 
 	if (!isAlive() || !(GET_PLAYER(ePlayer).isAlive()))
-	{
 		return false;
-	}
 
 	if (isBarbarian() || GET_PLAYER(ePlayer).isBarbarian())
-	{
 		return false;
-	}
 
 	if (isMinorCiv() || GET_PLAYER(ePlayer).isMinorCiv())
-	{
 		return false;
-	}
 
 	if (getTeam() != TEAMID(ePlayer))
 	{
 		if (!GET_TEAM(getTeam()).isHasMet(TEAMID(ePlayer)))
-		{
 			return false;
-		}
 
 		if (::atWar(getTeam(), TEAMID(ePlayer)))
 		{
 			if (!GET_TEAM(getTeam()).canChangeWarPeace(TEAMID(ePlayer)))
-			{
 				return false;
-			}
 		}
 
 		if (isHuman() || GET_PLAYER(ePlayer).isHuman())
 		{
 			if (GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
-			{
 				return false;
-			}
 		}
 	}
+
+	// <K-Mod> (moved here by advc)
+	if (bCheckWillingness)
+		return (AI().AI_isWillingToTalk(ePlayer) && GET_PLAYER(ePlayer).AI_isWillingToTalk(getID()));
+	// </K-Mod>
 
 	return true;
 }
 
-// K-Mod
-bool CvPlayer::canContactAndTalk(PlayerTypes ePlayer) const
-{
-	return canContact(ePlayer) && AI().AI_isWillingToTalk(ePlayer) && GET_PLAYER(ePlayer).AI_isWillingToTalk(getID());
-}
-// K-Mod end
 
 void CvPlayer::contact(PlayerTypes ePlayer)
 {
@@ -18535,7 +18520,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 			TradeData kTradeData;
 			setTradeItem(&kTradeData, TRADE_RESOURCES, kEvent.getBonusGift());
 			ourList.insertAtEnd(kTradeData);
-			GC.getGame().implementDeal(getID(), pTriggeredData->m_eOtherPlayer, &ourList, &theirList);
+			GC.getGame().implementDeal(getID(), pTriggeredData->m_eOtherPlayer, ourList, theirList);
 		}
 	}
 
@@ -21131,7 +21116,7 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 		playerList.insertAtEnd(kTradeData);
 		loopPlayerList.insertAtEnd(kTradeData);
 
-		GC.getGame().implementDeal(getID(), ePlayer, &playerList, &loopPlayerList);
+		GC.getGame().implementDeal(getID(), ePlayer, playerList, loopPlayerList);
 	}
 }
 

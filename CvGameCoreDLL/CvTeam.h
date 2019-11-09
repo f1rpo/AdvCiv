@@ -57,7 +57,7 @@ public:
 	void makePeace(TeamTypes eTarget, bool bBumpUnits = true,																		// Exposed to Python
 			TeamTypes eBroker = NO_TEAM, // advc.100b
 			bool bCapitulate = false, // advc.034
-			CLinkList<TradeData>* pReparations = NULL, // advc.039
+			CLinkList<TradeData> const* pReparations = NULL, // advc.039
 			bool bRandomEvent = false); // advc.106g
 	bool canContact(TeamTypes eTeam,
 			bool bCheckWillingness = false) const; // K-Mod, Exposed to Python

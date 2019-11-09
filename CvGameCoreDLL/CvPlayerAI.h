@@ -250,13 +250,13 @@ public:
 
 	PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose);
 
-	int AI_dealVal(PlayerTypes eFromPlayer, const CLinkList<TradeData>* pList,
+	int AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& kList,
 			bool bIgnoreAnnual = false,
 			int iChange = 1, /* advc: was called iExtra, which didn't make sense
 								and differed from the parameter name in CvPlayerAI.cpp. */
 			bool bIgnoreDiscount = false, // advc.550a
 			bool bIgnorePeace = false) const; // advc.130p
-	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
+	bool AI_goldDeal(CLinkList<TradeData> const& kList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
 			CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0,

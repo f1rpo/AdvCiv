@@ -86,8 +86,8 @@ public:
 		Between 0.5 (low confidence) and 1.5 (high confidence); negative
 		if not at war. */
 	double confidenceFromWarSuccess(TeamTypes targetId) const;
-	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData>* weReceive = NULL,
-			CLinkList<TradeData>* wePay = NULL);
+	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive = NULL,
+			CLinkList<TradeData> const* wePay = NULL);
 	/*  voteTarget - Additional (optional) return value: vote target for
 		diplo vict. */
 	double computeVotesToGoForVictory(double* voteTarget = NULL,

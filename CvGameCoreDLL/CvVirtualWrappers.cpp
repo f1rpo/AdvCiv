@@ -87,7 +87,8 @@ PlayerVoteTypes CvPlayer::AI_diploVoteExternal(VoteSelectionSubData& kVoteData, 
 	return AI().AI_diploVote(kVoteData, eVoteSource, bPropose);
 }
 int CvPlayer::AI_dealValExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pList, bool bIgnoreAnnual, int iExtra) {
-	return AI().AI_dealVal(ePlayer, pList, bIgnoreAnnual, iExtra);
+	CLinkList<TradeData> emptyList;
+	return AI().AI_dealVal(ePlayer, pList == NULL ? emptyList : *pList, bIgnoreAnnual, iExtra);
 }
 bool CvPlayer::AI_considerOfferExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pTheirList, CLinkList<TradeData>* pOurList, int iChange) {
 	return AI().AI_considerOffer(ePlayer, *pTheirList, *pOurList, iChange); // advc: The list params are now references

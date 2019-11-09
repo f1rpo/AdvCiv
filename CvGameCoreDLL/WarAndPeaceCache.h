@@ -108,8 +108,8 @@ public:
 	double goldValueOfProduction() const;
 	void reportUnitCreated(CvUnitInfo const& u);
 	void reportUnitDestroyed(CvUnitInfo const& u);
-	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData>* weReceive = NULL,
-			CLinkList<TradeData>* wePay = NULL);
+	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive = NULL,
+			CLinkList<TradeData> const* wePay = NULL);
 	void reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId);
 	/*  Would prefer to pass a CvDeal object, but no suitable one is available
 		at the call location */

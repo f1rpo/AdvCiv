@@ -78,7 +78,7 @@ public:
 	void AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool bPrimaryDoW,
 			PlayerTypes eSponsor); // advc.100
 	void AI_postDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan);
-	void AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData>* pReparations);
+	void AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData> const* pReparations);
 	void AI_postMakePeace(TeamTypes eTarget);
 	//int AI_startWarVal(TeamTypes eTeam) const;
 	int AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan, // K-Mod

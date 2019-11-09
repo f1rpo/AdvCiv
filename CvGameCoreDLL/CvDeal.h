@@ -23,7 +23,7 @@ public:
 	// advc.036:
 	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true,
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
-	void addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList, bool bCheckAllowed);
+	void addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed);
 
 	void doTurn();
 	void verify();
@@ -134,7 +134,7 @@ protected:
 	// <advc.130p>
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			TradeableItems eItemType);
-	bool recordTradeValue(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList,
+	bool recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList,
 			PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
 			TeamTypes ePeaceTradeTarget = NO_TEAM, TeamTypes eWarTradeTarget = NO_TEAM);
 	// </advc.130p>
@@ -146,7 +146,7 @@ protected:
 	// advc: was public
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 
-	static bool isVassalTrade(const CLinkList<TradeData>* pFirstList);
+	static bool isVassalTrade(CLinkList<TradeData> const& kList);
 
 	int m_iID;
 	int m_iInitialGameTurn;
