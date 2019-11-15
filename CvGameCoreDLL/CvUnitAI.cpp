@@ -10732,7 +10732,8 @@ bool CvUnitAI::AI_barbAmphibiousCapture()
 	{
 		CvPlot* pPlot = plotDirection(plot()->getX(), plot()->getY(), (DirectionTypes)i);
 		if (pPlot == NULL)
-			continue;		// <advc.306>
+			continue;
+		// <advc.306>
 		if(pPlot->getTeam() != NO_TEAM && pPlot->area()->isBorderObstacle(pPlot->getTeam()))
 			continue; // </advc.306>
 		/*  Undefended city (perhaps unnecessary; not sure if the assault routine
@@ -22350,20 +22351,14 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 
 	if (!canJoinGroup(pPlot, pGroup))
 		return false;
-
-	if (eUnitAI == UNITAI_SETTLE)
+	// advc.001: There should be no harm in joining a threatened Settle group (from MNAI)
+	/*if (eUnitAI == UNITAI_SETTLE)
 	{
 		// BETTER_BTS_AI_MOD, Unit AI, Efficiency, 08/20/09, jdog5000: was AI_getPlotDanger
-		if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*pPlot,
-				/* <advc.105> was 3 */ 1) &&
-				!GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 1))
-				// </advc.105>
-		{	// advc.test:
-			FAssertMsg(false, "Only to see how frequently this happens (or rather: just how rarely)");
+		if (GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*pPlot, 3))
 			return false;
-		}
 	}
-	else if (eUnitAI == UNITAI_ASSAULT_SEA)
+	else*/ if (eUnitAI == UNITAI_ASSAULT_SEA)
 	{
 		if (!pGroup->hasCargo())
 			return false;
