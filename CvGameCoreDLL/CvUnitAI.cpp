@@ -10731,7 +10731,8 @@ bool CvUnitAI::AI_barbAmphibiousCapture()
 	for(int i = 0; i < GC.getNumDirections(); i++)
 	{
 		CvPlot* pPlot = plotDirection(plot()->getX(), plot()->getY(), (DirectionTypes)i);
-		// <advc.306>
+		if (pPlot == NULL)
+			continue;		// <advc.306>
 		if(pPlot->getTeam() != NO_TEAM && pPlot->area()->isBorderObstacle(pPlot->getTeam()))
 			continue; // </advc.306>
 		/*  Undefended city (perhaps unnecessary; not sure if the assault routine
