@@ -592,6 +592,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	{
 		for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
 		{
+			// UNOFFICIAL_PATCH (bugfix), 09/17/09, cephalo & jdog5000: was (PlayerTypes)iI
 			CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)iPlayer);
 			if (!kMember.isAlive() || kMember.getTeam() != getID())
 				continue;
@@ -4343,7 +4344,8 @@ void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
 	TeamTypes eBestTeam = NO_TEAM;
 
 	int iBestValue = AI_enmityValue(m_eWorstEnemy);
-	if(iBestValue > 0) {
+	if(iBestValue > 0)
+	{
 		eBestTeam = m_eWorstEnemy;
 		/*  advc.130p: Inertia; to reduce oscillation. New worst enemy has to be
 			strictly worse than current minus 1.
@@ -4371,7 +4373,8 @@ void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
 	// <advc.130p>
 	if(eBestTeam == m_eWorstEnemy)
 		return;
-	if(bUpdateRivalTrade && m_eWorstEnemy != NO_TEAM && m_eWorstEnemy != eBestTeam) {
+	if(bUpdateRivalTrade && m_eWorstEnemy != NO_TEAM && m_eWorstEnemy != eBestTeam)
+	{
 		for(int i = 0; i < MAX_CIV_TEAMS; i++)
 		{
 			TeamTypes eOther = (TeamTypes)i;

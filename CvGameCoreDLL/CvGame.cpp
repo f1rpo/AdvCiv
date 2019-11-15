@@ -6512,6 +6512,7 @@ void CvGame::doTurn()
 			{
 				kTeam.setTurnActive(true);
 				FAssert(getNumGameTurnActive() == kTeam.getAliveCount());
+				// UNOFFICIAL_PATCH (bugfix), 06/10/10, snarko & jdog5000: Break only after first found alive player
 				break;
 			}
 		}

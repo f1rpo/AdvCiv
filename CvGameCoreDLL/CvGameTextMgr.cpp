@@ -21241,13 +21241,13 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 					iSign * iModifier));
 		}
 		// <advc.315c> Show modifier from difficulty separately from unit abilities
-		iModifier = GC.getInfo(
+		iModifier = -GC.getInfo(
 				GET_PLAYER(pAttacker->getOwner()). // K-Mod
 				getHandicapType()).getBarbarianCombatModifier();
 		// Moved from the isAnimal block above
 		if(pDefender->isAnimal())
 		{
-			iModifier += GC.getInfo(
+			iModifier += -GC.getInfo(
 					GET_PLAYER(pAttacker->getOwner()). // K-Mod
 					getHandicapType()).getAnimalCombatModifier();
 		}
