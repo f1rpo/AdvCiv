@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeam.h"
+#include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104t
@@ -3855,7 +3856,11 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	}
 
 	m_eMaster = (bNewValue ? eMaster : NO_TEAM); // advc.opt
-
+	// <advc.agent>
+	if (bCapitulated)
+		GC.getAgents().teamCapitulated(getID(), eMaster);
+	else GC.getAgents().voluntaryVassalAgreementSigned(getID(), eMaster);
+	// </advc.agent>
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);

@@ -12840,7 +12840,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 			information that FromPlayer might not have. */
 		CvBonusInfo& kBonus = GC.getInfo(eBonus);
 		// I can live with cheating when it comes to strategic bonuses
-		bUseOurBonusVal = (kBonus.getHappiness() + kBonus.getHealth() == 0);
+		bUseOurBonusVal = (kBonus.getHappiness() == 0 && kBonus.getHealth() == 0);
 		// Also don't worry about the value of additional copies (for corps)
 		if(!bUseOurBonusVal && getNumAvailableBonuses(eBonus) + iChange >
 				(iChange < 0 ? 0 : 1))

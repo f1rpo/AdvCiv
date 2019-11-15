@@ -4,6 +4,7 @@
 #include "FVariableSystem.h"
 #include "CvGamePlay.h"
 #include "CvGameAI.h"
+#include "CvAgents.h" // advc.agent
 #include "CvMap.h"
 #include "CvInfo_All.h"
 #include "CvGameTextMgr.h"
@@ -35,6 +36,7 @@ m_pPythonCaller(NULL), // advc.003y
 m_pLogger(NULL), // advc.003t
 m_interface(NULL),
 m_game(NULL),
+m_agents(NULL), // advc.agent
 m_messageQueue(NULL),
 m_hotJoinMsgQueue(NULL),
 m_messageControl(NULL),
@@ -228,6 +230,7 @@ void CvGlobals::init() // allocate
 
 	CvPlayer::initStatics();
 	CvTeam::initStatics();
+	m_agents = new CvAgents(MAX_PLAYERS, MAX_TEAMS); // advc.agent
 
 	//m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f); // advc.003j: unused
 

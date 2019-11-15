@@ -17,6 +17,7 @@ class CvDLLLogger; // advc.003t
 class CvRandom;
 class CvGame; // advc.003u
 class CvGameAI;
+class CvAgents; // advc.agent
 class CMessageControl;
 class CvDropMgr;
 class CMessageQueue;
@@ -102,6 +103,7 @@ public:
 		return *reinterpret_cast<CvGame*>(m_game);
 	} 
 	__forceinline CvGameAI& AI_getGame() const { return *m_game; } // advc.003u
+	CvAgents& getAgents() const { return *m_agents; } // advc.agents
 	#endif
 	CvMap& getMapExternal(); // advc.inl: Exported through .def file
 	CvGameAI& getGameExternal(); // advc.inl: Exported through .def file
@@ -776,6 +778,7 @@ protected:
 	CvPythonCaller* m_pPythonCaller; // advc.003y
 	CvDLLLogger* m_pLogger; // advc.003t
 	CvGameAI* m_game;
+	CvAgents* m_agents; // advc.agents
 
 	CMessageQueue* m_messageQueue;
 	CMessageQueue* m_hotJoinMsgQueue;

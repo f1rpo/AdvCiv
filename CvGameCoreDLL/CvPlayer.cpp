@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlayer.h"
+#include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104
@@ -269,6 +270,8 @@ void CvPlayer::initInGame(PlayerTypes eID)
 	// End of BBAI team effects
 	if(!initOtherData()) // New subroutine to avoid code duplication
 		return;
+
+	GC.getAgents().colonyCreated(getID()); // advc.agent
 
 	/*  I've kept the initialization of random event data out of initOtherData
 		b/c the BBAI code handles that part differently (cf. resetCivTypeEffects). */
@@ -9706,6 +9709,9 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		g.changeCivPlayersEverAlive(1);
 	GET_TEAM(getTeam()).updateLeaderID(); // </advc.opt>
 	GET_TEAM(getTeam()).changeAliveCount(isAlive() ? 1 : -1);
+	// <advc.agent>
+	if (!isAlive())
+		GC.getAgents().playerDefeated(getID()); // </advc.agent>
 
 	// Report event to Python
 	CvEventReporter::getInstance().setPlayerAlive(getID(), bNewValue);

@@ -36,8 +36,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\AdvCiv4lerts.cpp" />
+    <ClCompile Include="..\AgentGenerator.cpp" />
     <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
+    <ClCompile Include="..\CvAgents.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
     <ClCompile Include="..\CvBugOptions.cpp" />
@@ -183,10 +185,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\AdvCiv4lerts.h" />
+    <ClInclude Include="..\AgentGenerator.h" />
+    <ClInclude Include="..\AgentPredicates.h" />
+    <ClInclude Include="..\AgentIterator.h" />
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
+    <ClInclude Include="..\CvAgents.h" />
     <ClInclude Include="..\CvAI.h" />
     <ClInclude Include="..\CvArea.h" />
     <ClInclude Include="..\CvAreaList.h" />
