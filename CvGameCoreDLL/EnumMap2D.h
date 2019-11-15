@@ -1,8 +1,9 @@
 // advc.enum: From the "We the People" mod (Nightinggale). See EnumMap.h
 
+#pragma once
+
 #ifndef ENUM_MAP_2D_H
 #define ENUM_MAP_2D_H
-#pragma once
 
 #include "EnumMap.h"
 

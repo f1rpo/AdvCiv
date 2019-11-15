@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef KMOD_PATHFINDER_H // advc: Include guards (might be needed for fastdep)
+#define KMOD_PATHFINDER_H
+
 #include <vector>
 #include "FAStarNode.h"
 
@@ -65,3 +68,5 @@ protected:
 	static int admissible_scaled_weight;
 	static int admissible_base_weight;
 };
+
+#endif

@@ -1,6 +1,7 @@
+#pragma once
+
 #ifndef TSC_PROFILER_H
 #define TSC_PROFILER_H
-#pragma once
 
 /*  advc.003o: Profiler based on Time Stamp Counter. From the "We the People" mod
 	for Civ 4 Colonization. Original code by Nightinggale (3 Nov 2019). */

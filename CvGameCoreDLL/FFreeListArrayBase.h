@@ -10,6 +10,10 @@
 //  AUTHOR:  Mustafa Thamer
 //
 //  PURPOSE: abstract base class for FFreeListArray and FFreeListTrashArray
+/*  advc.opt (note): This class isn't currently used polymorphically, so one could
+	remove the pure virtual declarations (or, say, all but one) to allow the
+	implementations in derived classes to be inlined. However, those implementations
+	are probably too complex to be inlined anyway, so I'm leaving the base class as it is. */
 //
 //------------------------------------------------------------------------------------------------
 //  Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.

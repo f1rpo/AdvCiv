@@ -6,9 +6,10 @@
 	CvEnums.h and CvGlobals.h are used.
 	Formatting: linebreaks added before scope resolution operators. */
 
+#pragma once
+
 #ifndef ENUM_MAP_H
 #define ENUM_MAP_H
-#pragma once
 
 #include "BitUtil.h" // advc.enum: For bitwise operations; WtP uses CvGameCoreDLL.h for that.
 
