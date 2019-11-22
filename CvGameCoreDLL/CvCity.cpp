@@ -7693,6 +7693,9 @@ void CvCity::setOriginalOwner(PlayerTypes eNewValue)
 
 TeamTypes CvCity::getTeam() const
 {
+	/*  advc.inl (comment): Not inlined b/c I don't want to include
+		CvPlayer.h and CvTeam.h in CvCity.h. Should perhaps cache
+		the owning team instead (as it's already done for CvPlot::getTeam). */
 	return TEAMID(getOwner());
 }
 

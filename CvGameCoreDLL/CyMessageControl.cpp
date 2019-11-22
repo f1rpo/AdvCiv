@@ -30,7 +30,8 @@ void CyMessageControl::sendUpdateCivics(boost::python::list& iCivics)
 		aiCivics.push_back((CivicTypes) PYiCivics[i]);
 	}
 	CvMessageControl::getInstance().sendUpdateCivics(aiCivics);
-	delete PYiCivics;
+	//delete PYiCivics;
+	delete[] PYiCivics; // advc.001: Bugfix from C2C
 }
 
 void CyMessageControl::sendConvert(int  iReligion)

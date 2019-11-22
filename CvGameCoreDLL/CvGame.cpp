@@ -4766,22 +4766,18 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 
 bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
 {
-	if (NO_PLAYER != kData.ePlayer)
+	if (kData.ePlayer!= NO_PLAYER)
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 		if (!kPlayer.isAlive() || kPlayer.isBarbarian() || kPlayer.isMinorCiv())
-		{
 			return false;
-		}
 	}
 
-	if (NO_PLAYER != kData.eOtherPlayer)
+	if (kData.eOtherPlayer != NO_PLAYER)
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.eOtherPlayer);
 		if (!kPlayer.isAlive() || kPlayer.isBarbarian() || kPlayer.isMinorCiv())
-		{
 			return false;
-		}
 	}
 
 	int iNumVoters = 0;
@@ -4811,7 +4807,6 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 				for (int iTeam2 = iTeam1 + 1; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
 				{
 					CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
-
 					if (kTeam2.isFullMember(eVoteSource))
 					{
 						if (!kTeam2.isOpenBorders((TeamTypes)iTeam1))
@@ -4824,9 +4819,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			}
 		}
 		if (bOpenWithEveryone)
-		{
 			return false;
-		}
 	}
 	else if (GC.getInfo(kData.eVote).isDefensivePact())
 	{
@@ -4864,12 +4857,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		//if (!kPlayer.isFullMember(eVoteSource))
 		// dlph.25: 'These are not necessarily the same.'
 		if (!GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
-		{
 			return false;
-		}
 
 		bool bValid = false;
-
 		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
 		{
 			if (atWar(kPlayer.getTeam(), (TeamTypes)iTeam2))
@@ -4885,9 +4875,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		}
 
 		if (!bValid)
-		{
 			return false;
-		}
 	}
 	else if (GC.getInfo(kData.eVote).isForceNoTrade())
 	{
@@ -4895,9 +4883,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		//if (kPlayer.isFullMember(eVoteSource))
 		// dlph.25: 'These are not necessarily the same.'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
-		{
 			return false;
-		}
 
 		bool bNoTradeWithEveryone = true;
 		for (int iPlayer2 = 0; iPlayer2 < MAX_CIV_PLAYERS; ++iPlayer2)
@@ -4919,9 +4905,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		}
 		// Not an option if already at war with everyone
 		if (bNoTradeWithEveryone)
-		{
 			return false;
-		}
 	}
 	else if (GC.getInfo(kData.eVote).isForceWar())
 	{
@@ -4929,15 +4913,11 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		CvTeam& kTeam = GET_TEAM(kPlayer.getTeam());
 
 		if (kTeam.isAVassal())
-		{
 			return false;
-		}
 		//if (kPlayer.isFullMember(eVoteSource))
 		// dlph.25: 'These are not necessarily the same.'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
-		{
 			return false;
-		}
 
 		bool bAtWarWithEveryone = true;
 		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
@@ -4957,9 +4937,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		}
 		// Not an option if already at war with everyone
 		if (bAtWarWithEveryone)
-		{
 			return false;
-		}
 
 		//if (!kPlayer.isVotingMember(eVoteSource))
 		// dlph.25: Replacing the above
@@ -4982,9 +4960,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			}
 
 			if (!bValid)
-			{
 				return false;
-			}
 		}
 	}
 	else if (GC.getInfo(kData.eVote).isAssignCity())
@@ -4993,50 +4969,36 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		//if (kPlayer.isFullMember(eVoteSource) || !kPlayer.isVotingMember(eVoteSource))
 		// dlph.25: 'These are not necessarily the same'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource) || !GET_TEAM(kPlayer.getTeam()).isVotingMember(eVoteSource))
-		{
 			return false;
-		}
 
 		CvCity* pCity = kPlayer.getCity(kData.iCityId);
-		FAssert(NULL != pCity);
-		if (NULL == pCity)
+		if (pCity == NULL)
 		{
+			FAssert(pCity != NULL);
 			return false;
 		}
 
-		if (NO_PLAYER == kData.eOtherPlayer)
-		{
+		if (kData.eOtherPlayer == NO_PLAYER)
 			return false;
-		}
 
 		CvPlayer& kOtherPlayer = GET_PLAYER(kData.eOtherPlayer);
 		if (kOtherPlayer.getTeam() == kPlayer.getTeam())
-		{
 			return false;
-		}
 
-		if (atWar(kPlayer.getTeam(), GET_PLAYER(kData.eOtherPlayer).getTeam()))
-		{
+		if (atWar(kPlayer.getTeam(), TEAMID(kData.eOtherPlayer)))
 			return false;
-		}
 
 		//if (!kOtherPlayer.isFullMember(eVoteSource))
 		// dlph.25: 'These are not necessarily the same'
 		if (!GET_TEAM(kOtherPlayer.getTeam()).isFullMember(eVoteSource))
-		{
 			return false;
-		}
 
 		if (kOtherPlayer.isHuman() && isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
-		{
 			return false;
-		}
 	}
 
 	if (!canDoResolution(eVoteSource, kData))
-	{
 		return false;
-	}
 
 	return true;
 }

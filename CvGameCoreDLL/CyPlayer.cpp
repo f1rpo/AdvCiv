@@ -2327,23 +2327,23 @@ void  CyPlayer::forcePeace(int iPlayer)
 }
 
 // <advc.038>
-int CyPlayer::estimateYieldRate(YieldTypes yield) const {
-
+int CyPlayer::estimateYieldRate(YieldTypes yield) const
+{
 	if(m_pPlayer == NULL)
 		return -1;
 	return ::round(m_pPlayer->estimateYieldRate(yield));
 } // </advc.038>
 
 // <advc.210>
-void CyPlayer::checkAlert(int alertId, bool silent) {
-
+void CyPlayer::checkAlert(int alertId, bool silent)
+{
 	if(m_pPlayer != NULL)
 		m_pPlayer->checkAlert(alertId, silent);
 } // </advc.210>
 
 // <advc.210e>
-int CyPlayer::AI_corporationBonusVal(int eBonus) const {
-
+int CyPlayer::AI_corporationBonusVal(int eBonus) const
+{
 	if(m_pPlayer == NULL)
 		return -1;
 	/*  Adding a virtual function CvPlayer::AI_corporationBonusVal causes
@@ -2352,14 +2352,14 @@ int CyPlayer::AI_corporationBonusVal(int eBonus) const {
 } // </advc.210e>
 
 // <advc.085>
-void CyPlayer::setScoreboardExpanded(bool b) {
-
+void CyPlayer::setScoreboardExpanded(bool b)
+{
 	if(m_pPlayer != NULL)
 		m_pPlayer->setScoreboardExpanded(b);
 }
 
-bool CyPlayer::isScoreboardExpanded() const {
-
+bool CyPlayer::isScoreboardExpanded() const
+{
 	if(m_pPlayer == NULL)
 		return false;
 	return m_pPlayer->isScoreboardExpanded();
