@@ -6,8 +6,6 @@
 /*  advc.agent: New class for access (via AgentIterator) to sequences of
 	agent (CvTeam, CvPlayer) objects. Caches frequently needed sequences. */
 
-#include "AgentGenerator.h"
-
 class CvPlayerAI;
 class CvTeamAI;
 
@@ -15,7 +13,23 @@ class CvTeamAI;
 class CvAgents
 {
 public:
-	/*  To be initialized from CvGame (replacing the initStatics calls
+
+	enum AgentSeqCache
+	{	// Since the enum is nested in CvAgents, don't repeat the word "AGENT".
+		NO_CACHE = -1,
+		ALL,
+		CIV_EVER_ALIVE,
+		CIV_ALIVE,
+		MAJOR_ALIVE,
+		NUM_STATUS_CACHES,
+		MEMBER = NUM_STATUS_CACHES,
+		MEMBER_ALIVE,
+		VASSAL_ALIVE,
+		NUM_CACHES,
+		NUM_RELATION_CACHES = NUM_CACHES - NUM_STATUS_CACHES
+	};
+
+	/*  To be initialized from CvGame (eventually replacing the initStatics calls
 		in CvGlobals::init) */
 	CvAgents(int iMaxPlayers, int iMaxTeams);
 	void gameStart(bool bFromSaveGame);
@@ -37,6 +51,7 @@ public:
 	{
 		updateAllCachedSequences();
 	}
+
 	// Might be needed in the future
 	//void bordersOpened(TeamTypes eFirst, TeamTypes eSecond);
 	//void bordersClosed(TeamTypes eFirst, TeamTypes eSecond);
@@ -45,85 +60,25 @@ public:
 	//void teamsMet(TeamTypes eFirst, TeamTypes eSecond);
 	//void setHuman(PlayerTypes ePlayer, bool bNewValue);
 
-	template<class AgentType>
-	AgentGenerator<AgentType>* getAgentGenerator(
-			AgentStatusPredicate eStatus = ALIVE,
-			AgentRelationPredicate eRelation = ANY_AGENT_RELATION,
-			TeamTypes eTeam = NO_TEAM, PlayerTypes ePlayer = NO_PLAYER);
-	// <advc.tmp> For speedTest in CvAgents.cpp
-	int majorTeams() const { return (int)m_majorTeamsAlive.size(); }
-	CvTeamAI& majorTeam(int iAt) const { return *m_majorTeamsAlive[iAt]; }
-	// </advc.tmp>
-	// Implement functions like CvGame::countCivPlayersAlive (also: CvTeam)
-	// here. Either get the size of a vector (add 1 for barbs) or step
-	// through a generator with a counter
+	/*  Tbd.: Implement functions like CvGame::countCivPlayersAlive (also: CvTeam) here.
+		Either get the size of a vector (add 1 for Barbarians) or use an AgentIterator
+		and count the iterations. */
 
-private:
-	void updateAllCachedSequences();
-	void updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal);
-	static bool includeBarbarians(AgentStatusPredicate eStatus, AgentRelationPredicate eRelation);
-
-	bool m_bNoBarbarians;
+	// Access to agent vectors from function templates
+	template<class AgentType> std::vector<AgentType*> const* getAgentSeqCache(AgentSeqCache eCacheID) const;
+	template<class AgentType> std::vector<AgentType*> const* getPerTeamSeqCache(AgentSeqCache eCacheID, TeamTypes) const;
+	template<class AgentType> std::vector<AgentType*> const* getNoAgents() const; // Currently unused
 	typedef std::vector<CvPlayerAI*> PlayerVector;
 	typedef std::vector<CvTeamAI*> TeamVector;
-	PlayerVector m_allPlayers;
-	PlayerVector m_civPlayersEverAlive;
-	PlayerVector m_civPlayersAlive;
-	PlayerVector m_majorPlayersAlive;
-	PlayerVector m_noPlayers; // empty
-	TeamVector m_allTeams;
-	TeamVector m_civTeamsEverAlive;
-	TeamVector m_civTeamsAlive;
-	TeamVector m_majorTeamsAlive;
-	TeamVector m_noTeams; // empty
-	std::vector<PlayerVector> m_playersPerTeam;
-	std::vector<PlayerVector> m_playersAlivePerTeam;
-	std::vector<PlayerVector> m_vassalPlayersAlivePerTeam;
-	std::vector<TeamVector> m_vassalTeamsAlivePerTeam;
-
-	// For accessing agent vectors from function templates
-	template<class AgentType> std::vector<AgentType*> const* getAllAgents() const;
-	template<class AgentType> std::vector<AgentType*> const* getCivAgentsEverAlive() const;
-	template<class AgentType> std::vector<AgentType*> const* getCivAgentsAlive() const;
-	template<class AgentType> std::vector<AgentType*> const* getMajorAgentsAlive() const;
-	template<class AgentType> std::vector<AgentType*> const* getVassalAgentsAlivePerTeam(TeamTypes) const;
-	template<class AgentType> std::vector<AgentType*> const* getAgentsPerTeam(TeamTypes) const;
-	template<class AgentType> std::vector<AgentType*> const* getAgentsAlivePerTeam(TeamTypes) const;
-	template<class AgentType> std::vector<AgentType*> const* getNoAgents() const;
 	template<>
-	__forceinline PlayerVector const* getAllAgents<CvPlayerAI>() const
+	__forceinline PlayerVector const* getAgentSeqCache<CvPlayerAI>(AgentSeqCache eCacheID) const
 	{
-		return &m_allPlayers;
+		return &playerSeqCache(eCacheID);
 	}
 	template<>
-	__forceinline PlayerVector const* getCivAgentsEverAlive<CvPlayerAI>() const
+	__forceinline PlayerVector const* getPerTeamSeqCache<CvPlayerAI>(AgentSeqCache eCacheID, TeamTypes eTeam) const
 	{
-		return &m_civPlayersEverAlive;
-	}
-	template<>
-	__forceinline PlayerVector const* getCivAgentsAlive<CvPlayerAI>() const
-	{
-		return &m_civPlayersAlive;
-	}
-	template<>
-	__forceinline PlayerVector const* getMajorAgentsAlive<CvPlayerAI>() const
-	{
-		return &m_majorPlayersAlive;
-	}
-	template<>
-	__forceinline PlayerVector const* getVassalAgentsAlivePerTeam<CvPlayerAI>(TeamTypes eMaster) const
-	{
-		return &m_vassalPlayersAlivePerTeam[eMaster];
-	}
-	template<>
-	__forceinline PlayerVector const* getAgentsPerTeam<CvPlayerAI>(TeamTypes eTeam) const
-	{
-		return &m_playersPerTeam[eTeam];
-	}
-	template<>
-	__forceinline PlayerVector const* getAgentsAlivePerTeam<CvPlayerAI>(TeamTypes eTeam) const
-	{
-		return &m_playersAlivePerTeam[eTeam];
+		return &memberSeqCache(eCacheID, eTeam);
 	}
 	template<>
 	__forceinline PlayerVector const* getNoAgents<CvPlayerAI>() const
@@ -131,74 +86,122 @@ private:
 		return &m_noPlayers;
 	}
 	template<>
-	__forceinline TeamVector const* getAllAgents<CvTeamAI>() const
+	__forceinline TeamVector const* getAgentSeqCache<CvTeamAI>(AgentSeqCache eCacheID) const
 	{
-		return &m_allTeams;
+		return &teamSeqCache(eCacheID);
 	}
 	template<>
-	__forceinline TeamVector const* getCivAgentsEverAlive<CvTeamAI>() const
+	__forceinline TeamVector const* getPerTeamSeqCache<CvTeamAI>(AgentSeqCache eCacheID, TeamTypes eTeam) const
 	{
-		return &m_allTeams;
+		return &teamPerTeamSeqCache(eCacheID, eTeam);
 	}
-	template<>
-	__forceinline TeamVector const* getCivAgentsAlive<CvTeamAI>() const
-	{
-		return &m_allTeams;
-	}
-	template<>
-	__forceinline TeamVector const* getMajorAgentsAlive<CvTeamAI>() const
-	{
-		return &m_majorTeamsAlive;
-	}
-	template<>
-	__forceinline TeamVector const* getVassalAgentsAlivePerTeam<CvTeamAI>(TeamTypes eMaster) const
-	{
-		return &m_vassalTeamsAlivePerTeam[eMaster];
-	}
-	template<>
-	TeamVector const* getAgentsPerTeam<CvTeamAI>(TeamTypes eTeam) const;
-	template<>
-	TeamVector const* getAgentsAlivePerTeam<CvTeamAI>(TeamTypes eTeam) const;
 	template<>
 	__forceinline TeamVector const* getNoAgents<CvTeamAI>() const
 	{
 		return &m_noTeams;
 	}
 
-	template<class AgentGeneratorType>
-	class AgentGeneratorPool
+
+	// For testing (see AgentIteratorTest) and other purposes perhaps ...
+
+	int playerCacheSize(AgentSeqCache eCacheID) const
 	{
-	public:
-		AgentGeneratorPool() : m_iPos(0) {}
-		inline AgentGeneratorType& getNext()
-		{
-			AgentGeneratorType& r = m_aGenerators[m_iPos];
-			m_iPos = (m_iPos + 1) % m_iSize;
-			return r;
-		}
-	private:
-		static int const m_iSize = 10;
-		AgentGeneratorType m_aGenerators[m_iSize];
-		int m_iPos;
-	};
+		FASSERT_BOUNDS(0, (int)m_playerSeqCache.size(), eCacheID, "CvAgents::playerCacheSize");
+		return (int)m_playerSeqCache[eCacheID].size();
+	}
+	CvPlayerAI& playerCacheAt(AgentSeqCache eCacheID, int iAt) const
+	{
+		FASSERT_BOUNDS(0, playerCacheSize(eCacheID), iAt, "CvAgents::playerCacheAt");
+		return *m_playerSeqCache[eCacheID][iAt];
+	}
+	int memberCacheSize(AgentSeqCache eCacheID, TeamTypes eTeam) const
+	{
+		int const iCache = perTeamCacheIndex(eCacheID);
+		FASSERT_BOUNDS(0, (int)m_memberSeqCache.size(), iCache, "CvAgents::memberCacheSize");
+		FASSERT_BOUNDS(0, (int)m_memberSeqCache[iCache].size(), eTeam, "CvAgents::memberCacheSize");
+		return (int)m_memberSeqCache[iCache][eTeam].size();
+	}
+	CvPlayerAI& memberCacheAt(AgentSeqCache eCacheID, TeamTypes eTeam, int iAt) const
+	{
+		int const iCache = perTeamCacheIndex(eCacheID);
+		FASSERT_BOUNDS(0, memberCacheSize(eCacheID, eTeam), iAt, "CvAgents::memberCacheAt");
+		return *m_memberSeqCache[iCache][eTeam][iAt];
+	}
+	int teamCacheSize(AgentSeqCache eCacheID) const
+	{
+		FASSERT_BOUNDS(0, (int)m_teamSeqCache.size(), eCacheID, "CvAgents::teamCacheSize");
+		return (int)m_teamSeqCache[eCacheID].size();
+	}
+	CvTeamAI& teamCacheAt(AgentSeqCache eCacheID, int iAt) const
+	{
+		FASSERT_BOUNDS(0, teamCacheSize(eCacheID), iAt, "CvAgents::teamCacheAt");
+		return *m_teamSeqCache[eCacheID][iAt];
+	}
+	int teamPerTeamCacheSize(AgentSeqCache eCacheID, TeamTypes eTeam) const
+	{
+		int const iCache = perTeamCacheIndex(eCacheID);
+		FASSERT_BOUNDS(0, (int)m_teamPerTeamSeqCache.size(), iCache, "CvAgents::teamPerTeamCacheSize");
+		FASSERT_BOUNDS(0, (int)m_teamPerTeamSeqCache[iCache].size(), eTeam, "CvAgents::teamPerTeamCacheSize");
+		return (int)m_teamPerTeamSeqCache[iCache][eTeam].size();
+	}
+	CvTeamAI& teamPerTeamCacheAt(AgentSeqCache eCacheID, TeamTypes eTeam, int iAt) const
+	{
+		int const iCache = perTeamCacheIndex(eCacheID);
+		FASSERT_BOUNDS(0, teamPerTeamCacheSize(eCacheID, eTeam), iAt, "CvAgents::teamPerTeamCacheAt");
+		return *m_teamPerTeamSeqCache[iCache][eTeam][iAt];
+	}
 
-	mutable AgentGeneratorPool<FullyCachedAgentGenerator<CvPlayerAI> > m_fullyCachedPlayerGen;
-	mutable AgentGeneratorPool<BarbarianAppendingAgentGenerator<CvPlayerAI> > m_barbAppendingPlayerGen;
-	mutable AgentGeneratorPool<FilteringAgentGenerator<CvPlayerAI> > m_filteringPlayerGen;
-	mutable AgentGeneratorPool<FullyCachedAgentGenerator<CvTeamAI> > m_fullyCachedTeamGen;
-	mutable AgentGeneratorPool<BarbarianAppendingAgentGenerator<CvTeamAI> > m_barbAppendingTeamGen;
-	mutable AgentGeneratorPool<FilteringAgentGenerator<CvTeamAI> > m_filteringTeamGen;
+private:
+	/*  Could avoid this mapping by using separate enums for agent status and agent relation caches.
+		This would be awkward for AgentIterator though. */
+	__forceinline int perTeamCacheIndex(AgentSeqCache eCacheID) const
+	{
+		return eCacheID - NUM_STATUS_CACHES;
+	}
+	__forceinline PlayerVector& playerSeqCache(AgentSeqCache eCacheID)
+	{
+		return m_playerSeqCache[eCacheID];
+	}
+	__forceinline TeamVector& teamSeqCache(AgentSeqCache eCacheID)
+	{
+		return m_teamSeqCache[eCacheID];
+	}
+	__forceinline PlayerVector& memberSeqCache(AgentSeqCache eCacheID, TeamTypes eTeam)
+	{
+		return m_memberSeqCache[perTeamCacheIndex(eCacheID)][eTeam];
+	}
+	__forceinline TeamVector& teamPerTeamSeqCache(AgentSeqCache eCacheID, TeamTypes eTeam)
+	{
+		return m_teamPerTeamSeqCache[perTeamCacheIndex(eCacheID)][eTeam];
+	}
+	// The same with const
+	__forceinline PlayerVector const& playerSeqCache(AgentSeqCache eCacheID) const
+	{
+		return m_playerSeqCache[eCacheID];
+	}
+	__forceinline TeamVector const& teamSeqCache(AgentSeqCache eCacheID) const
+	{
+		return m_teamSeqCache[eCacheID];
+	}
+	__forceinline PlayerVector const& memberSeqCache(AgentSeqCache eCacheID, TeamTypes eTeam) const
+	{
+		return m_memberSeqCache[perTeamCacheIndex(eCacheID)][eTeam];
+	}
+	__forceinline TeamVector const& teamPerTeamSeqCache(AgentSeqCache eCacheID, TeamTypes eTeam) const
+	{
+		return m_teamPerTeamSeqCache[perTeamCacheIndex(eCacheID)][eTeam];
+	}
 
-	template<class AgentType>
-	AgentGenerator<AgentType>* getAgentGenerator(bool,bool,std::vector<AgentType*>const*,AgentStatusPredicate,AgentRelationPredicate,TeamTypes,PlayerTypes) const;
-	template<>
-	AgentGenerator<CvPlayerAI>* getAgentGenerator<CvPlayerAI>(bool bFilter, bool bInclBarbarians,
-		PlayerVector const* pCachedSeq, AgentStatusPredicate eStatus, AgentRelationPredicate eRelation,
-		TeamTypes eTeam, PlayerTypes ePlayer) const;
-	template<>
-	AgentGenerator<CvTeamAI>* getAgentGenerator<CvTeamAI>(bool bFilter, bool bInclBarbarians,
-		TeamVector const* pCachedSeq, AgentStatusPredicate eStatus, AgentRelationPredicate eRelation,
-		TeamTypes eTeam, PlayerTypes ePlayer) const;
+	void updateAllCachedSequences();
+	void updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal);
+
+	PlayerVector m_noPlayers; // empty
+	TeamVector m_noTeams; // empty
+
+	std::vector<PlayerVector> m_playerSeqCache;
+	std::vector<TeamVector> m_teamSeqCache;
+	std::vector<std::vector<PlayerVector> > m_memberSeqCache;
+	std::vector<std::vector<TeamVector> > m_teamPerTeamSeqCache;
 };
 
 #endif

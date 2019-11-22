@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvDealList.h" // advc.003u
-#include "AgentIterator.h" // advc.agent
+#include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
