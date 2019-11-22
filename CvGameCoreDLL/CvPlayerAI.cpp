@@ -6483,7 +6483,6 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			iValue += iTempValue;
 		}
 	}
-
 	int iBuildValue = 0;
 	FOR_EACH_ENUM(Build)
 	{
@@ -6633,12 +6632,16 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				}
 				// advc.036: Apply this to later-era start too
 				if (getCurrentEra() > 0)//GC.getGame().getStartEra())
+				{
 					iYieldValue -= 100; // compare to a hypothetical low-value improvement
-
-				// Bonuses might be outside of our city borders.
-				iYieldValue *= 2*iNumBonuses;
-				iYieldValue /= (bRevealed ? 3 : 4);
-
+					// Bonuses might be outside of our city borders.
+					/*  advc.036: Moved this into the getCurrentEra branch. It's unlikely
+						that owned resources are outside of city radii in the early game.
+						Also, make it times 3/4 or 2/3 (depending on bRevealed) instead of
+						2/3 or 1/2. I don't think unworkable resources are that common. */
+					iYieldValue *= (bRevealed ? 3 : 2) * iNumBonuses;
+					iYieldValue /= (bRevealed ? 4 : 3);
+				}
 				if (kFinalImprovement.isWater())
 					iYieldValue = iYieldValue * 2/3;
 				/*  <advc.036> Since iBonusVal no longer overestimates early-game health,
@@ -6649,9 +6652,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
 				}
 				/*  At the start of the game, extra yields are very important,
-				but we need to be sure that the tile isn't blocked by a feature
-				before increasing iYieldValue further. Will have to check
-				each tile -- OK, performance isn't an issue this early on. */
+					but we need to be sure that the tile isn't blocked by a feature
+					before increasing iYieldValue further. Will have to check
+					each tile -- OK, performance isn't an issue this early on. */
 				if(pCapitalCity != NULL && getNumCities() == 1)
 				{
 					bool bValid = false;
@@ -12840,7 +12843,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 			information that FromPlayer might not have. */
 		CvBonusInfo& kBonus = GC.getInfo(eBonus);
 		// I can live with cheating when it comes to strategic bonuses
-		bUseOurBonusVal = (kBonus.getHappiness() + kBonus.getHealth() == 0);
+		bUseOurBonusVal = (kBonus.getHappiness() == 0 && kBonus.getHealth() == 0);
 		// Also don't worry about the value of additional copies (for corps)
 		if(!bUseOurBonusVal && getNumAvailableBonuses(eBonus) + iChange >
 				(iChange < 0 ? 0 : 1))
