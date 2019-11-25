@@ -11,7 +11,7 @@ class WarAndPeaceReport;
 class CvArea;
 
 
-/* <advc.104>: New class. Predicts the military build-up of a civ. Part of
+/* advc.104: New class. Predicts the military build-up of a civ. Part of
    the military analysis.
    The computation happens in the constructor.
    NB: The aim is not to predict how many units a civ will possess on
@@ -23,7 +23,8 @@ class ArmamentForecast {
 
 public:
 	/* 'm' belongs to the civ making the forecast ("we"), 'civId' is the civ whose
-		armament is being predicted.
+		armament is being predicted. (Not const b/c ArmamentForecast may add to the
+		WarAndPeaceReport.)
 	   'military': Present military of civId; power values are increased
 				   by this class.
 	   'peaceScenario': True iff peace is assumed beetween us and our target.
@@ -41,8 +42,8 @@ private:
 	// Can t1 reach t2 or vice versa. Not dependent on civId or m.weId.
 	bool canReachEither(TeamTypes t1, TeamTypes t2) const;
 	PlayerTypes civId;
-	MilitaryAnalyst& m;
-	WarAndPeaceAI::Civ& wpai;
+	MilitaryAnalyst const& m;
+	WarAndPeaceAI::Civ const& wpai;
 	WarAndPeaceReport& report;
 	std::vector<MilitaryBranch*>& military;
 	int timeHorizon;
@@ -70,7 +71,5 @@ private:
 	AreaAITypes getAreaAI(PlayerTypes civId = NO_PLAYER) const;
 	CvArea* getCapitalArea(PlayerTypes civId = NO_PLAYER) const;
 };
-
-// </advc.104>
 
 #endif

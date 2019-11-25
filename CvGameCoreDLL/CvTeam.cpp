@@ -638,10 +638,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	AI().AI_updateWorstEnemy();
 	// <advc.104t>
 	if(getWPAI.isEnabled())
-	{
 		AI().warAndPeaceAI().addTeam(eTeamLeader);
-		getWPAI.update();
-	} // </advc.104t>
+	// </advc.104t>
 	AI().AI_updateAreaStrategies();
 
 	g.updateScore(true);
@@ -6343,9 +6341,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 	// <advc.opt>
 	if (uiFlag < 7)
 	{
-		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
+		FOR_EACH_ENUM(Victory)
 		{
-			if (getVictoryCountdown((VictoryTypes)i) >= 0)
+			if (getVictoryCountdown(eLoopVictory) >= 0)
 				m_bAnyVictoryCountdown = true;
 		}
 	} // </advc.opt>

@@ -60,9 +60,8 @@ public:
 	//void teamsMet(TeamTypes eFirst, TeamTypes eSecond);
 	//void setHuman(PlayerTypes ePlayer, bool bNewValue);
 
-	/*  Tbd.: Implement functions like CvGame::countCivPlayersAlive (also: CvTeam) here.
-		Either get the size of a vector (add 1 for Barbarians) or use an AgentIterator
-		and count the iterations. */
+	/*  Tbd.: Remove functions like CvGame::countCivPlayersAlive. AgentIterator::count
+		should be used instead. CvAgents could have wrappers for frequently needed counts. */
 
 	// Access to agent vectors from function templates
 	template<class AgentType> std::vector<AgentType*> const* getAgentSeqCache(AgentSeqCache eCacheID) const;

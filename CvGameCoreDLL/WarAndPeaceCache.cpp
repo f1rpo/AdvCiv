@@ -1,4 +1,4 @@
-// <advc.104> New class; see WarAndPeaceCache.h for description
+// advc.104: New class; see WarAndPeaceCache.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceCache.h"
@@ -13,36 +13,16 @@
 #include "CvInfo_Building.h"
 #include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
-#include <cmath>
 
 using std::vector;
 using std::string;
 using std::sort;
 
-/*  Called only once per session (when starting or loading the first game).
-	Seems to work fine as WarAndPeaceCache::WarAndPeaceCache() {}, but
-	let's make sure nothing remains uninitialized. */
-WarAndPeaceCache::WarAndPeaceCache() {
-
-	ownerId = NO_PLAYER;
-	nNonNavyUnits = -1;
-	goldPerProduction = totalAssets = -1;
-	bHasAggressiveTrait = bHasProtectiveTrait = canScrub = false;
-	trainDeepSeaCargo = trainAnyCargo = false;
-	focusOnPeacefulVictory = false;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		wwAnger[i] = threatRatings[i] = relativeNavyPow[i] = -1;
-		located[i] = false;
-		nReachableCities[i] = targetMissionCounts[i] = vassalTechScores[i] =
-				vassalResourceScores[i] = adjacentLand[i] = -1;
-	}
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		lostTilesAtWar[i] = // advc.035
-				pastWarScores[i] = sponsorshipsAgainst[i] =
-				sponsorsAgainst[i] = warUtilityIgnDistraction[i] = -1;
-		hireAgainst[i] = true;
-	}
-}
+// Called only once per session (when starting or loading the first game)
+WarAndPeaceCache::WarAndPeaceCache() : ownerId(NO_PLAYER), nNonNavyUnits(-1),
+		goldPerProduction(-1), totalAssets(-1), bHasAggressiveTrait(false),
+		bHasProtectiveTrait(false), canScrub(false), trainDeepSeaCargo(false),
+		trainAnyCargo(false), focusOnPeacefulVictory(false) {}
 
 // Called only on exit (to Desktop)
 WarAndPeaceCache::~WarAndPeaceCache() {}
@@ -52,8 +32,7 @@ void WarAndPeaceCache::init(PlayerTypes ownerId) {
 
 	this->ownerId = ownerId;
 	clear();
-	updateHasAggressiveTrait();
-	updateHasProtectiveTrait();
+	updateTraits();
 	// The order of the vector needs to match the enums in MilitaryBranch::Type
 	militaryPower.push_back(new MilitaryBranch::HomeGuard(ownerId));
 	militaryPower.push_back(new MilitaryBranch::Army(ownerId));
@@ -69,38 +48,36 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 		delete v[i];
 	v.clear();
 	cityMap.clear();
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		nReachableCities[i] = 0;
-		targetMissionCounts[i] = 0;
-		threatRatings[i] = 0;
-		vassalTechScores[i] = 0;
-		vassalResourceScores[i] = 0;
-		adjacentLand[i] = 0;
-		relativeNavyPow[i] = 0;
-		wwAnger[i] = 0;
-	}
-	nReachableCities[ownerId] = GET_PLAYER(ownerId).getNumCities();
+
+	nReachableCities.reset();
+	targetMissionCounts.reset();
+	threatRatings.reset();
+	vassalTechScores.reset();
+	vassalResourceScores.reset();
+	adjacentLand.reset();
+	relativeNavyPow.reset();
+	wwAnger.reset();
+
+	nReachableCities.set(ownerId, GET_PLAYER(ownerId).getNumCities());
 	totalAssets = 0;
 	goldPerProduction = 0;
 	canScrub = false;
 	trainDeepSeaCargo = trainAnyCargo = false;
 	focusOnPeacefulVictory = false;
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		lostTilesAtWar[i] = 0; // advc.035
-		warUtilityIgnDistraction[i] = MIN_INT;
-	}
+
+	lostTilesAtWar.reset(); // advc.035
+	warUtilityIgnDistraction.reset();
+
 	if(!beforeUpdate) {
-		nNonNavyUnits = 0;
 		latestTurnReachableBySea.clear();
+		nNonNavyUnits = 0;
 		for(size_t i = 0; i < militaryPower.size(); i++)
 			SAFE_DELETE(militaryPower[i]);
 		militaryPower.clear();
-		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-			pastWarScores[i] = 0;
-			sponsorshipsAgainst[i] = 0;
-			sponsorsAgainst[i] = NO_PLAYER;
-			hireAgainst[i] = true;
-		}
+		pastWarScores.reset();
+		sponsorshipsAgainst.reset();
+		sponsorsAgainst.reset();
+		hireAgainst.reset();
 	}
 }
 
@@ -115,25 +92,28 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	savegameVersion = 5; // focusOnPeacefulVictory added
+	savegameVersion = 6; // advc.enum: Store as float
 	stream->Write(ownerId + 100 * savegameVersion);
 	int n = (int)v.size();
 	stream->Write(n);
 	for(int i = 0; i < n; i++)
 		v[i]->write(stream);
-	stream->Write(MAX_CIV_PLAYERS, nReachableCities);
-	stream->Write(MAX_CIV_PLAYERS, targetMissionCounts);
-	stream->Write(MAX_CIV_PLAYERS, threatRatings);
-	stream->Write(MAX_CIV_PLAYERS, vassalTechScores);
-	stream->Write(MAX_CIV_PLAYERS, vassalResourceScores);
-	stream->Write(MAX_CIV_PLAYERS, adjacentLand);
-	stream->Write(MAX_CIV_PLAYERS, relativeNavyPow);
-	stream->Write(MAX_CIV_PLAYERS, wwAnger);
-	stream->Write(MAX_CIV_TEAMS, lostTilesAtWar); // advc.035
-	stream->Write(MAX_CIV_TEAMS, pastWarScores);
-	stream->Write(MAX_CIV_TEAMS, sponsorshipsAgainst);
-	stream->Write(MAX_CIV_TEAMS, sponsorsAgainst);
-	stream->Write(MAX_CIV_TEAMS, warUtilityIgnDistraction);
-	stream->Write(MAX_CIV_TEAMS, hireAgainst);
+
+	nReachableCities.Write(stream);
+	targetMissionCounts.Write(stream);
+	threatRatings.Write(stream, false, true);
+	vassalTechScores.Write(stream);
+	vassalResourceScores.Write(stream);
+	adjacentLand.Write(stream);
+	relativeNavyPow.Write(stream, false, true);
+	wwAnger.Write(stream, false, true);
+	lostTilesAtWar.Write(stream); // advc.035
+	pastWarScores.Write(stream);
+	sponsorshipsAgainst.Write(stream);
+	sponsorsAgainst.Write(stream);
+	warUtilityIgnDistraction.Write(stream);
+	hireAgainst.Write(stream);
+
 	stream->Write(bHasAggressiveTrait);
 	stream->Write(bHasProtectiveTrait);
 	stream->Write(canScrub);
@@ -145,7 +125,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 			it != readyToCapitulate.end(); it++)
 		stream->Write(*it);
 	stream->Write(latestTurnReachableBySea.size());
-	for(std::map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
+	for(stdext::hash_map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
 			begin(); it != latestTurnReachableBySea.end(); it++) {
 		stream->Write(it->first);
 		stream->Write(it->second.first);
@@ -167,34 +147,38 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	ownerId = (PlayerTypes)(tmp % 100);
 	// Important to set onwerId first b/c clear uses it
 	clear();
-	int n;
+	int n=0;
 	stream->Read(&n);
 	for(int i = 0; i < n; i++) {
 		v.push_back(new City(ownerId));
 		v[i]->read(stream);
 		cityMap.insert(std::make_pair(v[i]->id(), v[i]));
 	}
-	stream->Read(MAX_CIV_PLAYERS, nReachableCities);
-	stream->Read(MAX_CIV_PLAYERS, targetMissionCounts);
-	stream->Read(MAX_CIV_PLAYERS, threatRatings);
-	stream->Read(MAX_CIV_PLAYERS, vassalTechScores);
-	stream->Read(MAX_CIV_PLAYERS, vassalResourceScores);
-	stream->Read(MAX_CIV_PLAYERS, adjacentLand);
+	/*  These used to be arrays with no value for the Barbarians.
+		(The Barbarian value remains unused.) */
+	nReachableCities.Read(stream);
+	targetMissionCounts.Read(stream);
+	threatRatings.ReadFloat(stream, savegameVersion < 6);
+	vassalTechScores.Read(stream);
+	vassalResourceScores.Read(stream);
+	adjacentLand.Read(stream);
 	if(savegameVersion >= 1)
-		stream->Read(MAX_CIV_PLAYERS, relativeNavyPow);
-	stream->Read(MAX_CIV_PLAYERS, wwAnger);
+		relativeNavyPow.ReadFloat(stream, savegameVersion < 6);
+	wwAnger.ReadFloat(stream, savegameVersion < 6);
 	// <advc.035>
 	if(savegameVersion >= 2)
-		stream->Read(MAX_CIV_TEAMS, lostTilesAtWar); // </advc.035>
-	stream->Read(MAX_CIV_TEAMS, pastWarScores);
-	if(savegameVersion < 4)
-		for(int i = 0; i < MAX_CIV_TEAMS; i++)
-			pastWarScores[i] *= 100;
-	stream->Read(MAX_CIV_TEAMS, sponsorshipsAgainst);
-	stream->Read(MAX_CIV_TEAMS, sponsorsAgainst);
-	stream->Read(MAX_CIV_TEAMS, warUtilityIgnDistraction);
+		lostTilesAtWar.Read(stream); // </advc.035>
+	pastWarScores.Read(stream);
+	if(savegameVersion < 4) {
+		for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
+			pastWarScores.multiply(it->getID(), 100);
+	}
+	sponsorshipsAgainst.Read(stream);
+	sponsorsAgainst.Read(stream);
+	warUtilityIgnDistraction.Read(stream);
 	if(savegameVersion >= 3)
-		stream->Read(MAX_CIV_TEAMS, hireAgainst);
+		hireAgainst.Read(stream);
+
 	stream->Read(&bHasAggressiveTrait);
 	stream->Read(&bHasProtectiveTrait);
 	stream->Read(&canScrub);
@@ -242,8 +226,8 @@ void WarAndPeaceCache::update() {
 	focusOnPeacefulVictory = calculateFocusOnPeacefulVictory();
 	// Needs to be done before updating cities
 	updateTrainCargo();
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++)
-		updateCities(getWPAI.properCivs()[i]);
+	for(PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
+		updateCities(it->getID());
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
 	/*  Disable latestTurnReachable fallback
@@ -275,12 +259,12 @@ void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 	CvPlayerAI& civ = GET_PLAYER(civId);
 	FOR_EACH_CITY(c, civ) {
 		// c.isRevealed() impedes the AI too much
-		if(GET_TEAM(ownerId).AI_deduceCitySite(c)) {
+		if(civId == ownerId || GET_TEAM(ownerId).AI_deduceCitySite(c)) {
 			City* cacheCity = new City(ownerId, *c);
 			v.push_back(cacheCity);
 			cityMap.insert(std::make_pair(cacheCity->id(), cacheCity));
 			if(civId != ownerId && cacheCity->canReach())
-				nReachableCities[civId]++;
+				nReachableCities.add(civId, 1);
 		}
 	}
 }
@@ -323,11 +307,10 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 	FOR_EACH_CITY(cp, owner) {
 		CvCity const& c = *cp;
 		int buildings = 0, wonders = 0;
-		for(int i = 0; i < GC.getNumBuildingInfos(); i++) {
-			BuildingTypes bId = (BuildingTypes)i;
-			CvBuildingInfo& b = GC.getInfo(bId);
-			if(c.canConstruct(bId) && !b.isCapital() && // exclude Palace
-					c.getProductionBuilding() != bId &&
+		FOR_EACH_ENUM(Building) {
+			CvBuildingInfo& b = GC.getInfo(eLoopBuilding);
+			if(c.canConstruct(eLoopBuilding) && !b.isCapital() && // exclude Palace
+					c.getProductionBuilding() != eLoopBuilding &&
 					// Wonder in construction elsewhere:
 					owner.getBuildingClassMaking((BuildingClassTypes)
 					b.getBuildingClassType()) == 0) {
@@ -433,14 +416,12 @@ double WarAndPeaceCache::goldPerProdVictory() {
 		return 0.5;
 	}
 	double r = ourVictLevel + 1;
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		TeamTypes rivalId = getWPAI.properTeams()[i];
-		if(rivalId == TEAMID(ownerId)) continue;
-		CvTeamAI const& t = GET_TEAM(rivalId);
+	for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(ownerId)); it.hasNext(); ++it) {
+		CvTeamAI const& rival = *it;
 		int theirVictLevel = 0;
-		if(t.AI_isAnyMemberDoVictoryStrategyLevel3())
+		if(rival.AI_isAnyMemberDoVictoryStrategyLevel3())
 			theirVictLevel = 3;
-		else if(t.AI_isAnyMemberDoVictoryStrategyLevel4())
+		else if(rival.AI_isAnyMemberDoVictoryStrategyLevel4())
 			theirVictLevel = 4;
 		if(theirVictLevel >= ourVictLevel)
 			r--;
@@ -455,15 +436,17 @@ void WarAndPeaceCache::updateWarUtility() {
 	PROFILE_FUNC();
 	if(!getWPAI.isUpdated())
 		return;
+	CvTeamAI const& ownerTeam = GET_TEAM(ownerId);
 	/*  Not nice. War utility is computed per team, and the computation is
 		somewhat costly. Want to do this only once per team, but don't have a
 		class for AI values cached per team, and I don't want to create one
 		just for this. Hence do it only for the leader. */
-	if(ownerId != GET_TEAM(ownerId).getLeaderID())
+	if(ownerId != ownerTeam.getLeaderID())
 		return;
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		TeamTypes targetId = getWPAI.properTeams()[i];
-		if(GET_TEAM(ownerId).warAndPeaceAI().isPotentialWarEnemy(targetId))
+
+	for(TeamIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
+		TeamTypes targetId = it->getID();
+		if(ownerTeam.warAndPeaceAI().isPotentialWarEnemy(targetId))
 			updateWarUtilityIgnDistraction(targetId);
 	}
 }
@@ -483,8 +466,8 @@ void WarAndPeaceCache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 		if(!agent.warAndPeaceAI().isPushover(targetId))
 			prepTime = 5;
 	}
-	warUtilityIgnDistraction[targetId] = eval.evaluate(wp,
-			!agent.AI_isLandTarget(targetId), prepTime);
+	warUtilityIgnDistraction.set(targetId, eval.evaluate(
+			wp, !agent.AI_isLandTarget(targetId), prepTime));
 }
 
 void WarAndPeaceCache::updateWarAnger() {
@@ -517,22 +500,22 @@ void WarAndPeaceCache::updateWarAnger() {
 		wwContribs[i] = contrib;
 		totalWeight += contrib;
 	}
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes civId = (PlayerTypes)i;
+	for(PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
 		if(totalWeight == 0)
-			wwAnger[i] = 0;
-		else wwAnger[i] = totalWWAnger * (wwContribs[TEAMID(civId)] / totalWeight) /
-				GET_TEAM(civId).getNumMembers(); // Turn per-team into per-civ
+			wwAnger.set(civId, 0);
+		else wwAnger.set(civId, (float)(
+				totalWWAnger * (wwContribs[TEAMID(civId)] / totalWeight) /
+				GET_TEAM(civId).getNumMembers())); // Turn per-team into per-civ
 	}
 }
 
 void WarAndPeaceCache::updateCanScrub() {
 
 	FeatureTypes fallout = NO_FEATURE;
-	for(int i = 0; i < GC.getNumFeatureInfos(); i++) {
-		FeatureTypes feat = (FeatureTypes)i;
-		if(GC.getInfo(feat).getHealthPercent() <= -50) {
-			fallout = feat;
+	FOR_EACH_ENUM(Feature) {
+		if(GC.getInfo(eLoopFeature).getHealthPercent() <= -50) {
+			fallout = eLoopFeature;
 			break;
 		}
 	}
@@ -540,10 +523,8 @@ void WarAndPeaceCache::updateCanScrub() {
 		FAssertMsg(false, "Fallout feature not found; should have -50 health");
 		return;
 	}
-	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
-		BuildTypes bt = (BuildTypes)i;
-		CvBuildInfo& b = GC.getInfo(bt);
-		TechTypes featTech = (TechTypes)b.getFeatureTech(fallout);
+	FOR_EACH_ENUM(Build) {
+		TechTypes featTech = (TechTypes)GC.getInfo(eLoopBuild).getFeatureTech(fallout);
 		if(featTech != NO_TECH && GET_TEAM(ownerId).isHasTech(featTech)) {
 			canScrub = true;
 			break;
@@ -555,8 +536,9 @@ void WarAndPeaceCache::updateTrainCargo() {
 
 	PROFILE_FUNC();
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	for(int i = 0; i < GC.getNumUnitInfos(); i++) {
-		UnitTypes ut = (UnitTypes)i;
+	CvCivilization const& ownerCiv = owner.getCivilization();
+	for(int i = 0; i < ownerCiv.getNumUnits(); i++) {
+		UnitTypes ut = ownerCiv.unitAt(i);
 		CvUnitInfo& info = GC.getInfo(ut);
 		if(info.getUnitAIType(UNITAI_ASSAULT_SEA) && owner.canTrain(ut)) {
 			trainAnyCargo = true;
@@ -581,8 +563,8 @@ bool WarAndPeaceCache::calculateFocusOnPeacefulVictory() {
 		return false;
 	bool const bHuman = owner.isHuman();
 	// Space3 or Culture3 -- but is there a rival at stage 4?
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		CvPlayerAI const& rival = GET_PLAYER(getWPAI.properCivs()[i]);
+	for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(ownerId)); it.hasNext(); ++it) {
+		CvPlayerAI const& rival = *it;
 		if(!rival.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
 				!rival.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
 			continue;
@@ -599,146 +581,37 @@ bool WarAndPeaceCache::calculateFocusOnPeacefulVictory() {
 	return true;
 }
 
-int WarAndPeaceCache::targetMissionCount(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return targetMissionCounts[civId];
-}
-
-double WarAndPeaceCache::threatRating(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return threatRatings[civId];
-}
-
-int WarAndPeaceCache::vassalTechScore(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return vassalTechScores[civId];
-}
-
-int WarAndPeaceCache::vassalResourceScore(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return vassalResourceScores[civId];
-}
-
-int WarAndPeaceCache::numAdjacentLandPlots(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return adjacentLand[civId];
-}
-// <advc.035>
-int WarAndPeaceCache::numLostTilesAtWar(TeamTypes tId) const {
-
-	if(tId == NO_TEAM)
-		return -1;
-	return lostTilesAtWar[tId];
-} // </advc.035>
-
-double WarAndPeaceCache::relativeNavyPower(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return relativeNavyPow[civId];
-}
-
-int WarAndPeaceCache::pastWarScore(TeamTypes tId) const {
-
-	if(tId == NO_TEAM)
-		return 0;
-	return pastWarScores[tId];
-}
-
-int WarAndPeaceCache::sponsorshipAgainst(TeamTypes tId) const {
-
-	if(tId == NO_TEAM)
-		return 0;
-	return sponsorshipsAgainst[tId];
-}
-
-PlayerTypes WarAndPeaceCache::sponsorAgainst(TeamTypes tId) const {
-
-	if(tId == NO_TEAM)
-		return NO_PLAYER;
-	return (PlayerTypes)sponsorsAgainst[tId];
-}
-
-int WarAndPeaceCache::warUtilityIgnoringDistraction(TeamTypes tId) const {
-
-	if(tId == NO_TEAM || tId == BARBARIAN_TEAM)
-		return MIN_INT;
-	return leaderCache().warUtilityIgnDistraction[tId];
-}
-
-bool WarAndPeaceCache::canBeHiredAgainst(TeamTypes tId) const {
-
-	if(tId == NO_TEAM || tId == BARBARIAN_TEAM)
-		return false;
-	return leaderCache().hireAgainst[tId];
-}
-
 void WarAndPeaceCache::setCanBeHiredAgainst(TeamTypes tId, bool b) {
 
-	leaderCache().hireAgainst[tId] = b;
+	leaderCache().hireAgainst.set(tId, b);
 }
 
 void WarAndPeaceCache::updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh) {
 
 	// Part of the update happens in WarAndPeaceAI::Team::doWar
 	double pr = -1;
-	if(!hireAgainst[tId])
+	if(!hireAgainst.get(tId))
 		pr = std::min(0.58, (u - 1.5 * thresh) / 100.0);
 	else pr = 1 - (thresh - u) / 100.0;
-	hireAgainst[tId] = ::bernoulliSuccess(pr, "advc.104 (can hire)");
-}
-
-bool WarAndPeaceCache::canTrainDeepSeaCargo() const {
-
-	return trainDeepSeaCargo;
-}
-
-bool WarAndPeaceCache::canTrainAnyCargo() const {
-
-	return trainAnyCargo;
-}
-
-bool WarAndPeaceCache::isFocusOnPeacefulVictory() const {
-
-	return focusOnPeacefulVictory;
+	hireAgainst.set(tId, ::bernoulliSuccess(pr, "advc.104 (can hire)"));
 }
 
 WarAndPeaceCache const& WarAndPeaceCache::leaderCache() const {
 
 	if(ownerId == GET_TEAM(ownerId).getLeaderID())
 		return *this;
-	else return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().
-			getCache();
+	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache();
 }
-
 WarAndPeaceCache& WarAndPeaceCache::leaderCache() {
-	// Same code as above; no elegant way to avoid this, I think.
+
 	if(ownerId == GET_TEAM(ownerId).getLeaderID())
 		return *this;
-	else return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().
-			getCache();
-}
-
-int WarAndPeaceCache::numReachableCities(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return -1;
-	return nReachableCities[civId];
+	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache();
 }
 
 WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(int plotIndex) const {
 
-	std::map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
+	stdext::hash_map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
 	// Verify that the city still exists
 	if(pos == cityMap.end() || pos->second->city() == NULL)
 		return NULL;
@@ -831,81 +704,41 @@ void WarAndPeaceCache::updateLatestTurnReachableBySea() {
 	}
 }
 
-/* Any trait that gives free Combat I (or any other promotion that grants
-   an unconditional combat bonus). */
-void WarAndPeaceCache::updateHasAggressiveTrait() {
+void WarAndPeaceCache::updateTraits() {
 
 	bHasAggressiveTrait = false;
-	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
-		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i) &&
-				GC.getInfo((TraitTypes)i).isAnyFreePromotion()) {
-			for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
-				if(GC.getInfo((PromotionTypes)j).getCombatPercent() > 0
-						&& GC.getInfo((TraitTypes)i).isFreePromotion(j)) {
-					bHasAggressiveTrait = true;
-					return;
-				}
-			}
-		}
-	}
-}
-
-bool WarAndPeaceCache::hasAggressiveTrait() const {
-
-	return bHasAggressiveTrait;
-}
-
-bool WarAndPeaceCache::canScrubFallout() const {
-
-	return canScrub;
-}
-
-/* Any trait that gives free Garrison I (or any other promotion that
-   boosts city defense). */
-void WarAndPeaceCache::updateHasProtectiveTrait() {
-
 	bHasProtectiveTrait = false;
-	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
-		if(GET_PLAYER(ownerId).hasTrait((TraitTypes)i) &&
-				GC.getInfo((TraitTypes)i).isAnyFreePromotion()) {
-			for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
-				if(GC.getInfo((PromotionTypes)j).
-						getCityDefensePercent() > 0
-						&& GC.getInfo((TraitTypes)i).isFreePromotion(j)) {
-					bHasProtectiveTrait = true;
-					return;
-				}
-			}
+	FOR_EACH_ENUM(Trait) {
+		if(!GET_PLAYER(ownerId).hasTrait(eLoopTrait) ||
+				!GC.getInfo(eLoopTrait).isAnyFreePromotion())
+			continue;
+		FOR_EACH_ENUM(Promotion) {
+			if (!GC.getInfo(eLoopTrait).isFreePromotion(eLoopPromotion))
+				continue;
+			if(GC.getInfo(eLoopPromotion).getCombatPercent() > 0)
+				bHasAggressiveTrait = true;
+			else if(GC.getInfo(eLoopPromotion).getCityDefensePercent() > 0)
+				bHasProtectiveTrait = true;
 		}
 	}
-}
-
-bool WarAndPeaceCache::hasProtectiveTrait() const {
-
-	return bHasProtectiveTrait;
 }
 
 void WarAndPeaceCache::updateTargetMissionCounts() {
 
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++)
-		updateTargetMissionCount(getWPAI.properCivs()[i]);
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		updateTargetMissionCount(it->getID());
 }
 
 void WarAndPeaceCache::updateThreatRatings() {
 
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		threatRatings[civId] = calculateThreatRating(civId);
-	}
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		threatRatings.set(it->getID(), (float)calculateThreatRating(it->getID()));
 }
 
 void WarAndPeaceCache::updateVassalScores() {
 
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		if(GET_TEAM(civId).isHasMet(TEAMID(ownerId)))
-			updateVassalScore(civId);
-	}
+	for(PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
+		updateVassalScore(it->getID());
 }
 
 void WarAndPeaceCache::updateAdjacentLand() {
@@ -913,13 +746,14 @@ void WarAndPeaceCache::updateAdjacentLand() {
 	CvMap& m = GC.getMap();
 	for(int i = 0; i < m.numPlots(); i++) {
 		CvPlot const& p = m.getPlotByIndex(i);
-		if(p.isWater()) continue;
+		if(p.isWater())
+			continue;
 		PlayerTypes o = p.getOwner();
 		if(o == NO_PLAYER || !GET_PLAYER(o).isAlive() || o == BARBARIAN_PLAYER ||
 				TEAMID(o) == TEAMID(ownerId) || GET_PLAYER(o).isMinorCiv())
 			continue;
 		if(p.isAdjacentPlayer(ownerId, true))
-			adjacentLand[o]++;
+			adjacentLand.add(o, 1);
 	}
 }
 // <advc.035>
@@ -929,8 +763,8 @@ void WarAndPeaceCache::updateLostTilesAtWar() {
 	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return;
 	CvTeam const& ownerTeam = GET_TEAM(ownerId);
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		TeamTypes tId = (TeamTypes)i;
+	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		TeamTypes tId = it->getID();
 		std::vector<CvPlot*> flipped;
 		::contestedPlots(flipped, ownerTeam.getID(), tId);
 		int lost = 0;
@@ -940,15 +774,15 @@ void WarAndPeaceCache::updateLostTilesAtWar() {
 			if(plotTeamId == (ownerTeam.isAtWar(tId) ? tId : ownerTeam.getID()))
 				lost++;
 		}
-		lostTilesAtWar[i] = lost;
+		lostTilesAtWar.set(tId, lost);
 	}
 } // </advc.035>
 
 void WarAndPeaceCache::updateRelativeNavyPower() {
 
 	/*PROFILE_FUNC();
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];*/
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();*/
 		/*  Tbd.:
 			Exact result: (their navy power) /
 						  (their total power from navy, army, home guard)
@@ -999,7 +833,7 @@ void WarAndPeaceCache::updateTargetMissionCount(PlayerTypes civId) {
 			r += selGroup->getCargo();
 		}
 	}
-	targetMissionCounts[civId] = r;
+	targetMissionCounts.set(civId, r);
 }
 
 double WarAndPeaceCache::calculateThreatRating(PlayerTypes civId) const {
@@ -1047,20 +881,15 @@ double WarAndPeaceCache::teamThreat(TeamTypes tId) const {
 		diploFactor -= 0.2;
 	diploFactor = ::dRange(diploFactor, 0.0, 1.0);
 	// Less likely to attack us if there are many targets to choose from
-	double altTargetsDivisor = 0;
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		if(!GET_TEAM(getWPAI.properTeams()[i]).isAVassal())
-			altTargetsDivisor++;
-	}
-	altTargetsDivisor /= 5;
-	return diploFactor * powFactor / std::max(0.35, altTargetsDivisor);
+	double altTargetsDivisor = TeamIter<FREE_MAJOR_CIV>::count();
+	return diploFactor * powFactor / std::max(0.35, altTargetsDivisor / 5);
 }
 
 double WarAndPeaceCache::longTermPower(TeamTypes tId, bool defensive) const {
 
 	double r = 0.001;
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		CvPlayerAI const& civ = GET_PLAYER(getWPAI.properCivs()[i]);
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		CvPlayerAI const& civ = *it;
 		TeamTypes mId = civ.getMasterTeam();
 		if(mId != tId && (!defensive || !GET_TEAM(mId).isDefensivePact(tId)))
 			continue;
@@ -1085,24 +914,22 @@ double WarAndPeaceCache::longTermPower(TeamTypes tId, bool defensive) const {
 void WarAndPeaceCache::updateVassalScore(PlayerTypes civId) {
 
 	int techScore = 0;
-	for(int i = 0; i < GC.getNumTechInfos(); i++) {
+	FOR_EACH_ENUM(Tech) {
 		TradeData item;
-		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
+		setTradeItem(&item, TRADE_TECHNOLOGIES, eLoopTech);
 		if(GET_PLAYER(civId).canTradeItem(ownerId, item, false))
-			techScore += GET_TEAM(ownerId).AI_techTradeVal((TechTypes)i,
-					TEAMID(civId), true);
+			techScore += GET_TEAM(ownerId).AI_techTradeVal(eLoopTech, TEAMID(civId), true);
 	}
-	vassalTechScores[civId] = techScore;
+	vassalTechScores.set(civId, techScore);
 	int nMasterResources = 0;
 	int nTribute = 0;
-	for(int i = 0; i < GC.getNumBonusInfos(); i++) {
-		BonusTypes res = (BonusTypes)i;
-		if(GET_TEAM(ownerId).isBonusObsolete(res))
+	FOR_EACH_ENUM(Bonus) {
+		if(GET_TEAM(ownerId).isBonusObsolete(eLoopBonus))
 			continue;
-		TechTypes revealTech = (TechTypes)GC.getInfo(res).getTechReveal();
+		TechTypes revealTech = (TechTypes)GC.getInfo(eLoopBonus).getTechReveal();
 		bool availableToMaster = false;
 		if(GET_TEAM(ownerId).isHasTech(revealTech)) {
-			if(GET_PLAYER(ownerId).getNumAvailableBonuses(res) > 0) {
+			if(GET_PLAYER(ownerId).getNumAvailableBonuses(eLoopBonus) > 0) {
 				nMasterResources++;
 				availableToMaster = true;
 			}
@@ -1113,37 +940,11 @@ void WarAndPeaceCache::updateVassalScore(PlayerTypes civId) {
 		if(!GET_TEAM(ownerId).isHasTech(revealTech)
 				|| !GET_TEAM(civId).isHasTech(revealTech))
 			continue;
-		if(GET_PLAYER(civId).getNumAvailableBonuses(res) && !availableToMaster)
+		if(GET_PLAYER(civId).getNumAvailableBonuses(eLoopBonus) && !availableToMaster)
 			nTribute++;
 	}
-	vassalResourceScores[civId] = ::round((25.0 * nTribute) /
-			std::max(4, nMasterResources));
-}
-
-vector<MilitaryBranch*> const& WarAndPeaceCache::getPowerValues() const {
-
-	return militaryPower;
-}
-
-int WarAndPeaceCache::numNonNavyUnits() const {
-
-	return nNonNavyUnits;
-}
-
-double WarAndPeaceCache::totalAssetScore() const {
-
-	return totalAssets;
-}
-
-double WarAndPeaceCache::angerFromWarWeariness(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER) return 0;
-	return wwAnger[civId];
-}
-
-double WarAndPeaceCache::goldValueOfProduction() const {
-
-	return goldPerProduction;
+	vassalResourceScores.set(civId, ::round((25.0 * nTribute) /
+			std::max(4, nMasterResources)));
 }
 
 void WarAndPeaceCache::reportUnitCreated(CvUnitInfo const& u) {
@@ -1160,8 +961,8 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 		CLinkList<TradeData> const* weReceive, CLinkList<TradeData> const* wePay) {
 
 	// Forget sponsorship once a war ends
-	sponsorshipsAgainst[enemyId] = 0;
-	sponsorsAgainst[enemyId] = NO_PLAYER;
+	sponsorshipsAgainst.set(enemyId, 0);
+	sponsorsAgainst.set(enemyId, NO_PLAYER);
 	// Evaluate reparations
 	bool bForceSuccess = false;
 	bool bForceFailure = false;
@@ -1224,11 +1025,11 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
 		intended to discourage war more than encourage it. */
 	if((((successRatio > 1.3 && bChosenWar) || successRatio > 1.5) &&
 			!bForceNoSuccess) || bForceSuccess)
-		pastWarScores[enemyId] += ::round(100 / durationFactor);
+		pastWarScores.add(enemyId, ::round(100 / durationFactor));
 	// Equal war success not good enough if we started it
 	else if(((bChosenWar || successRatio < 0.7) &&
 			!bForceNoFailure) || bForceFailure)
-		pastWarScores[enemyId] -= ::round(100 * durationFactor);
+		pastWarScores.add(enemyId, -::round(100 * durationFactor));
 }
 
 void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
@@ -1239,13 +1040,13 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 	/*  I didn't think I'd need to update the city cache during turns, so this
 		is awkward to write ... */
 	City* fromCache = NULL;
-	std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
+	stdext::hash_map<int,City*>::iterator pos = cityMap.find(c->plotNum());
 	if(pos != cityMap.end())
 		fromCache = pos->second;
 	size_t vIndex = -1;
 	if(fromCache != NULL) {
 		if(fromCache->canReach())
-			nReachableCities[oldOwnerId]--;
+			nReachableCities.add(oldOwnerId, -1);
 		cityMap.erase(pos);
 		for(vIndex = 0; vIndex < v.size(); vIndex++) {
 			if(v[vIndex] != NULL && v[vIndex]->id() == fromCache->id()) {
@@ -1264,7 +1065,7 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 	else v[vIndex] = toCache;
 	cityMap.insert(std::make_pair(toCache->id(), toCache));
 	if(toCache->canReach())
-		nReachableCities[c->getOwner()]++;
+		nReachableCities.add(c->getOwner(), 1);
 	sortCitiesByAttackPriority();
 }
 
@@ -1276,18 +1077,18 @@ void WarAndPeaceCache::reportSponsoredWar(CLinkList<TradeData> const& sponsorshi
 		return;
 	}
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	sponsorshipsAgainst[targetId] = ::round(owner.warAndPeaceAI().
+	sponsorshipsAgainst.set(targetId, ::round(owner.warAndPeaceAI().
 			/*  Need to remember the utility. The deal value may not seem much
 				10 turns from now if our economy grows.
 				Should perhaps cap dealVal at AI_declareWarTradeVal. As it is now,
 				paying the AI more than it demands makes it a bit more reluctant
 				to end the war. */
-			tradeValToUtility(owner.AI_dealVal(sponsorId, sponsorship)));
-	if(sponsorshipsAgainst[targetId] > 0)
-		sponsorsAgainst[targetId] = sponsorId;
+			tradeValToUtility(owner.AI_dealVal(sponsorId, sponsorship))));
+	if(sponsorshipsAgainst.get(targetId) > 0)
+		sponsorsAgainst.set(targetId, sponsorId);
 	else {
-		sponsorshipsAgainst[targetId] = 0;
-		sponsorsAgainst[targetId] = NO_PLAYER;
+		sponsorshipsAgainst.set(targetId, 0);
+		sponsorsAgainst.set(targetId, NO_PLAYER);
 	}
 }
 
@@ -1320,13 +1121,14 @@ void WarAndPeaceCache::addTeam(PlayerTypes otherLeaderId) {
 	// Get the team-related data from the other team's leader
 	WarAndPeaceCache& other = GET_PLAYER(otherLeaderId).warAndPeaceAI().getCache();
 	// Fairly unimportant data
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		pastWarScores[i] += other.pastWarScores[i];
-		if(other.sponsorsAgainst[i] != NO_PLAYER) {
-			if(sponsorsAgainst[i] == NO_PLAYER ||
-					sponsorshipsAgainst[i] < other.sponsorshipsAgainst[i]) {
-				sponsorsAgainst[i] = other.sponsorsAgainst[i];
-				sponsorshipsAgainst[i] = other.sponsorshipsAgainst[i];
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		TeamTypes tId = it->getID();
+		pastWarScores.add(tId, other.pastWarScores.get(tId));
+		if(other.sponsorsAgainst.get(tId) != NO_PLAYER) {
+			if(sponsorsAgainst.get(tId) == NO_PLAYER ||
+					sponsorshipsAgainst.get(tId) < other.sponsorshipsAgainst.get(tId)) {
+				sponsorsAgainst.set(tId, other.sponsorsAgainst.get(tId));
+				sponsorshipsAgainst.set(tId, other.sponsorshipsAgainst.get(tId));
 			}
 		}
 	}
@@ -1339,15 +1141,16 @@ void WarAndPeaceCache::onTeamLeaderChanged(PlayerTypes formerLeaderId) {
 	PlayerTypes leaderId =  GET_TEAM(ownerId).getLeaderID();
 	if(leaderId == NO_PLAYER || formerLeaderId == leaderId)
 		return;
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		TeamTypes tId = getWPAI.properTeams()[i];
-		if(GET_TEAM(tId).isHuman())
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		TeamTypes tId = it->getID();
+		if(GET_TEAM(tId).isHuman()) {
 			GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache().
 					setReadyToCapitulate(tId, GET_PLAYER(formerLeaderId).
 					warAndPeaceAI().getCache().readyToCapitulate.count(tId) > 0);
+		}
 		GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).warAndPeaceAI().getCache().
-				warUtilityIgnDistraction[tId] = GET_PLAYER(formerLeaderId).
-				warAndPeaceAI().getCache().warUtilityIgnDistraction[tId];
+				warUtilityIgnDistraction.set(tId, GET_PLAYER(formerLeaderId).
+				warAndPeaceAI().getCache().warUtilityIgnDistraction.get(tId));
 	}
 }
 
@@ -1791,8 +1594,8 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		int y = dest->getY();
 		dest = NULL;
 		int shortestStepDist = MAX_INT;
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-			CvPlot* adj = ::plotDirection(x, y, (DirectionTypes)i);
+		FOR_EACH_ENUM(Direction) {
+			CvPlot* adj = ::plotDirection(x, y, eLoopDirection);
 			if(adj != NULL && adj->isCoastalLand(-1)) {
 				int d = ::stepDistance(start, adj);
 				if(d < shortestStepDist) {
@@ -1809,8 +1612,8 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 		int destx = dest->getX();
 		int desty = dest->getY();
 		int shortestStepDist = MAX_INT;
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);
+		FOR_EACH_ENUM(Direction) {
+			CvPlot* adj = ::plotDirection(destx, desty, eLoopDirection);
 			if(adj != NULL && adj->isWater()) {
 				int d = ::stepDistance(start, adj);
 				if(d < shortestStepDist) {
@@ -1830,18 +1633,6 @@ bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 			dom, (int)::ceil(maxDist * speedEstimate));
 	return (*r >= 0);
 } // </advc.104b>
-
-void WarAndPeaceCache::City::cityCross(vector<CvPlot*>& r) {
-
-	if(city() == NULL) {
-		FAssert(r.empty());
-		r.reserve(21);
-		for(int i = 0; i < 21; i++)
-			r.push_back(NULL);
-		return;
-	}
-	return ::cityCross(*city()->plot(), r);
-}
 
 void WarAndPeaceCache::City::updateAssetScore() {
 
@@ -1881,8 +1672,8 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;
 	vector<CvPlot*> fc;
-	cityCross(fc);
-	for(int i = 0; i < 21; i++) {
+	::cityCross(*c.plot(), fc);
+	for(size_t i = 0; i < fc.size(); i++) {
 		CvPlot const* pp = fc[i];
 		if(pp == NULL)
 			continue;
@@ -1953,5 +1744,3 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	r = std::max(0.0, r);
 	assetScore = ::round(cacheOwner.warAndPeaceAI().amortizationMultiplier() * r);
 }
-
-// </advc.104>

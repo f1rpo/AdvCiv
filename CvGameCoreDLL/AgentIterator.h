@@ -8,6 +8,7 @@
 
 #include "AgentPredicates.h"
 #include "CvAgents.h"
+#include "CvGame.h" // for bSYNCRAND_ORDER
 
 class CvTeam;
 class CvPlayer;
@@ -46,7 +47,7 @@ protected:
 			CvAgents::MEMBER :
 			(eSTATUS == EVER_ALIVE && eRELATION == ANY_AGENT_RELATION) ?
 			CvAgents::CIV_EVER_ALIVE :
-			((eSTATUS == ALIVE || eSTATUS == NON_BARB) && eRELATION == ANY_AGENT_RELATION) ?
+			((eSTATUS == ALIVE || eSTATUS == CIV_ALIVE) && eRELATION == ANY_AGENT_RELATION) ?
 			CvAgents::CIV_ALIVE :
 			(eSTATUS == ALIVE && eRELATION == MEMBER_OF) ?
 			CvAgents::MEMBER_ALIVE :
@@ -78,10 +79,12 @@ protected:
 #define bAPPLY_FILTERS (eCACHE_SUBSETEQ == CvAgents::NO_CACHE)
 #define _bADD_BARBARIANS(eCACHE) (eCACHE != CvAgents::ALL && eCACHE != CvAgents::MEMBER && \
 		eCACHE != CvAgents::MEMBER_ALIVE && eCACHE != CvAgents::VASSAL_ALIVE)
-#define bADD_BARBARIANS ((bAPPLY_FILTERS && _bADD_BARBARIANS(eCACHE_SUPER)) || \
-		(!bAPPLY_FILTERS && _bADD_BARBARIANS(eCACHE_SUBSETEQ)))
+#define bADD_BARBARIANS (eSTATUS < CIV_ALIVE && eRELATION != VASSAL_OF && \
+		eRELATION != NOT_A_RIVAL_OF && ((bAPPLY_FILTERS && _bADD_BARBARIANS(eCACHE_SUPER)) || \
+		(!bAPPLY_FILTERS && _bADD_BARBARIANS(eCACHE_SUBSETEQ))))
 
-template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION>
+template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION,
+		bool bSYNCRAND_ORDER = false>
 class AgentIterator : ExplicitAgentIterator<AgentType, eSTATUS, eRELATION>
 {
 public:
@@ -95,8 +98,41 @@ public:
 		return *m_pNext;
 	}
 
+	__forceinline AgentType* operator->()
+	{
+		return m_pNext;
+	}
+
+	/*  Like ListIterator.nextIndex in Java: "The index of the element that would be
+		returned by a subsequent call to next [i.e. computeNext], or
+		list size [sequence length] if the list iterator [AgentIterator] is at the end
+		of the list [sequence]" */
+	inline int nextIndex() const
+	{
+		return (bAPPLY_FILTERS ? m_iPos - m_iSkipped : m_iPos);
+	}
+
+	static int count(TeamTypes eTeam = NO_TEAM)
+	{
+		AgentIterator<AgentType,eSTATUS,eRELATION,bSYNCRAND_ORDER> it(eTeam);
+		if (bAPPLY_FILTERS)
+		{
+			while (it.hasNext())
+				it.generateNext();
+			return it.nextIndex();
+		}
+		int r = it.m_iCacheSize;
+		if (bADD_BARBARIANS)
+		{
+			if (eRELATION == ANY_AGENT_RELATION || it.passFilters(*getBarbarianAgent()))
+				r++;
+		}
+		return r;
+	}
+
 protected:
-	AgentIterator(TeamTypes eTeam = NO_TEAM) : ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>(eTeam)
+	AgentIterator(TeamTypes eTeam = NO_TEAM) : ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>(eTeam),
+		m_iSkipped(0)
 	{
 		/*  ExplicitAgentIterator gets instantiated for all combinations of template parameters,
 			so these static assertions would fail in that class. In this derived class, they'll
@@ -123,7 +159,15 @@ protected:
 		m_iPos = 0;
 		// Cache the cache size (std::vector computes it as 'end' minus 'begin')
 		m_iCacheSize = m_pCache->size();
+		if (bSYNCRAND_ORDER)
+			m_aiShuffledIndices = ::shuffle(m_iCacheSize, GC.getGame().getSorenRand());
 		generateNext();
+	}
+
+	inline ~AgentIterator()
+	{
+		if (bSYNCRAND_ORDER)
+			delete[] m_aiShuffledIndices;
 	}
 
 	AgentIterator& operator++()
@@ -149,18 +193,22 @@ protected:
 				m_iPos++;
 				// Currently all status predicates are already handled by bADD_BARBARIANS
 				if (eRELATION != ANY_AGENT_RELATION && !passFilters(*m_pNext))
+				{
 					m_pNext = NULL;
+					m_iSkipped++;
+				}
 				return;
 			case -1:
 				m_pNext = NULL;
 				return;
-			default: m_pNext = (*m_pCache)[m_iPos];
+			default:
+				setNextFromCache();
 			}
 		}
 		else
 		{
 			if (m_iPos < m_iCacheSize)
-				m_pNext = (*m_pCache)[m_iPos];
+				setNextFromCache();
 			else
 			{
 				m_pNext = NULL;
@@ -173,6 +221,7 @@ protected:
 			if (!passFilters(*m_pNext))
 			{
 				m_pNext = NULL;
+				m_iSkipped++;
 				generateNext(); // tail recursion
 			}
 		}
@@ -182,23 +231,32 @@ private:
 	std::vector<AgentType*> const* m_pCache;
 	short m_iCacheSize;
 	short m_iPos;
+	short m_iSkipped;
 	AgentType* m_pNext;
+	int* m_aiShuffledIndices; // only used if bSYNCRAND_ORDER
+
+	inline void setNextFromCache()
+	{
+		if (bSYNCRAND_ORDER)
+			m_pNext = (*m_pCache)[m_aiShuffledIndices[m_iPos]];
+		else m_pNext = (*m_pCache)[m_iPos];
+	}
 
 	// Don't want to assume that BARBARIAN_PLAYER==BARBARIAN_TEAM
-	__forceinline AgentType* getBarbarianAgent() const
+	static __forceinline AgentType* getBarbarianAgent()
 	{
 		return _getBarbarianAgent<AgentType>();
 	}
 	template<class T>
-	T* _getBarbarianAgent() const;
+	static T* _getBarbarianAgent();
 	template<>
-	__forceinline CvPlayerAI* _getBarbarianAgent<CvPlayerAI>() const
+	static __forceinline CvPlayerAI* _getBarbarianAgent<CvPlayerAI>()
 	{
 		// Don't want to include an AI header for GET_PLAYER
 		return (*m_pAgents->getAgentSeqCache<CvPlayerAI>(CvAgents::ALL))[BARBARIAN_PLAYER];
 	}
 	template<>
-	__forceinline CvTeamAI* _getBarbarianAgent<CvTeamAI>() const
+	static __forceinline CvTeamAI* _getBarbarianAgent<CvTeamAI>()
 	{
 		return (*m_pAgents->getAgentSeqCache<CvTeamAI>(CvAgents::ALL))[BARBARIAN_TEAM];
 	}
@@ -209,11 +267,14 @@ private:
 
 // For lack of C++11 alias declarations:
 
-template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION>
-class PlayerIter : public AgentIterator<CvPlayerAI, eSTATUS, eRELATION>
+template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
+		bool bSYNCRAND_ORDER = false>
+class PlayerIter : public AgentIterator<CvPlayerAI, eSTATUS, eRELATION, bSYNCRAND_ORDER>
 {
 public:
-	explicit PlayerIter(TeamTypes eTeam = NO_TEAM) : AgentIterator<CvPlayerAI,eSTATUS,eRELATION>(eTeam) {}
+	explicit PlayerIter(TeamTypes eTeam = NO_TEAM) :
+		AgentIterator<CvPlayerAI,eSTATUS,eRELATION,bSYNCRAND_ORDER>(eTeam)
+	{}
 	__forceinline PlayerIter& operator++()
 	{
 		generateNext();
@@ -221,11 +282,13 @@ public:
 	}
 };
 
-template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION>
-class TeamIter : public AgentIterator<CvTeamAI, eSTATUS, eRELATION>
+template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
+		bool bSYNCRAND_ORDER = false>
+class TeamIter : public AgentIterator<CvTeamAI, eSTATUS, eRELATION, bSYNCRAND_ORDER>
 {
 public:
-	explicit TeamIter(TeamTypes eTeam = NO_TEAM) : AgentIterator<CvTeamAI,eSTATUS,eRELATION>(eTeam)
+	explicit TeamIter(TeamTypes eTeam = NO_TEAM) :
+		AgentIterator<CvTeamAI,eSTATUS,eRELATION,bSYNCRAND_ORDER>(eTeam)
 	{
 		// Can't loop over all "teams that are member of eTeam"
 		BOOST_STATIC_ASSERT(eRELATION != MEMBER_OF);
@@ -237,12 +300,14 @@ public:
 	}
 };
 
-// A bit nicer than PlayerIter</*...*/,MEMBER_OF>
-template<AgentStatusPredicate eSTATUS = ALIVE>
-class MemberIter : public PlayerIter<eSTATUS, MEMBER_OF>
+//template<AgentStatusPredicate eSTATUS = ALIVE>
+/*  The above would require empty angle brackets for members alive.
+	I expect that a status other than ALIVE will rarely be needed;
+	will have to use PlayerIter for that. */
+class MemberIter : public PlayerIter<ALIVE, MEMBER_OF>
 {
 public:
-	explicit MemberIter(TeamTypes eTeam) : PlayerIter<eSTATUS,MEMBER_OF>(eTeam) {}
+	explicit MemberIter(TeamTypes eTeam) : PlayerIter<ALIVE,MEMBER_OF>(eTeam) {}
 	__forceinline MemberIter& operator++()
 	{
 		generateNext();

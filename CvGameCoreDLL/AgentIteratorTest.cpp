@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvAgents.h"
-#include "AgentIterator.h"
 #include "CvAI.h"
 
 //#define AGENT_ITERATOR_TEST
@@ -56,7 +55,7 @@ int TestAgentIterator(int iSamples = 1)
 
 		{
 			TSC_PROFILE("NON_BARBARIAN PlayerIter");
-			for (PlayerIter<NON_BARB> it; it.hasNext(); ++it)
+			for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 			{
 				CvPlayer const& kPlayer = *it;
 				r += kPlayer.getID();

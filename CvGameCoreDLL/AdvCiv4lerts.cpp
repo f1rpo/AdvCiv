@@ -72,13 +72,6 @@ WarTradeAlert::WarTradeAlert(PlayerTypes eOwner) : AdvCiv4lert(eOwner)
 
 void WarTradeAlert::check()
 {
-	if(isSilent)
-	{
-		/*  Somehow WarAndPeaceAI isn't always up to date when alerts are
-			checked right after loading a savegame. The calls after loading
-			are silent calls; all regular calls are non-silent. */
-		getWPAI.update();
-	}
 	CvPlayer const& owner = GET_PLAYER(ownerId);
 	for(int i = 0; i < MAX_CIV_TEAMS; i++)
 	{

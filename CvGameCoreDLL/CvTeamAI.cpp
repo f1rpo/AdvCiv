@@ -147,7 +147,6 @@ void CvTeamAI::AI_doTurnPre()
 	if((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && !isBarbarian() &&
 			!isMinorCiv() && isAlive())
 	{
-		getWPAI.update();
 		/*  Calls turnPre on the team members, i.e. WarAndPeaceAI::Civ::turnPre
 			happens before CvPlayerAI::AI_turnPre. Needs to be this way b/c
 			WarAndPeaceAI::Team::doWar requires the members to be up-to-date. */
@@ -5910,18 +5909,6 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier,
 		}
 	}
 }
-
-// <advc.104>
-WarAndPeaceAI::Team& CvTeamAI::warAndPeaceAI()
-{
-	return *m_pWpai;
-}
-
-
-WarAndPeaceAI::Team const& CvTeamAI::warAndPeaceAI() const
-{
-	return *m_pWpai;
-} // </advc.104>
 
 // <advc.136a>
 bool CvTeamAI::AI_isPursuingCircumnavigation() const

@@ -1,7 +1,7 @@
 // advc.agent: New file; see comment in header.
 
 #include "CvGameCoreDLL.h"
-#include "AgentIterator.h"
+//#include "AgentIterator.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 
@@ -75,8 +75,8 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 	{
 	case ANY_AGENT_STATUS:
 		break;
-	case NON_BARB:
-		if (isBarbarian<args>(kAgent))
+	case CIV_ALIVE:
+		if (isBarbarian<args>(kAgent) || !isAlive<args>(kAgent))
 			return false;
 		break;
 	case EVER_ALIVE:
@@ -100,11 +100,11 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 				isAVassal<args>(kAgent))
 			return false;
 		break;
-	case FREE_MAJOR_AI_CIV:
+	/*case FREE_MAJOR_AI_CIV:
 		if (kAgent.isHuman() || isMinorCiv<args>(kAgent) ||
 				!isAlive<args>(kAgent) || isAVassal<args>(kAgent))
 			return false;
-		break;
+		break;*/
 	case HUMAN:
 		if (!kAgent.isHuman() || !isAlive<args>(kAgent))
 			return false;
@@ -157,11 +157,11 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 	DO(ANY_AGENT_STATUS) \
 	DO(EVER_ALIVE) \
 	DO(ALIVE) \
-	DO(NON_BARB) \
+	DO(CIV_ALIVE) \
 	DO(MAJOR_CIV) \
 	/*DO(VASSAL)*/ \
 	DO(FREE_MAJOR_CIV) \
-	DO(FREE_MAJOR_AI_CIV) \
+	/*DO(FREE_MAJOR_AI_CIV)*/ \
 	DO(HUMAN)
 
 #define DO_FOR_EACH_RELATION(S, DO) \

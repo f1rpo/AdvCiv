@@ -9384,7 +9384,6 @@ void CvGame::allGameDataRead()
 		m_iCivTeamsEverAlive = countCivTeamsEverAlive();
 	// </advc.opt>
 	GC.getAgents().gameStart(true); // advc.agent
-	getWPAI.update(); // advc.104
 	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
 	m_bAllGameDataRead = true;
 	// <advc.127> Save created during AI Auto Play

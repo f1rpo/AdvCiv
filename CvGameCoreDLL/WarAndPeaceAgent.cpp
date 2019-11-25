@@ -1,4 +1,4 @@
-// <advc.104> New classes; see WarAndPeaceAI.h.
+// advc.104: New classes; see WarAndPeaceAI.h.
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceAgent.h"
@@ -47,9 +47,8 @@ void WarAndPeaceAI::Team::turnPre() {
 		for WarAndPeaceAI::Civ.
 		Need to call WarAndPeaceAI::Civ::turnPre already during the team turn
 		b/c the update to WarAndPeaceCache is important for war planning. */
-	for(size_t i = 0; i < members.size(); i++)
-		if(GET_PLAYER(members[i]).isAlive())
-			GET_PLAYER(members[i]).warAndPeaceAI().turnPre();
+	for(MemberIter it(agentId); it.hasNext(); ++it)
+		it->warAndPeaceAI().turnPre();
 }
 
 void WarAndPeaceAI::Team::write(FDataStreamBase* stream) {
@@ -90,10 +89,8 @@ void WarAndPeaceAI::Team::doWar() {
 	if(agent.isHuman() || agent.isAVassal()) {
 		report->log("%s is %s", report->teamName(agentId), (agent.isHuman() ?
 				"human" : "a vassal"));
-		for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-			TeamTypes targetId = getWPAI._properTeams[i];
-			if(targetId == agentId)
-				continue;
+		for(TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+			TeamTypes targetId = it->getID();
 			WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 			if(wp == WARPLAN_ATTACKED_RECENT)
 				considerPlanTypeChange(targetId, 0);
@@ -127,25 +124,24 @@ void WarAndPeaceAI::Team::doWar() {
 	WarAndPeaceCache& cache = leaderCache();
 	if(reviewWarPlans()) {
 		scheme();
-		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-			if(agent.AI_isSneakAttackPreparing((TeamTypes)i))
-				cache.setCanBeHiredAgainst((TeamTypes)i, true);
+		for(TeamIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+			TeamTypes targetId = it->getID();
+			if(agent.AI_isSneakAttackPreparing(targetId))
+				cache.setCanBeHiredAgainst(targetId, true);
 		}
 	}
 	else {
 		report->log("No scheming b/c clearly busy with current wars");
-		for(int i = 0; i < MAX_CIV_TEAMS; i++)
-			cache.setCanBeHiredAgainst((TeamTypes)i, false);
+		for(TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
+			cache.setCanBeHiredAgainst(it->getID(), false);
 	}
 	closeReport();
 }
 
 bool WarAndPeaceAI::Team::isKnownToBeAtWar(TeamTypes observer) const {
 
-	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-		TeamTypes tId = getWPAI._properTeams[i];
-		if(GET_TEAM(agentId).isAtWar(tId) &&
-				(observer == NO_TEAM || GET_TEAM(observer).isHasMet(tId)))
+	for(TeamIter<MAJOR_CIV,ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+		if(observer == NO_TEAM || GET_TEAM(observer).isHasMet(it->getID()))
 			return true;
 	}
 	return false;
@@ -154,22 +150,18 @@ bool WarAndPeaceAI::Team::isKnownToBeAtWar(TeamTypes observer) const {
 bool WarAndPeaceAI::Team::hasDefactoDefensivePact(TeamTypes allyId) const {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
-	return agent.isDefensivePact(allyId) || agent.isVassal(allyId)
-			|| GET_TEAM(allyId).isVassal(agentId) ||
+	return (agent.isDefensivePact(allyId) || agent.isVassal(allyId) ||
+			GET_TEAM(allyId).isVassal(agentId) ||
 			(agent.getMasterTeam() == GET_TEAM(allyId).getMasterTeam() &&
-			agent.getID() != allyId);
+			agent.getID() != allyId));
 }
 
 bool WarAndPeaceAI::Team::canReach(TeamTypes targetId) const {
 
-	int nReachableCities = 0;
-	vector<PlayerTypes>& targetMembers = GET_TEAM(targetId).warAndPeaceAI().
-				teamMembers();
-	for(size_t i = 0; i < targetMembers.size(); i++) {
-		for(size_t j = 0; j < members.size(); j++) {
-			nReachableCities += GET_PLAYER(members[j]).warAndPeaceAI().
-					getCache().numReachableCities(targetMembers[i]);
-			if(nReachableCities > 0)
+	for(MemberIter targetIt(targetId); targetIt.hasNext(); ++targetIt) {
+		for(MemberIter agentIt(agentId); agentIt.hasNext(); ++agentIt) {
+			if (agentIt->warAndPeaceAI().getCache().
+					numReachableCities(targetIt->getID()) > 0)
 				return true;
 		}
 	}
@@ -188,24 +180,26 @@ WarAndPeaceAI::Civ& WarAndPeaceAI::Team::leaderWpai() {
 
 void WarAndPeaceAI::Team::addTeam(PlayerTypes otherLeaderId) {
 
-	for(size_t i = 0; i < members.size(); i++)
-		GET_PLAYER(members[i]).warAndPeaceAI().getCache().addTeam(otherLeaderId);
+	for(MemberIter it(agentId); it.hasNext(); ++it)
+		it->warAndPeaceAI().getCache().addTeam(otherLeaderId);
 }
 
 double WarAndPeaceAI::Team::utilityToTradeVal(double u) const {
 
 	double r = 0;
-	for(size_t i = 0; i < members.size(); i++)
-		r += utilityToTradeVal(u, members[i]);
-	return r / members.size();
+	MemberIter it(agentId);
+	for(; it.hasNext(); ++it)
+		r += utilityToTradeVal(u, it->getID());
+	return r / it.nextIndex();
 }
 
 double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal) const {
 
 	double r = 0;
-	for(size_t i = 0; i < members.size(); i++)
-		r += tradeValToUtility(tradeVal, members[i]);
-	return r / members.size();
+	MemberIter it(agentId);
+	for(; it.hasNext(); ++it)
+		r += tradeValToUtility(tradeVal, it->getID());
+	return r / it.nextIndex();
 }
 
 double WarAndPeaceAI::Team::utilityToTradeVal(double u,
@@ -234,23 +228,6 @@ void WarAndPeaceAI::Team::doWarReport() {
 	getWPAI.setInBackground(bInBackgr);
 }
 
-void WarAndPeaceAI::Team::updateMembers() {
-
-	members.clear();
-	for(size_t i = 0; i < getWPAI._properCivs.size(); i++) {
-		PlayerTypes civId = getWPAI._properCivs[i];
-		if(TEAMID(civId) == agentId)
-			members.push_back(civId);
-	}
-	// Can happen when called while loading a savegame
-	//FAssertMsg(!members.empty(), "Agent not a proper team");
-}
-
-vector<PlayerTypes>& WarAndPeaceAI::Team::teamMembers() {
-
-	return members;
-}
-
 struct PlanData {
 	PlanData(int u, TeamTypes id, int t, bool isNaval) :
 		u(u), id(id), t(t), isNaval(isNaval) {}
@@ -275,11 +252,11 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 	bool allLand = true, anyLand = false;
 	do {
 		vector<PlanData> plans;
-		for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-			TeamTypes targetId = getWPAI._properTeams[i];
+		for(TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+			CvTeamAI const& target = *it;
+			TeamTypes targetId = target.getID();
 			if(done.count(targetId) > 0)
 				continue;
-			CvTeamAI& target = GET_TEAM(targetId);
 			if(target.isHuman()) // considerCapitulation might set it to true
 				leaderWpai().getCache().setReadyToCapitulate(targetId, false);
 			WarPlanTypes wp = agent.AI_getWarPlan(targetId);
@@ -341,8 +318,8 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 	PROFILE_FUNC();
 	std::set<int> areasToAlign;
 	std::set<int> areasNotToAlign;
-	for(size_t i = 0; i < members.size(); i++) {
-		CvPlayerAI const& member = GET_PLAYER(members[i]);
+	for(MemberIter it(agentId); it.hasNext(); ++it) {
+		CvPlayerAI const& member = *it;
 		CvCity* capital = member.getCapitalCity();
 		if(capital == NULL)
 			continue;
@@ -484,8 +461,8 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 			// Checking missions is a bit costly, don't do it if timeout isn't near.
 			if(wpAge > timeout) {
 				// Akin to code in CvTeamAI::AI_endWarVal
-				for(size_t i = 0; i < members.size(); i++) {
-					if(GET_PLAYER(members[i]).AI_enemyTargetMissions(targetId) > 0) {
+				for(MemberIter it(agentId); it.hasNext(); ++it) {
+					if(it->AI_enemyTargetMissions(targetId) > 0) {
 						timeout *= 2;
 						break;
 					}
@@ -532,10 +509,9 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 			(The "distraction" war utility aspect also deals with this,
 			but it's normally not enough to get the AI to stop a successful
 			war before starting one that looks even more worthwhile.) */
-		for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-			TeamTypes otherId = getWPAI._properTeams[i];
-			if(GET_TEAM(otherId).isAVassal() ||
-					!agent.AI_isSneakAttackReady(otherId))
+		for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+			TeamTypes otherId = it->getID();
+			if(!agent.AI_isSneakAttackReady(otherId))
 				continue;
 			report->log("Considering peace with %s to focus on"
 					" imminent war against %s; evaluating two-front war:",
@@ -583,7 +559,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 				CONTACT_PEACE_TREATY);
 		int atWarCounter = agent.AI_getAtWarCounter(targetId);
 		if(contactDelay > 0 || agent.AI_getWarPlan(targetId) == WARPLAN_ATTACKED_RECENT ||
-				agentLeader.AI_refuseToTalkTurns(target.getLeaderID()) >  atWarCounter) {
+				agentLeader.AI_refuseToTalkTurns(target.getLeaderID()) > atWarCounter) {
 			if(contactDelay > 0) {
 				report->log("No peace with human sought b/c of contact delay: %d",
 						contactDelay);
@@ -678,8 +654,8 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		return false; // Have become a vassal, or awaiting human response.
 	// Liberate any colonies (to leave sth. behind, or just to spite the enemy)
 	if(!inBackgr) {
-		for(size_t i = 0; i < members.size(); i++)
-			GET_PLAYER(members[i]).AI_doSplit(true);
+		for(MemberIter it(agentId); it.hasNext(); ++it)
+			it->AI_doSplit(true);
 	}
 	if(agent.getNumCities() != cities) {
 		report->log("Empire split");
@@ -767,14 +743,9 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
 
 	CvPlayerAI& ourLeader = GET_PLAYER(GET_TEAM(agentId).getLeaderID());
-	/*  Let's go through them backwards for a change. This means human last
-		(normally), which is just as well: human probably would've contacted
-		us already if they wanted us to be their vassal, and we don't get an
-		immediate response if we contact a human. */
-	vector<TeamTypes> const& properTeams = getWPAI.properTeams();
-	for(int i = (int)properTeams.size() - 1; i >= 0; i--) {
-		CvTeamAI& master = GET_TEAM(properTeams[i]);
-		if(master.getID() == agentId || master.isAtWar(agentId) ||
+	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF,true> it(agentId); it.hasNext(); ++it) {
+		CvTeamAI& master = *it;
+		if(master.isAtWar(agentId) ||
 				// No point if they're already our ally
 				master.isAtWar(enemyId) ||
 				!ourLeader.canContact(master.getLeaderID(), true))
@@ -964,8 +935,8 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	int bestUtility = 0;
 	bool qualms = (timeRemaining > 0 && agent.AI_isAvoidWar(targetId));
 	bool altQualms = false;
-	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-		TeamTypes altTargetId = getWPAI._properTeams[i];
+	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+		TeamTypes altTargetId = it->getID();
 		if(!canSchemeAgainst(altTargetId, false) ||
 				agent.turnsOfForcedPeaceRemaining(altTargetId) > timeRemaining)
 			continue;
@@ -1212,9 +1183,9 @@ void WarAndPeaceAI::Team::scheme() {
 		report->log("No scheming b/c already a war in preparation");
 		return;
 	}
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		CvTeamAI const& minor = GET_TEAM((TeamTypes)i);
-		if(!minor.isAlive() || !minor.isMinorCiv())
+	for(TeamIter<CIV_ALIVE> it; it.hasNext(); ++it) {
+		CvTeamAI const& minor = *it;
+		if(!minor.isMinorCiv())
 			continue;
 		int closeness = agent.AI_teamCloseness(minor.getID());
 		if(closeness >= 40 && minor.AI_isLandTarget(agentId) &&
@@ -1229,8 +1200,8 @@ void WarAndPeaceAI::Team::scheme() {
 	CvLeaderHeadInfo& lh = GC.getInfo(GET_PLAYER(agent.getLeaderID()).
 			getPersonalityType());
 	WarAndPeaceCache& cache = leaderCache();
-	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-		TeamTypes targetId = getWPAI._properTeams[i];
+	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+		TeamTypes targetId = it->getID();
 		if(!canSchemeAgainst(targetId, true))
 			cache.setCanBeHiredAgainst(targetId, false);
 		if(!canSchemeAgainst(targetId, false))
@@ -1498,8 +1469,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	return r;
 }
 
-DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId,
-		TeamTypes brokerId) const {
+DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) const {
 
 	/*  Can't broker in a war that they're involved in (not checked by caller;
 		BtS allows it). */
@@ -1523,8 +1493,7 @@ DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId,
 	else return DENIAL_CONTACT_THEM;
 }
 
-int WarAndPeaceAI::Team::makePeaceTradeVal(TeamTypes enemyId,
-		TeamTypes brokerId) const {
+int WarAndPeaceAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const {
 
 	int ourReluct = reluctanceToPeace(enemyId);
 	// Demand at least a token payment equivalent to 3 war utility
@@ -1654,11 +1623,9 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 int WarAndPeaceAI::Team::uEndAllWars(VoteSourceTypes vs) const {
 
 	vector<TeamTypes> warEnemies;
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		CvTeam const& t = GET_TEAM(getWPAI.properTeams()[i]);
-		if(t.isAtWar(agentId) && !t.isAVassal() && (vs == NO_VOTESOURCE ||
-				t.isVotingMember(vs)))
-			warEnemies.push_back(t.getID());
+	for(TeamIter<FREE_MAJOR_CIV,ENEMY_OF> it(agentId); it.hasNext(); ++it) {
+		if(vs == NO_VOTESOURCE || it->isVotingMember(vs))
+			warEnemies.push_back(it->getID());
 	}
 	if(warEnemies.empty()) {
 		FAssert(!warEnemies.empty());
@@ -1694,14 +1661,12 @@ int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, VoteSourceTypes vs) const
 				rep.teamName(targetId));
 	}
 	vector<TeamTypes> allies;
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		CvPlayer const& civ = GET_PLAYER(getWPAI.properCivs()[i]);
-		CvTeam const& t = GET_TEAM(civ.getTeam());
-		if(civ.isVotingMember(vs) && civ.getTeam() != targetId &&
-				civ.getTeam() != agentId && !t.isAtWar(targetId) &&
-				!t.isAVassal()) {
-			rep.log("%s would join as a war ally", rep.leaderName(civ.getID()));
-			allies.push_back(civ.getTeam());
+	for(PlayerIter<FREE_MAJOR_CIV,POTENTIAL_ENEMY_OF> it(targetId); it.hasNext(); ++it) {
+		CvPlayer const& ally = *it;
+		if(ally.isVotingMember(vs) && ally.getTeam() != agentId &&
+				!GET_TEAM(ally.getTeam()).isAtWar(targetId)) {
+			rep.log("%s would join as a war ally", rep.leaderName(ally.getID()));
+			allies.push_back(ally.getTeam());
 		}
 	}
 	WarEvalParameters params(agentId, targetId, rep);
@@ -1769,11 +1734,11 @@ void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 
 	vector<TeamTypes> warEnemies; // Just the new ones
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		CvTeam const& t = GET_TEAM(getWPAI.properTeams()[i]);
-		if(!t.isAVassal() && t.isAtWar(vassalId) && !t.isAtWar(agentId)) {
+	for(TeamIter<FREE_MAJOR_CIV,ENEMY_OF> it(vassalId); it.hasNext(); ++it) {
+		CvTeam const& t = *it;
+		if(!t.isAtWar(agentId)) {
 			warEnemies.push_back(t.getID());
-			FAssert(t.isHasMet(agentId)); // vassalId shouldn't ask us then
+			FAssert(t.isHasMet(agentId)); // vassalId shouldn't ask us otherwise
 		}
 	}
 	if(warEnemies.empty()) {
@@ -1800,9 +1765,10 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 	}
 	int resourceScore = 0;
 	int techScore = 0;
-	for(size_t i = 0; i < GET_TEAM(vassalId).warAndPeaceAI().members.size(); i++) {
-		resourceScore += leaderWpai().getCache().vassalResourceScore(members[i]);
-		techScore += leaderWpai().getCache().vassalTechScore(members[i]);
+	for(MemberIter it(vassalId); it.hasNext(); ++it) {
+		PlayerTypes vassalMemberId = it->getID();
+		resourceScore += leaderWpai().getCache().vassalResourceScore(vassalMemberId);
+		techScore += leaderWpai().getCache().vassalTechScore(vassalMemberId);
 	}
 	// resourceScore is already utility
 	double vassalUtility = leaderWpai().tradeValToUtility(techScore) + resourceScore;
@@ -1854,11 +1820,8 @@ bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
 	bool hasCoastalCity = false;
 	bool canReachAnyByLand = false;
 	int distLimit = getWPAI.maxLandDist();
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayerAI const& ourMember = GET_PLAYER((PlayerTypes)i);
-		if(!ourMember.isAlive() || ourMember.getTeam() != agentId)
-			continue;
-		WarAndPeaceCache const& cache = ourMember.warAndPeaceAI().getCache();
+	for(MemberIter it(agentId); it.hasNext(); ++it) {
+		WarAndPeaceCache const& cache = it->warAndPeaceAI().getCache();
 		// Sea route then unlikely to be much slower
 		if(!cache.canTrainDeepSeaCargo())
 			distLimit = MAX_INT;
@@ -1878,8 +1841,7 @@ bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
 	}
 	/*  Tactical AI can't do naval assaults on inland cities. Assume that landlocked
 		civs are land targets even if they're too far away; better than treating
-		them as entirely unreachable.
-		*/
+		them as entirely unreachable. */
 	if(!hasCoastalCity && canReachAnyByLand)
 		return true;
 	return false;
@@ -1905,8 +1867,8 @@ void WarAndPeaceAI::Team::startReport() {
 	int year = GC.getGame().getGameTurnYear();
 	report->log("h3.");
 	report->log("Year %d, %s:", year, report->teamName(agentId));
-	for(size_t i = 0; i < members.size(); i++)
-		report->log(report->leaderName(members[i], 16));
+	for(MemberIter it(agentId); it.hasNext(); ++it)
+		report->log(report->leaderName(it->getID(), 16));
 	report->log("");
 }
 
@@ -1957,14 +1919,12 @@ void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey)
 
 WarAndPeaceCache& WarAndPeaceAI::Team::leaderCache() {
 
-	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
-			getCache();
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().getCache();
 }
 
 WarAndPeaceCache const& WarAndPeaceAI::Team::leaderCache() const {
 	// Duplicate code; see also WarAndPeaceCache::leaderCache
-	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
-			getCache();
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().getCache();
 }
 
 double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
@@ -2001,23 +1961,20 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	return r;
 }
 
-void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive,
-		CLinkList<TradeData> const* wePay) {
+void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId,
+		CLinkList<TradeData> const* weReceive, CLinkList<TradeData> const* wePay) {
 
 	/*  This isn't really team-on-team data b/c each team member can have its
 		own interpretation of whether the war was successful. */
-	for(size_t i = 0; i < members.size(); i++) {
-		GET_PLAYER(members[i]).warAndPeaceAI().getCache().reportWarEnding(enemyId,
-				weReceive, wePay);
-	}
+	for(MemberIter it(agentId); it.hasNext(); ++it)
+		it->warAndPeaceAI().getCache().reportWarEnding(enemyId, weReceive, wePay);
 }
 
 int WarAndPeaceAI::Team::countNonMembers(VoteSourceTypes voteSource) const {
 
 	int r = 0;
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		if(!GET_PLAYER(civId).isVotingMember(voteSource))
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		if(!it->isVotingMember(voteSource))
 			r++;
 	}
 	return r;
@@ -2034,8 +1991,7 @@ bool WarAndPeaceAI::Team::isFastRoads() const {
 	return (GET_TEAM(agentId).getRouteChange((RouteTypes)0) <= -10);
 }
 
-double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
-		bool forceUN) const {
+double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget, bool forceUN) const {
 
 	CvGame& g = GC.getGame();
 	VoteSourceTypes voteSource = GET_TEAM(agentId).AI_getLatestVictoryVoteSource();
@@ -2047,21 +2003,25 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	FAssert((apRel == NO_RELIGION) == isUN);
 	if(forceUN)
 		isUN = forceUN;
+	if (isUN && GET_TEAM(agentId).getCurrentEra() <= 3) {
+		if(voteTarget != NULL)
+			*voteTarget = -1;
+		return -1;
+	}
 	int popThresh = -1;
 	VoteTypes victVote = NO_VOTE;
-	for(int i = 0; i < GC.getNumVoteInfos(); i++) {
-		VoteTypes voteId = (VoteTypes)i;
-		CvVoteInfo& vote = GC.getInfo(voteId);
+	FOR_EACH_ENUM(Vote) {
+		CvVoteInfo& vote = GC.getInfo(eLoopVote);
 		if((vote.getStateReligionVotePercent() == 0) == isUN && vote.isVictory()) {
 			popThresh = vote.getPopulationThreshold();
-			victVote = voteId;
+			victVote = eLoopVote;
 			break;
 		}
 	}
 	if(popThresh < 0) {
 		// OK if a mod removes the UN victory vote
-		for(int i = 0; i < GC.getNumVoteInfos(); i++) {
-			CvVoteInfo& vote = GC.getInfo((VoteTypes)i);
+		FOR_EACH_ENUM(Vote) {
+			CvVoteInfo& vote = GC.getInfo(eLoopVote);
 			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory()) {
 				FAssertMsg(false, "Could not determine vote threshold");
 				break;
@@ -2091,18 +2051,14 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	r -= ourVotes;
 	double votesFromOthers = 0;
 	/*  Will only work in obvious cases, otherwise we'll work with unknown
-		candidates (NO_TEAM) */
+		candidates (NO_TEAM). */
 	TeamTypes counterCandidate = (isUN ? diploVoteCounterCandidate(voteSource) :
 			NO_TEAM);
-	int nProperTeams = getWPAI.properTeams().size();
-	for(int i = 0; i < nProperTeams; i++) {
-		TeamTypes tId = getWPAI.properTeams()[i];
-		if(tId == agentId) // Already covered above
-			continue;
-		CvTeamAI const& t = GET_TEAM(tId);
+	// This agent: already covered above
+	for(TeamIter<FREE_MAJOR_CIV,NOT_SAME_TEAM_AS> it(agentId); it.hasNext(); ++it) {
+		CvTeamAI const& t = *it;
 		// No votes from human non-vassals
-		if((t.isHuman() && !t.isVassal(agentId)) ||
-				t.getMasterTeam() == counterCandidate)
+		if((t.isHuman() && !t.isVassal(agentId)) || t.getMasterTeam() == counterCandidate)
 			continue;
 		double pop = t.getTotalPopulation();
 		if(voteSource != NO_VOTESOURCE && !forceUN)
@@ -2122,25 +2078,22 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 	/*  To account for an unknown counter-candidate. This will usually neutralize
 		our votes from friends, leaving only our own (and vassals') votes. */
 	if(counterCandidate == NO_TEAM)
-		votesFromOthers -= 1.3 * totalPop / nProperTeams;
+		votesFromOthers -= 1.3 * totalPop / TeamIter<MAJOR_CIV>::count();
 	if(votesFromOthers > 0)
 		r -= votesFromOthers;
 	return std::max(0.0, r);
 }
 
-TeamTypes WarAndPeaceAI::Team::diploVoteCounterCandidate(VoteSourceTypes voteSource)
-		const {
+TeamTypes WarAndPeaceAI::Team::diploVoteCounterCandidate(VoteSourceTypes voteSource) const {
 
 	/*  Only cover this obvious case: we're among the two teams with the
 		most votes (clearly ahead of the third). Otherwise, don't hazard a guess. */
 	TeamTypes r = NO_TEAM;
 	int firstMostVotes = -1, secondMostVotes = -1, thirdMostVotes = -1;
-	int nProperTeams = getWPAI.properTeams().size();
-	for(int i = 0; i < nProperTeams; i++) {
-		TeamTypes tId = getWPAI.properTeams()[i];
-		CvTeam const& t = GET_TEAM(tId);
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		CvTeam const& t = *it;
 		// Someone else already controls the UN. This gets too complicated.
-		if(tId != agentId && voteSource != NO_VOTESOURCE &&
+		if(t.getID() != agentId && voteSource != NO_VOTESOURCE &&
 				t.isForceTeamVoteEligible(voteSource))
 			return NO_TEAM;
 		if(t.isAVassal()) continue;
@@ -2151,14 +2104,14 @@ TeamTypes WarAndPeaceAI::Team::diploVoteCounterCandidate(VoteSourceTypes voteSou
 					thirdMostVotes = secondMostVotes;
 					secondMostVotes = firstMostVotes;
 					firstMostVotes = v;
-					if(tId != agentId)
-						r = tId;
+					if(t.getID() != agentId)
+						r = t.getID();
 				}
 				else {
 					thirdMostVotes = secondMostVotes;
 					secondMostVotes = v;
 					if(firstMostVotes == agentId)
-						r = tId;
+						r = t.getID();
 				}
 			}
 			else thirdMostVotes = v;
@@ -2248,14 +2201,13 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	int era = we.getCurrentEra();
 	CvLeaderHeadInfo const& lh = GC.getInfo(we.getPersonalityType());
 	if(we.AI_getAttitude(humanId) <= lh.getDemandTributeAttitudeThreshold()) {
-		// Try all four types of tribute demands
-		for(int i = 0; i < 4; i++) {
+		FOR_EACH_ENUM(AIDemand) {
 			int cr = lh.getContactRand(CONTACT_DEMAND_TRIBUTE);
 			if(cr > 0) {
 				double pr = (8.5 - era) / (2 * cr);
 				// Excludes Gandhi (cr=10000 => pr<0.0005)
 				if(pr > 0.001 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
-						we.AI_demandTribute(humanId, i))
+						we.AI_demandTribute(humanId, eLoopAIDemand))
 				return true;
 			}
 			else FAssert(cr > 0);
@@ -2301,8 +2253,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	return false;
 }
 
-bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
-		int tradeVal) const {
+bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) const {
 
 	/*  Just check war utility and peace treaty here; all the other conditions
 		are handled by CvPlayerAI::AI_considerOffer. */
@@ -2389,8 +2340,8 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 	return canTradeAssets(targetTradeVal, humanId);
 }
 
-bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
-		int* r, bool ignoreCities) const {
+bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId, int* r,
+		bool ignoreCities) const {
 
 	int totalTradeVal = 0;
 	CvPlayerAI const& human = GET_PLAYER(humanId);
@@ -2400,10 +2351,10 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 		totalTradeVal += human.getGold();
 	if(totalTradeVal >= targetTradeVal && r == NULL)
 		return true;
-	for(int i = 0; i < GC.getNumTechInfos(); i++) {
-		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
+	FOR_EACH_ENUM(Tech) {
+		setTradeItem(&item, TRADE_TECHNOLOGIES, eLoopTech);
 		if(human.canTradeItem(weId, item, true)) {
-			totalTradeVal += GET_TEAM(weId).AI_techTradeVal((TechTypes)i,
+			totalTradeVal += GET_TEAM(weId).AI_techTradeVal(eLoopTech,
 					human.getTeam(), true, true);
 			if(totalTradeVal >= targetTradeVal && r == NULL)
 				return true;
@@ -2516,8 +2467,7 @@ int WarAndPeaceAI::Civ::getDominationStage() const {
 	return 0;
 }
 
-double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u,
-		double baseValue) const {
+double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) const {
 
 	double r = baseValue;
 	if(r < 0)
@@ -2548,10 +2498,10 @@ double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u,
 
 bool WarAndPeaceAI::Civ::canHurry() const {
 
-	for(HurryTypes ht = (HurryTypes)0; ht < GC.getNumHurryInfos();
-			ht = (HurryTypes)(ht + 1))
-		if(GET_PLAYER(weId).canHurry(ht))
+	FOR_EACH_ENUM(Hurry) {
+		if(GET_PLAYER(weId).canHurry(eLoopHurry))
 			return true;
+	}
 	return false;
 }
 
@@ -2617,8 +2567,7 @@ double WarAndPeaceAI::Civ::distrustRating() const {
 	return std::max(0, result) / 100.0;
 }
 
-double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
-		PlayerTypes vs) const {
+double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal, PlayerTypes vs) const {
 
 	// (param 'vs' currently unused)
 	CvPlayerAI const& we = GET_PLAYER(weId);
@@ -2658,8 +2607,7 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
 	return r / 100.0;
 }
 
-double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId,
-		bool ignoreDefOnly) const {
+double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId, bool ignoreDefOnly) const {
 
 	double fromWarSuccess = GET_TEAM(weId).warAndPeaceAI().confidenceFromWarSuccess(
 			TEAMID(targetId));
@@ -2735,8 +2683,7 @@ int WarAndPeaceAI::Civ::vengefulness() const {
 		used for inter-AI diplo modifiers.
 		The result is between 0 (Gandhi) and 10 (Montezuma). */
 	CvLeaderHeadInfo& lhi = GC.getInfo(we.getPersonalityType());
-	return std::max(0, lhi.getRefuseToTalkWarThreshold()
-			- lhi.getBasePeaceWeight());
+	return std::max(0, lhi.getRefuseToTalkWarThreshold() - lhi.getBasePeaceWeight());
 }
 
 double WarAndPeaceAI::Civ::protectiveInstinct() const {
@@ -2782,13 +2729,3 @@ double WarAndPeaceAI::Civ::prideRating() const {
 	CvLeaderHeadInfo& lh = GC.getInfo(we.getPersonalityType());
 	return ::dRange(lh.getMakePeaceRand() / 110.0 - 0.09, 0.0, 1.0);
 }
-
-WarAndPeaceCache const& WarAndPeaceAI::Civ::getCache() const {
-
-	return cache;
-} WarAndPeaceCache& WarAndPeaceAI::Civ::getCache() {
-
-	return cache;
-}
-
-// </advc.104>

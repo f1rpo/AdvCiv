@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvAgents.h"
-#include "AgentIterator.h"
 #include "CvAI.h"
 
 CvAgents::CvAgents(int iMaxPlayers, int iMaxTeams)
@@ -62,7 +61,7 @@ void CvAgents::updateAllCachedSequences()
 		AgentSeqCache eCacheID = (AgentSeqCache)i;
 		for (int j = 0; j < iTeams; j++)
 		{
-			TeamTypes eTeam = (TeamTypes)i;
+			TeamTypes eTeam = (TeamTypes)j;
 			memberSeqCache(eCacheID, eTeam).clear();
 			teamPerTeamSeqCache(eCacheID, eTeam).clear();
 		}
@@ -146,10 +145,10 @@ void CvAgents::playerDefeated(PlayerTypes eDeadPlayer)
 	if (!GET_TEAM(eTeam).isAlive())
 	{
 		eraseFromVector(teamSeqCache(CIV_ALIVE), eTeam);
-		if (GET_TEAM(eTeam).isMinorCiv())
-			eraseFromVector(teamSeqCache(MAJOR_ALIVE), eTeam, false);
+		if (!GET_TEAM(eTeam).isMinorCiv())
+			eraseFromVector(teamSeqCache(MAJOR_ALIVE), eTeam);
 		if (eMasterTeam != eTeam)
-			eraseFromVector(teamPerTeamSeqCache(VASSAL_ALIVE, eMasterTeam), eTeam, false);
+			eraseFromVector(teamPerTeamSeqCache(VASSAL_ALIVE, eMasterTeam), eTeam);
 	}
 }
 

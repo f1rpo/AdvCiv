@@ -1,4 +1,4 @@
-// <advc.104> New class; see InvasionGraph.h for description
+// advc.104: New class; see InvasionGraph.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "InvasionGraph.h"
@@ -13,13 +13,12 @@
 #include <sstream>
 
 using std::ostringstream;
-using std::set;
 using std::vector;
 using std::string;
 
 
-InvasionGraph::InvasionGraph(MilitaryAnalyst& m,
-		set<PlayerTypes> const& warParties, bool peaceScenario) :
+InvasionGraph::InvasionGraph(MilitaryAnalyst& m, PlyrSet const& warParties,
+		bool peaceScenario) :
 		m(m), warParties(warParties),
 		report(m.evaluationParameters().getReport()),
 		isPeaceScenario(peaceScenario) {
@@ -30,14 +29,11 @@ InvasionGraph::InvasionGraph(MilitaryAnalyst& m,
 	timeLimit= -1;
 	weId = m.ourId();
 	report.log("Constructing invasion graph");
-	// Barbs get an element, but it remains NULL
-	for(int i = 0; i < MAX_PLAYERS; i++)
-		nodeMap[i] = NULL;
-	for(set<PlayerTypes>::const_iterator it = warParties.begin();
-			it != warParties.end(); it++)
+	// Barbarians, dead players get an element, but it remains NULL.
+	nodeMap.resize(MAX_PLAYERS, NULL);
+	for(PlyrSetIter it = warParties.begin(); it != warParties.end(); it++)
 		nodeMap[*it] = new Node(*it, *this);
-	for(set<PlayerTypes>::const_iterator it = warParties.begin();
-			it != warParties.end(); it++)
+	for(PlyrSetIter it = warParties.begin(); it != warParties.end(); it++)
 		nodeMap[*it]->findAndLinkTarget();
 	if(warParties.empty())
 		report.log("(no civs are currently at war)");
@@ -46,36 +42,23 @@ InvasionGraph::InvasionGraph(MilitaryAnalyst& m,
 
 InvasionGraph::~InvasionGraph() {
 
-	for(int i = 0; i < MAX_PLAYERS; i++)
-		if(nodeMap[i] != NULL)
-			delete nodeMap[i];
+	for(size_t i = 0; i < nodeMap.size(); i++)
+		SAFE_DELETE(nodeMap[i]);
 }
 
-InvasionGraph::Node* InvasionGraph::getNode(PlayerTypes civId) const {
-
-	return nodeMap[civId];
-}
-
-InvasionGraph::Node& InvasionGraph::owner() const {
-
-	return *getNode(m.ourId());
-}
-
-void InvasionGraph::addFutureWarParties(
-		std::set<PlayerTypes> const& ourSide,
-		std::set<PlayerTypes> const& ourFutureOpponents) {
+void InvasionGraph::addFutureWarParties(PlyrSet const& ourSide, PlyrSet const& ourFutureOpponents) {
 
 	allWarPartiesKnown = true;
 	if(ourSide.empty())
 		return; // Don't update targets unnecessarily
-	for(set<PlayerTypes>::const_iterator it = ourSide.begin();
-			it != ourSide.end(); it++) {
+	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); it++) {
+		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::addFutureWarParties");
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 		nodeMap[*it]->addWarOpponents(ourFutureOpponents);
 	}
-	for(set<PlayerTypes>::const_iterator it = ourFutureOpponents.begin();
-			it != ourFutureOpponents.end(); it++) {
+	for(PlyrSetIter it = ourFutureOpponents.begin(); it != ourFutureOpponents.end(); it++) {
+		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::addFutureWarParties");
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 		nodeMap[*it]->addWarOpponents(ourSide);
@@ -87,19 +70,18 @@ void InvasionGraph::addFutureWarParties(
 	updateTargets();
 }
 
-void InvasionGraph::removeWar(std::set<PlayerTypes> const& ourSide,
-		std::set<PlayerTypes> const& theirSide) {
+void InvasionGraph::removeWar(PlyrSet const& ourSide, PlyrSet const& theirSide) {
 
 	allWarPartiesKnown = true;
 	if(ourSide.empty())
 		return;
-	for(set<PlayerTypes>::const_iterator it = ourSide.begin();
-			it != ourSide.end(); it++) {
+	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); it++) {
+		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::removeWar");
 		if(nodeMap[*it] != NULL)
 			nodeMap[*it]->removeWarOpponents(theirSide);
 	}
-	for(set<PlayerTypes>::const_iterator it = theirSide.begin();
-			it != theirSide.end(); it++) {
+	for(PlyrSetIter it = theirSide.begin(); it != theirSide.end(); it++) {
+		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::removeWar");
 		if(nodeMap[*it] != NULL)
 			nodeMap[*it]->removeWarOpponents(ourSide);
 	}
@@ -112,17 +94,17 @@ void InvasionGraph::removeWar(std::set<PlayerTypes> const& ourSide,
 void InvasionGraph::updateTargets() {
 
 	report.log("War parties (may) have changed; reassigning targets");
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		if(nodeMap[i] != NULL)
-			nodeMap[i]->findAndLinkTarget();
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		if(nodeMap[it->getID()] != NULL)
+			nodeMap[it->getID()]->findAndLinkTarget();
 	}
 	report.log("");
 }
 
-void InvasionGraph::addUninvolvedParties(std::set<PlayerTypes> const& parties) {
+void InvasionGraph::addUninvolvedParties(PlyrSet const& parties) {
 
-	for(set<PlayerTypes>::const_iterator it = parties.begin();
-			it != parties.end(); it++) {
+	for(PlyrSetIter it = parties.begin(); it != parties.end(); it++) {
+		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::addUninvolvedParties");
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 	}
@@ -139,6 +121,8 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	componentDone = false;
 
 	id = civId;
+	// Node ids are used for vector.operator[] accesses
+	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, id, "InvasionGraph::Node::Node");
 	weId = outer.weId;
 	eliminated = false;
 	capitulated = false;
@@ -146,18 +130,16 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	warTimeSimulated = 0;
 	productionInvested = 0;
 	primaryTarget = NULL;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		isWarOpponent[i] = false;
+	isWarOpponent.resize(MAX_CIV_PLAYERS, false);
 	CvPlayerAI& thisCiv = GET_PLAYER(id);
 	CvTeamAI& thisTeam = GET_TEAM(thisCiv.getTeam());
 	// Collect war opponents
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		TeamTypes tId = TEAMID(civId);
-		// The second condition excludes opponents that we haven't met
-		if(thisTeam.isAtWar(tId) && outer.warParties.count(civId) > 0) {
-			warOpponents.insert(civId);
-			isWarOpponent[civId] = true;
+	for(PlayerIter<MAJOR_CIV,ENEMY_OF> it(thisTeam.getID()); it.hasNext(); ++it) {
+		PlayerTypes enemyId = it->getID();
+		// Exclude enemies of thisTeam that outer.weId hasn't met
+		if(outer.warParties.count(enemyId) > 0) {
+			warOpponents.insert(enemyId);
+			isWarOpponent[enemyId] = true;
 		}
 	}
 	for(size_t i = 0; i < NUM_BRANCHES; i++)
@@ -200,9 +182,9 @@ InvasionGraph::Node::~Node() {
 		delete military[i];
 }
 
-void InvasionGraph::Node::addWarOpponents(std::set<PlayerTypes> const& wo) {
+void InvasionGraph::Node::addWarOpponents(PlyrSet const& wo) {
 
-	for(set<PlayerTypes>::const_iterator it = wo.begin(); it != wo.end(); it++) {
+	for(PlyrSetIter it = wo.begin(); it != wo.end(); it++) {
 		if(!isWarOpponent[*it] &&
 				/*  Should arguably be guaranteed somewhere higher up; not currently
 					guaranteed when there is a holy war vote. */
@@ -214,24 +196,14 @@ void InvasionGraph::Node::addWarOpponents(std::set<PlayerTypes> const& wo) {
 	FAssertMsg(!warOpponents.empty(), "Node w/o war opponents");
 }
 
-void InvasionGraph::Node::removeWarOpponents(std::set<PlayerTypes> const& wo) {
+void InvasionGraph::Node::removeWarOpponents(PlyrSet const& wo) {
 
-	for(set<PlayerTypes>::const_iterator it = wo.begin(); it != wo.end(); it++) {
+	for(PlyrSetIter it = wo.begin(); it != wo.end(); it++) {
 		if(isWarOpponent[*it]) {
 			isWarOpponent[*it] = false;
 			warOpponents.erase(*it);
 		}
 	}
-}
-
-bool InvasionGraph::Node::hasTarget() const {
-
-	return primaryTarget != NULL;
-}
-
-bool InvasionGraph::Node::isIsolated() const {
-
-	return !hasTarget() && targetedBy.empty();
 }
 
 void InvasionGraph::Node::logPower(char const* msg) const {
@@ -343,8 +315,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 	PlayerTypes mostMissions = NO_PLAYER;
 	// Tbd. possibly: Use a fraction of cache.numNonNavy as the threshold
 	int maxCount = 3;
-	for(set<PlayerTypes>::const_iterator it = warOpponents.begin();
-				it != warOpponents.end(); it++) {
+	for(PlyrSetIter it = warOpponents.begin(); it != warOpponents.end(); it++) {
 		PlayerTypes oppId = *it;
 		int n = cache.targetMissionCount(oppId);
 		if(n <= maxCount)
@@ -360,7 +331,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 			our whole cache. */
 		CvPlayer const& opp = GET_PLAYER(oppId);
 		FOR_EACH_CITY(cvCity, opp) {
-			WarAndPeaceCache::City* c = cache.lookupCity(*cvCity);
+			WarAndPeaceCache::City* c = cache.lookupCity(cvCity->plotNum());
 			if(c != NULL && c->canReach() && !outer.nodeMap[oppId]->
 					hasLost(c->id())) {
 				bValidFound = true;
@@ -411,16 +382,6 @@ bool InvasionGraph::Node::isValidTarget(WarAndPeaceCache::City const& c,
 			outer.nodeMap[owner]->hasCapitulated());
 }
 
-WarAndPeaceReport& InvasionGraph::getReport() {
-
-	return report;
-}
-
-PlayerTypes InvasionGraph::Node::getId() const {
-
-	return id;
-}
-
 size_t InvasionGraph::Node::findCycle(vector<Node*>& path) {
 
 	// Check path to detect cycle
@@ -439,9 +400,9 @@ void InvasionGraph::Node::resolveLossesRec() {
 	if(targetedBy.empty())
 		return;
 	// Copy targetedBy b/c resolveLossesRec may remove elements
-	set<PlayerTypes> tmp;
+	PlyrSet tmp;
 	tmp.insert(targetedBy.begin(), targetedBy.end());
-	for(set<PlayerTypes>::iterator it = tmp.begin(); it != tmp.end(); it++) {
+	for(PlyrSetIter it = tmp.begin(); it != tmp.end(); it++) {
 		if(targetedBy.count(*it) == 0) // Check if current element has been removed
 			continue;
 		outer.nodeMap[*it]->resolveLossesRec();
@@ -463,11 +424,6 @@ void InvasionGraph::Node::addConquest(WarAndPeaceCache::City const& c) {
 		 cacheIndex++;
 	}
 	cacheIndex++;
-}
-
-void InvasionGraph::Node::addLoss(WarAndPeaceCache::City const& c) {
-
-	losses.insert(c.id());
 }
 
 void InvasionGraph::Node::prepareForSimulation() {
@@ -554,14 +510,14 @@ void InvasionGraph::Node::predictArmament(int duration, bool noUpgrading) {
 double InvasionGraph::Node::productionPortion() const {
 
 	int lostPop = 0;
-	for(std::set<int>::const_iterator it = losses.begin();
-			it != losses.end(); it++) {
+	for(CitySetIter it = losses.begin(); it != losses.end(); it++) {
 		CvCity* c = WarAndPeaceCache::City::cityById(*it);
 		if(c != NULL)
 			lostPop += c->getPopulation();
 	}
 	int originalPop = GET_PLAYER(id).getTotalPopulation();
-	if(originalPop <= 0) return 0;
+	if(originalPop <= 0)
+		return 0;
 	FAssert(lostPop <= originalPop);
 	return (originalPop - lostPop) / ((double)originalPop);
 }
@@ -1566,16 +1522,6 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 		very minor; could overstate the distractive effect of some small war party */
 }
 
-void InvasionGraph::Node::setEliminated(bool b) {
-
-	eliminated = b;
-}
-
-bool InvasionGraph::Node::isEliminated() const {
-
-	return eliminated;
-}
-
 void InvasionGraph::Node::setCapitulated(TeamTypes masterId) {
 
 	capitulated = true;
@@ -1583,30 +1529,25 @@ void InvasionGraph::Node::setCapitulated(TeamTypes masterId) {
 	   According to the actual rules, the vassal immediately joins the
 	   wars of its master, but that gets too complicated. */
 	setEliminated(true);
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		if(outer.nodeMap[i] == NULL || i == id || outer.nodeMap[i]->isEliminated())
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
+		if(outer.nodeMap[civId] == NULL || civId == id || outer.nodeMap[civId]->isEliminated())
 			continue;
-		TeamTypes tId = (TeamTypes)TEAMID((PlayerTypes)i);
+		TeamTypes tId = TEAMID(civId);
 		if(tId == masterId)
-			outer.nodeMap[i]->capitulationsAccepted.insert(TEAMID(id));
+			outer.nodeMap[civId]->capitulationsAccepted.insert(TEAMID(id));
 		else if(tId == TEAMID(id)) {
-			bool const hasCap = outer.nodeMap[i]->hasCapitulated();
+			bool const hasCap = outer.nodeMap[civId]->hasCapitulated();
 			if(hasCap) { // Make sure not to produce a stack overflow
 				FAssert(!hasCap);
 				continue;
 			}
-			outer.nodeMap[i]->setCapitulated(masterId);
+			outer.nodeMap[civId]->setCapitulated(masterId);
 		}
 	}
 }
 
-bool InvasionGraph::Node::hasCapitulated() const {
-
-	return capitulated;
-}
-
-WarAndPeaceCache::City const* InvasionGraph::Node::targetCity(
-		PlayerTypes owner) const {
+WarAndPeaceCache::City const* InvasionGraph::Node::targetCity(PlayerTypes owner) const {
 
 	if(primaryTarget == NULL && owner == NO_PLAYER)
 		return NULL;
@@ -1635,14 +1576,9 @@ void InvasionGraph::Node::resolveLosses() {
 		report.log("Targeted by no one - no losses");
 		return;
 	}
-	SimulationStep* steps[MAX_PLAYERS];
-	int turnsSimulated[MAX_PLAYERS];
-	bool isTargetting[MAX_PLAYERS];
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		steps[i] = NULL;
-		turnsSimulated[i] = 0;
-		isTargetting[i] = false;
-	}
+	SimulationStep* steps[MAX_PLAYERS] = { NULL };
+	int turnsSimulated[MAX_PLAYERS] = { 0 };
+	bool isTargetting[MAX_PLAYERS] = { false };
 	/* Reduces distractionByDefense to 70%. Otherwise it would be implied that
 	   losses incurred from an attack by a third power
 	   lead to potential attackers closing the gap at that front.
@@ -1654,8 +1590,7 @@ void InvasionGraph::Node::resolveLosses() {
 	// Threat that carries over from one iteration to the next
 	double pastThreat = 0;
 	do {
-		for(set<PlayerTypes>::iterator it = targetedBy.begin();
-				it != targetedBy.end(); it++) {
+		for(PlyrSetIter it = targetedBy.begin(); it != targetedBy.end(); it++) {
 			InvasionGraph::Node& inv = *outer.nodeMap[*it];
 			report.log("Assessing invasion priority (att. duration) of %s",
 					report.leaderName(inv.getId()));
@@ -1668,31 +1603,32 @@ void InvasionGraph::Node::resolveLosses() {
 			else report.log("Can't reach any city");
 			isTargetting[*it] = true;
 		}
-		int shortestDuration = std::numeric_limits<int>::max();
+		int shortestDuration = MAX_INT;
 		PlayerTypes nextInvader = NO_PLAYER;
 		double nextInvaderThreat = -1;
 		double sumOfThreats = 0;
-		for(int i = 0; i < MAX_PLAYERS; i++) {
-			if(steps[i] == NULL) {
+		for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+			PlayerTypes civId = it->getID();
+			if(steps[civId] == NULL) {
 				/* Could remove the NULL entries during the iteration above
 				   (more efficient), but modifying a container during
 				   iteration is a can of worms.
 				   NULL means the invader can't pick a target city (none left
 				   or none revealed on the map). NB: applyStep may also erase
 				   Nodes from targetedBy. */
-				if(isTargetting[i]) {
-					outer.nodeMap[i]->changePrimaryTarget(NULL);
-					isTargetting[i] = false;
+				if(isTargetting[civId]) {
+					outer.nodeMap[civId]->changePrimaryTarget(NULL);
+					isTargetting[civId] = false;
 				}
 				continue;
 			}
 			else {
-				sumOfThreats += steps[i]->getThreat();
-				int duration = steps[i]->getDuration() + turnsSimulated[i];
+				sumOfThreats += steps[civId]->getThreat();
+				int duration = steps[civId]->getDuration() + turnsSimulated[civId];
 				if(duration < shortestDuration) {
 					shortestDuration = duration;
-					nextInvader = (PlayerTypes)i;
-					nextInvaderThreat = steps[i]->getThreat();
+					nextInvader = civId;
+					nextInvaderThreat = steps[civId]->getThreat();
 				}
 			}
 		}
@@ -1700,8 +1636,8 @@ void InvasionGraph::Node::resolveLosses() {
 		   Need those steps only to determine how the defenders split up
 		   against several invaders, and which invader's step is
 		   resolved next. */
-		for(int i = 0; i < MAX_PLAYERS; i++)
-			SAFE_DELETE(steps[i]);
+		for(PlayerIter<ANY_STATUS> it; it.hasNext(); ++it)
+			SAFE_DELETE(steps[it->getID()]);
 		/* Shortest duration is an optimistic lower bound (ignoring defending
 		   army). If the shortest duration exceeds the time limit, all actual
 		   durations are going to exceed the time limit as well. */
@@ -1762,16 +1698,6 @@ void InvasionGraph::Node::changePrimaryTarget(Node* newTarget) {
 	}
 }
 
-bool InvasionGraph::Node::isComponentDone() const {
-
-	return componentDone;
-}
-
-bool InvasionGraph::Node::hasLost(int cityId) const {
-
-	return losses.count(cityId) > 0;
-}
-
 InvasionGraph::Node& InvasionGraph::Node::findSink() {
 
 	if(!hasTarget())
@@ -1805,16 +1731,6 @@ void InvasionGraph::Node::clash(double armyPortion1, double armyPortion2) {
 	delete &clashStep;
 }
 
-set<PlayerTypes> const& InvasionGraph::Node::getTargetedBy() const {
-
-	return targetedBy;
-}
-
-InvasionGraph::Node* InvasionGraph::Node::getPrimaryTarget() const {
-
-	return primaryTarget;
-}
-
 double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) const {
 
 	WarAndPeaceCache::City const* c1 = targetCity();
@@ -1822,10 +1738,8 @@ double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) cons
 	// Clash half-way in the middle
 	if(c1 != NULL && c2 != NULL)
 		return (c1->getDistance() + c2->getDistance()) / 2.0;
-	else {
-		FAssertMsg(false, "Shouldn't clash if not mutually reachable");
-		return -1;
-	}
+	FAssertMsg(false, "Shouldn't clash if not mutually reachable");
+	return -1;
 }
 
 bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
@@ -1845,30 +1759,10 @@ bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
 
 bool InvasionGraph::Node::isContinuedWar(Node const& other) const {
 
-	return GET_TEAM(id).isAtWar(TEAMID(other.getId())) && conquests.empty();
+	return (GET_TEAM(id).isAtWar(TEAMID(other.getId())) && conquests.empty());
 }
 
-double InvasionGraph::Node::powerCorrect(double multiplier) {
-
-	return std::pow(multiplier, (double)GC.getPOWER_CORRECTION());
-}
-
-double InvasionGraph::Node::getLostPower(MilitaryBranchTypes mb) const {
-
-	return lostPower[mb] - shiftedPower[mb];
-}
-
-double InvasionGraph::Node::getGainedPower(MilitaryBranchTypes mb) const {
-
-	return military[mb]->power() - currentPow[mb];
-}
-
-double InvasionGraph::Node::getProductionInvested() const {
-
-	return productionInvested;
-}
-
-void InvasionGraph::Node::getConquests(std::set<int>& r) const {
+void InvasionGraph::Node::getConquests(CitySet& r) const {
 
 	for(size_t i = 0; i < conquests.size(); i++) {
 		 if(conquests[i] == NULL)
@@ -1878,16 +1772,15 @@ void InvasionGraph::Node::getConquests(std::set<int>& r) const {
 	}
 }
 
-void InvasionGraph::Node::getLosses(std::set<int>& r) const {
+void InvasionGraph::Node::getLosses(CitySet& r) const {
 
-	for(set<int>::const_iterator it = losses.begin(); it != losses.end(); it++)
+	for(CitySetIter it = losses.begin(); it != losses.end(); it++)
 		r.insert(*it);
 }
 
-void InvasionGraph::Node::getCapitulationsAccepted(std::set<TeamTypes>& r) const {
+void InvasionGraph::Node::getCapitulationsAccepted(TeamSet& r) const {
 
-	for(set<TeamTypes>::const_iterator it = capitulationsAccepted.begin();
-			it != capitulationsAccepted.end(); it++)
+	for(TeamSetIter it = capitulationsAccepted.begin(); it != capitulationsAccepted.end(); it++)
 		r.insert(*it);
 }
 
@@ -1900,10 +1793,11 @@ void InvasionGraph::simulate(int duration) {
 	   and subsequent steps underestimated. */
 	int t1 = ::round(0.5 * duration);
 	int t2 = duration - t1;
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		if(nodeMap[i] != NULL) {
-			nodeMap[i]->logTypicalUnits();
-			nodeMap[i]->prepareForSimulation();
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
+		if(nodeMap[civId] != NULL) {
+			nodeMap[civId]->logTypicalUnits();
+			nodeMap[civId]->prepareForSimulation();
 		}
 	}
 	report.log("Simulating initial build-up (%d turns)", t1);
@@ -1926,9 +1820,11 @@ void InvasionGraph::simulate(int duration) {
 void InvasionGraph::simulateArmament(int duration, bool noUpgrading) {
 
 	PROFILE_FUNC();
-	for(int i = 0; i < MAX_PLAYERS; i++)
-		if(nodeMap[i] != NULL)
-			nodeMap[i]->predictArmament(duration, noUpgrading);
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
+		if(nodeMap[civId] != NULL)
+			nodeMap[civId]->predictArmament(duration, noUpgrading);
+	}
 }
 
 void InvasionGraph::simulateLosses() {
@@ -1939,9 +1835,10 @@ void InvasionGraph::simulateLosses() {
 	/* Start with our component, but simulate the other ones as well.
 	   While they can't affect the outcome of our wars, anticipating
 	   conquests of other civs is going to be helpful for war evaluation. */
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		if(nodeMap[i] != NULL && !nodeMap[i]->isComponentDone())
-			simulateComponent(*nodeMap[i]);
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
+		if(nodeMap[civId] != NULL && !nodeMap[civId]->isComponentDone())
+			simulateComponent(*nodeMap[civId]);
 	}
 }
 
@@ -2006,9 +1903,8 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 		/* The targeting Nodes may themselves be busy fending off attackers.
 		   This is taken into account when resolving losses, but not when
 		   breaking cycles. */
-		set<PlayerTypes> const& targetedBy = n.getTargetedBy();
-		for(set<PlayerTypes>::const_iterator it = targetedBy.begin();
-				it != targetedBy.end(); it++) {
+		PlyrSet const& targetedBy = n.getTargetedBy();
+		for(PlyrSetIter it = targetedBy.begin(); it != targetedBy.end(); it++) {
 			const char* nodeName = report.leaderName(n.getId());
 			report.log("Assessing threat of %s's army to %s's garrisons "
 					   "(ignoring army of %s)",
@@ -2094,18 +1990,7 @@ SimulationStep::SimulationStep(PlayerTypes attacker,
 	success = false;
 }
 
-void SimulationStep::setDuration(int duration) {
-
-	this->duration = duration;
-}
-
-void SimulationStep::setThreat(double threat) {
-
-	this->threat = threat;
-}
-
-void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb,
-		double subtrahend) {
+void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb, double subtrahend) {
 
 	bool ofAttacker = (id == attacker);
 	if(ofAttacker)
@@ -2114,58 +1999,12 @@ void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb,
 	FAssert(lostPowerAttacker[mb]>-0.001 && lostPowerDefender[mb]>-0.001);
 }
 
-void SimulationStep::setSuccess(bool b) {
-
-	success = b;
-}
-
-int SimulationStep::getDuration() const {
-
-	return duration;
-}
-
-double SimulationStep::getThreat() const {
-
-	return threat;
-}
-
-double SimulationStep::getLostPower(PlayerTypes id,
-		MilitaryBranchTypes mb) const {
+double SimulationStep::getLostPower(PlayerTypes id, MilitaryBranchTypes mb) const {
 
 	bool ofAttacker = (id == attacker);
 	if(ofAttacker)
 		return lostPowerAttacker[mb];
 	return lostPowerDefender[mb];
-}
-
-bool SimulationStep::isAttackerSuccessful() const {
-
-	return success;
-}
-
-bool SimulationStep::isClashOnly() const {
-
-	return contestedCity == NULL;
-}
-
-PlayerTypes SimulationStep::getAttacker() const {
-
-	return attacker;
-}
-
-WarAndPeaceCache::City const* SimulationStep::getCity() const {
-
-	return contestedCity;
-}
-
-void SimulationStep::setTempLosses(double d) {
-
-	tempLosses = d;
-}
-
-double SimulationStep::getTempLosses() const {
-
-	return tempLosses;
 }
 
 /* Underlying model: Only a portion of the invaders clashes - clashPortion -,
@@ -2236,20 +2075,3 @@ std::pair<double,double> InvasionGraph::Node::clashLossesWinnerLoser(double powA
 		0.8 * stake(powAtt, powDef) * powAtt
 	);
 }
-
-double InvasionGraph::Node::clashLossesTemporary(double powAtt, double powDef) {
-
-	return clashPortion * std::min(powAtt, powDef) / 3;
-}
-
-double InvasionGraph::Node::stake(double powAtt, double powDef) {
-
-	return clashPortion * std::min(1.0, 1.6 * powRatio(powAtt, powDef));
-}
-
-double InvasionGraph::Node::powRatio(double pow1, double pow2) {
-
-	return std::min(pow1, pow2) / (std::max(pow1, pow2) + 0.001);
-}
-
-// </advc.104>

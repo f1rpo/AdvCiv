@@ -13,18 +13,19 @@
 enum AgentStatusPredicate
 {
 	ANY_AGENT_STATUS,
+	ANY_STATUS = ANY_AGENT_STATUS, // ANY_AGENT_STATUS is too verbose after all
 	EVER_ALIVE,
 	//NEVER_ALIVE, // Iterating over _only_ dead agents should rarely be needed
 	//DEFEATED,
 	ALIVE,
-	// The rest are assumed to imply ALIVE
-	NON_BARB, // The above are assumed to include Barbarians
+	// The rest are assumed to imply ALIVE and non-Barbarian
+	CIV_ALIVE,
 	//MINOR_CIV,
 	// The rest are assumed to exclude minor civs and Barbarians
-	MAJOR_CIV, 
+	MAJOR_CIV,
 	//VASSAL,
 	FREE_MAJOR_CIV,
-	FREE_MAJOR_AI_CIV,
+	//FREE_MAJOR_AI_CIV,
 	HUMAN,
 };
 
@@ -42,7 +43,7 @@ enum AgentRelationPredicate // Relative to some given second agent
 	// The rest include minor civs and Barbarians unless ruled out AgentStatusPredicate
 	KNOWN_TO, // incl. the first agent (agents know themselves)
 	KNOWN_POTENTIAL_ENEMY_OF,
-	ENEMY_OF,
+	ENEMY_OF, // At war; war in preparation isn't enough.
 };
 
 #endif

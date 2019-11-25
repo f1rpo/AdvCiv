@@ -6,12 +6,13 @@
 #include "MilitaryBranch.h"
 #include "WarAndPeaceCache.h"
 #include "WarAndPeaceReport.h"
+#include "UWAISets.h"
 
 class MilitaryAnalyst;
 class SimulationStep;
 class CvArea;
 
-/* <advc.104>: New class. The invasion graph says who tries to invade whom.
+/* advc.104: New class. The invasion graph says who tries to invade whom.
    It's an analysis from the perspective of one civ ("we", the owner of
    the associated MilitaryAnalyst) planning war (WarAndPeaceAI::Team::doWar).
    There's a node in the graph for each civ that is presently at war or
@@ -51,12 +52,12 @@ friend class Node;
 		~Node();
 		// Selects primary target.
 		void findAndLinkTarget();
-		void addWarOpponents(std::set<PlayerTypes> const& wo);
+		void addWarOpponents(PlyrSet const& wo);
 		// If they aren't war opponents: no effect
-		void removeWarOpponents(std::set<PlayerTypes> const& wo);
-		PlayerTypes getId() const;
-		bool hasTarget() const;
-		bool isIsolated() const;
+		void removeWarOpponents(PlyrSet const& wo);
+		inline PlayerTypes getId() const { return id; }
+		bool hasTarget() const { return primaryTarget != NULL; }
+		bool isIsolated() const { return !hasTarget() && targetedBy.empty(); }
 
 		/* Methods for simulation. Not to be called until the graph is constructed.
 		   Might be better to move them elsewhere, e.g. a wrapper. */
@@ -74,19 +75,19 @@ friend class Node;
 		 size_t findCycle(std::vector<Node*>& path);
 		 /* Won't terminate when called on a Node that's part of a cycle. */
 		 Node& findSink();
-		 bool hasLost(int cityId) const;
+		 bool hasLost(int cityId) const { return (losses.count(cityId) > 0); }
 		 // Updates adjacency lists. NULL deletes an edge.
 		 void changePrimaryTarget(Node* newTarget);
-		 InvasionGraph::Node* getPrimaryTarget() const;
-		 std::set<PlayerTypes> const& getTargetedBy() const;
+		 InvasionGraph::Node* getPrimaryTarget() const { return primaryTarget; }
+		 PlyrSet const& getTargetedBy() const { return targetedBy; }
 		 /* To be called on the attacker. Caller needs to delete the result.
 		    Last two parameters only for clash steps */
 		 SimulationStep* step(double armyPortionDefender = 0,
 				double armyPortionAttacker = 1, bool clashOnly = false) const;
 		 // To be called on the defender.
 		 void applyStep(SimulationStep const& step);
-		 void setEliminated(bool b);
-		 bool isEliminated() const;
+		 void setEliminated(bool b) { eliminated = b; }
+		 bool isEliminated() const { return eliminated; }
 		 void resolveLosses();
 		 /* Simulates a clash of armies of two Nodes targeting each other.
 		    This node clashes with its target. armyPortion1 says which
@@ -94,23 +95,29 @@ friend class Node;
 		    works likewise (for the target). */
 		 void clash(double armyPortion1, double armyPortion2);
 		 // For iterating over connected components
-		  bool isComponentDone() const;
+		  bool isComponentDone() const { return componentDone; }
 		 // Once simulation is finished:
 		  // Lost power minus shifted power
-		  double getLostPower(MilitaryBranchTypes mb) const;
+		  double getLostPower(MilitaryBranchTypes mb) const {
+			  return lostPower[mb] - shiftedPower[mb];
+		  }
 		  // Power after simulation minus initial power
-		  double getGainedPower(MilitaryBranchTypes mb) const;
+		  double getGainedPower(MilitaryBranchTypes mb) const {
+			  return military[mb]->power() - currentPow[mb];
+		  }
 		  // Invested during the build-up phases
-		  double getProductionInvested() const;
+		  double getProductionInvested() const { return productionInvested; }
 		  // These two add the respective city ids (plot indexes) to 'r'
-		   void getConquests(std::set<int>& r) const;
-		   void getLosses(std::set<int>& r) const;
+		   void getConquests(CitySet& r) const;
+		   void getLosses(CitySet& r) const;
+		   bool anyConquests() const { return !conquests.empty(); }
+		   bool anyLosses() const { return !losses.empty(); }
 		  /* Not ideal to store this team-level info at nodes representing civs.
 		     Implemented such that all members of a master team (callees) write
 			 the same vassal ids into 'r'. */
-		  void getCapitulationsAccepted(std::set<TeamTypes>& r) const;
+		  void getCapitulationsAccepted(TeamSet& r) const;
 		  // Only true if capitulated during the simulation.
-		  bool hasCapitulated() const;
+		  bool hasCapitulated() const { return capitulated; }
 
 	private:
 		void initMilitary();
@@ -126,8 +133,8 @@ friend class Node;
 		InvasionGraph& outer;
 		WarAndPeaceReport& report;
 		PlayerTypes id, weId;
-		std::set<PlayerTypes> warOpponents;
-		bool isWarOpponent[MAX_CIV_PLAYERS];
+		PlyrSet warOpponents;
+		std::vector<bool> isWarOpponent;
 		std::vector<MilitaryBranch*> military;
 		std::vector<double> currentPow;
 		double productionInvested;
@@ -136,9 +143,11 @@ friend class Node;
 		bool hasClashed;
 	    // Adjacency lists
 		 Node* primaryTarget;
-		 std::set<PlayerTypes> targetedBy;
+		 PlyrSet targetedBy;
 
-		static double powerCorrect(double multiplier);
+		 static double powerCorrect(double multiplier) {
+			 return std::pow(multiplier, (double)GC.getPOWER_CORRECTION());
+		 }
 		// Remaining production capacity after losses
 		double productionPortion() const;
 
@@ -147,7 +156,7 @@ friend class Node;
 			    // Default: based on primaryTarget
 				PlayerTypes owner = NO_PLAYER) const;
 		 void addConquest(WarAndPeaceCache::City const& c);
-		 void addLoss(WarAndPeaceCache::City const& c);
+		 void addLoss(WarAndPeaceCache::City const& c) { losses.insert(c.id()); }
 		 // Vassals that break free are currently not modeled.
 		 void setCapitulated(TeamTypes masterId);
 		 double clashDistance(Node const& other) const;
@@ -157,8 +166,8 @@ friend class Node;
 		 CvArea* clashArea(PlayerTypes otherId) const;
 
 		 std::vector<WarAndPeaceCache::City const*> conquests;
-		 std::set<int> losses; // WarAndPeaceCache::City IDs
-		 std::set<TeamTypes> capitulationsAccepted;
+		 CitySet losses;
+		 TeamSet capitulationsAccepted;
 		 WarAndPeaceCache& cache;
 		 int cacheIndex;
 		 double lostPower[NUM_BRANCHES];
@@ -181,31 +190,36 @@ friend class Node;
 		    Losses from city attack. */
 		  static std::pair<double,double> clashLossesWinnerLoser(double powAtt,
 		      double powDef, bool att = true, bool naval = false);
-		  static double clashLossesTemporary(double powAtt, double powDef);
-		  static double stake(double powAtt, double powDef);
-		  static double powRatio(double pow1, double pow2);
+		  static double clashLossesTemporary(double powAtt, double powDef) {
+			  return clashPortion * std::min(powAtt, powDef) / 3;
+		  }
+		  static double stake(double powAtt, double powDef) {
+			  return clashPortion * std::min(1.0, 1.6 * powRatio(powAtt, powDef));
+		  }
+		  static double powRatio(double pow1, double pow2) {
+			  return std::min(pow1, pow2) / (std::max(pow1, pow2) + 0.001);
+		  }
 		  static double const clashPortion;
 	};
 
 public:
-	InvasionGraph(MilitaryAnalyst& m, std::set<PlayerTypes> const& warParties,
+	InvasionGraph(MilitaryAnalyst& m, PlyrSet const& warParties,
 			bool peaceScenario = false);
 	~InvasionGraph();
-	Node* getNode(PlayerTypes civId) const;// not yet used
-	Node& owner() const;
-	WarAndPeaceReport& getReport();
+	Node* getNode(PlayerTypes civId) const {
+		FASSERT_BOUNDS(0, MAX_PLAYERS, civId, "InvasionGraph::getNode");
+		return nodeMap[civId];
+	}
 	/* No military build-up is estimated by simulate(int) until
 	   this function is called. Intended to be called exactly once. */
-	void addFutureWarParties(std::set<PlayerTypes> const& ourSide,
-			std::set<PlayerTypes> const& ourFutureOpponents);
+	void addFutureWarParties(PlyrSet const& ourSide, PlyrSet const& ourFutureOpponents);
 	// Call this before a simulation that assumes a peace treaty with the target
-	void removeWar(std::set<PlayerTypes> const& ourSide,
-			std::set<PlayerTypes> const& theirSide);
+	void removeWar(PlyrSet const& ourSide, PlyrSet const& theirSide);
 	// No need to call after addFutureWarParties or removeWar (done internally)
 	void updateTargets();
 	/* Makes sure these (possibly uninvolved) parties have nodes in the graph
 	   (and ArmamentForecasts). */
-	void addUninvolvedParties(std::set<PlayerTypes> const& parties);
+	void addUninvolvedParties(PlyrSet const& parties);
 	/*  Duration: Time horizon of the simulation. Affects the estimated military
 		armament (if addFutureWarParties is called beforehand). Not suitable
 		for long-term predictions (e.g. > 50 turns).
@@ -215,8 +229,8 @@ public:
 	void simulate(int duration);
 
 private:
-	std::set<PlayerTypes> const& warParties;
-	Node* nodeMap[MAX_PLAYERS];
+	PlyrSet const& warParties;
+	std::vector<Node*> nodeMap;
 	MilitaryAnalyst& m;
 	PlayerTypes weId;
 	WarAndPeaceReport& report;
@@ -253,25 +267,25 @@ class SimulationStep {
 public:
 	SimulationStep(PlayerTypes attacker,
 			WarAndPeaceCache::City const* contestedCity = NULL);
-	void setDuration(int duration);
+	void setDuration(int duration) { this->duration = duration; }
 	/* id should be attacker or the defender (attacker's target); other ids are
 	   treated as the defender. */
 	void reducePower(PlayerTypes id, MilitaryBranchTypes mb, double subtrahend);
-	void setSuccess(bool b);
-	void setThreat(double d);
+	void setSuccess(bool b) { success = b; }
+	void setThreat(double threat) { this->threat = threat; }
 	/* The defending army is assumed to be split among parallel attacks
 	   based on the attacks' threat values. */
-	double getThreat() const;
-	int getDuration() const;
+	double getThreat() const { return threat; }
+	int getDuration() const { return duration; }
 	// See reducePower
 	double getLostPower(PlayerTypes id, MilitaryBranchTypes mb) const;
 	// Temporary losses of attacking army
-	double getTempLosses() const;
-	void setTempLosses(double d);
-	bool isAttackerSuccessful() const;
-	bool isClashOnly() const;
-	PlayerTypes getAttacker() const;
-	WarAndPeaceCache::City const* getCity() const;
+	double getTempLosses() const { return tempLosses; }
+	void setTempLosses(double d) { tempLosses = d; }
+	bool isAttackerSuccessful() const { return success; }
+	bool isClashOnly() const { return (contestedCity == NULL); }
+	PlayerTypes getAttacker() const { return attacker; }
+	WarAndPeaceCache::City const* getCity() const { return contestedCity; }
 
 private:
 	int duration;
@@ -283,6 +297,5 @@ private:
 	bool success;
 	double tempLosses;
 };
-// </advc.104>
 
 #endif

@@ -6,7 +6,7 @@
 class WarUtilityAspect;
 class WarAndPeaceReport;
 
-/* <advc.104>: New class. Parameters that enter into the computation of
+/* advc.104: New class. Parameters that enter into the computation of
    war utility. On the level of teams (not individual civs).
    These parameters need to be passed around a bit, ultimately to the
    objects that evaluate individual war utility aspects; therefore encapsulated
@@ -72,7 +72,5 @@ private:
 	TeamTypes capitulationTeam;
 	// Data members added to this class will have to be factored into the id function!
 };
-
-// </advc.104>
 
 #endif

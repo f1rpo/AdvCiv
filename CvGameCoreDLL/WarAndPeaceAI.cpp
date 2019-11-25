@@ -1,4 +1,4 @@
-// <advc.104> New class; see WarAndPeaceAI.h for description
+// advc.104 New class; see WarAndPeaceAI.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceAI.h"
@@ -6,7 +6,6 @@
 #include "WarEvaluator.h"
 #include "CvAI.h"
 #include "CvMap.h"
-#include <iterator>
 
 using std::vector;
 
@@ -27,48 +26,16 @@ void WarAndPeaceAI::setInBackground(bool b) {
 	inBackgr = b;
 }
 
-vector<PlayerTypes>& WarAndPeaceAI::properCivs() {
-
-	return _properCivs;
-}
-
-vector<TeamTypes>& WarAndPeaceAI::properTeams() {
-
-	return _properTeams;
-}
-
-void WarAndPeaceAI::update() {
-
-	_properTeams.clear();
-	_properCivs.clear();
-	for(TeamTypes tt = (TeamTypes)0; tt < MAX_CIV_TEAMS;
-			tt = (TeamTypes)(tt + 1)) {
-		CvTeamAI& t = GET_TEAM(tt);
-		if(tt != NO_TEAM && !t.isBarbarian() && !t.isMinorCiv() && t.isAlive())
-			_properTeams.push_back(tt);
-	}
-	for(PlayerTypes p = (PlayerTypes)0; p < MAX_CIV_PLAYERS;
-			p = (PlayerTypes)(p + 1)) {
-		CvPlayerAI& civ = GET_PLAYER(p);
-		if(p != NO_PLAYER && civ.isAlive() && !civ.isBarbarian() &&
-				!civ.isMinorCiv())
-			_properCivs.push_back(p);
-	}
-	for(size_t i = 0; i < _properTeams.size(); i++)
-		GET_TEAM(getWPAI._properTeams[i]).warAndPeaceAI().updateMembers();
-	WarEvaluator::clearCache();
-}
-
 void WarAndPeaceAI::processNewCivInGame(PlayerTypes newCivId) {
 
-	update();
+	WarEvaluator::clearCache();
 	GET_TEAM(newCivId).warAndPeaceAI().init(TEAMID(newCivId));
 	WarAndPeaceAI::Civ& newAI = GET_PLAYER(newCivId).warAndPeaceAI();
 	newAI.init(newCivId);
 	// Need to set the typical units before updating the caches of the old civs
 	newAI.getCache().updateTypicalUnits();
-	for(size_t i = 0; i < _properTeams.size(); i++)
-		GET_TEAM(_properTeams[i]).warAndPeaceAI().turnPre();
+	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		it->warAndPeaceAI().turnPre();
 }
 
 bool WarAndPeaceAI::isEnabled(bool inBackground) const{
@@ -118,7 +85,7 @@ bool WarAndPeaceAI::isUpdated() const {
 void WarAndPeaceAI::doXML() {
 
 	/*  Would be so much more elegant to store the weights in the WarUtilityAspect
-		classes, but these are only initialized during war evaluation, whereas
+		objects, but these are only initialized during war evaluation, whereas
 		the caching should happen just once at game start. The way I'm implementing
 		it now, the numbers returned by WarUtilityAspect::xmlId need to correspond
 		to the call order in this function - which sucks. */
@@ -161,15 +128,15 @@ double WarAndPeaceAI::aspectWeight(int xmlId) const {
 
 void WarAndPeaceAI::applyPersonalityWeight() {
 
-	int iWeight = GC.getDefineINT("UWAI_PERSONALITY_PERCENT");
+	int const iWeight = GC.getDefineINT("UWAI_PERSONALITY_PERCENT");
 	if(iWeight == 100)
 		return;
 	std::vector<std::vector<int*>*> personalityMatrix;
 	int iMembers = -1;
-	for(int i = 0; i < GC.getNumLeaderHeadInfos(); i++) {
-		if(i == GET_PLAYER(BARBARIAN_PLAYER).getLeaderType())
+	FOR_EACH_ENUM(LeaderHead) {
+		if(eLoopLeaderHead == GET_PLAYER(BARBARIAN_PLAYER).getLeaderType())
 			continue;
-		CvLeaderHeadInfo& kLeader = GC.getInfo((LeaderHeadTypes)i);
+		CvLeaderHeadInfo& kLeader = GC.getInfo(eLoopLeaderHead);
 		/*  Basically serialize CvLeaderHeadInfo to avoid writing any more code
 			per member variable than necessary. Tempting to use CvLeaderHeadInfo::
 			write(FDataStreamBase*) for this, but some members have to be excluded. */
@@ -219,22 +186,22 @@ void WarAndPeaceAI::applyPersonalityWeight() {
 		int const iPrimitiveMembers = sizeof(aiPrimitiveMembers) / sizeof(int);
 		std::vector<int*>* paiPersonalityVector = new std::vector<int*>(
 				aiPrimitiveMembers, aiPrimitiveMembers + iPrimitiveMembers);
-		for(int j = 0; j < GC.getNumFlavorTypes(); j++)
-			paiPersonalityVector->push_back(&kLeader.m_piFlavorValue[j]);
-		for(int j = 0; j < NUM_CONTACT_TYPES; j++)
-			paiPersonalityVector->push_back(&kLeader.m_piContactRand[j]);
-		for(int j = 0; j < NUM_CONTACT_TYPES; j++)
-			paiPersonalityVector->push_back(&kLeader.m_piContactDelay[j]);
-		for(int j = 0; j < NUM_MEMORY_TYPES; j++)
-			paiPersonalityVector->push_back(&kLeader.m_piMemoryDecayRand[j]);
-		for(int j = 0; j < NUM_MEMORY_TYPES; j++)
-			paiPersonalityVector->push_back(&kLeader.m_piMemoryAttitudePercent[j]);
-		for(int j = 0; j < NUM_ATTITUDE_TYPES; j++)
-			paiPersonalityVector->push_back(&kLeader.m_piNoWarAttitudeProb[j]);
-		for(int j = 0; j < NUM_UNITAI_TYPES; j++)
-			paiPersonalityVector->push_back(&kLeader.m_piUnitAIWeightModifier[j]);
-		for(int j = 0; j < GC.getNumImprovementInfos(); j++)
-			paiPersonalityVector->push_back(&kLeader.m_piImprovementWeightModifier[j]);
+		FOR_EACH_ENUM(Flavor)
+			paiPersonalityVector->push_back(&kLeader.m_piFlavorValue[eLoopFlavor]);
+		FOR_EACH_ENUM(Contact)
+			paiPersonalityVector->push_back(&kLeader.m_piContactRand[eLoopContact]);
+		FOR_EACH_ENUM(Contact)
+			paiPersonalityVector->push_back(&kLeader.m_piContactDelay[eLoopContact]);
+		FOR_EACH_ENUM(Memory)
+			paiPersonalityVector->push_back(&kLeader.m_piMemoryDecayRand[eLoopMemory]);
+		FOR_EACH_ENUM(Memory)
+			paiPersonalityVector->push_back(&kLeader.m_piMemoryAttitudePercent[eLoopMemory]);
+		FOR_EACH_ENUM(Attitude)
+			paiPersonalityVector->push_back(&kLeader.m_piNoWarAttitudeProb[eLoopAttitude]);
+		FOR_EACH_ENUM(UnitAI)
+			paiPersonalityVector->push_back(&kLeader.m_piUnitAIWeightModifier[eLoopUnitAI]);
+		FOR_EACH_ENUM(Improvement)
+			paiPersonalityVector->push_back(&kLeader.m_piImprovementWeightModifier[eLoopImprovement]);
 		personalityMatrix.push_back(paiPersonalityVector);
 		FAssert(iMembers == -1 || iMembers == (int)paiPersonalityVector->size());
 		iMembers = (int)paiPersonalityVector->size();
@@ -256,5 +223,3 @@ void WarAndPeaceAI::applyPersonalityWeight() {
 	for(size_t i = 0; i < personalityMatrix.size(); i++)
 		delete personalityMatrix[i];
 }
-
-// </advc.104>

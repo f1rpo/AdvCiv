@@ -3,7 +3,7 @@
 #ifndef WAR_AND_PEACE_REPORT_H
 #define WAR_AND_PEACE_REPORT_H
 
-/* <advc.104>: New class. A report about the war planning of a single team
+/* advc.104: New class. A report about the war planning of a single team
    (cf. WarAndPeaceAI::Team::doWar). I'm also focusing string handling
    needed for logging in this class.
    Calls to 'log' have no effect when in silent or mute mode. DEBUG mode is not a
@@ -51,7 +51,5 @@ private:
 	int muted;
 	std::vector<std::string*> stringBuffer;
 };
-
-// </advc.104>
 
 #endif

@@ -272,7 +272,10 @@ void CvPlayer::initInGame(PlayerTypes eID)
 		return;
 
 	GC.getAgents().colonyCreated(getID()); // advc.agent
-
+	// <advc.104r>
+	if(getWPAI.isEnabled())
+		getWPAI.processNewCivInGame(getID());
+	// </advc.104r>
 	/*  I've kept the initialization of random event data out of initOtherData
 		b/c the BBAI code handles that part differently (cf. resetCivTypeEffects). */
 	// </advc.003q>
@@ -10605,9 +10608,6 @@ void CvPlayer::setTeam(TeamTypes eTeam)
 	GET_TEAM(getTeam()).changeNumCities(getNumCities());
 	GET_TEAM(getTeam()).changeTotalPopulation(getTotalPopulation());
 	GET_TEAM(getTeam()).changeTotalLand(getTotalLand());
-	// <advc.104t>
-	if(getWPAI.isEnabled())
-		getWPAI.update(); // </advc.104t>
 	// K-Mod Attitude cache
 	if (GC.getGame().isFinalInitialized() /* advc.003n: */ && !isBarbarian())
 	{
@@ -16454,7 +16454,6 @@ void CvPlayer::read(FDataStreamBase* pStream)
 
 	pStream->ReadString(m_szScriptData);
 
-	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but it is expected to be in CvPlayer::read");
 	pStream->Read(GC.getNumBonusInfos(), m_paiBonusExport);
 	pStream->Read(GC.getNumBonusInfos(), m_paiBonusImport);
 	pStream->Read(GC.getNumImprovementInfos(), m_paiImprovementCount);
@@ -20089,8 +20088,6 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	AI().AI_updateAttitudeCache(eNewPlayer);
 	// K-Mod end
 	// <advc.104r>
-	if(getWPAI.isEnabled())
-		getWPAI.processNewCivInGame(eNewPlayer);
 	for(size_t i = 0; i < apAcquiredCities.size(); i++)
 	{
 		for(int j = 0; j < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); j++)
@@ -21902,13 +21899,8 @@ int CvPlayer::getMusicScriptId(PlayerTypes eForPlayer) const
 	EraTypes eEra = kForPlayer.getCurrentEra();
 	CvLeaderHeadInfo& kLeader = GC.getInfo(getLeaderType());
 	if (GET_TEAM(kForPlayer.getTeam()).isAtWar(getTeam()))
-	{
 		return kLeader.getDiploWarMusicScriptIds(eEra);
-	}
-	else
-	{
-		return kLeader.getDiploPeaceMusicScriptIds(eEra);
-	}
+	return kLeader.getDiploPeaceMusicScriptIds(eEra);
 }
 
 

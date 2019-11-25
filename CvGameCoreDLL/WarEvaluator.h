@@ -7,8 +7,8 @@ class WarEvalParameters;
 class WarUtilityAspect;
 class WarAndPeaceReport;
 
-/* <advc.104>: New class. Computes the utility of a war between two teams:
-   'agent' against 'target'. From the point of view of 'agent'.  */
+/* advc.104: New class. Computes the utility of a war between two teams:
+   'agent' against 'target'. From the point of view of 'agent'. */
 class WarEvaluator {
 
 public:
@@ -47,8 +47,6 @@ private:
 	TeamTypes agentId, targetId;
 	CvTeamAI& target;
 	CvTeamAI& agent;
-	std::vector<PlayerTypes>& agentTeam;
-	std::vector<PlayerTypes>& targetTeam;
 	WarAndPeaceReport& report;
 	bool peaceScenario;
 	bool useCache;
@@ -66,7 +64,5 @@ private:
 		static bool checkCache;
 		static bool cacheCleared;
 };
-
-// </advc.104>
 
 #endif

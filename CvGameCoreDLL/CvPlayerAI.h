@@ -580,8 +580,8 @@ public:
 	UnitTypes AI_getBestAttackUnit() const; // advc.079
 
 	// <advc.104>
-	WarAndPeaceAI::Civ& warAndPeaceAI();
-	WarAndPeaceAI::Civ const& warAndPeaceAI() const; // </advc.104>
+	inline WarAndPeaceAI::Civ& warAndPeaceAI() { return *m_pWPAI; }
+	inline WarAndPeaceAI::Civ const& warAndPeaceAI() const { return *m_pWPAI; } // </advc.104>
 	// <advc.104h>
 	// Returns true if peace deal implemented (or offered to human)
 	bool AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iOurBenefit);
@@ -604,8 +604,7 @@ public:
 	bool AI_contactReligion(PlayerTypes eHuman);
 	bool AI_contactCivics(PlayerTypes eHuman);
 	bool AI_askHelp(PlayerTypes eHuman);
-	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
-	bool AI_demandTribute(PlayerTypes eHuman, int iTributeType);
+	bool AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand);
 	// </advc.104m>
 	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
 	// advc.104r: Made public and param added
