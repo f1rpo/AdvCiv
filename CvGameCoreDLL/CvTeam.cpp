@@ -514,7 +514,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		if (((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
 			  ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))) */
 		// K-Mod: The player's teams have already been reassigned - so we don't check for eTeam anymore.
-		if (!pLoopDeal->involves(getID())) // advc: Replacing the K-Mod replacement
+		if (!pLoopDeal->isBetween(getID(), eTeam)) // advc: Replacing the K-Mod replacement
 			continue;
 
 		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
@@ -562,6 +562,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 		if (p.isRevealed(eTeam))
 			p.setRevealed(getID(), true, false, eTeam, false);
+		p.updateTeam(); // advc.opt: Need to update cached team
 	}
 
 	g.updatePlotGroups();

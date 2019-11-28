@@ -347,9 +347,10 @@ public:
 	void setFlagDirty(bool bNewValue);																																					// Exposed to Python
 
 	inline TeamTypes getTeam() const																																	// Exposed to Python
-	{
-		return (TeamTypes)m_eTeam; // advc.opt: Now cached
+	{	// <advc.opt> Now cached
+		return (TeamTypes)m_eTeam;
 	}
+	void updateTeam(); // </advc.opt>
 	PlayerTypes getOwnerExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
 	inline PlayerTypes getOwner() const // advc.inl: Renamed from getOwnerINLINE
 	{
@@ -791,7 +792,6 @@ protected:
 	void doCulture();
 
 	int countTotalCulture() const; // advc.opt: Was public; replaced by getTotalCulture.
-	void updateTeam(); // advc.opt
 	void processArea(CvArea* pArea, int iChange);
 	char calculateLatitude() const; // advc.tsl
 	void doImprovementUpgrade();
