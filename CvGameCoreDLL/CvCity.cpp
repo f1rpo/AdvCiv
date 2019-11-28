@@ -9568,9 +9568,8 @@ double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 	static int const iREVOLT_TEST_PROB = GC.getDefineINT("REVOLT_TEST_PROB"); // advc.opt
 	return std::min(1.0, // advc.101: Upper bound used to be handled by the caller
 			((iREVOLT_TEST_PROB * (100 - iBestModifier)) / 100.0)
-			// advc.101: Speed scaling as in K-Mod
-			/ GC.getInfo(GC.getGame().getGameSpeedType()).
-			getVictoryDelayPercent());
+			// advc.101: was .getVictoryDelayPercent() in K-Mod
+			/ GC.getInfo(GC.getGame().getGameSpeedType()).getGoldenAgePercent());
 }
 
 bool CvCity::isEverOwned(PlayerTypes eIndex) const
