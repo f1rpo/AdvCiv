@@ -8,7 +8,7 @@
 
 #include "AgentPredicates.h"
 #include "CvAgents.h"
-#include "CvGame.h" // for bSYNCRAND_ORDER
+#include "CvGame.h" // for bSYNCRAND_ORDER (Tbd.: Move m_sorenRand from CvGame to CvGlobals)
 
 class CvTeam;
 class CvPlayer;

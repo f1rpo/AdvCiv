@@ -21659,6 +21659,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 		int iGPT = (kHuman.AI_getAvailableIncome() -
 				kHuman.calculateInflatedCosts()) / 5;
 		if(iGPT >= 2 * GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER)) {
+			FAssertMsg(false, "Does the AI ever demand GPT? Why not?"); // advc.test
 			AI_roundTradeVal(iGPT);
 			setTradeItem(&item, TRADE_GOLD_PER_TURN, iGPT);
 			if(kHuman.canTradeItem(getID(), item))

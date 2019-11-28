@@ -4200,7 +4200,7 @@ int CvTeamAI::AI_openBordersTradeVal(TeamTypes eTeam) const
 
 DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eWithTeam) const  // advc: some style changes
 {
-	//PROFILE_FUNC(); // advc,003o
+	//PROFILE_FUNC(); // advc.003o
 	FAssertMsg(eWithTeam != getID(), "shouldn't call this function on ourselves");
 
 	if (isHuman() || isVassal(eWithTeam))

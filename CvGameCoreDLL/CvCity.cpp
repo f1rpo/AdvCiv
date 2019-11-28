@@ -11704,57 +11704,51 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 }
 
 
-void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
+void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style changes
 {
 	wchar szBuffer[1024];
 	wchar szTempBuffer[1024];
 	TCHAR szSound[1024];
-	CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // advc
-	bool bWasFoodProduction = isFoodProduction();
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	bool const bWasFoodProduction = isFoodProduction();
 
 	if (iNum == -1)
 		iNum = (getOrderQueueLength() - 1);
 
 	CLLNode<OrderData>* pOrderNode = headOrderQueueNode();
-	{	// advc: scope for iCount
+	{
 		int iCount = 0;
 		while (pOrderNode != NULL)
 		{
 			if (iCount == iNum)
-			{
 				break;
-			}
-
 			iCount++;
-
 			pOrderNode = nextOrderQueueNode(pOrderNode);
 		}
 	}
 	if (pOrderNode == NULL)
-	{
 		return;
-	}
 
 	if (bFinish && pOrderNode->m_data.bSave)
 	{
-		//pushOrder(pOrderNode->m_data.eOrderType, pOrderNode->m_data.iData1, pOrderNode->m_data.iData2, true, false, true);
-		pushOrder(pOrderNode->m_data.eOrderType, pOrderNode->m_data.iData1, pOrderNode->m_data.iData2, true, false, -1);
+		pushOrder(pOrderNode->m_data.eOrderType, pOrderNode->m_data.iData1, pOrderNode->m_data.iData2, true, false,
+				-1); // K-Mod
 	}
 
 	UnitTypes eTrainUnit = NO_UNIT;
 	BuildingTypes eConstructBuilding = NO_BUILDING;
 	ProjectTypes eCreateProject = NO_PROJECT;
-	int maxedBuildingOrProject = NO_BUILDING; // advc.123f
+	int iMaxedBuildingOrProject = NO_BUILDING; // advc.123f
 
 	OrderTypes eOrderType = pOrderNode->m_data.eOrderType;
-	switch(eOrderType) // advc: Many style changes in this block
+	switch(eOrderType)
 	{
 	case ORDER_TRAIN:
 	{
 		eTrainUnit = (UnitTypes)pOrderNode->m_data.iData1;
 		UnitAITypes eTrainAIUnit = (UnitAITypes)pOrderNode->m_data.iData2;
-		FAssertMsg(eTrainUnit != NO_UNIT, "eTrainUnit is expected to be assigned a valid unit type");
-		FAssertMsg(eTrainAIUnit != NO_UNITAI, "eTrainAIUnit is expected to be assigned a valid unit AI type");
+		FAssert(eTrainUnit != NO_UNIT);
+		FAssert(eTrainAIUnit != NO_UNITAI);
 		kOwner.changeUnitClassMaking((UnitClassTypes)GC.getInfo(eTrainUnit).getUnitClassType(), -1);
 		area()->changeNumTrainAIUnits(getOwner(), eTrainAIUnit, -1);
 		kOwner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
@@ -11826,7 +11820,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		// <advc.123f>
 		if(::isWorldWonderClass(bct) &&
 				GC.getGame().isBuildingClassMaxedOut(bct))
-			maxedBuildingOrProject = eConstructBuilding; // </advc.123f>
+			iMaxedBuildingOrProject = eConstructBuilding; // </advc.123f>
 		CvEventReporter::getInstance().buildingBuilt(this, eConstructBuilding);
 		if (gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 			logBBAI("    City %S finishes production of building %S", getName().GetCString(), GC.getInfo(eConstructBuilding).getDescription());
@@ -11893,7 +11887,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		setProjectProduction(eCreateProject, 0);
 		// <advc.123f>
 		if(GC.getGame().isProjectMaxedOut(eCreateProject))
-			maxedBuildingOrProject = eCreateProject; // </advc.123f>
+			iMaxedBuildingOrProject = eCreateProject; // </advc.123f>
 		if (gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 			logBBAI("    City %S finishes production of project %S", getName().GetCString(), GC.getInfo(eCreateProject).getDescription());
 		break;
@@ -11911,26 +11905,25 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		from within the switch block)  */
 	pOrderNode = NULL; // for safety
 	// <advc.123f> Fail gold from great wonders and world projects
-	if(maxedBuildingOrProject != NO_BUILDING)
+	if(iMaxedBuildingOrProject != NO_BUILDING)
 	{
 		bool bProject = (eOrderType == ORDER_CREATE);
-		ProjectTypes pt = (bProject ? (ProjectTypes)maxedBuildingOrProject :
-				NO_PROJECT);
-		BuildingTypes bt = (bProject ? NO_BUILDING :
-				(BuildingTypes)maxedBuildingOrProject);
-		BuildingClassTypes bct = (bProject ? NO_BUILDINGCLASS :
-				(BuildingClassTypes)GC.getInfo(bt).getBuildingClassType());
+		ProjectTypes eProject = (bProject ? (ProjectTypes)iMaxedBuildingOrProject : NO_PROJECT);
+		BuildingTypes eBuilding = (bProject ? NO_BUILDING :
+				(BuildingTypes)iMaxedBuildingOrProject);
+		BuildingClassTypes eBuildingClass = (bProject ? NO_BUILDINGCLASS :
+				(BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType());
 		for(int i = 0; i < MAX_PLAYERS; i++)
 		{
-			if(i == getOwner()) // No fail gold for the city owner
+			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
+			if(!kPlayer.isAlive())
 				continue;
-			CvPlayer& p = GET_PLAYER((PlayerTypes)i);
-			if(!p.isAlive())
+			if(kPlayer.getID() == getOwner()) // No fail gold for the city owner
 				continue;
 			// Just for efficiency
-			if(!bProject && p.getBuildingClassMaking(bct) <= 0)
+			if(!bProject && kPlayer.getBuildingClassMaking(eBuildingClass) <= 0)
 				continue;
-			FOR_EACH_CITY_VAR(c, p)
+			FOR_EACH_CITY_VAR(pCity, kPlayer)
 			{
 				// Fail gold only for queued orders
 				/*  If a mod-mod allows e.g. a wonder with up to 2 instances
@@ -11939,33 +11932,33 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					the one with less production invested. */
 				CvCity* pMinProductionCity = NULL;
 				int iMinProduction = 0;
-				for(int j = 0; j < c->getOrderQueueLength(); j++)
+				for(int j = 0; j < pCity->getOrderQueueLength(); j++)
 				{
-					OrderData* od = c->getOrderFromQueue(j);
-					if(od == NULL || od->eOrderType != (bProject ? ORDER_CREATE :
+					OrderData* pOrder = pCity->getOrderFromQueue(j);
+					if(pOrder == NULL || pOrder->eOrderType != (bProject ? ORDER_CREATE :
 							ORDER_CONSTRUCT) ||
-							od->iData1 != maxedBuildingOrProject)
+							pOrder->iData1 != iMaxedBuildingOrProject)
 						continue;
-					int productionInvested = (bProject ?
-							c->getProjectProduction(pt) :
-							c->getBuildingProduction(bt));
-					if(productionInvested > iMinProduction)
+					int iProductionInvested = (bProject ?
+							pCity->getProjectProduction(eProject) :
+							pCity->getBuildingProduction(eBuilding));
+					if(iProductionInvested > iMinProduction)
 					{
-						iMinProduction = productionInvested;
-						pMinProductionCity = c;
+						iMinProduction = iProductionInvested;
+						pMinProductionCity = pCity;
 					}
 				}
 				if(pMinProductionCity != NULL)
 				{
 					// 0 fail gold for teammates
-					if(p.getTeam() == getTeam())
+					if(kPlayer.getTeam() == getTeam())
 						iMinProduction = 0;
 					/*  No fail gold for overflow
 						(Tbd.: Add the overflow to OverflowProduction?) */
 					iMinProduction = std::min(iMinProduction,
-							bProject ? getProductionNeeded(pt) :
-							getProductionNeeded(bt));
-					pMinProductionCity->failProduction(maxedBuildingOrProject,
+							bProject ? getProductionNeeded(eProject) :
+							getProductionNeeded(eBuilding));
+					pMinProductionCity->failProduction(iMaxedBuildingOrProject,
 							iMinProduction, bProject);
 				}
 			}
@@ -12010,10 +12003,9 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		}
 	}
 
-	LPCSTR szIcon = NULL;
-
 	if (bFinish && !bMessage)
 	{
+		LPCSTR szIcon = NULL;
 		if (eTrainUnit != NO_UNIT)
 		{
 			swprintf(szBuffer, gDLL->getText(
@@ -12029,7 +12021,12 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		}
 		else if (eConstructBuilding != NO_BUILDING)
 		{
-			swprintf(szBuffer, gDLL->getText(((isLimitedWonderClass((BuildingClassTypes)(GC.getInfo(eConstructBuilding).getBuildingClassType()))) ? "TXT_KEY_MISC_CONSTRUCTED_BUILD_IN_LIMITED" : "TXT_KEY_MISC_CONSTRUCTED_BUILD_IN"), GC.getInfo(eConstructBuilding).getTextKeyWide(), getNameKey()).GetCString());
+			swprintf(szBuffer, gDLL->getText((isLimitedWonderClass((BuildingClassTypes)
+					GC.getInfo(eConstructBuilding).getBuildingClassType()) ?
+					"TXT_KEY_MISC_CONSTRUCTED_BUILD_IN_LIMITED" :
+					"TXT_KEY_MISC_CONSTRUCTED_BUILD_IN"),
+					GC.getInfo(eConstructBuilding).getTextKeyWide(),
+					getNameKey()).GetCString());
 			strcpy(szSound, GC.getInfo(eConstructBuilding).getConstructSound());
 			szIcon = GC.getInfo(eConstructBuilding).getButton();
 		}
@@ -12040,13 +12037,18 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					(::needsArticle(eCreateProject) ?
 					"TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED_THE" :
 					"TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED") // </advc.008e>
-					: "TXT_KEY_MISC_CREATED_PROJECT_IN"), GC.getInfo(eCreateProject).getTextKeyWide(), getNameKey()).GetCString());
+					: "TXT_KEY_MISC_CREATED_PROJECT_IN"),
+					GC.getInfo(eCreateProject).getTextKeyWide(),
+					getNameKey()).GetCString());
 			strcpy(szSound, GC.getInfo(eCreateProject).getCreateSound());
 			szIcon = GC.getInfo(eCreateProject).getButton();
 		}
 		if (isProduction())
 		{
-			swprintf(szTempBuffer, gDLL->getText((isProductionLimited() ? "TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" : "TXT_KEY_MISC_WORK_HAS_BEGUN"), getProductionNameKey()).GetCString());
+			swprintf(szTempBuffer, gDLL->getText((isProductionLimited() ?
+					"TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" :
+					"TXT_KEY_MISC_WORK_HAS_BEGUN"),
+					getProductionNameKey()).GetCString());
 			wcscat(szBuffer, szTempBuffer);
 		}
 		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound,
@@ -12057,7 +12059,6 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 	if (getTeam() == GC.getGame().getActiveTeam() || GC.getGame().isDebugMode())
 	{
 		setInfoDirty(true);
-
 		if (isCitySelected())
 		{
 			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
@@ -12264,40 +12265,42 @@ void CvCity::doCulture()
 	// <advc.099b>
 	if(isOccupation())
 		return; // </advc.099b>
-	/*  K-Mod, 26/sep/10, 31/oct/10, Karadoc
-		Trade culture: START */
-	int iLevel = getCultureLevel();
-	if (iLevel > 0)
-	{	// advc.125:
-		static int const iUseKModTradeCulture = GC.getDefineINT("USE_KMOD_TRADE_CULTURE");
-		// add up the culture contribution for each player before applying it
-		// so that we avoid excessive calls to change culture and reduce rounding errors
-		int iTradeCultureTimes100[MAX_PLAYERS] = {};
+	// <advc.125>
+	static int const iUseKModTradeCulture = GC.getDefineINT("USE_KMOD_TRADE_CULTURE");
+	if (iUseKModTradeCulture != 0) // </advc.125>
+	{
+		/*  K-Mod, 26/sep/10, 31/oct/10, Karadoc
+			Trade culture: START */
+		int iLevel = getCultureLevel();
+		if (iLevel > 0)
+		{
+			// add up the culture contribution for each player before applying it
+			// so that we avoid excessive calls to change culture and reduce rounding errors
+			int iTradeCultureTimes100[MAX_PLAYERS] = {};
 
-		for (int iI = 0; iI < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES); iI++)
-		{
-			CvCity* pLoopCity = getTradeCity(iI);
-			if(pLoopCity != NULL)
-			{	// foreign and domestic
-				//if (pLoopCity->getOwner() != getOwner())
-				iTradeCultureTimes100[pLoopCity->getOwner()]+= pLoopCity->getTradeCultureRateTimes100(iLevel);
-			}
-		}
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (iTradeCultureTimes100[iI] > 0)
+			for (int iI = 0; iI < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES); iI++)
 			{
-				// <advc.125>
-				if((iUseKModTradeCulture < 0 &&
-						plot()->getCulture((PlayerTypes)iI) == 0) ||
-						iUseKModTradeCulture == 0)
-					iTradeCultureTimes100[iI] = 0; // </advc.125>
-				// plot culture only.
-				//changeCultureTimes100((PlayerTypes)iI, iTradeCultureTimes100[iI], false, false);
-				doPlotCultureTimes100(false, (PlayerTypes)iI, iTradeCultureTimes100[iI], false);
+				CvCity* pLoopCity = getTradeCity(iI);
+				if(pLoopCity != NULL)
+				{	// foreign and domestic
+					//if (pLoopCity->getOwner() != getOwner())
+					iTradeCultureTimes100[pLoopCity->getOwner()] += pLoopCity->getTradeCultureRateTimes100(iLevel);
+				}
 			}
-		}
-	} // K-Mod END
+			for (int iI = 0; iI < MAX_PLAYERS; iI++)
+			{
+				if (iTradeCultureTimes100[iI] > 0)
+				{
+					// <advc.125>
+					if(iUseKModTradeCulture < 0 && plot()->getCulture((PlayerTypes)iI) <= 0)
+						continue; // </advc.125>
+					// plot culture only.
+					//changeCultureTimes100((PlayerTypes)iI, iTradeCultureTimes100[iI], false, false);
+					doPlotCultureTimes100(false, (PlayerTypes)iI, iTradeCultureTimes100[iI], false);
+				}
+			}
+		} // K-Mod END
+	}
 	changeCultureTimes100(getOwner(), getCommerceRateTimes100(COMMERCE_CULTURE), false, true);
 }
 
@@ -12339,7 +12342,7 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 	//const double iB = log((double)iOuterRatio)/iCultureRange;
 
 	// free culture bonus for cities
-	iCultureRateTimes100+= bCityCulture ? 400 : 0;
+	iCultureRateTimes100 += (bCityCulture ? 400 : 0);
 
 	// note, original code had "if (getCultureTimes100(ePlayer) > 0)". I took that part out.
 	if (eCultureLevel == NO_CULTURELEVEL || // <advc> Inverted some conditions
@@ -12367,8 +12370,7 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 				The line above was the most recent K-Mod code. Causes an integer
 				overflow when a large amount of culture is added through the
 				WorldBuilder (e.g. 50000). Corrected below. (Also fixed in K-Mod 1.46.) */
-			double dCultureToAdd = iCultureRateTimes100 /
-					(100.0*iCultureRange*iCultureRange);
+			double dCultureToAdd = iCultureRateTimes100 / (100.0*iCultureRange*iCultureRange);
 			int iDelta = iDistance-iCultureRange;
 			dCultureToAdd *= (iScale-1)*iDelta*iDelta + iCultureRange*iCultureRange;
 			int iCultureToAdd = ::round(dCultureToAdd); // </advc.001>
@@ -12378,18 +12380,18 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 				iCultureToAdd = (iCultureToAdd * iCultureToMaster) / 100;
 			// </advc.025>
 			// <dlph.23> Loss of tile culture upon city trade
-			if(iCultureToAdd < 0) {
+			if(iCultureToAdd < 0)
+			{
 				FAssert(iCultureRateTimes100 < 0);
 				int iPlotCulture = pLoopPlot->getCulture(ePlayer);
 				iCultureToAdd = -std::min(-iCultureToAdd, iPlotCulture);
 			} // </dlph.23>
-			pLoopPlot->changeCulture(ePlayer, iCultureToAdd, (bUpdate || !(pLoopPlot->isOwned())));
+			pLoopPlot->changeCulture(ePlayer, iCultureToAdd, (bUpdate || !pLoopPlot->isOwned()));
 		}
-	}
-	// K-Mod end
+	} // K-Mod end
 }
 
-bool CvCity::doCheckProduction()  // advc:some style changes
+bool CvCity::doCheckProduction()  // advc: some style changes
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
 	CvCivilization const& kCiv = getCivilization();
