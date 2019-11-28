@@ -1256,7 +1256,7 @@ class EnumMap : public EnumMapBase <IndexType, T, EnumMapGetDefault<T>::DEFAULT_
 template<class IndexType, class T, int DEFAULT = 0>
 class EnumMapInt : public EnumMapBase <int, T, DEFAULT, IndexType, IndexType> {};
 
-// <advc>
+// <advc> (Will have to explicitly set DEFAULT=-1 when T is an enum type)
 template<class T, int DEFAULT = 0>
 class CivPlayerMap : public EnumMapBase <PlayerTypes, T, DEFAULT, CivPlayerTypes, CivPlayerTypes> {};
 template<class T, int DEFAULT = 0>

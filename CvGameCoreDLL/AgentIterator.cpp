@@ -1,7 +1,7 @@
 // advc.agent: New file; see comment in header.
 
 #include "CvGameCoreDLL.h"
-//#include "AgentIterator.h"
+#include "AgentIterator.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 

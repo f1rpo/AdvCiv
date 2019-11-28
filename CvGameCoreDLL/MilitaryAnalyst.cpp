@@ -209,8 +209,9 @@ MilitaryAnalyst::~MilitaryAnalyst() {
 MilitaryAnalyst::PlayerResult& MilitaryAnalyst::playerResult(PlayerTypes civId) {
 
 	/*  Lazy creation of playerResults means that NULL needs to be checked when accessing
-		a PlayerResult and that memory needs to be allocated dynamically. Not sure if this
-		is better for performance than to create a PlayerResult for every player upfront. */
+		a PlayerResult and that memory needs to be allocated dynamically. Based on a test,
+		this is still faster than creating a PlayerResult for every player upfront and
+		accessing the empty sets of the dummy entries. */
 	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::playerResult");
 	if(playerResults[civId] == NULL)
 		playerResults[civId] = new PlayerResult();
@@ -413,9 +414,8 @@ bool MilitaryAnalyst::hasCapitulated(TeamTypes teamId) const {
 	for(MemberIter it(teamId); it.hasNext(); ++it) {
 		PlayerTypes civId = it->getID();
 		InvasionGraph::Node* node = ig->getNode(civId);
-		if(node != NULL && node->hasCapitulated())
-		{
-			FAssert(!t.isAVassal())
+		if(node != NULL && node->hasCapitulated()) {
+			FAssert(!t.isAVassal());
 			return true;
 		}
 	}

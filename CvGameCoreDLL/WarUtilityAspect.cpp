@@ -35,7 +35,7 @@ WarUtilityAspect::WarUtilityAspect(WarEvalParameters const& params) :
 
 void WarUtilityAspect::reset() {
 
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // About 100,000 calls per game turn. Not a concern.
 	m = NULL; weId = NO_PLAYER; we = NULL; weAI = NULL; ourCache = NULL;
 	resetCivOnCiv();
 }
@@ -63,16 +63,15 @@ int WarUtilityAspect::evaluate(MilitaryAnalyst const& m) {
 			continue;
 		int delta = evaluate(theyId);
 		if(delta != 0)
-			report.log("*%s from %s: %d*", aspectName(),
-					report.leaderName(theyId, 16), delta);
+			log("*%s from %s: %d*", aspectName(), report.leaderName(theyId, 16), delta);
 	}
 	if(overall != 0) {
-		report.log("*%s (from no one in particular): %d*", aspectName(), overall);
+		log("*%s (from no one in particular): %d*", aspectName(), overall);
 		u += overall;
 	}
 	double xmlAdjust = getWPAI.aspectWeight(xmlId());
 	if(u != 0 && (xmlAdjust < 0.99 || xmlAdjust > 1.01)) {
-		report.log("Adjustment from XML: %d percent", ::round(xmlAdjust * 100));
+		log("Adjustment from XML: %d percent", ::round(xmlAdjust * 100));
 		u = ::round(u * xmlAdjust);
 	}
 	reset();
@@ -130,7 +129,13 @@ bool WarUtilityAspect::concernsOnlyWarParties() const { return true; }
 
 void WarUtilityAspect::log(char const* fmt, ...) {
 
-	PROFILE_FUNC();
+	/*  The time spent in this function is negligible when the report is muted,
+		but the call overhead (up to 100,000 calls per game turn) and branching
+		could still be harmful. Can't be helped though so long as the report is
+		enabled and disabled through XML. */
+	//PROFILE_FUNC();
+	if(report.isMute())
+		return;
 	va_list args;
 	va_start(args, fmt);
 	string msg = CvString::formatv(fmt, args);
@@ -350,8 +355,7 @@ double WarUtilityAspect::conqAssetScore(bool mute) {
 			bit high in this case. */
 		r *= 1.2;
 		if(!mute)
-			log("Asset score increased to %d b/c enemy culture neutralized",
-					::round(r));
+			log("Asset score increased to %d b/c enemy culture neutralized", ::round(r));
 	}
 	return r;
 }

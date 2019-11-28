@@ -85,9 +85,9 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	bool fictionalScenario = false;
 	TeamTypes singleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
 	bool const noWarVsExtra = peaceScenario && params.isNoWarVsExtra();
-	for(TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> it(tId); it.hasNext(); ++it) {
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
 		CvTeamAI& loopTeam = *it;
-		if(!loopTeam.isHasMet(TEAMID(m.ourId())))
+		if(loopTeam.getID() == tId || !loopTeam.isHasMet(TEAMID(m.ourId())))
 			continue;
 		TeamTypes loopTeamId = loopTeam.getID();
 		TeamTypes loopMaster = loopTeam.getMasterTeam();

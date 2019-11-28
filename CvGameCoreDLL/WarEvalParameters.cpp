@@ -4,6 +4,7 @@
 #include "WarEvalParameters.h"
 #include "CvGameAI.h"
 #include "CvTeamAI.h"
+#include "AgentIterator.h"
 
 
 WarEvalParameters::WarEvalParameters(TeamTypes agentId,

@@ -37,7 +37,7 @@ public:
 	char const* prefix(int level);
 	void setMute(bool b);
 	// True if muted or if silent to begin with
-	bool isMute() const;
+	bool isMute() const { return (muted > 0); }
 	void setSilent(bool b);
 
 private:

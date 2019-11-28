@@ -6,7 +6,7 @@
 /*  advc.104: Types for small sets of (unique) players, teams and cities.
 	For wars simulated by the utility-based war AI component (a.k.a war-and-peace AI). */
 
-// Tbd.: Test if flat_set is more efficient
+// flat_set might be more efficient, but that's in Boost 1.35.
 /*  Would like to derive my set classes from boost::noncopyable (cf. advc.003e)
 	to prevent errors like:
 	CitySet kMyReference = kAnalyst.lostCities(ePlayer);

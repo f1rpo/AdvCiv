@@ -151,7 +151,7 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 
 void InvasionGraph::Node::initMilitary() {
 
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // Dynamic memory allocation doesn't seem to hurt performance
 	// Copy present military from cache and split HOME_GUARD off from ARMY
 	std::vector<MilitaryBranch*> const& pm = cache.getPowerValues();
 	MilitaryBranch::HomeGuard* hg = new MilitaryBranch::HomeGuard(*pm[HOME_GUARD]);

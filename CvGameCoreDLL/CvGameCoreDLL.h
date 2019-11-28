@@ -291,7 +291,6 @@ namespace python = boost::python;
 #include "CyArgsList.h"
 #include "CyPlot.h"
 #include "CyUnit.h"
-#include "AgentIterator.h" // advc.agent
 
 #ifdef FINAL_RELEASE
 // Undefine OutputDebugString in final release builds

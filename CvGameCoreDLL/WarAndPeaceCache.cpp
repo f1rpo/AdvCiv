@@ -125,7 +125,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 			it != readyToCapitulate.end(); it++)
 		stream->Write(*it);
 	stream->Write(latestTurnReachableBySea.size());
-	for(stdext::hash_map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
+	for(std::map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
 			begin(); it != latestTurnReachableBySea.end(); it++) {
 		stream->Write(it->first);
 		stream->Write(it->second.first);
@@ -611,7 +611,7 @@ WarAndPeaceCache& WarAndPeaceCache::leaderCache() {
 
 WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(int plotIndex) const {
 
-	stdext::hash_map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
+	std::map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
 	// Verify that the city still exists
 	if(pos == cityMap.end() || pos->second->city() == NULL)
 		return NULL;
@@ -1040,7 +1040,7 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 	/*  I didn't think I'd need to update the city cache during turns, so this
 		is awkward to write ... */
 	City* fromCache = NULL;
-	stdext::hash_map<int,City*>::iterator pos = cityMap.find(c->plotNum());
+	std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
 	if(pos != cityMap.end())
 		fromCache = pos->second;
 	size_t vIndex = -1;
