@@ -11,6 +11,7 @@
 #include "CvGame.h"
 #include "CvTeam.h"
 #include "CvPlayer.h"
+#include "AgentIterator.h" // advc.agent
 #include "CvCivilization.h" // advc.003w
 /*  Not: CvCity.h - not much use without CvCityList, which, in turn, includes
 	CvCityAI.h. Same problem with CvUnit.h, CvSelectionGroup.h.

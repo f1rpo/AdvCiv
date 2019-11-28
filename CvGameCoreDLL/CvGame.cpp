@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvDealList.h" // advc.003u
+#include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
@@ -84,6 +85,8 @@ void CvGame::init(HandicapTypes eHandicap)
 {
 	int iI;
 	CvInitCore& ic = GC.getInitCore();
+
+	GC.getAgents().gameStart(false); // advc.agent
 
 	reset(eHandicap); // Reset serialized data
 
@@ -9342,7 +9345,7 @@ void CvGame::allGameDataRead()
 	if(m_iCivTeamsEverAlive == 0)
 		m_iCivTeamsEverAlive = countCivTeamsEverAlive();
 	// </advc.opt>
-	getWPAI.update(); // advc.104
+	GC.getAgents().gameStart(true); // advc.agent
 	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
 	m_bAllGameDataRead = true;
 	// <advc.127> Save created during AI Auto Play

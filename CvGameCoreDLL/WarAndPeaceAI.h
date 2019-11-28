@@ -5,7 +5,7 @@
 
 class FDataStreamBase;
 
-/*  <advc.104> AI functionality for decisions on war and peace. Main class of the
+/*  AI functionality for decisions on war and peace. Main class of the
 	Utility-Based War AI mod component (UWAI).
 	(Tbd.: Change everything that's named "WPAI" or "WarAndPeace" to "UWAI".)
 	Instead of making lots of additions to CvTeamAI and CvPlayerAI, I've put the
@@ -30,10 +30,6 @@ public:
 
 	WarAndPeaceAI();
 	void invalidateUICache();
-	// excluded: Barbarians, Minor civs, dead civs
-	 std::vector<PlayerTypes>& properCivs();
-	 std::vector<TeamTypes>& properTeams();
-	void update();
 	// When a colony is created
 	void processNewCivInGame(PlayerTypes newCivId);
 	/*  true if UWAI fully enabled, making all decisions, otherwise false.
@@ -61,8 +57,6 @@ public:
 	static int const dwtUtilityThresh = -35;
 
 private:
-	std::vector<PlayerTypes> _properCivs;
-	std::vector<TeamTypes> _properTeams;
 	std::vector<int> xmlWeights;
 	bool enabled; // true iff K-Mod AI disabled through Game Options
 	bool inBackgr; // status of the XML flag
@@ -70,4 +64,4 @@ private:
 	void applyPersonalityWeight();
 };
 
-#endif // </advc.104>
+#endif

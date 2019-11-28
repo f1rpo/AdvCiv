@@ -243,10 +243,9 @@ public:
 			bool bConstCache = false) const; // advc.001n
 
 	// <advc.104>
-	WarAndPeaceAI::Team& warAndPeaceAI();
-	WarAndPeaceAI::Team const& warAndPeaceAI() const;
-	// </advc.104>
-	// advc.104: These 9 were protected
+	inline WarAndPeaceAI::Team& warAndPeaceAI() { return *m_pWpai; }
+	inline WarAndPeaceAI::Team const& warAndPeaceAI() const { return *m_pWpai; }
+	// These 9 were protected </advc.104>
 	int AI_maxWarRand() const;
 	int AI_maxWarNearbyPowerRatio() const;
 	int AI_maxWarDistantPowerRatio() const;

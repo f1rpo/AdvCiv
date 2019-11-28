@@ -20573,7 +20573,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					{
 						if (!abContacted[kPlayer.getTeam()])
 						{	// Each type of tribute request uses the same probability
-							for(int i = 0; i < 5; i++)
+							FOR_EACH_ENUM(AIDemand)
 							{
 								if(g.getSorenRandNum(GC.getInfo(getPersonalityType()).
 									getContactRand(CONTACT_DEMAND_TRIBUTE)
@@ -20581,7 +20581,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									* (getWPAI.isEnabled() ? 2 : 1),
 									"AI Diplo Demand Tribute") == 0)
 								{
-									abContacted[kPlayer.getTeam()] = AI_demandTribute(ePlayer, i);
+									abContacted[kPlayer.getTeam()] = AI_demandTribute(ePlayer, eLoopAIDemand);
 									if(abContacted[kPlayer.getTeam()])
 										break;
 								}
@@ -21547,7 +21547,7 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 }
 
 // Same conditions ensured by the caller as for the functions above
-bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
+bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 {
 	// <advc.104m>
 	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(eHuman)))
@@ -21565,9 +21565,9 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
 	CvPlayerAI& kHuman = GET_PLAYER(eHuman);
 	TradeData item;
 	CLinkList<TradeData> theirList;
-	switch(iTributeType)
+	switch(eDemand)
 	{
-	case 0:
+	case DEMAND_GOLD:
 	{
 		int iReceiveGold = range(kHuman.getGold() - 50, 0, kHuman.AI_goldTarget());
 		AI_roundTradeVal(iReceiveGold);
@@ -21580,7 +21580,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
 			theirList.insertAtEnd(item);
 		break;
 	}
-	case 1:
+	case DEMAND_MAP:
 	{
 		setTradeItem(&item, TRADE_MAPS);
 		if(kHuman.canTradeItem(getID(), item)) { // advc.001
@@ -21589,7 +21589,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
 		}
 		break;
 	}
-	case 2:
+	case DEMAND_TECH:
 	{
 		if (!kHuman.canPossiblyTradeItem(getID(), TRADE_TECHNOLOGIES))
 			break;
@@ -21624,7 +21624,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
 		}
 		break;
 	}
-	case 3:
+	case DEMAND_BONUS:
 	{
 		if (!kHuman.canPossiblyTradeItem(getID(), TRADE_RESOURCES))
 			break;
@@ -21654,7 +21654,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
 		}
 		break; // <advc.104m> New: demand gpt
 	}
-	case 4:
+	case DEMAND_GOLD_PER_TURN:
 	{
 		int iGPT = (kHuman.AI_getAvailableIncome() -
 				kHuman.calculateInflatedCosts()) / 5;
@@ -21666,6 +21666,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType)
 		}
 		break; // </advc.104m>
 	} default:
+		FAssertMsg(false, "Unknown AI demand type");
 		return false;
 	}
 	if(theirList.getLength() <= 0)
@@ -28291,16 +28292,6 @@ bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes eOther) const
 	}
 	return false;
 } // <advc>
-
-// <advc.104>
-WarAndPeaceAI::Civ& CvPlayerAI::warAndPeaceAI()
-{
-	return *m_pWPAI;
-}
-WarAndPeaceAI::Civ const& CvPlayerAI::warAndPeaceAI() const
-{
-	return *m_pWPAI;
-} // </advc.104>
 
 /*  <advc.127> Tbd.: There may well be other AI data to be updated when
 	human control is suspended or resumed. */

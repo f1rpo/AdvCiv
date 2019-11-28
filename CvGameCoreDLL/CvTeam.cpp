@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeam.h"
+#include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "WarAndPeaceAgent.h" // advc.104t
@@ -637,10 +638,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	AI().AI_updateWorstEnemy();
 	// <advc.104t>
 	if(getWPAI.isEnabled())
-	{
 		AI().warAndPeaceAI().addTeam(eTeamLeader);
-		getWPAI.update();
-	} // </advc.104t>
+	// </advc.104t>
 	AI().AI_updateAreaStrategies();
 
 	g.updateScore(true);
@@ -3855,7 +3854,11 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	}
 
 	m_eMaster = (bNewValue ? eMaster : NO_TEAM); // advc.opt
-
+	// <advc.agent>
+	if (bCapitulated)
+		GC.getAgents().teamCapitulated(getID(), eMaster);
+	else GC.getAgents().voluntaryVassalAgreementSigned(getID(), eMaster);
+	// </advc.agent>
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
@@ -6338,9 +6341,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 	// <advc.opt>
 	if (uiFlag < 7)
 	{
-		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
+		FOR_EACH_ENUM(Victory)
 		{
-			if (getVictoryCountdown((VictoryTypes)i) >= 0)
+			if (getVictoryCountdown(eLoopVictory) >= 0)
 				m_bAnyVictoryCountdown = true;
 		}
 	} // </advc.opt>

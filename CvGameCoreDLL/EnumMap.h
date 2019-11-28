@@ -84,6 +84,7 @@ public:
 	T get(IndexType eIndex) const;
 	void set(IndexType eIndex, T eValue);
 	void add(IndexType eIndex, T eValue);
+	void multiply(IndexType eIndex, T eValue); // advc
 
 	// add bound checks. Ignore call if out of bound index
 	void safeSet(IndexType eIndex, T eValue);
@@ -112,8 +113,16 @@ public:
 	void reset();
 	void setAll(T eValue);
 
-	void Read(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false);
-	void Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true) const;
+	/*  <advc> (note): These new parameters are a mess (the read/Write functions ignore them
+		in some circumstances). It's temporary measure until adopting the
+		SavegameReader/Writer classes from WtP. */
+	void Read(FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false,
+			bool bAsFloat = false, bool bAsDouble = false/*, bool bSkipLast = false*/);
+	void ReadFloat(FDataStreamBase* pStream, bool bAsDouble = true);
+	// For converting from MAX_CIV_PLAYERS/TEAMS to MAX_PLAYERS/TEAMS. Not needed after all (so far).
+	/*void ReadButOne(FDataStreamBase* pStream, bool bAsInt = false, bool bAsFloat = false,
+			bool bAsDouble = false);*/
+	void Write(FDataStreamBase* pStream, bool bAsInt = true, bool bAsFloat = false) const; // </advc>
 
 	////
 	//// End of functions
@@ -258,10 +267,11 @@ private:
 	unsigned int _getNumBoolBlocks() const;
 
 	template <int iSize>
-	void _Read(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false);
+	void _Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false,
+			bool bAsFloat = false, bool bAsDouble = false/*, bool bSkipLast = false*/); // </advc>
 
 	template <int iSize>
-	void _Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true) const;
+	void _Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsFloat = false) const;
 
 	//
 	// The actual specialized impletation of the functions
@@ -460,9 +470,11 @@ private:
 	}
 
 	template<>
-	void _Read<ENUMMAP_SIZE_BOOL>(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort)
+	void _Read<ENUMMAP_SIZE_BOOL>(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort,
+		bool bAsFloat, bool bAsDouble/*, bool bSkipLast*/)
 	{
-		// (ignore bAsInt, bAsShort)
+		// (ignore bAs...)
+		//IndexType const eLength = (IndexType)(getLength() - bSkipLast ? 1 : 0);
 		for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
 		{
 			bool bTmp;
@@ -472,9 +484,10 @@ private:
 	} 
 	
 	template<>
-	void _Write<ENUMMAP_SIZE_BOOL>(/* <advc> */ FDataStreamBase* pStream, bool bAsInt) const
+	void _Write<ENUMMAP_SIZE_BOOL>(/* <advc> */ FDataStreamBase* pStream, bool bAsInt,
+		bool bAsFloat) const
 	{
-		// (ignore bAsInt)
+		// (ignore bAs...)
 		for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
 			pStream->Write(get(eIndex));
 		// </advc>
@@ -538,14 +551,15 @@ __forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::First() const
 {
 	//return ArrayStart((T_SUBSET)0);
-	return (T_SUBSET)0; // advc: Get rid of the ArrayStart function
+	return (IndexType)0; // advc: Get rid of the ArrayStart function
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 __forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getLength() const
 {
-	return getEnumLength((T_SUBSET)0, false);
+	// advc: getEnumLength(T_SUBSET) returns a T_SUBSET value, so a cast is needed.
+	return (IndexType)getEnumLength((T_SUBSET)0, false);
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
@@ -594,6 +608,17 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 		set(eIndex, eValue + get(eIndex));
 	}
 }
+
+// <advc>
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::multiply(IndexType eIndex, T eValue)
+{
+	/*  In 'add', I expect that branching on eValue is better than risking a cache miss,
+		but eValue==1 in 'multiply' seems far less likely than eValue==0 in 'add'. */
+	//if (eValue != 1)
+	set(eIndex, eValue * get(eIndex));
+} // </advc>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
@@ -802,27 +827,68 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-::Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort)
+::Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort,
+	bool bAsFloat, bool bAsDouble/*, bool bSkipLast*/)
 {
-	_Read<SIZE>(pStream, bAsInt, bAsShort); // </advc>
+	_Read<SIZE>(pStream, bAsInt, bAsShort, bAsFloat, bAsDouble/*, bSkipLast*/);
 }
+
+/*template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::ReadButOne(FDataStreamBase* pStream, bool bAsInt, bool bAsFloat, bool bAsDouble)
+{
+	Read(pStream, bAsInt, false, bAsFloat, bAsDouble, true);
+}*/
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-::Write(/* <advc> */ FDataStreamBase* pStream, bool bAsInt) const
+::ReadFloat(FDataStreamBase* pStream, bool bAsDouble)
 {
-	_Write<SIZE>(pStream, bAsInt); // </advc>
+	Read(pStream, false, false, true, bAsDouble);
+} // </advc>
+
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::Write(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsFloat) const
+{
+	_Write<SIZE>(pStream, bAsInt, bAsFloat); // </advc>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<int SIZE2>
 // advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-::_Read(/* advc: */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort)
+::_Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort, bool bAsFloat,
+	bool bAsDouble/*, bool bSkipLast*/) // </advc>
 {
 	BOOST_STATIC_ASSERT(SIZE == SIZE2);
 	BOOST_STATIC_ASSERT(SIZE != ENUMMAP_SIZE_BOOL);
 	// <advc>
+	//IndexType const eLength = (IndexType)(getLength() - bSkipLast ? 1 : 0);
+	if (bAsDouble)
+	{
+		for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
+		{
+			double dTmp;
+			pStream->Read(&dTmp);
+			float fTmp = static_cast<float>(dTmp);
+			/*  Seems to be the only way to get the compiler to accept this cast.
+				bAsDouble and bAsFloat must of course only be used when T=float.
+				The problem will go away when adopting the WtP SavegameReader. */
+			set(eIndex, *(T*)((void*)&fTmp));
+		}
+		return;
+	}
+	if (bAsFloat)
+	{
+		for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
+		{
+			float fTmp;
+			pStream->Read(&fTmp);
+			set(eIndex, *(T*)((void*)&fTmp));
+		}
+		return;
+	}
 	if (!bAsInt)
 	{
 		if (!bAsShort && (SIZE == ENUMMAP_SIZE_1_BYTE || (SIZE == ENUMMAP_SIZE_NATIVE &&
@@ -860,11 +926,17 @@ template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType
 template<int SIZE2>
 // advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-::_Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt) const
+::_Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt, bool bAsFloat) const
 {
 	BOOST_STATIC_ASSERT(SIZE == SIZE2);
 	BOOST_STATIC_ASSERT(SIZE != ENUMMAP_SIZE_BOOL);
 	// <advc>
+	if (bAsFloat)
+	{
+		for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
+			pStream->Write(static_cast<float>(get(eIndex)));
+		return;
+	}
 	if (!bAsInt)
 	{
 		if (SIZE == ENUMMAP_SIZE_1_BYTE || (SIZE == ENUMMAP_SIZE_NATIVE &&
@@ -1066,6 +1138,7 @@ SET_ARRAY_DEFAULT(char);
 SET_ARRAY_DEFAULT(unsigned int);
 SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
+SET_ARRAY_DEFAULT(float); // advc
 
 /*  advc: COMPILE_NUM_TYPES param removed; use NUM_ENUM_TYPES macro instead.
 	JITarrayType accessor, ArrayStart and ArrayLength functions removed.
@@ -1139,6 +1212,19 @@ SET_NONXML_ENUM_LENGTH(PlayerTypes, (PlayerTypes)MAX_PLAYERS)
 SET_NONXML_ENUM_LENGTH(TeamTypes, (TeamTypes)MAX_TEAMS)
 // See CityPlotTypes in CvEnums.h; will probably use a variant of FOR_EACH_ENUM eventually.
 SET_NONXML_ENUM_LENGTH(CityPlotTypes, (CityPlotTypes)NUM_CITY_PLOTS)
+
+// For enum maps that exclude the Barbarians
+enum CivPlayerTypes {};
+enum CivTeamTypes {};
+SET_NONXML_ENUM_LENGTH(CivPlayerTypes, (CivPlayerTypes)MAX_CIV_PLAYERS)
+SET_NONXML_ENUM_LENGTH(CivTeamTypes, (CivTeamTypes)MAX_CIV_TEAMS)
+
+// Not to be used outside of this header
+#undef SET_XML_ENUM_SIZE
+#undef SET_XML_ENUM_SIZE1
+#undef SET_XML_ENUM_SIZE2
+#undef SET_ARRAY_DEFAULT
+#undef SET_NONXML_ENUM_LENGTH
 // </advc>
 
 
@@ -1169,5 +1255,12 @@ class EnumMap : public EnumMapBase <IndexType, T, EnumMapGetDefault<T>::DEFAULT_
 
 template<class IndexType, class T, int DEFAULT = 0>
 class EnumMapInt : public EnumMapBase <int, T, DEFAULT, IndexType, IndexType> {};
+
+// <advc> (Will have to explicitly set DEFAULT=-1 when T is an enum type)
+template<class T, int DEFAULT = 0>
+class CivPlayerMap : public EnumMapBase <PlayerTypes, T, DEFAULT, CivPlayerTypes, CivPlayerTypes> {};
+template<class T, int DEFAULT = 0>
+class CivTeamMap : public EnumMapBase <TeamTypes, T, DEFAULT, CivTeamTypes, CivTeamTypes> {};
+// </advc>
 
 #endif

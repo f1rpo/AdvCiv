@@ -3,7 +3,7 @@
 #ifndef WAR_AND_PEACE_AGENT_H
 #define WAR_AND_PEACE_AGENT_H
 
-// <advc.104> See comment at the start of WarAndPeaceAI.h
+// advc.104: See comment at the start of WarAndPeaceAI.h
 
 #include "WarAndPeaceAI.h"
 #include "WarAndPeaceCache.h"
@@ -17,9 +17,9 @@ public:
 	Team();
 	~Team();
 	// See WarAndPeaceCache.h about the call order during initialization
+	// (Tbd.: Make the UWAI classes non-reusable, i.e. initialize in the ctor.)
 	void init(TeamTypes agentId);
 	void turnPre();
-	void updateMembers();
 	void doWar(); // replacement for CvTeamAI::doWar
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
@@ -81,7 +81,6 @@ public:
 	/*  Whether this team can reach any city of 'targetId' with military units;
 		based on cached info. */
 	bool canReach(TeamTypes targetId) const;
-	std::vector<PlayerTypes>& teamMembers();
 	/* Confidence based on experience in the current war with targetId.
 		Between 0.5 (low confidence) and 1.5 (high confidence); negative
 		if not at war. */
@@ -154,7 +153,6 @@ private:
 
 	TeamTypes agentId;
 	bool inBackgr;
-	std::vector<PlayerTypes> members;
 	bool bForceReport;
 	WarAndPeaceReport* report; // Only to be used in doWar and its subroutines
 };
@@ -170,8 +168,8 @@ public:
 	// 'cache' handles all the persistent data, these two only relay the calls.
 	 void write(FDataStreamBase* stream);
 	 void read(FDataStreamBase* stream);
-	WarAndPeaceCache const& getCache() const;
-	WarAndPeaceCache& getCache();
+	inline WarAndPeaceCache const& getCache() const { return cache; }
+	inline WarAndPeaceCache& getCache() { return cache; }
 	// Request and demands. BtS handles these in CvPlayerAI::AI_considerOffer.
 	bool considerDemand(PlayerTypes theyId, int tradeVal) const;
 	bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
@@ -252,4 +250,4 @@ private:
 	WarAndPeaceCache cache;
 };
 
-#endif // </advc.104>
+#endif

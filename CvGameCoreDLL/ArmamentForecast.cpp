@@ -1,4 +1,4 @@
-// <advc.104> New class; see ArmamentForecast.h for description
+// advc.104: New class; see ArmamentForecast.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "ArmamentForecast.h"
@@ -10,7 +10,6 @@
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_GameOption.h"
-#include <sstream>
 
 using std::vector;
 using std::ostringstream;
@@ -86,11 +85,11 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	bool fictionalScenario = false;
 	TeamTypes singleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
 	bool const noWarVsExtra = peaceScenario && params.isNoWarVsExtra();
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		TeamTypes loopTeamId = getWPAI.properTeams()[i];
-		if(loopTeamId == tId)
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		CvTeamAI& loopTeam = *it;
+		if(loopTeam.getID() == tId || !loopTeam.isHasMet(TEAMID(m.ourId())))
 			continue;
-		CvTeamAI& loopTeam = GET_TEAM(loopTeamId);
+		TeamTypes loopTeamId = loopTeam.getID();
 		TeamTypes loopMaster = loopTeam.getMasterTeam();
 		// Whether the simulation assumes peace between loopTeam and t
 		bool peaceAssumedLoop = peaceScenario && ((m.isOnOurSide(tId) &&
@@ -125,17 +124,17 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			if(intensity == NORMAL)
 				intensity = INCREASED;
 			// t recently attacked by loopTeam
-			bool attackedRecentlyLoop = warAssumed && partyAddedRecently
-					&& m.isOnTheirSide(tId, true);
+			bool attackedRecentlyLoop = (warAssumed && partyAddedRecently
+					&& m.isOnTheirSide(tId, true));
 			if(attackedRecentlyLoop && loopTeam.warAndPeaceAI().canReach(tId))
 				attackedRecently = true;
 			/*  Vassals only get dragged along into limited wars; however,
 				an attacked vassal may build up as if in total war. */
-			bool totalWarAssumed = warAssumed && ((TEAMID(weId) == tId &&
+			bool totalWarAssumed = (warAssumed && ((TEAMID(weId) == tId &&
 					loopTeamId == targetTeamId && params.isTotal()) ||
 					attackedRecentlyLoop) &&
 					// Only assume total war if we can reach them (not just them us)
-					t.warAndPeaceAI().canReach(loopTeamId);
+					t.warAndPeaceAI().canReach(loopTeamId));
 			if((t.AI_getWarPlan(loopTeamId) == WARPLAN_TOTAL &&
 					/* If we already have a (total) war plan against the target,
 					   that plan is going to be replaced by the war plan
@@ -220,8 +219,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		alive. Would be cleaner to assume a shorter time horizon, but that's a
 		can of worms. */
 	if(singleWarEnemy != NO_TEAM && !navalArmament && iTotalWars <= 0 &&
-			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
-			| AI_STRATEGY_ALERT2) && t.warAndPeaceAI().isPushover(singleWarEnemy)) {
+			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1 | AI_STRATEGY_ALERT2) &&
+			t.warAndPeaceAI().isPushover(singleWarEnemy)) {
 		intensity = NORMAL;
 		fictionalScenario = true; // Don't check AreAI either
 	}
@@ -610,5 +609,3 @@ AreaAITypes ArmamentForecast::getAreaAI(PlayerTypes civId) const {
 	CvArea& capitalArea = *getCapitalArea(civId);
 	return capitalArea.getAreaAIType(TEAMID(civId));
 }
-
-// </advc.104>

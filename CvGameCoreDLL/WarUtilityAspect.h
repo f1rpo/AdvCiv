@@ -13,7 +13,7 @@ class WarAndPeaceAI::Team;
 class WarAndPeaceCache;
 
 
-/*  <advc.104> New class. An aspect of war evaluation.
+/*  advc.104: New class. An aspect of war evaluation.
 	Few const functions in this class because the 'log' function needs to be
 	able to write to the report object. */
 class WarUtilityAspect {
@@ -22,16 +22,16 @@ public:
 	/*  Returns the computed utility (same as calling utility(void)).
 		Sets some protected data members that subclasses should find useful.
 		Concrete subclasses should therefore overwrite evaluate(void) instead. */
-	virtual int evaluate(MilitaryAnalyst& m);
+	virtual int evaluate(MilitaryAnalyst const& m);
 	virtual char const* aspectName() const=0;
 	// Needs to correspond to the call order in WarAndPeaceAI::cacheXML
 	virtual int xmlId() const=0;
 	/*  Caller needs to call evaluate first, which computes war utility. This is
 		just a getter. */
-	int utility() const;
+	int utility() const { return u; }
 
 protected:
-	WarUtilityAspect(WarEvalParameters& params);
+	WarUtilityAspect(WarEvalParameters const& params);
 	// Just for convenience (replacing report->log)
 	void log(char const* fmt, ...);
 	/*  What can m->ourId gain from or lose to theyId (both set by
@@ -61,13 +61,8 @@ protected:
 	TeamTypes agentId;
 	CvTeamAI& agent;
 	WarAndPeaceAI::Team& agentAI;
-	std::vector<PlayerTypes> const& agentTeam;
-	std::vector<TeamTypes> const& properTeams;
-	std::vector<PlayerTypes> const& properCivs;
 	int u;
 	WarAndPeaceReport& report;
-	int numRivals; // Civs presently alive, not on our team, non-vassal
-	int numKnownRivals; // Like above, but only those met by agent
 	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
 	EraTypes gameEra;
 
@@ -75,16 +70,16 @@ protected:
 		Initialization is then guaranteed although they're not references.
 		This is obviously not an ideal class design. A separate class
 		WarUtilityAspect::Civ would be even more unwieldy I think. */
-	MilitaryAnalyst* m;
+	MilitaryAnalyst const* m;
 	PlayerTypes weId;
 	CvPlayerAI* we;
-	WarAndPeaceAI::Civ* weAI;
-	WarAndPeaceCache* ourCache;
+	WarAndPeaceAI::Civ const* weAI;
+	WarAndPeaceCache const* ourCache;
 	/*  'they' are not necessarily the team targeted by the DoW. Can be any rival
 		that we might directly or indirectly gain sth. from (or lose sth. to). */
 	PlayerTypes theyId;
-	CvPlayerAI* they;
-	WarAndPeaceAI::Civ* theyAI;
+	CvPlayerAI const* they;
+	WarAndPeaceAI::Civ const* theyAI;
 	std::vector<int> weConquerFromThem;
 	// Our current attitude towards them and their current attitude towards us
 	AttitudeTypes towardsThem, towardsUs;
@@ -114,6 +109,10 @@ protected:
 	 double cityRatio(PlayerTypes civId) const;
 	 // Between our team and 'other', or their team if none given
 	 double normalizeUtility(double utilityTeamOnTeam, TeamTypes other = NO_TEAM);
+	 template<bool bCHECK_HAS_MET> int countRivals() const {
+		 return PlayerIter<FREE_MAJOR_CIV, bCHECK_HAS_MET ?
+				KNOWN_POTENTIAL_ENEMY_OF : POTENTIAL_ENEMY_OF>::count(agentId);
+	 }
 	 /*  Evaluation of their usefulness as our trade partner. Would prefer this
 		 to be computed just once by WarAndPeaceCache (the computations aren't
 		 totally cheap), but I also want the log output. They're not called
@@ -155,7 +154,7 @@ private:
 	double threatToCities(PlayerTypes civId);
 	double competitionMultiplier();
 	double teamSizeMultiplier();
-	std::map<int,int>* citiesPerArea[MAX_CIV_PLAYERS];
+	std::vector<std::map<int,int>*> citiesPerArea;
 	double ourDist;
 };
 
@@ -306,7 +305,6 @@ private:
 	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
 			bool bPredict = true) const;
 	double theirRelativeLoss();
-	std::vector<PlayerTypes> civs; // excluding vassals
 	std::set<PlayerTypes> winningFuture;
 	std::set<PlayerTypes> winningPresent;
 	static double const scoreMargin;
@@ -431,7 +429,5 @@ private:
 	void evalOperational();
 	int evacPop(PlayerTypes ownerId, PlayerTypes invaderId);
 };
-
-// </advc.104>
 
 #endif

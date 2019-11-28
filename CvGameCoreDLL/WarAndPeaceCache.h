@@ -8,7 +8,7 @@ class MilitaryBranch;
 class CvCity;
 class FDataStreamBase;
 
-/* <advc.104>: Cached data used by the war-and-peace AI. Each civ has its own
+/* advc.104: Cached data used by the war-and-peace AI. Each civ has its own
    cache. That said, each civ's cache also contains certain (subjective)
    information about all other civs, and (not nice) also a bit of team-level data.
    Also handles the updating of cached values, i.e. many of the AI's
@@ -44,7 +44,7 @@ public:
 	void update();
 	void write(FDataStreamBase* stream);
 	void read(FDataStreamBase* stream);
-	int numReachableCities(PlayerTypes civId) const ;
+	int numReachableCities(PlayerTypes civId) const { return nReachableCities.get(civId); }
 	int size() const;
 		private: /* These shouldn't be used anymore. Always keep the cache
 					sorted by AttackPriority instead. */
@@ -64,48 +64,52 @@ public:
 	City* lookupCity(int plotIndex) const;
 	City* lookupCity(CvCity const& cvCity) const;
 	// Referring to cache owner
-	 bool hasAggressiveTrait() const;
-	 bool hasProtectiveTrait() const;
-	 bool canScrubFallout() const;
+	 /*	Any trait that gives free Combat I (or any other promotion that grants
+		an unconditional combat bonus). */
+	 bool hasAggressiveTrait() const { return bHasAggressiveTrait; }
+	 /* Any trait that gives free Garrison I (or any other promotion that
+		boosts city defense). */
+	 bool hasProtectiveTrait() const { return bHasProtectiveTrait; }
+	 bool canScrubFallout() const { return canScrub; }
 	// Ongoing combat missions against civId
-	int targetMissionCount(PlayerTypes civId) const;
+	int targetMissionCount(PlayerTypes civId) const { return targetMissionCounts.get(civId); }
 	/*  Long-term military threat by civId between 0 and 1. Can see it as the
 		probability of them hurting us substantially with an invasion sometime
 		within the next 50 to 100 turns. */
-	double threatRating(PlayerTypes civId) const;
+	double threatRating(PlayerTypes civId) const { return threatRatings.get(civId); }
 	// If civId were to capitulate to the cache owner
-	 int vassalTechScore(PlayerTypes civId) const;
-	 int vassalResourceScore(PlayerTypes civId) const;
-	int numAdjacentLandPlots(PlayerTypes civId) const;
-	int numLostTilesAtWar(TeamTypes tId) const; // advc.035
-	double relativeNavyPower(PlayerTypes civId) const;
-	int pastWarScore(TeamTypes tId) const;
+	 int vassalTechScore(PlayerTypes civId) const { return vassalTechScores.get(civId); }
+	 int vassalResourceScore(PlayerTypes civId) const { return vassalResourceScores.get(civId); }
+	int numAdjacentLandPlots(PlayerTypes civId) const { return adjacentLand.get(civId); }
+	int numLostTilesAtWar(TeamTypes tId) const { return lostTilesAtWar.get(tId); } // advc.035
+	double relativeNavyPower(PlayerTypes civId) const { return relativeNavyPow.get(civId); }
+	int pastWarScore(TeamTypes tId) const { return pastWarScores.get(tId); }
 	// Trade value paid to us for declaring war against tId
-	int sponsorshipAgainst(TeamTypes tId) const;
+	int sponsorshipAgainst(TeamTypes tId) const { return sponsorshipsAgainst.get(tId); }
 	// Identity of the sponsor who made the above payment
-	PlayerTypes sponsorAgainst(TeamTypes tId) const;
+	PlayerTypes sponsorAgainst(TeamTypes tId) const { return sponsorsAgainst.get(tId); }
 	/*  Other classes should base the actual war utility computations on this
 		preliminary result */
-	int warUtilityIgnoringDistraction(TeamTypes tId) const;
+	int warUtilityIgnoringDistraction(TeamTypes tId) const { return leaderCache().warUtilityIgnDistraction.get(tId); }
 	// Not a _sufficient_ condition for agreeing to a joint war
-	bool canBeHiredAgainst(TeamTypes tId) const;
+	bool canBeHiredAgainst(TeamTypes tId) const { return leaderCache().hireAgainst.get(tId); }
 	void setCanBeHiredAgainst(TeamTypes tId, bool b);
 	void updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh);
-	bool canTrainDeepSeaCargo() const;
-	bool canTrainAnyCargo() const;
-	bool isFocusOnPeacefulVictory() const;
+	bool canTrainDeepSeaCargo() const { return trainDeepSeaCargo; }
+	bool canTrainAnyCargo() const { return trainAnyCargo; }
+	bool isFocusOnPeacefulVictory() const { return focusOnPeacefulVictory; }
 
 	/* Caching of power values. Military planning must not add the power
 	   of hypothetical units to the vector; need to make a copy for that. */
-	std::vector<MilitaryBranch*> const& getPowerValues() const;
+	inline std::vector<MilitaryBranch*> const& getPowerValues() const { return militaryPower; }
 	// Counts only combatants
-	int numNonNavyUnits() const;
+	int numNonNavyUnits() const { return nNonNavyUnits; }
 	// Includes national wonders (which City::updateAssetScore does not count)
-	double totalAssetScore() const;
+	double totalAssetScore() const { return totalAssets; }
 	/*  Number of citizens that are angry now and wouldn't be if it weren't for
 		the war weariness against civId. */
-	double angerFromWarWeariness(PlayerTypes civId) const;
-	double goldValueOfProduction() const;
+	double angerFromWarWeariness(PlayerTypes civId) const { return wwAnger.get(civId); }
+	double goldValueOfProduction() const { return goldPerProduction; }
 	void reportUnitCreated(CvUnitInfo const& u);
 	void reportUnitDestroyed(CvUnitInfo const& u);
 	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive = NULL,
@@ -130,8 +134,7 @@ private:
 	void clear(bool beforeUpdate = false);
 	void updateCities(PlayerTypes civId);
 	void updateLatestTurnReachableBySea();
-	void updateHasAggressiveTrait();
-	void updateHasProtectiveTrait();
+	void updateTraits();
 	void updateTargetMissionCounts();
 	void updateThreatRatings();
 	void updateVassalScores();
@@ -161,9 +164,11 @@ private:
 
 	PlayerTypes ownerId;
 	std::vector<City*> v;
+	// I've tried stdext::hash_map for both of these. That was a little bit slower.
 	std::map<int,City*> cityMap;
 	std::map<int,std::pair<int,int> > latestTurnReachableBySea;
 	std::vector<MilitaryBranch*> militaryPower;
+
 	int nNonNavyUnits;
 	double totalAssets;
 	double goldPerProduction;
@@ -173,27 +178,26 @@ private:
 	bool focusOnPeacefulVictory;
 	std::set<TeamTypes> readyToCapitulate;
 	static double const goldPerProdUpperLimit;
-   // Serializable arrays
-	// per civ
-	 double wwAnger[MAX_CIV_PLAYERS];
-	 int nReachableCities[MAX_CIV_PLAYERS];
-	 int targetMissionCounts[MAX_CIV_PLAYERS];
-	 double threatRatings[MAX_CIV_PLAYERS];
-	 int vassalTechScores[MAX_CIV_PLAYERS];
-	 int vassalResourceScores[MAX_CIV_PLAYERS];
-	 bool located[MAX_CIV_PLAYERS];
+  
+	CivPlayerMap<float> wwAnger;
+	CivPlayerMap<int> nReachableCities;
+	CivPlayerMap<int> targetMissionCounts;
+	CivPlayerMap<float> threatRatings;
+	CivPlayerMap<int> vassalTechScores;
+	CivPlayerMap<int> vassalResourceScores;
+	CivPlayerMap<bool> located;
 	 // (CvTeamAI::AI_calculateAdjacentLandPlots is too slow and per team)
-	 int adjacentLand[MAX_CIV_PLAYERS];
-	 double relativeNavyPow[MAX_CIV_PLAYERS];
-	// per team
-	 int lostTilesAtWar[MAX_CIV_TEAMS]; // advc.035
-	 int pastWarScores[MAX_CIV_TEAMS];
-	 // Value of the sponsorship
-	 int sponsorshipsAgainst[MAX_CIV_TEAMS];
-	 // Identity of the sponsor (PlayerTypes)
-	 int sponsorsAgainst[MAX_CIV_TEAMS];
-	 int warUtilityIgnDistraction[MAX_CIV_TEAMS];
-	 bool hireAgainst[MAX_CIV_TEAMS];
+	 CivPlayerMap<int> adjacentLand;
+	 CivPlayerMap<float> relativeNavyPow;
+
+	CivTeamMap<int> lostTilesAtWar; // advc.035
+	CivTeamMap<int> pastWarScores;
+	// Value of the sponsorship
+	CivTeamMap<int> sponsorshipsAgainst;
+	// Identity of the sponsor (PlayerTypes)
+	CivTeamMap<PlayerTypes,NO_PLAYER> sponsorsAgainst;
+	CivTeamMap<int,MIN_INT> warUtilityIgnDistraction;
+	CivTeamMap<bool,true> hireAgainst;
 
 public:
 	/* Information to be cached about a CvCity and scoring functions useful
@@ -223,9 +227,6 @@ public:
 		int id() const;
 		// NULL if the city no longer exists at the time of retrieval
 		CvCity* city() const;
-		/*  See ::cityCross in CvGameCoreUtils. If the underlying CvCity
-			no longer exists, all entries are NULL. */
-		void cityCross(std::vector<CvPlot*>& r);
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
 		static CvCity* cityById(int id);
@@ -260,7 +261,5 @@ public:
 		PlayerTypes cacheOwnerId;
 	};
 };
-
-// </advc.104>
 
 #endif

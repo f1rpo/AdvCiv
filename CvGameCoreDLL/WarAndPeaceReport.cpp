@@ -173,11 +173,6 @@ void WarAndPeaceReport::setMute(bool b) {
 	else muted--;
 }
 
-bool WarAndPeaceReport::isMute() const {
-
-	return muted > 0;
-}
-
 void WarAndPeaceReport::setSilent(bool b) {
 
 	silent = b;

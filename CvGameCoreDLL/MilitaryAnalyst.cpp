@@ -1,4 +1,4 @@
-// <advc.104> New class; see MilitaryAnalyst.h for description
+// advc.104: New class; see MilitaryAnalyst.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryAnalyst.h"
@@ -7,11 +7,14 @@
 #include "InvasionGraph.h"
 #include "CvAI.h"
 #include "CvInfo_GameOption.h"
-#include <sstream>
 #include <iterator>
 
-using std::set;
 using std::ostringstream;
+
+
+// empty sets (static)
+CitySet MilitaryAnalyst::emptyCitySet;
+PlyrSet MilitaryAnalyst::emptyPlayerSet;
 
 
 MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalParams,
@@ -20,36 +23,22 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	  peaceScenario(peaceScenario), report(warEvalParams.getReport()), turnsSim(0) {
 
 	PROFILE_FUNC();
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		gameScore[i] = -1;
-		nukesFiredBy[i] = 0;
-		nukesSufferedBy[i] = 0;
-		lostCitiesPerCiv[i] = new set<int>();
-		conqueredCitiesPerCiv[i] = new set<int>();
-		DoWOn[i] = new set<PlayerTypes>();
-		DoWBy[i] = new set<PlayerTypes>();
-		warsCont[i] = new set<PlayerTypes>();
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			isWarTable[i][j] = false;
-			nukedCities[i][j] = 0;
-		}
-	}
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
-		capitulationsAcceptedPerTeam[i] = new set<TeamTypes>();
+	playerResults.resize(MAX_CIV_PLAYERS, NULL);
+	warTable.resize(MAX_CIV_PLAYERS, std::vector<bool>(MAX_CIV_PLAYERS, false));
+	nukedCities.resize(MAX_CIV_PLAYERS, std::vector<double>(MAX_CIV_PLAYERS, 0.0));
+	capitulationsAcceptedPerTeam.resize(MAX_CIV_TEAMS);
 	report.log("Military analysis from the pov of %s", report.leaderName(weId));
 	CvTeamAI& agent = GET_TEAM(weId);
-	set<PlayerTypes> currentlyAtWar; // 'atWar' is already a name of a global-context function
-	set<PlayerTypes> ourFutureOpponents;
-	set<PlayerTypes> ourSide;
-	set<PlayerTypes> theirSide;
-	set<PlayerTypes> weAndOurVassals;
-	set<PlayerTypes> ourAllies;
-	set<PlayerTypes> theyAndTheirVassals;
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		// Exclude unknown civs from analysis
-		if(!agent.isHasMet(TEAMID(civId)))
-			continue;
+	PlyrSet currentlyAtWar; // 'atWar' is already a name of a global-context function
+	PlyrSet ourFutureOpponents;
+	PlyrSet ourSide;
+	PlyrSet theirSide;
+	PlyrSet weAndOurVassals;
+	PlyrSet ourAllies;
+	PlyrSet theyAndTheirVassals;
+	// Exclude unknown civs from analysis
+	for(PlayerIter<MAJOR_CIV,KNOWN_TO> it(agent.getID()); it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
 		/*  Civs already at war (not necessarily with us).
 			If we are at war, our vassals are covered here as well. */
 		if(GET_TEAM(civId).warAndPeaceAI().isKnownToBeAtWar(agent.getID()))
@@ -69,19 +58,15 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			// doWePlanToDeclWar checks if civId is part of the enemy team
 			ourFutureOpponents.insert(civId);
 			theirSide.insert(civId);
-			// Defensive pacts that our war plans will trigger.
-			for(size_t j = 0; j < getWPAI.properCivs().size(); j++) {
-				CvTeamAI& ally = GET_TEAM(getWPAI.properCivs()[j]);
-				/* If we attack our own ally, we still won't be at war with
-				   ourselves. */
-				if(ally.getMasterTeam() == GET_TEAM(weId).getMasterTeam())
-					continue;
+			// Defensive pacts that our war plans will trigger
+			for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> allyIt(agent.getID());
+					allyIt.hasNext(); ++allyIt) {
+				CvPlayerAI& ally = *allyIt;
 				// Can happen b/c of the dlph.3 change
-				if(ally.isAtWar(TEAMID(weId)))
+				if(agent.isAtWar(ally.getTeam()))
 					continue;
-				if(GET_TEAM(civId).warAndPeaceAI().hasDefactoDefensivePact(
-						ally.getID()))
-					ourFutureOpponents.insert(getWPAI.properCivs()[j]);
+				if(GET_TEAM(civId).warAndPeaceAI().hasDefactoDefensivePact(ally.getTeam()))
+					ourFutureOpponents.insert(ally.getID());
 			}
 		}
 	}
@@ -89,64 +74,63 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	ourSide.insert(ourAllies.begin(), ourAllies.end());
 	theirSide.insert(theyAndTheirVassals.begin(), theyAndTheirVassals.end());
 	bool const noWarVsExtra = (peaceScenario && warEvalParams.isNoWarVsExtra());
-	set<PlayerTypes>& declaringWar = ((agent.isAtWar(theyId) &&
+	PlyrSet& declaringWar = ((agent.isAtWar(theyId) &&
 			!warEvalParams.isConsideringPeace()) ? ourAllies : ourSide);
 	if((!peaceScenario && !warEvalParams.isConsideringPeace()) || noWarVsExtra) {
 		// Store war-scenario DoW for getWarsDeclaredOn/By
-		for(set<PlayerTypes>::iterator it = declaringWar.begin();
-				it != declaringWar.end(); it++) {
-			for(set<PlayerTypes>::iterator it2 = theirSide.begin();
+		for(PlyrSetIter it1 = declaringWar.begin();
+				it1 != declaringWar.end(); it1++) {
+			for(PlyrSetIter it2 = theirSide.begin();
 					it2 != theirSide.end(); it2++) {
-				if(!GET_TEAM(*it).isAtWar(TEAMID(*it2))) {
-					DoWBy[*it]->insert(*it2);
-					DoWOn[*it2]->insert(*it);
+				if(!GET_TEAM(*it1).isAtWar(TEAMID(*it2))) {
+					playerResult(*it1).setDoWBy(*it2);
+					playerResult(*it2).setDoWOn(*it1);
 				}
 			}
 		}
-		set<PlayerTypes> theirDPAllies;
-		for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-			PlayerTypes civId = getWPAI.properCivs()[i];
-			if(GET_TEAM(civId).getMasterTeam() == GET_TEAM(weId).getMasterTeam())
-				continue;
-			if(GET_TEAM(civId).isAtWar(TEAMID(weId)))
+		PlyrSet theirDPAllies;
+		for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agent.getID());
+				it.hasNext(); ++it) {
+			PlayerTypes civId = it->getID();
+			if(agent.isAtWar(TEAMID(civId)))
 				continue;
 			if(isOnTheirSide(TEAMID(civId), true) && theirSide.count(civId) <= 0)
 				theirDPAllies.insert(civId);
 		}
-		{ // Just debugging
-			set<PlayerTypes> isect;
+		#ifdef _DEBUG
+		{
+			PlyrSet isect;
 			set_intersection(theirSide.begin(), theirSide.end(),
 					theirDPAllies.begin(), theirDPAllies.end(), std::inserter(
 					 isect, isect.begin()));
 			FAssert(isect.empty());
 		}
-		for(set<PlayerTypes>::iterator it = theirDPAllies.begin();
-				it != theirDPAllies.end(); it++)
-			DoWBy[*it]->insert(declaringWar.begin(), declaringWar.end());
-		for(set<PlayerTypes>::iterator it = declaringWar.begin();
-				it != declaringWar.end(); it++)
-			DoWOn[*it]->insert(theirDPAllies.begin(), theirDPAllies.end());
+		#endif
+		for(PlyrSetIter it = theirDPAllies.begin(); it != theirDPAllies.end(); it++)
+			playerResult(*it).setDoWBy(declaringWar.begin(), declaringWar.end());
+		for(PlyrSetIter it = declaringWar.begin(); it != declaringWar.end(); it++)
+			playerResult(*it).setDoWOn(theirDPAllies.begin(), theirDPAllies.end());
 	}
 	// Wars continued
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		for(size_t j = 0; j < getWPAI.properCivs().size(); j++) {
-			PlayerTypes opponentId = getWPAI.properCivs()[j];
-			if(GET_TEAM(civId).isAtWar(TEAMID(opponentId)) &&
-					(declaringWar.count(civId) <= 0 ||
-					!peaceScenario || theirSide.count(opponentId) <= 0) &&
-					(declaringWar.count(opponentId) <= 0 ||
-					!peaceScenario || theirSide.count(civId) <= 0)) {
-				warsCont[civId]->insert(opponentId);
-				FAssert(DoWBy[civId]->count(opponentId) <= 0);
-				FAssert(DoWBy[opponentId]->count(civId) <= 0);
-				FAssert(DoWOn[civId]->count(opponentId) <= 0);
-				FAssert(DoWOn[opponentId]->count(civId) <= 0);
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
+		for(PlayerIter<MAJOR_CIV,ENEMY_OF> enemyIt(TEAMID(civId));
+				enemyIt.hasNext(); ++enemyIt) {
+			PlayerTypes enemyId = enemyIt->getID();
+			if((declaringWar.count(civId) <= 0 || !peaceScenario ||
+					theirSide.count(enemyId) <= 0) &&
+					(declaringWar.count(enemyId) <= 0 || !peaceScenario ||
+					theirSide.count(civId) <= 0)) {
+				playerResult(civId).setWarContinued(enemyId);
+				FAssert(getWarsDeclaredBy(civId).count(enemyId) <= 0);
+				FAssert(getWarsDeclaredBy(enemyId).count(civId) <= 0);
+				FAssert(getWarsDeclaredOn(civId).count(enemyId) <= 0);
+				FAssert(getWarsDeclaredOn(enemyId).count(civId) <= 0);
 			}
 		}
 	}
 	// Need ArmamentForecasts for initially uninvolved parties (if any)
-	set<PlayerTypes> uninvolved;
+	PlyrSet uninvolved;
 	uninvolved.insert(declaringWar.begin(), declaringWar.end());
 	uninvolved.insert(ourFutureOpponents.begin(), ourFutureOpponents.end());
 	partOfAnalysis.insert(currentlyAtWar.begin(), currentlyAtWar.end());
@@ -165,7 +149,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 				Master isn't included in the removed war opponents
 				(theirSide) then. */
 		if(noWarVsExtra) { // diff = theirSide - theyAndTheirVassals
-			std::set<PlayerTypes> diff;
+			PlyrSet diff;
 			std::set_difference(theirSide.begin(), theirSide.end(),
 					theyAndTheirVassals.begin(), theyAndTheirVassals.end(),
 					std::inserter(diff, diff.begin()));
@@ -217,27 +201,21 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 
 MilitaryAnalyst::~MilitaryAnalyst() {
 
-	// They're all guaranteed to be allocated (no is-NULL checks needed)
 	delete ig;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		delete lostCitiesPerCiv[i];
-		delete conqueredCitiesPerCiv[i];
-		delete DoWOn[i];
-		delete DoWBy[i];
-		delete warsCont[i];
-	}
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
-		delete capitulationsAcceptedPerTeam[i];
+	for(size_t i = 0; i < playerResults.size(); i++)
+		SAFE_DELETE(playerResults[i]);
 }
 
-WarEvalParameters& MilitaryAnalyst::evaluationParameters() {
+MilitaryAnalyst::PlayerResult& MilitaryAnalyst::playerResult(PlayerTypes civId) {
 
-	return warEvalParams;
-}
-
-PlayerTypes MilitaryAnalyst::ourId() const {
-
-	return weId;
+	/*  Lazy creation of playerResults means that NULL needs to be checked when accessing
+		a PlayerResult and that memory needs to be allocated dynamically. Based on a test,
+		this is still faster than creating a PlayerResult for every player upfront and
+		accessing the empty sets of the dummy entries. */
+	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::playerResult");
+	if(playerResults[civId] == NULL)
+		playerResults[civId] = new PlayerResult();
+	return *playerResults[civId];
 }
 
 bool MilitaryAnalyst::isOnOurSide(TeamTypes tId) const {
@@ -252,17 +230,11 @@ bool MilitaryAnalyst::isOnTheirSide(TeamTypes tId, bool defensivePacts) const {
 			getMasterTeam() || warEvalParams.isExtraTarget(tId);
 	if(!defensivePacts || r)
 		return r;
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		TeamTypes loopTeamId = getWPAI.properTeams()[i];
-		if(GET_TEAM(tId).isDefensivePact(loopTeamId) && isOnTheirSide(loopTeamId))
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		if(GET_TEAM(tId).isDefensivePact(it->getID()) && isOnTheirSide(it->getID()))
 			return true;
 	}
 	return false;
-}
-
-bool MilitaryAnalyst::isPeaceScenario() const {
-
-	return peaceScenario;
 }
 
 bool MilitaryAnalyst::doWePlanToDeclWar(PlayerTypes civId) const {
@@ -288,32 +260,28 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		the military analysis. (They take long to build.) */
 	double ourNukes = ourCache.getPowerValues()[NUCLEAR]->num();
 	double ourTargets = 0;
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		CvPlayer const& target = GET_PLAYER(getWPAI.properCivs()[i]);
-		if(isWar(weId, target.getID())) {
-			double v = (target.isAVassal() ? 0.5 : 1);
-			ourTargets += v;
-		}
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		if(isWar(weId, it->getID()))
+			ourTargets += (it->isAVassal() ? 0.5 : 1);
 	}
-	for(size_t j = 0; j < getWPAI.properCivs().size(); j++) {
-		// Can't call it "they" b/c that's what this class calls the primary war target
-		CvPlayerAI const& civ = GET_PLAYER(getWPAI.properCivs()[j]);
-		if(!isWar(weId, civ.getID()))
+	for(PlayerIter<MAJOR_CIV> enemyIt; enemyIt.hasNext(); ++enemyIt) {
+		CvPlayerAI const& enemy = *enemyIt;
+		if(!isWar(weId, enemy.getID()))
 			continue;
-		double civNukes = civ.warAndPeaceAI().getCache().
+		double enemyNukes = enemy.warAndPeaceAI().getCache().
 				getPowerValues()[NUCLEAR]->num();
-		if(ourNukes + civNukes < 0.5)
+		if(ourNukes + enemyNukes < 0.5)
 			return;
 		// The AI is (much) more willing to fire nukes in total war than in limited war
-		WarPlanTypes ourWarplan = agent.AI_getWarPlan(civ.getTeam());
-		WarPlanTypes civWarplan = GET_TEAM(civ.getTeam()).AI_getWarPlan(agent.getID());
+		WarPlanTypes ourWarplan = agent.AI_getWarPlan(enemy.getTeam());
+		WarPlanTypes civWarplan = GET_TEAM(enemy.getTeam()).AI_getWarPlan(agent.getID());
 		// If one side goes total, the other will follow suit
 		bool isTotal = false;
 		if(ourWarplan == WARPLAN_PREPARING_TOTAL || ourWarplan == WARPLAN_TOTAL ||
 				civWarplan == WARPLAN_PREPARING_TOTAL || civWarplan == WARPLAN_TOTAL)
 			isTotal = true;
 		// (Human: let's trust the war plan type of the human proxy AI)
-		if(warEvalParams.targetId() == civ.getTeam())
+		if(warEvalParams.targetId() == enemy.getTeam())
 			isTotal = warEvalParams.isTotal();
 		double portionFired = isTotal ? 0.75 : 0.25;
 		// Assume that vassals are hit by fewer nukes, and fire fewer nukes.
@@ -323,18 +291,16 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		double vassalFactorCiv = 1;
 		if(agent.isAVassal())
 			vassalFactorCiv = 0.5;
-		double civTargets = 0;
-		for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-			CvPlayer const& target = GET_PLAYER(getWPAI.properCivs()[i]);
-			if(isWar(civ.getID(), target.getID())) {
-				double v = (target.isAVassal() ? 0.5 : 1);
-				civTargets += v;
-			}
+		double enemyTargets = 0;
+		for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+			CvPlayer const& enemyOfEnemy = *it;
+			if(isWar(enemyOfEnemy.getID(), enemy.getID()))
+				enemyTargets += (enemyOfEnemy.isAVassal() ? 0.5 : 1);
 		}
 		double firedOnUs = portionFired * vassalFactorWe * vassalFactorCiv *
 				/*  sqrt for pessimism - we may get hit worse than the
 					average target, and that worries us. */
-				civNukes / std::sqrt((double)civTargets);
+				enemyNukes / std::sqrt((double)enemyTargets);
 		firedOnUs = std::min(firedOnUs, 1.5 * we.getNumCities());
 		double firedByUs = 0;
 		if(ourTargets > 0) {
@@ -344,15 +310,22 @@ void MilitaryAnalyst::simulateNuclearWar() {
 					(we.AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 1.1 : 0.9) /
 					ourTargets;
 		}
-		firedByUs = std::min(firedByUs, 1.5 * civ.getNumCities());
+		firedByUs = std::min(firedByUs, 1.5 * enemy.getNumCities());
 		double hitUs = firedOnUs * interceptionMultiplier(agent.getID());
-		double hitCiv = firedByUs * interceptionMultiplier(civ.getTeam());
-		nukesSufferedBy[weId] += hitUs;
-		nukesSufferedBy[civ.getID()] += hitCiv;
-		nukesFiredBy[weId] += firedByUs;
-		nukesFiredBy[civ.getID()] += firedOnUs;
-		nukedCities[weId][civ.getID()] += hitCiv;
-		nukedCities[civ.getID()][weId] += hitUs;
+		double hitCiv = firedByUs * interceptionMultiplier(enemy.getTeam());
+		// Make sure not to allocate PlayerResult unnecessarily
+		if(hitUs > 0.01) {
+			playerResult(weId).addNukesSuffered(hitUs);
+			nukedCities[enemy.getID()][weId] += hitUs;
+		}
+		if(hitCiv > 0.01) {
+			playerResult(enemy.getID()).addNukesSuffered(hitCiv);
+			nukedCities[weId][enemy.getID()] += hitCiv;
+		}
+		if(firedByUs > 0.01)
+			playerResult(weId).addNukesFired(firedByUs);
+		if(firedOnUs > 0.01)
+			playerResult(enemy.getID()).addNukesFired(firedOnUs);
 	}
 }
 
@@ -372,96 +345,61 @@ double MilitaryAnalyst::interceptionMultiplier(TeamTypes tId) {
 void MilitaryAnalyst::prepareResults() {
 
 	PROFILE_FUNC();
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes civId = (PlayerTypes)i;
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
 		InvasionGraph::Node* node = ig->getNode(civId);
 		if(node == NULL)
 			continue;
-		node->getConquests(*conqueredCitiesPerCiv[i]);
-		node->getLosses(*lostCitiesPerCiv[i]);
-		node->getCapitulationsAccepted(*capitulationsAcceptedPerTeam[i]);
+		// Allocate PlayerResult only if necessary
+		if(node->anyConquests())
+			node->getConquests(playerResult(civId).getConqueredCities());
+		if(node->anyLosses())
+			node->getLosses(playerResult(civId).getLostCities());
+		node->getCapitulationsAccepted(capitulationsAcceptedPerTeam[civId]);
 	}
 	// Predict scores as current game score modified based on gained/ lost population
 	CvGame& g = GC.getGame();
 	WarAndPeaceCache const& ourCache = GET_PLAYER(weId).warAndPeaceAI().getCache();
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes civId = (PlayerTypes)i;
+	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
 		double popIncr = 0;
-		for(std::set<int>::const_iterator it = conqueredCities(civId).begin();
-				it != conqueredCities(civId).end(); it++) {
+		CitySet const& conq = conqueredCities(civId);
+		for(CitySetIter it = conq.begin(); it != conq.end(); it++) {
 			WarAndPeaceCache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
 			popIncr += c->city()->getPopulation();
 		}
-		for(std::set<int>::const_iterator it = lostCities(civId).begin();
-				it != lostCities(civId).end(); it++) {
+		CitySet const& lost = lostCities(civId);
+		for(CitySetIter it = lost.begin(); it != lost.end(); it++) {
 			WarAndPeaceCache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
 			popIncr -= c->city()->getPopulation();
 		}
 		popIncr /= std::max(1, GET_PLAYER(civId).getTotalPopulation());
-		/*  Only apply half of the relative increase b/c game score is only partially
-			determined by population */
-		gameScore[civId] = g.getPlayerScore(civId) * (1 + popIncr / 2);
+		if(popIncr > 0.01) {
+			/*  Only apply half of the relative increase b/c game score is only partially
+				determined by population */
+			playerResult(civId).setGameScore(g.getPlayerScore(civId) * (1 + popIncr / 2));
+		}
 	}
 	// Precompute a table for isWar b/c it's frequently used
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes c1 = (PlayerTypes)i;
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			PlayerTypes c2 = (PlayerTypes)j;
-			isWarTable[c1][c2] = (getWarsContinued(c1).count(c2) > 0 ||
-					getWarsDeclaredBy(c1).count(c2) > 0 ||
-					getWarsDeclaredOn(c1).count(c2) > 0);
+	for(PlayerIter<MAJOR_CIV> it1; it1.hasNext(); ++it1) {
+		PlayerTypes p1 = it1->getID();
+		for(PlayerIter<MAJOR_CIV> it2; it2.hasNext(); ++it2) {
+			PlayerTypes p2 = it2->getID();
+			warTable[p1][p2] = (getWarsContinued(p1).count(p2) > 0 ||
+					getWarsDeclaredBy(p1).count(p2) > 0 ||
+					getWarsDeclaredOn(p1).count(p2) > 0);
 		}
 	}
 }
 
-std::set<int> const& MilitaryAnalyst::lostCities(PlayerTypes civId) const {
-
-	if(lostCitiesPerCiv[civId] == NULL)
-		return emptyIntSet;
-	return *lostCitiesPerCiv[civId];
-}
-
-std::set<int> const& MilitaryAnalyst::conqueredCities(PlayerTypes civId) const {
-
-	if(conqueredCitiesPerCiv[civId] == NULL)
-		return emptyIntSet;
-	return *conqueredCitiesPerCiv[civId];
-}
-
-std::set<PlayerTypes> const& MilitaryAnalyst::getWarsDeclaredBy(
-		PlayerTypes civId) const {
-
-	if(DoWBy[civId] == NULL)
-		return emptyCivSet;
-	return *DoWBy[civId];
-}
-
-std::set<PlayerTypes> const& MilitaryAnalyst::getWarsDeclaredOn(
-		PlayerTypes civId) const {
-
-	if(DoWOn[civId] == NULL)
-		return emptyCivSet;
-	return *DoWOn[civId];
-}
-
 double MilitaryAnalyst::predictedGameScore(PlayerTypes civId) const {
 
-	return gameScore[civId];
-}
-
-std::set<PlayerTypes> const& MilitaryAnalyst::getWarsContinued(
-		PlayerTypes civId) const {
-
-	if(warsCont[civId] == NULL)
-		return emptyCivSet;
-	return *warsCont[civId];
-}
-
-bool MilitaryAnalyst::isWar(PlayerTypes c1, PlayerTypes c2) const {
-
-	return isWarTable[c1][c2];
+	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::predictedGameScore");
+	PlayerResult* r = playerResults[civId];
+	return (r == NULL || r->getGameScore() < 0 ?
+			GC.getGame().getPlayerScore(civId) : r->getGameScore());
 }
 
 bool MilitaryAnalyst::isWar(TeamTypes t1, TeamTypes t2) const {
@@ -469,48 +407,17 @@ bool MilitaryAnalyst::isWar(TeamTypes t1, TeamTypes t2) const {
 	return isWar(GET_TEAM(t1).getLeaderID(), GET_TEAM(t2).getLeaderID());
 }
 
-int MilitaryAnalyst::turnsSimulated() const {
-
-	return turnsSim;
-}
-
-bool MilitaryAnalyst::isPartOfAnalysis(PlayerTypes civId) const {
-
-	return partOfAnalysis.count(civId) > 0;
-}
-
-
-double MilitaryAnalyst::getNukesSufferedBy(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return 0;
-	return nukesSufferedBy[civId];
-}
-
-double MilitaryAnalyst::getNukesFiredBy(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		return 0;
-	return nukesFiredBy[civId];
-}
-
-double MilitaryAnalyst::getNukedCities(PlayerTypes byId, PlayerTypes ownerId) const {
-
-	if(byId == NO_PLAYER || ownerId == NO_PLAYER)
-		return 0;
-	return nukedCities[byId][ownerId];
-}
-
 bool MilitaryAnalyst::hasCapitulated(TeamTypes teamId) const {
 
 	CvTeam const& t = GET_TEAM(teamId);
-	if(teamId == BARBARIAN_TEAM || !t.isAlive() || t.isAVassal() || t.isMinorCiv())
-		return false;
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
+	FAssert(teamId != BARBARIAN_TEAM);
+	for(MemberIter it(teamId); it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
 		InvasionGraph::Node* node = ig->getNode(civId);
-		if(TEAMID(civId) == teamId && node != NULL && node->hasCapitulated())
+		if(node != NULL && node->hasCapitulated()) {
+			FAssert(!t.isAVassal());
 			return true;
+		}
 	}
 	return false;
 }
@@ -520,21 +427,12 @@ bool MilitaryAnalyst::isEliminated(PlayerTypes civId) const {
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return false;
-	std::set<int> r;
+	CitySet r;
 	node->getLosses(r);
 	return (((int)r.size()) == GET_PLAYER(civId).getNumCities());
 }
 
-std::set<TeamTypes> const& MilitaryAnalyst::getCapitulationsAccepted(
-		TeamTypes masterId) const {
-
-	if(capitulationsAcceptedPerTeam[masterId] == NULL)
-		return emptyTeamSet;
-	return *capitulationsAcceptedPerTeam[masterId];
-}
-
-double MilitaryAnalyst::lostPower(PlayerTypes civId,
-		MilitaryBranchTypes mb) const {
+double MilitaryAnalyst::lostPower(PlayerTypes civId, MilitaryBranchTypes mb) const {
 
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
@@ -566,6 +464,10 @@ void MilitaryAnalyst::logResults(PlayerTypes civId) {
 	// Not the best way to identify civs that weren't part of the simulation ...
 	if(::round(militaryProduction(civId)) == 0)
 		return;
+	if(civId < 0 || civId > MAX_CIV_PLAYERS) {
+		FAssertMsg(false, "civId out of bounds");
+		return;
+	}
 	report.log("Results about %s", report.leaderName(civId));
 	report.log("\nbq.");
 	logCapitulations(civId);
@@ -580,11 +482,14 @@ void MilitaryAnalyst::logResults(PlayerTypes civId) {
 
 void MilitaryAnalyst::logCities(PlayerTypes civId, bool conquests) {
 
-	set<int> const* cities = conquests ? conqueredCitiesPerCiv[civId] :
-			lostCitiesPerCiv[civId];
-	if(cities != NULL && !cities->empty())
-		report.log("Cities %s:", conquests ? "conquered" : "lost");
-	for(set<int>::const_iterator it = cities->begin(); it != cities->end(); it++) {
+	PlayerResult* result = playerResults[civId];
+	if(result == NULL)
+		return;
+	CitySet const& cities = (conquests ? result->getConqueredCities() : result->getLostCities());
+	if(cities.empty())
+		return;
+	report.log("Cities %s:", conquests ? "conquered" : "lost");
+	for(CitySetIter it = cities.begin(); it != cities.end(); it++) {
 		CvCity* c = WarAndPeaceCache::City::cityById(*it);
 		if(c != NULL)
 			report.log("%s", report.cityName(*c));
@@ -602,39 +507,40 @@ void MilitaryAnalyst::logCapitulations(PlayerTypes civId) {
 		report.log("Team has capitulated");
 		return;
 	}
-	std::set<TeamTypes>* caps = capitulationsAcceptedPerTeam[teamId];
-	if(caps != NULL && !caps->empty())
-		report.log("Capitulation accepted from:");
-	for(set<TeamTypes>::const_iterator it = caps->begin(); it != caps->end(); it++) {
-		// The team name (e.g. Team1) would not be helpful.
-		for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-			PlayerTypes vassalMemberId = getWPAI.properCivs()[i];
-			if(TEAMID(vassalMemberId) == *it)
-				report.log("%s", report.leaderName(vassalMemberId));
-		}
+	TeamSet const& caps = capitulationsAcceptedPerTeam[teamId];
+	if(caps.empty())
+		return;
+	report.log("Capitulation accepted from:");
+	for(TeamSetIter it = caps.begin(); it != caps.end(); it++) {
+		// The team name (e.g. Team1) would not be helpful
+		for(MemberIter memberIt(*it); memberIt.hasNext(); ++memberIt)
+			report.log("%s", report.leaderName(memberIt->getID()));
 	}
 }
 
 void MilitaryAnalyst::logDoW(PlayerTypes civId) {
 
-	if(!DoWBy[civId]->empty()) {
+	PlayerResult* result = playerResults[civId];
+	if(result == NULL)
+		return;
+	PlyrSet const& DoWBy = result->getDoWBy();
+	if(!DoWBy.empty()) {
 		report.log("Wars declared by %s:",
 				report.leaderName(civId));
-		for(set<PlayerTypes>::const_iterator it = DoWBy[civId]->begin();
-				it != DoWBy[civId]->end(); it++)
+		for(PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); it++)
 			report.log("%s", report.leaderName(*it));
 	}
-	if(!DoWOn[civId]->empty()) {
+	PlyrSet const& DoWOn = result->getDoWOn();
+	if(!DoWOn.empty()) {
 		report.log("Wars declared on %s:",
 				report.leaderName(civId));
-		for(set<PlayerTypes>::const_iterator it = DoWOn[civId]->begin();
-				it != DoWOn[civId]->end(); it++)
+		for(PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); it++)
 			report.log("%s", report.leaderName(*it));
 	}
-	if(!warsCont[civId]->empty()) {
+	PlyrSet const& warsCont = result->getWarsContinued();
+	if(!warsCont.empty()) {
 		report.log("Wars continued:");
-		for(set<PlayerTypes>::const_iterator it = warsCont[civId]->begin();
-				it != warsCont[civId]->end(); it++)
+		for(PlyrSetIter it = warsCont.begin(); it != warsCont.end(); it++)
 			report.log("%s", report.leaderName(*it));
 	}
 }
@@ -664,5 +570,3 @@ void MilitaryAnalyst::logPower(PlayerTypes civId, bool gained) {
 		out << "none";
 	report.log("%s", out.str().c_str());
 }
-
-// </advc.104>
