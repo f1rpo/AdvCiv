@@ -1416,23 +1416,21 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 	int iCaptureGold = info.getData3();
 	bool bRaze = player.canRaze(*pNewCity);
 	PlayerTypes eLiberationPlayer = (PlayerTypes)info.getData2(); // advc: Was still named eHighestCulturePlayer as in Vanilla Civ 4
+	// advc: Other bGift checks deleted; now implied by eLiberationPlayer.
 	bool bGift = (eLiberationPlayer != NO_PLAYER);
-	/*  <advc> This was part of the bGift condition above - was already computed by
-		CvPlayer::acquireCity; surely it can't have changed in betweentimes? */
-	FAssert(eLiberationPlayer != player.getID() &&
-			GET_TEAM(player.getTeam()).canPeacefullyEnter(TEAMID(eLiberationPlayer)));
-	// </advc>
 	CvWString szBuffer;
 	if (iCaptureGold > 0)
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_GOLD_CITY_CAPTURE", iCaptureGold, pNewCity->getNameKey());
 	else szBuffer = gDLL->getText("TXT_KEY_POPUP_CITY_CAPTURE_KEEP", pNewCity->getNameKey());
 
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_KEEP_CAPTURED_CITY").c_str(), NULL, 0, WIDGET_GENERAL);
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_KEEP_CAPTURED_CITY").c_str(),
+			NULL, 0, WIDGET_GENERAL);
 
 	if (bRaze)
 	{
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_CAPTURED_CITY").c_str(), NULL, 1, WIDGET_GENERAL);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_CAPTURED_CITY").c_str(),
+				NULL, 1, WIDGET_GENERAL);
 	}
 	if (bGift)
 	{	// <advc.ctr> 
@@ -1442,7 +1440,8 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 				GET_PLAYER(eLiberationPlayer).getCivilizationDescriptionKey());
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, NULL, 2, WIDGET_GENERAL, 2, eLiberationPlayer);
 	}
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_CITY_WARNING_ANSWER3").c_str(), NULL, 3, WIDGET_GENERAL, -1, -1);
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_CITY_WARNING_ANSWER3").c_str(),
+			NULL, 3, WIDGET_GENERAL, -1, -1);
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 	//gDLL->getInterfaceIFace()->playGeneralSound("AS2D_CITYCAPTURE"); // disabled by K-Mod (I've put this somewhere else.)
 

@@ -2182,7 +2182,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				{
 					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_RAZECITY);
 					pInfo->setData1(kNewCity.getID());
-					pInfo->setData2(eLiberationPlayer);
+					//pInfo->setData2(eLiberationPlayer);
+					// advc: To communicate bGift to CvDLLButtonPopup::launchRazeCityPopup
+					pInfo->setData2(bGift ? eLiberationPlayer : NO_PLAYER);
 					pInfo->setData3(iCaptureGold);
 					gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
 				} // <advc.003y> (based on K-Mod code)
