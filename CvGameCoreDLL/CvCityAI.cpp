@@ -419,12 +419,12 @@ void CvCityAI::AI_chooseProduction()
 	{
 		if (getProduction() > 0)
 		{
-			if (getProductionUnitAI() == UNITAI_SETTLE && kPlayer.AI_isFinancialTrouble())
-			{}
 			//if we are killing our growth to train this, then finish it.
-			else if (!bDanger && isFoodProduction())
+			if (!bDanger && isFoodProduction() && (getProductionUnitAI() != UNITAI_SETTLE ||
+				(!kPlayer.AI_isFinancialTrouble() &&
+				kPlayer.AI_getNumCitySites() > 0))) // advc.031b
 			{
-				if ((area()->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE))
+				if (area()->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
 				{
 					return;
 				}

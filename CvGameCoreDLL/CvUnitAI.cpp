@@ -1505,19 +1505,16 @@ void CvUnitAI::AI_settleMove()
 	{
 		if (GC.getGame().getGameTurn() - getGameTurnCreated() > 20)
 		{
-			if (NULL != getTransportUnit())
-			{
+			if (getTransportUnit() != NULL)
 				getTransportUnit()->unloadAll();
-			}
 
-			if (NULL == getTransportUnit())
+			if (getTransportUnit() == NULL)
 			{
 				// BETTER_BTS_AI_MOD, Unit AI, 11/30/08, jdog5000: guard added
 				if (kOwner.AI_unitTargetMissionAIs(getGroup()->getHeadUnit(), MISSIONAI_PICKUP) == 0)
-				{	// advc.test:
-					FAssertMsg(false, "Just to see how frequently the AI scraps settlers");
-					//may seem wasteful, but settlers confuse the AI.
-					scrap();
+				{
+					//FAssertMsg(false, "advc.test: Just to see how frequently the AI scraps settlers");
+					scrap(); //may seem wasteful, but settlers confuse the AI.
 					return;
 				}
 			}
