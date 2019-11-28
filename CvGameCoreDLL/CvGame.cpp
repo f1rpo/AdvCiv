@@ -5265,9 +5265,7 @@ void CvGame::setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat)
 			}
 
 			if (isHotSeat() || bForceHotSeat)
-			{
 				sendPlayerOptions(true);
-			}
 		}
 		updateActiveVisibility(); // advc.706: Moved into subroutine
 	}
@@ -5278,17 +5276,17 @@ void CvGame::updateActiveVisibility()
 {
 	if(!GC.IsGraphicsInitialized())
 		return;
+	/*  <advc.001> Moved up - clear selection lists before
+		updating the center unit in updateVisibility */
+	gDLL->getInterfaceIFace()->clearSelectedCities();
+	gDLL->getInterfaceIFace()->clearSelectionList(); // </advc.001>
 	GC.getMap().updateFog();
 	GC.getMap().updateVisibility();
 	GC.getMap().updateSymbols();
 	GC.getMap().updateMinimapColor();
 
 	updateUnitEnemyGlow();
-
 	gDLL->getInterfaceIFace()->setEndTurnMessage(false);
-
-	gDLL->getInterfaceIFace()->clearSelectedCities();
-	gDLL->getInterfaceIFace()->clearSelectionList();
 
 	gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
 	gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
