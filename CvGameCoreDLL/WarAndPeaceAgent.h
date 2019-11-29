@@ -87,10 +87,6 @@ public:
 	double confidenceFromWarSuccess(TeamTypes targetId) const;
 	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive = NULL,
 			CLinkList<TradeData> const* wePay = NULL);
-	/*  voteTarget - Additional (optional) return value: vote target for
-		diplo vict. */
-	double computeVotesToGoForVictory(double* voteTarget = NULL,
-			bool forceUN = false) const;
 	int countNonMembers(VoteSourceTypes voteSource) const;
 	// Like canSchemeAgainst, but also true if currently at war (unless vassal).
 	bool isPotentialWarEnemy(TeamTypes tId) const;
@@ -142,7 +138,6 @@ private:
 	void showWarPlanMsg(TeamTypes targetId, char const* txtKey);
 	WarAndPeaceCache& leaderCache();
 	WarAndPeaceCache const& leaderCache() const;
-	TeamTypes diploVoteCounterCandidate(VoteSourceTypes voteSource) const;
 	/*  Not in WarAndPeaceAI::Civ b/c I want these to be private. They're
 		only auxiliary functions for their team-level counterparts, and should
 		not be used for any other computations.
@@ -164,6 +159,7 @@ public:
 	Civ();
 	// See WarAndPeaceCache.h about when init is called.
 	void init(PlayerTypes we);
+	void uninit();
 	void turnPre();
 	// 'cache' handles all the persistent data, these two only relay the calls.
 	 void write(FDataStreamBase* stream);

@@ -2751,8 +2751,12 @@ void CvTeam::changeAliveCount(int iChange)
 			}
 		}
 	} // <advc.opt>
-	if(!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
+	if (!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
 		GC.getGame().changeCivTeamsEverAlive(1); // </advc.opt>
+	// <advc.104> Can't do this in AI_init because alive status isn't yet set at that point
+	if (m_iAliveCount == 1 && m_iAliveCount - iChange <= 0 && isMajorCiv() &&
+			(getWPAI.isEnabled() || getWPAI.isEnabled(true)))
+		AI().warAndPeaceAI().init(getID()); // </advc.104>
 }
 
 

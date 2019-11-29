@@ -132,6 +132,8 @@ public:
 	bool canSeeReqBonuses(UnitTypes eUnit); // advc.301
 
 	bool isHuman() const;																																// Exposed to Python
+	// advc: (The Barbarians aren't a proper civ)
+	inline bool isMajorCiv() const { return (!isBarbarian() && !isMinorCiv()); }
 	// advc.inl
 	inline bool isBarbarian() const { return (m_eID == BARBARIAN_TEAM); }																				// Exposed to Python
 	// <advc.003m> cached

@@ -728,13 +728,11 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 
 CvWString CvInitCore::getMapScriptName() const
 {
-	if (gDLL->getTransferredMap())
+	if (!getWBMapScript() && // advc: Order switched; not sure what getTransferredMap does.
+		gDLL->getTransferredMap())
 	{
-		if (!getWBMapScript())
-		{
-			// If it's a transferred Python file, we have to hack in the transferred extension
-			return (m_szMapScriptName + CvWString(MAP_TRANSFER_EXT));
-		}
+		// If it's a transferred Python file, we have to hack in the transferred extension
+		return (m_szMapScriptName + CvWString(MAP_TRANSFER_EXT));
 	}
 	return m_szMapScriptName;
 }

@@ -47,7 +47,10 @@
 #define RANDPLOT_WATERSOURCE (0x00000100) // </advc.300>
 
 #ifdef _USRDLL
-#define MAX_CIV_PLAYERS												(18) // note: default is 18, some people like 48. They are not compatible
+// K-Mod (note): default is 18, some people like 48. They are not compatible.
+/*  advc.056: Scenario (WB) files are now compatible so long as the player ids in the WB file
+	don't exceed MAX_CIV_PLAYERS in the DLL. Savegames are still incompatible. */
+#define MAX_CIV_PLAYERS												(18)
 #else
 #define MAX_CIV_PLAYERS												(CvGlobals::getInstance().getMaxCivPlayers())
 #endif

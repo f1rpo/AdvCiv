@@ -132,7 +132,9 @@ public:
 		advc.104: NO_VOTESOURCE if none built yet, AP if AP built but not UN;
 		otherwise UN */
 	VoteSourceTypes AI_getLatestVictoryVoteSource() const;
-	bool AI_isAnyCloseToReligiousVictory() const; // </advc.115b>
+	bool AI_isAnyCloseToReligiousVictory() const;
+	double AI_votesToGoForVictory(double* pVoteTarget = NULL, bool bForceUN = false) const;
+	// </advc.115b>
 
 	int AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
 	DenialTypes AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker) const;
@@ -281,7 +283,6 @@ public:
 	void AI_setStrengthMemory(const CvPlot* pPlot, int value); // </advc.make>
 
 protected:
-
 	std::vector<int> m_aiStrengthMemory;
 	// exponentially dimishes memory, and clears obviously obsolete memory.
 	void AI_updateStrengthMemory();
@@ -332,6 +333,7 @@ protected:
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
 	double AI_OpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
 	bool AI_isPursuingCircumnavigation() const; // advc.136a
+	TeamTypes AI_diploVoteCounterCandidate(VoteSourceTypes eVS) const; // advc.115b
 
 	friend class CvTeam; // advc.003u: So that protected functions can be called through CvTeam::AI
 	// added so under cheat mode we can call protected functions for testing

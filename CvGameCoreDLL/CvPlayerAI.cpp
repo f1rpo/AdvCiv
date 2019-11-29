@@ -23476,8 +23476,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	else iValue += GC.getInfo(getPersonalityType()).getDiplomacyVictoryWeight();
 	iValue = ::round(iValue * 0.67); // Victory weight too high
 	double voteTarget = -2;
-	double votesToGo = GET_TEAM(getTeam()).warAndPeaceAI().
-			computeVotesToGoForVictory(&voteTarget);
+	double votesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&voteTarget);
 	if(voteTarget == -1)
 		return 0;
 	FAssert(voteTarget > 0);
@@ -23497,8 +23496,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 			looks infeasible. */
 		if(progressRatio < 0.66 && getCurrentEra() >= 4 && bAP)
 		{
-			votesToGo = GET_TEAM(getTeam()).warAndPeaceAI().
-					computeVotesToGoForVictory(&voteTarget, /*forceUN=*/true);
+			votesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&voteTarget, /*forceUN=*/true);
 			progressRatio = ::dRange((voteTarget - votesToGo) / voteTarget, 0.0, 1.0);
 			bVoteEligible = false;
 			membersProgress = 1; // not a concern for UN

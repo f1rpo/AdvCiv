@@ -1186,7 +1186,7 @@ void MilitaryVictory::evaluate() {
 
 int MilitaryVictory::preEvaluate() {
 
-	votesToGo = agentAI.computeVotesToGoForVictory();
+	votesToGo = agent.AI_votesToGoForVictory();
 	// Rather try to get the last few votes through growth
 	enoughVotes = (votesToGo < 8);
 	return 0;

@@ -984,8 +984,8 @@ void CvGame::initFreeUnits()
 	bool bValid = false;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
-		if(civ.isAlive() && civ.getAdvancedStartPoints() > 0)
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
+		if(kPlayer.isAlive() && kPlayer.getAdvancedStartPoints() > 0)
 		{
 			bValid = true;
 			break;

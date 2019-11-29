@@ -1991,139 +1991,6 @@ bool WarAndPeaceAI::Team::isFastRoads() const {
 	return (GET_TEAM(agentId).getRouteChange((RouteTypes)0) <= -10);
 }
 
-double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget, bool forceUN) const {
-
-	CvGame& g = GC.getGame();
-	VoteSourceTypes voteSource = GET_TEAM(agentId).AI_getLatestVictoryVoteSource();
-	bool isUN = false;
-	if(voteSource == NO_VOTESOURCE)
-		isUN = true;
-	else isUN = (GC.getInfo(voteSource).getVoteInterval() < 7);
-	ReligionTypes apRel = g.getVoteSourceReligion(voteSource);
-	FAssert((apRel == NO_RELIGION) == isUN);
-	if(forceUN)
-		isUN = forceUN;
-	if (isUN && GET_TEAM(agentId).getCurrentEra() <= 3) {
-		if(voteTarget != NULL)
-			*voteTarget = -1;
-		return -1;
-	}
-	int popThresh = -1;
-	VoteTypes victVote = NO_VOTE;
-	FOR_EACH_ENUM(Vote) {
-		CvVoteInfo& vote = GC.getInfo(eLoopVote);
-		if((vote.getStateReligionVotePercent() == 0) == isUN && vote.isVictory()) {
-			popThresh = vote.getPopulationThreshold();
-			victVote = eLoopVote;
-			break;
-		}
-	}
-	if(popThresh < 0) {
-		// OK if a mod removes the UN victory vote
-		FOR_EACH_ENUM(Vote) {
-			CvVoteInfo& vote = GC.getInfo(eLoopVote);
-			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory()) {
-				FAssertMsg(false, "Could not determine vote threshold");
-				break;
-			}
-		}
-		if(voteTarget != NULL)
-			*voteTarget = -1;
-		return -1;
-	}
-	double totalPop = g.getTotalPopulation();
-	if(!isUN)
-		totalPop = totalPop * g.calculateReligionPercent(apRel, true) / 100.0;
-	double targetPop = popThresh * totalPop / 100.0;
-	if(voteTarget != NULL)
-		*voteTarget = targetPop;
-	/*  targetPop assumes 1 vote per pop, but member cities actually
-		cast 2 votes per pop. */
-	double relVoteNormalizer = 1;
-	if(!isUN)
-		relVoteNormalizer = 100.0 /
-			(100 + GC.getInfo(victVote).getStateReligionVotePercent());
-	CvTeam const& agent = GET_TEAM(agentId);
-	double r = targetPop;
-	double ourVotes = agent.getTotalPopulation();
-	if(voteSource != NO_VOTESOURCE && !forceUN)
-		ourVotes = agent.getVotes(victVote, voteSource) * relVoteNormalizer;
-	r -= ourVotes;
-	double votesFromOthers = 0;
-	/*  Will only work in obvious cases, otherwise we'll work with unknown
-		candidates (NO_TEAM). */
-	TeamTypes counterCandidate = (isUN ? diploVoteCounterCandidate(voteSource) :
-			NO_TEAM);
-	// This agent: already covered above
-	for(TeamIter<FREE_MAJOR_CIV,NOT_SAME_TEAM_AS> it(agentId); it.hasNext(); ++it) {
-		CvTeamAI const& t = *it;
-		// No votes from human non-vassals
-		if((t.isHuman() && !t.isVassal(agentId)) || t.getMasterTeam() == counterCandidate)
-			continue;
-		double pop = t.getTotalPopulation();
-		if(voteSource != NO_VOTESOURCE && !forceUN)
-			pop = t.getVotes(victVote, voteSource) * relVoteNormalizer;
-		// Count vassals as fully supportive
-		if(t.isVassal(agentId)) {
-			r -= pop;
-			continue;
-		}
-		/*  Count Friendly rivals as 80% supportive b/c relations may soon sour,
-			and b/c the rival may like the counter candidate even better. */
-		if(!t.isHuman() && t.AI_getAttitude(agentId) >= ATTITUDE_FRIENDLY) {
-			votesFromOthers += (4 * pop) / 5.0;
-			continue;
-		}
-	}
-	/*  To account for an unknown counter-candidate. This will usually neutralize
-		our votes from friends, leaving only our own (and vassals') votes. */
-	if(counterCandidate == NO_TEAM)
-		votesFromOthers -= 1.3 * totalPop / TeamIter<MAJOR_CIV>::count();
-	if(votesFromOthers > 0)
-		r -= votesFromOthers;
-	return std::max(0.0, r);
-}
-
-TeamTypes WarAndPeaceAI::Team::diploVoteCounterCandidate(VoteSourceTypes voteSource) const {
-
-	/*  Only cover this obvious case: we're among the two teams with the
-		most votes (clearly ahead of the third). Otherwise, don't hazard a guess. */
-	TeamTypes r = NO_TEAM;
-	int firstMostVotes = -1, secondMostVotes = -1, thirdMostVotes = -1;
-	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		CvTeam const& t = *it;
-		// Someone else already controls the UN. This gets too complicated.
-		if(t.getID() != agentId && voteSource != NO_VOTESOURCE &&
-				t.isForceTeamVoteEligible(voteSource))
-			return NO_TEAM;
-		if(t.isAVassal()) continue;
-		int v = t.getTotalPopulation();
-		if(v > thirdMostVotes) {
-			if(v > secondMostVotes) {
-				if(v > firstMostVotes) {
-					thirdMostVotes = secondMostVotes;
-					secondMostVotes = firstMostVotes;
-					firstMostVotes = v;
-					if(t.getID() != agentId)
-						r = t.getID();
-				}
-				else {
-					thirdMostVotes = secondMostVotes;
-					secondMostVotes = v;
-					if(firstMostVotes == agentId)
-						r = t.getID();
-				}
-			}
-			else thirdMostVotes = v;
-		}
-	}
-	// Too close to hazard a guess
-	if(thirdMostVotes * 5 >= secondMostVotes * 4 ||
-			GET_TEAM(agentId).getTotalPopulation() < secondMostVotes)
-		return NO_TEAM;
-	return r;
-}
-
 WarAndPeaceAI::Civ::Civ() {
 
 	weId = NO_PLAYER;
@@ -2133,6 +2000,11 @@ void WarAndPeaceAI::Civ::init(PlayerTypes weId) {
 
 	this->weId = weId;
 	cache.init(weId);
+}
+
+void WarAndPeaceAI::Civ::uninit() {
+
+	cache.uninit();
 }
 
 void WarAndPeaceAI::Civ::turnPre() {

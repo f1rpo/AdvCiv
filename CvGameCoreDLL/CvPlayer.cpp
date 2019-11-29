@@ -9727,24 +9727,16 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		if (!isEverAlive())
 		{
 			m_bEverAlive = true;
-
 			GET_TEAM(getTeam()).changeEverAliveCount(1);
 		}
-
-		if (getNumCities() == 0)
-		{
+		if (getNumCities() <= 0)
 			setFoundedFirstCity(false);
-		}
-
 		updatePlotGroups();
-
 		if (g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
 				g.getNumGameTurnActive() == 0 ||
 				(g.isSimultaneousTeamTurns() && GET_TEAM(getTeam()).isTurnActive()))
 			setTurnActive(true);
-
 		gDLL->openSlot(getID());
-
 		if(!isBarbarian()) // advc.003n
 		{	// K-Mod. Attitude cache
 			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
@@ -9780,9 +9772,7 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		gDLL->endDiplomacy();
 
 		if (!isHuman())
-		{
 			gDLL->closeSlot(getID());
-		}
 
 		if (g.getElapsedGameTurns() > 0)
 		{
@@ -9796,11 +9786,17 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 				{
 					if (GET_PLAYER((PlayerTypes)iI).isAlive())
 					{
-						gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVDESTROYED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+						gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false,
+								GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVDESTROYED",
+								MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)
+								GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 					}
 				}
-
-				g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, -1, -1,
+						(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				// <advc.104>
+				if ((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && !isMinorCiv())
+					AI().warAndPeaceAI().uninit(); // </advc.104>
 			}
 		}
 	}
@@ -10279,7 +10275,8 @@ void CvPlayer::setFoundedFirstCity(bool bNewValue)
 	}
 	/*  <advc.104> So that rivals (with higher ids) can immediately evaluate
 		war plans against this player  */
-	if(!isBarbarian() && getParent() == NO_PLAYER && getWPAI.isEnabled())
+	if(!isBarbarian() && getParent() == NO_PLAYER && getWPAI.isEnabled() &&
+			GC.getGame().isFinalInitialized()) // No update while setting up a scenario
 		AI().warAndPeaceAI().getCache().update(); // </advc.104>
 }
 

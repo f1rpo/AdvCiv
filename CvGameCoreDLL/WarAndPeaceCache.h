@@ -41,6 +41,7 @@ public:
 		 other occasions, but, on exit, it's guaranteeed.
 	   + When saving a game, write is called. */
 	void init(PlayerTypes ownerId);
+	void uninit(); // Called when the owner is defeated (to free memory)
 	void update();
 	void write(FDataStreamBase* stream);
 	void read(FDataStreamBase* stream);

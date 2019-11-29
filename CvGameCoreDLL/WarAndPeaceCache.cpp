@@ -42,6 +42,11 @@ void WarAndPeaceCache::init(PlayerTypes ownerId) {
 	militaryPower.push_back(new MilitaryBranch::NuclearArsenal(ownerId));
 }
 
+void WarAndPeaceCache::uninit() {
+
+	clear();
+}
+
 void WarAndPeaceCache::clear(bool beforeUpdate) {
 
 	for(size_t i = 0; i < v.size(); i++)

@@ -69,9 +69,6 @@ void CvTeamAI::AI_init()
 // K-Mod
 void CvTeamAI::AI_initMemory()
 {
-	// <advc.104>
-	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
-		m_pWpai->init(getID()); // </advc.104>
 	// Note. this needs to be done after the map is set. unfortunately, AI_init is called before that happens.
 	FAssert(GC.getMap().numPlots() > 0);
 	m_aiStrengthMemory.clear();
@@ -137,15 +134,11 @@ void CvTeamAI::AI_doTurnPre()
 {
 	AI_doCounter();
 
-	/*if(isHuman()) // advc: Caller handles these
-		return;
-	if(isBarbarian())
-		return;
-	if(isMinorCiv())
+	/*if(isHuman() || isBarbarian() || isMinorCiv()) // advc: Caller handles these
 		return;*/
 	// <advc.104>
 	if((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && !isBarbarian() &&
-			!isMinorCiv() && isAlive())
+		!isMinorCiv() && isAlive())
 	{
 		/*  Calls turnPre on the team members, i.e. WarAndPeaceAI::Civ::turnPre
 			happens before CvPlayerAI::AI_turnPre. Needs to be this way b/c
@@ -872,12 +865,11 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 {
 	PROFILE_FUNC();
 
+	CvTeamAI const& kOtherTeam = GET_TEAM(eTeam);
 	// <advc.104s>
-	if(getWPAI.isEnabled())
+	if(getWPAI.isEnabled() && isMajorCiv() && kOtherTeam.isMajorCiv())
 		return warAndPeaceAI().isLandTarget(eTeam);
 	// </advc.104s>
-
-	const CvTeamAI& kOtherTeam = GET_TEAM(eTeam);
 	FOR_EACH_AREA_VAR(pLoopArea)
 	{
 		if (AI_isPrimaryArea(pLoopArea) && kOtherTeam.AI_isPrimaryArea(pLoopArea))
@@ -5095,7 +5087,9 @@ int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance,
 void CvTeamAI::read(FDataStreamBase* pStream)
 {
 	CvTeam::read(pStream);
-
+	// <advc.104>
+	if ((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && isAlive() && isMajorCiv())
+		warAndPeaceAI().init(getID()); // </advc.104>
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
 
@@ -5320,7 +5314,159 @@ VoteSourceTypes CvTeamAI::AI_getLatestVictoryVoteSource() const
 		}
 	}
 	return r;
+}
+
+// pVoteTarget - Additional (optional) return value: vote target for diplo vict.
+double CvTeamAI::AI_votesToGoForVictory(double* pVoteTarget, bool bForceUN) const
+{
+	CvGame& kGame = GC.getGame();
+	VoteSourceTypes eVS = AI_getLatestVictoryVoteSource();
+	bool bUN = false;
+	if (eVS == NO_VOTESOURCE)
+		bUN = true;
+	else bUN = (GC.getInfo(eVS).getVoteInterval() < 7);
+	ReligionTypes eAPReligion = kGame.getVoteSourceReligion(eVS);
+	FAssert((eAPReligion == NO_RELIGION) == bUN);
+	if (bForceUN)
+		bUN = true;
+	if (bUN && getCurrentEra() <= 3)
+	{
+		if(pVoteTarget != NULL)
+			*pVoteTarget = -1;
+		return -1;
+	}
+	int iPopThresh = -1;
+	VoteTypes eVictoryVote = NO_VOTE;
+	FOR_EACH_ENUM(Vote)
+	{
+		CvVoteInfo& kVote = GC.getInfo(eLoopVote);
+		if((kVote.getStateReligionVotePercent() == 0) == bUN && kVote.isVictory())
+		{
+			iPopThresh = kVote.getPopulationThreshold();
+			eVictoryVote = eLoopVote;
+			break;
+		}
+	}
+	if (iPopThresh < 0)
+	{
+		// OK if a mod removes the UN victory vote
+		FOR_EACH_ENUM(Vote)
+		{
+			CvVoteInfo& vote = GC.getInfo(eLoopVote);
+			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory())
+			{
+				FAssertMsg(false, "Could not determine vote threshold");
+				break;
+			}
+		}
+		if(pVoteTarget != NULL)
+			*pVoteTarget = -1;
+		return -1;
+	}
+	double totalPop = kGame.getTotalPopulation();
+	if(!bUN)
+		totalPop = totalPop * kGame.calculateReligionPercent(eAPReligion, true) / 100.0;
+	double targetPop = iPopThresh * totalPop / 100.0;
+	if(pVoteTarget != NULL)
+		*pVoteTarget = targetPop;
+	/*  targetPop assumes 1 vote per pop, but member cities actually
+		cast 2 votes per pop. */
+	double APVoteNormalizer = 1;
+	if(!bUN)
+	{
+		APVoteNormalizer = 100.0 /
+				(100 + GC.getInfo(eVictoryVote).getStateReligionVotePercent());
+	}
+	double r = targetPop;
+	double ourVotes = getTotalPopulation();
+	if(eVS != NO_VOTESOURCE && !bForceUN)
+		ourVotes = getVotes(eVictoryVote, eVS) * APVoteNormalizer;
+	r -= ourVotes;
+	double votesFromOthers = 0;
+	/*  Will only work in obvious cases, otherwise we'll work with unknown
+		candidates (NO_TEAM). */
+	TeamTypes counterCandidate = (bUN ? AI_diploVoteCounterCandidate(eVS) : NO_TEAM);
+	// This team: already covered above
+	for(TeamIter<FREE_MAJOR_CIV,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
+	{
+		CvTeamAI const& kTeam = *it;
+		// No votes from human non-vassals
+		if((kTeam.isHuman() && !kTeam.isVassal(getID())) ||
+				kTeam.getMasterTeam() == counterCandidate)
+			continue;
+		double pop = kTeam.getTotalPopulation();
+		if(eVS != NO_VOTESOURCE && !bForceUN)
+			pop = kTeam.getVotes(eVictoryVote, eVS) * APVoteNormalizer;
+		// Count vassals as fully supportive
+		if(kTeam.isVassal(getID()))
+		{
+			r -= pop;
+			continue;
+		}
+		/*  Count Friendly rivals as 80% supportive b/c relations may soon sour,
+			and b/c the rival may like the counter candidate even better. */
+		if(!kTeam.isHuman() && kTeam.AI_getAttitude(getID()) >= ATTITUDE_FRIENDLY)
+		{
+			votesFromOthers += (4 * pop) / 5.0;
+			continue;
+		}
+	}
+	/*  To account for an unknown counter-candidate. This will usually neutralize
+		our votes from friends, leaving only our own (and vassals') votes. */
+	if(counterCandidate == NO_TEAM)
+		votesFromOthers -= 1.3 * totalPop / TeamIter<MAJOR_CIV>::count();
+	if(votesFromOthers > 0)
+		r -= votesFromOthers;
+	return std::max(0.0, r);
+}
+
+
+TeamTypes CvTeamAI::AI_diploVoteCounterCandidate(VoteSourceTypes eVS) const
+{
+	/*  Only cover this obvious case: we're among the two teams with the
+		most votes (clearly ahead of the third). Otherwise, don't hazard a guess. */
+	TeamTypes r = NO_TEAM;
+	int iFirstMostVotes = -1, iSecondMostVotes = -1, iThirdMostVotes = -1;
+	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	{
+		CvTeam const& kTeam = *it;
+		// Someone else already controls the UN. This gets too complicated.
+		if (kTeam.getID() != getID() && eVS != NO_VOTESOURCE &&
+				kTeam.isForceTeamVoteEligible(eVS))
+			return NO_TEAM;
+		if (kTeam.isAVassal())
+			continue;
+		int iVotes = kTeam.getTotalPopulation();
+		if (iVotes > iThirdMostVotes)
+		{
+			if (iVotes > iSecondMostVotes)
+			{
+				if (iVotes > iFirstMostVotes)
+				{
+					iThirdMostVotes = iSecondMostVotes;
+					iSecondMostVotes = iFirstMostVotes;
+					iFirstMostVotes = iVotes;
+					if (kTeam.getID() != getID())
+						r = kTeam.getID();
+				}
+				else
+				{
+					iThirdMostVotes = iSecondMostVotes;
+					iSecondMostVotes = iVotes;
+					if (iFirstMostVotes == getID())
+						r = kTeam.getID();
+				}
+			}
+			else iThirdMostVotes = iVotes;
+		}
+	}
+	// Too close to hazard a guess
+	if(iThirdMostVotes * 5 >= iSecondMostVotes * 4 ||
+			getTotalPopulation() < iSecondMostVotes)
+		return NO_TEAM;
+	return r;
 } // </advc.104>
+
 
 bool CvTeamAI::AI_isAnyCloseToReligiousVictory() const
 {

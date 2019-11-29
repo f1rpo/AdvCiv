@@ -88,7 +88,7 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 			return false;
 		break;
 	case MAJOR_CIV:
-		if (isMinorCiv<args>(kAgent) || !isAlive<args>(kAgent))
+		if (isMinorCiv<args>(kAgent) || !isAlive<args>(kAgent) || isBarbarian<args>(kAgent))
 			return false;
 		break;
 	/*case VASSAL:
