@@ -2321,7 +2321,7 @@ int CvTeam::countEnemyCitiesByArea(CvArea* pArea) const
 		if (kLoopPlayer.isAlive() && AI().AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN)
 			iCount += pArea->getCitiesPerPlayer(i);
 	}
-	return 0;
+	return iCount; // advc.001: was 'return 0'
 } // K-Mod end
 
 // BETTER_BTS_AI_MOD, War strategy AI, 04/01/10, jdog5000: START
