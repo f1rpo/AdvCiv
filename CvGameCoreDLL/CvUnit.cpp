@@ -2361,45 +2361,36 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 	PROFILE_FUNC();
 
 	if (atPlot(&kPlot))
-	{
 		return false;
-	}
 
 	if (!m_pUnitInfo->isCanMoveImpassable() && kPlot.isImpassable())
-	{
 		return false;
-	}
 
 	// Cannot move around in unrevealed land freely
 	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(&kPlot))
-	{
 		return false;
-	}
-	static bool const bUSE_SPIES_NO_ENTER_BORDERS = GC.getDefineBOOL("USE_SPIES_NO_ENTER_BORDERS"); // advc.opt
-	if (m_pUnitInfo->isSpy() && bUSE_SPIES_NO_ENTER_BORDERS)
+
+	if (m_pUnitInfo->isSpy() && GC.getDefineBOOL(CvGlobals::USE_SPIES_NO_ENTER_BORDERS))
 	{
 		if (kPlot.getOwner() != NO_PLAYER && !GET_PLAYER(getOwner()).canSpiesEnterBorders(kPlot.getOwner()))
-		{
 			return false;
-		}
 	}
 
-	CvArea *pPlotArea = kPlot.area();
+	CvArea* pPlotArea = kPlot.area();
 	TeamTypes ePlotTeam = kPlot.getTeam();
 	bool bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
 	if (bCanEnterArea)
 	{
-		if (kPlot.getFeatureType() != NO_FEATURE)
+		if (kPlot.getFeatureType() != NO_FEATURE &&
+			m_pUnitInfo->getFeatureImpassable(kPlot.getFeatureType()))
 		{
-			if (m_pUnitInfo->getFeatureImpassable(kPlot.getFeatureType()))
-			{
-				TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(kPlot.getFeatureType());
-				if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
+			TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(kPlot.getFeatureType());
+			if (eTech == NO_TECH || !GET_TEAM(getTeam()).isHasTech(eTech))
+			{	// advc.057: Make this exception for units of all domains
+				if (/*DOMAIN_SEA != getDomainType() ||*/ // sea units can enter impassable in own cultural borders
+					kPlot.getTeam() != getTeam())
 				{
-					if (DOMAIN_SEA != getDomainType() || kPlot.getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 		}
@@ -2407,14 +2398,13 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		if (m_pUnitInfo->getTerrainImpassable(kPlot.getTerrainType()))
 		{
 			TechTypes eTech = (TechTypes)m_pUnitInfo->getTerrainPassableTech(kPlot.getTerrainType());
-			if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
+			if (eTech == NO_TECH || !GET_TEAM(getTeam()).isHasTech(eTech))
 			{
-				if (DOMAIN_SEA != getDomainType() || kPlot.getTeam() != getTeam())  // sea units can enter impassable in own cultural borders
+				if (/*DOMAIN_SEA != getDomainType() ||*/ // advc.057
+					kPlot.getTeam() != getTeam())
 				{
 					if (bIgnoreLoad || !canLoad(&kPlot))
-					{
 						return false;
-					}
 				}
 			}
 		}
@@ -2426,9 +2416,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		if (!kPlot.isWater() && !canMoveAllTerrain())
 		{
 			if (!kPlot.isFriendlyCity(*this, true) || !kPlot.isCoastalLand())
-			{
 				return false;
-			}
 		}
 		break;
 
@@ -2436,29 +2424,21 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		if (!bAttack)
 		{
 			bool bValid = false;
-
 			if (kPlot.isFriendlyCity(*this, true))
 			{
 				bValid = true;
-
 				if (m_pUnitInfo->getAirUnitCap() > 0)
 				{
 					if (kPlot.airUnitSpaceAvailable(getTeam()) <= 0)
-					{
 						bValid = false;
-					}
 				}
 			}
-
 			if (!bValid)
 			{
 				if (bIgnoreLoad || !canLoad(&kPlot))
-				{
 					return false;
-				}
 			}
 		}
-
 		break;
 
 	case DOMAIN_LAND:
@@ -2468,9 +2448,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 			{
 				//if (bIgnoreLoad || !isHuman() || kPlot.isWater() || !canLoad(&kPlot))
 				if (bIgnoreLoad || plot()->isWater() || !canLoad(&kPlot)) // K-Mod. (AI might want to load into a boat on the coast)
-				{
 					return false;
-				}
 			}
 		}
 		break;
@@ -2487,9 +2465,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 	if (isAnimal())
 	{
 		if (kPlot.isOwned())
-		{
 			return false;
-		}
 
 		if (!bAttack)
 		{
@@ -2504,21 +2480,14 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 				return false;
 
 			if (kPlot.getNumUnits() > 0)
-			{
 				return false;
-			}
 		}
 	}
 
 	if (isNoCapture() /* advc.315a: */ || m_pUnitInfo->isOnlyAttackAnimals())
 	{
-		if (!bAttack)
-		{
-			if (kPlot.isEnemyCity(*this))
-			{
-				return false;
-			}
-		}
+		if (!bAttack && kPlot.isEnemyCity(*this))
+			return false;
 		// K-Mod. Don't let noCapture units attack defenseless cities. (eg. cities with a worker in them)
 		/*if (pPlot->isEnemyCity(*this)) {
 			if (!bAttack || !pPlot->isVisibleEnemyDefender(this))
@@ -2562,9 +2531,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		if (bAttack)
 		{
 			if (!canAirStrike(&kPlot))
-			{
 				return false;
-			}
 		}
 	}
 	else
@@ -2618,9 +2585,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		else
 		{
 			if (bAttack)
-			{
 				return false;
-			}
 
 			if (!canCoexistWithEnemyUnit(NO_TEAM))
 			{
@@ -2628,14 +2593,10 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 				if (bAssumeVisible || kPlot.isVisible(getTeam(), false)) // K-Mod
 				{
 					if (kPlot.isEnemyCity(*this))
-					{
 						return false;
-					}
 
 					if (kPlot.isVisibleEnemyUnit(this))
-					{
 						return false;
-					}
 				}
 			}
 		}
@@ -2650,9 +2611,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		{
 			FAssert(ePlotTeam != NO_TEAM);
 			if (!GET_TEAM(getTeam()).canDeclareWar(ePlotTeam))
-			{
 				return false;
-			}
 			/*if (isHuman()) {
 				if (!bDeclareWar)
 					return false;
@@ -2667,18 +2626,15 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 			// K-Mod. Rather than allowing the AI to move in forbidden territory when it is planning war.
 			// I'm going to disallow it from doing so when _not_ planning war.
 			if (!bDeclareWar)
-			{
 				return false;
-			}
 			else if (!isHuman())
 			{
 				if (!GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam) ||
-						!AI().AI_getGroup()->AI_isDeclareWar(&kPlot))
+					!AI().AI_getGroup()->AI_isDeclareWar(&kPlot))
 				{
 					return false;
 				}
-			}
-			// K-Mod end
+			} // K-Mod end
 		}
 	}
 	if (GC.getPythonCaller()->cannotMoveIntoOverride(*this, kPlot))
