@@ -1220,15 +1220,15 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount += tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										# advc.073: DEAL_KILL widget enabled
-										self.resIconGrid.addIcon( currentRow, self.activeImportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem)
+										# advc.073: DEAL_KILL widget enabled; advc.085: iData2 set to -1
+										self.resIconGrid.addIcon( currentRow, self.activeImportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, -1)
 								for iLoopTradeItem in range(deal.getLengthSecondTrades()):
 									tradeData2 = deal.getSecondTrade(iLoopTradeItem)
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount -= tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										# advc.073: DEAL_KILL widget enabled
-										self.resIconGrid.addIcon( currentRow, self.activeExportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem + deal.getLengthFirstTrades())
+										# advc.073: DEAL_KILL widget enabled; advc.085: iData2 set to -1
+										self.resIconGrid.addIcon( currentRow, self.activeExportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, -1)
 							
 							if ( deal.getSecondPlayer() == iLoopPlayer and deal.getFirstPlayer() == self.iActiveLeader ):
 								for iLoopTradeItem in range(deal.getLengthFirstTrades()):
@@ -1236,15 +1236,15 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount -= tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										# advc.073: DEAL_KILL widget enabled
-										self.resIconGrid.addIcon( currentRow, self.activeExportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem)
+										# advc.073: DEAL_KILL widget enabled; advc.085: iData2 set to -1
+										self.resIconGrid.addIcon( currentRow, self.activeExportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, -1)
 								for iLoopTradeItem in range(deal.getLengthSecondTrades()):
 									tradeData2 = deal.getSecondTrade(iLoopTradeItem)
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount += tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										# advc.073: DEAL_KILL widget enabled
-										self.resIconGrid.addIcon( currentRow, self.activeImportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem + deal.getLengthFirstTrades())
+										# advc.073: DEAL_KILL widget enabled; advc.085: iData2 set to -1
+										self.resIconGrid.addIcon( currentRow, self.activeImportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, -1)
 # BUG - Kill Deal - end
 					if (amount != 0):
 						self.resIconGrid.setText(currentRow, self.payingCol, str(amount))
