@@ -23,7 +23,7 @@ public:
 
 	void addPlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduction = true);
 	void removePlot(CvPlot* pPlot, bool bVerifyProduction = true);
-	void recalculatePlots();
+	void recalculatePlots(/* advc.064d: */ bool bVerifyProduction = true);
 
 	inline int getID() const { return m_iID; } // advc.inl
 	void setID(int iID);
@@ -32,8 +32,8 @@ public:
 	// advc.inl: The EXE doesn't call this, so no need for an external version.
 	inline PlayerTypes getOwner() const { return m_eOwner; }
 
-	int getNumBonuses(BonusTypes eBonus) const;
-	bool hasBonus(BonusTypes eBonus);
+	int getNumBonuses(BonusTypes eBonus) const { return m_paiNumBonuses.get(eBonus); } // advc.inl
+	bool hasBonus(BonusTypes eBonus) { return(getNumBonuses(eBonus) > 0); } // advc.inl
 	void changeNumBonuses(BonusTypes eBonus, int iChange);
 	void verifyCityProduction(); // advc.064d
 
@@ -48,8 +48,8 @@ public:
 	{
 		return m_plots.next(pNode);
 	} // </advc.003s>
-	int getLengthPlots();
-	CLLNode<XYCoords>* headPlotsNode();
+	int getLengthPlots() { return m_plots.getLength(); } // advc.inl
+	CLLNode<XYCoords>* headPlotsNode() { return m_plots.head(); } // advc.inl
 
 	// for serialization
 	void read(FDataStreamBase* pStream);
@@ -59,7 +59,7 @@ protected:
 	static int m_iRecalculating; // advc.064d
 	int m_iID;
 	PlayerTypes m_eOwner;
-	int* m_paiNumBonuses;
+	EnumMap<BonusTypes,int> m_paiNumBonuses; // advc.enum
 	CLinkList<XYCoords> m_plots;
 };
 

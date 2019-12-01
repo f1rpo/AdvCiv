@@ -524,7 +524,7 @@ public:
 	CvPlotGroup* getOwnerPlotGroup() const;
 	void setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
 			bool bVerifyProduction = true); // advc.064d
-	void updatePlotGroup();
+	void updatePlotGroup(/* advc.064d: */ bool bVerifyProduction = false);
 	void updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate = true,
 			bool bVerifyProduction = true); // advc.064d
 

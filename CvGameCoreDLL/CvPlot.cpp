@@ -4876,7 +4876,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	if ((NO_IMPROVEMENT != getImprovementType() && GC.getInfo(getImprovementType()).isActsAsCity()) !=
 		(NO_IMPROVEMENT != eOldImprovement && GC.getInfo(eOldImprovement).isActsAsCity()))
 	{
-		updatePlotGroup();
+		updatePlotGroup(/* advc.064d: */ true);
 	}
 
 	if (eOldImprovement != NO_IMPROVEMENT && GC.getInfo(eOldImprovement).isActsAsCity())
@@ -4930,7 +4930,7 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 	if (bUpdatePlotGroups)
 	{
 		if (bOldRoute != isRoute())
-			updatePlotGroup();
+			updatePlotGroup(/* advc.064d: */ bOldRoute);
 	}
 
 	if (GC.getGame().isDebugMode())
@@ -5726,14 +5726,18 @@ void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
 }
 
 
-void CvPlot::updatePlotGroup()
+void CvPlot::updatePlotGroup(/* advc.064d: */ bool bVerifyProduction)
 {
 	PROFILE_FUNC();
-
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			updatePlotGroup((PlayerTypes)iI);
+		CvPlayer& kPlayer = *it;
+		updatePlotGroup(kPlayer.getID(), /* <advc.064d> */ false);
+		/*  When recalculation of plot groups starts with updatePlotGroup, then
+			bVerifyProduction sometimes interrupts city production prematurely;
+			not sure why exactly. Will have to verify all cities instead. */
+		if (bVerifyProduction && kPlayer.isHuman() && getOwner() == kPlayer.getID())
+			kPlayer.verifyCityProduction(); // </advc.064d>
 	}
 }
 
@@ -5757,9 +5761,9 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 			if (isTradeNetwork(eTeam))
 			{
 				bConnected = true;
-				for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+				FOR_EACH_ENUM(Direction)
 				{
-					CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+					CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
 					if (pAdjacentPlot == NULL)
 						continue; // advc
 					if (pAdjacentPlot->getPlotGroup(ePlayer) == pPlotGroup)
@@ -5789,9 +5793,9 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 		return;
 
 	CvMap& kMap = GC.getMap();
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
 		if (pAdjacentPlot == NULL)
 			continue;
 
