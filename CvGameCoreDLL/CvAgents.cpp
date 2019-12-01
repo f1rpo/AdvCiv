@@ -75,8 +75,11 @@ void CvAgents::updateAllCachedSequences()
 		if (!pTeam->isAlive())
 			continue;
 		teamSeqCache(CIV_ALIVE).push_back(pTeam);
-		if (!pTeam->isMinorCiv())
-			teamSeqCache(MAJOR_ALIVE).push_back(pTeam);
+		if (pTeam->isMinorCiv())
+			continue;
+		teamSeqCache(MAJOR_ALIVE).push_back(pTeam);
+		if (pTeam->isAVassal())
+			teamPerTeamSeqCache(VASSAL_ALIVE, pTeam->getMasterTeam()).push_back(pTeam);
 	}
 	int const iPlayers = (int)playerSeqCache(ALL).size();
 	for (int i = 0; i < iPlayers; i++)
@@ -94,8 +97,11 @@ void CvAgents::updateAllCachedSequences()
 		if (pPlayer->isBarbarian())
 			continue;
 		playerSeqCache(CIV_ALIVE).push_back(pPlayer);
-		if(!pPlayer->isMinorCiv())
-			playerSeqCache(MAJOR_ALIVE).push_back(pPlayer);
+		if (pPlayer->isMinorCiv())
+			continue;
+		playerSeqCache(MAJOR_ALIVE).push_back(pPlayer);
+		if (pPlayer->isAVassal())
+			memberSeqCache(VASSAL_ALIVE, pPlayer->getMasterTeam()).push_back(pPlayer);
 	}
 }
 
@@ -141,7 +147,7 @@ void CvAgents::playerDefeated(PlayerTypes eDeadPlayer)
 	eraseFromVector(memberSeqCache(MEMBER_ALIVE, eTeam), eDeadPlayer);
 	TeamTypes eMasterTeam = GET_TEAM(eTeam).getMasterTeam();
 	if (eMasterTeam != eTeam)
-		eraseFromVector(memberSeqCache(VASSAL_ALIVE, eTeam), eDeadPlayer);
+		eraseFromVector(memberSeqCache(VASSAL_ALIVE, eMasterTeam), eDeadPlayer);
 	if (!GET_TEAM(eTeam).isAlive())
 	{
 		eraseFromVector(teamSeqCache(CIV_ALIVE), eTeam);
@@ -180,12 +186,27 @@ void CvAgents::updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal)
 		CvPlayerAI* pMember = memberSeqCache(MEMBER, eVassal)[i];
 		if (bVassal)
 			insertIntoVector(vassalPlayers, pMember);
-		else eraseFromVector(vassalPlayers, pMember->getID());
+		else
+		{
+			/*  When a vassal dies, playerDefeated removes it from the cache.
+				The vassal agreement gets canceled afterwards, resulting in
+				a call to updateVassal. */
+			if (pMember->isAlive())
+				eraseFromVector(vassalPlayers, pMember->getID());
+			FAssert(std::find(vassalPlayers.begin(), vassalPlayers.end(), pMember) ==
+					vassalPlayers.end());
+		}
 	}
 	CvTeamAI* pVassalTeam = &GET_TEAM(eVassal);
 	if (bVassal)
 		insertIntoVector(vassalTeams, pVassalTeam);
-	else eraseFromVector(vassalTeams, pVassalTeam->getID());
+	else
+	{
+		if (pVassalTeam->isAlive())
+			eraseFromVector(vassalTeams, pVassalTeam->getID());
+		FAssert(std::find(vassalTeams.begin(), vassalTeams.end(), pVassalTeam) ==
+				vassalTeams.end());
+	}
 }
 
 

@@ -239,7 +239,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		if (kObs.getTeam() != getID() && kObs.getTeam() != eTeam)
 		{
 			if ((isHasMet(kObs.getTeam()) && GET_TEAM(eTeam).isHasMet(kObs.getTeam()))
-					|| kObs.isSpectator()) // advc.127
+				|| kObs.isSpectator()) // advc.127
 			{
 				CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_PLAYER_PERMANENT_ALLIANCE",
 						getName().GetCString(), GET_TEAM(eTeam).getName().GetCString()));
@@ -404,44 +404,42 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			}
 		}
 	}
-
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	/*  <advc.opt> Some changes are necessary here b/c vassals now store only
+		the id of a single master. */
+	if (GET_TEAM(eTeam).isAVassal())
 	{
-		if (iI != getID() && iI != eTeam)
-		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (GET_TEAM(eTeam).isVassal((TeamTypes)iI))
-				{
-					//setVassal(((TeamTypes)iI), true, isCapitulated());
-					setVassal(((TeamTypes)iI), true, GET_TEAM(eTeam).isCapitulated()); // K-Mod
-				}
-				else if (isVassal((TeamTypes)iI))
-				{
-					GET_TEAM(eTeam).setVassal(((TeamTypes)iI), true, isCapitulated());
-				}
-			}
-		}
+		bool bCapitulated = //isCapitulated()
+				GET_TEAM(eTeam).isCapitulated(); // K-Mod
+		setVassal(getMasterTeam(), false, bCapitulated);
+		setVassal(GET_TEAM(eTeam).getMasterTeam(), true, bCapitulated);
 	}
-
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	// Don't turn eTeam into a vassal; it'll die anyway.
+	/*else if (isAVassal())
 	{
-		if (iI != getID() && iI != eTeam)
+		bool bCapitulated = isCapitulated();
+		GET_TEAM(eTeam).setVassal(GET_TEAM(eTeam).getMasterTeam(), false, bCapitulated);
+		GET_TEAM(eTeam).setVassal(getMasterTeam(), true, bCapitulated);
+	}*/
+	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	{
+		if (iI == getID() || iI == eTeam)
+			continue;
+		CvTeam& kVassal = GET_TEAM((TeamTypes)iI);
+		if (!kVassal.isAlive())
+			continue;
+		bool bCapitulated = kVassal.isCapitulated();
+		if (kVassal.isVassal(eTeam))
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (GET_TEAM((TeamTypes)iI).isVassal(eTeam))
-				{
-					GET_TEAM((TeamTypes)iI).setVassal(getID(), true, GET_TEAM((TeamTypes)iI).isCapitulated());
-				}
-				else if (GET_TEAM((TeamTypes)iI).isVassal(getID()))
-				{
-					GET_TEAM((TeamTypes)iI).setVassal(eTeam, true, GET_TEAM((TeamTypes)iI).isCapitulated());
-				}
-			}
+			kVassal.setVassal(eTeam, false, bCapitulated);
+			kVassal.setVassal(getID(), true, bCapitulated);
 		}
+		/*else if (kVassal.isVassal(getID()))
+		{
+			kVassal.setVassal(getID(), false, bCapitulated);
+			kVassal.setVassal(eTeam, true, bCapitulated);
+		}*/
 	}
-
+	// </advc.opt>
 	shareCounters(eTeam);
 	//GET_TEAM(eTeam).shareCounters(getID());
 	/*  K-Mod note: eTeam is not going to be used after we've finished this merge,
@@ -573,27 +571,22 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		{
 			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iI); // K-Mod
 			/*kLoopTeam.setWarWeariness(getID(), ((kLoopTeam.getWarWeariness(getID()) + kLoopTeam.getWarWeariness(eTeam)) / 2));
-			kLoopTeam.setStolenVisibilityTimer(getID(), ((kLoopTeam.getStolenVisibilityTimer(getID()) + kLoopTeam.getStolenVisibilityTimer(eTeam)) / 2));
 			kLoopTeam.AI_setAtWarCounter(getID(), ((kLoopTeam.AI_getAtWarCounter(getID()) + kLoopTeam.AI_getAtWarCounter(eTeam)) / 2));
-			kLoopTeam.AI_setAtPeaceCounter(getID(), ((kLoopTeam.AI_getAtPeaceCounter(getID()) + kLoopTeam.AI_getAtPeaceCounter(eTeam)) / 2));
-			kLoopTeam.AI_setHasMetCounter(getID(), ((kLoopTeam.AI_getHasMetCounter(getID()) + kLoopTeam.AI_getHasMetCounter(eTeam)) / 2));
-			kLoopTeam.AI_setDefensivePactCounter(getID(), ((kLoopTeam.AI_getDefensivePactCounter(getID()) + kLoopTeam.AI_getDefensivePactCounter(eTeam)) / 2));
-			kLoopTeam.AI_setShareWarCounter(getID(), ((kLoopTeam.AI_getShareWarCounter(getID()) + kLoopTeam.AI_getShareWarCounter(eTeam)) / 2));
-			kLoopTeam.AI_setWarSuccess(getID(), ((kLoopTeam.AI_getWarSuccess(getID()) + kLoopTeam.AI_getWarSuccess(eTeam)) / 2));
-			kLoopTeam.AI_setEnemyPeacetimeTradeValue(getID(), ((kLoopTeam.AI_getEnemyPeacetimeTradeValue(getID()) + kLoopTeam.AI_getEnemyPeacetimeTradeValue(eTeam)) / 2));
-			kLoopTeam.AI_setEnemyPeacetimeGrantValue(getID(), ((kLoopTeam.AI_getEnemyPeacetimeGrantValue(getID()) + kLoopTeam.AI_getEnemyPeacetimeGrantValue(eTeam)) / 2));
+			// ... (BtS code deleted)
 			kLoopTeam.setEspionagePointsAgainstTeam(getID(), std::max(kLoopTeam.getEspionagePointsAgainstTeam(getID()), kLoopTeam.getEspionagePointsAgainstTeam(eTeam))); // unofficial patch*/
 			/*  <dlph.26> "These counters now scale properly with number of players in teams.
 				Also, espionage is now sum instead of max. */
 			kLoopTeam.setWarWeariness(getID(), (iOriginalTeamSize *
 					kLoopTeam.getWarWeariness(getID()) + iOtherTeamSize *
 					kLoopTeam.getWarWeariness(eTeam)) / getNumMembers());
-			kLoopTeam.setStolenVisibilityTimer(getID(), (iOriginalTeamSize *
-					kLoopTeam.getStolenVisibilityTimer(getID()) + iOtherTeamSize *
-					kLoopTeam.getStolenVisibilityTimer(eTeam)) / getNumMembers());
 			kLoopTeam.AI_setAtWarCounter(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getAtWarCounter(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getAtWarCounter(eTeam)) / getNumMembers());
+			// advc: The at-war counters should be consistent
+			AI().AI_setAtWarCounter(kLoopTeam.getID(), kLoopTeam.AI_getAtWarCounter(getID()));
+			kLoopTeam.setStolenVisibilityTimer(getID(), (iOriginalTeamSize *
+					kLoopTeam.getStolenVisibilityTimer(getID()) + iOtherTeamSize *
+					kLoopTeam.getStolenVisibilityTimer(eTeam)) / getNumMembers());
 			kLoopTeam.AI_setAtPeaceCounter(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getAtPeaceCounter(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getAtPeaceCounter(eTeam)) / getNumMembers());
@@ -948,41 +941,25 @@ void CvTeam::doTurn()
 	m_iPeaceOfferStage = 0; m_eOfferingPeace = NO_TEAM;
 	// </advc.134a>
 	AI().AI_doTurnPre();
-	// <advc.162>
-	for(int i = 0; i < MAX_TEAMS; i++)
-		m_abJustDeclaredWar.set((TeamTypes)i, false);
-	// </advc.162>
+	m_abJustDeclaredWar.reset(); // advc.162
 	if (isBarbarian())
 		doBarbarianResearch(); // advc: Moved into subroutine
 
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
+	for (TeamIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
 	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (getStolenVisibilityTimer((TeamTypes)iI) > 0)
-			{
-				changeStolenVisibilityTimer(((TeamTypes)iI), -1);
-			}
-
-			if (getCounterespionageTurnsLeftAgainstTeam((TeamTypes) iI) > 0)
-			{
-				changeCounterespionageTurnsLeftAgainstTeam((TeamTypes) iI, -1);
-			}
-
-			if (getCounterespionageTurnsLeftAgainstTeam((TeamTypes) iI) == 0)
-			{
-				setCounterespionageModAgainstTeam((TeamTypes) iI, 0);
-			}
-		}
+		TeamTypes eOther = it->getID();
+		if (getStolenVisibilityTimer(eOther) > 0)
+			changeStolenVisibilityTimer(eOther, -1);
+		if (getCounterespionageTurnsLeftAgainstTeam(eOther) > 0)
+			changeCounterespionageTurnsLeftAgainstTeam(eOther, -1);
+		if (getCounterespionageTurnsLeftAgainstTeam(eOther) == 0)
+			setCounterespionageModAgainstTeam(eOther, 0);
 	}
 
 	if (!GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
 	{
-		for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-		{
-			setNoTradeTech(((TechTypes)iI), false);
-		}
-
+		FOR_EACH_ENUM(Tech)
+			setNoTradeTech(eLoopTech, false);
 	}
 
 	doWarWeariness();
@@ -1420,7 +1397,6 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 	// advc: AI code moved down a bit and then into a new function
 	AI().AI_postMakePeace(eTarget);
 
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayer const& kObs = *it;
@@ -2049,7 +2025,6 @@ int CvTeam::countNumCitiesByArea(CvArea* pArea) const
 
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		iCount += pArea->getCitiesPerPlayer(it->getID());
 	return iCount;
 }
@@ -2392,27 +2367,27 @@ void CvTeam::changeAliveCount(int iChange)
 	{
 		for (int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
 		{
-			if (iTeam != getID())
+			if (iTeam == getID())
+				continue; // advc
+
+			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
+			// free vassals
+			if (kLoopTeam.isAlive() && !kLoopTeam.isBarbarian() && !isBarbarian())
 			{
-				CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
-				// free vassals
-				if (kLoopTeam.isAlive() && !kLoopTeam.isBarbarian() && !isBarbarian())
-				{
-					if (kLoopTeam.isVassal(getID()))
-						kLoopTeam.setVassal(getID(), false, false);
-					/*  advc.004v (inspired by a Kek-Mod change):
-						So that the identity of dead teams isn't concealed */
-					kLoopTeam.makeHasSeen(getID());
-				}
-				/*  <advc.003m> So that AtWarCounts are updated. Also seems prudent
-					in general not to keep dead teams at war. */
-				kLoopTeam.setAtWar(getID(), false);
-				setAtWar(kLoopTeam.getID(), false);
-				// </advc.003m>  <advc.opt> Also keep WarPlanCounts updated
-				kLoopTeam.AI_setWarPlanNoUpdate(getID(), NO_WARPLAN);
-				AI().AI_setWarPlanNoUpdate(kLoopTeam.getID(), NO_WARPLAN);
-				// </advc.opt>
+				if (kLoopTeam.isVassal(getID()))
+					kLoopTeam.setVassal(getID(), false, false);
+				/*  advc.004v (inspired by a Kek-Mod change):
+					So that the identity of dead teams isn't concealed */
+				kLoopTeam.makeHasSeen(getID());
 			}
+			/*  <advc.003m> So that AtWarCounts are updated. Also seems prudent
+				in general not to keep dead teams at war. */
+			kLoopTeam.setAtWar(getID(), false);
+			setAtWar(kLoopTeam.getID(), false);
+			// </advc.003m>  <advc.opt> Also keep WarPlanCounts updated
+			kLoopTeam.AI_setWarPlanNoUpdate(getID(), NO_WARPLAN);
+			AI().AI_setWarPlanNoUpdate(kLoopTeam.getID(), NO_WARPLAN);
+			// </advc.opt>
 		}
 	} // <advc.opt>
 	if (!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
@@ -3108,22 +3083,19 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYERS_SIGN_DEFENSIVE_PACT", getReplayName().GetCString(), kOther.getReplayName().GetCString());
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
-			CvPlayer& kObs = GET_PLAYER((PlayerTypes)iI);
-			if (kObs.isAlive())
+			CvPlayer& kObs = *it;
+			if ((isHasMet(kObs.getTeam()) && kOther.isHasMet(kObs.getTeam()))
+				|| kObs.isSpectator()) // advc.127
 			{
-				if ((isHasMet(kObs.getTeam()) && kOther.isHasMet(kObs.getTeam()))
-						|| kObs.isSpectator()) // advc.127
-				{
-					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
+				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
 						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 						"AS2D_THEIRALLIANCE", MESSAGE_TYPE_MAJOR_EVENT, NULL,
 						(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 						// <advc.127b>
 						getCapitalX(kObs.getTeam(), true),
 						getCapitalY(kObs.getTeam(), true)); // </advc.127b>
-				}
 			}
 		}
 	}
@@ -3240,12 +3212,25 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		else t.AI_updateWarPlanCounts(getID(), NO_WARPLAN, t.AI_getWarPlan(getID()));
 		// </advc.opt>
 	}
-
-	m_eMaster = (bNewValue ? eMaster : NO_TEAM); // advc.opt
+	// <advc.opt>
+	if (bNewValue)
+	{
+		FAssert(m_eMaster == NO_TEAM);
+		m_eMaster = eMaster;
+	}
+	else
+	{
+		FAssert(m_eMaster == eMaster);
+		m_eMaster = NO_TEAM;
+	} // </advc.opt>
 	// <advc.agent>
-	if (bCapitulated)
-		GC.getAgents().teamCapitulated(getID(), eMaster);
-	else GC.getAgents().voluntaryVassalAgreementSigned(getID(), eMaster);
+	if (bNewValue)
+	{
+		if (bCapitulated)
+			GC.getAgents().teamCapitulated(getID(), eMaster);
+		else GC.getAgents().voluntaryVassalAgreementSigned(getID(), eMaster);
+	}
+	else GC.getAgents().vassalFreed(getID(), eMaster);
 	// </advc.agent>
 	for (MemberIter it(eMaster); it.hasNext(); ++it)
 	{
@@ -4428,12 +4413,9 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 					see comment in CvGame::doHeadquarters. */
 				int iBestValue = MAX_INT;
 				PlayerTypes eBestPlayer = NO_PLAYER;
-				for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
+				for (MemberIter it(getID()); it.hasNext(); ++it)
 				{
-					CvPlayer const& kMember = GET_PLAYER((PlayerTypes)iJ);
-					if (!kMember.isAlive() || kMember.getTeam() != getID())
-						continue;
-
+					CvPlayer const& kMember = *it;
 					int iValue = 10;
 					iValue += g.getSorenRandNum(10, "Found Corporation (Player)");
 					if (kMember.getCurrentResearch() != eTech)
@@ -4776,8 +4758,8 @@ void CvTeam::changeEspionagePointsAgainstTeam(TeamTypes eIndex, int iChange)
 int CvTeam::getTotalUnspentEspionage() const
 {
 	int iTotal = 0;
-	for (int i = 0; i < MAX_CIV_TEAMS; i++)
-		iTotal += getEspionagePointsAgainstTeam((TeamTypes)i);
+	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		iTotal += getEspionagePointsAgainstTeam(it->getID());
 	return iTotal;
 } // K-Mod end
 

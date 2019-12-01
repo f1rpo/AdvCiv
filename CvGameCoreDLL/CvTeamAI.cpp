@@ -4289,8 +4289,7 @@ DenialTypes CvTeamAI::AI_defensivePactTrade(TeamTypes eWithTeam) const
 DenialTypes CvTeamAI::AI_permanentAllianceTrade(TeamTypes eWithTeam) const  // advc: style changes
 {
 	PROFILE_FUNC();
-
-	FAssertMsg(eWithTeam != getID(), "shouldn't call this function on ourselves");
+	FAssert(eWithTeam != getID());
 
 	if (isHuman())
 		return NO_DENIAL;
