@@ -8872,15 +8872,6 @@ void CvPlayerAI::AI_updateCityAttitude(CvPlot const& kCityPlot)
 	}
 } // </advc.130w>
 
-AttitudeTypes CvPlayerAI::AI_getAttitude(PlayerTypes ePlayer, bool bForced) const
-{
-	PROFILE_FUNC();
-
-	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-
-	return (AI_getAttitudeFromValue(AI_getAttitudeVal(ePlayer, bForced)));
-}
-
 // K-Mod note: the bulk of this function has been moved into CvPlayerAI::AI_updateAttitudeCache.
 int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 {
@@ -13809,7 +13800,7 @@ int CvPlayerAI::AI_unitImpassableCount(UnitTypes eUnit) const
 // K-Mod note: currently, unit promotions are considered in CvCityAI::AI_bestUnitAI rather than here.
 int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea) const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	int iTempValue=-1;
 	int iI;

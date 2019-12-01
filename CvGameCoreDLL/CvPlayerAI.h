@@ -210,7 +210,11 @@ public:
 	void AI_updateAttitudeCache(PlayerTypes ePlayer,		// K-Mod
 			bool bUpdateWorstEnemy = true); // advc.130e
 	void AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange); // K-Mod
-	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const;		// Exposed to Python
+	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const		// Exposed to Python
+	{	// advc.inl
+		FAssert(ePlayer != getID());
+		return (AI_getAttitudeFromValue(AI_getAttitudeVal(ePlayer, bForced)));
+	}
 	int AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced = true) const;
 	static AttitudeTypes AI_getAttitudeFromValue(int iAttitudeVal);
 

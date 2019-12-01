@@ -2358,7 +2358,7 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible, // advc: 1st param was a pointer
 	bool bDangerCheck) const // advc.001k
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	if (atPlot(&kPlot))
 		return false;

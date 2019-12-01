@@ -1847,7 +1847,7 @@ int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 // This function has been completely rewritten for K-Mod. (the rewrite includes some bug fixes as well as some new features)
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	CvMap const& m = GC.getMap(); // advc: ... and use CvPlot references:
 	CvPlot const& kFromPlot = m.getPlot(parent->m_iX, parent->m_iY);
@@ -2218,7 +2218,7 @@ int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSele
 
 int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc: some style changes
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	//CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
