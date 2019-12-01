@@ -499,7 +499,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	if (bTargets && iAreaCities > 0 && getNumWars() > 0)
 	{
 		int iPower = countPowerByArea(pArea);
-		int iEnemyPower = countEnemyPowerByArea(pArea);
+		int iEnemyPower = AI_countEnemyPowerByArea(pArea);
 		iPower *=
 				AI_limitedWarPowerRatio() // advc.107: was 100 flat (see Karadoc's comment below on personality)
 				+ iWarSuccessRating + ((bChosenTargets
@@ -599,7 +599,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 		if (bRecentAttack)
 		{
 			int iPower = countPowerByArea(pArea);
-			int iEnemyPower = countEnemyPowerByArea(pArea);
+			int iEnemyPower = AI_countEnemyPowerByArea(pArea);
 			if (iPower > iEnemyPower)
 				return AREAAI_MASSING;
 			return AREAAI_DEFENSIVE;
@@ -619,7 +619,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 			if (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ||
 					GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) ||
 					(countPowerByArea(pArea) >
-					((countEnemyPowerByArea(pArea) * 3) / 2)))
+					((AI_countEnemyPowerByArea(pArea) * 3) / 2)))
 				return AREAAI_MASSING;
 		}
 		return AREAAI_DEFENSIVE;
@@ -4799,6 +4799,48 @@ void CvTeamAI::AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange)
 {
 	AI_setEnemyPeacetimeGrantValue(eIndex, (AI_getEnemyPeacetimeGrantValue(eIndex) + iChange));
 }
+
+// advc.003u: Moved from CvTeam
+int CvTeamAI::AI_countEnemyPowerByArea(CvArea* pArea) const
+{
+	int iCount = 0;
+	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
+	{
+		CvPlayer const& kEnemy = *it;
+		//if (isAtWar(GET_PLAYER((PlayerTypes)iI).getTeam()))
+		// BETTER_BTS_AI_MOD, General AI, 01/11/09, jdog5000: Count planned wars as well
+		if (AI_getWarPlan(kEnemy.getTeam()) != NO_WARPLAN)
+			iCount += pArea->getPower(kEnemy.getID());
+	}
+	return iCount;
+}
+
+// K-Mod. (Note: this includes barbarian cities.)
+int CvTeamAI::AI_countEnemyCitiesByArea(CvArea* pArea) const // advc.003u: Moved from CvTeam
+{
+	int iCount = 0;
+	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
+	{
+		CvPlayer const& kEnemy = *it;
+		if (AI_getWarPlan(kEnemy.getTeam()) != NO_WARPLAN)
+			iCount += pArea->getCitiesPerPlayer(kEnemy.getID());
+	}
+	return iCount; // advc.001: was 'return 0'
+} // K-Mod end
+
+// BETTER_BTS_AI_MOD, War strategy AI, 04/01/10, jdog5000: START
+// advc.003j (comment): unused; advc.003u: Moved from CvTeam
+int CvTeamAI::AI_countEnemyPopulationByArea(CvArea* pArea) const
+{
+	int iCount = 0;
+	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
+	{
+		CvPlayer const& kEnemy = *it;
+		if (AI_getWarPlan(kEnemy.getTeam()) != NO_WARPLAN)
+			iCount += pArea->getPopulationPerPlayer(kEnemy.getID());
+	}
+	return iCount;
+} // BETTER_BTS_AI_MOD: END
 
 // advc: Body cut from the deleted CvTeam::getChosenWarCount. Never called, not from Python either.
 int CvTeamAI::AI_countChosenWars(bool bIgnoreMinors) const

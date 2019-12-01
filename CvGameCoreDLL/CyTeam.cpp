@@ -203,7 +203,7 @@ int CyTeam::countPowerByArea(CyArea* pArea)
 
 int CyTeam::countEnemyPowerByArea(CyArea* pArea)
 {
-	return m_pTeam ? m_pTeam->countEnemyPowerByArea(pArea->getArea()) : -1;
+	return m_pTeam ? m_pTeam->AI_countEnemyPowerByArea(pArea->getArea()) : -1;
 }
 
 int CyTeam::countNumAIUnitsByArea(CyArea* pArea, int /*UnitAITypes*/ eUnitAI)

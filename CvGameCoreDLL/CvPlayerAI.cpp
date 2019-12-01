@@ -9002,8 +9002,7 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 		return;
 	}
 	// <advc.130v>
-	int const iLimit = GC.getInfo(getPersonalityType()).
-			getCloseBordersAttitudeChange();
+	int const iLimit = GC.getInfo(getPersonalityType()).getCloseBordersAttitudeChange();
 	if(iLimit == 0)
 	{
 		m_aiCloseBordersAttitudeCache[ePlayer] = 0;
@@ -9068,14 +9067,12 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 		iPercent /= 2; // </advc.130v>
 	/*  A bit messy to access other entries of the BordersAttitudeCache while
 		updating, but shouldn't have any noticeable side-effect. */
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<ALIVE,VASSAL_OF> it(TEAMID(ePlayer)); it.hasNext(); ++it)
 	{
-		CvPlayerAI const& civ = GET_PLAYER((PlayerTypes)i);
-		if(civ.isAlive() && !civ.isMinorCiv() && civ.getTeam() != getTeam() &&
-			GET_TEAM(civ.getTeam()).isVassal(TEAMID(ePlayer)) &&
-			GET_TEAM(civ.getTeam()).isCapitulated())
+		CvPlayerAI const& kVassal = *it;
+		if(GET_TEAM(kVassal.getID()).isCapitulated() && kVassal.getTeam() != getTeam())
 		{
-			int iFromVassal = (m_aiCloseBordersAttitudeCache[civ.getID()] * 100) / iLimit;
+			int iFromVassal = (m_aiCloseBordersAttitudeCache[kVassal.getID()] * 100) / iLimit;
 			if(iFromVassal > 0)
 				iPercent += iFromVassal;
 		}
@@ -25493,7 +25490,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
 	iDefendersPermil += (1000 * pArea->getPopulationPerPlayer(getID())) / 8; // advc.107: was /7 (but rounding loss was much higher)
 	if (AI_isLandWar(pArea) /* advc.107: */ && AI_isFocusWar(pArea))
 	{
-		int iEnemyCityFactor = 1000 * GET_TEAM(getTeam()).countEnemyCitiesByArea(pArea);
+		int iEnemyCityFactor = 1000 * GET_TEAM(getTeam()).AI_countEnemyCitiesByArea(pArea);
 		// advc.107:
 		iEnemyCityFactor = std::min(iEnemyCityFactor, (2 * iCityFactor) / 3);
 		iDefendersPermil += 1000 + // (2000 +

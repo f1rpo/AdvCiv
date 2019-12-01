@@ -213,6 +213,10 @@ public:
 	void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
 
+	// <advc.003u> Moved from CvTeam b/c these functions count wars in preparation
+	int AI_countEnemyPowerByArea(CvArea* pArea) const;																			// Exposed to Python
+	int AI_countEnemyCitiesByArea(CvArea* pArea) const; // K-Mod
+	int AI_countEnemyPopulationByArea(CvArea* pArea) const; // bbai (advc: unused)
 	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.inl
 	{
 		FASSERT_BOUNDS(0, MAX_TEAMS, eIndex, "CvTeamAI::AI_getWarPlan");

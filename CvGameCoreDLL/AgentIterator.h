@@ -139,7 +139,7 @@ protected:
 			only fail when an offending AgentIterator object is declared.
 			See comments in AgentPredicates.h about the specific assertions. */
 		BOOST_STATIC_ASSERT(eSTATUS != ANY_AGENT_STATUS || eRELATION <= NOT_SAME_TEAM_AS);
-		BOOST_STATIC_ASSERT(eRELATION != VASSAL_OF || eSTATUS < FREE_MAJOR_CIV);
+		BOOST_STATIC_ASSERT(eRELATION != VASSAL_OF || eSTATUS != FREE_MAJOR_CIV);
 
 		FAssert(eRELATION == ANY_AGENT_RELATION || (eTeam > NO_TEAM && eTeam < MAX_TEAMS));
 		if (bAPPLY_FILTERS)

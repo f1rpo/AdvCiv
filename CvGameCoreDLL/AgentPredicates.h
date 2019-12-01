@@ -8,7 +8,9 @@
 
 /*  Any predicates that are added to these two enums need to satisfy the assumptions
 	stated in comments. Otherwise, client code may break; e.g. code that relies on
-	eStatus >= ALIVE implying that dead agents are excluded. */
+	eStatus >= ALIVE implying that dead agents are excluded.
+	Additional predicates also need to be added to the instantiation macros
+	at the end of AgentIterator.cpp. */
 
 enum AgentStatusPredicate
 {
@@ -25,8 +27,7 @@ enum AgentStatusPredicate
 	MAJOR_CIV,
 	//VASSAL,
 	FREE_MAJOR_CIV,
-	//FREE_MAJOR_AI_CIV,
-	HUMAN,
+	HUMAN, // Doesn't have to imply free; could be a vassal.
 };
 
 enum AgentRelationPredicate // Relative to some given second agent
@@ -36,7 +37,7 @@ enum AgentRelationPredicate // Relative to some given second agent
 	NOT_SAME_TEAM_AS,
 	/*  The rest should imply that the agents are alive; shouldn't rely on
 		relationships other than team membership being correct for dead players. */
-	VASSAL_OF, // Currently assumed to imply non-human
+	VASSAL_OF,
 	NOT_A_RIVAL_OF, // Same team or some vassal/ master relation
 	POTENTIAL_ENEMY_OF, // incl. current war enemies
 	//OPEN_BORDERS_WITH, // Or rather CAN_ENTER_BORDERS_OF

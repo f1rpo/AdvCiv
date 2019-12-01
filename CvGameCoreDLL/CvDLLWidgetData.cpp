@@ -3515,7 +3515,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	// show everyones power for the active player
 	if (eActivePlayer == ePlayer)
 	{
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: exclude Barbarians
 		{
 			CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 			if (kLoopPlayer.isAlive())
@@ -5720,7 +5720,7 @@ void CvDLLWidgetData::parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct,
 	CvWString szTemp = szBuffer.getCString();
 	CvGame const& g = GC.getGame();
 	CvDeal const* pDeal = g.getDeal(widgetDataStruct.m_iData1);
-	if (NULL != pDeal)
+	if (pDeal != NULL)
 	{
 		PlayerTypes eActivePlayer = g.getActivePlayer();
 		// <advc.073>
@@ -5743,7 +5743,7 @@ void CvDLLWidgetData::doDealKill(CvWidgetDataStruct &widgetDataStruct)
 		if (!pDeal->isCancelable(GC.getGame().getActivePlayer()))
 		{
 			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TEXT);
-			if (NULL != pInfo)
+			if (pInfo != NULL)
 			{
 				pInfo->setText(gDLL->getText("TXT_KEY_POPUP_CANNOT_CANCEL_DEAL"));
 				gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGame().getActivePlayer(), true);
@@ -5752,7 +5752,7 @@ void CvDLLWidgetData::doDealKill(CvWidgetDataStruct &widgetDataStruct)
 		else
 		{
 			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DEAL_CANCELED);
-			if (NULL != pInfo)
+			if (pInfo != NULL)
 			{
 				pInfo->setData1(pDeal->getID());
 				pInfo->setOption1(false);

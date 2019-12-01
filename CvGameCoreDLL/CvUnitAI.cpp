@@ -6959,7 +6959,7 @@ void CvUnitAI::AI_assaultSeaMove()
 					if (pCity->getPreviousOwner() != NO_PLAYER)
 					{
 						// Just captured city, probably from naval invasion.  If area targets, drop cargo and leave so as to not to be lost in quick counter attack
-						if (GET_TEAM(getTeam()).countEnemyPowerByArea(plot()->area()) > 0)
+						if (GET_TEAM(getTeam()).AI_countEnemyPowerByArea(plot()->area()) > 0)
 						{
 							getGroup()->unloadAll();
 
@@ -15832,7 +15832,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 		{
 			int iOurPower = std::max(1, pLoopCity->area()->getPower(getOwner()));
 			// Enemy power includes barb power
-			int iEnemyPower = GET_TEAM(getTeam()).countEnemyPowerByArea(pLoopCity->area());
+			int iEnemyPower = GET_TEAM(getTeam()).AI_countEnemyPowerByArea(pLoopCity->area());
 
 			// Don't send troops to areas we are dominating already
 			// Don't require presence of enemy cities, just a dangerous force
@@ -15905,7 +15905,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 					int iOurPower = std::max(1, pLoopCity->area()->getPower(getOwner()));
 					iOurPower += GET_TEAM(eMasterTeam).countPowerByArea(pLoopCity->area());
 					// Enemy power includes barb power
-					int iEnemyPower = GET_TEAM(eMasterTeam).countEnemyPowerByArea(pLoopCity->area());
+					int iEnemyPower = GET_TEAM(eMasterTeam).AI_countEnemyPowerByArea(pLoopCity->area());
 
 					// Don't send troops to areas we are dominating already
 					// Don't require presence of enemy cities, just a dangerous force
@@ -18598,7 +18598,7 @@ bool CvUnitAI::AI_pickup(UnitAITypes eUnitAI,  // advc: style changes
 			if ((AI_getUnitAIType() != UNITAI_ASSAULT_SEA) || pCity->AI_isDefended(-1)) {*/
 		// BETTER_BTS_AI_MOD, Naval AI, 01/23/09, jdog5000: START
 		if (GC.getGame().getGameTurn() - pCity->getGameTurnAcquired() > 15 ||
-			GET_TEAM(getTeam()).countEnemyPowerByArea(pCity->area()) == 0)
+			GET_TEAM(getTeam()).AI_countEnemyPowerByArea(pCity->area()) == 0)
 		{
 			if (AI_considerPickup(eUnitAI, *pCity)) // advc: Moved into subroutine
 			{
@@ -18635,7 +18635,7 @@ bool CvUnitAI::AI_pickup(UnitAITypes eUnitAI,  // advc: style changes
 
 		// BETTER_BTS_AI_MOD, Naval AI, 01/23/09, jdog5000: START
 		if (GC.getGame().getGameTurn() - pLoopCity->getGameTurnAcquired() <= 15 &&
-				GET_TEAM(getTeam()).countEnemyPowerByArea(pLoopCity->area()) > 0)
+				GET_TEAM(getTeam()).AI_countEnemyPowerByArea(pLoopCity->area()) > 0)
 			continue;
 
 		if (!AI_considerPickup(eUnitAI, *pLoopCity)) // advc: Moved into subroutine
