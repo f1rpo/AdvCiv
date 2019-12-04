@@ -30,6 +30,7 @@ public:
 	bool AI_update();
 
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const;
+	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false); // K-Mod
 	// advc.003u: These two had returned CvUnit*
 	CvUnitAI* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy,
 			int& iUnitOdds, bool bForce = false, bool bNoBlitz = false,

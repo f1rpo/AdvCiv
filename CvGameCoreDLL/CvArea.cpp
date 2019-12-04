@@ -602,14 +602,14 @@ void CvArea::setAreaAIType(TeamTypes eIndex, AreaAITypes eNewValue)
 
 CvCityAI* CvArea::AI_getTargetCity(PlayerTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eIndex, "CvArea::AI_getTargetCity");
+	FAssertBounds(0, MAX_PLAYERS, eIndex);
 	return ::AI_getCity(m_aTargetCities[eIndex]);
 }
 
 
 void CvArea::AI_setTargetCity(PlayerTypes eIndex, CvCityAI* pNewValue) // advc.003u: CvCityAI param only for consistency with getTargetCity
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eIndex, "CvArea::AI_setTargetCity");
+	FAssertBounds(0, MAX_PLAYERS, eIndex);
 	if (pNewValue != NULL)
 		m_aTargetCities[eIndex] = pNewValue->getIDInfo();
 	else m_aTargetCities[eIndex].reset();

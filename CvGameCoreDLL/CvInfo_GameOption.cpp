@@ -190,7 +190,7 @@ bool CvEraInfo::isNoBarbCities() const
 
 int CvEraInfo::getSoundtracks(int i) const
 {
-	FASSERT_BOUNDS(0, getNumSoundtracks(), i, "CvEraInfo::getSoundtracks");
+	FAssertBounds(0, getNumSoundtracks(), i);
 	return m_paiSoundtracks ? m_paiSoundtracks[i]
 		/*  advc.003t: Was -1. CvEraInfo::read also uses -1 as the default, but,
 			since 0 is used as the default for all other audio ids, let's hope
@@ -200,7 +200,7 @@ int CvEraInfo::getSoundtracks(int i) const
 
 int CvEraInfo::getCitySoundscapeScriptId(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_CITYSIZE_TYPES, i, "CvEraInfo::getCitySoundscapeScriptId"); // advc: Check for upper bound added
+	FAssertBounds(0, NUM_CITYSIZE_TYPES, i); // advc: Check for upper bound added
 	return m_paiCitySoundscapeScriptIds ? m_paiCitySoundscapeScriptIds[i] : 0; // advc.003t
 }
 
@@ -353,7 +353,7 @@ int CvGameSpeedInfo::getNumTurnIncrements() const
 
 GameTurnInfo& CvGameSpeedInfo::getGameTurnInfo(int iIndex) const
 {
-	FASSERT_BOUNDS(0, getNumTurnIncrements(), iIndex, "CvGameSpeedInfo::getGameTurnInfo"); // advc: added
+	FAssertBounds(0, getNumTurnIncrements(), iIndex); // advc: added
 	return m_pGameTurnInfo[iIndex];
 }
 
@@ -950,19 +950,19 @@ int CvHandicapInfo::getDifficulty() const { return m_iDifficulty; }
 
 int CvHandicapInfo::getGoodies(int i) const
 {
-	FASSERT_BOUNDS(0, getNumGoodies(), i, "CvHandicapInfo::getGoodies");
+	FAssertBounds(0, getNumGoodies(), i);
 	return m_piGoodies[i];
 }
 
 bool CvHandicapInfo::isFreeTechs(int i) const // advc.003t: Return type was int
 {
-	FASSERT_BOUNDS(0, GC.getNumTechInfos(), i, "CvHandicapInfo::isFreeTechs");
+	FAssertBounds(0, GC.getNumTechInfos(), i);
 	return (m_pbFreeTechs != NULL ? m_pbFreeTechs[i] : false);
 }
 
 bool CvHandicapInfo::isAIFreeTechs(int i) const // advc.003t: Return type was int
 {
-	FASSERT_BOUNDS(0, GC.getNumTechInfos(), i, "CvHandicapInfo::isAIFreeTechs");
+	FAssertBounds(0, GC.getNumTechInfos(), i);
 	return (m_pbAIFreeTechs != NULL ? m_pbAIFreeTechs[i] : false);
 }
 #if SERIALIZE_CVINFOS

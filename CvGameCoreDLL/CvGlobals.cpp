@@ -447,7 +447,7 @@ CvString*& CvGlobals::getEntityEventTypes()
 
 CvString& CvGlobals::getEntityEventTypes(EntityEventTypes e)
 {
-	FASSERT_BOUNDS(0, getNumEntityEventTypes(), e, "CvGlobals::getEntityEventTypes");
+	FAssertBounds(0, getNumEntityEventTypes(), e);
 	return m_paszEntityEventTypes[e];
 }
 
@@ -463,7 +463,7 @@ CvString*& CvGlobals::getAnimationOperatorTypes()
 
 CvString& CvGlobals::getAnimationOperatorTypes(AnimationOperatorTypes e)
 {
-	FASSERT_BOUNDS(0, getNumAnimationOperatorTypes(), e, "CvGlobals::getAnimationOperatorTypes");
+	FAssertBounds(0, getNumAnimationOperatorTypes(), e);
 	return m_paszAnimationOperatorTypes[e];
 }
 
@@ -474,7 +474,7 @@ CvString*& CvGlobals::getFunctionTypes()
 
 CvString& CvGlobals::getFunctionTypes(FunctionTypes e)
 {
-	FASSERT_BOUNDS(0, NUM_FUNC_TYPES, e, "CvGlobals::getFunctionTypes");
+	FAssertBounds(0, NUM_FUNC_TYPES, e);
 	return m_paszFunctionTypes[e];
 }
 
@@ -485,7 +485,7 @@ CvString*& CvGlobals::getFlavorTypes()
 
 CvString& CvGlobals::getFlavorTypes(FlavorTypes e)
 {
-	FASSERT_BOUNDS(0, getNumFlavorTypes(), e, "CvGlobals::getFlavorTypes");
+	FAssertBounds(0, getNumFlavorTypes(), e);
 	return m_paszFlavorTypes[e];
 }
 
@@ -501,7 +501,7 @@ CvString*& CvGlobals::getArtStyleTypes()
 
 CvString& CvGlobals::getArtStyleTypes(ArtStyleTypes e)
 {
-	FASSERT_BOUNDS(0, getNumArtStyleTypes(), e, "CvGlobals::getArtStyleTypes");
+	FAssertBounds(0, getNumArtStyleTypes(), e);
 	return m_paszArtStyleTypes[e];
 }
 
@@ -512,7 +512,7 @@ CvString*& CvGlobals::getCitySizeTypes()
 
 CvString& CvGlobals::getCitySizeTypes(CitySizeTypes e)
 {
-	FASSERT_BOUNDS(0, NUM_CITYSIZE_TYPES, e, "CvGlobals::getCitySizeTypes");
+	FAssertBounds(0, NUM_CITYSIZE_TYPES, e);
 	return m_paszCitySizeTypes[e];
 }
 
@@ -523,7 +523,7 @@ CvString*& CvGlobals::getContactTypes()
 
 CvString& CvGlobals::getContactTypes(ContactTypes e)
 {
-	FASSERT_BOUNDS(0, NUM_CONTACT_TYPES, e, "CvGlobals::getContactTypes");
+	FAssertBounds(0, NUM_CONTACT_TYPES, e);
 	return m_paszContactTypes[e];
 }
 
@@ -534,7 +534,7 @@ CvString*& CvGlobals::getDiplomacyPowerTypes()
 
 CvString& CvGlobals::getDiplomacyPowerTypes(DiplomacyPowerTypes e)
 {
-	FASSERT_BOUNDS(0, NUM_DIPLOMACYPOWER_TYPES, e, "CvGlobals::getDiplomacyPowerTypes");
+	FAssertBounds(0, NUM_DIPLOMACYPOWER_TYPES, e);
 	return m_paszDiplomacyPowerTypes[e];
 }
 
@@ -545,7 +545,7 @@ CvString*& CvGlobals::getAutomateTypes()
 
 CvString& CvGlobals::getAutomateTypes(AutomateTypes e)
 {
-	FASSERT_BOUNDS(0, NUM_AUTOMATE_TYPES, e, "CvGlobals::getAutomateTypes");
+	FAssertBounds(0, NUM_AUTOMATE_TYPES, e);
 	return m_paszAutomateTypes[e];
 }
 
@@ -556,7 +556,7 @@ CvString*& CvGlobals::getDirectionTypes()
 
 CvString& CvGlobals::getDirectionTypes(AutomateTypes e)
 {
-	FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, e, "CvGlobals::getDirectionTypes");
+	FAssertBounds(0, NUM_DIRECTION_TYPES, e);
 	return m_paszDirectionTypes[e];
 }
 
@@ -572,7 +572,7 @@ CvString*& CvGlobals::getFootstepAudioTypes()
 
 CvString& CvGlobals::getFootstepAudioTypes(int i)
 {
-	FASSERT_BOUNDS(0, getNumFootstepAudioTypes(), i, "CvGlobals::getFootstepAudioTypes");
+	FAssertBounds(0, getNumFootstepAudioTypes(), i);
 	return m_paszFootstepAudioTypes[i];
 }
 
@@ -601,7 +601,7 @@ CvString& CvGlobals::getFootstepAudioTags(int i)
 {
 	/*  advc: Upper-bound check added; apparently, there are as many types a tags.
 		A variable m_iNumFootstepAudioTags was unused, so I removed it. */
-	FASSERT_BOUNDS(0, getNumFootstepAudioTypes(), i, "CvGlobals::getFootstepAudioTags");
+	FAssertBounds(0, getNumFootstepAudioTypes(), i);
 	return m_paszFootstepAudioTags[i];
 }
 

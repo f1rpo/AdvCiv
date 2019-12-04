@@ -108,7 +108,7 @@ void CvAgents::updateAllCachedSequences()
 namespace // These functions aren't frequently called; don't need to be fast.
 {
 	template<class AgentType>
-	void eraseFromVector(std::vector<AgentType*>& v, int iAgentID, bool bAssertSuccess = true)
+	void eraseFromSeqCache(std::vector<AgentType*>& v, int iAgentID, bool bAssertSuccess = true)
 	{
 		for (std::vector<AgentType*>::iterator it = v.begin(); it != v.end(); ++it)
 		{
@@ -140,21 +140,21 @@ namespace // These functions aren't frequently called; don't need to be fast.
 
 void CvAgents::playerDefeated(PlayerTypes eDeadPlayer)
 {
-	eraseFromVector(playerSeqCache(CIV_ALIVE), eDeadPlayer);
+	eraseFromSeqCache(playerSeqCache(CIV_ALIVE), eDeadPlayer);
 	if (!GET_PLAYER(eDeadPlayer).isMinorCiv())
-		eraseFromVector(playerSeqCache(MAJOR_ALIVE), eDeadPlayer);
+		eraseFromSeqCache(playerSeqCache(MAJOR_ALIVE), eDeadPlayer);
 	TeamTypes eTeam = TEAMID(eDeadPlayer);
-	eraseFromVector(memberSeqCache(MEMBER_ALIVE, eTeam), eDeadPlayer);
+	eraseFromSeqCache(memberSeqCache(MEMBER_ALIVE, eTeam), eDeadPlayer);
 	TeamTypes eMasterTeam = GET_TEAM(eTeam).getMasterTeam();
 	if (eMasterTeam != eTeam)
-		eraseFromVector(memberSeqCache(VASSAL_ALIVE, eMasterTeam), eDeadPlayer);
+		eraseFromSeqCache(memberSeqCache(VASSAL_ALIVE, eMasterTeam), eDeadPlayer);
 	if (!GET_TEAM(eTeam).isAlive())
 	{
-		eraseFromVector(teamSeqCache(CIV_ALIVE), eTeam);
+		eraseFromSeqCache(teamSeqCache(CIV_ALIVE), eTeam);
 		if (!GET_TEAM(eTeam).isMinorCiv())
-			eraseFromVector(teamSeqCache(MAJOR_ALIVE), eTeam);
+			eraseFromSeqCache(teamSeqCache(MAJOR_ALIVE), eTeam);
 		if (eMasterTeam != eTeam)
-			eraseFromVector(teamPerTeamSeqCache(VASSAL_ALIVE, eMasterTeam), eTeam);
+			eraseFromSeqCache(teamPerTeamSeqCache(VASSAL_ALIVE, eMasterTeam), eTeam);
 	}
 }
 
@@ -178,7 +178,7 @@ void CvAgents::colonyCreated(PlayerTypes eNewPlayer)
 
 void CvAgents::updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal)
 {
-	FASSERT_BOUNDS(0, (int)playerSeqCache(ALL).size(), eMaster, "CvAgents::updateVassal");
+	FAssertBounds(0, playerSeqCache(ALL).size(), eMaster);
 	TeamVector& vassalTeams = teamPerTeamSeqCache(VASSAL_ALIVE, eMaster);
 	PlayerVector& vassalPlayers = memberSeqCache(VASSAL_ALIVE, eMaster);
 	for (size_t i = 0; i < memberSeqCache(MEMBER, eVassal).size(); i++)
@@ -192,7 +192,7 @@ void CvAgents::updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal)
 				The vassal agreement gets canceled afterwards, resulting in
 				a call to updateVassal. */
 			if (pMember->isAlive())
-				eraseFromVector(vassalPlayers, pMember->getID());
+				eraseFromSeqCache(vassalPlayers, pMember->getID());
 			FAssert(std::find(vassalPlayers.begin(), vassalPlayers.end(), pMember) ==
 					vassalPlayers.end());
 		}
@@ -203,7 +203,7 @@ void CvAgents::updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal)
 	else
 	{
 		if (pVassalTeam->isAlive())
-			eraseFromVector(vassalTeams, pVassalTeam->getID());
+			eraseFromSeqCache(vassalTeams, pVassalTeam->getID());
 		FAssert(std::find(vassalTeams.begin(), vassalTeams.end(), pVassalTeam) ==
 				vassalTeams.end());
 	}

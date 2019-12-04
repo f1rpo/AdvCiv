@@ -361,51 +361,51 @@ int CvEventInfo::getAIValue() const
 
 int CvEventInfo::getAdditionalEventChance(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEventInfos(), i, "CvEventInfo::getAdditionalEventChance");
+	FAssertBounds(0, GC.getNumEventInfos(), i);
 	return m_piAdditionalEventChance ? m_piAdditionalEventChance[i] : 0;
 }
 
 int CvEventInfo::getAdditionalEventTime(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEventInfos(), i, "CvEventInfo::getAdditionalEventChance");
+	FAssertBounds(0, GC.getNumEventInfos(), i);
 	FAssert (i >= 0 && i < GC.getNumEventInfos());
 	return m_piAdditionalEventTime ? m_piAdditionalEventTime[i] : 0;
 }
 
 int CvEventInfo::getClearEventChance(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEventInfos(), i, "CvEventInfo::getClearEventChance");
+	FAssertBounds(0, GC.getNumEventInfos(), i);
 	FAssert (i >= 0 && i < GC.getNumEventInfos());
 	return m_piClearEventChance ? m_piClearEventChance[i] : 0;
 }
 
 int CvEventInfo::getTechFlavorValue(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvEventInfo::getTechFlavorValue");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piTechFlavorValue ? m_piTechFlavorValue[i] : 0; // advc.003t
 }
 
 int CvEventInfo::getPlotExtraYield(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvEventInfo::getPlotExtraYield");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piPlotExtraYields ? m_piPlotExtraYields[i] : 0; // advc.003t
 }
 
 int CvEventInfo::getFreeSpecialistCount(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvEventInfo::getFreeSpecialistCount");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
 	return m_piFreeSpecialistCount ? m_piFreeSpecialistCount[i] : 0; // advc.003t
 }
 
 int CvEventInfo::getUnitCombatPromotion(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvEventInfo::getUnitCombatPromotion");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_piUnitCombatPromotions ? m_piUnitCombatPromotions[i] : NO_PROMOTION; // advc.003t
 }
 
 int CvEventInfo::getUnitClassPromotion(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvEventInfo::getUnitClassPromotion");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_piUnitClassPromotions ? m_piUnitClassPromotions[i] : NO_PROMOTION; // advc.003t
 }
 
@@ -1367,13 +1367,13 @@ bool CvEventTriggerInfo::isTeam() const
 
 const CvWString& CvEventTriggerInfo::getText(int i) const
 {
-	FASSERT_BOUNDS(0, (int)m_aszText.size(), i, "CvEventTriggerInfo::getText");
+	FAssertBounds(0, (int)m_aszText.size(), i);
 	return m_aszText[i];
 }
 
 int CvEventTriggerInfo::getTextEra(int i) const
 {
-	FASSERT_BOUNDS(0, (int)m_aszText.size(), i, "CvEventTriggerInfo::getTextEra");
+	FAssertBounds(0, (int)m_aszText.size(), i);
 	return m_aiTextEra[i];
 }
 
@@ -1385,7 +1385,7 @@ int CvEventTriggerInfo::getNumTexts() const
 
 const CvWString& CvEventTriggerInfo::getWorldNews(int i) const
 {
-	FASSERT_BOUNDS(0, (int)m_aszWorldNews.size(), i, "CvEventTriggerInfo::getWorldNews");
+	FAssertBounds(0, (int)m_aszWorldNews.size(), i);
 	return m_aszWorldNews[i];
 }
 

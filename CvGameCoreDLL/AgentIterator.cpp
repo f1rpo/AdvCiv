@@ -129,6 +129,8 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 		return (getTeam(kAgent) != m_eTeam && !isSameMaster<args>(kAgent, m_eTeam));
 	case KNOWN_TO:
 		return GET_TEAM(getTeam(kAgent)).isHasMet(m_eTeam);
+	case OTHER_KNOWN_TO:
+		return (GET_TEAM(getTeam(kAgent)).isHasMet(m_eTeam) && getTeam(kAgent) != m_eTeam);
 	case KNOWN_POTENTIAL_ENEMY_OF:
 		return (GET_TEAM(getTeam(kAgent)).isHasMet(m_eTeam) && getTeam(kAgent) != m_eTeam &&
 			!isSameMaster<args>(kAgent, m_eTeam));
@@ -172,6 +174,7 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 	DO(S, NOT_A_RIVAL_OF) \
 	DO(S, POTENTIAL_ENEMY_OF) \
 	DO(S, KNOWN_TO) \
+	DO(S, OTHER_KNOWN_TO) \
 	DO(S, KNOWN_POTENTIAL_ENEMY_OF) \
 	DO(S, ENEMY_OF)
 

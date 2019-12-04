@@ -3,14 +3,14 @@
 #ifndef WAR_UTILITY_ASPECT_H
 #define WAR_UTILITY_ASPECT_H
 
-#include "WarAndPeaceAI.h"
+#include "UWAI.h"
 
 class MilitaryAnalyst;
 class WarEvalParameters;
-class WarAndPeaceReport;
-class WarAndPeaceAI::Civ;
-class WarAndPeaceAI::Team;
-class WarAndPeaceCache;
+class UWAIReport;
+class UWAI::Civ;
+class UWAI::Team;
+class UWAICache;
 
 
 /*  advc.104: New class. An aspect of war evaluation.
@@ -24,7 +24,7 @@ public:
 		Concrete subclasses should therefore overwrite evaluate(void) instead. */
 	virtual int evaluate(MilitaryAnalyst const& m);
 	virtual char const* aspectName() const=0;
-	// Needs to correspond to the call order in WarAndPeaceAI::cacheXML
+	// Needs to correspond to the call order in UWAI::cacheXML
 	virtual int xmlId() const=0;
 	/*  Caller needs to call evaluate first, which computes war utility. This is
 		just a getter. */
@@ -60,9 +60,9 @@ protected:
 	WarEvalParameters const& params;
 	TeamTypes agentId;
 	CvTeamAI& agent;
-	WarAndPeaceAI::Team& agentAI;
+	UWAI::Team& agentAI;
 	int u;
-	WarAndPeaceReport& report;
+	UWAIReport& report;
 	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
 	EraTypes gameEra;
 
@@ -73,13 +73,13 @@ protected:
 	MilitaryAnalyst const* m;
 	PlayerTypes weId;
 	CvPlayerAI* we;
-	WarAndPeaceAI::Civ const* weAI;
-	WarAndPeaceCache const* ourCache;
+	UWAI::Civ const* weAI;
+	UWAICache const* ourCache;
 	/*  'they' are not necessarily the team targeted by the DoW. Can be any rival
 		that we might directly or indirectly gain sth. from (or lose sth. to). */
 	PlayerTypes theyId;
 	CvPlayerAI const* they;
-	WarAndPeaceAI::Civ const* theyAI;
+	UWAI::Civ const* theyAI;
 	std::vector<int> weConquerFromThem;
 	// Our current attitude towards them and their current attitude towards us
 	AttitudeTypes towardsThem, towardsUs;
@@ -114,7 +114,7 @@ protected:
 				KNOWN_POTENTIAL_ENEMY_OF : POTENTIAL_ENEMY_OF>::count(agentId);
 	 }
 	 /*  Evaluation of their usefulness as our trade partner. Would prefer this
-		 to be computed just once by WarAndPeaceCache (the computations aren't
+		 to be computed just once by UWAICache (the computations aren't
 		 totally cheap), but I also want the log output. They're not called
 		 frequently. */
 	 double partnerUtilFromTech();

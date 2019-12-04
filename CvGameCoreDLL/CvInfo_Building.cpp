@@ -811,7 +811,7 @@ void CvBuildingInfo::setMovieDefineTag(const TCHAR* szVal)
 
 int CvBuildingInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
@@ -822,7 +822,7 @@ int* CvBuildingInfo::getYieldChangeArray() const
 
 int CvBuildingInfo::getYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldModifier ? m_piYieldModifier[i] : 0; // advc003t
 }
 
@@ -833,7 +833,7 @@ int* CvBuildingInfo::getYieldModifierArray() const
 
 int CvBuildingInfo::getPowerYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getPowerYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piPowerYieldModifier ? m_piPowerYieldModifier[i] : 0; // advc.003t
 }
 
@@ -844,7 +844,7 @@ int* CvBuildingInfo::getPowerYieldModifierArray() const
 
 int CvBuildingInfo::getAreaYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getAreaYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piAreaYieldModifier ? m_piAreaYieldModifier[i] : 0; // advc.003t
 }
 
@@ -855,7 +855,7 @@ int* CvBuildingInfo::getAreaYieldModifierArray() const
 
 int CvBuildingInfo::getGlobalYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getGlobalYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piGlobalYieldModifier ? m_piGlobalYieldModifier[i] : 0; // advc.003t
 }
 
@@ -866,7 +866,7 @@ int* CvBuildingInfo::getGlobalYieldModifierArray() const
 
 int CvBuildingInfo::getSeaPlotYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getSeaPlotYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piSeaPlotYieldChange ? m_piSeaPlotYieldChange[i] : 0; // advc.003t
 }
 
@@ -877,7 +877,7 @@ int* CvBuildingInfo::getSeaPlotYieldChangeArray() const
 
 int CvBuildingInfo::getRiverPlotYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getRiverPlotYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piRiverPlotYieldChange ? m_piRiverPlotYieldChange[i] : 0; // advc.003t
 }
 
@@ -888,7 +888,7 @@ int* CvBuildingInfo::getRiverPlotYieldChangeArray() const
 
 int CvBuildingInfo::getGlobalSeaPlotYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBuildingInfo::getGlobalSeaPlotYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piGlobalSeaPlotYieldChange ? m_piGlobalSeaPlotYieldChange[i] : 0; // advc.003t
 }
 
@@ -899,7 +899,7 @@ int* CvBuildingInfo::getGlobalSeaPlotYieldChangeArray() const
 
 int CvBuildingInfo::getCommerceChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getCommerceChange");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceChange ? m_piCommerceChange[i] : 0; // advc.003t
 }
 
@@ -910,7 +910,7 @@ int* CvBuildingInfo::getCommerceChangeArray() const
 
 int CvBuildingInfo::getObsoleteSafeCommerceChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getObsoleteSafeCommerceChange");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piObsoleteSafeCommerceChange ? m_piObsoleteSafeCommerceChange[i] : 0; // advc.003t
 }
 
@@ -921,14 +921,14 @@ int* CvBuildingInfo::getObsoleteSafeCommerceChangeArray() const
 
 int CvBuildingInfo::getCommerceChangeDoubleTime(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getCommerceChangeDoubleTime");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceChangeDoubleTime ? m_piCommerceChangeDoubleTime[i]
 			: 0; // advc.003t: Was -1. 0 means infinity here.
 }
 
 int CvBuildingInfo::getCommerceModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getCommerceModifier");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceModifier ? m_piCommerceModifier[i] : 0; // advc.003t
 }
 
@@ -939,7 +939,7 @@ int* CvBuildingInfo::getCommerceModifierArray() const
 
 int CvBuildingInfo::getGlobalCommerceModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getGlobalCommerceModifier");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piGlobalCommerceModifier ? m_piGlobalCommerceModifier[i] : 0; // advc.003t
 }
 
@@ -950,7 +950,7 @@ int* CvBuildingInfo::getGlobalCommerceModifierArray() const
 
 int CvBuildingInfo::getSpecialistExtraCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getSpecialistExtraCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : 0; // advc.003t
 }
 
@@ -961,7 +961,7 @@ int* CvBuildingInfo::getSpecialistExtraCommerceArray() const
 
 int CvBuildingInfo::getStateReligionCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getStateReligionCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piStateReligionCommerce ? m_piStateReligionCommerce[i] : 0; // advc.003t
 }
 
@@ -972,20 +972,20 @@ int* CvBuildingInfo::getStateReligionCommerceArray() const
 
 int CvBuildingInfo::getCommerceHappiness(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::getCommerceHappiness");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceHappiness ? m_piCommerceHappiness[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getReligionChange(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), i, "CvBuildingInfo::getReligionChange");
+	FAssertBounds(0, GC.getNumReligionInfos(), i);
 	return m_piReligionChange ? m_piReligionChange[i]
 			: 0; // advc.003t: Was -1. This one acts as a boolean actually.
 }
 
 int CvBuildingInfo::getSpecialistCount(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvBuildingInfo::getSpecialistCount");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
 	FAssertMsg(i < GC.getNumSpecialistInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_piSpecialistCount ? m_piSpecialistCount[i] : 0; // advc.003t
@@ -993,137 +993,137 @@ int CvBuildingInfo::getSpecialistCount(int i) const
 
 int CvBuildingInfo::getFreeSpecialistCount(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvBuildingInfo::getFreeSpecialistCount");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
 	return m_piFreeSpecialistCount ? m_piFreeSpecialistCount[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getBonusHealthChanges(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvBuildingInfo::getBonusHealthChanges");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_piBonusHealthChanges ? m_piBonusHealthChanges[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getBonusHappinessChanges(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvBuildingInfo::getBonusHappinessChanges");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_piBonusHappinessChanges ? m_piBonusHappinessChanges[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getBonusProductionModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvBuildingInfo::getBonusProductionModifier");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getUnitCombatFreeExperience(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvBuildingInfo::getUnitCombatFreeExperience");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_piUnitCombatFreeExperience ? m_piUnitCombatFreeExperience[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getDomainFreeExperience(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvBuildingInfo::getDomainFreeExperience");
+	FAssertBounds(0, NUM_DOMAIN_TYPES, i);
 	return m_piDomainFreeExperience ? m_piDomainFreeExperience[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getDomainProductionModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvBuildingInfo::getDomainProductionModifier");
+	FAssertBounds(0, NUM_DOMAIN_TYPES, i);
 	return m_piDomainProductionModifier ? m_piDomainProductionModifier[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPrereqAndTechs(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNUM_BUILDING_AND_TECH_PREREQS(), i, "CvBuildingInfo::getPrereqAndTechs");
+	FAssertBounds(0, GC.getNUM_BUILDING_AND_TECH_PREREQS(), i);
 	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
 int CvBuildingInfo::getPrereqOrBonuses(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), i, "CvBuildingInfo::getPrereqOrBonuses");
+	FAssertBounds(0, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), i);
 	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_TECH; // advc.003t
 }
 
 int CvBuildingInfo::getProductionTraits(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvBuildingInfo::getProductionTraits");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_piProductionTraits ? m_piProductionTraits[i]
 			: 0; // advc.003t: Was -1. This is the production discount percentage.
 }
 
 int CvBuildingInfo::getHappinessTraits(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvBuildingInfo::getHappinessTraits");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_piHappinessTraits ? m_piHappinessTraits[i]
 			: 0; // advc.003t: Was -1. This is the happiness from trait.
 }
 
 int CvBuildingInfo::getBuildingHappinessChanges(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvBuildingInfo::getBuildingHappinessChanges");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_piBuildingHappinessChanges ? m_piBuildingHappinessChanges[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPrereqNumOfBuildingClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvBuildingInfo::getPrereqNumOfBuildingClass");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_piPrereqNumOfBuildingClass ? m_piPrereqNumOfBuildingClass[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getFlavorValue(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvBuildingInfo::getFlavorValue");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getImprovementFreeSpecialist(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumImprovementInfos(), i, "CvBuildingInfo::getImprovementFreeSpecialist");
+	FAssertBounds(0, GC.getNumImprovementInfos(), i);
 	return m_piImprovementFreeSpecialist ? m_piImprovementFreeSpecialist[i] : 0; // advc.003t
 }
 
 bool CvBuildingInfo::isCommerceFlexible(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::isCommerceFlexible");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_pbCommerceFlexible ? m_pbCommerceFlexible[i] : false;
 }
 
 bool CvBuildingInfo::isCommerceChangeOriginalOwner(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvBuildingInfo::isCommerceChangeOriginalOwner");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_pbCommerceChangeOriginalOwner ? m_pbCommerceChangeOriginalOwner[i] : false;
 }
 
 bool CvBuildingInfo::isBuildingClassNeededInCity(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvBuildingInfo::isBuildingClassNeededInCity");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_pbBuildingClassNeededInCity ? m_pbBuildingClassNeededInCity[i] : false;
 }
 
 int CvBuildingInfo::getSpecialistYieldChange(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvBuildingInfo::getSpecialistYieldChange");
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, j, "CvBuildingInfo::getSpecialistYieldChange");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
+	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_ppaiSpecialistYieldChange ? m_ppaiSpecialistYieldChange[i][j] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getSpecialistYieldChangeArray(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvBuildingInfo::getSpecialistYieldChangeArray");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
 	return m_ppaiSpecialistYieldChange[i];
 }
 
 int CvBuildingInfo::getBonusYieldModifier(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvBuildingInfo::getBonusYieldModifier");
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, j, "CvBuildingInfo::getBonusYieldModifier");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
+	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_ppaiBonusYieldModifier ? m_ppaiBonusYieldModifier[i][j] : 0; // advc.003t
 }
 
 int* CvBuildingInfo::getBonusYieldModifierArray(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvBuildingInfo::getBonusYieldModifierArray");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_ppaiBonusYieldModifier[i];
 }
 
@@ -2222,7 +2222,7 @@ bool CvSpecialBuildingInfo::isValid() const
 
 int CvSpecialBuildingInfo::getProductionTraits(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvSpecialBuildingInfo::getProductionTraits");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_piProductionTraits ? m_piProductionTraits[i]
 			: 0; // advc.003t: Was -1. This is the production discount percentage.
 }
@@ -2454,13 +2454,13 @@ bool CvVoteInfo::isAssignCity() const
 
 bool CvVoteInfo::isForceCivic(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCivicInfos(), i, "CvVoteInfo::isForceCivic");
+	FAssertBounds(0, GC.getNumCivicInfos(), i);
 	return m_pbForceCivic ? m_pbForceCivic[i] : false;
 }
 
 bool CvVoteInfo::isVoteSourceType(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumVoteSourceInfos(), i, "isVoteSourceType");
+	FAssertBounds(0, GC.getNumVoteSourceInfos(), i);
 	return m_abVoteSourceTypes ? m_abVoteSourceTypes[i] : false;
 }
 
@@ -2609,19 +2609,19 @@ void CvProjectInfo::setCreateSound(const TCHAR* szVal)
 
 int CvProjectInfo::getBonusProductionModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvProjectInfo::getBonusProductionModifier");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : 0; // advc.003t
 }
 
 int CvProjectInfo::getVictoryThreshold(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumVictoryInfos(), i, "CvProjectInfo::getVictoryThreshold");
+	FAssertBounds(0, GC.getNumVictoryInfos(), i);
 	return m_piVictoryThreshold ? m_piVictoryThreshold[i] : 0; // advc.003t
 }
 
 int CvProjectInfo::getVictoryMinThreshold(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumVictoryInfos(), i, "CvProjectInfo::getVictoryMinThreshold");
+	FAssertBounds(0, GC.getNumVictoryInfos(), i);
 	// <advc.003t>
 	if (m_piVictoryMinThreshold == NULL)
 		return 0;
@@ -2632,7 +2632,7 @@ int CvProjectInfo::getVictoryMinThreshold(int i) const
 
 int CvProjectInfo::getProjectsNeeded(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumProjectInfos(), i, "CvProjectInfo::getProjectsNeeded");
+	FAssertBounds(0, GC.getNumProjectInfos(), i);
 	return m_piProjectsNeeded ? m_piProjectsNeeded[i] : 0; // advc.003t: was false
 }
 

@@ -42,7 +42,8 @@ enum AgentRelationPredicate // Relative to some given second agent
 	POTENTIAL_ENEMY_OF, // incl. current war enemies
 	//OPEN_BORDERS_WITH, // Or rather CAN_ENTER_BORDERS_OF
 	// The rest include minor civs and Barbarians unless ruled out AgentStatusPredicate
-	KNOWN_TO, // incl. the first agent (agents know themselves)
+	KNOWN_TO, // Incl. the first agent's team (agents know themselves)
+	OTHER_KNOWN_TO, // Not incl. the first agent's team, but incl. its vassals
 	KNOWN_POTENTIAL_ENEMY_OF,
 	ENEMY_OF, // At war; war in preparation isn't enough.
 };

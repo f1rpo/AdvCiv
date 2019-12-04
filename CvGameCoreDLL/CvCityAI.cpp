@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvCityAI.h"
 #include "CvAI.h"
-#include "WarAndPeaceAgent.h" // advc.031b (for trait checks)
+#include "UWAIAgent.h" // advc.031b (for trait checks)
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
@@ -512,7 +512,7 @@ void CvCityAI::AI_chooseProduction()
 	bool bDefenseWar = (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
 	bool bAssaultAssist = (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_ASSIST);
 	bool bTotalWar = (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) // K-Mod
-			/* <advc.104s> */ + (!getWPAI.isEnabled() ? 0 :
+			/* <advc.104s> */ + (!getUWAI.isEnabled() ? 0 :
 			kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL)) > 0); // </advc.104s>
 	bool bAssault = (bAssaultAssist || (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT) || (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_MASSING));
 	bool bPrimaryArea = kPlayer.AI_isPrimaryArea(pArea);
@@ -12455,7 +12455,7 @@ int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValu
 		r -= 10;
 	else if(!GET_TEAM(getTeam()).AI_isWarPossible() || // Can't expand through war
 			(kTeam.isAVassal() && !kTeam.isCapitulated()) ||
-			(getWPAI.isEnabled() && kOwner.warAndPeaceAI().getCache().hasProtectiveTrait()))
+			(getUWAI.isEnabled() && kOwner.uwai().getCache().hasProtectiveTrait()))
 		r += 15;
 	// Imperialistic trait? Awkward to check ...
 	// I don't think the number of sites should matter(?)

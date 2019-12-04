@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
 #include "CvAI.h"
+#include "UWAIAgent.h"
 #include "CvInfo_Unit.h"
 
 
@@ -21,7 +22,7 @@ CvGameAI::~CvGameAI()
 void CvGameAI::AI_init()
 {
 	AI_reset();
-	AI_sortOutWPAIOptions(false); // advc.104
+	AI_sortOutUWAIOptions(false); // advc.104
 }
 
 // <advc.104u>
@@ -32,13 +33,9 @@ void CvGameAI::AI_init()
 void CvGameAI::AI_initScenario()
 {
 	// Citizens not properly assigned
-	for(int i = 0; i < MAX_PLAYERS; i++)
+	for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
 	{
-		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
-		if(!kPlayer.isAlive())
-			continue;
-
-		FOR_EACH_CITYAI_VAR(c, kPlayer)
+		FOR_EACH_CITYAI_VAR(c, *it)
 		{
 			/*  Added after getting failed assertions in CvCity::doTurn in the
 				Europe1000AD scenario (I'm guessing due to production from Apostolic Palace). */
@@ -50,44 +47,38 @@ void CvGameAI::AI_initScenario()
 			c->AI_assignWorkingPlots();
 		}
 	}
-	// Ensure UWAI initialization
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
-	{
-		CvTeamAI& t = GET_TEAM((TeamTypes)i);
-		if(t.isAlive())
-			t.AI_doTurnPre();
-	}
+	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		it->uwai().turnPre();
 } // </advc.104u>
 
-/*  <advc.104> I'm repurposing the Aggressive AI option so that it enables the
-	(legacy) war/peace behavior from K-Mod in addition to the option's normal effect.
-	A bit of a hack, but less invasive than changing all the
-	isOption(AGGRESSIVE_AI) checks. And I don't want two separate options because
-	the new war/peace AI implies Aggressive AI. */
-void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame)
+/*  <advc.104> I'm repurposing the Aggressive AI option so that it disables UWAI
+	in addition to the option's normal effect. A bit of a hack, but less invasive
+	than changing all the isOption(AGGRESSIVE_AI) checks. Don't want two separate
+	options because UWAI implies Aggressive AI. */
+void CvGameAI::AI_sortOutUWAIOptions(bool bFromSaveGame)
 {
 	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE"))
 	{
-		m_wpai.setUseKModAI(true);
+		m_uwai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, false);
 		return;
 	}
 	if(GC.getDefineINT("DISABLE_UWAI"))
 	{
-		m_wpai.setUseKModAI(true);
+		m_uwai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
-	m_wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
+	m_uwai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
 	if(bFromSaveGame)
 	{
-		if(m_wpai.isEnabled() || m_wpai.isEnabled(true))
+		if(m_uwai.isEnabled() || m_uwai.isEnabled(true))
 			setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
 	// If still not returned: settings according to Custom Game screen
 	bool bUseKModAI = isOption(GAMEOPTION_AGGRESSIVE_AI);
-	m_wpai.setUseKModAI(bUseKModAI);
+	m_uwai.setUseKModAI(bUseKModAI);
 	if(!bUseKModAI)
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 } // </advc.104>
@@ -173,8 +164,8 @@ void CvGameAI::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iPad);
 	// <advc.104>
-	m_wpai.read(pStream);
-	AI_sortOutWPAIOptions(true);
+	m_uwai.read(pStream);
+	AI_sortOutUWAIOptions(true);
 	// </advc.104>
 }
 
@@ -188,5 +179,5 @@ void CvGameAI::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_iPad);
 
-	m_wpai.write(pStream); // advc.104
+	m_uwai.write(pStream); // advc.104
 }

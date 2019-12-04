@@ -105,48 +105,48 @@ public:
 
 	int playerCacheSize(AgentSeqCache eCacheID) const
 	{
-		FASSERT_BOUNDS(0, (int)m_playerSeqCache.size(), eCacheID, "CvAgents::playerCacheSize");
+		FAssertBounds(0, m_playerSeqCache.size(), eCacheID);
 		return (int)m_playerSeqCache[eCacheID].size();
 	}
 	CvPlayerAI& playerCacheAt(AgentSeqCache eCacheID, int iAt) const
 	{
-		FASSERT_BOUNDS(0, playerCacheSize(eCacheID), iAt, "CvAgents::playerCacheAt");
+		FAssertBounds(0, playerCacheSize(eCacheID), iAt);
 		return *m_playerSeqCache[eCacheID][iAt];
 	}
 	int memberCacheSize(AgentSeqCache eCacheID, TeamTypes eTeam) const
 	{
 		int const iCache = perTeamCacheIndex(eCacheID);
-		FASSERT_BOUNDS(0, (int)m_memberSeqCache.size(), iCache, "CvAgents::memberCacheSize");
-		FASSERT_BOUNDS(0, (int)m_memberSeqCache[iCache].size(), eTeam, "CvAgents::memberCacheSize");
+		FAssertBounds(0, m_memberSeqCache.size(), iCache);
+		FAssertBounds(0, m_memberSeqCache[iCache].size(), eTeam);
 		return (int)m_memberSeqCache[iCache][eTeam].size();
 	}
 	CvPlayerAI& memberCacheAt(AgentSeqCache eCacheID, TeamTypes eTeam, int iAt) const
 	{
 		int const iCache = perTeamCacheIndex(eCacheID);
-		FASSERT_BOUNDS(0, memberCacheSize(eCacheID, eTeam), iAt, "CvAgents::memberCacheAt");
+		FAssertBounds(0, memberCacheSize(eCacheID, eTeam), iAt);
 		return *m_memberSeqCache[iCache][eTeam][iAt];
 	}
 	int teamCacheSize(AgentSeqCache eCacheID) const
 	{
-		FASSERT_BOUNDS(0, (int)m_teamSeqCache.size(), eCacheID, "CvAgents::teamCacheSize");
+		FAssertBounds(0, m_teamSeqCache.size(), eCacheID);
 		return (int)m_teamSeqCache[eCacheID].size();
 	}
 	CvTeamAI& teamCacheAt(AgentSeqCache eCacheID, int iAt) const
 	{
-		FASSERT_BOUNDS(0, teamCacheSize(eCacheID), iAt, "CvAgents::teamCacheAt");
+		FAssertBounds(0, teamCacheSize(eCacheID), iAt);
 		return *m_teamSeqCache[eCacheID][iAt];
 	}
 	int teamPerTeamCacheSize(AgentSeqCache eCacheID, TeamTypes eTeam) const
 	{
 		int const iCache = perTeamCacheIndex(eCacheID);
-		FASSERT_BOUNDS(0, (int)m_teamPerTeamSeqCache.size(), iCache, "CvAgents::teamPerTeamCacheSize");
-		FASSERT_BOUNDS(0, (int)m_teamPerTeamSeqCache[iCache].size(), eTeam, "CvAgents::teamPerTeamCacheSize");
+		FAssertBounds(0, m_teamPerTeamSeqCache.size(), iCache);
+		FAssertBounds(0, m_teamPerTeamSeqCache[iCache].size(), eTeam);
 		return (int)m_teamPerTeamSeqCache[iCache][eTeam].size();
 	}
 	CvTeamAI& teamPerTeamCacheAt(AgentSeqCache eCacheID, TeamTypes eTeam, int iAt) const
 	{
 		int const iCache = perTeamCacheIndex(eCacheID);
-		FASSERT_BOUNDS(0, teamPerTeamCacheSize(eCacheID, eTeam), iAt, "CvAgents::teamPerTeamCacheAt");
+		FAssertBounds(0, teamPerTeamCacheSize(eCacheID, eTeam), iAt);
 		return *m_teamPerTeamSeqCache[iCache][eTeam][iAt];
 	}
 

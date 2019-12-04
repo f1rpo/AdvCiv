@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "InvasionGraph.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "ArmamentForecast.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
@@ -52,13 +52,13 @@ void InvasionGraph::addFutureWarParties(PlyrSet const& ourSide, PlyrSet const& o
 	if(ourSide.empty())
 		return; // Don't update targets unnecessarily
 	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); it++) {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::addFutureWarParties");
+		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 		nodeMap[*it]->addWarOpponents(ourFutureOpponents);
 	}
 	for(PlyrSetIter it = ourFutureOpponents.begin(); it != ourFutureOpponents.end(); it++) {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::addFutureWarParties");
+		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 		nodeMap[*it]->addWarOpponents(ourSide);
@@ -76,12 +76,12 @@ void InvasionGraph::removeWar(PlyrSet const& ourSide, PlyrSet const& theirSide) 
 	if(ourSide.empty())
 		return;
 	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); it++) {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::removeWar");
+		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] != NULL)
 			nodeMap[*it]->removeWarOpponents(theirSide);
 	}
 	for(PlyrSetIter it = theirSide.begin(); it != theirSide.end(); it++) {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::removeWar");
+		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] != NULL)
 			nodeMap[*it]->removeWarOpponents(ourSide);
 	}
@@ -104,7 +104,7 @@ void InvasionGraph::updateTargets() {
 void InvasionGraph::addUninvolvedParties(PlyrSet const& parties) {
 
 	for(PlyrSetIter it = parties.begin(); it != parties.end(); it++) {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, *it, "InvasionGraph::addUninvolvedParties");
+		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 	}
@@ -113,7 +113,7 @@ void InvasionGraph::addUninvolvedParties(PlyrSet const& parties) {
 InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	outer(outer), report(outer.report),
 	// I.e. weId is going to cheat by using info from other civs' caches
-	cache(GET_PLAYER(civId).warAndPeaceAI().getCache()) {
+	cache(GET_PLAYER(civId).uwai().getCache()) {
 
 	// Properly initialized in prepareForSimulation
 	tempArmyLosses = emergencyDefPow = distractionByConquest = distractionByDefense = -1;
@@ -122,7 +122,7 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 
 	id = civId;
 	// Node ids are used for vector.operator[] accesses
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, id, "InvasionGraph::Node::Node");
+	FAssertBounds(0, MAX_CIV_PLAYERS, id);
 	weId = outer.weId;
 	eliminated = false;
 	capitulated = false;
@@ -290,7 +290,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 			reachable in the actual game state; doesn't take into account
 			Node::hasLost.) */
 		for(int i = 0; i < cache.size(); i++) {
-			WarAndPeaceCache::City* city = cache.getCity(i);
+			UWAICache::City* city = cache.getCity(i);
 			if(city == NULL)
 				continue;
 			if(!city->canReach() || city->isOwnCity())
@@ -331,7 +331,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 			our whole cache. */
 		CvPlayer const& opp = GET_PLAYER(oppId);
 		FOR_EACH_CITY(cvCity, opp) {
-			WarAndPeaceCache::City* c = cache.lookupCity(cvCity->plotNum());
+			UWAICache::City* c = cache.lookupCity(cvCity->plotNum());
 			if(c != NULL && c->canReach() && !outer.nodeMap[oppId]->
 					hasLost(c->id())) {
 				bValidFound = true;
@@ -357,7 +357,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 		return NO_PLAYER;
 	// Haven't looked for the likeliest target yet (b/c that's expensive); do so now.
 	for(int i = 0; i < cache.size(); i++) {
-		WarAndPeaceCache::City* city = cache.getCity(i);
+		UWAICache::City* city = cache.getCity(i);
 		if(city == NULL)
 			continue;
 		if(!city->canReach() || city->isOwnCity())
@@ -368,7 +368,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 	return NO_PLAYER;
 }
 
-bool InvasionGraph::Node::isValidTarget(WarAndPeaceCache::City const& c,
+bool InvasionGraph::Node::isValidTarget(UWAICache::City const& c,
 		TeamTypes include) const {
 
 	PlayerTypes const owner = c.cityOwner();
@@ -410,7 +410,7 @@ void InvasionGraph::Node::resolveLossesRec() {
 	resolveLosses();
 }
 
-void InvasionGraph::Node::addConquest(WarAndPeaceCache::City const& c) {
+void InvasionGraph::Node::addConquest(UWAICache::City const& c) {
 
 	report.log("*%s* (%s) assumed to be *conquered* by %s",
 			report.cityName(*c.city()),
@@ -418,7 +418,7 @@ void InvasionGraph::Node::addConquest(WarAndPeaceCache::City const& c) {
 	conquests.push_back(&c);
 	// Advance cache index past the city just conquered
 	while(cacheIndex < cache.size()) {
-		 WarAndPeaceCache::City* cacheCity = cache.getCity(cacheIndex);
+		 UWAICache::City* cacheCity = cache.getCity(cacheIndex);
 		 if(cacheCity != NULL && cacheCity->id() == c.id())
 			break;
 		 cacheIndex++;
@@ -430,7 +430,7 @@ void InvasionGraph::Node::prepareForSimulation() {
 
 	PROFILE_FUNC();
 	cacheIndex = 0;
-	//cache.sortCitiesByAttackPriority(); // Done in WarAndPeaceCache now
+	//cache.sortCitiesByAttackPriority(); // Done in UWAICache now
 	componentDone = false;
 	emergencyDefPow = 0;
 	distractionByConquest = 0;
@@ -482,7 +482,7 @@ void InvasionGraph::Node::predictArmament(int duration, bool noUpgrading) {
 		return;
 	}
 	// Target city assumed for the forecast (to decide on naval build-up)
-	WarAndPeaceCache::City const* tC = targetCity();
+	UWAICache::City const* tC = targetCity();
 	WarEvalParameters const& params = outer.m.evaluationParameters();
 	TeamTypes masterTeamId = GET_PLAYER(id).getMasterTeam();
 	/* Simulated DoW is taken into account by targetCity, but a
@@ -511,7 +511,7 @@ double InvasionGraph::Node::productionPortion() const {
 
 	int lostPop = 0;
 	for(CitySetIter it = losses.begin(); it != losses.end(); it++) {
-		CvCity* c = WarAndPeaceCache::City::cityById(*it);
+		CvCity* c = UWAICache::City::cityById(*it);
 		if(c != NULL)
 			lostPop += c->getPopulation();
 	}
@@ -538,7 +538,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		double armyPortionAttacker, bool clashOnly) const {
 
 	PROFILE_FUNC();
-	WarAndPeaceCache::City const* const c = (clashOnly ? NULL : targetCity());
+	UWAICache::City const* const c = (clashOnly ? NULL : targetCity());
 	if(c == NULL && !clashOnly)
 		return NULL;
 	CvCity const* const cvCity = (c == NULL ? NULL : c->city());
@@ -552,9 +552,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double confAlliesAtt = 1, confAlliesDef = 1;
 	// If the portion is 0, then the army should be ignored by all leaders
 	if(id == weId && armyPortionDefender > 0.001)
-		confAlliesAtt = GET_PLAYER(id).warAndPeaceAI().warConfidenceAllies();
+		confAlliesAtt = GET_PLAYER(id).uwai().warConfidenceAllies();
 	if(defender.id == weId && armyPortionAttacker > 0.001)
-		confAlliesDef = GET_PLAYER(defender.id).warAndPeaceAI().
+		confAlliesDef = GET_PLAYER(defender.id).uwai().
 				warConfidenceAllies();
 	/*  NB: There's also InvasionGraph::willingness, which is applied before
 		computing the army portions. */
@@ -612,8 +612,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	targetCavPow = std::min(targetCavPow, targetArmyPow);
 	bool isNaval = false;
 	if(clashOnly) {
-		WarAndPeaceCache::City const* defTargetCity = defender.targetCity();
-		WarAndPeaceCache::City const* attTargetCity = targetCity();
+		UWAICache::City const* defTargetCity = defender.targetCity();
+		UWAICache::City const* attTargetCity = targetCity();
 		if(defTargetCity != NULL && attTargetCity != NULL) {
 			isNaval = !canReachByLand(attTargetCity->id()) &&
 					!defender.canReachByLand(defTargetCity->id());
@@ -640,19 +640,19 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	if(id == weId || defender.id == weId) {
 		bool const bTotal = outer.m.evaluationParameters().isTotal();
 		if(id == weId) {
-			confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
+			confAttPers = GET_PLAYER(weId).uwai().warConfidencePersonal(
 					isNaval, bTotal, defender.id);
 		}
 		else if(defender.id == weId) {
-			confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
+			confDefPers = GET_PLAYER(weId).uwai().warConfidencePersonal(
 					// Defense doesn't hinge on navies and fighting in faraway lands
 					false, bTotal, id);
 		}
 	}
 	if(GET_PLAYER(id).isHuman())
-		confDefPers *= GET_PLAYER(defender.id).warAndPeaceAI().confidenceAgainstHuman();
+		confDefPers *= GET_PLAYER(defender.id).uwai().confidenceAgainstHuman();
 	if(GET_PLAYER(defender.id).isHuman())
-		confAttPers *= GET_PLAYER(id).warAndPeaceAI().confidenceAgainstHuman();
+		confAttPers *= GET_PLAYER(id).uwai().confidenceAgainstHuman();
 	if(confAttPers > 1.001 || confDefPers > 1.001 || confAttPers < 0.999 || confDefPers < 0.999) {
 		report.log("Personal confidence (%s/%s): %d/%d percent",
 				report.leaderName(id), report.leaderName(defender.id),
@@ -664,11 +664,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	if(id == weId || defender.id == weId) {
 		double confAttLearned = 0, confDefLearned = 0;
 		if(id == weId)
-			confAttLearned = (GET_PLAYER(id).warAndPeaceAI().
-					warConfidenceLearned(defender.id, true) - 1);
+			confAttLearned = (GET_PLAYER(id).uwai().warConfidenceLearned(defender.id, true) - 1);
 		if(defender.id == weId)
-			confDefLearned = (GET_PLAYER(defender.id).warAndPeaceAI().
-					warConfidenceLearned(id, false) - 1);
+			confDefLearned = (GET_PLAYER(defender.id).uwai().warConfidenceLearned(id, false) - 1);
 		report.log("Learned confidence (%s/%s): %d/%d percent",
 					report.leaderName(id), report.leaderName(defender.id),
 					::round(confAttLearned * 100 + 100),
@@ -756,7 +754,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			within our maximal time horizon, we'd have to conclude that no conquest
 			will ever happen, which is probably incorrect. Better to assume a
 			shorter distance in this case. */
-		deploymentDistAttacker = std::min(getWPAI.maxSeaDist(), c->getDistance());
+		deploymentDistAttacker = std::min(getUWAI.maxSeaDist(), c->getDistance());
 		deploymentDistAttacker *= mwmalpFactor; /* If this makes leaders with a
 			high mwmalp assume that they can't reach a very distant target -- OK. */
 		/* Often, the attacker can move from one conquered city to the next.
@@ -777,7 +775,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	else {
 		double dist = clashDistance(defender);
-		FAssert(dist > 0); /* WarAndPeaceCache::City::updateDistance should
+		FAssert(dist > 0); /* UWAICache::City::updateDistance should
 							  guarantee this. */
 		deploymentDistAttacker = dist;
 		deploymentDistDefender = dist;
@@ -1004,10 +1002,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	/* Aggressive trait; should probably exclude cavalry in any case or check the
 	   combat type of the typical army unit; tedious to implement. */
 	double armyModAtt = 0, armyModDef = 0;
-	if(GET_PLAYER(id).warAndPeaceAI().getCache().hasAggressiveTrait()
+	if(GET_PLAYER(id).uwai().getCache().hasAggressiveTrait()
 			&& !cavalryAttack)
 		armyModAtt += 0.1;
-	if(GET_PLAYER(defender.getId()).warAndPeaceAI().getCache().hasAggressiveTrait())
+	if(GET_PLAYER(defender.getId()).uwai().getCache().hasAggressiveTrait())
 		armyModDef += 0.1;
 	double armyModAttCorr = powerCorrect(1 + armyModAtt);
 	double armyModDefCorr = powerCorrect(1 + armyModDef);
@@ -1159,7 +1157,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double cityDefenderBonus = noGuardUnit ? 0 :
 			g->getTypicalUnit()->getCityDefenseModifier() / 100.0;
 	// Would be nicer to check all traits for defense bonuses
-	if(GET_PLAYER(defender.weId).warAndPeaceAI().getCache().hasProtectiveTrait())
+	if(GET_PLAYER(defender.weId).uwai().getCache().hasProtectiveTrait())
 		cityDefenderBonus += 0.3;
 	bool isGunp = military[ARMY]->getTypicalUnit() != NULL &&
 			military[ARMY]->getTypicalUnit()->isIgnoreBuildingDefense();
@@ -1319,10 +1317,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 bool InvasionGraph::Node::canReachByLand(int cityId) const {
 
 	// Allow weId to magically know whether other civs can reach a city by land
-	WarAndPeaceCache::City* c = cache.lookupCity(cityId);
+	UWAICache::City* c = cache.lookupCity(cityId);
 	if(c == NULL) // Then they don't even know where it is
 		return false;
-	return c->canReachByLand() && (c->getDistance() <= getWPAI.maxLandDist() ||
+	return c->canReachByLand() && (c->getDistance() <= getUWAI.maxLandDist() ||
 			!cache.canTrainDeepSeaCargo());
 }
 
@@ -1402,7 +1400,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 		if(step.isClashOnly())
 			changePrimaryTarget(NULL);
 		else {
-			WarAndPeaceCache::City const& c = *step.getCity();
+			UWAICache::City const& c = *step.getCity();
 			addLoss(c);
 			int nCurrentActualCities = GET_PLAYER(id).getNumCities();
 			if(losses.size() == nCurrentActualCities)
@@ -1443,8 +1441,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 					!GC.getGame().isOption(GAMEOPTION_NO_VASSAL_STATES) &&
 					// Don't expect node to capitulate so long as it has vassals
 					nodeTeam.getVassalCount(TEAMID(outer.m.ourId())) <= 0 &&
-					GET_PLAYER(attacker.id).warAndPeaceAI().getConquestStage() <=
-					GET_PLAYER(attacker.id).warAndPeaceAI().getDominationStage()) {
+					GET_PLAYER(attacker.id).uwai().getConquestStage() <=
+					GET_PLAYER(attacker.id).uwai().getDominationStage()) {
 				int nConqueredByAtt = 0;
 				for(size_t i = 0; i < attacker.conquests.size(); i++) {
 					if(attacker.conquests[i] != NULL &&
@@ -1547,12 +1545,12 @@ void InvasionGraph::Node::setCapitulated(TeamTypes masterId) {
 	}
 }
 
-WarAndPeaceCache::City const* InvasionGraph::Node::targetCity(PlayerTypes owner) const {
+UWAICache::City const* InvasionGraph::Node::targetCity(PlayerTypes owner) const {
 
 	if(primaryTarget == NULL && owner == NO_PLAYER)
 		return NULL;
 	for(int i = cacheIndex; i < cache.size(); i++) {
-		WarAndPeaceCache::City* r = cache.getCity(i);
+		UWAICache::City* r = cache.getCity(i);
 		if(r == NULL)
 			continue;
 		if(!r->canReach() || r->isOwnCity())
@@ -1733,8 +1731,8 @@ void InvasionGraph::Node::clash(double armyPortion1, double armyPortion2) {
 
 double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) const {
 
-	WarAndPeaceCache::City const* c1 = targetCity();
-	WarAndPeaceCache::City const* c2 = other.targetCity();
+	UWAICache::City const* c1 = targetCity();
+	UWAICache::City const* c2 = other.targetCity();
 	// Clash half-way in the middle
 	if(c1 != NULL && c2 != NULL)
 		return (c1->getDistance() + c2->getDistance()) / 2.0;
@@ -1963,7 +1961,7 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 	else cyc[0]->clash(armyPortion1, armyPortion2);
 }
 
-/*  WarAndPeaceAI::Civ::warConfidenceAllies is about our general confidence in
+/*  UWAI::Civ::warConfidenceAllies is about our general confidence in
 	war allies, regardless of circumstances. This function is about gauging
 	rationally whether a war party ('agg') is willing to commit resources
 	against another ('def').
@@ -1979,7 +1977,7 @@ double InvasionGraph::willingness(PlayerTypes agg, PlayerTypes def) const {
 }
 
 SimulationStep::SimulationStep(PlayerTypes attacker,
-		WarAndPeaceCache::City const* contestedCity)
+		UWAICache::City const* contestedCity)
 	: attacker(attacker), contestedCity(contestedCity) {
 
 	duration = 0;

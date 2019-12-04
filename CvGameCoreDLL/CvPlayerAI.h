@@ -8,7 +8,7 @@
 #include "CvCityList.h"
 #include "CvUnitList.h"
 #include "CvSelectionGroupList.h" // </advc.003u>
-#include "WarAndPeaceAI.h" // advc.104
+#include "UWAI.h" // advc.104
 
 class CvDeal;
 
@@ -24,7 +24,7 @@ public:
 	// advc.003u: Renamed from getPlayer
 	static inline CvPlayerAI& AI_getPlayer(PlayerTypes ePlayer) // advc.inl
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayerAI::AI_getPlayer");
+		FAssertBounds(0, MAX_PLAYERS, ePlayer);
 		return *m_aPlayers[ePlayer];
 	}
 	// Only for the EXE:
@@ -206,8 +206,8 @@ public:
 	bool AI_demandRebukedWar(PlayerTypes ePlayer) const;
 	bool AI_hasTradedWithTeam(TeamTypes eTeam) const;
 
-	void AI_updateAttitudeCache(); // K-Mod (for all players)
-	void AI_updateAttitudeCache(PlayerTypes ePlayer,		// K-Mod
+	void AI_updateAttitude(); // K-Mod (for all players)
+	void AI_updateAttitude(PlayerTypes ePlayer,		// K-Mod
 			bool bUpdateWorstEnemy = true); // advc.130e
 	void AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange); // K-Mod
 	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const		// Exposed to Python
@@ -220,8 +220,8 @@ public:
 
 	int AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
 			bool bOnlyNonWorkable = false) const; // advc.147
-	void AI_updateCloseBorderAttitudeCache(); // K-Mod
-	void AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer); // K-Mod
+	void AI_updateCloseBorderAttitude(); // K-Mod
+	void AI_updateCloseBorderAttitude(PlayerTypes ePlayer); // K-Mod
 	int AI_getCloseBordersAttitude(PlayerTypes ePlayer) const;
 	int warSuccessAttitudeDivisor() const; // advc.130y, advc.sha
 	int AI_getWarAttitude(PlayerTypes ePlayer,
@@ -584,8 +584,8 @@ public:
 	UnitTypes AI_getBestAttackUnit() const; // advc.079
 
 	// <advc.104>
-	inline WarAndPeaceAI::Civ& warAndPeaceAI() { return *m_pWPAI; }
-	inline WarAndPeaceAI::Civ const& warAndPeaceAI() const { return *m_pWPAI; } // </advc.104>
+	inline UWAI::Civ& uwai() { return *m_pUWAI; }
+	inline UWAI::Civ const& uwai() const { return *m_pUWAI; } // </advc.104>
 	// <advc.104h>
 	// Returns true if peace deal implemented (or offered to human)
 	bool AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iOurBenefit);
@@ -630,7 +630,7 @@ protected:
 	int m_iExtraGoldTarget;
 	int m_iCityTargetTimer; // K-Mod
 	bool m_bDangerFromSubmarines; // advc.651 (not serialized)
-	WarAndPeaceAI::Civ* m_pWPAI; // advc.104
+	UWAI::Civ* m_pUWAI; // advc.104
 
 	/*original bts code
 	mutable int m_iStrategyHash;
@@ -686,9 +686,9 @@ protected:
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
 	std::map<int,int> m_neededExplorersByArea; // advc.opt
 	static int const m_iSingleBonusTradeTolerance = 20; // advc.036
-	//mutable int* m_aiCloseBordersAttitudeCache;
-	std::vector<int> m_aiCloseBordersAttitudeCache; // K-Mod. (the original system was prone to mistakes.)
-	std::vector<int> m_aiAttitudeCache; // K-Mod
+	//mutable int* m_aiCloseBordersAttitude;
+	std::vector<int> m_aiCloseBordersAttitude; // K-Mod. (the original system was prone to mistakes.)
+	std::vector<int> m_aiAttitude; // K-Mod
 
 	bool* m_abFirstContact; // advc.003j: Now unused
 
@@ -809,7 +809,7 @@ protected:
 	int AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const;
 
 	void AI_doEnemyUnitData();
-	//void AI_invalidateCloseBordersAttitudeCache(); // disabled by K-Mod
+	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
 	void AI_setHumanDisabled(bool bDisabled); // advc.127
 
 	friend class CvGameTextMgr;

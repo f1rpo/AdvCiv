@@ -1,67 +1,67 @@
-// advc.104 New class; see WarAndPeaceAI.h for description.
+// advc.104 New class; see UWAI.h for description.
 
 #include "CvGameCoreDLL.h"
-#include "WarAndPeaceAI.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAI.h"
+#include "UWAIAgent.h"
 #include "WarEvaluator.h"
 #include "CvAI.h"
 #include "CvMap.h"
 
 using std::vector;
 
-WarAndPeaceAI::WarAndPeaceAI() : enabled(false), inBackgr(false) {}
+UWAI::UWAI() : enabled(false), inBackgr(false) {}
 
-void WarAndPeaceAI::invalidateUICache() {
+void UWAI::invalidateUICache() {
 
 	WarEvaluator::clearCache();
 }
 
-void WarAndPeaceAI::setUseKModAI(bool b) {
+void UWAI::setUseKModAI(bool b) {
 
 	enabled = !b;
 }
 
-void WarAndPeaceAI::setInBackground(bool b) {
+void UWAI::setInBackground(bool b) {
 
 	inBackgr = b;
 }
 
-void WarAndPeaceAI::processNewCivInGame(PlayerTypes newCivId) {
+void UWAI::processNewCivInGame(PlayerTypes newCivId) {
 
 	WarEvaluator::clearCache();
-	GET_TEAM(newCivId).warAndPeaceAI().init(TEAMID(newCivId));
-	WarAndPeaceAI::Civ& newAI = GET_PLAYER(newCivId).warAndPeaceAI();
+	GET_TEAM(newCivId).uwai().init(TEAMID(newCivId));
+	UWAI::Civ& newAI = GET_PLAYER(newCivId).uwai();
 	newAI.init(newCivId);
 	// Need to set the typical units before updating the caches of the old civs
 	newAI.getCache().updateTypicalUnits();
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
-		it->warAndPeaceAI().turnPre();
+		it->uwai().turnPre();
 }
 
-bool WarAndPeaceAI::isEnabled(bool inBackground) const{
+bool UWAI::isEnabled(bool inBackground) const{
 
 	if(!enabled)
 		return false;
 	return (inBackground == inBackgr);
 }
 
-void WarAndPeaceAI::read(FDataStreamBase* stream) {
+void UWAI::read(FDataStreamBase* stream) {
 
 	stream->Read(&enabled);
 }
 
-void WarAndPeaceAI::write(FDataStreamBase* stream) {
+void UWAI::write(FDataStreamBase* stream) {
 
 	stream->Write(enabled);
 }
 
-int WarAndPeaceAI::maxLandDist() const {
+int UWAI::maxLandDist() const {
 
 	// Faster speed of ships now covered by estimateMovementSpeed
 	return maxSeaDist(); //- 2;
 }
 
-int WarAndPeaceAI::maxSeaDist() const {
+int UWAI::maxSeaDist() const {
 
 	CvMap const& m = GC.getMap();
 	int r = 15;
@@ -73,7 +73,7 @@ int WarAndPeaceAI::maxSeaDist() const {
 	return r;
 }
 
-bool WarAndPeaceAI::isUpdated() const {
+bool UWAI::isUpdated() const {
 
 	/*  In scenarios, CvTeamAI functions aren't properly called during the first
 		turn. Should skip war planning in the first two turns to make sure that
@@ -82,7 +82,7 @@ bool WarAndPeaceAI::isUpdated() const {
 	return (!g.isScenario() || g.getElapsedGameTurns() > 1);
 }
 
-void WarAndPeaceAI::doXML() {
+void UWAI::doXML() {
 
 	/*  Would be so much more elegant to store the weights in the WarUtilityAspect
 		objects, but these are only initialized during war evaluation, whereas
@@ -119,14 +119,14 @@ void WarAndPeaceAI::doXML() {
 	applyPersonalityWeight();
 }
 
-double WarAndPeaceAI::aspectWeight(int xmlId) const {
+double UWAI::aspectWeight(int xmlId) const {
 
 	if(xmlId < 0 ||  xmlWeights.size() <= (size_t)xmlId)
 		return 1;
 	return xmlWeights[xmlId] / 100.0;
 }
 
-void WarAndPeaceAI::applyPersonalityWeight() {
+void UWAI::applyPersonalityWeight() {
 
 	int const iWeight = GC.getDefineINT("UWAI_PERSONALITY_PERCENT");
 	if(iWeight == 100)

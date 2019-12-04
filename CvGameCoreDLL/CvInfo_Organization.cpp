@@ -173,7 +173,7 @@ const wchar* CvReligionInfo::getAdjectiveKey() const
 
 int CvReligionInfo::getGlobalReligionCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvReligionInfo::getGlobalReligionCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiGlobalReligionCommerce ? m_paiGlobalReligionCommerce[i] : 0; // advc.003t
 }
 
@@ -184,7 +184,7 @@ int* CvReligionInfo::getGlobalReligionCommerceArray() const
 
 int CvReligionInfo::getHolyCityCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvReligionInfo::getHolyCityCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiHolyCityCommerce ? m_paiHolyCityCommerce[i] : 0; // advc.003t
 }
 
@@ -195,7 +195,7 @@ int* CvReligionInfo::getHolyCityCommerceArray() const
 
 int CvReligionInfo::getStateReligionCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvReligionInfo::getStateReligionCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiStateReligionCommerce ? m_paiStateReligionCommerce[i] : 0; // advc.003t
 }
 
@@ -292,13 +292,13 @@ int CvCorporationInfo::getBonusProduced() const
 
 int CvCorporationInfo::getPrereqBonus(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNUM_CORPORATION_PREREQ_BONUSES(), i, "CvCorporationInfo::getPrereqBonus");
+	FAssertBounds(0, GC.getNUM_CORPORATION_PREREQ_BONUSES(), i);
 	return (m_paiPrereqBonuses != NULL ? m_paiPrereqBonuses[i] : NO_BONUS); // advc.003t
 }
 
 int CvCorporationInfo::getHeadquarterCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvCorporationInfo::getHeadquarterCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiHeadquarterCommerce ? m_paiHeadquarterCommerce[i] : 0; // advc.003t
 }
 
@@ -309,7 +309,7 @@ int* CvCorporationInfo::getHeadquarterCommerceArray() const
 
 int CvCorporationInfo::getCommerceProduced(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "getCommerceProduced::getHeadquarterCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiCommerceProduced ? m_paiCommerceProduced[i] : 0; // advc.003t
 }
 
@@ -320,7 +320,7 @@ int* CvCorporationInfo::getCommerceProducedArray() const
 
 int CvCorporationInfo::getYieldProduced(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "getCommerceProduced::getYieldProduced");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_paiYieldProduced ? m_paiYieldProduced[i] : 0; // advc.003t
 }
 

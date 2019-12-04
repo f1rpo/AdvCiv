@@ -5,7 +5,7 @@
 
 class WarEvalParameters;
 class WarUtilityAspect;
-class WarAndPeaceReport;
+class UWAIReport;
 
 /* advc.104: New class. Computes the utility of a war between two teams:
    'agent' against 'target'. From the point of view of 'agent'. */
@@ -21,7 +21,7 @@ public:
 		If wp=NO_WARPLAN, the current war plan is evaluated. Limited if none.
 		The default preparation time means that a preparation time matching
 		the war plan, the war plan age and other circumstances is chosen.
-		(The base values are defined in WarAndPeaceAI.h.)
+		(The base values are defined in UWAIAI.h.)
 		By using this evaluate function, the caller lets WarEvaluator decide whether
 		naval war is preferrable.
 		Stores in the WarEvalParamters object passed to the constructor which
@@ -47,7 +47,7 @@ private:
 	TeamTypes agentId, targetId;
 	CvTeamAI& target;
 	CvTeamAI& agent;
-	WarAndPeaceReport& report;
+	UWAIReport& report;
 	bool peaceScenario;
 	bool useCache;
 

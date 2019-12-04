@@ -3792,7 +3792,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 				CvWStringBuffer szWarplan;
 				GAMETEXT.getWarplanString(szWarplan, eWarPlan);
 				// <advc.104>
-				if(getWPAI.isEnabled())
+				if(getUWAI.isEnabled())
 				{
 					szBuffer.append(CvWString::format(
 							SETCOLR L" %s (%d) with %s\n" ENDCOLR,
@@ -3861,7 +3861,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 				szBuffer.append(CvWString::format(SETCOLR L" %s (%d) with %s\n" ENDCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
 						szWarplan.getCString(),
 						// advc.104: Show war plan age instead of K-Mod's startWarVal
-						getWPAI.isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
+						getUWAI.isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
 						kTeam.AI_startWarVal(eLoopTeam, eWarPlan,
 						true), // advc.001n
 						kLoopTeam.getName().GetCString()));
@@ -3874,7 +3874,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		szBuffer.append(NEWLINE);
 
 	// <advc.104> K-Mod/BBAI war percentages aren't helpful for testing UWAI
-	if(getWPAI.isEnabled())
+	if(getUWAI.isEnabled())
 		return; // </advc.104>
 
 	// calculate war percentages
@@ -5949,9 +5949,9 @@ bool CvDLLWidgetData::parseCityTradeHelp(CvWidgetDataStruct const& kWidget, CvCi
 		iPlayerCode--;
 	}
 	PlayerTypes eOwner = (PlayerTypes)(iPlayerCode % 100);
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eOwner, "CvDLLWidgetData::parseCityTradeHelp");
+	FAssertBounds(0, MAX_CIV_PLAYERS, eOwner);
 	eWhoTo = (PlayerTypes)((iPlayerCode / 100) - 1);
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eWhoTo, "CvDLLWidgetData::parseCityTradeHelp");
+	FAssertBounds(0, MAX_CIV_PLAYERS, eWhoTo);
 	pCity = ::getCity(IDInfo(eOwner, kWidget.m_iData2));
 	FAssert(pCity != NULL);
 	return bListMore;

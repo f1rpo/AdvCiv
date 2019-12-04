@@ -1,7 +1,7 @@
-// <advc.104> New class; see WarAndPeaceReport.h for description
+// advc.104: New class; see UWAIReport.h for description.
 
 #include "CvGameCoreDLL.h"
-#include "WarAndPeaceReport.h"
+#include "UWAIReport.h"
 #include "CvGamePlay.h"
 #include "CvCity.h"
 #include <sstream>
@@ -9,7 +9,7 @@
 using std::ostringstream;
 using std::string;
 
-WarAndPeaceReport::WarAndPeaceReport(bool silent) { // default : false
+UWAIReport::UWAIReport(bool silent) { // default : false
 
 	/*  The log could be used to cheat in multiplayer. It's OK if MessageLog
 		is enabled; the game will warn the other player about that. */
@@ -18,7 +18,7 @@ WarAndPeaceReport::WarAndPeaceReport(bool silent) { // default : false
 	setSilent(silent);
 }
 
-WarAndPeaceReport::~WarAndPeaceReport() {
+UWAIReport::~UWAIReport() {
 
 	if(!report.IsEmpty()) {
 		log("_This logfile is formatted in Textile. Paste its content "
@@ -31,7 +31,7 @@ WarAndPeaceReport::~WarAndPeaceReport() {
 	deleteBuffer();
 }
 
-void WarAndPeaceReport::log(char const* fmt, ...) {
+void UWAIReport::log(char const* fmt, ...) {
 
 	if(muted > 0)
 		return;
@@ -43,7 +43,7 @@ void WarAndPeaceReport::log(char const* fmt, ...) {
 	writeToFile();
 }
 
-void WarAndPeaceReport::writeToFile() {
+void UWAIReport::writeToFile() {
 
 	if(muted > 0)
 		return;
@@ -56,30 +56,30 @@ void WarAndPeaceReport::writeToFile() {
 	report.clear();
 }
 
-void WarAndPeaceReport::deleteBuffer() {
+void UWAIReport::deleteBuffer() {
 
 	for(size_t i = 0; i < stringBuffer.size(); i++)
 		delete stringBuffer[i];
 }
 
-char const* WarAndPeaceReport::leaderName(PlayerTypes civId, int charLimit) {
+char const* UWAIReport::leaderName(PlayerTypes civId, int charLimit) {
 															// default: 8
 	CvLeaderHeadInfo& leader = GC.getInfo(
 			GET_PLAYER(civId).getLeaderType());
 	return narrow(leader.getDescription(), charLimit);
 }
 
-char const* WarAndPeaceReport::unitName(CvInfoBase const& unitInfo, int charLimit) {
+char const* UWAIReport::unitName(CvInfoBase const& unitInfo, int charLimit) {
 
 	return narrow(unitInfo.getDescription(), charLimit);
 }
 
-char const* WarAndPeaceReport::cityName(CvCity const& c, int charLimit) {
+char const* UWAIReport::cityName(CvCity const& c, int charLimit) {
 
 	return narrow(c.getName(), charLimit);
 }
 
-char const* WarAndPeaceReport::narrow(const wchar* ws, int charLimit) {
+char const* UWAIReport::narrow(const wchar* ws, int charLimit) {
 
 	if(muted > 0)
 		return "";
@@ -98,7 +98,7 @@ char const* WarAndPeaceReport::narrow(const wchar* ws, int charLimit) {
 	return toBeDeleted->c_str();
 }
 
-char const* WarAndPeaceReport::masterName(TeamTypes masterId, int charLimit) {
+char const* UWAIReport::masterName(TeamTypes masterId, int charLimit) {
 															// default: 8
 	if(muted > 0)
 		return "";
@@ -108,7 +108,7 @@ char const* WarAndPeaceReport::masterName(TeamTypes masterId, int charLimit) {
 	return leaderName(mt.getLeaderID());
 }
 
-char const* WarAndPeaceReport::teamName(TeamTypes teamId) {
+char const* UWAIReport::teamName(TeamTypes teamId) {
 
 	if(muted > 0)
 		return "";
@@ -125,12 +125,12 @@ char const* WarAndPeaceReport::teamName(TeamTypes teamId) {
 	return toBeDeleted->c_str();
 }
 
-char const* WarAndPeaceReport::techName(TechTypes techId, int charLimit) {
+char const* UWAIReport::techName(TechTypes techId, int charLimit) {
 
 	return narrow(GC.getInfo(techId).getDescription(), charLimit);
 }
 
-char const* WarAndPeaceReport::warPlanName(WarPlanTypes wp) const {
+char const* UWAIReport::warPlanName(WarPlanTypes wp) const {
 
 	if(muted > 0)
 		return "";
@@ -147,7 +147,7 @@ char const* WarAndPeaceReport::warPlanName(WarPlanTypes wp) const {
 	}
 }
 
-char const* WarAndPeaceReport::prefix(int level) {
+char const* UWAIReport::prefix(int level) {
 
 	if(muted > 0)
 		return "";
@@ -162,7 +162,7 @@ char const* WarAndPeaceReport::prefix(int level) {
 	return toBeDeleted->c_str();
 }
 
-void WarAndPeaceReport::setMute(bool b) {
+void UWAIReport::setMute(bool b) {
 
 	if(silent)
 		return;
@@ -173,12 +173,10 @@ void WarAndPeaceReport::setMute(bool b) {
 	else muted--;
 }
 
-void WarAndPeaceReport::setSilent(bool b) {
+void UWAIReport::setSilent(bool b) {
 
 	silent = b;
 	if(silent)
 		muted = 1;
 	else muted = 0;
 }
-
-// </advc.104>

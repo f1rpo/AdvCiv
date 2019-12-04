@@ -332,7 +332,7 @@ void CvCivicInfo::setWeLoveTheKingKey(const TCHAR* szVal)
 
 int CvCivicInfo::getYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvCivicInfo::getYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldModifier ? m_piYieldModifier[i] : 0; // advc.003t
 }
 
@@ -343,7 +343,7 @@ int* CvCivicInfo::getYieldModifierArray() const
 
 int CvCivicInfo::getCapitalYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvCivicInfo::getCapitalYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piCapitalYieldModifier ? m_piCapitalYieldModifier[i] : 0; // advc.003t
 }
 
@@ -354,7 +354,7 @@ int* CvCivicInfo::getCapitalYieldModifierArray() const
 
 int CvCivicInfo::getTradeYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvCivicInfo::getTradeYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piTradeYieldModifier ? m_piTradeYieldModifier[i] : 0; // advc.003t
 }
 
@@ -365,7 +365,7 @@ int* CvCivicInfo::getTradeYieldModifierArray() const
 
 int CvCivicInfo::getCommerceModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvCivicInfo::getCommerceModifier");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceModifier ? m_piCommerceModifier[i] : 0; // advc.003t
 }
 
@@ -376,7 +376,7 @@ int* CvCivicInfo::getCommerceModifierArray() const
 
 int CvCivicInfo::getCapitalCommerceModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvCivicInfo::getCapitalCommerceModifier");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCapitalCommerceModifier ? m_piCapitalCommerceModifier[i] : 0; // advc.003t
 }
 
@@ -387,7 +387,7 @@ int* CvCivicInfo::getCapitalCommerceModifierArray() const
 
 int CvCivicInfo::getSpecialistExtraCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvCivicInfo::getSpecialistExtraCommerce");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : 0; // advc.003t
 }
 
@@ -398,44 +398,44 @@ int* CvCivicInfo::getSpecialistExtraCommerceArray() const
 
 int CvCivicInfo::getBuildingHappinessChanges(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvCivicInfo::getBuildingHappinessChanges");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_paiBuildingHappinessChanges ? m_paiBuildingHappinessChanges[i] : 0; // advc.003t
 }
 
 int CvCivicInfo::getBuildingHealthChanges(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvCivicInfo::getBuildingHealthChanges");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_paiBuildingHealthChanges ? m_paiBuildingHealthChanges[i] : 0; // advc.003t
 }
 
 int CvCivicInfo::getFeatureHappinessChanges(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvCivicInfo::getFeatureHappinessChanges");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_paiFeatureHappinessChanges ? m_paiFeatureHappinessChanges[i] : 0; // advc.003t
 }
 
 bool CvCivicInfo::isHurry(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumHurryInfos(), i, "CvCivicInfo::isHurry");
+	FAssertBounds(0, GC.getNumHurryInfos(), i);
 	return m_pabHurry ? m_pabHurry[i] : false;
 }
 
 bool CvCivicInfo::isSpecialBuildingNotRequired(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialBuildingInfos(), i, "CvCivicInfo::isSpecialBuildingNotRequired");
+	FAssertBounds(0, GC.getNumSpecialBuildingInfos(), i);
 	return m_pabSpecialBuildingNotRequired ? m_pabSpecialBuildingNotRequired[i] : false;
 }
 
 bool CvCivicInfo::isSpecialistValid(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvCivicInfo::isSpecialistValid");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
 	return m_pabSpecialistValid ? m_pabSpecialistValid[i] : false;
 }
 
 int CvCivicInfo::getImprovementYieldChanges(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumImprovementInfos(), i, "CvCivicInfo::getImprovementYieldChanges");
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, j, "CvCivicInfo::getImprovementYieldChanges");
+	FAssertBounds(0, GC.getNumImprovementInfos(), i);
+	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_ppiImprovementYieldChanges[i][j];
 }
 #if SERIALIZE_CVINFOS
@@ -785,7 +785,7 @@ CvCivicOptionInfo::~CvCivicOptionInfo()
 
 bool CvCivicOptionInfo::getTraitNoUpkeep(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvCivicOptionInfo::getTraitNoUpkeep");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_pabTraitNoUpkeep ? m_pabTraitNoUpkeep[i] : false;
 }
 

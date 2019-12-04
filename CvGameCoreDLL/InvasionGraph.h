@@ -4,8 +4,8 @@
 #define INVASION_GRAPH_H
 
 #include "MilitaryBranch.h"
-#include "WarAndPeaceCache.h"
-#include "WarAndPeaceReport.h"
+#include "UWAICache.h"
+#include "UWAIReport.h"
 #include "UWAISets.h"
 
 class MilitaryAnalyst;
@@ -14,7 +14,7 @@ class CvArea;
 
 /* advc.104: New class. The invasion graph says who tries to invade whom.
    It's an analysis from the perspective of one civ ("we", the owner of
-   the associated MilitaryAnalyst) planning war (WarAndPeaceAI::Team::doWar).
+   the associated MilitaryAnalyst) planning war (UWAI::Team::doWar).
    There's a node in the graph for each civ that is presently at war or
    is soon going to be. Projected wars are based on the knowledge of "we",
    i.e. our war plans in preparation and under consideration, and wars linked
@@ -126,12 +126,11 @@ friend class Node;
 		/* param: In addition to warOpponents. Also includes the vassals
 		  of that team. */
 		PlayerTypes findTarget(TeamTypes include = NO_TEAM) const;
-		bool isValidTarget(WarAndPeaceCache::City const& c,
-				TeamTypes include = NO_TEAM) const;
+		bool isValidTarget(UWAICache::City const& c, TeamTypes include = NO_TEAM) const;
 		static std::vector<UnitAITypes> garrisonTypes();
 
 		InvasionGraph& outer;
-		WarAndPeaceReport& report;
+		UWAIReport& report;
 		PlayerTypes id, weId;
 		PlyrSet warOpponents;
 		std::vector<bool> isWarOpponent;
@@ -152,11 +151,11 @@ friend class Node;
 		double productionPortion() const;
 
 		// For simulation; call prepareForSimulation first
-		 WarAndPeaceCache::City const* targetCity(
+		 UWAICache::City const* targetCity(
 			    // Default: based on primaryTarget
 				PlayerTypes owner = NO_PLAYER) const;
-		 void addConquest(WarAndPeaceCache::City const& c);
-		 void addLoss(WarAndPeaceCache::City const& c) { losses.insert(c.id()); }
+		 void addConquest(UWAICache::City const& c);
+		 void addLoss(UWAICache::City const& c) { losses.insert(c.id()); }
 		 // Vassals that break free are currently not modeled.
 		 void setCapitulated(TeamTypes masterId);
 		 double clashDistance(Node const& other) const;
@@ -165,10 +164,10 @@ friend class Node;
 		 bool canReachByLand(int cityId) const;
 		 CvArea* clashArea(PlayerTypes otherId) const;
 
-		 std::vector<WarAndPeaceCache::City const*> conquests;
+		 std::vector<UWAICache::City const*> conquests;
 		 CitySet losses;
 		 TeamSet capitulationsAccepted;
-		 WarAndPeaceCache& cache;
+		 UWAICache& cache;
 		 int cacheIndex;
 		 double lostPower[NUM_BRANCHES];
 		 /* Units shifted from e.g. army to guard are counted as losses.
@@ -207,7 +206,7 @@ public:
 			bool peaceScenario = false);
 	~InvasionGraph();
 	Node* getNode(PlayerTypes civId) const {
-		FASSERT_BOUNDS(0, MAX_PLAYERS, civId, "InvasionGraph::getNode");
+		FAssertBounds(0, MAX_PLAYERS, civId);
 		return nodeMap[civId];
 	}
 	/* No military build-up is estimated by simulate(int) until
@@ -233,7 +232,7 @@ private:
 	std::vector<Node*> nodeMap;
 	MilitaryAnalyst& m;
 	PlayerTypes weId;
-	WarAndPeaceReport& report;
+	UWAIReport& report;
 	bool allWarPartiesKnown;
 	int timeLimit; // for simulateLosses
 	bool isPeaceScenario;
@@ -265,8 +264,7 @@ private:
 class SimulationStep {
 
 public:
-	SimulationStep(PlayerTypes attacker,
-			WarAndPeaceCache::City const* contestedCity = NULL);
+	SimulationStep(PlayerTypes attacker, UWAICache::City const* contestedCity = NULL);
 	void setDuration(int duration) { this->duration = duration; }
 	/* id should be attacker or the defender (attacker's target); other ids are
 	   treated as the defender. */
@@ -285,7 +283,7 @@ public:
 	bool isAttackerSuccessful() const { return success; }
 	bool isClashOnly() const { return (contestedCity == NULL); }
 	PlayerTypes getAttacker() const { return attacker; }
-	WarAndPeaceCache::City const* getCity() const { return contestedCity; }
+	UWAICache::City const* getCity() const { return contestedCity; }
 
 private:
 	int duration;
@@ -293,7 +291,7 @@ private:
 	double lostPowerAttacker[NUM_BRANCHES];
 	double lostPowerDefender[NUM_BRANCHES];
 	PlayerTypes attacker; // defender is attacker.primaryTarget
-	WarAndPeaceCache::City const* contestedCity;
+	UWAICache::City const* contestedCity;
 	bool success;
 	double tempLosses;
 };

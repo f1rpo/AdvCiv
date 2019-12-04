@@ -143,49 +143,49 @@ void CvCivilizationInfo::setArtDefineTag(const TCHAR* szVal)
 
 int CvCivilizationInfo::getCivilizationBuildings(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvCivilizationInfo::getCivilizationBuildings");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_piCivilizationBuildings ? m_piCivilizationBuildings[i] : NO_BUILDING; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationUnits(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvCivilizationInfo::getCivilizationUnits");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_piCivilizationUnits ? m_piCivilizationUnits[i] : NO_UNIT; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationFreeUnitsClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvCivilizationInfo::getCivilizationFreeUnitsClass");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_piCivilizationFreeUnitsClass ? m_piCivilizationFreeUnitsClass[i] : NO_UNITCLASS; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationInitialCivics(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCivicOptionInfos(), i, "CvCivilizationInfo::getCivilizationInitialCivics");
+	FAssertBounds(0, GC.getNumCivicOptionInfos(), i);
 	return m_piCivilizationInitialCivics ? m_piCivilizationInitialCivics[i] : NO_CIVIC; // advc.003t
 }
 
 bool CvCivilizationInfo::isLeaders(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumLeaderHeadInfos(), i, "CvCivilizationInfo::isLeaders");
+	FAssertBounds(0, GC.getNumLeaderHeadInfos(), i);
 	return m_pbLeaders ? m_pbLeaders[i] : false;
 }
 
 bool CvCivilizationInfo::isCivilizationFreeBuildingClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingClassInfos(), i, "CvCivilizationInfo::isCivilizationFreeBuildingClass");
+	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
 	return m_pbCivilizationFreeBuildingClass ? m_pbCivilizationFreeBuildingClass[i] : false;
 }
 
 bool CvCivilizationInfo::isCivilizationFreeTechs(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTechInfos(), i, "CvCivilizationInfo::isCivilizationFreeTechs");
+	FAssertBounds(0, GC.getNumTechInfos(), i);
 	return m_pbCivilizationFreeTechs ? m_pbCivilizationFreeTechs[i] : false;
 }
 
 bool CvCivilizationInfo::isCivilizationDisableTechs(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTechInfos(), i, "CvCivilizationInfo::isCivilizationDisableTechs");
+	FAssertBounds(0, GC.getNumTechInfos(), i);
 	return m_pbCivilizationDisableTechs ? m_pbCivilizationDisableTechs[i] : false;
 }
 
@@ -946,31 +946,31 @@ void CvLeaderHeadInfo::setArtDefineTag(const TCHAR* szVal)
 
 bool CvLeaderHeadInfo::hasTrait(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvLeaderHeadInfo::hasTrait");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_pbTraits ? m_pbTraits[i] : false;
 }
 
 int CvLeaderHeadInfo::getFlavorValue(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvLeaderHeadInfo::getFlavorValue");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getContactRand(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_CONTACT_TYPES, i, "CvLeaderHeadInfo::getContactRand");
+	FAssertBounds(0, NUM_CONTACT_TYPES, i);
 	return m_piContactRand ? m_piContactRand[i] : 0; // advc.003t: Never contact by default
 }
 
 int CvLeaderHeadInfo::getContactDelay(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_CONTACT_TYPES, i, "CvLeaderHeadInfo::getContactDelay");
+	FAssertBounds(0, NUM_CONTACT_TYPES, i);
 	return m_piContactDelay ? m_piContactDelay[i] : 0; // advc.003t: No delay by default
 }
 
 int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_MEMORY_TYPES, i, "CvLeaderHeadInfo::getMemoryDecayRand");
+	FAssertBounds(0, NUM_MEMORY_TYPES, i);
 	// <advc.104i>
 	if(m_piMemoryDecayRand == NULL)
 		return -1;
@@ -982,31 +982,31 @@ int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 
 int CvLeaderHeadInfo::getMemoryAttitudePercent(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_MEMORY_TYPES, i, "CvLeaderHeadInfo::getMemoryAttitudePercent");
+	FAssertBounds(0, NUM_MEMORY_TYPES, i);
 	return m_piMemoryAttitudePercent ? m_piMemoryAttitudePercent[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getNoWarAttitudeProb(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_ATTITUDE_TYPES, i, "CvLeaderHeadInfo::getNoWarAttitudeProb");
+	FAssertBounds(0, NUM_ATTITUDE_TYPES, i);
 	return m_piNoWarAttitudeProb ? m_piNoWarAttitudeProb[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getUnitAIWeightModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_UNITAI_TYPES, i, "CvLeaderHeadInfo::getUnitAIWeightModifier");
+	FAssertBounds(0, NUM_UNITAI_TYPES, i);
 	return m_piUnitAIWeightModifier ? m_piUnitAIWeightModifier[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getImprovementWeightModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumImprovementInfos(), i, "CvLeaderHeadInfo::getImprovementWeightModifier");
+	FAssertBounds(0, GC.getNumImprovementInfos(), i);
 	return m_piImprovementWeightModifier ? m_piImprovementWeightModifier[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEraInfos(), i, "CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds");
+	FAssertBounds(0, GC.getNumEraInfos(), i);
 	return m_piDiploPeaceIntroMusicScriptIds ? m_piDiploPeaceIntroMusicScriptIds[i]
 			// advc.003t: CvLeaderHeadInfo::read sets the music script ids to 0 by default, so 0 works.
 			: 0;
@@ -1014,19 +1014,19 @@ int CvLeaderHeadInfo::getDiploPeaceIntroMusicScriptIds(int i) const
 
 int CvLeaderHeadInfo::getDiploPeaceMusicScriptIds(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEraInfos(), i, "CvLeaderHeadInfo::getDiploPeaceMusicScriptIds");
+	FAssertBounds(0, GC.getNumEraInfos(), i);
 	return m_piDiploPeaceMusicScriptIds ? m_piDiploPeaceMusicScriptIds[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getDiploWarIntroMusicScriptIds(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEraInfos(), i, "CvLeaderHeadInfo::getDiploWarIntroMusicScriptIds");
+	FAssertBounds(0, GC.getNumEraInfos(), i);
 	return m_piDiploWarIntroMusicScriptIds ? m_piDiploWarIntroMusicScriptIds[i] : 0; // advc.003t
 }
 
 int CvLeaderHeadInfo::getDiploWarMusicScriptIds(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumEraInfos(), i, "CvLeaderHeadInfo::getDiploWarMusicScriptIds");
+	FAssertBounds(0, GC.getNumEraInfos(), i);
 	return m_piDiploWarMusicScriptIds ? m_piDiploWarMusicScriptIds[i] : 0; // advc.003t
 }
 
@@ -1541,41 +1541,41 @@ void CvTraitInfo::setShortDescription(const TCHAR* szVal)
 	m_szShortDescription = szVal;
 }
 
-// Arrays  // advc.003t: FASSERT_BOUNDS calls added
+// Arrays  // advc.003t: FAssertBounds calls added
 
 int CvTraitInfo::getExtraYieldThreshold(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTraitInfo::getExtraYieldThreshold");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_paiExtraYieldThreshold ? m_paiExtraYieldThreshold[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getTradeYieldModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTraitInfo::getTradeYieldModifier");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_paiTradeYieldModifier ? m_paiTradeYieldModifier[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getCommerceChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvTraitInfo::getCommerceChange");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiCommerceChange ? m_paiCommerceChange[i] : 0; // advc.003t
 }
 
 int CvTraitInfo::getCommerceModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvTraitInfo::getCommerceModifier");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiCommerceModifier ? m_paiCommerceModifier[i] : 0; // advc.003t
 }
 
 bool CvTraitInfo::isFreePromotion(int i) const // advc.003t: Return type was int
 {
-	FASSERT_BOUNDS(0, GC.getNumPromotionInfos(), i, "CvTraitInfo::isFreePromotion");
+	FAssertBounds(0, GC.getNumPromotionInfos(), i);
 	return m_pabFreePromotion ? m_pabFreePromotion[i] : false;
 }
 
 bool CvTraitInfo::isFreePromotionUnitCombat(int i) const // advc.003t: Return type was int
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvTraitInfo::isFreePromotionUnitCombat");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_pabFreePromotionUnitCombat ? m_pabFreePromotionUnitCombat[i] : false;
 }
 
@@ -1666,7 +1666,7 @@ int CvDiplomacyResponse::getNumDiplomacyText() const
 
 bool CvDiplomacyResponse::getCivilizationTypes(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCivilizationInfos(), i, "CvDiplomacyResponse::getCivilizationTypes");
+	FAssertBounds(0, GC.getNumCivilizationInfos(), i);
 	return (m_pbCivilizationTypes != NULL ? m_pbCivilizationTypes[i] : false); // advc.003t
 }
 
@@ -1684,7 +1684,7 @@ bool CvDiplomacyResponse::getCivilizationTypes(int i) const
 
 bool CvDiplomacyResponse::getLeaderHeadTypes(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumLeaderHeadInfos(), i, "CvDiplomacyResponse::getLeaderHeadTypes");
+	FAssertBounds(0, GC.getNumLeaderHeadInfos(), i);
 	return (m_pbLeaderHeadTypes != NULL ? m_pbLeaderHeadTypes[i] : false); // advc.003t
 }
 
@@ -1702,7 +1702,7 @@ bool CvDiplomacyResponse::getLeaderHeadTypes(int i) const
 
 bool CvDiplomacyResponse::getAttitudeTypes(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_ATTITUDE_TYPES, i, "CvDiplomacyResponse::getAttitudeTypes");
+	FAssertBounds(0, NUM_ATTITUDE_TYPES, i);
 	return (m_pbAttitudeTypes != NULL ? m_pbAttitudeTypes[i] : false); // advc.003t
 }
 
@@ -1720,7 +1720,7 @@ bool CvDiplomacyResponse::getAttitudeTypes(int i) const
 
 bool CvDiplomacyResponse::getDiplomacyPowerTypes(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DIPLOMACYPOWER_TYPES, i, "CvDiplomacyResponse::getDiplomacyPowerTypes");
+	FAssertBounds(0, NUM_DIPLOMACYPOWER_TYPES, i);
 	return (m_pbDiplomacyPowerTypes != NULL ? m_pbDiplomacyPowerTypes[i] : false); // advc.003t
 }
 
@@ -1748,7 +1748,7 @@ const CvString* CvDiplomacyResponse::getDiplomacyText() const
 
 void CvDiplomacyResponse::setDiplomacyText(int i, CvString szText)
 {
-	FASSERT_BOUNDS(0, getNumDiplomacyText(), i, "CvDiplomacyResponse::setDiplomacyText");
+	FAssertBounds(0, getNumDiplomacyText(), i);
 	m_paszDiplomacyText[i] = szText;
 }
 /*#if SERIALIZE_CVINFOS
@@ -1822,42 +1822,42 @@ int CvDiplomacyInfo::getNumResponses() const
 
 bool CvDiplomacyInfo::getCivilizationTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyInfo::getCivilizationTypes");
-	FASSERT_BOUNDS(0, GC.getNumCivilizationInfos(), j, "CvDiplomacyInfo::getCivilizationTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, GC.getNumCivilizationInfos(), j);
 	return m_pResponses[i]->getCivilizationTypes(j);
 }
 
 bool CvDiplomacyInfo::getLeaderHeadTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyInfo::getLeaderHeadTypes");
-	FASSERT_BOUNDS(0, GC.getNumLeaderHeadInfos(), j, "CvDiplomacyInfo::getLeaderHeadTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, GC.getNumLeaderHeadInfos(), j);
 	return m_pResponses[i]->getLeaderHeadTypes(j);
 }
 
 bool CvDiplomacyInfo::getAttitudeTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyInfo::getAttitudeTypes");
-	FASSERT_BOUNDS(0, NUM_ATTITUDE_TYPES, j, "CvDiplomacyInfo::getAttitudeTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, NUM_ATTITUDE_TYPES, j);
 	return m_pResponses[i]->getAttitudeTypes(j);
 }
 
 bool CvDiplomacyInfo::getDiplomacyPowerTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyInfo::getDiplomacyPowerTypes");
-	FASSERT_BOUNDS(0, NUM_DIPLOMACYPOWER_TYPES, j, "CvDiplomacyInfo::getDiplomacyPowerTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, NUM_DIPLOMACYPOWER_TYPES, j);
 	return m_pResponses[i]->getDiplomacyPowerTypes(j);
 }
 
 int CvDiplomacyInfo::getNumDiplomacyText(int i) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyInfo::getNumDiplomacyText");
+	FAssertBounds(0, getNumResponses(), i);
 	return m_pResponses[i]->getNumDiplomacyText();
 }
 
 const TCHAR* CvDiplomacyInfo::getDiplomacyText(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyInfo::getDiplomacyText");
-	FASSERT_BOUNDS(0, getNumDiplomacyText(i), j, "CvDiplomacyInfo::getDiplomacyText");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i]->getDiplomacyText(j);
 }
 /*#if SERIALIZE_CVINFOS

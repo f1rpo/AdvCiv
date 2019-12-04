@@ -861,7 +861,7 @@ bool CvPythonCaller::canBuild(CvPlot const& kPlot, BuildTypes eBuild, PlayerType
 	if (lResult == -1)
 		return false;
 	bOverride = true;
-	FASSERT_BOUNDS(-1, 2, lResult, "CvPythonCaller::canBuild");
+	FAssertBounds(-1, 2, lResult);
 	return toBool(lResult);
 }
 

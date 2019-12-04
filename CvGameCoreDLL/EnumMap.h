@@ -1176,6 +1176,7 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 	SET_XML_ENUM_SIZE1(WorldSize, Dummy)
 	SET_XML_ENUM_SIZE1(Flavor, Dummy)
 	SET_XML_ENUM_SIZE1(Direction, Dummy)
+	SET_XML_ENUM_SIZE1(WarPlan, Dummy)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */

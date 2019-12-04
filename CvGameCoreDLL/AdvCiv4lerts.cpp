@@ -7,7 +7,7 @@
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "RiseFall.h" // advc.706
-#include "WarAndPeaceAgent.h" // advc.ctr
+#include "UWAIAgent.h" // advc.ctr
 #include <iterator>
 
 using std::set;
@@ -375,8 +375,8 @@ void CityTradeAlert::check()
 			bool bWar = ::atWar(kAlertPlayer.getTeam(), kPlayer.getTeam());
 			/*  Don't report "will cede" when war enemy unwilling to pay for peace
 				(especially not cities that kPlayer has just conquered from kAlertPlayer) */
-			if(!bWar || !getWPAI.isEnabled() || GET_TEAM(kPlayer.getTeam()).
-				warAndPeaceAI().endWarVal(kAlertPlayer.getTeam()) > 0)
+			if(!bWar || !getUWAI.isEnabled() || GET_TEAM(kPlayer.getTeam()).
+				uwai().endWarVal(kAlertPlayer.getTeam()) > 0)
 			{
 				vector<int>& wasWilling = willCede[kPlayer.getID()];
 				FOR_EACH_CITY(pCity, kPlayer)

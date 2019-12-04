@@ -255,7 +255,7 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 	} \
 	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
 	{ \
-		FASSERT_BOUNDS(0, getNum##Name##Infos(), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
+		FAssertBounds(0, getNum##Name##Infos(), e##Name); \
 		return *m_pa##Name##Info[e##Name]; \
 	} \
 	/* Deprecated: */ \
@@ -270,13 +270,13 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 	} \
 	inline Cv##Name##Info& get##Name##Info(int i##Name) const \
 	{ \
-		FASSERT_BOUNDS(0, getNum##Name##Infos(), i##Name, "CvGlobals::get"#Name"Info"); \
+		FAssertBounds(0, getNum##Name##Infos(), i##Name); \
 		return *m_pa##Name##Info[i##Name]; \
 	}
 #define MAKE_INFO_ACCESSORS_STATIC(Name, INFIX) \
 	inline Cv##Name##Info& getInfo(Name##Types e##Name) const \
 	{ \
-		FASSERT_BOUNDS(0, NUM_ENUM_TYPES(INFIX), e##Name, "CvGlobals::getInfo("#Name"Types)"); \
+		FAssertBounds(0, NUM_ENUM_TYPES(INFIX), e##Name); \
 		return *m_pa##Name##Info[e##Name]; \
 	} \
 	/* Deprecated: */ \

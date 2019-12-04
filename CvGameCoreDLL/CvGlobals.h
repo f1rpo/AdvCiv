@@ -165,14 +165,14 @@ public:
 	DllExport DirectionTypes getXYDirection(int i, int j) { CvGlobals const& kThis = *this; return kThis.getXYDirection(i,j); }
 	inline DirectionTypes getXYDirection(int i, int j) const
 	{
-		FASSERT_BOUNDS(0, DIRECTION_DIAMETER, i, "CvGlobals::getXYDirection");
-		FASSERT_BOUNDS(0, DIRECTION_DIAMETER, j, "CvGlobals::getXYDirection");
+		FAssertBounds(0, DIRECTION_DIAMETER, i);
+		FAssertBounds(0, DIRECTION_DIAMETER, j);
 		return m_aaeXYDirection[i][j];
 	}
 	inline int getXYCityPlot(int i, int j) const
 	{
-		FASSERT_BOUNDS(0, CITY_PLOTS_DIAMETER, i, "CvGlobals::getXYCityPlot");
-		FASSERT_BOUNDS(0, CITY_PLOTS_DIAMETER, j, "CvGlobals::getXYCityPlot");
+		FAssertBounds(0, CITY_PLOTS_DIAMETER, i);
+		FAssertBounds(0, CITY_PLOTS_DIAMETER, j);
 		return m_aaiXYCityPlot[i][j];
 	}
 	inline int const* getCityPlotX() const { return m_aiCityPlotX; }
@@ -181,13 +181,13 @@ public:
 	inline DirectionTypes const* getTurnLeftDirection() const { return m_aeTurnLeftDirection; }
 	inline DirectionTypes getTurnLeftDirection(int i) const
 	{
-		FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, i, "CvGlobals::getTurnLeftDirection");
+		FAssertBounds(0, NUM_DIRECTION_TYPES, i);
 		return m_aeTurnLeftDirection[i];
 	}
 	inline DirectionTypes const* getTurnRightDirection() const { return m_aeTurnRightDirection; }
 	inline DirectionTypes getTurnRightDirection(int i) const
 	{
-		FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, i, "CvGlobals::getTurnRightDirection");
+		FAssertBounds(0, NUM_DIRECTION_TYPES, i);
 		return m_aeTurnRightDirection[i];
 	}
 
@@ -304,7 +304,7 @@ public:
 	// World(Size)Info: awkward to generate through a macro
 	inline CvWorldInfo& getInfo(WorldSizeTypes eWorld) const
 	{
-		FASSERT_BOUNDS(0, getNumWorldInfos(), eWorld, "CvGlobals::getInfo(WorldSizeTypes)");
+		FAssertBounds(0, getNumWorldInfos(), eWorld);
 		return *m_paWorldInfo[eWorld];
 	}
 	inline int getNumWorldInfos() const

@@ -120,12 +120,12 @@ public:
 	};
 	__forceinline int get(IntElementTypes e) const
 	{
-		FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvXMLInfo::get(IntElementTypes)");
+		FAssertBounds(0, m_aiData.size(), e);
 		return m_aiData[e];
 	}
 	__forceinline int get(BoolElementTypes e) const
 	{
-		FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvXMLInfo::get(BoolElementTypes)");
+		FAssertBounds(0, m_abData.size(), e);
 		return m_abData[e];
 	}
 	bool read(CvXMLLoadUtility* pXML);

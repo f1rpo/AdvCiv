@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryBranch.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvCivilization.h"
@@ -275,7 +275,7 @@ double MilitaryBranch::HomeGuard::unitPower(CvUnitInfo const& u,
 		}
 		r *= defMod;
 	}
-	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u, r);
+	return GET_PLAYER(ownerId).uwai().militaryPower(u, r);
 }
 
 /* Utility equals power by default (template pattern). */
@@ -322,7 +322,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 		/* Military power is already biased towards aggression.
 		   No further adjustments needed. */
 	}
-	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u, r);
+	return GET_PLAYER(ownerId).uwai().militaryPower(u, r);
 }
 
 double MilitaryBranch::Cavalry::unitPower(CvUnitInfo const& u, bool modify) const {
@@ -330,12 +330,12 @@ double MilitaryBranch::Cavalry::unitPower(CvUnitInfo const& u, bool modify) cons
 	if(u.getMoves() <= 1 || u.getProductionCost() >= 150 ||
 			u.isMostlyDefensive()) // advc.315
 		return -1;
-	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u);
+	return GET_PLAYER(ownerId).uwai().militaryPower(u);
 }
 
 double MilitaryBranch::Fleet::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	double r = GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u);
+	double r = GET_PLAYER(ownerId).uwai().militaryPower(u);
 	// Avoid selecting Ironclad as typical unit (can't reach enemy cities reliably)
 	if(modify) {
 		FOR_EACH_ENUM(Terrain) {
@@ -371,7 +371,7 @@ double MilitaryBranch::NuclearArsenal::unitPower(CvUnitInfo const& u, bool modif
 		AI tends to invest more in ICBM than TN. */
 	if(modify && u.getAirRange() == 0)
 		r *= 2.1;
-	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u, r);
+	return GET_PLAYER(ownerId).uwai().militaryPower(u, r);
 }
 
 void MilitaryBranch::Army::setUnitsTrained(int number, double pow) {

@@ -15,7 +15,7 @@ public:
 	// <advc.003u>
 	static inline CvTeam& getTeam(TeamTypes eTeam)
 	{
-		FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvTeam::getTeam(TeamTypes)");
+		FAssertBounds(0, MAX_TEAMS, eTeam);
 		// Needs to be inline and I don't want to include CvTeamAI.h here
 		return *reinterpret_cast<CvTeam*>(m_aTeams[eTeam]);
 	}
@@ -86,7 +86,6 @@ public:
 	//int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;
 	int getHasMetCivCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
 
-	bool anyWarShared(TeamTypes eOther) const; // advc.130s
 	bool allWarsShared(TeamTypes eOther, // dlph.3
 			/*  advc.130f: If false, check only if the war enemies of this team
 				are included in those of otherId (set inclusion). */

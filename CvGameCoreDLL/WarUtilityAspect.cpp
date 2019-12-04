@@ -2,10 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarUtilityAspect.h"
-#include "WarAndPeaceCache.h"
-#include "WarAndPeaceReport.h"
+#include "UWAICache.h"
+#include "UWAIReport.h"
 #include "WarEvalParameters.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "MilitaryAnalyst.h"
 #include "CvAI.h"
 #include "CvDealList.h"
@@ -20,12 +20,12 @@ using std::vector;
 using std::string;
 using std::map;
 using std::pair;
-typedef WarAndPeaceCache::City City;
+typedef UWAICache::City City;
 
 WarUtilityAspect::WarUtilityAspect(WarEvalParameters const& params) :
 
 	params(params), agentId(params.agentId()), agent(GET_TEAM(agentId)),
-	agentAI(agent.warAndPeaceAI()), report(params.getReport()) {
+	agentAI(agent.uwai()), report(params.getReport()) {
 
 	gameEra = GC.getGame().getCurrentEra();
 	u = 0;
@@ -53,7 +53,7 @@ int WarUtilityAspect::evaluate(MilitaryAnalyst const& m) {
 	this->m = &m;
 	weId = m.ourId();
 	we = &(GET_PLAYER(weId));
-	weAI = &we->warAndPeaceAI();
+	weAI = &we->uwai();
 	ourCache = &weAI->getCache();
 	int overall = preEvaluate();
 	bool const bOnlyWarParties = concernsOnlyWarParties();
@@ -69,7 +69,7 @@ int WarUtilityAspect::evaluate(MilitaryAnalyst const& m) {
 		log("*%s (from no one in particular): %d*", aspectName(), overall);
 		u += overall;
 	}
-	double xmlAdjust = getWPAI.aspectWeight(xmlId());
+	double xmlAdjust = getUWAI.aspectWeight(xmlId());
 	if(u != 0 && (xmlAdjust < 0.99 || xmlAdjust > 1.01)) {
 		log("Adjustment from XML: %d percent", ::round(xmlAdjust * 100));
 		u = ::round(u * xmlAdjust);
@@ -82,7 +82,7 @@ int WarUtilityAspect::evaluate(PlayerTypes theyId) {
 
 	this->theyId = theyId;
 	they = &(GET_PLAYER(theyId));
-	theyAI = &they->warAndPeaceAI();
+	theyAI = &they->uwai();
 	/*  Should never use human attitude, but using an error value like MIN_INT
 		wouldn't help here. Better to use a sane value (0 -> Cautious). */
 	valTowardsUs = (they->isHuman() ? 0 : they->AI_getAttitudeVal(weId));
@@ -214,20 +214,20 @@ double WarUtilityAspect::lossesFromBlockade(PlayerTypes victimId, PlayerTypes to
 		PlayerTypes enemyId = it->getID();
 		if(!m->isWar(victimId, enemyId) || (to != NO_PLAYER && to != enemyId))
 			continue;
-		MilitaryBranch const* fleet = victim.warAndPeaceAI().getCache().
+		MilitaryBranch const* fleet = victim.uwai().getCache().
 				getPowerValues()[FLEET];
 		// At least Frigates (Privateers can blockade regardless of war)
 		if(!fleet->canBombard())
 			continue;
 		double pow = m->gainedPower(enemyId, FLEET) +
-				GET_PLAYER(enemyId).warAndPeaceAI().getCache().getPowerValues()
+				GET_PLAYER(enemyId).uwai().getCache().getPowerValues()
 				[FLEET]->power();
 		if(pow > 100) // Unlikely to send any ships otherwise
 			enemyNavy += pow;
 	}
 	double navyRatio = 2;
 	double victimNavy = m->gainedPower(victimId, FLEET) + GET_PLAYER(victimId).
-			warAndPeaceAI().getCache().getPowerValues()[FLEET]->power();
+			uwai().getCache().getPowerValues()[FLEET]->power();
 	if(victimNavy > 0)
 		navyRatio = enemyNavy / victimNavy;
 	if(navyRatio < 1.25) // Enemies won't bring all their units
@@ -260,7 +260,7 @@ double WarUtilityAspect::lossesFromNukes(PlayerTypes victimId, PlayerTypes srcId
 
 	int const citiesLost = m->lostCities(victimId).size();
 	CvPlayerAI const& victim = GET_PLAYER(victimId);
-	WarAndPeaceCache const& victimCache = victim.warAndPeaceAI().getCache();
+	UWAICache const& victimCache = victim.uwai().getCache();
 	double scorePerCity = victimCache.totalAssetScore() / std::max(1,
 			victim.getNumCities() - citiesLost);
 	/*  Assume that cities lost to srcId are more likely to take a hit, and such a
@@ -298,8 +298,7 @@ double WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes victimId,
 			sources.push_back(it->getID());
 	}
 	else sources.push_back(TEAMID(srcId));
-	WarAndPeaceCache const& victimCache = GET_PLAYER(victimId).warAndPeaceAI().
-			getCache();
+	UWAICache const& victimCache = GET_PLAYER(victimId).uwai().getCache();
 	for(size_t i = 0; i < sources.size(); i++) {
 		if(m->isWar(sources[i], TEAMID(victimId))) {
 			victimLostTiles += victimCache.numLostTilesAtWar(sources[i]);
@@ -679,7 +678,7 @@ double GreedForAssets::threatToCities(PlayerTypes civId) {
 		return 0;
 	/*  Use present power if civ not part of the analysis. Add a constant b/c
 		power ratios can still shift a lot in the early game. */
-	double civPower = 150 + civ.warAndPeaceAI().getCache().
+	double civPower = 150 + civ.uwai().getCache().
 			getPowerValues()[ARMY]->power() + (m->isPartOfAnalysis(civId) ?
 			m->gainedPower(civ.getID(), ARMY) : 0);
 	double ourPower = 150 + ourCache->getPowerValues()[ARMY]->power() +
@@ -717,7 +716,7 @@ double GreedForAssets::medianDistFromOurConquests(PlayerTypes civId) {
 			it's almost always easy to tell whether one civ is closer to a set
 			of cities than another, so the AI figuring it out magically isn't
 			really an issue for me. */
-		City* cp = civ.warAndPeaceAI().getCache().lookupCity(weConquerFromThem[i]);
+		City* cp = civ.uwai().getCache().lookupCity(weConquerFromThem[i]);
 		if(cp == NULL) continue; City const& c = *cp;
 		int d = c.getDistance();
 		if(!c.canReachByLand()) // Don't worry about naval attacks
@@ -1724,7 +1723,7 @@ void HiredHand::evaluate() {
 			some time for that, and we don't feel obliged for that long anyway.
 			Or might say: We keep up the war just long enough to find out if
 			our ally can make a difference. That's actually almost rational. */
-		if(ally.warAndPeaceAI().getCache().sponsorAgainst(TEAMID(theyId)) == weId ||
+		if(ally.uwai().getCache().sponsorAgainst(TEAMID(theyId)) == weId ||
 				(we->AI_getMemoryCount(ally.getID(), MEMORY_ACCEPTED_JOIN_WAR) > 0 &&
 				/*  Still can't be sure that the current war between the (human) ally
 					and theyId is the war we've asked ally to declare, but that's OK. */
@@ -1965,7 +1964,7 @@ void PreEmptiveWar::evaluate() {
 			if(targetId != NO_TEAM && targetId != theyId && GET_TEAM(targetId).isHuman()) {
 				CitySet const& conq = m->conqueredCities(civ.getID());
 				for(CitySetIter it = conq.begin(); it != conq.end(); it++) {
-					CvCity* c = WarAndPeaceCache::City::cityById(*it);
+					CvCity* c = UWAICache::City::cityById(*it);
 					if(c != NULL && c->getTeam() == targetId)
 						theirPredictedCities--;
 				}
@@ -2347,14 +2346,14 @@ int Effort::preEvaluate() {
 		for(PlyrSetIter it = weCont.begin(); it != weCont.end(); it++) {
 			if(we->AI_hasSharedPrimaryArea(*it))
 				allWarsLongDist = false;
-			if(!agent.warAndPeaceAI().isPushover(TEAMID(*it)))
+			if(!agent.uwai().isPushover(TEAMID(*it)))
 				allPushOver = false;
 		}
 		PlyrSet const& weDecl = m->getWarsDeclaredBy(weId);
 		for(PlyrSetIter it = weDecl.begin(); it != weDecl.end(); it++) {
 			if(we->AI_hasSharedPrimaryArea(*it))
 				allWarsLongDist = false;
-			if(!agent.warAndPeaceAI().isPushover(TEAMID(*it)))
+			if(!agent.uwai().isPushover(TEAMID(*it)))
 				allPushOver = false;
 		}
 		if(allPushOver) {
@@ -2393,11 +2392,11 @@ int Effort::preEvaluate() {
 			on BtS statistics. */
 		if(theirPowerChange == 0)
 			theirPowerChange = weAI->estimateBuildUpRate(civ.getID());
-		else theirPowerChange /= GET_PLAYER(civ.getID()).warAndPeaceAI().getCache().
+		else theirPowerChange /= GET_PLAYER(civ.getID()).uwai().getCache().
 				getPowerValues()[ARMY]->power();
 		double theirPower = civ.getPower() * (1 + theirPowerChange);
 		if(we->isHuman())
-			theirPower *= civ.warAndPeaceAI().confidenceAgainstHuman();
+			theirPower *= civ.uwai().confidenceAgainstHuman();
 		else if(civ.isHuman())
 			theirPower *= 1 / weAI->confidenceAgainstHuman();
 		highestRivalPower = std::max(highestRivalPower, theirPower);
@@ -2476,7 +2475,7 @@ int Effort::preEvaluate() {
 	int const giveWarAChanceDuration = 15;
 	/*  Convert the lost production into gold based on current opportunities for
 		peaceful development. The conversion rate is precomputed by
-		WarAndPeaceCache. */
+		UWAICache. */
 	int extraDuration = duration - giveWarAChanceDuration;
 	if(extraDuration > 0) {
 		double gameSpeedDiv = GC.getInfo(
@@ -2523,7 +2522,7 @@ int Risk::preEvaluate() {
 		PlayerTypes const vId = it->getID();
 		CvPlayerAI const& vassal = GET_PLAYER(vId);
 		// OK to peek into our vassal's cache
-		WarAndPeaceCache const& vassalCache = vassal.warAndPeaceAI().getCache();
+		UWAICache const& vassalCache = vassal.uwai().getCache();
 		double relativeVassalLoss = 1;
 		if(!m->isEliminated(vId)) {
 			double lostVassalScore = 0;
@@ -2820,7 +2819,7 @@ double IllWill::powerRatio() { // theirs divided by ours
 		ourPow *= weAI->confidenceAgainstHuman();
 	/*  Don't count vassals; they're not a reliable defense (and it's easier
 		to exclude them). */
-	WarAndPeaceCache const* theirCache = &theyAI->getCache();
+	UWAICache const* theirCache = &theyAI->getCache();
 	double theirPow = theirCache->getPowerValues()[ARMY]->power() +
 			//theirCache->getPowerValues()[NUCLEAR]->power() +
 			m->gainedPower(theyId, ARMY);
@@ -2974,7 +2973,7 @@ void Affection::evaluate() {
 	bool hiredAgainstFriend = (towardsThem >= ATTITUDE_FRIENDLY &&
 			(params.getSponsor() != NO_PLAYER ||
 			/*  The computations ignoring distraction are also used for decisions
-				on joint wars (see WarAndPeaceAI::Team::declareWarTrade) */
+				on joint wars (see UWAI::Team::declareWarTrade) */
 			ignDistr));
 	if(hiredAgainstFriend)
 		uMinus = 50;
@@ -3018,8 +3017,8 @@ void Distraction::evaluate() {
 
 	if(agent.isAVassal() || GET_TEAM(theyId).isAVassal() || !m->isWar(weId, theyId))
 		return;
-	if(!agent.warAndPeaceAI().canReach(TEAMID(theyId)) &&
-			!GET_TEAM(theyId).warAndPeaceAI().canReach(agentId)) {
+	if(!agent.uwai().canReach(TEAMID(theyId)) &&
+			!GET_TEAM(theyId).uwai().canReach(agentId)) {
 		log("No distraction from %s b/c neither side can reach the other",
 				report.leaderName(theyId));
 		return;
@@ -3035,9 +3034,9 @@ void Distraction::evaluate() {
 	int numPotentialWars = 0;
 	for(TeamIter<FREE_MAJOR_CIV,POTENTIAL_ENEMY_OF> it(TEAMID(theyId)); it.hasNext(); ++it) {
 		TeamTypes tId = it->getID();
-		if(!agent.isHasMet(tId) || agent.warAndPeaceAI().isPushover(tId) ||
-				(!agent.warAndPeaceAI().canReach(tId) &&
-				!GET_TEAM(tId).warAndPeaceAI().canReach(agentId)))
+		if(!agent.isHasMet(tId) || agent.uwai().isPushover(tId) ||
+				(!agent.uwai().canReach(tId) &&
+				!GET_TEAM(tId).uwai().canReach(agentId)))
 			continue;
 		double ut = normalizeUtility(
 				ourCache->warUtilityIgnoringDistraction(tId), tId);
@@ -3068,7 +3067,7 @@ void Distraction::evaluate() {
 				log("%d extra cost for distraction from war in preparation",
 						::round(ut));
 			}
-			// NB: Imminent war against tId is covered by WarAndPeaceAI::Team::considerPeace
+			// NB: Imminent war against tId is covered by UWAI::Team::considerPeace
 		}
 		/*  tId as a potential alternative war target. 'ut' is the utility of
 			fighting both theyId and tId. Won't be able to tell how worthwhile war
@@ -3281,7 +3280,7 @@ void UlteriorMotives::evaluate() {
 			GET_TEAM(theyId).AI_getWarSuccess(targetId) >
 			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 &&
 			// Perhaps no longer hot
-			target.warAndPeaceAI().canReach(TEAMID(theyId)));
+			target.uwai().canReach(TEAMID(theyId)));
 	if(bHot &&
 			// If the target is in our area but not theirs, that's fishy.
 			(!target.AI_isPrimaryArea(we->getCapitalCity()->area()) ||
@@ -3321,7 +3320,7 @@ void FairPlay::evaluate() {
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < -2 ||
 			they->AI_isDoVictoryStrategyLevel3() ||
 			// Then our attack dooms them regardless of other war parties
-			(agent.warAndPeaceAI().isPushover(TEAMID(theyId)) &&
+			(agent.uwai().isPushover(TEAMID(theyId)) &&
 			(!they->isHuman() || they->getCurrentEra() > 0)) ||
 			/*  If they can't win anymore, we shouldn't hold back. Don't want to
 				leave all the loot to others. A human with such poor war success
@@ -3479,7 +3478,7 @@ Bellicosity::Bellicosity(WarEvalParameters& params) : WarUtilityAspect(params) {
 void Bellicosity::evaluate() {
 
 	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)) ||
-			!agent.warAndPeaceAI().canReach(TEAMID(theyId)))
+			!agent.uwai().canReach(TEAMID(theyId)))
 		return;
 	// One war is enough
 	if(agent.getNumWars() > 0 && !agent.isAtWar(TEAMID(theyId)))
@@ -3536,7 +3535,7 @@ void TacticalSituation::evaluate() {
 void TacticalSituation::evalEngagement() {
 
 	PROFILE_FUNC();
-	/*  Can't move this to WarAndPeaceCache (to compute it only once at the start
+	/*  Can't move this to UWAICache (to compute it only once at the start
 		of a turn) b/c it needs to be up-to-date during the turns of other civs,
 		in particular the humans that could propose peace at any point of their
 		turns.
@@ -3612,7 +3611,7 @@ void TacticalSituation::evalEngagement() {
 				ourMissions += groupSize + gr->getCargo() - pairs;
 		}
 	}
-	if(ourMissions > 0 && agent.warAndPeaceAI().isPushover(TEAMID(theyId))) {
+	if(ourMissions > 0 && agent.uwai().isPushover(TEAMID(theyId))) {
 		/*  If the target is weak, even a small fraction of our military en route
 			could have a big impact once it arrives. */
 		ourMissions *= 1.5;
@@ -3761,13 +3760,13 @@ void TacticalSituation::evalOperational() {
 	if(!params.isImmediateDoW()) {
 		if(params.isTotal()) {
 			if(params.isNaval())
-				initialPrepTime = WarAndPeaceAI::preparationTimeTotalNaval;
-			else initialPrepTime = WarAndPeaceAI::preparationTimeTotal;
+				initialPrepTime = UWAI::preparationTimeTotalNaval;
+			else initialPrepTime = UWAI::preparationTimeTotal;
 		}
 		else {
 			if(params.isNaval())
-				initialPrepTime = WarAndPeaceAI::preparationTimeLimitedNaval;
-			else initialPrepTime = WarAndPeaceAI::preparationTimeLimited;
+				initialPrepTime = UWAI::preparationTimeLimitedNaval;
+			else initialPrepTime = UWAI::preparationTimeLimited;
 		}
 	}
 	FAssert(initialPrepTime >= 0);

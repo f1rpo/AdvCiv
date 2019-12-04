@@ -144,8 +144,6 @@ protected:
 		FAssert(eRELATION == ANY_AGENT_RELATION || (eTeam > NO_TEAM && eTeam < MAX_TEAMS));
 		if (bAPPLY_FILTERS)
 		{
-			/*  (This if/else and the one below could be avoided by laying out all caches
-				sequentially so that there is only one get...Cache function) */
 			if (eCACHE_SUPER < CvAgents::NUM_STATUS_CACHES)
 				m_pCache = m_pAgents->getAgentSeqCache<AgentType>(eCACHE_SUPER);
 			else m_pCache = m_pAgents->getPerTeamSeqCache<AgentType>(eCACHE_SUPER, eTeam);
@@ -265,7 +263,6 @@ private:
 #undef bADD_BARBARIANS
 #undef _bADD_BARBARIANS
 
-// For lack of C++11 alias declarations:
 
 template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
 		bool bSYNCRAND_ORDER = false>
@@ -290,7 +287,7 @@ public:
 	explicit TeamIter(TeamTypes eTeam = NO_TEAM) :
 		AgentIterator<CvTeamAI,eSTATUS,eRELATION,bSYNCRAND_ORDER>(eTeam)
 	{
-		// Can't loop over all "teams that are member of eTeam"
+		// Can't loop over all "teams that are members of eTeam"
 		BOOST_STATIC_ASSERT(eRELATION != MEMBER_OF);
 	}
 	__forceinline TeamIter& operator++()

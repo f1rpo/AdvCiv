@@ -94,10 +94,10 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 {
 	PROFILE_FUNC();
 
-	FASSERT_BOUNDS(0, map_width , x1, "GeneratePath");
-	FASSERT_BOUNDS(0, map_height, y1, "GeneratePath");
-	FASSERT_BOUNDS(0, map_width , x2, "GeneratePath");
-	FASSERT_BOUNDS(0, map_height, y2, "GeneratePath");
+	FAssertBounds(0, map_width , x1);
+	FAssertBounds(0, map_height, y1);
+	FAssertBounds(0, map_width , x2);
+	FAssertBounds(0, map_height, y2);
 
 	end_node = NULL;
 
@@ -280,8 +280,8 @@ void KmodPathFinder::Reset()
 
 void KmodPathFinder::AddStartNode()
 {
-	FASSERT_BOUNDS(0, map_width , start_x, "KmodPathFinder::AddStartNode");
-	FASSERT_BOUNDS(0, map_height, start_y, "KmodPathFinder::AddStartNode");
+	FAssertBounds(0, map_width , start_x);
+	FAssertBounds(0, map_height, start_y);
 
 	// add initial node.
 	FAStarNode* start_node = &GetNode(start_x, start_y);

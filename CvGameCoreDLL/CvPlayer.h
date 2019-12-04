@@ -41,7 +41,7 @@ public:
 	// <advc.003u>
 	static inline CvPlayer& getPlayer(PlayerTypes ePlayer)
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayer::getPlayer(PlayerTypes)");
+		FAssertBounds(0, MAX_PLAYERS, ePlayer);
 		// Needs to be inline and I don't want to include CvPlayerAI.h here
 		return *reinterpret_cast<CvPlayer*>(m_aPlayers[ePlayer]);
 	}
@@ -740,6 +740,7 @@ public:
 	uint getTotalTimePlayed() const;																																// Exposed to Python
 
 	bool isMinorCiv() const;																																									// Exposed to Python
+	bool isMajorCiv() const { return (!isBarbarian() && !isMinorCiv()); } // advc
 
 	DllExport bool isAlive() const { return m_bAlive; } // advc.inl																																	// Exposed to Python
 	bool isEverAlive() const { return m_bEverAlive; }; // advc.inl																															// Exposed to Python

@@ -109,7 +109,7 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvLeaderHeadInfo : public CvInfoBase
 {
-friend class WarAndPeaceAI; // advc.104x (for applyPersonalityWeight)
+friend class UWAI; // advc.104x (for applyPersonalityWeight)
 public: // advc: All the const functions are exposed to Python except those added by mods
 	CvLeaderHeadInfo();
 	~CvLeaderHeadInfo();

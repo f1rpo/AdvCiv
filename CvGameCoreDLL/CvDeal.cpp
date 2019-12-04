@@ -4,7 +4,7 @@
 #include "CvDeal.h"
 #include "CvDealList.h" // advc.003s
 #include "CvAI.h"
-#include "WarAndPeaceAgent.h" // advc.104
+#include "UWAIAgent.h" // advc.104
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
 #include "CvInfo_Civics.h"
@@ -216,8 +216,8 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	if(bUpdateAttitude) // advc.opt: Don't update unnecessarily
 	{
 		// K-Mod
-		GET_PLAYER(getFirstPlayer()).AI_updateAttitudeCache(getSecondPlayer());
-		GET_PLAYER(getSecondPlayer()).AI_updateAttitudeCache(getFirstPlayer());
+		GET_PLAYER(getFirstPlayer()).AI_updateAttitude(getSecondPlayer());
+		GET_PLAYER(getSecondPlayer()).AI_updateAttitude(getFirstPlayer());
 		// K-Mod end
 	}
 
@@ -241,7 +241,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 			// <advc.104> Allow UWAI to record the value of the sponsorship
 			if(pNode->m_data.m_eItemType == TRADE_WAR)
 			{
-				GET_PLAYER(getFirstPlayer()).warAndPeaceAI().getCache().
+				GET_PLAYER(getFirstPlayer()).uwai().getCache().
 						reportSponsoredWar(kSecondList, getSecondPlayer(),
 						(TeamTypes)pNode->m_data.m_iData);
 			} // </advc.104>
@@ -264,7 +264,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 			// <advc.104> As above
 			if(pNode->m_data.m_eItemType == TRADE_WAR)
 			{
-				GET_PLAYER(getSecondPlayer()).warAndPeaceAI().getCache().
+				GET_PLAYER(getSecondPlayer()).uwai().getCache().
 						reportSponsoredWar(kFirstList, getFirstPlayer(),
 						(TeamTypes)pNode->m_data.m_iData);
 			} // </advc.104>
@@ -1101,8 +1101,8 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		return; // </advc.036>
 	// <advc.133> (I think this is needed even w/o change 133 canceling more deals)
 	if(!bTeamTradeEnded)
-		GET_PLAYER(eFromPlayer).AI_updateAttitudeCache(eToPlayer);
-	else GET_TEAM(eFromPlayer).AI_updateAttitudeCache(TEAMID(eToPlayer));
+		GET_PLAYER(eFromPlayer).AI_updateAttitude(eToPlayer);
+	else GET_TEAM(eFromPlayer).AI_updateAttitude(TEAMID(eToPlayer));
 	// </advc.133>
 }
 

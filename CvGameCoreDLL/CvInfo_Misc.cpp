@@ -1371,46 +1371,46 @@ int CvDiplomacyTextInfo::getNumResponses() const
 
 bool CvDiplomacyTextInfo::getCivilizationTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyTextInfo::getCivilizationTypes");
-	FASSERT_BOUNDS(0, GC.getNumCivilizationInfos(), j, "CvDiplomacyTextInfo::getCivilizationTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, GC.getNumCivilizationInfos(), j);
 	return (m_pResponses[i].m_pbCivilizationTypes[j] == NULL ? false : // advc.003t
 			m_pResponses[i].m_pbCivilizationTypes[j]);
 }
 
 bool CvDiplomacyTextInfo::getLeaderHeadTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyTextInfo::getLeaderHeadTypes");
-	FASSERT_BOUNDS(0, GC.getNumLeaderHeadInfos(), j, "CvDiplomacyTextInfo::getLeaderHeadTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, GC.getNumLeaderHeadInfos(), j);
 	return (m_pResponses[i].m_pbLeaderHeadTypes[j] == NULL ? false : // advc.003t
 			m_pResponses[i].m_pbLeaderHeadTypes[j]);
 }
 
 bool CvDiplomacyTextInfo::getAttitudeTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyTextInfo::getAttitudeTypes");
-	FASSERT_BOUNDS(0, NUM_ATTITUDE_TYPES, j, "CvDiplomacyTextInfo::getAttitudeTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, NUM_ATTITUDE_TYPES, j);
 	return (m_pResponses[i].m_pbAttitudeTypes[j] == NULL ? false : // advc.003t
 			m_pResponses[i].m_pbAttitudeTypes[j]);
 }
 
 bool CvDiplomacyTextInfo::getDiplomacyPowerTypes(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyTextInfo::getDiplomacyPowerTypes");
-	FASSERT_BOUNDS(0, NUM_DIPLOMACYPOWER_TYPES, j, "CvDiplomacyTextInfo::getDiplomacyPowerTypes");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, NUM_DIPLOMACYPOWER_TYPES, j);
 	return (m_pResponses[i].m_pbDiplomacyPowerTypes[j] == NULL ? false : // advc.003t
 			m_pResponses[i].m_pbDiplomacyPowerTypes[j]);
 }
 
 int CvDiplomacyTextInfo::getNumDiplomacyText(int i) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyTextInfo::getNumDiplomacyText");
+	FAssertBounds(0, getNumResponses(), i);
 	return m_pResponses[i].m_iNumDiplomacyText;
 }
 
 const TCHAR* CvDiplomacyTextInfo::getDiplomacyText(int i, int j) const
 {
-	FASSERT_BOUNDS(0, getNumResponses(), i, "CvDiplomacyTextInfo::getDiplomacyText");
-	FASSERT_BOUNDS(0, getNumDiplomacyText(i), j, "CvDiplomacyTextInfo::getDiplomacyText");
+	FAssertBounds(0, getNumResponses(), i);
+	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i].m_paszDiplomacyText[j];
 }
 #if SERIALIZE_CVINFOS

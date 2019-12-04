@@ -23,7 +23,7 @@ int CvProcessInfo::getTechPrereq() const
 
 int CvProcessInfo::getProductionToCommerceModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvProcessInfo::getProductionToCommerceModifier");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_paiProductionToCommerceModifier ? m_paiProductionToCommerceModifier[i] : 0; // advc.003t
 }
 
@@ -96,7 +96,7 @@ int CvSpecialistInfo::getExperience() const
 
 int CvSpecialistInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvSpecialistInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
@@ -107,13 +107,13 @@ const int* CvSpecialistInfo::getYieldChangeArray() const
 
 int CvSpecialistInfo::getCommerceChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvSpecialistInfo::getCommerceChange");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceChange ? m_piCommerceChange[i] : 0; // advc.003t
 }
 
 int CvSpecialistInfo::getFlavorValue(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvSpecialistInfo::getFlavorValue");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
@@ -182,7 +182,7 @@ int CvCultureLevelInfo::getCityDefenseModifier() const
 
 int CvCultureLevelInfo::getSpeedThreshold(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumGameSpeedInfos(), i, "CvCultureLevelInfo::getSpeedThreshold");
+	FAssertBounds(0, GC.getNumGameSpeedInfos(), i);
 	return (m_paiSpeedThreshold != NULL ? m_paiSpeedThreshold[i] : 0); // advc.003t
 }
 
@@ -222,13 +222,13 @@ bool CvEmphasizeInfo::isGreatPeople() const
 
 int CvEmphasizeInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvCultureLevelInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldModifiers ? m_piYieldModifiers[i] : 0; // advc.003t
 }
 
 int CvEmphasizeInfo::getCommerceChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvCultureLevelInfo::getCommerceChange");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piCommerceModifiers ? m_piCommerceModifiers[i] : 0; // advc.003t
 }
 

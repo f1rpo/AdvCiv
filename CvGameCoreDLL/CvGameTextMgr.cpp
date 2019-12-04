@@ -5325,7 +5325,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					/*  advc.001n: Only relevant for the K-Mod war AI, and I'm not totally sure that
 						CvTeamAI::AI_startWarVal is safe for networked games
 						(despite the bConstCache param that I've added). */
-						if(!getWPAI.isEnabled())
+						if(!getUWAI.isEnabled())
 						{
 							if(GET_TEAM(kPlayer.getTeam()).isHasMet(kLoopPlayer.getTeam()) &&
 									GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam()) != ATTITUDE_FRIENDLY)
@@ -16237,7 +16237,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	{
 		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date "
 				"(OK after loading a save created prior to v0.95 or Alt+Z)");
-		kPlayer.AI_updateAttitudeCache(eTargetPlayer, true);
+		kPlayer.AI_updateAttitude(eTargetPlayer, true);
 		// Try again, this time without recursion. szBuffer hasn't been changed yet.
 		getAttitudeString(szBuffer, ePlayer, eTargetPlayer, true);
 		return;

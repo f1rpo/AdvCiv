@@ -8,7 +8,7 @@
 
 class InvasionGraph;
 class WarEvalParameters;
-class WarAndPeaceReport;
+class UWAIReport;
 class InvasionGraph;
 
 
@@ -50,17 +50,17 @@ public:
 	// Production invested in military build-up
 	double militaryProduction(PlayerTypes civId) const;
 	TeamSet const& getCapitulationsAccepted(TeamTypes masterId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, masterId, "MilitaryAnalyst::getCapitulationsAccepted");
+		FAssertBounds(0, MAX_CIV_TEAMS, masterId);
 		return capitulationsAcceptedPerTeam[masterId];
 	}
 	double getNukedCities(PlayerTypes byId, PlayerTypes ownerId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, byId, "MilitaryAnalyst::getNukedCities");
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, ownerId, "MilitaryAnalyst::getNukedCities");
+		FAssertBounds(0, MAX_CIV_PLAYERS, byId);
+		FAssertBounds(0, MAX_CIV_PLAYERS, ownerId);
 		return nukedCities[byId][ownerId];
 	}
 	bool isWar(PlayerTypes p1, PlayerTypes p2) const { // By the end of the simulation
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, p1, "MilitaryAnalyst::isWar");
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, p2, "MilitaryAnalyst::isWar");
+		FAssertBounds(0, MAX_CIV_PLAYERS, p1);
+		FAssertBounds(0, MAX_CIV_PLAYERS, p2);
 		return warTable[p1][p2];
 	}
 	// (there's another public section below)
@@ -81,7 +81,7 @@ private:
 	PlayerTypes weId;
 	WarEvalParameters& warEvalParams;
 	TeamTypes theyId;
-	WarAndPeaceReport& report;
+	UWAIReport& report;
 	bool peaceScenario;
 
 	InvasionGraph* ig;
@@ -132,12 +132,12 @@ private:
 
 public:
 	CitySet const& lostCities(PlayerTypes oldOwnerId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, oldOwnerId, "MilitaryAnalyst::lostCities");
+		FAssertBounds(0, MAX_CIV_PLAYERS, oldOwnerId);
 		PlayerResult* r = playerResults[oldOwnerId];
 		return (r == NULL ? emptyCitySet : r->getLostCities());
 	}
 	CitySet const& conqueredCities(PlayerTypes newOwnerId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, newOwnerId, "MilitaryAnalyst::conqueredCities");
+		FAssertBounds(0, MAX_CIV_PLAYERS, newOwnerId);
 		PlayerResult* r = playerResults[newOwnerId];
 		return (r == NULL ? emptyCitySet : r->getConqueredCities());
 	}
@@ -145,18 +145,18 @@ public:
 	/*  Only for the war scenario. No DoW are anticipated in the peace scenario;
 		will return false then. */
 	PlyrSet const& getWarsDeclaredBy(PlayerTypes aggressorId) const {
-		 FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, aggressorId, "MilitaryAnalyst::getWarsDeclaredBy");
+		 FAssertBounds(0, MAX_CIV_PLAYERS, aggressorId);
 		 PlayerResult* r = playerResults[aggressorId];
 		 return (r == NULL ? emptyPlayerSet : r->getDoWBy());
 	}
 	PlyrSet const& getWarsDeclaredOn(PlayerTypes targetId) const {
-		 FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, targetId, "MilitaryAnalyst::getWarsDeclaredOn");
+		 FAssertBounds(0, MAX_CIV_PLAYERS, targetId);
 		 PlayerResult* r = playerResults[targetId];
 		 return (r == NULL ? emptyPlayerSet : r->getDoWOn());
 	}
 	// Empty unless considering peace
 	PlyrSet const& getWarsContinued(PlayerTypes civId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::getWarsContinued");
+		FAssertBounds(0, MAX_CIV_PLAYERS, civId);
 		PlayerResult* r = playerResults[civId];
 		return (r == NULL ? emptyPlayerSet : r->getWarsContinued());
 	}
@@ -169,12 +169,12 @@ public:
 	}
 	// Only those that aren't expected to be intercepted. Fired by someone (shouldn't matter who).
 	double getNukesSufferedBy(PlayerTypes civId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::getNukesSufferedBy");
+		FAssertBounds(0, MAX_CIV_PLAYERS, civId);
 		PlayerResult* r = playerResults[civId];
 		return (r == NULL ? 0.0 : r->getNukesSuffered());
 	}
 	double getNukesFiredBy(PlayerTypes civId) const {
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::getNukesFiredBy");
+		FAssertBounds(0, MAX_CIV_PLAYERS, civId);
 		PlayerResult* r = playerResults[civId];
 		return (r == NULL ? 0.0 : r->getNukesFired());
 	}

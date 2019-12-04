@@ -1149,8 +1149,8 @@ void CyGame::addPlayer(int eNewPlayer, int eLeader, int eCiv)
 		m_pGame->addPlayer((PlayerTypes)eNewPlayer, (LeaderHeadTypes)eLeader, (CivilizationTypes)eCiv);
 		/*  <advc.104r> Only relevant for mod-mods (e.g. Barbarian Civ, PlatyBuilder).
 			Colonial vassals are handled by CvPlayer::splitEmpire instead. */
-		if(getWPAI.isEnabled())
-			getWPAI.processNewCivInGame((PlayerTypes)eNewPlayer); // </advc.104r>
+		if(getUWAI.isEnabled())
+			getUWAI.processNewCivInGame((PlayerTypes)eNewPlayer); // </advc.104r>
 	}
 }
 
@@ -1237,7 +1237,7 @@ bool CyGame::useKModAI()
 {
 	if(m_pGame == NULL)
 		return false;
-	return !getWPAI.isEnabled();
+	return !getUWAI.isEnabled();
 } // </advc.104>
 // <advc.300>
 int CyGame::getBarbarianStartTurn()

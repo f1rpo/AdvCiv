@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "InvasionGraph.h"
 #include "CvAI.h"
 #include "CvInfo_GameOption.h"
@@ -41,7 +41,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		PlayerTypes civId = it->getID();
 		/*  Civs already at war (not necessarily with us).
 			If we are at war, our vassals are covered here as well. */
-		if(GET_TEAM(civId).warAndPeaceAI().isKnownToBeAtWar(agent.getID()))
+		if(GET_TEAM(civId).uwai().isKnownToBeAtWar(agent.getID()))
 			currentlyAtWar.insert(civId);
 		TeamTypes masterTeamId = GET_PLAYER(civId).getMasterTeam();
 		if(masterTeamId == GET_PLAYER(weId).getMasterTeam())
@@ -65,7 +65,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 				// Can happen b/c of the dlph.3 change
 				if(agent.isAtWar(ally.getTeam()))
 					continue;
-				if(GET_TEAM(civId).warAndPeaceAI().hasDefactoDefensivePact(ally.getTeam()))
+				if(GET_TEAM(civId).uwai().hasDefactoDefensivePact(ally.getTeam()))
 					ourFutureOpponents.insert(ally.getID());
 			}
 		}
@@ -212,7 +212,7 @@ MilitaryAnalyst::PlayerResult& MilitaryAnalyst::playerResult(PlayerTypes civId) 
 		a PlayerResult and that memory needs to be allocated dynamically. Based on a test,
 		this is still faster than creating a PlayerResult for every player upfront and
 		accessing the empty sets of the dummy entries. */
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::playerResult");
+	FAssertBounds(0, MAX_CIV_PLAYERS, civId);
 	if(playerResults[civId] == NULL)
 		playerResults[civId] = new PlayerResult();
 	return *playerResults[civId];
@@ -255,7 +255,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 	if(isEliminated(weId) || we.getNumCities() <= 0)
 		return; // Who cares then
 	CvTeamAI const& agent = GET_TEAM(weId);
-	WarAndPeaceCache const& ourCache = we.warAndPeaceAI().getCache();
+	UWAICache const& ourCache = we.uwai().getCache();
 	/*  Counts the number of nukes. Assume no further build-up of nukes throughout
 		the military analysis. (They take long to build.) */
 	double ourNukes = ourCache.getPowerValues()[NUCLEAR]->num();
@@ -268,7 +268,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		CvPlayerAI const& enemy = *enemyIt;
 		if(!isWar(weId, enemy.getID()))
 			continue;
-		double enemyNukes = enemy.warAndPeaceAI().getCache().
+		double enemyNukes = enemy.uwai().getCache().
 				getPowerValues()[NUCLEAR]->num();
 		if(ourNukes + enemyNukes < 0.5)
 			return;
@@ -359,19 +359,19 @@ void MilitaryAnalyst::prepareResults() {
 	}
 	// Predict scores as current game score modified based on gained/ lost population
 	CvGame& g = GC.getGame();
-	WarAndPeaceCache const& ourCache = GET_PLAYER(weId).warAndPeaceAI().getCache();
+	UWAICache const& ourCache = GET_PLAYER(weId).uwai().getCache();
 	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
 		PlayerTypes civId = it->getID();
 		double popIncr = 0;
 		CitySet const& conq = conqueredCities(civId);
 		for(CitySetIter it = conq.begin(); it != conq.end(); it++) {
-			WarAndPeaceCache::City* c = ourCache.lookupCity(*it);
+			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
 			popIncr += c->city()->getPopulation();
 		}
 		CitySet const& lost = lostCities(civId);
 		for(CitySetIter it = lost.begin(); it != lost.end(); it++) {
-			WarAndPeaceCache::City* c = ourCache.lookupCity(*it);
+			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
 			popIncr -= c->city()->getPopulation();
 		}
@@ -396,7 +396,7 @@ void MilitaryAnalyst::prepareResults() {
 
 double MilitaryAnalyst::predictedGameScore(PlayerTypes civId) const {
 
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, civId, "MilitaryAnalyst::predictedGameScore");
+	FAssertBounds(0, MAX_CIV_PLAYERS, civId);
 	PlayerResult* r = playerResults[civId];
 	return (r == NULL || r->getGameScore() < 0 ?
 			GC.getGame().getPlayerScore(civId) : r->getGameScore());
@@ -490,7 +490,7 @@ void MilitaryAnalyst::logCities(PlayerTypes civId, bool conquests) {
 		return;
 	report.log("Cities %s:", conquests ? "conquered" : "lost");
 	for(CitySetIter it = cities.begin(); it != cities.end(); it++) {
-		CvCity* c = WarAndPeaceCache::City::cityById(*it);
+		CvCity* c = UWAICache::City::cityById(*it);
 		if(c != NULL)
 			report.log("%s", report.cityName(*c));
 	}

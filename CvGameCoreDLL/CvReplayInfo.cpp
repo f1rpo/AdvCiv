@@ -314,7 +314,7 @@ void CvReplayInfo::addSettingsMsg()
 		if(eOption == GAMEOPTION_ADVANCED_START || eOption == GAMEOPTION_SPAH ||
 				!g.isOption(eOption) ||
 				// advc.104:
-				(eOption == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
+				(eOption == GAMEOPTION_AGGRESSIVE_AI && getUWAI.isEnabled()))
 			continue;
 		iOptions++;
 		szSettings += GC.getInfo(eOption).getDescription();

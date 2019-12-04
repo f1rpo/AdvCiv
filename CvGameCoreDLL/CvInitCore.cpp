@@ -243,7 +243,7 @@ bool CvInitCore::getPbem() const
 
 bool CvInitCore::getSlotVacant(PlayerTypes eID) const
 {
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eID, "CvInitCore::getSlotVacant");
+	FAssertBounds(0, MAX_CIV_PLAYERS, eID);
 
 	bool bRetVal = false;
 
@@ -298,8 +298,8 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 {
 	if (!checkBounds(eOldID, 0, MAX_CIV_PLAYERS) || !checkBounds(eNewID, 0, MAX_CIV_PLAYERS))
 	{
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eOldID, "CvInitCore::reassignPlayer (eOldID)");
-		FASSERT_BOUNDS(0, MAX_CIV_PLAYERS, eNewID, "CvInitCore::reassignPlayer (eNewID)");
+		FAssertBounds(0, MAX_CIV_PLAYERS, eOldID);
+		FAssertBounds(0, MAX_CIV_PLAYERS, eNewID);
 		return; // advc
 	}
 	// *** SAVE TARGET SLOT DETAILS TEMPORARILY
@@ -626,7 +626,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 {
 	if (!checkBounds(eID, 0, MAX_PLAYERS))
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::resetPlayer");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		return;
 	}
 
@@ -677,7 +677,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear, bool bSaveSlotInfo)
 {
 	FAssertMsg(pSource, "Passed null pointer to CvInitCore::resetPlayer");
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::resetPlayer");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 
 	FAssertMsg(!bClear || !bSaveSlotInfo, "Should not be clearing data while trying to preserve slot info in CvInitCore::resetPlayer");
 
@@ -1007,7 +1007,7 @@ void CvInitCore::setCustomMapOptions(int iNumCustomMapOptions, const CustomMapOp
 
 CustomMapOptionTypes CvInitCore::getCustomMapOption(int iOptionID) const
 {
-	FASSERT_BOUNDS(0, m_iNumCustomMapOptions, iOptionID, "CvInitCore::getCustomMapOptions");
+	FAssertBounds(0, m_iNumCustomMapOptions, iOptionID);
 	if ( checkBounds(iOptionID, 0, m_iNumCustomMapOptions) )
 	{
 		return m_aeCustomMapOptions[iOptionID];
@@ -1020,7 +1020,7 @@ CustomMapOptionTypes CvInitCore::getCustomMapOption(int iOptionID) const
 
 void CvInitCore::setCustomMapOption(int iOptionID, CustomMapOptionTypes eCustomMapOption)
 {
-	FASSERT_BOUNDS(0, m_iNumCustomMapOptions, iOptionID, "CvInitCore::setCustomMapOption");
+	FAssertBounds(0, m_iNumCustomMapOptions, iOptionID);
 	if ( checkBounds(iOptionID, 0, m_iNumCustomMapOptions) )
 	{
 		m_aeCustomMapOptions[iOptionID] = eCustomMapOption;
@@ -1046,7 +1046,7 @@ void CvInitCore::setVictories(int iNumVictories, const bool * abVictories)
 
 bool CvInitCore::getVictory(VictoryTypes eVictoryID) const
 {
-	FASSERT_BOUNDS(0, m_iNumVictories, eVictoryID, "CvInitCore::getVictory");
+	FAssertBounds(0, m_iNumVictories, eVictoryID);
 	if ( checkBounds(eVictoryID, 0, m_iNumVictories) )
 	{
 		return m_abVictories[eVictoryID];
@@ -1059,7 +1059,7 @@ bool CvInitCore::getVictory(VictoryTypes eVictoryID) const
 
 void CvInitCore::setVictory(VictoryTypes eVictoryID, bool bVictory)
 {
-	FASSERT_BOUNDS(0, m_iNumVictories, eVictoryID, "CvInitCore::setVictory");
+	FAssertBounds(0, m_iNumVictories, eVictoryID);
 	if ( checkBounds(eVictoryID, 0, m_iNumVictories) )
 	{
 		m_abVictories[eVictoryID] = bVictory;
@@ -1069,7 +1069,7 @@ void CvInitCore::setVictory(VictoryTypes eVictoryID, bool bVictory)
 
 bool CvInitCore::getOption(GameOptionTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eIndex, "CvInitCore::getOption");
+	FAssertBounds(0, NUM_GAMEOPTION_TYPES, eIndex);
 	if ( checkBounds(eIndex, 0, NUM_GAMEOPTION_TYPES) )
 	{
 		return m_abOptions[eIndex];
@@ -1082,7 +1082,7 @@ bool CvInitCore::getOption(GameOptionTypes eIndex) const
 
 void CvInitCore::setOption(GameOptionTypes eIndex, bool bOption)
 {
-	FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eIndex, "CvInitCore::setOption");
+	FAssertBounds(0, NUM_GAMEOPTION_TYPES, eIndex);
 	if ( checkBounds(eIndex, 0, NUM_GAMEOPTION_TYPES) )
 	{
 		m_abOptions[eIndex] = bOption;
@@ -1091,7 +1091,7 @@ void CvInitCore::setOption(GameOptionTypes eIndex, bool bOption)
 
 bool CvInitCore::getMPOption(MultiplayerOptionTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, NUM_MPOPTION_TYPES, eIndex, "CvInitCore::getMPOption");
+	FAssertBounds(0, NUM_MPOPTION_TYPES, eIndex);
 	if ( checkBounds(eIndex, 0, NUM_MPOPTION_TYPES) )
 	{
 		return m_abMPOptions[eIndex];
@@ -1104,7 +1104,7 @@ bool CvInitCore::getMPOption(MultiplayerOptionTypes eIndex) const
 
 void CvInitCore::setMPOption(MultiplayerOptionTypes eIndex, bool bOption)
 {
-	FASSERT_BOUNDS(0, NUM_MPOPTION_TYPES, eIndex, "CvInitCore::setMPOption");
+	FAssertBounds(0, NUM_MPOPTION_TYPES, eIndex);
 	if ( checkBounds(eIndex, 0, NUM_MPOPTION_TYPES) )
 	{
 		m_abMPOptions[eIndex] = bOption;
@@ -1113,7 +1113,7 @@ void CvInitCore::setMPOption(MultiplayerOptionTypes eIndex, bool bOption)
 
 bool CvInitCore::getForceControl(ForceControlTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, NUM_FORCECONTROL_TYPES, eIndex, "CvInitCore::getForceControl");
+	FAssertBounds(0, NUM_FORCECONTROL_TYPES, eIndex);
 	if ( checkBounds(eIndex, 0, NUM_FORCECONTROL_TYPES) )
 	{
 		return m_abForceControls[eIndex];
@@ -1126,7 +1126,7 @@ bool CvInitCore::getForceControl(ForceControlTypes eIndex) const
 
 void CvInitCore::setForceControl(ForceControlTypes eIndex, bool bOption)
 {
-	FASSERT_BOUNDS(0, NUM_FORCECONTROL_TYPES, eIndex, "CvInitCore::setForceControl");
+	FAssertBounds(0, NUM_FORCECONTROL_TYPES, eIndex);
 	if ( checkBounds(eIndex, 0, NUM_FORCECONTROL_TYPES) )
 	{
 		m_abForceControls[eIndex] = bOption;
@@ -1224,7 +1224,7 @@ const CvWString & CvInitCore::getLeaderName(PlayerTypes eID, uint uiForm) const
 		m_szTemp = gDLL->getObjectText(CvString(m_aszLeaderName[eID]).GetCString(), uiForm, true);
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getLeaderName");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		m_szTemp.clear();
 	}
 	return m_szTemp;
@@ -1238,7 +1238,7 @@ void CvInitCore::setLeaderName(PlayerTypes eID, const CvWString & szLeaderName)
 		gDLL->stripSpecialCharacters(szName);
 		m_aszLeaderName[eID] = szName;
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setLeaderName");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 	// advc.001m:
 	gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 }
@@ -1248,7 +1248,7 @@ const CvWString & CvInitCore::getLeaderNameKey(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszLeaderName[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getLeaderNameKey");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTemp.clear();
 	return m_szTemp;
 }
@@ -1259,7 +1259,7 @@ const CvWString & CvInitCore::getCivDescription(PlayerTypes eID, uint uiForm) co
 		m_szTemp = gDLL->getObjectText(CvString(m_aszCivDescription[eID]).GetCString(), uiForm, true);
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivDescription");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		m_szTemp.clear();
 	}
 	return m_szTemp;
@@ -1273,7 +1273,7 @@ void CvInitCore::setCivDescription(PlayerTypes eID, const CvWString & szCivDescr
 		gDLL->stripSpecialCharacters(szName);
 		m_aszCivDescription[eID] = szName;
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setCivDescription");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvWString & CvInitCore::getCivDescriptionKey(PlayerTypes eID) const
@@ -1281,7 +1281,7 @@ const CvWString & CvInitCore::getCivDescriptionKey(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszCivDescription[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivDescriptionKey");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTemp.clear();
 	return m_szTemp;
 }
@@ -1295,7 +1295,7 @@ const CvWString & CvInitCore::getCivShortDesc(PlayerTypes eID, uint uiForm) cons
 	}
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivShortDesc");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		m_szTemp.clear();
 	}
 	return m_szTemp;
@@ -1309,7 +1309,7 @@ void CvInitCore::setCivShortDesc(PlayerTypes eID, const CvWString & szCivShortDe
 		gDLL->stripSpecialCharacters(szName);
 		m_aszCivShortDesc[eID] = szName;
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setCivShortDesc");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvWString & CvInitCore::getCivShortDescKey(PlayerTypes eID) const
@@ -1317,7 +1317,7 @@ const CvWString & CvInitCore::getCivShortDescKey(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszCivShortDesc[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivShortDescKey");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTemp.clear();
 	return m_szTemp;
 }
@@ -1331,7 +1331,7 @@ const CvWString & CvInitCore::getCivAdjective(PlayerTypes eID, uint uiForm) cons
 	}
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivAdjective");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		m_szTemp.clear();
 	}
 	return m_szTemp;
@@ -1345,7 +1345,7 @@ void CvInitCore::setCivAdjective(PlayerTypes eID, const CvWString & szCivAdjecti
 		gDLL->stripSpecialCharacters(szName);
 		m_aszCivAdjective[eID] = szName;
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setCivAdjective");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvWString & CvInitCore::getCivAdjectiveKey(PlayerTypes eID) const
@@ -1353,7 +1353,7 @@ const CvWString & CvInitCore::getCivAdjectiveKey(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszCivAdjective[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivAdjectiveKey");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTemp.clear();
 	return m_szTemp;
 }
@@ -1363,7 +1363,7 @@ const CvWString & CvInitCore::getCivPassword(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszCivPassword[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCivPassword");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTemp.clear();
 	return m_szTemp;
 }
@@ -1380,7 +1380,7 @@ void CvInitCore::setCivPassword(PlayerTypes eID, const CvWString & szCivPassword
 					CvString(szCivPassword).GetCString()));
 		}
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setCivPassword");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 
@@ -1389,7 +1389,7 @@ const CvString & CvInitCore::getEmail(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszEmail[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getEmail");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTempA.clear();
 	return m_szTempA;
 }
@@ -1398,7 +1398,7 @@ void CvInitCore::setEmail(PlayerTypes eID, const CvString & szEmail)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aszEmail[eID] = szEmail;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setEmail");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvString & CvInitCore::getSmtpHost(PlayerTypes eID) const
@@ -1406,7 +1406,7 @@ const CvString & CvInitCore::getSmtpHost(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszSmtpHost[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getSmtpHost");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTempA.clear();
 	return m_szTempA;
 }
@@ -1415,7 +1415,7 @@ void CvInitCore::setSmtpHost(PlayerTypes eID, const CvString & szHost)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aszSmtpHost[eID] = szHost;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setSmtpHost");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 
@@ -1424,7 +1424,7 @@ bool CvInitCore::getWhiteFlag(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_abWhiteFlag[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getWhiteFlag");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return false;
 }
 
@@ -1432,7 +1432,7 @@ void CvInitCore::setWhiteFlag(PlayerTypes eID, bool bWhiteFlag)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_abWhiteFlag[eID] = bWhiteFlag;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setWhiteFlag");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvWString & CvInitCore::getFlagDecal(PlayerTypes eID) const
@@ -1440,7 +1440,7 @@ const CvWString & CvInitCore::getFlagDecal(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aszFlagDecal[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getFlagDecal");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_szTemp.clear();
 	return m_szTemp;
 }
@@ -1449,7 +1449,7 @@ void CvInitCore::setFlagDecal(PlayerTypes eID, const CvWString & szFlagDecal)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aszFlagDecal[eID] = szFlagDecal;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setFlagDecal");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 
@@ -1457,7 +1457,7 @@ CivilizationTypes CvInitCore::getCiv(PlayerTypes eID) const
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeCiv[eID];
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getCiv");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return NO_CIVILIZATION;
 }
 
@@ -1473,7 +1473,7 @@ void CvInitCore::setCiv(PlayerTypes eID, CivilizationTypes eCiv)
 			GET_PLAYER(eID).setCivilization(eCiv); // advc.003w
 		}
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setCiv");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 LeaderHeadTypes CvInitCore::getLeader(PlayerTypes eID) const
@@ -1481,7 +1481,7 @@ LeaderHeadTypes CvInitCore::getLeader(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeLeader[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getLeader");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return NO_LEADER;
 }
 
@@ -1489,7 +1489,7 @@ void CvInitCore::setLeader(PlayerTypes eID, LeaderHeadTypes eLeader)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aeLeader[eID] = eLeader;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setLeader");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 TeamTypes CvInitCore::getTeam(PlayerTypes eID) const
@@ -1497,7 +1497,7 @@ TeamTypes CvInitCore::getTeam(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeTeam[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getTeam");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return NO_TEAM;
 }
 
@@ -1512,7 +1512,7 @@ void CvInitCore::setTeam(PlayerTypes eID, TeamTypes eTeam)
 				GET_PLAYER(eID).updateTeamType();
 		}
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setTeam");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 HandicapTypes CvInitCore::getHandicap(PlayerTypes eID) const
@@ -1520,7 +1520,7 @@ HandicapTypes CvInitCore::getHandicap(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeHandicap[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getHandicap");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return NO_HANDICAP;
 }
 
@@ -1528,7 +1528,7 @@ void CvInitCore::setHandicap(PlayerTypes eID, HandicapTypes eHandicap)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aeHandicap[eID] = eHandicap;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setHandicap");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 PlayerColorTypes CvInitCore::getColor(PlayerTypes eID) const
@@ -1536,7 +1536,7 @@ PlayerColorTypes CvInitCore::getColor(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeColor[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getColor");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return NO_PLAYERCOLOR;
 }
 
@@ -1544,7 +1544,7 @@ void CvInitCore::setColor(PlayerTypes eID, PlayerColorTypes eColor)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aeColor[eID] = eColor;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setColor");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 ArtStyleTypes CvInitCore::getArtStyle(PlayerTypes eID) const
@@ -1552,7 +1552,7 @@ ArtStyleTypes CvInitCore::getArtStyle(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeArtStyle[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getArtStyle");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return NO_ARTSTYLE;
 }
 
@@ -1560,7 +1560,7 @@ void CvInitCore::setArtStyle(PlayerTypes eID, ArtStyleTypes eArtStyle)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aeArtStyle[eID] = eArtStyle;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setArtStyle");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 
@@ -1569,7 +1569,7 @@ SlotStatus CvInitCore::getSlotStatus(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeSlotStatus[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getSlotStatus");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return SS_CLOSED;
 }
 
@@ -1584,7 +1584,7 @@ void CvInitCore::setSlotStatus(PlayerTypes eID, SlotStatus eSlotStatus)
 				GET_PLAYER(eID).updateHuman();
 		}
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setSlotStatus");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 SlotClaim CvInitCore::getSlotClaim(PlayerTypes eID) const
@@ -1592,7 +1592,7 @@ SlotClaim CvInitCore::getSlotClaim(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_aeSlotClaim[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getSlotClaim");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return SLOTCLAIM_UNASSIGNED;
 }
 
@@ -1600,7 +1600,7 @@ void CvInitCore::setSlotClaim(PlayerTypes eID, SlotClaim eSlotClaim)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aeSlotClaim[eID] = eSlotClaim;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setSlotClaim");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 bool CvInitCore::getReady(PlayerTypes eID) const
@@ -1608,7 +1608,7 @@ bool CvInitCore::getReady(PlayerTypes eID) const
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		return m_abReady[eID];
 
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getReady");
+	FAssertBounds(0, MAX_PLAYERS, eID);
 	return false;
 }
 
@@ -1616,7 +1616,7 @@ void CvInitCore::setReady(PlayerTypes eID, bool bReady)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_abReady[eID] = bReady;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setReady");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 
@@ -1639,7 +1639,7 @@ bool CvInitCore::getPlayableCiv(PlayerTypes eID) const
 	}
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getPlayableCiv");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		return false;
 	}
 }
@@ -1648,7 +1648,7 @@ void CvInitCore::setPlayableCiv(PlayerTypes eID, bool bPlayableCiv)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_abPlayableCiv[eID] = bPlayableCiv;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setPlayableCiv");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 bool CvInitCore::getMinorNationCiv(PlayerTypes eID) const
@@ -1658,7 +1658,7 @@ bool CvInitCore::getMinorNationCiv(PlayerTypes eID) const
 		return m_abMinorNationCiv[eID];
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getMinorNationCiv");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		return false;
 	}
 }
@@ -1672,7 +1672,7 @@ void CvInitCore::setMinorNationCiv(PlayerTypes eID, bool bMinorNationCiv)
 		FAssertMsg(bMinorNationCiv == m_abMinorNationCiv[eID] || !GET_PLAYER(eID).isAlive(), "Minor civ status has changed after game start; this isn't supported.");
 		m_abMinorNationCiv[eID] = bMinorNationCiv;
 	}
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setMinorNationCiv");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 int CvInitCore::getNetID(PlayerTypes eID) const
@@ -1681,7 +1681,7 @@ int CvInitCore::getNetID(PlayerTypes eID) const
 		return m_aiNetID[eID];
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getNetID");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		return -1;
 	}
 }
@@ -1690,7 +1690,7 @@ void CvInitCore::setNetID(PlayerTypes eID, int iNetID)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aiNetID[eID] = iNetID;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setNetID");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvString & CvInitCore::getPythonCheck(PlayerTypes eID) const
@@ -1699,7 +1699,7 @@ const CvString & CvInitCore::getPythonCheck(PlayerTypes eID) const
 		return m_aszPythonCheck[eID];
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getPythonCheck");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		m_szTempCheck.clear();
 		return m_szTempCheck;
 	}
@@ -1709,7 +1709,7 @@ void CvInitCore::setPythonCheck(PlayerTypes eID, const CvString & szPythonCheck)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aszPythonCheck[eID] = szPythonCheck;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setPythonCheck");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 const CvString & CvInitCore::getXMLCheck(PlayerTypes eID) const
@@ -1718,7 +1718,7 @@ const CvString & CvInitCore::getXMLCheck(PlayerTypes eID) const
 		return m_aszXMLCheck[eID];
 	else
 	{
-		FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::getXMLCheck");
+		FAssertBounds(0, MAX_PLAYERS, eID);
 		m_szTempCheck.clear();
 		return m_szTempCheck;
 	}
@@ -1728,7 +1728,7 @@ void CvInitCore::setXMLCheck(PlayerTypes eID, const CvString & szXMLCheck)
 {
 	if (checkBounds(eID, 0, MAX_PLAYERS))
 		m_aszXMLCheck[eID] = szXMLCheck;
-	else FASSERT_BOUNDS(0, MAX_PLAYERS, eID, "CvInitCore::setXMLCheck");
+	else FAssertBounds(0, MAX_PLAYERS, eID);
 }
 
 void CvInitCore::setAdminPassword(const CvWString & szAdminPassword, bool bEncrypt)

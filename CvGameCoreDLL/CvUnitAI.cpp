@@ -13974,7 +13974,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iFlags, int iMin
 				// 101 for cities, because that's a better thing to capture.
 				int iOdds = (iEnemyDefenders == 0 ?
 						(pLoopPlot->isCity() ? 101 : 100) :
-						AI_getWeightedOdds(pLoopPlot, false));
+						AI_getGroup()->AI_getWeightedOdds(pLoopPlot, false));
 				if (iOdds >= iOddsThreshold)
 				{
 					iOddsThreshold = iOdds;
@@ -14121,7 +14121,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 				if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, 0, true, 0, iRange))
 				{
 					//iValue = getGroup()->AI_attackOdds(pLoopPlot, true);
-					int iValue = AI_getWeightedOdds(pLoopPlot, false); // K-Mod
+					int iValue = AI_getGroup()->AI_getWeightedOdds(pLoopPlot, false); // K-Mod
 
 					//if (iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
 					if (iValue >= iOddsThreshold) // K-mod
@@ -14210,7 +14210,7 @@ bool CvUnitAI::AI_defensiveCollateral(int iThreshold, int iSearchRange)
 				if (iEnemies > 0 && generatePath(pLoopPlot, 0, true, &iPathTurns, 1))
 				{
 					//int iValue = getGroup()->AI_attackOdds(pLoopPlot, false);
-					int iValue = AI_getWeightedOdds(pLoopPlot);
+					int iValue = AI_getGroup()->AI_getWeightedOdds(pLoopPlot);
 
 					if (iValue > 0 && iEnemies >= std::min(4, collateralDamageMaxUnits()))
 					{
@@ -14320,7 +14320,7 @@ bool CvUnitAI::AI_defendTerritory(int iThreshold, int iFlags, int iMaxPathTurns,
 				int iPathTurns;
 				if (generatePath(pLoopPlot, iFlags, true, &iPathTurns, iMaxPathTurns))
 				{
-					int iOdds = AI_getWeightedOdds(pLoopPlot);
+					int iOdds = AI_getGroup()->AI_getWeightedOdds(pLoopPlot);
 					int iValue = iOdds;
 
 					if (iOdds > 0 && iOdds < 100 && iThreshold > 0)
@@ -16670,39 +16670,33 @@ bool CvUnitAI::AI_specialSeaTransportSpy()
 
 	int iBestValue = 0;
 	PlayerTypes eBestTarget = NO_PLAYER;
-
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	// advc.opt: Exclude dead teams
+	for (PlayerIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 	{
-		const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		CvPlayerAI const& kTarget = *it;
 
-		if (kLoopPlayer.getTeam() == getTeam() || !kOurTeam.isHasMet(kLoopPlayer.getTeam()))
+		int iValue = 1000 * kOurTeam.getEspionagePointsAgainstTeam(kTarget.getTeam()) /
+				std::max(1, iTotalPoints);
+
+		if (kOwner.AI_isMaliciousEspionageTarget(kTarget.getID()))
+			iValue = 3*iValue/2;
+
+		if (kOurTeam.isAtWar(kTarget.getTeam()) &&
+				!isInvisible(kTarget.getTeam(), false))
+			iValue /= 3; // it might be too risky.
+
+		if (kOurTeam.AI_hasCitiesInPrimaryArea(kTarget.getTeam()))
+			iValue /= 6;
+
+		iValue *= 100 - /* advc.003n: */ (kTarget.isMinorCiv() ? 0 :
+				kOurTeam.AI_getAttitudeWeight(kTarget.getTeam()) / 2);
+
+		base_value[kTarget.getID()] = iValue; // of order 1000 * percentage of espionage. (~20000)
+
+		if (iValue > iBestValue)
 		{
-			base_value[i] = 0;
-		}
-		else
-		{
-			int iValue = 1000 * kOurTeam.getEspionagePointsAgainstTeam(kLoopPlayer.getTeam()) / std::max(1, iTotalPoints);
-
-			if (kOwner.AI_isMaliciousEspionageTarget((PlayerTypes)i))
-				iValue = 3*iValue/2;
-
-			if (kOurTeam.isAtWar(kLoopPlayer.getTeam()) && !isInvisible(kLoopPlayer.getTeam(), false))
-			{
-				iValue /= 3; // it might be too risky.
-			}
-
-			if (kOurTeam.AI_hasCitiesInPrimaryArea(kLoopPlayer.getTeam()))
-				iValue /= 6;
-
-			iValue *= 100 - kOurTeam.AI_getAttitudeWeight(kLoopPlayer.getTeam())/2;
-
-			base_value[i] = iValue; // of order 1000 * percentage of espionage. (~20000)
-
-			if (iValue > iBestValue)
-			{
-				iBestValue = iValue;
-				eBestTarget = (PlayerTypes)i;
-			}
+			iBestValue = iValue;
+			eBestTarget = kTarget.getID();
 		}
 	}
 
@@ -17488,7 +17482,7 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 	if (pBestPlot == NULL)
 		return false;
 
-	FASSERT_BOUNDS(NO_BUILD, GC.getNumBuildInfos(), eBestBuild, "CvUnitAI::AI_irrigateTerritory");
+	FAssertBounds(NO_BUILD, GC.getNumBuildInfos(), eBestBuild);
 	getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX(), pBestPlot->getY(), 0,
 			false, false, MISSIONAI_BUILD, pBestPlot);
 	getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0,
@@ -21617,119 +21611,28 @@ bool CvUnitAI::AI_plotValid(CvPlot const* pPlot) /* advc: */ const
 	return false;
 }
 
-#if 0
-int CvUnitAI::AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold)
+/*int CvUnitAI::AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold)
 {
-// K-Mod note: This functions is trash.
-// This is what makes the AI suicide huge stacks of units against a small group of powerful defenders.
-// Imagine 2 units with defence and drill promotions, standing in a hills-forest fort...
+// K-Mod note: This function is seriously flawed
+// advc: Body deleted on 4 Dec 2019
+}*/
 
-// So... I intend to change the AI to never use this function.
-	PROFILE_FUNC();
-
-	CvCity* pCity;
-
-	int iFinalOddsThreshold;
-
-	iFinalOddsThreshold = iOddsThreshold;
-
-	pCity = pPlot->getPlotCity();
-
-	if (pCity != NULL)
-	{
-		if (pCity->getDefenseDamage() < ((GC.getMAX_CITY_DEFENSE_DAMAGE() * 3) / 4))
-		{
-			iFinalOddsThreshold += std::max(0, (pCity->getDefenseDamage() - pCity->getLastDefenseDamage() - (GC.getDefineINT("CITY_DEFENSE_DAMAGE_HEAL_RATE") * 2)));
-		}
-	}
-	/* original bts code
-	if (pPlot->getNumVisiblePotentialEnemyDefenders(this) == 1) {
-		if (pCity != NULL) {
-			iFinalOddsThreshold *= 2;
-			iFinalOddsThreshold /= 3;
-		}
-		else {
-			iFinalOddsThreshold *= 7;
-			iFinalOddsThreshold /= 8;
-		}
-	}
-	if ((getDomainType() == DOMAIN_SEA) && !getGroup()->hasCargo()) {
-		iFinalOddsThreshold *= 3;
-		iFinalOddsThreshold /= 2 + getGroup()->getNumUnits();
-	}
-	else {
-		iFinalOddsThreshold *= 6;
-		iFinalOddsThreshold /= (3 + GET_PLAYER(getOwner()).AI_adjacentPotentialAttackers(pPlot, true) + ((stepDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) > 1) ? 1 : 0) + ((AI_isCityAIType()) ? 2 : 0));
-	}*/
-	// BETTER_BTS_AI_MOD, War tactics AI, 03/29/10, jdog5000: START
-	int iDefenders = pPlot->getNumVisiblePotentialEnemyDefenders(this);
-
-	// More aggressive if only one enemy defending city
-	if (iDefenders == 1 && pCity != NULL)
-	{
-		iFinalOddsThreshold *= 2;
-		iFinalOddsThreshold /= 3;
-	}
-
-	if ((getDomainType() == DOMAIN_SEA) && !getGroup()->hasCargo())
-	{
-		iFinalOddsThreshold *= 3 + (iDefenders/2);
-		iFinalOddsThreshold /= 2 + getGroup()->getNumUnits();
-	}
-	else
-	{
-		iFinalOddsThreshold *= 6 + (iDefenders/((pCity != NULL) ? 1 : 2));
-		int iDivisor = 3;
-		iDivisor += GET_PLAYER(getOwner()).AI_adjacentPotentialAttackers(pPlot, true);
-		iDivisor += ((stepDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) > 1) ? getGroup()->getNumUnits() : 0);
-		iDivisor += (AI_isCityAIType() ? 2 : 0);
-		iFinalOddsThreshold /= iDivisor;
-	}
-	// BETTER_BTS_AI_MOD: END
-	return range(iFinalOddsThreshold, 1, 99);
-}
-#endif
-
-// K-Mod. A new odds-adjusting function to replace the seriously flawed CvUnitAI::AI_finalOddsThreshold function.
-// (note: I would like to put this in CvSelectionGroupAI ... but - well - I don't need to say it, right?
-int CvUnitAI::AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy)
+/*	advc.003u: Extracted from K-Mod's AI_getWeightedOdds, which I've moved to CvSelectionGroupAI.
+	Adjusts the combat odds based on opportunity. */
+int CvUnitAI::AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const
 {
-	PROFILE_FUNC();
-	int iOdds;
-	CvUnit* pAttacker = AI_getGroup()->AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
-	if (!pAttacker)
-		return 0;
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), pAttacker, !bPotentialEnemy, bPotentialEnemy);
-
-	if (!pDefender)
-		return 100;
-
-	/* <advc.114b>: We shouldn't adjust the odds based on an optimistic estimate
-	   (increased by AttackOddsChange). It leads to Warriors attacking Tanks
-	   because the optimistic odds are considerably above zero and the
-	   difference in production cost is great. I'm subtracting the AttackOddsChange
-	   temporarily; adding them back in after the adjustments are done.
-	   (A more elaborate fix would avoid adding them in the first place.) */
-	int const iAttackOddsChange = GET_PLAYER(getOwner()).AI_getAttackOddsChange();
-	iOdds -= iAttackOddsChange;
-	/* Require a stack of at least 3 if actual odds are below 1%. Should
-	   matter mostly for barbarians, hence only this primitive condition
-	   (not checking if the other units could actually attack etc.). */
-	if(iOdds == 0 && getGroup()->getNumUnits() < 3)
-		return 0;
-	// </advc.114b>
-	int iAdjustedOdds = iOdds;
-
+	int const iOdds = iActualOdds; // abbreviate
+	int r = iOdds;
 	// adjust the values based on the relative production cost of the units.
 	{
-		int iOurCost = pAttacker->getUnitInfo().getProductionCost();
-		int iTheirCost = pDefender->getUnitInfo().getProductionCost();
+		int iOurCost = getUnitInfo().getProductionCost();
+		int iTheirCost = kDefender.getUnitInfo().getProductionCost();
 		if (iOurCost > 0 && iTheirCost > 0 && iOurCost != iTheirCost)
 		{
-			//iAdjustedOdds += iOdds * (100 - iOdds) * 2 * iTheirCost / (iOurCost + iTheirCost) / 100;
-			//iAdjustedOdds -= iOdds * (100 - iOdds) * 2 * iOurCost / (iOurCost + iTheirCost) / 100;
+			//r += iOdds * (100 - iOdds) * 2 * iTheirCost / (iOurCost + iTheirCost) / 100;
+			//r -= iOdds * (100 - iOdds) * 2 * iOurCost / (iOurCost + iTheirCost) / 100;
 			int x = iOdds * (100 - iOdds) * 2 / (iOurCost + iTheirCost + 20);
-			iAdjustedOdds += x * (iTheirCost - iOurCost) / 100;
+			r += x * (iTheirCost - iOurCost) / 100;
 		}
 	}
 	// similarly, adjust based on the LFB value (slightly diluted)
@@ -21739,44 +21642,34 @@ int CvUnitAI::AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy)
 				ROUND_DIVIDE(10 * GC.getDefineINT(CvGlobals::LFB_BASEDONEXPERIENCE) *
 				(GC.getGame().getCurrentEra() - GC.getGame().getStartEra() + 1),
 				std::max(1, GC.getNumEraInfos() - GC.getGame().getStartEra()));
-		int iOurValue = pAttacker->LFBgetRelativeValueRating() + iDilution;
-		int iTheirValue = pDefender->LFBgetRelativeValueRating() + iDilution;
+		int iOurValue = LFBgetRelativeValueRating() + iDilution;
+		int iTheirValue = kDefender.LFBgetRelativeValueRating() + iDilution;
 
 		int x = iOdds * (100 - iOdds) * 2 / std::max(1, iOurValue + iTheirValue);
-		iAdjustedOdds += x * (iTheirValue - iOurValue) / 100;
+		r += x * (iTheirValue - iOurValue) / 100;
 	}
 
+	CvPlot const& kDefenderPlot = *kDefender.plot();
+
 	// adjust down if the enemy is on a defensive tile - we'd prefer to attack them on open ground.
-	if (!pDefender->noDefensiveBonus())
+	if (!kDefender.noDefensiveBonus())
 	{
-		iAdjustedOdds -= (100 - iOdds) * pPlot->defenseModifier(pDefender->getTeam(), false,
+		r -= (100 - iOdds) * kDefenderPlot.defenseModifier(kDefender.getTeam(), false,
 			getTeam()) // advc.012
 			/ (getDomainType() == DOMAIN_SEA ? 100 : 300);
 	}
 
 	// adjust the odds up if the enemy is wounded. We want to attack them now before they heal.
-	iAdjustedOdds += iOdds * (100 - iOdds) * pDefender->getDamage() / (100 * pDefender->maxHitPoints());
+	r += iOdds * (100 - iOdds) * kDefender.getDamage() / (100 * kDefender.maxHitPoints());
 	// adjust the odds down if our attacker is wounded - but only if healing is viable.
-	if (pAttacker->isHurt() && pAttacker->healRate(pAttacker->plot()) > 10)
-		iAdjustedOdds -= iOdds * (100 - iOdds) * pAttacker->getDamage() / (100 * pAttacker->maxHitPoints());
+	if (isHurt() && healRate(plot()) > 10)
+		r -= iOdds * (100 - iOdds) * getDamage() / (100 * maxHitPoints());
 
 	// We're extra keen to take cites when we can...
-	if (pPlot->isCity() && pPlot->getNumVisiblePotentialEnemyDefenders(pAttacker) == 1)
-	{
-		iAdjustedOdds += (100 - iOdds) / 3;
-	}
+	if (kDefenderPlot.isCity() && kDefenderPlot.getNumVisiblePotentialEnemyDefenders(this) == 1)
+		r += (100 - iOdds) / 3;
 
-	// one more thing... unfortunately, the sea AI isn't evolved enough to do without something as painful as this...
-	if (getDomainType() == DOMAIN_SEA && !getGroup()->hasCargo())
-	{
-		// I'm sorry about this. I really am. I'll try to make it better one day...
-		int iDefenders = pPlot->getNumVisiblePotentialEnemyDefenders(pAttacker);
-		iAdjustedOdds *= 2 + getGroup()->getNumUnits();
-		iAdjustedOdds /= 3 + std::min(iDefenders/2, getGroup()->getNumUnits());
-	}
-
-	iAdjustedOdds += iAttackOddsChange; // advc.114b
-	return range(iAdjustedOdds, 1, 99);
+	return r;
 }
 
 // A simple hash of the unit's birthmark.

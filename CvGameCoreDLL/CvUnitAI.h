@@ -29,6 +29,7 @@ public:
 	int AI_groupSecondVal() const;
 
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const;
+	int AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const; // advc
 
 	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL,
 			CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL) const;
@@ -303,8 +304,7 @@ protected:
 		return AI_plotValid(&kPlot);
 	} // </advc>
 
-	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
-	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false); // K-Mod
+	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold); // disabled by K-Mod
 	unsigned AI_unitBirthmarkHash(int iExtra = 0) const; // K-Mod
 	unsigned AI_unitPlotHash(const CvPlot* pPlot, int iExtra = 0) const; // K-Mod
 

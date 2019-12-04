@@ -2,10 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarEvaluator.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "WarUtilityAspect.h"
 #include "MilitaryAnalyst.h"
-#include "WarAndPeaceReport.h"
+#include "UWAIReport.h"
 #include "WarEvalParameters.h"
 #include "CvAI.h"
 #include "CvInfo_GameOption.h"
@@ -145,13 +145,13 @@ int WarEvaluator::defaultPreparationTime(WarPlanTypes wp) {
 	int baseTime = -1;
 	if(params.isTotal()) {
 		if(params.isNaval())
-			baseTime = WarAndPeaceAI::preparationTimeTotalNaval;
-		else baseTime = WarAndPeaceAI::preparationTimeTotal;
+			baseTime = UWAI::preparationTimeTotalNaval;
+		else baseTime = UWAI::preparationTimeTotal;
 	}
 	else {
 		if(params.isNaval())
-			baseTime = WarAndPeaceAI::preparationTimeLimitedNaval;
-		else baseTime = WarAndPeaceAI::preparationTimeLimited;
+			baseTime = UWAI::preparationTimeLimitedNaval;
+		else baseTime = UWAI::preparationTimeLimited;
 	}
 	int r = std::max(baseTime - age, 0);
 	r *= GC.getInfo(GC.getGame().getGameSpeedType()).getTrainPercent();

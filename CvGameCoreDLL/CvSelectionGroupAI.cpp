@@ -280,7 +280,6 @@ bool CvSelectionGroupAI::AI_update()
 	return (isBusy() || isCargoBusy());
 }
 
-
 // Returns attack odds out of 100 (the higher, the better...)
 int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 {
@@ -298,6 +297,55 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 		return 0;
 
 	return iOdds;
+}
+
+/*	K-Mod. A new odds-adjusting function to replace CvUnitAI::AI_finalOddsThreshold.
+	(note: I would like to put this in CvSelectionGroupAI ... but - well -
+	I don't need to say it, right?)
+	advc.003u: I think CvUnitAI::AI_getGroup solves karadoc's problem; so - moved. */
+int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy)
+{
+	PROFILE_FUNC();
+	int iOdds;
+	CvUnitAI* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
+	if (!pAttacker)
+		return 0;
+	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), pAttacker,
+			!bPotentialEnemy, bPotentialEnemy,
+			true, false); // advc.028, advc.089 (same as in CvUnitAI::AI_attackOdds)
+
+	if (pDefender == NULL)
+		return 100;
+
+	/*	<advc.114b>: We shouldn't adjust the odds based on an optimistic estimate
+		(increased by AttackOddsChange). It leads to Warriors attacking Tanks
+		because the optimistic odds are considerably above zero and the
+		difference in production cost is great. I'm subtracting the AttackOddsChange
+		temporarily; adding them back in after the adjustments are done.
+		(A more elaborate fix would avoid adding them in the first place.) */
+	int const iAttackOddsChange = GET_PLAYER(getOwner()).AI_getAttackOddsChange();
+	iOdds -= iAttackOddsChange;
+	/*	Require a stack of at least 3 if actual odds are below 1%. Should
+		matter mostly for barbarians, hence only this primitive condition
+		(not checking if the other units could actually attack etc.). */
+	if(iOdds == 0 && getNumUnits() < 3)
+		return 0;
+	// </advc.114b>
+	// advc: The bulk of the computation is still in CvUnitAI
+	int iAdjustedOdds = pAttacker->AI_opportuneOdds(iOdds, *pDefender);
+
+	/*  one more thing... unfortunately, the sea AI isn't evolved enough
+		to do without something as painful as this... */
+	if (getDomainType() == DOMAIN_SEA && !hasCargo())
+	{
+		// I'm sorry about this. I really am. I'll try to make it better one day...
+		int iDefenders = pPlot->getNumVisiblePotentialEnemyDefenders(pAttacker);
+		iAdjustedOdds *= 2 + getNumUnits();
+		iAdjustedOdds /= 3 + std::min(iDefenders/2, getNumUnits());
+	}
+
+	iAdjustedOdds += iAttackOddsChange; // advc.114b
+	return range(iAdjustedOdds, 1, 99);
 }
 
 

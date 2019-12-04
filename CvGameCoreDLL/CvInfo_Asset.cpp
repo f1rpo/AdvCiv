@@ -687,7 +687,7 @@ bool CvArtInfoFeature::read(CvXMLLoadUtility* pXML)
 
 const CvArtInfoFeature::FeatureVariety &CvArtInfoFeature::getVariety(int index) const
 {
-	FASSERT_BOUNDS(0, (int)m_aFeatureVarieties.size(), index, "CvArtInfoFeature::FeatureVariety");
+	FAssertBounds(0, m_aFeatureVarieties.size(), index);
 	return m_aFeatureVarieties[index];
 }
 

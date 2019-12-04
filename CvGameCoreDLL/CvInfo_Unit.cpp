@@ -705,202 +705,202 @@ void CvUnitInfo::setCommandType(int iNewType)
 
 int CvUnitInfo::getPrereqAndTechs(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNUM_UNIT_AND_TECH_PREREQS(), i, "CvUnitInfo::getPrereqAndTechs");
+	FAssertBounds(0, GC.getNUM_UNIT_AND_TECH_PREREQS(), i);
 	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
 int CvUnitInfo::getPrereqOrBonuses(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), i, "CvUnitInfo::getPrereqOrBonuses");
+	FAssertBounds(0, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), i);
 	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
 }
 // <advc.905b>
 int CvUnitInfo::getSpeedBonuses(int i) const {
 
-	FASSERT_BOUNDS(0, GC.getNUM_UNIT_SPEED_BONUSES(), i, "CvUnitInfo::getSpeedBonuses");
+	FAssertBounds(0, GC.getNUM_UNIT_SPEED_BONUSES(), i);
 	return m_piSpeedBonuses[0] ? m_piSpeedBonuses[0][i] : NO_BONUS;
 }
 
 int CvUnitInfo::getExtraMoves(int i) const {
 
-	FASSERT_BOUNDS(0, GC.getNUM_UNIT_SPEED_BONUSES(), i, "CvUnitInfo::getExtraMoves");
+	FAssertBounds(0, GC.getNUM_UNIT_SPEED_BONUSES(), i);
 	return m_piSpeedBonuses[1] ? m_piSpeedBonuses[1][i] : 0;
 } // </advc.905b>
 
 int CvUnitInfo::getProductionTraits(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvUnitInfo::getProductionTraits");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_piProductionTraits ? m_piProductionTraits[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getFlavorValue(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvUnitInfo::getFlavorValue");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getTerrainAttackModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvUnitInfo::getTerrainAttackModifier");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_piTerrainAttackModifier ? m_piTerrainAttackModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getTerrainDefenseModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvUnitInfo::getTerrainDefenseModifier");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_piTerrainDefenseModifier ? m_piTerrainDefenseModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getFeatureAttackModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvUnitInfo::getFeatureAttackModifier");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_piFeatureAttackModifier ? m_piFeatureAttackModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getFeatureDefenseModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvUnitInfo::getFeatureDefenseModifier");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_piFeatureDefenseModifier ? m_piFeatureDefenseModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitClassAttackModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvUnitInfo::getUnitClassAttackModifier");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_piUnitClassAttackModifier ? m_piUnitClassAttackModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitClassDefenseModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvUnitInfo::getUnitClassDefenseModifier");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_piUnitClassDefenseModifier ? m_piUnitClassDefenseModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitCombatModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvUnitInfo::getUnitCombatModifier");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_piUnitCombatModifier ? m_piUnitCombatModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitCombatCollateralImmune(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvUnitInfo::getUnitCombatCollateralImmune");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_piUnitCombatCollateralImmune ? m_piUnitCombatCollateralImmune[i]
 			: 0; // advc.003t: Was -1. This one acts as a boolean actually.
 }
 
 int CvUnitInfo::getDomainModifier(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvUnitInfo::getDomainModifier");
+	FAssertBounds(0, NUM_DOMAIN_TYPES, i);
 	return m_piDomainModifier ? m_piDomainModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getBonusProductionModifier(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvUnitInfo::getBonusProductionModifier");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_piBonusProductionModifier ? m_piBonusProductionModifier[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getUnitGroupRequired(int i) const
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::getUnitGroupRequired");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	return m_piUnitGroupRequired ? m_piUnitGroupRequired[i] : NULL;
 }
 
 bool CvUnitInfo::getUpgradeUnitClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvUnitInfo::getUpgradeUnitClass");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_pbUpgradeUnitClass ? m_pbUpgradeUnitClass[i] : false;
 }
 
 bool CvUnitInfo::getTargetUnitClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvUnitInfo::getTargetUnitClass");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_pbTargetUnitClass ? m_pbTargetUnitClass[i] : false;
 }
 
 bool CvUnitInfo::getTargetUnitCombat(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvUnitInfo::getTargetUnitCombat");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_pbTargetUnitCombat ? m_pbTargetUnitCombat[i] : false;
 }
 
 bool CvUnitInfo::getDefenderUnitClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvUnitInfo::getDefenderUnitClass");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_pbDefenderUnitClass ? m_pbDefenderUnitClass[i] : false;
 }
 
 bool CvUnitInfo::getDefenderUnitCombat(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvUnitInfo::getDefenderUnitCombat");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_pbDefenderUnitCombat ? m_pbDefenderUnitCombat[i] : false;
 }
 
 bool CvUnitInfo::getUnitAIType(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_UNITAI_TYPES, i, "getUnitAIType::getPrereqAndTechs");
+	FAssertBounds(0, NUM_UNITAI_TYPES, i);
 	return m_pbUnitAIType ? m_pbUnitAIType[i] : false;
 }
 
 int CvUnitInfo::getFlankingStrikeUnitClass(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), i, "CvUnitInfo::getFlankingStrikeUnitClass");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
 	return m_piFlankingStrikeUnitClass ? m_piFlankingStrikeUnitClass[i]
 			: 0; // advc.003t: Was -1. This is called iFlankingStrength in XML.
 }
 
 bool CvUnitInfo::getNotUnitAIType(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_UNITAI_TYPES, i, "CvUnitInfo::getNotUnitAIType");
+	FAssertBounds(0, NUM_UNITAI_TYPES, i);
 	return m_pbNotUnitAIType ? m_pbNotUnitAIType[i] : false;
 }
 
 bool CvUnitInfo::getBuilds(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildInfos(), i, "CvUnitInfo::getBuilds");
+	FAssertBounds(0, GC.getNumBuildInfos(), i);
 	return m_pbBuilds ? m_pbBuilds[i] : false;
 }
 
 int CvUnitInfo::getReligionSpreads(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), i, "CvUnitInfo::getReligionSpreads");
+	FAssertBounds(0, GC.getNumReligionInfos(), i);
 	return m_piReligionSpreads ? m_piReligionSpreads[i] :
 			0; // advc.003t: Was -1. This is called iReligionSpread in XML.
 }
 
 int CvUnitInfo::getCorporationSpreads(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCorporationInfos(), i, "CvUnitInfo::getCorporationSpreads");
+	FAssertBounds(0, GC.getNumCorporationInfos(), i);
 	return m_piCorporationSpreads ? m_piCorporationSpreads[i] : 0; // advc.003t
 }
 
 int CvUnitInfo::getTerrainPassableTech(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvUnitInfo::getTerrainPassableTech");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_piTerrainPassableTech ? m_piTerrainPassableTech[i] : NO_TECH; // advc.003t
 }
 
 int CvUnitInfo::getFeaturePassableTech(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvUnitInfo::getFeaturePassableTech");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_piFeaturePassableTech ? m_piFeaturePassableTech[i] : NO_TECH; // advc.003t
 }
 
 bool CvUnitInfo::getGreatPeoples(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumSpecialistInfos(), i, "CvUnitInfo::getGreatPeoples");
+	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
 	return m_pbGreatPeoples ? m_pbGreatPeoples[i] : false;
 }
 
 bool CvUnitInfo::getBuildings(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBuildingInfos(), i, "CvUnitInfo::getBuildings");
+	FAssertBounds(0, GC.getNumBuildingInfos(), i);
 	return m_pbBuildings ? m_pbBuildings[i] : false;
 }
 
 bool CvUnitInfo::getForceBuildings(int i) const
 {
-	/*FASSERT_BOUNDS(0, GC.getNumBuildingInfos(), i, "CvUnitInfo::getForceBuildings");
+	/*FAssertBounds(0, GC.getNumBuildingInfos(), i, "CvUnitInfo::getForceBuildings");
 	return m_pbForceBuildings ? m_pbForceBuildings[i] : false;*/
 	/*  advc.003t: I've removed the tag from XML, but don't want to break Python
 		code (yet). Specifically, the BtS CvCorporationScreen.py calls
@@ -910,31 +910,31 @@ bool CvUnitInfo::getForceBuildings(int i) const
 
 bool CvUnitInfo::getTerrainImpassable(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvUnitInfo::getTerrainImpassable");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbTerrainImpassable ? m_pbTerrainImpassable[i] : false;
 }
 
 bool CvUnitInfo::getFeatureImpassable(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvUnitInfo::getFeatureImpassable");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_pbFeatureImpassable ? m_pbFeatureImpassable[i] : false;
 }
 
 bool CvUnitInfo::getTerrainNative(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvUnitInfo::getTerrainNative");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbTerrainNative ? m_pbTerrainNative[i] : false;
 }
 
 bool CvUnitInfo::getFeatureNative(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvUnitInfo::getFeatureNative");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_pbFeatureNative ? m_pbFeatureNative[i] : false;
 }
 
 bool CvUnitInfo::getFreePromotions(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumPromotionInfos(), i, "CvUnitInfo::getFreePromotions");
+	FAssertBounds(0, GC.getNumPromotionInfos(), i);
 	return m_pbFreePromotions ? m_pbFreePromotions[i] : false;
 }
 
@@ -950,7 +950,7 @@ int CvUnitInfo::getLeaderExperience() const
 
 const TCHAR* CvUnitInfo::getEarlyArtDefineTag(int i, UnitArtStyleTypes eStyle) const
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::getEarlyArtDefineTag");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	if (NO_UNIT_ARTSTYLE != eStyle)
 	{
 		int iIndex = GC.getInfoTypeForString(getType());
@@ -966,13 +966,13 @@ const TCHAR* CvUnitInfo::getEarlyArtDefineTag(int i, UnitArtStyleTypes eStyle) c
 
 void CvUnitInfo::setEarlyArtDefineTag(int i, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::setEarlyArtDefineTag");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	m_paszEarlyArtDefineTags[i] = szVal;
 }
 
 const TCHAR* CvUnitInfo::getLateArtDefineTag(int i, UnitArtStyleTypes eStyle) const
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::getLateArtDefineTag");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	if (NO_UNIT_ARTSTYLE != eStyle)
 	{
 		int iIndex = GC.getInfoTypeForString(getType());
@@ -988,13 +988,13 @@ const TCHAR* CvUnitInfo::getLateArtDefineTag(int i, UnitArtStyleTypes eStyle) co
 
 void CvUnitInfo::setLateArtDefineTag(int i, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::setLateArtDefineTag");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	m_paszLateArtDefineTags[i] = szVal;
 }
 
 const TCHAR* CvUnitInfo::getMiddleArtDefineTag(int i, UnitArtStyleTypes eStyle) const
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::getMiddleArtDefineTag");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	if (NO_UNIT_ARTSTYLE != eStyle)
 	{
 		int iIndex = GC.getInfoTypeForString(getType());
@@ -1010,13 +1010,13 @@ const TCHAR* CvUnitInfo::getMiddleArtDefineTag(int i, UnitArtStyleTypes eStyle) 
 
 void CvUnitInfo::setMiddleArtDefineTag(int i, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, getGroupDefinitions(), i, "CvUnitInfo::setMiddleArtDefineTag");
+	FAssertBounds(0, getGroupDefinitions(), i);
 	m_paszMiddleArtDefineTags[i] = szVal;
 }
 
 const TCHAR* CvUnitInfo::getUnitNames(int i) const
 {
-	FASSERT_BOUNDS(0, getNumUnitNames(), i, "CvUnitInfo::getUnitNames");
+	FAssertBounds(0, getNumUnitNames(), i);
 	return (m_paszUnitNames) ? m_paszUnitNames[i] : NULL;
 }
 
@@ -1874,8 +1874,8 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 const TCHAR* CvUnitArtStyleInfo::getEarlyArtDefineTag(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::getEarlyArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::getEarlyArtDefineTag");
+	FAssertBounds(0, GC.getNumUnitInfos(), j);
+	FAssertBounds(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i);
 	for (ArtDefineArray::const_iterator it = m_azEarlyArtDefineTags.begin(); it != m_azEarlyArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1886,8 +1886,8 @@ const TCHAR* CvUnitArtStyleInfo::getEarlyArtDefineTag(int i, int j) const
 
 void CvUnitArtStyleInfo::setEarlyArtDefineTag(int i, int j, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::setEarlyArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::setEarlyArtDefineTag");
+	FAssertBounds(0, GC.getNumUnitInfos(), j);
+	FAssertBounds(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i);
 	for (ArtDefineArray::iterator it = m_azEarlyArtDefineTags.begin(); it != m_azEarlyArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1905,8 +1905,8 @@ void CvUnitArtStyleInfo::setEarlyArtDefineTag(int i, int j, const TCHAR* szVal)
 
 const TCHAR* CvUnitArtStyleInfo::getLateArtDefineTag(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::getLateArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::getLateArtDefineTag");
+	FAssertBounds(0, GC.getNumUnitInfos(), j);
+	FAssertBounds(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i);
 	for (ArtDefineArray::const_iterator it = m_azLateArtDefineTags.begin(); it != m_azLateArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1917,8 +1917,8 @@ const TCHAR* CvUnitArtStyleInfo::getLateArtDefineTag(int i, int j) const
 
 void CvUnitArtStyleInfo::setLateArtDefineTag(int i, int j, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::setLateArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::setLateArtDefineTag");
+	FAssertBounds(0, GC.getNumUnitInfos(), j);
+	FAssertBounds(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i);
 	for (ArtDefineArray::iterator it = m_azLateArtDefineTags.begin(); it != m_azLateArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1936,8 +1936,8 @@ void CvUnitArtStyleInfo::setLateArtDefineTag(int i, int j, const TCHAR* szVal)
 
 const TCHAR* CvUnitArtStyleInfo::getMiddleArtDefineTag(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::getMiddleArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::getMiddleArtDefineTag");
+	FAssertBounds(0, GC.getNumUnitInfos(), j);
+	FAssertBounds(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i);
 	for (ArtDefineArray::const_iterator it = m_azMiddleArtDefineTags.begin(); it != m_azMiddleArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -1948,8 +1948,8 @@ const TCHAR* CvUnitArtStyleInfo::getMiddleArtDefineTag(int i, int j) const
 
 void CvUnitArtStyleInfo::setMiddleArtDefineTag(int i, int j, const TCHAR* szVal)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), j, "CvUnitArtStyleInfo::setMiddleArtDefineTag");
-	FASSERT_BOUNDS(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i, "CvUnitArtStyleInfo::setMiddleArtDefineTag");
+	FAssertBounds(0, GC.getNumUnitInfos(), j);
+	FAssertBounds(0, GC.getInfo((UnitTypes)j).getGroupDefinitions(), i);
 	for (ArtDefineArray::iterator it = m_azMiddleArtDefineTags.begin(); it != m_azMiddleArtDefineTags.end(); ++it)
 	{
 		if (it->iMeshIndex == i && it->iUnitType == j)
@@ -2109,14 +2109,14 @@ bool CvSpecialUnitInfo::isCityLoad() const
 
 bool CvSpecialUnitInfo::isCarrierUnitAIType(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_UNITAI_TYPES, i, "CvSpecialUnitInfo::isCarrierUnitAIType");
+	FAssertBounds(0, NUM_UNITAI_TYPES, i);
 	return m_pbCarrierUnitAITypes ? m_pbCarrierUnitAITypes[i]
 			: false; // advc.003t: was -1 (which equals true)
 }
 
 int CvSpecialUnitInfo::getProductionTraits(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTraitInfos(), i, "CvSpecialUnitInfo::getProductionTraits");
+	FAssertBounds(0, GC.getNumTraitInfos(), i);
 	return m_piProductionTraits ? m_piProductionTraits[i]
 			: 0; // advc.003t: Was -1. This is the production discount percentage.
 }
@@ -2459,55 +2459,55 @@ void CvPromotionInfo::setSound(const TCHAR* szVal)
 
 int CvPromotionInfo::getTerrainAttackPercent(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvPromotionInfo::getTerrainAttackPercent");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_piTerrainAttackPercent ? m_piTerrainAttackPercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getTerrainDefensePercent(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvPromotionInfo::getTerrainDefensePercent");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_piTerrainDefensePercent ? m_piTerrainDefensePercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getFeatureAttackPercent(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvPromotionInfo::getFeatureAttackPercent");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_piFeatureAttackPercent ? m_piFeatureAttackPercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getFeatureDefensePercent(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvPromotionInfo::getFeatureDefensePercent");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_piFeatureDefensePercent ? m_piFeatureDefensePercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getUnitCombatModifierPercent(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvPromotionInfo::getUnitCombatModifierPercent");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_piUnitCombatModifierPercent ? m_piUnitCombatModifierPercent[i] : 0; // advc.003t
 }
 
 int CvPromotionInfo::getDomainModifierPercent(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvPromotionInfo::getDomainModifierPercent");
+	FAssertBounds(0, NUM_DOMAIN_TYPES, i);
 	return m_piDomainModifierPercent ? m_piDomainModifierPercent[i] : 0; // advc.003t
 }
 
 bool CvPromotionInfo::getTerrainDoubleMove(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvPromotionInfo::getTerrainDoubleMove");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbTerrainDoubleMove ? m_pbTerrainDoubleMove[i] : false;
 }
 
 bool CvPromotionInfo::getFeatureDoubleMove(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvPromotionInfo::getFeatureDoubleMove");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_pbFeatureDoubleMove ? m_pbFeatureDoubleMove[i] : false;
 }
 
 bool CvPromotionInfo::getUnitCombat(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitCombatInfos(), i, "CvPromotionInfo::getUnitCombat");
+	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_pbUnitCombat ? m_pbUnitCombat[i] : false;
 }
 #if SERIALIZE_CVINFOS

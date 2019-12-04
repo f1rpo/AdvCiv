@@ -1,34 +1,33 @@
 #pragma once
 
-#ifndef WAR_AND_PEACE_AI_H
-#define WAR_AND_PEACE_AI_H
+#ifndef UWAI_H
+#define UWAI_H
 
 class FDataStreamBase;
 
 /*  AI functionality for decisions on war and peace. Main class of the
 	Utility-Based War AI mod component (UWAI).
-	(Tbd.: Change everything that's named "WPAI" or "WarAndPeace" to "UWAI".)
 	Instead of making lots of additions to CvTeamAI and CvPlayerAI, I've put the
-	new functions in classes WarAndPeaceAI::Team and WarAndPeaceAI::Civ, which are
-	defined in WarAndPeaceAgent.h. (I use the term "civ" instead of "player" when
+	new functions in classes UWAI::Team and UWAI::Civ, which are
+	defined in UWAIAgent.h. (I use the term "civ" instead of "player" when
 	Barbarians are excluded. The actual CvCivilization class added by advc.003w
-	isn't used much in the WarAndPeace code.) The outer class WarAndPeaceAI shared by
+	isn't used much in the UWAI code.) The outer class UWAI shared by
 	Team and Civ is for overarching stuff that would otherwise fit into CvGameAI or
-	CvGameCoreUtils. An instance is accessible through the macro "getWPAI".
+	CvGameCoreUtils. An instance is accessible through the macro "getUWAI".
 
-	The main method for war planning is WarAndPeaceAI::Team::doWar. */
+	The main method for war planning is UWAI::Team::doWar. */
 
-#define getWPAI GC.AI_getGame().warAndPeaceAI()
+#define getUWAI GC.AI_getGame().uwai()
 
-class WarAndPeaceAI /* advc.003e: */ : private boost::noncopyable {
+class UWAI /* advc.003e: */ : private boost::noncopyable {
 
 public:
 
-	// Inner classes; defined in WarAndPeaceAgent.h.
+	// Inner classes; defined in UWAIAgent.h.
 	class Civ;
 	class Team;
 
-	WarAndPeaceAI();
+	UWAI();
 	void invalidateUICache();
 	// When a colony is created
 	void processNewCivInGame(PlayerTypes newCivId);

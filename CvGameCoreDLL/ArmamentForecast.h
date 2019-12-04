@@ -3,11 +3,11 @@
 #ifndef ARMAMENT_FORECAST_H
 #define ARMAMENT_FORECAST_H
 
-#include "WarAndPeaceAI.h"
-#include "WarAndPeaceCache.h"
+#include "UWAI.h"
+#include "UWAICache.h"
 
 class MilitaryAnalyst;
-class WarAndPeaceReport;
+class UWAIReport;
 class CvArea;
 
 
@@ -23,8 +23,8 @@ class ArmamentForecast {
 
 public:
 	/* 'm' belongs to the civ making the forecast ("we"), 'civId' is the civ whose
-		armament is being predicted. (Not const b/c ArmamentForecast may add to the
-		WarAndPeaceReport.)
+		armament is being predicted. (Not const b/c ArmamentForecast may add to
+		the UWAIReport.)
 	   'military': Present military of civId; power values are increased
 				   by this class.
 	   'peaceScenario': True iff peace is assumed beetween us and our target.
@@ -34,7 +34,7 @@ public:
 	ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			std::vector<MilitaryBranch*>& military, int timeHorizon,
 			double productionPortion, // Remaining after assumed losses of cities
-			WarAndPeaceCache::City const* target, bool peaceScenario,
+			UWAICache::City const* target, bool peaceScenario,
 			bool partyAddedRecently, bool allPartiesKnown, bool noUpgrading);
 	double getProductionInvested() const;
 
@@ -43,8 +43,8 @@ private:
 	bool canReachEither(TeamTypes t1, TeamTypes t2) const;
 	PlayerTypes civId;
 	MilitaryAnalyst const& m;
-	WarAndPeaceAI::Civ const& wpai;
-	WarAndPeaceReport& report;
+	UWAI::Civ const& uwai;
+	UWAIReport& report;
 	std::vector<MilitaryBranch*>& military;
 	int timeHorizon;
 	double productionInvested;

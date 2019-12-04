@@ -5,7 +5,7 @@
 #include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
-#include "WarAndPeaceAgent.h" // advc.104t
+#include "UWAIAgent.h" // advc.104t
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_City.h"
@@ -631,8 +631,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 	AI().AI_updateWorstEnemy();
 	// <advc.104t>
-	if(getWPAI.isEnabled())
-		AI().warAndPeaceAI().addTeam(eTeamLeader);
+	if(getUWAI.isEnabled())
+		AI().uwai().addTeam(eTeamLeader);
 	// </advc.104t>
 	AI().AI_updateAreaStrategies();
 
@@ -1329,7 +1329,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	}
 	/*if (bPrimaryDoW) { // K-Mod. update attitude
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
-			GET_PLAYER(i).AI_updateAttitudeCache();
+			GET_PLAYER(i).AI_updateAttitude();
 	}*/
 	// <dlph.26> The above is "updated when the war queue is emptied."
 	/*  advc (bugfix): But not unless this function communicates to triggerWars that
@@ -1788,26 +1788,13 @@ bool CvTeam::allWarsShared(TeamTypes eOther, /* advc.130f: */ bool bCheckBothWay
 	return true;
 } // </dlph.3>
 
-// <advc.130s>
-bool CvTeam::anyWarShared(TeamTypes eOther) const
-{
-	for (TeamIter<MAJOR_CIV,ENEMY_OF> it(getID()); it.hasNext(); ++it)
-	{
-		if (it->isAtWar(eOther))
-			return true;
-	}
-	return false;
-} // </advc.130s>
-
 
 int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
 {
 	PROFILE_FUNC(); // advc.agent: Would be easy enough to cache this
 	int r = (bIgnoreMinors ?
-			TeamIter<MAJOR_CIV,KNOWN_TO>::count(getID()) :
-			TeamIter<CIV_ALIVE,KNOWN_TO>::count(getID())
-		) - 1; // Subtract this team
-	FAssert(r >= 0);
+			TeamIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(getID()) :
+			TeamIter<CIV_ALIVE,OTHER_KNOWN_TO>::count(getID()));
 	return r;
 }
 
@@ -1836,7 +1823,7 @@ int CvTeam::getDefensivePactCount(TeamTypes eObs) const
 	}
 	else
 	{
-		for (TeamIter<MAJOR_CIV,KNOWN_TO> it(eObs); it.hasNext(); ++it)
+		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(eObs); it.hasNext(); ++it)
 		{
 			if (isDefensivePact(it->getID()))
 				iCount++;
@@ -2285,8 +2272,8 @@ void CvTeam::updateLeaderID()
 		}
 	}
 	// <advc.104t>
-	if (m_eLeader != eFormerLeader && getWPAI.isEnabled())
-		GET_PLAYER(m_eLeader).warAndPeaceAI().getCache().onTeamLeaderChanged(eFormerLeader);
+	if (m_eLeader != eFormerLeader && getUWAI.isEnabled())
+		GET_PLAYER(m_eLeader).uwai().getCache().onTeamLeaderChanged(eFormerLeader);
 	// </advc.104t>
 	if (m_eLeader == NO_PLAYER)
 	{
@@ -2394,8 +2381,8 @@ void CvTeam::changeAliveCount(int iChange)
 		GC.getGame().changeCivTeamsEverAlive(1); // </advc.opt>
 	// <advc.104> Can't do this in AI_init because alive status isn't yet set at that point
 	if (m_iAliveCount == 1 && m_iAliveCount - iChange <= 0 && isMajorCiv() &&
-			(getWPAI.isEnabled() || getWPAI.isEnabled(true)))
-		AI().warAndPeaceAI().init(getID()); // </advc.104>
+			(getUWAI.isEnabled() || getUWAI.isEnabled(true)))
+		AI().uwai().init(getID()); // </advc.104>
 }
 
 
@@ -2792,7 +2779,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 	if(eIndex == getID() || isBarbarian() || GET_TEAM(eIndex).isBarbarian())
 		return; // </advc.071>
 	// K-Mod: Initialize attitude cache for players on our team towards player's on their team.
-	AI().AI_updateAttitudeCache(eIndex); // advc: Loop replaced
+	AI().AI_updateAttitude(eIndex); // advc: Loop replaced
 
 	if (getID() == GC.getGame().getActiveTeam() || eIndex == GC.getGame().getActiveTeam())
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
@@ -2975,10 +2962,10 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 		for (MemberIter itTheirMember(eIndex); itTheirMember.hasNext(); ++itTheirMember)
 		{
 			CvPlayerAI& theirMember = *itTheirMember;
-			ourMember.AI_updateCloseBorderAttitudeCache(theirMember.getID());
-			theirMember.AI_updateCloseBorderAttitudeCache(ourMember.getID());
+			ourMember.AI_updateCloseBorderAttitude(theirMember.getID());
+			theirMember.AI_updateCloseBorderAttitude(ourMember.getID());
 		}
-	} // (AttitudeCache is updated by caller)
+	} // (Attitude cache is updated by caller)
 	// </advc.035>
 }
 
@@ -3032,7 +3019,7 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 	for (PlayerIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getID()); itOther.hasNext(); ++itOther)
 	{
 		for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
-			itOther->AI_updateAttitudeCache(itMember->getID());
+			itOther->AI_updateAttitude(itMember->getID());
 	} // </advc.130p>
 	AI().AI_setOpenBordersCounter(eIndex, 0);
 
@@ -3073,6 +3060,7 @@ void CvTeam::cancelDisengage(TeamTypes otherId)
 
 void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 {
+	FAssert(getID() != eIndex); // advc
 	if (isDefensivePact(eIndex) == bNewValue)
 		return; // advc
 	m_abDefensivePact.set(eIndex, bNewValue);
@@ -3127,7 +3115,7 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 	if (GC.getGame().isFinalInitialized())
 	{
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
-			it->AI_updateAttitudeCache();
+			it->AI_updateAttitude();
 	} // K-Mod end
 }
 
@@ -3341,7 +3329,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			{
 				/*  advc.104j: Third parties shouldn't discard their plans
 					against the master */
-				if (!getWPAI.isEnabled())
+				if (!getUWAI.isEnabled())
 					kRival.AI_setWarPlan(eMaster, NO_WARPLAN);
 			}
 		}
@@ -3476,7 +3464,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		for (PlayerIter<MAJOR_CIV> itOther; itOther.hasNext(); ++itOther)
 		{
 			for (MemberIter itMember(eMaster); itMember.hasNext(); ++itMember)
-				itOther->AI_updateCloseBorderAttitudeCache(itMember->getID());
+				itOther->AI_updateCloseBorderAttitude(itMember->getID());
 		}
 	} // </advc.130v>
 
@@ -3492,8 +3480,8 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			for (PlayerIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(eTeam);
 				itOther.hasNext(); ++itOther)
 			{
-				itMember->AI_updateAttitudeCache(itOther->getID());
-				itOther->AI_updateAttitudeCache(itMember->getID());
+				itMember->AI_updateAttitude(itOther->getID());
+				itOther->AI_updateAttitude(itMember->getID());
 			}
 		}
 	} // </advc.001>
@@ -3639,7 +3627,7 @@ void CvTeam::triggerWars(bool bForceUpdateAttitude)
 	{
 		// from declareWar (K-Mod code)
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
-			it->AI_updateAttitudeCache();
+			it->AI_updateAttitude();
 	}
 	bTriggeringWars = false;
 } // </dlph.26>
@@ -3664,16 +3652,16 @@ void CvTeam::setProjectDefaultArtType(ProjectTypes eIndex, int iValue)
 
 int CvTeam::getProjectArtType(ProjectTypes eIndex, int number) const
 {
-	FASSERT_BOUNDS(0, GC.getNumProjectInfos(), eIndex, "CvTeam::getProjectArtType");
-	FASSERT_BOUNDS(0, getProjectCount(eIndex), number, "CvTeam::getProjectArtType");
+	FAssertBounds(0, GC.getNumProjectInfos(), eIndex);
+	FAssertBounds(0, getProjectCount(eIndex), number);
 	return m_pavProjectArtTypes[eIndex][number];
 }
 
 
 void CvTeam::setProjectArtType(ProjectTypes eIndex, int number, int value)
 {
-	FASSERT_BOUNDS(0, GC.getNumProjectInfos(), eIndex, "CvTeam::setProjectArtType");
-	FASSERT_BOUNDS(0, getProjectCount(eIndex), number, "CvTeam::setProjectArtType");
+	FAssertBounds(0, GC.getNumProjectInfos(), eIndex);
+	FAssertBounds(0, getProjectCount(eIndex), number);
 	m_pavProjectArtTypes[eIndex][number] = value;
 }
 
@@ -3926,7 +3914,8 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 
 	if (getResearchProgress(eIndex) >= getResearchCost(eIndex))
 	{
-		int iOverflow = (100 * (getResearchProgress(eIndex) - getResearchCost(eIndex))) / std::max(1, GET_PLAYER(ePlayer).calculateResearchModifier(eIndex));
+		int iOverflow = (100 * (getResearchProgress(eIndex) - getResearchCost(eIndex))) /
+				std::max(1, GET_PLAYER(ePlayer).calculateResearchModifier(eIndex));
 		GET_PLAYER(ePlayer).changeOverflowResearch(iOverflow);
 		setHasTech(eIndex, true, ePlayer, true, true);
 		/* original bts code
@@ -5071,7 +5060,7 @@ void CvTeam::updateTechShare(TechTypes eTech)
 	FAssert(iBestShare < MAX_INT); // advc
 
 	int iCount = 0;
-	for (TeamIter<CIV_ALIVE,KNOWN_TO> it(getID()); it.hasNext(); ++it)
+	for (TeamIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getID()); it.hasNext(); ++it)
 	{
 		if (it->isHasTech(eTech))
 			iCount++;

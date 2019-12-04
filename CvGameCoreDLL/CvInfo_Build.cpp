@@ -46,25 +46,25 @@ void CvBuildInfo::setMissionType(int iNewType)
 
 int CvBuildInfo::getFeatureTech(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvProjectInfo::getFeatureTech");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_paiFeatureTech ? m_paiFeatureTech[i] : NO_TECH; // advc.003t
 }
 
 int CvBuildInfo::getFeatureTime(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvProjectInfo::getFeatureTime");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_paiFeatureTime ? m_paiFeatureTime[i] : 0; // advc.003t
 }
 
 int CvBuildInfo::getFeatureProduction(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvProjectInfo::getFeatureProduction");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_paiFeatureProduction ? m_paiFeatureProduction[i] : 0; // advc.003t
 }
 
 bool CvBuildInfo::isFeatureRemove(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvProjectInfo::isFeatureRemove");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_pabFeatureRemove ? m_pabFeatureRemove[i] : false;
 }
 

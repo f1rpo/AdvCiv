@@ -2443,7 +2443,7 @@ void CvGame::update()
 		updateTurnTimer();
 		AI().AI_updateAssignWork();
 		testAlive();
-		AI().warAndPeaceAI().invalidateUICache(); // advc.104l
+		AI().uwai().invalidateUICache(); // advc.104l
 		if (getAIAutoPlay() == 0 && !gDLL->GetAutorun() && GAMESTATE_EXTENDED != getGameState())
 		{
 			if (countHumanPlayersAlive() == 0
@@ -2510,7 +2510,7 @@ void CvGame::updateScore(bool bForce)
 		GET_PLAYER(eBestPlayer).updateScoreHistory(getGameTurn(), iBestScore);
 	} // <advc.001>
 	/*for(size_t i = 0; i < updateAttitude.size(); i++)
-		GET_PLAYER(updateAttitude[i]).AI_updateAttitudeCache();*/
+		GET_PLAYER(updateAttitude[i]).AI_updateAttitude();*/
 	/*  The above isn't enough; the attitudes of those outside updateAttitude
 		toward those inside could also change. */
 	if(!aeUpdateAttitude.empty())
@@ -2519,7 +2519,7 @@ void CvGame::updateScore(bool bForce)
 		{
 			CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 			if(kLoopPlayer.isAlive() && !kLoopPlayer.isMinorCiv())
-				kLoopPlayer.AI_updateAttitudeCache();
+				kLoopPlayer.AI_updateAttitude();
 		}
 	} // </advc.001>
 
@@ -4479,7 +4479,7 @@ void CvGame::changeCivPlayersEverAlive(int iChange)
 	/*  iChange normally shouldn't be negative, but liberated civs aren't supposed
 		to count, and they're set to 'alive' before getting marked as liberated
 		(CvPlayer::setParent), so they need to be subtracted once setParent is called. */
-	FASSERT_BOUNDS(0, MAX_CIV_PLAYERS + 1, m_iCivPlayersEverAlive, "CvGame::changeCivPlayersEverAlive");
+	FAssertBounds(0, MAX_CIV_PLAYERS + 1, m_iCivPlayersEverAlive);
 }
 
 int CvGame::getCivTeamsEverAlive() const
@@ -4494,7 +4494,7 @@ int CvGame::getCivTeamsEverAlive() const
 void CvGame::changeCivTeamsEverAlive(int iChange)
 {
 	m_iCivTeamsEverAlive += iChange;
-	FASSERT_BOUNDS(0, MAX_CIV_TEAMS + 1, m_iCivTeamsEverAlive, "CvGame::changeCivTeamsEverAlive");
+	FAssertBounds(0, MAX_CIV_TEAMS + 1, m_iCivTeamsEverAlive);
 } // </advc.opt>
 
 /*  K-mod, 6/dec/10, karadoc
@@ -5630,7 +5630,7 @@ bool CvGame::isOption(GameOptionTypes eIndex) const
 {	// <advc.opt>
 	if(eIndex < 0 || eIndex >= NUM_GAMEOPTION_TYPES)
 	{
-		FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eIndex, "No such game option");
+		FAssertBounds(0, NUM_GAMEOPTION_TYPES, eIndex);
 		return false;
 	} // Use inline functions. Probably doesn't matter, but feels better.
 	return GC.getInitCore().getOptions()[eIndex]; // </advc.opt>
@@ -5746,43 +5746,38 @@ bool CvGame::canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) cons
 
 int CvGame::getUnitCreatedCount(UnitTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), eIndex, "CvGame::setUnitCreatedCount");
+	FAssertBounds(0, GC.getNumUnitInfos(), eIndex);
 	return m_paiUnitCreatedCount[eIndex];
 }
 
 
 void CvGame::incrementUnitCreatedCount(UnitTypes eIndex)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), eIndex, "CvGame::incrementUnitCreatedCount");
+	FAssertBounds(0, GC.getNumUnitInfos(), eIndex);
 	m_paiUnitCreatedCount[eIndex]++;
 }
 
 
 int CvGame::getUnitClassCreatedCount(UnitClassTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), eIndex, "CvGame::getUnitCreatedCount");
+	FAssertBounds(0, GC.getNumUnitInfos(), eIndex);
 	return m_paiUnitClassCreatedCount[eIndex];
 }
 
 
 bool CvGame::isUnitClassMaxedOut(UnitClassTypes eIndex, int iExtra) const
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), eIndex, "CvGame::isUnitClassMaxedOut");
-
+	FAssertBounds(0, GC.getNumUnitClassInfos(), eIndex);
 	if (!isWorldUnitClass(eIndex))
-	{
 		return false;
-	}
-	FASSERT_BOUNDS(0, GC.getInfo(eIndex).getMaxGlobalInstances()+1, getUnitClassCreatedCount(eIndex), "CvGame::isUnitClassMaxedOut");
-
-
+	FAssertBounds(0, GC.getInfo(eIndex).getMaxGlobalInstances() + 1, getUnitClassCreatedCount(eIndex));
 	return ((getUnitClassCreatedCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxGlobalInstances());
 }
 
 
 void CvGame::incrementUnitClassCreatedCount(UnitClassTypes eIndex)
 {
-	FASSERT_BOUNDS(0, GC.getNumUnitClassInfos(), eIndex, "CvGame::incrementUnitClassCreatedCount");
+	FAssertBounds(0, GC.getNumUnitClassInfos(), eIndex);
 	m_paiUnitClassCreatedCount[eIndex]++;
 }
 
@@ -5953,7 +5948,7 @@ void CvGame::setVoteOutcome(const VoteTriggeredData& kData, PlayerVoteTypes eNew
 
 int CvGame::getReligionGameTurnFounded(ReligionTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::getReligionGameTurnFounded");
+	FAssertBounds(0, GC.getNumReligionInfos(), eIndex);
 	return m_paiReligionGameTurnFounded[eIndex];
 }
 
@@ -6124,14 +6119,14 @@ void CvGame::setVoteChosen(int iSelection, int iVoteId)
 
 CvCity* CvGame::getHolyCity(ReligionTypes eIndex)
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::getHolyCity"); // K-Mod
+	FAssertBounds(0, GC.getNumReligionInfos(), eIndex); // K-Mod
 	return getCity(m_paHolyCity[eIndex]);
 }
 
 
 void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc: refactored (note: almost the same as setHeadquarters)
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvGame::setHolyCity");
+	FAssertBounds(0, GC.getNumReligionInfos(), eIndex);
 
 	CvCity* pOldValue = getHolyCity(eIndex);
 	if(pOldValue == pNewValue)
@@ -6190,14 +6185,14 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 
 CvCity* CvGame::getHeadquarters(CorporationTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, GC.getNumCorporationInfos(), eIndex, "CvGame::getHeadquarters");
+	FAssertBounds(0, GC.getNumCorporationInfos(), eIndex);
 	return getCity(m_paHeadquarters[eIndex]);
 }
 
 
 void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc: refactored (note: almost the same as setHolyCity)
 {
-	FASSERT_BOUNDS(0, GC.getNumCorporationInfos(), eIndex, "CvGame::setHeadquarters");
+	FAssertBounds(0, GC.getNumCorporationInfos(), eIndex);
 
 	CvCity* pOldValue = getHeadquarters(eIndex);
 	if (pOldValue == pNewValue)
@@ -6555,7 +6550,7 @@ void CvGame::doDeals()
 	for (std::set<PlayerTypes>::iterator it = trade_players.begin(); it != trade_players.end(); ++it)
 	{
 		FAssert(*it != NO_PLAYER);
-		GET_PLAYER(*it).AI_updateAttitudeCache();
+		GET_PLAYER(*it).AI_updateAttitude();
 	}
 	// K-Mod end
 }
@@ -7956,8 +7951,8 @@ void CvGame::testAlive()
 
 bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const  // advc: simplified this function a bit
 {
-	FASSERT_BOUNDS(0, GC.getNumVictoryInfos(), eVictory, "CvGame::testVictory");
-	FASSERT_BOUNDS(0, MAX_CIV_TEAMS, eTeam, "CvGame::testVictory");
+	FAssertBounds(0, GC.getNumVictoryInfos(), eVictory);
+	FAssertBounds(0, MAX_CIV_TEAMS, eTeam);
 	FAssert(GET_TEAM(eTeam).isAlive());
 
 	if(pbEndScore != NULL)
@@ -9353,7 +9348,7 @@ void CvGame::allGameDataRead()
 		{
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 			if (kPlayer.isAlive())
-				kPlayer.AI_updateAttitudeCache();
+				kPlayer.AI_updateAttitude();
 		}
 	}
 	m_iAIAutoPlay = 0; // </advc.127>

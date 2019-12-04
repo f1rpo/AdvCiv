@@ -69,7 +69,7 @@ protected:
 		within the implementing branch. Should return a negative value if 'u'
 		doesn't fit the branch at all. isValidDomain and positive combatStrength
 		are ensured by the caller though.
-		May want to call the generic WarAndPeaceAI::Civ::militaryPower. */
+		May want to call the generic UWAI::Civ::militaryPower. */
 	virtual double unitPower(CvUnitInfo const& u, bool modify = false) const=0;
 	virtual double unitUtility(CvUnitInfo const& u, double pow) const;
 	bool isValidDomain(CvUnitInfo const& u) const;

@@ -5,7 +5,7 @@
 #include "CvInfo_GameOption.h"
 #include "CvAI.h"
 #include "CvDeal.h"
-#include "WarAndPeaceAgent.h" // advc.104
+#include "UWAIAgent.h" // advc.104
 #include "CvPopupInfo.h"
 #include "CvReplayInfo.h"
 #include "CvPlot.h"
@@ -492,11 +492,11 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		if(!other.isAlive() || other.isMinorCiv())
 			continue;
 		if(other.getID() != civId && GET_TEAM(civId).isHasMet(other.getTeam()))
-			other.AI_updateAttitudeCache(civId);
+			other.AI_updateAttitude(civId);
 		if(b && formerHumanCiv != NO_PLAYER && civId != formerHumanCiv &&
 				other.getID() != formerHumanCiv && GET_TEAM(formerHumanCiv).
 				isHasMet(other.getTeam()))
-			other.AI_updateAttitudeCache(formerHumanCiv);
+			other.AI_updateAttitude(formerHumanCiv);
 	}
 	if(b) { // Updates to apply human modifiers
 		civ.updateWarWearinessPercentAnger();
@@ -1401,8 +1401,8 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 			break;
 		case TRADE_WAR:
 			itemVal = humanTeam.AI_declareWarTradeVal((TeamTypes)data, aiTeamId);
-			if(getWPAI.isEnabled()) // advc.104
-				replVal = GET_TEAM(humanTeamId).warAndPeaceAI().tradeValJointWar(
+			if(getUWAI.isEnabled()) // advc.104
+				replVal = GET_TEAM(humanTeamId).uwai().tradeValJointWar(
 						(TeamTypes)data, aiTeam.getID());
 			break;
 		case TRADE_EMBARGO:

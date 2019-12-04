@@ -4,7 +4,7 @@
 #define WAR_EVAL_PARAMETERS_H
 
 class WarUtilityAspect;
-class WarAndPeaceReport;
+class UWAIReport;
 
 /* advc.104: New class. Parameters that enter into the computation of
    war utility. On the level of teams (not individual civs).
@@ -16,13 +16,13 @@ class WarEvalParameters {
 public:
 
 	WarEvalParameters(TeamTypes agentId, TeamTypes targetId,
-			WarAndPeaceReport& report,
+			UWAIReport& report,
 			bool ignoreDistraction = false,
 			PlayerTypes sponsor = NO_PLAYER,
 			TeamTypes capitulationTeam = NO_TEAM);
 	TeamTypes agentId() const;
 	TeamTypes targetId() const;
-	WarAndPeaceReport& getReport() const;
+	UWAIReport& getReport() const;
 	bool isConsideringPeace() const;
 	/*  For evaluating joint wars when the agent is already at war, but the ally
 		is not. The agent does then not consider itself (and its vassals) to be at
@@ -59,7 +59,7 @@ public:
 
 private:
 
-	WarAndPeaceReport& report;
+	UWAIReport& report;
 	TeamTypes _targetId, _agentId;
 	bool consideringPeace;
 	bool ignoreDistraction;

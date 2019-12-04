@@ -4,7 +4,7 @@
 #define CIV4_GAME_AI_H
 
 #include "CvGame.h"
-#include "WarAndPeaceAI.h" // advc.104
+#include "UWAI.h" // advc.104
 
 
 class CvGameAI : public CvGame
@@ -29,14 +29,14 @@ public:
   void read(FDataStreamBase* pStream);
   void write(FDataStreamBase* pStream);
 
-  inline WarAndPeaceAI& warAndPeaceAI() { return m_wpai; } // advc.104
+  inline UWAI& uwai() { return m_uwai; } // advc.104
 
 protected:
 
   int m_iPad;
   // <advc.104>
-  void AI_sortOutWPAIOptions(bool bFromSaveGame);
-  WarAndPeaceAI m_wpai; // </advc.104>
+  void AI_sortOutUWAIOptions(bool bFromSaveGame);
+  UWAI m_uwai; // </advc.104>
 };
 
 #endif

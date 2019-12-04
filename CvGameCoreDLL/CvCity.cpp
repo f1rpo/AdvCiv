@@ -1612,7 +1612,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	bool bCheckAirUnitCap, // advc.001b
 	BonusTypes eAssumeAvailable) const // advc.001u
 {
-	PROFILE_FUNC(); // advc.opt
+	//PROFILE_FUNC(); // advc.003o
 
 	if(eUnit == NO_UNIT) // advc.test: Safe to remove this check?
 	{
@@ -11042,7 +11042,7 @@ void CvCity::setNumFreeBuilding(BuildingTypes eIndex, int iNewValue)
 
 bool CvCity::isHasReligion(ReligionTypes eIndex) const
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvCity::isHasReligion");
+	FAssertBounds(0, GC.getNumReligionInfos(), eIndex);
 	return m_pabHasReligion[eIndex];
 }
 
@@ -11050,7 +11050,7 @@ bool CvCity::isHasReligion(ReligionTypes eIndex) const
 void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows,
 	PlayerTypes eSpreadPlayer) // advc.106e
 {
-	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvCity::setHasReligion");
+	FAssertBounds(0, GC.getNumReligionInfos(), eIndex);
 
 	if (isHasReligion(eIndex) == bNewValue)
 		return; // advc
@@ -14696,7 +14696,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 		kLiberationTeam.setMasterPower(kLiberationTeam.getMasterPower() + iNewMasterLand - iOldMasterLand);
 		kLiberationTeam.setVassalPower(kLiberationTeam.getVassalPower() + iNewVassalLand - iOldVassalLand);
 	}
-	GET_PLAYER(ePlayer).AI_updateAttitudeCache(getOwner()); // advc.ctr
+	GET_PLAYER(ePlayer).AI_updateAttitude(getOwner()); // advc.ctr
 	// dlph.23: Commented out. setCulture now done by advc.ctr in acquireCity.
 	/*if (NULL != pPlot) {
 		CvCity* pCity = pPlot->getPlotCity();

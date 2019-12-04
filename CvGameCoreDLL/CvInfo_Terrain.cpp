@@ -49,25 +49,25 @@ int CvTerrainInfo::getWorldSoundscapeScriptId() const
 
 int CvTerrainInfo::getYield(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTerrainInfo::getYield");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYields ? m_piYields[i] : 0; // advc.003t
 }
 
 int CvTerrainInfo::getRiverYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTerrainInfo::getRiverYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piRiverYieldChange ? m_piRiverYieldChange[i] : 0; // advc.003t
 }
 
 int CvTerrainInfo::getHillsYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvTerrainInfo::getHillsYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : 0; // advc.003t
 }
 
 int CvTerrainInfo::get3DAudioScriptFootstepIndex(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFootstepAudioTypes(), i, "CvTerrainInfo::get3DAudioScriptFootstepIndex"); // advc: Check for upper bound added
+	FAssertBounds(0, GC.getNumFootstepAudioTypes(), i); // advc: Check for upper bound added
 	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i]
 			: 0; // advc.003t: see get3DAudioScriptFootstepIndex
 }
@@ -292,7 +292,7 @@ int CvFeatureInfo::getEffectProbability() const
 
 int CvFeatureInfo::get3DAudioScriptFootstepIndex(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFootstepAudioTypes(), i, "CvTerrainInfo::get3DAudioScriptFootstepIndex"); // advc: Check for upper bound added
+	FAssertBounds(0, GC.getNumFootstepAudioTypes(), i); // advc: Check for upper bound added
 	return m_pi3DAudioScriptFootstepIndex ? m_pi3DAudioScriptFootstepIndex[i]
 			// advc.003t: Was -1. CvTerrainInfo::read sets 0 as the default, so 0 works apparently.
 			: 0;
@@ -300,7 +300,7 @@ int CvFeatureInfo::get3DAudioScriptFootstepIndex(int i) const
 
 bool CvFeatureInfo::isTerrain(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvFeatureInfo::isTerrain");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbTerrain ? m_pbTerrain[i] : false;
 }
 
@@ -587,7 +587,7 @@ const CvArtInfoBonus* CvBonusInfo::getArtInfo() const
 
 int CvBonusInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvBonusInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
@@ -598,19 +598,19 @@ int* CvBonusInfo::getYieldChangeArray()
 
 bool CvBonusInfo::isTerrain(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvBonusInfo::isTerrain");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbTerrain ? m_pbTerrain[i] : false;
 }
 
 bool CvBonusInfo::isFeature(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvBonusInfo::isFeature");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_pbFeature ? m_pbFeature[i] : false;
 }
 
 bool CvBonusInfo::isFeatureTerrain(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvBonusInfo::isFeatureTerrain");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbFeatureTerrain ?	m_pbFeatureTerrain[i] : false;
 }
 
@@ -837,13 +837,13 @@ int CvRouteInfo::getValue() const
 
 int CvRouteInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvRouteInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
 int CvRouteInfo::getTechMovementChange(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTechInfos(), i, "CvRouteInfo::getTechMovementChange");
+	FAssertBounds(0, GC.getNumTechInfos(), i);
 	return m_piTechMovementChange ? m_piTechMovementChange[i] : 0; // advc.003t
 }
 
@@ -1039,7 +1039,7 @@ int CvImprovementInfo::getWorldSoundscapeScriptId() const
 
 int CvImprovementInfo::getPrereqNatureYield(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvImprovementInfo::getPrereqNatureYield");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piPrereqNatureYield ? m_piPrereqNatureYield[i] : 0; // advc.003t
 }
 
@@ -1050,7 +1050,7 @@ int* CvImprovementInfo::getPrereqNatureYieldArray()
 
 int CvImprovementInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvImprovementInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
@@ -1061,7 +1061,7 @@ int* CvImprovementInfo::getYieldChangeArray()
 
 int CvImprovementInfo::getRiverSideYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvImprovementInfo::getRiverSideYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piRiverSideYieldChange ? m_piRiverSideYieldChange[i] : 0; // advc.003t
 }
 
@@ -1072,7 +1072,7 @@ int* CvImprovementInfo::getRiverSideYieldChangeArray()
 
 int CvImprovementInfo::getHillsYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvImprovementInfo::getHillsYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : 0; // advc.003t
 }
 
@@ -1083,7 +1083,7 @@ int* CvImprovementInfo::getHillsYieldChangeArray()
 
 int CvImprovementInfo::getIrrigatedYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvImprovementInfo::getIrrigatedYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piIrrigatedChange ? m_piIrrigatedChange[i] : 0; // advc.003t
 }
 
@@ -1094,20 +1094,20 @@ int* CvImprovementInfo::getIrrigatedYieldChangeArray()
 
 bool CvImprovementInfo::getTerrainMakesValid(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvImprovementInfo::getTerrainMakesValid");
+	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 	return m_pbTerrainMakesValid ? m_pbTerrainMakesValid[i] : false;
 }
 
 bool CvImprovementInfo::getFeatureMakesValid(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFeatureInfos(), i, "CvImprovementInfo::getFeatureMakesValid");
+	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 	return m_pbFeatureMakesValid ? m_pbFeatureMakesValid[i] : false;
 }
 
 int CvImprovementInfo::getTechYieldChanges(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTechInfos(), i, "CvImprovementInfo::getTechYieldChanges");
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, j, "CvImprovementInfo::getTechYieldChanges");
+	FAssertBounds(0, GC.getNumTechInfos(), i);
+	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_ppiTechYieldChanges[i][j];
 }
 
@@ -1118,8 +1118,8 @@ int* CvImprovementInfo::getTechYieldChangesArray(int i) const
 
 int CvImprovementInfo::getRouteYieldChanges(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumRouteInfos(), i, "CvImprovementInfo::getRouteYieldChanges");
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, j, "CvImprovementInfo::getRouteYieldChanges");
+	FAssertBounds(0, GC.getNumRouteInfos(), i);
+	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_ppiRouteYieldChanges[i][j];
 }
 
@@ -1130,26 +1130,26 @@ int* CvImprovementInfo::getRouteYieldChangesArray(int i) const
 
 int CvImprovementInfo::getImprovementBonusYield(int i, int j) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvImprovementInfo::getImprovementBonusYield");
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, j, "CvImprovementInfo::getImprovementBonusYield");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
+	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_paImprovementBonus[i].m_piYieldChange ? m_paImprovementBonus[i].getYieldChange(j) : 0; // advc.003t
 }
 
 bool CvImprovementInfo::isImprovementBonusMakesValid(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvImprovementInfo::isImprovementBonusMakesValid");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_paImprovementBonus[i].m_bBonusMakesValid;
 }
 
 bool CvImprovementInfo::isImprovementBonusTrade(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvImprovementInfo::isImprovementBonusTrade");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_paImprovementBonus[i].m_bBonusTrade;
 }
 
 int CvImprovementInfo::getImprovementBonusDiscoverRand(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumBonusInfos(), i, "CvImprovementInfo::getImprovementBonusDiscoverRand");
+	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_paImprovementBonus[i].m_iDiscoverRand;
 }
 
@@ -1493,7 +1493,7 @@ bool CvImprovementBonusInfo::isBonusTrade() const
 
 int CvImprovementBonusInfo::getYieldChange(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_YIELD_TYPES, i, "CvImprovementBonusInfo::getYieldChange");
+	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 #if SERIALIZE_CVINFOS

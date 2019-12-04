@@ -8,7 +8,7 @@
 
 
 WarEvalParameters::WarEvalParameters(TeamTypes agentId,
-		TeamTypes targetId, WarAndPeaceReport& report,
+		TeamTypes targetId, UWAIReport& report,
 		bool ignoreDistraction, PlayerTypes sponsor,
 		TeamTypes capitulationTeam) :
 	_agentId(agentId), _targetId(targetId), sponsor(sponsor),
@@ -38,7 +38,7 @@ TeamTypes WarEvalParameters::targetId() const {
 	return _targetId;
 }
 
-WarAndPeaceReport& WarEvalParameters::getReport() const {
+UWAIReport& WarEvalParameters::getReport() const {
 
 	return report;
 }

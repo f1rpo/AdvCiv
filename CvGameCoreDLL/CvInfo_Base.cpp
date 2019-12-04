@@ -493,13 +493,13 @@ void CvXMLInfo::addElements(std::vector<XMLElement*>& r) const
 
 void CvXMLInfo::set(IntElementTypes e, int iNewValue)
 {
-	FASSERT_BOUNDS(0, (int)m_aiData.size(), e, "CvInfoBase::set(IntElementTypes,int)");
+	FAssertBounds(0, m_aiData.size(), e);
 	m_aiData[e] = iNewValue;
 }
 
 void CvXMLInfo::set(BoolElementTypes e, bool bNewValue)
 {
-	FASSERT_BOUNDS(0, (int)m_abData.size(), e, "CvInfoBase::set(BoolElementTypes,bool)");
+	FAssertBounds(0, m_abData.size(), e);
 	m_abData[e] = bNewValue;
 }
 
@@ -541,7 +541,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 				pXML->GetChildXmlValByName(&iTmp, szName.GetCString(),
 						static_cast<IntElement&>(kElement).getDefaultValue());
 			}
-			FASSERT_BOUNDS(0, (int)m_aiData.size(), iEnumValue, "CvInfoBase::read");
+			FAssertBounds(0, m_aiData.size(), iEnumValue);
 			m_aiData[iEnumValue] = iTmp;
 			break;
 		case BOOL_ELEMENT:
@@ -554,7 +554,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 				pXML->GetChildXmlValByName(&bTmp, szName.GetCString(),
 						static_cast<BoolElement&>(kElement).getDefaultValue());
 			}
-			FASSERT_BOUNDS(0, (int)m_abData.size(), iEnumValue, "CvInfoBase::read");
+			FAssertBounds(0, m_abData.size(), iEnumValue);
 			m_abData[iEnumValue] = bTmp;
 			break;
 		default: FAssertMsg(false, "Data type misses XML loading code");

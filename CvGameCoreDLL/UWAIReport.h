@@ -1,23 +1,23 @@
 #pragma once
 
-#ifndef WAR_AND_PEACE_REPORT_H
-#define WAR_AND_PEACE_REPORT_H
+#ifndef UWAI_REPORT_H
+#define UWAI_REPORT_H
 
 /* advc.104: New class. A report about the war planning of a single team
-   (cf. WarAndPeaceAI::Team::doWar). I'm also focusing string handling
+   (cf. UWAI::Team::doWar). I'm also focusing string handling
    needed for logging in this class.
    Calls to 'log' have no effect when in silent or mute mode. DEBUG mode is not a
    prerequisite for logging output though.
    Each 'log' call is written to the log file separately (flushed). */
-class WarAndPeaceReport {
+class UWAIReport {
 
 public:
 
 	/* Instead of preceding each 'log' call with a check, the client object
 	   should (once) create a report in any case, but set it to be 'silent'.
 	   setMute has no effect on a silent report. */
-	WarAndPeaceReport(bool silent = false);
-	~WarAndPeaceReport();
+	UWAIReport(bool silent = false);
+	~UWAIReport();
 	// Only actually logs when not set to silent or mute
 	void log(char const* fmt, ...);
 	/* leaderName and the next four functions use manually (de-)allocated

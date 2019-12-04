@@ -683,7 +683,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	// <advc.enum>
 	void TestEnumMap();
 	TestEnumMap(); // </advc.enum>
-	getWPAI.doXML(); // advc.104x
+	getUWAI.doXML(); // advc.104x
 	GC.setXMLLoadUtility(this); // advc.003v
 
 	return true;

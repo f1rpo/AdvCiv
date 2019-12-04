@@ -5609,7 +5609,7 @@ void CvPlot::changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate)
 
 int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) const
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, eIndex, "CvPlot::getFoundValue");
+	FAssertBounds(0, MAX_PLAYERS, eIndex);
 
 	if (m_aiFoundValue.get(eIndex) == -1)
 	{
@@ -6039,7 +6039,7 @@ bool CvPlot::isRiverCrossing(DirectionTypes eIndex) const
 
 void CvPlot::updateRiverCrossing(DirectionTypes eIndex)
 {
-	FASSERT_BOUNDS(0, NUM_DIRECTION_TYPES, eIndex, "CvPlot::updateRiverCrossing");
+	FAssertBounds(0, NUM_DIRECTION_TYPES, eIndex);
 
 	CvPlot* pCornerPlot = NULL;
 	bool bValid = false;
@@ -6158,7 +6158,7 @@ bool CvPlot::isRevealed(TeamTypes eTeam, bool bDebug) const
 
 void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, TeamTypes eFromTeam, bool bUpdatePlotGroup)
 {
-	FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvPlot::setRevealed");
+	FAssertBounds(0, MAX_TEAMS, eTeam);
 
 	CvCity* pCity = getPlotCity();
 	bool bOldValue = isRevealed(eTeam); // advc.124
@@ -6309,7 +6309,7 @@ RouteTypes CvPlot::getRevealedRouteType(TeamTypes eTeam, bool bDebug) const
 
 void CvPlot::setRevealedRouteType(TeamTypes eTeam, RouteTypes eNewValue)
 {
-	FASSERT_BOUNDS(0, MAX_TEAMS, eTeam, "CvPlot::setRevealedRouteType");
+	FAssertBounds(0, MAX_TEAMS, eTeam);
 
 	if (getRevealedRouteType(eTeam) == eNewValue)
 		return;

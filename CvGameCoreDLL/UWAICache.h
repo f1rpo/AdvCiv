@@ -1,9 +1,9 @@
 #pragma once
 
-#ifndef WAR_AND_PEACE_CACHE_H
-#define WAR_AND_PEACE_CACHE_H
+#ifndef UWAI_CACHE_H
+#define UWAI_CACHE_H
 
-class WarAndPeaceCache;
+class UWAICache;
 class MilitaryBranch;
 class CvCity;
 class FDataStreamBase;
@@ -13,16 +13,16 @@ class FDataStreamBase;
    information about all other civs, and (not nice) also a bit of team-level data.
    Also handles the updating of cached values, i.e. many of the AI's
    heuristic functions belong to this class. (Maybe it would be cleaner
-   if the heuristics were moved to WarAndPeaceAI::Civ? Will have to split
+   if the heuristics were moved to UWAI::Civ? Will have to split
    it up a bit more at some point b/c this class is getting too large.) */
-class WarAndPeaceCache {
+class UWAICache {
 
 public:
 
 	class City;
 
-	WarAndPeaceCache();
-	~WarAndPeaceCache();
+	UWAICache();
+	~UWAICache();
 	/* Call order during initialization and clean-up:
 	   + When starting a new game directly after starting Civ 4:
 		 Constructors (for CvTeam and all related classes) are called, then init.
@@ -160,8 +160,8 @@ private:
 	void updateTrainCargo();
 	bool calculateFocusOnPeacefulVictory();
 	// To supply team-on-team data
-	WarAndPeaceCache const& leaderCache() const;
-	WarAndPeaceCache& leaderCache();
+	UWAICache const& leaderCache() const;
+	UWAICache& leaderCache();
 
 	PlayerTypes ownerId;
 	std::vector<City*> v;

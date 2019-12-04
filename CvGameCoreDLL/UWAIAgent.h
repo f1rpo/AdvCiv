@@ -1,22 +1,22 @@
 #pragma once
 
-#ifndef WAR_AND_PEACE_AGENT_H
-#define WAR_AND_PEACE_AGENT_H
+#ifndef UWAI_AGENT_H
+#define UWAI_AGENT_H
 
-// advc.104: See comment at the start of WarAndPeaceAI.h
+// advc.104: See comment at the start of UWAI.h
 
-#include "WarAndPeaceAI.h"
-#include "WarAndPeaceCache.h"
+#include "UWAI.h"
+#include "UWAICache.h"
 
 class FDataStreamBase;
-class WarAndPeaceReport;
+class UWAIReport;
 
 // This class handles war and peace at the level of CvTeams
-class WarAndPeaceAI::Team {
+class UWAI::Team {
 public:
 	Team();
 	~Team();
-	// See WarAndPeaceCache.h about the call order during initialization
+	// See UWAICache.h about the call order during initialization
 	// (Tbd.: Make the UWAI classes non-reusable, i.e. initialize in the ctor.)
 	void init(TeamTypes agentId);
 	void turnPre();
@@ -91,8 +91,8 @@ public:
 	// Like canSchemeAgainst, but also true if currently at war (unless vassal).
 	bool isPotentialWarEnemy(TeamTypes tId) const;
 	bool isFastRoads() const;
-	WarAndPeaceAI::Civ const& leaderWpai() const;
-	WarAndPeaceAI::Civ& leaderWpai();
+	UWAI::Civ const& leaderUWAI() const;
+	UWAI::Civ& leaderUWAI();
 	// When forming a Permanent Alliance
 	void addTeam(PlayerTypes otherLeaderId);
 	double utilityToTradeVal(double u) const;
@@ -102,7 +102,7 @@ public:
 	/*  Runs 'scheme' as if UWAI was running in the background and writes a
 		report file regardless of the REPORT_INTERVAL set in XML.
 		Intended for debugging. Could insert a call like
-		GET_TEAM((TeamTypes)1).warAndPeaceAI().doWarReport()
+		GET_TEAM((TeamTypes)1).uwai().doWarReport()
 		in e.g. CvUnit::kill, load the savegame to be debugged, disband a unit,
 		read the report and remove the doWarReport call again. */
 	void doWarReport();
@@ -136,12 +136,12 @@ private:
 	void showWarPrepStartedMsg(TeamTypes targetId);
 	void showWarPlanAbandonedMsg(TeamTypes targetId);
 	void showWarPlanMsg(TeamTypes targetId, char const* txtKey);
-	WarAndPeaceCache& leaderCache();
-	WarAndPeaceCache const& leaderCache() const;
-	/*  Not in WarAndPeaceAI::Civ b/c I want these to be private. They're
+	UWAICache& leaderCache();
+	UWAICache const& leaderCache() const;
+	/*  Not in UWAI::Civ b/c I want these to be private. They're
 		only auxiliary functions for their team-level counterparts, and should
 		not be used for any other computations.
-		Instead, I'm placing conversion functions in WarAndPeaceAI::Civ
+		Instead, I'm placing conversion functions in UWAI::Civ
 		that simply call the team versions. */
 	  double utilityToTradeVal(double u, PlayerTypes memberId) const;
 	  double tradeValToUtility(double tradeVal, PlayerTypes memberId) const;
@@ -149,23 +149,23 @@ private:
 	TeamTypes agentId;
 	bool inBackgr;
 	bool bForceReport;
-	WarAndPeaceReport* report; // Only to be used in doWar and its subroutines
+	UWAIReport* report; // Only to be used in doWar and its subroutines
 };
 
 // This class handles war and peace on the level of CvPlayers
-class WarAndPeaceAI::Civ {
+class UWAI::Civ {
 
 public:
 	Civ();
-	// See WarAndPeaceCache.h about when init is called.
+	// See UWAICache.h about when init is called.
 	void init(PlayerTypes we);
 	void uninit();
 	void turnPre();
 	// 'cache' handles all the persistent data, these two only relay the calls.
 	 void write(FDataStreamBase* stream);
 	 void read(FDataStreamBase* stream);
-	inline WarAndPeaceCache const& getCache() const { return cache; }
-	inline WarAndPeaceCache& getCache() { return cache; }
+	inline UWAICache const& getCache() const { return cache; }
+	inline UWAICache& getCache() { return cache; }
 	// Request and demands. BtS handles these in CvPlayerAI::AI_considerOffer.
 	bool considerDemand(PlayerTypes theyId, int tradeVal) const;
 	bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
@@ -204,7 +204,7 @@ public:
 	/*  Confidence based on experience from past wars with targetId.
 		1 if none, otherwise between 0.5 and 1.5. */
 	double confidenceFromPastWars(TeamTypes targetId) const;
-  // Personality values that aren't cached. More in WarAndPeaceCache.
+  // Personality values that aren't cached. More in UWAICache.
 	/*  A measure of how paranoid our leader is, based on EspionageWeight and
 		protective trait. EspionageWeight is between 50 (Gandhi) and 150 (Stalin).
 		Return value is between 0.5 and 1.8.
@@ -243,7 +243,7 @@ private:
 	int willTalk(PlayerTypes theyId, int atWarCounter) const;
 
 	PlayerTypes weId;
-	WarAndPeaceCache cache;
+	UWAICache cache;
 };
 
 #endif

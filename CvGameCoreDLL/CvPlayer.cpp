@@ -5,7 +5,7 @@
 #include "CvAgents.h" // advc.agent
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
-#include "WarAndPeaceAgent.h" // advc.104
+#include "UWAIAgent.h" // advc.104
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_All.h"
@@ -273,8 +273,8 @@ void CvPlayer::initInGame(PlayerTypes eID)
 
 	GC.getAgents().colonyCreated(getID()); // advc.agent
 	// <advc.104r>
-	if(getWPAI.isEnabled())
-		getWPAI.processNewCivInGame(getID());
+	if(getUWAI.isEnabled())
+		getUWAI.processNewCivInGame(getID());
 	// </advc.104r>
 	/*  I've kept the initialization of random event data out of initOtherData
 		b/c the BBAI code handles that part differently (cf. resetCivTypeEffects). */
@@ -2119,13 +2119,13 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	// Notify observers
 	// <advc.104>
-	if(getWPAI.isEnabled() || getWPAI.isEnabled(true))
+	if(getUWAI.isEnabled() || getUWAI.isEnabled(true))
 	{
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
 			if(kPlayer.isAlive() && !kPlayer.isMinorCiv())
-				kPlayer.warAndPeaceAI().getCache().reportCityOwnerChanged(&kNewCity, eOldOwner);
+				kPlayer.uwai().getCache().reportCityOwnerChanged(&kNewCity, eOldOwner);
 		}
 	} // </advc.104>
 	CvEventReporter::getInstance().cityAcquired(eOldOwner, getID(), &kNewCity, bConquest, bTrade);
@@ -4053,7 +4053,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	{
 	case TRADE_TECHNOLOGIES:
 	{
-		FASSERT_BOUNDS(0, GC.getNumTechInfos(), item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, GC.getNumTechInfos(), item.m_iData);
 		TechTypes eTech = (TechTypes)item.m_iData;
 		if (GC.getInfo(eTech).isTrade() &&
 				kOurTeam.isHasTech(eTech) &&
@@ -4065,7 +4065,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_RESOURCES:
 	{
-		FASSERT_BOUNDS(0, GC.getNumBonusInfos(), item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, GC.getNumBonusInfos(), item.m_iData);
 		BonusTypes eBonus = (BonusTypes)item.m_iData;
 		if (!kToTeam.isBonusObsolete(eBonus) &&
 			!kOurTeam.isBonusObsolete(eBonus))
@@ -4143,7 +4143,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_PEACE:
 	{
-		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (kToTeam.isHasMet(eTargetTeam) && //kOurTeam.isHasMet(eTargetTeam) && // advc: redundant
 				kOurTeam.isAtWar(eTargetTeam))
@@ -4152,7 +4152,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_WAR:
 	{
-		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (!GET_TEAM(eTargetTeam).isAVassal() &&
 				kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
@@ -4162,7 +4162,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_EMBARGO:
 	{
-		FASSERT_BOUNDS(0, MAX_CIV_TEAMS, item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (!kOurTeam.isHuman() &&
 				kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
@@ -4176,7 +4176,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_CIVIC:
 	{
-		FASSERT_BOUNDS(0, GC.getNumCivicInfos(), item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, GC.getNumCivicInfos(), item.m_iData);
 		CivicTypes eCivic = (CivicTypes)item.m_iData;
 		if (GET_PLAYER(eWhoTo).isCivic(eCivic) /* <advc.132> */ ||
 			/*  canForceCivic double-checks everything checked here already,
@@ -4192,7 +4192,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_RELIGION:
 	{
-		FASSERT_BOUNDS(0, GC.getNumReligionInfos(), item.m_iData, "CvPlayer::canTradeItem");
+		FAssertBounds(0, GC.getNumReligionInfos(), item.m_iData);
 		ReligionTypes eReligion = (ReligionTypes)item.m_iData;
 		if (GET_PLAYER(eWhoTo).getStateReligion() == eReligion /* <advc.132> */ ||
 			// Same thing as for civics above
@@ -6911,7 +6911,7 @@ bool CvPlayer::canSeeTech(PlayerTypes eOther) const
 // K-Mod. Return true if this player can see what ePlayer is researching
 bool CvPlayer::canSeeResearch(PlayerTypes ePlayer, /* advc.085: */ bool bCheckPoints) const
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayer::canSeeResearch");
+	FAssertBounds(0, MAX_PLAYERS, ePlayer);
 	const CvPlayer& kOther = GET_PLAYER(ePlayer);
 
 	if (kOther.getTeam() == getTeam() || GET_TEAM(kOther.getTeam()).isVassal(getTeam()))
@@ -6938,7 +6938,7 @@ bool CvPlayer::canSeeResearch(PlayerTypes ePlayer, /* advc.085: */ bool bCheckPo
 // return true if this player can see ePlayer's demographics (power graph, culture graph, etc.)
 bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer, /* advc.085: */ bool bCheckPoints) const 
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayer::canSeeDemographics");
+	FAssertBounds(0, MAX_PLAYERS, ePlayer);
 	const CvPlayer& kOther = GET_PLAYER(ePlayer);
 
 	if (kOther.getTeam() == getTeam() || GET_TEAM(kOther.getTeam()).isVassal(getTeam()))
@@ -9741,11 +9741,11 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		{	// K-Mod. Attitude cache
 			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 			{
-				/*GET_PLAYER(i).AI_updateAttitudeCache(getID());
-				AI().AI_updateAttitudeCache(i);*/
+				/*GET_PLAYER(i).AI_updateAttitude(getID());
+				AI().AI_updateAttitude(i);*/
 				/*  advc.001: E.g. AI_getRankDifferenceAttitude can change between
 					any two civs. */
-				GET_PLAYER(i).AI_updateAttitudeCache();
+				GET_PLAYER(i).AI_updateAttitude();
 			} // K-Mod end
 		}
 	}
@@ -9762,6 +9762,7 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 				(which doesn't matter b/c dead civs get excluded everywhere). */
 		} // </advc.001>
 		clearResearchQueue();
+		clearPopups(); // advc
 		killUnits();
 		killCities();
 		killAllDeals();
@@ -9795,8 +9796,8 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 				g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, -1, -1,
 						(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 				// <advc.104>
-				if ((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && !isMinorCiv())
-					AI().warAndPeaceAI().uninit(); // </advc.104>
+				if ((getUWAI.isEnabled() || getUWAI.isEnabled(true)) && !isMinorCiv())
+					AI().uwai().uninit(); // </advc.104>
 			}
 		}
 	}
@@ -10275,9 +10276,9 @@ void CvPlayer::setFoundedFirstCity(bool bNewValue)
 	}
 	/*  <advc.104> So that rivals (with higher ids) can immediately evaluate
 		war plans against this player  */
-	if(!isBarbarian() && getParent() == NO_PLAYER && getWPAI.isEnabled() &&
+	if(!isBarbarian() && getParent() == NO_PLAYER && getUWAI.isEnabled() &&
 			GC.getGame().isFinalInitialized()) // No update while setting up a scenario
-		AI().warAndPeaceAI().getCache().update(); // </advc.104>
+		AI().uwai().getCache().update(); // </advc.104>
 }
 
 // <advc.078>
@@ -10526,8 +10527,8 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_PLAYER((PlayerTypes)iI).getStateReligion() != NO_RELIGION)
 		{
-			AI().AI_updateAttitudeCache((PlayerTypes)iI);
-			GET_PLAYER((PlayerTypes)iI).AI_updateAttitudeCache(getID());
+			AI().AI_updateAttitude((PlayerTypes)iI);
+			GET_PLAYER((PlayerTypes)iI).AI_updateAttitude(getID());
 		}
 	} // K-Mod end
 }
@@ -10613,8 +10614,8 @@ void CvPlayer::setTeam(TeamTypes eTeam)
 	{
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{
-			AI().AI_updateAttitudeCache(i);
-			GET_PLAYER(i).AI_updateAttitudeCache(getID());
+			AI().AI_updateAttitude(i);
+			GET_PLAYER(i).AI_updateAttitude(getID());
 		}
 	} // K-Mod end
 }
@@ -12057,8 +12058,8 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 	// K-Mod. Attitude cache.
 	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 	{
-		AI().AI_updateAttitudeCache(i);
-		GET_PLAYER(i).AI_updateAttitudeCache(getID());
+		AI().AI_updateAttitude(i);
+		GET_PLAYER(i).AI_updateAttitude(getID());
 	} // K-Mod end
 }
 
@@ -17480,7 +17481,7 @@ void CvPlayer::resetTriggerFired(EventTriggerTypes eTrigger)
 
 void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bOthers, bool bAnnounce)  // advc: some style changes
 {
-	FASSERT_BOUNDS(0, GC.getNumEventTriggerInfos(), kTriggeredData.m_eTrigger, "CvPlayer::setTriggerFired");
+	FAssertBounds(0, GC.getNumEventTriggerInfos(), kTriggeredData.m_eTrigger);
 
 	CvEventTriggerInfo& kTrigger = GC.getInfo(kTriggeredData.m_eTrigger);
 	if (!isTriggerFired(kTriggeredData.m_eTrigger))
@@ -20084,8 +20085,8 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 
 	g.updatePlotGroups();
 	// K-Mod
-	GET_PLAYER(eNewPlayer).AI_updateAttitudeCache(getID());
-	AI().AI_updateAttitudeCache(eNewPlayer);
+	GET_PLAYER(eNewPlayer).AI_updateAttitude(getID());
+	AI().AI_updateAttitude(eNewPlayer);
 	// K-Mod end
 	// <advc.104r>
 	for(size_t i = 0; i < apAcquiredCities.size(); i++)

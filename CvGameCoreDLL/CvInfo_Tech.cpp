@@ -116,13 +116,13 @@ void CvTechInfo::setSoundMP(const TCHAR* szVal)
 
 int CvTechInfo::getDomainExtraMoves(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_DOMAIN_TYPES, i, "CvTechInfo::getDomainExtraMoves"); // advc: check bounds
+	FAssertBounds(0, NUM_DOMAIN_TYPES, i); // advc: check bounds
 	return m_piDomainExtraMoves ? m_piDomainExtraMoves[i] : 0; // advc.003t
 }
 
 int CvTechInfo::getFlavorValue(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvTechInfo::getFlavorValue");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
 
@@ -138,7 +138,7 @@ int CvTechInfo::getPrereqAndTechs(int i) const
 // K-Mod
 int CvTechInfo::getSpecialistExtraCommerce(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumFlavorTypes(), i, "CvTechInfo::getSpecialistExtraCommerce");
+	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : 0;
 }
 
@@ -149,13 +149,13 @@ int* CvTechInfo::getSpecialistExtraCommerceArray() const
 
 bool CvTechInfo::isCommerceFlexible(int i) const
 {
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvTechInfo::isCommerceFlexible");
+	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_pbCommerceFlexible ? m_pbCommerceFlexible[i] : false;
 }
 
 bool CvTechInfo::isTerrainTrade(int i) const
 {
-	FASSERT_BOUNDS(0, GC.getNumTerrainInfos(), i, "CvTechInfo::isTerrainTrade"); // advc: check bounds
+	FAssertBounds(0, GC.getNumTerrainInfos(), i); // advc: check bounds
 	return m_pbTerrainTrade ? m_pbTerrainTrade[i] : false;
 }
 #if SERIALIZE_CVINFOS

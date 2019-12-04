@@ -1,13 +1,13 @@
-// advc.104: New classes; see WarAndPeaceAI.h.
+// advc.104: New classes; see UWAI.h.
 
 #include "CvGameCoreDLL.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "WarEvaluator.h"
-#include "WarAndPeaceReport.h"
+#include "UWAIReport.h"
 #include "WarEvalParameters.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // Just for vote-related info
-#include "CvInfo_Unit.h" // for WarAndPeaceAI::Civ::militaryPower
+#include "CvInfo_Unit.h" // for UWAI::Civ::militaryPower
 #include "CvAI.h"
 #include "CvDiploParameters.h"
 #include "CvMap.h"
@@ -21,7 +21,7 @@ using std::pair;
 
 int const maxReparations = 25;
 
-WarAndPeaceAI::Team::Team() {
+UWAI::Team::Team() {
 
 	agentId = NO_TEAM;
 	inBackgr = false;
@@ -29,53 +29,53 @@ WarAndPeaceAI::Team::Team() {
 	bForceReport = false;
 }
 
-WarAndPeaceAI::Team::~Team() {
+UWAI::Team::~Team() {
 
 	SAFE_DELETE(report);
 }
 
-void WarAndPeaceAI::Team::init(TeamTypes agentId) {
+void UWAI::Team::init(TeamTypes agentId) {
 
 	this->agentId = agentId;
 	reset();
 }
 
-void WarAndPeaceAI::Team::turnPre() {
+void UWAI::Team::turnPre() {
 
-	/*  This calls WarAndPeaceAI::Civ::turnPre before CvPlayerAI::AI_turnPre.
+	/*  This calls UWAI::Civ::turnPre before CvPlayerAI::AI_turnPre.
 		That's OK, CvPlayerAI::AI_turnPre doesn't do anything that's crucial
-		for WarAndPeaceAI::Civ.
-		Need to call WarAndPeaceAI::Civ::turnPre already during the team turn
-		b/c the update to WarAndPeaceCache is important for war planning. */
+		for UWAI::Civ.
+		Need to call UWAI::Civ::turnPre already during the team turn
+		b/c the update to UWAICache is important for war planning. */
 	for(MemberIter it(agentId); it.hasNext(); ++it)
-		it->warAndPeaceAI().turnPre();
+		it->uwai().turnPre();
 }
 
-void WarAndPeaceAI::Team::write(FDataStreamBase* stream) {
+void UWAI::Team::write(FDataStreamBase* stream) {
 
 	stream->Write(agentId);
 }
 
-void WarAndPeaceAI::Team::read(FDataStreamBase* stream) {
+void UWAI::Team::read(FDataStreamBase* stream) {
 
 	stream->Read((int*)&agentId);
 	reset();
 }
 
-void WarAndPeaceAI::Team::reset() {
+void UWAI::Team::reset() {
 
 	/*  This function is called at the start of each session, i.e. after starting a
 		new game and after loading a game.
 		inBackgr doesn't need to be reset after loading, but can't put this line
 		in the constructor b/c that gets called before all XML files have been
-		loaded. (Could just remove WarAndPeaceAI::Team::inBackgr and call getWPAI
+		loaded. (Could just remove UWAI::Team::inBackgr and call getUWAI
 		every time, but that's a bit clunky.) */
-	inBackgr = getWPAI.isEnabled(true);
+	inBackgr = getUWAI.isEnabled(true);
 }
 
-void WarAndPeaceAI::Team::doWar() {
+void UWAI::Team::doWar() {
 
-	if(!getWPAI.isUpdated())
+	if(!getUWAI.isUpdated())
 		return;
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!agent.isAlive() || agent.isBarbarian() || agent.isMinorCiv())
@@ -121,7 +121,7 @@ void WarAndPeaceAI::Team::doWar() {
 		closeReport();
 		return;
 	}
-	WarAndPeaceCache& cache = leaderCache();
+	UWAICache& cache = leaderCache();
 	if(reviewWarPlans()) {
 		scheme();
 		for(TeamIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
@@ -138,7 +138,7 @@ void WarAndPeaceAI::Team::doWar() {
 	closeReport();
 }
 
-bool WarAndPeaceAI::Team::isKnownToBeAtWar(TeamTypes observer) const {
+bool UWAI::Team::isKnownToBeAtWar(TeamTypes observer) const {
 
 	for(TeamIter<MAJOR_CIV,ENEMY_OF> it(agentId); it.hasNext(); ++it) {
 		if(observer == NO_TEAM || GET_TEAM(observer).isHasMet(it->getID()))
@@ -147,7 +147,7 @@ bool WarAndPeaceAI::Team::isKnownToBeAtWar(TeamTypes observer) const {
 	return false;
 }
 
-bool WarAndPeaceAI::Team::hasDefactoDefensivePact(TeamTypes allyId) const {
+bool UWAI::Team::hasDefactoDefensivePact(TeamTypes allyId) const {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
 	return (agent.isDefensivePact(allyId) || agent.isVassal(allyId) ||
@@ -156,11 +156,11 @@ bool WarAndPeaceAI::Team::hasDefactoDefensivePact(TeamTypes allyId) const {
 			agent.getID() != allyId));
 }
 
-bool WarAndPeaceAI::Team::canReach(TeamTypes targetId) const {
+bool UWAI::Team::canReach(TeamTypes targetId) const {
 
 	for(MemberIter targetIt(targetId); targetIt.hasNext(); ++targetIt) {
 		for(MemberIter agentIt(agentId); agentIt.hasNext(); ++agentIt) {
-			if (agentIt->warAndPeaceAI().getCache().
+			if (agentIt->uwai().getCache().
 					numReachableCities(targetIt->getID()) > 0)
 				return true;
 		}
@@ -168,23 +168,23 @@ bool WarAndPeaceAI::Team::canReach(TeamTypes targetId) const {
 	return false;
 }
 
-WarAndPeaceAI::Civ const& WarAndPeaceAI::Team::leaderWpai() const {
+UWAI::Civ const& UWAI::Team::leaderUWAI() const {
 
-	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI();
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).uwai();
 }
 
-WarAndPeaceAI::Civ& WarAndPeaceAI::Team::leaderWpai() {
+UWAI::Civ& UWAI::Team::leaderUWAI() {
 
-	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI();
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).uwai();
 }
 
-void WarAndPeaceAI::Team::addTeam(PlayerTypes otherLeaderId) {
+void UWAI::Team::addTeam(PlayerTypes otherLeaderId) {
 
 	for(MemberIter it(agentId); it.hasNext(); ++it)
-		it->warAndPeaceAI().getCache().addTeam(otherLeaderId);
+		it->uwai().getCache().addTeam(otherLeaderId);
 }
 
-double WarAndPeaceAI::Team::utilityToTradeVal(double u) const {
+double UWAI::Team::utilityToTradeVal(double u) const {
 
 	double r = 0;
 	MemberIter it(agentId);
@@ -193,7 +193,7 @@ double WarAndPeaceAI::Team::utilityToTradeVal(double u) const {
 	return r / it.nextIndex();
 }
 
-double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal) const {
+double UWAI::Team::tradeValToUtility(double tradeVal) const {
 
 	double r = 0;
 	MemberIter it(agentId);
@@ -202,30 +202,30 @@ double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal) const {
 	return r / it.nextIndex();
 }
 
-double WarAndPeaceAI::Team::utilityToTradeVal(double u,
+double UWAI::Team::utilityToTradeVal(double u,
 		PlayerTypes memberId) const {
 
-	return u / GET_PLAYER(memberId).warAndPeaceAI().
+	return u / GET_PLAYER(memberId).uwai().
 			tradeValUtilityConversionRate();
 }
 
-double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal,
+double UWAI::Team::tradeValToUtility(double tradeVal,
 		PlayerTypes memberId) const {
 
-	return tradeVal * GET_PLAYER(memberId).warAndPeaceAI().
+	return tradeVal * GET_PLAYER(memberId).uwai().
 			tradeValUtilityConversionRate();
 }
 
-void WarAndPeaceAI::Team::doWarReport() {
+void UWAI::Team::doWarReport() {
 
-	if(!getWPAI.isEnabled())
+	if(!getUWAI.isEnabled())
 		return;
-	bool bInBackgr = getWPAI.isEnabled(true); // To be restored in the end
-	getWPAI.setInBackground(true);
+	bool bInBackgr = getUWAI.isEnabled(true); // To be restored in the end
+	getUWAI.setInBackground(true);
 	setForceReport(true);
 	doWar();
 	setForceReport(false);
-	getWPAI.setInBackground(bInBackgr);
+	getUWAI.setInBackground(bInBackgr);
 }
 
 struct PlanData {
@@ -237,7 +237,7 @@ struct PlanData {
 	int t;
 	bool isNaval;
 };
-bool WarAndPeaceAI::Team::reviewWarPlans() {
+bool UWAI::Team::reviewWarPlans() {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!agent.AI_isAnyWarPlan()) {
@@ -258,7 +258,7 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 			if(done.count(targetId) > 0)
 				continue;
 			if(target.isHuman()) // considerCapitulation might set it to true
-				leaderWpai().getCache().setReadyToCapitulate(targetId, false);
+				leaderUWAI().getCache().setReadyToCapitulate(targetId, false);
 			WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 			if(wp == NO_WARPLAN) {
 				// As good a place as any to make sure of this
@@ -313,7 +313,7 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 	return r;
 }
 
-void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
+void UWAI::Team::alignAreaAI(bool isNaval) {
 
 	PROFILE_FUNC();
 	std::set<int> areasToAlign;
@@ -336,9 +336,9 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 						(wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
 					// Make sure there isn't an easily reachable target in the capital area
 					int d=-1;
-					WarAndPeaceCache::City::measureDistance(member.getID(), DOMAIN_LAND,
+					UWAICache::City::measureDistance(member.getID(), DOMAIN_LAND,
 							capital->plot(), targetCity->plot(), &d);
-					if(::round(d / WarAndPeaceCache::City::estimateMovementSpeed(
+					if(::round(d / UWAICache::City::estimateMovementSpeed(
 							member.getID(), DOMAIN_LAND, d)) <= 8)
 						bAlign = false;
 				}
@@ -353,7 +353,7 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 			if(targetCity == NULL)
 				bAlign = false;
 			else {
-				WarAndPeaceCache::City* c = member.warAndPeaceAI().getCache().
+				UWAICache::City* c = member.uwai().getCache().
 						lookupCity(*targetCity);
 				if(c == NULL || !c->canReachByLand())
 					bAlign = false;
@@ -389,7 +389,7 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 	}
 }
 
-bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
+bool UWAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
 	CvTeamAI& target = GET_TEAM(targetId);
@@ -492,7 +492,7 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 	return true;
 }
 
-bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
+bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!agent.canChangeWarPeace(targetId))
@@ -573,7 +573,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 			prPeace = 1.0 / std::max(1, GC.getInfo(agentLeader.
 					getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY));
 			// Adjust probability based on whether peace looks like win-win or zero-sum
-			theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
+			theirReluct = target.uwai().reluctanceToPeace(agentId, false);
 			double winWinFactor = (theirReluct + u) / -15.0;
 			if(winWinFactor < 0) {
 				winWinFactor = std::min(-1 * winWinFactor, 2.5);
@@ -601,14 +601,14 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		}
 	}
 	if(theirReluct == MIN_INT)
-		theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
+		theirReluct = target.uwai().reluctanceToPeace(agentId, false);
 	report->log("Their reluctance to peace: %d", theirReluct);
 	if(bOfferPeace) {
 		if(theirReluct <= maxReparations) {
 			int tradeVal = 0;
 			int demandVal = 0; // (Demand only from humans)
 			if(human) {
-				tradeVal = endWarVal(targetId) - target.warAndPeaceAI().endWarVal(agentId);
+				tradeVal = endWarVal(targetId) - target.uwai().endWarVal(agentId);
 				// A bit higher than the K-Mod discounts (advc.134a)
 				double discountFactor = 1.3;
 				if(tradeVal < 0) {
@@ -624,11 +624,11 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 			}
 			else {
 				// Base the reparations they demand on their economy
-				tradeVal = ::round(target.warAndPeaceAI().utilityToTradeVal(
+				tradeVal = ::round(target.uwai().utilityToTradeVal(
 						std::max(0, theirReluct)));
 				/*  Reduce the trade value b/c the war isn't completely off the table;
 					could continue after 10 turns. */
-				tradeVal = ::round(tradeVal * WarAndPeaceAI::reparationsAIPercent / 100.0);
+				tradeVal = ::round(tradeVal * UWAI::reparationsAIPercent / 100.0);
 			}
 			if(tradeVal > 0 || demandVal == 0)
 				report->log("Trying to offer reparations with a trade value of %d", tradeVal);
@@ -672,7 +672,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	return true;
 }
 
-bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
+bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 		int masterReluctancePeace) {
 
 	int const uThresh = -75;
@@ -720,7 +720,7 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 				masterReluctancePeace);
 	if(human) {
 		// Otherwise, AI_surrenderTrade can't return true for a human master
-		leaderWpai().getCache().setReadyToCapitulate(masterId, true);
+		leaderUWAI().getCache().setReadyToCapitulate(masterId, true);
 	}
 	// Checks our willingness and that of the master
 	DenialTypes denial = GET_TEAM(agentId).AI_surrenderTrade(
@@ -731,7 +731,7 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 		if(human) {
 			/*  To ensure that the capitulation decision is made on an AI turn;
 				so that tryFindingMaster and AI_doSplit are called by considerPeace. */
-			leaderWpai().getCache().setReadyToCapitulate(masterId, false);
+			leaderUWAI().getCache().setReadyToCapitulate(masterId, false);
 		}
 		return true;
 	}
@@ -740,7 +740,7 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 	return false;
 }
 
-bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
+bool UWAI::Team::tryFindingMaster(TeamTypes enemyId) {
 
 	CvPlayerAI& ourLeader = GET_PLAYER(GET_TEAM(agentId).getLeaderID());
 	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF,true> it(agentId); it.hasNext(); ++it) {
@@ -799,7 +799,7 @@ bool WarAndPeaceAI::Team::tryFindingMaster(TeamTypes enemyId) {
 	return true;
 }
 
-bool WarAndPeaceAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
+bool UWAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
 	CvTeamAI& target = GET_TEAM(targetId);
@@ -837,7 +837,7 @@ bool WarAndPeaceAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 	}
 	if(altWarPlan == NO_WARPLAN)
 		return true;
-	WarAndPeaceReport silentReport(true);
+	UWAIReport silentReport(true);
 	WarEvalParameters params(agentId, targetId, silentReport);
 	WarEvaluator eval(params);
 	int altU = eval.evaluate(altWarPlan);
@@ -874,7 +874,7 @@ bool WarAndPeaceAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 	return true;
 }
 
-bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
+bool UWAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 		int timeRemaining) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
@@ -926,7 +926,7 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 	return true;
 }
 
-bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
+bool UWAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 		int timeRemaining) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
@@ -943,7 +943,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 		bool loopQualms = agent.AI_isAvoidWar(altTargetId);
 		if(loopQualms && !qualms)
 			continue;
-		WarAndPeaceReport silentReport(true);
+		UWAIReport silentReport(true);
 		WarEvalParameters params(agentId, altTargetId, silentReport, true);
 		WarEvaluator eval(params);
 		int uSwitch = eval.evaluate(wp, timeRemaining);
@@ -981,7 +981,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	return false;
 }
 
-bool WarAndPeaceAI::Team::considerConcludePreparations(TeamTypes targetId, int u,
+bool UWAI::Team::considerConcludePreparations(TeamTypes targetId, int u,
 		int timeRemaining) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
@@ -1005,7 +1005,7 @@ bool WarAndPeaceAI::Team::considerConcludePreparations(TeamTypes targetId, int u
 		conclude = true;
 	}
 	else {
-		WarAndPeaceReport silentReport(true);
+		UWAIReport silentReport(true);
 		WarEvalParameters params(agentId, targetId, silentReport);
 		WarEvaluator eval(params);
 		int u0 = eval.evaluate(directWp);
@@ -1036,7 +1036,7 @@ bool WarAndPeaceAI::Team::considerConcludePreparations(TeamTypes targetId, int u
 	return true;
 }
 
-int WarAndPeaceAI::Team::peaceThreshold(TeamTypes targetId) const {
+int UWAI::Team::peaceThreshold(TeamTypes targetId) const {
 
 	// Computation is similar to BtS CvPlayerAI::AI_isWillingToTalk
 	CvTeamAI const& agent = GET_TEAM(agentId);
@@ -1051,7 +1051,7 @@ int WarAndPeaceAI::Team::peaceThreshold(TeamTypes targetId) const {
 	if(!target.AI_isChosenWar(agentId))
 		r -= 5;
 	// This puts the term between -30 and 10
-	r += (1 - leaderWpai().prideRating()) * 40 - 30;
+	r += (1 - leaderUWAI().prideRating()) * 40 - 30;
 	r += std::min(15.0, (agent.AI_getWarSuccess(targetId) +
 				2 * target.AI_getWarSuccess(agentId)) /
 				(0.5 * GC.getWAR_SUCCESS_CITY_CAPTURING()) +
@@ -1065,7 +1065,7 @@ int WarAndPeaceAI::Team::peaceThreshold(TeamTypes targetId) const {
 	return rounded;
 }
 
-int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
+int UWAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
 
 	// Only log about inter-AI war trades
 	bool silent = GET_TEAM(agentId).isHuman() || GET_TEAM(allyId).isHuman() ||
@@ -1077,7 +1077,7 @@ int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
 		silent = true;
 		targetId = GET_TEAM(targetId).getMasterTeam();
 	}
-	WarAndPeaceReport rep(silent);
+	UWAIReport rep(silent);
 	if(!silent) {
 		rep.log("h3.\nNegotiation of joint war\n");
 		rep.log("%s is evaluating the utility of %s joining the war"
@@ -1099,13 +1099,13 @@ int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
 	/*  Military analysis may conclude that ally is going to send ships, perhaps
 		just a few, but enough to tip the scales. Highly unlikely in the first half
 		of the game. */
-	if(!GET_TEAM(allyId).warAndPeaceAI().isLandTarget(targetId) &&
+	if(!GET_TEAM(allyId).uwai().isLandTarget(targetId) &&
 			GET_TEAM(allyId).getCurrentEra() < 3)
 		return std::min(0, r);
 	return r;
 }
 
-int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
+int UWAI::Team::tradeValJointWar(TeamTypes targetId,
 		TeamTypes allyId) const {
 
 	/*  This function could handle a human ally, but the AI isn't supposed to
@@ -1123,7 +1123,7 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 	return ::round(utilityToTradeVal(std::min(u, -dwtUtilityThresh)));
 }
 
-int WarAndPeaceAI::Team::reluctanceToPeace(TeamTypes otherId,
+int UWAI::Team::reluctanceToPeace(TeamTypes otherId,
 		bool nonNegative) const {
 
 	int r = -uEndWar(otherId) - std::min(0, peaceThreshold(otherId));
@@ -1132,7 +1132,7 @@ int WarAndPeaceAI::Team::reluctanceToPeace(TeamTypes otherId,
 	return r;
 }
 
-bool WarAndPeaceAI::Team::canSchemeAgainst(TeamTypes targetId,
+bool UWAI::Team::canSchemeAgainst(TeamTypes targetId,
 		bool assumeNoWarPlan) const {
 
 	if(targetId == NO_TEAM || targetId == BARBARIAN_TEAM || targetId == agentId)
@@ -1153,7 +1153,7 @@ bool WarAndPeaceAI::Team::canSchemeAgainst(TeamTypes targetId,
 			agent.canEventuallyDeclareWar(targetId);
 }
 
-double WarAndPeaceAI::Team::limitedWarWeight() const {
+double UWAI::Team::limitedWarWeight() const {
 
 	int const limitedWarRand = GET_TEAM(agentId).AI_limitedWarRand();
 	if(limitedWarRand <= 0)
@@ -1176,7 +1176,7 @@ struct TargetData {
 	bool total;
 	int u;
 };
-void WarAndPeaceAI::Team::scheme() {
+void UWAI::Team::scheme() {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(agent.AI_countWarPlans() > agent.getNumWars(true, true)) {
@@ -1199,7 +1199,7 @@ void WarAndPeaceAI::Team::scheme() {
 	double totalDrive = 0;
 	CvLeaderHeadInfo& lh = GC.getInfo(GET_PLAYER(agent.getLeaderID()).
 			getPersonalityType());
-	WarAndPeaceCache& cache = leaderCache();
+	UWAICache& cache = leaderCache();
 	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
 		TeamTypes targetId = it->getID();
 		if(!canSchemeAgainst(targetId, true))
@@ -1319,7 +1319,7 @@ void WarAndPeaceAI::Team::scheme() {
 				report->log("Trying to amend tensions with human %s",
 						report->teamName(targetId));
 				if(!inBackgr) {
-					if(leaderWpai().amendTensions(theirLeaderId))
+					if(leaderUWAI().amendTensions(theirLeaderId))
 						report->log("Diplo message sent");
 					else report->log("No diplo message sent");
 				}
@@ -1330,7 +1330,7 @@ void WarAndPeaceAI::Team::scheme() {
 	}
 }
 
-DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
+DenialTypes UWAI::Team::declareWarTrade(TeamTypes targetId,
 		TeamTypes sponsorId) const {
 
 	if(!canReach(targetId))
@@ -1342,7 +1342,7 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	if(!sponsor.isHuman() || sponsor.getHasMetCivCount() < 8 ||
 			leaderCache().canBeHiredAgainst(targetId)) {
 		int utilityThresh = dwtUtilityThresh + 2;
-		WarAndPeaceReport silentReport(true);
+		UWAIReport silentReport(true);
 		PlayerTypes const sponsorLeaderId = sponsor.getLeaderID();
 		WarEvalParameters params(agentId, targetId, silentReport, false,
 				sponsorLeaderId);
@@ -1352,7 +1352,7 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 		if(u > utilityThresh) {
 			if(GET_TEAM(sponsorId).isHuman()) {
 				int humanTradeVal = -1;
-				leaderWpai().canTradeAssets(::round(utilityToTradeVal(
+				leaderUWAI().canTradeAssets(::round(utilityToTradeVal(
 						utilityThresh)), sponsorLeaderId, &humanTradeVal,
 						true); // AI doesn't accept cities as payment for war
 				// Don't return NO_DENIAL if human can't pay enough
@@ -1388,11 +1388,11 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	return DENIAL_TOO_MANY_WARS;
 }
 
-int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
+int UWAI::Team::declareWarTradeVal(TeamTypes targetId,
 		TeamTypes sponsorId) const {
 
 	bool silent = GET_TEAM(sponsorId).isHuman() || !isReportTurn();
-	WarAndPeaceReport rep(silent);
+	UWAIReport rep(silent);
 	if(!silent) {
 		rep.log("*Considering sponsored war*");
 		rep.log("%s is considering to declare war on %s at the request of %s",
@@ -1405,7 +1405,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	}
 	CvTeamAI const& sponsor = GET_TEAM(sponsorId);
 	// Don't log details of war evaluation
-	WarAndPeaceReport silentReport(true);
+	UWAIReport silentReport(true);
 	WarEvalParameters params(agentId, targetId, silentReport, false, sponsor.getLeaderID());
 	WarEvaluator eval(params);
 	int u = eval.evaluate(WARPLAN_LIMITED);
@@ -1432,7 +1432,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		lowerBound += wsr / 10;
 	u = std::min(lowerBound, u);
 	double priceOurEconomy = utilityToTradeVal(-u);
-	double priceSponsorEconomy = sponsor.warAndPeaceAI().utilityToTradeVal(-u);
+	double priceSponsorEconomy = sponsor.uwai().utilityToTradeVal(-u);
 	/*  If the sponsor has the bigger economy, use the mean of the price based on
 		our economy and his, otherwise, base it only on our economy. */
 	double price = (priceOurEconomy + std::max(priceOurEconomy, priceSponsorEconomy))
@@ -1469,7 +1469,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	return r;
 }
 
-DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) const {
+DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) const {
 
 	/*  Can't broker in a war that they're involved in (not checked by caller;
 		BtS allows it). */
@@ -1479,7 +1479,7 @@ DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes bro
 			GET_TEAM(enemyId).getLeaderID(), true))
 		return DENIAL_RECENT_CANCEL;
 	int ourReluct = reluctanceToPeace(enemyId);
-	int enemyReluct = GET_TEAM(enemyId).warAndPeaceAI().reluctanceToPeace(agentId);
+	int enemyReluct = GET_TEAM(enemyId).uwai().reluctanceToPeace(agentId);
 	if(enemyReluct <= 0) {
 		if(ourReluct < 55)
 			return NO_DENIAL;
@@ -1493,7 +1493,7 @@ DenialTypes WarAndPeaceAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes bro
 	else return DENIAL_CONTACT_THEM;
 }
 
-int WarAndPeaceAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const {
+int UWAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const {
 
 	int ourReluct = reluctanceToPeace(enemyId);
 	// Demand at least a token payment equivalent to 3 war utility
@@ -1518,20 +1518,20 @@ int WarAndPeaceAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId
 	return agent.AI_roundTradeVal(::round(r));
 }
 
-int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
+int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 
 	bool agentHuman = GET_TEAM(agentId).isHuman();
 	FAssertMsg(agentHuman || GET_TEAM(enemyId).isHuman(),
 				"This should only be called for human-AI peace");
 	CvTeamAI const& human = (agentHuman ? GET_TEAM(agentId) : GET_TEAM(enemyId));
 	CvTeamAI const& ai =  (agentHuman ? GET_TEAM(enemyId) : GET_TEAM(agentId));
-	int aiReluct = ai.warAndPeaceAI().reluctanceToPeace(human.getID(), false);
+	int aiReluct = ai.uwai().reluctanceToPeace(human.getID(), false);
 	// If no payment is possible, human utility shouldn't matter.
 	if(aiReluct <= 0 && !human.isGoldTrading() && !human.isTechTrading() &&
 			!ai.isGoldTrading() && !ai.isTechTrading())
 		return 0;
 	// Really just utility given how peaceThreshold is computed for humans
-	int humanUtility = human.warAndPeaceAI().reluctanceToPeace(ai.getID(), false);
+	int humanUtility = human.uwai().reluctanceToPeace(ai.getID(), false);
 	// Neither side pays if both want peace and the AI wants it more than the human
 	if(humanUtility <= 0 && aiReluct <= humanUtility)
 		return 0;
@@ -1555,8 +1555,8 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 		// Rely more on war utility of the AI side than on human war utility
 		reparations = 0.5 * (std::min(-aiReluct, humanUtility) - aiReluct) *
 				wsAdjustment;
-		reparations = ai.warAndPeaceAI().reparationsToHuman(reparations);
-		reparations *= WarAndPeaceAI::reparationsAIPercent / 100.0;
+		reparations = ai.uwai().reparationsToHuman(reparations);
+		reparations *= UWAI::reparationsAIPercent / 100.0;
 	}
 	else {
 		// AI pays nothing if human pays
@@ -1570,7 +1570,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 		// (No limit on human reparations)
 		// This is enough to make peace worthwhile for the AI
 		if(aiReluct > 0)
-			reparations = ai.warAndPeaceAI().utilityToTradeVal(aiReluct);
+			reparations = ai.uwai().utilityToTradeVal(aiReluct);
 		/*  But if human wants to end the war more badly than AI, AI also tries
 			to take advantage of that. */
 		if(humanUtility < 0) {
@@ -1590,14 +1590,13 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 				delta = aiReluct - humanUtility;
 			FAssert(delta > 0);
 			// Conversion based on human's economy
-			reparations += greedFactor * human.warAndPeaceAI().
-					utilityToTradeVal(delta);
-			reparations *= WarAndPeaceAI::reparationsHumanPercent / 100.0;
+			reparations += greedFactor * human.uwai().utilityToTradeVal(delta);
+			reparations *= UWAI::reparationsHumanPercent / 100.0;
 			/*  Demand less if human has too little. Akin to the
 				tech/gold trading clause higher up. */
 			if(aiReluct < 0 && human.getNumMembers() == 1) {
 				int maxHumanCanPay = -1;
-				ai.warAndPeaceAI().leaderWpai().canTradeAssets(
+				ai.uwai().leaderUWAI().canTradeAssets(
 						::round(reparations), human.getLeaderID(),
 						&maxHumanCanPay);
 				if(maxHumanCanPay < reparations) {
@@ -1620,7 +1619,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 	return ::round(reparations);
 }
 
-int WarAndPeaceAI::Team::uEndAllWars(VoteSourceTypes vs) const {
+int UWAI::Team::uEndAllWars(VoteSourceTypes vs) const {
 
 	vector<TeamTypes> warEnemies;
 	for(TeamIter<FREE_MAJOR_CIV,ENEMY_OF> it(agentId); it.hasNext(); ++it) {
@@ -1632,7 +1631,7 @@ int WarAndPeaceAI::Team::uEndAllWars(VoteSourceTypes vs) const {
 		return 0;
 	}
 	bool silent = !isReportTurn();
-	WarAndPeaceReport rep(silent);
+	UWAIReport rep(silent);
 	if(!silent) {
 		rep.log("h3.\nPeace vote\n");
 		rep.log("%s is evaluating the utility of war against %s in order to "
@@ -1650,10 +1649,10 @@ int WarAndPeaceAI::Team::uEndAllWars(VoteSourceTypes vs) const {
 	return r;
 }
 
-int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, VoteSourceTypes vs) const {
+int UWAI::Team::uJointWar(TeamTypes targetId, VoteSourceTypes vs) const {
 
 	bool silent = !isReportTurn();
-	WarAndPeaceReport rep(silent);
+	UWAIReport rep(silent);
 	if(!silent) {
 		rep.log("h3.\nWar vote\n");
 		rep.log("%s is evaluating the utility of war against %s through diplo vote",
@@ -1685,15 +1684,15 @@ int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, VoteSourceTypes vs) const
 	return r;
 }
 
-int WarAndPeaceAI::Team::uEndWar(TeamTypes enemyId) const {
+int UWAI::Team::uEndWar(TeamTypes enemyId) const {
 
-	WarAndPeaceReport silentReport(true);
+	UWAIReport silentReport(true);
 	WarEvalParameters params(agentId, enemyId, silentReport);
 	WarEvaluator eval(params);
 	return -eval.evaluate();
 }
 
-double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
+double UWAI::Team::reparationsToHuman(double u) const {
 
 	double r = u;
 	/*  maxReparations is the upper limit for inter-AI peace;
@@ -1708,7 +1707,7 @@ double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
 	return utilityToTradeVal(r);
 }
 
-void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
+void UWAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 
 	/*  Caveat: Mustn't use PRNG here b/c this is called from both async (prepare=false)
 		and sync (prepare=true) contexts */
@@ -1720,7 +1719,7 @@ void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 	if(!prepare && !agent.canDeclareWar(targetId))
 		return;
 	FAssert(GET_TEAM(targetId).isHuman());
-	WarAndPeaceReport silentReport(true);
+	UWAIReport silentReport(true);
 	WarEvalParameters params(agentId, targetId, silentReport);
 	WarEvaluator eval(params);
 	int u = eval.evaluate(prepare ? WARPLAN_PREPARING_LIMITED : WARPLAN_LIMITED);
@@ -1731,7 +1730,7 @@ void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 	else agent.AI_setWarPlan(targetId, WARPLAN_LIMITED);
 }
 
-DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
+DenialTypes UWAI::Team::acceptVassal(TeamTypes vassalId) const {
 
 	vector<TeamTypes> warEnemies; // Just the new ones
 	for(TeamIter<FREE_MAJOR_CIV,ENEMY_OF> it(vassalId); it.hasNext(); ++it) {
@@ -1755,7 +1754,7 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 		vassals, but can't be easily separated from the context of WarEvaluator.
 		I'm using only the cached part of that computation. */
 	bool silent = GET_TEAM(agentId).isHuman() || !isReportTurn();
-	WarAndPeaceReport rep(silent);
+	UWAIReport rep(silent);
 	if(!silent) {
 		rep.log("h3.\nConsidering war to accept vassal\n");
 		rep.log("%s is considering to accept %s as its vassal; implied DoW on:",
@@ -1767,11 +1766,11 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 	int techScore = 0;
 	for(MemberIter it(vassalId); it.hasNext(); ++it) {
 		PlayerTypes vassalMemberId = it->getID();
-		resourceScore += leaderWpai().getCache().vassalResourceScore(vassalMemberId);
-		techScore += leaderWpai().getCache().vassalTechScore(vassalMemberId);
+		resourceScore += leaderUWAI().getCache().vassalResourceScore(vassalMemberId);
+		techScore += leaderUWAI().getCache().vassalTechScore(vassalMemberId);
 	}
 	// resourceScore is already utility
-	double vassalUtility = leaderWpai().tradeValToUtility(techScore) + resourceScore;
+	double vassalUtility = leaderUWAI().tradeValToUtility(techScore) + resourceScore;
 	rep.log("%d utility from vassal resources, %d from tech", ::round(resourceScore),
 		::round(vassalUtility - resourceScore));
 	CvTeamAI const& agent = GET_TEAM(agentId);
@@ -1796,7 +1795,7 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 		vassalUtility += 5;
 		rep.log("Utility increased b/c of attitude");
 	}
-	//WarAndPeaceReport silentReport(true); // use this one for fewer details
+	//UWAIReport silentReport(true); // use this one for fewer details
 	WarEvalParameters params(agentId, warEnemies[0], rep);
 	for(size_t i = 1; i < warEnemies.size(); i++)
 		params.addExtraTarget(warEnemies[i]);
@@ -1814,19 +1813,19 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 	return DENIAL_POWER_THEM;
 }
 
-bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
+bool UWAI::Team::isLandTarget(TeamTypes theyId) const {
 
 	PROFILE_FUNC();
 	bool hasCoastalCity = false;
 	bool canReachAnyByLand = false;
-	int distLimit = getWPAI.maxLandDist();
+	int distLimit = getUWAI.maxLandDist();
 	for(MemberIter it(agentId); it.hasNext(); ++it) {
-		WarAndPeaceCache const& cache = it->warAndPeaceAI().getCache();
+		UWAICache const& cache = it->uwai().getCache();
 		// Sea route then unlikely to be much slower
 		if(!cache.canTrainDeepSeaCargo())
 			distLimit = MAX_INT;
 		for(int j = 0; j < cache.size(); j++) {
-			WarAndPeaceCache::City* c = cache.getCity(j);
+			UWAICache::City* c = cache.getCity(j);
 			if(c == NULL || c->city()->getTeam() != theyId ||
 					!GET_TEAM(agentId).AI_deduceCitySite(c->city()))
 				continue;
@@ -1847,7 +1846,7 @@ bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
 	return false;
 }
 
-bool WarAndPeaceAI::Team::isPushover(TeamTypes theyId) const {
+bool UWAI::Team::isPushover(TeamTypes theyId) const {
 
 	CvTeam const& they = GET_TEAM(theyId);
 	CvTeam const& agent = GET_TEAM(agentId);
@@ -1858,10 +1857,10 @@ bool WarAndPeaceAI::Team::isPushover(TeamTypes theyId) const {
 			10 * they.getPower(true) < 4 * agent.getPower(false);
 }
 
-void WarAndPeaceAI::Team::startReport() {
+void UWAI::Team::startReport() {
 
 	bool doReport = isReportTurn();
-	report = new WarAndPeaceReport(!doReport);
+	report = new UWAIReport(!doReport);
 	if(!doReport)
 		return;
 	int year = GC.getGame().getGameTurnYear();
@@ -1872,18 +1871,18 @@ void WarAndPeaceAI::Team::startReport() {
 	report->log("");
 }
 
-void WarAndPeaceAI::Team::closeReport() {
+void UWAI::Team::closeReport() {
 
 	report->log("\n");
 	SAFE_DELETE(report);
 }
 
-void WarAndPeaceAI::Team::setForceReport(bool b) {
+void UWAI::Team::setForceReport(bool b) {
 
 	bForceReport = b;
 }
 
-bool WarAndPeaceAI::Team::isReportTurn() const {
+bool UWAI::Team::isReportTurn() const {
 
 	if(bForceReport)
 		return true;
@@ -1892,17 +1891,17 @@ bool WarAndPeaceAI::Team::isReportTurn() const {
 	return (reportInterval > 0 && turnNumber % reportInterval == 0);
 }
 
-void WarAndPeaceAI::Team::showWarPrepStartedMsg(TeamTypes targetId) {
+void UWAI::Team::showWarPrepStartedMsg(TeamTypes targetId) {
 
 	showWarPlanMsg(targetId, "TXT_KEY_WAR_PREPARATION_STARTED");
 }
 
-void WarAndPeaceAI::Team::showWarPlanAbandonedMsg(TeamTypes targetId) {
+void UWAI::Team::showWarPlanAbandonedMsg(TeamTypes targetId) {
 
 	showWarPlanMsg(targetId, "TXT_KEY_WAR_PLAN_ABANDONED");
 }
 
-void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
+void UWAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
 
 	CvPlayer& activePl = GET_PLAYER(GC.getGame().getActivePlayer());
 	if(!activePl.isSpectator() || !GC.getDefineBOOL("UWAI_SPECTATOR_ENABLED"))
@@ -1917,17 +1916,17 @@ void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey)
 			GET_TEAM(agentId).getCapitalY(activePl.getTeam(), true)); // </advc.127b>
 }
 
-WarAndPeaceCache& WarAndPeaceAI::Team::leaderCache() {
+UWAICache& UWAI::Team::leaderCache() {
 
-	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().getCache();
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).uwai().getCache();
 }
 
-WarAndPeaceCache const& WarAndPeaceAI::Team::leaderCache() const {
-	// Duplicate code; see also WarAndPeaceCache::leaderCache
-	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().getCache();
+UWAICache const& UWAI::Team::leaderCache() const {
+	// Duplicate code; see also UWAICache::leaderCache
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).uwai().getCache();
 }
 
-double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
+double UWAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 
 	/*  Need to be careful not to overestimate
 		early successes (often from a surprise attack). Bound the war success
@@ -1961,16 +1960,16 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	return r;
 }
 
-void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId,
+void UWAI::Team::reportWarEnding(TeamTypes enemyId,
 		CLinkList<TradeData> const* weReceive, CLinkList<TradeData> const* wePay) {
 
 	/*  This isn't really team-on-team data b/c each team member can have its
 		own interpretation of whether the war was successful. */
 	for(MemberIter it(agentId); it.hasNext(); ++it)
-		it->warAndPeaceAI().getCache().reportWarEnding(enemyId, weReceive, wePay);
+		it->uwai().getCache().reportWarEnding(enemyId, weReceive, wePay);
 }
 
-int WarAndPeaceAI::Team::countNonMembers(VoteSourceTypes voteSource) const {
+int UWAI::Team::countNonMembers(VoteSourceTypes voteSource) const {
 
 	int r = 0;
 	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
@@ -1980,45 +1979,45 @@ int WarAndPeaceAI::Team::countNonMembers(VoteSourceTypes voteSource) const {
 	return r;
 }
 
-bool WarAndPeaceAI::Team::isPotentialWarEnemy(TeamTypes tId) const {
+bool UWAI::Team::isPotentialWarEnemy(TeamTypes tId) const {
 
 	return canSchemeAgainst(tId, true) || (!GET_TEAM(tId).isAVassal() &&
 			!GET_TEAM(agentId).isAVassal() && GET_TEAM(tId).isAtWar(agentId));
 }
 
-bool WarAndPeaceAI::Team::isFastRoads() const {
+bool UWAI::Team::isFastRoads() const {
 
 	return (GET_TEAM(agentId).getRouteChange((RouteTypes)0) <= -10);
 }
 
-WarAndPeaceAI::Civ::Civ() {
+UWAI::Civ::Civ() {
 
 	weId = NO_PLAYER;
 }
 
-void WarAndPeaceAI::Civ::init(PlayerTypes weId) {
+void UWAI::Civ::init(PlayerTypes weId) {
 
 	this->weId = weId;
 	cache.init(weId);
 }
 
-void WarAndPeaceAI::Civ::uninit() {
+void UWAI::Civ::uninit() {
 
 	cache.uninit();
 }
 
-void WarAndPeaceAI::Civ::turnPre() {
+void UWAI::Civ::turnPre() {
 
 	cache.update();
 }
 
-void WarAndPeaceAI::Civ::write(FDataStreamBase* stream) {
+void UWAI::Civ::write(FDataStreamBase* stream) {
 
 	stream->Write(GET_PLAYER(weId).getID());
 	cache.write(stream);
 }
 
-void WarAndPeaceAI::Civ::read(FDataStreamBase* stream) {
+void UWAI::Civ::read(FDataStreamBase* stream) {
 
 	int tmp;
 	stream->Read(&tmp);
@@ -2026,7 +2025,7 @@ void WarAndPeaceAI::Civ::read(FDataStreamBase* stream) {
 	cache.read(stream);
 }
 
-bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const {
+bool UWAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	// When furious, they'll have to take it from our cold dead hands
@@ -2036,7 +2035,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 		peace treaty) */
 	if(!GET_TEAM(theyId).canDeclareWar(we.getTeam()))
 		return false;
-	WarAndPeaceReport silentReport(true);
+	UWAIReport silentReport(true);
 	WarEvalParameters ourParams(we.getTeam(), TEAMID(theyId), silentReport);
 	WarEvaluator ourEval(ourParams);
 	double ourUtility = ourEval.evaluate(WARPLAN_LIMITED);
@@ -2057,7 +2056,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 	if(theirUtility < 0)
 		return false; // Call their bluff
 	// Willing to pay at most this much
-	double paymentCap = GET_TEAM(weId).warAndPeaceAI().reparationsToHuman(
+	double paymentCap = GET_TEAM(weId).uwai().reparationsToHuman(
 			// Interpret theirUtility as a probability of attack
 			-ourUtility * 2 * (4 + theirUtility) / 100.0);
 	return paymentCap >= (double)tradeVal;
@@ -2065,7 +2064,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 		Would have to use ::hash. */
 }
 
-bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
+bool UWAI::Civ::amendTensions(PlayerTypes humanId) const {
 
 	FAssert(GET_TEAM(weId).getLeaderID() == weId);
 	CvPlayerAI& we = GET_PLAYER(weId);
@@ -2125,7 +2124,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	return false;
 }
 
-bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) const {
+bool UWAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) const {
 
 	/*  Just check war utility and peace treaty here; all the other conditions
 		are handled by CvPlayerAI::AI_considerOffer. */
@@ -2150,7 +2149,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) c
 	// Probably won't want to attack theyId then
 	if(GET_TEAM(weId).AI_isSneakAttackReady())
 		return true;
-	WarAndPeaceReport silentReport(true);
+	UWAIReport silentReport(true);
 	WarEvalParameters params(we.getTeam(), TEAMID(theyId), silentReport);
 	WarEvaluator eval(params);
 	double u = eval.evaluate(WARPLAN_LIMITED, 5) - 5; // minus 5 for goodwill
@@ -2160,7 +2159,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) c
 	return thresh >= tradeVal;
 }
 // Wrapper that handles the war evaluator cache
-int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter, bool useCache) const {
+int UWAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter, bool useCache) const {
 
 	if(useCache)
 		WarEvaluator::enableCache();
@@ -2170,7 +2169,7 @@ int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter, bool useC
 	return r;
 }
 
-int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter) const {
+int UWAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter) const {
 
 	CvTeamAI const& agent = GET_TEAM(weId);
 	if(agent.AI_surrenderTrade(TEAMID(theyId)) == NO_DENIAL)
@@ -2194,7 +2193,7 @@ int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter) const {
 	return (valid ? 1 : -1);
 }
 
-bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
+bool UWAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 
 	/*  Could simply call CvPlayerAI::AI_counterPropose, but I think there are rare
 		situations when a deal is possible but AI_counterPropose doesn't find it.
@@ -2203,16 +2202,16 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL) &&
 			g.getRiseFall().isCooperationRestricted(weId) &&
-			GET_TEAM(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 20)
+			GET_TEAM(weId).uwai().reluctanceToPeace(TEAMID(humanId)) >= 20)
 		return false;
 	// </advc.705>
-	int targetTradeVal = GET_TEAM(humanId).warAndPeaceAI().endWarVal(TEAMID(weId));
+	int targetTradeVal = GET_TEAM(humanId).uwai().endWarVal(TEAMID(weId));
 	if(targetTradeVal <= 0)
 		return true;
 	return canTradeAssets(targetTradeVal, humanId);
 }
 
-bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId, int* r,
+bool UWAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId, int* r,
 		bool ignoreCities) const {
 
 	int totalTradeVal = 0;
@@ -2257,7 +2256,7 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 	return (cityCount <= cityLimit && totalTradeVal >= targetTradeVal);
 }
 
-double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
+double UWAI::Civ::tradeValUtilityConversionRate() const {
 
 	// Based on how long it would take us to produce as much trade value
 	double speedFactor = 1;
@@ -2276,24 +2275,24 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 		Still better than just adding up all commerce types. */
 }
 
-double WarAndPeaceAI::Civ::utilityToTradeVal(double u) const {
+double UWAI::Civ::utilityToTradeVal(double u) const {
 
-	return GET_TEAM(weId).warAndPeaceAI().utilityToTradeVal(u);
+	return GET_TEAM(weId).uwai().utilityToTradeVal(u);
 }
 
-double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
+double UWAI::Civ::tradeValToUtility(double tradeVal) const {
 
-	return GET_TEAM(weId).warAndPeaceAI().tradeValToUtility(tradeVal);
+	return GET_TEAM(weId).uwai().tradeValToUtility(tradeVal);
 }
 
-double WarAndPeaceAI::Civ::amortizationMultiplier() const {
+double UWAI::Civ::amortizationMultiplier() const {
 
 	// 25 turns delay b/c war planning is generally about a medium-term future
 	return GET_PLAYER(weId).AI_amortizationMultiplier(25);
 }
 
 // Currently unused; don't remember what I wanted to use it for.
-bool WarAndPeaceAI::Civ::isNearMilitaryVictory(int stage) const {
+bool UWAI::Civ::isNearMilitaryVictory(int stage) const {
 
 	if(stage <= 0)
 		return true;
@@ -2311,7 +2310,7 @@ bool WarAndPeaceAI::Civ::isNearMilitaryVictory(int stage) const {
 	}
 }
 
-int WarAndPeaceAI::Civ::getConquestStage() const {
+int UWAI::Civ::getConquestStage() const {
 
 	CvPlayerAI& we = GET_PLAYER(weId);
 	if(we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1))
@@ -2325,7 +2324,7 @@ int WarAndPeaceAI::Civ::getConquestStage() const {
 	return 0;
 }
 
-int WarAndPeaceAI::Civ::getDominationStage() const {
+int UWAI::Civ::getDominationStage() const {
 
 	CvPlayerAI& we = GET_PLAYER(weId);
 	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1))
@@ -2339,7 +2338,7 @@ int WarAndPeaceAI::Civ::getDominationStage() const {
 	return 0;
 }
 
-double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) const {
+double UWAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) const {
 
 	double r = baseValue;
 	if(r < 0)
@@ -2368,7 +2367,7 @@ double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) 
 	return r;
 }
 
-bool WarAndPeaceAI::Civ::canHurry() const {
+bool UWAI::Civ::canHurry() const {
 
 	FOR_EACH_ENUM(Hurry) {
 		if(GET_PLAYER(weId).canHurry(eLoopHurry))
@@ -2377,7 +2376,7 @@ bool WarAndPeaceAI::Civ::canHurry() const {
 	return false;
 }
 
-double WarAndPeaceAI::Civ::buildUnitProb() const {
+double UWAI::Civ::buildUnitProb() const {
 
 	CvPlayerAI& we = GET_PLAYER(weId);
 	if(we.isHuman())
@@ -2385,13 +2384,13 @@ double WarAndPeaceAI::Civ::buildUnitProb() const {
 	return GC.getInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
 }
 
-double WarAndPeaceAI::Civ::shipSpeed() const {
+double UWAI::Civ::shipSpeed() const {
 
 	// Tbd.: Use the actual speed of our typical LOGISTICS unit
 	return ::dRange(GET_PLAYER(weId).getCurrentEra() + 1.0, 3.0, 5.0);
 }
 
-double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
+double UWAI::Civ::humanBuildUnitProb() const {
 
 	CvPlayer& human = GET_PLAYER(weId);
 	double r = 0.25; // 30 is about average, Gandhi 15
@@ -2405,7 +2404,7 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 
 /*  Doesn't currently use any members of this object, but perhaps it will in the
 	future. Could e.g. check if 'weId' is able to see the demographics of 'civId'. */
-double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
+double UWAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
 
 	CvGame const& g = GC.getGame();
 	period *= GC.getInfo(g.getGameSpeedType()).getTrainPercent();
@@ -2419,7 +2418,7 @@ double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) co
 	return std::max(0.0, delta / pastPow);
 }
 
-double WarAndPeaceAI::Civ::confidenceFromPastWars(TeamTypes targetId) const {
+double UWAI::Civ::confidenceFromPastWars(TeamTypes targetId) const {
 
 	int sign = 1;
 	double sc = cache.pastWarScore(targetId) / 100.0;
@@ -2430,7 +2429,7 @@ double WarAndPeaceAI::Civ::confidenceFromPastWars(TeamTypes targetId) const {
 	return ::dRange(r, 0.5, 1.5);
 }
 
-double WarAndPeaceAI::Civ::distrustRating() const {
+double UWAI::Civ::distrustRating() const {
 
 	int result = GC.getInfo(GET_PLAYER(weId).getPersonalityType()).
 			getEspionageWeight() - 10;
@@ -2439,7 +2438,7 @@ double WarAndPeaceAI::Civ::distrustRating() const {
 	return std::max(0, result) / 100.0;
 }
 
-double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal, PlayerTypes vs) const {
+double UWAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal, PlayerTypes vs) const {
 
 	// (param 'vs' currently unused)
 	CvPlayerAI const& we = GET_PLAYER(weId);
@@ -2479,9 +2478,9 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal, Pla
 	return r / 100.0;
 }
 
-double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId, bool ignoreDefOnly) const {
+double UWAI::Civ::warConfidenceLearned(PlayerTypes targetId, bool ignoreDefOnly) const {
 
-	double fromWarSuccess = GET_TEAM(weId).warAndPeaceAI().confidenceFromWarSuccess(
+	double fromWarSuccess = GET_TEAM(weId).uwai().confidenceFromWarSuccess(
 			TEAMID(targetId));
 	double fromPastWars = confidenceFromPastWars(TEAMID(targetId));
 	if(ignoreDefOnly == (fromPastWars > 1))
@@ -2498,7 +2497,7 @@ double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId, bool ignor
 	// Tbd.: Consider using statistics (e.g. units killed/ lost) in addition
 }
 
-double WarAndPeaceAI::Civ::warConfidenceAllies() const {
+double UWAI::Civ::warConfidenceAllies() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	// AI assumes that humans have normal confidence
@@ -2522,7 +2521,7 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	return r;
 }
 
-double WarAndPeaceAI::Civ::confidenceAgainstHuman() const {
+double UWAI::Civ::confidenceAgainstHuman() const {
 
 	/*  Doesn't seem necessary so far; AI rather too reluctant to attack humans
 		due to human diplomacy, and other special treatment of humans; e.g.
@@ -2542,7 +2541,7 @@ double WarAndPeaceAI::Civ::confidenceAgainstHuman() const {
 	//return GET_PLAYER(weId).isHuman() ? 1.0 : 0.9;
 }
 
-int WarAndPeaceAI::Civ::vengefulness() const {
+int UWAI::Civ::vengefulness() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	// AI assumes that humans are calculating, not vengeful
@@ -2558,7 +2557,7 @@ int WarAndPeaceAI::Civ::vengefulness() const {
 	return std::max(0, lhi.getRefuseToTalkWarThreshold() - lhi.getBasePeaceWeight());
 }
 
-double WarAndPeaceAI::Civ::protectiveInstinct() const {
+double UWAI::Civ::protectiveInstinct() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	if(we.isHuman()) return 1;
@@ -2574,7 +2573,7 @@ double WarAndPeaceAI::Civ::protectiveInstinct() const {
 	return 0.9 + (dpVal - wmrVal) / 10.0;
 }
 
-double WarAndPeaceAI::Civ::diploWeight() const {
+double UWAI::Civ::diploWeight() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	if(we.isHuman())
@@ -2592,7 +2591,7 @@ double WarAndPeaceAI::Civ::diploWeight() const {
 	return 0.25;
 }
 
-double WarAndPeaceAI::Civ::prideRating() const {
+double UWAI::Civ::prideRating() const {
 
 	// Fixme: Should be a Team function and call CvTeamAI::AI_makePeaceRand
 	CvPlayerAI const& we = GET_PLAYER(weId);
