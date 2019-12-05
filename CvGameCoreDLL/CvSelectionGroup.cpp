@@ -2808,12 +2808,12 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			if (pLoopUnit == pCombatUnit)
 				continue; // this unit is moved before the loop.
 			// <advc.001>
-			if(pLoopUnit->isNoCapture() != (bool)iStage)
+			if(pLoopUnit->isNoCityCapture() != (bool)iStage)
 				continue; // </advc.001>
 			if (pLoopUnit->canMove() &&
 					/*  advc.001: This condition was removed in K-Mod 1.44, but is needed
 						b/c canMoveOrAttackInto doesn't cover it (perhaps it should). */
-					!(pLoopUnit->isNoCapture() && pPlot->isEnemyCity(*pLoopUnit)) &&
+					!(pLoopUnit->isNoCityCapture() && pPlot->isEnemyCity(*pLoopUnit)) &&
 					(bCombat ? pLoopUnit->canMoveOrAttackInto(*pPlot) : pLoopUnit->canMoveInto(*pPlot)))
 				pLoopUnit->move(pPlot, true);
 			else

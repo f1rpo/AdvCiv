@@ -267,7 +267,8 @@ public:
 	bool isAnimal() const;																								// Exposed to Python
 	bool isNoBadGoodies() const;																					// Exposed to Python
 	bool isOnlyDefensive() const;																					// Exposed to Python
-	bool isNoCapture() const;																							// Exposed to Python
+	bool isNoCityCapture() const;																							// Exposed to Python
+	bool isNoUnitCapture() const; // advc.315b
 	bool isRivalTerritory() const;																				// Exposed to Python
 	bool isMilitaryHappiness() const;																			// Exposed to Python
 	bool isInvestigate() const;																						// Exposed to Python

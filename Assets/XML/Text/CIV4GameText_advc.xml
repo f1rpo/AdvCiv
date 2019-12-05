@@ -1745,6 +1745,27 @@
 		<Italian>[ICON_BULLET]Può attaccare solo barbari</Italian>
 		<Spanish>[ICON_BULLET]Puede atacar solo a los bárbaros</Spanish>
 	</TEXT>
+	<!-- From Civ4GameTextInfos.xml; key was TXT_KEY_UNIT_CANNOT_CAPTURE and had
+		 been superseded by a BtS key saying "cannot capture cities and units".
+		 Turns out I need both keys.
+		 Removed the redundant word "enemy". -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_CANNOT_CAPTURE_CITIES</Tag>
+		<English>[ICON_BULLET]Cannot Capture Cities</English>
+		<French>[ICON_BULLET]Ne peut pas capturer de villes</French>
+		<German>[ICON_BULLET]Kann keine St&#228;dte erobern</German>
+		<Italian>[ICON_BULLET]Non pu&#242; conquistare le citt&#224;</Italian>
+		<Spanish>[ICON_BULLET]No puede capturar ciudades</Spanish>
+	</TEXT>
+	<!-- FromCIV4GameTextChanged_BTS.xml. Copied here only to remove the word "enemy". -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_CANNOT_CAPTURE</Tag>
+		<English>[ICON_BULLET]Cannot Capture Cities or Units</English>
+		<French>[ICON_BULLET]Ne peut pas capturer de villes ou d'unit&#233;s.</French>
+		<German>[ICON_BULLET]Kann keine St&#228;dte oder Einheiten erobern</German>
+		<Italian>[ICON_BULLET]Non pu&#242; conquistare citt&#224; o unit&#224;</Italian>
+		<Spanish>[ICON_BULLET]No es posible capturar ciudades o unidades</Spanish>
+	</TEXT>
 	<!-- advc.315c: The parentheses are there in order to teach players that
 		 it's correct when combat help says "vs. Barbarians" - since Animals
 		 count as Barbarians. -->

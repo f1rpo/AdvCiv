@@ -126,14 +126,16 @@ public:
 	// </advc.011c>
 	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const;																// Exposed to Python
 
-	DllExport CvUnit* getBestDefender(PlayerTypes eOwner,													// Exposed to Python
-		PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL,
-		bool bTestAtWar = false, bool bTestPotentialEnemy = false,
-		// advc.028: Replacing unused bTestCanMove
+	DllExport CvUnit* getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER,													// Exposed to Python
+		const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false,
+		/*  advc.028: Replacing unused bTestCanMove. False by default b/c invisible units are
+			generally able to defend - they just choose not to (CvUnit::isBetterDefenderThan). */
 		bool bTestVisible = false) const  // <advc> Need some more params
 	{
 		return getBestDefender(eOwner, eAttackingPlayer, pAttacker, bTestAtWar,
-				bTestPotentialEnemy, bTestVisible, false, false);
+				bTestPotentialEnemy, bTestVisible,
+				// advc.089: bTestCanAttack=true by default
+				true, false);
 	}
 	CvUnit* getBestDefender(PlayerTypes eOwner,
 			PlayerTypes eAttackingPlayer, CvUnit const* pAttacker,

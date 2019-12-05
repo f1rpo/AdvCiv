@@ -1649,17 +1649,11 @@ void CvUnit::updateCombat(bool bQuick)
 		else
 		{
 			bAdvance = canAdvance(pPlot, pDefender->canDefend() ? 1 : 0);
-
-				if (bAdvance)
-				{
-					//if (!isNoCapture())
-					/*  advc.315b: Let Explorer capture Workers,
-						but not Gunship. */
-					if(!m_pUnitInfo->isIgnoreTerrainCost())
-					{
-						pDefender->setCapturingPlayer(getOwner());
-					}
-				}
+			if (bAdvance)
+			{
+				if (!isNoUnitCapture())
+					pDefender->setCapturingPlayer(getOwner());
+			}
 
 			pDefender->kill(false);
 			pDefender = NULL;
@@ -2474,7 +2468,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		}
 	}
 
-	if (isNoCapture() /* advc.315a: */ || m_pUnitInfo->isOnlyAttackAnimals())
+	if (isNoCityCapture())
 	{
 		if (!bAttack && kPlot.isEnemyCity(*this))
 			return false;
@@ -2537,7 +2531,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 					{
 						//FAssertMsg(isHuman() || (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack)), "hopefully not an issue, but tracking how often this is the case when we dont want to really declare war");
 						/* original bts code
-						if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCapture()))) */
+						if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCityCapture()))) */
 						// K-Mod. I'm not entirely sure I understand what they were trying to do here. But I'm pretty sure it's wrong.
 						// I think the rule should be that bAttack means we have to actually fight an enemy unit. Capturing an undefended city doesn't count.
 						// (there is no "isVisiblePotentialEnemyUnit" function, so I just wrote the code directly.)
@@ -6834,11 +6828,18 @@ bool CvUnit::isOnlyDefensive() const
 	return m_pUnitInfo->isOnlyDefensive();
 }
 
-
-bool CvUnit::isNoCapture() const
+// advc.315b: Renamed from "isNoCityCapture" b/c no-unit-capture is no longer implied
+bool CvUnit::isNoCityCapture() const
 {
-	return m_pUnitInfo->isNoCapture();
+	return (m_pUnitInfo->isNoCapture()
+			|| m_pUnitInfo->isOnlyAttackAnimals()); // advc.315a
 }
+
+// <advc.315b> Allow Explorers to capture units (if worker stealing allowed; cf. advc.010)
+bool CvUnit::isNoUnitCapture() const
+{
+	return (isNoCityCapture() && !m_pUnitInfo->isOnlyAttackBarbarians());
+} // </advc.315b>
 
 
 bool CvUnit::isRivalTerritory() const
@@ -7451,26 +7452,42 @@ bool CvUnit::canAttack() const
 
 bool CvUnit::canAttack(const CvUnit& kDefender) const
 {
-	if(!canAttack())
+	//PROFILE_FUNC(); // advc: Called "only" a few hundred thousand times per turn; pretty fast.
+	//if (!canAttack())
+	if (!canCombat() || isOnlyDefensive()) // advc.089: Need to handle air units
 		return false;
 	// <advc.315a>
-	if(m_pUnitInfo->isOnlyAttackAnimals() && !kDefender.isAnimal())
+	if (m_pUnitInfo->isOnlyAttackAnimals() && !kDefender.isAnimal())
 		return false; // </advc.315a>
 	// <advc.315b>
-	if(m_pUnitInfo->isOnlyAttackBarbarians() && !kDefender.isBarbarian())
+	if (m_pUnitInfo->isOnlyAttackBarbarians() && !kDefender.isBarbarian())
 		return false; // </advc.315b>
-	if(kDefender.getDamage() >= combatLimit())
-		return false;
-
+	/*  <advc.089> Previously, the air combat limit was checked in CvPlot::hasDefender.
+		If either limit isn't reached, then some form of attack is possible.
+		(For units that have both a ranged attack and regular attack ability,
+		the mode of attack would have to be known in order to check the proper
+		damage limit here. So such units aren't supported.) */
+	if (kDefender.getDamage() >= std::max(combatLimit(), airCombatLimit()))
+		return false; // </advc.089>
 	// Artillery can't amphibious attack
 	if (plot()->isWater() && !kDefender.plot()->isWater())
 	{
 		if (combatLimit() < 100)
 			return false;
-	} /* <advc.050> This prevents combat odds from being shown when pressing
+	} /* <advc.089> This prevents combat odds from being shown when pressing
 		 ALT while hovering over one's own units */
 	if(getTeam() == kDefender.getTeam())
-		return false; // </advc.050>
+		return false;
+	/*  Can't attack defenseless units that are stacked
+		with a defender whose damage limit is reached. */
+	if (!kDefender.canFight() && combatLimit() < 100 &&
+		/*  Won't handle invisible defenders correctly
+			(there are none currently that can defend) */
+		kDefender.plot()->plotCheck(PUF_isEnemy, getOwner(), false,
+		NO_PLAYER, NO_TEAM, PUF_canDefend))
+	{
+		return false;
+	} // </advc.089>
 	return true;
 }
 
@@ -7528,14 +7545,6 @@ bool CvUnit::canBeAttackedBy(PlayerTypes eAttackingPlayer,
 		// Moved from CvPlot::hasDefender
 		if (bTestCanAttack && !pAttacker->canAttack(*this))
 			return false;
-		/*  Previously, only the air combat limit was checked here. If either limit
-			isn't reached, then some form of attack is possible. (For units that have
-			both a ranged attack and regular attack ability, the mode of attack
-			would have to be known in order to check the proper damage limit here.
-			So such units aren't supported.) */
-		int const iDamage = getDamage();
-		if (iDamage >= pAttacker->combatLimit() && iDamage >= pAttacker->airCombatLimit())
-			return false;
 	} // </advc>
 	return true;
 }
@@ -7546,14 +7555,17 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 	bool bPreferUnowned) const // advc.061
 {
 	TeamTypes eAttackerTeam = NO_TEAM;
-	if (NULL != pAttacker)
+	if (pAttacker != NULL)
 		eAttackerTeam = pAttacker->getTeam();
 
 	// <advc.028>
 	bool bInvisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
 	// Only pick invisible unit as defender once attack is underway ...
-	if(bInvisible && pAttacker->getAttackPlot() == NULL)
+	if(bInvisible && (pAttacker->getAttackPlot() == NULL ||
+		pAttacker->getDomainType() == DOMAIN_AIR)) // And don't defend against air attack
+	{
 		return false;
+	}
 	/*  and if there is some visible team unit that could get attacked otherwise
 		(better: check if our team has the best visible defender; tbd.): */
 	if(bInvisible)
@@ -8634,10 +8646,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 									GET_TEAM(getTeam()).AI_changeWarSuccess(pLoopUnit->getTeam(), GC.getDefineINT("WAR_SUCCESS_UNIT_CAPTURING"));
 								}
 
-								//if (!isNoCapture())
-								/*  advc.315b: Let Explorer capture Workers,
-									but not Gunship. */
-								if(!m_pUnitInfo->isIgnoreTerrainCost())
+								if (!isNoUnitCapture())
 									pLoopUnit->setCapturingPlayer(getOwner());
 
 								pLoopUnit->kill(false, getOwner());
@@ -10900,7 +10909,7 @@ bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 	if (pPlot->getNumVisibleEnemyDefenders(this) > iThreshold)
 		return false;
 
-	if (isNoCapture())
+	if (isNoCityCapture())
 	{
 		if (pPlot->isEnemyCity(*this))
 			return false;
@@ -12015,7 +12024,9 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 	{
 		// We start with straight combat odds
 		iDefense = LFBgetDefenderCombatOdds(pAttacker);
-	} else {
+	}
+	else
+	{
 		// Lacking a real opponent (or if combat odds turned off) fall back on just using strength
 		iDefense = currCombatStr(plot(), pAttacker);
 		if (bUseAttacker)

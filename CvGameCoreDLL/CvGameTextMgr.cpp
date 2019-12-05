@@ -9521,7 +9521,10 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 	if (u.isNoCapture())
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_CANNOT_CAPTURE"));
+		szBuffer.append(gDLL->getText(
+				// advc.315b: Barbarian-only attackers can capture units
+				u.isOnlyAttackBarbarians() ? "TXT_KEY_UNIT_CANNOT_CAPTURE_CITIES" :
+				"TXT_KEY_UNIT_CANNOT_CAPTURE"));
 	}
 
 	if (u.isRivalTerritory())

@@ -698,28 +698,17 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 {
 	PROFILE_FUNC();
 
-	CvUnit* pDefender;
-	int iOurStrength;
-	int iTheirStrength;
-	int iOurFirepower;
-	int iTheirFirepower;
-	int iBaseOdds;
-	int iStrengthFactor;
-	int iDamageToUs;
-	int iDamageToThem;
-	int iNeededRoundsUs;
-	int iNeededRoundsThem;
-	int iHitLimitThem;
-
-	pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this, !bPotentialEnemy, bPotentialEnemy);
+	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this,
+			!bPotentialEnemy, bPotentialEnemy,
+			true, // advc.028: bTestVisible
+			false); // advc.089: bTestCanAttack - attack isn't necessarily imminent here
 
 	if (pDefender == NULL)
-	{
 		return 100;
-	}
 
 	// BETTER_BTS_AI_MOD, Efficiency, Lead From Behind (UncutDragon), jdog5000: START
-	if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE) && GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS))
+	if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE) &&
+		GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS))
 	{
 		// Combat odds are out of 1000 - we need odds out of 100
 		int iOdds = (getCombatOdds(this, pDefender) + 5) / 10;
@@ -728,46 +717,51 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 		return std::max(1, std::min(iOdds, 99));
 	}
 
-	iOurStrength = ((getDomainType() == DOMAIN_AIR) ? airCurrCombatStr(NULL) : currCombatStr(NULL, NULL));
-	iOurFirepower = ((getDomainType() == DOMAIN_AIR) ? iOurStrength : currFirepower(NULL, NULL));
+	int iOurStrength = ((getDomainType() == DOMAIN_AIR) ?
+			airCurrCombatStr(NULL) : currCombatStr(NULL, NULL));
+	int iOurFirepower = ((getDomainType() == DOMAIN_AIR) ?
+			iOurStrength : currFirepower(NULL, NULL));
 
 	if (iOurStrength == 0)
-	{
 		return 1;
-	}
 
-	iTheirStrength = pDefender->currCombatStr(pPlot, this);
-	iTheirFirepower = pDefender->currFirepower(pPlot, this);
+	int iTheirStrength = pDefender->currCombatStr(pPlot, this);
+	int iTheirFirepower = pDefender->currFirepower(pPlot, this);
 
 
 	FAssert((iOurStrength + iTheirStrength) > 0);
 	FAssert((iOurFirepower + iTheirFirepower) > 0);
 
-	iBaseOdds = (100 * iOurStrength) / (iOurStrength + iTheirStrength);
+	int iBaseOdds = (100 * iOurStrength) / (iOurStrength + iTheirStrength);
 	if (iBaseOdds == 0)
 		return 1;
 
-	iStrengthFactor = ((iOurFirepower + iTheirFirepower + 1) / 2);
-	iDamageToUs = std::max(1, (GC.getCOMBAT_DAMAGE() *
+	int iStrengthFactor = ((iOurFirepower + iTheirFirepower + 1) / 2);
+	int iDamageToUs = std::max(1, (GC.getCOMBAT_DAMAGE() *
 			(iTheirFirepower + iStrengthFactor)) /
 			(iOurFirepower + iStrengthFactor));
-	iDamageToThem = std::max(1, (GC.getCOMBAT_DAMAGE() *
+	int iDamageToThem = std::max(1, (GC.getCOMBAT_DAMAGE() *
 			(iOurFirepower + iStrengthFactor)) /
 			(iTheirFirepower + iStrengthFactor));
-	iHitLimitThem = pDefender->maxHitPoints() - combatLimit();
+	int iHitLimitThem = pDefender->maxHitPoints() - combatLimit();
 
-	iNeededRoundsUs = (std::max(0, pDefender->currHitPoints() - iHitLimitThem) + iDamageToThem - 1) / iDamageToThem;
-	iNeededRoundsThem = (std::max(0, currHitPoints()) + iDamageToUs - 1) / iDamageToUs;
+	int iNeededRoundsUs = (std::max(0, pDefender->currHitPoints() - iHitLimitThem) +
+			iDamageToThem - 1) / iDamageToThem;
+	int iNeededRoundsThem = (std::max(0, currHitPoints()) + iDamageToUs - 1) / iDamageToUs;
 
 	if (getDomainType() != DOMAIN_AIR)
 	{
 		/*  BETTER_BTS_AI_MOD, Unit AI, 10/30/09, Mongoose & jdog5000: START
 			(from Mongoose SDK) */
-		if (!pDefender->immuneToFirstStrikes()) {
-			iNeededRoundsUs   -= ((iBaseOdds * firstStrikes()) + ((iBaseOdds * chanceFirstStrikes()) / 2)) / 100;
+		if (!pDefender->immuneToFirstStrikes())
+		{
+			iNeededRoundsUs -= (iBaseOdds * firstStrikes() +
+					(iBaseOdds * chanceFirstStrikes()) / 2) / 100;
 		}
-		if (!immuneToFirstStrikes()) {
-			iNeededRoundsThem -= (((100 - iBaseOdds) * pDefender->firstStrikes()) + (((100 - iBaseOdds) * pDefender->chanceFirstStrikes()) / 2)) / 100;
+		if (!immuneToFirstStrikes())
+		{
+			iNeededRoundsThem -= ((100 - iBaseOdds) * pDefender->firstStrikes() +
+					((100 - iBaseOdds) * pDefender->chanceFirstStrikes()) / 2) / 100;
 		}
 		iNeededRoundsUs   = std::max(1, iNeededRoundsUs);
 		iNeededRoundsThem = std::max(1, iNeededRoundsThem);
@@ -776,13 +770,8 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 
 	int iRoundsDiff = iNeededRoundsUs - iNeededRoundsThem;
 	if (iRoundsDiff > 0)
-	{
 		iTheirStrength *= (1 + iRoundsDiff);
-	}
-	else
-	{
-		iOurStrength *= (1 - iRoundsDiff);
-	}
+	else iOurStrength *= (1 - iRoundsDiff);
 
 	int iOdds = (((iOurStrength * 100) / (iOurStrength + iTheirStrength)));
 	iOdds += ((100 - iOdds) * withdrawalProbability()) / 100;
@@ -2922,7 +2911,7 @@ void CvUnitAI::AI_attackCityMove()
 				// advc.315:
 				&& !pLoopUnit->getUnitInfo().isMostlyDefensive())
 			{
-				iCityCapture += pLoopUnit->isNoCapture() ? 0 : 1;
+				iCityCapture += pLoopUnit->isNoCityCapture() ? 0 : 1;
 				iNoCombatLimit += pLoopUnit->combatLimit() < 100 ? 0 : 1;
 
 				//if (iCityCaptureCount > 5 || 3*iCityCaptureCount > getGroup()->getNumUnits())
@@ -13843,35 +13832,33 @@ bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold, int iFlags, bool bF
 	int iSearchRange = bFollow ? 1 : AI_searchRange(iRange);
 	bool bDeclareWar = iFlags & MOVE_DECLARE_WAR;
 
-	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
-
-	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+	int iBestValue = 0;
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
 	{
-		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
+			if (pLoopPlot == NULL || !AI_plotValid(pLoopPlot))
+				continue; // advc
 
-			if (pLoopPlot != NULL)
+			if (pLoopPlot->isCity() &&
+				(bDeclareWar ? AI_potentialEnemy(pLoopPlot->getTeam(), pLoopPlot) :
+				isEnemy(pLoopPlot->getTeam(), pLoopPlot)))
 			{
-				if (AI_plotValid(pLoopPlot))
+				int iPathTurns;
+				if (!atPlot(pLoopPlot) && (bFollow ? canMoveOrAttackInto(*pLoopPlot, bDeclareWar) :
+					generatePath(pLoopPlot, iFlags, true, &iPathTurns, iRange)))
 				{
-					if (pLoopPlot->isCity() && (bDeclareWar ? AI_potentialEnemy(pLoopPlot->getTeam(), pLoopPlot) : isEnemy(pLoopPlot->getTeam(), pLoopPlot)))
+					int iValue = pLoopPlot->getNumVisiblePotentialEnemyDefenders(this) == 0 ? 100 :
+							AI_getGroup()->AI_getWeightedOdds(pLoopPlot, true);
+					if (iValue >= iOddsThreshold)
 					{
-						int iPathTurns;
-						if (!atPlot(pLoopPlot) && (bFollow ? canMoveOrAttackInto(*pLoopPlot, bDeclareWar) : generatePath(pLoopPlot, iFlags, true, &iPathTurns, iRange)))
+						if (iValue > iBestValue)
 						{
-							int iValue = pLoopPlot->getNumVisiblePotentialEnemyDefenders(this) == 0 ? 100 : AI_getWeightedOdds(pLoopPlot, true);
-
-							if (iValue >= iOddsThreshold)
-							{
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									pBestPlot = ((bFollow) ? pLoopPlot : getPathEndTurnPlot());
-									FAssert(!atPlot(pBestPlot));
-								}
-							}
+							iBestValue = iValue;
+							pBestPlot = ((bFollow) ? pLoopPlot : getPathEndTurnPlot());
+							FAssert(!atPlot(pBestPlot));
 						}
 					}
 				}
@@ -13902,7 +13889,8 @@ bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold, int iFlags, bool bF
 			bFollow = false;
 		}
 		// K-Mod end
-		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(), iFlags | (bFollow ? MOVE_DIRECT_ATTACK | MOVE_SINGLE_ATTACK : 0));
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(),
+				iFlags | (bFollow ? MOVE_DIRECT_ATTACK | MOVE_SINGLE_ATTACK : 0));
 		return true;
 	}
 
