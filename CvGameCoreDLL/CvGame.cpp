@@ -3747,6 +3747,14 @@ EraTypes CvGame::getCurrentEra() const
 	return NO_ERA;
 }
 
+// <advc>
+EraTypes CvGame::getHighestEra() const
+{
+	EraTypes r = NO_ERA;
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		r = (EraTypes)std::max<int>(r, it->getCurrentEra());
+	return r;
+} // </advc>
 
 TeamTypes CvGame::getActiveTeam() const
 {
@@ -8739,7 +8747,8 @@ void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 				gDLL->getInterfaceIFace()->lookAt(pStartingPlot->getPoint(), CAMERALOOKAT_NORMAL);
 			break;
 		} // </advc.004j>
-		default: FAssertMsg(false, "Unknown update timer type");
+		// advc.106n:
+		case UPDATE_STORE_REPLAY_TEXTURE: GC.getMap().updateReplayTexture(); break;		default: FAssertMsg(false, "Unknown update timer type");
 		}
 	}
 	m_aiUpdateTimers[eTimerType]--;

@@ -257,6 +257,9 @@ namespace python = boost::python;
 #include "FFreeListArray.h"
 #include "CvString.h"
 #include "CvEnums.h" // includes CvDefines.h, CvInfoEnum.h
+/*  advc: Smaller numbers may already crash the EXE; the DLL assumes in some places
+	that player ids fit in a single byte. */
+BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvStructs.h"
 #include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 

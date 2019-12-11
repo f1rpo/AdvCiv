@@ -36,6 +36,7 @@ class CvReplayScreen:
 		self.DZ = -0.2
 		# <advc.106m> Use this to avoid calling calculateLayout more than once
 		self.bLayoutDone = False
+		self.iOriginalMinimapRenderSize = -1
 
 	# Moved into a new function b/c getScreen can't be called in __init__
 	def calculateLayout(self):
@@ -172,7 +173,11 @@ class CvReplayScreen:
 				self.replayInfo.createInfo(gc.getGame().getActivePlayer())
 
 		self.iTurn = self.replayInfo.getInitialTurn()
-
+		# <advc.106m> Change MINIMAP_RENDER_SIZE until the replay is closed. (The EXE will access it.)
+		self.iOriginalMinimapRenderSize = gc.getDefineINT("MINIMAP_RENDER_SIZE")
+		iMinimapRenderSize = self.replayInfo.getMinimapSize()
+		gc.setDefineINT("MINIMAP_RENDER_SIZE", iMinimapRenderSize)
+		# </advc.106m>
 		self.deleteAllWidgets()
 
 		# Controls
@@ -381,8 +386,8 @@ class CvReplayScreen:
 
 		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED):
 			if (inputClass.getFunctionName() == self.EXIT_ID):
-				screen = self.getScreen()
-				screen.hideScreen()
+				# advc.106m: Moved into new function
+				self.uninit()
 
 			elif (szWidgetName == self.szPlayId):
 				self.setPlaying(not self.bPlaying)
@@ -399,8 +404,20 @@ class CvReplayScreen:
 			if (szWidgetName == self.szSliderId):
 				screen = self.getScreen()
 				self.iSpeed = inputClass.getData() + 1
+		# <advc.106m> Intercept ESC and Enter so that MINIMAP_RENDER_SIZE can be restored
+		elif inputClass.getNotifyCode() == NotifyCode.NOTIFY_CHARACTER and (inputClass.getData() == InputTypes.KB_ESCAPE or inputClass.getData() == InputTypes.KB_RETURN):
+			self.uninit() # </advc.106m>
 
 		return 0
+
+	# <advc.106m>
+	def uninit(self):
+		# Restore MINIMAP_RENDER_SIZE
+		gc.setDefineINT("MINIMAP_RENDER_SIZE", self.iOriginalMinimapRenderSize)
+		# Cut from handleInput (exit clicked)
+		screen = self.getScreen()
+		screen.hideScreen()
+	# </advc.106m>
 
 	def update(self, fDelta):
 

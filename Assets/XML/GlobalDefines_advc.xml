@@ -71,6 +71,38 @@
 		<DefineName>HOF_DISPLAY_OTHER_MOD_REPLAYS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- advc.106m: Resolution of the terrain texture on the minimap,
+		 more specifically, it's the number of pixels along the
+		 horizontal axis. The value is used for the minimap on the
+		 main screen, Military Advisor and Replay screen.
+		 Recommended: 512 as in BtS. A higher value (e.g. 1024) looks
+		 better on the (maximized) replay screen, but is incompatible
+		 with HOF_STORE_REPLAYS_AS_BTS=1. Higher values also increase
+		 the size of replay files.
+		 AdvCiv (since version 0.97) stores MINIMAP_RENDER_SIZE in
+		 replay files, so compatibility between within AdvCiv isn't
+		 an issue, but BtS can only read size 512. -->
+	<Define>
+		<DefineName>MINIMAP_RENDER_SIZE</DefineName>
+		<iDefineIntVal>512</iDefineIntVal>
+	</Define>
+	<!-- advc.106n: When to store the terrain texture for the replay file.
+		 0 (Ancient era) means that the map at game start is used,
+		 4 (Industrial era) would yield a pre-Industrial map with roads,
+		 most of the Forests gone, but no railroads or Global Warming effects.
+		 Recommended: A value greater than any era number, which means that the
+		 map at game end is used (as in BtS). That has the advantage that
+		 no texture data gets stored in savegame files. The texture has a size
+		 of 128 KB if MINIMAP_RENDER_SIZE is 512. (Savegame compression in the
+		 EXE might reduce that size a bit.)
+		 If an era number is used, then the texture gets stored once any
+		 player reaches the target era or immediately when loading an
+		 outdated savegame (i.e. without texture data) in which at least
+		 one player has reached the target era. -->
+	<Define>
+		<DefineName>REPLAY_TEXTURE_ERA</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
 
 	<!-- advc.002h: 0 only hides the clouds. Their shadows are hidden through
 		 BML.fpk. Original value: 1. If BML.fpk is removed, then this value
@@ -387,10 +419,10 @@
 
 	<!-- [advc.004m]
 	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 4600. -->
+		 (GlobalDefines.xml), recommended: 5400 (4600?). -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
-		<fDefineFloatVal>4600</fDefineFloatVal>
+		<fDefineFloatVal>5400</fDefineFloatVal>
 	</Define>
 
 	<!-- [advc.500b]

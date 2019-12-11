@@ -290,6 +290,15 @@ int CyReplayInfo::getMapHeight() const
 	}
 	return -1;
 }
+// <advc.106m>
+int CyReplayInfo::getMinimapSize() const
+{
+	if (m_pHoF)
+	{
+		return m_pHoF->getMinimapSize();
+	}
+	return -1;
+} // </advc.106m>
 
 int CyReplayInfo::getNumPlayers() const
 {

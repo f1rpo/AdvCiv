@@ -164,6 +164,7 @@ public:
 
 	bool canTrainNukes() const;																		// Exposed to Python
 	EraTypes getCurrentEra() const;														// Exposed to Python
+	EraTypes getHighestEra() const; // advc
 
 	DllExport TeamTypes getActiveTeam() const;																		// Exposed to Python
 	CivilizationTypes getActiveCivilizationType() const;								// Exposed to Python
@@ -314,6 +315,7 @@ public:
 		UPDATE_SCORE_BOARD_DIRTY, // advc.085
 		UPDATE_MOUSE_FOCUS, // advc.001w
 		UPDATE_LOOK_AT_STARTING_PLOT, // advc.004j
+		UPDATE_STORE_REPLAY_TEXTURE, // advc.106n
 		NUM_UPDATE_TIMER_TYPES
 	};
 	void setUpdateTimer(UpdateTimerTypes eTimerType, int iDelay); // </advc.003r>

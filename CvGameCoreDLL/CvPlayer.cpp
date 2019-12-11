@@ -10435,6 +10435,14 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue, /* advc.127c: */ bool bGraphics
 				getID(), szBuffer, -1, -1, (ColorTypes)
 				GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
 	} // </advc.106>
+	// <advc.106n> Save pre-Industrial minimap terrain for replay
+	if (GC.getGame().isFinalInitialized() &&
+		getCurrentEra() >= GC.getDefineINT("REPLAY_TEXTURE_ERA"))
+	{
+		CvMap& kMap = GC.getMap();
+		if (kMap.getReplayTexture() == NULL)
+			kMap.updateReplayTexture();
+	} // </advc.106n>
 }
 
 

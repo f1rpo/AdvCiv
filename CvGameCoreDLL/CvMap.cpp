@@ -19,6 +19,7 @@
 #include "CvMapGenerator.h"
 #include "KmodPathFinder.h"
 #include "CvInfo_GameOption.h"
+#include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
 #include <stack> // advc.030
 
@@ -71,6 +72,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 void CvMap::uninit()
 {
 	SAFE_DELETE_ARRAY(m_pMapPlots);
+	m_replayTexture.clear(); // advc.106n
 	m_areas->uninit();
 }
 
@@ -172,6 +174,7 @@ void CvMap::setupGraphical() // graphical only setup
 {
 	if (!GC.IsGraphicsInitialized())
 		return;
+
 	CvPlot::setMaxVisibilityRangeCache(); // advc.003h
 	if (m_pMapPlots != NULL)
 	{
@@ -181,6 +184,13 @@ void CvMap::setupGraphical() // graphical only setup
 			getPlotByIndex(iI).setupGraphical();
 		}
 	}
+	// <advc.106n> For games starting in a later era
+	if (getReplayTexture() == NULL &&
+		GC.getGame().getHighestEra() >= GC.getDefineINT("REPLAY_TEXTURE_ERA"))
+	{
+		// The EXE isn't quite ready here to provide the texture
+		GC.getGame().setUpdateTimer(CvGame::UPDATE_STORE_REPLAY_TEXTURE, 5);
+	} // </advc.106n>
 }
 
 
@@ -188,6 +198,7 @@ void CvMap::erasePlots()
 {
 	for (int iI = 0; iI < numPlots(); iI++)
 		plotByIndex(iI)->erase();
+	m_replayTexture.clear(); // advc.106n
 }
 
 
@@ -1102,12 +1113,26 @@ void CvMap::read(FDataStreamBase* pStream)
 		(The problem was that goody huts weren't always highlighted by the
 		Resource layer after loading a game.) */
 	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+	// <advc.106n>
+	if (uiFlag > 0)
+	{
+		size_t iPixels;
+		pStream->Read(&iPixels);
+		m_replayTexture.reserve(iPixels);
+		for (size_t i = 0; i < iPixels; i++)
+		{
+			byte ucPixel;
+			pStream->Read(&ucPixel);
+			m_replayTexture.push_back(ucPixel);
+		}
+	} // </advc.106n>
 }
 
 // save object to a stream
 void CvMap::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
+	uiFlag = 1; // advc.106n
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iGridWidth);
@@ -1130,6 +1155,10 @@ void CvMap::write(FDataStreamBase* pStream)
 
 	// call the read of the free list CvArea class allocations
 	WriteStreamableFFreeListTrashArray(*m_areas, pStream);
+	// <advc.106n>
+	pStream->Write(m_replayTexture.size());
+	pStream->Write(m_replayTexture.size(), &m_replayTexture[0]);
+	// </advc.106n>
 }
 
 // used for loading WB maps
@@ -1147,6 +1176,30 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 	// Init map
 	init(&initData);
 }
+
+// <advc.106n>
+void CvMap::updateReplayTexture()
+{
+	byte* pTexture = gDLL->getInterfaceIFace()->getMinimapBaseTexture();
+	FAssert(pTexture != NULL);
+	if (pTexture == NULL)
+		return;
+	int const iPixels = CvReplayInfo::minimapPixels(GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE));
+	m_replayTexture.clear();
+	m_replayTexture.reserve(iPixels);
+	for (int i = 0; i < iPixels; i++)
+		m_replayTexture.push_back(pTexture[i]);
+}
+
+
+byte const* CvMap::getReplayTexture() const
+{
+	// When in HoF or updateReplayTexture was never called or MINIMAP_RENDER_SIZE has changed
+	if (m_replayTexture.size() != CvReplayInfo::minimapPixels(
+			GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE)))
+		return NULL;
+	return &m_replayTexture[0];
+} // </advc.106n>
 
 
 void CvMap::calculateAreas()

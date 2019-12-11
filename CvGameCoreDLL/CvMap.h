@@ -412,7 +412,11 @@ public: // advc: made several functions const
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 
-	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude, bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel, int iNumCustomMapOptions, CustomMapOptionTypes * eCustomMapOptions);		// Exposed to Python
+	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude,	bool bWrapX, bool bWrapY, 			// Exposed to Python
+			WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel,
+			int iNumCustomMapOptions, CustomMapOptionTypes* eCustomMapOptions);
+	void updateReplayTexture(); // advc.106n
+	byte const* getReplayTexture() const; // advc.106n
 
 protected:
 
@@ -435,6 +439,7 @@ protected:
 
 	//FFreeListTrashArray<CvArea> m_areas;
 	CvAreaList* m_areas; // advc.003u
+	std::vector<byte> m_replayTexture; // advc.106n
 
 	void calculateAreas();
 	// <advc.030>
