@@ -127,6 +127,13 @@ int WarUtilityAspect::preEvaluate() { return 0; }
 
 bool WarUtilityAspect::concernsOnlyWarParties() const { return true; }
 
+char const* WarUtilityAspect::aspectName() const {
+
+	/*  Tbd.(?): Convert from upper case to mixed case and replace underscores with spaces.
+		Will need some static buffer for that. */
+	return getUWAI.aspectName(xmlId());
+}
+
 void WarUtilityAspect::log(char const* fmt, ...) {
 
 	/*  The time spent in this function is negligible when the report is muted,
@@ -554,12 +561,6 @@ bool WarUtilityBroaderAspect::concernsOnlyWarParties() const {
 	return false;
 }
 
-GreedForAssets::GreedForAssets(WarEvalParameters& params)
-	: WarUtilityAspect(params), ourDist(-1) {}
-
-char const* GreedForAssets::aspectName() const { return "Greed for assets"; }
-int GreedForAssets::xmlId() const { return 0; }
-
 void GreedForAssets::evaluate() {
 
 	PROFILE_FUNC();
@@ -805,12 +806,6 @@ void GreedForAssets::freeCitiesPerArea() {
 		SAFE_DELETE(citiesPerArea[it->getID()]);
 }
 
-GreedForVassals::GreedForVassals(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
-char const* GreedForVassals::aspectName() const { return "Greed for vassals"; }
-int GreedForVassals::xmlId() const { return 1; }
-
 void GreedForVassals::evaluate() {
 
 	// Military analysis already checks if vassal states disabled in options
@@ -897,12 +892,6 @@ void GreedForVassals::evaluate() {
 	u += std::max(0, ::round(totalUtility));
 }
 
-GreedForSpace::GreedForSpace(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
-char const* GreedForSpace::aspectName() const { return "Greed for space"; }
-int GreedForSpace::xmlId() const { return 2; }
-
 void GreedForSpace::evaluate() {
 
 	/*  If they lose cities, but aren't eliminated, they'll try to settle sites
@@ -935,11 +924,6 @@ void GreedForSpace::evaluate() {
 	}
 }
 
-GreedForCash::GreedForCash(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-char const* GreedForCash::aspectName() const { return "Greed for cash"; }
-int GreedForCash::xmlId() const { return 3; }
-
 void GreedForCash::evaluate() {
 
 	int theyLoseToUs = 0;
@@ -959,9 +943,6 @@ void GreedForCash::evaluate() {
 		u += 4;
 	}
 }
-
-Loathing::Loathing(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
 
 void Loathing::evaluate() {
 
@@ -1083,16 +1064,6 @@ double Loathing::lossRating() {
 	/*  The military ratio is important when we can't conquer any of their cities,
 		i.e. in all cases when we loath a stronger opponent. Hence all the checks
 		and balances. */
-}
-
-char const* Loathing::aspectName() const { return "Loathing"; }
-int Loathing::xmlId() const { return 4; }
-
-MilitaryVictory::MilitaryVictory(WarEvalParameters& params)
-	: WarUtilityAspect(params) {
-
-	votesToGo = -1;
-	enoughVotes = false;
 }
 
 void MilitaryVictory::evaluate() {
@@ -1455,12 +1426,6 @@ void MilitaryVictory::addConquestsByPartner(map<int,double>& r,
 	}
 }
 
-char const* MilitaryVictory::aspectName() const { return "Military Victory"; }
-int MilitaryVictory::xmlId() const { return 5; }
-
-Assistance::Assistance(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
 void Assistance::evaluate() {
 
 	PROFILE_FUNC();
@@ -1538,13 +1503,6 @@ double Assistance::assistanceRatio() {
 	return r;
 }
 
-char const* Assistance::aspectName() const {
-
-	// "Assistance" isn't distinct enough from Fidelity and SuckingUp
-	return "Preservation of partners";
-}
-int Assistance::xmlId() const { return 6; }
-
 Reconquista::Reconquista(WarEvalParameters& params)
 	: WarUtilityAspect(params) {}
 
@@ -1574,12 +1532,6 @@ void Reconquista::evaluate() {
 		return;
 	u += ::round(uPlus);
 }
-
-char const* Reconquista::aspectName() const { return "Reconquista"; }
-int Reconquista::xmlId() const { return 7; }
-
-Rebuke::Rebuke(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
 
 void Rebuke::evaluate() {
 	// <advc.134a>
@@ -1627,12 +1579,6 @@ void Rebuke::evaluate() {
 	}
 }
 
-char const* Rebuke::aspectName() const { return "Rebuke"; }
-int Rebuke::xmlId() const { return 8; }
-
-Fidelity::Fidelity(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
 void Fidelity::evaluate() {
 
 	PROFILE_FUNC();
@@ -1676,12 +1622,6 @@ void Fidelity::evaluate() {
 		leaderFactor = 1;
 	u += ::round(leaderFactor * 10);
 }
-
-char const* Fidelity::aspectName() const { return "Fidelity"; }
-int Fidelity::xmlId() const { return 9; }
-
-HiredHand::HiredHand(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
 
 void HiredHand::evaluate() {
 
@@ -1785,12 +1725,6 @@ double HiredHand::eval(PlayerTypes allyId, int originalUtility, int obligationTh
 	return uPlus;
 }
 
-char const* HiredHand::aspectName() const { return "Hired hand"; }
-int HiredHand::xmlId() const { return 10; }
-
-BorderDisputes::BorderDisputes(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
 void BorderDisputes::evaluate() {
 
 	PROFILE_FUNC();
@@ -1861,12 +1795,6 @@ void BorderDisputes::evaluate() {
 	u += ::round(uPlus);
 }
 
-char const* BorderDisputes::aspectName() const { return "Border disputes"; }
-int BorderDisputes::xmlId() const { return 11; }
-
-SuckingUp::SuckingUp(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
 void SuckingUp::evaluate() {
 
 	/*  Similar to Assistance and Fidelity, but this one is only about improving
@@ -1923,12 +1851,6 @@ void SuckingUp::evaluate() {
 		very small games or when there are few civs left. */
 	u += ::round(uPlus / std::sqrt((double)std::min(4, nAlive)));
 }
-
-char const* SuckingUp::aspectName() const { return "Sucking up"; }
-int SuckingUp::xmlId() const { return 12; }
-
-PreEmptiveWar::PreEmptiveWar(WarEvalParameters& params)
-	: WarUtilityBroaderAspect(params) {}
 
 void PreEmptiveWar::evaluate() {
 
@@ -2014,12 +1936,6 @@ void PreEmptiveWar::evaluate() {
 	log("Our distrust: %d percent", ::round(distrustFactor * 100));
 	u += ::round(uPlus * distrustFactor);
 }
-
-char const* PreEmptiveWar::aspectName() const { return "Pre-emptive War"; }
-int PreEmptiveWar::xmlId() const { return 13; }
-
-KingMaking::KingMaking(WarEvalParameters& params)
-	: WarUtilityBroaderAspect(params) {}
 
  double const KingMaking::scoreMargin = 0.25;
 
@@ -2324,12 +2240,6 @@ double KingMaking::theirRelativeLoss() {
 	return theirLosses / theirAssets;
 }
 
-char const* KingMaking::aspectName() const { return "Kingmaking"; }
-int KingMaking::xmlId() const { return 14; }
-
-Effort::Effort(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
-
 int Effort::preEvaluate() {
 
 	/*  Not nice to put all code into this supposedly preparatory function.
@@ -2509,11 +2419,6 @@ int Effort::preEvaluate() {
 
 void Effort::evaluate() {}
 
-char const* Effort::aspectName() const { return "Effort"; }
-int Effort::xmlId() const { return 15; }
-
-Risk::Risk(WarEvalParameters& params) : WarUtilityAspect(params) {}
-
 int Risk::preEvaluate() {
 
 	// Handle potential losses of our vassals here
@@ -2628,15 +2533,6 @@ void Risk::evaluate() {
 		log("Cost halved because of capitulation; %d added", costForCapitulation);
 	}
 	u -= ::round(uMinus);
-}
-
-char const* Risk::aspectName() const { return "Risk"; }
-int Risk::xmlId() const { return 16; }
-
-IllWill::IllWill(WarEvalParameters& params) : WarUtilityBroaderAspect(params) {
-
-	uMinus = -1;
-	altPartnerFactor = -1;
 }
 
 int IllWill::preEvaluate() {
@@ -2891,9 +2787,6 @@ void IllWill::evalAngeredPartners() {
 	}
 }
 
-char const* IllWill::aspectName() const { return "Ill Will"; }
-int IllWill::xmlId() const { return 17; }
-
 Affection::Affection(WarEvalParameters& params) : WarUtilityAspect(params) {
 
 	gameProgressFactor = 1 - 0.2 * GC.getGame().gameTurnProgress();
@@ -3008,11 +2901,6 @@ void Affection::evaluate() {
 	}
 }
 
-char const* Affection::aspectName() const { return "Affection"; }
-int Affection::xmlId() const { return 18; }
-
-Distraction::Distraction(WarEvalParameters& params) : WarUtilityAspect(params) {}
-
 void Distraction::evaluate() {
 
 	if(agent.isAVassal() || GET_TEAM(theyId).isAVassal() || !m->isWar(weId, theyId))
@@ -3125,9 +3013,6 @@ void Distraction::evaluate() {
 	u -= ::round(uMinus);
 }
 
-char const* Distraction::aspectName() const { return "Distraction"; }
-int Distraction::xmlId() const { return 19; }
-
 double WarUtilityAspect::normalizeUtility(double utilityTeamOnTeam, TeamTypes other) {
 
 	if(other == NO_TEAM)
@@ -3135,8 +3020,6 @@ double WarUtilityAspect::normalizeUtility(double utilityTeamOnTeam, TeamTypes ot
 	return utilityTeamOnTeam /
 			(GET_TEAM(other).getNumMembers() * agent.getNumMembers());
 }
-
-PublicOpposition::PublicOpposition(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
 void PublicOpposition::evaluate() {
 
@@ -3181,11 +3064,6 @@ void PublicOpposition::evaluate() {
 			(uMinus < 0.5 ? " (negligible)" : ""));
 	u -= ::round(uMinus);
 }
-
-char const* PublicOpposition::aspectName() const { return "Public opposition"; }
-int PublicOpposition::xmlId() const { return 20; }
-
-Revolts::Revolts(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
 void Revolts::evaluate() {
 
@@ -3239,12 +3117,6 @@ void Revolts::evaluate() {
 			revoltLoss / totalAssets;
 	u -= ::round(uMinus);
 }
-
-char const* Revolts::aspectName() const { return "Revolts"; }
-int Revolts::xmlId() const { return 21; }
-
-UlteriorMotives::UlteriorMotives(WarEvalParameters& params) :
-	WarUtilityBroaderAspect(params) {} // Need to evaluate for theyId==sponsorId
 
 void UlteriorMotives::evaluate() {
 
@@ -3306,11 +3178,6 @@ void UlteriorMotives::evaluate() {
 		u -= uMinus;
 	}
 }
-
-char const* UlteriorMotives::aspectName() const { return "Ulterior motives"; }
-int UlteriorMotives::xmlId() const { return 22; }
-
-FairPlay::FairPlay(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
 void FairPlay::evaluate() {
 
@@ -3470,11 +3337,6 @@ void FairPlay::evaluate() {
 			(civ.isHuman() ? 0 : h.getAIStartingDefenseUnits());
 }*/
 
-char const* FairPlay::aspectName() const { return "Fair play"; }
-int FairPlay::xmlId() const { return 23; }
-
-Bellicosity::Bellicosity(WarEvalParameters& params) : WarUtilityAspect(params) {}
-
 void Bellicosity::evaluate() {
 
 	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)) ||
@@ -3516,12 +3378,6 @@ void Bellicosity::evaluate() {
 			::round(deltaLostPow), ::round(presentAggrPow), bellicosity);
 	u += ::round(2 * bellicosity * gloryRate);
 }
-
-char const* Bellicosity::aspectName() const { return "Bellicosity"; }
-int Bellicosity::xmlId() const { return 24; }
-
-TacticalSituation::TacticalSituation(WarEvalParameters& params)
-		: WarUtilityAspect(params) {}
 
 void TacticalSituation::evaluate() {
 
@@ -3793,6 +3649,3 @@ void TacticalSituation::evalOperational() {
 				report.leaderName(theyId));
 	u -= uMinus;
 }
-
-char const* TacticalSituation::aspectName() const { return "Tactical situation"; }
-int TacticalSituation::xmlId() const { return 25; }

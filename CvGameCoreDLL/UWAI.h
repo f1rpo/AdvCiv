@@ -42,8 +42,7 @@ public:
 	int maxLandDist() const;
 	int maxSeaDist() const;
 	bool isUpdated() const;
-	void doXML(); // Can't do this in constructor b/c not yet loaded
-	double aspectWeight(int xmlId) const;
+
 	static int const preparationTimeLimited = 8;
 	static int const preparationTimeLimitedNaval = 10;
 	static int const preparationTimeTotal = 15;
@@ -55,8 +54,50 @@ public:
 	static int const reparationsHumanPercent = 75;
 	static int const dwtUtilityThresh = -35;
 
+	void doXML();
+	#define DO_FOR_EACH_WAR_UTILITY_ASPECT(DO)\
+		DO(GREED_FOR_ASSETS) \
+		DO(GREED_FOR_VASSALS) \
+		DO(GREED_FOR_SPACE) \
+		DO(GREED_FOR_CASH) \
+		DO(LOATHING) \
+		DO(MILITARY_VICTORY) \
+		DO(PRESERVATION_OF_PARTNERS) \
+		DO(RECONQUISTA) \
+		DO(REBUKE) \
+		DO(FIDELITY) \
+		DO(HIRED_HAND) \
+		DO(BORDER_DISPUTES) \
+		DO(SUCKING_UP) \
+		DO(PREEMPTIVE_WAR) \
+		DO(KING_MAKING) \
+		DO(EFFORT) \
+		DO(RISK) \
+		DO(ILL_WILL) \
+		DO(AFFECTION) \
+		DO(DISTRACTION) \
+		DO(PUBLIC_OPPOSITION) \
+		DO(REVOLTS) \
+		DO(ULTERIOR_MOTIVES) \
+		DO(FAIR_PLAY) \
+		DO(BELLICOSITY) \
+		DO(TACTICAL_SITUATION)
+	enum AspectTypes {
+		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_ENUMERATOR)
+		NUM_ASPECTS
+	};
+	double aspectWeight(AspectTypes eAspect) const {
+		FAssertBounds(0, NUM_ASPECTS, eAspect);
+		return xmlWeights[eAspect] / 100.0;
+	}
+	char const* aspectName(AspectTypes eAspect) const {
+		FAssertBounds(0, NUM_ASPECTS, eAspect);
+		return aszAspectNames[eAspect];
+	}
+
 private:
 	std::vector<int> xmlWeights;
+	std::vector<char const*> aszAspectNames;
 	bool enabled; // true iff K-Mod AI disabled through Game Options
 	bool inBackgr; // status of the XML flag
 

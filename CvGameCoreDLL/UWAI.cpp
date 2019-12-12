@@ -82,48 +82,26 @@ bool UWAI::isUpdated() const {
 	return (!g.isScenario() || g.getElapsedGameTurns() > 1);
 }
 
+#define MAKE_TAG_NAME(VAR) "UWAI_WEIGHT_"#VAR,
+#define MAKE_REPORT_NAME(VAR) #VAR,
+
 void UWAI::doXML() {
 
-	/*  Would be so much more elegant to store the weights in the WarUtilityAspect
-		objects, but these are only initialized during war evaluation, whereas
-		the caching should happen just once at game start. The way I'm implementing
-		it now, the numbers returned by WarUtilityAspect::xmlId need to correspond
-		to the call order in this function - which sucks. */
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_ASSETS"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_VASSALS"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_SPACE"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_CASH"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_LOATHING"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_MILITARY_VICTORY"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_PRESERVATION_OF_PARTNERS"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_RECONQUISTA"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_REBUKE"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_FIDELITY"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_HIRED_HAND"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_BORDER_DISPUTES"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_SUCKING_UP"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_PREEMPTIVE_WAR"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_KING_MAKING"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_EFFORT"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_RISK"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_ILL_WILL"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_AFFECTION"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_DISTRACTION"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_PUBLIC_OPPOSITION"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_REVOLTS"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_ULTERIOR_MOTIVES"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_FAIR_PLAY"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_BELLICOSITY"));
-	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_TACTICAL_SITUATION"));
+	char const* const aszAspectTagNames[] = {
+		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_TAG_NAME)
+	};
+	FAssert(sizeof(aszAspectTagNames) / sizeof(char*) == NUM_ASPECTS);
+	for (int i = 0; i < NUM_ASPECTS; i++)
+		xmlWeights.push_back(GC.getDefineINT(aszAspectTagNames[i]));
+
+	char const* const aszAspectReportNames[] = {
+		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_REPORT_NAME)
+	};
+	FAssert(sizeof(aszAspectReportNames) / sizeof(char*) == NUM_ASPECTS);
+	for (int i = 0; i < NUM_ASPECTS; i++)
+		aszAspectNames.push_back(aszAspectReportNames[i]);
 
 	applyPersonalityWeight();
-}
-
-double UWAI::aspectWeight(int xmlId) const {
-
-	if(xmlId < 0 ||  xmlWeights.size() <= (size_t)xmlId)
-		return 1;
-	return xmlWeights[xmlId] / 100.0;
 }
 
 void UWAI::applyPersonalityWeight() {
