@@ -295,6 +295,7 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& v) {
 	v.push_back(new Assistance(params));
 	v.push_back(new Reconquista(params));
 	v.push_back(new Rebuke(params));
+	v.push_back(new Fidelity(params));
 	v.push_back(new HiredHand(params));
 	v.push_back(new BorderDisputes(params));
 	v.push_back(new SuckingUp(params));
