@@ -9758,8 +9758,6 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 			if(kWarEnemy.isAlive() && kWarEnemy.getID() != getID() &&
 					!kWarEnemy.isMinorCiv() && GET_TEAM(kWarEnemy.getTeam()).isAtWar(getTeam()))
 				kWarEnemy.updateWarWearinessPercentAnger();
-			/*  The two will, by the way, remain at war for the rest of the game
-				(which doesn't matter b/c dead civs get excluded everywhere). */
 		} // </advc.001>
 		clearResearchQueue();
 		clearPopups(); // advc

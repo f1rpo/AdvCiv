@@ -86,8 +86,6 @@ void CvGame::init(HandicapTypes eHandicap)
 	int iI;
 	CvInitCore& ic = GC.getInitCore();
 
-	GC.getAgents().gameStart(false); // advc.agent
-
 	reset(eHandicap); // Reset serialized data
 
 	//--------------------------------
@@ -223,43 +221,6 @@ void CvGame::setInitialItems()
 {
 	PROFILE_FUNC();
 
-	// advc.003g: Want to set this as soon as CvGame knows the GameType
-	b_mFPTestDone = !isNetworkMultiPlayer();
-
-	int iAI = 0; // advc.250b: Just for disabling SPaH in game w/o any AI civs
-	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
-	// (Note: in the original bts rules, it would always set to Noble if the humans had different handicaps)
-	//if (isGameMultiPlayer()) // advc.250b: Check moved down
-	int iHumanPlayers = 0;
-	int iTotal = 0;
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
-	{
-		if (GET_PLAYER(i).isHuman())
-		{
-			iHumanPlayers++;
-			iTotal += GC.getInfo(GET_PLAYER(i).getHandicapType()).
-					getDifficulty(); // advc.250a
-		}
-		// <advc.250b>
-		else if(GET_PLAYER(i).isAlive() && i != BARBARIAN_PLAYER &&
-				!GET_PLAYER(i).isMinorCiv())
-			iAI++; // </advc.250b>
-	}
-	if (isGameMultiPlayer())
-	{
-		if (iHumanPlayers > 0)
-		{
-			/*  advc.250a: Relies on no strange new handicaps being placed
-				between Settler and Deity. Same in CvTeam::getHandicapType. */
-				setHandicapType((HandicapTypes)
-				::round // dlph.22
-				(iTotal / (10.0 * iHumanPlayers)));
-		}
-		else // advc: Moved K-Mod comment into AssertMsg.
-			FAssertMsg(false, "All-AI game. Not necessarily wrong, but unexpected.");
-	}
-	// K-Mod end
-
 	initFreeState();
 	assignStartingPlots();
 	normalizeStartingPlots();
@@ -268,24 +229,13 @@ void CvGame::setInitialItems()
 		GC.getMap().recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
-	setAIHandicap(); // advc.127
-	// <advc.250b>
-	if(!isOption(GAMEOPTION_ADVANCED_START) || iAI == 0)
-		setOption(GAMEOPTION_SPAH, false);
-	if(isOption(GAMEOPTION_SPAH))
-		// Reassigns start plots and start points
-		m_pSpah->setInitialItems(); // </advc.250b>
 	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
 	if(getStartEra() == 0 && GC.getDefineBOOL("INCREASE_START_TURN"))
 	{
 		std::vector<double> distr;
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		{
-			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
-			if(civ.isAlive())
-				distr.push_back(civ.getAdvancedStartPoints());
-		}
+		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+			distr.push_back(it->getAdvancedStartPoints());
 		iStartTurn = getStartTurn();
 		double maxMean = (::dMax(distr) + ::dMean(distr)) / 2.0;
 		if(maxMean > 370)
@@ -313,12 +263,8 @@ void CvGame::setInitialItems()
 			d->setInitialGameTurn(getGameTurn());
 	} // </advc.250c>
 	// </advc.251>
-	for (int i = 0; i < MAX_PLAYERS; ++i)
-	{
-		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
-		if (kPlayer.isAlive())
-			kPlayer.AI_updateFoundValues();
-	}
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		it->AI_updateFoundValues();
 }
 
 
@@ -835,8 +781,29 @@ void CvGame::initDiplomacy()
 }
 
 // <advc.127>
-void CvGame::setAIHandicap()
+void CvGame::initGameHandicap()
 {
+	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
+	// (Note: in the original bts rules, it would always set to Noble if the humans had different handicaps)
+	// advc: Moved from setInitialItems b/c that function isn't called in scenarios
+	if (isGameMultiPlayer())
+	{
+		int iSum = 0;
+		PlayerIter<HUMAN> it;
+		for (; it.hasNext(); ++it)
+			iSum += GC.getInfo(it->getHandicapType())./* advc.250a: */getDifficulty();
+		int const iDiv = it.nextIndex();
+		if (iDiv > 0)
+		{
+			/*  advc.250a: Relies on no strange new handicaps being placed
+				between Settler and Deity. Same in CvTeam::getHandicapType. */
+				setHandicapType((HandicapTypes)
+				::round // dlph.22
+				(iSum / (10.0 * iDiv)));
+		}
+		FAssertMsg(iDiv > 0, "All-AI game. Not necessarily wrong, but unexpected.");
+	} // K-Mod end
+
 	// Set m_eAIHandicap to the average of AI handicaps
 	int iHandicapSum = 0;
 	int iDiv = 0;
@@ -856,55 +823,61 @@ void CvGame::setAIHandicap()
 
 void CvGame::initFreeState()
 {
-	if(GC.getInitCore().isScenario())
+	// advc.003g: Want to set this as soon as CvGame knows the GameType
+	b_mFPTestDone = !isNetworkMultiPlayer();
+	GC.getAgents().gameStart(false); // advc.agent
+	initGameHandicap(); // advc.127
+	// <advc.250b>
+	if(!isOption(GAMEOPTION_ADVANCED_START) ||
+			PlayerIter<HUMAN>::count() == PlayerIter<CIV_ALIVE>::count())
+		setOption(GAMEOPTION_SPAH, false);
+	if(isOption(GAMEOPTION_SPAH))
+		// Reassigns start plots and start points
+		m_pSpah->setInitialItems(); // </advc.250b>
+	if (GC.getInitCore().isScenario())
 	{
 		setScenario(true); // advc.052
 		AI().AI_initScenario(); // advc.104u
 	}
 	else // advc.051: (Moved up.) Don't force 0 gold in scenarios
 	{
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-				GET_PLAYER((PlayerTypes)iI).initFreeState();
-		}
+		for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
+			it->initFreeState();
 	}
 	applyOptionEffects(); // advc.310
-	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
+	FOR_EACH_ENUM(Tech)
 	{
-		for (int iJ = 0; iJ < MAX_TEAMS; iJ++)
+		for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 		{
-			if(!GET_TEAM((TeamTypes)iJ).isAlive())
-				continue; // advc
+			CvTeam& kTeam = *itTeam;
 			bool bValid = false;
-			if (//(GC.getInfo(getHandicapType()).isFreeTechs(iI)) || // disabled by K-Mod. (moved & changed. See below)
-					(!GET_TEAM((TeamTypes)iJ).isHuman() && GC.getInfo(getHandicapType()).isAIFreeTechs(iI)
-					// advc.001: Barbarians receiving free AI tech might be a bug
-					&& iJ != BARBARIAN_TEAM
-					&& !isOption(GAMEOPTION_ADVANCED_START)) || // advc.250c
-					GC.getInfo((TechTypes)iI).getEra() < getStartEra())
+			// disabled by K-Mod. (moved & changed. See below)
+			if (//(GC.getInfo(getHandicapType()).isFreeTechs(eLoopTech)) ||
+				(!kTeam.isHuman() && GC.getInfo(getHandicapType()).isAIFreeTechs(eLoopTech) &&
+				// advc.001: Barbarians receiving free AI tech might be a bug
+				!kTeam.isBarbarian() /* advc.250c: */ && !isOption(GAMEOPTION_ADVANCED_START)) ||
+				GC.getInfo(eLoopTech).getEra() < getStartEra())
+			{
 				bValid = true;
+			}
 			if (!bValid)
 			{
-				for (int iK = 0; iK < MAX_PLAYERS; iK++)
+				for (MemberIter itMember(kTeam.getID()); itMember.hasNext(); ++itMember)
 				{
-					CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iK); // K-Mod
-					if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != iJ)
-						continue; // advc
+					CvPlayer& kMember = *itMember;
 					/*  <advc.250b> <advc.250c> Always grant civ-specific tech,
 						but not tech from handicap if Advanced Start except to
 						human civs that don't actually start Advanced (SPaH option). */
-					if (GC.getInfo(kLoopPlayer.getCivilizationType()).isCivilizationFreeTechs(iI))
+					if (GC.getInfo(kMember.getCivilizationType()).isCivilizationFreeTechs(eLoopTech))
 					{
 						bValid = true;
 						break;
 					}
 					if (!bValid &&
 						// K-Mod (give techs based on player handicap, not game handicap.)
-						GC.getInfo(kLoopPlayer.getHandicapType()).isFreeTechs(iI)
+						GC.getInfo(kMember.getHandicapType()).isFreeTechs(eLoopTech)
 						&& (!isOption(GAMEOPTION_ADVANCED_START) ||
-						(isOption(GAMEOPTION_SPAH) &&
-						GET_TEAM((TeamTypes)iJ).isHuman())))
+						(isOption(GAMEOPTION_SPAH) && kTeam.isHuman())))
 						// </advc.250b> </advc.250c>
 					{
 						bValid = true;
@@ -912,34 +885,24 @@ void CvGame::initFreeState()
 					}
 				}
 			}
+			if (!bValid)
+				continue; // advc
 			// <advc.126> Later-era free tech only for later-era starts.
-			if(bValid && GC.getInfo((TechTypes)iI).getEra() > getStartEra())
-				bValid = false; // </advc.126>
-			if(bValid) // advc.051: Don't take away techs granted by the scenario
-				GET_TEAM((TeamTypes)iJ).setHasTech((TechTypes)iI, true, NO_PLAYER, false, false);
-			if (bValid && GC.getInfo((TechTypes)iI).isMapVisible())
-				GC.getMap().setRevealedPlots((TeamTypes)iJ, true, true);
+			if(GC.getInfo(eLoopTech).getEra() > getStartEra())
+				continue; // </advc.126>
+			// (advc.051: Don't take away techs granted by the scenario)
+			kTeam.setHasTech(eLoopTech, true, NO_PLAYER, false, false);
+			if (GC.getInfo(eLoopTech).isMapVisible())
+				GC.getMap().setRevealedPlots(kTeam.getID(), true, true);
 		}
-	} // <advc.051>
+	}  // <advc.051>
 	if(isScenario() && getStartEra() <= 0) // Set start era based on player era
 	{
-		//int iMinEra = NO_ERA;
-		int iEraSum = 0; // Better use the mean
-		int iMajorCivs = 0;
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		{
-			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
-			if(civ.isAlive() && !civ.isMinorCiv())
-			{
-				int iEra = civ.getCurrentEra();
-				/*if(iMinEra == NO_ERA)
-					iMinEra = iEra;
-				else iMinEra = std::min(iMinEra, iEra);*/
-				iEraSum += iEra;
-				iMajorCivs++;
-			}
-		}
-		int iStartEra = iEraSum / std::max(iMajorCivs, 1);//=iMinEra
+		int iEraSum = 0;
+		PlayerIter<MAJOR_CIV> it;
+		for (; it.hasNext(); ++it)
+			iEraSum += it->getCurrentEra();
+		int iStartEra = iEraSum / std::max(it.nextIndex(), 1);
 		if(iStartEra > getStartEra())
 			GC.getInitCore().setEra((EraTypes)iStartEra);
 	}
@@ -949,7 +912,6 @@ void CvGame::initFreeState()
 
 void CvGame::initScenario()
 {
-	setAIHandicap(); // advc.127
 	initFreeState(); // Tech from handicap
 	// <advc.030>
 	if(GC.getDefineBOOL("PASSABLE_AREAS"))
@@ -3726,24 +3688,17 @@ EraTypes CvGame::getCurrentEra() const
 	//PROFILE_FUNC(); // advc.opt: OK - negligble
 
 	int iEra = 0;
-	int iCount = 0;
-
-	//for (iI = 0; iI < MAX_PLAYERS; iI++)
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // K-Mod (don't count the barbarians)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			iEra += GET_PLAYER((PlayerTypes)iI).getCurrentEra();
-			iCount++;
-		}
-	}
-
+	// K-Mod: don't count the barbarians
+	PlayerIter<CIV_ALIVE> it;
+	for (; it.hasNext(); ++it)
+		iEra += it->getCurrentEra();
+	int const iCount = it.nextIndex();
 	if (iCount > 0)
 	{
 		//return ((EraTypes)(iEra / iCount));
 		return (EraTypes)::round(iEra / (double)iCount); // dlph.17
 	}
-
+	FAssert(iCount > 0); // advc
 	return NO_ERA;
 }
 
@@ -3755,6 +3710,7 @@ EraTypes CvGame::getHighestEra() const
 		r = (EraTypes)std::max<int>(r, it->getCurrentEra());
 	return r;
 } // </advc>
+
 
 TeamTypes CvGame::getActiveTeam() const
 {

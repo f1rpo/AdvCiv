@@ -103,6 +103,10 @@ void CvAgents::updateAllCachedSequences()
 		if (pPlayer->isAVassal())
 			memberSeqCache(VASSAL_ALIVE, pPlayer->getMasterTeam()).push_back(pPlayer);
 	}
+	FAssert(!playerSeqCache(CIV_EVER_ALIVE).empty());
+	FAssert(!playerSeqCache(CIV_ALIVE).empty());
+	FAssert(!teamSeqCache(CIV_EVER_ALIVE).empty());
+	FAssert(!teamSeqCache(CIV_ALIVE).empty());
 }
 
 namespace // These functions aren't frequently called; don't need to be fast.

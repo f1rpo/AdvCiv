@@ -4,7 +4,9 @@
 #define AGENT_ITERATOR_H
 
 /*  advc.agent: New file. Iterators over sequences of CvTeam or CvPlayer objects.
-	The concrete iterator classes are defined at the end of the file. */
+	The concrete iterator classes are defined at the end of the file.
+	Caveat: Can't use agent iteratos before CvAgents::gameStart has been called -
+	which currently happens in CvGame::initFreeState and allGameDataRead. */
 
 #include "AgentPredicates.h"
 #include "CvAgents.h"

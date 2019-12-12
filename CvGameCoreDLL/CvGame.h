@@ -826,7 +826,7 @@ protected:
 	void initScenario();
 	void initFreeUnits_bulk();
 	// </advc.051>
-	void setAIHandicap(); // advc.127
+	void initGameHandicap(); // advc.127
 	// <advc.003i> These were public (and DLLExport)
 	void initFreeState();
 	void assignStartingPlots();
