@@ -1679,9 +1679,11 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 			{
 				// Do not raze, going for domination
 				if (gPlayerLogLevel >= 1) logBBAI("    Player %d (%S) decides not to raze %S because they're going for domination", getID(), getCivilizationDescription(0), kCity.getName().GetCString());
-			}
+			}  // <advc>
+			CvEventReporter::getInstance().cityAcquiredAndKept(getID(), &kCity);
+			return;
 		}
-		//else // advc.116
+		//else // </advc>
 		int iRazeValue = 0;
 		if(isBarbarian())
 		{
@@ -3701,8 +3703,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						iBonusValue = iBonusValue * 110 / 100;
 					// K-Mod end
 				}
-				//iValue += (iBonusValue + 10);
-				iResourceValue += iBonusValue; // K-Mod
 				// advc.040: Area checks moved here
 				bool bEasyAccess =
 						// K-Mod added water case (!!)
@@ -3715,12 +3715,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					(But count regular yields fully as in BtS/K-Mod.) */
 				if(!bEasyAccess && bCoastal)
 				{
-					iResourceValue /= (pLoopPlot->area()->
+					iBonusValue /= (pLoopPlot->area()->
 					/*  Might be better to place a city in the pLoopPlot area.
 						But if that area is tiny, then accessing the resource
 						from a different landmass is probably our best bet. */
 							getNumTiles() <= 2 ? 2 : 3);
 				} // </advc.040>
+				//iValue += (iBonusValue + 10);
+				iResourceValue += iBonusValue; // K-Mod
 			}
 // END OF RESOURCE VALUE
 // SPECIAL YIELDS
