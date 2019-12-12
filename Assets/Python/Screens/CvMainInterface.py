@@ -80,6 +80,14 @@ import ProgressBarUtil
 # PLE Code
 import PLE
 
+# <advc.090>
+import math
+def floor(f):
+	return int(math.floor(f))
+def ceil(f):
+	return int(math.ceil(f))
+# </advc.090>
+
 g_NumEmphasizeInfos = 0
 g_NumCityTabTypes = 0
 g_NumHurryInfos = 0
@@ -284,6 +292,7 @@ class CvMainInterface:
 		self.sFieldOfView_Text = ""
 		self.szSliderId = "FieldOfViewSlider"
 		self.iField_View_Prev = -1
+		self.iFoVPos_Prev = -1 # advc.090
 # BUG - field of view slider - end
 
 
@@ -360,7 +369,18 @@ class CvMainInterface:
 		
 # BUG - field of view slider - start
 		iBtnY = 27
-		self.iX_FoVSlider = self.xResolution - 120
+		# <advc.090>
+		self.iFoVLabelLower = 10
+		self.iFoVLabelUpper = 100
+		# As in BUG; now in a variable. Horizontal gap between label and slider.
+		self.iFoVLabelOffset = 5
+		self.iH_FoVSlider = 15 # As in BUG; moved up.
+		# was 100:
+		self.iW_FoVSlider = min(max(100, self.xResolution / 12), 200)
+		self.iW_FoVSlider -= (self.iW_FoVSlider % 2)
+		#self.iX_FoVSlider = self.xResolution - 120
+		self.iX_FoVSlider = self.xResolution - self.iW_FoVSlider - 20
+		# </advc.090>
 		self.iY_FoVSlider = iBtnY + 30
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
 		#self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
@@ -375,9 +395,12 @@ class CvMainInterface:
 
 		# <advc.004m> Replacing the above. Will have to ignore the XML setting (like K-Mod does) to avoid recursion - BUG stores the value computed for self.DEFAULT_FIELD_OF_VIEW in CvGlobals, overwriting the FIELD_OF_VIEW set through XML until the game is restarted.
 		self.DEFAULT_FIELD_OF_VIEW = 35.0 # 42.0 originally (FIELD_OF_VIEW in GlobalDefines)
-		aspectFactor = pow((0.8 * self.xResolution) / self.yResolution, 0.72)
+		#aspectFactor = pow((0.8 * self.xResolution) / self.yResolution, 0.72)
 		if (not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView()) or int(MainOpt.getFieldOfView()) < 0:
-			self.DEFAULT_FIELD_OF_VIEW = int(max(self.DEFAULT_FIELD_OF_VIEW, min(2 * self.DEFAULT_FIELD_OF_VIEW, (aspectFactor * self.xResolution) / max(70 - self.DEFAULT_FIELD_OF_VIEW, 10))))
+		#	self.DEFAULT_FIELD_OF_VIEW = int(max(self.DEFAULT_FIELD_OF_VIEW, min(2 * self.DEFAULT_FIELD_OF_VIEW, (aspectFactor * self.xResolution) / max(70 - self.DEFAULT_FIELD_OF_VIEW, 10))))
+		# The above might be fine if resource bubbles scaled properly - but they don't.
+			if self.yResolution > 1024:
+				self.DEFAULT_FIELD_OF_VIEW = int((self.DEFAULT_FIELD_OF_VIEW * self.yResolution) / 1024)
 			self.iField_View = self.DEFAULT_FIELD_OF_VIEW
 		else:
 			self.iField_View = int(MainOpt.getFieldOfView())
@@ -593,9 +616,9 @@ class CvMainInterface:
 
 # BUG - field of view slider - start
 		self.setFieldofView_Text(screen)
-		iW = 100
-		iH = 15
-		screen.addSlider(self.szSliderId, self.iX_FoVSlider + 5, self.iY_FoVSlider, iW, iH, self.iField_View - 1, 0, 100 - 1, WidgetTypes.WIDGET_GENERAL, -1, -1, False);
+		#screen.addSlider(self.szSliderId, self.iX_FoVSlider + 5, self.iY_FoVSlider, iW, iH, self.iField_View - 1, 0, 100 - 1, WidgetTypes.WIDGET_GENERAL, -1, -1, False);
+		# advc.090:
+		screen.addSlider(self.szSliderId, self.iX_FoVSlider + self.iFoVLabelOffset, self.iY_FoVSlider, self.iW_FoVSlider, self.iH_FoVSlider, self.FoVToSliderPos(self.iField_View), 0, self.iW_FoVSlider, WidgetTypes.WIDGET_GENERAL, -1, -1, False);
 		screen.hide(self.szSliderTextId)
 		screen.hide(self.szSliderId)
 # BUG - field of view slider - end
@@ -1230,7 +1253,8 @@ class CvMainInterface:
 
 # BUG - Field of View - start
 		#self.setFieldofView(screen, CyInterface().isCityScreenUp())
-		self.setFieldofView(screen, False) # K-Mod. (using the default for the city screen is an ok idea, but it doesn't work properly because the screen is drawn before the value is changed.)
+		# K-Mod. Using the default for the city screen is an ok idea, but it doesn't work properly because the screen is drawn before the value is changed.
+		self.setFieldofView(screen, False)
 # BUG - Field of View - end
 
 		# Check Dirty Bits, see what we need to redraw...
@@ -5744,6 +5768,49 @@ class CvMainInterface:
 		screen.setState( "GlobeToggle", False )
 		screen.hide( "GlobeToggle" )
 
+	def update(self, fDelta):
+		return
+
+	def forward(self):
+		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
+			if (CyInterface().isCitySelection()):
+				CyGame().doControl(ControlTypes.CONTROL_NEXTCITY)
+			else:
+				CyGame().doControl(ControlTypes.CONTROL_NEXTUNIT)
+
+	def back(self):
+		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
+			if (CyInterface().isCitySelection()):
+				CyGame().doControl(ControlTypes.CONTROL_PREVCITY)
+			else:
+				CyGame().doControl(ControlTypes.CONTROL_PREVUNIT)
+
+# BUG - Raw Yields - start
+	def handleRawYieldsButtons(self, inputClass):
+		iButton = inputClass.getID()
+		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_ON):
+			self.PLE.displayHelpHover(RAW_YIELD_HELP[iButton])
+		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_OFF):
+			self.PLE.hideInfoPane()
+		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED):
+			global g_bYieldView
+			global g_iYieldType
+			global g_iYieldTiles
+			if iButton == 0:
+				g_bYieldView = False
+			elif iButton in (1, 2, 3):
+				g_bYieldView = True
+				g_iYieldType = RawYields.YIELDS[iButton - 1]
+			elif iButton in (4, 5, 6):
+				g_bYieldView = True
+				g_iYieldTiles = RawYields.TILES[iButton - 4]
+			else:
+				return 0
+			CyInterface().setDirty(InterfaceDirtyBits.CityScreen_DIRTY_BIT, True)
+			return 1
+		return 0
+# BUG - Raw Yields - end
+
 	# Will handle the input for this screen...
 	def handleInput (self, inputClass):
 #		BugUtil.debugInput(inputClass)
@@ -5784,61 +5851,60 @@ class CvMainInterface:
 # BUG - Great Person Bar - end
 
 # BUG - field of view slider - start
-		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_SLIDER_NEWSTOP):
-			if (inputClass.getFunctionName() == self.szSliderId):
+		if inputClass.getNotifyCode() == NotifyCode.NOTIFY_SLIDER_NEWSTOP:
+			if inputClass.getFunctionName() == self.szSliderId:
 				screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
-				self.iField_View = inputClass.getData() + 1
+				#self.iField_View = inputClass.getData() + 1
+				# <advc.090>
+				# SLIDER_NEWSTOP triggers both on moving the slider and on hovering over the slider. I don't think the two cases can be told apart.
+				#BugUtil.debugInput(inputClass, True)
+				iPos = inputClass.getData()
+				iPrevPos = self.iFoVPos_Prev
+				self.iFoVPos_Prev = iPos
+				#print "slider new stop: pos=" + str(iPos) + ", prevPos=" + str(iPrevPos)
+				# For some reason, the position jumps a bit upon releasing the slider. I've tried to compensate, and it works somewhat, but can also make the slider move back and forth when hovering. Not usable.
+				#if iPrevPos > 0:
+				#	if iPrevPos < iPos:
+				#		iPos += 1
+				#	elif iPrevPos > iPos:
+				#		iPos -= 1
+				self.iField_View = self.sliderPosToFoV(iPos)
+				#print "iField_View=" + str(self.iField_View)
+				# </advc.090>
 				self.setFieldofView(screen, False)
 				self.setFieldofView_Text(screen)
 				MainOpt.setFieldOfView(self.iField_View)
-# BUG - field of view slider - end
-
 		return 0
-	
-# BUG - Raw Yields - start
-	def handleRawYieldsButtons(self, inputClass):
-		iButton = inputClass.getID()
-		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_ON):
-			self.PLE.displayHelpHover(RAW_YIELD_HELP[iButton])
-		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_OFF):
-			self.PLE.hideInfoPane()
-		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED):
-			global g_bYieldView
-			global g_iYieldType
-			global g_iYieldTiles
-			if iButton == 0:
-				g_bYieldView = False
-			elif iButton in (1, 2, 3):
-				g_bYieldView = True
-				g_iYieldType = RawYields.YIELDS[iButton - 1]
-			elif iButton in (4, 5, 6):
-				g_bYieldView = True
-				g_iYieldTiles = RawYields.TILES[iButton - 4]
-			else:
-				return 0
-			CyInterface().setDirty(InterfaceDirtyBits.CityScreen_DIRTY_BIT, True)
-			return 1
-		return 0
-# BUG - Raw Yields - end
-	
-	def update(self, fDelta):
-		return
-	
-	def forward(self):
-		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
-			if (CyInterface().isCitySelection()):
-				CyGame().doControl(ControlTypes.CONTROL_NEXTCITY)
-			else:
-				CyGame().doControl(ControlTypes.CONTROL_NEXTUNIT)
-		
-	def back(self):
-		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
-			if (CyInterface().isCitySelection()):
-				CyGame().doControl(ControlTypes.CONTROL_PREVCITY)
-			else:
-				CyGame().doControl(ControlTypes.CONTROL_PREVUNIT)
 
-# BUG - field of view slider - start
+	# <advc.090>
+	def sliderPosToFoVPercent(self, iPos): # iPos is between 0 and iW - 1
+		fInterval = float(self.iFoVLabelUpper - self.iFoVLabelLower)
+		return floor((iPos * fInterval) / self.iW_FoVSlider + self.iFoVLabelLower)
+	# Inverse of the above
+	def FoVPercentToSliderPos(self, iPercent):
+		r = (iPercent - self.iFoVLabelLower) * self.iW_FoVSlider
+		fInterval = float(self.iFoVLabelUpper - self.iFoVLabelLower)
+		return ceil(r / fInterval)
+
+	def PercentToFoV(self, iPercent):
+		r = iPercent
+		if r <= 75:
+			return r
+		return 2 * r - 75
+
+	def FoVToPercent(self, iFoV):
+		r = iFoV
+		if r <= 75:
+			return r
+		return floor((75 + r) / 2)
+
+	def sliderPosToFoV(self, iPos):
+		return self.PercentToFoV(self.sliderPosToFoVPercent(iPos))
+
+	def FoVToSliderPos(self, iFoV):
+		return self.FoVPercentToSliderPos(self.FoVToPercent(iFoV))
+	# </advc.090>
+
 	def setFieldofView(self, screen, bDefault):
 		try: # advc.009b
 			# K-Mod
@@ -5857,6 +5923,7 @@ class CvMainInterface:
 			self.iField_View_Prev = iFoV
 
 	def setFieldofView_Text(self, screen):
-		zsFieldOfView_Text = "%s [%i]" % (self.sFieldOfView_Text, self.iField_View)
+		# advc.090: 2nd argument was self.iField_View
+		zsFieldOfView_Text = "%s [%i]" % (self.sFieldOfView_Text, self.FoVToPercent(self.iField_View))
 		screen.setLabel(self.szSliderTextId, "", zsFieldOfView_Text, CvUtil.FONT_RIGHT_JUSTIFY, self.iX_FoVSlider, self.iY_FoVSlider + 6, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 # BUG - field of view slider - end
