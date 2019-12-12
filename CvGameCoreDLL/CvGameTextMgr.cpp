@@ -1550,7 +1550,7 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 		iLineLimit--;
 	if(kPlot.getRouteType() != NO_ROUTE)
 		iLineLimit--;
-	if(kPlot.getFeatureType() != NO_FEATURE)
+	if(kPlot.isFeature())
 		iLineLimit--;
 	if(kPlot.defenseModifier(eActiveTeam, true) > 0)
 		iLineLimit--;
@@ -4550,7 +4550,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				szString.append(gDLL->getText("TXT_KEY_PLOT_HILLS"));
 			}
 
-			if (pPlot->getFeatureType() != NO_FEATURE)
+			if (pPlot->isFeature())
 			{
 				szTempBuffer.Format(L"%s/", GC.getInfo(pPlot->getFeatureType()).getDescription());
 				szString.append(szTempBuffer);
@@ -4983,7 +4983,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(CvWString::format( ENDCOLR));
 	}
 
-	if (pPlot->getFeatureType() != NO_FEATURE)
+	if (pPlot->isFeature())
 	{
 		int iDamage = GC.getInfo(pPlot->getFeatureType()).getTurnDamage();
 
@@ -5018,8 +5018,9 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 	{
 		if (pHeadSelectedUnit->canFound()) // advc.004h
 			bFound = true; // </advc.004b>
-		if (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER && pHeadSelectedUnit->at(kPlot) &&
-			kPlot.getFeatureType() != NO_FEATURE)
+		if (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER &&
+			pHeadSelectedUnit->at(kPlot) &&
+			kPlot.isFeature())
 		{
 			FOR_EACH_ENUM(Build)
 			{
@@ -5109,7 +5110,7 @@ void CvGameTextMgr::setHealthHappyBuildActionHelp(CvWStringBuffer& szBuffer, CvP
 {
 	CvBuildInfo const& kBuild = GC.getInfo(eBuild);
 	ImprovementTypes const eNewImprov = (ImprovementTypes)kBuild.getImprovement();
-	bool const bRemoveFeature = (kPlot.getFeatureType() != NO_FEATURE &&
+	bool const bRemoveFeature = (kPlot.isFeature() &&
 			kBuild.isFeatureRemove(kPlot.getFeatureType()));
 	TeamTypes eActiveTeam = GC.getGame().getActiveTeam();
 	if (kPlot.isCityRadius() && (eNewImprov != NO_IMPROVEMENT || bRemoveFeature))
@@ -5498,7 +5499,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		// advc.007: Commented out
 		/*else if(kPlot.headUnitNode() == NULL) {
 			std::vector<UnitAITypes> vecUnitAIs;
-			if (kPlot.getFeatureType() != NO_FEATURE) {
+			if (kPlot.isFeature()) {
 				szString.append(CvWString::format(L"\nDefense unit AIs:"));
 				vecUnitAIs.push_back(UNITAI_CITY_DEFENSE);
 				vecUnitAIs.push_back(UNITAI_COUNTER);
@@ -12669,7 +12670,7 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
 			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
-			if (pLoopPlot == NULL || pLoopPlot->getFeatureType() == NO_FEATURE)
+			if (pLoopPlot == NULL || !pLoopPlot->isFeature())
 				continue; // advc
 			// <advc.901>
 			int iHealthPercent = GC.getInfo(pLoopPlot->getFeatureType()).getHealthPercent();
@@ -12784,7 +12785,7 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
 			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
-			if (pLoopPlot == NULL || pLoopPlot->getFeatureType() == NO_FEATURE)
+			if (pLoopPlot == NULL || !pLoopPlot->isFeature())
 				continue; // advc
 			// <advc.901>
 			int iHealthPercent = GC.getInfo(pLoopPlot->getFeatureType()).getHealthPercent();
@@ -21118,7 +21119,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 		}
 	}
 
-	if (pPlot->getFeatureType() != NO_FEATURE)
+	if (pPlot->isFeature())
 	{
 		iModifier = pDefender->featureDefenseModifier(pPlot->getFeatureType());
 		if (iModifier != 0)
@@ -21194,7 +21195,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 					iSign * iModifier));
 		}
 	}
-	if (pPlot->getFeatureType() != NO_FEATURE)
+	if (pPlot->isFeature())
 	{
 		iModifier = pAttacker->featureAttackModifier(pPlot->getFeatureType());
 		if (iModifier != 0)

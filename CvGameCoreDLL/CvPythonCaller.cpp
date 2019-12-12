@@ -1191,7 +1191,7 @@ int CvPythonCaller::numCustomMapOptions(char const* szMapScriptName, bool bHidde
 {
 	long lResult = 0;
 	call(bHidden ? "getNumHiddenCustomMapOptions" : "getNumCustomMapOptions",
-			lResult, szMapScriptName, !bHidden);
+			lResult, szMapScriptName, /*!bHidden*/ false); // Earth2 has no getNumCustomMapOptions
 	return toInt(lResult);
 }
 

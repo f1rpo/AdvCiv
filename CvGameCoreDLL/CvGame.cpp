@@ -1549,7 +1549,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 			CvPlot* p = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
 			// Disregard inner ring
 			if(p == NULL || ::plotDistance(p, pStartingPlot) < 2 ||
-					p->getFeatureType() == NO_FEATURE)
+					!p->isFeature())
 				continue;
 			if(GC.getInfo(p->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
 					GC.getInfo(p->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
@@ -1566,7 +1566,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 		for(int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), iJ);
-			if(pLoopPlot != NULL && pLoopPlot->getFeatureType() != NO_FEATURE)
+			if(pLoopPlot != NULL && pLoopPlot->isFeature())
 			{
 				if(GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
 						GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
@@ -1594,10 +1594,9 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 				int iDistance = plotDistance(pStartingPlot->getX(),
 						pStartingPlot->getY(),
 						pLoopPlot->getX(), pLoopPlot->getY());
-				if(iDistance <= iMaxRange &&
-						pLoopPlot->getFeatureType() != NO_FEATURE &&
-						GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
-						GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
+				if(iDistance <= iMaxRange && pLoopPlot->isFeature() &&
+					GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
+					GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
 				{
 					if (pLoopPlot->isWater())
 					{
@@ -1668,7 +1667,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: style changes
 						continue;
 					/*  I think the BtS code ends up replacing Desert with Desert when
 						there's a feature, but let's rather handle Desert features explicitly. */
-					if(pLoopPlot->getFeatureType() != NO_FEATURE &&
+					if(pLoopPlot->isFeature() &&
 							GC.getInfo(pLoopPlot->getFeatureType()).
 							getYieldChange(YIELD_FOOD) + iPlotFood >= 2)
 						continue;
@@ -1698,7 +1697,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: style changes
 								kRepl.getYield(YIELD_FOOD) +
 								kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal)
 						{
-							if (pLoopPlot->getFeatureType() == NO_FEATURE ||
+							if (!pLoopPlot->isFeature() ||
 									GC.getInfo(pLoopPlot->getFeatureType()).
 									isTerrain(iK))
 								pLoopPlot->setTerrainType((TerrainTypes)iK);
@@ -1991,7 +1990,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 						pLoopPlot->getBonusType() != NO_BONUS)
 					continue;
 
-				if (pLoopPlot->getFeatureType() == NO_FEATURE)
+				if (!pLoopPlot->isFeature())
 				{
 					for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
 					{
@@ -2008,7 +2007,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 							}
 						}
 					}
-					iFeatureCount += (pLoopPlot->getFeatureType() != NO_FEATURE) ? 1 : 0;
+					iFeatureCount += (pLoopPlot->isFeature() ? 1 : 0);
 				}
 			}
 		}
@@ -2082,7 +2081,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 						if (!bLandBias || pLoopPlot->isWater() || pLoopPlot->getBonusType() != NO_BONUS)
 							continue;
 
-						if ((iFeatureCount > 4 && pLoopPlot->getFeatureType() != NO_FEATURE)
+						if (iFeatureCount > 4 && pLoopPlot->isFeature()
 								&& iCoastFoodCount + iOceanFoodCount > 2 &&
 								getSorenRandNum(2, "Clear feature to add bonus") == 0)
 						{
@@ -2108,7 +2107,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(), aiShuffle[iJ]);
 
 			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
-					pLoopPlot->getBonusType() != NO_BONUS || pLoopPlot->getFeatureType() != NO_FEATURE)
+					pLoopPlot->getBonusType() != NO_BONUS || pLoopPlot->isFeature())
 				continue;
 
 			for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
@@ -2145,8 +2144,8 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->isHills())
 				continue;
 
-			if (pLoopPlot->getFeatureType() == NO_FEATURE ||
-					!GC.getInfo(pLoopPlot->getFeatureType()).isRequiresFlatlands())
+			if (!pLoopPlot->isFeature() ||
+				!GC.getInfo(pLoopPlot->getFeatureType()).isRequiresFlatlands())
 			{
 				if ((pLoopPlot->getBonusType() == NO_BONUS) ||
 						GC.getInfo(pLoopPlot->getBonusType()).isHills())
@@ -2228,7 +2227,7 @@ void CvGame::updateStartingPlotRange()
 bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature)
 {
-	if (bRemoveFeature && kPlot.getFeatureType() != NO_FEATURE)
+	if (bRemoveFeature && kPlot.isFeature())
 	{
 		if (gMapLogLevel > 0) logBBAI("    Removing %S to place bonus for player %d", GC.getInfo(kPlot.getFeatureType()).getDescription(), eStartPlayer); // K-Mod
 		kPlot.setFeatureType(NO_FEATURE);
@@ -4528,7 +4527,7 @@ int CvGame::calculateGwLandDefence(PlayerTypes ePlayer) const
 	for (int i = 0; i < kMap.numPlots(); ++i)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(i);
-		if (kPlot.getFeatureType() != NO_FEATURE)
+		if (kPlot.isFeature())
 		{
 			if (ePlayer == NO_PLAYER || ePlayer == kPlot.getOwner())
 				iTotal += GC.getInfo(kPlot.getFeatureType()).getWarmingDefense();
@@ -5176,14 +5175,11 @@ bool CvGame::isPlayerOptionsSent() const
 void CvGame::sendPlayerOptions(bool bForce)
 {
 	if (getActivePlayer() == NO_PLAYER)
-	{
 		return;
-	}
 
 	if (!isPlayerOptionsSent() || bForce)
 	{
 		m_bPlayerOptionsSent = true;
-
 		for (int iI = 0; iI < NUM_PLAYEROPTION_TYPES; iI++)
 		{
 			gDLL->sendPlayerOption(((PlayerOptionTypes)iI), gDLL->getPlayerOption((PlayerOptionTypes)iI));
@@ -6622,7 +6618,7 @@ void CvGame::doGlobalWarming()
 					bChanged = true;
 				}*/
 				// 3) Remove other features
-				else if (pPlot->getFeatureType() != NO_FEATURE && pPlot->getFeatureType() != eFalloutFeature)
+				else if (pPlot->isFeature() && pPlot->getFeatureType() != eFalloutFeature)
 				{
 					pPlot->setFeatureType(NO_FEATURE);
 					bChanged = true;
@@ -7378,9 +7374,9 @@ void CvGame::createAnimals()  // advc: style changes
 				CvUnitInfo const& kUnit = GC.getInfo(eLoopUnit);
 				if (!kUnit.getUnitAIType(UNITAI_ANIMAL))
 					continue;
-				if (pPlot->getFeatureType() != NO_FEATURE ?
-						kUnit.getFeatureNative(pPlot->getFeatureType()) :
-						kUnit.getTerrainNative(pPlot->getTerrainType()))
+				if (pPlot->isFeature() ?
+					kUnit.getFeatureNative(pPlot->getFeatureType()) :
+					kUnit.getTerrainNative(pPlot->getTerrainType()))
 				{
 					int iValue = 1 + getSorenRandNum(1000, "Animal Unit Selection");
 					if (iValue > iBestValue)
@@ -8704,7 +8700,8 @@ void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 			break;
 		} // </advc.004j>
 		// advc.106n:
-		case UPDATE_STORE_REPLAY_TEXTURE: GC.getMap().updateReplayTexture(); break;		default: FAssertMsg(false, "Unknown update timer type");
+		case UPDATE_STORE_REPLAY_TEXTURE: GC.getMap().updateReplayTexture(); break;
+		default: FAssertMsg(false, "Unknown update timer type");
 		}
 	}
 	m_aiUpdateTimers[eTimerType]--;

@@ -2762,7 +2762,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		// advc.059: Moved into new function (and rewritten)
 		GAMETEXT.setHealthHappyBuildActionHelp(szBuffer, kMissionPlot, eBuild);
 		// advc.059: Feature production (moved up)
-		if (kMissionPlot.getFeatureType() != NO_FEATURE &&
+		if (kMissionPlot.isFeature() &&
 			GC.getInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType()))
 		{
 			CvCity* pProductionCity=NULL;
@@ -2885,7 +2885,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 					}
 				}
 			}
-			if (kMissionPlot.getFeatureType() != NO_FEATURE)
+			if (kMissionPlot.isFeature())
 			{
 				TechTypes eFeatureTech = (TechTypes)GC.getInfo(eBuild).
 						getFeatureTech(kMissionPlot.getFeatureType());
@@ -2912,7 +2912,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONSUME_UNIT"));
 		}
-		if (kMissionPlot.getFeatureType() != NO_FEATURE)
+		if (kMissionPlot.isFeature())
 		{
 			if (GC.getInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType()))
 			{
@@ -6125,7 +6125,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 			continue;
 		CvPlot* pPlot = plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
 		if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
-		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(eOwner)))
+		if(!p.isFeature() || !p.isRevealed(TEAMID(eOwner)))
 			continue;
 		int iHealthPercent = GC.getInfo(p.getFeatureType()).getHealthPercent();
 		if(iHealthPercent > 0)

@@ -1913,7 +1913,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 			{
 				CvPlayer& kCulturalOwner = GET_PLAYER(eCulturalOwner);
 				if(!kCulturalOwner.isBarbarian() && !atWar(getTeam(),
-						kCulturalOwner.getTeam()))
+					!::atWar(getTeam(), kCulturalOwner.getTeam()))
 				{
 					if(eCulturalOwner == getID())
 						iRazeValue -= 15;
@@ -21843,9 +21843,9 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	{
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
-			if(civ.isAlive())
-				civ.AI_updateAttitude();
+			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
+			if(kPlayer.isAlive())
+				kPlayer.AI_updateAttitude();
 		}
 	} // </advc.148>
 }
@@ -22230,7 +22230,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 		{
 			int iOldFeatureValue = 0;
 			int iNewFeatureValue = 0;
-			if (pPlot->getFeatureType() != NO_FEATURE)
+			if (pPlot->isFeature())
 			{
 				//*grumble* who tied feature production to builds rather than the feature...
 				iOldFeatureValue = GC.getInfo(pPlot->getFeatureType()).getHealthPercent();
@@ -26378,7 +26378,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 							//Mildly maphackery but any smart human can see the terrain type of a tile.
 							pLoopPlot2->getTerrainType();
 							int iFoodYield = GC.getInfo(pLoopPlot2->getTerrainType()).getYield(YIELD_FOOD);
-							if (pLoopPlot2->getFeatureType() != NO_FEATURE)
+							if (pLoopPlot2->isFeature())
 							{
 								iFoodYield += GC.getInfo(pLoopPlot2->getFeatureType()).getYieldChange(YIELD_FOOD);
 							}

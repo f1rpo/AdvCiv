@@ -285,7 +285,7 @@ public:
 			// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
 			bool bNoImpassable = false) const;
 	CvArea* secondWaterArea() const;
-	int getArea() const;																																		// Exposed to Python
+	inline int getArea() const { return m_iArea; } // advc.inl																				// Exposed to Python
 	void setArea(int iNewValue, /* advc.310: */ bool bProcess = true);
 
 	DllExport int getFeatureVariety() const;																													// Exposed to Python

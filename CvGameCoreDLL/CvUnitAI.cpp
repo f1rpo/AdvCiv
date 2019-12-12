@@ -131,7 +131,8 @@ bool CvUnitAI::AI_update()
 				AI_exploreSeaMove();
 				break;
 
-			case DOMAIN_AIR: {
+			case DOMAIN_AIR:
+			{
 				// if we are cargo (on a carrier), hold if the carrier is not done moving yet
 				CvUnit* pTransportUnit = getTransportUnit();
 				if (pTransportUnit != NULL)
@@ -12714,7 +12715,7 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 		{
 			CvPlot const& kPlot = *pAdjacentPlot;
 			// Same check as in CvGame::createAnimals
-			if((kPlot.getFeatureType() != NO_FEATURE) ?
+			if((kPlot.isFeature()) ?
 					getUnitInfo().getFeatureNative(kPlot.getFeatureType()) :
 					getUnitInfo().getTerrainNative(kPlot.getTerrainType()))
 				iValue += g.getSorenRandNum(10000, "advc.309");
@@ -17047,7 +17048,9 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 		else if (plot()->getRouteType() == NO_ROUTE)
 		{
 			int iPlotMoveCost = 0;
-			iPlotMoveCost = ((plot()->getFeatureType() == NO_FEATURE) ? GC.getInfo(plot()->getTerrainType()).getMovementCost() : GC.getInfo(plot()->getFeatureType()).getMovementCost());
+			iPlotMoveCost = (!plot()->isFeature() ?
+					GC.getInfo(plot()->getTerrainType()).getMovementCost() :
+					GC.getInfo(plot()->getFeatureType()).getMovementCost());
 
 			if (plot()->isHills())
 				iPlotMoveCost += GC.getDefineINT(CvGlobals::HILLS_EXTRA_MOVEMENT);
@@ -17090,7 +17093,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 				!kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS) &&
 				kOwner.getGwPercentAnger() <= 0 &&
 				pLoopPlot->getImprovementType() == NO_IMPROVEMENT &&
-				pLoopPlot->getFeatureType() != NO_FEATURE &&
+				pLoopPlot->isFeature() &&
 				// Don't chop near planned cities
 				!kOwner.AI_isAdjacentCitySite(*pLoopPlot, false))
 			{
@@ -17217,7 +17220,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 		else if (plot()->getRouteType() == NO_ROUTE)
 		{
 			int iPlotMoveCost = 0;
-			iPlotMoveCost = ((plot()->getFeatureType() == NO_FEATURE) ?
+			iPlotMoveCost = (!plot()->isFeature() ?
 					GC.getInfo(plot()->getTerrainType()).getMovementCost() :
 					GC.getInfo(plot()->getFeatureType()).getMovementCost());
 
@@ -17552,7 +17555,7 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 			{
 				bool bValid = true;
 				if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_LEAVE_FORESTS) &&
-						kPlot.getFeatureType() != NO_FEATURE &&
+						kPlot.isFeature() &&
 						GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()) &&
 						GC.getInfo(kPlot.getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
 					bValid = false;
@@ -17717,7 +17720,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 			//iValue += (GC.getInfo((ImprovementTypes) GC.getInfo(eBestTempBuild).getImprovement()))
 			iValue += 5 * kPlot.calculateImprovementYieldChange(eImprovement, YIELD_FOOD, getOwner(), false);
 			iValue += 5 * kPlot.calculateNatureYield(YIELD_FOOD, getTeam(),
-					(kPlot.getFeatureType() == NO_FEATURE) ? true :
+					!kPlot.isFeature() ? true :
 					GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()));
 		}
 		iValue += std::max(0, 100 * GC.getInfo(eNonObsoleteBonus).getAIObjective());
@@ -21541,7 +21544,7 @@ bool CvUnitAI::AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const
 		return true;
 	if(!canBuild(&p, eBuild))
 		return false;
-	if(p.getFeatureType() != NO_FEATURE &&
+	if(p.isFeature() &&
 			GC.getInfo(eBuild).isFeatureRemove(p.getFeatureType()) &&
 			kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
 		return false;

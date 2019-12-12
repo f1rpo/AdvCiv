@@ -1835,12 +1835,14 @@ bool CvUnit::isActionRecommended(int iAction)
 
 					if (pPlot->getImprovementType() == NO_IMPROVEMENT && eBonus == NO_BONUS && pWorkingCity == NULL)
 					{
-						if (pPlot->getFeatureType() == NO_FEATURE || !GC.getInfo(eBuild).isFeatureRemove((FeatureTypes)pPlot->getFeatureType()))
+						if (!pPlot->isFeature() || !GC.getInfo(eBuild).isFeatureRemove(
+							(FeatureTypes)pPlot->getFeatureType()))
 						{
 							if (GC.getInfo(eImprovement).isCarriesIrrigation() && !pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true))
 								return true;
 
-							if (pPlot->getFeatureType() != NO_FEATURE && GC.getInfo(eImprovement).getFeatureGrowthProbability() > 0)
+							if (pPlot->isFeature() &&
+									GC.getInfo(eImprovement).getFeatureGrowthProbability() > 0)
 								return true;
 						}
 					}
@@ -2365,7 +2367,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 	bool bCanEnterArea = canEnterArea(ePlotTeam, pPlotArea);
 	if (bCanEnterArea)
 	{
-		if (kPlot.getFeatureType() != NO_FEATURE &&
+		if (kPlot.isFeature() &&
 			m_pUnitInfo->getFeatureImpassable(kPlot.getFeatureType()))
 		{
 			TechTypes eTech = (TechTypes)m_pUnitInfo->getFeaturePassableTech(kPlot.getFeatureType());
@@ -7198,7 +7200,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 			if (pCombatDetails != NULL)
 				pCombatDetails->iHillsDefenseModifier = iExtraModifier;
 		}
-		if (pPlot->getFeatureType() != NO_FEATURE)
+		if (pPlot->isFeature())
 		{
 			iExtraModifier = featureDefenseModifier(pPlot->getFeatureType());
 			iModifier += iExtraModifier;
@@ -7244,7 +7246,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 			if (pCombatDetails != NULL)
 				pCombatDetails->iHillsAttackModifier = iExtraModifier;
 		}
-		if (pAttackedPlot->getFeatureType() != NO_FEATURE)
+		if (pAttackedPlot->isFeature())
 		{
 			iExtraModifier = -pAttacker->featureAttackModifier(pAttackedPlot->getFeatureType());
 			iTempModifier += iExtraModifier;

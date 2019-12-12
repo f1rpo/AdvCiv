@@ -7320,7 +7320,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		if (eBestTempBuild != NO_BUILD)
 		{
 			bValid = true;
-			if (kPlot.getFeatureType() != NO_FEATURE &&
+			if (kPlot.isFeature() &&
 				GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 			{
 				bIgnoreFeature = true;
@@ -7544,7 +7544,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			iValue /= 4;
 		}
 		/*if (eBestTempBuild != NO_BUILD) {
-			if (kPlot.getFeatureType() != NO_FEATURE) {
+			if (kPlot.isFeature()) {
 				if (GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())) {
 					CvCity* pCity;
 					iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2;
@@ -7599,7 +7599,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			iValue /= 4;	//Greatly prefer builds which are legal.
 	}
 	// K-Mod. Feature value. (moved from the 'no improvement' block above.)
-	if (kPlot.getFeatureType() != NO_FEATURE && eBestTempBuild != NO_BUILD && GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
+	if (kPlot.isFeature() && eBestTempBuild != NO_BUILD && GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 	{
 		/*CvCity* pCity; iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2; // handle chop value elsewhere
 		FAssert(pCity == this);*/
@@ -7937,8 +7937,7 @@ void CvCityAI::AI_updateBestBuild()
 			//if (bChop)
 			/*  <advc.117> Also increase the value a little when
 				constructing sth. nonurgent */
-			if(pLoopPlot->getFeatureType() != NO_FEATURE &&
-				GC.getInfo(m_aeBestBuild[iI]).isFeatureRemove(
+			if(pLoopPlot->isFeature() && GC.getInfo(m_aeBestBuild[iI]).isFeatureRemove(
 				pLoopPlot->getFeatureType())) // </advc.117>
 			{
 				CvCity* pCity=NULL;
@@ -8017,10 +8016,11 @@ void CvCityAI::AI_updateBestBuild()
 				GC.getInfo((ImprovementTypes)GC.getInfo(m_aeBestBuild[iI]).getImprovement()).getImprovementUpgrade() == NO_IMPROVEMENT)
 			{
 				if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT
-				/*	advc.117: Don't prune removal of forests; not sure if this
+				/*	<advc.117> Don't prune removal of forests; not sure if this
 					could otherwise happen. */
-					&& (pLoopPlot->getFeatureType() == NO_FEATURE || !GC.getInfo(m_aeBestBuild[iI]).isFeatureRemove(pLoopPlot->getFeatureType())))
-				{
+					&& (!pLoopPlot->isFeature() ||
+					!GC.getInfo(m_aeBestBuild[iI]).isFeatureRemove(pLoopPlot->getFeatureType())))
+				{	// </advc.117>
 					if (!pLoopPlot->isBeingWorked() && aiValues[iI] <= iBestUnworkedPlotValue &&
 							aiValues[iI] < 400) // was 500. (reduced due to some rescaling)
 						m_aiBestBuildValue[iI] = 1;
@@ -10667,7 +10667,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	// but for the parts of this function, we want to count that value...
 	int iClearValue_wYield = 0; // So I've made this new number for that purpose.
 
-	if (pPlot->getFeatureType() != NO_FEATURE)
+	if (pPlot->isFeature())
 	{
 		iClearFeatureValue = AI_clearFeatureValue(getCityPlotIndex(pPlot));
 
@@ -10784,7 +10784,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	else if (iClearValue_wYield > 0)
 	// K-Mod end
 	{
-		FAssert(pPlot->getFeatureType() != NO_FEATURE);
+		FAssert(pPlot->isFeature());
 		/*if ((GC.getInfo(pPlot->getFeatureType()).getHealthPercent() < 0) ||
 			((GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_FOOD) + GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) + GC.getInfo(pPlot->getFeatureType()).getYieldChange(YIELD_COMMERCE)) < 0)) {*/
 		// Disabled by K-Mod. That stuff is already taken into account by iClearValue_wYield.
@@ -10816,8 +10816,9 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 
 	//Chop - maybe integrate this better with the other feature-clear code tho the logic
 	//is kinda different
-	if (bChop && (eBonus == NO_BONUS) && (pPlot->getFeatureType() != NO_FEATURE) &&
-		(pPlot->getImprovementType() == NO_IMPROVEMENT) && !(kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS)))
+	if (bChop && eBonus == NO_BONUS && pPlot->isFeature() &&
+		pPlot->getImprovementType() == NO_IMPROVEMENT &&
+		!kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
 	{
 		for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{

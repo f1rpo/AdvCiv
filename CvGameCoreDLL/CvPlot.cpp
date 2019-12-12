@@ -1121,7 +1121,7 @@ bool CvPlot::isFreshWater() const
 			if (pLoopPlot->isLake())
 				return true;
 
-			if (pLoopPlot->getFeatureType() != NO_FEATURE)
+			if (pLoopPlot->isFeature())
 			{
 				if (GC.getInfo(pLoopPlot->getFeatureType()).isAddsFreshWater())
 					return true;
@@ -1339,7 +1339,7 @@ int CvPlot::seeFromLevel(TeamTypes eTeam) const
 int CvPlot::seeThroughLevel() const
 {
 	int iLevel = GC.getInfo(getTerrainType()).getSeeThroughLevel();
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 		iLevel += GC.getInfo(getFeatureType()).getSeeThroughChange();
 	if (isPeak())
 		iLevel += GC.getDefineINT(CvGlobals::PEAK_SEE_THROUGH_CHANGE);
@@ -1668,7 +1668,7 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
 				!kBonus.isTerrain(getTerrainType()))
 			return false;
 	}
-	else /* </advc.129> */ if (getFeatureType() != NO_FEATURE)
+	else /* </advc.129> */ if (isFeature())
 	{
 		if (!kBonus.isFeature(getFeatureType()))
 			return false;
@@ -1741,7 +1741,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	if (GC.getInfo(eImprovement).isWater() != isWater())
 		return false;
 
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 	{
 		if (GC.getInfo(getFeatureType()).isNoImprovement())
 			return false;
@@ -1756,7 +1756,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	if (GC.getInfo(eImprovement).isRequiresFlatlands() && !isFlatlands())
 		return false;
 
-	if (GC.getInfo(eImprovement).isRequiresFeature() && (getFeatureType() == NO_FEATURE))
+	if (GC.getInfo(eImprovement).isRequiresFeature() && !isFeature())
 		return false;
 	{
 		bool bValid = false;
@@ -1768,7 +1768,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 			bValid = true;
 		if (GC.getInfo(eImprovement).getTerrainMakesValid(getTerrainType()))
 			bValid = true;
-		if (getFeatureType() != NO_FEATURE && GC.getInfo(eImprovement).getFeatureMakesValid(getFeatureType()))
+		if (isFeature() && GC.getInfo(eImprovement).getFeatureMakesValid(getFeatureType()))
 			bValid = true;
 		if (!bValid)
 			return false;
@@ -1815,7 +1815,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	{
 		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 		{
-			if (calculateNatureYield(((YieldTypes)iI), eTeam, getFeatureType() == NO_FEATURE ||
+			if (calculateNatureYield(((YieldTypes)iI), eTeam, !isFeature() ||
 				GC.getInfo(eBuild).isFeatureRemove(getFeatureType())) <
 				GC.getInfo(eImprovement).getPrereqNatureYield(iI))
 			{
@@ -1834,8 +1834,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 				bool bValid = true;
 				for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 				{
-					if (calculateNatureYield(((YieldTypes)iI), eTeam,
-						getFeatureType() == NO_FEATURE ||
+					if (calculateNatureYield(((YieldTypes)iI), eTeam, !isFeature() ||
 						kBuild.isFeatureRemove(getFeatureType())) <
 						GC.getInfo(eImprovement).getPrereqNatureYield(iI))
 					{
@@ -1974,7 +1973,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		bValid = true;
 	}
 
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 	{
 		if (GC.getInfo(eBuild).isFeatureRemove(getFeatureType()))
 		{	/*if (isOwned() && (GET_PLAYER(ePlayer).getTeam() != getTeam()) && !atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
@@ -1994,7 +1993,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 int CvPlot::getBuildTime(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePlayer) const
 {
 	int iTime = GC.getInfo(eBuild).getTime();
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 		iTime += GC.getInfo(eBuild).getFeatureTime(getFeatureType());
 
 	iTime *= std::max(0, (GC.getInfo(getTerrainType()).getBuildModifier() + 100));
@@ -2069,7 +2068,7 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const
 
 int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const
 {
-	if (getFeatureType() == NO_FEATURE)
+	if (!isFeature())
 		return 0;
 
 	*ppCity = getWorkingCity();
@@ -2257,7 +2256,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 		iRegularCost = 1;
 	else
 	{
-		iRegularCost = ((getFeatureType() == NO_FEATURE) ?
+		iRegularCost = (!isFeature() ?
 				GC.getInfo(getTerrainType()).getMovementCost() :
 				GC.getInfo(getFeatureType()).getMovementCost());
 		if (isHills())
@@ -2272,7 +2271,8 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	iRegularCost *= GC.getMOVE_DENOMINATOR();
 	if (bHasTerrainCost)
 	{
-		if (((getFeatureType() == NO_FEATURE) ? pUnit->isTerrainDoubleMove(getTerrainType()) : pUnit->isFeatureDoubleMove(getFeatureType())) ||
+		if ((!isFeature() ? pUnit->isTerrainDoubleMove(getTerrainType()) :
+			pUnit->isFeatureDoubleMove(getFeatureType())) ||
 			(isHills() && pUnit->isHillsDoubleMove()))
 		{
 			iRegularCost /= 2;
@@ -3162,7 +3162,7 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 	if (eFeature == NO_FEATURE)
 		return true;
 
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 		return false;
 
 	if (isPeak())
@@ -3411,7 +3411,7 @@ bool CvPlot::isImpassable() const
 	//PROFILE_FUNC(); // advc.003o: Most of the calls come from pathfinding
 	if (isPeak())
 		return true;
-	return (getFeatureType() == NO_FEATURE ?
+	return (!isFeature() ?
 			// advc.opt: Check NO_TERRAIN only if NO_FEATURE
 			(getTerrainType() != NO_TERRAIN && GC.getInfo(getTerrainType()).isImpassable()) :
 			GC.getInfo(getFeatureType()).isImpassable());
@@ -3561,12 +3561,6 @@ CvArea* CvPlot::secondWaterArea() const
 }
 
 
-int CvPlot::getArea() const
-{
-	return m_iArea;
-}
-
-
 void CvPlot::setArea(int iNewValue, /* <advc.310> */ bool bProcess)  // advc: style changes
 {
 	if(!bProcess)
@@ -3591,7 +3585,8 @@ void CvPlot::setArea(int iNewValue, /* <advc.310> */ bool bProcess)  // advc: st
 
 int CvPlot::getFeatureVariety() const
 {
-	FAssert(getFeatureType() == NO_FEATURE || m_iFeatureVariety < GC.getInfo(getFeatureType()).getArtInfo()->getNumVarieties());
+	FAssert(!isFeature() ||
+			m_iFeatureVariety < GC.getInfo(getFeatureType()).getArtInfo()->getNumVarieties());
 	FAssert(m_iFeatureVariety >= 0);
 	return m_iFeatureVariety;
 }
@@ -4665,7 +4660,7 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 	updateFeatureSymbol();
 
 	if ((eOldFeature != NO_FEATURE && GC.getInfo(eOldFeature).getArtInfo()->isRiverArt()) ||
-		(getFeatureType() != NO_FEATURE && GC.getInfo(getFeatureType()).getArtInfo()->isRiverArt()))
+		(isFeature() && GC.getInfo(getFeatureType()).getArtInfo()->isRiverArt()))
 	{
 		updateRiverSymbolArt(true);
 	}
@@ -4681,7 +4676,7 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 		}
 	}
 
-	if (getFeatureType() == NO_FEATURE)
+	if (!isFeature())
 	{
 		if (getImprovementType() != NO_IMPROVEMENT)
 		{
@@ -5243,7 +5238,7 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 	{
 		/* <advc.500a> No change to the assigned value, but add it twice if more than
 		   one river. */
-		int iYieldPerRiver = ((bIgnoreFeature || (getFeatureType() == NO_FEATURE)) ?
+		int iYieldPerRiver = ((bIgnoreFeature || !isFeature()) ?
 				GC.getInfo(getTerrainType()).getRiverYieldChange(eYield) :
 				GC.getInfo(getFeatureType()).getRiverYieldChange(eYield));
 		int iRivers = 1;
@@ -5254,14 +5249,14 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 
 	if (isHills())
 	{
-		iYield += ((bIgnoreFeature || (getFeatureType() == NO_FEATURE)) ?
+		iYield += ((bIgnoreFeature || !isFeature()) ?
 				GC.getInfo(getTerrainType()).getHillsYieldChange(eYield) :
 				GC.getInfo(getFeatureType()).getHillsYieldChange(eYield));
 	}
 
 	if (!bIgnoreFeature)
 	{
-		if (getFeatureType() != NO_FEATURE)
+		if (isFeature())
 			iYield += GC.getInfo(getFeatureType()).getYieldChange(eYield);
 	}
 
@@ -6353,7 +6348,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
 	if (kBuild.getRoute() != NO_ROUTE)
 		setRouteType((RouteTypes)kBuild.getRoute(), true);
 
-	if (getFeatureType() != NO_FEATURE && kBuild.isFeatureRemove(getFeatureType()))
+	if (isFeature() && kBuild.isFeatureRemove(getFeatureType()))
 	{
 		FAssert(eTeam != NO_TEAM);
 		CvCity* pCity;
@@ -6428,7 +6423,7 @@ void CvPlot::updateFeatureSymbolVisibility()
 		return;
 
 	bool bVisible = isRevealed(GC.getGame().getActiveTeam(), true);
-	if(getFeatureType() != NO_FEATURE)
+	if (isFeature())
 	{
 		if(GC.getInfo(getFeatureType()).isVisibleAlways())
 			bVisible = true;
@@ -6897,7 +6892,7 @@ void CvPlot::doFeature()  // advc: some style changes
 {
 	PROFILE_FUNC();
 
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 	{
 		int iProbability = GC.getInfo(getFeatureType()).getDisappearanceProbability();
 		if (iProbability > 0)
@@ -7723,7 +7718,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 	int iYield = 0;
 
 	bool bIgnoreFeature = false;
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 	{
 		if (GC.getInfo(eBuild).isFeatureRemove(getFeatureType()))
 			bIgnoreFeature = true;
@@ -8256,7 +8251,7 @@ int CvPlot::getSoundScriptId() const
 	{
 		if (getImprovementType() != NO_IMPROVEMENT)
 			iScriptId = GC.getInfo(getImprovementType()).getWorldSoundscapeScriptId();
-		else if (getFeatureType() != NO_FEATURE)
+		else if (isFeature())
 			iScriptId = GC.getInfo(getFeatureType()).getWorldSoundscapeScriptId();
 		else if (getTerrainType() != NO_TERRAIN)
 			iScriptId = GC.getInfo(getTerrainType()).getWorldSoundscapeScriptId();
@@ -8267,7 +8262,7 @@ int CvPlot::getSoundScriptId() const
 
 int CvPlot::get3DAudioScriptFootstepIndex(int iFootstepTag) const
 {
-	if (getFeatureType() != NO_FEATURE)
+	if (isFeature())
 		return GC.getInfo(getFeatureType()).get3DAudioScriptFootstepIndex(iFootstepTag);
 
 	if (getTerrainType() != NO_TERRAIN)
@@ -8281,7 +8276,7 @@ float CvPlot::getAqueductSourceWeight() const
 {
 	float fWeight = 0.0f;
 	if (isLake() || isPeak() ||
-		(getFeatureType() != NO_FEATURE && GC.getInfo(getFeatureType()).isAddsFreshWater()))
+		(isFeature() && GC.getInfo(getFeatureType()).isAddsFreshWater()))
 	{
 		fWeight = 1.0f;
 	}

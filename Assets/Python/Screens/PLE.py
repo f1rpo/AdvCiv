@@ -849,10 +849,11 @@ class PLE:
 	############## base functions to calculate/transform the number of objects dependent on the screen resolution ######################
 
 	def getMaxCol(self):
-		return ((self.xResolution - (iMultiListXL+iMultiListXR) - 68) / 34)
+		return (self.xResolution - (iMultiListXL+iMultiListXR) - 68) / 34
 		
 	def getMaxRow(self):
-		return ((self.yResolution - 160) / PleOpt.getVerticalSpacing()) 
+		# advc: max added (though it shouldn't normally matter)
+		return (self.yResolution - 160) / max(1, PleOpt.getVerticalSpacing())
 		
 	def getRow(self, i):
 		return i / self.getMaxCol()

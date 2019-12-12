@@ -5192,7 +5192,7 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc: some 
 	if (pPlot->isImpassable())
 		return false;
 
-	if (pPlot->getFeatureType() != NO_FEATURE && GC.getInfo(pPlot->getFeatureType()).isNoCity())
+	if (pPlot->isFeature() && GC.getInfo(pPlot->getFeatureType()).isNoCity())
 		return false;
 
 	if (pPlot->isOwned() && pPlot->getOwner() != getID())
@@ -6088,7 +6088,7 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 
 	if (!bTestVisible)
 	{
-		if (pPlot->getFeatureType() != NO_FEATURE)
+		if (pPlot->isFeature())
 		{
 			if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eBuild).
 					getFeatureTech(pPlot->getFeatureType())))
@@ -15112,7 +15112,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			{
 				if (getAdvancedStartPoints() >= iCost)
 				{
-					if (pPlot->getFeatureType() != NO_FEATURE)
+					if (pPlot->isFeature())
 					{
 						for (int iI = 0; iI < GC.getNumBuildInfos(); ++iI)
 						{
@@ -15322,7 +15322,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 					return -1;
 				}
 
-				if (pPlot->getFeatureType() != NO_FEATURE)
+				if (pPlot->isFeature())
 				{
 					if (GC.getInfo(eUnit).getFeatureImpassable(pPlot->getFeatureType()))
 					{
@@ -21941,7 +21941,6 @@ void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
 		break;
 	default:
 		FAssertMsg(false, "Unknown globe layer type");
-		break;
 	}
 }
 

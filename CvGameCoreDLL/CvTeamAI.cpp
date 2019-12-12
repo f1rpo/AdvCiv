@@ -290,8 +290,8 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 		}
 	}
 	return false;
-}
-// K-Mod end
+} // K-Mod end
+
 
 bool CvTeamAI::AI_isAnyCapitalAreaAlone() const
 {
@@ -763,7 +763,7 @@ int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced) const
 	if (iCount > 0)
 		return CvPlayerAI::AI_getAttitudeFromValue(iAttitudeVal / iCount); // bbai / K-Mod
 	// <advc>
-	FAssert(iCount > 0);
+	FAssert(iCount > 0); // (OK when loading from very old savegames)
 	// K-Mod had returned ATTITUDE_CAUTIOUS from AI_getAttitude
 	return 0; // </advc>
 }
@@ -861,14 +861,17 @@ void CvTeamAI::AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool b
 	AI_setWarPlanStateCounter(eTarget, 0);
 	kTarget.AI_setWarPlanStateCounter(getID(), 0);
 	// </advc.104q>
+	if (!isMajorCiv())
+		return;
 	/*  advc.130h: Moved this loop into AI_preDeclareWar b/c I'm adding code that
 		depends on the atWarWithPartner status before the DoW. */
 	for (MemberIter itOur(getID()); itOur.hasNext(); ++itOur)
 	{
 		CvPlayerAI& kOurMember = *itOur;
-		for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
+		for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itEnemy(getID());
+			itEnemy.hasNext(); ++itEnemy)
 		{
-			CvPlayerAI& kPlayer = *it;
+			CvPlayerAI& kPlayer = *itEnemy;
 			// <advc.130o>
 			if(bPrimaryDoW && kOurMember.isHuman() && !kPlayer.isHuman() &&
 				kTarget.AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0)
@@ -2434,7 +2437,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 				return DENIAL_NEVER;
 		}
 	} // </advc.112b>
-	if (!bWar) // advc: Moved out of the loop above
+	if (!bWar) // advc: Moved out of the loop below
 	{
 		for (TeamIter<MAJOR_CIV,ENEMY_OF> it(eMasterTeam); it.hasNext(); ++it)
 		{

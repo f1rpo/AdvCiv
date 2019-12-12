@@ -2070,7 +2070,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		// Damage caused by features (for mods)
 		if (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) != 0)
 		{
-			if (kToPlot.getFeatureType() != NO_FEATURE)
+			if (kToPlot.isFeature())
 			{
 				iWorstCost += (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) *
 						std::max(0, GC.getInfo(kToPlot.getFeatureType()).getTurnDamage())) /

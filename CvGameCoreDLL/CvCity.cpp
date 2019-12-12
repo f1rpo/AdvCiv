@@ -352,8 +352,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 		}
 	}
 
-	if (GC.getPythonCaller()->isCitiesDestroyFeatures(iX, iY) &&
-			kPlot.getFeatureType() != NO_FEATURE)
+	if (GC.getPythonCaller()->isCitiesDestroyFeatures(iX, iY) && kPlot.isFeature())
 		kPlot.setFeatureType(NO_FEATURE);
 
 	kPlot.setImprovementType(NO_IMPROVEMENT);
