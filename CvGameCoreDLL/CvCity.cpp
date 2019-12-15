@@ -11482,40 +11482,49 @@ void CvCity::updateTradeRoutes() // advc: refactored
 		static bool const bIgnorePlotGroups = (GC.getDefineBOOL("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES")); // advc.opt
 		FAssert(iTradeRoutes <= iMaxTradeRoutes);
 		int* paiBestValue = new int[iMaxTradeRoutes](); // value-initialize
-		for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		/*  advc.004: Start with players that we have OB with, i.e. rival players.
+			(Can be confusing to see only friendly cities despite having OB.) */
+		for (int iPass = 0; iPass < 2; iPass++)
 		{
-			CvPlayer const& kPartner = GET_PLAYER((PlayerTypes)iI);
-			if(!kOwner.canHaveTradeRoutesWith(kPartner.getID()))
-				continue;
-
-			FOR_EACH_CITY(pLoopCity, kPartner)
+			for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 			{
-				if(pLoopCity == this)
+				CvPlayer const& kPartner = GET_PLAYER((PlayerTypes)iI);
+				// <advc.004>
+				if (iPass == 0 && !GET_TEAM(getTeam()).isOpenBorders(kPartner.getTeam()))
+					continue; // </advc.004>
+				if(!kOwner.canHaveTradeRoutesWith(kPartner.getID()))
 					continue;
-				/*  <advc.124> A connection along revealed tiles ensures that the
-					city tile is revealed, but this doesn't imply that the city is
-					also revealed: The tile could've been explored before the city
-					existed. Need to check CvCity::isRevealed explicitly. */
-				if(pLoopCity->isDisorder() || !pLoopCity->isRevealed(getTeam(), false))
-					continue; // <advc.124>
-				if(pLoopCity->isTradeRoute(kOwner.getID()) && getTeam() != kPartner.getTeam())
-					continue;
-				if(!bIgnorePlotGroups && pLoopCity->plotGroup(kOwner.getID()) !=
-						plotGroup(kOwner.getID()))
-					continue;
-				int iValue = calculateTradeProfit(pLoopCity);
-				for (int iJ = 0; iJ < iTradeRoutes; iJ++)
+
+				FOR_EACH_CITY(pLoopCity, kPartner)
 				{
-					if(iValue <= paiBestValue[iJ])
+					if(pLoopCity == this)
 						continue;
-					for (int iK = iTradeRoutes - 1; iK > iJ; iK--)
+					/*  <advc.124> A connection along revealed tiles ensures that the
+						city tile is revealed, but this doesn't imply that the city is
+						also revealed: The tile could've been explored before the city
+						existed. Need to check CvCity::isRevealed explicitly. */
+					if(pLoopCity->isDisorder() || !pLoopCity->isRevealed(getTeam(), false))
+						continue; // <advc.124>
+					if(pLoopCity->isTradeRoute(kOwner.getID()) &&
+							getTeam() != kPartner.getTeam())
+						continue;
+					if(!bIgnorePlotGroups && pLoopCity->plotGroup(kOwner.getID()) !=
+							plotGroup(kOwner.getID()))
+						continue;
+					int iValue = calculateTradeProfit(pLoopCity);
+					for (int iJ = 0; iJ < iTradeRoutes; iJ++)
 					{
-						paiBestValue[iK] = paiBestValue[(iK - 1)];
-						m_paTradeCities[iK] = m_paTradeCities[(iK - 1)];
+						if(iValue <= paiBestValue[iJ])
+							continue;
+						for (int iK = iTradeRoutes - 1; iK > iJ; iK--)
+						{
+							paiBestValue[iK] = paiBestValue[(iK - 1)];
+							m_paTradeCities[iK] = m_paTradeCities[(iK - 1)];
+						}
+						paiBestValue[iJ] = iValue;
+						m_paTradeCities[iJ] = pLoopCity->getIDInfo();
+						break;
 					}
-					paiBestValue[iJ] = iValue;
-					m_paTradeCities[iJ] = pLoopCity->getIDInfo();
-					break;
 				}
 			}
 		}
