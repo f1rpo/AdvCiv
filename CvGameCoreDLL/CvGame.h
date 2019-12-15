@@ -46,7 +46,17 @@ public:
 	void showDawnOfMan(); // advc.004j
 	DllExport void initDiplomacy();
 	DllExport void initFreeUnits();
-	int getStartingPlotNormalizationLevel() const; // advc.108
+
+	/* <advc.108>: Three levels of start plot normalization:
+	 1: low (weak starting plots on average, high variance); for single-player
+	 2: medium (strong starting plots, low variance); for multi-player
+	 3: high (very strong starting plots, low variance);  BtS/ K-Mod behavior
+	 (the differences between all three aren't very great) */
+	enum StartingPlotNormalizationLevel {
+		NORMALIZE_DEFAULT, NORMALIZE_LOW, NORMALIZE_MEDIUM, NORMALIZE_HIGH };
+	StartingPlotNormalizationLevel getStartingPlotNormalizationLevel() const;
+	void setStartingPlotNormalizationLevel(StartingPlotNormalizationLevel eLevel);
+	// </advc.108>
 	int getStartingPlotRange() const; // advc.opt (exposed to Python via CyPlayer)
 
 	DllExport void update();
@@ -710,7 +720,6 @@ protected:
 	int m_iGlobalWarmingIndex;	// K-Mod
 	int m_iGwEventTally;		// K-Mod
 	int m_iTurnLoadedFromSave; // advc.044
-	int m_iNormalizationLevel; // advc.108
 	// <advc.opt>
 	int m_iStartingPlotRange;
 	int m_iCivPlayersEverAlive;
@@ -747,6 +756,7 @@ protected:
 	PlayerTypes m_eInitialActivePlayer; // advc.106h
 	GlobeLayerTypes m_eCurrentLayer; // advc.004m
 	PlayerTypes m_eEventPlayer;
+	StartingPlotNormalizationLevel m_eNormalizationLevel; // advc.108
 
 	CvString m_szScriptData;
 

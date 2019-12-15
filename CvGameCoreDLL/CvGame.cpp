@@ -5,6 +5,7 @@
 #include "CvDealList.h" // advc.003u
 #include "CvAgents.h" // advc.agent
 #include "CvAI.h"
+#include "CitySiteEvaluator.h"
 #include "CvMap.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvMapGenerator.h"
@@ -101,12 +102,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	// Init non-serialized data
 
 	m_bAllGameDataRead = true; // advc: Not loading from savegame
-	// <advc.108>
-	m_iNormalizationLevel = (GC.getDefineBOOL("NORMALIZE_STARTPLOTS_AGGRESSIVELY") ?
-			3 : 1);
-	if(m_iNormalizationLevel == 1 && isGameMultiPlayer())
-		m_iNormalizationLevel = 2;
-	// </advc.108>
+	m_eNormalizationLevel = NORMALIZE_DEFAULT; // advc.108
 
 	// Turn off all MP options if it's a single player game
 	if (ic.getType() == GAME_SP_NEW || ic.getType() == GAME_SP_SCENARIO)
@@ -1364,14 +1360,23 @@ void CvGame::normalizeStartingPlotLocations()
 	}
 }
 
-/* <advc.108>: Three levels of start plot normalization:
-	 1: low (weak starting plots on average, high variance); for single-player
-	 2: high (strong starting plots, low variance); for multi-player
-	 3: very high (very strong starting plots, low variance);  BtS/ K-Mod behavior
-	 (the differences between all three aren't great) */
-int CvGame::getStartingPlotNormalizationLevel() const
+// <advc.108>
+void CvGame::setStartingPlotNormalizationLevel(StartingPlotNormalizationLevel eLevel)
 {
-	return m_iNormalizationLevel;
+	if (eLevel == NORMALIZE_DEFAULT)
+	{
+		eLevel = (GC.getDefineBOOL("NORMALIZE_STARTPLOTS_AGGRESSIVELY") ?
+				NORMALIZE_HIGH : NORMALIZE_LOW);
+		if(eLevel == NORMALIZE_LOW && isGameMultiPlayer())
+			eLevel = NORMALIZE_MEDIUM;
+	}
+	m_eNormalizationLevel = eLevel;
+}
+
+
+CvGame::StartingPlotNormalizationLevel CvGame::getStartingPlotNormalizationLevel() const
+{
+	return m_eNormalizationLevel;
 } // </advc.108
 
 /*  <advc.opt> Replacing CvPlayer::startingPlotRange. And now precomputed through
@@ -1441,7 +1446,7 @@ void CvGame::normalizeRemovePeaks()  // advc: style changes
 {
 	// <advc.108>
 	double prRemoval = 1;
-	if(m_iNormalizationLevel <= 1)
+	if(m_eNormalizationLevel <= NORMALIZE_LOW)
 		prRemoval = GC.getDefineINT("REMOVAL_CHANCE_PEAK") / 100.0;
 	// </advc.108>
 
@@ -1557,10 +1562,10 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 		}
 		double prRemoval = 0;
 		if(iBadFeatures > iThreshBadFeatPerCity) {
-			prRemoval = 1.0 - m_iNormalizationLevel *
+			prRemoval = 1.0 - m_eNormalizationLevel *
 					(iThreshBadFeatPerCity / (double)iBadFeatures);
 		}
-		if(m_iNormalizationLevel >= 3)
+		if(m_eNormalizationLevel >= NORMALIZE_HIGH)
 			prRemoval = 1;
 		// </advc.108>
 		for(int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
@@ -1607,9 +1612,9 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 					else if (iDistance != iMaxRange)
 					{
 						// <advc.108> Plots outside the city range: reduced chance of removal
-						if((m_iNormalizationLevel > 2 &&
+						if((m_eNormalizationLevel > NORMALIZE_MEDIUM &&
 								getSorenRandNum((2 + ((pLoopPlot->getBonusType() == NO_BONUS) ? 0 : 2)), "Remove Bad Feature") == 0) || // original check
-								(m_iNormalizationLevel <= 2 &&
+								(m_eNormalizationLevel <= NORMALIZE_MEDIUM &&
 								getSorenRandNum((3 - ((pLoopPlot->getBonusType() == NO_BONUS) ? 1 : 0)), "advc.108") != 0))
 						// </advc.108>
 							pLoopPlot->setFeatureType(NO_FEATURE);
@@ -1625,7 +1630,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: style changes
 {
 	// <advc.108>
 	double prKeep = 0;
-	if(m_iNormalizationLevel <= 1)
+	if(m_eNormalizationLevel <= NORMALIZE_LOW)
 		prKeep = 1 - GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN") / 100.0;
 	// </advc.108>
 
@@ -1781,7 +1786,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 
 		int iTargetFoodBonusCount = 3;
 		// advc.108: (Don't do this after all:)
-		//int iTargetFoodBonusCount = m_iNormalizationLevel;
+		//int iTargetFoodBonusCount = m_eNormalizationLevel;
 		iTargetFoodBonusCount += std::max(0, 2-iGoodNatureTileCount); // K-Mod
 
 		// K-Mod. I've rearranged a couple of things to make it a bit more efficient and easier to read.
@@ -1813,7 +1818,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 				{
 					CvFeatureInfo& kFeature = GC.getInfo(eFeature);
 					bValid = false;
-					if(m_iNormalizationLevel >= 3 || kFeature.getYieldChange(YIELD_FOOD) > 0 ||
+					if(m_eNormalizationLevel >= NORMALIZE_HIGH || kFeature.getYieldChange(YIELD_FOOD) > 0 ||
 							kFeature.getYieldChange(YIELD_PRODUCTION) > 0)
 						bValid = true;
 				}
@@ -1855,7 +1860,7 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 void CvGame::normalizeAddGoodTerrain()  // advc: style changes
 {
 	// <advc.108>
-	if(m_iNormalizationLevel <= 1)
+	if(m_eNormalizationLevel <= NORMALIZE_LOW)
 		return; // </advc.108>
 
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
@@ -1952,7 +1957,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 	//iTargetValue = (iTotalValue + iBestValue) / (iPlayerCount + 1);
 	int iTargetValue = (iBestValue * 4) / 5;
 	// <advc.108>
-	if(m_iNormalizationLevel <= 1)
+	if(m_eNormalizationLevel <= NORMALIZE_LOW)
 		iTargetValue = GC.getDefineINT("STARTVAL_LOWER_BOUND-PERCENT") * iBestValue / 100;
 	// </advc.108>
 	logBBAI("Adding extras to normalize starting positions. (target value: %d)", iTargetValue); // K-Mod
@@ -1975,9 +1980,13 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 		int iFeatureCount = 0;
 		int aiShuffle[NUM_CITY_PLOTS];
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
+		CitySiteEvaluator citySiteEval(kLoopPlayer, -1, true);
+		// <advc.031c>
+		if (gFoundLogLevel > 0)
+			citySiteEval.log(pStartingPlot->getX(), pStartingPlot->getY()); // </advc.031c>
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true) >= iTargetValue)
+			if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue)
 			{
 				if (gMapLogLevel > 0)
 					logBBAI("    Player %d doesn't need any more features.", iI); // K-Mod
@@ -2033,7 +2042,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 				}
 			}
 			else if (pLoopPlot->getBonusType( // <advc.108> Don't count unrevealed bonuses
-					m_iNormalizationLevel > 1 ?
+					m_eNormalizationLevel > NORMALIZE_LOW ?
 					NO_TEAM : kLoopPlayer.getTeam()) /* </advc.108> */ != NO_BONUS)
 				iOtherCount++;
 		}
@@ -2051,7 +2060,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 				if (iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2 >= 12)
 					break;
 
-				if (kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true) >= iTargetValue)
+				if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue)
 				{
 					if (gMapLogLevel > 0)
 						logBBAI("    Player %d doesn't need any more bonuses.", iI); // K-Mod
@@ -2098,7 +2107,7 @@ void CvGame::normalizeAddExtras()  // advc: Some changes to reduce indentation
 		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
 		for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 		{
-			if (kLoopPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true) >= iTargetValue)
+			if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue)
 			{
 				if (gMapLogLevel > 0)
 					logBBAI("    Player %d doesn't need any more features (2).", iI); // K-Mod
@@ -7069,12 +7078,13 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 		}
 	}
 
-	CvPlayerAI::CvFoundSettings kFoundSet(GET_PLAYER(BARBARIAN_PLAYER), false); // K-Mod
-	kFoundSet.iMinRivalRange = GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE");
+	CitySiteEvaluator citySiteEval(GET_PLAYER(BARBARIAN_PLAYER),
+			GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
 	/* <advc.300> Randomize penalty on short inter-city distance for more variety
 	   in Barbarian settling patterns. The expected value is 8, which is also the
 	   value K-Mod uses. */
-	kFoundSet.iBarbDiscouragedRange = 5 + getSorenRandNum(7, "advc.300 (discouraged range)");
+	citySiteEval.discourageBarbarians(5 +
+			getSorenRandNum(7, "advc.300 (discouraged range)"));
 	CvMap const& m = GC.getMap();
 	std::map<int,int> unownedPerArea; // Precomputed for efficiency
 	FOR_EACH_AREA(pArea)
@@ -7144,7 +7154,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 		{
 			//iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX(), pLoopPlot->getY(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
 			// K-Mod
-			int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue_bulk(kPlot.getX(), kPlot.getY(), kFoundSet);
+			int iValue = citySiteEval.evaluate(kPlot);
 			if (iTargetCitiesMultiplier > 100)
 			{/* <advc.300> This gives the area with the most owned tiles priority
 				over other areas unless the global city target is reached (rare),

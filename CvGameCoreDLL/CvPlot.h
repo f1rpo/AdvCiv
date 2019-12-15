@@ -124,7 +124,8 @@ public:
 			bool bIncludeUnits = true) const;
 	int getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const;
 	// </advc.011c>
-	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const;																// Exposed to Python
+	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity,																// Exposed to Python
+			CvPlot const* pCityPlot = NULL, PlayerTypes eCityOwner = NO_PLAYER) const; // advc.031
 
 	DllExport CvUnit* getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER,													// Exposed to Python
 		const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false,
@@ -397,7 +398,11 @@ public:
 	DllExport inline FeatureTypes getFeatureType() const																																	// Exposed to Python
 	{
 		return (FeatureTypes)m_eFeatureType;
-	}
+	}  // <advc>
+	inline bool isFeature() const
+	{
+		return (getFeatureType() != NO_FEATURE);
+	} // </advc>
 	void setFeatureType(FeatureTypes eNewValue, int iVariety = -1);																				// Exposed to Python
 	void setFeatureDummyVisibility(const char *dummyTag, bool show);																				// Exposed to Python
 	void addFeatureDummyModel(const char *dummyTag, const char *modelTag);
@@ -480,6 +485,7 @@ public:
 	char calculateYield(YieldTypes eIndex, bool bDisplay = false) const;												// Exposed to Python
 	bool hasYield() const;																																		// Exposed to Python
 	void updateYield();
+	int calculateCityPlotYieldChange(YieldTypes eYield, int iYield, int iCityPopulation) const;
 	// int calculateMaxYield(YieldTypes eYield) const; // disabled by K-Mod
 	int getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUpgrade) const;
 
@@ -697,6 +703,8 @@ public:
 	DllExport bool shouldDisplayBridge(CvPlot* pToPlot, PlayerTypes ePlayer) const;
 	DllExport bool checkLateEra() const;
 	void killRandomUnit(PlayerTypes eOwner, DomainTypes eDomain); // advc.300
+
+	wchar const* debugStr() const; // advc.031c
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

@@ -40,6 +40,7 @@
     <ClCompile Include="..\AgentIteratorTest.cpp" />
     <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
+    <ClCompile Include="..\CitySiteEvaluator.cpp" />
     <ClCompile Include="..\CvAgents.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
@@ -175,10 +176,10 @@
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
-    <ClCompile Include="..\WarAndPeaceAgent.cpp" />
-    <ClCompile Include="..\WarAndPeaceAI.cpp" />
-    <ClCompile Include="..\WarAndPeaceCache.cpp" />
-    <ClCompile Include="..\WarAndPeaceReport.cpp" />
+    <ClCompile Include="..\UWAIAgent.cpp" />
+    <ClCompile Include="..\UWAI.cpp" />
+    <ClCompile Include="..\UWAICache.cpp" />
+    <ClCompile Include="..\UWAIReport.cpp" />
     <ClCompile Include="..\WarEvalParameters.cpp" />
     <ClCompile Include="..\WarEvaluator.cpp" />
     <ClCompile Include="..\WarUtilityAspect.cpp" />
@@ -192,6 +193,7 @@
     <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
+    <ClInclude Include="..\CitySiteEvaluator.h" />
     <ClInclude Include="..\CvAgents.h" />
     <ClInclude Include="..\CvAI.h" />
     <ClInclude Include="..\CvArea.h" />
@@ -322,6 +324,7 @@
     <ClInclude Include="..\MilitaryAnalyst.h" />
     <ClInclude Include="..\MilitaryBranch.h" />
     <ClInclude Include="..\TSCProfiler.h" />
+    <ClInclude Include="..\UWAISets.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\RFChapter.h" />
     <ClInclude Include="..\RFChapterScore.h" />
@@ -329,10 +332,10 @@
     <ClInclude Include="..\RiseFall.h" />
     <ClInclude Include="..\Shelf.h" />
     <ClInclude Include="..\StartPointsAsHandicap.h" />
-    <ClInclude Include="..\WarAndPeaceAgent.h" />
-    <ClInclude Include="..\WarAndPeaceAI.h" />
-    <ClInclude Include="..\WarAndPeaceCache.h" />
-    <ClInclude Include="..\WarAndPeaceReport.h" />
+    <ClInclude Include="..\UWAIAgent.h" />
+    <ClInclude Include="..\UWAI.h" />
+    <ClInclude Include="..\UWAICache.h" />
+    <ClInclude Include="..\UWAIReport.h" />
     <ClInclude Include="..\WarEvalParameters.h" />
     <ClInclude Include="..\WarEvaluator.h" />
     <ClInclude Include="..\WarUtilityAspect.h" />

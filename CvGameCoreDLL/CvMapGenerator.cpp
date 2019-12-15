@@ -890,8 +890,9 @@ void CvMapGenerator::generateRandomMap()
 {
 	PROFILE_FUNC();
 
-	GC.getPythonCaller()->callMapFunction("beforeGeneration");
-	if (GC.getPythonCaller()->generateRandomMap()) // will call applyMapData when done
+	CvPythonCaller const& py = *GC.getPythonCaller();
+	py.callMapFunction("beforeGeneration");
+	if (py.generateRandomMap()) // will call applyMapData when done
 		return;
 
 	char buf[256];
@@ -904,6 +905,11 @@ void CvMapGenerator::generateRandomMap()
 	/* advc.300: Already done in CvMap::calculateAreas, but when calculateAreas
 	   is called during map generation, tile yields aren't yet set. */
 	GC.getMap().computeShelves();
+	// <advc.108>
+	if (py.isAnyCustomMapOptionSetTo(gDLL->getText("TXT_KEY_MAP_BALANCED")))
+		GC.getGame().setStartingPlotNormalizationLevel(CvGame::NORMALIZE_HIGH);
+	else GC.getGame().setStartingPlotNormalizationLevel(CvGame::NORMALIZE_DEFAULT);
+	// </advc.108>
 }
 
 void CvMapGenerator::generatePlotTypes()

@@ -129,16 +129,27 @@ public:
 		if the active player has met this player.
 		The "key" versions of those functions are unchanged. This is important
 		because getNameKey and so on are used to create messages for the replay. */
-	DllExport const wchar* getName(uint uiForm = 0) const;																											// Exposed to Python
+	DllExport wchar const* getName(uint uiForm = 0) const																											// Exposed to Python
+	{	// <advc.007> debugName function for logging
+		return getName(false, uiForm);
+	}
+	wchar const* getName(bool bForceReveal, uint uiForm) const;
+	wchar const* debugName() const { return getName(true, 0); } // </advc.007>
 	// K-Mod. Player name to be used in replay
-	const wchar* getReplayName(uint uiForm = 0) const;
-	DllExport const wchar* getNameKey() const;																																	// Exposed to Python
-	DllExport const wchar* getCivilizationDescription(uint uiForm = 0) const;																		// Exposed to Python
-	const wchar* getCivilizationDescriptionKey() const;																								// Exposed to Python
-	const wchar* getCivilizationShortDescription(uint uiForm = 0) const;															// Exposed to Python
-	const wchar* getCivilizationShortDescriptionKey() const;																					// Exposed to Python
-	const wchar* getCivilizationAdjective(uint uiForm = 0) const;																			// Exposed to Python
-	const wchar* getCivilizationAdjectiveKey() const;																									// Exposed to Python
+	wchar const* getReplayName(uint uiForm = 0) const;
+	DllExport wchar const* getNameKey() const;																																	// Exposed to Python
+	DllExport wchar const* getCivilizationDescription(uint uiForm = 0) const;																		// Exposed to Python
+	wchar const* getCivilizationDescriptionKey() const;																								// Exposed to Python
+	wchar const* getCivilizationShortDescription(uint uiForm = 0) const															// Exposed to Python
+	{	// <advc.007> debugCivDescr function for logging
+		return getCivilizationShortDescription(false, uiForm);
+	}
+	wchar const* getCivilizationShortDescription(bool bForceReveal, uint uiForm) const;
+	wchar const* debugCivDescr() const { return getCivilizationShortDescription(true, 0); }
+	// </advc.007>
+	wchar const* getCivilizationShortDescriptionKey() const;																					// Exposed to Python
+	wchar const* getCivilizationAdjective(uint uiForm = 0) const;																			// Exposed to Python
+	wchar const* getCivilizationAdjectiveKey() const;																									// Exposed to Python
 	DllExport CvWString getFlagDecal() const;																																		// Exposed to Python
 	DllExport bool isWhiteFlag() const;																																					// Exposed to Python
 	const wchar* getStateReligionName(uint uiForm = 0) const;																					// Exposed to Python

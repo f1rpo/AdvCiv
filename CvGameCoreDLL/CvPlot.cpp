@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
 #include "CvAI.h"
+#include "CitySiteEvaluator.h"
 #include "CvCity.h"
 #include "CvMap.h"
 #include "CvArea.h"
@@ -14,6 +15,7 @@
 #include "CvDLLSymbolIFaceBase.h"
 #include "CvDLLPlotBuilderIFaceBase.h"
 #include "CvDLLFlagEntityIFaceBase.h"
+#include <sstream> // advc.031c
 
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::m_bAllFog = false; // advc.706
@@ -2066,22 +2068,34 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const
 } // </advc.011c>
 
 
-int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const
+int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity,
+	CvPlot const* pCityPlot, PlayerTypes eCityOwner) const // advc.031
 {
+	*ppCity = NULL; // advc: Don't rely on caller to do this
 	if (!isFeature())
 		return 0;
+	// <advc.031>
+	FAssert((pCityPlot == NULL) == (eCityOwner == NO_PLAYER));
+	FAssert(eCityOwner == NO_PLAYER || TEAMID(eCityOwner) == eTeam);
+	int iPopulation = 1;
+	if (pCityPlot == NULL) // </advc.031>
+	{
+		*ppCity = getWorkingCity();
+		if (*ppCity == NULL)
+			*ppCity = GC.getMap().findCity(getX(), getY(), NO_PLAYER, eTeam, false);
+		if (*ppCity == NULL)
+			return 0;
+		// <advc.031>
+		CvCity const& kCity = **ppCity;
+		pCityPlot = kCity.plot();
+		eCityOwner = kCity.getOwner();
+		iPopulation = kCity.getPopulation(); // </advc.031>
+	}
+	
+	int iProduction = (GC.getInfo(eBuild).getFeatureProduction(getFeatureType()) -
+			std::max(0, plotDistance(this, pCityPlot) - 2) * 5);
 
-	*ppCity = getWorkingCity();
-
-	if (*ppCity == NULL)
-		*ppCity = GC.getMap().findCity(getX(), getY(), NO_PLAYER, eTeam, false);
-
-	if (*ppCity == NULL)
-		return 0;
-
-	int iProduction = (GC.getInfo(eBuild).getFeatureProduction(getFeatureType()) - (std::max(0, (plotDistance(getX(), getY(), (*ppCity)->getX(), (*ppCity)->getY()) - 2)) * 5));
-
-	iProduction *= std::max(0, (GET_PLAYER((*ppCity)->getOwner()).getFeatureProductionModifier() + 100));
+	iProduction *= std::max(0, GET_PLAYER(eCityOwner).getFeatureProductionModifier() + 100);
 	iProduction /= 100;
 
 	iProduction *= GC.getInfo(GC.getGame().getGameSpeedType()).getFeatureProductionPercent();
@@ -2092,7 +2106,7 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** pp
 	static int const iDIFFERENT_TEAM_FEATURE_PRODUCTION_PERCENT = GC.getDefineINT("DIFFERENT_TEAM_FEATURE_PRODUCTION_PERCENT");
 	// </advc.opt>
 	iProduction *= std::min(100, iBASE_FEATURE_PRODUCTION_PERCENT +
-			iFEATURE_PRODUCTION_PERCENT_MULTIPLIER * (*ppCity)->getPopulation());
+			iFEATURE_PRODUCTION_PERCENT_MULTIPLIER * iPopulation);
 	iProduction /= 100;
 
 	if (getTeam() != eTeam)
@@ -5353,7 +5367,6 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	if (!isPotentialCityWork())
 		return 0;
 
-	bool bCity = false;
 	PlayerTypes ePlayer;
 	ImprovementTypes eImprovement;
 	RouteTypes eRoute;
@@ -5385,23 +5398,6 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 
 	if (ePlayer != NO_PLAYER)
 	{
-		CvCity* pCity = getPlotCity();
-		if (pCity != NULL)
-		{
-			if (!bDisplay || pCity->isRevealed(GC.getGame().getActiveTeam(), false))
-			{
-				CvYieldInfo const& kYield = GC.getInfo(eYield);
-				iYield += kYield.getCityChange();
-				if (kYield.getPopulationChangeDivisor() != 0)
-				{
-					iYield += ((pCity->getPopulation() +
-						kYield.getPopulationChangeOffset()) /
-						kYield.getPopulationChangeDivisor());
-				}
-				bCity = true;
-			}
-		}
-
 		if (isWater() && !isImpassable())
 		{
 			iYield += GET_PLAYER(ePlayer).getSeaPlotYield(eYield);
@@ -5416,16 +5412,21 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 		if (isRiver() && !isImpassable())
 		{
 			CvCity* pWorkingCity = getWorkingCity();
-			if (NULL != pWorkingCity)
+			if (pWorkingCity != NULL)
 			{
 				if (!bDisplay || pWorkingCity->isRevealed(GC.getGame().getActiveTeam(), false))
 					iYield += pWorkingCity->getRiverPlotYield(eYield);
 			}
 		}
-	}
 
-	if (bCity)
-		iYield = std::max(iYield, GC.getInfo(eYield).getMinCity());
+		CvCity* pCity = getPlotCity(); // advc: Moved down (no functional change intended)
+		if (pCity != NULL &&
+			(!bDisplay || pCity->isRevealed(GC.getGame().getActiveTeam(), false)))
+		{
+			// advc.031: Moved into new function
+			iYield += calculateCityPlotYieldChange(eYield, iYield, pCity->getPopulation());
+		}
+	}
 
 	// advc.016: Now factored into NatureYield
 	//iYield += GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
@@ -5448,6 +5449,23 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 
 	iYield = std::max(0, iYield);
 	return intToChar(iYield); // advc.enum
+}
+
+// advc.031: Cut from calculateYield
+int CvPlot::calculateCityPlotYieldChange(YieldTypes eYield, int iYield,
+	int iCityPopulation) const
+{
+	int const iOldYield = iYield;
+	CvYieldInfo const& kYield = GC.getInfo(eYield);
+	iYield += kYield.getCityChange();
+	if (kYield.getPopulationChangeDivisor() != 0)
+	{
+		iYield += ((iCityPopulation +
+				kYield.getPopulationChangeOffset()) /
+				kYield.getPopulationChangeDivisor());
+	}
+	iYield = std::max(iYield, GC.getInfo(eYield).getMinCity());
+	return iYield - iOldYield;
 }
 
 
@@ -5639,8 +5657,8 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 
 bool CvPlot::isBestAdjacentFound(PlayerTypes eIndex)
 {
-	CvPlayerAI::CvFoundSettings kFoundSet(GET_PLAYER(eIndex), false); // K-Mod
-	int iPlotValue = GET_PLAYER(eIndex).AI_foundValue_bulk(getX(), getY(), kFoundSet);
+	CitySiteEvaluator citySiteEval(GET_PLAYER(eIndex));
+	int iPlotValue = citySiteEval.evaluate(*this);
 	if (iPlotValue == 0)
 		return false;
 
@@ -5650,8 +5668,7 @@ bool CvPlot::isBestAdjacentFound(PlayerTypes eIndex)
 		if (pAdjacentPlot != NULL && pAdjacentPlot->isRevealed(TEAMID(eIndex)))
 		{
 			//if (pAdjacentPlot->getFoundValue(eIndex) >= getFoundValue(eIndex))
-			if (GET_PLAYER(eIndex).AI_foundValue_bulk(pAdjacentPlot->getX(),
-					pAdjacentPlot->getY(), kFoundSet) > iPlotValue)
+			if (citySiteEval.evaluate(*pAdjacentPlot) > iPlotValue)
 				return false;
 		}
 	}
@@ -8430,3 +8447,34 @@ bool CvPlot::isConnectSea() const
 	/* Checking for a connection between different water areas would be easy enough
 	   to do, but shortening paths within a water area can also be valuable. */
 } // </advc.121>
+
+/*  <advc.031c> For found value log; but could also find other uses, possibly through
+	optional call parameters. */
+wchar const* CvPlot::debugStr() const
+{
+	static std::wostringstream out; // Perhaps not needed; safer this way?
+	out.str(L"");
+	if (isCity())
+	{
+		out << getPlotCity()->getName().c_str();
+		return out.str().c_str();
+	}
+	out << L"[" << getX() << L"," << getY() << L"]";
+	if (isPeak())
+	{
+		out << L" " << L"Peak";
+		return out.str().c_str();
+	}
+	if (getBonusType() != NO_BONUS)
+		out << L" " << GC.getInfo(getBonusType()).getDescription();
+	if (isRiver())
+		out << L" River";
+	out << L" " << GC.getInfo(getTerrainType()).getDescription();
+	if (isHills())
+		out << L" Hill";
+	if (isFeature())
+		out << L" " << GC.getInfo(getFeatureType()).getDescription();
+	if (isOwned())
+		out << L" (" << GET_PLAYER(getOwner()).debugCivDescr() << L")";
+	return out.str().c_str();
+} // </advc.031c>

@@ -2101,9 +2101,9 @@ void CyPlayer::AI_updateFoundValues(bool bStartingLoc)
 		m_pPlayer->AI_updateFoundValues(bStartingLoc);
 }
 
-int CyPlayer::AI_foundValue(int iX, int iY, int iMinUnitRange/* = -1*/, bool bStartingLoc/* = false*/)
+int CyPlayer::AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStartingLoc/* = false*/)
 {
-	return m_pPlayer ? m_pPlayer->AI_foundValue(iX, iY, iMinUnitRange, bStartingLoc) : -1;
+	return m_pPlayer ? m_pPlayer->AI_foundValue(iX, iY, iMinRivalRange, bStartingLoc) : -1;
 }
 
 bool CyPlayer::AI_isFinancialTrouble()

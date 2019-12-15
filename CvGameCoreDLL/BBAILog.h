@@ -6,7 +6,9 @@
 // AI decision making logging
 
 /*  advc.mak: Uncomment to enable BBAI logging. NB: Should use this mostly in
-	Debug mode b/c of K-Mod's CvPlayer::concealUnknownCivs. */
+	Debug mode b/c of K-Mod's CvPlayer::concealUnknownCivs. (Tbd.: Should
+	replace CvPlayer::getName and getCivilization{Short}Description calls
+	in logBBAI arguments with CvPlayer::debugName, debugCivDescr. */
 //#define LOG_AI
 // Log levels:
 // 0 - None
@@ -30,6 +32,16 @@
 #define gMapLogLevel		0 // K-Mod
 #define gDealCancelLogLevel 0 // advc.133
 #endif
+
+// <advc.031c>
+//#define LOG_FOUND_VALUE
+#ifdef LOG_FOUND_VALUE
+#define LOG_AI
+#define gFoundLogLevel 1
+#undef gPlayerLogLevel
+// Helpful as it logs the names of new cities
+#define gPlayerLogLevel	1
+#endif // </advc.031c>
 
 void logBBAI(TCHAR* format, ... );
 // <advc.133>

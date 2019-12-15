@@ -477,7 +477,7 @@ public:
 	int getEventTriggerWeight(int /*EventTriggerTypes*/ eTrigger);
 
 	void AI_updateFoundValues(bool bStartingLoc);
-	int AI_foundValue(int iX, int iY, int iMinUnitRange/* = -1*/, bool bStartingLoc/* = false*/);
+	int AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStartingLoc/* = false*/);
 	bool AI_isFinancialTrouble();
 	// advc.104l: Moved definition into .cpp file
 	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer); // K-Mod

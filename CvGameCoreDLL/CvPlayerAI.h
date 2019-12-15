@@ -114,30 +114,12 @@ public:
 	int AI_commerceWeight(CommerceTypes eCommerce, const CvCityAI* pCity = NULL) const;
 	void AI_updateCommerceWeights(); // K-Mod
 
-	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;		// Exposed to Python
-	// K-Mod. (note, I also changed AI_foundValue to return short instead of int)
-	struct CvFoundSettings
-	{
-		CvFoundSettings(const CvPlayerAI& kPlayer, bool bStartingLoc);
-		int iBarbDiscouragedRange; // advc.300
-		int iMinRivalRange;
-		bool bStartingLoc;
-		int iClaimThreshold; // culture required to pop the 2nd borders. (from original bts)
-
-		// some trait information that will influence where we settle
-		int iGreed; // a number from the original bts code.
-		bool bEasyCulture; // easy for us to pop the culture to the 2nd border
-		bool bAmbitious; // expectation of taking foreign land, either by culture or by force
-		bool bFinancial; // more value for rivers
-		bool bDefensive; // more value for settlings on hills
-		bool bSeafaring; // special affection for coast cities due to unique building or unit.
-		bool bExpansive; // willing to place cities further apart. (not based on the expansive trait)
-		bool bAllSeeing; // doesn't need vision of a plot to know what's there.
-		bool bDebug; // advc.007: Ignore other city sites; not: AllSeeing
-	};
-	short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const;
-	// K-Mod end
 	double AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b
+	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;		// Exposed to Python
+	// advc: Replaced by the CitySiteEvaluator class
+	//struct CvFoundSettings { ... } // K-Mod
+	//short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const; // K-Mod
+	//int AI_countDeadlockedBonuses(CvPlot const* pPlot) const;
 
 	bool AI_isAreaAlone(CvArea* pArea) const;
 	bool AI_isCapitalAreaAlone() const;
@@ -484,10 +466,6 @@ public:
 
 	void AI_nowHasTech(TechTypes eTech);
 
-	int AI_countDeadlockedBonuses(CvPlot const* pPlot) const;
-	// <advc.052>
-	bool AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& kCityPlot,
-			int iMinRange) const; // </advc.052>
 	//int AI_goldToUpgradeAllUnits(int iExpThreshold = 0) const;
 	// K-Mod
 	inline int AI_getGoldToUpgradeAllUnits() const { return m_iUpgradeUnitsCachedGold; }
@@ -811,6 +789,7 @@ protected:
 	void AI_doEnemyUnitData();
 	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
 	void AI_setHumanDisabled(bool bDisabled); // advc.127
+	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
 
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI

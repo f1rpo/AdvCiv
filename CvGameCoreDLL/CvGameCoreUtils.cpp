@@ -254,7 +254,8 @@ void applyColorToString(CvWString& s, char const* szColor, bool bLink)
 /*  <advc> Tbd.: Take into account the locale - perhaps through
 	boost::locale::conv - and/ or check for characters that can't be narrowed.
 	So far, it's the same code that CvInitCore::refreshCustomMapOptions had
-	been using. */
+	been using. Many logBBAI calls also convert from wide to narrow strings
+	(through the %S format specifier and _vsnprintf - not sure if that's safer). */
 void narrowUnsafe(CvWString const& szWideString, CvString& szNarrowString)
 {
 	szNarrowString = CvString(szWideString);

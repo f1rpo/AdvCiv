@@ -2740,23 +2740,26 @@ void CvPlayer::setSavingReplay(bool b)
 	m_bSavingReplay = b;
 } // </advc.106i>
 
-
-const wchar* CvPlayer::getName(uint uiForm) const
+// advc.007: bForceReveal param added
+const wchar* CvPlayer::getName(bool bForceReveal, uint uiForm) const
 {
 	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() ||
-			(GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
-			GC.getGame().getGameState() == GAMESTATE_ON))
+		(GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
+		GC.getGame().getGameState() == GAMESTATE_ON))
 	{
 		//return GC.getInfo(getLeaderType()).getDescription(uiForm);
 		// K-Mod. Conceal the leader name of unmet players.
-		if (!concealUnknownCivs() || GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
+		if (bForceReveal || !concealUnknownCivs() ||
+			GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
+		{
 			return GC.getInfo(getLeaderType()).getDescription(uiForm);
+		}
 		else
 		{
-			static CvWString string = gDLL->getText("TXT_KEY_UNKNOWN"); // hack to stop the string from going out of scope.
-			return string;
-		}
-		// K-Mod end
+			// hack to stop the string from going out of scope.
+			static CvWString szUnknown = gDLL->getText("TXT_KEY_UNKNOWN");
+			return szUnknown;
+		} // K-Mod end
 	}
 	else
 	{	// <advc.106i>
@@ -2780,11 +2783,13 @@ const wchar* CvPlayer::getName(uint uiForm) const
 // K-Mod. Player name to be used in replay
 const wchar* CvPlayer::getReplayName(uint uiForm) const
 {
-	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() || (GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() && GC.getGame().getGameState() == GAMESTATE_ON))
+	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() ||
+			(GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
+			GC.getGame().getGameState() == GAMESTATE_ON))
 		return GC.getInfo(getLeaderType()).getDescription(uiForm);
 	return GC.getInitCore().getLeaderName(getID(), uiForm);
-}
-// K-Mod end
+} // K-Mod end
+
 
 const wchar* CvPlayer::getNameKey() const
 {
@@ -2811,85 +2816,55 @@ const wchar* CvPlayer::getCivilizationDescription(uint uiForm) const
 	// K-Mod end
 
 	if (GC.getInitCore().getCivDescription(getID(), uiForm).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getDescription(uiForm);
-	}
-	else
-	{
-		return GC.getInitCore().getCivDescription(getID(), uiForm);
-	}
+	return GC.getInitCore().getCivDescription(getID(), uiForm);
 }
 
 
 const wchar* CvPlayer::getCivilizationDescriptionKey() const
 {
 	if (GC.getInitCore().getCivDescriptionKey(getID()).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getTextKeyWide();
-	}
-	else
-	{
-		return GC.getInitCore().getCivDescriptionKey(getID());
-	}
+	return GC.getInitCore().getCivDescriptionKey(getID());
 }
 
-
-const wchar* CvPlayer::getCivilizationShortDescription(uint uiForm) const
+// advc.007: bForceReveal param added
+const wchar* CvPlayer::getCivilizationShortDescription(bool bForceReveal, uint uiForm) const
 {
 	// K-Mod. Conceal the civilization of unmet players.
-	if (concealUnknownCivs() && !GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
+	if (!bForceReveal && concealUnknownCivs() &&
+		!GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
 	{
-		static CvWString string = gDLL->getText("TXT_KEY_UNKNOWN"); // hack to stop the string from going out of scope.
-		return string;
-	}
-	// K-Mod end
+		static CvWString szUnknown = gDLL->getText("TXT_KEY_UNKNOWN");
+		return szUnknown;
+	} // K-Mod end
 
 	if (GC.getInitCore().getCivShortDesc(getID(), uiForm).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getShortDescription(uiForm);
-	}
-	else
-	{
-		return GC.getInitCore().getCivShortDesc(getID(), uiForm);
-	}
+	return GC.getInitCore().getCivShortDesc(getID(), uiForm);
 }
 
 
 const wchar* CvPlayer::getCivilizationShortDescriptionKey() const
 {
 	if (GC.getInitCore().getCivShortDescKey(getID()).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getShortDescriptionKey();
-	}
-	else
-	{
-		return GC.getInitCore().getCivShortDescKey(getID());
-	}
+	return GC.getInitCore().getCivShortDescKey(getID());
 }
 
 
 const wchar* CvPlayer::getCivilizationAdjective(uint uiForm) const
 {
 	if (GC.getInitCore().getCivAdjective(getID(), uiForm).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getAdjective(uiForm);
-	}
-	else
-	{
-		return GC.getInitCore().getCivAdjective(getID(), uiForm);
-	}
+	return GC.getInitCore().getCivAdjective(getID(), uiForm);
 }
 
 const wchar* CvPlayer::getCivilizationAdjectiveKey() const
 {
 	if (GC.getInitCore().getCivAdjectiveKey(getID()).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getAdjectiveKey();
-	}
-	else
-	{
-		return GC.getInitCore().getCivAdjectiveKey(getID());
-	}
+	return GC.getInitCore().getCivAdjectiveKey(getID());
 }
 
 
@@ -5255,6 +5230,9 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 {
 	if (!canFound(iX, iY))
 		return;
+	// <advc.031c>
+	if (gFoundLogLevel > 0 && !isHuman())
+		AI().logFoundValue(iX, iY); // </advc.031c>
 
 	CvCity* pCity = initCity(iX, iY, true, true);
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
@@ -7679,8 +7657,13 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 	}
 	else
 	{
-		m_iStartingX = pNewValue->getX();
-		m_iStartingY = pNewValue->getY();
+		int iX = pNewValue->getX();
+		int iY = pNewValue->getY();
+		// <advc.031c>
+		if (gFoundLogLevel > 0 && !isHuman())
+			AI().logFoundValue(iX, iY, true); // </advc.031c>
+		m_iStartingX = iX;
+		m_iStartingY = iY;
 
 		getStartingPlot()->area()->changeNumStartingPlots(1);
 

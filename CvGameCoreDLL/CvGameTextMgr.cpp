@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvAI.h"
+#include "CitySiteEvaluator.h"
 #include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"
 #include "CvInfo_All.h"
@@ -6077,9 +6078,9 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			int iActualFoundValue = kPlot.getFoundValue(ePlayer, /* advc.052: */ true);
 			//int iCalcFoundValue = kPlayer.AI_foundValue(x, y, -1, false);
 			// <advc.007>
-			CvPlayerAI::CvFoundSettings fset(kLoopPlayer, false);
-			fset.bDebug = true;
-			int iCalcFoundValue = kLoopPlayer.AI_foundValue_bulk(x, y, fset);
+			CitySiteEvaluator citySiteEval(kLoopPlayer);
+			citySiteEval.setDebug(true);
+			int iCalcFoundValue = citySiteEval.evaluate(x, y);
 			int iStartingFoundValue = 0;
 			// Gets in the way of debugging bStartingLoc=false </advc.007>
 					//=kPlayer.AI_foundValue(x, y, -1, true);
@@ -6124,13 +6125,12 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 							kLoopPlayer.AI_getMinFoundValue());
 					szString.append(szTempBuffer);
 				}
-
-				int iDeadlockCount = kLoopPlayer.AI_countDeadlockedBonuses(&kPlot);
-				if (iDeadlockCount > 0)
-				{
+				// advc: Moved to AIFoundValue class; difficult to access that from here.
+				/*int iDeadlockCount = kLoopPlayer.AI_countDeadlockedBonuses(&kPlot);
+				if (iDeadlockCount > 0) {
 					szTempBuffer.Format(L", " SETCOLR L"d=%d" ENDCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT"), iDeadlockCount);
 					szString.append(szTempBuffer);
-				}
+				}*/
 
 				if (kLoopPlayer.AI_isPlotCitySite(kPlot))
 				{
@@ -6138,7 +6138,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 					szString.append(szTempBuffer);
 				}
 
-				if ((iBestAreaFoundValue > 0) || (iNumAreaCitySites > 0))
+				if (iBestAreaFoundValue > 0 || iNumAreaCitySites > 0)
 				{
 					int iBestFoundValue = kLoopPlayer.findBestFoundValue();
 
@@ -17262,12 +17262,12 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 	{
 		szBuffer.append(CvWString::format(SETCOLR SEPARATOR NEWLINE, TEXT_COLOR("COLOR_LIGHT_GREY")));
 		szBuffer.append(CvWString::format(L"id=%d\n", eThisPlayer)); // advc.007
-		CvPlayerAI::CvFoundSettings kFoundSet(kPlayer, false);
+		CitySiteEvaluator citySiteEval(kPlayer);
 
 		bool bFirst = true;
 
 #define trait_info(x) do { \
-	if (kFoundSet.b##x) \
+	if (citySiteEval.is##x##()) \
 	{ \
 		szBuffer.append(CvWString::format(L"%s"L#x, bFirst? L"" : L", ")); \
 		bFirst = false; \
@@ -17278,7 +17278,7 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 		trait_info(Defensive);
 		trait_info(EasyCulture);
 		trait_info(Expansive);
-		trait_info(Financial);
+		trait_info(ExtraCommerceThreshold); // advc.031c: Renamed from "Financial"
 		trait_info(Seafaring);
 
 #undef trait_info

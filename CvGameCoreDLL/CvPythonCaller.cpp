@@ -1219,6 +1219,23 @@ CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName
 	return szResult;
 } // </advc.004>
 
+// <advc.108>
+bool CvPythonCaller::isAnyCustomMapOptionSetTo(CvWString szTranslatedDesc) const
+{
+	CvString szMapScriptNameNarrow;
+	::narrowUnsafe(GC.getInitCore().getMapScriptName(), szMapScriptNameNarrow);
+	for (int i = 0; i < GC.getMap().getNumCustomMapOptions(); i++)
+	{
+		CustomMapOptionTypes eOptionValue = GC.getInitCore().getCustomMapOption(i);
+		CvWString szOptionDescr(customMapOptionDescription(
+				szMapScriptNameNarrow.c_str(), i, eOptionValue));
+		if (szOptionDescr == szTranslatedDesc)
+			return true;
+	}
+	return false;
+} // </advc.108>
+
+
 void CvPythonCaller::mapGridDimensions(WorldSizeTypes eWorldSize, int& iWidth, int& iHeight) const
 {
 	std::vector<int> iiReturn;
