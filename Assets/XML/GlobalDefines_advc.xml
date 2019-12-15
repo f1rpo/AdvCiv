@@ -241,7 +241,9 @@
 	<!-- [advc.108]
 		 If set to 1 or greater, starting plots are improved ("normalized") as
 		 aggressively as in BtS. 0 or less (recommended) means that normalization
-		 is toned down (toned down only a little bit in multiplayer). -->
+		 is toned down (toned down only a little bit in multiplayer).
+		 If the "Balanced" map option is set (not all maps have one), then
+		 normalization works as in BtS and this XML value is ignored. -->
 	<Define>
         <DefineName>NORMALIZE_STARTPLOTS_AGGRESSIVELY</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
