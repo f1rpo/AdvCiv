@@ -20280,86 +20280,76 @@ void CvPlayer::launch(VictoryTypes eVictory)
 
 bool CvPlayer::isFreePromotion(UnitCombatTypes eUnitCombat, PromotionTypes ePromotion) const
 {
-	for (UnitCombatPromotionArray::const_iterator it = m_aFreeUnitCombatPromotions.begin(); it != m_aFreeUnitCombatPromotions.end(); ++it)
+	for (size_t i = 0; i < m_aFreeUnitCombatPromotions.size(); i++)
 	{
-		if (it->first == eUnitCombat && it->second == ePromotion)
+		if (m_aFreeUnitCombatPromotions[i].first == eUnitCombat &&
+			m_aFreeUnitCombatPromotions[i].second == ePromotion)
 		{
 			return true;
 		}
 	}
-
 	return false;
 }
 
 void CvPlayer::setFreePromotion(UnitCombatTypes eUnitCombat, PromotionTypes ePromotion, bool bFree)
 {
-	for (UnitCombatPromotionArray::iterator it = m_aFreeUnitCombatPromotions.begin(); it != m_aFreeUnitCombatPromotions.end(); ++it)
+	for (UnitCombatPromotionArray::iterator it = m_aFreeUnitCombatPromotions.begin();
+		it != m_aFreeUnitCombatPromotions.end(); ++it)
 	{
 		if (it->first == eUnitCombat && it->second == ePromotion)
 		{
 			if (!bFree)
-			{
 				m_aFreeUnitCombatPromotions.erase(it);
-			}
 			return;
 		}
 	}
-
 	if (bFree)
-	{
 		m_aFreeUnitCombatPromotions.push_back(std::make_pair(eUnitCombat, ePromotion));
-	}
 }
 
 bool CvPlayer::isFreePromotion(UnitClassTypes eUnitClass, PromotionTypes ePromotion) const
 {
-	for (UnitClassPromotionArray::const_iterator it = m_aFreeUnitClassPromotions.begin(); it != m_aFreeUnitClassPromotions.end(); ++it)
+	for (size_t i = 0; i < m_aFreeUnitClassPromotions.size(); i++)
 	{
-		if (it->first == eUnitClass && it->second == ePromotion)
+		if (m_aFreeUnitClassPromotions[i].first == eUnitClass &&
+			m_aFreeUnitClassPromotions[i].second == ePromotion)
 		{
 			return true;
 		}
 	}
-
 	return false;
 }
 
 void CvPlayer::setFreePromotion(UnitClassTypes eUnitClass, PromotionTypes ePromotion, bool bFree)
 {
-	for (UnitClassPromotionArray::iterator it = m_aFreeUnitClassPromotions.begin(); it != m_aFreeUnitClassPromotions.end(); ++it)
+	for (UnitClassPromotionArray::iterator it = m_aFreeUnitClassPromotions.begin();
+		it != m_aFreeUnitClassPromotions.end(); ++it)
 	{
 		if (it->first == eUnitClass && it->second == ePromotion)
 		{
 			if (!bFree)
-			{
 				m_aFreeUnitClassPromotions.erase(it);
-			}
 			return;
 		}
 	}
-
 	if (bFree)
-	{
 		m_aFreeUnitClassPromotions.push_back(std::make_pair(eUnitClass, ePromotion));
-	}
 }
 
 PlayerVoteTypes CvPlayer::getVote(int iId) const
 {
-	for (std::vector< std::pair<int, PlayerVoteTypes> >::const_iterator it = m_aVote.begin(); it != m_aVote.end(); ++it)
+	for (size_t i = 0; i < m_aVote.size(); i++)
 	{
-		if (it->first == iId)
-		{
-			return (it->second);
-		}
+		if (m_aVote[i].first == iId)
+			return m_aVote[i].second;
 	}
-
 	return NO_PLAYER_VOTE;
 }
 
 void CvPlayer::setVote(int iId, PlayerVoteTypes ePlayerVote)
 {
-	for (std::vector< std::pair<int, PlayerVoteTypes> >::iterator it = m_aVote.begin(); it != m_aVote.end(); ++it)
+	for (std::vector<std::pair<int,PlayerVoteTypes> >::
+		iterator it = m_aVote.begin(); it != m_aVote.end(); ++it)
 	{
 		if (it->first == iId)
 		{
@@ -20374,48 +20364,35 @@ void CvPlayer::setVote(int iId, PlayerVoteTypes ePlayerVote)
 			return;
 		}
 	}
-
 	if (ePlayerVote != NO_PLAYER_VOTE)
-	{
 		m_aVote.push_back(std::make_pair(iId, ePlayerVote));
-	}
 }
 
 int CvPlayer::getUnitExtraCost(UnitClassTypes eUnitClass) const
 {
-	for (std::vector< std::pair<UnitClassTypes, int> >::const_iterator it = m_aUnitExtraCosts.begin(); it != m_aUnitExtraCosts.end(); ++it)
+	for (size_t i = 0; i < m_aUnitExtraCosts.size(); i++)
 	{
-		if (it->first == eUnitClass)
-		{
-			return (it->second);
-		}
+		if (m_aUnitExtraCosts[i].first == eUnitClass)
+			return m_aUnitExtraCosts[i].second;
 	}
-
 	return 0;
 }
 
 void CvPlayer::setUnitExtraCost(UnitClassTypes eUnitClass, int iCost)
 {
-	for (std::vector< std::pair<UnitClassTypes, int> >::iterator it = m_aUnitExtraCosts.begin(); it != m_aUnitExtraCosts.end(); ++it)
+	for (std::vector<std::pair<UnitClassTypes,int> >::
+		iterator it = m_aUnitExtraCosts.begin(); it != m_aUnitExtraCosts.end(); ++it)
 	{
 		if (it->first == eUnitClass)
 		{
 			if (iCost == 0)
-			{
 				m_aUnitExtraCosts.erase(it);
-			}
-			else
-			{
-				it->second = iCost;
-			}
+			else it->second = iCost;
 			return;
 		}
 	}
-
 	if (iCost != 0)
-	{
 		m_aUnitExtraCosts.push_back(std::make_pair(eUnitClass, iCost));
-	}
 }
 
 // CACHE: cache frequently used values
@@ -20475,55 +20452,36 @@ int CvPlayer::getVotes(VoteTypes eVote, VoteSourceTypes eVoteSource) const
 
 	ReligionTypes eReligion = GC.getGame().getVoteSourceReligion(eVoteSource);
 
-	if (NO_VOTE == eVote)
+	if (eVote == NO_VOTE)
 	{
-		if (NO_RELIGION != eReligion)
-		{
+		if (eReligion != NO_RELIGION)
 			iVotes = getReligionPopulation(eReligion);
-		}
-		else
-		{
-			iVotes = getTotalPopulation();
-		}
+		else iVotes = getTotalPopulation();
 	}
 	else
 	{
 		if (!GC.getInfo(eVote).isVoteSourceType(eVoteSource))
-		{
 			return 0;
-		}
 
 		if (GC.getInfo(eVote).isCivVoting())
 		{
-			if (NO_RELIGION == eReligion || getHasReligionCount(eReligion) > 0)
-			{
+			if (eReligion == NO_RELIGION || getHasReligionCount(eReligion) > 0)
 				iVotes = 1;
-			}
 		}
 		else if (GC.getInfo(eVote).isCityVoting())
 		{
-			if (NO_RELIGION != eReligion)
-			{
+			if (eReligion != NO_RELIGION)
 				iVotes = getHasReligionCount(eReligion);
-			}
-			else
-			{
-				iVotes = getNumCities();
-			}
+			else iVotes = getNumCities();
 		}
 		else
 		{
-			if (NO_RELIGION == eReligion)
-			{
+			if (eReligion == NO_RELIGION)
 				iVotes = getTotalPopulation();
-			}
-			else
-			{
-				iVotes = getReligionPopulation(eReligion);
-			}
+			else iVotes = getReligionPopulation(eReligion);
 		}
 
-		if (NO_RELIGION != eReligion && getStateReligion() == eReligion)
+		if (eReligion != NO_RELIGION && getStateReligion() == eReligion)
 		{
 			iVotes *= (100 + GC.getInfo(eVote).getStateReligionVotePercent());
 			iVotes /= 100;
@@ -20533,131 +20491,96 @@ int CvPlayer::getVotes(VoteTypes eVote, VoteSourceTypes eVoteSource) const
 	return iVotes;
 }
 
-bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
+bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const  // advc: style changes
 {
 	CvTeam& kOurTeam = GET_TEAM(getTeam());
-	CvGame const& g = GC.getGame(); // advc
-	if (NO_PLAYER != kData.ePlayer)
+	TeamTypes eSecretaryGeneral = GC.getGame().getSecretaryGeneral(eVoteSource);
+	if (kData.ePlayer != NO_PLAYER)
 	{
-		if (!kOurTeam.isHasMet(GET_PLAYER(kData.ePlayer).getTeam()))
-		{
+		if (!kOurTeam.isHasMet(TEAMID(kData.ePlayer)))
 			return false;
-		}
 	}
-	CvVoteInfo const& kVote = GC.getInfo(kData.eVote); // advc
+	CvVoteInfo const& kVote = GC.getInfo(kData.eVote);
 	if (kVote.isOpenBorders())
 	{
-		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
+		for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
-			if (GET_TEAM((TeamTypes)iTeam2).isVotingMember(eVoteSource))
-			{
-				if (!kOurTeam.isOpenBordersTrading() && !GET_TEAM((TeamTypes)iTeam2).isOpenBordersTrading())
-				{
-					return false;
-				}
-
-				if (kOurTeam.isAtWar((TeamTypes)iTeam2))
-				{
-					return false;
-				}
-			}
+			CvTeam const& kVotingMember = *it;
+			if (!kVotingMember.isVotingMember(eVoteSource))
+				continue;
+			if (!kOurTeam.isOpenBordersTrading() && !kVotingMember.isOpenBordersTrading())
+				return false;
+			if (kOurTeam.isAtWar(kVotingMember.getID()))
+				return false;
 		}
 	}
 	else if (kVote.isDefensivePact())
 	{
-		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
+		for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
-			if (GET_TEAM((TeamTypes)iTeam2).isVotingMember(eVoteSource))
+			CvTeam const& kVotingMember = *it;
+			if (!kVotingMember.isVotingMember(eVoteSource))
+				continue;
+			if (!kOurTeam.isDefensivePactTrading() && !kVotingMember.isDefensivePactTrading())
+				return false;
+			if ((kOurTeam.getNumWars() > 0 || kVotingMember.getNumWars() > 0) &&
+				// dlph.25: 'Sometimes defensive pact can be signed while at war'
+				GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) == 0)
 			{
-				if (!kOurTeam.isDefensivePactTrading() && !GET_TEAM((TeamTypes)iTeam2).isDefensivePactTrading())
-				{
-					return false;
-				}
-
-				if ((kOurTeam.getNumWars() > 0 || GET_TEAM((TeamTypes)iTeam2).getNumWars() > 0)
-						// dlph.25: 'Sometimes defensive pact can be signed while at war'
-						&& GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) == 0)
-				{
-					return false;
-				} // <dlph.25>
-				if(kOurTeam.isAtWar((TeamTypes)iTeam2)
-						/*  advc: Same additional restriction as for DP between
-							AI teams (dlph.3) */
-						|| !kOurTeam.allWarsShared((TeamTypes)iTeam2))
-					return false; // </dlph.25>
-				if (!kOurTeam.canSignDefensivePact((TeamTypes)iTeam2))
-				{
-					return false;
-				}
-			}
+				return false;
+			} // <dlph.25>
+			if(kOurTeam.isAtWar(kVotingMember.getID()) ||
+				// advc: Same additional restriction as for DP between AI teams (dlph.3)
+				!kOurTeam.allWarsShared(kVotingMember.getID()))
+			{
+				return false;
+			} // </dlph.25>
+			if (!kOurTeam.canSignDefensivePact(kVotingMember.getID()))
+				return false;
 		}
 	}
 	else if (kVote.isForcePeace())
 	{
-		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
-
-		if (kPlayer.getTeam() != getTeam())
+		if (kPlayer.getTeam() != getTeam() &&
+			kOurTeam.isAtWar(kPlayer.getTeam()))
 		{
-			if (kOurTeam.isAtWar(kPlayer.getTeam()))
+			CvTeam const& kOurMaster = GET_TEAM(getMasterTeam()); // advc.opt
+			if (kOurMaster.isVotingMember(eVoteSource) &&
+				!kOurMaster.canContact(kPlayer.getTeam()))
 			{
-				TeamTypes eMaster = getTeam();
-				for (int iMaster = 0; iMaster < MAX_CIV_TEAMS; ++iMaster)
-				{
-					if (iMaster != getID() && kOurTeam.isVassal((TeamTypes)iMaster))
-					{
-						if (GET_TEAM((TeamTypes)iMaster).isVotingMember(eVoteSource))
-						{
-							eMaster = (TeamTypes)iMaster;
-							break;
-						}
-					}
-				}
-
-				if (!GET_TEAM(eMaster).canContact(kPlayer.getTeam()))
-				{
-					return false;
-				}
+				return false;
 			}
 		}
 	}
 	else if (kVote.isForceWar())
 	{
-		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
-
 		if (!kOurTeam.isAtWar(kPlayer.getTeam()) &&
 			kOurTeam.isFullMember(eVoteSource)) // dlph.25/advc
 		{
-			TeamTypes eMaster = getTeam();
-			for (int iMaster = 0; iMaster < MAX_CIV_TEAMS; ++iMaster)
+			CvTeam const& kOurMaster = GET_TEAM(getMasterTeam());
+			if ((kOurMaster.isFullMember(eVoteSource) && // dlph.25/advc: was isVotingMember
+				!kOurMaster.canDeclareWar(kPlayer.getTeam()) &&
+				// <dlph.25/advc>
+				eSecretaryGeneral == kOurMaster.getID()) ||
+				!kOurMaster.canEventuallyDeclareWar(kPlayer.getTeam()))
+				// </advc.25/advc>
 			{
-				if (iMaster != getID() && kOurTeam.isVassal((TeamTypes)iMaster))
-				{	// dlph.25/advc: was isVotingMember
-					if (GET_TEAM((TeamTypes)iMaster).isFullMember(eVoteSource))
-					{
-						eMaster = (TeamTypes)iMaster;
-						break;
-					}
-				}
-			}
-			if ((!GET_TEAM(eMaster).canDeclareWar(kPlayer.getTeam()) &&
-					// <dlph.25/advc>
-					g.getSecretaryGeneral(eVoteSource) == eMaster) ||
-					!GET_TEAM(eMaster).canEventuallyDeclareWar(kPlayer.getTeam()))
-					// </advc.25/advc>
 				return false;
+			}
 		}
 	}
 	else if (kVote.isForceNoTrade())
 	{
-		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 		/*  <advc.130f> Don't allow players to propose resolutions that would cancel
 			deals with turnsToCancel > 0 */
-		if(g.getSecretaryGeneral(eVoteSource) == getTeam() &&
-				isAnyDealTooRecentToCancel(kPlayer.getTeam()))
-			return false; // </advc.130f>
+		if(eSecretaryGeneral == getTeam() &&
+			isAnyDealTooRecentToCancel(kPlayer.getTeam()))
+		{
+			return false;
+		} // </advc.130f>
 		if (!canStopTradingWithTeam(kPlayer.getTeam(), true))
 			return false;
 	}
@@ -20668,53 +20591,42 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 	} // <advc.178>
 	else if(kVote.isVictory() && !GC.getGame().isDiploVictoryValid())
 		return false; // </advc.178>
+
 	return true;
 }
 
 bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
 {
 	if (GC.getGame().getSecretaryGeneral(eVoteSource) == getTeam())
-	{
 		return false;
-	}
+
 	CvVoteInfo const& kVote = GC.getInfo(kData.eVote); // advc
 	// <dlph.25/advc> Kek-Mod just checks isAVassal
-	if(GET_TEAM(getTeam()).isCapitulated()
-			|| (isAVassal() && (kVote.isForceWar() || kVote.isForcePeace())))
+	if(GET_TEAM(getTeam()).isCapitulated() ||
+		(isAVassal() && (kVote.isForceWar() || kVote.isForcePeace())))
+	{
 		return false;
-	// </dlph.25/advc>
+	} // </dlph.25/advc>
 	if (kVote.isOpenBorders())
 	{
-		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
+		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> it(getTeam()); it.hasNext(); ++it)
 		{
-			CvTeam& kTeam = GET_TEAM((TeamTypes)iTeam);
-			if ((TeamTypes)iTeam != getTeam()) // kmodx: was (PlayerTypes)iTeam
-			{
-				if (kTeam.isVotingMember(eVoteSource))
-				{
-					if (!kTeam.isOpenBorders(getTeam()))
-					{
-						return true;
-					}
-				}
-			}
+			CvTeam& kVotingMember = *it;
+			if (!kVotingMember.isVotingMember(eVoteSource))
+				continue;
+			if (!kVotingMember.isOpenBorders(getTeam()))
+				return true;
 		}
 	}
 	else if (kVote.isDefensivePact())
 	{
-		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
+		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> it(getTeam()); it.hasNext(); ++it)
 		{
-			CvTeam& kTeam = GET_TEAM((TeamTypes)iTeam);
-			if ((TeamTypes)iTeam != getTeam()) // kmodx
-			{
-				if (kTeam.isVotingMember(eVoteSource))
-				{
-					if (!kTeam.isDefensivePact(getTeam()))
-					{
-						return true;
-					}
-				}
-			}
+			CvTeam& kVotingMember = *it;
+			if (!kVotingMember.isVotingMember(eVoteSource))
+				continue;
+			if (!kVotingMember.isDefensivePact(getTeam()))
+				return true;
 		}
 	}
 	else if (kVote.isForceNoTrade())
@@ -20723,10 +20635,10 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	}
 	else if (kVote.isForceWar())
 	{
-		if (!::atWar(getTeam(), TEAMID(kData.ePlayer))
-				// dlph.25: 'Cannot defy war declaration against itself'
-				&& GET_TEAM(kData.ePlayer).getMasterTeam() != getMasterTeam()
-				&& isFullMember(eVoteSource)) // advc
+		if (!::atWar(getTeam(), TEAMID(kData.ePlayer)) &&
+			// dlph.25: 'Cannot defy war declaration against itself'
+			GET_TEAM(kData.ePlayer).getMasterTeam() != getMasterTeam() &&
+			isFullMember(eVoteSource)) // advc
 		{
 			// BETTER_BTS_AI_MOD, 12/31/08, jdog5000: Vassals can't defy declarations of war
 			//if (!GET_TEAM(getTeam()).isAVassal()) // dlph.25: Vassals already handled
@@ -20735,21 +20647,17 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	}
 	else if (kVote.isForcePeace())
 	{
-		if (GET_PLAYER(kData.ePlayer).getTeam() == getTeam())
-		{
+		if (TEAMID(kData.ePlayer) == getTeam())
 			return true;
-		}
 
-		if (::atWar(getTeam(), GET_PLAYER(kData.ePlayer).getTeam()))
-		{
+		if (::atWar(getTeam(), TEAMID(kData.ePlayer)))
 			return true;
-		}
 	}
 	else if (kVote.isAssignCity())
 	{
-		if (kData.ePlayer == getID()
-				// dlph.25: 'You can defy resolution giving you a city'
-				|| kData.eOtherPlayer == getID())
+		if (kData.ePlayer == getID() ||
+			// dlph.25: 'You can defy resolution giving you a city'
+			kData.eOtherPlayer == getID())
 		{
 			return true;
 		}
@@ -20790,26 +20698,20 @@ void CvPlayer::setEndorsedResolution(VoteSourceTypes eVoteSource, const VoteSele
 
 bool CvPlayer::isFullMember(VoteSourceTypes eVoteSource) const
 {
-	if (NO_RELIGION != GC.getGame().getVoteSourceReligion(eVoteSource))
+	if (GC.getGame().getVoteSourceReligion(eVoteSource) != NO_RELIGION)
 	{
 		if (getStateReligion() != GC.getGame().getVoteSourceReligion(eVoteSource))
-		{
 			return false;
-		}
 	}
 
-	if (NO_CIVIC != GC.getInfo(eVoteSource).getCivic())
+	if (GC.getInfo(eVoteSource).getCivic() != NO_CIVIC)
 	{
 		if (!isCivic((CivicTypes)GC.getInfo(eVoteSource).getCivic()))
-		{
 			return false;
-		}
 	}
 
 	if (!isLoyalMember(eVoteSource))
-	{
 		return false;
-	}
 
 	return isVotingMember(eVoteSource);
 }
@@ -20822,52 +20724,36 @@ bool CvPlayer::isVotingMember(VoteSourceTypes eVoteSource) const
 PlayerTypes CvPlayer::pickConqueredCityOwner(const CvCity& kCity) const
 {
 	PlayerTypes eBestPlayer = kCity.getLiberationPlayer(true);
-
-	if (NO_PLAYER != eBestPlayer)
+	if (eBestPlayer!= NO_PLAYER)
 	{
-		if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(eBestPlayer).getTeam()))
-		{
+		if (GET_TEAM(getTeam()).isVassal(TEAMID(eBestPlayer)))
 			return eBestPlayer;
-		}
 	}
-
 	return getID();
 }
 
 bool CvPlayer::canHaveTradeRoutesWith(PlayerTypes ePlayer) const
 {
 	CvPlayer& kOtherPlayer = GET_PLAYER(ePlayer);
-
 	if (!kOtherPlayer.isAlive())
-	{
 		return false;
-	}
-
 	if (getTeam() == kOtherPlayer.getTeam())
-	{
 		return true;
-	}
 	// <advc.124>
 	if(kOtherPlayer.isAnarchy())
 		return false; // </advc.124>
 
-	if (GET_TEAM(getTeam()).isFreeTrade(kOtherPlayer.getTeam()))
-	{
-		if (GET_TEAM(getTeam()).isVassal(kOtherPlayer.getTeam()))
-		{
-			return true;
-		}
+	if (!GET_TEAM(getTeam()).isFreeTrade(kOtherPlayer.getTeam()))
+		return false;
 
-		if (GET_TEAM(kOtherPlayer.getTeam()).isVassal(getTeam()))
-		{
-			return true;
-		}
+	if (GET_TEAM(getTeam()).isVassal(kOtherPlayer.getTeam()))
+		return true;
 
-		if (!isNoForeignTrade() && !kOtherPlayer.isNoForeignTrade())
-		{
-			return true;
-		}
-	}
+	if (GET_TEAM(kOtherPlayer.getTeam()).isVassal(getTeam()))
+		return true;
+
+	if (!isNoForeignTrade() && !kOtherPlayer.isNoForeignTrade())
+		return true;
 
 	return false;
 }
@@ -20877,11 +20763,8 @@ bool CvPlayer::canStealTech(PlayerTypes eTarget, TechTypes eTech) const
 	if (GET_TEAM(eTarget).isHasTech(eTech))
 	{
 		if (canResearch(eTech, /* K-Mod: */ false, true))
-		{
 			return true;
-		}
 	}
-
 	return false;
 }
 
@@ -20933,19 +20816,13 @@ bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) co
 bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 {
 	if (kUnit.getTeam() == getTeam())
-	{
 		return false;
-	}
 
 	if (kUnit.getUnitInfo().getProductionCost() <= 0)
-	{
 		return false;
-	}
 
 	if (!kUnit.plot()->isVisible(getTeam(), false))
-	{
 		return false;
-	}
 
 	return true;
 }
@@ -20953,21 +20830,15 @@ bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 {
 	if (!canSpyDestroyUnit(eTarget, kUnit))
-	{
 		return false;
-	}
 
 	// Can't buy units when at war
 	if (kUnit.isEnemy(getTeam()))
-	{
 		return false;
-	}
 
 	// Can't buy units if they are not in a legal plot
 	if (!GET_TEAM(getTeam()).canPeacefullyEnter(TEAMID(eTarget)))
-	{
 		return false;
-	}
 
 	for (CLLNode<IDInfo> const* pUnitNode = kUnit.plot()->headUnitNode(); pUnitNode != NULL;
 		pUnitNode = kUnit.plot()->nextUnitNode(pUnitNode))
@@ -20990,14 +20861,10 @@ bool CvPlayer::canSpyDestroyBuilding(PlayerTypes eTarget, BuildingTypes eBuildin
 {
 	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
 	if (kBuilding.getProductionCost() <= 0)
-	{
 		return false;
-	}
 
 	if (::isLimitedWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
-	{
 		return false;
-	}
 
 	return true;
 }
@@ -21006,37 +20873,26 @@ bool CvPlayer::canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) 
 {
 	CvProjectInfo& kProject = GC.getInfo(eProject);
 	if (kProject.getProductionCost() <= 0)
-	{
 		return false;
-	}
 
-	if (GET_TEAM(GET_PLAYER(eTarget).getTeam()).getProjectCount(eProject) <= 0)
-	{
+	if (GET_TEAM(eTarget).getProjectCount(eProject) <= 0)
 		return false;
-	}
 
 	if (::isWorldProject(eProject))
-	{
 		return false;
-	}
 
 	if (!kProject.isSpaceship())
-	{
 		return false;
-	}
 	else
 	{
 		VictoryTypes eVictory = (VictoryTypes)kProject.getVictoryPrereq();
-		if (NO_VICTORY != eVictory)
+		if (eVictory != NO_VICTORY)
 		{
 			// Can't destroy spaceship components if we have already launched
-			if (GET_TEAM(GET_PLAYER(eTarget).getTeam()).getVictoryCountdown(eVictory) >= 0)
-			{
+			if (GET_TEAM(eTarget).getVictoryCountdown(eVictory) >= 0)
 				return false;
-			}
 		}
 	}
-
 	return true;
 }
 
@@ -21100,17 +20956,16 @@ bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
 
 bool CvPlayer::canSpiesEnterBorders(PlayerTypes ePlayer) const
 {
-	for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
+	FOR_EACH_ENUM(EspionageMission)
 	{
-		if (GC.getInfo((EspionageMissionTypes)iMission).isNoActiveMissions() && GC.getInfo((EspionageMissionTypes)iMission).isPassive())
+		if (GC.getInfo(eLoopEspionageMission).isNoActiveMissions() &&
+			GC.getInfo(eLoopEspionageMission).isPassive())
 		{
-			if (GET_PLAYER(ePlayer).canDoEspionageMission((EspionageMissionTypes)iMission, getID(), NULL, -1, NULL))
-			{
+			if (GET_PLAYER(ePlayer).canDoEspionageMission(
+					eLoopEspionageMission, getID(), NULL, -1, NULL))
 				return false;
-			}
 		}
 	}
-
 	return true;
 }
 
@@ -21210,8 +21065,8 @@ UnitTypes CvPlayer::getTechFreeUnit(TechTypes eTech) const  // advc: style chang
 /*  Adds the yield and count for each trade route with eWithPlayer to the
 	int references (out parameters). */
 void CvPlayer::calculateTradeTotals(YieldTypes eIndex,
-		int& iDomesticYield, int& iDomesticRoutes, int& iForeignYield, int& iForeignRoutes,
-		PlayerTypes eWithPlayer) const
+	int& iDomesticYield, int& iDomesticRoutes, int& iForeignYield, int& iForeignRoutes,
+	PlayerTypes eWithPlayer) const
 {
 	FOR_EACH_CITY(pCity, *this)
 	{
