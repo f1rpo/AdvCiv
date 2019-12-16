@@ -903,7 +903,7 @@ void RiseFall::prepareForExtendedGame() {
 	}
 	else if(interludeCountdown < 0) {
 		// Score the current chapter b/c it's not counted under finished unscored
-		if(g.getWinner() != chapters[pos]->getCiv())
+		if(g.getWinner() != TEAMID(chapters[pos]->getCiv()))
 			chapters[pos]->score();
 		riseScore.freezeTotal(chapters);
 		chapters[pos]->setEndless(true);
@@ -1335,8 +1335,8 @@ bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const
 			node != NULL; node = humanReceives.next(node)) {
 		if(node->m_data.m_eItemType == TRADE_WAR) {
 			TeamTypes targetId = (TeamTypes)node->m_data.m_iData;
-			if(targetId == NO_PLAYER) {
-				FAssert(targetId != NO_PLAYER);
+			if(targetId == NO_TEAM) {
+				FAssert(targetId != NO_TEAM);
 				return false;
 			}
 			if(/*GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >

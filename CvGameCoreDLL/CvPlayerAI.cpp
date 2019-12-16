@@ -16264,7 +16264,7 @@ void CvPlayerAI::AI_processPeacetimeValue(PlayerTypes eIndex, int iChange,
 	{
 		CvTeamAI& t = GET_TEAM((TeamTypes)iI);
 		if(t.getID() != TEAMID(eIndex) && t.isAlive() &&
-			(eMaster == NO_TEAM || t.getID() != TEAMID(eMaster)) &&
+			(eMaster == NO_PLAYER || t.getID() != TEAMID(eMaster)) &&
 			t.isHasMet(TEAMID(eIndex))) // unoffical patch bugfix, by Sephi.
 		{
 			// <advc.130p>
@@ -25978,8 +25978,8 @@ bool CvPlayerAI::AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAtt
 	keep at CvPlayerAI. */
 bool CvPlayerAI::AI_disapprovesOfDoW(TeamTypes eAggressor, TeamTypes eVictim) const
 {
-	if(!isAlive() || isBarbarian() || isMinorCiv() || eAggressor == getID() ||
-			eVictim == getID())
+	if(!isAlive() || isBarbarian() || isMinorCiv() || eAggressor == getTeam() ||
+			eVictim == getTeam())
 		return false;
 	CvTeamAI const& kAggressor = GET_TEAM(eAggressor);
 	if(!kAggressor.isAlive() || kAggressor.isBarbarian() || kAggressor.isMinorCiv())

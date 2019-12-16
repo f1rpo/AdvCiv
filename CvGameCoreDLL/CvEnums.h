@@ -2248,5 +2248,55 @@ enum CityPlotTypes
 	LAST_CITY_PLOT = 20,
 ENUM_END(CityPlot, CITYPLOT)*/
 #define NUM_CITY_PLOTS (int)NUM_CITYPLOT_TYPES
+
+#define DO_FOR_EACH_FALSE_FRIEND(DO) \
+	DO(Player,Team) \
+	DO(PlayerOption,GameOption) \
+	DO(GameOption,MPOption) \
+	DO(GraphicOption,PlayerOption) \
+	DO(Yield,Commerce) \
+	DO(Direction,CardinalDirection) \
+	DO(Vote,VoteSource) \
+	DO(Religion,Corporation) \
+	DO(Civic,CivicOption) \
+	DO(Color,PlayerColor) \
+	DO(Build,Improvement) \
+	DO(Bonus,BonusClass) \
+	DO(Building,BuildingClass) \
+	DO(Building,SpecialBuilding) \
+	DO(BuildingClass,SpecialBuilding) \
+	DO(Building,Unit) \
+	DO(Unit,UnitClass) \
+	DO(Unit,UnitAI) \
+	DO(SpecialUnit,Unit) \
+	DO(SpecialUnit,UnitClass) \
+	DO(BuildingClass,UnitClass) \
+	DO(Project,Building) \
+	DO(Project,BuildingClass) \
+	DO(Project,Unit) \
+	DO(Project,UnitClass) \
+	DO(Event,EventTrigger) \
+	DO(Mission,EspionageMission)
+
+#define FORBID_COMPARISON_OPERATORS(EnumPrefix1, EnumPrefix2) \
+	bool operator==(EnumPrefix1##Types, EnumPrefix2##Types); \
+	bool operator!=(EnumPrefix1##Types, EnumPrefix2##Types); \
+	bool operator>(EnumPrefix1##Types, EnumPrefix2##Types); \
+	bool operator<(EnumPrefix1##Types, EnumPrefix2##Types); \
+	bool operator>=(EnumPrefix1##Types, EnumPrefix2##Types); \
+	bool operator<=(EnumPrefix1##Types, EnumPrefix2##Types);
+/*  ^No definition - so that these comparisons result in a linker error.
+	The linker error will say in which function the offending call occurs.
+	A compiler error would also provide a line number, but the compiler
+	can't tell if a global function has any call locations. */
+
+DO_FOR_EACH_FALSE_FRIEND(FORBID_COMPARISON_OPERATORS);
+#define FORBID_COMPARISON_OPERATORS_SWAPPED(EnumPrefix1, EnumPrefix2) \
+		FORBID_COMPARISON_OPERATORS(EnumPrefix2, EnumPrefix1)
+DO_FOR_EACH_FALSE_FRIEND(FORBID_COMPARISON_OPERATORS_SWAPPED);
+
+#undef DO_FOR_EACH_FALSE_FRIEND
+#undef FORBID_COMPARISON_OPERATORS
+#undef FORBID_COMPARISON_OPERATORS_SWAPPED
 // </advc.enum>
 #endif	// CVENUMS_h

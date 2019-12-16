@@ -630,7 +630,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 
 	if (!bOneLine)
 	{
-		if (pUnit->getOwner() == g.getActiveTeam()) // advc.007: Don't show rival spy test in Debug mode
+		if (pUnit->getTeam() == g.getActiveTeam()) // advc.007: Don't show rival spy test in Debug mode
 			setEspionageMissionHelp(szString, pUnit);
 
 		if (pUnit->cargoSpace() > 0)

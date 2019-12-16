@@ -1078,7 +1078,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 void UWAICache::reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
 		PlayerTypes sponsorId, TeamTypes targetId) {
 
-	if(targetId == NO_TEAM || sponsorId == NO_TEAM) {
+	if(targetId == NO_TEAM || sponsorId == NO_PLAYER) {
 		FAssert(false);
 		return;
 	}

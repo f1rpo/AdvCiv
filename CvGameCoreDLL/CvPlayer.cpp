@@ -20626,8 +20626,8 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 
-		if (!kOurTeam.isAtWar(kPlayer.getTeam())
-				&& kOurTeam.isFullMember(eVoteSource)) // dlph.25/advc
+		if (!kOurTeam.isAtWar(kPlayer.getTeam()) &&
+			kOurTeam.isFullMember(eVoteSource)) // dlph.25/advc
 		{
 			TeamTypes eMaster = getTeam();
 			for (int iMaster = 0; iMaster < MAX_CIV_TEAMS; ++iMaster)
@@ -20655,21 +20655,16 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 		/*  <advc.130f> Don't allow players to propose resolutions that would cancel
 			deals with turnsToCancel > 0 */
-		if(g.getSecretaryGeneral(eVoteSource) == getID() &&
+		if(g.getSecretaryGeneral(eVoteSource) == getTeam() &&
 				isAnyDealTooRecentToCancel(kPlayer.getTeam()))
 			return false; // </advc.130f>
 		if (!canStopTradingWithTeam(kPlayer.getTeam(), true))
-		{
 			return false;
-		}
-
 	}
 	else if (kVote.isAssignCity())
 	{
-		if (GET_TEAM(GET_PLAYER(kData.eOtherPlayer).getTeam()).isVassal(GET_PLAYER(kData.ePlayer).getTeam()))
-		{
+		if (GET_TEAM(kData.eOtherPlayer).isVassal(TEAMID(kData.ePlayer)))
 			return false;
-		}
 	} // <advc.178>
 	else if(kVote.isVictory() && !GC.getGame().isDiploVictoryValid())
 		return false; // </advc.178>

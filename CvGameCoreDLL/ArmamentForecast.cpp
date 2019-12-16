@@ -95,7 +95,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		bool peaceAssumedLoop = peaceScenario && ((m.isOnOurSide(tId) &&
 				m.isOnTheirSide(loopTeamId)) || (m.isOnOurSide(loopTeamId) &&
 				m.isOnTheirSide(tId))) &&
-				(tId != weId || !noWarVsExtra || loopTeamId != params.targetId());
+				(tId != TEAMID(weId) || !noWarVsExtra || loopTeamId != params.targetId());
 		/* Important to check warplan (not just war) when
 		   second-guessing preparations underway */
 		if(peaceAssumedLoop && t.AI_getWarPlan(loopTeamId) != NO_WARPLAN)
@@ -103,7 +103,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		/* True if simulation assumes a war between loopTeam and t to have
 		   already started, or if simulation assumes a war plan.
 		   Not true if already at war in the actual game (outside the simulation).*/
-		bool warAssumed = (allPartiesKnown || tId == weId) && (
+		bool warAssumed = (allPartiesKnown || tId == TEAMID(weId)) && (
 				(m.isOnOurSide(loopTeamId) && m.isOnTheirSide(tId, true)) ||
 				(m.isOnOurSide(tId) && m.isOnTheirSide(loopTeamId, true)));
 		if(peaceAssumedLoop || loopTeam.isAtWar(tId))

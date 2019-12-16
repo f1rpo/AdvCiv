@@ -1883,7 +1883,7 @@ void PreEmptiveWar::evaluate() {
 			/*  Ignore cities that their side gains from our human target
 				(to avoid dogpiling on human) */
 			TeamTypes targetId = params.targetId();
-			if(targetId != NO_TEAM && targetId != theyId && GET_TEAM(targetId).isHuman()) {
+			if(targetId != NO_TEAM && targetId != TEAMID(theyId) && GET_TEAM(targetId).isHuman()) {
 				CitySet const& conq = m->conqueredCities(civ.getID());
 				for(CitySetIter it = conq.begin(); it != conq.end(); it++) {
 					CvCity* c = UWAICache::City::cityById(*it);
