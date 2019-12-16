@@ -33,7 +33,7 @@ public:
 	void setDebug(bool b);
 	bool isDebug() const { return m_bDebug; }
 	// </advc.007>
-	int getGreed() const; // advc: Mostly obsolete
+	//int getGreed() const; // advc.031: Not used anymore
 	// (The comments below about the found settings are from K-Mod)
 	// culture required to pop the 2nd borders (as in BtS)
 	int getClaimThreshold() const { return m_iClaimThreshold; }
@@ -65,7 +65,6 @@ private:
 	int m_bDebug; // advc.007
 	bool m_bAllSeeing;
 	int m_iClaimThreshold;
-	int m_iGreed;
 	bool m_bEasyCulture;
 	bool m_bAmbitious;
 	bool m_bFinancial;
@@ -125,7 +124,7 @@ private:
 	short evaluate();
 	// Subroutines of evaluate ...
 	inline bool isHome(CvPlot const& p) const { return (&p == &kPlot); }
-	bool isSitePromising() const;
+	bool isSiteValid() const;
 	bool computeOverlap();
 	bool isPrioritizeAsFirstColony() const; // advc.040
 	int countBadTiles(int& iUnrevealed, int& iLand, int& iRevealedDecentLand) const;
@@ -161,14 +160,14 @@ private:
 	int sumUpPlotValues(std::vector<int>& aiPlotValues) const;
 	int evaluateSpecialYields(int const* aiSpecialYield, int iSpecialYieldTiles) const;
 	bool isTooManyTakenTiles(int iTaken, int iResourceValue, bool bLowValue) const;
-	double calculateFoodModifier(int iSpecialFoodPlus, int iSpecialFoodMinus,
-			int iGreenTiles) const;
 	int evaluateLongTermHealth(int& iHealthPercent) const;
 	int evaluateFeatureProduction(int iProduction) const;
 	int evaluateSeaAccess(bool bGoodFirstColony, double productionModifier,
 			int iLandTiles) const;
 	int evaluateDefense() const;
 	int adjustToStartingSurroundings(int iValue) const;
+	int adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
+			int iGreenTiles) const;
 	int adjustToProduction(int iValue, int iBaseProductionTimes100) const;
 	int adjustToBarbarianSurroundings(int iValue) const;
 	int adjustToCivSurroundings(int iValue, int iStealPercent) const;

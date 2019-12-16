@@ -26,15 +26,7 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 {
 	m_bEasyCulture = (kPlayer.getNumCities() <= 0); // advc.108: from MNAI (was =bStartingLoc)
 	m_bAllSeeing = (bStartingLoc || kPlayer.isBarbarian());
-	if (kPlayer.getAdvancedStartPoints() >= 0)
-		m_iGreed = 200;
-	/*  advc.031: Disable Greed except in Advanced Start. (Not sure if it's useful
-		for Advanced Start either.) In BtS, Greed had the role of bEasyCulture;
-		old comment: "Greedy founding means getting the best possible sites -
-		fitting maximum resources into the fat cross."
-		In K-Mod, it seems to be more about founding many cities,
-		although Creative trait still factors in ... */
-	else m_iGreed = 100;
+
 	CvLeaderHeadInfo const* pPersonality = NULL;
 	CvCivilization const& kCiv = kPlayer.getCivilization();
 
@@ -54,8 +46,6 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 				m_bEasyCulture = true;
 				if (pPersonality != NULL && pPersonality->getBasePeaceWeight() <= 5)
 					m_bAmbitious = true;
-				// advc.031: Disabled
-				//m_iGreed += 15 * kTrait.getCommerceChange(COMMERCE_CULTURE);
 			}
 			if (kTrait.getExtraYieldThreshold(YIELD_COMMERCE) > 0)
 				m_bFinancial = true;
@@ -80,9 +70,6 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 						GC.getInfo(eFoundUnit).getProductionTraits(eLoopTrait) &&
 						kPlayer.canTrain(eFoundUnit))
 					{
-						// advc.031: Disabled
-						/*m_iGreed += 20;
-						if (pPersonality != NULL && pPersonality->getMaxWarRand() <= 150)*/
 						m_bAmbitious = true;
 					}
 				}
@@ -214,12 +201,6 @@ void CitySiteEvaluator::setDebug(bool b)
 	m_bDebug = b;
 } // </advc.007>
 
-
-int CitySiteEvaluator::getGreed() const
-{
-	return m_iGreed;
-}
-
 // <advc.031c>
 short CitySiteEvaluator::evaluateWithLogging(int iX, int iY) const
 {
@@ -350,7 +331,7 @@ short AIFoundValue::evaluate()
 {
 	IFLOG logSite();
 
-	if (!isSitePromising() || !computeOverlap())
+	if (!isSiteValid() || !computeOverlap())
 	{
 		IFLOG logBBAI("Site disregarded");
 		return 0;
@@ -392,6 +373,8 @@ short AIFoundValue::evaluate()
 	std::vector<int> aiBonusCount(GC.getNumBonusInfos(), 0);
 	int iResourceValue = 0;
 	int aiSpecialYield[NUM_YIELD_TYPES] = {0, 0, 0}; // advc: Instead of individual variables
+	/*  advc (comment): So that we can tell whether the city
+		will be able to work its high-yield tiles */
 	int iSpecialFoodPlus = 0;
 	int iSpecialFoodMinus = 0;
 	int iSpecialYieldTiles = 0; // advc.031: Number of tiles with special yield
@@ -455,26 +438,27 @@ short AIFoundValue::evaluate()
 		}
 		// K-Mod note. This used to be called iTempValue.
 		int iPlotValue = 0;
-		int aiYield[NUM_YIELD_TYPES];
+		/*  advc: Renamed from aiYield for clarity. Improvement yields are only predicted
+			for resource plots (aiSpecialYield). */
+		int aiNatureYield[NUM_YIELD_TYPES];
 		FOR_EACH_ENUM(Yield)
 		{
-			aiYield[eLoopYield] = //p->getYield(eLoopYield);  // K-Mod replacement:
+			aiNatureYield[eLoopYield] = //p->getYield(eLoopYield);  // K-Mod replacement:
 					p.calculateNatureYield(eLoopYield, eTeam, !bPersistentFeature ||
 					bHome); // advc.031: City removes all features
 			// <advc.031> Replacing deleted K-Mod code
 			if (bHome)
 			{
-				aiYield[eLoopYield] += p.calculateCityPlotYieldChange(
-						eLoopYield, aiYield[eLoopYield], 1);
+				aiNatureYield[eLoopYield] += p.calculateCityPlotYieldChange(
+						eLoopYield, aiNatureYield[eLoopYield], 1);
 			} // </advc.031>
 		}
 		if (bHome)
 		{
-			iBaseProductionTimes100 += 100 * aiYield[YIELD_PRODUCTION];
-			iSpecialFoodPlus += std::max(0, aiYield[YIELD_FOOD] -
+			iBaseProductionTimes100 += 100 * aiNatureYield[YIELD_PRODUCTION];
+			iSpecialFoodPlus += std::max(0, aiNatureYield[YIELD_FOOD] -
 					GC.getFOOD_CONSUMPTION_PER_POPULATION());
-			/*adjustHomePlotYields(aiYield, eBonus, eBonusImprovement,
-						bPersistentFeature ? eFeature : NO_FEATURE);*/
+			// advc.031: K-Mod code deleted that had decreased home plot yields
 		}
 		else
 		{
@@ -495,14 +479,14 @@ short AIFoundValue::evaluate()
 				} // K-Mod end
 				// <advc.031>
 				if (kPlayer.getExtraYieldThreshold(eLoopYield) > 0 &&
-					aiYield[eLoopYield] >= kPlayer.getExtraYieldThreshold(eLoopYield))
+					aiNatureYield[eLoopYield] >= kPlayer.getExtraYieldThreshold(eLoopYield))
 				{
-					aiYield[eLoopYield] += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+					aiNatureYield[eLoopYield] += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 				} // </advc.031>
 			}
 			// K-Mod. add non-home plot production to BaseProduction.
 			if (!bShare)
-				iBaseProductionTimes100 += 100 * aiYield[YIELD_PRODUCTION];
+				iBaseProductionTimes100 += 100 * aiNatureYield[YIELD_PRODUCTION];
 			if (!bSteal)
 			{
 				iBaseProductionTimes100 += estimateImprovementProduction(
@@ -511,11 +495,11 @@ short AIFoundValue::evaluate()
 			if (!p.isWater())
 			{
 				// freshwater health (home plot) will be counted later
-				iPlotValue += evaluateFreshWater(p, aiYield, bSteal,
+				iPlotValue += evaluateFreshWater(p, aiNatureYield, bSteal,
 						iRiverTiles, iGreenTiles);
 			}
 		}
-		iPlotValue += evaluateYield(p, aiYield); // (K-Mod: iTempValue in BtS)
+		iPlotValue += evaluateYield(p, aiNatureYield); // (K-Mod: iTempValue in BtS)
 		if (bHome)
 			iValue += iPlotValue;
 		else
@@ -526,8 +510,9 @@ short AIFoundValue::evaluate()
 		bool const bEasyAccess = /* K-Mod (!!): */ ((p.isWater() && (bCoastal ||
 				p.area()->getCitiesPerPlayer(ePlayer, true) > 0)) || // advc.031
 				p.getArea() == kPlot.getArea() || p.area()->getCitiesPerPlayer(ePlayer) > 0);
-		IFLOG logPlot(p, iPlotValue, aiYield, iCultureModifier, eBonus, eBonusImprovement, bCanTradeBonus,
-				bCanSoonTradeBonus, bEasyAccess, iFeatureProduction, bPersistentFeature, bRemovableFeature);
+		IFLOG logPlot(p, iPlotValue, aiNatureYield, iCultureModifier, eBonus, eBonusImprovement,
+				bCanTradeBonus, bCanSoonTradeBonus, bEasyAccess, iFeatureProduction,
+				bPersistentFeature, bRemovableFeature);
 		// ignore resources on hopelessly entrenched tiles
 		// advc.031: Was 33, but now computed differently.
 		if ((iCultureModifier <= 20 &&
@@ -563,9 +548,9 @@ short AIFoundValue::evaluate()
 		}
 		if (!bHome) // (Home plot was handled upfront)
 		{
-			int iEffectiveFood = aiYield[YIELD_FOOD];
+			int iEffectiveFood = aiNatureYield[YIELD_FOOD];
 			// K-Mod: lighthouse kludge
-			if (bCoastal && p.isWater() && aiYield[YIELD_COMMERCE] > 1)
+			if (bCoastal && p.isWater() && aiNatureYield[YIELD_COMMERCE] > 1)
 				iEffectiveFood += 1;
 			calculateSpecialYields(p, eBonus, eBonusImprovement, iCultureModifier,
 					bEasyAccess, iEffectiveFood, aiSpecialYield,
@@ -600,15 +585,7 @@ short AIFoundValue::evaluate()
 		return 0;
 	}
 	iValue += std::max(0, iResourceValue);
-	if (!kSet.isStartingLoc())
-	{
-		double foodModifier = calculateFoodModifier(iSpecialFoodPlus,
-				iSpecialFoodMinus, iGreenTiles);
-		/*  <advc.031> Don't apply the modifier to the non-yield resource value:
-			don't need food for a trade connection. */
-		iValue = ::round((iValue - iNonYieldResourceVal) * foodModifier) +
-				iNonYieldResourceVal; // </advc.031>
-	}
+
 	iValue += evaluateLongTermHealth(iHealth); // (may increase iHealth)
 	iValue += evaluateFeatureProduction(iTotalFeatureProduction); // advc.031
 
@@ -627,6 +604,15 @@ short AIFoundValue::evaluate()
 	}
 	iValue += evaluateDefense();
 	IFLOG logBBAI("=%d in total before modifiers", iValue);
+
+	if (!kSet.isStartingLoc())
+	{
+		/*  <advc.031> Moved down to the other modifiers. But don't adjust the
+			non-yield resource value -- don't need food for a trade connection. */
+		iValue = adjustToFood(iValue - iNonYieldResourceVal, iSpecialFoodPlus,
+				iSpecialFoodMinus, iGreenTiles) + iNonYieldResourceVal;
+		// </advc.031>
+	}
 
 	iBaseProductionTimes100 += 100 * aiSpecialYield[YIELD_PRODUCTION]; // K-Mod
 	iValue = adjustToProduction(iValue, iBaseProductionTimes100);
@@ -682,8 +668,8 @@ short AIFoundValue::evaluate()
 	return std::max<short>(1, ::intToShort(iValue));
 }
 
-// Sanity checks; mostly to avoid wasting time.
-bool AIFoundValue::isSitePromising() const
+
+bool AIFoundValue::isSiteValid() const
 {
 	//if (!kSet.isStartingLoc() && !kSet.isAdvancedStart())
 	if(iCities > 0 && !bBarbarian) // advc.108
@@ -739,8 +725,7 @@ bool AIFoundValue::isSitePromising() const
 			if (p == NULL || (p->isOwned() && p->getTeam() != eTeam))
 			{
 				/*  advc.035 (comment): Would be good to check abFlip[i] here,
-					but computeOverlap is a little costly, and I see the
-					OwnedTiles check mostly as a timesaver. */
+					but computeOverlap is a little costly. */
 				iOwnedTiles++;
 				/*  <advc.031> Count tiles only half if they're in our inner ring
 					and can't be worked by any foreign city. */
@@ -885,31 +870,26 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 				iUnrevealed++; // advc.040
 				continue;
 			}
+
 			if (!p->isWater())
 				iLand++;
+
 			if (p->isImpassable())
 			{
 				iBadTiles += 2;
-				continue;
 			} // </advc.031>
 			// K-Mod (original code deleted)
-			if (//!p->isFreshWater() &&
+			else if (//!p->isFreshWater() &&
 			/*  advc.031: Flood plains have high nature yield anyway,
 				so this is about snow.
 				Bonus check added (Incense). */
 				getBonus(*p) == NO_BONUS &&
 				(p->calculateBestNatureYield(YIELD_FOOD, eTeam) == 0 ||
 				p->calculateTotalBestNatureYield(eTeam) <= 1))
-			{	// <advc.031>
-				iBadTiles++; /*  Snow hills had previously not been counted as bad,
-				but they are. Worthless even unless the city is desperate for
-				production or has plenty of food. */
-				/*if(!p->isHills() || (iBaseProductionTimes100 >= 1000 &&
-						iSpecialFoodPlus - iSpecialFoodMinus < 5))
-					iBadTiles++;*/
-				/*  But we can't tell here whether that's the case
-					(BaseProduction and SpecialFood haven't been computed) */
-				iBadTiles++; // </advc.031>
+			{
+				/*  advc.031: Snow hills will count for BaseProduction, but, generally
+					they're really bad. */
+				iBadTiles += 2;
 			}
 			else if (p->isWater() && p->calculateBestNatureYield(YIELD_FOOD, eTeam) <= 1)
 			{	/*  <advc.031> Removed the bCoastal check from the
@@ -1344,58 +1324,6 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	return r;
 }
 
-/*  advc.031: I've come to think that this whole adjustment is unnecessary.
-	Founding near a resource should naturally result in a higher found value
-	than founding on top of a resource because of the higher (special) yields
-	counted in the former case.
-	Also, even if one assumes that founding on a resource needs to be explicitly
-	discouraged, I don't think the K-Mod and AdvCiv code below gets it right. */
-#if 0
-void AIFoundValue::adjustHomePlotYields(int* aiYield, BonusTypes eBonus,
-	ImprovementTypes eImprovement, FeatureTypes ePersistentFeature) const
-{
-	FOR_EACH_ENUM(Yield)
-	{
-		YieldTypes const eYield = eLoopYield; // abbreviate
-		int& iYield = aiYield[eYield];
-		// (this section has been rewritten for K-Mod. The original code was bork.)
-		int iBasePlotYield = iYield;
-
-		/*  (K-Mod) Subtract the special yield we'd get from a bonus improvement
-			because we'd miss out on that by settling a city here.
-			Exception: the improvement might be something dud which we wouldn't normally build.
-			eg. +1 food from a plantation should not be counted, because
-			a farm would be just as good.
-			But +1 hammers from a mine should be counted, because we'd build the mine anyway.
-			I haven't thought of a good way to deal with this issue. */
-		if (eImprovement != NO_IMPROVEMENT)
-		{
-			//aiYield[eYield] -= GC.getInfo(eImprovement).getImprovementBonusYield(eBonus, eYield);
-			// <advc.031> Replacing the above
-			CvImprovementInfo& kImpr = GC.getInfo(eImprovement);
-			int iImprBonusYield = kImpr.getImprovementBonusYield(eBonus, eYield);
-			double const exp = 1.41;
-			/*  Add this, exponentiate, then subtract it again. This should discourage
-				the AI from settling on tiles with a high total yield.
-				(E.g. 1 production lost from settling on Copper can't be evened out by
-				fitting a plains hill instead of a desert hill into the BFC --
-				the Copper would be worked much sooner than the plains hill!) */
-			int iNonBonusImprYield = kImpr.getYieldChange(eYield) + iBasePlotYield;
-			if (iImprBonusYield < 0) // (make sure not to exponentiate a negative base)
-				iYield -= iImprBonusYield;
-			else if (iImprBonusYield + iNonBonusImprYield > 0)
-			{
-				iYield -= ::round(std::pow((double)iImprBonusYield +
-						iNonBonusImprYield, exp) - iNonBonusImprYield);
-			}
-		} // </advc.031>
-		/*  (K-Mod) and subtract the base yield, so as to emphasise city plots
-			which add yield rather than remove it.eg. plains-hill vs floodplain) */
-		iYield -= iBasePlotYield;
-	}
-}
-#endif
-
 /*	An estimate of how much production an improvement might add
 	in the medium term if production is prioritized. Precision: times 100.
 	Note: Any additional production from improving a bonus resource
@@ -1589,8 +1517,6 @@ int AIFoundValue::applyCultureModifier(CvPlot const& p, int iPlotValue, int iCul
 		r *= 3;
 		r /= 2;
 	}
-	r *= kSet.getGreed(); // advc (note): Not really part of the culture adjustment
-	r /= 100;
 	// K-Mod end
 	r *= iCultureModifier;
 	r /= 100;
@@ -1620,10 +1546,6 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 			(1 + aiBonusCount[eBonus]));
 	// Note (K-Mod): the value of starting bonuses is reduced later.
 	aiBonusCount[eBonus]++;
-	r *= (kSet.isStartingLoc() ? 100 :
-			// advc.031: Reduce impact of Greed (though it's disabled/ set to 100 anyway)
-			(kSet.getGreed() + 200) / 3);
-	r /= 100;
 	/*  <advc.031> (cf. getBonusImprovement)
 		AI_bonusValue can check for tech requirements, but it can't check requirements
 		for building the improvement. Hence bAssumeEnabled=true is used in the
@@ -1820,7 +1742,7 @@ bool AIFoundValue::isTooManyTakenTiles(int iTaken, int iResourceValue,
 }
 
 // <advc.031> Mostly AdvCiv code
-double AIFoundValue::calculateFoodModifier(int iSpecialFoodPlus, int iSpecialFoodMinus,
+int AIFoundValue::adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
 	int iGreenTiles) const
 {
 	int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
@@ -1833,28 +1755,28 @@ double AIFoundValue::calculateFoodModifier(int iSpecialFoodPlus, int iSpecialFoo
 			2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
 	r /= 100 + (kSet.isExpansive() ? 20 : 15) * iFoodDeficit;*/ // K-Mod end
 	// The K-Mod formula looks interesting; just turn it into a single multiplier ...
-	double foodFactor = (100.0 + (kSet.isExpansive() ? 20 : 15) * std::min(
+	double specialFoodModifier = (100.0 + (kSet.isExpansive() ? 20 : 15) * std::min(
 			(iFoodSurplus + iSpecialFoodPlus) / 2,
 			2 * GC.getFOOD_CONSUMPTION_PER_POPULATION())) /
 			(100.0 + (kSet.isExpansive() ? 20 : 15) * iFoodDeficit);
 	// ... and reduce the impact b/c of the lowFoodFactor below.
-	foodFactor = (foodFactor + 1) / 2;
+	specialFoodModifier = (specialFoodModifier + 1) / 2;
 
 	/*  Unlike the K-Mod/BtS special food multiplier above, this one takes
 		into account grassland farms. Also, I'm not rewarding surplus food,
 		just punishing deficit. */
-	double lowFoodFactor = 1;
+	double lowFoodModifier = 1;
 	if (eEra < 4)
 	{
-		lowFoodFactor = (7 + iGreenTiles + iSpecialFoodPlus -
+		lowFoodModifier = (7 + iGreenTiles + iSpecialFoodPlus -
 				iSpecialFoodMinus) / 10.0;
-		lowFoodFactor = ::dRange(lowFoodFactor, 0.5, 1.0);
+		lowFoodModifier = ::dRange(lowFoodModifier, 0.5, 1.0);
 		// Don't apply this to the value from happiness/health/strategic
 	}
-	double r = lowFoodFactor * foodFactor;
+	double foodModifier = lowFoodModifier * specialFoodModifier;
 	IFLOG logBBAI("Food modifier: %d percent (special food +/-: %d/%d, green tiles: %d)",
-			::round(100 * r), iSpecialFoodPlus, iSpecialFoodMinus, iGreenTiles);
-	return r;
+			::round(100 * foodModifier), iSpecialFoodPlus, iSpecialFoodMinus, iGreenTiles);
+	return ::round(iValue * foodModifier);
 } // </advc.031>
 
 // (adjustToBadHealth deals with short-term health)
@@ -1956,13 +1878,6 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 			}
 		}
 	}  // <advc.031>
-	/*	Apply greed only half. That said -
-		Why is settling at the coast greedy at all? */
-	/*int iHalfGreed = 100 + (kSet.getGreed() - 100) / 2;
-	if (iHalfGreed > 100) {
-		r *= iHalfGreed;
-		r /= 100;
-	}*/
 	// Modify based on production (since the point is to build a navy)
 	double mult = productionModifier;
 	// That's the name of the .py file; not language-dependent.
@@ -2082,33 +1997,8 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 
 	// Maybe we can make a value adjustment based on the resources and players currently in this area
 	// (wip)
-	#if 0 // advc.031: Disabled. This should be the responsibility of CvPlayer::findStartingAreas.
-	{
-		int const iTempValue = r; // advc.031c
-		int iBonuses = 0;
-		int iTypes = 0;
-		int iPlayers = kArea.getNumStartingPlots();
-		FOR_EACH_ENUM(Bonus)
-		{
-			int const iAreaBonuses = kArea.getNumBonuses(eLoopBonus);
-			if (iAreaBonuses <= 0)
-				continue; // advc
-			iBonuses += 100 * iAreaBonuses / std::max(2, iPlayers + 1);
-			iTypes += std::min(100, 100 * iAreaBonuses / std::max(2, iPlayers + 1));
-		}
-		// bonus for resources per player on the continent. (capped to avoid overflow)
-		r = r * std::min(400, 100 + 2 * iBonuses/100 + 8 * iTypes/100) / 130;
+	// advc.031: Deleted. This should be the responsibility of CvPlayer::findStartingAreas.
 
-		/*  penality for a solo start. bonus for pairing with an existing solo start.
-			penality for highly populated islands */
-		r = r * (10 + std::max(-2, iPlayers > 0 ? 2 - iPlayers : -2)) / 10;
-		/*if (iPlayers == 0)
-			r = r * 85 / 100;
-		else if (iPlayers == 1)
-			r = r * 110 / 100;*/
-		IFLOG if(r!=iTempValue) logBBAI("%d from player density", r - iTempValue);
-	} // K-Mod end
-	#endif
 	/*  advc: Unused BtS and K-Mod code dealing with WaterCount and
 		MinOriginalStartDist deleted */
 
@@ -2451,28 +2341,8 @@ int AIFoundValue::adjustToCitiesPerArea(int iValue) const
 		// K-Mod end
 		IFLOG if(iModifier!=100) logBBAI("Times %d for being the first to colonize this landmass", iModifier);
 	}
-	/*  advc.031: I've come to think that this whole "stick to your continent"
-		block is a bad idea. */
-	/* (remove this comment delimiter to re-enable the modified BtS code)
-	else {
-		int iTeamAreaCities = kTeam.countNumCitiesByArea(&kArea);
-		//if (kArea.getNumCities() == iTeamAreaCities)
-		// advc.040: Don't let a single rival city make all the difference
-		if(7 * kArea.getNumCities() < 10 * iTeamAreaCities) {
-			// advc.040: Why care about Barbarian cities? And times 3/2 is huge.
-			//iValue *= 3; iValue /= 2;
-		//}
-		//else if (kArea.getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(&kArea))) {
-			iValue *= 5; iValue /= 4; // advc.031: was *4/3
-		}
-		else if (iTeamAreaCities > 0
-				// advc.040: One city isn't a good enough reason for discriminating against new colonies
-				&& AI_isPrimaryArea(&kArea)) {
-			//iValue *= 5; iValue /= 4;
-			; // advc.031: Instead reduce the value in the else branch
-		}
-		else iValue = ::round(iValue * 0.85); // advc.031
-	}*/
+	/*  advc.031: BtS code deleted that was supposed to discourage colonies on
+		the home continents of other civs. */
 	return iValue;
 }
 
@@ -2606,7 +2476,8 @@ bool AIFoundValue::isDeadlockedBonus(CvPlot const& kBonusPlot, int iMinRange) co
 	{
 		CvPlot const* p = plotCity(kBonusPlot.getX(), kBonusPlot.getY(), iPlot);
 		if(p == NULL ||
-				isHome(*p)) // advc.031: Won't want to settle on top of the bonus
+				// advc.031: Won't want to settle on top of another resource
+				getBonus(*p) != NO_BONUS)
 			continue;
 		CvPlot const& kOtherSite = *p;
 		// <advc.031> Need to be able to see if there's land
@@ -2650,8 +2521,6 @@ void CitySiteEvaluator::logSettings() const
 		logBBAI("All-seeing");
 	if (isAdvancedStart())
 		logBBAI("in Advanced Start");
-	if (getGreed() != 100)
-		logBBAI("Greed: %d", getGreed());
 	if (isEasyCulture())
 		logBBAI("Easy culture");
 	if (isAmbitious())
