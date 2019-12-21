@@ -4614,12 +4614,21 @@ void CvGame::setScoreDirty(bool bNewValue)
 
 // <advc.003r>
 void CvGame::setUpdateTimer(UpdateTimerTypes eTimerType, int iDelay)
-{	// <advc.001w>
+{
+	FAssertBounds(0, NUM_UPDATE_TIMER_TYPES, eTimerType);
+	// <advc.001w>
 	if(eTimerType == UPDATE_MOUSE_FOCUS && BUGOption::isEnabled("MainInterface__RapidUnitCycling", false)) {
 		// No need for this hack when there is no unit-cycling delay
 		iDelay = -1;
 	} // </advc.001w>
 	m_aiUpdateTimers[eTimerType] = iDelay;
+}
+
+
+int CvGame::getUpdateTimer(UpdateTimerTypes eTimerType) const
+{
+	FAssertBounds(0, NUM_UPDATE_TIMER_TYPES, eTimerType);
+	return m_aiUpdateTimers[eTimerType];
 } // </advc.003r>
 
 
@@ -8689,13 +8698,12 @@ void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 	{
 		switch(eTimerType)
 		{
-		// <advc.085> See CvPlayer::setScoreboardExpanded
-		case UPDATE_SCORE_BOARD_DIRTY:
+		// <advc.085>
+		case UPDATE_COLLAPSE_SCORE_BOARD:
+			GET_PLAYER(getActivePlayer()).setScoreboardExpanded(false);
+			break;
+		case UPDATE_DIRTY_SCORE_BOARD:
 			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-			/*  For some strange reason, the HUD retains mouse focus after expanding
-				the scoreboard, and this is the only remedy I was able to find
-				(apart from CvInterface::makeInterfaceDirty, which results in flickering). */
-			gDLL->getInterfaceIFace()->makeSelectionListDirty();
 			break; // </advc.085>
 		// <advc.001w>
 		case UPDATE_MOUSE_FOCUS:
@@ -8717,6 +8725,7 @@ void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 	m_aiUpdateTimers[eTimerType]--;
 } // </advc.003r>
 
+
 void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, CvWString pszText, int iPlotX, int iPlotY, ColorTypes eColor)
 {
 	int iGameTurn = getGameTurn();
@@ -8731,6 +8740,7 @@ void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, CvW
 		m_listReplayMessages.push_back(pMessage);
 	}
 }
+
 
 void CvGame::clearReplayMessageMap()
 {
@@ -8755,6 +8765,7 @@ int CvGame::getReplayMessageTurn(uint i) const
 	}
 	return pMessage->getTurn();
 }
+
 
 ReplayMessageTypes CvGame::getReplayMessageType(uint i) const
 {
@@ -8784,6 +8795,7 @@ int CvGame::getReplayMessagePlotX(uint i) const
 	return pMessage->getPlotX();
 }
 
+
 int CvGame::getReplayMessagePlotY(uint i) const
 {
 	if (i >= m_listReplayMessages.size())
@@ -8797,6 +8809,7 @@ int CvGame::getReplayMessagePlotY(uint i) const
 	}
 	return pMessage->getPlotY();
 }
+
 
 PlayerTypes CvGame::getReplayMessagePlayer(uint i) const
 {
@@ -8812,6 +8825,7 @@ PlayerTypes CvGame::getReplayMessagePlayer(uint i) const
 	return pMessage->getPlayer();
 }
 
+
 LPCWSTR CvGame::getReplayMessageText(uint i) const
 {
 	if (i >= m_listReplayMessages.size())
@@ -8825,6 +8839,7 @@ LPCWSTR CvGame::getReplayMessageText(uint i) const
 	}
 	return pMessage->getText().GetCString();
 }
+
 
 ColorTypes CvGame::getReplayMessageColor(uint i) const
 {

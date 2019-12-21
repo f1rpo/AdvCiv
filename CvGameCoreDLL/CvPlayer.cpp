@@ -21078,23 +21078,43 @@ void CvPlayer::calculateTradeTotals(YieldTypes eIndex,
 // <advc.085>
 void CvPlayer::setScoreboardExpanded(bool b)
 {
-	m_bScoreboardExpanded = b;
-	if(b)
+	if (b)
 	{
 		FAssert(BUGOption::isEnabled("Scores__AlignIcons", true, false));
-		if(BUGOption::isEnabled("Scores__ExpandOnHover", false, false))
-			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+		if (BUGOption::isEnabled("Scores__ExpandOnHover", false, false))
+		{
+			/*  A delay of 1 means that the scoreboard collapses after
+				two game updates (250 ms) */
+			int const iDelay = 1;
+			CvGame& kGame = GC.getGame();
+			/*  So long as the mouse hovers over a scoreboard widget,
+				setScoreboardExpanded(true) keeps getting called and
+				the collapse timer keeps getting reset. */
+			kGame.setUpdateTimer(CvGame::UPDATE_COLLAPSE_SCORE_BOARD, iDelay);
+			// Scoreboard needs to be redrawn when expanding
+			if (!isScoreboardExpanded())
+				gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+			/*  The EXE calls CvDLLWidgetData::parseHelp when the cursor is moved
+				onto a widget - but not while the cursor rests there. Workaround:
+				Redraw the scoreboard and its widgets. That also causes a parseHelp
+				call (if the cursor is on a widget). Must still allow game updates
+				in between though (otherwise, e.g. animations will start lagging).
+				Therefore, don't set the dirty bit until the next game update. */
+			else kGame.setUpdateTimer(CvGame::UPDATE_DIRTY_SCORE_BOARD, iDelay - 1);
+			m_bScoreboardExpanded = true;
+		}
 		else m_bScoreboardExpanded = false;
+		return;
 	}
-	/*  If !b, then it doesn't help to dirty it b/c the update is still in progress
-		(when called from Python). */
-	else
+	// Collapse callback from CvGame
+	if (isScoreboardExpanded())
 	{
-		/*  0 would make the scoreboard collapse almost instantly when the mouse is
-			moved away. Can't click buttons that way. A higher delay than 1
-			(1/4 second) shouldn't be necessary. */
-		int const iDelay = 1;
-		GC.getGame().setUpdateTimer(CvGame::UPDATE_SCORE_BOARD_DIRTY, iDelay);
+		m_bScoreboardExpanded = false;
+		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+		/*  For some strange reason, the HUD retains mouse focus after expanding
+			the scoreboard, and this is the only remedy I was able to find
+			(apart from CvInterface::makeInterfaceDirty, which is far costlier). */
+		gDLL->getInterfaceIFace()->makeSelectionListDirty();
 	}
 }
 

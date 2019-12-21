@@ -322,13 +322,21 @@ public:
 	void setScoreDirty(bool bNewValue);																			// Exposed to Python
 	// <advc.003r> Akin to deferCall in BugUtil.py
 	enum UpdateTimerTypes {
-		UPDATE_SCORE_BOARD_DIRTY, // advc.085
+		UPDATE_COLLAPSE_SCORE_BOARD, // advc.085
+		UPDATE_DIRTY_SCORE_BOARD, // advc.085
 		UPDATE_MOUSE_FOCUS, // advc.001w
 		UPDATE_LOOK_AT_STARTING_PLOT, // advc.004j
 		UPDATE_STORE_REPLAY_TEXTURE, // advc.106n
 		NUM_UPDATE_TIMER_TYPES
 	};
-	void setUpdateTimer(UpdateTimerTypes eTimerType, int iDelay); // </advc.003r>
+	void setUpdateTimer(UpdateTimerTypes eTimerType, int iDelay);
+	// Unused so far (x3)
+	void cancelUpdateTimer(UpdateTimerTypes eTimerType) { setUpdateTimer(eTimerType, -1); }
+	int getUpdateTimer(UpdateTimerTypes eTimerType) const;
+	bool isUpdatePending(UpdateTimerTypes eTimerType) const
+	{
+		return (getUpdateTimer(eTimerType) >= 0);
+	} // </advc.003r>
 
 	bool isCircumnavigated() const;																// Exposed to Python
 	void makeCircumnavigated();																		// Exposed to Python

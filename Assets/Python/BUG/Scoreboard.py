@@ -417,7 +417,6 @@ class Scoreboard:
 		# <advc.085>
 		bExpanded = False
 		if gc.getPlayer(self._activePlayer).isScoreboardExpanded():
-			gc.getPlayer(self._activePlayer).setScoreboardExpanded(False)
 			bExpanded = True
 		else: # Take out the keys preceded by an underscore
 			stringsToRemove = []
