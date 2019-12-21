@@ -3,13 +3,14 @@
 #ifndef CITY_SITE_EVALUATOR_H
 #define CITY_SITE_EVALUATOR_H
 
-// advc: New classes extracted from CvPlayerAI::AI_foundValue
 class CvPlayerAI;
 class CvTeamAI;
 class CvCityAI;
 class CvPlot;
 class CvArea;
 class CvGame;
+
+// advc: New classes extracted from CvPlayerAI::AI_foundValue
 
 // Corresponds to K-Mod's CvPlayerAI::CvFoundSettings
 class CitySiteEvaluator
@@ -118,7 +119,8 @@ private:
 	void logSite() const;
 	void logPlot(CvPlot const& p, int iPlotValue, int const* aiYield,
 			int iCultureModifier, BonusTypes eBonus, ImprovementTypes eBonusImprovement,
-			bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bEasyAccess,
+			bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bCanImproveBonus,
+			bool bCanSoonImproveBonus, bool bEasyAccess,
 			int iFeatureProduction, bool bPersistentFeature, bool bRemovableFeature) const;
 	// </advc.031c>
 	short evaluate();
@@ -136,29 +138,31 @@ private:
 			int& iFeatureProduction) const;
 	bool isRevealed(CvPlot const& p) const;
 	BonusTypes getBonus(CvPlot const& p) const;
-	ImprovementTypes getBonusImprovement(BonusTypes eBonus,
-			bool& bCanTrade, bool& bCanTradeSoon) const;
+	ImprovementTypes getBonusImprovement(BonusTypes eBonus, CvPlot const& p,
+			bool& bCanTrade, bool& bCanTradeSoon, int* aiImprovementYield,
+			bool& bCanImprove, bool& bCanImproveSoon, bool& bRemoveFeature) const;
 	bool isNearTech(TechTypes eTech) const;
 	int calculateCultureModifier(CvPlot const& p, bool bForeignOwned, bool bShare,
 			bool bCityRadius, bool bSteal, bool bFlip, bool bOwnExcl,
 			int& iTakenTiles, int& iStealPercent) const;
-	/*void adjustHomePlotYields(int* aiYield, BonusTypes eBonus,
-			ImprovementTypes eImprovement, FeatureTypes ePersistentFeature) const;*/
 	int estimateImprovementProduction(CvPlot const& p, bool bPersistentFeature) const;
-	int evaluateYield(CvPlot const& p, int const* aiYield) const;
+	int evaluateYield(int const* aiYield, CvPlot const* p = NULL,
+			bool bCanNeverImprove = false) const;
 	int evaluateFreshWater(CvPlot const& p, int const* aiYield, bool bSteal,
 			int& iRiverTiles, int& iGreenTiles) const;
+	int foundOnResourceValue(int const* aiBonusImprovementYield) const;
 	int applyCultureModifier(CvPlot const& p, int iPlotValue, int iCultureModifier,
 			bool bShare) const;
 	int nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus, bool bCanTrade,
-			bool bCanTradeSoon, bool bEasyAccess,
+			bool bCanTradeSoon, bool bEasyAccess, bool& bAnyGrowthBonus,
 			std::vector<int>& aiBonusCount, int iCultureModifier) const;
-	void calculateSpecialYields(CvPlot const& p, BonusTypes eBonus,
-			ImprovementTypes eImprovement, int iCultureModifier, bool bEasyAccess,
-			int iEffectiveFood, int* aiSpecialYield,
+	void calculateSpecialYields(CvPlot const& p,
+			int const* aiBonusImprovementYield, int const* aiNatureYield,
+			int iModifier, int iEffectiveFood, int* aiSpecialYield,
 			int& iSpecialFoodPlus, int& iSpecialFoodMinus, int& iSpecialYieldTiles) const;
 	int sumUpPlotValues(std::vector<int>& aiPlotValues) const;
-	int evaluateSpecialYields(int const* aiSpecialYield, int iSpecialYieldTiles) const;
+	int evaluateSpecialYields(int const* aiSpecialYield, int iSpecialYieldTiles,
+			int iSpecialFoodPlus, int iSpecialFoodMinus) const;
 	bool isTooManyTakenTiles(int iTaken, int iResourceValue, bool bLowValue) const;
 	int evaluateLongTermHealth(int& iHealthPercent) const;
 	int evaluateFeatureProduction(int iProduction) const;

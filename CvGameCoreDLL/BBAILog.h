@@ -38,9 +38,6 @@
 #ifdef LOG_FOUND_VALUE
 #define LOG_AI
 #define gFoundLogLevel 1
-#undef gPlayerLogLevel
-// Helpful as it logs the names of new cities
-#define gPlayerLogLevel	1
 #endif // </advc.031c>
 
 void logBBAI(TCHAR* format, ... );

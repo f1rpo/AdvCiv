@@ -1443,8 +1443,8 @@ void CvUnitAI::AI_settleMove()
 	{
 		CvPlot* pCitySitePlot = kOwner.AI_getCitySite(iI);
 		if ((pCitySitePlot->getArea() == getArea() || canMoveAllTerrain()) &&
-				// UNOFFICIAL_PATCH: Only count city sites we can get to
-				generatePath(pCitySitePlot, iMoveFlags, true))
+			// UNOFFICIAL_PATCH: Only count city sites we can get to
+			generatePath(pCitySitePlot, iMoveFlags, true))
 		{
 			if (plot() == pCitySitePlot)
 			{
@@ -13203,12 +13203,13 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 	int iSearchRange = AI_searchRange(iRange);
 	int iImpassableCount = GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType());
 	const CvTeam& kTeam = GET_TEAM(getTeam()); // K-Mod
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // advc
 	CvMap const& m = GC.getMap();
 	CvGame& g = GC.getGame();
 
-	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
 	{
-		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
 			PROFILE("AI_exploreRange 1");
 
@@ -13222,8 +13223,15 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 				iValue += 100000;
 
 			if (!pLoopPlot->isRevealed(getTeam()))
+			{
 				iValue += 10000;
-
+				// <advc.031d>
+				for (int i = 0; i < kOwner.AI_getNumCitySites(); i++)
+				{
+					int iDist = m.plotDistance(kOwner.AI_getCitySite(i), pLoopPlot);
+					iValue += 1600 * std::max(0, 4 - iDist);
+				} // </advc.031d>
+			}
 			// K-Mod. Try to meet teams that we have seen through map trading
 			if (pLoopPlot->getRevealedOwner(kTeam.getID()) != NO_PLAYER &&
 					!kTeam.isHasMet(pLoopPlot->getRevealedTeam(kTeam.getID(), false)))
@@ -13249,7 +13257,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 			if (pLoopPlot->isVisibleEnemyUnit(this))
 				continue;
 			{ PROFILE("AI_exploreRange 3");
-			if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopPlot,
+			if (kOwner.AI_plotTargetMissionAIs(pLoopPlot,
 					MISSIONAI_EXPLORE, getGroup(), 3) > 0)
 				continue; }
 			int iPathTurns;
@@ -14051,17 +14059,15 @@ bool CvUnitAI::AI_rangeAttack(int iRange)
 // (heavily edited for K-Mod)
 bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThreshold)
 {
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-
 	FAssert(canMove());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
+	// <advc.300>
+	if (isBarbarian() && iOddsThreshold > 1)
+		iOddsThreshold /= 2; // </advc.300>
 
-	int iSearchRange = iRange;
-
-	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
-
+	int iBestValue = 0;
 	CvCity* pCity = plot()->getPlotCity();
-
 	if (pCity != NULL && pCity->getOwner() == getOwner())
 	{
 		/*int iOurStrength = GET_PLAYER(getOwner()).AI_getOurPlotStrength(plot(), 0, false, false);
@@ -14092,19 +14098,17 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 			}
 		}
 	}
-
-	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+	int const iSearchRange = iRange;
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
 	{
-		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-
 			if (pLoopPlot == NULL || !AI_plotValid(pLoopPlot))
 				continue;
 
-			/*if (pLoopPlot->isVisibleEnemyUnit(this) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam(), pLoopPlot)))
-			{
-				//if (pLoopPlot->getNumVisibleEnemyDefenders(this) > 0) */
+			/*if (pLoopPlot->isVisibleEnemyUnit(this) || (pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getTeam(), pLoopPlot))) {
+				//if (pLoopPlot->getNumVisibleEnemyDefenders(this) > 0)*/ // BtS
 			if (pLoopPlot->isVisibleEnemyDefender(this)) // K-Mod
 			{
 				if (!atPlot(pLoopPlot) && generatePath(pLoopPlot, 0, true, 0, iRange))
@@ -14113,7 +14117,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 					int iValue = AI_getGroup()->AI_getWeightedOdds(pLoopPlot, false); // K-Mod
 
 					//if (iValue >= AI_finalOddsThreshold(pLoopPlot, iOddsThreshold))
-					if (iValue >= iOddsThreshold) // K-mod
+					if (iValue >= iOddsThreshold) // K-Mod
 					{
 						if (iValue > iBestValue)
 						{
@@ -17665,7 +17669,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		{
 			bDoImprove = false;
 		}
-		else if (pWorkingCity)
+		else if (pWorkingCity != NULL)
 		{
 			// Let "best build" handle improvement replacements near cities.
 			BuildTypes eBuild = pWorkingCity->AI_getBestBuild(plotCityXY(

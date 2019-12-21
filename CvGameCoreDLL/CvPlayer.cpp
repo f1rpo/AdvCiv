@@ -4804,10 +4804,10 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 			(bEarlyMP || bVeryEarlyGame))
 		return false; // </advc.314>
 	if ((goody.getBarbarianUnitClass() != NO_UNITCLASS
-			// <advc.314> Hostile unit w/o any UnitClassType given
-			|| (goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0))
-			// BarbarianUnitClass has a different use now when !isBad
-			&& goody.isBad()) // </advc.314>
+		// <advc.314> Hostile unit w/o any UnitClassType given
+		|| (goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0))
+		// BarbarianUnitClass has a different use now when !isBad
+		&& goody.isBad()) // </advc.314>
 	{
 		if (GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS))
 			return false;
@@ -4827,19 +4827,24 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 			}
 		}
 	} // <advc.315d> No Scout from a Scout if already 2 Scouts
-	if(pUnit != NULL && pUnit->isNoBadGoodies() && AI().AI_getNumAIUnits(UNITAI_EXPLORE) >= 2) {
+	if(pUnit != NULL && pUnit->isNoBadGoodies() && AI().AI_getNumAIUnits(UNITAI_EXPLORE) >= 2)
+	{
 		UnitClassTypes eUnitClass = (UnitClassTypes)goody.getUnitClassType();
-		if(eUnitClass != NO_UNITCLASS) {
+		if(eUnitClass != NO_UNITCLASS)
+		{
 			UnitTypes eUnit = getCivilization().getUnit(eUnitClass);
 			if(eUnit != NO_UNIT && GC.getInfo(eUnit).isNoBadGoodies())
 				return false;
 		}
 	} // </advc.315d>
 	// <advc.315e> No map reveal at the edges of a non-wrapping map
-	if(goody.getMapProb() > 0) {
+	if(goody.getMapProb() > 0)
+	{
 		int const iRange = 3;
-		for(int dx = -iRange; dx <= iRange; dx++) {
-			for(int dy = -iRange; dy <= iRange; dy++) {
+		for(int dx = -iRange; dx <= iRange; dx++)
+		{
+			for(int dy = -iRange; dy <= iRange; dy++)
+			{
 				CvPlot* pLoopPlot = ::plotXY(pPlot->getX(), pPlot->getY(), dx, dy);
 				if(pLoopPlot == NULL)
 					return false;
@@ -4856,7 +4861,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 	CvWString szBuffer;
 	CvWString szTempBuffer;
 
-	FAssertMsg(canReceiveGoody(pPlot, eGoody, pUnit), "Instance is expected to be able to receive goody");
+	FAssert(canReceiveGoody(pPlot, eGoody, pUnit));
 	// <advc>
 	CvGoodyInfo const& goody = GC.getInfo(eGoody);
 	CvGame& g = GC.getGame();
@@ -4872,7 +4877,8 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		is none, that an additional outcome should be rolled. */
 	bool bUpgrade = ::bernoulliSuccess(prUpgrade, "advc.314");
 	// </advc.314>
-	int iGold = goody.getGold() + g.getSorenRandNum(goody.getGoldRand1(), "Goody Gold 1") + g.getSorenRandNum(goody.getGoldRand2(), "Goody Gold 2");
+	int iGold = goody.getGold() + g.getSorenRandNum(goody.getGoldRand1(), "Goody Gold 1") +
+			g.getSorenRandNum(goody.getGoldRand2(), "Goody Gold 2");
 	//iGold  = (iGold * GC.getInfo(g.getGameSpeedType()).getGrowthPercent()) / 100;
 	// advc.314: Replacing the above
 	iGold = (int)(iGold * g.goodyHutEffectFactor());
@@ -4902,7 +4908,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 					if(pLoopPlot == NULL || pLoopPlot->isRevealed(getTeam()))
 						continue; // advc
 					int iValue = (1 + g.getSorenRandNum(10000, "Goody Map"));
-					iValue *= plotDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
+					iValue *= plotDistance(pPlot, pLoopPlot);
 					if (iValue > iBestValue)
 					{
 						iBestValue = iValue;
@@ -4915,15 +4921,15 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		if (pBestPlot == NULL)
 			pBestPlot = pPlot;
 
-		for (int iDX = -(iRange); iDX <= iRange; iDX++)
+		for (int iDX = -iRange; iDX <= iRange; iDX++)
 		{
-			for (int iDY = -(iRange); iDY <= iRange; iDY++)
+			for (int iDY = -iRange; iDY <= iRange; iDY++)
 			{
 				CvPlot* pLoopPlot = plotXY(pBestPlot->getX(), pBestPlot->getY(), iDX, iDY);
 
 				if (pLoopPlot != NULL)
 				{
-					if (plotDistance(pBestPlot->getX(), pBestPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
+					if (plotDistance(pBestPlot, pLoopPlot) <= iRange)
 					{
 						if (g.getSorenRandNum(100, "Goody Map") < goody.getMapProb())
 						{
@@ -5231,7 +5237,9 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 	if (!canFound(iX, iY))
 		return;
 	// <advc.031c>
-	if (gFoundLogLevel > 0 && !isHuman())
+	if (gFoundLogLevel > 0 && !isHuman() &&
+			// (advc.108 forces founding in place in scenarios)
+			(getNumCities() > 0 || !GC.getGame().isScenario()))
 		AI().logFoundValue(iX, iY); // </advc.031c>
 
 	CvCity* pCity = initCity(iX, iY, true, true);
@@ -5322,7 +5330,7 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 	} // </advc.210c>
 	if(!CvPlot::isAllFog()) // advc.706: Suppress name-city popup
 		CvEventReporter::getInstance().cityBuilt(pCity);
-	if (gPlayerLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000:
+	if (gPlayerLogLevel >= 1 || /* advc.031c: */ gFoundLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000:
 		logBBAI("  Player %d (%S) founds new city %S at %d, %d", getID(), getCivilizationDescription(0), pCity->getName(0).GetCString(), iX, iY);
 }
 
@@ -5330,45 +5338,36 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost) const
 {
 	//PROFILE_FUNC(); // advc.003o
-	UnitClassTypes eUnitClass = (UnitClassTypes)(GC.getInfo(eUnit).getUnitClassType());
+	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getInfo(eUnit).getUnitClassType();
 
-	// K-Mod note. This assert can fail if team games when checking whether this city can upgrade a unit to one of our team member's UUs.
+	/*	K-Mod note. This assert can fail if team games when checking whether this city can
+		upgrade a unit to one of our team member's UUs. */
 	//FAssert(GC.getInfo(getCivilizationType()).getCivilizationUnits(eUnitClass) == eUnit);
 	if (getCivilization().getUnit(eUnitClass) != eUnit)
-	{
 		return false;
-	}
 
 	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
 	{
 		if (GC.getInfo(eUnit).isFound())
-		{
 			return false;
-		}
 	}
 
-	if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo(eUnit).getPrereqAndTech()))))
-	{
+	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTech()))
 		return false;
-	}
 
 	for (int iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(eUnit); iI++)
 	{
-		if (GC.getInfo(eUnit).getPrereqAndTechs(iI) != NO_TECH)
+		if (GC.getInfo(eUnit).getPrereqAndTechs(iI) != NO_TECH &&
+			!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTechs(iI)))
 		{
-			if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo(eUnit).getPrereqAndTechs(iI)))))
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 
 	if (GC.getInfo(eUnit).getStateReligion() != NO_RELIGION)
 	{
 		if (getStateReligion() != GC.getInfo(eUnit).getStateReligion())
-		{
 			return false;
-		}
 	}
 	// <advc> Some checks moved to CvGame
 	if (!GC.getGame().canTrain(eUnit, bIgnoreCost, bTestVisible))
@@ -5379,22 +5378,24 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 		return false;
 	if (isUnitClassMaxedOut(eUnitClass))
 		return false;*/  // disabled by K-Mod.
-	// Note that unlike the global limit, these two limits apply to the number of units currently alive rather than the total ever trained.
-	// Therefore these limits should be ignored for the visibility test.
+	/*	Note that unlike the global limit, these two limits apply to the
+		number of units currently alive rather than the total ever trained.
+		Therefore these limits should be ignored for the visibility test. */
 
 	if (!bTestVisible)
 	{
-		if (GC.getGame().isUnitClassMaxedOut(eUnitClass, (GET_TEAM(getTeam()).getUnitClassMaking(eUnitClass) + ((bContinue) ? -1 : 0))))
+		if (GC.getGame().isUnitClassMaxedOut(eUnitClass,
+			GET_TEAM(getTeam()).getUnitClassMaking(eUnitClass) + (bContinue ? -1 : 0)))
 		{
 			return false;
 		}
-
-		if (GET_TEAM(getTeam()).isUnitClassMaxedOut(eUnitClass, (GET_TEAM(getTeam()).getUnitClassMaking(eUnitClass) + ((bContinue) ? -1 : 0))))
+		if (GET_TEAM(getTeam()).isUnitClassMaxedOut(eUnitClass,
+			GET_TEAM(getTeam()).getUnitClassMaking(eUnitClass) + (bContinue ? -1 : 0)))
 		{
 			return false;
 		}
-
-		if (isUnitClassMaxedOut(eUnitClass, (getUnitClassMaking(eUnitClass) + ((bContinue) ? -1 : 0))))
+		if (isUnitClassMaxedOut(eUnitClass,
+			getUnitClassMaking(eUnitClass) + (bContinue ? -1 : 0)))
 		{
 			return false;
 		}
@@ -7660,7 +7661,7 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 		int iX = pNewValue->getX();
 		int iY = pNewValue->getY();
 		// <advc.031c>
-		if (gFoundLogLevel > 0 && !isHuman())
+		if (gFoundLogLevel > 0 && !GC.getInitCore().isScenario())
 			AI().logFoundValue(iX, iY, true); // </advc.031c>
 		m_iStartingX = iX;
 		m_iStartingY = iY;

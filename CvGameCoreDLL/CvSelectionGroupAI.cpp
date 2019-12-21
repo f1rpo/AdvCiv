@@ -128,14 +128,10 @@ bool CvSelectionGroupAI::AI_update()
 	FAssert(getOwner() != NO_PLAYER);
 
 	if (!AI_isControlled())
-	{
 		return false;
-	}
 
 	if (getNumUnits() == 0)
-	{
 		return false;
-	}
 
 	// K-Mod. (replacing the original "isForceUpdate" stuff.)
 	if (isForceUpdate())

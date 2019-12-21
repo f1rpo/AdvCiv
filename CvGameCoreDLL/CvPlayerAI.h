@@ -513,7 +513,7 @@ public:
 
 	void AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const;
 
-	void AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites);
+	void AI_updateCitySites(int iMinFoundValueThreshold = -1, int iMaxSites = 4); // advc: default values
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
 
 	int AI_getNumCitySites() const;

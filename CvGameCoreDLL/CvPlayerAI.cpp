@@ -1033,7 +1033,7 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)  // advc: refactored
 	// K-Mod - because humans don't always walk towards the AI's top picks..
 	if(isHuman())
 		iMaxCityCount = 6;
-	AI_updateCitySites(AI_getMinFoundValue(), iMaxCityCount);
+	AI_updateCitySites(-1, iMaxCityCount); // advc: -1 now means the default number
 }
 
 
@@ -10362,36 +10362,30 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	// What BtS did:
 	/*iValue += (iHappy * 100);
 	iValue += (iHealth * 100);*/
-	/*  Weight appears to be 100 when a city needs extra happiness or health
-		to grow, a bit more when citizens are already angry or food is being
-		lost. Generally lower than 100 because not all cities will need
-		happiness or health for growth.
-		Resource tiles can generally be worked without extra happiness or
-		health. Being able to work an extra non-resource tile should be worth
-		some 10 gpt per city. Improvement and building yields increase over the
-		course of the game, but the service life of a citizen becomes shorter,
-		the food needed for growth increases and the natural tile yields tend to
-		decrease (worst tiles saved for last). Also, when a city near the
-		happiness cap receives another luxury, it may still be unable to grow
-		for lack of health. Tbd.: Could check whether health or happiness is
+	/*  Weight appears to be 100 when a city needs extra happiness or health to grow,
+		a bit more when citizens are already angry or food is being lost. Generally
+		lower than 100 because not all cities will need happiness or health for growth.
+		Resource tiles can generally be worked without extra happiness or health.
+		Being able to work an extra non-resource tile should be worth some 10 gpt per city.
+		Improvement and building yields increase over the course of the game, but the
+		service life of a citizen becomes shorter, the food needed for growth increases
+		and the natural tile yields tend to decrease (worst tiles saved for last). Also,
+		when a city near the happiness cap receives another luxury, it may still be
+		unable to grow for lack of health. Tbd.: Could check whether health or happiness is
 		the bottleneck and adjust BonusVal accordingly.
-		5 gpt per 1 happiness could be reasonable; can still reduce that further
-		in AI_bonusTradeVal. There's a division by 10 at the end of this function,
-		and it's supposed to return 4 times the gpt per city, so everything still
-		needs to be multiplied by 2: */
+		5 gpt per 1 happiness seems reasonable; can reduce that further in AI_bonusTradeVal.
+		There's a division by 10 at the end of this function, and it's supposed to
+		return 4 times the gpt per city, so everything still needs to be multiplied by 2: */
 	double const scaleFactor = 2.1; // plus a little extra now that ExtraPop1 and ExtraPop2 no longer have equal weight
 	/*  The weight functions always assign some value to happiness and health
 		beyond what is needed for the current population, but the AI should
 		secure bonuses some time before they're needed so that CvCityAI can
 		tell when there is room for growth and prioritize food accordingly.
-		2 is a bit much though, and 1 too little, so take a weighted mean of the two. */
+		2 is a bit much though, and 1 too little, so take a weighted avg. of the two. */
 	int iExtraPop1 = 1, iExtraPop2 = 2;
 	// Don't want iExtraPop to increase resource prices on the whole
 	double extraPopFactor = std::max(0.5, 0.1 * (10 - (0.7 * iExtraPop1 +
 			0.3 * iExtraPop2)));
-	// Look farther ahead only when not trading for a resource (trades are fickle)
-	if(!bTrade)
-		iExtraPop1 = iExtraPop2;
 	bool bAvailable = (getNumAvailableBonuses(eBonus) > 0);
 	if(iHappy > 0)
 	{
@@ -10406,16 +10400,20 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 			iExtraPop2 += iHappy;
 		}
 		dValue += scaleFactor *
-			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy, iExtraPop1) +
+			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy,
+			// Look farther ahead when not trading for a resource (trades are fickle)
+			bTrade ? iExtraPop1 : iExtraPop2) +
 			 (0.3 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy, iExtraPop2));
 	}
 	if(iHealth > 0)
 	{
-		if(bTrade && bAvailable) {
+		if(bTrade && bAvailable)
+		{
 			iExtraPop1 += iHealth;
 			iExtraPop2 += iHealth;
 		}
-		// Lower multiplier b/c bad health is not as painful as anger
+		/*  Lower multiplier b/c bad health is not as painful as anger; and don't use
+			higher iExtraPop when not trading. */
 		dValue += (scaleFactor - 0.5) * 0.5 * (AI_getHealthWeight(iHealth, iExtraPop1) +
 				AI_getHealthWeight(iHealth, iExtraPop2));
 	}
@@ -24644,6 +24642,9 @@ int CvPlayerAI::AI_getMinFoundValue() const
 void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 {
 	// kmodx: redundant code removed
+	// <advc>
+	if (iMinFoundValueThreshold < 0)
+		iMinFoundValueThreshold = AI_getMinFoundValue(); // </advc>
 
 	// K-Mod. Always recommend the starting location on the first turn.
 	// (because we don't have enough information to overrule what the game has cooked for us.)

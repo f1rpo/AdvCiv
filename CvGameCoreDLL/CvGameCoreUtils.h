@@ -143,8 +143,14 @@ inline char intToChar(int x)
 
 CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
 int plotCityXY(int iDX, int iDY);																									// Exposed to Python
+int plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot); //advc
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot);													// Exposed to Python
-bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot); // advc.303
+// <advc.303>
+bool isInnerRing(CvPlot const& kPlot, CvPlot const& kCityPlot);
+bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot)
+{
+	return (pPlot != NULL && pCityPlot != NULL && isInnerRing(*pPlot, *pCityPlot));
+} // </advc.303>
 
 CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python

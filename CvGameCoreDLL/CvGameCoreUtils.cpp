@@ -274,17 +274,22 @@ int plotCityXY(int iDX, int iDY)
 }
 
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
+{	// <advc> Allow this function to be called for hypothetical cities (two plot params)
+	return plotCityXY(*pCity->plot(), *pPlot);
+}
+
+int plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot) // </advc>
 {
 	CvMap const& m = GC.getMap();
-	return plotCityXY(m.dxWrap(pPlot->getX() - pCity->getX()),
-			m.dyWrap(pPlot->getY() - pCity->getY()));
+	return plotCityXY(m.dxWrap(kPlot.getX() - kCityPlot.getX()),
+			m.dyWrap(kPlot.getY() - kCityPlot.getY()));
 }
 
 /*  <advc.303> Has to return true for the CITY_HOME_PLOT in order to be compatible
 	with CvPlayer::AI_foundValue_bulk */
-bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot)
+bool isInnerRing(CvPlot const& kPlot, CvPlot const& kCityPlot)
 {
-	return pPlot != NULL && pCityPlot != NULL && plotDistance(pPlot, pCityPlot) <= 1;
+	return (plotDistance(&kPlot, &kCityPlot) <= 1);
 } // </advc.303>
 
 CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)

@@ -4859,7 +4859,7 @@
 			<Strategy>TXT_KEY_TECH_IRON_WORKING_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<!-- advc.131b -->
-			<iAIWeight>-70</iAIWeight>
+			<iAIWeight>-50</iAIWeight>
 			<iAITradeModifier>0</iAITradeModifier>
 			<!-- advc.131b: was 200 -->
 			<iCost>220</iCost>

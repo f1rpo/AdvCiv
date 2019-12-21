@@ -8797,7 +8797,8 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		/*if (isAnimal()) // advc: No longer tracked
 			pNewPlot->area()->changeAnimalsPerPlayer(getOwner(), 1);*/
 
-		if (pNewPlot->getTeam() != getTeam() && (pNewPlot->getTeam() == NO_TEAM || !GET_TEAM(pNewPlot->getTeam()).isVassal(getTeam())))
+		if (pNewPlot->getTeam() != getTeam() && (pNewPlot->getTeam() == NO_TEAM ||
+				!GET_TEAM(pNewPlot->getTeam()).isVassal(getTeam())))
 			GET_PLAYER(getOwner()).changeNumOutsideUnits(1);
 
 		if (shouldLoadOnMove(pNewPlot))
@@ -8839,7 +8840,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		/* original bts code
 		if (pNewPlot->isWater()) {
 			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
-				pLoopPlot = plotDirection(pNewPlot->getX(), pNewPlot->getY(), ((DirectionTypes)iI));
+				pLoopPlot = plotDirection(pNewPlot->getX(), pNewPlot->getY(), (DirectionTypes)iI);
 				if (pLoopPlot != NULL) {
 					if (pLoopPlot->isWater()) {
 						pWorkingCity = pLoopPlot->getWorkingCity();
