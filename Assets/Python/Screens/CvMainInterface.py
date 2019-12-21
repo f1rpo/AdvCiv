@@ -645,16 +645,31 @@ class CvMainInterface:
 		
 		# Minimap initialization
 		screen.setMainInterface(True)
-		
-		screen.addPanel( "MiniMapPanel", u"", u"", True, False, xResolution - 214, yResolution - 151, 208, 151, PanelStyles.PANEL_STYLE_STANDARD )
+		# <advc.092>
+		iMiniMapPanelWidth = 208
+		iMiniMapPanelRMargin = 6
+		iMiniMapPanelX = xResolution - iMiniMapPanelWidth - iMiniMapPanelRMargin
+		iMiniMapPanelHeight = 151
+		iMiniMapPanelBMargin = 0
+		iMiniMapPanelY = yResolution - iMiniMapPanelHeight - iMiniMapPanelBMargin
+		iMiniMapRMargin = 3
+		iMiniMapLMargin = 4 # As in BtS - and 3 indeed looks too thin on the left.
+		self.iMiniMapX1 = iMiniMapPanelX + iMiniMapLMargin
+		self.iMiniMapX2 = iMiniMapPanelX + iMiniMapPanelWidth - iMiniMapRMargin
+		iMiniMapHeight = 122
+		iMiniMapBMargin = 9
+		self.iMiniMapY1 = iMiniMapPanelY + iMiniMapPanelHeight - iMiniMapBMargin - iMiniMapHeight
+		self.iMiniMapY2 = self.iMiniMapY1 + iMiniMapHeight
+		# </advc.092>
+		screen.addPanel( "MiniMapPanel", u"", u"", True, False, iMiniMapPanelX, iMiniMapPanelY, iMiniMapPanelWidth, iMiniMapPanelHeight, PanelStyles.PANEL_STYLE_STANDARD )
 		screen.setStyle( "MiniMapPanel", "Panel_Game_HudMap_Style" )
 		screen.hide( "MiniMapPanel" )
+		self.initMinimap(screen) # advc
 
-		screen.initMinimap( xResolution - 210, xResolution - 9, yResolution - 131, yResolution - 9, -0.1 )
 		gc.getMap().updateMinimapColor()
 
 		self.createMinimapButtons()
-	
+
 		# Help button (always visible)
 		screen.setImageButton( "InterfaceHelpButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_CIVILOPEDIA_ICON").getPath(), xResolution - 28, 2, 24, 24, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_CIVILOPEDIA).getActionInfoIndex(), -1 )
 		screen.hide( "InterfaceHelpButton" )
@@ -1080,6 +1095,9 @@ class CvMainInterface:
 
 		return 0
 
+	def initMinimap(self, screen): # advc (needed in two places)
+		screen.initMinimap(self.iMiniMapX1, self.iMiniMapX2, self.iMiniMapY1, self.iMiniMapY2, -0.1 )
+
 	# Will update the screen (every 250 MS)
 	def updateScreen(self):
 		
@@ -1101,7 +1119,7 @@ class CvMainInterface:
 #		self.m_iNumPlotListButtons = (xResolution - (iMultiListXL+iMultiListXR) - 68) / 34
 		
 		# This should recreate the minimap on load games and returns if already exists -JW
-		screen.initMinimap( xResolution - 210, xResolution - 9, yResolution - 131, yResolution - 9, -0.1 )
+		self.initMinimap(screen)
 
 		messageControl = CyMessageControl()
 		
