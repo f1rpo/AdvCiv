@@ -2276,27 +2276,42 @@ ENUM_END(CityPlot, CITYPLOT)*/
 	DO(Project,Unit) \
 	DO(Project,UnitClass) \
 	DO(Event,EventTrigger) \
+	DO(Concept,NewConcept) \
 	DO(Mission,EspionageMission)
 
-#define FORBID_COMPARISON_OPERATORS(EnumPrefix1, EnumPrefix2) \
-	bool operator==(EnumPrefix1##Types, EnumPrefix2##Types); \
-	bool operator!=(EnumPrefix1##Types, EnumPrefix2##Types); \
-	bool operator>(EnumPrefix1##Types, EnumPrefix2##Types); \
-	bool operator<(EnumPrefix1##Types, EnumPrefix2##Types); \
-	bool operator>=(EnumPrefix1##Types, EnumPrefix2##Types); \
-	bool operator<=(EnumPrefix1##Types, EnumPrefix2##Types);
+#define FORBID_COMPARISON_OPERATORS(Type1, Type2) \
+	bool operator==(Type1, Type2); \
+	bool operator!=(Type1, Type2); \
+	bool operator>(Type1, Type2); \
+	bool operator<(Type1, Type2); \
+	bool operator>=(Type1, Type2); \
+	bool operator<=(Type1, Type2);
 /*  ^No definition - so that these comparisons result in a linker error.
 	The linker error will say in which function the offending call occurs.
 	A compiler error would also provide a line number, but the compiler
 	can't tell if a global function has any call locations. */
 
-DO_FOR_EACH_FALSE_FRIEND(FORBID_COMPARISON_OPERATORS);
-#define FORBID_COMPARISON_OPERATORS_SWAPPED(EnumPrefix1, EnumPrefix2) \
-		FORBID_COMPARISON_OPERATORS(EnumPrefix2, EnumPrefix1)
-DO_FOR_EACH_FALSE_FRIEND(FORBID_COMPARISON_OPERATORS_SWAPPED);
+#define FORBID_ENUM_COMPARISON_OPERATORS(EnumPrefix1, EnumPrefix2) \
+	FORBID_COMPARISON_OPERATORS(EnumPrefix1##Types, EnumPrefix2##Types) \
+	FORBID_COMPARISON_OPERATORS(EnumPrefix2##Types, EnumPrefix1##Types)
+
+DO_FOR_EACH_FALSE_FRIEND(FORBID_ENUM_COMPARISON_OPERATORS);
+
+/*  advc: NO_... is easily confused with NULL, but prohibiting
+	enum-int comparisons isn't currently feasible. Perhaps if and when
+	the return types of functions like CvUnitInfo::getPrereqAndBonus
+	are changed to enum types. */
+/*#define FORBID_INT_EQUALITY_TEST(EnumPrefix, Dummy) \
+	bool operator==(EnumPrefix##Types, int); \
+	bool operator==(int, EnumPrefix##Types); \
+	bool operator!=(EnumPrefix##Types, int); \
+	bool operator!=(int, EnumPrefix##Types);
+DO_FOR_EACH_DYN_INFO_TYPE(FORBID_INT_EQUALITY_TEST)
+DO_FOR_EACH_STATIC_INFO_TYPE(FORBID_INT_EQUALITY_TEST)
+#undef FORBID_INT_EQUALITY_TEST*/
 
 #undef DO_FOR_EACH_FALSE_FRIEND
 #undef FORBID_COMPARISON_OPERATORS
-#undef FORBID_COMPARISON_OPERATORS_SWAPPED
+#undef FORBID_ENUM_COMPARISON_OPERATORS
 // </advc.enum>
 #endif	// CVENUMS_h

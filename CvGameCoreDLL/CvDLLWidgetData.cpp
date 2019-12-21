@@ -5685,7 +5685,7 @@ void CvDLLWidgetData::parseDescriptionHelp(CvWidgetDataStruct &widgetDataStruct,
 	case CIVILOPEDIA_PAGE_CONCEPT:
 		{
 			ConceptTypes eConcept = (ConceptTypes)widgetDataStruct.m_iData2;
-			if (NO_NEW_CONCEPT != eConcept)
+			if (NO_CONCEPT != eConcept)
 			{
 				szBuffer.assign(GC.getInfo(eConcept).getDescription());
 			}

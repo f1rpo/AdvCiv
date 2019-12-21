@@ -4744,14 +4744,13 @@ void CvPlot::resetFeatureModel()
 
 BonusTypes CvPlot::getBonusType(TeamTypes eTeam) const
 {
-	if (eTeam != NO_TEAM && m_eBonusType != NO_BONUS)
+	BonusTypes r = (BonusTypes)m_eBonusType; // advc
+	if (eTeam != NO_TEAM && r != NO_BONUS)
 	{
-		//if (!GET_TEAM(eTeam).isHasTech((TechTypes)(GC.getInfo((BonusTypes)m_eBonusType).getTechReveal())) && !GET_TEAM(eTeam).isForceRevealedBonus((BonusTypes)m_eBonusType))
-		if (!GET_TEAM(eTeam).isBonusRevealed((BonusTypes)m_eBonusType)) // K-Mod
+		if (!GET_TEAM(eTeam).isBonusRevealed(r)) // K-Mod: moved into helper function
 			return NO_BONUS;
 	}
-
-	return (BonusTypes)m_eBonusType;
+	return r;
 }
 
 
@@ -4995,7 +4994,6 @@ void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 		CvPlotGroup* pPlotGroup = getPlotGroup(getOwner());
 		if (pPlotGroup != NULL)
 		{
-			FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlot::setPlotCity");
 			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
 				BonusTypes eLoopBonus = (BonusTypes)iI;
@@ -5058,7 +5056,7 @@ void CvPlot::updateWorkingCity()
 	if (pBestCity == NULL)
 	{
 		pBestCity = getWorkingCityOverride();
-		FAssertMsg(pBestCity == NULL || pBestCity->getOwner() == getOwner(), "pBest city is expected to either be NULL or the current plot instance's");
+		FAssert(pBestCity == NULL || pBestCity->getOwner() == getOwner());
 	}
 
 	if (pBestCity == NULL && isOwned())
@@ -5099,8 +5097,8 @@ void CvPlot::updateWorkingCity()
 
 	if (pBestCity != NULL)
 	{
-		FAssertMsg(isOwned(), "isOwned is expected to be true");
-		FAssertMsg(!isBeingWorked(), "isBeingWorked did not return false as expected");
+		FAssert(isOwned());
+		FAssert(!isBeingWorked());
 		m_workingCity = pBestCity->getIDInfo();
 	}
 	else m_workingCity.reset();
@@ -5141,7 +5139,7 @@ void CvPlot::setWorkingCityOverride( const CvCity* pNewValue)
 
 	if (pNewValue != NULL)
 	{
-		FAssertMsg(pNewValue->getOwner() == getOwner(), "Argument city pNewValue's owner is expected to be the same as the current instance");
+		FAssert(pNewValue->getOwner() == getOwner());
 		m_workingCityOverride = pNewValue->getIDInfo();
 	}
 	else m_workingCityOverride.reset();
@@ -5200,8 +5198,8 @@ void CvPlot::changeRiverCrossingCount(int iChange)
 }
 
 
-bool CvPlot::isHabitable(bool bIgnoreSea) const {
-
+bool CvPlot::isHabitable(bool bIgnoreSea) const
+{
 	if(getYield(YIELD_FOOD) == 0)
 		return false;
 	if(!isWater() || isLake())
@@ -5210,7 +5208,8 @@ bool CvPlot::isHabitable(bool bIgnoreSea) const {
 		return false;
 	// Count shelf as habitable, but not arctic shelf or adj. only to one land corner.
 	int iAdjHabitableLand = 0;
-	for(int i = 0; i < GC.getNumDirections(); i++) {
+	for(int i = 0; i < GC.getNumDirections(); i++)
+	{
 		DirectionTypes dir = (DirectionTypes)i;
 		CvPlot* pAdj = plotDirection(getX(), getY(), dir);
 		if(pAdj == NULL)
@@ -5280,13 +5279,16 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 
 int CvPlot::calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const
 {
-	return std::max(calculateNatureYield(eIndex, eTeam, false), calculateNatureYield(eIndex, eTeam, true));
+	return std::max(calculateNatureYield(eIndex, eTeam, false),
+			calculateNatureYield(eIndex, eTeam, true));
 }
 
 
 int CvPlot::calculateTotalBestNatureYield(TeamTypes eTeam) const
 {
-	return (calculateBestNatureYield(YIELD_FOOD, eTeam) + calculateBestNatureYield(YIELD_PRODUCTION, eTeam) + calculateBestNatureYield(YIELD_COMMERCE, eTeam));
+	return calculateBestNatureYield(YIELD_FOOD, eTeam) +
+			calculateBestNatureYield(YIELD_PRODUCTION, eTeam) +
+			calculateBestNatureYield(YIELD_COMMERCE, eTeam);
 }
 
 // BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000: START
