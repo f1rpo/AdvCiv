@@ -3341,8 +3341,10 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			!kActiveTeam.isHasMet(eTeam))
 	{	// K-Mod. If we haven't met the player yet - don't say "contact". Because we can't actually contact them!
 		szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
-				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kPlayer.getName()));
-		// K-Mod end
+				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kPlayer.getName())); // K-Mod end
+		// <advc.007>
+		szBuffer.append(L" ");
+		GAMETEXT.parsePlayerTraits(szBuffer, ePlayer); // </advc.007>
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HAVENT_MET_CIV"));
 	}
@@ -3365,9 +3367,10 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		GAMETEXT.parsePlayerTraits(szBuffer, ePlayer);
 	} // K-Mod end
 
-	if (kActiveTeam.isHasMet(eTeam) || GC.getGame().isDebugMode())
-	{	/* original bts code
-		if (!kPlayer.isHuman()) {
+	bool bWillTalk = false; // advc.007: Needed in outer scope
+	if (kActiveTeam.isHasMet(eTeam)
+		/*|| GC.getGame().isDebugMode()*/) // advc.007: Not helpful in Debug mode
+	{	/*if (!kPlayer.isHuman()) {
 			if (!kPlayer.AI_isWillingToTalk(eActivePlayer)) {
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
@@ -3383,8 +3386,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		else {
 			szBuffer.append(NEWLINE);
 			GAMETEXT.getEspionageString(szBuffer, ((PlayerTypes)widgetDataStruct.m_iData1), eActivePlayer);
-		}*/
-		bool bWillTalk = (eActivePlayer == ePlayer || // advc.085
+		}*/ // BtS
+		bWillTalk = (eActivePlayer == ePlayer || // advc.085
 				kPlayer.AI_isWillingToTalk(eActivePlayer, /* advc.104l: */ true));
 		// K-Mod
 		if (!bWillTalk)
@@ -3414,6 +3417,9 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			szBuffer.append(szString);
 		} // </advc.034>
+	}
+	if (kActiveTeam.isHasMet(eTeam) || GC.getGame().isDebugMode()) // advc
+	{
 		//if (eTeam != eActiveTeam) // advc.085
 		// Show which civs this player is at war with
 		CvWStringBuffer szWarWithString;
@@ -3428,7 +3434,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 					// K-Mod. show "at war" for the active player if appropriate
 					//|| iLoopTeam == TEAMID(ePlayer))
 				continue;
-			if (!kActiveTeam.isHasMet(kLoopTeam.getID()))
+			if (!kActiveTeam.isHasMet(kLoopTeam.getID()) &&
+					!GC.getGame().isDebugMode()) // advc.007
 				continue;
 			if (::atWar((TeamTypes)iLoopTeam, eTeam))
 			{
@@ -3453,8 +3460,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(gDLL->getText(L"TXT_KEY_WORST_ENEMY_OF", szWorstEnemyString.getCString()));
 		}
 		// <advc.004v> Moved here from above
-		bool bShowCtrlTrade = (!((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0)
-				GC.getGame().isDebugMode()) // advc.135c
+		bool bShowCtrlTrade = (!((GC.altKey() || GC.ctrlKey())
+				)//&& gDLL->getChtLvl() > 0) // advc.135c
 				&& !kPlayer.isHuman() && bWillTalk
 				&& ePlayer != eActivePlayer); // advc.085
 		if (bShowCtrlTrade)
@@ -3462,7 +3469,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
 		} // </advc.004>
-		if (!kActiveTeam.isAtWar(eTeam) /* advc.085: */ && ePlayer != eActivePlayer)
+		if (!kActiveTeam.isAtWar(eTeam) /* advc.085: */ && ePlayer != eActivePlayer &&
+			kActiveTeam.isHasMet(eTeam)) // advc.007
 		{
 			if (kActiveTeam.canDeclareWar(eTeam))
 			{	// <advc.104v>
