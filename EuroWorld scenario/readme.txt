@@ -14,6 +14,7 @@ To be done:
 * America, Greenland, Southern Africa, Australia, Melanesia, Micronesia, Polynesia
 * The three non-playable leaders: Shaka, Huayana Capac and Pacal
 * Rules changes in AdvCiv that forbid Farms on Tundra and remove the health penalty from Jungle. To reduce implausible deforestation. Also, some of the tiles representing spruces and firs should perhaps have no Forest feature at all as those woods have fairly limited uses.
+* Low-latitude Tundra (representing weathered tropical soils) should be displayed as "Shrubland".
 * Addition of an Islet feature (like in Realism Invictus).
 * Changes to the AI evaluation of techs that found a religion. Especially leaders with a Medieval favorite religion like Charlemagne should avoid founding one of the early religons. Could then perhaps use Justinian instead of Pericles.
 * Overhaul of leader personalities. I might swap in Qin for Mao after increasing Qin's peace-weight (pitting him against his warlike neighbors) and Cyrus for Darius after making Cyrus a bit more warlike. The Chinese leader also needs to be more averse to long-distance wars (higher MaxWarMinAdjacentLandPercent).

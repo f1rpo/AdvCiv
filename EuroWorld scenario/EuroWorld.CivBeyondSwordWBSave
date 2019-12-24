@@ -1,7 +1,6 @@
 Version=11
 BeginGame
 	Speed=GAMESPEED_EPIC
-	Calendar=CALENDAR_DEFAULT
 	Option=GAMEOPTION_PICK_RELIGION
 	Option=GAMEOPTION_LEAD_ANY_CIV
 	Option=GAMEOPTION_NO_EVENTS
@@ -61,12 +60,12 @@ BeginTeam
 	Tech=TECH_AGRICULTURE
 EndTeam
 BeginTeam
-	Tech=TECH_MYSTICISM
-	Tech=TECH_THE_WHEEL
-EndTeam
-BeginTeam
 	Tech=TECH_FISHING
 	Tech=TECH_MYSTICISM
+EndTeam
+BeginTeam
+	Tech=TECH_MYSTICISM
+	Tech=TECH_THE_WHEEL
 EndTeam
 BeginTeam
 	Tech=TECH_MINING
@@ -759,12 +758,62 @@ BeginPlayer
 	CityList=TXT_KEY_CITY_NAME_WEQRO
 EndPlayer
 BeginPlayer
-	LeaderType=LEADER_ASOKA
-	CivType=CIVILIZATION_INDIA
+	LeaderType=LEADER_SURYAVARMAN
+	CivType=CIVILIZATION_KHMER
 	Team=13
 	PlayableCiv=1
-	StartingX=88, StartingY=43
+	StartingX=97, StartingY=44
 	Handicap=HANDICAP_PRINCE
+	CityList=TXT_KEY_CITY_NAME_YASODHARAPURA
+	CityList=Nakhon Pathom
+	CityList=Hanoi
+	CityList=TXT_KEY_CITY_NAME_HARIHARALAYA
+	CityList=TXT_KEY_CITY_NAME_ANGKOR_THOM
+	CityList=TXT_KEY_CITY_NAME_NAGARA_JAYASRI
+	CityList=TXT_KEY_CITY_NAME_RAJAVIHARA
+	CityList=TXT_KEY_CITY_NAME_ISVARAPURA
+	CityList=TXT_KEY_CITY_NAME_BANTEAY_KDEI
+	CityList=TXT_KEY_CITY_NAME_JAYENDRANAGARI
+	CityList=TXT_KEY_CITY_NAME_PRE_RUP
+	CityList=TXT_KEY_CITY_NAME_VIMAYAPURA
+	CityList=TXT_KEY_CITY_NAME_LINGAPURA
+	CityList=TXT_KEY_CITY_NAME_KRONG_CHAKTOMUK
+	CityList=TXT_KEY_CITY_NAME_CHOK_GARGYAR
+	CityList=TXT_KEY_CITY_NAME_MAHENDRAPARVATA
+	CityList=TXT_KEY_CITY_NAME_AMARENDRAPURA
+	CityList=TXT_KEY_CITY_NAME_INDRAPURA
+	CityList=TXT_KEY_CITY_NAME_LAVO
+	CityList=TXT_KEY_CITY_NAME_PREAH_VIHEAR
+	CityList=TXT_KEY_CITY_NAME_PHANOM_RUNG
+	CityList=TXT_KEY_CITY_NAME_PHIMAI
+	CityList=TXT_KEY_CITY_NAME_MUANG_TAM
+	CityList=TXT_KEY_CITY_NAME_BENG_MELEA
+	CityList=TXT_KEY_CITY_NAME_PRASAT_BAKAN
+	CityList=TXT_KEY_CITY_NAME_SINGHAPURA
+	CityList=TXT_KEY_CITY_NAME_CHALIENG
+	CityList=TXT_KEY_CITY_NAME_SUKHOTHAI
+	CityList=TXT_KEY_CITY_NAME_VIANGCHAN
+	CityList=TXT_KEY_CITY_NAME_BATTAMBANG
+	CityList=TXT_KEY_CITY_NAME_SURYAPARVATA
+	CityList=TXT_KEY_CITY_NAME_PREY_NOKOR
+	CityList=TXT_KEY_CITY_NAME_O_KEO
+	CityList=TXT_KEY_CITY_NAME_ANINDITAPURA
+	CityList=TXT_KEY_CITY_NAME_ISANAPURA
+	CityList=TXT_KEY_CITY_NAME_SHRESTAPURA
+	CityList=TXT_KEY_CITY_NAME_ANGKOR_BOREI
+	CityList=TXT_KEY_CITY_NAME_VYADHAPURA
+	CityList=TXT_KEY_CITY_NAME_BHAVAPURA
+	CityList=TXT_KEY_CITY_NAME_SAMBHUPURA
+	CityList=TXT_KEY_CITY_NAME_LOVEK
+	CityList=TXT_KEY_CITY_NAME_UDONG
+EndPlayer
+BeginPlayer
+	LeaderType=LEADER_ASOKA
+	CivType=CIVILIZATION_INDIA
+	Team=14
+	PlayableCiv=1
+	StartingX=88, StartingY=43
+	Handicap=HANDICAP_MONARCH
 	CityList=TXT_KEY_CITY_NAME_PATALIPUTRA
 	CityList=TXT_KEY_CITY_NAME_AMARAVATI
 	CityList=TXT_KEY_CITY_NAME_DELHI
@@ -862,57 +911,6 @@ BeginPlayer
 	CityList=TXT_KEY_CITY_NAME_DARJEELING
 	CityList=TXT_KEY_CITY_NAME_IMPHAL
 	CityList=TXT_KEY_CITY_NAME_CHANDIGARH
-EndPlayer
-BeginPlayer
-	LeaderType=LEADER_SURYAVARMAN
-	CivType=CIVILIZATION_KHMER
-	Team=14
-	PlayableCiv=1
-	StartingX=97, StartingY=44
-	Handicap=HANDICAP_PRINCE
-	CityList=TXT_KEY_CITY_NAME_YASODHARAPURA
-	CityList=Nakhon Pathom
-	CityList=Indrapura
-	CityList=Hanoi
-	CityList=TXT_KEY_CITY_NAME_HARIHARALAYA
-	CityList=TXT_KEY_CITY_NAME_ANGKOR_THOM
-	CityList=TXT_KEY_CITY_NAME_NAGARA_JAYASRI
-	CityList=TXT_KEY_CITY_NAME_RAJAVIHARA
-	CityList=TXT_KEY_CITY_NAME_ISVARAPURA
-	CityList=TXT_KEY_CITY_NAME_BANTEAY_KDEI
-	CityList=TXT_KEY_CITY_NAME_JAYENDRANAGARI
-	CityList=TXT_KEY_CITY_NAME_PRE_RUP
-	CityList=TXT_KEY_CITY_NAME_VIMAYAPURA
-	CityList=TXT_KEY_CITY_NAME_LINGAPURA
-	CityList=TXT_KEY_CITY_NAME_KRONG_CHAKTOMUK
-	CityList=TXT_KEY_CITY_NAME_CHOK_GARGYAR
-	CityList=TXT_KEY_CITY_NAME_MAHENDRAPARVATA
-	CityList=TXT_KEY_CITY_NAME_AMARENDRAPURA
-	CityList=TXT_KEY_CITY_NAME_INDRAPURA
-	CityList=TXT_KEY_CITY_NAME_LAVO
-	CityList=TXT_KEY_CITY_NAME_PREAH_VIHEAR
-	CityList=TXT_KEY_CITY_NAME_PHANOM_RUNG
-	CityList=TXT_KEY_CITY_NAME_PHIMAI
-	CityList=TXT_KEY_CITY_NAME_MUANG_TAM
-	CityList=TXT_KEY_CITY_NAME_BENG_MELEA
-	CityList=TXT_KEY_CITY_NAME_PRASAT_BAKAN
-	CityList=TXT_KEY_CITY_NAME_SINGHAPURA
-	CityList=TXT_KEY_CITY_NAME_CHALIENG
-	CityList=TXT_KEY_CITY_NAME_SUKHOTHAI
-	CityList=TXT_KEY_CITY_NAME_VIANGCHAN
-	CityList=TXT_KEY_CITY_NAME_BATTAMBANG
-	CityList=TXT_KEY_CITY_NAME_SURYAPARVATA
-	CityList=TXT_KEY_CITY_NAME_PREY_NOKOR
-	CityList=TXT_KEY_CITY_NAME_O_KEO
-	CityList=TXT_KEY_CITY_NAME_ANINDITAPURA
-	CityList=TXT_KEY_CITY_NAME_ISANAPURA
-	CityList=TXT_KEY_CITY_NAME_SHRESTAPURA
-	CityList=TXT_KEY_CITY_NAME_ANGKOR_BOREI
-	CityList=TXT_KEY_CITY_NAME_VYADHAPURA
-	CityList=TXT_KEY_CITY_NAME_BHAVAPURA
-	CityList=TXT_KEY_CITY_NAME_SAMBHUPURA
-	CityList=TXT_KEY_CITY_NAME_LOVEK
-	CityList=TXT_KEY_CITY_NAME_UDONG
 EndPlayer
 BeginPlayer
 	LeaderType=LEADER_MANSA_MUSA
@@ -1056,7 +1054,7 @@ BeginMap
 	wrap Y=0
 	top latitude=80
 	bottom latitude=-70
-	world size=WORLDSIZE_LARGE
+	world size=WORLDSIZE_STANDARD
 	climate=CLIMATE_TEMPERATE
 	sealevel=SEALEVEL_LOW
 	num plots written=8640
@@ -19957,13 +19955,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=51,y=53
-	BonusType=BONUS_SILVER
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
 EndPlot
 BeginPlot
 	x=51,y=54
+	BonusType=BONUS_SILVER
 	isWOfRiver
 	RiverNSDirection=0
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
@@ -22347,13 +22345,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=57,y=59
+	BonusType=BONUS_FUR
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
 EndPlot
 BeginPlot
 	x=57,y=60
-	BonusType=BONUS_FUR
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
@@ -23493,12 +23491,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=60,y=55
-	BonusType=BONUS_COW
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
 EndPlot
 BeginPlot
 	x=60,y=56
+	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
 EndPlot
@@ -23901,9 +23899,9 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=61,y=56
+	BonusType=BONUS_COW
 	isWOfRiver
 	RiverNSDirection=2
-	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
 EndPlot
@@ -24561,6 +24559,7 @@ EndPlot
 BeginPlot
 	x=63,y=29
 	BonusType=BONUS_IVORY
+	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=1
 EndPlot
@@ -24700,12 +24699,12 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=63,y=52
-	BonusType=BONUS_WHEAT
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
 EndPlot
 BeginPlot
 	x=63,y=53
+	BonusType=BONUS_WHEAT
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
 EndPlot
@@ -24965,12 +24964,14 @@ EndPlot
 BeginPlot
 	x=64,y=29
 	BonusType=BONUS_COW
+	FeatureType=FEATURE_FOREST, FeatureVariety=1
 	TerrainType=TERRAIN_GRASS
 	PlotType=1
 EndPlot
 BeginPlot
 	x=64,y=30
 	BonusType=BONUS_HORSE
+	FeatureType=FEATURE_FOREST, FeatureVariety=1
 	TerrainType=TERRAIN_GRASS
 	PlotType=1
 EndPlot
@@ -31062,7 +31063,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=79,y=61
-	BonusType=BONUS_FUR
 	isWOfRiver
 	RiverNSDirection=0
 	FeatureType=FEATURE_FOREST, FeatureVariety=1
@@ -31474,6 +31474,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=80,y=62
+	BonusType=BONUS_FUR
 	FeatureType=FEATURE_FOREST, FeatureVariety=1
 	TerrainType=TERRAIN_TUNDRA
 	PlotType=2
@@ -33306,14 +33307,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=41
-	BonusType=BONUS_DYE
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=1
 EndPlot
 BeginPlot
 	x=85,y=42
-	BonusType=BONUS_COW
+	BonusType=BONUS_DYE
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
 EndPlot
@@ -33338,12 +33338,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=85,y=46
-	TerrainType=TERRAIN_SNOW
+	BonusType=BONUS_COW
+	TerrainType=TERRAIN_TUNDRA
 	PlotType=2
 EndPlot
 BeginPlot
 	x=85,y=47
-	TerrainType=TERRAIN_SNOW
+	TerrainType=TERRAIN_TUNDRA
 	PlotType=2
 EndPlot
 BeginPlot
@@ -34102,6 +34103,7 @@ BeginPlot
 	BonusType=BONUS_GEMS
 	isNOfRiver
 	RiverWEDirection=1
+	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
 EndPlot
@@ -35727,13 +35729,13 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=91,y=43
-	BonusType=BONUS_IVORY
 	FeatureType=FEATURE_JUNGLE, FeatureVariety=0
 	TerrainType=TERRAIN_PLAINS
 	PlotType=1
 EndPlot
 BeginPlot
 	x=91,y=44
+	BonusType=BONUS_IVORY
 	isWOfRiver
 	RiverNSDirection=2
 	FeatureType=FEATURE_JUNGLE, FeatureVariety=0

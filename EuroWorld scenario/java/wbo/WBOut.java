@@ -30,7 +30,6 @@ public class WBOut {
 				"Version=11",
 				"BeginGame",
 				"\tSpeed=GAMESPEED_EPIC",
-				"\tCalendar=CALENDAR_DEFAULT",
 				"\tOption=GAMEOPTION_PICK_RELIGION",
 				//"\tOption=GAMEOPTION_RAGING_BARBARIANS",
 				// Just to give players a hint that I've mixed and matched a bit
@@ -61,7 +60,7 @@ public class WBOut {
 		Civ civs[] = {	// Gandhi's fav religion agrees with that of Sury; apart from that, I prefer Asoka.
 				new Civ("ASOKA", "INDIA", 82, 36, "MYSTICISM", "THE_WHEEL", // The wheel was also of philosophical importance to Ancient India
 						new String[]{"PATALIPUTRA","AMARAVATI",/*"UJJAIN"*/},
-						"PRINCE"),
+						"MONARCH"),
 				new Civ("JULIUS_CAESAR"/*"AUGUSTUS"*/, "ROME", 46, 40, "FISHING", "MINING",
 						new String[]{"ROME"/*,"SYRACUSE"*/,"LUGDUNUM"/*MARSEILLES?*/}
 						/*,"WARLORD"*/),
@@ -87,7 +86,7 @@ public class WBOut {
 				new Civ("SALADIN", "ARABIA", 63, 33, "AGRICULTURE", "THE_WHEEL",
 						new String[]{"BABYLON","NINEVEH","MECCA","HITTITE","VAN"}),
 				new Civ("SURYAVARMAN", "KHMER", 91,37/*89,45 (Guangzhou)*//*88, 47 (Fuzhou)*/ /*87, 49(NINGBO)*/, "FISHING", "MYSTICISM", // for Hinduism; else AGRICULTURE
-						new String[]{"YASODHARAPURA","Nakhon Pathom","Indrapura","Hanoi"/*"Fuzhou""NINGBO"*//*"GUANGZHOU","XINYU","MAOMING","KUNMING"*//*,"TAIPEI",*/},
+						new String[]{"YASODHARAPURA","Nakhon Pathom",/*"Indrapura",*/"Hanoi"/*"Fuzhou""NINGBO"*//*"GUANGZHOU","XINYU","MAOMING","KUNMING"*//*,"TAIPEI",*/},
 						"PRINCE"),
 				new Civ("TOKUGAWA", "JAPAN", 89, 56, "FISHING", "MYSTICISM",
 						// Pusan was the major trading port with Japan, but Seoul might be closer the location that Japan tends to settle. Keijo? That was the Japanese name for Seoul after 1910.
@@ -112,9 +111,9 @@ public class WBOut {
 			pr(civs[i].civEntry(i));
 		pr("");
 		int numPlots = mapWidth * mapHeight;
-		/* Huge (which matches the dimensions) or Large should mostly be
-		 * a question of tech pace. */
-		String worldSz = "LARGE";
+		/* Huge (which matches the dimensions), Large or Standard should
+		   mostly be a question of tech pace. */
+		String worldSz = "STANDARD";
 		String mapStr[] = {
 				"BeginMap",
 				"\tgrid width=" + mapWidth,
@@ -1670,6 +1669,8 @@ public class WBOut {
 				new Point(55,21),
 				//new Point(54,22), // Sudd - try a lake instead
 				// Tibetan Plateau
+				new Point(79,40),
+				new Point(79,39),
 				new Point(79,41),
 				new Point(80,41),
 				new Point(81,41),
@@ -1721,9 +1722,7 @@ public class WBOut {
 				// Should perhaps be a peak to prevent a city (Leh) here
 				new Point(75,39),
 				// Changtang
-				new Point(79,40),
 				new Point(78,39),
-				new Point(79,39),
 				new Point(80,39),
 				new Point(79,38),
 				new Point(80,38),
@@ -2818,6 +2817,10 @@ public class WBOut {
 				new Point(44,25),
 				new Point(45,25),
 				new Point(47,25),
+				// Ethiopia
+				new Point(58,23),
+				new Point(58,22),
+				new Point(57,22),
 				// Great Britain
 				new Point(39,54),
 				new Point(39,53),
@@ -2946,7 +2949,7 @@ public class WBOut {
 				new Point(53,49),
 				new Point(53,51),
 				new Point(54,50),
-				new Point(55,49),
+				new Point(54,49), // Moved from 55,49 to make room for Cow
 				new Point(55,50),
 				new Point(55,51),
 				new Point(56,49),
@@ -3322,6 +3325,7 @@ public class WBOut {
 				new Point(78,30),
 				new Point(79,29),
 				new Point(80,29),
+				new Point(81,31), // Probably inaccurate, but gems weren't mined until the 16th century. 
 				new Point(80,28),
 				new Point(82,28),
 				new Point(81,27),
@@ -3701,7 +3705,7 @@ public class WBOut {
 				new Bonus("COW",44,48),
 				new Bonus("HORSE",45,49), // Moved one up (swapped with a forest) to block HRE city in Denmark
 				new Bonus("PIG",45,50),
-				new Bonus("SILVER",45,46),
+				new Bonus("SILVER",45,47),
 				new Bonus("IRON",44,46),
 				new Bonus("DYE",46,46),
 				new Bonus("URANIUM",47,46), // Czechia
@@ -3712,11 +3716,11 @@ public class WBOut {
 				magyars ? new Bonus("PIG",49,47) : new Bonus("PIG",46,47),
 				new Bonus("COAL",49,46),
 				new Bonus("GEMS",50,48), // Königsberg
-				new Bonus("COW",54,48), // Belarus/Moscow
+				new Bonus("COW",55,49), // Belarus/Moscow
 				new Bonus("ALUMINUM",54,52), // St. Petersburg
 				// Finland
 				new Bonus("DEER",51,55),
-				new Bonus("FUR",51,53),
+				new Bonus("FUR",51,52), // 51,53 might be more accurate, but wants to be in the radius of St. Pertersburg.
 				new Bonus("MARBLE",53,53),
 				// Spitsbergen
 				new Bonus("WHALE",51,61),
@@ -3752,10 +3756,10 @@ public class WBOut {
 				new Bonus("IRON",56,44),
 				new Bonus("COAL",57,44),
 				new Bonus("WINE",56,43),
-				// W Russia (Wheat and Horse will have to move one up if Moscow is the capital)
+				// W Russia (Horse will have to move one up if Moscow is made the capital)
 				new Bonus("STONE",56,48),
 				new Bonus("IRON",57,47),
-				new Bonus("WHEAT",57,45), // Chernozem; moved from S Denmark
+				new Bonus("WHEAT",57,46), // Chernozem; moved from S Denmark. Then moved 1 up for Moscow.
 				new Bonus("HORSE",59,46),
 				new Bonus("COW",61,46),
 				new Bonus("FUR",57,52),
@@ -3778,7 +3782,7 @@ public class WBOut {
 				new Bonus("HORSE",70,47),
 				new Bonus("ALUMINUM",67,46),
 				new Bonus("COPPER",75,54),
-				new Bonus("FUR",73,54),
+				new Bonus("FUR",74,55), // Moved 1 NE to prevent an early Silver-Fur-Deer city on the lower Lena 
 				new Bonus("URANIUM",76,53),
 				//new Bonus("GOLD",71,52), // Olimpiada, not until 1991
 				new Bonus("COAL",72,51),
@@ -3818,6 +3822,7 @@ public class WBOut {
 				new Bonus("DYE",75,31),
 				new Bonus("OIL",76,31),
 				new Bonus("SILK",74,38),
+				new Bonus("COW",79,39), // Tibet
 				// India (rest)
 				new Bonus("DYE",84,38),
 				new Bonus("SUGAR",84,37),
@@ -3826,11 +3831,11 @@ public class WBOut {
 				new Bonus("RICE",83,36),
 				new Bonus("IRON",79,36),
 				new Bonus("SUGAR",78,35),
-				new Bonus("COW",79,35),
+				//new Bonus("COW",79,35), // Moved to Tibet
+				new Bonus("DYE",79,35), // was ,34
 				new Bonus("COAL",81,35),
 				new Bonus("URANIUM",82,35),
 				new Bonus("DYE",83,35),
-				new Bonus("DYE",79,34),
 				new Bonus("COAL",80,34),
 				new Bonus("IRON",82,34),
 				new Bonus("SHEEP",78,33),
@@ -3933,7 +3938,7 @@ public class WBOut {
 				new Bonus("SUGAR",91,47),
 				// Indochina
 				new Bonus("GEMS",86,38),
-				new Bonus("IVORY",85,36),
+				new Bonus("IVORY",85,37), // Moved from ,36 b/c Plains Hill Ivory is too attractive as a city center (3 production)
 				new Bonus("SUGAR",88,42), // Moved from 87,41 to discourage a city that would block Hanoi
 				new Bonus("PIG",88,41),
 				new Bonus("DYE",87,40),
@@ -4008,6 +4013,8 @@ public class WBOut {
 					terrain = "GRASS";
 				}
 				else if(peak.stream().anyMatch(p -> p.equals(plot))) {
+					/* Underlying terrain affects graphics. Would be nicer to set it based
+					 * on the surrounding terrain, but awkward to progream. */ 
 					terrain = "SNOW";
 					plotType = 0;
 				}
