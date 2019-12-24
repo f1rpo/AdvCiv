@@ -17473,8 +17473,11 @@ void CvPlayerAI::AI_doCommerce()
 		}
 
 		for (TeamIter<EVER_ALIVE> it; it.hasNext(); ++it)
-		{	// <advc.opt>
+		{
 			TeamTypes eTeam = it->getID();
+			if (eTeam == BARBARIAN_TEAM)
+				continue;
+			// <advc.opt>
 			if(!GET_TEAM(eTeam).isAlive())
 			{
 				aiWeight[eTeam] = 0;
