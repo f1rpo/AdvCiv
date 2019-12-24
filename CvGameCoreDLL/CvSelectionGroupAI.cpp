@@ -322,7 +322,7 @@ int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy)
 	int const iAttackOddsChange = GET_PLAYER(getOwner()).AI_getAttackOddsChange();
 	iOdds -= iAttackOddsChange;
 	/*	Require a stack of at least 3 if actual odds are below 1%. Should
-		matter mostly for barbarians, hence only this primitive condition
+		matter mostly for Barbarians, hence only this primitive condition
 		(not checking if the other units could actually attack etc.). */
 	if(iOdds == 0 && getNumUnits() < 3)
 		return 0;

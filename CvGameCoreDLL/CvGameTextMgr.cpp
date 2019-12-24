@@ -6088,8 +6088,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			int iCitySiteBestValue;
 			int iNumAreaCitySites = kLoopPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iCitySiteBestValue);
 
-			if ((iActualFoundValue > 0 || iCalcFoundValue > 0 || iStartingFoundValue > 0)
-					|| ((kPlot.getOwner() == iI) && (iBestAreaFoundValue > 0)))
+			if (iActualFoundValue > 0 || iCalcFoundValue > 0 || iStartingFoundValue > 0
+				|| (kPlot.getOwner() == iI && iBestAreaFoundValue > 0))
 			{
 				if (bFirst)
 				{

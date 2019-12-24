@@ -2602,7 +2602,6 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	bool bOwnExclusiveRadius) const // advc.035
 {
 	PROFILE_FUNC();
-	int iI;
 	/*  advc.001: When a city is captured, the tiles in its culture range (but I
 		think not the city plot itself) are set to unowned for 2 turns. This leads
 		to 0% revolt chance for a turn or two when a city is razed and a new city
@@ -2634,7 +2633,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 
 	int iBestCulture = 0;
 	PlayerTypes eBestPlayer = NO_PLAYER;
-	for (iI = 0; iI < MAX_PLAYERS; ++iI)
+	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 	{	// <advc.035>
 		if(bOwnExclusiveRadius && bAnyCityRadius && !abCityRadius[iI])
 			continue; // </advc.035>
@@ -2665,7 +2664,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	{
 		int iBestPriority = MAX_INT;
 		CvCity* pBestCity = NULL;
-		for (iI = 0; iI < NUM_CITY_PLOTS; iI++)  // advc: reduced indentation
+		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)  // advc: reduced indentation
 		{
 			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
 			if(pLoopPlot == NULL)
@@ -2703,7 +2702,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 		return eBestPlayer; // advc
 
 	bool bValid = true;
-	for (iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+	for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
 	{
 		CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), ((CardinalDirectionTypes)iI));
 		if (pLoopPlot == NULL)
