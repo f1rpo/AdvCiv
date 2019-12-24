@@ -294,7 +294,12 @@ class CvMainInterface:
 		self.iField_View_Prev = -1
 		self.iFoVPos_Prev = -1 # advc.090
 # BUG - field of view slider - end
-
+		# <advc.092> To make sure that Python reload doesn't crash
+		self.iMiniMapX1 = 0
+		self.iMiniMapX2 = 0
+		self.iMiniMapY1 = 0
+		self.iMiniMapY2 = 0
+		# </advc.092>
 
 
 ############## Basic operational functions ###################
