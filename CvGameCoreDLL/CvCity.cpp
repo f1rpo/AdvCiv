@@ -4524,7 +4524,7 @@ int CvCity::maxHurryPopulation() const
 }
 
 
-int CvCity::cultureDistance(int iDX, int iDY) const
+int CvCity::cultureDistance(int iDX, int iDY)
 {
 	return std::max(1, plotDistance(0, 0, iDX, iDY));
 }
@@ -12371,7 +12371,9 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 			if(iDistance > iCultureRange)
 				continue;
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-			if(pLoopPlot == NULL || !pLoopPlot->isPotentialCityWorkForArea(area()))
+			if(pLoopPlot == NULL || /* advc.098: */ (pLoopPlot->isWater() &&
+					!pLoopPlot->isPotentialCityWorkForArea(area())) ||
+					(pLoopPlot->getArea() != getArea() && iDistance > eCultureLevel + 1)) // advc.098
 				continue;
 			//int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
 			/*  <advc.001> Deleted some old K-Mod code that had been commented out.

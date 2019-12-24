@@ -245,7 +245,7 @@ public:
 	int hurryAngerLength(HurryTypes eHurry) const;													// Exposed to Python
 	int maxHurryPopulation() const;																					// Exposed to Python
 
-	int cultureDistance(int iDX, int iDY) const;														// Exposed to Python
+	static int cultureDistance(int iDX, int iDY); // advc: static														// Exposed to Python
 	int cultureStrength(PlayerTypes ePlayer) const;										// Exposed to Python
 	int cultureGarrison(PlayerTypes ePlayer) const;										// Exposed to Python
 	PlayerTypes calculateCulturalOwner() const; // advc.099c
