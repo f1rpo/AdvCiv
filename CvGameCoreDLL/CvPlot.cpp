@@ -8166,12 +8166,15 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		}
 		if (bRequiresBonus && bNeedsBonus)
 			return false;
-	}
-
-	// <advc.001b> Enforce air unit cap
-	if(bCheckAirUnitCap && !bTestVisible && GC.getInfo(eUnit).getAirUnitCap() > 0 &&
+		// <advc.001b>
+		if (bCheckAirUnitCap &&
+			GC.getDefineBOOL(CvGlobals::CAN_TRAIN_CHECKS_AIR_UNIT_CAP) &&
+			GC.getInfo(eUnit).getAirUnitCap() > 0 &&
 			airUnitSpaceAvailable(getTeam()) < 1)
-		return false; // </advc.001b>
+		{
+			return false;
+		} // </advc.001b>
+	}
 
 	return true;
 }
@@ -8218,7 +8221,7 @@ int CvPlot::airUnitSpaceAvailable(TeamTypes eTeam) const
 {
 	int iMaxUnits = 0;
 	CvCity* pCity = getPlotCity();
-	if (NULL != pCity)
+	if (pCity != NULL)
 		iMaxUnits = pCity->getAirUnitCapacity(getTeam());
 	else iMaxUnits = GC.getDefineINT(CvGlobals::CITY_AIR_UNIT_CAPACITY);
 	return (iMaxUnits - countNumAirUnits(eTeam));

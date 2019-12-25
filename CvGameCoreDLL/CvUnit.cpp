@@ -723,8 +723,10 @@ void CvUnit::doTurn()
 	setMadeInterception(false);
 
 	//setReconPlot(NULL); // advc.029: Handled at end of turn now
-
-	setMoves(0);
+	// <advc.001b> Allow double spent moves to carry over to the next turn
+	if (getMoves() >= 2 * maxMoves())
+		setMoves(maxMoves()); // </advc.001b>
+	else setMoves(0);
 }
 
 // <advc.029>
@@ -2795,15 +2797,18 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 }
 
 
-void CvUnit::move(CvPlot* pPlot, bool bShow)
+void CvUnit::move(CvPlot& kPlot, bool bShow, /* advc.163: */ bool bJump, bool bGroup)
 {
-	FAssert(canMoveOrAttackInto(*pPlot) || isMadeAttack());
+	FAssert(/* advc.163: */ bJump ||
+			canMoveOrAttackInto(kPlot) || isMadeAttack());
 
-	CvPlot* pOldPlot = plot();
-
-	changeMoves(pPlot->movementCost(this, plot()));
+	CvPlot& kOldPlot = *plot();
+	// <advc.163>
+	if (bJump)
+		setMoves(maxMoves()); // </advc.163>
+	else changeMoves(kPlot.movementCost(this, &kOldPlot));
 	// <advc.162>
-	if(isInvasionMove(*pOldPlot, *pPlot))
+	if(isInvasionMove(kOldPlot, kPlot))
 	{
 		std::vector<CvUnit*> aCargoUnits;
 		getCargoUnits(aCargoUnits);
@@ -2813,56 +2818,48 @@ void CvUnit::move(CvPlot* pPlot, bool bShow)
 				aCargoUnits[i]->changeMoves(aCargoUnits[i]->movesLeft());
 		}
 	} // </advc.162>
-	setXY(pPlot->getX(), pPlot->getY(), true, true, bShow && pPlot->isVisibleToWatchingHuman(), bShow);
-	// <advc.001b> Arrival of air unit may interrupt production b/c of unit limit
-	if(getDomainType() == DOMAIN_AIR && pPlot->isCity() && pPlot->getOwner() == getOwner())
-		pPlot->getPlotCity()->verifyProduction(); // </advc.001b>
+	setXY(kPlot.getX(), kPlot.getY(), /* advc.163 (was 'true'): */ bGroup,
+			true, bShow && kPlot.isVisibleToWatchingHuman(), bShow);
 
-	//change feature
-	FeatureTypes featureType = pPlot->getFeatureType();
-	if(featureType != NO_FEATURE)
+	FeatureTypes eFeature = kPlot.getFeatureType();
+	if (eFeature != NO_FEATURE) //change feature
 	{
-		CvString featureString(GC.getInfo(featureType).getOnUnitChangeTo());
-		if(!featureString.IsEmpty())
+		CvString szFeature(GC.getInfo(eFeature).getOnUnitChangeTo());
+		if (!szFeature.IsEmpty())
 		{
-			FeatureTypes newFeatureType = (FeatureTypes) GC.getInfoTypeForString(featureString);
-			pPlot->setFeatureType(newFeatureType);
+			FeatureTypes eNewFeature = (FeatureTypes)GC.getInfoTypeForString(szFeature);
+			kPlot.setFeatureType(eNewFeature);
 		}
 	}
 
-	if (getOwner() == GC.getGame().getActivePlayer())
+	if (getOwner() == GC.getGame().getActivePlayer() && !kPlot.isOwned()
+		&& eFeature != NO_FEATURE) // spawn birds if trees present - JW
 	{
-		if (!(pPlot->isOwned()))
+		CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
+		if (getASyncRand().get(100) < kFeature.getEffectProbability())
 		{
-			//spawn birds if trees present - JW
-			if (featureType != NO_FEATURE)
-			{
-				if (getASyncRand().get(100) < GC.getInfo(featureType).getEffectProbability())
-				{
-					EffectTypes eEffect = (EffectTypes)GC.getInfoTypeForString(GC.getInfo(featureType).getEffectType());
-					gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)getASyncRand().get(360));
-					gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_BIRDS_SCATTER", pPlot->getPoint());
-				}
-			}
+			EffectTypes eEffect = (EffectTypes)GC.getInfoTypeForString(kFeature.getEffectType());
+			NiPoint3 pt = kPlot.getPoint();
+			gDLL->getEngineIFace()->TriggerEffect(eEffect, pt, (float)getASyncRand().get(360));
+			gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_BIRDS_SCATTER", pt);
 		}
 	}
 
-	CvEventReporter::getInstance().unitMove(pPlot, this, pOldPlot);
+	CvEventReporter::getInstance().unitMove(&kPlot, this, &kOldPlot);
 }
 
-// false if unit is killed
-// K-Mod, added bForceMove and bGroup
-bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
+// returns false if unit is killed
+bool CvUnit::jumpToNearestValidPlot(/* K-Mod: */ bool bGroup, bool bForceMove)
 {
-	FAssertMsg(!isAttacking(), "isAttacking did not return false as expected");
-	FAssertMsg(!isFighting(), "isFighting did not return false as expected");
+	FAssert(!isAttacking());
+	FAssert(!isFighting());
 
 	CvCity* pNearestCity = GC.getMap().findCity(getX(), getY(), getOwner());
-	CvPlot const* pBestPlot = NULL;
+	CvPlot* pBestPlot = NULL;
 	int iBestValue = MAX_INT;
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(iI);
 		if (kLoopPlot.isValidDomainForLocation(*this))
 		{
 			if (canMoveInto(kLoopPlot))
@@ -2878,10 +2875,9 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 						if (kLoopPlot.isRevealed(getTeam()))
 						{
 							int iValue = (::plotDistance(plot(), &kLoopPlot) * 2);
-							// K-mod, 2/jan/11, karadoc - bForceMove functionality
+							// K-Mod, 2/jan/11 - bForceMove functionality
 							if (bForceMove && iValue == 0)
-								continue;
-							// K-Mod end
+								continue; // K-Mod end
 
 							if (pNearestCity != NULL)
 							{
@@ -2942,11 +2938,10 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 			if(!isHuman())
 				gr->AI().AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
 			gr->setAutomateType(NO_AUTOMATE);
-			gr->setActivityType(ACTIVITY_AWAKE);
-			setMoves(maxMoves());
-			// </advc.163>
+			gr->setActivityType(ACTIVITY_AWAKE); // </advc.163>
 		}
-		setXY(pBestPlot->getX(), pBestPlot->getY(), bGroup);
+		//setXY(pBestPlot->getX(), pBestPlot->getY(), bGroup);
+		move(*pBestPlot, true, true, bGroup); // advc.163
 	}
 	else
 	{
@@ -8828,6 +8823,12 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		{
 			if (isMilitaryHappiness())
 				pNewCity->changeMilitaryHappinessUnits(1);
+			  // <advc.001b>
+			if (GC.getDefineBOOL(CvGlobals::CAN_TRAIN_CHECKS_AIR_UNIT_CAP) &&
+				m_pUnitInfo->getAirUnitCap() > 0 && pNewCity->getOwner() == getOwner())
+			{
+				pNewCity->verifyProduction();
+			} // </advc.001b>
 		}
 
 		CvCity* pWorkingCity = pNewPlot->getWorkingCity();

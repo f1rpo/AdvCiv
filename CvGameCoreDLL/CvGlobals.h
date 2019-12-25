@@ -437,6 +437,7 @@ public:
 		DO(RELATIONS_THRESH_ANNOYED) \
 		/* </advc.148> */ \
 		DO(MINIMAP_RENDER_SIZE) /* advc.106m */ \
+		DO(CAN_TRAIN_CHECKS_AIR_UNIT_CAP) /* advc.001b */ \
 		/* <advc.opt> */ \
 		DO(DIPLOMACY_VALUE_REMAINDER) \
 		DO(PEACE_TREATY_LENGTH) \

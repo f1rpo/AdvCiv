@@ -1120,4 +1120,16 @@
 		<iDefineIntVal>-2</iDefineIntVal>
 	</Define>
 
+	<!-- advc.001b: 1 means that the production of air units is interrupted
+		 when the unit would exceed the city's air unit capacity.
+		 0 means that cities can produce air units regardless of capacity;
+		 when a new unit exceeds the capacity, it is automatically moved
+		 (to the rally point if possible, otherwise to the nearest legal
+		 city or fort). 0 is BtS behavior except that, in AdvCiv, forced
+		 moves use up movement points. -->
+	<Define>
+		<DefineName>CAN_TRAIN_CHECKS_AIR_UNIT_CAP</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

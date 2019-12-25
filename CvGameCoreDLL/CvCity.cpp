@@ -11776,30 +11776,52 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		setUnitProductionTime(eTrainUnit, 0); // EmperorFool, Bugfix, 06/10/10
 		// </advc.064b>
 		CvUnit* pUnit = kOwner.initUnit(eTrainUnit, getX(), getY(), eTrainAIUnit);
-		FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 		pUnit->finishMoves();
 		addProductionExperience(pUnit);
-		CvPlot* pRallyPlot = getRallyPlot();
-		if(pRallyPlot != NULL)
-			pUnit->getGroup()->pushMission(MISSION_MOVE_TO, pRallyPlot->getX(), pRallyPlot->getY());
-		if(isHuman())
+		CvPlot* pRallyPlot = getRallyPlot(); // (advc.001b: moved up)
+		if (GC.getInfo(eTrainUnit).getDomainType() == DOMAIN_AIR)
 		{
-			if(kOwner.isOption(PLAYEROPTION_START_AUTOMATED))
+			if(plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
+			{	// <advc.001b>
+				if (pRallyPlot != NULL && pUnit->canMoveInto(*pRallyPlot))
+					pUnit->move(*pRallyPlot, false, true);
+				if (pUnit->at(*plot()))
+				{
+					pUnit->jumpToNearestValidPlot(); // (as in BtS)
+					bool const bDead = pUnit->isDead();
+					if (getOwner() == GC.getGame().getActivePlayer())
+					{
+						CvWString szMsg(gDLL->getText("TXT_KEY_AIR_CAPACITY_EXCEEDED",
+								pUnit->getNameKey(), getNameKey(), gDLL->getText(bDead ?
+								"TXT_KEY_AIR_UNIT_SCRAPPED" : "TXT_KEY_AIR_UNIT_MOVED").GetCString()));
+						gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
+								GC.getEVENT_MESSAGE_TIME(), szMsg, NULL, MESSAGE_TYPE_INFO,
+								pUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+								bDead ? getX() : pUnit->getX(), bDead ? getY() : pUnit->getY(), true, true);
+					}
+					if (bDead)
+						break;
+				}
+				/*	The jump has already spent all moves. Spending all moves twice makes
+					the unit unable to move on the next turn. Cf. CvUnit::doTurn. */
+				pUnit->changeMoves(pUnit->maxMoves());
+				// </advc.001b>
+			}
+		}
+		if (pRallyPlot != NULL/* advc.001b: */ && pUnit->at(*plot()))
+			pUnit->getGroup()->pushMission(MISSION_MOVE_TO, pRallyPlot->getX(), pRallyPlot->getY());
+		if (isHuman())
+		{
+			if (kOwner.isOption(PLAYEROPTION_START_AUTOMATED))
 				pUnit->automate(AUTOMATE_BUILD);
-			if(kOwner.isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
+			if (kOwner.isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
 				pUnit->automate(AUTOMATE_RELIGION);
 		}
 		CvEventReporter::getInstance().unitBuilt(this, pUnit);
-		if(gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+		if (gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 		{
 			CvWString szString; getUnitAIString(szString, pUnit->AI_getUnitAIType());
 			logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString());
-		}
-		CvUnitInfo const& kUnitInfo = GC.getInfo(eTrainUnit);
-		if(kUnitInfo.getDomainType() == DOMAIN_AIR)
-		{
-			if(plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
-				pUnit->jumpToNearestValidPlot();  // can destroy unit
 		}
 		break;
 	}

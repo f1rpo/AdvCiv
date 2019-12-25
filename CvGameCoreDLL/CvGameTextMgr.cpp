@@ -10342,8 +10342,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 	// </advc.004w>
 	// <advc.001b>
 	if(pCity != NULL && pCity->plot() != NULL &&
-			u.getAirUnitCap() > 0 && pCity->plot()->
-			airUnitSpaceAvailable(TEAMID(pCity->getOwner())) < 1)
+		u.getAirUnitCap() > 0 &&
+		GC.getDefineBOOL(CvGlobals::CAN_TRAIN_CHECKS_AIR_UNIT_CAP) &&
+		pCity->plot()->airUnitSpaceAvailable(TEAMID(pCity->getOwner())) < 1)
 	{
 		szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText(
 				"TXT_KEY_NOT_ENOUGH_SPACE").c_str());

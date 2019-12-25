@@ -1696,11 +1696,35 @@
 		 Couldn't do Spanish. -->
 	<TEXT>
 		<Tag>TXT_KEY_NOT_ENOUGH_SPACE</Tag>
-		<English>Not enough air unit space available in this city.</English>
+		<English>Not enough air capacity available in this city.</English>
 		<French>Il ne reste pas assez d'espace pour unit&#233;s a&#233;riennes dans cette cit&#233;.</French>
 		<German>Zu wenig Platz f&#252;r weitere Lufteinheiten in dieser Stadt.</German>
 		<Italian>Il spazio per unit&#224; aeree in questa citt&#224; &#232; esaurito.</Italian>
-		<Spanish>Not enough air unit space available in this city.</Spanish>
+		<Spanish>Not enough air unit capacity available in this city.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_CAPACITY_EXCEEDED</Tag>
+		<English>Your %s1 at %s2 had to be %s3 due to insufficient air capacity.</English>
+		<French>Your %s1 at %s2 had to be %s3 due to insufficient air capacity.</French>
+		<German>Ihre Lufteinheit %s1 in %s2 musste wegen fehlender Kapazität %s3 werden.</German>
+		<Italian>Your %s1 at %s2 had to be %s3 due to insufficient air capacity.</Italian>
+		<Spanish>Your %s1 at %s2 had to be %s3 due to insufficient air capacity.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_UNIT_SCRAPPED</Tag>
+		<English>scrapped</English>
+		<French>scrapped</French>
+		<German>verschrottet</German>
+		<Italian>scrapped</Italian>
+		<Spanish>scrapped</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_UNIT_MOVED</Tag>
+		<English>moved</English>
+		<French>moved</French>
+		<German>verlegt</German>
+		<Italian>moved</Italian>
+		<Spanish>moved</Spanish>
 	</TEXT>
 
 	<!-- advc.300: (Earliest) barbarian start turn -->

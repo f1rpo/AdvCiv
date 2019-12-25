@@ -67,7 +67,8 @@ public:
 	void attack(CvPlot* pPlot, bool bQuick);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
 	void fightInterceptor(const CvPlot* pPlot, bool bQuick);
-	void move(CvPlot* pPlot, bool bShow);
+	void move(CvPlot& kPlot, bool bShow, // advc: 1st param was CvPlot* (not const b/c of possible feature change)
+			bool bJump = false, bool bGroup = true); // advc.163
 	// K-Mod added bForceMove and bGroup
 	bool jumpToNearestValidPlot(bool bGroup = false, bool bForceMove = false); // Exposed to Python
 

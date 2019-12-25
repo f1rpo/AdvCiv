@@ -2967,8 +2967,7 @@ void CvPlayer::doTurn()  // advc: style changes
 	FAssertMsg(isAlive(), "isAlive is expected to be true");
 	FAssertMsg(!hasBusyUnit() || GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)  || GC.getGame().isSimultaneousTeamTurns(), "End of turn with busy units in a sequential-turn game");
 	CvGame& g = GC.getGame();
-	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
-	   need assistance from CvPlayer. */
+	// <advc.106b>
 	if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 		g.setInBetweenTurns(true);
 	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open

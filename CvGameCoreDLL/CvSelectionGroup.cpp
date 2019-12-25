@@ -2783,7 +2783,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 
 	// Move the combat unit first, so that no-capture units don't get unneccarily left behind.
 	if (pCombatUnit)
-		pCombatUnit->move(pPlot, true);
+		pCombatUnit->move(*pPlot, true);
 	// K-Mod end
 
 	/*  advc.001: Units that can't capture cities move in stage 1 (i.e. always last).
@@ -2815,7 +2815,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 						b/c canMoveOrAttackInto doesn't cover it (perhaps it should). */
 					!(pLoopUnit->isNoCityCapture() && pPlot->isEnemyCity(*pLoopUnit)) &&
 					(bCombat ? pLoopUnit->canMoveOrAttackInto(*pPlot) : pLoopUnit->canMoveInto(*pPlot)))
-				pLoopUnit->move(pPlot, true);
+				pLoopUnit->move(*pPlot, true);
 			else
 			{
 				/* original bts code
