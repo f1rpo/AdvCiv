@@ -25,9 +25,9 @@ typedef UWAICache::City City;
 WarUtilityAspect::WarUtilityAspect(WarEvalParameters const& params) :
 
 	params(params), agentId(params.agentId()), agent(GET_TEAM(agentId)),
-	agentAI(agent.uwai()), report(params.getReport()) {
+	agentAI(agent.uwai()), report(params.getReport()), game(GC.getGame()),
+	gameEra(game.getCurrentEra()), speed(GC.getInfo(game.getGameSpeedType())) {
 
-	gameEra = GC.getGame().getCurrentEra();
 	u = 0;
 	// In case that a derived class tries to access these before 'evaluate' is called
 	reset();
@@ -98,7 +98,7 @@ int WarUtilityAspect::evaluate(PlayerTypes theyId) {
 	/*  No worries once preparations are well underway or when asked to
 		declare war immediately (or when already at war) */
 	if(!we->isHuman() && params.getPreparationTime() > 5 &&
-			GC.getGame().gameTurnProgress() < 0.18 &&
+			game.gameTurnProgress() < 0.18 &&
 			we->AI_getPeaceAttitude(theyId) == 0 &&
 			agent.AI_getAtPeaceCounter(TEAMID(theyId)) >
 			GC.getInfo(we->getPersonalityType()).
@@ -633,10 +633,9 @@ double GreedForAssets::defensibilityCost() {
 	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		threatFactor += threatToCities(it->getID());
 	freeCitiesPerArea();
-	CvGame const& g = GC.getGame();
-	if(ourDist > 5 && !g.isOption(GAMEOPTION_NO_BARBARIANS) && gameEra < 2) {
+	if(ourDist > 5 && !game.isOption(GAMEOPTION_NO_BARBARIANS) && gameEra < 2) {
 		double barbThreat = 1;
-		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS))
+		if(game.isOption(GAMEOPTION_RAGING_BARBARIANS))
 			barbThreat *= 1.5;
 		barbThreat *= ourDist / 60;
 		barbThreat = std::min(0.25, barbThreat);
@@ -739,7 +738,7 @@ double GreedForAssets::competitionMultiplier() {
 	int theirCities = they->getNumCities();
 	/*  Only need this in the early game (I hope), and only if there are few
 		cities to go around */
-	if(GC.getGame().gameTurnProgress() >= 0.25 || theirCities >= 5 ||
+	if(game.gameTurnProgress() >= 0.25 || theirCities >= 5 ||
 			theirCities <= 0 || weConquerFromThem.size() <= 0)
 		return 1;
 	/*  MilitaryAnalyst already takes our war allies into account, and tells us
@@ -1007,9 +1006,8 @@ void Loathing::evaluate() {
 double Loathing::lossRating() {
 
 	if(m->isEliminated(theyId) || m->hasCapitulated(TEAMID(theyId))) {
-		CvGame& g = GC.getGame();
 		log("Loss rating based on score");
-		return g.getPlayerScore(theyId) / (double)std::max(10, g.getPlayerScore(weId));
+		return game.getPlayerScore(theyId) / (double)std::max(10, game.getPlayerScore(weId));
 	}
 	/*  We mainly care about how much they lose relative to what we have; only
 		use their present status as a sanity check, so that we don't get excited
@@ -1188,7 +1186,6 @@ double MilitaryVictory::progressRatingConquest() {
 
 double MilitaryVictory::progressRatingDomination() {
 
-	CvGame& g = GC.getGame();
 	VictoryTypes dom = NO_VICTORY;
 	/*  There is no literal for domination victory. I don't care about
 		supporting modded custom victory conditions; just find the index of
@@ -1202,12 +1199,12 @@ double MilitaryVictory::progressRatingDomination() {
 	}
 	if(dom == NO_VICTORY || m->conqueredCities(weId).empty())
 		return 0;
-	double popToGo = g.getAdjustedPopulationPercent(dom) * g.getTotalPopulation() /
+	double popToGo = game.getAdjustedPopulationPercent(dom) * game.getTotalPopulation() /
 			100.0 - agent.getTotalPopulation();
 	double ourLandRatio = agent.getTotalLand() /
 			((double)GC.getMap().getLandPlots());
 	// How close we are to the victory threshold
-	double landVictoryRatio =  (100 * ourLandRatio) / g.getAdjustedLandPercent(dom);
+	double landVictoryRatio =  (100 * ourLandRatio) / game.getAdjustedLandPercent(dom);
 	// Dealing with land tiles is too complicated. Need a target number of cities.
 	/*  If landVictoryRatio is what our current cities give us, we'll need this
 		many for victory: */
@@ -1216,7 +1213,7 @@ double MilitaryVictory::progressRatingDomination() {
 		How many cities would we need if the goal was to have a certain fraction
 		of cities rather than land tiles? Use the average of these two predictions. */
 	targetCities = (targetCities +
-			0.01 * g.getAdjustedLandPercent(dom) * g.getNumCities()) / 2;
+			0.01 * game.getAdjustedLandPercent(dom) * game.getNumCities()) / 2;
 	double citiesToGo = targetCities - agent.getNumCities();
 	double popGained = 0;
 	double citiesGained = 0;
@@ -1292,7 +1289,7 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		return 0;
 	}
 	bool isUN = GC.getInfo(voteSource).getVoteInterval() < 7;
-	ReligionTypes apRel = GC.getGame().getVoteSourceReligion(voteSource);
+	ReligionTypes apRel = game.getVoteSourceReligion(voteSource);
 	double popGained = 0;
 	map<int,double> conquestsWithWeights;
 	CitySet conqFriendly;
@@ -1683,8 +1680,7 @@ void HiredHand::evaluate() {
 	/*  Have we been at war since the start of the game? Then it's a scenario
 		and we should try to play along for a while. Tbd.: Should be a
 		separate aspect "Historical Role". */
-	if(agent.AI_getAtWarCounter(TEAMID(theyId)) == GC.getGame().
-			getElapsedGameTurns())
+	if(agent.AI_getAtWarCounter(TEAMID(theyId)) == game.getElapsedGameTurns())
 		uPlus += eval(NO_PLAYER, 50, 12);
 	u += ::round(uPlus);
 }
@@ -1801,7 +1797,7 @@ void SuckingUp::evaluate() {
 		relations through the shared-war diplo bonus, whereas Assistance is about
 		preventing a civ that is already a partner from being marginalized, and
 		Fidelity is about discouraging future attacks on our friends. */
-	CvGame& g = GC.getGame();
+
 	/*  Sucking up to humans doesn't work, and unclear if relations with our
 		enemies are going to matter. */
 	if(they->isHuman() || m->isWar(weId, theyId) ||
@@ -1810,7 +1806,7 @@ void SuckingUp::evaluate() {
 			m->hasCapitulated(TEAMID(theyId)) ||
 			// Don't bet on a loser
 			m->lostCities(theyId).size() > m->conqueredCities(theyId).size() ||
-			g.getPlayerScore(weId) * 6 > g.getPlayerScore(theyId) * 10 ||
+			game.getPlayerScore(weId) * 6 > game.getPlayerScore(theyId) * 10 ||
 			// Hopeless case:
 			valTowardsUs <= GC.getDefineINT(CvGlobals::RELATIONS_THRESH_FURIOUS) + 1 ||
 			// No need to improve relations further:
@@ -1841,7 +1837,7 @@ void SuckingUp::evaluate() {
 			getShareWarAttitudeChangeLimit();
 	double uPlus = 1.6 * diplo; // Should sharedWars have an impact?
 	log("Sharing a war with %s; up to +%d diplo", report.leaderName(theyId), diplo);
-	int nAlive = g.countCivPlayersAlive();
+	int nAlive = game.countCivPlayersAlive();
 	if(towardsUs == ATTITUDE_PLEASED && we->AI_isDoVictoryStrategy(
 			AI_VICTORY_DIPLOMACY3) && nAlive > 2) {
 		log("Bonus utility for them being pleased and us close to diplo victory");
@@ -1942,7 +1938,7 @@ void PreEmptiveWar::evaluate() {
 int KingMaking::preEvaluate() {
 
 	PROFILE_FUNC();
-	if(gameEra <= GC.getGame().getStartEra())
+	if(gameEra <= game.getStartEra())
 		return 0;
 	addWinning(winningFuture, true);
 	addWinning(winningPresent, false);
@@ -1975,13 +1971,20 @@ void KingMaking::addWinning(std::set<PlayerTypes>& r, bool bPredict) {
 		if(anyVictory(civ.getID(), iFlags, 4, bPredict))
 			r.insert(civ.getID());
 	}
-	if(!r.empty())
-		return;
-	//  II: Civs at victory stage 3 or game score near the top
-	for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
-		CvPlayerAI const& civ = *it;
-		if(anyVictory(civ.getID(), civ.AI_getVictoryStrategyHash(), 3, bPredict))
-			r.insert(civ.getID());
+	int const maxTurns = game.getMaxTurns();
+	int turnsRemaining = ((maxTurns - game.getElapsedGameTurns()) * 100) /
+			speed.getVictoryDelayPercent();
+	// (Would be safer but slower to check game.isVictoryValid in addition)
+	if (maxTurns <= 0 || turnsRemaining <= 0 || turnsRemaining > 17) {
+		if(!r.empty()) // Only stage 4 matters unless time victory is imminent
+			return;
+		// (If none at stage 4 and time victory not imminent)
+		// II: Civs at victory stage 3 or game score near the top
+		for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
+			CvPlayerAI const& civ = *it;
+			if(anyVictory(civ.getID(), civ.AI_getVictoryStrategyHash(), 3, bPredict))
+				r.insert(civ.getID());
+		}
 	}
 	// III: Civs with a competitive game score
 	addLeadingCivs(r, scoreMargin, bPredict);
@@ -2029,7 +2032,6 @@ bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
 	if(!bCultValid && !bSpaceValid && !bDomValid && !bDiploValid)
 		return false;
 	CvMap const& map = GC.getMap();
-	CvGame const& g = GC.getGame();
 	int lostPop = 0;
 	int lostNtlWonders = 0;
 	CitySet const& lostCities = m->lostCities(civId);
@@ -2040,9 +2042,9 @@ bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
 		/*  civ could have enough other high-culture cities, but I don't mind if the
 			AI is a bit too optimistic about thwarting a rival's victory
 			(or extra worried about jeopardizing its own victory). */
-		if((stage == 3 && c.getCultureLevel() >= g.culturalVictoryCultureLevel() - 1) ||
-			(stage == 4 && 2 * c.getCulture(civId) >= c.getCultureThreshold(
-					g.culturalVictoryCultureLevel())))
+		if((stage == 3 && c.getCultureLevel() >= game.culturalVictoryCultureLevel() - 1) ||
+				(stage == 4 && 2 * c.getCulture(civId) >= c.getCultureThreshold(
+				game.culturalVictoryCultureLevel())))
 			bCultValid = false;
 		lostNtlWonders += c.getNumNationalWonders();
 		if(c.isCapital())
@@ -2059,7 +2061,7 @@ bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
 	}
 	if(lostPop > 0) {
 		double popRatio = std::max(0, civ.getTotalPopulation() - lostPop) /
-				(g.getTotalPopulation() + 0.01);
+				(game.getTotalPopulation() + 0.01);
 		if(stage == 3) {
 			if(popRatio < 0.35) {
 				bDomValid = false;
@@ -2078,19 +2080,18 @@ bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
 
 void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bPredict) const {
 
-	CvGame& g = GC.getGame();
 	CvCity* ourCapital = we->getCapitalCity();
 	double bestScore = 1;
 	for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
 		PlayerTypes civId = it->getID();
 		double sc = bPredict ? m->predictedGameScore(civId) :
-				g.getPlayerScore(civId);
+				game.getPlayerScore(civId);
 		/*  Count extra score for commerce so that civs that are getting far
 			ahead in tech are identified as a threat */
 		CvPlayerAI const& civ = GET_PLAYER(civId);
 		if(civ.getCurrentEra() >= 3 &&
 				// The late game is covered by victory stages
-				civ.getCurrentEra() <= 4 && g.getCurrentEra() <= 4) {
+				civ.getCurrentEra() <= 4 && game.getCurrentEra() <= 4) {
 			double commerceRate = civ.estimateYieldRate(YIELD_COMMERCE);
 			sc += commerceRate / 2;
 			// Beware of peaceful civs on other landmasses
@@ -2108,7 +2109,7 @@ void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bP
 	for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
 		PlayerTypes civId = it->getID();
 		if((bPredict ? m->predictedGameScore(civId) :
-				g.getPlayerScore(civId)) / bestScore >=
+				game.getPlayerScore(civId)) / bestScore >=
 				(GET_PLAYER(civId).isHuman() ? 0.7 : 0.75))
 			r.insert(civId);
 	}
@@ -2186,7 +2187,7 @@ void KingMaking::evaluate() {
 	log("%d base utility for change in asset ratio", ::round(uPlus));
 	/*  Over the course of the game, we become more willing to take out rivals even
 		if several rivals are still in competition. */
-	double progressFactor = std::max(2/3.0 - (1/3.0) * GC.getGame().gameTurnProgress(), 1/3.0);
+	double progressFactor = std::max(2/3.0 - (1/3.0) * game.gameTurnProgress(), 1/3.0);
 	FAssert(progressFactor > 0);
 	double div = 1 + std::pow(progressFactor * winningRivals, 2.0);
 	double competitionMultiplier = 1.0 / div;
@@ -2388,8 +2389,7 @@ int Effort::preEvaluate() {
 		UWAICache. */
 	int extraDuration = duration - giveWarAChanceDuration;
 	if(extraDuration > 0) {
-		double gameSpeedDiv = GC.getInfo(
-				GC.getGame().getGameSpeedType()).getResearchPercent() / 100.0;
+		double gameSpeedDiv = speed.getResearchPercent() / 100.0;
 		goldVal = std::min(5.0, goldVal * (1 + vagueOpportunityWeight * 0.025 *
 				std::min(extraDuration, 40) / gameSpeedDiv));
 		log("Gold per production adjusted to %.2f based on war duration (%d turns)",
@@ -2492,7 +2492,7 @@ void Risk::evaluate() {
 			CvCity const& cvc = *c->city();
 			// Same condition as in CvPlayerAI::AI_conquerCity
 			if(2 * cvc.getCulture(cvc.getOwner()) >= cvc.getCultureThreshold(
-					GC.getGame().culturalVictoryCultureLevel()))
+					game.culturalVictoryCultureLevel()))
 				sc += (bCulture4 ? 15 : 8);
 		}
 		log("%s: %d lost assets%s", report.cityName(*c->city()), ::round(sc),
@@ -2780,7 +2780,7 @@ void IllWill::evalAngeredPartners() {
 	if(towardsUs >= ATTITUDE_PLEASED && we->AI_isDoVictoryStrategy(
 			AI_VICTORY_DIPLOMACY4 | AI_VICTORY_DIPLOMACY3)) {
 		double victoryFactor = they->getTotalPopulation() /
-				(double)std::max(1, GC.getGame().getTotalPopulation());
+				(double)std::max(1, game.getTotalPopulation());
 		double victoryCost = 25 * victoryFactor * penalties;
 		log("-%d for jeopardizing diplo victory", ::round(victoryCost));
 		uMinus += victoryCost;
@@ -2789,7 +2789,7 @@ void IllWill::evalAngeredPartners() {
 
 Affection::Affection(WarEvalParameters& params) : WarUtilityAspect(params) {
 
-	gameProgressFactor = 1 - 0.2 * GC.getGame().gameTurnProgress();
+	gameProgressFactor = 1 - 0.2 * game.gameTurnProgress();
 }
 
 void Affection::evaluate() {
@@ -3198,8 +3198,7 @@ void FairPlay::evaluate() {
 	// Avoid big dogpiles (or taking turns attacking a single target)
 	double otherEnemies = 0; // Apart from us
 	int iPotentialOtherEnemies = 0;
-	CvGame const& g = GC.getGame();
-	int iTheirRank = g.getPlayerRank(theyId);
+	int iTheirRank = game.getPlayerRank(theyId);
 	for(PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
 		CvPlayerAI const& other = *it;
 		if(other.getID() == theyId)
@@ -3216,7 +3215,7 @@ void FairPlay::evaluate() {
 						MEMORY_DECLARED_WAR) == -2)
 					incr *= 0.85;
 			}
-			int iOtherRank = g.getPlayerRank(other.getID());
+			int iOtherRank = game.getPlayerRank(other.getID());
 			// Ganging up on the leader is less problematic
 			if(iTheirRank < iOtherRank)
 				incr *= (iTheirRank + 1.0) / (iOtherRank + 1.0);
@@ -3230,8 +3229,7 @@ void FairPlay::evaluate() {
 					report.leaderName(other.getID()));
 			otherEnemies -= 1.0 / std::max(1, GET_TEAM(other.getTeam()).getNumWars(true, true));
 		}
-		if(other.AI_getMemoryAttitude(theyId,
-				MEMORY_DECLARED_WAR) <= -2) {
+		if(other.AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) <= -2) {
 			log("They've attacked %s before", report.leaderName(other.getID()));
 			otherEnemies -= 0.5;
 		}
@@ -3245,7 +3243,7 @@ void FairPlay::evaluate() {
 				((int)m->lostCities(theyId).size()) -
 				((int)m->conqueredCities(weId).size())))) /
 				std::sqrt((double)std::max(1, iPotentialOtherEnemies)) - 0.33);
-		fromOtherEnemies *= (1 - (2/3.0) * GC.getGame().gameTurnProgress());
+		fromOtherEnemies *= (1 - (2/3.0) * game.gameTurnProgress());
 		/*  Once we've gone through the trouble of preparing war, we'd like to go
 			through with it, but if there are many civs in the game, there's a good
 			chance that several of them start plotting at the same time, so
@@ -3280,9 +3278,8 @@ void FairPlay::evaluate() {
 		return;*/
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
 		on low difficulty either. */
-	EraTypes startEra = g.getStartEra();
-	int trainMod = GC.getInfo(g.getGameSpeedType()).getTrainPercent() *
-			GC.getInfo(startEra).getTrainPercent();
+	EraTypes startEra = game.getStartEra();
+	int trainMod = speed.getTrainPercent() * GC.getInfo(startEra).getTrainPercent();
 	if(trainMod <= 0) {
 		FAssert(trainMod > 0);
 		return;
@@ -3294,9 +3291,9 @@ void FairPlay::evaluate() {
 		int iTargetTurn = 100;
 		// Allow earlier aggression on crowded maps
 		iTargetTurn = ::round(iTargetTurn *
-				((1 + 1.5 * (g.getRecommendedPlayers() /
-				(double)g.getCivPlayersEverAlive())) / 2.5));
-		int iElapsed = ::round(g.getElapsedGameTurns() / (trainMod / 10000.0));
+				((1 + 1.5 * (game.getRecommendedPlayers() /
+				(double)game.getCivPlayersEverAlive())) / 2.5));
+		int iElapsed = ::round(game.getElapsedGameTurns() / (trainMod / 10000.0));
 		int iTurnsRemaining = iTargetTurn - iElapsed - GC.getInfo(startEra).getStartPercent();
 		if(iTurnsRemaining > 0)
 			uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
@@ -3553,8 +3550,7 @@ void TacticalSituation::evalOperational() {
 		targetAttackers += std::pow((double)theyEra, 1.3);
 	if(params.isNaval())
 		targetAttackers *= 1.3;
-	double trainMod = GC.getInfo(GC.getGame().
-			getHandicapType()).getAITrainPercent() / 100.0;
+	double trainMod = GC.getInfo(game.getHandicapType()).getAITrainPercent() / 100.0;
 	// Smaller target on lower difficulty
 	targetAttackers /= ::dRange(trainMod, 1.0, 1.5);
 	/*  Don't necessarily need a larger initial stack for total war.

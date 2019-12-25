@@ -58,13 +58,14 @@ protected:
 	   This also affects a few other classes that have references
 	   as members, in particular WarEvaluator and MilitaryAnalyst.*/
 	WarEvalParameters const& params;
-	TeamTypes agentId;
-	CvTeamAI& agent;
-	UWAI::Team& agentAI;
+	TeamTypes const agentId;
+	CvTeamAI const& agent;
+	UWAI::Team const& agentAI;
 	int u;
 	UWAIReport& report;
-	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
-	EraTypes gameEra;
+	CvGame const& game;
+	EraTypes const gameEra;
+	CvGameSpeedInfo const& speed;
 
 	/*  Subclasses must not access these members until evaluate(m) has been called.
 		Initialization is then guaranteed although they're not references.
