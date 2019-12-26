@@ -4884,10 +4884,12 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 				iCulturePercent, PLAYER_TEXT_COLOR(kPlayer), kPlayer.getCivilizationAdjective());
 		szBuffer.append(szTempBuffer);
 	}
-	PlayerTypes eCulturalOwner = c.calculateCulturalOwner(); // advc.099c
-	// <advc.101> <advc.023>
-	double prDecr = c.probabilityOccupationDecrement();
-	double prDisplay = c.revoltProbability(true, false, true);
+	PlayerTypes const eCulturalOwner = c.calculateCulturalOwner(); // advc.099c
+	// <advc.101><advc.023>
+	double const prDecr = c.probabilityOccupationDecrement();
+	double const prDisplay = c.revoltProbability(true, false, true);
+	int const iCultureStr = c.cultureStrength(eCulturalOwner);
+	int const iGarrisonStr = c.cultureGarrison(eCulturalOwner);
 	if(prDisplay > 0)
 	{
 		double truePr = c.revoltProbability() * (1 - prDecr);
@@ -4906,14 +4908,25 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 			else szBuffer.append(gDLL->getText("TXT_KEY_NO_REVOLT_IN_OCCUPATION",
 						szTempBuffer));
 		} // </advc.023>
-		// <advc.101> Warn about flipping
-		swprintf(szTempBuffer, L"%d", c.getNumRevolts(eCulturalOwner));
+		// <advc.101>
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRIOR_REVOLTS", szTempBuffer));
+		// Partial breakdown of the probability - not so helpful after all
+		/*int const iCultureStrength = c.cultureStrength(eCulturalOwner);
+		szBuffer.append(gDLL->getText("TXT_KEY_REVOLT_PR_BREAKDOWN",
+				c.cultureGarrison(eCulturalOwner),
+				// Can't break this down further - too complicated
+				iCultureStrength, iCultureStrength,
+				::round(100 * c.getRevoltTestProbability())));
+		// Also show c.getRevoltProtection()? */
+		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_NEEDED",
+				iCultureStr - iGarrisonStr));
+		// Warn about flipping
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRIOR_REVOLTS", c.getNumRevolts(eCulturalOwner)));
 		if(truePr > 0 && c.canCultureFlip(eCulturalOwner))
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_FLIP_WARNING", szTempBuffer));
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_FLIP_WARNING"));
 		}
 	}
 	if(c.isOccupation()) // </advc.101>
@@ -4934,7 +4947,14 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 			szBuffer.append(gDLL->getText("TXT_KEY_TIMER_DECREASE_CHANCE",
 					prDecrPercent));
 		}
-	} // </advc.023>
+	} // </advc.023>  // <advc.101>
+	else if(prDisplay <= 0 && eCulturalOwner != c.getOwner() &&
+		iGarrisonStr >= iCultureStr)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_EXCESS",
+				iGarrisonStr - iCultureStr));		
+	} // </advc.101>
 }
 
 void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)

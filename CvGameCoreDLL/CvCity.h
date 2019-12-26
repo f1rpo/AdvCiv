@@ -767,6 +767,7 @@ public:
 	int getNumRevolts() const; // advc.099c: To the current cultural owner
 	void changeNumRevolts(PlayerTypes eIndex, int iChange);
 	double getRevoltTestProbability() const; // advc.101: Now between 0 and 1
+	int getRevoltProtection() const; // advc.101
 
 	bool isTradeRoute(PlayerTypes eIndex) const;																	// Exposed to Python
 	void setTradeRoute(PlayerTypes eIndex, bool bNewValue);
@@ -1224,7 +1225,7 @@ protected:
 	bool canHurryBuilding(HurryTypes eHurry, BuildingTypes eBuilding, bool bIgnoreNew) const;
 
 	void updateBuildingDefense(); // advc.004c
-	double garrisonStrength(double stopCountingAt = -1) const; // advc.500b
+	double defensiveGarrison(double stopCountingAt = -1) const; // advc.500b
 	//int calculateMaintenanceDistance() const;
 	// advc.004b: Replacing the above (which was public, but is only used internally)
 	static int calculateMaintenanceDistance(CvPlot const* cityPlot, PlayerTypes owner);

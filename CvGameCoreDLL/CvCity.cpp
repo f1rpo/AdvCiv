@@ -3862,7 +3862,7 @@ int CvCity::getNoMilitaryPercentAnger() const
 		return iAnger;  // <advc.500b>
 	}
 	double targetGarrStr = getPopulation() / 2.0;
-	double actualGarrStr = garrisonStrength(targetGarrStr);
+	double actualGarrStr = defensiveGarrison(targetGarrStr);
 	if(actualGarrStr >= targetGarrStr)
 		return 0;
 	/* Currently (as per vanilla) 334, meaning 33.4% of the population get angry.
@@ -4640,9 +4640,8 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	// <advc.opt>
 	static int const iREVOLT_OFFENSE_STATE_RELIGION_MODIFIER = GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER");
 	static int const iREVOLT_DEFENSE_STATE_RELIGION_MODIFIER = GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER");
-	static int const iREVOLT_TOTAL_CULTURE_MODIFIER = GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER"); // </advc.opt>
-	/*  100 in BtS XML; I've increased it to 200 to keep pace with K-Mod's
-		changes to culture spread */
+	static int const iREVOLT_TOTAL_CULTURE_MODIFIER = GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER"); // 100
+	// </advc.opt>
 	grievanceModifier += -1 + (iREVOLT_TOTAL_CULTURE_MODIFIER / 100.0);
 	CvPlayer const& kRevoltPlayer = GET_PLAYER(ePlayer);
 	if(bReligionSuppressed || (kRevoltPlayer.isAlive() &&
@@ -4681,7 +4680,14 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	if(grievanceModifier < 0)
 		grievanceModifier /= 2;
 	strength *= (1 + std::max(-1.0, grievanceModifier));
-	return ::round(strength);
+	/*	Culture strength too low in the late game - or garrison strength too high, but
+		garrison strength is what players can directly control; needs to be simple, linear. */
+	static double const FOREIGN_CULTURE_STRENGTH_EXPONENT =
+			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_EXPONENT") / 100.0;
+	static double const FOREIGN_CULTURE_STRENGTH_FACTOR =
+			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_FACTOR") / 100.0;
+	return ::round(FOREIGN_CULTURE_STRENGTH_FACTOR *
+			std::pow(strength, FOREIGN_CULTURE_STRENGTH_EXPONENT));
 	// </advc.101>
 }
 
@@ -4692,34 +4698,18 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 		BtS enforces this in CvPlot::doCulture (now renamed to CvPlot::doRevolts).
 		Easier to do it here. */
 	if(isBarbarian())
-		return 0; // </advc.101>
+		return 0;
 
-	int iGarrison = 1;
+	int iGarrison = 0; // was 1  </advc.101>
 	for(CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
 		pUnitNode = plot()->nextUnitNode(pUnitNode))
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		int iGarrisonLoop = pLoopUnit->getUnitInfo().getCultureGarrisonValue();
-		// <advc.101>
-		if (iGarrisonLoop <= 0)
-			continue;
-		/*  Culture garrison values increase a bit too slowly over the
-			course of the game. Easier to adjust that here than through XML.
-			Note that this exponentiation is partly canceled out by exponentiation
-			of the current game era in CvCity::cultureStrength. */
-		iGarrisonLoop = ::round(std::pow(iGarrisonLoop * 2 / 3.0, 1.4)); // </advc.101>
-		// <advc.023>
-		iGarrisonLoop *= pLoopUnit->maxHitPoints() - pLoopUnit->getDamage();
-		iGarrisonLoop /= 100;
-		iGarrison += iGarrisonLoop;
+		// advc.101: Handled by new function
+		iGarrison += ::getUnit(pUnitNode->m_data)->garrisonStrength();
 	}
-	// Commented out: </advc.023>
 	/*if (atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
-		iGarrison *= 2; */
-	// <advc.101> Exponentiate again to give strength in numbers a superlinear effect
-	if (iGarrison > 0)
-		iGarrison = ::round(std::pow((double)iGarrison, 1.2)); // </advc.101>
-	return iGarrison;
+		iGarrison *= 2;*/ // advc.023: commented out
+	return iGarrison / 100; // advc.101: iGarrison now has times-100 precision
 }
 
 // <advc.099c>
@@ -9395,8 +9385,8 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	} // </advc.023>
 	int iCityStrength = cultureStrength(eCulturalOwner);
 	int iGarrison =
-		(bIgnoreGarrison ? 0 : // advc.023
-		cultureGarrison(eCulturalOwner));
+			(bIgnoreGarrison ? 0 : // advc.023
+			cultureGarrison(eCulturalOwner));
 	if(iCityStrength <= iGarrison)
 		return 0;
 	/*  About the two revolt tests: I guess the first one checks if the city tries
@@ -9553,8 +9543,18 @@ void CvCity::changeNumRevolts(PlayerTypes eIndex, int iChange)
 
 double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 {
-	int iBestModifier = 0;
+	int iProtection = getRevoltProtection(); // advc.101: Moved into new function
+	static int const iREVOLT_TEST_PROB = GC.getDefineINT("REVOLT_TEST_PROB"); // advc.opt
+	return std::min(1.0, // advc.101: Upper bound used to be handled by the caller
+			((iREVOLT_TEST_PROB * (100 - iProtection)) / 100.0)
+			// advc.101: was .getVictoryDelayPercent() in K-Mod
+			/ GC.getInfo(GC.getGame().getGameSpeedType()).getGoldenAgePercent());
+}
 
+// advc.101: Cut from getRevoltTestProbability
+int CvCity::getRevoltProtection() const
+{
+	int iBestModifier = 0;
 	for (CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
 		pUnitNode = plot()->nextUnitNode(pUnitNode))
 	{
@@ -9562,13 +9562,7 @@ double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 		if (pLoopUnit->getRevoltProtection() > iBestModifier)
 			iBestModifier = pLoopUnit->getRevoltProtection();
 	}
-	iBestModifier = range(iBestModifier, 0, 100);
-
-	static int const iREVOLT_TEST_PROB = GC.getDefineINT("REVOLT_TEST_PROB"); // advc.opt
-	return std::min(1.0, // advc.101: Upper bound used to be handled by the caller
-			((iREVOLT_TEST_PROB * (100 - iBestModifier)) / 100.0)
-			// advc.101: was .getVictoryDelayPercent() in K-Mod
-			/ GC.getInfo(GC.getGame().getGameSpeedType()).getGoldenAgePercent());
+	return range(iBestModifier, 0, 100);
 }
 
 bool CvCity::isEverOwned(PlayerTypes eIndex) const
@@ -15171,7 +15165,7 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 }
 
 // <advc.500b> (The parameter is important for performance)
-double CvCity::garrisonStrength(double stopCountingAt) const
+double CvCity::defensiveGarrison(double stopCountingAt) const
 {
 	/*  Time is now acceptable, but still not negligible (slightly above 1%).
 		Probably b/c of the allUpgradesAvailable check. Should simply

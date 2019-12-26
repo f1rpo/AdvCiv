@@ -6853,6 +6853,25 @@ bool CvUnit::isMilitaryHappiness() const
 			GET_TEAM(getTeam()).getMasterTeam()); // </advc.001o>
 }
 
+/*	<advc.101> Replacing iCultureGarrison in XML, which increases too slowly
+	over the course of the game. Note that CvCity::cultureStrength now also
+	increases faster than in BtS. */
+int CvUnit::garrisonStrength() const
+{
+	if (getDomainType() != DOMAIN_LAND || !canFight() ||
+		m_pUnitInfo->getCultureGarrisonValue() <= 0)
+	{
+		return 0;
+	}
+	int r = baseCombatStr();
+	int iModifier = (combatLimit() >= 100 ? 100 : 50);
+	iModifier += cityDefenseModifier() + getExtraCombatPercent();
+	// <advc.023>
+	iModifier *= currHitPoints();
+	iModifier /= 100; // </advc.023>
+	return r * iModifier;
+} // </advc.101>
+
 
 bool CvUnit::isInvestigate() const
 {

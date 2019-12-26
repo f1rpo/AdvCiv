@@ -677,6 +677,8 @@
 		<element type="DomainCargo"/>
 		<element type="iCargo"/>
 		<element type="iConscription"/>
+		<!-- advc.101: No longer used, except that 0 still means that a unit
+			 can't suppress revolts. -->
 		<element type="iCultureGarrison"/>
 		<element type="iExtraCost"/>
 		<element type="iAsset"/>

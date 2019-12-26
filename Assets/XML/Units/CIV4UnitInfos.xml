@@ -16198,7 +16198,7 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<!-- advc.101: was 4 -->
+			<!-- advc.101: was 4 (unused since AdvCiv 0.97) -->
 			<iCultureGarrison>2</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>2</iAsset>
@@ -16396,7 +16396,7 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<!-- advc.101: was 4 -->
+			<!-- advc.101: was 4 (unused since AdvCiv 0.97) -->
 			<iCultureGarrison>2</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>2</iAsset>
@@ -16590,7 +16590,7 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<!-- advc.101: was 2 -->
+			<!-- advc.101: was 2 (unused since AdvCiv 0.97) -->
 			<iCultureGarrison>2</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
@@ -16780,7 +16780,7 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<!-- advc.101: was 7 -->
+			<!-- advc.101: was 7 (unused since AdvCiv 0.97) -->
 			<iCultureGarrison>4</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
@@ -17176,7 +17176,7 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<!-- advc.101: was 10 -->
+			<!-- advc.101: was 10 (unused since AdvCiv 0.97) -->
 			<iCultureGarrison>5</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>4</iAsset>
@@ -17369,7 +17369,7 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<!-- advc.101: was 12 -->
+			<!-- advc.101: was 12 (unused since AdvCiv 0.97) -->
 			<iCultureGarrison>6</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>5</iAsset>

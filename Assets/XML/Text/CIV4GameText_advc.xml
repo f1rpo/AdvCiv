@@ -77,11 +77,11 @@
 		 BtS keys are located in CIV4GameTextInfos.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_PRIOR_REVOLTS</Tag>
-		<English>Prior revolts: %s1_Num</English>
-		<French>R&#233;voltes pr&#233;c&#233;dentes: %s1_Num</French>
-		<German>Bisherige Revolten: %s1_Num</German>
-		<Italian>Rivolti precedenti: %s1_Num</Italian>
-		<Spanish>Rebeliones anteriores: %s1_Num</Spanish>
+		<English>Prior revolts: %d1</English>
+		<French>R&#233;voltes pr&#233;c&#233;dentes: %d1</French>
+		<German>Bisherige Revolten: %d1</German>
+		<Italian>Rivolti precedenti: %d1</Italian>
+		<Spanish>Rebeliones anteriores: %d1</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MISC_PRIOR</Tag>
@@ -109,21 +109,60 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_NO_REVOLT_IN_OCCUPATION</Tag>
-		<English>(%s1_Chance%% once occupation or war ends)</English>
-		<French>(%s1_Chance%% quand l'occupation ou la guerre finira)</French>
-		<German>(%s1_Chance%% wenn Besatzung oder Krieg endet)</German>
-		<Italian>(%s1_Chance%% quando finisce l'occupazione o la guerra)</Italian>
-		<Spanish>(%s1_Chance%% cuando termine la ocupación o la guerra) </Spanish>
+		<English>%s1_Chance%% once occupation or war ends</English>
+		<French>%s1_Chance%% quand l'occupation ou la guerre finira</French>
+		<German>%s1_Chance%% wenn Besatzung oder Krieg endet</German>
+		<Italian>%s1_Chance%% quando finisce l'occupazione o la guerra</Italian>
+		<Spanish>%s1_Chance%% cuando termine la ocupación o la guerra</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_NO_BARB_REVOLT_IN_OCCUPATION</Tag>
-		<English>(%s1_Chance%% once occupation ends)</English>
-		<French>(%s1_Chance%% quand l'occupation finira)</French>
-		<German>(%s1_Chance%% wenn Besatzung endet)</German>
-		<Italian>(%s1_Chance%% quando finisce l'occupazione)</Italian>
-		<Spanish>(%s1_Chance%% cuando termine la ocupación)</Spanish>
+		<English>%s1_Chance%% once occupation ends</English>
+		<French>%s1_Chance%% quand l'occupation finira</French>
+		<German>%s1_Chance%% wenn Besatzung endet</German>
+		<Italian>%s1_Chance%% quando finisce l'occupazione</Italian>
+		<Spanish>%s1_Chance%% cuando termine la ocupación</Spanish>
 	</TEXT>
-
+	<TEXT>
+		<Tag>TXT_KEY_REVOLT_PR_BREAKDOWN</Tag>
+		<English>=[TAB]((%d2 culture pressure[NEWLINE][TAB]- %d1 garrison strength)[NEWLINE][TAB]/ %d3) * %d4%% base chance</English>
+		<French>=[TAB]((%d2 pressure [ICON_CULTURE][NEWLINE][TAB]- %d1 garrison [ICON_STRENGTH])[NEWLINE][TAB]/ %d3) * %d4%% base chance</French>
+		<German>=[TAB]((%d2 Kulturdruck[NEWLINE][TAB]- %d1 Garnisonsstärke)[NEWLINE][TAB]/ %d3) * %d4%% Basischance</German>
+		<Italian>=[TAB]((%d2 pressure [ICON_CULTURE][NEWLINE][TAB]- %d1 garrison [ICON_STRENGTH]h)[NEWLINE][TAB]/ %d3) * %d4%% base chance</Italian>
+		<Spanish>=[TAB]((%d2 pressure [ICON_CULTURE][NEWLINE][TAB]- %d1 garrison [ICON_STRENGTH])[NEWLINE][TAB]/ %d3) * %d4%% base chance</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GARRISON_STRENGTH_NEEDED</Tag>
+		<English>Need %D1 garrison [ICON_STRENGTH] to suppress</English>
+		<French>Need %D1 garrison [ICON_STRENGTH] to suppress</French>
+		<German>Unterdrückung erfordert %D1 Garnisons-[ICON_STRENGTH]</German>
+		<Italian>Need %D1 garrison [ICON_STRENGTH] to suppress</Italian>
+		<Spanish>Need %D1 garrison [ICON_STRENGTH] to suppress</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GARRISON_STRENGTH_NEEDED_SHORT</Tag>
+		<English>(%D1[ICON_STRENGTH] to suppress)</English>
+		<French>(%D1[ICON_STRENGTH] pour 0%%)</French>
+		<German>(%D1[ICON_STRENGTH] für 0%%)</German>
+		<Italian>(%D1[ICON_STRENGTH] per 0%%)</Italian>
+		<Spanish>(%D1[ICON_STRENGTH] por 0%%)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GARRISON_STRENGTH_EXCESS</Tag>
+		<English>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</English>
+		<French>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</French>
+		<German>Revolte mögl. bei Abzug von &gt; %d1 Garnisons-[ICON_STRENGTH]</German>
+		<Italian>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</Italian>
+		<Spanish>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT</Tag>
+		<English>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</English>
+		<French>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</French>
+		<German>Revolte mögl. bei Abzug von &gt; %d1[ICON_STRENGTH]</German>
+		<Italian>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</Italian>
+		<Spanish>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</Spanish>
+	</TEXT>
 
 	<!-- advc.101: Originally in CIV4GameTextInfos.xml. Adding the
 		 pre-revolt owner of the city. -->

@@ -141,16 +141,25 @@
         <iDefineIntVal>300</iDefineIntVal>
     </Define>
 
-	<!-- These three are from the original GlobalDefines.
-
-		 [advc.101]  Value increased to 200 (recommended) in an effort to
-		 restore the original BtS revolt probabilities without undoing K-Mod's
-		 overhaul of the culture system. This essentially doubles the strength
-		 of foreign culture. Original value: 100 -->
+	<!-- advc.101: When computing revolt probabilities, the foreign culture
+		 strength is raised to this exponent and then multiplied by the
+		 factor below. Both are percentages, i.e. the DLL divides them by 100.
+		 This adjustment has become necessary after I made culture garrison
+		 strength values essentially equal to combat strength, which increases
+		 much more steeply over the course of a game than the iCultureGarrison
+		 values in XML. Recommended: 135, 35.
+		 Changing the factor will increase or decrease foreign culture strength
+		 over the entire game; the exponent affects especially the late game. -->
 	<Define>
-		<DefineName>REVOLT_TOTAL_CULTURE_MODIFIER</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
+        <DefineName>FOREIGN_CULTURE_STRENGTH_EXPONENT</DefineName>
+        <iDefineIntVal>135</iDefineIntVal>
+    </Define>
+	<Define>
+		<DefineName>FOREIGN_CULTURE_STRENGTH_FACTOR</DefineName>
+		<iDefineIntVal>35</iDefineIntVal>
+    </Define>
+
+	<!-- These two are from the original GlobalDefines. -->
 	<!-- [advc.099c] Was 100, meaning that foreign culture strength is doubled
 		 if the foreign state religion is in the city. Now also applies when the
 		 owner of the foreign culture is eliminated and there is a "suppressed"

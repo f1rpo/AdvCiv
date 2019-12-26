@@ -272,6 +272,7 @@ public:
 	bool isNoUnitCapture() const; // advc.315b
 	bool isRivalTerritory() const;																				// Exposed to Python
 	bool isMilitaryHappiness() const;																			// Exposed to Python
+	int garrisonStrength() const; // advc.101
 	bool isInvestigate() const;																						// Exposed to Python
 	bool isCounterSpy() const;																						// Exposed to Python
 	bool isSpy() const;

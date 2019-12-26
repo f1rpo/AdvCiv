@@ -4406,10 +4406,14 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			if(pPlot->isCity())
 			{
 				CvCity const& c = *pPlot->getPlotCity();
+				bool const bActiveOwned = (c.getOwner() == eActivePlayer);
 				double prRevolt = c.revoltProbability();
 				// <advc.023>
-				double prDecrement = c.probabilityOccupationDecrement();
+				double const prDecrement = c.probabilityOccupationDecrement();
 				prRevolt *= 1 - prDecrement; // </advc.023>
+				PlayerTypes const eCulturalOwner = (bActiveOwned ? c.calculateCulturalOwner() : NO_PLAYER);
+				int const iGarrisonStr = (bActiveOwned ? c.cultureGarrison(eCulturalOwner) : -1);
+				int const iCultureStr = (bActiveOwned ? c.cultureStrength(eCulturalOwner) : -1);
 				if(prRevolt > 0)
 				{
 					/*  CvCity::revoltProbability rounds probabilities that are too
@@ -4422,18 +4426,24 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					swprintf(floatBuffer, L"%.1f", (float)(100 * prRevolt));
 					szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",
 							floatBuffer));
-					int iPriorRevolts = c.getNumRevolts();
+					if (bActiveOwned)
+					{
+						FAssert(iCultureStr > iGarrisonStr);
+						int iGarrisonStrNeeded = std::max(1, iCultureStr - iGarrisonStr);
+						szString.append(L"  ");
+						szString.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_NEEDED_SHORT",
+								iGarrisonStrNeeded));
+					}
+					int const iPriorRevolts = c.getNumRevolts();
 					if(c.canCultureFlip())
 					{
-						szString.append(L" (");
+						szString.append(NEWLINE);
 						szString.append(gDLL->getText("TXT_KEY_MISC_WILL_FLIP"));
-						szString.append(L")");
 					}
 					else if(iPriorRevolts > 0)
 					{
-						szString.append(L" (");
+						szString.append(NEWLINE);
 						szString.append(gDLL->getText("TXT_KEY_MISC_PRIOR", iPriorRevolts));
-						szString.append(L")");
 					}
 					szString.append(NEWLINE);
 				} // <advc.023>
@@ -4445,6 +4455,19 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 							floatBuffer));
 					szString.append(NEWLINE);
 				} // </advc.023>
+				else if (prRevolt <= 0 && bActiveOwned &&
+					eCulturalOwner != c.getOwner() && iGarrisonStr >= iCultureStr)
+				{
+					// Show it only when a local unit is selected? Eh ...
+					/*CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+					if (pSelectedUnit != NULL && pSelectedUnit->at(*pPlot))*/
+					{
+						int iSafeToRemove = (iGarrisonStr - iCultureStr);
+						szString.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
+								iSafeToRemove));
+						szString.append(NEWLINE);
+					}
+				}
 			} // </advc.101>
 			// <advc.099g> Put the players w/ tile culture in a container first
 			std::vector<std::pair<int,PlayerTypes> > aieCulturePerPlayer;
