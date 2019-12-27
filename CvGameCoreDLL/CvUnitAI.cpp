@@ -14248,17 +14248,33 @@ bool CvUnitAI::AI_evacuateCity()
 	/*  Units that don't receive def. modifiers should always evacuate.
 		AI_defensiveCollateral can still happen, but not when the threat ratio is
 		this high. */
-	if(getUnitInfo().getCombat() > 0 && !getUnitInfo().isNoDefensiveBonus())
+	if (getUnitInfo().getCombat() > 0 && !getUnitInfo().isNoDefensiveBonus())
 	{
-		if(AI_getUnitAIType() == UNITAI_CITY_DEFENSE)
-			prEvac -= 1;
-		else
+		prEvac = 0.8;
+		prEvac -= currHitPoints() / (maxHitPoints()+0.001);
+		int iDefenseMod = fortifyModifier() + plot()->defenseModifier(getTeam(),
+				GC.getGame().getCurrentEra() > 3) + cityDefenseModifier() +
+				(plot()->isHills() ? hillsDefenseModifier() : 0);
+		if (AI_getUnitAIType() == UNITAI_CITY_DEFENSE)
+			iDefenseMod = std::max(iDefenseMod, 100);
+		prEvac -= iDefenseMod / 100.0;
+		/*	Don't leave too many units behind. 3 or 4 can be a headache for
+			enemy siege units, 6 or 7 are too many to sacrifice. */
+		if (prEvac < 1)
 		{
-			prEvac = 1.8 - currHitPoints() / (maxHitPoints()+0.001);
-			int iDefenseMod = fortifyModifier() + plot()->defenseModifier(getTeam(),
-					GC.getGame().getCurrentEra() > 3) + cityDefenseModifier() +
-					(plot()->isHills() ? hillsDefenseModifier() : 0);
-			prEvac -= iDefenseMod / 100.0;
+			int iStayingBehind = 0;
+			CvPlot const& kPlot = *plot();
+			for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
+				pNode = kPlot.nextUnitNode(pNode))
+			{
+				CvSelectionGroup const& kGroup = *::getUnit(pNode->m_data)->getGroup();
+				if (&kGroup == getGroup())
+					continue;
+				if (!kGroup.isForceUpdate()) // i.e. if AI_update already called
+					iStayingBehind++;
+			}
+			if (iStayingBehind > 2)
+				prEvac += (iStayingBehind + getGroup()->getNumUnits() - 3) / 6.0;
 		}
 	}
 	/*  retreatToCity isn't perfect for this; selects the city based on plot danger.
