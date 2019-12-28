@@ -129,9 +129,19 @@ bool WarUtilityAspect::concernsOnlyWarParties() const { return true; }
 
 char const* WarUtilityAspect::aspectName() const {
 
-	/*  Tbd.(?): Convert from upper case to mixed case and replace underscores with spaces.
-		Will need some static buffer for that. */
-	return getUWAI.aspectName(xmlId());
+	if (report.isMute()) // Don't waste time processing the string then
+		return getUWAI.aspectName(xmlId());
+	// Convert from upper case to mixed case and replace underscores with spaces
+	static CvString szBuffer;
+	szBuffer = getUWAI.aspectName(xmlId());
+	for (uint i = 0; i < szBuffer.length(); i++)
+	{
+		if (szBuffer[i] == '_')
+			szBuffer[i] = ' ';
+		if (i > 0 && szBuffer[i - 1] != ' ')
+			szBuffer[i] = ::tolower(szBuffer[i]);
+	}
+	return szBuffer.GetCString();
 }
 
 void WarUtilityAspect::log(char const* fmt, ...) {
