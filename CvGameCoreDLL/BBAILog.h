@@ -38,6 +38,8 @@
 #ifdef LOG_FOUND_VALUE
 #define LOG_AI
 #define gFoundLogLevel 1
+#else
+#define gFoundLogLevel 0
 #endif // </advc.031c>
 
 void logBBAI(TCHAR* format, ... );

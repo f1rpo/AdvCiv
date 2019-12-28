@@ -1625,8 +1625,8 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 				//the distance factor is now done inside foundValue
 				int iValue = pLoopPlot->getFoundValue(getID());
 				if (bRandomize && iValue > 0)
-				{	/*  advc (comment): That's a high random portion (found values tend
-						to range between 0 and 9999 too), but I'm not sure which map scripts
+				{	/*  advc (comment): That's a high random portion (high found values tend
+						to range between 3000 and 5000), but I'm not sure which map scripts
 						(if any) use bRandomize=true, so I'm not changing this. */
 					iValue += GC.getGame().getSorenRandNum(10000,
 							"Randomize Starting Location");
@@ -4347,8 +4347,7 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 	case TRADE_VASSAL:
 		// K-Mod
 		if (!isHuman() && kOurTeam.isHuman())
-			return DENIAL_MYSTERY;
-		// K-Mod end
+			return DENIAL_MYSTERY; // K-Mod end
 		return kOurTeam.AI_vassalTrade(TEAMID(eWhoTo));
 		break;
 

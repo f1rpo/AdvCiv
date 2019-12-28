@@ -327,9 +327,10 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 }
 
 /*  Body from CvPlayerAI::AI_foundValue_bulk, split into subroutines.
-	More refactoring could be done; for one thing, some of the functions
-	have long (return) parameter lists. At least it's no longer a single
-	1000-LoC function within the largest GameCore class.
+	More refactoring could be done; for one thing, some of the functions have
+	long (return) parameter lists. Should probably introduce a class CityPlot
+	for the data (and behavior) in the plot evaluation loop. At least it's
+	no longer a single 1000-LoC function inside the largest GameCore class.
 	K-Mod: Heavily edited (some changes marked, others not.)
 	note, this function is called for every revealed plot for every player
 	at the start of every turn. try to not make it too slow! */
