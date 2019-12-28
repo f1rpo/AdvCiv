@@ -8262,27 +8262,23 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 		}
 		else if (kVote.isForceWar())
 		{
-			FAssert(NO_PLAYER != kData.kVoteOption.ePlayer);
 			CvPlayer& kPlayer = GET_PLAYER(kData.kVoteOption.ePlayer);
-			if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-				logBBAI("  Vote for war against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0));
-
-			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
+			if (gTeamLogLevel >= 1) logBBAI("  Vote for war against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0)); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			CvTeamAI& kTeam = GET_TEAM(kPlayer.getTeam());
+			// advc.001: Exclude dead civs
+			for (PlayerIter<MAJOR_CIV,POTENTIAL_ENEMY_OF> it(kTeam.getID());
+				it.hasNext(); ++it)
 			{
-				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-				//if (kLoopPlayer.isVotingMember(kData.eVoteSource))
-				// dlph.25/advc:
-				if(GET_TEAM(kLoopPlayer.getTeam()).isFullMember(kData.eVoteSource))
+				CvTeam& kFullMember = GET_TEAM(it->getTeam());
+				// dlph.25/advc: was isVotingMember
+				if (!kFullMember.isFullMember(kData.eVoteSource))
+					continue;
+				if (kFullMember.canChangeWarPeace(kTeam.getID()))
 				{
-					if (GET_TEAM(kLoopPlayer.getTeam()).canChangeWarPeace(kPlayer.getTeam()))
-					{
-						//GET_TEAM(kLoopPlayer.getTeam()).declareWar(kPlayer.getTeam(), false, WARPLAN_DOGPILE);
-						// <dlph.26>
-						CvTeam::queueWar(kLoopPlayer.getTeam(), kPlayer.getTeam(),
-								false, WARPLAN_DOGPILE); // </dlph.26>
-						// advc.104i:
-						GET_TEAM(kPlayer.getTeam()).AI_makeUnwillingToTalk(kLoopPlayer.getTeam());
-					}
+					// <dlph.26>
+					CvTeam::queueWar(kFullMember.getID(), kTeam.getID(),
+							false, WARPLAN_DOGPILE); // </dlph.26>
+					kTeam.AI_makeUnwillingToTalk(kFullMember.getID()); // advc.104i
 				}
 			}
 			CvTeam::triggerWars(); // dlph.26
