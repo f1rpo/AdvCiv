@@ -276,47 +276,30 @@ void InvasionGraph::Node::findAndLinkTarget() {
 	else primaryTarget->targetedBy.insert(id);
 }
 
-
 PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 
-	PlayerTypes likeliestTarget = NO_PLAYER;
+	PlayerTypes bestTarget = NO_PLAYER;
 	/*  W/e the current target is according to unit missions, assume it
 		will change once war is declared. */
-	bool bSearchedLikeliest = false;
+	bool bSearchedBest = false;
 	if(outer.allWarPartiesKnown || include != NO_TEAM) {
-		bSearchedLikeliest = true;
-		/*  Find the city with the highest targetValue and check which potential
-			target has reachable cities left. (City::canReach says which ones are
-			reachable in the actual game state; doesn't take into account
-			Node::hasLost.) */
-		for(int i = 0; i < cache.size(); i++) {
-			UWAICache::City* city = cache.getCity(i);
-			if(city == NULL)
-				continue;
-			if(!city->canReach() || city->isOwnCity())
-				break; // Because of sorting, rest is also going to be invalid.
-			if(!isValidTarget(*city, include))
-				continue;
-			// First hit is best target b/c cache is sorted
-			if(likeliestTarget == NO_PLAYER) {
-				PlayerTypes owner = city->cityOwner();
-				if(!GET_TEAM(id).isAtWar(TEAMID(owner)))
-					return owner;
-				/*  Otherwise, check unit missions, but may still fall back
-					on likeliestTarget. */
-				likeliestTarget = owner;
-				break;
-			}
-		}
-		if(likeliestTarget == NO_PLAYER)
+		bSearchedBest = true;
+		bestTarget = findBestTarget(include);
+		if(bestTarget == NO_PLAYER)
 			return NO_PLAYER;
+		if(!GET_TEAM(id).isAtWar(TEAMID(bestTarget)))
+			return bestTarget;
+		// Otherwise, check unit missions, but may still fall back on bestTarget.
 	}
-	// Against whom does this Node have the most missions?
-	PlayerTypes mostMissions = NO_PLAYER;
+	/*	If unit missions can matter, then don't search the city cache for the
+		likeliest target yet - b/c that's expensive. */
+	PlayerTypes mostMissions = NO_PLAYER; // Against whom this Node has the most missions
 	// Tbd. possibly: Use a fraction of cache.numNonNavy as the threshold
 	int maxCount = 3;
 	for(PlyrSetIter it = warOpponents.begin(); it != warOpponents.end(); it++) {
 		PlayerTypes oppId = *it;
+		if (id != weId && oppId != weId) // Don't cheat too much with visibility
+			continue;
 		int n = cache.targetMissionCount(oppId);
 		if(n <= maxCount)
 			continue;
@@ -348,38 +331,67 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 				report.leaderName(id));
 		return mostMissions;
 	}
-	report.log("Too few missions to determine target of %s",
-			report.leaderName(id));
-	// Fall back on likeliestTarget.
-	if(likeliestTarget != NO_PLAYER)
-		return likeliestTarget;
-	if(bSearchedLikeliest)
+	// Fall back on bestTarget.
+	if(bestTarget != NO_PLAYER)
+		return bestTarget;
+	if(bSearchedBest)
 		return NO_PLAYER;
-	// Haven't looked for the likeliest target yet (b/c that's expensive); do so now.
+	return findBestTarget(include);
+}
+
+PlayerTypes InvasionGraph::Node::findBestTarget(TeamTypes include) const {
+
+	/*  Find the city with the highest targetValue and check which potential target
+		has reachable cities left. (City::canReach says which ones are reachable in
+		the actual game state; doesn't take into account Node::hasLost.) */
+	/*	Bias the search toward the civ that does the analysis. But only if already
+		at war - don't want the AI to start a war based on an unrealistic assumption
+		that the war will distract the enemy from a different target. */
+	bool bPessimistic = (GET_TEAM(weId).isAtWar(TEAMID(id)) && isValidTarget(weId, include));
+	int iSkipped = 0;
+	/*	For every 2 cities of the invader, pessimistic search may ignore up to one city
+		that is a better target than any city owned by weId. */
+	int iMaxSkip = GET_PLAYER(id).getNumCities() / 2;
+	PlayerTypes bestTarget = NO_PLAYER;
 	for(int i = 0; i < cache.size(); i++) {
 		UWAICache::City* city = cache.getCity(i);
 		if(city == NULL)
 			continue;
+		// Because of ordering, first hit is best target (if any target is valid).
 		if(!city->canReach() || city->isOwnCity())
 			break;
-		if(isValidTarget(*city, include))
-			return city->cityOwner();
+		if(isValidTarget(*city, include)) {
+			bestTarget = city->cityOwner();
+			if(bestTarget == weId || !bPessimistic || iSkipped >= iMaxSkip)
+				break;
+			iSkipped++;
+		}
 	}
-	return NO_PLAYER;
+	if (iSkipped > 0) {
+		report.log("Skipped %d third-party cities (bias toward %s being targeted)",
+				iSkipped, report.leaderName(weId));
+	}
+	return bestTarget;
 }
 
 bool InvasionGraph::Node::isValidTarget(UWAICache::City const& c,
 		TeamTypes include) const {
 
 	PlayerTypes const owner = c.cityOwner();
-	return !(owner == NO_PLAYER || (!isWarOpponent[owner] &&
-			(include == NO_TEAM || GET_PLAYER(owner).getMasterTeam() !=
+	return (isValidTarget(owner, include) &&
+			!outer.nodeMap[owner]->hasLost(c.id()));
+}
+
+bool InvasionGraph::Node::isValidTarget(PlayerTypes target,
+		TeamTypes include) const {
+
+	return !(target == NO_PLAYER || (!isWarOpponent[target] &&
+			(include == NO_TEAM || GET_PLAYER(target).getMasterTeam() !=
 			GET_TEAM(include).getMasterTeam())) ||
-			outer.nodeMap[owner] == NULL ||
-			outer.nodeMap[owner]->hasLost(c.id()) ||
+			outer.nodeMap[target] == NULL ||
 			// Important for phase II:
-			outer.nodeMap[owner]->isEliminated() ||
-			outer.nodeMap[owner]->hasCapitulated());
+			outer.nodeMap[target]->isEliminated() ||
+			outer.nodeMap[target]->hasCapitulated());
 }
 
 size_t InvasionGraph::Node::findCycle(vector<Node*>& path) {

@@ -126,7 +126,9 @@ friend class Node;
 		/* param: In addition to warOpponents. Also includes the vassals
 		  of that team. */
 		PlayerTypes findTarget(TeamTypes include = NO_TEAM) const;
+		PlayerTypes findBestTarget(TeamTypes include) const;
 		bool isValidTarget(UWAICache::City const& c, TeamTypes include = NO_TEAM) const;
+		bool isValidTarget(PlayerTypes target, TeamTypes include) const;
 		static std::vector<UnitAITypes> garrisonTypes();
 
 		InvasionGraph& outer;
