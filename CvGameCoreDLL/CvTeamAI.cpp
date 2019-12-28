@@ -742,7 +742,7 @@ AttitudeTypes CvTeamAI::AI_getAttitude(TeamTypes eTeam, bool bForced) const
 }
 
 
-int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced) const
+int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced, bool bAssert) const
 {
 	//PROFILE_FUNC(); // advc: almost negligible
 	//FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
@@ -763,7 +763,7 @@ int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced) const
 	if (iCount > 0)
 		return CvPlayerAI::AI_getAttitudeFromValue(iAttitudeVal / iCount); // bbai / K-Mod
 	// <advc>
-	FAssert(iCount > 0); // (OK when loading from very old savegames)
+	FAssert(!bAssert || iCount > 0); // (OK when loading from very old savegames)
 	// K-Mod had returned ATTITUDE_CAUTIOUS from AI_getAttitude
 	return 0; // </advc>
 }

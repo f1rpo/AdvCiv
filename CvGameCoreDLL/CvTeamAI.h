@@ -72,7 +72,8 @@ public:
 	 // advc, advc.130e:
 	void AI_updateAttitude(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
-	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
+	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true,
+			bool bAssert = true) const; // advc
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
 	// <advc>
 	void AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool bPrimaryDoW,

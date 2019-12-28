@@ -6917,12 +6917,17 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 			return 100;
 		// <advc.130v>
 		if(GET_TEAM(getTeam()).isCapitulated()) // Same val as master, but at most Cautious.
-			return std::min(0, GET_TEAM(getMasterTeam()).AI_getAttitudeVal(TEAMID(ePlayer)));
+		{
+			return std::min(0, GET_TEAM(getMasterTeam()).AI_getAttitudeVal(TEAMID(ePlayer),
+					/*	advc: Some Python call can happen here before teams are loaded;
+						don't assert that the team is non-empty. */ true, false));
+		}
 		if(GET_TEAM(ePlayer).isCapitulated())
 		{
 			if(GET_TEAM(ePlayer).getMasterTeam() == getMasterTeam())
 				return GC.getDefineINT(CvGlobals::RELATIONS_THRESH_PLEASED) + 1;
-			return GET_TEAM(getTeam()).AI_getAttitudeVal(GET_PLAYER(ePlayer).getMasterTeam(), true);
+			return GET_TEAM(getTeam()).AI_getAttitudeVal(GET_PLAYER(ePlayer).getMasterTeam(),
+					true, false); // advc: bAssert=false
 		} // </advc.130v>
 	}
 	return m_aiAttitude[ePlayer];
