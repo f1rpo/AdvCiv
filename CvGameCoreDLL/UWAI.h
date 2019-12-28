@@ -47,7 +47,7 @@ public:
 	static int const preparationTimeLimitedNaval = 10;
 	static int const preparationTimeTotal = 15;
 	static int const preparationTimeTotalNaval = 20;
-	// Modifier for all AI payments for peace
+	// Modifier for any AI payments for peace
 	static int const reparationsAIPercent = 50;
 	/*  Modifier for human payments for peace, i.e what the AI asks a human to pay
 		(no modifier for brokering, i.e. 100%) */

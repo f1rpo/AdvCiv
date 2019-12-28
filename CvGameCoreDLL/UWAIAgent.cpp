@@ -1532,29 +1532,34 @@ int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 		return 0;
 	// Really just utility given how peaceThreshold is computed for humans
 	int humanUtility = human.uwai().reluctanceToPeace(ai.getID(), false);
-	// Neither side pays if both want peace and the AI wants it more than the human
-	if(humanUtility <= 0 && aiReluct <= humanUtility)
+	/*	Neither side pays if both want peace and the AI wants it
+		more badly than the human - but not far more badly. */
+	if(humanUtility <= 0 && aiReluct < humanUtility && aiReluct >= 2 * humanUtility)
 		return 0;
 	double reparations = 0;
-	if(humanUtility > 0 && aiReluct < 0) {
+	// Only AI wants to end the more or AI wants to end it much more badly
+	if(aiReluct < 0 && (humanUtility >= 0 || aiReluct < 2 * humanUtility)) {
 		// Human pays nothing if AI pays
 		if(agentHuman)
 			return 0;
+		if(humanUtility >= 0) {
+			// Rely more on war utility of the AI side than on human war utility
+			reparations = 0.5 * (std::min(-aiReluct, humanUtility) - aiReluct);
+		}
+		// Both negative: A rather symbolic payment - unless the war is disastrous for the AI
+		else reparations = humanUtility - 0.5 * aiReluct;
 		/*  What if human declares war, but never sends units, although we believe
 			that it would hurt us and benefit them (all things considered)?
 			Then we're probably wrong somewhere and shouldn't trust our
 			utility computations. */
-		double wsAdjustment = 1;
 		if(ai.AI_getMemoryCount(human.getID(), MEMORY_DECLARED_WAR) > 0 &&
 				ai.getNumCities() > 0) {
 			int wsDelta = std::max(0, human.AI_getWarSuccess(ai.getID()) -
 					ai.AI_getWarSuccess(human.getID()));
-			wsAdjustment = std::min(1.0, (4.0 * wsDelta) /
+			double wsAdjustment = std::min(1.0, (4.0 * wsDelta) /
 					(GC.getWAR_SUCCESS_CITY_CAPTURING() * ai.getNumCities()));
+			reparations *= wsAdjustment;
 		}
-		// Rely more on war utility of the AI side than on human war utility
-		reparations = 0.5 * (std::min(-aiReluct, humanUtility) - aiReluct) *
-				wsAdjustment;
 		reparations = ai.uwai().reparationsToHuman(reparations);
 		reparations *= UWAI::reparationsAIPercent / 100.0;
 	}
@@ -1585,9 +1590,7 @@ int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 			double greedFactor = 0.05;
 			if(aiReluct > 0)
 				greedFactor += 0.1;
-			int delta = -humanUtility;
-			if(aiReluct < 0)
-				delta = aiReluct - humanUtility;
+			int delta = std::min(0, aiReluct) - humanUtility;
 			FAssert(delta > 0);
 			// Conversion based on human's economy
 			reparations += greedFactor * human.uwai().utilityToTradeVal(delta);
@@ -1699,10 +1702,21 @@ double UWAI::Team::reparationsToHuman(double u) const {
 		be less generous with humans */
 	double const cap = (4 * maxReparations) / 5;
 	/*  If utility for reparations is above the cap, we become less
-		willing to pay b/c we don't believe that the peace can last.
-		Bottom reached at u=-140. */
-	if(r > cap)
-		r = std::max(cap / 4.0, cap - (r - cap) / 6.0);
+		willing to pay b/c we don't believe that the peace can last. */
+	if(r > cap) {
+		double const bottom = cap / 4.0;
+		double const gradient = -1/6.0;
+		double delta = (r - cap);
+		/*	Decreasing linearly from cap to bottom seems a bit too
+			steep for small delta. Choose an exponent and divisor
+			so that the delta for which r reaches the bottom
+			remains unchanged (fixpoint). */
+		double const deltaBottom = (-1 / gradient) * (cap - bottom);
+		double const div = 3;
+		double const exponent = std::log(deltaBottom * div) / std::log(deltaBottom);
+		delta = std::pow(delta, exponent) / div;
+		r = std::max(bottom, cap + delta * gradient);
+	}
 	// Trade value based on our economy
 	return utilityToTradeVal(r);
 }
