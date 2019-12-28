@@ -2114,16 +2114,21 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	if (bGlobalModifiers) // K-Mod
 	{	// advc:
 		CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
-		if(eTechEra > 0) { // advc.910
+		if(eTechEra > 0) // advc.910
+		{
 			cost *= 0.01 * kWorld.getResearchPercent();
 			// advc.910:
 			cost *= 0.01 * GC.getInfo(GC.getMap().getSeaLevel()).getResearchPercent();
-		}
+		}  // <advc.910>
+		else if (g.isOption(GAMEOPTION_NO_GOODY_HUTS))
+			cost *= 0.95; // </advc.910>
 		cost *= 0.01 * GC.getInfo(g.getGameSpeedType()).getResearchPercent();
 		cost *= 0.01 * GC.getInfo(g.getStartEra()).getResearchPercent();
 		// <advc.308>
-		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == 0) {
-			switch(eTechEra) {
+		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == 0)
+		{
+			switch(eTechEra)
+			{
 			case 1: iModifier -= 14; break;
 			case 2: iModifier -= 7; break;
 			}
