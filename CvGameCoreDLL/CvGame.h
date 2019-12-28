@@ -572,7 +572,8 @@ public:
 	uint getNumReplayMessages() const;
 	ColorTypes getReplayMessageColor(uint i) const;
 	// <advc>
-	void allGameDataRead();
+	void onAllGameDataRead();
+	bool isAllGameDataRead() const { return m_bAllGameDataRead; }
 	void onGraphicsInitialized(); // </advc>
 
 	CvReplayInfo* getReplayInfo() const;

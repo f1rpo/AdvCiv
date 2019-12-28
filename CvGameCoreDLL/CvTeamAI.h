@@ -271,10 +271,9 @@ public:
 			bool bGarrisonStrength = false) const; // advc.500b
 
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
-
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
-
 	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc: */ const;
+	void AI_finalizeInit(); // advc.opt
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

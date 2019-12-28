@@ -472,6 +472,7 @@ public:
 	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
 	CvCity* getLeaderCapital(TeamTypes eObserver, bool bDebug = false) const;
 	// </advc.127b>
+	void finalizeInit(); // advc.003m
 	// <advc.003u>
 	__forceinline CvTeamAI& AI()
 	{	//return *static_cast<CvTeamAI*>(const_cast<CvTeam*>(this));

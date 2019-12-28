@@ -4461,6 +4461,13 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	{
 		m_aiWarPlanCounts.Read(pStream);
 		pStream->Read(&m_bAnyWarPlan);
+	}
+	else
+	{	/*	Can't compute war plan counts until alive status has been set for all teams.
+			Set negative counts in order to signal to CvGAme::onAllGameDataRead that
+			AI_finalizeInit needs to be called. */
+		FOR_EACH_ENUM(WarPlan)
+			m_aiWarPlanCounts.set(eLoopWarPlan, -1);
 	} // </advc.opt>
 	m_aeWarPlan.Read(pStream);
 	pStream->Read((int*)&m_eWorstEnemy);
@@ -4476,22 +4483,20 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		m_pUWAI->read(pStream); // </advc.104>
-	// <advc.opt> Once alive status has been set for all teams ...
-	if(uiFlag < 3 && getID() == MAX_TEAMS - 1)
-	{
-		for(int i = 0; i < MAX_TEAMS; i++)
-		{
-			CvTeamAI& kTeam = GET_TEAM((TeamTypes)i);
-			FOR_EACH_ENUM(WarPlan)
-			{
-				kTeam.m_aiWarPlanCounts.set(eLoopWarPlan, kTeam.AI_countWarPlans(eLoopWarPlan,
-						true, MAX_CIV_PLAYERS)); // Last argument just to avoid a failed assertion
-				if (kTeam.m_aiWarPlanCounts.get(eLoopWarPlan) > 0)
-					kTeam.m_bAnyWarPlan = true;
-			}
-		}
-	} // </advc.opt>
 }
+
+// <advc.opt> (for legacy savegames)
+void CvTeamAI::AI_finalizeInit()
+{
+	FOR_EACH_ENUM(WarPlan)
+	{
+		m_aiWarPlanCounts.set(eLoopWarPlan, AI_countWarPlans(eLoopWarPlan,
+				true, MAX_CIV_PLAYERS)); // Last argument just to avoid a failed assertion
+		if (m_aiWarPlanCounts.get(eLoopWarPlan) > 0)
+			m_bAnyWarPlan = true;
+	}
+	m_aiWarPlanCounts.hasContent(); // De-allocate if all 0
+} // </advc.opt>
 
 
 void CvTeamAI::write(FDataStreamBase* pStream)

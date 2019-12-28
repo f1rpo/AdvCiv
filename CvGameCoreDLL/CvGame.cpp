@@ -9313,7 +9313,7 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 
 /*  <advc> When loading a savegame, this function is called once all
 	read functions have been called. */
-void CvGame::allGameDataRead()
+void CvGame::onAllGameDataRead()
 {
 	// <advc.opt> Savegame compatibility (uiFlag<4)
 	if(m_iCivPlayersEverAlive == 0)
@@ -9322,6 +9322,26 @@ void CvGame::allGameDataRead()
 		m_iCivTeamsEverAlive = countCivTeamsEverAlive();
 	// </advc.opt>
 	GC.getAgents().gameStart(true); // advc.agent
+	// <advc.003m>
+	for (TeamIter<ANY_STATUS> it; it.hasNext(); ++it)
+	{
+		if (it->getNumWars() < 0 || it->getNumWars(false, false) < 0 ||
+			it->getNumWars(true, true) < 0)
+		{
+			it->finalizeInit();
+		}
+	} // </advc.003m>  <advc.opt>
+	for (TeamIter<ANY_STATUS> it; it.hasNext(); ++it)
+	{
+		FOR_EACH_ENUM(WarPlan)
+		{
+			if (it->AI_getNumWarPlans(eLoopWarPlan) < 0)
+			{
+				it->AI_finalizeInit();
+				break;
+			}
+		}
+	} // </advc.opt>
 	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
 	m_bAllGameDataRead = true;
 	// <advc.127> Save created during AI Auto Play

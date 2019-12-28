@@ -1740,7 +1740,7 @@ int CvTeam::getNumWars(bool bIgnoreMinors, bool bIgnoreVassals) const
 		r += m_iMinorWarEnemies;
 	if(bIgnoreVassals)
 		r -= m_iVassalWarEnemies;
-	FAssert(r >= 0);
+	FAssert(r >= 0 || !GC.getGame().isAllGameDataRead());
 	return r;
 }
 
@@ -5452,6 +5452,14 @@ void CvTeam::read(FDataStreamBase* pStream)
 		pStream->Read(&m_iMinorWarEnemies);
 		pStream->Read(&m_iVassalWarEnemies);
 		pStream->Read(&m_bMinorTeam);
+	}
+	else
+	{
+		updateMinorCiv(); // Need to do this before CvTeamAI::read
+		/*	All teams need to be loaded before war enemies can be counted.
+			Set negative counts in order to signal to CvGame::onAllGameDataRead
+			that finalizeInit needs to be called. */
+		m_iMajorWarEnemies = m_iMinorWarEnemies = m_iVassalWarEnemies = -1;
 	} // </advc.003m>
 
 	pStream->Read(&m_bMapCentering);
@@ -5562,27 +5570,17 @@ void CvTeam::read(FDataStreamBase* pStream)
 		pStream->Read((int*)&eBonus);
 		m_aeRevealedBonuses.push_back(eBonus);
 	}
-	// <advc.003m>
-	if(uiFlag < 5)
-	{
-		updateMinorCiv(); // Need to do this before CvTeamAI::read
-		if(getID() == MAX_TEAMS - 1)
-		{
-			// All teams need to be loaded before war enemies can be counted
-			for(int i = 0; i < MAX_TEAMS; i++)
-			{
-				CvTeam& t = GET_TEAM((TeamTypes)i);
-				t.m_iMajorWarEnemies = t.countWarEnemies();
-				t.m_iMinorWarEnemies = t.countWarEnemies(false, false) -
-						t.m_iMajorWarEnemies;
-				FAssert(t.m_iMinorWarEnemies >= 0);
-				t.m_iVassalWarEnemies = t.m_iMajorWarEnemies -
-						t.countWarEnemies(true, true);
-				FAssert(t.m_iVassalWarEnemies >= 0);
-			}
-		}
-	} // </advc.003m>
 }
+
+// <advc.003m>  (for legacy savegames)
+void CvTeam::finalizeInit()
+{
+	m_iMajorWarEnemies = countWarEnemies();
+	m_iMinorWarEnemies = countWarEnemies(false, false) - m_iMajorWarEnemies;
+	FAssert(m_iMinorWarEnemies >= 0);
+	m_iVassalWarEnemies = m_iMajorWarEnemies - countWarEnemies(true, true);
+	FAssert(m_iVassalWarEnemies >= 0);
+} // </advc.003m>
 
 
 void CvTeam::write(FDataStreamBase* pStream)
