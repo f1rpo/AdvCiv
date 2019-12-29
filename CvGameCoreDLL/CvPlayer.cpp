@@ -11155,12 +11155,10 @@ void CvPlayer::changeGoldPerTurnByPlayer(PlayerTypes eIndex, int iChange)
 		m_aiGoldPerTurnByPlayer[eIndex] = (m_aiGoldPerTurnByPlayer[eIndex] + iChange);
 
 		if (getID() == GC.getGame().getActivePlayer())
-		{
 			gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-		}
 
-		if (!isHuman())
-		{
+		if (!isHuman() /* advc: */ && isAlive())
+		{			// ^Can get called while canceling deals of a dying player
 			AI().AI_doCommerce();
 		}
 	}

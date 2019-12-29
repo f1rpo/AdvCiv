@@ -1007,6 +1007,11 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	PlayerTypes eCancelPlayer) // advc.130p  advc: refactored
 {
 	bool bTeamTradeEnded = false; // advc.133
+	/*	<advc> Skip some steps when a trade ends throgh the defeat of one party -
+		to avoid failed assertions */
+	bool bAlive = (GET_PLAYER(eFromPlayer).isAlive() && GET_PLAYER(eToPlayer).isAlive());
+	if (!bAlive)
+		bUpdateAttitude = false; // </advc>
 	switch(trade.m_eItemType)
 	{
 	case TRADE_RESOURCES:
@@ -1023,6 +1028,8 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	case TRADE_VASSAL:
 	case TRADE_SURRENDER:
 	{
+		if (!bAlive)
+			break;
 		bool bSurrender = (trade.m_eItemType == TRADE_SURRENDER);
 		// Canceled b/c of failure to protect vassal?
 		bool bDeniedHelp = false;
@@ -1068,7 +1075,8 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 			/*if(eCancelPlayer == NULL || GET_TEAM(eCancelPlayer).AI_openBordersTrade(
 					TEAMID(eCancelPlayer == eToPlayer ? eFromPlayer : eToPlayer)) !=
 					DENIAL_NO_GAIN)*/
-			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
+			if (bAlive)
+				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
 			/* (This class really shouldn't be adding cancellation
 				memory as this is an AI thing; but BtS does it that way too.) */
 			// </advc.130p>
@@ -1081,8 +1089,8 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		{
 			endTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			bTeamTradeEnded = true; // advc.133
-			// advc.130p:
-			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_DEFENSIVE_PACT);
+			if (bAlive)  // advc.130p:
+				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_DEFENSIVE_PACT);
 		}
 		break;
 
@@ -1098,7 +1106,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	// </advc.034>
 	default: FAssert(false);
 	} // <advc.036>
-	if(!bUpdateAttitude)
+	if (!bUpdateAttitude)
 		return; // </advc.036>
 	// <advc.133> (I think this is needed even w/o change 133 canceling more deals)
 	if(!bTeamTradeEnded)
