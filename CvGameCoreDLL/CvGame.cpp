@@ -8860,8 +8860,6 @@ uint CvGame::getNumReplayMessages() const
 
 void CvGame::read(FDataStreamBase* pStream)
 {
-	int iI;
-
 	reset(NO_HANDICAP);
 
 	uint uiFlag=0;
@@ -8962,16 +8960,15 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumSpecialBuildingInfos(), m_pabSpecialBuildingValid);
 	pStream->Read(GC.getNumReligionInfos(), m_abReligionSlotTaken);
 
-	for (iI=0;iI<GC.getNumReligionInfos();iI++)
+	FOR_EACH_ENUM(Religion)
 	{
-		pStream->Read((int*)&m_paHolyCity[iI].eOwner);
-		pStream->Read(&m_paHolyCity[iI].iID);
+		pStream->Read((int*)&m_paHolyCity[eLoopReligion].eOwner);
+		pStream->Read(&m_paHolyCity[eLoopReligion].iID);
 	}
-
-	for (iI=0;iI<GC.getNumCorporationInfos();iI++)
+	FOR_EACH_ENUM(Corporation)
 	{
-		pStream->Read((int*)&m_paHeadquarters[iI].eOwner);
-		pStream->Read(&m_paHeadquarters[iI].iID);
+		pStream->Read((int*)&m_paHeadquarters[eLoopCorporation].eOwner);
+		pStream->Read(&m_paHeadquarters[eLoopCorporation].iID);
 	}
 
 	{
@@ -9022,10 +9019,8 @@ void CvGame::read(FDataStreamBase* pStream)
 		for (ReplayMessageList::_Alloc::size_type i = 0; i < iSize; i++)
 		{
 			CvReplayMessage* pMessage = new CvReplayMessage(0);
-			if (NULL != pMessage)
-			{
+			if (pMessage != NULL)
 				pMessage->read(*pStream);
-			}
 			m_listReplayMessages.push_back(pMessage);
 		}
 	}
@@ -9033,13 +9028,13 @@ void CvGame::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iNumSessions);
 	if (!isNetworkMultiPlayer())
-		++m_iNumSessions;
+		m_iNumSessions++;
 
 	{
 		int iSize;
 		m_aPlotExtraYields.clear();
 		pStream->Read(&iSize);
-		for (int i = 0; i < iSize; ++i)
+		for (int i = 0; i < iSize; i++)
 		{
 			PlotExtraYield kPlotYield;
 			kPlotYield.read(pStream);
@@ -9051,7 +9046,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		int iSize;
 		m_aPlotExtraCosts.clear();
 		pStream->Read(&iSize);
-		for (int i = 0; i < iSize; ++i)
+		for (int i = 0; i < iSize; i++)
 		{
 			PlotExtraCost kPlotCost;
 			kPlotCost.read(pStream);
@@ -9063,7 +9058,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		int iSize;
 		m_mapVoteSourceReligions.clear();
 		pStream->Read(&iSize);
-		for (int i = 0; i < iSize; ++i)
+		for (int i = 0; i < iSize; i++)
 		{
 			VoteSourceTypes eVoteSource;
 			ReligionTypes eReligion;
@@ -9077,7 +9072,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		int iSize;
 		m_aeInactiveTriggers.clear();
 		pStream->Read(&iSize);
-		for (int i = 0; i < iSize; ++i)
+		for (int i = 0; i < iSize; i++)
 		{
 			int iTrigger;
 			pStream->Read(&iTrigger);
@@ -9088,15 +9083,16 @@ void CvGame::read(FDataStreamBase* pStream)
 	// Get the active player information from the initialization structure
 	if (!isGameMultiPlayer())
 	{
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isHuman())
+			if (GET_PLAYER((PlayerTypes)i).isHuman())
 			{
-				setActivePlayer((PlayerTypes)iI);
+				setActivePlayer((PlayerTypes)i);
 				break;
 			}
 		}
-		addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getActivePlayer(), gDLL->getText("TXT_KEY_MISC_RELOAD", m_iNumSessions));
+		addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getActivePlayer(),
+				gDLL->getText("TXT_KEY_MISC_RELOAD", m_iNumSessions));
 	}
 
 	if (isOption(GAMEOPTION_NEW_RANDOM_SEED))
@@ -9124,7 +9120,6 @@ void CvGame::read(FDataStreamBase* pStream)
 void CvGame::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-	int iI;
 
 	uint uiFlag=1;
 	uiFlag = 2; // advc.701: R&F option
@@ -9208,29 +9203,27 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(GC.getNumSpecialBuildingInfos(), m_pabSpecialBuildingValid);
 	pStream->Write(GC.getNumReligionInfos(), m_abReligionSlotTaken);
 
-	for (iI=0;iI<GC.getNumReligionInfos();iI++)
+	FOR_EACH_ENUM(Religion)
 	{
-		pStream->Write(m_paHolyCity[iI].eOwner);
-		pStream->Write(m_paHolyCity[iI].iID);
+		pStream->Write(m_paHolyCity[eLoopReligion].eOwner);
+		pStream->Write(m_paHolyCity[eLoopReligion].iID);
 	}
-
-	for (iI=0;iI<GC.getNumCorporationInfos();iI++)
+	FOR_EACH_ENUM(Corporation)
 	{
-		pStream->Write(m_paHeadquarters[iI].eOwner);
-		pStream->Write(m_paHeadquarters[iI].iID);
+		pStream->Write(m_paHeadquarters[eLoopCorporation].eOwner);
+		pStream->Write(m_paHeadquarters[eLoopCorporation].iID);
 	}
 
 	{
 		std::vector<CvWString>::iterator it;
-
 		pStream->Write(m_aszDestroyedCities.size());
-		for (it = m_aszDestroyedCities.begin(); it != m_aszDestroyedCities.end(); it++)
+		for (it = m_aszDestroyedCities.begin(); it != m_aszDestroyedCities.end(); ++it)
 		{
 			pStream->WriteString(*it);
 		}
 
 		pStream->Write(m_aszGreatPeopleBorn.size());
-		for (it = m_aszGreatPeopleBorn.begin(); it != m_aszGreatPeopleBorn.end(); it++)
+		for (it = m_aszGreatPeopleBorn.begin(); it != m_aszGreatPeopleBorn.end(); ++it)
 		{
 			pStream->WriteString(*it);
 		}
@@ -9250,39 +9243,42 @@ void CvGame::write(FDataStreamBase* pStream)
 		m_pRiseFall->write(pStream); // </advc.701>
 	ReplayMessageList::_Alloc::size_type iSize = m_listReplayMessages.size();
 	pStream->Write(iSize);
-	for (ReplayMessageList::const_iterator it = m_listReplayMessages.begin(); it != m_listReplayMessages.end(); it++)
+	for (ReplayMessageList::const_iterator it = m_listReplayMessages.begin();
+		it != m_listReplayMessages.end(); ++it)
 	{
 		const CvReplayMessage* pMessage = *it;
-		if (NULL != pMessage)
-		{
+		if (pMessage != NULL)
 			pMessage->write(*pStream);
-		}
 	}
 	// m_pReplayInfo not saved
 
 	pStream->Write(m_iNumSessions);
 
 	pStream->Write(m_aPlotExtraYields.size());
-	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
+	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin();
+		it != m_aPlotExtraYields.end(); ++it)
 	{
 		it->write(pStream);
 	}
 
 	pStream->Write(m_aPlotExtraCosts.size());
-	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
+	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin();
+		it != m_aPlotExtraCosts.end(); ++it)
 	{
 		it->write(pStream);
 	}
 
 	pStream->Write(m_mapVoteSourceReligions.size());
-	for (stdext::hash_map<VoteSourceTypes, ReligionTypes>::iterator it = m_mapVoteSourceReligions.begin(); it != m_mapVoteSourceReligions.end(); ++it)
+	for (stdext::hash_map<VoteSourceTypes,ReligionTypes>::iterator it = m_mapVoteSourceReligions.begin();
+		it != m_mapVoteSourceReligions.end(); ++it)
 	{
 		pStream->Write(it->first);
 		pStream->Write(it->second);
 	}
 
 	pStream->Write(m_aeInactiveTriggers.size());
-	for (std::vector<EventTriggerTypes>::iterator it = m_aeInactiveTriggers.begin(); it != m_aeInactiveTriggers.end(); ++it)
+	for (std::vector<EventTriggerTypes>::iterator it = m_aeInactiveTriggers.begin();
+		it != m_aeInactiveTriggers.end(); ++it)
 	{
 		pStream->Write(*it);
 	}
@@ -9311,7 +9307,7 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 	}
 }
 
-/*  <advc> When loading a savegame, this function is called once all
+/*  advc: When loading a savegame, this function is called once all
 	read functions have been called. */
 void CvGame::onAllGameDataRead()
 {
@@ -9342,27 +9338,32 @@ void CvGame::onAllGameDataRead()
 			}
 		}
 	} // </advc.opt>
-	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
 	m_bAllGameDataRead = true;
+	for (PlayerIter<HUMAN> it; it.hasNext(); ++it)
+	{
+		CvPlayerAI& kActive = *it;
+		if (!kActive.isTurnActive())
+			continue;
+		// So that the cache data doesn't necessarily have to be serialized
+		kActive.AI_updateCacheData();
+		kActive.validateDiplomacy(); // advc.134a
+	}
 	// <advc.127> Save created during AI Auto Play
 	if (m_iAIAutoPlay != 0 && !isNetworkMultiPlayer())
 	{
-		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
-		{
-			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
-			if (kPlayer.isAlive())
-				kPlayer.AI_updateAttitude();
-		}
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+			it->AI_updateAttitude();
 	}
 	m_iAIAutoPlay = 0; // </advc.127>
 }
 
-// Called once the EXE signals that graphics have been initialized (w/e that means exactly)
+/*	advc: Called once the EXE signals that graphics have been initialized
+	(w/e that means exactly) */
 void CvGame::onGraphicsInitialized()
 {
 	// (Nothing to be done here currently)
 }
-// </advc>
+
 
 void CvGame::saveReplay(PlayerTypes ePlayer)
 {	// advc.106i: Hack to prepend sth. to the replay file name

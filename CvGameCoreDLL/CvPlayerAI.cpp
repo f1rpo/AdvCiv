@@ -132,7 +132,7 @@ void CvPlayerAI::AI_init()
 	AI_setReligionTimer(1);
 	AI_setCivicTimer((getMaxAnarchyTurns() == 0) ? 1 : 2);
 	AI_initStrategyRand(); // K-Mod
-	updateCacheData(); // K-Mod
+	AI_updateCacheData(); // K-Mod
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		m_pUWAI->init(getID()); // </advc.104>
@@ -329,11 +329,10 @@ int CvPlayerAI::AI_getFlavorValue(FlavorTypes eFlavor) const
 }
 
 // K-Mod
-void CvPlayerAI::updateCacheData()
+/*	advc (note): Now called on all active players after loading a savegame;
+	so that the data doesn't necessarily have to be serialized. */
+void CvPlayerAI::AI_updateCacheData()
 {
-	if (!isAlive())
-		return;
-
 	// AI_updateCloseBorderAttitude();
 	// AI_updateAttitude(); // attitude of this player is relevant to other players too, so this needs to be done elsewhere.
 	AI_updateNeededExplorers(); // advc.opt
@@ -363,8 +362,8 @@ void CvPlayerAI::updateCacheData()
 		c->AI_updateSafety();
 		i++;
 	} // </advc.139>
-}
-// K-Mod end
+} // K-Mod end
+
 
 void CvPlayerAI::AI_doTurnPre()
 {

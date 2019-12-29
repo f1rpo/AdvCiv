@@ -28,7 +28,7 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 	TCHAR szOut[1024];
 	// <advc.007>
 	CvString szData;
-	if(iData1 > MIN_INT)
+	if (iData1 < MIN_INT)
 	{
 		if(iData2 == MIN_INT)
 			szData.Format(" (%d)", iData1);

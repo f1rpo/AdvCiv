@@ -9870,13 +9870,12 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	CvGame& g = GC.getGame();
 	if (isTurnActive())
 	{
+		FAssert(isAlive());
 		// K-Mod
-		AI().updateCacheData();
+		AI().AI_updateCacheData();
 		onTurnLogging(); // bbai logging
 		// K-Mod end
 		GC.getLogger().logTurnActive(getID()); // advc.003t
-
-		FAssertMsg(isAlive(), "isAlive is expected to be true");
 
 		setEndTurn(false);
 		g.resetTurnTimer();

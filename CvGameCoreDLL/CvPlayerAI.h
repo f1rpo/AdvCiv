@@ -78,7 +78,7 @@ public:
 	// </advc.003u>
 	int AI_getFlavorValue(FlavorTypes eFlavor) const;
 
-	void updateCacheData(); // K-Mod
+	void AI_updateCacheData(); // K-Mod
 
 	void AI_doTurnPre();
 	void AI_doTurnPost();
