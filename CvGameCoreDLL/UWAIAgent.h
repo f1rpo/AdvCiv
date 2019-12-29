@@ -246,4 +246,10 @@ private:
 	UWAICache cache;
 };
 
+/*	advc.test: Disables the checks for DP, the PA prereq. tech and the game option;
+	refusal based on attitude only if worse than Cautious.
+	(Could define this in any header included by both CvTeamAI.cpp and CvPlayer.cpp.
+	This one isn't included very frequently elsewhere, i.e. not too slow to recompile.) */
+//#define TEST_PERMANENT_ALLIANCES
+
 #endif

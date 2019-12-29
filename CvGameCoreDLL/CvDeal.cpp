@@ -437,7 +437,8 @@ bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReaso
 	else if(GET_TEAM(getSecondPlayer()).isVassal(eMaster))
 		eVassal = TEAMID(getSecondPlayer());
 	else return false; // sibling vassals
-
+	if (TEAMID(getFirstPlayer()) == TEAMID(getSecondPlayer()))
+		return false; // headGivesNode(TeamTypes) can't handle deals within a team
 	for (CLLNode<TradeData> const* pNode = headGivesNode(eVassal); pNode != NULL;
 		pNode = nextGivesNode(pNode, eVassal))
 	{

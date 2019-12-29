@@ -22131,7 +22131,7 @@ bool CvUnitAI::AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar)
 												kTeam.AI_setWarPlan(pDestPlot->getTeam(), NO_WARPLAN);
 											}
 										}
-										kTeam.AI_setWarPlan(kPlot.getTeam(), eWarPlan, true);
+										kTeam.AI_setWarPlan(kPlot.getTeam(), eWarPlan);
 										//return (AI_targetCity());
 										return AI_goToTargetCity(MOVE_AVOID_ENEMY_WEIGHT_2 | MOVE_DECLARE_WAR); // K-Mod / BBAI
 									}

@@ -238,8 +238,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			continue; // advc
 		if (kObs.getTeam() != getID() && kObs.getTeam() != eTeam)
 		{
-			if ((isHasMet(kObs.getTeam()) && GET_TEAM(eTeam).isHasMet(kObs.getTeam()))
-				|| kObs.isSpectator()) // advc.127
+			if ((isHasMet(kObs.getTeam()) && GET_TEAM(eTeam).isHasMet(kObs.getTeam())) ||
+				kObs.isSpectator()) // advc.127
 			{
 				CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_PLAYER_PERMANENT_ALLIANCE",
 						getName().GetCString(), GET_TEAM(eTeam).getName().GetCString()));
@@ -272,13 +272,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			if (GET_TEAM((TeamTypes)iI).isAlive())
 			{
 				if (GET_TEAM(eTeam).isHasMet((TeamTypes)iI))
-				{
 					meet((TeamTypes)iI, false);
-				}
 				else if (isHasMet((TeamTypes)iI))
-				{
 					GET_TEAM(eTeam).meet((TeamTypes)iI, false);
-				}
 			}
 		}
 	}
@@ -315,9 +311,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			if (GET_TEAM((TeamTypes)iI).isAlive())
 			{
 				if (GET_TEAM(eTeam).isAtWar((TeamTypes)iI))
-				{
 					queueWar((TeamTypes)iI, getID(), false, WARPLAN_DOGPILE, false);
-				}
 				else if (isAtWar((TeamTypes)iI))
 				{
 					GET_TEAM(eTeam).declareWar((TeamTypes)iI, false, AI().AI_getWarPlan((TeamTypes)iI));
@@ -335,13 +329,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			if (GET_TEAM((TeamTypes)iI).isAlive())
 			{
 				if (GET_TEAM(eTeam).isPermanentWarPeace((TeamTypes)iI))
-				{
 					setPermanentWarPeace(((TeamTypes)iI), true);
-				}
 				else if (isPermanentWarPeace((TeamTypes)iI))
-				{
 					GET_TEAM(eTeam).setPermanentWarPeace(((TeamTypes)iI), true);
-				}
 			}
 		}
 	}
@@ -414,8 +404,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		setVassal(GET_TEAM(eTeam).getMasterTeam(), true, bCapitulated);
 	}
 	// Don't turn eTeam into a vassal; it'll die anyway.
-	/*else if (isAVassal())
-	{
+	/*else if (isAVassal()) {
 		bool bCapitulated = isCapitulated();
 		GET_TEAM(eTeam).setVassal(GET_TEAM(eTeam).getMasterTeam(), false, bCapitulated);
 		GET_TEAM(eTeam).setVassal(getMasterTeam(), true, bCapitulated);
@@ -433,8 +422,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kVassal.setVassal(eTeam, false, bCapitulated);
 			kVassal.setVassal(getID(), true, bCapitulated);
 		}
-		/*else if (kVassal.isVassal(getID()))
-		{
+		/*else if (kVassal.isVassal(getID())) {
 			kVassal.setVassal(getID(), false, bCapitulated);
 			kVassal.setVassal(eTeam, true, bCapitulated);
 		}*/
@@ -460,9 +448,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
-		{
 			GET_PLAYER((PlayerTypes)iI).setTeam(getID());
-		}
 	}
 	updateLeaderID(); // advc.opt
 	// <dlph.13>
@@ -512,7 +498,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		if (((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
 			  ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))) */
 		// K-Mod: The player's teams have already been reassigned - so we don't check for eTeam anymore.
-		if (!pLoopDeal->isBetween(getID(), eTeam)) // advc: Replacing the K-Mod replacement
+		if (!pLoopDeal->isBetween(getID(), getID())) // advc: Replacing the K-Mod replacement
 			continue;
 
 		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
@@ -532,7 +518,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		}
 	}
 	// <dlph.1>
-	for(iI = 0; iI < NUM_DOMAIN_TYPES; iI++) {
+	for(iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
+	{
 		DomainTypes eDomain = (DomainTypes)iI; // advc
 		changeExtraMoves(eDomain, std::max(0, GET_TEAM(eTeam).getExtraMoves(eDomain) -
 				getExtraMoves(eDomain)));
@@ -576,9 +563,6 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kLoopTeam.setEspionagePointsAgainstTeam(getID(), std::max(kLoopTeam.getEspionagePointsAgainstTeam(getID()), kLoopTeam.getEspionagePointsAgainstTeam(eTeam))); // unofficial patch*/
 			/*  <dlph.26> "These counters now scale properly with number of players in teams.
 				Also, espionage is now sum instead of max. */
-			kLoopTeam.setWarWeariness(getID(), (iOriginalTeamSize *
-					kLoopTeam.getWarWeariness(getID()) + iOtherTeamSize *
-					kLoopTeam.getWarWeariness(eTeam)) / getNumMembers());
 			kLoopTeam.AI_setAtWarCounter(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getAtWarCounter(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getAtWarCounter(eTeam)) / getNumMembers());
@@ -593,6 +577,12 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kLoopTeam.AI_setHasMetCounter(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getHasMetCounter(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getHasMetCounter(eTeam)) / getNumMembers());
+			// <advc.003n>
+			if (kLoopTeam.isBarbarian())
+				continue; // </advc.003n>
+			kLoopTeam.setWarWeariness(getID(), (iOriginalTeamSize *
+					kLoopTeam.getWarWeariness(getID()) + iOtherTeamSize *
+					kLoopTeam.getWarWeariness(eTeam)) / getNumMembers());
 			kLoopTeam.AI_setDefensivePactCounter(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getDefensivePactCounter(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getDefensivePactCounter(eTeam)) / getNumMembers());
@@ -607,24 +597,26 @@ void CvTeam::addTeam(TeamTypes eTeam)
 					kLoopTeam.AI_getSharedWarSuccess(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getSharedWarSuccess(eTeam)) / getNumMembers());
 			// </advc.130m>
+			kLoopTeam.setEspionagePointsAgainstTeam(getID(),
+					kLoopTeam.getEspionagePointsAgainstTeam(getID()) +
+					kLoopTeam.getEspionagePointsAgainstTeam(eTeam));
+			// <advc.003n>
+			if (kLoopTeam.isMinorCiv())
+				continue; // </advc.003n>
 			kLoopTeam.AI_setEnemyPeacetimeTradeValue(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getEnemyPeacetimeTradeValue(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getEnemyPeacetimeTradeValue(eTeam)) / getNumMembers());
 			kLoopTeam.AI_setEnemyPeacetimeGrantValue(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getEnemyPeacetimeGrantValue(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getEnemyPeacetimeGrantValue(eTeam)) / getNumMembers());
-			kLoopTeam.setEspionagePointsAgainstTeam(getID(),
-					kLoopTeam.getEspionagePointsAgainstTeam(getID()) +
-					kLoopTeam.getEspionagePointsAgainstTeam(eTeam));
 			// </dlph.26>
 
 			if (kLoopTeam.isAlive())
 			{
 				kLoopTeam.AI_setWarPlan(getID(), NO_WARPLAN, false);
 				kLoopTeam.AI_setWarPlan(eTeam, NO_WARPLAN, false);
-				// <advc.001> Cancel our war plans too
-				if(isHuman() && !isAtWar(kLoopTeam.getID()))
-					AI().AI_setWarPlan(kLoopTeam.getID(), NO_WARPLAN); // </advc.001>
+				// advc.001: Cancel our war plans too (eTeam's is taken care of when it dies)
+				AI().AI_setWarPlan(kLoopTeam.getID(), NO_WARPLAN, false);
 			}
 		}
 	}

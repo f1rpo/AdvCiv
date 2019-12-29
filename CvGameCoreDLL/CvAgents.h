@@ -47,7 +47,7 @@ public:
 	{
 		updateVassal(eVassal, eMaster, false);
 	}
-	void allianceFormed() // Tbd.: Not currently called
+	void allianceFormed()
 	{
 		updateAllCachedSequences();
 	}

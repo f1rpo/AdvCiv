@@ -5236,10 +5236,9 @@ class CvMainInterface:
 			iScore = g.getPlayerScore(ePlayer)
 			szPlayerScore = u"%d" % iScore
 			# <advc.155>
-			eMaster = pTeam.getMasterTeam()
 			# (To allow this option without the Advanced/Tabular layout option, simply remove the bAlignIcons check.)
-			if bAlignIcons and gc.getTeam(eMaster).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
-				pTeamLeader = gc.getPlayer(gc.getTeam(eMaster).getLeaderID())
+			if bAlignIcons and gc.getTeam(eTeam).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
+				pTeamLeader = gc.getPlayer(gc.getTeam(eTeam).getLeaderID())
 				szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(pTeamLeader.getPlayerTextColorR(), pTeamLeader.getPlayerTextColorG(), pTeamLeader.getPlayerTextColorB(), pTeamLeader.getPlayerTextColorA(), szPlayerScore)
 			# </advc.155>
 			if bAlignIcons:

@@ -3829,9 +3829,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		// advc.130j:
 		AI().AI_rememberEvent(ePlayer, MEMORY_REJECTED_DEMAND);
 		if (AI().AI_demandRebukedSneak(ePlayer))
-		{
 			GET_TEAM(getTeam()).AI_setWarPlan(GET_PLAYER(ePlayer).getTeam(), WARPLAN_PREPARING_LIMITED);
-		}
 		break;
 
 	case DIPLOEVENT_DEMAND_WAR:
@@ -3970,12 +3968,11 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 			FAssert(iData2 == NO_WARPLAN);
 			for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
 			{
-				if (!kOurTeam.isAtWar(i))
-					kOurTeam.AI_setWarPlan(i, NO_WARPLAN, false);
+				//if (!kOurTeam.isAtWar(i)) // advc: Redundant b/c of bWar=false param
+				kOurTeam.AI_setWarPlan(i, NO_WARPLAN, false);
 			}
 		}
-		else
-			kOurTeam.AI_setWarPlan((TeamTypes)iData1, (WarPlanTypes)iData2, false);
+		else kOurTeam.AI_setWarPlan((TeamTypes)iData1, (WarPlanTypes)iData2, false);
 		break;
 	} // K-Mod end
 
@@ -4282,7 +4279,9 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 		return (!kOurTeam.isAVassal() && !kToTeam.isAVassal() &&
 				getTeam() != kToTeam.getID() && //!kToTeam.isVassal(getTeam()) // advc: redundant
 				!kOurTeam.isAtWar(kToTeam.getID()) &&
+				#ifndef TEST_PERMANENT_ALLIANCES // advc.test
 				(kOurTeam.isPermanentAllianceTrading() || kToTeam.isPermanentAllianceTrading()) &&
+				#endif
 				kOurTeam.getNumMembers() == 1 && kToTeam.getNumMembers() == 1);
 	case TRADE_PEACE_TREATY:
 		return true;

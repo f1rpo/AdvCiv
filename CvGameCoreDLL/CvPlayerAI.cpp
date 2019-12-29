@@ -18342,6 +18342,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							else
 							{
 								g.implementDeal(getID(), ePlayer, ourList, theirList);
+								GC.getAgents().allianceFormed(); // advc.agent
 								break; // move on to next player since we are on the same team now
 							}
 						}
