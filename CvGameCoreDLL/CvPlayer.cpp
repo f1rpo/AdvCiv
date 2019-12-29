@@ -19776,13 +19776,14 @@ PlayerTypes CvPlayer::getSplitEmpirePlayer(CvArea const& kArea) const // advc: w
 
 	if (eNewPlayer == NO_PLAYER)
 	{
-		// Try to recycle a dead player
+		/*	<dlph.24> Reusing a defeated player might not work correctly. advc:
+			Allow human players to try it, but don't let the AI wreck the game somehow. */
+		if (!isHuman())
+			return NO_PLAYER; // </dlph.24>
 		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
 		{
 			if (!GET_PLAYER((PlayerTypes)i).isAlive())
-			{	/*  advc.test (see under dlph.24 in manual). No need for a warning if
-					there's only one city. AI_doSplit won't actually split then. */
-				FAssertMsg(kArea.getCitiesPerPlayer(getID()) <= 1 && !isHuman(), "About to reuse a defeated player -- this may or may not work correctly");
+			{
 				eNewPlayer = (PlayerTypes)i;
 				break;
 			}
@@ -19804,20 +19805,12 @@ bool CvPlayer::canSplitEmpire() const
 	if (!getSplitEmpireLeaders(aLeaders))
 		return false;
 
-	bool bFoundArea = false;
 	FOR_EACH_AREA(pLoopArea)
 	{
 		if (canSplitArea(*pLoopArea))
-		{
-			bFoundArea = true;
-			break;
-		}
+			return true; // advc (simplified)
 	}
-
-	if (!bFoundArea)
-		return false;
-
-	return true;
+	return false;
 }
 
 bool CvPlayer::canSplitArea(CvArea const& kArea) const // advc: was iAreaId
