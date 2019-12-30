@@ -1745,7 +1745,7 @@ void CvDLLWidgetData::parseMaintainHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 }
 
 
-void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
@@ -1755,50 +1755,50 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_HURRY_PROD", kCity.getProductionNameKey()));
 
 	HurryTypes eHurry = (HurryTypes)widgetDataStruct.m_iData1;
-	int iHurryGold = kCity.hurryGold(eHurry);
-
+	int const iHurryGold = kCity.hurryGold(eHurry);
 	if (iHurryGold > 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_GOLD", iHurryGold));
 	}
-
 	bool bReasonGiven = false; // advc.064b: Why we can't hurry
-	int iHurryPopulation = kCity.hurryPopulation(eHurry);
-
-	if (iHurryPopulation > 0)
 	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_POP", iHurryPopulation));
-
-		if (iHurryPopulation > kCity.maxHurryPopulation())
+		int iHurryPopulation = kCity.hurryPopulation(eHurry);
+		if (iHurryPopulation > 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_MAX_POP_HURRY", kCity.maxHurryPopulation()));
-			bReasonGiven = true; // advc.064b
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_POP", iHurryPopulation));
+
+			if (iHurryPopulation > kCity.maxHurryPopulation())
+			{
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_MAX_POP_HURRY",
+						kCity.maxHurryPopulation()));
+				bReasonGiven = true; // advc.064b
+			}
 		}
 	}
 	// BUG - Hurry Overflow - start (advc.064)
-	if(BUGOption::isEnabled("MiscHover__HurryOverflow", true))
+	if (BUGOption::isEnabled("MiscHover__HurryOverflow", true))
 	{
 		int iOverflowProduction = 0;
 		int iOverflowGold = 0;
 		bool bIncludeCurrent = BUGOption::isEnabled("MiscHover__HurryOverflowIncludeCurrent", false);
-		if(kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent))
+		if (kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent))
 		{
-			if(iOverflowProduction > 0 || iOverflowGold > 0)
+			if (iOverflowProduction > 0 || iOverflowGold > 0)
 			{
 				bool bFirst = true;
 				CvWStringBuffer szOverflowBuffer;
 				CvWString szTempBuffer;
 				// advc: Plus signs added if !bIncludeCurrent
-				if(iOverflowProduction > 0)
+				if (iOverflowProduction > 0)
 				{
 					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
 							iOverflowProduction, GC.getInfo(YIELD_PRODUCTION).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
 					bFirst = false;
 				}
-				if(iOverflowGold > 0)
+				if (iOverflowGold > 0)
 				{
 					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
 							iOverflowGold, GC.getInfo(COMMERCE_GOLD).getChar());
@@ -1806,41 +1806,40 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 					bFirst = false;
 				}
 				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_OVERFLOW", szOverflowBuffer.getCString()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_OVERFLOW",
+						szOverflowBuffer.getCString()));
 			}
 		}
 	} // BUG - Hurry Overflow - end
-
-	int iHurryAngerLength = kCity.hurryAngerLength(eHurry);
-
-	if (iHurryAngerLength > 0)
 	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS",
-				GC.getDefineINT(CvGlobals::HURRY_POP_ANGER),
-				iHurryAngerLength + kCity.getHurryAngerTimer()));
+		int iHurryAngerLength = kCity.hurryAngerLength(eHurry);
+		if (iHurryAngerLength > 0)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS",
+					GC.getDefineINT(CvGlobals::HURRY_POP_ANGER),
+					iHurryAngerLength + kCity.getHurryAngerTimer()));
+		}
 	}
-
 	if (!pHeadSelectedCity->isProductionUnit() && !kCity.isProductionBuilding())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_UNIT_BUILDING_HURRY"));
 		bReasonGiven = true; // advc.064b
 	}
-
 	if(!kCity.canHurry(eHurry, false)) // advc.064b
 	{
 		bool bFirst = true;
 		if (!GET_PLAYER(kCity.getOwner()).canHurry(eHurry))
 		{
-			for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+			FOR_EACH_ENUM(Civic)
 			{
-				if (GC.getInfo((CivicTypes)iI).isHurry(eHurry))
-				{
-					CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
-					setListHelp(szBuffer, szTempBuffer, GC.getInfo((CivicTypes)iI).getDescription(), gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-					bFirst = false;
-				}
+				if (!GC.getInfo(eLoopCivic).isHurry(eHurry))
+					continue;
+				CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
+				setListHelp(szBuffer, szTempBuffer, GC.getInfo(eLoopCivic).getDescription(),
+						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
+				bFirst = false;
 			}
 			if (!bFirst)
 				szBuffer.append(ENDCOLR);
@@ -1866,71 +1865,68 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 }
 
 
-void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	CvWString szTempBuffer;
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-	if (pHeadSelectedCity != NULL)
+	if (pHeadSelectedCity == NULL || pHeadSelectedCity->getConscriptUnit() == NO_UNIT)
+		return;
 	{
-		if (pHeadSelectedCity->getConscriptUnit() != NO_UNIT)
+		CvWString szTemp;
+		szTemp.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT"),
+				GC.getInfo(pHeadSelectedCity->getConscriptUnit()).getDescription());
+		szBuffer.assign(szTemp);
+	}
+	{
+		int iConscriptPopulation = pHeadSelectedCity->getConscriptPopulation();
+		if (iConscriptPopulation > 0)
 		{
-			CvWString szTemp;
-			szTemp.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT"), GC.getInfo(pHeadSelectedCity->getConscriptUnit()).getDescription());
-			szBuffer.assign(szTemp);
-
-			int iConscriptPopulation = pHeadSelectedCity->getConscriptPopulation();
-
-			if (iConscriptPopulation > 0)
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_POP", iConscriptPopulation));
+		}
+	}
+	{
+		int iConscriptAngerLength = pHeadSelectedCity->flatConscriptAngerLength();
+		if (iConscriptAngerLength > 0)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS",
+					GC.getDefineINT(CvGlobals::CONSCRIPT_POP_ANGER),
+					iConscriptAngerLength + pHeadSelectedCity->getConscriptAngerTimer()));
+		}
+	}
+	{
+		int iMinCityPopulation = pHeadSelectedCity->conscriptMinCityPopulation();
+		if (pHeadSelectedCity->getPopulation() < iMinCityPopulation)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_MIN_CITY_POP", iMinCityPopulation));
+		}
+	}
+	{
+		int iMinCulturePercent = GC.getDefineINT("CONSCRIPT_MIN_CULTURE_PERCENT");
+		if (pHeadSelectedCity->plot()->calculateTeamCulturePercent(
+			pHeadSelectedCity->getTeam()) < iMinCulturePercent)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_MIN_CULTURE_PERCENT",
+					iMinCulturePercent));
+		}
+	}
+	if (GET_PLAYER(pHeadSelectedCity->getOwner()).getMaxConscript() == 0)
+	{
+		bool bFirst = true;
+		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+		{
+			if (getWorldSizeMaxConscript((CivicTypes)iI) > 0)
 			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_POP", iConscriptPopulation));
-			}
-
-			int iConscriptAngerLength = pHeadSelectedCity->flatConscriptAngerLength();
-
-			if (iConscriptAngerLength > 0)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS", GC.getDefineINT(CvGlobals::CONSCRIPT_POP_ANGER),
-						(iConscriptAngerLength + pHeadSelectedCity->getConscriptAngerTimer())));
-			}
-
-			int iMinCityPopulation = pHeadSelectedCity->conscriptMinCityPopulation();
-
-			if (pHeadSelectedCity->getPopulation() < iMinCityPopulation)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_MIN_CITY_POP", iMinCityPopulation));
-			}
-
-			int iMinCulturePercent = GC.getDefineINT("CONSCRIPT_MIN_CULTURE_PERCENT");
-
-			if (pHeadSelectedCity->plot()->calculateTeamCulturePercent(pHeadSelectedCity->getTeam()) < iMinCulturePercent)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_MIN_CULTURE_PERCENT", iMinCulturePercent));
-			}
-
-			if (GET_PLAYER(pHeadSelectedCity->getOwner()).getMaxConscript() == 0)
-			{
-				bool bFirst = true;
-
-				for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
-				{
-					if (getWorldSizeMaxConscript((CivicTypes)iI) > 0)
-					{
-						szTempBuffer = NEWLINE + gDLL->getText("TXT_KEY_REQUIRES");
-						setListHelp(szBuffer, szTempBuffer, GC.getInfo((CivicTypes)iI).getDescription(), gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-						bFirst = false;
-					}
-				}
-
-				if (!bFirst)
-				{
-					szBuffer.append(ENDCOLR);
-				}
+				CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
+				setListHelp(szBuffer, szTempBuffer, GC.getInfo((CivicTypes)iI).getDescription(),
+						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
+				bFirst = false;
 			}
 		}
+		if (!bFirst)
+			szBuffer.append(ENDCOLR);
 	}
 }
 
@@ -1943,8 +1939,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 	szTemp.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 			kAction.getHotKeyDescription().c_str());
 	szBuffer.assign(szTemp);
+	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace(); // advc
 
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = kInterface.getHeadSelectedUnit();
 	if (pHeadSelectedUnit != NULL)
 	{
 		MissionTypes eMission = (MissionTypes)kAction.getMissionType();
@@ -1984,7 +1981,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				}
 				else
 				{
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+					pSelectedUnitNode = kInterface.headSelectionListNode();
 					while (pSelectedUnitNode != NULL)
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -1994,7 +1991,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 							// advc.080:
 							iLostXP -= pSelectedUnit->upgradeXPChange(eTo);
 						}
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+						pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode);
 						// <advc.080>
 						if(pSelectedUnitNode != NULL)
 							bSingleUnit = false; // </advc.080>
@@ -2024,7 +2021,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 							GET_PLAYER(eGiftPlayer).getCivilizationShortDescription());
 					szBuffer.append(szTempBuffer);
 
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+					pSelectedUnitNode = kInterface.headSelectionListNode();
 					while (pSelectedUnitNode != NULL)
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2035,7 +2032,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 									GET_PLAYER(eGiftPlayer).getNameKey()));
 							break;
 						}
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+						pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode);
 					}
 				}
 			}
@@ -2071,11 +2068,11 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				FAssert(iCurrentExpenses == kActivePl.calculateInflatedCosts());
 				int iExtraCost = 0;
 				int iUnits = 0;
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+				pSelectedUnitNode = kInterface.headSelectionListNode();
 				while(pSelectedUnitNode != NULL)
 				{
 					CvUnit const& u = *::getUnit(pSelectedUnitNode->m_data);
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+					pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode);
 					iExtraCost += u.getUnitInfo().getExtraCost();
 					iUnits--;
 					/*  No danger of double counting b/c it's not possible to select
