@@ -882,6 +882,7 @@
 		<element type="iVisibilityChange"/>
 		<element type="iMovesChange"/>
 		<element type="iMoveDiscountChange"/>
+		<!-- advc.029 (note): -1 means infinite range -->
 		<element type="iAirRangeChange"/>
 		<element type="iInterceptChange"/>
 		<element type="iEvasionChange"/>

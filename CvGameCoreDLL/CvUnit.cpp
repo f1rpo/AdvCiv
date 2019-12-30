@@ -4064,6 +4064,9 @@ bool CvUnit::canReconAt(const CvPlot* pPlot, int iX, int iY) const
 {
 	if (!canRecon(pPlot))
 		return false;
+	// <advc.029> (from Dawn of Civilization)
+	if (airRange() == -1)
+		return true; // </advc.029>
 	int iDistance = plotDistance(pPlot->getX(), pPlot->getY(), iX, iY);
 	if (iDistance > airRange() || iDistance == 0)
 		return false;
