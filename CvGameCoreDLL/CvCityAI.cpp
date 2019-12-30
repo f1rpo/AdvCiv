@@ -605,7 +605,7 @@ void CvCityAI::AI_chooseProduction()
 
 	if (iNumCitiesInArea > 2)
 	{
-		if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+		if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE2))
 		{
 			if (iCultureRateRank <= iCulturalVictoryNumCultureCities + 1)
 			{
@@ -757,7 +757,7 @@ void CvCityAI::AI_chooseProduction()
 	// K-Mod, short-circuit production choice if we already have something really good in mind
 	if (kPlayer.getNumCities() > 1) // don't use this short circuit if this is our only city.
 	{
-		if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		if (kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE4))
 		{
 			eBestProject = AI_bestProject(&iProjectValue);
 			if (eBestProject != NO_PROJECT && iProjectValue > iBestBuildingValue)
@@ -916,9 +916,9 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 	/* original bts code (disabled by K-Mod. I don't think these are helpful)
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3)) {
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION3)) {
 		if (goodHealth() - badHealth(true, 0) < 1) {
-			if (AI_chooseBuilding(BUILDINGFOCUS_HEALTHY, 20, 0, (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) ? 50 : 20)))
+			if (AI_chooseBuilding(BUILDINGFOCUS_HEALTHY, 20, 0, (kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION4) ? 50 : 20)))
 				return;
 		}
 	}
@@ -935,7 +935,7 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}*/ // <cdtw.6>
 	CvCityAI* pCapital = kPlayer.AI_getCapitalCity();
-	if(!kPlayer.isHuman() && kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
+	if(!kPlayer.isHuman() && kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE4) &&
 			!isCoastal() && !isCapital() && bCapitalArea && !bDanger && !bLandWar &&
 			pCapital != NULL && pCapital->isCoastal() &&
 			plot()->calculateCulturePercent(getOwner()) >= 50 &&
@@ -1386,7 +1386,7 @@ void CvCityAI::AI_chooseProduction()
 	}
 
 	// K-Mod.
-	if (iProjectValue < 0 && (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) || !(bLandWar && iWarSuccessRating < 30)))
+	if (iProjectValue < 0 && (kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE3) || !(bLandWar && iWarSuccessRating < 30)))
 		eBestProject = AI_bestProject(&iProjectValue);
 	// K-Mod end
 
@@ -2107,7 +2107,7 @@ void CvCityAI::AI_chooseProduction()
 
 				if(3*iFightersHave < iAircraftNeed)
 						// <cdtw.7> (Disabled again)
-						/*(kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
+						/*(kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE4) &&
 						3*iFightersHave < 2*kPlayer.getNumCities())) */// </cdtw.7>
 				{
 					if (AI_chooseUnit(UNITAI_DEFENSE_AIR))
@@ -3673,10 +3673,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000: START
-	bool bCulturalVictory1 = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1);
-	bool bCulturalVictory2 = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2);
-	bool bCulturalVictory3 = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3);
-	bool bSpaceVictory1 = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1);
+	bool bCulturalVictory1 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE1);
+	bool bCulturalVictory2 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2);
+	bool bCulturalVictory3 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3);
+	bool bSpaceVictory1 = kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1);
 	// BETTER_BTS_AI_MOD: END
 
 	bool bCanPopRush = /*kOwner.*/canPopRush(); // advc.912d
@@ -4608,19 +4608,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				}
 				// <advc.115b>
 				int iDiploStage = 0;
-				if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1))
+				if(kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
 					iDiploStage++;
 				/*  Don't want to push AP as much b/c the victory stage is (so far)
 					hardly meaningful for that */
 				if(!kBuilding.isStateReligion() &&
-						kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+						kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
 					iDiploStage++;
 				// (3 and 4 aren't possible without the respective vote source)
 				//iValue += iTempValue * 3 * diploStage;
 				iTempValue *= 3 * iDiploStage;
 				/*  K-Mod code didn't factor in AI_VICTORY_DIPLOMACY2 b/c that
 					stage wasn't used at the time */
-				//iValue += (iTempValue * (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1) ? 5 : 1));
+				//iValue += (iTempValue * (kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1) ? 5 : 1));
 				// Don't pave the way for rival victory
 				int iMaxRivalStage = 0;
 				bool bHumanRival = false;
@@ -4631,10 +4631,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							GET_TEAM(kRival.getTeam()).isAVassal())
 						continue;
 					int iRivalStage = 0;
-					if(kRival.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1))
+					if(kRival.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
 						iRivalStage++;
 					if(!kBuilding.isStateReligion() &&
-							kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+							kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
 						iRivalStage++;
 					if(iRivalStage > iMaxRivalStage || (iRivalStage >= iMaxRivalStage &&
 							kRival.isHuman())) {
@@ -5247,7 +5247,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			{
 				CorporationTypes eCorporation = (CorporationTypes)kBuilding.getFoundsCorporation();
 				int iCorpValue = 0;
-				int iExpectedSpread = kOwner.AI_isDoVictoryStrategyLevel4() ? 45 : 70 - (bWarPlan ? 10 : 0);
+				int iExpectedSpread = kOwner.AI_atVictoryStage4() ? 45 : 70 - (bWarPlan ? 10 : 0);
 				// note: expected spread starts as percent (for precision), but is later converted to # of cities.
 				if (kOwner.isNoCorporations())
 					iExpectedSpread = 0;
@@ -5781,7 +5781,7 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 		bool bVictory = false;
 		bool bGoodFit = false;
 
-		if (GET_PLAYER(getOwner()).AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+		if (GET_PLAYER(getOwner()).AI_atVictoryStage(AI_VICTORY_SPACE3))
 		{
 			for (VictoryTypes j = (VictoryTypes)0; j < GC.getNumVictoryInfos(); j = (VictoryTypes)(j+1))
 			{
@@ -5932,9 +5932,9 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 		// In general, I want the AI to lean in favour of -not- building the Manhattan project, so that the human players generally get to decide whether or not the game will have nukes.
 		// But I do want the AI to build it if it will be particular adventagious for them. eg. when they want a conquest victory, and they know that their enemies don't have uranium...
 		// <advc.650> Commented out; replacement below.
-		//if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH | AI_STRATEGY_DAGGER) || kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+		//if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH | AI_STRATEGY_DAGGER) || kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 		CvGame& g = GC.getGame();
-		if(!GET_TEAM(getTeam()).AI_isAnyMemberDoVictoryStrategyLevel4() &&
+		if(!GET_TEAM(getTeam()).AI_anyMemberAtVictoryStage4() &&
 			g.getTeamRank(getTeam()) != 0 &&
 			GET_TEAM(getTeam()).AI_getAttitude(g.getRankTeam(0)) < ATTITUDE_PLEASED)
 			// </advc.650>
@@ -5956,7 +5956,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						// advc.130v:
 						!GET_TEAM(kLoopPlayer.getTeam()).isCapitulated() &&
 						// advc.650: These have too much to lose from nukes
-						!kLoopTeam.AI_isAnyMemberDoVictoryStrategyLevel4() &&
+						!kLoopTeam.AI_anyMemberAtVictoryStage4() &&
 						kLoopPlayer.getCivilization().getUnit((UnitClassTypes)
 						kLoopUnit.getUnitClassType()) == i &&
 						(kLoopPlayer.getTeam() == kOwner.getTeam() || kTeam.isHasMet(kLoopPlayer.getTeam())))
@@ -6043,7 +6043,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	{
 		iSpaceValue += (std::max(0, (GC.getInfo((ProjectTypes)iI).getProjectsNeeded(eProject) - GET_TEAM(getTeam()).getProjectCount(eProject))) * 8); // was *10
 	}
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1))
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1))
 		iSpaceValue = 3*iSpaceValue/2; // a boost to compound with the other boosts lower down.
 
 	// projects which are required components for victory. (ie. components of the spaceship)
@@ -6054,20 +6054,20 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			/* iSpaceValue += 20;
 			iSpaceValue += std::max(0, kProject.getVictoryThreshold(iI) - GET_TEAM(getTeam()).getProjectCount(eProject)) * 20; */
 			iSpaceValue += 15;
-			iSpaceValue += std::max(0, kProject.getVictoryMinThreshold(iI) - GET_TEAM(getTeam()).getProjectCount(eProject)) * (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) ? 60 : 30);
+			iSpaceValue += std::max(0, kProject.getVictoryMinThreshold(iI) - GET_TEAM(getTeam()).getProjectCount(eProject)) * (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) ? 60 : 30);
 			iSpaceValue += kProject.getSuccessRate();
 			iSpaceValue += kProject.getVictoryDelayPercent() / (4 * kProject.getVictoryThreshold(iI));
 			//
 		}
 	}
 
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 		iSpaceValue *= 4;
-	else if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+	else if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE3))
 		iSpaceValue *= 3;
-	else if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
+	else if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE2))
 		iSpaceValue *= 2;
-	else if (!kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) && kOwner.AI_isDoVictoryStrategyLevel4())
+	else if (!kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1) && kOwner.AI_atVictoryStage4())
 		iSpaceValue = 2*iSpaceValue/3;
 
 	if (area()->getAreaAIType(kOwner.getTeam()) != AREAAI_NEUTRAL)
@@ -6360,7 +6360,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
 		iDefenders += 10;
 
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		if (findCommerceRateRank(COMMERCE_CULTURE) <=
 				g.culturalVictoryNumCultureCities())
@@ -6371,7 +6371,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		}
 	}
 
-	if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+	if(kOwner.AI_atVictoryStage(AI_VICTORY_SPACE3))
 	{	// advc.107: Added bOffenseWar clause
 		if((isCapital() || isProductionProject()) && !bOffenseWar)
 		{
@@ -6379,7 +6379,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 			if(bDefenseWar)
 				iDefenders += 3;
 		}
-		if(isCapital() && kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		if(isCapital() && kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			iDefenders += 6;
 	}
 	// <advc.099c>
@@ -8512,7 +8512,7 @@ void CvCityAI::AI_doEmphasize()
 	FAssert(!isHuman());
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000:
-	bool bCultureVictory = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2);
+	bool bCultureVictory = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2);
 
 	bool bFirstTech = false;
 	if (kOwner.getCurrentResearch() != NO_TECH)
@@ -8709,7 +8709,7 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 				iRoll *= (kPlayer.getStateReligion() == eReligion) ? 170 : 65;
 				iRoll /= 100;
 			}
-			if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+			if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE2))
 				iRoll += 25;
 			else if (!kTeam.hasHolyCity(eReligion) && !(kPlayer.getStateReligion() == eReligion))
 			{
@@ -11009,7 +11009,7 @@ int CvCityAI::AI_cityValue() const
 	// (ie CULTURE4) will give up their non-core cities. It could be argued that this would be good strategy,
 	// but the problem is that CULTURE4 doesn't always run its full course. ... so I'm going to make a small ad hoc adjustment...
 	iValue += 100 * getYieldRate(YIELD_PRODUCTION);
-	iValue *= kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)? 2 : 1;
+	iValue *= kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4)? 2 : 1;
 	// Gold value is not weighted, and does not get the cultural victory boost, because gold is directly comparable to maintenance.
 	iValue += getCommerceRateTimes100(COMMERCE_GOLD);
 
@@ -11017,7 +11017,7 @@ int CvCityAI::AI_cityValue() const
 	iCosts = iCosts * (100+kOwner.calculateInflationRate()) / 100;
 
 	// slightly encourage empire split when aiming for a diplomatic victory
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3) && kOwner.getCommercePercent(COMMERCE_GOLD) > 0)
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY3) && kOwner.getCommercePercent(COMMERCE_GOLD) > 0)
 	{
 		iCosts = iCosts * 4 / 3;
 	}
@@ -11678,7 +11678,7 @@ int CvCityAI::AI_countGoodSpecialists(bool bHealthy) const
 int CvCityAI::AI_getCityImportance(bool bEconomy, bool bMilitary)
 {
 	int iValue = 0;
-	if (GET_PLAYER(getOwner()).AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3)) // K-Mod (bbai used culture2)
+	if (GET_PLAYER(getOwner()).AI_atVictoryStage(AI_VICTORY_CULTURE3)) // K-Mod (bbai used culture2)
 	{
 		int iCultureRateRank = findCommerceRateRank(COMMERCE_CULTURE);
 		int iCulturalVictoryNumCultureCities = GC.getGame().culturalVictoryNumCultureCities();
@@ -11901,7 +11901,7 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 10;
 	}
 
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1 | AI_VICTORY_SPACE1))
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE1 | AI_VICTORY_SPACE1))
 	{
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 5;
 	}
@@ -11918,8 +11918,7 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 	else if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)) // doesn't stack with ec focus.
 	{
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 20;
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	if ((kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER) && getPopulation() >= 4)
 			|| (eAreaAIType == AREAAI_OFFENSIVE) || (eAreaAIType == AREAAI_DEFENSIVE)
@@ -12248,7 +12247,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 			2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN)))
 		{
 			// This evaluation may be expensive (when I finish writing it), so only do it if there is reason to be concerned.
-			if (kOwner.AI_isDoVictoryStrategyLevel4() ||
+			if (kOwner.AI_atVictoryStage4() ||
 				GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN ||
 				(!kOwner.AI_isLandWar(area()) &&
 				//kLoopPlayer.AI_getAttitude(getOwner()) < ATTITUDE_PLEASED))
@@ -12344,7 +12343,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 					if (getPreviousOwner() == iI)
 						iCivFactor = iCivFactor * 3/2;
 					// Don't get too comfortable if kLoopPlayer is using a conquest strategy.
-					if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
+					if (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
 						iCivFactor = std::max(100, iCivFactor);
 				}
 				// K-Mod end
@@ -12383,7 +12382,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 
 	/* original bts code
 	iValue += getNumActiveWorldWonders() * 5;
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3)) {
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3)) {
 		iValue += 5;
 		iValue += getCommerceRateModifier(COMMERCE_CULTURE) / 20;
 		if (getCultureLevel() >= (GC.getNumCultureLevelInfos() - 2)) {
@@ -12409,7 +12408,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 				iImportanceFactor += 10; // note: the corp HQ building counts as an active world wonder in addition to this value.
 		}
 
-		if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+		if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 		{
 			if (getCultureLevel() >= GC.getGame().culturalVictoryCultureLevel() - 1)
 			{
@@ -12417,7 +12416,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 				if (findCommerceRateRank(COMMERCE_CULTURE) <= GC.getGame().culturalVictoryNumCultureCities())
 				{
 					iImportanceFactor += 30;
-					if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+					if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 					{
 						iImportanceFactor += 100;
 					}

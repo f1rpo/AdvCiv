@@ -69,4 +69,39 @@ namespace BitUtil
 #endif
 };
 
+// advc.enum (not from WtP): Macro for (somehwat) typesafe bitmasks
+#define OVERRIDE_BITMASK_OPERATORS(EnumType) \
+	inline EnumType operator|(EnumType eLeft, EnumType eRight) \
+	{ \
+		int iLeft = eLeft, iRight = eRight; \
+		return static_cast<EnumType>(iLeft | iRight); \
+	} \
+	inline EnumType operator|=(EnumType& eLeft, EnumType eRight) \
+	{ \
+		return eLeft = (eLeft | eRight); \
+	} \
+	inline EnumType operator&(EnumType eLeft, EnumType eRight) \
+	{ \
+		int iLeft = eLeft, iRight = eRight; \
+		return static_cast<EnumType>(iLeft & iRight); \
+	} \
+	inline EnumType operator&=(EnumType& eLeft, EnumType eRight) \
+	{ \
+		return eLeft = (eLeft & eRight); \
+	} \
+	inline EnumType operator^(EnumType eLeft, EnumType eRight) \
+	{ \
+		int iLeft = eLeft, iRight = eRight; \
+		return static_cast<EnumType>(iLeft ^ iRight); \
+	} \
+	inline EnumType operator^=(EnumType& eLeft, EnumType eRight) \
+	{ \
+		return eLeft = (eLeft ^ eRight); \
+	} \
+	inline EnumType operator~(EnumType e) \
+	{ \
+		int i = e; \
+		return static_cast<EnumType>(~i); \
+	}
+
 #endif

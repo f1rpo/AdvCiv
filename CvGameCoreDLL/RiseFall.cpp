@@ -443,7 +443,7 @@ void RiseFall::atActiveTurnStart() {
 	if(pos > 0 && pos < ((int)chapters.size()) - 2 &&
 			!chapters[pos]->wasRetireRecommended() &&
 			!(((int)eligible.size()) > 1) && g.getPlayerRank(activeId) == 0 &&
-			!active.AI_isDoVictoryStrategyLevel3()) {
+			!active.AI_atVictoryStage3()) {
 		RFChapterScore const& sc = chapters[pos]->computeScoreBreakdown();
 		if(sc.getScore() >= 50 && sc.getScoreFromRemainingTime() >= 10 &&
 				sc.getInitialRank() >= 3) {
@@ -1182,18 +1182,16 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 		return -1;
 	int r = 0;
 	// Stages 1 and 2 aren't meaningful enough
-	if(civ.AI_isDoVictoryStrategyLevel3())
+	if(civ.AI_atVictoryStage3())
 		r = 3;
-	if(civ.AI_isDoVictoryStrategyLevel4())
+	if(civ.AI_atVictoryStage4())
 		r = 4;
 	/*  Culture4 is normally quite a bit farther away from victory than
 		the other stage-4 strategies. Need to recompute the culture
 		victory stage with a lowered countdownThresh. */
-	if(r == 4 && civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
-			!civ.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) &&
-			!civ.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) &&
-			!civ.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) &&
-			!civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+	if(r == 4 && civ.AI_atVictoryStage(AI_VICTORY_CULTURE4 &
+			~AI_VICTORY_DIPLOMACY4 & ~AI_VICTORY_CONQUEST4 &
+			~AI_VICTORY_DOMINATION4 & ~AI_VICTORY_SPACE4))
 		r = std::max(3, civ.AI_calculateCultureVictoryStage(167));
 	return r;
 }

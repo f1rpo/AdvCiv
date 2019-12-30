@@ -6,7 +6,8 @@
 #define CIV4_TEAM_AI_H
 
 #include "CvTeam.h"
-#include "UWAI.h"  // advc.104
+#include "UWAI.h" // advc.104
+#include "AIStrategies.h" // advc.enum
 
 /*  <advc.003u> Overwrite definition in CvTeam.h (should perhaps instead define a
 	new macro "TEAMAI" - a lot of call locations to change though ...) */
@@ -107,11 +108,12 @@ public:
 	static int const VASSAL_POWER_MOD_SURRENDER = 140;
 
 	int AI_getLowestVictoryCountdown() const;
-	int AI_countMembersWithStrategy(int iStrategy) const; // K-Mod
-	// bbai start
-	bool AI_isAnyMemberDoVictoryStrategy(int iVictoryStrategy) const;
-	bool AI_isAnyMemberDoVictoryStrategyLevel4() const;
-	bool AI_isAnyMemberDoVictoryStrategyLevel3() const;
+
+	int AI_countMembersWithStrategy(AIStrategy eStrategy) const; // K-Mod
+	// bbai start  // advc.enum: Renamed the victory strategy functions
+	bool AI_anyMemberAtVictoryStage(AIVictoryStage eStage) const;
+	bool AI_anyMemberAtVictoryStage4() const;
+	bool AI_anyMemberAtVictoryStage3() const;
 
 	int AI_getWarSuccessRating() const; // K-Mod
 

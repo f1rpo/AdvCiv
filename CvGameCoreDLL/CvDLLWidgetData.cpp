@@ -8,7 +8,6 @@
 #include "CvMessageControl.h"
 #include "CvInfo_All.h"
 #include "CvBugOptions.h"
-#include "AIStrategies.h"
 #include "WarEvaluator.h" // advc.104l
 #include "RiseFall.h" // advc.706
 
@@ -3632,119 +3631,118 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	szTempBuffer.Format(L"");
 	// Victory strategies
 
-	kPlayer.AI_getVictoryStrategyHash();
 	/*  <advc.007> Reordered and "else" added so that only the highest stage is
 		displayed. */
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 	{
 		szTempBuffer.Format(L"Culture4, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		szTempBuffer.Format(L"Culture3, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE2))
 	{
 		szTempBuffer.Format(L"Culture2, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE1))
 	{
 		szTempBuffer.Format(L"Culture1, ");
 		szBuffer.append(szTempBuffer);
 	}
 
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE4))
 	{
 		szTempBuffer.Format(L"Space4, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE3))
 	{
 		szTempBuffer.Format(L"Space3, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE2))
 	{
 		szTempBuffer.Format(L"Space2, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE1))
 	{
 		szTempBuffer.Format(L"Space1, ");
 		szBuffer.append(szTempBuffer);
 	}
 
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 	{
 		szTempBuffer.Format(L"Conq4, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST3))
 	{
 		szTempBuffer.Format(L"Conq3, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST2))
 	{
 		szTempBuffer.Format(L"Conq2, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST1))
 	{
 		szTempBuffer.Format(L"Conq1, ");
 		szBuffer.append(szTempBuffer);
 	}
 
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION4))
 	{
 		szTempBuffer.Format(L"Dom4, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION3))
 	{
 		szTempBuffer.Format(L"Dom3, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION2))
 	{
 		szTempBuffer.Format(L"Dom2, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION1))
 	{
 		szTempBuffer.Format(L"Dom1, ");
 		szBuffer.append(szTempBuffer);
 	}
 
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_DIPLOMACY4))
 	{
 		szTempBuffer.Format(L"Diplo4, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_DIPLOMACY3))
 	{
 		szTempBuffer.Format(L"Diplo3, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
 	{
 		szTempBuffer.Format(L"Diplo2, ");
 		szBuffer.append(szTempBuffer);
 	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1))
+	else if (kPlayer.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
 	{
 		szTempBuffer.Format(L"Diplo1, ");
 		szBuffer.append(szTempBuffer);
 	} // </advc.007>
 
 	// List the top 3 culture cities (by culture value weight).
-	//if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+	//if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE1))
 	/*  advc.007: The line above was already commented out; i.e. culture info was
 		always shown. */
-	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) || GC.ctrlKey())
+	if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE3) || GC.ctrlKey())
 	{
 		szBuffer.append(CvWString::format(L"\n\nTop %c cities by weight:", GC.getInfo(COMMERCE_CULTURE).getChar()));
 		int iLegendaryCulture = GC.getGame().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
@@ -3898,14 +3896,14 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_DAGGER, /* advc.007: */ true)
-					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)
-					|| GET_PLAYER((PlayerTypes)iI).AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+					|| GET_PLAYER((PlayerTypes)iI).AI_atVictoryStage(AI_VICTORY_CONQUEST3)
+					|| GET_PLAYER((PlayerTypes)iI).AI_atVictoryStage(AI_VICTORY_DOMINATION4))
 				{
 					iDaggerCount++;
 					bAggressive = true;
 				}
 
-				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+				if (GET_PLAYER((PlayerTypes)iI).AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS, /* advc.007: */ true))
 				{
 					iGetBetterUnitsCount++;
 				}
@@ -4032,7 +4030,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 					bool bLandTarget = kTeam.AI_isLandTarget(eLoopTeam);
 					aStartWarInfo[iTeamIndex].bLandTarget = bLandTarget;
 
-					bool bVictory4 = GET_TEAM(eLoopTeam).AI_isAnyMemberDoVictoryStrategyLevel4();
+					bool bVictory4 = GET_TEAM(eLoopTeam).AI_anyMemberAtVictoryStage4();
 					aStartWarInfo[iTeamIndex].bVictory4 = bVictory4;
 
 					//int iNoWarAttitudeProb = kTeam.AI_noWarAttitudeProb(kTeam.AI_getAttitude(eLoopTeam));

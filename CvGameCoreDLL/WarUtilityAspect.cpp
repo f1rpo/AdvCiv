@@ -1085,18 +1085,18 @@ void MilitaryVictory::evaluate() {
 	double maxProgress = -1;
 	/*  The distinction between stage 3 and 4 is too coarse to be useful; treat
 		them the same way. */
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)) {
+	if(we->AI_atVictoryStage(AI_VICTORY_CONQUEST3)) {
 		double prgr = ::dRange(progressRatingConquest(), 0.0, 1.0);
-		if(!we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+		if(!we->AI_atVictoryStage(AI_VICTORY_CONQUEST3))
 			prgr /= 1.5;
 		if(prgr > maxProgress)
 			maxProgress = prgr;
 		progressRating += prgr;
 		nVictories++;
 	}
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3)) {
+	if(we->AI_atVictoryStage(AI_VICTORY_DOMINATION3)) {
 		double prgr = ::dRange(progressRatingDomination(), 0.0, 1.0);
-		if(!we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+		if(!we->AI_atVictoryStage(AI_VICTORY_DOMINATION3))
 			prgr /= 1.5;
 		if(prgr > maxProgress)
 			maxProgress = prgr;
@@ -1104,7 +1104,7 @@ void MilitaryVictory::evaluate() {
 		nVictories++;
 	}
 	// Diplomatic victories can come through military means
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3)) {
+	if(we->AI_atVictoryStage(AI_VICTORY_DIPLOMACY3)) {
 		double prgr = ::dRange(progressRatingDiplomacy(), 0.0, 1.0);
 		if(prgr > maxProgress)
 			maxProgress = prgr;
@@ -1133,24 +1133,24 @@ void MilitaryVictory::evaluate() {
 		ratings above. First had it as a separate class, now kind of tacked on. */
 	double voteCost = 0;
 	double hitUs = m->getNukedCities(theyId, weId);
-	if(hitUs > 0.01 && (we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3 |
+	if(hitUs > 0.01 && (we->AI_atVictoryStage(AI_VICTORY_DIPLOMACY3 |
 			/*  The other peaceful victories are similar enough to Diplo;
 				don't want our population to be nuked. */
 			AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3) &&
 			// Don't fret if we can also win differently
-			(!we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3) &&
-			!we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) &&
-			!we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3) &&
-			!we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) &&
+			(!we->AI_atVictoryStage(AI_VICTORY_DOMINATION3) &&
+			!we->AI_atVictoryStage(AI_VICTORY_DOMINATION4) &&
+			!we->AI_atVictoryStage(AI_VICTORY_CONQUEST3) &&
+			!we->AI_atVictoryStage(AI_VICTORY_CONQUEST4) &&
 			// Probably too late for nukes to stop us then
-			!we->AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
-			!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)))) {
+			!we->AI_atVictoryStage(AI_VICTORY_SPACE4) &&
+			!we->AI_atVictoryStage(AI_VICTORY_CULTURE4)))) {
 		// Slow to grow back if we can't clean up
 		double popLossRate = hitUs * (ourCache->canScrubFallout() ? 0.35 : 0.45) /
 				(we->getNumCities() - m->lostCities(weId).size());
 		popLossRate = std::min(0.5, popLossRate);
 		voteCost += popLossRate * 60;
-		if(we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
+		if(we->AI_atVictoryStage(AI_VICTORY_DIPLOMACY4))
 			voteCost += popLossRate * 40;
 		if(voteCost > 0.5) {
 			log("Nuclear war jeopardizes diplo victory: %d "
@@ -1848,7 +1848,7 @@ void SuckingUp::evaluate() {
 	double uPlus = 1.6 * diplo; // Should sharedWars have an impact?
 	log("Sharing a war with %s; up to +%d diplo", report.leaderName(theyId), diplo);
 	int nAlive = game.countCivPlayersAlive();
-	if(towardsUs == ATTITUDE_PLEASED && we->AI_isDoVictoryStrategy(
+	if(towardsUs == ATTITUDE_PLEASED && we->AI_atVictoryStage(
 			AI_VICTORY_DIPLOMACY3) && nAlive > 2) {
 		log("Bonus utility for them being pleased and us close to diplo victory");
 		uPlus += 5;
@@ -1864,7 +1864,7 @@ void PreEmptiveWar::evaluate() {
 		our chances now. */
 	/*  Don't worry about long-term threat if already in the endgame; Kingmaking
 		handles this. */
-	if(agent.AI_isAnyMemberDoVictoryStrategyLevel3() || m->isEliminated(weId) ||
+	if(agent.AI_anyMemberAtVictoryStage3() || m->isEliminated(weId) ||
 			m->hasCapitulated(agent.getID()))
 		return;
 	double threat = ourCache->threatRating(theyId);
@@ -1973,12 +1973,11 @@ void KingMaking::addWinning(std::set<PlayerTypes>& r, bool bPredict) {
 	// I: Civs at victory stage 4
 	for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
 		CvPlayerAI const& civ = *it;
-		int const iVictHash = civ.AI_getVictoryStrategyHash();
-		int iFlags = iVictHash;
-		if((iFlags & AI_VICTORY_CULTURE4) &&
+		AIVictoryStage flags = civ.AI_getVictoryStageHash();
+		if((flags & AI_VICTORY_CULTURE4) &&
 				civ.AI_calculateCultureVictoryStage(167) < 4)
-			iFlags &= ~AI_VICTORY_CULTURE4;
-		if(anyVictory(civ.getID(), iFlags, 4, bPredict))
+			flags &= ~AI_VICTORY_CULTURE4;
+		if(anyVictory(civ.getID(), flags, 4, bPredict))
 			r.insert(civ.getID());
 	}
 	int const maxTurns = game.getMaxTurns();
@@ -1992,7 +1991,7 @@ void KingMaking::addWinning(std::set<PlayerTypes>& r, bool bPredict) {
 		// II: Civs at victory stage 3 or game score near the top
 		for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
 			CvPlayerAI const& civ = *it;
-			if(anyVictory(civ.getID(), civ.AI_getVictoryStrategyHash(), 3, bPredict))
+			if(anyVictory(civ.getID(), civ.AI_getVictoryStageHash(), 3, bPredict))
 				r.insert(civ.getID());
 		}
 	}
@@ -2000,41 +1999,41 @@ void KingMaking::addWinning(std::set<PlayerTypes>& r, bool bPredict) {
 	addLeadingCivs(r, scoreMargin, bPredict);
 }
 
-bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
+bool KingMaking::anyVictory(PlayerTypes civId, AIVictoryStage flags, int stage,
 		bool bPredict) const {
 
 	FAssert(stage == 3 || stage == 4);
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!bPredict) {
 		if(stage == 3)
-			return civ.AI_isDoVictoryStrategyLevel3();
-		return (iVictoryFlags & (AI_VICTORY_SPACE4 | AI_VICTORY_CONQUEST4 |
+			return civ.AI_atVictoryStage3();
+		return (flags & (AI_VICTORY_SPACE4 | AI_VICTORY_CONQUEST4 |
 				AI_VICTORY_DIPLOMACY4 | AI_VICTORY_DOMINATION4 | AI_VICTORY_CULTURE4));
 	}
 	if(m->isEliminated(civId) || m->hasCapitulated(TEAMID(civId)))
 		return false;
-	if((iVictoryFlags & AI_VICTORY_SPACE4) && stage == 4) {
+	if((flags & AI_VICTORY_SPACE4) && stage == 4) {
 		CvCity* capital = civ.getCapitalCity();
 		if(capital != NULL && m->lostCities(civId).count(capital->plotNum()) <= 0)
 			return true;
 	}
-	if(iVictoryFlags & AI_VICTORY_CONQUEST3) {
+	if(flags & AI_VICTORY_CONQUEST3) {
 		/*  Very coarse -- consider a civ whose power stagnates to be no longer
 			on course to a conquest victory */
 		if(m->gainedPower(civId, ARMY) > 0) {
-			if(((iVictoryFlags & AI_VICTORY_CONQUEST3) && stage == 3) ||
-			   ((iVictoryFlags & AI_VICTORY_CONQUEST4) && stage == 4))
+			if(((flags & AI_VICTORY_CONQUEST3) && stage == 3) ||
+			   ((flags & AI_VICTORY_CONQUEST4) && stage == 4))
 				  return true;
 		}
 	}
 	// Space4 and Conq already handled above
-	bool bCultValid = (stage == 4 && (iVictoryFlags & AI_VICTORY_CULTURE4)) ||
-			(stage == 3 && (iVictoryFlags & AI_VICTORY_CULTURE3));
-	bool bSpaceValid = (stage == 3 && (iVictoryFlags & AI_VICTORY_SPACE3));
-	bool bDomValid = (stage == 4 && (iVictoryFlags & AI_VICTORY_DOMINATION4)) ||
-			(stage == 3 && (iVictoryFlags & AI_VICTORY_DOMINATION3));
-	bool bDiploValid = (stage == 4 && (iVictoryFlags & AI_VICTORY_DIPLOMACY4)) ||
-			(stage == 3 && (iVictoryFlags & AI_VICTORY_DIPLOMACY3));
+	bool bCultValid = (stage == 4 && (flags & AI_VICTORY_CULTURE4)) ||
+			(stage == 3 && (flags & AI_VICTORY_CULTURE3));
+	bool bSpaceValid = (stage == 3 && (flags & AI_VICTORY_SPACE3));
+	bool bDomValid = (stage == 4 && (flags & AI_VICTORY_DOMINATION4)) ||
+			(stage == 3 && (flags & AI_VICTORY_DOMINATION3));
+	bool bDiploValid = (stage == 4 && (flags & AI_VICTORY_DIPLOMACY4)) ||
+			(stage == 3 && (flags & AI_VICTORY_DIPLOMACY3));
 	/*  Conquests could bring civ closer to a military victory, but that seems
 		difficult to predict. Only looking at setbacks here -- which are also
 		a bit difficult to predict; the main point of this function is really
@@ -2107,7 +2106,7 @@ void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bP
 			// Beware of peaceful civs on other landmasses
 			CvCity* cap = civ.getCapitalCity();
 			if(ourCapital != NULL && cap != NULL && ourCapital->area() !=
-					cap->area() && civ.AI_isDoVictoryStrategy(
+					cap->area() && civ.AI_atVictoryStage(
 					AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
 					ourCapital->area()->getNumStartingPlots() >
 					cap->area()->getNumStartingPlots())
@@ -2481,9 +2480,9 @@ void Risk::evaluate() {
 		as one victory condition remains feasible/imminent, that function won't
 		yield negative utility. Therefore count some extra lost assets for lost cities
 		that are important for a victory condition. */
-	bool const bSpace4 = we->AI_isDoVictoryStrategy(AI_VICTORY_SPACE4);
-	bool const bCulture3 = we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3);
-	bool const bCulture4 = bCulture3 && we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4);
+	bool const bSpace4 = we->AI_atVictoryStage(AI_VICTORY_SPACE4);
+	bool const bCulture3 = we->AI_atVictoryStage(AI_VICTORY_CULTURE3);
+	bool const bCulture4 = bCulture3 && we->AI_atVictoryStage(AI_VICTORY_CULTURE4);
 	double lostAssets = 0;
 	CitySet const& weLose = m->lostCities(weId);
 	for(CitySetIter it = weLose.begin(); it != weLose.end(); ++it) {
@@ -2495,7 +2494,7 @@ void Risk::evaluate() {
 		if(c == NULL) continue;
 		double sc = c->getAssetScore();
 		if(bSpace4) {
-			if(c->city()->isCapital() && we->AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+			if(c->city()->isCapital() && we->AI_atVictoryStage(AI_VICTORY_SPACE4))
 				sc += 15;
 		}
 		if(bCulture3) {
@@ -2565,11 +2564,11 @@ void IllWill::evaluate() {
 	uMinus = 0; // Have the subroutines use this instead of u to avoid rounding
 	// We can't trade with our war enemies
 	evalLostPartner();
-	bool endNigh = agent.AI_isAnyMemberDoVictoryStrategyLevel4() ||
-			GET_TEAM(theyId).AI_isAnyMemberDoVictoryStrategyLevel4();
+	bool endNigh = agent.AI_anyMemberAtVictoryStage4() ||
+			GET_TEAM(theyId).AI_anyMemberAtVictoryStage4();
 	if((!endNigh && !agent.isAVassal() && !GET_TEAM(theyId).isAVassal()) ||
-			we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) ||
-			they->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4)) {
+			we->AI_atVictoryStage(AI_VICTORY_DIPLOMACY4) ||
+			they->AI_atVictoryStage(AI_VICTORY_DIPLOMACY4)) {
 		// Civs (our potential partners) don't like when we attack their (other) partners
 		evalAngeredPartners();
 	}
@@ -2813,7 +2812,7 @@ void IllWill::evalAngeredPartners() {
 	uMinus += costPerPenalty * penalties * diploWeight * altPartnerFactor;
 	log("Diplo weight: %d percent, alt.-partner factor: %d percent",
 			::round(100 * diploWeight), ::round(100 * altPartnerFactor));
-	if(towardsUs >= ATTITUDE_PLEASED && we->AI_isDoVictoryStrategy(
+	if(towardsUs >= ATTITUDE_PLEASED && we->AI_atVictoryStage(
 			AI_VICTORY_DIPLOMACY4 | AI_VICTORY_DIPLOMACY3)) {
 		double victoryFactor = they->getTotalPopulation() /
 				(double)std::max(1, game.getTotalPopulation());
@@ -3070,7 +3069,7 @@ void PublicOpposition::evaluate() {
 		if(c.isDisorder())
 			continue;
 		double angry = c.angryPopulation(0,
-				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3));
+				!we->AI_atVictoryStage(AI_VICTORY_CULTURE3));
 		faithAnger += std::min(angry, c.getReligionPercentAnger(theyId) *
 				c.getPopulation() / (double)GC.getPERCENT_ANGER_DIVISOR());
 	}
@@ -3221,7 +3220,7 @@ void FairPlay::evaluate() {
 			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
 			// No kid gloves if they've attacked us recently or repeatedly
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < -2 ||
-			they->AI_isDoVictoryStrategyLevel3() ||
+			they->AI_atVictoryStage3() ||
 			// Then our attack dooms them regardless of other war parties
 			(agent.uwai().isPushover(TEAMID(theyId)) &&
 			(!they->isHuman() || they->getCurrentEra() > 0)) ||

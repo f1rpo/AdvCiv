@@ -5025,11 +5025,11 @@ void CvUnitAI::AI_greatPersonMove()
 		// construct a modifier based on what victory we might like to aim for with our personality & situation
 		const CvLeaderHeadInfo& kLeader = GC.getInfo(kPlayer.getPersonalityType());
 		int iModifier =
-			2 * std::max(kLeader.getSpaceVictoryWeight(), kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ? 35 : 0) +
-			1 * std::max(kLeader.getCultureVictoryWeight(), kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1) ? 35 : 0) +
+			2 * std::max(kLeader.getSpaceVictoryWeight(), kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE1) ? 35 : 0) +
+			1 * std::max(kLeader.getCultureVictoryWeight(), kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE1) ? 35 : 0) +
 			//0 * kLeader.getDiplomacyVictoryWeight() +
-			-1 * std::max(kLeader.getDominationVictoryWeight(), kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1) ? 35 : 0) +
-			-2 * std::max(kLeader.getConquestVictoryWeight(), kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1) ? 35 : 0);
+			-1 * std::max(kLeader.getDominationVictoryWeight(), kPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION1) ? 35 : 0) +
+			-2 * std::max(kLeader.getConquestVictoryWeight(), kPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST1) ? 35 : 0);
 		// If we're small, then slow & steady progress might be our best hope to keep up. So increase the modifier for small civs. (think avg. cities / our cities)
 		iModifier += range(40 * GC.getGame().getNumCivCities() / std::max(1, GC.getGame().countCivPlayersAlive()*kPlayer.getNumCities()) - 50, 0, 50);
 
@@ -5043,7 +5043,7 @@ void CvUnitAI::AI_greatPersonMove()
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{
 			const CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
-			if (kLoopPlayer.isAlive() && kLoopPlayer.AI_isDoVictoryStrategyLevel4() && GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()))
+			if (kLoopPlayer.isAlive() && kLoopPlayer.AI_atVictoryStage4() && GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()))
 			{
 				iSlowValue /= 2;
 				break; // just once.
@@ -5530,7 +5530,7 @@ void CvUnitAI::AI_spyMove()
 				//kTeam.getAnyWarPlanCount(true) == 0
 				? 3 : 1;
 		iAttackChance /= plot()->area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ? 2 : 1;
-		iAttackChance /= (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) || kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3)) ? 2 : 1;
+		iAttackChance /= (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) || kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3)) ? 2 : 1;
 		iAttackChance *= GC.getInfo(kOwner.getPersonalityType()).getEspionageWeight();
 		iAttackChance /= 100;
 		// scale for game speed
@@ -11015,7 +11015,7 @@ bool CvUnitAI::AI_guardSpy(int iRandomPercent)
 			continue;
 
 		int iValue = 0;
-		if (GET_PLAYER(getOwner()).AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		if (GET_PLAYER(getOwner()).AI_atVictoryStage(AI_VICTORY_SPACE4))
 		{
 			if (pLoopCity->isCapital())
 			{
@@ -11026,7 +11026,7 @@ bool CvUnitAI::AI_guardSpy(int iRandomPercent)
 				iValue += 5;
 			}
 		}
-		if (GET_PLAYER(getOwner()).AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+		if (GET_PLAYER(getOwner()).AI_atVictoryStage(AI_VICTORY_CULTURE3))
 		{
 			if (pLoopCity->getCultureLevel() >= GC.getNumCultureLevelInfos() - 2)
 			{
@@ -11376,7 +11376,7 @@ bool CvUnitAI::AI_spreadReligion()
 	PROFILE_FUNC();
 
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-	bool bCultureVictory = kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2);
+	bool bCultureVictory = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2);
 
 	ReligionTypes eReligion = NO_RELIGION;
 	if (kOwner.getStateReligion() != NO_RELIGION)
@@ -16743,7 +16743,7 @@ bool CvUnitAI::AI_specialSeaTransportSpy()
 		}
 		else iValue /= 5;
 
-		if (GET_PLAYER(ePlotOwner).AI_isDoVictoryStrategyLevel4() &&
+		if (GET_PLAYER(ePlotOwner).AI_atVictoryStage4() &&
 			!GET_PLAYER(ePlotOwner).AI_isPrimaryArea(kPlot.area()))
 		{
 			iValue /= 4;
@@ -19950,9 +19950,9 @@ bool CvUnitAI::AI_nuke()
 	int iWarRating = kTeam.AI_getWarSuccessRating();
 	// iBaseWeight is the civ-independant part of the weight for civilian damage evaluation
 	int iBaseWeight = 10;
-	iBaseWeight += kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI)
+	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI)
 			? 10 : 0; // advc.019: was ?20:0
-	iBaseWeight += kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) ? 20 : 0;
+	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4) ? 20 : 0;
 	iBaseWeight += std::max(0, -iWarRating);
 	iBaseWeight -= std::max(0, iWarRating - 50); // don't completely destroy them if we want to keep their land.
 

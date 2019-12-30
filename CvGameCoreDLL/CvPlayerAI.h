@@ -9,6 +9,7 @@
 #include "CvUnitList.h"
 #include "CvSelectionGroupList.h" // </advc.003u>
 #include "UWAI.h" // advc.104
+#include "AIStrategies.h" // advc.enum
 
 class CvDeal;
 
@@ -449,17 +450,18 @@ public:
 
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START
 	/* (functions renamed and edited for K-Mod;
-		advc: 'calculate' functions moved to protected section) */
-	bool AI_isDoVictoryStrategy(int iVictoryStrategy) const;
-	bool AI_isDoVictoryStrategyLevel4() const;
-	bool AI_isDoVictoryStrategyLevel3() const;
-	inline int AI_getVictoryStrategyHash() const { return m_iVictoryStrategyHash; }
-	void AI_updateVictoryStrategyHash(); // K-Mod
+		advc: 'calculate' functions moved to protected section;
+		advc.enum: Renamed to emphasize distinction between victory and non-victory strats) */
+	bool AI_atVictoryStage(AIVictoryStage eStage) const;
+	bool AI_atVictoryStage4() const;
+	bool AI_atVictoryStage3() const;
+	inline AIVictoryStage AI_getVictoryStageHash() const { return m_eVictoryStageHash; }
+	void AI_updateVictoryStageHash(); // K-Mod
 	void AI_initStrategyRand(); // K-Mod
 	int AI_getStrategyRand(int iShift) const;
 	// BETTER_BTS_AI_MOD: END
 	bool isCloseToReligiousVictory() const;
-	bool AI_isDoStrategy(int iStrategy, /* advc.007: */ bool bDebug = false) const;
+	bool AI_isDoStrategy(AIStrategy eStrategy, /* advc.007: */ bool bDebug = false) const;
 
 	void AI_updateGreatPersonWeights(); // K-Mod
 	int AI_getGreatPersonWeight(UnitClassTypes eGreatPerson) const; // K-Mod
@@ -623,10 +625,10 @@ protected:
 	mutable int m_iUpgradeUnitsCachedGold;*/
 
 	// K-Mod. The original caching method was just begging for OOS bugs.
-	int m_iStrategyHash;
+	AIStrategy m_eStrategyHash;
 	// BBAI variables (adjusted for K-Mod)
 	unsigned m_iStrategyRand;
-	int m_iVictoryStrategyHash;
+	AIVictoryStage m_eVictoryStageHash;
 	// end BBAI
 
 	int m_iAverageGreatPeopleMultiplier;
@@ -779,7 +781,7 @@ protected:
 	int AI_calculateDiplomacyVictoryStage() const;
 	// BETTER_BTS_AI_MOD: END
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
-	inline int AI_getStrategyHash() const { return m_iStrategyHash; }
+	inline AIStrategy AI_getStrategyHash() const { return m_eStrategyHash; }
 	void AI_updateStrategyHash();
 	void AI_calculateAverages();
 

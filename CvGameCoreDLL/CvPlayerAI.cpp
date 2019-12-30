@@ -256,11 +256,11 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 	m_iAverageCulturePressure = 0;
 	//m_iAveragesCacheTurn = -1;
 
-	m_iStrategyHash = 0;
+	m_eStrategyHash = NO_AI_STRATEGY;
 	//m_iStrategyHashCacheTurn = -1;
 	// BBAI
 	m_iStrategyRand = MAX_UNSIGNED_INT; // was 0 (K-Mod)
-	m_iVictoryStrategyHash = 0;
+	m_eVictoryStageHash = NO_AI_VICTORY_STAGE;
 	//m_iVictoryStrategyHashCacheTurn = -1;
 	// BBAI end
 
@@ -337,7 +337,7 @@ void CvPlayerAI::AI_updateCacheData()
 	// AI_updateAttitude(); // attitude of this player is relevant to other players too, so this needs to be done elsewhere.
 	AI_updateNeededExplorers(); // advc.opt
 	AI_calculateAverages();
-	AI_updateVictoryStrategyHash();
+	AI_updateVictoryStageHash();
 	//if (!isHuman()) // advc.104: Human victory strategies are interesting to know for UWAI.
 	{
 		AI_updateStrategyHash();
@@ -1674,7 +1674,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 			{
 				if (gPlayerLogLevel >= 1) logBBAI("    Player %d (%S) decides not to raze %S because they have few cities", getID(), getCivilizationDescription(0), kCity.getName().GetCString());
 			}
-			else if(AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3) &&
+			else if(AI_atVictoryStage(AI_VICTORY_DOMINATION3) &&
 					GET_TEAM(getTeam()).AI_isPrimaryArea(kCity.area()))
 			{
 				// Do not raze, going for domination
@@ -1841,7 +1841,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 			// Non-distance related aspects
 			iRazeValue += GC.getInfo(getPersonalityType()).getRazeCityProb()
 					/ 5; // advc.116
-			iRazeValue -= AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2) ? 20 : 0; // K-Mod
+			iRazeValue -= AI_atVictoryStage(AI_VICTORY_DOMINATION2) ? 20 : 0; // K-Mod
 
 			if (getStateReligion() != NO_RELIGION)
 			{
@@ -2163,7 +2163,7 @@ int CvPlayerAI::AI_yieldWeight(YieldTypes eYield, const CvCity* pCity) const // 
 			iWeight /= 100;
 		}
 		// <advc.110> <advc.115b>
-		if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
+		if(AI_atVictoryStage(AI_VICTORY_DIPLOMACY4))
 			iWeight += 25; // </advc.115b>
 		// Gradually reduce weight of food in the second half of the game
 		else iWeight -= ::round(60 * std::max(0.0,
@@ -2250,15 +2250,15 @@ int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce, CvCityAI const* pCity
 		else
 		{
 			// weight multipliers changed for K-Mod
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) || getCommercePercent(COMMERCE_CULTURE) >= 90)
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE3) || getCommercePercent(COMMERCE_CULTURE) >= 90)
 			{
 				iWeight *= 4;
 			}
-			else if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) || getCommercePercent(COMMERCE_CULTURE) >= 70)
+			else if (AI_atVictoryStage(AI_VICTORY_CULTURE2) || getCommercePercent(COMMERCE_CULTURE) >= 70)
 			{
 				iWeight *= 3;
 			}
-			else if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1) || getCommercePercent(COMMERCE_CULTURE) >= 50)
+			else if (AI_atVictoryStage(AI_VICTORY_CULTURE1) || getCommercePercent(COMMERCE_CULTURE) >= 50)
 			{
 				iWeight *= 2;
 			}
@@ -2269,7 +2269,7 @@ int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce, CvCityAI const* pCity
 			if(AI_isFocusWar()) // advc.105
 			//if(GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0)
 			{
-				if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+				if (AI_atVictoryStage(AI_VICTORY_CULTURE1))
 				{
 					iWeight *= 2;
 					iWeight /= 3;
@@ -2318,8 +2318,8 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 	int const iVictoryCities = g.culturalVictoryNumCultureCities();
 
 	// Use culture slider to decide whether a human player is going for cultural victory
-	bool bUseCultureRank = AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) || getCommercePercent(COMMERCE_CULTURE) >= 40;
-	bool bC3 = AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) || getCommercePercent(COMMERCE_CULTURE) >= 70;
+	bool bUseCultureRank = AI_atVictoryStage(AI_VICTORY_CULTURE2) || getCommercePercent(COMMERCE_CULTURE) >= 40;
+	bool bC3 = AI_atVictoryStage(AI_VICTORY_CULTURE3) || getCommercePercent(COMMERCE_CULTURE) >= 70;
 	bool bWarPlans = AI_isFocusWar(); // advc.105
 			//GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0;
 
@@ -2355,7 +2355,7 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 		int iWeight = GC.getInfo(COMMERCE_CULTURE).getAIWeightPercent();
 
 		int iPressureFactor = pCity->AI_culturePressureFactor();
-		if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+		if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
 			iPressureFactor = std::min(300, iPressureFactor); // don't let culture pressure dominate our decision making about where to put our culture.
 		int iPressureWeight = iWeight * (iPressureFactor-100) / 100;
 
@@ -2396,7 +2396,7 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 				iWeight *= 2;
 			}
 		}
-		else if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1) || getCommercePercent(COMMERCE_CULTURE) >= 30)
+		else if (AI_atVictoryStage(AI_VICTORY_CULTURE1) || getCommercePercent(COMMERCE_CULTURE) >= 30)
 		{
 			iWeight *= 2;
 		}
@@ -2427,7 +2427,7 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 
 		if (bWarPlans)
 		{
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE1))
 			{
 				iWeight *= 2;
 				iWeight /= 3;
@@ -2700,12 +2700,12 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			iValue++;
 	}
 	bool bThwartVictory = false; // advc.104d
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		if (pCity->getCultureLevel() >= g.culturalVictoryCultureLevel() - 1)
 		{
 			iValue += 10; // advc.104d: Was 15; will reduce distance penalty instead.
-			if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+			if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 			{
 				iValue += 15; // advc.104d: was 25
 				if (pCity->getCultureLevel() >= (g.culturalVictoryCultureLevel()) ||
@@ -2718,16 +2718,16 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 		}
 	}
 
-	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE3))
 	{
 		if (pCity->isCapital())
 		{	// <advc.104d>
-			if(!AI_isDoVictoryStrategyLevel4()) // Don't worry yet if we're ahead
+			if(!AI_atVictoryStage4()) // Don't worry yet if we're ahead
 			{
 				iValue += 5; // Was 10; will reduce distance penalty instead.
 				bThwartVictory = true;
 			} // </advc.104d>
-			if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+			if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			{
 				iValue += 10; // was 20
 				if (GET_TEAM(pCity->getTeam()).getVictoryCountdown(g.getSpaceVictory()) >= 0)
@@ -2735,16 +2735,16 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 				bThwartVictory = true; // advc.104d
 			}
 		} // <advc.104d> Against Space3, taking any high-production cities helps.
-		else if(!kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
-			!AI_isDoVictoryStrategyLevel4() &&
+		else if(!kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) &&
+			!AI_atVictoryStage4() &&
 			pCity->findYieldRateRank(YIELD_PRODUCTION) < std::min(5, kOwner.getNumCities() / 4))
 		{
 			iValue += 3;
 			bThwartVictory = true;
 		} // </advc.104d>
 	} // <advc.104d> Target the capital area of civs aiming at a peaceful victory
-	if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
-		!kOwner.AI_isDoVictoryStrategyLevel3() && !AI_isDoVictoryStrategyLevel3())
+	if(kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
+		!kOwner.AI_atVictoryStage3() && !AI_atVictoryStage3())
 	{
 		CvCity* pTargetCapital = kOwner.getCapitalCity();
 		if(pTargetCapital != NULL && pTargetCapital->area() == pCity->area())
@@ -3358,7 +3358,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		if (!bAnyWar)
 		{
 			iUpgradeBudget /= (AI_isFinancialTrouble() ||
-					AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ? 10 : 4);
+					AI_atVictoryStage(AI_VICTORY_CULTURE4) ? 10 : 4);
 		}
 		else
 		{
@@ -3390,7 +3390,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		iGold += (GC.getGame().getElapsedGameTurns() / 2);*/
 		// K-mod. Does slower research mean we need to keep more gold? Does slower building?
 		// Surely the raw turn count is the one that needs to be adjusted for speed!
-		if (!AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+		if (!AI_atVictoryStage(AI_VICTORY_CULTURE4))
 		{
 			int iStockPile = 3*std::min(8, getNumCities()) + std::min(120, getTotalPopulation())/3;
 			iStockPile += 100*GC.getGame().getElapsedGameTurns() / (2*GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent());
@@ -3649,8 +3649,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 		iPrereqPercent += (AI_getFlavorValue(FLAVOR_SCIENCE) > 0) ? 5 +
 				AI_getFlavorValue(FLAVOR_SCIENCE) : 0;
 		iPrereqPercent += AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 10 : 0;
-		iPrereqPercent += AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ? 5 : 0;
-		iPrereqPercent += AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 10 : 0;
+		iPrereqPercent += AI_atVictoryStage(AI_VICTORY_SPACE1) ? 5 : 0;
+		iPrereqPercent += AI_atVictoryStage(AI_VICTORY_SPACE2) ? 10 : 0;
 		iPrereqPercent += AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) ? -5 : 0;
 		iPrereqPercent += kTeam.getAnyWarPlanCount(true) > 0 ? -10 : 0;
 		// more modifiers to come?
@@ -4258,9 +4258,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				iPactValue += 1;
 			/*  advc.115b: Commented out. Diplo victory isn't that peaceful, and
 				pact improves relations with one civ, but worsens them with others. */
-			/*if (AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+			/*if (AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
 				iPactValue += 2;*/
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3 | AI_VICTORY_DIPLOMACY3))
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3 | AI_VICTORY_DIPLOMACY3))
 				iPactValue += 1;
 
 			iValue += iNewTrade * iPactValue * 28;
@@ -4415,7 +4415,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			iCommerceValue += 40 + 4 * iCityCount;
  			/* original
  			iValue += 4 * iCityCount * (3*AI_averageCulturePressure()-200) / 100;
- 			if (i == COMMERCE_CULTURE && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+ 			if (i == COMMERCE_CULTURE && AI_atVictoryStage(AI_VICTORY_CULTURE2))
  			{
  				iValue += 280;
  			} */
@@ -4923,8 +4923,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		const int iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10 (was 300)
 		int iWonderRandom = ((bAsync) ? getASyncRand().get(iBaseRand, "AI Research Wonder Building ASYNC") : GC.getGame().getSorenRandNum(iBaseRand, "AI Research Wonder Building"));
 		int iFactor = 10 + GC.getInfo(getPersonalityType()).getWonderConstructRand(); // note: highest value of iWonderConstructRand 50 in the default xml.
-		iFactor += AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1) ? 15 : 0;
-		iFactor += AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) ? 10 : 0;
+		iFactor += AI_atVictoryStage(AI_VICTORY_CULTURE1) ? 15 : 0;
+		iFactor += AI_atVictoryStage(AI_VICTORY_CULTURE2) ? 10 : 0;
 		iFactor /= bAdvancedStart ? 4 : 1;
 		iFactor = iFactor * std::min(iCityCount, iCityTarget) / std::max(1, iCityTarget);
 		iFactor += 50; // k146: This puts iFactor around 100, roughly.
@@ -4970,7 +4970,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 			if (eLoopCommerce == COMMERCE_GOLD || eLoopCommerce == COMMERCE_RESEARCH)
 				bGoodProcess = true;
-			else if (eLoopCommerce == COMMERCE_CULTURE && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+			else if (eLoopCommerce == COMMERCE_CULTURE && AI_atVictoryStage(AI_VICTORY_CULTURE1))
 				iTempValue *= 2; // k146: was 3
 
 			iValue += iTempValue * iCityCount / 100;
@@ -5219,7 +5219,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 			if (iReligionValue > 0)
 			{
-				if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+				if (AI_atVictoryStage(AI_VICTORY_CULTURE1))
 				{
 					iReligionValue += 50; // k146: was 100
 
@@ -5260,7 +5260,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 							iReligionValue += 28 + 4 * AI_getFlavorValue(FLAVOR_RELIGION);
 						if (GC.getGame().getElapsedGameTurns() >= 32 * GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent() / 100)
 							iReligionValue += 60;
-						if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+						if (AI_atVictoryStage(AI_VICTORY_CULTURE1))
 							iReligionValue += 84;
 					}
 
@@ -5412,7 +5412,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		{
 			// K-Mod. We should either consider 'tech ground breaking' for all techs this turn, or none at all - otherwise it will just mess things up.
 			// Also, if the value adjustment isn't too big, it should be ok to do this most of the time.
-			if (AI_getStrategyRand(GC.getGame().getGameTurn()) % std::max(1, GC.getInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH)) == 0)
+			if (AI_getStrategyRand(GC.getGame().getGameTurn()) %
+				std::max(1, GC.getInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH)) == 0)
 			{
 				int iAlreadyKnown = 0;
 				int iPotentialTrade = 0;
@@ -5440,7 +5441,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		}
 	}
 
-	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	if (AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		int iCVValue = AI_cultureVictoryTechValue(eTech);
 		/* original bts code
@@ -6165,7 +6166,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 						{
 							if (iBestAreaValue < AI_getMinFoundValue())
 							{
-								iTotalUnitValue += (AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2) ? 2000 : 500);
+								iTotalUnitValue += (AI_atVictoryStage(AI_VICTORY_DOMINATION2) ? 2000 : 500);
 							}
 						}
 					}
@@ -6189,13 +6190,13 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 				// This multiplier stuff is basically my version of the BBAI code I disabled further up.
 				int iMultiplier = 100;
-				if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION2) || AI_isDoStrategy(AI_STRATEGY_ALERT1))
+				if (AI_atVictoryStage(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION2) || AI_isDoStrategy(AI_STRATEGY_ALERT1))
 				{
 					iMultiplier += 25;
-					if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION3))
+					if (AI_atVictoryStage(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION3))
 					{
 						iMultiplier += 25;
-						if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION4))
+						if (AI_atVictoryStage(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION4))
 						{
 							iMultiplier += 25;
 						}
@@ -6367,7 +6368,7 @@ int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEna
 		if (!kProjectInfo.isSpaceship())
 		{
 			// Apollo
-			iBaseValue += (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 50 : 2);
+			iBaseValue += (AI_atVictoryStage(AI_VICTORY_SPACE2) ? 50 : 2);
 		}
 		else
 		{
@@ -6375,10 +6376,10 @@ int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEna
 			// Note: ideally this would take into account the production cost of each item,
 			// and the total number / production of a completed space-ship, and a
 			// bunch of other things. But I think this is good enough for now.
-			if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
+			if (AI_atVictoryStage(AI_VICTORY_SPACE2))
 			{
 				iBaseValue += 40;
-				if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+				if (AI_atVictoryStage(AI_VICTORY_SPACE3))
 				{
 					iBaseValue += 40;
 					if (kProjectInfo.getMaxTeamInstances() > 0)
@@ -6513,7 +6514,7 @@ void CvPlayerAI::AI_chooseResearch()
 	if (eBestTech == NO_TECH)
 	{	// <k146>
 		int iResearchDepth = (isHuman() || isBarbarian() ||
-				AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
+				AI_atVictoryStage(AI_VICTORY_CULTURE3) ||
 				AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY))
 			? 1 : 3;
 		eBestTech = AI_bestTech(iResearchDepth); // </k146>
@@ -7705,9 +7706,9 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const
 		return 0;
 	// Don't like them if we're still in the first era
 	if(r > 0 && (getCurrentEra() <= g.getStartEra() ||
-			GET_PLAYER(ePlayer).AI_isDoVictoryStrategyLevel3()))
+			GET_PLAYER(ePlayer).AI_atVictoryStage3()))
 		return 0;
-	if(r < 0 && AI_isDoVictoryStrategyLevel3() && !GET_PLAYER(ePlayer).AI_isDoVictoryStrategyLevel4())
+	if(r < 0 && AI_atVictoryStage3() && !GET_PLAYER(ePlayer).AI_atVictoryStage4())
 		return 0;
 	return r;
 } // </advc.130c>
@@ -7798,7 +7799,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 			}
 		} // <advc.115b>
 		if(iBestValue == iSecondBestVal || (eBestTeam != getMasterTeam() &&
-				kOurTeam.AI_isAnyMemberDoVictoryStrategyLevel4()))
+				kOurTeam.AI_anyMemberAtVictoryStage4()))
 			return PLAYER_VOTE_ABSTAIN; // </advc.115b>
 		return eBestTeam;
 	}
@@ -8148,7 +8149,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					int iPeaceRand = GC.getInfo(getPersonalityType()).getBasePeaceWeight();
 					// Note, base peace weight ranges between 0 and 10.
 					iPeaceRand /= (bAggressiveAI ? 2 : 1);
-					iPeaceRand /= (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2) ? 2 : 1);
+					iPeaceRand /= (AI_atVictoryStage(AI_VICTORY_CONQUEST2) ? 2 : 1);
 					// <advc.104n>
 					double prPeace = 0;
 					if(iPeaceRand > 0)
@@ -8162,7 +8163,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						bValid = true; // Non-warmongers want peace to escape loss
 					//else if (!bLosingBig && (iChosenWar > iWarsLosing))
 					else if (!bLosingBig && (iChosenWar > iWarsLosing ||
-							(AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3) // K-Mod
+							(AI_atVictoryStage(AI_VICTORY_CONQUEST3) // K-Mod
 							// advc.104n: Military victory is covered by war utility
 							&& !getUWAI.isEnabled())))
 						bValid = false; // If chosen to be in most wars, keep it going
@@ -11349,11 +11350,11 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 	// Don't delay victory
 	if (getTeam() != kToPlayer.getTeam())
 	{
-		if (AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+		if (AI_atVictoryStage(AI_VICTORY_DOMINATION3))
 			return DENIAL_VICTORY;
-		if ((AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) && kCity.isProductionProject()) ||
+		if ((AI_atVictoryStage(AI_VICTORY_SPACE3) && kCity.isProductionProject()) ||
 				// In part, to avoid revealing all the project sites in the endgame.
-				(AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
+				(AI_atVictoryStage(AI_VICTORY_SPACE4) &&
 				4 * kCity.getYieldRate(YIELD_PRODUCTION) > getCapitalCity()->getYieldRate(YIELD_PRODUCTION)))
 			return DENIAL_VICTORY;
 	}
@@ -12633,7 +12634,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			}
 		}
 		// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000: (was AI_isDoStrategy)
-		if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+		if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
 		{
 			iTempValue = 0;
 			for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
@@ -13265,7 +13266,7 @@ int CvPlayerAI::AI_neededMissionaries(CvArea* pArea, ReligionTypes eReligion) co
 {
 	PROFILE_FUNC();
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000:
-	bool bCultureVictory = AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2);
+	bool bCultureVictory = AI_atVictoryStage(AI_VICTORY_CULTURE2);
 
 	bool bHoly = hasHolyCity(eReligion);
 	bool bState = (getStateReligion() == eReligion);
@@ -13355,15 +13356,15 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea* pArea, int iBuildProb) const
 
 	int iMaxUnitSpending = (bAggressiveAI ? 30 : 20) + iBuildProb*4/3;
 
-	if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+	if (AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 	{
 		iMaxUnitSpending += 30;
 	}
-	else if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION3))
+	else if (AI_atVictoryStage(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION3))
 	{
 		iMaxUnitSpending += 20;
 	}
-	else if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1))
+	else if (AI_atVictoryStage(AI_VICTORY_CONQUEST1))
 	{
 		iMaxUnitSpending += 10;
 	}
@@ -13473,7 +13474,7 @@ int CvPlayerAI::AI_nukeWeight() const
 		}
 	}
 	// increase the weight for total war, or for the home-stretch to victory, or for losing wars.
-	if (kTeam.AI_isAnyMemberDoVictoryStrategyLevel4())
+	if (kTeam.AI_anyMemberAtVictoryStage4())
 		iNukeWeight = iNukeWeight*3/2;
 	else if (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0 ||
 			kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 || // advc.650
@@ -13613,13 +13614,13 @@ int CvPlayerAI::AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion  // ad
 	int iSpreadExternalValue = 0;
 	/*  BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000:
 		Obvious copy & paste bug */
-	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+	if (AI_atVictoryStage(AI_VICTORY_CULTURE1))
 	{
 		iSpreadInternalValue += 500;
-		if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+		if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
 		{
 			iSpreadInternalValue += 1500;
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE3))
 			{
 				iSpreadInternalValue += 3000;
 			}
@@ -15225,7 +15226,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 					if(!kMaster.isHuman() && kMaster.AI_isAnyCloseToReligiousVictory())
 						return -1000;
 				} // </advc.115b>
-				if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+				if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
 				{
 					iValue -= 3 * std::max(0, iCities + iBestReligionCities - iTotalReligonCount);
 				}
@@ -15512,12 +15513,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		if (!kCivic.isSpecialistValid(iI))
 			continue; // advc
 		// K-Mod todo: the current code sucks. Fix it.
-		int iTempValue = iCities * (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ? 10 : 1) + 6;
+		int iTempValue = iCities * (AI_atVictoryStage(AI_VICTORY_CULTURE3) ? 10 : 1) + 6;
 		iValue += iTempValue / 3; // advc.131: Was /2. (And yes, it's terrible.)
 	}
 
 	// K-Mod. When aiming for a diplomatic victory, consider the favourite civics of our friends!
-	if (AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3))
+	if (AI_atVictoryStage(AI_VICTORY_DIPLOMACY3))
 	{
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{
@@ -15554,7 +15555,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	}
 
-	/* if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) && (GC.getInfo(eCivic).isNoNonStateReligionSpread()))
+	/* if (AI_atVictoryStage(AI_VICTORY_CULTURE2) && (GC.getInfo(eCivic).isNoNonStateReligionSpread()))
 		iValue /= 10;*/ // what the lol...
 
 	return iValue;
@@ -15859,7 +15860,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		iCounterValue *=
 				// advc.130j:
 				(int)ceil(AI_getMemoryCount(eTargetPlayer, MEMORY_SPY_CAUGHT) / 2.0)
-				+ (GET_TEAM(getTeam()).isAtWar(eTargetTeam)?2 :0) + (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE3)?2 : 0);
+				+ (GET_TEAM(getTeam()).isAtWar(eTargetTeam)?2 :0) + (AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE3)?2 : 0);
 		iValue += iCounterValue;
 	}
 
@@ -16002,8 +16003,8 @@ bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 			std::min(AI_getAttitude(eTarget) + 1, NUM_ATTITUDE_TYPES - 1)) < 100 ||
 			// </advc.120b>
 			GET_TEAM(getTeam()).AI_getWarPlan(TEAMID(eTarget)) != NO_WARPLAN ||
-			(AI_isDoVictoryStrategyLevel4() && GET_PLAYER(eTarget).AI_isDoVictoryStrategyLevel4() &&
-			!AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3)) // advc.120b: was DIPLOMACY1
+			(AI_atVictoryStage4() && GET_PLAYER(eTarget).AI_atVictoryStage4() &&
+			!AI_atVictoryStage(AI_VICTORY_DIPLOMACY3)) // advc.120b: was DIPLOMACY1
 	);
 } // K-Mod end
 
@@ -17099,7 +17100,7 @@ void CvPlayerAI::AI_doCommerce()
 	/*  <advc.550f> Some extra gold for trade. Don't put this into AI_goldTarget
 		for performance reasons, and b/c AI_maxGoldForTrade shouldn't take this
 		extra budget into account. */
-	if(!AI_isFinancialTrouble() && !AI_isDoVictoryStrategyLevel4())
+	if(!AI_isFinancialTrouble() && !AI_atVictoryStage4())
 	{
 		bool bTechTrading = GET_TEAM(getTeam()).isTechTrading();
 		double partnerScore = 0;
@@ -17164,7 +17165,7 @@ void CvPlayerAI::AI_doCommerce()
 
 	if (isCommerceFlexible(COMMERCE_CULTURE))
 	{
-		if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+		if (AI_atVictoryStage(AI_VICTORY_CULTURE4))
 		{
 			setCommercePercent(COMMERCE_CULTURE, 100);
 		}
@@ -17184,12 +17185,12 @@ void CvPlayerAI::AI_doCommerce()
 
 			// K-Mod
 			int iCap = 20;
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) && !bFirstTech)
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE2) && !bFirstTech)
 			{
 				iIdealPercent+=5;
 				iCap += 10;
 			}
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) && !bFirstTech)
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE3) && !bFirstTech)
 			{
 				iIdealPercent+=5;
 				iCap += 20;
@@ -17212,7 +17213,7 @@ void CvPlayerAI::AI_doCommerce()
 	if (isCommerceFlexible(COMMERCE_RESEARCH) && !bNoResearch)
 	{
 		setCommercePercent(COMMERCE_RESEARCH, 100-getCommercePercent(COMMERCE_CULTURE));
-		if (!AI_avoidScience() && !AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+		if (!AI_avoidScience() && !AI_atVictoryStage(AI_VICTORY_CULTURE4))
 		{
 			// If we can afford to run full science for the rest of our current research,
 			// then reduce our gold target so that we can burn through our gold.
@@ -17449,7 +17450,7 @@ void CvPlayerAI::AI_doCommerce()
 		// now, the big question is whether or not we can steal techs more easilly than we can research them.
 		bool bCheapTechSteal = false;
 		if (eMinModTeam != NO_TEAM && !AI_avoidScience() && !bNoResearch &&
-			!AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+			!AI_atVictoryStage(AI_VICTORY_SPACE3))
 		{
 			if (eStealTechMission != NO_ESPIONAGEMISSION)
 			{
@@ -17526,7 +17527,7 @@ void CvPlayerAI::AI_doCommerce()
 		// K-Mod. Only try to control espionage rate if we can also control research,
 		// and if we don't need our commerce for more important things.
 		if (isCommerceFlexible(COMMERCE_ESPIONAGE) && isCommerceFlexible(COMMERCE_RESEARCH)
-			&& !bFinancialTrouble && !bFirstTech && !AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+			&& !bFinancialTrouble && !bFirstTech && !AI_atVictoryStage(AI_VICTORY_CULTURE4))
 		{
 			if (!bCheapTechSteal) // K-Mod
 			{
@@ -17573,7 +17574,7 @@ void CvPlayerAI::AI_doCommerce()
 		while (getCommercePercent(COMMERCE_GOLD) > 0 &&
 			getGold() + std::min(0, calculateGoldRate()) > iGoldTarget)
 		{
-			if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) && isCommerceFlexible(COMMERCE_CULTURE))
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE3) && isCommerceFlexible(COMMERCE_CULTURE))
 				changeCommercePercent(COMMERCE_CULTURE, iCommerceIncrement);
 			else if (isCommerceFlexible(COMMERCE_ESPIONAGE))
 				changeCommercePercent(COMMERCE_ESPIONAGE, iCommerceIncrement);
@@ -18456,7 +18457,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 				// Vassal-master handled above
 				!GET_TEAM(ePlayer).isAVassal() && !isAVassal() &&
 				kOurTeam.getID() != kPlayer.getTeam() &&
-				!kPlayer.AI_isDoVictoryStrategyLevel3() && // </advc.130z>
+				!kPlayer.AI_atVictoryStage3() && // </advc.130z>
 				canPossiblyTradeItem(ePlayer, TRADE_TECHNOLOGIES)) // advc.opt
 			{
 				if (GET_TEAM(ePlayer).getAssets() < kOurTeam.getAssets() / 2)
@@ -18475,16 +18476,16 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							if(GC.getInfo(kPlayer.getHandicapType()).getDifficulty() < 30 ||
 									AI_getAttitude(ePlayer) >= ATTITUDE_FRIENDLY)
 								div = 1.25;
-							else if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1))
+							else if(AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
 							{
 								div += 0.1;
-								if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+								if(AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
 								{
 									div += 0.1;
-									if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3))
+									if(AI_atVictoryStage(AI_VICTORY_DIPLOMACY3))
 									{
 										div += 0.1;
-										if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
+										if(AI_atVictoryStage(AI_VICTORY_DIPLOMACY4))
 											div += 0.1;
 									}
 								}
@@ -18686,7 +18687,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						// K-Mod end
 					}
 
-					if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE1))
+					if (AI_atVictoryStage(AI_VICTORY_SPACE1))
 					{
 						//iRand /= 2;
 						/*  advc.550a: That seems like a bit of an unfair advantage
@@ -19731,11 +19732,11 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	else AI_setCityTargetTimer(0);
 	// K-Mod end
 
-	pStream->Read(&m_iStrategyHash);
+	pStream->Read((int*)&m_eStrategyHash);
 	//pStream->Read(&m_iStrategyHashCacheTurn); // disabled by K-Mod
 	// BBAI (edited for K-Mod)
 	pStream->Read(&m_iStrategyRand);
-	pStream->Read(&m_iVictoryStrategyHash);
+	pStream->Read((int*)&m_eVictoryStageHash);
 	// BBAI end
 	//pStream->Read(&m_iAveragesCacheTurn); // disabled by K-Mod
 	pStream->Read(&m_iAverageGreatPeopleMultiplier);
@@ -19900,11 +19901,11 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_iExtraGoldTarget);
 	pStream->Write(m_iCityTargetTimer); // K-Mod. uiFlag >= 6
 
-	pStream->Write(m_iStrategyHash);
+	pStream->Write(m_eStrategyHash);
 	//pStream->Write(m_iStrategyHashCacheTurn); // disabled by K-Mod
 	// BBAI
 	pStream->Write(m_iStrategyRand);
-	pStream->Write(m_iVictoryStrategyHash);
+	pStream->Write(m_eVictoryStageHash);
 	// BBAI end
 	//pStream->Write(m_iAveragesCacheTurn);
 	pStream->Write(m_iAverageGreatPeopleMultiplier);
@@ -20886,9 +20887,9 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 					iScore += 10 * iPop;
 			}
 			iValue += iScore / std::max(1, iTotalPop);
-			iValue -= AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1) ? 20 : 0;
-			iValue -= AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 10 : 0;
-			iValue -= AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) ? 20 : 0;
+			iValue -= AI_atVictoryStage(AI_VICTORY_CONQUEST1) ? 20 : 0;
+			iValue -= AI_atVictoryStage(AI_VICTORY_SPACE2) ? 10 : 0;
+			iValue -= AI_atVictoryStage(AI_VICTORY_SPACE3) ? 20 : 0;
 			// K-Mod end
 		}
 		/*if (isAVassal() && getNumCities() > 5){
@@ -20946,20 +20947,20 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 				// For example, if we're already at war, and going for conquest 4, the target countdown is then ~ 180 * 100 / 470 == 38 turns.
 				// Note: originally culture 4 was blocked completely by stage 4 of any other victory strategy. But this is no longer the case.
 				int iDemoninator = 100;
-				iDemoninator += 20 * AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1);
-				iDemoninator += 50 * AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2);
-				iDemoninator += 50 * AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3);
-				iDemoninator += 80 * AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3);
-				iDemoninator += 70 * AI_isDoVictoryStrategy(AI_VICTORY_SPACE2);
-				iDemoninator += 80 * AI_isDoVictoryStrategy(AI_VICTORY_SPACE3);
-				iDemoninator += 50 * AI_isDoVictoryStrategy(AI_VICTORY_SPACE4);
+				iDemoninator += 20 * AI_atVictoryStage(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1);
+				iDemoninator += 50 * AI_atVictoryStage(AI_VICTORY_CONQUEST2);
+				iDemoninator += 50 * AI_atVictoryStage(AI_VICTORY_CONQUEST3);
+				iDemoninator += 80 * AI_atVictoryStage(AI_VICTORY_DOMINATION3);
+				iDemoninator += 70 * AI_atVictoryStage(AI_VICTORY_SPACE2);
+				iDemoninator += 80 * AI_atVictoryStage(AI_VICTORY_SPACE3);
+				iDemoninator += 50 * AI_atVictoryStage(AI_VICTORY_SPACE4);
 				iDemoninator += AI_cultureVictoryTechValue(getCurrentResearch()) > 100 ? 80 : 0;
 				iDemoninator += AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)? 80 : 0;
 				//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0)
 				if(AI_isFocusWar()) // advc.105
 				{
 					iDemoninator += 50;
-					iDemoninator += 200 * AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4);
+					iDemoninator += 200 * AI_atVictoryStage(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4);
 					int iWarSuccessRating = GET_TEAM(getTeam()).AI_getWarSuccessRating();
 					iDemoninator += iWarSuccessRating < 0 ? 10 - 2*iWarSuccessRating : 0;
 				}
@@ -21558,45 +21559,47 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	return 0;
 }
 
-/// Returns whether player is pursuing a particular victory strategy.
-/// Victory strategies are computed on demand once per turn and stored for the rest
-/// of the turn.  Each victory strategy type has 4 levels, the first two are
-/// determined largely from AI tendencies and random dice rolls.  The second
+/// Returns whether player is pursuing a particular stage of a victory strategy.
+/// Victory stages are computed on demand once per turn and stored for the rest
+/// of the turn.  Each victory strategy type has 4 stages, the first two are
+/// determined largely from AI tendencies and random dice rolls. The second
 /// two are based on measurables and past actions, so the AI can use them to
 /// determine what other players (including the human player) are doing.
-bool CvPlayerAI::AI_isDoVictoryStrategy(int iVictoryStrategy) const
+bool CvPlayerAI::AI_atVictoryStage(AIVictoryStage eStage) const
 {
 	if (isBarbarian() || isMinorCiv() || !isAlive())
 		return false;
-	return (iVictoryStrategy & AI_getVictoryStrategyHash());
+	return (eStage & AI_getVictoryStageHash());
 }
 
 // K-Mod note. The bbai version of this function checked each victory type one at a time.
 // I've changed it to test them all at once. This is possible since it's a bitfield.
-bool CvPlayerAI::AI_isDoVictoryStrategyLevel4() const
+bool CvPlayerAI::AI_atVictoryStage4() const
 {
-	return AI_isDoVictoryStrategy(AI_VICTORY_SPACE4 | AI_VICTORY_CONQUEST4 | AI_VICTORY_CULTURE4 | AI_VICTORY_DOMINATION4 | AI_VICTORY_DIPLOMACY4);
+	return AI_atVictoryStage(AI_VICTORY_SPACE4 | AI_VICTORY_CONQUEST4 |
+			AI_VICTORY_CULTURE4 | AI_VICTORY_DOMINATION4 | AI_VICTORY_DIPLOMACY4);
 }
 
 // (same)
-bool CvPlayerAI::AI_isDoVictoryStrategyLevel3() const
+bool CvPlayerAI::AI_atVictoryStage3() const
 {	// advc.115b: Replaced DIPLO3 with DIPLO4 b/c Diplo3 often isn't close to victory
-	return AI_isDoVictoryStrategy(AI_VICTORY_SPACE3 | AI_VICTORY_CONQUEST3 | AI_VICTORY_CULTURE3 | AI_VICTORY_DOMINATION3 | AI_VICTORY_DIPLOMACY4);
+	return AI_atVictoryStage(AI_VICTORY_SPACE3 | AI_VICTORY_CONQUEST3 |
+			AI_VICTORY_CULTURE3 | AI_VICTORY_DOMINATION3 | AI_VICTORY_DIPLOMACY4);
 }
 
 
-void CvPlayerAI::AI_updateVictoryStrategyHash()
+void CvPlayerAI::AI_updateVictoryStageHash()
 {
 	PROFILE_FUNC();
 
 	if (isBarbarian() || isMinorCiv() || !isAlive() ||
 		GET_TEAM(getTeam()).isCapitulated()) // advc.014
 	{
-		m_iVictoryStrategyHash = 0;
+		m_eVictoryStageHash = NO_AI_VICTORY_STAGE;
 		return;
 	}
 
-	m_iVictoryStrategyHash = AI_DEFAULT_VICTORY_STRATEGY;
+	m_eVictoryStageHash = AI_DEFAULT_VICTORY_STAGE;
 	//m_iVictoryStrategyHashCacheTurn = GC.getGame().getGameTurn();
 
 	if (getCapitalCity() == NULL)
@@ -21609,19 +21612,19 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	int iVictoryStage = AI_calculateSpaceVictoryStage();
 	if (iVictoryStage >= 1)
 	{
-		m_iVictoryStrategyHash |= AI_VICTORY_SPACE1;
+		m_eVictoryStageHash |= AI_VICTORY_SPACE1;
 		if (iVictoryStage > 1)
 		{
-			m_iVictoryStrategyHash |= AI_VICTORY_SPACE2;
+			m_eVictoryStageHash |= AI_VICTORY_SPACE2;
 			if (iVictoryStage > 2)
 			{
 				bStartedOtherLevel3 = true;
-				m_iVictoryStrategyHash |= AI_VICTORY_SPACE3;
+				m_eVictoryStageHash |= AI_VICTORY_SPACE3;
 
 				if (iVictoryStage > 3 && !bStartedOtherLevel4)
 				{
 					bStartedOtherLevel4 = true;
-					m_iVictoryStrategyHash |= AI_VICTORY_SPACE4;
+					m_eVictoryStageHash |= AI_VICTORY_SPACE4;
 				}
 			}
 		}
@@ -21631,19 +21634,19 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	iVictoryStage = AI_calculateConquestVictoryStage();
 	if (iVictoryStage >= 1)
 	{
-		m_iVictoryStrategyHash |= AI_VICTORY_CONQUEST1;
+		m_eVictoryStageHash |= AI_VICTORY_CONQUEST1;
 		if (iVictoryStage > 1)
 		{
-			m_iVictoryStrategyHash |= AI_VICTORY_CONQUEST2;
+			m_eVictoryStageHash |= AI_VICTORY_CONQUEST2;
 			if (iVictoryStage > 2)
 			{
 				bStartedOtherLevel3 = true;
-				m_iVictoryStrategyHash |= AI_VICTORY_CONQUEST3;
+				m_eVictoryStageHash |= AI_VICTORY_CONQUEST3;
 
 				if (iVictoryStage > 3 && !bStartedOtherLevel4)
 				{
 					bStartedOtherLevel4 = true;
-					m_iVictoryStrategyHash |= AI_VICTORY_CONQUEST4;
+					m_eVictoryStageHash |= AI_VICTORY_CONQUEST4;
 				}
 			}
 		}
@@ -21653,19 +21656,19 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	iVictoryStage = AI_calculateDominationVictoryStage();
 	if (iVictoryStage >= 1)
 	{
-		m_iVictoryStrategyHash |= AI_VICTORY_DOMINATION1;
+		m_eVictoryStageHash |= AI_VICTORY_DOMINATION1;
 		if (iVictoryStage > 1)
 		{
-			m_iVictoryStrategyHash |= AI_VICTORY_DOMINATION2;
+			m_eVictoryStageHash |= AI_VICTORY_DOMINATION2;
 			if (iVictoryStage > 2)
 			{
 				bStartedOtherLevel3 = true;
-				m_iVictoryStrategyHash |= AI_VICTORY_DOMINATION3;
+				m_eVictoryStageHash |= AI_VICTORY_DOMINATION3;
 
 				if (iVictoryStage > 3 && !bStartedOtherLevel4)
 				{
 					bStartedOtherLevel4 = true;
-					m_iVictoryStrategyHash |= AI_VICTORY_DOMINATION4;
+					m_eVictoryStageHash |= AI_VICTORY_DOMINATION4;
 				}
 			}
 		}
@@ -21677,20 +21680,20 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	iVictoryStage = AI_calculateCultureVictoryStage();
 	if (iVictoryStage >= 1)
 	{
-		m_iVictoryStrategyHash |= AI_VICTORY_CULTURE1;
+		m_eVictoryStageHash |= AI_VICTORY_CULTURE1;
 		if (iVictoryStage > 1)
 		{
-			m_iVictoryStrategyHash |= AI_VICTORY_CULTURE2;
+			m_eVictoryStageHash |= AI_VICTORY_CULTURE2;
 			if (iVictoryStage > 2)
 			{
 				bStartedOtherLevel3 = true;
-				m_iVictoryStrategyHash |= AI_VICTORY_CULTURE3;
+				m_eVictoryStageHash |= AI_VICTORY_CULTURE3;
 
 				//if (iVictoryStage > 3 && !bStartedOtherLevel4)
 				if (iVictoryStage > 3) // K-Mod. If we're close to a cultural victory - then allow Culture4 even with other stage4 strategies already running.
 				{
 					bStartedOtherLevel4 = true;
-					m_iVictoryStrategyHash |= AI_VICTORY_CULTURE4;
+					m_eVictoryStageHash |= AI_VICTORY_CULTURE4;
 				}
 			}
 		}
@@ -21700,23 +21703,23 @@ void CvPlayerAI::AI_updateVictoryStrategyHash()
 	iVictoryStage = AI_calculateDiplomacyVictoryStage();
 	if (iVictoryStage >= 1)
 	{
-		m_iVictoryStrategyHash |= AI_VICTORY_DIPLOMACY1;
+		m_eVictoryStageHash |= AI_VICTORY_DIPLOMACY1;
 		if (iVictoryStage > 1)
 		{
-			m_iVictoryStrategyHash |= AI_VICTORY_DIPLOMACY2;
+			m_eVictoryStageHash |= AI_VICTORY_DIPLOMACY2;
 			if (iVictoryStage > 2)
 				/*&& !bStartedOtherLevel3) advc.115b: I really don't see
 				 how pursuing diplo would get in the way of other victories,
 				 and UN is often easier than a military victory. */
 			{
 				bStartedOtherLevel3 = true;
-				m_iVictoryStrategyHash |= AI_VICTORY_DIPLOMACY3;
+				m_eVictoryStageHash |= AI_VICTORY_DIPLOMACY3;
 
 				if (iVictoryStage > 3)
 						//&& !bStartedOtherLevel4) // advc.115b (commented out)
 				{
 					bStartedOtherLevel4 = true;
-					m_iVictoryStrategyHash |= AI_VICTORY_DIPLOMACY4;
+					m_eVictoryStageHash |= AI_VICTORY_DIPLOMACY4;
 				}
 			}
 		}
@@ -21751,7 +21754,7 @@ int CvPlayerAI::AI_getStrategyRand(int iShift) const
 // <advc.115b>
 bool CvPlayerAI::isCloseToReligiousVictory() const
 {
-	if(!AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3))
+	if(!AI_atVictoryStage(AI_VICTORY_DIPLOMACY3))
 		return false;
 	VoteSourceTypes eVS = GET_TEAM(getTeam()).AI_getLatestVictoryVoteSource();
 	if(eVS == NO_VOTESOURCE)
@@ -21759,12 +21762,12 @@ bool CvPlayerAI::isCloseToReligiousVictory() const
 	return GC.getGame().getVoteSourceReligion(eVS) == getStateReligion();
 }// </advc.115b>
 
-bool CvPlayerAI::AI_isDoStrategy(int iStrategy, /* advc.007: */ bool bDebug) const
+bool CvPlayerAI::AI_isDoStrategy(AIStrategy eStrategy, /* advc.007: */ bool bDebug) const
 {
 	if (!isAlive() || isBarbarian() || isMinorCiv() ||
 			(isHuman() && /* advc.007: */ !bDebug))
 		return false;
-	return (iStrategy & AI_getStrategyHash());
+	return (eStrategy & AI_getStrategyHash());
 }
 
 // K-mod. The body of this function use to be inside "AI_getStrategyHash"
@@ -21774,24 +21777,24 @@ void CvPlayerAI::AI_updateStrategyHash()
 #define log_strat(s) \
 	if (gPlayerLogLevel >= 2) \
 	{ \
-		if ((m_iStrategyHash & s) != (iLastStrategyHash & s)) \
+		if ((m_eStrategyHash & s) != (eLastStrategyHash & s)) \
 		{ \
-			logBBAI( "    Player %d (%S) %s strategy "#s" on turn %d", getID(), getCivilizationDescription(0), (m_iStrategyHash & s) ? "starts" : "stops", GC.getGame().getGameTurn()); \
+			logBBAI( "    Player %d (%S) %s strategy "#s" on turn %d", getID(), getCivilizationDescription(0), (m_eStrategyHash & s) ? "starts" : "stops", GC.getGame().getGameTurn()); \
 		} \
 	}
 #define log_strat2(s, x) \
 	if (gPlayerLogLevel >= 2) \
 	{ \
-		if ((m_iStrategyHash & s) != (iLastStrategyHash & s)) \
+		if ((m_eStrategyHash & s) != (eLastStrategyHash & s)) \
 		{ \
-			logBBAI( "    Player %d (%S) %s strategy "#s" on turn %d with "#x" %d", getID(), getCivilizationDescription(0), (m_iStrategyHash & s) ? "starts" : "stops", GC.getGame().getGameTurn(), x); \
+			logBBAI( "    Player %d (%S) %s strategy "#s" on turn %d with "#x" %d", getID(), getCivilizationDescription(0), (m_eStrategyHash & s) ? "starts" : "stops", GC.getGame().getGameTurn(), x); \
 		} \
 	}
 //
 
 	const CvTeamAI& kTeam = GET_TEAM(getTeam()); // K-Mod. (and replaced all through this function)
-	int iLastStrategyHash = m_iStrategyHash;
-	m_iStrategyHash = AI_DEFAULT_STRATEGY;
+	AIStrategy eLastStrategyHash = m_eStrategyHash;
+	m_eStrategyHash = AI_DEFAULT_STRATEGY;
 
 	/* original bts code
 	if (AI_getFlavorValue(FLAVOR_PRODUCTION) >= 2) // 0, 2, 5 or 10 in default xml [augustus 5, frederick 10, huayna 2, jc 2, chinese leader 2, qin 5, ramsess 2, roosevelt 5, stalin 2]
@@ -21934,15 +21937,15 @@ void CvPlayerAI::AI_updateStrategyHash()
 	if ((iAttackUnitCount <= 1 && g.getGameTurn() > GC.getInfo(g.getGameSpeedType()).getBarbPercent()/20)
 		|| (100*iAverageEnemyUnit > 135*iTypicalAttack && 100*iAverageEnemyUnit > 135*iTypicalDefence))
 	{
-		m_iStrategyHash |= AI_STRATEGY_GET_BETTER_UNITS;
+		m_eStrategyHash |= AI_STRATEGY_GET_BETTER_UNITS;
 	}
 	// K-Mod end
 	if (iBestFastUnitCombat > iBestSlowUnitCombat)
 	{
-		m_iStrategyHash |= AI_STRATEGY_FASTMOVERS;
+		m_eStrategyHash |= AI_STRATEGY_FASTMOVERS;
 		if (bHasMobileArtillery && bHasMobileAntiair)
 		{
-			m_iStrategyHash |= AI_STRATEGY_LAND_BLITZ;
+			m_eStrategyHash |= AI_STRATEGY_LAND_BLITZ;
 		}
 	}
 	if (iNukeCount > 0)
@@ -21950,20 +21953,20 @@ void CvPlayerAI::AI_updateStrategyHash()
 		if ((GC.getInfo(getPersonalityType()).getBuildUnitProb() +
 				AI_getStrategyRand(7) % 15) >=
 				(g.isOption(GAMEOPTION_AGGRESSIVE_AI) ? 37 : 43))
-			m_iStrategyHash |= AI_STRATEGY_OWABWNW;
+			m_eStrategyHash |= AI_STRATEGY_OWABWNW;
 	}
 	if (bHasBomber)
 	{
-		if (!(m_iStrategyHash & AI_STRATEGY_LAND_BLITZ))
+		if (!(m_eStrategyHash & AI_STRATEGY_LAND_BLITZ))
 		{
-			m_iStrategyHash |= AI_STRATEGY_AIR_BLITZ;
+			m_eStrategyHash |= AI_STRATEGY_AIR_BLITZ;
 		}
 		else
 		{
 			if ((AI_getStrategyRand(8) % 2) == 0)
 			{
-				m_iStrategyHash |= AI_STRATEGY_AIR_BLITZ;
-				m_iStrategyHash &= ~AI_STRATEGY_LAND_BLITZ;
+				m_eStrategyHash |= AI_STRATEGY_AIR_BLITZ;
+				m_eStrategyHash &= ~AI_STRATEGY_LAND_BLITZ;
 			}
 		}
 	}
@@ -22018,7 +22021,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 				if(iMissionary > 0 && isCloseToReligiousVictory())
 					iMissionary = ::round(1.7 * iMissionary); // </advc.115b>
 				if (iMissionary > 100)
-					m_iStrategyHash |= AI_STRATEGY_MISSIONARY;
+					m_eStrategyHash |= AI_STRATEGY_MISSIONARY;
 			}
 		}
 	}
@@ -22031,7 +22034,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 		&& isCommerceFlexible(COMMERCE_ESPIONAGE)) // advc.120g
 	{
 		// don't start espionage strategy if we have no spies
-		if (iLastStrategyHash & AI_STRATEGY_BIG_ESPIONAGE || AI_getNumAIUnits(UNITAI_SPY) > 0)
+		if (eLastStrategyHash & AI_STRATEGY_BIG_ESPIONAGE || AI_getNumAIUnits(UNITAI_SPY) > 0)
 		{
 			int iTempValue = 0;
 			iTempValue += AI_commerceWeight(COMMERCE_ESPIONAGE) / 8;
@@ -22056,7 +22059,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 						// </advc.120>
 						kTeam.AI_hasCitiesInPrimaryArea((TeamTypes)i))
 					{
-						m_iStrategyHash |= AI_STRATEGY_BIG_ESPIONAGE;
+						m_eStrategyHash |= AI_STRATEGY_BIG_ESPIONAGE;
 						break;
 					}
 				}
@@ -22065,7 +22068,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 		// The espionage economy decision is actually somewhere else [advc: namely in AI_doCommerce]. This is just a marker.
 		if (getCommercePercent(COMMERCE_ESPIONAGE) > 20)
-			m_iStrategyHash |= AI_STRATEGY_ESPIONAGE_ECONOMY;
+			m_eStrategyHash |= AI_STRATEGY_ESPIONAGE_ECONOMY;
 	}
 	log_strat(AI_STRATEGY_ESPIONAGE_ECONOMY)
 	// K-Mod end
@@ -22089,9 +22092,9 @@ void CvPlayerAI::AI_updateStrategyHash()
 		if (iWarSuccessRating < -50 || iMaxWarCounter < 10)
 		{
 			if (kTeam.AI_getEnemyPowerPercent(true) > std::max(150, GC.getDefineINT("BBAI_TURTLE_ENEMY_POWER_RATIO"))
-					// advc.107
+					// advc.107:
 					&& getNumMilitaryUnits() < (5 + getCurrentEra() * 1.5) * getNumCities())
-				m_iStrategyHash |= AI_STRATEGY_TURTLE;
+				m_eStrategyHash |= AI_STRATEGY_TURTLE;
 		}
 	}
 	log_strat(AI_STRATEGY_TURTLE)
@@ -22218,11 +22221,11 @@ void CvPlayerAI::AI_updateStrategyHash()
 		// Do they look like they're going for militaristic victory?
 		// advc.022: New temp variable
 		int iVictStratParanoia = 0;
-		if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+		if (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 			iVictStratParanoia += 200;
-		else if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+		else if (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CONQUEST3))
 			iVictStratParanoia += 100;
-		else if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+		else if (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_DOMINATION3))
 			iVictStratParanoia += 50;
 		/*  advc.022: Too high in K-Mod I think; who knows when they'll get around
 			to attack us. (Could count the alternative targets I guess ...). */
@@ -22247,8 +22250,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 		}
 	}
 	/*  advc.022: Commented out. BETTER_UNITS is supposed to make us train fewer
-		units (b/c they're no good), but high paranoia will lead to more units. */
-	/*if (m_iStrategyHash & AI_STRATEGY_GET_BETTER_UNITS) {
+		units (b/c they're not good), but high paranoia will lead to more units. */
+	/*if (m_eStrategyHash & AI_STRATEGY_GET_BETTER_UNITS) {
 		iParanoia *= 3;
 		iParanoia /= 2;
 	}*/
@@ -22269,10 +22272,10 @@ void CvPlayerAI::AI_updateStrategyHash()
 	// Alert strategy
 	if (iParanoia >= 200)
 	{
-		m_iStrategyHash |= AI_STRATEGY_ALERT1;
+		m_eStrategyHash |= AI_STRATEGY_ALERT1;
 		if (iParanoia >= 400
 				&& !AI_isFocusWar()) // advc.022: Need to focus on the war at hand
-			m_iStrategyHash |= AI_STRATEGY_ALERT2;
+			m_eStrategyHash |= AI_STRATEGY_ALERT2;
 	}
 	log_strat2(AI_STRATEGY_ALERT1, iParanoia)
 	log_strat2(AI_STRATEGY_ALERT2, iParanoia)
@@ -22285,9 +22288,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 		iFocus += std::max(iAverageEnemyUnit - std::max(iTypicalAttack, iTypicalDefence), std::min(iTypicalAttack, iTypicalDefence) - iAverageEnemyUnit) / 12;
 		//Note: if we haven't met anyone then average enemy is zero. So this essentially assures economic strategy when in isolation.
 		iFocus += (AI_getPeaceWeight() + AI_getStrategyRand(2)%10)/3; // note: peace weight will be between 0 and 12
-		if (iFocus >= 12
-				|| AI_feelsSafe()) // advc.109
-			m_iStrategyHash |= AI_STRATEGY_ECONOMY_FOCUS;
+		if (iFocus >= 12 /* advc.109: */ || AI_feelsSafe())
+			m_eStrategyHash |= AI_STRATEGY_ECONOMY_FOCUS;
 	}
 	log_strat(AI_STRATEGY_ECONOMY_FOCUS)
 
@@ -22311,8 +22313,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 	// BBAI TODO: Integrate Dagger with new conquest victory strategy, have Dagger focus on early rushes
 	//dagger
-	if (!AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2)
-		&& !(m_iStrategyHash & AI_STRATEGY_MISSIONARY)
+	if (!AI_atVictoryStage(AI_VICTORY_CULTURE2)
+		&& !(m_eStrategyHash & AI_STRATEGY_MISSIONARY)
 		&& iCurrentEra <= (2 + (AI_getStrategyRand(11) % 2)) && iCloseTargets > 0
 		&& !bNoDagger) // advc.104f
 	{
@@ -22427,15 +22429,15 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 		if (iDagger >= AI_DAGGER_THRESHOLD)
 		{
-			m_iStrategyHash |= AI_STRATEGY_DAGGER;
+			m_eStrategyHash |= AI_STRATEGY_DAGGER;
 		}
 		else
 		{
-			if (iLastStrategyHash &= AI_STRATEGY_DAGGER)
+			if (eLastStrategyHash &= AI_STRATEGY_DAGGER)
 			{
 				if (iDagger >= (9 * AI_DAGGER_THRESHOLD) / 10)
 				{
-					m_iStrategyHash |= AI_STRATEGY_DAGGER;
+					m_eStrategyHash |= AI_STRATEGY_DAGGER;
 				}
 			}
 		}
@@ -22443,7 +22445,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 		log_strat2(AI_STRATEGY_DAGGER, iDagger)
 	}
 
-	if (!(m_iStrategyHash & AI_STRATEGY_ALERT2) && !(m_iStrategyHash & AI_STRATEGY_TURTLE))
+	if (!(m_eStrategyHash & AI_STRATEGY_ALERT2) && !(m_eStrategyHash & AI_STRATEGY_TURTLE))
 	{//Crush
 		int iWarCount = 0;
 		int iCrushValue = 0;
@@ -22462,10 +22464,10 @@ void CvPlayerAI::AI_updateStrategyHash()
 			Not clear that conq3 should make the AI more willing to neglect
 			its defense. Also, once crush is adopted, the AI becomes more inclined
 			towards conquest; should only work one way. */
-		/*if (AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+		/*if (AI_atVictoryStage(AI_VICTORY_CONQUEST3))
 			iCrushValue += 1;*/
 
-		if (m_iStrategyHash & AI_STRATEGY_DAGGER)
+		if (m_eStrategyHash & AI_STRATEGY_DAGGER)
 		{
 			iCrushValue += 3;
 		}
@@ -22517,8 +22519,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 			}
 		}
 		if (/* K-Mod: */ iWarCount == 1 &&
-				(iCrushValue >= ((iLastStrategyHash & AI_STRATEGY_CRUSH) ? 9 :10)))
-			m_iStrategyHash |= AI_STRATEGY_CRUSH;
+				(iCrushValue >= ((eLastStrategyHash & AI_STRATEGY_CRUSH) ? 9 :10)))
+			m_eStrategyHash |= AI_STRATEGY_CRUSH;
 
 		log_strat2(AI_STRATEGY_CRUSH, iCrushValue)
 	}
@@ -22526,12 +22528,12 @@ void CvPlayerAI::AI_updateStrategyHash()
 	// K-Mod
 	{//production
 		int iProductionValue = AI_getStrategyRand(2) % (5 + AI_getFlavorValue(FLAVOR_PRODUCTION)/2);
-		iProductionValue += (iLastStrategyHash & AI_STRATEGY_PRODUCTION) ? 1 : 0;
+		iProductionValue += (eLastStrategyHash & AI_STRATEGY_PRODUCTION) ? 1 : 0;
 		iProductionValue += AI_getFlavorValue(FLAVOR_PRODUCTION) > 0 ? 1 : 0;
-		iProductionValue += (m_iStrategyHash & AI_STRATEGY_DAGGER) ? 1 : 0;
+		iProductionValue += (m_eStrategyHash & AI_STRATEGY_DAGGER) ? 1 : 0;
 		// advc.018: Commented out
-		//iProductionValue += (m_iStrategyHash & AI_STRATEGY_CRUSH) ? 1 : 0;
-		iProductionValue += AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_SPACE4) ? 3 : 0;
+		//iProductionValue += (m_eStrategyHash & AI_STRATEGY_CRUSH) ? 1 : 0;
+		iProductionValue += AI_atVictoryStage(AI_VICTORY_CONQUEST4 | AI_VICTORY_SPACE4) ? 3 : 0;
 		// warplans. (done manually rather than using getWarPlanCount, so that we only have to do the loop once.)
 		bool bAnyWarPlans = false;
 		bool bTotalWar = false;
@@ -22558,7 +22560,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 		if (iProductionValue >= 10)
 		{
-			m_iStrategyHash |= AI_STRATEGY_PRODUCTION;
+			m_eStrategyHash |= AI_STRATEGY_PRODUCTION;
 		}
 		log_strat2(AI_STRATEGY_PRODUCTION, iProductionValue)
 	}
@@ -22587,21 +22589,21 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 		if ((iOurVictoryCountdown >= 0) && (iTheirVictoryCountdown < 0 || iOurVictoryCountdown <= iTheirVictoryCountdown))
 		{
-			m_iStrategyHash |= AI_STRATEGY_LAST_STAND;
+			m_eStrategyHash |= AI_STRATEGY_LAST_STAND;
 		}
 		else if ((iTheirVictoryCountdown >= 0))
 		{
 			if((iTheirVictoryCountdown < iOurVictoryCountdown))
 			{
-				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
+				m_eStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
 			else if(g.isOption(GAMEOPTION_AGGRESSIVE_AI))
 			{
-				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
+				m_eStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
-			else if(AI_isDoVictoryStrategyLevel4() || AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+			else if(AI_atVictoryStage4() || AI_atVictoryStage(AI_VICTORY_SPACE3))
 			{
-				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
+				m_eStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
 		}
 
@@ -22628,7 +22630,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 				}
 				if ((iStronger <= 1) || (iStronger <= iAlive / 4))
 				{
-					m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
+					m_eStrategyHash |= AI_STRATEGY_FINAL_WAR;
 				}
 			}
 		}
@@ -22686,7 +22688,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			}
 			else if (kVictory.getCityCulture() > 0)
 			{
-				if (m_iStrategyHash & AI_VICTORY_CULTURE1)
+				if (m_eStrategyHash & AI_VICTORY_CULTURE1)
 				{
 					iAchieveVictories++;
 				}
@@ -22747,7 +22749,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 		{
 			if (iWarVictories > 0)
 			{
-				m_iStrategyHash |= AI_STRATEGY_FINAL_WAR;
+				m_eStrategyHash |= AI_STRATEGY_FINAL_WAR;
 			}
 		}
 	}
@@ -22756,15 +22758,15 @@ void CvPlayerAI::AI_updateStrategyHash()
 	//if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
 	if (!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.001j
 	{
-		m_iStrategyHash &= ~AI_STRATEGY_DAGGER;
-		m_iStrategyHash &= ~AI_STRATEGY_CRUSH;
-		m_iStrategyHash &= ~AI_STRATEGY_ALERT1;
-		m_iStrategyHash &= ~AI_STRATEGY_ALERT2;
-		m_iStrategyHash &= ~AI_STRATEGY_TURTLE;
-		m_iStrategyHash &= ~AI_STRATEGY_FINAL_WAR;
-		m_iStrategyHash &= ~AI_STRATEGY_LAST_STAND;
-		m_iStrategyHash &= ~AI_STRATEGY_OWABWNW;
-		m_iStrategyHash &= ~AI_STRATEGY_FASTMOVERS;
+		m_eStrategyHash &= ~AI_STRATEGY_DAGGER;
+		m_eStrategyHash &= ~AI_STRATEGY_CRUSH;
+		m_eStrategyHash &= ~AI_STRATEGY_ALERT1;
+		m_eStrategyHash &= ~AI_STRATEGY_ALERT2;
+		m_eStrategyHash &= ~AI_STRATEGY_TURTLE;
+		m_eStrategyHash &= ~AI_STRATEGY_FINAL_WAR;
+		m_eStrategyHash &= ~AI_STRATEGY_LAST_STAND;
+		m_eStrategyHash &= ~AI_STRATEGY_OWABWNW;
+		m_eStrategyHash &= ~AI_STRATEGY_FASTMOVERS;
 	}
 #undef log_strat
 #undef log_strat2
@@ -23513,11 +23515,11 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
 
 	// BBAI: Removed AI_STRATEGY_GET_BETTER_UNITS reduction, it was reducing defenses twice
 
-	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+	if (AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		iDefendersPermil += (3 * iCityFactor) / 2; // advc.107: instead of +=2*iCityFactor
 		if (eAreaAI == AREAAI_DEFENSIVE
-			&& AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)) // K-Mod
+			&& AI_atVictoryStage(AI_VICTORY_CULTURE4)) // K-Mod
 		{
 			iDefendersPermil *= 2; //go crazy
 		}
@@ -23586,7 +23588,7 @@ int CvPlayerAI::AI_getTotalAirDefendersNeeded() const
 	//iNeeded = iNeeded + iNeeded*(getCurrentEra()+1) / std::max(1, GC.getNumEraInfos()*2);
 	// Todo. Adjust based on what other civs are doing.
 
-	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
+	if (AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
 		iNeeded = iNeeded*3/2;
 	if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
 		iNeeded = iNeeded*3/2;

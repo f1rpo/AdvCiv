@@ -4,6 +4,7 @@
 #define WAR_UTILITY_ASPECT_H
 
 #include "UWAI.h"
+#include "AIStrategies.h"
 
 class MilitaryAnalyst;
 class WarEvalParameters;
@@ -300,7 +301,7 @@ public:
 	UWAI::AspectTypes xmlId() const { return UWAI::KING_MAKING; }
 private:
 	void addWinning(std::set<PlayerTypes>& r, bool bPredict);
-	bool anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
+	bool anyVictory(PlayerTypes civId, AIVictoryStage flags, int stage,
 			bool bPredict = true) const;
 	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
 			bool bPredict = true) const;

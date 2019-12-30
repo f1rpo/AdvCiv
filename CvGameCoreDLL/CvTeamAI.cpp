@@ -830,7 +830,7 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 			}
 		}  // <advc.115b>
 		else if(!isAVassal())
-			bCanWinDiplo = AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DIPLOMACY4);
+			bCanWinDiplo = AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY4);
 		// </advc.115b>
 		if (bValid)
 		{
@@ -1042,14 +1042,14 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 	iDenyFactor += AI_getWorstEnemy() == eTarget ? 20 : 0; // (in addition to attitude pentalities)
 
-	if (kTargetTeam.AI_isAnyMemberDoVictoryStrategyLevel3())
+	if (kTargetTeam.AI_anyMemberAtVictoryStage3())
 	{
-		if (kTargetTeam.AI_isAnyMemberDoVictoryStrategyLevel4())
+		if (kTargetTeam.AI_anyMemberAtVictoryStage4())
 		{
-			iDenyFactor += AI_isAnyMemberDoVictoryStrategyLevel4() ? 50 : 30;
+			iDenyFactor += AI_anyMemberAtVictoryStage4() ? 50 : 30;
 		}
 
-		if (bAggresive || AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+		if (bAggresive || AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST3))
 		{
 			iDenyFactor += 20;
 		}
@@ -1059,7 +1059,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			iDenyFactor += 10;
 		}
 	}
-	if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
+	if (AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
 	{
 		iDenyFactor += 20;
 	}
@@ -1184,7 +1184,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			iDeniedValue += iCityValue * iDenyFactor / 100;
 			if (2*pLoopCity->getCulture(kLoopPlayer.getID()) > pLoopCity->getCultureThreshold(GC.getGame().culturalVictoryCultureLevel()))
 			{
-				iDeniedValue += (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ? 100 : 30) * iDenyFactor / 100;
+				iDeniedValue += (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE4) ? 100 : 30) * iDenyFactor / 100;
 			}
 			if (bImminentVictory && pLoopCity->isCapital())
 			{
@@ -1204,7 +1204,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 					else
 						iGainFactor = 30;
 
-					iGainFactor += AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION2) ? 10 : 0;
+					iGainFactor += AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION2) ? 10 : 0;
 				}
 			}
 			else
@@ -1283,7 +1283,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	iGainedValue /= 100;
 
 	// amplify the gained value if we are aiming for a conquest or domination victory
-	if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION2))
+	if (AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION2))
 		iGainedValue = iGainedValue * 4/3;
 
 	// reduce the gained value based on how many other teams are at war with the target
@@ -1477,10 +1477,10 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			iCommitmentPool = iCommitmentPool * iPoolMultiplier / 100;
 
 			// Don't pick a fight if we're expecting to beat them to a peaceful victory.
-			if (!AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DOMINATION4 | AI_VICTORY_CONQUEST4))
+			if (!AI_anyMemberAtVictoryStage(AI_VICTORY_DOMINATION4 | AI_VICTORY_CONQUEST4))
 			{
-				if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
-					(AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4) && !GET_TEAM(eTarget).AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4)) ||
+				if (AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4) ||
+					(AI_anyMemberAtVictoryStage(AI_VICTORY_SPACE4) && !GET_TEAM(eTarget).AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4)) ||
 					(AI_getLowestVictoryCountdown() > 0 && (GET_TEAM(eTarget).AI_getLowestVictoryCountdown() < 0 || AI_getLowestVictoryCountdown() < GET_TEAM(eTarget).AI_getLowestVictoryCountdown())))
 				{
 					iCommitmentPool *= 2;
@@ -1529,7 +1529,7 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 		return 0;
 	}
 
-	if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+	if (AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST4))
 		return 0;
 
 	const CvTeamAI& kTargetTeam = GET_TEAM(eTarget);
@@ -1573,11 +1573,11 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 		// This puts iDiploWeight somewhere around 50 - 250.
 		if (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI))
 			iDiploWeight /= 2;
-		if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DIPLOMACY3))
+		if (AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY3))
 			iDiploWeight += 50;
-		if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
+		if (AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY4))
 			iDiploWeight += 50;
-		if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST3)) // note: conquest4 ignores diplo completely.
+		if (AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST3)) // note: conquest4 ignores diplo completely.
 			iDiploWeight /= 2;
 
 		iDiploCost *= iDiploWeight;
@@ -1734,16 +1734,16 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const // XXX this should consider ar
 
 	// BETTER_BTS_AI_MOD, War strategy AI, Victory Strategy AI, 05/19/10, jdog5000: START
 	/* BBAI code
-	if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4))
+	if (AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4))
 		iValue *= 4;
-	else if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE3) || AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
+	else if (AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE3) || AI_anyMemberAtVictoryStage(AI_VICTORY_SPACE4))
 		iValue *= 2;*/
 	// K-Mod
-	if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4))
+	if (AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4))
 		iValue *= 3;
-	else if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
+	else if (AI_anyMemberAtVictoryStage(AI_VICTORY_SPACE4))
 		iValue *= 2;
-	else if (AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3))
+	else if (AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3))
 	{
 		iValue *= 4;
 		iValue /= 3;
@@ -2132,7 +2132,7 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eMasterTeam) const
 	} // </advc.143>
 	// <advc.112> Master refuses if vassal too insignificant
 	if (!kMasterTeam.isHuman() &&
-		!kMasterTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST2) &&
+		!kMasterTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2) &&
 		kMasterTeam.getTotalPopulation() > 6 * getTotalPopulation())
 	{
 		int iAttitudeThresh = ATTITUDE_FRIENDLY;
@@ -2195,7 +2195,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	if (isHuman() && kMasterTeam.isHuman())
 		return NO_DENIAL;
 	// <advc.112>
-	if(AI_isAnyMemberDoVictoryStrategyLevel3())
+	if(AI_anyMemberAtVictoryStage3())
 		return DENIAL_VICTORY;
 	FOR_EACH_ENUM(VoteSource)
 	{
@@ -2660,43 +2660,43 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 }
 
 // K-Mod
-int CvTeamAI::AI_countMembersWithStrategy(int iStrategy) const
+int CvTeamAI::AI_countMembersWithStrategy(AIStrategy eStrategy) const
 {
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		if (it->AI_isDoStrategy(iStrategy))
+		if (it->AI_isDoStrategy(eStrategy))
 			iCount++;
 	}
 	return iCount;
 } // K-Mod end
 
 // BETTER_BTS_AI_MOD, Victory Strategy AI, 03/20/10, jdog5000: START
-bool CvTeamAI::AI_isAnyMemberDoVictoryStrategy(int iVictoryStrategy) const
+bool CvTeamAI::AI_anyMemberAtVictoryStage(AIVictoryStage eStage) const
 {
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		if (it->AI_isDoVictoryStrategy(iVictoryStrategy))
+		if (it->AI_atVictoryStage(eStage))
 			return true;
 	}
 	return false;
 }
 
-bool CvTeamAI::AI_isAnyMemberDoVictoryStrategyLevel4() const
+bool CvTeamAI::AI_anyMemberAtVictoryStage4() const
 {
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		if (it->AI_isDoVictoryStrategyLevel4())
+		if (it->AI_atVictoryStage4())
 			return true;
 	}
 	return false;
 }
 
-bool CvTeamAI::AI_isAnyMemberDoVictoryStrategyLevel3() const
+bool CvTeamAI::AI_anyMemberAtVictoryStage3() const
 {
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		if (it->AI_isDoVictoryStrategyLevel3())
+		if (it->AI_atVictoryStage3())
 			return true;
 	}
 	return false;
@@ -2839,7 +2839,7 @@ int CvTeamAI::AI_getRivalAirPower() const
 bool CvTeamAI::AI_refusePeace(TeamTypes ePeaceTeam) const
 {
 	// Refuse peace if we need the war for our conquest / domination victory.
-	return (!isHuman() && AI_isAnyMemberDoVictoryStrategy(
+	return (!isHuman() && AI_anyMemberAtVictoryStage(
 			AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4) &&
 			((AI_isChosenWar(ePeaceTeam)
 			// advc.115:
@@ -2881,7 +2881,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 		return true;
 
 	// advc.112: Now handled by the vassal
-	/*if (kSurrenderTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE3 | AI_VICTORY_CULTURE3)) {
+	/*if (kSurrenderTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_SPACE3 | AI_VICTORY_CULTURE3)) {
 		// Capturing capital or Apollo city will stop space
 		// Capturing top culture cities will stop culture
 		return false;
@@ -3108,11 +3108,11 @@ void CvTeamAI::AI_getWarRands(int &iMaxWarRand, int &iLimitedWarRand, int &iDogp
 		CvPlayerAI const& kMember = *it;
 		if (kMember.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
 			bFinalWar = true;
-		if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4))
+		if (kMember.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 			bCult4 = true;
-		if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
+		if (kMember.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 			bCult3 = true;
-		if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		if (kMember.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			bSpace4 = true;
 	}
 
@@ -3180,12 +3180,12 @@ void CvTeamAI::AI_getWarThresholds(int &iTotalWarThreshold, int &iLimitedWarThre
 		iHighUnitSpending += (std::max(0, iUnitSpendingPerMil - 16) / 6); // K-Mod
 
 		if (kMember.AI_isDoStrategy(AI_STRATEGY_DAGGER) ||
-				kMember.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) ||
-				kMember.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+				kMember.AI_atVictoryStage(AI_VICTORY_CONQUEST4) ||
+				kMember.AI_atVictoryStage(AI_VICTORY_DOMINATION4))
 			bAggressive = true;
-		if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2))
+		if (kMember.AI_atVictoryStage(AI_VICTORY_CONQUEST2))
 			bConq2 = true;
-		if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+		if (kMember.AI_atVictoryStage(AI_VICTORY_DOMINATION3))
 			bDom3 = true;
 	}
 
@@ -3225,9 +3225,9 @@ int CvTeamAI::AI_getTotalWarOddsTimes100() const
 	{
 		// I don't see a fundamental difference between Domination and Conquest here
 		int iMilitaryVictoryFactor = 0;
-		if(AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION2))
+		if(AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION2))
 			iMilitaryVictoryFactor = 3; // Don't care about 2 vs. 3 vs. 4 here
-		else if(AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1))
+		else if(AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1))
 			iMilitaryVictoryFactor = 2;
 		return 100 * iMilitaryVictoryFactor + 20000 / std::max(iTotalWarRand, 1);
 	} // </advc.104>
@@ -4980,9 +4980,9 @@ int CvTeamAI::AI_noWarAttitudeProb(AttitudeTypes eAttitude) const
 		CvPlayerAI const& kMember = *it;
 		r += GC.getInfo(kMember.getPersonalityType()).getNoWarAttitudeProb(eAttitude);
 		// In final stages of miltaristic victory, AI may turn on its friends!
-		if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+		if (kMember.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 			iVictoryStrategyAdjust += 30;
-		else if (kMember.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+		else if (kMember.AI_atVictoryStage(AI_VICTORY_DOMINATION4))
 			iVictoryStrategyAdjust += 20;
 	}
 	int iCount = std::max(1, it.nextIndex());
@@ -5374,7 +5374,7 @@ void CvTeamAI::AI_doWar()
 			FAssert(iTimeModifier >= 0);
 		}
 
-		bool bEnemyVictoryLevel4 = GET_TEAM(eLoopTeam).AI_isAnyMemberDoVictoryStrategyLevel4();
+		bool bEnemyVictoryLevel4 = GET_TEAM(eLoopTeam).AI_anyMemberAtVictoryStage4();
 
 		if (AI_getWarPlan(eLoopTeam) == WARPLAN_PREPARING_LIMITED)
 		{
@@ -5616,8 +5616,8 @@ void CvTeamAI::AI_doWar()
 		{
 			CvPlayerAI& kMember = *it;
 			if (kMember.AI_isDoStrategy(AI_STRATEGY_DAGGER)
-				|| kMember.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)
-				|| kMember.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+				|| kMember.AI_atVictoryStage(AI_VICTORY_CONQUEST3)
+				|| kMember.AI_atVictoryStage(AI_VICTORY_DOMINATION4))
 			{
 				iDaggerCount++;
 				bAggressive = true;
@@ -5730,11 +5730,11 @@ void CvTeamAI::AI_doWar()
 								// XXX make sure they share an area....
 								if ((iPass > 1 && !bLocalWarPlan) || AI_isLandTarget(eTarget) ||
 									AI_isAnyCapitalAreaAlone() ||
-									GET_TEAM(eTarget).AI_isAnyMemberDoVictoryStrategyLevel4())
+									GET_TEAM(eTarget).AI_anyMemberAtVictoryStage4())
 								{
 									if (iPass > 0 || AI_calculateAdjacentLandPlots(eTarget) >=
 										(getTotalLand() * AI_maxWarMinAdjacentLandPercent()) / 100 ||
-										GET_TEAM(eTarget).AI_isAnyMemberDoVictoryStrategyLevel4())
+										GET_TEAM(eTarget).AI_anyMemberAtVictoryStage4())
 									{
 										int iValue = AI_startWarVal(eTarget, WARPLAN_TOTAL);
 										if (gTeamLogLevel >= 2 && iValue > 0) logBBAI("    Team %d (%S) considering starting TOTAL warplan with team %d with value %d on pass %d with %d adjacent plots", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTarget, iValue, iPass, AI_calculateAdjacentLandPlots(eTarget));
@@ -5836,7 +5836,7 @@ void CvTeamAI::AI_doWar()
 							continue; // advc
 
 						if (AI_isLandTarget(eTarget) ||
-							GET_TEAM(eTarget).AI_isAnyMemberDoVictoryStrategyLevel4())
+							GET_TEAM(eTarget).AI_anyMemberAtVictoryStage4())
 						{
 							int iDogpilePower = iOurPower;
 							// advc.001: Shouldn't count minor civs

@@ -1381,8 +1381,7 @@ DenialTypes UWAI::Team::declareWarTrade(TeamTypes targetId,
 			(sponsor.isAtWar(targetId) ? 2 * sponsor.getPower(true) : 0) <
 			3 * GET_TEAM(targetId).getPower(true))
 		return DENIAL_POWER_THEM;
-	if(agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
-			agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
+	if(agent.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
 		return DENIAL_VICTORY;
 	// "Too much on our hands" can mean anything
 	return DENIAL_TOO_MANY_WARS;
@@ -1790,11 +1789,9 @@ DenialTypes UWAI::Team::acceptVassal(TeamTypes vassalId) const {
 	CvTeamAI const& agent = GET_TEAM(agentId);
 	vassalUtility += (GET_TEAM(vassalId).getNumCities() * 30.0) /
 			(agent.getNumCities() + 1);
-	if(agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) ||
-				agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+	if(agent.AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY4 | AI_VICTORY_CONQUEST4))
 			vassalUtility *= 2;
-	else if(agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DIPLOMACY3) ||
-			agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+	else if(agent.AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY3 | AI_VICTORY_CONQUEST3))
 		vassalUtility *= 1.4;
 	/*  If the war will go badly for us, we'll likely not be able to protect
 		the vassal. vassalUtility therefore mustn't be so high that it could
@@ -2312,14 +2309,10 @@ bool UWAI::Civ::isNearMilitaryVictory(int stage) const {
 		return true;
 	CvPlayerAI& we = GET_PLAYER(weId);
 	switch(stage) {
-		case 1: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1) ||
-					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1);
-		case 2: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2) ||
-					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2);
-		case 3: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3) ||
-					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3);
-		case 4: return we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) ||
-					   we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4);
+		case 1: return we.AI_atVictoryStage(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1);
+		case 2: return we.AI_atVictoryStage(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION2) ;
+		case 3: return we.AI_atVictoryStage(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION3);
+		case 4: return we.AI_atVictoryStage(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4);
 		default: return false;
 	}
 }
@@ -2327,13 +2320,13 @@ bool UWAI::Civ::isNearMilitaryVictory(int stage) const {
 int UWAI::Civ::getConquestStage() const {
 
 	CvPlayerAI& we = GET_PLAYER(weId);
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST1))
+	if(we.AI_atVictoryStage(AI_VICTORY_CONQUEST1))
 		return 1;
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2))
+	if(we.AI_atVictoryStage(AI_VICTORY_CONQUEST2))
 		return 2;
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+	if(we.AI_atVictoryStage(AI_VICTORY_CONQUEST3))
 		return 3;
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4))
+	if(we.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 		return 4;
 	return 0;
 }
@@ -2341,13 +2334,13 @@ int UWAI::Civ::getConquestStage() const {
 int UWAI::Civ::getDominationStage() const {
 
 	CvPlayerAI& we = GET_PLAYER(weId);
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION1))
+	if(we.AI_atVictoryStage(AI_VICTORY_DOMINATION1))
 		return 1;
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2))
+	if(we.AI_atVictoryStage(AI_VICTORY_DOMINATION2))
 		return 2;
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+	if(we.AI_atVictoryStage(AI_VICTORY_DOMINATION3))
 		return 3;
-	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
+	if(we.AI_atVictoryStage(AI_VICTORY_DOMINATION4))
 		return 4;
 	return 0;
 }

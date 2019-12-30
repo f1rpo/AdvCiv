@@ -408,15 +408,12 @@ double UWAICache::goldPerProdVictory() {
 
 	CvTeamAI const& ourTeam = GET_TEAM(ownerId);
 	int ourVictLevel = 0;
-	if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
-			ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE3))
+	if(ourTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3))
 		ourVictLevel = 3;
-	else if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
-			ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
+	else if(ourTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
 		ourVictLevel = 4;
 	if(ourVictLevel < 3) {
-		if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE2) ||
-				ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE2))
+		if(ourTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2))
 			return 1;
 		return 0.5;
 	}
@@ -424,9 +421,9 @@ double UWAICache::goldPerProdVictory() {
 	for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(ownerId)); it.hasNext(); ++it) {
 		CvTeamAI const& rival = *it;
 		int theirVictLevel = 0;
-		if(rival.AI_isAnyMemberDoVictoryStrategyLevel3())
+		if(rival.AI_anyMemberAtVictoryStage3())
 			theirVictLevel = 3;
-		else if(rival.AI_isAnyMemberDoVictoryStrategyLevel4())
+		else if(rival.AI_anyMemberAtVictoryStage4())
 			theirVictLevel = 4;
 		if(theirVictLevel >= ourVictLevel)
 			r--;
@@ -488,8 +485,8 @@ void UWAICache::updateWarAnger() {
 		/*  Disregard happiness from culture rate unless we need culture
 			regardless of happiness */
 		double angry = c.angryPopulation(0,
-				!owner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) &&
-				!owner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4));
+				!owner.AI_atVictoryStage(AI_VICTORY_CULTURE3) &&
+				!owner.AI_atVictoryStage(AI_VICTORY_CULTURE4));
 		totalWWAnger += std::min(angry, c.getWarWearinessPercentAnger()
 				* c.getPopulation() / (double)GC.getPERCENT_ANGER_DIVISOR());
 	}
@@ -559,19 +556,18 @@ void UWAICache::updateTrainCargo() {
 bool UWAICache::calculateFocusOnPeacefulVictory() {
 
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	if(owner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
-			owner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+	if(owner.AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
 		return true;
-	if(owner.AI_isDoVictoryStrategyLevel4() || // (Diplo doesn't count as peaceful)
-			(!owner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) &&
-			!owner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3)))
+	if(owner.AI_atVictoryStage4() || // (Diplo doesn't count as peaceful)
+			(!owner.AI_atVictoryStage(AI_VICTORY_CULTURE3) &&
+			!owner.AI_atVictoryStage(AI_VICTORY_SPACE3)))
 		return false;
 	bool const bHuman = owner.isHuman();
 	// Space3 or Culture3 -- but is there a rival at stage 4?
 	for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(ownerId)); it.hasNext(); ++it) {
 		CvPlayerAI const& rival = *it;
-		if(!rival.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
-				!rival.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		if(!rival.AI_atVictoryStage(AI_VICTORY_CULTURE4) &&
+				!rival.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			continue;
 		// Could we possibly(!) stop them? Would we want to?
 		if(!bHuman && owner.AI_getAttitude(rival.getID()) >= ATTITUDE_FRIENDLY)
@@ -865,7 +861,7 @@ double UWAICache::teamThreat(TeamTypes tId) const {
 	AttitudeTypes towardsOwner = (t.isHuman() ? ATTITUDE_CAUTIOUS : t.AI_getAttitude(ownerTeam));
 	if(t.isAVassal() || towardsOwner >= ATTITUDE_FRIENDLY ||
 			// Don't worry about long-term threat if they're already close to victory
-			t.AI_isAnyMemberDoVictoryStrategyLevel3())
+			t.AI_anyMemberAtVictoryStage3())
 		return 0;
 	double theirPow = longTermPower(tId);
 	double ourPow = longTermPower(GET_TEAM(ownerTeam).getMasterTeam(), true);
@@ -878,9 +874,9 @@ double UWAICache::teamThreat(TeamTypes tId) const {
 		attitude. */
 	double diploFactor = (ATTITUDE_FRIENDLY - towardsOwner) * 0.25;
 	FAssert(diploFactor > 0);
-	if(t.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST2))
+	if(t.AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2))
 		diploFactor += 0.15;
-	else if(t.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
+	else if(t.AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY2))
 		diploFactor += 0.1;
 	// Nuclear deterrent
 	if(GET_PLAYER(ownerId).getNumNukeUnits() > 0)
