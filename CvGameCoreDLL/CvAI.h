@@ -11,7 +11,7 @@
 #include "CvGameAI.h"
 #include "CvTeamAI.h"
 #include "CvPlayerAI.h" // Includes the remaining AI headers (except the UWAI headers)
-#include "BBAI_Defines.h" // Not needed that frequently, but might as well include it.
+#include "AIStrategies.h" // Not needed that frequently, but might as well include it.
 
 // <advc.003u>
 #undef GET_TEAM // Overwrite definition in CvGamePlay.h

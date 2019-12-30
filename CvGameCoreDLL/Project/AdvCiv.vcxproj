@@ -189,8 +189,8 @@
     <ClInclude Include="..\AdvCiv4lerts.h" />
     <ClInclude Include="..\AgentIterator.h" />
     <ClInclude Include="..\AgentPredicates.h" />
+    <ClInclude Include="..\AIStrategies.h" />
     <ClInclude Include="..\ArmamentForecast.h" />
-    <ClInclude Include="..\BBAI_Defines.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
     <ClInclude Include="..\CitySiteEvaluator.h" />
