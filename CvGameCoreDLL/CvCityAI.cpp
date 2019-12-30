@@ -7399,8 +7399,9 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	// K-Mod. Get a weighted average of the yields for improvements which upgrade (eg. cottages).
 	int iTimeScale = 60;
 	iTimeScale += (100*GC.getGame().getElapsedGameTurns()/GC.getGame().getEstimateEndTurn() < 30 ? 10 : 0);
-	iTimeScale -= (kOwner.AI_isDoVictoryStrategyLevel4() ? 30 : (100*GC.getGame().getElapsedGameTurns()/GC.getGame().getEstimateEndTurn() > 70 ? 10 : 0));
-	iTimeScale += (kOwner.AI_isDoVictoryStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 50 : 0);
+	iTimeScale -= (kOwner.AI_atVictoryStage4() ? 30 : (100*GC.getGame().getElapsedGameTurns()/GC.getGame().getEstimateEndTurn() > 70 ? 10 : 0));
+	// advc.001: was AI_isDoVictoryStrategy
+	iTimeScale += (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 50 : 0);
 	if (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) +
 			// advc.001: Surely(?) preparations should count here as well
 			GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0)
@@ -11913,8 +11914,8 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 	{
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] -= 10;
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 20;
-	}
-	else if (kPlayer.AI_isDoVictoryStrategy(AI_STRATEGY_GET_BETTER_UNITS)) // doesn't stack with ec focus.
+	}  // advc.001: was AI_idDoVictoryStrategy
+	else if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)) // doesn't stack with ec focus.
 	{
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 20;
 	}
