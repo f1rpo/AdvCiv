@@ -7465,7 +7465,8 @@ bool CvUnit::canAttack() const
 	return true;
 }
 
-
+/*	advc.089 (comment): Help text for these checks is handled by
+	CvGameTextMgr::setCannotAttackHelp (some code duplication) */
 bool CvUnit::canAttack(const CvUnit& kDefender) const
 {
 	//PROFILE_FUNC(); // advc: Called "only" a few hundred thousand times per turn; pretty fast.

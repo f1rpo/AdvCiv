@@ -2142,7 +2142,7 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 			continue;
 		if (kLoopUnit.isCargo()) // advc: Was previously only checked with bTestCanMove - i.e. never.
 			continue;
-		// <advc> Moved the other conditions into an auxiliary function
+		// <advc> Moved the other conditions into CvUnit::canBeAttackedBy (new function)
 		if(eAttackingPlayer == NO_PLAYER || kLoopUnit.canBeAttackedBy(eAttackingPlayer,
 			pAttacker, bTestEnemy, bTestPotentialEnemy, /* advc.028: */ bTestVisible,
 			bTestCanAttack))

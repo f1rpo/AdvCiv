@@ -126,18 +126,18 @@
 	<TEXT>
 		<Tag>TXT_KEY_REVOLT_PR_BREAKDOWN</Tag>
 		<English>=[TAB]((%d2 culture pressure[NEWLINE][TAB]- %d1 garrison strength)[NEWLINE][TAB]/ %d3) * %d4%% base chance</English>
-		<French>=[TAB]((%d2 pressure [ICON_CULTURE][NEWLINE][TAB]- %d1 garrison [ICON_STRENGTH])[NEWLINE][TAB]/ %d3) * %d4%% base chance</French>
+		<French>=[TAB]((%d2 pression culturelle[NEWLINE][TAB]- %d1 force de garnison)[NEWLINE][TAB]/ %d3) * %d4%% base chance</French>
 		<German>=[TAB]((%d2 Kulturdruck[NEWLINE][TAB]- %d1 Garnisonsstärke)[NEWLINE][TAB]/ %d3) * %d4%% Basischance</German>
-		<Italian>=[TAB]((%d2 pressure [ICON_CULTURE][NEWLINE][TAB]- %d1 garrison [ICON_STRENGTH]h)[NEWLINE][TAB]/ %d3) * %d4%% base chance</Italian>
-		<Spanish>=[TAB]((%d2 pressure [ICON_CULTURE][NEWLINE][TAB]- %d1 garrison [ICON_STRENGTH])[NEWLINE][TAB]/ %d3) * %d4%% base chance</Spanish>
+		<Italian>=[TAB]((%d2 pressione culturale[NEWLINE][TAB]- %d1 forza della guarnigione)[NEWLINE][TAB]/ %d3) * %d4%% base chance</Italian>
+		<Spanish>=[TAB]((%d2 présion cultural[NEWLINE][TAB]- %d1 fuerza de guarnición)[NEWLINE][TAB]/ %d3) * %d4%% base chance</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GARRISON_STRENGTH_NEEDED</Tag>
 		<English>Need %D1 garrison [ICON_STRENGTH] to suppress</English>
-		<French>Need %D1 garrison [ICON_STRENGTH] to suppress</French>
+		<French>Besoin de %D1 [ICON_STRENGTH] de garnison pour répression</French>
 		<German>Unterdrückung erfordert %D1 Garnisons-[ICON_STRENGTH]</German>
-		<Italian>Need %D1 garrison [ICON_STRENGTH] to suppress</Italian>
-		<Spanish>Need %D1 garrison [ICON_STRENGTH] to suppress</Spanish>
+		<Italian>Serve %D1 [ICON_STRENGTH] guarnigione per soppressione</Italian>
+		<Spanish>Necesita %D1 [ICON_STRENGTH] de guarnición por supresión</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GARRISON_STRENGTH_NEEDED_SHORT</Tag>
@@ -150,18 +150,18 @@
 	<TEXT>
 		<Tag>TXT_KEY_GARRISON_STRENGTH_EXCESS</Tag>
 		<English>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</English>
-		<French>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</French>
+		<French>Peut se révolter si &gt; %d1 [ICON_STRENGTH] de garnison sont déplacées</French>
 		<German>Revolte mögl. bei Abzug von &gt; %d1 Garnisons-[ICON_STRENGTH]</German>
-		<Italian>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</Italian>
-		<Spanish>May revolt if &gt; %d1 garrison [ICON_STRENGTH] are relocated</Spanish>
+		<Italian>Può rivoltarsi se &gt; %d1 [ICON_STRENGTH] guarnigione sono trasferite</Italian>
+		<Spanish>Puede rebelarse si &gt; %d1 [ICON_STRENGTH] de guarnición son retiradas</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT</Tag>
 		<English>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</English>
-		<French>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</French>
+		<French>Ville peut se révolter si &gt; %d1[ICON_STRENGTH] sont déplacées</French>
 		<German>Revolte mögl. bei Abzug von &gt; %d1[ICON_STRENGTH]</German>
-		<Italian>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</Italian>
-		<Spanish>City may revolt if &gt; %d1[ICON_STRENGTH] are removed</Spanish>
+		<Italian>Città può rivoltarsi se &gt; %d1[ICON_STRENGTH] sono trasferite</Italian>
+		<Spanish>Ciudad puede rebelarse si &gt; %d1[ICON_STRENGTH] son retiradas</Spanish>
 	</TEXT>
 
 	<!-- advc.101: Originally in CIV4GameTextInfos.xml. Adding the
@@ -5980,6 +5980,34 @@
 		<German>Bewache angrenzende Wasser-Geländefelder. Schwächere feindliche Schiffe, die versuchen, dort eine Modernisierung zu plündern, sind gezwungen, die Einheit auf Seepatroullie anzugreifen.</German>
 		<Italian>Questo ordine far&#224; in modo che l'unit&#224; attacchi le navi nemiche che cercano di saccheggiare le caselle circostanti</Italian>
 		<Spanish>Esta orden le dir&#225; a la unidad que ataque a los barcos enemigos que intenten saquear las casillas adyacentes.</Spanish>
+	</TEXT>
+
+	<!-- advc.057 -->
+	<TEXT>
+		<Tag>TXT_KEY_REQUIRES_TECH_TO_ENTER</Tag>
+		<English>Requires [COLOR_WARNING_TEXT]%s1_Tech[COLOR_REVERT] or ownership to enter</English>
+		<French>Requiert [COLOR_WARNING_TEXT]%s1_Tech[COLOR_REVERT] ou propriété pour entrer</French>
+		<German>Erfordert [COLOR_WARNING_TEXT]%s1_Tech[COLOR_REVERT] zum Betreten (außer Besitzer)</German>
+		<Italian>Richiede [COLOR_WARNING_TEXT]%s1_Tech[COLOR_REVERT] o proprietà per entrare</Italian>
+		<Spanish>Requiere [COLOR_WARNING_TEXT]%s1_Tech[COLOR_REVERT] o propiedad por entrar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_REQUIRES_OWNERSHIP_TO_ENTER</Tag>
+		<English>Requires tile ownership to enter</English>
+		<French>Il faut posséder le case pour entrer</French>
+		<German>Betreten nur bei Besitz des Geländefeldes</German>
+		<Italian>Bisogna possedere la casella per entrarla</Italian>
+		<Spanish>Necesitas tener la casilla para entrar</Spanish>
+	</TEXT>
+
+	<!-- advc.089: Based on TXT_KEY_UNIT_COMBAT_LIMIT (CIV4GameText_BTS.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_DAMAGE_LIMIT_REACHED</Tag>
+		<English>[COLOR_WARNING_TEXT]Maximally Damaged (%d1%%)[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXTD&#233;g&#226;ts maximums (%d1%%) inflig&#233;s[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Maximalschaden(%d1%%) erreicht[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Danno massimo (%d1%%) inflitto[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Máximo da&#241;o (%d1%%) infligido[COLOR_REVERT]</Spanish>
 	</TEXT>
 
 </Civ4GameText>

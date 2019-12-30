@@ -59,6 +59,9 @@ public:
 	void setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPlot, bool bOneLine, bool bShort,
 			bool bIndicator = false); // advc.061
 	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	// <advc.089>
+	void setCannotAttackHelp(CvWStringBuffer& szHelp, CvUnit const& kAttacker,
+			CvUnit const& kDefender); // </advc.089>
 	void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
 	void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
 	void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);

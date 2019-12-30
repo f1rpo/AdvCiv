@@ -151,8 +151,8 @@
 		 Changing the factor will increase or decrease foreign culture strength
 		 over the entire game; the exponent affects especially the late game. -->
 	<Define>
-        <DefineName>FOREIGN_CULTURE_STRENGTH_EXPONENT</DefineName>
-        <iDefineIntVal>135</iDefineIntVal>
+		<DefineName>FOREIGN_CULTURE_STRENGTH_EXPONENT</DefineName>
+		<iDefineIntVal>135</iDefineIntVal>
     </Define>
 	<Define>
 		<DefineName>FOREIGN_CULTURE_STRENGTH_FACTOR</DefineName>
@@ -1139,6 +1139,16 @@
 	<Define>
 		<DefineName>CAN_TRAIN_CHECKS_AIR_UNIT_CAP</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- advc.057: When hovering for movement, help text shows a missing
+		 tech requirement for entering the terrain if the Tech's era minus
+		 the player's current era is at most SHOW_IMPASSABLE_TECH_ERA_
+		 DIFFERENCE. Recommended: 1, so that, when a Work Boat tries to enter
+		 Ocean the Astronomy requirement is shown by the Medieval era. -->
+	<Define>
+		<DefineName>SHOW_IMPASSABLE_TECH_ERA_DIFFERENCE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

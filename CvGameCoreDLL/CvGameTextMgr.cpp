@@ -2691,7 +2691,7 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 // Returns true if help was given...
 // K-Mod note: this function can change the center unit on the plot. (because of a change I made)
 // Also, I've made some unmarked structural changes to this function, to make it easier to read and to fix a few minor bugs.
-bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
+bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 {
 	PROFILE_FUNC();
 	// ADVANCED COMBAT ODDS v2.0, 3/11/09, PieceOfMind: START
@@ -2730,7 +2730,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		break;
 
 	case DOMAIN_LAND:
-		bValid = !(pPlot->isWater());
+		bValid = !pPlot->isWater();
 		break;
 
 	case DOMAIN_IMMOBILE:
@@ -2756,7 +2756,17 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	if (pAttacker == NULL)
 		return false;
 
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(), pAttacker, !GC.altKey());
+	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(),
+			pAttacker, !GC.altKey());
+	// <advc.089>
+	if (pDefender == NULL)
+	{
+		pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(), pAttacker,
+				!GC.altKey(), false, false, false);
+		if (pDefender != NULL)
+			setCannotAttackHelp(szString, *pAttacker, *pDefender);
+		return false;
+	} // </advc.089>
 	if (pDefender == NULL || !pDefender->canDefend(pPlot) || !pAttacker->canAttack(*pDefender))
 		return false;
 
@@ -4349,8 +4359,36 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	return true;
 }
 
-// DO NOT REMOVE - needed for font testing - Moose
-void createTestFontString(CvWStringBuffer& szString)
+
+/*	advc.089: Help text for the conditions checked by CvUnit::canAttack.
+	Only damage limit so far. */
+void CvGameTextMgr::setCannotAttackHelp(CvWStringBuffer& szHelp,
+	CvUnit const& kAttacker, CvUnit const& kDefender)
+{
+	// List the units upfront (can't attack any of these)
+	setPlotListHelp(szHelp, *kDefender.plot(), true, true);
+	int iLimit = std::max(kAttacker.combatLimit(), kAttacker.airCombatLimit());
+	if (kDefender.getDamage() < iLimit)
+	{
+		if (!kDefender.canFight() && kAttacker.combatLimit() < 100 &&
+			kDefender.plot()->plotCheck(PUF_isEnemy, kAttacker.getOwner(), false,
+			NO_PLAYER, NO_TEAM, PUF_canDefend))
+		{
+			iLimit = kAttacker.combatLimit();
+		}
+		else return;
+	}
+	if (kDefender.getDamage() >= iLimit)
+	{
+		if (!szHelp.isEmpty())
+			szHelp.append(NEWLINE);
+		szHelp.append(gDLL->getText("TXT_KEY_DAMAGE_LIMIT_REACHED", iLimit));
+	}
+}
+
+
+/*namespace { // advc: unused
+void createTestFontString(CvWStringBuffer& szString) // for font testing - Moose
 {
 	int iI;
 	szString.assign(L"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[×]^_`abcdefghijklmnopqrstuvwxyz\n");
@@ -4377,7 +4415,7 @@ void createTestFontString(CvWStringBuffer& szString)
 		szString.append(CvWString::format(L"%c", GC.getInfo((BonusTypes) iI).getChar()));
 	for (iI=0; iI<MAX_NUM_SYMBOLS; ++iI)
 		szString.append(CvWString::format(L"%c", gDLL->getSymbolID(iI)));
-}
+} }*/
 
 void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 {
@@ -20325,22 +20363,21 @@ void CvGameTextMgr::getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWStr
 	}
 }
 
-void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot, bool bAlt, CvWStringBuffer& strHelp)
+void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot,
+	bool bAlt, CvWStringBuffer& strHelp)  // advc: some style changes
 {
-	if (gDLL->getInterfaceIFace()->isCityScreenUp())
+	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
+	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace();
+	if (kInterface.isCityScreenUp())
 	{
 		if (pMouseOverPlot != NULL)
 		{
-			CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-			if (pHeadSelectedCity != NULL)
+			CvCity* pHeadSelectedCity = kInterface.getHeadSelectedCity();
+			if (pHeadSelectedCity != NULL &&
+				pMouseOverPlot->getWorkingCity() == pHeadSelectedCity &&
+				pMouseOverPlot->isRevealed(eActiveTeam, true))
 			{
-				if (pMouseOverPlot->getWorkingCity() == pHeadSelectedCity)
-				{
-					if (pMouseOverPlot->isRevealed(GC.getGame().getActiveTeam(), true))
-					{
-						setPlotHelp(strHelp, pMouseOverPlot);
-					}
-				}
+				setPlotHelp(strHelp, pMouseOverPlot);
 			}
 		}
 	}
@@ -20351,47 +20388,82 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 		else if (pFlagPlot != NULL)
 			setPlotListHelp(strHelp, *pFlagPlot, false, true);
 
-		if (strHelp.isEmpty())
+		if (strHelp.isEmpty() && pMouseOverPlot != NULL)
 		{
-			if (pMouseOverPlot != NULL)
+			if (pMouseOverPlot == kInterface.getGotoPlot() ||
+				(bAlt && //gDLL->getChtLvl() == 0)) // K-Mod. (Alt does something else in cheat mode)
+				!GC.getGame().isDebugMode())) // advc.135c
 			{
-				//if ((pMouseOverPlot == gDLL->getInterfaceIFace()->getGotoPlot()) || bAlt)
-				if (pMouseOverPlot == gDLL->getInterfaceIFace()->getGotoPlot() ||
-					(bAlt && //gDLL->getChtLvl() == 0)) // K-Mod. (alt does something else in cheat mode)
-					!GC.getGame().isDebugMode())) // advc.135c
-				{
-					if (pMouseOverPlot->isActiveVisible(true))
-					{
-						setCombatPlotHelp(strHelp, pMouseOverPlot);
-					}
-				}
+				if (pMouseOverPlot->isActiveVisible(true))
+					setCombatPlotHelp(strHelp, pMouseOverPlot);
 			}
 		}
-
-		if (strHelp.isEmpty())
+		if (strHelp.isEmpty() && pMouseOverPlot != NULL &&
+			pMouseOverPlot->isRevealed(eActiveTeam, true))
 		{
-			if (pMouseOverPlot != NULL)
+			if (pMouseOverPlot->isActiveVisible(true))
 			{
-				if (pMouseOverPlot->isRevealed(GC.getGame().getActiveTeam(), true))
+				setPlotListHelp(strHelp, *pMouseOverPlot, true, false);
+				if (!strHelp.isEmpty())
+					strHelp.append(NEWLINE);
+			}
+			setPlotHelp(strHelp, pMouseOverPlot);
+		}
+
+		InterfaceModeTypes eInterfaceMode = kInterface.getInterfaceMode();
+		// <advc.057>
+		if (eInterfaceMode == INTERFACEMODE_GO_TO || (pMouseOverPlot != NULL &&
+			pMouseOverPlot == kInterface.getGotoPlot()))
+		{
+			CvUnit const* pSelectedUnit = kInterface.getHeadSelectedUnit();
+			if (!bAlt && pSelectedUnit != NULL && pMouseOverPlot->isRevealed(eActiveTeam) &&
+				pMouseOverPlot->getTeam() != eActiveTeam)
+			{
+				TerrainTypes const eTerrain = pMouseOverPlot->getTerrainType();
+				// Check if any selected unit is unable to enter eTerrain
+				bool bCanAllEnter = true;
+				CvPlot const& kUnitPlot = *pSelectedUnit->plot();
+				for (CLLNode<IDInfo> const* pNode = kUnitPlot.headUnitNode(); pNode != NULL;
+					pNode = kUnitPlot.nextUnitNode(pNode))
 				{
-					if (pMouseOverPlot->isActiveVisible(true))
+					CvUnit const& kUnit = *::getUnit(pNode->m_data);
+					if (!kUnit.IsSelected())
+						continue;
+					CvUnitInfo const& kUnitInfo = kUnit.getUnitInfo();
+					if (pMouseOverPlot->isImpassable() && !kUnitInfo.isCanMoveImpassable())
+						continue;
+					if (!kUnitInfo.getTerrainImpassable(eTerrain))
+						continue;
+					bCanAllEnter = false;
+					TechTypes eReqTech = (TechTypes)kUnitInfo.getTerrainPassableTech(eTerrain);
+					if (eReqTech != NO_TECH && !GET_TEAM(eActiveTeam).isHasTech(eReqTech) &&
+						GC.getInfo(eReqTech).getEra() -
+						GET_PLAYER(pSelectedUnit->getOwner()).getCurrentEra() <=
+						GC.getDefineINT("SHOW_IMPASSABLE_TECH_ERA_DIFFERENCE"))
 					{
-						setPlotListHelp(strHelp, *pMouseOverPlot, true, false);
 						if (!strHelp.isEmpty())
-							strHelp.append(L"\n");
+							strHelp.append(NEWLINE);
+						strHelp.append(gDLL->getText("TXT_KEY_REQUIRES_TECH_TO_ENTER",
+								GC.getInfo(eReqTech).getDescription()));
+						return;
 					}
-
-					setPlotHelp(strHelp, pMouseOverPlot);
 				}
+				if (!bCanAllEnter && // and no tech will allow it either
+					// If it's too far off the coast, then it can't be owned.
+					(!pMouseOverPlot->isWater() || pMouseOverPlot->isPotentialCityWork()))
+				{
+					if (!strHelp.isEmpty())
+						strHelp.append(NEWLINE);
+					strHelp.append(gDLL->getText("TXT_KEY_REQUIRES_OWNERSHIP_TO_ENTER"));
+				}
+				return;
 			}
-		}
-
-		InterfaceModeTypes eInterfaceMode = gDLL->getInterfaceIFace()->getInterfaceMode();
+		} // </advc.057>
 		if (eInterfaceMode != INTERFACEMODE_SELECTION)
 		{
 			CvWString szTempBuffer;
-			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR NEWLINE, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getInfo(eInterfaceMode).getDescription());
-
+			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR NEWLINE, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+					GC.getInfo(eInterfaceMode).getDescription());
 			switch (eInterfaceMode)
 			{
 			case INTERFACEMODE_REBASE:
@@ -20401,49 +20473,35 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 			case INTERFACEMODE_NUKE:
 				getNukePlotHelp(pMouseOverPlot, szTempBuffer);
 				break;
-
-			default:
-				break;
 			}
-
 			szTempBuffer += strHelp.getCString();
 			strHelp.assign(szTempBuffer);
 		}
 	}
 }
 
-void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)
+void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)  // advc: style changes
 {
-	if (NULL != pPlot)
-	{
-		CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-		if (NULL != pHeadSelectedUnit)
-		{
-			if (pPlot->isFriendlyCity(*pHeadSelectedUnit, true))
-			{
-				CvCity* pCity = pPlot->getPlotCity();
-				if (NULL != pCity)
-				{
-					int iNumUnits = pCity->plot()->countNumAirUnits(GC.getGame().getActiveTeam());
-					bool bFull = (iNumUnits >= pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
+	if (pPlot == NULL)
+		return;
+	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	if (pHeadSelectedUnit == NULL)
+		return;
+	if (!pPlot->isFriendlyCity(*pHeadSelectedUnit, true))
+		return;
+	CvCity* pCity = pPlot->getPlotCity();
+	if (pCity == NULL)
+		return;
 
-					if (bFull)
-					{
-						strHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
-					}
-
-					strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY", iNumUnits, pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
-
-					if (bFull)
-					{
-						strHelp += ENDCOLR;
-					}
-
-					strHelp += NEWLINE;
-				}
-			}
-		}
-	}
+	int iNumUnits = pCity->plot()->countNumAirUnits(GC.getGame().getActiveTeam());
+	bool bFull = (iNumUnits >= pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
+	if (bFull)
+		strHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
+	strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
+			iNumUnits, pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
+	if (bFull)
+		strHelp += ENDCOLR;
+	strHelp += NEWLINE;
 }
 
 void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
@@ -20476,12 +20534,12 @@ void CvGameTextMgr::getInterfaceCenterText(CvWString& strText)
 	{
 		if (GC.getGame().getWinner() != NO_TEAM)
 		{
-			strText = gDLL->getText("TXT_KEY_MISC_WINS_VICTORY", GET_TEAM(GC.getGame().getWinner()).getName().GetCString(), GC.getInfo(GC.getGame().getVictory()).getTextKeyWide());
+			strText = gDLL->getText("TXT_KEY_MISC_WINS_VICTORY",
+					GET_TEAM(GC.getGame().getWinner()).getName().GetCString(),
+					GC.getInfo(GC.getGame().getVictory()).getTextKeyWide());
 		}
-		else if (!(GET_PLAYER(GC.getGame().getActivePlayer()).isAlive()))
-		{
+		else if (!GET_PLAYER(GC.getGame().getActivePlayer()).isAlive())
 			strText = gDLL->getText("TXT_KEY_MISC_DEFEAT");
-		}
 	}
 }
 

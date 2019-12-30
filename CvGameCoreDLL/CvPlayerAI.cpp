@@ -13117,7 +13117,7 @@ int CvPlayerAI::AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot,
 					continue;
 				if(p->getOwner() == NO_PLAYER && p->area() == pArea)
 				{
-					/*  Mustn't check path b/c Workboat may not be able to enter
+					/*  Mustn't check path b/c Work Boat may not be able to enter
 						the unowned tiles yet. If the area matches, it's a pretty
 						safe bet that the resource is reachable.
 						Also, the GeneratePath call considers only tiles owned
