@@ -69,7 +69,7 @@ namespace BitUtil
 #endif
 };
 
-// advc.enum (not from WtP): Macro for (somehwat) typesafe bitmasks
+// advc.enum (not from WtP): Macro for (somehwat) type-safe bitmasks
 #define OVERRIDE_BITMASK_OPERATORS(EnumType) \
 	inline EnumType operator|(EnumType eLeft, EnumType eRight) \
 	{ \

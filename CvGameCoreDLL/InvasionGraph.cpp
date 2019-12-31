@@ -291,8 +291,8 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 			return bestTarget;
 		// Otherwise, check unit missions, but may still fall back on bestTarget.
 	}
-	/*	If unit missions can matter, then don't search the city cache for the
-		likeliest target yet - b/c that's expensive. */
+	/*	If unit missions can matter, then don't search for the best target yet -
+		b/c that's expensive. */
 	PlayerTypes mostMissions = NO_PLAYER; // Against whom this Node has the most missions
 	// Tbd. possibly: Use a fraction of cache.numNonNavy as the threshold
 	int maxCount = 3;

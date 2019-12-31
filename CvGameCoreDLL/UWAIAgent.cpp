@@ -1699,22 +1699,22 @@ double UWAI::Team::reparationsToHuman(double u) const {
 	double r = u;
 	/*  maxReparations is the upper limit for inter-AI peace;
 		be less generous with humans */
-	double const cap = (4 * maxReparations) / 5;
+	double const top = (4 * maxReparations) / 5;
 	/*  If utility for reparations is above the cap, we become less
 		willing to pay b/c we don't believe that the peace can last. */
-	if(r > cap) {
-		double const bottom = cap / 4.0;
+	if(r > top) {
+		double const bottom = top / 4.0;
 		double const gradient = -1/6.0;
-		double delta = (r - cap);
-		/*	Decreasing linearly from cap to bottom seems a bit too
+		double delta = (r - top);
+		/*	Decreasing linearly from top to bottom seems a bit too
 			steep for small delta. Choose an exponent and divisor
 			so that the delta for which r reaches the bottom
 			remains unchanged (fixpoint). */
-		double const deltaBottom = (-1 / gradient) * (cap - bottom);
+		double const deltaBottom = (-1 / gradient) * (top - bottom);
 		double const div = 3;
 		double const exponent = std::log(deltaBottom * div) / std::log(deltaBottom);
 		delta = std::pow(delta, exponent) / div;
-		r = std::max(bottom, cap + delta * gradient);
+		r = std::max(bottom, top + delta * gradient);
 	}
 	// Trade value based on our economy
 	return utilityToTradeVal(r);

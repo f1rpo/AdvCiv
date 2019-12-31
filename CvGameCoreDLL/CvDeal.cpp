@@ -1007,7 +1007,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	PlayerTypes eCancelPlayer) // advc.130p  advc: refactored
 {
 	bool bTeamTradeEnded = false; // advc.133
-	/*	<advc> Skip some steps when a trade ends throgh the defeat of one party -
+	/*	<advc> Skip some steps when a trade ends through the defeat of one party -
 		to avoid failed assertions */
 	bool bAlive = (GET_PLAYER(eFromPlayer).isAlive() && GET_PLAYER(eToPlayer).isAlive());
 	if (!bAlive)
