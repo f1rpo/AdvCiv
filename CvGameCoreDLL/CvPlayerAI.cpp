@@ -12185,17 +12185,15 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_SPY_SEA:
 		case UNITAI_CARRIER_SEA:
 		case UNITAI_MISSILE_CARRIER_SEA:
-			if (u.getCargoSpace() > 0)
+			if (u.getCargoSpace() > 0 && u.getSpecialCargo() != NO_SPECIALUNIT)
 			{
-				if (u.getSpecialCargo() != NO_SPECIALUNIT)
+				FOR_EACH_ENUM(UnitAI)
 				{
-					for (int i = 0; i < NUM_UNITAI_TYPES; ++i)
+					// advc.001: was ...isCarrierUnitAIType(eUnitAI)
+					if (GC.getInfo((SpecialUnitTypes)u.getSpecialCargo()).isCarrierUnitAIType(eLoopUnitAI))
 					{
-						if (GC.getInfo((SpecialUnitTypes)u.getSpecialCargo()).isCarrierUnitAIType(eUnitAI))
-						{
-							bValid = true;
-							break;
-						}
+						bValid = true;
+						break;
 					}
 				}
 			}
