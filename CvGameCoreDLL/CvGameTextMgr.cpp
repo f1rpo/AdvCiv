@@ -4473,19 +4473,22 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 								iGarrisonStrNeeded));
 					}
 					int const iPriorRevolts = c.getNumRevolts();
-					if(c.canCultureFlip())
+					if (c.canCultureFlip())
 					{
-						szString.append(NEWLINE);
-						szString.append(gDLL->getText("TXT_KEY_MISC_WILL_FLIP"));
+						szString.append(bActiveOwned ? NEWLINE : L" ");
+						szString.append(gDLL->getText(bActiveOwned ?
+								"TXT_KEY_MISC_WILL_FLIP" : "TXT_KEY_MISC_WILL_FLIP_SHORT"));
 					}
-					else if(iPriorRevolts > 0)
+					else if (iPriorRevolts > 0)
 					{
-						szString.append(NEWLINE);
+						szString.append(bActiveOwned ? NEWLINE : L" (");
 						szString.append(gDLL->getText("TXT_KEY_MISC_PRIOR", iPriorRevolts));
+						if (!bActiveOwned)
+							szString.append(L" )");
 					}
 					szString.append(NEWLINE);
 				} // <advc.023>
-				if(prDecrement > 0)
+				if (prDecrement > 0)
 				{
 					wchar floatBuffer[1024];
 					swprintf(floatBuffer, L"%.1f", (float)(100 * prDecrement));

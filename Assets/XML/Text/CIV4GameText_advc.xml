@@ -101,11 +101,19 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MISC_WILL_FLIP</Tag>
-		<English>will flip!</English>
-		<French>convertira !</French>
-		<German>wird überlaufen!</German>
-		<Italian>convertir&#224;!</Italian>
-		<Spanish>&#161;convertir&#225;!</Spanish>
+		<English>Will flip!</English>
+		<French>Convertira !</French>
+		<German>Wird überlaufen!</German>
+		<Italian>Convertir&#224;!</Italian>
+		<Spanish>&#161;Convertir&#225;!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_FLIP_SHORT</Tag>
+		<English>(will flip!)</English>
+		<French>(convertira !)</French>
+		<German>(wird überlaufen!)</German>
+		<Italian>(convertir&#224;!)</Italian>
+		<Spanish>(&#161;convertir&#225;!)</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_NO_REVOLT_IN_OCCUPATION</Tag>
