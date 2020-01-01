@@ -492,7 +492,8 @@ public:
 	int AI_getTotalFloatingDefenseNeeded() const;
 
 
-	int AI_getTotalAreaCityThreat(CvArea* pArea) const;
+	int AI_getTotalAreaCityThreat(CvArea const& kArea) const;
+	int AI_getAreaCultureDefendersNeeded(CvArea const& kArea) const; // advc.099c
 	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
 			CvPlot* pCenter = NULL) const; // advc.081
 	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea,

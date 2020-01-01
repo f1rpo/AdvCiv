@@ -5344,8 +5344,10 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		szString.append(CvWString::format(L"\nDefenders [D+A]/N ([%d + %d] / %d)",
 				iCityDefenders, iAttackGroups, pPlotCity->AI_neededDefenders(
 				false, true))); // advc.001n
-		szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)",
-				kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()),
+		// <advc.007>
+		szString.append(CvWString::format(L"\nFloating Defenders Target: %d",
+				pPlotCity->AI_neededFloatingDefenders(true, true)));
+		szString.append(CvWString::format(L"\nArea Floating Def. H/N (%d / %d)", // </advc.007>_getTotalFloatingDefenders(pPlotCity->area()),
 				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area(),
 				true))); // advc.007
 		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)",

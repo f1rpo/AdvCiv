@@ -69,6 +69,7 @@ public:
 			bool bConstCache = false) const;
 	// was void AI_updateNeededFloatingDefenders()
 	int AI_calculateNeededFloatingDefenders(bool bConstCache) const; // </advc.001n>
+	int AI_neededCultureDefenders() const; // advc.099c
 	// <advc.139>
 	void AI_updateSafety();
 	inline bool AI_isEvacuating() const { return m_bEvacuate; }

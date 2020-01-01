@@ -6382,23 +6382,10 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		if(isCapital() && kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			iDefenders += 6;
 	}
-	// <advc.099c>
-	PlayerTypes eCulturalOwner = calculateCulturalOwner();
-	if(eCulturalOwner != kOwner.getID() && !kOwner.AI_isFocusWar(area()) &&
-		(revoltProbability(true, true) > 0 ||
-		(isOccupation() && probabilityOccupationDecrement() < 0.77)))
-	{
-		/*  I'm not sure how high cultureStrength can go, so the 200 is ad hoc.
-			50% of population plus a little extra should be enough to hold onto
-			cities captured from culturally weak civs. */
-		double cultureFactor = cultureStrength(eCulturalOwner) / 200.0;
-		int iPriorRevolts = getNumRevolts(eCulturalOwner);
-		iDefenders = std::max(iDefenders, std::min(::round(getPopulation() / 2.0 +
-				1.5 * iPriorRevolts + cultureFactor * getPopulation()),
-				getPopulation()));
-	} // </advc.099c>
-	iDefenders = std::max(iDefenders, AI_minDefenders());
 
+	iDefenders = std::max(iDefenders, AI_neededCultureDefenders()); // advc.099c
+
+	iDefenders = std::max(iDefenders, AI_minDefenders());
 	return iDefenders;
 } // BETTER_BTS_AI_MOD: END
 
@@ -6434,22 +6421,73 @@ int CvCityAI::AI_neededFloatingDefenders(/* <advc.139> */ bool bIgnoreEvac,
 
 int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache) const
 {
-	int iFloatingDefenders = GET_PLAYER(getOwner()).AI_getTotalFloatingDefendersNeeded(area());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvArea const& kArea = *area();
 
-	int iTotalThreat = std::max(1, GET_PLAYER(getOwner()).AI_getTotalAreaCityThreat(area()));
+	int iFloatingDefenders = kOwner.AI_getTotalFloatingDefendersNeeded(kArea);
+	iFloatingDefenders -= kArea.getCitiesPerPlayer(getOwner());
 
-	iFloatingDefenders -= area()->getCitiesPerPlayer(getOwner());
-
+	int iTotalThreat = std::max(1, kOwner.AI_getTotalAreaCityThreat(kArea));
 	iFloatingDefenders *= AI_cityThreat();
 	iFloatingDefenders += (iTotalThreat / 2);
 	iFloatingDefenders /= iTotalThreat;
+	// <advc.099c>
+	{
+		int iCultureDefendersNeeded = AI_neededCultureDefenders() - AI_minDefenders();
+		iFloatingDefenders = std::max(iFloatingDefenders, iCultureDefendersNeeded);
+	} // </advc.099c>
 
-	if(!bConstCache) // advc.001n
+	if (!bConstCache) // advc.001n
 	{
 		m_iNeededFloatingDefenders = iFloatingDefenders;
 		m_iNeededFloatingDefendersCacheTurn = GC.getGame().getGameTurn();
 	}
 	return iFloatingDefenders; // advc.001n
+}
+
+// advc.099c:
+int CvCityAI::AI_neededCultureDefenders() const
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	if (plot()->calculateCulturePercent(kOwner.getID()) >= 50)
+		return 0; // To save time
+	PlayerTypes eCulturalOwner = calculateCulturalOwner();
+	if(eCulturalOwner == kOwner.getID() || revoltProbability(true, true) <= 0)
+		return 0;
+
+	int const iPop = getPopulation();
+	bool const bWillFlip = canCultureFlip(eCulturalOwner);
+	double targetPr = std::max(0.0, 0.05 - iPop / 1000.0);
+	if (bWillFlip)
+		targetPr = 0;
+	else if (getNumRevolts(eCulturalOwner) > 0)
+		targetPr /= 4;
+	int const iCultureStr = cultureStrength(eCulturalOwner);
+	// Based on the formula in CvCity::revoltProbability
+	double targetGarrisonStr = iCultureStr - iCultureStr * targetPr /
+			std::max(0.01, getRevoltTestProbability());
+
+	int const iEra = kOwner.getCurrentEra();
+	double r = ::ceil(targetGarrisonStr /
+			std::max((iEra + 0.5) * (iEra < 4 ? 3 : 4), 3.0));
+	if (r > std::max(iPop, 3 + iEra))
+		return 0; // Not worth it
+	if (isOccupation())
+		r++;
+	else if (kOwner.AI_isFocusWar(area()) &&
+		// Don't move out units until war is imminent
+		!GET_TEAM(kOwner.getTeam()).AI_isSneakAttackPreparing())
+	{
+		if (!bWillFlip)
+			r /= 2;
+		else
+		{
+			int iWSRating = range(GET_TEAM(kOwner.getTeam()).
+					AI_getWarSuccessRating(), -100, 100);
+			r *= 0.75 + iWSRating / 400.0;
+		}
+	}
+	return ::round(r);
 }
 
 // This function has been completely rewritten for K-Mod. (The original code has been deleted.)

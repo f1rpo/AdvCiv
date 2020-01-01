@@ -23374,17 +23374,29 @@ int CvPlayerAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 }
 
 
-int CvPlayerAI::AI_getTotalAreaCityThreat(CvArea* pArea) const
+int CvPlayerAI::AI_getTotalAreaCityThreat(CvArea const& kArea) const // advc: was CvArea*
 {
 	PROFILE_FUNC();
-
-	int iValue = 0;
-	FOR_EACH_CITYAI(pLoopCity, *this)
+	int r = 0;
+	FOR_EACH_CITYAI(pCity, *this)
 	{
-		if (pLoopCity->getArea() == pArea->getID())
-			iValue += pLoopCity->AI_cityThreat();
+		if (pCity->getArea() == kArea.getID())
+			r += pCity->AI_cityThreat();
 	}
-	return iValue;
+	return r;
+}
+
+// advc.099c:
+int CvPlayerAI::AI_getAreaCultureDefendersNeeded(CvArea const& kArea) const
+{
+	PROFILE_FUNC();
+	int r = 0;
+	FOR_EACH_CITYAI(pCity, *this)
+	{
+		if (pCity->getArea() == kArea.getID())
+			r += pCity->AI_neededCultureDefenders();
+	}
+	return r;
 }
 
 int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam,
@@ -23562,7 +23574,14 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
 		}
 		iDefendersPermil = std::min(iDefendersPermil, iUpperBound); // </advc.107>
 	}
-
+	// <advc.099c> A little extra for quelling revolts
+	int iCultureDefendersNeeded = AI_getAreaCultureDefendersNeeded(kArea);
+	if (iDefendersPermil < 2250 * iCultureDefendersNeeded)
+	{
+		// Proper defenders should mostly be able to double as culture defenders
+		iDefendersPermil += std::min((iDefendersPermil * 25) / 100,
+				iCultureDefendersNeeded * 300);
+	} // </advc.099c>
 	return iDefendersPermil / 1000;
 }
 
