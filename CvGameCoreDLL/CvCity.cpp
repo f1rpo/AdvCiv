@@ -810,13 +810,11 @@ void CvCity::doRevolt()
 			CvPlayer::acquireCity). */
 		return;
 	}
-	/* K-Mod, 11/jan/11, karadoc
-	** Changed number of revolt turns to not depend on iCityStrength,
-	** because iCityStrength can be huge. */
-	/* original bts code
-	pCity->changeOccupationTimer(GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
+	/*	K-Mod, 11/jan/11 :Changed number of revolt turns to not depend on iCityStrength,
+		because iCityStrength can be huge. */
+	/*pCity->changeOccupationTimer(GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
 	+ ((iCityStrength * GC.getDefineINT("REVOLT_OCCUPATION_TURNS_PERCENT")) /
-	100));*/
+	100));*/ // BtS
 	// <advc.023>
 	/*  Removed factor 2 from the second summand. K-Mod 1.45 changelog said:
 		'Decreased the duration of revolts from
@@ -1314,8 +1312,7 @@ int CvCity::findPopulationRank() const
 {
 	if (!m_bPopulationRankValid)
 	{
-		/* original bts code
-		int iRank = 1;
+		/*int iRank = 1;
 		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner())) {
 			if ((pLoopCity->getPopulation() > getPopulation()) ||
 					((pLoopCity->getPopulation() == getPopulation()) && (pLoopCity->getID() < getID())))
@@ -1323,7 +1320,7 @@ int CvCity::findPopulationRank() const
 		}
 		// shenanigans are to get around the const check
 		m_bPopulationRankValid = true;
-		m_iPopulationRank = iRank; */
+		m_iPopulationRank = iRank;*/ // BtS
 		// K-Mod. Set all ranks at the same time.
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
@@ -1352,8 +1349,7 @@ int CvCity::findBaseYieldRateRank(YieldTypes eYield) const
 {
 	if (!m_abBaseYieldRankValid[eYield])
 	{
-		/* original bts code
-		int iRate = getBaseYieldRate(eYield);
+		/*int iRate = getBaseYieldRate(eYield);
 		int iRank = 1;
 		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()) {
 			if ((pLoopCity->getBaseYieldRate(eYield) > iRate) ||
@@ -1361,7 +1357,7 @@ int CvCity::findBaseYieldRateRank(YieldTypes eYield) const
 				iRank++;
 		}
 		m_abBaseYieldRankValid[eYield] = true;
-		m_aiBaseYieldRank[eYield] = iRank; */
+		m_aiBaseYieldRank[eYield] = iRank;*/ // BtS
 		// K-Mod. Set all ranks at the same time.
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
@@ -1390,8 +1386,7 @@ int CvCity::findYieldRateRank(YieldTypes eYield) const
 {
 	if (!m_abYieldRankValid[eYield])
 	{
-		/* original bts code
-		int iRate = getYieldRate(eYield);
+		/*int iRate = getYieldRate(eYield);
 		int iRank = 1;
 		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner())) {
 			if ((pLoopCity->getYieldRate(eYield) > iRate) ||
@@ -1399,7 +1394,7 @@ int CvCity::findYieldRateRank(YieldTypes eYield) const
 				iRank++;
 		}
 		m_abYieldRankValid[eYield] = true;
-		m_aiYieldRank[eYield] = iRank; */
+		m_aiYieldRank[eYield] = iRank;*/ // BtS
 		// K-Mod. Set all ranks at the same time.
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
@@ -1428,8 +1423,7 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 {
 	if (!m_abCommerceRankValid[eCommerce])
 	{
-		/* original bts code
-		int iRate = getCommerceRateTimes100(eCommerce);
+		/*int iRate = getCommerceRateTimes100(eCommerce);
 		int iRank = 1;
 		FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()) {
 			if ((pLoopCity->getCommerceRateTimes100(eCommerce) > iRate) ||
@@ -1437,7 +1431,7 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 				iRank++;
 		}
 		m_abCommerceRankValid[eCommerce] = true;
-		m_aiCommerceRank[eCommerce] = iRank; */
+		m_aiCommerceRank[eCommerce] = iRank;*/ // BtS
 		// K-Mod. Set all ranks at the same time.
 		const CvPlayer& kPlayer = GET_PLAYER(getOwner());
 
@@ -4174,12 +4168,10 @@ int CvCity::extraFreeSpecialists() const
 
 int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 {
-	/*  K-Mod, 27/dec/10, karadoc
-		replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
-	/* original bts code
-	if (isNoUnhealthyPopulation())
+	// K-Mod, 27/dec/10: replaced with UnhealthyPopulationModifier
+	/*if (isNoUnhealthyPopulation())
 		return 0;
-	return std::max(0, getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0));*/
+	return std::max(0, getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0));*/ // BtS
 	int iUnhealth = getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0);
 	iUnhealth *= std::max(0, 100 + getUnhealthyPopulationModifier());
 	iUnhealth = ROUND_DIVIDE(iUnhealth, 100);
@@ -6443,10 +6435,9 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 			}
 		}
 	}
-	/* original bts code
 	// No Unhealthiness from Population
-	if (kBuilding.isNoUnhealthyPopulation())
-		iBad -= getPopulation();*/
+	/*if (kBuilding.isNoUnhealthyPopulation())
+		iBad -= getPopulation();*/ // BtS
 	/*  K-Mod, 27/dec/10, karadoc (start)
 		replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
 	// Modified unhealthiness from population
@@ -6796,8 +6787,7 @@ void CvCity::changeNoUnhappinessCount(int iChange)
 
 /*  K-Mod, 27/dec/10, karadoc
 	replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
-/* original bts code
-int CvCity::getNoUnhealthyPopulationCount()	const {
+/*int CvCity::getNoUnhealthyPopulationCount()	const {
 	return m_iNoUnhealthyPopulationCount;
 }
 bool CvCity::isNoUnhealthyPopulation() const {
@@ -6811,7 +6801,7 @@ void CvCity::changeNoUnhealthyPopulationCount(int iChange) {
 		FAssert(getNoUnhealthyPopulationCount() >= 0);
 		AI_setAssignWorkDirty(true);
 	}
-}*/
+}*/ // BtS
 
 int CvCity::getUnhealthyPopulationModifier() const
 {
@@ -7816,11 +7806,11 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 		// ONEVENT - Culture growth
 		CvEventReporter::getInstance().cultureExpansion(this, getOwner());
 		//Stop Build Culture
-		/* original BTS code
-		if (isProductionProcess()) {
+		/*if (isProductionProcess()) {
 			if (GC.getInfo(getProductionProcess()).getProductionToCommerceModifier(COMMERCE_CULTURE) > 0)
 					popOrder(0, false, true);
-		} */ /* K-Mod does this in a different way, to avoid an overflow bug.
+		}*/ // BtS
+		/*	K-Mod does this in a different way, to avoid an overflow bug.
 			(And a different way to the Unofficial Patch, to avoid OOS) */
 	}
 }
@@ -11636,15 +11626,14 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 	order.iData2 = iData2;
 	order.bSave = bSave;
 
-	/* original bts code
-	if (bAppend)
+	/*if (bAppend)
 		m_orderQueue.insertAtEnd(order);
 	else {
 		stopHeadOrder();
 		m_orderQueue.insertAtBeginning(order);
 	}
 	if (!bAppend || (getOrderQueueLength() == 1))
-		startHeadOrder();*/
+		startHeadOrder();*/ // BtS
 	// K-Mod
 	if (iPosition == 0 || getOrderQueueLength() == 0)
 	{
@@ -14969,8 +14958,7 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 {
 	if(iPopulation < 0)
 		iPopulation = initialPopulation();
-	/* original bts code
-	CvCity* pLoopCity;
+	/*CvCity* pLoopCity;
 	int iWorstCityMaintenance;
 	int iBestCapitalMaintenance;
 	int iTempMaintenance;
@@ -14978,7 +14966,8 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 	iWorstCityMaintenance = 0;
 	iBestCapitalMaintenance = MAX_INT;
 	for (pLoopCity = GET_PLAYER(getOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwner()).nextCity(&iLoop))
-		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY()));*/
+		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") *
+				plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY()));*/ // BtS
 	// K-Mod, 17/dec/10
 	// Moved the search for maintenance distance to a separate function and improved the efficiency
 	int iTempMaintenance = 100 * GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) *
@@ -14998,12 +14987,11 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 
 		iTempMaintenance /= GC.getMap().maxPlotDistance();
 
-	/* original bts code
-		iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
+	/*iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
 		if (pLoopCity->isGovernmentCenter())
 			iBestCapitalMaintenance = std::min(iBestCapitalMaintenance, iTempMaintenance);
 	}
-	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);*/
+	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);*/ // BtS
 	// K-Mod end
 	FAssert(iTempMaintenance >= 0);
 	return iTempMaintenance;
@@ -15063,9 +15051,8 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 	}
 
 	iNumVassalCities /= std::max(1, GET_TEAM(eOwner).getNumMembers());
-	/* original BTS code
-	int iNumCitiesMaintenance = (GET_PLAYER(getOwner()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;
-	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100); */
+	/*int iNumCitiesMaintenance = (GET_PLAYER(getOwner()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;
+	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100);*/ // BtS
 	// K-Mod, 04/sep/10, karadoc
 	// Reduced vassal maintenance and removed maintenance cap
 	int iNumCitiesMaintenance = (GET_PLAYER(eOwner).getNumCities()
@@ -15110,8 +15097,7 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	int iNumCities = (kCityArea.getCitiesPerPlayer(eOwner) - 1 + iExtraCities) *
 			iNumCitiesPercent;
 	int iMaintenance = (iNumCities * iNumCities) / 100;
-	/* original bts code
-	iMaintenance = std::min(iMaintenance, (GC.getInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);*/
+	//iMaintenance = std::min(iMaintenance, (GC.getInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);
 	/*  K-Mod, 17/dec/10, karadoc
 		Changed colony maintenance cap to not include distance maintenance modifiers (such as state property) */
 	int iMaintenanceCap = 100 * GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) *

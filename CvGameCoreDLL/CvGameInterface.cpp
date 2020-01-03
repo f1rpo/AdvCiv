@@ -2583,10 +2583,9 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 {
 	EndTurnButtonStates eNewState = END_TURN_GO;
 
-	/* original bts code
-	if ((isNetworkMultiPlayer() &&
+	/*if ((isNetworkMultiPlayer() &&
 		(isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && 1 == countNumHumanGameTurnActive() ||
-		(!isSimultaneousTeamTurns() && 1 == GET_TEAM(getActiveTeam()).countNumHumanGameTurnActive() && GET_TEAM(getActiveTeam()).getAliveCount() > 1)))) */
+		(!isSimultaneousTeamTurns() && 1 == GET_TEAM(getActiveTeam()).countNumHumanGameTurnActive() && GET_TEAM(getActiveTeam()).getAliveCount() > 1))))*/ // BtS
 	// K-Mod. Don't use GET_TEAM in pitboss mode. (and note, I've fixed a typo in the parentheses.)
 	if (isNetworkMultiPlayer() && getActiveTeam() != NO_TEAM &&
 		((isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && 1 == countNumHumanGameTurnActive()) ||

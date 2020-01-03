@@ -536,9 +536,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				break;
 			}
 			case 2:
-				/* original BTS code
-				if (pLoopUnit->cargoSpace() > 0)
-					bValid = true;*/
+				/*if (pLoopUnit->cargoSpace() > 0)
+					bValid = true;*/ // BtS
 				// Only normal transports
 				if (pLoopUnit->cargoSpace() > 0 && pLoopUnit->specialCargo() == NO_SPECIALUNIT)
 				{
@@ -552,8 +551,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 
 				break;
 			case 3:
-				/* original BTS code
-				bValid = true; */
+				//bValid = true; // BtS
 				bValid = iStartingGold - getGold() < iUpgradeBudget;
 				break;
 			default:
@@ -567,7 +565,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 			bool bKilled = false;
 			if (!bNoDisband)
 			{
-				//if (pLoopUnit->canFight()) // original bts code
+				//if (pLoopUnit->canFight()) // BtS
 				if (pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT) // K-Mod - bug fix for the rare case of a barb city spawning on top of an animal
 				{
 					int iExp = pLoopUnit->getExperience();
@@ -1234,8 +1232,7 @@ void CvPlayerAI::AI_unitUpdate()
 			}
 		}
 
-		/* original bts code
-		if (isHuman()) {
+		/*if (isHuman()) {
 			pCurrUnitNode = headGroupCycleNode();
 			while (pCurrUnitNode != NULL) {
 				CvSelectionGroup* pLoopSelectionGroup = getSelectionGroup(pCurrUnitNode->m_data);
@@ -1244,11 +1241,10 @@ void CvPlayerAI::AI_unitUpdate()
 					break; // pointers could become invalid...
 			}
 		}
-		else */
+		else*/ // BtS
 		if (!isHuman()) /*  K-Mod - automated actions are no longer done from this function.
 							Instead, they are done in CvGame::updateMoves */ {
-			/* original bts code
-			tempGroupCycle.clear();
+			/*tempGroupCycle.clear();
 			finalGroupCycle.clear();
 			pCurrUnitNode = headGroupCycleNode();
 			while (pCurrUnitNode != NULL) {
@@ -1277,7 +1273,7 @@ void CvPlayerAI::AI_unitUpdate()
 						break; // pointers could become invalid...
 				}
 				pCurrUnitNode = finalGroupCycle.next(pCurrUnitNode);
-			} */
+			}*/ // BtS
 			// K-Mod. It seems to me that all we're trying to do is run AI_update
 			// on the highest priority groups until one of them becomes busy.
 			// ... if only they had used the STL, this would be a lot easier.
@@ -1716,7 +1712,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 					// K-Mod
 					GET_TEAM(getTeam()).AI_getWarPlan(kPreviousTeam.getID()) == WARPLAN_TOTAL);
 
-			/* original code (advc: Deleted most of it)
+			/* BtS code (advc: Deleted most of it)
 			if (GET_TEAM(getTeam()).countNumCitiesByArea(pCity->getArea()) == 0)
 			{	// Conquered city in new continent/island
 				int iBestValue;
@@ -2132,12 +2128,11 @@ DomainTypes CvPlayerAI::AI_unitAIDomainType(UnitAITypes eUnitAI) const
 
 
 int CvPlayerAI::AI_yieldWeight(YieldTypes eYield, const CvCity* pCity) const // K-Mod added city argument
-{	/* original bts code
-	if (eYield == YIELD_PRODUCTION) {
+{	/*if (eYield == YIELD_PRODUCTION) {
 		int iProductionModifier = 100 + (30 * std::max(0, GC.getGame().getCurrentEra() - 1) / std::max(1, (GC.getNumEraInfos() - 2)));
 		return (GC.getInfo(eYield).getAIWeightPercent() * iProductionModifier) / 100;
 	}
-	return GC.getInfo(eYield).getAIWeightPercent(); */
+	return GC.getInfo(eYield).getAIWeightPercent();*/ // BtS
 	// K-Mod. In the past, this function was always bundled with some code to boost the value of production and food...
 	// For simplicity and consistency, I've brought the adjustments into this function.
 	PROFILE_FUNC();
@@ -2934,7 +2929,7 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTest
 				if (atWar(pLoopPlot->getTeam(), eTeam) &&
 					// advc.300: Don't worry about Barbarian borders
 					pLoopPlot->getTeam() != BARBARIAN_TEAM)
-				{	/* original bbai code
+				{	/* BBAI code
 					// Border cache is reversible, set for both team and enemy.
 					if (iDistance == 1) {
 						kPlot.setBorderDangerCache(eTeam, true);
@@ -3202,9 +3197,8 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMove
 	// K-Mod end
 
 	if (iBorderDanger > 0)
-	{	/* original bts code
-		if(!isHuman() && !kPlot.isCity())
-			iCount += iBorderDanger;*/
+	{	/*if(!isHuman() && !kPlot.isCity())
+			iCount += iBorderDanger;*/ // BtS
 		// K-Mod. I don't want auto-workers on the frontline. So count border danger for humans too, unless the plot is defended.
 		// but on the other hand, I don't think two border tiles are really more dangerous than one border tile.
 		// (cf. condition used in AI_getAnyPlotDanger. Note that here we still count border danger in cities - because I want it for AI_cityThreat)
@@ -3376,14 +3370,13 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 	if (GC.getGame().getElapsedGameTurns() >= 40
 			|| getNumCities() > 3) // UNOFFICIAL_PATCH, Bugfix, 02/24/10, jdog5000
 	{
-		/* original bts code
-		int iMultiplier = 0;
+		/*int iMultiplier = 0;
 		iMultiplier += GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent();
 		iMultiplier += GC.getInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
 		iMultiplier += GC.getInfo(GC.getGame().getGameSpeedType()).getConstructPercent();
 		iMultiplier /= 3;
 		iGold += ((getNumCities() * 3) + (getTotalPopulation() / 3));
-		iGold += (GC.getGame().getElapsedGameTurns() / 2);*/
+		iGold += (GC.getGame().getElapsedGameTurns() / 2);*/ // BtS
 		// K-mod. Does slower research mean we need to keep more gold? Does slower building?
 		// Surely the raw turn count is the one that needs to be adjusted for speed!
 		if (!AI_atVictoryStage(AI_VICTORY_CULTURE4))
@@ -3403,12 +3396,10 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		/*iGold *= iMultiplier;
 		iGold /= 100;*/
 
-		/* original bts code
-		if (bAnyWar)
-		{
+		/*if (bAnyWar) {
 			iGold *= 3;
 			iGold /= 2;
-		} */ // K-Mod. I don't think we need this anymore.
+		} */ // BtS - K-Mod: I don't think we need this anymore.
 
 		if (AI_avoidScience())
 		{
@@ -3417,8 +3408,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 
 		//iGold += (AI_getGoldToUpgradeAllUnits() / (bAnyWar ? 1 : 2)); // obsolete (K-Mod)
 
-		/* original bts code
-		CorporationTypes eActiveCorporation = NO_CORPORATION;
+		/*CorporationTypes eActiveCorporation = NO_CORPORATION;
 		for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++) {
 			if (getHasCorporationCount((CorporationTypes)iI) > 0) {
 				eActiveCorporation = (CorporationTypes)iI;
@@ -3429,7 +3419,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 			int iSpreadCost = std::max(0, GC.getInfo(eActiveCorporation).getSpreadCost() * (100 + calculateInflationRate()));
 			iSpreadCost /= 50;
 			iGold += iSpreadCost;
-		} */
+		}*/ // BtS
 		// K-Mod
 		int iSpreadCost = 0;
 
@@ -4409,12 +4399,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
  		if (kTechInfo.isCommerceFlexible(eLoopCommerce))
  		{
 			iCommerceValue += 40 + 4 * iCityCount;
- 			/* original
- 			iValue += 4 * iCityCount * (3*AI_averageCulturePressure()-200) / 100;
+ 			/*iValue += 4 * iCityCount * (3*AI_averageCulturePressure()-200) / 100;
  			if (i == COMMERCE_CULTURE && AI_atVictoryStage(AI_VICTORY_CULTURE2))
- 			{
- 				iValue += 280;
- 			} */
+ 				iValue += 280;*/ // BtS
  		}
 
  		if (iCommerceValue)
@@ -4475,8 +4462,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		{
 			int iTempValue = 0;
 
-			/* original code
-			iTempValue += (GC.getInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK) * getImprovementCount((ImprovementTypes)iJ) * 50); */
+			/*iTempValue += (GC.getInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK) * getImprovementCount((ImprovementTypes)iJ) * 50);*/ // BtS
 			// Often, an improvement only becomes viable after it gets the tech bonus.
 			// So it's silly to score the bonus proportionally to how many of the improvements we already have.
 			iTempValue += GC.getInfo(eLoopImprovement).getTechYieldChanges(eTech, eLoopYield)
@@ -5060,14 +5046,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		// note: K-mod has moved this section from out of the first-discoverer block
 		FOR_EACH_ENUM(Corporation)
 		{
-			/* original bts code
-			if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech)
-			{
-				if (!GC.getGame().isCorporationFounded(eLoopCorporation))
-				{
+			/*if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech) {
+				if (!GC.getGame().isCorporationFounded(eLoopCorporation)) {
 					iValue += 100 + ((bAsync) ? getASyncRand().get(2400, "AI Research Corporation ASYNC") : GC.getGame().getSorenRandNum(2400, "AI Research Corporation"));
 				}
-			} */
+			}*/ // BtS
 			// K-Mod
 			if (!GC.getGame().isCorporationFounded(eLoopCorporation))
 			{
@@ -5165,14 +5148,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			FOR_EACH_ENUM(Religion)
 			{
 				TechTypes eReligionTech = (TechTypes)GC.getInfo(eLoopReligion).getTechPrereq();
-				/* original bts code
-				if (kTeam.isHasTech(eReligionTech))
-				{
+				/*if (kTeam.isHasTech(eReligionTech)) {
 					if (!(GC.getGame().isReligionSlotTaken((ReligionTypes)iJ)))
-					{
 						iPotentialReligions++;
-					}
-				} */
+				}*/ // BtS
 				// K-Mod. iPotentialReligions will only be non-zero during the first few turns of advanced start games. Otherwise it is always zero.
 				// Presumably that's what the original developers intended... so I'm going to leave that alone, and create a new value: iAvailableReligions.
 				if (!GC.getGame().isReligionSlotTaken(eLoopReligion))
@@ -5440,13 +5419,12 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	if (AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		int iCVValue = AI_cultureVictoryTechValue(eTech);
-		/* original bts code
-		iValue *= (iCVValue + 10);
-		iValue /= ((iCVValue < 100) ? 400 : 100); */
+		/*iValue *= (iCVValue + 10);
+		iValue /= ((iCVValue < 100) ? 400 : 100);*/ // BtS
 		// K-Mod. I don't think AI_cultureVictoryTechValue is accurate enough to play such a large role.
 		iValue *= (iCVValue + 100);
 		iValue /= 200;
-		// K-Mod
+		// K-Mod end
 	}
 
 	/*  K-Mod, 12/sep/10, Karadoc
@@ -7791,13 +7769,12 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 	{
 		TeamTypes eSecretaryGeneral = g.getSecretaryGeneral(eVoteSource);
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-		/* original BTS code
-		if (!bPropose) {
+		/*if (!bPropose) {
 			if (eSecretaryGeneral != NO_TEAM) {
 				if (eSecretaryGeneral == getTeam() ||(GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral) == ATTITUDE_FRIENDLY))
 					return PLAYER_VOTE_YES;
 			}
-		}*/
+		}*/ // BtS
 		// Remove blanket auto approval for friendly secretary
 		bool bFriendlyToSecretary = false;
 		// dlph.25: (The bRepeal code is really advc code)
@@ -7842,10 +7819,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 			int iNewCivicValue = AI_civicValue((CivicTypes)iI);
 
 			// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-			/* original BTS code
-			if (iBestCivicValue > ((iNewCivicValue * 120) / 100)) {
+			/*if (iBestCivicValue > ((iNewCivicValue * 120) / 100)) {
 				bValid = false;
-			if (iBestCivicValue > ((iNewCivicValue * (140 + (GC.getGame().getSorenRandNum(120, "AI Erratic Defiance (Force Civic)"))) / 100)))*/
+			if (iBestCivicValue > ((iNewCivicValue * (140 + (GC.getGame().getSorenRandNum(120, "AI Erratic Defiance (Force Civic)"))) / 100)))*/ // BtS
 			// Increase threshold of voting for friend's proposal
 			if (bFriendlyToSecretary)
 			{
@@ -8360,10 +8336,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					bValid = true;
 				}
 				// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				/* original BTS code
-				else if (eWarTeam == getTeam())
+				/*else if (eWarTeam == getTeam())
 					bValid = false;
-				else if (GET_TEAM(eWarTeam).isAtWar(getTeam()))*/
+				else if (GET_TEAM(eWarTeam).isAtWar(getTeam()))*/ // BtS
 				else if (eWarTeam == getTeam() || kOurTeam.isVassal(eWarTeam))
 				{
 					// Explicit rejection by all who will definitely be attacked
@@ -8377,10 +8352,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				}
 				else
 				{	// BETTER_BTS_AI_MOD, Diplomacy AI, 07/20/09, jdog5000: START
-					/* original BTS code
-					bValid = (bPropose || NO_DENIAL == GET_TEAM(getTeam()).AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
+					/*bValid = (bPropose || NO_DENIAL == GET_TEAM(getTeam()).AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
 					if (bValid)
-						bValid = (GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) < ATTITUDE_CAUTIOUS);*/
+						bValid = (GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) < ATTITUDE_CAUTIOUS);*/ // BtS
 					if (!bPropose && isAVassal())
 					{
 						// Vassals always deny war trade requests and thus previously always voted no
@@ -9074,9 +9048,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 				return false;
 		}
 	} // </advc.036>
-	/* original bts code
-	iHumanDealWeight = AI_dealVal(ePlayer, pTheirList);
-	iAIDealWeight = GET_PLAYER(ePlayer).AI_dealVal(getID(), pOurList); */
+	/*iHumanDealWeight = AI_dealVal(ePlayer, pTheirList);
+	iAIDealWeight = GET_PLAYER(ePlayer).AI_dealVal(getID(), pOurList);*/ // BtS
 	// K-Mod note: the original code had the human and AI weights the wrong way around.
 	// I found this confusing, so I've corrected it throughout this function.
 	// (Under normal usage of this fuction, the AI player counters the human proposal - so "they" are human, not us.)
@@ -9225,8 +9198,7 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 				leniency, false,
 				iHappyLeft, iHealthLeft, pOurList->getLength()); // advc.036
 	}
-	/* original bts code
-	return ((iValueForThem <= iValueForUs) && ((pOurList->getLength() > 0) || (pOurCounter->getLength() > 0) || (pTheirCounter->getLength() > 0))); */
+	/*return ((iValueForThem <= iValueForUs) && ((pOurList->getLength() > 0) || (pOurCounter->getLength() > 0) || (pTheirCounter->getLength() > 0)));*/ // BtS
 
 	// K-Mod. This function now needs to handle AI - AI deals, and human auto-counters to AI suggested deals.
 	if (pOurList->getLength() == 0 && pOurCounter->getLength() == 0 && pTheirCounter->getLength() == 0)
@@ -9964,8 +9936,7 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeam
 	}
 	/*else
 	{*/ // </advc>
-	/* original bts code
-	iMaxGold = getTotalPopulation();
+	/*iMaxGold = getTotalPopulation();
 	iMaxGold *= (GET_TEAM(getTeam()).AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 10);
 	iMaxGold *= GC.getInfo(getPersonalityType()).getMaxGoldTradePercent();
 	iMaxGold /= 100;
@@ -9975,7 +9946,7 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeam
 	iResearchBuffer /= 100;
 	iMaxGold = std::min(iMaxGold, getGold() - iResearchBuffer);
 	iMaxGold = std::min(iMaxGold, getGold());
-	iMaxGold -= (iMaxGold % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER")); */
+	iMaxGold -= (iMaxGold % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER"));*/ // BtS
 
 	// K-Mod. Similar, but with more personality, and with better handling of situations where the AI has lots of spare gold.
 	int iTradePercent = GC.getInfo(getPersonalityType()).getMaxGoldTradePercent();
@@ -11208,9 +11179,8 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 		CvPlot* pLoopPlot = plotCity(kCity.getX(), kCity.getY(), iI);
 		if (pLoopPlot != NULL)
 		{
-			/* original bts code
-			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-				iValue += (AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true) * 10);*/
+			/*if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
+				iValue += (AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true) * 10);*/ // BtS
 			// K-Mod. Use average of our value for gaining the bonus, and their value for losing it.
 			int iBonusValue = 0;
 			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
@@ -14077,14 +14047,13 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const
 		int iDistance = ::stepDistance(pCity->getX(), pCity->getY(),
 			pMissionPlot->getX(), pMissionPlot->getY());
 		if (iDistance <= 1 && pLoopSelectionGroup->canFight())
-		{	/* original bbai code
-			int iPathTurns;
+		{	/*int iPathTurns;
 			if (pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pMissionPlot, 0, true, &iPathTurns, iMaxPathTurns)) {
-			if (!pLoopSelectionGroup->canAllMove())
-			iPathTurns++;
-			if (iPathTurns <= iMaxPathTurns)
-			iCount += pLoopSelectionGroup->getNumUnits();
-			} */
+				if (!pLoopSelectionGroup->canAllMove())
+					iPathTurns++;
+				if (iPathTurns <= iMaxPathTurns)
+					iCount += pLoopSelectionGroup->getNumUnits();
+			}*/ // BtS
 			temp_finder.SetSettings(CvPathSettings(pLoopSelectionGroup, 0, iMaxPathTurns, GC.getMOVE_DENOMINATOR()));
 			if (temp_finder.GeneratePath(pMissionPlot))
 			{
@@ -14429,9 +14398,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	iValue += ((kCivic.getGreatPeopleRateModifier() * iCities) / 10);
 	iValue += ((kCivic.getGreatGeneralRateModifier() * getNumMilitaryUnits()) / 50);
 	iValue += ((kCivic.getDomesticGreatGeneralRateModifier() * getNumMilitaryUnits()) / 100);
-	/* original bts code
-	iValue += -((kCivic.getDistanceMaintenanceModifier() * std::max(0, (iCities - 3))) / 8);
-	iValue += -((kCivic.getNumCitiesMaintenanceModifier() * std::max(0, (iCities - 3))) / 8); */
+	/*iValue += -((kCivic.getDistanceMaintenanceModifier() * std::max(0, (iCities - 3))) / 8);
+	iValue += -((kCivic.getNumCitiesMaintenanceModifier() * std::max(0, (iCities - 3))) / 8);*/ // BtS
 	// K-Mod. After looking at a couple of examples, it's plain to see that the above maintenance estimates are far too big.
 	// Surprisingly, it actually doesn't take much time to calculate the precise magnitude of the maintenance change. So that's what I'll do!
 	if (kCivic.getNumCitiesMaintenanceModifier() != 0)
@@ -14470,8 +14438,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 	// K-Mod end
 
-	/* original bts code
-	iValue += ((kCivic.getWorkerSpeedModifier() * AI_getNumAIUnits(UNITAI_WORKER)) / 15);
+	/*iValue += ((kCivic.getWorkerSpeedModifier() * AI_getNumAIUnits(UNITAI_WORKER)) / 15);
 	iValue += ((kCivic.getImprovementUpgradeRateModifier() * iCities) / 50);
 	iValue += (kCivic.getMilitaryProductionModifier() * iCities * iWarmongerPercent) / (bWarPlan ? 300 : 500);
 	iValue += (kCivic.getBaseFreeUnits() / 2);
@@ -14479,7 +14446,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	iValue += ((kCivic.getFreeUnitsPopulationPercent() * getTotalPopulation()) / 200);
 	iValue += ((kCivic.getFreeMilitaryUnitsPopulationPercent() * getTotalPopulation()) / 300);
 	iValue += -(kCivic.getGoldPerUnit() * getNumUnits());
-	iValue += -(kCivic.getGoldPerMilitaryUnit() * getNumMilitaryUnits() * iWarmongerPercent) / 200; */
+	iValue += -(kCivic.getGoldPerMilitaryUnit() * getNumMilitaryUnits() * iWarmongerPercent) / 200;*/ // BtS
 	// K-Mod, just a bunch of minor accuracy improvements to these approximations.
 	if (kCivic.getWorkerSpeedModifier() != 0)
 	{
@@ -15045,15 +15012,14 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	{
 		if (iBestReligionCities > 0)
 		{
-			/* original bts code
-			iValue += iHighestReligionCount;
+			/*iValue += iHighestReligionCount;
 			iValue += ((kCivic.isNoNonStateReligionSpread()) ? ((iCities - iHighestReligionCount) * 2) : 0);
 			iValue += (kCivic.getStateReligionHappiness() * iHighestReligionCount * 4);
 			iValue += ((kCivic.getStateReligionGreatPeopleRateModifier() * iHighestReligionCount) / 20);
 			iValue += (kCivic.getStateReligionGreatPeopleRateModifier() / 4);
 			iValue += ((kCivic.getStateReligionUnitProductionModifier() * iHighestReligionCount) / 4);
 			iValue += ((kCivic.getStateReligionBuildingProductionModifier() * iHighestReligionCount) / 3);
-			iValue += (kCivic.getStateReligionFreeExperience() * iHighestReligionCount * ((bWarPlan) ? 6 : 2)); */
+			iValue += (kCivic.getStateReligionFreeExperience() * iHighestReligionCount * ((bWarPlan) ? 6 : 2));*/ // BtS
 
 			// K-Mod
 			FAssert(eBestReligion != NO_RELIGION);
@@ -15191,15 +15157,14 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 					(kCivic.getImprovementYieldChanges(iJ, iI) *
 					(getImprovementCount((ImprovementTypes)iJ) + iCities/2))) /
 					100;
-		}/* original code
-		if (iI == YIELD_FOOD)
+		}/*if (iI == YIELD_FOOD)
 			iTempValue *= 3;
 		else if (iI == YIELD_PRODUCTION)
 			iTempValue *= ((AI_avoidScience()) ? 6 : 2);
 		else if (iI == YIELD_COMMERCE) {
 			iTempValue *= ((AI_avoidScience()) ? 2 : 4);
 			iTempValue /= 3;
-		}*/
+		}*/ // BtS
 		// K-Mod
 		iTempValue *= AI_yieldWeight((YieldTypes)iI);
 		iTempValue /= 100;
@@ -15270,13 +15235,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			BuildingTypes eBuilding = kCiv.buildingAt(i);
 			BuildingClassTypes eBuildingClass = kCiv.buildingClassAt(i);
 			int iTempValue = kCivic.getBuildingHappinessChanges(eBuildingClass);
-			/* original bts code
-			if (iTempValue != 0) {
+			/*if (iTempValue != 0) {
 				// Nationalism
 				if (!isNationalWonderClass((BuildingClassTypes)iI))
 					iValue += (iTempValue * iCities)/2;
 				iValue += (iTempValue * getBuildingClassCountPlusMaking((BuildingClassTypes)iI) * 2);
-			}*/
+			}*/ // BtS
 			// K-Mod
 			if (iTempValue == 0)
 				continue;
@@ -15302,12 +15266,11 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	{
 		if (kCivic.isHurry(i))
 		{
-			/* original bts code
-			int iTempValue = 0;
+			/*int iTempValue = 0;
 			if (GC.getInfo((HurryTypes)iI).getGoldPerProduction() > 0)
 				iTempValue += ((((AI_avoidScience()) ? 50 : 25) * iCities) / GC.getInfo((HurryTypes)iI).getGoldPerProduction());
 			iTempValue += (GC.getInfo((HurryTypes)iI).getProductionPerPopulation() * iCities * (bWarPlan ? 2 : 1)) / 5;
-			iValue += iTempValue; */
+			iValue += iTempValue;*/ // BtS
 
 			// K-Mod. I'm not attempting to made an accurate estimate of the value here - I just want to make it a little bit more nuanced than it was.
 			int iTempValue = 0;
@@ -16548,9 +16511,8 @@ int CvPlayerAI::AI_calculateGoldenAgeValue(bool bConsiderRevolution) const
 	int iValue = 0;
 	for (int iI = 0; iI <  NUM_YIELD_TYPES; ++iI)
 	{
-		/* original bts code
-		iTempValue = (GC.getInfo((YieldTypes)iI).getGoldenAgeYield() * AI_yieldWeight((YieldTypes)iI));
-		iTempValue /= std::max(1, (1 + GC.getInfo((YieldTypes)iI).getGoldenAgeYieldThreshold())); */
+		/*iTempValue = (GC.getInfo((YieldTypes)iI).getGoldenAgeYield() * AI_yieldWeight((YieldTypes)iI));
+		iTempValue /= std::max(1, (1 + GC.getInfo((YieldTypes)iI).getGoldenAgeYieldThreshold()));*/ // BtS
 		// K-Mod
 		int iTempValue = GC.getInfo((YieldTypes)iI).getGoldenAgeYield() * AI_yieldWeight((YieldTypes)iI) * AI_averageYieldMultiplier((YieldTypes)iI);
 		iTempValue /= 1 + GC.getInfo((YieldTypes)iI).getGoldenAgeYieldThreshold();
@@ -16558,10 +16520,9 @@ int CvPlayerAI::AI_calculateGoldenAgeValue(bool bConsiderRevolution) const
 		iValue += iTempValue;
 	}
 
-	/* original bts code
-	iValue *= getTotalPopulation();
+	/*iValue *= getTotalPopulation();
 	iValue *= GC.getGame().goldenAgeLength(); // original BtS code
-	iValue /= 100; */
+	iValue /= 100;*/ // BtS
 	// K-Mod
 	iValue *= getTotalPopulation();
 	iValue *= getGoldenAgeLength();
@@ -18408,8 +18369,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					if (g.getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
 						abContacted[kPlayer.getTeam()] = AI_askHelp(ePlayer);
 				}
-				/* original bts code
-				if (kOurTeam.canDeclareWar(GET_PLAYER((PlayerTypes)iI).getTeam()) && !kOurTeam.AI_isSneakAttackPreparing(GET_PLAYER((PlayerTypes)iI).getTeam()))*/
+				/*if (kOurTeam.canDeclareWar(GET_PLAYER((PlayerTypes)iI).getTeam()) && !kOurTeam.AI_isSneakAttackPreparing(GET_PLAYER((PlayerTypes)iI).getTeam()))*/ // BtS
 				// UNOFFICIAL_PATCH: when team was sneak attack ready but hadn't declared, could demand tribute
 				// If other team accepted, it blocked war declaration for 10 turns but AI didn't react.
 				if (kOurTeam.canDeclareWar(kPlayer.getTeam()) && !kOurTeam.AI_isChosenWar(kPlayer.getTeam()))
@@ -20310,11 +20270,10 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 
 		if (NO_BONUS != kEvent.getBonusGift())
 		{
-			/* original bts code
-			int iBonusValue = -AI_bonusVal((BonusTypes)kEvent.getBonusGift(), -1);
+			/*int iBonusValue = -AI_bonusVal((BonusTypes)kEvent.getBonusGift(), -1);
 			iBonusValue += (iOtherPlayerAttitudeWeight - 40) * kOtherPlayer.AI_bonusVal((BonusTypes)kEvent.getBonusGift(), +1);
 			//Positive for friends, negative for enemies.
-			iDiploValue += (iBonusValue * GC.getPEACE_TREATY_LENGTH()) / 60; */
+			iDiploValue += (iBonusValue * GC.getPEACE_TREATY_LENGTH()) / 60;*/ // BtS
 
 			// K-Mod. The original code undervalued our loss of bonus by a factor of 100.
 			iValue -= AI_bonusVal((BonusTypes)kEvent.getBonusGift(), -1) * GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) / 4;
@@ -20352,10 +20311,9 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			}
 			// K-Mod end
 
-			/* original bts code
-			int iWarValue = GET_TEAM(getTeam()).getDefensivePower(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam())
+			/*int iWarValue = GET_TEAM(getTeam()).getDefensivePower(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam())
 				- GET_TEAM(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam()).getPower(true);// / std::max(1, GET_TEAM(getTeam()).getDefensivePower());
-			iWarValue -= 30 * AI_getAttitudeVal(kTriggeredData.m_eOtherPlayer); */
+			iWarValue -= 30 * AI_getAttitudeVal(kTriggeredData.m_eOtherPlayer);*/ // BtS
 
 			// K-Mod. Note: the original code doesn't touch iValue.
 			// So whatever I do here is completely new.
@@ -20777,9 +20735,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 
 		if(bAt3)
 		{
-			/* original code
-			if (AI_cultureVictoryTechValue(getCurrentResearch()) < 100)
-				return 4;*/
+			/*if (AI_cultureVictoryTechValue(getCurrentResearch()) < 100)
+				return 4;*/ // BtS
 			// K-Mod. Do full culture if our winning countdown is below the countdown target.
 			/*  <advc.115> Was 180. Now set to the countdownThresh param if
 				it is provided, otherwise 115. */
@@ -20922,9 +20879,8 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 				return 3;
 		}
 
-		/* original bbai code
-		if (GET_TEAM(getTeam()).getBestKnownTechScorePercent() > (m_iVictoryStrategyHash & AI_VICTORY_SPACE3 ? 80 : 85))
-			return 3;*/
+		/*if (GET_TEAM(getTeam()).getBestKnownTechScorePercent() > (m_iVictoryStrategyHash & AI_VICTORY_SPACE3 ? 80 : 85))
+			return 3;*/ // BBAI
 		// K-Mod. I don't think that's a good way to do it.
 		// instead, compare our spaceship progress to that of our rivals.
 		int iOurProgress = 0;
@@ -21640,9 +21596,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 	AIStrategy eLastStrategyHash = m_eStrategyHash;
 	m_eStrategyHash = AI_DEFAULT_STRATEGY;
 
-	/* original bts code
-	if (AI_getFlavorValue(FLAVOR_PRODUCTION) >= 2) // 0, 2, 5 or 10 in default xml [augustus 5, frederick 10, huayna 2, jc 2, chinese leader 2, qin 5, ramsess 2, roosevelt 5, stalin 2]
-		m_iStrategyHash |= AI_STRATEGY_PRODUCTION;*/
+	/*if (AI_getFlavorValue(FLAVOR_PRODUCTION) >= 2) // 0, 2, 5 or 10 in default xml [augustus 5, frederick 10, huayna 2, jc 2, chinese leader 2, qin 5, ramsess 2, roosevelt 5, stalin 2]
+		m_iStrategyHash |= AI_STRATEGY_PRODUCTION;*/ // BtS
 	// K-Mod. This strategy is now set later on, with new conditions.
 
 	if (getCapitalCity() == NULL)
@@ -24562,8 +24517,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 
 void CvPlayerAI::AI_invalidateCitySites(int iMinFoundValueThreshold)
 {
-	/* original bts code
-	m_aiAICitySites.clear(); */
+	// m_aiAICitySites.clear(); // BtS
 	// K-Mod. note: this clear-by-value stuff isn't actually used yet... but at least it works now.
 	std::vector<int> keptSites;
 	if (iMinFoundValueThreshold > 0) // less than zero means clear all.
@@ -25334,14 +25288,13 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot const& kPlot) const // advc: param
 		CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
 		if (pWorkingCity != NULL)
 		{
-			/* original bts code
-			if (pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(&kPlot)) != NO_BUILD)
+			/*if (pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(&kPlot)) != NO_BUILD)
 				return 0;
 			if (kPlot.getImprovementType() != NO_IMPROVEMENT) {
 				CvImprovementInfo &kImprovementInfo = GC.getInfo(kPlot.getImprovementType());
 				if (!kImprovementInfo.isActsAsCity())
 					return 0;
-			} */
+			}*/ // BtS
 			// K-Mod
 			ImprovementTypes eBestImprovement = kPlot.getImprovementType();
 			BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(&kPlot));
@@ -25464,14 +25417,13 @@ int CvPlayerAI::AI_getPlotCanalValue(CvPlot const& kPlot) const // advc: param w
 			CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
 			if (pWorkingCity != NULL)
 			{
-				/* original bts code
-				if (pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(pPlot)) != NO_BUILD)
+				/*if (pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(pPlot)) != NO_BUILD)
 					return 0;
 				if (pPlot->getImprovementType() != NO_IMPROVEMENT) {
 					CvImprovementInfo &kImprovementInfo = GC.getInfo(pPlot->getImprovementType());
 					if (!kImprovementInfo.isActsAsCity())
 						return 0;
-				} */
+				}*/ // BtS
 				// K-Mod
 				ImprovementTypes eBestImprovement = kPlot.getImprovementType();
 				BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(&kPlot));
@@ -25524,8 +25476,7 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 	int iValue = 0;
 	FOR_EACH_CITY(pLoopCity, *this)
 	{
-		/* original bts code
-		int iCityHappy = pLoopCity->happyLevel() - pLoopCity->unhappyLevel(iExtraPop);
+		/*int iCityHappy = pLoopCity->happyLevel() - pLoopCity->unhappyLevel(iExtraPop);
 		iCityHappy -= std::max(0, pLoopCity->getCommerceHappiness());
 		int iHappyNow = iCityHappy;
 		int iHappyThen = iCityHappy +
@@ -25534,7 +25485,7 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 		int iTempValue = (((100 * iHappyThen - 10 * iHappyThen * iHappyThen)) - (100 * iHappyNow - 10 * iHappyNow * iHappyNow));
 		if (iHappy > 0)
 			iValue += std::max(0, iTempValue);
-		else iValue += std::min(0, iTempValue);*/
+		else iValue += std::min(0, iTempValue);*/ // BtS
 
 		// K-Mod. I have no idea what they were trying to 'integrate', and it was giving some strange answers.
 		// So lets try it my way.
@@ -25564,9 +25515,8 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 			if (base > 0)
 				iValue += ::round(std::pow(base, 1.5));
 		} // </advc.036>
-		/* original bts code - (huh?)
-		if (iCount > 6)
-			break;*/
+		/*if (iCount > 6)
+			break;*/ // BtS
 	}
 
 	return (iCount == 0) ? 50 * iHappy : iValue / iCount;
@@ -25656,12 +25606,11 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 					{
 						if(!bTestMoves)
 							return true; // advc
-						/* original bts code
-						int iPathTurns = 0;
+						/*int iPathTurns = 0;
 						if(!pLoopUnit->getGroup()->generatePath(pLoopPlot, pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, false, &iPathTurns))
 							iPathTurns = MAX_INT;
 						if(iPathTurns <= 1)
-							return true;*/
+							return true;*/ // BtS
 						// K-Mod. Use a temp pathfinder, so as not to interfere with the normal one.
 						/*KmodPathFinder temp_finder;
 						temp_finder.SetSettings(pLoopUnit->getGroup(), MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, 1, GC.getMOVE_DENOMINATOR());

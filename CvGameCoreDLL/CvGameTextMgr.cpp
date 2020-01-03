@@ -4329,8 +4329,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 
-	/* original code
-	if ((gDLL->getChtLvl() > 0)) */
+	//if ((gDLL->getChtLvl() > 0))
 	if (GC.getGame().isDebugMode() // BBAI: Only display this info in debug mode so game can be played with cheat code entered
 		&& bShift) // advc.007
 	{
@@ -5457,9 +5456,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		int iWorkBoatsNeeded = pPlotCity->AI_neededSeaWorkers();
 		szString.append(CvWString::format(L"\n\nWorkboats Needed = %d", iWorkBoatsNeeded));
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwner()); // advc
-		/* original code
-		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
-			szString.append(CvWString::format(L"\n %s = %d", GC.getInfo((CivicTypes)iI).getDescription(), kOwner.AI_civicValue((CivicTypes)iI)));*/
+		/*for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+			szString.append(CvWString::format(L"\n %s = %d", GC.getInfo((CivicTypes)iI).getDescription(), kOwner.AI_civicValue((CivicTypes)iI)));*/ // BtS
 		// BETTER_BTS_AI_MOD (K-Mod edited), Debug, 11/30/08, jdog5000
 		// advc.007: Moved up; show this only on the capital.
 		if(bAlt && kPlot.getPlotCity()->isCapital())
@@ -5900,11 +5898,10 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			szString.append(szTempBuffer);
 
 			CvPlayerAI& kCityOwner = GET_PLAYER(pCity->getOwner());
-			/* original bts code
-			int iUnitCost = kPlayer.calculateUnitCost();
+			/*int iUnitCost = kPlayer.calculateUnitCost();
 			int iTotalCosts = kPlayer.calculatePreInflatedCosts();
 			int iUnitCostPercentage = (iUnitCost * 100) / std::max(1, iTotalCosts);
-			szString.append(CvWString::format(L"\nUnit cost percentage: %d (%d / %d)", iUnitCostPercentage, iUnitCost, iTotalCosts)); */
+			szString.append(CvWString::format(L"\nUnit cost percentage: %d (%d / %d)", iUnitCostPercentage, iUnitCost, iTotalCosts));*/ // BtS
 			// K-Mod
 			int iBuildUnitProb = pCity->AI_buildUnitProb(); // advc (cast)
 			szString.append(CvWString::format(L"\nUnit Cost: %d (max: %d)",
@@ -6430,8 +6427,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 		{
 			CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes) iPlayerIndex);
 			if (kLoopPlayer.isAlive())
-			{	/* original code
-				szString.append(CvWString::format(L"\n %s: %d", kLoopPlayer.getName(), kLoopPlayer.AI_bonusVal(eBonus)));*/
+			{	//szString.append(CvWString::format(L"\n %s: %d", kLoopPlayer.getName(), kLoopPlayer.AI_bonusVal(eBonus)));
 				// BETTER_BTS_AI_MOD, DEBUG, 07/11/08, jdog5000: START
 				BonusTypes eNonObsBonus = kPlot.getNonObsoleteBonusType(kLoopPlayer.getTeam());
 				if (eNonObsBonus != NO_BONUS)
@@ -8161,8 +8157,8 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		{
 			szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_UNIT_HAPPINESS2",
 			// </advc.912c>
-				/* original bts code
-				ci.getHappyPerMilitaryUnit(), ((ci.getHappyPerMilitaryUnit() > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));*/
+				/*ci.getHappyPerMilitaryUnit(), ((ci.getHappyPerMilitaryUnit() > 0) ?
+						gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));*/ // BtS
 				// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
 				iAbsHappyPerMilitaryUnit, ((iHappyPerMilitaryUnit > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
 		// <advc.912c>
@@ -8210,17 +8206,12 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 	}
 
 	//	Population Unhealthiness
-/*
-** K-Mod, 27/dec/10, karadoc
-** replaced NoUnhealthyPopulation with UnhealthyPopulationModifier
-*/
-	/* original bts code
-	if (ci.isNoUnhealthyPopulation())
+	// K-Mod, 27/dec/10: replace with UnhealthyPopulationModifier
+	/*if (ci.isNoUnhealthyPopulation())
 	{
 		szHelpText.append(NEWLINE);
 		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_NO_POP_UNHEALTHY"));
-	}
-	*/
+	}*/ // BtS
 	if (ci.getUnhealthyPopulationModifier() != 0)
 	{
 		// If the modifier is less than -100, display the old NoUnhealth. text
@@ -10591,10 +10582,9 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			L"TXT_KEY_BUILDING_NOT_OBSOLETE";
 	// </advc.004w>
 
-	/* original bts code
-	if (NULL != pCity)
+	/*if (NULL != pCity)
 		iHappiness = pCity->getBuildingHappiness(eBuilding);
-	else iHappiness = kBuilding.getHappiness();*/
+	else iHappiness = kBuilding.getHappiness();*/ // BtS
 	/*  K-Mod, 30/dec/10, karadoc
 		changed so that conditional happiness is not double-reported.
 		(such as happiness from state-religion buildings, or culture slider) */
@@ -10622,8 +10612,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(szTempBuffer);
 	}
 
-	/* original bts code
-	if (NULL != pCity)
+	/*if (NULL != pCity)
 		iHealth = pCity->getBuildingGoodHealth(eBuilding);
 	else {
 		iHealth = kBuilding.getHealth();
@@ -10638,7 +10627,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	}
 	iHealth = 0;
 	if (NULL != pCity)
-		iHealth = pCity->getBuildingBadHealth(eBuilding);*/
+		iHealth = pCity->getBuildingBadHealth(eBuilding);*/ // BtS
 	/*  K-Mod, 30/dec/10, karadoc
 		changed so that conditional healthiness is not counted.
 		(such as healthiness from public transport with environmentalism) */
@@ -10981,12 +10970,10 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_POWER"));
 
-		/* original bts code
-		if (kBuilding.isDirtyPower() && (GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) != 0))
-		{
+		/*if (kBuilding.isDirtyPower() && (GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) != 0)) {
 			szTempBuffer.Format(L" (+%d%c)", abs(GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE)), ((GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
 			szBuffer.append(szTempBuffer);
-		} */
+		}*/ // BtS
 		// K-Mod. Also include base health change from power.
 		int iPowerHealth = GC.getDefineINT(CvGlobals::POWER_HEALTH_CHANGE) + (kBuilding.isDirtyPower() ? GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) : 0);
 		if (iPowerHealth)
@@ -11046,13 +11033,11 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NO_UNHAPPY"));
 	}
-	/* original bts code
-	if (kBuilding.isNoUnhealthyPopulation()) {
+	/*if (kBuilding.isNoUnhealthyPopulation()) {
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NO_UNHEALTHY_POP"));
-	}*/
-	/*  K-Mod, 27/dec/10, karadoc
-		replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
+	}*/ // BtS
+	// K-Mod, 27/dec/10: replaced with UnhealthyPopulationModifier
 	if (kBuilding.getUnhealthyPopulationModifier() != 0)
 	{
 		// If the modifier is less than -100, display the old NoUnhealth. text
@@ -11405,12 +11390,10 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 
 	setCommerceChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_BUILDING_PER_SPECIALIST_ALL_CITIES").c_str(), kBuilding.getSpecialistExtraCommerceArray());
 
-	/* original bts code
-	if (ePlayer != NO_PLAYER && GET_PLAYER(ePlayer).getStateReligion() != NO_RELIGION)
+	/*if (ePlayer != NO_PLAYER && GET_PLAYER(ePlayer).getStateReligion() != NO_RELIGION)
 		szTempBuffer = gDLL->getText("TXT_KEY_BUILDING_FROM_ALL_REL_BUILDINGS", GC.getInfo(GET_PLAYER(ePlayer).getStateReligion()).getChar());
-	else
-		szTempBuffer = gDLL->getText("TXT_KEY_BUILDING_STATE_REL_BUILDINGS");*/
-	/*  K-Mod, 30/dec/10, karadoc
+	else szTempBuffer = gDLL->getText("TXT_KEY_BUILDING_STATE_REL_BUILDINGS");*/ // BtS
+	/*  K-Mod, 30/dec/10
 		Changed to always say state religion, rather than the particular religion that happens to be the current state religion. */
 	szTempBuffer = gDLL->getText("TXT_KEY_BUILDING_STATE_REL_BUILDINGS");
 
@@ -11665,12 +11648,10 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_POWER_WITH", GC.getInfo((BonusTypes)kBuilding.getPowerBonus()).getTextKeyWide()));
 
-		/* original bts code
-		if (kBuilding.isDirtyPower() && (GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) != 0))
-		{
+		/*if (kBuilding.isDirtyPower() && (GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) != 0)) {
 			szTempBuffer.Format(L" (+%d%c)", abs(GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE)), ((GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
 			szBuffer.append(szTempBuffer);
-		} */
+		}*/ // BtS
 		// K-Mod. Also include base health change from power.
 		int iPowerHealth = GC.getDefineINT(CvGlobals::POWER_HEALTH_CHANGE) + (kBuilding.isDirtyPower() ? GC.getDefineINT(CvGlobals::DIRTY_POWER_HEALTH_CHANGE) : 0);
 		if (iPowerHealth)
@@ -19724,15 +19705,14 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			}
 
 			// City's culture affects cost
-			/* original bts code
-			iTempModifier = - (pCity->getCultureTimes100(kPlayer.getID()) * GC.getDefineINT("ESPIONAGE_CULTURE_MULTIPLIER_MOD")) / std::max(1, pCity->getCultureTimes100(eTargetPlayer) + pCity->getCultureTimes100(kPlayer.getID()));
+			/*iTempModifier = - (pCity->getCultureTimes100(kPlayer.getID()) * GC.getDefineINT("ESPIONAGE_CULTURE_MULTIPLIER_MOD")) / std::max(1, pCity->getCultureTimes100(eTargetPlayer) + pCity->getCultureTimes100(kPlayer.getID()));
 			if (iTempModifier != 0)
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_CULTURE_MOD", iTempModifier));
 				iModifier *= 100 + iTempModifier;
 				iModifier /= 100;
-			} */ // (moved and changed by K-Mod)
+			}*/ // BtS (moved and changed by K-Mod)
 
 			iTempModifier = pCity->getEspionageDefenseModifier();
 			if (iTempModifier != 0)

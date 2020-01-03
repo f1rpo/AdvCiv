@@ -131,12 +131,11 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			}
 			break;
 		case MM_RETIRE:
-			/* original bts code
-			{ CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
+			/*{ CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
 			if (NULL != pInfo) {
 				pInfo->setData1(2);
 				gDLL->getInterfaceIFace()->addPopup(pInfo, g.getActivePlayer(), true);
-			} }*/
+			} }*/ // BtS
 			g.doControl(CONTROL_RETIRE); // K-Mod
 			break;
 		case MM_REGENERATE_MAP:
@@ -162,12 +161,11 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			GC.getPythonCaller()->showPythonScreen("BugOptionsScreen");
 			break;
 		case MM_ENTER_WB:
-			/* original bts code
-			{ CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
+			/*{ CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
 				if (NULL != pInfo) {
 					pInfo->setData1(4);
 					gDLL->getInterfaceIFace()->addPopup(pInfo, g.getActivePlayer(), true);
-			} }*/
+			} }*/ // BtS
 			g.doControl(CONTROL_WORLD_BUILDER); // K-Mod
 			break;
 		case MM_GAME_DETAILS:
@@ -2215,11 +2213,10 @@ bool CvDLLButtonPopup::launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchConfirmMenu(CvPopup *pPopup, CvPopupInfo &info)
 {
-	/* original bts code
-	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_POPUP_ARE_YOU_SURE").c_str());
+	/*gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_POPUP_ARE_YOU_SURE").c_str());
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_YES").c_str(), NULL, 0, WIDGET_GENERAL);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_NO").c_str(), NULL, 1, WIDGET_GENERAL);
-	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE); */
+	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);*/ // BtS
 
 	// K-Mod. The confirmation box should actually tell the user what they are being asked to confirm!
 	// Note: the text here should correspond to the functionality defined by CvDLLButtonPopup::OnOkClicked.
@@ -2617,13 +2614,12 @@ bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)
 	FOR_EACH_CITY(pLoopCity, kPlayer)
 	{
 		// UNOFFICIAL_PATCH, Bugfix, 08/04/09, jdog5000
-		/* original bts code
-		PlayerTypes ePlayer = pLoopCity->getLiberationPlayer(false);
+		/*PlayerTypes ePlayer = pLoopCity->getLiberationPlayer(false);
 		if (NO_PLAYER != ePlayer)
 		{
 			CvWString szCity = gDLL->getText("TXT_KEY_CITY_LIBERATE", pLoopCity->getNameKey(), GET_PLAYER(ePlayer).getNameKey());
 			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szCity, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), -pLoopCity->getID(), WIDGET_GENERAL);
-		}*/
+		}*/ // BtS
 		// Avoid potential variable name conflict
 		PlayerTypes eLibPlayer = pLoopCity->getLiberationPlayer(false);
 		if (eLibPlayer != NO_PLAYER)

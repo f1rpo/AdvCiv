@@ -1204,16 +1204,14 @@ int CyPlayer::getOverflowResearch()
 	return m_pPlayer ? m_pPlayer->getOverflowResearch() : 0;
 }
 
-/* original bts code
-bool CyPlayer::isNoUnhealthyPopulation() {
+/*bool CyPlayer::isNoUnhealthyPopulation() {
 	return m_pPlayer ? m_pPlayer->isNoUnhealthyPopulation() : false;
 }*/
-/*  K-Mod, 27/dec/10, karadoc
-	replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
+// K-Mod, 27/dec/10: replaced with UnhealthyPopulationModifier
 int CyPlayer::getUnhealthyPopulationModifier()
 {
 	return m_pPlayer ? m_pPlayer->getUnhealthyPopulationModifier() : 0;
-} // K-Mod end
+}
 
 bool CyPlayer::getExpInBorderModifier()
 {

@@ -1386,12 +1386,11 @@ void CvDLLWidgetData::doChangeSpecialist(CvWidgetDataStruct &widgetDataStruct)
 
 void CvDLLWidgetData::doResearch(CvWidgetDataStruct &widgetDataStruct)
 {
-	/* original bts code
-	bool bShift = GC.shiftKey();
+	/*bool bShift = GC.shiftKey();
 	if(!bShift) {
 		if ((GetKeyState(VK_LSHIFT) & 0x8000) || (GetKeyState(VK_RSHIFT) & 0x8000))
 			bShift = true;
-	}*/
+	}*/ // BtS
 	bool bShift = GC.shiftKey();
 
 	// UNOFFICIAL_PATCH, Bugfix (Free Tech Popup Fix), 12/07/09, EmperorFool: START
@@ -1492,8 +1491,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 		{
 			if (GET_TEAM(GC.getGame().getActiveTeam()).canDeclareWar(eWidgetTeam))
 			{
-				/* original bts code
-				CvMessageControl::getInstance().sendChangeWar(GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1).getTeam(), true); */
+				//CvMessageControl::getInstance().sendChangeWar(GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1).getTeam(), true);
 				// K-Mod. Give us a confirmation popup...
 				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
 				if (NULL != pInfo)
@@ -3329,10 +3327,9 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		return;
 	}*/
 
-	/* original bts code
-	szBuffer.append(gDLL->getText("TXT_KEY_MISC_CONTACT_LEADER", kPlayer.getNameKey(), kPlayer.getCivilizationShortDescription()));
+	/*szBuffer.append(gDLL->getText("TXT_KEY_MISC_CONTACT_LEADER", kPlayer.getNameKey(), kPlayer.getCivilizationShortDescription()));
 	szBuffer.append(NEWLINE);
-	GAMETEXT.parsePlayerTraits(szBuffer, ePlayer); */
+	GAMETEXT.parsePlayerTraits(szBuffer, ePlayer);*/ // BtS
 	if (eActivePlayer != ePlayer && // advc.085
 			!kActiveTeam.isHasMet(eTeam))
 	{	// K-Mod. If we haven't met the player yet - don't say "contact". Because we can't actually contact them!

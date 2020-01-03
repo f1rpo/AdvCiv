@@ -623,25 +623,16 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 ** third optional preq.
 */
 	PromotionTypes ePrereq3 = (PromotionTypes)kPromotion.getPrereqOrPromotion3();
-	/* original bts code
-	if (NO_PROMOTION != ePrereq1 || NO_PROMOTION != ePrereq2)
-	{
+	/*if (NO_PROMOTION != ePrereq1 || NO_PROMOTION != ePrereq2) {
 		bool bValid = false;
-		if (!bValid)
-		{
+		if (!bValid) {
 			if (NO_PROMOTION != ePrereq1 && isPromotionValid(ePrereq1, eUnit, bLeader))
-			{
 				bValid = true;
-			}
 		}
-
-		if (!bValid)
-		{
+		if (!bValid) {
 			if (NO_PROMOTION != ePrereq2 && isPromotionValid(ePrereq2, eUnit, bLeader))
-			{
 				bValid = true;
-			}
-		}*/
+		}*/ // BtS
 	if (ePrereq1 != NO_PROMOTION || ePrereq2 != NO_PROMOTION || ePrereq3 != NO_PROMOTION)
 	{
 		bool bValid = false;
@@ -707,25 +698,14 @@ int getWonderScore(BuildingClassTypes eWonderClass)
 	}
 }
 
-/* original bts code
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount)
-{
+/*ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount) {
 	FAssertMsg(eImprovement != NO_IMPROVEMENT, "Improvement is not assigned a valid value");
-
 	if (iCount > GC.getNumImprovementInfos())
-	{
 		return NO_IMPROVEMENT;
-	}
-
 	if (GC.getInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
-	{
 		return finalImprovementUpgrade(((ImprovementTypes)(GC.getInfo(eImprovement).getImprovementUpgrade())), (iCount + 1));
-	}
-	else
-	{
-		return eImprovement;
-	}
-} */
+	else return eImprovement;
+}*/ // BtS
 // K-Mod
 ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement)
 {
@@ -1272,12 +1252,11 @@ int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
 	FAssert(eOurTeam != BARBARIAN_TEAM);
 	// FAssert(eTargetTeam != BARBARIAN_TEAM); // K-Mod note. This is possible for legitimate reasons (although, the result is never important...)
 
-	/* original bts code
-	int iTargetPoints = GET_TEAM(eTargetTeam).getEspionagePointsEver();
+	/*int iTargetPoints = GET_TEAM(eTargetTeam).getEspionagePointsEver();
 	int iOurPoints = GET_TEAM(eOurTeam).getEspionagePointsEver();
 	int iModifier = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * (2 * iTargetPoints + iOurPoints);
 	iModifier /= std::max(1, iTargetPoints + 2 * iOurPoints);
-	return iModifier; */
+	return iModifier;*/ // BtS
 	// K-Mod. Scale the points modifier based on the teams' population. (Note ESPIONAGE_SPENDING_MULTIPLIER is 100 in the default xml.)
 	const CvTeam& kOurTeam = GET_TEAM(eOurTeam);
 	const CvTeam& kTargetTeam = GET_TEAM(eTargetTeam);
@@ -2388,8 +2367,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 
 		int iStartMoves = parent->m_iData1;
 		iTurns = parent->m_iData2;
-		/* original bts code
-		if (iStartMoves == 0)
+		/*if (iStartMoves == 0)
 			iTurns++;
 		for (CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode)) {
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -2397,7 +2375,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			iUnitMoves -= pToPlot->movementCost(pLoopUnit, &kFromPlot);
 			iUnitMoves = std::max(iUnitMoves, 0);
 			iMoves = std::min(iMoves, iUnitMoves);
-		} */
+		}*/ // BtS
 		// K-Mod. The original code would give incorrect results for groups where one unit had more moves but also had higher move cost.
 		// (eg. the most obvious example is when a group with 1-move units and 2-move units is moving on a railroad. - In this situation,
 		//  the original code would consistently underestimate the remaining moves at every step.)

@@ -285,8 +285,7 @@ void CvPlayer::initInGame(PlayerTypes eID)
 
 	for (iI = 0; iI < GC.getNumEventInfos(); iI++)
 	{
-		/* original bts code
-		resetEventOccured((EventTypes)iI, false);*/
+		//resetEventOccured((EventTypes)iI, false); // BtS
 		// Has global trigger fired already?
 		const EventTriggeredData* pEvent = NULL;
 		for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
@@ -3428,11 +3427,10 @@ bool CvPlayer::hasBusyUnit() const
 	{
 		if (pLoopSelectionGroup->isBusy())
 		{
-			/* original bts code
-			if (pLoopSelectionGroup->getNumUnits() == 0) {
+			/*if (pLoopSelectionGroup->getNumUnits() == 0) {
 				pLoopSelectionGroup->kill();
 				return false;
-			} */ // disabled by K-Mod. isBusy returns false if there are no units in the group.
+			}*/ // BtS - disabled by K-Mod. isBusy returns false if there are no units in the group.
 			return true;
 		}
 	}
@@ -5372,11 +5370,10 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 	if (!GC.getGame().canTrain(eUnit, bIgnoreCost, bTestVisible))
 		return false; // </advc>
 
-	/* original bts code
-	if (GET_TEAM(getTeam()).isUnitClassMaxedOut(eUnitClass))
+	/*if (GET_TEAM(getTeam()).isUnitClassMaxedOut(eUnitClass))
 		return false;
 	if (isUnitClassMaxedOut(eUnitClass))
-		return false;*/  // disabled by K-Mod.
+		return false;*/ // BtS - disabled by K-Mod.
 	/*	Note that unlike the global limit, these two limits apply to the
 		number of units currently alive rather than the total ever trained.
 		Therefore these limits should be ignored for the visibility test. */
@@ -6306,14 +6303,12 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 		+ iExtraPop) // advc.004b
 		* getFreeMilitaryUnitsPopulationPercent()) / 100);
 
-	/* original BTS code
-	if (!isHuman()) {
-		if (GET_TEAM(getTeam()).hasMetHuman())
-		{
+	/*if (!isHuman()) {
+		if (GET_TEAM(getTeam()).hasMetHuman()) {
 			iFreeUnits += getNumCities(); // XXX
 			iFreeMilitaryUnits += getNumCities(); // XXX
 		}
-	} */ // Hidden AI bonus removed by BBAI.
+	}*/ // BtS - Hidden AI bonus removed by BBAI.
 
 	iPaidUnits = std::max(0, getNumUnits() - iFreeUnits
 			+ iExtraUnits); // advc.004b
@@ -6321,8 +6316,7 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 			+ iExtraUnits // advc.004b
 			- iFreeMilitaryUnits);
 	//iSupport = 0;
-	/* original bts code
-	iBaseUnitCost = iPaidUnits * getGoldPerUnit();
+	/*iBaseUnitCost = iPaidUnits * getGoldPerUnit();
 	iMilitaryCost = iPaidMilitaryUnits * getGoldPerMilitaryUnit();
 	iExtraCost = getExtraUnitCost();
 	iSupport = iMilitaryCost + iBaseUnitCost + iExtraCost;
@@ -6333,7 +6327,7 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 		iSupport /= 100;
 		iSupport *= std::max(0, ((GC.getInfo(GC.getGame().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
 		iSupport /= 100;
-	}*/
+	}*/ // BtS
 	// K-Mod. GoldPerUnit, etc, are now done as percentages.
 	// Also, "UnitCostPercent" handicap modifiers now apply directly to unit cost only, not military or extra cost.
 	// (iBaseUnitCost is no longer fed back to the caller. Only the modified cost is.)
@@ -6617,12 +6611,11 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
 
 
 int CvPlayer::calculateGoldRate() const
-{	/* original bts code
-	int iRate = 0;
+{	/*int iRate = 0;
 	if(isCommerceFlexible(COMMERCE_RESEARCH))
 		iRate = calculateBaseNetGold();
 	else iRate = std::min(0, (calculateBaseNetResearch() + calculateBaseNetGold()));
-	return iRate; */
+	return iRate;*/ // BtS
 	// K-Mod. (Just moved from calculateBaseNetGold.)
 	int iNetGold = getCommerceRate(COMMERCE_GOLD) + getGoldPerTurn();
 	iNetGold -= calculateInflatedCosts();
@@ -6635,12 +6628,11 @@ int CvPlayer::calculateResearchRate(TechTypes eTech) const
 {	// <advc.004x> No BASE_RESEARCH_RATE either
 	if(!isResearch())
 		return 0; // </advc.004x>
-	/* original bts code
-	int iRate = 0;
+	/*int iRate = 0;
 	if(isCommerceFlexible(COMMERCE_RESEARCH))
 		iRate = calculateBaseNetResearch(eTech);
 	else iRate = std::max(1, (calculateBaseNetResearch(eTech) + calculateBaseNetGold()));
-	return iRate; */
+	return iRate;*/ // BtS
 	// K-Mod. (Just moved from calculateBaseNetResearch.)
 	// Note: the original code had a floor of 1. This version does not.
 	TechTypes eResearchTech;
@@ -8036,9 +8028,8 @@ void CvPlayer::changeAnarchyModifier(int iChange)
 	if (iChange == 0)
 		return;
 
-	/* original bts code
-	setRevolutionTimer(std::max(0, ((100 + iChange) * getRevolutionTimer()) / 100));
-	setConversionTimer(std::max(0, ((100 + iChange) * getConversionTimer()) / 100)); */
+	/*setRevolutionTimer(std::max(0, ((100 + iChange) * getRevolutionTimer()) / 100));
+	setConversionTimer(std::max(0, ((100 + iChange) * getConversionTimer()) / 100));*/ // BtS
 	// K-Mod. The original code is wrong, and it is missing the anarchy length change.
 	changeRevolutionTimer(getRevolutionTimer() * iChange / std::max(1, 100+getAnarchyModifier()));
 	changeConversionTimer(getConversionTimer() * iChange / std::max(1, 100+getAnarchyModifier()));
@@ -8661,8 +8652,7 @@ void CvPlayer::changeOverflowResearch(int iChange)
 }
 
 
-/* original bts code
-int CvPlayer::getNoUnhealthyPopulationCount() const {
+/*int CvPlayer::getNoUnhealthyPopulationCount() const {
 	return m_iNoUnhealthyPopulationCount;
 }
 bool CvPlayer::isNoUnhealthyPopulation() const {
@@ -8675,9 +8665,8 @@ void CvPlayer::changeNoUnhealthyPopulationCount(int iChange) {
 
 		AI_makeAssignWorkDirty();
 	}
-}*/
-/*  K-Mod, 27/dec/10, karadoc
-	replace NoUnhealthyPopulation with UnhealthyPopulationModifier */
+}*/ // BtS
+// K-Mod, 27/dec/10: replace with UnhealthyPopulationModifier
 int CvPlayer::getUnhealthyPopulationModifier() const
 {
 	return m_iUnhealthyPopulationModifier;
@@ -10894,14 +10883,12 @@ bool CvPlayer::setCommercePercent(CommerceTypes eIndex, int iNewValue, bool bFor
 	// K-Mod end
 	AI_makeAssignWorkDirty();
 
-	/* original bts code
-	if (getTeam() == GC.getGame().getActiveTeam())
-	{
+	/*if (getTeam() == GC.getGame().getActiveTeam()) {
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Financial_Screen_DIRTY_BIT, true);
-	} */
+	}*/ // BtS
 	// K-Mod
 	if (getTeam() == GC.getGame().getActiveTeam())
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true); // research turns left?
@@ -11986,7 +11973,7 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 		gDLL->updateDiplomacyAttitude(true);
 
 	if (getCivics(eIndex) != NO_CIVIC)
-	{	/* original code (which erroneously blocked the message for certain civic switches)
+	{	/* BtS code (which erroneously blocked the message for certain civic switches)
 		if (getCivics(eIndex) != GC.getInfo(getCivilizationType()).getCivilizationInitialCivics(eIndex))*/
 		if (eOldCivic != NO_CIVIC) // K-Mod
 		{	// <advc.151> Moved out of the loop
@@ -14040,9 +14027,8 @@ int CvPlayer::getEspionageMissionCostModifier(EspionageMissionTypes eMission, Pl
 		}
 
 		// City's culture affects cost
-		/* original bts code
-		iModifier *= 100 - (pCity->getCultureTimes100(getID()) * GC.getDefineINT("ESPIONAGE_CULTURE_MULTIPLIER_MOD")) / std::max(1, pCity->getCultureTimes100(eTargetPlayer) + pCity->getCultureTimes100(getID()));
-		iModifier /= 100; */
+		/*iModifier *= 100 - (pCity->getCultureTimes100(getID()) * GC.getDefineINT("ESPIONAGE_CULTURE_MULTIPLIER_MOD")) / std::max(1, pCity->getCultureTimes100(eTargetPlayer) + pCity->getCultureTimes100(getID()));
+		iModifier /= 100;*/ // BtS
 
 		iModifier *= 100 + pCity->getEspionageDefenseModifier();
 		iModifier /= 100;
@@ -14099,12 +14085,11 @@ int CvPlayer::getEspionageMissionCostModifier(EspionageMissionTypes eMission, Pl
 	}
 
 	// My points VS. Your points to mod cost
-	/* original bts code
-	int iTargetPoints = kTargetTeam.getEspionagePointsEver();
+	/*int iTargetPoints = kTargetTeam.getEspionagePointsEver();
 	int iOurPoints = GET_TEAM(getTeam()).getEspionagePointsEver();
 		iModifier *= (GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * (2 * iTargetPoints + iOurPoints)) / std::max(1, iTargetPoints + 2 * iOurPoints);
 		iModifier /= 100;
-	} */
+	}*/ // BtS
 	// K-Mod. use the dedicated function that exists for this modifier, for consistency.
 	iModifier *= ::getEspionageModifier(getTeam(), kTargetTeam.getID());
 	iModifier /= 100;
@@ -14326,8 +14311,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 			{
 				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_CITY_CULTURE_INSERTED", pCity->getNameKey()).GetCString();
 
-				/* original bts code
-				int iCultureAmount = kMission.getCityInsertCultureAmountFactor() * pCity->countTotalCultureTimes100();
+				/*int iCultureAmount = kMission.getCityInsertCultureAmountFactor() * pCity->countTotalCultureTimes100();
 				iCultureAmount /= 10000;
 				iCultureAmount = std::max(1, iCultureAmount);
 				int iNumTurnsApplied = (GC.getDefineINT("GREAT_WORKS_CULTURE_TURNS") * GC.getInfo(GC.getGame().getGameSpeedType()).getUnitGreatWorkPercent()) / 100;
@@ -14335,7 +14319,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 					pCity->changeCulture(getID(), iCultureAmount / iNumTurnsApplied, true, true);
 				if (iNumTurnsApplied > 0)
 					pCity->changeCulture(getID(), iCultureAmount % iNumTurnsApplied, false, true);
-				} */
+				}*/ // BtS
 				// K-Mod. apply culture in one hit. We don't need fake 'free city culture' anymore.
 				int iCultureTimes100 = std::max(1, kMission.getCityInsertCultureAmountFactor() * pCity->countTotalCultureTimes100() / 100);
 
@@ -16086,12 +16070,11 @@ void CvPlayer::doWarnings()
 
 void CvPlayer::verifyGoldCommercePercent()
 {
-	/* original bts code
-	while ((getGold() + calculateGoldRate()) < 0) {
+	/*while ((getGold() + calculateGoldRate()) < 0) {
 		changeCommercePercent(COMMERCE_GOLD, GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"));
 		if (getCommercePercent(COMMERCE_GOLD) == 100)
 			break;
-	} */
+	}*/ // BtS
 	// K-Mod
 	bool bValid = isCommerceFlexible(COMMERCE_GOLD);
 	while (bValid && getCommercePercent(COMMERCE_GOLD) < 100 && getGold() + calculateGoldRate() < 0)
@@ -20896,9 +20879,8 @@ int CvPlayer::getEspionageGoldQuantity(EspionageMissionTypes eMission, PlayerTyp
 
 void CvPlayer::forcePeace(PlayerTypes ePlayer)
 {
-	/* original bts code
-	if (!GET_TEAM(getTeam()).isAVassal()) {
-		FAssert(GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam())); */
+	/*if (!GET_TEAM(getTeam()).isAVassal()) {
+		FAssert(GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam()));*/ // BtS
 
 	// K-Mod. "canChangeWarPeace" can return false here if the peace team vassalates after the vote is cast.
 	if (GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam()))

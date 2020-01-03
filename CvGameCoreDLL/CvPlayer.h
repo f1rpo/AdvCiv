@@ -592,12 +592,10 @@ public:
 	void setOverflowResearch(int iNewValue);																														// Exposed to Python
 	void changeOverflowResearch(int iChange);																														// Exposed to Python
 
-	/* original bts code
-	int getNoUnhealthyPopulationCount() const;
-	bool isNoUnhealthyPopulation() const;																																			// Exposed to Python
-	void changeNoUnhealthyPopulationCount(int iChange); */
-	/*  K-Mod, 27/dec/10, karadoc
-		replace NoUnhealthyPopulation with UnhealthyPopulationModifier */
+	/*int getNoUnhealthyPopulationCount() const;
+	bool isNoUnhealthyPopulation() const; // Exposed to Python
+	void changeNoUnhealthyPopulationCount(int iChange);*/ // BtS
+	// K-Mod, 27/dec/10: replaced with UnhealthyPopulationModifier
 	int getUnhealthyPopulationModifier() const; // Exposed to Python
 	void changeUnhealthyPopulationModifier(int iChange);
 	// K-Mod end

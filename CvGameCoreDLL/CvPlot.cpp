@@ -944,14 +944,13 @@ void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduc
 		}
 	}
 
-	/* original code
-	eNonObsoleteBonus = getNonObsoleteBonusType(getTeam());
+	/*eNonObsoleteBonus = getNonObsoleteBonusType(getTeam());
 	if (eNonObsoleteBonus != NO_BONUS) {
 		if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo(eNonObsoleteBonus).getTechCityTrade()))) {
 			if (isCity(true, getTeam()) || ((getImprovementType() != NO_IMPROVEMENT) && GC.getInfo(getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus))) {
 				if ((pPlotGroup != NULL) && isBonusNetwork(getTeam()))
 					pPlotGroup->changeNumBonuses(eNonObsoleteBonus, ((bAdd) ? 1 : -1));
-	} } } */
+	} } }*/ // BtS
 	// K-Mod. I'm just trying to standardize the code to reduce the potential for mistakes. There are no functionality changes here.
 	BonusTypes eBonus = getNonObsoleteBonusType(getTeam(), true);
 	if (eBonus != NO_BONUS && pPlotGroup && isBonusNetwork(getTeam()))
@@ -6916,8 +6915,7 @@ void CvPlot::doFeature()  // advc: some style changes
 	{
 		int iProbability = GC.getInfo(getFeatureType()).getDisappearanceProbability();
 		if (iProbability > 0)
-		{	/* original bts code
-			if (GC.getGame().getSorenRandNum(10000, "Feature Disappearance") < iProbability)*/
+		{	//if (GC.getGame().getSorenRandNum(10000, "Feature Disappearance") < iProbability)
 			// UNOFFICIAL_PATCH, Gamespeed scaling, 03/04/10, jdog5000
 			int iOdds = (10000*GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent())/100;
 			if (GC.getGame().getSorenRandNum(iOdds, "Feature Disappearance") < iProbability)

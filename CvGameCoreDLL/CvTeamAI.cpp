@@ -2581,9 +2581,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	}
 	else
 	{
-		/* original BTS code
-		if (AI_getWarSuccess(eTeam) + 4 * GC.getDefineINT("WAR_SUCCESS_CITY_CAPTURING") > GET_TEAM(eTeam).AI_getWarSuccess(getID()))
-			return DENIAL_JOKING;*/
+		/*if (AI_getWarSuccess(eTeam) + 4 * GC.getDefineINT("WAR_SUCCESS_CITY_CAPTURING") > GET_TEAM(eTeam).AI_getWarSuccess(getID()))
+			return DENIAL_JOKING;*/ // BtS
 		/*  BETTER_BTS_AI_MOD, Diplomacy AI, 12/07/09, jdog5000: START
 			Scale better for small empires, particularly necessary if WAR_SUCCESS_CITY_CAPTURING > 10 */
 		// <advc> For debugger:
@@ -3015,9 +3014,8 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 	if (iCitiesThreatenedByOthers > (1 + iCitiesThreatenedByUs/2) &&
 			(bMightCapToOther || iCitiesThreatenedByOthers >= iValuableCities)) //
 	{	// Keep others from capturing spoils, but let it go if surrender civ is too small to care about
-		/* original BBAI code
-		if (6 * (iValuableCities + kSurrenderTeam.getNumCities()) > getNumCities())
-			return true;*/
+		/*if (6 * (iValuableCities + kSurrenderTeam.getNumCities()) > getNumCities())
+			return true;*/ // BBAI
 		// K-Mod
 		if (5*iValuableCities + 3*(kSurrenderTeam.getNumCities()-iCitiesThreatenedByUs) > getNumCities())
 			return true;
@@ -3371,10 +3369,9 @@ DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker)
 	if (AI_endWarVal(ePeaceTeam) > (GET_TEAM(ePeaceTeam).AI_endWarVal(getID()) * 2))
 		return DENIAL_CONTACT_THEM;
 
-	/* original bts code
-	int iLandRatio = ((getTotalLand(true) * 100) / std::max(20, GET_TEAM(eTeam).getTotalLand(true)));
+	/*int iLandRatio = ((getTotalLand(true) * 100) / std::max(20, GET_TEAM(eTeam).getTotalLand(true)));
 	if (iLandRatio > 250)
-		return DENIAL_VICTORY;*/
+		return DENIAL_VICTORY;*/ // BtS
 	// K-Mod
 	if (AI_refusePeace(ePeaceTeam))
 		return DENIAL_VICTORY;
@@ -3551,9 +3548,8 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 	if(!getUWAI.isEnabled())
 	{	// UWAI handles these DenialTypes later // </advc.104o>
 		// BETTER_BTS_AI_MOD, Diplomacy, 12/06/09, jdog5000
-		/* original BTS code
-		if (getAnyWarPlanCount(true) > 0)
-			return DENIAL_TOO_MANY_WARS;*/
+		/*if (getAnyWarPlanCount(true) > 0)
+			return DENIAL_TOO_MANY_WARS;*/ // BtS
 		// Hide WHEOOHRN revealing war plans
 		if (getNumWars() > 0)
 			return DENIAL_TOO_MANY_WARS;

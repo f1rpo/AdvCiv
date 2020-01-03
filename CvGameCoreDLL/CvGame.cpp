@@ -2724,14 +2724,13 @@ void CvGame::cityPushOrder(CvCity* pCity, OrderTypes eOrder, int iData, bool bAl
 void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) const
 {
 	PROFILE_FUNC();
-	/* original bts code
-	if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
+	/*if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
 		bSelectGroup = true;
 	else if (gDLL->getInterfaceIFace()->getHeadSelectedUnit()->getGroup() != pUnit->getGroup())
 		bSelectGroup = true;
 	else if (pUnit->IsSelected() && !(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
 		bSelectGroup = !bToggle;
-	else bSelectGroup = false;*/
+	else bSelectGroup = false;*/ // BtS
 	// K-Mod. Redesigned to make selection more sensible and predictable
 	// In 'simple mode', shift always groups and always targets only a single unit.
 	// advc.001: Option id was SimpleSelectionMode here but SimpleSelection in XML
@@ -4709,13 +4708,12 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 
 			if (kTeam.getVotes(kData.eVote, eVoteSource) >= iVotesRequired)
 				return false; // K-Mod. same, but faster.
-			/* original bts code
-			if (kTeam.isVotingMember(eVoteSource)) {
+			/*if (kTeam.isVotingMember(eVoteSource)) {
 				if (kTeam.getVotes(kData.eVote, eVoteSource) >= getVoteRequired(kData.eVote, eVoteSource)) {
 					// Can't vote on a winner if one team already has all the votes necessary to win
 					return false;
 				}
-			} */
+			}*/ // BtS
 		}
 	}
 
@@ -6374,11 +6372,10 @@ void CvGame::doTurn()
 
 	doDeals();
 
-	/* original bts code
-	for (iI = 0; iI < MAX_TEAMS; iI++) {
+	/*for (iI = 0; iI < MAX_TEAMS; iI++) {
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 			GET_TEAM((TeamTypes)iI).doTurn();
-	} */ // disabled by K-Mod. CvTeam::doTurn is now called at the the same time as CvPlayer::doTurn, to fix certain turn-order imbalances.
+	}*/ // BtS - disabled by K-Mod. CvTeam::doTurn is now called at the the same time as CvPlayer::doTurn, to fix certain turn-order imbalances.
 
 	GC.getMap().doTurn();
 

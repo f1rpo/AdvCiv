@@ -304,7 +304,7 @@ class CvDomesticAdvisor:
 
 		# Liberation
 		# advc.004: Mark potential independent colonies too (bCanSplit check added to the two conditions below)
-		#bCanSplit = gc.getPlayer(gc.getGame().getActivePlayer()).canSplitArea(pLoopCity.getArea())
+		#bCanSplit = gc.getPlayer(gc.getGame().getActivePlayer()).canSplitArea(pLoopCity.area().getID())
 		#if bCanSplit or pLoopCity.getLiberationPlayer(false) != -1:
 			# UNOFFICIAL_PATCH begin
 		#	if bCanSplit or not gc.getTeam(gc.getPlayer(pLoopCity.getLiberationPlayer(false)).getTeam()).isAtWar(CyGame().getActiveTeam()) :

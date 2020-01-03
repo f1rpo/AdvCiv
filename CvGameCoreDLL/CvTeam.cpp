@@ -494,9 +494,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	// I've done this so that when open-borders is canceled, it doesn't bump our new allies out of our borders.
 	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
-		/* original bts code
-		if (((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
-			  ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))) */
+		/*if (((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
+			  ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID())))*/ // BtS
 		// K-Mod: The player's teams have already been reassigned - so we don't check for eTeam anymore.
 		if (!pLoopDeal->isBetween(getID(), getID())) // advc: Replacing the K-Mod replacement
 			continue;
@@ -2762,15 +2761,14 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 
 	updateTechShare();
 
-	/* original bts code
-	if(GET_TEAM(eIndex).isHuman()) {
+	/*if(GET_TEAM(eIndex).isHuman()) {
 		for (iI = 0; iI < MAX_PLAYERS; iI++) {
 			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
 				if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID()) {
 					if (!(GET_PLAYER((PlayerTypes)iI).isHuman())) {
 						GET_PLAYER((PlayerTypes)iI).clearResearchQueue();
 						GET_PLAYER((PlayerTypes)iI).AI_makeProductionDirty();
-					}}}}}*/
+					}}}}}*/ // BtS
 	// disabled by K-Mod (wtf did they hope to achieve with this?)
 
 	for (TeamIter<ALIVE,VASSAL_OF> it(getID()); it.hasNext(); ++it)
@@ -3923,9 +3921,8 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 				std::max(1, GET_PLAYER(ePlayer).calculateResearchModifier(eIndex));
 		GET_PLAYER(ePlayer).changeOverflowResearch(iOverflow);
 		setHasTech(eIndex, true, ePlayer, true, true);
-		/* original bts code
-		if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
-			setNoTradeTech(eIndex, true);*/
+		/*if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
+			setNoTradeTech(eIndex, true);*/ // BtS
 		// disabled by K-Mod. I don't know why this was here, and it conflicts with my changes to the order of the doTurn functions.
 	}
 }

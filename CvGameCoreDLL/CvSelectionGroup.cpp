@@ -565,10 +565,9 @@ bool CvSelectionGroup::autoMission() // K-Mod changed this from void to bool.
 	}
 	else
 	{
-		/* original bts code
-		if (getActivityType() == ACTIVITY_MISSION)
+		/*if (getActivityType() == ACTIVITY_MISSION)
 		continueMission();
-		else startMission();*/
+		else startMission();*/ // BtS
 		// K-Mod
 		if (getActivityType() != ACTIVITY_MISSION)
 			startMission();
@@ -704,10 +703,9 @@ void CvSelectionGroup::startMission()
 		}
 	}
 
-	/* original bts code
-	if (canAllMove())
+	/*if (canAllMove())
 		setActivityType(ACTIVITY_MISSION);
-	else setActivityType(ACTIVITY_HOLD);*/
+	else setActivityType(ACTIVITY_HOLD);*/ // BtS
 	// moved & changed by K-Mod.
 
 	bool bDelete = false;
@@ -1567,8 +1565,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 	}
 
 	if (bDone)
-	{	/* original bts code (roughly)
-		if (!isBusy()) {
+	{	/*if (!isBusy()) {
 			if (getOwner() == g.getActivePlayer()) {
 				if (IsSelected()) {
 					if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
@@ -1578,7 +1575,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 				}
 			}
 			deleteMissionQueueNode(headMissionQueueNode());
-		} */
+		}*/ // BtS
 		// K-Mod. If rapid-unit-cycling is enabled, I want to cycle as soon a possible. Otherwise, I want to mimic the original behaviour.
 		// Note: I've removed cycleSelectionGroups_delayed(1, true, canAnyMove()) from inside CvSelectionGroup::deactivateHeadMission
 		if (getOwner() == g.getActivePlayer() && IsSelected())
@@ -2026,14 +2023,13 @@ int CvSelectionGroup::movesLeft() const
 
 bool CvSelectionGroup::isWaiting() const
 {
-	/* original bts code
-	return (getActivityType() == ACTIVITY_HOLD ||
+	/*return (getActivityType() == ACTIVITY_HOLD ||
 			getActivityType() == ACTIVITY_SLEEP ||
 			getActivityType() == ACTIVITY_HEAL ||
 			getActivityType() == ACTIVITY_SENTRY ||
 			getActivityType() == ACTIVITY_PATROL ||
 			getActivityType() == ACTIVITY_PLUNDER ||
-			getActivityType() == ACTIVITY_INTERCEPT); */
+			getActivityType() == ACTIVITY_INTERCEPT);*/ // BtS
 	// K-Mod. (same functionality)
 	return !(getActivityType() == ACTIVITY_AWAKE || getActivityType() == ACTIVITY_MISSION);
 	// K-Mod end
@@ -2668,11 +2664,10 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 	// K-Mod. Rather than clearing the existing path data; use a temporary pathfinder.
 	KmodPathFinder final_path;
 	final_path.SetSettings(this, iFlags & ~MOVE_DECLARE_WAR);
-	/* original bts code
-	if (iFlags & MOVE_THROUGH_ENEMY) {
+	/*if (iFlags & MOVE_THROUGH_ENEMY) {
 		if (generatePath(plot(), pDestPlot, iFlags))
 			pDestPlot = getPathFirstPlot();
-	} */
+	}*/ // BtS
 	// K-Mod
 	if (iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK) && !(iFlags & MOVE_DIRECT_ATTACK))
 	{
@@ -2708,10 +2703,9 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 		// K-Mod end
 
 		// if there are no defenders, do not attack
-		/* original
-		CvUnit* pBestDefender = pDestPlot->getBestDefender(NO_PLAYER, getOwner(), pBestAttackUnit, true);
+		/*CvUnit* pBestDefender = pDestPlot->getBestDefender(NO_PLAYER, getOwner(), pBestAttackUnit, true);
 		if (NULL == pBestDefender)
-			return false;*/
+			return false;*/ // BtS
 		// Lead From Behind by UncutDragon
 		if (!pDestPlot->hasDefender(false, NO_PLAYER, getOwner(), pBestAttackUnit, true))
 			return false;
@@ -2741,10 +2735,9 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 					GET_PLAYER(getOwner()).isOption(PLAYEROPTION_STACK_ATTACK)));
 			bFailedAlreadyFighting = false;
 			if (getNumUnits() > 1)
-			{	/* original bts code
-				if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
+			{	/*if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
 					bFailedAlreadyFighting = true;
-				else pBestAttackUnit->attack(pDestPlot, bStack);*/
+				else pBestAttackUnit->attack(pDestPlot, bStack);*/ // BtS
 				// K-Mod
 				if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
 					bFailedAlreadyFighting = true;
@@ -2822,9 +2815,8 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 				pLoopUnit->move(*pPlot, true);
 			else
 			{
-				/* original bts code
-				pLoopUnit->joinGroup(NULL, true);
-				pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false); */
+				/*pLoopUnit->joinGroup(NULL, true);
+				pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);*/ // BtS
 
 				// K-Mod. all units left behind should stay in the same group. (unless it would mean a change of group AI)
 				// (Note: it is important that units left behind are not in the original group.
@@ -2888,10 +2880,9 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, int iFlags)
 	}
 	else
 	{
-		/* original bts code
-		if (!generatePath(plot(), pDestPlot, iFlags & ~MOVE_DECLARE_WAR))
+		/*if (!generatePath(plot(), pDestPlot, iFlags & ~MOVE_DECLARE_WAR))
 			return false;
-		pPathPlot = getPathFirstPlot(); */
+		pPathPlot = getPathFirstPlot();*/ // BtS
 		// K-Mod. I've added & ~MOVE_DECLARE_WAR so that if we need to declare war at this point, and haven't yet done so,
 		// the move will fail here rather than splitting the group inside groupMove.
 		// Also, I've change it to use a different pathfinder, to avoid clearing the path data - and to avoid OOS errors.
@@ -2905,13 +2896,12 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, int iFlags)
 			return false;
 	}
 
-	/* original bts code
-	bool bForce = false;
+	/*bool bForce = false;
 	MissionAITypes eMissionAI = AI_getMissionAIType();
 	if (eMissionAI == MISSIONAI_BLOCKADE || eMissionAI == MISSIONAI_PILLAGE)
 		bForce = true;
 	if (groupDeclareWar(pPathPlot, bForce))
-		return false;*/
+		return false;*/ // BtS
 	// Disabled by K-Mod. AI war decisions have no business being here.
 
 	bool bEndMove = false;
@@ -2975,8 +2965,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 
 	bool bContinue = false;
 	CvPlot* pPlot = plot();
-	/* original bts code
-	ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
+	/*ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
 	if (eImprovement != NO_IMPROVEMENT) {
 		if (AI_isControlled()) {
 			if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION)) {
@@ -2985,7 +2974,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 					if ((eBonus == NO_BONUS) || !GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus)) {
 						if (GC.getInfo(eImprovement).getImprovementPillage() != NO_IMPROVEMENT)
 							return false;
-	}}}}}*/
+	}}}}}*/ // BtS
 	/*  K-Mod. Leave old improvements should mean _all_ improvements,
 		not 'unless it will connect a resource'.
 		Note. The only time this bit of code might matter is if the automated unit has orders queued.
@@ -4260,9 +4249,8 @@ CLLNode<MissionData>* CvSelectionGroup::deleteMissionQueueNode(CLLNode<MissionDa
 
 	CLLNode<MissionData>* pNextMissionNode = m_missionQueue.deleteNode(pNode);
 
-	/* original bts code
-	if (pNextMissionNode == headMissionQueueNode())
-		activateHeadMission();*/
+	/*if (pNextMissionNode == headMissionQueueNode())
+		activateHeadMission();*/ // BtS
 	// Disabled by K-Mod. It should be possible to delete the head mission without immediately starting the next one!
 
 	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())

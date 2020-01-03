@@ -618,8 +618,7 @@ protected:
 	bool m_bDangerFromSubmarines; // advc.651 (not serialized)
 	UWAI::Civ* m_pUWAI; // advc.104
 
-	/*original bts code
-	mutable int m_iStrategyHash;
+	/*mutable int m_iStrategyHash;
 	mutable int m_iStrategyHashCacheTurn;
 	mutable int m_iAveragesCacheTurn;
 	mutable int m_iAverageGreatPeopleMultiplier;
@@ -628,7 +627,7 @@ protected:
 	mutable int *m_aiAverageCommerceExchange;
 	mutable int m_iUpgradeUnitsCacheTurn;
 	mutable int m_iUpgradeUnitsCachedExpThreshold;
-	mutable int m_iUpgradeUnitsCachedGold;*/
+	mutable int m_iUpgradeUnitsCachedGold;*/ // BtS
 
 	// K-Mod. The original caching method was just begging for OOS bugs.
 	AIStrategy m_eStrategyHash;

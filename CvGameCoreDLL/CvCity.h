@@ -485,10 +485,9 @@ public:
 	int getNoUnhappinessCount() const;
 	bool isNoUnhappiness() const;																					// Exposed to Python
 	void changeNoUnhappinessCount(int iChange);
-	/* original bts code
-	int getNoUnhealthyPopulationCount() const;
+	/*int getNoUnhealthyPopulationCount() const;
 	bool isNoUnhealthyPopulation() const;																	// Exposed to Python
-	void changeNoUnhealthyPopulationCount(int iChange); */
+	void changeNoUnhealthyPopulationCount(int iChange);*/ // BtS
 	/*  K-Mod, 27/dec/10, karadoc
 		replace NoUnhealthyPopulation with UnhealthyPopulationModifier */
 	int getUnhealthyPopulationModifier() const; // Exposed to Python

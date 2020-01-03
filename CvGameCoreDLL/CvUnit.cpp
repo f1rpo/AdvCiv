@@ -403,11 +403,7 @@ void CvUnit::convert(CvUnit* pUnit)
 	std::vector<CvUnit*> aCargoUnits;
 	pUnit->getCargoUnits(aCargoUnits);
 	for (uint i = 0; i < aCargoUnits.size(); ++i)
-	{
-
-
-		/* original BTS code
-		aCargoUnits[i]->setTransportUnit(this);*/
+	{	//aCargoUnits[i]->setTransportUnit(this);
 		/*  UNOFFICIAL_PATCH, Bugfix, 10/30/09, Mongoose & jdog5000: START
 			Check cargo types and capacity when upgrading transports (from Mongoose SDK) */
 		if (cargoSpaceAvailable(aCargoUnits[i]->getSpecialUnitType(), aCargoUnits[i]->getDomainType()) > 0)
@@ -811,15 +807,14 @@ void CvUnit::resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionD
 		return;
 	}
 
-	/*original BTS code
-	int iOurOdds = (100 * iOurStrength) / std::max(1, iTotalStrength);
+	/*int iOurOdds = (100 * iOurStrength) / std::max(1, iTotalStrength);
 	int iOurRoundDamage = (pInterceptor->currInterceptionProbability() * GC.getDefineINT("MAX_INTERCEPTION_DAMAGE")) / 100;
 	int iTheirRoundDamage = (currInterceptionProbability() * GC.getDefineINT("MAX_INTERCEPTION_DAMAGE")) / 100;
 	if (getDomainType() == DOMAIN_AIR)
 		iTheirRoundDamage = std::max(GC.getDefineINT("MIN_INTERCEPTION_DAMAGE"), iTheirRoundDamage);
 	int iTheirDamage = 0;
 	int iOurDamage = 0;
-	for (int iRound = 0; iRound < GC.getDefineINT("INTERCEPTION_MAX_ROUNDS"); ++iRound)*/
+	for (int iRound = 0; iRound < GC.getDefineINT("INTERCEPTION_MAX_ROUNDS"); ++iRound)*/ // BtS
 	/*  BETTER_BTS_AI_MOD (Combat mechanics), 10/19/08, Roland J & jdog5000: START
 		For air v air, more rounds and factor in strength for per round damage */
 	int iOurOdds = (100 * iOurStrength) / std::max(1, iTotalStrength);
@@ -1825,11 +1820,10 @@ bool CvUnit::isActionRecommended(int iAction)
 				}
 				if (eImprovement != NO_IMPROVEMENT)
 				{
-					/* original code
-					if (eBonus != NO_BONUS) {
+					/*if (eBonus != NO_BONUS) {
 						if (GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus))
 							return true;
-					} */
+					}*/ // BtS
 					// K-Mod
 					if (eBonus != NO_BONUS &&
 							!GET_PLAYER(getOwner()).doesImprovementConnectBonus(pPlot->getImprovementType(), eBonus) &&
@@ -1852,8 +1846,7 @@ bool CvUnit::isActionRecommended(int iAction)
 					}
 					// K-Mod end
 
-					/* original bts code
-					if (pPlot->getImprovementType() == NO_IMPROVEMENT) {
+					/*if (pPlot->getImprovementType() == NO_IMPROVEMENT) {
 						if (!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true)) {
 							if (GC.getInfo(eImprovement).isCarriesIrrigation())
 								return true;
@@ -1868,7 +1861,7 @@ bool CvUnit::isActionRecommended(int iAction)
 							else if (GC.getInfo(eImprovement).getYieldChange(YIELD_COMMERCE) > 0)
 								return true;
 						}
-					}*/
+					}*/ // BtS
 				}
 
 				if (eRoute != NO_ROUTE)
@@ -1889,10 +1882,9 @@ bool CvUnit::isActionRecommended(int iAction)
 						}
 					}
 
-					/* original bts code
-					eFinalImprovement = eImprovement;
+					/*eFinalImprovement = eImprovement;
 					if(eFinalImprovement == NO_IMPROVEMENT)
-						eFinalImprovement = pPlot->getImprovementType();*/
+						eFinalImprovement = pPlot->getImprovementType();*/ // BtS
 					// K-Mod
 					ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eImprovement != NO_IMPROVEMENT ? eImprovement : pPlot->getImprovementType());
 					// K-Mod end
@@ -2477,11 +2469,10 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		   might be better - at least I know it (mostly) works. */
 	}
 	// UNOFFICIAL_PATCH, Consistency, 07/23/09, jdog5000: START
-	/* original bts code
-	if (bAttack) {
+	/*if (bAttack) {
 		if (isMadeAttack() && !isBlitz())
 			return false;
-	} */
+	}*/ // BtS
 	// The following change makes capturing an undefended city like a attack action, it
 	// cannot be done after another attack or a paradrop
 	/*
@@ -2527,8 +2518,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 					if (kPlot.isVisibleEnemyUnit(this) != bAttack)
 					{
 						//FAssertMsg(isHuman() || (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack)), "hopefully not an issue, but tracking how often this is the case when we dont want to really declare war");
-						/* original bts code
-						if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCityCapture()))) */
+						/*if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwner()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCityCapture())))*/ // BtS
 						// K-Mod. I'm not entirely sure I understand what they were trying to do here. But I'm pretty sure it's wrong.
 						// I think the rule should be that bAttack means we have to actually fight an enemy unit. Capturing an undefended city doesn't count.
 						// (there is no "isVisiblePotentialEnemyUnit" function, so I just wrote the code directly.)
@@ -2978,10 +2968,9 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		break;
 
 	case AUTOMATE_EXPLORE:
-		/* original bts code
-		if ((!canFight() && (getDomainType() != DOMAIN_SEA)) || (getDomainType() == DOMAIN_AIR) || (getDomainType() == DOMAIN_IMMOBILE))
+		/*if ((!canFight() && (getDomainType() != DOMAIN_SEA)) || (getDomainType() == DOMAIN_AIR) || (getDomainType() == DOMAIN_IMMOBILE))
 			return false;
-		break; */
+		break;*/ // BtS
 		switch (getDomainType())
 		{
 		case DOMAIN_IMMOBILE:
@@ -4211,13 +4200,12 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 	}
 	else
 	{
-		/* original bts code
-		if (pTargetPlot->getImprovementType() == NO_IMPROVEMENT)
+		/*if (pTargetPlot->getImprovementType() == NO_IMPROVEMENT)
 			return false;
 		if (GC.getInfo(pTargetPlot->getImprovementType()).isPermanent())
 			return false;
 		if (GC.getInfo(pTargetPlot->getImprovementType()).getAirBombDefense() == -1)
-			return false;*/
+			return false;*/ // BtS
 		// K-Mod. Don't allow the player to bomb improvements that they don't know exist.
 		ImprovementTypes eActualImprovement = pTargetPlot->getImprovementType();
 		ImprovementTypes eRevealedImprovement = pTargetPlot->getRevealedImprovementType(getTeam());
@@ -4486,8 +4474,7 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 	if (pPlot->isOwned())
 	{
 		if (!potentialWarAction(pPlot))
-		{	/* original bts code
-			if ((pPlot->getImprovementType() == NO_IMPROVEMENT) || (pPlot->getOwner() != getOwner()))*/
+		{	//if ((pPlot->getImprovementType() == NO_IMPROVEMENT) || (pPlot->getOwner() != getOwner())) // BtS
 			/*  K-Mod, 16/dec/10, karadoc
 				enabled the pillaging of own roads */
 			if (pPlot->getOwner() != getOwner() || (pPlot->getImprovementType() == NO_IMPROVEMENT && !pPlot->isRoute()))
@@ -4519,8 +4506,7 @@ bool CvUnit::pillage()
 	{
 		// we should not be calling this without declaring war first, so do not declare war here
 		if (!isEnemy(pPlot->getTeam(), pPlot))
-		{	/* original bts code
-			if ((pPlot->getImprovementType() == NO_IMPROVEMENT) || (pPlot->getOwner() != getOwner()))*/
+		{	//if ((pPlot->getImprovementType() == NO_IMPROVEMENT) || (pPlot->getOwner() != getOwner())) // BtS
 			/*  K-Mod, 16/dec/10, karadoc
 				enabled the pillaging of own roads */
 			if (pPlot->getOwner() != getOwner() || (pPlot->getImprovementType() == NO_IMPROVEMENT && !pPlot->isRoute()))
@@ -5191,12 +5177,11 @@ bool CvUnit::spread(ReligionTypes eReligion)
 
 	CvCity* pCity = plot()->getPlotCity();
 	if (pCity != NULL)
-	{	/* original bts code
-		int iSpreadProb = m_pUnitInfo->getReligionSpreads(eReligion);
+	{	/*int iSpreadProb = m_pUnitInfo->getReligionSpreads(eReligion);
 		if (pCity->getTeam() != getTeam())
 			iSpreadProb /= 2;
 		bool bSuccess;
-		iSpreadProb += (((GC.getNumReligionInfos() - pCity->getReligionCount()) * (100 - iSpreadProb)) / GC.getNumReligionInfos()); */
+		iSpreadProb += (((GC.getNumReligionInfos() - pCity->getReligionCount()) * (100 - iSpreadProb)) / GC.getNumReligionInfos());*/ // BtS
 		// K-Mod. A more dynamic formula
 		int iPresentReligions = pCity->getReligionCount();
 		int iMissingReligions = GC.getNumReligionInfos() - iPresentReligions;
@@ -5214,10 +5199,9 @@ bool CvUnit::spread(ReligionTypes eReligion)
 			bSuccess = true;
 		}
 		else
-		{	/* original bts code
-			szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD", getNameKey(), GC.getInfo(eReligion).getChar(), pCity->getNameKey());
+		{	/*szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD", getNameKey(), GC.getInfo(eReligion).getChar(), pCity->getNameKey());
 			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
-			bSuccess = false;*/
+			bSuccess = false;*/ // BtS
 			// K-Mod. Instead of simply failing, give some chance of removing one of the existing religions.
 			std::vector<std::pair<int, ReligionTypes> > rankedReligions;
 			int iRandomWeight = GC.getDefineINT("RELIGION_INFLUENCE_RANDOM_WEIGHT");
@@ -5619,13 +5603,11 @@ bool CvUnit::trade()
 
 int CvUnit::getGreatWorkCulture(const CvPlot* pPlot) const
 {
-	/* original bts code
-	iCulture = m_pUnitInfo->getGreatWorkCulture();*/
-	/*  K-Mod, 7/dec/10, Karadoc
+	//iCulture = m_pUnitInfo->getGreatWorkCulture(); // BtS
+	/*  K-Mod, 7/dec/10:
 		culture from great works now scales linearly with the era of the player.
 		(the base number has been reduced in the xml accordingly) */
 	int iCulture = m_pUnitInfo->getGreatWorkCulture() * (GET_PLAYER(getOwner()).getCurrentEra());
-	// K-Mod end
 
 	iCulture *= GC.getInfo(GC.getGame().getGameSpeedType()).getUnitGreatWorkPercent();
 	iCulture /= 100;
@@ -5660,12 +5642,11 @@ bool CvUnit::greatWork()
 		pCity->setOccupationTimer(0);
 
 		int iCultureToAdd = 100 * getGreatWorkCulture(plot());
-		/* original bts code
-		int iNumTurnsApplied = (GC.getDefineINT("GREAT_WORKS_CULTURE_TURNS") * GC.getInfo(GC.getGame().getGameSpeedType()).getUnitGreatWorkPercent()) / 100;
+		/*int iNumTurnsApplied = (GC.getDefineINT("GREAT_WORKS_CULTURE_TURNS") * GC.getInfo(GC.getGame().getGameSpeedType()).getUnitGreatWorkPercent()) / 100;
 		for (int i = 0; i < iNumTurnsApplied; ++i)
 			pCity->changeCultureTimes100(getOwner(), iCultureToAdd / iNumTurnsApplied, true, true);
 		if (iNumTurnsApplied > 0)
-			pCity->changeCultureTimes100(getOwner(), iCultureToAdd % iNumTurnsApplied, false, true);*/
+			pCity->changeCultureTimes100(getOwner(), iCultureToAdd % iNumTurnsApplied, false, true);*/ // BtS
 		/*  K-Mod, 6/dec/10, Karadoc
 			apply culture in one hit. We don't need fake 'free city culture' anymore. */
 		pCity->changeCultureTimes100(getOwner(), iCultureToAdd, true, true);
@@ -5898,10 +5879,10 @@ int CvUnit::getSpyInterceptPercent(TeamTypes eTargetTeam, bool bMission) const
 	 // </advc.opt>
 	int iSuccess = 0;
 
-	/* original bts code
-	int iTargetPoints = GET_TEAM(eTargetTeam).getEspionagePointsEver();
+	/*int iTargetPoints = GET_TEAM(eTargetTeam).getEspionagePointsEver();
 	int iOurPoints = GET_TEAM(getTeam()).getEspionagePointsEver();
-	iSuccess += (iESPIONAGE_INTERCEPT_SPENDING_MAX * iTargetPoints) / std::max(1, iTargetPoints + iOurPoints); */
+	iSuccess += (iESPIONAGE_INTERCEPT_SPENDING_MAX * iTargetPoints) /
+			std::max(1, iTargetPoints + iOurPoints);*/ // BtS
 	// K-Mod. Scale based on the teams' population.
 	{
 		const CvTeam& kTeam = GET_TEAM(getTeam());
@@ -7753,12 +7734,11 @@ int CvUnit::airMaxCombatStr(const CvUnit* pOther) const
 	if (getKamikazePercent() != 0)
 		iModifier += getKamikazePercent();
 
+	/*if (getExtraCombatPercent() != 0)
+		iModifier += getExtraCombatPercent();*/ // BtS
 	/*  BETTER_BTS_AI_MOD, Bugfix, 8/16/08, DanF5771 & jdog5000: commented out
 		(ExtraCombatPercent already counted above) */
-	/* original BTS code
-	if (getExtraCombatPercent() != 0)
-		iModifier += getExtraCombatPercent();*/
-	if (NULL != pOther)
+	if (pOther != NULL)
 	{
 		if (pOther->getUnitCombatType() != NO_UNITCOMBAT)
 			iModifier += unitCombatModifier(pOther->getUnitCombatType());
@@ -7824,8 +7804,7 @@ bool CvUnit::canAirDefend(const CvPlot* pPlot) const
 		return false;
 
 	if (getDomainType() != DOMAIN_AIR)
-	{	/* original bts code
-		if (!pPlot->isValidDomainForLocation(*this))*/
+	{	//if (!pPlot->isValidDomainForLocation(*this))
 		/*  UNOFFICIAL_PATCH, Bugfix, 10/30/09, Mongoose & jdog5000
 			Land units which are cargo cannot intercept (from Mongoose SDK) */
 		if (!pPlot->isValidDomainForLocation(*this) || isCargo())
@@ -8472,8 +8451,7 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 			// K-Mod end
 			if (getGroup()->getNumUnits() > 1)
 			{
-				/* original bts code
-				getGroup()->setActivityType(ACTIVITY_AWAKE); */
+				//getGroup()->setActivityType(ACTIVITY_AWAKE); // BtS
 				// K-Mod
 				// For the AI, only wake the group in particular circumstances. This is to avoid AI deadlocks where they just keep grouping and ungroup indefinitely.
 				// If the activity type is not changed at all, then that would enable exploits such as adding new units to air patrol groups to bypass the movement conditions.
@@ -8491,8 +8469,7 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 					getGroup()->setActivityType(ACTIVITY_HOLD); // don't let them cheat.
 				// K-Mod end
 			}
-			/* original bts code
-			else GET_PLAYER(getOwner()).updateGroupCycle(this);*/
+			//else GET_PLAYER(getOwner()).updateGroupCycle(this); // BtS
 		}
 
 		if (getTeam() == GC.getGame().getActiveTeam())
@@ -8573,11 +8550,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 	setBlockading(false);
 
-	/* original bts code
-	if (!bGroup || isCargo()) {
+	/*if (!bGroup || isCargo()) {
 		joinGroup(NULL, true);
 		bShow = false;
-	} */
+	}*/ // BtS
 	// K-Mod. I've adjusted the code to allow cargo units to stay in their groups when possible.
 	bShow = bShow && bGroup && !isCargo();
 	if (!bGroup)
@@ -8737,8 +8713,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			if (isEnemy(pNewCity->getTeam()) && !canCoexistWithEnemyUnit(pNewCity->getTeam()) && canFight())
 			{
 				GET_TEAM(getTeam()).changeWarWeariness(pNewCity->getTeam(), *pNewPlot, GC.getDefineINT("WW_CAPTURED_CITY"));
-				/* original bts code
-				GET_TEAM(getTeam()).AI_changeWarSuccess(pNewCity->getTeam(), GC.getDefineINT("WAR_SUCCESS_CITY_CAPTURING"));*/
+				/*GET_TEAM(getTeam()).AI_changeWarSuccess(pNewCity->getTeam(), GC.getDefineINT("WAR_SUCCESS_CITY_CAPTURING"));*/ // BtS
 				// BETTER_BTS_AI_MOD, General AI, 06/14/09, jdog5000
 				// Double war success if capturing capital city, always a significant blow to enemy
 				// pNewCity still points to old city here, hasn't been acquired yet
@@ -8764,11 +8739,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		}
 
 		//update cargo mission animations
-		/* original bts code
-		if (isCargo()) {
+		/*if (isCargo()) {
 			if (eOldActivityType != ACTIVITY_MISSION)
 				getGroup()->setActivityType(eOldActivityType);
-		} */ // disabled by K-Mod (obsolete)
+		} */ // BtS - disabled by K-Mod (obsolete)
 
 		setFortifyTurns(0);
 		// needs to be here so that the square is considered visible when we move into it...
@@ -8831,8 +8805,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 				pWorkingCity->verifyWorkingPlot(pWorkingCity->getCityPlotIndex(pNewPlot));
 		}
 
-		/* original bts code
-		if (pNewPlot->isWater()) {
+		/*if (pNewPlot->isWater()) {
 			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
 				pLoopPlot = plotDirection(pNewPlot->getX(), pNewPlot->getY(), (DirectionTypes)iI);
 				if (pLoopPlot != NULL) {
@@ -8841,7 +8814,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						if (pWorkingCity != NULL) {
 							if (canSiege(pWorkingCity->getTeam()))
 								pWorkingCity->verifyWorkingPlot(pWorkingCity->getCityPlotIndex(pLoopPlot));
-		} } } } }*/
+		} } } } }*/ // BtS
 		// disabled by K-Mod. The game mechanics that this was meant to handle are no longer used. (Nothing to do with K-Mod.)
 
 		if (pNewPlot->isActiveVisible(true))
@@ -9920,12 +9893,11 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 		if (bAttacking)
 		{
 			GC.getLogger().logCombat(*this, *pCombatUnit); // advc.003t
-			/* original bts code
-			if (getDomainType() == DOMAIN_LAND
+			/*if (getDomainType() == DOMAIN_LAND
 				&& !m_pUnitInfo->isIgnoreBuildingDefense()
 				&& pCombatUnit->plot()->getPlotCity()
 				&& pCombatUnit->plot()->getPlotCity()->getBuildingDefense() > 0
-				&& cityAttackModifier() >= GC.getDefineINT("MIN_CITY_ATTACK_MODIFIER_FOR_SIEGE_TOWER")) */
+				&& cityAttackModifier() >= GC.getDefineINT("MIN_CITY_ATTACK_MODIFIER_FOR_SIEGE_TOWER"))*/ // BtS
 			if (showSiegeTower(pCombatUnit)) // K-Mod
 				CvDLLEntity::SetSiegeTower(true);
 		}
@@ -10243,13 +10215,12 @@ bool CvUnit::canAcquirePromotion(PromotionTypes ePromotion) const
 		if (!isHasPromotion((PromotionTypes)(GC.getInfo(ePromotion).getPrereqPromotion())))
 			return false;
 	}
-	/* original bts code
-	if (GC.getInfo(ePromotion).getPrereqOrPromotion1() != NO_PROMOTION) {
+	/*if (GC.getInfo(ePromotion).getPrereqOrPromotion1() != NO_PROMOTION) {
 		if (!isHasPromotion((PromotionTypes)(GC.getInfo(ePromotion).getPrereqOrPromotion1()))) {
 			if ((GC.getInfo(ePromotion).getPrereqOrPromotion2() == NO_PROMOTION) || !isHasPromotion((PromotionTypes)(GC.getInfo(ePromotion).getPrereqOrPromotion2())))
 				return false;
 		}
-	}*/
+	}*/ // BtS
 	/*  K-Mod, 14/jan/11, karadoc
 		third optional prereq */
 	PromotionTypes ePrereq1 = (PromotionTypes)GC.getInfo(ePromotion).getPrereqOrPromotion1();
@@ -11028,9 +10999,8 @@ bool CvUnit::rangeStrike(int iX, int iY)
 		FAssertMsg(pPlot != NULL, "Range strike off the map"); // advc
 		return false;
 	}
-	/* original bts code
-	if (!canRangeStrikeAt(pPlot, iX, iY))
-		return false;*/
+	/*if (!canRangeStrikeAt(pPlot, iX, iY))
+		return false;*/ // BtS
 	// UNOFFICIAL_PATCH (Bugfix), 05/10/10, jdog5000
 	if (!canRangeStrikeAt(plot(), iX, iY))
 	{
@@ -11086,8 +11056,7 @@ bool CvUnit::rangeStrike(int iX, int iY)
 		// mission timer is not used like this in any other part of code, so it might cause OOS
 		// issues ... at worst I think unit dies before animation is complete, so no real
 		// harm in commenting it out.
-		/* original bts code
-		pDefender->getGroup()->setMissionTimer(GC.getInfo(MISSION_RANGE_ATTACK).getTime());*/
+		//pDefender->getGroup()->setMissionTimer(GC.getInfo(MISSION_RANGE_ATTACK).getTime()); // BtS
 	}
 
 	return true;
