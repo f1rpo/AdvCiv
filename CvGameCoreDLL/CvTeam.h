@@ -106,12 +106,13 @@ public:
 	int getHasCorporationCount(CorporationTypes eCorporation) const;															// Exposed to Python
 
 	int countTotalCulture() const;																			// Exposed to Python
-	int countNumUnitsByArea(CvArea* pArea) const;																				// Exposed to Python
-	int countNumCitiesByArea(CvArea* pArea) const;																			// Exposed to Python
-	int countTotalPopulationByArea(CvArea* pArea) const;																// Exposed to Python
-	int countPowerByArea(CvArea* pArea) const;																					// Exposed to Python
-	int countNumAIUnitsByArea(CvArea* pArea, UnitAITypes eUnitAI) const;								// Exposed to Python
-	int countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam = NO_TEAM) const;																		// Exposed to Python
+
+	int countNumUnitsByArea(CvArea const& kArea) const;																				// Exposed to Python
+	int countNumCitiesByArea(CvArea const& kArea) const;																			// Exposed to Python
+	int countTotalPopulationByArea(CvArea const& kArea) const;																// Exposed to Python
+	int countPowerByArea(CvArea const& kArea) const;																					// Exposed to Python
+	int countNumAIUnitsByArea(CvArea const& kArea, UnitAITypes eUnitAI) const;								// Exposed to Python
+	int countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam = NO_TEAM) const;																		// Exposed to Python
 	EraTypes getCurrentEra() const; // advc.112b
 	// K-Mod:
 	int getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain = NO_DOMAIN) const;

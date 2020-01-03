@@ -776,8 +776,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		   match an average case. */
 		if(!conquests.empty()) {
 			CvCity const& latestConq = *conquests[conquests.size() - 1]->city();
-			if(latestConq.getOwner() == defender.id &&
-					latestConq.area() == cvCity->area()) {
+			if(latestConq.getOwner() == defender.id && cvCity->sameArea(latestConq)) {
 				deploymentDistAttacker *= 0.6;
 				// Will have to wait for some units to heal then though
 				healDuration = 2;
@@ -947,7 +946,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	targetArmyPow *= defDeploymentMod;
 	armyPow *= std::max(100 - 1.55 * std::pow(deploymentDistAttacker, 1.15), 50.0) / 100;
    // Units available in battle area
-	CvArea* battleArea = NULL;
+	CvArea const* battleArea = NULL;
 	if(c != NULL)
 		battleArea = cvCity->area();
 	else if(!isNaval) {
@@ -970,14 +969,14 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 				areaWeightAtt = battleArea->getCitiesPerPlayer(id) /
 						(double)remainingCitiesAtt;
 				CvCity* capital = GET_PLAYER(id).getCapitalCity();
-				if(capital != NULL && capital->area() == battleArea)
+				if(capital != NULL && capital->isArea(*battleArea))
 					areaWeightAtt *= (GET_PLAYER(id).isHuman() ? 1.5 : 1.33);
 				areaWeightAtt = std::min(1.0, areaWeightAtt);
 			}
 			else {
 				CvCity* capital = GET_PLAYER(id).getCapitalCity();
 				if(capital != NULL) {
-					areaWeightAtt = capital->area()->getCitiesPerPlayer(id) /
+					areaWeightAtt = capital->getArea().getCitiesPerPlayer(id) /
 							(double)GET_PLAYER(id).getNumCities();
 				}
 				/*  A human naval attack focuses much of the army (if supported by
@@ -997,7 +996,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			areaWeightDef = battleArea->getCitiesPerPlayer(defender.id) /
 					(double)remainingCitiesDef;
 			CvCity* capital = GET_PLAYER(defender.id).getCapitalCity();
-			if(capital != NULL && capital->area() == battleArea)
+			if(capital != NULL && capital->isArea(*battleArea))
 				areaWeightDef *= (GET_PLAYER(defender.id).isHuman() ? 1.5 : 1.33);
 			/*  Even if the local army is too small to prevent the (temporary)
 				capture of a city, reinforcements will arrive before long. */
@@ -1336,7 +1335,7 @@ bool InvasionGraph::Node::canReachByLand(int cityId) const {
 			!cache.canTrainDeepSeaCargo());
 }
 
-CvArea* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
+CvArea const* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
 
 	// Lots of const here b/c I'm a bit worried about performance
 	CvPlayer const& civ1 = GET_PLAYER(id);
@@ -1347,18 +1346,18 @@ CvArea* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
 	if(cap1 != NULL) {
 		CvCity* cap2 = civ2.getCapitalCity();
 		CvArea* const r = cap1->area();
-		if(cap2 != NULL && r == cap2->area())
+		if(cap2 != NULL && cap2->isArea(*r))
 			return r;
 	}
-	CvArea* r = NULL;
+	CvArea const* r = NULL;
 	int maxCities = 0;
 	// Going through cities should be faster than going through all areas
 	CvPlayer const& fewerCitiesCiv = (civ1.getNumCities() < civ2.getNumCities() ?
 			civ1 : civ2);
 	FOR_EACH_CITY(c, fewerCitiesCiv) {
-		CvArea* const a = c->area();
-		int citiesMin = std::min(a->getCitiesPerPlayer(civ1.getID()),
-				a->getCitiesPerPlayer(civ2.getID()));
+		CvArea const& a = c->getArea();
+		int citiesMin = std::min(a.getCitiesPerPlayer(civ1.getID()),
+				a.getCitiesPerPlayer(civ2.getID()));
 		if(citiesMin <= 0)
 			continue;
 		if(c->isCapital()) {
@@ -1369,7 +1368,7 @@ CvArea* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
 		}
 		if(citiesMin > maxCities) {
 			maxCities = citiesMin;
-			r = a;
+			r = &a;
 		}
 	}
 	return r;

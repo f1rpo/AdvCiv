@@ -122,14 +122,14 @@ public:
 	//short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const; // K-Mod
 	//int AI_countDeadlockedBonuses(CvPlot const* pPlot) const;
 
-	bool AI_isAreaAlone(CvArea* pArea) const;
+	bool AI_isAreaAlone(CvArea const& kArea) const;
 	bool AI_isCapitalAreaAlone() const;
-	bool AI_isPrimaryArea(CvArea* pArea) const;
+	bool AI_isPrimaryArea(CvArea const& kArea) const;
 
-	int AI_militaryWeight(CvArea* pArea) const;
+	int AI_militaryWeight(CvArea const* pArea = NULL) const;
 
 	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
-	CvCityAI* AI_findTargetCity(CvArea* pArea) const;
+	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
 
 	bool AI_isCommercePlot(CvPlot* pPlot) const;
@@ -287,43 +287,45 @@ public:
 	DenialTypes AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const;
 
 	int AI_unitImpassableCount(UnitTypes eUnit) const;
-	int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea) const;				// Exposed to Python
-	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;												// Exposed to Python
-	int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;							// Exposed to Python
-	int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;						// Exposed to Python
+
+	int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const* pArea = NULL) const;			// Exposed to Python
+	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;														// Exposed to Python
+	int AI_totalAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitAI) const;							// Exposed to Python
+	int AI_totalWaterAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitAI) const;						// Exposed to Python
 	// advc.081:
-	int AI_totalWaterAreaUnitAIs(CvArea* pArea, std::vector<UnitAITypes> const& aeUnitAI) const;
+	int AI_totalWaterAreaUnitAIs(CvArea const& kArea, std::vector<UnitAITypes> const& aeUnitAI) const;
 	int AI_countCargoSpace(UnitAITypes eUnitAI) const;
 
-	int AI_neededExplorers(CvArea* pArea) const;
+	int AI_neededExplorers(CvArea const& kArea) const;
 	void AI_updateNeededExplorers(); // advc.opt
 	// <advc.017b>
-	bool AI_isExcessSeaExplorers(CvArea* pWaterArea, int iChange = 0) const;
-	bool AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea* pArea) const;
+	bool AI_isExcessSeaExplorers(CvArea const& kWaterArea, int iChange = 0) const;
+	bool AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea const* pArea = NULL) const;
 	// </advc.017>
 	// <advc.042> Moved from CvPlayer and iLookAhead param added
-	int AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
+	int AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
 	int AI_countOwnedBonuses(BonusTypes eBonus) const;																											// Exposed to Python
 	// </advc.042>
-	int AI_neededWorkers(CvArea* pArea) const;
-	int AI_neededMissionaries(CvArea* pArea, ReligionTypes eReligion) const;
-	int AI_neededExecutives(CvArea* pArea, CorporationTypes eCorporation) const;
+	int AI_neededWorkers(CvArea const& kArea) const;
+	int AI_neededMissionaries(CvArea const& kArea, ReligionTypes eReligion) const;
+	int AI_neededExecutives(CvArea const& kArea, CorporationTypes eCorporation) const;
 	int AI_unitCostPerMil() const; // K-Mod
-	int AI_maxUnitCostPerMil(CvArea* pArea = 0, int iBuildProb = -1) const; // K-Mod
+	int AI_maxUnitCostPerMil(CvArea const* pArea = NULL, int iBuildProb = -1) const; // K-Mod
 	int AI_nukeWeight() const; // K-Mod
 	int AI_nukeDangerDivisor() const; // dlph.16
-	bool AI_isLandWar(CvArea* pArea) const; // K-Mod
-	bool AI_isFocusWar(CvArea* pArea = NULL) const; // advc.105
+	bool AI_isLandWar(CvArea const& kArea) const; // K-Mod
+	bool AI_isFocusWar(CvArea const* pArea = NULL) const; // advc.105
 
-	int AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion/*, PlayerTypes* peBestPlayer = NULL*/) const;
-	int AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, PlayerTypes* peBestPlayer = NULL, bool bSpreadOnly = false) const;
+	int AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea = NULL/*, PlayerTypes* peBestPlayer = NULL*/) const;
+	int AI_executiveValue(CorporationTypes eCorporation, CvArea const* pArea = NULL,
+			PlayerTypes* peBestPlayer = NULL, bool bSpreadOnly = false) const;
 	// advc.171:
 	bool AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes eReligion) const;
 	int AI_corporationValue(CorporationTypes eCorporation, CvCityAI const* pCity = NULL) const;
 
 	int AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove = false) const;
 	int AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_areaMissionAIs(CvArea* pArea, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
+	int AI_areaMissionAIs(CvArea const& kArea, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	// advc: const CvPlot*
 	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
 	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
@@ -494,11 +496,11 @@ public:
 
 	int AI_getTotalAreaCityThreat(CvArea const& kArea) const;
 	int AI_getAreaCultureDefendersNeeded(CvArea const& kArea) const; // advc.099c
-	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
+	int AI_countNumAreaHostileUnits(CvArea const& kArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
 			CvPlot* pCenter = NULL) const; // advc.081
-	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea,
+	int AI_getTotalFloatingDefendersNeeded(CvArea const& kArea,
 			bool bDebug = false) const; // advc.007
-	int AI_getTotalFloatingDefenders(CvArea* pArea) const;
+	int AI_getTotalFloatingDefenders(CvArea const& kArea) const;
 	int AI_getTotalAirDefendersNeeded() const; // K-Mod
 
 	RouteTypes AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValue = NULL) const;
@@ -521,17 +523,20 @@ public:
 
 	int AI_getNumCitySites() const;
 	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc: Made plot param const
-	int AI_getNumAreaCitySites(int iAreaID, int& iBestValue) const;
-	int AI_getNumAdjacentAreaCitySites(int iWaterAreaID, int iExcludeArea, int& iBestValue) const;
+	int AI_getNumAreaCitySites(CvArea const& kArea, int& iBestValue) const;
+	int AI_getNumAdjacentAreaCitySites(int& iBestValue, CvArea const& kWaterArea,
+			CvArea const* pExcludeArea = NULL) const;
 	int AI_getNumPrimaryAreaCitySites(int iMinimumValue = 0) const; // K-Mod
 	CvPlot* AI_getCitySite(int iIndex) const;
 	// advc.117, advc.121:
 	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
 	bool AI_isAwfulSite(CvCity const& kCity) const; // advc.ctr
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
-	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true, bool bCheckForeignTradePolicy = true, CvArea* pIgnoreArea = 0) const; // K-Mod
+	// K-Mod:
+	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true,
+			bool bCheckForeignTradePolicy = true, CvArea const* pIgnoreArea = 0) const;
 
-	int AI_bestAreaUnitAIValue(UnitAITypes eUnitAI, CvArea* pArea, UnitTypes* peBestUnitType = NULL) const;
+	int AI_bestAreaUnitAIValue(UnitAITypes eUnitAI, CvArea const* pArea = NULL, UnitTypes* peBestUnitType = NULL) const;
 	int AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity, UnitTypes* peBestUnitType = NULL) const;
 
 	int AI_calculateTotalBombard(DomainTypes eDomain) const;
@@ -580,7 +585,7 @@ public:
 	/* Are there cities with sufficient production to
 	   train a significant number of units of type eUnit? */
 	bool AI_canBeExpectedToTrain(UnitTypes eUnit) const; // advc.104, advc.651
-	bool AI_isDefenseFocusOnBarbarians(int iArea) const; // advc.300
+	bool AI_isDefenseFocusOnBarbarians(CvArea const& kArea) const; // advc.300
 	// advc.001: needed for bNeighbouringReligion in AI_techValue
 	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const;
 
@@ -773,7 +778,7 @@ protected:
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
 	void AI_updateCityAttitude(CvPlot const& kCityPlot); // advc.130w
-	int AI_neededExplorers_bulk(CvArea const* pArea) const; // advc.opt
+	int AI_neededExplorers_bulk(CvArea const& kArea) const; // advc.opt
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START
 	// (advc: moved here from the public section)
 	int AI_calculateSpaceVictoryStage() const;

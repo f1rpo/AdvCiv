@@ -207,12 +207,14 @@ public:
 	// advc.080:
 	int upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const;
 
-	// note: bbai added bIncludeTraining to the following two functions.
-	int countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, bool bIncludeTraining = false) const;														// Exposed to Python
-	int countCorporationSpreadUnits(CvArea* pArea, CorporationTypes eCorporation, bool bIncludeTraining = false) const;														// Exposed to Python
+	// note: bbai added bIncludeTraining to the following two functions
+	int countReligionSpreadUnits(CvArea const* pArea,																// Exposed to Python
+			ReligionTypes eReligion, bool bIncludeTraining = false) const;
+	int countCorporationSpreadUnits(CvArea const* pArea,															// Exposed to Python
+			CorporationTypes eCorporation, bool bIncludeTraining = false) const;
 
 	int countNumCoastalCities() const;																																		// Exposed to Python
-	int countNumCoastalCitiesByArea(CvArea* pArea) const;																									// Exposed to Python
+	int countNumCoastalCitiesByArea(CvArea const& kArea) const;																									// Exposed to Python
 	int countTotalCulture() const;																																				// Exposed to Python
 
 	// advc.042: countUnimprovedBonuses, countOwnedBonuses moved to CvPlayerAI
@@ -284,7 +286,7 @@ public:
 
 	int getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra = 0) const;	// Exposed to Python
 	void removeBuildingClass(BuildingClassTypes eBuildingClass);																		// Exposed to Python
-	void processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pArea);
+	void processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kArea);
 
 	int getBuildCost(const CvPlot* pPlot, BuildTypes eBuild) const;
 	bool canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra = false, bool bTestVisible = false) const;	// Exposed to Python
@@ -365,8 +367,8 @@ public:
 
 	bool hasHeadquarters(CorporationTypes eCorporation) const;																											// Exposed to Python
 	int countHeadquarters() const;																																					// Exposed to Python
-	//int countCorporations(CorporationTypes eCorporation) const;	// Exposed to Python
-	int countCorporations(CorporationTypes eCorporation, CvArea* pArea = 0) const; // K-Mod, exposed to Python
+	int countCorporations(CorporationTypes eCorporation,																// Exposed to Python
+			CvArea const* pArea = 0) const; // K-Mod
 	void foundCorporation(CorporationTypes eCorporation);																										// Exposed to Python
 
 	int getCivicAnarchyLength(CivicTypes* paeNewCivics,																	// Exposed to Python

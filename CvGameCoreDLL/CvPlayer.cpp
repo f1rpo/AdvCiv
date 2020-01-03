@@ -1381,9 +1381,8 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 			if (pLoopPlot == NULL)
 				continue;
 
-			if (pLoopPlot->getArea() == pStartingPlot->getArea() &&
-					!pLoopPlot->isImpassable() && !pLoopPlot->isUnit() &&
-					!pLoopPlot->isGoody())
+			if (pLoopPlot->sameArea(*pStartingPlot) && !pLoopPlot->isGoody() &&
+				!pLoopPlot->isImpassable() && !pLoopPlot->isUnit())
 			{
 				pBestPlot = pLoopPlot;
 				break;
@@ -1447,7 +1446,7 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlaye
 	}
 
 	int iDistance = ::stepDistance(&kPlot, pStartingPlot);
-	if (pStartingPlot->getArea() != kPlot.getArea())
+	if (!pStartingPlot->sameArea(kPlot))
 	{
 		iDistance *= 4;
 		iDistance /= 3;
@@ -1468,7 +1467,7 @@ int CvPlayer::coastRiverStartingAreaScore(CvArea const& a) const
 	for(int i = 0; i < kMap.numPlots(); i++)
 	{
 		CvPlot const& p = kMap.getPlotByIndex(i);
-		if(p.isPeak() || p.getArea() != a.getID())
+		if(p.isPeak() || !p.isArea(a))
 			continue;
 		int iTotalYield = p.calculateTotalBestNatureYield(getTeam());
 		int iFoodYield = p.calculateBestNatureYield(YIELD_FOOD, getTeam());
@@ -1563,8 +1562,8 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	bool bNew = false;
 	if (getStartingPlot() != NULL)
 	{
-		//iBestArea = getStartingPlot()->getArea(); // dlph.35:
-		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea(), 1));
+		//iBestArea = getStartingPlot()->getArea().getID(); // dlph.35:
+		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea().getID(), 1));
 		setStartingPlot(NULL, true);
 		bNew = true;
 	}
@@ -1600,7 +1599,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 				CvPlot* pLoopPlot = m.plotByIndex(iI);
 				//if ((iBestArea == -1) || (pLoopPlot->getArea() == iBestArea))
 				// <dlph.35>
-				if (pLoopPlot->getArea() != areas_by_value[iJ].first)
+				if (pLoopPlot->getArea().getID() != areas_by_value[iJ].first)
 					continue;
 				if (iPass == 0) // "Avoid very bad terrain in the first pass."
 				{
@@ -3531,14 +3530,15 @@ int CvPlayer::upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) co
 	return r;
 } // </advc.080>
 
-int CvPlayer::countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, bool bIncludeTraining) const
+int CvPlayer::countReligionSpreadUnits(CvArea const* pArea,
+	ReligionTypes eReligion, bool bIncludeTraining) const
 {
 	PROFILE_FUNC();
 
 	int iCount = 0;
 	FOR_EACH_UNIT(pLoopUnit, *this)
 	{
-		if (pLoopUnit->getArea() == pArea->getID())
+		if (pLoopUnit->isArea(*pArea))
 		{
 			if (pLoopUnit->getUnitInfo().getReligionSpreads(eReligion) > 0)
 				iCount++;
@@ -3563,7 +3563,8 @@ int CvPlayer::countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, b
 	return iCount;
 }
 
-int CvPlayer::countCorporationSpreadUnits(CvArea* pArea, CorporationTypes eCorporation, bool bIncludeTraining) const
+int CvPlayer::countCorporationSpreadUnits(CvArea const* pArea,
+	CorporationTypes eCorporation, bool bIncludeTraining) const
 {
 	PROFILE_FUNC();
 
@@ -3571,7 +3572,7 @@ int CvPlayer::countCorporationSpreadUnits(CvArea* pArea, CorporationTypes eCorpo
 	FOR_EACH_UNIT(pLoopUnit, *this)
 	{
 		//if (pLoopUnit->area() == pArea)
-		if (pArea == NULL || pLoopUnit->area() == pArea) // K-Mod
+		if (pArea == NULL || pLoopUnit->isArea(*pArea)) // K-Mod
 		{
 			if (pLoopUnit->getUnitInfo().getCorporationSpreads(eCorporation) > 0)
 				iCount++;
@@ -3583,7 +3584,7 @@ int CvPlayer::countCorporationSpreadUnits(CvArea* pArea, CorporationTypes eCorpo
 	{
 		FOR_EACH_CITY(pLoopCity, *this)
 		{
-			if (pArea == NULL || pLoopCity->area() == pArea) // K-Mod
+			if (pArea == NULL || pLoopCity->isArea(*pArea)) // K-Mod
 			{
 				UnitTypes eUnit = pLoopCity->getProductionUnit();
 				if (eUnit != NO_UNIT)
@@ -3593,8 +3594,7 @@ int CvPlayer::countCorporationSpreadUnits(CvArea* pArea, CorporationTypes eCorpo
 				}
 			}
 		}
-	}
-	// bbai end
+	} // bbai end
 
 	return iCount;
 }
@@ -3611,15 +3611,14 @@ int CvPlayer::countNumCoastalCities() const
 }
 
 
-int CvPlayer::countNumCoastalCitiesByArea(CvArea* pArea) const
+int CvPlayer::countNumCoastalCitiesByArea(CvArea const& kArea) const
 {
 	int iCount = 0;
-	int iAreaID = pArea->getID();
 	FOR_EACH_CITY(pLoopCity, *this)
 	{
 		if (pLoopCity->isCoastal())
 		{
-			if (pLoopCity->getArea() == iAreaID || pLoopCity->plot()->isAdjacentToArea(iAreaID))
+			if (pLoopCity->isArea(kArea) || pLoopCity->plot()->isAdjacentToArea(kArea))
 				iCount++;
 		}
 	}
@@ -3954,7 +3953,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		CvCityAI* pCity = GET_PLAYER((PlayerTypes)iData1).AI_getCity(iData2);
 		if (pCity != NULL)
 		{
-			pCity->area()->AI_setTargetCity(getID(), pCity);
+			pCity->getArea().AI_setTargetCity(getID(), pCity);
 			AI().AI_setCityTargetTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)); // K-Mod
 		}
 		break;
@@ -5066,9 +5065,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		addGoodyMsg(szBuffer, *pPlot, goody.getSound());
 	/*  If not isBad, then BarbarianUnitClass has a different meaning, which is
 		handled above. */
-	if(goody.isBad() && (goody.getBarbarianUnitClass() != NO_UNITCLASS
-			// Will use eBestUnit in this case
-			|| (goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0))) {
+	if(goody.isBad() && (goody.getBarbarianUnitClass() != NO_UNITCLASS ||
+		// Will use eBestUnit in this case
+		(goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0)))
+	{
 		UnitTypes eUnit = NO_UNIT;
 		UnitClassTypes eUnitClass = (UnitClassTypes)goody.getBarbarianUnitClass();
 		if(eUnitClass != NO_UNITCLASS)
@@ -5083,13 +5083,14 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		{
 			if(iBarbCount >= iMinBarbs)
 				continue;
-			for(int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+			FOR_EACH_ENUM(Direction)
 			{
-				CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(),
-						(DirectionTypes)iI);
-				if(pLoopPlot == NULL || pLoopPlot->getArea() != pPlot->getArea() ||
-						pLoopPlot->isImpassable() || pLoopPlot->getNumUnits() > 0)
+				CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), eLoopDirection);
+				if(pLoopPlot == NULL || !pLoopPlot->sameArea(*pPlot) ||
+					pLoopPlot->isImpassable() || pLoopPlot->getNumUnits() > 0)
+				{
 					continue;
+				}
 				if(iPass > 0 || (g.getSorenRandNum(100, "Goody Barbs") < iProb))
 				{
 					UnitTypes eLoopUnit = eUnit;
@@ -5106,8 +5107,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 								UNITAI_ATTACK));
 						iBarbCount++;
 					}
-					if ((iPass > 0 && iBarbCount >= iMinBarbs) ||
-							iBarbCount >= iMaxBarbs)
+					if ((iPass > 0 && iBarbCount >= iMinBarbs) || iBarbCount >= iMaxBarbs)
 						break;
 				}
 			}
@@ -5223,7 +5223,7 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc: some 
 			if (pLoopPlot == NULL)
 				continue;
 
-			if (pLoopPlot->isCity() && pLoopPlot->area() == pPlot->area())
+			if (pLoopPlot->isCity() && pLoopPlot->sameArea(*pPlot))
 				return false;
 		}
 	}
@@ -5933,7 +5933,7 @@ void CvPlayer::removeBuildingClass(BuildingClassTypes eBuildingClass)
 }
 
 // courtesy of the Gourd Bros...
-void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pArea)
+void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kArea)
 {
 	int iI, iJ;
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding); // advc
@@ -5981,21 +5981,19 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 	changeHurryModifier(kBuilding.getGlobalHurryModifier() * iChange);
 	changeFreeExperience(kBuilding.getGlobalFreeExperience() * iChange);
 	changeWarWearinessModifier(kBuilding.getGlobalWarWearinessModifier() * iChange);
-	pArea->changeFreeSpecialist(getID(), (kBuilding.getAreaFreeSpecialist() * iChange));
+	kArea.changeFreeSpecialist(getID(), (kBuilding.getAreaFreeSpecialist() * iChange));
 	changeFreeSpecialist(kBuilding.getGlobalFreeSpecialist() * iChange);
 	changeCoastalTradeRoutes(kBuilding.getCoastalTradeRoutes() * iChange);
-	// <advc.310> Now per area
 	//changeTradeRoutes(kBuilding.getGlobalTradeRoutes() * iChange);
-	pArea->changeTradeRoutes(getID(),
-			kBuilding.getAreaTradeRoutes() * iChange);
-	// </advc.310>
+	// advc.310: Now per area
+	kArea.changeTradeRoutes(getID(), kBuilding.getAreaTradeRoutes() * iChange);
 	if (kBuilding.getAreaHealth() > 0)
 	{
-		pArea->changeBuildingGoodHealth(getID(), (kBuilding.getAreaHealth() * iChange));
+		kArea.changeBuildingGoodHealth(getID(), (kBuilding.getAreaHealth() * iChange));
 	}
 	else
 	{
-		pArea->changeBuildingBadHealth(getID(), (kBuilding.getAreaHealth() * iChange));
+		kArea.changeBuildingBadHealth(getID(), (kBuilding.getAreaHealth() * iChange));
 	}
 	if (kBuilding.getGlobalHealth() > 0)
 	{
@@ -6005,18 +6003,18 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 	{
 		changeBuildingBadHealth(kBuilding.getGlobalHealth() * iChange);
 	}
-	pArea->changeBuildingHappiness(getID(), (kBuilding.getAreaHappiness() * iChange));
+	kArea.changeBuildingHappiness(getID(), (kBuilding.getAreaHappiness() * iChange));
 	changeBuildingHappiness(kBuilding.getGlobalHappiness() * iChange);
 	changeWorkerSpeedModifier(kBuilding.getWorkerSpeedModifier() * iChange);
 	changeSpaceProductionModifier(kBuilding.getGlobalSpaceProductionModifier() * iChange);
 	changeCityDefenseModifier(kBuilding.getAllCityDefenseModifier() * iChange);
-	pArea->changeCleanPowerCount(getTeam(), ((kBuilding.isAreaCleanPower()) ? iChange : 0));
-	pArea->changeBorderObstacleCount(getTeam(), ((kBuilding.isAreaBorderObstacle()) ? iChange : 0));
+	kArea.changeCleanPowerCount(getTeam(), ((kBuilding.isAreaCleanPower()) ? iChange : 0));
+	kArea.changeBorderObstacleCount(getTeam(), ((kBuilding.isAreaBorderObstacle()) ? iChange : 0));
 
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
 		changeSeaPlotYield((YieldTypes)iI, kBuilding.getGlobalSeaPlotYieldChange(iI) * iChange);
-		pArea->changeYieldRateModifier(getID(), (YieldTypes)iI, kBuilding.getAreaYieldModifier(iI) * iChange);
+		kArea.changeYieldRateModifier(getID(), (YieldTypes)iI, kBuilding.getAreaYieldModifier(iI) * iChange);
 		changeYieldRateModifier((YieldTypes)iI, kBuilding.getGlobalYieldModifier(iI) * iChange);
 	}
 
@@ -6824,7 +6822,7 @@ int CvPlayer::getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const
 	return iTurnsLeft; // advc.004x: -1 now means infinitely many turns
 }
 
-int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const  // advc.003: style changes
+int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const  // advc: style changes
 {
 	int iResearchRate = 0;
 	int iOverflow = 0;
@@ -7332,26 +7330,22 @@ bool CvPlayer::hasHeadquarters(CorporationTypes eCorporation) const
 int CvPlayer::countHeadquarters() const
 {
 	int iCount = 0;
-
-	for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
+	FOR_EACH_ENUM(Corporation)
 	{
-		if (hasHeadquarters((CorporationTypes)iI))
-		{
+		if (hasHeadquarters(eLoopCorporation))
 			iCount++;
-		}
 	}
-
 	return iCount;
 }
 
 
-//int CvPlayer::countCorporations(CorporationTypes eCorporation) const
-int CvPlayer::countCorporations(CorporationTypes eCorporation, CvArea* pArea) const // K-Mod
+int CvPlayer::countCorporations(CorporationTypes eCorporation,
+	CvArea const* pArea) const // K-Mod
 {
 	int iCount = 0;
 	FOR_EACH_CITY(pLoopCity, *this)
 	{
-		if (!pArea || pLoopCity->area() == pArea) // K-Mod
+		if (pArea == NULL || pLoopCity->isArea(*pArea)) // K-Mod
 		{
 			if (pLoopCity->isHasCorporation(eCorporation))
 				iCount++;
@@ -7642,12 +7636,9 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 
 	if (pOldStartingPlot != NULL)
 	{
-		pOldStartingPlot->area()->changeNumStartingPlots(-1);
-
+		pOldStartingPlot->getArea().changeNumStartingPlots(-1);
 		if (bUpdateStartDist)
-		{
-			GC.getMap().updateMinOriginalStartDist(pOldStartingPlot->area());
-		}
+			GC.getMap().updateMinOriginalStartDist(pOldStartingPlot->getArea());
 	}
 
 	if (pNewValue == NULL)
@@ -7665,12 +7656,9 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 		m_iStartingX = iX;
 		m_iStartingY = iY;
 
-		getStartingPlot()->area()->changeNumStartingPlots(1);
-
+		getStartingPlot()->getArea().changeNumStartingPlots(1);
 		if (bUpdateStartDist)
-		{
-			GC.getMap().updateMinOriginalStartDist(getStartingPlot()->area());
-		}
+			GC.getMap().updateMinOriginalStartDist(getStartingPlot()->getArea());
 	}
 	FAssert(pNewValue == NULL || !pNewValue->isWater()); // advc.021b
 }
@@ -9728,19 +9716,22 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 				AI().AI_updateAttitude(i);*/
 				/*  advc.001: E.g. AI_getRankDifferenceAttitude can change between
 					any two civs. */
-				GET_PLAYER(i).AI_updateAttitude();
+				if (!GET_PLAYER(i).isMinorCiv()) // advc.003n
+					GET_PLAYER(i).AI_updateAttitude();
 			} // K-Mod end
 		}
 	}
 	else
 	{
-		// <advc.001> CvTeam::makePeace does this, but here they missed it
+		// <advc.001> CvTeam::makePeace does this, but here they missed it.
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
 			CvPlayer& kWarEnemy = GET_PLAYER((PlayerTypes)i);
 			if(kWarEnemy.isAlive() && kWarEnemy.getID() != getID() &&
-					!kWarEnemy.isMinorCiv() && GET_TEAM(kWarEnemy.getTeam()).isAtWar(getTeam()))
+				!kWarEnemy.isMinorCiv() && GET_TEAM(kWarEnemy.getTeam()).isAtWar(getTeam()))
+			{
 				kWarEnemy.updateWarWearinessPercentAnger();
+			}
 		} // </advc.001>
 		clearResearchQueue();
 		clearPopups(); // advc
@@ -10510,15 +10501,16 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 
 	// Python Event
 	CvEventReporter::getInstance().playerChangeStateReligion(getID(), eNewValue, eOldReligion);
-	// K-Mod. Attitude cache
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
+	// <K-Mod>
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_PLAYER((PlayerTypes)iI).getStateReligion() != NO_RELIGION)
+		CvPlayerAI& kLoopPlayer = *it;
+		if (kLoopPlayer.getStateReligion() != NO_RELIGION)
 		{
-			AI().AI_updateAttitude((PlayerTypes)iI);
-			GET_PLAYER((PlayerTypes)iI).AI_updateAttitude(getID());
+			AI().AI_updateAttitude(kLoopPlayer.getID());
+			kLoopPlayer.AI_updateAttitude(getID());
 		}
-	} // K-Mod end
+	} // </K-Mod end>
 }
 
 PlayerTypes CvPlayer::getParent() const
@@ -12040,13 +12032,12 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 		}
 	} // K-Mod. (environmentalism can change this. It's nice to see the effects immediately.)
 	GC.getGame().updateGwPercentAnger();
-
-	// K-Mod. Attitude cache.
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+	// <K-Mod>
+	for (PlayerIter<MAJOR_CIV> it(getTeam()); it.hasNext(); ++it)
 	{
-		AI().AI_updateAttitude(i);
-		GET_PLAYER(i).AI_updateAttitude(getID());
-	} // K-Mod end
+		AI().AI_updateAttitude(it->getID());
+		it->AI_updateAttitude(getID());
+	} // </K-Mod>
 }
 
 
@@ -19754,7 +19745,7 @@ PlayerTypes CvPlayer::getSplitEmpirePlayer(CvArea const& kArea) const // advc: w
 		if (kLoopPlayer.isAlive() && kLoopPlayer.getParent() == getID())
 		{
 			CvCity* pLoopCapital = kLoopPlayer.getCapitalCity();
-			if (pLoopCapital != NULL && pLoopCapital->area() == &kArea)
+			if (pLoopCapital != NULL && pLoopCapital->isArea(kArea))
 				return NO_PLAYER;
 		}
 	}
@@ -19818,7 +19809,7 @@ bool CvPlayer::canSplitArea(CvArea const& kArea) const // advc: was iAreaId
 	if (pCapital == NULL)
 		return false;
 
-	if (&kArea == pCapital->area())
+	if (pCapital->isArea(kArea))
 		return false;
 
 	if (kArea.getCitiesPerPlayer(getID()) == 0)
@@ -19999,18 +19990,20 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	{
 		CvPlot& kLoopPlot = kMap.getPlotByIndex(iPlot);
 		bool bTranferPlot = false;
-		if (kLoopPlot.area() == &kArea)
+		if (kLoopPlot.isArea(kArea))
 			bTranferPlot = true;
 
 		if (!bTranferPlot)
 		{
 			CvCity* pWorkingCity = kLoopPlot.getWorkingCity();
 			if (pWorkingCity != NULL && pWorkingCity->getOwner() == getID() &&
-					pWorkingCity->area() == &kArea)
+				pWorkingCity->isArea(kArea))
+			{
 				bTranferPlot = true;
+			}
 		}
 
-		if (!bTranferPlot && kLoopPlot.isWater() && kLoopPlot.isAdjacentToArea(&kArea))
+		if (!bTranferPlot && kLoopPlot.isWater() && kLoopPlot.isAdjacentToArea(kArea))
 			bTranferPlot = true;
 
 		if (bTranferPlot)
@@ -20028,7 +20021,7 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	std::vector<CvCity*> apAcquiredCities; // advc.104r
 	FOR_EACH_CITY_VAR(pOldCity, *this)
 	{
-		if (pOldCity->area() != &kArea)
+		if (!pOldCity->isArea(kArea))
 			continue;
 
 		int iCulture = pOldCity->getCultureTimes100(getID());

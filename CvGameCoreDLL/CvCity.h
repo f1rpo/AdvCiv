@@ -273,16 +273,22 @@ public:
 	int getYExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
 	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
 
-	bool at(int iX, int iY) const;																				// Exposed to Python
-	bool at(CvPlot const* pPlot) const;																					// Exposed to Python - atPlot
-	DllExport CvPlot* plot() const;																	// Exposed to Python
+	bool at(int iX, int iY) const;																		// Exposed to Python
+	bool at(CvPlot const* pPlot) const;																	// Exposed to Python as atPlot
+	DllExport CvPlot* plot() const;																		// Exposed to Python
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
-	bool isConnectedTo(CvCity const* pCity) const;															// Exposed to Python
-	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;				// Exposed to Python
-	int getArea() const;							// advc: Exposed to Python
-	CvArea* area() const;																						// Exposed to Python
+	bool isConnectedTo(CvCity const* pCity) const;														// Exposed to Python
+	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;									// Exposed to Python
+	// <advc>
+	inline CvArea* area() const { return m_pArea; }														// Exposed to Python
+	//int getArea() const;
+	inline CvArea& getArea() const { return *m_pArea; }
+	inline bool isArea(CvArea const& kArea) const { return (area() == &kArea); }
+	inline bool sameArea(CvCity const& kOther) const { return (area() == kOther.area()); }
+	void updateArea();
+	// </advc>
 	// BETTER_BTS_AI_MOD, 01/02/09, jdog5000: START
-	CvArea* waterArea(bool bNoImpassable = false) const;																			// Exposed to Python
+	CvArea* waterArea(bool bNoImpassable = false) const;												// Exposed to Python
 	CvArea* secondWaterArea() const;
 	CvArea* sharedWaterArea(CvCity* pCity) const;
 	bool isBlockaded() const;
@@ -1177,6 +1183,7 @@ protected:
 	bool* m_pabHasReligion;
 	bool* m_pabHasCorporation;
 
+	CvArea* m_pArea; // advc
 	IDInfo* m_paTradeCities;
 
 	mutable CLinkList<OrderData> m_orderQueue;

@@ -789,7 +789,7 @@ bool CvGame::selectCity(CvCity* pSelectCity, bool bCtrl, bool bAlt, bool bShift)
 	{
 		FOR_EACH_CITY_VAR(pLoopCity, GET_PLAYER(pSelectCity->getOwner()))
 		{
-			if (pLoopCity->getArea() == pSelectCity->getArea())
+			if (pLoopCity->sameArea(*pSelectCity))
 				gDLL->getInterfaceIFace()->addSelectedCity(pLoopCity);
 		}
 	}

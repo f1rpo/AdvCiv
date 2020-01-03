@@ -699,7 +699,7 @@ double GreedForAssets::threatToCities(PlayerTypes civId) {
 		bridgehead for a later war. Too uncertain I think. */
 	if(2 * ourPower > 3 * civPower)
 		return 0;
-	int areaId = civ.getCapitalCity()->area()->getID();
+	int areaId = civ.getCapitalCity()->getArea().getID();
 	iiMapIt pos = citiesPerArea[civ.getID()]->find(areaId);
 	if(pos == citiesPerArea[civ.getID()]->end() ||
 			pos->second <= (int)weConquerFromThem.size() / 2)
@@ -801,7 +801,7 @@ void GreedForAssets::initCitiesPerArea() {
 		// City may have been conquered by barbarians since the last update
 		if(ownerId == BARBARIAN_PLAYER)
 			continue;
-		int areaId = c.city()->area()->getID();
+		int areaId = c.city()->getArea().getID();
 		iiMapIt pos = citiesPerArea[ownerId]->find(areaId);
 		if(pos == citiesPerArea[ownerId]->end())
 			citiesPerArea[ownerId]->insert(pair<int,int>(areaId, 1));
@@ -861,9 +861,9 @@ void GreedForVassals::evaluate() {
 	nVassalCivs += PlayerIter<ALIVE,VASSAL_OF>::count(agentId);
 	// Diminishing returns from having additional trade partners
 	totalUtility /= std::sqrt((double)nVassalCivs);
-	CvArea* ourArea = we->getCapitalCity()->area();
-	CvArea* theirArea = they->getCapitalCity()->area();
-	bool isUsefulArea = (ourArea == theirArea);
+	CvArea const& ourArea = we->getCapitalCity()->getArea();
+	CvArea const& theirArea = they->getCapitalCity()->getArea();
+	bool isUsefulArea = (ourArea.getID() == theirArea.getID());
 	if(isUsefulArea) { // Look for a future enemy to dogpile on
 		isUsefulArea = false;
 		for(PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
@@ -874,7 +874,7 @@ void GreedForVassals::evaluate() {
 					m->isEliminated(civ.getID()) || m->hasCapitulated(t.getID()) ||
 					newVassals.count(t.getID()) > 0)
 				continue;
-			if(civ.getCapitalCity()->area() == ourArea &&
+			if(civ.getCapitalCity()->isArea(ourArea) &&
 					(civ.isHuman() || !t.AI_isAvoidWar(agentId) ||
 					we->isHuman() || !agent.AI_isAvoidWar(t.getID()))) {
 				isUsefulArea = true;
@@ -2105,11 +2105,11 @@ void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bP
 			sc += commerceRate / 2;
 			// Beware of peaceful civs on other landmasses
 			CvCity* cap = civ.getCapitalCity();
-			if(ourCapital != NULL && cap != NULL && ourCapital->area() !=
-					cap->area() && civ.AI_atVictoryStage(
-					AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
-					ourCapital->area()->getNumStartingPlots() >
-					cap->area()->getNumStartingPlots())
+			if(ourCapital != NULL && cap != NULL &&
+					!ourCapital->sameArea(*cap) &&
+					civ.AI_atVictoryStage(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
+					ourCapital->getArea().getNumStartingPlots() >
+					cap->getArea().getNumStartingPlots())
 				sc *= (4/3.0);
 		}
 		if(sc > bestScore)
@@ -3107,7 +3107,7 @@ void Revolts::evaluate() {
 	double revoltLoss = 0;
 	int totalAssets = 0;
 	FOR_EACH_AREA_VAR(a) {
-		if(!they->AI_isPrimaryArea(a) || (we->AI_isPrimaryArea(a) &&
+		if(!they->AI_isPrimaryArea(*a) || (we->AI_isPrimaryArea(*a) &&
 				a->getCitiesPerPlayer(theyId) <= 2)) // Almost done here
 			continue;
 		// Can't rely on AreaAIType then
@@ -3118,7 +3118,7 @@ void Revolts::evaluate() {
 				aai == NO_AREAAI)) || !m->isWar(weId, theyId))
 			continue;
 		FOR_EACH_CITY(c, *we) {
-			if(c->area()->getID() != a->getID())
+			if(!c->isArea(*a))
 				continue;
 			City* cacheCity = ourCache->lookupCity(c->plotNum());
 			// Count each city only once
@@ -3190,8 +3190,8 @@ void UlteriorMotives::evaluate() {
 			target.uwai().canReach(TEAMID(theyId)));
 	if(bHot &&
 			// If the target is in our area but not theirs, that's fishy.
-			(!target.AI_isPrimaryArea(we->getCapitalCity()->area()) ||
-			target.AI_isPrimaryArea(they->getCapitalCity()->area())))
+			(!target.AI_isPrimaryArea(we->getCapitalCity()->getArea()) ||
+			target.AI_isPrimaryArea(they->getCapitalCity()->getArea())))
 		return;
 	/*  Otherwise, they might want to hurt us as much as the target, and we should
 		demand extra payment to allay our suspicions. Use DWRAT (greater than
@@ -3452,7 +3452,7 @@ void TacticalSituation::evalEngagement() {
 			friendly route, we can probably attack units two tiles away,
 			though we probably won't if our units are damaged. */
 		if(head->maxHitPoints() - head->getDamage() >= 80) {
-			if(groupPlot.area()->isWater())
+			if(groupPlot.getArea().isWater())
 				iRange++;
 			else if(plotOwner != NO_PLAYER &&
 					(plotOwner == weId || agent.isOpenBorders(TEAMID(plotOwner)))

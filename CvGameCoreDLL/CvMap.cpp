@@ -383,27 +383,27 @@ void CvMap::updateWorkingCity()
 }
 
 
-void CvMap::updateMinOriginalStartDist(CvArea* pArea)
+void CvMap::updateMinOriginalStartDist(CvArea const& kArea)
 {
 	PROFILE_FUNC();
 
 	for (int iI = 0; iI < numPlots(); iI++)
 	{
 		CvPlot& kPlot = getPlotByIndex(iI);
-		if (kPlot.area() == pArea)
+		if (kPlot.isArea(kArea))
 			kPlot.setMinOriginalStartDist(-1);
 	}
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
-		if (pStartingPlot == NULL || pStartingPlot->area() != pArea)
+		if (pStartingPlot == NULL || !pStartingPlot->isArea(kArea))
 			continue; // advc
 
 		for (int iJ = 0; iJ < numPlots(); iJ++)
 		{
 			CvPlot& kPlot = getPlotByIndex(iJ);
-			if (kPlot.area() == pArea && /* K-Mod: */ &kPlot != pStartingPlot)
+			if (kPlot.isArea(kArea) && /* K-Mod: */ &kPlot != pStartingPlot)
 			{
 				//iDist = calculatePathDistance(pStartingPlot, pLoopPlot);
 				int iDist = stepDistance(pStartingPlot, &kPlot);
@@ -524,7 +524,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
 		int iMinCivUnitDistance) const
 {
-	if (pArea != NULL && kPlot.area() != pArea)
+	if (pArea != NULL && !kPlot.isArea(*pArea))
 		return false;
 	/*  advc.300: Code moved into new function isCivUnitNearby;
 		Barbarians in surrounding plots are now ignored. */
@@ -578,8 +578,8 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 		{	// <advc.004r>
 			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
 				continue; // </advc.004r>
-			if (!bSameArea || pLoopCity->area() == getPlot(iX, iY).area() ||
-					(bCoastalOnly && pLoopCity->waterArea() == getPlot(iX, iY).area()))
+			if (!bSameArea || pLoopCity->isArea(getPlot(iX, iY).getArea())  ||
+				(bCoastalOnly && pLoopCity->waterArea() == getPlot(iX, iY).area()))
 			{
 				if ((!bCoastalOnly || pLoopCity->isCoastal()) &&
 					eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith) &&
@@ -1024,7 +1024,7 @@ void CvMap::recalculateAreas()
 	PROFILE_FUNC();
 
 	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).setArea(FFreeList::INVALID_INDEX);
+		getPlotByIndex(iI).setArea(NULL);
 	m_areas->removeAll();
 	calculateAreas();
 }
@@ -1106,7 +1106,11 @@ void CvMap::read(FDataStreamBase* pStream)
 
 	// call the read of the free list CvArea class allocations
 	ReadStreamableFFreeListTrashArray(*m_areas, pStream);
-
+	// <advc> Let the plots know that the areas have been loaded
+	for (int i = 0; i < numPlots(); i++)
+	{
+		plotByIndex(i)->initArea();
+	} // </advc>
 	setup();
 	computeShelves(); // advc.300
 	/*  advc.004z: Not sure if this is the ideal place for this, but it works.
@@ -1216,18 +1220,18 @@ void CvMap::calculateAreas()
 		calculateReprAreas();
 		return;
 	} // </advc.030>
-	for (int iI = 0; iI < numPlots(); iI++)
+	for (int i = 0; i < numPlots(); i++)
 	{
-		CvPlot& kLoopPlot = getPlotByIndex(iI);
+		CvPlot& kLoopPlot = getPlotByIndex(i);
 		gDLL->callUpdater();
-		if (kLoopPlot.getArea() == FFreeList::INVALID_INDEX)
+		if (kLoopPlot.area() == NULL)
 		{
 			CvArea* pArea = addArea();
-			pArea->init(pArea->getID(), kLoopPlot.isWater());
-			int iArea = pArea->getID();
-			kLoopPlot.setArea(iArea);
-			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), kLoopPlot.getX(), kLoopPlot.getY(),
-					-1, -1, kLoopPlot.isWater(), iArea);
+			pArea->init(kLoopPlot.isWater());
+			kLoopPlot.setArea(pArea);
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(),
+					kLoopPlot.getX(), kLoopPlot.getY(), -1, -1,
+					kLoopPlot.isWater(), pArea->getID());
 		}
 	}
 	updateLakes(); // advc.030
@@ -1248,13 +1252,12 @@ void CvMap::calculateAreas_030()
 				if(p.isImpassable())
 					continue;
 			}
-			if(p.getArea() != FFreeList::INVALID_INDEX)
+			if(p.area() != NULL)
 				continue;
 			FAssert(iPass == 0 || p.isImpassable());
 			CvArea& a = *addArea();
-			int iArea = a.getID();
-			a.init(iArea, p.isWater());
-			p.setArea(iArea);
+			a.init(p.isWater());
+			p.setArea(&a);
 			calculateAreas_DFS(p);
 			gDLL->callUpdater(); // Allow UI to update
 		}
@@ -1301,13 +1304,13 @@ void CvMap::calculateReprAreas()
 				// Only orthogonal adjacency for water tiles
 				if(p.isWater() && x != q.getX() && y != q.getY())
 					continue;
-				int const pReprArea = p.area()->getRepresentativeArea();
-				int const qReprArea = q.area()->getRepresentativeArea();
+				int const pReprArea = p.getArea().getRepresentativeArea();
+				int const qReprArea = q.getArea().getRepresentativeArea();
 				if(pReprArea != qReprArea && p.isWater() == q.isWater())
 				{
 					if(qReprArea < pReprArea)
-						p.area()->setRepresentativeArea(qReprArea);
-					else q.area()->setRepresentativeArea(pReprArea);
+						p.getArea().setRepresentativeArea(qReprArea);
+					else q.getArea().setRepresentativeArea(pReprArea);
 					iReprChanged++;
 				}
 			}
@@ -1352,7 +1355,7 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 			CvPlot* s = plot(p.getX(), q.getY());
 			CvPlot* t = plot(q.getX(), p.getY());
 			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
-			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
+			if(q.area() == NULL && p.isWater() == q.isWater() &&
 				// For water tiles, orthogonal adjacency is unproblematic.
 				(!p.isWater() || x == q.getX() || y == q.getY() ||
 				// Diagonal adjacency only works if either s or t are water
@@ -1362,7 +1365,7 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 					ice packs end up in one CvArea. */
 				(!p.isImpassable() || q.isImpassable()))
 			{
-				q.setArea(p.getArea());
+				q.setArea(p.area());
 				stack.push(&q);
 			}
 		}
@@ -1398,7 +1401,7 @@ void CvMap::computeShelves()
 		p.getAdjacentLandAreaIds(adjLands);
 		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++)
 		{
-			Shelf::Id shelfID(*it, p.getArea());
+			Shelf::Id shelfID(*it, p.getArea().getID());
 			std::map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(shelfID);
 			Shelf* pShelf;
 			if(shelfPos == shelves.end())

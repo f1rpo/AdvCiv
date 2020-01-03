@@ -90,7 +90,7 @@ public:
 	bool canCargoAllMove() const; // K-Mod (moved from CvUnit)
 	bool hasMoved() const; // Exposed to Python
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
-	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
+	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
 	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
 		return canMoveOrAttackInto(*pPlot, bDeclareWar, false);
@@ -128,7 +128,7 @@ public:
 	bool atPlot(const CvPlot* pPlot) const;																																				// Exposed to Python
 	DllExport CvPlot* plot() const;																																								// Exposed to Python
 	inline CvPlot& getPlot() const { return *plot(); } // advc
-	int getArea() const;
+	//int getArea() const; // advc: removed
 	CvArea* area() const;																																													// Exposed to Python
 	DomainTypes getDomainType() const;
 
@@ -212,14 +212,20 @@ public:
 	TeamTypes getHeadTeam() const;
 
 	void clearMissionQueue();																																	// Exposed to Python
-	int getLengthMissionQueue() const;																											// Exposed to Python
+	int getLengthMissionQueue() const { return m_missionQueue.getLength(); } // advc.inl											// Exposed to Python
 	MissionData* getMissionFromQueue(int iIndex) const;																							// Exposed to Python
 	void insertAtEndMissionQueue(MissionData mission, bool bStart = true);
 	CLLNode<MissionData>* deleteMissionQueueNode(CLLNode<MissionData>* pNode);
-	DllExport CLLNode<MissionData>* nextMissionQueueNode(CLLNode<MissionData>* pNode) const;
-	CLLNode<MissionData>* prevMissionQueueNode(CLLNode<MissionData>* pNode) const;
-	DllExport CLLNode<MissionData>* headMissionQueueNode() const;
-	CLLNode<MissionData>* tailMissionQueueNode() const;
+	DllExport CLLNode<MissionData>* nextMissionQueueNode(CLLNode<MissionData>* pNode) const
+	{
+		return m_missionQueue.next(pNode); // advc.inl
+	}
+	CLLNode<MissionData>* prevMissionQueueNode(CLLNode<MissionData>* pNode) const
+	{
+		return m_missionQueue.prev(pNode); // advc.inl
+	}
+	DllExport CLLNode<MissionData>* headMissionQueueNode() const { return m_missionQueue.head(); } // advc.inl
+	CLLNode<MissionData>* tailMissionQueueNode() const { return m_missionQueue.tail(); } // advc.inl
 	int getMissionType(int iNode) const;																														// Exposed to Python
 	int getMissionData1(int iNode) const;																														// Exposed to Python
 	int getMissionData2(int iNode) const;																														// Exposed to Python

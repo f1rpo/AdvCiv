@@ -13,7 +13,8 @@
 CvArea::CvArea()
 {
 	m_aTargetCities = new IDInfo[MAX_PLAYERS];
-	reset(0, false, true);
+	// advc: Default id was 0; invalid seems safer.
+	reset(FFreeList::INVALID_INDEX, false, true);
 }
 
 
@@ -24,9 +25,9 @@ CvArea::~CvArea()
 }
 
 
-void CvArea::init(int iID, bool bWater)
+void CvArea::init(bool bWater) // advc: iID param removed; always gets set beforehand.
 {
-	reset(iID, bWater);
+	reset(getID(), bWater);
 }
 
 
@@ -92,7 +93,7 @@ int CvArea::calculateTotalBestNatureYield() const
 	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
-		if (kPlot.getArea() == getID())
+		if (kPlot.isArea(*this))
 			iCount += kPlot.calculateTotalBestNatureYield(NO_TEAM);
 	}
 	return iCount;
@@ -109,7 +110,7 @@ int CvArea::countCoastalLand() const
 	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
-		if (kPlot.getArea() == getID())
+		if (kPlot.isArea(*this))
 		{
 			if (kPlot.isCoastalLand())
 				iCount++;
@@ -149,7 +150,7 @@ int CvArea::countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner) const
 	} // </advc.opt>
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
 	{
-		if (pLoopCity->area()->getID() == getID())
+		if (pLoopCity->isArea(*this))
 		{
 			if (pLoopCity->isHasReligion(eReligion))
 				iCount++;
@@ -174,7 +175,7 @@ int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwne
 	
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
 	{
-		if (pLoopCity->area()->getID() == getID())
+		if (pLoopCity->isArea(*this))
 		{
 			if (pLoopCity->isHasCorporation(eCorporation))
 				iCount++;
@@ -282,7 +283,7 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 	for(int i = 0; i < kMap.numPlots(); i++)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(i);
-		if(kPlot.area() == NULL || kPlot.area()->getID() != getID() || !kPlot.isHabitable())
+		if(!kPlot.isArea(*this) || !kPlot.isHabitable())
 			continue;
 		if(kPlot.isOwned() && (!bIgnoreBarb || kPlot.getOwner() != BARBARIAN_PLAYER))
 			r.first++;
@@ -368,7 +369,8 @@ int CvArea::getUnitsPerPlayer(PlayerTypes eIndex) const
 void CvArea::changeUnitsPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	m_aiUnitsPerPlayer.add(eIndex, iChange);
-	FAssert(getUnitsPerPlayer(eIndex) >= 0);
+	// advc (can be temporarily negative while recalculating areas)
+	FAssert(getUnitsPerPlayer(eIndex) >= 0 || gDLL->GetWorldBuilderMode());
 	m_iNumUnits += iChange;
 	FAssert(getNumUnits() >= 0);
 }
@@ -388,7 +390,7 @@ int CvArea::getCitiesPerPlayer(PlayerTypes eIndex, /* <advc.030b> */ bool bCheck
 void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	m_aiCitiesPerPlayer.add(eIndex, iChange);
-	FAssert(getCitiesPerPlayer(eIndex, true) >= 0); // advc.030b
+	FAssert(getCitiesPerPlayer(eIndex, true) >= 0 || gDLL->GetWorldBuilderMode()); // advc
 	m_iNumCities += iChange;
 	FAssert(getNumCities() >= 0);
 	// <advc.300>
@@ -406,7 +408,7 @@ int CvArea::getPopulationPerPlayer(PlayerTypes eIndex) const
 void CvArea::changePopulationPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	m_aiPopulationPerPlayer.add(eIndex, iChange);
-	FAssert(getPopulationPerPlayer(eIndex) >= 0);
+	FAssert(getPopulationPerPlayer(eIndex) >= 0 || gDLL->GetWorldBuilderMode()); // advc
 	m_iTotalPopulation += iChange;
 	FAssert(getTotalPopulation() >= 0);
 }

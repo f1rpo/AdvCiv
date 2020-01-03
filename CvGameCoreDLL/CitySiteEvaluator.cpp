@@ -297,7 +297,7 @@ void AIFoundValue::setLoggingEnabled(bool b)
 } // </advc.031c>
 
 AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings) :
-	kPlot(kPlot), kArea(*kPlot.area()), kSet(kSettings), kPlayer(kSet.getPlayer()),
+	kPlot(kPlot), kArea(kPlot.getArea()), kSet(kSettings), kPlayer(kSet.getPlayer()),
 	eTeam(kPlayer.getTeam()), ePlayer(kPlayer.getID()), kTeam(GET_TEAM(eTeam)),
 	kGame(GC.getGame()), iX(kPlot.getX()), iY(kPlot.getY()), m_iResult(0)
 {
@@ -550,8 +550,8 @@ short AIFoundValue::evaluate()
 			aiPlotValues[iPlot] = iPlotValue; // Sum these up later
 		}
 		bool const bEasyAccess = /* K-Mod (!!): */ ((p.isWater() && (bCoastal ||
-				p.area()->getCitiesPerPlayer(ePlayer, true) > 0)) || // advc.031
-				p.getArea() == kPlot.getArea() || p.area()->getCitiesPerPlayer(ePlayer) > 0);
+				p.getArea().getCitiesPerPlayer(ePlayer, true) > 0)) || // advc.031
+				p.sameArea(kPlot) || p.getArea().getCitiesPerPlayer(ePlayer) > 0);
 		IFLOG logPlot(p, iPlotValue, aiNatureYield, iCultureModifier, eBonus, eBonusImprovement,
 				bCanTradeBonus, bCanSoonTradeBonus, bCanImproveBonus, bCanSoonImproveBonus,
 				bEasyAccess, iFeatureProduction, bPersistentFeature, bRemovableFeature);
@@ -828,7 +828,7 @@ bool AIFoundValue::computeOverlap()
 			FAssert(pCitySitePlot != NULL);
 			if (plotDistance(iX, iY, pCitySitePlot->getX(), pCitySitePlot->getY()) <=
 				GC.getDefineINT(CvGlobals::MIN_CITY_RANGE) &&
-				kPlot.area() == pCitySitePlot->area())
+				pCitySitePlot->sameArea(kPlot))
 			{
 				IFLOG logBBAI("Too close to one of the sites we've already chosen");
 				return false;
@@ -1009,8 +1009,8 @@ bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
 				kPlayer.AI_bonusVal(eBonus, 1, true) > 10 ||
 				GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0) &&
 				// <advc.031> Moved from above
-				(p->isWater() || p->getArea() == kArea.getID() ||
-				p->area()->getCitiesPerPlayer(ePlayer) > 0)) // </advc.031>
+				(p->isWater() || p->isArea(kArea) ||
+				p->getArea().getCitiesPerPlayer(ePlayer) > 0)) // </advc.031>
 			{
 				bHasGoodBonus = true;
 				break;
@@ -1126,7 +1126,7 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 			iCities == 0))
 		{
 			bOtherInnerRing = isInnerRing(*p, *pOtherCity->plot());
-			FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->getArea() != kArea.getID());
+			FAssert(!bInnerRing || !bOtherInnerRing || !pOtherCity->isArea(kArea));
 			if (bForeignOwned && (bOtherInnerRing ||
 				// Don't try to overlap with team member or master
 				TEAMID(eOwner) == eTeam ||
@@ -1383,7 +1383,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	{
 		if ((pForeignCity != NULL && pForeignCity->isCapital()) ||
 			// Likely to struggle with a single colony against multiple rival cities
-			(iAreaCities <= 0 && p.area()->getCitiesPerPlayer(p.getOwner()) > 1))
+			(iAreaCities <= 0 && p.getArea().getCitiesPerPlayer(p.getOwner()) > 1))
 		{
 			iOtherCulture = (3 * iOtherCulture) / 2;
 		}
@@ -1405,9 +1405,9 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 			// advc.303: Barbarian borders won't expand
 			!isInnerRing(p, *pForeignCity->plot()))
 		rateModifier *= 1.8;
-	if (kArea.getID() != p.getArea())
+	if (!p.isArea(kArea))
 		rateModifier /= 1.3;
-	else if (pForeignCity != NULL && pForeignCity->getArea() != p.getArea())
+	else if (pForeignCity != NULL && !pForeignCity->isArea(p.getArea()))
 		rateModifier *= 1.3;
 	/*  K-Mod had done *5/4 if EasyCulture; I think only free culture will really
 		swing culture wars. */
@@ -1805,7 +1805,7 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 			/*  Might be better to place a city in p.area(). But if that area
 				is tiny, then accessing the resource from a different landmass
 				is probably our best bet. */
-			r *= (p.area()->getNumTiles() <= 2 ? 60 : 45);
+			r *= (p.getArea().getNumTiles() <= 2 ? 60 : 45);
 		}
 		r /= 100 /* </advc.040> */ * 100;
 
@@ -2086,7 +2086,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 	{
 		//120 + (kSet.isSeafaring() ? 160 : 0);
 		r += (kSet.isSeafaring() ? 140 : 80); // advc.031
-		if (kTeam.AI_isWaterAreaRelevant(pWaterArea) &&
+		if (kTeam.AI_isWaterAreaRelevant(*pWaterArea) &&
 			/*  advc.031: Don't worry about coastal production if we
 				already have many coastal cities. */
 			kPlayer.countNumCoastalCities() <= iCities / 3)
@@ -2094,11 +2094,11 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 			//r += 120 + (kSet.isSeafaring() ? 160 : 0);
 			r += (kSet.isSeafaring() ? 240 : 125); // advc.031
 			/*if (kPlayer.countNumCoastalCities() < iCities / 4 ||
-				kPlayer.countNumCoastalCitiesByArea(kPlot.area()) == 0)*/
+				kPlayer.countNumCoastalCitiesByArea(kPlot.getArea()) == 0)*/
 			if (// advc.031: Disabled this clause
 				//kPlayer.countNumCoastalCities() < iCities / 4 ||
-				(kPlot.area()->getCitiesPerPlayer(ePlayer) > 0 &&
-				kPlayer.countNumCoastalCitiesByArea(kPlot.area()) == 0))
+				(kPlot.getArea().getCitiesPerPlayer(ePlayer) > 0 &&
+				kPlayer.countNumCoastalCitiesByArea(kPlot.getArea()) == 0))
 			{
 				r += 200;
 			}
@@ -2164,7 +2164,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 			CvPlot const* p = plotXY(iX, iY, iDX, iDY);
 			if (p == NULL)
 				continue;
-			if ((p->isWater() || p->getArea() == kArea.getID()) &&
+			if ((p->isWater() || p->isArea(kArea)) &&
 				plotDistance(&kPlot, p) <= iRange)
 			{
 				/*int iTempValue = (p->getYield(YIELD_FOOD) * 15);
@@ -2198,7 +2198,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 							iGreaterBadTile++;
 					}
 				}
-				if (p->isWater() || p->getArea() == kArea.getID())
+				if (p->isWater() || p->isArea(kArea))
 					r += iTempValue;
 				else if (iTempValue >= 13)
 					iGreaterBadTile++; // add at least 1 badness point for other islands.
@@ -2359,7 +2359,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 				iMaxDistanceFromCapital = std::max(iMaxDistanceFromCapital,
 						plotDistance(pCapital->plot(), pLoopCity->plot()));
 			}
-			if (pLoopCity->getArea() == kArea.getID())
+			if (pLoopCity->isArea(kArea))
 			{
 				// <advc.031> Don't cheat
 				if (!kSet.isAllSeeing() && !kTeam.AI_deduceCitySite(pLoopCity))
@@ -2547,7 +2547,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 	int iDistance = /* advc.031: */ std::min(GC.getMap().maxMaintenanceDistance(),
 			::plotDistance(iX, iY, pOurNearestCity->getX(), pOurNearestCity->getY()));
 	// <advc.031> Don't discourage settling on small nearby landmasses
-	if(pCapital == NULL || kArea.getID() == pCapital->getArea() ||
+	if(pCapital == NULL || pCapital->isArea(kArea) ||
 		::plotDistance(&kPlot, pCapital->plot()) >= 10 ||
 		kArea.getNumTiles() >= NUM_CITY_PLOTS)
 	{
@@ -2722,7 +2722,7 @@ bool AIFoundValue::isDeadlockedBonus(CvPlot const& kBonusPlot, int iMinRange) co
 	if(getBonus(kBonusPlot) == NO_BONUS || kBonusPlot.isCityRadius())
 		return false;
 	// advc: kArea is the area of the first potential city site (kPlot) near kBonusPlot
-	if(kBonusPlot.getArea() != kArea.getID() && !kBonusPlot.isWater())
+	if(!kBonusPlot.isArea(kArea) && !kBonusPlot.isWater())
 		return false;
 	bool bCanFound = false;
 	bool bNeverFound = true;
@@ -2747,7 +2747,7 @@ bool AIFoundValue::isDeadlockedBonus(CvPlot const& kBonusPlot, int iMinRange) co
 			bNeverFound = false;
 			if (stepDistance(&kPlot, &kOtherSite) > iMinRange ||
 				// advc.031: No distance restriction for cities in different land areas
-				kPlot.getArea() != kOtherSite.getArea())
+				!kPlot.sameArea(kOtherSite))
 			{
 				bCanFound = true;
 				break;

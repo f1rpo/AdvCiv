@@ -2602,7 +2602,7 @@ bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)
 			int iNumCities = 0;
 			FOR_EACH_CITY(pLoopCity, kPlayer)
 			{
-				if (pLoopCity->area()->getID() == pLoopArea->getID())
+				if (pLoopCity->isArea(*pLoopArea))
 				{
 					if (!szCityList.empty())
 						szCityList += L", ";

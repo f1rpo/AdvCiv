@@ -164,7 +164,7 @@ friend class Node;
 		 bool isSneakAttack(Node const& other, bool bClash) const;
 		 bool isContinuedWar(Node const& other) const;
 		 bool canReachByLand(int cityId) const;
-		 CvArea* clashArea(PlayerTypes otherId) const;
+		 CvArea const* clashArea(PlayerTypes otherId) const;
 
 		 std::vector<UWAICache::City const*> conquests;
 		 CitySet losses;

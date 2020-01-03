@@ -634,58 +634,49 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 void CvTeam::shareItems(TeamTypes eTeam)
 {
-	int iI, iJ, iK;
-
-	FAssert(eTeam != NO_TEAM);
 	FAssert(eTeam != getID());
 
-	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
+	FOR_EACH_ENUM(Tech)
 	{
-		TechTypes eTech = (TechTypes)iI;
-		if (GET_TEAM(eTeam).isHasTech(eTech))
+		if (GET_TEAM(eTeam).isHasTech(eLoopTech))
 		{	// <dlph.26> "Preserve no tech brokering status."
-			setNoTradeTech(eTech, (!isHasTech(eTech) || isNoTradeTech(eTech)) &&
-					GET_TEAM(eTeam).isNoTradeTech(eTech)); // </dlph.26>
-			setHasTech(eTech, true, NO_PLAYER, true, false);
+			setNoTradeTech(eLoopTech, (!isHasTech(eLoopTech) || isNoTradeTech(eLoopTech)) &&
+					GET_TEAM(eTeam).isNoTradeTech(eLoopTech)); // </dlph.26>
+			setHasTech(eLoopTech, true, NO_PLAYER, true, false);
 		}
 	}
 	/*  <dlph.26> "Other direction also done here as other direction of shareItems
 		is not used anymore." */
-	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
+	FOR_EACH_ENUM(Tech)
 	{
-		TechTypes eTech = (TechTypes)iI;
-		if (isHasTech(eTech))
+		if (isHasTech(eLoopTech))
 		{
-			GET_TEAM(eTeam).setNoTradeTech(eTech,
-					(!GET_TEAM(eTeam).isHasTech(eTech) ||
-					GET_TEAM(eTeam).isNoTradeTech(eTech)) &&
-					isNoTradeTech(eTech));
-			GET_TEAM(eTeam).setHasTech(eTech, true, NO_PLAYER, true, false);
+			GET_TEAM(eTeam).setNoTradeTech(eLoopTech,
+					(!GET_TEAM(eTeam).isHasTech(eLoopTech) ||
+					GET_TEAM(eTeam).isNoTradeTech(eLoopTech)) &&
+					isNoTradeTech(eLoopTech));
+			GET_TEAM(eTeam).setHasTech(eLoopTech, true, NO_PLAYER, true, false);
 		}
 	} // </dlph.26>
 
-	for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+	FOR_EACH_ENUM(Bonus)
 	{
-		if (GET_TEAM(eTeam).isForceRevealedBonus((BonusTypes)iI))
-		{
-			setForceRevealedBonus((BonusTypes)iI, true);
-		}
+		if (GET_TEAM(eTeam).isForceRevealedBonus(eLoopBonus))
+			setForceRevealedBonus(eLoopBonus, true);
 	}
 
 	/*  <dlph.26> "Other direction also done here as other direction of shareItems
 		is not used anymore." */
-	for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+	FOR_EACH_ENUM(Bonus)
 	{
-		if (isForceRevealedBonus((BonusTypes)iI))
-		{
-			GET_TEAM(eTeam).setForceRevealedBonus((BonusTypes)iI, true);
-		}
+		if (isForceRevealedBonus(eLoopBonus))
+			GET_TEAM(eTeam).setForceRevealedBonus(eLoopBonus, true);
 	} // </dlph.26>
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	for (int i = 0; i < MAX_TEAMS; i++)
 	{
-		TeamTypes eLoopTeam = (TeamTypes)iI;
-		//setEspionagePointsAgainstTeam((TeamTypes)iTeam, std::max(GET_TEAM(eTeam).getEspionagePointsAgainstTeam((TeamTypes)iTeam), getEspionagePointsAgainstTeam((TeamTypes)iTeam)));
+		TeamTypes eLoopTeam = (TeamTypes)i;
+		//setEspionagePointsAgainstTeam(eLoopTeam, std::max(GET_TEAM(eTeam).getEspionagePointsAgainstTeam(eLoopTeam), getEspionagePointsAgainstTeam(eLoopteam)));
 		// <dlph.26> "Espionage is now sum instead of max."
 		setEspionagePointsAgainstTeam(eLoopTeam,
 				GET_TEAM(eTeam).getEspionagePointsAgainstTeam(eLoopTeam) +
@@ -695,23 +686,29 @@ void CvTeam::shareItems(TeamTypes eTeam)
 	// dlph.26: Replacing the above
 	setEspionagePointsEver(GET_TEAM(eTeam).getEspionagePointsEver() + getEspionagePointsEver());
 
-	for(iI = 0; iI < MAX_PLAYERS; iI++) {  // advc: style changes
-		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+	for(int i = 0; i < MAX_PLAYERS; i++)  // advc: style changes
+	{
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
 			continue;
 
-		FOR_EACH_CITY(pLoopCity, kLoopPlayer) {
-			for(iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
-				BuildingTypes eBuilding = (BuildingTypes)iJ;
+		CvCivilization const& kLoopCiv = kLoopPlayer.getCivilization();
+		FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+		{
+			for (int j = 0; j < kLoopCiv.getNumBuildings(); j++)
+			{
+				BuildingTypes eBuilding = kLoopCiv.buildingAt(j);
 				int iCityBuildings = pLoopCity->getNumBuilding(eBuilding);
-				if(iCityBuildings <= 0 ||
-						isObsoleteBuilding(eBuilding))
+				if(iCityBuildings <= 0 || isObsoleteBuilding(eBuilding))
 					continue;
-				if(GC.getInfo(eBuilding).isTeamShare()) {
-					for(iK = 0; iK < MAX_PLAYERS; iK++) {
-						if(GET_PLAYER((PlayerTypes)iK).getTeam() == getID()) {
-							GET_PLAYER((PlayerTypes)iK).processBuilding(eBuilding,
-									iCityBuildings, pLoopCity->area());
+				if(GC.getInfo(eBuilding).isTeamShare())
+				{
+					for(int k = 0; k < MAX_PLAYERS; k++)
+					{
+						if(GET_PLAYER((PlayerTypes)k).getTeam() == getID())
+						{
+							GET_PLAYER((PlayerTypes)k).processBuilding(eBuilding,
+									iCityBuildings, pLoopCity->getArea());
 						}
 					}
 				}
@@ -721,23 +718,29 @@ void CvTeam::shareItems(TeamTypes eTeam)
 	}
 	/*  <dlph.26> "Other direction also done here as other direction of shareItems
 		is not used anymore." */
-	for(iI = 0; iI < MAX_PLAYERS; iI++) {
-		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+	for(int i = 0; i < MAX_PLAYERS; i++)
+	{
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != getID())
 			continue;
 
-		FOR_EACH_CITY(pLoopCity, kLoopPlayer) {
-			for(iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
-				BuildingTypes eBuilding = (BuildingTypes)iJ;
+		CvCivilization const& kLoopCiv = kLoopPlayer.getCivilization();
+		FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+		{
+			for (int j = 0; j < kLoopCiv.getNumBuildings(); j++)
+			{
+				BuildingTypes eBuilding = kLoopCiv.buildingAt(j);
 				int iCityBuildings = pLoopCity->getNumBuilding(eBuilding);
-				if(iCityBuildings <= 0 ||
-						isObsoleteBuilding(eBuilding))
+				if(iCityBuildings <= 0 || isObsoleteBuilding(eBuilding))
 					continue;
-				if(GC.getInfo(eBuilding).isTeamShare()) {
-					for(iK = 0; iK < MAX_PLAYERS; iK++) {
-						if(GET_PLAYER((PlayerTypes)iK).getTeam() == eTeam) {
-							GET_PLAYER((PlayerTypes)iK).processBuilding(eBuilding,
-									iCityBuildings, pLoopCity->area());
+				if(GC.getInfo(eBuilding).isTeamShare())
+				{
+					for(int k = 0; k < MAX_PLAYERS; k++)
+					{
+						if(GET_PLAYER((PlayerTypes)k).getTeam() == eTeam)
+						{
+							GET_PLAYER((PlayerTypes)k).processBuilding(eBuilding,
+									iCityBuildings, pLoopCity->getArea());
 						}
 					}
 				}
@@ -746,17 +749,17 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		}
 	} // </dlph.26>
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		if (!kLoopPlayer.isAlive())
+			continue;
+		if (kLoopPlayer.getTeam() == eTeam ||
+			/*  dlph.26: "Other direction also done here as other direction
+				of shareItems is not used anymore." */
+			kLoopPlayer.getTeam() == getID())
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam
-				/*  dlph.26: "Other direction also done here as other direction
-					of shareItems is not used anymore." */
-				|| GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				GET_PLAYER((PlayerTypes)iI).AI_updateBonusValue();
-			}
+			kLoopPlayer.AI_updateBonusValue();
 		}
 	}
 }
@@ -1955,13 +1958,13 @@ bool CvTeam::isInContactWithBarbarians() const
 	CvMap const& m = GC.getMap();
 	FOR_EACH_AREA_VAR(pArea)
 	{
-		if(bCheckCity && countNumCitiesByArea(pArea) == 0)
+		if(bCheckCity && countNumCitiesByArea(*pArea) == 0)
 			continue;
-		if(!bCheckCity && countNumUnitsByArea(pArea) < iUnitThresh)
+		if(!bCheckCity && countNumUnitsByArea(*pArea) < iUnitThresh)
 			continue;
 		if(bCheckCity)
 		{
-			int iBarbarianCities = kBarbarianTeam.countNumCitiesByArea(pArea);
+			int iBarbarianCities = kBarbarianTeam.countNumCitiesByArea(*pArea);
 			//  Always allow barbs to progress in their main area (if any).
 			if(2 * iBarbarianCities > kBarbarianTeam.getNumCities())
 				return true;
@@ -1973,7 +1976,7 @@ bool CvTeam::isInContactWithBarbarians() const
 				return true;
 			else continue;
 		}
-		int iBarbarianUnits = kBarbarianTeam.countNumUnitsByArea(pArea);
+		int iBarbarianUnits = kBarbarianTeam.countNumUnitsByArea(*pArea);
 		if(iBarbarianUnits > iUnitThresh) // Preliminary check to save time
 			return true;
 		std::vector<Shelf*> shelves;
@@ -1987,58 +1990,58 @@ bool CvTeam::isInContactWithBarbarians() const
 } // </advc.302>
 
 
-int CvTeam::countNumUnitsByArea(CvArea* pArea) const
+int CvTeam::countNumUnitsByArea(CvArea const& kArea) const
 {
 	PROFILE_FUNC();
 
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-		iCount += pArea->getUnitsPerPlayer(it->getID());
+		iCount += kArea.getUnitsPerPlayer(it->getID());
 	return iCount;
 }
 
 
-int CvTeam::countNumCitiesByArea(CvArea* pArea) const
+int CvTeam::countNumCitiesByArea(CvArea const& kArea) const
 {
 	PROFILE_FUNC();
 
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-		iCount += pArea->getCitiesPerPlayer(it->getID());
+		iCount += kArea.getCitiesPerPlayer(it->getID());
 	return iCount;
 }
 
 
-int CvTeam::countTotalPopulationByArea(CvArea* pArea) const
+int CvTeam::countTotalPopulationByArea(CvArea const& kArea) const
 {
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-		iCount += pArea->getPopulationPerPlayer(it->getID());
+		iCount += kArea.getPopulationPerPlayer(it->getID());
 	return iCount;
 }
 
 
-int CvTeam::countPowerByArea(CvArea* pArea) const
+int CvTeam::countPowerByArea(CvArea const& kArea) const
 {
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-		iCount += pArea->getPower(it->getID());
+		iCount += kArea.getPower(it->getID());
 	return iCount;
 }
 
 
-int CvTeam::countNumAIUnitsByArea(CvArea* pArea, UnitAITypes eUnitAI) const
+int CvTeam::countNumAIUnitsByArea(CvArea const& kArea, UnitAITypes eUnitAI) const
 {
 	PROFILE_FUNC();
 
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-		iCount += pArea->getNumAIUnits(it->getID(), eUnitAI);
+		iCount += kArea.getNumAIUnits(it->getID(), eUnitAI);
 	return iCount;
 }
 
 // BETTER_BTS_AI_MOD, War strategy AI, 05/19/10, jdog5000
-int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam) const
+int CvTeam::countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam) const
 {
 	PROFILE_FUNC();
 
@@ -2046,7 +2049,7 @@ int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam) const
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
-		if (kPlot.area() == pArea)
+		if (kPlot.isArea(kArea))
 		{
 			if (kPlot.getTeam() == getID())
 			{

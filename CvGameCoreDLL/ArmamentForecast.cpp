@@ -591,21 +591,12 @@ double ArmamentForecast::productionFromUpgrades() {
 	return std::max(0.0, r);
 }
 
-CvArea* ArmamentForecast::getCapitalArea(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		civId = m.ourId();
-	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
-	return GC.getMap().getArea(capital->plot()->getArea());
-}
-
 AreaAITypes ArmamentForecast::getAreaAI(PlayerTypes civId) const {
 
 	if(civId == NO_PLAYER)
 		civId = m.ourId();
-	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
+	CvCity const* capital = GET_PLAYER(civId).getCapitalCity();
 	if(capital == NULL)
 		return NO_AREAAI;
-	CvArea& capitalArea = *getCapitalArea(civId);
-	return capitalArea.getAreaAIType(TEAMID(civId));
+	return capital->getArea().getAreaAIType(TEAMID(civId));
 }

@@ -6,6 +6,7 @@
 #include "CyPlot.h"
 #include "CyArea.h"
 #include "CvPlot.h"
+#include "CvArea.h" // advc: for CvArea::getID
 
 CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot) {}
 // advc.003y: (see CyCity.cpp)
@@ -134,7 +135,13 @@ bool CyPlot::isRiverConnection(int /*DirectionTypes*/ eDirection)
 
 int CyPlot::getNearestLandArea()
 {
-	return m_pPlot ? m_pPlot->getNearestLandArea() : -1;
+	if (m_pPlot == NULL)
+		return -1;
+	// <advc> (The DLL function no longer returns the area id)
+	CvArea* pArea = m_pPlot->getNearestLandArea();
+	if (pArea == NULL)
+		return FFreeList::INVALID_INDEX;
+	return pArea->getID(); // </advc>
 }
 
 CyPlot* CyPlot::getNearestLandPlot()
@@ -474,7 +481,7 @@ CyArea* CyPlot::waterArea()
 
 int CyPlot::getArea()
 {
-	return m_pPlot ? m_pPlot->getArea() : -1;
+	return m_pPlot ? m_pPlot->getArea().getID() : -1;
 }
 
 int CyPlot::getUpgradeProgress()

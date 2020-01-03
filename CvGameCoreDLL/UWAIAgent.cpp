@@ -323,12 +323,12 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 		CvCity* capital = member.getCapitalCity();
 		if(capital == NULL)
 			continue;
-		CvArea& a = *capital->area();
+		CvArea& a = capital->getArea();
 		CvCity* targetCity = a.AI_getTargetCity(member.getID());
 		bool bAlign = true;
 		if(isNaval) {
 			if(targetCity!= NULL && (GET_TEAM(targetCity->getTeam()).
-					AI_isPrimaryArea(&a) || 3 * a.getCitiesPerPlayer(
+					AI_isPrimaryArea(a) || 3 * a.getCitiesPerPlayer(
 					targetCity->getOwner()) > a.getCitiesPerPlayer(
 					member.getID()))) {
 				WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
@@ -337,7 +337,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 					// Make sure there isn't an easily reachable target in the capital area
 					int d=-1;
 					UWAICache::City::measureDistance(member.getID(), DOMAIN_LAND,
-							capital->plot(), targetCity->plot(), &d);
+							*capital->plot(), *targetCity->plot(), &d);
 					if(::round(d / UWAICache::City::estimateMovementSpeed(
 							member.getID(), DOMAIN_LAND, d)) <= 8)
 						bAlign = false;
@@ -348,7 +348,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 			// Make sure some city can be attacked in the capital area
 			if(targetCity == NULL) {
 				// Target city is sometimes randomly set to NULL
-				targetCity = member.AI_findTargetCity(&a);
+				targetCity = member.AI_findTargetCity(a);
 			}
 			if(targetCity == NULL)
 				bAlign = false;

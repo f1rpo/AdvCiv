@@ -658,12 +658,12 @@ void UWAICache::sortCitiesByAttackPriority() {
 		CvCity* pPrevCity = NULL;
 		if(i > 0)
 			pPrevCity = v[i - 1]->city();
-		CvArea* pPrevArea = (pPrevCity == NULL ? NULL : pPrevCity->area());
+		CvArea const* pPrevArea = (pPrevCity == NULL ? NULL :& pPrevCity->getArea());
 		double maxPriority = -100;
 		int iMax = -1;
 		for(size_t j = i; j < v.size(); j++) {
-			CvCity* pCity = v[j]->city();
-			CvArea* pArea = (pCity == NULL ? NULL : pCity->area());
+			CvCity const* pCity = v[j]->city();
+			CvArea const* pArea = (pCity == NULL ? NULL : pCity->area());
 			double priority = (pCity == NULL ? -100 : v[j]->attackPriority());
 			if(i > 0 && pPrevArea != NULL && pPrevArea != pArea && priority > 0)
 				priority /= 2;
@@ -1466,14 +1466,14 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 	CvCity* capital = cacheOwner.getCapitalCity();
 	FOR_EACH_CITY(c, cacheOwner) {
 		// Skip small and isolated cities
-		if(!c->isCapital() && (c->area()->getCitiesPerPlayer(cacheOwnerId) <= 1 ||
+		if(!c->isCapital() && (c->getArea().getCitiesPerPlayer(cacheOwnerId) <= 1 ||
 				c->getPopulation() < capital->getPopulation() / 3 ||
 				c->getYieldRate(YIELD_PRODUCTION) < 5 + era))
 			continue;
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
-		if(measureDistance(cacheOwnerId, DOMAIN_LAND, p, targetCity.plot(), &d)) {
+		if(measureDistance(cacheOwnerId, DOMAIN_LAND, *p, *targetCity.plot(), &d)) {
 			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
 			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
@@ -1490,7 +1490,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(cacheOwnerId, dom, p, targetCity.plot(), &d)) {
+			if(measureDistance(cacheOwnerId, dom, *p, *targetCity.plot(), &d)) {
 				FAssert(d >= 0);
 				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
 						seaPenalty;
@@ -1565,15 +1565,15 @@ double UWAICache::City::estimateMovementSpeed(PlayerTypes civId,
 
 // <advc.104b>
 bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
-		CvPlot const* start, CvPlot const* dest, int* r) {
+		CvPlot const& start, CvPlot const& dest, int* r) {
 
 	PROFILE_FUNC();
 	/*  Caveat: dom can be IMMOBILE, which means Galley. Should compare dom
 		only with DOMAIN_LAND in this function, not DOMAIN_SEA. */
-	if(dom == DOMAIN_LAND && start->area() != dest->area())
+	if(dom == DOMAIN_LAND && !start.sameArea(dest))
 		return false;
 	// Can't plot mixed-domain paths
-	if(dom != DOMAIN_LAND && !start->isCoastalLand(-1))
+	if(dom != DOMAIN_LAND && !start.isCoastalLand(-1))
 		return false;
 	int maxDist = (dom == DOMAIN_LAND ? getUWAI.maxLandDist() :
 			getUWAI.maxSeaDist());
@@ -1583,43 +1583,42 @@ bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	/*  stepDistance sanity check to avoid costly distance measurement
 		(::teamStepValid_advc now performs the same check through ::stepHeuristic,
 		but still need stepDistance here for the speed estimate.) */
-	int stepDist = ::stepDistance(start, dest);
+	int stepDist = ::stepDistance(&start, &dest);
 	double speedEstimate = estimateMovementSpeed(civId, dom, stepDist);
 	if(stepDist / speedEstimate > maxDist)
 		return false;
-	// dest is guaranteed to be owned; get the owner before possibly changing dest
-	TeamTypes destTeam = dest->getTeam();
-	if(dom != DOMAIN_LAND && !dest->isCoastalLand(-1)) {
+	CvPlot const* newDest = &dest;
+	if(dom != DOMAIN_LAND && !dest.isCoastalLand(-1)) {
 		/*  A naval assault drops the units off on a tile adjacent to the city;
 			try to find an adjacent coastal tile. */
-		int x = dest->getX();
-		int y = dest->getY();
-		dest = NULL;
+		int x = dest.getX();
+		int y = dest.getY();
+		newDest = NULL;
 		int shortestStepDist = MAX_INT;
 		FOR_EACH_ENUM(Direction) {
 			CvPlot* adj = ::plotDirection(x, y, eLoopDirection);
 			if(adj != NULL && adj->isCoastalLand(-1)) {
-				int d = ::stepDistance(start, adj);
+				int d = ::stepDistance(&start, adj);
 				if(d < shortestStepDist) {
-					dest = adj;
+					newDest = adj;
 					shortestStepDist = d;
 				}
 			}
 		}
-		if(dest == NULL)
+		if(newDest == NULL)
 			return false;
 	}
 	if(dom != DOMAIN_LAND) {
 		// The transports move onto a water tile adjacent to the coastal tile
-		int destx = dest->getX();
-		int desty = dest->getY();
+		int destx = newDest->getX();
+		int desty = newDest->getY();
 		int shortestStepDist = MAX_INT;
 		FOR_EACH_ENUM(Direction) {
 			CvPlot* adj = ::plotDirection(destx, desty, eLoopDirection);
 			if(adj != NULL && adj->isWater()) {
-				int d = ::stepDistance(start, adj);
+				int d = ::stepDistance(&start, adj);
 				if(d < shortestStepDist) {
-					dest = adj;
+					newDest = adj;
 					shortestStepDist = d;
 				}
 			}
@@ -1627,9 +1626,10 @@ bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	}
 	/*  This covers pack ice too (due to change 030). The PathDistance below
 		won't take detours around ice into account though. */
-	if(dom != DOMAIN_LAND && !start->isAdjacentToArea(dest->area()))
+	if(dom != DOMAIN_LAND && !start.isAdjacentToArea(newDest->getArea()))
 		return false;
-	*r = start->calculatePathDistanceToPlot(start->getTeam(), *dest, destTeam,
+	// The original dest is guaranteed to be owned
+	*r = start.calculatePathDistanceToPlot(start.getTeam(), *newDest, dest.getTeam(),
 			/*  Path distance counts each step as 1 move; upper bound needs to
 				account for faster movement. */
 			dom, (int)::ceil(maxDist * speedEstimate));

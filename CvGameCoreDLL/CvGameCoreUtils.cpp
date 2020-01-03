@@ -1775,11 +1775,13 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 			switch order as AI_getAnyPlotDanger is more expensive */
 		if (pSelectionGroup->getDomainType() == DOMAIN_LAND)
 		{
-			int iGroupAreaID = pSelectionGroup->getArea();
-			if (kToPlot.getArea() != iGroupAreaID &&
-					!pSelectionGroup->canMoveAllTerrain() &&
-					!kToPlot.isAdjacentToArea(iGroupAreaID))
+			CvArea const& kGroupArea = *pSelectionGroup->area();
+			if (!kToPlot.isArea(kGroupArea) &&
+				!pSelectionGroup->canMoveAllTerrain() &&
+				!kToPlot.isAdjacentToArea(kGroupArea))
+			{
 				return FALSE;
+			}
 		}
 		if (!(iFlags & MOVE_IGNORE_DANGER))
 		{
@@ -2470,22 +2472,15 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 }
 
 
-int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
+int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)  // advc: style changes
 {
 	PROFILE_FUNC();
 
-	CvPlot* pFromPlot;
-	CvPlot* pToPlot;
-
-	pFromPlot = GC.getMap().plotSoren(gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
-	FAssert(pFromPlot != NULL);
-	pToPlot = GC.getMap().plotSoren(iToX, iToY);
-	FAssert(pToPlot != NULL);
-
-	if (pFromPlot->area() != pToPlot->area())
-	{
+	CvPlot const& kFromPlot = *GC.getMap().plotSoren(
+			gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
+	CvPlot const& kToPlot = *GC.getMap().plotSoren(iToX, iToY);
+	if (!kFromPlot.sameArea(kToPlot))
 		return FALSE;
-	}
 
 	return TRUE;
 }
@@ -2584,29 +2579,22 @@ int stepCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 }
 
 
-int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
+int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
 
-	CvPlot* pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	if (pNewPlot->isImpassable())
-	{
+	CvPlot const& kNewPlot = *GC.getMap().plotSoren(node->m_iX, node->m_iY);
+	if (kNewPlot.isImpassable())
 		return FALSE;
-	}
 
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-	if (pFromPlot->area() != pNewPlot->area())
-	{
+	CvPlot const& kFromPlot = *GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
-	}
 
 	/*  BETTER_BTS_AI_MOD, Bugfix, 12/12/08, jdog5000: START
 		Don't count diagonal hops across land isthmus */
-	if (pFromPlot->isWater() && pNewPlot->isWater())
+	if (kFromPlot.isWater() && kNewPlot.isWater())
 	{
 		if (!GC.getMap().getPlot(parent->m_iX, node->m_iY).isWater() &&
 			!GC.getMap().getPlot(node->m_iX, parent->m_iY).isWater())
@@ -2632,12 +2620,12 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 	if (kNewPlot.isImpassable())
 		return FALSE;
 
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-	if (pFromPlot->area() != kNewPlot.area())
+	CvPlot const& kFromPlot = *GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
 
 	// Don't count diagonal hops across land isthmus
-	if (pFromPlot->isWater() && kNewPlot.isWater())
+	if (kFromPlot.isWater() && kNewPlot.isWater())
 	{
 		if (!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
 			!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
@@ -2648,7 +2636,7 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 
 	TeamTypes ePlotTeam = kNewPlot.getTeam();
 
-	vector<TeamTypes> teamVec = *((vector<TeamTypes> *)pointer);
+	vector<TeamTypes> teamVec = *((vector<TeamTypes>*)pointer);
 	TeamTypes eTeam = teamVec[0];
 	TeamTypes eTargetTeam = teamVec[1];
 	CvTeamAI& kTeam = GET_TEAM(eTeam);
@@ -2660,16 +2648,14 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 	if(eTargetTeam != NO_TEAM && GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 		return TRUE;
 
-	if (kTeam.canPeacefullyEnter(ePlotTeam)
-		|| kTeam.isDisengage(ePlotTeam)) // advc.034
+	if (kTeam.canPeacefullyEnter(ePlotTeam) ||
+		kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
 		return TRUE;
 	}
 
 	if (kTeam.AI_getWarPlan(ePlotTeam) != NO_WARPLAN)
-	{
 		return TRUE;
-	}
 
 	return FALSE;
 } // BETTER_BTS_AI_MOD: END
@@ -2755,8 +2741,11 @@ int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (data == ASNL_ADDCLOSED)
-		GC.getMap().getPlot(node->m_iX, node->m_iY).setArea(gDLL->getFAStarIFace()->GetInfo(finder));
-
+	{
+		CvMap const& kMap = GC.getMap();
+		kMap.getPlot(node->m_iX, node->m_iY).setArea(
+				kMap.getArea(gDLL->getFAStarIFace()->GetInfo(finder)));
+	}
 	return 1;
 }
 

@@ -106,7 +106,7 @@ public:
 	//void AI_forceEmphasizeCulture(bool bNewValue); // advc.003j
 
 	int AI_getBestBuildValue(int iIndex) const;
-	int AI_totalBestBuildValue(CvArea* pArea) const;
+	int AI_totalBestBuildValue(CvArea const& kArea) const;
 
 	int AI_clearFeatureValue(int iIndex);
 	// K-Mod
@@ -119,7 +119,7 @@ public:
 	int AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const;
 	// K-Mod end
 	BuildTypes AI_getBestBuild(int iIndex) const;
-	int AI_countBestBuilds(CvArea* pArea) const;
+	int AI_countBestBuilds(CvArea const& kArea) const;
 	void AI_updateBestBuild();
 	int AI_countBonusesToClear(FeatureTypes eFeature) const; // advc.129
 

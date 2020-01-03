@@ -16,7 +16,7 @@ public:
 	CvArea();
 	virtual ~CvArea();
 
-	void init(int iID, bool bWater);
+	void init(bool bWater);
 	void uninit();
 	void reset(int iID = 0, bool bWater = false, bool bConstructorCall = false);
 
@@ -166,7 +166,7 @@ public:
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 	// <advc.inl> All exposed to Python. 2x __force for CvArea::canBeEntered.
-	__forceinline int  CvArea::getID() const { return m_iID; }
+	__forceinline int CvArea::getID() const { return m_iID; }
 	inline int  CvArea::getNumTiles() const { return m_iNumTiles; }
 	inline bool CvArea::isLake() const {
 			return m_bLake; // <advc.030> Replacing the line below

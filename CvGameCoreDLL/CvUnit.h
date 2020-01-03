@@ -53,8 +53,8 @@ public:
 			bool bUseTempFinder = false) const; // advc.128
 	KmodPathFinder& getPathFinder() const; // K-Mod
 
-	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
-	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
+	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;								// Exposed to Python
+	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;				// Exposed to Python
 	TeamTypes getDeclareWarMove(const CvPlot* pPlot) const;															// Exposed to Python
 	bool canMoveInto(CvPlot const& kPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false,										// Exposed to Python
 			bool bAssumeVisible = true, // K-Mod
@@ -340,7 +340,7 @@ public:
 
 	int firstStrikes() const;																								// Exposed to Python
 	int chanceFirstStrikes() const;																					// Exposed to Python
-	int maxFirstStrikes() const;																						// Exposed to Python
+	int maxFirstStrikes() const { return firstStrikes() + chanceFirstStrikes(); } // advc.inl										// Exposed to Python
 	DllExport bool isRanged() const;																									// Exposed to Python
 
 	bool alwaysInvisible() const;																						// Exposed to Python
@@ -385,13 +385,13 @@ public:
 
 	SpecialUnitTypes specialCargo() const;																	// Exposed to Python
 	DomainTypes domainCargo() const;																									// Exposed to Python
-	int cargoSpace() const;																									// Exposed to Python
+	int cargoSpace() const { return m_iCargoCapacity; } // advc.inl																	// Exposed to Python
 	void changeCargoSpace(int iChange);																									// Exposed to Python
-	bool isFull() const;																															// Exposed to Python
+	bool isFull() const { return (getCargo() >= cargoSpace()); } // advc.inl														// Exposed to Python
 	int cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo = NO_SPECIALUNIT, DomainTypes eDomainCargo = NO_DOMAIN) const;	// Exposed to Python
-	bool hasCargo() const;																									// Exposed to Python
+	bool hasCargo() const { return (getCargo() > 0); } // advc.inl																	// Exposed to Python
 	//bool canCargoAllMove() const; // disabled by K-Mod (was exposed to Python)
-	bool canCargoEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage) const;
+	bool canCargoEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage) const;
 	int getUnitAICargo(UnitAITypes eUnitAI) const;																		// Exposed to Python
 	// <advc.inl>
 	DllExport inline int getID() const { return m_iID; }																					// Exposed to Python
@@ -416,40 +416,47 @@ public:
 	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
 	void setXY(int iX, int iY, bool bGroup = false, bool bUpdate = true, bool bShow = false, bool bCheckPlotVisible = false);	// Exposed to Python
 	
-	bool at(int iX, int iY) const;																														// Exposed to Python
+	bool at(int iX, int iY) const { return (getX() == iX && getY() == iY); } // advc.inl											// Exposed to Python
 	inline bool at(CvPlot const& kPlot) const { return atPlot(&kPlot); } // advc
-	DllExport bool atPlot(const CvPlot* pPlot) const;																					// Exposed to Python
+	DllExport bool atPlot(const CvPlot* pPlot) const { return (plot() == pPlot); } // advc.inl										// Exposed to Python
 	DllExport CvPlot* plot() const;																														// Exposed to Python
-	int getArea() const;																																			// Exposed to Python
-	CvArea* area() const;																																			// Exposed to Python
-
+	//int getArea() const;																											// Exposed to Python
+	// <advc>
+	inline CvArea& getArea() const { return *m_pArea; }
+	inline CvArea* area() const { return m_pArea; }																					// Exposed to Python
+	inline bool isArea(CvArea const& kArea) const { return (area() == &kArea); }
+	inline bool sameArea(CvUnit const& kOther) const { return (area() == kOther.area()); }
+	void updateArea();
+	// </advc>
 	int getLastMoveTurn() const;
 	void setLastMoveTurn(int iNewValue);
 
 	CvPlot* getReconPlot() const;																															// Exposed to Python
-	void setReconPlot(CvPlot* pNewValue);																			// Exposed to Python
+	void setReconPlot(CvPlot* pNewValue);																							// Exposed to Python
 
-	int getGameTurnCreated() const;																														// Exposed to Python
+	int getGameTurnCreated() const { return m_iGameTurnCreated; } // advc.inl														// Exposed to Python
 	void setGameTurnCreated(int iNewValue);
 
-	DllExport int getDamage() const;																													// Exposed to Python
+	DllExport int getDamage() const { return m_iDamage; } // advc.inl																// Exposed to Python
 	void setDamage(int iNewValue, PlayerTypes ePlayer = NO_PLAYER, bool bNotifyEntity = true);														// Exposed to Python
-	void changeDamage(int iChange, PlayerTypes ePlayer = NO_PLAYER);													// Exposed to Python
+	void changeDamage(int iChange, PlayerTypes ePlayer = NO_PLAYER);																// Exposed to Python
 
-	int getMoves() const;																																			// Exposed to Python
+	int getMoves() const { return m_iMoves; }																						// Exposed to Python
 	void setMoves(int iNewValue);																										// Exposed to Python
 	void changeMoves(int iChange);																														// Exposed to Python
 	void finishMoves();																																				// Exposed to Python
 
-	int getExperience() const;																											// Exposed to Python
-	void setExperience(int iNewValue, int iMax = -1);																// Exposed to Python
+	// advc.inl: Allow most of the getters below to be inlined ...
+
+	int getExperience() const { return m_iExperience; }																				// Exposed to Python
+	void setExperience(int iNewValue, int iMax = -1);																				// Exposed to Python
 	void changeExperience(int iChange, int iMax = -1, bool bFromCombat = false, bool bInBorders = false, bool bUpdateGlobal = false);																				// Exposed to Python
 
-	int getLevel() const;																														// Exposed to Python
+	int getLevel() const { return m_iLevel; }																						// Exposed to Python
 	void setLevel(int iNewValue);
 	void changeLevel(int iChange);
 
-	int getCargo() const;																														// Exposed to Python
+	int getCargo() const { return m_iCargo; }																						// Exposed to Python
 	void changeCargo(int iChange);
 	void getCargoUnits(std::vector<CvUnit*>& aUnits) const;
 
@@ -469,40 +476,43 @@ public:
 	void setFortifyTurns(int iNewValue);
 	void changeFortifyTurns(int iChange);
 
-	int getBlitzCount() const;
-	bool isBlitz() const;																														// Exposed to Python
+	int getBlitzCount() const { return m_iBlitzCount; }
+	bool isBlitz() const																											// Exposed to Python
+	{
+		return (getBlitzCount() != 0); // advc.164: was > 0
+	}
 	void changeBlitzCount(int iChange);
 
-	int getAmphibCount() const;
-	bool isAmphib() const;																													// Exposed to Python
+	int getAmphibCount() const { return m_iAmphibCount; }
+	bool isAmphib() const { return (getAmphibCount() > 0); }																		// Exposed to Python
 	void changeAmphibCount(int iChange);
 
-	int getRiverCount() const;
-	bool isRiver() const;																														// Exposed to Python
+	int getRiverCount() const { return m_iRiverCount; }
+	bool isRiver() const { return (getRiverCount() > 0); }																			// Exposed to Python
 	void changeRiverCount(int iChange);
 
-	int getEnemyRouteCount() const;
-	bool isEnemyRoute() const;																											// Exposed to Python
+	int getEnemyRouteCount() const { return m_iEnemyRouteCount; }
+	bool isEnemyRoute() const { return (getEnemyRouteCount() > 0); }																// Exposed to Python
 	void changeEnemyRouteCount(int iChange);
 
-	int getAlwaysHealCount() const;
-	bool isAlwaysHeal() const;																											// Exposed to Python
+	int getAlwaysHealCount() const { return m_iAlwaysHealCount; }
+	bool isAlwaysHeal() const { return (getAlwaysHealCount() > 0); }																// Exposed to Python
 	void changeAlwaysHealCount(int iChange);
 
-	int getHillsDoubleMoveCount() const;
-	bool isHillsDoubleMove() const;																									// Exposed to Python
+	int getHillsDoubleMoveCount() const { return m_iHillsDoubleMoveCount; }
+	bool isHillsDoubleMove() const { return (getHillsDoubleMoveCount() > 0); }														// Exposed to Python
 	void changeHillsDoubleMoveCount(int iChange);
 
-	int getImmuneToFirstStrikesCount() const;
+	int getImmuneToFirstStrikesCount() const { return m_iImmuneToFirstStrikesCount; }
 	void changeImmuneToFirstStrikesCount(int iChange);
 
-	int getExtraVisibilityRange() const;																						// Exposed to Python
+	int getExtraVisibilityRange() const { return m_iExtraVisibilityRange; }															// Exposed to Python
 	void changeExtraVisibilityRange(int iChange);
 
-	int getExtraMoves() const;																																// Exposed to Python
+	int getExtraMoves() const { return m_iExtraMoves; }																				// Exposed to Python
 	void changeExtraMoves(int iChange);
 
-	int getExtraMoveDiscount() const;																								// Exposed to Python
+	int getExtraMoveDiscount() const { return m_iExtraMoveDiscount; }																// Exposed to Python
 	void changeExtraMoveDiscount(int iChange);
 
 	int getExtraAirRange() const;																																// Exposed to Python
@@ -514,19 +524,19 @@ public:
 	int getExtraEvasion() const;																																// Exposed to Python
 	void changeExtraEvasion(int iChange);
 
-	int getExtraFirstStrikes() const;																													// Exposed to Python
+	int getExtraFirstStrikes() const { return m_iExtraFirstStrikes; }																													// Exposed to Python
 	void changeExtraFirstStrikes(int iChange);
 
-	int getExtraChanceFirstStrikes() const;																										// Exposed to Python
+	int getExtraChanceFirstStrikes() const { return m_iExtraChanceFirstStrikes; }																										// Exposed to Python
 	void changeExtraChanceFirstStrikes(int iChange);
 
-	int getExtraWithdrawal() const;																														// Exposed to Python
+	int getExtraWithdrawal() const { return m_iExtraWithdrawal; }																														// Exposed to Python
 	void changeExtraWithdrawal(int iChange);
 
-	int getExtraCollateralDamage() const;																											// Exposed to Python
+	int getExtraCollateralDamage() const { return m_iExtraCollateralDamage; }																											// Exposed to Python
 	void changeExtraCollateralDamage(int iChange);
 
-	int getExtraBombardRate() const;																													// Exposed to Python
+	int getExtraBombardRate() const { return m_iExtraBombardRate; }																													// Exposed to Python
 	void changeExtraBombardRate(int iChange);
 
 	int getExtraEnemyHeal() const;																									// Exposed to Python
@@ -544,19 +554,19 @@ public:
 	int getAdjacentTileHeal() const;																								// Exposed to Python
 	void changeAdjacentTileHeal(int iChange);
 
-	int getExtraCombatPercent() const;																							// Exposed to Python
+	int getExtraCombatPercent() const { return m_iExtraCombatPercent; }																							// Exposed to Python
 	void changeExtraCombatPercent(int iChange);
 
-	int getExtraCityAttackPercent() const;																										// Exposed to Python
+	int getExtraCityAttackPercent() const { return m_iExtraCityAttackPercent; }																										// Exposed to Python
 	void changeExtraCityAttackPercent(int iChange);
 
-	int getExtraCityDefensePercent() const;																										// Exposed to Python
+	int getExtraCityDefensePercent() const { return m_iExtraCityDefensePercent; }																										// Exposed to Python
 	void changeExtraCityDefensePercent(int iChange);
 
-	int getExtraHillsAttackPercent() const;																									// Exposed to Python
+	int getExtraHillsAttackPercent() const { return m_iExtraHillsAttackPercent; }																									// Exposed to Python
 	void changeExtraHillsAttackPercent(int iChange);
 
-	int getExtraHillsDefensePercent() const;																									// Exposed to Python
+	int getExtraHillsDefensePercent() const { return m_iExtraHillsDefensePercent; }																									// Exposed to Python
 	void changeExtraHillsDefensePercent(int iChange);
 
 	int getRevoltProtection() const;																									// Exposed to Python
@@ -585,7 +595,12 @@ public:
 	DllExport bool isSuicide() const;																											// Exposed to Python
 	int getDropRange() const;
 
-	bool isMadeAttack() const;																																// Exposed to Python
+	bool isMadeAttack() const // advc.inl																							// Exposed to Python
+	{
+		//return m_bMadeAttack;
+		// advc.164: Keep the boolean interface in place
+		return (m_iMadeAttacks > 0);
+	}
 	void setMadeAttack(bool bNewValue);																							// Exposed to Python
 	bool isMadeAllAttacks() const; // advc.164
 
@@ -597,7 +612,7 @@ public:
 	void setPromotionReady(bool bNewValue);																					// Exposed to Python
 	void testPromotionReady();
 
-	bool isDelayedDeath() const;
+	bool isDelayedDeath() const { return m_bDeathDelay; }
 	void startDelayedDeath();
 	bool doDelayedDeath();
 
@@ -634,7 +649,7 @@ public:
 	void setCombatUnit(CvUnit* pUnit, bool bAttacking = false);
 	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
-	CvUnit* getTransportUnit() const;																							// Exposed to Python
+	CvUnit* getTransportUnit() const { return getUnit(m_transportUnit); }															// Exposed to Python
 	// advc.103f: inlined for CvArea::canBeEntered
 	__forceinline bool isCargo() const																												// Exposed to Python
 	{	// advc.test: (Should perhaps simply turn m_transportUnit into a CvUnit pointer.)
@@ -850,6 +865,8 @@ protected:
 	PlayerTypes m_eCapturingPlayer;
 	UnitTypes m_eUnitType;
 	UnitTypes m_eLeaderUnitType;
+
+	CvArea* m_pArea; // advc
 
 	IDInfo m_combatUnit;
 	IDInfo m_transportUnit;

@@ -69,7 +69,6 @@ private:
 	   which is what this function returns.
 	   'civId': The civ whose Area AI is returned. Default: m.ourId(). */
 	AreaAITypes getAreaAI(PlayerTypes civId = NO_PLAYER) const;
-	CvArea* getCapitalArea(PlayerTypes civId = NO_PLAYER) const;
 };
 
 #endif

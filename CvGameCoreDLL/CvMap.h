@@ -236,7 +236,7 @@ public: // advc: made several functions const
 	void updateIrrigated();
 	DllExport void updateCenterUnit();
 	void updateWorkingCity();
-	void updateMinOriginalStartDist(CvArea* pArea);										// Exposed to Python
+	void updateMinOriginalStartDist(CvArea const& kArea);										// Exposed to Python
 	void updateYield();
 
 	void verifyUnitValidPlot();

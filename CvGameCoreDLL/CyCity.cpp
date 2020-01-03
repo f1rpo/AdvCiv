@@ -741,11 +741,6 @@ bool CyCity::isConnectedToCapital(int /*PlayerTypes*/ ePlayer)
 {
 	return m_pCity ? m_pCity->isConnectedToCapital((PlayerTypes)ePlayer) : false;
 }
-// <advc>
-int CyCity::getArea()
-{
-	return	m_pCity ? m_pCity->getArea() : -1;
-} // </advc>
 
 CyArea* CyCity::area()
 {

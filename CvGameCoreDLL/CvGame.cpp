@@ -7122,7 +7122,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 		if (kPlot.isWater() || kPlot.isVisibleToCivTeam())
 			continue; // advc
 		// <advc.300>
-		CvArea& a = *kPlot.area();
+		CvArea& a = kPlot.getArea();
 		int const iAreaSz = a.getNumTiles();
 		bool bCivArea = (a.getNumCities() > a.getCitiesPerPlayer(BARBARIAN_PLAYER));
 		if (bSkipCivAreas && bCivArea)
@@ -7320,9 +7320,9 @@ void CvGame::createBarbarianUnits()
 	}
 	FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(BARBARIAN_PLAYER))
 	{
-		if (pLoopUnit->isAnimal()
-				// advc.309: Don't cull animals where there are no civ cities
-				&& pLoopUnit->area()->countCivCities() > 0)
+		if (pLoopUnit->isAnimal() &&
+			// advc.309: Don't cull animals where there are no civ cities
+			pLoopUnit->getArea().countCivCities() > 0)
 		{
 			pLoopUnit->kill(false);
 			break;
@@ -7332,7 +7332,7 @@ void CvGame::createBarbarianUnits()
 	{
 		/*  Large Barb congregations are only a problem if they have nothing
 			to attack */
-		if(c->area()->countCivCities() > 0)
+		if(c->getArea().countCivCities() > 0)
 			continue;
 		int iUnits = c->plot()->getNumDefenders(BARBARIAN_PLAYER);
 		double prKill = (iUnits - std::max(1.5 * c->getPopulation(), 4.0)) / 4.0;
@@ -7667,9 +7667,11 @@ bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Sh
 		FOR_EACH_UNIT_VAR(pUnit, GET_PLAYER(BARBARIAN_PLAYER))
 		{
 			CvUnit& u = *pUnit;
-			if (u.isAnimal() || u.plot()->area()->getID() != a.getID() ||
-					u.getUnitCombatType() == NO_UNITCOMBAT)
+			if (u.isAnimal() || !u.isArea(a) ||
+				u.getUnitCombatType() == NO_UNITCOMBAT)
+			{
 				continue;
+			}
 			u.kill(false);
 			return true;
 		}

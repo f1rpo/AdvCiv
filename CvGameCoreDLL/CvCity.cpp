@@ -206,6 +206,8 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 	m_abRevealed = new bool[MAX_TEAMS]();
 	m_abEspionageVisibility = new bool[MAX_TEAMS]();
 
+	m_pArea = NULL; // advc
+
 	// Rank cache
 	m_iPopulationRank = -1;
 	m_bPopulationRankValid = false;
@@ -308,6 +310,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 	m_iX = iX;
 	m_iY = iY;
 	// </advc.003u>
+	m_pArea = plot()->area(); // advc
 	setupGraphical();
 
 	CvPlayer& kOwner = GET_PLAYER(getOwner());
@@ -380,7 +383,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 			setNumFreeBuilding((BuildingTypes)i, 1);
 	}
 
-	area()->changeCitiesPerPlayer(getOwner(), 1);
+	getArea().changeCitiesPerPlayer(getOwner(), 1);
 	// <advc.030b>
 	{
 		CvArea* pWaterArea = waterArea(true);
@@ -529,7 +532,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 		}
 	} // UNOFFICIAL_PATCH: END
 
-	area()->changeCitiesPerPlayer(getOwner(), -1);
+	getArea().changeCitiesPerPlayer(getOwner(), -1);
 	// <advc.030b>
 	CvArea* pWaterArea = waterArea(true);
 	/*  Can't really handle ice melted by global warming, but at least ensure
@@ -796,8 +799,7 @@ void CvCity::doRevolt()
 	if(!::bernoulliSuccess(prRevolt, "advc.101"))
 		return; // </advc.101>
 	damageGarrison(eCulturalOwner); // advc: Code moved into subroutine
-	if(bCanFlip && // advc.099
-			canCultureFlip(eCulturalOwner))
+	if(bCanFlip /* advc.099 */ && canCultureFlip(eCulturalOwner))
 	{
 		if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
 				GET_PLAYER(eCulturalOwner).isHuman())
@@ -3542,7 +3544,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 
 		GET_PLAYER(getOwner()).changeAssets(kBuilding.getAssetValue() * iChange);
 
-		area()->changePower(getOwner(), kBuilding.getPowerValue() * iChange);
+		getArea().changePower(getOwner(), kBuilding.getPowerValue() * iChange);
 		GET_PLAYER(getOwner()).changePower(kBuilding.getPowerValue() * iChange);
 
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -3551,7 +3553,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			{
 				if (kBuilding.isTeamShare() || iI == getOwner())
 				{
-					GET_PLAYER((PlayerTypes)iI).processBuilding(eBuilding, iChange, area());
+					GET_PLAYER((PlayerTypes)iI).processBuilding(eBuilding, iChange, getArea());
 				}
 			}
 		}
@@ -3773,7 +3775,7 @@ bool CvCity::isPrereqBonusSea() const
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
 	{
 		CvPlot* p = plotDirection(getX(), getY(), (DirectionTypes)i);
-		if(p != NULL && p->isWater() && p->area()->isAnyBonus())
+		if(p != NULL && p->isWater() && p->getArea().isAnyBonus())
 			return true;
 	}
 	return false;
@@ -4075,7 +4077,7 @@ int CvCity::unhappyLevel(int iExtra) const
 	iUnhappiness -= std::min(0, getBonusBadHappiness());
 	iUnhappiness -= std::min(0, getReligionBadHappiness());
 	iUnhappiness -= std::min(0, getCommerceHappiness());
-	iUnhappiness -= std::min(0, area()->getBuildingHappiness(getOwner()));
+	iUnhappiness -= std::min(0, getArea().getBuildingHappiness(getOwner()));
 	iUnhappiness -= std::min(0, GET_PLAYER(getOwner()).getBuildingHappiness());
 	iUnhappiness -= std::min(0, (getExtraHappiness() + GET_PLAYER(getOwner()).getExtraHappiness()));
 	iUnhappiness -= std::min(0, GC.getInfo(getHandicapType()).getHappyBonus());
@@ -4098,7 +4100,7 @@ int CvCity::happyLevel() const
 	iHappiness += std::max(0, getBonusGoodHappiness());
 	iHappiness += std::max(0, getReligionGoodHappiness());
 	iHappiness += std::max(0, getCommerceHappiness());
-	iHappiness += std::max(0, area()->getBuildingHappiness(getOwner()));
+	iHappiness += std::max(0, getArea().getBuildingHappiness(getOwner()));
 	iHappiness += std::max(0, GET_PLAYER(getOwner()).getBuildingHappiness());
 	iHappiness += std::max(0, (getExtraHappiness() + GET_PLAYER(getOwner()).getExtraHappiness()));
 	iHappiness += std::max(0, GC.getInfo(getHandicapType()).getHappyBonus());
@@ -4135,7 +4137,7 @@ int CvCity::totalFreeSpecialists() const
 	if (getPopulation() > 0)
 	{
 		iCount += getFreeSpecialist();
-		iCount += area()->getFreeSpecialist(getOwner());
+		iCount += getArea().getFreeSpecialist(getOwner());
 		iCount += GET_PLAYER(getOwner()).getFreeSpecialist();
 
 		for (int iImprovement = 0; iImprovement < GC.getNumImprovementInfos(); ++iImprovement)
@@ -4188,7 +4190,7 @@ int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 
 int CvCity::totalGoodBuildingHealth() const
 {
-	return (getBuildingGoodHealth() + area()->getBuildingGoodHealth(getOwner()) +
+	return (getBuildingGoodHealth() + getArea().getBuildingGoodHealth(getOwner()) +
 			GET_PLAYER(getOwner()).getBuildingGoodHealth() + getExtraBuildingGoodHealth());
 }
 
@@ -4197,7 +4199,7 @@ int CvCity::totalBadBuildingHealth() const
 {
 	if (!isBuildingOnlyHealthy())
 	{
-		return (getBuildingBadHealth() + area()->getBuildingBadHealth(getOwner()) +
+		return (getBuildingBadHealth() + getArea().getBuildingBadHealth(getOwner()) +
 				GET_PLAYER(getOwner()).getBuildingBadHealth() + getExtraBuildingBadHealth());
 	}
 
@@ -4870,16 +4872,10 @@ bool CvCity::isConnectedToCapital(PlayerTypes ePlayer) const
 	return plot()->isConnectedToCapital(ePlayer);
 }
 
-
-int CvCity::getArea() const
+// advc: For handling area recalculation (after a WorldBuilder terrain change)
+void CvCity::updateArea()
 {
-	return plot()->getArea();
-}
-
-
-CvArea* CvCity::area() const
-{
-	return plot()->area();
+	m_pArea = plot()->area();
 }
 
 // BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000: param added
@@ -5014,16 +5010,15 @@ void CvCity::setPopulation(int iNewValue)
 		if (getPopulation() > getHighestPopulation())
 			setHighestPopulation(getPopulation());
 
-		CvArea& kArea = *area(); // advc
-		kArea.changePopulationPerPlayer(getOwner(), getPopulation() - iOldPopulation);
+		getArea().changePopulationPerPlayer(getOwner(), getPopulation() - iOldPopulation);
 		GET_PLAYER(getOwner()).changeTotalPopulation(getPopulation() - iOldPopulation);
 		GET_TEAM(getTeam()).changeTotalPopulation(getPopulation() - iOldPopulation);
 		GC.getGame().changeTotalPopulation(getPopulation() - iOldPopulation);
 
 		if (iOldPopulation > 0)
-			kArea.changePower(getOwner(), -getPopulationPower(iOldPopulation));
+			getArea().changePower(getOwner(), -getPopulationPower(iOldPopulation));
 		if (getPopulation() > 0)
-			kArea.changePower(getOwner(), getPopulationPower(getPopulation()));
+			getArea().changePower(getOwner(), getPopulationPower(getPopulation()));
 
 		plot()->updateYield();
 
@@ -7215,18 +7210,13 @@ int CvCity::getPowerCount() const
 
 bool CvCity::isPower() const
 {
-	return ((getPowerCount() > 0) || isAreaCleanPower());
+	return (getPowerCount() > 0 || isAreaCleanPower());
 }
 
 
 bool CvCity::isAreaCleanPower() const
 {
-	if (area() == NULL)
-	{
-		return false;
-	}
-
-	return area()->isCleanPower(getTeam());
+	return getArea().isCleanPower(getTeam());
 }
 
 
@@ -7238,7 +7228,7 @@ int CvCity::getDirtyPowerCount() const
 
 bool CvCity::isDirtyPower() const
 {
-	return (isPower() && (getDirtyPowerCount() == getPowerCount()) && !isAreaCleanPower());
+	return (isPower() && getDirtyPowerCount() == getPowerCount() && !isAreaCleanPower());
 }
 
 
@@ -8168,25 +8158,16 @@ int CvCity::getBaseYieldRate(YieldTypes eIndex)	const
 int CvCity::getBaseYieldRateModifier(YieldTypes eIndex, int iExtra) const
 {
 	int iModifier = getYieldRateModifier(eIndex);
-
 	iModifier += getBonusYieldRateModifier(eIndex);
 
 	if (isPower())
-	{
 		iModifier += getPowerYieldRateModifier(eIndex);
-	}
 
-	if (area() != NULL)
-	{
-		iModifier += area()->getYieldRateModifier(getOwner(), eIndex);
-	}
-
+	iModifier += getArea().getYieldRateModifier(getOwner(), eIndex);
 	iModifier += GET_PLAYER(getOwner()).getYieldRateModifier(eIndex);
 
 	if (isCapital())
-	{
 		iModifier += GET_PLAYER(getOwner()).getCapitalYieldRateModifier(eIndex);
-	}
 
 	iModifier += iExtra;
 
@@ -8199,7 +8180,7 @@ int CvCity::getBaseYieldRateModifier(YieldTypes eIndex, int iExtra) const
 
 int CvCity::getYieldRate(YieldTypes eIndex) const
 {
-	return ((getBaseYieldRate(eIndex) * getBaseYieldRateModifier(eIndex)) / 100);
+	return (getBaseYieldRate(eIndex) * getBaseYieldRateModifier(eIndex)) / 100;
 }
 
 
@@ -8365,7 +8346,7 @@ int CvCity::totalTradeModifier(CvCity const* pOtherCity) const // advc: const Cv
 
 	if (pOtherCity != NULL)
 	{
-		if (area() != pOtherCity->area())
+		if (!sameArea(*pOtherCity))
 			iModifier += iOVERSEAS_TRADE_MODIFIER;
 
 		if (getTeam() != pOtherCity->getTeam())
@@ -9446,8 +9427,8 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer, /* advc.101: */ bool bCheckPr
 		(!bCheckPriorRevolts || // advc.101
 		getNumRevolts(eToPlayer) >= GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS)
 		- (isBarbarian() ? 1 : 0))); // advc.101
-}
-// K-Mod end
+} // K-Mod end
+
 
 int CvCity::calculateCulturePercent(PlayerTypes eIndex) const
 {
@@ -11437,7 +11418,7 @@ int CvCity::getTradeRoutes() const
 	int iTradeRoutes = GC.getGame().getTradeRoutes();
 	iTradeRoutes += GET_PLAYER(getOwner()).getTradeRoutes();
 	// advc.310: Continental TR no longer included in player TR
-	iTradeRoutes += area()->getTradeRoutes(getOwner());
+	iTradeRoutes += getArea().getTradeRoutes(getOwner());
 	if (isCoastal())
 		iTradeRoutes += GET_PLAYER(getOwner()).getCoastalTradeRoutes();
 	iTradeRoutes += getExtraTradeRoutes();
@@ -11584,7 +11565,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 
 			GET_PLAYER(getOwner()).changeUnitClassMaking(((UnitClassTypes)(GC.getInfo((UnitTypes) iData1).getUnitClassType())), 1);
 
-			area()->changeNumTrainAIUnits(getOwner(), ((UnitAITypes)iData2), 1);
+			getArea().changeNumTrainAIUnits(getOwner(), ((UnitAITypes)iData2), 1);
 			GET_PLAYER(getOwner()).AI_changeNumTrainAIUnits(((UnitAITypes)iData2), 1);
 
 			bValid = true;
@@ -11752,7 +11733,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		FAssert(eTrainUnit != NO_UNIT);
 		FAssert(eTrainAIUnit != NO_UNITAI);
 		kOwner.changeUnitClassMaking((UnitClassTypes)GC.getInfo(eTrainUnit).getUnitClassType(), -1);
-		area()->changeNumTrainAIUnits(getOwner(), eTrainAIUnit, -1);
+		getArea().changeNumTrainAIUnits(getOwner(), eTrainAIUnit, -1);
 		kOwner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
 		/*  <advc.113b> So that the new worker can already be taken into account
 			for choosing the next order */
@@ -12199,9 +12180,11 @@ void CvCity::addGreatWall()
 	for(int i = 0; i < m.numPlots(); i++)
 	{
 		CvPlot* p = m.plotByIndex(i);
-		if(p->area() != area() || p->getOwner() != getOwner() // as in BtS
-				|| p->isImpassable()) // new: don't wall off peaks
+		if(!isArea(p->getArea()) || p->getOwner() != getOwner() || // as in BtS
+			p->isImpassable()) // new: don't wall off peaks
+		{
 			continue;
+		}
 		bool bFound = false;
 		// Add p if we find an adjacent q such that (p, q) should have a segment in between
 		for(int j = 0; j < NUM_DIRECTION_TYPES; j++)
@@ -12209,7 +12192,7 @@ void CvCity::addGreatWall()
 			if(j % 2 != 0) // Cardinal directions have even numbers
 				continue;
 			CvPlot* q = ::plotDirection(p->getX(), p->getY(), (DirectionTypes)j);
-			if(q == NULL || q->area() != area() || q->isImpassable())
+			if(q == NULL || !isArea(q->getArea()) || q->isImpassable())
 				continue;
 			PlayerTypes eOwner = q->getOwner();
 			if(eOwner == NO_PLAYER || eOwner == BARBARIAN_PLAYER) // Not: any civ
@@ -12224,17 +12207,16 @@ void CvCity::addGreatWall()
 	/*  Hack: Use a dummy CvArea object to prevent CvEngine from placing segments
 		along plots not in aiWallPlots. */
 	CvArea* pTmpArea = m.addArea();
-	pTmpArea->init(pTmpArea->getID(), false);
+	pTmpArea->init(false);
 	/*  The city plot needs to be in the area as well b/c CvEngine will consider
 		only tiles in the same CvArea as the Great Wall city */
 	aiWallPlots.insert(plotNum());
-	// To be restored presently. They all have the same actual area.
-	int iActualArea = getArea();
 	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
-		m.plotByIndex(*it)->setArea(pTmpArea->getID(), /*bProcess=*/false);
+		m.plotByIndex(*it)->setArea(pTmpArea, /*bProcess=*/false);
 	gDLL->getEngineIFace()->AddGreatWall(this);
+	// Restore actual area
 	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
-		m.plotByIndex(*it)->setArea(iActualArea, false);
+		m.plotByIndex(*it)->setArea(area(), false);
 	m.deleteArea(pTmpArea->getID());
 } // </advc.310>
 
@@ -12388,9 +12370,11 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 				continue;
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
 			if(pLoopPlot == NULL || /* advc.098: */ (pLoopPlot->isWater() &&
-					!pLoopPlot->isPotentialCityWorkForArea(area())) ||
-					(pLoopPlot->getArea() != getArea() && iDistance > eCultureLevel + 1)) // advc.098
+				!pLoopPlot->isPotentialCityWorkForArea(getArea())) ||
+				(!isArea(pLoopPlot->getArea()) && iDistance > eCultureLevel + 1)) // advc.098
+			{
 				continue;
+			}
 			//int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
 			/*  <advc.001> Deleted some old K-Mod code that had been commented out.
 				The line above was the most recent K-Mod code. Causes an integer
@@ -12504,10 +12488,10 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 				pOrderNode->m_data.iData1 = eUpgradeUnit;
 				if (kOwner.AI_unitValue(eUpgradeUnit, (UnitAITypes)pOrderNode->m_data.iData2, area()) == 0)
 				{
-					area()->changeNumTrainAIUnits(getOwner(), (UnitAITypes)pOrderNode->m_data.iData2, -1);
+					getArea().changeNumTrainAIUnits(getOwner(), (UnitAITypes)pOrderNode->m_data.iData2, -1);
 					kOwner.AI_changeNumTrainAIUnits(((UnitAITypes)pOrderNode->m_data.iData2), -1);
 					pOrderNode->m_data.iData2 = GC.getInfo(eUpgradeUnit).getDefaultUnitAIType();
-					area()->changeNumTrainAIUnits(getOwner(), (UnitAITypes)pOrderNode->m_data.iData2, 1);
+					getArea().changeNumTrainAIUnits(getOwner(), (UnitAITypes)pOrderNode->m_data.iData2, 1);
 					kOwner.AI_changeNumTrainAIUnits((UnitAITypes)pOrderNode->m_data.iData2, 1);
 				}
 				// advc (note): pOrderNode may have changed
@@ -12945,6 +12929,7 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iID);
 	pStream->Read(&m_iX);
 	pStream->Read(&m_iY);
+	updateArea(); // advc
 	pStream->Read(&m_iRallyX);
 	pStream->Read(&m_iRallyY);
 	pStream->Read(&m_iGameTurnFounded);
@@ -13777,35 +13762,25 @@ bool CvCity::isValidBuildingLocation(BuildingTypes eBuilding) const
 		if (!GC.getInfo(eBuilding).isRiver() || !plot()->isRiver())
 		{
 			if (!isCoastal(GC.getInfo(eBuilding).getMinAreaSize()))
-			{
 				return false;
-			}
 		}
 	}
 	else
 	{
-		if (area()->getNumTiles() < GC.getInfo(eBuilding).getMinAreaSize())
-		{
+		if (getArea().getNumTiles() < GC.getInfo(eBuilding).getMinAreaSize())
 			return false;
-		}
 
 		if (GC.getInfo(eBuilding).isRiver())
 		{
-			if (!(plot()->isRiver()))
-			{
+			if (!plot()->isRiver())
 				return false;
-			}
 		}
 	}
-
 	return true;
 }
 
 int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const
 {
-	FAssert(eTrigger >= 0);
-	FAssert(eTrigger < GC.getNumEventTriggerInfos());
-
 	if (!GC.getPythonCaller()->canTriggerEvent(*this, eTrigger))
 		return MIN_INT;
 
@@ -14757,7 +14732,7 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 			CvCity* pLoopCapital = kLoopPlayer.getCapitalCity();
 			if (pLoopCapital != NULL)
 			{
-				if (pLoopCapital->area() == area())
+				if (sameArea(*pLoopCapital))
 					return kLoopPlayer.getID();
 			}
 		}
@@ -14765,9 +14740,9 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 
 	/*  advc (note): Not sure if this is needed for anything. The splitEmpirePlayer
 		isn't alive, so one probably can't gift cities to it. */
-	if (kOwner.canSplitEmpire() && kOwner.canSplitArea(*area()))
+	if (kOwner.canSplitEmpire() && kOwner.canSplitArea(getArea()))
 	{
-		PlayerTypes eSplitPlayer = kOwner.getSplitEmpirePlayer(*area());
+		PlayerTypes eSplitPlayer = kOwner.getSplitEmpirePlayer(getArea());
 		if (eSplitPlayer != NO_PLAYER && GET_PLAYER(eSplitPlayer).isAlive())
 			return eSplitPlayer;
 	}
@@ -14793,7 +14768,7 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 		if (pCapital == NULL)
 			continue;
 		int iCapitalDistance = ::plotDistance(getX(), getY(), pCapital->getX(), pCapital->getY());
-		if (area() != pCapital->area())
+		if (!sameArea(*pCapital))
 			iCapitalDistance *= 2;
 
 		int iCultureScore = getCultureTimes100(kLoopPlayer.getID())
@@ -15112,13 +15087,13 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	if(iPopulation < 0)
 		iPopulation = initialPopulation();
 	HandicapTypes eOwnerHandicap = GET_PLAYER(eOwner).getHandicapType();
-	CvArea* pCityArea = kCityPlot.area();
+	CvArea const& kCityArea = kCityPlot.getArea();
 
 	if (GC.getGame().isOption(GAMEOPTION_NO_VASSAL_STATES))
 		return 0;
 
 	CvCity* pCapital = GET_PLAYER(eOwner).getCapitalCity();
-	if (pCapital && pCapital->area() == pCityArea)
+	if (pCapital && pCapital->isArea(kCityArea))
 		return 0;
 
 	int iNumCitiesPercent = 100;
@@ -15132,7 +15107,7 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	iNumCitiesPercent *= GC.getInfo(eOwnerHandicap).getColonyMaintenancePercent();
 	iNumCitiesPercent /= 100;
 
-	int iNumCities = (pCityArea->getCitiesPerPlayer(eOwner) - 1 + iExtraCities) *
+	int iNumCities = (kCityArea.getCitiesPerPlayer(eOwner) - 1 + iExtraCities) *
 			iNumCitiesPercent;
 	int iMaintenance = (iNumCities * iNumCities) / 100;
 	/* original bts code
@@ -15145,12 +15120,10 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	iMaintenanceCap *= (iPopulation + 7);
 	iMaintenanceCap /= 10;
 
-	iMaintenanceCap *= GC.getInfo(GC.getMap().getWorldSize()).
-			getDistanceMaintenancePercent();
+	iMaintenanceCap *= GC.getInfo(GC.getMap().getWorldSize()).getDistanceMaintenancePercent();
 	iMaintenanceCap /= 100;
 
-	iMaintenanceCap *= GC.getInfo(eOwnerHandicap).
-			getDistanceMaintenancePercent();
+	iMaintenanceCap *= GC.getInfo(eOwnerHandicap).getDistanceMaintenancePercent();
 	iMaintenanceCap /= 100;
 
 	iMaintenanceCap /= GC.getMap().maxPlotDistance();

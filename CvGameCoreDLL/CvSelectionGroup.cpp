@@ -2193,7 +2193,8 @@ bool CvSelectionGroup::canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPas
 	return true;
 }
 
-bool CvSelectionGroup::canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage) const
+bool CvSelectionGroup::canEnterArea(TeamTypes eTeam, CvArea const& kArea,
+	bool bIgnoreRightOfPassage) const
 {
 	if(getNumUnits() <= 0)
 		return false;
@@ -2202,7 +2203,7 @@ bool CvSelectionGroup::canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool b
 		pUnitNode = nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (!pLoopUnit->canEnterArea(eTeam, pArea, bIgnoreRightOfPassage))
+		if (!pLoopUnit->canEnterArea(eTeam, kArea, bIgnoreRightOfPassage))
 			return false;
 	}
 	return true;
@@ -2369,9 +2370,12 @@ int CvSelectionGroup::getBombardTurns(CvCity const* pCity) const // advc: 2x con
 bool CvSelectionGroup::isHasPathToAreaPlayerCity(PlayerTypes ePlayer, int iFlags, int iMaxPathTurns) const
 {
 	PROFILE_FUNC();
+	// <advc> Instead of relying on the area checks to fail when the group has no area
+	if (getNumUnits() <= 0)
+		return false; // </advc>
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(ePlayer))
 	{
-		if (pLoopCity->area() == area())
+		if (pLoopCity->isArea(*area()))
 		{
 			int iPathTurns;
 			if (generatePath(plot(), pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPathTurns))
@@ -2590,14 +2594,14 @@ CvPlot* CvSelectionGroup::plot() const
 	return NULL;
 }
 
-
-int CvSelectionGroup::getArea() const
+// advc: Shouldn't be needed
+/*CvArea const& CvSelectionGroup::getArea() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->getArea();
-	return NULL;
-}
+		return getHeadUnit()->getArea().getID();
+	return FFreeList::INVALID_INDEX; // advc.001: was NULL
+}*/
 
 CvArea* CvSelectionGroup::area() const
 {
@@ -4218,12 +4222,6 @@ void CvSelectionGroup::clearMissionQueue()
 }
 
 
-int CvSelectionGroup::getLengthMissionQueue() const
-{
-	return m_missionQueue.getLength();
-}
-
-
 MissionData* CvSelectionGroup::getMissionFromQueue(int iIndex) const
 {
 	CLLNode<MissionData>* pMissionNode;
@@ -4275,30 +4273,6 @@ CLLNode<MissionData>* CvSelectionGroup::deleteMissionQueueNode(CLLNode<MissionDa
 	}
 
 	return pNextMissionNode;
-}
-
-
-CLLNode<MissionData>* CvSelectionGroup::nextMissionQueueNode(CLLNode<MissionData>* pNode) const
-{
-	return m_missionQueue.next(pNode);
-}
-
-
-CLLNode<MissionData>* CvSelectionGroup::prevMissionQueueNode(CLLNode<MissionData>* pNode) const
-{
-	return m_missionQueue.prev(pNode);
-}
-
-
-CLLNode<MissionData>* CvSelectionGroup::headMissionQueueNode() const
-{
-	return m_missionQueue.head();
-}
-
-
-CLLNode<MissionData>* CvSelectionGroup::tailMissionQueueNode() const
-{
-	return m_missionQueue.tail();
 }
 
 

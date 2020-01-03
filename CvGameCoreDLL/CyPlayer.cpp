@@ -218,7 +218,7 @@ int CyPlayer::findBestFoundValue()
 
 int CyPlayer::countReligionSpreadUnits(CyArea* pArea, int /*ReligionTypes*/ eReligion)
 {
-	return m_pPlayer ? m_pPlayer->countReligionSpreadUnits(pArea->getArea(), (ReligionTypes) eReligion) : -1;
+	return m_pPlayer ? m_pPlayer->countReligionSpreadUnits(&pArea->getArea(), (ReligionTypes)eReligion) : -1;
 }
 
 int CyPlayer::countNumCoastalCities()
@@ -2136,7 +2136,7 @@ AttitudeTypes CyPlayer::AI_getAttitude(int /*PlayerTypes*/ ePlayer)
 
 int CyPlayer::AI_unitValue(int /*UnitTypes*/ eUnit, int /*UnitAITypes*/ eUnitAI, CyArea* pArea)
 {
-	return m_pPlayer ? m_pPlayer->AI_unitValue((UnitTypes)eUnit, (UnitAITypes)eUnitAI, pArea->getArea()) : -1;
+	return m_pPlayer ? m_pPlayer->AI_unitValue((UnitTypes)eUnit, (UnitAITypes)eUnitAI, &pArea->getArea()) : -1;
 }
 
 int CyPlayer::AI_civicValue(int /*CivicTypes*/ eCivic)

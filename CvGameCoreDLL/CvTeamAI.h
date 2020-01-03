@@ -45,17 +45,17 @@ public:
 	void AI_updateAreaTargets();
 
 	int AI_countFinancialTrouble() const; // addvc.003j (comment): unused
-	int AI_countMilitaryWeight(CvArea* pArea) const;
+	int AI_countMilitaryWeight(CvArea const* pArea = NULL) const;
 
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod
 
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
 
 	bool AI_isAnyCapitalAreaAlone() const;
-	bool AI_isPrimaryArea(CvArea* pArea) const;
+	bool AI_isPrimaryArea(CvArea const& kArea) const;
 	bool AI_hasCitiesInPrimaryArea(TeamTypes eTeam) const;
 	bool AI_hasSharedPrimaryArea(TeamTypes eTeam) const; // K-Mod
-	AreaAITypes AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal = false) const;
+	AreaAITypes AI_calculateAreaAIType(CvArea const& kArea, bool bPreparingTotal = false) const;
 	inline bool AI_isLonely() const { return m_bLonely; } // advc.109
 
 	int AI_calculateAdjacentLandPlots(TeamTypes eTeam) const;
@@ -220,9 +220,9 @@ public:
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
 
 	// <advc.003u> Moved from CvTeam b/c these functions count wars in preparation
-	int AI_countEnemyPowerByArea(CvArea* pArea) const;																			// Exposed to Python
-	int AI_countEnemyCitiesByArea(CvArea* pArea) const; // K-Mod
-	int AI_countEnemyPopulationByArea(CvArea* pArea) const; // bbai (advc: unused)
+	int AI_countEnemyPowerByArea(CvArea const& kArea) const;																			// Exposed to Python
+	int AI_countEnemyCitiesByArea(CvArea const& kArea) const; // K-Mod
+	int AI_countEnemyPopulationByArea(CvArea const& kArea) const; // bbai (advc: unused)
 	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.inl
 	{
 		return m_aeWarPlan.get(eIndex);
@@ -242,9 +242,9 @@ public:
 	bool AI_isSneakAttackReady(TeamTypes eIndex /* K-Mod (any team): */ = NO_TEAM) const;
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
-	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc: Moved from CvTeam; made const.)
-	bool AI_isMasterPlanningLandWar(CvArea* pArea) const;
-	bool AI_isMasterPlanningSeaWar(CvArea* pArea) const;
+	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc: moved from CvTeam; const)
+	bool AI_isMasterPlanningLandWar(CvArea const& kArea) const;
+	bool AI_isMasterPlanningSeaWar(CvArea const& kArea) const;
 	// BETTER_BTS_AI_MOD: END
 	// advc.104:
 	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
@@ -275,7 +275,7 @@ public:
 
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
-	bool AI_isWaterAreaRelevant(CvArea* pArea) /* advc: */ const;
+	bool AI_isWaterAreaRelevant(CvArea const& kArea) /* advc: */ const;
 	void AI_finalizeInit(); // advc.opt
 
 	void read(FDataStreamBase* pStream);

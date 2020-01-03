@@ -62,15 +62,15 @@ public:
 	void nukeExplosion(int iRange, CvUnit* pNukeUnit = NULL,
 			bool bBomb = true); //  K-Mod added bBomb, Exposed to Python
 
-	bool isConnectedTo( const CvCity* pCity) const;																												// Exposed to Python
+	bool isConnectedTo(CvCity const* pCity) const;																												// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;																			// Exposed to Python
 	int getPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;													// Exposed to Python
 	bool isPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;								// Exposed to Python
 	bool isAdjacentPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;				// Exposed to Python
 	void updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduction = true);
 
-	bool isAdjacentToArea(int iAreaID) const;
-	bool isAdjacentToArea(const CvArea* pArea) const;																						// Exposed to Python
+	//bool isAdjacentToArea(int iAreaID) const; // advc: use the one below instead
+	bool isAdjacentToArea(CvArea const& kArea) const;																						// Exposed to Python
 	bool shareAdjacentArea(const CvPlot* pPlot) const;																					// Exposed to Python
 	bool isAdjacentToLand() const;																															// Exposed to Python
 	// advc.003t: Default was -1, which now means MIN_WATER_SIZE_FOR_OCEAN.
@@ -96,7 +96,7 @@ public:
 	bool isConnectSea() const;
 
 	CvPlot* getNearestLandPlotInternal(int iDistance) const;
-	int getNearestLandArea() const;																															// Exposed to Python
+	CvArea* getNearestLandArea() const;																															// Exposed to Python
 	CvPlot* getNearestLandPlot() const;																													// Exposed to Python
 
 	int seeFromLevel(TeamTypes eTeam) const;																										// Exposed to Python
@@ -281,13 +281,19 @@ public:
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
 	int getFOWIndex() const;
 
-	CvArea* area() const;																																							// Exposed to Python
+	//int getArea() const;
+	// <advc>
+	inline CvArea& getArea() const { return *m_pArea; }
+	// (This had called CvMap::getArea in BtS)
+	inline CvArea* area() const { return m_pArea; }													// Exposed to Python
+	inline bool isArea(CvArea const& kArea) const { return (area() == &kArea); }
+	inline bool sameArea(CvPlot const& kPlot) const { return isArea(kPlot.getArea()); }
+	void initArea(); // </advc>
 	CvArea* waterArea(
 			// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
 			bool bNoImpassable = false) const;
 	CvArea* secondWaterArea() const;
-	inline int getArea() const { return m_iArea; } // advc.inl																				// Exposed to Python
-	void setArea(int iNewValue, /* advc.310: */ bool bProcess = true);
+	void setArea(CvArea* pArea = NULL, /* advc.310: */ bool bProcess = true);
 
 	DllExport int getFeatureVariety() const;																													// Exposed to Python
 
@@ -340,7 +346,7 @@ public:
 	void updateIrrigated();
 
 	bool isPotentialCityWork() const;																																						// Exposed to Python
-	bool isPotentialCityWorkForArea(CvArea* pArea) const;																												// Exposed to Python
+	bool isPotentialCityWorkForArea(CvArea const& kArea) const;																												// Exposed to Python
 	void updatePotentialCityWork();
 
 	bool isShowCitySymbols() const;
@@ -504,8 +510,8 @@ public:
 	int countNumAirUnits(TeamTypes eTeam) const;																					// Exposed to Python
 	int airUnitSpaceAvailable(TeamTypes eTeam) const;
 	// <advc.081>
-	int countAreaHostileUnits(PlayerTypes ePlayer, CvArea* pArea, bool bPlayer,
-			bool bTeam, bool bNeutral, bool bHostile) const; // </advc.081>
+	int countHostileUnits(PlayerTypes ePlayer, bool bPlayer, bool bTeam,
+			bool bNeutral, bool bHostile) const; // </advc.081>
 	int getFoundValue(PlayerTypes eIndex,												// Exposed to Python
 			bool bRandomize = false) const; // advc.052
 	bool isBestAdjacentFound(PlayerTypes eIndex);										// Exposed to Python
@@ -715,8 +721,6 @@ protected:
 
 	short m_iX;
 	short m_iY;
-	int m_iArea;
-	mutable CvArea *m_pPlotArea;
 	int m_iRiverID;
 	int m_iTotalCulture; // advc.opt
 	short m_iFeatureVariety;
@@ -754,6 +758,13 @@ protected:
 	char /*CardinalDirectionTypes*/ m_eRiverNSDirection;
 	char /*CardinalDirectionTypes*/ m_eRiverWEDirection;
 	char /*PlayerTypes*/ m_eSecondOwner; // advc.035
+	// <advc> m_pArea is enough - except while loading a savegame.
+	union
+	{
+		CvArea* m_pArea; // This acted as a cache in BtS (was mutable)
+		int m_iArea;
+	}; // </advc>
+
 	IDInfo m_plotCity;
 	IDInfo m_workingCity;
 	IDInfo m_workingCityOverride;
@@ -802,7 +813,8 @@ protected:
 	void doCulture();
 
 	int countTotalCulture() const; // advc.opt: Was public; replaced by getTotalCulture.
-	void processArea(CvArea* pArea, int iChange);
+	int areaID() const;
+	void processArea(CvArea& kArea, int iChange);
 	char calculateLatitude() const; // advc.tsl
 	void doImprovementUpgrade();
 	// <advc.099b>

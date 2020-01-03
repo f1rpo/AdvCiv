@@ -2409,7 +2409,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				szTempBuffer.Format(L"EspionageEconomy, ");
 				szString.append(szTempBuffer);
 			}
-			CvArea const& kArea = *kPlot.area();
+			CvArea const& kArea = kPlot.getArea();
 			//Area battle plans.
 			switch(kArea.getAreaAIType(pHeadGroup->getTeam())) {
 			case AREAAI_OFFENSIVE:
@@ -2449,7 +2449,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						continue;
 					FOR_EACH_CITY(pLoopCity, pl)
 					{
-						if(pLoopCity->area() == &kArea)
+						if(pLoopCity->isArea(kArea))
 						{
 							int iTargetValue = GET_PLAYER(pHeadGroup->getOwner()).
 									AI_targetCityValue(pLoopCity,false,true);
@@ -5347,19 +5347,20 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		// <advc.007>
 		szString.append(CvWString::format(L"\nFloating Defenders Target: %d",
 				pPlotCity->AI_neededFloatingDefenders(true, true)));
-		szString.append(CvWString::format(L"\nArea Floating Def. H/N (%d / %d)", // </advc.007>_getTotalFloatingDefenders(pPlotCity->area()),
-				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area(),
+		szString.append(CvWString::format(L"\nArea Floating Def. H/N (%d / %d)", // </advc.007>
+				kPlayer.AI_getTotalFloatingDefenders(pPlotCity->getArea()),
+				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->getArea(),
 				true))); // advc.007
 		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)",
 				pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1,
 				pPlotCity->getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR),
 				pPlotCity->AI_neededAirDefenders(/* advc.001n: */ true)));
-//		int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->area());
+//		int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->getArea());
 //		if (iHostileUnits > 0)
 //			szString+=CvWString::format(L"\nHostiles = %d", iHostileUnits);
 
 		szString.append(CvWString::format(L"\nThreat C/P (%d / %d)",
-				pPlotCity->AI_cityThreat(), kPlayer.AI_getTotalAreaCityThreat(pPlotCity->area())));
+				pPlotCity->AI_cityThreat(), kPlayer.AI_getTotalAreaCityThreat(pPlotCity->getArea())));
 
 		bool bFirst = true;
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
@@ -5512,7 +5513,9 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			int iAreaSiteBestValue = 0;
 			int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iAreaSiteBestValue);
 			int iOtherSiteBestValue = 0;
-			int iNumOtherCitySites = (kPlot.waterArea() == NULL) ? 0 : kPlayer.AI_getNumAdjacentAreaCitySites(kPlot.waterArea()->getID(), kPlot.getArea(), iOtherSiteBestValue);
+			int iNumOtherCitySites = (kPlot.waterArea() == NULL) ? 0 :
+					kPlayer.AI_getNumAdjacentAreaCitySites(
+					iOtherSiteBestValue, *kPlot.waterArea(), kPlot.area());
 			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
 			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
 		}
@@ -5600,19 +5603,18 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	/*  <advc.027> Shift+Ctrl on a plot w/o a unit shows a breakdown of the
 		area score computed in CvPlayer::findStartingArea. */
 	{
-		CvArea const* a = kPlot.area();
+		CvArea const& a = kPlot.getArea();
 		PlayerTypes activePl = g.getActivePlayer();
-		if(!a->isWater() && bShift && !bAlt && !kPlot.isUnit() &&
-				activePl != NO_PLAYER)
+		if(!a.isWater() && bShift && !bAlt && !kPlot.isUnit() && activePl != NO_PLAYER)
 		{
 			int total = 0; int tmp = 0;
-			tmp=a->calculateTotalBestNatureYield();total+=tmp;szTempBuffer.Format(L"\nTotalBestNatureYield: %d", tmp); szString.append(szTempBuffer);
-			tmp=a->countCoastalLand() * 2;szTempBuffer.Format(L"\n(CoastalLand*2: %d)", tmp); szString.append(szTempBuffer);
-			tmp=a->getNumRiverEdges();szTempBuffer.Format(L"\n(RiverEdges: %d)", tmp); szString.append(szTempBuffer);
-			tmp=GET_PLAYER(activePl).coastRiverStartingAreaScore(*a);total+=tmp;szTempBuffer.Format(L"\nCoastRiverScore: %d", tmp); szString.append(szTempBuffer);
-			tmp=a->getNumTiles()/2;total+=tmp;szTempBuffer.Format(L"\nTiles*0.5: %d", tmp); szString.append(szTempBuffer);
-			tmp=::round(a->getNumTotalBonuses() * 1.5);total+=tmp;szTempBuffer.Format(L"\nBonuses*1.5: %d", tmp); szString.append(szTempBuffer);
-			tmp=100*::round(std::min(NUM_CITY_PLOTS + 1, a->getNumTiles() + 1)/ (NUM_CITY_PLOTS + 1.0));total+=tmp;szTempBuffer.Format(L"\nTilePercent: %d", tmp); szString.append(szTempBuffer);
+			tmp=a.calculateTotalBestNatureYield();total+=tmp;szTempBuffer.Format(L"\nTotalBestNatureYield: %d", tmp); szString.append(szTempBuffer);
+			tmp=a.countCoastalLand() * 2;szTempBuffer.Format(L"\n(CoastalLand*2: %d)", tmp); szString.append(szTempBuffer);
+			tmp=a.getNumRiverEdges();szTempBuffer.Format(L"\n(RiverEdges: %d)", tmp); szString.append(szTempBuffer);
+			tmp=GET_PLAYER(activePl).coastRiverStartingAreaScore(a);total+=tmp;szTempBuffer.Format(L"\nCoastRiverScore: %d", tmp); szString.append(szTempBuffer);
+			tmp=a.getNumTiles()/2;total+=tmp;szTempBuffer.Format(L"\nTiles*0.5: %d", tmp); szString.append(szTempBuffer);
+			tmp=::round(a.getNumTotalBonuses() * 1.5);total+=tmp;szTempBuffer.Format(L"\nBonuses*1.5: %d", tmp); szString.append(szTempBuffer);
+			tmp=100*::round(std::min(NUM_CITY_PLOTS + 1, a.getNumTiles() + 1)/ (NUM_CITY_PLOTS + 1.0));total+=tmp;szTempBuffer.Format(L"\nTilePercent: %d", tmp); szString.append(szTempBuffer);
 			szTempBuffer.Format(L"\nAreaScore: %d", total); szString.append(szTempBuffer);
 		}
 	} // </advc.027>
@@ -5648,10 +5650,9 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	{
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwner());
 		// This corresponds to code in CvCityAI::AI_chooseProduction
-		int iHave =  kOwner.AI_totalWaterAreaUnitAIs(kPlot.area(), UNITAI_EXPLORE_SEA);
-		int iNeeded = kOwner.AI_neededExplorers(kPlot.area());
-		szString.append(CvWString::format(L"\nSea explorers H/N (%d , %d)",
-				iHave, iNeeded));
+		int iHave =  kOwner.AI_totalWaterAreaUnitAIs(kPlot.getArea(), UNITAI_EXPLORE_SEA);
+		int iNeeded = kOwner.AI_neededExplorers(kPlot.getArea());
+		szString.append(CvWString::format(L"\nSea explorers H/N (%d , %d)", iHave, iNeeded));
 	} // </advc.017b>
 }
 
@@ -5681,7 +5682,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 	else szTempBuffer.Format(L"\n(%d, %d) group: (-1, -1)", x, y);
 	szString.append(szTempBuffer);
 
-	szTempBuffer.Format(L"\nArea: %d", kPlot.getArea());
+	szTempBuffer.Format(L"\nArea: %d", kPlot.getArea().getID());
 	szString.append(szTempBuffer);
 
 	// BETTER_BTS_AI_MOD, Debug, 07/13/09, jdog5000: START
@@ -5869,11 +5870,11 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 	if (kPlot.isOwned())
 	{
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwner()); // advc
-		szTempBuffer.Format(L"\nThis player has %d area cities", kPlot.area()->getCitiesPerPlayer(kOwner.getID()));
+		szTempBuffer.Format(L"\nThis player has %d area cities", kPlot.getArea().getCitiesPerPlayer(kOwner.getID()));
 		szString.append(szTempBuffer);
 		for (int iI = 0; iI < GC.getNumReligionInfos(); ++iI)
 		{
-			int iNeededMissionaries = kOwner.AI_neededMissionaries(kPlot.area(), ((ReligionTypes)iI));
+			int iNeededMissionaries = kOwner.AI_neededMissionaries(kPlot.getArea(), (ReligionTypes)iI);
 			if (iNeededMissionaries > 0)
 			{
 				szTempBuffer.Format(L"\nNeeded %c missionaries = %d", GC.getInfo((ReligionTypes)iI).getChar(), iNeededMissionaries);
@@ -5936,7 +5937,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 				{
 					int iTargetCities = GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
 					int foo=-1;
-					if (kCityOwner.AI_getNumAreaCitySites(kPlot.getArea(), foo) > 0 && kCityOwner.getNumCities() < iTargetCities)
+					if (kCityOwner.AI_getNumAreaCitySites(kPlot.getArea(), foo) > 0 &&
+						kCityOwner.getNumCities() < iTargetCities)
 					{
 						iBestBuildingValue *= kCityOwner.getNumCities() + iTargetCities;
 						iBestBuildingValue /= 2*iTargetCities;
@@ -6052,7 +6054,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 		}
 
 		//Area battle plans.
-		AreaAITypes eAAI = kPlot.area()->getAreaAIType(kPlot.getTeam());
+		AreaAITypes eAAI = kPlot.getArea().getAreaAIType(kPlot.getTeam());
 		switch(eAAI) // advc: If-else replaced with switch
 		{
 		case AREAAI_OFFENSIVE: szTempBuffer.Format(L"\n Area AI = OFFENSIVE");
@@ -6116,7 +6118,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			}
 		}
 
-		CvCity const* pTargetCity = kPlot.area()->AI_getTargetCity(kPlot.getOwner());
+		CvCity const* pTargetCity = kPlot.getArea().AI_getTargetCity(kPlot.getOwner());
 		if (pTargetCity)
 		{
 			szString.append(CvWString::format(L"\nTarget City: %s", pTargetCity->getName().c_str()));
@@ -6150,12 +6152,12 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			int iStartingFoundValue = 0;
 			// Gets in the way of debugging bStartingLoc=false </advc.007>
 					//=kPlayer.AI_foundValue(x, y, -1, true);
-			int iBestAreaFoundValue = kPlot.area()->getBestFoundValue(ePlayer);
-			int iCitySiteBestValue;
+			int iBestAreaFoundValue = kPlot.getArea().getBestFoundValue(ePlayer);
+			int iCitySiteBestValue=-1;
 			int iNumAreaCitySites = kLoopPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iCitySiteBestValue);
 
-			if (iActualFoundValue > 0 || iCalcFoundValue > 0 || iStartingFoundValue > 0
-				|| (kPlot.getOwner() == iI && iBestAreaFoundValue > 0))
+			if (iActualFoundValue > 0 || iCalcFoundValue > 0 || iStartingFoundValue > 0 ||
+				(kPlot.getOwner() == iI && iBestAreaFoundValue > 0))
 			{
 				if (bFirst)
 				{
@@ -6413,7 +6415,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 	if(kPlot.isOwned())
 	{
 		szString.append(CvString::format("\nWorkers needed in area: %d\n",
-				GET_PLAYER(kPlot.getOwner()).AI_neededWorkers(kPlot.area())));
+				GET_PLAYER(kPlot.getOwner()).AI_neededWorkers(kPlot.getArea())));
 	} // </advc.007>
 
 	// calc some bonus info
@@ -10461,7 +10463,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 			szBuffer.append(NEWLINE);
 			for (int iUnitAI = 0; iUnitAI < NUM_UNITAI_TYPES; iUnitAI++)
 			{
-				int iTempValue = GET_PLAYER(pCity->getOwner()).AI_unitValue(eUnit, (UnitAITypes)iUnitAI, pCity->area());
+				int iTempValue = GET_PLAYER(pCity->getOwner()).AI_unitValue(eUnit,
+						(UnitAITypes)iUnitAI, pCity->area());
 				if (iTempValue != 0)
 				{
 					CvWString szTempString;
@@ -13201,7 +13204,7 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		}
 		iOldAnger = iNewAnger;
 
-		iNewAnger -= std::min(0, city.area()->getBuildingHappiness(city.getOwner()));
+		iNewAnger -= std::min(0, city.getArea().getBuildingHappiness(city.getOwner()));
 		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
 		if (iAnger > 0)
 		{
@@ -13327,7 +13330,7 @@ void CvGameTextMgr::setHappyHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		szBuffer.append(NEWLINE);
 	}
 
-	iHappy = city.area()->getBuildingHappiness(city.getOwner());
+	iHappy = city.getArea().getBuildingHappiness(city.getOwner());
 	if (iHappy > 0)
 	{
 		iTotalHappy += iHappy;
@@ -17849,7 +17852,7 @@ void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity,
 			}
 		}
 	}
-	iBuildingMod += kCity.area()->getYieldRateModifier(kOwner.getID(), eYield);
+	iBuildingMod += kCity.getArea().getYieldRateModifier(kOwner.getID(), eYield);
 	if(iBuildingMod != 0)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_YIELD_BUILDINGS", iBuildingMod, iYieldChar));
@@ -19335,9 +19338,9 @@ void CvGameTextMgr::setTradeRouteHelp(CvWStringBuffer &szBuffer, int iRoute, CvC
 				}
 			}
 
-			if (NULL != pOtherCity)
+			if (pOtherCity != NULL)
 			{
-				if (pCity->area() != pOtherCity->area())
+				if (!pCity->sameArea(*pOtherCity))
 				{
 					iNewMod = GC.getDefineINT("OVERSEAS_TRADE_MODIFIER");
 					if (iNewMod != 0)
