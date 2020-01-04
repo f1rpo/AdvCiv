@@ -8437,7 +8437,7 @@ void CvUnitAI::AI_attackAirMove()
 
 	if (canRecon(plot()))
 	{
-		if (AI_exploreAir())
+		if (AI_exploreAirCities())
 		{
 			return;
 		}
@@ -8530,16 +8530,16 @@ void CvUnitAI::AI_defenseAirMove()
 		bTriedAirStrike = true;
 	}
 
-	// <advc.651>
+	// <advc.650>
 	if(GET_PLAYER(getOwner()).AI_isDangerFromSubmarines() && plot()->isCoastalLand(-1) &&
-		::bernoulliSuccess(0.38, "advc.651"))
+		::bernoulliSuccess(0.38, "advc.650"))
 	{
-		/* Would be better to check for matching Invisible Types (modded aircraft
-		   may not be able to see invisible units). Also, isCoastalLand is a bit
-		   narrow -- can often scout the seas from landlocked cities. */
-		if(AI_exploreAir2())
+		/*	Would be better to check for matching Invisible Types (modded aircraft
+			may not be able to see invisible units). Also, isCoastalLand is a bit
+			narrow -- can often scout the seas from landlocked cities. */
+		if(AI_exploreAirRange())
 			return;
-	} // </advc.651>
+	} // </advc.650>
 
 	if (AI_airDefensiveCity()) // check if there's a better city to be in
 	{
@@ -8556,7 +8556,7 @@ void CvUnitAI::AI_defenseAirMove()
 	{
 		if (GC.getGame().getSorenRandNum(bDefensive ? 6 : 3, "AI defensive air recon") == 0)
 		{
-			if (AI_exploreAir())
+			if (AI_exploreAirCities())
 			{
 				return;
 			}
@@ -11505,7 +11505,7 @@ bool CvUnitAI::AI_spreadReligion()
 						if (plot()->getOwner() == pLoopCity->getOwner())
 						{
 							iValue *= 10;
-							if (pLoopCity->isRevealed(getTeam(), false))
+							if (pLoopCity->isRevealed(getTeam()))
 								bForceMove = true;
 						}
 					}
@@ -19747,7 +19747,9 @@ bool CvUnitAI::AI_airBombDefenses()
 	... // advc: Deleted the body of this unmodified BtS function
 }*/
 
-bool CvUnitAI::AI_exploreAir()
+/*	advc: Renamed from AI_exploreAir in order to distinguish it from the BBAI function
+	(see AI_exploreAirRange) */
+bool CvUnitAI::AI_exploreAirCities()
 {
 	PROFILE_FUNC();
 
@@ -19792,8 +19794,12 @@ bool CvUnitAI::AI_exploreAir()
 // BETTER_BTS_AI_MOD, Player Interface, 06/02/09, jdog5000: START
 int CvUnitAI::AI_exploreAirPlotValue(CvPlot* pPlot)
 {
-	if (!pPlot->isVisible(getTeam(), false))
-		return 0; // advc
+	// <advc.001> BBAI was checking the opposite
+	if (pPlot->isVisible(getTeam(), false))
+		return 0;
+	// And let's not cheat unnecessarily:
+	if (!pPlot->isRevealed(getTeam()))
+		return 50; // </advc.001>
 
 	int iValue = 1;
 
@@ -19809,71 +19815,61 @@ int CvUnitAI::AI_exploreAirPlotValue(CvPlot* pPlot)
 	return iValue;
 }
 
-bool CvUnitAI::AI_exploreAir2()
+
+bool CvUnitAI::AI_exploreAirRange() // advc: Renamed from "AI_exploreAir2"
 {
 	PROFILE_FUNC();
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
-	int iSearchRange = airRange();
-	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
+	int const iSearchRange = airRange();
+	for (int iDX = -iSearchRange; iDX <= iSearchRange; iDX++)
 	{
-		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
+		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-
-			if (pLoopPlot != NULL)
+			if (pLoopPlot == NULL || pLoopPlot->isVisible(getTeam(), false) ||
+				!canReconAt(plot(), pLoopPlot->getX(), pLoopPlot->getY()))
 			{
-				if (!pLoopPlot->isVisible(getTeam(),false))
+				continue; // advc
+			}
+			int iValue = AI_exploreAirPlotValue(pLoopPlot);
+			FOR_EACH_ENUM(Direction)
+			{
+				CvPlot* pAdjacentPlot = plotDirection( // advc.001: was getX(), getY()
+						pLoopPlot->getX(), pLoopPlot->getY(), eLoopDirection);
+				if (pAdjacentPlot != NULL)
 				{
-					if (canReconAt(plot(), pLoopPlot->getX(), pLoopPlot->getY()))
-					{
-						int iValue = AI_exploreAirPlotValue(pLoopPlot);
-
-						for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-						{
-							DirectionTypes eDirection = (DirectionTypes) iI;
-							CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eDirection);
-							if (pAdjacentPlot != NULL)
-							{
-								if (!pAdjacentPlot->isVisible(getTeam(), false))
-								{
-									iValue += AI_exploreAirPlotValue(pAdjacentPlot);
-								}
-							}
-						}
-
-						iValue += GC.getGame().getSorenRandNum(25, "AI explore air");
-						iValue *= std::min(7, plotDistance(getX(), getY(), pLoopPlot->getX(), pLoopPlot->getY()));
-
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;
-						}
-					}
+					if (!pAdjacentPlot->isVisible(getTeam(), false))
+						iValue += AI_exploreAirPlotValue(pAdjacentPlot);
 				}
+			}
+			iValue += GC.getGame().getSorenRandNum(25, "AI explore air");
+			iValue *= std::min(7, plotDistance(getX(), getY(), pLoopPlot->getX(), pLoopPlot->getY()));
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot;
 			}
 		}
 	}
-
 	if (pBestPlot != NULL)
 	{
 		getGroup()->pushMission(MISSION_RECON, pBestPlot->getX(), pBestPlot->getY());
 		return true;
 	}
-
 	return false;
 }
 
+
 void CvUnitAI::AI_exploreAirMove()
 {
-	if (AI_exploreAir())
+	if (AI_exploreAirCities())
 	{
 		return;
 	}
 
-	if (AI_exploreAir2())
+	if (AI_exploreAirRange())
 	{
 		return;
 	}
@@ -19927,7 +19923,8 @@ bool CvUnitAI::AI_nuke()
 			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 			{
 				// note: we could use "AI_deduceCitySite" here, but if we can't see the city, then we can't properly judge its target value anyway.
-				if (pLoopCity->isRevealed(getTeam(), false) && canNukeAt(plot(), pLoopCity->getX(), pLoopCity->getY()))
+				if (pLoopCity->isRevealed(getTeam()) &&
+					canNukeAt(plot(), pLoopCity->getX(), pLoopCity->getY()))
 				{
 					CvPlot* pTarget;
 					int iValue = AI_nukeValue(pLoopCity->plot(), nukeRange(), pTarget, iDestructionWeight);
@@ -20122,10 +20119,11 @@ int CvUnitAI::AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold) // advc: 
 		FOR_EACH_CITY(pLoopCity, kPlayer)
 		{
 			if (!AI_plotValid(pLoopCity->plot()) ||
-					!pLoopCity->isRevealed(getTeam(), false) || // advc.001 (from MNAI)
-					pLoopCity->plot()->isVisibleEnemyUnit(this))
+				!pLoopCity->isRevealed(getTeam()) || // advc.001 (from MNAI)
+				pLoopCity->plot()->isVisibleEnemyUnit(this))
+			{
 				continue;
-
+			}
 			const int iValue = getTradeGold(pLoopCity->plot());
 			if (iValue < iThreshold || !canTrade(pLoopCity->plot()))
 				continue;
@@ -21356,7 +21354,8 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 						} // end unit loop
 					} // end plot visible
 
-					if (bValid && pLoopPlot->isCity() && pLoopPlot->getPlotCity()->isRevealed(getTeam(), false))
+					if (bValid && pLoopPlot->isCity() &&
+						pLoopPlot->getPlotCity()->isRevealed(getTeam()))
 					{
 						CvCity* pLoopCity = pLoopPlot->getPlotCity(); // I can imagine some cases where this actually isn't pCity. Can you?
 

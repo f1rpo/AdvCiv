@@ -249,11 +249,11 @@ protected:
 	// BETTER_BTS_AI_MOD: END
 	bool AI_airBombPlots();
 	//bool AI_airBombDefenses(); // disabled by K-Mod
-	bool AI_exploreAir();
+	bool AI_exploreAirCities();
 
 	// BETTER_BTS_AI_MOD, Player Interface, 01/12/09, jdog5000: START
 	int AI_exploreAirPlotValue(CvPlot* pPlot);
-	bool AI_exploreAir2();
+	bool AI_exploreAirRange();
 	void AI_exploreAirMove();
 	// BETTER_BTS_AI_MOD: END
 
