@@ -4194,9 +4194,11 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 	CvCity* pCity = pTargetPlot->getPlotCity();
 	if (pCity != NULL)
 	{
-		//if (!(pCity->isBombardable(this)))
-		if (!pCity->isBombardable(this) || !pCity->isRevealed(getTeam(), false)) // K-Mod
+		if (!pCity->isBombardable(this) ||
+			!pCity->isRevealed(getTeam())) // K-Mod
+		{
 			return false;
+		}
 	}
 	else
 	{

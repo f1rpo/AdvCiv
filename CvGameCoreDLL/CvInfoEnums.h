@@ -39,6 +39,11 @@ static inline T operator--(T& c, int)
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)0; \
 			eLoop##TypeName != getEnumLength(eLoop##TypeName); \
 			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName + 1))
+// With a 2nd argument for a variable name
+#define FOR_EACH_ENUM2(TypeName, eVar) \
+	for (TypeName##Types eVar = (TypeName##Types)0; \
+			eVar != getEnumLength(eVar); \
+			eVar = (TypeName##Types)(eVar + 1))
 // For accessing an info object in a loop over an info enum (tentative and unused)
 #define _kLoop_(TypeName) \
 	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)

@@ -5354,9 +5354,9 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1,
 				pPlotCity->getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR),
 				pPlotCity->AI_neededAirDefenders(/* advc.001n: */ true)));
-//		int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->getArea());
-//		if (iHostileUnits > 0)
-//			szString+=CvWString::format(L"\nHostiles = %d", iHostileUnits);
+		/*int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->getArea());
+		if (iHostileUnits > 0)
+			szString+=CvWString::format(L"\nHostiles = %d", iHostileUnits);*/
 
 		szString.append(CvWString::format(L"\nThreat C/P (%d / %d)",
 				pPlotCity->AI_cityThreat(), kPlayer.AI_getTotalAreaCityThreat(pPlotCity->getArea())));
@@ -20012,7 +20012,7 @@ void CvGameTextMgr::buildTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePla
 			bool bAnyCityKnown = false;
 			FOR_EACH_CITY(pLoopCity, kWithPlayer)
 			{
-				if(pLoopCity->isRevealed(kPlayer.getTeam(), false))
+				if(pLoopCity->isRevealed(kPlayer.getTeam()))
 				{
 					bAnyCityKnown = true;
 					break;

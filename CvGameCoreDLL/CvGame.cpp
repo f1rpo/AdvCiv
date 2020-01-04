@@ -6145,8 +6145,8 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 		if (!kObs.isAlive())
 			continue;
-		bool bRevealed = (pHolyCity->isRevealed(kObs.getTeam(), false)
-				|| kObs.isSpectator()); // advc.127
+		bool bRevealed = (pHolyCity->isRevealed(kObs.getTeam()) ||
+				kObs.isSpectator()); // advc.127
 		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
 				bRevealed ? szMsgRevealed : szMsgUnknown,
@@ -6207,8 +6207,8 @@ void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bA
 		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 		if (!kObs.isAlive())
 			continue;
-		bool bRevealed =  (pHeadquarters->isRevealed(kObs.getTeam(), false)
-				|| kObs.isSpectator()); // advc.127
+		bool bRevealed = (pHeadquarters->isRevealed(kObs.getTeam()) ||
+				kObs.isSpectator()); // advc.127
 		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
 				bRevealed ? szMsgRevealed : szMsgUnknown,

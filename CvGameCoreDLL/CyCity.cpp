@@ -1266,17 +1266,12 @@ int CyCity::getForeignTradeRouteModifier()
 	return m_pCity ? m_pCity->getForeignTradeRouteModifier() : -1;
 }
 
-/***
-**** K-Mod, 26/sep/10, Karadoc
-**** Trade culture calculation
-***/
+// K-Mod, 26/sep/10: Trade culture calculation
+// Note: iLevel currently isn't used.
 int CyCity::getTradeCultureRateTimes100(int iLevel) const
 {
-	return m_pCity ? m_pCity->getTradeCultureRateTimes100(iLevel) : 0;
+	return m_pCity ? m_pCity->getTradeCultureRateTimes100() : 0;
 }
-/*
-** K-Mod end
-*/
 
 int CyCity::getBuildingDefense()
 {

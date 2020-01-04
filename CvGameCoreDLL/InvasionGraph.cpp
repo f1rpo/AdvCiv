@@ -1619,12 +1619,12 @@ void InvasionGraph::Node::resolveLosses() {
 		for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
 			PlayerTypes civId = it->getID();
 			if(steps[civId] == NULL) {
-				/* Could remove the NULL entries during the iteration above
-				   (more efficient), but modifying a container during
-				   iteration is a can of worms.
-				   NULL means the invader can't pick a target city (none left
-				   or none revealed on the map). NB: applyStep may also erase
-				   Nodes from targetedBy. */
+				/*	Could remove the NULL entries during the iteration above
+					(more efficient), but modifying a container during
+					iteration is a can of worms.
+					NULL means the invader can't pick a target city (none left
+					or none revealed on the map). NB: applyStep may also erase
+					Nodes from targetedBy. */
 				if(isTargetting[civId]) {
 					outer.nodeMap[civId]->changePrimaryTarget(NULL);
 					isTargetting[civId] = false;
@@ -1641,15 +1641,15 @@ void InvasionGraph::Node::resolveLosses() {
 				}
 			}
 		}
-		/* Steps so far are preliminary, ignoring the defending army.
-		   Need those steps only to determine how the defenders split up
-		   against several invaders, and which invader's step is
-		   resolved next. */
-		for(PlayerIter<ANY_STATUS> it; it.hasNext(); ++it)
+		/*	Steps so far are preliminary, ignoring the defending army.
+			Need those steps only to determine how the defenders split up
+			against several invaders, and which invader's step is
+			resolved next. */
+		for(PlayerIter<> it; it.hasNext(); ++it)
 			SAFE_DELETE(steps[it->getID()]);
-		/* Shortest duration is an optimistic lower bound (ignoring defending
-		   army). If the shortest duration exceeds the time limit, all actual
-		   durations are going to exceed the time limit as well. */
+		/*	Shortest duration is an optimistic lower bound (ignoring defending
+			army). If the shortest duration exceeds the time limit, all actual
+			durations are going to exceed the time limit as well. */
 		if(nextInvader == NO_PLAYER || sumOfThreats < 0.001)
 			break;
 		if(timeLimit >= 0 && shortestDuration > timeLimit) {
@@ -1665,15 +1665,15 @@ void InvasionGraph::Node::resolveLosses() {
 		int actualDuration = nextStep.getDuration();
 		// Don't apply step if it would exceed the time limit
 		if(timeLimit < 0 || turnsSimulated[nextInvader] + actualDuration
-				/* Per-node time limit. Not sure if really needed. Would have to
-				   toggle isTargeting and unset primaryTarget as well in the
-				   else branch (instead of breaking). */
+				/*	Per-node time limit. Not sure if really needed. Would have to
+					toggle isTargeting and unset primaryTarget as well in the
+					else branch (instead of breaking). */
 				//+ (*outer.nodeMap)[nextInvader].warTimeSimulated
 				<= timeLimit) {
 			applyStep(nextStep);
-			/* If attack fails, the attacker doesn't get another step. However,
-			   the defending army portion assigned to that attacker mustn't
-			   be assumed to instantaneously redeploy to another front. */
+			/*	If attack fails, the attacker doesn't get another step. However,
+				the defending army portion assigned to that attacker mustn't
+				be assumed to instantaneously redeploy to another front. */
 			if(!nextStep.isAttackerSuccessful())
 				pastThreat = nextInvaderThreat;
 			else pastThreat = 0;

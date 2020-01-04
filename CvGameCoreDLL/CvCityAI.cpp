@@ -127,19 +127,19 @@ void CvCityAI::AI_assignWorkingPlots()
 	verifyWorkingPlots();
 
 	// if we have more specialists of any type than this city can have, reduce to the max
-	for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i=(SpecialistTypes)(i+1))
+	FOR_EACH_ENUM2(Specialist, e)
 	{
-		if (!isSpecialistValid(i))
+		if (!isSpecialistValid(e))
 		{
-			if (getSpecialistCount(i) > getMaxSpecialistCount(i))
+			if (getSpecialistCount(e) > getMaxSpecialistCount(e))
 			{
-				setSpecialistCount(i, getMaxSpecialistCount(i));
+				setSpecialistCount(e, getMaxSpecialistCount(e));
 			}
 			// K-Mod. Apply the cap to forced specialist count as well.
-			if (getForceSpecialistCount(i) > getMaxSpecialistCount(i))
-				setForceSpecialistCount(i, getMaxSpecialistCount(i));
+			if (getForceSpecialistCount(e) > getMaxSpecialistCount(e))
+				setForceSpecialistCount(e, getMaxSpecialistCount(e));
 
-			FAssert(isSpecialistValid(i));
+			FAssert(isSpecialistValid(e));
 		}
 	}
 
@@ -189,18 +189,20 @@ void CvCityAI::AI_assignWorkingPlots()
 	// K-Mod note: it's best if we don't clear all working specialists,
 	// because AI_specialistValue uses our current GPP rate in its evaluation.
 	bool bNewlyForcedSpecialists = false;
-	for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i=(SpecialistTypes)(i+1))
+	if (isSpecialistForced()) // advc.opt
 	{
-		int iForcedSpecialistCount = getForceSpecialistCount(i);
-
-		if (getSpecialistCount(i) < iForcedSpecialistCount)
+		FOR_EACH_ENUM2(Specialist, e)
 		{
-			setSpecialistCount(i, iForcedSpecialistCount);
-			bNewlyForcedSpecialists = true;
-			FAssert(isSpecialistValid(i));
+			int iForcedSpecialistCount = getForceSpecialistCount(e);
+
+			if (getSpecialistCount(e) < iForcedSpecialistCount)
+			{
+				setSpecialistCount(e, iForcedSpecialistCount);
+				bNewlyForcedSpecialists = true;
+				FAssert(isSpecialistValid(e));
+			}
 		}
 	}
-
 	// If we added new specialists, we might need to remove something else.
 	if (bNewlyForcedSpecialists)
 	{
@@ -927,12 +929,13 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}*/ // BtS  <cdtw.6>
 	if(!kPlayer.isHuman() && kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE4) &&
-			!isCoastal() && !isCapital() && bCapitalArea && !bDanger && !bLandWar &&
-			pCapital != NULL && pCapital->isCoastal() &&
-			plot()->calculateCulturePercent(getOwner()) >= 50 &&
-			// Dave_uk's code (directly) based on AI_cityThreat looked too slow
-			AI_neededFloatingDefenders(true) <= pCapital->AI_neededFloatingDefenders(true) &&
-		AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, 12)) {
+		!isCoastal() && !isCapital() && bCapitalArea && !bDanger && !bLandWar &&
+		pCapital != NULL && pCapital->isCoastal() &&
+		plot()->calculateCulturePercent(getOwner()) >= 50 &&
+		// Dave_uk's code (directly) based on AI_cityThreat looked too slow
+		AI_neededFloatingDefenders(true) <= pCapital->AI_neededFloatingDefenders(true) &&
+		AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, 12))
+	{
 		return;
 	} // </cdtw.6>
 
@@ -3092,7 +3095,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		// advantage of doing it here is that we can check city promotions at the same time.
 		int iPromotionValue = 0;
 		bool bHasGoodPromotion = false; // check that appropriate non-free promotions are available
-		for (PromotionTypes p = (PromotionTypes)0; p < GC.getNumPromotionInfos(); p=(PromotionTypes)(p+1))
+		FOR_EACH_ENUM2(Promotion, p)
 		{
 			bool bFree = kUnitInfo.getFreePromotions(p);
 			const CvPromotionInfo& kPromotionInfo = GC.getInfo(p);
@@ -8885,20 +8888,24 @@ bool CvCityAI::AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPl
 		// We allow specialists only if they are either a forced type, or there are no forced types available.
 		// (the original code attempted to assign specialists in the same proportions to their force counts.)
 		bool bForcedSpecAvailable = false;
-		for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i = (SpecialistTypes)(i+1))
+		if (isSpecialistForced()) // advc.opt
 		{
-			if (getForceSpecialistCount(i) > 0 && isSpecialistValid(i, 1))
-				bForcedSpecAvailable = true;
-		}
-		for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i = (SpecialistTypes)(i+1))
-		{
-			if (isSpecialistValid(i, 1) && (!bForcedSpecAvailable || getForceSpecialistCount(i) > 0))
+			FOR_EACH_ENUM(Specialist)
 			{
-				int iValue = AI_specialistValue(i, false, false, iGrowthValue);
+				if (getForceSpecialistCount(eLoopSpecialist) > 0 && isSpecialistValid(eLoopSpecialist, 1))
+					bForcedSpecAvailable = true;
+			}
+		}
+		FOR_EACH_ENUM(Specialist)
+		{
+			if (isSpecialistValid(eLoopSpecialist, 1) &&
+				(!bForcedSpecAvailable || getForceSpecialistCount(eLoopSpecialist) > 0))
+			{
+				int iValue = AI_specialistValue(eLoopSpecialist, false, false, iGrowthValue);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
-					eBestSpecialist = i;
+					eBestSpecialist = eLoopSpecialist;
 				}
 			}
 		}
@@ -8990,21 +8997,19 @@ bool CvCityAI::AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist)
 	// if we are using more specialists than the free ones we get
 	if (extraFreeSpecialists() < 0)
 	{
-		for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+		FOR_EACH_ENUM(Specialist)
 		{
-			if (eIgnoreSpecialist != iI)
+			if (eIgnoreSpecialist == eLoopSpecialist ||
+				getSpecialistCount(eLoopSpecialist) <= getForceSpecialistCount(eLoopSpecialist))
 			{
-				if (getSpecialistCount((SpecialistTypes)iI) > getForceSpecialistCount((SpecialistTypes)iI))
-				{
-					int iValue = AI_specialistValue((SpecialistTypes)iI, true, false, iGrowthValue);
-
-					if (iValue < iWorstValue)
-					{
-						iWorstValue = iValue;
-						eWorstSpecialist = ((SpecialistTypes)iI);
-						iWorstPlot = -1;
-					}
-				}
+				continue; // advc
+			}
+			int iValue = AI_specialistValue(eLoopSpecialist, true, false, iGrowthValue);
+			if (iValue < iWorstValue)
+			{
+				iWorstValue = iValue;
+				eWorstSpecialist = eLoopSpecialist;
+				iWorstPlot = -1;
 			}
 		}
 	}
@@ -9046,17 +9051,16 @@ bool CvCityAI::AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist)
 	// if we still have not removed one, then try again, but do not ignore the one we were told to ignore
 	if (extraFreeSpecialists() < 0)
 	{
-		for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+		FOR_EACH_ENUM(Specialist)
 		{
-			if (getSpecialistCount((SpecialistTypes)iI) > 0)
+			if (getSpecialistCount(eLoopSpecialist) <= 0)
+				continue; // advc
+			int iValue = AI_specialistValue(eLoopSpecialist, true, false, iGrowthValue);
+			if (iValue < iWorstValue)
 			{
-				int iValue = AI_specialistValue((SpecialistTypes)iI, true, false, iGrowthValue);
-				if (iValue < iWorstValue)
-				{
-					iWorstValue = iValue;
-					eWorstSpecialist = ((SpecialistTypes)iI);
-					iWorstPlot = -1;
-				}
+				iWorstValue = iValue;
+				eWorstSpecialist = eLoopSpecialist;
+				iWorstPlot = -1;
 			}
 		}
 	}
@@ -9137,31 +9141,29 @@ void CvCityAI::AI_juggleCitizens()
 		bool bForcedSpecAvailable = false;
 		if (bAnyForcedSpecs)
 		{
-			for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i = (SpecialistTypes)(i+1))
+			FOR_EACH_ENUM(Specialist)
 			{
-				if (getForceSpecialistCount(i) > 0 && isSpecialistValid(i, 1))
+				if (getForceSpecialistCount(eLoopSpecialist) > 0 && isSpecialistValid(eLoopSpecialist, 1))
 					bForcedSpecAvailable = true;
 			}
 		}
 
 		// evaluate specialists
-		for (SpecialistTypes i = (SpecialistTypes)0; i < GC.getNumSpecialistInfos(); i = (SpecialistTypes)(i+1))
+		FOR_EACH_ENUM2(Specialist, e)
 		{
-			if (getSpecialistCount(i) > getForceSpecialistCount(i))
+			if (getSpecialistCount(e) > getForceSpecialistCount(e))
 			{
 				// don't allow unforced specialists unless none of the forced type are available
-				int iValue = bForcedSpecAvailable && getForceSpecialistCount(i) == 0
-					? 0
-					: AI_specialistValue(i, false, false, iGrowthValue);
-				worked_jobs.push_back(PotentialJob_t(iValue, std::make_pair(true, i)));
+				int iValue = (bForcedSpecAvailable && getForceSpecialistCount(e) == 0 ? 0 :
+						AI_specialistValue(e, false, false, iGrowthValue));
+				worked_jobs.push_back(PotentialJob_t(iValue, std::make_pair(true, e)));
 			}
-			if (isSpecialistValid(i, 1))
+			if (isSpecialistValid(e, 1))
 			{
-				int iValue = bForcedSpecAvailable && getForceSpecialistCount(i) == 0
-					? 0
-					: AI_specialistValue(i, false, false, iGrowthValue);
-				unworked_jobs.push_back(PotentialJob_t(iValue, std::make_pair(true, i)));
-				if (getForceSpecialistCount(i) > 0)
+				int iValue = (bForcedSpecAvailable && getForceSpecialistCount(e) == 0 ? 0 :
+						AI_specialistValue(e, false, false, iGrowthValue));
+				unworked_jobs.push_back(PotentialJob_t(iValue, std::make_pair(true, e)));
+				if (getForceSpecialistCount(e) > 0)
 					bForcedSpecAvailable = true;
 			}
 		}
@@ -12691,7 +12693,7 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc: some style changes
 
 // <advc.179>
 double CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
-		std::vector<BuildingTypes> const& aeBuildings) const
+	std::vector<BuildingTypes> const& aeBuildings) const
 {
 	/*  Player whose buildings we're counting
 		(we = the owner of this CvCity) */
@@ -12700,7 +12702,7 @@ double CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes
 	int iCertain = 0;
 	FOR_EACH_CITY(c, kPlayer)
 	{
-		if(!c->isRevealed(getTeam(), false))
+		if(!c->isRevealed(getTeam()))
 		{
 			iPotential++;
 			continue;

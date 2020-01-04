@@ -1222,7 +1222,7 @@ bool UWAICache::City::canReach() const {
 			// !GET_TEAM(cacheOwnerId).AI_deduceCitySite(city())
 			/*  Check isRevealed first b/c I'm only updating canDeduce
 				once per turn */
-			(!cp->isRevealed(TEAMID(cacheOwnerId), false) &&
+			(!cp->isRevealed(TEAMID(cacheOwnerId)) &&
 			!canDeduce))
 		return false;
 	if(distance >= 0)
@@ -1669,7 +1669,7 @@ void UWAICache::City::updateAssetScore() {
 	// Settled specialists
 	if(cityOwnerId == cacheOwnerId || c.getEspionageVisibility(TEAMID(cacheOwnerId)))
 		r += 4 * c.getNumGreatPeople();
-	if(c.isRevealed(t.getID(), false))
+	if(c.isRevealed(t.getID()))
 		r += c.getPopulation() / 2.0;
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;

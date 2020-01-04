@@ -576,7 +576,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 
 		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer) // advc: Body refactored
 		{	// <advc.004r>
-			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver, false))
+			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver))
 				continue; // </advc.004r>
 			if (!bSameArea || pLoopCity->isArea(getPlot(iX, iY).getArea())  ||
 				(bCoastalOnly && pLoopCity->waterArea() == getPlot(iX, iY).area()))

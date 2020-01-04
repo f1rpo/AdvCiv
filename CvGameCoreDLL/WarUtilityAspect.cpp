@@ -254,7 +254,7 @@ double WarUtilityAspect::lossesFromBlockade(PlayerTypes victimId, PlayerTypes to
 	int coastalCities = 0;
 	CitySet const& victimLoses = m->lostCities(victimId);
 	FOR_EACH_CITY(c, victim) {
-		if(!c->isRevealed(TEAMID(weId), false) || victimLoses.count(c->plotNum()) > 0)
+		if(!c->isRevealed(TEAMID(weId)) || victimLoses.count(c->plotNum()) > 0)
 			continue;
 		int pop = c->getPopulation();
 		totalPop += pop;

@@ -1764,8 +1764,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 			if (!kObs.isAlive() || kObs.getID() == getID())
 				continue;
-			if (pOldCity->isRevealed(kObs.getTeam(), false)
-					|| kObs.isSpectator()) // advc.127
+			if (pOldCity->isRevealed(kObs.getTeam()) ||
+				kObs.isSpectator()) // advc.127
 			{
 				gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 						GC.getEVENT_MESSAGE_TIME(), szCapturedBy, "AS2D_CITYCAPTURED",
@@ -1792,9 +1792,11 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 				if (!kObs.isAlive() || kObs.getID() == getID() || kObs.getID() == pOldCity->getOwner())
 					continue;
-				if (!pOldCity->isRevealed(kObs.getTeam(), false) &&
-						!kObs.isSpectator()) // advc.127
+				if (!pOldCity->isRevealed(kObs.getTeam()) &&
+					!kObs.isSpectator()) // advc.127
+				{
 					continue;
+				}
 				/*  advc.071: Meet before the announcement (with indicator at city coordinates)
 					(advc.001f guarantees that pNewCity will be revealed as well) */
 				pOldCity->meetNewOwner(kObs.getTeam(), getTeam());
@@ -1879,7 +1881,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	// <advc.001f>
 	bool m_abRevealed[MAX_TEAMS];
 	for(int i = 0; i < MAX_TEAMS; i++)
-		m_abRevealed[i] = pOldCity->isRevealed((TeamTypes)i, false);
+		m_abRevealed[i] = pOldCity->isRevealed((TeamTypes)i);
 	// </advc.001f>
 	std::vector<BuildingYieldChange> aBuildingYieldChange;
 	std::vector<BuildingCommerceChange> aBuildingCommerceChange;
@@ -4059,7 +4061,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		if (kCity.getLiberationPlayer(false, /* advc.ctr: */ getTeam()) == eWhoTo)
 			return true;
 		// <advc.ctr>
-		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID(), false))
+		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID()))
 			break;
 		// Can't trade so long as the previous owner hasn't accepted the loss (let's ignore kCity.getOriginalOwner())
 		PlayerTypes ePreviousOwner = kCity.getPreviousOwner();
@@ -4682,7 +4684,7 @@ void CvPlayer::raze(CvCity& kCity) // advc: param was CvCity*
 		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI); // advc
 		if (!kObs.isAlive() || iI == getID())
 			continue;
-		if (kCity.isRevealed(kObs.getTeam(), false) /* advc.127: */ || kObs.isSpectator())
+		if (kCity.isRevealed(kObs.getTeam()) /* advc.127: */ || kObs.isSpectator())
 		{
 			swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_RAZED_BY", kCity.getNameKey(), getCivilizationDescriptionKey()).GetCString());
 			gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZED",
@@ -5313,7 +5315,7 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 	{
 		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 		if(kObs.isAlive() && pCity->getOwner() != kObs.getID() &&
-				pCity->isRevealed(kObs.getTeam(), false))
+			pCity->isRevealed(kObs.getTeam()))
 		{
 			gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 					GC.getEVENT_MESSAGE_TIME(),
@@ -11192,6 +11194,9 @@ void CvPlayer::setPlayable(bool bNewValue)
 
 int CvPlayer::getBonusExport(BonusTypes eIndex) const
 {
+	/*	advc.opt (tbd.): Add isAnyBonusExport, isAnyBonusImport functions for (e.g.?)
+		CvPlot::updatePlotGroupBonus. Once m_paiBonusExport has been turned into an EnumMap
+		(cf. CvCity::isAnyFreeBonus). */
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 	return m_paiBonusExport[eIndex];
@@ -20222,7 +20227,7 @@ void CvPlayer::launch(VictoryTypes eVictory)
 		if (!kObs.isAlive())
 			continue;
 
-		if(pCapital != NULL && pCapital->isRevealed(kObs.getTeam(), false))
+		if(pCapital != NULL && pCapital->isRevealed(kObs.getTeam()))
 		{
 			iPlotX = pCapital->getX();
 			iPlotY = pCapital->getY();

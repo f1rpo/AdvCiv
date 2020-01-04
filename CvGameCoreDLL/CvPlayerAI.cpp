@@ -2805,7 +2805,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 		if(c.isHeadquarters(corp))
 			r += std::max(0, 2 * g.countCorporationLevels(corp) - 4);
 	}
-	r += 4 * c.getNumActiveWorldWonders(getID());
+	r += 4 * c.getNumActiveWorldWonders(MAX_INT, getID());
 	return r;
 } // </advc.104d>
 
@@ -7252,7 +7252,7 @@ int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const
 	FOR_EACH_CITY(pCity, kOther)
 	{
 		CvCity const& c = *pCity;
-		if(!c.isRevealed(getTeam(), false))
+		if(!c.isRevealed(getTeam()))
 			continue;
 		TeamTypes eHighestCultureTeam = c.plot()->findHighestCultureTeam();
 		if(eHighestCultureTeam != TEAMID(ePlayer))
@@ -10809,7 +10809,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 			TeamTypes eFromTeam = TEAMID(eFromPlayer);
 			FOR_EACH_CITY(c, *this)
 			{
-				if(c->isRevealed(eFromTeam, false))
+				if(c->isRevealed(eFromTeam))
 				{
 					iRevCount++;
 					if(iRevCount >= iRevThresh)
@@ -16446,7 +16446,9 @@ void CvPlayerAI::AI_processRazeMemory(CvCity const& kCity)
 		CvPlayerAI& kHighestCulturePlayer = GET_PLAYER(eHighestCulturePlayer);
 		if (kHighestCulturePlayer.getTeam() != getTeam() &&
 			!kHighestCulturePlayer.isMinorCiv() &&
-			kHighestCulturePlayer.isAlive()) // advc.099
+			/*	advc.099: A defeated player can now have the highest culture.
+				No one remembers the razed city then. */
+			kHighestCulturePlayer.isAlive())
 		{
 			// <advc.130v>
 			// advc.130j: Base effect doubled (but don't call AI_rememberEvent)
@@ -17183,7 +17185,7 @@ void CvPlayerAI::AI_doCommerce()
 					std::vector<int> cityModifiers;
 					FOR_EACH_CITY(pLoopCity, kRivalMember)
 					{
-						if (pLoopCity->isRevealed(getTeam(), false) &&
+						if (pLoopCity->isRevealed(getTeam()) &&
 							AI_isPrimaryArea(pLoopCity->getArea()))
 						{
 							cityModifiers.push_back(getEspionageMissionCostModifier(NO_ESPIONAGEMISSION,

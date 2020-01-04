@@ -920,13 +920,16 @@ void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduc
 	CvCity* pPlotCity = getPlotCity();
 	if (pPlotCity != NULL)
 	{
-		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+		if (pPlotCity->isAnyFreeBonus()) // advc.opt
 		{
-			BonusTypes eLoopBonus = (BonusTypes)iI;
-			if (!GET_TEAM(getTeam()).isBonusObsolete(eLoopBonus))
+			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
-				pPlotGroup->changeNumBonuses(eLoopBonus,
-						pPlotCity->getFreeBonus(eLoopBonus) * (bAdd ? 1 : -1));
+				BonusTypes eLoopBonus = (BonusTypes)iI;
+				if (!GET_TEAM(getTeam()).isBonusObsolete(eLoopBonus))
+				{
+					pPlotGroup->changeNumBonuses(eLoopBonus,
+							pPlotCity->getFreeBonus(eLoopBonus) * (bAdd ? 1 : -1));
+				}
 			}
 		}
 		if (pPlotCity->isCapital())
@@ -1548,35 +1551,40 @@ bool CvPlot::shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionT
 
 void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 {
+	PROFILE_FUNC(); // advc.test
+
 	CvCity* pCity = getPlotCity();
 	if (pCity != NULL)
-	{	// Religion - Disabled with new Espionage System
+	{	// Religion - Disabled with BtS Espionage System
 		/*for (iI = 0; iI < GC.getNumReligionInfos(); ++iI) {
 			if (pCity->isHasReligion((ReligionTypes)iI)) {
 				CvCity* pHolyCity = GC.getGame().getHolyCity((ReligionTypes)iI);
 				if (pHolyCity != NULL) {
 					if (GET_PLAYER(pHolyCity->getOwner()).getStateReligion() == iI)
 						changeAdjacentSight(pHolyCity->getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
-				}
-			}
-		}*/
+				} } }*/
 
-		// Vassal
-		for (int iI = 0; iI < MAX_TEAMS; ++iI)
+		// Master
+		// <advc.opt> Replacing a loop over "all" our masters
+		if (GET_TEAM(getTeam()).isAVassal())
 		{
-			if (GET_TEAM(getTeam()).isVassal((TeamTypes)iI))
-			{
-				changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
-			}
-		}
+			changeAdjacentSight(GET_TEAM(getTeam()).getMasterTeam(),
+					GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
+					bIncrement, NULL, bUpdatePlotGroups);
+		}	
 
 		// EspionageEffect
-		for (int iI = 0; iI < MAX_CIV_TEAMS; ++iI)
+		if (pCity->isAnyEspionageVisibility()) // advc.opt
 		{
-			if (pCity->getEspionageVisibility((TeamTypes)iI))
+			for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 			{
-				// Passive Effect: enough EPs gives you visibility into someone's cities
-				changeAdjacentSight((TeamTypes)iI, GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
+				if (pCity->getEspionageVisibility(it->getID()))
+				{
+					// Passive Effect: enough EPs provide visibility into someone's cities
+					changeAdjacentSight(it->getID(),
+							GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
+							bIncrement, NULL, bUpdatePlotGroups);
+				}
 			}
 		}
 	}
@@ -1584,7 +1592,8 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 	// Owned
 	if (isOwned())
 	{
-		changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), bIncrement, NULL, bUpdatePlotGroups);
+		changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
+				bIncrement, NULL, bUpdatePlotGroups);
 	}
 
 	// Unit
@@ -1598,15 +1607,26 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 
 	if (getReconCount() > 0)
 	{
-		int iRange = GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE);
-		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+		int const iRange = GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE);
+		for (PlayerIter<ALIVE> it; it.hasNext(); ++it) // advc: exclude dead
 		{
-			FOR_EACH_UNIT(pLoopUnit, GET_PLAYER((PlayerTypes)iI))
+			/*	<advc.opt> Going through all units to find the recon owner(s) seems
+				pretty wasteful. Perhaps a little better: Go through groups
+				and disregard non-air groups. */
+			FOR_EACH_GROUP(pGroup, *it)
 			{
-				if (pLoopUnit->getReconPlot() == this)
+				DomainTypes const eGroupDomain = pGroup->getDomainType();
+				if (eGroupDomain != DOMAIN_AIR && eGroupDomain != DOMAIN_IMMOBILE)
+					continue;
+				for (CLLNode<IDInfo> const* pNode = pGroup->headUnitNode(); pNode != NULL;
+					pNode = pGroup->nextUnitNode(pNode))
 				{
-					changeAdjacentSight(pLoopUnit->getTeam(), iRange, bIncrement,
-							pLoopUnit, bUpdatePlotGroups);
+					CvUnit const& kAirUnit = *::getUnit(pNode->m_data); // </advc.opt>
+					if (kAirUnit.getReconPlot() == this)
+					{
+						changeAdjacentSight(kAirUnit.getTeam(), iRange, bIncrement,
+								&kAirUnit, bUpdatePlotGroups);
+					}
 				}
 			}
 		}
@@ -3005,8 +3025,8 @@ bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
 		}
 	}
 	CvCity const* const pPlotCity = getPlotCity();
-	return (pPlotCity != NULL   // advc.124:
-			&& (eForTeam == NO_TEAM || pPlotCity->isRevealed(eForTeam, false)));
+	return (pPlotCity != NULL &&
+			(eForTeam == NO_TEAM || pPlotCity->isRevealed(eForTeam))); // advc.124
 }
 
 
@@ -5403,7 +5423,7 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 			CvCity* pWorkingCity = getWorkingCity();
 			if (pWorkingCity != NULL)
 			{
-				if (!bDisplay || pWorkingCity->isRevealed(GC.getGame().getActiveTeam(), false))
+				if (!bDisplay || pWorkingCity->isRevealed(GC.getGame().getActiveTeam()))
 					iYield += pWorkingCity->getSeaPlotYield(eYield);
 			}
 		}
@@ -5413,14 +5433,14 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 			CvCity* pWorkingCity = getWorkingCity();
 			if (pWorkingCity != NULL)
 			{
-				if (!bDisplay || pWorkingCity->isRevealed(GC.getGame().getActiveTeam(), false))
+				if (!bDisplay || pWorkingCity->isRevealed(GC.getGame().getActiveTeam()))
 					iYield += pWorkingCity->getRiverPlotYield(eYield);
 			}
 		}
 
 		CvCity* pCity = getPlotCity(); // advc: Moved down (no functional change intended)
 		if (pCity != NULL &&
-			(!bDisplay || pCity->isRevealed(GC.getGame().getActiveTeam(), false)))
+			(!bDisplay || pCity->isRevealed(GC.getGame().getActiveTeam())))
 		{
 			// advc.031: Moved into new function
 			iYield += calculateCityPlotYieldChange(eYield, iYield, pCity->getPopulation());
@@ -5711,7 +5731,7 @@ void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
 	bool bVerifyProduction) // advc.064d
 {
 	CvPlotGroup* pOldPlotGroup = getPlotGroup(ePlayer);
-	if(pOldPlotGroup == pNewValue)
+	if (pOldPlotGroup == pNewValue)
 		return;
 
 	CvCity* pCity = getPlotCity();
@@ -6164,7 +6184,6 @@ bool CvPlot::isRevealed(TeamTypes eTeam, bool bDebug) const
 {
 	if (bDebug && GC.getGame().isDebugMode())
 		return true;
-
 	return isRevealed(eTeam); // advc.inl: Call inline version
 }
 
@@ -6188,7 +6207,7 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 		getRevealedOwner(eTeam) != getOwner() ||
 		getRevealedImprovementType(eTeam) != getImprovementType() ||
 		getRevealedRouteType(eTeam) != getRouteType() ||
-		(pCity != NULL && !pCity->isRevealed(eTeam, false)))) // </advc.124>
+		(pCity != NULL && !pCity->isRevealed(eTeam)))) // </advc.124>
 	{
 		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 		{
@@ -6253,7 +6272,7 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 		if (getRevealedRouteType(eFromTeam) == getRouteType())
 			setRevealedRouteType(eTeam, getRevealedRouteType(eFromTeam));
 
-		if (pCity != NULL && pCity->isRevealed(eFromTeam, false))
+		if (pCity != NULL && pCity->isRevealed(eFromTeam))
 			pCity->setRevealed(eTeam, true);
 	}
 }
