@@ -266,19 +266,19 @@ CvPlot* plotCity(int iX, int iY, int iIndex)
 	return GC.getMap().plot(iX + GC.getCityPlotX()[iIndex], iY + GC.getCityPlotY()[iIndex]);
 }
 
-int plotCityXY(int iDX, int iDY)
+CityPlotTypes plotCityXY(int iDX, int iDY)
 {
 	if (abs(iDX) > CITY_PLOTS_RADIUS || abs(iDY) > CITY_PLOTS_RADIUS)
-		return -1;
+		return NO_CITYPLOT; // advc.enum
 	return GC.getXYCityPlot(iDX + CITY_PLOTS_RADIUS, iDY + CITY_PLOTS_RADIUS);
 }
 
-int plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
+CityPlotTypes plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
 {	// <advc> Allow this function to be called for hypothetical cities (two plot params)
 	return plotCityXY(*pCity->plot(), *pPlot);
 }
 
-int plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot) // </advc>
+CityPlotTypes plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot) // </advc>
 {
 	CvMap const& m = GC.getMap();
 	return plotCityXY(m.dxWrap(kPlot.getX() - kCityPlot.getX()),

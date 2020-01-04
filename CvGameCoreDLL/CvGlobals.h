@@ -169,11 +169,11 @@ public:
 		FAssertBounds(0, DIRECTION_DIAMETER, j);
 		return m_aaeXYDirection[i][j];
 	}
-	inline int getXYCityPlot(int i, int j) const
+	inline CityPlotTypes getXYCityPlot(int i, int j) const // advc.enum: return type was int
 	{
 		FAssertBounds(0, CITY_PLOTS_DIAMETER, i);
 		FAssertBounds(0, CITY_PLOTS_DIAMETER, j);
-		return m_aaiXYCityPlot[i][j];
+		return m_aaeXYCityPlot[i][j];
 	}
 	inline int const* getCityPlotX() const { return m_aiCityPlotX; }
 	inline int const* getCityPlotY() const { return m_aiCityPlotY; }
@@ -821,7 +821,7 @@ protected:
 	int m_aiCityPlotX[NUM_CITY_PLOTS];
 	int m_aiCityPlotY[NUM_CITY_PLOTS];
 	int m_aiCityPlotPriority[NUM_CITY_PLOTS];
-	int m_aaiXYCityPlot[CITY_PLOTS_DIAMETER][CITY_PLOTS_DIAMETER];
+	CityPlotTypes m_aaeXYCityPlot[CITY_PLOTS_DIAMETER][CITY_PLOTS_DIAMETER];
 	DirectionTypes m_aeTurnLeftDirection[NUM_DIRECTION_TYPES];
 	DirectionTypes m_aeTurnRightDirection[NUM_DIRECTION_TYPES];
 	DirectionTypes m_aaeXYDirection[DIRECTION_DIAMETER][DIRECTION_DIAMETER];

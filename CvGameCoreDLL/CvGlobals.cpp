@@ -164,16 +164,16 @@ void CvGlobals::init() // allocate
 	};
 
 	int aaiXYCityPlot[CITY_PLOTS_DIAMETER][CITY_PLOTS_DIAMETER] =
-	{
-		{-1, 17, 18, 19, -1,},
+	{	// advc.enum: NO_CITYPLOT
+		{NO_CITYPLOT, 17, 18, 19, NO_CITYPLOT},
 
-		{16, 6, 7, 8, 20,},
+		{         16,  6,  7,  8, 20},
 
-		{15, 5, 0, 1, 9,},
+		{         15,  5,  0,  1,  9},
 
-		{14, 4, 3, 2, 10,},
+		{         14,  4,  3,  2, 10},
 
-		{-1, 13, 12, 11, -1,}
+		{NO_CITYPLOT, 13, 12,  11, NO_CITYPLOT,}
 	};
 
 	DirectionTypes aeTurnRightDirection[NUM_DIRECTION_TYPES] =
@@ -243,7 +243,7 @@ void CvGlobals::init() // allocate
 	memcpy(m_aiCityPlotPriority, aiCityPlotPriority, sizeof(m_aiCityPlotPriority));
 	memcpy(m_aeTurnLeftDirection, aeTurnLeftDirection, sizeof(m_aeTurnLeftDirection));
 	memcpy(m_aeTurnRightDirection, aeTurnRightDirection, sizeof(m_aeTurnRightDirection));
-	memcpy(m_aaiXYCityPlot, aaiXYCityPlot, sizeof(m_aaiXYCityPlot));
+	memcpy(m_aaeXYCityPlot, aaiXYCityPlot, sizeof(m_aaeXYCityPlot));
 	memcpy(m_aaeXYDirection, aaeXYDirection,sizeof(m_aaeXYDirection));
 }
 // advc: Not needed anymore

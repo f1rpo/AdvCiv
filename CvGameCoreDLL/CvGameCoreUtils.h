@@ -142,9 +142,10 @@ inline char intToChar(int x)
 // (advc.make: Distance functions moved into CvMap.h)
 
 CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
-int plotCityXY(int iDX, int iDY);																									// Exposed to Python
-int plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot); //advc
-int plotCityXY(const CvCity* pCity, const CvPlot* pPlot);													// Exposed to Python
+// advc.enum: return CityPlotTypes (x3)
+CityPlotTypes plotCityXY(int iDX, int iDY);																									// Exposed to Python
+CityPlotTypes plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot); // advc
+CityPlotTypes plotCityXY(const CvCity* pCity, const CvPlot* pPlot);														// Exposed to Python
 // <advc.303>
 bool isInnerRing(CvPlot const& kPlot, CvPlot const& kCityPlot);
 bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot)

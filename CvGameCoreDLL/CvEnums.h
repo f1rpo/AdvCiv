@@ -2235,9 +2235,11 @@ enum UnitSubEntityTypes
 // <advc.enum> (idea from "We the People")
 enum CityPlotTypes
 {
-	CITY_HOME_PLOT,
+	NO_CITYPLOT = -1,
+	CITY_HOME_PLOT = 0,
 	CITY_PLOTS_RADIUS = 2,
 	CITY_PLOTS_DIAMETER = CITY_PLOTS_RADIUS * 2 + 1,
+	NUM_INNER_PLOTS = 9,
 	NUM_CITYPLOT_TYPES = 21,
 };
 // (I don't think FOR_EACH_ENUM(CityPlot) is the best way to loop over city plots.)
