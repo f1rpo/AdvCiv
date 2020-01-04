@@ -262,7 +262,7 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 {
 	PROFILE_FUNC();
 
-	if (pCity->isRevealed(getID(), false))
+	if (pCity->isRevealed(getID()))
 		return true;
 
 	// The rule is this:
@@ -761,7 +761,7 @@ int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced, bool bAssert) con
 		}
 	}
 	if (iCount > 0)
-		return CvPlayerAI::AI_getAttitudeFromValue(iAttitudeVal / iCount); // bbai / K-Mod
+		return iAttitudeVal / iCount; // bbai / K-Mod
 	// <advc>
 	FAssert(!bAssert || iCount > 0); // (OK when loading from very old savegames)
 	// K-Mod had returned ATTITUDE_CAUTIOUS from AI_getAttitude
@@ -3657,46 +3657,60 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eWithTeam) const  // advc: s
 	if (isHuman() || isVassal(eWithTeam))
 		return NO_DENIAL;
 
-	// advc.124: Handled later now.
 	/*if (AI_shareWar(eTeam))
-		return NO_DENIAL;*/
+		return NO_DENIAL;*/ // advc.124: Handled below
 
-	if (AI_getMemoryCount(eWithTeam, MEMORY_CANCELLED_OPEN_BORDERS) > 0
-			&& !AI_shareWar(eWithTeam)) // advc.124
+	if (AI_getMemoryCount(eWithTeam, MEMORY_CANCELLED_OPEN_BORDERS) > 0 &&
+		!AI_shareWar(eWithTeam)) // advc.124
+	{
 		return DENIAL_RECENT_CANCEL;
-
+	}
 	if (AI_getWorstEnemy() == eWithTeam)
 		return DENIAL_WORST_ENEMY;
 
 	int iOurAttitude = AI_getAttitude(eWithTeam);
-	// <advc.124>
-	bool bTheirLandRevealed = false;
-	for(int i = 0; i < GC.getMap().numPlots(); i++)
-	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
-		if(kPlot.getTeam() == eWithTeam && kPlot.isRevealed(getID()) && !kPlot.isWater())
-		{
-			bTheirLandRevealed = true;
-			break;
-		}
-	}
-	if(bTheirLandRevealed && AI_shareWar(eWithTeam))
-		iOurAttitude = std::min(NUM_ATTITUDE_TYPES - 1, iOurAttitude + 1);
-	// </advc.124>
-
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
 		// <advc.124>
 		int const iAttitudeThresh = GC.getInfo(it->getPersonalityType()).
 				getOpenBordersRefuseAttitudeThreshold();
-		if(iOurAttitude <= iAttitudeThresh)
+		if (iOurAttitude < iAttitudeThresh)
 			return DENIAL_ATTITUDE;
-		else if(iOurAttitude == iAttitudeThresh + 1 && !bTheirLandRevealed)
-			return DENIAL_NO_GAIN;
-		// </advc.124>
+		if (iOurAttitude > iAttitudeThresh + 1)
+			continue;
+		{
+			if (iOurAttitude == iAttitudeThresh &&
+				(!AI_shareWar(eWithTeam) || !isAnyLandRevealed(eWithTeam)))
+			{
+				return DENIAL_ATTITUDE;
+			}
+			if (iOurAttitude == iAttitudeThresh + 1 && !isAnyLandRevealed(eWithTeam))
+				return DENIAL_NO_GAIN;
+		} // </advc.124>
 	}
 
 	return NO_DENIAL;
+}
+
+// advc.124:
+bool CvTeamAI::isAnyLandRevealed(TeamTypes eOwner) const
+{
+	// Check cities first in order to save time
+	for (MemberIter it(eOwner); it.hasNext(); ++it)
+	{
+		FOR_EACH_CITY(pCity, *it)
+		{
+			if (pCity->isRevealed(getID()))
+				return true;
+		}
+	}
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	{
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
+		if (kPlot.getTeam() == eOwner && kPlot.isRevealed(getID()) && !kPlot.isWater())
+			return true;
+	}
+	return false;
 }
 
 
