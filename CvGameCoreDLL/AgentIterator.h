@@ -266,7 +266,7 @@ private:
 #undef _bADD_BARBARIANS
 
 
-template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
+template<AgentStatusPredicate eSTATUS = ANY_AGENT_STATUS, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
 		bool bSYNCRAND_ORDER = false>
 class PlayerIter : public AgentIterator<CvPlayerAI, eSTATUS, eRELATION, bSYNCRAND_ORDER>
 {
@@ -281,7 +281,7 @@ public:
 	}
 };
 
-template<AgentStatusPredicate eSTATUS = ALIVE, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
+template<AgentStatusPredicate eSTATUS = ANY_AGENT_STATUS, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
 		bool bSYNCRAND_ORDER = false>
 class TeamIter : public AgentIterator<CvTeamAI, eSTATUS, eRELATION, bSYNCRAND_ORDER>
 {

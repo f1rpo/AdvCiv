@@ -83,7 +83,7 @@ int TestAgentIterator(int iSamples = 1)
 
 		{
 			TSC_PROFILE("ALIVE PlayerIter");
-			for (PlayerIter<> it; it.hasNext(); ++it)
+			for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
 			{
 				CvPlayer const& kPlayer = *it;
 				r += kPlayer.getID();

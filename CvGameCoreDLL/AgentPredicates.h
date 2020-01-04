@@ -15,7 +15,6 @@
 enum AgentStatusPredicate
 {
 	ANY_AGENT_STATUS,
-	ANY_STATUS = ANY_AGENT_STATUS, // ANY_AGENT_STATUS is too verbose after all
 	EVER_ALIVE,
 	//NEVER_ALIVE, // Iterating over _only_ dead agents should rarely be needed
 	//DEFEATED,

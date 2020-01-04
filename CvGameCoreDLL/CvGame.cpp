@@ -9318,7 +9318,7 @@ void CvGame::onAllGameDataRead()
 	// </advc.opt>
 	GC.getAgents().gameStart(true); // advc.agent
 	// <advc.003m>
-	for (TeamIter<ANY_STATUS> it; it.hasNext(); ++it)
+	for (TeamIter<> it; it.hasNext(); ++it)
 	{
 		if (it->getNumWars() < 0 || it->getNumWars(false, false) < 0 ||
 			it->getNumWars(true, true) < 0)
@@ -9326,7 +9326,7 @@ void CvGame::onAllGameDataRead()
 			it->finalizeInit();
 		}
 	} // </advc.003m>  <advc.opt>
-	for (TeamIter<ANY_STATUS> it; it.hasNext(); ++it)
+	for (TeamIter<> it; it.hasNext(); ++it)
 	{
 		FOR_EACH_ENUM(WarPlan)
 		{
