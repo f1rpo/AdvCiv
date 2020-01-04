@@ -65,11 +65,12 @@ public:
 	int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) const;
 	int AI_minDefenders() const;
 	int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			// <advc.001n>
-			bool bConstCache = false) const;
+			/* <advc.001n> */ bool bConstCache = false,
+			bool bIgnoreCulture = false) const; // advc.099c
 	// was void AI_updateNeededFloatingDefenders()
-	int AI_calculateNeededFloatingDefenders(bool bConstCache) const; // </advc.001n>
-	int AI_neededCultureDefenders() const; // advc.099c
+	int AI_calculateNeededFloatingDefenders(bool bConstCache, // </advc.001n>
+			/* <advc.099c> */ bool bIgnoreCulture = false) const;
+	int AI_neededCultureDefenders() const; // </advc.099c>
 	// <advc.139>
 	void AI_updateSafety();
 	inline bool AI_isEvacuating() const { return m_bEvacuate; }

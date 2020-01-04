@@ -6264,7 +6264,8 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		else iDefenders += (AI_neededFloatingDefenders() + 2) / 4;*/
 		/*  <advc.139> Replacing the above. No functional change other than passing
 			along bIgnoreEvac and (advc.001n) bConstCache */
-		int iNeededFloating = AI_neededFloatingDefenders(bIgnoreEvac, bConstCache);
+		int iNeededFloating = AI_neededFloatingDefenders(bIgnoreEvac, bConstCache,
+				true); // advc.099c: To save time (avoid calling AI_neededCultureDefenders 2x)
 		if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			iNeededFloating = (iNeededFloating + 2) / 4;
 		iDefenders += iNeededFloating;
@@ -6356,17 +6357,22 @@ int CvCityAI::AI_minDefenders() /* advc: */ const
 
 
 int CvCityAI::AI_neededFloatingDefenders(/* <advc.139> */ bool bIgnoreEvac,
-	bool bConstCache) const // advc.001n
+	bool bConstCache, // advc.001n
+	bool bIgnoreCulture) const // advc.099c
 {
 	if(!bIgnoreEvac && AI_isEvacuating())
 		return 0; // </advc.139>
 	int r = m_iNeededFloatingDefenders;
 	if(m_iNeededFloatingDefendersCacheTurn != GC.getGame().getGameTurn())
-		r = AI_calculateNeededFloatingDefenders(bConstCache); // advc.001n
+	{
+		r = AI_calculateNeededFloatingDefenders(bConstCache, // advc.001n
+				bIgnoreCulture); // advc.099c
+	}
 	return r;
 }
 
-int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache) const
+int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache,
+	bool bIgnoreCulture) const // advc.099c
 {
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
@@ -6378,6 +6384,7 @@ int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache) const
 	iFloatingDefenders += (iTotalThreat / 2);
 	iFloatingDefenders /= iTotalThreat;
 	// <advc.099c>
+	if (!bIgnoreCulture)
 	{
 		int iCultureDefendersNeeded = AI_neededCultureDefenders() - AI_minDefenders();
 		iFloatingDefenders = std::max(iFloatingDefenders, iCultureDefendersNeeded);
