@@ -19794,32 +19794,44 @@ bool CvUnitAI::AI_exploreAirCities()
 // BETTER_BTS_AI_MOD, Player Interface, 06/02/09, jdog5000: START
 int CvUnitAI::AI_exploreAirPlotValue(CvPlot* pPlot)
 {
-	// <advc.001> BBAI was checking the opposite
-	if (pPlot->isVisible(getTeam(), false))
-		return 0;
+	//if (pPlot->isVisible(getTeam(), false)) {
+	// <advc.001> The opposite needs to be true. The caller already checks that.
+	FAssert(!pPlot->isVisible(getTeam(), false))
 	// And let's not cheat unnecessarily:
 	if (!pPlot->isRevealed(getTeam()))
 		return 50; // </advc.001>
 
 	int iValue = 1;
 
-	if (!pPlot->isOwned())
+	if (!pPlot->isOwned() ||
+		// advc.029:
+		!GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam()))
+	{
 		iValue++;
-
+	}
 	if (!pPlot->isImpassable())
 	{
 		iValue *= 4;
-		if (pPlot->isWater() || pPlot->isArea(getArea()))
-			iValue *= 2;
+		/*if (pPlot->isWater() || pPlot->isArea(getArea()))
+			iValue *= 2;*/
+		/*	<advc.029> There tend to be more non-visible water tiles anyway.
+			And why not explore other land areas?
+			Let's rather incentivize sth. important: */
+		if (isEnemy(pPlot->getTeam(), pPlot))
+			iValue *= 3;// </advc.029>
 	}
 	return iValue;
 }
 
-
-bool CvUnitAI::AI_exploreAirRange() // advc: Renamed from "AI_exploreAir2"
+// advc: Renamed from "AI_exploreAir2"
+bool CvUnitAI::AI_exploreAirRange(/* advc.029: */ bool bExcludeVisible)
 {
 	PROFILE_FUNC();
-
+	// <advc.029>
+	int const iReconRange = GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE);
+	int const iInnerSearchRange = (!isHuman() ? 1 :
+			GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE));
+	// </advc.029>
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
 	int const iSearchRange = airRange();
@@ -19828,24 +19840,40 @@ bool CvUnitAI::AI_exploreAirRange() // advc: Renamed from "AI_exploreAir2"
 		for (int iDY = -iSearchRange; iDY <= iSearchRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-			if (pLoopPlot == NULL || pLoopPlot->isVisible(getTeam(), false) ||
+			if (pLoopPlot == NULL || /* advc.029: */ (bExcludeVisible &&
+				pLoopPlot->isVisible(getTeam(), false)) ||
 				!canReconAt(plot(), pLoopPlot->getX(), pLoopPlot->getY()))
 			{
 				continue; // advc
 			}
-			int iValue = AI_exploreAirPlotValue(pLoopPlot);
-			FOR_EACH_ENUM(Direction)
-			{
+			/*int iValue = AI_exploreAirPlotValue(pLoopPlot);
+			FOR_EACH_ENUM(Direction) {
 				CvPlot* pAdjacentPlot = plotDirection( // advc.001: was getX(), getY()
 						pLoopPlot->getX(), pLoopPlot->getY(), eLoopDirection);
-				if (pAdjacentPlot != NULL)
-				{
+				if (pAdjacentPlot != NULL) {
 					if (!pAdjacentPlot->isVisible(getTeam(), false))
 						iValue += AI_exploreAirPlotValue(pAdjacentPlot);
+			} } */
+			// <advc.029>
+			int iValue = 0;
+			for (int iDX2 = -iInnerSearchRange; iDX2 <= iInnerSearchRange; iDX2++)
+			{
+				for (int iDY2 = -iInnerSearchRange; iDY2 <= iInnerSearchRange; iDY2++)
+				{
+					CvPlot* pInnerLoopPlot = plotXY(pLoopPlot->getX(), pLoopPlot->getY(),
+							iDX2, iDY2);
+					if (pInnerLoopPlot != NULL &&
+						!pInnerLoopPlot->isVisible(getTeam(), false))
+					{
+						iValue += AI_exploreAirPlotValue(pInnerLoopPlot);
+					}
 				}
-			}
+			} // </advc.029>
 			iValue += GC.getGame().getSorenRandNum(25, "AI explore air");
-			iValue *= std::min(7, plotDistance(getX(), getY(), pLoopPlot->getX(), pLoopPlot->getY()));
+			iValue *= std::min(plotDistance(plot(), pLoopPlot),
+					/*	advc.029: Was 7. I guess we don't want to explore too close to plot(),
+						but a shorter distance than 7 can certainly make sense. Try: */
+					std::max(1, iSearchRange - (iReconRange + 1) / 2));
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
@@ -19858,7 +19886,11 @@ bool CvUnitAI::AI_exploreAirRange() // advc: Renamed from "AI_exploreAir2"
 		getGroup()->pushMission(MISSION_RECON, pBestPlot->getX(), pBestPlot->getY());
 		return true;
 	}
-	return false;
+	if (!bExcludeVisible || !isHuman()) // advc.029
+		return false;
+	/*	advc.029: A visible target plot may still reveal non-visible plots
+		within the recon range */
+	return AI_exploreAirRange(false);
 }
 
 

@@ -253,7 +253,7 @@ protected:
 
 	// BETTER_BTS_AI_MOD, Player Interface, 01/12/09, jdog5000: START
 	int AI_exploreAirPlotValue(CvPlot* pPlot);
-	bool AI_exploreAirRange();
+	bool AI_exploreAirRange(/* advc.029: */ bool bExcludeVisible = true);
 	void AI_exploreAirMove();
 	// BETTER_BTS_AI_MOD: END
 
