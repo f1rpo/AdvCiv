@@ -55,9 +55,9 @@ public:
 	void sortCitiesByTargetValue();
 		public:
 	void sortCitiesByAttackPriority();
-	inline City* getCity(int index) const {
+	City* getCity(int index) const {
 		// Verify that the city still exists
-		if(v[index] == NULL || v[index]->city() == NULL)
+		if(v[index]->city() == NULL)
 			return NULL;
 		return v[index];
 	};

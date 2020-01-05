@@ -8,7 +8,7 @@
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
 #include "CvAI.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_Building.h"
 #include "CvInfo_Unit.h"
@@ -694,8 +694,6 @@ void UWAICache::updateLatestTurnReachableBySea() {
 		changes in city population or yield rate. (measureDistance may skip small
 		and low-production cities.) */
 	for(size_t i = 0; i < v.size(); i++) {
-		if(v[i] == NULL)
-			continue;
 		City const& c = *v[i];
 		// No pair means not reachable (by sea)
 		if(!c.canCurrentlyReachBySea())
@@ -1036,28 +1034,35 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 
 void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 
-	if(!GET_TEAM(ownerId).AI_deduceCitySite(c) || c->getOwner() ==
-			BARBARIAN_PLAYER)
+	if(!GET_TEAM(ownerId).AI_deduceCitySite(c) || c->getOwner() == BARBARIAN_PLAYER)
+		return;
 		return;
 	/*  I didn't think I'd need to update the city cache during turns, so this
-		is awkward to write ... */
-	City* fromCache = NULL;
-	std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
-	if(pos != cityMap.end())
-		fromCache = pos->second;
+		is awkward to write ...
+		Necessary though b/c the AI needs to stay up to date with human conquests. */
 	size_t vIndex = -1;
-	if(fromCache != NULL) {
-		if(fromCache->canReach())
-			nReachableCities.add(oldOwnerId, -1);
-		cityMap.erase(pos);
-		for(vIndex = 0; vIndex < v.size(); vIndex++) {
-			if(v[vIndex] != NULL && v[vIndex]->id() == fromCache->id()) {
-				delete v[vIndex];
-				v[vIndex] = NULL;
-				break;
+	if(GET_PLAYER(oldOwnerId).isMajorCiv()) {
+		City* fromCache = NULL;
+		std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
+		if(pos != cityMap.end())
+			fromCache = pos->second;
+		if(fromCache != NULL) {
+			if(fromCache->canReach())
+				nReachableCities.add(oldOwnerId, -1);
+			cityMap.erase(pos);
+			for(vIndex = 0; vIndex < v.size(); vIndex++) {
+				if(v[vIndex]->id() == fromCache->id()) {
+					delete v[vIndex];
+					v[vIndex] = NULL;
+					break;
+				}
 			}
 		}
 	}
+	/*	The insertion can't be conditional. If v[vIndex] has been deleted above,
+		then some city has to be inserted there. Allowing NULL entries would make
+		matters slower and more complicated elsewhere. */
+	//if(GET_PLAYER(c->getOwner()).isMajorCiv())
 	City* toCache = new City(ownerId, *c);
 	if(vIndex < 0 || vIndex >= v.size()) {
 		v.push_back(toCache);
@@ -1068,6 +1073,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 	cityMap.insert(std::make_pair(toCache->id(), toCache));
 	if(toCache->canReach())
 		nReachableCities.add(c->getOwner(), 1);
+
 	sortCitiesByAttackPriority();
 }
 
