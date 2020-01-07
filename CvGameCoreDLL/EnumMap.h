@@ -1177,6 +1177,7 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 	SET_XML_ENUM_SIZE1(Flavor, Dummy)
 	SET_XML_ENUM_SIZE1(Direction, Dummy)
 	SET_XML_ENUM_SIZE1(WarPlan, Dummy)
+	SET_XML_ENUM_SIZE1(CityPlot, Dummy)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */
@@ -1211,8 +1212,6 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 	the FOR_EACH_ENUM macro shouldn't be used for them */
 SET_NONXML_ENUM_LENGTH(PlayerTypes, (PlayerTypes)MAX_PLAYERS)
 SET_NONXML_ENUM_LENGTH(TeamTypes, (TeamTypes)MAX_TEAMS)
-// See CityPlotTypes in CvEnums.h; will probably use a variant of FOR_EACH_ENUM eventually.
-SET_NONXML_ENUM_LENGTH(CityPlotTypes, (CityPlotTypes)NUM_CITY_PLOTS)
 
 // For enum maps that exclude the Barbarians
 enum CivPlayerTypes {};
@@ -1246,7 +1245,8 @@ SET_NONXML_ENUM_LENGTH(CivTeamTypes, (CivTeamTypes)MAX_CIV_TEAMS)
 ///  Do not use if it can be avoided. The tradeoff of easier coding is that the compiler can no longer catch bugs.
 ///  The index arguments are consistently set to require the correct enum types specifically to catch bugs where arguments are switched etc.
 ///  Using EnumMapInt can easily end up with the compiler accepting swapped arguments etc.
-///  For this reason, only use this if you know you have to typecast anyway for each call, like when using CityPlotTypes for length.
+///  For this reason, only use this if you know you have to typecast anyway for each call,
+///  like when using CityPlotTypes for length [advc: EnumMap<IndexType,CityPlotTypes> shouldn't require casts in AdvCiv].
 
 template<class IndexType, class T, int DEFAULT>
 class EnumMapDefault : public EnumMapBase <IndexType, T, DEFAULT> {};

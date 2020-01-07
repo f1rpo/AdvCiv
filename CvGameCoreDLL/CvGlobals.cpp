@@ -164,12 +164,12 @@ void CvGlobals::init() // allocate
 	};
 
 	int aaiXYCityPlot[CITY_PLOTS_DIAMETER][CITY_PLOTS_DIAMETER] =
-	{	// advc.enum: NO_CITYPLOT
+	{	// advc.enum: Use some of the enumerators for illustration
 		{NO_CITYPLOT, 17, 18, 19, NO_CITYPLOT},
 
-		{         16,  6,  7,  8, 20},
+		{         16,  6,  7,  8, LAST_CITY_PLOT},
 
-		{         15,  5,  0,  1,  9},
+		{         15,  5,  0,  1, NUM_INNER_PLOTS},
 
 		{         14,  4,  3,  2, 10},
 

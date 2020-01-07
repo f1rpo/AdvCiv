@@ -1811,10 +1811,10 @@ bool CvUnit::isActionRecommended(int iAction)
 				BuildTypes eBestBuild = NO_BUILD; // K-Mod. (I use this again later.)
 				if (pWorkingCity != NULL)
 				{
-					int iIndex = pWorkingCity->getCityPlotIndex(pPlot);
-					FAssert(iIndex != -1); // K-Mod. this use to be an if statement in the release code
+					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(pPlot);
+					FAssert(ePlot != NO_CITYPLOT); // K-Mod. this use to be an if statement in the release code
 
-					eBestBuild = pWorkingCity->AI_getBestBuild(iIndex);
+					eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
 					if (eBestBuild == eBuild)
 						return true;
 				}
@@ -5968,7 +5968,6 @@ bool CvUnit::goldenAge()
 
 bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible) const
 {
-	FAssertMsg(eBuild < GC.getNumBuildInfos(), "Index out of bounds");
 	if (!m_pUnitInfo->getBuilds(eBuild))
 		return false;
 	if (!GET_PLAYER(getOwner()).canBuild(pPlot, eBuild, false, bTestVisible))
@@ -5981,8 +5980,6 @@ bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible)
 // Returns true if build finished...
 bool CvUnit::build(BuildTypes eBuild)
 {
-	FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
-
 	if (!canBuild(plot(), eBuild))
 		return false;
 	// Note: notify entity must come before changeBuildProgress - because once the unit is done building,

@@ -1,9 +1,10 @@
 #include "CvGameCoreDLL.h"
 #include "CyGameCoreUtils.h"
 #include "CvGameCoreUtils.h"
-/*  advc.make (would be nicer to move the respective functions to the
+/*  <advc.make> (would be nicer to move the respective functions to the
 	Python interface of CvMap) */
 #include "CvMap.h"
+#include "CvCity.h" // </advc.make>
 
 int cyIntRange(int iNum, int iLow, int iHigh)
 {
@@ -46,9 +47,10 @@ CyPlot* cyPlotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardDire
 }
 
 CyPlot* cysPlotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardDirection)
-{	static CyPlot plot;
-plot.setPlot(plotCardinalDirection(iX, iY, eCardDirection));
-return &plot;
+{
+	static CyPlot plot;
+	plot.setPlot(plotCardinalDirection(iX, iY, eCardDirection));
+	return &plot;
 }
 
 CyPlot* cyPlotXY(int iX, int iY, int iDX, int iDY)
@@ -75,17 +77,18 @@ DirectionTypes cyDirectionXYFromPlot(CyPlot* pFromPlot, CyPlot* pToPlot)
 
 CyPlot* cyPlotCity(int iX, int iY, int iIndex)
 {
-	return new CyPlot(plotCity(iX, iY, iIndex));
+	return new CyPlot(plotCity(iX, iY, (CityPlotTypes)iIndex));
 }
 
 int cyPlotCityXYFromInt(int iDX, int iDY)
 {
-	return plotCityXY(iDX, iDY);
+	return GC.getMap().plotCityXY(iDX, iDY);
 }
 
 int cyPlotCityXYFromCity(CyCity* pCity, CyPlot* pPlot)
 {
-	return plotCityXY(pCity->getCity(), pPlot->getPlot());
+	CvCity const& kCity = *pCity->getCity(); // advc: plotCityXY(CvCity*,CvPlot*) no longer exists
+	return plotCityXY(kCity.getX(), kCity.getY(), *pPlot->getPlot());
 }
 
 CardinalDirectionTypes cyGetOppositeCardinalDirection(CardinalDirectionTypes eCardDirection)

@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvAI.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Command.h"
 #include "CvInfo_Terrain.h"
@@ -81,17 +81,17 @@ void CvGame::updateColoredPlots()
 				ImprovementTypes eImprovement = kPlot.getImprovementType();
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
-					int iPlotIndex = pWorkingCity->getCityPlotIndex(&kPlot);
-					int iBuildValue = pWorkingCity->AI_getBestBuildValue(iPlotIndex);
-					BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(iPlotIndex);
-
-					if (NO_BUILD != eBestBuild)
+					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(&kPlot);
+					int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
+					BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
+					if (eBestBuild != NO_BUILD)
 					{
-						if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT && eImprovement != GC.getInfo(eBestBuild).getImprovement())
+						if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT &&
+							eImprovement != GC.getInfo(eBestBuild).getImprovement())
 						{
 							kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
-									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
-									"COLOR_RED")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
+									GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_RED")).
+									getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
 					}
 				}
@@ -149,20 +149,13 @@ void CvGame::updateColoredPlots()
 	{
 		if (kInterface.isCityScreenUp())
 		{
-			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+			NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
+					"COLOR_WHITE")).getColor());
+			color.a = 0.7f; // advc: Moved out of the loop below
+			for (WorkingPlotIter it(*pHeadSelectedCity); it.hasNext(); ++it)
 			{
-				if (pHeadSelectedCity->isWorkingPlot(iI))
-				{
-					CvPlot* pLoopPlot = plotCity(pHeadSelectedCity->getX(), pHeadSelectedCity->getY(), iI);
-					if (pLoopPlot != NULL)
-					{
-						NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
-								"COLOR_WHITE")).getColor());
-						color.a = 0.7f;
-						kEngine.addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-								color, PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
-					}
-				}
+				kEngine.addColoredPlot(it->getX(), it->getY(), color,
+						PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 			}
 		}
 		else
@@ -284,7 +277,7 @@ void CvGame::updateColoredPlots()
 				{
 					CvPlot* pBestPlot = NULL;
 					if (kRecommendUnit.AI_bestCityBuild(*pCity, &pBestPlot) &&
-						pCity->AI_getBestBuildValue(plotCityXY(pCity, pBestPlot)) > 1)
+						pCity->AI_getBestBuildValue(plotCityXY(pCity->getX(), pCity->getY(), *pBestPlot)) > 1)
 					{
 						FAssert(pBestPlot != NULL);
 						kEngine.addColoredPlot(pBestPlot->getX(), pBestPlot->getY(),
@@ -292,7 +285,7 @@ void CvGame::updateColoredPlots()
 								"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 						CvPlot* pNextBestPlot = NULL;
 						if (kRecommendUnit.AI_bestCityBuild(*pCity, &pNextBestPlot, NULL, pBestPlot) &&
-							pCity->AI_getBestBuildValue(plotCityXY(pCity, pNextBestPlot)) > 1)
+							pCity->AI_getBestBuildValue(plotCityXY(pCity->getX(), pCity->getY(), *pNextBestPlot)) > 1)
 						{
 							FAssert(pNextBestPlot != NULL);
 							kEngine.addColoredPlot(pNextBestPlot->getX(), pNextBestPlot->getY(),

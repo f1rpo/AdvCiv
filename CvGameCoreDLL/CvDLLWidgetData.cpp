@@ -2,7 +2,7 @@
 #include "CvDLLWidgetData.h"
 #include "CvAI.h"
 #include "CvDeal.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvGameTextMgr.h"
 #include "CvPopupInfo.h"
 #include "CvMessageControl.h"
@@ -6139,12 +6139,10 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 {
 	int iGoodHealthPercent = 0;
 	int iBadHealthPercent = 0;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	// bIncludeCityPlot=false: Feature gets removed upon founding
+	for (CityPlotIter it(kCityPlot, false); it.hasNext(); ++it)
 	{
-		if(i == CITY_HOME_PLOT) // Feature gets removed upon founding
-			continue;
-		CvPlot* pPlot = plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
-		if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
+		CvPlot const& p = *it;
 		if(!p.isFeature() || !p.isRevealed(TEAMID(eOwner)))
 			continue;
 		int iHealthPercent = GC.getInfo(p.getFeatureType()).getHealthPercent();

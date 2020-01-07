@@ -106,23 +106,23 @@ public:
 	void AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue);
 	//void AI_forceEmphasizeCulture(bool bNewValue); // advc.003j
 
-	int AI_getBestBuildValue(int iIndex) const;
+	int AI_getBestBuildValue(CityPlotTypes ePlot) const;
 	int AI_totalBestBuildValue(CvArea const& kArea) const;
 
-	int AI_clearFeatureValue(int iIndex);
+	int AI_clearFeatureValue(CityPlotTypes ePlot);
 	// K-Mod
 	// note: some of the following functions existed in BBAI for debugging purposes. But the new K-Mod versions are an integral part of the AI.
-	bool AI_isGoodPlot(int iPlot, int* aiYields = 0) const;
+	bool AI_isGoodPlot(CityPlotTypes ePlot, int* aiYields = 0) const;
 	int AI_countGoodPlots() const;
 	int AI_countWorkedPoorPlots() const;
 	int AI_getTargetPopulation() const;
 	void AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const;
 	int AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const;
 	// K-Mod end
-	BuildTypes AI_getBestBuild(int iIndex) const;
+	BuildTypes AI_getBestBuild(CityPlotTypes ePlot) const;
 	int AI_countBestBuilds(CvArea const& kArea) const;
 	void AI_updateBestBuild();
-	int AI_countBonusesToClear(FeatureTypes eFeature) const; // advc.129
+	int AI_countOvergrownBonuses(FeatureTypes eFeature) const; // advc.129
 
 	int AI_cityValue() const;
 	int AI_calculateWaterWorldPercent();
@@ -211,7 +211,8 @@ protected:
 	//bool AI_chooseProject(); // advc.003j
 	bool AI_chooseProcess(CommerceTypes eCommerceType = NO_COMMERCE);
 
-	bool AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPlot = NULL, SpecialistTypes* peBestSpecialist = NULL);
+	bool AI_addBestCitizen(bool bWorkers, bool bSpecialists, CityPlotTypes* peBestPlot = NULL,
+			SpecialistTypes* peBestSpecialist = NULL);
 	bool AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist = NO_SPECIALIST);
 	void AI_juggleCitizens();
 	int AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel = 0, int iNewAnger = 0, int iAngerTimer = 0); // K-Mod

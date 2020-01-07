@@ -51,7 +51,7 @@ int CyCity::getCityPlotIndex(CyPlot* pPlot)
 
 CyPlot* CyCity::getCityIndexPlot(int iIndex)
 {
-	return m_pCity ? new CyPlot(m_pCity->getCityIndexPlot(iIndex)) : NULL;
+	return m_pCity ? new CyPlot(m_pCity->getCityIndexPlot((CityPlotTypes)iIndex)) : NULL;
 }
 
 bool CyCity::canWork(CyPlot* pPlot)
@@ -62,7 +62,7 @@ bool CyCity::canWork(CyPlot* pPlot)
 void CyCity::clearWorkingOverride(int iIndex)
 {
 	if (m_pCity)
-		m_pCity->clearWorkingOverride(iIndex);
+		m_pCity->clearWorkingOverride((CityPlotTypes)iIndex);
 }
 
 int CyCity::countNumImprovedPlots()
@@ -2075,7 +2075,7 @@ int CyCity::getEspionageDefenseModifier() const
 
 bool CyCity::isWorkingPlotByIndex(int iIndex)
 {
-	return m_pCity ? m_pCity->isWorkingPlot(iIndex) : false;
+	return m_pCity ? m_pCity->isWorkingPlot((CityPlotTypes)iIndex) : false;
 }
 
 bool CyCity::isWorkingPlot(CyPlot* pPlot)
@@ -2086,7 +2086,7 @@ bool CyCity::isWorkingPlot(CyPlot* pPlot)
 void CyCity::alterWorkingPlot(int iIndex)
 {
 	if (m_pCity)
-		m_pCity->alterWorkingPlot(iIndex);
+		m_pCity->alterWorkingPlot((CityPlotTypes)iIndex);
 }
 
 int CyCity::getNumRealBuilding(int /*BuildingTypes*/ iIndex)

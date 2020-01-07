@@ -132,8 +132,8 @@ private:
 	int countBadTiles(int& iUnrevealed, int& iLand, int& iRevealedDecentLand) const;
 	bool isTooManyBadTiles(int iBadTiles) const;
 	int baseCityValue() const;
-	bool isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius, bool& bForeignOwned,
-			bool& bAnyForeignOwned, bool& bShare, bool& bSteal) const;
+	bool isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCityRadius,
+			bool& bForeignOwned, bool& bAnyForeignOwned, bool& bShare, bool& bSteal) const;
 	bool isRemovableFeature(CvPlot const& p, bool& bPersistent,
 			int& iFeatureProduction) const;
 	bool isRevealed(CvPlot const& p) const;

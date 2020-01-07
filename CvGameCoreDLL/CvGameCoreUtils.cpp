@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
 #include "CvAI.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "FAStarNode.h"
 #include "BBAILog.h" // advc.007
 #include "CvInfo_All.h"
@@ -150,30 +150,6 @@ float hash(long x, PlayerTypes ePlayer)
 	vector<long> v;
 	v.push_back(x);
 	return hash(v, ePlayer);
-}
-
-void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r)
-{
-	FAssert(r.empty());
-	r.reserve(21);
-	for(int i = 0; i < 21; i++)
-		r.push_back(NULL);
-	r[0] = const_cast<CvPlot*>(&pPlot);
-	int pos = 1;
-	CvMap const& m = GC.getMap();
-	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++)
-	{
-		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++)
-		{
-			// Skip corners and center
-			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
-				continue;
-			// That's NULL if off the map
-			r[pos] = m.plot(r[0]->getX() + dx, r[0]->getY() + dy);
-			pos++;
-		}
-	}
-	FAssert(pos == 21);
 } // </advc>
 // <advc.035>
 void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
@@ -194,12 +170,9 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
 	for(size_t i = 0; i < apCities.size(); i++)
 	{
 		CvCity const& c = *apCities[i];
-		for(int j = 0; j < NUM_CITY_PLOTS; j++)
+		for(CityPlotIter it(c, false); it.hasNext(); ++it)
 		{
-			CvPlot* pPlot = c.getCityIndexPlot(j);
-			if(pPlot == NULL || j == CITY_HOME_PLOT)
-				continue;
-			CvPlot& p = *pPlot;
+			CvPlot& p = *it;
 			if(p.isCity())
 				continue;
 			PlayerTypes eSecondOwner = p.getSecondOwner();
@@ -260,37 +233,6 @@ void narrowUnsafe(CvWString const& szWideString, CvString& szNarrowString)
 {
 	szNarrowString = CvString(szWideString);
 }
-
-CvPlot* plotCity(int iX, int iY, int iIndex)
-{
-	return GC.getMap().plot(iX + GC.getCityPlotX()[iIndex], iY + GC.getCityPlotY()[iIndex]);
-}
-
-CityPlotTypes plotCityXY(int iDX, int iDY)
-{
-	if (abs(iDX) > CITY_PLOTS_RADIUS || abs(iDY) > CITY_PLOTS_RADIUS)
-		return NO_CITYPLOT; // advc.enum
-	return GC.getXYCityPlot(iDX + CITY_PLOTS_RADIUS, iDY + CITY_PLOTS_RADIUS);
-}
-
-CityPlotTypes plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
-{	// <advc> Allow this function to be called for hypothetical cities (two plot params)
-	return plotCityXY(*pCity->plot(), *pPlot);
-}
-
-CityPlotTypes plotCityXY(CvPlot const& kCityPlot, CvPlot const& kPlot) // </advc>
-{
-	CvMap const& m = GC.getMap();
-	return plotCityXY(m.dxWrap(kPlot.getX() - kCityPlot.getX()),
-			m.dyWrap(kPlot.getY() - kCityPlot.getY()));
-}
-
-/*  <advc.303> Has to return true for the CITY_HOME_PLOT in order to be compatible
-	with CvPlayer::AI_foundValue_bulk */
-bool isInnerRing(CvPlot const& kPlot, CvPlot const& kCityPlot)
-{
-	return (plotDistance(&kPlot, &kCityPlot) <= 1);
-} // </advc.303>
 
 CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)
 {

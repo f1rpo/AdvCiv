@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
 #include "CvAI.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
@@ -809,130 +809,117 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		// K-Mod: only workable tiles
+		for (WorkablePlotIter it(kCity); it.hasNext(); ++it)  // advc: continue statements
 		{
-			CvPlot* pLoopPlot = plotCity(kCity.getX(), kCity.getY(), iI);
-
-			if (pLoopPlot != NULL &&
-				pLoopPlot != pIgnorePlot && pLoopPlot->getWorkingCity() == &kCity && AI_plotValid(pLoopPlot)) // K-Mod
+			CvPlot& kPlot = *it;
+			CityPlotTypes ePlot = it.currID();
+			if (&kPlot == pIgnorePlot || !AI_plotValid(kPlot))
 			{
-				if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT ||
-					!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
-					pLoopPlot->getImprovementType() == GC.getRUINS_IMPROVEMENT())
-				{
-					int iValue = kCity.AI_getBestBuildValue(iI);
-
-					if (iValue > iBestValue)
-					{
-						BuildTypes eBuild = kCity.AI_getBestBuild(iI);
-						FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
-
-						if (eBuild != NO_BUILD
-								&& canBuild(pLoopPlot, eBuild)) // K-Mod
-						{
-							if (0 == iPass)
-							{
-								iBestValue = iValue;
-								pBestPlot = pLoopPlot;
-								eBestBuild = eBuild;
-							}
-							else //if (canBuild(pLoopPlot, eBuild))
-							{
-								if (!pLoopPlot->isVisibleEnemyUnit(this))
-								{
-									/*int iPathTurns;
-									if (generatePath(pLoopPlot, 0, true, &iPathTurns)) {
-										// XXX take advantage of range (warning... this could lead to some units doing nothing...)
-										int iMaxWorkers = 1;
-										if (getPathLastNode()->m_iData1 == 0)
-											iPathTurns++;
-										else if (iPathTurns <= 1)
-											iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBuild);
-										if (pUnit != NULL) {
-											if (pUnit->plot()->isCity() && iPathTurns == 1 && getPathLastNode()->m_iData1 > 0)
-												iMaxWorkers += 10;
-										}*/ // BtS
-									// K-Mod. basically the same thing, but using pathFinder.
-									if (pathFinder.GeneratePath(pLoopPlot))
-									{
-										int iPathTurns = pathFinder.GetPathTurns() + (pathFinder.GetFinalMoves() == 0 ? 1 : 0);
-										int iMaxWorkers = (iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(*pLoopPlot, eBuild));
-										if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
-											iMaxWorkers += 10;
-									// K-Mod end
-										if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
-										{
-											//XXX this could be improved greatly by
-											//looking at the real build time and other factors
-											//when deciding whether to stack.
-											iValue /= iPathTurns;
-
-											iBestValue = iValue;
-											pBestPlot = pLoopPlot;
-											eBestBuild = eBuild;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				continue;
 			}
-		}
 
-		if (0 == iPass)
-		{
-			if (eBestBuild != NO_BUILD)
+			if (kPlot.getImprovementType() == NO_IMPROVEMENT ||
+				!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
+				kPlot.getImprovementType() == GC.getRUINS_IMPROVEMENT())
 			{
-				FAssert(pBestPlot != NULL);
+				int iValue = kCity.AI_getBestBuildValue(ePlot);
+				if (iValue <= iBestValue)
+					continue;
+
+				BuildTypes eBuild = kCity.AI_getBestBuild(ePlot);
+				if (eBuild == NO_BUILD || /* K-Mod: */ !canBuild(&kPlot, eBuild))
+					continue;
+
+				if (iPass == 0)
+				{
+					iBestValue = iValue;
+					pBestPlot = &kPlot;
+					eBestBuild = eBuild;
+					continue;
+				}
+				//if (canBuild(pLoopPlot, eBuild))
+				if (kPlot.isVisibleEnemyUnit(this))
+					continue;
 				/*int iPathTurns;
-				if ((generatePath(pBestPlot, 0, true, &iPathTurns)) && canBuild(pBestPlot, eBestBuild)
-					&& !(pBestPlot->isVisibleEnemyUnit(this))) {
+				if (generatePath(pLoopPlot, 0, true, &iPathTurns)) {
+					// XXX take advantage of range (warning... this could lead to some units doing nothing...)
 					int iMaxWorkers = 1;
-					if (pUnit != NULL) {
-						if (pUnit->plot()->isCity())
-							iMaxWorkers += 10;
-					}
 					if (getPathLastNode()->m_iData1 == 0)
 						iPathTurns++;
 					else if (iPathTurns <= 1)
-						iMaxWorkers = AI_calculatePlotWorkersNeeded(pBestPlot, eBestBuild);*/ // BtS
-				// K-Mod. basically the same thing, but using pathFinder.
-				if (pathFinder.GeneratePath(pBestPlot))
-				{
-					int iPathTurns = pathFinder.GetPathTurns() + (pathFinder.GetFinalMoves() == 0 ? 1 : 0);
-					int iMaxWorkers = iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(*pBestPlot, eBestBuild);
-					if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
+						iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBuild);
+					if (pUnit != NULL) {
+						if (pUnit->plot()->isCity() && iPathTurns == 1 && getPathLastNode()->m_iData1 > 0)
 						iMaxWorkers += 10;
+					} }*/ // BtS
+				// K-Mod. basically the same thing, but using pathFinder.
+				if (!pathFinder.GeneratePath(&kPlot))
+					continue;
+				int iPathTurns = pathFinder.GetPathTurns() + (pathFinder.GetFinalMoves() == 0 ? 1 : 0);
+				int iMaxWorkers = (iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(kPlot, eBuild));
+				if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
+					iMaxWorkers += 10;
 				// K-Mod end
-					int iWorkerCount = GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pBestPlot, MISSIONAI_BUILD, getGroup());
-					if (iWorkerCount < iMaxWorkers)
-					{
-						//Good to go.
-						break;
-					}
+				if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
+					&kPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
+				{
+					//XXX this could be improved greatly by
+					//looking at the real build time and other factors
+					//when deciding whether to stack.
+					iValue /= iPathTurns;
+
+					iBestValue = iValue;
+					pBestPlot = &kPlot;
+					eBestBuild = eBuild;
 				}
-				eBestBuild = NO_BUILD;
-				iBestValue = 0;
 			}
 		}
+		if (iPass > 0 || eBestBuild == NO_BUILD)
+			continue; // advc
+
+		FAssert(pBestPlot != NULL);
+		/*int iPathTurns;
+		if (generatePath(pBestPlot, 0, true, &iPathTurns) && canBuild(pBestPlot, eBestBuild) &&
+				!pBestPlot->isVisibleEnemyUnit(this)) {
+			int iMaxWorkers = 1;
+			if (pUnit != NULL) {
+				if (pUnit->plot()->isCity())
+					iMaxWorkers += 10;
+			}
+			if (getPathLastNode()->m_iData1 == 0)
+				iPathTurns++;
+			else if (iPathTurns <= 1)
+				iMaxWorkers = AI_calculatePlotWorkersNeeded(pBestPlot, eBestBuild);
+		} */ // BtS
+		// K-Mod. basically the same thing, but using pathFinder.
+		if (pathFinder.GeneratePath(pBestPlot))
+		{
+			int iPathTurns = pathFinder.GetPathTurns() +
+					(pathFinder.GetFinalMoves() == 0 ? 1 : 0);
+			int iMaxWorkers = iPathTurns > 1 ? 1 :
+					AI_calculatePlotWorkersNeeded(*pBestPlot, eBestBuild);
+			if (pUnit && pUnit->plot()->isCity() && iPathTurns == 1)
+				iMaxWorkers += 10;
+		// K-Mod end
+			int iWorkerCount = GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
+					pBestPlot, MISSIONAI_BUILD, getGroup());
+			if (iWorkerCount < iMaxWorkers)
+				break; //Good to go.
+		}
+		eBestBuild = NO_BUILD;
+		iBestValue = 0;
 	}
 
-	if (NO_BUILD != eBestBuild)
+	if (eBestBuild != NO_BUILD)
 	{
 		FAssert(NULL != pBestPlot);
 		if (ppBestPlot != NULL)
-		{
 			*ppBestPlot = pBestPlot;
-		}
 		if (peBestBuild != NULL)
-		{
 			*peBestBuild = eBestBuild;
-		}
 	}
-
-
-	return (NO_BUILD != eBestBuild);
+	return (eBestBuild != NO_BUILD);
 }
 
 
@@ -1741,23 +1728,19 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 
 	/*if (pCity != NULL) {
 		bool bMoreBuilds = false;
-		for (iI = 0; iI < NUM_CITY_PLOTS; iI++) {
-			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-			if ((iI != CITY_HOME_PLOT) && (pLoopPlot != NULL)) {
-				if (pLoopPlot->getWorkingCity() == pCity) {
-					if (pLoopPlot->isBeingWorked()) {
-						if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT) {
-							if (pCity->AI_getBestBuildValue(iI) > 0) {
-								ImprovementTypes eImprovement;
-								eImprovement = (ImprovementTypes)GC.getInfo((BuildTypes)pCity->AI_getBestBuild(iI)).getImprovement();
-								if (eImprovement != NO_IMPROVEMENT) {
-									bMoreBuilds = true;
-									break;
-		}}}}}}}
+		for (WorkingPlotIter it(*plot(), false); it.hasNext(); ++it) {
+			if (it->getImprovementType() == NO_IMPROVEMENT &&
+					pCity->AI_getBestBuildValue(it.currID()) > 0) {
+				ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo((BuildTypes)
+						pCity->AI_getBestBuild(iI)).getImprovement();
+				if (eImprovement != NO_IMPROVEMENT) {
+					bMoreBuilds = true;
+					break;
+		} } }
 		if (bMoreBuilds) {
 			if (AI_improveCity(*pCity))
 				return;
-		}}*/
+	} }*/
 	// <advc>
 	int iNeed = 0;
 	int iHave = 0; // </advc>
@@ -10633,15 +10616,17 @@ bool CvUnitAI::AI_guardYield()
 	if(!GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS))
 		iBestValue = 8;
 	CvPlot* pBestPlot = NULL;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	FOR_EACH_ENUM(CityPlot)
 	{
-		CvPlot* pPlot = plotCity(plot()->getX(), plot()->getY(), i);
+		CvPlot* pPlot = plotCity(plot()->getX(), plot()->getY(), eLoopCityPlot);
 		if(pPlot == NULL || !AI_plotValid(pPlot))
 			continue;
 		if(pPlot->getOwner() != getOwner() ||
-				pPlot->getImprovementType() == NO_IMPROVEMENT ||
-				pPlot->getPlotCity() != NULL || pPlot->isWater() || pPlot->isUnit())
+			pPlot->getImprovementType() == NO_IMPROVEMENT ||
+			pPlot->getPlotCity() != NULL || pPlot->isWater() || pPlot->isUnit())
+		{
 			continue;
+		}
 		int iPathTurns;
 		/*  Must be reachable in one hop, so that we can hurry back to the city
 			when it's in danger. */
@@ -13669,43 +13654,44 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestPillagePlot = NULL;
 	int iBestValue = 0;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*pTargetCity); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = pTargetCity->getCityIndexPlot(iI);
+		CvPlot& kPlot = *it;
 		// advc: Reduce indentation
-		if (pLoopPlot != NULL && AI_plotValid(pLoopPlot) &&
-			!pLoopPlot->isBarbarian() && potentialWarAction(pLoopPlot) &&
-			pLoopPlot->getTeam() == pTargetCity->getTeam() &&
-			canPillage(pLoopPlot) && !pLoopPlot->isVisibleEnemyUnit(this) &&
-			GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_PILLAGE, getGroup()) <= 0)
+		if (AI_plotValid(kPlot) &&
+			!kPlot.isBarbarian() && potentialWarAction(&kPlot) &&
+			kPlot.getTeam() == pTargetCity->getTeam() &&
+			canPillage(&kPlot) && !kPlot.isVisibleEnemyUnit(this) &&
+			GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(&kPlot,
+			MISSIONAI_PILLAGE, getGroup()) <= 0)
 		{
 			int iPathTurns;
-			if (generatePath(pLoopPlot, iFlags, true, &iPathTurns, iMaxPathTurns))
+			if (generatePath(&kPlot, iFlags, true, &iPathTurns, iMaxPathTurns))
 			{
 				if (getPathFinder().GetFinalMoves() == 0)
 					iPathTurns++;
 				if (iPathTurns <= iMaxPathTurns)
 				{
-					int iValue = AI_pillageValue(*pLoopPlot, iBonusValueThreshold);
+					int iValue = AI_pillageValue(kPlot, iBonusValueThreshold);
 					iValue *= (1000 + 30 *
 					/*  advc.012: This seems to be about a single unit, so
 						noDefensiveBonus should be checked.
 						A hill bias might make sense b/c of Iron and Copper, but
 						that's for AI_pillageValue to decide. */
-							(noDefensiveBonus() ? 0 : AI_plotDefense(pLoopPlot)));
+							(noDefensiveBonus() ? 0 : AI_plotDefense(&kPlot)));
 							//(pLoopPlot->defenseModifier(getTeam(),false));
 							//iValue /= (iPathTurns + 1);
 							iValue /= std::max(1, iPathTurns); // K-Mod
 
 					// if not at war with this plot owner, then devalue plot if we already inside this owner's borders
 					// (because declaring war will pop us some unknown distance away)
-					if (!isEnemy(pLoopPlot->getTeam()) && plot()->getTeam() == pLoopPlot->getTeam())
+					if (!isEnemy(kPlot.getTeam()) && plot()->getTeam() == kPlot.getTeam())
 						iValue /= 10;
 					if (iValue > iBestValue)
 					{
 						iBestValue = iValue;
 						pBestPlot = getPathEndTurnPlot();
-						pBestPillagePlot = pLoopPlot;
+						pBestPillagePlot = &kPlot;
 					}
 				}
 			}
@@ -17130,34 +17116,39 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 			if (!AI_plotValid(pLoopPlot))
 				continue;
 
-			int iIndex = pCity->getCityPlotIndex(pLoopPlot); // advc.117
-			if (iIndex == CITY_HOME_PLOT || pCity->AI_getBestBuild(iIndex) == NO_BUILD)
+			CityPlotTypes ePlot = pCity->getCityPlotIndex(pLoopPlot); // advc.117
+			if (ePlot == CITY_HOME_PLOT || pCity->AI_getBestBuild(ePlot) == NO_BUILD)
 				continue;
 
 			if (pIgnoreCity != NULL && pCity->AI_getWorkersHave() -
-					(plot()->getWorkingCity() == pCity ? 1 : 0) >=
-					(1 + pCity->AI_getWorkersNeeded() * 2) / 3)
+				(plot()->getWorkingCity() == pCity ? 1 : 0) >=
+				(1 + pCity->AI_getWorkersNeeded() * 2) / 3)
+			{
 				continue;
+			}
 			// K-Mod note. This was the original condition for the rest of the block:
 			//if ((NULL == pIgnoreCity || (pCity->AI_getWorkersNeeded() > 0 && (pCity->AI_getWorkersHave() < (1 + pCity->AI_getWorkersNeeded() * 2 / 3)))) && pCity->AI_getBestBuild(iIndex) != NO_BUILD)
 
-			if (!canBuild(pLoopPlot, pCity->AI_getBestBuild(iIndex)))
+			if (!canBuild(pLoopPlot, pCity->AI_getBestBuild(ePlot)))
 				continue;
 
 			if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION))
 			{
-				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT && pLoopPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT())
+				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT &&
+					pLoopPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT())
+				{
 					continue;
+				}
 			}
 			/*if (bAllowed) {
 				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT && GC.getInfo(pCity->AI_getBestBuild(iIndex)).getImprovement() != NO_IMPROVEMENT)
 					bAllowed = false;
 			} */ /* K-Mod. I don't think it's a good idea to disallow improvement changes here.
 					So I'm changing it to have a cutoff value instead. */
-			if (pCity->AI_getBestBuildValue(iIndex) <= 1)
+			if (pCity->AI_getBestBuildValue(ePlot) <= 1)
 				continue;
 			// advc.117: iValue now declared earlier
-			iValue = pCity->AI_getBestBuildValue(iIndex);
+			iValue = pCity->AI_getBestBuildValue(ePlot);
 
 			int iPathTurns;
 			if (generatePath(pLoopPlot, 0, true, &iPathTurns))
@@ -17171,7 +17162,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 				else if (getPathFinder().GetFinalMoves() == 0)
 					iPathTurns++;
 				else if (iPathTurns <= 1)
-					iMaxWorkers = AI_calculatePlotWorkersNeeded(*pLoopPlot, pCity->AI_getBestBuild(iIndex));
+					iMaxWorkers = AI_calculatePlotWorkersNeeded(*pLoopPlot, pCity->AI_getBestBuild(ePlot));
 
 				if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
 				{
@@ -17181,7 +17172,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 					{
 						iBestValue = iValue;
 						pBestPlot = pLoopPlot;
-						eBestBuild = pCity->AI_getBestBuild(iIndex);
+						eBestBuild = pCity->AI_getBestBuild(ePlot);
 						bChop = false; // advc.117
 					}
 				}
@@ -17269,9 +17260,11 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 			continue;
 
 		CvPlot* pPlot = NULL; BuildTypes eBuild = NO_BUILD;
-		if (/* advc.opt: */ pLoopCity->AI_getBestBuild(-1) == NO_BUILD ||
-				!AI_bestCityBuild(*pLoopCity, &pPlot, &eBuild, NULL, this))
+		if (/* advc.opt: */ pLoopCity->AI_getBestBuild(NO_CITYPLOT) == NO_BUILD ||
+			!AI_bestCityBuild(*pLoopCity, &pPlot, &eBuild, NULL, this))
+		{
 			continue;
+		}
 		FAssert(pPlot != NULL);
 		FAssert(eBuild != NO_BUILD);
 		if (!AI_plotValid(pPlot))
@@ -17662,7 +17655,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		{
 			// Let "best build" handle improvement replacements near cities.
 			BuildTypes eBuild = pWorkingCity->AI_getBestBuild(plotCityXY(
-					pWorkingCity, &kPlot));
+					pWorkingCity->getX(), pWorkingCity->getY(), kPlot));
 			if (eBuild != NO_BUILD && kOwner.doesImprovementConnectBonus(
 				(ImprovementTypes)GC.getInfo(eBuild).getImprovement(),
 				eNonObsoleteBonus) && canBuild(&kPlot, eBuild))
@@ -19796,7 +19789,7 @@ int CvUnitAI::AI_exploreAirPlotValue(CvPlot* pPlot)
 {
 	//if (pPlot->isVisible(getTeam(), false)) {
 	// <advc.001> The opposite needs to be true. The caller already checks that.
-	FAssert(!pPlot->isVisible(getTeam(), false))
+	FAssert(!pPlot->isVisible(getTeam(), false));
 	// And let's not cheat unnecessarily:
 	if (!pPlot->isRevealed(getTeam()))
 		return 50; // </advc.001>

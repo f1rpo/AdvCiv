@@ -297,8 +297,9 @@ private:
 	void getOtherRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam,
 			TeamTypes eOtherTeam, TeamTypes eSkipTeam);
 	// BULL - Leaderhead Relations - end
-	//void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCity* pCity, int iIndex, bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false);
-	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue);
+	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity,
+			//bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false);
+			int iPlotIndex, bool bIgnoreFood, int iGrowthValue);
 	void setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive = false, bool bMakeWhitespace = false);
 	// <advc.059>
 	void setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot const& kPlot) const;

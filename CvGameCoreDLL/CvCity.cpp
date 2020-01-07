@@ -2,8 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvCity.h"
+#include "CityPlotIterator.h"
 #include "CvAI.h"
-#include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -292,20 +292,18 @@ void CvCity::setupGraphical()
 	setLayoutDirty(true);
 }
 
+
 void CvCity::kill(bool bUpdatePlotGroups)
 {
+	CvPlot& kPlot = *plot();
+
 	if (isCitySelected())
 		gDLL->getInterfaceIFace()->clearSelectedCities();
 
-	CvPlot* pPlot = plot();
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot != NULL)
-		{
-			if (pLoopPlot->getWorkingCityOverride() == this)
-				pLoopPlot->setWorkingCityOverride(NULL);
-		}
+		if (it->getWorkingCityOverride() == this)
+			it->setWorkingCityOverride(NULL);
 	}
 
 	setCultureLevel(NO_CULTURELEVEL, false);
@@ -347,20 +345,20 @@ void CvCity::kill(bool bUpdatePlotGroups)
 		Need to clear trade routes of dead city, else they'll be claimed for the owner forever. */
 	clearTradeRoutes();
 
-	pPlot->setPlotCity(NULL);
-	pPlot->setRuinsName(getName()); // advc.005c
+	kPlot.setPlotCity(NULL);
+	kPlot.setRuinsName(getName()); // advc.005c
 
 	// UNOFFICIAL_PATCH, replace floodplains after city is removed, 03/04/10, jdog5000: START
-	if (pPlot->getBonusType() == NO_BONUS &&
+	if (kPlot.getBonusType() == NO_BONUS &&
 		GC.getDefineBOOL("FLOODPLAIN_AFTER_RAZE")) // advc.129b
 	{
 		FOR_EACH_ENUM(Feature)
 		{
 			if (GC.getInfo(eLoopFeature).isRequiresRiver() &&
-				pPlot->canHaveFeature(eLoopFeature) &&
+				kPlot.canHaveFeature(eLoopFeature) &&
 				GC.getInfo(eLoopFeature).getAppearanceProbability() == 10000)
 			{
-				pPlot->setFeatureType(eLoopFeature);
+				kPlot.setFeatureType(eLoopFeature);
 				break;
 			}
 		}
@@ -388,27 +386,27 @@ void CvCity::kill(bool bUpdatePlotGroups)
 
 	PlayerTypes eOwner = getOwner();
 	bool bCapital = isCapital();
-	pPlot->setImprovementType(GC.getRUINS_IMPROVEMENT());
+	kPlot.setImprovementType(GC.getRUINS_IMPROVEMENT());
 	CvEventReporter::getInstance().cityLost(this);
 	GET_PLAYER(getOwner()).deleteCity(getID());
 
-	pPlot->updateCulture(true, false);
+	kPlot.updateCulture(true, false);
 	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), eLoopDirection);
+		CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
 		if (pAdjacentPlot != NULL)
 			pAdjacentPlot->updateCulture(true, false);
 	}
 	if (GET_TEAM(eOwner).isAVassal()) // advc: Replacing a loop over "all" masters
 	{
-		pPlot->changeAdjacentSight(GET_TEAM(eOwner).getMasterTeam(),
+		kPlot.changeAdjacentSight(GET_TEAM(eOwner).getMasterTeam(),
 				GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), false, NULL, false);
 	}
 	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
 		if (abEspionageVisibility[it->getID()])
 		{
-			pPlot->changeAdjacentSight(it->getID(), GC.getDefineINT(
+			kPlot.changeAdjacentSight(it->getID(), GC.getDefineINT(
 					CvGlobals::PLOT_VISIBILITY_RANGE), false, NULL, false);
 		}
 	}
@@ -476,13 +474,10 @@ void CvCity::doTurn()  // advc: style changes
 
 	if (!isDisorder())
 	{
-		for (int i = 0; i < NUM_CITY_PLOTS; i++)
+		for (WorkablePlotIter it(*this); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = getCityIndexPlot(i);
-			if (pLoopPlot == NULL)
-				continue;
-			if (pLoopPlot->getWorkingCity() == this && pLoopPlot->isBeingWorked())
-				pLoopPlot->doImprovement();
+			if (it->isBeingWorked())
+				it->doImprovement();
 		}
 	} // <advc.004x>
 	else
@@ -574,14 +569,11 @@ void CvCity::doTurn()  // advc: style changes
 int CvCity::calculateBaseYieldRate(YieldTypes y)
 {
 	int r = 0;
-	for (int i = 0; i < NUM_CITY_PLOTS; i++)
+	for (WorkingPlotIter it(*this); it.hasNext(); ++it)
 	{
-		if (isWorkingPlot(i))
-		{
-			CvPlot* pl = getCityIndexPlot(i);
-			if(pl != NULL)
-				r += pl->getYield(y);
-		}
+		CvPlot const* pPlot = getCityIndexPlot(it.currID());
+		if(pPlot != NULL)
+			r += pPlot->getYield(y);
 	}
 	FOR_EACH_ENUM(Specialist)
 	{
@@ -764,11 +756,9 @@ bool CvCity::canBeSelected() const  // advc: refactored
 
 void CvCity::updateSelectedCity(bool bTestProduction)
 {
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot != NULL)
-			pLoopPlot->updateShowCitySymbols();
+		it->updateShowCitySymbols();
 	}
 	if (bTestProduction)
 	{
@@ -789,11 +779,9 @@ void CvCity::setInvestigate(bool b)
 
 void CvCity::updateYield()
 {
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot != NULL)
-			pLoopPlot->updateYield();
+		it->updateYield();
 	}
 }
 
@@ -866,11 +854,11 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption,
 		break;
 
 	case TASK_CHANGE_WORKING_PLOT:
-		alterWorkingPlot(iData1);
+		alterWorkingPlot((CityPlotTypes)iData1);
 		break;
 
 	case TASK_CLEAR_WORKING_OVERRIDE:
-		clearWorkingOverride(iData1);
+		clearWorkingOverride((CityPlotTypes)iData1);
 		break;
 
 	case TASK_HURRY:
@@ -939,13 +927,24 @@ void CvCity::chooseProduction(UnitTypes eTrainUnit, BuildingTypes eConstructBuil
 	gDLL->getInterfaceIFace()->addPopup(pPopupInfo, getOwner(), false, bFront);
 }
 
+// advc: Can't inline these two b/c the plotCityXY functions are now at CvMap
+CityPlotTypes CvCity::getCityPlotIndex(CvPlot const* pPlot) const // advc.enum: Return type was int
+{
+	return GC.getMap().plotCityXY(getX(), getY(), *pPlot);
+}
 
-bool CvCity::canWork(CvPlot* pPlot) const
+CvPlot* CvCity::getCityIndexPlot(CityPlotTypes ePlot) const // advc.enum: CityPlotTypes
+{
+	return GC.getMap().plotCity(getX(), getY(), ePlot);
+}
+
+
+bool CvCity::canWork(CvPlot const* pPlot) const // advc: const param
 {
 	if (pPlot->getWorkingCity() != this)
 		return false;
 
-	FAssert(getCityPlotIndex(pPlot) != -1);
+	FAssert(getCityPlotIndex(pPlot) != NO_CITYPLOT);
 
 	if (pPlot->plotCheck(PUF_canSiege, getOwner()) != NULL)
 		return false;
@@ -990,17 +989,17 @@ bool CvCity::canWork(CvPlot* pPlot) const
 }
 
 
-void CvCity::verifyWorkingPlot(int iIndex)
+void CvCity::verifyWorkingPlot(CityPlotTypes ePlot) // advc.enum: CityPlotTypes
 {
-	FAssertBounds(0, NUM_CITY_PLOTS, iIndex);
-	if (isWorkingPlot(iIndex))
+	FAssertBounds(0, NUM_CITY_PLOTS, ePlot);
+	if (isWorkingPlot(ePlot))
 	{
-		CvPlot* pPlot = getCityIndexPlot(iIndex);
+		CvPlot* pPlot = getCityIndexPlot(ePlot);
 		if (pPlot != NULL)
 		{
 			if (!canWork(pPlot))
 			{
-				setWorkingPlot(iIndex, false);
+				setWorkingPlot(ePlot, false);
 				AI_setAssignWorkDirty(true);
 			}
 		}
@@ -1010,14 +1009,14 @@ void CvCity::verifyWorkingPlot(int iIndex)
 
 void CvCity::verifyWorkingPlots()
 {
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-		verifyWorkingPlot(iI);
+	FOR_EACH_ENUM(CityPlot)
+		verifyWorkingPlot(eLoopCityPlot);
 }
 
 
-void CvCity::clearWorkingOverride(int iIndex)
+void CvCity::clearWorkingOverride(CityPlotTypes ePlot) // advc.enum: CityPlotTypes
 {
-	CvPlot* pPlot = getCityIndexPlot(iIndex);
+	CvPlot* pPlot = getCityIndexPlot(ePlot);
 	if (pPlot != NULL)
 		pPlot->setWorkingCityOverride(NULL);
 }
@@ -1026,25 +1025,19 @@ void CvCity::clearWorkingOverride(int iIndex)
 int CvCity::countNumImprovedPlots(ImprovementTypes eImprovement, bool bPotential) const
 {
 	int iCount = 0;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (WorkablePlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot == NULL)
-			continue;
-
-		if (pLoopPlot->getWorkingCity() == this)
+		CvPlot const& kPlot = *it;
+		if (eImprovement != NO_IMPROVEMENT)
 		{
-			if (eImprovement != NO_IMPROVEMENT)
+			if (kPlot.getImprovementType() == eImprovement ||
+				(bPotential && kPlot.canHaveImprovement(eImprovement, getTeam())))
 			{
-				if (pLoopPlot->getImprovementType() == eImprovement ||
-					(bPotential && pLoopPlot->canHaveImprovement(eImprovement, getTeam())))
-				{
-					iCount++;
-				}
-			}
-			else if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT)
 				iCount++;
+			}
 		}
+		else if (kPlot.getImprovementType() != NO_IMPROVEMENT)
+			iCount++;
 	}
 	return iCount;
 }
@@ -1053,17 +1046,10 @@ int CvCity::countNumImprovedPlots(ImprovementTypes eImprovement, bool bPotential
 int CvCity::countNumWaterPlots() const
 {
 	int iCount = 0;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (WorkablePlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot == NULL)
-			continue;
-
-		if (pLoopPlot->getWorkingCity() == this)
-		{
-			if (pLoopPlot->isWater())
-				iCount++;
-		}
+		if (it->isWater())
+			iCount++;
 	}
 	return iCount;
 }
@@ -1071,17 +1057,10 @@ int CvCity::countNumWaterPlots() const
 int CvCity::countNumRiverPlots() const
 {
 	int iCount = 0;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (WorkablePlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot == NULL)
-			continue;
-
-		if (pLoopPlot->getWorkingCity() == this)
-		{
-			if (pLoopPlot->isRiver())
-				iCount++;
-		}
+		if (it->isRiver())
+			iCount++;
 	}
 	return iCount;
 }
@@ -1148,7 +1127,6 @@ int CvCity::findBaseYieldRateRank(YieldTypes eYield) const
 		CvCity* pLoopCity = kPlayer.getCity(city_scores[i].second);
 		pLoopCity->m_aiBaseYieldRank.set(eYield, i + 1);
 		pLoopCity->m_abBaseYieldRankValid.set(eYield, true);
-		// (It's strange that this is allowed. Aren't these values protected or something?)
 	}
 	FAssert(m_abBaseYieldRankValid.get(eYield));
 	// K-Mod end
@@ -1183,7 +1161,6 @@ int CvCity::findYieldRateRank(YieldTypes eYield) const
 		CvCity* pLoopCity = kPlayer.getCity(city_scores[i].second);
 		pLoopCity->m_aiYieldRank.set(eYield, i + 1);
 		pLoopCity->m_abYieldRankValid.set(eYield, true);
-		// (It's strange that this is allowed. Aren't these values protected or something?)
 	}
 	FAssert(m_abYieldRankValid.get(eYield));
 	// K-Mod end
@@ -1217,7 +1194,6 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 		CvCity* pLoopCity = kPlayer.getCity(city_scores[i].second);
 		pLoopCity->m_aiCommerceRank.set(eCommerce, i + 1);
 		pLoopCity->m_abCommerceRankValid.set(eCommerce, true);
-		// (It's strange that this is allowed. Aren't these values protected or something?)
 	}
 	FAssert(m_abCommerceRankValid.get(eCommerce));
 	// K-Mod end
@@ -3840,7 +3816,7 @@ int CvCity::foodDifference(bool bBottom, bool bIgnoreProduction) const
 	int iDifference;
 	//if (isFoodProduction())
 	if (!bIgnoreProduction && isFoodProduction()) // K-Mod
-		iDifference = std::min(0, (getYieldRate(YIELD_FOOD) - foodConsumption()));
+		iDifference = std::min(0, getYieldRate(YIELD_FOOD) - foodConsumption());
 	else iDifference = (getYieldRate(YIELD_FOOD) - foodConsumption());
 
 	if (bBottom)
@@ -4966,13 +4942,11 @@ void CvCity::updateSurroundingHealthHappiness()
 	int iNewGoodHappiness = 0;
 	int iNewBadHappiness = 0;
 	CvTeam const& kTeam = GET_TEAM(getTeam()); // advc.901
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot == NULL)
-			continue;
+		CvPlot const& kPlot = *it;
 		{
-			FeatureTypes eFeature = pLoopPlot->getFeatureType();
+			FeatureTypes eFeature = kPlot.getFeatureType();
 			if (eFeature != NO_FEATURE)
 			{
 				int iHappy = GET_PLAYER(getOwner()).getFeatureHappiness(eFeature);
@@ -4980,9 +4954,9 @@ void CvCity::updateSurroundingHealthHappiness()
 			}
 		}
 		{
-			ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+			ImprovementTypes eImprovement = kPlot.getImprovementType();
 			if (eImprovement != NO_IMPROVEMENT &&
-				kTeam.canAccessImprovement(*pLoopPlot, eImprovement, false)) // advc.901
+				kTeam.canAccessImprovement(kPlot, eImprovement, false)) // advc.901
 			{
 				int iHappy = GC.getInfo(eImprovement).getHappiness();
 				(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
@@ -5021,13 +4995,11 @@ std::pair<int,int> CvCity::calculateSurroundingHealth(int iGoodExtraPercent, int
 	int iGoodHealth = iGoodExtraPercent;
 	int iBadHealth = iBadExtraPercent;
 	CvTeam const& kTeam = GET_TEAM(getTeam()); // advc.901
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = getCityIndexPlot(iI);
-		if (pLoopPlot == NULL)
-			continue;
+		CvPlot const& kPlot = *it;
 		{
-			FeatureTypes eFeature = pLoopPlot->getFeatureType();
+			FeatureTypes eFeature = kPlot.getFeatureType();
 			if (eFeature != NO_FEATURE)
 			{
 				int iHealthPercent = GC.getInfo(eFeature).getHealthPercent();
@@ -5035,9 +5007,9 @@ std::pair<int,int> CvCity::calculateSurroundingHealth(int iGoodExtraPercent, int
 			}
 		}  // <advc.901> (based on updateFeatureHappiness)
 		{
-			ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+			ImprovementTypes eImprovement = kPlot.getImprovementType();
 			if (eImprovement != NO_IMPROVEMENT &&
-				kTeam.canAccessImprovement(*pLoopPlot, eImprovement, true)) // advc.901
+				kTeam.canAccessImprovement(kPlot, eImprovement, true)) // advc.901
 			{
 				int iHealthPercent = GC.getInfo(eImprovement).get(CvImprovementInfo::HealthPercent);
 				(iHealthPercent > 0 ? iGoodHealth : iBadHealth) += iHealthPercent;
@@ -6744,18 +6716,18 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 	if (kBuilding.getSeaPlotYieldChange(eYield) != 0)
 	{
 		int iChange = kBuilding.getSeaPlotYieldChange(eYield);
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (WorkingPlotIter it(*this); it.hasNext(); ++it)
 		{
-			if (isWorkingPlot(iI) && getCityIndexPlot(iI)->isWater())
+			if (it->isWater())
 				iExtraRate += iChange;
 		}
 	}
 	if (kBuilding.getRiverPlotYieldChange(eYield) != 0)
 	{
 		int iChange = kBuilding.getRiverPlotYieldChange(eYield);
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (WorkingPlotIter it(*this); it.hasNext(); ++it)
 		{
-			if (isWorkingPlot(iI) && getCityIndexPlot(iI)->isRiver())
+			if (it->isRiver())
 				iExtraRate += iChange;
 		}
 	}
@@ -8050,11 +8022,9 @@ void CvCity::setRevealed(TeamTypes eIndex, bool bNewValue)
 
 	if (eIndex == GC.getGame().getActiveTeam())
 	{
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = getCityIndexPlot(iI);
-			if (pLoopPlot != NULL)
-				pLoopPlot->updateSymbols();
+			it->updateSymbols();
 		}
 	}
 }
@@ -8510,16 +8480,10 @@ void CvCity::alterSpecialistCount(SpecialistTypes eIndex, int iChange)
 				continue;
 			}
 			int iNumCanWorkPlots = 0;
-			for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
+			for (CityPlotIter it(*this, false); it.hasNext(); ++it)
 			{
-				if (iJ == CITY_HOME_PLOT || isWorkingPlot(iJ))
-					continue;
-				CvPlot* pLoopPlot = getCityIndexPlot(iJ);
-				if (pLoopPlot != NULL)
-				{
-					if (canWork(pLoopPlot))
-						iNumCanWorkPlots++;
-				}
+				if (!isWorkingPlot(it.currID()) && canWork(&(*it)))
+					iNumCanWorkPlots++;
 			}
 			if (iNumCanWorkPlots > 0)
 				AI().AI_addBestCitizen(true, false);
@@ -8694,12 +8658,10 @@ bool CvCity::isWorkingPlot(CvPlot const* pPlot) const
 	return false;
 }
 
-/*	advc.enum (tbd.): setWorkingPlot and getWorkingPlot should take a
-	CityPlotTypes argument. Will first have to write an iterator or macro
-	for the numerous city radius loops. */
-void CvCity::setWorkingPlot(int iIndex, bool bNewValue)
+
+void CvCity::setWorkingPlot(CityPlotTypes ePlot, bool bNewValue) // advc.enum: CityPlotTypes
 {
-	if (isWorkingPlot(iIndex) == bNewValue)
+	if (isWorkingPlot(ePlot) == bNewValue)
 		return;
 	// <advc.064b> To avoid unnecessary update of city screen
 	bool bSelected = isCitySelected();
@@ -8707,16 +8669,16 @@ void CvCity::setWorkingPlot(int iIndex, bool bNewValue)
 	if(bSelected && GET_PLAYER(getOwner()).canGoldRush())
 		iOldTurns = getProductionTurnsLeft();
 	// </advc.064b>
-	m_abWorkingPlot.set((CityPlotTypes)iIndex, bNewValue);
+	m_abWorkingPlot.set(ePlot, bNewValue);
 
-	CvPlot* pPlot = getCityIndexPlot(iIndex);
+	CvPlot* pPlot = getCityIndexPlot(ePlot);
 	if (pPlot != NULL)
 	{
 		FAssertMsg(pPlot->getWorkingCity() == this, "WorkingCity is expected to be this");
 
-		if (isWorkingPlot(iIndex))
+		if (isWorkingPlot(ePlot))
 		{
-			if (iIndex != CITY_HOME_PLOT)
+			if (ePlot != CITY_HOME_PLOT)
 				changeWorkingPopulation(1);
 			FOR_EACH_ENUM(Yield)
 				changeBaseYieldRate(eLoopYield, pPlot->getYield(eLoopYield));
@@ -8725,7 +8687,7 @@ void CvCity::setWorkingPlot(int iIndex, bool bNewValue)
 		}
 		else
 		{
-			if (iIndex != CITY_HOME_PLOT)
+			if (ePlot != CITY_HOME_PLOT)
 				changeWorkingPopulation(-1);
 			FOR_EACH_ENUM(Yield)
 				changeBaseYieldRate(eLoopYield, -pPlot->getYield(eLoopYield));
@@ -8753,14 +8715,14 @@ void CvCity::setWorkingPlot(CvPlot* pPlot, bool bNewValue)
 }
 
 
-void CvCity::alterWorkingPlot(int iIndex)
+void CvCity::alterWorkingPlot(CityPlotTypes ePlot) // advc.enum: CityPlotTypes
 {
-	if (iIndex == CITY_HOME_PLOT)
+	if (ePlot == CITY_HOME_PLOT)
 	{
 		setCitizensAutomated(true);
 		return; // advc
 	}
-	CvPlot* pPlot = getCityIndexPlot(iIndex);
+	CvPlot* pPlot = getCityIndexPlot(ePlot);
 	if (pPlot == NULL)
 		return; // advc
 	if (!canWork(pPlot))
@@ -8771,15 +8733,15 @@ void CvCity::alterWorkingPlot(int iIndex)
 	}
 
 	setCitizensAutomated(false);
-	if (isWorkingPlot(iIndex))
+	if (isWorkingPlot(ePlot))
 	{
-		setWorkingPlot(iIndex, false);
+		setWorkingPlot(ePlot, false);
 		if (GC.getDEFAULT_SPECIALIST() != NO_SPECIALIST)
 			changeSpecialistCount(GC.getDEFAULT_SPECIALIST(), 1);
 		else AI().AI_addBestCitizen(false, true);
 	}
 	else if (extraPopulation() > 0 || AI().AI_removeWorstCitizen())
-		setWorkingPlot(iIndex, true);
+		setWorkingPlot(ePlot, true);
 }
 
 // <advc.003w>
@@ -11874,18 +11836,13 @@ bool CvCity::canApplyEvent(EventTypes eEvent, const EventTriggeredData& kTrigger
 	if (kEvent.getMinPillage() > 0)
 	{
 		int iNumImprovements = 0;
-		for (int i = 0; i < NUM_CITY_PLOTS; i++)
+		for (CityPlotIter it(*this, false); it.hasNext(); ++it)
 		{
-			if (i == CITY_HOME_PLOT)
-				continue; // advc
-			CvPlot* pPlot = getCityIndexPlot(i);
-			if (pPlot != NULL && pPlot->getOwner() == getOwner())
+			if (it->getOwner() == getOwner() &&
+				it->getImprovementType() != NO_IMPROVEMENT &&
+				!GC.getInfo(it->getImprovementType()).isPermanent())
 			{
-				if (pPlot->getImprovementType() != NO_IMPROVEMENT &&
-					!GC.getInfo(pPlot->getImprovementType()).isPermanent())
-				{
-					iNumImprovements++;
-				}
+				iNumImprovements++;
 			}
 		}
 		if (iNumImprovements < kEvent.getMinPillage())
@@ -11945,12 +11902,13 @@ void CvCity::applyEvent(EventTypes eEvent,
 			{
 				int iRandOffset = GC.getGame().getSorenRandNum(
 						NUM_CITY_PLOTS, "Pick event pillage plot");
-				for (int j = 0; j < NUM_CITY_PLOTS; ++j)
+				FOR_EACH_ENUM(CityPlot)
 				{
-					int iPlot = (j + iRandOffset) % NUM_CITY_PLOTS;
-					if (iPlot == CITY_HOME_PLOT)
+					CityPlotTypes const ePlot = (CityPlotTypes)
+							((eLoopCityPlot + iRandOffset) % NUM_CITY_PLOTS);
+					if (ePlot == CITY_HOME_PLOT)
 						continue; // advc
-					CvPlot* pPlot = getCityIndexPlot(iPlot);
+					CvPlot* pPlot = getCityIndexPlot(ePlot);
 					if (pPlot == NULL || pPlot->getOwner() != getOwner())
 						continue; // advc
 					if (pPlot->getImprovementType() != NO_IMPROVEMENT &&
@@ -12638,13 +12596,10 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 		if (kOwner.getID() == eBestPlayer)
 			return NO_PLAYER;
 		// advc.ctr: Now handled by denial check (CvPlayerAI::AI_cityTrade)
-		/*for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; ++iPlot) {
-			CvPlot* pLoopPlot = ::plotCity(getX(), getY(), iPlot);
-			if (pLoopPlot != NULL) {
-				// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
-				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
-					return NO_PLAYER;
-			}
+		/*for (CityPlotIter it(*this); it.hasNext(); ++it) {
+			// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
+			if (it->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
+				return NO_PLAYER;
 		}*/
 	}
 

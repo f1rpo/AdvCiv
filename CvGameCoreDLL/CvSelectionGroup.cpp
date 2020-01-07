@@ -3083,6 +3083,10 @@ void CvSelectionGroup::setTransportUnit(CvUnit* pTransportUnit,
 					pOtherGroup); // BETTER_BTS_AI_MOD, General AI, 04/18/10, jdog5000
 			if (pSplitGroup != NULL)
 				pSplitGroup->setTransportUnit(pTransportUnit);
+			/*	advc.test: We shouldn't have split the group then; not sure how to
+				guard against that though. Cf. issue #329 on the C2C GitHub page.
+				Let's first of all see if this even occurs in AdvCiv. */
+			FAssertMsg(pSplitGroup != NULL, "Probably no error but sth. to investigate");
 			return;
 		}
 

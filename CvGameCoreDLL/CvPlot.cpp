@@ -4,8 +4,7 @@
 #include "CvPlot.h"
 #include "CvAI.h"
 #include "CitySiteEvaluator.h"
-#include "CvCity.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -2621,12 +2620,9 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	bool bAnyCityRadius = false;
 	if(bOwnExclusiveRadius)
 	{
-		std::vector<CvPlot*> aCross;
-		::cityCross(*this, aCross);
-		for(size_t i = 1; i < aCross.size(); i++)
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
 		{
-			if(aCross[i] == NULL) continue;
-			CvPlot const& p = *aCross[i];
+			CvPlot const& p = *it;
 			if(!p.isCity() || p.getPlotCity()->isOccupation())
 				continue;
 			PlayerTypes eCityOwner = p.getPlotCity()->getOwner();
@@ -2671,12 +2667,9 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	{
 		int iBestPriority = MAX_INT;
 		CvCity* pBestCity = NULL;
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)  // advc: reduced indentation
+		for (CityPlotIter it(*this); it.hasNext(); ++it)  // advc: reduced indentation
 		{
-			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-			if(pLoopPlot == NULL)
-				continue;
-			CvCity* pLoopCity = pLoopPlot->getPlotCity();
+			CvCity* pLoopCity = it->getPlotCity();
 			if(pLoopCity == NULL)
 				continue;
 			if(pLoopCity->getTeam() != TEAMID(eBestPlayer) &&
@@ -2684,12 +2677,13 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 				continue;
 			if(getCulture(pLoopCity->getOwner()) <= 0)
 				continue;
-			if (!bIgnoreCultureRange && /* advc.099c: 099c cares only about
-					city tile culture, but for consistency, I'm also implementing
-					the IgnoreCultureRange switch for non-city tiles. */
-					!isWithinCultureRange(pLoopCity->getOwner()))
+			/*	advc.099c: 099c cares only about city tile culture, but for consistency,
+				I'm also implementing the IgnoreCultureRange switch for non-city tiles. */
+			if (!bIgnoreCultureRange &&
+				!isWithinCultureRange(pLoopCity->getOwner()))
+			{
 				continue;
-
+			}
 			int iPriority = GC.getCityPlotPriority()[iI];
 			if (pLoopCity->getTeam() == TEAMID(eBestPlayer))
 				iPriority += 5; // priority ranges from 0 to 4 -> give priority to Masters of a Vassal
@@ -4020,16 +4014,12 @@ bool CvPlot::isPotentialCityWorkForArea(CvArea const& kArea) const
 
 	static bool const bWATER_POTENTIAL_CITY_WORK_FOR_AREA = GC.getDefineBOOL("WATER_POTENTIAL_CITY_WORK_FOR_AREA"); // advc.opt
 
-	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-		if (pLoopPlot != NULL)
+		if (bWATER_POTENTIAL_CITY_WORK_FOR_AREA || !it->isWater())
 		{
-			if (bWATER_POTENTIAL_CITY_WORK_FOR_AREA || !pLoopPlot->isWater())
-			{
-				if (pLoopPlot->isArea(kArea))
-					return true;
-			}
+			if (it->isArea(kArea))
+				return true;
 		}
 	}
 	return false;
@@ -4041,19 +4031,14 @@ void CvPlot::updatePotentialCityWork()
 	PROFILE_FUNC();
 
 	bool bValid = false;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-		if (pLoopPlot != NULL)
+		if (!it->isWater())
 		{
-			if (!pLoopPlot->isWater())
-			{
-				bValid = true;
-				break;
-			}
+			bValid = true;
+			break;
 		}
 	}
-
 	if (isPotentialCityWork() != bValid)
 	{
 		m_bPotentialCityWork = bValid;
@@ -4071,12 +4056,9 @@ bool CvPlot::isShowCitySymbols() const
 void CvPlot::updateShowCitySymbols()  // advc: style changes
 {
 	bool bNewShowCitySymbols = false;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-		if (pLoopPlot == NULL)
-			continue;
-		CvCity* pLoopCity = pLoopPlot->getPlotCity();
+		CvCity* pLoopCity = it->getPlotCity();
 		if (pLoopCity == NULL)
 			continue;
 		if (pLoopCity->isCitySelected() && gDLL->getInterfaceIFace()->isCityScreenUp())
@@ -4469,11 +4451,9 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 				}
 			}
 
-			for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+			for (CityPlotIter it(*this); it.hasNext(); ++it)
 			{
-				CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-				if (pLoopPlot != NULL)
-					pLoopPlot->updatePotentialCityWork();
+				it->updatePotentialCityWork();
 			}
 
 			GC.getMap().changeLandPlots((isWater()) ? -1 : 1);
@@ -4695,15 +4675,11 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 		updateRiverSymbolArt(true);
 	}
 
-	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-		if (pLoopPlot != NULL)
-		{
-			CvCity* pLoopCity = pLoopPlot->getPlotCity();
-			if (pLoopCity != NULL)
-				pLoopCity->updateSurroundingHealthHappiness();
-		}
+		CvCity* pLoopCity = it->getPlotCity();
+		if (pLoopCity != NULL)
+			pLoopCity->updateSurroundingHealthHappiness();
 	}
 
 	if (!isFeature())
@@ -4886,15 +4862,11 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	updateIrrigated();
 	updateYield();
 
-	for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-		if (pLoopPlot != NULL)
-		{
-			CvCity* pLoopCity = pLoopPlot->getPlotCity();
-			if (pLoopCity != NULL)
-				pLoopCity->updateSurroundingHealthHappiness();
-		}
+		CvCity* pLoopCity = it->getPlotCity();
+		if (pLoopCity != NULL)
+			pLoopCity->updateSurroundingHealthHappiness();
 	}
 
 	// Building or removing a fort will now force a plotgroup update to verify resource connections.
@@ -4993,15 +4965,10 @@ void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 
 	if (isCity())
 	{
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-
-			if (pLoopPlot != NULL)
-			{
-				pLoopPlot->changeCityRadiusCount(-1);
-				pLoopPlot->changePlayerCityRadiusCount(getPlotCity()->getOwner(), -1);
-			}
+			it->changeCityRadiusCount(-1);
+			it->changePlayerCityRadiusCount(getPlotCity()->getOwner(), -1);
 		}
 	}
 
@@ -5039,14 +5006,10 @@ void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 
 	if (isCity())
 	{
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-			if (pLoopPlot != NULL)
-			{
-				pLoopPlot->changeCityRadiusCount(1);
-				pLoopPlot->changePlayerCityRadiusCount(getPlotCity()->getOwner(), 1);
-			}
+			it->changeCityRadiusCount(1);
+			it->changePlayerCityRadiusCount(getPlotCity()->getOwner(), 1);
 		}
 	}
 	updateIrrigated();
@@ -5078,27 +5041,24 @@ void CvPlot::updateWorkingCity()
 
 	if (pBestCity == NULL && isOwned())
 	{
-		int iBestPlot = 0;
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		CityPlotTypes eBestPlot = CITY_HOME_PLOT;
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(getX(), getY(), iI);
-			if (pLoopPlot == NULL)
-				continue;
-			CvCity* pLoopCity = pLoopPlot->getPlotCity();
+			CvCity* pLoopCity = it->getPlotCity();
 			if (pLoopCity == NULL)
 				continue; // advc
-
+			CityPlotTypes const ePlot = it.currID();
 			if (pLoopCity->getOwner() == getOwner())
 			{	// XXX use getGameTurnAcquired() instead???
 				int const* pCityPriority = GC.getCityPlotPriority(); // advc
 				if (pBestCity == NULL ||
-					pCityPriority[iI] < pCityPriority[iBestPlot] ||
-					(pCityPriority[iI] == pCityPriority[iBestPlot] &&
+					pCityPriority[ePlot] < pCityPriority[eBestPlot] ||
+					(pCityPriority[ePlot] == pCityPriority[eBestPlot] &&
 					(pLoopCity->getGameTurnFounded() < pBestCity->getGameTurnFounded() ||
 					(pLoopCity->getGameTurnFounded() == pBestCity->getGameTurnFounded() &&
 					pLoopCity->getID() < pBestCity->getID()))))
 				{
-					iBestPlot = iI;
+					eBestPlot = ePlot;
 					pBestCity = pLoopCity;
 				}
 			}
@@ -5140,12 +5100,6 @@ void CvPlot::updateWorkingCity()
 				gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
 		}
 	}
-}
-
-
-CvCity* CvPlot::getWorkingCityOverride() const
-{
-	return ::getCity(m_workingCityOverride);
 }
 
 
@@ -7042,22 +6996,21 @@ void CvPlot::doCultureDecay()
 	if(iExclDecay != 0 && isOwned() && !isCity())
 	{
 		CvCity* pWorkingCity = getWorkingCity();
-		if(pWorkingCity == NULL || calculateCulturePercent(pWorkingCity->getOwner())
-			< iCulturePercentThresh) // Check this only for performance
+		if(pWorkingCity == NULL ||
+			// To save time:
+			calculateCulturePercent(pWorkingCity->getOwner()) < iCulturePercentThresh)
 		{
-			for(int i = 0; i < NUM_CITY_PLOTS; i++)
+			for(CityPlotIter it(*this); it.hasNext(); ++it)
 			{
-				CvPlot* pp = ::plotCity(getX(), getY(), i);
-				if(pp == NULL) continue; CvPlot& p = *pp;
+				CvPlot& p = *it;
 				if(!p.isCity())
 					continue;
-				PlayerTypes const eCityOwnerId = p.getOwner();
-				if(eCityOwnerId != NO_PLAYER && eCityOwnerId != BARBARIAN_PLAYER)
+				PlayerTypes const eCityOwner = p.getOwner();
+				if(eCityOwner != NO_PLAYER && eCityOwner != BARBARIAN_PLAYER)
 				{
 					iMinDist = std::min(iMinDist, ::plotDistance(&p, this));
-					iMaxRadiusCulture = std::max(iMaxRadiusCulture,
-							getCulture(eCityOwnerId));
-					abInRadius[eCityOwnerId] = true;
+					iMaxRadiusCulture = std::max(iMaxRadiusCulture, getCulture(eCityOwner));
+					abInRadius[eCityOwner] = true;
 					bInAnyRadius = true;
 				}
 			}
@@ -7100,17 +7053,16 @@ void CvPlot::doCultureDecay()
 	 2: Not in any inner ring */
 int CvPlot::exclusiveRadius(PlayerTypes ePlayer) const
 {
-	if(isCity())
+	if (isCity())
 	{
 		if(getOwner() == ePlayer)
 			return 0;
 		return -1;
 	}
 	int r = -1;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		CvPlot* pPlot = ::plotCity(getX(), getY(), i);
-		if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
+		CvPlot const& p = *it;
 		if(!p.isCity())
 			continue;
 		if(p.getOwner() == ePlayer)

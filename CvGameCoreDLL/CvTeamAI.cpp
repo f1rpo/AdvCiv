@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
 #include "CvAI.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -1113,9 +1113,9 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	//
 
 	std::set<int> close_areas; // set of area IDs for which the enemy has cities close to ours.
-	for (MemberIter it(eTarget); it.hasNext(); ++it)
+	for (MemberIter itMember(eTarget); itMember.hasNext(); ++itMember)
 	{
-		CvPlayerAI const& kLoopPlayer = *it;
+		CvPlayerAI const& kLoopPlayer = *itMember;
 		FOR_EACH_CITYAI(pLoopCity, kLoopPlayer)
 		{
 			if (!AI_deduceCitySite(pLoopCity))
@@ -1128,26 +1128,28 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 			// plots
 			std::vector<int> plot_values;
-			for (int j = 1; j < NUM_CITY_PLOTS; j++) // don't count city plot
+			for (CityPlotIter itPlot(*pLoopCity, false); itPlot.hasNext(); ++itPlot)
 			{
-				CvPlot* pLoopPlot = pLoopCity->getCityIndexPlot(j);
-				if (!pLoopPlot || !pLoopPlot->isRevealed(getID()) ||
-						pLoopPlot->getWorkingCity() != pLoopCity)
+				CvPlot const& kPlot = *itPlot;
+				if (!kPlot.isRevealed(getID()) || kPlot.getWorkingCity() != pLoopCity)
 					continue;
-
-				if (pLoopPlot->isWater() && !(bCoastal && pLoopPlot->calculateNatureYield(YIELD_FOOD, getID()) >= GC.getFOOD_CONSUMPTION_PER_POPULATION()))
+				if (kPlot.isWater() &&
+					!(bCoastal && kPlot.calculateNatureYield(YIELD_FOOD, getID()) >=
+					GC.getFOOD_CONSUMPTION_PER_POPULATION()))
+				{
 					continue;
-
+				}
 				// This is a very rough estimate of the value of the plot. It's a bit ad-hoc. I'm sorry about that, but I want it to be fast.
 				//BonusTypes eBonus = pLoopPlot->getBonusType(getID());
 				int iPlotValue = 0;
-				iPlotValue += 3 * pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getID()); // don't ignore floodplains
-				iPlotValue += 2 * pLoopPlot->calculateNatureYield(YIELD_PRODUCTION, getID(), true); // ignore forest
-				iPlotValue += GC.getInfo(pLoopPlot->getTerrainType()).getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION() ? 1 : 0; // bonus for grassland
-				iPlotValue += pLoopPlot->isRiver() ? 1 : 0;
-				if (pLoopPlot->getBonusType(getID()) != NO_BONUS)
+				iPlotValue += 3 * kPlot.calculateBestNatureYield(YIELD_FOOD, getID()); // don't ignore floodplains
+				iPlotValue += 2 * kPlot.calculateNatureYield(YIELD_PRODUCTION, getID(), true); // ignore forest
+				iPlotValue += (GC.getInfo(kPlot.getTerrainType()).getYield(YIELD_FOOD) >= // bonus for grassland
+						GC.getFOOD_CONSUMPTION_PER_POPULATION() ? 1 : 0);
+				iPlotValue += kPlot.isRiver() ? 1 : 0;
+				if (kPlot.getBonusType(getID()) != NO_BONUS)
 					iPlotValue = iPlotValue * 3/2;
-				iPlotValue += pLoopPlot->getYield(YIELD_COMMERCE) / 2; // include some value for existing towns.
+				iPlotValue += kPlot.getYield(YIELD_COMMERCE) / 2; // include some value for existing towns.
 
 				plot_values.push_back(iPlotValue);
 			}
@@ -2927,13 +2929,11 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 					(kSurrenderTeam.getNumCities() > kSurrenderTeam.getNumMembers() ||
 					countNumCitiesByArea(kCity.getArea()) > 0)));
 			if(!bValuable)
-			{	// Valuable terrain bonuses
-				for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
+			{
+				// Valuable terrain bonuses
+				for (CityPlotIter itPlot(kCity); itPlot.hasNext(); ++itPlot)
 				{
-					CvPlot* pLoopPlot = ::plotCity(kCity.getX(), kCity.getY(), iJ);
-					if (pLoopPlot == NULL)
-						continue;
-					BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getID());
+					BonusTypes eBonus = itPlot->getNonObsoleteBonusType(getID());
 					if (eBonus == NO_BONUS)
 						continue;
 					if(GET_PLAYER(getLeaderID()).AI_bonusVal(eBonus, 1) > 15)

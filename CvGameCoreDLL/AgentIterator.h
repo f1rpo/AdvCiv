@@ -10,7 +10,9 @@
 
 #include "AgentPredicates.h"
 #include "CvAgents.h"
-#include "CvGame.h" // for bSYNCRAND_ORDER (Tbd.: Move m_sorenRand from CvGame to CvGlobals)
+/*	For bSYNCRAND_ORDER (Tbd.: Move m_sorenRand from CvGame to CvGlobals;
+	or let AgentIterator take a CvRandom parameter as in CityPlotIterator.h.) */
+#include "CvGame.h"
 
 class CvTeam;
 class CvPlayer;

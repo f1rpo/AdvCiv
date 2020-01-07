@@ -52,20 +52,14 @@ public:
 	{
 		m_bChooseProductionDirty = bNewValue;
 	} // </advc.003u>
-	// advc.enum: Return type was int
-	inline CityPlotTypes getCityPlotIndex(CvPlot const* pPlot) const											// Exposed to Python
-	{
-		return ::plotCityXY(this, pPlot); // advc.inl
-	}
-	inline CvPlot* getCityIndexPlot(int iIndex) const															// Exposed to Python
-	{
-		return ::plotCity(getX(), getY(), iIndex); // advc.inl
-	}
 
-	bool canWork(CvPlot* pPlot) const;																			// Exposed to Python
-	void verifyWorkingPlot(int iIndex);
+	CityPlotTypes getCityPlotIndex(CvPlot const* pPlot) const;													// Exposed to Python
+	CvPlot* getCityIndexPlot(CityPlotTypes ePlot) const;														// Exposed to Python
+
+	bool canWork(CvPlot const* pPlot) const;																	// Exposed to Python
+	void verifyWorkingPlot(CityPlotTypes ePlot);
 	void verifyWorkingPlots();
-	void clearWorkingOverride(int iIndex);																		// Exposed to Python
+	void clearWorkingOverride(CityPlotTypes ePlot);																// Exposed to Python
 	int countNumImprovedPlots(ImprovementTypes eImprovement = NO_IMPROVEMENT, bool bPotential = false) const;																			// Exposed to Python
 	int countNumWaterPlots() const;																				// Exposed to Python
 	int countNumRiverPlots() const;																				// Exposed to Python
@@ -1082,14 +1076,14 @@ public:
 	}
 	void changeEspionageDefenseModifier(int iChange);
 
-	bool isWorkingPlot(int iIndex) const																			// Exposed to Python
+	bool isWorkingPlot(CityPlotTypes ePlot) const																	// Exposed to Python
 	{
-		return m_abWorkingPlot.get((CityPlotTypes)iIndex);
+		return m_abWorkingPlot.get(ePlot);
 	}
 	bool isWorkingPlot(const CvPlot* pPlot) const;																	// Exposed to Python
-	void setWorkingPlot(int iIndex, bool bNewValue);
+	void setWorkingPlot(CityPlotTypes ePlot, bool bNewValue);
 	void setWorkingPlot(CvPlot* pPlot, bool bNewValue);
-	void alterWorkingPlot(int iIndex);																				// Exposed to Python
+	void alterWorkingPlot(CityPlotTypes ePlot);																		// Exposed to Python
 
 	int getNumRealBuilding(BuildingTypes eIndex) const																// Exposed to Python
 	{
@@ -1434,13 +1428,16 @@ protected:
 
 	// Rank cache
 	mutable int	m_iPopulationRank;
-	mutable bool m_bPopulationRankValid;  // <advc.enum>
-	EnumMapDefault<YieldTypes,int,-1> m_aiBaseYieldRank;
-	EnumMap<YieldTypes,bool> m_abBaseYieldRankValid;
-	EnumMapDefault<YieldTypes,int,-1> m_aiYieldRank;
-	EnumMap<YieldTypes,bool> m_abYieldRankValid;
-	EnumMapDefault<CommerceTypes,int,-1> m_aiCommerceRank;
-	EnumMap<CommerceTypes,bool> m_abCommerceRankValid; // </advc.enum>
+	mutable bool m_bPopulationRankValid;
+	// <advc.enum>
+	/*	Made mutable (not strictly necessary b/c findBaseYieldRateRank
+		accesses them through a CvCity pointer) */
+	mutable EnumMapDefault<YieldTypes,int,-1> m_aiBaseYieldRank;
+	mutable EnumMap<YieldTypes,bool> m_abBaseYieldRankValid;
+	mutable EnumMapDefault<YieldTypes,int,-1> m_aiYieldRank;
+	mutable EnumMap<YieldTypes,bool> m_abYieldRankValid;
+	mutable EnumMapDefault<CommerceTypes,int,-1> m_aiCommerceRank;
+	mutable EnumMap<CommerceTypes,bool> m_abCommerceRankValid; // </advc.enum>
 
 	void doGrowth();
 	void doCulture();

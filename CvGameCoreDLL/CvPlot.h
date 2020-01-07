@@ -451,7 +451,10 @@ public:
 		return ::getCity(m_workingCity);
 	}
 	void updateWorkingCity();
-	CvCity* getWorkingCityOverride() const;																															// Exposed to Python
+	CvCity* getWorkingCityOverride() const																															// Exposed to Python
+	{	// advc.inl:
+		return ::getCity(m_workingCityOverride);
+	}
 	void setWorkingCityOverride(const CvCity* pNewValue);
 	// <advc.003u>
 	CvCityAI* AI_getWorkingCity() const

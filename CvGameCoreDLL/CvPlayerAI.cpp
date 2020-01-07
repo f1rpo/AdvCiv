@@ -7,7 +7,7 @@
 #include "CvDealList.h" // advc.003s
 #include "UWAIAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvDiploParameters.h"
 #include "CvInfo_City.h"
@@ -1894,16 +1894,13 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 
 			iRazeValue -= 15 * kCity.getNumActiveWorldWonders();
 
-			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+			for (CityPlotIter it(kCity); it.hasNext(); ++it)
 			{
-				CvPlot* pLoopPlot = plotCity(kCity.getX(), kCity.getY(), iI);
-				if(pLoopPlot == NULL)
-					continue;
-				if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
+				if (it->getBonusType(getTeam()) != NO_BONUS)
 				{
-					iRazeValue -= std::max(2, AI_bonusVal(pLoopPlot->getBonusType(
-							getTeam()), 1, true)
-							); // /2); // advc.116: Don't halve the bonus value
+					iRazeValue -= std::max(2, AI_bonusVal(it->getBonusType(
+							getTeam()), 1, true));
+					// advc.116: Don't halve the bonus value
 				}
 
 			}
@@ -2675,19 +2672,17 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	if (!bIgnoreAttackers)
 		iValue += std::min(8, (AI_adjacentPotentialAttackers(*pCity->plot()) + 2) / 3);
 
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*pCity); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(pCity->getX(), pCity->getY(), iI);
-		if (pLoopPlot == NULL)
-			continue;
-		if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
+		CvPlot const& kPlot = *it;
+		if (kPlot.getBonusType(getTeam()) != NO_BONUS)
 		{
-			iValue += std::max(1, AI_bonusVal(pLoopPlot->getBonusType(getTeam()),
+			iValue += std::max(1, AI_bonusVal(kPlot.getBonusType(getTeam()),
 					1, true) / 5);
 		}
-		if (pLoopPlot->getOwner() == getID())
+		if (kPlot.getOwner() == getID())
 			iValue++;
-		if (pLoopPlot->isAdjacentPlayer(getID(), true))
+		if (kPlot.isAdjacentPlayer(getID(), true))
 			iValue++;
 	}
 	bool bThwartVictory = false; // advc.104d
@@ -4651,18 +4646,15 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					but we need to be sure that the tile isn't blocked by a feature
 					before increasing iYieldValue further. Will have to check
 					each tile -- OK, performance isn't an issue this early on. */
-				if(pCapitalCity != NULL && getNumCities() == 1)
+				if (pCapitalCity != NULL && getNumCities() == 1)
 				{
 					bool bValid = false;
-					for(int i = 0; i < NUM_CITY_PLOTS; i++)
+					for (CityPlotIter it(*pCapitalCity, false); it.hasNext(); ++it)
 					{
-						if(i == CITY_HOME_PLOT)
-							continue;
-						CvPlot* p = ::plotCity(pCapitalCity->getX(), pCapitalCity->getY(), i);
-						if(p != NULL && p->getBonusType() == eLoopBonus)
+						if (it->getBonusType() == eLoopBonus)
 						{
-							FeatureTypes eLoopFeature = p->getFeatureType();
-							if(eLoopFeature == NO_FEATURE || GET_TEAM(getTeam()).
+							FeatureTypes eLoopFeature = it->getFeatureType();
+							if (eLoopFeature == NO_FEATURE || GET_TEAM(getTeam()).
 								hasTechToClear(eLoopFeature, eTech))
 							{
 								bValid = true;
@@ -4670,7 +4662,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 							}
 						}
 					}
-					if(bValid)
+					if (bValid)
 						iYieldValue = ::round(iYieldValue * 1.5);
 				} // </advc.036>
 				// Convert to O(4)
@@ -4781,7 +4773,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			int iChopValue = iChopProduction / 7;
 			FeatureTypes eFeature = eLoopFeature; // advc
 			CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
-			if(kFeature.getHealthPercent() < 0 || kFeature.getYieldChange(YIELD_FOOD) +
+			if (kFeature.getHealthPercent() < 0 || kFeature.getYieldChange(YIELD_FOOD) +
 				kFeature.getYieldChange(YIELD_PRODUCTION) +
 				kFeature.getYieldChange(YIELD_COMMERCE) < 0)
 			{
@@ -4796,10 +4788,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			iBuildValue += 4 + iChopValue * (countCityFeatures(eFeature) + 4);
 			/*  <advc.129> Very early game: Is the feature blocking a resource?
 				(especially Silver, which can now appear on Grassland Forest) */
-			if(pCapitalCity != NULL && getNumCities() <= 2)
+			if (pCapitalCity != NULL && getNumCities() <= 2)
 			{
 				FOR_EACH_CITYAI(c, *this)
-					iBuildValue += 30 * c->AI_countBonusesToClear(eFeature);
+					iBuildValue += 30 * c->AI_countOvergrownBonuses(eFeature);
 			} // </advc.129>
 		}
 	}
@@ -6915,30 +6907,27 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
 	{
 		CvCity const& c = *pCity;
 		int iStolenLoop = 0;
-		int iUpperBound = std::max(6,
-				(c.getPopulation() + c.getHighestPopulation()) / 2);
-		for(int i = 0; i < NUM_CITY_PLOTS; i++)
+		int iUpperBound = std::max(6, (c.getPopulation() + c.getHighestPopulation()) / 2);
+		for (CityPlotIter it(c, false); it.hasNext(); ++it)
 		{
-			if(i == CITY_HOME_PLOT)
-				continue;
-			CvPlot const* pLoopPlot = c.getCityIndexPlot(i);
-			if(pLoopPlot == NULL)
-				continue;
+			CvPlot const& p = *it;
 			/*  Don't count tiles in the outer ring as stolen when borders
 				haven't expanded yet. */
-			if(::plotDistance(pLoopPlot, c.plot()) > c.getCultureLevel())
+			if (::plotDistance(&p, c.plot()) > c.getCultureLevel())
 				continue;
-			if(pLoopPlot->getOwner() == ePlayer
-					&& (!bOnlyNonWorkable || pLoopPlot->getCityRadiusCount() <= 1))
+			if (p.getOwner() == ePlayer &&
+				(!bOnlyNonWorkable || p.getCityRadiusCount() <= 1))
 			{
 				iStolenLoop++;
-				if(iStolenLoop >= iUpperBound)
+				if (iStolenLoop >= iUpperBound)
 					break;
-				if(pLoopPlot->getNonObsoleteBonusType(
+				if (p.getNonObsoleteBonusType(
 					/*  bOnlyNonWorkable implies that we're interested in tiles
 						ePlayer would like to be able to work */
-						bOnlyNonWorkable ? TEAMID(ePlayer) : getTeam()) != NO_BONUS)
+					bOnlyNonWorkable ? TEAMID(ePlayer) : getTeam()) != NO_BONUS)
+				{
 					iStolenLoop++;
+				}
 				if(iStolenLoop >= iUpperBound)
 					break;
 			}
@@ -11174,29 +11163,26 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 			+ 10)) / 110;
 	// K-Mod end
 
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(kCity); it.hasNext(); ++it)
 	{
-		CvPlot* pLoopPlot = plotCity(kCity.getX(), kCity.getY(), iI);
-		if (pLoopPlot != NULL)
+		CvPlot const& kPlot = *it;
+		/*if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
+			iValue += (AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true) * 10);*/ // BtS
+		// K-Mod. Use average of our value for gaining the bonus, and their value for losing it.
+		int iBonusValue = 0;
+		if (kPlot.getBonusType(getTeam()) != NO_BONUS)
 		{
-			/*if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-				iValue += (AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true) * 10);*/ // BtS
-			// K-Mod. Use average of our value for gaining the bonus, and their value for losing it.
-			int iBonusValue = 0;
-			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-			{
-				iBonusValue += /* advc.ctr: */ kToPlayer.
-						AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true);
-			}
-			// advc.ctr: That's (mostly) handled by the recursive call upfront now
-			/*if (pLoopPlot->getBonusType(TEAMID(eOwner)) != NO_BONUS) {
-				iBonusValue += GET_PLAYER(eOwner).AI_bonusVal(
-						pLoopPlot->getBonusType(TEAMID(eOwner)), -1, true);
-			}*/
-			iBonusValue *= plotDistance(pLoopPlot, kCity.plot()) <= 1 ? 5 : 4;
-			iValue += iBonusValue;
-			// K-Mod end
+			iBonusValue += /* advc.ctr: */ kToPlayer.
+					AI_bonusVal(kPlot.getBonusType(getTeam()), 1, true);
 		}
+		// advc.ctr: That's (mostly) handled by the recursive call upfront now
+		/*if (pLoopPlot->getBonusType(TEAMID(eOwner)) != NO_BONUS) {
+			iBonusValue += GET_PLAYER(eOwner).AI_bonusVal(
+					pLoopPlot->getBonusType(TEAMID(eOwner)), -1, true);
+		}*/
+		iBonusValue *= plotDistance(&kPlot, kCity.plot()) <= 1 ? 5 : 4;
+		iValue += iBonusValue;
+		// K-Mod end
 	}
 
 	if (!kCity.isEverOwned(getID()))
@@ -12919,20 +12905,17 @@ int CvPlayerAI::AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot
 		{
 			if(c->getCultureLevel() > 1 || c->getCultureTurnsLeft() > iLookAhead)
 				continue;
-			int iCityX = c->getX(); int iCityY = c->getY();
-			for(int i = 0; i < NUM_CITY_PLOTS; i++)
+			for (CityPlotIter it(*c); it.hasNext(); ++it)
 			{
-				CvPlot* p = ::plotCity(iCityX, iCityY, i);
-				if(p == NULL)
-					continue;
-				if(p->getOwner() == NO_PLAYER && p->isArea(kArea))
+				CvPlot const& p = *it;
+				if(p.getOwner() == NO_PLAYER && p.isArea(kArea))
 				{
 					/*  Mustn't check path b/c Work Boat may not be able to enter
 						the unowned tiles yet. If the area matches, it's a pretty
 						safe bet that the resource is reachable.
 						Also, the GeneratePath call considers only tiles owned
 						by this player, and that could be important for performance. */
-					if(AI_isUnimprovedBonus(*p, pFromPlot, false))
+					if(AI_isUnimprovedBonus(p, pFromPlot, false))
 						iCount++;
 				}
 			}
@@ -18080,15 +18063,11 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 					int iCount = 0;
 					int iPossibleCount = 0;
-					for (int i = 0; i < NUM_CITY_PLOTS; i++)
+					for (CityPlotIter itPlot(*pLoopCity); itPlot.hasNext(); ++itPlot)
 					{
-						CvPlot* pLoopPlot = ::plotCity(pLoopCity->getX(), pLoopCity->getY(), i);
-						if (pLoopPlot != NULL)
-						{
-							if (pLoopPlot->getOwner() == ePlayer)
-								iCount++;
-							iPossibleCount++;
-						}
+						if (itPlot->getOwner() == ePlayer)
+							iCount++;
+						iPossibleCount++;
 					}
 
 					if (iCount >= iPossibleCount / 2)
@@ -23760,47 +23739,37 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 	pCity->AI_updateBestBuild();
 
 	int iPlotsImproved = 0;
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(*pPlot, false); it.hasNext(); ++it)
 	{
-		if (iI != CITY_HOME_PLOT)
-		{
-			CvPlot* pLoopPlot = plotCity(pPlot->getX(), pPlot->getY(), iI);
-			if (pLoopPlot != NULL && pLoopPlot->getWorkingCity() == pCity)
-			{
-				if (pLoopPlot->getImprovementType() != NO_IMPROVEMENT)
-				{
-					iPlotsImproved++;
-				}
-			}
-		}
+		if (it->getWorkingCity() == pCity && it->getImprovementType() != NO_IMPROVEMENT)
+			iPlotsImproved++;
 	}
 
 	int iTargetPopulation = pCity->happyLevel() + (getCurrentEra() / 2);
 	while (iPlotsImproved < iTargetPopulation)
 	{
-		CvPlot* pBestPlot;
+		CvPlot* pBestPlot = NULL;
 		ImprovementTypes eBestImprovement = NO_IMPROVEMENT;
 		int iBestValue = 0;
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		for (CityPlotIter it(*pCity, false); it.hasNext(); ++it)
 		{
-			int iValue = pCity->AI_getBestBuildValue(iI);
-			if (iValue > iBestValue)
+			CityPlotTypes const ePlot = it.currID();
+			int iValue = pCity->AI_getBestBuildValue(ePlot);
+			if (iValue <= iBestValue)
+				continue; // advc
+			BuildTypes eBuild = pCity->AI_getBestBuild(ePlot);
+			if (eBuild == NO_BUILD)
+				continue; // advc
+			ImprovementTypes eImprovement = (ImprovementTypes)
+					GC.getInfo(eBuild).getImprovement();
+			if (eImprovement == NO_IMPROVEMENT)
+				continue; // advc
+			CvPlot* pLoopPlot = &(*it);
+			if (pLoopPlot != NULL && pLoopPlot->getImprovementType() != eImprovement)
 			{
-				BuildTypes eBuild = pCity->AI_getBestBuild(iI);
-				if (eBuild != NO_BUILD)
-				{
-					ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
-					if (eImprovement != NO_IMPROVEMENT)
-					{
-						CvPlot* pLoopPlot = plotCity(pCity->getX(), pCity->getY(), iI);
-						if ((pLoopPlot != NULL) && (pLoopPlot->getImprovementType() != eImprovement))
-						{
-							eBestImprovement = eImprovement;
-							pBestPlot = pLoopPlot;
-							iBestValue = iValue;
-						}
-					}
-				}
+				eBestImprovement = eImprovement;
+				pBestPlot = pLoopPlot;
+				iBestValue = iValue;
 			}
 		}
 		if (iBestValue > 0)
@@ -24141,38 +24110,34 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 		{
 			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-			if (pLoopPlot->isRevealed(getTeam()))
+			if (!pLoopPlot->isRevealed(getTeam()))
+				continue; // advc
+
+			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
+				AI_advancedStartRevealRadius(pLoopPlot, CITY_PLOTS_RADIUS);
+			else
 			{
-				if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
+				for (int iJ = 0; iJ < NUM_CARDINALDIRECTION_TYPES; iJ++)
 				{
-					AI_advancedStartRevealRadius(pLoopPlot, CITY_PLOTS_RADIUS);
-				}
-				else
-				{
-					for (int iJ = 0; iJ < NUM_CARDINALDIRECTION_TYPES; iJ++)
+					CvPlot* pLoopPlot2 = plotCardinalDirection(pLoopPlot->getX(), pLoopPlot->getY(), (CardinalDirectionTypes)iJ);
+					if (pLoopPlot2 != NULL && getAdvancedStartVisibilityCost(true, pLoopPlot2) > 0)
 					{
-						CvPlot* pLoopPlot2 = plotCardinalDirection(pLoopPlot->getX(), pLoopPlot->getY(), (CardinalDirectionTypes)iJ);
-						if ((pLoopPlot2 != NULL) && (getAdvancedStartVisibilityCost(true, pLoopPlot2) > 0))
+						//Mildly maphackery but any smart human can see the terrain type of a tile.
+						pLoopPlot2->getTerrainType();
+						int iFoodYield = GC.getInfo(pLoopPlot2->getTerrainType()).getYield(YIELD_FOOD);
+						if (pLoopPlot2->isFeature())
 						{
-							//Mildly maphackery but any smart human can see the terrain type of a tile.
-							pLoopPlot2->getTerrainType();
-							int iFoodYield = GC.getInfo(pLoopPlot2->getTerrainType()).getYield(YIELD_FOOD);
-							if (pLoopPlot2->isFeature())
-							{
-								iFoodYield += GC.getInfo(pLoopPlot2->getFeatureType()).getYieldChange(YIELD_FOOD);
-							}
-							if (((iFoodYield >= 2) && !pLoopPlot2->isFreshWater()) || pLoopPlot2->isHills() || pLoopPlot2->isRiver())
-							{
-								doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY, pLoopPlot2->getX(), pLoopPlot2->getY(), -1, true);
-							}
+							iFoodYield += GC.getInfo(pLoopPlot2->getFeatureType()).getYieldChange(YIELD_FOOD);
+						}
+						if (((iFoodYield >= 2) && !pLoopPlot2->isFreshWater()) || pLoopPlot2->isHills() || pLoopPlot2->isRiver())
+						{
+							doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY, pLoopPlot2->getX(), pLoopPlot2->getY(), -1, true);
 						}
 					}
 				}
 			}
-			if ((iLastPointsTotal - getAdvancedStartPoints()) > iRevealPoints)
-			{
+			if (iLastPointsTotal - getAdvancedStartPoints() > iRevealPoints)
 				break;
-			}
 		}
 	}
 
@@ -24635,23 +24600,22 @@ bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const
 bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity) const
 {
 	// If the city has grown, the site has somewhat proven its usefulness.
-	if(kCity.getPopulation() >= 4 + 2 * GC.getGame().getCurrentEra())
+	if (kCity.getPopulation() >= 4 + 2 * GC.getGame().getCurrentEra())
 		return false;
 	double decentTiles = 0;
 	bool const bCountCoast = kCity.isCoastal();
-	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	for (CityPlotIter it(kCity, false); it.hasNext(); ++it)
 	{
-		if(i == CITY_HOME_PLOT)
-			continue;
-		CvPlot* pPlot = kCity.getCityIndexPlot(i);
-		if(pPlot == NULL) continue; CvPlot const& p = *pPlot;
+		CvPlot const& p = *it;
 		if(p.getPlayerCityRadiusCount(kCity.getOwner()) > 1 || p.isImpassable())
 			continue;
 		// Third-party culture
 		PlayerTypes eCulturalOwner = p.calculateCulturalOwner();
 		if(eCulturalOwner != NO_PLAYER && eCulturalOwner != getID() &&
-				eCulturalOwner != kCity.getOwner())
+			eCulturalOwner != kCity.getOwner())
+		{
 			continue;
+		}
 		// Flood plains, oases
 		if(p.calculateNatureYield(YIELD_FOOD, getTeam()) >= 3)
 		{

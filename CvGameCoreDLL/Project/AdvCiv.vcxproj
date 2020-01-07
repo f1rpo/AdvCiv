@@ -193,6 +193,7 @@
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
+    <ClInclude Include="..\CityPlotIterator.h" />
     <ClInclude Include="..\CitySiteEvaluator.h" />
     <ClInclude Include="..\CvAgents.h" />
     <ClInclude Include="..\CvAI.h" />

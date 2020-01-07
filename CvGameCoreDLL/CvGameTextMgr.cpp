@@ -7,7 +7,7 @@
 #include "CvGameTextMgr.h"
 #include "CvInfo_All.h"
 #include "CvXMLLoadUtility.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "RiseFall.h" // advc.700
 #include "CvBugOptions.h"
@@ -5103,16 +5103,16 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 	if (!bFound && !bCanRemove)
 	{
 		bool bOurCity = false;
-		for (int i = 0; i < NUM_CITY_PLOTS; i++) // Look for a city
+		for (CityPlotIter it(kPlot); it.hasNext(); ++it) // Look for a city
 		{
-			CvPlot* pLoopPlot = ::plotCity(kPlot.getX(), kPlot.getY(), i);
-			if (pLoopPlot != NULL && pLoopPlot->isCity() &&
-				(pLoopPlot->getPlotCity()->getOwner() == kActivePlayer.getID() ||
-				(kPlot.getOwner() == kActivePlayer.getID() && pLoopPlot->
-				getPlotCity()->isRevealed(kActiveTeam.getID(), true))))
+			CvPlot const& kLoopPlot = *it;
+			if (kLoopPlot.isCity() &&
+				(kLoopPlot.getPlotCity()->getOwner() == kActivePlayer.getID() ||
+				(kPlot.getOwner() == kActivePlayer.getID() &&
+				kLoopPlot.getPlotCity()->isRevealed(kActiveTeam.getID(), true))))
 			{
 				bOurCity = true;
-				if (gDLL->getInterfaceIFace()->isCitySelected(pLoopPlot->getPlotCity()))
+				if (gDLL->getInterfaceIFace()->isCitySelected(kLoopPlot.getPlotCity()))
 				{
 					bNearSelectedCity = true;
 					break;
@@ -5180,15 +5180,11 @@ void CvGameTextMgr::setHealthHappyBuildActionHelp(CvWStringBuffer& szBuffer, CvP
 	if (kPlot.isCityRadius() && (eNewImprov != NO_IMPROVEMENT || bRemoveFeature))
 	{
 		ImprovementTypes eOldImprov = kPlot.getRevealedImprovementType(eActiveTeam, true);
-		std::vector<CvPlot*> cityCross;
-		::cityCross(kPlot, cityCross);
 		CvWString szNewItem;
 		szNewItem.Format(NEWLINE L"%c", gDLL->getSymbolID(BULLET_CHAR));
-		for (size_t i = 0; i < cityCross.size(); i++)
+		for (CityPlotIter it(kPlot, false); it.hasNext(); ++it)
 		{
-			if (cityCross[i] == NULL)
-				continue;
-			CvCity* pCity = cityCross[i]->getPlotCity();
+			CvCity* pCity = it->getPlotCity();
 			if (pCity == NULL || !pCity->isRevealed(eActiveTeam, true))
 				continue;
 			int iHappyChange, iUnhappyChange, iGoodHealthChange, iBadHealthChange,
@@ -5333,7 +5329,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	}
 
 	CvCityAI const* pPlotCity = kPlot.AI_getPlotCity();
-	if (pPlotCity != NULL)
+	if (pPlotCity != NULL /* advc.003n: */ && !pPlotCity->isBarbarian())
 	{
 		PlayerTypes ePlayer = kPlot.getOwner();
 		CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
@@ -5518,7 +5514,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
 		}
 	}
-	else if (kPlot.getOwner() != NO_PLAYER)
+	else if (kPlot.getOwner() != NO_PLAYER && pPlotCity == NULL)
 	{
 		if(bAlt && !bShift)
 		{
@@ -5745,9 +5741,9 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 	CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
 	if (pWorkingCity != NULL)
 	{
-		int iPlotIndex = pWorkingCity->getCityPlotIndex(&kPlot);
-		int iBuildValue = pWorkingCity->AI_getBestBuildValue(iPlotIndex);
-		BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(iPlotIndex);
+		CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(&kPlot);
+		int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
+		BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
 		// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
 		szString.append(NEWLINE);
 
@@ -6559,18 +6555,20 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 	}
 } // BULL - Leaderhead Relations - end
 
-void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, int iIndex, bool bIgnoreFood, int iGrowthValue) // advc.003u: Param was CvCity*; this function is for AI debugging.
+void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, // advc.003u: Param was CvCity*; this function is for AI debugging.
+	int iPlotIndex, bool bIgnoreFood, int iGrowthValue) 
 {
 	PROFILE_FUNC();
 
+	// advc.enum: Too many call locations; can't change the type of iPlotIndex.
+	CityPlotTypes ePlot = (CityPlotTypes)iPlotIndex;
 	CvPlot* pPlot = NULL;
-
-	if (iIndex >= 0 && iIndex < NUM_CITY_PLOTS)
-		pPlot = pCity->getCityIndexPlot(iIndex);
+	if (ePlot >= 0 && ePlot < NUM_CITY_PLOTS)
+		pPlot = pCity->getCityIndexPlot(ePlot);
 
 	if (pPlot != NULL && pPlot->getWorkingCity() == pCity)
 	{
-		bool bWorkingPlot = pCity->isWorkingPlot(iIndex);
+		bool bWorkingPlot = pCity->isWorkingPlot(ePlot);
 		int iValue = pCity->AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
 		setYieldValueString(szString, iValue, /*bActive*/ bWorkingPlot);
 	}
@@ -12718,24 +12716,24 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	if (iHealth > 0)
 	{
 		FeatureTypes eFeature = NO_FEATURE;
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (CityPlotIter it(city); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
-			if (pLoopPlot == NULL || !pLoopPlot->isFeature())
+			CvPlot const& kPlot = *it;
+			if (!kPlot.isFeature())
 				continue; // advc
 			// <advc.901>
-			int iHealthPercent = GC.getInfo(pLoopPlot->getFeatureType()).getHealthPercent();
-			if (pLoopPlot->getOwner() == city.getOwner())
+			int iHealthPercent = GC.getInfo(kPlot.getFeatureType()).getHealthPercent();
+			if (kPlot.getOwner() == city.getOwner())
 			{
-				ImprovementTypes eImprov = pLoopPlot->getImprovementType();
+				ImprovementTypes eImprov = kPlot.getImprovementType();
 				if (eImprov != NO_IMPROVEMENT)
 					iHealthPercent += GC.getInfo(eImprov).get(CvImprovementInfo::HealthPercent);
 			}
 			if (iHealthPercent < 0) // </advc.901>
 			{
 				if (eFeature == NO_FEATURE)
-					eFeature = pLoopPlot->getFeatureType();
-				else if (eFeature != pLoopPlot->getFeatureType())
+					eFeature = kPlot.getFeatureType();
+				else if (eFeature != kPlot.getFeatureType())
 				{
 					eFeature = NO_FEATURE;
 					break;
@@ -12833,24 +12831,24 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	if (iHealth > 0)
 	{
 		FeatureTypes eFeature = NO_FEATURE;
-		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (CityPlotIter it(city); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(city.getX(), city.getY(), iI);
-			if (pLoopPlot == NULL || !pLoopPlot->isFeature())
+			CvPlot const& kPlot = *it;
+			if (!kPlot.isFeature())
 				continue; // advc
 			// <advc.901>
-			int iHealthPercent = GC.getInfo(pLoopPlot->getFeatureType()).getHealthPercent();
-			if (pLoopPlot->getOwner() == city.getOwner())
+			int iHealthPercent = GC.getInfo(kPlot.getFeatureType()).getHealthPercent();
+			if (kPlot.getOwner() == city.getOwner())
 			{
-				ImprovementTypes eImprov = pLoopPlot->getImprovementType();
+				ImprovementTypes eImprov = kPlot.getImprovementType();
 				if (eImprov != NO_IMPROVEMENT)
 					iHealthPercent += GC.getInfo(eImprov).get(CvImprovementInfo::HealthPercent);
 			}
 			if (iHealthPercent > 0) // </advc.901>
 			{
 				if (eFeature == NO_FEATURE)
-					eFeature = pLoopPlot->getFeatureType();
-				else if (eFeature != pLoopPlot->getFeatureType())
+					eFeature = kPlot.getFeatureType();
+				else if (eFeature != kPlot.getFeatureType())
 				{
 					eFeature = NO_FEATURE;
 					break;
@@ -20122,11 +20120,9 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 
 	// Worked Tiles
 	int iTileFood = 0;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	for (WorkingPlotIter it(kCity); it.hasNext(); ++it)
 	{
-		CvPlot* pPlot = kCity.getCityIndexPlot(i);
-		if(pPlot != NULL && kCity.isWorkingPlot(i))
-			iTileFood += pPlot->getYield(YIELD_FOOD);
+		iTileFood += it->getYield(YIELD_FOOD);
 	}
 	if(iTileFood != 0)
 	{

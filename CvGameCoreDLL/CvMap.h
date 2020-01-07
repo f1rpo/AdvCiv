@@ -170,7 +170,34 @@ public:
 	{
 		return coordDistance(iFromY, iToY, getGridHeight(), isWrapY());
 	}
+
+	inline CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) const						// Exposed to Python (CyGameCoreUtils.py)
+	{	// advc.enum: 3rd param was int
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		return plotValidXY(iX + GC.getCityPlotX()[ePlot], iY + GC.getCityPlotY()[ePlot]);
+	}
+
+	CityPlotTypes plotCityXY(int iDX, int iDY) const // advc.enum: return CityPlotTypes		// Exposed to Python (CyGameCoreUtils.py)
+	{
+		if (abs(iDX) > CITY_PLOTS_RADIUS || abs(iDY) > CITY_PLOTS_RADIUS)
+			return NO_CITYPLOT; // advc.enum
+		return GC.getXYCityPlot(iDX + CITY_PLOTS_RADIUS, iDY + CITY_PLOTS_RADIUS);
+	}
+	// advc: 1st param (CvCity*) replaced with two ints - to allow hypothetical city sites
+	inline CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) const		// Exposed to Python (CyGameCoreUtils.py)
+	{
+		return plotCityXY(dxWrap(kPlot.getX() - iCityX), dyWrap(kPlot.getY() - iCityY));
+	}
+	// advc:
+	inline bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) const
+	{
+		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
+	}
+
 private: // Auxiliary functions
+	/*	These look too large and branchy for inlining, but the keywords do seem
+		to improve performance a little bit. Were also present in BtS. */
+
 	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
 	{
 		if (bWrap && abs(iFrom - iTo) > iRange / 2)
@@ -200,6 +227,14 @@ private: // Auxiliary functions
 		return iCoord;
 	}
 	// </advc.make>
+	/*	advc.opt: Like CvMap::plot but w/o the INVALID_PLOT_COORD check.
+		'inline' tested - faster without it. */
+	CvPlot* plotValidXY(int iX, int iY) const
+	{
+		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
+		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
+		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
+	}
 
 	friend class CyMap;
 public:
@@ -367,7 +402,7 @@ public: // advc: made several functions const
 		}
 		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
 		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
-		return (isPlot(iMapX, iMapY) ? &(m_pMapPlots[plotNum(iMapX, iMapY)]) : NULL);
+		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
 	}
 	__forceinline CvPlot* plotSoren(int iX, int iY) const // advc.inl: Renamed from plotSorenINLINE
 	{
@@ -380,7 +415,7 @@ public: // advc: made several functions const
 	{
 		FAssert(isPlot(x, y));
 		return m_pMapPlots[plotNum(x, y)];
-	} // </advc.inl>
+	} // </advc.inl>  // (Yet another function - plotValidXY - is defined in the private section)
 
 	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
 
@@ -481,6 +516,15 @@ inline DirectionTypes directionXY(int iDX, int iDY)	{
 }
 inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) {
 	return GC.getMap().directionXY(*pFromPlot, *pToPlot);
+}
+inline CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) {
+	return GC.getMap().plotCity(iX, iY, ePlot);
+}
+inline CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) {
+	return GC.getMap().plotCityXY(iCityX, iCityY, kPlot);
+}
+inline bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) { // advc
+	return GC.getMap().adjacentOrSame(kFirstPlot, kSecondPlot);
 }
 // </advc.make>
 #endif

@@ -2232,23 +2232,16 @@ enum UnitSubEntityTypes
 	UNIT_SUB_ENTITY_COUNT
 };
 
-// <advc.enum> (idea from "We the People")
-enum CityPlotTypes
-{
-	NO_CITYPLOT = -1,
+// <advc.enum>
+// CityPlotTypes enum - idea from "We the People"
+ENUM_START(CityPlot, CITYPLOT)
 	CITY_HOME_PLOT = 0,
+	FIRST_ADJACENT_PLOT = 1,
 	CITY_PLOTS_RADIUS = 2,
 	CITY_PLOTS_DIAMETER = CITY_PLOTS_RADIUS * 2 + 1,
 	NUM_INNER_PLOTS = 9,
-	NUM_CITYPLOT_TYPES = 21,
-};
-// (I don't think FOR_EACH_ENUM(CityPlot) is the best way to loop over city plots.)
-/*ENUM_START(CityPlot, CITYPLOT)
-	CITY_HOME_PLOT,
-	CITY_PLOTS_RADIUS = 2,
-	CITY_PLOTS_DIAMETER = CITY_PLOTS_RADIUS * 2 + 1,
 	LAST_CITY_PLOT = 20,
-ENUM_END(CityPlot, CITYPLOT)*/
+ENUM_END(CityPlot, CITYPLOT)
 #define NUM_CITY_PLOTS (int)NUM_CITYPLOT_TYPES
 
 #define DO_FOR_EACH_FALSE_FRIEND(DO) \

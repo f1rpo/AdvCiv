@@ -6,7 +6,7 @@
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "UWAIAgent.h" // advc.104
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_All.h"
 #include "CvDiploParameters.h"
@@ -1373,10 +1373,10 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 		GC.getPythonCaller()->isExplorerPlacementRandomized())
 	{ // advc: style changes in this block
 		int iRandOffset = GC.getGame().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		FOR_EACH_ENUM(CityPlot)
 		{
 			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-					((iI + iRandOffset) % NUM_CITY_PLOTS));
+					(CityPlotTypes)((eLoopCityPlot + iRandOffset) % NUM_CITY_PLOTS));
 			if (pLoopPlot == NULL)
 				continue;
 
@@ -1922,22 +1922,22 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bTrade) // Repercussions of cession: tile culture, war success (city culture: further down)
 	{
 		// <advc.ctr>
-		for(int i = 0; i < NUM_CITY_PLOTS; i++)
+		for (CityPlotIter it(kCityPlot); it.hasNext(); ++it)
 		{
-			CvPlot* pPlot = ::plotCity(kCityPlot.getX(), kCityPlot.getY(), i);
-			if(pPlot == NULL)
-				continue;
-			int iDist = ::plotDistance(pPlot, &kCityPlot);
-			CvCity* pWorkingCity = pPlot->getWorkingCity();
+			CvPlot& kPlot = *it;
+			CvCity* pWorkingCity = kPlot.getWorkingCity();
 			/*  Always reduce eOldOwner culture in the inner circle. Outer circle:
 				Only if tiles not assigned to other cities of eOldOwner. */
-			if(iDist > 1 && pWorkingCity != NULL && pWorkingCity->plot() != &kCityPlot &&
-					pWorkingCity->getOwner() != eOldOwner)
+			if (!::adjacentOrSame(kPlot, kCityPlot) && pWorkingCity != NULL &&
+				pWorkingCity->plot() != &kCityPlot &&
+				pWorkingCity->getOwner() != eOldOwner)
+			{
 				continue;
-			int iConvertedCulture = std::min(pPlot->getCulture(eOldOwner) / 2,
-					2 * pPlot->getCulture(getID()));
-			pPlot->changeCulture(eOldOwner, -iConvertedCulture, false);
-			pPlot->changeCulture(getID(), iConvertedCulture, false);
+			}
+			int iConvertedCulture = std::min(kPlot.getCulture(eOldOwner) / 2,
+					2 * kPlot.getCulture(getID()));
+			kPlot.changeCulture(eOldOwner, -iConvertedCulture, false);
+			kPlot.changeCulture(getID(), iConvertedCulture, false);
 		}
 		// BtS code replaced by the loop above // </advc.ctr>
 		/*for (int iDX = -1; iDX <= 1; iDX++) {
@@ -3642,14 +3642,10 @@ int CvPlayer::countCityFeatures(FeatureTypes eFeature) const
 	int iCount = 0;
 	FOR_EACH_CITY(pLoopCity, *this)
 	{
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		for (CityPlotIter it(*pLoopCity); it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(pLoopCity->getX(), pLoopCity->getY(), iI);
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->getFeatureType() == eFeature)
-					iCount++;
-			}
+			if (it->getFeatureType() == eFeature)
+				iCount++;
 		}
 	}
 	return iCount;
@@ -17539,52 +17535,38 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 	}
 }
 
-EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger, bool bFire, int iCityId, int iPlotX, int iPlotY, PlayerTypes eOtherPlayer, int iOtherPlayerCityId, ReligionTypes eReligion, CorporationTypes eCorporation, int iUnitId, BuildingTypes eBuilding)
+
+EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
+	bool bFire, int iCityId, int iPlotX, int iPlotY, PlayerTypes eOtherPlayer,
+	int iOtherPlayerCityId, ReligionTypes eReligion, CorporationTypes eCorporation,
+	int iUnitId, BuildingTypes eBuilding)
 {
 	CvEventTriggerInfo& kTrigger = GC.getInfo(eEventTrigger);
 
 	CvCity* pCity = getCity(iCityId);
 	CvCity* pOtherPlayerCity = NULL;
-	if (NO_PLAYER != eOtherPlayer)
-	{
+	if (eOtherPlayer != NO_PLAYER)
 		pOtherPlayerCity = GET_PLAYER(eOtherPlayer).getCity(iOtherPlayerCityId);
-	}
+
 	CvPlot* pPlot = GC.getMap().plot(iPlotX, iPlotY);
 	CvUnit* pUnit = getUnit(iUnitId);
 
 	std::vector<CvPlot*> apPlots;
-	bool bPickPlot = ::isPlotEventTrigger(eEventTrigger);
+	bool const bPickPlot = ::isPlotEventTrigger(eEventTrigger);
 	if (kTrigger.isPickCity())
 	{
-		if (NULL == pCity)
-		{
+		if (pCity == NULL)
 			pCity = pickTriggerCity(eEventTrigger);
-		}
-
-		if (NULL != pCity)
-		{
-			if (bPickPlot)
-			{
-				for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; ++iPlot)
-				{
-					if (CITY_HOME_PLOT != iPlot)
-					{
-						CvPlot* pLoopPlot = pCity->getCityIndexPlot(iPlot);
-
-						if (NULL != pLoopPlot)
-						{
-							if (pLoopPlot->canTrigger(eEventTrigger, getID()))
-							{
-								apPlots.push_back(pLoopPlot);
-							}
-						}
-					}
-				}
-			}
-		}
-		else
-		{
+		if (pCity == NULL)
 			return NULL;
+
+		if (bPickPlot)
+		{
+			for (CityPlotIter it(*pCity, false); it.hasNext(); ++it)
+			{
+				if (it->canTrigger(eEventTrigger, getID()))
+					apPlots.push_back(&(*it));
+			}
 		}
 	}
 	else
@@ -17592,7 +17574,6 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 		if (kTrigger.getNumBuildings() > 0 && kTrigger.getNumBuildingsRequired() > 0)
 		{
 			int iFoundValid = 0;
-
 			for (int i = 0; i < kTrigger.getNumBuildingsRequired(); ++i)
 			{
 				if (kTrigger.getBuildingRequired(i) != NO_BUILDINGCLASS)
@@ -17600,17 +17581,13 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 					iFoundValid += getBuildingClassCount((BuildingClassTypes)kTrigger.getBuildingRequired(i));
 				}
 			}
-
 			if (iFoundValid < kTrigger.getNumBuildings())
-			{
 				return NULL;
-			}
 		}
 
 		if (kTrigger.getNumReligions() > 0)
 		{
 			int iFoundValid = 0;
-
 			if (kTrigger.getNumReligionsRequired() > 0)
 			{
 				for (int i = 0; i < kTrigger.getNumReligionsRequired(); ++i)
@@ -17629,16 +17606,12 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 				for (int i = 0; i < GC.getNumReligionInfos(); ++i)
 				{
 					if (getHasReligionCount((ReligionTypes)i) > 0)
-					{
 						++iFoundValid;
-					}
 				}
 			}
 
 			if (iFoundValid < kTrigger.getNumReligions())
-			{
 				return NULL;
-			}
 		}
 
 		if (kTrigger.getNumCorporations() > 0)
@@ -17652,9 +17625,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 					if (kTrigger.getCorporationRequired(i) != NO_CORPORATION)
 					{
 						if (getHasCorporationCount((CorporationTypes)kTrigger.getCorporationRequired(i)) > 0)
-						{
 							++iFoundValid;
-						}
 					}
 				}
 			}
@@ -17663,32 +17634,24 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 				for (int i = 0; i < GC.getNumCorporationInfos(); ++i)
 				{
 					if (getHasCorporationCount((CorporationTypes)i) > 0)
-					{
 						++iFoundValid;
-					}
 				}
 			}
 
 			if (iFoundValid < kTrigger.getNumCorporations())
-			{
 				return NULL;
-			}
 		}
 
 		if (kTrigger.getMinPopulation() > 0)
 		{
 			if (getTotalPopulation() < kTrigger.getMinPopulation())
-			{
 				return NULL;
-			}
 		}
 
 		if (kTrigger.getMaxPopulation() > 0)
 		{
 			if (getTotalPopulation() > kTrigger.getMaxPopulation())
-			{
 				return NULL;
-			}
 		}
 
 		if (bPickPlot)
@@ -22189,22 +22152,15 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion, std::vect
 			if (!pLoopCity->isHolyCity(eSelectedReligion))
 				fAlpha *= 0.5f;
 
-			// loop through the city's plots
-			for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
+			for (CityPlotIter it(*pLoopCity); it.hasNext(); ++it)
 			{
-				CvPlot* pLoopPlot = ::plotCity(pLoopCity->getX(), pLoopCity->getY(), iJ);
-				if (pLoopPlot == NULL)
-					continue;
-
-				// visibility query
-				if (pLoopPlot->isRevealed(getTeam(), true))
+				if (!it->isRevealed(getTeam(), true))
+					continue; // advc
+				int iIndex = GC.getMap().plotNum(it->getX(), it->getY());
+				if (fAlpha > aColors[iIndex].a)
 				{
-					int iIndex = GC.getMap().plotNum(pLoopPlot->getX(), pLoopPlot->getY());
-					if (fAlpha > aColors[iIndex].a)
-					{
-						aColors[iIndex] = kBaseColor;
-						aColors[iIndex].a = fAlpha;
-					}
+					aColors[iIndex] = kBaseColor;
+					aColors[iIndex].a = fAlpha;
 				}
 			}
 		}

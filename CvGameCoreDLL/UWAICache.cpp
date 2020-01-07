@@ -1036,7 +1036,6 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 
 	if(!GET_TEAM(ownerId).AI_deduceCitySite(c) || c->getOwner() == BARBARIAN_PLAYER)
 		return;
-		return;
 	/*  I didn't think I'd need to update the city cache during turns, so this
 		is awkward to write ...
 		Necessary though b/c the AI needs to stay up to date with human conquests. */
@@ -1679,18 +1678,16 @@ void UWAICache::City::updateAssetScore() {
 		r += c.getPopulation() / 2.0;
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;
-	vector<CvPlot*> fc;
-	::cityCross(*c.plot(), fc);
-	for(size_t i = 0; i < fc.size(); i++) {
-		CvPlot const* pp = fc[i];
-		if(pp == NULL)
-			continue;
-		CvPlot const& p = *pp;
+	CvPlot const& centerPlot = *c.plot();
+	for(CityPlotIter it(centerPlot); it.hasNext(); ++it) {
+		CvPlot const& p = *it;
+		CvCity const* workingCity = p.getWorkingCity();
 		// If no working city, we should be able to get the tile by popping borders.
-		if(p.getWorkingCity() != city() && p.getWorkingCity() != NULL && i != 0)
+		if(workingCity != city() && workingCity != NULL &&
+				it.currID() != CITY_HOME_PLOT)
 			continue;
 		// Fall back on city tile for cultureModifier if p unrevealed
-		CvPlot const* cultureTestPlot = fc[0];
+		CvPlot const* cultureTestPlot = &centerPlot;
 		double baseTileScore = 1.0 / 3; // i.e. 1/6 of a resource tile
 		if(p.isRevealed(t.getID())) {
 			// getBonusType ensures that we can see the resource
@@ -1699,7 +1696,7 @@ void UWAICache::City::updateAssetScore() {
 				//&& !t.isHasTech((TechTypes)GC.getInfo(eBonus).getTechCityTrade())
 				baseTileScore = 2;
 			}
-			cultureTestPlot = pp;
+			cultureTestPlot = &p;
 			// Skip tiles that are essentially unworkable
 			int yf = p.calculateNatureYield(YIELD_FOOD, t.getID()),
 				yp = p.calculateNatureYield(YIELD_PRODUCTION, t.getID()),
@@ -1725,7 +1722,7 @@ void UWAICache::City::updateAssetScore() {
 		/*  Don't check if it's actually in the exclusive radius; might be too
 			slow. Instead, only increase cultureModifier for tiles in the
 			inner ring, and increase it based on the weight for the outer ring. */
-		if(::plotDistance(pp, c.plot()) == 1) {
+		if(::stepDistance(&p, &centerPlot) == 1) {
 			double exclMult = 1 + 0.5 * GET_PLAYER(cityOwnerId).
 					AI_exclusiveRadiusWeight(2);
 			cultureModifier = std::min(1.0, cultureModifier * exclMult);

@@ -2,7 +2,7 @@
 #include "CitySiteEvaluator.h"
 #include "CvAI.h"
 #include "CvCivilization.h"
-#include "CvMap.h"
+#include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -402,19 +402,19 @@ short AIFoundValue::evaluate()
 	// K-Mod. (used to devalue cities which are unable to get any production.)
 	int iBaseProductionTimes100 = 0; // (advc.031: Times100)
 
-	for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; iPlot++)
+	FOR_EACH_ENUM(CityPlot)
 	{
 		// <advc.031>
 		bool bShare = false;
 		bool bSteal = false; // </advc.031>
 		bool bCityRadius = false;
 		bool bForeignOwned = false;
-		if (!isUsablePlot(iPlot, iTakenTiles, bCityRadius, bForeignOwned,
+		if (!isUsablePlot(eLoopCityPlot, iTakenTiles, bCityRadius, bForeignOwned,
 			bAnyForeignOwned, bShare, bSteal))
 		{
 			continue;
 		}
-		CvPlot const& p = *plotCity(iX, iY, iPlot);
+		CvPlot const& p = *plotCity(iX, iY, eLoopCityPlot);
 		bool const bHome = isHome(p);
 		// advc.035: The own-exclusive-radius rule only helps if the radii don't overlap
 		bool const bOwnExcl = (GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) &&
@@ -461,7 +461,7 @@ short AIFoundValue::evaluate()
 		{
 			iCultureModifier = calculateCultureModifier(
 					p, bForeignOwned, bShare, bCityRadius, bSteal,
-					abFlip[iPlot], bOwnExcl, iTakenTiles, iStealPercent);
+					abFlip[eLoopCityPlot], bOwnExcl, iTakenTiles, iStealPercent);
 			FAssertBounds(0, 101, iCultureModifier);
 		}  // <advc.031>
 		iFeatureProduction = (iFeatureProduction * iCultureModifier) / 100;
@@ -547,7 +547,7 @@ short AIFoundValue::evaluate()
 		else
 		{
 			iPlotValue = applyCultureModifier(p, iPlotValue, iCultureModifier, bShare);
-			aiPlotValues[iPlot] = iPlotValue; // Sum these up later
+			aiPlotValues[eLoopCityPlot] = iPlotValue; // Sum these up later
 		}
 		bool const bEasyAccess = /* K-Mod (!!): */ ((p.isWater() && (bCoastal ||
 				p.getArea().getCitiesPerPlayer(ePlayer, true) > 0)) || // advc.031
@@ -758,10 +758,10 @@ bool AIFoundValue::isSiteValid() const
 			IFLOG logBBAI("Can't start on goody hut");
 			return false;
 		}
-		for (int i = 0; i < NUM_CITY_PLOTS; i++)
+		FOR_EACH_ENUM(CityPlot)
 		{
-			CvPlot const* p = plotCity(iX, iY, i);
-			if  (p == NULL)
+			CvPlot const* p = plotCity(iX, iY, eLoopCityPlot);
+			if (p == NULL)
 			{
 				IFLOG logBBAI("Can't start near the edge of a flat map");
 				return false;
@@ -771,9 +771,9 @@ bool AIFoundValue::isSiteValid() const
 	else // advc.031: Not relevant for StartingLoc
 	{
 		int iOwnedTiles = 0;
-		for (int i = 0; i < NUM_CITY_PLOTS; i++)
+		FOR_EACH_ENUM(CityPlot)
 		{
-			CvPlot const* p = plotCity(iX, iY, i);
+			CvPlot const* p = plotCity(iX, iY, eLoopCityPlot);
 			if (p == NULL)
 				iOwnedTiles += 2;
 			else if (p->isOwned() && p->getTeam() != eTeam)
@@ -783,7 +783,7 @@ bool AIFoundValue::isSiteValid() const
 				iOwnedTiles++;
 				/*  <advc.031> Count tiles only half if they're in our inner ring
 					and can't be worked by any foreign city. */
-				if (!isInnerRing(*p, kPlot) || p->isCityRadius())
+				if (!adjacentOrSame(*p, kPlot) || p->isCityRadius())
 					iOwnedTiles++; // </advc.031>
 			}
 		}
@@ -820,29 +820,25 @@ bool AIFoundValue::computeOverlap()
 		!kSet.isDebug() && // advc.007
 		!bBarbarian) // advc.303: Barbarians don't have city sites
 	{
-		for (int i = 0; i < kPlayer.AI_getNumCitySites(); i++)
+		for (int iSite = 0; iSite < kPlayer.AI_getNumCitySites(); iSite++)
 		{
-			CvPlot const* pCitySitePlot = kPlayer.AI_getCitySite(i);
+			CvPlot const* pCitySitePlot = kPlayer.AI_getCitySite(iSite);
 			if (pCitySitePlot == &kPlot)
 				continue;
 			FAssert(pCitySitePlot != NULL);
-			if (plotDistance(iX, iY, pCitySitePlot->getX(), pCitySitePlot->getY()) <=
+			if (plotDistance(&kPlot, pCitySitePlot) <=
 				GC.getDefineINT(CvGlobals::MIN_CITY_RANGE) &&
 				pCitySitePlot->sameArea(kPlot))
 			{
 				IFLOG logBBAI("Too close to one of the sites we've already chosen");
 				return false;
 			}
-			for (int j = 0; j < NUM_CITY_PLOTS; j++)
+			for (CityPlotIter it(kPlot); it.hasNext(); ++it)
 			{
-				CvPlot const* p = plotCity(iX, iY, j);
-				if (p != NULL)
+				if (plotDistance(&(*it), pCitySitePlot) <= CITY_PLOTS_RADIUS)
 				{
-					if (plotDistance(p, pCitySitePlot) <= CITY_PLOTS_RADIUS)
-					{
-						//Plot is inside the radius of a city site
-						aiCitySiteRadius[j] = i;
-					}
+					//Plot is inside the radius of a city site
+					aiCitySiteRadius[it.currID()] = iSite;
 				}
 			}
 		}
@@ -852,22 +848,22 @@ bool AIFoundValue::computeOverlap()
 	{
 		FOR_EACH_CITY(c, kPlayer)
 		{
-			for(int i = 0; i < NUM_CITY_PLOTS; i++)
+			FOR_EACH_ENUM(CityPlot)
 			{
-				CvPlot const* p = plotCity(iX, iY, i);
+				CvPlot const* p = plotCity(iX, iY, eLoopCityPlot);
 				if(p != NULL && plotDistance(p->getX(), p->getY(),
 						c->getX(), c->getY()) <= CITY_PLOTS_RADIUS)
-					abOwnCityRadius[i] = true;
+					abOwnCityRadius[eLoopCityPlot] = true;
 			}
 		}
-		if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
+		if (GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		{
-			for(int i = 0; i < NUM_CITY_PLOTS; i++)
+			FOR_EACH_ENUM(CityPlot)
 			{
-				CvPlot const* p = plotCity(iX, iY, i);
-				abFlip[i] = (!abOwnCityRadius[i] && p != NULL &&
-						p->isOwned() && p->isCityRadius() &&
-						p->getTeam() != eTeam &&
+				CvPlot const* p = plotCity(iX, iY, eLoopCityPlot);
+				abFlip[eLoopCityPlot] = (!abOwnCityRadius[eLoopCityPlot] &&
+						p != NULL && p->isOwned() &&
+						p->isCityRadius() && p->getTeam() != eTeam &&
 						(p->getSecondOwner() == ePlayer ||
 						/*  The above is enough b/c the tile may not be within the
 							culture range of one of our cities; but it will be once
@@ -896,9 +892,9 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 	int& iRevealedDecentLand) const // advc.040
 {
 	int iBadTiles = 0;
-	for (int iPlot = 0; iPlot < NUM_CITY_PLOTS; iPlot++)
+	FOR_EACH_ENUM(CityPlot)
 	{
-		CvPlot const* p = plotCity(iX, iY, iPlot);
+		CvPlot const* p = plotCity(iX, iY, eLoopCityPlot);
 		/*  <advc.031> NULL and impassable count as 2 bad tiles (as in BtS),
 			but don't cheat with unrevealed tiles. */
 		if (p == NULL)
@@ -914,7 +910,7 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 		if (isHome(*p))
 			continue;
 		// <advc.303>
-		if (bBarbarian && !isInnerRing(*p, kPlot))
+		if (bBarbarian && !adjacentOrSame(*p, kPlot))
 		{
 			/*  Rational Barbarians wouldn't mind settling one off the coast,
 				but human players do mind, and some really hate this.
@@ -957,7 +953,7 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 		}
 		else if (p->isOwned())
 		{
-			if(!abFlip[iPlot]) // advc.035
+			if(!abFlip[eLoopCityPlot]) // advc.035
 			{
 				if (p->getTeam() != eTeam || p->isBeingWorked())
 					iBadTiles++;
@@ -988,20 +984,22 @@ bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
 	bool bHasGoodBonus = false;
 	int iMediocreBonuses = 0; // advc.031
 	int iFreshWaterTiles = (kPlot.isFreshWater() ? 1 : 0); // advc.031 (count kPlot twice)
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
+	for (CityPlotIter it(kPlot); it.hasNext(); ++it)
 	{
-		CvPlot const* p = plotCity(iX, iY, iI);
-		if(p == NULL || !isRevealed(*p))
+		CvPlot const& p = *it;
+		if(!isRevealed(p))
 			continue;
 		// <advc.303>
-		if(bBarbarian && !isInnerRing(*p, kPlot))
+		if(bBarbarian && !adjacentOrSame(p, kPlot))
 			continue; // </advc.303>
-		if(p->isOwned()
-				// <advc.031>
-				&& (p->getOwner() != ePlayer ||
-				p->getCityRadiusCount() > 0)) // </advc.031>
+		if(p.isOwned() &&
+			// <advc.031>
+			(p.getOwner() != ePlayer ||
+			p.getCityRadiusCount() > 0)) // </advc.031>
+		{
 			continue;
-		BonusTypes eBonus = getBonus(*p); // advc.108
+		}
+		BonusTypes eBonus = getBonus(p); // advc.108
 		if (eBonus != NO_BONUS &&
 			!kTeam.isBonusObsolete(eBonus)) // K-Mod
 		{
@@ -1009,15 +1007,15 @@ bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
 				kPlayer.AI_bonusVal(eBonus, 1, true) > 10 ||
 				GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0) &&
 				// <advc.031> Moved from above
-				(p->isWater() || p->isArea(kArea) ||
-				p->getArea().getCitiesPerPlayer(ePlayer) > 0)) // </advc.031>
+				(p.isWater() || p.isArea(kArea) ||
+				p.getArea().getCitiesPerPlayer(ePlayer) > 0)) // </advc.031>
 			{
 				bHasGoodBonus = true;
 				break;
 			} // <advc.031>
 			else iMediocreBonuses++;
 		}
-		if(p->isFreshWater())
+		if(p.isFreshWater())
 			iFreshWaterTiles++; // </advc.031>
 	}
 
@@ -1048,16 +1046,16 @@ int AIFoundValue::baseCityValue() const
 }
 
 
-bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
+bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCityRadius,
 	bool& bForeignOwned, bool& bAnyForeignOwned, bool& bShare, bool& bSteal) const
 {
-	CvPlot const* p = plotCity(iX, iY, iPlot);
+	CvPlot const* p = plotCity(iX, iY, ePlot);
 	if (p == NULL)
 	{
 		iTakenTiles++;
 		return false;
 	}
-	bool const bInnerRing = isInnerRing(*p, kPlot);
+	bool const bInnerRing = adjacentOrSame(*p, kPlot);
 	// <advc.303>
 	if (bBarbarian && !bInnerRing)
 		return false; // </advc.303>
@@ -1071,7 +1069,7 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 	if (isHome(*p))
 		return true;
 	// <advc.035>
-	if (abFlip[iPlot])
+	if (abFlip[ePlot])
 	{
 		IFLOG logBBAI("Assumed to flip: %S", p->debugStr());
 		return true;
@@ -1083,7 +1081,7 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 	bForeignOwned = (eOwner != NO_PLAYER && eOwner != ePlayer);
 	bSteal = (bCityRadius && bForeignOwned);
 	 // </advc.031>
-	if (bCityRadius || aiCitySiteRadius[iPlot] >= 0)
+	if (bCityRadius || aiCitySiteRadius[ePlot] >= 0)
 	{
 		iTakenTiles++;
 		// <advc.040>
@@ -1096,10 +1094,10 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 	// <advc.031> ^Exactly
 	/*  Still don't allow tiles to be shared between (planned) city sites
 		-- too difficult to estimate how many tiles each site will need. */
-	if (aiCitySiteRadius[iPlot] >= 0)
+	if (aiCitySiteRadius[ePlot] >= 0)
 	{
 		IFLOG logBBAI("%S reserved for higher-priority site at (%d,%d)", p->debugStr(),
-				kPlayer.AI_getCitySite(aiCitySiteRadius[iPlot])->getX(), kPlayer.AI_getCitySite(aiCitySiteRadius[iPlot])->getY());
+				kPlayer.AI_getCitySite(aiCitySiteRadius[ePlot])->getX(), kPlayer.AI_getCitySite(aiCitySiteRadius[ePlot])->getY());
 		return false;
 	}
 	bool bOtherInnerRing = false;
@@ -1112,7 +1110,7 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 			return false;
 		}
 		pOtherCity = p->AI_getWorkingCity();
-		if (pOtherCity == NULL && abOwnCityRadius[iPlot])
+		if (pOtherCity == NULL && abOwnCityRadius[ePlot])
 		{
 			IFLOG logBBAI("(%d,%d) is in the radius of a %S city whose borders haven't expanded yet",
 					p->getX(), p->getY(), kPlayer.debugCivDescr());
@@ -1125,7 +1123,7 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 				be enough to locate the city. */
 			iCities == 0))
 		{
-			bOtherInnerRing = isInnerRing(*p, *pOtherCity->plot());
+			bOtherInnerRing = adjacentOrSame(*p, *pOtherCity->plot());
 			FAssert(!bInnerRing || !bOtherInnerRing || !pOtherCity->isArea(kArea));
 			if (bForeignOwned && (bOtherInnerRing ||
 				// Don't try to overlap with team member or master
@@ -1149,14 +1147,14 @@ bool AIFoundValue::isUsablePlot(int iPlot, int& iTakenTiles, bool& bCityRadius,
 		return false;
 	}
 	CvPlot const* pOtherPlot = pOtherCity->plot();
-	int const iOtherPlotIndex = pOtherCity->getCityPlotIndex(p);
-	if (GC.getCityPlotPriority()[iPlot] >= GC.getCityPlotPriority()[iOtherPlotIndex])
+	CityPlotTypes const eOtherPlotIndex = pOtherCity->getCityPlotIndex(p);
+	if (GC.getCityPlotPriority()[ePlot] >= GC.getCityPlotPriority()[eOtherPlotIndex])
 	{
 		IFLOG logBBAI("%S has higher priority for (%d,%d)", cityName(*pOtherCity), p->getX(), p->getY());
 		return false;
 	}
 	// Check if the other city is going to need the tile in the medium term
-	if (pOtherCity->AI_isGoodPlot(iOtherPlotIndex) &&
+	if (pOtherCity->AI_isGoodPlot(eOtherPlotIndex) &&
 		pOtherCity->AI_countGoodPlots() -
 		pOtherCity->getPopulation() +
 		pOtherCity->getSpecialistPopulation() <= 3)
@@ -1402,9 +1400,11 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	if (bForeignOwned && p.isBarbarian())
 		rateModifier *= 1.55;
 	else if(pForeignCity != NULL &&
-			// advc.303: Barbarian borders won't expand
-			!isInnerRing(p, *pForeignCity->plot()))
+		// advc.303: Barbarian borders won't expand
+		!adjacentOrSame(p, *pForeignCity->plot()))
+	{
 		rateModifier *= 1.8;
+	}
 	if (!p.isArea(kArea))
 		rateModifier /= 1.3;
 	else if (pForeignCity != NULL && !pForeignCity->isArea(p.getArea()))
@@ -1432,15 +1432,15 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	}
 	double const freeForeignCultureModifier = (iFreeForeignCulture + 7) / 7.0;
 	// Extra pessimism about tiles that another civ is able to work (borders already expanded)
-	if(bSteal)
+	if (bSteal)
 	{
 		rateModifier = 0.62;
-		if (pForeignCity != NULL && isInnerRing(p, *pForeignCity->plot()))
+		if (pForeignCity != NULL && adjacentOrSame(p, *pForeignCity->plot()))
 			rateModifier /= 1.5;
 		if (bForeignOwned)
 			rateModifier *= freeForeignCultureModifier;
 	}
-	if (isInnerRing(p, kPlot))
+	if (adjacentOrSame(p, kPlot))
 		rateModifier *= 1.5; // as in K-Mod
 	else rateModifier *= freeForeignCultureModifier;	
 	if (bCityRadius && !bShare)
@@ -1904,9 +1904,9 @@ int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 	double const exp = std::log(maxMultPercent - minMultPercent) /
 			std::log(NUM_CITY_PLOTS - 1.0);
 	int r = 0;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++)
+	FOR_EACH_ENUM(CityPlot)
 	{
-		int iPlotValue = aiPlotValues[i];
+		int iPlotValue = aiPlotValues[eLoopCityPlot];
 		if (iPlotValue > 0)
 		{
 			iPlotValue = std::max(iPlotValue / 3,
@@ -1916,7 +1916,7 @@ int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 					minMultPercent) / (NUM_CITY_PLOTS - 1))));*/
 					// Try power law instead:
 					normalizMult * (minMultPercent + std::pow((double)
-					std::abs(NUM_CITY_PLOTS - 1 - i), exp))));
+					std::abs(NUM_CITY_PLOTS - 1 - eLoopCityPlot), exp))));
 		}
 		r += iPlotValue;
 	}
@@ -2727,14 +2727,12 @@ bool AIFoundValue::isDeadlockedBonus(CvPlot const& kBonusPlot, int iMinRange) co
 	bool bCanFound = false;
 	bool bNeverFound = true;
 	//look for a city site [kOtherSite] within a city radius [around kBonusPlot]
-	for(int iPlot = 0; iPlot < NUM_CITY_PLOTS; iPlot++)
+	for (CityPlotIter it(kBonusPlot); it.hasNext(); ++it)
 	{
-		CvPlot const* p = plotCity(kBonusPlot.getX(), kBonusPlot.getY(), iPlot);
-		if(p == NULL ||
-				// advc.031: Won't want to settle on top of another resource
-				getBonus(*p) != NO_BONUS)
-			continue;
-		CvPlot const& kOtherSite = *p;
+		CvPlot const& kOtherSite = *it;
+		// <advc.031> Won't want to settle on top of another resource
+		if(getBonus(kOtherSite) != NO_BONUS)
+			continue; // </advc.031>
 		// <advc.031> Need to be able to see if there's land
 		if (!isRevealed(kOtherSite) && !kOtherSite.isAdjacentRevealed(eTeam))
 			continue; // </advc.031>
