@@ -2637,10 +2637,8 @@ void CvTeam::setStolenVisibilityTimer(TeamTypes eIndex, int iNewValue)
 		for (int iI = 0; iI < kMap.numPlots(); iI++)
 		{
 			CvPlot& kPlot = kMap.getPlotByIndex(iI);
-			if (kPlot.isVisible(eIndex, false))
-			{
+			if (kPlot.isVisible(eIndex))
 				kPlot.changeStolenVisibilityCount(getID(), isStolenVisibility(eIndex) ? 1 : -1);
-			}
 		}
 	}
 }
@@ -2836,33 +2834,33 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 		if (pUnit1 != NULL && pUnit1->getTeam() == eIndex)
 		{
 			ePlayerMet = pUnit1->getOwner();
-			if (pUnit1->plot()->isVisible(getID(), false))
+			if (pUnit1->plot()->isVisible(getID()))
 				pUnitMet = pUnit1;
 		}
 		if (pUnit2 != NULL && pUnit2->getTeam() == eIndex)
 		{
 			if (ePlayerMet == NO_PLAYER)
 				ePlayerMet = pUnit2->getOwner();
-			if (pUnit2->plot()->isVisible(getID(), false))
+			if (pUnit2->plot()->isVisible(getID()))
 				pUnitMet = pUnit2;
 		}
 		if (pAt1 != NULL && pAt1->isOwned() && pAt1->getTeam() == eIndex)
 		{
-			if (pAt1->isVisible(getID(), false))
+			if (pAt1->isVisible(getID()))
 				pAt = pAt1;
 			if (ePlayerMet == NO_PLAYER)
 				ePlayerMet = pAt1->getOwner();
 		}
 		if (pAt2 != NULL && pAt2->isOwned() && pAt2->getTeam() == eIndex)
 		{
-			if (pAt2->isVisible(getID(), false))
+			if (pAt2->isVisible(getID()))
 				pAt = pAt2;
 			if (ePlayerMet == NO_PLAYER)
 				ePlayerMet = pAt2->getOwner();
 		}
 		if (ePlayerMet == NO_PLAYER)
 			ePlayerMet = GET_TEAM(eIndex).getLeaderID();
-		if (pUnitMet != NULL && pUnitMet->plot()->isVisible(getID(), false))
+		if (pUnitMet != NULL && pUnitMet->plot()->isVisible(getID()))
 			pAt = pUnitMet->plot();
 		if (pAt == NULL) // We can't see any of their tiles or units, but they see ours.
 		{

@@ -2232,7 +2232,7 @@ void CvCityAI::AI_chooseProduction()
 				CvCity* pTargetCity = kArea.AI_getTargetCity(kPlayer.getID());
 				if(pTargetCity != NULL && sameArea(*pTargetCity) &&
 					pWaterArea != NULL && pWaterArea == pTargetCity->waterArea(true) &&
-					(!pTargetCity->isVisible(kPlayer.getTeam(), false) ||
+					(!pTargetCity->isVisible(kPlayer.getTeam()) ||
 					pTargetCity->getDefenseModifier(true) > 10))
 				{
 					bAssaultAlongCoast = true;

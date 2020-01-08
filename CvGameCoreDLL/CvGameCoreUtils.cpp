@@ -1945,14 +1945,14 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 		int iEnemyDefence = 0;
 
-		if (kToPlot.isVisible(eTeam, false))
+		if (kToPlot.isVisible(eTeam))
 		{	/*  <advc.001> In the rare case that the AI plans war while animals
 				still roam the map, the DefenceStrength computation will crash
 				when it gets to the point where the UnitCombatType is accessed.
 				(Actually, not so exotic b/c advc.300 allows animals to survive
 				in continents w/o civ cities.) */
 			CvUnit* pUnit = kToPlot.getUnitByIndex(0);
-			if(pUnit != NULL && !pUnit->isAnimal()) // </advc.001>
+			if (pUnit != NULL && !pUnit->isAnimal()) // </advc.001>
 			{
 				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).
 						AI_localDefenceStrength(&kToPlot, NO_TEAM,
@@ -1974,7 +1974,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			// I just haven't done that yet, mostly because I'm worried about performance.
 			if (iAttackRatio < 400)
 			{
-				iWorstCost += PATH_MOVEMENT_WEIGHT * GC.getMOVE_DENOMINATOR() * (400-iAttackRatio)/std::min(150, iAttackRatio);
+				iWorstCost += PATH_MOVEMENT_WEIGHT * GC.getMOVE_DENOMINATOR() * (400-iAttackRatio) /
+						std::min(150, iAttackRatio);
 			}
 			// else, don't worry about it too much.
 		}

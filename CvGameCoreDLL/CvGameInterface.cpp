@@ -244,7 +244,7 @@ void CvGame::updateColoredPlots()
 			for (int iDY = -iRange; iDY <= iRange; iDY++)
 			{
 				CvPlot* pTargetPlot = m.plotXY(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), iDX, iDY);
-				if (pTargetPlot != NULL && pTargetPlot->isVisible(pHeadSelectedUnit->getTeam(), false))
+				if (pTargetPlot != NULL && pTargetPlot->isVisible(pHeadSelectedUnit->getTeam()))
 				{
 					if (m.plotDistance(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), pTargetPlot->getX(), pTargetPlot->getY()) <= iRange)
 					{
@@ -333,7 +333,7 @@ void CvGame::updateColoredPlots()
 				for (int iDY = -(iRange); iDY <= iRange; iDY++)
 				{
 					CvPlot* pLoopPlot = m.plotXY(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), iDX, iDY);
-					if (pLoopPlot != NULL && pLoopPlot->isVisible(pHeadSelectedUnit->getTeam(), false) &&
+					if (pLoopPlot != NULL && pLoopPlot->isVisible(pHeadSelectedUnit->getTeam()) &&
 						pLoopPlot->isRevealedGoody(pHeadSelectedUnit->getTeam()))
 					{
 						if (site_path.GeneratePath(pLoopPlot))
@@ -1038,8 +1038,10 @@ bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool
 				pMissionPlot = pSelectedGroup->lastMissionPlot();
 			else pMissionPlot = NULL;
 			if (pMissionPlot == NULL ||
-					!pMissionPlot->isVisible(pHeadSelectedUnit->getTeam(), false))
+				!pMissionPlot->isVisible(pHeadSelectedUnit->getTeam()))
+			{
 				pMissionPlot = pSelectedGroup->plot();
+			}
 		}
 		else pMissionPlot = pSelectedInterfaceList->plot();
 		if (pSelectedInterfaceList->canStartMission(GC.getActionInfo(iAction).

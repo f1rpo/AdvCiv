@@ -203,6 +203,11 @@ public:
 	bool isBarbarian() const;																					// Exposed to Python
 	bool isHuman() const;																						// Exposed to Python
 	DllExport bool isVisible(TeamTypes eTeam, bool bDebug) const;												// Exposed to Python
+	// advc: Make bDebug=false the default
+	inline bool isVisible(TeamTypes eTeam) const
+	{
+		return isVisible(eTeam, false);
+	}
 
 	bool isCapital() const;																						// Exposed to Python
 	bool isPrereqBonusSea() const; // advc.041

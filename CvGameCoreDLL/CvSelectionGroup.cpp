@@ -331,7 +331,7 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 		bool bInSpectatorsBorders = ((eFromOwner != NO_PLAYER &&
 				eObs == TEAMID(eFromOwner)) || (eToOwner != NO_PLAYER &&
 				eObs == TEAMID(eToOwner)));
-		bool bEnteringOrLeaving = (plot()->isVisible(eObs, false) != kFromPlot.isVisible(eObs, false));
+		bool bEnteringOrLeaving = (plot()->isVisible(eObs) != kFromPlot.isVisible(eObs));
 		bool bSeaPatrol = (getDomainType() == DOMAIN_SEA &&
 				AI().AI_getMissionAIType() == MISSIONAI_PATROL);
 		// Just to avoid cycling through the units
@@ -744,9 +744,12 @@ void CvSelectionGroup::startMission()
 		{
 		case MISSION_MOVE_TO:
 			// K-Mod. Prevent human players from accidentally attacking units that they can't see.
-			if (isHuman() && !GC.getMap().getPlot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2).isVisible(getTeam(), false))
+			if (isHuman() && !GC.getMap().getPlot(
+				headMissionQueueNode()->m_data.iData1,
+				headMissionQueueNode()->m_data.iData2).isVisible(getTeam()))
+			{
 				headMissionQueueNode()->m_data.iFlags |= MOVE_NO_ATTACK;
-
+			}
 			// also, we should allow an amphibious landing even if we are out of moves.
 			if (!canAllMove())
 			{
@@ -2228,7 +2231,7 @@ bool CvSelectionGroup::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar
 	if(getNumUnits() <= 0)
 		return false;
 
-	bool bVisible = bAssumeVisible || kPlot.isVisible(getHeadTeam(), false); // K-Mod
+	bool const bVisible = bAssumeVisible || kPlot.isVisible(getHeadTeam()); // K-Mod
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
 		pUnitNode = nextUnitNode(pUnitNode))
 	{

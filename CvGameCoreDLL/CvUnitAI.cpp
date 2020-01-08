@@ -1012,7 +1012,7 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 	if (bCountCollateral && collateralDamage() > 0)
 	{
 		int iPossibleTargets = collateralDamageMaxUnits();
-		if (bCheckCanAttack && pPlot != NULL && pPlot->isVisible(getTeam(), false))
+		if (bCheckCanAttack && pPlot != NULL && pPlot->isVisible(getTeam()))
 			iPossibleTargets = std::min(iPossibleTargets, pPlot->getNumVisibleEnemyDefenders(this) - 1);
 		// If !bCheckCanAttack, then lets not assume kPlot won't get more units on it.
 		// advc: But let's put some cap on the number of targets
@@ -13373,7 +13373,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 				int iEnemyDefence = -1; // used later.
 				int iOffenceEnRoute = kOwner.AI_cityTargetStrengthByPath(
 						pLoopCity, getGroup(), iPathTurns);
-				if (pLoopCity->isVisible(getTeam(), false))
+				if (pLoopCity->isVisible(getTeam()))
 				{
 					iEnemyDefence = kOwner.AI_localDefenceStrength(pLoopCity->plot(),
 							NO_TEAM, DOMAIN_LAND, true, iPathTurns > 1 ? 2 : 0);
@@ -13432,7 +13432,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 				}
 				/*  boost value if we can see that the city is poorly defended,
 					or if our existing armies need help there */
-				if (pLoopCity->isVisible(getTeam(), false) && iPathTurns < 6)
+				if (pLoopCity->isVisible(getTeam()) && iPathTurns < 6)
 				{
 					FAssert(iEnemyDefence != -1);
 					if (iOffenceEnRoute > iEnemyDefence/3 && iOffenceEnRoute < iEnemyDefence)
@@ -13900,12 +13900,16 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iFlags, int iMin
 			if (!bAllowCities && pLoopPlot->isCity())
 				continue;
 			// <advc.128>
-			if((std::abs(iDX) > iSearchRangeRand || std::abs(iDY) > iSearchRangeRand)
-					&& !pLoopPlot->isVisible(getTeam(), false))
-				continue; // </advc.128>
-			if (bDeclareWar
-				? !pLoopPlot->isVisiblePotentialEnemyUnit(getOwner()) && !(pLoopPlot->isCity() && AI_potentialEnemy(pLoopPlot->getPlotCity()->getTeam(), pLoopPlot))
-				: !pLoopPlot->isVisibleEnemyUnit(this) && !pLoopPlot->isEnemyCity(*this))
+			if(std::max(std::abs(iDX), std::abs(iDY)) > iSearchRangeRand &&
+				!pLoopPlot->isVisible(getTeam()))
+			{
+				continue;
+			} // </advc.128>
+			if (bDeclareWar ?
+				(!pLoopPlot->isVisiblePotentialEnemyUnit(getOwner()) &&
+				!(pLoopPlot->isCity() &&
+				AI_potentialEnemy(pLoopPlot->getPlotCity()->getTeam(), pLoopPlot))) :
+				(!pLoopPlot->isVisibleEnemyUnit(this) && !pLoopPlot->isEnemyCity(*this)))
 			{
 				continue;
 			}
@@ -14533,7 +14537,7 @@ bool CvUnitAI::AI_pirateBlockade()
 				continue;
 			CvPlot const* pp = plotXY(getX(), getY(), dx, dy);
 			if(pp == NULL) continue; CvPlot const& p = *pp;
-			if(!p.isVisible(getTeam(), false) || (!p.isArea(getArea()) && !p.isCity()))
+			if(!p.isVisible(getTeam()) || (!p.isArea(getArea()) && !p.isCity()))
 				continue;
 			if(p.getNumUnits() > 20) // Make sure we're not spending too much time
 				continue;
@@ -15181,7 +15185,9 @@ bool CvUnitAI::AI_found(int iFlags)
 						int iPathTurns;
 						if (generatePath(pCitySitePlot, iFlags, true, &iPathTurns))
 						{
-							if (!pCitySitePlot->isVisible(getTeam(), false) || !pCitySitePlot->isVisibleEnemyUnit(this) || (iPathTurns > 1 && getGroup()->canDefend())) // K-Mod
+							if (!pCitySitePlot->isVisible(getTeam()) || // K-Mod
+								!pCitySitePlot->isVisibleEnemyUnit(this) ||
+								(iPathTurns > 1 && getGroup()->canDefend())) // K-Mod
 							{
 								int iValue = pCitySitePlot->getFoundValue(getOwner());
 								// <advc.052>
@@ -15260,10 +15266,8 @@ static int estimateAndCacheCityDefence(CvPlayerAI& kPlayer, CvCityAI const* pCit
 	int iDefenceStrength = -1;
 	if (city_it == city_defence_cache.end())
 	{
-		if (pCity->plot()->isVisible(kPlayer.getTeam(), false))
-		{
+		if (pCity->plot()->isVisible(kPlayer.getTeam()))
 			iDefenceStrength = kPlayer.AI_localDefenceStrength(pCity->plot(), NO_TEAM);
-		}
 		else
 		{
 			// If we don't have vision of the city, we should try to estimate its strength based the expected number of defenders.
@@ -15380,7 +15384,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 
 		CvCityAI const* pCity = kPlot.AI_getPlotCity();
 		// If the plot can't be seen, then just roughly estimate what the AI might think is there...
-		int iEnemyDefenders = (kPlot.isVisible(getTeam(), false) || GET_TEAM(getTeam()).AI_getStrengthMemory(&kPlot))
+		int iEnemyDefenders = (kPlot.isVisible(getTeam()) || GET_TEAM(getTeam()).AI_getStrengthMemory(&kPlot))
 			? kPlot.getNumVisiblePotentialEnemyDefenders(this)
 			: (pCity ? pCity->AI_neededDefenders() : 0);
 
@@ -15398,9 +15402,9 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 				iDefenceStrength = estimateAndCacheCityDefence(kOwner, pCity, city_defence_cache);
 			else
 			{
-				iDefenceStrength = (kPlot.isVisible(getTeam(), false) ?
-					kOwner.AI_localDefenceStrength(&kPlot, NO_TEAM) :
-					GET_TEAM(kOwner.getTeam()).AI_getStrengthMemory(&kPlot));
+				iDefenceStrength = (kPlot.isVisible(getTeam()) ?
+						kOwner.AI_localDefenceStrength(&kPlot, NO_TEAM) :
+						GET_TEAM(kOwner.getTeam()).AI_getStrengthMemory(&kPlot));
 			}
 			// Note: the amphibious attack modifier is already taken into account by AI_localAttackStrength,
 			// but I'm going to apply a similar penality again just to discourage the AI from attacking amphibiously when they don't need to.
@@ -15469,7 +15473,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			iBaseValue += kOwner.AI_targetCityValue(pCity, false, false); // maybe false, true?
 
 			if (pCity->plot() == &kPlot)
-				iValueMultiplier *= (kPlot.isVisible(getTeam(), false) ? 5 : 2); // apparently we can take the city amphibiously
+				iValueMultiplier *= (kPlot.isVisible(getTeam()) ? 5 : 2); // apparently we can take the city amphibiously
 			else
 			{
 				// prefer to join existing assaults. (maybe we should calculate the actual attack strength here and roll it into the strength comparison modifier below)
@@ -15481,14 +15485,13 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 				// However, keep in mind that if we often won't be able to see the city to gauge their defenses.
 
 
-				if (iDefenceStrength > 0 || kPlot.isVisible(getTeam(), false)) // otherwise, assume we have no idea what's there.
+				if (iDefenceStrength > 0 || kPlot.isVisible(getTeam())) // otherwise, assume we have no idea what's there.
 				{
-					if (kPlot.isVisible(getTeam(), false))
-						iModifier = std::min(100, 125*iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
-					else iModifier = std::min(50, 75*iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
+					if (kPlot.isVisible(getTeam()))
+						iModifier = std::min(100, 125 * iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
+					else iModifier = std::min(50, 75 * iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
 				}
-
-				iValueMultiplier = (100+iModifier)*iValueMultiplier / 100;
+				iValueMultiplier = (100 + iModifier) * iValueMultiplier / 100;
 			}
 		}
 
@@ -15720,7 +15723,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 										bCanCargoAllUnload = false;
 										break;
 									}
-									else if (pLoopPlot->isCity() && !pLoopPlot->isVisible(getTeam(), false))
+									else if (pLoopPlot->isCity() && !pLoopPlot->isVisible(getTeam()))
 									{
 										// Artillery can't naval invade, so don't try
 										if (pAttacker->combatLimit() < 100)
@@ -18974,8 +18977,7 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 				int iTempValue = 0;
 				if (pLoopPlot->isWater())
 				{
-					if (pLoopPlot->isVisible(getTeam(),false) &&
-						!pLoopPlot->getArea().isLake())
+					if (pLoopPlot->isVisible(getTeam()) && !pLoopPlot->getArea().isLake())
 					{
 						// Defend ocean
 						iTempValue = 1;
@@ -19747,7 +19749,7 @@ bool CvUnitAI::AI_exploreAirCities()
 		CvPlayer const& kLoopPlayer = *it;
 		FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 		{
-			if (pLoopCity->isVisible(getTeam(), false) ||
+			if (pLoopCity->isVisible(getTeam()) ||
 				!canReconAt(plot(), pLoopCity->getX(), pLoopCity->getY()))
 			{
 				continue; // advc
@@ -19826,7 +19828,7 @@ bool CvUnitAI::AI_exploreAirRange(/* advc.029: */ bool bExcludeVisible)
 		{
 			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
 			if (pLoopPlot == NULL || /* advc.029: */ (bExcludeVisible &&
-				pLoopPlot->isVisible(getTeam(), false)) ||
+				pLoopPlot->isVisible(getTeam())) ||
 				!canReconAt(plot(), pLoopPlot->getX(), pLoopPlot->getY()))
 			{
 				continue; // advc
@@ -19848,7 +19850,7 @@ bool CvUnitAI::AI_exploreAirRange(/* advc.029: */ bool bExcludeVisible)
 					CvPlot* pInnerLoopPlot = plotXY(pLoopPlot->getX(), pLoopPlot->getY(),
 							iDX2, iDY2);
 					if (pInnerLoopPlot != NULL &&
-						!pInnerLoopPlot->isVisible(getTeam(), false))
+						!pInnerLoopPlot->isVisible(getTeam()))
 					{
 						iValue += AI_exploreAirPlotValue(pInnerLoopPlot);
 					}
@@ -20363,7 +20365,7 @@ bool CvUnitAI::AI_reconSpy(int iRange)  // advc: loops flattened
 
 				if (!pAdjacentPlot->isRevealed(getTeam()))
 					iValue += 500;
-				else if (!pAdjacentPlot->isVisible(getTeam(), false))
+				else if (!pAdjacentPlot->isVisible(getTeam()))
 					iValue += 200;
 			}
 			// K-Mod
@@ -20977,7 +20979,7 @@ bool CvUnitAI::AI_moveToStagingCity()
 				{
 					iValue *= 1000;
 					iValue /= (5 + iPathTurns);
-					if (pLoopCity->plot() != plot() && pLoopCity->isVisible(eTargetTeam, false))
+					if (pLoopCity->plot() != plot() && pLoopCity->isVisible(eTargetTeam))
 						iValue /= 2;
 
 					if (iValue > iBestValue)
@@ -21337,7 +21339,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 					}
 
 					// consider military units if the plot is visible. (todo: increase value of military units that we can chase down this turn, maybe.)
-					if (bValid && pLoopPlot->isVisible(getTeam(), false))
+					if (bValid && pLoopPlot->isVisible(getTeam()))
 					{
 						for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
 							pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
@@ -21399,7 +21401,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 							}
 
 							// if we don't have vision of the city, just assume that there are at least a couple of defenders, and count that into our evaluation.
-							if (!pLoopPlot->isVisible(getTeam(), false))
+							if (!pLoopPlot->isVisible(getTeam()))
 							{
 								UnitTypes eBasicUnit = pLoopCity->getConscriptUnit();
 								int iBasicCost = std::max(10, eBasicUnit != NO_UNIT ? GC.getInfo(eBasicUnit).getProductionCost() : 0);

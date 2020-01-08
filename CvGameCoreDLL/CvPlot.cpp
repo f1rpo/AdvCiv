@@ -2850,7 +2850,7 @@ bool CvPlot::isCivUnitNearby(int iRadius) const
 
 CvPlot const* CvPlot::nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist, TeamTypes eObserver) const
 {
-	if (!isVisible(eObserver, false))
+	if (!isVisible(eObserver))
 		return this;
 	CvPlot* r = NULL;
 	CvMap const& m = GC.getMap();
@@ -2867,7 +2867,7 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist, Tea
 					continue;
 				CvPlot* pPlot = m.plot(getX() + dx, getY() + dy);
 				if (pPlot == NULL) continue; CvPlot const& p = *pPlot;
-				if (p.isVisible(eObserver, false) || (bOnlyLand && p.isWater()) ||
+				if (p.isVisible(eObserver) || (bOnlyLand && p.isWater()) ||
 					(p.isOwned() && p.getOwner() != BARBARIAN_PLAYER))
 				{
 					continue;
@@ -2901,7 +2901,7 @@ bool CvPlot::isVisibleToCivTeam() const
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
-			if (isVisible(((TeamTypes)iI), false))
+			if (isVisible(((TeamTypes)iI)))
 				return true;
 		}
 	}
@@ -2928,7 +2928,7 @@ bool CvPlot::isVisibleToWatchingHuman() const  // advc: style changes
 		CvPlayer const& kHuman = GET_PLAYER((PlayerTypes)i);
 		if (!kHuman.isAlive() || !kHuman.isHuman())
 			continue;
-		if (isVisible(kHuman.getTeam(), false))
+		if (isVisible(kHuman.getTeam()))
 			return true;
 	}
 	return false;
@@ -2957,7 +2957,7 @@ bool CvPlot::isAdjacentNonvisible(TeamTypes eTeam) const
 		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
 		if (pAdjacentPlot != NULL)
 		{
-			if (!pAdjacentPlot->isVisible(eTeam, false))
+			if (!pAdjacentPlot->isVisible(eTeam))
 				return true;
 		}
 	}
@@ -4313,7 +4313,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
 				if (kLoopTeam.isAlive())
 				{
-					if (isVisible(kLoopTeam.getID(), false))
+					if (isVisible(kLoopTeam.getID()))
 					{
 						FirstContactData fcData(this); // advc.071
 						kLoopTeam.meet(getTeam(), true, /* advc.071: */ &fcData);
@@ -4846,7 +4846,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
-			if (isVisible((TeamTypes)iI, false))
+			if (isVisible((TeamTypes)iI))
 				setRevealedImprovementType((TeamTypes)iI, getImprovementType());
 		}
 	}
@@ -4917,7 +4917,7 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
-			if (isVisible((TeamTypes)iI, false))
+			if (isVisible((TeamTypes)iI))
 				setRevealedRouteType((TeamTypes)iI, getRouteType());
 		}
 	}
@@ -5820,7 +5820,7 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 	if(iChange == 0)
 		return;
 
-	bool bOldVisible = isVisible(eTeam, false);
+	bool const bOldVisible = isVisible(eTeam);
 
 	m_aiVisibilityCount.add(eTeam, iChange);
 	//FAssert(getVisibilityCount(eTeam) >= 0);
@@ -5835,10 +5835,10 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 	if (eSeeInvisible != NO_INVISIBLE)
 		changeInvisibleVisibilityCount(eTeam, eSeeInvisible, iChange);
 
-	if (bOldVisible == isVisible(eTeam, false))
+	if (bOldVisible == isVisible(eTeam))
 		return;
 
-	if (isVisible(eTeam, false))
+	if (isVisible(eTeam))
 	{
 		setRevealed(eTeam, true, false, NO_TEAM, bUpdatePlotGroups);
 		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
@@ -5886,10 +5886,7 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 		if (kLoopTeam.isAlive())
 		{
 			if (kLoopTeam.isStolenVisibility(eTeam))
-			{
-				changeStolenVisibilityCount(kLoopTeam.getID(),
-						isVisible(eTeam, false) ? 1 : -1);
-			}
+				changeStolenVisibilityCount(kLoopTeam.getID(), isVisible(eTeam) ? 1 : -1);
 		}
 	}
 
@@ -5907,14 +5904,14 @@ void CvPlot::changeStolenVisibilityCount(TeamTypes eTeam, int iChange)
 	if(iChange == 0)
 		return;
 
-	bool bOldVisible = isVisible(eTeam, false);
+	bool bOldVisible = isVisible(eTeam);
 
 	m_aiStolenVisibilityCount.add(eTeam, iChange);
 	FAssert(getStolenVisibilityCount(eTeam) >= 0);
 
-	if (bOldVisible != isVisible(eTeam, false))
+	if (bOldVisible != isVisible(eTeam))
 	{
-		if (isVisible(eTeam, false))
+		if (isVisible(eTeam))
 			setRevealed(eTeam, true, false, NO_TEAM, true);
 
 		CvCity* pCity = getPlotCity();
@@ -5994,7 +5991,7 @@ void CvPlot::setRevealedOwner(TeamTypes eTeam, PlayerTypes eNewValue)
 void CvPlot::updateRevealedOwner(TeamTypes eTeam)
 {
 	bool bRevealed = false;
-	if (isVisible(eTeam, false))
+	if (isVisible(eTeam))
 		bRevealed = true;
 	if (!bRevealed)
 	{
@@ -6003,7 +6000,7 @@ void CvPlot::updateRevealedOwner(TeamTypes eTeam)
 			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
 			if (pAdjacentPlot != NULL)
 			{
-				if (pAdjacentPlot->isVisible(eTeam, false))
+				if (pAdjacentPlot->isVisible(eTeam))
 				{
 					bRevealed = true;
 					break;
@@ -6945,13 +6942,11 @@ void CvPlot::doFeature()  // advc: some style changes
 				{
 					setFeatureType(eFeature);
 					CvCity* pCity = GC.getMap().findCity(getX(), getY(), getOwner(), NO_TEAM, false);
-					if (pCity != NULL &&
-						isVisible(GET_PLAYER(pCity->getOwner()).getTeam(), false)) // K-Mod
+					if (pCity != NULL && /* K-Mod: */ isVisible(TEAMID(pCity->getOwner())))
 					{
 						// Tell the owner of this city.
 						CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_FEATURE_GROWN_NEAR_CITY",
 								GC.getInfo(eFeature).getTextKeyWide(), pCity->getNameKey()));
-						
 						gDLL->getInterfaceIFace()->addMessage(
 								/*getOwner()*/ pCity->getOwner(), // K-Mod (bugfix)
 								false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
@@ -8213,7 +8208,7 @@ int CvPlot::countHostileUnits(PlayerTypes ePlayer, bool bPlayer, bool bTeam,
 	bool bNeutral, bool bHostile) const
 {
 	TeamTypes eTeam = TEAMID(ePlayer);
-	if(!isVisible(eTeam, false))
+	if(!isVisible(eTeam))
 		return 0;
 	if((bPlayer && getOwner() == ePlayer) ||
 		(bTeam && getTeam() == eTeam) || (bNeutral && !isOwned()) ||

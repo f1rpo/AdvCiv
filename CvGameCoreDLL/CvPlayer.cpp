@@ -14501,8 +14501,8 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	{
 		if (pPlot)
 		{
-			if (pPlot->isVisible(GC.getGame().getActiveTeam(), false)
-					&& GC.getGame().getActiveTeam() == getTeam()) // advc.120i
+			if (pPlot->isVisible(GC.getGame().getActiveTeam()) &&
+				GC.getGame().getActiveTeam() == getTeam()) // advc.120i
 			{
 				EffectTypes eEffect = GC.getInfo(GC.getInfo(MISSION_BOMBARD).getEntityEvent()).getEffectType();
 				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(getASyncRand().get(360)));
@@ -15998,7 +15998,7 @@ void CvPlayer::doWarnings()
 
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
 		if (kPlot.isAdjacentPlayer(getID()) && !kPlot.isCity() &&
-			kPlot.isVisible(getTeam(), false))
+			kPlot.isVisible(getTeam()))
 		{
 			CvUnit const* pUnit = kPlot.getVisibleEnemyDefender(getID());
 			if (pUnit != NULL && !pUnit->isAnimal())
@@ -20710,7 +20710,7 @@ bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 	if (kUnit.getUnitInfo().getProductionCost() <= 0)
 		return false;
 
-	if (!kUnit.plot()->isVisible(getTeam(), false))
+	if (!kUnit.plot()->isVisible(getTeam()))
 		return false;
 
 	return true;
@@ -21697,7 +21697,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 	typedef std::map< int, std::vector<int> > PlotGroupMap;
 	PlotGroupMap mapPlotGroups;
 	std::vector<int> aiNotConn; // advc.004z
-	for(int iI = 0; iI < kMap.numPlots(); iI++)
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
 		PlayerTypes eOwner = kPlot.getOwner(); // advc.004z
@@ -21711,16 +21711,18 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 			(pPlotGroup->getLengthPlots() >= 5 ||
 			!kPlot.isWater() || eOwner != NO_PLAYER))))
 		{
-			if(bShowCapitalConn && kPlot.isVisible(getTeam(), false) &&
-					kPlot.isCity() && !kPlot.getPlotCity()->isConnectedToCapital())
+			if(bShowCapitalConn && kPlot.isVisible(getTeam()) &&
+				kPlot.isCity() && !kPlot.getPlotCity()->isConnectedToCapital())
+			{
 				aiNotConn.push_back(iI);
+			}
 			else // </advc.004z>
 				mapPlotGroups[pPlotGroup->getID()].push_back(iI);
 		}
 	} // <advc.004z> Use the player color for the plot group of the capital
 	CvPlotGroup* pCapitalGroup = (getCapitalCity() == NULL ? NULL :
 			getCapitalCity()->plot()->getPlotGroup(getID()));
-	if(pCapitalGroup != NULL)
+	if (pCapitalGroup != NULL)
 	{
 		FAssert(pCapitalGroup->getLengthPlots() > 0);
 		int iCount = mapPlotGroups.count(pCapitalGroup->getID());
@@ -21757,7 +21759,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 		kRandom.getFloat();
 	}
 	NiColorA kColor(0, 0, 0, 0.75f);
-	for(size_t i = 0; i < aiNotConn.size(); i++)
+	for (size_t i = 0; i < aiNotConn.size(); i++)
 		aColors[aiNotConn[i]] = kColor; // </advc.004z>
 }
 

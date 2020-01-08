@@ -4873,7 +4873,7 @@ void CvTeamAI::AI_updateStrengthMemory()
 			continue;
 
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
-		if (kPlot.isVisible(getID(), false) && !kPlot.isVisibleEnemyUnit(getLeaderID()))
+		if (kPlot.isVisible(getID()) && !kPlot.isVisibleEnemyUnit(getLeaderID()))
 			m_aiStrengthMemory[i] = 0;
 		// reduce by 4%, rounding down. (arbitrary number)
 		else m_aiStrengthMemory[i] = 96 * m_aiStrengthMemory[i] / 100;

@@ -2512,8 +2512,8 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 		{
 			if (bAttack || !canCoexistWithEnemyUnit(NO_TEAM))
 			{
-				//if (!isHuman() || (kPlot.isVisible(getTeam(), false)))
-				if (bAssumeVisible || kPlot.isVisible(getTeam(), false))
+				//if (!isHuman() || (kPlot.isVisible(getTeam())))
+				if (bAssumeVisible || kPlot.isVisible(getTeam())) // K-Mod
 				{
 					if (kPlot.isVisibleEnemyUnit(this) != bAttack)
 					{
@@ -2560,8 +2560,8 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 
 			if (!canCoexistWithEnemyUnit(NO_TEAM))
 			{
-				//if (!isHuman() || kPlot.isVisible(getTeam(), false))
-				if (bAssumeVisible || kPlot.isVisible(getTeam(), false)) // K-Mod
+				//if (!isHuman() || kPlot.isVisible(getTeam()))
+				if (bAssumeVisible || kPlot.isVisible(getTeam())) // K-Mod
 				{
 					if (kPlot.isEnemyCity(*this))
 						return false;
@@ -4110,7 +4110,7 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 
 	if (NULL == pTargetPlot || pTargetPlot == pPlot)
 		return false;
-	if (!pTargetPlot->isVisible(getTeam(), false))
+	if (!pTargetPlot->isVisible(getTeam()))
 		return false;
 	if (!canMoveInto(*pTargetPlot, false, false, true))
 		return false;
@@ -8773,7 +8773,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 				{
 					if (!isInvisible((TeamTypes)iI, false))
 					{
-						if (pNewPlot->isVisible((TeamTypes)iI, false))
+						if (pNewPlot->isVisible((TeamTypes)iI))
 						{	// advc.071:
 							FirstContactData fcData(pNewPlot, NULL, this);
 							GET_TEAM((TeamTypes)iI).meet(getTeam(), true,
@@ -10897,7 +10897,7 @@ bool CvUnit::canAirStrike(const CvPlot* pPlot) const
 		return false;
 	if (pPlot == plot())
 		return false;
-	if (!pPlot->isVisible(getTeam(), false))
+	if (!pPlot->isVisible(getTeam()))
 		return false;
 	if (plotDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) > airRange())
 		return false;
@@ -10969,11 +10969,11 @@ bool CvUnit::canRangeStrikeAt(const CvPlot* pPlot, int iX, int iY) const
 	if (pTargetPlot == NULL)
 		return false;
 
-	if (!pPlot->isVisible(getTeam(), false))
+	if (!pPlot->isVisible(getTeam()))
 		return false;
 	/*  UNOFFICIAL_PATCH (Bugfix), 05/10/10, jdog5000: START
 		Need to check target plot too */
-	if (!pTargetPlot->isVisible(getTeam(), false))
+	if (!pTargetPlot->isVisible(getTeam()))
 		return false;
 	// UNOFFICIAL_PATCH: END
 	if (plotDistance(pPlot->getX(), pPlot->getY(), pTargetPlot->getX(), pTargetPlot->getY()) > airRange())

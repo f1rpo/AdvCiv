@@ -207,7 +207,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 
 	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
 	{
-		if (kPlot.isVisible(it->getID(), false))
+		if (kPlot.isVisible(it->getID()))
 			setRevealed(it->getID(), true);
 	}
 
@@ -11436,7 +11436,7 @@ static int natGetDeterministicRandom(int iMin, int iMax, int iSeedX, int iSeedY)
 void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom,
 	std::vector<const TCHAR*>& kEffectNames)
 {
-	if (isOccupation() && isVisible(getTeam(), false) == true)
+	if (isOccupation() && isVisible(getTeam()) == true)
 	{
 		if (eCurZoom  == ZOOM_DETAIL)
 		{

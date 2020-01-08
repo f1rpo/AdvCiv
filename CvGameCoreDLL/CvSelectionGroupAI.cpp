@@ -526,9 +526,9 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 
 	// K-Mod. Note. This function currently does not support bPotentialEnemy == false.
 	//FAssert(bPotentialEnemy);
-	int defenderSum = pPlot->isVisible(getHeadTeam(), false)
-		? GET_PLAYER(eOwner).AI_localDefenceStrength(pPlot, NO_TEAM, eDomainType, 0)
-		: GET_TEAM(getHeadTeam()).AI_getStrengthMemory(pPlot);
+	int defenderSum = pPlot->isVisible(getHeadTeam()) ?
+			GET_PLAYER(eOwner).AI_localDefenceStrength(pPlot, NO_TEAM, eDomainType, 0) :
+			GET_TEAM(getHeadTeam()).AI_getStrengthMemory(pPlot);
 	// K-Mod end
 	compareRatio /= std::max(1, defenderSum);
 

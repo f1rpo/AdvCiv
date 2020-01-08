@@ -2984,21 +2984,21 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTest
 						break;
 				}
 				// <advc.128>
-				if(bFirst)
+				if (bFirst)
 				{
 					bFirst = false;
-					if(!pLoopPlot->isVisible(getTeam(), false))
+					if (!pLoopPlot->isVisible(getTeam()))
 					{
 						if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 							break;
 					}
 				} // </advc.128>
 				if (pLoopUnit->isEnemy(eTeam) &&
-						// advc.315: was pLoopUnit->canAttack()
-						AI_canBeAttackedBy(*pLoopUnit) &&
-						!pLoopUnit->isInvisible(eTeam, false) &&
-						pLoopUnit->canMoveOrAttackInto(kPlot,
-						false, true)) // advc.001k
+					// advc.315: was pLoopUnit->canAttack()
+					AI_canBeAttackedBy(*pLoopUnit) &&
+					!pLoopUnit->isInvisible(eTeam, false) &&
+					pLoopUnit->canMoveOrAttackInto(kPlot,
+					false, true)) // advc.001k
 				{
 					if (!bTestMoves)
 						return true;
@@ -3010,9 +3010,9 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTest
 									&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
 									false, NULL, 1, true));
 						} // Prevent sneak attacks by human Woodsmen and Guerilla
-						if(pLoopUnit->isHuman() && pLoopPlot->isVisible(getTeam(), false) &&
-								// Make sure we're not getting into trouble performance-wise
-								getCurrentEra() <= 1 && iDistance <= 3)
+						if(pLoopUnit->isHuman() && pLoopPlot->isVisible(getTeam()) &&
+							// Make sure we're not getting into trouble performance-wise
+							getCurrentEra() <= 1 && iDistance <= 3)
 						{
 							return pLoopUnit->generatePath(
 									&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
@@ -3127,7 +3127,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMove
 				if(bFirst)
 				{
 					bFirst = false;
-					if(!pLoopPlot->isVisible(getTeam(), false))
+					if(!pLoopPlot->isVisible(getTeam()))
 					{
 						if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 							break;
@@ -3234,7 +3234,7 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 			bool bFirst = true; // advc.128
 			CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
 			// <advc.128>
-			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false))
+			if (pUnitNode != NULL && !pLoopPlot->isVisible(getTeam()))
 			{
 				if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 					continue;
@@ -13861,7 +13861,7 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(pDefencePlot->getX(), pDefencePlot->getY(), iDX, iDY);
-			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
+			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam()))
 				continue;
 
 			int iPlotTotal = 0;
@@ -13941,7 +13941,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(pTargetPlot->getX(), pTargetPlot->getY(), iDX, iDY);
-			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam(), false))
+			if (pLoopPlot == NULL || !pLoopPlot->isVisible(getTeam()))
 				continue;
 
 			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
@@ -24865,7 +24865,7 @@ void CvPlayerAI::AI_doEnemyUnitData()
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
 		int iAdjacentAttackers = -1;
-		if (!kPlot.isVisible(getTeam(), false))
+		if (!kPlot.isVisible(getTeam()))
 			continue; // advc
 
 		for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
@@ -25556,7 +25556,7 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 				continue; // </advc.030>
 			// <advc.128>
 			CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
-			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false))
+			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam()))
 			{
 				if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 					continue;

@@ -200,6 +200,11 @@ public:
 	bool isRevealedBarbarian() const;																																	// Exposed to Python
 
 	bool isVisible(TeamTypes eTeam, bool bDebug) const;																			// Exposed to Python
+	// advc: Make bDebug=false the default
+	inline bool isVisible(TeamTypes eTeam) const
+	{
+		return isVisible(eTeam, false);
+	}
 	DllExport bool isActiveVisible(bool bDebug) const;																								// Exposed to Python
 	bool isVisibleToCivTeam() const;																																// Exposed to Python
 	// <advc.706>

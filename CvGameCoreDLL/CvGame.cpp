@@ -6651,7 +6651,7 @@ void CvGame::doGlobalWarming()
 					CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, NO_TEAM, false);
 					if (pCity != NULL)
 					{
-						if (pPlot->isVisible(pCity->getTeam(), false))
+						if (pPlot->isVisible(pCity->getTeam()))
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
 							gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
