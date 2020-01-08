@@ -462,12 +462,13 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 			pLoopUnit->AI_promote();
 	}
 
-	if (isHuman()
-			/*  advc.300: Disbanding now handled in CvGame::killBarb.
-				No more Barbarian upgrades. */
-			|| isBarbarian())
+	if (isHuman() ||
+		/*  advc.300: Disbanding now handled in CvGame::killBarb.
+			No more Barbarian upgrades. */
+		isBarbarian())
+	{
 		return;
-
+	}
 	// BETTER_BTS_AI_MOD, Gold AI, 02/24/10, jdog5000: START
 	//bool bAnyWar = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
 	int iStartingGold = getGold();
@@ -479,7 +480,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	int iCostPerMil = AI_unitCostPerMil(); // used for scrap decisions.
 	int iUpgradeBudget = 0;
 	//if(GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0)
-	if(AI_isFocusWar()) // advc.105
+	if (AI_isFocusWar()) // advc.105
 	{
 		// when at war, upgrades get priority
 		iUpgradeBudget = std::min(getGold(), AI_goldTarget(true));

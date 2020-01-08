@@ -2547,7 +2547,6 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 	bWrap = false;
 
 	CLLNode<int>* pSelectionGroupNode = headGroupCycleNode();
-
 	if (pUnit != NULL)
 	{
 		while (pSelectionGroupNode != NULL)
@@ -2559,16 +2558,10 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 					cycled_groups.insert(pSelectionGroupNode->m_data);
 				//
 				if (bForward)
-				{
 					pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
-				}
-				else
-				{
-					pSelectionGroupNode = previousGroupCycleNode(pSelectionGroupNode);
-				}
+				else pSelectionGroupNode = previousGroupCycleNode(pSelectionGroupNode);
 				break;
 			}
-
 			pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 		}
 	}
@@ -2576,13 +2569,8 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 	if (pSelectionGroupNode == NULL)
 	{
 		if (bForward)
-		{
 			pSelectionGroupNode = headGroupCycleNode();
-		}
-		else
-		{
-			pSelectionGroupNode = tailGroupCycleNode();
-		}
+		else pSelectionGroupNode = tailGroupCycleNode();
 
 		/* if (pbWrap != NULL)
 			*pbWrap = true;*/ // disabled by K-Mod
@@ -2788,20 +2776,23 @@ const wchar* CvPlayer::getName(bool bForceReveal, uint uiForm) const
 const wchar* CvPlayer::getReplayName(uint uiForm) const
 {
 	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() ||
-			(GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
-			GC.getGame().getGameState() == GAMESTATE_ON))
+		(GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
+		GC.getGame().getGameState() == GAMESTATE_ON))
+	{
 		return GC.getInfo(getLeaderType()).getDescription(uiForm);
+	}
 	return GC.getInitCore().getLeaderName(getID(), uiForm);
 } // K-Mod end
 
 
 const wchar* CvPlayer::getNameKey() const
 {
-	if ((GC.getInitCore().getLeaderNameKey(getID()).empty() || GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive())
+	if ((GC.getInitCore().getLeaderNameKey(getID()).empty() ||
+		GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive()) &&
 		/*  advc.001: Had a crash here while loading a save from within a game with
 			a higher player count than in the save. CvInitCore had already been reset.
 			Can perhaps only occur with a debugger attached that slows the DLL down. */
-		&& getLeaderType() != NO_LEADER)
+		getLeaderType() != NO_LEADER)
 	{
 		return GC.getInfo(getLeaderType()).getTextKeyWide();
 	}
@@ -2875,25 +2866,15 @@ const wchar* CvPlayer::getCivilizationAdjectiveKey() const
 CvWString CvPlayer::getFlagDecal() const
 {
 	if (GC.getInitCore().getFlagDecal(getID()).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getFlagTexture();
-	}
-	else
-	{
-		return GC.getInitCore().getFlagDecal(getID());
-	}
+	else return GC.getInitCore().getFlagDecal(getID());
 }
 
 bool CvPlayer::isWhiteFlag() const
 {
 	if (GC.getInitCore().getFlagDecal(getID()).empty())
-	{
 		return GC.getInfo(getCivilizationType()).getArtInfo()->isWhiteFlag();
-	}
-	else
-	{
-		return GC.getInitCore().getWhiteFlag(getID());
-	}
+	return GC.getInitCore().getWhiteFlag(getID());
 }
 
 
@@ -2905,10 +2886,7 @@ const wchar* CvPlayer::getStateReligionName(uint uiForm) const
 const wchar* CvPlayer::getStateReligionKey() const
 {
 	if (getStateReligion() != NO_RELIGION)
-	{
 		return GC.getInfo(getStateReligion()).getTextKeyWide();
-	}
-
 	return L"TXT_KEY_MISC_NO_STATE_RELIGION";
 }
 
@@ -2921,40 +2899,25 @@ const CvWString CvPlayer::getBestAttackUnitName(uint uiForm) const
 
 const CvWString CvPlayer::getWorstEnemyName() const
 {
-	TeamTypes eWorstEnemy;
-
-	eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
-
+	TeamTypes eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
 	if (eWorstEnemy != NO_TEAM)
-	{
 		return GET_TEAM(eWorstEnemy).getName();
-	}
-
 	return "";
 }
 
 const wchar* CvPlayer::getBestAttackUnitKey() const
 {	// advc.079: Code moved into subroutine
 	UnitTypes eBestUnit = AI().AI_getBestAttackUnit();
-
 	if (eBestUnit != NO_UNIT)
-	{
 		return GC.getInfo(eBestUnit).getTextKeyWide();
-	}
-
 	return L"TXT_KEY_MISC_NO_UNIT";
 }
 
 ArtStyleTypes CvPlayer::getArtStyleType() const
 {
 	if (GC.getInitCore().getArtStyle(getID()) == NO_ARTSTYLE)
-	{
-		return ((ArtStyleTypes)(GC.getInfo(getCivilizationType()).getArtStyleType()));
-	}
-	else
-	{
-		return GC.getInitCore().getArtStyle(getID());
-	}
+		return ((ArtStyleTypes)GC.getInfo(getCivilizationType()).getArtStyleType());
+	return GC.getInitCore().getArtStyle(getID());
 }
 
 const TCHAR* CvPlayer::getUnitButton(UnitTypes eUnit) const
@@ -2968,14 +2931,14 @@ void CvPlayer::doTurn()  // advc: style changes
 {
 	PROFILE_FUNC();
 
-	FAssertMsg(isAlive(), "isAlive is expected to be true");
-	FAssertMsg(!hasBusyUnit() || GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)  || GC.getGame().isSimultaneousTeamTurns(), "End of turn with busy units in a sequential-turn game");
+	FAssert(isAlive());
+	FAssertMsg(!hasBusyUnit() || GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GC.getGame().isSimultaneousTeamTurns(), "End of turn with busy units in a sequential-turn game");
 	CvGame& g = GC.getGame();
 	// <advc.106b>
 	if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 		g.setInBetweenTurns(true);
 	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open
-			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty())
+		g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty())
 	{
 		gDLL->getInterfaceIFace()->addMessage(getID(), false, 0,
 				gDLL->getText("TXT_KEY_END_TURN_MSG"), 0, MESSAGE_TYPE_EOT, 0,
@@ -3009,10 +2972,11 @@ void CvPlayer::doTurn()  // advc: style changes
 	//if (0 == GET_TEAM(getTeam()).getHasMetCivCount(true) || g.isOption(GAMEOPTION_NO_ESPIONAGE))
 	// K-Mod.
 	if (isCommerceFlexible(COMMERCE_ESPIONAGE) &&
-			(GET_TEAM(getTeam()).getHasMetCivCount(true) == 0 ||
-			g.isOption(GAMEOPTION_NO_ESPIONAGE))) //
+		(GET_TEAM(getTeam()).getHasMetCivCount(true) == 0 ||
+		g.isOption(GAMEOPTION_NO_ESPIONAGE))) //
+	{
 		setCommercePercent(COMMERCE_ESPIONAGE, 0); // (note: not forced)
-
+	}
 	verifyGoldCommercePercent();
 	doGold();
 	doResearch();
@@ -3117,36 +3081,25 @@ void CvPlayer::doTurnUnits()
 			{
 			case DOMAIN_AIR:
 				if (iPass == 1)
-				{
 					pLoopSelectionGroup->doTurn();
-				}
 				break;
 			case DOMAIN_SEA:
 				if (iPass == 2)
-				{
 					pLoopSelectionGroup->doTurn();
-				}
 				break;
 			case DOMAIN_LAND:
 				if (iPass == 3)
-				{
 					pLoopSelectionGroup->doTurn();
-				}
 				break;
 			case DOMAIN_IMMOBILE:
 				if (iPass == 0)
-				{
 					pLoopSelectionGroup->doTurn();
-				}
 				break;
 			case NO_DOMAIN:
-				FAssertMsg(NULL == pLoopSelectionGroup->getHeadUnit(), "Unit with no Domain");
+				FAssertMsg(pLoopSelectionGroup->getHeadUnit() == NULL, "Unit with no Domain");
 			default:
 				if (iPass == 3)
-				{
 					pLoopSelectionGroup->doTurn();
-				}
-				break;
 			}
 		}
 	}
@@ -3169,27 +3122,23 @@ void CvPlayer::doTurnUnits()
 }
 
 
-void CvPlayer::verifyCivics()
+void CvPlayer::verifyCivics()  // advc: refactored
 {
-	int iI, iJ;
+	if (isAnarchy())
+		return;
 
-	if (!isAnarchy())
+	FOR_EACH_ENUM(CivicOption)
 	{
-		for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+		if (canDoCivics(getCivics(eLoopCivicOption)))
+			continue; // verified
+
+		FOR_EACH_ENUM(Civic)
 		{
-			if (!canDoCivics(getCivics((CivicOptionTypes)iI)))
+			if (GC.getInfo(eLoopCivic).getCivicOptionType() == eLoopCivicOption &&
+				canDoCivics(eLoopCivic))
 			{
-				for (iJ = 0; iJ < GC.getNumCivicInfos(); iJ++)
-				{
-					if (GC.getInfo((CivicTypes)iJ).getCivicOptionType() == iI)
-					{
-						if (canDoCivics((CivicTypes)iJ))
-						{
-							setCivics(((CivicOptionTypes)iI), ((CivicTypes)iJ));
-							break;
-						}
-					}
-				}
+					setCivics(eLoopCivicOption, eLoopCivic);
+					break;
 			}
 		}
 	}
@@ -9914,12 +9863,12 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				else gDLL->getInterfaceIFace()->playGeneralSound("AS2D_NEWTURN");
 			}
 			// <advc.706> Skip warnings and messages if only pausing for civ selection
-			if(!g.isOption(GAMEOPTION_RISE_FALL) ||
+			if (!g.isOption(GAMEOPTION_RISE_FALL) ||
 				!g.getRiseFall().isSelectingCiv()) // </advc.706>
 			{
 				doWarnings();
 				// <advc.106b>
-				if(isHuman())
+				if (isHuman())
 				{
 					validateDiplomacy(); // advc.001e
 					if(g.getActivePlayer() == getID())
@@ -9934,7 +9883,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				} // </advc.106b>
 			}
 			// <advc.044>
-			if(isHuman() || isHumanDisabled())
+			if (isHuman() || isHumanDisabled())
 			{
 				// <advc.700>
 				if(g.isOption(GAMEOPTION_RISE_FALL))
@@ -9943,10 +9892,9 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				else g.autoSave(); // advc.106l
 			} // </advc.044>
 			// <advc.106b> Clear messages in any case (in particular during AIAutoPlay)
-			for(size_t i = 0; i < m_aMajorMsgs.size(); i++)
+			for (size_t i = 0; i < m_aMajorMsgs.size(); i++)
 				SAFE_DELETE(m_aMajorMsgs[i]);
-			m_aMajorMsgs.clear();
-			// </106b>
+			m_aMajorMsgs.clear(); // </106b>
 		}
 
 		if (getID() == g.getActivePlayer())

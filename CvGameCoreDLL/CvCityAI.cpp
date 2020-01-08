@@ -1144,7 +1144,7 @@ void CvCityAI::AI_chooseProduction()
 	floatingDefenderTypes.push_back(std::make_pair(UNITAI_RESERVE, 100));
 	floatingDefenderTypes.push_back(std::make_pair(UNITAI_COLLATERAL, 80)); // K-Mod, down from 100
 
-	if (iTotalFloatingDefenders < ((iNeededFloatingDefenders + 1) / (bGetBetterUnits ? 3 : 2)))
+	if (iTotalFloatingDefenders < (iNeededFloatingDefenders + 1) / (bGetBetterUnits ? 3 : 2))
 	{
 		if (!bUnitExempt && iUnitSpending < iMaxUnitSpending + 5)
 		{

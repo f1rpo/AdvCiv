@@ -2787,7 +2787,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 	if (getID() == GC.getGame().getActiveTeam() || eIndex == GC.getGame().getActiveTeam())
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 	// <advc.071>
-	bool bShowMessage = isHuman() && pData != NULL;
+	bool bShowMessage = (isHuman() && pData != NULL);
 	if(bShowMessage || bNewDiplo)
 	{
 		int iOnFirstContact = 1;
