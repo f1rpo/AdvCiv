@@ -81,9 +81,9 @@ public:
 	bool canGift(bool bTestVisible = false, bool bTestTransport = true) const;																											// Exposed to Python
 	void gift(bool bTestTransport = true);
 
-	bool canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot, 															// Exposed to Python
+	bool canLoadOnto(const CvUnit* pUnit, const CvPlot* pPlot, 															// Exposed to Python
 			bool bCheckMoves = false) const; // advc.123c
-	void loadUnit(CvUnit* pUnit);
+	void loadOnto(CvUnit* pUnit);
 	bool canLoad(const CvPlot* pPlot,																											// Exposed to Python
 			bool bCheckMoves = false) const; // advc.123c
 	void load();

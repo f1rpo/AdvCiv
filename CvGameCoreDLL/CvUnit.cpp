@@ -2042,7 +2042,7 @@ bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2,
 	case COMMAND_LOAD_UNIT:
 	{
 		CvUnit* pUnit = ::getUnit(IDInfo(((PlayerTypes)iData1), iData2));
-		if (pUnit != NULL && canLoadUnit(pUnit, plot()))
+		if (pUnit != NULL && canLoadOnto(pUnit, plot()))
 			return true;
 		break;
 	}
@@ -2128,7 +2128,7 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 			CvUnit* pUnit = ::getUnit(IDInfo(((PlayerTypes)iData1), iData2));
 			if (pUnit != NULL)
 			{
-				loadUnit(pUnit);
+				loadOnto(pUnit);
 				bCycle = true;
 			}
 			break;
@@ -3188,8 +3188,8 @@ void CvUnit::gift(bool bTestTransport)
 	CvEventReporter::getInstance().unitGifted(pGiftUnit, getOwner(), plot());
 }
 
-
-bool CvUnit::canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot,
+// advc: Renamed from canLoadUnit
+bool CvUnit::canLoadOnto(const CvUnit* pUnit, const CvPlot* pPlot,
 	bool bCheckMoves) const // advc.123c
 {
 	FAssert(pUnit != NULL);
@@ -3234,10 +3234,10 @@ bool CvUnit::canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot,
 	return true;
 }
 
-
-void CvUnit::loadUnit(CvUnit* pUnit)
+// advc: Renamed from loadUnit
+void CvUnit::loadOnto(CvUnit* pUnit)
 {
-	if (!canLoadUnit(pUnit, plot()))
+	if (!canLoadOnto(pUnit, plot()))
 		return;
 	setTransportUnit(pUnit);
 }
@@ -3287,7 +3287,7 @@ bool CvUnit::canLoad(const CvPlot* pPlot, /* advc.123c: */ bool bCheckMoves) con
 		pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if(canLoadUnit(pLoopUnit, pPlot, /* advc.123c: */ bCheckMoves))
+		if(canLoadOnto(pLoopUnit, pPlot, /* advc.123c: */ bCheckMoves))
 			return true;
 	}
 	return false;
@@ -3307,7 +3307,7 @@ void CvUnit::load()
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = pPlot->nextUnitNode(pUnitNode);
-			if (canLoadUnit(pLoopUnit, pPlot))
+			if (canLoadOnto(pLoopUnit, pPlot))
 			{
 				if (iPass == 0 ? (pLoopUnit->getOwner() == getOwner()) : (pLoopUnit->getTeam() == getTeam()))
 				{

@@ -122,7 +122,7 @@ bool CyUnit::canGift(bool bTestVisible)
 
 bool CyUnit::canLoadUnit(CyUnit* pUnit, CyPlot* pPlot)
 {
-	return m_pUnit ? m_pUnit->canLoadUnit(pUnit->getUnit(), pPlot->getPlot()) : false;
+	return m_pUnit ? m_pUnit->canLoadOnto(pUnit->getUnit(), pPlot->getPlot()) : false;
 }
 
 bool CyUnit::canLoad(CyPlot* pPlot)

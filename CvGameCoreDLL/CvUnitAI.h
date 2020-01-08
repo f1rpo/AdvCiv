@@ -70,7 +70,7 @@ protected:
 	bool AI_considerPathDOW(CvPlot const& kPlot, int iFlags); // K-Mod
 	// K-Mod
 	CvUnit* AI_findTransport(UnitAITypes eUnitAI, int iFlags = 0,
-			int iMaxPath = MAX_INT, UnitAITypes eTransportedUnitAI = NO_UNITAI,
+			int iMaxPath = MAX_INT, UnitAITypes ePassengerAI = NO_UNITAI,
 			int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1,
 			int iMaxCargoOurUnitAI = -1);
 	// K-Mod end

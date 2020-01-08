@@ -9870,7 +9870,7 @@ bool CvUnitAI::AI_groupMergeRange(UnitAITypes eUnitAI, int iMaxRange, bool bBigg
 	(the bulk of this function was moved straight out of AI_load.
 	I've fixed it up a bit, but I didn't write most of it.) */
 CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, int iFlags, int iMaxPath,
-	UnitAITypes eTransportedUnitAI, int iMinCargo, int iMinCargoSpace,
+	UnitAITypes ePassengerAI, int iMinCargo, int iMinCargoSpace,
 	int iMaxCargoSpace, int iMaxCargoOurUnitAI)
 {
 	PROFILE_FUNC(); // advc.opt
@@ -9892,61 +9892,65 @@ CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, int iFlags, int iMaxPath
 			MISSIONAI_LOAD_SPECIAL, MISSIONAI_ATTACK_SPY };
 	int iCurrentGroupSize = getGroup()->getNumUnits();
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
-	FOR_EACH_UNITAI_VAR(pLoopUnit, kOwner)
+	FOR_EACH_UNITAI_VAR(pTransport, kOwner)
 	{	// <K-Mod>
-		if (pLoopUnit->cargoSpace() <= 0 || (!sameArea(*pLoopUnit) &&
-			!pLoopUnit->plot()->isAdjacentToArea(getArea())) ||
-			!canLoadUnit(pLoopUnit, pLoopUnit->plot()))
+		if (pTransport->cargoSpace() <= 0 || (!sameArea(*pTransport) &&
+			!pTransport->plot()->isAdjacentToArea(getArea())) ||
+			!canLoadOnto(pTransport, pTransport->plot()))
 		{
 			continue;
 		} // </K-Mod>
-		UnitAITypes eLoopUnitAI = pLoopUnit->AI_getUnitAIType();
-		if (eUnitAI == NO_UNITAI || eLoopUnitAI == eUnitAI)
-		{
-			int iCargoSpaceAvailable = pLoopUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType());
-			iCargoSpaceAvailable -= kOwner.AI_unitTargetMissionAIs(pLoopUnit,
-					aeLoadMissionAI, iLoadMissionAICount, getGroup());
-			if (iCargoSpaceAvailable > 0)
+		UnitAITypes eTransportAI = pTransport->AI_getUnitAIType();
+		if (eUnitAI != NO_UNITAI && eTransportAI != eUnitAI)
+			continue; // advc
+
+		int const iCargoSpaceAvailable =
+				pTransport->cargoSpaceAvailable(getSpecialUnitType(), getDomainType()) -
+				kOwner.AI_unitTargetMissionAIs(pTransport, aeLoadMissionAI,
+				iLoadMissionAICount, getGroup());
+		if (iCargoSpaceAvailable <= 0)
+			continue; // advc
+		if ((ePassengerAI == NO_UNITAI ||
+			pTransport->getUnitAICargo(eTransportAI) > 0) &&
+			(iMinCargo == -1 || pTransport->getCargo() >= iMinCargo))
+		{	// <advc.040> Leave space for Settler and protection
+			if(eTransportAI == UNITAI_SETTLER_SEA && eUnitAI == UNITAI_SETTLER_SEA &&
+				(eTransportAI == UNITAI_WORKER ||
+				AI_getUnitAIType() == UNITAI_WORKER) &&
+				pTransport->cargoSpace() -
+				pTransport->getUnitAICargo(UNITAI_WORKER) <= 2)
 			{
-				if ((eTransportedUnitAI == NO_UNITAI ||
-						pLoopUnit->getUnitAICargo(eTransportedUnitAI) > 0) &&
-						(iMinCargo == -1 || pLoopUnit->getCargo() >= iMinCargo))
-				{	// <advc.040> Leave space for Settler and protection
-					if(eLoopUnitAI == UNITAI_SETTLER_SEA && eUnitAI == UNITAI_SETTLER_SEA &&
-							(eTransportedUnitAI == UNITAI_WORKER ||
-							AI_getUnitAIType() == UNITAI_WORKER) &&
-							pLoopUnit->cargoSpace() -
-							pLoopUnit->getUnitAICargo(UNITAI_WORKER) <= 2)
-						continue;
-					// </advc.040>
-					// Use existing count of cargo space available
-					if ((iMinCargoSpace == -1 || iCargoSpaceAvailable >= iMinCargoSpace) &&
-						(iMaxCargoSpace == -1 || iCargoSpaceAvailable <= iMaxCargoSpace))
+				continue;
+			} // </advc.040>
+			// Use existing count of cargo space available
+			if ((iMinCargoSpace == -1 || iCargoSpaceAvailable >= iMinCargoSpace) &&
+				(iMaxCargoSpace == -1 || iCargoSpaceAvailable <= iMaxCargoSpace))
+			{
+				if (iMaxCargoOurUnitAI == -1 ||
+					pTransport->getUnitAICargo(AI_getUnitAIType()) <= iMaxCargoOurUnitAI)
+				{	// <advc.046> Don't join a pickup-stranded mission
+					CvUnit* u = pTransport->AI_getGroup()->AI_getMissionAIUnit();
+					if(u != NULL && u->plot()->getTeam() != getTeam() &&
+						u->plot() != plot())
 					{
-						if (iMaxCargoOurUnitAI == -1 ||
-							pLoopUnit->getUnitAICargo(AI_getUnitAIType()) <= iMaxCargoOurUnitAI)
-						{	// <advc.046> Don't join a pickup-stranded mission
-							CvUnit* u = pLoopUnit->AI_getGroup()->AI_getMissionAIUnit();
-							if(u != NULL && u->plot()->getTeam() != getTeam() &&
-									u->plot() != plot())
-								continue; // </advc.046>
-							//if (!pLoopUnit->plot()->isVisibleEnemyUnit(this)) { // advc.opt: It's our unit; enemies can't coexist.
-							CvPlot* pUnitTargetPlot = pLoopUnit->AI_getGroup()->AI_getMissionAIPlot();
-							if (pUnitTargetPlot == NULL || pUnitTargetPlot->getTeam() == getTeam() ||
-								(!pUnitTargetPlot->isOwned() ||
-								!isPotentialEnemy(pUnitTargetPlot->getTeam(), pUnitTargetPlot)))
+						continue;
+					} // </advc.046>
+					//if (!pLoopUnit->plot()->isVisibleEnemyUnit(this)) { // advc.opt: It's our unit; enemies can't coexist.
+					CvPlot* pUnitTargetPlot = pTransport->AI_getGroup()->AI_getMissionAIPlot();
+					if (pUnitTargetPlot == NULL || pUnitTargetPlot->getTeam() == getTeam() ||
+						(!pUnitTargetPlot->isOwned() ||
+						!isPotentialEnemy(pUnitTargetPlot->getTeam(), pUnitTargetPlot)))
+					{
+						int iPathTurns = 0;
+						if (atPlot(pTransport->plot()) ||
+							generatePath(pTransport->plot(), iFlags, true, &iPathTurns, iMaxPath))
+						{
+							// prefer a transport that can hold as much of our group as possible
+							int iValue = 5*std::max(0, iCurrentGroupSize - iCargoSpaceAvailable) + iPathTurns;
+							if (iValue < iBestValue)
 							{
-								int iPathTurns = 0;
-								if (atPlot(pLoopUnit->plot()) || generatePath(pLoopUnit->plot(), iFlags, true, &iPathTurns, iMaxPath))
-								{
-									// prefer a transport that can hold as much of our group as possible
-									int iValue = 5*std::max(0, iCurrentGroupSize - iCargoSpaceAvailable) + iPathTurns;
-									if (iValue < iBestValue)
-									{
-										iBestValue = iValue;
-										pBestUnit = pLoopUnit;
-									}
-								}
+								iBestValue = iValue;
+								pBestUnit = pTransport;
 							}
 						}
 					}
@@ -9955,8 +9959,7 @@ CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, int iFlags, int iMaxPath
 		}
 	}
 	return pBestUnit;
-}
-// K-Mod end
+} // K-Mod end
 
 // Returns true if we loaded onto a transport or a mission was pushed...
 bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
@@ -19332,7 +19335,7 @@ bool CvUnitAI::AI_airCarrier()
 	CvUnit* pBestUnit = NULL;
 	FOR_EACH_UNIT_VAR(pLoopUnit, kOwner)
 	{
-		if (canLoadUnit(pLoopUnit, pLoopUnit->plot()))
+		if (canLoadOnto(pLoopUnit, pLoopUnit->plot()))
 		{
 			int iValue = 10;
 
@@ -19373,7 +19376,7 @@ bool CvUnitAI::AI_airCarrier()
 }
 
 
-bool CvUnitAI::AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI, bool bStealthOnly)
+bool CvUnitAI::AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI, bool bStealthOnly)  // advc: some style changes
 {
 	//PROFILE_FUNC();
 
@@ -19382,31 +19385,22 @@ bool CvUnitAI::AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI, bool
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	FOR_EACH_UNIT_VAR(pLoopUnit, kOwner)
 	{
-		if (!bStealthOnly || pLoopUnit->getInvisibleType() != NO_INVISIBLE)
+		if (!bStealthOnly || pLoopUnit->getInvisibleType() != NO_INVISIBLE &&
+			pLoopUnit->AI_getUnitAIType() == eTargetUnitAI &&
+			(iMaxOwnUnitAI == -1 ||
+			pLoopUnit->getUnitAICargo(AI_getUnitAIType()) <= iMaxOwnUnitAI) &&
+			canLoadOnto(pLoopUnit, pLoopUnit->plot()))
 		{
-			if (pLoopUnit->AI_getUnitAIType() == eTargetUnitAI)
+			int iValue = 100;
+			iValue += GC.getGame().getSorenRandNum(100, "AI missile load");
+			iValue *= 1 + pLoopUnit->getCargo();
+			if (iValue > iBestValue)
 			{
-				if (iMaxOwnUnitAI == -1 || pLoopUnit->getUnitAICargo(AI_getUnitAIType()) <= iMaxOwnUnitAI)
-				{
-					if (canLoadUnit(pLoopUnit, pLoopUnit->plot()))
-					{
-						int iValue = 100;
-
-						iValue += GC.getGame().getSorenRandNum(100, "AI missile load");
-
-						iValue *= 1 + pLoopUnit->getCargo();
-
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestUnit = pLoopUnit;
-						}
-					}
-				}
+				iBestValue = iValue;
+				pBestUnit = pLoopUnit;
 			}
 		}
 	}
-
 	if (pBestUnit != NULL)
 	{
 		if (atPlot(pBestUnit->plot()))
@@ -19421,9 +19415,7 @@ bool CvUnitAI::AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI, bool
 			return true;
 		}
 	}
-
 	return false;
-
 }
 
 // BETTER_BTS_AI_MOD, Air AI, 9/16/08, jdog5000: START
