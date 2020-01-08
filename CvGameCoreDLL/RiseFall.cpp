@@ -239,11 +239,6 @@ void RiseFall::reportElimination(PlayerTypes civId) {
 	}
 }
 
-void RiseFall::autoSave() {
-
-	// Do this in atActiveTurnStart instead
-}
-
 void RiseFall::retire() {
 
 	int pos = getCurrentChapter();
@@ -396,11 +391,6 @@ void RiseFall::atActiveTurnStart() {
 		return;
 	if(gameTurn == currentCh.getStartTurn() && pos > 0)
 		welcomeToNextChapter(pos);
-	/*  Save at the start of the player turn rather than at the start
-		of the game turn. A bit hard to say when exactly the savegame should be
-		created. It's important that diplo popups are shown again after loading;
-		this works. On-screen messages and non-diplo popup aren't currently
-		shown after loading (not ideal). */
 	g.autoSave();
 	if(active.isHumanDisabled()) // Only popups from here
 		return;

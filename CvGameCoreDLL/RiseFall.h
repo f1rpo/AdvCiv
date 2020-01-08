@@ -23,7 +23,6 @@ public:
 	void atGameTurnStart();
 	void atActiveTurnStart();
 	void atTurnEnd(PlayerTypes civId);
-	void autoSave(); // May decide not to save
 	void retire();
 	int getRetireTurns() const;
 	bool hasRetired() const;

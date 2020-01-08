@@ -2372,17 +2372,16 @@ void CvGame::update()
 			for(int i = 0; i < NUM_UPDATE_TIMER_TYPES; i++)
 				handleUpdateTimer((UpdateTimerTypes)i); // </advc.003r>
 		}
-		if (getTurnSlice() == 0)
+		if (getTurnSlice() == 0) // advc (note): Implies 0 elapsed game turns
 		{	// <advc.700> Delay initial auto-save until RiseFall is initialized
-			bool bStartTurn = (getGameTurn() == getStartTurn()); // advc.004m
-			// I guess TurnSlice==0 already implies that it's the start turn (?)
-			FAssert(bStartTurn);
-			if((!bStartTurn || !isOption(GAMEOPTION_RISE_FALL)) // </advc.700>
-					&& m_iTurnLoadedFromSave != m_iElapsedGameTurns) // advc.044
+			if (!isOption(GAMEOPTION_RISE_FALL) &&// </advc.700>
+				m_iTurnLoadedFromSave != m_iElapsedGameTurns) // advc.044
+			{
 				autoSave(true); // advc.106l
+			}
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
-			if(bStartTurn && BUGOption::isEnabled("MainInterface__StartWithResourceIcons", true))
+			if (BUGOption::isEnabled("MainInterface__StartWithResourceIcons", true))
 				gDLL->getEngineIFace()->setResourceLayer(true);
 			// </advc.004m>
 		}
@@ -6475,11 +6474,8 @@ void CvGame::doTurn()
 	PROFILE_END();
 
 	stopProfilingDLL(true);
-	// <advc.700>
-	if(isOption(GAMEOPTION_RISE_FALL))
-		m_pRiseFall->autoSave();
-	else // </advc.700>
-		autoSave(); // advc.106l
+
+	// (advc.044: autosave moved to CvPlayer::setTurnActive)
 }
 
 // <advc.106b>

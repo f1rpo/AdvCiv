@@ -9931,15 +9931,18 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 						CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
 						postProcessMessages();
 					}
-				}
-			} // advc.706
-			// <advc.700>
+				} // </advc.106b>
+			}
+			// <advc.044>
 			if(isHuman() || isHumanDisabled())
 			{
+				// <advc.700>
 				if(g.isOption(GAMEOPTION_RISE_FALL))
 					g.getRiseFall().atActiveTurnStart();
-			} // </advc.700>
-			// Clear messages in any case (in particular during AIAutoPlay)
+				// </advc.700>
+				else g.autoSave(); // advc.106l
+			} // </advc.044>
+			// <advc.106b> Clear messages in any case (in particular during AIAutoPlay)
 			for(size_t i = 0; i < m_aMajorMsgs.size(); i++)
 				SAFE_DELETE(m_aMajorMsgs[i]);
 			m_aMajorMsgs.clear();
