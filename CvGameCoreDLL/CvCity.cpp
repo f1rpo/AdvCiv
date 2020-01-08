@@ -12417,9 +12417,7 @@ void CvCity::meetNewOwner(TeamTypes eOtherTeam, TeamTypes eNewOwner) const
 		return;
 	FirstContactData fcData;
 	fcData.x1 = getX();
-	fcData.x2 = getY();
-	// advc.test:
-	FAssertMsg(false, "Contact made through ceded city; untested. Will this work correctly?");
+	fcData.y1 = getY();
 	GET_TEAM(eOtherTeam).meet(eNewOwner, true, &fcData);
 } // </advc.071>
 

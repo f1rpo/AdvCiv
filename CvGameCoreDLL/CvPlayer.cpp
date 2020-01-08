@@ -1782,23 +1782,27 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		pOldCity->getLiberationPlayer() != getID())
 	{
 		CvWString szHasCeded(gDLL->getText("TXT_KEY_MISC_CITY_CEDED_TO",
+				/*	Don't obscure any names; isRevealed in the loop implies
+					isHasSeen (though not isHasMet). */
 				GET_PLAYER(pOldCity->getOwner()).getReplayName(),
 				pOldCity->getNameKey(), getReplayName()));
 		// Don't announce if there's a reparations announcement
 		if (!bPeaceDeal || !GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS))
 		{
-			for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+			for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			{
-				CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
-				if (!kObs.isAlive() || kObs.getID() == getID() || kObs.getID() == pOldCity->getOwner())
+				CvPlayer const& kObs = *it;
+				if (kObs.getID() == getID() || kObs.getID() == pOldCity->getOwner())
+				{
 					continue;
+				}
 				if (!pOldCity->isRevealed(kObs.getTeam()) &&
 					!kObs.isSpectator()) // advc.127
 				{
 					continue;
 				}
-				/*  advc.071: Meet before the announcement (with indicator at city coordinates)
-					(advc.001f guarantees that pNewCity will be revealed as well) */
+				/*	advc.071: Meet before the announcement (with indicator at
+					city coordinates). Callee will perform the relevant checks. */
 				pOldCity->meetNewOwner(kObs.getTeam(), getTeam());
 				gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
 						GC.getEVENT_MESSAGE_TIME(), szHasCeded, NULL,
