@@ -8,6 +8,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
+#include "PlotRange.h"
 #include "CvAreaList.h"
 #include "CvCityList.h"
 #include "CvSelectionGroupList.h"
@@ -363,14 +364,9 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 	{
 		// only update within the range
 		CvPlot* pCenterPlot = gDLL->getInterfaceIFace()->getHeadSelectedUnit()->plot();
-		for (int x = -iRange; x <= iRange; x++)
+		for (SquareIter it(*pCenterPlot, iRange); it.hasNext(); ++it)
 		{
-			for (int y = -iRange; y <= iRange; y++)
-			{
-				CvPlot* pLoopPlot = plotXY(pCenterPlot, x, y);
-				if (pLoopPlot)
-					pLoopPlot->updateCenterUnit();
-			}
+			it->updateCenterUnit();
 		}
 	}
 } // K-Mod end
@@ -671,30 +667,22 @@ int CvMap::getMapFractalFlags() const
 	return (wrapX | wrapY);
 }
 
-
-//"Check plots for wetlands or seaWater.  Returns true if found"
+// Check plots for wetlands or seaWater. Returns true if found
 bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc: const CvPlot*
 {
-	PROFILE("CvMap::findWater()");
+	PROFILE_FUNC();
 
-	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	for (SquareIter it(*pPlot, iRange); it.hasNext(); ++it)
 	{
-		for (int iDY = -iRange; iDY <= iRange; iDY++)
+		CvPlot const& kLoopPlot = *it;
+		if (bFreshWater)
 		{
-			CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-			if (pLoopPlot == NULL)
-				continue; // advc
-
-			if (bFreshWater)
-			{
-				if (pLoopPlot->isFreshWater())
-					return true;
-			}
-			else if (pLoopPlot->isWater())
+			if (kLoopPlot.isFreshWater())
 				return true;
 		}
+		else if (kLoopPlot.isWater())
+			return true;
 	}
-
 	return false;
 }
 

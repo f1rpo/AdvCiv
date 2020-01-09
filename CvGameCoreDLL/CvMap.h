@@ -114,22 +114,25 @@ public:
 	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
 	{
 		if(eDirection == NO_DIRECTION)
-			return plot(iX, iY);
-		else return plot(
+			return plotValidXY(iX, iY);
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		else return plotValidXY(
 				iX + GC.getPlotDirectionX()[eDirection],
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
 
 	inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection) const
 	{
-		return plot(
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		return plotValidXY(
 			iX + GC.getPlotCardinalDirectionX()[eCardinalDirection],
 			iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]);
 	}
 
 	inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY) const
 	{
-		return plot(iX + iDX, iY + iDY);
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		return plotValidXY(iX + iDX, iY + iDY);
 	}
 	// K-Mod start
 	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
@@ -227,14 +230,6 @@ private: // Auxiliary functions
 		return iCoord;
 	}
 	// </advc.make>
-	/*	advc.opt: Like CvMap::plot but w/o the INVALID_PLOT_COORD check.
-		'inline' tested - faster without it. */
-	CvPlot* plotValidXY(int iX, int iY) const
-	{
-		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
-		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
-		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
-	}
 
 	friend class CyMap;
 public:
@@ -397,9 +392,7 @@ public: // advc: made several functions const
 	CvPlot* plot(int iX, int iY) const
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
-		{
 			return NULL;
-		}
 		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
 		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
 		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
@@ -415,7 +408,17 @@ public: // advc: made several functions const
 	{
 		FAssert(isPlot(x, y));
 		return m_pMapPlots[plotNum(x, y)];
-	} // </advc.inl>  // (Yet another function - plotValidXY - is defined in the private section)
+	} // </advc.inl>
+	/*	advc.opt: Yet another plot getter. Checks coordRange but not INVALID_PLOT_COORD.
+		For functions that compute x,y as an offset from a (valid) plot -
+		not plausible that the new coordinates would equal INVALID_PLOT_COORD.
+		'inline' tested - faster without it. */
+	CvPlot* plotValidXY(int iX, int iY) const
+	{
+		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
+		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
+		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
+	}
 
 	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
 

@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvAI.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Command.h"
 #include "CvInfo_Terrain.h"
@@ -216,48 +216,33 @@ void CvGame::updateColoredPlots()
 		}
 		if (iMaxAirRange > 0)
 		{
-			for (int iDX = -(iMaxAirRange); iDX <= iMaxAirRange; iDX++)
+			for (PlotCircleIter it(*pHeadSelectedUnit, iMaxAirRange); it.hasNext(); ++it)
 			{
-				for (int iDY = -(iMaxAirRange); iDY <= iMaxAirRange; iDY++)
-				{
-					CvPlot* pLoopPlot = m.plotXY(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), iDX, iDY);
-					if (pLoopPlot != NULL)
-					{
-						if (m.plotDistance(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), pLoopPlot->getX(), pLoopPlot->getY()) <= iMaxAirRange)
-						{
-							NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
-									"COLOR_YELLOW")).getColor());
-							color.a = 0.5f;
-							kEngine.fillAreaBorderPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-									color, AREA_BORDER_LAYER_RANGED);
-						}
-					}
-				}
+				CvPlot const& kLoopPlot = *it;
+				NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
+						"COLOR_YELLOW")).getColor());
+				color.a = 0.5f;
+				kEngine.fillAreaBorderPlot(kLoopPlot.getX(), kLoopPlot.getY(),
+						color, AREA_BORDER_LAYER_RANGED);
 			}
 		}
 	}
 	else if(pHeadSelectedUnit->airRange() > 0) //other ranged units
 	{
-		int iRange = pHeadSelectedUnit->airRange();
-		for (int iDX = -iRange; iDX <= iRange; iDX++)
+		int const iRange = pHeadSelectedUnit->airRange();
+		for (PlotCircleIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 		{
-			for (int iDY = -iRange; iDY <= iRange; iDY++)
+			CvPlot const& kTargetPlot = *it;
+			if (kTargetPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
+				pHeadSelectedUnit->plot()->canSeePlot(&kTargetPlot,
+				pHeadSelectedUnit->getTeam(), iRange,
+				pHeadSelectedUnit->getFacingDirection(true)))
 			{
-				CvPlot* pTargetPlot = m.plotXY(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), iDX, iDY);
-				if (pTargetPlot != NULL && pTargetPlot->isVisible(pHeadSelectedUnit->getTeam()))
-				{
-					if (m.plotDistance(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), pTargetPlot->getX(), pTargetPlot->getY()) <= iRange)
-					{
-						if (pHeadSelectedUnit->plot()->canSeePlot(pTargetPlot, pHeadSelectedUnit->getTeam(), iRange, pHeadSelectedUnit->getFacingDirection(true)))
-						{
-							NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
-									"COLOR_YELLOW")).getColor());
-							color.a = 0.5f;
-							kEngine.fillAreaBorderPlot(pTargetPlot->getX(), pTargetPlot->getY(),
-									color, AREA_BORDER_LAYER_RANGED);
-						}
-					}
-				}
+				NiColorA color(GC.getInfo((ColorTypes)GC.getInfoTypeForString(
+						"COLOR_YELLOW")).getColor());
+				color.a = 0.5f;
+				kEngine.fillAreaBorderPlot(kTargetPlot.getX(), kTargetPlot.getY(),
+						color, AREA_BORDER_LAYER_RANGED);
 			}
 		}
 	}
@@ -297,8 +282,9 @@ void CvGame::updateColoredPlots()
 			}
 		}
 
-		// K-Mod. I've rearranged the following code a bit, so that it is more efficient, and so that it shows city sites within 7 turns, rather than just the ones in 4 plot range.
-		// the original code has been deleted, because it was quite bulky.
+		/*	K-Mod. I've rearranged the following code a bit, so that it is more efficient, and so that
+			it shows city sites within 7 turns, rather than just the ones in 4 plot range.
+			the original code has been deleted, because it was quite bulky. */
 
 		// city sites
 		const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
@@ -327,21 +313,18 @@ void CvGame::updateColoredPlots()
 				iRange++;
 			else iRange--; // </advc.004z>
 			site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, iRange, GC.getMOVE_DENOMINATOR()); // just a smaller range.
-
-			for (int iDX = -(iRange); iDX <= iRange; iDX++)
+			for (SquareIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 			{
-				for (int iDY = -(iRange); iDY <= iRange; iDY++)
+				CvPlot const& kLoopPlot = *it;
+				if (kLoopPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
+					kLoopPlot.isRevealedGoody(pHeadSelectedUnit->getTeam()))
 				{
-					CvPlot* pLoopPlot = m.plotXY(pHeadSelectedUnit->getX(), pHeadSelectedUnit->getY(), iDX, iDY);
-					if (pLoopPlot != NULL && pLoopPlot->isVisible(pHeadSelectedUnit->getTeam()) &&
-						pLoopPlot->isRevealedGoody(pHeadSelectedUnit->getTeam()))
+					if (site_path.GeneratePath(&kLoopPlot))
 					{
-						if (site_path.GeneratePath(pLoopPlot))
-						{
-							kEngine.addColoredPlot(pLoopPlot->getX(), pLoopPlot->getY(),
-									GC.getInfo((ColorTypes)GC.getInfoTypeForString(
-									"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
-						}
+						kEngine.addColoredPlot(kLoopPlot.getX(), kLoopPlot.getY(),
+								GC.getInfo((ColorTypes)GC.getInfoTypeForString(
+								"COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE,
+								PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 					}
 				}
 			}

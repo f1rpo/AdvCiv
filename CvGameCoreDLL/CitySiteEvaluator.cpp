@@ -2,7 +2,7 @@
 #include "CitySiteEvaluator.h"
 #include "CvAI.h"
 #include "CvCivilization.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -736,18 +736,12 @@ bool AIFoundValue::isSiteValid() const
 	int iMinRivalRange = kSet.getMinRivalRange();
 	if (iMinRivalRange != -1)
 	{
-		for (int iDX = -iMinRivalRange; iDX <= iMinRivalRange; iDX++)
+		for (SquareIter it(kPlot, iMinRivalRange); it.hasNext(); ++it)
 		{
-			for (int iDY = -iMinRivalRange; iDY <= iMinRivalRange; iDY++)
+			if (it->plotCheck(PUF_isOtherTeam, ePlayer) != NULL)
 			{
-				CvPlot const* p = plotXY(iX, iY, iDX, iDY);
-				if (p == NULL)
-					continue;
-				if (p->plotCheck(PUF_isOtherTeam, ePlayer) != NULL)
-				{
-					IFLOG logBBAI("Rival plot (%d,%d) found in MinRivalRange", p->getX(), p->getY());
-					return false;
-				}
+				IFLOG logBBAI("Rival plot (%d,%d) found in MinRivalRange", it->getX(), it->getY());
+				return false;
 			}
 		}
 	}
@@ -2155,55 +2149,49 @@ int AIFoundValue::evaluateDefense() const
 int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 {
 	int r = iValue;
-	int const iRange = 6; // K-Mod (was 5)
 	int iGreaterBadTile = 0;
-	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	int const iRange = 6; // K-Mod (was 5)
+	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
 	{
-		for (int iDY = -iRange; iDY <= iRange; iDY++)
+		CvPlot const& p = *it;
+		if ((p.isWater() || p.isArea(kArea)) && it.currPlotDist() <= iRange)
 		{
-			CvPlot const* p = plotXY(iX, iY, iDX, iDY);
-			if (p == NULL)
-				continue;
-			if ((p->isWater() || p->isArea(kArea)) &&
-				plotDistance(&kPlot, p) <= iRange)
-			{
-				/*int iTempValue = (p->getYield(YIELD_FOOD) * 15);
-				iTempValue += (p->getYield(YIELD_PRODUCTION) * 11);
-				iTempValue += (p->getYield(YIELD_COMMERCE) * 5);
-				r += iTempValue;
-				if (iTempValue < 21) {
-					iGreaterBadTile += 2;
-					if (p->isFeature()) {
-						if (p->calculateBestNatureYield(YIELD_FOOD, eTeam) > 1)
-							iGreaterBadTile--;
-					}
-				}*/ // BtS
-				// K-Mod
-				int iTempValue = 0;
-				iTempValue += p->getYield(YIELD_FOOD) * 9;
-				iTempValue += p->getYield(YIELD_PRODUCTION) * 5;
-				iTempValue += p->getYield(YIELD_COMMERCE) * 3;
-				iTempValue += p->isRiver() ? 1 : 0;
-				iTempValue += p->isWater() ? -2 : 0;
-				if (iTempValue < 13)
-				{
-					// 3 points for unworkable plots (desert, ice, far-ocean)
-					// 2 points for bad plots (ocean, tundra)
-					// 1 point for fixable bad plots (jungle)
-					iGreaterBadTile++;
-					if (p->calculateBestNatureYield(YIELD_FOOD, eTeam) < 2)
-					{
-						iGreaterBadTile++;
-						if (iTempValue <= 0)
-							iGreaterBadTile++;
-					}
+			/*int iTempValue = (p->getYield(YIELD_FOOD) * 15);
+			iTempValue += (p->getYield(YIELD_PRODUCTION) * 11);
+			iTempValue += (p->getYield(YIELD_COMMERCE) * 5);
+			r += iTempValue;
+			if (iTempValue < 21) {
+				iGreaterBadTile += 2;
+				if (p->isFeature()) {
+					if (p->calculateBestNatureYield(YIELD_FOOD, eTeam) > 1)
+						iGreaterBadTile--;
 				}
-				if (p->isWater() || p->isArea(kArea))
-					r += iTempValue;
-				else if (iTempValue >= 13)
-					iGreaterBadTile++; // add at least 1 badness point for other islands.
-				// K-Mod end
+			}*/ // BtS
+			// K-Mod
+			int iTempValue = 0;
+			iTempValue += p.getYield(YIELD_FOOD) * 9;
+			iTempValue += p.getYield(YIELD_PRODUCTION) * 5;
+			iTempValue += p.getYield(YIELD_COMMERCE) * 3;
+			iTempValue += p.isRiver() ? 1 : 0;
+			iTempValue += p.isWater() ? -2 : 0;
+			if (iTempValue < 13)
+			{
+				// 3 points for unworkable plots (desert, ice, far-ocean)
+				// 2 points for bad plots (ocean, tundra)
+				// 1 point for fixable bad plots (jungle)
+				iGreaterBadTile++;
+				if (p.calculateBestNatureYield(YIELD_FOOD, eTeam) < 2)
+				{
+					iGreaterBadTile++;
+					if (iTempValue <= 0)
+						iGreaterBadTile++;
+				}
 			}
+			if (p.isWater() || p.isArea(kArea))
+				r += iTempValue;
+			else if (iTempValue >= 13)
+				iGreaterBadTile++; // add at least 1 badness point for other islands.
+			// K-Mod end
 		}
 	}
 	IFLOG logBBAI("+%d from surroundings", r - iValue);
@@ -2691,26 +2679,19 @@ int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 // advc: Moved from CvPlayerAI since it's only used for computing found values
 int AIFoundValue::countDeadlockedBonuses() const
 {
+	int r = 0;
 	int const iMinRange = GC.getDefineINT(CvGlobals::MIN_CITY_RANGE); // 2
 	int const iRange = iMinRange * 2;
-	int r = 0;
-	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
 	{
-		for (int iDY = -iRange; iDY <= iRange; iDY++)
+		if (it.currPlotDist() > CITY_PLOTS_RADIUS)
 		{
-			if (plotDistance(iDX, iDY, 0, 0) > CITY_PLOTS_RADIUS)
-			{
-				CvPlot const* p = plotXY(iX, iY, iDX, iDY);
-				if (p != NULL)
-				{
-					// <advc.031>
-					if (!isRevealed(*p))
-						continue; // </advc.031>
-					// <advc> Checks moved into subroutine
-					if(isDeadlockedBonus(*p, iMinRange))
-						r++; // </advc>
-				}
-			}
+			// <advc.031>
+			if (!isRevealed(*it))
+				continue; // </advc.031>
+			// <advc> Checks moved into subroutine
+			if(isDeadlockedBonus(*it, iMinRange))
+				r++; // </advc>
 		}
 	}
 	return r;

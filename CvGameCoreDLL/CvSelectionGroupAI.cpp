@@ -299,7 +299,7 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 	(note: I would like to put this in CvSelectionGroupAI ... but - well -
 	I don't need to say it, right?)
 	advc.003u: I think CvUnitAI::AI_getGroup solves karadoc's problem; so - moved. */
-int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy)
+int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialEnemy)
 {
 	PROFILE_FUNC();
 	int iOdds;

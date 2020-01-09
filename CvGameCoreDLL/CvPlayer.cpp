@@ -6,7 +6,7 @@
 #include "CvAI.h"
 #include "CvDealList.h" // advc.003s
 #include "UWAIAgent.h" // advc.104
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_All.h"
 #include "CvDiploParameters.h"
@@ -1604,17 +1604,14 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 				{
 					int iTotalFood = 0;
 					int iLandPlots = 0;
-					for (int iX = -iStartingRange; iX <= iStartingRange; iX++)
+					for (PlotCircleIter it(*pLoopPlot, iStartingRange); it.hasNext(); ++it)
 					{
-						for (int iY = -iStartingRange; iY <= iStartingRange; iY++)
+						CvPlot const& kCheckPlot = *it;
+						if (!kCheckPlot.isWater())
 						{
-							CvPlot* pCheckPlot = plotXY(pLoopPlot->getX(), pLoopPlot->getY(), iX, iY);
-							if (pCheckPlot != NULL && !pCheckPlot->isWater() &&
-									(::plotDistance(pLoopPlot, pCheckPlot) <= iStartingRange))
-							{
-								iLandPlots++;
-								iTotalFood += pCheckPlot->calculateBestNatureYield(YIELD_FOOD, NO_TEAM);
-							}
+							iLandPlots++;
+							iTotalFood += kCheckPlot.calculateBestNatureYield(
+									YIELD_FOOD, NO_TEAM);
 						}
 					}
 					if (iTotalFood < std::max(1, iLandPlots) / 2)
@@ -1702,12 +1699,12 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	}
 	if (bConquest) // Force unowned after conquest
 	{
-		int iRange = pOldCity->getCultureLevel();
+		int const iRange = pOldCity->getCultureLevel();
 		for (int iDX = -iRange; iDX <= iRange; iDX++)
 		{
 			for (int iDY = -iRange; iDY <= iRange; iDY++)
 			{
-				if (pOldCity->cultureDistance(iDX, iDY) > iRange)
+				if (CvCity::cultureDistance(iDX, iDY) > iRange)
 					continue;
 
 				CvPlot* pLoopPlot = ::plotXY(kCityPlot.getX(), kCityPlot.getY(), iDX, iDY);
@@ -1715,17 +1712,19 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 					continue;
 
 				if (pLoopPlot->getOwner() != pOldCity->getOwner() ||
-						pLoopPlot->getNumCultureRangeCities(pOldCity->getOwner()) != 1)
+					pLoopPlot->getNumCultureRangeCities(pOldCity->getOwner()) != 1)
+				{
 					continue;
-
+				}
 				bool bForceUnowned = false;
 				for (int i = 0; i < MAX_PLAYERS; i++)
 				{
 					CvPlayer const& kThirdParty = GET_PLAYER((PlayerTypes)i);
 					if (!kThirdParty.isAlive() || kThirdParty.getTeam() == getTeam() ||
-							kThirdParty.getTeam() == pOldCity->getTeam())
+						kThirdParty.getTeam() == pOldCity->getTeam())
+					{
 						continue;
-
+					}
 					if (pLoopPlot->getNumCultureRangeCities(kThirdParty.getID()) > 0)
 					{
 						bForceUnowned = true;
@@ -4842,61 +4841,40 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 	int iRange = goody.getMapRange();
 	if (iRange > 0)
 	{
-		int iOffset = goody.getMapOffset();
+		int const iOffset = goody.getMapOffset();
 		CvPlot* pBestPlot = NULL;
 		if (iOffset > 0)
 		{
 			int iBestValue = 0;
-			for (int iDX = -(iOffset); iDX <= iOffset; iDX++)
+			for (SquareIter it(*pPlot, iOffset); it.hasNext(); ++it)
 			{
-				for (int iDY = -(iOffset); iDY <= iOffset; iDY++)
+				CvPlot& kLoopPlot = *it;
+				if (!kLoopPlot.isRevealed(getTeam()))
+					continue; // advc
+				int iValue = 1 + g.getSorenRandNum(10000, "Goody Map");
+				iValue *= it.currPlotDist();
+				if (iValue > iBestValue)
 				{
-					CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-					if(pLoopPlot == NULL || pLoopPlot->isRevealed(getTeam()))
-						continue; // advc
-					int iValue = (1 + g.getSorenRandNum(10000, "Goody Map"));
-					iValue *= plotDistance(pPlot, pLoopPlot);
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						pBestPlot = pLoopPlot;
-					}
+					iBestValue = iValue;
+					pBestPlot = &kLoopPlot;
 				}
 			}
 		}
-
 		if (pBestPlot == NULL)
 			pBestPlot = pPlot;
 
-		for (int iDX = -iRange; iDX <= iRange; iDX++)
+		for (PlotCircleIter it(*pBestPlot, iRange); it.hasNext(); ++it)
 		{
-			for (int iDY = -iRange; iDY <= iRange; iDY++)
-			{
-				CvPlot* pLoopPlot = plotXY(pBestPlot->getX(), pBestPlot->getY(), iDX, iDY);
-
-				if (pLoopPlot != NULL)
-				{
-					if (plotDistance(pBestPlot, pLoopPlot) <= iRange)
-					{
-						if (g.getSorenRandNum(100, "Goody Map") < goody.getMapProb())
-						{
-							pLoopPlot->setRevealed(getTeam(), true, false, NO_TEAM, true);
-						}
-					}
-				}
-			}
+			if (g.getSorenRandNum(100, "Goody Map") < goody.getMapProb())
+				it->setRevealed(getTeam(), true, false, NO_TEAM, true);
 		}
 	}
 
 	if (pUnit != NULL)
-	{
 		pUnit->changeExperience(goody.getExperience());
-	}
 
 	if (pUnit != NULL)
-	{
 		pUnit->changeDamage(-(goody.getHealing()));
-	}
 
 	if (goody.isTech())
 	{
@@ -5163,18 +5141,10 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc: some 
 	if (bTestVisible)
 		return true;
 
-	int iRange = GC.getDefineINT(CvGlobals::MIN_CITY_RANGE);
-	for (int iDX = -(iRange); iDX <= iRange; iDX++)
+	for (SquareIter it(*pPlot, GC.getDefineINT(CvGlobals::MIN_CITY_RANGE)); it.hasNext(); ++it)
 	{
-		for (int iDY = -(iRange); iDY <= iRange; iDY++)
-		{
-			CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-			if (pLoopPlot == NULL)
-				continue;
-
-			if (pLoopPlot->isCity() && pLoopPlot->sameArea(*pPlot))
-				return false;
-		}
+		if (it->isCity() && it->sameArea(*pPlot))
+			return false;
 	}
 	return true;
 }

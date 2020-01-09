@@ -97,12 +97,12 @@ public:
 		return (m_pNext != NULL);
 	}
 
-	__forceinline AgentType& operator*()
+	__forceinline AgentType& operator*() const
 	{
 		return *m_pNext;
 	}
 
-	__forceinline AgentType* operator->()
+	__forceinline AgentType* operator->() const
 	{
 		return m_pNext;
 	}

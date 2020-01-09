@@ -2,7 +2,7 @@
 #include "CvDLLWidgetData.h"
 #include "CvAI.h"
 #include "CvDeal.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvGameTextMgr.h"
 #include "CvPopupInfo.h"
 #include "CvMessageControl.h"
@@ -2343,26 +2343,19 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	{
 		if (!kUnitOwner.canFound(kMissionPlot.getX(), kMissionPlot.getY()))
 		{
-			bool bValid = true;
-			int iRange = GC.getDefineINT(CvGlobals::MIN_CITY_RANGE);
-			for (int iDX = -(iRange); iDX <= iRange; iDX++)
+			for (SquareIter it(kMissionPlot, GC.getDefineINT(CvGlobals::MIN_CITY_RANGE));
+				it.hasNext(); ++it)
 			{
-				for (int iDY = -(iRange); iDY <= iRange; iDY++)
+				if (it->isCity() &&
+					/*	advc: This check was missng. Since there is no other reason
+						for !canFound, it doesn't really matter. */
+					it->sameArea(kMissionPlot))
 				{
-					CvPlot* pLoopPlot = plotXY(kMissionPlot.getX(),
-							kMissionPlot.getY(), iDX, iDY);
-					if (pLoopPlot != NULL)
-					{
-						if (pLoopPlot->isCity())
-							bValid = false;
-					}
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_FOUND",
+							GC.getDefineINT(CvGlobals::MIN_CITY_RANGE)));
+					break;
 				}
-			}
-			if (!bValid)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_FOUND",
-						GC.getDefineINT(CvGlobals::MIN_CITY_RANGE)));
 			}
 		}
 		// <advc.004b> Show the projected increase in city maintenance

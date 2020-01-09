@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvMapGenerator.h"
 #include "CvGame.h"
-#include "CvMap.h"
+#include "PlotRange.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvFractal.h"
 #include "CvInfo_Terrain.h"
@@ -687,16 +687,11 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
 						0 for bonuses that appear in clusters. 5 hardcoded. */
 					int const iDist = 5;
-					for(int dx = -iDist; dx <= iDist; dx++)
-					for(int dy = -iDist; dy <= iDist; dy++)
+					for (PlotCircleIter it(x, y, iDist); it.hasNext(); ++it)
 					{
-						CvPlot* pLoopPlot = plotXY(x, y, dx, dy);
-						if(pLoopPlot == NULL) continue; CvPlot& p = *pLoopPlot;
-						if(!p.sameArea(kRandPlot) ||
-							plotDistance(x, y, p.getX(), p.getY()) > iDist)
-						{
+						CvPlot const& p = *it;
+						if (!p.sameArea(kRandPlot))
 							continue;
-						}
 						BonusTypes eOtherBonus = p.getBonusType();
 						if(eOtherBonus != NO_BONUS && GC.getInfo(eOtherBonus).
 							getBonusClassType() == iClassToAvoid &&
@@ -775,13 +770,12 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 	// The one in the center is already placed, but that doesn't count here.
 	int iPlaced = 0;
 	std::vector<CvPlot*> apGroupRange;
-	for(int iDX = -kBonus.getGroupRange(); iDX <= kBonus.getGroupRange(); iDX++)
+	for (SquareIter it(kCenter, kBonus.getGroupRange()); it.hasNext(); ++it)
 	{
-		for(int iDY = -kBonus.getGroupRange(); iDY <= kBonus.getGroupRange(); iDY++)
 		{
-			CvPlot* p = plotXY(kCenter.getX(), kCenter.getY(), iDX, iDY);
-			if(p != NULL && canPlaceBonusAt(eBonusType, p->getX(), p->getY(), bIgnoreLatitude))
-				apGroupRange.push_back(p);
+			CvPlot& p = *it;
+			if(canPlaceBonusAt(eBonusType, p.getX(), p.getY(), bIgnoreLatitude))
+				apGroupRange.push_back(&p);
 		}
 	}
 	// Would've been nice, but must use MapRand instead.

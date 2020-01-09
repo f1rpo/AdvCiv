@@ -169,6 +169,7 @@
     <ClCompile Include="..\FAssert.cpp" />
     <ClCompile Include="..\MilitaryAnalyst.cpp" />
     <ClCompile Include="..\MilitaryBranch.cpp" />
+    <ClCompile Include="..\PlotRadiusIterator.cpp" />
     <ClCompile Include="..\RFChapter.cpp" />
     <ClCompile Include="..\RFChapterScore.cpp" />
     <ClCompile Include="..\RFTotalScore.cpp" />
@@ -324,6 +325,8 @@
     <ClInclude Include="..\LinkedList.h" />
     <ClInclude Include="..\MilitaryAnalyst.h" />
     <ClInclude Include="..\MilitaryBranch.h" />
+    <ClInclude Include="..\PlotRadiusIterator.h" />
+    <ClInclude Include="..\PlotRange.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\UWAISets.h" />
     <ClInclude Include="resource.h" />

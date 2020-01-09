@@ -5,7 +5,7 @@
 #include "CvAI.h"
 #include "UWAIAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
-#include "CvMap.h"
+#include "PlotRange.h"
 #include "CvArea.h"
 #include "CvInfo_Unit.h"
 #include "CvInfo_Command.h"
@@ -2302,25 +2302,17 @@ TeamTypes CvUnit::getDeclareWarMove(const CvPlot* pPlot) const
 	return NO_TEAM;
 }
 
-bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
+bool CvUnit::willRevealByMove(CvPlot const* pPlot) const
 {
-	int iRange = visibilityRange() + 1;
-	for (int i = -iRange; i <= iRange; ++i)
+	for (SquareIter it(*pPlot, visibilityRange() + 1); it.hasNext(); ++it)
 	{
-		for (int j = -iRange; j <= iRange; ++j)
+		CvPlot const& kLoopPlot = *it;
+		if (!kLoopPlot.isRevealed(getTeam()) && pPlot->canSeePlot(
+			&kLoopPlot, getTeam(), visibilityRange(), NO_DIRECTION))
 		{
-			CvPlot* pLoopPlot = ::plotXY(pPlot->getX(), pPlot->getY(), i, j);
-			if (NULL != pLoopPlot)
-			{
-				if (!pLoopPlot->isRevealed(getTeam()) && pPlot->canSeePlot(
-					pLoopPlot, getTeam(), visibilityRange(), NO_DIRECTION))
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -3715,21 +3707,15 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 	if(!GET_TEAM(eTeam).isAlive() || eTeam == getTeam())
 		return false;
 
-	int iNukeRange = nukeRange();
-	for(int iDX = -iNukeRange; iDX <= iNukeRange; iDX++)
+	for (SquareIter it(*pPlot, nukeRange()); it.hasNext(); ++it)
 	{
-		for(int iDY = -iNukeRange; iDY <= iNukeRange; iDY++)
+		CvPlot const& kLoopPlot	= *it;
+		if (kLoopPlot.getTeam() == eTeam)
+			return true;
+		if (kLoopPlot.plotCheck(PUF_isCombatTeam, eTeam, getTeam()) != NULL &&
+			isEnemy(eTeam)) // dlph.7
 		{
-			CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-			if(pLoopPlot == NULL)
-				continue;
-
-			if(pLoopPlot->getTeam() == eTeam)
-				return true;
-
-			if(pLoopPlot->plotCheck(PUF_isCombatTeam, eTeam, getTeam()) != NULL
-					&& isEnemy(eTeam)) // dlph.7
-				return true;
+			return true;
 		}
 	}
 	return false;
@@ -3904,20 +3890,16 @@ bool CvUnit::nuke(int iX, int iY)
 			continue;
 		// How badly is it affected?
 		double score = 0;
-		for(int dx = -nukeRange(); dx <= nukeRange(); dx++)
+		for (SquareIter itPlot(*pPlot, nukeRange()); itPlot.hasNext(); ++itPlot)
 		{
-			for(int dy = -nukeRange(); dy <= nukeRange(); dy++)
-			{
-				CvPlot* pAffectedPlot = plotXY(pPlot->getX(), pPlot->getY(), dx, dy);
-				if(pAffectedPlot == NULL || pAffectedPlot->getTeam() != i ||
-						!pAffectedPlot->isCity())
-					continue;
-				CvCity const& kAffectedCity = *pAffectedPlot->getPlotCity();
-				// <advc.106>
-				if(pReplayCity == NULL || pReplayCity->getPopulation() < kAffectedCity.getPopulation())
-					pReplayCity = &kAffectedCity; // </advc.106>
-				score += GET_PLAYER(kAffectedCity.getOwner()).AI_razeMemoryScore(kAffectedCity);
-			}
+			CvPlot const& kAffectedPlot = *itPlot;
+			if (kAffectedPlot.getTeam() != i || !kAffectedPlot.isCity())
+				continue;
+			CvCity const& kAffectedCity = *kAffectedPlot.getPlotCity();
+			// <advc.106>
+			if(pReplayCity == NULL || pReplayCity->getPopulation() < kAffectedCity.getPopulation())
+				pReplayCity = &kAffectedCity; // </advc.106>
+			score += GET_PLAYER(kAffectedCity.getOwner()).AI_razeMemoryScore(kAffectedCity);
 		}
 		if(score >= 1)
 			aiTeamsAffected[i] = 2;
@@ -4650,32 +4632,29 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 	bool bImpassables = (getDomainType() == DOMAIN_SEA && GET_PLAYER(getOwner()).
 			AI_unitImpassableCount(getUnitType()) > 0);
 	int const iRange = GC.getDefineINT(CvGlobals::SHIP_BLOCKADE_RANGE);
-	for(int i = -iRange; i <= iRange; i++)
+	for (SquareIter it(*this, iRange); it.hasNext(); ++it)
 	{
-		for(int j = -iRange; j <= iRange; j++)
+		CvPlot& kLoopPlot = *it;
+		if (!kLoopPlot.isArea(getArea()) ||
+			(bCheckCanPlunder && !canPlunder(&kLoopPlot))) // advc.033
 		{
-			CvPlot* pLoopPlot = ::plotXY(getX(), getY(), i, j);
-			if(pLoopPlot == NULL || !pLoopPlot->isArea(getArea()) ||
-				(bCheckCanPlunder && !canPlunder(pLoopPlot))) // advc.033
-			{
-				continue;
-			}
-			// BBAI (jdog5000, 12/11/08): No blockading on other side of an isthmus
-			int iPathDist =
-					//GC.getMap().calculatePathDistance(plot(), pLoopPlot);
-					/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
-						issue described below b/c still uses FAStar. */
-					plot()->calculatePathDistanceToPlot(BARBARIAN_TEAM, *pLoopPlot,
-					BARBARIAN_TEAM, bImpassables ? DOMAIN_IMMOBILE : getDomainType(),
-					iRange + iExtra); // </advc.033>
-			// BBAI NOTES (jdog5000, 06/01/09):
-			// There are rare issues where the path finder will return incorrect results
-			// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable
-			// circumstances.  The fix below is a hack to address the permanent one or two tile blockades which
-			// would appear randomly, it should cause extra blockade clearing only very rarely.
-			if(iPathDist >= 0 && iPathDist <= iRange + iExtra)
-				r.push_back(pLoopPlot);
+			continue;
 		}
+		// BBAI (jdog5000, 12/11/08): No blockading on other side of an isthmus
+		int iPathDist =
+				//GC.getMap().calculatePathDistance(plot(), &kLoopPlot);
+				/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
+					issue described below b/c still uses FAStar. */
+				plot()->calculatePathDistanceToPlot(BARBARIAN_TEAM, kLoopPlot,
+				BARBARIAN_TEAM, bImpassables ? DOMAIN_IMMOBILE : getDomainType(),
+				iRange + iExtra); // </advc.033>
+		// BBAI NOTES (jdog5000, 06/01/09):
+		// There are rare issues where the path finder will return incorrect results
+		// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable
+		// circumstances.  The fix below is a hack to address the permanent one or two tile blockades which
+		// would appear randomly, it should cause extra blockade clearing only very rarely.
+		if(iPathDist >= 0 && iPathDist <= iRange + iExtra)
+			r.push_back(&kLoopPlot);
 	}
 } // </advc.033>
 
@@ -7893,40 +7872,34 @@ CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const  // advc: some style 
 CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 {
 	CvUnit* pBestUnit = NULL;
-	int pBestUnitRank = -1; // BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
-	int const iRange = 1; // advc
-	for (int iDX = -iRange; iDX <= iRange; ++iDX)
+	int iBestUnitRank = -1; // BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
+	for (SquareIter it(*pPillager, 1); it.hasNext(); ++it)
 	{
-		for (int iDY = -iRange; iDY <= iRange; ++iDY)  // advc: some changes to reduce indentation
+		CvPlot const& kLoopPlot = *it;
+		for (CLLNode<IDInfo> const* pUnitNode = kLoopPlot.headUnitNode();
+			pUnitNode != NULL; pUnitNode = kLoopPlot.nextUnitNode(pUnitNode))
 		{
-			CvPlot* pLoopPlot = plotXY(pPillager->getX(), pPillager->getY(), iDX, iDY);
-			if (pLoopPlot == NULL)
-				continue;
-			for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode();
-				pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			if (pLoopUnit == NULL)
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				if (pLoopUnit == NULL)
+				FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
+				continue;
+			}
+			//if (pLoopUnit->sameArea(*pPillager))
+			// advc.030: Replacing the above (and negated)
+			if(!pLoopUnit->canEnterArea(pPillager->plot()->getArea()))
+				continue;
+			if (!pLoopUnit->isInvisible(getTeam(), false) &&
+				isEnemy(pLoopUnit->getTeam()) &&
+				pLoopUnit->getDomainType() == DOMAIN_SEA &&
+				pLoopUnit->getGroup()->getActivityType() == ACTIVITY_PATROL)
+			{
+				if (pBestUnit == NULL || pLoopUnit->isBetterDefenderThan(pBestUnit, this,
+					// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
+					&iBestUnitRank))
 				{
-					FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
-					continue;
-				}
-				//if (pLoopUnit->sameArea(*pPillager))
-				// advc.030: Replacing the above (and negated)
-				if(!pLoopUnit->canEnterArea(pPillager->plot()->getArea()))
-					continue;
-				if (!pLoopUnit->isInvisible(getTeam(), false) &&
-					isEnemy(pLoopUnit->getTeam()) &&
-					pLoopUnit->getDomainType() == DOMAIN_SEA &&
-					pLoopUnit->getGroup()->getActivityType() == ACTIVITY_PATROL)
-				{
-					if (pBestUnit == NULL || pLoopUnit->isBetterDefenderThan(pBestUnit, this,
-						// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
-						&pBestUnitRank))
-					{
-						if (getCombatOdds(pPillager, pLoopUnit) < iMinOdds)
-							pBestUnit = pLoopUnit;
-					}
+					if (getCombatOdds(pPillager, pLoopUnit) < iMinOdds)
+						pBestUnit = pLoopUnit;
 				}
 			}
 		}

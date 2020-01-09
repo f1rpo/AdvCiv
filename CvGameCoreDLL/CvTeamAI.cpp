@@ -270,12 +270,11 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 
 	int iPoints = 0;
 	int iLevel = pCity->getCultureLevel();
-
 	for (int iDX = -iLevel; iDX <= iLevel; iDX++)
 	{
 		for (int iDY = -iLevel; iDY <= iLevel; iDY++)
 		{
-			int iDist = pCity->cultureDistance(iDX, iDY);
+			int iDist = CvCity::cultureDistance(iDX, iDY);
 			if (iDist > iLevel)
 				continue;
 

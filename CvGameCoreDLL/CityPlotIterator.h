@@ -90,17 +90,17 @@ public:
 		return *this;
 	}
 
-	__forceinline CvPlot& operator*()
+	__forceinline CvPlot& operator*() const
 	{
 		return *m_pNext;
 	}
 
-	__forceinline CvPlot* operator->()
+	__forceinline CvPlot* operator->() const
 	{
 		return m_pNext;
 	}
 
-	__forceinline CityPlotTypes currID()
+	__forceinline CityPlotTypes currID() const
 	{
 		if (bRAND_ORDER)
 			return shuffledID();
@@ -154,12 +154,12 @@ private:
 		m_aiShuffledIndices = ::shuffle(NUM_CITY_PLOTS, *m_pRandom);
 	}
 
-	__forceinline CityPlotTypes shuffledID()
+	__forceinline CityPlotTypes shuffledID() const
 	{
 		return static_cast<CityPlotTypes>(m_aiShuffledIndices[m_ePos]);
 	}
 
-	inline CvPlot* nextCityPlot()
+	inline CvPlot* nextCityPlot() const
 	{
 		CityPlotTypes ePos = m_ePos;
 		if (bRAND_ORDER)
