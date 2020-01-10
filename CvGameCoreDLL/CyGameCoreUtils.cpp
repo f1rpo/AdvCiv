@@ -5,6 +5,9 @@
 	Python interface of CvMap) */
 #include "CvMap.h"
 #include "CvCity.h" // </advc.make>
+// <advc> For functions moved from CvGameCoreUtils to CvInfos
+#include "CvInfo_Unit.h"
+#include "CvInfo_Building.h" // </advc>
 
 int cyIntRange(int iNum, int iLow, int iHigh)
 {
@@ -183,77 +186,78 @@ int cyGetWorldSizeMaxConscript(int /*CivicTypes*/ eCivic)
 
 bool cyIsReligionTech(int /*TechTypes*/ eTech)
 {
-	return isReligionTech((TechTypes) eTech);
+	return CvReligionInfo::isReligionTech((TechTypes) eTech);
 }
 
 bool cyIsTechRequiredForUnit(int /*TechTypes*/ eTech, int /*UnitTypes*/ eUnit)
 {
-	return isTechRequiredForUnit((TechTypes)eTech, (UnitTypes)eUnit);
+	return GC.getInfo((UnitTypes)eUnit).isTechRequired((TechTypes)eTech);
 }
 
 bool cyIsTechRequiredForBuilding(int /*TechTypes*/ eTech, int /*BuildingTypes*/ eBuilding)
 {
-	return isTechRequiredForBuilding((TechTypes)eTech, (BuildingTypes)eBuilding);
+	return GC.getInfo((BuildingTypes)eBuilding).isTechRequired((TechTypes)eTech);
 }
 
 bool cyIsTechRequiredForProject(int /*TechTypes*/ eTech, int /*ProjectTypes*/ eProject)
 {
-	return isTechRequiredForProject((TechTypes)eTech, (ProjectTypes)eProject);
+	// advc.003w: Global isTechRequiredForProject function no longer exists
+	return (GC.getInfo((ProjectTypes)eProject).getTechPrereq() == eTech);
 }
 
 bool cyIsWorldUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isWorldUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isWorldUnit();
 }
 
 bool cyIsTeamUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isTeamUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isTeamUnit();
 }
 
 bool cyIsNationalUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isNationalUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isNationalUnit();
 }
 
 bool cyIsLimitedUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isLimitedUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isLimited();
 }
 
 bool cyIsWorldWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isWorldWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isWorldWonder();
 }
 
 bool cyIsTeamWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isTeamWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isTeamWonder();
 }
 
 bool cyIsNationalWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isNationalWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isNationalWonder();
 }
 
 bool cyIsLimitedWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isLimitedWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isLimited();
 }
 
 bool cyIsWorldProject(int /*ProjectTypes*/ eProject)
 {
-	return isWorldProject((ProjectTypes)eProject);
+	return GC.getInfo((ProjectTypes)eProject).isWorldProject();
 }
 
 bool cyIsTeamProject(int /*ProjectTypes*/ eProject)
 {
-	return isTeamProject((ProjectTypes)eProject);
+	return GC.getInfo((ProjectTypes)eProject).isTeamProject();
 }
 
 bool cyIsLimitedProject(int /*ProjectTypes*/ eProject)
 {
-	return isLimitedProject((ProjectTypes)eProject);
+	return GC.getInfo((ProjectTypes)eProject).isLimited();
 }
 
 int cyGetCombatOdds(CyUnit* pAttacker, CyUnit* pDefender)

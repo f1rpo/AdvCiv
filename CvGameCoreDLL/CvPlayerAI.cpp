@@ -1397,7 +1397,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 		if (!(GET_PLAYER(getOwner()).isBuildingClassMaxedOut(((BuildingClassTypes)iI), GC.getInfo((BuildingClassTypes)iI).getExtraPlayerInstances())))
 		{
 			BuildingTypes eLoopBuilding = (BuildingTypes)GC.getInfo(getCivilizationType()).getCivilizationBuildings(iI);
-			bool bWorld = isWorldWonderClass((BuildingClassTypes)iI);
+			bool bWorld = CvBuildingClassInfo::isWorldWonder((BuildingClassTypes)iI);
 			bool bNational = isNationalWonderClass((BuildingClassTypes)iI);
 
 						if (canConstruct(eLoopBuilding))
@@ -1418,7 +1418,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 							{
 								iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
 
-								if (isWorldWonderClass((BuildingClassTypes)iI))
+								if (CvBuildingClassInfo::isWorldWonder((BuildingClassTypes)iI))
 								{
 									if (iProductionRank <= std::min(3, ((GET_PLAYER(getOwner()).getNumCities() + 2) / 3)))
 									{
@@ -1557,26 +1557,21 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	{
 		if (pLoopCity->isProductionBuilding())
 		{
-			if (isLimitedWonderClass((BuildingClassTypes)GC.getInfo(pLoopCity->getProductionBuilding()).getBuildingClassType()))
+			if (GC.getInfo(pLoopCity->getProductionBuilding()).isLimited())
 			{
 				iLimitedWonderCities++;
-
-				if (isWorldWonderClass((BuildingClassTypes)GC.getInfo(pLoopCity->getProductionBuilding()).getBuildingClassType()))
-				{
+				if (GC.getInfo(pLoopCity->getProductionBuilding()).isWorldWonder())
 					iWorldWonderCities++;
-				}
 			}
 		}
 
 		if (pLoopCity->isProductionProject())
 		{
-			if (isLimitedProject(pLoopCity->getProductionProject()))
+			if (GC.getInfo(pLoopCity->getProductionProject()).isLimited())
 			{
 				iLimitedWonderCities++;
-				if (isWorldProject(pLoopCity->getProductionProject()))
-				{
+				if (GC.getInfo(pLoopCity->getProductionProject()).isWorldProject())
 					iWorldWonderCities++;
-				}
 			}
 		}
 	}
@@ -1584,7 +1579,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 	// Check for any global wonders to build
 	for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 	{
-		if (isWorldWonderClass((BuildingClassTypes)iI))
+		if (GC.getInfo((BuildingClassTypes)iI).isWorldWonder())
 		{
 
 			//canConstruct(
@@ -1660,8 +1655,10 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 		} // </advc.116>
 	} // <advc.ctr>
 	if(!isBarbarian() && !kCity.isHolyCity() && !kCity.isEverOwned(getID()) &&
-			!kCity.hasActiveWorldWonder() && AI_isAwfulSite(kCity))
-		bRaze = true; // </advc.ctr>
+		!kCity.hasActiveWorldWonder() && AI_isAwfulSite(kCity))
+	{
+		bRaze = true;
+	} // </advc.ctr>
 
 	if(!bRaze)
 	{
@@ -2676,7 +2673,8 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	for (CityPlotIter it(*pCity); it.hasNext(); ++it)
 	{
 		CvPlot const& kPlot = *it;
-		if (kPlot.getBonusType(getTeam()) != NO_BONUS)
+		if (kPlot.getBonusType(getTeam()) != NO_BONUS &&
+			kPlot.getWorkingCity() == pCity) // advc.104d
 		{
 			iValue += std::max(1, AI_bonusVal(kPlot.getBonusType(getTeam()),
 					1, true) / 5);
@@ -4467,7 +4465,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		if (GC.getInfo(eLoopBuild).getTechPrereq() != eTech)
 			continue; // advc
 
-		ImprovementTypes eBuildImprovement = (ImprovementTypes)GC.getInfo(eLoopBuild).getImprovement();
+		ImprovementTypes const eBuildImprovement = GC.getInfo(eLoopBuild).getImprovement();
 		ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eBuildImprovement);
 		// Note: finalImprovementUpgrade returns -1 for looping improvements; and that isn't handled well here.
 
@@ -4512,7 +4510,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 			if (eFinalImprovement == NO_IMPROVEMENT)
 				eFinalImprovement = eBuildImprovement;
-			const CvImprovementInfo& kFinalImprovement = GC.getInfo(eFinalImprovement);
+			CvImprovementInfo const& kFinalImprovement = GC.getInfo(eFinalImprovement);
 			if (iAccessibility > 0)
 			{  /* <advc.036> Don't need to improve every tile; just those
 				  we expect to work in the near future. */
@@ -4659,8 +4657,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			}
 		}
 
-		RouteTypes eRoute = (RouteTypes)GC.getInfo(eLoopBuild).getRoute();
-
+		RouteTypes const eRoute = GC.getInfo(eLoopBuild).getRoute();
 		if (eRoute != NO_ROUTE)
 		{
 			int iRouteValue = 4 * (iCityCount - iCoastalCities/3) + (bAdvancedStart ? 2 : 0);
@@ -5013,7 +5010,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			CvBuildingInfo const& kLoopBuilding = GC.getInfo(eLoopBuilding);
 			if (kLoopBuilding.getFoundsCorporation() != NO_CORPORATION)
 			{
-				if (isTechRequiredForBuilding(eTech, eLoopBuilding))
+				if (kLoopBuilding.isTechRequired(eTech))
 				{
 					FAssert(kLoopBuilding.getFoundsCorporation() < (int)corpHQs.size());
 					corpHQs[kLoopBuilding.getFoundsCorporation()] = eLoopBuilding;
@@ -5044,7 +5041,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				else if (corpHQs[eLoopCorporation] != NO_BUILDING)
 				{
 					CvBuildingInfo const& kHQBuilding = GC.getInfo(corpHQs[eLoopCorporation]);
-					TechTypes eHQTech = (TechTypes)kHQBuilding.getPrereqAndTech();
+					TechTypes eHQTech = kHQBuilding.getPrereqAndTech();
 					if (eHQTech == eTech || kTeam.isHasTech(eHQTech) || canResearch(eHQTech))
 					{
 						bCorpTech = true;
@@ -5054,10 +5051,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 						for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
 						{
-							iMissingTechs += (!kTeam.isHasTech((TechTypes)kHQBuilding.getPrereqAndTechs(i)) ? 1 : 0);
+							iMissingTechs += (!kTeam.isHasTech(kHQBuilding.getPrereqAndTechs(i)) ? 1 : 0);
 						}
 
-						SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)kHQBuilding.getSpecialBuildingType();
+						SpecialBuildingTypes eSpecial = kHQBuilding.getSpecialBuildingType();
 						iMissingTechs += ((eSpecial != NO_SPECIALBUILDING &&
 								!kTeam.isHasTech((TechTypes)GC.getInfo(eSpecial).getTechPrereq()))
 								? 1 : 0);
@@ -5433,10 +5430,10 @@ int CvPlayerAI::AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) co
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
-		SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getInfo(eLoopBuilding).getSpecialBuildingType();
-		bool bObsolete = GC.getInfo(eLoopBuilding).getObsoleteTech() == eTech ||
-				(eSpecial != NO_SPECIALBUILDING && GC.getInfo(eSpecial).
-				getObsoleteTech() == eTech);
+		SpecialBuildingTypes eSpecial = GC.getInfo(eLoopBuilding).getSpecialBuildingType();
+		bool bObsolete = (GC.getInfo(eLoopBuilding).getObsoleteTech() == eTech ||
+				(eSpecial != NO_SPECIALBUILDING &&
+				GC.getInfo(eSpecial).getObsoleteTech() == eTech));
 		if (!bObsolete || getBuildingClassCount(kCiv.buildingClassAt(i)) <= 0)
 			continue;
 
@@ -5493,26 +5490,27 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
-
-		if (!isTechRequiredForBuilding(eTech, eLoopBuilding))
+		CvBuildingInfo const& kLoopBuilding = GC.getInfo(eLoopBuilding);
+		if (!kLoopBuilding.isTechRequired(eTech))
 			continue; // this building class is not relevent
 
-		const CvBuildingInfo& kLoopBuilding = GC.getInfo(eLoopBuilding);
-		BuildingClassTypes eClass = kCiv.buildingClassAt(i);
-
+		
 		if (GET_TEAM(getTeam()).isObsoleteBuilding(eLoopBuilding))
 			continue; // already obsolete
 
-		if (isWorldWonderClass(eClass))
+		if (kLoopBuilding.isWorldWonder())
 		{
-			if (g.isBuildingClassMaxedOut(eClass) || kLoopBuilding.getProductionCost() < 0)
+			if (g.isBuildingClassMaxedOut(kCiv.buildingClassAt(i)) ||
+				kLoopBuilding.getProductionCost() < 0)
+			{
 				continue; // either maxed out, or it's a special building that we don't want to evaluate here.
-
+			}
 			if (kLoopBuilding.getPrereqAndTech() == eTech)
 				bEnablesWonder = true; // a buildable world wonder
 		}
 
-		bool bLimitedBuilding = isLimitedWonderClass(eClass) || kLoopBuilding.getProductionCost() < 0;
+		bool bLimitedBuilding = (kLoopBuilding.isLimited() ||
+				kLoopBuilding.getProductionCost() < 0);
 
 		// Populate the relevant_cities list if we haven't done so already.
 		if (relevant_cities.empty())
@@ -5544,11 +5542,14 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 				/*  (ad-hoc). National wonders often require something which is
 					unlocked by the same tech. So I'll disregard the construction
 					requirements. */
-				(isNationalWonderClass(eClass) &&
+				(kLoopBuilding.isNationalWonder() &&
 				!relevant_cities[i]->isNationalWondersMaxed())) // advc.131
 			{
 				if (bLimitedBuilding) // TODO: don't assume 'limited' means 'only one'.
-					iBuildingValue = std::max(iBuildingValue, relevant_cities[i]->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache));
+				{
+					iBuildingValue = std::max(iBuildingValue,
+							relevant_cities[i]->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache));
+				}
 				else iBuildingValue += relevant_cities[i]->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache);
 			}
 		}
@@ -5565,7 +5566,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 						iMultiplier += kLoopBuilding.getProductionTraits(i);
 						if (kLoopBuilding.getSpecialBuildingType() != NO_SPECIALBUILDING)
 						{
-							iMultiplier += GC.getInfo((SpecialBuildingTypes)kLoopBuilding.getSpecialBuildingType()).getProductionTraits(i);
+							iMultiplier += GC.getInfo(kLoopBuilding.getSpecialBuildingType()).getProductionTraits(i);
 						}
 					}
 				}
@@ -5584,7 +5585,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 				if(AI_isFocusWar()) // advc.105
 					iScale = iScale * 2/3;
 				// increase scale for limited wonders, because they don't need to be built in every city.
-				if (isLimitedWonderClass(eClass))
+				if (kLoopBuilding.isLimited())
 					iScale *= std::min((int)relevant_cities.size(), GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities());
 				// adjust for game speed
 				iScale = iScale * kGameSpeed.getBuildPercent() / 100;
@@ -5670,11 +5671,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
-		if (!isTechRequiredForUnit(eTech, eLoopUnit))
-			continue;
-
-		UnitClassTypes eLoopClass = kCiv.unitClassAt(i);
 		CvUnitInfo& kLoopUnit = GC.getInfo(eLoopUnit);
+		if (!kLoopUnit.isTechRequired(eTech))
+			continue;
+		UnitClassTypes eLoopClass = kCiv.unitClassAt(i);
 		/*  <k146> Raw value moved here, so that it is adjusted by missing
 			techs / resources */
 		//iValue += 200;
@@ -6135,7 +6135,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 				// This multiplier stuff is basically my version of the BBAI code I disabled further up.
 				int iMultiplier = 100;
-				if (AI_atVictoryStage(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION2) || AI_isDoStrategy(AI_STRATEGY_ALERT1))
+				if (AI_atVictoryStage(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION2) ||
+					AI_isDoStrategy(AI_STRATEGY_ALERT1))
 				{
 					iMultiplier += 25;
 					if (AI_atVictoryStage(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION3))
@@ -6145,11 +6146,11 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 							iMultiplier += 25;
 					}
 				}
-				if (AI_isDoStrategy(AI_STRATEGY_ALERT1 | AI_STRATEGY_TURTLE)
-					&& (kLoopUnit.getUnitAIType(UNITAI_CITY_DEFENSE)
-					|| kLoopUnit.getUnitAIType(UNITAI_CITY_SPECIAL)
-					|| kLoopUnit.getUnitAIType(UNITAI_CITY_COUNTER)
-					|| kLoopUnit.getUnitAIType(UNITAI_COLLATERAL)))
+				if (AI_isDoStrategy(AI_STRATEGY_ALERT1 | AI_STRATEGY_TURTLE) &&
+					(kLoopUnit.getUnitAIType(UNITAI_CITY_DEFENSE) ||
+					kLoopUnit.getUnitAIType(UNITAI_CITY_SPECIAL) ||
+					kLoopUnit.getUnitAIType(UNITAI_CITY_COUNTER) ||
+					kLoopUnit.getUnitAIType(UNITAI_COLLATERAL)))
 				{
 					iMultiplier += AI_isDoStrategy(AI_STRATEGY_ALERT2) ? 70 : 30;
 					if (iPathLength <= 1 && AI_isDoStrategy(AI_STRATEGY_TURTLE))
@@ -6169,8 +6170,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			}
 		}
 		// <k146>
-		if(::isWorldUnitClass(eLoopClass) &&
-				!GC.getGame().isUnitClassMaxedOut(eLoopClass))
+		if(kLoopUnit.isWorldUnit() && !GC.getGame().isUnitClassMaxedOut(eLoopClass))
 			bEnablesUnitWonder = true; // </k146>
 		// K-Mod
 		// Decrease the value if we are missing other prereqs.
@@ -6287,26 +6287,29 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	Note: not a lot of thought has gone into this. I've basically just copied
 	the original code [from AI_techValue] and tweaked it a little bit.
 	The scale is roughly 4 = 1 commerce per turn. */
-int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEnablesProjectWonder) const
+int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength,
+	bool& bEnablesProjectWonder) const
 {
 	int iValue = 0;
 	bEnablesProjectWonder = false;
-	for (int iJ = 0; iJ < GC.getNumProjectInfos(); iJ++)
+	FOR_EACH_ENUM2(Project, eProject)
 	{
-		const CvProjectInfo& kProjectInfo = GC.getInfo((ProjectTypes)iJ);
+		CvProjectInfo const& kProject = GC.getInfo(eProject);
 		// <advc> Compacted
-		if(kProjectInfo.getTechPrereq() != eTech)
+		if(kProject.getTechPrereq() != eTech)
 			continue;
-		if(getTotalPopulation() > 5 &&  isWorldProject((ProjectTypes)iJ) &&
-				!GC.getGame().isProjectMaxedOut((ProjectTypes)iJ))
+		if(getTotalPopulation() > 5 && kProject.isWorldProject() &&
+			!GC.getGame().isProjectMaxedOut(eProject))
+		{
 			bEnablesProjectWonder = true;
+		}
 		iValue += 280;
-		if((VictoryTypes)kProjectInfo.getVictoryPrereq() == NO_VICTORY)
+		if((VictoryTypes)kProject.getVictoryPrereq() == NO_VICTORY)
 			continue; // </advc>
 		// Victory condition values need to be scaled by number of cities to compete with other tech.
 		// Total value with be roughly iBaseValue * cities.
 		int iBaseValue = 0;
-		if (!kProjectInfo.isSpaceship())
+		if (!kProject.isSpaceship())
 		{
 			// Apollo
 			iBaseValue += (AI_atVictoryStage(AI_VICTORY_SPACE2) ? 50 : 2);
@@ -6323,19 +6326,15 @@ int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEna
 				if (AI_atVictoryStage(AI_VICTORY_SPACE3))
 				{
 					iBaseValue += 40;
-					if (kProjectInfo.getMaxTeamInstances() > 0)
-					{
-						iBaseValue += (kProjectInfo.
-								getMaxTeamInstances()-1) * 10;
-					}
+					if (kProject.getMaxTeamInstances() > 0)
+						iBaseValue += (kProject.getMaxTeamInstances()-1) * 10;
 				}
 			}
 		}
 		if (iBaseValue > 0)
 		{
 			iValue += iBaseValue * (3 + std::max(getNumCities(),
-					GC.getInfo(GC.getMap().getWorldSize()).
-					getTargetNumCities()));
+					GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities()));
 		}
 	}
 	return iValue;
@@ -6344,21 +6343,15 @@ int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEna
 int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 {
 	if (eTech == NO_TECH)
-	{
 		return 0;
-	}
 
 	int iValue = 0;
 
 	if (GC.getInfo(eTech).isDefensivePactTrading())
-	{
 		iValue += 50;
-	}
 
 	if (GC.getInfo(eTech).isCommerceFlexible(COMMERCE_CULTURE))
-	{
 		iValue += 100;
-	}
 
 	//units
 	bool bAnyWarplan = AI_isFocusWar(); // advc.105
@@ -6368,7 +6361,7 @@ int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
-		if (isTechRequiredForUnit((eTech), eLoopUnit))
+		if (GC.getInfo(eLoopUnit).isTechRequired(eTech))
 		{
 			int iTempValue = (GC.getInfo(eLoopUnit).getCombat() * 100) /
 					std::max(1, (GC.getGame().getBestLandUnitCombat()));
@@ -6384,11 +6377,11 @@ int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
-		if (isTechRequiredForBuilding(eTech, eLoopBuilding))
+		CvBuildingInfo& kLoopBuilding = GC.getInfo(eLoopBuilding);
+		if (kLoopBuilding.isTechRequired(eTech))
 		{
 			if (kCiv.isUnique(eLoopBuilding))
 				iValue += 100;
-			CvBuildingInfo& kLoopBuilding = GC.getInfo(eLoopBuilding);
 			iValue += (150 * (kLoopBuilding.getCommerceChange(COMMERCE_CULTURE)
 					//) * 20);
 					// UNOFFICIAL_PATCH, Bugfix, 05/25/10, Fuyu & jdog5000:
@@ -6398,12 +6391,10 @@ int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 	}
 
 	//important civics
-	for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+	FOR_EACH_ENUM(Civic)
 	{
-		if (GC.getInfo((CivicTypes)iI).getTechPrereq() == eTech)
-		{
-			iValue += GC.getInfo((CivicTypes)iI).getCommerceModifier(COMMERCE_CULTURE) * 2;
-		}
+		if (GC.getInfo(eLoopCivic).getTechPrereq() == eTech)
+			iValue += GC.getInfo(eLoopCivic).getCommerceModifier(COMMERCE_CULTURE) * 2;
 	}
 
 	return iValue;
@@ -6427,9 +6418,9 @@ void CvPlayerAI::AI_chooseResearch()
 {
 	clearResearchQueue();
 
-	if(getCurrentResearch() == NO_TECH
-			// advc.156:
-			&& GC.getDefineINT(CvGlobals::RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER) > -5)
+	if(getCurrentResearch() == NO_TECH &&
+		// advc.156:
+		GC.getDefineINT(CvGlobals::RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER) > -5)
 	{
 		for(int iPass = 0; iPass < 2; iPass++)
 		{
@@ -10535,8 +10526,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 							we may not be able to build it at all ...
 							Too tedious to check getPrereqNumOfBuildingClass,
 							so just use a constant divisor. */
-						(::isNationalWonderClass(eBuildingClass) ? 5 :
-						2);
+						(kLoopBuilding.isNationalWonder() ? 5 : 2);
 			}
 			if (kLoopBuilding.getPowerBonus() == eBonus)
 				iTempValue += kLoopBuilding.getPowerYieldModifier(iJ);
@@ -10545,20 +10535,19 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		{
 			// determine whether we have the tech for this building
 			bool bHasTechForBuilding = true;
-			if(!kTeam.isHasTech((TechTypes)kLoopBuilding.getPrereqAndTech()))
+			if(!kTeam.isHasTech(kLoopBuilding.getPrereqAndTech()))
 				bHasTechForBuilding = false;
 			for(int iPrereqIndex = 0; bHasTechForBuilding && iPrereqIndex <
-					GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
+				GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
 			{
 				if (kLoopBuilding.getPrereqAndTechs(iPrereqIndex) != NO_TECH)
 				{
-					if (!kTeam.isHasTech((TechTypes)kLoopBuilding.getPrereqAndTechs(
-							iPrereqIndex)))
+					if (!kTeam.isHasTech(kLoopBuilding.getPrereqAndTechs(iPrereqIndex)))
 						bHasTechForBuilding = false;
 				}
 			}
 
-			bool bStateReligion = (NO_RELIGION != (ReligionTypes)kLoopBuilding.getStateReligion());
+			bool bStateReligion = (NO_RELIGION != kLoopBuilding.getStateReligion());
 			//check if function call is cached
 			bool bCanConstruct = canConstruct(eLoopBuilding, false,
 					/*bTestVisible*/ true, /*bIgnoreCost*/ true);
@@ -10575,7 +10564,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 			if(bTrade && !bCanConstruct)
 				iTempValue = 0; // </advc.036>
 			// if non-limited water building, weight by coastal cities
-			if(kLoopBuilding.isWater() && !::isLimitedWonderClass(eBuildingClass))
+			if(kLoopBuilding.isWater() && !kLoopBuilding.isLimited())
 			{
 				iTempValue *= iCoastalCityCount;
 				iTempValue /= std::max(1, iCityCount/2);
@@ -10584,17 +10573,18 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 			if(iMaking > 0)
 			{
 				iTempValue *= 20; // +100% for wonders, +43% to +100% otherwise.
-				if(::isMundaneBuildingClass(eBuildingClass))
-					iTempValue /= std::max(10, 15 - iMaking);
-				else iTempValue /= 10;
+				if(kLoopBuilding.isLimited())
+					iTempValue /= 10;
+				else iTempValue /= std::max(10, 15 - iMaking);
 			} /* Even if it's from an earlier era, if we're constructing it,
 				 then it's apparently useful. */
 			else // </advc.036>
 				if(kLoopBuilding.getPrereqAndTech() != NO_TECH)
 			{
-				int iDiff = abs(GC.getInfo((TechTypes)
-						kLoopBuilding.getPrereqAndTech()).getEra() - getCurrentEra());
-				if(iDiff == 0) {
+				int iDiff = abs(GC.getInfo(kLoopBuilding.getPrereqAndTech()).getEra() -
+						getCurrentEra());
+				if(iDiff == 0)
+				{
 					iTempValue *= 3;
 					iTempValue /= 2;
 				}
@@ -10642,21 +10632,21 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	}
 
 	RouteTypes eBestRoute = getBestRoute();
-	for(int iI = 0; iI < GC.getNumBuildInfos(); iI++)
+	FOR_EACH_ENUM(Build)
 	{
-		RouteTypes eRoute = (RouteTypes)GC.getInfo((BuildTypes)iI).getRoute();
+		RouteTypes eRoute = GC.getInfo(eLoopBuild).getRoute();
 		if(eRoute == NO_ROUTE)
 			continue;
 		int iTempValue = 0;
 		if(GC.getInfo(eRoute).getPrereqBonus() == eBonus)
 			iTempValue += 80;
-		for(int iJ = 0; iJ < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); iJ++)
+		for(int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); i++)
 		{
-			if(GC.getInfo(eRoute).getPrereqOrBonus(iJ) == eBonus)
+			if(GC.getInfo(eRoute).getPrereqOrBonus(i) == eBonus)
 				iTempValue += 40;
 		}
 		// <advc.036> The usual tech checks
-		TechTypes eTech = (TechTypes)GC.getInfo((BuildTypes)iI).getTechPrereq();
+		TechTypes eTech = GC.getInfo(eLoopBuild).getTechPrereq();
 		if(eTech != NO_TECH && !GET_TEAM(getTeam()).isHasTech(eTech))
 		{
 			if(bTrade)
@@ -10668,11 +10658,12 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 				iTempValue /= iEraDiff;
 		} // </advc.036>
 		if (eBestRoute != NO_ROUTE &&
-				/*  advc.opt: Was GC.getInfo(getBestRoute()), which iterates
-					through all builds. */
-				GC.getInfo(eBestRoute).
-				getValue() <= GC.getInfo(eRoute).getValue())
+			/*  advc.opt: Was GC.getInfo(getBestRoute()), which iterates
+				through all builds. */
+			GC.getInfo(eBestRoute).getValue() <= GC.getInfo(eRoute).getValue())
+		{
 			dValue += iTempValue;
+		}
 		else dValue += iTempValue / 2;
 	}
 
@@ -10999,14 +10990,13 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	{
 		if(!bStrategic) // advc.opt
 		{
-			for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+			FOR_EACH_ENUM(Building)
 			{
-				BuildingTypes eBuilding = (BuildingTypes)iI;
-				if (GC.getInfo(eBuilding).getPrereqAndBonus() == eBonus)
+				if (GC.getInfo(eLoopBuilding).getPrereqAndBonus() == eBonus)
 					bStrategic = true;
-				for (int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(eBuilding); iJ++)
+				for (int i = 0; i < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(eLoopBuilding); i++)
 				{
-					if (GC.getInfo(eBuilding).getPrereqOrBonuses(iJ) == eBonus)
+					if (GC.getInfo(eLoopBuilding).getPrereqOrBonuses(i) == eBonus)
 						bStrategic = true;
 				} // <advc.opt>
 				if(bStrategic)
@@ -11853,14 +11843,14 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				{
 					FOR_EACH_ENUM(Unit)
 					{
-						int iUnitClass = u.getUnitClassType();
+						UnitClassTypes eUnitClass = u.getUnitClassType();
 						CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
-						if (iUnitClass != NO_UNITCLASS && kLoopUnit.getDefenderUnitClass(iUnitClass))
+						if (eUnitClass != NO_UNITCLASS && kLoopUnit.getDefenderUnitClass(eUnitClass))
 						{
 							bValid = true;
 							break;
 						}
-						UnitCombatTypes eUnitCombat = (UnitCombatTypes)u.getUnitCombatType();
+						UnitCombatTypes eUnitCombat = u.getUnitCombatType();
 						if (eUnitCombat != NO_UNITCOMBAT && kLoopUnit.getDefenderUnitCombat(eUnitCombat))
 						{
 							bValid = true;
@@ -12845,7 +12835,7 @@ bool CvPlayerAI::AI_isExcessSeaExplorers(CvArea const& kWaterArea, int iChange) 
 bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea const* pArea) const
 {
 	int iValue = AI_unitValue(eUnit, eRole, pArea);
-	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getInfo(eUnit).getUnitClassType();
+	UnitClassTypes eUnitClass = GC.getInfo(eUnit).getUnitClassType();
 	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
@@ -14705,10 +14695,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 								{
 									// Only check the tech prereqs for the corp if we already have the prereqs for this civic.
 									// (This condition will help us research towards the corp tech rather than researching towards the civic that will block the corp.)
-									bHasPrereq = kTeam.isHasTech((TechTypes)kLoopBuilding.getPrereqAndTech()) || canResearch((TechTypes)kLoopBuilding.getPrereqAndTech());
+									bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTech()) ||
+											canResearch(kLoopBuilding.getPrereqAndTech()));
 									for (int iI = 0; bHasPrereq && iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
 									{
-										bHasPrereq = kTeam.isHasTech((TechTypes)kLoopBuilding.getPrereqAndTechs(iI)) || canResearch((TechTypes)kLoopBuilding.getPrereqAndTechs(iI));
+										bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTechs(iI)) ||
+											canResearch(kLoopBuilding.getPrereqAndTechs(iI)));
 									}
 								}
 
@@ -15561,19 +15553,13 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 					CvProjectInfo& kProject = GC.getInfo(pCity->getProductionProject());
 					iValue += iTempValue * ((kProject.getMaxTeamInstances() == 1) ? 6 : 3);	// was 4 : 2
 				}
-				else if (pCity->getProductionBuilding() != NO_BUILDING)
+				else if (pCity->isProductionBuilding())
 				{
-					CvBuildingInfo& kBuilding = GC.getInfo(pCity->getProductionBuilding());
-					if (isWorldWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
-					{
+					if (GC.getInfo(pCity->getProductionBuilding()).isWorldWonder())
 						iValue += 3 * iTempValue;
-					}
 					iValue += iTempValue;
 				}
-				else
-				{
-					iValue += iTempValue;
-				}
+				else iValue += iTempValue;
 			}
 		}
 	}
@@ -22087,7 +22073,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 			if (kUnit.getCombat() <= 0)
 				continue; // advc
-			UnitClassTypes eLoopUnitClass = (UnitClassTypes)kUnit.getUnitClassType();
+			UnitClassTypes eLoopUnitClass = kUnit.getUnitClassType();
 			/*  (advc: A little crazy to have all this code just for counting
 				unique units for Dagger - which UWAI bypasses anyway -,
 				but that's how it was and is.) */
@@ -22102,28 +22088,26 @@ void CvPlayerAI::AI_updateStrategyHash()
 				iDagger += bDefensive ? 10 : 40;
 
 				int iUUStr = kUnit.getCombat();
-				int iNormalStr = GC.getInfo((UnitTypes)GC.getInfo(
-						eLoopUnitClass).getDefaultUnitIndex()).getCombat();
-				iDagger += 20 * range((iUUStr - iNormalStr), 0, 2);
+				int iNormalStr = GC.getInfo(GC.getInfo(eLoopUnitClass).
+						getDefaultUnit()).getCombat();
+				iDagger += 20 * range(iUUStr - iNormalStr, 0, 2);
 				if (kUnit.getPrereqAndTech() == NO_TECH)
 					iDagger += 20;
 			}
 			else
 			{
-				if (kUnit.getPrereqAndTech() != NO_TECH)
+				if (kUnit.getPrereqAndTech() != NO_TECH &&
+					GC.getInfo((TechTypes)kUnit.getPrereqAndTech()).getEra() <= iCurrentEra + 1)
 				{
-					if (GC.getInfo((TechTypes)kUnit.getPrereqAndTech()).getEra() <= iCurrentEra + 1)
+					if (kTeam.isHasTech((TechTypes)kUnit.getPrereqAndTech()))
 					{
-						if (kTeam.isHasTech((TechTypes)kUnit.getPrereqAndTech()))
-						{
-							//we have the tech but can't train the unit, dejection.
-							iDagger += 10;
-						}
-						else
-						{
-							//we don't have the tech, it's understandable we can't train.
-							iDagger += 30;
-						}
+						//we have the tech but can't train the unit, dejection.
+						iDagger += 10;
+					}
+					else
+					{
+						//we don't have the tech, it's understandable we can't train.
+						iDagger += 30;
 					}
 				}
 
@@ -22557,16 +22541,16 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 
 		// We've estabilish that we can use this specialist, and that they provide great-person points for a unit which
 		// we have not yet evaluated. So now we just have to evaluate the unit!
-		const CvUnitInfo& kInfo = GC.getInfo(eGreatPerson);
+		CvUnitInfo const& kGP = GC.getInfo(eGreatPerson);
 
-		if (kInfo.getUnitCombatType() != NO_UNITCOMBAT)
+		if (kGP.getUnitCombatType() != NO_UNITCOMBAT)
 			continue; // don't try to evaluate combat units.
 
 		int iValue = 0;
 		// value of joining a city as a super-specialist
 		for (int j = 0; j < GC.getNumSpecialistInfos(); j++)
 		{
-			if (kInfo.getGreatPeoples((SpecialistTypes)j))
+			if (kGP.getGreatPeoples((SpecialistTypes)j))
 			{
 				FOR_EACH_CITYAI(pLoopCity, *this)
 				{
@@ -22577,10 +22561,10 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 			}
 		} // <advc.opt>
 		EraTypes iCurrentEra = getCurrentEra();
-		int iCurrentGP = AI_totalUnitAIs((UnitAITypes)kInfo.getDefaultUnitAIType());
+		int iCurrentGP = AI_totalUnitAIs((UnitAITypes)kGP.getDefaultUnitAIType());
 		// </advc.opt>
 		// value of building something.
-		if (kInfo.isAnyBuildings()) // advc.003t
+		if (kGP.isAnyBuildings()) // advc.003t
 		{
 			CvCivilization const& kCiv = getCivilization(); // advc.003w 
 			for (int j = 0; j < kCiv.getNumBuildings(); j++)
@@ -22592,22 +22576,23 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 				if(iCost > 0 && iCost < (iCurrentEra + 1) * 40)
 					continue; // </advc.opt>
 				if (//kInfo.getForceBuildings(eBuilding) || // advc.003t
-					(kInfo.getBuildings(eBuilding) && canConstruct(eBuilding, false, false, true)))
+					(kGP.getBuildings(eBuilding) && canConstruct(eBuilding, false, false, true)))
 				{
 					FOR_EACH_CITYAI(pLoopCity, *this)
 					{
 						// cf. conditions used in CvUnit::canConstruct
 						if (pLoopCity->getNumRealBuilding(eBuilding) > 0 ||
-								(/*!kInfo.getForceBuildings(eBuilding) &&*/ // advc.003t
-								!pLoopCity->canConstruct(eBuilding, false, false, true)))
+							(/*!kGP.getForceBuildings(eBuilding) &&*/ // advc.003t
+							!pLoopCity->canConstruct(eBuilding, false, false, true)))
+						{
 							continue;
-
+						}
 						// Note, building value is roughly 4x the value of the commerce it provides.
 						// so we * 25 to match the scale of specialist value.
 						int iTempValue = pLoopCity->AI_buildingValue(eBuilding) * 25;
 
 						// if the building is a world wonder, increase the value.
-						if (::isWorldWonderClass(eBuilding))
+						if (GC.getInfo(eBuilding).isWorldWonder())
 							iTempValue = 3*iTempValue/2;
 
 						// reduce the value if we already have great people of this type
@@ -23135,7 +23120,6 @@ int CvPlayerAI::AI_getTotalAreaCityThreat(CvArea const& kArea) const
 // advc.099c:
 int CvPlayerAI::AI_getAreaCultureDefendersNeeded(CvArea const& kArea) const
 {
-	PROFILE_FUNC();
 	int r = 0;
 	FOR_EACH_CITYAI(pCity, *this)
 	{
@@ -23439,13 +23423,13 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot* pPlot, UnitAITypes eUni
 
 		for (int iJ = 0; iJ < GC.getNumPromotionInfos(); iJ++)
 		{
-			if (isFreePromotion((UnitCombatTypes)GC.getInfo(eLoopUnit).getUnitCombatType(), (PromotionTypes)iJ))
+			if (isFreePromotion(GC.getInfo(eLoopUnit).getUnitCombatType(), (PromotionTypes)iJ))
 			{
 				iPromotionValue += 15;
 				break;
 			}
 
-			if (isFreePromotion((UnitClassTypes)GC.getInfo(eLoopUnit).getUnitClassType(), (PromotionTypes)iJ))
+			if (isFreePromotion(GC.getInfo(eLoopUnit).getUnitClassType(), (PromotionTypes)iJ))
 			{
 				iPromotionValue += 15;
 				break;
@@ -23461,7 +23445,8 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot* pPlot, UnitAITypes eUni
 				{
 					if (GC.getInfo((TraitTypes) iJ).isFreePromotion(iK))
 					{
-						if ((GC.getInfo(eLoopUnit).getUnitCombatType() != NO_UNITCOMBAT) && GC.getInfo((TraitTypes) iJ).isFreePromotionUnitCombat(GC.getInfo(eLoopUnit).getUnitCombatType()))
+						if ((GC.getInfo(eLoopUnit).getUnitCombatType() != NO_UNITCOMBAT) &&
+							GC.getInfo((TraitTypes) iJ).isFreePromotionUnitCombat(GC.getInfo(eLoopUnit).getUnitCombatType()))
 						{
 							iPromotionValue += 15;
 							break;
@@ -24785,9 +24770,9 @@ void CvPlayerAI::AI_doEnemyUnitData()
 	int iNewTotal = 0;
 
 	// Count enemy land and sea units visible to us
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		int iAdjacentAttackers = -1;
 		if (!kPlot.isVisible(getTeam()))
 			continue; // advc
@@ -24853,57 +24838,53 @@ void CvPlayerAI::AI_doEnemyUnitData()
 		//This should rarely happen.
 		return;
 	}
-
 	//Decay
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	FOR_EACH_ENUM(UnitClass)
 	{
-		m_aiUnitClassWeights[iI] -= 100;
-		m_aiUnitClassWeights[iI] *= 3;
-		m_aiUnitClassWeights[iI] /= 4;
-		m_aiUnitClassWeights[iI] = std::max(0, m_aiUnitClassWeights[iI]);
+		m_aiUnitClassWeights[eLoopUnitClass] -= 100;
+		m_aiUnitClassWeights[eLoopUnitClass] *= 3;
+		m_aiUnitClassWeights[eLoopUnitClass] /= 4;
+		m_aiUnitClassWeights[eLoopUnitClass] =
+				std::max(0, m_aiUnitClassWeights[eLoopUnitClass]);
 	}
-
-	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	FOR_EACH_ENUM(Unit)
 	{
-		if (aiUnitCounts[iI] <= 0)
+		if (aiUnitCounts[eLoopUnit] <= 0)
 			continue; // advc
 
-		UnitTypes eLoopUnit = (UnitTypes)iI;
-		TechTypes eTech = (TechTypes)GC.getInfo((UnitTypes)iI).getPrereqAndTech();
+		TechTypes eTech = (TechTypes)GC.getInfo(eLoopUnit).getPrereqAndTech();
 		int iEraDiff = (eTech == NO_TECH) ? 4 :
 				std::min(4, getCurrentEra() - GC.getInfo(eTech).getEra());
 		if (iEraDiff > 1)
 		{
 			iEraDiff -= 1;
-			aiUnitCounts[iI] *= 3 - iEraDiff;
-			aiUnitCounts[iI] /= 3;
+			aiUnitCounts[eLoopUnit] *= 3 - iEraDiff;
+			aiUnitCounts[eLoopUnit] /= 3;
 		}
 		FAssert(aiDomainSums[GC.getInfo(eLoopUnit).getDomainType()] > 0);
 		m_aiUnitClassWeights[GC.getInfo(eLoopUnit).getUnitClassType()] +=
-				(5000 * aiUnitCounts[iI]) / std::max(1,
+				(5000 * aiUnitCounts[eLoopUnit]) / std::max(1,
 				aiDomainSums[GC.getInfo(eLoopUnit).getDomainType()]);
 	}
-
-	for (int iI = 0; iI < GC.getNumUnitCombatInfos(); ++iI)
+	FOR_EACH_ENUM(UnitCombat)
 	{
-		m_aiUnitCombatWeights[iI] = 0;
+		m_aiUnitCombatWeights[eLoopUnitCombat] = 0;
 	}
-
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	FOR_EACH_ENUM(UnitClass)
 	{
-		if (m_aiUnitClassWeights[iI] > 0)
+		if (m_aiUnitClassWeights[eLoopUnitClass] > 0)
 		{
-			UnitTypes eUnit = (UnitTypes)GC.getInfo((UnitClassTypes)iI).getDefaultUnitIndex();
-			m_aiUnitCombatWeights[GC.getInfo(eUnit).getUnitCombatType()] += m_aiUnitClassWeights[iI];
+			UnitTypes eUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
+			m_aiUnitCombatWeights[GC.getInfo(eUnit).getUnitCombatType()] +=
+					m_aiUnitClassWeights[eLoopUnitClass];
 		}
 	}
-
-	for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
+	FOR_EACH_ENUM(UnitCombat)
 	{
-		if (m_aiUnitCombatWeights[iI] > 25)
-			m_aiUnitCombatWeights[iI] += 2500;
-		else if (m_aiUnitCombatWeights[iI] > 0)
-			m_aiUnitCombatWeights[iI] += 1000;
+		if (m_aiUnitCombatWeights[eLoopUnitCombat] > 25)
+			m_aiUnitCombatWeights[eLoopUnitCombat] += 2500;
+		else if (m_aiUnitCombatWeights[eLoopUnitCombat] > 0)
+			m_aiUnitCombatWeights[eLoopUnitCombat] += 1000;
 	}
 }
 
@@ -24911,14 +24892,15 @@ int CvPlayerAI::AI_calculateUnitAIViability(UnitAITypes eUnitAI, DomainTypes eDo
 {
 	int iBestUnitAIStrength = 0;
 	int iBestOtherStrength = 0;
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	FOR_EACH_ENUM(UnitClass)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)GC.getInfo((UnitClassTypes)iI).getDefaultUnitIndex();
+		UnitTypes eLoopUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
 		const CvUnitInfo& kUnitInfo = GC.getInfo(eLoopUnit);
 		if (kUnitInfo.getDomainType() == eDomain)
 		{
 			TechTypes eTech = (TechTypes)kUnitInfo.getPrereqAndTech();
-			if (m_aiUnitClassWeights[iI] > 0 || GET_TEAM(getTeam()).isHasTech((eTech)))
+			if (m_aiUnitClassWeights[eLoopUnitClass] > 0 ||
+				GET_TEAM(getTeam()).isHasTech((eTech)))
 			{
 				if (kUnitInfo.getUnitAIType(eUnitAI))
 					iBestUnitAIStrength = std::max(iBestUnitAIStrength, kUnitInfo.getCombat());

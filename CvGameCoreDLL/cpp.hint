@@ -22,3 +22,6 @@
 #define FOR_EACH_GROUPAI_VAR(pCity, kOwner)
 
 #define FOR_EACH_ENUM(TypeName)
+#define FOR_EACH_ENUM2(TypeName, eVar)
+#define FOR_EACH_ENUM_RAND(TypeName)
+FOR_EACH_ENUM_REV(TypeName)

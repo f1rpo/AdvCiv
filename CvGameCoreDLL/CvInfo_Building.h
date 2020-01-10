@@ -11,11 +11,81 @@
 	CvVoteInfo (should stay with CvVoteSourceInfo)
 	CvProjectInfo (very similar to a building) */
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//  class : CvBuildingClassInfo  // advc: Moved up for inline function calls from CvBuilding
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+class CvBuildingClassInfo : public CvInfoBase
+{
+public: // All the const functions are exposed to Python; advc.inl: Inlined most of them.
+	CvBuildingClassInfo();
+	~CvBuildingClassInfo();
+
+	inline int getMaxGlobalInstances() const
+	{
+		return m_iMaxGlobalInstances;
+	}
+	inline bool isWorldWonder() const // advc.003w: Replacing global isWorldWonderClass
+	{
+		return (getMaxGlobalInstances() != -1);
+	}
+	inline int getMaxTeamInstances() const
+	{
+		return m_iMaxTeamInstances;
+	}
+	inline bool isTeamWonder() const // advc.003w: Replacing global isTeamWonderClass
+	{
+		return (getMaxTeamInstances() != -1);
+	}
+	inline int getMaxPlayerInstances() const
+	{
+		return m_iMaxPlayerInstances;
+	}
+	inline bool isNationalWonder() const // advc.003w: Replacing global isNationalWonderClass
+	{
+		return (getMaxPlayerInstances() != -1);
+	}
+	inline bool isLimited() const // advc.003w: Replacing global isLimitedWonderClass
+	{
+		return (isWorldWonder() || isTeamWonder() || isNationalWonder());
+	}
+	int getExtraPlayerInstances() const
+	{
+		return m_iExtraPlayerInstances;
+	}
+	BuildingTypes getDefaultBuilding() const // advc.003x: Renamed from getDefaultBuildingIndex
+	{
+		return (BuildingTypes)m_iDefaultBuildingIndex;
+	}
+	bool isNoLimit() const
+	{
+		return m_bNoLimit;
+	}
+	int getLimit() const; // advc.003w: Replacing global limitedWonderClassLimit
+
+	bool isMonument() const;
+	int getVictoryThreshold(int i) const;
+
+	bool read(CvXMLLoadUtility* pXML);
+	bool readPass3();
+
+protected:
+	int m_iMaxGlobalInstances;
+	int m_iMaxTeamInstances;
+	int m_iMaxPlayerInstances;
+	int m_iExtraPlayerInstances;
+	int m_iDefaultBuildingIndex;
+
+	bool m_bNoLimit;
+	bool m_bMonument;
+
+	int* m_piVictoryThreshold;
+};
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvBuildingInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvBuildingInfo : public CvHotkeyInfo
 {
-public: // All the const functions are exposed to Python // advc.130f (tbd.): inline most of these?
+public: // All the const functions are exposed to Python. advc.inl: Inlined most of those.
 	CvBuildingInfo();
 	~CvBuildingInfo();
 	// <advc.tag>
@@ -38,120 +108,142 @@ public: // All the const functions are exposed to Python // advc.130f (tbd.): in
 		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
 	} // </advc.tag>
 
-	inline int getBuildingClassType() const { return m_iBuildingClassType; } // advc.130f: inline
-	int getVictoryPrereq() const;
-	int getFreeStartEra() const;
-	int getMaxStartEra() const;
-	int getObsoleteTech() const;
-	int getPrereqAndTech() const;
-	int getNoBonus() const;
-	int getPowerBonus() const;
-	int getFreeBonus() const;
-	int getNumFreeBonuses() const;
-	int getFreeBuildingClass() const;
-	int getFreePromotion() const;
-	int getCivicOption() const;
-	int getAIWeight() const;
-	int getProductionCost() const;
-	int getHurryCostModifier() const;
-	int getHurryAngerModifier() const;
-	int getAdvancedStartCost() const;
-	int getAdvancedStartCostIncrease() const;
-	int getMinAreaSize() const;
-	int getNumCitiesPrereq() const;
-	int getNumTeamsPrereq() const;
-	int getUnitLevelPrereq() const;
-	int getMinLatitude() const;
-	int getMaxLatitude() const;
-	int getGreatPeopleRateModifier() const;
-	int getGreatGeneralRateModifier() const;
+	inline BuildingClassTypes getBuildingClassType() const
+	{
+		return (BuildingClassTypes)m_iBuildingClassType;
+	}
+	int getVictoryPrereq() const { return m_iVictoryPrereq; }
+	EraTypes getFreeStartEra() const { return (EraTypes)m_iFreeStartEra; }
+	EraTypes getMaxStartEra() const { return (EraTypes)m_iMaxStartEra; }
+	TechTypes getObsoleteTech() const { return (TechTypes)m_iObsoleteTech; }
+	TechTypes getPrereqAndTech() const { return (TechTypes)m_iPrereqAndTech; }
+	bool isTechRequired(TechTypes eTech) const; // advc.003w: Replacing global isTechRequiredForBuilding
+	BonusTypes getNoBonus() const { return (BonusTypes)m_iNoBonus; }
+	BonusTypes getPowerBonus() const { return (BonusTypes)m_iPowerBonus; }
+	BonusTypes getFreeBonus() const { return (BonusTypes)m_iFreeBonus; }
+	int getNumFreeBonuses() const { return m_iNumFreeBonuses; }
+	BuildingClassTypes getFreeBuildingClass() const { return (BuildingClassTypes)m_iFreeBuildingClass; }
+	PromotionTypes getFreePromotion() const { return (PromotionTypes)m_iFreePromotion; }
+	CivicOptionTypes getCivicOption() const { return (CivicOptionTypes)m_iCivicOption; }
+	int getAIWeight() const { return m_iAIWeight; }
+	int getProductionCost() const { return m_iProductionCost; }
+	int getHurryCostModifier() const { return m_iHurryCostModifier; }
+	int getHurryAngerModifier() const { return m_iHurryAngerModifier; }
+	int getAdvancedStartCost() const { return m_iAdvancedStartCost; }
+	int getAdvancedStartCostIncrease() const { return m_iAdvancedStartCostIncrease; }
+	int getMinAreaSize() const { return m_iMinAreaSize; }
+	int getNumCitiesPrereq() const { return m_iNumCitiesPrereq; }
+	int getNumTeamsPrereq() const { return m_iNumTeamsPrereq; }
+	int getUnitLevelPrereq() const { return m_iUnitLevelPrereq; }
+	int getMinLatitude() const { return m_iMinLatitude; }
+	int getMaxLatitude() const { return m_iMaxLatitude; }
+	int getGreatPeopleRateModifier() const { return m_iGreatPeopleRateModifier; }
+	int getGreatGeneralRateModifier() const { return m_iGreatGeneralRateModifier; }
 	int getDomesticGreatGeneralRateModifier() const;
-	int getGlobalGreatPeopleRateModifier() const;
-	int getAnarchyModifier() const;
-	int getGoldenAgeModifier() const;
-	int getGlobalHurryModifier() const;
-	int getFreeExperience() const;
-	int getGlobalFreeExperience() const;
-	int getFoodKept() const;
-	int getAirlift() const;
-	int getAirModifier() const;
-	int getAirUnitCapacity() const;
-	int getNukeModifier() const;
-	int getNukeExplosionRand() const;
-	int getFreeSpecialist() const;
-	int getAreaFreeSpecialist() const;
-	int getGlobalFreeSpecialist() const;
-	int getHappiness() const;
-	int getAreaHappiness() const;
-	int getGlobalHappiness() const;
-	int getStateReligionHappiness() const;
-	int getWorkerSpeedModifier() const;
-	int getMilitaryProductionModifier() const;
-	int getSpaceProductionModifier() const;
-	int getGlobalSpaceProductionModifier() const;
-	int getTradeRoutes() const;
-	int getCoastalTradeRoutes() const;
+	int getGlobalGreatPeopleRateModifier() const { return m_iGlobalGreatPeopleRateModifier; }
+	int getAnarchyModifier() const { return m_iAnarchyModifier; }
+	int getGoldenAgeModifier() const { return m_iGoldenAgeModifier; }
+	int getGlobalHurryModifier() const { return m_iGlobalHurryModifier; }
+	int getFreeExperience() const { return m_iFreeExperience; }
+	int getGlobalFreeExperience() const { return m_iGlobalFreeExperience; }
+	int getFoodKept() const { return m_iFoodKept; }
+	int getAirlift() const { return m_iAirlift; }
+	int getAirModifier() const { return m_iAirModifier; }
+	int getAirUnitCapacity() const { return m_iAirUnitCapacity; }
+	int getNukeModifier() const { return m_iNukeModifier; }
+	int getNukeExplosionRand() const { return m_iNukeExplosionRand; }
+	int getFreeSpecialist() const { return m_iFreeSpecialist; }
+	int getAreaFreeSpecialist() const { return m_iAreaFreeSpecialist; }
+	int getGlobalFreeSpecialist() const { return m_iGlobalFreeSpecialist; }
+	int getHappiness() const { return m_iHappiness; }
+	int getAreaHappiness() const { return m_iAreaHappiness; }
+	int getGlobalHappiness() const { return m_iGlobalHappiness; }
+	int getStateReligionHappiness() const { return m_iStateReligionHappiness; }
+	int getWorkerSpeedModifier() const { return m_iWorkerSpeedModifier; }
+	int getMilitaryProductionModifier() const { return m_iMilitaryProductionModifier; }
+	int getSpaceProductionModifier() const { return m_iSpaceProductionModifier; }
+	int getGlobalSpaceProductionModifier() const { return m_iGlobalSpaceProductionModifier; }
+	int getTradeRoutes() const { return m_iTradeRoutes; }
+	int getCoastalTradeRoutes() const { return m_iCoastalTradeRoutes; }
 	int getAreaTradeRoutes() const; // advc.310: Renamed; was getGlobalTradeRoutes.
-	int getTradeRouteModifier() const;
-	int getForeignTradeRouteModifier() const;
-	int getAssetValue() const;
-	int getPowerValue() const;
-	int getSpecialBuildingType() const;
-	int getAdvisorType() const;
-	int getHolyCity() const;
-	int getReligionType() const;
-	int getStateReligion() const;
-	int getPrereqReligion() const;
-	int getPrereqCorporation() const;
-	int getFoundsCorporation() const;
-	int getGlobalReligionCommerce() const;
-	int getGlobalCorporationCommerce() const;
-	int getPrereqAndBonus() const;
-	int getGreatPeopleUnitClass() const;
-	int getGreatPeopleRateChange() const;
-	int getConquestProbability() const;
-	int getMaintenanceModifier() const;
-	int getWarWearinessModifier() const;
-	int getGlobalWarWearinessModifier() const;
-	int getEnemyWarWearinessModifier() const;
-	int getHealRateChange() const;
-	int getHealth() const;
-	int getAreaHealth() const;
-	int getGlobalHealth() const;
-	int getGlobalPopulationChange() const;
-	int getFreeTechs() const;
-	inline int getDefenseModifier() const { return m_iDefenseModifier; } // advc.130f: inline
-	int getBombardDefenseModifier() const;
-	int getAllCityDefenseModifier() const;
-	int getEspionageDefenseModifier() const;
-	int getMissionType() const;
+	int getTradeRouteModifier() const { return m_iTradeRouteModifier; }
+	int getForeignTradeRouteModifier() const { return m_iForeignTradeRouteModifier; }
+	int getAssetValue() const { return m_iAssetValue; }
+	int getPowerValue() const { return m_iPowerValue; }
+	SpecialBuildingTypes getSpecialBuildingType() const
+	{
+		return (SpecialBuildingTypes)m_iSpecialBuildingType;
+	}
+	AdvisorTypes getAdvisorType() const { return (AdvisorTypes)m_iAdvisorType; }
+	ReligionTypes getHolyCity() const { return (ReligionTypes)m_iHolyCity; }
+	ReligionTypes getReligionType() const { return (ReligionTypes)m_iReligionType; }
+	ReligionTypes getStateReligion() const { return (ReligionTypes)m_iStateReligion; }
+	ReligionTypes getPrereqReligion() const { return (ReligionTypes)m_iPrereqReligion; }
+	CorporationTypes getPrereqCorporation() const
+	{
+		return (CorporationTypes)m_iPrereqCorporation;
+	}
+	CorporationTypes getFoundsCorporation() const
+	{
+		return (CorporationTypes)m_iFoundsCorporation;
+	}
+	ReligionTypes getGlobalReligionCommerce() const
+	{
+		return (ReligionTypes)m_iGlobalReligionCommerce;
+	}
+	CorporationTypes getGlobalCorporationCommerce() const
+	{
+		return (CorporationTypes)m_iGlobalCorporationCommerce;
+	}
+	BonusTypes getPrereqAndBonus() const { return (BonusTypes)m_iPrereqAndBonus; }
+	int getGreatPeopleUnitClass() const { return m_iGreatPeopleUnitClass; }
+	int getGreatPeopleRateChange() const { return m_iGreatPeopleRateChange; }
+	int getConquestProbability() const { return m_iConquestProbability; }
+	int getMaintenanceModifier() const { return m_iMaintenanceModifier; }
+	int getWarWearinessModifier() const { return m_iWarWearinessModifier; }
+	int getGlobalWarWearinessModifier() const { return m_iGlobalWarWearinessModifier; }
+	int getEnemyWarWearinessModifier() const { return m_iEnemyWarWearinessModifier; }
+	int getHealRateChange() const { return m_iHealRateChange; }
+	int getHealth() const { return m_iHealth; }
+	int getAreaHealth() const { return m_iAreaHealth; }
+	int getGlobalHealth() const { return m_iGlobalHealth; }
+	int getGlobalPopulationChange() const { return m_iGlobalPopulationChange; }
+	int getFreeTechs() const { return m_iFreeTechs; }
+	inline int getDefenseModifier() const { return m_iDefenseModifier; }
+	int getBombardDefenseModifier() const { return m_iBombardDefenseModifier; }
+	int getAllCityDefenseModifier() const { return m_iAllCityDefenseModifier; }
+	int getEspionageDefenseModifier() const { return m_iEspionageDefenseModifier; }
+	int getMissionType() const { return m_iMissionType; }
 	void setMissionType(int iNewType);
-	int getVoteSourceType() const;
+	int getVoteSourceType() const { return m_iVoteSourceType; }
 
 	float getVisibilityPriority() const;
 
-	bool isTeamShare() const;
-	bool isWater() const;
-	bool isRiver() const;
-	bool isPower() const;
-	bool isDirtyPower() const;
-	bool isAreaCleanPower() const;
+	bool isTeamShare() const { return m_bTeamShare; }
+	bool isWater() const { return m_bWater; }
+	bool isRiver() const { return m_bRiver; }
+	bool isPower() const { return m_bPower; }
+	bool isDirtyPower() const { return m_bDirtyPower; }
+	bool isAreaCleanPower() const { return m_bAreaCleanPower; }
 	bool isAreaBorderObstacle() const;
-	bool isForceTeamVoteEligible() const;
-	bool isCapital() const;
-	bool isGovernmentCenter() const;
-	bool isGoldenAge() const;
-	bool isMapCentering() const;
-	bool isNoUnhappiness() const;
+	bool isForceTeamVoteEligible() const { return m_bForceTeamVoteEligible; }
+	bool isCapital() const { return m_bCapital; }
+	bool isGovernmentCenter() const { return m_bGovernmentCenter; }
+	bool isGoldenAge() const { return m_bGoldenAge; }
+	bool isMapCentering() const { return m_bMapCentering; }
+	bool isNoUnhappiness() const { return m_bNoUnhappiness; }
 	//bool isNoUnhealthyPopulation() const;
-	int getUnhealthyPopulationModifier() const;	// K-Mod, Exposed to Python
-	bool isBuildingOnlyHealthy() const;
-	bool isNeverCapture() const;
-	bool isNukeImmune() const;
-	bool isPrereqReligion() const;
-	bool isCenterInCity() const;
-	bool isStateReligion() const;
-	bool isAllowsNukes() const;
+	int getUnhealthyPopulationModifier() const // K-Mod, Exposed to Python
+	{
+		return m_iUnhealthyPopulationModifier;
+	}
+	bool isBuildingOnlyHealthy() const { return m_bBuildingOnlyHealthy; }
+	bool isNeverCapture() const { return m_bNeverCapture; }
+	bool isNukeImmune() const { return m_bNukeImmune; }
+	bool isPrereqReligion() const { return m_bPrereqReligion; }
+	bool isCenterInCity() const { return m_bCenterInCity; }
+	bool isStateReligion() const { return m_bStateReligion; }
+	bool isAllowsNukes() const { return m_bAllowsNukes; }
 
 	const TCHAR* getConstructSound() const;
 	void setConstructSound(const TCHAR* szVal);
@@ -163,35 +255,35 @@ public: // All the const functions are exposed to Python // advc.130f (tbd.): in
 	// Array access:
 
 	int getYieldChange(int i) const;
-	int* getYieldChangeArray() const;
+	int* getYieldChangeArray() const { return m_piYieldChange; }
 	int getYieldModifier(int i) const;
-	int* getYieldModifierArray() const;
+	int* getYieldModifierArray() const { return m_piYieldModifier; }
 	int getPowerYieldModifier(int i) const;
-	int* getPowerYieldModifierArray() const;
+	int* getPowerYieldModifierArray() const { return m_piPowerYieldModifier; }
 	int getAreaYieldModifier(int i) const;
-	int* getAreaYieldModifierArray() const;
+	int* getAreaYieldModifierArray() const { return m_piAreaYieldModifier; }
 	int getGlobalYieldModifier(int i) const;
-	int* getGlobalYieldModifierArray() const;
+	int* getGlobalYieldModifierArray() const { return m_piGlobalYieldModifier; }
 	int getSeaPlotYieldChange(int i) const;
-	int* getSeaPlotYieldChangeArray() const;
+	int* getSeaPlotYieldChangeArray() const { return m_piSeaPlotYieldChange; }
 	int getRiverPlotYieldChange(int i) const;
-	int* getRiverPlotYieldChangeArray() const;
+	int* getRiverPlotYieldChangeArray() const { return m_piRiverPlotYieldChange; }
 	int getGlobalSeaPlotYieldChange(int i) const;
-	int* getGlobalSeaPlotYieldChangeArray() const;
+	int* getGlobalSeaPlotYieldChangeArray() const { return m_piGlobalSeaPlotYieldChange; }
 
 	int getCommerceChange(int i) const;
-	int* getCommerceChangeArray() const;
+	int* getCommerceChangeArray() const { return m_piCommerceChange; }
 	int getObsoleteSafeCommerceChange(int i) const;
-	int* getObsoleteSafeCommerceChangeArray() const;
+	int* getObsoleteSafeCommerceChangeArray() const { return m_piObsoleteSafeCommerceChange; }
 	int getCommerceChangeDoubleTime(int i) const;
 	int getCommerceModifier(int i) const;
-	int* getCommerceModifierArray() const;
+	int* getCommerceModifierArray() const { return m_piCommerceModifier; }
 	int getGlobalCommerceModifier(int i) const;
-	int* getGlobalCommerceModifierArray() const;
+	int* getGlobalCommerceModifierArray() const { return m_piGlobalCommerceModifier; }
 	int getSpecialistExtraCommerce(int i) const;
-	int* getSpecialistExtraCommerceArray() const;
+	int* getSpecialistExtraCommerceArray() const { return m_piSpecialistExtraCommerce; }
 	int getStateReligionCommerce(int i) const;
-	int* getStateReligionCommerceArray() const;
+	int* getStateReligionCommerceArray() const { return m_piStateReligionCommerce; }
 	int getCommerceHappiness(int i) const;
 	int getReligionChange(int i) const;
 	inline bool isAnyReligionChange() const { return (m_piReligionChange != NULL); } // advc.003t
@@ -206,9 +298,9 @@ public: // All the const functions are exposed to Python // advc.130f (tbd.): in
 	int getUnitCombatFreeExperience(int i) const;
 	int getDomainFreeExperience(int i) const;
 	int getDomainProductionModifier(int i) const;
-	int getPrereqAndTechs(int i) const;
+	TechTypes getPrereqAndTechs(int i) const;
 	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
-	int getPrereqOrBonuses(int i) const;
+	BonusTypes getPrereqOrBonuses(int i) const;
 	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
 	int getProductionTraits(int i) const;
 	int getHappinessTraits(int i) const;
@@ -233,12 +325,32 @@ public: // All the const functions are exposed to Python // advc.130f (tbd.): in
 	inline bool isAnySpecialistYieldChange() const { return m_bAnySpecialistYieldChange; }
 	inline bool isAnyBonusYieldModifier() const { return m_bAnyBonusYieldModifier; }
 	// UNOFFICIAL_PATCH: END
+	// <advc.003w> for convenience
+	inline bool isWorldWonder() const
+	{
+		return GC.getInfo(getBuildingClassType()).isWorldWonder();
+	}
+	inline bool isTeamWonder() const
+	{
+		return GC.getInfo(getBuildingClassType()).isTeamWonder();
+	}
+	inline bool isNationalWonder() const
+	{
+		return GC.getInfo(getBuildingClassType()).isNationalWonder();
+	}
+	inline bool isLimited() const
+	{
+		return GC.getInfo(getBuildingClassType()).isLimited();
+	} // </advc.003w>
+
 	// Other
 
 	const CvArtInfoBuilding* getArtInfo() const;
 	const CvArtInfoMovie* getMovieInfo() const;
 	const TCHAR* getButton() const;
 	const TCHAR* getMovie() const;
+
+	bool nameNeedsArticle() const; // advc.008e
 
 	#if SERIALIZE_CVINFOS
 	void read(FDataStreamBase*);
@@ -423,42 +535,6 @@ protected:
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//  class : CvBuildingClassInfo
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvBuildingClassInfo : public CvInfoBase
-{
-public: // All the const functions are exposed to Python
-	CvBuildingClassInfo();
-	~CvBuildingClassInfo();
-
-	int getMaxGlobalInstances() const;
-	int getMaxTeamInstances() const;
-	int getMaxPlayerInstances() const;
-	int getExtraPlayerInstances() const;
-	int getDefaultBuildingIndex() const;
-
-	bool isNoLimit() const;
-	bool isMonument() const;
-
-	int getVictoryThreshold(int i) const;
-
-	bool read(CvXMLLoadUtility* pXML);
-	bool readPass3();
-
-protected:
-	int m_iMaxGlobalInstances;
-	int m_iMaxTeamInstances;
-	int m_iMaxPlayerInstances;
-	int m_iExtraPlayerInstances;
-	int m_iDefaultBuildingIndex;
-
-	bool m_bNoLimit;
-	bool m_bMonument;
-
-	int* m_piVictoryThreshold;
-};
-
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvSpecialBuildingInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSpecialBuildingInfo : public CvInfoBase
@@ -582,29 +658,84 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvProjectInfo : public CvInfoBase
 {
-public: // All const functions are exposed to Python
+public: // All const functions are exposed to Python. advc.inl: Most of them inlined.
 	CvProjectInfo();
 	~CvProjectInfo();
 
-	int getVictoryPrereq() const;
-	int getTechPrereq() const;
-	int getAnyoneProjectPrereq() const;
-	int getMaxGlobalInstances() const;
-	int getMaxTeamInstances() const;
-	int getProductionCost() const;
-	int getNukeInterception() const;
-	int getTechShare() const;
-	int getEveryoneSpecialUnit() const;
-	int getEveryoneSpecialBuilding() const;
-	int getVictoryDelayPercent() const;
-	int getSuccessRate() const;
+	int getVictoryPrereq() const
+	{
+		return m_iVictoryPrereq;
+	}
+	int getTechPrereq() const
+	{
+		return m_iTechPrereq;
+	}
+	int getAnyoneProjectPrereq() const
+	{
+		return m_iAnyoneProjectPrereq;
+	}
+	inline int getMaxGlobalInstances() const
+	{
+		return m_iMaxGlobalInstances;
+	}
+	inline bool isWorldProject() const // advc.003w: Replacing global isWorldProject(ProjectTypes)
+	{
+		return (getMaxGlobalInstances() != -1);
+	}
+	inline int getMaxTeamInstances() const
+	{
+		return m_iMaxTeamInstances;
+	}
+	inline bool isTeamProject() const // advc.003w: Replacing global isTeamProject(ProjectTypes)
+	{
+		return (getMaxTeamInstances() != -1);
+	}
+	inline bool isLimited() const // advc.003w: Replacing global isLimitedProject(ProjectTypes)
+	{
+		return (isWorldProject() || isTeamProject());
+	} 
+	int getProductionCost() const
+	{
+		return m_iProductionCost;
+	}
+	int getNukeInterception() const
+	{
+		return m_iNukeInterception;
+	}
+	int getTechShare() const
+	{
+		return m_iTechShare;
+	}
+	int getEveryoneSpecialUnit() const
+	{
+		return m_iEveryoneSpecialUnit;
+	}
+	int getEveryoneSpecialBuilding() const
+	{
+		return m_iEveryoneSpecialBuilding;
+	}
+	int getVictoryDelayPercent() const
+	{
+		return m_iVictoryDelayPercent;
+	}
+	int getSuccessRate() const
+	{
+		return m_iSuccessRate;
+	}
+	bool isSpaceship() const
+	{
+		return m_bSpaceship;
+	}
+	bool isAllowsNukes() const
+	{
+		return m_bAllowsNukes;
+	}
 
-	bool isSpaceship() const;
-	bool isAllowsNukes() const;
 	const char* getMovieArtDef() const;
-
 	const TCHAR* getCreateSound() const;
 	void setCreateSound(const TCHAR* szVal);
+
+	bool nameNeedsArticle() const;
 
 	// Arrays access:
 

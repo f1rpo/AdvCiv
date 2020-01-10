@@ -245,6 +245,16 @@ bool CvReligionInfo::read(CvXMLLoadUtility* pXML)
 
 	return true;
 }
+// advc.003w:
+bool CvReligionInfo::isReligionTech(TechTypes eTech)
+{
+	FOR_EACH_ENUM(Religion)
+	{
+		if (GC.getInfo(eLoopReligion).getTechPrereq() == eTech)
+			return true;
+	}
+	return false;
+}
 
 CvCorporationInfo::CvCorporationInfo() :
 m_iHeadquarterChar(0),
@@ -390,4 +400,14 @@ bool CvCorporationInfo::read(CvXMLLoadUtility* pXML)
 	m_iBonusProduced = pXML->FindInInfoClass(szTextVal);
 
 	return true;
+}
+// advc.003w:
+bool isCorporationTech(TechTypes eTech)
+{
+	FOR_EACH_ENUM(Corporation)
+	{
+		if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech)
+			return true;
+	}
+	return false;
 }

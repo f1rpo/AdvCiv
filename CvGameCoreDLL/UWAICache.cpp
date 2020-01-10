@@ -317,22 +317,20 @@ double UWAICache::goldPerProdBuildings() {
 			if(c.canConstruct(eLoopBuilding) && !b.isCapital() && // exclude Palace
 					c.getProductionBuilding() != eLoopBuilding &&
 					// Wonder in construction elsewhere:
-					owner.getBuildingClassMaking((BuildingClassTypes)
-					b.getBuildingClassType()) == 0) {
+					owner.getBuildingClassMaking(b.getBuildingClassType()) == 0) {
 				if(b.getReligionType() != NO_RELIGION) {
 					// No Monasteries when they're about to go obsolete
-					TechTypes obsTech = (TechTypes)b.getObsoleteTech();
+					TechTypes obsTech = b.getObsoleteTech();
 					if(obsTech != NO_TECH && GC.getInfo(obsTech).getEra() <=
 							ownerEra)
 						continue;
 					// If state religion, count only buildings of that religion.
-					if(ownerReligion != NO_RELIGION &&
-							b.getReligionType() != ownerReligion)
+					if(ownerReligion != NO_RELIGION && b.getReligionType() != ownerReligion)
 						continue;
 				}
-				if(isMundaneBuildingClass((BuildingClassTypes)b.getBuildingClassType()))
-					buildings++;
-				else wonders++;
+				if(b.isLimited())
+					wonders++;
+				else buildings++;
 			}
 		}
 		buildingCounts.push_back(buildings);
@@ -526,7 +524,7 @@ void UWAICache::updateCanScrub() {
 		return;
 	}
 	FOR_EACH_ENUM(Build) {
-		TechTypes featTech = (TechTypes)GC.getInfo(eLoopBuild).getFeatureTech(fallout);
+		TechTypes featTech = GC.getInfo(eLoopBuild).getFeatureTech(fallout);
 		if(featTech != NO_TECH && GET_TEAM(ownerId).isHasTech(featTech)) {
 			canScrub = true;
 			break;

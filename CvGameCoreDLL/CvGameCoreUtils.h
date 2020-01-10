@@ -62,16 +62,23 @@ float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
 void cityCross(CvPlot const& p, std::vector<CvPlot*>& r);
 // </advc>
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
-// <advc.008e>
-bool needsArticle(BuildingTypes eBuilding);
-bool needsArticle(ProjectTypes eProject);
-// </advc.008e>
 // <advc.130h>
 template<typename T> void removeDuplicates(std::vector<T>& v)
 {
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
 } // </advc.130h>
+// <advc>
+// Erik: "Back-ported" from C++11
+template<class ForwardIt, class T>
+void iota(ForwardIt first, ForwardIt last, T value)
+{
+	while (first != last)
+	{
+		*first++ = value;
+		++value;
+	}
+} // </advc>
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
@@ -176,34 +183,9 @@ ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement);			// Ex
 
 int getWorldSizeMaxConscript(CivicTypes eCivic);									// Exposed to Python
 
-bool isReligionTech(TechTypes eTech);														// Exposed to Python
-// advc.003j: Unused BtS function; wasn't even declared in the header file.
-bool isCorporationTech(TechTypes eTech);
-
-bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit);							// Exposed to Python
-bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding);			// Exposed to Python
-bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject);				// Exposed to Python
-
-bool isWorldUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
-bool isTeamUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
-bool isNationalUnitClass(UnitClassTypes eUnitClass);									// Exposed to Python
-bool isLimitedUnitClass(UnitClassTypes eUnitClass);										// Exposed to Python
-bool isMundaneBuildingClass(BuildingClassTypes eBuildingClass); // advc.104
-bool isWorldWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
-bool isTeamWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
-bool isNationalWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-bool isLimitedWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-// <advc.003w> For convenience
-bool isWorldUnitClass(UnitTypes eUnit);
-bool isLimitedUnitClass(UnitTypes eUnit);
-bool isWorldWonderClass(BuildingTypes eBuilding);
-bool isLimitedWonderClass(BuildingTypes eBuilding);
-// </advc.003w>
-int limitedWonderClassLimit(BuildingClassTypes eBuildingClass);
-
-bool isWorldProject(ProjectTypes eProject);														// Exposed to Python
-bool isTeamProject(ProjectTypes eProject);														// Exposed to Python
-bool isLimitedProject(ProjectTypes eProject);													// Exposed to Python
+/*	(advc.003w: Moved some two dozen functions to CvInfo classes;
+	mostly functions dealing with building and unit class limitations.
+	Removed isTechRequiredForProject.) */
 
 __int64 getBinomialCoefficient(int iN, int iK);
 int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender);				// Exposed to Python
@@ -302,6 +284,7 @@ int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack);
 
 DllExport int* shuffle(int iNum, CvRandom& rand);
 void shuffleArray(int* piShuffle, int iNum, CvRandom& rand);
+void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand); // advc.enum
 
 int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed);
 int getTurnYearForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed);

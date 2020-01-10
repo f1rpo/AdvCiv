@@ -2633,12 +2633,12 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBest
 		pUnitNode = nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
+		FOR_EACH_ENUM(Build)
 		{
-			RouteTypes eRoute = (RouteTypes)GC.getInfo((BuildTypes)iI).getRoute();
+			RouteTypes const eRoute = GC.getInfo(eLoopBuild).getRoute();
 			if (eRoute == NO_ROUTE)
 				continue; // advc
-			if (pLoopUnit->canBuild(pPlot, ((BuildTypes)iI)))
+			if (pLoopUnit->canBuild(pPlot, eLoopBuild))
 			{
 				int iValue = GC.getInfo(eRoute).getValue();
 				if (iValue > iBestValue)
@@ -2646,7 +2646,7 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBest
 					iBestValue = iValue;
 					eBestRoute = eRoute;
 					if (peBestBuild != NULL)
-						*peBestBuild = ((BuildTypes)iI);
+						*peBestBuild = eLoopBuild;
 				}
 			}
 		}
@@ -2983,12 +2983,12 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		Note. The only time this bit of code might matter is if the automated unit has orders queued.
 		Ideally, the AI should never issue orders which violate the leave old improvements rule. */
 	if (isAutomated() && GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
-		GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT && pPlot->getImprovementType() != NO_IMPROVEMENT &&
-		pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT()
+		GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT &&
+		pPlot->getImprovementType() != NO_IMPROVEMENT &&
+		pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT() &&
 		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
-		&& (!GC.getInfo((ImprovementTypes)GC.getInfo(eBuild).
-		getImprovement()).isActsAsCity() || pPlot->getWorkingCity() == NULL)
-		) // </advc.121>
+		(!GC.getInfo(GC.getInfo(eBuild).getImprovement()).isActsAsCity() ||
+		pPlot->getWorkingCity() == NULL)) // </advc.121>
 	{
 		FAssertMsg(false, "AI has issued an order which violates PLAYEROPTION_SAFE_AUTOMATION");
 		return false;

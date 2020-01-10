@@ -1373,18 +1373,15 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 		(GC.getPythonCaller()->isHumanExplorerPlacementRandomized() ||
 		!isHuman())) // advc.108
 	{
-		int iRandOffset = GC.getGame().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
-		FOR_EACH_ENUM(CityPlot)
+		//int iRandOffset = GC.getGame().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
+		for (CityPlotRandIter it(*pStartingPlot, GC.getGame().getSorenRand(), true);
+			it.hasNext(); ++it)
 		{
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-					(CityPlotTypes)((eLoopCityPlot + iRandOffset) % NUM_CITY_PLOTS));
-			if (pLoopPlot == NULL)
-				continue;
-
-			if (pLoopPlot->sameArea(*pStartingPlot) && !pLoopPlot->isGoody() &&
-				!pLoopPlot->isImpassable() && !pLoopPlot->isUnit())
+			CvPlot& kLoopPlot = *it;
+			if (kLoopPlot.sameArea(*pStartingPlot) && !kLoopPlot.isGoody() &&
+				!kLoopPlot.isImpassable() && !kLoopPlot.isUnit())
 			{
-				pBestPlot = pLoopPlot;
+				pBestPlot = &kLoopPlot;
 				break;
 			}
 		}
@@ -2022,15 +2019,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		if (paiNumRealBuilding[eBuilding] <= 0)
 			continue;
 
-		BuildingClassTypes eBuildingClass = (BuildingClassTypes)GC.getInfo(
-				eBuilding).getBuildingClassType();
+		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+		BuildingClassTypes eBuildingClass = kBuilding.getBuildingClassType();
 		// Can't acquire another civ's unique building
-		if (!::isWorldWonderClass(eBuildingClass)) // So that Barbarians can capture wonders
+		if (!kBuilding.isWorldWonder()) // So that Barbarians can capture wonders
 			eBuilding = getCivilization().getBuilding(eBuildingClass);
 		if (eBuilding == NO_BUILDING)
 			continue;
 
-		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 		// Can acquire never-capture buildings only through city trade
 		if (!bTrade && kBuilding.isNeverCapture())
 			continue;
@@ -5257,7 +5253,7 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost) const
 {
 	//PROFILE_FUNC(); // advc.003o
-	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getInfo(eUnit).getUnitClassType();
+	UnitClassTypes eUnitClass = GC.getInfo(eUnit).getUnitClassType();
 
 	/*	K-Mod note. This assert can fail if team games when checking whether this city can
 		upgrade a unit to one of our team member's UUs. */
@@ -5331,7 +5327,7 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		return false;
 
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-	BuildingClassTypes eBuildingClass = (BuildingClassTypes)kBuilding.getBuildingClassType();
+	BuildingClassTypes eBuildingClass = kBuilding.getBuildingClassType();
 	// (advc.003w: Usually, the caller checks this now, but can't rely on that.)
 	if (getCivilization().getBuilding(eBuildingClass) != eBuilding)
 		return false;
@@ -5339,12 +5335,12 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 	CvTeamAI& kOurTeam = GET_TEAM(getTeam());
 	if (!bIgnoreTech) // K-Mod
 	{
-		if (!kOurTeam.isHasTech((TechTypes)kBuilding.getPrereqAndTech()))
+		if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTech()))
 			return false;
 
 		for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
 		{
-			if (!kOurTeam.isHasTech((TechTypes)kBuilding.getPrereqAndTechs(i)))
+			if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTechs(i)))
 				return false;
 		}
 	}
@@ -5352,13 +5348,15 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 	if (kOurTeam.isObsoleteBuilding(eBuilding))
 		return false;
 	{
-		SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)kBuilding.getSpecialBuildingType();
+		SpecialBuildingTypes eSpecial = kBuilding.getSpecialBuildingType();
 		if (eSpecial != NO_SPECIALBUILDING && !kOurTeam.isHasTech((TechTypes)
-				GC.getInfo(eSpecial).getTechPrereq()))
+			GC.getInfo(eSpecial).getTechPrereq()))
+		{
 			return false;
+		}
 	}
 	{
-		ReligionTypes ePrereqStateReligion = (ReligionTypes)GC.getInfo(eBuilding).getStateReligion();
+		ReligionTypes ePrereqStateReligion = GC.getInfo(eBuilding).getStateReligion();
 		if (ePrereqStateReligion != NO_RELIGION && ePrereqStateReligion != getStateReligion())
 			return false;
 	}
@@ -5374,7 +5372,7 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		}
 	}
 	{
-		CorporationTypes eFoundCorp = (CorporationTypes)kBuilding.getFoundsCorporation();
+		CorporationTypes eFoundCorp = kBuilding.getFoundsCorporation();
 		if (eFoundCorp != NO_CORPORATION && isNoCorporations())
 			return false;
 	}
@@ -5608,12 +5606,13 @@ bool CvPlayer::isProductionMaxedProject(ProjectTypes eProject) const
 
 int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 {
-	UnitClassTypes eUnitClass = (UnitClassTypes)GC.getInfo(eUnit).getUnitClassType();
+	UnitClassTypes eUnitClass = GC.getInfo(eUnit).getUnitClassType();
 	FAssert(NO_UNITCLASS != eUnitClass);
 
 	int iProductionNeeded = GC.getInfo(eUnit).getProductionCost();
 
-	iProductionNeeded *= 100 + getUnitClassCount(eUnitClass) * GC.getInfo(eUnitClass).getInstanceCostModifier();
+	iProductionNeeded *= 100 + getUnitClassCount(eUnitClass) *
+			GC.getInfo(eUnitClass).getInstanceCostModifier();
 	iProductionNeeded /= 100;
 
 	static int const iUNIT_PRODUCTION_PERCENT = GC.getDefineINT("UNIT_PRODUCTION_PERCENT"); // advc.opt
@@ -5628,7 +5627,7 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 	/*  <advc.107> Code moved into auxiliary function b/c I need this modifier
 		in AI_getTotalFloatingDefendersNeeded. */
 	iProductionNeeded = ::roundToMultiple(iProductionNeeded *
-			trainingModifierFromHandicap(isWorldUnitClass(eUnitClass)),
+			trainingModifierFromHandicap(GC.getInfo(eUnitClass).isWorldUnit()),
 			isHuman() ? 5 : 1); // advc.251
 	// </advc.107>
 	// advc.251 (comment): See getNewCityProductionValue
@@ -5667,7 +5666,7 @@ int CvPlayer::getProductionNeeded(BuildingTypes eBuilding) const
 		CvHandicapInfo const& h = GC.getInfo(g.getHandicapType());
 		int iAIModifier = //h.getAIPerEraModifier() * getCurrentEra()
 				g.AIHandicapAdjustment();
-		if(isWorldWonderClass((BuildingClassTypes)(GC.getInfo(eBuilding).getBuildingClassType())))
+		if(GC.getInfo(eBuilding).isWorldWonder())
 			iAIModifier += h.getAIWorldConstructPercent();
 		else iAIModifier += h.getAIConstructPercent();
 		iProductionNeeded *= iAIModifier;
@@ -5703,7 +5702,7 @@ int CvPlayer::getProductionNeeded(ProjectTypes eProject) const
 		CvHandicapInfo const& h = GC.getInfo(g.getHandicapType());
 		int iAIModifier = //h.getAIPerEraModifier() * getCurrentEra()
 				g.AIHandicapAdjustment();
-		if(isWorldProject(eProject))
+		if(GC.getInfo(eProject).isWorldProject())
 			iAIModifier += h.getAIWorldCreatePercent();
 		else iAIModifier += h.getAICreatePercent();
 		iProductionNeeded *= iAIModifier;
@@ -5716,22 +5715,18 @@ int CvPlayer::getProductionNeeded(ProjectTypes eProject) const
 int CvPlayer::getProductionModifier(UnitTypes eUnit) const
 {
 	int iMultiplier = 0;
-
 	if (GC.getInfo(eUnit).isMilitaryProduction())
-	{
 		iMultiplier += getMilitaryProductionModifier();
-	}
 
-	for (int iI = 0; iI < GC.getNumTraitInfos(); iI++)
+	FOR_EACH_ENUM(Trait)
 	{
-		if (hasTrait((TraitTypes)iI))
+		if (!hasTrait(eLoopTrait))
+			continue; // advc
+		iMultiplier += GC.getInfo(eUnit).getProductionTraits(eLoopTrait);
+		if (GC.getInfo(eUnit).getSpecialUnitType() != NO_SPECIALUNIT)
 		{
-			iMultiplier += GC.getInfo(eUnit).getProductionTraits(iI);
-
-			if (GC.getInfo(eUnit).getSpecialUnitType() != NO_SPECIALUNIT)
-			{
-				iMultiplier += GC.getInfo((SpecialUnitTypes) GC.getInfo(eUnit).getSpecialUnitType()).getProductionTraits(iI);
-			}
+			iMultiplier += GC.getInfo((SpecialUnitTypes)GC.getInfo(eUnit).
+					getSpecialUnitType()).getProductionTraits(eLoopTrait);
 		}
 	}
 
@@ -5741,33 +5736,24 @@ int CvPlayer::getProductionModifier(UnitTypes eUnit) const
 int CvPlayer::getProductionModifier(BuildingTypes eBuilding) const
 {
 	int iMultiplier = 0;
-	for (int iI = 0; iI < GC.getNumTraitInfos(); iI++)
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	FOR_EACH_ENUM(Trait)
 	{
-		if (hasTrait((TraitTypes)iI))
+		if (!hasTrait(eLoopTrait))
+			continue; // advc
+		iMultiplier += kBuilding.getProductionTraits(eLoopTrait);
+		if (GC.getInfo(eBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
 		{
-			iMultiplier += GC.getInfo(eBuilding).getProductionTraits(iI);
-
-			if (GC.getInfo(eBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
-			{
-				iMultiplier += GC.getInfo((SpecialBuildingTypes) GC.getInfo(eBuilding).getSpecialBuildingType()).getProductionTraits(iI);
-			}
+			iMultiplier += GC.getInfo(GC.getInfo(eBuilding).getSpecialBuildingType()).
+					getProductionTraits(eLoopTrait);
 		}
 	}
-
-	if (::isWorldWonderClass((BuildingClassTypes)(GC.getInfo(eBuilding).getBuildingClassType())))
-	{
+	if (kBuilding.isWorldWonder())
 		iMultiplier += getMaxGlobalBuildingProductionModifier();
-	}
-
-	if (::isTeamWonderClass((BuildingClassTypes)(GC.getInfo(eBuilding).getBuildingClassType())))
-	{
+	if (kBuilding.isTeamWonder())
 		iMultiplier += getMaxTeamBuildingProductionModifier();
-	}
-
-	if (::isNationalWonderClass((BuildingClassTypes)(GC.getInfo(eBuilding).getBuildingClassType())))
-	{
+	if (kBuilding.isNationalWonder())
 		iMultiplier += getMaxPlayerBuildingProductionModifier();
-	}
 
 	return iMultiplier;
 }
@@ -5775,12 +5761,8 @@ int CvPlayer::getProductionModifier(BuildingTypes eBuilding) const
 int CvPlayer::getProductionModifier(ProjectTypes eProject) const
 {
 	int iMultiplier = 0;
-
 	if (GC.getInfo(eProject).isSpaceship())
-	{
 		iMultiplier += getSpaceProductionModifier();
-	}
-
 	return iMultiplier;
 }
 
@@ -5813,21 +5795,20 @@ int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingCl
 	if (iPrereqs < 1)
 		return 0;
 
-	BuildingClassTypes eBuildingClass = (BuildingClassTypes)kBuilding.getBuildingClassType();
+	BuildingClassTypes eBuildingClass = kBuilding.getBuildingClassType();
 
 	iPrereqs *= std::max(0, (GC.getInfo(GC.getMap().getWorldSize()).getBuildingClassPrereqModifier() + 100));
 	//iPrereqs /= 100;
 	iPrereqs = (int)std::ceil(iPrereqs / 100.0); // advc.140: Round up
 
-	if (!isLimitedWonderClass(eBuildingClass))
+	if (!kBuilding.isLimited())
 	{
-		iPrereqs *= (getBuildingClassCount((BuildingClassTypes)(GC.getInfo(eBuilding).getBuildingClassType())) + iExtra + 1);
+		iPrereqs *= getBuildingClassCount(GC.getInfo(eBuilding).getBuildingClassType()) +
+				iExtra + 1;
 	}
 
 	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-	{
 		iPrereqs = std::min(1, iPrereqs);
-	}
 
 	return iPrereqs;
 }
@@ -5868,8 +5849,7 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kAr
 
 	if (kBuilding.getCivicOption() != NO_CIVICOPTION)
 	{	// <advc.004x>
-		CivicOptionTypes eCivicOption = (CivicOptionTypes)kBuilding.
-				getCivicOption();
+		CivicOptionTypes eCivicOption = kBuilding.getCivicOption();
 		CivicTypes eNewCivic = NO_CIVIC;
 		if(iChange > 0 && isHuman() && !gDLL->GetWorldBuilderMode())
 		{
@@ -5972,12 +5952,14 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 
 	if (GC.getInfo(eBuild).getTechPrereq() != NO_TECH)
 	{	// advc:
-		TechTypes ePrereqTech = (TechTypes)GC.getInfo(eBuild).getTechPrereq();
+		TechTypes ePrereqTech = GC.getInfo(eBuild).getTechPrereq();
 		if (!GET_TEAM(getTeam()).isHasTech(ePrereqTech))
 		{
-			if ((!bTestEra && !bTestVisible) || getCurrentEra() + 1 <
-					GC.getInfo(ePrereqTech).getEra())
+			if ((!bTestEra && !bTestVisible) ||
+				getCurrentEra() + 1 < GC.getInfo(ePrereqTech).getEra())
+			{
 				return false;
+			}
 		}
 	}
 
@@ -5985,9 +5967,11 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 	{
 		if (pPlot->isFeature())
 		{
-			if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eBuild).
-					getFeatureTech(pPlot->getFeatureType())))
+			if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eBuild).
+				getFeatureTech(pPlot->getFeatureType())))
+			{
 				return false;
+			}
 		}
 
 		if (std::max(0, getGold()) < getBuildCost(pPlot, eBuild))
@@ -6003,9 +5987,7 @@ int CvPlayer::getBuildCost(const CvPlot* pPlot, BuildTypes eBuild) const
 	FAssert(eBuild >= 0 && eBuild < GC.getNumBuildInfos());
 
 	if (pPlot->getBuildProgress(eBuild) > 0)
-	{
 		return 0;
-	}
 
 	return std::max(0, GC.getInfo(eBuild).getCost() * (100 + calculateInflationRate())) / 100;
 }
@@ -6025,21 +6007,21 @@ RouteTypes CvPlayer::getBestRoute(const CvPlot* pPlot) const
 	// one first and only check others if can't do best.
 
 	// K-Mod: I've reversed the order of iteration because the best builds are usually at the end.
-	for (int iI = GC.getNumBuildInfos()-1; iI >= 0 ; iI--)
+	FOR_EACH_ENUM_REV(Build)
 	{
-		RouteTypes eRoute = ((RouteTypes)(GC.getInfo((BuildTypes)iI).getRoute()));
-
-		if (eRoute != NO_ROUTE)
+		RouteTypes const eLoopRoute = GC.getInfo(eLoopBuild).getRoute();
+		if (eLoopRoute == NO_ROUTE)
+			continue; // advc
+		// K-Mod: I've swapped the order of the if statments, because the value check is much faster. (faster trumps convention)
+		int iValue = GC.getInfo(eLoopRoute).getValue();
+		if (iValue > iBestValue)
 		{
-			// K-Mod: I've swapped the order of the if statments, because the value check is much faster. (faster trumps convention)
-			int iValue = GC.getInfo(eRoute).getValue();
-			if (iValue > iBestValue)
+			if (pPlot != NULL ?
+				(pPlot->getRouteType() == eLoopRoute || canBuild(pPlot, eLoopBuild)) :
+				GET_TEAM(getTeam()).isHasTech(GC.getInfo(eLoopBuild).getTechPrereq()))
 			{
-				if (pPlot != NULL ? (pPlot->getRouteType() == eRoute || canBuild(pPlot, (BuildTypes)iI)) : GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo((BuildTypes)iI).getTechPrereq())))
-				{
-					iBestValue = iValue;
-					eBestRoute = eRoute;
-				}
+				iBestValue = iValue;
+				eBestRoute = eLoopRoute;
 			}
 		}
 	}
@@ -11310,14 +11292,12 @@ bool CvPlayer::isUnitClassMaxedOut(UnitClassTypes eIndex, int iExtra) const
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumUnitClassInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if (!isNationalUnitClass(eIndex))
-	{
+	if (!GC.getInfo(eIndex).isNationalUnit())
 		return false;
-	}
 
-	FAssertMsg(getUnitClassCount(eIndex) <= GC.getInfo(eIndex).getMaxPlayerInstances(), "getUnitClassCount is expected to be less than maximum bound of MaxPlayerInstances (invalid index)");
+	FAssert(getUnitClassCount(eIndex) <= GC.getInfo(eIndex).getMaxPlayerInstances());
 
-	return ((getUnitClassCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxPlayerInstances());
+	return (getUnitClassCount(eIndex) + iExtra >= GC.getInfo(eIndex).getMaxPlayerInstances());
 }
 
 
@@ -11375,14 +11355,13 @@ bool CvPlayer::isBuildingClassMaxedOut(BuildingClassTypes eIndex, int iExtra) co
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBuildingClassInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if (!isNationalWonderClass(eIndex))
-	{
+	if (!GC.getInfo(eIndex).isNationalWonder())
 		return false;
-	}
 
 	FAssertMsg(getBuildingClassCount(eIndex) <= (GC.getInfo(eIndex).getMaxPlayerInstances() + GC.getInfo(eIndex).getExtraPlayerInstances()), "BuildingClassCount is expected to be less than or match the number of max player instances plus extra player instances");
 
-	return ((getBuildingClassCount(eIndex) + iExtra) >= (GC.getInfo(eIndex).getMaxPlayerInstances() + GC.getInfo(eIndex).getExtraPlayerInstances()));
+	return (getBuildingClassCount(eIndex) + iExtra >=
+			GC.getInfo(eIndex).getMaxPlayerInstances() + GC.getInfo(eIndex).getExtraPlayerInstances());
 }
 
 
@@ -14992,64 +14971,48 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			// Add Improvement to the plot
 			if (bAdd)
 			{
-				if (getAdvancedStartPoints() >= iCost)
+				if (getAdvancedStartPoints() >= iCost && pPlot->isFeature())
 				{
-					if (pPlot->isFeature())
+					FOR_EACH_ENUM(Build)
 					{
-						for (int iI = 0; iI < GC.getNumBuildInfos(); ++iI)
+						ImprovementTypes eLoopImprovement = GC.getInfo(eLoopBuild).getImprovement();
+						if (eImprovement != eLoopImprovement)
+							continue;
+						if (GC.getInfo(eLoopBuild).isFeatureRemove(pPlot->getFeatureType()) &&
+							canBuild(pPlot, eLoopBuild))
 						{
-							ImprovementTypes eLoopImprovement = ((ImprovementTypes)(GC.getInfo((BuildTypes)iI).getImprovement()));
-
-							if (eImprovement == eLoopImprovement)
-							{
-								if (GC.getInfo((BuildTypes)iI).isFeatureRemove(pPlot->getFeatureType()) && canBuild(pPlot, (BuildTypes)iI))
-								{
-									pPlot->setFeatureType(NO_FEATURE);
-									break;
-								}
-							}
+							pPlot->setFeatureType(NO_FEATURE);
+							break;
 						}
 					}
-
 					pPlot->setImprovementType(eImprovement);
-
 					changeAdvancedStartPoints(-iCost);
 				}
 			}
-
-			// Remove Improvement from the Plot
-			else
+			else // Remove Improvement from the Plot
 			{
 				if (pPlot->getImprovementType() != eImprovement)
 				{
 					eImprovement = pPlot->getImprovementType();
 					iCost = getAdvancedStartImprovementCost(eImprovement, bAdd, pPlot);
 				}
-
 				if (iCost < 0)
-				{
 					return;
-				}
 
 				pPlot->setImprovementType(NO_IMPROVEMENT);
 				changeAdvancedStartPoints(iCost);
 			}
 
 			if (getID() == GC.getGame().getActivePlayer())
-			{
 				gDLL->getInterfaceIFace()->setDirty(Advanced_Start_DIRTY_BIT, true);
-			}
 		}
 		break;
 	case ADVANCEDSTARTACTION_TECH:
 		{
 			TechTypes eTech = (TechTypes) iData;
 			int iCost = getAdvancedStartTechCost(eTech, bAdd);
-
 			if (iCost < 0)
-			{
 				return;
-			}
 
 			// Add Tech to team
 			if (bAdd)
@@ -15069,9 +15032,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			}
 
 			if (getID() == GC.getGame().getActivePlayer())
-			{
 				gDLL->getInterfaceIFace()->setDirty(Advanced_Start_DIRTY_BIT, true);
-			}
 		}
 		break;
 	case ADVANCEDSTARTACTION_VISIBILITY:
@@ -15080,11 +15041,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 				return;
 
 			int iCost = getAdvancedStartVisibilityCost(bAdd, pPlot);
-
 			if (iCost < 0)
-			{
 				return;
-			}
 
 			// Add Visibility to the plot
 			if (bAdd)
@@ -15110,13 +15068,9 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing a unit
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const* pPlot) const
 {
-	int iNumUnitType = 0;
-
 	if (getNumCities() <= 0)
 		return -1;
 
@@ -15128,7 +15082,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 	if (iCost < 0)
 		return -1;
 
-	if (NULL == pPlot)
+	if (pPlot = NULL)
 	{
 		if (bAdd)
 		{
@@ -15149,15 +15103,11 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 	else
 	{
 		CvCity* pCity = NULL;
-
 		if (GC.getDefineINT("ADVANCED_START_ALLOW_UNITS_OUTSIDE_CITIES") == 0)
 		{
 			pCity = pPlot->getPlotCity();
-
-			if (NULL == pCity || pCity->getOwner() != getID())
-			{
+			if (pCity == NULL || pCity->getOwner() != getID())
 				return -1;
-			}
 
 			iCost *= 100;
 			iCost /= std::max(1, 100 + pCity->getProductionModifier(eUnit));
@@ -15165,9 +15115,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 		else
 		{
 			if (pPlot->getOwner() != getID())
-			{
 				return -1;
-			}
 
 			iCost *= 100;
 			iCost /= std::max(1, 100 + getProductionModifier(eUnit));
@@ -15179,37 +15127,32 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 			int iMaxUnitsPerCity = GC.getDefineINT("ADVANCED_START_MAX_UNITS_PER_CITY");
 			if (iMaxUnitsPerCity >= 0)
 			{
-				if (GC.getInfo(eUnit).isMilitarySupport() && getNumMilitaryUnits() >= iMaxUnitsPerCity * getNumCities())
+				if (GC.getInfo(eUnit).isMilitarySupport() &&
+					getNumMilitaryUnits() >= iMaxUnitsPerCity * getNumCities())
 				{
 					return -1;
 				}
 			}
 
-			if (NULL != pCity)
+			if (pCity != NULL)
 			{
 				if (!pCity->canTrain(eUnit))
-				{
 					return -1;
-				}
 			}
 			else
 			{
 				if (!pPlot->canTrain(eUnit, false, false))
-				{
 					return -1;
-				}
 
 				if (pPlot->isImpassable() && !GC.getInfo(eUnit).isCanMoveImpassable())
-				{
 					return -1;
-				}
 
 				if (pPlot->isFeature())
 				{
 					if (GC.getInfo(eUnit).getFeatureImpassable(pPlot->getFeatureType()))
 					{
 						TechTypes eTech = (TechTypes)GC.getInfo(eUnit).getFeaturePassableTech(pPlot->getFeatureType());
-						if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
+						if (eTech == NO_TECH || !GET_TEAM(getTeam()).isHasTech(eTech))
 						{
 							return -1;
 						}
@@ -15247,18 +15190,19 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 	// Increase cost if the XML defines that additional units will cost more
 	if (GC.getInfo(eUnit).getAdvancedStartCostIncrease() != 0)
 	{
+		int iUnits = 0;
 		FOR_EACH_UNIT(pLoopUnit, *this)
 		{
 			if (pLoopUnit->getUnitType() == eUnit)
-				iNumUnitType++;
+				iUnits++;
 		}
 
 		if (!bAdd)
-			iNumUnitType--;
+			iUnits--;
 
-		if (iNumUnitType > 0)
+		if (iUnits > 0)
 		{
-			iCost *= 100 + GC.getInfo(eUnit).getAdvancedStartCostIncrease() * iNumUnitType;
+			iCost *= 100 + GC.getInfo(eUnit).getAdvancedStartCostIncrease() * iUnits;
 			iCost /= 100;
 		}
 	}
@@ -15266,9 +15210,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing a City
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 {
 	int iNumCities = getNumCities();
@@ -15280,7 +15222,6 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 	if (iCost < 0)
 		return -1;
 
-	// Valid plot?
 	if (pPlot != NULL)
 	{
 		// Need valid plot to found on if adding
@@ -15305,7 +15246,6 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 		{
 			PlayerTypes eClosestPlayer = NO_PLAYER;
 			int iClosestDistance = MAX_INT;
-
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
 				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
@@ -15364,33 +15304,25 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 	return adjustAdvStartPtsToSpeed(iCost); // </advc.250c>
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing Population
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity const* pCity) const
 {
-	if (getNumCities() == 0)
-	{
+	if (getNumCities() <= 0)
 		return -1;
-	}
 
 	int iCost = (getGrowthThreshold(1) * GC.getDefineINT("ADVANCED_START_POPULATION_COST")) / 100;
 
 	if (pCity != NULL)
 	{
 		if (pCity->getOwner() != getID())
-		{
 			return -1;
-		}
-
 		int iPopulation = pCity->getPopulation();
-
 		// Need to have Population to remove it
 		if (!bAdd)
 		{
 			iPopulation--;
-
-			if (iPopulation < GC.getDefineINT("INITIAL_CITY_POPULATION") + GC.getInfo(GC.getGame().getStartEra()).getFreePopulation())
+			if (iPopulation < GC.getDefineINT("INITIAL_CITY_POPULATION") +
+				GC.getInfo(GC.getGame().getStartEra()).getFreePopulation())
 			{
 				return -1;
 			}
@@ -15401,8 +15333,7 @@ int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity const* pCity) const
 		// Increase cost if the XML defines that additional Pop will cost more
 		if (GC.getDefineINT("ADVANCED_START_POPULATION_COST_INCREASE") != 0)
 		{
-			--iPopulation;
-
+			iPopulation--;
 			if (iPopulation > 0)
 			{
 				iCost *= 100 + GC.getDefineINT("ADVANCED_START_POPULATION_COST_INCREASE") * iPopulation;
@@ -15414,9 +15345,7 @@ int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity const* pCity) const
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing Culture
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartCultureCost(bool bAdd, CvCity const* pCity) const
 {	// <advc>
 	if(getNumCities() == 0)
@@ -15450,15 +15379,11 @@ int CvPlayer::getAdvancedStartCultureCost(bool bAdd, CvCity const* pCity) const
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing a Building from a city
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, CvCity const* pCity) const
 {
 	if (getNumCities() <= 0)
 		return -1;
-
-	int iNumBuildingType = 0;
 
 	int iCost = (getProductionNeeded(eBuilding) * GC.getInfo(eBuilding).getAdvancedStartCost()) / 100;
 	iCost = ::round(iCost * 1.5); // advc.250c
@@ -15484,11 +15409,8 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, C
 					break;
 				}
 			}
-
 			if (!bValid)
-			{
 				return -1;
-			}
 		}
 	}
 	if (NULL != pCity)
@@ -15509,23 +15431,24 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, C
 			if (pCity->getNumRealBuilding(eBuilding) <= 0)
 				return -1;
 
-			// Check other buildings in this city and make sure none of them require this one
+			// Check other buildings in this city and make sure none of them require this one ...
 
 			// Loop through Buildings to see which are present
-			for (int iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
+			FOR_EACH_ENUM(Building)
 			{
-				BuildingTypes eBuildingLoop = (BuildingTypes) iBuildingLoop;
-
-				if (pCity->getNumBuilding(eBuildingLoop) > 0)
+				if (pCity->getNumBuilding(eLoopBuilding) > 0)
 				{
 					// Loop through present Building's requirements
-					for (int iBuildingClassPrereqLoop = 0; iBuildingClassPrereqLoop < GC.getNumBuildingClassInfos(); iBuildingClassPrereqLoop++)
+					for (int iBuildingClassPrereqLoop = 0; iBuildingClassPrereqLoop <
+						GC.getNumBuildingClassInfos(); iBuildingClassPrereqLoop++)
 					{
-						if (GC.getInfo(eBuildingLoop).isBuildingClassNeededInCity(iBuildingClassPrereqLoop))
+						if (GC.getInfo(eLoopBuilding).isBuildingClassNeededInCity(iBuildingClassPrereqLoop))
 						{
 							if ((getCivilization().getBuilding((BuildingClassTypes)
-									iBuildingClassPrereqLoop)) == eBuilding)
+								iBuildingClassPrereqLoop)) == eBuilding)
+							{
 								return -1;
+							}
 						}
 					}
 				}
@@ -15536,16 +15459,14 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, C
 	// Increase cost if the XML defines that additional Buildings will cost more
 	if (GC.getInfo(eBuilding).getAdvancedStartCostIncrease() != 0)
 	{
-		iNumBuildingType = countNumBuildings(eBuilding);
-
+		int iBuildings = countNumBuildings(eBuilding);
 		if (!bAdd)
-		{
-			--iNumBuildingType;
-		}
+			iBuildings--;
 
-		if (iNumBuildingType > 0)
+		if (iBuildings > 0)
 		{
-			iCost *= 100 + GC.getInfo(eBuilding).getAdvancedStartCostIncrease() * std::max(0, iNumBuildingType - getNumCities());
+			iCost *= 100 + GC.getInfo(eBuilding).getAdvancedStartCostIncrease() *
+					std::max(0, iBuildings - getNumCities());
 			iCost /= 100;
 		}
 	}
@@ -15553,99 +15474,72 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, C
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing Route
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot const* pPlot) const
 {
 	if (getNumCities() <= 0 || eRoute == NO_ROUTE)
 		return -1;
 
-	int iNumRoutes = 0;
-
 	int iCost = GC.getInfo(eRoute).getAdvancedStartCost();
+	if (iCost < 0)
+		return -1; // cannot be purchased through Advanced Start
 
 	// <advc.250c>
 	iCost *= GC.getDefineINT("ADVANCED_START_WORKER_BUILD_MODIFIER");
 	iCost /= 100; // </advc.250c>
 
-	// This denotes cities may not be purchased through Advanced Start
-	if (iCost < 0)
-	{
-		return -1;
-	}
-
 	iCost *= GC.getInfo(GC.getGame().getGameSpeedType()).getBuildPercent();
 	iCost /= 100;
 
-	// No invalid plots!
 	if (pPlot != NULL)
 	{
 		if (pPlot->isCity())
-		{
 			return -1;
-		}
 
 		if (bAdd)
 		{
 			if (pPlot->isImpassable() || pPlot->isWater())
-			{
 				return -1;
-			}
 			// Can't place twice
 			if (pPlot->getRouteType() == eRoute)
-			{
 				return -1;
-			}
 		}
 		else
 		{
 			// Need Route to remove it
 			if (pPlot->getRouteType() != eRoute)
-			{
 				return -1;
-			}
 		}
 
-		// Must be owned by me
 		if (pPlot->getOwner() != getID())
-		{
 			return -1;
-		}
 	}
 
 	// Tech requirement
-	for (int iBuildLoop = 0; iBuildLoop < GC.getNumBuildInfos(); iBuildLoop++)
+	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo((BuildTypes) iBuildLoop).getRoute() == eRoute)
+		if (GC.getInfo(eLoopBuild).getRoute() == eRoute)
 		{
-			if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo((BuildTypes) iBuildLoop).getTechPrereq())))
-			{
+			if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eLoopBuild).getTechPrereq()))
 				return -1;
-			}
 		}
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
 	if (GC.getInfo(eRoute).getAdvancedStartCostIncrease() != 0)
 	{
-		int iPlotLoop = 0;
-		CvPlot* pPlot;
-
-		for (iPlotLoop = 0; iPlotLoop < GC.getMap().numPlots(); iPlotLoop++)
+		int iNumRoutes = 0;
+		for (int i = 0; i < GC.getMap().numPlots(); i++)
 		{
-			pPlot = GC.getMap().plotByIndex(iPlotLoop);
-
-			if (pPlot->getRouteType() == eRoute)
-			{
-				++iNumRoutes;
-			}
+			CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(i);
+			// <advc.001>
+			if (kLoopPlot.getOwner() != getID())
+				continue; // </advc.001>
+			if (kLoopPlot.getRouteType() == eRoute)
+				iNumRoutes++;
 		}
-
 		if (!bAdd)
-		{
-			--iNumRoutes;
-		}
+			iNumRoutes--;
 
 		if (iNumRoutes > 0)
 		{
@@ -15657,9 +15551,7 @@ int CvPlayer::getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot con
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing Improvement
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, bool bAdd, CvPlot const* pPlot) const
 {
 	if (eImprovement == NO_IMPROVEMENT || getNumCities() <= 0)
@@ -15667,13 +15559,12 @@ int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, boo
 
 	int iNumImprovements = 0;
 	int iCost = GC.getInfo(eImprovement).getAdvancedStartCost();
+	if (iCost < 0)
+		return -1; // Cannot be purchased through Advanced Start
 
 	// <advc.250c>
 	iCost *= GC.getDefineINT("ADVANCED_START_WORKER_BUILD_MODIFIER");
 	iCost /= 100; // </advc.250c>
-	// This denotes cities may not be purchased through Advanced Start
-	if (iCost < 0)
-		return -1;
 
 	iCost *= GC.getInfo(GC.getGame().getGameSpeedType()).getBuildPercent();
 	iCost /= 100;
@@ -15683,91 +15574,68 @@ int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, boo
 	{
 		if (bAdd)
 		{
-			// Valid Plot
 			if (!pPlot->canHaveImprovement(eImprovement, getTeam(), false))
-			{
 				return -1;
-			}
 
 			bool bValid = false;
 
-			for (int iI = 0; iI < GC.getNumBuildInfos(); ++iI)
+			FOR_EACH_ENUM(Build)
 			{
-				CvBuildInfo& kBuild = GC.getInfo((BuildTypes)iI);
-				ImprovementTypes eLoopImprovement = ((ImprovementTypes)(kBuild.getImprovement()));
-
-				if (eImprovement == eLoopImprovement && canBuild(pPlot, (BuildTypes)iI))
+				CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
+				ImprovementTypes eLoopImprovement = (ImprovementTypes)kBuild.getImprovement();
+				if (eImprovement == eLoopImprovement && canBuild(pPlot, eLoopBuild))
 				{
 					bValid = true;
-
 					FeatureTypes eFeature = pPlot->getFeatureType();
-					if (NO_FEATURE != eFeature && kBuild.isFeatureRemove(eFeature))
-					{
+					if (eFeature != NO_FEATURE && kBuild.isFeatureRemove(eFeature))
 						iCost += GC.getInfo(eFeature).getAdvancedStartRemoveCost();
-					}
-
 					break;
 				}
 			}
 
 			if (!bValid)
-			{
 				return -1;
-			}
 
 			// Can't place twice
 			if (pPlot->getImprovementType() == eImprovement)
-			{
 				return -1;
-			}
 		}
 		else
 		{
 			// Need this improvement in order to remove it
 			if (pPlot->getImprovementType() != eImprovement)
-			{
 				return -1;
-			}
 		}
 
 		// Must be owned by me
 		if (pPlot->getOwner() != getID())
-		{
 			return -1;
-		}
 	}
 
 	// Tech requirement
-	for (int iBuildLoop = 0; iBuildLoop < GC.getNumBuildInfos(); iBuildLoop++)
+	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo((BuildTypes) iBuildLoop).getImprovement() == eImprovement)
+		if (GC.getInfo(eLoopBuild).getImprovement() == eImprovement)
 		{
-			if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo((BuildTypes) iBuildLoop).getTechPrereq())))
-			{
+			if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eLoopBuild).getTechPrereq()))
 				return -1;
-			}
 		}
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
 	if (GC.getInfo(eImprovement).getAdvancedStartCostIncrease() != 0)
 	{
-		int iPlotLoop = 0;
-		CvPlot* pPlot;
-
-		for (iPlotLoop = 0; iPlotLoop < GC.getMap().numPlots(); iPlotLoop++)
+		for (int i = 0; i < GC.getMap().numPlots(); i++)
 		{
-			pPlot = GC.getMap().plotByIndex(iPlotLoop);
-			if (pPlot->getImprovementType() == eImprovement)
-			{
-				++iNumImprovements;
-			}
+			CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(i);
+			// <advc.001>
+			if (kLoopPlot.getOwner() != getID())
+				continue; // </advc.001>
+			if (kLoopPlot.getImprovementType() == eImprovement)
+				iNumImprovements++;
 		}
-
 		if (!bAdd)
-		{
-			--iNumImprovements;
-		}
+			iNumImprovements--;
 
 		if (iNumImprovements > 0)
 		{
@@ -15779,15 +15647,11 @@ int CvPlayer::getAdvancedStartImprovementCost(ImprovementTypes eImprovement, boo
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing Tech
-/////////////////////////////////////////////////////////////////////////////////////////////
-int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const  // advc: some style changes
+int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const 
 {
 	if (eTech == NO_TECH || getNumCities() <= 0)
 		return -1;
-
-	int iNumTechs = 0;
 
 	int iCost = (GET_TEAM(getTeam()).getResearchCost(eTech) * GC.getInfo(eTech).getAdvancedStartCost()) / 100;
 	if (iCost < 0)
@@ -15804,23 +15668,18 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const  // adv
 			return -1;
 
 		// Search through all techs to see if any of the currently owned ones requires this tech
-		for (int iTechLoop = 0; iTechLoop < GC.getNumTechInfos(); iTechLoop++)
+		FOR_EACH_ENUM(Tech)
 		{
-			TechTypes eTechLoop = (TechTypes) iTechLoop;
-
-			if (GET_TEAM(getTeam()).isHasTech(eTechLoop))
+			if (GET_TEAM(getTeam()).isHasTech(eLoopTech))
 			{
-				// Or Prereqs
 				for (int iPrereqLoop = 0; iPrereqLoop < GC.getNUM_OR_TECH_PREREQS(); iPrereqLoop++)
 				{
-					if (GC.getInfo(eTechLoop).getPrereqOrTechs(iPrereqLoop) == eTech)
+					if (GC.getInfo(eLoopTech).getPrereqOrTechs(iPrereqLoop) == eTech)
 						return -1;
 				}
-
-				// And Prereqs
 				for (int iPrereqLoop = 0; iPrereqLoop < GC.getNUM_AND_TECH_PREREQS(); iPrereqLoop++)
 				{
-					if (GC.getInfo(eTechLoop).getPrereqAndTechs(iPrereqLoop) == eTech)
+					if (GC.getInfo(eLoopTech).getPrereqAndTechs(iPrereqLoop) == eTech)
 						return -1;
 				}
 			}
@@ -15828,7 +15687,6 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const  // adv
 
 		// If player has placed anything on the map which uses this tech then you cannot remove it
 
-		// Units
 		FOR_EACH_UNIT(pLoopUnit, *this)
 		{
 			if (pLoopUnit->getUnitInfo().getPrereqAndTech() == eTech)
@@ -15841,22 +15699,18 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const  // adv
 			}
 		}
 
-		// Cities
 		FOR_EACH_CITY(pLoopCity, *this)
 		{
-			// All Buildings
-			for (int iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
+			FOR_EACH_ENUM(Building)
 			{
-				BuildingTypes eBuilding = (BuildingTypes) iBuildingLoop;
-
-				if (pLoopCity->getNumRealBuilding(eBuilding) > 0)
+				if (pLoopCity->getNumRealBuilding(eLoopBuilding) > 0)
 				{
-					if (GC.getInfo(eBuilding).getPrereqAndTech() == eTech)
+					if (GC.getInfo(eLoopBuilding).getPrereqAndTech() == eTech)
 						return -1;
 
 					for (int iI = 0; iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
 					{
-						if (GC.getInfo(eBuilding).getPrereqAndTechs(iI) == eTech)
+						if (GC.getInfo(eLoopBuilding).getPrereqAndTechs(iI) == eTech)
 							return -1;
 					}
 				}
@@ -15868,18 +15722,19 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const  // adv
 	// Increase cost if the XML defines that additional units will cost more
 	if (GC.getInfo(eTech).getAdvancedStartCostIncrease() != 0)
 	{
-		for (int iTechLoop = 0; iTechLoop < GC.getNumTechInfos(); iTechLoop++)
+		int iTechs = 0;
+		FOR_EACH_ENUM(Tech)
 		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)iTechLoop))
-				iNumTechs++;
+			if (GET_TEAM(getTeam()).isHasTech(eLoopTech))
+				iTechs++;
 		}
 
 		if (!bAdd)
-			iNumTechs--;
+			iTechs--;
 
-		if (iNumTechs > 0)
+		if (iTechs > 0)
 		{
-			iCost *= 100 + GC.getInfo(eTech).getAdvancedStartCostIncrease() * iNumTechs;
+			iCost *= 100 + GC.getInfo(eTech).getAdvancedStartCostIncrease() * iTechs;
 			iCost /= 100;
 		}
 	}
@@ -15887,15 +15742,12 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const  // adv
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
 // Adding or removing Visibility
-/////////////////////////////////////////////////////////////////////////////////////////////
 int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot) const
 {
 	if (getNumCities() <= 0)
 		return -1;
 
-	int iNumVisiblePlots = 0;
 	int iCost = GC.getDefineINT("ADVANCED_START_VISIBILITY_COST");
 	// This denotes Visibility may not be purchased through Advanced Start
 	if (iCost == -1)
@@ -15919,22 +15771,20 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot) con
 	// Increase cost if the XML defines that additional units will cost more
 	if (GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE") != 0)
 	{
-		int iPlotLoop = 0;
-		for (iPlotLoop = 0; iPlotLoop < GC.getMap().numPlots(); iPlotLoop++)
+		int iVisible = -NUM_CITY_PLOTS; // advc.210c
+		for (int i = 0; i < GC.getMap().numPlots(); i++)
 		{
-			CvPlot* pPlot = GC.getMap().plotByIndex(iPlotLoop);
-
-			if (pPlot->isRevealed(getTeam()))
-				++iNumVisiblePlots;
+			CvPlot const& kLoopPlot = GC.getMap().getPlotByIndex(i);
+			if (kLoopPlot.isRevealed(getTeam()))
+				iVisible++;
 		}
 
 		if (!bAdd)
-			--iNumVisiblePlots;
+			iVisible--;
 
-		iNumVisiblePlots -= NUM_CITY_PLOTS; // advc.210c
-		if (iNumVisiblePlots > 0)
+		if (iVisible > 0)
 		{
-			iCost *= 100 + GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE") * iNumVisiblePlots;
+			iCost *= 100 + GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE") * iVisible;
 			iCost /= 100;
 		}
 	}
@@ -20719,11 +20569,10 @@ bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 
 bool CvPlayer::canSpyDestroyBuilding(PlayerTypes eTarget, BuildingTypes eBuilding) const
 {
-	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
-	if (kBuilding.getProductionCost() <= 0)
+	if (GC.getInfo(eBuilding).getProductionCost() <= 0)
 		return false;
 
-	if (::isLimitedWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
+	if (GC.getInfo(eBuilding).isLimited())
 		return false;
 
 	return true;
@@ -20738,7 +20587,7 @@ bool CvPlayer::canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) 
 	if (GET_TEAM(eTarget).getProjectCount(eProject) <= 0)
 		return false;
 
-	if (::isWorldProject(eProject))
+	if (kProject.isWorldProject())
 		return false;
 
 	if (!kProject.isSpaceship())

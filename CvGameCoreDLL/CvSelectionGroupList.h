@@ -3,7 +3,6 @@
 #ifndef CIV4_SELECTIONGROUP_LIST_H
 #define CIV4_SELECTIONGROUP_LIST_H
 
-#include "FLTALoopCounter.h"
 #include "FFreeListTrashArray.h"
 #include "CvSelectionGroupAI.h"
 

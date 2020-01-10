@@ -6,29 +6,30 @@
 /*  advc.003x: Cut from CvInfos.h. Just CvBuildInfo. That class is needed by
 	.cpp files that deal with units and .cpp files that deal with terrain;
 	don't want to bundle the unit and terrain info classes in a single big header,
-	so CvBuilInfo needs to be singled out.*/
+	so CvBuilInfo needs to be singled out. */
 
 class CvBuildInfo : public CvHotkeyInfo
 {
-public: // All the const functions are exposed to Python // advc.130f: inlined most of them
+public: /*	All the const functions are exposed to Python. advc.inl: inlined most of them.
+			Integers in signatures replaced with enum types. */
 	CvBuildInfo();
 	~CvBuildInfo();
 
 	inline int getTime() const { return m_iTime; }
 	inline int getCost() const { return m_iCost; }
-	inline int getTechPrereq() const { return m_iTechPrereq; }
-	inline int getImprovement() const { return m_iImprovement; }
-	inline int getRoute() const { return m_iRoute; }
+	inline TechTypes getTechPrereq() const { return (TechTypes)m_iTechPrereq; }
+	inline ImprovementTypes getImprovement() const { return (ImprovementTypes)m_iImprovement; }
+	inline RouteTypes getRoute() const { return (RouteTypes)m_iRoute; }
 	DllExport int getEntityEvent() const;
 	DllExport int getMissionType() const;
 	void setMissionType(int iNewType);
 
 	inline bool isKill() const { return m_bKill; }
 
-	int getFeatureTech(int i) const;
-	int getFeatureTime(int i) const;
-	int getFeatureProduction(int i) const;
-	bool isFeatureRemove(int i) const;
+	TechTypes getFeatureTech(FeatureTypes eFeature) const;
+	int getFeatureTime(FeatureTypes eFeature) const;
+	int getFeatureProduction(FeatureTypes eFeature) const;
+	bool isFeatureRemove(FeatureTypes eFeature) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 

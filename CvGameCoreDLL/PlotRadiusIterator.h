@@ -88,6 +88,7 @@ public:
 protected:
 	void computeNext()
 	{
+		PROFILE_FUNC();
 		m_iPos++;
 		if (m_iPos >= m_iMaxPos)
 		{

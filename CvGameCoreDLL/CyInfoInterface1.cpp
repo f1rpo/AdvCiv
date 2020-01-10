@@ -454,7 +454,7 @@ void CyInfoPythonInterface1()
 		.def("getMaxTeamInstances", &CvUnitClassInfo::getMaxTeamInstances, "int ()")
 		.def("getMaxPlayerInstances", &CvUnitClassInfo::getMaxPlayerInstances, "int ()")
 		.def("getInstanceCostModifier", &CvUnitClassInfo::getInstanceCostModifier, "int ()")
-		.def("getDefaultUnitIndex", &CvUnitClassInfo::getDefaultUnitIndex, "int ()")
+		.def("getDefaultUnitIndex", &CvUnitClassInfo::getDefaultUnit, "int ()")
 		;
 
 	python::class_<CvBuildingInfo, boost::noncopyable, python::bases<CvInfoBase, CvScalableInfo> >("CvBuildingInfo")

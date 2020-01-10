@@ -314,7 +314,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 	if (kOwner.getID() == g.getActivePlayer())
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 
-	if (isWorldUnitClass(eUnitClass))
+	if (m_pUnitInfo->isWorldUnit())
 	{
 		for (int i = 0; i < MAX_PLAYERS; i++)
 		{
@@ -349,8 +349,10 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 			}
 		}
 
-		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT", kOwner.getNameKey(), getNameKey()));
-		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(), szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT",
+				kOwner.getNameKey(), getNameKey()));
+		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(),
+				szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
 	}
 
 	CvEventReporter::getInstance().unitCreated(this);
@@ -1801,8 +1803,8 @@ bool CvUnit::isActionRecommended(int iAction)
 					return true;
 				// K-Mod end
 
-				ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
-				RouteTypes eRoute = (RouteTypes)(GC.getInfo(eBuild).getRoute());
+				ImprovementTypes eImprovement = GC.getInfo(eBuild).getImprovement();
+				RouteTypes eRoute = GC.getInfo(eBuild).getRoute();
 				//eBonus = pPlot->getBonusType(getTeam());
 				BonusTypes eBonus = pPlot->getNonObsoleteBonusType(getTeam()); // K-Mod
 				CvCityAI* pWorkingCity = pPlot->AI_getWorkingCity();
@@ -1826,25 +1828,33 @@ bool CvUnit::isActionRecommended(int iAction)
 					}*/ // BtS
 					// K-Mod
 					if (eBonus != NO_BONUS &&
-							!GET_PLAYER(getOwner()).doesImprovementConnectBonus(pPlot->getImprovementType(), eBonus) &&
-							GET_PLAYER(getOwner()).doesImprovementConnectBonus(eImprovement, eBonus) &&
-							(eBestBuild == NO_BUILD || !GET_PLAYER(getOwner()).doesImprovementConnectBonus((ImprovementTypes)GC.getInfo(eBestBuild).getImprovement(), eBonus)))
+						!GET_PLAYER(getOwner()).doesImprovementConnectBonus(
+						pPlot->getImprovementType(), eBonus) &&
+						GET_PLAYER(getOwner()).doesImprovementConnectBonus(eImprovement, eBonus) &&
+						(eBestBuild == NO_BUILD ||
+						!GET_PLAYER(getOwner()).doesImprovementConnectBonus(
+						GC.getInfo(eBestBuild).getImprovement(), eBonus)))
+					{
 						return true;
-
-					if (pPlot->getImprovementType() == NO_IMPROVEMENT && eBonus == NO_BONUS && pWorkingCity == NULL)
+					}
+					if (pPlot->getImprovementType() == NO_IMPROVEMENT &&
+						eBonus == NO_BONUS && pWorkingCity == NULL)
 					{
 						if (!pPlot->isFeature() || !GC.getInfo(eBuild).isFeatureRemove(
 							(FeatureTypes)pPlot->getFeatureType()))
 						{
-							if (GC.getInfo(eImprovement).isCarriesIrrigation() && !pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true))
+							if (GC.getInfo(eImprovement).isCarriesIrrigation() &&
+								!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true))
+							{
 								return true;
-
+							}
 							if (pPlot->isFeature() &&
-									GC.getInfo(eImprovement).getFeatureGrowthProbability() > 0)
+								GC.getInfo(eImprovement).getFeatureGrowthProbability() > 0)
+							{
 								return true;
+							}
 						}
-					}
-					// K-Mod end
+					} // K-Mod end
 
 					/*if (pPlot->getImprovementType() == NO_IMPROVEMENT) {
 						if (!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true)) {
@@ -1869,16 +1879,12 @@ bool CvUnit::isActionRecommended(int iAction)
 					if (!pPlot->isRoute())
 					{
 						if (eBonus != NO_BONUS)
-						{
 							return true;
-						}
 
 						if (pWorkingCity != NULL)
 						{
 							if (pPlot->isRiver())
-							{
 								return true;
-							}
 						}
 					}
 
@@ -1886,7 +1892,9 @@ bool CvUnit::isActionRecommended(int iAction)
 					if(eFinalImprovement == NO_IMPROVEMENT)
 						eFinalImprovement = pPlot->getImprovementType();*/ // BtS
 					// K-Mod
-					ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eImprovement != NO_IMPROVEMENT ? eImprovement : pPlot->getImprovementType());
+					ImprovementTypes eFinalImprovement = finalImprovementUpgrade(
+							eImprovement != NO_IMPROVEMENT ? eImprovement :
+							pPlot->getImprovementType());
 					// K-Mod end
 
 					if (eFinalImprovement != NO_IMPROVEMENT)
@@ -4837,19 +4845,12 @@ int CvUnit::destroyCost(const CvPlot* pPlot) const
 	CvCity* pCity = pPlot->getPlotCity();
 	if (pCity == NULL)
 		return 0;
-
-	bool bLimited = false;
-	if (pCity->isProductionUnit())
-		bLimited = ::isLimitedUnitClass(pCity->getProductionUnit());
-	else if (pCity->isProductionBuilding())
-		bLimited = ::isLimitedWonderClass(pCity->getProductionBuilding());
-	else if (pCity->isProductionProject())
-		bLimited = ::isLimitedProject(pCity->getProductionProject());
 	// <advc.opt>
 	static int const iBASE_SPY_DESTROY_COST = GC.getDefineINT("BASE_SPY_DESTROY_COST");
 	static int const iSPY_DESTROY_COST_MULTIPLIER_LIMITED = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER_LIMITED");
 	static int const iSPY_DESTROY_COST_MULTIPLIER = GC.getDefineINT("SPY_DESTROY_COST_MULTIPLIER"); // </advc.opt>
-	return iBASE_SPY_DESTROY_COST + (pCity->getProduction() * (bLimited ?
+	// advc: bLimited... code deleted - CvCity::isProductionLimited does exactly what we need.
+	return iBASE_SPY_DESTROY_COST + (pCity->getProduction() * (pCity->isProductionLimited() ?
 			iSPY_DESTROY_COST_MULTIPLIER_LIMITED : iSPY_DESTROY_COST_MULTIPLIER));
 }
 
@@ -6244,13 +6245,13 @@ bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, 
 	if (!kFromUnit.isAnyUpgradeUnitClass()) // advc.003t
 		return false;
 
-	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	FOR_EACH_ENUM(UnitClass)
 	{
-		if (!kFromUnit.getUpgradeUnitClass(iI))
+		if (!kFromUnit.getUpgradeUnitClass(eLoopUnitClass))
 			continue;
 
-		UnitTypes eLoopUnit = (UnitTypes)(GC.getInfo(
-				getCivilizationType()).getCivilizationUnits(iI));
+		UnitTypes eLoopUnit = GC.getInfo(getCivilizationType()).
+				getCivilizationUnits(eLoopUnitClass);
 		if (eLoopUnit != NO_UNIT && upgradeAvailable(eLoopUnit, eToUnitClass, iCount + 1))
 			return true;
 	}
@@ -6366,7 +6367,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	if (GC.getInfo(kPlayer.getCivilizationType()).getCivilizationUnits(kToUnit.getUnitClassType()) != eUnit)
 		return NULL;
 
-	if (!upgradeAvailable(getUnitType(), (UnitClassTypes)kToUnit.getUnitClassType()))
+	if (!upgradeAvailable(getUnitType(), kToUnit.getUnitClassType()))
 		return NULL;
 
 	if (kToUnit.getCargoSpace() < getCargo())
@@ -6543,13 +6544,15 @@ SpecialUnitTypes CvUnit::getSpecialUnitType() const
 UnitTypes CvUnit::getCaptureUnitType(CivilizationTypes eCivilization) const
 {
 	FAssert(eCivilization != NO_CIVILIZATION);
-	return (m_pUnitInfo->getUnitCaptureClassType() == NO_UNITCLASS ? NO_UNIT : (UnitTypes)GC.getInfo(eCivilization).getCivilizationUnits(m_pUnitInfo->getUnitCaptureClassType()));
+	return (m_pUnitInfo->getUnitCaptureClassType() == NO_UNITCLASS ? NO_UNIT :
+			GC.getInfo(eCivilization).getCivilizationUnits(
+			m_pUnitInfo->getUnitCaptureClassType()));
 }
 
 
 UnitCombatTypes CvUnit::getUnitCombatType() const
 {
-	return (UnitCombatTypes)m_pUnitInfo->getUnitCombatType();
+	return m_pUnitInfo->getUnitCombatType();
 }
 
 DomainTypes CvUnit::getDomainType() const													// Exposed to Python
@@ -6664,13 +6667,13 @@ bool CvUnit::canBuildRoute() const
 {	// <advc.003t>
 	if (!m_pUnitInfo->isAnyBuilds())
 		return false; // </advc.003t>
-	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
+	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo((BuildTypes)iI).getRoute() != NO_ROUTE)
+		if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
 		{
-			if (m_pUnitInfo->getBuilds(iI))
+			if (m_pUnitInfo->getBuilds(eLoopBuild))
 			{
-				if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo((BuildTypes)iI).getTechPrereq())))
+				if (GET_TEAM(getTeam()).isHasTech(GC.getInfo(eLoopBuild).getTechPrereq()))
 					return true;
 			}
 		}
@@ -7597,10 +7600,10 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 
 // advc (comment): Start of legacy BtS code
 	int iOurDefense = currCombatStr(plot(), pAttacker);
-	if (::isWorldUnitClass(getUnitClassType()))
+	if (m_pUnitInfo->isWorldUnit())
 		iOurDefense /= 2;
 
-	if (NULL == pAttacker)
+	if (pAttacker == NULL)
 	{
 		if (pDefender->collateralDamage() > 0)
 		{
@@ -7640,10 +7643,10 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 	iOurDefense = iOurDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue);
 
 	int iTheirDefense = pDefender->currCombatStr(plot(), pAttacker);
-	if (::isWorldUnitClass(pDefender->getUnitClassType()))
+	if (pDefender->m_pUnitInfo->isWorldUnit())
 		iTheirDefense /= 2;
 
-	if (NULL == pAttacker)
+	if (pAttacker == NULL)
 	{
 		if (collateralDamage() > 0)
 		{
@@ -9832,7 +9835,7 @@ void CvUnit::setCapturingPlayer(PlayerTypes eNewValue)
 
 UnitClassTypes CvUnit::getUnitClassType() const
 {
-	return (UnitClassTypes)m_pUnitInfo->getUnitClassType();
+	return m_pUnitInfo->getUnitClassType();
 }
 
 const UnitTypes CvUnit::getLeaderUnitType() const
@@ -11304,21 +11307,32 @@ int CvUnit::computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMa
 
 bool CvUnit::isTargetOf(const CvUnit& attacker) const
 {
-	CvUnitInfo& attackerInfo = attacker.getUnitInfo();
+	CvUnitInfo const& attackerInfo = attacker.getUnitInfo();
 
 	if (!plot()->isCity(true, getTeam()))
 	{
-		if (NO_UNITCLASS != getUnitClassType() && attackerInfo.getTargetUnitClass(getUnitClassType()))
+		if (getUnitClassType() != NO_UNITCLASS &&
+			attackerInfo.getTargetUnitClass(getUnitClassType()))
+		{
 			return true;
-		if (NO_UNITCOMBAT != getUnitCombatType() && attackerInfo.getTargetUnitCombat(getUnitCombatType()))
+		}
+		if (getUnitCombatType() != NO_UNITCOMBAT &&
+			attackerInfo.getTargetUnitCombat(getUnitCombatType()))
+		{
 			return true;
+		}
 	}
 
-	if (NO_UNITCLASS != attackerInfo.getUnitClassType() && m_pUnitInfo->getDefenderUnitClass(attackerInfo.getUnitClassType()))
+	if (attackerInfo.getUnitClassType() != NO_UNITCLASS &&
+		m_pUnitInfo->getDefenderUnitClass(attackerInfo.getUnitClassType()))
+	{
 		return true;
-
-	if (NO_UNITCOMBAT != attackerInfo.getUnitCombatType() && m_pUnitInfo->getDefenderUnitCombat(attackerInfo.getUnitCombatType()))
+	}
+	if (attackerInfo.getUnitCombatType() != NO_UNITCOMBAT &&
+		m_pUnitInfo->getDefenderUnitCombat(attackerInfo.getUnitCombatType()))
+	{
 		return true;
+	}
 
 	return false;
 }
@@ -11895,14 +11909,16 @@ int CvUnit::LFBgetRelativeValueRating() const
 
 	// Check if unit is limited in how many can exist
 	if (GC.getDefineINT(CvGlobals::LFB_BASEDONLIMITED) > 0)
-		if (isLimitedUnitClass(getUnitClassType()))
+	{
+		if (m_pUnitInfo->isLimited())
 			iValueRating += GC.getDefineINT(CvGlobals::LFB_BASEDONLIMITED);
-
+	}
 	// Check if unit has ability to heal
 	if (GC.getDefineINT(CvGlobals::LFB_BASEDONHEALER) > 0)
+	{
 		if (getSameTileHeal() > 0)
 			iValueRating += GC.getDefineINT(CvGlobals::LFB_BASEDONHEALER);
-
+	}
 	return iValueRating;
 }
 

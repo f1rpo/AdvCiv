@@ -21,6 +21,7 @@
 
 #include	"FFreeListArrayBase.h"
 #include	"FDataStreamBase.h"
+#include	"FLTALoopCounter.h" // advc.003s
 
 #define FLTA_ID_SHIFT				(13)
 #define FLTA_MAX_BUCKETS		(1 << FLTA_ID_SHIFT)

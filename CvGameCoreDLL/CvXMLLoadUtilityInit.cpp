@@ -151,14 +151,11 @@ void CvXMLLoadUtility::InitBuildingDefaults(int **ppiDefaults)
 	PROFILE_FUNC();
 
 	FAssertMsg(*ppiDefaults == NULL,"memory leak?");
-	// allocate memory based on the number of building classes
 	*ppiDefaults = new int[GC.getNumBuildingClassInfos()];
-	// set the local pointer to the new memory
 	int* piDefaults = *ppiDefaults;
 
-	// loop through all the pointers and set their default values
-	for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
-		piDefaults[i] = GC.getInfo((BuildingClassTypes)i).getDefaultBuildingIndex();
+	FOR_EACH_ENUM(BuildingClass)
+		piDefaults[eLoopBuildingClass] = GC.getInfo(eLoopBuildingClass).getDefaultBuilding();
 }
 
 // allocate and initialize the civilization's default Units
@@ -167,14 +164,11 @@ void CvXMLLoadUtility::InitUnitDefaults(int **ppiDefaults)
 	PROFILE_FUNC();
 
 	FAssertMsg(*ppiDefaults == NULL,"memory leak?");
-	// allocate memory based on the number of uniting classes
 	*ppiDefaults = new int[GC.getNumUnitClassInfos()];
-	// set the local pointer to the new memory
 	int* piDefaults = *ppiDefaults;
 
-	// loop through all the pointers and set their default values
-	for (int i = 0; i < GC.getNumUnitClassInfos(); i++)
-		piDefaults[i] = GC.getInfo((UnitClassTypes) i).getDefaultUnitIndex();
+	FOR_EACH_ENUM(UnitClass)
+		piDefaults[eLoopUnitClass] = GC.getInfo(eLoopUnitClass).getDefaultUnit();
 }
 
 // Free memory asociated with global variables

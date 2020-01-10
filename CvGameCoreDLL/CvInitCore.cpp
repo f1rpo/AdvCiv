@@ -1770,10 +1770,9 @@ void CvInitCore::resetAdvancedStartPoints()
 // <advc.250c>
 int CvInitCore::getAdvancedStartMinPoints() const
 {
-	for(int i = 0; i < GC.getNumUnitClassInfos(); i++)
+	FOR_EACH_ENUM(UnitClass)
 	{
-		CvUnitInfo& u = GC.getInfo((UnitTypes)GC.getInfo(
-				(UnitClassTypes)i).getDefaultUnitIndex());
+		CvUnitInfo const& u = GC.getInfo(GC.getInfo(eLoopUnitClass).getDefaultUnit());
 		if(u.isFound())
 			return u.getAdvancedStartCost();
 	}

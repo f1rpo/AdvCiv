@@ -49,8 +49,8 @@ public: // advc: All the const functions are exposed to Python
 
 	// Array access:
 
-	int getCivilizationBuildings(int i) const;
-	int getCivilizationUnits(int i) const;
+	BuildingTypes getCivilizationBuildings(int i) const;
+	UnitTypes getCivilizationUnits(int i) const;
 	int getCivilizationFreeUnitsClass(int i) const;
 	int getCivilizationInitialCivics(int i) const;
 

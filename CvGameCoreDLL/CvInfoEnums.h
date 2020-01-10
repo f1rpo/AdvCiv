@@ -37,13 +37,41 @@ static inline T operator--(T& c, int)
 
 #define FOR_EACH_ENUM(TypeName) \
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)0; \
-			eLoop##TypeName != getEnumLength(eLoop##TypeName); \
+			eLoop##TypeName < getEnumLength(eLoop##TypeName); \
 			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName + 1))
 // With a 2nd argument for a variable name
 #define FOR_EACH_ENUM2(TypeName, eVar) \
 	for (TypeName##Types eVar = (TypeName##Types)0; \
-			eVar != getEnumLength(eVar); \
+			eVar < getEnumLength(eVar); \
 			eVar = (TypeName##Types)(eVar + 1))
+/*	Random order. The macro needs to declare two variables before the loop. Use __LINE__
+	for those, so that it's possible for loops to coexist in the same scope. */
+#define FOR_EACH_ENUM_RAND(TypeName, kRand) \
+	std::vector<int> CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__) \
+	(getEnumLength((TypeName##Types)0)); \
+	::shuffleVector(CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__), (kRand)); \
+	int CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__) = 0; \
+	for ( TypeName##Types eLoop##TypeName = (TypeName##Types) \
+			CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__)[0]; \
+			CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__) < getEnumLength(eLoop##TypeName); \
+			eLoop##TypeName = (TypeName##Types)CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__) \
+			[++CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__)] )
+/*	Example. FOR_EACH_ENUM_RAND(CardinalDirection, GC.getGame().getMapRand())
+	expands to:
+	std::vector<int> aiLoopCardinalDirectionIndices_443(getEnumLength((CardinalDirectionTypes)0));
+	::shuffleVector(aiLoopCardinalDirectionIndices_443, (GC.getGame().getMapRand()));
+	int iLoopCardinalDirectionCounter_443 = 0;
+	for ( CardinalDirectionTypes eLoopCardinalDirection = (CardinalDirectionTypes)
+			aiLoopCardinalDirectionIndices_443[0];
+			iLoopCardinalDirectionCounter_443 < getEnumLength(eLoopCardinalDirection);
+			eLoopCardinalDirection = (CardinalDirectionTypes)aiLoopCardinalDirectionIndices_443
+			[++iLoopCardinalDirectionCounter_443] )
+*/
+// Reversed order
+#define FOR_EACH_ENUM_REV(TypeName) \
+	for (TypeName##Types eLoop##TypeName = (TypeName##Types)(getEnumLength(((TypeName##Types)0)) - 1); \
+			eLoop##TypeName >= 0; \
+			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName - 1))
 // For accessing an info object in a loop over an info enum (tentative and unused)
 #define _kLoop_(TypeName) \
 	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)

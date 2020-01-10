@@ -1110,7 +1110,7 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		ImprovementTypes eImprovement = NO_IMPROVEMENT;
 		BuildTypes eBuild = (BuildTypes)widgetDataStruct.m_iData2;
 		if (eBuild != NO_BUILD)
-			eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
+			eImprovement = GC.getInfo(eBuild).getImprovement();
 		if (NO_IMPROVEMENT != eImprovement)
 			py.jumpToPedia(iData1, "Improvement");
 		break;
@@ -1318,7 +1318,7 @@ void CvDLLWidgetData::doConstruct(CvWidgetDataStruct &widgetDataStruct)
 				eBuilding, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
-	if (::isLimitedWonderClass(eBuildingClass))
+	if (GC.getInfo(eBuildingClass).isLimited())
 		gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
 	else gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_BUILDINGS);
 }
@@ -2492,8 +2492,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		if (/*!kUnit.getUnitInfo().getForceBuildings(eBuilding) &&*/ // advc.003t
 			!pMissionCity->canConstruct(eBuilding, false, false, true))
 		{
-			if (!g.isBuildingClassMaxedOut((BuildingClassTypes)
-					(GC.getInfo(eBuilding).getBuildingClassType())))
+			if (!g.isBuildingClassMaxedOut(GC.getInfo(eBuilding).getBuildingClassType()))
 			{
 				GAMETEXT.buildBuildingRequiresString(szBuffer,(BuildingTypes)kAction.
 						getMissionData(), false, false, pMissionCity);
@@ -2712,10 +2711,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	case MISSION_BUILD:
 	{
 		BuildTypes eBuild = (BuildTypes)kAction.getMissionData();
-		FAssert(eBuild != NO_BUILD);
-		ImprovementTypes eImprovement = (ImprovementTypes)
-				GC.getInfo(eBuild).getImprovement();
-		RouteTypes eRoute = (RouteTypes)GC.getInfo(eBuild).getRoute();
+		ImprovementTypes eImprovement = GC.getInfo(eBuild).getImprovement();
+		RouteTypes eRoute = GC.getInfo(eBuild).getRoute();
 		BonusTypes eBonus = kMissionPlot.getBonusType(kUnitTeam.getID());
 		for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
 		{
@@ -2818,7 +2815,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 					}
 				}
 			}
-			TechTypes eBuildPrereq = (TechTypes)GC.getInfo(eBuild).getTechPrereq();
+			TechTypes eBuildPrereq = GC.getInfo(eBuild).getTechPrereq();
 			if (!kUnitTeam.isHasTech(eBuildPrereq))
 			{
 				szBuffer.append(NEWLINE);
@@ -2874,7 +2871,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 			if (kMissionPlot.isFeature())
 			{
-				TechTypes eFeatureTech = (TechTypes)GC.getInfo(eBuild).
+				TechTypes eFeatureTech = GC.getInfo(eBuild).
 						getFeatureTech(kMissionPlot.getFeatureType());
 				if (!kUnitTeam.isHasTech(eFeatureTech))
 				{
@@ -3176,7 +3173,7 @@ void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStr
 			continue; // advc
 
 		if (pHeadSelectedCity->getNumBuilding(eLoopBuilding) <= 0 &&
-			!::isLimitedWonderClass(eLoopBuilding))
+			!GC.getInfo(eLoopBuilding).isLimited())
 		{
 			if (GC.getInfo(eLoopBuilding).getSpecialBuildingType() == NO_SPECIALBUILDING ||
 				pHeadSelectedCity->canConstruct(eLoopBuilding))
@@ -5164,189 +5161,200 @@ void CvDLLWidgetData::parseTechTreePrereq(CvWidgetDataStruct &widgetDataStruct, 
 
 void CvDLLWidgetData::parseObsoleteHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildObsoleteString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildObsoleteString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseObsoleteBonusString(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildObsoleteBonusString(szBuffer, ((BonusTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildObsoleteBonusString(szBuffer, (BonusTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseObsoleteSpecialHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildObsoleteSpecialString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildObsoleteSpecialString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseMoveHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildMoveString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildMoveString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseFreeUnitHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildFreeUnitString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData2)));
+	GAMETEXT.buildFreeUnitString(szBuffer, (TechTypes)widgetDataStruct.m_iData2);
 }
 
 void CvDLLWidgetData::parseFeatureProductionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildFeatureProductionString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildFeatureProductionString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseWorkerRateHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildWorkerRateString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildWorkerRateString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseTradeRouteHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildTradeRouteString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildTradeRouteString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseHealthRateHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildHealthRateString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildHealthRateString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseHappinessRateHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildHappinessRateString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildHappinessRateString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseFreeTechHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildFreeTechString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildFreeTechString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseLOSHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildLOSString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildLOSString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseMapCenterHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildMapCenterString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildMapCenterString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseMapRevealHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildMapRevealString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildMapRevealString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseMapTradeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildMapTradeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildMapTradeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseTechTradeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildTechTradeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildTechTradeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseGoldTradeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildGoldTradeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildGoldTradeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseOpenBordersHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildOpenBordersString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildOpenBordersString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseDefensivePactHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildDefensivePactString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildDefensivePactString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parsePermanentAllianceHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildPermanentAllianceString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildPermanentAllianceString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseVassalStateHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildVassalStateString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildVassalStateString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseBuildBridgeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildBridgeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildBridgeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseIrrigationHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildIrrigationString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildIrrigationString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseIgnoreIrrigationHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildIgnoreIrrigationString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildIgnoreIrrigationString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseWaterWorkHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildWaterWorkString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+	GAMETEXT.buildWaterWorkString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::parseBuildHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildImprovementString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
+	GAMETEXT.buildImprovementString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(BuildTypes)widgetDataStruct.m_iData2);
 }
 
 void CvDLLWidgetData::parseDomainExtraMovesHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildDomainExtraMovesString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
+	GAMETEXT.buildDomainExtraMovesString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(DomainTypes)widgetDataStruct.m_iData2);
 }
 
 void CvDLLWidgetData::parseAdjustHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildAdjustString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
+	GAMETEXT.buildAdjustString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(CommerceTypes)widgetDataStruct.m_iData2);
 }
 
 void CvDLLWidgetData::parseTerrainTradeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	if (widgetDataStruct.m_iData2 < GC.getNumTerrainInfos())
 	{
-		GAMETEXT.buildTerrainTradeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
+		GAMETEXT.buildTerrainTradeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+				(TerrainTypes)widgetDataStruct.m_iData2);
 	}
 	else if (widgetDataStruct.m_iData2 == GC.getNumTerrainInfos())
 	{
-		GAMETEXT.buildRiverTradeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
+		GAMETEXT.buildRiverTradeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1);
 	}
 }
 
 void CvDLLWidgetData::parseSpecialBuildingHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildSpecialBuildingString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
+	GAMETEXT.buildSpecialBuildingString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(SpecialBuildingTypes)widgetDataStruct.m_iData2);
 }
 
 void CvDLLWidgetData::parseYieldChangeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildYieldChangeString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2, false);
+	GAMETEXT.buildYieldChangeString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(ImprovementTypes)widgetDataStruct.m_iData2, false);
 }
 
 void CvDLLWidgetData::parseBonusRevealHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildBonusRevealString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2, true);
+	GAMETEXT.buildBonusRevealString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(BonusTypes)widgetDataStruct.m_iData2, true);
 }
 
 void CvDLLWidgetData::parseCivicRevealHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildCivicRevealString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2, true);
+	GAMETEXT.buildCivicRevealString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(CivicTypes)widgetDataStruct.m_iData2, true);
 }
 
 void CvDLLWidgetData::parseProcessInfoHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildProcessInfoString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2, true);
+	GAMETEXT.buildProcessInfoString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(ProcessTypes)widgetDataStruct.m_iData2, true);
 }
 
 void CvDLLWidgetData::parseFoundReligionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildFoundReligionString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2, true);
+	GAMETEXT.buildFoundReligionString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(ReligionTypes)widgetDataStruct.m_iData2, true);
 }
 
 void CvDLLWidgetData::parseFoundCorporationHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.buildFoundCorporationString(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2, true);
+	GAMETEXT.buildFoundCorporationString(szBuffer, (TechTypes)widgetDataStruct.m_iData1,
+			(CorporationTypes)widgetDataStruct.m_iData2, true);
 }
 
 void CvDLLWidgetData::parseFinanceNumUnits(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)

@@ -14,7 +14,7 @@ void CyInfoPythonInterface2()
 		.def("getMaxTeamInstances", &CvBuildingClassInfo::getMaxTeamInstances, "int ()")
 		.def("getMaxPlayerInstances", &CvBuildingClassInfo::getMaxPlayerInstances, "int ()")
 		.def("getExtraPlayerInstances", &CvBuildingClassInfo::getExtraPlayerInstances, "int ()")
-		.def("getDefaultBuildingIndex", &CvBuildingClassInfo::getDefaultBuildingIndex, "int ()")
+		.def("getDefaultBuildingIndex", &CvBuildingClassInfo::getDefaultBuilding, "int ()")
 
 		.def("isNoLimit", &CvBuildingClassInfo::isNoLimit, "bool ()")
 		.def("isMonument", &CvBuildingClassInfo::isMonument, "bool ()")

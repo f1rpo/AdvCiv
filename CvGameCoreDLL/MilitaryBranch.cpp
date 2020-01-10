@@ -167,8 +167,7 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 		return true;
 	if(NO_TECH != (TechTypes)getTypicalUnit()->getPrereqAndTech())
 		return true; // Warrior
-	if(GET_PLAYER(ownerId).getUnitClassCount((UnitClassTypes)getTypicalUnit()->
-			getUnitClassType()) > 0)
+	if(GET_PLAYER(ownerId).getUnitClassCount(getTypicalUnit()->getUnitClassType()) > 0)
 		return true; // The unit's in the wild
 	if(GET_PLAYER(pov).canSeeTech(ownerId))
 		return true; // Tech visible on Foreign Advisor

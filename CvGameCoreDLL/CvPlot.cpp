@@ -1527,7 +1527,7 @@ bool CvPlot::shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionT
 
 void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 {
-	PROFILE_FUNC(); // advc.test
+	PROFILE_FUNC(); // advc: Slow-ish, but only called a few hundred times per game turn.
 
 	CvCity* pCity = getPlotCity();
 	if (pCity != NULL)
@@ -1807,18 +1807,18 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	}
 	else
 	{
-		for (int i = 0; i < GC.getNumBuildInfos(); ++i)
+		FOR_EACH_ENUM(Build)
 		{
-			CvBuildInfo& kBuild = GC.getInfo((BuildTypes)i);
-			if (kBuild.getImprovement() == eImprovement)
+			CvBuildInfo& kLoopBuild = GC.getInfo(eLoopBuild);
+			if (kLoopBuild.getImprovement() == eImprovement)
 			{
 				bBuildable = true;
 				bool bValid = true;
-				for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+				FOR_EACH_ENUM(Yield)
 				{
-					if (calculateNatureYield(((YieldTypes)iI), eTeam, !isFeature() ||
-						kBuild.isFeatureRemove(getFeatureType())) <
-						GC.getInfo(eImprovement).getPrereqNatureYield(iI))
+					if (calculateNatureYield(eLoopYield, eTeam, !isFeature() ||
+						kLoopBuild.isFeatureRemove(getFeatureType())) <
+						GC.getInfo(eImprovement).getPrereqNatureYield(eLoopYield))
 					{
 						bValid = false;
 						break;
@@ -1838,8 +1838,11 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 
 	if (getTeam() == NO_TEAM || !GET_TEAM(getTeam()).isIgnoreIrrigation())
 	{
-		if (!bPotential && GC.getInfo(eImprovement).isRequiresIrrigation() && !isIrrigationAvailable())
+		if (!bPotential && GC.getInfo(eImprovement).isRequiresIrrigation() &&
+			!isIrrigationAvailable())
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -1857,33 +1860,27 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 			return r;
 	}
 	bool bValid = false;
-	ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
+	ImprovementTypes const eImprovement = GC.getInfo(eBuild).getImprovement();
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (!canHaveImprovement(eImprovement, GET_PLAYER(ePlayer).getTeam(), bTestVisible,
-				eBuild, false)) // dlph.9
+			eBuild, false)) // dlph.9
+		{
 			return false;
-
+		}
 		if (getImprovementType() != NO_IMPROVEMENT)
 		{
 			if (GC.getInfo(getImprovementType()).isPermanent())
-			{
 				return false;
-			}
 
 			if (getImprovementType() == eImprovement)
-			{
 				return false;
-			}
 
 			ImprovementTypes eFinalImprovementType = finalImprovementUpgrade(getImprovementType());
-
 			if (eFinalImprovementType != NO_IMPROVEMENT)
 			{
 				if (eFinalImprovementType == finalImprovementUpgrade(eImprovement))
-				{
 					return false;
-				}
 			}
 		}
 
@@ -1895,29 +1892,21 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 				if (GC.getInfo(eImprovement).isOutsideBorders())
 				{
 					if (getTeam() != NO_TEAM)
-					{
 						return false;
-					}
 				}
-				else //only buildable in own culture
-				{
-					return false;
-				}
+				else return false; //only buildable in own culture
 			}
 		}
-
 		bValid = true;
 	}
 
-	RouteTypes eRoute = ((RouteTypes)(GC.getInfo(eBuild).getRoute()));
+	RouteTypes const eRoute = GC.getInfo(eBuild).getRoute();
 	if (eRoute != NO_ROUTE)
 	{
 		if (getRouteType() != NO_ROUTE)
 		{
 			if (GC.getInfo(getRouteType()).getValue() >= GC.getInfo(eRoute).getValue())
-			{
 				return false;
-			}
 		}
 
 		if (!bTestVisible)
@@ -1946,11 +1935,8 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 			}
 
 			if (!bFoundValid)
-			{
 				return false;
-			}
 		}
-
 		bValid = true;
 	}
 
@@ -6211,10 +6197,10 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
 	CvBuildInfo const& kBuild = GC.getInfo(eBuild);
 
 	if (kBuild.getImprovement() != NO_IMPROVEMENT)
-		setImprovementType((ImprovementTypes)kBuild.getImprovement());
+		setImprovementType(kBuild.getImprovement());
 
 	if (kBuild.getRoute() != NO_ROUTE)
-		setRouteType((RouteTypes)kBuild.getRoute(), true);
+		setRouteType(kBuild.getRoute(), true);
 
 	if (isFeature() && kBuild.isFeatureRemove(getFeatureType()))
 	{
@@ -7564,7 +7550,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 			calculateNatureYield(eYield, getTeam(), bIgnoreFeature);
 	iYield += iNatureYield;
 
-	ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
+	ImprovementTypes eImprovement = GC.getInfo(eBuild).getImprovement();
 	// K-Mod. if the build doesn't have its own improvement - use the existing one!
 	if (eImprovement == NO_IMPROVEMENT)
 	{
@@ -7580,7 +7566,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 		{
 			//in the case that improvements upgrade, use 2 upgrade levels higher for the
 			//yield calculations.
-			/*ImprovementTypes eUpgradeImprovement = (ImprovementTypes)GC.getInfo(eImprovement).getImprovementUpgrade();
+			/*ImprovementTypes eUpgradeImprovement = GC.getInfo(eImprovement).getImprovementUpgrade();
 			if (eUpgradeImprovement != NO_IMPROVEMENT) {
 				//unless it's commerce on a low food tile, in which case only use 1 level higher
 				if ((eYield != YIELD_COMMERCE) || (getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION())) {
@@ -7602,19 +7588,18 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 		iYield += calculateImprovementYieldChange(eImprovement, eYield, getOwner(), false);
 	}
 
-	RouteTypes eRoute = (RouteTypes)GC.getInfo(eBuild).getRoute();
+	RouteTypes const eRoute = GC.getInfo(eBuild).getRoute();
 	if (eRoute != NO_ROUTE)
 	{
 		//eImprovement = getImprovementType(); // disabled by K-Mod
 		if (eImprovement != NO_IMPROVEMENT)
 		{
-			for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+			CvImprovementInfo const& kImprov = GC.getInfo(eImprovement);
+			FOR_EACH_ENUM(Yield)
 			{
-				iYield += GC.getInfo(eImprovement).getRouteYieldChanges(eRoute, iI);
+				iYield += kImprov.getRouteYieldChanges(eRoute, eLoopYield);
 				if (getRouteType() != NO_ROUTE)
-				{
-					iYield -= GC.getInfo(eImprovement).getRouteYieldChanges(getRouteType(), iI);
-				}
+					iYield -= kImprov.getRouteYieldChanges(getRouteType(), eLoopYield);
 			}
 		}
 	}
@@ -7936,8 +7921,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 			BuildingTypes ePrereqBuilding = (BuildingTypes)GC.getInfo(eUnit).getPrereqBuilding(); // advc
 			if (pCity->getNumBuilding(ePrereqBuilding) == 0)
 			{
-				SpecialBuildingTypes eSpecialBuilding = (SpecialBuildingTypes)
-						GC.getInfo(ePrereqBuilding).getSpecialBuildingType();
+				SpecialBuildingTypes eSpecialBuilding = GC.getInfo(ePrereqBuilding).getSpecialBuildingType();
 				if (eSpecialBuilding == NO_SPECIALBUILDING ||
 						!GET_PLAYER(getOwner()).isSpecialBuildingNotRequired(eSpecialBuilding))
 					return false;

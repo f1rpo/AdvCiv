@@ -3,7 +3,6 @@
 #ifndef CIV4_CITY_LIST_H
 #define CIV4_CITY_LIST_H
 
-#include "FLTALoopCounter.h"
 #include "FFreeListTrashArray.h"
 #include "CvCityAI.h"
 

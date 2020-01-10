@@ -220,134 +220,23 @@ void CvBuildingInfo::addElements(std::vector<XMLElement*>& r) const
 	r.push_back(new IntElement(RaiseDefense, "RaiseDefense", 0)); // advc.004c
 } // </advc.tag>
 
-int CvBuildingInfo::getVictoryPrereq() const
+// advc.003w:
+bool CvBuildingInfo::isTechRequired(TechTypes eTech) const
 {
-	return m_iVictoryPrereq;
-}
+	if (getPrereqAndTech() == eTech)
+		return true;
 
-int CvBuildingInfo::getFreeStartEra() const
-{
-	return m_iFreeStartEra;
-}
+	for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
+	{
+		if (getPrereqAndTechs(i) == eTech)
+			return true;
+	}
 
-int CvBuildingInfo::getMaxStartEra() const
-{
-	return m_iMaxStartEra;
-}
+	SpecialBuildingTypes eSpecial = getSpecialBuildingType();
+	if (eSpecial != NO_SPECIALBUILDING && GC.getInfo(eSpecial).getTechPrereq() == eTech)
+		return true;
 
-int CvBuildingInfo::getObsoleteTech() const
-{
-	return m_iObsoleteTech;
-}
-
-int CvBuildingInfo::getPrereqAndTech() const
-{
-	return m_iPrereqAndTech;
-}
-
-int CvBuildingInfo::getNoBonus() const
-{
-	return m_iNoBonus;
-}
-
-int CvBuildingInfo::getPowerBonus() const
-{
-	return m_iPowerBonus;
-}
-
-int CvBuildingInfo::getFreeBonus() const
-{
-	return m_iFreeBonus;
-}
-
-int CvBuildingInfo::getNumFreeBonuses() const
-{
-	return m_iNumFreeBonuses;
-}
-
-int CvBuildingInfo::getFreeBuildingClass() const
-{
-	return m_iFreeBuildingClass;
-}
-
-int CvBuildingInfo::getFreePromotion() const
-{
-	return m_iFreePromotion;
-}
-
-int CvBuildingInfo::getCivicOption() const
-{
-	return m_iCivicOption;
-}
-
-int CvBuildingInfo::getAIWeight() const
-{
-	return m_iAIWeight;
-}
-
-int CvBuildingInfo::getProductionCost() const
-{
-	return m_iProductionCost;
-}
-
-int CvBuildingInfo::getHurryCostModifier() const
-{
-	return m_iHurryCostModifier;
-}
-
-int CvBuildingInfo::getHurryAngerModifier() const
-{
-	return m_iHurryAngerModifier;
-}
-
-int CvBuildingInfo::getAdvancedStartCost() const
-{
-	return m_iAdvancedStartCost;
-}
-
-int CvBuildingInfo::getAdvancedStartCostIncrease() const
-{
-	return m_iAdvancedStartCostIncrease;
-}
-
-int CvBuildingInfo::getMinAreaSize() const
-{
-	return m_iMinAreaSize;
-}
-
-int CvBuildingInfo::getNumCitiesPrereq() const
-{
-	return m_iNumCitiesPrereq;
-}
-
-int CvBuildingInfo::getNumTeamsPrereq() const
-{
-	return m_iNumTeamsPrereq;
-}
-
-int CvBuildingInfo::getUnitLevelPrereq() const
-{
-	return m_iUnitLevelPrereq;
-}
-
-int CvBuildingInfo::getMinLatitude() const
-{
-	return m_iMinLatitude;
-}
-
-int CvBuildingInfo::getMaxLatitude() const
-{
-	return m_iMaxLatitude;
-}
-
-int CvBuildingInfo::getGreatPeopleRateModifier() const
-{
-	return m_iGreatPeopleRateModifier;
-}
-
-int CvBuildingInfo::getGreatGeneralRateModifier() const
-{
-	return m_iGreatGeneralRateModifier;
+	return false;
 }
 
 int CvBuildingInfo::getDomesticGreatGeneralRateModifier() const
@@ -355,131 +244,6 @@ int CvBuildingInfo::getDomesticGreatGeneralRateModifier() const
 	if(!m_bEnabledDomesticGreatGeneralRateModifier)
 		return 0; // </advc.310>
 	return m_iDomesticGreatGeneralRateModifier;
-}
-
-int CvBuildingInfo::getGlobalGreatPeopleRateModifier() const
-{
-	return m_iGlobalGreatPeopleRateModifier;
-}
-
-int CvBuildingInfo::getAnarchyModifier() const
-{
-	return m_iAnarchyModifier;
-}
-
-int CvBuildingInfo::getGoldenAgeModifier() const
-{
-	return m_iGoldenAgeModifier;
-}
-
-int CvBuildingInfo::getGlobalHurryModifier() const
-{
-	return m_iGlobalHurryModifier;
-}
-
-int CvBuildingInfo::getFreeExperience() const
-{
-	return m_iFreeExperience;
-}
-
-int CvBuildingInfo::getGlobalFreeExperience() const
-{
-	return m_iGlobalFreeExperience;
-}
-
-int CvBuildingInfo::getFoodKept() const
-{
-	return m_iFoodKept;
-}
-
-int CvBuildingInfo::getAirlift() const
-{
-	return m_iAirlift;
-}
-
-int CvBuildingInfo::getAirModifier() const
-{
-	return m_iAirModifier;
-}
-
-int CvBuildingInfo::getAirUnitCapacity() const
-{
-	return m_iAirUnitCapacity;
-}
-
-int CvBuildingInfo::getNukeModifier() const
-{
-	return m_iNukeModifier;
-}
-
-int CvBuildingInfo::getNukeExplosionRand() const
-{
-	return m_iNukeExplosionRand;
-}
-
-int CvBuildingInfo::getFreeSpecialist() const
-{
-	return m_iFreeSpecialist;
-}
-
-int CvBuildingInfo::getAreaFreeSpecialist() const
-{
-	return m_iAreaFreeSpecialist;
-}
-
-int CvBuildingInfo::getGlobalFreeSpecialist() const
-{
-	return m_iGlobalFreeSpecialist;
-}
-
-int CvBuildingInfo::getHappiness() const
-{
-	return m_iHappiness;
-}
-
-int CvBuildingInfo::getAreaHappiness() const
-{
-	return m_iAreaHappiness;
-}
-
-int CvBuildingInfo::getGlobalHappiness() const
-{
-	return m_iGlobalHappiness;
-}
-
-int CvBuildingInfo::getStateReligionHappiness() const
-{
-	return m_iStateReligionHappiness;
-}
-
-int CvBuildingInfo::getWorkerSpeedModifier() const
-{
-	return m_iWorkerSpeedModifier;
-}
-
-int CvBuildingInfo::getMilitaryProductionModifier() const
-{
-	return m_iMilitaryProductionModifier;
-}
-
-int CvBuildingInfo::getSpaceProductionModifier() const
-{
-	return m_iSpaceProductionModifier;
-}
-
-int CvBuildingInfo::getGlobalSpaceProductionModifier() const
-{
-	return m_iGlobalSpaceProductionModifier;
-}
-
-int CvBuildingInfo::getTradeRoutes() const
-{
-	return m_iTradeRoutes;
-}
-
-int CvBuildingInfo::getCoastalTradeRoutes() const
-{
-	return m_iCoastalTradeRoutes;
 }
 // <advc.310>
 int CvBuildingInfo::getAreaTradeRoutes() const
@@ -489,174 +253,9 @@ int CvBuildingInfo::getAreaTradeRoutes() const
 	return m_iAreaTradeRoutes;
 } // </advc.310>
 
-int CvBuildingInfo::getTradeRouteModifier() const
-{
-	return m_iTradeRouteModifier;
-}
-
-int CvBuildingInfo::getForeignTradeRouteModifier() const
-{
-	return m_iForeignTradeRouteModifier;
-}
-
-int CvBuildingInfo::getAssetValue() const
-{
-	return m_iAssetValue;
-}
-
-int CvBuildingInfo::getPowerValue() const
-{
-	return m_iPowerValue;
-}
-
-int CvBuildingInfo::getSpecialBuildingType() const
-{
-	return m_iSpecialBuildingType;
-}
-
-int CvBuildingInfo::getAdvisorType() const
-{
-	return m_iAdvisorType;
-}
-
-int CvBuildingInfo::getHolyCity() const
-{
-	return m_iHolyCity;
-}
-
-int CvBuildingInfo::getReligionType() const
-{
-	return m_iReligionType;
-}
-
-int CvBuildingInfo::getStateReligion() const
-{
-	return m_iStateReligion;
-}
-
-int CvBuildingInfo::getPrereqReligion() const
-{
-	return m_iPrereqReligion;
-}
-
-int CvBuildingInfo::getPrereqCorporation() const
-{
-	return m_iPrereqCorporation;
-}
-
-int CvBuildingInfo::getFoundsCorporation() const
-{
-	return m_iFoundsCorporation;
-}
-
-int CvBuildingInfo::getGlobalReligionCommerce() const
-{
-	return m_iGlobalReligionCommerce;
-}
-
-int CvBuildingInfo::getGlobalCorporationCommerce() const
-{
-	return m_iGlobalCorporationCommerce;
-}
-
-int CvBuildingInfo::getPrereqAndBonus() const
-{
-	return m_iPrereqAndBonus;
-}
-
-int CvBuildingInfo::getGreatPeopleUnitClass() const
-{
-	return m_iGreatPeopleUnitClass;
-}
-
-int CvBuildingInfo::getGreatPeopleRateChange() const
-{
-	return m_iGreatPeopleRateChange;
-}
-
-int CvBuildingInfo::getConquestProbability() const
-{
-	return m_iConquestProbability;
-}
-
-int CvBuildingInfo::getMaintenanceModifier() const
-{
-	return m_iMaintenanceModifier;
-}
-
-int CvBuildingInfo::getWarWearinessModifier() const
-{
-	return m_iWarWearinessModifier;
-}
-
-int CvBuildingInfo::getGlobalWarWearinessModifier() const
-{
-	return m_iGlobalWarWearinessModifier;
-}
-
-int CvBuildingInfo::getEnemyWarWearinessModifier() const
-{
-	return m_iEnemyWarWearinessModifier;
-}
-
-int CvBuildingInfo::getHealRateChange() const
-{
-	return m_iHealRateChange;
-}
-
-int CvBuildingInfo::getHealth() const
-{
-	return m_iHealth;
-}
-
-int CvBuildingInfo::getAreaHealth() const
-{
-	return m_iAreaHealth;
-}
-
-int CvBuildingInfo::getGlobalHealth() const
-{
-	return m_iGlobalHealth;
-}
-
-int CvBuildingInfo::getGlobalPopulationChange() const
-{
-	return m_iGlobalPopulationChange;
-}
-
-int CvBuildingInfo::getFreeTechs() const
-{
-	return m_iFreeTechs;
-}
-
-int CvBuildingInfo::getBombardDefenseModifier() const
-{
-	return m_iBombardDefenseModifier;
-}
-
-int CvBuildingInfo::getAllCityDefenseModifier() const
-{
-	return m_iAllCityDefenseModifier;
-}
-
-int CvBuildingInfo::getEspionageDefenseModifier() const
-{
-	return m_iEspionageDefenseModifier;
-}
-
-int CvBuildingInfo::getMissionType() const
-{
-	return m_iMissionType;
-}
-
 void CvBuildingInfo::setMissionType(int iNewType)
 {
 	m_iMissionType = iNewType;
-}
-
-int CvBuildingInfo::getVoteSourceType() const
-{
-	return m_iVoteSourceType;
 }
 
 float CvBuildingInfo::getVisibilityPriority() const
@@ -664,118 +263,11 @@ float CvBuildingInfo::getVisibilityPriority() const
 	return m_fVisibilityPriority;
 }
 
-bool CvBuildingInfo::isTeamShare() const
-{
-	return m_bTeamShare;
-}
-
-bool CvBuildingInfo::isWater() const
-{
-	return m_bWater;
-}
-
-bool CvBuildingInfo::isRiver() const
-{
-	return m_bRiver;
-}
-
-bool CvBuildingInfo::isPower() const
-{
-	return m_bPower;
-}
-
-bool CvBuildingInfo::isDirtyPower() const
-{
-	return m_bDirtyPower;
-}
-
-bool CvBuildingInfo::isAreaCleanPower() const
-{
-	return m_bAreaCleanPower;
-}
-
 bool CvBuildingInfo::isAreaBorderObstacle() const
 {	// <advc.310>
 	if(!m_bEnabledAreaBorderObstacle)
 		return false; // </advc.310>
 	return m_bAreaBorderObstacle;
-}
-
-bool CvBuildingInfo::isForceTeamVoteEligible() const
-{
-	return m_bForceTeamVoteEligible;
-}
-
-bool CvBuildingInfo::isCapital() const
-{
-	return m_bCapital;
-}
-
-bool CvBuildingInfo::isGovernmentCenter() const
-{
-	return m_bGovernmentCenter;
-}
-
-bool CvBuildingInfo::isGoldenAge() const
-{
-	return m_bGoldenAge;
-}
-
-bool CvBuildingInfo::isMapCentering() const
-{
-	return m_bMapCentering;
-}
-
-bool CvBuildingInfo::isNoUnhappiness() const
-{
-	return m_bNoUnhappiness;
-}
-
-/* original bts code
-bool CvBuildingInfo::isNoUnhealthyPopulation() const
-{
-	return m_bNoUnhealthyPopulation;
-}*/
-/*  K-Mod, 27/dec/10, karadoc
-	replace NoUnhealthyPopulation with UnhealthyPopulationModifier */
-int CvBuildingInfo::getUnhealthyPopulationModifier() const
-{
-	return m_iUnhealthyPopulationModifier;
-} // K-Mod end
-
-bool CvBuildingInfo::isBuildingOnlyHealthy() const
-{
-	return m_bBuildingOnlyHealthy;
-}
-
-bool CvBuildingInfo::isNeverCapture() const
-{
-	return m_bNeverCapture;
-}
-
-bool CvBuildingInfo::isNukeImmune() const
-{
-	return m_bNukeImmune;
-}
-
-bool CvBuildingInfo::isPrereqReligion() const
-{
-	return m_bPrereqReligion;
-}
-
-bool CvBuildingInfo::isCenterInCity() const
-{
-	return m_bCenterInCity;
-}
-
-bool CvBuildingInfo::isStateReligion() const
-{
-	return m_bStateReligion;
-}
-
-bool CvBuildingInfo::isAllowsNukes() const
-{
-	return m_bAllowsNukes;
 }
 
 const TCHAR* CvBuildingInfo::getConstructSound() const
@@ -815,20 +307,10 @@ int CvBuildingInfo::getYieldChange(int i) const
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getYieldChangeArray() const
-{
-	return m_piYieldChange;
-}
-
 int CvBuildingInfo::getYieldModifier(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
-	return m_piYieldModifier ? m_piYieldModifier[i] : 0; // advc003t
-}
-
-int* CvBuildingInfo::getYieldModifierArray() const
-{
-	return m_piYieldModifier;
+	return m_piYieldModifier ? m_piYieldModifier[i] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPowerYieldModifier(int i) const
@@ -837,20 +319,10 @@ int CvBuildingInfo::getPowerYieldModifier(int i) const
 	return m_piPowerYieldModifier ? m_piPowerYieldModifier[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getPowerYieldModifierArray() const
-{
-	return m_piPowerYieldModifier;
-}
-
 int CvBuildingInfo::getAreaYieldModifier(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piAreaYieldModifier ? m_piAreaYieldModifier[i] : 0; // advc.003t
-}
-
-int* CvBuildingInfo::getAreaYieldModifierArray() const
-{
-	return m_piAreaYieldModifier;
 }
 
 int CvBuildingInfo::getGlobalYieldModifier(int i) const
@@ -859,20 +331,10 @@ int CvBuildingInfo::getGlobalYieldModifier(int i) const
 	return m_piGlobalYieldModifier ? m_piGlobalYieldModifier[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getGlobalYieldModifierArray() const
-{
-	return m_piGlobalYieldModifier;
-}
-
 int CvBuildingInfo::getSeaPlotYieldChange(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piSeaPlotYieldChange ? m_piSeaPlotYieldChange[i] : 0; // advc.003t
-}
-
-int* CvBuildingInfo::getSeaPlotYieldChangeArray() const
-{
-	return m_piSeaPlotYieldChange;
 }
 
 int CvBuildingInfo::getRiverPlotYieldChange(int i) const
@@ -881,20 +343,10 @@ int CvBuildingInfo::getRiverPlotYieldChange(int i) const
 	return m_piRiverPlotYieldChange ? m_piRiverPlotYieldChange[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getRiverPlotYieldChangeArray() const
-{
-	return m_piRiverPlotYieldChange;
-}
-
 int CvBuildingInfo::getGlobalSeaPlotYieldChange(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piGlobalSeaPlotYieldChange ? m_piGlobalSeaPlotYieldChange[i] : 0; // advc.003t
-}
-
-int* CvBuildingInfo::getGlobalSeaPlotYieldChangeArray() const
-{
-	return m_piGlobalSeaPlotYieldChange;
 }
 
 int CvBuildingInfo::getCommerceChange(int i) const
@@ -903,20 +355,10 @@ int CvBuildingInfo::getCommerceChange(int i) const
 	return m_piCommerceChange ? m_piCommerceChange[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getCommerceChangeArray() const
-{
-	return m_piCommerceChange;
-}
-
 int CvBuildingInfo::getObsoleteSafeCommerceChange(int i) const
 {
 	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piObsoleteSafeCommerceChange ? m_piObsoleteSafeCommerceChange[i] : 0; // advc.003t
-}
-
-int* CvBuildingInfo::getObsoleteSafeCommerceChangeArray() const
-{
-	return m_piObsoleteSafeCommerceChange;
 }
 
 int CvBuildingInfo::getCommerceChangeDoubleTime(int i) const
@@ -932,20 +374,10 @@ int CvBuildingInfo::getCommerceModifier(int i) const
 	return m_piCommerceModifier ? m_piCommerceModifier[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getCommerceModifierArray() const
-{
-	return m_piCommerceModifier;
-}
-
 int CvBuildingInfo::getGlobalCommerceModifier(int i) const
 {
 	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piGlobalCommerceModifier ? m_piGlobalCommerceModifier[i] : 0; // advc.003t
-}
-
-int* CvBuildingInfo::getGlobalCommerceModifierArray() const
-{
-	return m_piGlobalCommerceModifier;
 }
 
 int CvBuildingInfo::getSpecialistExtraCommerce(int i) const
@@ -954,20 +386,10 @@ int CvBuildingInfo::getSpecialistExtraCommerce(int i) const
 	return m_piSpecialistExtraCommerce ? m_piSpecialistExtraCommerce[i] : 0; // advc.003t
 }
 
-int* CvBuildingInfo::getSpecialistExtraCommerceArray() const
-{
-	return m_piSpecialistExtraCommerce;
-}
-
 int CvBuildingInfo::getStateReligionCommerce(int i) const
 {
 	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
 	return m_piStateReligionCommerce ? m_piStateReligionCommerce[i] : 0; // advc.003t
-}
-
-int* CvBuildingInfo::getStateReligionCommerceArray() const
-{
-	return m_piStateReligionCommerce;
 }
 
 int CvBuildingInfo::getCommerceHappiness(int i) const
@@ -986,8 +408,6 @@ int CvBuildingInfo::getReligionChange(int i) const
 int CvBuildingInfo::getSpecialistCount(int i) const
 {
 	FAssertBounds(0, GC.getNumSpecialistInfos(), i);
-	FAssertMsg(i < GC.getNumSpecialistInfos(), "Index out of bounds");
-	FAssertMsg(i > -1, "Index out of bounds");
 	return m_piSpecialistCount ? m_piSpecialistCount[i] : 0; // advc.003t
 }
 
@@ -1033,16 +453,16 @@ int CvBuildingInfo::getDomainProductionModifier(int i) const
 	return m_piDomainProductionModifier ? m_piDomainProductionModifier[i] : 0; // advc.003t
 }
 
-int CvBuildingInfo::getPrereqAndTechs(int i) const
+TechTypes CvBuildingInfo::getPrereqAndTechs(int i) const
 {
 	FAssertBounds(0, GC.getNUM_BUILDING_AND_TECH_PREREQS(), i);
-	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
+	return m_piPrereqAndTechs ? (TechTypes)m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
-int CvBuildingInfo::getPrereqOrBonuses(int i) const
+BonusTypes CvBuildingInfo::getPrereqOrBonuses(int i) const
 {
 	FAssertBounds(0, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), i);
-	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_TECH; // advc.003t
+	return m_piPrereqOrBonuses ? (BonusTypes)m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
 }
 
 int CvBuildingInfo::getProductionTraits(int i) const
@@ -1159,6 +579,17 @@ const TCHAR* CvBuildingInfo::getMovie() const
 		return pArt->getPath();
 
 	return NULL;
+}
+// advc.008e:
+bool CvBuildingInfo::nameNeedsArticle() const
+{
+	if(!isWorldWonder())
+		return false; // Should only be called for wonders really
+	CvWString szKey = getTextKeyWide();
+	CvWString szText = gDLL->getText(szKey + L"_NA");
+	/*  If an _NA key exists, then gDLL will return a dot. If it doesn't, then
+		an article should be used. */
+	return (szText.compare(L".") != 0);
 }
 #if SERIALIZE_CVINFOS
 void CvBuildingInfo::read(FDataStreamBase* stream)
@@ -2107,36 +1538,6 @@ CvBuildingClassInfo::~CvBuildingClassInfo()
 	SAFE_DELETE_ARRAY(m_piVictoryThreshold);
 }
 
-int CvBuildingClassInfo::getMaxGlobalInstances() const
-{
-	return m_iMaxGlobalInstances;
-}
-
-int CvBuildingClassInfo::getMaxTeamInstances() const
-{
-	return m_iMaxTeamInstances;
-}
-
-int CvBuildingClassInfo::getMaxPlayerInstances() const
-{
-	return m_iMaxPlayerInstances;
-}
-
-int CvBuildingClassInfo::getExtraPlayerInstances() const
-{
-	return m_iExtraPlayerInstances;
-}
-
-int CvBuildingClassInfo::getDefaultBuildingIndex() const
-{
-	return m_iDefaultBuildingIndex;
-}
-
-bool CvBuildingClassInfo::isNoLimit() const
-{
-	return m_bNoLimit;
-}
-
 bool CvBuildingClassInfo::isMonument() const
 {
 	return m_bMonument;
@@ -2149,6 +1550,36 @@ int CvBuildingClassInfo::getVictoryThreshold(int i) const
 	FAssertMsg(i < GC.getNumVictoryInfos(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_piVictoryThreshold ? m_piVictoryThreshold[i] : 0; // advc.003t
+}
+
+// advc: Moved from CvGameCoreUtils, renamed from "limitedWonderClassLimit".
+int CvBuildingClassInfo::getLimit() const
+{
+	int iCount = 0;
+	bool bLimited = false;
+
+	int iMax = getMaxGlobalInstances();
+	if (iMax != -1)
+	{
+		iCount += iMax;
+		bLimited = true;
+	}
+
+	iMax = getMaxTeamInstances();
+	if (iMax != -1)
+	{
+		iCount += iMax;
+		bLimited = true;
+	}
+
+	iMax = getMaxPlayerInstances();
+	if (iMax != -1)
+	{
+		iCount += iMax;
+		bLimited = true;
+	}
+
+	return (bLimited ? iCount : -1);
 }
 
 bool CvBuildingClassInfo::read(CvXMLLoadUtility* pXML)
@@ -2522,76 +1953,6 @@ CvProjectInfo::~CvProjectInfo()
 	SAFE_DELETE_ARRAY(m_piProjectsNeeded);
 }
 
-int CvProjectInfo::getVictoryPrereq() const
-{
-	return m_iVictoryPrereq;
-}
-
-int CvProjectInfo::getTechPrereq() const
-{
-	return m_iTechPrereq;
-}
-
-int CvProjectInfo::getAnyoneProjectPrereq() const
-{
-	return m_iAnyoneProjectPrereq;
-}
-
-int CvProjectInfo::getMaxGlobalInstances() const
-{
-	return m_iMaxGlobalInstances;
-}
-
-int CvProjectInfo::getMaxTeamInstances() const
-{
-	return m_iMaxTeamInstances;
-}
-
-int CvProjectInfo::getProductionCost() const
-{
-	return m_iProductionCost;
-}
-
-int CvProjectInfo::getNukeInterception() const
-{
-	return m_iNukeInterception;
-}
-
-int CvProjectInfo::getTechShare() const
-{
-	return m_iTechShare;
-}
-
-int CvProjectInfo::getEveryoneSpecialUnit() const
-{
-	return m_iEveryoneSpecialUnit;
-}
-
-int CvProjectInfo::getEveryoneSpecialBuilding() const
-{
-	return m_iEveryoneSpecialBuilding;
-}
-
-int CvProjectInfo::getVictoryDelayPercent() const
-{
-	return m_iVictoryDelayPercent;
-}
-
-int CvProjectInfo::getSuccessRate() const
-{
-	return m_iSuccessRate;
-}
-
-bool CvProjectInfo::isSpaceship() const
-{
-	return m_bSpaceship;
-}
-
-bool CvProjectInfo::isAllowsNukes() const
-{
-	return m_bAllowsNukes;
-}
-
 const char* CvProjectInfo::getMovieArtDef() const
 {
 	return m_szMovieArtDef;
@@ -2606,6 +1967,16 @@ void CvProjectInfo::setCreateSound(const TCHAR* szVal)
 {
 	m_szCreateSound = szVal;
 }
+// advc.008e:
+bool CvProjectInfo::nameNeedsArticle() const
+{
+	if(!isLimited())
+		return false;
+	CvWString szKey = getTextKeyWide();
+	// (see comment in CvBuildingInfo::nameNeedsArticle)
+	CvWString szText = gDLL->getText(szKey + L"_NA");
+	return (szText.compare(L".") != 0);
+} // </advc.008e>
 
 int CvProjectInfo::getBonusProductionModifier(int i) const
 {

@@ -1183,7 +1183,8 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 			// denied
 			iDeniedValue += iCityValue * iDenyFactor / 100;
-			if (2*pLoopCity->getCulture(kLoopPlayer.getID()) > pLoopCity->getCultureThreshold(GC.getGame().culturalVictoryCultureLevel()))
+			if (2*pLoopCity->getCulture(kLoopPlayer.getID()) >
+				pLoopCity->getCultureThreshold(GC.getGame().culturalVictoryCultureLevel()))
 			{
 				iDeniedValue += (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE4) ? 100 : 30) * iDenyFactor / 100;
 			}
@@ -1973,31 +1974,38 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const  //
 	}
 	FOR_EACH_ENUM(Unit)
 	{
-		if (!isTechRequiredForUnit(eTech, eLoopUnit))
+		if (!GC.getInfo(eLoopUnit).isTechRequired(eTech))
 			continue;
-		UnitClassTypes eLoopUnitClass = (UnitClassTypes)GC.getInfo(eLoopUnit).getUnitClassType();
-		if (isWorldUnitClass(eLoopUnitClass) && getUnitClassMaking(eLoopUnitClass) > 0)
+		if (GC.getInfo(eLoopUnit).isWorldUnit() &&
+			getUnitClassMaking(GC.getInfo(eLoopUnit).getUnitClassType()) > 0)
+		{
 			return DENIAL_MYSTERY;
+		}
 	}
 	FOR_EACH_ENUM(Building)
 	{
-		if (!isTechRequiredForBuilding(eTech, eLoopBuilding))
+		if (!GC.getInfo(eLoopBuilding).isTechRequired(eTech))
 			continue;
-		BuildingClassTypes eLoopBuildingClass = (BuildingClassTypes)GC.getInfo(eLoopBuilding).getBuildingClassType();
-		if (isWorldWonderClass(eLoopBuildingClass) && getBuildingClassMaking(eLoopBuildingClass) > 0)
+		if (GC.getInfo(eLoopBuilding).isWorldWonder() &&
+			getBuildingClassMaking(GC.getInfo(eLoopBuilding).getBuildingClassType()) > 0)
+		{
 			return DENIAL_MYSTERY;
+		}
 	}
 	FOR_EACH_ENUM(Project)
 	{
-		if (GC.getInfo(eLoopProject).getTechPrereq() != eTech)
+		CvProjectInfo const& kLoopProject = GC.getInfo(eLoopProject);
+		if (kLoopProject.getTechPrereq() != eTech)
 			continue;
-		if (isWorldProject(eLoopProject) && getProjectMaking(eLoopProject) > 0)
+		if (kLoopProject.isWorldProject() && getProjectMaking(eLoopProject) > 0)
 			return DENIAL_MYSTERY;
 		FOR_EACH_ENUM(Victory)
 		{
 			if (GC.getGame().isVictoryValid(eLoopVictory) &&
-					GC.getInfo(eLoopProject).getVictoryThreshold(eLoopVictory))
+				kLoopProject.getVictoryThreshold(eLoopVictory))
+			{
 				return DENIAL_VICTORY;
+			}
 		}
 	}
 	return NO_DENIAL;
@@ -2783,7 +2791,7 @@ int CvTeamAI::AI_getAirPower() const
 	{
 		/*  Since units of each class are counted per team rather than units of each type,
 			just assume the default unit type. */
-		UnitTypes eLoopUnit = (UnitTypes)GC.getInfo(eLoopUnitClass).getDefaultUnitIndex();
+		UnitTypes eLoopUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
 		if (eLoopUnit == NO_UNIT)
 			continue; // advc
 
@@ -2803,7 +2811,7 @@ int CvTeamAI::AI_getRivalAirPower() const
 	FOR_EACH_ENUM(UnitClass)
 	{
 		// (See comment in AI_getAirPower)
-		UnitTypes eLoopUnit = (UnitTypes)GC.getInfo(eLoopUnitClass).getDefaultUnitIndex();
+		UnitTypes eLoopUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
 		if (eLoopUnit == NO_UNIT)
 			continue;
 		if (GC.getInfo(eLoopUnit).getDomainType() == DOMAIN_AIR &&
@@ -2818,7 +2826,7 @@ int CvTeamAI::AI_getRivalAirPower() const
 	for (size_t i = 0; i < aeAirUnitTypes.size(); i++) // advc.opt
 	{
 		CvUnitInfo const& kUnit = GC.getInfo(aeAirUnitTypes[i]);
-		UnitClassTypes eUnitClass = (UnitClassTypes)kUnit.getUnitClassType();
+		UnitClassTypes eUnitClass = kUnit.getUnitClassType();
 		// advc.001: Surely our vassals shouldn't count for rival air power
 		TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getID());
 		for (; it.hasNext(); ++it)
@@ -5939,13 +5947,13 @@ int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const  /
 		for (int i = 0; i < kRecipientCiv.getNumUnits(); i++)
 		{
 			UnitTypes eUnit = kRecipientCiv.unitAt(i); // </advc.550c>
-			if (!isTechRequiredForUnit(eTech, eUnit))
+			CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+			if (!kUnit.isTechRequired(eTech))
 				continue;
 
-			if (isWorldUnitClass(CvCivilization::unitClass(eUnit)))
+			if (kUnit.isWorldUnit())
 				iValue += 50;
 
-			CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 			/*  advc (comment): Relying only on the AndTech seems questionable. Anything
 				that the canTrain functions check could be relevant here. */
 			if (kUnit.getPrereqAndTech() != eTech)
@@ -6045,16 +6053,16 @@ int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const  /
 		for (int i = 0; i < kRecipientCiv.getNumBuildings(); i++)
 		{
 			BuildingTypes eBuilding = kRecipientCiv.buildingAt(i); // </advc.550c>
-			if (!isTechRequiredForBuilding(eTech, eBuilding))
-				continue;
-
 			CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+			if (!kBuilding.isTechRequired(eTech))
+				continue;
 			if (kBuilding.getReligionType() == NO_RELIGION)
 				iValue += 20; // advc.550c: was 30
-			BuildingClassTypes eBuildingClass = CvCivilization::buildingClass(eBuilding);
-			if (isWorldWonderClass(eBuildingClass) &&
-					!GC.getGame().isBuildingClassMaxedOut(eBuildingClass))
+			if (kBuilding.isWorldWonder() && !GC.getGame().isBuildingClassMaxedOut(
+				CvCivilization::buildingClass(eBuilding)))
+			{
 				iValue += 40; // advc.550c: was 50
+			}
 		}
 	}
 	// advc.550c: Or perhaps divide by the sqrt?
@@ -6064,8 +6072,11 @@ int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const  /
 		ProjectTypes eProject = (ProjectTypes)i;
 		if (GC.getInfo(eProject).getTechPrereq() != eTech)
 			continue;
-		if (isWorldProject(eProject) && !GC.getGame().isProjectMaxedOut(eProject))
+		if (GC.getInfo(eProject).isWorldProject() &&
+			!GC.getGame().isProjectMaxedOut(eProject))
+		{
 			iValue += 80; // advc.550c: was 100
+		}
 		else iValue += 40; // advc.550c: was 50
 	}
 	return iValue;

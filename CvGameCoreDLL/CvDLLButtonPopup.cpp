@@ -1019,11 +1019,17 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		if (bFinish)
 		{
-			szBuffer = gDLL->getText(((isLimitedUnitClass((UnitClassTypes)(GC.getInfo(eTrainUnit).getUnitClassType()))) ? "TXT_KEY_POPUP_TRAINED_WORK_ON_NEXT_LIMITED" : "TXT_KEY_POPUP_TRAINED_WORK_ON_NEXT"), GC.getInfo(eTrainUnit).getTextKeyWide(), pCity->getNameKey());
+			szBuffer = gDLL->getText(GC.getInfo(eTrainUnit).isLimited() ?
+					"TXT_KEY_POPUP_TRAINED_WORK_ON_NEXT_LIMITED" :
+					"TXT_KEY_POPUP_TRAINED_WORK_ON_NEXT",
+					GC.getInfo(eTrainUnit).getTextKeyWide(), pCity->getNameKey());
 		}
 		else
 		{
-			szBuffer = gDLL->getText((isLimitedUnitClass((UnitClassTypes)GC.getInfo(eTrainUnit).getUnitClassType())) ? "TXT_KEY_POPUP_CANNOT_TRAIN_WORK_NEXT_LIMITED" : "TXT_KEY_POPUP_CANNOT_TRAIN_WORK_NEXT", GC.getInfo(eTrainUnit).getTextKeyWide(), pCity->getNameKey());
+			szBuffer = gDLL->getText(GC.getInfo(eTrainUnit).isLimited() ?
+					"TXT_KEY_POPUP_CANNOT_TRAIN_WORK_NEXT_LIMITED" :
+					"TXT_KEY_POPUP_CANNOT_TRAIN_WORK_NEXT",
+					GC.getInfo(eTrainUnit).getTextKeyWide(), pCity->getNameKey());
 		}
 		szArtFilename = GET_PLAYER(pCity->getOwner()).getUnitButton(eTrainUnit);
 	}
@@ -1031,11 +1037,17 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		if (bFinish)
 		{
-			szBuffer = gDLL->getText(((isLimitedWonderClass((BuildingClassTypes)(GC.getInfo(eConstructBuilding).getBuildingClassType()))) ? "TXT_KEY_POPUP_CONSTRUCTED_WORK_ON_NEXT_LIMITED" : "TXT_KEY_POPUP_CONSTRUCTED_WORK_ON_NEXT"), GC.getInfo(eConstructBuilding).getTextKeyWide(), pCity->getNameKey());
+			szBuffer = gDLL->getText(GC.getInfo(eConstructBuilding).isLimited() ?
+					"TXT_KEY_POPUP_CONSTRUCTED_WORK_ON_NEXT_LIMITED" :
+					"TXT_KEY_POPUP_CONSTRUCTED_WORK_ON_NEXT",
+					GC.getInfo(eConstructBuilding).getTextKeyWide(), pCity->getNameKey());
 		}
 		else
 		{
-			szBuffer = gDLL->getText(((isLimitedWonderClass((BuildingClassTypes)(GC.getInfo(eConstructBuilding).getBuildingClassType()))) ? "TXT_KEY_POPUP_CANNOT_CONSTRUCT_WORK_NEXT_LIMITED" : "TXT_KEY_POPUP_CANNOT_CONSTRUCT_WORK_NEXT"), GC.getInfo(eConstructBuilding).getTextKeyWide(), pCity->getNameKey());
+			szBuffer = gDLL->getText(GC.getInfo(eConstructBuilding).isLimited() ?
+					"TXT_KEY_POPUP_CANNOT_CONSTRUCT_WORK_NEXT_LIMITED" :
+					"TXT_KEY_POPUP_CANNOT_CONSTRUCT_WORK_NEXT",
+					GC.getInfo(eConstructBuilding).getTextKeyWide(), pCity->getNameKey());
 		}
 		szArtFilename = GC.getInfo(eConstructBuilding).getButton();
 	}
@@ -1043,22 +1055,29 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		if (bFinish)
 		{
-			if(GC.getInfo(eCreateProject).isSpaceship())
-				szBuffer = gDLL->getText("TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_SPACESHIP", GC.getInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+			if (GC.getInfo(eCreateProject).isSpaceship())
+			{
+				szBuffer = gDLL->getText("TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_SPACESHIP",
+						GC.getInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+			}
 			else
 			{
-				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ?
+				szBuffer = gDLL->getText(GC.getInfo(eCreateProject).isLimited() ?
 						// <advc.108e>
-						(::needsArticle(eCreateProject) ?
+						(GC.getInfo(eCreateProject).nameNeedsArticle() ?
 						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED_THE" :
 						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED")
 						// </advc.108e>
-						: "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT"), GC.getInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+						: "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT",
+						GC.getInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 			}
 		}
 		else
 		{
-			szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ? "TXT_KEY_POPUP_CANNOT_CREATE_WORK_NEXT_LIMITED" : "TXT_KEY_POPUP_CANNOT_CREATE_WORK_NEXT"), GC.getInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+			szBuffer = gDLL->getText(GC.getInfo(eCreateProject).isLimited() ?
+					"TXT_KEY_POPUP_CANNOT_CREATE_WORK_NEXT_LIMITED" :
+					"TXT_KEY_POPUP_CANNOT_CREATE_WORK_NEXT",
+					GC.getInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 		}
 		szArtFilename = GC.getInfo(eCreateProject).getButton();
 	}
@@ -1098,14 +1117,14 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		eProductionUnit = pCity->AI_bestUnit(true,
 				eProductionBuilding == NO_BUILDING ? NO_ADVISOR :
-				(AdvisorTypes)GC.getInfo(eProductionBuilding).getAdvisorType());
+				GC.getInfo(eProductionBuilding).getAdvisorType());
 	}
 
 	if (eProductionBuilding == NO_BUILDING)
 	{
 		eProductionBuilding = pCity->AI_bestBuilding(0, 50, true,
 				eProductionUnit == NO_UNIT ? NO_ADVISOR :
-				(AdvisorTypes)GC.getInfo(eProductionUnit).getAdvisorType());
+				GC.getInfo(eProductionUnit).getAdvisorType());
 	}
 
 	if (eProductionUnit != NO_UNIT)
@@ -1114,9 +1133,8 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		// advc.004x:
 		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_TRAIN, eProductionUnit);
 		CvUnitInfo const& kInfo = GC.getInfo(eProductionUnit);
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED",
-				kInfo.getTextKeyWide(), iTurns, GC.getInfo(
-				(AdvisorTypes)kInfo.getAdvisorType()).getTextKeyWide());
+		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", kInfo.getTextKeyWide(), iTurns,
+				GC.getInfo(kInfo.getAdvisorType()).getTextKeyWide());
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
 				GET_PLAYER(pCity->getOwner()).getUnitButton(eProductionUnit),
 				kInfo.getUnitClassType(), WIDGET_TRAIN,
@@ -1131,9 +1149,8 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		// advc.004x:
 		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CONSTRUCT, eProductionBuilding);
 		CvBuildingInfo const& kInfo = GC.getInfo(eProductionBuilding);
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED",
-				kInfo.getTextKeyWide(), iTurns, GC.getInfo(
-				(AdvisorTypes)kInfo.getAdvisorType()).getTextKeyWide());
+		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", kInfo.getTextKeyWide(), iTurns,
+				GC.getInfo(kInfo.getAdvisorType()).getTextKeyWide());
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
 				kInfo.getButton(), kInfo.getBuildingClassType(), WIDGET_CONSTRUCT,
 				kInfo.getBuildingClassType(), pCity->getID(), true,

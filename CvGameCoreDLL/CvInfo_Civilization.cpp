@@ -141,16 +141,16 @@ void CvCivilizationInfo::setArtDefineTag(const TCHAR* szVal)
 	m_szArtDefineTag = szVal;
 }
 
-int CvCivilizationInfo::getCivilizationBuildings(int i) const
+BuildingTypes CvCivilizationInfo::getCivilizationBuildings(int i) const
 {
 	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
-	return m_piCivilizationBuildings ? m_piCivilizationBuildings[i] : NO_BUILDING; // advc.003t
+	return m_piCivilizationBuildings ? (BuildingTypes)m_piCivilizationBuildings[i] : NO_BUILDING; // advc.003t
 }
 
-int CvCivilizationInfo::getCivilizationUnits(int i) const
+UnitTypes CvCivilizationInfo::getCivilizationUnits(int i) const
 {
 	FAssertBounds(0, GC.getNumUnitClassInfos(), i);
-	return m_piCivilizationUnits ? m_piCivilizationUnits[i] : NO_UNIT; // advc.003t
+	return m_piCivilizationUnits ? (UnitTypes)m_piCivilizationUnits[i] : NO_UNIT; // advc.003t
 }
 
 int CvCivilizationInfo::getCivilizationFreeUnitsClass(int i) const

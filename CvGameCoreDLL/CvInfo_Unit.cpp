@@ -220,16 +220,6 @@ CvUnitInfo::~CvUnitInfo()
 	SAFE_DELETE_ARRAY(m_paszUnitNames);
 }
 
-int CvUnitInfo::getAIWeight() const
-{
-	return m_iAIWeight;
-}
-
-int CvUnitInfo::getHurryCostModifier() const
-{
-	return m_iHurryCostModifier;
-}
-
 int CvUnitInfo::getAdvancedStartCost() const
 {
 	return m_iAdvancedStartCost;
@@ -240,246 +230,24 @@ int CvUnitInfo::getAdvancedStartCostIncrease() const
 	return m_iAdvancedStartCostIncrease;
 }
 
-int CvUnitInfo::getMinAreaSize() const
-{
-	return m_iMinAreaSize;
-}
-
-int CvUnitInfo::getAirUnitCap() const
-{
-	return m_iAirUnitCap;
-}
-
-int CvUnitInfo::getDropRange() const
-{
-	return m_iDropRange;
-}
-
-int CvUnitInfo::getNukeRange() const
-{
-	return m_iNukeRange;
-}
-
-int CvUnitInfo::getBaseDiscover() const
-{
-	return m_iBaseDiscover;
-}
-
-int CvUnitInfo::getDiscoverMultiplier() const
-{
-	return m_iDiscoverMultiplier;
-}
-
-int CvUnitInfo::getBaseHurry() const
-{
-	return m_iBaseHurry;
-}
-
-int CvUnitInfo::getHurryMultiplier() const
-{
-	return m_iHurryMultiplier;
-}
-
-int CvUnitInfo::getBaseTrade() const
-{
-	return m_iBaseTrade;
-}
-
-int CvUnitInfo::getTradeMultiplier() const
-{
-	return m_iTradeMultiplier;
-}
-
-int CvUnitInfo::getGreatWorkCulture() const
-{
-	return m_iGreatWorkCulture;
-}
-
-int CvUnitInfo::getEspionagePoints() const
-{
-	return m_iEspionagePoints;
-}
-
 void CvUnitInfo::setCombat(int iNum)
 {
 	m_iCombat = iNum;
 }
-
-int CvUnitInfo::getXPValueAttack() const
+// advc.003w:
+bool CvUnitInfo::isTechRequired(TechTypes eTech) const
 {
-	return m_iXPValueAttack;
-}
-
-int CvUnitInfo::getXPValueDefense() const
-{
-	return m_iXPValueDefense;
-}
-
-int CvUnitInfo::getInterceptionProbability() const
-{
-	return m_iInterceptionProbability;
-}
-
-int CvUnitInfo::getEvasionProbability() const
-{
-	return m_iEvasionProbability;
-}
-
-int CvUnitInfo::getCollateralDamageLimit() const
-{
-	return m_iCollateralDamageLimit;
-}
-
-int CvUnitInfo::getCollateralDamageMaxUnits() const
-{
-	return m_iCollateralDamageMaxUnits;
-}
-
-int CvUnitInfo::getCityAttackModifier() const
-{
-	return m_iCityAttackModifier;
-}
-
-int CvUnitInfo::getCityDefenseModifier() const
-{
-	return m_iCityDefenseModifier;
-}
-
-int CvUnitInfo::getAnimalCombatModifier() const
-{
-	return m_iAnimalCombatModifier;
-}
-// <advc.315c>
-int CvUnitInfo::getBarbarianCombatModifier() const
-{
-	return m_iBarbarianCombatModifier;
-} // </advc.315c>
-
-int CvUnitInfo::getHillsAttackModifier() const
-{
-	return m_iHillsAttackModifier;
-}
-
-int CvUnitInfo::getHillsDefenseModifier() const
-{
-	return m_iHillsDefenseModifier;
-}
-
-int CvUnitInfo::getBombRate() const
-{
-	return m_iBombRate;
-}
-
-int CvUnitInfo::getBombardRate() const
-{
-	return m_iBombardRate;
-}
-
-int CvUnitInfo::getSpecialCargo() const
-{
-	return m_iSpecialCargo;
-}
-
-int CvUnitInfo::getDomainCargo() const
-{
-	return m_iDomainCargo;
-}
-
-int CvUnitInfo::getCargoSpace() const
-{
-	return m_iCargoSpace;
-}
-
-int CvUnitInfo::getConscriptionValue() const
-{
-	return m_iConscriptionValue;
-}
-
-int CvUnitInfo::getCultureGarrisonValue() const
-{
-	return m_iCultureGarrisonValue;
-}
-
-int CvUnitInfo::getExtraCost() const
-{
-	return m_iExtraCost;
-}
-
-int CvUnitInfo::getAssetValue() const
-{
-	return m_iAssetValue;
-}
-
-int CvUnitInfo::getPowerValue() const
-{
-	return m_iPowerValue;
-}
-
-int CvUnitInfo::getSpecialUnitType() const
-{
-	return m_iSpecialUnitType;
-}
-
-int CvUnitInfo::getUnitCaptureClassType() const
-{
-	return m_iUnitCaptureClassType;
-}
-
-int CvUnitInfo::getDefaultUnitAIType() const
-{
-	return m_iDefaultUnitAIType;
-}
-
-int CvUnitInfo::getSeeInvisibleType(int i) const
-{
-	FAssert(i < (int)m_aiSeeInvisibleTypes.size());
-
-	return m_aiSeeInvisibleTypes[i];
-}
-
-int CvUnitInfo::getAdvisorType() const
-{
-	return m_iAdvisorType;
-}
-
-int CvUnitInfo::getHolyCity() const
-{
-	return m_iHolyCity;
-}
-
-int CvUnitInfo::getReligionType() const
-{
-	return m_iReligionType;
-}
-
-int CvUnitInfo::getStateReligion() const
-{
-	return m_iStateReligion;
-}
-
-int CvUnitInfo::getPrereqReligion() const
-{
-	return m_iPrereqReligion;
-}
-
-int CvUnitInfo::getPrereqCorporation() const
-{
-	return m_iPrereqCorporation;
-}
-
-int CvUnitInfo::getPrereqBuilding() const
-{
-	return m_iPrereqBuilding;
-}
-
-int CvUnitInfo::getPrereqAndTech() const
-{
-	return m_iPrereqAndTech;
-}
-
-int CvUnitInfo::getPrereqAndBonus() const
-{
-	return m_iPrereqAndBonus;
+	if (getPrereqAndTech() == eTech)
+		return true;
+	// <advc.003t>
+	if (!isAnyPrereqAndTech())
+		return false; // </advc.003t>
+	for (int i = 0; i < GC.getNUM_UNIT_AND_TECH_PREREQS(); i++)
+	{
+		if (getPrereqAndTechs(i) == eTech)
+			return true;
+	}
+	return false;
 }
 
 int CvUnitInfo::getGroupSize() const
@@ -507,149 +275,9 @@ int CvUnitInfo::getNumUnitNames() const
 	return m_iNumUnitNames;
 }
 
-bool CvUnitInfo::isFoodProduction() const
-{
-	return m_bFoodProduction;
-}
-
-bool CvUnitInfo::isNoBadGoodies() const
-{
-	return m_bNoBadGoodies;
-}
-
-bool CvUnitInfo::isOnlyDefensive() const
-{
-	return m_bOnlyDefensive;
-}
-// <advc.315a>
-bool CvUnitInfo::isOnlyAttackAnimals() const
-{
-	return m_bOnlyAttackAnimals;
-} // </advc.315a>
-// <advc.315b>
-bool CvUnitInfo::isOnlyAttackBarbarians() const
-{
-	return m_bOnlyAttackBarbarians;
-} // </advc.315b>
-
-bool CvUnitInfo::isNoCapture() const
-{
-	return m_bNoCapture;
-}
-
-bool CvUnitInfo::isQuickCombat() const
-{
-	return m_bQuickCombat;
-}
-
-bool CvUnitInfo::isRivalTerritory() const
-{
-	return m_bRivalTerritory;
-}
-
-bool CvUnitInfo::isMilitaryHappiness() const
-{
-	return m_bMilitaryHappiness;
-}
-
-bool CvUnitInfo::isMilitarySupport() const
-{
-	return m_bMilitarySupport;
-}
-
-bool CvUnitInfo::isMilitaryProduction() const
-{
-	return m_bMilitaryProduction;
-}
-
-bool CvUnitInfo::isPillage() const
-{
-	return m_bPillage;
-}
-
-bool CvUnitInfo::isSabotage() const
-{
-	return m_bSabotage;
-}
-
-bool CvUnitInfo::isDestroy() const
-{
-	return m_bDestroy;
-}
-
-bool CvUnitInfo::isStealPlans() const
-{
-	return m_bStealPlans;
-}
-
-bool CvUnitInfo::isInvestigate() const
-{
-	return m_bInvestigate;
-}
-
-bool CvUnitInfo::isCounterSpy() const
-{
-	return m_bCounterSpy;
-}
-
-bool CvUnitInfo::isFound() const
-{
-	return m_bFound;
-}
-
-bool CvUnitInfo::isGoldenAge() const
-{
-	return m_bGoldenAge;
-}
-
 void CvUnitInfo::setInvisible(bool bEnable)
 {
 	m_bInvisible = bEnable;
-}
-
-bool CvUnitInfo::isFirstStrikeImmune() const
-{
-	return m_bFirstStrikeImmune;
-}
-
-bool CvUnitInfo::isNoDefensiveBonus() const
-{
-	return m_bNoDefensiveBonus;
-}
-
-bool CvUnitInfo::isIgnoreBuildingDefense() const
-{
-	return m_bIgnoreBuildingDefense;
-}
-
-bool CvUnitInfo::isFlatMovementCost() const
-{
-	return m_bFlatMovementCost;
-}
-
-bool CvUnitInfo::isIgnoreTerrainCost() const
-{
-	return m_bIgnoreTerrainCost;
-}
-
-bool CvUnitInfo::isNukeImmune() const
-{
-	return m_bNukeImmune;
-}
-
-bool CvUnitInfo::isPrereqBonuses() const
-{
-	return m_bPrereqBonuses;
-}
-
-bool CvUnitInfo::isPrereqReligion() const
-{
-	return m_bPrereqReligion;
-}
-
-bool CvUnitInfo::isMechUnit() const
-{
-	return m_bMechanized;
 }
 
 bool CvUnitInfo::isRenderBelowWater() const
@@ -660,26 +288,6 @@ bool CvUnitInfo::isRenderBelowWater() const
 bool CvUnitInfo::isRenderAlways() const
 {
 	return m_bRenderAlways;
-}
-
-bool CvUnitInfo::isSuicide() const
-{
-	return m_bSuicide;
-}
-
-bool CvUnitInfo::isLineOfSight() const
-{
-	return m_bLineOfSight;
-}
-
-bool CvUnitInfo::isHiddenNationality() const
-{
-	return m_bHiddenNationality;
-}
-
-bool CvUnitInfo::isAlwaysHostile() const
-{
-	return m_bAlwaysHostile;
 }
 
 float CvUnitInfo::getUnitMaxSpeed() const
@@ -2027,31 +1635,6 @@ m_iMaxPlayerInstances(0),
 m_iInstanceCostModifier(0),
 m_iDefaultUnitIndex(NO_UNIT)
 {}
-
-int CvUnitClassInfo::getMaxGlobalInstances() const
-{
-	return m_iMaxGlobalInstances;
-}
-
-int CvUnitClassInfo::getMaxTeamInstances() const
-{
-	return m_iMaxTeamInstances;
-}
-
-int CvUnitClassInfo::getMaxPlayerInstances() const
-{
-	return m_iMaxPlayerInstances;
-}
-
-int CvUnitClassInfo::getInstanceCostModifier() const
-{
-	return m_iInstanceCostModifier;
-}
-
-int CvUnitClassInfo::getDefaultUnitIndex() const
-{
-	return m_iDefaultUnitIndex;
-}
 
 bool CvUnitClassInfo::read(CvXMLLoadUtility* pXML)
 {

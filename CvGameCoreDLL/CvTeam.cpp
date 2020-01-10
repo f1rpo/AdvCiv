@@ -3669,7 +3669,7 @@ void CvTeam::setProjectArtType(ProjectTypes eIndex, int number, int value)
 
 bool CvTeam::isProjectMaxedOut(ProjectTypes eIndex, int iExtra) const
 {
-	if (!isTeamProject(eIndex))
+	if (!GC.getInfo(eIndex).isTeamProject())
 		return false;
 
 	return (getProjectCount(eIndex) + iExtra >= GC.getInfo(eIndex).getMaxTeamInstances());
@@ -3722,7 +3722,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)  // advc: styl
 	m_aiProjectCount.add(eIndex, iChange);
 	FAssert(getProjectCount(eIndex) >= 0);
 	// advc: Moved from isProjectMaxedOut
-	FAssert(!isTeamProject(eIndex) || getProjectCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances());
+	FAssert(!GC.getInfo(eIndex).isTeamProject() || getProjectCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances());
 
 	//adjust default art types
 	if (iChange >= 0)
@@ -3788,7 +3788,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)  // advc: styl
 	if (GC.getGame().isFinalInitialized() && !gDLL->GetWorldBuilderMode())
 	{
 		CvWString szBuffer = gDLL->getText( // <advc.008e>
-				::needsArticle(eIndex) ?
+				GC.getInfo(eIndex).nameNeedsArticle() ?
 				"TXT_KEY_MISC_COMPLETES_PROJECT_THE" :
 				"TXT_KEY_MISC_COMPLETES_PROJECT", // </advc.008e>
 				getReplayName().GetCString(), kProject.getTextKeyWide());
@@ -3798,7 +3798,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)  // advc: styl
 		{
 			CvPlayer const& kObs = *it;
 			szBuffer = gDLL->getText( // <advc.008e>
-					::needsArticle(eIndex) ?
+					GC.getInfo(eIndex).nameNeedsArticle() ?
 					"TXT_KEY_MISC_SOMEONE_HAS_COMPLETED_THE" :
 					"TXT_KEY_MISC_SOMEONE_HAS_COMPLETED", // </advc.008e>
 					getName().GetCString(), kProject.getTextKeyWide());
@@ -3823,7 +3823,7 @@ void CvTeam::changeProjectMaking(ProjectTypes eIndex, int iChange)
 
 bool CvTeam::isUnitClassMaxedOut(UnitClassTypes eIndex, int iExtra) const
 {
-	if (!isTeamUnitClass(eIndex))
+	if (!GC.getInfo(eIndex).isTeamUnit())
 		return false;
 	return (getUnitClassCount(eIndex) + iExtra >= GC.getInfo(eIndex).getMaxTeamInstances());
 }
@@ -3834,13 +3834,13 @@ void CvTeam::changeUnitClassCount(UnitClassTypes eIndex, int iChange)
 	m_aiUnitClassCount.add(eIndex, iChange);
 	FAssert(getUnitClassCount(eIndex) >= 0);
 	// advc: Moved from isUnitClassMaxedOut
-	FAssert(!isTeamUnitClass(eIndex) || getUnitClassCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances());
+	FAssert(!GC.getInfo(eIndex).isTeamUnit() || getUnitClassCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances());
 }
 
 
 bool CvTeam::isBuildingClassMaxedOut(BuildingClassTypes eIndex, int iExtra) const
 {
-	if (!isTeamWonderClass(eIndex))
+	if (!GC.getInfo(eIndex).isTeamWonder())
 		return false;
 	return (getBuildingClassCount(eIndex) + iExtra >= GC.getInfo(eIndex).getMaxTeamInstances());
 }
@@ -3851,7 +3851,7 @@ void CvTeam::changeBuildingClassCount(BuildingClassTypes eIndex, int iChange)
 	m_aiBuildingClassCount.add(eIndex, iChange);
 	FAssert(getBuildingClassCount(eIndex) >= 0);
 	// advc: Moved from isBuildingClassMaxedOut
-	FAssert(!isTeamWonderClass(eIndex) || getBuildingClassCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances());
+	FAssert(!GC.getInfo(eIndex).isTeamWonder() || getBuildingClassCount(eIndex) <= GC.getInfo(eIndex).getMaxTeamInstances());
 }
 
 
@@ -5306,8 +5306,8 @@ void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 
 		if (GC.getInfo(eLoopBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
 		{
-			if (GC.getInfo((SpecialBuildingTypes)GC.getInfo(eLoopBuilding).
-				getSpecialBuildingType()).getObsoleteTech() == eTech)
+			if (GC.getInfo(GC.getInfo(eLoopBuilding).getSpecialBuildingType()).
+				getObsoleteTech() == eTech)
 			{
 				changeObsoleteBuildingCount(eLoopBuilding, iChange);
 			}
@@ -5343,9 +5343,9 @@ void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 		} // K-Mod end
 	}
 	CvMap const& kMap = GC.getMap();
-	for (int iI = 0; iI < kMap.numPlots(); iI++)
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot& kLoopPlot = kMap.getPlotByIndex(iI);
+		CvPlot& kLoopPlot = kMap.getPlotByIndex(i);
 		BonusTypes eBonus = kLoopPlot.getBonusType();
 		if (eBonus != NO_BONUS)
 		{
@@ -5358,20 +5358,17 @@ void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 	}
 	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo(eLoopBuild).getTechPrereq() == eTech)
+		if (GC.getInfo(eLoopBuild).getTechPrereq() == eTech &&
+			GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
 		{
-			if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
-			{	// <kmodx> was iI=0 etc.
-				for (int iJ = 0; iJ < GC.getMap().numPlots(); iJ++)
+			for (int i = 0; i < GC.getMap().numPlots(); i++)
+			{
+				CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(i);
+				CvCity const* pCity = kLoopPlot.getPlotCity();
+				if (pCity != NULL)
 				{
-					CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(iJ);
-					// </kmodx>
-					CvCity* pCity = kLoopPlot.getPlotCity();
-					if (pCity != NULL)
-					{
-						if (pCity->getTeam() == getID())
-							kLoopPlot.updateCityRoute(true);
-					}
+					if (pCity->getTeam() == getID())
+						kLoopPlot.updateCityRoute(true);
 				}
 			}
 		}
@@ -5746,8 +5743,8 @@ bool CvTeam::hasTechToClear(FeatureTypes eFeature, TechTypes eCurrentResearch) c
 		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
 		if(kBuild.getFeatureTime(eFeature) <= 0)
 			continue;
-		TechTypes aeReqs[2] = { (TechTypes)kBuild.getTechPrereq(),
-								(TechTypes)kBuild.getFeatureTech(eFeature) };
+		TechTypes aeReqs[2] = { kBuild.getTechPrereq(),
+								kBuild.getFeatureTech(eFeature) };
 		bool bValid = true;
 		for(int j = 0; j < 2; j++)
 		{

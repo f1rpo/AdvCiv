@@ -16,7 +16,7 @@ CvCivilization::CvCivilization(CvCivilizationInfo const& kInfo) : m_kInfo(kInfo)
 		if (eBuilding != NO_BUILDING)
 		{
 			m_buildings.push_back(eBuilding);
-			if (eBuilding != GC.getInfo(eBuildingClass).getDefaultBuildingIndex())
+			if (eBuilding != GC.getInfo(eBuildingClass).getDefaultBuilding())
 				m_uniqueBuildings.push_back(eBuilding);
 		}
 	}
@@ -28,7 +28,7 @@ CvCivilization::CvCivilization(CvCivilizationInfo const& kInfo) : m_kInfo(kInfo)
 		if (eUnit != NO_UNIT)
 		{
 			m_units.push_back(eUnit);
-			if (eUnit != GC.getInfo(eUnitClass).getDefaultUnitIndex())
+			if (eUnit != GC.getInfo(eUnitClass).getDefaultUnit())
 				m_uniqueUnits.push_back(eUnit);
 		}
 	}
@@ -38,14 +38,14 @@ BuildingTypes CvCivilization::getBuilding(BuildingClassTypes eBuildingClass) con
 {
 	if (eBuildingClass == NO_BUILDINGCLASS)
 		return NO_BUILDING;
-	return (BuildingTypes)m_kInfo.getCivilizationBuildings(eBuildingClass);
+	return m_kInfo.getCivilizationBuildings(eBuildingClass);
 }
 
 UnitTypes CvCivilization::getUnit(UnitClassTypes eUnitClass) const
 {
 	if (eUnitClass == NO_UNITCLASS)
 		return NO_UNIT;
-	return (UnitTypes)m_kInfo.getCivilizationUnits(eUnitClass);
+	return m_kInfo.getCivilizationUnits(eUnitClass);
 }
 
 bool CvCivilization::isUnique(BuildingTypes eBuilding) const
@@ -79,12 +79,12 @@ BuildingClassTypes CvCivilization::buildingClass(BuildingTypes eBuilding)
 {
 	if (eBuilding == NO_BUILDING)
 		return NO_BUILDINGCLASS;
-	return (BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType();
+	return GC.getInfo(eBuilding).getBuildingClassType();
 }
 
 UnitClassTypes CvCivilization::unitClass(UnitTypes eUnit)
 {
 	if (eUnit == NO_UNIT)
 		return NO_UNITCLASS;
-	return (UnitClassTypes)GC.getInfo(eUnit).getUnitClassType();
+	return GC.getInfo(eUnit).getUnitClassType();
 }

@@ -3,7 +3,6 @@
 #ifndef CIV4_DEAL_LIST_H
 #define CIV4_DEAL_LIST_H
 
-#include "FLTALoopCounter.h"
 #include "FFreeListTrashArray.h"
 #include "CvDeal.h"
 

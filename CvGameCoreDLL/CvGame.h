@@ -614,7 +614,7 @@ public:
 
 	bool isEventActive(EventTriggerTypes eTrigger) const;		// exposed to Python
 	DllExport void initEvents();
-
+		// advc (note): The ..EverActive functions are currently only called from Python (Civilopedia)
 	bool isCivEverActive(CivilizationTypes eCivilization) const;		// Exposed to Python
 	bool isLeaderEverActive(LeaderHeadTypes eLeader) const;		// Exposed to Python
 	bool isUnitEverActive(UnitTypes eUnit) const;		// Exposed to Python

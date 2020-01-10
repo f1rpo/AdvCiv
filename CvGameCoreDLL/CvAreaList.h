@@ -3,7 +3,6 @@
 #ifndef CIV4_AREA_LIST_H
 #define CIV4_AREA_LIST_H
 
-#include "FLTALoopCounter.h"
 #include "FFreeListTrashArray.h"
 #include "CvArea.h"
 

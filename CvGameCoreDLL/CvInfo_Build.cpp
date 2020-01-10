@@ -44,28 +44,28 @@ void CvBuildInfo::setMissionType(int iNewType)
 	m_iMissionType = iNewType;
 }
 
-int CvBuildInfo::getFeatureTech(int i) const
+TechTypes CvBuildInfo::getFeatureTech(FeatureTypes eFeature) const
 {
-	FAssertBounds(0, GC.getNumFeatureInfos(), i);
-	return m_paiFeatureTech ? m_paiFeatureTech[i] : NO_TECH; // advc.003t
+	FAssertBounds(0, GC.getNumFeatureInfos(), eFeature);
+	return m_paiFeatureTech ? (TechTypes)m_paiFeatureTech[eFeature] : NO_TECH; // advc.003t
 }
 
-int CvBuildInfo::getFeatureTime(int i) const
+int CvBuildInfo::getFeatureTime(FeatureTypes eFeature) const
 {
-	FAssertBounds(0, GC.getNumFeatureInfos(), i);
-	return m_paiFeatureTime ? m_paiFeatureTime[i] : 0; // advc.003t
+	FAssertBounds(0, GC.getNumFeatureInfos(), eFeature);
+	return m_paiFeatureTime ? m_paiFeatureTime[eFeature] : 0; // advc.003t
 }
 
-int CvBuildInfo::getFeatureProduction(int i) const
+int CvBuildInfo::getFeatureProduction(FeatureTypes eFeature) const
 {
-	FAssertBounds(0, GC.getNumFeatureInfos(), i);
-	return m_paiFeatureProduction ? m_paiFeatureProduction[i] : 0; // advc.003t
+	FAssertBounds(0, GC.getNumFeatureInfos(), eFeature);
+	return m_paiFeatureProduction ? m_paiFeatureProduction[eFeature] : 0; // advc.003t
 }
 
-bool CvBuildInfo::isFeatureRemove(int i) const
+bool CvBuildInfo::isFeatureRemove(FeatureTypes eFeature) const
 {
-	FAssertBounds(0, GC.getNumFeatureInfos(), i);
-	return m_pabFeatureRemove ? m_pabFeatureRemove[i] : false;
+	FAssertBounds(0, GC.getNumFeatureInfos(), eFeature);
+	return m_pabFeatureRemove ? m_pabFeatureRemove[eFeature] : false;
 }
 
 bool CvBuildInfo::read(CvXMLLoadUtility* pXML)

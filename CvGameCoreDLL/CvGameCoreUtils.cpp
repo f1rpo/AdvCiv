@@ -195,28 +195,6 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
 		}
 	}
 } // </advc.035>
-
-// <advc.008e>
-bool needsArticle(BuildingTypes eBuilding)
-{
-	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-	if(!isWorldWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
-		return false; // Should only be called for wonders really
-	CvWString szKey = kBuilding.getTextKeyWide();
-	CvWString szText = gDLL->getText(szKey + L"_NA");
-	/*  If an _NA key exists, then gDLL will return a dot. If it doesn't, then
-		an article should be used. */
-	return (szText.compare(L".") != 0);
-}
-bool needsArticle(ProjectTypes eProject)
-{
-	CvProjectInfo const& kProject = GC.getInfo(eProject);
-	if(!isLimitedProject(eProject))
-		return false;
-	CvWString szKey = kProject.getTextKeyWide();
-	CvWString szText = gDLL->getText(szKey + L"_NA");
-	return (szText.compare(L".") != 0);
-} // </advc.008e>
 // <advc.004w> I'm not positive that there isn't already a function like this somewhere
 void applyColorToString(CvWString& s, char const* szColor, bool bLink)
 {
@@ -501,7 +479,7 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 		return false;
 	}
 
-	if (!(kPromotion.getUnitCombat(kUnit.getUnitCombatType())))
+	if (!kPromotion.getUnitCombat(kUnit.getUnitCombatType()))
 	{
 		return false;
 	}
@@ -559,12 +537,7 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 	}
 
 	PromotionTypes ePrereq1 = (PromotionTypes)kPromotion.getPrereqOrPromotion1();
-	PromotionTypes ePrereq2 = (PromotionTypes)kPromotion.getPrereqOrPromotion2();
-/*
-** K-Mod, 14/jan/11, karadoc
-** third optional preq.
-*/
-	PromotionTypes ePrereq3 = (PromotionTypes)kPromotion.getPrereqOrPromotion3();
+	PromotionTypes ePrereq2 = (PromotionTypes)kPromotion.getPrereqOrPromotion2();	
 	/*if (NO_PROMOTION != ePrereq1 || NO_PROMOTION != ePrereq2) {
 		bool bValid = false;
 		if (!bValid) {
@@ -575,6 +548,8 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 			if (NO_PROMOTION != ePrereq2 && isPromotionValid(ePrereq2, eUnit, bLeader))
 				bValid = true;
 		}*/ // BtS
+	// K-Mod, 14/jan/11: third optional preq.
+	PromotionTypes ePrereq3 = (PromotionTypes)kPromotion.getPrereqOrPromotion3();
 	if (ePrereq1 != NO_PROMOTION || ePrereq2 != NO_PROMOTION || ePrereq3 != NO_PROMOTION)
 	{
 		bool bValid = false;
@@ -591,16 +566,13 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 			return false;
 		}
 	}
-/*
-** K-Mod end
-*/
-
+	// K-Mod end
 	return true;
 }
 
 int getPopulationAsset(int iPopulation)
 {
-	return (iPopulation * 2);
+	return iPopulation * 2;
 }
 
 int getLandPlotsAsset(int iLandPlots)
@@ -610,7 +582,7 @@ int getLandPlotsAsset(int iLandPlots)
 
 int getPopulationPower(int iPopulation)
 {
-	return (iPopulation / 2);
+	return iPopulation / 2;
 }
 
 int getPopulationScore(int iPopulation)
@@ -625,19 +597,14 @@ int getLandPlotsScore(int iLandPlots)
 
 int getTechScore(TechTypes eTech)
 {
-	return (GC.getInfo(eTech).getEra() + 1);
+	return GC.getInfo(eTech).getEra() + 1;
 }
 
 int getWonderScore(BuildingClassTypes eWonderClass)
 {
-	if (isLimitedWonderClass(eWonderClass))
-	{
+	if (GC.getInfo(eWonderClass).isLimited())
 		return 5;
-	}
-	else
-	{
-		return 0;
-	}
+	return 0;
 }
 
 /*ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount) {
@@ -667,213 +634,10 @@ ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement)
 
 int getWorldSizeMaxConscript(CivicTypes eCivic)
 {
-	int iMaxConscript;
-
-	iMaxConscript = GC.getInfo(eCivic).getMaxConscript();
-
-	iMaxConscript *= std::max(0, (GC.getInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100));
+	int iMaxConscript = GC.getInfo(eCivic).getMaxConscript();
+	iMaxConscript *= std::max(0, GC.getInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100);
 	iMaxConscript /= 100;
-
 	return iMaxConscript;
-}
-
-bool isReligionTech(TechTypes eTech)
-{
-	int iI;
-
-	for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
-	{
-		if (GC.getInfo((ReligionTypes)iI).getTechPrereq() == eTech)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool isCorporationTech(TechTypes eTech)
-{
-	int iI;
-
-	for (iI = 0; iI < GC.getNumCorporationInfos(); iI++)
-	{
-		if (GC.getInfo((CorporationTypes)iI).getTechPrereq() == eTech)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit)
-{
-	int iI;
-	CvUnitInfo& info = GC.getInfo(eUnit);
-
-	if (info.getPrereqAndTech() == eTech)
-	{
-		return true;
-	}
-
-	for (iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(eUnit); iI++)
-	{
-		if (info.getPrereqAndTechs(iI) == eTech)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding)
-{
-	int iI;
-	CvBuildingInfo& info = GC.getInfo(eBuilding);
-
-	if (info.getPrereqAndTech() == eTech)
-	{
-		return true;
-	}
-
-	for (iI = 0; iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
-	{
-		if (info.getPrereqAndTechs(iI) == eTech)
-		{
-			return true;
-		}
-	}
-
-	SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)info.getSpecialBuildingType();
-	if (NO_SPECIALBUILDING != eSpecial && GC.getInfo(eSpecial).getTechPrereq() == eTech)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject)
-{
-	if (GC.getInfo(eProject).getTechPrereq() == eTech)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool isWorldUnitClass(UnitClassTypes eUnitClass)
-{
-	return (GC.getInfo(eUnitClass).getMaxGlobalInstances() != -1);
-}
-
-bool isTeamUnitClass(UnitClassTypes eUnitClass)
-{
-	return (GC.getInfo(eUnitClass).getMaxTeamInstances() != -1);
-}
-
-bool isNationalUnitClass(UnitClassTypes eUnitClass)
-{
-	return (GC.getInfo(eUnitClass).getMaxPlayerInstances() != -1);
-}
-
-bool isLimitedUnitClass(UnitClassTypes eUnitClass)
-{
-	return (isWorldUnitClass(eUnitClass) || isTeamUnitClass(eUnitClass) || isNationalUnitClass(eUnitClass));
-}
-// <advc.104>
-bool isMundaneBuildingClass(BuildingClassTypes eBC)
-{
-	return !isWorldWonderClass(eBC) && !isTeamWonderClass(eBC) &&
-			!isNationalWonderClass(eBC) && !isLimitedWonderClass(eBC);
-} // </advc.104>
-
-bool isWorldWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (GC.getInfo(eBuildingClass).getMaxGlobalInstances() != -1);
-}
-
-bool isTeamWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (GC.getInfo(eBuildingClass).getMaxTeamInstances() != -1);
-}
-
-bool isNationalWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (GC.getInfo(eBuildingClass).getMaxPlayerInstances() != -1);
-}
-
-bool isLimitedWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (isWorldWonderClass(eBuildingClass) || isTeamWonderClass(eBuildingClass) || isNationalWonderClass(eBuildingClass));
-}
-// <advc.003w>
-bool isWorldUnitClass(UnitTypes eUnit)
-{
-	return isWorldUnitClass((UnitClassTypes)GC.getInfo(eUnit).getUnitClassType());
-}
-
-bool isLimitedUnitClass(UnitTypes eUnit)
-{
-	return isLimitedUnitClass((UnitClassTypes)GC.getInfo(eUnit).getUnitClassType());
-}
-
-bool isWorldWonderClass(BuildingTypes eBuilding)
-{
-	return isWorldWonderClass((BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType());
-}
-
-bool isLimitedWonderClass(BuildingTypes eBuilding)
-{
-	return isLimitedWonderClass((BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType());
-}
-// </advc.003w>
-int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
-{
-	int iMax;
-	int iCount = 0;
-	bool bLimited = false;
-
-	iMax = GC.getInfo(eBuildingClass).getMaxGlobalInstances();
-	if (iMax != -1)
-	{
-		iCount += iMax;
-		bLimited = true;
-	}
-
-	iMax = GC.getInfo(eBuildingClass).getMaxTeamInstances();
-	if (iMax != -1)
-	{
-		iCount += iMax;
-		bLimited = true;
-	}
-
-	iMax = GC.getInfo(eBuildingClass).getMaxPlayerInstances();
-	if (iMax != -1)
-	{
-		iCount += iMax;
-		bLimited = true;
-	}
-
-	return bLimited ? iCount : -1;
-}
-
-bool isWorldProject(ProjectTypes eProject)
-{
-	return (GC.getInfo(eProject).getMaxGlobalInstances() != -1);
-}
-
-bool isTeamProject(ProjectTypes eProject)
-{
-	return (GC.getInfo(eProject).getMaxTeamInstances() != -1);
-}
-
-bool isLimitedProject(ProjectTypes eProject)
-{
-	return (isWorldProject(eProject) || isTeamProject(eProject));
 }
 
 // FUNCTION: getBinomialCoefficient
@@ -2741,6 +2505,16 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 			piShuffle[iJ] = iTemp;
 		}
 	}
+}
+
+/*	advc.enum: Caller needs to set the vector size.
+	Also for use in the FOR_EACH_ENUM_RAND macro. */
+void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand)
+{
+	iota(aiIndices.begin(), aiIndices.end(), 0);
+	int const iSize = (int)aiIndices.size();
+	for (int i = 0; i < iSize; i++)
+		std::swap(aiIndices[i], aiIndices[rand.get(iSize - i, NULL) + i]);
 }
 
 

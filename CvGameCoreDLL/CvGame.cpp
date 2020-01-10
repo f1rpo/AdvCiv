@@ -1501,36 +1501,27 @@ CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)  // advc: style chang
 	if (pStartingPlot == NULL || pStartingPlot->isFreshWater())
 		return NULL;
 
-	// K-Mod. Shuffle the order that plots are checked.
-	int aiShuffle[NUM_CITY_PLOTS];
-	shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-	// K-Mod end
-	FOR_EACH_ENUM(CityPlot)
+	// K-Mod: Shuffle the plots
+	for (CityPlotRandIter itPlot(*pStartingPlot, getMapRand(), false);
+		itPlot.hasNext(); ++itPlot)
 	{
-		CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-				(CityPlotTypes)aiShuffle[eLoopCityPlot]); // K-Mod
-
-		if (pLoopPlot == NULL || pLoopPlot->isWater() ||
-			pLoopPlot->isCoastalLand() || pLoopPlot->isRiver() ||
-			pLoopPlot->getBonusType() != NO_BONUS)
+		CvPlot& kLoopPlot = *itPlot;
+		if (kLoopPlot.isWater() || kLoopPlot.isCoastalLand() ||
+			kLoopPlot.isRiver() || kLoopPlot.getBonusType() != NO_BONUS)
 		{
 			continue;
 		}
 		bool bStartingPlot = false;
-		for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
+		for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 		{
-			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iJ);
-			if (!kLoopPlayer.isAlive())
-				continue;
-			if (kLoopPlayer.getStartingPlot() == pLoopPlot)
+			if (itPlayer->getStartingPlot() == &kLoopPlot)
 			{
 				bStartingPlot = true;
 				break;
 			}
 		}
-
 		if (!bStartingPlot)
-			return pLoopPlot;
+			return &kLoopPlot;
 	}
 	return NULL;
 }
@@ -1795,18 +1786,18 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 			if (p.getBonusType() != NO_BONUS)
 				continue;
 			// advc.129: Randomize the order in which resources are considered
-			int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
-			for (int iK = 0; iK < GC.getNumBonusInfos(); iK++)
+			FOR_EACH_ENUM_RAND(Bonus, getMapRand())
 			{
-				BonusTypes eLoopBonus = (BonusTypes)aiShuffledIndices[iK]; // advc.129
 				CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
 				if (!kLoopBonus.isNormalize() || kLoopBonus.getYieldChange(YIELD_FOOD) <= 0)
 					continue;
 
 				if (kLoopBonus.getTechCityTrade() != NO_TECH &&
-						GC.getInfo((TechTypes)kLoopBonus.getTechCityTrade()).
-						getEra() > getStartEra())
+					GC.getInfo((TechTypes)kLoopBonus.getTechCityTrade()).
+					getEra() > getStartEra())
+				{
 					continue;
+				}
 				if (!GET_TEAM(kPlayer.getTeam()).isHasTech((TechTypes)kLoopBonus.getTechReveal()))
 					continue;
 				// <advc.108> Don't place the food resource on a bad feature
@@ -1850,7 +1841,6 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 				// K-Mod end
 				break;
 			}
-			SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 		}
 	}
 }
@@ -1970,30 +1960,22 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 		if (gFoundLogLevel > 0)
 			citySiteEval.log(pStartingPlot->getX(), pStartingPlot->getY());
 		// </advc.031c>
-		int aiShuffle[NUM_CITY_PLOTS]; // advc (note): Reused multiple times
 		{
 			int iCount = 0;
-			shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-			FOR_EACH_ENUM(CityPlot)
+			for (CityPlotRandIter it(*pStartingPlot, getMapRand(), false);
+				it.hasNext(); ++it)
 			{
 				if (getSorenRandNum(iCount + 2, "Setting Feature Type") > 1)
 					continue;
-
-				CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-						(CityPlotTypes)aiShuffle[eLoopCityPlot]);
-				if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
-					pLoopPlot->getBonusType() != NO_BONUS)
-				{
-					continue;
-				}
-				if (pLoopPlot->isFeature())
+				CvPlot& kLoopPlot = *it;
+				if (kLoopPlot.getBonusType() != NO_BONUS || kLoopPlot.isFeature())
 					continue;
 				FOR_EACH_ENUM(Feature)
 				{
 					if ((GC.getInfo(eLoopFeature).getYieldChange(YIELD_FOOD) +
 						GC.getInfo(eLoopFeature).getYieldChange(YIELD_PRODUCTION)) > 0)
 					{
-						if (pLoopPlot->canHaveFeature(eLoopFeature))
+						if (kLoopPlot.canHaveFeature(eLoopFeature))
 						{
 							// advc.opt: Moved down (do all other checks first)
 							if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue)
@@ -2002,13 +1984,13 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 								goto extraFeaturesDone; // advc
 							}
 							if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d.", GC.getInfo(eLoopFeature).getDescription(), kPlayer.getID()); // K-Mod
-							pLoopPlot->setFeatureType(eLoopFeature);
+							kLoopPlot.setFeatureType(eLoopFeature);
 							iCount++;
 							break;
 						}
 					}
 				}
-				if (pLoopPlot->isFeature())
+				if (kLoopPlot.isFeature())
 					iFeatureCount ++;
 			}
 		}
@@ -2039,39 +2021,30 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 		}
 		{
 			bool const bLandBias = (iWaterCount > NUM_CITY_PLOTS / 2);
-			shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-			FOR_EACH_ENUM(CityPlot)
+			for (CityPlotRandIter it(*pStartingPlot, getMapRand(), false); it.hasNext() &&
+				iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2 < 12; ++it)
 			{
-				CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-						(CityPlotTypes)aiShuffle[eLoopCityPlot]);
-				if (pLoopPlot == NULL || pLoopPlot == pStartingPlot)
+				CvPlot& kLoopPlot = *it;
+				if (getSorenRandNum((bLandBias && kLoopPlot.isWater()) ? 2 : 1, "Placing Bonuses") != 0)
 					continue;
-
-				if (getSorenRandNum((bLandBias && pLoopPlot->isWater()) ? 2 : 1, "Placing Bonuses") != 0)
-					continue;
-
-				if (iOtherCount * 3 + iOceanFoodCount * 2 + iCoastFoodCount * 2 >= 12)
-					break;
-
 				if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue)
 				{
 					if (gMapLogLevel > 0) logBBAI("    Player %d doesn't need any more bonuses.", kPlayer.getID()); // K-Mod
 					break;
 				}
-				bool const bCoast = (pLoopPlot->isWater() && pLoopPlot->isAdjacentToLand());
-				bool const bOcean = (pLoopPlot->isWater() && !bCoast);
-				if (pLoopPlot != pStartingPlot &&
-					!(bCoast && iCoastFoodCount >= 2) && // advc.108: was >2
+				bool const bCoast = (kLoopPlot.isWater() && kLoopPlot.isAdjacentToLand());
+				bool const bOcean = (kLoopPlot.isWater() && !bCoast);
+				if (!(bCoast && iCoastFoodCount >= 2) && // advc.108: was >2
 					!(bOcean && iOceanFoodCount >= 2) &&// advc.108: was >2
 					// advc.108: At most 3 sea food
 					!((bOcean || bCoast) && iOceanFoodCount + iCoastFoodCount >= 3))
 				{
 					for (int iPass = 0; iPass < 2; iPass++)
 					{
-						if (pLoopPlot->getBonusType() != NO_BONUS)
+						if (kLoopPlot.getBonusType() != NO_BONUS)
 							continue;
 						// advc: Selection and placement moved into auxiliary function
-						if (placeExtraBonus(kPlayer.getID(), *pLoopPlot,
+						if (placeExtraBonus(kPlayer.getID(), kLoopPlot,
 							iPass == 0, bIgnoreLatitude, false))
 						{
 							iCoastFoodCount += (bCoast ? 1 : 0);
@@ -2079,48 +2052,45 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 							iOtherCount += (!(bCoast || bOcean) ? 1 : 0);
 							break;
 						}
-						if (!bLandBias || pLoopPlot->isWater() ||
-							pLoopPlot->getBonusType() != NO_BONUS)
+						if (!bLandBias || kLoopPlot.isWater() ||
+							kLoopPlot.getBonusType() != NO_BONUS)
 						{
 							continue;
 						}
-						if (iFeatureCount > 4 && pLoopPlot->isFeature() &&
+						if (iFeatureCount > 4 && kLoopPlot.isFeature() &&
 							iCoastFoodCount + iOceanFoodCount > 2 &&
 							getSorenRandNum(2, "Clear feature to add bonus") == 0)
 						{
 							// advc: Selection, clearing of feature and placement moved into auxiliary function.
-							if (placeExtraBonus(kPlayer.getID(), *pLoopPlot, iPass == 0, bIgnoreLatitude, true))
+							if (placeExtraBonus(kPlayer.getID(), kLoopPlot, iPass == 0,
+								bIgnoreLatitude, true))
+							{
 								iOtherCount++;
+							}
 						}
 					}
 				}
 			}
 		}
-		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-		FOR_EACH_ENUM(CityPlot)
+		for (CityPlotRandIter it(*pStartingPlot, getMapRand(), false); it.hasNext(); ++it)
 		{
-			if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue)
+			CvPlot& kLoopPlot = *it;
+			if (kLoopPlot.getBonusType() != NO_BONUS || kLoopPlot.isFeature())
+				continue;
+			if (citySiteEval.evaluate(*pStartingPlot) >= iTargetValue) // advc.opt: Moved down
 			{
-				if (gMapLogLevel > 0) logBBAI("    Player %d doesn't need any more features (2).", eLoopCityPlot); // K-Mod
+				if (gMapLogLevel > 0) logBBAI("    Player %d doesn't need any more features (2).", kPlayer.getID()); // K-Mod
 				break;
 			}
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-					(CityPlotTypes)aiShuffle[eLoopCityPlot]);
-
-			if (pLoopPlot == NULL || pLoopPlot == pStartingPlot ||
-				pLoopPlot->getBonusType() != NO_BONUS || pLoopPlot->isFeature())
+			FOR_EACH_ENUM(Feature)
 			{
-				continue;
-			}
-			for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
-			{
-				if (GC.getInfo((FeatureTypes)iK).getYieldChange(YIELD_FOOD) +
-					GC.getInfo((FeatureTypes)iK).getYieldChange(YIELD_PRODUCTION) > 0)
+				if (GC.getInfo(eLoopFeature).getYieldChange(YIELD_FOOD) +
+					GC.getInfo(eLoopFeature).getYieldChange(YIELD_PRODUCTION) > 0)
 				{
-					if (pLoopPlot->canHaveFeature((FeatureTypes)iK))
+					if (kLoopPlot.canHaveFeature(eLoopFeature))
 					{
-						if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d.", GC.getInfo((FeatureTypes)iK).getDescription(), eLoopCityPlot); // K-Mod
-						pLoopPlot->setFeatureType((FeatureTypes)iK);
+						if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d.", GC.getInfo(eLoopFeature).getDescription(), kPlayer.getID()); // K-Mod
+						kLoopPlot.setFeatureType(eLoopFeature);
 						break;
 					}
 				}
@@ -2132,25 +2102,24 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 			if (itPlot->isHills())
 				iHillsCount++;
 		}
-		shuffleArray(aiShuffle, NUM_CITY_PLOTS, getMapRand());
-		FOR_EACH_ENUM(CityPlot)
+		// advc (comment): Starting plot not excluded. I guess that's OK.
+		for (CityPlotRandIter it(*pStartingPlot, getMapRand(), true); it.hasNext(); ++it)
 		{
 			if (iHillsCount >= 3)
 				break;
 
-			CvPlot* pLoopPlot = plotCity(pStartingPlot->getX(), pStartingPlot->getY(),
-					(CityPlotTypes)aiShuffle[eLoopCityPlot]);
-			if (pLoopPlot == NULL || pLoopPlot->isWater() || pLoopPlot->isHills())
+			CvPlot& kLoopPlot = *it;
+			if (kLoopPlot.isWater() || kLoopPlot.isHills())
 				continue;
 
-			if (!pLoopPlot->isFeature() ||
-				!GC.getInfo(pLoopPlot->getFeatureType()).isRequiresFlatlands())
+			if (!kLoopPlot.isFeature() ||
+				!GC.getInfo(kLoopPlot.getFeatureType()).isRequiresFlatlands())
 			{
-				if (pLoopPlot->getBonusType() == NO_BONUS ||
-					GC.getInfo(pLoopPlot->getBonusType()).isHills())
+				if (kLoopPlot.getBonusType() == NO_BONUS ||
+					GC.getInfo(kLoopPlot.getBonusType()).isHills())
 				{
 					if (gMapLogLevel > 0) logBBAI("    Adding hills for player %d.", kPlayer.getID()); // K-Mod
-					pLoopPlot->setPlotType(PLOT_HILLS, false, true);
+					kLoopPlot.setPlotType(PLOT_HILLS, false, true);
 					iHillsCount++;
 				}
 			}
@@ -2229,18 +2198,15 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		kPlot.setFeatureType(NO_FEATURE);
 	}
 	// advc.129: Try the resources in a random order
-	int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), getSorenRand());
-	for (int i = 0; i < GC.getNumBonusInfos(); i++)
+	FOR_EACH_ENUM_RAND(Bonus, getMapRand())
 	{
-		BonusTypes eBonus = (BonusTypes)aiShuffledIndices[i]; // advc.129
-		if (isValidExtraBonus(eBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude))
+		if (isValidExtraBonus(eLoopBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude))
 		{
-			if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d", GC.getInfo(eBonus).getDescription(), eStartPlayer); // K-Mod
-			kPlot.setBonusType(eBonus);			
+			if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d", GC.getInfo(eLoopBonus).getDescription(), eStartPlayer); // K-Mod
+			kPlot.setBonusType(eLoopBonus);			
 			return true;
 		}
 	}
-	SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 	return false;
 }
 
@@ -2265,10 +2231,11 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return false;
 
 	if (bCheckCanPlace ? CvMapGenerator::GetInstance().
-			canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude) :
-			kPlot.canHaveBonus(eBonus, bIgnoreLatitude))
+		canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude) :
+		kPlot.canHaveBonus(eBonus, bIgnoreLatitude))
+	{
 		return true;
-
+	}
 	return false;
 } // </advc>
 
@@ -3251,50 +3218,38 @@ int CvGame::getVoteRequired(VoteTypes eVote, VoteSourceTypes eVoteSource) const
 
 TeamTypes CvGame::getSecretaryGeneral(VoteSourceTypes eVoteSource) const
 {
-	int iI;
-
 	if (!canHaveSecretaryGeneral(eVoteSource))
 	{
-		for (int iBuilding = 0; iBuilding < GC.getNumBuildingInfos(); ++iBuilding)
+		FOR_EACH_ENUM(Building)
 		{
-			if (GC.getInfo((BuildingTypes)iBuilding).getVoteSourceType() == eVoteSource)
+			if (GC.getInfo(eLoopBuilding).getVoteSourceType() == eVoteSource)
 			{
-				for (iI = 0; iI < MAX_CIV_PLAYERS; ++iI)
+				for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 				{
-					CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-					if (kLoopPlayer.isAlive())
+					CvPlayer& kLoopPlayer = *it;
+					if (kLoopPlayer.getBuildingClassCount(
+						GC.getInfo(eLoopBuilding).getBuildingClassType()) > 0)
 					{
-						if (kLoopPlayer.getBuildingClassCount((BuildingClassTypes)GC.getInfo((BuildingTypes)iBuilding).getBuildingClassType()) > 0)
-						{
-							ReligionTypes eReligion = getVoteSourceReligion(eVoteSource);
-							if (NO_RELIGION == eReligion || kLoopPlayer.getStateReligion() == eReligion)
-							{
-								return kLoopPlayer.getTeam();
-							}
-						}
+						ReligionTypes eReligion = getVoteSourceReligion(eVoteSource);
+						if (NO_RELIGION == eReligion || kLoopPlayer.getStateReligion() == eReligion)
+							return kLoopPlayer.getTeam();
 					}
 				}
 			}
 		}
+		return NO_TEAM; // advc
 	}
-	else
+	FOR_EACH_ENUM(Vote)
 	{
-		for (iI = 0; iI < GC.getNumVoteInfos(); iI++)
+		if (GC.getInfo(eLoopVote).isVoteSourceType(eVoteSource))
 		{
-			if (GC.getInfo((VoteTypes)iI).isVoteSourceType(eVoteSource))
+			if (GC.getInfo(eLoopVote).isSecretaryGeneral() &&
+				isVotePassed(eLoopVote))
 			{
-				if (GC.getInfo((VoteTypes)iI).isSecretaryGeneral())
-				{
-					if (isVotePassed((VoteTypes)iI))
-					{
-						return ((TeamTypes)(getVoteOutcome((VoteTypes)iI)));
-					}
-				}
+				return ((TeamTypes)getVoteOutcome(eLoopVote));
 			}
 		}
 	}
-
-
 	return NO_TEAM;
 }
 
@@ -5646,7 +5601,7 @@ bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestV
 		if(iMaxStartEra != NO_ERA && getStartEra() > iMaxStartEra)
 			return false;
 	}
-	if(isBuildingClassMaxedOut((BuildingClassTypes)kBuilding.getBuildingClassType()))
+	if(isBuildingClassMaxedOut(kBuilding.getBuildingClassType()))
 		return false;
 
 	if(bTestVisible)
@@ -5662,15 +5617,14 @@ bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestV
 		}*/
 	}
 	{
-		SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getInfo(eBuilding).
-				getSpecialBuildingType();
+		SpecialBuildingTypes eSpecial = GC.getInfo(eBuilding).getSpecialBuildingType();
 		if(eSpecial != NO_SPECIALBUILDING && !isSpecialBuildingValid(eSpecial))
 			return false;
 	}
 	if(getNumCities() < GC.getInfo(eBuilding).getNumCitiesPrereq())
 		return false;
 	{
-		CorporationTypes eFoundCorp = (CorporationTypes)kBuilding.getFoundsCorporation();
+		CorporationTypes eFoundCorp = kBuilding.getFoundsCorporation();
 		if (eFoundCorp != NO_CORPORATION && isCorporationFounded(eFoundCorp))
 			return false;
 	}
@@ -5688,7 +5642,7 @@ bool CvGame::canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) cons
 	if (isOption(GAMEOPTION_NO_ESPIONAGE) && (kUnit.isSpy() || kUnit.getEspionagePoints() > 0))
 		return false;
 
-	if (isUnitClassMaxedOut((UnitClassTypes)kUnit.getUnitClassType()))
+	if (isUnitClassMaxedOut(kUnit.getUnitClassType()))
 		return false;
 
 	if (bTestVisible)
@@ -5728,10 +5682,10 @@ int CvGame::getUnitClassCreatedCount(UnitClassTypes eIndex) const
 bool CvGame::isUnitClassMaxedOut(UnitClassTypes eIndex, int iExtra) const
 {
 	FAssertBounds(0, GC.getNumUnitClassInfos(), eIndex);
-	if (!isWorldUnitClass(eIndex))
+	if (!GC.getInfo(eIndex).isWorldUnit())
 		return false;
 	FAssertBounds(0, GC.getInfo(eIndex).getMaxGlobalInstances() + 1, getUnitClassCreatedCount(eIndex));
-	return ((getUnitClassCreatedCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxGlobalInstances());
+	return (getUnitClassCreatedCount(eIndex) + iExtra >= GC.getInfo(eIndex).getMaxGlobalInstances());
 }
 
 
@@ -5755,12 +5709,10 @@ bool CvGame::isBuildingClassMaxedOut(BuildingClassTypes eIndex, int iExtra) cons
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBuildingClassInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if (!isWorldWonderClass(eIndex))
-	{
+	if (!GC.getInfo(eIndex).isWorldWonder())
 		return false;
-	}
 
-	FAssertMsg(getBuildingClassCreatedCount(eIndex) <= GC.getInfo(eIndex).getMaxGlobalInstances(), "Index is expected to be within maximum bounds (invalid Index)");
+	FAssert(getBuildingClassCreatedCount(eIndex) <= GC.getInfo(eIndex).getMaxGlobalInstances());
 
 	return ((getBuildingClassCreatedCount(eIndex) + iExtra) >= GC.getInfo(eIndex).getMaxGlobalInstances());
 }
@@ -5787,10 +5739,8 @@ bool CvGame::isProjectMaxedOut(ProjectTypes eIndex, int iExtra) const
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumProjectInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if (!isWorldProject(eIndex))
-	{
+	if (!GC.getInfo(eIndex).isWorldProject())
 		return false;
-	}
 
 	FAssertMsg(getProjectCreatedCount(eIndex) <= GC.getInfo(eIndex).getMaxGlobalInstances(), "Index is expected to be within maximum bounds (invalid Index)");
 
@@ -9883,41 +9833,33 @@ int CvGame::getCultureThreshold(CultureLevelTypes eLevel) const
 
 void CvGame::doUpdateCacheOnTurn()
 {
-	int	iI;
-
 	// reset shrine count
 	m_iShrineBuildingCount = 0;
-
-	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
+	FOR_EACH_ENUM(Building)
 	{
-		CvBuildingInfo&	kBuildingInfo = GC.getInfo((BuildingTypes) iI);
-
 		// if it is for holy city, then its a shrine-thing, add it
-		if (kBuildingInfo.getHolyCity() != NO_RELIGION)
-		{
-			changeShrineBuilding((BuildingTypes) iI, (ReligionTypes) kBuildingInfo.getReligionType());
-		}
+		if (GC.getInfo(eLoopBuilding).getHolyCity() != NO_RELIGION)
+			changeShrineBuilding(eLoopBuilding, GC.getInfo(eLoopBuilding).getReligionType());
 	}
 
 	// reset cultural victories
 	m_iNumCultureVictoryCities = 0;
-	for (iI = 0; iI < GC.getNumVictoryInfos(); iI++)
+	FOR_EACH_ENUM(Victory)
 	{
-		if (isVictoryValid((VictoryTypes) iI))
+		if (!isVictoryValid(eLoopVictory))
+			continue; // advc
+
+		CvVictoryInfo const& kVictoryInfo = GC.getInfo(eLoopVictory);
+		if (kVictoryInfo.getCityCulture() > 0)
 		{
-			CvVictoryInfo& kVictoryInfo = GC.getInfo((VictoryTypes) iI);
-			if (kVictoryInfo.getCityCulture() > 0)
+			int iNumCultureCities = kVictoryInfo.getNumCultureCities();
+			if (iNumCultureCities > m_iNumCultureVictoryCities)
 			{
-				int iNumCultureCities = kVictoryInfo.getNumCultureCities();
-				if (iNumCultureCities > m_iNumCultureVictoryCities)
-				{
-					m_iNumCultureVictoryCities = iNumCultureCities;
-					m_eCultureVictoryCultureLevel = kVictoryInfo.getCityCulture();
-				}
+				m_iNumCultureVictoryCities = iNumCultureCities;
+				m_eCultureVictoryCultureLevel = kVictoryInfo.getCityCulture();
 			}
 		}
 	}
-
 	// K-Mod. (todo: move all of that stuff above somewhere else. That doesn't need to be updated every turn!)
 	CvSelectionGroup::path_finder.Reset(); // (one of the few manual resets we need)
 	m_ActivePlayerCycledGroups.clear();
@@ -10610,7 +10552,6 @@ bool CvGame::isCivEverActive(CivilizationTypes eCivilization) const
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -10627,39 +10568,38 @@ bool CvGame::isLeaderEverActive(LeaderHeadTypes eLeader) const
 			}
 		}
 	}
-
 	return false;
 }
 
 bool CvGame::isUnitEverActive(UnitTypes eUnit) const
 {
-	for (int iCiv = 0; iCiv < GC.getNumCivilizationInfos(); ++iCiv)
+	FOR_EACH_ENUM(Civilization)
 	{
-		if (isCivEverActive((CivilizationTypes)iCiv))
+		if (isCivEverActive(eLoopCivilization))
 		{
-			if (eUnit == GC.getInfo((CivilizationTypes)iCiv).getCivilizationUnits(GC.getInfo(eUnit).getUnitClassType()))
+			if (eUnit == GC.getInfo(eLoopCivilization).getCivilizationUnits(
+				GC.getInfo(eUnit).getUnitClassType()))
 			{
 				return true;
 			}
 		}
 	}
-
 	return false;
 }
 
 bool CvGame::isBuildingEverActive(BuildingTypes eBuilding) const
 {
-	for (int iCiv = 0; iCiv < GC.getNumCivilizationInfos(); ++iCiv)
+	FOR_EACH_ENUM(Civilization)
 	{
-		if (isCivEverActive((CivilizationTypes)iCiv))
+		if (isCivEverActive(eLoopCivilization))
 		{
-			if (eBuilding == GC.getInfo((CivilizationTypes)iCiv).getCivilizationBuildings(GC.getInfo(eBuilding).getBuildingClassType()))
+			if (eBuilding == GC.getInfo(eLoopCivilization).getCivilizationBuildings(
+				GC.getInfo(eBuilding).getBuildingClassType()))
 			{
 				return true;
 			}
 		}
 	}
-
 	return false;
 }
 

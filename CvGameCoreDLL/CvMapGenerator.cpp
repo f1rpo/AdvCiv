@@ -415,37 +415,27 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 //
 bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 {
-	FAssertMsg(pFreshWaterPlot != NULL, "NULL plot parameter");
+	FAssert(pFreshWaterPlot != NULL);
 
 	// cannot have a river flow next to water
 	if (pFreshWaterPlot->isWater())
-	{
 		return false;
-	}
 
 	// if it already has a fresh water river, then success! we done
 	if (pFreshWaterPlot->isRiver())
-	{
 		return true;
-	}
-
-	bool bSuccess = false;
-
-	// randomize the order of directions
-	int aiShuffle[NUM_CARDINALDIRECTION_TYPES];
-	shuffleArray(aiShuffle, NUM_CARDINALDIRECTION_TYPES, GC.getGame().getMapRand());
 
 	// make two passes, once for each flow direction of the river
 	int iNWFlowPass = GC.getGame().getMapRandNum(2, "addRiver");
-	for (int iPass = 0; !bSuccess && iPass <= 1; iPass++)
+	for (int iPass = 0; iPass <= 1; iPass++)
 	{
 		// try placing a river edge in each direction, in random order
-		for (int iI = 0; !bSuccess && iI < NUM_CARDINALDIRECTION_TYPES; iI++)
+		FOR_EACH_ENUM_RAND(CardinalDirection, GC.getGame().getMapRand())
 		{
 			CardinalDirectionTypes eRiverDirection = NO_CARDINALDIRECTION;
 			CvPlot *pRiverPlot = NULL;
 
-			switch (aiShuffle[iI])
+			switch (eLoopCardinalDirection)
 			{
 			case CARDINALDIRECTION_NORTH:
 				if (iPass == iNWFlowPass)
@@ -510,14 +500,11 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 
 				// if it succeeded, then we will be a river now!
 				if (pFreshWaterPlot->isRiver())
-				{
-					bSuccess = true;
-				}
+					return true;
 			}
 		}
 	}
-
-	return bSuccess;
+	return false;
 }
 
 
@@ -566,27 +553,23 @@ void CvMapGenerator::addBonuses()
 	//for (int iOrder = 0; iOrder < GC.getNumBonusInfos(); iOrder++)
 	for (size_t i = 0; i < aiOrdinals.size(); i++)
 	{
-		int iOrder = aiOrdinals[i];
-		/*  Break ties in the order randomly (perhaps better not to do this though
-			if the assertion above fails) */
-		int* aiShuffledIndices = ::shuffle(GC.getNumBonusInfos(), GC.getGame().getMapRand());
-		// </advc.129>
-		for (int j = 0; j < GC.getNumBonusInfos(); j++)
+		int iOrder = aiOrdinals[i];	
+		/*  advc.129: Break ties in the order randomly (perhaps better
+			not to do this though if the assertion above fails) */
+		FOR_EACH_ENUM_RAND(Bonus, GC.getGame().getMapRand())
 		{
-			BonusTypes eBonus = (BonusTypes)aiShuffledIndices[j]; // advc.129
 			//gDLL->callUpdater();
-			if (GC.getInfo(eBonus).getPlacementOrder() != iOrder)
+			if (GC.getInfo(eLoopBonus).getPlacementOrder() != iOrder)
 				continue;
 
 			gDLL->callUpdater(); // advc.opt: Moved down; don't need to update the UI quite so frequently.
-			if (!py.addBonusType(eBonus))
+			if (!py.addBonusType(eLoopBonus))
 			{
-				if (GC.getInfo(eBonus).isOneArea())
-					addUniqueBonusType(eBonus);
-				else addNonUniqueBonusType(eBonus);
+				if (GC.getInfo(eLoopBonus).isOneArea())
+					addUniqueBonusType(eLoopBonus);
+				else addNonUniqueBonusType(eLoopBonus);
 			}
 		}
-		SAFE_DELETE_ARRAY(aiShuffledIndices); // advc.129
 	}
 }
 
@@ -778,27 +761,22 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
 				apGroupRange.push_back(&p);
 		}
 	}
-	// Would've been nice, but must use MapRand instead.
-	//std::random_shuffle(groupRange.begin(), groupRange.end());
 	int sz = (int)apGroupRange.size();
 	if(sz <= 0)
 		return 0;
-	int* aiShuffledIndices = new int[sz];
-	for(int i = 0; i < sz; i++)
-		aiShuffledIndices[i] = i;
-	::shuffleArray(aiShuffledIndices, sz, GC.getGame().getMapRand());
+	std::vector<int> aiShuffled(sz);
+	::shuffleVector(aiShuffled, GC.getGame().getMapRand());
 	for(int j = 0; j < sz && iLimit > 0; j++)
 	{
 		int iProb = kBonus.getGroupRand();
 		iProb = ::round(iProb * std::pow(2/3.0, iPlaced));
 		if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < iProb)
 		{
-			apGroupRange[aiShuffledIndices[j]]->setBonusType(eBonusType);
+			apGroupRange[aiShuffled[j]]->setBonusType(eBonusType);
 			iLimit--;
 			iPlaced++;
 		}
 	}
-	SAFE_DELETE_ARRAY(aiShuffledIndices);
 	FAssert(iLimit >= 0);
 	return iPlaced;
 } // </advc.129>

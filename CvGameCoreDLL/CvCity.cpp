@@ -587,8 +587,7 @@ int CvCity::calculateBaseYieldRate(YieldTypes y)
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
 		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 		r += getNumActiveBuilding(eBuilding) * (kBuilding.getYieldChange(y) +
-				getBuildingYieldChange((BuildingClassTypes)kBuilding.
-				getBuildingClassType(), y));
+				getBuildingYieldChange(kBuilding.getBuildingClassType(), y));
 	}
 	r += getTradeYield(y);
 	r += getCorporationYield(y);
@@ -1416,7 +1415,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		return false;
 	}
 	{
-		ReligionTypes ePrereqReligion = (ReligionTypes)kBuilding.getPrereqReligion();
+		ReligionTypes ePrereqReligion = kBuilding.getPrereqReligion();
 		if (ePrereqReligion != NO_RELIGION && !isHasReligion(ePrereqReligion))
 			return false;
 	}
@@ -1427,7 +1426,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 			return false;
 	}
 	{
-		CorporationTypes ePrereqCorp = (CorporationTypes)kBuilding.getPrereqCorporation();
+		CorporationTypes ePrereqCorp = kBuilding.getPrereqCorporation();
 		if (ePrereqCorp != NO_CORPORATION)
 		{
 			if(!isHasCorporation(ePrereqCorp))
@@ -1435,15 +1434,16 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		}
 	}
 
-	CorporationTypes eFoundCorp = (CorporationTypes)kBuilding.getFoundsCorporation();
+	CorporationTypes eFoundCorp = kBuilding.getFoundsCorporation();
 	if (eFoundCorp != NO_CORPORATION)
 	{
-		for (int i = 0; i < GC.getNumCorporationInfos(); i++)
+		FOR_EACH_ENUM(Corporation)
 		{
-			CorporationTypes eLoopCorp = (CorporationTypes)i;
-			if (isHeadquarters(eLoopCorp) && GC.getGame().
-					isCompetingCorporation(eLoopCorp, eFoundCorp))
+			if (isHeadquarters(eLoopCorporation) &&
+				GC.getGame().isCompetingCorporation(eLoopCorporation, eFoundCorp))
+			{
 				return false;
+			}
 		}
 	}
 	if(!isValidBuildingLocation(eBuilding))
@@ -1457,20 +1457,21 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		if (!bContinue && getFirstBuildingOrder(eBuilding) != -1)
 			return false;
 
-		BuildingClassTypes bct = (BuildingClassTypes)kBuilding.getBuildingClassType();
-		if (!GC.getInfo(bct).isNoLimit())
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)kBuilding.getBuildingClassType();
+		CvBuildingClassInfo const& kBuildingClass = GC.getInfo(eBuildingClass);
+		if (!kBuildingClass.isNoLimit())
 		{
-			if (::isWorldWonderClass(bct))
+			if (kBuildingClass.isWorldWonder())
 			{
 				if(isWorldWondersMaxed())
 					return false;
 			}
-			else if (::isTeamWonderClass(bct))
+			else if (kBuildingClass.isTeamWonder())
 			{
 				if(isTeamWondersMaxed())
 					return false;
 			}
-			else if (::isNationalWonderClass(bct))
+			else if (kBuildingClass.isNationalWonder())
 			{
 				if(isNationalWondersMaxed())
 					return false;
@@ -1479,14 +1480,15 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 				return false;
 		}
 		{
-			ReligionTypes eHolyCityReligion = (ReligionTypes)kBuilding.getHolyCity();
+			ReligionTypes eHolyCityReligion = kBuilding.getHolyCity();
 			if (eHolyCityReligion != NO_RELIGION && !isHolyCity(eHolyCityReligion))
 				return false;
 		}
 		if (kBuilding.getPrereqAndBonus() != NO_BONUS &&
-				!hasBonus((BonusTypes)kBuilding.getPrereqAndBonus()))
+			!hasBonus(kBuilding.getPrereqAndBonus()))
+		{
 			return false;
-
+		}
 		if (eFoundCorp != NO_CORPORATION)
 		{
 			bool bValidBonus = false;
@@ -1512,7 +1514,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 			bool bValidBonus = false;
 			for (int i = 0; i < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); i++)
 			{
-				BonusTypes ePrereqBonus = (BonusTypes)kBuilding.getPrereqOrBonuses(i);
+				BonusTypes ePrereqBonus = kBuilding.getPrereqOrBonuses(i);
 				if (ePrereqBonus != NO_BONUS)
 				{
 					bPrereqBonus = true;
@@ -1587,7 +1589,7 @@ int CvCity::getFoodTurnsLeft() const
 		return iFoodLeft;
 
 	int iTurnsLeft = (iFoodLeft / foodDifference());
-	if (iTurnsLeft * foodDifference() <  iFoodLeft)
+	if (iTurnsLeft * foodDifference() < iFoodLeft)
 		iTurnsLeft++;
 	return std::max(1, iTurnsLeft);
 }
@@ -1601,15 +1603,15 @@ bool CvCity::isProductionLimited() const
 		switch (pOrderNode->m_data.eOrderType)
 		{
 		case ORDER_TRAIN:
-			return isLimitedUnitClass((UnitClassTypes)(GC.getInfo((UnitTypes)(pOrderNode->m_data.iData1)).getUnitClassType()));
+			return GC.getInfo((UnitTypes)pOrderNode->m_data.iData1).isLimited();
 			break;
 
 		case ORDER_CONSTRUCT:
-			return isLimitedWonderClass((BuildingClassTypes)(GC.getInfo((BuildingTypes)(pOrderNode->m_data.iData1)).getBuildingClassType()));
+			return GC.getInfo((BuildingTypes)pOrderNode->m_data.iData1).isLimited();
 			break;
 
 		case ORDER_CREATE:
-			return isLimitedProject((ProjectTypes)(pOrderNode->m_data.iData1));
+			return GC.getInfo((ProjectTypes)pOrderNode->m_data.iData1).isLimited();
 			break;
 
 		case ORDER_MAINTAIN:
@@ -2917,25 +2919,23 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 	{
 		if (iChange > 0)
 		{
-			CorporationTypes eCorporation = (CorporationTypes)
-					kBuilding.getFoundsCorporation();
+			CorporationTypes eCorporation = kBuilding.getFoundsCorporation();
 			if (eCorporation != NO_CORPORATION && !g.isCorporationFounded(eCorporation))
 				setHeadquarters(eCorporation);
 		}
 
 		if (kBuilding.getNoBonus() != NO_BONUS)
-			changeNoBonusCount((BonusTypes)kBuilding.getNoBonus(), iChange);
+			changeNoBonusCount(kBuilding.getNoBonus(), iChange);
 
 		if (kBuilding.getFreeBonus() != NO_BONUS)
 		{
-			changeFreeBonus((BonusTypes)kBuilding.getFreeBonus(),
+			changeFreeBonus(kBuilding.getFreeBonus(),
 					g.getNumFreeBonuses(eBuilding) * iChange);
 		}
 
 		if (kBuilding.getFreePromotion() != NO_PROMOTION)
 		{
-			changeFreePromotionCount((PromotionTypes)
-					kBuilding.getFreePromotion(), iChange);
+			changeFreePromotionCount(kBuilding.getFreePromotion(), iChange);
 		}// <advc.912d>
 		if(g.isOption(GAMEOPTION_NO_SLAVERY) && kOwner.isHuman() &&
 			kBuilding.getHurryAngerModifier() < 0)
@@ -2963,7 +2963,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		else changeBuildingBadHappiness(kBuilding.getHappiness() * iChange);
 		if (kBuilding.getReligionType() != NO_RELIGION)
 		{
-			changeStateReligionHappiness((ReligionTypes)kBuilding.getReligionType(),
+			changeStateReligionHappiness(kBuilding.getReligionType(),
 					kBuilding.getStateReligionHappiness() * iChange);
 		}
 		changeMilitaryProductionModifier(kBuilding.getMilitaryProductionModifier() * iChange);
@@ -2983,8 +2983,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			changeSeaPlotYield(y, kBuilding.getSeaPlotYieldChange(y) * iChange);
 			changeRiverPlotYield(y, kBuilding.getRiverPlotYieldChange(y) * iChange);
 			changeBaseYieldRate(y, (kBuilding.getYieldChange(y) +
-					getBuildingYieldChange((BuildingClassTypes)
-					kBuilding.getBuildingClassType(), y))* iChange);
+					getBuildingYieldChange(kBuilding.getBuildingClassType(), y)) * iChange);
 			changeYieldRateModifier(y, kBuilding.getYieldModifier(y) * iChange);
 			changePowerYieldRateModifier(y, kBuilding.getPowerYieldModifier(y) * iChange);
 		}
@@ -3121,23 +3120,22 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 				changeBaseGreatPeopleRate(kBuilding.getGreatPeopleRateChange() * iChange);
 			}
 		}
-		BuildingClassTypes eBuildingClass = (BuildingClassTypes)kBuilding.getBuildingClassType();
+		BuildingClassTypes eBuildingClass = kBuilding.getBuildingClassType();
 		GET_TEAM(getTeam()).changeBuildingClassCount(eBuildingClass, iChange);
 		kOwner.changeBuildingClassCount(eBuildingClass, iChange);
 
-		kOwner.changeWondersScore(getWonderScore((BuildingClassTypes)
-				kBuilding.getBuildingClassType()) * iChange);
+		kOwner.changeWondersScore(getWonderScore(kBuilding.getBuildingClassType()) * iChange);
 		// <advc.004w>
 		if (GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE)
 		{
 			// Update text of resource indicators (CvGameTextMgr::setBonusExtraHelp)
 			PlayerTypes eDirtyPlayer = NO_PLAYER;
-			if (::isNationalWonderClass(eBuildingClass) &&
+			if (kBuilding.isNationalWonder() &&
 				getOwner() == GC.getGame().getActivePlayer())
 			{
 				eDirtyPlayer = getOwner();
 			}
-			else if(::isWorldWonderClass(eBuildingClass))
+			else if (kBuilding.isWorldWonder())
 				eDirtyPlayer = GC.getGame().getActivePlayer();
 			if (eDirtyPlayer != NO_PLAYER)
 			{
@@ -4239,7 +4237,7 @@ int CvCity::getNumActiveWorldWonders(int iStopCountAt, // advc
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
-		if (isWorldWonderClass(CvCivilization::buildingClass(eBuilding)))
+		if (GC.getInfo(eBuilding).isWorldWonder())
 		{
 			if (getNumRealBuilding(eBuilding) > 0 &&
 				!kObsTeam.isObsoleteBuilding(eBuilding)) // advc.104d
@@ -5207,7 +5205,7 @@ int CvCity::getBuildingHealth(BuildingTypes eBuilding) const
 int CvCity::getBuildingGoodHealth(BuildingTypes eBuilding) const
 {
 	int iHealth = std::max(0, GC.getInfo(eBuilding).getHealth());
-	iHealth += std::max(0, getBuildingHealthChange((BuildingClassTypes)
+	iHealth += std::max(0, getBuildingHealthChange(
 			GC.getInfo(eBuilding).getBuildingClassType()));
 	iHealth += std::max(0, GET_PLAYER(getOwner()).getExtraBuildingHealth(eBuilding));
 	return iHealth;
@@ -5218,7 +5216,7 @@ int CvCity::getBuildingBadHealth(BuildingTypes eBuilding) const
 	if (isBuildingOnlyHealthy())
 		return 0;
 	int iHealth = std::min(0, GC.getInfo(eBuilding).getHealth());
-	iHealth += std::min(0, getBuildingHealthChange((BuildingClassTypes)
+	iHealth += std::min(0, getBuildingHealthChange(
 			GC.getInfo(eBuilding).getBuildingClassType()));
 	iHealth += std::min(0, GET_PLAYER(getOwner()).getExtraBuildingHealth(eBuilding));
 	return iHealth;
@@ -5342,7 +5340,7 @@ int CvCity::getBuildingHappiness(BuildingTypes eBuilding) const
 		iHappiness += (kBuilding.getCommerceHappiness(eLoopCommerce) *
 				GET_PLAYER(getOwner()).getCommercePercent(eLoopCommerce)) / 100;
 	}
-	iHappiness += getBuildingHappyChange((BuildingClassTypes)kBuilding.getBuildingClassType());
+	iHappiness += getBuildingHappyChange(kBuilding.getBuildingClassType());
 
 	return iHappiness;
 }
@@ -5418,8 +5416,7 @@ int CvCity::getAdditionalHappinessByBuilding(BuildingTypes eBuilding, int& iGood
 	addGoodOrBad(kBuilding.getHappiness(), iGood, iBad);
 
 	// Building Class
-	addGoodOrBad(getBuildingHappyChange((BuildingClassTypes)
-			kBuilding.getBuildingClassType()), iGood, iBad);
+	addGoodOrBad(getBuildingHappyChange(kBuilding.getBuildingClassType()), iGood, iBad);
 
 	// Player Building
 	addGoodOrBad(kOwner.getExtraBuildingHappiness(eBuilding), iGood, iBad);
@@ -5515,8 +5512,7 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 	addGoodOrBad(kBuilding.getHealth(), iGood, iBad);
 
 	// Building Class
-	addGoodOrBad(getBuildingHealthChange((BuildingClassTypes)
-			kBuilding.getBuildingClassType()), iGood, iBad);
+	addGoodOrBad(getBuildingHealthChange(kBuilding.getBuildingClassType()), iGood, iBad);
 
 	// Player Building
 	addGoodOrBad(kOwner.getExtraBuildingHealth(eBuilding), iGood, iBad);
@@ -5553,14 +5549,14 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 		}
 	}
 	// advc.001h: Need this several times
-	BonusTypes ePowBonus = (BonusTypes)kBuilding.getPowerBonus();
+	BonusTypes ePowBonus = kBuilding.getPowerBonus();
 	// Power
 	if (kBuilding.isPower() || kBuilding.isAreaCleanPower() ||
-			(ePowBonus != NO_BONUS && (hasBonus(ePowBonus) ||
-			// <advc.001h>
-			(bAssumeStrategicBonuses &&
-			GC.getInfo(ePowBonus).getHappiness() == 0 &&
-			GC.getInfo(ePowBonus).getHealth() == 0)))) // </advc.001h>
+		(ePowBonus != NO_BONUS && (hasBonus(ePowBonus) ||
+		// <advc.001h>
+		(bAssumeStrategicBonuses &&
+		GC.getInfo(ePowBonus).getHappiness() == 0 &&
+		GC.getInfo(ePowBonus).getHealth() == 0)))) // </advc.001h>
 	{
 		// adding power
 		if (!isPower())
@@ -6732,8 +6728,7 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 		}
 	}
 	iExtraRate += kBuilding.getYieldChange(eYield);
-	iExtraRate += getBuildingYieldChange((BuildingClassTypes)
-			kBuilding.getBuildingClassType(), eYield);
+	iExtraRate += getBuildingYieldChange(kBuilding.getBuildingClassType(), eYield);
 
 	// Trade
 	int iPlayerTradeYieldModifier = GET_PLAYER(getOwner()).getTradeYieldModifier(eYield);
@@ -6806,7 +6801,7 @@ int CvCity::getAdditionalYieldRateModifierByBuilding(YieldTypes eYield, Building
 	{
 		if (kBuilding.isPower() || kBuilding.isAreaCleanPower() ||
 			(kBuilding.getPowerBonus() != NO_BONUS &&
-			hasBonus((BonusTypes)kBuilding.getPowerBonus())))
+			hasBonus(kBuilding.getPowerBonus())))
 		{
 			CvCivilization const& kCiv = getCivilization(); // advc.003w
 			for (int i = 0; i < kCiv.getNumBuildings(); i++)
@@ -7261,8 +7256,7 @@ int CvCity::getBuildingCommerceByBuilding(CommerceTypes eIndex, BuildingTypes eB
 	{
 		iCommerce += kBuilding.getCommerceChange(eIndex) *
 				getNumActiveBuilding(eBuilding) * iTimeFactor; // 2)
-		iCommerce += getBuildingCommerceChange((BuildingClassTypes)
-				kBuilding.getBuildingClassType(), eIndex) *
+		iCommerce += getBuildingCommerceChange(kBuilding.getBuildingClassType(), eIndex) *
 				getNumActiveBuilding(eBuilding);
 
 		if (kBuilding.getReligionType() != NO_RELIGION &&
@@ -7271,22 +7265,23 @@ int CvCity::getBuildingCommerceByBuilding(CommerceTypes eIndex, BuildingTypes eB
 			iCommerce += GET_PLAYER(getOwner()).getStateReligionBuildingCommerce(eIndex) *
 					getNumActiveBuilding(eBuilding);
 		}
-
-		if (kBuilding.getGlobalReligionCommerce() != NO_RELIGION)
 		{
-			iCommerce += (GC.getInfo((ReligionTypes)
-					kBuilding.getGlobalReligionCommerce()).getGlobalReligionCommerce(eIndex) *
-					GC.getGame().countReligionLevels((ReligionTypes)
-					kBuilding.getGlobalReligionCommerce())) *
-					getNumActiveBuilding(eBuilding);
+			ReligionTypes const eGlobalCommerceReligion = kBuilding.getGlobalReligionCommerce();
+			if (eGlobalCommerceReligion != NO_RELIGION)
+			{
+				iCommerce += (GC.getInfo(eGlobalCommerceReligion).getGlobalReligionCommerce(eIndex) *
+						GC.getGame().countReligionLevels(eGlobalCommerceReligion)) *
+						getNumActiveBuilding(eBuilding);
+			}
 		}
-		if (kBuilding.getGlobalCorporationCommerce() != NO_CORPORATION)
 		{
-			iCommerce += (GC.getInfo((CorporationTypes)
-					kBuilding.getGlobalCorporationCommerce()).getHeadquarterCommerce(eIndex) *
-					GC.getGame().countCorporationLevels((CorporationTypes)
-					kBuilding.getGlobalCorporationCommerce())) *
-					getNumActiveBuilding(eBuilding);
+			CorporationTypes const eGlobalCommerceCorp = kBuilding.getGlobalCorporationCommerce();
+			if (eGlobalCommerceCorp != NO_CORPORATION)
+			{
+				iCommerce += (GC.getInfo(eGlobalCommerceCorp).getHeadquarterCommerce(eIndex) *
+						GC.getGame().countCorporationLevels(eGlobalCommerceCorp)) *
+						getNumActiveBuilding(eBuilding);
+			}
 		}
 	}
 	return iCommerce;
@@ -7356,27 +7351,28 @@ int CvCity::getAdditionalBaseCommerceRateByBuildingImpl(CommerceTypes eIndex, Bu
 		return iExtraRate; // advc
 
 	iExtraRate += kBuilding.getCommerceChange(eIndex);
-	iExtraRate += getBuildingCommerceChange((BuildingClassTypes)
-			kBuilding.getBuildingClassType(), eIndex);
+	iExtraRate += getBuildingCommerceChange(kBuilding.getBuildingClassType(), eIndex);
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	if (kBuilding.getReligionType() != NO_RELIGION)
 	{
 		if (kBuilding.getReligionType() == kOwner.getStateReligion())
 			iExtraRate += kOwner.getStateReligionBuildingCommerce(eIndex);
 	}
-	if (kBuilding.getGlobalReligionCommerce() != NO_RELIGION)
 	{
-		iExtraRate += GC.getInfo((ReligionTypes)
-				kBuilding.getGlobalReligionCommerce()).getGlobalReligionCommerce(eIndex) *
-				GC.getGame().countReligionLevels((ReligionTypes)
-				kBuilding.getGlobalReligionCommerce());
+		ReligionTypes const eGlobalCommerceReligion = kBuilding.getGlobalReligionCommerce();
+		if (eGlobalCommerceReligion != NO_RELIGION)
+		{
+			iExtraRate += GC.getInfo(eGlobalCommerceReligion).getGlobalReligionCommerce(eIndex) *
+					GC.getGame().countReligionLevels(eGlobalCommerceReligion);
+		}
 	}
-	if (kBuilding.getGlobalCorporationCommerce() != NO_CORPORATION)
 	{
-		iExtraRate += GC.getInfo((CorporationTypes)
-				kBuilding.getGlobalCorporationCommerce()).getHeadquarterCommerce(eIndex) *
-				GC.getGame().countCorporationLevels((CorporationTypes)
-				kBuilding.getGlobalCorporationCommerce());
+		CorporationTypes eGlobalCommerceCorp = kBuilding.getGlobalCorporationCommerce();
+		if (eGlobalCommerceCorp != NO_CORPORATION)
+		{
+			iExtraRate += GC.getInfo(eGlobalCommerceCorp).getHeadquarterCommerce(eIndex) *
+					GC.getGame().countCorporationLevels(eGlobalCommerceCorp);
+		}
 	}
 	// ignore double-time check since this assumes you are building it this turn
 
@@ -8800,15 +8796,13 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 		// advc (note): Not the same as iChange, which only counts NumRealBuilding.
 		processBuilding(eBuilding, getNumBuilding(eBuilding) - iOldNumBuilding);
 	}
-	BuildingClassTypes const eBuildingClass = (BuildingClassTypes)kBuilding.
-			getBuildingClassType();
-	if (!GC.getInfo(eBuildingClass).isNoLimit())
+	if (!GC.getInfo(kBuilding.getBuildingClassType()).isNoLimit())
 	{
-		if (isWorldWonderClass(eBuildingClass))
+		if (kBuilding.isWorldWonder())
 			changeNumWorldWonders(iChange);
-		else if (isTeamWonderClass(eBuildingClass))
+		else if (kBuilding.isTeamWonder())
 			changeNumTeamWonders(iChange);
-		else if (isNationalWonderClass(eBuildingClass))
+		else if (kBuilding.isNationalWonder())
 			changeNumNationalWonders(iChange);
 		else changeNumBuildings(iChange);
 	}
@@ -8860,17 +8854,17 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 				else
 				{
 					szBuffer = gDLL->getText(  // <advc.008e>
-							::needsArticle(eBuilding) ?
+							kBuilding.nameNeedsArticle() ?
 							"TXT_KEY_MISC_COMPLETED_WONDER_CHOOSE_TECH_THE" :
 							"TXT_KEY_MISC_COMPLETED_WONDER_CHOOSE_TECH", // </advc.008e>
 							kBuilding.getTextKeyWide());
 					GET_PLAYER(getOwner()).chooseTech(iFreeTechs, szBuffer.GetCString());
 				}
 			}
-			if (isWorldWonderClass(eBuildingClass))
+			if (kBuilding.isWorldWonder())
 			{
 				szBuffer = gDLL->getText(  // <advc.008e>
-						::needsArticle(eBuilding) ?
+						kBuilding.nameNeedsArticle() ?
 						"TXT_KEY_MISC_COMPLETES_WONDER_THE" :
 						"TXT_KEY_MISC_COMPLETES_WONDER", // </advc.008e>
 						GET_PLAYER(getOwner()).getNameKey(), kBuilding.getTextKeyWide());
@@ -8885,7 +8879,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 					bool const bMet = GET_TEAM(kObs.getID()).isHasMet(getTeam());
 					if (bRevealed /* advc.127: */ || kObs.isSpectator())
 					{	// <advc.008e>
-						szBuffer = gDLL->getText(::needsArticle(eBuilding) ?
+						szBuffer = gDLL->getText(kBuilding.nameNeedsArticle() ?
 								"TXT_KEY_MISC_WONDER_COMPLETED_CITY_THE" :
 								"TXT_KEY_MISC_WONDER_COMPLETED_CITY", // </advc.008e>
 								GET_PLAYER(getOwner()).getNameKey(),
@@ -8893,7 +8887,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 					}
 					else if (bMet)
 					{	// <advc.008e>
-						szBuffer = gDLL->getText(::needsArticle(eBuilding) ?
+						szBuffer = gDLL->getText(kBuilding.nameNeedsArticle() ?
 								"TXT_KEY_MISC_WONDER_COMPLETED_THE" :
 								"TXT_KEY_MISC_WONDER_COMPLETED", // </advc.008e>
 								GET_PLAYER(getOwner()).getNameKey(),
@@ -8901,7 +8895,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 					}
 					else // <advc.008>
 					{
-						szBuffer = gDLL->getText(::needsArticle(eBuilding) ?
+						szBuffer = gDLL->getText(kBuilding.nameNeedsArticle() ?
 								"TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN_THE" :
 								"TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN",
 								kBuilding.getTextKeyWide());
@@ -8921,7 +8915,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 		if (kBuilding.isAllowsNukes())
 			GC.getGame().makeNukesValid(true);
 
-		GC.getGame().incrementBuildingClassCreatedCount(eBuildingClass);
+		GC.getGame().incrementBuildingClassCreatedCount(kBuilding.getBuildingClassType());
 		/*  advc: Increments greater than 1 aren't supported. As for decrements:
 			a building that gets destroyed has nevertheless been created ...
 			That said, removing and recreating world wonders through WB will
@@ -9474,8 +9468,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 			if (iData2 == NO_UNITAI)
 				iData2 = GC.getInfo(eUnit).getDefaultUnitAIType();
 			UnitAITypes const eUnitAI = (UnitAITypes)iData2; // advc
-			GET_PLAYER(getOwner()).changeUnitClassMaking(
-					(UnitClassTypes)GC.getInfo(eUnit).getUnitClassType(), 1);
+			GET_PLAYER(getOwner()).changeUnitClassMaking(GC.getInfo(eUnit).getUnitClassType(), 1);
 			getArea().changeNumTrainAIUnits(getOwner(), eUnitAI, 1);
 			GET_PLAYER(getOwner()).AI_changeNumTrainAIUnits(eUnitAI, 1);
 
@@ -9497,7 +9490,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 		if (canConstruct(eBuilding) || bForce)
 		{
 			GET_PLAYER(getOwner()).changeBuildingClassMaking(
-					(BuildingClassTypes)GC.getInfo(eBuilding).getBuildingClassType(), 1);
+					GC.getInfo(eBuilding).getBuildingClassType(), 1);
 			bValid = true;
 			bBuildingBuilding = true;
 			CvEventReporter::getInstance().cityBuildingBuilding(this, eBuilding);
@@ -9639,8 +9632,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		UnitAITypes eTrainAIUnit = (UnitAITypes)pOrderNode->m_data.iData2;
 		FAssert(eTrainUnit != NO_UNIT);
 		FAssert(eTrainAIUnit != NO_UNITAI);
-		kOwner.changeUnitClassMaking((UnitClassTypes)GC.getInfo(eTrainUnit).
-				getUnitClassType(), -1);
+		kOwner.changeUnitClassMaking(GC.getInfo(eTrainUnit).getUnitClassType(), -1);
 		getArea().changeNumTrainAIUnits(getOwner(), eTrainAIUnit, -1);
 		kOwner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
 		/*  <advc.113b> So that the new worker can already be taken into account
@@ -9709,10 +9701,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 	}
 	case ORDER_CONSTRUCT:
 	{
-		eConstructBuilding = (BuildingTypes)(pOrderNode->m_data.iData1);
-		BuildingClassTypes eBuildingClass = (BuildingClassTypes)GC.getInfo(
-				eConstructBuilding).getBuildingClassType();
+		eConstructBuilding = (BuildingTypes)pOrderNode->m_data.iData1;
+		BuildingClassTypes eBuildingClass = GC.getInfo(eConstructBuilding).getBuildingClassType();
 		kOwner.changeBuildingClassMaking(eBuildingClass, -1);
+		CvBuildingClassInfo const& kConstructClass = GC.getInfo(eBuildingClass);
 		/*  advc.064d: processBuilding may now call verifyProduction. Important that
 			the constructed building is no longer in the queue at that point. */
 		doPopOrder(pOrderNode);
@@ -9720,7 +9712,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 			break;
 		if (kOwner.isBuildingClassMaxedOut(eBuildingClass,
 			// UNOFFICIAL_PATCH, Bugfix, 10/08/09, davidlallen & jdog5000:
-			GC.getInfo(eBuildingClass).getExtraPlayerInstances()))
+			kConstructClass.getExtraPlayerInstances()))
 		{
 			kOwner.removeBuildingClass(eBuildingClass);
 		}
@@ -9733,7 +9725,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		setBuildingProduction(eConstructBuilding, 0);
 		setBuildingProductionTime(eConstructBuilding, 0); // Bugfix, 06/10/10, EmperorFool
 		// <advc.123f>
-		if(::isWorldWonderClass(eBuildingClass) &&
+		if (kConstructClass.isWorldWonder() &&
 			GC.getGame().isBuildingClassMaxedOut(eBuildingClass))
 		{
 			iMaxedBuildingOrProject = eConstructBuilding;
@@ -9922,8 +9914,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		if (eTrainUnit != NO_UNIT)
 		{
 			swprintf(szBuffer, gDLL->getText(
-					isLimitedUnitClass((UnitClassTypes)
-					GC.getInfo(eTrainUnit).getUnitClassType()) ?
+					GC.getInfo(eTrainUnit).isLimited() ?
 					"TXT_KEY_MISC_TRAINED_UNIT_IN_LIMITED" :
 					"TXT_KEY_MISC_TRAINED_UNIT_IN",
 					GC.getInfo(eTrainUnit).getTextKeyWide(),
@@ -9934,10 +9925,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		}
 		else if (eConstructBuilding != NO_BUILDING)
 		{
-			swprintf(szBuffer, gDLL->getText((isLimitedWonderClass((BuildingClassTypes)
-					GC.getInfo(eConstructBuilding).getBuildingClassType()) ?
+			swprintf(szBuffer, gDLL->getText(
+					GC.getInfo(eConstructBuilding).isLimited() ?
 					"TXT_KEY_MISC_CONSTRUCTED_BUILD_IN_LIMITED" :
-					"TXT_KEY_MISC_CONSTRUCTED_BUILD_IN"),
+					"TXT_KEY_MISC_CONSTRUCTED_BUILD_IN",
 					GC.getInfo(eConstructBuilding).getTextKeyWide(),
 					getNameKey()).GetCString());
 			strcpy(szSound, GC.getInfo(eConstructBuilding).getConstructSound());
@@ -9945,12 +9936,13 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		}
 		else if (eCreateProject != NO_PROJECT)
 		{
-			swprintf(szBuffer, gDLL->getText(((isLimitedProject(eCreateProject)) ?
+			swprintf(szBuffer, gDLL->getText(
+					GC.getInfo(eCreateProject).isLimited() ?
 					// <advc.008e>
-					(::needsArticle(eCreateProject) ?
+					(GC.getInfo(eCreateProject).nameNeedsArticle() ?
 					"TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED_THE" :
 					"TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED") // </advc.008e>
-					: "TXT_KEY_MISC_CREATED_PROJECT_IN"),
+					: "TXT_KEY_MISC_CREATED_PROJECT_IN",
 					GC.getInfo(eCreateProject).getTextKeyWide(),
 					getNameKey()).GetCString());
 			strcpy(szSound, GC.getInfo(eCreateProject).getCreateSound());
@@ -9958,9 +9950,9 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		}
 		if (isProduction())
 		{
-			swprintf(szTempBuffer, gDLL->getText((isProductionLimited() ?
+			swprintf(szTempBuffer, gDLL->getText(isProductionLimited() ?
 					"TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" :
-					"TXT_KEY_MISC_WORK_HAS_BEGUN"),
+					"TXT_KEY_MISC_WORK_HAS_BEGUN",
 					getProductionNameKey()).GetCString());
 			wcscat(szBuffer, szTempBuffer);
 		}
@@ -10369,7 +10361,7 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 			if (pOrderNode->m_data.eOrderType == ORDER_TRAIN &&
 				pOrderNode->m_data.iData1 == eUnit)
 			{
-				kOwner.changeUnitClassMaking((UnitClassTypes)GC.getInfo((UnitTypes)
+				kOwner.changeUnitClassMaking(GC.getInfo((UnitTypes)
 						pOrderNode->m_data.iData1).getUnitClassType(), -1);
 				pOrderNode->m_data.iData1 = eUpgradeUnit;
 				if (kOwner.AI_unitValue(eUpgradeUnit, (UnitAITypes)pOrderNode->m_data.iData2, area()) == 0)
@@ -10381,7 +10373,7 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 					kOwner.AI_changeNumTrainAIUnits((UnitAITypes)pOrderNode->m_data.iData2, 1);
 				}
 				// advc (note): pOrderNode may have changed
-				kOwner.changeUnitClassMaking((UnitClassTypes)GC.getInfo((UnitTypes)
+				kOwner.changeUnitClassMaking(GC.getInfo((UnitTypes)
 						pOrderNode->m_data.iData1).getUnitClassType(), 1);
 			}
 			pOrderNode = nextOrderQueueNode(pOrderNode);
@@ -10746,7 +10738,7 @@ void CvCity::doMeltdown()
 		if (kDangerBuilding.getNukeExplosionRand() == 0 || isAreaCleanPower() ||
 			(!kDangerBuilding.isPower() && kDangerBuilding.getPowerBonus() == NO_BONUS) ||
 			(kDangerBuilding.getPowerBonus() != NO_BONUS &&
-			!hasBonus((BonusTypes)kDangerBuilding.getPowerBonus())))
+			!hasBonus(kDangerBuilding.getPowerBonus())))
 		{
 			continue;
 		} // </dlph.5>
@@ -10770,7 +10762,7 @@ void CvCity::doMeltdown()
 			CvBuildingInfo const& kSafeBuilding = GC.getInfo(eSafeBuilding);
 			if(!kSafeBuilding.isPower() &&
 				(kSafeBuilding.getPowerBonus() == NO_BONUS ||
-				!hasBonus((BonusTypes)kSafeBuilding.getPowerBonus())))
+				!hasBonus(kSafeBuilding.getPowerBonus())))
 			{
 				continue;
 			}
@@ -11361,8 +11353,7 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 			continue;
 		// Copied these two checks from Rise of Mankind
 		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-		BuildingClassTypes eBuildingClass = kCiv.buildingClass(eBuilding);
-		bool const bWonder = isLimitedWonderClass(eBuildingClass);
+		bool const bWonder = kBuilding.isLimited();
 		bool const bDefense = (kBuilding.getDefenseModifier() > 0 ||
 				kBuilding.get(CvBuildingInfo::RaiseDefense) > 0); // advc.004c
 		if (!bAllVisible && !bWonder && !bDefense)

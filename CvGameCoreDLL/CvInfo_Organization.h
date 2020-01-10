@@ -77,6 +77,8 @@ public: // All the const functions are exposed to Python
 
 	bool read(CvXMLLoadUtility* pXML);
 
+	static bool isReligionTech(TechTypes eTech); // advc.003w: Moved from CvGameCoreUtils
+
 protected:
 	int m_iHolyCityChar;
 	int m_iNumFreeUnits;
@@ -117,6 +119,8 @@ public: // All the const functions are exposed to Python
 	int* getYieldProducedArray() const;
 
 	bool read(CvXMLLoadUtility* pXML);
+
+	static bool isCorporationTech(TechTypes eTech); // advc.003w: Moved from CvGameCoreUtils; unused.
 
 protected:
 	int m_iHeadquarterChar;

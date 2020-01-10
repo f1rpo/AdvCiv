@@ -1203,19 +1203,23 @@ bool AIFoundValue::isRemovableFeature(CvPlot const& p, bool& bPersistent,
 				iFeatureProduction /= 3; // Can already chop it
 		}
 		// CurrentResearch should be good enough
-		TechTypes eTech1 = (TechTypes)kBuild.getTechPrereq();
-		TechTypes eTech2 = (TechTypes)kBuild.getFeatureTech(eFeature);
+		TechTypes eTech1 = kBuild.getTechPrereq();
+		TechTypes eTech2 = kBuild.getFeatureTech(eFeature);
 		// </advc.031>
-		if(kTeam.isHasTech(eTech1) &&
-				kTeam.isHasTech(eTech2)) // advc.001: This check was missing
+		if (kTeam.isHasTech(eTech1) &&
+			kTeam.isHasTech(eTech2)) // advc.001: This check was missing
+		{
 			return true;
+		}
 		// <advc.031>
 		for (MemberIter it(eTeam); it.hasNext(); ++it)
 		{
 			CvPlayer const& kMember = *it;
-			if(kMember.getCurrentResearch() == eTech1 &&
-					kMember.getCurrentResearch() == eTech2)
+			if (kMember.getCurrentResearch() == eTech1 &&
+				kMember.getCurrentResearch() == eTech2)
+			{
 				return true;
+			}
 		} // </advc.031>
 	}
 	return false;
@@ -1252,11 +1256,11 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	FOR_EACH_ENUM(Build)
 	{
 		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
-		ImprovementTypes eImprovement = (ImprovementTypes)kBuild.getImprovement();
+		ImprovementTypes eImprovement = kBuild.getImprovement();
 		if (eImprovement == NO_IMPROVEMENT)
 			continue;
 		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
-		TechTypes const eBuildPrereq = (TechTypes)kBuild.getTechPrereq();
+		TechTypes const eBuildPrereq = kBuild.getTechPrereq();
 		if (eImprovement == NO_IMPROVEMENT ||
 			!kImprovement.isImprovementBonusMakesValid(eBonus) ||
 			!kImprovement.isImprovementBonusTrade(eBonus) ||
@@ -1265,7 +1269,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 			continue;
 		}
 		TechTypes const eFeaturePrereq = (eFeature == NO_FEATURE ? NO_TECH :
-				(TechTypes)kBuild.getFeatureTech(eFeature));
+				kBuild.getFeatureTech(eFeature));
 		if (!isNearTech(eFeaturePrereq))
 			continue;
 		bCanTradeSoon = true;
@@ -1413,8 +1417,8 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 			advc.045 hides foreign buildings, but it should, in theory, be possible
 			to infer culture buildings from visible tile culture percentages.
 			But will then also have to predict our own culture rate. */
-		static BuildingTypes const eCapitalBuilding = (BuildingTypes)
-				GC.getCivilizationInfo(pForeignCity->getCivilizationType()).
+		static BuildingTypes const eCapitalBuilding = GC.getCivilizationInfo(
+				pForeignCity->getCivilizationType()).
 				getCivilizationBuildings(GC.getDefineINT("CAPITAL_BUILDINGCLASS"));
 		if (eCapitalBuilding != NO_BUILDING)
 		{
