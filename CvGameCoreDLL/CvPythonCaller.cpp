@@ -1434,11 +1434,12 @@ void CvPythonCaller::riverStartCardinalDirection(CvPlot const& kPlot,
 	r = (CardinalDirectionTypes)toInt(lResult);
 }
 
-bool CvPythonCaller::isExplorerPlacementRandomized() const
+bool CvPythonCaller::isHumanExplorerPlacementRandomized() const
 {
 	long lResult = false;
 	call("startHumansOnSameTile", lResult, m_python.getMapScriptModule(), false);
-	return toBool(lResult);
+	// If they don't start on the same tile, then placement is randomized.
+	return !toBool(lResult);
 }
 
 int CvPythonCaller::minStartingDistanceMod() const

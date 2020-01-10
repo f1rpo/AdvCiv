@@ -1370,8 +1370,9 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 	//if (isHuman())
 	if(eUnitAI == UNITAI_EXPLORE && // advc.108
 		!GC.getInfo(eUnit).isFound() &&
-		GC.getPythonCaller()->isExplorerPlacementRandomized())
-	{ // advc: style changes in this block
+		(GC.getPythonCaller()->isHumanExplorerPlacementRandomized() ||
+		!isHuman())) // advc.108
+	{
 		int iRandOffset = GC.getGame().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
 		FOR_EACH_ENUM(CityPlot)
 		{

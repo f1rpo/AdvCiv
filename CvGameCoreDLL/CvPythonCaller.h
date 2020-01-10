@@ -157,7 +157,7 @@ public:
 	bool addLakes() const;
 	bool addRivers() const;
 	void riverStartCardinalDirection(CvPlot const& kPlot, CardinalDirectionTypes& r) const;
-	bool isExplorerPlacementRandomized() const;
+	bool isHumanExplorerPlacementRandomized() const;
 	int minStartingDistanceMod() const;
 	CvArea* findStartingArea(PlayerTypes eStartingPlayer) const;
 	CvPlot* findStartingPlot(PlayerTypes eStartingPlayer) const;
