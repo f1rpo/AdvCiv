@@ -4626,7 +4626,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							// K-Mod
 							iTempValue *= AI_yieldMultiplier((YieldTypes)iYield);
 							iTempValue /= 100;
-							if (iI == YIELD_PRODUCTION)
+							/*	advc.001: Was 'iI==...'. (Note: It so happens that
+								iI==eVS==1==YIELD_PRODUCTION when eVS is the AP.) */
+							if (iYield == YIELD_PRODUCTION)
 							{
 								// priority += 2.8% per 1% in production increase. roughly. More when at war.
 								iPriorityFactor += std::min(100, (bWarPlan ? 320 : 280)*iTempValue/std::max(1, 4*getYieldRate(YIELD_PRODUCTION)));
