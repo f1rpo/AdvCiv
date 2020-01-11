@@ -222,6 +222,15 @@ private:
 	CvWString KeyStringFromKBCode(const TCHAR* pszHotKey);
 
 	void orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength);
+	/*	<advc.006g> (The BtS code sometimes said "XML Error", sometimes "XML Load Error"
+		not sure if that's meanigful, but I'm going to preserve it.)*/
+	enum XMLErrorTypes
+	{
+		GENERAL_XML_ERROR,
+		XML_LOAD_ERROR,
+	};
+	static void errorMessage(char const* szMessage, XMLErrorTypes eErrType = GENERAL_XML_ERROR);
+	// </advc.006g>
 	void logMsg(char* format, ...);
 };
 

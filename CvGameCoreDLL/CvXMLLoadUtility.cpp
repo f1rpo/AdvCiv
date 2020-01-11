@@ -11,6 +11,17 @@
 
 static const int kBufSize = 2048;
 
+/*	advc.006g: Prefer a failed assertion over a message box when debugging.
+	I've redirected all MessageBox calls to this function. */
+void CvXMLLoadUtility::errorMessage(char const* szMessage, XMLErrorTypes eErrType)
+{
+	#ifdef _DEBUG
+	FAssertMsg(false, szMessage);
+	#else
+	gDLL->MessageBox(szMessage, eErrType == XML_LOAD_ERROR ?
+			"XML Load Error" : "XML Error");
+	#endif
+}
 
 void CvXMLLoadUtility::logMsg(char* format, ...)
 {
@@ -30,7 +41,7 @@ bool CvXMLLoadUtility::CreateFXml()
 	{
 		char	szMessage[512];
 		sprintf( szMessage, "Caught unhandled exception creating XML parser object \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "Loading Error");
+		errorMessage(szMessage, XML_LOAD_ERROR);
 		return false;
 	}
 	return true;
@@ -266,7 +277,7 @@ int CvXMLLoadUtility::FindInInfoClass(const TCHAR* pszVal, bool hideAssert)
 		{
 			char errorMsg[1024];
 			sprintf(errorMsg, "Tag: %s in Info class was incorrect \n Current XML file is: %s", pszVal, GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(errorMsg, "XML Error");
+			errorMessage(errorMsg);
 		}
 	}
 

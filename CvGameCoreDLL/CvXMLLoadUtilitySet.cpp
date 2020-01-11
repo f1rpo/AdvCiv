@@ -35,7 +35,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 	{
 		char	szMessage[1024];
 		sprintf( szMessage, "LoadXML call failed for %s \n Current XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Load Error");
+		errorMessage(szMessage, XML_LOAD_ERROR);
 	}
 
 	if (bLoaded)
@@ -341,7 +341,7 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 
 	char	szMessage[1024];
 	sprintf( szMessage, "Size of Global Defines is not greater than 0. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-	gDLL->MessageBox(szMessage, "XML Load Error");
+	errorMessage(szMessage, XML_LOAD_ERROR);
 
 	return false;
 }
@@ -359,7 +359,7 @@ bool CvXMLLoadUtility::SetGlobalTypes()
 	{
 		char	szMessage[1024];
 		sprintf( szMessage, "LoadXML call failed for GlobalTypes.xml. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Load Error");
+		errorMessage(szMessage, XML_LOAD_ERROR);
 	}
 
 	if (bLoaded)
@@ -518,7 +518,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 		{
 			char	szMessage[1024];
 			sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", it->c_str(), GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(szMessage, "XML Load Error");
+			errorMessage(szMessage, XML_LOAD_ERROR);
 		}
 		if (bLoaded)
 		{
@@ -661,7 +661,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 		{
 			char szMessage[1024];
 			sprintf(szMessage, "cursor type already set? \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(szMessage, "XML Error");
+			errorMessage(szMessage);
 		}
 		GC.getDefinesVarSystem()->SetValue(szType, i);
 	}
@@ -844,7 +844,7 @@ void CvXMLLoadUtility::SetGlobalStringArray(CvString **ppszString, char* szTagNa
 	{
 		char szMessage[1024];
 		sprintf( szMessage, "Error locating tag node in SetGlobalStringArray function \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 }
 
@@ -855,7 +855,7 @@ void CvXMLLoadUtility::SetGlobalStringArray(CvString **ppszString, char* szTagNa
 		char szMessage[1024]; \
 		sprintf(szMessage, #VAR" is not greater than zero in CvXMLLoadUtility::SetGlobalActionInfo \n Current XML file is: %s", \
 				GC.getCurrentXMLFile().GetCString()); \
-		gDLL->MessageBox(szMessage, "XML Error"); \
+		errorMessage(szMessage); \
 	} // </advc>
 
 
@@ -1032,9 +1032,9 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_UNIT)
 		{
 			CvUnitInfo& kUnit = GC.getInfo((UnitTypes)iInfo);
-			kUnit.setCommandType(FindInInfoClass("COMMAND_UPGRADE"));
+			kUnit.setCommandType((CommandTypes)FindInInfoClass("COMMAND_UPGRADE"));
 			kUnit.setActionInfoIndex(i);
-			setActionData(kUnit, i, (CommandTypes)kUnit.getCommandType());
+			setActionData(kUnit, i, kUnit.getCommandType());
 		}
 		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_RELIGION)
 		{
@@ -1060,7 +1060,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILDING)
 		{
 			CvBuildingInfo& kBuilding = GC.getInfo((BuildingTypes)iInfo);
-			kBuilding.setMissionType(FindInInfoClass("MISSION_CONSTRUCT"));
+			kBuilding.setMissionType((MissionTypes)FindInInfoClass("MISSION_CONSTRUCT"));
 			kBuilding.setActionInfoIndex(i);
 			//setActionData(kBuilding, i, (MissionTypes)kBuilding.getMissionType());
 		}
@@ -1123,7 +1123,7 @@ void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimat
 		char szMessage[1024];
 		sprintf(szMessage, "Error finding tag node in SetGlobalAnimationPathInfo function \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 }
 
@@ -1154,7 +1154,7 @@ void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimat
 		char szMessage[1024];
 		sprintf(szMessage, "Error finding tag node in SetGlobalUnitScales function \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 }*/
 
@@ -1182,7 +1182,7 @@ void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagNam
 			{
 				char	szMessage[1024];
 				sprintf( szMessage, "failed to find sibling \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Error");
+				errorMessage(szMessage);
 				break;
 			}
 		}
@@ -1334,7 +1334,7 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 		{
 			char szMessage[1024];
 			sprintf(szMessage, "LoadXML call failed for %s.", CvString::format("%s/%s.xml", szFileDirectory, szFileRoot).GetCString());
-			gDLL->MessageBox(szMessage, "XML Load Error");
+			errorMessage(szMessage, XML_LOAD_ERROR);
 		}
 		else
 		{
@@ -1351,7 +1351,7 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 					{
 						char szMessage[1024];
 						sprintf(szMessage, "LoadXML call failed for %s.", it->GetCString());
-						gDLL->MessageBox(szMessage, "XML Load Error");
+						errorMessage(szMessage, XML_LOAD_ERROR);
 					}
 					else SetGlobalClassInfo(aInfos, szXmlPath, bTwoPass);
 				}
@@ -1399,7 +1399,7 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 		{
 			char szMessage[1024];
 			sprintf(szMessage, "LoadXML call failed for %s.", CvString::format("%s/%s.xml", szFileDirectory, szFileRoot).GetCString());
-			gDLL->MessageBox(szMessage, "XML Load Error");
+			errorMessage(szMessage, XML_LOAD_ERROR);
 		}
 		else
 		{
@@ -1416,7 +1416,7 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 					{
 						char szMessage[1024];
 						sprintf(szMessage, "LoadXML call failed for %s.", (*it).GetCString());
-						gDLL->MessageBox(szMessage, "XML Load Error");
+						errorMessage(szMessage, XML_LOAD_ERROR);
 					}
 					else SetDiplomacyInfo(DiploInfos, szXmlPath);
 				}
@@ -1517,7 +1517,7 @@ int CvXMLLoadUtility::SetYields(int** ppiYield)
 		char szMessage[1024];
 		sprintf( szMessage, "For loop iterator is greater than array size \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	// loop through all the siblings, we start at 1 since we already have the first value
 	for (int i = 1; i < iNumSibs; i++)
@@ -1538,7 +1538,7 @@ void CvXMLLoadUtility::SetFeatureStruct(int** ppiFeatureTech, int** ppiFeatureTi
 	{
 		char	szMessage[1024];
 		sprintf( szMessage, "no feature infos set yet! \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitList(ppiFeatureTech, GC.getNumFeatureInfos(), -1);
 	InitList(ppiFeatureTime, GC.getNumFeatureInfos());
@@ -1562,7 +1562,7 @@ void CvXMLLoadUtility::SetFeatureStruct(int** ppiFeatureTech, int** ppiFeatureTi
 					char szMessage[1024];
 					sprintf(szMessage, "iNumSibs is greater than GC.getNumFeatureInfos in SetFeatureStruct function \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				TCHAR szTextVal[256]; // temporarily hold the text value of the current xml node
 				for (int i = 0; i < iNumSibs; i++)
@@ -1573,7 +1573,7 @@ void CvXMLLoadUtility::SetFeatureStruct(int** ppiFeatureTech, int** ppiFeatureTi
 					{
 						char	szMessage[1024];
 						sprintf( szMessage, "iFeatureIndex is -1 inside SetFeatureStruct function \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-						gDLL->MessageBox(szMessage, "XML Error");
+						errorMessage(szMessage);
 					}
 					GetChildXmlValByName(szTextVal, "PrereqTech");
 					paiFeatureTech[iFeatureIndex] = FindInInfoClass(szTextVal);
@@ -1613,7 +1613,7 @@ void CvXMLLoadUtility::SetImprovementBonuses(CvImprovementBonusInfo** ppImprovem
 				char szMessage[1024];
 				sprintf( szMessage, "For loop iterator is greater than array size \n Current XML file is: %s",
 						GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Error");
+				errorMessage(szMessage);
 			}
 			TCHAR szNodeVal[256]; // temporarily holds the string value of the current xml node
 			for (int i = 0; i < iNumSibs; i++)
@@ -1695,7 +1695,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitList(ppiList, iInfoBaseLength, iDefaultListVal);
 	bool bListModified = false; // advc.003t
@@ -1712,7 +1712,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -1756,7 +1756,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitList(ppbList, iInfoBaseLength, bDefaultListVal);
 	bool bListModified = false; // advc.003t
@@ -1773,7 +1773,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -1817,7 +1817,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitList(ppfList, iInfoBaseLength, fDefaultListVal);
 	bool bListModified = false; // advc.003t
@@ -1834,7 +1834,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRo
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -1878,7 +1878,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitStringList(ppszList, iInfoBaseLength, szDefaultListVal);
 	bool bListModified = false; // advc.003t
@@ -1895,7 +1895,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -1945,7 +1945,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitList(ppiList, iTagListLength, iDefaultListVal);
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
@@ -1961,7 +1961,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 					char szMessage[1024];
 					sprintf( szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -2001,7 +2001,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 				char szMessage[1024];
 				sprintf( szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPairForAudio \n Current XML file is: %s",
 						GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Error");
+				errorMessage(szMessage);
 			}
 			InitList(ppiList, iTagListLength, iDefaultListVal);
 			int* piList = *ppiList;
@@ -2012,7 +2012,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPairForAudio \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -2058,7 +2058,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 				char szMessage[1024];
 				sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 						GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Error");
+				errorMessage(szMessage);
 			}
 			InitList(ppiList, iInfoBaseLength, iDefaultListVal);
 			int* piList = *ppiList;
@@ -2069,7 +2069,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -2110,7 +2110,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitList(ppbList, iTagListLength, bDefaultListVal);
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
@@ -2126,7 +2126,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 					char szMessage[1024];
 					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
@@ -2161,7 +2161,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 		char szMessage[1024];
 		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 				GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Error");
+		errorMessage(szMessage);
 	}
 	InitStringList(ppszList, iTagListLength, szDefaultListVal);
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
@@ -2177,7 +2177,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 					char szMessage[1024];
 					sprintf( szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
 							GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Error");
+					errorMessage(szMessage);
 				}
 				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 				{
