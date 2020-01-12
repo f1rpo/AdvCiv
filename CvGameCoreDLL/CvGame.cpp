@@ -5651,7 +5651,7 @@ bool CvGame::canTrain(UnitTypes eUnit, bool bIgnoreCost, bool bTestVisible) cons
 	if ((isNoNukes() || !isNukesValid()) && kUnit.getNukeRange() != -1)
 		return false;
 
-	SpecialUnitTypes eSpecialUnit = (SpecialUnitTypes)kUnit.getSpecialUnitType();
+	SpecialUnitTypes eSpecialUnit = kUnit.getSpecialUnitType();
 	if (eSpecialUnit != NO_SPECIALUNIT && !isSpecialUnitValid(eSpecialUnit))
 		return false;
 
@@ -7624,27 +7624,31 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
 		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
-		DomainTypes eDomain = (DomainTypes)kUnit.getDomainType();
+		DomainTypes eDomain = kUnit.getDomainType();
 		if(kUnit.getCombat() <= 0 || eDomain == DOMAIN_AIR ||
-				kUnit.isMostlyDefensive() || // advc.315
-				(eDomain == DOMAIN_SEA) != bSea ||
-				!GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit))
+			kUnit.isMostlyDefensive() || // advc.315
+			(eDomain == DOMAIN_SEA) != bSea ||
+			!GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit))
+		{
 			continue;
-		// <advc.301>
-		BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
+		} // <advc.301>
+		BonusTypes eAndBonus = kUnit.getPrereqAndBonus();
 		TechTypes eAndBonusTech = NO_TECH;
 		if (eAndBonus != NO_BONUS)
 		{
 			eAndBonusTech = (TechTypes)GC.getInfo(eAndBonus).getTechCityTrade();
-			if((eAndBonusTech != NO_TECH && !GET_TEAM(BARBARIAN_TEAM).
-					isHasTech(eAndBonusTech)) || !a.hasAnyAreaPlayerBonus(eAndBonus))
+			if((eAndBonusTech != NO_TECH &&
+				!GET_TEAM(BARBARIAN_TEAM).isHasTech(eAndBonusTech)) ||
+				!a.hasAnyAreaPlayerBonus(eAndBonus))
+			{
 				continue;
+			}
 		}
 		/*  No units from more than 1 era ago (obsoletion too difficult to test).
 			hasTech already tested by canTrain, but era shouldn't be
 			tested there b/c it's OK for Barbarian cities to train outdated units
 			(they only will if they can't train anything better). */
-		TechTypes eAndTech = (TechTypes)kUnit.getPrereqAndTech();
+		TechTypes eAndTech = kUnit.getPrereqAndTech();
 		int iUnitEra = 0;
 		if (eAndTech != NO_TECH)
 			iUnitEra = GC.getInfo(eAndTech).getEra();
@@ -7656,18 +7660,19 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 		bool bRequires = false;
 		for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++)
 		{
-			BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(j);
+			BonusTypes eOrBonus = kUnit.getPrereqOrBonuses(j);
 			if(eOrBonus == NO_BONUS)
 				continue;
 			CvBonusInfo const& kOrBonus = GC.getInfo(eOrBonus);
 			TechTypes eOrBonusTech = (TechTypes)kOrBonus.getTechCityTrade();
-			if (eOrBonusTech != NO_TECH) {
+			if (eOrBonusTech != NO_TECH)
+			{
 				bRequires = true;
 				if (GET_TEAM(BARBARIAN_TEAM).isHasTech(eOrBonusTech)
-						/*  advc.301: Also require the resource to be connected by
-							someone on this continent; in particular, don't spawn
-							Horse Archers on a horseless continent. */
-						&& a.hasAnyAreaPlayerBonus(eOrBonus))
+					/*  advc.301: Also require the resource to be connected by
+						someone on this continent; in particular, don't spawn
+						Horse Archers on a horseless continent. */
+					&& a.hasAnyAreaPlayerBonus(eOrBonus))
 				{
 					bFound = true;
 					break;
@@ -10605,12 +10610,10 @@ bool CvGame::isBuildingEverActive(BuildingTypes eBuilding) const
 
 void CvGame::processBuilding(BuildingTypes eBuilding, int iChange)
 {
-	for (int iI = 0; iI < GC.getNumVoteSourceInfos(); ++iI)
+	FOR_EACH_ENUM(VoteSource)
 	{
-		if (GC.getInfo(eBuilding).getVoteSourceType() == (VoteSourceTypes)iI)
-		{
-			changeDiploVote((VoteSourceTypes)iI, iChange);
-		}
+		if (GC.getInfo(eBuilding).getVoteSourceType() == eLoopVoteSource)
+			changeDiploVote(eLoopVoteSource, iChange);
 	}
 }
 

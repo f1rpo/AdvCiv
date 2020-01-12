@@ -75,7 +75,7 @@ protected:
 class CvUnitInfo : public CvHotkeyInfo
 {
 public: /*  All const functions are exposed to Python except some related to art and those added by mods.
-			advc.inl: Inlined most of the non-array getters. */
+			Replaced int return types with enum. advc.inl: Inlined most of the non-array getters. */
 	CvUnitInfo();
 	~CvUnitInfo();
 
@@ -125,8 +125,8 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getHillsDefenseModifier() const { return m_iHillsDefenseModifier; }
 	int getBombRate() const { return m_iBombRate; }
 	int getBombardRate() const { return m_iBombardRate; }
-	int getSpecialCargo() const { return m_iSpecialCargo; }
-	int getDomainCargo() const { return m_iDomainCargo; }
+	SpecialUnitTypes getSpecialCargo() const { return (SpecialUnitTypes)m_iSpecialCargo; }
+	DomainTypes getDomainCargo() const { return (DomainTypes)m_iDomainCargo; }
 
 	int getCargoSpace() const { return m_iCargoSpace; }
 	int getConscriptionValue() const { return m_iConscriptionValue; }
@@ -136,36 +136,36 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getPowerValue() const { return m_iPowerValue; }
 
 	inline UnitClassTypes getUnitClassType() const { return (UnitClassTypes)m_iUnitClassType; }
-	int getSpecialUnitType() const { return m_iSpecialUnitType; }
-	int getUnitCaptureClassType() const { return m_iUnitCaptureClassType; }
+	SpecialUnitTypes getSpecialUnitType() const { return (SpecialUnitTypes)m_iSpecialUnitType; }
+	UnitClassTypes getUnitCaptureClassType() const { return (UnitClassTypes)m_iUnitCaptureClassType; }
 	inline UnitCombatTypes getUnitCombatType() const { return (UnitCombatTypes)m_iUnitCombatType; }
 	// advc.inl: force-inlined for CvArea::canBeEntered
-	__forceinline int getDomainType() const { return m_iDomainType; }
-	int getDefaultUnitAIType() const { return m_iDefaultUnitAIType; }
-	inline int getInvisibleType() const { return m_iInvisibleType; }
-	int getSeeInvisibleType(int i) const
+	__forceinline DomainTypes getDomainType() const { return (DomainTypes)m_iDomainType; }
+	UnitAITypes getDefaultUnitAIType() const { return (UnitAITypes)m_iDefaultUnitAIType; }
+	inline InvisibleTypes getInvisibleType() const { return (InvisibleTypes)m_iInvisibleType; }
+	InvisibleTypes getSeeInvisibleType(int i) const
 	{
 		FAssertBounds(0, m_aiSeeInvisibleTypes.size(), i);
-		return m_aiSeeInvisibleTypes[i];
+		return (InvisibleTypes)m_aiSeeInvisibleTypes[i];
 	}
 	inline int getNumSeeInvisibleTypes() const { return (int)m_aiSeeInvisibleTypes.size(); }
 	AdvisorTypes getAdvisorType() const { return (AdvisorTypes)m_iAdvisorType; }
-	int getHolyCity() const { return m_iHolyCity; }
-	int getReligionType() const { return m_iReligionType; }
-	int getStateReligion() const { return m_iStateReligion; }
-	int getPrereqReligion() const { return m_iPrereqReligion; }
-	int getPrereqCorporation() const { return m_iPrereqCorporation; }
-	int getPrereqBuilding() const { return m_iPrereqBuilding; }
-	int getPrereqAndTech() const { return m_iPrereqAndTech; }
+	ReligionTypes getHolyCity() const { return (ReligionTypes)m_iHolyCity; }
+	ReligionTypes getReligionType() const { return (ReligionTypes)m_iReligionType; }
+	ReligionTypes getStateReligion() const { return (ReligionTypes)m_iStateReligion; }
+	ReligionTypes getPrereqReligion() const { return (ReligionTypes)m_iPrereqReligion; }
+	CorporationTypes getPrereqCorporation() const { return (CorporationTypes)m_iPrereqCorporation; }
+	BuildingTypes getPrereqBuilding() const { return (BuildingTypes)m_iPrereqBuilding; }
+	TechTypes getPrereqAndTech() const { return (TechTypes)m_iPrereqAndTech; }
 	bool isTechRequired(TechTypes eTech) const; // advc.003w: Replacing global isTechRequiredForUnit
-	int getPrereqAndBonus() const { return m_iPrereqAndBonus; }
+	BonusTypes getPrereqAndBonus() const { return (BonusTypes)m_iPrereqAndBonus; }
 	int getGroupSize() const; // the initial number of individuals in the unit group
 	int getGroupDefinitions() const; // the number of UnitMeshGroups for this unit
 	int getMeleeWaveSize() const;
 	int getRangedWaveSize() const;
 	int getNumUnitNames() const;
-	int getCommandType() const;
-	void setCommandType(int iNewType);
+	CommandTypes getCommandType() const;
+	void setCommandType(CommandTypes eNewType);
 
 	inline bool isAnimal() const { return m_bAnimal; }
 	bool isFoodProduction() const { return m_bFoodProduction; }
@@ -221,12 +221,12 @@ public: /*  All const functions are exposed to Python except some related to art
 
 	// Array access:
 
-	int getPrereqAndTechs(int i) const;
+	TechTypes getPrereqAndTechs(int i) const;
 	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
-	int getPrereqOrBonuses(int i) const;
+	BonusTypes getPrereqOrBonuses(int i) const;
 	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
 	// <advc.905b>
-	int getSpeedBonuses(int i) const;
+	BonusTypes getSpeedBonuses(int i) const;
 	int getExtraMoves(int i) const;
 	// </advc.905b>
 	int getProductionTraits(int i) const;

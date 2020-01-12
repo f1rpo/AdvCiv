@@ -903,20 +903,19 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 
 void CvTeam::processBuilding(BuildingTypes eBuilding, int iChange)
 {
-	for (int i = 0; i < GC.getNumVoteSourceInfos(); ++i)
+	FOR_EACH_ENUM(VoteSource)
 	{
-		if (GC.getInfo(eBuilding).getVoteSourceType() == i)
+		if (GC.getInfo(eBuilding).getVoteSourceType() == eLoopVoteSource)
 		{
-			changeForceTeamVoteEligibilityCount((VoteSourceTypes)i, (GC.getInfo(eBuilding).isForceTeamVoteEligible()) ? iChange : 0);
+			changeForceTeamVoteEligibilityCount(eLoopVoteSource,
+					GC.getInfo(eBuilding).isForceTeamVoteEligible() ? iChange : 0);
 		}
 	}
 
 	if (GC.getInfo(eBuilding).isMapCentering())
 	{
 		if (iChange > 0)
-		{
 			setMapCentering(true);
-		}
 	}
 
 	changeEnemyWarWearinessModifier(GC.getInfo(eBuilding).getEnemyWarWearinessModifier() * iChange);
@@ -2205,13 +2204,13 @@ bool CvTeam::isBonusObsolete(BonusTypes eBonus) const
 bool CvTeam::canSeeReqBonuses(UnitTypes eUnit)
 {
 	CvUnitInfo& kUnit = GC.getInfo(eUnit);
-	BonusTypes eAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
+	BonusTypes eAndBonus = kUnit.getPrereqAndBonus();
 	if (eAndBonus != NO_BONUS && !isBonusRevealed(eAndBonus))
 		return false;
 	bool bAllBlank = true; // Handle dummy NONE XML elements
 	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++)
 	{
-		BonusTypes eOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(i);
+		BonusTypes eOrBonus = kUnit.getPrereqOrBonuses(i);
 		if (eOrBonus != NO_BONUS)
 		{
 			bAllBlank = false;

@@ -1171,7 +1171,7 @@ void UWAICache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 		split later through the HomeGuard constructor. */
 	for(size_t i = 1; i < militaryPower.size(); i++)
 		militaryPower[i]->updatePower(u, add);
-	if((DomainTypes)u.getDomainType() != DOMAIN_SEA && u.isMilitaryProduction() &&
+	if(u.getDomainType() != DOMAIN_SEA && u.isMilitaryProduction() &&
 			// Exclude Recon
 			u.getDefaultUnitAIType() != UNITAI_EXPLORE)
 		nNonNavyUnits += (add ? 1 : -1);

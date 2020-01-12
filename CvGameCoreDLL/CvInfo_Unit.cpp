@@ -300,33 +300,33 @@ float CvUnitInfo::getUnitPadTime() const
 	return m_fUnitPadTime;
 }
 
-int CvUnitInfo::getCommandType() const
+CommandTypes CvUnitInfo::getCommandType() const
 {
-	return m_iCommandType;
+	return (CommandTypes)m_iCommandType;
 }
 
-void CvUnitInfo::setCommandType(int iNewType)
+void CvUnitInfo::setCommandType(CommandTypes eNewType)
 {
-	m_iCommandType = iNewType;
+	m_iCommandType = (CommandTypes)eNewType;
 }
 
 
-int CvUnitInfo::getPrereqAndTechs(int i) const
+TechTypes CvUnitInfo::getPrereqAndTechs(int i) const
 {
 	FAssertBounds(0, GC.getNUM_UNIT_AND_TECH_PREREQS(), i);
-	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
+	return m_piPrereqAndTechs ? (TechTypes)m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
 }
 
-int CvUnitInfo::getPrereqOrBonuses(int i) const
+BonusTypes CvUnitInfo::getPrereqOrBonuses(int i) const
 {
 	FAssertBounds(0, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), i);
-	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
+	return m_piPrereqOrBonuses ? (BonusTypes)m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
 }
 // <advc.905b>
-int CvUnitInfo::getSpeedBonuses(int i) const {
+BonusTypes CvUnitInfo::getSpeedBonuses(int i) const {
 
 	FAssertBounds(0, GC.getNUM_UNIT_SPEED_BONUSES(), i);
-	return m_piSpeedBonuses[0] ? m_piSpeedBonuses[0][i] : NO_BONUS;
+	return m_piSpeedBonuses[0] ? (BonusTypes)m_piSpeedBonuses[0][i] : NO_BONUS;
 }
 
 int CvUnitInfo::getExtraMoves(int i) const {

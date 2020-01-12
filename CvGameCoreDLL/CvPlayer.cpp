@@ -4925,11 +4925,11 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 				if(kUnit.getDomainType() != DOMAIN_LAND)
 					continue;
 				if(kUnit.getPrereqOrBonuses(0) == NO_BONUS &&
-						kUnit.getPrereqAndBonus() == NO_BONUS &&
-						kUnit.getCombat() > 0 &&
-						(kUnit.getPrereqAndTech() == NO_TECH || // pre-Industrial:
-						GC.getInfo((TechTypes)kUnit.getPrereqAndTech()).getEra() <= 3) &&
-						GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit, false, true))
+					kUnit.getPrereqAndBonus() == NO_BONUS &&
+					kUnit.getCombat() > 0 &&
+					(kUnit.getPrereqAndTech() == NO_TECH || // pre-Industrial:
+					GC.getInfo(kUnit.getPrereqAndTech()).getEra() <= 3) &&
+					GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit, false, true))
 				{
 					int iValue = kUnit.getCombat() + (goody.isBad() ?
 							// Randomize hostile units a bit
@@ -5270,10 +5270,10 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTech()))
 		return false;
 
-	for (int iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(eUnit); iI++)
+	for (int i = 0; i < GC.getNUM_UNIT_AND_TECH_PREREQS(eUnit); i++)
 	{
-		if (GC.getInfo(eUnit).getPrereqAndTechs(iI) != NO_TECH &&
-			!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTechs(iI)))
+		if (GC.getInfo(eUnit).getPrereqAndTechs(i) != NO_TECH &&
+			!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eUnit).getPrereqAndTechs(i)))
 		{
 			return false;
 		}
@@ -5725,8 +5725,8 @@ int CvPlayer::getProductionModifier(UnitTypes eUnit) const
 		iMultiplier += GC.getInfo(eUnit).getProductionTraits(eLoopTrait);
 		if (GC.getInfo(eUnit).getSpecialUnitType() != NO_SPECIALUNIT)
 		{
-			iMultiplier += GC.getInfo((SpecialUnitTypes)GC.getInfo(eUnit).
-					getSpecialUnitType()).getProductionTraits(eLoopTrait);
+			iMultiplier += GC.getInfo(GC.getInfo(eUnit).getSpecialUnitType()).
+					getProductionTraits(eLoopTrait);
 		}
 	}
 
@@ -5835,7 +5835,6 @@ void CvPlayer::removeBuildingClass(BuildingClassTypes eBuildingClass)
 // courtesy of the Gourd Bros...
 void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kArea)
 {
-	int iI, iJ;
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding); // advc
 
 	if (kBuilding.getFreeBuildingClass() != NO_BUILDINGCLASS)
@@ -5910,35 +5909,36 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kAr
 	kArea.changeCleanPowerCount(getTeam(), ((kBuilding.isAreaCleanPower()) ? iChange : 0));
 	kArea.changeBorderObstacleCount(getTeam(), ((kBuilding.isAreaBorderObstacle()) ? iChange : 0));
 
-	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
+	FOR_EACH_ENUM2(Yield, y)
 	{
-		changeSeaPlotYield((YieldTypes)iI, kBuilding.getGlobalSeaPlotYieldChange(iI) * iChange);
-		kArea.changeYieldRateModifier(getID(), (YieldTypes)iI, kBuilding.getAreaYieldModifier(iI) * iChange);
-		changeYieldRateModifier((YieldTypes)iI, kBuilding.getGlobalYieldModifier(iI) * iChange);
+		changeSeaPlotYield(y, kBuilding.getGlobalSeaPlotYieldChange(y) * iChange);
+		kArea.changeYieldRateModifier(getID(), y, kBuilding.getAreaYieldModifier(y) * iChange);
+		changeYieldRateModifier(y, kBuilding.getGlobalYieldModifier(y) * iChange);
 	}
-
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+	FOR_EACH_ENUM2(Commerce, c)
 	{
-		changeCommerceRateModifier((CommerceTypes)iI, kBuilding.getGlobalCommerceModifier(iI) * iChange);
-		changeSpecialistExtraCommerce((CommerceTypes)iI, kBuilding.getSpecialistExtraCommerce(iI) * iChange);
-		changeStateReligionBuildingCommerce((CommerceTypes)iI, kBuilding.getStateReligionCommerce(iI) * iChange);
-		changeCommerceFlexibleCount((CommerceTypes)iI, kBuilding.isCommerceFlexible(iI) ? iChange : 0);
+		changeCommerceRateModifier(c, kBuilding.getGlobalCommerceModifier(c) * iChange);
+		changeSpecialistExtraCommerce(c, kBuilding.getSpecialistExtraCommerce(c) * iChange);
+		changeStateReligionBuildingCommerce(c, kBuilding.getStateReligionCommerce(c) * iChange);
+		changeCommerceFlexibleCount(c, kBuilding.isCommerceFlexible(c) ? iChange : 0);
 	}
 	if (kBuilding.isAnyBuildingHappinessChanges()) // advc.003t
 	{
 		CvCivilization const& kCiv = getCivilization(); // advc.003w
 		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
-			BuildingTypes eOurBuilding = kCiv.buildingAt(i);
-			changeExtraBuildingHappiness(eOurBuilding, kBuilding.getBuildingHappinessChanges(iI) * iChange);
+			BuildingTypes eOldBuilding = kCiv.buildingAt(i);
+			changeExtraBuildingHappiness(eOldBuilding,
+					kBuilding.getBuildingHappinessChanges(eOldBuilding) * iChange);
 		}
 	}
-	for (iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+	FOR_EACH_ENUM(Specialist)
 	{
-		for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+		FOR_EACH_ENUM(Yield)
 		{
-			changeSpecialistExtraYield((SpecialistTypes)iI, (YieldTypes)iJ,
-					GC.getInfo(eBuilding).getSpecialistYieldChange(iI, iJ) * iChange);
+			changeSpecialistExtraYield(eLoopSpecialist, eLoopYield,
+					GC.getInfo(eBuilding).getSpecialistYieldChange(
+					eLoopSpecialist, eLoopYield) * iChange);
 		}
 	}
 }
@@ -15692,9 +15692,9 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const
 			if (pLoopUnit->getUnitInfo().getPrereqAndTech() == eTech)
 				return -1;
 
-			for (int iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(); iI++)
+			for (int i = 0; i < GC.getNUM_UNIT_AND_TECH_PREREQS(); i++)
 			{
-				if (pLoopUnit->getUnitInfo().getPrereqAndTechs(iI) == eTech)
+				if (pLoopUnit->getUnitInfo().getPrereqAndTechs(i) == eTech)
 					return -1;
 			}
 		}

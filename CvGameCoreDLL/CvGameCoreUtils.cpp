@@ -2507,8 +2507,7 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 	}
 }
 
-/*	advc.enum: Caller needs to set the vector size.
-	Also for use in the FOR_EACH_ENUM_RAND macro. */
+// advc.enum: Caller needs to set the vector size
 void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand)
 {
 	iota(aiIndices.begin(), aiIndices.end(), 0);

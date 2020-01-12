@@ -85,7 +85,9 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvBuildingInfo : public CvHotkeyInfo
 {
-public: // All the const functions are exposed to Python. advc.inl: Inlined most of those.
+public: /*	All the const functions are exposed to Python. advc.inl: Inlined most of those.
+			Integers in signatures replaced with enum types (except for most of the array
+			accessors - tbd.). */
 	CvBuildingInfo();
 	~CvBuildingInfo();
 	// <advc.tag>
@@ -213,9 +215,9 @@ public: // All the const functions are exposed to Python. advc.inl: Inlined most
 	int getBombardDefenseModifier() const { return m_iBombardDefenseModifier; }
 	int getAllCityDefenseModifier() const { return m_iAllCityDefenseModifier; }
 	int getEspionageDefenseModifier() const { return m_iEspionageDefenseModifier; }
-	int getMissionType() const { return m_iMissionType; }
-	void setMissionType(int iNewType);
-	int getVoteSourceType() const { return m_iVoteSourceType; }
+	MissionTypes getMissionType() const { return (MissionTypes)m_iMissionType; }
+	void setMissionType(MissionTypes eNewType);
+	VoteSourceTypes getVoteSourceType() const { return (VoteSourceTypes)m_iVoteSourceType; }
 
 	float getVisibilityPriority() const;
 
@@ -253,38 +255,54 @@ public: // All the const functions are exposed to Python. advc.inl: Inlined most
 	void setMovieDefineTag(const TCHAR* szVal);
 
 	// Array access:
+	friend void CyInfoPythonInterface1(); // advc.003x
 
-	int getYieldChange(int i) const;
+	int getYieldChange(YieldTypes eYield) const;
+	iPY_WRAP(YieldChange, Yield)
 	int* getYieldChangeArray() const { return m_piYieldChange; }
-	int getYieldModifier(int i) const;
+	int getYieldModifier(YieldTypes eYield) const;
+	iPY_WRAP(YieldModifier, Yield)
 	int* getYieldModifierArray() const { return m_piYieldModifier; }
-	int getPowerYieldModifier(int i) const;
+	int getPowerYieldModifier(YieldTypes eYield) const;
+	iPY_WRAP(PowerYieldModifier, Yield)
 	int* getPowerYieldModifierArray() const { return m_piPowerYieldModifier; }
-	int getAreaYieldModifier(int i) const;
+	int getAreaYieldModifier(YieldTypes eYield) const; // (not exposed to Python)
 	int* getAreaYieldModifierArray() const { return m_piAreaYieldModifier; }
-	int getGlobalYieldModifier(int i) const;
+	int getGlobalYieldModifier(YieldTypes eYield) const;
+	iPY_WRAP(GlobalYieldModifier, Yield)
 	int* getGlobalYieldModifierArray() const { return m_piGlobalYieldModifier; }
-	int getSeaPlotYieldChange(int i) const;
+	int getSeaPlotYieldChange(YieldTypes eYield) const;
+	iPY_WRAP(SeaPlotYieldChange, Yield)
 	int* getSeaPlotYieldChangeArray() const { return m_piSeaPlotYieldChange; }
-	int getRiverPlotYieldChange(int i) const;
+	int getRiverPlotYieldChange(YieldTypes eYield) const;
+	iPY_WRAP(RiverPlotYieldChange, Yield)
 	int* getRiverPlotYieldChangeArray() const { return m_piRiverPlotYieldChange; }
-	int getGlobalSeaPlotYieldChange(int i) const;
+	int getGlobalSeaPlotYieldChange(YieldTypes eYield) const;
+	iPY_WRAP(GlobalSeaPlotYieldChange, Yield)
 	int* getGlobalSeaPlotYieldChangeArray() const { return m_piGlobalSeaPlotYieldChange; }
 
-	int getCommerceChange(int i) const;
+	int getCommerceChange(CommerceTypes eCommerce) const;
+	iPY_WRAP(CommerceChange, Commerce)
 	int* getCommerceChangeArray() const { return m_piCommerceChange; }
-	int getObsoleteSafeCommerceChange(int i) const;
+	int getObsoleteSafeCommerceChange(CommerceTypes eCommerce) const;
+	iPY_WRAP(ObsoleteSafeCommerceChange, Commerce)
 	int* getObsoleteSafeCommerceChangeArray() const { return m_piObsoleteSafeCommerceChange; }
-	int getCommerceChangeDoubleTime(int i) const;
-	int getCommerceModifier(int i) const;
+	int getCommerceChangeDoubleTime(CommerceTypes eCommerce) const;
+	iPY_WRAP(CommerceChangeDoubleTime, Commerce)
+	int getCommerceModifier(CommerceTypes eCommerce) const;
+	iPY_WRAP(CommerceModifier, Commerce)
 	int* getCommerceModifierArray() const { return m_piCommerceModifier; }
-	int getGlobalCommerceModifier(int i) const;
+	int getGlobalCommerceModifier(CommerceTypes eCommerce) const;
+	iPY_WRAP(GlobalCommerceModifier, Commerce)
 	int* getGlobalCommerceModifierArray() const { return m_piGlobalCommerceModifier; }
-	int getSpecialistExtraCommerce(int i) const;
+	int getSpecialistExtraCommerce(CommerceTypes eCommerce) const; // (not exposed to Python)
 	int* getSpecialistExtraCommerceArray() const { return m_piSpecialistExtraCommerce; }
-	int getStateReligionCommerce(int i) const;
+	int getStateReligionCommerce(CommerceTypes eCommerce) const;
+	iPY_WRAP(StateReligionCommerce, Commerce)
 	int* getStateReligionCommerceArray() const { return m_piStateReligionCommerce; }
-	int getCommerceHappiness(int i) const;
+	int getCommerceHappiness(CommerceTypes eCommerce) const;
+	iPY_WRAP(CommerceHappiness, Commerce)
+
 	int getReligionChange(int i) const;
 	inline bool isAnyReligionChange() const { return (m_piReligionChange != NULL); } // advc.003t
 	int getSpecialistCount(int i) const;

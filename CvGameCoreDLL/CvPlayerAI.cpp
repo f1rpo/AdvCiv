@@ -6181,10 +6181,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 			for (int iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(eLoopUnit); iI++)
 			{
-				if (!kTeam.isHasTech((TechTypes)kLoopUnit.getPrereqAndTechs(iI)))
+				if (!kTeam.isHasTech(kLoopUnit.getPrereqAndTechs(iI)))
 				{
 					iMissingTechs++;
-					if (!canResearch((TechTypes)kLoopUnit.getPrereqAndTechs(iI)))
+					if (!canResearch(kLoopUnit.getPrereqAndTechs(iI)))
 						iMissingTechs++;
 				}
 			}
@@ -6200,7 +6200,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eLoopUnit); ++iI)
 		{
-			BonusTypes ePrereqBonus = (BonusTypes)kLoopUnit.getPrereqOrBonuses(iI);
+			BonusTypes ePrereqBonus = kLoopUnit.getPrereqOrBonuses(iI);
 			if (ePrereqBonus != NO_BONUS)
 			{
 				if (hasBonus(ePrereqBonus))
@@ -6230,10 +6230,11 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				}
 			}
 		}
-		BonusTypes ePrereqBonus = (BonusTypes)kLoopUnit.getPrereqAndBonus();
+		BonusTypes ePrereqBonus = kLoopUnit.getPrereqAndBonus();
 		if (ePrereqBonus != NO_BONUS && !hasBonus(ePrereqBonus))
 		{
-			if ((kTeam.isHasTech((TechTypes)(GC.getInfo(ePrereqBonus).getTechReveal())) || kTeam.isForceRevealedBonus(ePrereqBonus)) &&
+			if ((kTeam.isHasTech((TechTypes)GC.getInfo(ePrereqBonus).getTechReveal()) ||
+				kTeam.isForceRevealedBonus(ePrereqBonus)) &&
 				AI_countOwnedBonuses(ePrereqBonus) == 0)
 			{
 				bDefinitelyMissing = true;
@@ -10463,7 +10464,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		if(iUnitValue > 0)
 		{
 			// devalue units for which we already have a better replacement.
-			UnitAITypes eDefaultAI = (UnitAITypes)kLoopUnit.getDefaultUnitAIType();
+			UnitAITypes eDefaultAI = kLoopUnit.getDefaultUnitAIType();
 			int iNewTypeValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
 			int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, 0);
 			if(iBestTypeValue > 0)
@@ -10513,10 +10514,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		if(kLoopBuilding.getPowerBonus() == eBonus)
 			iTempValue += 40; // advc.036: was 60
 
-		for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+		FOR_EACH_ENUM(Yield)
 		{
 			// <advc> Easier to debug this way
-			int iYieldMod = kLoopBuilding.getBonusYieldModifier(eBonus, iJ);
+			int iYieldMod = kLoopBuilding.getBonusYieldModifier(eBonus, eLoopYield);
 			if(iYieldMod > 0) // </advc>
 			{
 				iTempValue += iYieldMod /
@@ -10529,7 +10530,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 						(kLoopBuilding.isNationalWonder() ? 5 : 2);
 			}
 			if (kLoopBuilding.getPowerBonus() == eBonus)
-				iTempValue += kLoopBuilding.getPowerYieldModifier(iJ);
+				iTempValue += kLoopBuilding.getPowerYieldModifier(eLoopYield);
 		}
 		if(iTempValue > 0) // advc.opt
 		{
@@ -10960,17 +10961,16 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	bool bCrucialStrategic = false; // advc.036
 
 	CvCity* pCapitalCity = getCapitalCity();
-	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	FOR_EACH_ENUM2(Unit, eUnit)
 	{
-		UnitTypes eUnit = (UnitTypes)iI;
 		if (GC.getInfo(eUnit).getPrereqAndBonus() == eBonus)
 		{
 			bStrategic = true;
 			bCrucialStrategic = true; // advc.036
 		}
-		for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iJ++)
+		for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++)
 		{
-			if (GC.getInfo(eUnit).getPrereqOrBonuses(iJ) == eBonus)
+			if (GC.getInfo(eUnit).getPrereqOrBonuses(i) == eBonus)
 			{
 				bStrategic = true;
 				/*  Could check if we have one of the alternative OR-prereqs
@@ -12018,7 +12018,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				FOR_EACH_ENUM(UnitAI)
 				{
 					// advc.001: was ...isCarrierUnitAIType(eUnitAI)
-					if (GC.getInfo((SpecialUnitTypes)u.getSpecialCargo()).isCarrierUnitAIType(eLoopUnitAI))
+					if (GC.getInfo(u.getSpecialCargo()).isCarrierUnitAIType(eLoopUnitAI))
 					{
 						bValid = true;
 						break;
@@ -15572,7 +15572,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 			UnitTypes eUnit = pUnit->getUnitType();
 
 			iValue += GET_PLAYER(eTargetPlayer).AI_unitValue(eUnit,
-					(UnitAITypes)GC.getInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
+					GC.getInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
 			if (GC.getInfo(eMission).getBuyUnitCostFactor() > 0)
 			{
 				/*if (!canTrain(eUnit) || getProductionNeeded(eUnit) > iCost)
@@ -22115,23 +22115,22 @@ void CvPlayerAI::AI_updateStrategyHash()
 				int iOrBonusCount = 0;
 				int iOrBonusHave = 0;
 
-				for (int iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
+				FOR_EACH_ENUM(Bonus)
 				{
-					BonusTypes eBonus = (BonusTypes)iJ;
-					if (eBonus != NO_BONUS)
+					if (eLoopBonus != NO_BONUS)
 					{
-						if (kUnit.getPrereqAndBonus() == eBonus)
+						if (kUnit.getPrereqAndBonus() == eLoopBonus)
 						{
-							if (getNumTradeableBonuses(eBonus) == 0)
+							if (getNumTradeableBonuses(eLoopBonus) == 0)
 								bNeedsAndBonus = true;
 						}
 
-						for (int iK = 0; iK < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iK++)
+						for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++)
 						{
-							if (kUnit.getPrereqOrBonuses(iK) == eBonus)
+							if (kUnit.getPrereqOrBonuses(j) == eLoopBonus)
 							{
 								iOrBonusCount++;
-								if (getNumTradeableBonuses(eBonus) > 0)
+								if (getNumTradeableBonuses(eLoopBonus) > 0)
 									iOrBonusHave++;
 							}
 						}
@@ -22561,7 +22560,7 @@ void CvPlayerAI::AI_updateGreatPersonWeights()
 			}
 		} // <advc.opt>
 		EraTypes iCurrentEra = getCurrentEra();
-		int iCurrentGP = AI_totalUnitAIs((UnitAITypes)kGP.getDefaultUnitAIType());
+		int iCurrentGP = AI_totalUnitAIs(kGP.getDefaultUnitAIType());
 		// </advc.opt>
 		// value of building something.
 		if (kGP.isAnyBuildings()) // advc.003t
@@ -25538,20 +25537,18 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 	//const CvTeam& kTeam = GET_TEAM(getTeam());
 
 	// "and" bonus
-	BonusTypes ePrereqAndBonus = (BonusTypes)kUnit.getPrereqAndBonus();
+	BonusTypes ePrereqAndBonus = kUnit.getPrereqAndBonus();
 	if (ePrereqAndBonus != NO_BONUS)
 	{
 		if (!hasBonus(ePrereqAndBonus) && AI_countOwnedBonuses(ePrereqAndBonus) == 0)
-		{
 			return false;
-		}
 	}
 
 	// "or" bonuses
 	bool bMissingBonus = false;
 	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++i)
 	{
-		BonusTypes ePrereqOrBonus = (BonusTypes)kUnit.getPrereqOrBonuses(i);
+		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(i);
 		if (ePrereqOrBonus == NO_BONUS)
 			continue;
 

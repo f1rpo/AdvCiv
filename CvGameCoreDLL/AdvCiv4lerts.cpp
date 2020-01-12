@@ -323,7 +323,7 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity
 				if(ui.getPrereqAndBonus() == bonusId)
 				{
 					// Only report Ivory while it's relevant
-					TechTypes tt = (TechTypes)ui.getPrereqAndTech();
+					TechTypes tt = ui.getPrereqAndTech();
 					if(tt != NO_TECH && to.getCurrentEra() -
 							GC.getInfo(tt).getEra() < 2)
 						strategic = true;

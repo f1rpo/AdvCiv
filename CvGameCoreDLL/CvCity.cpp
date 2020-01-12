@@ -1701,8 +1701,7 @@ int CvCity::getProductionExperience(UnitTypes eUnit) const
 			iExperience += getUnitCombatFreeExperience((UnitCombatTypes)
 					GC.getInfo(eUnit).getUnitCombatType());
 		}
-		iExperience += getDomainFreeExperience((DomainTypes)
-				GC.getInfo(eUnit).getDomainType());
+		iExperience += getDomainFreeExperience(GC.getInfo(eUnit).getDomainType());
 		//iExperience += getSpecialistFreeExperience();
 	}
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());

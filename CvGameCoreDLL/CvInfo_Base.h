@@ -3,6 +3,8 @@
 #ifndef CV_INFO_BASE_H
 #define CV_INFO_BASE_H
 
+#include "CyInfoWrapper.h" // advc.003x
+
 /*  advc.003x: Cut from CvInfos.h; to be precompiled.
 	CvInfoBase, CvScalableInfo, CvHotkeyInfo */
 

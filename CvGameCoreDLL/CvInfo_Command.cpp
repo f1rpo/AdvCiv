@@ -178,7 +178,7 @@ int CvActionInfo::getMissionType() const
 	case ACTIONSUBTYPE_SPECIALIST:
 		return (MissionTypes)GC.getInfo((SpecialistTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_BUILDING:
-		return (MissionTypes)GC.getInfo((BuildingTypes)m_iOriginalIndex).getMissionType();
+		return GC.getInfo((BuildingTypes)m_iOriginalIndex).getMissionType();
 	case ACTIONSUBTYPE_MISSION:
 		return (MissionTypes)m_iOriginalIndex;
 	default:

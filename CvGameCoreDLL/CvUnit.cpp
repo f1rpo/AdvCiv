@@ -455,9 +455,9 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	{
 		CvEventReporter::getInstance().unitKilled(this, ePlayer);
 
-		if (NO_UNIT != getLeaderUnitType()
+		if (NO_UNIT != getLeaderUnitType() ||
 			// <advc.004u> Treat unattached GP here too
-			|| m_pUnitInfo->getDefaultUnitAIType() == UNITAI_GENERAL ||
+			m_pUnitInfo->getDefaultUnitAIType() == UNITAI_GENERAL ||
 			isGoldenAge()) // </advc.004u>
 		{
 			CvWString szBuffer;
@@ -3089,10 +3089,11 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 	   (intolerant) state religion. */
 	ReligionTypes eRecipientReligion = kRecipient.getStateReligion();
 	if(eRecipientReligion != NO_RELIGION && AI_getUnitAIType() == UNITAI_MISSIONARY &&
-			kRecipient.isNoNonStateReligionSpread() &&
-			eRecipientReligion != m_pUnitInfo->getReligionType())
+		kRecipient.isNoNonStateReligionSpread() &&
+		eRecipientReligion != m_pUnitInfo->getReligionType())
+	{
 		return false;
-	// <dlph.4>
+	} // <dlph.4>
 	std::vector<CvUnit*> apCargoUnits;
 	getCargoUnits(apCargoUnits);
 	for(size_t i = 0; i < apCargoUnits.size(); i++)
@@ -6537,7 +6538,7 @@ const wchar* CvUnit::getVisualCivAdjective(TeamTypes eForTeam) const
 
 SpecialUnitTypes CvUnit::getSpecialUnitType() const
 {
-	return (SpecialUnitTypes)m_pUnitInfo->getSpecialUnitType();
+	return m_pUnitInfo->getSpecialUnitType();
 }
 
 
@@ -6557,12 +6558,12 @@ UnitCombatTypes CvUnit::getUnitCombatType() const
 
 DomainTypes CvUnit::getDomainType() const													// Exposed to Python
 {
-	return (DomainTypes)m_pUnitInfo->getDomainType();
+	return m_pUnitInfo->getDomainType();
 }
 
 InvisibleTypes CvUnit::getInvisibleType() const
 {
-	return (InvisibleTypes)m_pUnitInfo->getInvisibleType();
+	return m_pUnitInfo->getInvisibleType();
 }
 
 int CvUnit::getNumSeeInvisibleTypes() const
@@ -6572,7 +6573,7 @@ int CvUnit::getNumSeeInvisibleTypes() const
 
 InvisibleTypes CvUnit::getSeeInvisibleType(int i) const
 {
-	return (InvisibleTypes)m_pUnitInfo->getSeeInvisibleType(i);
+	return m_pUnitInfo->getSeeInvisibleType(i);
 }
 
 
@@ -6609,7 +6610,7 @@ int CvUnit::baseMoves() const
 	{
 		if(m_pUnitInfo->getSpeedBonuses(i) >= 0)
 		{
-			BonusTypes eBonus = (BonusTypes)m_pUnitInfo->getSpeedBonuses(i);
+			BonusTypes eBonus = m_pUnitInfo->getSpeedBonuses(i);
 			CvPlotGroup* pPlotGroup = plot()->getPlotGroup(getOwner());
 			CvCity* pCapital = GET_PLAYER(getOwner()).getCapitalCity();
 			if((pPlotGroup != NULL && pPlotGroup->getNumBonuses(eBonus) > 0) ||
@@ -8246,13 +8247,13 @@ int CvUnit::airBombCurrRate() const
 
 SpecialUnitTypes CvUnit::specialCargo() const
 {
-	return (SpecialUnitTypes)m_pUnitInfo->getSpecialCargo();
+	return m_pUnitInfo->getSpecialCargo();
 }
 
 
 DomainTypes CvUnit::domainCargo() const
 {
-	return (DomainTypes)m_pUnitInfo->getDomainCargo();
+	return m_pUnitInfo->getDomainCargo();
 }
 
 

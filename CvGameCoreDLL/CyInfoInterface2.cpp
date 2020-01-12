@@ -215,11 +215,11 @@ void CyInfoPythonInterface2()
 
 		// Arrays
 
-		.def("getFeatureTech", &CvBuildInfo::getFeatureTech, "int (int i)")
-		.def("getFeatureTime", &CvBuildInfo::getFeatureTime, "int (int i)")
-		.def("getFeatureProduction", &CvBuildInfo::getFeatureProduction, "int (int i)")
+		.def("getFeatureTech", &CvBuildInfo::py_getFeatureTech, "int (int i)")
+		.def("getFeatureTime", &CvBuildInfo::py_getFeatureTime, "int (int i)")
+		.def("getFeatureProduction", &CvBuildInfo::py_getFeatureProduction, "int (int i)")
 
-		.def("isFeatureRemove", &CvBuildInfo::isFeatureRemove, "bool (int i)")
+		.def("isFeatureRemove", &CvBuildInfo::py_isFeatureRemove, "bool (int i)")
 		;
 
 	python::class_<CvGoodyInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvGoodyInfo")

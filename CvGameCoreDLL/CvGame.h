@@ -631,7 +631,7 @@ public:
 	DllExport VictoryTypes getSpaceVictory() const;
 	DllExport void nextActivePlayer(bool bForward);
 
-	DllExport DomainTypes getUnitDomain(UnitTypes eUnit) const;
+	DllExport DomainTypes getUnitDomain(UnitTypes eUnit) const; // advc.003j: Isn't and imo shouldn't be used DLL-internally
 	DllExport const CvArtInfoBuilding* getBuildingArtInfo(BuildingTypes eBuilding) const;
 	DllExport bool isWaterBuilding(BuildingTypes eBuilding) const;
 	DllExport CivilopediaWidgetShowTypes getWidgetShow(BonusTypes eBonus) const;

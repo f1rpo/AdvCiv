@@ -165,7 +165,7 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 
 	if(pov == NO_PLAYER || pov == ownerId || typicalUnitType == NO_UNIT)
 		return true;
-	if(NO_TECH != (TechTypes)getTypicalUnit()->getPrereqAndTech())
+	if(NO_TECH != getTypicalUnit()->getPrereqAndTech())
 		return true; // Warrior
 	if(GET_PLAYER(ownerId).getUnitClassCount(getTypicalUnit()->getUnitClassType()) > 0)
 		return true; // The unit's in the wild
@@ -232,7 +232,7 @@ double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 
 bool MilitaryBranch::isValidDomain(CvUnitInfo const& u) const {
 
-	return isValidDomain((DomainTypes)u.getDomainType());
+	return isValidDomain(u.getDomainType());
 }
 
 bool MilitaryBranch::HomeGuard::isValidDomain(DomainTypes d) const {
@@ -418,7 +418,7 @@ bool MilitaryBranch::Army::canTrainCollateral() const {
 		UnitTypes ut = civ.unitAt(i);
 		CvUnitInfo const& u = GC.getInfo(ut);
 		if(u.getCollateralDamage() > 0 &&
-				isValidDomain((DomainTypes)u.getDomainType()) &&
+				isValidDomain(u.getDomainType()) &&
 				owner.AI_canBeExpectedToTrain(ut))
 			return true;
 	}

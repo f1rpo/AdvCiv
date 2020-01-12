@@ -998,7 +998,7 @@ void CvGlobals::SetGraphicsInitialized(bool bVal)
 		getGame().onGraphicsInitialized();
 }
 
-namespace // advc: Hide in unnamed namespace
+namespace // advc
 {
 	template <class T>
 	void deleteInfoArray(std::vector<T*>& array)

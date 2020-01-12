@@ -1328,7 +1328,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 
 	//fill invisible types
 	std::vector<InvisibleTypes> aSeeInvisibleTypes;
-	if (NULL != pUnit)
+	if (pUnit != NULL)
 	{
 		for(int i=0;i<pUnit->getNumSeeInvisibleTypes();i++)
 			aSeeInvisibleTypes.push_back(pUnit->getSeeInvisibleType(i));
@@ -6993,16 +6993,16 @@ void CvPlot::processArea(CvArea& kArea, int iChange)  // advc: style changes
 		kArea.changeFreeSpecialist(pCity->getOwner(), kBuilding.getAreaFreeSpecialist() * iTotalChange);
 		kArea.changeCleanPowerCount(pCity->getTeam(), kBuilding.isAreaCleanPower() ? iTotalChange : 0);
 		kArea.changeBorderObstacleCount(pCity->getTeam(), kBuilding.isAreaBorderObstacle() ? iTotalChange : 0);
-		for (int j = 0; j < NUM_YIELD_TYPES; j++)
+		FOR_EACH_ENUM(Yield)
 		{
-			kArea.changeYieldRateModifier(pCity->getOwner(), (YieldTypes)j,
-					kBuilding.getAreaYieldModifier(j) * iTotalChange);
+			kArea.changeYieldRateModifier(pCity->getOwner(), eLoopYield,
+					kBuilding.getAreaYieldModifier(eLoopYield) * iTotalChange);
 		}
 	}
-	for (int i = 0; i < NUM_UNITAI_TYPES; i++)
+	FOR_EACH_ENUM(UnitAI)
 	{
-		kArea.changeNumTrainAIUnits(pCity->getOwner(), (UnitAITypes)
-				i, pCity->getNumTrainUnitAI((UnitAITypes)i) * iChange);
+		kArea.changeNumTrainAIUnits(pCity->getOwner(), eLoopUnitAI,
+				pCity->getNumTrainUnitAI(eLoopUnitAI) * iChange);
 	}
 	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -7849,24 +7849,24 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	bool bCheckAirUnitCap, // advc.001b
 	BonusTypes eAssumeAvailable) const // advc.001u
 {
-	CvCity* pCity = getPlotCity();
-
+	CvCity const* pCity = getPlotCity();
+	bool const bCity = (pCity != NULL);
 	if (GC.getInfo(eUnit).isPrereqReligion())
 	{
-		if (pCity == NULL || //pCity->getReligionCount() > 0)
-				pCity->getReligionCount() == 0) // K-Mod
+		if (!bCity || //pCity->getReligionCount() > 0)
+			pCity->getReligionCount() == 0) // K-Mod
+		{
 			return false;
+		}
 	}
 	if (GC.getInfo(eUnit).getPrereqReligion() != NO_RELIGION)
 	{
-		if (NULL == pCity || !pCity->isHasReligion((ReligionTypes)
-				GC.getInfo(eUnit).getPrereqReligion()))
+		if (!bCity || !pCity->isHasReligion(GC.getInfo(eUnit).getPrereqReligion()))
 			return false;
 	}
 	if (GC.getInfo(eUnit).getPrereqCorporation() != NO_CORPORATION)
 	{
-		if (NULL == pCity || !pCity->isActiveCorporation((CorporationTypes)
-				GC.getInfo(eUnit).getPrereqCorporation()))
+		if (!bCity || !pCity->isActiveCorporation(GC.getInfo(eUnit).getPrereqCorporation()))
 			return false;
 	}
 
@@ -7885,12 +7885,15 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		The last clause above should perhaps be checked by the AI before
 		upgrading units; but AI sea units can end up in small water areas only via
 		WorldBuilder [or possibly teleport -> advc.046], so I'm not bothering with this. */
-	if(isCity())
+	if (bCity)
 	{
 		if(GC.getInfo(eUnit).getDomainType() == DOMAIN_SEA && !isWater() &&
-				!isCoastalLand())
+			!isCoastalLand())
+		{
 			return false;
-	} else // </advc.041>
+		}
+	}
+	else // </advc.041>
 	{
 		if (GC.getInfo(eUnit).getDomainType() == DOMAIN_SEA)
 		{
@@ -7909,29 +7912,30 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	{
 		if (GC.getInfo(eUnit).getHolyCity() != NO_RELIGION)
 		{
-			if (NULL == pCity || !pCity->isHolyCity((ReligionTypes)
-					GC.getInfo(eUnit).getHolyCity()))
+			if (!bCity || !pCity->isHolyCity(GC.getInfo(eUnit).getHolyCity()))
 				return false;
 		}
 
 		if (GC.getInfo(eUnit).getPrereqBuilding() != NO_BUILDING)
 		{
-			if (NULL == pCity)
+			if (!bCity)
 				return false;
-			BuildingTypes ePrereqBuilding = (BuildingTypes)GC.getInfo(eUnit).getPrereqBuilding(); // advc
+			BuildingTypes ePrereqBuilding = GC.getInfo(eUnit).getPrereqBuilding(); // advc
 			if (pCity->getNumBuilding(ePrereqBuilding) == 0)
 			{
 				SpecialBuildingTypes eSpecialBuilding = GC.getInfo(ePrereqBuilding).getSpecialBuildingType();
 				if (eSpecialBuilding == NO_SPECIALBUILDING ||
-						!GET_PLAYER(getOwner()).isSpecialBuildingNotRequired(eSpecialBuilding))
+					!GET_PLAYER(getOwner()).isSpecialBuildingNotRequired(eSpecialBuilding))
+				{
 					return false;
+				}
 			}
 		}
-		BonusTypes ePrereqAndBonus = (BonusTypes)GC.getInfo(eUnit).getPrereqAndBonus(); // advc
-		if(ePrereqAndBonus != NO_BONUS
-			&& ePrereqAndBonus != eAssumeAvailable) // advc.001u
+		BonusTypes ePrereqAndBonus = GC.getInfo(eUnit).getPrereqAndBonus(); // advc
+		if(ePrereqAndBonus != NO_BONUS &&
+			ePrereqAndBonus != eAssumeAvailable) // advc.001u
 		{
-			if (NULL == pCity)
+			if (!bCity)
 			{
 				if (!isPlotGroupConnectedBonus(getOwner(), ePrereqAndBonus))
 					return false;
@@ -7944,14 +7948,14 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		bool bNeedsBonus = true;
 		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++iI)
 		{
-			BonusTypes ePrereqOrBonus = (BonusTypes)GC.getInfo(eUnit).getPrereqOrBonuses(iI); // advc
+			BonusTypes ePrereqOrBonus = GC.getInfo(eUnit).getPrereqOrBonuses(iI); // advc
 			if(ePrereqOrBonus != NO_BONUS &&
-					ePrereqOrBonus != eAssumeAvailable) // advc.001u
+				ePrereqOrBonus != eAssumeAvailable) // advc.001u
 			{
 				bRequiresBonus = true;
-				if (NULL == pCity)
+				if (bCity)
 				{
-					if (isPlotGroupConnectedBonus(getOwner(), ePrereqOrBonus))
+					if (pCity->hasBonus(ePrereqOrBonus))
 					{
 						bNeedsBonus = false;
 						break;
@@ -7959,7 +7963,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 				}
 				else
 				{
-					if (pCity->hasBonus(ePrereqOrBonus))
+					if (isPlotGroupConnectedBonus(getOwner(), ePrereqOrBonus))
 					{
 						bNeedsBonus = false;
 						break;

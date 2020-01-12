@@ -6423,7 +6423,7 @@ void CvUnitAI::AI_escortSeaMove()
 	// Galleon escorts are much less useful once Frigates or later are available
 	if (!isHuman() && !isBarbarian())
 	{
-		if (getCargo() > 0 && (GC.getInfo(getUnitType()).getSpecialCargo() == NO_SPECIALUNIT))
+		if (getCargo() > 0 && GC.getInfo(getUnitType()).getSpecialCargo() == NO_SPECIALUNIT)
 		{
 			//Obsolete?
 			int iValue = kOwner.AI_unitValue(getUnitType(), AI_getUnitAIType(), area());
@@ -14507,7 +14507,7 @@ bool CvUnitAI::AI_pirateBlockade()
 									std::pow((double)iAttitudeLevel, 1.5)));
 						}
 						iCityValue *= iAttitudeFactor;
-						TechTypes eTechReq = (TechTypes)getUnitInfo().getPrereqAndTech();
+						TechTypes eTechReq = getUnitInfo().getPrereqAndTech();
 						int iOurEra = (eTechReq == NO_TECH ?
 								GET_PLAYER(getOwner()).getCurrentEra() :
 								GC.getInfo(eTechReq).getEra());
