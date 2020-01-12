@@ -4530,9 +4530,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			}
 			// K-Mod end (prereqs)
 
-			for (int iI = 0; iI < GC.getNumVoteSourceInfos(); iI++)
+			FOR_EACH_ENUM2(VoteSource, eVS)
 			{
-				VoteSourceTypes eVS = (VoteSourceTypes)iI;
 				if(kBuilding.getVoteSourceType() != eVS)
 					continue; // advc
 				// BETTER_BTS_AI_MOD, City AI, Victory Strategy AI, 05/24/10, jdog5000: START
@@ -4548,9 +4547,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						{
 							iPlayerCount++;
 							if (kOwner.getStateReligion() == kLoopPlayer.getStateReligion())
-							{
 								iShareReligionCount++;
-							}
 						}
 					}
 					//iTempValue += (200 * (1 + iShareReligionCount)) / (1 + iPlayerCount);
@@ -4566,6 +4563,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					//iTempValue += 100;
 					iTempValue += 75; // advc.115b
 				}
+				// BETTER_BTS_AI_MOD: END
 				// <advc.115b>
 				int iDiploStage = 0;
 				if(kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
@@ -4573,8 +4571,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				/*  Don't want to push AP as much b/c the victory stage is (so far)
 					hardly meaningful for that */
 				if(!kBuilding.isStateReligion() &&
-						kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
+					kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
+				{
 					iDiploStage++;
+				}
 				// (3 and 4 aren't possible without the respective vote source)
 				//iValue += iTempValue * 3 * diploStage;
 				iTempValue *= 3 * iDiploStage;
@@ -4584,90 +4584,41 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				// Don't pave the way for rival victory
 				int iMaxRivalStage = 0;
 				bool bHumanRival = false;
-				for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-					CvPlayerAI const& kRival = GET_PLAYER((PlayerTypes)j);
-					if(!kRival.isAlive() || kRival.getTeam() == kOwner.getTeam() ||
-							// No worries about vassals (rival or not)
-							GET_TEAM(kRival.getTeam()).isAVassal())
-						continue;
+				for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam());
+					it.hasNext(); ++it)
+				{
+					CvPlayerAI const& kRival = *it;
 					int iRivalStage = 0;
 					if(kRival.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
 						iRivalStage++;
 					if(!kBuilding.isStateReligion() &&
-							kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
+						kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
+					{
 						iRivalStage++;
-					if(iRivalStage > iMaxRivalStage || (iRivalStage >= iMaxRivalStage &&
-							kRival.isHuman())) {
+					}
+					if(iRivalStage > iMaxRivalStage ||
+						(iRivalStage >= iMaxRivalStage && kRival.isHuman()))
+					{
 						iMaxRivalStage = iRivalStage;
 						bHumanRival = kRival.isHuman();
 					}
 				}
 				if(iMaxRivalStage > iDiploStage ||
-						(bHumanRival && iMaxRivalStage >= iDiploStage)) {
+					(bHumanRival && iMaxRivalStage >= iDiploStage))
+				{
 					iTempValue = 0;
 					if(iMaxRivalStage >= 3)
 						return 0;
 				}
 				iValue += iTempValue;
-				// </advc.115b>
-
-				// Value religion buildings based on AP gains
-				if (g.isDiploVote(eVS) && kOwner.isLoyalMember(eVS))  // advc: misc. style changes in this block
-				{
-					ReligionTypes eReligion = g.getVoteSourceReligion(eVS);
-					if (eReligion != NO_RELIGION && isHasReligion(eReligion) &&
-							kBuilding.getReligionType() == eReligion)
-					{
-						for (int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
-						{
-							int iChange = GC.getInfo(eVS).getReligionYield(iYield);
-							//int // advc: Another iTempValue is still in scope
-								iTempValue = iChange * 4; // was 6
-							// K-Mod
-							iTempValue *= AI_yieldMultiplier((YieldTypes)iYield);
-							iTempValue /= 100;
-							/*	advc.001: Was 'iI==...'. (Note: It so happens that
-								iI==eVS==1==YIELD_PRODUCTION when eVS is the AP.) */
-							if (iYield == YIELD_PRODUCTION)
-							{
-								// priority += 2.8% per 1% in production increase. roughly. More when at war.
-								iPriorityFactor += std::min(100, (bWarPlan ? 320 : 280)*iTempValue/std::max(1, 4*getYieldRate(YIELD_PRODUCTION)));
-							}
-							// K-Mod end
-							iTempValue *= kOwner.AI_yieldWeight((YieldTypes)iYield, this);
-							iTempValue /= 100;
-							iValue += iTempValue;
-						}
-						for (int iCommerce = 0; iCommerce < NUM_COMMERCE_TYPES; ++iCommerce)
-						{
-							int iChange = GC.getInfo(eVS).getReligionCommerce(iCommerce);
-							//int // avdc.003: Another iTempValue is still in scope
-								iTempValue = iChange * 4;
-							// K-Mod
-							if (iTempValue == 0)
-								continue;
-							iTempValue *= getTotalCommerceRateModifier((CommerceTypes)iCommerce);
-							iTempValue /= 100;
-							// K-Mod end
-
-							// +99 mirrors code below, I think because commerce weight can be pretty small.
-							// (It's so it rounds up, not down. - K-Mod)
-							iTempValue *= kOwner.AI_commerceWeight((CommerceTypes)iCommerce, this);
-							iTempValue = (iTempValue + 99) / 100;
-							iValue += iTempValue;
-						}
-					}
-				}
-				// BETTER_BTS_AI_MOD: END
-				// <advc.179>
-				if(kBuilding.isStateReligion() && kOwner.isStateReligion())
+				// </advc.115b>  <advc.179>
+				if (kBuilding.isStateReligion() && kOwner.isStateReligion())
 				{
 					ReligionTypes eStateReligion = kOwner.getStateReligion();
 					std::vector<BuildingTypes> aeReligionBuildings;
-					for(int j = 0; j < GC.getNumBuildingInfos(); j++)
+					FOR_EACH_ENUM(Building)
 					{
-						BuildingTypes eLoopBuilding = (BuildingTypes)j;
-						if(GC.getInfo(eLoopBuilding).getReligionType() == eStateReligion)
+						if (GC.getInfo(eLoopBuilding).getReligionType() == eStateReligion)
 							aeReligionBuildings.push_back(eBuilding);
 					}
 					double ourBuildings = AI_estimateReligionBuildings(
@@ -4675,38 +4626,38 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					double tempValue = ourBuildings;
 					double rivalFactor = 1.5 * std::sqrt((double)
 							g.countCivPlayersAlive());
-					int iEverAlive = g.getCivPlayersEverAlive();
-					for(int j = 0; j < MAX_CIV_PLAYERS; j++) // Brothers in the faith
+					int const iEverAlive = g.getCivPlayersEverAlive();
+					for (PlayerIter<CIV_ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 					{
-						CvPlayer const& kBrother = GET_PLAYER((PlayerTypes)j);
-						if(!kBrother.isAlive() || kBrother.getID() == kOwner.getID() ||
-								kBrother.getStateReligion() != eStateReligion ||
-								!GET_TEAM(kOwner.getTeam()).isHasMet(kBrother.getTeam()))
-							continue;
-						AttitudeTypes eTowardThem;
-						if (!isHuman())
+						CvPlayer const& kBrother = *it; // Brothers in the faith
+						if(kBrother.getID() == kOwner.getID() ||
+							kBrother.getStateReligion() != eStateReligion)
 						{
-							eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
-							if(GET_TEAM(getTeam()).AI_getWarPlan(kBrother.getTeam()) != NO_WARPLAN)
-							{
-								eTowardThem = (AttitudeTypes)std::min((int)eTowardThem,
-										(int)ATTITUDE_ANNOYED);
-							}
+							continue;
 						}
-						else eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
-						if(kBrother.isMinorCiv())
-							eTowardThem = ATTITUDE_FURIOUS;
+						AttitudeTypes eTowardThem = ATTITUDE_FURIOUS;
+						if(!kBrother.isMinorCiv())
+						{
+							if (!isHuman())
+							{
+								eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
+								if(GET_TEAM(getTeam()).AI_getWarPlan(kBrother.getTeam()) != NO_WARPLAN)
+									eTowardThem = std::min<AttitudeTypes>(eTowardThem, ATTITUDE_ANNOYED);
+							}
+							else eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
+						}
 						bool bTheyAhead = (g.getPlayerRank(kBrother.getID()) <
 								std::min(g.getPlayerRank(kOwner.getID()),
 								iEverAlive / 2));
 						// Don't care if they benefit from ReligionYield then
 						if(!bTheyAhead && eTowardThem <= ATTITUDE_CAUTIOUS &&
-								eTowardThem > ATTITUDE_FURIOUS)
+							eTowardThem > ATTITUDE_FURIOUS)
+						{
 							continue;
+						}
 						double loopBuildings = AI_estimateReligionBuildings(
 								kBrother.getID(), eStateReligion, aeReligionBuildings);
-						/*  Don't want to help competitors win; let _them_ build
-							eBuilding. */
+						// Don't want to help competitors win; let _them_ produce eBuilding.
 						if(bTheyAhead && eTowardThem < ATTITUDE_FRIENDLY)
 							loopBuildings *= -1;
 						else 
@@ -4716,19 +4667,64 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						}
 						tempValue += loopBuildings;
 					}
-					for(int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
+					FOR_EACH_ENUM(Yield)
 					{
-						int iChange = GC.getInfo(eVS).getReligionYield(iYield);
+						int iChange = GC.getInfo(eVS).getReligionYield(eLoopYield);
 						if(iChange == 0)
 							continue;
 						/*  Would be nicer to use CvPlayerAI::AI_commerceWeight,
 							but that would have to be applied earlier. */
-						tempValue *= iChange * (iYield == YIELD_COMMERCE ? 4 : 8);
+						tempValue *= iChange * (eLoopYield == YIELD_COMMERCE ? 4 : 8);
 					}
 					iValue += ::round(tempValue);
-				} // </advc.179>
+				}
+			} // </advc.179>
+			// BETTER_BTS_AI_MOD, City AI, Victory Strategy AI, 05/24/10, jdog5000: START
+			FOR_EACH_ENUM2(VoteSource, eVS)
+			{
+				if (!g.isDiploVote(eVS) || !kOwner.isLoyalMember(eVS))  // advc: misc. style changes in this block
+					continue;
+				// Value religion buildings based on AP gains
+				ReligionTypes eReligion = g.getVoteSourceReligion(eVS);
+				if (eReligion != NO_RELIGION && isHasReligion(eReligion) &&
+					kBuilding.getReligionType() == eReligion)
+				{	// advc: Renamed "iTempValue" in the two loops below - name clash
+					FOR_EACH_ENUM(Yield)
+					{
+						int iChange = GC.getInfo(eVS).getReligionYield(eLoopYield);
+						// K-Mod
+						int iYieldVal = iChange * 4; // was 6
+						iYieldVal *= AI_yieldMultiplier(eLoopYield);
+						//iYieldVal /= 100; // advc: Increase precision
+						if (eLoopYield == YIELD_PRODUCTION) // advc.001 (loop variables were mixed up here)
+						{
+							// priority += 2.8% per 1% in production increase. roughly. More when at war.
+							iPriorityFactor += std::min(100, (bWarPlan ? 320 : 280) * iYieldVal /
+									(100 * std::max(1, 4 * getYieldRate(YIELD_PRODUCTION)))); // (advc: divisor times 100)
+						} // K-Mod end
+						iYieldVal *= kOwner.AI_yieldWeight(eLoopYield, this);
+						iYieldVal /= /*100*/10000; // advc
+						iValue += iYieldVal;
+					}
+					FOR_EACH_ENUM(Commerce)
+					{
+						int iChange = GC.getInfo(eVS).getReligionCommerce(eLoopCommerce);
+						int iCommerceVal = iChange * 4;
+						// K-Mod
+						if (iCommerceVal == 0)
+							continue;
+						iCommerceVal *= getTotalCommerceRateModifier(eLoopCommerce);
+						//iCommerceVal /= 100; // advc: Increase precision
+						// K-Mod end
+						iCommerceVal *= kOwner.AI_commerceWeight(eLoopCommerce, this);
+						// +99 mirrors code below, I think because commerce weight can be pretty small.
+						// (It's so it rounds up, not down. - K-Mod)
+						iCommerceVal = (iCommerceVal + /*99*/9900) / /*100*/10000; // advc
+						iValue += iCommerceVal;
+					}
+				}
+				// BETTER_BTS_AI_MOD: END
 			}
-
 		}
 
 		if (iPass > 0)
