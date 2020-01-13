@@ -21772,11 +21772,12 @@ void CvPlayerAI::AI_updateStrategyHash()
 	// K-Mod
 	// Apparently BBAI wanted to use "big espionage" to save points when our espionage is weak.
 	// I've got other plans.
-	if (!g.isOption(GAMEOPTION_NO_ESPIONAGE)
-		&& isCommerceFlexible(COMMERCE_ESPIONAGE)) // advc.120g
+	if (!g.isOption(GAMEOPTION_NO_ESPIONAGE) &&
+		isCommerceFlexible(COMMERCE_ESPIONAGE)) // advc.120g
 	{
 		// don't start espionage strategy if we have no spies
-		if (eLastStrategyHash & AI_STRATEGY_BIG_ESPIONAGE || AI_getNumAIUnits(UNITAI_SPY) > 0)
+		if ((eLastStrategyHash & AI_STRATEGY_BIG_ESPIONAGE) ||
+			AI_getNumAIUnits(UNITAI_SPY) > 0)
 		{
 			int iTempValue = 0;
 			iTempValue += AI_commerceWeight(COMMERCE_ESPIONAGE) / 8;
@@ -22247,7 +22248,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			}
 		}
 		if (/* K-Mod: */ iWarCount == 1 &&
-			iCrushValue >= (eLastStrategyHash & AI_STRATEGY_CRUSH) ? 9 :10)
+			iCrushValue >= ((eLastStrategyHash & AI_STRATEGY_CRUSH) ? 9 : 10))
 		{
 			m_eStrategyHash |= AI_STRATEGY_CRUSH;
 		}
