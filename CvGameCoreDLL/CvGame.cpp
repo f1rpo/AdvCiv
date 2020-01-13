@@ -7262,10 +7262,10 @@ void CvGame::createBarbarianUnits()
 			to attack */
 		if(c->getArea().countCivCities() > 0)
 			continue;
-		int iUnits = c->plot()->getNumDefenders(BARBARIAN_PLAYER);
+		int iUnits = c->getPlot().getNumDefenders(BARBARIAN_PLAYER);
 		double prKill = (iUnits - std::max(1.5 * c->getPopulation(), 4.0)) / 4.0;
 		if(::bernoulliSuccess(prKill, "advc.300 (kill_1)"))
-			c->plot()->killRandomUnit(BARBARIAN_PLAYER, DOMAIN_LAND);
+			c->getPlot().killRandomUnit(BARBARIAN_PLAYER, DOMAIN_LAND);
 	} // </advc.300>
 }
 
@@ -9973,7 +9973,7 @@ VoteSelectionData* CvGame::addVoteSelection(VoteSourceTypes eVoteSource)
 							CvPlayer& kPlayer1 = GET_PLAYER((PlayerTypes)iPlayer1);
 							FOR_EACH_CITY(pLoopCity, kPlayer1)
 							{
-								PlayerTypes eNewOwner = pLoopCity->plot()->findHighestCulturePlayer();
+								PlayerTypes eNewOwner = pLoopCity->getPlot().findHighestCulturePlayer();
 								if (eNewOwner != NO_PLAYER
 								/*  advc.099: No longer implied by findHighestCulturePlayer;
 									mustn't return cities to dead civs. */

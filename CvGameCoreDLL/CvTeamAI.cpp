@@ -2646,9 +2646,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			std::max(10, getVassalPower()); // </advc.112>
 	static double const lossesThresh = GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR") / 100.0;
 	if(landRatio < 0.85 * lossesThresh || (landRatio < lossesThresh &&
-			::hash(kGame.getGameTurn(), getLeaderID()) < 0.15))
+		::hash(kGame.getGameTurn(), getLeaderID()) < 0.15))
+	{
 		return DENIAL_POWER_YOUR_ENEMIES; // Denial type doesn't matter
-	// </advc.143> <advc.143b>
+	} // </advc.143>  <advc.143b>
 	double nuked = 0;
 	for (TeamIter<ALIVE,ENEMY_OF> it(getID()); it.hasNext(); ++it)
 	{
@@ -2951,7 +2952,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 				}
 			}
 			// <advc.099c>
-			if(bValuable && pLoopCity->plot()->calculateTeamCulturePercent(getID()) > 25)
+			if(bValuable && pLoopCity->getPlot().calculateTeamCulturePercent(getID()) > 25)
 				iValuablesWithOurCulture++; // </advc.099c>
 			/*int iOwnerPower = kSurrenderMember.AI_getOurPlotStrength(kCity.plot(), 2, true, false);
 			int iOurPower = AI_getOurPlotStrength(kCity.plot(), 2, false, false, true);
@@ -6102,7 +6103,7 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea const& kArea) const
 	{
 		FOR_EACH_CITY(pLoopCity, *it)
 		{
-			if (!pLoopCity->plot()->isAdjacentToArea(kArea))
+			if (!pLoopCity->getPlot().isAdjacentToArea(kArea))
 				continue;
 			/*  BETTER_BTS_AI_MOD, City AI, 01/15/09, jdog5000:
 				Also count lakes which are connected to ocean by a bridge city */
@@ -6118,7 +6119,7 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea const& kArea) const
 	{
 		FOR_EACH_CITY(pLoopCity, *it)
 		{
-			if (!pLoopCity->plot()->isAdjacentToArea(kArea))
+			if (!pLoopCity->getPlot().isAdjacentToArea(kArea))
 				continue;
 			// <advc.001> Don't cheat
 			if (!AI_deduceCitySite(pLoopCity))

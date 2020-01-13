@@ -597,7 +597,7 @@ void CvPlot::verifyUnitValidPlot()  // advc: some style changes
 		if (pLoopUnit->atPlot(this) && !pLoopUnit->isCargo() && !pLoopUnit->isCombat())
 		{
 			if (!isValidDomainForLocation(*pLoopUnit) ||
-				!pLoopUnit->canEnterArea(getTeam(), getArea()))
+				!pLoopUnit->canEnterTerritory(getTeam(), false, area()))
 			{
 				if (!pLoopUnit->jumpToNearestValidPlot(true))
 					bErased = true;
@@ -4116,7 +4116,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 			if (pLoopUnit->isBlockading()
 				// advc.033: Owner change shouldn't always disrupt blockade
-				&& !pLoopUnit->canPlunder(pLoopUnit->plot()))
+				&& !pLoopUnit->canPlunder(pLoopUnit->getPlot()))
 			{
 				pLoopUnit->setBlockading(false);
 				pLoopUnit->getGroup()->clearMissionQueue();
@@ -4705,7 +4705,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	if (getImprovementType() != NO_IMPROVEMENT)
 	{	// advc.opt:
 		/*if (area())
-			area()->changeNumImprovements(getImprovementType(), -1);*/
+			getArea().changeNumImprovements(getImprovementType(), -1);*/
 		if (isOwned())
 			GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), -1);
 	}
@@ -4731,7 +4731,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	if (getImprovementType() != NO_IMPROVEMENT)
 	{	// advc.opt:
 		/*if (area())
-			area()->changeNumImprovements(getImprovementType(), 1);*/
+			getArea().changeNumImprovements(getImprovementType(), 1);*/
 		if (isOwned())
 			GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), 1);
 	}
@@ -7876,7 +7876,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	if (isCity()) {
 		// ...
 	}
-	else if (area()->getNumTiles() < GC.getInfo(eUnit).getMinAreaSize())
+	else if (getArea().getNumTiles() < GC.getInfo(eUnit).getMinAreaSize())
 		return false;
 	/*  <advc.041> Replacing the above (moved into CvCityAI::AI_bestUnitAI). I.e.
 		treat MinAreaSize and PrereqBonuses as mere recommendations (for the AI)

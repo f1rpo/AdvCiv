@@ -302,7 +302,11 @@ protected:
 	__forceinline bool AI_plotValid(CvPlot const& kPlot) const
 	{
 		return AI_plotValid(&kPlot);
-	} // </advc>
+	} // </advc>  <advc.030>
+	inline bool AI_canEnterByLand(CvArea const& kArea) const
+	{	// Not checked (to save time): unused canMoveAllTerrain
+		return (isArea(kArea) || (canMoveImpassable() && canEnterArea(kArea)));
+	} // </advc.030>
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold); // disabled by K-Mod
 	unsigned AI_unitBirthmarkHash(int iExtra = 0) const; // K-Mod

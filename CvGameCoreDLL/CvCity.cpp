@@ -22,6 +22,7 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 	m_iID = 0;
 	m_iX = INVALID_PLOT_COORD;
 	m_iY = INVALID_PLOT_COORD;
+	updatePlot();
 	m_iRallyX = INVALID_PLOT_COORD;
 	m_iRallyY = INVALID_PLOT_COORD;
 	m_iGameTurnFounded = 0;
@@ -131,8 +132,6 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 
 	m_aTradeCities.resize(GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES));
 
-	m_pArea = NULL; // advc
-
 	// Rank cache
 	m_iPopulationRank = -1;
 	m_bPopulationRankValid = false;
@@ -158,7 +157,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 	m_iX = iX;
 	m_iY = iY;
 	// </advc.003u>
-	m_pArea = plot()->area(); // advc
+	updatePlot(); // advc.opt
 	setupGraphical();
 
 	CvPlayer& kOwner = GET_PLAYER(getOwner());
@@ -609,7 +608,7 @@ void CvCity::doRevolt()
 	// <advc.099c>
 	PlayerTypes eOwnerIgnRange = eCulturalOwner;
 	if(GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE))
-		eOwnerIgnRange = plot()->calculateCulturalOwner(true);
+		eOwnerIgnRange = getPlot().calculateCulturalOwner(true);
 	// If not within culture range, can revolt but not flip
 	bool bCanFlip = (eOwnerIgnRange == eCulturalOwner);
 	eCulturalOwner = eOwnerIgnRange;
@@ -627,7 +626,7 @@ void CvCity::doRevolt()
 		{
 			kill(true);
 		}
-		else plot()->setOwner(eCulturalOwner, true, true); // will delete pCity
+		else getPlot().setOwner(eCulturalOwner, true, true); // will delete pCity
 		/*  advc (comment): setOwner doesn't actually delete this object; just
 			calls CvCity::kill. Messages also handled by setOwner (through
 			CvPlayer::acquireCity). */
@@ -699,10 +698,11 @@ void CvCity::doRevolt()
 // advc: Code cut and pasted from CvPlot::doCulture; also refactored.
 void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 {
+	CvPlot const& kPlot = getPlot();
 	CLinkList<IDInfo> oldUnits;
 	{
-		for(CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode();
-			pUnitNode != NULL; pUnitNode = plot()->nextUnitNode(pUnitNode))
+		for(CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
+			pUnitNode != NULL; pUnitNode = kPlot.nextUnitNode(pUnitNode))
 		{
 			oldUnits.insertAtEnd(pUnitNode->m_data);
 		}
@@ -711,13 +711,13 @@ void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 	while(pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = plot()->nextUnitNode(pUnitNode);
+		pUnitNode = kPlot.nextUnitNode(pUnitNode);
 		if(pLoopUnit == NULL)
 			continue;
 		if(pLoopUnit->isBarbarian())
 			pLoopUnit->kill(false, eRevoltSource);
 		else if(pLoopUnit->canDefend())
-			pLoopUnit->changeDamage((pLoopUnit->currHitPoints() / 2), eRevoltSource);
+			pLoopUnit->changeDamage(pLoopUnit->currHitPoints() / 2, eRevoltSource);
 	}
 }
 
@@ -736,7 +736,7 @@ bool CvCity::canBeSelected() const  // advc: refactored
 	{
 		return true;
 	}
-	if(eActiveTeam != NO_TEAM && plot()->isInvestigate(eActiveTeam))
+	if(eActiveTeam != NO_TEAM && getPlot().isInvestigate(eActiveTeam))
 		return true;
 
 	FOR_EACH_ENUM(EspionageMission)
@@ -1354,7 +1354,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	if(!GET_PLAYER(getOwner()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost))
 		return false;
 
-	if(!plot()->canTrain(eUnit, bContinue, bTestVisible, /* advc.001b: */ bCheckAirUnitCap,
+	if(!getPlot().canTrain(eUnit, bContinue, bTestVisible, /* advc.001b: */ bCheckAirUnitCap,
 		eAssumeAvailable)) // advc.001u
 	{
 		return false;
@@ -1505,9 +1505,9 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 				return false;
 		}
 
-		if(plot()->getLatitude() > kBuilding.getMaxLatitude())
+		if(getPlot().getLatitude() > kBuilding.getMaxLatitude())
 			return false;
-		if(plot()->getLatitude() < kBuilding.getMinLatitude())
+		if(getPlot().getLatitude() < kBuilding.getMinLatitude())
 			return false;
 		{
 			bool bPrereqBonus = false;
@@ -2718,7 +2718,7 @@ bool CvCity::canConscript() const
 		return false;
 
 	static int const iCONSCRIPT_MIN_CULTURE_PERCENT = GC.getDefineINT("CONSCRIPT_MIN_CULTURE_PERCENT"); // advc.opt
-	if (plot()->calculateTeamCulturePercent(getTeam()) < iCONSCRIPT_MIN_CULTURE_PERCENT)
+	if (getPlot().calculateTeamCulturePercent(getTeam()) < iCONSCRIPT_MIN_CULTURE_PERCENT)
 		return false;
 
 	if (getConscriptUnit() == NO_UNIT)
@@ -2780,7 +2780,7 @@ void CvCity::conscript()
 		if (GC.getGame().getActivePlayer() == getOwner() &&
 			 !CvPlot::isAllFog()) // advc.706
 		{
-			gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
+			gDLL->getInterfaceIFace()->lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
 			gDLL->getInterfaceIFace()->selectUnit(pUnit, true, false, true);
 		}
 		if (gCityLogLevel >= 2 && !isHuman()) logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
@@ -3287,7 +3287,7 @@ bool CvCity::isHuman() const
 
 bool CvCity::isVisible(TeamTypes eTeam, bool bDebug) const
 {
-	return plot()->isVisible(eTeam, bDebug);
+	return getPlot().isVisible(eTeam, bDebug);
 }
 
 
@@ -3310,7 +3310,7 @@ bool CvCity::isPrereqBonusSea() const
 
 bool CvCity::isCoastal(int iMinWaterSize) const
 {
-	return plot()->isCoastalLand(iMinWaterSize);
+	return getPlot().isCoastalLand(iMinWaterSize);
 }
 
 
@@ -3403,7 +3403,7 @@ int CvCity::getNoMilitaryPercentAnger() const
 
 int CvCity::getCulturePercentAnger() const
 {
-	int iTotalCulture = plot()->getTotalCulture(); // advc.opt: was countTotalCulture
+	int iTotalCulture = getPlot().getTotalCulture(); // advc.opt: was countTotalCulture
 	if (iTotalCulture == 0)
 		return 0;
 
@@ -3415,7 +3415,7 @@ int CvCity::getCulturePercentAnger() const
 	for (PlayerIter<EVER_ALIVE,NOT_SAME_TEAM_AS> it(getTeam()); it.hasNext(); ++it)
 	{
 		CvPlayer const& kRival = *it;
-		int iCulture = plot()->getCulture(kRival.getID());
+		int iCulture = getPlot().getCulture(kRival.getID());
 		if(iCulture <= 0)
 			continue;
 		int iRelationsModifier = 0;
@@ -4035,7 +4035,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	// Gradually shift to highest pop
 	pop += timeRatio * (getHighestPopulation() - pop);
 	bool bCanFlip = canCultureFlip(ePlayer, false) &&
-			ePlayer == plot()->calculateCulturalOwner();
+			ePlayer == getPlot().calculateCulturalOwner();
 	double strength = 1 + 2 * pop;
 	double strengthFromInnerRadius = 0;
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
@@ -4078,24 +4078,24 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 		strength += 10; // </advc.101>
 	/*  K-Mod, 7/jan/11, karadoc
 		changed so that culture strength asymptotes as the attacking culture approaches 100% */
-	//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") * (plot()->getCulture(ePlayer) - plot()->getCulture(getOwner()))) / (plot()->getCulture(getOwner()) + 1) + 100); //  K-Mod end
+	//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") * (getPlot().getCulture(ePlayer) - getPlot().getCulture(getOwner()))) / (getPlot().getCulture(getOwner()) + 1) + 100); //  K-Mod end
 	// <advc.101> Restored BtS formula; now using floating point operations
 	strength *= std::max(0.0, 1 +
 			/*  Don't like the multiplicative interaction between this and the
 				grievances; now added it to the grievances. */
 			//GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") *
-			(plot()->getCulture(ePlayer) - plot()->getCulture(getOwner())) /
-			(double)plot()->getCulture(ePlayer));
+			(getPlot().getCulture(ePlayer) - getPlot().getCulture(getOwner())) /
+			(double)getPlot().getCulture(ePlayer));
 	// New: Reduce strength if far less culture than some third party
 	double thirdPartyModifier = (8.0 *
-			plot()->calculateTeamCulturePercent(TEAMID(ePlayer))) /
-			(5.0 * plot()->calculateTeamCulturePercent(
-			plot()->findHighestCultureTeam()));
+			getPlot().calculateTeamCulturePercent(TEAMID(ePlayer))) /
+			(5.0 * getPlot().calculateTeamCulturePercent(
+			getPlot().findHighestCultureTeam()));
 	if(thirdPartyModifier < 1.0)
 		strength *= thirdPartyModifier;
 	// Also/ further reduce strength if owner has almost as much culture as ePlayer
-	double secondPartyModifier = ::dRange(plot()->getCulture(ePlayer) /
-			(double)plot()->getCulture(getOwner()) - 1, 0.0, 1.0);
+	double secondPartyModifier = ::dRange(getPlot().getCulture(ePlayer) /
+			(double)getPlot().getCulture(getOwner()) - 1, 0.0, 1.0);
 	strength *= secondPartyModifier;
 	// </advc.101>
 	/*  <advc.099c> Religion offense might make sense even when a civ is dead,
@@ -4182,8 +4182,8 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 		return 0;
 
 	int iGarrison = 0; // was 1  </advc.101>
-	for(CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = plot()->nextUnitNode(pUnitNode))
+	for(CLLNode<IDInfo> const* pUnitNode = getPlot().headUnitNode(); pUnitNode != NULL;
+		pUnitNode = getPlot().nextUnitNode(pUnitNode))
 	{
 		// advc.101: Handled by new function
 		iGarrison += ::getUnit(pUnitNode->m_data)->garrisonStrength();
@@ -4196,7 +4196,7 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 // <advc.099c>
 PlayerTypes CvCity::calculateCulturalOwner() const
 {
-	return plot()->calculateCulturalOwner(GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE));
+	return getPlot().calculateCulturalOwner(GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE));
 } // </advc.099c>
 
 
@@ -4298,46 +4298,47 @@ int CvCity::getYExternal() const
 	return getY();
 } // </advc.inl>
 
-
-CvPlot* CvCity::plot() const
+// advc.opt: Update cached CvPlot and CvArea pointer
+void CvCity::updatePlot()
 {
-	return GC.getMap().plotSoren(getX(), getY());
+	m_pPlot = GC.getMap().plotSoren(getX(), getY());
+	updateArea();
 }
 
 
 CvPlotGroup* CvCity::plotGroup(PlayerTypes ePlayer) const
 {
-	return plot()->getPlotGroup(ePlayer);
+	return getPlot().getPlotGroup(ePlayer);
 }
 
 
 bool CvCity::isConnectedTo(CvCity const* pCity) const // advc: const CvCity*
 {
-	return plot()->isConnectedTo(pCity);
+	return getPlot().isConnectedTo(pCity);
 }
 
 
 bool CvCity::isConnectedToCapital(PlayerTypes ePlayer) const
 {
-	return plot()->isConnectedToCapital(ePlayer);
+	return getPlot().isConnectedToCapital(ePlayer);
 }
 
 // advc: For handling area recalculation (after a WorldBuilder terrain change)
 void CvCity::updateArea()
 {
-	m_pArea = plot()->area();
+	m_pArea = (plot() == NULL ? NULL :getPlot().area());
 }
 
 // BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000: param added
 CvArea* CvCity::waterArea(bool bNoImpassable) const
 {
-	return plot()->waterArea(bNoImpassable);
+	return getPlot().waterArea(bNoImpassable);
 }
 
 // BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000: Expose plot function through city
 CvArea* CvCity::secondWaterArea() const
 {
-	return plot()->secondWaterArea();
+	return getPlot().secondWaterArea();
 }
 
 // advc.003j (comment): Unused; may or may not work correctly.
@@ -4455,7 +4456,7 @@ void CvCity::setPopulation(int iNewValue)
 	if (getPopulation() > 0)
 		getArea().changePower(getOwner(), getPopulationPower(getPopulation()));
 
-	plot()->updateYield();
+	getPlot().updateYield();
 
 	updateMaintenance();
 
@@ -4473,7 +4474,7 @@ void CvCity::setPopulation(int iNewValue)
 	setInfoDirty(true);
 	setLayoutDirty(true);
 
-	plot()->plotAction(PUF_makeInfoBarDirty);
+	getPlot().plotAction(PUF_makeInfoBarDirty);
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
 	{
@@ -4746,7 +4747,7 @@ int CvCity::calculateDistanceMaintenance() const
 int CvCity::calculateDistanceMaintenanceTimes100(PlayerTypes eOwner) const
 {
 	// advc.004b: BtS code moved into new static function
-	return CvCity::calculateDistanceMaintenanceTimes100(*plot(),
+	return CvCity::calculateDistanceMaintenanceTimes100(getPlot(),
 			eOwner == NO_PLAYER ? getOwner() : eOwner, getPopulation());
 }
 
@@ -4759,7 +4760,7 @@ int CvCity::calculateNumCitiesMaintenance() const
 int CvCity::calculateNumCitiesMaintenanceTimes100(PlayerTypes eOwner) const
 {
 	// advc.004b: BtS code moved into new static function
-	return calculateNumCitiesMaintenanceTimes100(*plot(),
+	return calculateNumCitiesMaintenanceTimes100(getPlot(),
 			eOwner == NO_PLAYER ? getOwner() : eOwner,
 			getPopulation());
 }
@@ -4911,7 +4912,7 @@ void CvCity::updateFreshWaterHealth()
 	int iNewGoodHealth = 0;
 	int iNewBadHealth = 0;
 
-	if (plot()->isFreshWater())
+	if (getPlot().isFreshWater())
 	{
 		if (GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE) > 0)
 			iNewGoodHealth += GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE);
@@ -5998,7 +5999,7 @@ void CvCity::changeBuildingDefense(int iChange)
 		m_iBuildingDefense += iChange;
 		FAssert(getBuildingDefense() >= 0);
 		setInfoDirty(true);
-		plot()->plotAction(PUF_makeInfoBarDirty);
+		getPlot().plotAction(PUF_makeInfoBarDirty);
 	}
 }
 
@@ -6141,7 +6142,7 @@ void CvCity::changeDefenseDamage(int iChange)
 	if (iChange > 0)
 		setBombarded(true);
 	setInfoDirty(true);
-	plot()->plotAction(PUF_makeInfoBarDirty);
+	getPlot().plotAction(PUF_makeInfoBarDirty);
 }
 
 void CvCity::changeDefenseModifier(int iChange)
@@ -7964,8 +7965,8 @@ double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 int CvCity::getRevoltProtection() const
 {
 	int iBestModifier = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = plot()->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = plot()->nextUnitNode(pUnitNode))
+	for (CLLNode<IDInfo> const* pUnitNode = getPlot().headUnitNode(); pUnitNode != NULL;
+		pUnitNode = getPlot().nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit->getRevoltProtection() > iBestModifier)
@@ -8029,9 +8030,9 @@ void CvCity::setEspionageVisibility(TeamTypes eIndex, bool bNewValue, bool bUpda
 {
 	if (getEspionageVisibility(eIndex) != bNewValue)
 	{
-		plot()->updateSight(false, bUpdatePlotGroups);
+		getPlot().updateSight(false, bUpdatePlotGroups);
 		m_abEspionageVisibility.set(eIndex, bNewValue);
-		plot()->updateSight(true, bUpdatePlotGroups);
+		getPlot().updateSight(true, bUpdatePlotGroups);
 	}
 }
 
@@ -8174,10 +8175,10 @@ void CvCity::changeFreeBonus(BonusTypes eIndex, int iChange)
 {
 	if (iChange != 0)
 	{
-		plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
+		getPlot().updatePlotGroupBonus(false, /* advc.064d: */ false);
 		m_aiFreeBonus.add(eIndex, iChange);
 		FAssert(getFreeBonus(eIndex) >= 0);
-		plot()->updatePlotGroupBonus(true);
+		getPlot().updatePlotGroupBonus(true);
 	}
 }
 
@@ -9258,7 +9259,7 @@ void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnn
 			CvPlayer const& kObs = *it;
 			// <advc.106e>
 			if(kObs.hasHeadquarters(eCorp))
-				plot()->setRevealed(kObs.getTeam(), true, false, NO_TEAM, false);
+				getPlot().setRevealed(kObs.getTeam(), true, false, NO_TEAM, false);
 			//if (getOwner() == kObs.getID() || kObs.hasHeadquarters(eIndex)) // BtS
 			if(isRevealed(kObs.getTeam())) // </advc.106e>
 			{
@@ -9654,7 +9655,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		addProductionExperience(pUnit);
 		CvPlot* pRallyPlot = getRallyPlot(); // (advc.001b: moved up)
 		if (GC.getInfo(eTrainUnit).getDomainType() == DOMAIN_AIR &&
-			plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
+			getPlot().countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
 		{
 			// <advc.001b>
 			if (pRallyPlot != NULL && pUnit->canMoveInto(*pRallyPlot))
@@ -10161,7 +10162,7 @@ void CvCity::doCulture()
 			if (aiTradeCultureTimes100[ePlayer] > 0)
 			{
 				// <advc.125>
-				if(iUseKModTradeCulture < 0 && plot()->getCulture(ePlayer) <= 0)
+				if(iUseKModTradeCulture < 0 && getPlot().getCulture(ePlayer) <= 0)
 					continue; // </advc.125>
 				// plot culture only.
 				//changeCultureTimes100(ePlayer, iTradeCultureTimes100[ePlayer], false, false);
@@ -10798,7 +10799,7 @@ void CvCity::doMeltdown()
 		if (getNumRealBuilding(eDangerBuilding) > 0)
 			setNumRealBuilding(eDangerBuilding, 0);
 
-		plot()->nukeExplosion(1, /* K-Mod: */ 0, false);
+		getPlot().nukeExplosion(1, /* K-Mod: */ 0, false);
 
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
 		gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
@@ -10819,7 +10820,7 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iID);
 	pStream->Read(&m_iX);
 	pStream->Read(&m_iY);
-	updateArea(); // advc
+	updatePlot(); // advc.opt
 	pStream->Read(&m_iRallyX);
 	pStream->Read(&m_iRallyY);
 	pStream->Read(&m_iGameTurnFounded);
@@ -11411,8 +11412,8 @@ bool CvCity::isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const
 {
 	if (bDebug && GC.getGame().isDebugMode())
 		return true;
-	return (plot()->isInvestigate(eTeam) ||
-			plot()->plotCheck(NULL, -1, -1, NO_PLAYER, eTeam) > 0 != NULL);
+	return (getPlot().isInvestigate(eTeam) ||
+			getPlot().plotCheck(NULL, -1, -1, NO_PLAYER, eTeam) > 0 != NULL);
 } // </advc.045>
 
 
@@ -11630,7 +11631,7 @@ bool CvCity::isValidBuildingLocation(BuildingTypes eBuilding) const
 	// if both the river and water flags are set, we require one of the two conditions, not both
 	if (GC.getInfo(eBuilding).isWater())
 	{
-		if (!GC.getInfo(eBuilding).isRiver() || !plot()->isRiver())
+		if (!GC.getInfo(eBuilding).isRiver() || !getPlot().isRiver())
 		{
 			if (!isCoastal(GC.getInfo(eBuilding).getMinAreaSize()))
 				return false;
@@ -11643,7 +11644,7 @@ bool CvCity::isValidBuildingLocation(BuildingTypes eBuilding) const
 
 		if (GC.getInfo(eBuilding).isRiver())
 		{
-			if (!plot()->isRiver())
+			if (!getPlot().isRiver())
 				return false;
 		}
 	}
@@ -12059,7 +12060,7 @@ void CvCity::doPartisans()
 	if (getPopulation() <= 1 || isBarbarian())
 		return;
 	// advc: Was based on city culture instead of plot culture
-	PlayerTypes eHighestCulturePlayer = plot()->findHighestCulturePlayer();
+	PlayerTypes eHighestCulturePlayer = getPlot().findHighestCulturePlayer();
 	if (eHighestCulturePlayer == getOwner() || eHighestCulturePlayer == BARBARIAN_PLAYER)
 		return;
 	CvPlayer& kPartisanPlayer = GET_PLAYER(eHighestCulturePlayer);
@@ -12566,7 +12567,7 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 			iCultureScore += iTotalCityCultureTimes100 / 2;
 		}
 		// K-Mod - adjust culture score based on plot ownership.
-		iCultureScore *= 100 + plot()->calculateTeamCulturePercent(kLoopPlayer.getTeam());
+		iCultureScore *= 100 + getPlot().calculateTeamCulturePercent(kLoopPlayer.getTeam());
 		iCultureScore /= 100;
 		// K-Mod end
 

@@ -1530,7 +1530,7 @@ void Reconquista::evaluate() {
 		/*  Lower the utility if our culture is small; suggests that we only
 			held the city briefly or long ago */
 		double reconqVal = std::sqrt(std::min(1.0,
-				c.plot()->calculateCulturePercent(weId) / 50.0));
+				c.getPlot().calculateCulturePercent(weId) / 50.0));
 		uPlus += reconqValBase * reconqVal;
 		log("Reconquering %s; base val %d, modifier %d percent", report.cityName(c),
 				::round(reconqValBase), ::round(100 * reconqVal));
@@ -1755,7 +1755,7 @@ void BorderDisputes::evaluate() {
 	for(CitySetIter it = theyLose.begin(); it != theyLose.end(); ++it) {
 		City* cp = ourCache->lookupCity(*it); if(cp == NULL) continue;
 		CvCity const& c = *cp->city();
-		int ourTileCulturePercent = c.plot()->calculateCulturePercent(weId);
+		int ourTileCulturePercent = c.getPlot().calculateCulturePercent(weId);
 		double newOwnerMultiplier = -1;
 		for(PlayerIter<MAJOR_CIV> conqIt; conqIt.hasNext(); ++conqIt) {
 			PlayerTypes civId = conqIt->getID();
@@ -1765,7 +1765,7 @@ void BorderDisputes::evaluate() {
 					newOwnerMultiplier = 1;
 				// Third party: depends on how much culture they have
 				else newOwnerMultiplier = std::max(0,
-						75 - c.plot()->calculateCulturePercent(civId)) / 100.0;
+						75 - c.getPlot().calculateCulturePercent(civId)) / 100.0;
 				log("%s possible border city; our culture: %d percent",
 						report.cityName(c), ourTileCulturePercent);
 				/*  If we have very little culture there and we don't conquer it,
@@ -1775,7 +1775,7 @@ void BorderDisputes::evaluate() {
 					log("Skipped b/c conquered by third party and our culture very"
 							" small");
 				}
-				else if(c.plot()->getCulture(weId) <= 0) {
+				else if(c.getPlot().getCulture(weId) <= 0) {
 					newOwnerMultiplier = -1;
 					log("Skipped b/c we have 0 culture there");
 				}

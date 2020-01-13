@@ -225,22 +225,24 @@ int CvArea::getRepresentativeArea() const
 bool CvArea::canBeEntered(CvArea const& kFrom, CvUnit const* u) const
 {
 	//PROFILE_FUNC();
-	/*  Called extremely often, more than 10^6 times per second according to the
-		internal profiler. Mostly from CvUnitAI::AI_isPlotValid.
-		advc.130f: I've force-inlined all functions called from here except
-		CvUnit::plot and CvUnit::getDomainType. */
+	/*  Called very often. Mostly from the various plot danger functions.
+		advc.inl: I've force-inlined all functions called from here.
+		Still consumes a significant portion of the total turn time. */
 	if(getID() == kFrom.getID())
 		return true;
 	/*  If I wanted to support canMoveAllTerrain here, then I couldn't do
 		anything more when u==NULL. So that's not supported. */
-	if(isWater() == kFrom.isWater() && (m_iRepresentativeAreaId !=
-			kFrom.m_iRepresentativeAreaId || (u != NULL && !u->canMoveImpassable())))
+	if(isWater() == kFrom.isWater() &&
+		(m_iRepresentativeAreaId != kFrom.m_iRepresentativeAreaId ||
+		(u != NULL && !u->canMoveImpassable())))
+	{
 		return false;
+	}
 	/*  Can't rule out movement between water and land without knowing if the
 		unit is a ship inside a city or a land unit aboard a transport */
 	if(u == NULL)
 		return true;
-	if(isWater() && (u->getDomainType() != DOMAIN_SEA || !u->plot()->isCity()))
+	if(isWater() && (u->getDomainType() != DOMAIN_SEA || !u->getPlot().isCity()))
 		return false;
 	if(!isWater() && (u->getDomainType() != DOMAIN_LAND || !u->isCargo()))
 		return false;

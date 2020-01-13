@@ -1097,21 +1097,19 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)  // advc: style changes
 		FOR_EACH_UNIT_VAR(pLoopUnit, *this)
 		{
 			pLoopUnit->reloadEntity();
-			CvPlot* pLoopPlot = pLoopUnit->plot();
-			/*if (pLoopPlot != NULL) {
-				CvFlagEntity* pFlag = pLoopPlot->getFlagSymbol();
-				if (pFlag != NULL) {
-					if (gDLL->getFlagEntityIFace()->getPlayer(pFlag) == getID()) {
-						gDLL->getFlagEntityIFace()->destroy(pFlag);
-						CvFlagEntity* pNewFlag = gDLL->getFlagEntityIFace()->create(getID());
-						if (pFlag != NULL)
-							gDLL->getFlagEntityIFace()->setPlot(pNewFlag, pLoopPlot, false);
-						gDLL->getFlagEntityIFace()->updateGraphicEra(pNewFlag);
-					}
+			/*CvPlot& kLoopPlot = pLoopUnit->getPlot();
+			CvFlagEntity* pFlag = kLoopPlot.getFlagSymbol();
+			if (pFlag != NULL) {
+				if (gDLL->getFlagEntityIFace()->getPlayer(pFlag) == getID()) {
+					gDLL->getFlagEntityIFace()->destroy(pFlag);
+					CvFlagEntity* pNewFlag = gDLL->getFlagEntityIFace()->create(getID());
+					if (pFlag != NULL)
+						gDLL->getFlagEntityIFace()->setPlot(pNewFlag, &kLoopPlot, false);
+					gDLL->getFlagEntityIFace()->updateGraphicEra(pNewFlag);
 				}
-				pLoopPlot->setFlagDirty(true);
-				//pLoopPlot->updateGraphicEra();
-			}*/
+			}
+			kLoopPlot.setFlagDirty(true);
+			//kLoopPlot.updateGraphicEra();*/
 		}
 
 		//update flag eras
@@ -2381,20 +2379,21 @@ void CvPlayer::disbandUnit(bool bAnnounce)
 				pLoopUnit->getUnitInfo().getProductionCost() <= 0)
 			continue;
 
-		if (!pLoopUnit->isMilitaryHappiness() || !pLoopUnit->plot()->isCity() || pLoopUnit->plot()->plotCount(PUF_isMilitaryHappiness, -1, -1, getID()) > 1)
+		if (!pLoopUnit->isMilitaryHappiness() || !pLoopUnit->getPlot().isCity() ||
+			pLoopUnit->getPlot().plotCount(PUF_isMilitaryHappiness, -1, -1, getID()) > 1)
 		{
 			int iValue = (10000 + GC.getGame().getSorenRandNum(1000, "Disband Unit"));
 			iValue += (pLoopUnit->getUnitInfo().getProductionCost() * 5);
 			iValue += (pLoopUnit->getExperience() * 20);
 			iValue += (pLoopUnit->getLevel() * 100);
 
-			if (pLoopUnit->canDefend() && pLoopUnit->plot()->isCity()
+			if (pLoopUnit->canDefend() && pLoopUnit->getPlot().isCity()
 				/*  advc.001s: I suppose this clause is intended for
 				potential city defenders */
 				&& pLoopUnit->getDomainType() == DOMAIN_LAND)
 				iValue *= 2;
 
-			if (pLoopUnit->plot()->getTeam() == pLoopUnit->getTeam())
+			if (pLoopUnit->getPlot().getTeam() == pLoopUnit->getTeam())
 				iValue *= 3;
 
 			switch (pLoopUnit->AI_getUnitAIType())
@@ -3272,14 +3271,14 @@ void CvPlayer::updateCorporation()
 /*void CvPlayer::updateCityPlotYield()
 {
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
-		pLoopCity->plot()->updateYield();
+		pLoopCity->getPlot().updateYield();
 }*/
 
 
 void CvPlayer::updateCitySight(bool bIncrement, bool bUpdatePlotGroups)
 {
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
-		pLoopCity->plot()->updateSight(bIncrement, bUpdatePlotGroups);
+		pLoopCity->getPlot().updateSight(bIncrement, bUpdatePlotGroups);
 }
 
 
@@ -3567,7 +3566,7 @@ int CvPlayer::countNumCoastalCitiesByArea(CvArea const& kArea) const
 	{
 		if (pLoopCity->isCoastal())
 		{
-			if (pLoopCity->isArea(kArea) || pLoopCity->plot()->isAdjacentToArea(kArea))
+			if (pLoopCity->isArea(kArea) || pLoopCity->getPlot().isAdjacentToArea(kArea))
 				iCount++;
 		}
 	}
@@ -4381,7 +4380,8 @@ bool CvPlayer::canTradeNetworkWith(PlayerTypes ePlayer) const
 
 int CvPlayer::getNumAvailableBonuses(BonusTypes eBonus) const
 {
-	CvPlotGroup* pPlotGroup = ((getCapitalCity() != NULL) ? getCapitalCity()->plot()->getOwnerPlotGroup() : NULL);
+	CvPlotGroup* pPlotGroup = (getCapitalCity() != NULL ?
+			getCapitalCity()->getPlot().getOwnerPlotGroup() : NULL);
 	if (pPlotGroup != NULL)
 		return pPlotGroup->getNumBonuses(eBonus);
 
@@ -7451,7 +7451,7 @@ void CvPlayer::killGoldenAgeUnits(CvUnit* pUnitAlive)
 			pBestUnit->kill(true);
 
 			//play animations
-			if (pBestUnit->plot()->isActiveVisible(false))
+			if (pBestUnit->getPlot().isActiveVisible(false))
 			{
 				//kill removes bestUnit from any groups
 				pBestUnit->getGroup()->pushMission(MISSION_GOLDEN_AGE, 0);
@@ -9230,15 +9230,15 @@ void CvPlayer::setCapitalCity(CvCity* pNewCapitalCity)
 	if(pOldCapitalCity == pNewCapitalCity)
 		return;
 
-	bool bUpdatePlotGroups = ((pOldCapitalCity == NULL) || (pNewCapitalCity == NULL) ||
-			(pOldCapitalCity->plot()->getOwnerPlotGroup() !=
-			pNewCapitalCity->plot()->getOwnerPlotGroup()));
+	bool bUpdatePlotGroups = (pOldCapitalCity == NULL || pNewCapitalCity == NULL ||
+			pOldCapitalCity->getPlot().getOwnerPlotGroup() !=
+			pNewCapitalCity->getPlot().getOwnerPlotGroup());
 	if (bUpdatePlotGroups)
 	{
 		if (pOldCapitalCity != NULL)
-			pOldCapitalCity->plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
+			pOldCapitalCity->getPlot().updatePlotGroupBonus(false, /* advc.064d: */ false);
 		if (pNewCapitalCity != NULL)
-			pNewCapitalCity->plot()->updatePlotGroupBonus(false);
+			pNewCapitalCity->getPlot().updatePlotGroupBonus(false);
 	}
 
 	if (pNewCapitalCity != NULL)
@@ -9248,9 +9248,9 @@ void CvPlayer::setCapitalCity(CvCity* pNewCapitalCity)
 	if (bUpdatePlotGroups)
 	{
 		if (pOldCapitalCity != NULL)
-			pOldCapitalCity->plot()->updatePlotGroupBonus(true, /* advc.064d: */ false);
+			pOldCapitalCity->getPlot().updatePlotGroupBonus(true, /* advc.064d: */ false);
 		if (pNewCapitalCity != NULL)
-			pNewCapitalCity->plot()->updatePlotGroupBonus(true);
+			pNewCapitalCity->getPlot().updatePlotGroupBonus(true);
 	}
 
 	updateMaintenance();
@@ -11115,12 +11115,12 @@ void CvPlayer::changeBonusExport(BonusTypes eIndex, int iChange)
 		return; // advc
 	CvCity* pCapitalCity = getCapitalCity();
 	if (pCapitalCity != NULL)
-		pCapitalCity->plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
+		pCapitalCity->getPlot().updatePlotGroupBonus(false, /* advc.064d: */ false);
 
 	m_paiBonusExport[eIndex] = (m_paiBonusExport[eIndex] + iChange);
 	FAssert(getBonusExport(eIndex) >= 0);
 	if (pCapitalCity != NULL)
-		pCapitalCity->plot()->updatePlotGroupBonus(true);
+		pCapitalCity->getPlot().updatePlotGroupBonus(true);
 
 	AI().AI_updateBonusValue(); // advc.036
 }
@@ -11143,12 +11143,12 @@ void CvPlayer::changeBonusImport(BonusTypes eIndex, int iChange)
 		return; // advc
 	CvCity* pCapitalCity = getCapitalCity();
 	if (pCapitalCity != NULL)
-		pCapitalCity->plot()->updatePlotGroupBonus(false, /* advc.064d: */ false);
+		pCapitalCity->getPlot().updatePlotGroupBonus(false, /* advc.064d: */ false);
 
 	m_paiBonusImport[eIndex] = (m_paiBonusImport[eIndex] + iChange);
 	FAssert(getBonusImport(eIndex) >= 0);
 	if (pCapitalCity != NULL)
-		pCapitalCity->plot()->updatePlotGroupBonus(true);
+		pCapitalCity->getPlot().updatePlotGroupBonus(true);
 
 	AI().AI_updateBonusValue(); // advc.036
 }
@@ -14149,7 +14149,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
 			if (NULL != pUnit)
 			{
-				FAssert(pUnit->plot() == pPlot);
+				FAssert(pUnit->atPlot(pPlot));
 				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SOMETHING_DESTROYED", pUnit->getNameKey()).GetCString();
 				pUnit->kill(false, getID());
 
@@ -14170,7 +14170,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
 			if (NULL != pUnit)
 			{
-				FAssert(pUnit->plot() == pPlot);
+				FAssert(pUnit->atPlot(pPlot));
 
 				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_UNIT_BOUGHT", pUnit->getNameKey()).GetCString();
 
@@ -15144,29 +15144,26 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 				if (!pPlot->canTrain(eUnit, false, false))
 					return -1;
 
-				if (pPlot->isImpassable() && !GC.getInfo(eUnit).isCanMoveImpassable())
+				if (pPlot->isImpassable() && !GC.getInfo(eUnit).canMoveImpassable())
 					return -1;
 
 				if (pPlot->isFeature())
 				{
 					if (GC.getInfo(eUnit).getFeatureImpassable(pPlot->getFeatureType()))
 					{
-						TechTypes eTech = (TechTypes)GC.getInfo(eUnit).getFeaturePassableTech(pPlot->getFeatureType());
+						TechTypes eTech = GC.getInfo(eUnit).getFeaturePassableTech(
+								pPlot->getFeatureType());
 						if (eTech == NO_TECH || !GET_TEAM(getTeam()).isHasTech(eTech))
-						{
 							return -1;
-						}
 					}
 				}
 				else
 				{
 					if (GC.getInfo(eUnit).getTerrainImpassable(pPlot->getTerrainType()))
 					{
-						TechTypes eTech = (TechTypes)GC.getInfo(eUnit).getTerrainPassableTech(pPlot->getTerrainType());
-						if (NO_TECH == eTech || !GET_TEAM(getTeam()).isHasTech(eTech))
-						{
+						TechTypes eTech = GC.getInfo(eUnit).getTerrainPassableTech(pPlot->getTerrainType());
+						if (eTech == NO_TECH || !GET_TEAM(getTeam()).isHasTech(eTech))
 							return -1;
-						}
 					}
 				}
 			}
@@ -20531,7 +20528,7 @@ bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 	if (kUnit.getUnitInfo().getProductionCost() <= 0)
 		return false;
 
-	if (!kUnit.plot()->isVisible(getTeam()))
+	if (!kUnit.getPlot().isVisible(getTeam()))
 		return false;
 
 	return true;
@@ -20550,8 +20547,8 @@ bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 	if (!GET_TEAM(getTeam()).canPeacefullyEnter(TEAMID(eTarget)))
 		return false;
 
-	for (CLLNode<IDInfo> const* pUnitNode = kUnit.plot()->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = kUnit.plot()->nextUnitNode(pUnitNode))
+	for (CLLNode<IDInfo> const* pUnitNode = kUnit.getPlot().headUnitNode(); pUnitNode != NULL;
+		pUnitNode = kUnit.getPlot().nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit != NULL && pLoopUnit != &kUnit)
@@ -21541,7 +21538,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 		}
 	} // <advc.004z> Use the player color for the plot group of the capital
 	CvPlotGroup* pCapitalGroup = (getCapitalCity() == NULL ? NULL :
-			getCapitalCity()->plot()->getPlotGroup(getID()));
+			getCapitalCity()->getPlot().getPlotGroup(getID()));
 	if (pCapitalGroup != NULL)
 	{
 		FAssert(pCapitalGroup->getLengthPlots() > 0);

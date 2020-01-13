@@ -53,8 +53,8 @@ public:
 			bool bUseTempFinder = false) const; // advc.128
 	KmodPathFinder& getPathFinder() const; // K-Mod
 
-	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;								// Exposed to Python
-	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;				// Exposed to Python
+	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false,									// Exposed to Python
+			CvArea const* pArea = NULL) const; // advc: canEnterArea merged into canEnterTerritory
 	TeamTypes getDeclareWarMove(const CvPlot* pPlot) const;															// Exposed to Python
 	bool canMoveInto(CvPlot const& kPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false,										// Exposed to Python
 			bool bAssumeVisible = true, // K-Mod
@@ -81,10 +81,10 @@ public:
 	bool canGift(bool bTestVisible = false, bool bTestTransport = true) const;																											// Exposed to Python
 	void gift(bool bTestTransport = true);
 
-	bool canLoadOnto(const CvUnit* pUnit, const CvPlot* pPlot, 															// Exposed to Python
+	bool canLoadOnto(CvUnit const& kUnit, CvPlot const& kPlot,	 															// Exposed to Python
 			bool bCheckMoves = false) const; // advc.123c
-	void loadOnto(CvUnit* pUnit);
-	bool canLoad(const CvPlot* pPlot,																											// Exposed to Python
+	void loadOnto(CvUnit& kUnit);
+	bool canLoadOntoAnyUnit(CvPlot const& kPlot,																											// Exposed to Python
 			bool bCheckMoves = false) const; // advc.123c
 	void load();
 	bool shouldLoadOnMove(const CvPlot* pPlot) const;
@@ -95,7 +95,7 @@ public:
 	bool canUnloadAll() const;																																		// Exposed to Python
 	void unloadAll();
 
-	bool canHold(const CvPlot* pPlot) const;																											// Exposed to Python
+	inline bool canHold(const CvPlot* pPlot) const { return true; } // advc.inl															// Exposed to Python
 	bool canSleep(const CvPlot* pPlot) const;																						// Exposed to Python
 	bool canFortify(const CvPlot* pPlot) const;																					// Exposed to Python
 	bool canAirPatrol(const CvPlot* pPlot) const;																									// Exposed to Python
@@ -112,12 +112,13 @@ public:
 	int healTurns(const CvPlot* pPlot) const;
 	void doHeal();
 
+		// advc (tbd.): Change the iX,iY params to a CvPlot const& kTarget (x10)
 	bool canAirlift(const CvPlot* pPlot) const;																										// Exposed to Python
 	bool canAirliftAt(const CvPlot* pPlot, int iX, int iY) const;																	// Exposed to Python
 	bool airlift(int iX, int iY);
 
 	bool isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const;																// Exposed to Python
-	bool canNuke(const CvPlot* pPlot) const;																											// Exposed to Python
+	bool canNuke(const CvPlot* pPlot) const { return (nukeRange() != -1); } // advc.inl											// Exposed to Python
 	bool canNukeAt(const CvPlot* pPlot, int iX, int iY) const;																		// Exposed to Python
 	bool nuke(int iX, int iY);
 
@@ -129,18 +130,18 @@ public:
 	bool canAirBombAt(const CvPlot* pPlot, int iX, int iY) const;																	// Exposed to Python
 	bool airBomb(int iX, int iY);
 
-	CvCity* bombardTarget(const CvPlot* pPlot) const;																							// Exposed to Python
-	bool canBombard(const CvPlot* pPlot) const;																										// Exposed to Python
+	CvCity* bombardTarget(CvPlot const& kPlot) const;																							// Exposed to Python
+	bool canBombard(CvPlot const& kPlot) const;																										// Exposed to Python
 	bool bombard();
 
 	bool canParadrop(const CvPlot* pPlot) const;																											// Exposed to Python
 	bool canParadropAt(const CvPlot* pPlot, int iX, int iY) const;																		// Exposed to Python
 	bool paradrop(int iX, int iY);
 
-	bool canPillage(const CvPlot* pPlot) const;																										// Exposed to Python
+	bool canPillage(CvPlot const& kPlot) const;																										// Exposed to Python
 	bool pillage();
 
-	bool canPlunder(const CvPlot* pPlot, bool bTestVisible = false) const;																					// Exposed to Python
+	bool canPlunder(CvPlot const& kPlot, bool bTestVisible = false) const;																					// Exposed to Python
 	bool plunder();
 	void updatePlunder(int iChange, bool bUpdatePlotGroups);
 	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0, // advc
@@ -240,7 +241,10 @@ public:
 	SpecialUnitTypes getSpecialUnitType() const;										// Exposed to Python
 	UnitTypes getCaptureUnitType(CivilizationTypes eCivilization) const;				// Exposed to Python
 	UnitCombatTypes getUnitCombatType() const;											// Exposed to Python
-	DllExport DomainTypes getDomainType() const;													// Exposed to Python
+	DllExport __forceinline DomainTypes getDomainType() const							// Exposed to Python
+	{
+		return (DomainTypes)m_cDomain; // advc.opt, advc.inl
+	}
 	InvisibleTypes getInvisibleType() const;											// Exposed to Python
 	int getNumSeeInvisibleTypes() const;												// Exposed to Python
 	InvisibleTypes getSeeInvisibleType(int i) const;									// Exposed to Python
@@ -341,13 +345,13 @@ public:
 	int firstStrikes() const;																								// Exposed to Python
 	int chanceFirstStrikes() const;																					// Exposed to Python
 	int maxFirstStrikes() const { return firstStrikes() + chanceFirstStrikes(); } // advc.inl										// Exposed to Python
-	DllExport bool isRanged() const;																									// Exposed to Python
+	DllExport bool isRanged() const;																						// Exposed to Python
 
 	bool alwaysInvisible() const;																						// Exposed to Python
 	bool immuneToFirstStrikes() const;																			// Exposed to Python
 	bool noDefensiveBonus() const;																					// Exposed to Python
 	bool ignoreBuildingDefense() const;																								// Exposed to Python
-	bool canMoveImpassable() const;																										// Exposed to Python
+	inline bool canMoveImpassable() const { return m_bMoveImpassable; } // advc.opt: cached												// Exposed to Python
 	bool canMoveAllTerrain() const;																										// Exposed to Python
 	bool flatMovementCost() const;																										// Exposed to Python
 	bool ignoreTerrainCost() const;																										// Exposed to Python
@@ -391,7 +395,8 @@ public:
 	int cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo = NO_SPECIALUNIT, DomainTypes eDomainCargo = NO_DOMAIN) const;	// Exposed to Python
 	bool hasCargo() const { return (getCargo() > 0); } // advc.inl																	// Exposed to Python
 	//bool canCargoAllMove() const; // disabled by K-Mod (was exposed to Python)
-	bool canCargoEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage) const;
+	bool canCargoEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage,
+			CvArea const& kArea) const;
 	int getUnitAICargo(UnitAITypes eUnitAI) const;																		// Exposed to Python
 	// <advc.inl>
 	DllExport inline int getID() const { return m_iID; }																					// Exposed to Python
@@ -419,7 +424,9 @@ public:
 	bool at(int iX, int iY) const { return (getX() == iX && getY() == iY); } // advc.inl											// Exposed to Python
 	inline bool at(CvPlot const& kPlot) const { return atPlot(&kPlot); } // advc
 	DllExport bool atPlot(const CvPlot* pPlot) const { return (plot() == pPlot); } // advc.inl										// Exposed to Python
-	DllExport CvPlot* plot() const;																														// Exposed to Python
+	DllExport __forceinline CvPlot* plot() const { return m_pPlot; } // advc.opt: cached											// Exposed to Python
+	__forceinline CvPlot& getPlot() const { return *m_pPlot; } // advc
+	void updatePlot(); // advc.opt
 	//int getArea() const;																											// Exposed to Python
 	// <advc>
 	inline CvArea& getArea() const { return *m_pArea; }
@@ -719,8 +726,8 @@ public:
 	void setImmobileTimer(int iNewValue);													// Exposed to Python
 	void changeImmobileTimer(int iChange);
 
-	bool potentialWarAction(const CvPlot* pPlot) const;
-	bool willRevealByMove(const CvPlot* pPlot) const;
+	bool potentialWarAction(CvPlot const& kPlot) const;
+	bool willRevealAnyPlotFrom(CvPlot const& kFrom) const;
 
 	bool isAlwaysHostile(const CvPlot* pPlot) const;
 
@@ -861,12 +868,16 @@ protected:
 	bool m_bInfoBarDirty;
 	bool m_bBlockading;
 	bool m_bAirCombat;
+	// <advc.opt>
+	bool m_bMoveImpassable;
+	char m_cDomain; // </advc.opt>
 
 	PlayerTypes m_eCapturingPlayer;
 	UnitTypes m_eUnitType;
 	UnitTypes m_eLeaderUnitType;
-
-	CvArea* m_pArea; // advc
+	// <advc.opt>
+	CvArea* m_pArea;
+	CvPlot* m_pPlot; // </advc.opt>
 
 	IDInfo m_combatUnit;
 	IDInfo m_transportUnit;

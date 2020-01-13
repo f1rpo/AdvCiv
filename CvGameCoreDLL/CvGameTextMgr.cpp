@@ -388,7 +388,7 @@ void CvGameTextMgr::setEspionageMissionHelp(CvWStringBuffer &szBuffer, const CvU
 {
 	if (pUnit->isSpy())
 	{
-		PlayerTypes eOwner =  pUnit->plot()->getOwner();
+		PlayerTypes eOwner =  pUnit->getPlot().getOwner();
 		if (NO_PLAYER != eOwner && GET_PLAYER(eOwner).getTeam() != pUnit->getTeam())
 		{
 			if (!pUnit->canEspionage(pUnit->plot()))
@@ -540,7 +540,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			told not to finish it -- it'll build for x turns, make a pause,
 			eventually build for 1 more turn. */
 		szString.append(GC.getInfo(eBuild).getDescription());
-		int iTurns = pUnit->plot()->getBuildTurnsLeft(eBuild,
+		int iTurns = pUnit->getPlot().getBuildTurnsLeft(eBuild,
 				/* advc.251: */ pUnit->getOwner(), 0, 0);
 		bool bSuspend = false;
 		if(iTurns > 1) {
@@ -2171,8 +2171,8 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						if (!pMissionPlot->isCity())
 						{
 							DirectionTypes eDirection = estimateDirection(
-									m.dxWrap(pMissionPlot->getX() - pCity->plot()->getX()),
-									m.dyWrap(pMissionPlot->getY() - pCity->plot()->getY()));
+									m.dxWrap(pMissionPlot->getX() - pCity->getPlot().getX()),
+									m.dyWrap(pMissionPlot->getY() - pCity->getPlot().getY()));
 							getDirectionTypeString(szTempString, eDirection);
 							szString.append(CvWString::format(L"%s of ",
 									szTempString.GetCString()));
@@ -4371,7 +4371,7 @@ void CvGameTextMgr::setCannotAttackHelp(CvWStringBuffer& szHelp,
 	if (kDefender.getDamage() < iLimit)
 	{
 		if (!kDefender.canFight() && kAttacker.combatLimit() < 100 &&
-			kDefender.plot()->plotCheck(PUF_isEnemy, kAttacker.getOwner(), false,
+			kDefender.getPlot().plotCheck(PUF_isEnemy, kAttacker.getOwner(), false,
 			NO_PLAYER, NO_TEAM, PUF_canDefend))
 		{
 			iLimit = kAttacker.combatLimit();
@@ -5350,7 +5350,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->getArea(),
 				true))); // advc.007
 		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)",
-				pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1,
+				pPlotCity->getPlot().plotCount(PUF_canAirDefend, -1, -1,
 				pPlotCity->getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR),
 				pPlotCity->AI_neededAirDefenders(/* advc.001n: */ true)));
 		/*int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->getArea());
@@ -6727,7 +6727,7 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GREAT_PEOPLE", pCity->getGreatPeopleProgress(), GET_PLAYER(pCity->getOwner()).greatPeopleThreshold(false)));
 	}
 
-	int iNumUnits = pCity->plot()->countNumAirUnits(GC.getGame().getActiveTeam());
+	int iNumUnits = pCity->getPlot().countNumAirUnits(GC.getGame().getActiveTeam());
 	if (pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()) > 0 && iNumUnits > 0)
 	{
 		szString.append(NEWLINE);
@@ -9453,7 +9453,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 			if (u.getTerrainImpassable(eLoopTerrain))
 			{
 				CvWString szTerrain;
-				TechTypes eTech = (TechTypes)u.getTerrainPassableTech(eLoopTerrain);
+				TechTypes eTech = u.getTerrainPassableTech(eLoopTerrain);
 				if (NO_TECH == eTech)
 					szTerrain.Format(L"<link=literal>%s</link>", GC.getInfo(eLoopTerrain).getDescription());
 				else
@@ -9474,7 +9474,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 			if (u.getFeatureImpassable(eLoopFeature))
 			{
 				// advc.001 (from MNAI): was getTerrainPassableTech
-				TechTypes eTech = (TechTypes)u.getFeaturePassableTech(eLoopFeature);
+				TechTypes eTech = u.getFeaturePassableTech(eLoopFeature);
 				CvWString szFeature;
 				if (eTech == NO_TECH)
 					szFeature.Format(L"<link=literal>%s</link>", GC.getInfo(eLoopFeature).getDescription());
@@ -9510,7 +9510,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		}
 	}
 
-	if (u.isCanMoveImpassable())
+	if (u.canMoveImpassable())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_CAN_MOVE_IMPASSABLE"));
@@ -10398,10 +10398,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		setProductionSpeedHelp(szBuffer, ORDER_TRAIN, &u, pCity, false);
 	// </advc.004w>
 	// <advc.001b>
-	if(pCity != NULL && pCity->plot() != NULL &&
-		u.getAirUnitCap() > 0 &&
+	if(pCity != NULL && u.getAirUnitCap() > 0 &&
 		GC.getDefineBOOL(CvGlobals::CAN_TRAIN_CHECKS_AIR_UNIT_CAP) &&
-		pCity->plot()->airUnitSpaceAvailable(TEAMID(pCity->getOwner())) < 1)
+		pCity->getPlot().airUnitSpaceAvailable(pCity->getTeam()) < 1)
 	{
 		szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText(
 				"TXT_KEY_NOT_ENOUGH_SPACE").c_str());
@@ -12197,7 +12196,7 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 
 		if (kBuilding.getMinLatitude() > 0)
 		{
-			if (NULL == pCity || pCity->plot()->getLatitude() < kBuilding.getMinLatitude())
+			if (NULL == pCity || pCity->getPlot().getLatitude() < kBuilding.getMinLatitude())
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MIN_LATITUDE", kBuilding.getMinLatitude()));
@@ -12206,7 +12205,7 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 
 		if (kBuilding.getMaxLatitude() < 90)
 		{
-			if (NULL == pCity || pCity->plot()->getLatitude() > kBuilding.getMaxLatitude())
+			if (NULL == pCity || pCity->getPlot().getLatitude() > kBuilding.getMaxLatitude())
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MAX_LATITUDE", kBuilding.getMaxLatitude()));
@@ -20472,12 +20471,12 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 					if (!kUnit.IsSelected())
 						continue;
 					CvUnitInfo const& kUnitInfo = kUnit.getUnitInfo();
-					if (pMouseOverPlot->isImpassable() && !kUnitInfo.isCanMoveImpassable())
+					if (pMouseOverPlot->isImpassable() && !kUnitInfo.canMoveImpassable())
 						continue;
 					if (!kUnitInfo.getTerrainImpassable(eTerrain))
 						continue;
 					bCanAllEnter = false;
-					TechTypes eReqTech = (TechTypes)kUnitInfo.getTerrainPassableTech(eTerrain);
+					TechTypes eReqTech = kUnitInfo.getTerrainPassableTech(eTerrain);
 					if (eReqTech != NO_TECH && !GET_TEAM(eActiveTeam).isHasTech(eReqTech) &&
 						GC.getInfo(eReqTech).getEra() -
 						GET_PLAYER(pSelectedUnit->getOwner()).getCurrentEra() <=
@@ -20535,7 +20534,7 @@ void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)  // adv
 	if (pCity == NULL)
 		return;
 
-	int iNumUnits = pCity->plot()->countNumAirUnits(GC.getGame().getActiveTeam());
+	int iNumUnits = pCity->getPlot().countNumAirUnits(GC.getGame().getActiveTeam());
 	bool bFull = (iNumUnits >= pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
 	if (bFull)
 		strHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
@@ -21136,7 +21135,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 	int iModifier = 0;
 	if (!pAttacker->isRiver())
 	{
-		if (pAttacker->plot()->isRiverCrossing(::directionXY(pAttacker->plot(),
+		if (pAttacker->getPlot().isRiverCrossing(::directionXY(pAttacker->plot(),
 				pPlot)))
 		{
 			iModifier = GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
@@ -21150,7 +21149,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 	}
 	if (!pAttacker->isAmphib())
 	{
-		if (!pPlot->isWater() && pAttacker->plot()->isWater())
+		if (!pPlot->isWater() && pAttacker->getPlot().isWater())
 		{
 			iModifier = GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER);
 			if (iModifier != 0)

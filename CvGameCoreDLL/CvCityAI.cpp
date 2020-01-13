@@ -440,7 +440,7 @@ void CvCityAI::AI_chooseProduction()
 			UnitTypes eProductionUnit = getProductionUnit();
 			if (eProductionUnit != NO_UNIT)
 			{
-				if (plot()->getNumDefenders(getOwner()) == 0)
+				if (getPlot().getNumDefenders(getOwner()) == 0)
 				{
 					if (GC.getInfo(eProductionUnit).getCombat() > 0)
 						return;
@@ -700,7 +700,7 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
-	if (plot()->getNumDefenders(getOwner()) == 0) // XXX check for other team's units?
+	if (getPlot().getNumDefenders(getOwner()) == 0) // XXX check for other team's units?
 	{
 		if (gCityLogLevel >= 2) logBBAI("      City %S uses no defenders", getName().GetCString());
 
@@ -778,8 +778,10 @@ void CvCityAI::AI_chooseProduction()
 	// K-Mod end
 
 	// So what's the right detection of defense which works in early game too?
-	int iPlotSettlerCount = (iNumSettlers == 0) ? 0 : plot()->plotCount(PUF_isUnitAIType, UNITAI_SETTLE, -1, getOwner());
-	int iPlotCityDefenderCount = plot()->plotCount(PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwner());
+	int iPlotSettlerCount = (iNumSettlers == 0) ? 0 : getPlot().plotCount(
+			PUF_isUnitAIType, UNITAI_SETTLE, -1, getOwner());
+	int iPlotCityDefenderCount = getPlot().plotCount(
+			PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwner());
 	if (iOwnerEra == 0)
 	{
 		// Warriors are blocked from UNITAI_CITY_DEFENSE, in early game this confuses AI city building
@@ -787,7 +789,8 @@ void CvCityAI::AI_chooseProduction()
 		{
 			if (kPlayer.AI_bestCityUnitAIValue(UNITAI_CITY_DEFENSE, this) == 0)
 			{
-				iPlotCityDefenderCount = plot()->plotCount(PUF_canDefend, -1, -1, getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_LAND);
+				iPlotCityDefenderCount = getPlot().plotCount(PUF_canDefend, -1, -1,
+						getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_LAND);
 			}
 		}
 	}
@@ -932,7 +935,7 @@ void CvCityAI::AI_chooseProduction()
 	if(!kPlayer.isHuman() && kPlayer.AI_atVictoryStage(AI_VICTORY_SPACE4) &&
 		!isCoastal() && !isCapital() && bCapitalArea && !bDanger && !bLandWar &&
 		pCapital != NULL && pCapital->isCoastal() &&
-		plot()->calculateCulturePercent(getOwner()) >= 50 &&
+		getPlot().calculateCulturePercent(getOwner()) >= 50 &&
 		// Dave_uk's code (directly) based on AI_cityThreat looked too slow
 		AI_neededFloatingDefenders(true) <= pCapital->AI_neededFloatingDefenders(true) &&
 		AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, 12))
@@ -945,7 +948,8 @@ void CvCityAI::AI_chooseProduction()
 	if (bDanger)
 	{
 		int iAttackNeeded = 4;
-		iAttackNeeded += std::max(0, AI_neededDefenders() - plot()->plotCount(PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwner()));
+		iAttackNeeded += std::max(0, AI_neededDefenders() -
+				getPlot().plotCount(PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwner()));
 
 		if (kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ATTACK) <  iAttackNeeded)
 		{
@@ -1388,7 +1392,7 @@ void CvCityAI::AI_chooseProduction()
 	{
 		iSpreadUnitThreshold += 800 - 10*iWarSuccessRating;
 	}
-	iSpreadUnitThreshold += 1000*plot()->plotCount(PUF_isUnitAIType, UNITAI_MISSIONARY, -1, getOwner());
+	iSpreadUnitThreshold += 1000*getPlot().plotCount(PUF_isUnitAIType, UNITAI_MISSIONARY, -1, getOwner());
 
 	UnitTypes eBestSpreadUnit = NO_UNIT;
 	int iBestSpreadUnitValue = -1;
@@ -1783,7 +1787,7 @@ void CvCityAI::AI_chooseProduction()
 							pAssaultWaterArea = NULL;
 						if(bAssaultTargetFound && // </advc.030b>
 							// BBAI TODO: faster to switch to checking path for some selection group?
-							!plot()->isHasPathToEnemyCity(getTeam()))
+							!getPlot().isHasPathToEnemyCity(getTeam()))
 						{
 							bBuildAssault = true;
 						}
@@ -1867,7 +1871,7 @@ void CvCityAI::AI_chooseProduction()
 							count their coastal cities instead. */
 						FOR_EACH_CITY(c, kEnemy)
 						{
-							if(c->plot()->isAdjacentToArea(*pAssaultWaterArea))
+							if(c->getPlot().isAdjacentToArea(*pAssaultWaterArea))
 							{
 								// Isolated civs tend to build more ships
 								threat += bAreaAlone ? 1.4 : 1;
@@ -2637,7 +2641,7 @@ void CvCityAI::AI_chooseProduction()
 	// K-Mod end
 
 	// advc.017: Moved here; used to come before the Process check
-	if (!bUnitExempt && plot()->plotCheck(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwner()) == NULL)
+	if (!bUnitExempt && getPlot().plotCheck(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwner()) == NULL)
 	{
 		if (AI_chooseUnit(UNITAI_CITY_COUNTER))
 		{
@@ -2703,7 +2707,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 
 	int foo=-1;
 	if (!bFinancialTrouble && (bPrimaryArea ?
-			//kOwner.findBestFoundValue() > 0 : area()->getBestFoundValue(getOwner()) > 0
+			//kOwner.findBestFoundValue() > 0 : getArea().getBestFoundValue(getOwner()) > 0
 			// <advc.opt>
 			kOwner.AI_getNumCitySites() > 0 :
 			kOwner.AI_getNumAreaCitySites(getArea(), foo) > 0)) // </advc.opt>
@@ -4198,8 +4202,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			iValue += kBuilding.getAirUnitCapacity() * (getPopulation() * 2 + 10);
 			iValue += (-(kBuilding.getNukeModifier()) / ((iHasMetCount > 0) ? 10 : 20));*/ // BtS
 			// (This stuff is already counted in the defense section.)
-
-			iValue += std::max(0, kBuilding.getAirUnitCapacity() - plot()->airUnitSpaceAvailable(getTeam())/2) * (getPopulation() + 12); // K-Mod
+			// <K-Mod>
+			iValue += std::max(0, kBuilding.getAirUnitCapacity() -
+					getPlot().airUnitSpaceAvailable(getTeam())/2) *
+					(getPopulation() + 12); // </K-Mod>
 
 			/*iValue += (kBuilding.getFreeSpecialist() * 16);
 			iValue += (kBuilding.getAreaFreeSpecialist() * iNumCitiesInArea * 12);
@@ -6179,12 +6185,12 @@ bool CvCityAI::AI_isDefended(int iExtra) /* advc: */ const
 {
 	PROFILE_FUNC();
 
-	return ((plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getOwner(), NO_TEAM, PUF_isCityAIType) + iExtra) >= AI_neededDefenders()); // XXX check for other team's units?
+	return ((getPlot().plotCount(PUF_canDefendGroupHead, -1, -1, getOwner(), NO_TEAM, PUF_isCityAIType) + iExtra) >= AI_neededDefenders()); // XXX check for other team's units?
 }
 
 /*bool CvCityAI::AI_isAirDefended(int iExtra) {
 	PROFILE_FUNC();
-	return ((plot()->plotCount(PUF_canAirDefend, -1, -1, getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR) + iExtra) >= AI_neededAirDefenders()); // XXX check for other team's units?
+	return ((getPlot().plotCount(PUF_canAirDefend, -1, -1, getOwner(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR) + iExtra) >= AI_neededAirDefenders()); // XXX check for other team's units?
 }*/ // BtS
 // BETTER_BTS_AI_MOD, Air AI, 10/17/08, jdog5000: START  (disabled by K-Mod)
 // Function now answers question of whether city has enough ready air defense, no longer just counts fighters
@@ -6194,10 +6200,10 @@ bool CvCityAI::AI_isDefended(int iExtra) /* advc: */ const
 	int iAirIntercept = 0;
 	int iLandIntercept = 0;
 	CvUnit* pLoopUnit;
-	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = getPlot().headUnitNode();
 	while (pUnitNode != NULL) {
 		pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = plot()->nextUnitNode(pUnitNode);
+		pUnitNode = getPlot().nextUnitNode(pUnitNode);
 		if ((pLoopUnit->getOwner() == getOwner())) {
 			if (pLoopUnit->canAirDefend()) {
 				if (pLoopUnit->getDomainType() == DOMAIN_AIR) {
@@ -6233,7 +6239,7 @@ bool CvCityAI::AI_isDefended(int iExtra) /* advc: */ const
 bool CvCityAI::AI_isAirDefended(bool bCountLand, int iExtra) /* advc: */ const
 {
 	PROFILE_FUNC();
-	return plot()->plotCount(PUF_isAirIntercept, -1, -1, getOwner()) + iExtra >= AI_neededAirDefenders();
+	return getPlot().plotCount(PUF_isAirIntercept, -1, -1, getOwner()) + iExtra >= AI_neededAirDefenders();
 }
 
 // BETTER_BTS_AI_MOD, War strategy AI, Barbarian AI, 04/25/10, jdog5000: START
@@ -6284,7 +6290,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 
 	if (bDefenseWar || kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2))
 	{
-		if (!plot()->isHills())
+		if (!getPlot().isHills())
 			iDefenders++;
 	}
 
@@ -6412,7 +6418,7 @@ int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache,
 int CvCityAI::AI_neededCultureDefenders() const
 {
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
-	if (plot()->calculateCulturePercent(kOwner.getID()) >= 50)
+	if (getPlot().calculateCulturePercent(kOwner.getID()) >= 50)
 		return 0; // To save time
 	PlayerTypes eCulturalOwner = calculateCulturalOwner();
 	if(eCulturalOwner == kOwner.getID() || revoltProbability(true, true) <= 0)
@@ -6527,7 +6533,7 @@ void CvCityAI::AI_updateSafety()
 			DOMAIN_LAND, 3, true, false, false, /*bPredictPromotions*/ true);
 	/*  Could let AI_localDefenceStrength do the counting, but I don't want to
 		rely on defenders that could possibly(!) be rallied too much. */
-	int iDefenders = plot()->getNumDefenders(getOwner());
+	int iDefenders = getPlot().getNumDefenders(getOwner());
 	// Check if we'll finish a defender at the end of our turn
 	if (iDefenders > 0 && isProductionUnit() && getProductionTurnsLeft() == 1)
 	{
@@ -7757,7 +7763,7 @@ void CvCityAI::AI_updateBestBuild()
 			}
 		}
 		/*if (!bChop)
-			bChop = ((area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE) || (area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE) || (area()->getAreaAIType(getTeam()) == AREAAI_MASSING));
+			bChop = ((getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE) || (getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE) || (getArea().getAreaAIType(getTeam()) == AREAAI_MASSING));
 		if (!bChop) {
 			UnitTypes eProductionUnit = getProductionUnit();
 			bChop = (eProductionUnit != NO_UNIT && GC.getInfo(eProductionUnit).isFoodProduction());
@@ -8636,13 +8642,13 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 
 bool CvCityAI::AI_chooseDefender()
 {
-	if (plot()->plotCheck(PUF_isUnitAIType, UNITAI_CITY_SPECIAL, -1, getOwner()) == NULL)
+	if (getPlot().plotCheck(PUF_isUnitAIType, UNITAI_CITY_SPECIAL, -1, getOwner()) == NULL)
 	{
 		if (AI_chooseUnit(UNITAI_CITY_SPECIAL))
 			return true;
 	}
 
-	if (plot()->plotCheck(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwner()) == NULL)
+	if (getPlot().plotCheck(PUF_isUnitAIType, UNITAI_CITY_COUNTER, -1, getOwner()) == NULL)
 	{
 		if (AI_chooseUnit(UNITAI_CITY_COUNTER))
 			return true;
@@ -8788,7 +8794,7 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 						FOR_EACH_UNITAI(pLoopUnit, kPlayer) {
 							if ((pLoopUnit->AI_getUnitAIType() == UNITAI_MISSIONARY) && (pLoopUnit->getUnitInfo().getCorporationSpreads(eCorporation) > 0)) {
 							iTotalCount++;
-							if (pLoopUnit->plot() == plot())
+							if (pLoopUnit->at(getPlot()))
 								iPlotCount++;
 							}
 						}
@@ -11324,7 +11330,8 @@ void CvCityAI::AI_barbChooseProduction()
 			kPlayer.AI_totalWaterAreaUnitAIs(*waterArea(true), UNITAI_WORKER_SEA) : 0;
 	int iWaterPercent = AI_calculateWaterWorldPercent();
 
-	if (!AI_isDefended(plot()->plotCount(PUF_isUnitAIType, UNITAI_ATTACK, -1, getOwner()))) // XXX check for other team's units?
+	if (!AI_isDefended(getPlot().plotCount(
+		PUF_isUnitAIType, UNITAI_ATTACK, -1, getOwner()))) // XXX check for other team's units?
 	{
 		if (AI_chooseDefender())
 			return;
@@ -11406,7 +11413,7 @@ void CvCityAI::AI_barbChooseProduction()
 		}
 	}
 
-	if (plot()->plotCount(PUF_isUnitAIType, UNITAI_ASSAULT_SEA, -1, getOwner()) > 0)
+	if (getPlot().plotCount(PUF_isUnitAIType, UNITAI_ASSAULT_SEA, -1, getOwner()) > 0)
 	{
 		if (AI_chooseUnit(UNITAI_ATTACK_CITY))
 		{
@@ -12661,7 +12668,7 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc: some style changes
 		if (iSize <= 0)
 			continue;
 		// Already counted in the city plot loop
-		if (pGroup->plot()->getWorkingCity() == this)
+		if (pGroup->getPlot().getWorkingCity() == this)
 			continue;
 		CvPlot* pMissionPlot = pGroup->AI_getMissionAIPlot();
 		int const iRange = 9 * (1 + iOwnerEra / 2);
@@ -12708,7 +12715,7 @@ double CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes
 				iPotential++;
 			continue;
 		}
-		if(c->getTeam() != getTeam() && !c->plot()->isInvestigate(getTeam()))
+		if(c->getTeam() != getTeam() && !c->getPlot().isInvestigate(getTeam()))
 		{
 			iPotential += 3;
 			continue;

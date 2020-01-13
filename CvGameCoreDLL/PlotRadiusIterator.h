@@ -9,19 +9,19 @@
 
 /*  Iterators over the CvPlot objects within a radius around a central plot or unit.
 	For now, I've only implemented a square, which is the most frequently used
-	plot range. The radius is measured according to the stepDistance heuristic.
+	plot range. The radius is measured according to the stepDistance metric.
 	A more circular range (plostDistance metric) can be generated through the
 	b_IN_CIRCLE template parameter. The implementation of the in-circle
 	isn't terribly efficient: A square is generated and plots outside of the
 	plostDistance radius are skipped. (That's also what the BtS code did.)
 	There are derived classes at the end of this file that hide the template parameter.
-	For the special case of iterating over a city radius, see CityPlotIterator.h,
+	For the special case of iterating over a city radius, see CityPlotIterator.h.
 
 	The order of traversal corresponds to a North-East-South-West (clockwise) spiral.
-	NULL plots are skipped, but CvUnitAI::AI_plotValid isn't checked - not all callers
-	use it and including it here would arguably make it even more difficult to
-	remove AI_plotValid at a later time (it's a kludge and time-waster). */
-	
+	NULL plots are skipped, but CvUnitAI::AI_plotValid isn't checked - should only be
+	checked when considering to move into a tile, and even then there can be faster
+	alternatives (see comments at the definition of AI_plotValid). */
+
 template<bool bIN_CIRCLE = false>
 class SquareIterator
 {
@@ -88,7 +88,8 @@ public:
 protected:
 	void computeNext()
 	{
-		PROFILE_FUNC();
+		//PROFILE_FUNC(); //  Immediate sample stack overflow (b/c recursive?).
+						  //  TSC_PROFILE suggests 10 mio. calls in a late-game turn.
 		m_iPos++;
 		if (m_iPos >= m_iMaxPos)
 		{

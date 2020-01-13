@@ -718,7 +718,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 			  // <advc.004n> BtS code:
 			  //((GC.ctrlKey()) ? (GC.getDefineINT("MAX_PLOT_LIST_SIZE") - 1) : 1));
 			  std::min(GC.getDefineINT("MAX_PLOT_LIST_SIZE"),
-			  gDLL->getInterfaceIFace()->getHeadSelectedCity()->plot()->getNumUnits())
+			  gDLL->getInterfaceIFace()->getHeadSelectedCity()->getPlot().getNumUnits())
 			  /* Don't really know how to determine the number of units shown
 				 initially. Offset divided by 9 happens to work, at least for
 				 1024x768 (offset 81, 9 units) and 1280x1024 (144, 16). */
@@ -977,7 +977,7 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		PlayerTypes foo;
 		parseCityTradeHelp(widgetDataStruct, pCity, foo);
 		// Can't move the camera while Foreign Advisor is up
-		//gDLL->getInterfaceIFace()->lookAt(pCity->plot()->getPoint(), CAMERALOOKAT_NORMAL);
+		//gDLL->getInterfaceIFace()->lookAt(pCity->getPlot().getPoint(), CAMERALOOKAT_NORMAL);
 		// Better than nothing: open city screen (while Foreign Advisor remains open too)
 		if (pCity != NULL)
 		{	// Close city screen with another click on WIDGET_CITY_TRADE
@@ -1642,12 +1642,12 @@ void CvDLLWidgetData::parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 			false, false, false, // defaults
 			pUnit->getOwner() == GC.getGame().getActivePlayer());
 			// </advc.069>
-	if (pUnit->plot()->plotCount(PUF_isUnitType, pUnit->getUnitType(), -1, pUnit->getOwner()) > 1)
+	if (pUnit->getPlot().plotCount(PUF_isUnitType, pUnit->getUnitType(), -1, pUnit->getOwner()) > 1)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_SELECT", GC.getInfo(pUnit->getUnitType()).getTextKeyWide()));
 	}
-	if (pUnit->plot()->plotCount(NULL, -1, -1, pUnit->getOwner()) > 1)
+	if (pUnit->getPlot().plotCount(NULL, -1, -1, pUnit->getOwner()) > 1)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALT_SELECT"));
@@ -1901,7 +1901,7 @@ void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, C
 	}
 	{
 		int iMinCulturePercent = GC.getDefineINT("CONSCRIPT_MIN_CULTURE_PERCENT");
-		if (pHeadSelectedCity->plot()->calculateTeamCulturePercent(
+		if (pHeadSelectedCity->getPlot().calculateTeamCulturePercent(
 			pHeadSelectedCity->getTeam()) < iMinCulturePercent)
 		{
 			szBuffer.append(NEWLINE);
@@ -2006,7 +2006,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 			}
 			else if (kAction.getCommandType() == COMMAND_GIFT)
 			{
-				PlayerTypes eGiftPlayer = pHeadSelectedUnit->plot()->getOwner();
+				PlayerTypes eGiftPlayer = pHeadSelectedUnit->getPlot().getOwner();
 
 				if (eGiftPlayer != NO_PLAYER)
 				{
@@ -2083,7 +2083,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 					}
 				}
 				int iProjectedSupply = 0;
-				bool bSupply = (pHeadSelectedUnit->plot()->getTeam() != kActivePl.getTeam());
+				bool bSupply = (pHeadSelectedUnit->getPlot().getTeam() != kActivePl.getTeam());
 				iProjectedSupply = kActivePl.calculateUnitSupply(bSupply ? iUnits : 0);
 				int iProjectedUnitCost = kActivePl.calculateUnitCost(0, iUnits);
 				int iProjectedExpenses = iProjectedSupply + iProjectedUnitCost +
@@ -2224,7 +2224,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	case MISSION_PLUNDER:
 	{
 		//if (kMissionPlot.getTeam() == kUnitTeam.getID())
-		if(!kUnit.canPlunder(&kMissionPlot)) // advc.033
+		if(!kUnit.canPlunder(kMissionPlot)) // advc.033
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PLUNDER_IN_BORDERS"));
@@ -4852,7 +4852,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kPlayer.isEverAlive())
 			continue;
-		int iCulturePercent = c.plot()->calculateCulturePercent(kPlayer.getID());
+		int iCulturePercent = c.getPlot().calculateCulturePercent(kPlayer.getID());
 		if(iCulturePercent > 0)
 			sorted.push_back(std::pair<int,PlayerTypes>(iCulturePercent, kPlayer.getID()));
 	}

@@ -504,7 +504,7 @@ public:
 	int AI_getTotalAirDefendersNeeded() const; // K-Mod
 
 	RouteTypes AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValue = NULL) const;
-	UnitTypes AI_bestAdvancedStartUnitAI(CvPlot* pPlot, UnitAITypes eUnitAI) const;
+	UnitTypes AI_bestAdvancedStartUnitAI(CvPlot const& kPlot, UnitAITypes eUnitAI) const;
 	CvPlot* AI_advancedStartFindCapitalPlot();
 
 	bool AI_advancedStartPlaceExploreUnits(bool bLand);

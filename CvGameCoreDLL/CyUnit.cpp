@@ -77,7 +77,7 @@ bool CyUnit::canEnterTerritory(int /*TeamTypes*/ eTeam, bool bIgnoreRightOfPassa
 
 bool CyUnit::canEnterArea(int /*TeamTypes*/ eTeam, CyArea* pArea, bool bIgnoreRightOfPassage)
 {
-	return m_pUnit ? (int) m_pUnit->canEnterArea((TeamTypes) eTeam, pArea->getArea(), bIgnoreRightOfPassage) : false;
+	return m_pUnit ? (int) m_pUnit->canEnterTerritory((TeamTypes)eTeam, bIgnoreRightOfPassage, &pArea->getArea()) : false;
 }
 
 int /*TeamTypes*/ CyUnit::getDeclareWarMove(CyPlot* pPlot)
@@ -122,12 +122,12 @@ bool CyUnit::canGift(bool bTestVisible)
 
 bool CyUnit::canLoadUnit(CyUnit* pUnit, CyPlot* pPlot)
 {
-	return m_pUnit ? m_pUnit->canLoadOnto(pUnit->getUnit(), pPlot->getPlot()) : false;
+	return m_pUnit ? m_pUnit->canLoadOnto(*pUnit->getUnit(), *pPlot->getPlot()) : false;
 }
 
 bool CyUnit::canLoad(CyPlot* pPlot)
 {
-	return m_pUnit ? m_pUnit->canLoad(pPlot->getPlot()) : false;
+	return m_pUnit ? m_pUnit->canLoadOntoAnyUnit(*pPlot->getPlot()) : false;
 }
 
 bool CyUnit::canUnload()
@@ -157,7 +157,7 @@ bool CyUnit::canFortify(CyPlot* pPlot)
 
 bool CyUnit::canPlunder(CyPlot* pPlot)
 {
-	return m_pUnit ? m_pUnit->canPlunder(pPlot->getPlot()) : false;
+	return m_pUnit ? m_pUnit->canPlunder(*pPlot->getPlot()) : false;
 }
 
 bool CyUnit::canAirPatrol(CyPlot* pPlot)
@@ -237,17 +237,17 @@ bool CyUnit::canAirBombAt(CyPlot* pPlot, int iX, int iY)
 
 CyCity* CyUnit::bombardTarget(CyPlot* pPlot)
 {
-	return m_pUnit ? new CyCity(m_pUnit->bombardTarget(pPlot->getPlot())) : false;
+	return m_pUnit ? new CyCity(m_pUnit->bombardTarget(*pPlot->getPlot())) : NULL;
 }
 
 bool CyUnit::canBombard(CyPlot* pPlot)
 {
-	return m_pUnit ? m_pUnit->canBombard(pPlot->getPlot()) : false;
+	return m_pUnit ? m_pUnit->canBombard(*pPlot->getPlot()) : false;
 }
 
 bool CyUnit::canPillage(CyPlot* pPlot)
 {
-	return m_pUnit ? m_pUnit->canPillage(pPlot->getPlot()) : false;
+	return m_pUnit ? m_pUnit->canPillage(*pPlot->getPlot()) : false;
 }
 
 int CyUnit::sabotageCost(CyPlot* pPlot)

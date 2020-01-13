@@ -312,7 +312,9 @@ public:
 	{
 		return (plot() == pPlot); // advc.inl
 	}
-	DllExport CvPlot* plot() const;																				// Exposed to Python
+	DllExport __forceinline CvPlot* plot() const { return m_pPlot; } // advc.opt: cached						// Exposed to Python
+	__forceinline CvPlot& getPlot() const { return *m_pPlot; } // advc
+	void updatePlot(); // advc.opt
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
 	bool isConnectedTo(CvCity const* pCity) const;																// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;											// Exposed to Python
@@ -1417,8 +1419,9 @@ protected:
 	// </advc.enum>
 	CvWString m_szPreviousName; // advc.106k
 	CvString m_szScriptData;
-
-	CvArea* m_pArea; // advc
+	// <advc.opt>
+	CvArea* m_pArea;
+	CvPlot* m_pPlot; // </advc.opt>
 	std::vector<IDInfo> m_aTradeCities; // advc: was an array
 
 	mutable CLinkList<OrderData> m_orderQueue;

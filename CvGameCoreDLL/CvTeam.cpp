@@ -2833,14 +2833,14 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 		if (pUnit1 != NULL && pUnit1->getTeam() == eIndex)
 		{
 			ePlayerMet = pUnit1->getOwner();
-			if (pUnit1->plot()->isVisible(getID()))
+			if (pUnit1->getPlot().isVisible(getID()))
 				pUnitMet = pUnit1;
 		}
 		if (pUnit2 != NULL && pUnit2->getTeam() == eIndex)
 		{
 			if (ePlayerMet == NO_PLAYER)
 				ePlayerMet = pUnit2->getOwner();
-			if (pUnit2->plot()->isVisible(getID()))
+			if (pUnit2->getPlot().isVisible(getID()))
 				pUnitMet = pUnit2;
 		}
 		if (pAt1 != NULL && pAt1->isOwned() && pAt1->getTeam() == eIndex)
@@ -2859,7 +2859,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 		}
 		if (ePlayerMet == NO_PLAYER)
 			ePlayerMet = GET_TEAM(eIndex).getLeaderID();
-		if (pUnitMet != NULL && pUnitMet->plot()->isVisible(getID()))
+		if (pUnitMet != NULL && pUnitMet->getPlot().isVisible(getID()))
 			pAt = pUnitMet->plot();
 		if (pAt == NULL) // We can't see any of their tiles or units, but they see ours.
 		{
@@ -3178,11 +3178,13 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		CvPlayer& kLoopPlayer = *it;
 		FOR_EACH_UNIT(pLoopUnit, kLoopPlayer)
 		{
-			CvPlot* pPlot = pLoopUnit->plot();
-			if (pLoopUnit->getTeam() != pPlot->getTeam() &&
-					(pPlot->getTeam() == NO_TEAM ||
-					!GET_TEAM(pPlot->getTeam()).isVassal(pLoopUnit->getTeam())))
+			CvPlot const& kPlot = pLoopUnit->getPlot();
+			if (pLoopUnit->getTeam() != kPlot.getTeam() &&
+				(kPlot.getTeam() == NO_TEAM ||
+				!GET_TEAM(kPlot.getTeam()).isVassal(pLoopUnit->getTeam())))
+			{
 				kLoopPlayer.changeNumOutsideUnits(-1);
+			}
 		}
 	}  // advc: Update war and war plan counters
 	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
@@ -3225,11 +3227,13 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		CvPlayer& kLoopPlayer = *it;
 		FOR_EACH_UNIT(pLoopUnit, kLoopPlayer)
 		{
-			CvPlot* pPlot = pLoopUnit->plot();
-			if (pLoopUnit->getTeam() != pPlot->getTeam() &&
-					(pPlot->getTeam() == NO_TEAM ||
-					!GET_TEAM(pPlot->getTeam()).isVassal(pLoopUnit->getTeam())))
+			CvPlot const& kPlot = pLoopUnit->getPlot();
+			if (pLoopUnit->getTeam() != kPlot.getTeam() &&
+				(kPlot.getTeam() == NO_TEAM ||
+				!GET_TEAM(kPlot.getTeam()).isVassal(pLoopUnit->getTeam())))
+			{
 				kLoopPlayer.changeNumOutsideUnits(1);
+			}
 		}
 	}
 
@@ -4813,7 +4817,7 @@ void CvTeam::verifySpyUnitsValidPlot()
 		CvPlayer const& kMember = *it;
 		FOR_EACH_UNIT_VAR(pUnit, kMember)
 		{
-			PlayerTypes eOwner = pUnit->plot()->getOwner();
+			PlayerTypes eOwner = pUnit->getPlot().getOwner();
 			if (eOwner != NO_PLAYER)
 			{
 				if (pUnit->isSpy() && !kMember.canSpiesEnterBorders(eOwner))

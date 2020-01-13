@@ -127,8 +127,8 @@ float hash(vector<long> const& x, PlayerTypes ePlayer)
 		if(pCapital != NULL)
 		{
 			iCapitalIndex = GC.getMap().plotNum(
-					pCapital->plot()->getX(),
-					pCapital->plot()->getY());
+					pCapital->getPlot().getX(),
+					pCapital->getPlot().getY());
 		}
 	}
 	if(iCapitalIndex >= 0)
@@ -385,9 +385,9 @@ bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
 // (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a penalty.)
 bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
 {
-	FAssert(pFirstGroup && pSecondGroup);
+	FAssert(pSecondGroup != NULL);
 	FAssert(pFirstGroup != pSecondGroup);
-	FAssert(pFirstGroup->plot() == pSecondGroup->plot());
+	FAssert(pFirstGroup->atPlot(pSecondGroup->plot()));
 
 	CvPlot* pPlot = pFirstGroup->plot();
 	//int iGroup2Units = pSecondGroup->getNumUnits();
@@ -411,7 +411,7 @@ bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionG
 // return the 'cost' of cycling from pFirstGroup to pSecondGroup. (eg. a big jump to a differnet type of unit, then it should be a high cost.)
 int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
 {
-	FAssert(pFirstGroup && pSecondGroup && pFirstGroup != pSecondGroup);
+	FAssert(pFirstGroup != pSecondGroup);
 
 	CvUnit* pFirstHead = pFirstGroup->getHeadUnit();
 	CvUnit* pSecondHead = pSecondGroup->getHeadUnit();
@@ -1492,8 +1492,8 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 				if (pLoopUnit1->getCargo() > 0 && pLoopUnit1->domainCargo() == DOMAIN_LAND)
 				{
 					bool bValid = false;
-					for (CLLNode<IDInfo> const* pUnitNode2 = pLoopUnit1->plot()->headUnitNode();
-						pUnitNode2 != NULL; pUnitNode2 = pLoopUnit1->plot()->nextUnitNode(pUnitNode2))
+					for (CLLNode<IDInfo> const* pUnitNode2 = pLoopUnit1->getPlot().headUnitNode();
+						pUnitNode2 != NULL; pUnitNode2 = pLoopUnit1->getPlot().nextUnitNode(pUnitNode2))
 					{
 						CvUnit const* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
 						if (pLoopUnit2->getTransportUnit() == pLoopUnit1)

@@ -8,9 +8,7 @@
 template<bool bIN_CIRCLE>
 CvPlot* SquareIterator<bIN_CIRCLE>::getUnitPlot(CvUnit const& kUnit) const
 {
-	/*	Since this function isn't going to be inlined,
-		let's at least avoid the unnecessary checks in CvUnit::plot. */
-	return &GC.getMap().getPlot(kUnit.getX(), kUnit.getY());
+	return kUnit.plot();
 }
 
 // Explicit instantiations (for linker)

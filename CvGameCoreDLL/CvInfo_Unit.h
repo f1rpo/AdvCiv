@@ -199,8 +199,8 @@ public: /*  All const functions are exposed to Python except some related to art
 	bool isFirstStrikeImmune() const { return m_bFirstStrikeImmune; }
 	bool isNoDefensiveBonus() const { return m_bNoDefensiveBonus; }
 	bool isIgnoreBuildingDefense() const { return m_bIgnoreBuildingDefense; }
-	// advc.inl: force-inlined for CvArea::canBeEntered
-	__forceinline bool isCanMoveImpassable() const { return m_bCanMoveImpassable; }
+	// advc.inl: force-inlined for CvArea::canBeEntered. Renamed from "isCanMoveImpassable"
+	__forceinline bool canMoveImpassable() const { return m_bCanMoveImpassable; }
 	inline bool isCanMoveAllTerrain() const { return m_bCanMoveAllTerrain; }
 	bool isFlatMovementCost() const { return m_bFlatMovementCost; }
 	bool isIgnoreTerrainCost() const { return m_bIgnoreTerrainCost; }
@@ -247,9 +247,9 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getUnitGroupRequired(int i) const;
 	int getReligionSpreads(int i) const;
 	int getCorporationSpreads(int i) const;
-	int getTerrainPassableTech(int i) const;
+	TechTypes getTerrainPassableTech(int i) const;
 	inline bool isAnyTerrainPassableTech() const { return (m_piTerrainPassableTech != NULL); } // advc.003t
-	int getFeaturePassableTech(int i) const;
+	TechTypes getFeaturePassableTech(int i) const;
 	int getFlankingStrikeUnitClass(int i) const;
 	inline bool isAnyFlankingStrikeUnitClass() const { return (m_piFlankingStrikeUnitClass != NULL); } // advc.003t
 

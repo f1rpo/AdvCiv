@@ -234,7 +234,7 @@ void CvGame::updateColoredPlots()
 		{
 			CvPlot const& kTargetPlot = *it;
 			if (kTargetPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
-				pHeadSelectedUnit->plot()->canSeePlot(&kTargetPlot,
+				pHeadSelectedUnit->getPlot().canSeePlot(&kTargetPlot,
 				pHeadSelectedUnit->getTeam(), iRange,
 				pHeadSelectedUnit->getFacingDirection(true)))
 			{
@@ -255,9 +255,9 @@ void CvGame::updateColoredPlots()
 		if (kRecommendUnit.AI_getUnitAIType() == UNITAI_WORKER ||
 			kRecommendUnit.AI_getUnitAIType() == UNITAI_WORKER_SEA)
 		{
-			if (kRecommendUnit.plot()->getOwner() == kRecommendUnit.getOwner())
+			if (kRecommendUnit.getPlot().getOwner() == kRecommendUnit.getOwner())
 			{
-				CvCityAI* pCity = kRecommendUnit.plot()->AI_getWorkingCity();
+				CvCityAI* pCity = kRecommendUnit.getPlot().AI_getWorkingCity();
 				if (pCity != NULL)
 				{
 					CvPlot* pBestPlot = NULL;

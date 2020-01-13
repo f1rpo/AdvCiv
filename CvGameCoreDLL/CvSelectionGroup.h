@@ -99,7 +99,7 @@ public:
 	bool canMoveThrough(CvPlot const& kPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible; advc: CvPlot const&
 	bool canFight() const;																																										// Exposed to Python
 	bool canDefend() const;																																										// Exposed to Python
-	bool canBombard(const CvPlot* pPlot) const;
+	bool canBombard(CvPlot const& kPlot) const;
 	bool visibilityRange() const;
 
 	// BETTER_BTS_AI_MOD, General AI, 08/19/09, jdog5000: START

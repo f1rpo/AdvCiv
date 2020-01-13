@@ -1211,7 +1211,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	else bombDuration *= 100.0 / (100 - bombDefPercent);
 	// Just the hill defense (help=true skips city defense)
-	tileBonus += cvCity->plot()->defenseModifier(NO_TEAM, true, NO_TEAM, true);
+	tileBonus += cvCity->getPlot().defenseModifier(NO_TEAM, true, NO_TEAM, true);
 	tileBonus /= 100.0;
 	/*  Would be nice to check also if the city is enclosed by rivers, e.g. in a
 		river delta, but I think this can't really happen on randomly generated maps,

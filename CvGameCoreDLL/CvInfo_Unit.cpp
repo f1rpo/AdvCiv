@@ -482,16 +482,16 @@ int CvUnitInfo::getCorporationSpreads(int i) const
 	return m_piCorporationSpreads ? m_piCorporationSpreads[i] : 0; // advc.003t
 }
 
-int CvUnitInfo::getTerrainPassableTech(int i) const
+TechTypes CvUnitInfo::getTerrainPassableTech(int i) const
 {
 	FAssertBounds(0, GC.getNumTerrainInfos(), i);
-	return m_piTerrainPassableTech ? m_piTerrainPassableTech[i] : NO_TECH; // advc.003t
+	return m_piTerrainPassableTech ? (TechTypes)m_piTerrainPassableTech[i] : NO_TECH; // advc.003t
 }
 
-int CvUnitInfo::getFeaturePassableTech(int i) const
+TechTypes CvUnitInfo::getFeaturePassableTech(int i) const
 {
 	FAssertBounds(0, GC.getNumFeatureInfos(), i);
-	return m_piFeaturePassableTech ? m_piFeaturePassableTech[i] : NO_TECH; // advc.003t
+	return m_piFeaturePassableTech ? (TechTypes)m_piFeaturePassableTech[i] : NO_TECH; // advc.003t
 }
 
 bool CvUnitInfo::getGreatPeoples(int i) const
