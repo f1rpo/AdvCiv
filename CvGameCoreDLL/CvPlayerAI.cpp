@@ -527,7 +527,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 					if(GC.getInfo(pLoopUnit->getUnitType()).getNukeRange() >= 0)
 						bValid = false; // </advc.650>
 					// try to upgrade units which are in danger... but don't get obsessed
-					if (!bValid && pLastUpgradePlot != &kUnitPlot && AI_getAnyPlotDanger(kUnitPlot, 1, false))
+					if (!bValid && pLastUpgradePlot != &kUnitPlot &&
+						AI_isAnyPlotDanger(kUnitPlot, 1, false))
 					{
 						bNoDisband = true;
 						bValid = true;
@@ -594,7 +595,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 								int iDefenders = pLoopUnit->getPlot().plotCount(PUF_canDefendGroupHead, -1, -1,
 										getID(), NO_TEAM, PUF_isCityAIType);
 								if (iDefenders > pPlotCity->AI_minDefenders() &&
-									!AI_getAnyPlotDanger(*pLoopUnit->plot(), 2, false))
+									!AI_isAnyPlotDanger(*pLoopUnit->plot(), 2, false))
 								{
 									if (iCostPerMil > AI_maxUnitCostPerMil(pLoopUnit->area(), 100) +
 										2*iExp + 4*std::max(0, pPlotCity->AI_neededDefenders() - iDefenders))
@@ -1793,10 +1794,10 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 					double ourLocalPowRatio = kArea.getPower(getID()) / (getPower() + 0.1);
 					int iTheirLocalCities = 0;
 					int iTheirGlobalCities = 0;
-					for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+					for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 					{
-						CvPlayerAI const& kEnemy = GET_PLAYER((PlayerTypes)i);
-						if(kEnemy.isAlive() && ::isPotentialEnemy(getTeam(), kEnemy.getTeam()))
+						CvPlayerAI const& kEnemy = *it;
+						if(GET_TEAM(getTeam()).AI_getWarPlan(kEnemy.getTeam()) != NO_WARPLAN)
 						{
 							iTheirLocalCities += kArea.getCitiesPerPlayer(kEnemy.getID());
 							iTheirGlobalCities += kEnemy.getNumCities();
@@ -2817,7 +2818,7 @@ CvCityAI* CvPlayerAI::AI_findTargetCity(CvArea const& kArea) const // advc.003u:
 		// <advc.001>
 		if(isBarbarian() && kArea.isBorderObstacle(kTargetPlayer.getTeam()))
 			continue; // </advc.001>
-		if(!isPotentialEnemy(getTeam(), kTargetPlayer.getTeam()))
+		if(!GET_TEAM(getTeam()).AI_mayAttack(kTargetPlayer.getTeam()))
 			continue;
 		FOR_EACH_CITYAI_VAR(pLoopCity, kTargetPlayer)
 		{
@@ -2835,367 +2836,241 @@ CvCityAI* CvPlayerAI::AI_findTargetCity(CvArea const& kArea) const // advc.003u:
 	return pBestCity;
 }
 
-
-bool CvPlayerAI::AI_isCommercePlot(CvPlot* pPlot) const
+/*	advc: Merged AI_getAnyPlotDamnger (now named "AI_isAnyPlotDanger") into AI_getPlotDanger.
+	I haven't bothered with AI_isPlotThreatened and AI_getWaterDanger, which are also similar. */
+int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int iRange, bool bTestMoves,
+	/*  Stop counting at iLimit, i.e. the return value can be at most iLimit.
+		When pLowHPCounter is used, stop only when pLowHPCounter also reaches iLimit. */
+	int iLimit,
+	bool bCheckBorder, // K-Mod
+	// <advc.104>
+	/*  Counts enemy units in range with at most iMaxHP hit points. Not counted if NULL.
+		(This function's return value includes all units regardless of their health.) */
+	LowHPCounter* pLowHPCounter,
+	// Unless NO_PLAYER, count only danger from eAttackPlayer.
+	PlayerTypes eAttackPlayer) const
 {
-	FAssert(false); // advc.003j: Unused since the BtS expansion, or is it not?
-	return (pPlot->getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION());
-}
-
-// BETTER_BTS_AI_MOD, General AI/ Efficiency (plot danger cache), 08/20/09, jdog5000: START
-
-// The vast majority of checks for plot danger are boolean checks during path planning for non-combat
-// units like workers, settlers, and GP.  Since these are simple checks for any danger they can be
-// cutoff early if danger is found.  To this end, the two caches tracked are for whether a given plot
-// is either known to be safe for the player who is currently moving, or for whether the plot is
-// known to be a plot bordering an enemy of this team and therefore unsafe.
-//
-// The safe plot cache is only for the active moving player and is only set if this is not a
-// multiplayer game with simultaneous turns.  The safety cache for all plots is reset when the active
-// player changes or a new game is loaded.
-//
-// The border cache is done by team and works for all game types.  The border cache is reset for all
-// plots when war or peace are declared, and reset over a limited range whenever a ownership over a plot
-// changes.
-
-// K-Mod. The cache also needs to be reset when routes are destroyed, because distance 2 border danger only counts when there is a route.
-// Actually, the cache doesn't need to be cleared when war is declared; because false negatives have no impact with this cache.
-// The safe plot cache can be invalid if we kill an enemy unit. Currently this is unaccounted for, and so the cache doesn't always match the true state.
-// In general, I think this cache is a poorly planned idea. It's prone to subtle bugs if there are rule changes in seemingly independent parts of the games.
-//
-// I've done a bit of speed profiling and found that although the safe plot cache does shortcut around 50% of calls to AI_getAnyPlotDanger,
-// that only ends up saving a few milliseconds each turn anyway. I don't really think that's worth risking of getting problems from bad cache.
-// So even though I've put a bit of work into make the cache work better, I'm just going to disable it.
-
-bool CvPlayerAI::isSafeRangeCacheValid() const
-{
-	return false; // Cache disabled. See comments above.
-	//return isTurnActive() && !GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1;
-}
-
-bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMoves, bool bCheckBorder) const  // advc: 1st param was CvPlot*
-{
+	FAssert(iLimit > 0);
+	// Not supported (just out of convenience; not needed I think)
+	FAssert(!bCheckBorder || pLowHPCounter == NULL); // </advc.104>
+	FAssert(iRange != 0); // advc: Call AI_countDangerousUnits instead
 	PROFILE_FUNC();
 
 	if(iRange == -1)
 		iRange = DANGER_RANGE;
+	/*if (bTestMoves && isTurnActive()) {
+		if (iRange <= DANGER_RANGE && pPlot->getActivePlayerNoDangerCache())
+			return false; }*/ // BBAI
+	/*if(bTestMoves && isSafeRangeCacheValid() && iRange <= kPlot.getActivePlayerSafeRangeCache())
+		return false;*/ // K-Mod
+	// advc.opt: Since the SafeRangeCache is disabled, let's not waste any time with this.
 
-	/* bbai if (bTestMoves && isTurnActive())
-	{ if (iRange <= DANGER_RANGE && pPlot->getActivePlayerNoDangerCache())
-			return false; } */
-	// K-Mod
-	if(bTestMoves && isSafeRangeCacheValid() && iRange <= kPlot.getActivePlayerSafeRangeCache())
-		return false;
-	// K-Mod end
-
-	TeamTypes eTeam = getTeam();
-	//bool bCheckBorder = (!isHuman() && !kPlot.isCity());
-	/*  K-Mod. I don't want auto-workers on the frontline. Cities need to be
-		excluded for some legacy AI code. (cf. condition in AI_getPlotDanger) */
-	bCheckBorder = bCheckBorder && !kPlot.isCity() &&
-			(!isHuman() || kPlot.plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0);
-	// K-Mod end
-
+	TeamTypes const eTeam = getTeam();
+	int r = 0;
+	bCheckBorder = (bCheckBorder &&
+			// advc: Cities were excluded in AI_getAnyPlotDanger, but not in AI_getPlotDanger.
+			// K-Mod: "Cities need to be excluded for some legacy AI code"
+			// K-Mod: "Still count border danger in cities - because I want it for AI_cityThreat"
+			(!kPlot.isCity() || iLimit > 1) &&
+			/*	advc.300: Let civs not worry about Barbarian borders and vice versa
+				No need then to check for border danger at peacetime. */
+			GET_TEAM(getTeam()).getNumWars(false) > 0 && !isBarbarian() &&
+			//bool bCheckBorder = (!isHuman() && !kPlot.isCity());
+			/*  K-Mod. I don't want auto-workers on the frontline.
+				So count border danger for humans too, unless the plot is defended. */
+			(!isHuman() || !kPlot.plotCheck(PUF_canDefend, -1, -1, getID(), NO_TEAM))); // advc.opt: was plotCount
 	if(bCheckBorder)
 	{
 		//if (iRange >= DANGER_RANGE && kPlot.isTeamBorderCache(eTeam))
-		if(iRange >= BORDER_DANGER_RANGE && kPlot.getBorderDangerCache(eTeam)) // K-Mod. border danger doesn't count anything further than range 2.
-			return true;
+		// K-Mod. border danger doesn't count anything further than range 2.
+		if(iRange >= BORDER_DANGER_RANGE && kPlot.getBorderDangerCache(eTeam))
+		{
+			// <advc>
+			if (iLimit == 1)
+				return 1;
+			r++; // As in K-Mod, border danger can add at most 1 to the danger count.
+			// (K-Mod: "I don't think two border tiles are really more dangerous than one border tile.")
+			bCheckBorder = false; // </advc>
+		}
 	}
-
 	CvArea const& kPlotArea = kPlot.getArea();
-	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
+	// advc: The iterator is a little slower and we don't benefit here from a spiral pattern
+	//for (SquareIter it(kPlot, iRange); it.hasNext(); ++it) { CvPlot const& p = *it;
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	for (int iDY = -iRange; iDY <= iRange; iDY++)
 	{
-		CvPlot const& p = *it;
-		//if(!p.isArea(kPlotArea)
-		// advc.030: Replacing the above
-		if(!kPlotArea.canBeEntered(p.getArea()))
-			continue;
-		int const iDistance = it.currStepDist();
-		if (bCheckBorder &&
-			// advc.030: For CheckBorder, it's a helpful precondition.
-			p.isArea(kPlotArea))
+		CvPlot const* pp = plotXY(&kPlot, iDX, iDY);
+		if (pp == NULL) continue;
+		CvPlot const& p = *pp;
+		if (p.isArea(kPlotArea))
 		{
-			if (::atWar(p.getTeam(), eTeam) &&
-				// advc.300: Don't worry about Barbarian borders
-				p.getTeam() != BARBARIAN_TEAM)
-			{	/* BBAI code
-				// Border cache is reversible, set for both team and enemy.
-				if (iDistance == 1) {
-					kPlot.setBorderDangerCache(eTeam, true);
-					kPlot.setBorderDangerCache(p.getTeam(), true);
-					p.setBorderDangerCache(eTeam, true);
-					p.setBorderDangerCache(p.getTeam(), true);
-					return true; }
-				else if ((iDistance == 2) && (p.isRoute())) {
-					kPlot.setBorderDangerCache(eTeam, true);
-					kPlot.setBorderDangerCache(p.getTeam(), true);
-					p.setBorderDangerCache(eTeam, true);
-					p.setBorderDangerCache(p.getTeam(), true);
-					return true; } */
-				// K-Mod. reversible my arse.
-				if (iDistance == 1)
+			if (bCheckBorder)
+			{
+				//if (p.getTeam() != NO_TEAM && GET_TEAM(getTeam()).isAtWar(p.getTeam())
+				// <advc.001i>
+				PlayerTypes const eRevealedLoopPlayer = p.getRevealedOwner(eTeam);
+				if (eRevealedLoopPlayer != NO_PLAYER &&
+					GET_TEAM(getTeam()).isAtWar(TEAMID(eRevealedLoopPlayer)) &&
+					// </advc.001i>
+					eRevealedLoopPlayer != BARBARIAN_PLAYER) // advc.300
 				{
-					kPlot.setBorderDangerCache(eTeam, true);
-					// pLoopPlot is in enemy territory, so this is fine.
-					p.setBorderDangerCache(eTeam, true);
-					/*  only set the cache for the pLoopPlot team if pPlot is
-						owned by us! (ie. owned by their enemy) */
-					if (kPlot.getTeam() == eTeam)
+					TeamTypes const eRevealedLoopTeam = TEAMID(eRevealedLoopPlayer);
+					int const iDistance = stepDistance(&kPlot, &p);
+					//if (iDistance == 1)
+					// <advc> Let's also cache border danger when kPlot itself is hostile
+					BOOST_STATIC_ASSERT(BORDER_DANGER_RANGE >= 1);
+					bool const bInRange = (iDistance < BORDER_DANGER_RANGE);
+					bool const bInRangeThroughRoute = (iDistance == BORDER_DANGER_RANGE &&
+							// advc.001i:
+							p./*isRoute()*/getRevealedRouteType(eTeam) != NO_ROUTE);
+					if (bInRange || bInRangeThroughRoute) // </advc>
 					{
-						p.setBorderDangerCache(p.getTeam(), true);
-						kPlot.setBorderDangerCache(p.getTeam(), true);
+						kPlot.setBorderDangerCache(eTeam, true);
+						// p is in enemy territory, so this is fine.
+						p.setBorderDangerCache(eTeam, true);
+						// BBAI: "Border cache is reversible, set for both team and enemy."
+						/*	K-Mod: reversible my arse.
+							only set the cache for eLoopTeam if kPlot is owned by us!
+							(ie. owned by their enemy) */
+						// <advc.001i> Only if eLoopTeam knows that we own it
+						TeamTypes eLoopActualTeam = p.getTeam();
+						PlayerTypes ePlotRevealedOwner = kPlot.getRevealedOwner(eLoopActualTeam);
+						if (ePlotRevealedOwner != NO_PLAYER &&
+							TEAMID(ePlotRevealedOwner) == eTeam && // </advc.001i>
+							(bInRange || (kPlot.//isRoute()
+							// advc.001i:
+							getRevealedRouteType(eLoopActualTeam) != NO_ROUTE &&
+							kPlot.getTeam() == eTeam)))
+						{
+							p.setBorderDangerCache(eLoopActualTeam, true);
+							kPlot.setBorderDangerCache(eLoopActualTeam, true);
+						}
+						// <advc>
+						r++;
+						if (r >= iLimit)
+							return iLimit;
+						// Count at most 1 for border danger
+						bCheckBorder = false; 
 					}
-					return true;
 				}
-				else if (iDistance == 2 && p.//isRoute()
-					getRevealedRouteType(eTeam) != NO_ROUTE) // advc.001i
-				{
-					kPlot.setBorderDangerCache(eTeam, true);
-					p.setBorderDangerCache(eTeam, true); // owned by our enemy
-					if (kPlot.//isRoute()
-						// advc.001i:
-						getRevealedRouteType(p.getTeam()) != NO_ROUTE &&
-						kPlot.getTeam() == eTeam)
-					{
-						p.setBorderDangerCache(p.getTeam(), true);
-						kPlot.setBorderDangerCache(p.getTeam(), true);
-					}
-					return true;
-				} // K-Mod end
 			}
+			if (p.isUnit()) // Redundant but fast (inlined)
+			{
+				// Code moved into auxiliary function
+				r += AI_countDangerousUnits(p, kPlot, bTestMoves, iLimit, pLowHPCounter, eAttackPlayer);
+				if (r >= iLimit)
+				{
+					if (pLowHPCounter == NULL || pLowHPCounter->get() >= iLimit)
+						return iLimit;
+				}
+			} // </advc>
 		}
-		bool bFirst = true; // advc.128
-		for (CLLNode<IDInfo> const* pUnitNode = p.headUnitNode(); pUnitNode != NULL;
-			pUnitNode = p.nextUnitNode(pUnitNode))
+		/*	<advc.030> Same-area no longer rules out a (visible) submarine -
+			but is this really ever going to be a problem? */
+		/*else if (p.isUnit() && kPlotArea.canBeEntered(p.getArea()))
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			// No need to loop over tiles full of our own units
-			if (pLoopUnit->getTeam() == eTeam)
-			{
-				if (!pLoopUnit->alwaysInvisible() &&
-					pLoopUnit->getInvisibleType() == NO_INVISIBLE)
-				{
-					break;
-				}
-			}
-			// <advc.128>
-			if (bFirst)
-			{
-				bFirst = false;
-				if (!p.isVisible(getTeam()))
-				{
-					if(isHuman() || !AI_cheatDangerVisibility(p))
-						break;
-				}
-			} // </advc.128>
-			if (pLoopUnit->isEnemy(eTeam) &&
-				// advc.315: was pLoopUnit->canAttack()
-				AI_canBeAttackedBy(*pLoopUnit) &&
-				!pLoopUnit->isInvisible(eTeam, false) &&
-				pLoopUnit->canMoveOrAttackInto(kPlot,
-				false, true)) // advc.001k
-			{
-				if (!bTestMoves)
-					return true;
-				else
-				{	// <advc.128>
-					if (isHuman())
-					{
-						return (iDistance <= 3 && pLoopUnit->generatePath(
-								&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
-								false, NULL, 1, true));
-					} // Prevent sneak attacks by human Woodsmen and Guerilla
-					if (pLoopUnit->isHuman() && p.isVisible(getTeam()) &&
-						// Make sure we're not getting into trouble performance-wise
-						getCurrentEra() <= 1 && iDistance <= 3)
-					{
-						return pLoopUnit->generatePath(
-								&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
-								false, NULL, 1, true);
-					} // </advc.128>
-					int iDangerRange = pLoopUnit->baseMoves();
-					if (p.isValidRoute(pLoopUnit, /* advc.001i: */ false))
-						iDangerRange++;
-					if (iDangerRange >= iDistance)
-						return true;
-				}
-			}
-		}
+			r += AI_countDangerousUnits(p, kPlot, bTestMoves, 1, eAttackPlayer, pLowHPCounter);
+			// ... (copy from above)
+		}*/ // </advc.030>
 	}
 
-	// The test moves case is a strict subset of the more general case,
-	// either is appropriate for setting the cache.  However, since the test moves
-	// case is called far more frequently, it is more important and the cache
-	// value being true is only assumed to mean that the plot is safe in the
-	// test moves case.
-	//if (bTestMoves)
-	/* bbai code {
+	/*	The test moves case is a strict subset of the more general case,
+		either is appropriate for setting the cache.  However, since the test moves
+		case is called far more frequently, it is more important and the cache
+		value being true is only assumed to mean that the plot is safe in the
+		test moves case. */
+	/*if (bTestMoves) {
 		if (isTurnActive()) {
 			if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1)
 				kPlot.setActivePlayerNoDangerCache(true);
 		}
-	}*/
-	// K-Mod. The above bbai code is flawed in that it flags the plot as safe regardless
-	// of what iRange is and then reports that the plot is safe for any iRange <= DANGER_RANGE.
-	if (isSafeRangeCacheValid() && iRange > kPlot.getActivePlayerSafeRangeCache())
-		kPlot.setActivePlayerSafeRangeCache(iRange);
-	// K-Mod end
-	return false;
+	}*/ // BBAI
+	/*	K-Mod. The above bbai code is flawed in that it flags the plot as safe regardless
+		of what iRange is and then reports that the plot is safe for any iRange <= DANGER_RANGE. */
+	/*if (isSafeRangeCacheValid() && iRange > kPlot.getActivePlayerSafeRangeCache())
+		kPlot.setActivePlayerSafeRangeCache(iRange);*/ // advc.opt: SafeRangeCache is disabled
+	return std::min(r, iLimit); // advc.104: May have counted past the limit
 }
 
-// <advc.104> For sorting in AI_getPlotDanger
-bool byDamage(CvUnit const* left, CvUnit const* right)
+// advc: from AI_getAnyPlotDanger
+int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const& kDefenderPlot,
+	bool bTestMoves, int iLimit, /* <advc.104> */ LowHPCounter* pLowHPCounter,
+	PlayerTypes eAttackPlayer) const // </advc.104>
 {
-	return left->getDamage() < right->getDamage();
-} // </advc.104>
-
-int CvPlayerAI::AI_getPlotDanger(CvPlot const& kPlot, int iRange, bool bTestMoves,  // advc: 1st param was CvPlot*
-		// advc.104:
-		bool bCheckBorder, int* piLowHealth, int iMaxHP, int iLimit, PlayerTypes eEnemyPlayer) const
-{
-	PROFILE_FUNC();
-	// <advc.104>
-	if(iLimit == 0 || iMaxHP <= 0)
-		return 0;
-	if(piLowHealth != NULL)
-		*piLowHealth = 0;
-	// </advc.104>
-	if(iRange == -1)
-		iRange = DANGER_RANGE;
-	/* bbai
-	if(bTestMoves && isTurnActive()) {
-		if (iRange <= DANGER_RANGE && kPlot.getActivePlayerNoDangerCache())
-			return 0;
-	}*/
-	// K-Mod
-	if (bTestMoves && isSafeRangeCacheValid() && iRange <= kPlot.getActivePlayerSafeRangeCache())
-		return 0;
-	// K-Mod end
-
-	CvArea const& kPlotArea = kPlot.getArea();
-	int iBorderDanger = 0;
-	int iCount = 0;
-	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
+	TeamTypes const eTeam = getTeam();
+	// <advc.128>
+	if (!kAttackerPlot.isVisible(eTeam))
 	{
-		CvPlot const& p = *it;
-		//if(!p.isArea(kPlotArea))
-		// <advc.030> Replacing the above
-		if(!kPlotArea.canBeEntered(p.getArea()))
-			continue;
-		// Moved up
-		int const iDistance = it.currStepDist();
-		// </advc.030>
-		if(bCheckBorder && // advc.104
-			p.isArea(kPlotArea)) // advc.030
+		if(isHuman() || !AI_cheatDangerVisibility(kAttackerPlot))
+			return 0;
+	} // </advc.128>
+	int r = 0;
+	TeamTypes const eOurMaster = GET_TEAM(eTeam).getMasterTeam(); // advc.opt
+	for (CLLNode<IDInfo> const* pUnitNode = kAttackerPlot.headUnitNode();
+		pUnitNode != NULL; pUnitNode = kAttackerPlot.nextUnitNode(pUnitNode))
+	{
+		CvUnit const& kUnit = *::getUnit(pUnitNode->m_data);
+		// advc.opt: Team check changed to masterTeam
+		if (GET_TEAM(kUnit.getTeam()).getMasterTeam() == eOurMaster)
 		{
-			if (::atWar(p.getTeam(), getTeam()))
+			if (!kUnit.alwaysInvisible() &&
+				kUnit.getInvisibleType() == NO_INVISIBLE)
 			{
-				if (iDistance == 1)
-					iBorderDanger++;
-				else if (iDistance == 2 && p.//isRoute()
-					getRevealedRouteType(getTeam()) != NO_ROUTE) // advc.001i
-				{
-					iBorderDanger++;
-				}
+				FAssertMsg(r == 0, "Hostile units shouldn't be able to coexist in a plot");
+				return r;
 			}
-		}
-		std::vector<CvUnit const*> aPlotUnits; // advc.104
-		bool bFirst = true; // advc.128
-		for (CLLNode<IDInfo> const* pUnitNode = p.headUnitNode();
-			pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode))
+		} 
+		// <advc.104>
+		if (((eAttackPlayer != NO_PLAYER && kUnit.getCombatOwner(
+			eTeam, kAttackerPlot) == eAttackPlayer) || // </advc.104>
+			/*	advc.001: Was kUnit.getPlot(). Only matters if kUnit is alwaysHostile
+				and kDefenderPlot is a city or fort. */
+			kUnit.isEnemy(eTeam, kDefenderPlot)) &&
+			// advc.315: was pLoopUnit->canAttack()
+			AI_canBeAttackedBy(kUnit) &&
+			!kUnit.isInvisible(eTeam, false) &&
+			kUnit.canMoveOrAttackInto(kDefenderPlot,
+			false, true)) // advc.001k
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			// No need to loop over tiles full of our own units
-			if (pLoopUnit->getTeam() == getTeam())
+			if (bTestMoves)
 			{
-				if(!pLoopUnit->alwaysInvisible() &&
-					pLoopUnit->getInvisibleType() == NO_INVISIBLE)
+				int const iDistance = stepDistance(&kAttackerPlot, &kDefenderPlot);
+				// <advc.128> Take the time to compute a path in important cases
+				if (iDistance <= 3 && (isHuman() ||
+					// Prevent sneak attacks by human Woodsmen and Guerilla
+					(kUnit.isHuman() && kAttackerPlot.isVisible(eTeam) &&
+					getCurrentEra() <= 1)))
 				{
-					break;
+					if (!kUnit.generatePath(&kDefenderPlot,
+						MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, false, NULL, 1, true))
+					{
+						continue;
+					}
+				}
+				else // </advc.128>
+				{
+					int iAttackerRange = kUnit.baseMoves();
+					if (kAttackerPlot.isValidRoute(&kUnit, /* advc.001i: */ false))
+						iAttackerRange++;
+					if (iAttackerRange < iDistance)
+						continue;
 				}
 			}
-			// <advc.128>
-			if (bFirst)
-			{
-				bFirst = false;
-				if (!p.isVisible(getTeam()))
-				{
-					if(isHuman() || !AI_cheatDangerVisibility(p))
-						break;
-				}
-			} // </advc.128>
-			if (pLoopUnit->isEnemy(getTeam()) &&
-				// advc.315: was pLoopUnit->canAttack()
-				AI_canBeAttackedBy(*pLoopUnit) &&
-				!pLoopUnit->isInvisible(getTeam(), false) &&
-				pLoopUnit->canMoveOrAttackInto(kPlot,
-				false, true)) // advc.001k
-			{
-				// <advc.104>
-				if (eEnemyPlayer == NO_PLAYER || pLoopUnit->getOwner() == eEnemyPlayer)
-					aPlotUnits.push_back(pLoopUnit);
-			}
-		}
-		// Don't waste time with this otherwise
-		if (piLowHealth != NULL && !aPlotUnits.empty())
-			std::sort(aPlotUnits.begin(), aPlotUnits.end(), byDamage);
-		for (size_t i = 0; i < aPlotUnits.size(); i++)
-		{
-			CvUnit const* pLoopUnit = aPlotUnits[i];
-			bool bCountIncreased = false; // </advc.104>
-			if (!bTestMoves)
-			{
-				iCount++;
-				bCountIncreased = true; // advc.104
-			}
-			else
-			{
-				int iDangerRange = pLoopUnit->baseMoves();
-				if (p.isValidRoute(pLoopUnit, /* advc.001i: */ false))
-					iDangerRange++;
-				//if (iDangerRange >= iDistance)
-				// <advc.128> Replacing the above
-				if ((!isHuman() && iDangerRange >= iDistance) ||
-					(isHuman() && iDistance <= 3 && pLoopUnit->generatePath(
-					&kPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
-					false, NULL, 1, true))) // </advc.128>
-				{
-					iCount++;
-					bCountIncreased = true; // advc.104
-				}
-			}
+			r++;
 			// <advc.104>
-			if (bCountIncreased)
+			if (pLowHPCounter != NULL &&
+				kUnit.currHitPoints() <= pLowHPCounter->getHPThreshold())
 			{
-				if (piLowHealth != NULL && pLoopUnit->maxHitPoints() -
-					pLoopUnit->getDamage() <= iMaxHP)
-				{
-					(*piLowHealth)++;
-				}
-				if(iLimit > 0 && iCount >= iLimit)
-					return iCount;
+				pLowHPCounter->increment();
+				if (pLowHPCounter->get() >= iLimit)
+					return iLimit;
+				continue; // Keep counting low-health units
 			} // </advc.104>
+			if (r >= iLimit)
+				return iLimit;
 		}
 	}
-
-	// K-Mod
-	if (iCount == 0 && isSafeRangeCacheValid() && iRange > kPlot.getActivePlayerSafeRangeCache())
-		kPlot.setActivePlayerSafeRangeCache(iRange);
-	// K-Mod end
-
-	if (iBorderDanger > 0)
-	{	/*if(!isHuman() && !kPlot.isCity())
-			iCount += iBorderDanger;*/ // BtS
-		// K-Mod. I don't want auto-workers on the frontline. So count border danger for humans too, unless the plot is defended.
-		// but on the other hand, I don't think two border tiles are really more dangerous than one border tile.
-		// (cf. condition used in AI_getAnyPlotDanger. Note that here we still count border danger in cities - because I want it for AI_cityThreat)
-		if (!isHuman() || kPlot.plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0)
-			iCount++;
-		// K-Mod end
-	}
-
-	return iCount;
+	return std::min(r, iLimit); // advc.104: May have counted past the limit
 }
 
 // Never used ...
@@ -3216,9 +3091,11 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 	for (SquareIter it(*pPlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
-		if (!p.isWater() || !p.isAdjacentToArea(p.getArea()))
+		if (!p.isWater() || /* advc.opt: */ !p.isUnit() ||
+			!p.isAdjacentToArea(p.getArea()))
+		{
 			continue;
-		bool bFirst = true; // advc.128
+		}
 		CLLNode<IDInfo> const* pUnitNode = p.headUnitNode();
 		// <advc.128>
 		if (pUnitNode != NULL && !p.isVisible(getTeam()))
@@ -3226,11 +3103,10 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 			if(isHuman() || !AI_cheatDangerVisibility(p))
 				continue;
 		} // </advc.128>
-		while (pUnitNode != NULL)
+		for (; pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode))
 		{
 			CvUnit* pEnemyUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = p.nextUnitNode(pUnitNode);
-			if (!pEnemyUnit->isEnemy(getTeam()))
+			if (!pEnemyUnit->isEnemy(getTeam(), *pPlot))
 				continue;
 
 			// advc.315: was pLoopUnit->canAttack()
@@ -13837,9 +13713,10 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 			pUnitNode = p.nextUnitNode(pUnitNode))
 		{
 			CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
+			// advc (note): This doesn't respect hidden nationality
 			if (kLoopUnit.getTeam() == eDefenceTeam ||
 				(eDefenceTeam != NO_TEAM && GET_TEAM(kLoopUnit.getTeam()).isVassal(eDefenceTeam)) ||
-				(eDefenceTeam == NO_TEAM && isPotentialEnemy(getTeam(), kLoopUnit.getTeam())))
+				(eDefenceTeam == NO_TEAM && GET_TEAM(getTeam()).AI_mayAttack(kLoopUnit.getTeam())))
 			{
 				if (eDomainType == NO_DOMAIN || kLoopUnit.getDomainType() == eDomainType)
 				{
@@ -14119,7 +13996,7 @@ int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissi
 			continue;
 
 		CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
-		if (NULL != pMissionPlot && pMissionPlot->isOwned())
+		if (pMissionPlot != NULL && pMissionPlot->isOwned())
 		{
 			MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
 			for (int iMissionAIIndex = 0; iMissionAIIndex < iMissionAICount; iMissionAIIndex++)
@@ -14154,15 +14031,14 @@ int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* 
 		if (pMissionPlot == NULL)
 			pMissionPlot = pLoopSelectionGroup->plot();
 
-		if (pMissionPlot != NULL)
+		if (pMissionPlot != NULL && pMissionPlot->isOwned() &&
+			pMissionPlot->getTeam() == eTargetTeam)
 		{
-			if (pMissionPlot->isOwned() && pMissionPlot->getTeam() == eTargetTeam)
+			if (::atWar(getTeam(), pMissionPlot->getTeam()) ||
+				pLoopSelectionGroup->AI_isDeclareWar(*pMissionPlot))
 			{
-				if (atWar(getTeam(),pMissionPlot->getTeam()) || pLoopSelectionGroup->AI_isDeclareWar(pMissionPlot))
-				{
-					iCount += pLoopSelectionGroup->getNumUnits();
-					iCount += pLoopSelectionGroup->getCargo();
-				}
+				iCount += pLoopSelectionGroup->getNumUnits();
+				iCount += pLoopSelectionGroup->getCargo();
 			}
 		}
 	}
@@ -16521,36 +16397,44 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 {	// <advc.003n>
 	if(isBarbarian())
 		return; // </advc.003n>
-	int iI=0, iJ=0;
-	CvGame& g = GC.getGame();
+
+	CvGame& kGame = GC.getGame();
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
+	CvLeaderHeadInfo& kPersonality = GC.getInfo(getPersonalityType());
 	double decayFactor = 1 - GET_TEAM(getTeam()).AI_getDiploDecay(); // advc.130k
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
-	{	// <advc.130k>
-		PlayerTypes ePlayer = (PlayerTypes)iI;
-		CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
-		if(!kPlayer.isAlive() || kPlayer.getTeam() == getTeam() ||
-				!GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
+	// <advc.130k>
+	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
+	{
+		CvPlayerAI const& kPlayer = *it;
+		PlayerTypes const ePlayer = kPlayer.getID();
+		if (kPlayer.getTeam() == getTeam())
 			continue;
-		if(getStateReligion() != NO_RELIGION &&
-				getStateReligion() == kPlayer.getStateReligion())
-			AI_changeSameReligionCounter(ePlayer, kOurTeam.AI_randomCounterChange());
-		else AI_setSameReligionCounter(ePlayer, (int)(
-				decayFactor * AI_getSameReligionCounter(ePlayer)));
-		CvLeaderHeadInfo& lh = GC.getInfo(getPersonalityType());
-		if(getStateReligion() != NO_RELIGION &&
-				kPlayer.getStateReligion() != NO_RELIGION &&
-				getStateReligion() != kPlayer.getStateReligion() &&
-				// Delay religion hate if just met
-				kOurTeam.AI_getHasMetCounter(kPlayer.getTeam()) >
-				// This is 10 (given the XML value in BtS)
-				2 * -lh.getDifferentReligionAttitudeDivisor())
+		if (getStateReligion() != NO_RELIGION &&
+			getStateReligion() == kPlayer.getStateReligion())
+		{
+			AI_changeSameReligionCounter(ePlayer,
+					kOurTeam.AI_randomCounterChange());
+		}
+		else
+		{
+			AI_setSameReligionCounter(ePlayer, (int)
+					(decayFactor * AI_getSameReligionCounter(ePlayer)));
+		}
+		if (getStateReligion() != NO_RELIGION &&
+			kPlayer.getStateReligion() != NO_RELIGION &&
+			getStateReligion() != kPlayer.getStateReligion() &&
+			// Delay religion hate if just met
+			kOurTeam.AI_getHasMetCounter(kPlayer.getTeam()) >
+			// This is 10 (given the XML value in BtS)
+			2 * -kPersonality.getDifferentReligionAttitudeDivisor())
+		{
 			AI_changeDifferentReligionCounter(ePlayer, kOurTeam.AI_randomCounterChange());
+		}
 		else AI_setDifferentReligionCounter(ePlayer, (int)(
 				decayFactor * AI_getDifferentReligionCounter(ePlayer)));
-		if(lh.getFavoriteCivic() != NO_CIVIC)
+		if (kPersonality.getFavoriteCivic() != NO_CIVIC)
 		{
-			CivicTypes eFavCivic = (CivicTypes)lh.getFavoriteCivic();
+			CivicTypes eFavCivic = (CivicTypes)kPersonality.getFavoriteCivic();
 			if(isCivic(eFavCivic) && kPlayer.isCivic(eFavCivic))
 				AI_changeFavoriteCivicCounter(ePlayer, kOurTeam.AI_randomCounterChange());
 			else AI_setFavoriteCivicCounter(ePlayer, (int)(
@@ -16562,14 +16446,14 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 				decayFactor * AI_getPeacetimeTradeValue(ePlayer)));
 		// </advc.130p>
 		// <advc.149>
-		int iAttitudeDiv = lh.getBonusTradeAttitudeDivisor();
+		int iAttitudeDiv = kPersonality.getBonusTradeAttitudeDivisor();
 		if(iAttitudeDiv <= 0)
 			continue;
 		//int iBonusImports = getNumTradeBonusImports(eCiv);
 		// Same scale as the above, but taking into account utility.
 		double bonusVal = AI_bonusImportValue(ePlayer);
 		int iBonusTrade = AI_getBonusTradeCounter(ePlayer);
-		if(bonusVal <= iBonusTrade / (1.2 * iAttitudeDiv))
+		if (bonusVal <= iBonusTrade / (1.2 * iAttitudeDiv))
 		{
 			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
 				but let's just do exponential decay instead. */
@@ -16579,22 +16463,21 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 		else
 		{
 			double incr = bonusVal;
-			if(bonusVal > 0.01)
+			if (bonusVal > 0.01)
 			{
 				CvCity* pCapital = getCapitalCity();
 				double capBonuses = 0;
-				if(pCapital != NULL)
+				if (pCapital != NULL)
 				{
 					capBonuses = std::max(0.0,
 							pCapital->countUniqueBonuses() - bonusVal);
 				}
 				double exportable = 0;
-				for(int j = 0; j < GC.getNumBonusInfos(); j++)
+				FOR_EACH_ENUM(Bonus)
 				{
-					BonusTypes eBonus = (BonusTypes)j;
-					int iAvail = kPlayer.getNumAvailableBonuses(eBonus)
-							+ kPlayer.getBonusExport(eBonus);
-					if(iAvail > 1)
+					int iAvail = kPlayer.getNumAvailableBonuses(eLoopBonus)
+							+ kPlayer.getBonusExport(eLoopBonus);
+					if (iAvail > 1)
 						exportable += std::min(iAvail - 1, 3);
 				} /* Mean of capBonuses and a multiple of exportable, but
 					 no more than 1.33 times capBonuses. */
@@ -16603,11 +16486,11 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
 				double weight2 = 400.0 / iAttitudeDiv;
-				if(weight1 >= weight2)
+				if (weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
 			}
 			AI_changeBonusTradeCounter(ePlayer, kOurTeam.AI_randomCounterChange(::round(
-					1.25 * iAttitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
+					1.25 * iAttitudeDiv * kPersonality.getBonusTradeAttitudeChangeLimit()),
 					incr / 2)); // Halved b/c it's a binomial distrib w/ 2 trials
 			// <advc.036>
 			int iOldGoldTraded = AI_getGoldTradedTo(ePlayer);
@@ -16617,119 +16500,121 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 		} // </advc.149> </advc.130k>
 	}
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
+	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(getTeam()); it.hasNext(); ++it) // advc.003n
 	{
-		PlayerTypes eLoopPlayer = (PlayerTypes)iI;
-		if (!GET_PLAYER(eLoopPlayer).isAlive())
-			continue;
-
-		for (iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
+		FOR_EACH_ENUM(Contact)
 		{
-			if (AI_getContactTimer(eLoopPlayer, (ContactTypes)iJ) > 0)
-				AI_changeContactTimer(eLoopPlayer, (ContactTypes)iJ, -1);
+			if (AI_getContactTimer(it->getID(), eLoopContact) > 0)
+				AI_changeContactTimer(it->getID(), eLoopContact, -1);
 		}
 	}
 
-	int iBaseWarAttitude = GC.getDefineINT(CvGlobals::AT_WAR_ATTITUDE_CHANGE); // advc.130g
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	int const iBaseWarAttitude = GC.getDefineINT(CvGlobals::AT_WAR_ATTITUDE_CHANGE); // advc.130g
+	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(getTeam()); it.hasNext(); ++it) // advc.003n
 	{
-		PlayerTypes ePlayer = (PlayerTypes)iI;
-		if(!GET_PLAYER(ePlayer).isAlive())
-			continue;
-		for (iJ = 0; iJ < NUM_MEMORY_TYPES; iJ++)
+		CvPlayer const& kPlayer = *it;
+		PlayerTypes const ePlayer = kPlayer.getID();
+		FOR_EACH_ENUM2(Memory, eMem)
 		{
-			MemoryTypes eMem = (MemoryTypes)iJ;
 			int c = AI_getMemoryCount(ePlayer, eMem);
-			int iDecayRand = GC.getInfo(getPersonalityType()).
-					getMemoryDecayRand(eMem);
-			if(c <= 0 || iDecayRand <= 0)
+			int iDecayRand = kPersonality.getMemoryDecayRand(eMem);
+			if (c <= 0 || iDecayRand <= 0)
 				continue;
 			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
-			if(eMem == MEMORY_MADE_DEMAND_RECENT &&
-					kOurTeam.isForcePeace(TEAMID(ePlayer)))
-				continue; // </advc.144>
+			if (eMem == MEMORY_MADE_DEMAND_RECENT &&
+				kOurTeam.isForcePeace(kPlayer.getTeam()))
+			{
+				continue;
+			} // </advc.144>
 			// <advc.130r>
-			if(kOurTeam.isAtWar(TEAMID(ePlayer)))
+			if (kOurTeam.isAtWar(kPlayer.getTeam()))
 			{
 				// No decay while war ongoing
 				if(eMem == MEMORY_DECLARED_WAR)
 					continue;
 				// Limited decay while war ongoing
 				if((eMem == MEMORY_CANCELLED_OPEN_BORDERS ||
-						eMem == MEMORY_CANCELLED_DEFENSIVE_PACT ||
-						eMem == MEMORY_CANCELLED_VASSAL_AGREEMENT) &&
-						c <= 1)
+					eMem == MEMORY_CANCELLED_DEFENSIVE_PACT ||
+					eMem == MEMORY_CANCELLED_VASSAL_AGREEMENT) &&
+					c <= 1)
+				{
 					continue;
+				}
 			}
 			if(eMem == MEMORY_DECLARED_WAR_ON_FRIEND &&
-					AI_atWarWithPartner(TEAMID(ePlayer)))
+				AI_atWarWithPartner(kPlayer.getTeam()))
+			{
 				continue;
+			}
 			if((eMem == MEMORY_STOPPED_TRADING || eMem == MEMORY_HIRED_TRADE_EMBARGO) &&
-					AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0)
+				AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0)
+			{
 				continue;
-			// </advc.130r> <advc.130j>
+			}// </advc.130r>  <advc.130j>
 			/*  Need to decay at least twice as fast b/c each
 				request now counts twice (on average). */
 			double div = 2;
 			// Finer granularity for DoW
-			if(eMem == MEMORY_DECLARED_WAR)
+			if (eMem == MEMORY_DECLARED_WAR)
 				div = 3;
 			// <advc.104m> Faster decay of memory about human response to AI demand
-			if(getUWAI.isEnabled() && (eMem == MEMORY_REJECTED_DEMAND ||
-					eMem == MEMORY_ACCEPT_DEMAND))
-				div *= (10 / 6.0); // 60% faster decay // </advc.104m>
+			if (getUWAI.isEnabled() && (eMem == MEMORY_REJECTED_DEMAND ||
+				eMem == MEMORY_ACCEPT_DEMAND))
+			{
+				div *= (10 / 6.0); // 60% faster decay
+			} // </advc.104m>
 			/*  <advc.145> Decay of accepted/denied civic/religion memory based on
 				current civics and religion */
 			// Fav. civic and religion are based on LeaderType, not PersonalityType.
-			CivicTypes eFavCivic = (CivicTypes)GC.getInfo(getLeaderType()).
-					getFavoriteCivic();
+			CivicTypes eFavCivic = (CivicTypes)GC.getInfo(getLeaderType()).getFavoriteCivic();
 			double abolishMultiplier = 4;
-			if(eMem == MEMORY_ACCEPTED_CIVIC)
+			if (eMem == MEMORY_ACCEPTED_CIVIC)
 			{
-				if(eFavCivic != NO_CIVIC && (!GET_PLAYER(ePlayer).isCivic(eFavCivic) ||
-						!isCivic(eFavCivic)))
+				if (eFavCivic != NO_CIVIC &&
+					(!kPlayer.isCivic(eFavCivic) || !isCivic(eFavCivic)))
+				{
 					div *= abolishMultiplier;
+				}
 			}
-			if(eMem == MEMORY_ACCEPTED_RELIGION)
+			if (eMem == MEMORY_ACCEPTED_RELIGION)
 			{
-				if(isStateReligion() && GET_PLAYER(ePlayer).getStateReligion() !=
-						getStateReligion())
+				if(isStateReligion() && kPlayer.getStateReligion() != getStateReligion())
 					div *= abolishMultiplier;
 			}
 			double adoptMultiplier = 3.5;
-			if(eMem == MEMORY_DENIED_CIVIC)
+			if (eMem == MEMORY_DENIED_CIVIC)
 			{
-				if(eFavCivic == NO_CIVIC || GET_PLAYER(ePlayer).isCivic(eFavCivic) ||
-						!isCivic(eFavCivic))
+				if(eFavCivic == NO_CIVIC || kPlayer.isCivic(eFavCivic) ||
+					!isCivic(eFavCivic))
+				{
 					div *= adoptMultiplier;
+				}
 			}
-			if(eMem == MEMORY_DENIED_RELIGION)
+			if (eMem == MEMORY_DENIED_RELIGION)
 			{
-				if(!isStateReligion() || GET_PLAYER(ePlayer).getStateReligion() ==
-						getStateReligion())
+				if(!isStateReligion() || kPlayer.getStateReligion() == getStateReligion())
 					div *= adoptMultiplier;
 			} // </advc.145>
 			// <advc.130r> Faster yet if multiple requests remembered
-			if(c > 3) // c==3 could stem from a single request
+			if (c > 3) // c==3 could stem from a single request
 				div = 2 * std::sqrt(c / 2.0); // </advc.130r>
 			// <advc.130r> Moderate game-speed adjustment
-			iDecayRand *= GC.getInfo(g.getGameSpeedType()).
-					getGoldenAgePercent();
+			iDecayRand *= GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent();
 			iDecayRand = ::round(iDecayRand / (100 * div)); // </advc.130r>
 			/*  0 in XML should mean no decay (already handled above). But if the
-				division above makes it 0, it should mean fast decay. */
-			if(iDecayRand == 0)
+				division above rounds to 0, it should mean fast decay. */
+			if (iDecayRand == 0)
 				iDecayRand = 1;
-			if(g.getSorenRandNum(iDecayRand, "Memory Decay", ePlayer, eMem) == 0)
-			// </advc.130j>
+			if (kGame.getSorenRandNum(iDecayRand, "Memory Decay", ePlayer, eMem) == 0) // </advc.130j>
 				AI_changeMemoryCount(ePlayer, eMem, -1);
 		}
 		// <advc.130g>
 		int iRebuke = AI_getMemoryCount(ePlayer, MEMORY_REJECTED_DEMAND);
-		if((iRebuke > 0  && AI_getWarAttitude(ePlayer) < iBaseWarAttitude - 1 &&
-				GET_TEAM(getTeam()).AI_isChosenWar(TEAMID(ePlayer))) || isAVassal())
+		if ((iRebuke > 0  && AI_getWarAttitude(ePlayer) < iBaseWarAttitude - 1 &&
+			GET_TEAM(getTeam()).AI_isChosenWar(kPlayer.getTeam())) || isAVassal())
+		{
 			AI_changeMemoryCount(ePlayer, MEMORY_REJECTED_DEMAND, -iRebuke);
-			// </advc.130g>
+		} // </advc.130g>
 	}
 }
 
@@ -16744,10 +16629,10 @@ double CvPlayerAI::AI_bonusImportValue(PlayerTypes eFrom) const
 		bool bTribute = d->isVassalTributeDeal();
 		/*if(bTribute)
 			continue;*/ // Let's reduce the value instead
-		for(CLLNode<TradeData> const* pNode = d->headGivesNode(eFrom); pNode != NULL;
+		for (CLLNode<TradeData> const* pNode = d->headGivesNode(eFrom); pNode != NULL;
 			pNode = d->nextGivesNode(pNode, eFrom))
 		{
-			if(pNode->m_data.m_eItemType == TRADE_RESOURCES)
+			if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
 			{
 				double bonusVal = GET_PLAYER(getID()).AI_bonusVal((BonusTypes)
 						pNode->m_data.m_iData, -1);
@@ -25446,7 +25331,7 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 		for (; pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode))
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->isEnemy(getTeam()) &&
+			if (pLoopUnit->isEnemy(getTeam(), *pPlot) &&
 				// advc.315: was pLoopUnit->canAttack()
 				AI_canBeAttackedBy(*pLoopUnit) &&
 				!pLoopUnit->isInvisible(getTeam(), false))
@@ -25610,8 +25495,10 @@ bool CvPlayerAI::AI_isPiracyTarget(PlayerTypes eTarget) const
 	if(GET_TEAM(eTarget).isAtWar(getTeam()))
 		return true;
 	if(GET_TEAM(getTeam()).isVassal(TEAMID(eTarget)) ||
-			GET_TEAM(eTarget).isVassal(getTeam()))
+		GET_TEAM(eTarget).isVassal(getTeam()))
+	{
 		return false;
+	}
 	return (AI_getAttitude(eTarget) <= GC.getInfo(getPersonalityType()).
 			getDeclareWarThemRefuseAttitudeThreshold());
 } // </advc.033>
@@ -25916,3 +25803,43 @@ void CvPlayerAI::logFoundValue(int iX, int iY, bool bStartingLoc) const
 			GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE") : -1, bStartingLoc);
 	eval.log(iX, iY);
 } // </advc.031c>
+
+// BETTER_BTS_AI_MOD, General AI/ Efficiency (plot danger cache), 08/20/09, jdog5000: START
+
+// The vast majority of checks for plot danger are boolean checks during path planning for non-combat
+// units like workers, settlers, and GP.  Since these are simple checks for any danger they can be
+// cutoff early if danger is found.  To this end, the two caches tracked are for whether a given plot
+// is either known to be safe for the player who is currently moving, or for whether the plot is
+// known to be a plot bordering an enemy of this team and therefore unsafe.
+//
+// The safe plot cache is only for the active moving player and is only set if this is not a
+// multiplayer game with simultaneous turns.  The safety cache for all plots is reset when the active
+// player changes or a new game is loaded.
+//
+// The border cache is done by team and works for all game types.  The border cache is reset for all
+// plots when war or peace are declared, and reset over a limited range whenever a ownership over a plot
+// changes.
+
+// K-Mod. The cache also needs to be reset when routes are destroyed, because distance 2 border danger only counts when there is a route.
+// Actually, the cache doesn't need to be cleared when war is declared; because false negatives have no impact with this cache.
+// The safe plot cache can be invalid if we kill an enemy unit. Currently this is unaccounted for, and so the cache doesn't always match the true state.
+// In general, I think this cache is a poorly planned idea. It's prone to subtle bugs if there are rule changes in seemingly independent parts of the games.
+//
+// I've done a bit of speed profiling and found that although the safe plot cache does shortcut around 50% of calls to AI_getAnyPlotDanger,
+// that only ends up saving a few milliseconds each turn anyway. I don't really think that's worth the risk of getting problems from bad cache.
+// So even though I've put a bit of work into making the cache work better, I'm just going to disable it.
+
+bool CvPlayerAI::isSafeRangeCacheValid() const
+{
+	/*	advc: To turn the cache back on, the two call locations in AI_getPlotDanger
+		would have to be uncommented. */
+	FAssertMsg(false, "SafeRangeCache is disabled");
+	return false; // K-Mod: Cache disabled. See comments above.
+	//return isTurnActive() && !GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1;
+}
+
+// advc.003j: Probably unused. (There's a virtual wrapper that the EXE could call.)
+bool CvPlayerAI::AI_isCommercePlot(CvPlot* pPlot) const
+{
+	return (pPlot->getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION());
+}

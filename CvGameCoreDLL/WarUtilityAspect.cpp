@@ -3438,8 +3438,6 @@ void TacticalSituation::evalEngagement() {
 	int const hpThresh = 60;
 	FOR_EACH_GROUPAI(gr, *we) {
 		int groupSize = gr->getNumUnits();
-		if(groupSize <= 0)
-			continue;
 		CvUnit* head = gr->getHeadUnit();
 		if(head == NULL || !head->canDefend())
 			continue;
@@ -3454,23 +3452,21 @@ void TacticalSituation::evalEngagement() {
 		if(head->maxHitPoints() - head->getDamage() >= 80) {
 			if(groupPlot.getArea().isWater())
 				iRange++;
-			else if(plotOwner != NO_PLAYER &&
-					(plotOwner == weId || agent.isOpenBorders(TEAMID(plotOwner)))
-					&& (groupPlot.isRoute() || groupPlot.isCity()))
+			else if(plotOwner != NO_PLAYER && groupPlot.isRoute() &&
+					(plotOwner == weId || agent.isOpenBorders(TEAMID(plotOwner))))
 				iRange++;
 		}
 		bool isCity = gr->plot()->isCity();
-		int theirDamaged = 0;
+		CvPlayerAI::LowHPCounter theirDamaged(hpThresh);
 		/*  Count at most one enemy unit per unit of ours as "entangled", i.e. count
 			pairs of units. */
-		int pairs = we->AI_getPlotDanger(groupPlot, iRange, false, false, &theirDamaged,
-				hpThresh, groupSize, theyId);
+		int pairs = we->AI_getPlotDanger(groupPlot, iRange, false, groupSize, false,
+				&theirDamaged, theyId);
 		/*  Should perhaps also count fewer units as entangled if their units are
-			in a city, but that gets complicated b/c AI_getPlotDanger would have to
-			check. */
+			in a city, but that gets complicated b/c AI_getPlotDanger would have to check. */
 		entangled += pairs / (isCity ? 2 : 1);
 		// "Exposed" means damaged and likely about to be attacked
-		theirExposed += theirDamaged;
+		theirExposed += theirDamaged.get();
 		int ourDamaged = 0;
 		if(pairs > 0) {
 			for(CLLNode<IDInfo> const* node = gr->headUnitNode(); node != NULL; node =
@@ -3529,7 +3525,7 @@ void TacticalSituation::evalEngagement() {
 		if(agentAI.isFastRoads())
 			iRange++;
 		if(c->isOccupation() && c->isEverOwned(weId) && they->AI_getPlotDanger(
-				*c->plot(), iRange, false, false) >
+				*c->plot(), iRange, false, 2, false) >
 				1) /* Just want to know if we have some presence beyond a single
 					  stray unit near the city */
 			recentlyLostPop += c->getPopulation();
@@ -3558,7 +3554,7 @@ int TacticalSituation::evacPop(PlayerTypes ownerId, PlayerTypes invaderId) {
 		/*  Check PlotDanger b/c we don't want to count cities that are threatened
 			by a third party */
 		if(c->AI_isEvacuating() && o.AI_getPlotDanger(*c->plot(),
-				1, false, false, NULL, 60, 2, invaderId) >= 2)
+				1, false, 2, false, NULL, invaderId) >= 2)
 			r += c->getPopulation();
 	}
 	return r;

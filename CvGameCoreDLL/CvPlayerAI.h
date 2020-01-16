@@ -132,25 +132,28 @@ public:
 	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
 
-	bool AI_isCommercePlot(CvPlot* pPlot) const;
-
 	// BETTER_BTS_AI_MOD, 08/20/09, jdog5000: START
 	bool isSafeRangeCacheValid() const; // K-Mod
-	bool AI_getAnyPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, bool bCheckBorder = true) const; // K-Mod added bCheckBorder
+	// <advc.104>
+	struct LowHPCounter
+	{	// Param: threshold for "low" hitpoints
+		LowHPCounter(int iMaxHP = 60) : m_iMaxHP(iMaxHP), m_iCount(0) { FAssert(iMaxHP > 0); }
+		inline int getHPThreshold() const { return m_iMaxHP; }
+		inline int get() const { return m_iCount; }
+		inline void increment() { m_iCount++; }
+		private:
+		int m_iCount;
+		int m_iMaxHP;
+	}; // </advc.104>
 	int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true,
-			// <advc.104> Same as in AI_getAnyPlotDanger
-			bool bCheckBorder = true,
-			/*  Out-parameter that counts enemy units in range with at most
-				iMaxHP hit points. Not counted if NULL. In any case, damaged units
-				are included in the count returned by this function. */
-			int* piLowHealth = NULL, int iMaxHP = 60,
-			/*  For better performance, stop counting at iLimit, i.e. the
-				return value can be at most iLimit. Healthy units are
-				counted before damaged ones (piLowHealth).
-				Unlimited count if iLimit is negative. */
-			int iLimit = -1,
-			// Unless NO_PLAYER, count only danger from this enemy.
-			PlayerTypes eEnemyPlayer = NO_PLAYER) const; // </advc.104>
+			int iLimit = MAX_INT, // advc  <advc.104>
+			bool bCheckBorder = true, LowHPCounter* pLowHPCounter = NULL,
+			PlayerTypes eAttackPlayer = NO_PLAYER) const; // </advc.104>
+	bool AI_isAnyPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true,
+		bool bCheckBorder = true) const // K-Mod
+	{	// advc: Merged with the plot danger counting function
+		return (AI_getPlotDanger(kPlot, iRange, bTestMoves, 1, bCheckBorder) > 0);
+	}
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 	// BETTER_BTS_AI_MOD: END
 	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const;
@@ -161,7 +164,8 @@ public:
 	//int AI_goldTarget() const;
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod
 
-	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bFreeTech = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
+	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bFreeTech = false, bool bAsync = false,
+			TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
 			PlayerTypes eFromPlayer = NO_PLAYER) const; // advc.144
 
 	// BETTER_BTS_AI_MOD, Tech AI, 03/18/10, jdog5000: START
@@ -773,6 +777,11 @@ protected:
 	bool AI_isThreatFromMinorCiv() const; // </advc.109>
 	void AI_updateDangerFromSubmarines(); // advc.651
 	bool AI_cheatDangerVisibility(CvPlot const& kAt) const; // advc.128
+	// <advc>
+	int AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const& kDefenderPlot,
+			bool bTestMoves, int iLimit = MAX_INT,
+			LowHPCounter* pLowHPCounter = NULL,
+			PlayerTypes eAttackPlayer = NO_PLAYER) const; // </advc>
 	int AI_knownRankDifference(PlayerTypes eOther) const; // advc.130c
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
@@ -795,6 +804,7 @@ protected:
 
 	void AI_doEnemyUnitData();
 	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
+	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
 	void AI_setHumanDisabled(bool bDisabled); // advc.127
 	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
 

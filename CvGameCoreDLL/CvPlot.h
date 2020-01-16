@@ -238,17 +238,17 @@ public:
 	bool isOccupation() const;																																				// Exposed to Python
 	bool isBeingWorked() const;																															// Exposed to Python
 
-	bool isUnit() const { return (getNumUnits() > 0); } // advc.inl														// Exposed to Python
+	inline bool isUnit() const { return (getNumUnits() > 0); } // advc.inl														// Exposed to Python
 	bool isInvestigate(TeamTypes eTeam) const;																												// Exposed to Python
 	bool isVisibleEnemyDefender(const CvUnit* pUnit) const;																						// Exposed to Python
 	CvUnit *getVisibleEnemyDefender(PlayerTypes ePlayer) const;
 	int getNumDefenders(PlayerTypes ePlayer) const;																										// Exposed to Python
 	int getNumVisibleEnemyDefenders(const CvUnit* pUnit) const;																				// Exposed to Python
-	int getNumVisiblePotentialEnemyDefenders(const CvUnit* pUnit) const;															// Exposed to Python
+	// (advc: getNumVisiblePotentialEnemyDefenders has become CvUnitAI::AI_countEnemyDefenders)
 	DllExport bool isVisibleEnemyUnit(PlayerTypes ePlayer) const;																			// Exposed to Python
 	// advc.ctr:
 	bool isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace = NO_TEAM) const;
-	bool isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const; // K-Mod
+	// (advc: isVisiblePotentialEnemyUnit has become CvTeamAI::AI_mayAttack(CvPlot const&))
 	DllExport int getNumVisibleUnits(PlayerTypes ePlayer) const;
 	bool isVisibleEnemyUnit(const CvUnit* pUnit) const;
 	// advc.004l:
@@ -674,7 +674,7 @@ public:
 	}
 	void changeInvisibleVisibilityCount(TeamTypes eTeam, InvisibleTypes eInvisible, int iChange);					// Exposed to Python
 
-	int getNumUnits() const { return m_units.getLength(); } // advc.inl												// Exposed to Python
+	inline int getNumUnits() const { return m_units.getLength(); } // advc.inl												// Exposed to Python
 	CvUnit* getUnitByIndex(int iIndex) const;																													// Exposed to Python
 	void addUnit(CvUnit* pUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);

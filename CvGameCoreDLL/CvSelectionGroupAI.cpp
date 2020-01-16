@@ -4,6 +4,7 @@
 #include "CvSelectionGroupAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
+#include "AgentIterator.h"
 #include "CvMap.h"
 
 
@@ -335,7 +336,7 @@ int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialE
 	if (getDomainType() == DOMAIN_SEA && !hasCargo())
 	{
 		// I'm sorry about this. I really am. I'll try to make it better one day...
-		int iDefenders = pPlot->getNumVisiblePotentialEnemyDefenders(pAttacker);
+		int iDefenders = pAttacker->AI_countEnemyDefenders(*pPlot);
 		iAdjustedOdds *= 2 + getNumUnits();
 		iAdjustedOdds /= 3 + std::min(iDefenders/2, getNumUnits());
 	}
@@ -615,7 +616,7 @@ bool CvSelectionGroupAI::AI_isControlled() const
 }
 
 
-bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc: */ const
+bool CvSelectionGroupAI::AI_isDeclareWar(CvPlot const& kPlot) const // advc: const; param no longer optional.
 {
 	FAssert(getHeadUnit() != NULL);
 
@@ -627,82 +628,94 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot) /* advc: */ const
 	// K-Mod end
 
 	bool bLimitedWar = false;
-	if (pPlot != NULL)
+	TeamTypes ePlotTeam = kPlot.getTeam();
+	if (ePlotTeam != NO_TEAM)
 	{
-		TeamTypes ePlotTeam = pPlot->getTeam();
-		if (ePlotTeam != NO_TEAM)
-		{
-			WarPlanTypes eWarplan = GET_TEAM(getTeam()).AI_getWarPlan(
-					GET_TEAM(ePlotTeam).getMasterTeam()); // advc.104j
-			if (eWarplan == WARPLAN_LIMITED)
-				bLimitedWar = true;
-		}
+		WarPlanTypes eWarplan = GET_TEAM(getTeam()).AI_getWarPlan(
+				GET_TEAM(ePlotTeam).getMasterTeam()); // advc.104j
+		if (eWarplan == WARPLAN_LIMITED)
+			bLimitedWar = true;
 	}
 
 	CvUnit* pHeadUnit = getHeadUnit();
-	if (pHeadUnit != NULL)
+	if (pHeadUnit == NULL)
+		return false; // advc
+
+	switch (pHeadUnit->AI_getUnitAIType())
 	{
-		switch (pHeadUnit->AI_getUnitAIType())
+	case UNITAI_UNKNOWN:
+	case UNITAI_ANIMAL:
+	case UNITAI_SETTLE:
+	case UNITAI_WORKER:
+		return false;
+	case UNITAI_ATTACK_CITY:
+	case UNITAI_ATTACK_CITY_LEMMING:
+		return true;
+	case UNITAI_ATTACK:
+	case UNITAI_COLLATERAL:
+	case UNITAI_PILLAGE:
+		return bLimitedWar;
+	case UNITAI_PARADROP:
+	case UNITAI_RESERVE:
+	case UNITAI_COUNTER:
+	case UNITAI_CITY_DEFENSE:
+	case UNITAI_CITY_COUNTER:
+	case UNITAI_CITY_SPECIAL:
+	case UNITAI_EXPLORE:
+	case UNITAI_MISSIONARY:
+	case UNITAI_PROPHET:
+	case UNITAI_ARTIST:
+	case UNITAI_SCIENTIST:
+	case UNITAI_GENERAL:
+	case UNITAI_MERCHANT:
+	case UNITAI_ENGINEER:
+	case UNITAI_GREAT_SPY: // K-Mod
+	case UNITAI_SPY:
+	case UNITAI_ICBM:
+	case UNITAI_WORKER_SEA:
+		return false;
+	case UNITAI_ATTACK_SEA:
+	case UNITAI_RESERVE_SEA:
+	case UNITAI_ESCORT_SEA:
+		return bLimitedWar;
+	case UNITAI_EXPLORE_SEA:
+		return false;
+	case UNITAI_ASSAULT_SEA:
+		return hasCargo();
+	case UNITAI_SETTLER_SEA:
+	case UNITAI_MISSIONARY_SEA:
+	case UNITAI_SPY_SEA:
+	case UNITAI_CARRIER_SEA:
+	case UNITAI_MISSILE_CARRIER_SEA:
+	case UNITAI_PIRATE_SEA:
+	case UNITAI_ATTACK_AIR:
+	case UNITAI_DEFENSE_AIR:
+	case UNITAI_CARRIER_AIR:
+	case UNITAI_MISSILE_AIR:
+		return false;
+	default:
+		FAssert(false);
+		return false;
+	}
+}
+
+
+/*	advc: Moved from CvSelectionGroup b/c this checks for the
+	group owner's war plans. Param renamed from bIgnoreMinors
+	b/c it also causes Barbarians to be ignored. */
+bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly, int iFlags, int iMaxPathTurns) const
+{
+	PROFILE_FUNC();
+
+	//int iPass = 0; // advc: unused
+	for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
+	{
+		if (bMajorOnly && !it->isMajorCiv())
+			continue;
+		if (GET_TEAM(getTeam()).AI_mayAttack(it->getTeam()) &&
+			isHasPathToAreaPlayerCity(it->getID(), iFlags, iMaxPathTurns))
 		{
-		case UNITAI_UNKNOWN:
-		case UNITAI_ANIMAL:
-		case UNITAI_SETTLE:
-		case UNITAI_WORKER:
-			break;
-		case UNITAI_ATTACK_CITY:
-		case UNITAI_ATTACK_CITY_LEMMING:
 			return true;
-		case UNITAI_ATTACK:
-		case UNITAI_COLLATERAL:
-		case UNITAI_PILLAGE:
-			if (bLimitedWar)
-				return true;
-			break;
-		case UNITAI_PARADROP:
-		case UNITAI_RESERVE:
-		case UNITAI_COUNTER:
-		case UNITAI_CITY_DEFENSE:
-		case UNITAI_CITY_COUNTER:
-		case UNITAI_CITY_SPECIAL:
-		case UNITAI_EXPLORE:
-		case UNITAI_MISSIONARY:
-		case UNITAI_PROPHET:
-		case UNITAI_ARTIST:
-		case UNITAI_SCIENTIST:
-		case UNITAI_GENERAL:
-		case UNITAI_MERCHANT:
-		case UNITAI_ENGINEER:
-		case UNITAI_GREAT_SPY: // K-Mod
-		case UNITAI_SPY:
-		case UNITAI_ICBM:
-		case UNITAI_WORKER_SEA:
-			break;
-		case UNITAI_ATTACK_SEA:
-		case UNITAI_RESERVE_SEA:
-		case UNITAI_ESCORT_SEA:
-			if (bLimitedWar)
-				return true;
-			break;
-		case UNITAI_EXPLORE_SEA:
-			break;
-		case UNITAI_ASSAULT_SEA:
-			if (hasCargo())
-				return true;
-			break;
-		case UNITAI_SETTLER_SEA:
-		case UNITAI_MISSIONARY_SEA:
-		case UNITAI_SPY_SEA:
-		case UNITAI_CARRIER_SEA:
-		case UNITAI_MISSILE_CARRIER_SEA:
-		case UNITAI_PIRATE_SEA:
-		case UNITAI_ATTACK_AIR:
-		case UNITAI_DEFENSE_AIR:
-		case UNITAI_CARRIER_AIR:
-		case UNITAI_MISSILE_AIR:
-			break;
-		default:
-			FAssert(false);
-			break;
 		}
 	}
 	return false;

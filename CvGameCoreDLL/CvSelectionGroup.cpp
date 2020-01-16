@@ -206,7 +206,7 @@ void CvSelectionGroup::doTurn()
 	if (AI_isControlled())
 	{
 		if (getActivityType() != ACTIVITY_MISSION ||
-			(!canFight() && GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2)))
+			(!canFight() && GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), 2)))
 		{
 			setForceUpdate(true);
 			// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
@@ -238,7 +238,7 @@ void CvSelectionGroup::doTurn()
 			// sometimes produces unintuitive results in some situations. So now 'ignore danger' only ignores range==2.
 
 			//if (bNonSpy && GET_PLAYER(getOwner()).AI_getPlotDanger(plot(), 2) > 0)
-			if (bNonSpy && GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), bBrave ? 1 : 2, true, false))
+			if (bNonSpy && GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), bBrave ? 1 : 2, true, false))
 				clearMissionQueue();
 			// K-Mod end
 		}
@@ -558,7 +558,7 @@ bool CvSelectionGroup::autoMission() // K-Mod changed this from void to bool.
 	//if (bVisibleHuman && GET_PLAYER(getOwner()).AI_getPlotDanger(plot(), 1) > 0)
 	// K-Mod. I want to allow players to queue actions when in danger without being overruled by this clause.
 	if (bVisibleHuman && headMissionQueueNode()->m_data.iPushTurn != GC.getGame().getGameTurn() && !(headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER) &&
-		GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 1, true, false))
+		GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), 1, true, false))
 		// K-Mod end
 	{
 		clearMissionQueue();
@@ -889,7 +889,7 @@ void CvSelectionGroup::startMission()
 		// K-Mod. If the worker is already in danger when the command is issued, use the MOVE_IGNORE_DANGER flag.
 		case MISSION_BUILD:
 			if (!AI_isControlled() && headMissionQueueNode()->m_data.iPushTurn == GC.getGame().getGameTurn() &&
-				GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2, true, false)) // cf. condition used in CvSelectionGroup::doTurn.
+				GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), 2, true, false)) // cf. condition used in CvSelectionGroup::doTurn.
 			{
 				headMissionQueueNode()->m_data.iFlags |= MOVE_IGNORE_DANGER;
 			}
@@ -1378,7 +1378,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 					CvPlot* pMissionPlot = pTargetUnit->AI_getGroup()->AI_getMissionAIPlot();
 					if (pMissionPlot != NULL && NO_TEAM != pMissionPlot->getTeam())
 					{
-						if (pMissionPlot->isOwned() && pTargetUnit->isPotentialEnemy(pMissionPlot->getTeam(), pMissionPlot))
+						if (pMissionPlot->isOwned() && pTargetUnit->AI_isPotentialEnemyOf(
+							pMissionPlot->getTeam(), *pMissionPlot))
 						{
 							bAction = false;
 							bDone = true;
@@ -1387,8 +1388,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 					}
 				}
 			}
-			if (groupPathTo(pTargetUnit->getX(), pTargetUnit->getY(),
-					missionData.iFlags))
+			if (groupPathTo(pTargetUnit->getX(), pTargetUnit->getY(), missionData.iFlags))
 				bAction = true;
 			else bDone = true;
 			break;
@@ -2386,30 +2386,6 @@ bool CvSelectionGroup::isHasPathToAreaPlayerCity(PlayerTypes ePlayer, int iFlags
 			}
 		}
 	}
-	return false;
-}
-
-
-bool CvSelectionGroup::isHasPathToAreaEnemyCity(bool bIgnoreMinors, int iFlags, int iMaxPathTurns) const
-{
-	PROFILE_FUNC();
-
-	//int iPass = 0; // advc: unused
-
-	for(int iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && isPotentialEnemy(getTeam(), TEAMID((PlayerTypes)iI)))
-		{
-			if (!bIgnoreMinors || (!GET_PLAYER((PlayerTypes)iI).isBarbarian() && !GET_PLAYER((PlayerTypes)iI).isMinorCiv()))
-			{
-				if (isHasPathToAreaPlayerCity((PlayerTypes)iI, iFlags, iMaxPathTurns))
-				{
-					return true;
-				}
-			}
-		}
-	}
-
 	return false;
 }
 

@@ -155,8 +155,8 @@ DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 DllExport float directionAngle(DirectionTypes eDirection);
 
-bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
-bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);					// Exposed to Python
+bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
+//isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
 
 // <advc.003u>
 CvCityAI* AI_getCity(IDInfo city);

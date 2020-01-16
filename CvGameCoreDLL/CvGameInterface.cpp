@@ -247,8 +247,6 @@ void CvGame::updateColoredPlots()
 		}
 	}
 
-	FAssert(getActivePlayer() != NO_PLAYER);
-
 	if (!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS))
 	{
 		CvUnitAI const& kRecommendUnit = pHeadSelectedUnit->AI(); // advc.003u

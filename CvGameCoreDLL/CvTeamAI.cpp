@@ -2870,8 +2870,10 @@ bool CvTeamAI::AI_refuseWar(TeamTypes eWarTeam) const
 		for (MemberIter it(getID()); it.hasNext(); ++it)
 		{
 			if (eAttitude > GC.getInfo(it->getPersonalityType()).
-					getDeclareWarThemRefuseAttitudeThreshold())
+				getDeclareWarThemRefuseAttitudeThreshold())
+			{
 				return true;
+			}
 		}
 	}
 	return false; // otherwise, war is acceptable
@@ -3593,8 +3595,10 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
 		if (eAttitudeThem > GC.getInfo(it->getPersonalityType()).
-				getDeclareWarThemRefuseAttitudeThreshold())
+			getDeclareWarThemRefuseAttitudeThreshold())
+		{
 			return DENIAL_ATTITUDE_THEM;
+		}
 	}
 
 	if (!atWar(eTarget, eSponsor))
@@ -4326,6 +4330,41 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar
 	} // </advc.104j>
 }
 
+/*	advc.opt: Replacing global isPotentialEnemy (CvGameCoreUtils). Not much faster here -
+	mostly avoids some NO_TEAM checks -, but also makes more sense as a CvTeamAI member.
+	I've also redirected some CvUnitAI::AI_isPotentialEnemy calls here. That function
+	allows alwaysHostile units to attack w/o war plan; this function doesn't. */
+bool CvTeamAI::AI_mayAttack(TeamTypes eDefender) const
+{
+	if (isAtWar(eDefender))
+		return true;
+	TeamTypes const eDefenderMaster = GET_TEAM(eDefender).getMasterTeam(); // advc.104j
+	//if (!AI_isSneakAttackReady(eDefender))
+	// advc.opt: Avoid isAtWar and NO_TEAM check
+	if (!AI_isImminentWarPlan(AI_getWarPlan(/* advc.104j: */ eDefenderMaster)))
+		return false;
+	FAssertMsg(!isAVassal(), "Vassal shouldn't have imminent undeclared war plan");
+	/*	UNOFFICIAL_PATCH, Bugfix, General AI, 05/05/09, jdog5000: START
+		Fixes bug where AI would launch invasion while unable to declare war
+		which caused units to be bumped once forced peace expired */
+	//return canDeclareWar(eDefender);
+	/*	advc.opt: Avoid the canEventuallyDeclareWar check - the war plan
+		has to be abandoned if we can't ever declare. */
+	return (!isForcePeace(eDefenderMaster) && // advc.104j
+			!isForcePeace(eDefender));
+}
+
+// advc: Replacing K-Mod's CvPlot::isVisiblePotentialEnemyUnit
+bool CvTeamAI::AI_mayAttack(CvPlot const& kPlot) const
+{
+	/*	Unfortunately, PUF_isPotentialEnemy requires a PlayerTypes argument.
+		Would have to change several PUF... signatures to remedy that. */
+	PlayerTypes const ePlayer = getLeaderID();
+	// <K-Mod>
+	return kPlot.plotCheck(PUF_isPotentialEnemy, ePlayer, false,
+			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer); // </K-Mod>
+}
+
 // BETTER_BTS_AI_MOD, General AI, 07/20/09, jdog5000: START
 /*  advc: Moved these two functions from CvTeam and refactored them
 	(they were using a loop instead of getMasterTeam) */
@@ -4854,7 +4893,7 @@ void CvTeamAI::AI_setStrengthMemory(int x, int y, int value)
 	m_aiStrengthMemory[GC.getMap().plotNum(x, y)] = value;
 }
 // <advc.make> Was inlined in CvTeamAI.h
-int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot)
+int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot) const
 {
 	//return AI_getStrengthMemory(pPlot->getX(), pPlot->getY());
 	// To make sure that it won't be slower than before

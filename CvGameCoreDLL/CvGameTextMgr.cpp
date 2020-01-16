@@ -20558,7 +20558,7 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 	{
 		TeamTypes eVictimTeam = (TeamTypes)iI;
 		if(pHeadSelectedUnit->isNukeVictim(pPlot, eVictimTeam) &&
-				!pHeadSelectedUnit->isEnemy(eVictimTeam))
+			!pHeadSelectedUnit->isEnemy(eVictimTeam))
 		{
 			// advc.130q: No newline
 			strHelp += gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");

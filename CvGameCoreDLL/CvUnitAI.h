@@ -33,9 +33,14 @@ public:
 
 	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL,
 			CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL) const;
-
 	bool AI_isCityAIType() const;
-
+	// <advc>
+	bool AI_mayAttack(TeamTypes eTeam, CvPlot const& kPlot) const; // Renamed from AI_potentialEnemy
+	bool AI_mayAttack(CvPlot const& kPlot) const; // Replacing CvUnit::potentialWarAction
+	bool AI_isPotentialEnemyOf(TeamTypes eTeam, CvPlot const& kPlot) const; // Moved from CvUnit
+	int AI_countEnemyDefenders(CvPlot const& kPlot) const; // Replacing CvPlot::getNumVisiblePotentialEnemyDefenders
+	bool AI_isAnyEnemyDefender(CvPlot const& kPlot) const;
+	// </advc>
 	inline int AI_getBirthmark() const { return m_iBirthmark; }
 	void AI_setBirthmark(int iNewValue);
 	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.inl: inline (now that it's no longer virtual)			// Exposed to Python
@@ -280,7 +285,6 @@ protected:
 
 	bool AI_followBombard();
 
-	bool AI_potentialEnemy(TeamTypes eTeam, const CvPlot* pPlot = NULL);
 	// <advc.033>
 	std::pair<int,int> AI_countPiracyTargets(CvPlot const& kPlot,
 			bool bStopIfAnyTarget = false) const;
@@ -302,11 +306,8 @@ protected:
 	__forceinline bool AI_plotValid(CvPlot const& kPlot) const
 	{
 		return AI_plotValid(&kPlot);
-	} // </advc>  <advc.030>
-	inline bool AI_canEnterByLand(CvArea const& kArea) const
-	{	// Not checked (to save time): unused canMoveAllTerrain
-		return (isArea(kArea) || (canMoveImpassable() && canEnterArea(kArea)));
-	} // </advc.030>
+	} // </advc>
+	bool AI_canEnterByLand(CvArea const& kArea) const; // advc.030
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold); // disabled by K-Mod
 	unsigned AI_unitBirthmarkHash(int iExtra = 0) const; // K-Mod

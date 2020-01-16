@@ -26,6 +26,12 @@ public:
 	DllExport static CvTeamAI& getTeamNonInl(TeamTypes eTeam); // Only for the EXE
 
 	static bool AI_isChosenWarPlan(WarPlanTypes eWarPlanType); // advc.105
+	// advc.opt:
+	static bool AI_isImminentWarPlan(WarPlanTypes eWarPlanType)
+	{
+		return (eWarPlanType == WARPLAN_LIMITED || eWarPlanType == WARPLAN_TOTAL ||
+				eWarPlanType == WARPLAN_DOGPILE);
+	}
 
 	explicit CvTeamAI(TeamTypes eID);
 	~CvTeamAI();
@@ -242,6 +248,9 @@ public:
 	bool AI_isSneakAttackReady(TeamTypes eIndex /* K-Mod (any team): */ = NO_TEAM) const;
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
+	// <advc.opt>
+	bool AI_mayAttack(TeamTypes eDefender) const;
+	bool AI_mayAttack(CvPlot const& kPlot) const; // </advc.opt>
 	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: START  (advc: moved from CvTeam; const)
 	bool AI_isMasterPlanningLandWar(CvArea const& kArea) const;
 	bool AI_isMasterPlanningSeaWar(CvArea const& kArea) const;
@@ -286,7 +295,7 @@ public:
 	int AI_getStrengthMemory(int x, int y) const;
 	void AI_setStrengthMemory(int x, int y, int value);
 	// <advc.make> No longer inlined. To avoid including CvPlot.h.
-	int AI_getStrengthMemory(const CvPlot* pPlot);
+	int AI_getStrengthMemory(const CvPlot* pPlot) const;
 	void AI_setStrengthMemory(const CvPlot* pPlot, int value); // </advc.make>
 
 protected:

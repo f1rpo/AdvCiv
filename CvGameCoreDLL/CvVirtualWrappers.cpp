@@ -379,7 +379,9 @@ bool CvSelectionGroup::AI_isControlledExternal() {
 	return AI().AI_isControlled();
 }
 bool CvSelectionGroup::AI_isDeclareWarExternal(CvPlot* pPlot) {
-	return AI().AI_isDeclareWar(pPlot);
+	if (pPlot == NULL)
+		return false;
+	return AI().AI_isDeclareWar(*pPlot);
 }
 CvPlot* CvSelectionGroup::AI_getMissionAIPlotExternal() {
 	return AI().AI_getMissionAIPlot();

@@ -34,7 +34,8 @@ bool cyIsCardinalDirection(DirectionTypes eDirection);
 DirectionTypes cyEstimateDirection(int iDX, int iDY);
 
 bool cyAtWar(int /*TeamTypes*/ eTeamA, int /*TeamTypes*/ eTeamB);
-bool cyIsPotentialEnemy(int /*TeamTypes*/ eOurPlayer, int /*TeamTypes*/ eTheirPlayer);
+// advc: No longer exposed
+//bool cyIsPotentialEnemy(int /*TeamTypes*/ eOurPlayer, int /*TeamTypes*/ eTheirPlayer);
 
 CyCity* cyGetCity(IDInfo city);
 CyUnit* cyGetUnit(IDInfo unit);

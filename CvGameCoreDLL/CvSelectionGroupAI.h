@@ -45,7 +45,8 @@ public:
 	inline bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
 
 	bool AI_isControlled() /* advc: */ const;
-	bool AI_isDeclareWar(const CvPlot* pPlot = NULL) const;
+	bool AI_isDeclareWar(CvPlot const& kPlot) const;
+	bool AI_isHasPathToAreaEnemyCity(bool bMajorOnly = true, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 
 	CvPlot* AI_getMissionAIPlot() const;
 

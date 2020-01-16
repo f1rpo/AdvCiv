@@ -296,24 +296,15 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
 	return (eTeamA != NO_TEAM && eTeamB != NO_TEAM && GET_TEAM(eTeamA).isAtWar(eTeamB));
 }
-
-bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
+// advc: No longer needed
+/*bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
 {
 	FAssert(eOurTeam != NO_TEAM);
-
 	if (eTheirTeam == NO_TEAM)
 		return false;
-
-	return (atWar(eOurTeam, eTheirTeam) || (GET_TEAM(eOurTeam).AI_isSneakAttackReady(
-			//eTheirTeam)
-			GET_TEAM(eTheirTeam).getMasterTeam()) // advc.104j
-
-			// UNOFFICIAL_PATCH, Bugfix, General AI, 05/05/09, jdog5000: START
-			// Fixes bug where AI would launch invasion while unable to declare war
-			// which caused units to be bumped once forced peace expired
-			&& GET_TEAM(GET_TEAM(eOurTeam).getMasterTeam()). // advc.104j
-					canDeclareWar(eTheirTeam))); // UNOFFICIAL_PATCH: END
-}
+	// advc: Moved into new CvTeamAI function
+	return GET_TEAM(eOurTeam).AI_mayAttack(eTheirTeam);
+}*/
 
 CvCityAI* AI_getCity(IDInfo city) // advc.003u: Return CvCityAI*
 {
@@ -1138,7 +1129,8 @@ bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2)
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
 
-	return (GET_PLAYER(pUnit->getCombatOwner((TeamTypes)iData2, pUnit->plot())).getTeam() == iData1 && !pUnit->isInvisible((TeamTypes)iData2, false, false));
+	return (TEAMID(pUnit->getCombatOwner((TeamTypes)iData2, pUnit->getPlot())) ==
+			iData1 && !pUnit->isInvisible((TeamTypes)iData2, false, false));
 }
 
 bool PUF_isOtherPlayer(const CvUnit* pUnit, int iData1, int iData2)
@@ -1164,15 +1156,11 @@ bool PUF_isEnemy(const CvUnit* pUnit, int iData1, int iData2)
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
 
-	TeamTypes eOtherTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, pUnit->plot())).getTeam();
-
+	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
+	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
 	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
 		return false;
-	}
-
-	return (iData2 ? eOtherTeam != eOurTeam : atWar(eOtherTeam, eOurTeam));
+	return (iData2 ? eOtherTeam != eOurTeam : GET_TEAM(eOtherTeam).isAtWar(eOurTeam));
 }
 // <advc.ctr>
 bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
@@ -1197,7 +1185,7 @@ bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
 bool PUF_isVisible(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return !(pUnit->isInvisible(GET_PLAYER((PlayerTypes)iData1).getTeam(), false));
+	return !pUnit->isInvisible(TEAMID((PlayerTypes)iData1), false);
 }
 
 bool PUF_isVisibleDebug(const CvUnit* pUnit, int iData1, int iData2)
@@ -1209,36 +1197,30 @@ bool PUF_isVisibleDebug(const CvUnit* pUnit, int iData1, int iData2)
 bool PUF_canSiege(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return pUnit->canSiege(GET_PLAYER((PlayerTypes)iData1).getTeam());
+	return pUnit->canSiege(TEAMID((PlayerTypes)iData1));
 }
 
 bool PUF_isPotentialEnemy(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	TeamTypes eOtherTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, pUnit->plot())).getTeam();
-
-	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
+	// advc: Switched the Our/Other variable names. iData1 is the team whose war plans matter.
+	TeamTypes eOurTeam = TEAMID((PlayerTypes)iData1);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
 		return false;
-	}
-	return (iData2 ? eOtherTeam != eOurTeam : isPotentialEnemy(eOtherTeam, eOurTeam));
+	return (iData2 ? eOurTeam != eOtherTeam : GET_TEAM(eOurTeam).AI_mayAttack(eOtherTeam));
 }
 
-bool PUF_canDeclareWar( const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDeclareWar(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
 
-	TeamTypes eOtherTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, pUnit->plot())).getTeam();
-
+	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
+	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
 	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
 		return false;
-	}
 
 	return (iData2 ? false : GET_TEAM(eOtherTeam).canDeclareWar(eOurTeam));
 }
@@ -1457,7 +1439,7 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 
 	if (bAIControl)
 	{	/*  BETTER_BTS_AI_MOD, Efficiency, 11/04/09, jdog5000: START
-			switch order as AI_getAnyPlotDanger is more expensive */
+			switch order as AI_isAnyPlotDanger is more expensive */
 		if (pSelectionGroup->getDomainType() == DOMAIN_LAND)
 		{
 			CvArea const& kGroupArea = *pSelectionGroup->area();
@@ -1472,10 +1454,8 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 		{
 			if (!pSelectionGroup->canFight() && !pSelectionGroup->alwaysInvisible())
 			{
-				if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_getAnyPlotDanger(kToPlot))
-				{
+				if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_isAnyPlotDanger(kToPlot))
 					return FALSE;
-				}
 			}
 		}
 		// BETTER_BTS_AI_MOD: END
@@ -1500,8 +1480,10 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 						{
 							if (pLoopUnit2->isGroupHead())
 							{
-								//if (pLoopUnit2->getGroup()->canMoveOrAttackInto(pToPlot, (pSelectionGroup->AI_isDeclareWar(kToPlot) || (iFlags & MOVE_DECLARE_WAR))))
-								if (pLoopUnit2->getGroup()->canMoveOrAttackInto(kToPlot, iFlags & MOVE_DECLARE_WAR, false, bAIControl)) // K-Mod. The new AI must be explicit about declaring war.
+								if (pLoopUnit2->getGroup()->canMoveOrAttackInto(kToPlot,
+									//pSelectionGroup->AI_isDeclareWar(kToPlot) || (iFlags & MOVE_DECLARE_WAR)))
+									// K-Mod. The new AI must be explicit about declaring war.
+									iFlags & MOVE_DECLARE_WAR, false, bAIControl))
 								{
 									bValid = true;
 									break;
@@ -1940,9 +1922,10 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 	} // </advc.049>
 
 	if (iFlags & MOVE_NO_ENEMY_TERRITORY && kFromPlot.isOwned() &&
-			atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))
+		atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))
+	{
 		return FALSE;
-
+	}
 	bool const bAIControl = pSelectionGroup->AI_isControlled();
 	if (bAIControl)
 	{
@@ -1952,10 +1935,8 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 			{
 				if (!pSelectionGroup->canFight() && !pSelectionGroup->alwaysInvisible())
 				{
-					if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_getAnyPlotDanger(kFromPlot))
-					{
+					if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_isAnyPlotDanger(kFromPlot))
 						return FALSE;
-					}
 				}
 			}
 		}
@@ -1966,18 +1947,21 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 		if (iFlags & (MOVE_THROUGH_ENEMY /* K-Mod: */ | MOVE_ATTACK_STACK))
 		{
 			if (!pSelectionGroup->canMoveOrAttackInto(kFromPlot,
-					// K-Mod:
-					iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman()))
+				iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman())) // K-Mod
+			{
 				return FALSE;
+			}
 		}
 		else
 		{
 			if (!pSelectionGroup->canMoveThrough(kFromPlot,
-					// K-Mod
-					iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman(),
-					iFlags & MOVE_ASSUME_VISIBLE || !pSelectionGroup->isHuman()))
-					// K-Mod end
+				// K-Mod
+				iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman(),
+				iFlags & MOVE_ASSUME_VISIBLE || !pSelectionGroup->isHuman()))
+				// K-Mod end
+			{
 				return FALSE;
+			}
 		}
 	}
 	// K-Mod. Note: it's currently difficult to extract the vision-cheating part of this AI,

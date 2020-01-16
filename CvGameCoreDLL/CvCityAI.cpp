@@ -6508,7 +6508,7 @@ int CvCityAI::AI_neededAirDefenders(/* advc.001n: */ bool bConstCache) /* advc: 
 bool CvCityAI::AI_isDanger() /* advc: */ const
 {
 	// BETTER_BTS_AI_MOD, City AI, Efficiency, 08/20/09, jdog5000: was AI_getPlotDanger
-	return GET_PLAYER(getOwner()).AI_getAnyPlotDanger(*plot(), 2, false);
+	return GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), 2, false);
 }
 
 // <advc.139>
@@ -12412,8 +12412,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 				iImportanceFactor += 100;
 		}
 		iTotalThreat = iTotalThreat * iImportanceFactor / 100;
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	return iTotalThreat;
 }

@@ -35,7 +35,9 @@ void DumpMemUsage(const char* fn, int line)
 #endif
 
 /*  advc.make: For debugging with Visual Leak Detector (if installed). It doesn't
-	matter which file includes it. I've put it here with the other memory tracking code. */
+	matter which file includes it. I've put it here with the other memory tracking code.
+	Requires a debug build without optimizations (don't know which optimization option
+	exactly causes vld to turn itself off). */
 //#include <vld.h> 
 
 #ifdef USE_MEMMANAGER // K-Mod. There is a similar #ifdef in the header file, so I assume it's meant to be here as well...

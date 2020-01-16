@@ -375,10 +375,12 @@ int CyPlot::getNumVisibleEnemyDefenders(CyUnit* pUnit)
 	return m_pPlot ? m_pPlot->getNumVisibleEnemyDefenders(pUnit->getUnit()) : -1;
 }
 
-int CyPlot::getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit)
+/*	advc: This is now handled by CvUnitAI::AI_countEnemyDefenders - b/c it's AI code,
+	which shouldn't be exposed to Python. */
+/*int CyPlot::getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit)
 {
 	return m_pPlot ? m_pPlot->getNumVisiblePotentialEnemyDefenders(pUnit->getUnit()) : -1;
-}
+}*/
 
 bool CyPlot::isVisibleEnemyUnit(int /*PlayerTypes*/ ePlayer)
 {

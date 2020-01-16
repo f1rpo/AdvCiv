@@ -32,7 +32,8 @@ void CyGameCoreUtilsPythonInterface()
 	python::def("estimateDirection", cyEstimateDirection, "DirectionTypes (int iDX, int iDY)");
 
 	python::def("atWar", cyAtWar,"bool (int eTeamA, int eTeamB)");
-	python::def("isPotentialEnemy", cyIsPotentialEnemy,"bool (int eOurTeam, int eTheirTeam)");
+	// advc: No longer exposed
+	//python::def("isPotentialEnemy", cyIsPotentialEnemy,"bool (int eOurTeam, int eTheirTeam)");
 
 	python::def("getCity", cyGetCity, python::return_value_policy<python::manage_new_object>(), "CyPlot* (IDInfo city)");
 	python::def("getUnit", cyGetUnit, python::return_value_policy<python::manage_new_object>(), "CyUnit* (IDInfo unit)");

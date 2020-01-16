@@ -1465,7 +1465,7 @@ int CyUnit::getVisualOwner()
 
 int CyUnit::getCombatOwner(int iForTeam)
 {
-	return m_pUnit ? m_pUnit->getCombatOwner((TeamTypes)iForTeam, m_pUnit->plot()) : -1;
+	return m_pUnit ? m_pUnit->getCombatOwner((TeamTypes)iForTeam, m_pUnit->getPlot()) : -1;
 }
 
 int CyUnit::getTeam()

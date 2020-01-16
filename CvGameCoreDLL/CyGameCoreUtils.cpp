@@ -118,11 +118,11 @@ bool cyAtWar(int /*TeamTypes*/ eTeamA, int /*TeamTypes*/ eTeamB)
 {
 	return atWar((TeamTypes)eTeamA, (TeamTypes)eTeamB);
 }
-
-bool cyIsPotentialEnemy(int /*TeamTypes*/ eOurTeam, int /*TeamTypes*/ eTheirTeam)
+// advc: Now a CvTeamAI function (AI_mayAttack). AI code shouldn't be exposed to Python.
+/*bool cyIsPotentialEnemy(int eOurTeam, int eTheirTeam)
 {
 	return isPotentialEnemy((TeamTypes)eOurTeam, (TeamTypes)eTheirTeam);
-}
+}*/
 
 CyCity* cyGetCity(IDInfo city)
 {

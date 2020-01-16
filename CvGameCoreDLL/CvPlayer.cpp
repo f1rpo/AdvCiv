@@ -21627,9 +21627,10 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 			{
 				CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
 				if (pUnit->getVisualOwner() != iPlayer ||
-						pUnit->isInvisible(getTeam(), true))
+					pUnit->isInvisible(getTeam(), true))
+				{
 					continue;
-
+				}
 				// now, is this unit of interest?
 				bool bMilitary = //pUnit->baseCombatStr() > 0;
 						// advc.004z: The above doesn't work for air units

@@ -2929,7 +2929,9 @@ void CvPlot::removeGoody()
 
 bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
 {
-	//PROFILE_FUNC(); // advc.003o: Called from teamStepValid_advc (CvGameCoreUtils), CvPlot::isTradeNetworkConnected and many UnitAI routines.
+	//PROFILE_FUNC();
+	/*	advc.003o: Called from teamStepValid_advc (CvGameCoreUtils),
+		CvPlot::isTradeNetworkConnected, CvUnit::isAlwaysHostile and many UnitAI routines. */
 	if(bCheckImprovement && getImprovementType() != NO_IMPROVEMENT &&
 		GC.getInfo(getImprovementType()).isActsAsCity())
 	{
@@ -2966,8 +2968,7 @@ bool CvPlot::isFriendlyCity(const CvUnit& kUnit, bool bCheckImprovement) const
 
 	if (kUnit.isEnemy(ePlotTeam))
 		return false;
-
-	TeamTypes eTeam = GET_PLAYER(kUnit.getCombatOwner(ePlotTeam, this)).getTeam();
+	TeamTypes eTeam = TEAMID(kUnit.getCombatOwner(ePlotTeam, *this));
 	if (eTeam == ePlotTeam)
 		return true;
 
@@ -2985,7 +2986,7 @@ bool CvPlot::isEnemyCity(const CvUnit& kUnit) const
 {
 	CvCity* pCity = getPlotCity();
 	if (pCity != NULL)
-		return kUnit.isEnemy(pCity->getTeam(), this);
+		return kUnit.isEnemy(pCity->getTeam(), *this);
 	return false;
 }
 
@@ -3016,7 +3017,7 @@ bool CvPlot::isInvestigate(TeamTypes eTeam) const
 
 bool CvPlot::isVisibleEnemyDefender(const CvUnit* pUnit) const
 {
-	return (plotCheck(PUF_canDefendEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(this),
+	return (plotCheck(PUF_canDefendEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this),
 			NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwner()) != NULL);
 }
 
@@ -3035,14 +3036,7 @@ int CvPlot::getNumDefenders(PlayerTypes ePlayer) const
 
 int CvPlot::getNumVisibleEnemyDefenders(const CvUnit* pUnit) const
 {
-	return plotCount(PUF_canDefendEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(this),
-			NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwner());
-}
-
-
-int CvPlot::getNumVisiblePotentialEnemyDefenders(const CvUnit* pUnit) const
-{
-	return plotCount(PUF_canDefendPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(this),
+	return plotCount(PUF_canDefendEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this),
 			NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwner());
 }
 
@@ -3057,12 +3051,8 @@ bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssume
 	return (plotCheck(PUF_isEnemyCityAttacker, eDefender, eAssumePeace,
 			NO_PLAYER, NO_TEAM, PUF_isVisible, eDefender) != NULL);
 } // </advc.ctr>
-// K-Mod
-bool CvPlot::isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const
-{
-	return plotCheck(PUF_isPotentialEnemy, ePlayer, false, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL;
-}
-// K-Mod end
+
+
 int CvPlot::getNumVisibleUnits(PlayerTypes ePlayer) const
 {
 	return plotCount(PUF_isVisibleDebug, ePlayer);
@@ -3071,14 +3061,14 @@ int CvPlot::getNumVisibleUnits(PlayerTypes ePlayer) const
 
 bool CvPlot::isVisibleEnemyUnit(const CvUnit* pUnit) const
 {
-	return (plotCheck(PUF_isEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(this),
+	return (plotCheck(PUF_isEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this),
 			NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwner()) != NULL);
 }
 
 // <advc.004l> Same checks as above, just doesn't loop through all units.
 bool CvPlot::isVisibleEnemyUnit(CvUnit const* pUnit, CvUnit const* pPotentialEnemy) const
 {
-	return (::PUF_isEnemy(pPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(this)) &&
+	return (::PUF_isEnemy(pPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this)) &&
 			!pPotentialEnemy->isInvisible(pUnit->getTeam(), false));
 } // </advc.004l>
 
@@ -3146,24 +3136,18 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 }
 
 
-bool CvPlot::isValidRoute(const CvUnit* pUnit, /* advc.001i: */ bool bAssumeRevealed) const
+bool CvPlot::isValidRoute(const CvUnit* pUnit, /* advc.001i: */ bool bAssumeRevealed) const  // advc: rewritten
 {
-	//if (isRoute())
-	// <advc.001i> Replacing the above
+	//if (!isRoute()) return false;
+	// <advc.001i>
 	RouteTypes const eRoute = (bAssumeRevealed ? getRouteType() :
 			getRevealedRouteType(pUnit->getTeam()));
-	if(eRoute != NO_ROUTE) // </advc.001i>
-	{
-		if ((!pUnit->isEnemy(getTeam(), this) &&
-			// advc.034:
-			(getTeam() == NO_TEAM || !GET_TEAM(pUnit->getTeam()).isDisengage(getTeam())))
-			|| pUnit->isEnemyRoute())
-		{
-			return true;
-		}
-	}
-
-	return false;
+	if (eRoute == NO_ROUTE) // </advc.001i>
+		return false;
+	if (!isOwned() || pUnit->isEnemyRoute())
+		return true;
+	return (!pUnit->isEnemy(getTeam(), *this) &&
+		!GET_TEAM(pUnit->getTeam()).isDisengage(getTeam())); // advc.034
 }
 
 
@@ -4046,11 +4030,11 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = oldUnits.next(pUnitNode);
-				if (pLoopUnit)
+				if (pLoopUnit != NULL)
 				{
-					if (pLoopUnit->isEnemy(GET_PLAYER(eNewValue).getTeam(), this))
+					if (pLoopUnit->isEnemy(TEAMID(eNewValue), *this))
 					{
-						FAssert(pLoopUnit->getTeam() != GET_PLAYER(eNewValue).getTeam());
+						FAssert(pLoopUnit->getTeam() != TEAMID(eNewValue));
 						//pLoopUnit->kill(false, eNewValue);
 						pLoopUnit->jumpToNearestValidPlot(); // advc.101: don't kill
 					}

@@ -105,7 +105,7 @@ public:
 	// BETTER_BTS_AI_MOD, General AI, 08/19/09, jdog5000: START
 	int getBombardTurns(CvCity const* pCity) const;
 	bool isHasPathToAreaPlayerCity(PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
-	bool isHasPathToAreaEnemyCity(bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
+	// (advc: isHasPathToAreaEnemyCity moved to CvSelectionGroupAI)
 	bool isStranded() const; // Note: K-Mod no longer uses the stranded cache. I have a new system.
 	//void invalidateIsStrandedCache(); // deleted by K-Mod
 	//bool calculateIsStranded();

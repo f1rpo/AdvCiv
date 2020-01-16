@@ -105,7 +105,7 @@ public:
 	bool isVisibleEnemyDefender(CyUnit* pUnit);
 	int getNumDefenders(int /*PlayerTypes*/ ePlayer);
 	int getNumVisibleEnemyDefenders(CyUnit* pUnit);
-	int getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit);
+	//int getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit); // advc: No longer exposed
 	bool isVisibleEnemyUnit(int /*PlayerTypes*/ ePlayer);
 	bool isVisibleOtherUnit(int /*PlayerTypes*/ ePlayer);
 	bool isFighting();
