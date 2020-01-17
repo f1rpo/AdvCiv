@@ -3085,12 +3085,13 @@ bool CvPlot::isFighting() const
 }
 
 
-bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
+bool CvPlot::canHaveFeature(FeatureTypes eFeature,
+	bool bIgnoreCurrentFeature) const // advc.055
 {
 	if (eFeature == NO_FEATURE)
 		return true;
 
-	if (isFeature())
+	if (isFeature() /* advc.055: */ && !bIgnoreCurrentFeature)
 		return false;
 
 	if (isPeak())
@@ -3114,13 +3115,12 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 
 	if (kFeature.isNoAdjacent())
 	{
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		FOR_EACH_ENUM(Direction)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
 			if (pAdjacentPlot != NULL)
 			{
 				if (pAdjacentPlot->getFeatureType() == eFeature)
-
 					return false;
 			}
 		}

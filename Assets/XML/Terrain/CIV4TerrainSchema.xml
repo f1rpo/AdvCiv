@@ -397,6 +397,8 @@
 	<ElementType name="bPermanent" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iGoodyRange" content="textOnly" dt:type="int"/>
 	<ElementType name="iFeatureGrowth" content="textOnly" dt:type="int"/>
+	<!-- advc.055: -->
+	<ElementType name="iGWFeatureProtection" content="textOnly" dt:type="int"/>
 	<ElementType name="iAirBombDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iDefenseModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iPillageGold" content="textOnly" dt:type="int"/>
@@ -451,6 +453,8 @@
 		<element type="iTilesPerGoody"/>
 		<element type="iGoodyRange"/>
 		<element type="iFeatureGrowth"/>
+		<!-- advc.055: (default value in DLL: 0) -->
+		<element type="iGWFeatureProtection" minOccurs="0"/>
 		<element type="iUpgradeTime"/>
 		<element type="iAirBombDefense"/>
 		<element type="iDefenseModifier"/>

@@ -256,7 +256,8 @@ public:
 	bool isVisibleOtherUnit(PlayerTypes ePlayer) const;																								// Exposed to Python
 	DllExport bool isFighting() const;																																// Exposed to Python
 
-	bool canHaveFeature(FeatureTypes eFeature) const;																				// Exposed to Python
+	bool canHaveFeature(FeatureTypes eFeature,																								// Exposed to Python
+			bool bIgnoreCurrentFeature = false) const; // advc.055
 	// advc.inl
 	DllExport inline bool isRoute() const																																		// Exposed to Python
 	{
@@ -431,7 +432,11 @@ public:
 	DllExport inline ImprovementTypes getImprovementType() const																													// Exposed to Python
 	{
 		return (ImprovementTypes)m_eImprovementType;
-	}
+	}  // <advc>
+	inline bool isImproved() const
+	{
+		return (getImprovementType() != NO_IMPROVEMENT);
+	} // </advc>
 	void setImprovementType(ImprovementTypes eNewValue);																									// Exposed to Python
 	// advc.inl
 	inline RouteTypes getRouteType() const																																			// Exposed to Python

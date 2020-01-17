@@ -360,6 +360,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	enum IntElementTypes
 	{
 		HealthPercent = CvXMLInfo::NUM_INT_ELEMENT_TYPES, // advc.901
+		GWFeatureProtection, // advc.055
 		NUM_INT_ELEMENT_TYPES
 	};
 	enum BoolElementTypes // unused so far

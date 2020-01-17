@@ -1317,6 +1317,7 @@ void CvImprovementInfo::addElements(std::vector<XMLElement*>& r) const
 {
 	CvXMLInfo::addElements(r);
 	r.push_back(new IntElement(HealthPercent, "HealthPercent", 0)); // advc.901
+	r.push_back(new IntElement(GWFeatureProtection, "GWFeatureProtection", 0)); // advc.055
 } // </advc.tag>
 
 bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)

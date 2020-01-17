@@ -1630,6 +1630,8 @@
 			<iTilesPerGoody>0</iTilesPerGoody>
 			<iGoodyRange>0</iGoodyRange>
 			<iFeatureGrowth>64</iFeatureGrowth>
+			<!-- advc.055: -->
+			<iGWFeatureProtection>100</iGWFeatureProtection>
 			<iUpgradeTime>0</iUpgradeTime>
 			<iAirBombDefense>20</iAirBombDefense>
 			<iDefenseModifier>0</iDefenseModifier>

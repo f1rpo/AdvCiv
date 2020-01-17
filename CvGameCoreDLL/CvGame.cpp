@@ -6536,86 +6536,112 @@ void CvGame::doGlobalWarming()
 			//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 			// Global warming is no longer completely random. getRandGWPlot will get a weighted random plot for us to strike
 			CvPlot* pPlot = getRandGWPlot(3);
-
-			if (pPlot != NULL)
+			if (pPlot == NULL)
+				continue; // advc
+			// <advc.055>
+			bool bProtectFeature = false;
+			CvFeatureInfo const* pFeature = NULL;
+			if (pPlot->isImproved() && pPlot->isFeature())
 			{
-				bool bChanged = false;
-				// rewritten terrain changing code:
-				// 1) Melt frozen terrain
-				if (pPlot->getFeatureType() == eColdFeature)
+				if (::bernoulliSuccess(GC.getInfo(pPlot->getImprovementType()).
+					get(CvImprovementInfo::GWFeatureProtection) / 100.0))
+				{
+					bProtectFeature = true;
+					pFeature = &GC.getInfo(pPlot->getFeatureType());
+				}
+			} // </advc.055>
+			bool bChanged = false;
+			// rewritten terrain changing code:
+			// 1) Melt frozen terrain
+			if (pPlot->getFeatureType() == eColdFeature /* advc.055: */ && !bProtectFeature)
+			{
+				pPlot->setFeatureType(NO_FEATURE);
+				bChanged = true;
+			}
+			else if (pPlot->getTerrainType() == eFrozenTerrain &&
+				(!bProtectFeature || pFeature->isTerrain(eColdTerrain))) // advc.055
+			{
+				pPlot->setTerrainType(eColdTerrain);
+				bChanged = true;
+			}
+			else if (pPlot->getTerrainType() == eColdTerrain &&
+				(!bProtectFeature || pFeature->isTerrain(eTemperateTerrain))) // advc.055
+			{
+				pPlot->setTerrainType(eTemperateTerrain);
+				bChanged = true;
+			}
+			// 2) Forest -> Jungle
+			// advc.055: Commented out
+			/*else if (pPlot->getFeatureType() == eTemperateFeature) {
+			pPlot->setFeatureType(eWarmFeature);
+			bChanged = true;
+			}*/
+			// 3) Remove other features
+			else if (pPlot->isFeature() && pPlot->getFeatureType() != eFalloutFeature &&
+				!bProtectFeature) // advc.055
+			{
+				pPlot->setFeatureType(NO_FEATURE);
+				bChanged = true;
+			}
+			// 4) Dry the terrain
+			else if (pPlot->getTerrainType() == eTemperateTerrain &&
+				(!bProtectFeature || pFeature->isTerrain(eDryTerrain))) // advc.055
+			{
+				pPlot->setTerrainType(eDryTerrain);
+				bChanged = true;
+			}
+			else if (pPlot->getTerrainType() == eDryTerrain &&
+				(!bProtectFeature || pFeature->isTerrain(eBarrenTerrain))) // advc.055
+			{
+				pPlot->setTerrainType(eBarrenTerrain);
+				bChanged = true;
+			}
+			/* 5) Sink coastal desert (disabled)
+			else if (pPlot->getTerrainType() == eBarrenTerrain) {
+				if (isOption(GAMEOPTION_RISING_SEAS)) {
+					if (pPlot->isCoastalLand()) {
+						if (!pPlot->isHills() && !pPlot->isPeak()) {
+							pPlot->forceBumpUnits();
+							pPlot->setPlotType(PLOT_OCEAN);
+							bChanged = true;
+			} } } }*/
+			if (bChanged)
+			{
+				// only destroy the improvement if the new terrain cannot support it
+				if (!pPlot->canHaveImprovement(pPlot->getImprovementType()),
+					NO_BUILD, false) // dlph.9
+				{
+					pPlot->setImprovementType(NO_IMPROVEMENT);
+				}  // <advc.055>
+				if (!pPlot->canHaveFeature(pPlot->getFeatureType(), true))
 				{
 					pPlot->setFeatureType(NO_FEATURE);
-					bChanged = true;
-				}
-				else if (pPlot->getTerrainType() == eFrozenTerrain)
+					FAssert(!bProtectFeature);
+				} // </advc.055>
+				CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(),
+						NO_PLAYER, NO_TEAM, false);
+				if (pCity != NULL)
 				{
-						pPlot->setTerrainType(eColdTerrain);
-						bChanged = true;
-				}
-				else if (pPlot->getTerrainType() == eColdTerrain)
-				{
-					pPlot->setTerrainType(eTemperateTerrain);
-					bChanged = true;
-				}
-				// 2) Forest -> Jungle
-				// advc.055: Commented out
-				/*else if (pPlot->getFeatureType() == eTemperateFeature) {
-					pPlot->setFeatureType(eWarmFeature);
-					bChanged = true;
-				}*/
-				// 3) Remove other features
-				else if (pPlot->isFeature() && pPlot->getFeatureType() != eFalloutFeature)
-				{
-					pPlot->setFeatureType(NO_FEATURE);
-					bChanged = true;
-				}
-				// 4) Dry the terrain
-				// Rising seas
-				else if (pPlot->getTerrainType() == eTemperateTerrain)
-				{
-					pPlot->setTerrainType(eDryTerrain);
-					bChanged = true;
-				}
-				else if (pPlot->getTerrainType() == eDryTerrain)
-				{
-					pPlot->setTerrainType(eBarrenTerrain);
-					bChanged = true;
-				}
-				/* 5) Sink coastal desert (disabled)
-				else if (pPlot->getTerrainType() == eBarrenTerrain) {
-					if (isOption(GAMEOPTION_RISING_SEAS)) {
-						if (pPlot->isCoastalLand()) {
-							if (!pPlot->isHills() && !pPlot->isPeak()) {
-								pPlot->forceBumpUnits();
-								pPlot->setPlotType(PLOT_OCEAN);
-								bChanged = true;
-				} } } }*/
-
-				if (bChanged)
-				{
-					// only destroy the improvement if the new terrain cannot support it
-					if (!pPlot->canHaveImprovement(pPlot->getImprovementType()),
-							NO_BUILD, false) // dlph.9
-						pPlot->setImprovementType(NO_IMPROVEMENT);
-
-					CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, NO_TEAM, false);
-					if (pCity != NULL)
+					if (pPlot->isVisible(pCity->getTeam()))
 					{
-						if (pPlot->isVisible(pCity->getTeam()))
-						{
-							CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY", pCity->getNameKey());
-							gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
-						}
+						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
+								pCity->getNameKey());
+						gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false,
+								GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH",
+								MESSAGE_TYPE_INFO, NULL, (ColorTypes)
+								GC.getInfoTypeForString("COLOR_RED"),
+								pPlot->getX(), pPlot->getY(), true, true);
 					}
-					changeGwEventTally(1);
 				}
+				changeGwEventTally(1);
 			}
 		}
 	}
 	updateGwPercentAnger();
 	if (getGlobalWarmingIndex() > 0)
 	{
-		changeGlobalWarmingIndex(-getGlobalWarmingIndex()*GC.getDefineINT("GLOBAL_WARMING_RESTORATION_RATE", 0)/100);
+		changeGlobalWarmingIndex(-getGlobalWarmingIndex() *
+				GC.getDefineINT("GLOBAL_WARMING_RESTORATION_RATE", 0)/100);
 	}
 }
 
