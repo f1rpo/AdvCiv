@@ -500,6 +500,8 @@
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
 				<!-- advc.130r END -->
+				<!-- advc.144 (note, concerning all leaders): MemoryDecay for
+					 MEMORY_GIVE_HELP is adjusted through the DLL (taken times 0.75). -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_GIVE_HELP</MemoryType>
 					<iMemoryRand>200</iMemoryRand>
@@ -508,6 +510,9 @@
 					<MemoryType>MEMORY_REFUSED_HELP</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130o (note, concerning all leaders): MemoryDecay for
+					 MEMORY_ACCEPT_DEMAND and MEMORY_REJECTED_DEMAND is adjusted
+					 through the DLL (taken times 0.6). -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPT_DEMAND</MemoryType>
 					<iMemoryRand>50</iMemoryRand>
@@ -568,6 +573,7 @@
 					<MemoryType>MEMORY_CANCELLED_DEFENSIVE_PACT</MemoryType>
 					<iMemoryRand>10</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.553 (note, concerning all leaders): The DLL takes this times 0.25 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_TRADED_TECH_TO_US</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
@@ -693,6 +699,8 @@
 					<MemoryType>MEMORY_CANCELLED_VASSAL_AGREEMENT</MemoryType>
 					<iMemoryAttitudePercent>0</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
+				<!-- advc.553 (note, concerning all leaders):
+					 The DLL takes this times 0.8 and adds 4. -->
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_TRADED_TECH_TO_US</MemoryType>
 					<iMemoryAttitudePercent>10</iMemoryAttitudePercent>

@@ -777,17 +777,14 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			CvPlayerAI& kThirdParty = GET_PLAYER((PlayerTypes)iI); // advc.003
 			if(!kThirdParty.isAlive() || /* advc.550e: */ !bSignificantTech)
 				continue;
+			// advc.130j (comment): Don't call AI_rememberEvent
 			if (kThirdParty.getTeam() == TEAMID(eToPlayer))
-			{   // advc.130j:
-				kThirdParty.AI_rememberEvent(eFromPlayer, MEMORY_TRADED_TECH_TO_US);
-			}
+				kThirdParty.AI_changeMemoryCount(eFromPlayer, MEMORY_TRADED_TECH_TO_US, 1);
 			else // advc.550e: Commented out
 			//if (bSignificantTech) // K-Mod
 			{
-				if (GET_TEAM(kThirdParty.getTeam()).isHasMet(TEAMID(eToPlayer)))
-				{   // advc.130j:
-					kThirdParty.AI_rememberEvent(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY);
-				}
+				if (GET_TEAM(kThirdParty.getTeam()).isHasMet(TEAMID(eToPlayer))) 
+					kThirdParty.AI_changeMemoryCount(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY, 1);
 			}
 		}
 		break;

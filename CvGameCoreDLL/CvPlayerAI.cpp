@@ -7421,9 +7421,12 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 	double div = 195;
 	if(eMemory == MEMORY_DECLARED_WAR) // Finer granularity for DoW
 		div = 295; // </advc.130j>
-	return ::round((AI_getMemoryCount(ePlayer, eMemory) *
-			GC.getInfo(getPersonalityType()).
-			getMemoryAttitudePercent(eMemory)) / div);
+	int iAttitudePercent = GC.getInfo(getPersonalityType()).getMemoryAttitudePercent(eMemory);
+	/*	<advc.553> Too lazy to change this in XML.
+		(Or rather: Not yet sure if I've gotten the numbers right.) */
+	if (iAttitudePercent > 0 && eMemory == MEMORY_TRADED_TECH_TO_US)
+		iAttitudePercent = 4 + (iAttitudePercent * 4) / 5; // </advc.553>
+	return ::round((AI_getMemoryCount(ePlayer, eMemory) * iAttitudePercent) / div);
 }
 
 // advc.130r: Now handled through MemoryAttitude
@@ -16520,6 +16523,15 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 			int iDecayRand = kPersonality.getMemoryDecayRand(eMem);
 			if (c <= 0 || iDecayRand <= 0)
 				continue;
+			/*	<advc.130r>, advc.130j: This takes care of the scale factor (2 or 3)
+				and leads to faster decay when multiple diplo actions are remembered. */
+			double p = c / (double)iDecayRand;
+			// Tech trade memory is exempt from the above change
+			if (eMem == MEMORY_RECEIVED_TECH_FROM_ANY || eMem == MEMORY_TRADED_TECH_TO_US)
+				p = 1 / (double)iDecayRand;
+			// Moderate game speed adjustment
+			p *= GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent() / 100.0;
+			// </advc.130r>
 			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
 			if (eMem == MEMORY_MADE_DEMAND_RECENT &&
 				kOurTeam.isForcePeace(kPlayer.getTeam()))
@@ -16550,62 +16562,47 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 				AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0)
 			{
 				continue;
-			}// </advc.130r>  <advc.130j>
-			/*  Need to decay at least twice as fast b/c each
-				request now counts twice (on average). */
-			double div = 2;
-			// Finer granularity for DoW
-			if (eMem == MEMORY_DECLARED_WAR)
-				div = 3;
-			// <advc.104m> Faster decay of memory about human response to AI demand
-			if (getUWAI.isEnabled() && (eMem == MEMORY_REJECTED_DEMAND ||
-				eMem == MEMORY_ACCEPT_DEMAND))
-			{
-				div *= (10 / 6.0); // 60% faster decay
-			} // </advc.104m>
+			} // </advc.130r>
+			// <advc.130o> Too lazy to reduce the MemoryDecay divisors for every leader in XML
+			if (eMem == MEMORY_REJECTED_DEMAND || eMem == MEMORY_ACCEPT_DEMAND)
+				p *= (100 / 60.0); // </advc.130o>  // <advc.144>
+			if (eMem == MEMORY_GIVE_HELP)
+				p *= (100 / 75.0); // </advc.144>  // <advc.553>
+			if (eMem == MEMORY_TRADED_TECH_TO_US)
+				p *= (100 / 25.0); // </advc.553>
 			/*  <advc.145> Decay of accepted/denied civic/religion memory based on
 				current civics and religion */
 			// Fav. civic and religion are based on LeaderType, not PersonalityType.
 			CivicTypes eFavCivic = (CivicTypes)GC.getInfo(getLeaderType()).getFavoriteCivic();
-			double abolishMultiplier = 4;
+			double const abolishMultiplier = 4;
 			if (eMem == MEMORY_ACCEPTED_CIVIC)
 			{
 				if (eFavCivic != NO_CIVIC &&
 					(!kPlayer.isCivic(eFavCivic) || !isCivic(eFavCivic)))
 				{
-					div *= abolishMultiplier;
+					p *= abolishMultiplier;
 				}
 			}
 			if (eMem == MEMORY_ACCEPTED_RELIGION)
 			{
 				if(isStateReligion() && kPlayer.getStateReligion() != getStateReligion())
-					div *= abolishMultiplier;
+					p *= abolishMultiplier;
 			}
-			double adoptMultiplier = 3.5;
+			double const adoptMultiplier = 3.5;
 			if (eMem == MEMORY_DENIED_CIVIC)
 			{
 				if(eFavCivic == NO_CIVIC || kPlayer.isCivic(eFavCivic) ||
 					!isCivic(eFavCivic))
 				{
-					div *= adoptMultiplier;
+					p *= adoptMultiplier;
 				}
 			}
 			if (eMem == MEMORY_DENIED_RELIGION)
 			{
 				if(!isStateReligion() || kPlayer.getStateReligion() == getStateReligion())
-					div *= adoptMultiplier;
+					p *= adoptMultiplier;
 			} // </advc.145>
-			// <advc.130r> Faster yet if multiple requests remembered
-			if (c > 3) // c==3 could stem from a single request
-				div = 2 * std::sqrt(c / 2.0); // </advc.130r>
-			// <advc.130r> Moderate game-speed adjustment
-			iDecayRand *= GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent();
-			iDecayRand = ::round(iDecayRand / (100 * div)); // </advc.130r>
-			/*  0 in XML should mean no decay (already handled above). But if the
-				division above rounds to 0, it should mean fast decay. */
-			if (iDecayRand == 0)
-				iDecayRand = 1;
-			if (kGame.getSorenRandNum(iDecayRand, "Memory Decay", ePlayer, eMem) == 0) // </advc.130j>
+			if (::bernoulliSuccess(std::min(p, 0.5), "Memory Decay")) // advc.130j
 				AI_changeMemoryCount(ePlayer, eMem, -1);
 		}
 		// <advc.130g>
