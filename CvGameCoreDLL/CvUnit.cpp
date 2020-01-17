@@ -9559,7 +9559,7 @@ void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 
 	if (pTransportUnit != NULL)
 	{
-		FAssertMsg(pTransportUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType()) > 0, "Cargo space is expected to be available");
+		FAssert(pTransportUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType()) > 0);
 
 		//joinGroup(NULL, true); // Because what if a group of 3 tries to get in a transport which can hold 2...
 

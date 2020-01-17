@@ -19109,7 +19109,7 @@ bool CvUnitAI::AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI, bool
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	FOR_EACH_UNIT_VAR(pLoopUnit, kOwner)
 	{
-		if (!bStealthOnly || pLoopUnit->getInvisibleType() != NO_INVISIBLE &&
+		if ((!bStealthOnly || pLoopUnit->getInvisibleType() != NO_INVISIBLE) &&
 			pLoopUnit->AI_getUnitAIType() == eTargetUnitAI &&
 			(iMaxOwnUnitAI == -1 ||
 			pLoopUnit->getUnitAICargo(AI_getUnitAIType()) <= iMaxOwnUnitAI) &&
@@ -19499,7 +19499,7 @@ int CvUnitAI::AI_exploreAirPlotValue(CvPlot const* pPlot)
 		/*	<advc.029> There tend to be more non-visible water tiles anyway.
 			And why not explore other land areas?
 			Let's rather incentivize sth. important: */
-		if (kOurTeam.isAtWar(pPlot->getTeam()) && !pPlot->isBarbarian())
+		if (::atWar(kOurTeam.getID(), pPlot->getTeam()) && !pPlot->isBarbarian())
 			iValue *= 3;// </advc.029>
 	}
 	return iValue;
