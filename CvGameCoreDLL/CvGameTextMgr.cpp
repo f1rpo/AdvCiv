@@ -436,6 +436,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	// <advc.007> Make info more compact in debug mode
 	if(bDebugMode && bOneLine)
 		bShort = true; // </advc.007>
+	CvUnitInfo const& kInfo = pUnit->getUnitInfo(); // advc
 	// <advc.048>
 	char const* szColTag = "COLOR_UNIT_TEXT";
 	if(bColorHostile)
@@ -591,7 +592,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		}
 	}
 
-	//if (pUnit->getOwner() != GC.getGame().getActivePlayer() && !pUnit->isAnimal() && !pUnit->getUnitInfo().isHiddenNationality())
+	//if (pUnit->getOwner() != GC.getGame().getActivePlayer() && !pUnit->isAnimal() && !kInfo.isHiddenNationality())
 	if(!bOmitOwner && !pUnit->isUnowned()) // advc.061: Replacing the above
 	{
 		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner());
@@ -729,13 +730,13 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 				szString.append(gDLL->getText("TXT_KEY_UNIT_ONLY_DEFENSIVE"));
 			} // </advc.315>
 			// <advc.315a> Same code as under setBasicUnitHelp
-			if (pUnit->getUnitInfo().isOnlyAttackAnimals())
+			if (kInfo.isOnlyAttackAnimals())
 			{
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_ONLY_ATTACK_ANIMALS"));
 			} // </advc.315a>
 			// <advc.315b>
-			if (pUnit->getUnitInfo().isOnlyAttackBarbarians())
+			if (kInfo.isOnlyAttackBarbarians())
 			{
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_ONLY_ATTACK_BARBARIANS"));
@@ -904,7 +905,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			szString.append(NEWLINE);
 			if (pUnit->getExtraCollateralDamage() == 0)
 			{
-				szString.append(gDLL->getText("TXT_KEY_UNIT_COLLATERAL_DAMAGE", ( 100 * pUnit->getUnitInfo().getCollateralDamageLimit() / GC.getMAX_HIT_POINTS())));
+				szString.append(gDLL->getText("TXT_KEY_UNIT_COLLATERAL_DAMAGE_SHORT", // advc.004: short version
+						100 * kInfo.getCollateralDamageLimit() / GC.getMAX_HIT_POINTS(),
+						pUnit->collateralDamageMaxUnits())); // advc.004
 			}
 			else
 			{
@@ -914,7 +917,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getUnitCombatCollateralImmune(iI))
+			if (kInfo.getUnitCombatCollateralImmune(iI))
 			{
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_COLLATERAL_IMMUNE", GC.getInfo((UnitCombatTypes)iI).getTextKeyWide()));
@@ -1052,26 +1055,26 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getUnitClassAttackModifier(iI) == GC.getInfo(pUnit->getUnitType()).getUnitClassDefenseModifier(iI))
+			if (kInfo.getUnitClassAttackModifier(iI) == GC.getInfo(pUnit->getUnitType()).getUnitClassDefenseModifier(iI))
 			{
-				if (pUnit->getUnitInfo().getUnitClassAttackModifier(iI) != 0)
+				if (kInfo.getUnitClassAttackModifier(iI) != 0)
 				{
 					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_MOD_VS_TYPE", pUnit->getUnitInfo().getUnitClassAttackModifier(iI), GC.getInfo((UnitClassTypes)iI).getTextKeyWide()));
+					szString.append(gDLL->getText("TXT_KEY_UNIT_MOD_VS_TYPE", kInfo.getUnitClassAttackModifier(iI), GC.getInfo((UnitClassTypes)iI).getTextKeyWide()));
 				}
 			}
 			else
 			{
-				if (pUnit->getUnitInfo().getUnitClassAttackModifier(iI) != 0)
+				if (kInfo.getUnitClassAttackModifier(iI) != 0)
 				{
 					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_ATTACK_MOD_VS_CLASS", pUnit->getUnitInfo().getUnitClassAttackModifier(iI), GC.getInfo((UnitClassTypes)iI).getTextKeyWide()));
+					szString.append(gDLL->getText("TXT_KEY_UNIT_ATTACK_MOD_VS_CLASS", kInfo.getUnitClassAttackModifier(iI), GC.getInfo((UnitClassTypes)iI).getTextKeyWide()));
 				}
 
-				if (pUnit->getUnitInfo().getUnitClassDefenseModifier(iI) != 0)
+				if (kInfo.getUnitClassDefenseModifier(iI) != 0)
 				{
 					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_DEFENSE_MOD_VS_CLASS", pUnit->getUnitInfo().getUnitClassDefenseModifier(iI), GC.getInfo((UnitClassTypes) iI).getTextKeyWide()));
+					szString.append(gDLL->getText("TXT_KEY_UNIT_DEFENSE_MOD_VS_CLASS", kInfo.getUnitClassDefenseModifier(iI), GC.getInfo((UnitClassTypes) iI).getTextKeyWide()));
 				}
 			}
 		}
@@ -1098,7 +1101,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		bool bFirst = true;
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getTargetUnitClass(iI))
+			if (kInfo.getTargetUnitClass(iI))
 			{
 				if (bFirst)
 				{
@@ -1123,7 +1126,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		bFirst = true;
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getDefenderUnitClass(iI))
+			if (kInfo.getDefenderUnitClass(iI))
 			{
 				if (bFirst)
 				{
@@ -1148,7 +1151,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		bFirst = true;
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getTargetUnitCombat(iI))
+			if (kInfo.getTargetUnitCombat(iI))
 			{
 				if (bFirst)
 				{
@@ -1173,7 +1176,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		bFirst = true;
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getDefenderUnitCombat(iI))
+			if (kInfo.getDefenderUnitCombat(iI))
 			{
 				if (bFirst)
 				{
@@ -1198,7 +1201,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		bFirst = true;
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); ++iI)
 		{
-			if (pUnit->getUnitInfo().getFlankingStrikeUnitClass(iI) > 0)
+			if (kInfo.getFlankingStrikeUnitClass(iI) > 0)
 			{
 				if (bFirst)
 				{
@@ -1239,16 +1242,16 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			szString.append(gDLL->getText("TXT_KEY_UNIT_IS_SPY"));
 		}
 
-		if (pUnit->getUnitInfo().isNoRevealMap())
+		if (kInfo.isNoRevealMap())
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_UNIT_VISIBILITY_MOVE_RANGE"));
 		}
 
-		if (!CvWString(pUnit->getUnitInfo().getHelp()).empty())
+		if (!CvWString(kInfo.getHelp()).empty())
 		{
 			szString.append(NEWLINE);
-			szString.append(pUnit->getUnitInfo().getHelp());
+			szString.append(kInfo.getHelp());
 		}
 
 		if (bShift && /*(gDLL->getChtLvl() > 0))*/ /* advc.135c: */ bDebugMode)
@@ -9700,7 +9703,11 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 	if (u.getCollateralDamage() > 0)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_COLLATERAL_DAMAGE", ( 100 * u.getCollateralDamageLimit() / GC.getMAX_HIT_POINTS())));
+		szBuffer.append(gDLL->getText(/* advc.004: */ bCivilopediaText ?
+				"TXT_KEY_UNIT_COLLATERAL_DAMAGE" :
+				"TXT_KEY_UNIT_COLLATERAL_DAMAGE_SHORT", // advc.004
+				100 * u.getCollateralDamageLimit() / GC.getMAX_HIT_POINTS(),
+				u.getCollateralDamageMaxUnits()));// advc.004
 	}
 
 	FOR_EACH_ENUM(UnitCombat)

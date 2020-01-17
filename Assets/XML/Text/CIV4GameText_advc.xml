@@ -6018,4 +6018,22 @@
 		<Spanish>[COLOR_WARNING_TEXT]Máximo da&#241;o (%d1%%) infligido[COLOR_REVERT]</Spanish>
 	</TEXT>
 
+	<!-- advc.004: From CIV4GameTextChanged_BTS.xml. State collateralDamageMaxUnits.  -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_COLLATERAL_DAMAGE</Tag>
+		<English>[ICON_BULLET]Collateral Damage (max. %d1%%) to %d2 [NUM1:Defender:Defenders]</English>
+		<French>[ICON_BULLET]Dommages collat&#233;raux (max. %d1%%) à %d2 [NUM1:défenseur:défenseurs]</French>
+		<German>[ICON_BULLET]Kollateralschaden (max. %d1%%) an %d2 Verteidiger</German>
+		<Italian>[ICON_BULLET]Danni collaterali (max. %d1%%) a %d2 [NUM1:difensore:difensori]</Italian>
+		<Spanish>[ICON_BULLET]Da&#241;os colaterales (max. %d1%%) a %d2 [NUM1:defensor:defensores]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_COLLATERAL_DAMAGE_SHORT</Tag>
+		<English>[ICON_BULLET]Coll. Damage (max. %d1%%) to %d2 [NUM1:Defender:Defenders]</English>
+		<French>[ICON_BULLET]Dommages collat&#233;raux (max. %d1%%) à %d2 [NUM1:défenseur:défenseurs]</French>
+		<German>[ICON_BULLET]Kollateralschaden (max. %d1%%, %d2 Verteidiger)</German>
+		<Italian>[ICON_BULLET]Danni collaterali (max. %d1%%) a %d2 [NUM1:difensore:difensori]</Italian>
+		<Spanish>[ICON_BULLET]Da&#241;os colaterales (max. %d1%%) a %d2 [NUM1:defensor:defensores]</Spanish>
+	</TEXT>
+
 </Civ4GameText>
