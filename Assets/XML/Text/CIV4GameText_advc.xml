@@ -5911,6 +5911,23 @@
 		<Italian>[ICON_BULLET]D&#224; alle caratteristiche del terreno una minore probabilit&#224; di espandersi</Italian>
 		<Spanish>[ICON_BULLET]Da a los accidentes del terreno una menor posibilidad de propagación</Spanish>
 	</TEXT>
+	<!-- advc.055 -->
+	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_AND_PROTECT_FROM_GW</Tag>
+		<English>and protects it from Global Warming</English>
+		<French>et les protège du réchauffement planétaire</French>
+		<German>und bewahrt sie vor globaler Erwärmung</German>
+		<Italian>e le protegge dal riscaldamento globale</Italian>
+		<Spanish>y los protege del calentamiento global</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_PROTECTS_FEATURE_FROM_GW</Tag>
+		<English>[ICON_BULLET]%d%% chance of protecting vegetation from Global Warming</English>
+		<French>[ICON_BULLET]%d%% de chance de protéger des caract&#233;ristiques du terrain du réchauffement planétaire</French>
+		<German>[ICON_BULLET]schützt die Vegetation %d%% vor globaler Erwärmung</German>
+		<Italian>[ICON_BULLET]%d%% di possibilità di proteggere le caratteristiche del terreno dal riscaldamento globale</Italian>
+		<Spanish>[ICON_BULLET]%d%% de probabilidad de proteger los accidentes del terreno del calentamiento global</Spanish>
+	</TEXT>
 
 	<!-- advc.901: Replacing TXT_KEY_MISC_FEATURES 
 		 (CIV4GameTextInfos_Objects.xml) -->

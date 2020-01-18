@@ -1111,8 +1111,8 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		BuildTypes eBuild = (BuildTypes)widgetDataStruct.m_iData2;
 		if (eBuild != NO_BUILD)
 			eImprovement = GC.getInfo(eBuild).getImprovement();
-		if (NO_IMPROVEMENT != eImprovement)
-			py.jumpToPedia(iData1, "Improvement");
+		if (eImprovement != NO_IMPROVEMENT)
+			py.jumpToPedia(eImprovement, "Improvement");
 		break;
 	}
 	case WIDGET_HELP_YIELD_CHANGE:
@@ -2883,7 +2883,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		}
 		if (eImprovement != NO_IMPROVEMENT)
 		{
-			if (kMissionPlot..isImproved())
+			if (kMissionPlot.isImproved())
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP",

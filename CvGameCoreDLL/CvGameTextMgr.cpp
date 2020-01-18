@@ -15915,18 +15915,30 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_DEFENSE_MODIFIER_EXTRA"));
 	}
-
+	int iGWFeatureProtection = info.get(CvImprovementInfo::GWFeatureProtection); // advc.055
 	if (info.getFeatureGrowthProbability() > 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_MORE_GROWTH"));
+		// <advc.055>
+		if (iGWFeatureProtection >= 100)
+		{
+			szBuffer.append(L" ");
+			szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_AND_PROTECT_FROM_GW"));
+			iGWFeatureProtection = 0; // Don't display again
+		} // </advc.055>
 	}
 	else if (info.getFeatureGrowthProbability() < 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_LESS_GROWTH"));
-	}
-
+	}  // <advc.055>
+	if (iGWFeatureProtection > 0)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_PROTECTS_FEATURE_FROM_GW",
+				iGWFeatureProtection));
+	} // </advc.055>
 	if (bCivilopediaText)
 	{
 		if (info.getPillageGold() > 0)
