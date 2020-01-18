@@ -2206,14 +2206,14 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	}
 	case MISSION_PILLAGE:
 	{
-		if (kMissionPlot.getImprovementType() != NO_IMPROVEMENT)
+		if (kMissionPlot.isImproved())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
 					GC.getInfo(kMissionPlot.getImprovementType()).
 					getTextKeyWide()));
 		}
-		else if (kMissionPlot.getRouteType() != NO_ROUTE)
+		else if (kMissionPlot.isRoute())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
@@ -2722,14 +2722,14 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			{
 				iYield += kMissionPlot.calculateImprovementYieldChange(eImprovement,
 						eYield, kUnitOwner.getID());
-				if (kMissionPlot.getImprovementType() != NO_IMPROVEMENT)
+				if (kMissionPlot.isImproved())
 				{
 					iYield -= kMissionPlot.calculateImprovementYieldChange(
 							kMissionPlot.getImprovementType(), eYield,
 							kUnitOwner.getID());
 				}
 			}
-			if (NO_FEATURE != kMissionPlot.getFeatureType())
+			if (kMissionPlot.isFeature())
 			{
 				if (GC.getInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType())) {
 					iYield -= GC.getInfo(kMissionPlot.getFeatureType()).
@@ -2883,7 +2883,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		}
 		if (eImprovement != NO_IMPROVEMENT)
 		{
-			if (kMissionPlot.getImprovementType() != NO_IMPROVEMENT)
+			if (kMissionPlot..isImproved())
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP",
@@ -2906,7 +2906,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 						GC.getInfo(kMissionPlot.getFeatureType()).getTextKeyWide()));
 				// UNOFFICIAL_PATCH, Bugfix, 06/10/10, EmperorFool
 				if (eImprovement == NO_IMPROVEMENT &&
-					kMissionPlot.getImprovementType() != NO_IMPROVEMENT &&
+					kMissionPlot.isImproved() &&
 					GC.getInfo(kMissionPlot.getImprovementType()).
 					getFeatureMakesValid(kMissionPlot.getFeatureType()))
 				{

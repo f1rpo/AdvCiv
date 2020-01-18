@@ -13801,44 +13801,39 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 	}
 	else if (kMission.isDestroyImprovement())
 	{
-		if (NULL != pPlot && !pPlot->isCity())
+		if (pPlot != NULL && !pPlot->isCity())
 		{
-			if (pPlot->getImprovementType() != NO_IMPROVEMENT || pPlot->getRouteType() != NO_ROUTE)
+			if (pPlot->isImproved() || pPlot->isRoute())
 			{
-				iMissionCost = (iBaseMissionCost * GC.getInfo(GC.getGame().getGameSpeedType()).getBuildPercent()) / 100;
+				iMissionCost = (iBaseMissionCost * GC.getInfo(
+						GC.getGame().getGameSpeedType()).getBuildPercent()) / 100;
 			}
 		}
 	}
 	else if (kMission.getCityPoisonWaterCounter() > 0)
 	{
-		FAssert(NULL != pCity);
+		FAssert(pCity != NULL);
 		// Cannot poison a city's water supply if it's already poisoned (value is negative when active)
-		if (NULL != pCity && pCity->getEspionageHealthCounter() <= 0)
-		{
+		if (pCity != NULL && pCity->getEspionageHealthCounter() <= 0)
 			iMissionCost = iBaseMissionCost;
-		}
 	}
 
 	// Make city unhappy
 	else if (kMission.getCityUnhappinessCounter() > 0)
 	{
-		FAssert(NULL != pCity);
+		FAssert(pCity != NULL);
 		// Cannot make a city unhappy if you've already done it (value is negative when active)
-		if (NULL != pCity && pCity->getEspionageHappinessCounter() <= 0)
-		{
+		if (pCity != NULL && pCity->getEspionageHappinessCounter() <= 0)
 			iMissionCost = iBaseMissionCost;
-		}
 	}
 
 	// Make city Revolt
 	else if (kMission.getCityRevoltCounter() > 0)
 	{
-		FAssert(NULL != pCity);
+		FAssert(pCity != NULL);
 		// Cannot make a city revolt if it's already revolting
-		if (NULL != pCity && pCity->getOccupationTimer() == 0)
-		{
+		if (pCity != NULL && pCity->getOccupationTimer() == 0)
 			iMissionCost = iBaseMissionCost;
-		}
 	}
 	else if (kMission.getCounterespionageMod() > 0)
 	{
@@ -14043,26 +14038,26 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 	if (kMission.isDestroyImprovement())
 	{
-		if (NULL != pPlot)
+		if (pPlot != NULL)
 		{
 			// Blow it up
-			if (pPlot->getImprovementType() != NO_IMPROVEMENT)
+			if (pPlot->isImproved())
 			{
-				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SOMETHING_DESTROYED", GC.getInfo(pPlot->getImprovementType()).getDescription()).GetCString();
+				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SOMETHING_DESTROYED",
+						GC.getInfo(pPlot->getImprovementType()).getDescription()).GetCString();
 				pPlot->setImprovementType((ImprovementTypes)(GC.getInfo(pPlot->getImprovementType()).getImprovementPillage()));
 				bSomethingHappened = true;
 			}
-			else if (pPlot->getRouteType() != NO_ROUTE)
+			else if (pPlot->isRoute())
 			{
-				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SOMETHING_DESTROYED", GC.getInfo(pPlot->getRouteType()).getDescription()).GetCString();
+				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SOMETHING_DESTROYED",
+						GC.getInfo(pPlot->getRouteType()).getDescription()).GetCString();
 				pPlot->setRouteType(NO_ROUTE, true);
 				bSomethingHappened = true;
 			}
 
 			if (bSomethingHappened)
-			{
 				bShowExplosion = true;
-			}
 		}
 	}
 
@@ -17719,9 +17714,9 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 			NO_BUILDING != eBuilding ? GC.getInfo(eBuilding).getTextKeyWide() : L"",
 			NULL != pOtherPlayerCity ? pOtherPlayerCity->getNameKey() : L"",
 			NULL != pPlot && NO_TERRAIN != pPlot->getTerrainType() ? GC.getInfo(pPlot->getTerrainType()).getTextKeyWide() : L"",
-			NULL != pPlot && NO_IMPROVEMENT != pPlot->getImprovementType() ? GC.getInfo(pPlot->getImprovementType()).getTextKeyWide() : L"",
+			NULL != pPlot && pPlot->isImproved() ? GC.getInfo(pPlot->getImprovementType()).getTextKeyWide() : L"",
 			NULL != pPlot && NO_BONUS != pPlot->getBonusType() ? GC.getInfo(pPlot->getBonusType()).getTextKeyWide() : L"",
-			NULL != pPlot && NO_ROUTE != pPlot->getRouteType() ? GC.getInfo(pPlot->getRouteType()).getTextKeyWide() : L"",
+			NULL != pPlot && pPlot->isRoute() ? GC.getInfo(pPlot->getRouteType()).getTextKeyWide() : L"",
 			NO_CORPORATION != eCorporation ? GC.getInfo(eCorporation).getTextKeyWide() : L""
 			);
 
@@ -18338,7 +18333,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 					CvPlot* pPlot = GC.getMap().plotByIndex(iPlot);
 					if (NULL != pPlot && pPlot->getOwner() == getID() && pPlot->isCity())
 					{
-						if (NO_IMPROVEMENT != pPlot->getImprovementType() && !GC.getInfo(pPlot->getImprovementType()).isPermanent())
+						if (pPlot->isImproved() && !GC.getInfo(pPlot->getImprovementType()).isPermanent())
 						{
 							CvWString szBuffer = gDLL->getText("TXT_KEY_EVENT_CITY_IMPROVEMENT_DESTROYED", GC.getInfo(pPlot->getImprovementType()).getTextKeyWide());
 							gDLL->getInterfaceIFace()->addMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, GC.getInfo(pPlot->getImprovementType()).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);

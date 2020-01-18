@@ -12822,8 +12822,10 @@ bool CvPlayerAI::AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool b
 		return false;
 	BonusTypes eNonObsoleteBonus = p.getNonObsoleteBonusType(getTeam());
 	if(eNonObsoleteBonus == NO_BONUS || doesImprovementConnectBonus(
-			p.getImprovementType(), eNonObsoleteBonus))
+		p.getImprovementType(), eNonObsoleteBonus))
+	{
 		return false;
+	}
 	if(pFromPlot == NULL || !bCheckPath || gDLL->getFAStarIFace()->GeneratePath(
 		&GC.getBorderFinder(), pFromPlot->getX(), pFromPlot->getY(), p.getX(), p.getY(),
 		/*false*/ /* advc.001: Shouldn't allow diagonals in water. (A ship can
@@ -23239,35 +23241,34 @@ RouteTypes CvPlayerAI::AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValu
 {
 	RouteTypes eBestRoute = NO_ROUTE;
 	int iBestValue = -1;
-	for (int iI = 0; iI < GC.getNumRouteInfos(); iI++)
+	ImprovementTypes const ePlotImprov = pPlot->getImprovementType();
+	int aiYieldWeight[] = { 100, 60, 40 }; // advc
+	FOR_EACH_ENUM(Route)
 	{
-		RouteTypes eRoute = (RouteTypes)iI;
 		int iValue = 0;
-		int iCost = getAdvancedStartRouteCost(eRoute, true, pPlot);
-		if (iCost >= 0)
+		int iCost = getAdvancedStartRouteCost(eLoopRoute, true, pPlot);
+		if (iCost < 0)
+			continue; // advc
+		iValue += GC.getInfo(eLoopRoute).getValue();
+		if (iValue <= 0)
+			continue; // advc
+		int iYieldValue = 0;
+		if (ePlotImprov != NO_IMPROVEMENT)
 		{
-			iValue += GC.getInfo(eRoute).getValue();
-			if (iValue > 0)
+			FOR_EACH_ENUM(Yield)
 			{
-				int iYieldValue = 0;
-				if (pPlot->getImprovementType() != NO_IMPROVEMENT)
-				{
-					iYieldValue += ((GC.getInfo(pPlot->getImprovementType()).getRouteYieldChanges(eRoute, YIELD_FOOD)) * 100);
-					iYieldValue += ((GC.getInfo(pPlot->getImprovementType()).getRouteYieldChanges(eRoute, YIELD_PRODUCTION)) * 60);
-					iYieldValue += ((GC.getInfo(pPlot->getImprovementType()).getRouteYieldChanges(eRoute, YIELD_COMMERCE)) * 40);
-				}
-				iValue *= 1000;
-				iValue /= (1 + iCost);
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					eBestRoute = eRoute;
-					if (piYieldValue != NULL)
-					{
-						*piYieldValue = iYieldValue;
-					}
-				}
+				iYieldValue += (GC.getInfo(ePlotImprov).getRouteYieldChanges(
+						eLoopRoute, eLoopYield)) * aiYieldWeight[eLoopYield];
 			}
+		}
+		iValue *= 1000;
+		iValue /= (1 + iCost);
+		if (iValue > iBestValue)
+		{
+			iBestValue = iValue;
+			eBestRoute = eLoopRoute;
+			if (piYieldValue != NULL)
+				*piYieldValue = iYieldValue;
 		}
 	}
 	return eBestRoute;
@@ -23572,7 +23573,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 	int iPlotsImproved = 0;
 	for (CityPlotIter it(*pPlot, false); it.hasNext(); ++it)
 	{
-		if (it->getWorkingCity() == pCity && it->getImprovementType() != NO_IMPROVEMENT)
+		if (it->getWorkingCity() == pCity && it->isImproved())
 			iPlotsImproved++;
 	}
 
@@ -23596,7 +23597,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 			if (eImprovement == NO_IMPROVEMENT)
 				continue; // advc
 			CvPlot* pLoopPlot = &(*it);
-			if (pLoopPlot != NULL && pLoopPlot->getImprovementType() != eImprovement)
+			if (pLoopPlot != NULL && pLoopPlot->isImproved())
 			{
 				eBestImprovement = eImprovement;
 				pBestPlot = pLoopPlot;
@@ -23733,8 +23734,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		if (pLoopPlot != NULL && pLoopPlot->getOwner() == getID() &&
-			pLoopPlot->getRouteType() == NO_ROUTE &&
-			pLoopPlot->getImprovementType() != NO_IMPROVEMENT)
+			!pLoopPlot->isRoute() && pLoopPlot->isImproved())
 		{
 			BonusTypes eBonus = pLoopPlot->getBonusType(getTeam());
 			if (eBonus != NO_BONUS &&
@@ -23781,7 +23781,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 					}
 				}
 			}
-			if (pLoopPlot->getRouteType() == NO_ROUTE)
+			if (!pLoopPlot->isRoute())
 			{
 				int iRouteYieldValue = 0;
 				RouteTypes eRoute = (AI_bestAdvancedStartRoute(pLoopPlot, &iRouteYieldValue));

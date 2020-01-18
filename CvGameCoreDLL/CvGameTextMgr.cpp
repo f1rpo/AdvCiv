@@ -1551,9 +1551,9 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	PlayerTypes eActivePlayer = g.getActivePlayer();
 	// Adjust to other info to be displayed
 	iLineLimit += 4;
-	if(kPlot.getImprovementType() != NO_IMPROVEMENT)
+	if(kPlot.isImproved())
 		iLineLimit--;
-	if(kPlot.getRouteType() != NO_ROUTE)
+	if(kPlot.isRoute())
 		iLineLimit--;
 	if(kPlot.isFeature())
 		iLineLimit--;
@@ -5713,7 +5713,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 	szTempBuffer.Format(L"\nWERiverFlow: %c", tempChar);
 	szString.append(szTempBuffer);
 
-	if(kPlot.getRouteType() != NO_ROUTE)
+	if(kPlot.isRoute())
 	{
 		szTempBuffer.Format(L"\nRoute: %s", GC.getInfo(kPlot.getRouteType()).getDescription());
 		szString.append(szTempBuffer);
@@ -18945,7 +18945,7 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 	}
 	else if (kEvent.getImprovementChange() < 0)
 	{
-		if (NULL != pPlot && NO_IMPROVEMENT != pPlot->getImprovementType())
+		if (pPlot != NULL && pPlot->isImproved())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_EVENT_IMPROVEMENT_REMOVE", GC.getInfo(pPlot->getImprovementType()).getTextKeyWide()));
@@ -18979,7 +18979,7 @@ void CvGameTextMgr::setEventHelp(CvWStringBuffer& szBuffer, EventTypes eEvent, i
 	}
 	else if (kEvent.getRouteChange() < 0)
 	{
-		if (NULL != pPlot && NO_ROUTE != pPlot->getRouteType())
+		if (pPlot != NULL && pPlot->isRoute())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_EVENT_ROUTE_REMOVE", GC.getInfo(pPlot->getRouteType()).getTextKeyWide()));
@@ -19444,7 +19444,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 
 	if (kMission.isDestroyImprovement())
 	{
-		if (NULL != pPlot && NO_IMPROVEMENT != pPlot->getImprovementType())
+		if (NULL != pPlot && pPlot->isImproved())
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT", GC.getInfo(pPlot->getImprovementType()).getTextKeyWide()));
 			szBuffer.append(NEWLINE);

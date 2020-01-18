@@ -1035,7 +1035,7 @@ int CvCity::countNumImprovedPlots(ImprovementTypes eImprovement, bool bPotential
 				iCount++;
 			}
 		}
-		else if (kPlot.getImprovementType() != NO_IMPROVEMENT)
+		else if (kPlot.isImproved())
 			iCount++;
 	}
 	return iCount;
@@ -11829,8 +11829,7 @@ bool CvCity::canApplyEvent(EventTypes eEvent, const EventTriggeredData& kTrigger
 		int iNumImprovements = 0;
 		for (CityPlotIter it(*this, false); it.hasNext(); ++it)
 		{
-			if (it->getOwner() == getOwner() &&
-				it->getImprovementType() != NO_IMPROVEMENT &&
+			if (it->getOwner() == getOwner() && it->isImproved() &&
 				!GC.getInfo(it->getImprovementType()).isPermanent())
 			{
 				iNumImprovements++;
@@ -11902,7 +11901,7 @@ void CvCity::applyEvent(EventTypes eEvent,
 					CvPlot* pPlot = getCityIndexPlot(ePlot);
 					if (pPlot == NULL || pPlot->getOwner() != getOwner())
 						continue; // advc
-					if (pPlot->getImprovementType() != NO_IMPROVEMENT &&
+					if (pPlot->isImproved() &&
 						!GC.getInfo(pPlot->getImprovementType()).isPermanent())
 					{
 						CvWString szBuffer = gDLL->getText(

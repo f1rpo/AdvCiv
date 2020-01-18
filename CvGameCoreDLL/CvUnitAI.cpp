@@ -816,7 +816,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			if (&kPlot == pIgnorePlot || /*!AI_plotValid(kPlot)*/kPlot.isWater()) // advc.opt
 				continue;
 
-			if (kPlot.getImprovementType() == NO_IMPROVEMENT ||
+			if (!kPlot.isImproved() ||
 				!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
 				kPlot.getImprovementType() == GC.getRUINS_IMPROVEMENT())
 			{
@@ -10546,7 +10546,7 @@ bool CvUnitAI::AI_guardYield()
 	{
 		CvPlot& kLoopPlot = *it;
 		if(kLoopPlot.getOwner() != getOwner() ||
-			kLoopPlot.getImprovementType() == NO_IMPROVEMENT || kLoopPlot.isWater() ||
+			!kLoopPlot.isImproved() || kLoopPlot.isWater() ||
 			kLoopPlot.getPlotCity() != NULL || kLoopPlot.isUnit())
 		{
 			continue;
@@ -16546,7 +16546,7 @@ bool CvUnitAI::AI_carrierSeaTransport()  // advc: some style changes
 					iValue += (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
 							&kAir, MISSIONAI_ASSAULT, getGroup(), 2) * 6);
 				}
-				if (kAir.getImprovementType() != NO_IMPROVEMENT)
+				if (kAir.isImproved())
 					iValue += 2;
 				if (iAirDist <= iMaxAirRange/2)
 				{
@@ -16768,10 +16768,10 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 		eMission = MISSION_MOVE_TO;
 		if (pBestPlot && generatePath(pBestPlot) && getPathFinder().GetPathTurns() == 1 && getPathFinder().GetFinalMoves() == 0)
 		{
-			if (pBestPlot->getRouteType() != NO_ROUTE)
+			if (pBestPlot->isRoute())
 				eMission = MISSION_ROUTE_TO;
 		}
-		else if (getPlot().getRouteType() == NO_ROUTE)
+		else if (!getPlot().isRoute())
 		{
 			int iPlotMoveCost = 0;
 			iPlotMoveCost = (!getPlot().isFeature() ?
@@ -16815,10 +16815,8 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 			!isBarbarian() && iMissingWorkersInArea <= 0 &&
 			!kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS) &&
 			kOwner.getGwPercentAnger() <= 0 &&
-			p.getImprovementType() == NO_IMPROVEMENT &&
-			p.isFeature() &&
-			// Don't chop near planned cities
-			!kOwner.AI_isAdjacentCitySite(p, false))
+			!p.isImproved() && p.isFeature() &&
+			!kOwner.AI_isAdjacentCitySite(p, false)) // Don't chop near planned cities
 		{
 			FOR_EACH_ENUM(Build)
 			{
@@ -16868,16 +16866,13 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 		if (!canBuild(&p, pCity->AI_getBestBuild(ePlot)))
 			continue;
 
-		if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION))
+		if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
+			p.isImproved() && p.getImprovementType() != GC.getRUINS_IMPROVEMENT())
 		{
-			if (p.getImprovementType() != NO_IMPROVEMENT &&
-				p.getImprovementType() != GC.getRUINS_IMPROVEMENT())
-			{
-				continue;
-			}
+			continue;
 		}
 		/*if (bAllowed) {
-			if (p.getImprovementType() != NO_IMPROVEMENT && GC.getInfo(pCity->AI_getBestBuild(iIndex)).getImprovement() != NO_IMPROVEMENT)
+			if (p.isImproved() && GC.getInfo(pCity->AI_getBestBuild(iIndex)).getImprovement() != NO_IMPROVEMENT)
 				bAllowed = false;
 		} */ /* K-Mod. I don't think it's a good idea to disallow improvement changes here.
 				So I'm changing it to have a cutoff value instead. */
@@ -16931,10 +16926,10 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 		int iPathTurns;
 		if (generatePath(pBestPlot, 0, true, &iPathTurns) && getPathFinder().GetPathTurns() == 1 && getPathFinder().GetFinalMoves() == 0)
 		{
-			if (pBestPlot->getRouteType() != NO_ROUTE)
+			if (pBestPlot->isRoute())
 				eMission = MISSION_ROUTE_TO;
 		}
-		else if (getPlot().getRouteType() == NO_ROUTE)
+		else if (!getPlot().isRoute())
 		{
 			int iPlotMoveCost = 0;
 			iPlotMoveCost = (!getPlot().isFeature() ?
@@ -17227,11 +17222,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 		{
 			continue;
 		}
-		if (kPlot.getImprovementType() != NO_IMPROVEMENT ||
-			kPlot.isContestedByRival()) // advc.035
-		{
+		if (kPlot.isImproved() || /* advc.035: */ kPlot.isContestedByRival()) 
 			continue;
-		}
 		int iValue = 0;
 		iValue += (bCanal ? kOwner.AI_getPlotCanalValue(kPlot) : 0);
 		iValue += (bAirbase ? kOwner.AI_getPlotAirbaseValue(kPlot) : 0);
@@ -17653,7 +17645,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 			bBuildRoute = true;
 	} // BETTER_BTS_AI_MOD: END
 
-	if (kPlot.getRouteType() != NO_ROUTE)
+	if (kPlot.isRoute())
 		bBuildRoute = false;
 
 	int const NO_PLOTGROUP = FFreeList::INVALID_INDEX; // advc
@@ -17703,7 +17695,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 					CvPlot* pLoopPlot = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iDirection);
 					if (pLoopPlot == NULL)
 						continue;
-					if (!kPlot.isRiver() && pLoopPlot->getRouteType() == NO_ROUTE)
+					if (!kPlot.isRiver() && !pLoopPlot->isRoute())
 						continue;
 
 					CvPlotGroup* pLoopGroup = pLoopPlot->getPlotGroup(getOwner());

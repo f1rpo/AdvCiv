@@ -6147,18 +6147,19 @@ int CvCityAI::AI_neededSeaWorkers() /* advc: */ const
 		(Partially based on code in CvPlayer::AI_countUnimprovedBonuses.) */
 	if(isBarbarian())
 	{
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+		FOR_EACH_ENUM(Direction)
 		{
-			DirectionTypes dir = (DirectionTypes)i;
-			CvPlot* p = plotDirection(getX(), getY(), dir);
+			CvPlot* p = plotDirection(getX(), getY(), eLoopDirection);
 			if(p == NULL)
 				continue;
 			if(!p->isWater())
 				continue;
 			BonusTypes eBonus = p->getNonObsoleteBonusType(getTeam());
 			if(eBonus != NO_BONUS && !GET_PLAYER(getOwner()).
-					doesImprovementConnectBonus(p->getImprovementType(), eBonus))
+				doesImprovementConnectBonus(p->getImprovementType(), eBonus))
+			{
 				iNeededSeaWorkers++;
+			}
 		}
 		return iNeededSeaWorkers;
 	} // </advc.305>
@@ -6806,7 +6807,7 @@ int CvCityAI::AI_totalBestBuildValue(CvArea const& kArea) const // advc: style c
 		if (!kPlot.isArea(kArea))
 			continue;
 
-		if (kPlot.getImprovementType() == NO_IMPROVEMENT ||
+		if (!kPlot.isImproved() ||
 			!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
 			kPlot.getImprovementType() == GC.getRUINS_IMPROVEMENT())
 		{
@@ -6889,7 +6890,7 @@ int CvCityAI::AI_clearFeatureValue(CityPlotTypes ePlot) // advc.enum: CityPlotTy
 
 	if (iValue > 0)
 	{
-		if (pPlot->getImprovementType() != NO_IMPROVEMENT)
+		if (pPlot->isImproved())
 		{
 			if (GC.getInfo(pPlot->getImprovementType()).isRequiresFeature())
 				iValue += 500;
@@ -7538,11 +7539,11 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		iValue /= 100; // advc.005a: was /=200
 	}
 	iValue -= iPadding; // advc.131
-	if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+	if (!kPlot.isImproved())
 	{
-		if (kPlot.isBeingWorked()
+		if (kPlot.isBeingWorked() &&
 			// K-Mod. (don't boost the value if it means removing a good feature.)
-			&& (iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD ||
+			(iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD ||
 			!GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())))
 		{
 			iValue *= 5;
@@ -7967,9 +7968,9 @@ void CvCityAI::AI_updateBestBuild()
 				and plots which aren't already improved. */
 			if (iValue > 0)
 			{
-				if (kPlot.getRouteType() != NO_ROUTE)
+				if (kPlot.isRoute())
 					iValue += 2;
-				if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+				if (!kPlot.isImproved())
 					iValue += 4;
 				if (kPlot.getNumCultureRangeCities(getOwner()) > 1)
 					iValue += 1;
@@ -8019,7 +8020,7 @@ void CvCityAI::AI_updateBestBuild()
 				GC.getInfo(GC.getInfo(m_aeBestBuild[ePlot]).getImprovement()).
 				getImprovementUpgrade() == NO_IMPROVEMENT)
 			{
-				if (kPlot.getImprovementType() == NO_IMPROVEMENT &&
+				if (!kPlot.isImproved() &&
 				/*	<advc.117> Don't "prune" removal of forests; not sure if this
 					could otherwise happen. */
 					(!kPlot.isFeature() ||
@@ -8052,8 +8053,7 @@ int CvCityAI::AI_countOvergrownBonuses(FeatureTypes eFeature) const
 	for (CityPlotIter it(*this, false); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
-		if (p.getOwner() == getID() && p.getFeatureType() == eFeature &&
-			p.getImprovementType() == NO_IMPROVEMENT)
+		if (p.getOwner() == getID() && p.getFeatureType() == eFeature && !p.isImproved())
 		{
 			BonusTypes eBonus = p.getNonObsoleteBonusType(getTeam());
 			if (eBonus == NO_BONUS)
@@ -9336,7 +9336,7 @@ int CvCityAI::AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel, int iNewAng
 				iYields[j] += y;
 				iPlotScore += y * iYieldWeights[j];
 			}
-			if (kPlot.getImprovementType() != NO_IMPROVEMENT &&
+			if (kPlot.isImproved() &&
 				GC.getInfo(kPlot.getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
 			{
 				iYields[YIELD_COMMERCE] += 2;
@@ -9344,11 +9344,8 @@ int CvCityAI::AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel, int iNewAng
 			}
 			/*	<advc.121b> Anticipate improvement. CitySiteEvaluator has proper code
 				for this, but don't want to go through all improvements here. */
-			if (kPlot.getImprovementType() == NO_IMPROVEMENT &&
-				AI_getWorkersHave() > 0)
-			{
-				iPlotScore *= 2;
-			} // </advc.121b>
+			if (!kPlot.isImproved() && AI_getWorkersHave() > 0)
+				iPlotScore *= 2; // </advc.121b>
 			iTotalScore += iPlotScore;
 			job_scores.push_back(iPlotScore);
 		}
@@ -10117,50 +10114,52 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 
 		if (iYield >= 0)
 			aiYieldGained[eLoopYield] = iYield;
-		else
-			aiYieldLost[eLoopYield] = -iYield;
+		else aiYieldLost[eLoopYield] = -iYield;
 	}
 	int iYieldValue = 0;
-	iYieldValue += 100 * AI_yieldValue(aiYieldGained, NULL, false, bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
-	iYieldValue -= 100 * AI_yieldValue(aiYieldLost, NULL, true, bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
+	iYieldValue += 100 * AI_yieldValue(aiYieldGained, NULL, false,
+			bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
+	iYieldValue -= 100 * AI_yieldValue(aiYieldLost, NULL, true,
+			bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
 
 	// Check whether either the old job or the new job involves an upgradable improvement. (eg. a cottage)
 	// Note, AI_finalImprovementYieldDifference will update the yield vectors.
 	bool bUpgradeYields = false;
 	if (new_job.second >= 0 && !new_job.first && AI_finalImprovementYieldDifference(
-			getCityIndexPlot((CityPlotTypes)new_job.second), aiYieldGained))
+			*getCityIndexPlot((CityPlotTypes)new_job.second), aiYieldGained))
 	bUpgradeYields = true;
 
 	if (old_job.second >= 0 && !old_job.first && AI_finalImprovementYieldDifference(
-		getCityIndexPlot((CityPlotTypes)old_job.second), aiYieldLost))
+		*getCityIndexPlot((CityPlotTypes)old_job.second), aiYieldLost))
 	{
 		bUpgradeYields = true;
 	}
 	if (bUpgradeYields)
 	{
-		for (int i = 0; i < NUM_YIELD_TYPES; i++)
+		FOR_EACH_ENUM2(Yield, y)
 		{
-			int iYield = aiYieldGained[i] - aiYieldLost[i];
+			int iYield = aiYieldGained[y] - aiYieldLost[y];
 			if (iYield >= 0)
 			{
-				aiYieldGained[i] = iYield;
-				aiYieldLost[i] = 0;
+				aiYieldGained[y] = iYield;
+				aiYieldLost[y] = 0;
 			}
 			else
 			{
-				aiYieldGained[i] = 0;
-				aiYieldLost[i] = -iYield;
+				aiYieldGained[y] = 0;
+				aiYieldLost[y] = -iYield;
 			}
 		}
 		// Combine the old and new values in the same way as AI_plotValue. (cf. AI_plotValue)
 		int iFinalYieldValue = 0;
-		iFinalYieldValue += 100 * AI_yieldValue(aiYieldGained, NULL, false, bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
-		iFinalYieldValue -= 100 * AI_yieldValue(aiYieldLost, NULL, true, bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
+		iFinalYieldValue += 100 * AI_yieldValue(aiYieldGained, NULL, false,
+				bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
+		iFinalYieldValue -= 100 * AI_yieldValue(aiYieldLost, NULL, true,
+				bIgnoreFood, bIgnoreStarvation, false, iGrowthValue);
 
 		if (iFinalYieldValue > iYieldValue)
 			iYieldValue = (40 * iYieldValue + 60 * iFinalYieldValue) / 100;
-		else
-			iYieldValue = (60 * iYieldValue + 40 * iFinalYieldValue) / 100;
+		else iYieldValue = (60 * iYieldValue + 40 * iFinalYieldValue) / 100;
 	}
 	iTotalValue += iYieldValue;
 	// (end of yield value)
@@ -10255,7 +10254,7 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 
 			// Scale based on how often this city will actually get a great person.
 			if (iGPPValue != 0 && // k146
-					!AI_isEmphasizeGreatPeople())
+				!AI_isEmphasizeGreatPeople())
 			{
 				int iCityRate = getGreatPeopleRate() + iGPPGained - iGPPLost;
 				int iHighestRate = 0;
@@ -10296,30 +10295,22 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 			if (iExperience != 0)
 			{
 				int iProductionRank = findYieldRateRank(YIELD_PRODUCTION);
-
 				int iExperienceValue = 100 * iExperience * 4;
-				if (iProductionRank <= kOwner.getNumCities()/2 + 1)
-				{
+				if (iProductionRank <= kOwner.getNumCities() / 2 + 1)
 					iExperienceValue += 100 * iExperience * 4;
-				}
 				iExperienceValue += (getMilitaryProductionModifier() * iExperience * 8);
-
 				iTotalValue += iExperienceValue;
 			}
 		}
 		// Devalue generic citizens (for no specific reason). (cf. AI_specialistValue)
-		/* if (no gpp)
-		{
+		/* if (no gpp) {
 			SpecialistTypes eGenericCitizen = (SpecialistTypes)GC.getDEFAULT_SPECIALIST();
-
-			if (eGenericCitizen != NO_SPECIALIST)
-			{
+			if (eGenericCitizen != NO_SPECIALIST) {
 				if (new_job.first && new_job.second == eGenericCitizen)
 					iTotalValue = iTotalValue * 80 / 100;
 				if (old_job.first && old_job.second == eGenericCitizen)
 					iTotalValue = iTotalValue * 100 / 80;
-			}
-		} */
+			} } */
 	}
 
 	return iTotalValue;
@@ -10328,31 +10319,32 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 // K-Mod. Difference between current yields and yields after plot improvement reaches final upgrade.
 // piYields will have final yields added to it, and current yields subtracted.
 // Return true iff any yields are changed.
-bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const* pPlot,
+bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const& kPlot,
 	short* piYields) const
 {
-	FAssert(pPlot);
-	FAssert(piYields);
+	FAssert(piYields != NULL);
 
-	const CvPlayer& kOwner = GET_PLAYER(getOwner());
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	bool bAnyChange = false;
 
-	ImprovementTypes eCurrentImprovement = pPlot->getImprovementType();
+	ImprovementTypes eCurrentImprovement = kPlot.getImprovementType();
 	ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eCurrentImprovement);
 	if (eFinalImprovement != NO_IMPROVEMENT && eFinalImprovement != eCurrentImprovement)
 	{
-		for (YieldTypes i = (YieldTypes)0; i < NUM_YIELD_TYPES; i=(YieldTypes)(i+1))
+		FOR_EACH_ENUM(Yield)
 		{
-			int iYieldDiff = pPlot->calculateImprovementYieldChange(eFinalImprovement, i, getOwner()) - pPlot->calculateImprovementYieldChange(eCurrentImprovement, i, getOwner());
+			int iYieldDiff = kPlot.calculateImprovementYieldChange(
+					eFinalImprovement, eLoopYield, getOwner()) -
+					kPlot.calculateImprovementYieldChange(eCurrentImprovement, eLoopYield, getOwner());
 			// <advc.908a>
-			int extraYieldThresh = kOwner.getExtraYieldThreshold(i);
+			int extraYieldThresh = kOwner.getExtraYieldThreshold(eLoopYield);
 			if(extraYieldThresh > 0 &&
 				// Otherwise the improvement doesn't matter
-				pPlot->calculateNatureYield(i, getTeam()) < extraYieldThresh)
+				kPlot.calculateNatureYield(eLoopYield, getTeam()) < extraYieldThresh)
 			{
-				if(pPlot->getYield(i) > extraYieldThresh)
+				if(kPlot.getYield(eLoopYield) > extraYieldThresh)
 					iYieldDiff -= GC.getDefineINT(CvGlobals::EXTRA_YIELD);
-				if(pPlot->getYield(i) + iYieldDiff > extraYieldThresh)
+				if(kPlot.getYield(eLoopYield) + iYieldDiff > extraYieldThresh)
 					iYieldDiff += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 				// Replacing the line below // </advc.908a>
 				//iYieldDiff += (pPlot->getYield(i) >= kOwner.getExtraYieldThreshold(i) ? -GC.getEXTRA_YIELD() : 0) + (pPlot->getYield(i)+iYieldDiff >= kOwner.getExtraYieldThreshold(i) ? GC.getEXTRA_YIELD() : 0);
@@ -10361,7 +10353,7 @@ bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const* pPlo
 			if (iYieldDiff != 0)
 			{
 				bAnyChange = true;
-				piYields[i] += iYieldDiff;
+				piYields[eLoopYield] += iYieldDiff;
 			}
 		}
 	}
@@ -10428,26 +10420,24 @@ int CvCityAI::AI_specialPlotImprovementValue(CvPlot* pPlot) const
 	int iValue = 0;
 
 	ImprovementTypes eImprovement = pPlot->getImprovementType();
-
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (GC.getInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
 		{
 			// Prefer plots that are close to upgrading, but not over immediate yield differences. (kludge)
-			iValue += 100 * pPlot->getUpgradeProgress() / std::max(1, GC.getGame().getImprovementUpgradeTime(eImprovement));
+			iValue += 100 * pPlot->getUpgradeProgress() /
+					std::max(1, GC.getGame().getImprovementUpgradeTime(eImprovement));
 		}
 
 		// small value bonus for the possibility of popping new resources. (cf. CvGame::doFeature)
 		if (pPlot->getBonusType(getTeam()) == NO_BONUS)
 		{
-			for (BonusTypes i = (BonusTypes)0; i < GC.getNumBonusInfos(); i=(BonusTypes)(i+1))
+			FOR_EACH_ENUM(Bonus)
 			{
-				if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo(i).getTechReveal())))
+				if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo(eLoopBonus).getTechReveal())))
 				{
-					if (GC.getInfo(eImprovement).getImprovementBonusDiscoverRand(i) > 0)
-					{
+					if (GC.getInfo(eImprovement).getImprovementBonusDiscoverRand(eLoopBonus) > 0)
 						iValue += 20;
-					}
 				}
 			}
 		}
@@ -10773,11 +10763,11 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	// K-Mod. Don't chop the feature if we need it for our best improvement!
 	/* advc.117: This seems to be ok (no change). River-side and hill-side forests
 	   are still being chopped. */
-	if (eBestBuild == NO_BUILD
-		? (pPlot->getImprovementType() == NO_IMPROVEMENT ||
-		  GC.getInfo(pPlot->getImprovementType()).isRequiresFeature())
-		: (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT &&
-		  GC.getInfo(GC.getInfo(eBestBuild).getImprovement()).isRequiresFeature()))
+	if (eBestBuild == NO_BUILD ?
+		(!pPlot->isImproved() ||
+		GC.getInfo(pPlot->getImprovementType()).isRequiresFeature()) :
+		(GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT &&
+		GC.getInfo(GC.getInfo(eBestBuild).getImprovement()).isRequiresFeature()))
 	{
 		bChop = false;
 	}
@@ -10816,8 +10806,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	//Chop - maybe integrate this better with the other feature-clear code tho the logic
 	//is kinda different
 	if (bChop && eBonus == NO_BONUS && pPlot->isFeature() &&
-		pPlot->getImprovementType() == NO_IMPROVEMENT &&
-		!kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
+		!pPlot->isImproved() && !kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
 	{
 		FOR_EACH_ENUM(Build)
 		{
@@ -10880,7 +10869,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 			continue;
 
 		int iTempValue = 0;
-		if (pPlot->getImprovementType() != NO_IMPROVEMENT)
+		if (pPlot->isImproved())
 		{
 			CvImprovementInfo const& kCurrentImprov = GC.getInfo(pPlot->getImprovementType());
 			if (eOldRoute == NO_ROUTE || GC.getInfo(eLoopRoute).getValue() > GC.getInfo(eOldRoute).getValue())
@@ -11547,35 +11536,28 @@ int CvCityAI::AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWor
 			kPlot.getWorkingCity() == this &&
 			AI_getBestBuild(getCityPlotIndex(&kPlot)) != NO_BUILD);
 
-	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+	FOR_EACH_ENUM(Yield)
 	{
-		YieldTypes eYield = (YieldTypes)iI;
 		if (bFinalBuildAssumed)
 		{
-			aiYields[iI] = kPlot.getYieldWithBuild(AI_getBestBuild(
-					getCityPlotIndex(&kPlot)), eYield, true)
+			aiYields[eLoopYield] = kPlot.getYieldWithBuild(AI_getBestBuild(
+					getCityPlotIndex(&kPlot)), eLoopYield, true)
 					* 100; // advc.001: times-100 scale!
 		}
-		else
-		{
-			aiYields[iI] = kPlot.getYield(eYield) * 100;
-		}
+		else aiYields[eLoopYield] = kPlot.getYield(eLoopYield) * 100;
 	}
-
 	ImprovementTypes eCurrentImprovement = kPlot.getImprovementType();
-
 	if (eCurrentImprovement != NO_IMPROVEMENT && !bFinalBuildAssumed)
 	{
 		short aiYieldDiffs[NUM_YIELD_TYPES] = {};
-		AI_finalImprovementYieldDifference(&kPlot, aiYieldDiffs);
+		AI_finalImprovementYieldDifference(kPlot, aiYieldDiffs);
 		// Remember, aiYields has values *100.
-		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+		FOR_EACH_ENUM(Yield)
 		{
-			//aiYields[iI] += bWorkerOptimization ? aiYieldDiffs[iI]*100 : aiYieldDiffs[iI]*50;
-			aiYields[iI] += aiYieldDiffs[iI] * 100; //  Just use the final values.
+			//aiYields[eLoopYield] += bWorkerOptimization ? aiYieldDiffs[eLoopYield]*100 : aiYieldDiffs[eLoopYield]*50;
+			aiYields[eLoopYield] += aiYieldDiffs[eLoopYield] * 100; //  Just use the final values.
  		}
 	} // </k146>
-
 	return AI_getYieldMagicValue(aiYields, bHealthy);
 }
 
@@ -12519,7 +12501,7 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc: some style changes
 		if (ePlot == CITY_HOME_PLOT)
 			continue;
 
-		if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+		if (!kPlot.isImproved())
 		{
 			if (kPlot.isBeingWorked())
 			{

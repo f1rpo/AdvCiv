@@ -7521,16 +7521,16 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 			if (pPlot == NULL)
 				return r;
 			int iTotalYield = 0;
-			for (int j = 0; j < NUM_YIELD_TYPES; j++)
-				iTotalYield += pPlot->getYield((YieldTypes)j);
+			FOR_EACH_ENUM(Yield)
+				iTotalYield += pPlot->getYield(eLoopYield);
 			// Want to re-roll flat Tundra Forest as well
-			if (iTotalYield == 2 && pPlot->getImprovementType() == NO_IMPROVEMENT)
+			if (iTotalYield == 2 && !pPlot->isImproved())
 			{
 				iTotalYield = 0;
-				for(int j = 0; j < NUM_YIELD_TYPES; j++)
+				FOR_EACH_ENUM(Yield)
 				{
-					iTotalYield += pPlot->calculateNatureYield((YieldTypes)j,
-							NO_TEAM, /* bIgnoreFeature=*/ true);
+					iTotalYield += pPlot->calculateNatureYield(eLoopYield, NO_TEAM,
+							/* bIgnoreFeature=*/true);
 				}
 			}
 			if (iTotalYield >= 2)

@@ -2962,8 +2962,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		Ideally, the AI should never issue orders which violate the leave old improvements rule. */
 	if (isAutomated() && GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
 		GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT &&
-		pPlot->getImprovementType() != NO_IMPROVEMENT &&
-		pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT() &&
+		pPlot->isImproved() && pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT() &&
 		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
 		(!GC.getInfo(GC.getInfo(eBuild).getImprovement()).isActsAsCity() ||
 		pPlot->getWorkingCity() == NULL)) // </advc.121>

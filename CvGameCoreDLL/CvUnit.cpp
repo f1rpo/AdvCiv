@@ -1811,8 +1811,7 @@ bool CvUnit::isActionRecommended(int iAction)
 					{
 						return true;
 					}
-					if (pPlot->getImprovementType() == NO_IMPROVEMENT &&
-						eBonus == NO_BONUS && pWorkingCity == NULL)
+					if (!pPlot->isImproved() && eBonus == NO_BONUS && pWorkingCity == NULL)
 					{
 						if (!pPlot->isFeature() || !GC.getInfo(eBuild).isFeatureRemove(
 							(FeatureTypes)pPlot->getFeatureType()))
@@ -1873,9 +1872,9 @@ bool CvUnit::isActionRecommended(int iAction)
 
 					if (eFinalImprovement != NO_IMPROVEMENT)
 					{
-						if ((GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_FOOD) > 0) ||
-							(GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_PRODUCTION) > 0) ||
-							(GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_COMMERCE) > 0))
+						if (GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_FOOD) > 0 ||
+							GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_PRODUCTION) > 0 ||
+							GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_COMMERCE) > 0)
 						{
 							return true;
 						}
@@ -2390,7 +2389,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 			{
 				return false;
 			}
-			if(kPlot.getImprovementType() != NO_IMPROVEMENT &&
+			if(kPlot.isImproved() &&
 				GC.getInfo(kPlot.getImprovementType()).isGoody()) // advc.309
 			{
 				return false;
@@ -4165,7 +4164,7 @@ bool CvUnit::airBomb(int iX, int iY)
 	}
 	else
 	{
-		if (kPlot.getImprovementType() != NO_IMPROVEMENT)
+		if (kPlot.isImproved())
 		{
 			if (GC.getGame().getSorenRandNum(airBombCurrRate(), "Air Bomb - Offense") >=
 				GC.getGame().getSorenRandNum(GC.getInfo(kPlot.getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
@@ -4340,7 +4339,7 @@ bool CvUnit::canPillage(CvPlot const& kPlot) const
 	if (isCargo())
 		return false;
 	// UNOFFICIAL_PATCH: END
-	if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+	if (!kPlot.isImproved())
 	{
 		if(!kPlot.isRoute())
 			return false;
@@ -4370,7 +4369,7 @@ bool CvUnit::canPillage(CvPlot const& kPlot) const
 			/*  K-Mod, 16/dec/10, karadoc
 				enabled the pillaging of own roads */
 			if (kPlot.getOwner() != getOwner() ||
-				(kPlot.getImprovementType() == NO_IMPROVEMENT && !kPlot.isRoute()))
+				(!kPlot.isImproved() && !kPlot.isRoute()))
 			{
 				return false;
 			}
@@ -4404,11 +4403,8 @@ bool CvUnit::pillage()
 		if (!isEnemy(kPlot))
 		{	//if ((kPlot.getImprovementType() == NO_IMPROVEMENT) || (kPlot.getOwner() != getOwner())) // BtS
 			// K-Mod, 16/dec/10: enabled the pillaging of own roads
-			if (kPlot.getOwner() != getOwner() ||
-				(kPlot.getImprovementType() == NO_IMPROVEMENT && !kPlot.isRoute()))
-			{
+			if (kPlot.getOwner() != getOwner() || (!kPlot.isImproved() && !kPlot.isRoute()))
 				return false;
-			}
 		}
 	}
 	if (kPlot.isWater() &&
@@ -4680,13 +4676,13 @@ bool CvUnit::canSabotage(const CvPlot* pPlot, bool bTestVisible) const
 	if (!m_pUnitInfo->isSabotage())
 		return false;
 
+	if (!pPlot->isImproved()) // advc.opt: Moved up
+		return false;
+
 	if (pPlot->getTeam() == getTeam())
 		return false;
 
 	if (pPlot->isCity())
-		return false;
-
-	if (pPlot->getImprovementType() == NO_IMPROVEMENT)
 		return false;
 
 	if (!bTestVisible)

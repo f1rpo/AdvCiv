@@ -233,7 +233,7 @@ void CvPlot::doTurn()
 	if (isOwned())
 		changeOwnershipDuration(1);
 
-	if (getImprovementType() != NO_IMPROVEMENT)
+	if (isImproved())
 		changeImprovementDuration(1);
 
 	doFeature();
@@ -261,38 +261,38 @@ void CvPlot::doImprovement()  // advc: some style changes
 
 	FAssert(isBeingWorked() && isOwned());
 
-	if (getImprovementType() != NO_IMPROVEMENT && getBonusType() == NO_BONUS)
+	if (isImproved() && getBonusType() == NO_BONUS)
 	{
-		for (int i = 0; i < GC.getNumBonusInfos(); i++)
+		FOR_EACH_ENUM(Bonus)
 		{
-			BonusTypes eBonus = (BonusTypes)i;
-			CvBonusInfo const& kBonus = GC.getInfo(eBonus);
-			if (!GET_TEAM(getTeam()).isHasTech((TechTypes)kBonus.getTechReveal()))
+			CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
+			if (!GET_TEAM(getTeam()).isHasTech((TechTypes)kLoopBonus.getTechReveal()))
 				continue;
-			/*if (GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eBonus) > 0) { // BtS
-				if (GC.getGame().getSorenRandNum(GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eBonus), "Bonus Discovery") == 0) {*/
+			/*if (GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eLoopBonus) > 0) { // BtS
+				if (GC.getGame().getSorenRandNum(GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eLoopBonus), "Bonus Discovery") == 0) {*/
 			// UNOFFICIAL_PATCH, Gamespeed scaling, 03/04/10, jdog5000: START
-			int iOdds = GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eBonus);
+			int iOdds = GC.getInfo(getImprovementType()).
+					getImprovementBonusDiscoverRand(eLoopBonus);
 			if(iOdds <= 0)
 				continue;
 			// <advc.rom3>
 			//Afforess: check for valid terrains for this bonus before discovering it
-			if(!canHaveBonus(eBonus), false, /* advc.129: */ true)
+			if(!canHaveBonus(eLoopBonus), false, /* advc.129: */ true)
 				continue; // </advc.rom3>
 			iOdds *= GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 			iOdds /= 100;
 
 			if (GC.getGame().getSorenRandNum(iOdds, "Bonus Discovery") == 0)
 			{	// UNOFFICIAL_PATCH: END
-				setBonusType(eBonus);
+				setBonusType(eLoopBonus);
 				CvCity* pCity = GC.getMap().findCity(getX(), getY(), getOwner(), NO_TEAM, false);
 				if (pCity != NULL)
 				{
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DISCOVERED_NEW_RESOURCE",
-							kBonus.getTextKeyWide(), pCity->getNameKey());
+							kLoopBonus.getTextKeyWide(), pCity->getNameKey());
 					gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
 							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DISCOVERBONUS",
-							MESSAGE_TYPE_MINOR_EVENT, kBonus.getButton(),
+							MESSAGE_TYPE_MINOR_EVENT, kLoopBonus.getButton(),
 							(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
 							getX(), getY(), true, true);
 				}
@@ -306,22 +306,20 @@ void CvPlot::doImprovement()  // advc: some style changes
 
 void CvPlot::doImprovementUpgrade()
 {
-	if (getImprovementType() != NO_IMPROVEMENT)
-	{
-		ImprovementTypes eImprovementUpdrade = (ImprovementTypes)GC.getInfo(getImprovementType()).getImprovementUpgrade();
-		if (eImprovementUpdrade != NO_IMPROVEMENT)
-		{
-			if ((isBeingWorked()
-					&& !getWorkingCity()->isDisorder()) // advc.001
-					|| GC.getInfo(eImprovementUpdrade).isOutsideBorders())
-			{
-				changeUpgradeProgress(GET_PLAYER(getOwner()).getImprovementUpgradeRate());
+	if (!isImproved())
+		return; // advc
 
-				if (getUpgradeProgress() >= GC.getGame().getImprovementUpgradeTime(getImprovementType()))
-				{
-					setImprovementType(eImprovementUpdrade);
-				}
-			}
+	ImprovementTypes eImprovementUpdrade = (ImprovementTypes)GC.getInfo(
+			getImprovementType()).getImprovementUpgrade();
+	if (eImprovementUpdrade != NO_IMPROVEMENT)
+	{
+		if ((isBeingWorked() &&
+			!getWorkingCity()->isDisorder()) || // advc.001
+			GC.getInfo(eImprovementUpdrade).isOutsideBorders())
+		{
+			changeUpgradeProgress(GET_PLAYER(getOwner()).getImprovementUpgradeRate());
+			if (getUpgradeProgress() >= GC.getGame().getImprovementUpgradeTime(getImprovementType()))
+				setImprovementType(eImprovementUpdrade);
 		}
 	}
 }
@@ -1113,10 +1111,10 @@ bool CvPlot::isFreshWater() const
 
 bool CvPlot::isPotentialIrrigation() const
 {
-	if ((isCity() && !isHills()) || (getImprovementType() != NO_IMPROVEMENT &&
-		GC.getInfo(getImprovementType()).isCarriesIrrigation()))
+	if ((isCity() && !isHills()) ||
+		(isImproved() && GC.getInfo(getImprovementType()).isCarriesIrrigation()))
 	{
-		if (getTeam() != NO_TEAM && GET_TEAM(getTeam()).isIrrigation())
+		if (isOwned() && GET_TEAM(getTeam()).isIrrigation())
 			return true;
 	}
 
@@ -1758,13 +1756,13 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	if (GC.getInfo(eImprovement).isRequiresRiverSide())
 	{
 		bool bValid = false;
-		for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+		FOR_EACH_ENUM(CardinalDirection)
 		{
-			CvPlot* pLoopPlot = ::plotCardinalDirection(getX(), getY(), (CardinalDirectionTypes)iI);
+			CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), eLoopCardinalDirection);
 			if (pLoopPlot == NULL)
 				continue;
 
-			if (isRiverCrossing(::directionXY(this, pLoopPlot)))
+			if (isRiverCrossing(directionXY(this, pLoopPlot)))
 			{
 				if (pLoopPlot->getImprovementType() != eImprovement)
 				{
@@ -1868,7 +1866,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		{
 			return false;
 		}
-		if (getImprovementType() != NO_IMPROVEMENT)
+		if (isImproved())
 		{
 			if (GC.getInfo(getImprovementType()).isPermanent())
 				return false;
@@ -1903,7 +1901,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 	RouteTypes const eRoute = GC.getInfo(eBuild).getRoute();
 	if (eRoute != NO_ROUTE)
 	{
-		if (getRouteType() != NO_ROUTE)
+		if (isRoute())
 		{
 			if (GC.getInfo(getRouteType()).getValue() >= GC.getInfo(eRoute).getValue())
 				return false;
@@ -2897,7 +2895,7 @@ bool CvPlot::isGoody(TeamTypes eTeam) const
 	if (eTeam != NO_TEAM && GET_TEAM(eTeam).isBarbarian())
 		return false;
 
-	return ((getImprovementType() == NO_IMPROVEMENT) ? false : GC.getInfo(getImprovementType()).isGoody());
+	return (!isImproved() ? false : GC.getInfo(getImprovementType()).isGoody());
 }
 
 
@@ -2932,7 +2930,7 @@ bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
 	//PROFILE_FUNC();
 	/*	advc.003o: Called from teamStepValid_advc (CvGameCoreUtils),
 		CvPlot::isTradeNetworkConnected, CvUnit::isAlwaysHostile and many UnitAI routines. */
-	if(bCheckImprovement && getImprovementType() != NO_IMPROVEMENT &&
+	if(bCheckImprovement && isImproved() &&
 		GC.getInfo(getImprovementType()).isActsAsCity())
 	{
 		if(eForTeam == NO_TEAM || (getTeam() == NO_TEAM &&
@@ -4078,10 +4076,8 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 					GET_PLAYER(getOwner()).changeTotalLandScored(-1);
 			}
 
-			if (getImprovementType() != NO_IMPROVEMENT)
-			{
+			if (isImproved())
 				GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), -1);
-			}
 
 			updatePlotGroupBonus(false, /* advc.064d: */ false);
 		}
@@ -4131,7 +4127,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 					GET_PLAYER(getOwner()).changeTotalLandScored(1);
 			}
 
-			if (getImprovementType() != NO_IMPROVEMENT)
+			if (isImproved())
 				GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), 1);
 
 			updatePlotGroupBonus(true);
@@ -4543,13 +4539,10 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 			pLoopCity->updateSurroundingHealthHappiness();
 	}
 
-	if (!isFeature())
+	if (!isFeature() && isImproved())
 	{
-		if (getImprovementType() != NO_IMPROVEMENT)
-		{
-			if (GC.getInfo(getImprovementType()).isRequiresFeature())
-				setImprovementType(NO_IMPROVEMENT);
-		}
+		if (GC.getInfo(getImprovementType()).isRequiresFeature())
+			setImprovementType(NO_IMPROVEMENT);
 	}
 }
 
@@ -4686,7 +4679,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	if(getImprovementType() == eNewValue)
 		return; // advc
 
-	if (getImprovementType() != NO_IMPROVEMENT)
+	if (isImproved())
 	{	// advc.opt:
 		/*if (area())
 			getArea().changeNumImprovements(getImprovementType(), -1);*/
@@ -4698,7 +4691,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	m_eImprovementType = eNewValue;
 	updatePlotGroupBonus(true);
 
-	if (getImprovementType() == NO_IMPROVEMENT)
+	if (!isImproved())
 		setImprovementDuration(0);
 
 	setUpgradeProgress(0);
@@ -4712,7 +4705,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 		}
 	}
 
-	if (getImprovementType() != NO_IMPROVEMENT)
+	if (isImproved())
 	{	// advc.opt:
 		/*if (area())
 			getArea().changeNumImprovements(getImprovementType(), 1);*/
@@ -4794,7 +4787,7 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 	if (GC.getGame().isDebugMode())
 		updateRouteSymbol(true, true);
 
-	if (getRouteType() != NO_ROUTE)
+	if (isRoute())
 		CvEventReporter::getInstance().routeBuilt(getRouteType(), getX(), getY());
 
 	// K-Mod. Fixing a bug in the border danger cache from BBAI.
@@ -6708,25 +6701,24 @@ void CvPlot::doFeature()  // advc: some style changes
 			}
 		}
 	}
-	else if (!isUnit() && getImprovementType() == NO_IMPROVEMENT)
+	else if (!isUnit() && !isImproved())
 	{
-		for (int i = 0; i < GC.getNumFeatureInfos(); i++)
+		FOR_EACH_ENUM(Feature)
 		{
-			FeatureTypes eFeature = (FeatureTypes)i;
-			if (!canHaveFeature(eFeature))
+			if (!canHaveFeature(eLoopFeature))
 				continue;
-			if (getBonusType() != NO_BONUS && !GC.getInfo(getBonusType()).isFeature(eFeature))
+			if (getBonusType() != NO_BONUS && !GC.getInfo(getBonusType()).isFeature(eLoopFeature))
 				continue;
 			int iProbability = 0;
-			for (int iJ = 0; iJ < NUM_CARDINALDIRECTION_TYPES; iJ++)
+			FOR_EACH_ENUM(CardinalDirection)
 			{
-				CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), (CardinalDirectionTypes)iJ);
+				CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), eLoopCardinalDirection);
 				if (pLoopPlot == NULL)
 					continue;
-				if (pLoopPlot->getFeatureType() == eFeature)
+				if (pLoopPlot->getFeatureType() == eLoopFeature)
 				{
-					if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT)
-						iProbability += GC.getInfo(eFeature).getGrowthProbability();
+					if (!pLoopPlot->isImproved())
+						iProbability += GC.getInfo(eLoopFeature).getGrowthProbability();
 					else
 					{
 						iProbability += GC.getInfo(pLoopPlot->getImprovementType()).
@@ -6753,18 +6745,18 @@ void CvPlot::doFeature()  // advc: some style changes
 				if (GC.getGame().getSorenRandNum(iOdds, "Feature Growth") < iProbability)
 				// UNOFFICIAL_PATCH: END
 				{
-					setFeatureType(eFeature);
+					setFeatureType(eLoopFeature);
 					CvCity* pCity = GC.getMap().findCity(getX(), getY(), getOwner(), NO_TEAM, false);
 					if (pCity != NULL && /* K-Mod: */ isVisible(TEAMID(pCity->getOwner())))
 					{
 						// Tell the owner of this city.
 						CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_FEATURE_GROWN_NEAR_CITY",
-								GC.getInfo(eFeature).getTextKeyWide(), pCity->getNameKey()));
+								GC.getInfo(eLoopFeature).getTextKeyWide(), pCity->getNameKey()));
 						gDLL->getInterfaceIFace()->addMessage(
 								/*getOwner()*/ pCity->getOwner(), // K-Mod (bugfix)
 								false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
 								"AS2D_FEATUREGROWTH", MESSAGE_TYPE_INFO,
-								GC.getInfo(eFeature).getButton(),
+								GC.getInfo(eLoopFeature).getButton(),
 								(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
 								getX(), getY(), true, true);
 					}
@@ -7582,7 +7574,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 			FOR_EACH_ENUM(Yield)
 			{
 				iYield += kImprov.getRouteYieldChanges(eRoute, eLoopYield);
-				if (getRouteType() != NO_ROUTE)
+				if (isRoute())
 					iYield -= kImprov.getRouteYieldChanges(getRouteType(), eLoopYield);
 			}
 		}
@@ -7735,20 +7727,20 @@ bool CvPlot::canApplyEvent(EventTypes eEvent) const
 	CvEventInfo& kEvent = GC.getInfo(eEvent);
 	if (kEvent.getFeatureChange() > 0)
 	{
-		if (NO_FEATURE != kEvent.getFeature())
+		if (kEvent.getFeature()!= NO_FEATURE)
 		{
-			if (NO_IMPROVEMENT != getImprovementType() || !canHaveFeature((FeatureTypes)kEvent.getFeature()))
+			if (isImproved() || !canHaveFeature((FeatureTypes)kEvent.getFeature()))
 				return false;
 		}
 	}
 	else if (kEvent.getFeatureChange() < 0)
 	{
-		if (NO_FEATURE == getFeatureType())
+		if (!isFeature())
 			return false;
 	}
 	if (kEvent.getImprovementChange() > 0)
 	{
-		if (NO_IMPROVEMENT != kEvent.getImprovement())
+		if (kEvent.getImprovement() != NO_IMPROVEMENT)
 		{
 			if (!canHaveImprovement((ImprovementTypes)kEvent.getImprovement(), getTeam()))
 				return false;
@@ -7756,12 +7748,12 @@ bool CvPlot::canApplyEvent(EventTypes eEvent) const
 	}
 	else if (kEvent.getImprovementChange() < 0)
 	{
-		if (NO_IMPROVEMENT == getImprovementType())
+		if (!isImproved())
 			return false;
 	}
 	if (kEvent.getBonusChange() > 0)
 	{
-		if (NO_BONUS != kEvent.getBonus())
+		if (kEvent.getBonus() != NO_BONUS)
 		{
 			if (!canHaveBonus((BonusTypes)kEvent.getBonus(), false))
 				return false;
@@ -7769,12 +7761,12 @@ bool CvPlot::canApplyEvent(EventTypes eEvent) const
 	}
 	else if (kEvent.getBonusChange() < 0)
 	{
-		if (NO_BONUS == getBonusType())
+		if (getBonusType() == NO_BONUS)
 			return false;
 	}
 	if (kEvent.getRouteChange() < 0)
 	{
-		if (NO_ROUTE == getRouteType())
+		if (!isRoute())
 			return false;
 
 		if (isCity())

@@ -132,8 +132,7 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 		if (bOverride)
 			return r;
 	}
-	if (pPlot->getImprovementType() != NO_IMPROVEMENT || pPlot->getBonusType() != NO_BONUS ||
-			pPlot->isImpassable())
+	if (pPlot->isImproved() || pPlot->getBonusType() != NO_BONUS || pPlot->isImpassable())
 		return false;
 
 	int iUniqueRange = GC.getInfo(eImprovement).getGoodyUniqueRange();
