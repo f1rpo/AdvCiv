@@ -9571,11 +9571,11 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 	if(isAlive() == bNewValue)
 		return;
 
+	bool const bEverAlive = isEverAlive();
 	m_bAlive = bNewValue;
-
 	CvGame& g = GC.getGame();
 	// <advc.opt>
-	if(isAlive() && getParent() == NO_PLAYER && !isBarbarian())
+	if (isAlive() && !bEverAlive && getParent() == NO_PLAYER && !isBarbarian())
 		g.changeCivPlayersEverAlive(1);
 	GET_TEAM(getTeam()).updateLeaderID(); // </advc.opt>
 	GET_TEAM(getTeam()).changeAliveCount(isAlive() ? 1 : -1);
