@@ -2933,19 +2933,22 @@ int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int 
 							only set the cache for eLoopTeam if kPlot is owned by us!
 							(ie. owned by their enemy) */
 						// <advc.001i> Only if eLoopTeam knows that we own it
-						TeamTypes eLoopActualTeam = p.getTeam();
-						PlayerTypes ePlotRevealedOwner = kPlot.getRevealedOwner(eLoopActualTeam);
-						if (ePlotRevealedOwner != NO_PLAYER &&
-							TEAMID(ePlotRevealedOwner) == eTeam && // </advc.001i>
-							(bInRange || (kPlot.//isRoute()
-							// advc.001i:
-							getRevealedRouteType(eLoopActualTeam) != NO_ROUTE &&
-							kPlot.getTeam() == eTeam)))
+						TeamTypes eActualLoopTeam = p.getTeam();
+						if (eActualLoopTeam != NO_TEAM)
 						{
-							p.setBorderDangerCache(eLoopActualTeam, true);
-							kPlot.setBorderDangerCache(eLoopActualTeam, true);
-						}
-						// <advc>
+							PlayerTypes eRevealedPlotOwner = kPlot.getRevealedOwner(
+									eActualLoopTeam);
+							if (eRevealedPlotOwner != NO_PLAYER &&
+								TEAMID(eRevealedPlotOwner) == eTeam && // </advc.001i>
+								(bInRange || (kPlot.//isRoute()
+								// advc.001i:
+								getRevealedRouteType(eActualLoopTeam) != NO_ROUTE &&
+								kPlot.getTeam() == eTeam)))
+							{
+								p.setBorderDangerCache(eActualLoopTeam, true);
+								kPlot.setBorderDangerCache(eActualLoopTeam, true);
+							}
+						}  // <advc>
 						r++;
 						if (r >= iLimit)
 							return iLimit;
