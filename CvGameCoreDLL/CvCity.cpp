@@ -12772,8 +12772,8 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 	iNumCitiesPercent *= (iPopulation + 17);
 	iNumCitiesPercent /= 18;
 
-	iNumCitiesPercent *= GC.getInfo(GC.getMap().getWorldSize()).
-			getNumCitiesMaintenancePercent();
+	CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
+	iNumCitiesPercent *= kWorld.getNumCitiesMaintenancePercent();
 	iNumCitiesPercent /= 100;
 
 	CvPlayer const& kOwner = GET_PLAYER(eOwner);
@@ -12784,13 +12784,21 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 	for (PlayerIter<ALIVE,VASSAL_OF> it(kOwner.getTeam()); it.hasNext(); ++it)
 		iNumVassalCities += it->getNumCities();
 	iNumVassalCities /= std::max(1, MemberIter::count(kOwner.getTeam()));
-	/*int iNumCitiesMaintenance = (kOwner.getNumCities() + iNumVassalCities) * iNumCitiesPercent;
-	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100);*/ // BtS
-	// K-Mod, 04/sep/10, karadoc
-	// Reduced vassal maintenance and removed maintenance cap
-	int iNumCitiesMaintenance = (kOwner.getNumCities() +
-			iExtraCities + iNumVassalCities / 2) * iNumCitiesPercent;
-	// K-Mod end
+	int iMaintenanceCities = kOwner.getNumCities() + iExtraCities +
+			// K-Mod, 04/sep/10: Reduced vassal maintenance
+			iNumVassalCities / 2;
+	// K-Mod: Removed maintenance cap  // advc.exp: I've disabled it through XML instead
+	int iMaxMaintenanceCities = GC.getInfo(GET_PLAYER(eOwner).getHandicapType()).
+			getMaxNumCitiesMaintenance();
+	// <advc.exp.1> Upper bound set through GlobalDefines
+	static int const iMAX_CITY_COUNT_FOR_MAINTENANCE = GC.getDefineINT("MAX_CITY_COUNT_FOR_MAINTENANCE");
+	iMaxMaintenanceCities = std::min(iMaxMaintenanceCities,
+			(iMAX_CITY_COUNT_FOR_MAINTENANCE * 100) /
+			(100 + kWorld.getNumCitiesMaintenancePercent()));
+	iMaintenanceCities = std::min(iMaintenanceCities, iMaxMaintenanceCities);
+	// </advc.exp.1>
+	int iNumCitiesMaintenance = iMaintenanceCities * iNumCitiesPercent;
+
 	iNumCitiesMaintenance *= std::max(0, kOwner.getNumCitiesMaintenanceModifier() + 100);
 	iNumCitiesMaintenance /= 100;
 
