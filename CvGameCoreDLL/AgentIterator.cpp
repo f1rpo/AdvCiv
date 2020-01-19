@@ -132,10 +132,9 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 	case OTHER_KNOWN_TO:
 		return (GET_TEAM(getTeam(kAgent)).isHasMet(m_eTeam) && getTeam(kAgent) != m_eTeam);
 	case KNOWN_POTENTIAL_ENEMY_OF:
-		return (GET_TEAM(getTeam(kAgent)).isHasMet(m_eTeam) && getTeam(kAgent) != m_eTeam &&
-			!isSameMaster<args>(kAgent, m_eTeam));
+		return (GET_TEAM(getTeam(kAgent)).isHasMet(m_eTeam) && !isSameMaster<args>(kAgent, m_eTeam));
 	case ENEMY_OF:
-			return GET_TEAM(getTeam(kAgent)).isAtWar(m_eTeam);
+		return GET_TEAM(getTeam(kAgent)).isAtWar(m_eTeam);
 	default:
 		FAssertMsg(false, "Unknown agent relation type");
 		return false;

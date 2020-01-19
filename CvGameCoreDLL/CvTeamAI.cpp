@@ -627,18 +627,20 @@ bool CvTeamAI::AI_isWarPossible() const
 }
 
 // This function has been completely rewritten for K-Mod. The original BtS code, and the BBAI code have been deleted.
-bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
+bool CvTeamAI::AI_isLandTarget(TeamTypes eTarget,
+	bool bCheckAlliesOfTarget) const // advc
 {
 	PROFILE_FUNC();
 
-	CvTeamAI const& kOtherTeam = GET_TEAM(eTeam);
+	FAssert(eTarget != BARBARIAN_TEAM);
+	CvTeamAI const& kTarget = GET_TEAM(eTarget);
 	// <advc.104s>
-	if(getUWAI.isEnabled() && isMajorCiv() && kOtherTeam.isMajorCiv())
-		return uwai().isLandTarget(eTeam);
+	if(getUWAI.isEnabled() && isMajorCiv() && kTarget.isMajorCiv())
+		return uwai().isLandTarget(eTarget);
 	// </advc.104s>
 	FOR_EACH_AREA_VAR(pLoopArea)
 	{
-		if (AI_isPrimaryArea(*pLoopArea) && kOtherTeam.AI_isPrimaryArea(*pLoopArea))
+		if (AI_isPrimaryArea(*pLoopArea) && kTarget.AI_isPrimaryArea(*pLoopArea))
 			return true;
 	}
 	CvMap const& kMap = GC.getMap(); // advc
@@ -650,7 +652,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 			if (!kOurMember.AI_isPrimaryArea(pOurCity->getArea()))
 				continue;
 			// city in a primary area.
-			for (MemberIter itTheir(getID()); itTheir.hasNext(); ++itTheir)
+			for (MemberIter itTheir(eTarget); itTheir.hasNext(); ++itTheir)
 			{
 				const CvPlayerAI& kTheirMember = *itTheir;
 				if (!kTheirMember.AI_isPrimaryArea(pOurCity->getArea()))
@@ -658,7 +660,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 
 				std::vector<TeamTypes> teamVec;
 				teamVec.push_back(getID());
-				teamVec.push_back(eTeam);
+				teamVec.push_back(eTarget);
 				FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
 				gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
 						kMap.getGridWidth(), kMap.getGridHeight(), kMap.isWrapX(), kMap.isWrapY(),
@@ -683,26 +685,27 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTeam) const
 			}
 		}
 	}
-
-	return false;
-}
-
-// this determines if eTeam or any of its allies are land targets of us
-bool CvTeamAI::AI_isAllyLandTarget(TeamTypes eTeam) const
-{
-	FAssert(eTeam != BARBARIAN_TEAM);
-	/*  advc.001: I don't think the K-Mod code worked when eTeam was a vassal
-		whose master has a DP */
-	TeamTypes const eMaster = GET_TEAM(eTeam).getMasterTeam();
-	for (TeamIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
+	// advc: Cut from deleted AI_isAllyLandTarget
+	if (bCheckAlliesOfTarget)
 	{
-		CvTeam& kLoopTeam = *it;
-		if (kLoopTeam.getMasterTeam() == eMaster || kLoopTeam.isDefensivePact(eMaster))
+		/*  advc.001: I don't think the K-Mod code worked when eTarget was a vassal
+			whose master has a DP */
+		TeamTypes const eTargetMaster = GET_TEAM(eTarget).getMasterTeam();
+		for (TeamIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
 		{
-			if (AI_isLandTarget(kLoopTeam.getID()))
-				return true;
+			CvTeam& kLoopTeam = *it;
+			if (kLoopTeam.getID() == eTarget)
+				continue; // Already checked above
+			if (kLoopTeam.getMasterTeam() == eTargetMaster ||
+				kLoopTeam.isDefensivePact(eTargetMaster))
+			{
+				// Recursion with bCheckAlliesOfTarget=false
+				if (AI_isLandTarget(kLoopTeam.getID()))
+					return true;
+			}
 		}
 	}
+
 	return false;
 }
 
@@ -762,7 +765,7 @@ int CvTeamAI::AI_getAttitudeVal(TeamTypes eTeam, bool bForced, bool bAssert) con
 	if (iCount > 0)
 		return iAttitudeVal / iCount; // bbai / K-Mod
 	// <advc>
-	FAssert(!bAssert || iCount > 0); // (OK when loading from very old savegames)
+	FAssert(!bAssert || iCount > 0); // (OK when loading from very old savegames or when defeated during Auto Play)
 	// K-Mod had returned ATTITUDE_CAUTIOUS from AI_getAttitude
 	return 0; // </advc>
 }
@@ -3449,7 +3452,7 @@ int CvTeamAI::AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) c
 			* iWarTeamPower) / (iTheirPower + iWarTeamPower + 1));
 	iValue /= 100;
 
-	if (!GET_TEAM(eTeam).AI_isAllyLandTarget(eWarTeam))
+	if (!GET_TEAM(eTeam).AI_isLandTarget(eWarTeam, true))
 		iValue *= 2;
 
 	if (!isAtWar(eWarTeam))
@@ -3566,7 +3569,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 		// BETTER_BTS_AI_MOD: END
 		if (bConsiderPower)
 		{
-			bool bLandTarget = AI_isAllyLandTarget(eTarget);
+			bool bLandTarget = AI_isLandTarget(eTarget, true);
 			int iDefPower = GET_TEAM(eTarget).getDefensivePower(getID());
 			int iPow = getPower(true);
 			int iAggPower = iPow + ((::atWar(eTarget, eSponsor)) ? GET_TEAM(eSponsor).getPower(true) : 0);
@@ -3829,7 +3832,7 @@ void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
 	}
 	for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
 	{
-		TeamTypes eLoopTeam = it->getID();
+		TeamTypes const eLoopTeam = it->getID();
 		// <advc.130p>
 		if(eLoopTeam == m_eWorstEnemy) // No need to evaluate this one twice
 			continue;
@@ -3878,9 +3881,11 @@ int CvTeamAI::AI_enmityValue(TeamTypes eEnemy) const
 	CvTeam const& kEnemy = GET_TEAM(eEnemy);
 	FAssert(eEnemy != getID() && !kEnemy.isMinorCiv() && isHasMet(eEnemy));
 	if(!kEnemy.isAlive() || kEnemy.isCapitulated() ||
-			isVassal(eEnemy) || // advc.130d
-			(AI_getAttitude(eEnemy) >= ATTITUDE_CAUTIOUS && !isAtWar(eEnemy)))
+		isVassal(eEnemy) || // advc.130d
+		(AI_getAttitude(eEnemy) >= ATTITUDE_CAUTIOUS && !isAtWar(eEnemy)))
+	{
 		return 0;
+	}
 	int r = 100 - AI_getAttitudeVal(eEnemy);
 	if(isAtWar(eEnemy) && AI_getWarPlan(eEnemy) != WARPLAN_DOGPILE)
 		r += 100;

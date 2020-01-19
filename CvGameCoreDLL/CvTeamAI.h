@@ -73,8 +73,8 @@ public:
 
 	bool AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly = false, int iMinimum = 1) const; // K-Mod
 	bool AI_isWarPossible() const;
-	bool AI_isLandTarget(TeamTypes eTeam) const;
-	bool AI_isAllyLandTarget(TeamTypes eTeam) const;
+	bool AI_isLandTarget(TeamTypes eTarget, /* advc: */ bool bCheckAlliesOfTarget = false) const;
+	//bool AI_isAllyLandTarget(TeamTypes eTeam) const; // advc: Merged into the above
 	bool AI_shareWar(TeamTypes eTeam) const;								// Exposed to Python
 	 // advc, advc.130e:
 	void AI_updateAttitude(TeamTypes eTeam, bool bUpdateWorstEnemy = true);

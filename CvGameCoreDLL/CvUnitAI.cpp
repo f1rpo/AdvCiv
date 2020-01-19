@@ -1046,7 +1046,7 @@ void CvUnitAI::AI_setUnitAIType(UnitAITypes eNewValue)
 	}
 }
 
-/*  <advc.159> Like CvUnit::currEffectiveStr, but takes into account first strikes,
+/*  advc.159: Like CvUnit::currEffectiveStr, but takes into account first strikes,
 	collateral damage and that combat odds increase superlinearly with combat strength.
 	The scale is arbitrary, i.e. one should only compare the returned values with each other. */
 int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
@@ -1055,6 +1055,7 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 {
 	PROFILE_FUNC(); // Called frequently but not extremely so; fine as it is.
 	int iCombatStrengthPercent = currEffectiveStr(pPlot, pOther, NULL, iCurrentHP);
+	FAssertMsg(iCombatStrengthPercent > 0, "Non-combat unit?");
 	/*  <K-Mod> (Moved from CvSelectionGroupAI::AI_sumStrength. Some of the code
 		had been duplicated in CvPlayerAI::AI_localDefenceStrength, AI_localAttackStrength). */
 	/*  first strikes are not counted in currEffectiveStr.
@@ -1094,15 +1095,16 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 	static double exponent = std::max(1.0, 0.75 * GC.getPOWER_CORRECTION());
 	static double const normalizationFactor = (exponent < 1.05 ? 1 :
 			// Pretty arbitrary; only need to weigh rounding errors against the danger of overflow.
-			20000 / std::pow(10000.0, exponent));
+			25000 / std::pow(10000.0, exponent));
 	/*  Make the AI overestimate weak units a little bit on the low and medium difficulty settings.
 		(Not static b/c difficulty can change through load/ new game.) */
 	double exponentAdjusted = exponent - GC.getInfo(
 			GC.getGame().getHandicapType()).getFreeWinsVsBarbs() / 25.0;
-	return std::min(20000, // Guard against overflow problems for caller
+	int r = std::min(25000, // Guard against overflow problems for caller
 			::round(std::pow((double)iCombatStrengthPercent, exponentAdjusted) *
 			normalizationFactor));
-} // </advc.159>
+	return std::max(1, r); // Don't round down to 0
+}
 
 
 int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
@@ -10212,9 +10214,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 			if (!isArea(pLoopCity->getArea()) && !bMoveAllTerrain)*/
 			// advc.030: Replacing the BBAI check
 			if (!AI_canEnterByLand(pLoopCity->getArea()))
-			{
 				continue;
-			}
 
 			//if (!pLoopCity->AI_isDefended((!AI_isCityAIType() ? pLoopCity->getPlot().plotCount(PUF_canDefendGroupHead, -1, -1, getOwner(), NO_TEAM, PUF_isNotCityAIType) : 0)))
 			// K-Mod
@@ -15151,8 +15151,8 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			{
 				continue;
 			}
-			int iDefenceStrength = -1;
-			if (pCity)
+			int iDefenceStrength=-1;
+			if (pCity != NULL)
 				iDefenceStrength = estimateAndCacheCityDefence(kOwner, pCity, city_defence_cache);
 			else
 			{
@@ -15204,7 +15204,6 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 				CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
 				if (pAdjacentPlot == NULL)
 					continue;
-
 				pAdjacentCity = pAdjacentPlot->AI_getPlotCity();
 				if (pAdjacentCity != NULL)
 				{
@@ -20444,11 +20443,10 @@ bool CvUnitAI::AI_moveToStagingCity()
 				iWarCount++;
 			}
 		}
+		/*	advc (note): Should only prepare vs. 1 target at a time, but SneakAttackPreparing
+			is also true for the vassals of targets. So iWarCount > 1 can happen. */
 		if (iWarCount > 1)
-		{
 			eTargetTeam = NO_TEAM;
-			FAssertMsg(iWarCount <= 1, "Should prepare war vs. only 1 target at a time"); // advc
-		}
 	}
 	FOR_EACH_CITYAI(pLoopCity, GET_PLAYER(getOwner()))
 	{

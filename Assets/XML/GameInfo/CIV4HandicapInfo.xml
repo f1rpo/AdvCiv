@@ -33,6 +33,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>45</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>40</iNumCitiesMaintenancePercent>
+			<!-- advc (note, concerning all handicaps): Unused b/c K-Mod lifts
+				 the limit on number-of-cities maintenance. -->
 			<iMaxNumCitiesMaintenance>4</iMaxNumCitiesMaintenance>
 			<iColonyMaintenancePercent>60</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>

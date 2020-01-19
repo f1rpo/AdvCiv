@@ -554,50 +554,59 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	DomainTypes eDomainType, bool bCheckCanAttack) const
 {
-	bool bDefenders = (pAttackedPlot ? pAttackedPlot->isVisibleEnemyUnit(getHeadOwner()) : false); // K-Mod
-	bool bCountCollateral = (pAttackedPlot && pAttackedPlot != plot()); // K-Mod
-	int iBaseCollateral = (bCountCollateral
-		? estimateCollateralWeight(pAttackedPlot, getTeam()) : 0);
+	FAssert(eDomainType != DOMAIN_AIR && eDomainType != DOMAIN_IMMOBILE); // advc: Air combat strength isn't counted
+	// <K-Mod>
+	bool const bDefenders = (pAttackedPlot ?
+			pAttackedPlot->isVisibleEnemyUnit(getHeadOwner()) : false);
+	bool const bCountCollateral = (pAttackedPlot && pAttackedPlot != plot()); // </K-Mod>
+	int const iBaseCollateral = (bCountCollateral ?
+			estimateCollateralWeight(pAttackedPlot, getTeam()) : 0);
 	int	iSum = 0;
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
 	{
 		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
-		if (kLoopUnit.isDead())
+		if (kLoopUnit.isDead() ||
+			// advc.opt: (If we want to count air units, then this'll have to be removed.)
+			!kLoopUnit.canFight()) 
+		{
 			continue;
+		}
+		if (eDomainType != NO_DOMAIN && kLoopUnit.getDomainType() != eDomainType)
+			continue; // advc: Moved up
 		// K-Mod. (original checks deleted.)
 		if (bCheckCanAttack)
 		{
-			if (kLoopUnit.getDomainType() == DOMAIN_AIR)
+			// advc.opt: currEffectiveStr is 0 for air units anyway
+			/*if (kLoopUnit.getDomainType() == DOMAIN_AIR)
 			{
 				if (!kLoopUnit.canAirAttack() || !kLoopUnit.canMove() ||
-						(pAttackedPlot && bDefenders &&
-						!kLoopUnit.canMoveInto(*pAttackedPlot, true, true)))
+					(pAttackedPlot && bDefenders &&
+					!kLoopUnit.canMoveInto(*pAttackedPlot, true, true)))
+				{
 					continue; // can't attack.
+				}
 			}
-			else
+			else*/
+			if (!kLoopUnit.canAttack() || !kLoopUnit.canMove() ||
+				(pAttackedPlot && bDefenders && !kLoopUnit.canMoveInto(*pAttackedPlot, true, true)) ||
+				//(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+				kLoopUnit.isMadeAllAttacks()) // advc.164
 			{
-				if (!kLoopUnit.canAttack() || !kLoopUnit.canMove() ||
-						(pAttackedPlot && bDefenders && !kLoopUnit.canMoveInto(*pAttackedPlot, true, true)) ||
-						//(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
-						kLoopUnit.isMadeAllAttacks()) // advc.164
-					continue; // can't attack.
+				continue; // can't attack.
 			}
 		} // K-Mod end
 
-		if (eDomainType == NO_DOMAIN || kLoopUnit.getDomainType() == eDomainType)
-		{
-			// iSum += pLoopUnit->currEffectiveStr(pAttackedPlot, pLoopUnit);
-			// K-Mod estimate the value of first strike, and the attack power of collateral units.
-			// (cf with calculation in CvPlayerAI::AI_localAttackStrength)
-			/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
-				Adjustments for first strikes and collateral damage moved into
-				that new function. */
-			int const iUnitStr = kLoopUnit.AI_currEffectiveStr(pAttackedPlot, &kLoopUnit,
-					bCountCollateral, iBaseCollateral, bCheckCanAttack);
-			// </advc.159>
-			iSum += iUnitStr;
-			// K-Mod end
-		}
+		// iSum += pLoopUnit->currEffectiveStr(pAttackedPlot, pLoopUnit);
+		// K-Mod estimate the value of first strike, and the attack power of collateral units.
+		// (cf with calculation in CvPlayerAI::AI_localAttackStrength)
+		/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
+			Adjustments for first strikes and collateral damage moved into
+			that new function. */
+		int const iUnitStr = kLoopUnit.AI_currEffectiveStr(pAttackedPlot, &kLoopUnit,
+				bCountCollateral, iBaseCollateral, bCheckCanAttack);
+		// </advc.159>
+		iSum += iUnitStr;
+		// K-Mod end
 	}
 	return iSum;
 }

@@ -4082,7 +4082,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	{
 		int iNewTrade = 0;
 		int iExistingTrade = 0;
-		for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam()); it.hasNext(); ++it)
+		for (TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam()); it.hasNext(); ++it)
 		{
 			CvTeamAI const& kLoopTeam = *it;
 			if (!kLoopTeam.isDefensivePactTrading())
@@ -6553,10 +6553,8 @@ bool CvPlayerAI::AI_demandRebukedWar(PlayerTypes ePlayer) const
 		} // </advc.104m>
 		if (GET_TEAM(getTeam()).getPower(true) > GET_TEAM(ePlayer).getDefensivePower(getTeam()))
 		{
-			if (GET_TEAM(getTeam()).AI_isAllyLandTarget(TEAMID(ePlayer)))
-			{
+			if (GET_TEAM(getTeam()).AI_isLandTarget(TEAMID(ePlayer), true))
 				return true;
-			}
 		}
 	}
 
@@ -6573,8 +6571,10 @@ bool CvPlayerAI::AI_hasTradedWithTeam(TeamTypes eTeam) const
 		{
 			CvPlayer const& kTeamMember = *it;
 			if (AI_getPeacetimeGrantValue(kTeamMember.getID()) +
-					AI_getPeacetimeTradeValue(kTeamMember.getID()) > 0)
+				AI_getPeacetimeTradeValue(kTeamMember.getID()) > 0)
+			{
 				return true;
+			}
 		}
 	} // advc.079: Addressing the XXX comment above
 	else return canStopTradingWithTeam(eTeam);
@@ -13710,6 +13710,7 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 	int	iTotal = 0;
 
 	FAssert(bAtTarget || !bCheckMoves); // it doesn't make much sense to check moves if the defenders are meant to stay put.
+	FAssert(eDomainType != DOMAIN_AIR && eDomainType != DOMAIN_IMMOBILE); // advc: Air combat strength isn't counted
 	for (SquareIter it(*pDefencePlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
@@ -13721,39 +13722,44 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 			pUnitNode = p.nextUnitNode(pUnitNode))
 		{
 			CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
+			// <advc.opt>
+			if (!kLoopUnit.canFight())
+				continue; // </advc.opt>
 			// advc (note): This doesn't respect hidden nationality
 			if (kLoopUnit.getTeam() == eDefenceTeam ||
 				(eDefenceTeam != NO_TEAM && GET_TEAM(kLoopUnit.getTeam()).isVassal(eDefenceTeam)) ||
 				(eDefenceTeam == NO_TEAM && GET_TEAM(getTeam()).AI_mayAttack(kLoopUnit.getTeam())))
 			{
-				if (eDomainType == NO_DOMAIN || kLoopUnit.getDomainType() == eDomainType)
+				if (eDomainType != NO_DOMAIN && kLoopUnit.getDomainType() != eDomainType)
+					continue;
+				// <advc.opt>
+				if (kLoopUnit.isDead())
+					continue; // </advc.opt>
+				if (bCheckMoves)
 				{
-					if (bCheckMoves)
-					{
-						/*	unfortunately, we can't use the global pathfinder here
-							- because the calling function might be waiting to use some pathfinding results
-							So this check will have to be really rough. :( */
-						int iMoves = kLoopUnit.baseMoves();
-						if (p.isValidRoute(&kLoopUnit, /* advc.001i: */ false))
-							iMoves++;
-						if (it.currStepDist() > iMoves)
-							continue; // can't make it. (maybe?)
-					}
-					// <advc.139>
-					int iHP = kLoopUnit.currHitPoints();
-					bool const bAssumePromo = (bPredictPromotions && kLoopUnit.isPromotionReady());
-					if (bAssumePromo && kLoopUnit.getDamage() > 0)
-					{
-						iHP += kLoopUnit.promotionHeal();
-						iHP = std::min(kLoopUnit.maxHitPoints(), iHP);
-					} // </advc.139>
-					/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
-						Adjustments for first strikes are handled by that new function. */
-					int const iUnitStr = kLoopUnit.AI_currEffectiveStr(
-							bAtTarget ? pDefencePlot : &p, // </advc.159>
-							NULL, false, 0, false, iHP, bAssumePromo); // advc.139
-					iPlotTotal += iUnitStr;
+					/*	unfortunately, we can't use the global pathfinder here
+						- because the calling function might be waiting to use some pathfinding results
+						So this check will have to be really rough. :( */
+					int iMoves = kLoopUnit.baseMoves();
+					if (p.isValidRoute(&kLoopUnit, /* advc.001i: */ false))
+						iMoves++;
+					if (it.currStepDist() > iMoves)
+						continue; // can't make it. (maybe?)
 				}
+				// <advc.139>
+				int iHP = kLoopUnit.currHitPoints();
+				bool const bAssumePromo = (bPredictPromotions && kLoopUnit.isPromotionReady());
+				if (bAssumePromo && kLoopUnit.getDamage() > 0)
+				{
+					iHP += kLoopUnit.promotionHeal();
+					iHP = std::min(kLoopUnit.maxHitPoints(), iHP);
+				} // </advc.139>
+				/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
+					Adjustments for first strikes are handled by that new function. */
+				int const iUnitStr = kLoopUnit.AI_currEffectiveStr(
+						bAtTarget ? pDefencePlot : &p, // </advc.159>
+						NULL, false, 0, false, iHP, bAssumePromo); // advc.139
+				iPlotTotal += iUnitStr;
 			}
 		}
 		if (!bNoCache && !isHuman() && eDefenceTeam == NO_TEAM &&
