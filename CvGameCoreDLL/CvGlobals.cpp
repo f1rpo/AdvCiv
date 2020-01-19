@@ -7,7 +7,6 @@
 #include "CvAgents.h" // advc.agent
 #include "CvMap.h"
 #include "CvInfo_All.h"
-#include "CvGameTextMgr.h"
 #include "CvXMLLoadUtility.h" // advc.003v
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLXMLIFaceBase.h"

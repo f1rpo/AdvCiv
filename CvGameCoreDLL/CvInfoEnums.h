@@ -34,6 +34,20 @@ static inline T operator--(T& c, int)
 	c = static_cast<T>(c - 1);
 	return cache;
 }
+/*	advc: Also get rid of explicit casts when adding two enum values?
+	I think it matters too rarely to bother. */
+/*template <class T>
+static inline T operator+(T leftSummand, T rightSummand)
+{
+	int iLeftSummand = leftSummand, iRightSummand = rightSummand;
+	return static_cast<T>(iLeftSummand + rightSummand);
+}
+template <class T>
+static inline T operator-(T minuend, T subtrahend)
+{
+	int iMinuend = minuend, iSubtrahend = subtrahend;
+	return static_cast<T>(iMinuend - iSubtrahend);
+}*/
 
 #define FOR_EACH_ENUM(TypeName) \
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)0; \

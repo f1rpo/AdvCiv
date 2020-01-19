@@ -1915,8 +1915,8 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 						iRazeValue -= 15;
 					else
 					{	// Avoid penalty to relations (and may want to liberate)
-						int iMultiplier = std::max(0, AI_getAttitude(eCulturalOwner)
-								- ATTITUDE_ANNOYED);
+						int iMultiplier = std::max(0,
+								AI_getAttitude(eCulturalOwner) - ATTITUDE_ANNOYED);
 						// 10 for Cautious, 20 for Pleased, 30 for Friendly
 						iRazeValue -= 10 * iMultiplier;
 					}
