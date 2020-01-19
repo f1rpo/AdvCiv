@@ -326,7 +326,8 @@ void CvPlayer::initAlerts(bool bSilentCheck)
 {
 	if (!m_paAlerts.empty())
 	{
-		FAssertMsg(false, "initAlerts called redundantly");
+		// OK if this happens when the active player is defeated during Auto Play
+		FAssertMsg(!isAlive() && isHumanDisabled(), "initAlerts called redundantly");
 		uninitAlerts();
 	}
 	/*  The order of this array needs to correspond to the ids returned
