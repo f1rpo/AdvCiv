@@ -253,7 +253,7 @@ public:
 	int getExtraMoves(DomainTypes eIndex) const;																				// Exposed to Python
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
-	inline bool isHasMet(TeamTypes eIndex) const /* advc.inl */												// Exposed to Python
+	inline bool isHasMet(TeamTypes eIndex) const // advc.inl													// Exposed to Python
 	{
 		return m_abHasMet.get(eIndex);
 	}
