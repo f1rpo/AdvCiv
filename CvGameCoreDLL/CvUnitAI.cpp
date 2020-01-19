@@ -976,7 +976,7 @@ bool CvUnitAI::AI_isPotentialEnemyOf(TeamTypes eTeam, CvPlot const& kPlot) const
 	/*	This can be the BARBARIAN_TEAM is this unit isAlwaysHostile.
 		Normally, it's the unit owner. */
 	TeamTypes eCombatTeam = TEAMID(getCombatOwner(eTeam, kPlot));
-	return GET_TEAM(eCombatTeam).AI_mayAttack(getTeam());
+	return GET_TEAM(eCombatTeam).AI_mayAttack(eTeam);
 }
 
 /*	advc: Moved from CvPlot::getNumVisiblePotentialEnemyDefenders.

@@ -9416,17 +9416,14 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 	return r;
 }
 
-
-PlayerTypes CvUnit::getCombatOwner(TeamTypes eForTeam, CvPlot const& kPlot) const
+/*	advc.inl: This part of getCombatOwner is only relevant for alwaysHostile units,
+	i.e. not needed most of the time. I split the function up so that the
+	frequently needed part can be inlined. */
+PlayerTypes CvUnit::getCombatOwner_bulk(TeamTypes eForTeam, CvPlot const& kPlot) const
 {
-	//PROFILE_FUNC(); // advc.003o: Called extremely frequently through isEnemy and isPotentialEnemy
-	/*	advc: I've tried putting this part into a separate inline function, but it didn't help.
-		Anything with a conditional in it rarely seems to benefit from inlining (with this compiler). */
-	if (isAlwaysHostile())
-		return getOwner();
-
+	//ROFILE_FUNC(); // advc.003o: getCombatOwner is called extremely often; getCombatOwner_bulk isn't.
 	PlayerTypes eOwner = getOwner();
-	// advc.opt: NO_TEAM no longer supported
+	FAssert(eForTeam != NO_TEAM); // advc: No longer supported
 	if (/*eForTeam != NO_TEAM && */TEAMID(eOwner) != eForTeam &&
 		eForTeam != BARBARIAN_TEAM && isAlwaysHostile(kPlot))
 	{

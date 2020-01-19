@@ -807,7 +807,12 @@ public:
 		return m_eOwner;
 	}
 	DllExport PlayerTypes getVisualOwner(TeamTypes eForTeam = NO_TEAM) const;								// Exposed to Python
-	PlayerTypes getCombatOwner(TeamTypes eForTeam, CvPlot const& kPlot) const;								// Exposed to Python
+	inline PlayerTypes getCombatOwner(TeamTypes eForTeam, CvPlot const& kPlot) const						// Exposed to Python
+	{
+		// advc.inl: Split this function up so that part of it can be inlined
+		return (isAlwaysHostile() ? getCombatOwner_bulk(eForTeam, kPlot) : getOwner());
+	}
+
 	// advc (for convenience)
 	inline PlayerTypes getCombatOwner(TeamTypes eForTeam) const
 	{
@@ -1035,7 +1040,7 @@ protected:
 	int m_iAttackPlotY;
 	int m_iCombatTimer;
 	int m_iCombatFirstStrikes;
-	int m_iCombatDamage;
+	//int m_iCombatDamage; // advc.003j: unused
 	int m_iFortifyTurns;
 	int m_iBlitzCount;
 	int m_iAmphibCount;
@@ -1109,6 +1114,8 @@ protected:
 	EnumMap<FeatureTypes,int> m_aiExtraFeatureDefensePercent;
 	EnumMap<UnitCombatTypes,int> m_aiExtraUnitCombatModifier;
 	// </advc.enum>
+
+	PlayerTypes getCombatOwner_bulk(TeamTypes eForTeam, CvPlot const& kPlot) const; // advc
 
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
 	void collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit = NULL);
