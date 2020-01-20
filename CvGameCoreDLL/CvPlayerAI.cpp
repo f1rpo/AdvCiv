@@ -19005,7 +19005,7 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 					// Estimate of how much kTo would rather keep eLoopBonus
 					kTo.AI_bonusVal(eLoopBonus, -1, false, true) * iDealLen *
 					(getNumCities() + kTo.getNumCities()) / 5;
-			if(!::bernoulliSuccess((iBias - 15) / 95.0, "advc.036"))
+			if(!::bernoulliSuccess((iBias - 15) / 90.0, "advc.036"))
 				continue;
 			if(kTo.getTradeDenial(getID(), item) == NO_DENIAL)
 			{
@@ -19045,8 +19045,8 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 					AI_bonusVal(eLoopBonus, -1, false, true) * iDealLen *
 					(getNumCities() + kTo.getNumCities()) / 5;
 			/*	Less likely to skip than above - now that one sensible trade item
-				is already locked in. */
-			if(!::bernoulliSuccess((iBias - 15) / 40.0, "advc.036"))
+				is already locked in. And we don't want to pay cash for it. */
+			if(!::bernoulliSuccess((iBias - 15) / 35.0, "advc.036"))
 				continue;
 			if(getTradeDenial(eTo, item) == NO_DENIAL)
 			{
