@@ -4,7 +4,7 @@
 #include "UWAI.h"
 #include "UWAIAgent.h"
 #include "WarEvaluator.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvMap.h"
 
 using std::vector;

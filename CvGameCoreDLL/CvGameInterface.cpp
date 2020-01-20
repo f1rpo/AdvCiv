@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "PlotRange.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Command.h"

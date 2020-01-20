@@ -5,7 +5,7 @@
 
 /*  advc.make: Wrapper header to reduce the number of include statements and
 	a place for the team accessor macros. (However, the one that returns a CvTeamAI
-	reference is defined in CvAI.h.) For inline definitions, both CvPlayer.h
+	reference is defined in CoreAI.h.) For inline definitions, both CvPlayer.h
 	and CvTeam.h are needed. */
 
 #include "CvGame.h"
@@ -19,7 +19,7 @@
 	FFreeListTrashArray. */
 
 // <advc.003u>
-#ifndef GET_TEAM // Prefer the definition in CvAI.h
+#ifndef GET_TEAM // Prefer the definition in CoreAI.h
 #define GET_TEAM(x) CvGamePlay::getTeam(x)
 #endif
 #define TEAMID(x) GET_PLAYER(x).getTeam()

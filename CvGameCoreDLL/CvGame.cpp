@@ -4,7 +4,7 @@
 #include "CvGame.h"
 #include "CvDealList.h" // advc.003u
 #include "CvAgents.h" // advc.agent
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CitySiteEvaluator.h"
 #include "CityPlotIterator.h"
 #include "CvAreaList.h" // advc.003s

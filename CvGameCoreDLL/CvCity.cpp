@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvCity.h"
 #include "CityPlotIterator.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"

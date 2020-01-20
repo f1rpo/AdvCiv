@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "UWAIAgent.h"
 #include "CvInfo_Unit.h"
 

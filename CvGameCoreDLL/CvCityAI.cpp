@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvCityAI.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "UWAIAgent.h" // advc.031b (for trait checks)
 #include "CityPlotIterator.h"
 #include "CvArea.h"

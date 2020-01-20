@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlayerAI.h"
 #include "CitySiteEvaluator.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvDealList.h" // advc.003s
 #include "UWAIAgent.h" // advc.104
 #include "RiseFall.h" // advc.705

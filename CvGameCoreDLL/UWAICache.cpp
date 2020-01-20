@@ -7,7 +7,7 @@
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_Building.h"

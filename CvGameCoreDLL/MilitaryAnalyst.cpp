@@ -5,7 +5,7 @@
 #include "WarEvalParameters.h"
 #include "UWAIAgent.h"
 #include "InvasionGraph.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvInfo_GameOption.h"
 #include <iterator>
 

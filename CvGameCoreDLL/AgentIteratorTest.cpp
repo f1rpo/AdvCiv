@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvAgents.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 
 //#define AGENT_ITERATOR_TEST
 

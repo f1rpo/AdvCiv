@@ -6,7 +6,7 @@
 #include "ArmamentForecast.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvPlot.h"
 #include "CvArea.h"
 #include "CvInfo_Unit.h"

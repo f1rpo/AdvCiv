@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
 #include "PlotRange.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CitySiteEvaluator.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"

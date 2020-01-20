@@ -6,7 +6,7 @@
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
 #include "UWAIReport.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_GameOption.h"

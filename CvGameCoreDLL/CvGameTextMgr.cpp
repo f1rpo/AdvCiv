@@ -1,7 +1,7 @@
 //  CvGameTextMgr.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CitySiteEvaluator.h"
 #include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"

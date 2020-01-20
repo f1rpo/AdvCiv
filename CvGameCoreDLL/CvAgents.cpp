@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvAgents.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 
 CvAgents::CvAgents(int iMaxPlayers, int iMaxTeams)
 {

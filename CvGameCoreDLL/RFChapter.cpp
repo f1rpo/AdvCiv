@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "RFChapter.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 
 
 RFChapter::RFChapter() { reset(); }

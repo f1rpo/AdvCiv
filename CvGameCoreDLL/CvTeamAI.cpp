@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CityPlotIterator.h"
 #include "CvAreaList.h" // advc.003s
 #include "CvInfo_City.h"

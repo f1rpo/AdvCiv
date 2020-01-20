@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
 #include "CvInfo_GameOption.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
 #include "CvPopupInfo.h"

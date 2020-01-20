@@ -7,7 +7,7 @@
 #include "MilitaryAnalyst.h"
 #include "UWAIReport.h"
 #include "WarEvalParameters.h"
-#include "CvAI.h"
+#include "CoreAI.h"
 #include "CvInfo_GameOption.h"
 
 using std::vector;
