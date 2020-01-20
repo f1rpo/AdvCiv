@@ -686,7 +686,7 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 		if (bClear || !pSource)
 			resetPlayer(eID);
 
-		if (pSource)
+		if (pSource != NULL)
 		{
 			// Civ details
 			setCivDescription(eID, pSource->getCivDescription(eID));
@@ -977,7 +977,6 @@ void CvInitCore::clearVictories()
 void CvInitCore::refreshVictories()
 {
 	clearVictories();
-
 	m_iNumVictories = GC.getNumVictoryInfos();
 	if (m_iNumVictories > 0)
 	{
@@ -996,7 +995,6 @@ void CvInitCore::setCustomMapOptions(int iNumCustomMapOptions, const CustomMapOp
 	{
 		FAssertMsg(aeCustomMapOptions, "CustomMap Num/Pointer mismatch in CvInitCore::setCustomMapOptions");
 		m_iNumCustomMapOptions = iNumCustomMapOptions;
-
 		m_aeCustomMapOptions = new CustomMapOptionTypes[m_iNumCustomMapOptions];
 		for (int i = 0; i < m_iNumCustomMapOptions; ++i)
 		{
@@ -1008,23 +1006,16 @@ void CvInitCore::setCustomMapOptions(int iNumCustomMapOptions, const CustomMapOp
 CustomMapOptionTypes CvInitCore::getCustomMapOption(int iOptionID) const
 {
 	FAssertBounds(0, m_iNumCustomMapOptions, iOptionID);
-	if ( checkBounds(iOptionID, 0, m_iNumCustomMapOptions) )
-	{
+	if (checkBounds(iOptionID, 0, m_iNumCustomMapOptions))
 		return m_aeCustomMapOptions[iOptionID];
-	}
-	else
-	{
-		return NO_CUSTOM_MAPOPTION;
-	}
+	return NO_CUSTOM_MAPOPTION;
 }
 
 void CvInitCore::setCustomMapOption(int iOptionID, CustomMapOptionTypes eCustomMapOption)
 {
 	FAssertBounds(0, m_iNumCustomMapOptions, iOptionID);
-	if ( checkBounds(iOptionID, 0, m_iNumCustomMapOptions) )
-	{
+	if (checkBounds(iOptionID, 0, m_iNumCustomMapOptions))
 		m_aeCustomMapOptions[iOptionID] = eCustomMapOption;
-	}
 }
 
 
@@ -1035,7 +1026,6 @@ void CvInitCore::setVictories(int iNumVictories, const bool * abVictories)
 	{
 		FAssertMsg(abVictories, "Victory Num/Pointer mismatch in CvInitCore::setVictories");
 		m_iNumVictories = iNumVictories;
-
 		m_abVictories = new bool[m_iNumVictories];
 		for (int i = 0; i < m_iNumVictories; ++i)
 		{
@@ -1047,81 +1037,55 @@ void CvInitCore::setVictories(int iNumVictories, const bool * abVictories)
 bool CvInitCore::getVictory(VictoryTypes eVictoryID) const
 {
 	FAssertBounds(0, m_iNumVictories, eVictoryID);
-	if ( checkBounds(eVictoryID, 0, m_iNumVictories) )
-	{
+	if (checkBounds(eVictoryID, 0, m_iNumVictories))
 		return m_abVictories[eVictoryID];
-	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 void CvInitCore::setVictory(VictoryTypes eVictoryID, bool bVictory)
 {
 	FAssertBounds(0, m_iNumVictories, eVictoryID);
-	if ( checkBounds(eVictoryID, 0, m_iNumVictories) )
-	{
+	if (checkBounds(eVictoryID, 0, m_iNumVictories))
 		m_abVictories[eVictoryID] = bVictory;
-	}
 }
 
 
 bool CvInitCore::getOption(GameOptionTypes eIndex) const
 {
 	FAssertBounds(0, NUM_GAMEOPTION_TYPES, eIndex);
-	if ( checkBounds(eIndex, 0, NUM_GAMEOPTION_TYPES) )
-	{
+	if (checkBounds(eIndex, 0, NUM_GAMEOPTION_TYPES))
 		return m_abOptions[eIndex];
-	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 void CvInitCore::setOption(GameOptionTypes eIndex, bool bOption)
 {
 	FAssertBounds(0, NUM_GAMEOPTION_TYPES, eIndex);
-	if ( checkBounds(eIndex, 0, NUM_GAMEOPTION_TYPES) )
-	{
+	if (checkBounds(eIndex, 0, NUM_GAMEOPTION_TYPES))
 		m_abOptions[eIndex] = bOption;
-	}
 }
 
 bool CvInitCore::getMPOption(MultiplayerOptionTypes eIndex) const
 {
 	FAssertBounds(0, NUM_MPOPTION_TYPES, eIndex);
-	if ( checkBounds(eIndex, 0, NUM_MPOPTION_TYPES) )
-	{
+	if (checkBounds(eIndex, 0, NUM_MPOPTION_TYPES))
 		return m_abMPOptions[eIndex];
-	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 void CvInitCore::setMPOption(MultiplayerOptionTypes eIndex, bool bOption)
 {
 	FAssertBounds(0, NUM_MPOPTION_TYPES, eIndex);
-	if ( checkBounds(eIndex, 0, NUM_MPOPTION_TYPES) )
-	{
+	if (checkBounds(eIndex, 0, NUM_MPOPTION_TYPES))
 		m_abMPOptions[eIndex] = bOption;
-	}
 }
 
 bool CvInitCore::getForceControl(ForceControlTypes eIndex) const
 {
 	FAssertBounds(0, NUM_FORCECONTROL_TYPES, eIndex);
-	if ( checkBounds(eIndex, 0, NUM_FORCECONTROL_TYPES) )
-	{
+	if (checkBounds(eIndex, 0, NUM_FORCECONTROL_TYPES))
 		return m_abForceControls[eIndex];
-	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 void CvInitCore::setForceControl(ForceControlTypes eIndex, bool bOption)
@@ -1154,8 +1118,10 @@ void CvInitCore::setType(GameType eType)
 		// Permanent war/peace always visible in scenarios
 		CvGameOptionInfo& kPermWarPeace = GC.getInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
 		if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO ||
-				eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
+			eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
+		{
 			kPermWarPeace.setVisible(true);
+		}
 		// Otherwise as set in XML
 		else kPermWarPeace.setVisible(kPermWarPeace.getVisibleXML());
 		// Never visible in MP
@@ -1167,10 +1133,12 @@ void CvInitCore::setType(GameType eType)
 		{
 			CvGameOptionInfo& kOption = GC.getInfo(aeHideMP[i]);
 			if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
-					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
-					eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
-					eType == GAME_PBEM_SCENARIO)
+				eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
+				eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
+				eType == GAME_PBEM_SCENARIO)
+			{
 				kOption.setVisible(false);
+			}
 			// Otherwise as set in XML
 			else kOption.setVisible(kOption.getVisibleXML());
 		} // </advc.054>
@@ -1194,11 +1162,8 @@ void CvInitCore::setType(const CvWString & szType)
 	{
 		setType(GAME_SP_LOAD);
 	}
-	else
-	{
-		//FAssertMsg(false, "Invalid game type in ini file!");
-		setType(GAME_NONE);
-	}
+	//FAssertMsg(false, "Invalid game type in ini file!");
+	setType(GAME_NONE);
 }
 
 void CvInitCore::setMode(GameMode eMode)
@@ -1206,7 +1171,6 @@ void CvInitCore::setMode(GameMode eMode)
 	if (getMode() != eMode)
 	{
 		m_eMode = eMode;
-
 		if(CvPlayer::areStaticsInitialized())
 		{
 			for (int i = 0; i < MAX_PLAYERS; ++i)
@@ -1910,7 +1874,33 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->Write(uiSaveFlag);		// flag for expansion, see SaveBits)
 
 	// GAME DATA
-	pStream->Write(m_eType);
+
+	//pStream->Write(m_eType);
+	/*	<advc.001p> Make sure that resetPlayer will be able to tell
+		that a game is being loaded when reloading this savegame.
+		After loading, the EXE calls setType(..._LOAD). When ..._LOAD is
+		already the game type, some code in setType won't be executed -
+		but I don't think that code needs to run at that point. */
+	GameType eWriteGameType = m_eType;
+	switch (eWriteGameType)
+	{
+	case GAME_SP_NEW:
+	case GAME_SP_SCENARIO:
+		eWriteGameType = GAME_SP_LOAD;
+		break;
+	case GAME_MP_NEW:
+	case GAME_MP_SCENARIO:
+		eWriteGameType = GAME_MP_LOAD;
+		break;
+	case GAME_HOTSEAT_NEW:
+	case GAME_HOTSEAT_SCENARIO:
+		eWriteGameType = GAME_HOTSEAT_LOAD;
+		break;
+	case GAME_PBEM_NEW:
+	case GAME_PBEM_SCENARIO:
+		eWriteGameType = GAME_PBEM_LOAD;
+	}
+	pStream->Write(eWriteGameType); // </advc.001p>
 	pStream->WriteString(m_szGameName);
 	pStream->WriteString(m_szGamePassword);
 	pStream->WriteString(m_szAdminPassword);
