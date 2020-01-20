@@ -10094,8 +10094,9 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	}
 	iTradeVal = ::round(4 / std::sqrt((double)std::max(1, std::max(iSurplus,
 			2 * (iBonusCount + iChange))))); // </advc.036>
-	if(iChange == 0 || (iChange == 1 && iBonusCount == 0) || (iChange == -1 && iBonusCount == 1)
-		|| iChange + iBonusCount < 1) // advc.036: Cover all strange cases here
+	if(iChange == 0 || (iChange == 1 && iBonusCount == 0) ||
+		(iChange == -1 && iBonusCount == 1) ||
+		iChange + iBonusCount < 1) // advc.036: Cover all strange cases here
 	{
 		//This is assuming the none-to-one or one-to-none case.
 		iValue += AI_baseBonusVal(eBonus, /* advc.036: */ bTrade);
@@ -10134,8 +10135,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 {
 	//recalculate if not defined
 	if(!bTrade && // advc.036
-			m_aiBonusValue[eBonus] != -1)
+		m_aiBonusValue[eBonus] != -1)
+	{
 		return m_aiBonusValue[eBonus];
+	}
 	// <advc.036>
 	if(bTrade && m_aiBonusValueTrade[eBonus] != -1)
 		return m_aiBonusValueTrade[eBonus]; // </advc.036>
@@ -10624,7 +10627,7 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool b
 	return ::round(iValue / 1000.0);
 }
 
-// <advc.036>
+// advc.036:
 int CvPlayerAI::AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const
 {
 	FAssert(isHuman() != GET_PLAYER(eBonusOwner).isHuman());
@@ -10632,7 +10635,7 @@ int CvPlayerAI::AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) cons
 			isHuman() ? MAX_INT : AI_maxGoldPerTurnTrade(eBonusOwner));
 }
 
-// (rewritten) Computes how much this CvPlayer is willing to pay to eFromPlayer for eBonus
+// advc.036 (rewritten): Computes how much this CvPlayer is willing to pay to eFromPlayer for eBonus
 int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int iChange,
 	bool bExtraHappyOrHealth) const
 {
@@ -10650,8 +10653,10 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		bUseOurBonusVal = (kBonus.getHappiness() == 0 && kBonus.getHealth() == 0);
 		// Also don't worry about the value of additional copies (for corps)
 		if(!bUseOurBonusVal && getNumAvailableBonuses(eBonus) + iChange >
-				(iChange < 0 ? 0 : 1))
+			(iChange < 0 ? 0 : 1))
+		{
 			bUseOurBonusVal = true;
+		}
 		// Otherwise FromPlayer needs to know most of the human's territory
 		if(!bUseOurBonusVal)
 		{
@@ -10705,8 +10710,10 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 	{
 		CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kLoopPlayer.isAlive() || !GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) ||
-				!GET_TEAM(eFromPlayer).isHasMet(kLoopPlayer.getTeam()))
+			!GET_TEAM(eFromPlayer).isHasMet(kLoopPlayer.getTeam()))
+		{
 			continue;
+		}
 		/*  The trade partners don't necessarily know all those cities, but the
 			city count wouldn't be difficult to estimate. */
 		iCities += kLoopPlayer.getNumCities();
@@ -10724,16 +10731,22 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		//if(!kFromPlayer.canTradeNetworkWith(kLoopPlayer.getID())
 		// Checking just the essentials is fine though; it's only a heuristic.
 		if((kLoopPlayer.getCapitalCity() != NULL &&
-				!kLoopPlayer.getCapitalCity()->isConnectedToCapital(eFromPlayer)) ||
-				kLoopPlayer.getNumAvailableBonuses(eBonus) > 0)
+			!kLoopPlayer.getCapitalCity()->isConnectedToCapital(eFromPlayer)) ||
+			kLoopPlayer.getNumAvailableBonuses(eBonus) > 0)
+		{
 			continue;
+		}
 		if(!kFromPlayer.isHuman() && kFromPlayer.AI_getAttitude(
-				kLoopPlayer.getID()) <= iRefuseThresh)
+			kLoopPlayer.getID()) <= iRefuseThresh)
+		{
 			continue;
+		}
 		if(!kLoopPlayer.isHuman() && kLoopPlayer.AI_getAttitude(eFromPlayer) <=
-				std::max(0, GC.getInfo(kLoopPlayer.getPersonalityType()).
-				getStrategicBonusRefuseAttitudeThreshold() - 1))
+			std::max(0, GC.getInfo(kLoopPlayer.getPersonalityType()).
+			getStrategicBonusRefuseAttitudeThreshold() - 1))
+		{
 			continue;
+		}
 		iOtherTakers++;
 	}
 	int iAvail = kFromPlayer.getNumAvailableBonuses(eBonus);
@@ -10756,9 +10769,11 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		want humans to keep their surplus resources and sell unneeded nonsurplus
 		resources instead for a slightly higher price. */
 	if(!kFromPlayer.isHuman() && (iAvail - iChange == 0 ||
-			iAvail == 0 || // when considering cancelation
-			kFromPlayer.AI_corporationBonusVal(eBonus, true) > 0))
+		iAvail == 0 || // when considering cancelation
+		kFromPlayer.AI_corporationBonusVal(eBonus, true) > 0))
+	{
 		r++;
+	}
 	if(!isHuman()) // Never pay more than it's worth to us
 		r = std::min(r, ourVal);
 	r *= std::max(0, GC.getInfo(eBonus).getAITradeModifier() + 100) / 100.0;
@@ -10769,10 +10784,12 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		would lead to a rounding error when gold is paid for a resource b/c
 		2 gpt correspond to 1 tradeVal. */
 	if(r >= 3 && !GET_TEAM(getTeam()).isGoldTrading() &&
-			!GET_TEAM(eFromPlayer).isGoldTrading())
+		!GET_TEAM(eFromPlayer).isGoldTrading())
+	{
 		iR = ::roundToMultiple(iR, 4);
+	}
 	return iR *  GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH);
-}  // </advc.036>
+}
 
 
 DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
@@ -18501,14 +18518,18 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					}
 				}
 			}
+			int iContactRand = GC.getInfo(getPersonalityType()).
+					getContactRand(CONTACT_TRADE_BONUS);
+			// <advc.036> Make AI to human offers a bit more frequent
+			if (iContactRand >= 8 && kPlayer.isHuman())
+				iContactRand = (iContactRand * 4) / 5; // </advc.036>
 			/*  <advc.133> Moved the cheap abContacted check up, and the rest
 				of the resource trade code into a new function. */
 			if((!abContacted[kPlayer.getTeam()] || !kPlayer.isHuman()) &&
-					g.getSorenRandNum(GC.getInfo(getPersonalityType()).
-					getContactRand(CONTACT_TRADE_BONUS),
-					"AI Diplo Trade Bonus") == 0)
+				g.getSorenRandNum(iContactRand, "AI Diplo Trade Bonus") == 0)
+			{
 				abContacted[kPlayer.getTeam()] = AI_proposeResourceTrade(ePlayer);
-			// </advc.133>
+			} // </advc.133>
 			if (AI_getContactTimer(ePlayer, CONTACT_TRADE_MAP) == 0)
 			{
 				if (g.getSorenRandNum(GC.getInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_MAP), "AI Diplo Trade Map") == 0)
@@ -18946,37 +18967,45 @@ bool CvPlayerAI::AI_proposeEmbargo(PlayerTypes eHuman)
 
 /*  Caller ensures isAlive, canContactAndTalk, not at war, not Minor/ Barbarian,
 	!this->isHuman. If eTo is human, !abContacted is ensured, but eTo may
-	also be an AI civ. */
+	also be an AI civ.
+	eTo is the player to whom this player proposes a trade; eTo isn't necessarily
+	offered a resource. */
 bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 {
 	PROFILE_FUNC(); // advc
+
 	if(AI_getContactTimer(eTo, CONTACT_TRADE_BONUS) > 0)
 		return false;
 	CvPlayerAI const& kTo = GET_PLAYER(eTo);
 	CvGame& g = GC.getGame();
+	int const iDealLen = GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH);
+	// Resource that this player wants to receive from eTo
 	BonusTypes eBestReceiveBonus = NO_BONUS;
 	TradeData item;
 	if (kTo.canPossiblyTradeItem(getID(), TRADE_RESOURCES)) // advc.opt
 	{
 		int iBestValue = 0;
-		for(int i = 0; i < GC.getNumBonusInfos(); i++)
+		FOR_EACH_ENUM(Bonus)
 		{
-			BonusTypes eBonus = (BonusTypes)i;
 			/*  <advc.036> For AI-AI trades the conditions below are better handled
 				by AI_getTradeDenial. */
-			if(kTo.isHuman() && (kTo.getNumTradeableBonuses(eBonus) <= 1 ||
-					kTo.AI_corporationBonusVal(eBonus, true) != 0))
-					// || AI_bonusTradeVal(eBonus, eOther, 1) <= 0)
+			if(kTo.isHuman() && (kTo.getNumTradeableBonuses(eLoopBonus) <= 1 ||
+				// || AI_bonusTradeVal(eLoopBonus, eOther, 1) <= 0)
+				kTo.AI_corporationBonusVal(eLoopBonus, true) > 0))
+			{
 				continue;
+			}
 			/*  Probably cheaper to check canTradeItem before calling AI_bonusTradeVal;
 				a resource they don't have is unlikely to have a cached bonusTradeVal.
 				But getTradeDenial needs to be tested last (bTestDenial=false). */
-			setTradeItem(&item, TRADE_RESOURCES, eBonus);
+			setTradeItem(&item, TRADE_RESOURCES, eLoopBonus);
 			if(!kTo.canTradeItem(getID(), item, false))
 				continue;
-			int iBias = AI_bonusTradeVal(eBonus, eTo, 1) -
-					kTo.AI_bonusTradeVal(eBonus, getID(), -1);
-			if(!::bernoulliSuccess((iBias - 15) / 100.0, "advc.036"))
+			int iBias = AI_bonusTradeVal(eLoopBonus, eTo, 1) -
+					// Estimate of how much kTo would rather keep eLoopBonus
+					kTo.AI_bonusVal(eLoopBonus, -1, false, true) * iDealLen *
+					(getNumCities() + kTo.getNumCities()) / 5;
+			if(!::bernoulliSuccess((iBias - 15) / 95.0, "advc.036"))
 				continue;
 			if(kTo.getTradeDenial(getID(), item) == NO_DENIAL)
 			{
@@ -18986,7 +19015,7 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 				if(iValue > iBestValue)
 				{
 					iBestValue = iValue;
-					eBestReceiveBonus = eBonus;
+					eBestReceiveBonus = eLoopBonus;
 				}
 			}
 		}
@@ -19002,19 +19031,22 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 	if (canPossiblyTradeItem(eTo, TRADE_RESOURCES)) // advc.opt
 	{
 		int iBestValue = 0;
-		for(int i = 0; i < GC.getNumBonusInfos(); i++)
+		FOR_EACH_ENUM(Bonus)
 		{
-			BonusTypes eBonus = (BonusTypes)i;
 			// <advc.036> See comments about eBestReceiveBonus
-			setTradeItem(&item, TRADE_RESOURCES, eBonus);
+			setTradeItem(&item, TRADE_RESOURCES, eLoopBonus);
 			if(!canTradeItem(eTo, item, false))
 				continue;
-			/*if(i == eBestReceiveBonus || getNumTradeableBonuses(eBonus) <= 1 ||
-					civ.AI_bonusTradeVal(eBonus, getID(), 1) <= 0)
+			/*if(i == eBestReceiveBonus || getNumTradeableBonuses(eLoopBonus) <= 1 ||
+					kTo.AI_bonusTradeVal(eLoopBonus, getID(), 1) <= 0)
 				continue;*/
-			int iBias = kTo.AI_bonusTradeVal(eBonus, getID(), 1) -
-					AI_bonusTradeVal(eBonus, eTo, -1);
-			if(!::bernoulliSuccess((iBias - 15) / 100.0, "advc.036"))
+			int iBias = kTo.AI_bonusTradeVal(eLoopBonus, getID(), 1) -
+					// How much this player would rather keep eLoopBonus
+					AI_bonusVal(eLoopBonus, -1, false, true) * iDealLen *
+					(getNumCities() + kTo.getNumCities()) / 5;
+			/*	Less likely to skip than above - now that one sensible trade item
+				is already locked in. */
+			if(!::bernoulliSuccess((iBias - 15) / 40.0, "advc.036"))
 				continue;
 			if(getTradeDenial(eTo, item) == NO_DENIAL)
 			{
@@ -19023,7 +19055,7 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 				if(iValue > iBestValue)
 				{
 					iBestValue = iValue;
-					eBestGiveBonus = eBonus;
+					eBestGiveBonus = eLoopBonus;
 				}
 			}
 		}
