@@ -3,7 +3,7 @@
 #ifndef CV_DLL_LOGGER_H
 #define CV_DLL_LOGGER_H
 
-/*  advc.003t: New class. Encapsulates calls to messageControlLog (CvDLLUtilityIFaceBase).
+/*  advc: New class. Encapsulates calls to messageControlLog (CvDLLUtilityIFaceBase).
 	The log is enabled through "MessageLog" in CivilizationIV.ini. "LoggingEnabled"
 	doesn't matter -- and this probably can't be changed b/c the DLL can't check if
 	LoggingEnabled is set. (CvGlobals::m_bLogging only says whether MessageLog is set.) */

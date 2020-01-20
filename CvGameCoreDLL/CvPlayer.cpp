@@ -12024,7 +12024,7 @@ void CvPlayer::changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes
 
 // K-Mod. I've changed this function from using pUnit to using pGroup.
 // I've also rewritten most of the code, to give more natural ordering, and to be more robust and readable code.
-void CvPlayer::updateGroupCycle(CvSelectionGroup const& kGroup) // advc: const reference param
+void CvPlayer::updateGroupCycle(CvSelectionGroup const& kGroup)  // advc: const reference param
 {
 	PROFILE_FUNC();
 
@@ -14465,7 +14465,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 				GC.getGame().getActiveTeam() == getTeam()) // advc.120i
 			{
 				EffectTypes eEffect = GC.getInfo(GC.getInfo(MISSION_BOMBARD).getEntityEvent()).getEffectType();
-				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(getASyncRand().get(360)));
+				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(GC.getASyncRand().get(360)));
 				gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_CITY_EXPLOSION", pPlot->getPoint());
 			}
 		}

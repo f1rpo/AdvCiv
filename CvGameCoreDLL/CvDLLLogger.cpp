@@ -1,4 +1,4 @@
-// advc.003t: New class; see CvDLLLogger.h.
+// advc: New class; see CvDLLLogger.h.
 
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"

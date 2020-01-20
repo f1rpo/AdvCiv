@@ -44,7 +44,7 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 	if(pszLog != NULL && strlen(pszLog) <= 0)
 		pszLog = "bs";
 	if(bAsync)
-		return (getASyncRand().get(10000, pszLog) < iChancePerMyriad);
+		return (GC.getASyncRand().get(10000, pszLog) < iChancePerMyriad);
 	return GC.getGame().
 			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
 }

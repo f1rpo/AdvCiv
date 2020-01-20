@@ -13,7 +13,7 @@
 class FProfiler;
 class CvDLLUtilityIFaceBase;
 class CvPythonCaller; // advc.003y
-class CvDLLLogger; // advc.003t
+class CvDLLLogger;
 class CvRandom;
 class CvGame; // advc.003u
 class CvGameAI;
@@ -70,7 +70,7 @@ public:
 
 	// singleton accessor
 	DllExport __forceinline static CvGlobals& getInstance();
-	__forceinline static CvGlobals const& getConstInstance(); // advc.003t
+	__forceinline static CvGlobals const& getConstInstance();
 
 	CvGlobals();
 
@@ -84,9 +84,9 @@ public:
 	DllExport FMPIManager*& getFMPMgrPtr();
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
-	DllExport CvInitCore& getInitCore()  // <advc.003t> const replacement
+	DllExport CvInitCore& getInitCore()  // <advc> const replacement
 	{ CvGlobals const& kThis = *this; return kThis.getInitCore(); }
-	inline CvInitCore& getInitCore() const { return *m_initCore; } // </advc.003t>
+	inline CvInitCore& getInitCore() const { return *m_initCore; } // </advc>
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -114,11 +114,12 @@ public:
 		return m_pPythonCaller;
 	} // </advc.003y>
 	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.inl
+	CvRandom& getASyncRand() const { return *m_asyncRand; } // advc
 	DllExport CMessageQueue& getMessageQueue();
 	DllExport CMessageQueue& getHotMessageQueue();
 	DllExport CMessageControl& getMessageControl();
 	DllExport CvDropMgr& getDropMgr();
-	/*  advc.003t: inlined and constified. The caller is certainly going to change
+	/*  advc: inlined and constified. The caller is certainly going to change
 		the returned FAStar objects, but CvGlobals doesn't own those objects, so
 		it shouldn't be our concern. */
 	DllExport FAStar& getPathFinder() { CvGlobals const& kThis = *this; return kThis.getPathFinder(); }
@@ -141,19 +142,19 @@ public:
 	DllExport bool& getRandLogging() { return m_bRandLogging; }
 	DllExport bool& getSynchLogging() { return m_bSynchLogging; }
 	DllExport bool& overwriteLogs() { return m_bOverwriteLogs; }
-	// <advc.003t> const inline versions of the above
+	// <advc> const inline versions of the above
 	// The first two are exposed to Python for dlph.27
 	inline bool isLogging() const { return m_bLogging; }
 	inline bool isRandLogging() const { return m_bRandLogging; }
 	inline bool isSynchLogging() const { return m_bSynchLogging; }
 	inline bool isOverwriteLogs() const { return m_bOverwriteLogs; }
-	// <advc.003t>
+	// <advc>
 	inline CvDLLLogger& getLogger() const
 	{
 		return *m_pLogger;
-	} // </advc.003t>
+	} // </advc>
 
-	// advc.003t: Inlined and constified
+	// advc: Inlined and constified
 	DllExport int* getPlotDirectionX() { return m_aiPlotDirectionX; }
 	inline int const* getPlotDirectionX() const { return m_aiPlotDirectionX; }
 	DllExport int* getPlotDirectionY() { return m_aiPlotDirectionY; }
@@ -205,7 +206,7 @@ public:
 		return (int)m_paGameTextXML.size();
 	}
 	DllExport inline int getActiveLandscapeID() { CvGlobals const& kThis = *this; return kThis.getActiveLandscapeID(); }
-	inline int getActiveLandscapeID() const { return m_iActiveLandscapeID; } // advc.003t: const version
+	inline int getActiveLandscapeID() const { return m_iActiveLandscapeID; } // advc
 	DllExport void setActiveLandscapeID(int iLandscapeID);
 	// <advc.003x> So that CvMap doesn't have to use CvLandscapeInfo directly
 	int getLandscapePlotsPerCellX() const;
@@ -340,7 +341,7 @@ public:
 	CvString& getFunctionTypes(FunctionTypes e);
 
 	inline int& getNumFlavorTypes() { return m_iNumFlavorTypes; }
-	inline int const& getNumFlavorTypes() const { return m_iNumFlavorTypes; } // advc.003t: const version
+	inline int const& getNumFlavorTypes() const { return m_iNumFlavorTypes; } // advc
 	CvString*& getFlavorTypes();
 	CvString& getFlavorTypes(FlavorTypes e);
 
@@ -365,7 +366,7 @@ public:
 	CvString& getDirectionTypes(AutomateTypes e);
 
 	DllExport int& getNumFootstepAudioTypes();
-	int getNumFootstepAudioTypes() const { return m_iNumFootstepAudioTypes; } // advc.003t: const version
+	int getNumFootstepAudioTypes() const { return m_iNumFootstepAudioTypes; } // advc
 	CvString*& getFootstepAudioTypes();
 	CvString& getFootstepAudioTypes(int i);
 	int getFootstepAudioTypeByTag(CvString strTag);
@@ -373,7 +374,7 @@ public:
 	CvString*& getFootstepAudioTags();
 	DllExport CvString& getFootstepAudioTags(int i);
 
-	CvString const& getCurrentXMLFile() const; // advc.003t: 2x const
+	CvString const& getCurrentXMLFile() const; // advc: 2x const
 	void setCurrentXMLFile(const TCHAR* szFileName);
 	// <advc.003v>
 	void setXMLLoadUtility(CvXMLLoadUtility* pXML);
@@ -392,23 +393,23 @@ public:
 	// ***** EXPOSED TO PYTHON *****
 	DllExport inline int getDefineINT(const char * szName) const
 	{
-		return getDefineINT(szName, 0); // advc: Call the BBAI version
+		return getDefineINT(szName, 0); // advc.opt: Call the BBAI version
 	}
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000:
 	int getDefineINT(const char * szName, const int iDefault) const;
-	// <advc.003t>
+	// <advc>
 	inline bool getDefineBOOL(const char * szName, const bool bDefault = false) const
 	{
 		return (getDefineINT(szName, (int)bDefault) > 0);
-	} // </advc.003t>
+	} // </advc>
 	DllExport float getDefineFLOAT(const char * szName) const;
 	DllExport const char * getDefineSTRING(const char * szName) const;
-	/*  advc.003t: Params for suppressing cache update added. False for string b/c
+	/*  advc.opt: Params for suppressing cache update added. False for string b/c
 		there are none that we could update. */
 	void setDefineINT(const char * szName, int iValue, bool bUpdateCache = true);
 	void setDefineFLOAT(const char * szName, float fValue, bool bUpdateCache = true);
 	void setDefineSTRING(const char * szName, const char * szValue, bool bUpdateCache = false);
-	// <advc.003t>
+	// advc.opt:
 #pragma region GlobalDefines
 	/*  Access cached integer GlobalDefines through enum values
 		(not exposed to Python - though that might be nice). */
@@ -561,7 +562,6 @@ public:
 	inline int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }
 	inline int getCOMBAT_DAMAGE() const { return getDefineINT(COMBAT_DAMAGE); }
 	// BETTER_BTS_AI_MOD: END
-	// </advc.003t>
 	/*  <advc.opt> (TextVals can't be loaded by cacheGlobals. Hence also won't be
 		updated when a setDefine... function is called.) */
 	inline ImprovementTypes getRUINS_IMPROVEMENT() const
@@ -584,7 +584,7 @@ public:
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
 	// </advc.opt>
-	// <advc.003t> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
+	// <advc> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
 	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit = NO_UNIT) const;
 	// <advc.905b>
 	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit = NO_UNIT) const
@@ -597,10 +597,10 @@ public:
 	int getNUM_AND_TECH_PREREQS(TechTypes = NO_TECH) const;
 	int getNUM_OR_TECH_PREREQS(TechTypes = NO_TECH) const;
 	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute = NO_ROUTE) const;
-	// </advc.003t>
-	int getNUM_CORPORATION_PREREQ_BONUSES() const; // advc: A param like above doesn't help b/c all corps require resources
+	// </advc>
+	int getNUM_CORPORATION_PREREQ_BONUSES() const; // (advc: A param like above doesn't help b/c all corps require resources)
 	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
-	// <advc.003t> All inlined and constified
+	// advc: All inlined and constified
 	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }
 	inline float getCAMERA_MIN_YAW() const { return m_fCAMERA_MIN_YAW; }
 	DllExport inline float getCAMERA_MAX_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_YAW(); }
@@ -653,7 +653,7 @@ public:
 	DllExport void setDLLIFace(CvDLLUtilityIFaceBase* pDll);
 #ifdef _USRDLL
 	// inlined for perf reasons, do not use outside of dll
-	inline CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc.003t: const, inline keyword added
+	inline CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc: const, inline keyword added
 #endif
 	DllExport CvDLLUtilityIFaceBase* getDLLIFaceNonInl();
 	DllExport void setDLLProfiler(FProfiler* prof);
@@ -779,7 +779,7 @@ protected:
 
 	CvRandom* m_asyncRand;
 	CvPythonCaller* m_pPythonCaller; // advc.003y
-	CvDLLLogger* m_pLogger; // advc.003t
+	CvDLLLogger* m_pLogger;
 	CvGameAI* m_game;
 	CvAgents* m_agents; // advc.agents
 
@@ -888,7 +888,7 @@ protected:
 
 	FVariableSystem* m_VarSystem;
 
-	int* m_aiGlobalDefinesCache; // advc.003t
+	int* m_aiGlobalDefinesCache;
 	// <advc.opt>
 	int m_iRUINS_IMPROVEMENT;
 	int m_iDEFAULT_SPECIALIST;
@@ -921,9 +921,9 @@ protected:
 
 private:
 	void addToInfosVectors(void *infoVector); // advc: was public
-	// <advc.003t>
+	// <advc.opt>
 	void cacheGlobalInts(char const* szChangedDefine = NULL, int iNewValue = 0);
-	void cacheGlobalFloats(); // </advc.003t>
+	void cacheGlobalFloats(); // </advc.opt>
 };
 
 extern CvGlobals gGlobals;	// for debugging
@@ -935,11 +935,11 @@ __forceinline CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
-// <advc.003t>
+// <advc>
 __forceinline CvGlobals const& CvGlobals::getConstInstance()
 {
 	return gGlobals;
-} // </advc.003t>
+} // </advc>
 
 /*  <advc.enum> These aren't member functions because they need to overload the
 	SET_ENUM_LENGTH_STATIC functions defined in CvEnums.h. I'd rather not make
@@ -954,15 +954,12 @@ inline FlavorTypes getEnumLength(FlavorTypes) { return (FlavorTypes)gGlobals.get
 //
 // helpers
 //
-#define GC CvGlobals::getConstInstance() // advc.003t: was ...getInstance()
+#define GC CvGlobals::getConstInstance() // advc: was ...getInstance()
 #ifndef _USRDLL
 #define gDLL GC.getDLLIFaceNonInl()
 #else
 #define gDLL GC.getDLLIFace()
 #endif
-
-// advc.003t: Direct access to RNG (can't get it from the const GC)
-inline CvRandom& getASyncRand() { return CvGlobals::getInstance().getASyncRand(); }
 
 #ifndef _USRDLL
 #define NUM_DIRECTION_TYPES (GC.getNumDirections())

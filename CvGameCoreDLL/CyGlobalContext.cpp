@@ -78,7 +78,7 @@ CyPlayer* CyGlobalContext::getCyActivePlayer()
 
 CvRandom& CyGlobalContext::getCyASyncRand() const
 {
-	return getASyncRand();
+	return GC.getASyncRand();
 }
 
 CyTeam* CyGlobalContext::getCyTeam(int i)

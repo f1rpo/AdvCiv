@@ -2763,11 +2763,11 @@ void CvUnit::move(CvPlot& kPlot, bool bShow, /* advc.163: */ bool bJump, bool bG
 		&& eFeature != NO_FEATURE) // spawn birds if trees present - JW
 	{
 		CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
-		if (getASyncRand().get(100) < kFeature.getEffectProbability())
+		if (GC.getASyncRand().get(100) < kFeature.getEffectProbability())
 		{
 			EffectTypes eEffect = (EffectTypes)GC.getInfoTypeForString(kFeature.getEffectType());
 			NiPoint3 pt = kPlot.getPoint();
-			gDLL->getEngineIFace()->TriggerEffect(eEffect, pt, (float)getASyncRand().get(360));
+			gDLL->getEngineIFace()->TriggerEffect(eEffect, pt, (float)GC.getASyncRand().get(360));
 			gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_BIRDS_SCATTER", pt);
 		}
 	}

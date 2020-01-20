@@ -1404,7 +1404,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 									{
 										if (bAsync)
 										{
-											iTempValue = getASyncRand().get(GC.getInfo(getPersonalityType()).getWonderConstructRand(), "Wonder Construction Rand ASYNC");
+											iTempValue = GC.getASyncRand().get(GC.getInfo(getPersonalityType()).getWonderConstructRand(), "Wonder Construction Rand ASYNC");
 										}
 										else
 										{
@@ -1421,7 +1421,7 @@ void CvPlayerAI::AI_doCentralizedProduction()
 
 								if (bAsync)
 								{
-									iValue *= (getASyncRand().get(25, "AI Best Building ASYNC") + 100);
+									iValue *= (GC.getASyncRand().get(25, "AI Best Building ASYNC") + 100);
 									iValue /= 100;
 								}
 								else
@@ -3920,7 +3920,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		random multiplier at the end of the function. */
 		int const iRandPlusMax = 26; //80
 		iRandomFactor = (bAsync ?
-				getASyncRand().get(iRandPlusMax*iCityCount, "AI Research ASYNC") :
+				GC.getASyncRand().get(iRandPlusMax*iCityCount, "AI Research ASYNC") :
 				GC.getGame().getSorenRandNum(iRandPlusMax*iCityCount, "AI Research"));
 		iRandomMax = iRandPlusMax*iCityCount;
 		iValue += iRandomFactor;
@@ -4714,7 +4714,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	{	// <k146>
 		const int iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10
 		int iWonderRandom = (bAsync ?
-				getASyncRand().get(iBaseRand, "AI Research Wonder Unit ASYNC") :
+				GC.getASyncRand().get(iBaseRand, "AI Research Wonder Unit ASYNC") :
 				GC.getGame().getSorenRandNum(iBaseRand, "AI Research Wonder Unit"));
 		int iFactor = 100 * std::min(iCityCount, iCityTarget) /
 				std::max(1, iCityTarget);
@@ -4739,7 +4739,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	if (bEnablesWonder && getTotalPopulation() > 5)
 	{
 		const int iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10 (was 300)
-		int iWonderRandom = ((bAsync) ? getASyncRand().get(iBaseRand, "AI Research Wonder Building ASYNC") : GC.getGame().getSorenRandNum(iBaseRand, "AI Research Wonder Building"));
+		int iWonderRandom = (bAsync ?
+				GC.getASyncRand().get(iBaseRand, "AI Research Wonder Building ASYNC") :
+				GC.getGame().getSorenRandNum(iBaseRand, "AI Research Wonder Building"));
 		int iFactor = 10 + GC.getInfo(getPersonalityType()).getWonderConstructRand(); // note: highest value of iWonderConstructRand 50 in the default xml.
 		iFactor += AI_atVictoryStage(AI_VICTORY_CULTURE1) ? 15 : 0;
 		iFactor += AI_atVictoryStage(AI_VICTORY_CULTURE2) ? 10 : 0;
@@ -4758,7 +4760,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	iValue += AI_techProjectValue(eTech, iPathLength, bEnablesProjectWonder);
 	if (bEnablesProjectWonder)
 	{
-		int iWonderRandom = ((bAsync) ? getASyncRand().get(56, "AI Research Wonder Project ASYNC") : GC.getGame().getSorenRandNum(56, "AI Research Wonder Project"));
+		int iWonderRandom = (bAsync ?
+				GC.getASyncRand().get(56, "AI Research Wonder Project ASYNC") :
+				GC.getGame().getSorenRandNum(56, "AI Research Wonder Project"));
 		iValue += iWonderRandom;
 
 		iRandomMax += 56;
@@ -4884,7 +4888,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		{
 			/*if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech) {
 				if (!GC.getGame().isCorporationFounded(eLoopCorporation)) {
-					iValue += 100 + ((bAsync) ? getASyncRand().get(2400, "AI Research Corporation ASYNC") : GC.getGame().getSorenRandNum(2400, "AI Research Corporation"));
+					iValue += 100 + (bAsync ? GC.getASyncRand().get(2400, "AI Research Corporation ASYNC") : GC.getGame().getSorenRandNum(2400, "AI Research Corporation"));
 				}
 			}*/ // BtS
 			// K-Mod
@@ -4940,13 +4944,17 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 							iCorpValue *= 20 + AI_getFlavorValue(FLAVOR_GOLD);
 							iCorpValue /= 20;
 							iValue += iCorpValue/2;
-							iValue += ((bAsync) ? getASyncRand().get(iCorpValue, "AI Research Corporation ASYNC") : GC.getGame().getSorenRandNum(iCorpValue, "AI Research Corporation"));
+							iValue += (bAsync ?
+									GC.getASyncRand().get(iCorpValue, "AI Research Corporation ASYNC") :
+									GC.getGame().getSorenRandNum(iCorpValue, "AI Research Corporation"));
 							iRandomMax += iCorpValue;
 						}
 						else
 						{
 							iValue += iCorpValue/3;
-							iValue += ((bAsync) ? getASyncRand().get(4*iCorpValue/3, "AI Research Corporation ASYNC") : GC.getGame().getSorenRandNum(4*iCorpValue/3, "AI Research Corporation"));
+							iValue += (bAsync ?
+									GC.getASyncRand().get(4*iCorpValue/3, "AI Research Corporation ASYNC") :
+									GC.getGame().getSorenRandNum(4*iCorpValue/3, "AI Research Corporation"));
 							iRandomMax += 4*iCorpValue/3;
 						}
 					}
@@ -5021,7 +5029,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						if (iRaceModifier > 10 && AI_getFlavorValue(FLAVOR_RELIGION) > 0)
 							iReligionValue += iRoll * (iRaceModifier-10) / 300;
 
-						iReligionValue += bAsync ? getASyncRand().get(iRoll, "AI Research Religion ASYNC") : GC.getGame().getSorenRandNum(iRoll, "AI Research Religion");
+						iReligionValue += (bAsync ?
+								GC.getASyncRand().get(iRoll, "AI Research Religion ASYNC") :
+								GC.getGame().getSorenRandNum(iRoll, "AI Research Religion"));
 						// Note: relation value will be scaled down by other factors in the next section.
 						iRandomMax += iRoll; // (Note: this doesn't include factors used later.)
 					}
@@ -5105,12 +5115,14 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				iRoll /= 200;
 				if (iRaceModifier > 20 && AI_getFlavorValue(FLAVOR_SCIENCE) + AI_getFlavorValue(FLAVOR_GROWTH) > 0)
 					iValue += iRoll * (iRaceModifier-10) / 400;
-				iValue += bAsync ? getASyncRand().get(iRoll, "AI Research Great People ASYNC") : GC.getGame().getSorenRandNum(iRoll, "AI Research Great People");
+				iValue += (bAsync ?
+						GC.getASyncRand().get(iRoll, "AI Research Great People ASYNC") :
+						GC.getGame().getSorenRandNum(iRoll, "AI Research Great People"));
 				iRandomMax += iRoll;
 				// K-Mod end
 			}
 
-			//iValue += (kTechInfo.getFirstFreeTechs() * (200 + ((bCapitalAlone) ? 400 : 0) + ((bAsync) ? getASyncRand().get(3200, "AI Research Free Tech ASYNC") : GC.getGame().getSorenRandNum(3200, "AI Research Free Tech"))));
+			//iValue += (kTechInfo.getFirstFreeTechs() * (200 + (bCapitalAlone ? 400 : 0) + (bAsync ? GC.getASyncRand().get(3200, "AI Research Free Tech ASYNC") : GC.getGame().getSorenRandNum(3200, "AI Research Free Tech"))));
 			// K-Mod. Very rough evaluation of free tech.
 			if (kTechInfo.getFirstFreeTechs() > 0)
 			{	// <k146>
@@ -5144,7 +5156,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				if (iRaceModifier > 20 && iRaceModifier < 100) // save the free tech if we have no competition!
 					iTempValue += iBase * (iRaceModifier-20) / 200;
 				//int iTempValue = (iRaceModifier >= 0 ? 196 : 98) + (bCapitalAlone ? 28 : 0); // some value regardless of race or random.
-				iTempValue += bAsync ? getASyncRand().get(iBase, "AI Research Free Tech ASYNC") : GC.getGame().getSorenRandNum(iBase, "AI Research Free Tech");
+				iTempValue += (bAsync ?
+						GC.getASyncRand().get(iBase, "AI Research Free Tech ASYNC") :
+						GC.getGame().getSorenRandNum(iBase, "AI Research Free Tech"));
 				// </k146>
 				iValue += iTempValue * kTechInfo.getFirstFreeTechs();
 				iRandomMax += iBase * kTechInfo.getFirstFreeTechs();
@@ -5197,7 +5211,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		bool bCheapBooster = (iTurnsLeft >= 0 && // advc.004x
 				iTurnsLeft < (2 * iAdjustment) &&
 				eFromPlayer == NO_PLAYER && // advc.144
-				(0 == (bAsync ? getASyncRand().get(5, "AI Choose Cheap Tech") :
+				(0 == (bAsync ? GC.getASyncRand().get(5, "AI Choose Cheap Tech") :
 				GC.getGame().getSorenRandNum(5, "AI Choose Cheap Tech"))));
 		/*  <advc.004x> Shouldn't normally be called during anarchy, but if it is,
 			assume a usual time to research. */
@@ -5266,7 +5280,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	/*  K-Mod, 12/sep/10, Karadoc
 		Use a random _factor_ at the end. */
 	// advc: Renamed from iRandomFactor, which is already defined (though unused).
-	int iFinalRandomFactor = (bAsync ? getASyncRand().get( // advc (comment): Should randomness be used at all when recommending tech (bAsync)?
+	int iFinalRandomFactor = (bAsync ?
+			GC.getASyncRand().get( // advc (comment): Should randomness be used at all when recommending tech (bAsync)?
 			200, "AI Research factor ASYNC") : // k146: was 100
 			GC.getGame().getSorenRandNum(
 			200, "AI Research factor")); // k146: was 100
@@ -6365,7 +6380,7 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 	TeamTypes eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
 	if (eWorstEnemy != NO_TEAM && eWorstEnemy != TEAMID(ePlayer) &&
 		GET_TEAM(ePlayer).isHasMet(eWorstEnemy) &&
-		0 == getASyncRand().get(4 /* <advc.079> */ +
+		0 == GC.getASyncRand().get(4 /* <advc.079> */ +
 		(m_aeLastWarn[ePlayer] != eWorstEnemy ? -2 : 2)))
 	{
 		const_cast<CvPlayerAI*>(this)->m_aeLastWarn[ePlayer] = eWorstEnemy;
@@ -6375,9 +6390,9 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY_TRADING");
 		else return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY");
 	}
-	else if (getNumNukeUnits() > 0 && getASyncRand().get(4) == 0)
+	else if (getNumNukeUnits() > 0 && GC.getASyncRand().get(4) == 0)
 		return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_NUKES");
-	else if (/* <advc.079> */ bBrag && /* </advc.079> */ getASyncRand().get(4) == 0)
+	else if (/* <advc.079> */ bBrag && /* </advc.079> */ GC.getASyncRand().get(4) == 0)
 		return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_UNIT_BRAG");
 	return eDefaultGreeting;
 }
@@ -6521,7 +6536,8 @@ bool CvPlayerAI::AI_demandRebukedWar(PlayerTypes ePlayer) const
 	FAssert(!(GET_TEAM(getTeam()).isHuman()));
 
 	// needs to be async because it only happens on the computer of the player who is in diplomacy...
-	if (getASyncRand().get(100, "AI Demand Rebuked ASYNC") < GC.getInfo(getPersonalityType()).getDemandRebukedWarProb())
+	if (GC.getASyncRand().get(100, "AI Demand Rebuked ASYNC") <
+		GC.getInfo(getPersonalityType()).getDemandRebukedWarProb())
 	{
 		// <advc.104m>
 		if(getUWAI.isEnabled())

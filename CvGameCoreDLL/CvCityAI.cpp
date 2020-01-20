@@ -2950,7 +2950,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 			continue; // advc
 
 		if (bAsync)
-			aiUnitAIVal[iI] += getASyncRand().get(iMilitaryWeight, "AI Best UnitAI ASYNC");
+			aiUnitAIVal[iI] += GC.getASyncRand().get(iMilitaryWeight, "AI Best UnitAI ASYNC");
 		else aiUnitAIVal[iI] += GC.getGame().getSorenRandNum(iMilitaryWeight, "AI Best UnitAI");
 
 		if (aiUnitAIVal[iI] > iBestValue)
@@ -3214,7 +3214,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 
 		if (bAsync)
 		{
-			iValue *= (getASyncRand().get(50, "AI Best Unit ASYNC") + 100);
+			iValue *= (GC.getASyncRand().get(50, "AI Best Unit ASYNC") + 100);
 			iValue /= 100;
 		}
 		else
@@ -3470,7 +3470,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 				int iTempValue;
 				if (bAsync)
 				{
-					iTempValue = getASyncRand().get(GC.getInfo(getPersonalityType()).
+					iTempValue = GC.getASyncRand().get(GC.getInfo(getPersonalityType()).
 							getWonderConstructRand(), "Wonder Construction Rand ASYNC");
 				}
 				else
@@ -3486,7 +3486,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 		if (bAsync)
 		{
-			iValue *= (getASyncRand().get(25, "AI Best Building ASYNC") + 100);
+			iValue *= (GC.getASyncRand().get(25, "AI Best Building ASYNC") + 100);
 			iValue /= 100;
 		}
 		else
@@ -5731,8 +5731,8 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 			  (kLoopProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING) ||
 			  kLoopProject.isAllowsNukes())
 		{	// <advc.001n>
-			if ((bAsync ? getASyncRand().get(100, "Project Everyone ASYNC") :
-					// </advc.001n>
+			if ((bAsync ?
+					GC.getASyncRand().get(100, "Project Everyone ASYNC") : // </advc.001n>
 					GC.getGame().getSorenRandNum(100, "Project Everyone")) == 0)
 				iValue++;
 		}

@@ -9,9 +9,9 @@
 #include "CvInfo_All.h"
 #include "CvGameAI.h" // advc.104x
 #include "FVariableSystem.h"
-// <advc.003t> Overwrite the definition in CvGlobals.h b/c a const GC is no use here
+// <advc> Overwrite the definition in CvGlobals.h b/c a const GC is no use here
 #undef GC
-#define GC CvGlobals::getInstance() // </advc.003t>
+#define GC CvGlobals::getInstance() // </advc>
 
 // Macro for Setting Global Art Defines
 // advc.003j: unused

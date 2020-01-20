@@ -32,7 +32,7 @@ m_bLoadGameFromFile(false),
 m_pFMPMgr(NULL),
 m_asyncRand(NULL),
 m_pPythonCaller(NULL), // advc.003y
-m_pLogger(NULL), // advc.003t
+m_pLogger(NULL), // advc
 m_interface(NULL),
 m_game(NULL),
 m_agents(NULL), // advc.agent
@@ -63,7 +63,7 @@ m_pXMLLoadUtility(NULL), // advc.003v
 m_pDLL(NULL),
 m_Profiler(NULL),
 m_VarSystem(NULL),
-m_aiGlobalDefinesCache(NULL), // advc.003t, advc.003c
+m_aiGlobalDefinesCache(NULL), // advc, advc.003c
 m_bHoFScreenUp(false), // advc.106i
 m_fCAMERA_MIN_YAW(0), m_fCAMERA_MAX_YAW(0), m_fCAMERA_FAR_CLIP_Z_HEIGHT(0),
 m_fCAMERA_MAX_TRAVEL_DISTANCE(0), m_fCAMERA_START_DISTANCE(0),
@@ -223,7 +223,7 @@ void CvGlobals::init() // allocate
 	m_loadedInitCore = new CvInitCore();
 	m_iniInitCore = new CvInitCore();
 	gDLL->initGlobals(); // some globals need to be allocated outside the dll
-	m_pLogger = new CvDLLLogger(isLogging(), isRandLogging()); // advc.003t
+	m_pLogger = new CvDLLLogger(isLogging(), isRandLogging()); // advc
 	m_game = new CvGameAI();
 	m_map = new CvMap();
 
@@ -261,7 +261,7 @@ void CvGlobals::uninit() // free
 	#ifdef USE_TSC_PROFILER
 	TSCProfiler::getInstance().writeFile();
 	#endif // </advc.003o>
-	SAFE_DELETE_ARRAY(m_aiGlobalDefinesCache); // advc.003t
+	SAFE_DELETE_ARRAY(m_aiGlobalDefinesCache); // advc
 
 	SAFE_DELETE(m_game);
 	SAFE_DELETE(m_map);
@@ -271,7 +271,7 @@ void CvGlobals::uninit() // free
 
 	SAFE_DELETE(m_asyncRand);
 	SAFE_DELETE(m_pPythonCaller); // advc.003y
-	SAFE_DELETE(m_pLogger); // advc.003t
+	SAFE_DELETE(m_pLogger); // advc
 	SAFE_DELETE(m_initCore);
 	SAFE_DELETE(m_loadedInitCore);
 	SAFE_DELETE(m_iniInitCore);
@@ -638,9 +638,9 @@ void CvGlobals::loadThroneRoomInfo()
 		bSuccess = m_pXMLLoadUtility->LoadThroneRoomInfo();
 	FAssertMsg(bSuccess, "Failed to load XML data for Throne Room");
 } // </advc.003v>
-// advc.003t:
+// <advc.opt>
 #define MAKE_STRING(VAR) #VAR,
-// <advc.003t>
+
 void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 {
 	const char* const aszGlobalDefinesTagNames[] = {
@@ -696,8 +696,8 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 		// BETTER_BTS_AI_MOD: END
 		}
 		m_aiGlobalDefinesCache[i] = getDefineINT(aszGlobalDefinesTagNames[i], iDefault);
-	} // </advc.003t>
-}
+	}
+} // </advc.opt>
 
 void CvGlobals::cacheGlobalFloats()
 {
@@ -722,10 +722,10 @@ void CvGlobals::cacheGlobalFloats()
 
 void CvGlobals::cacheGlobals()
 {
-	// <advc.003t> Moved into subroutines to allow partial updates
+	// <advc.opt> Moved into subroutines to allow partial updates
 	cacheGlobalInts();
 	cacheGlobalFloats();
-	// Strings: Mostly can't cache these here (too early) // </advc.003t>
+	// Strings: Mostly can't cache these here (too early) // </advc.opt>
 	// <advc.003y>
 	// New class to handle Python callback defines
 	m_pPythonCaller = new CvPythonCaller();
@@ -782,34 +782,34 @@ const char * CvGlobals::getDefineSTRING(const char * szName) const
 	return szReturn;
 }
 
-void CvGlobals::setDefineINT(const char * szName, int iValue, /* advc.003t: */ bool bUpdateCache)
+void CvGlobals::setDefineINT(const char * szName, int iValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, iValue);
-	// <advc.003t>
+	// <advc.opt>
 	if(bUpdateCache)
-		cacheGlobalInts(szName, iValue); // Pinpoint update </advc.003t>
+		cacheGlobalInts(szName, iValue); // Pinpoint update </advc.opt>
 }
 
-void CvGlobals::setDefineFLOAT(const char * szName, float fValue, /* advc.003t: */ bool bUpdateCache)
+void CvGlobals::setDefineFLOAT(const char * szName, float fValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, fValue);
-	// <advc.003t>
+	// <advc.opt>
 	if(bUpdateCache)
-		cacheGlobalFloats(); // </advc.003t>
+		cacheGlobalFloats(); // </advc.opt>
 }
 
 void CvGlobals::setDefineSTRING(const char * szName, const char * szValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, szValue);
 	//cacheGlobals();
-	FAssertMsg(!bUpdateCache, "No strings to update"); // advc.003t
+	FAssertMsg(!bUpdateCache, "No strings to update"); // advc.opt
 }
 
 int CvGlobals::getMAX_CIV_PLAYERS()
 {
 	return MAX_CIV_PLAYERS;
 }
-/*  <advc.003t> Optional parameters added. The return value is only an upper bound,
+/*  <advc.opt> Optional parameters added. The return value is only an upper bound,
 	even if an argument is given. */
 int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
 {
@@ -852,7 +852,7 @@ int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
 	return (eRoute == NO_ROUTE || getInfo(eRoute).isAnyPrereqOrBonus() ?
 			getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES) : 0);
 }
-// </advc.003t>
+// </advc.opt>
 int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const
 {
 	return getDefineINT(NUM_CORPORATION_PREREQ_BONUSES);
