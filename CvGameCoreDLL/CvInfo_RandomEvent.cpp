@@ -1499,6 +1499,26 @@ bool CvEventTriggerInfo::isPrereqEventCity() const
 	return m_bPrereqEventCity;
 }
 
+bool CvEventTriggerInfo::isPlotEventTrigger() const  // advc: refactored
+{
+	if (getNumPlotsRequired() <= 0)
+		return false;
+
+	if (getPlotType() != NO_PLOT || getNumFeaturesRequired() > 0 ||
+		getNumTerrainsRequired() > 0 || getNumImprovementsRequired() > 0 ||
+		getNumBonusesRequired() > 0 || getNumRoutesRequired() > 0)
+	{
+		return true;
+	}
+	if (isUnitsOnPlot() && getNumUnitsRequired() > 0)
+		return true;
+
+	if (isPrereqEventCity() && !isPickCity())
+		return true;
+
+	return false;
+}
+
 const char* CvEventTriggerInfo::getPythonCallback() const
 {
 	return m_szPythonCallback;

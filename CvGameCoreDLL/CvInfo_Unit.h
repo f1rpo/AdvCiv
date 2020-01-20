@@ -281,7 +281,8 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getLeaderPromotion() const;
 	int getLeaderExperience() const;
 
-	// <advc.003w> (for convenience)
+	// <advc.003w>
+	// Wrappers around CvUnitClass; for convenience.
 	inline bool isWorldUnit() const
 	{
 		return GC.getInfo(getUnitClassType()).isWorldUnit();
@@ -293,7 +294,10 @@ public: /*  All const functions are exposed to Python except some related to art
 	inline bool isLimited() const
 	{
 		return GC.getInfo(getUnitClassType()).isLimited();
-	} // </advc.003w>
+	}
+	// Moved from CvGameCoreUtils.h. Still exposed to Python through CyGameCoreUtils.
+	bool isPromotionValid(PromotionTypes ePromotion, bool bLeader) const;
+	// </advc.003w>
 
 	const TCHAR* getEarlyArtDefineTag(int i, UnitArtStyleTypes eStyle) const;
 	void setEarlyArtDefineTag(int i, const TCHAR* szVal);

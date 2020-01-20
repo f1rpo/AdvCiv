@@ -748,21 +748,18 @@ void CvGame::initDiplomacy()
 	{
 		CLinkList<TradeData> player1List;
 		CLinkList<TradeData> player2List;
-		TradeData kTradeData;
-		setTradeItem(&kTradeData, TRADE_PEACE_TREATY);
-		player1List.insertAtEnd(kTradeData);
-		player2List.insertAtEnd(kTradeData);
+		TradeData peaceTreaty(TRADE_PEACE_TREATY);
+		player1List.insertAtEnd(peaceTreaty);
+		player2List.insertAtEnd(peaceTreaty);
 
 		for (int iPlayer1 = 0; iPlayer1 < MAX_CIV_PLAYERS; ++iPlayer1)
 		{
 			CvPlayer& kLoopPlayer1 = GET_PLAYER((PlayerTypes)iPlayer1);
-
 			if (kLoopPlayer1.isAlive())
 			{
 				for (int iPlayer2 = iPlayer1 + 1; iPlayer2 < MAX_CIV_PLAYERS; ++iPlayer2)
 				{
 					CvPlayer& kLoopPlayer2 = GET_PLAYER((PlayerTypes)iPlayer2);
-
 					if (kLoopPlayer2.isAlive())
 					{
 						if (GET_TEAM(kLoopPlayer1.getTeam()).canChangeWarPeace(kLoopPlayer2.getTeam()))
@@ -4263,6 +4260,14 @@ int CvGame::getInitWonders() const
 	return m_iInitWonders;
 }
 
+// advc: Moved from CvGameCoreUtils
+int CvGame::getWonderScore(BuildingClassTypes eWonderClass) const
+{
+	if (GC.getInfo(eWonderClass).isLimited())
+		return 5;
+	return 0;
+}
+
 
 void CvGame::initScoreCalculation()
 {
@@ -5781,6 +5786,19 @@ bool CvGame::isForceCivicOption(CivicOptionTypes eCivicOption) const
 		}
 	}
 	return false;
+}
+
+/*	advc: Moved from CvGameCoreUtils; renamed from "getWorldSizeMaxConscript".
+	(A few CvGame functions that call CvMap::getWorldSize should perhaps be
+	moved to CvMap - or perhaps a new class CvWorld should be created so that
+	CvMap can deal primarily with plot-related functions.) */
+int CvGame::getMaxConscript(CivicTypes eCivic) const
+{
+	int iMaxConscript = GC.getInfo(eCivic).getMaxConscript();
+	iMaxConscript *= std::max(0, GC.getInfo(GC.getMap().getWorldSize()).
+			getMaxConscriptModifier() + 100);
+	iMaxConscript /= 100;
+	return iMaxConscript;
 }
 
 

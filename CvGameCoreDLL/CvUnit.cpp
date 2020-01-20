@@ -1865,11 +1865,10 @@ bool CvUnit::isActionRecommended(int iAction)
 					if(eFinalImprovement == NO_IMPROVEMENT)
 						eFinalImprovement = pPlot->getImprovementType();*/ // BtS
 					// K-Mod
-					ImprovementTypes eFinalImprovement = finalImprovementUpgrade(
+					ImprovementTypes eFinalImprovement = CvImprovementInfo::finalUpgrade(
 							eImprovement != NO_IMPROVEMENT ? eImprovement :
 							pPlot->getImprovementType());
 					// K-Mod end
-
 					if (eFinalImprovement != NO_IMPROVEMENT)
 					{
 						if (GC.getInfo(eFinalImprovement).getRouteYieldChanges(eRoute, YIELD_FOOD) > 0 ||
@@ -5343,6 +5342,12 @@ bool CvUnit::construct(BuildingTypes eBuilding)
 }
 
 
+TechTypes CvUnit::getDiscoveryTech() const
+{
+	return GET_PLAYER(getOwner()).getDiscoveryTech(getUnitType());
+}
+
+
 int CvUnit::getDiscoverResearch(TechTypes eTech) const
 {
 	int iResearch = (m_pUnitInfo->getBaseDiscover() + (m_pUnitInfo->getDiscoverMultiplier() * GET_TEAM(getTeam()).getTotalPopulation()));
@@ -7423,7 +7428,7 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 			++iOurDefense;
 		else if (NO_UNIT != getLeaderUnitType() && NO_UNIT == pDefender->getLeaderUnitType())
 			++iTheirDefense;
-		else if (isBeforeUnitCycle(this, pDefender))
+		else if (isBeforeUnitCycle(*pDefender))
 			++iOurDefense;
 	}
 
@@ -7944,6 +7949,26 @@ CvSelectionGroup* CvUnit::getGroup() const // advc.003u (comment): The body is d
 }
 
 
+bool CvUnit::isBeforeUnitCycle(CvUnit const& kOther) const
+{
+	FAssert(this != &kOther);
+
+	if (getOwner() != kOther.getOwner())
+		return (getOwner() < kOther.getOwner());
+	if (getDomainType() != kOther.getDomainType())
+		return (getDomainType() < kOther.getDomainType());
+	/* if (baseCombatStr() != kOther.baseCombatStr())
+		return (baseCombatStr() > kOther.baseCombatStr());*/ // disabled by K-Mod
+	if (getUnitType() != kOther.getUnitType())
+		return (getUnitType() > kOther.getUnitType());
+	if (getLevel() != kOther.getLevel())
+		return (getLevel() > kOther.getLevel());
+	if (getExperience() != kOther.getExperience())
+		return (getExperience() > kOther.getExperience());
+	return (getID() < kOther.getID());
+}
+
+
 bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const // advc: const pSelectionGroup
 {
 	// do not allow someone to join a group that is about to be split apart
@@ -8027,7 +8052,7 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 		{
 			// K-Mod
 			if (isGroupHead())
-				GET_PLAYER(getOwner()).updateGroupCycle(getGroup());
+				GET_PLAYER(getOwner()).updateGroupCycle(*getGroup());
 			// K-Mod end
 			if (getGroup()->getNumUnits() > 1)
 			{
@@ -8334,7 +8359,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		// needs to be here so that the square is considered visible when we move into it...
 		pNewPlot->changeAdjacentSight(getTeam(), visibilityRange(), true, this, true);
 
-		pNewPlot->addUnit(this, bUpdate && !hasCargo());
+		pNewPlot->addUnit(*this, bUpdate && !hasCargo());
 
 		pNewPlot->getArea().changeUnitsPerPlayer(getOwner(), 1);
 		pNewPlot->getArea().changePower(getOwner(), m_pUnitInfo->getPowerValue());
@@ -8497,7 +8522,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	//GET_PLAYER(getOwner()).updateGroupCycle(this);
 	// K-Mod. Only update the group cycle here if we are placing this unit on the map for the first time.
 	if (!pOldPlot)
-		GET_PLAYER(getOwner()).updateGroupCycle(getGroup());
+		GET_PLAYER(getOwner()).updateGroupCycle(*getGroup());
 	// K-Mod end
 
 	setInfoBarDirty(true);
@@ -9783,7 +9808,7 @@ bool CvUnit::canAcquirePromotion(PromotionTypes ePromotion) const
 
 bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 {
-	if (!::isPromotionValid(ePromotion, getUnitType(), true))
+	if (!m_pUnitInfo->isPromotionValid(ePromotion, true))
 		return false;
 	// <advc.opt>
 	static int const iMAX_WITHDRAWAL_PROBABILITY = GC.getDefineINT("MAX_WITHDRAWAL_PROBABILITY");
@@ -11262,7 +11287,7 @@ bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAtt
 	// (K-Mod. _reversed_ unit cycle order, so that inexperienced units defend first.)
 	if (iOurRanking == iTheirRanking)
 	{
-		if (isBeforeUnitCycle(this, pDefender))
+		if (isBeforeUnitCycle(*pDefender))
 			iTheirRanking++;
 		else
 			iTheirRanking--;

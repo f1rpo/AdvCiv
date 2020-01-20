@@ -16,10 +16,6 @@
 #include "CvDLLSymbolIFaceBase.h"
 #include <sstream> // advc.050
 
-int shortenID(int iId)
-{
-	return iId;
-}
 
 // For displaying Asserts and error messages
 static char* szErrorMsg;
@@ -32,21 +28,13 @@ CvGameTextMgr& CvGameTextMgr::GetInstance()
 }
 
 
-CvGameTextMgr::CvGameTextMgr()
-{
-
-}
+CvGameTextMgr::CvGameTextMgr() {}
 
 
-CvGameTextMgr::~CvGameTextMgr()
-{
-}
+CvGameTextMgr::~CvGameTextMgr() {}
 
 //	PURPOSE: Allocate memory
-void CvGameTextMgr::Initialize()
-{
-
-}
+void CvGameTextMgr::Initialize() {}
 
 // PURPOSE: Clear memory
 void CvGameTextMgr::DeInitialize()
@@ -2021,6 +2009,17 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 				}
 			}
 		}
+	}
+}
+
+namespace
+{
+	/*	advc: Moved from the top of the file. Only used in setPlotListHelpDebug.
+		I guess it was supposed to map FreeListTrashArray ids to e.g. the last
+		few digits. I'll just leave it alone. */
+	inline int shortenID(int iId)
+	{
+		return iId;
 	}
 }
 
@@ -8166,7 +8165,7 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 	}
 
 	//	Conscription
-	if (getWorldSizeMaxConscript(eCivic) != 0)
+	if (GC.getGame().getMaxConscript(eCivic) != 0)
 	{
 		szHelpText.append(NEWLINE);
 		// <advc.004y>
@@ -8189,7 +8188,10 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 			}
 		}
 		if(!bRange) // </advc.004y>
-			szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_CONSCRIPTION", getWorldSizeMaxConscript(eCivic)));
+		{
+			szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_CONSCRIPTION",
+					GC.getGame().getMaxConscript(eCivic)));
+		}
 	}
 
 	//	Population Unhealthiness
@@ -9030,11 +9032,10 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			}
 		}
 	}
-// BULL - Trade Denial - start (advc.073: refactored; getBugOptionBOOL check removed)
+	// BULL - Trade Denial - start (advc.073: refactored; getBugOptionBOOL check removed)
 	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
 	{
-		TradeData item;
-		::setTradeItem(&item, TRADE_TECHNOLOGIES, eTech);
+		TradeData item(TRADE_TECHNOLOGIES, eTech);
 		if (GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
 		{
 			DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
@@ -9058,8 +9059,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 				szBuffer.append(szTempBuffer);
 			}
 		}
-	}
-// BULL - Trade Denial - end
+	} // BULL - Trade Denial - end
 
 	if (bStrategyText)
 	{
@@ -9128,14 +9128,17 @@ void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kC
 			if (!bFound && pLoopCity != &kCity)
 				continue;
 			bFound = true;
-			TradeData item;
-			::setTradeItem(&item, TRADE_CITIES, pLoopCity->getID());
-			if (!GET_PLAYER(kCity.getOwner()).canTradeItem(eWhoTo, item))
+			if (!GET_PLAYER(kCity.getOwner()).canTradeItem(eWhoTo, TradeData(
+				TRADE_CITIES, pLoopCity->getID())))
+			{
 				continue;
+			}
 			// Needs to be in the same column of the "Cities" tab as kCity
-			if ((GET_PLAYER(kCity.getOwner()).AI_cityTrade(*pLoopCity, eWhoTo) ==
-					NO_DENIAL) != bWilling)
+			if ((GET_PLAYER(kCity.getOwner()).
+				AI_cityTrade(*pLoopCity, eWhoTo) == NO_DENIAL) != bWilling)
+			{
 				continue;
+			}
 			szBuffer.append(L", ");
 			szBuffer.append(pLoopCity->getName());
 			if (kCity.getOwner() == eActivePlayer && pLoopCity->getLiberationPlayer() == eWhoTo)
@@ -13971,125 +13974,124 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		// advc.004w: Effects from buildings, projects and units in a subroutine
 		setBonusExtraHelp(szBuffer, eBonus, bCivilopediaText, eTradePlayer, bDiplo, pCity);
 	}
-// BULL - Trade Denial - start  (advc.073: refactored; getBugOptionBOOL check removed)
-	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
+
+	// BULL - Trade Denial - start  (advc.073: refactored; getBugOptionBOOL check removed)
+	if (eTradePlayer == NO_PLAYER || eActivePlayer == NO_PLAYER)
+		return; // advc
+
+	TradeData resourceTrade(TRADE_RESOURCES, eBonus);
+	TradeData gptTrade(TRADE_GOLD_PER_TURN, 1);
+	bool const bHuman = GET_PLAYER(eTradePlayer).isHuman(); // advc.073
+	// <advc.073>
+	int const iGoldChar = GC.getInfo(COMMERCE_GOLD).getChar(); // advc.036
+	if(eTradePlayer == eActivePlayer)
 	{
-		bool bHuman = GET_PLAYER(eTradePlayer).isHuman(); // advc.073
-		TradeData item;
-		::setTradeItem(&item, TRADE_RESOURCES, eBonus);
-		// <advc.073>
-		int iGoldChar = GC.getInfo(COMMERCE_GOLD).getChar(); // advc.036
-		if(eTradePlayer == eActivePlayer)
+		FAssert(!bImport);
+		/*  This means we're hovering over a surplus resource of the
+			active player and all takers need to be listed. */
+		std::vector<PlayerTypes> aTakers;
+
+		for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(eActivePlayer));
+			it.hasNext(); ++it)
 		{
-			FAssert(!bImport);
-			/*  This means we're hovering over a surplus resource of the
-				active player and all takers need to be listed. */
-			std::vector<PlayerTypes> aTakers;
-			for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+			CvPlayerAI const& kTaker = *it;
+			if (kTaker.getID() == eActivePlayer || kTaker.isHuman())
+				continue;
+			if(pActivePlayer->canTradeItem(kTaker.getID(), resourceTrade, true) &&
+				kTaker.AI_isWillingToTalk(eActivePlayer, true))
 			{
-				if(i == eActivePlayer)
-					continue;
-				CvPlayerAI const& kTaker = GET_PLAYER((PlayerTypes)i);
-				if(!kTaker.isAlive() || kTaker.isHuman() ||
-						!GET_TEAM(eActivePlayer).isHasMet(kTaker.getTeam()))
-					continue;
-				if(pActivePlayer->canTradeItem(kTaker.getID(), item, true) &&
-						kTaker.AI_isWillingToTalk(eActivePlayer, true))
-					aTakers.push_back(kTaker.getID());
+				aTakers.push_back(kTaker.getID());
 			}
-			if(aTakers.empty())
-				return;
+		}
+		if(aTakers.empty())
+			return;
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_WILL_IMPORT"
+				// Better not to repeat the resource name
+				/*,GC.getInfo(eBonus).getTextKeyWide()*/));
+		szBuffer.append(/*L": "*/L":\n");
+		/*  Should perhaps sort by the gold they're willing to give, but that's
+			tedious to implement, and using player id also has merit as the
+			portraits on the Resources tab are ordered by id. */
+		for(size_t i = 0; i < aTakers.size(); i++)
+		{
+			CvPlayerAI const& kTaker = GET_PLAYER(aTakers[i]);
+			szBuffer.append(kTaker.getName());
+			if(kTaker.canTradeItem(eActivePlayer, gptTrade, false))
+			{
+				int iGold = kTaker.AI_goldForBonus(eBonus, eActivePlayer);
+				if(iGold > 0)
+					szBuffer.append(CvWString::format(L" (%d%c)", iGold, iGoldChar));
+			}
+			if(i < aTakers.size() - 1)
+				szBuffer.append(L", ");
+		}
+		return;
+	}
+	if (!bImport && // </advc.073>
+		GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, resourceTrade, false))
+	{
+		DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
+				eActivePlayer, resourceTrade);
+		if (eDenial != NO_DENIAL /* advc.073: */ && eDenial != DENIAL_JOKING)
+		{
+			CvWString szTempBuffer;
+			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+					TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+					GC.getInfo(eDenial).getDescription());
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_WILL_IMPORT"
-					// Better not to repeat the resource name
-					/*,GC.getInfo(eBonus).getTextKeyWide()*/));
-			szBuffer.append(/*L": "*/L":\n");
-			/*  Should perhaps sort by the gold they're willing to give, but that's
-				tedious to implement, and using player id also has merit as the
-				portraits on the Resources tab are ordered by id. */
-			::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
-			for(size_t i = 0; i < aTakers.size(); i++)
-			{
-				CvPlayerAI const& kTaker = GET_PLAYER(aTakers[i]);
-				szBuffer.append(kTaker.getName());
-				if(kTaker.canTradeItem(eActivePlayer, item, false))
-				{
-					int iGold = kTaker.AI_goldForBonus(eBonus, eActivePlayer);
-					if(iGold > 0)
-						szBuffer.append(CvWString::format(L" (%d%c)", iGold, iGoldChar));
-				}
-				if(i < aTakers.size() - 1)
-					szBuffer.append(L", ");
-			}
+			szBuffer.append(szTempBuffer);
+			// <advc.036>
 			return;
 		}
-		if (!bImport && // </advc.073>
-				GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
+		else if(eDenial == NO_DENIAL && !bHuman)
 		{
-			DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
-					eActivePlayer, item);
-			if (eDenial != NO_DENIAL
-					&& eDenial != DENIAL_JOKING) // advc.073
+			if(GET_PLAYER(eTradePlayer).AI_isWillingToTalk(eActivePlayer, true))
 			{
-				CvWString szTempBuffer;
-				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
-						TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
-						GC.getInfo(eDenial).getDescription());
-				szBuffer.append(NEWLINE);
-				szBuffer.append(szTempBuffer);
-				// <advc.036>
-				return;
-			}
-			else if(eDenial == NO_DENIAL && !bHuman)
-			{
-				if(GET_PLAYER(eTradePlayer).AI_isWillingToTalk(eActivePlayer, true)) {
-					::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
-					if(pActivePlayer->canTradeItem(eTradePlayer, item, false))
-					{
-						int iGold = pActivePlayer->AI_goldForBonus(eBonus, eTradePlayer);
-						if(iGold > 0)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(CvWString::format(L"%s %d%c",
-									gDLL->getText("TXT_KEY_MISC_WILL_ASK").GetCString(),
-									iGold, iGoldChar));
-							return;
-						}
-					}
-				}
-				else
+				if(pActivePlayer->canTradeItem(eTradePlayer, gptTrade, false))
 				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
-				}
-			}
-		}
-		if(bImport && !bHuman)
-		{
-			bool bWillTalk = GET_PLAYER(eTradePlayer).AI_isWillingToTalk(eActivePlayer, true);
-			if(bWillTalk && pActivePlayer->canTradeItem(eTradePlayer, item, true))
-			{
-				::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
-				if(GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
-				{
-					int iGold = GET_PLAYER(eTradePlayer).AI_goldForBonus(eBonus, eActivePlayer);
+					int iGold = pActivePlayer->AI_goldForBonus(eBonus, eTradePlayer);
 					if(iGold > 0)
 					{
 						szBuffer.append(NEWLINE);
 						szBuffer.append(CvWString::format(L"%s %d%c",
-								gDLL->getText("TXT_KEY_MISC_WILL_PAY").GetCString(),
+								gDLL->getText("TXT_KEY_MISC_WILL_ASK").GetCString(),
 								iGold, iGoldChar));
+						return;
 					}
 				}
 			}
-			else if(!bWillTalk)
+			else
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
 			}
-		} // </advc.036>
+		}
 	}
-// BULL - Trade Denial - end
+	if(bImport && !bHuman)
+	{
+		bool bWillTalk = GET_PLAYER(eTradePlayer).AI_isWillingToTalk(eActivePlayer, true);
+		if(bWillTalk && pActivePlayer->canTradeItem(eTradePlayer, resourceTrade, true))
+		{
+			if(GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, gptTrade, false))
+			{
+				int iGold = GET_PLAYER(eTradePlayer).AI_goldForBonus(eBonus, eActivePlayer);
+				if(iGold > 0)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(CvWString::format(L"%s %d%c",
+							gDLL->getText("TXT_KEY_MISC_WILL_PAY").GetCString(),
+							iGold, iGoldChar));
+				}
+			}
+		}
+		else if(!bWillTalk)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
+		}
+	} // </advc.036>
+	// BULL - Trade Denial - end
 }
 
 // advc.004w: Some code cut from setBonusHelp, but mostly new code.
@@ -19859,7 +19861,8 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 		}
 
 		// My points VS. Your points to mod cost
-		iTempModifier = ::getEspionageModifier(kPlayer.getTeam(), GET_PLAYER(eTargetPlayer).getTeam()) - 100;
+		iTempModifier = GET_TEAM(kPlayer.getTeam()).getEspionageModifier(
+				TEAMID(eTargetPlayer)) - 100;
 		if (iTempModifier != 0)
 		{
 			szBuffer.append(SEPARATOR);

@@ -334,6 +334,7 @@ public:
 
 	bool isResearch() const;																																							// Exposed to Python
 	bool canEverResearch(TechTypes eTech) const;																								// Exposed to Python
+	TechTypes getDiscoveryTech(UnitTypes eUnit) const; // advc: Moved from CvGameCoreUtils
 	bool canResearch(TechTypes eTech, bool bTrade = false,
 			bool bFree = false, // (K-Mod, added bFree.) Exposed to Python
 			// advc.126: Disables the isHasTech check
@@ -974,7 +975,7 @@ public:
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);
 
 	//void updateGroupCycle(CvUnit* pUnit);
-	void updateGroupCycle(CvSelectionGroup* pGroup); // K-Mod
+	void updateGroupCycle(CvSelectionGroup const& kGroup); // K-Mod
 	void removeGroupCycle(int iID);
 	void refreshGroupCycleList(); // K-Mod
 	CLLNode<int>* deleteGroupCycleNode(CLLNode<int>* pNode);

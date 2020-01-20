@@ -2912,14 +2912,14 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 {
 	// <advc>
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-	CvGame& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	CvPlayer& kOwner = GET_PLAYER(getOwner()); // </advc>
 	if (!GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding) || bObsolete)
 	{
 		if (iChange > 0)
 		{
 			CorporationTypes eCorporation = kBuilding.getFoundsCorporation();
-			if (eCorporation != NO_CORPORATION && !g.isCorporationFounded(eCorporation))
+			if (eCorporation != NO_CORPORATION && !kGame.isCorporationFounded(eCorporation))
 				setHeadquarters(eCorporation);
 		}
 
@@ -2929,14 +2929,14 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		if (kBuilding.getFreeBonus() != NO_BONUS)
 		{
 			changeFreeBonus(kBuilding.getFreeBonus(),
-					g.getNumFreeBonuses(eBuilding) * iChange);
+					kGame.getNumFreeBonuses(eBuilding) * iChange);
 		}
 
 		if (kBuilding.getFreePromotion() != NO_PROMOTION)
 		{
 			changeFreePromotionCount(kBuilding.getFreePromotion(), iChange);
 		}// <advc.912d>
-		if(g.isOption(GAMEOPTION_NO_SLAVERY) && kOwner.isHuman() &&
+		if(kGame.isOption(GAMEOPTION_NO_SLAVERY) && kOwner.isHuman() &&
 			kBuilding.getHurryAngerModifier() < 0)
 		{
 			changePopRushCount(iChange);
@@ -3082,7 +3082,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			}
 		}
 		GET_TEAM(getTeam()).processBuilding(eBuilding, iChange);
-		g.processBuilding(eBuilding, iChange);
+		GC.getGame().processBuilding(eBuilding, iChange);
 	}
 
 	if (!bObsolete)
@@ -3123,19 +3123,20 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		GET_TEAM(getTeam()).changeBuildingClassCount(eBuildingClass, iChange);
 		kOwner.changeBuildingClassCount(eBuildingClass, iChange);
 
-		kOwner.changeWondersScore(getWonderScore(kBuilding.getBuildingClassType()) * iChange);
+		kOwner.changeWondersScore(kGame.getWonderScore(
+				kBuilding.getBuildingClassType()) * iChange);
 		// <advc.004w>
-		if (GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE)
+		if (kGame.getCurrentLayer() == GLOBE_LAYER_RESOURCE)
 		{
 			// Update text of resource indicators (CvGameTextMgr::setBonusExtraHelp)
 			PlayerTypes eDirtyPlayer = NO_PLAYER;
 			if (kBuilding.isNationalWonder() &&
-				getOwner() == GC.getGame().getActivePlayer())
+				getOwner() == kGame.getActivePlayer())
 			{
 				eDirtyPlayer = getOwner();
 			}
 			else if (kBuilding.isWorldWonder())
-				eDirtyPlayer = GC.getGame().getActivePlayer();
+				eDirtyPlayer = kGame.getActivePlayer();
 			if (eDirtyPlayer != NO_PLAYER)
 			{
 				gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
@@ -4452,9 +4453,9 @@ void CvCity::setPopulation(int iNewValue)
 	GC.getGame().changeTotalPopulation(getPopulation() - iOldPopulation);
 
 	if (iOldPopulation > 0)
-		getArea().changePower(getOwner(), -getPopulationPower(iOldPopulation));
+		getArea().changePower(getOwner(), -GC.getGame().getPopulationPower(iOldPopulation));
 	if (getPopulation() > 0)
-		getArea().changePower(getOwner(), getPopulationPower(getPopulation()));
+		getArea().changePower(getOwner(), GC.getGame().getPopulationPower(getPopulation()));
 
 	getPlot().updateYield();
 

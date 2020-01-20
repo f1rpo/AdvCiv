@@ -1549,17 +1549,14 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 // K-Mod
 void CvTeam::signPeaceTreaty(TeamTypes eTeam)
 {
-	TradeData item;
-	setTradeItem(&item, TRADE_PEACE_TREATY);
-
-	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) && GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+	TradeData item(TRADE_PEACE_TREATY);
+	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
 	{
 		CLinkList<TradeData> ourList;
 		CLinkList<TradeData> theirList;
-
 		ourList.insertAtEnd(item);
 		theirList.insertAtEnd(item);
-
 		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
 	}
 } // K-Mod end
@@ -1572,9 +1569,7 @@ void CvTeam::signOpenBorders(TeamTypes eTeam)
 
 	if (!isAtWar(eTeam) && (getID() != eTeam))
 	{
-		TradeData item;
-		setTradeItem(&item, TRADE_OPEN_BORDERS);
-
+		TradeData item(TRADE_OPEN_BORDERS);
 		if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
 			GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
 		{
@@ -1591,30 +1586,27 @@ void CvTeam::signOpenBorders(TeamTypes eTeam)
 void CvTeam::signDisengage(TeamTypes otherId)
 {
 	CvTeam& other = GET_TEAM(otherId);
-	TradeData item;
-	setTradeItem(&item, TRADE_DISENGAGE);
+	TradeData item(TRADE_DISENGAGE);
 	if (!GET_PLAYER(getLeaderID()).canTradeItem(other.getLeaderID(), item) ||
-			!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
+		!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
+	{
 		return;
+	}
 	CLinkList<TradeData> ourList;
 	CLinkList<TradeData> theirList;
 	ourList.insertAtEnd(item);
 	theirList.insertAtEnd(item);
-	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(),
-			ourList, theirList);
+	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(), ourList, theirList);
 } // </advc.034>
 
 
 void CvTeam::signDefensivePact(TeamTypes eTeam)  // advc: style changes
 {
+	FAssert(eTeam != getID());
 	if (isAtWar(eTeam))
 		return;
 
-	FAssert(eTeam != NO_TEAM);
-	FAssert(eTeam != getID());
-
-	TradeData item;
-	setTradeItem(&item, TRADE_DEFENSIVE_PACT);
+	TradeData item(TRADE_DEFENSIVE_PACT);
 	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
 		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
 	{
@@ -3548,13 +3540,9 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const  // advc: style changes
 {
 	GET_TEAM(eVassal).setVassal(getID(), true, bSurrender);
-
-	TradeData item;
-	setTradeItem(&item, bSurrender ? TRADE_SURRENDER : TRADE_VASSAL);
-	item.m_iData = 1;
 	CLinkList<TradeData> ourList;
 	CLinkList<TradeData> vassalList;
-	vassalList.insertAtEnd(item);
+	vassalList.insertAtEnd(TradeData(bSurrender ? TRADE_SURRENDER : TRADE_VASSAL, 1));
 	for (MemberIter itVassal(eVassal); itVassal.hasNext(); ++itVassal)
 	{
 		for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
@@ -4739,6 +4727,34 @@ bool CvTeam::canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprove
 	return (iHealthOrHappy <= 0 || !kPlot.isOwned() || canPeacefullyEnter(kPlot.getTeam()));
 } // </advc.901>
 
+// advc: Moved from CvGameCoreUtils
+int CvTeam::getEspionageModifier(TeamTypes eTarget) const
+{
+	FAssert(getID() != eTarget);
+	FAssert(!isBarbarian());
+	// K-Mod: This is possible for legitimate reasons (although the result is never important...)
+	//FAssert(eTarget != BARBARIAN_TEAM);
+
+	CvTeam const& kTarget = GET_TEAM(eTarget);
+	/*int iTargetPoints = kTarget.getEspionagePointsEver();
+	int iOurPoints = getEspionagePointsEver();
+	int iModifier = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * (2 * iTargetPoints + iOurPoints);
+	iModifier /= std::max(1, iTargetPoints + 2 * iOurPoints);
+	return iModifier;*/ // BtS
+	/*	K-Mod. Scale the points modifier based on the teams' population.
+		(Note ESPIONAGE_SPENDING_MULTIPLIER is 100 in the default xml.) */
+	int iPopScale = 5 * GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
+	int iTargetPoints = 10 * kTarget.getEspionagePointsEver() /
+			std::max(1, iPopScale + kTarget.getTotalPopulation(false));
+	int iOurPoints = 10 * getEspionagePointsEver() /
+			std::max(1, iPopScale + getTotalPopulation(false));
+	static int const iESPIONAGE_SPENDING_MULTIPLIER = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER"); // advc.opt
+	return iESPIONAGE_SPENDING_MULTIPLIER *
+			std::max(1, 2 * iTargetPoints + iOurPoints) /
+			std::max(1, iTargetPoints + 2 * iOurPoints);
+	// K-Mod end
+}
+
 int CvTeam::getEspionagePointsAgainstTeam(TeamTypes eIndex) const
 {
 	return m_aiEspionagePointsAgainstTeam.get(eIndex);
@@ -5350,7 +5366,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 				* 6) / 8) // advc.131: Makes it 6 per era instead of 8
 				* iChange);
 		kMember.changePower(kTech.getPowerValue() * iChange);
-		kMember.changeTechScore(getTechScore(eTech) * iChange);
+		kMember.changeTechScore(GC.getGame().getTechScore(eTech) * iChange);
 		// K-Mod. Extra commerce for specialist (new xml field)
 		FOR_EACH_ENUM(Commerce)
 		{

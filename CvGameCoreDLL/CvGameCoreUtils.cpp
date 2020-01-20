@@ -4,7 +4,8 @@
 #include "CityPlotIterator.h"
 #include "FAStarNode.h"
 #include "BBAILog.h" // advc.007
-#include "CvInfo_All.h"
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Terrain.h"
 
 using std::vector; // advc
 
@@ -212,11 +213,6 @@ void narrowUnsafe(CvWString const& szWideString, CvString& szNarrowString)
 	szNarrowString = CvString(szWideString);
 }
 
-CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)
-{
-	return (CardinalDirectionTypes)((eDir + 2) % NUM_CARDINALDIRECTION_TYPES);
-}
-
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard)
 {
 	switch (eCard)
@@ -331,305 +327,6 @@ CvUnit* getUnit(IDInfo unit)
 {
 	return AI_getUnit(unit);
 } // </advc.003u>
-
-bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
-{
-	FAssert(pFirstUnit != NULL);
-	FAssert(pSecondUnit != NULL);
-	FAssert(pFirstUnit != pSecondUnit);
-
-	if (pFirstUnit->getOwner() != pSecondUnit->getOwner())
-	{
-		return (pFirstUnit->getOwner() < pSecondUnit->getOwner());
-	}
-
-	if (pFirstUnit->getDomainType() != pSecondUnit->getDomainType())
-	{
-		return (pFirstUnit->getDomainType() < pSecondUnit->getDomainType());
-	}
-
-	/* if (pFirstUnit->baseCombatStr() != pSecondUnit->baseCombatStr())
-	{
-		return (pFirstUnit->baseCombatStr() > pSecondUnit->baseCombatStr());
-	} */ // disabled by K-Mod
-
-	if (pFirstUnit->getUnitType() != pSecondUnit->getUnitType())
-	{
-		return (pFirstUnit->getUnitType() > pSecondUnit->getUnitType());
-	}
-
-	if (pFirstUnit->getLevel() != pSecondUnit->getLevel())
-	{
-		return (pFirstUnit->getLevel() > pSecondUnit->getLevel());
-	}
-
-	if (pFirstUnit->getExperience() != pSecondUnit->getExperience())
-	{
-		return (pFirstUnit->getExperience() > pSecondUnit->getExperience());
-	}
-
-	return (pFirstUnit->getID() < pSecondUnit->getID());
-}
-
-// K-Mod
-// return true if the first unit in the first group comes before the first unit in the second group.
-// (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a penalty.)
-bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
-{
-	FAssert(pSecondGroup != NULL);
-	FAssert(pFirstGroup != pSecondGroup);
-	FAssert(pFirstGroup->atPlot(pSecondGroup->plot()));
-
-	CvPlot* pPlot = pFirstGroup->plot();
-	//int iGroup2Units = pSecondGroup->getNumUnits();
-
-	for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
-		pUnitNode != NULL;// && iGroup2Units > 0
-		pUnitNode = pPlot->nextUnitNode(pUnitNode))
-	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit->getGroup() == pFirstGroup)
-			return true;
-		if (pLoopUnit->getGroup() == pSecondGroup)
-			return false;
-			//iGroup2Units--;
-	}
-
-	FAssert(false);
-	return false;
-}
-
-// return the 'cost' of cycling from pFirstGroup to pSecondGroup. (eg. a big jump to a differnet type of unit, then it should be a high cost.)
-int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
-{
-	FAssert(pFirstGroup != pSecondGroup);
-
-	CvUnit* pFirstHead = pFirstGroup->getHeadUnit();
-	CvUnit* pSecondHead = pSecondGroup->getHeadUnit();
-
-	FAssert(pFirstHead && pSecondHead);
-
-	const int iBaseScale = 4;
-	int iPenalty = 0;
-	if (pFirstHead->getUnitType() != pSecondHead->getUnitType())
-	{	/*  <advc.075> When a unit in cargo is told to skip its turn, we want
-			the ship to be selected before its cargo on the next turn.
-			(Or would it be better to do this through isBeforeGroupOnPlot?) */
-		if(pFirstHead->isHuman() && pFirstHead->isCargo() != pSecondHead->isCargo())
-			iPenalty += 5;
-		else // </advc.075>
-			if (pFirstHead->canFight() != pSecondHead->canFight())
-			iPenalty += 4;
-		else
-		{
-			if (pFirstHead->canFight())
-			{
-				if (pFirstHead->getUnitCombatType() != pSecondHead->getUnitCombatType())
-					iPenalty += 2;
-				if (pFirstHead->canAttack() != pSecondHead->canAttack()
-						// <advc.315>
-						|| pFirstHead->getUnitInfo().isMostlyDefensive() !=
-						pSecondHead->getUnitInfo().isMostlyDefensive())
-						// </advc.315>
-					iPenalty += 1;
-			}
-			else
-				iPenalty += 2;
-		}
-	}
-
-	int iDistance = plotDistance(pFirstHead->getX(), pFirstHead->getY(), pSecondHead->getX(), pSecondHead->getY());
-	iPenalty = std::min(5, iPenalty * (1+iDistance) / iBaseScale);
-
-	// For human players, use the unit order that the plot actually has, not the order it _should_ have.
-	// For AI players, use the preferred ordering, because it's slightly faster.
-	if (iDistance == 0 && !(pFirstHead->isHuman() ? isBeforeGroupOnPlot(pFirstGroup, pSecondGroup) : isBeforeUnitCycle(pFirstHead, pSecondHead)))
-		iPenalty += iPenalty > 0 ? 1 : 5;
-
-	return iDistance + iPenalty;
-}
-// K-Mod end
-
-bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
-{
-	CvUnitInfo& kUnit = GC.getInfo(eUnit);
-	CvPromotionInfo& kPromotion = GC.getInfo(ePromotion);
-
-	if (kUnit.getFreePromotions(ePromotion))
-	{
-		return true;
-	}
-
-	if (kUnit.getUnitCombatType() == NO_UNITCOMBAT)
-	{
-		return false;
-	}
-
-	if (!bLeader && kPromotion.isLeader())
-	{
-		return false;
-	}
-
-	if (!kPromotion.getUnitCombat(kUnit.getUnitCombatType()))
-	{
-		return false;
-	}
-
-	if (kUnit.isOnlyDefensive())
-	{
-		if (kPromotion.getCityAttackPercent() != 0 ||
-			  kPromotion.getWithdrawalChange() != 0 ||
-			  kPromotion.getCollateralDamageChange() != 0 ||
-			  kPromotion.//isBlitz()
-				getBlitz() != 0 || // advc.164
-			  kPromotion.isAmphib() ||
-			  kPromotion.isRiver() ||
-			  kPromotion.getHillsAttackPercent() != 0)
-		{
-			return false;
-		}
-	}
-
-	if (kUnit.isIgnoreTerrainCost())
-	{
-		if (kPromotion.getMoveDiscountChange() != 0)
-		{
-			return false;
-		}
-	}
-	// advc.164: Check this in CvUnit::isPromotionValid instead
-	/*if (kUnit.getMoves() == 1) {
-		if (kPromotion.isBlitz())
-			return false;
-	}*/
-
-	if ((kUnit.getCollateralDamage() == 0) || (kUnit.getCollateralDamageLimit() == 0) || (kUnit.getCollateralDamageMaxUnits() == 0))
-	{
-		if (kPromotion.getCollateralDamageChange() != 0)
-		{
-			return false;
-		}
-	}
-
-	if (kUnit.getInterceptionProbability() == 0)
-	{
-		if (kPromotion.getInterceptChange() != 0)
-		{
-			return false;
-		}
-	}
-
-	if (NO_PROMOTION != kPromotion.getPrereqPromotion())
-	{
-		if (!isPromotionValid((PromotionTypes)kPromotion.getPrereqPromotion(), eUnit, bLeader))
-		{
-			return false;
-		}
-	}
-
-	PromotionTypes ePrereq1 = (PromotionTypes)kPromotion.getPrereqOrPromotion1();
-	PromotionTypes ePrereq2 = (PromotionTypes)kPromotion.getPrereqOrPromotion2();	
-	/*if (NO_PROMOTION != ePrereq1 || NO_PROMOTION != ePrereq2) {
-		bool bValid = false;
-		if (!bValid) {
-			if (NO_PROMOTION != ePrereq1 && isPromotionValid(ePrereq1, eUnit, bLeader))
-				bValid = true;
-		}
-		if (!bValid) {
-			if (NO_PROMOTION != ePrereq2 && isPromotionValid(ePrereq2, eUnit, bLeader))
-				bValid = true;
-		}*/ // BtS
-	// K-Mod, 14/jan/11: third optional preq.
-	PromotionTypes ePrereq3 = (PromotionTypes)kPromotion.getPrereqOrPromotion3();
-	if (ePrereq1 != NO_PROMOTION || ePrereq2 != NO_PROMOTION || ePrereq3 != NO_PROMOTION)
-	{
-		bool bValid = false;
-
-		if (ePrereq1 != NO_PROMOTION && isPromotionValid(ePrereq1, eUnit, bLeader))
-			bValid = true;
-		if (ePrereq2 != NO_PROMOTION && isPromotionValid(ePrereq2, eUnit, bLeader))
-			bValid = true;
-		if (ePrereq3 != NO_PROMOTION && isPromotionValid(ePrereq3, eUnit, bLeader))
-			bValid = true;
-
-		if (!bValid)
-		{
-			return false;
-		}
-	}
-	// K-Mod end
-	return true;
-}
-
-int getPopulationAsset(int iPopulation)
-{
-	return iPopulation * 2;
-}
-
-int getLandPlotsAsset(int iLandPlots)
-{
-	return iLandPlots;
-}
-
-int getPopulationPower(int iPopulation)
-{
-	return iPopulation / 2;
-}
-
-int getPopulationScore(int iPopulation)
-{
-	return iPopulation;
-}
-
-int getLandPlotsScore(int iLandPlots)
-{
-	return iLandPlots;
-}
-
-int getTechScore(TechTypes eTech)
-{
-	return GC.getInfo(eTech).getEra() + 1;
-}
-
-int getWonderScore(BuildingClassTypes eWonderClass)
-{
-	if (GC.getInfo(eWonderClass).isLimited())
-		return 5;
-	return 0;
-}
-
-/*ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount) {
-	FAssertMsg(eImprovement != NO_IMPROVEMENT, "Improvement is not assigned a valid value");
-	if (iCount > GC.getNumImprovementInfos())
-		return NO_IMPROVEMENT;
-	if (GC.getInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
-		return finalImprovementUpgrade(((ImprovementTypes)(GC.getInfo(eImprovement).getImprovementUpgrade())), (iCount + 1));
-	else return eImprovement;
-}*/ // BtS
-// K-Mod
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement)
-{
-	if (eImprovement == NO_IMPROVEMENT)
-		return NO_IMPROVEMENT;
-
-	FAssert(eImprovement < GC.getNumImprovementInfos());
-
-	int iLoopDetector = GC.getNumImprovementInfos();
-
-	while (GC.getInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT && --iLoopDetector > 0)
-		eImprovement = (ImprovementTypes)GC.getInfo(eImprovement).getImprovementUpgrade();
-
-	return iLoopDetector == 0 ? NO_IMPROVEMENT : eImprovement;
-}
-// K-Mod end
-
-int getWorldSizeMaxConscript(CivicTypes eCivic)
-{
-	int iMaxConscript = GC.getInfo(eCivic).getMaxConscript();
-	iMaxConscript *= std::max(0, GC.getInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100);
-	iMaxConscript /= 100;
-	return iMaxConscript;
-}
 
 // FUNCTION: getBinomialCoefficient
 // Needed for getCombatOdds
@@ -943,32 +640,6 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 }
 // K-Mod end
 
-int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
-{
-	FAssert(eOurTeam != eTargetTeam);
-	FAssert(eOurTeam != BARBARIAN_TEAM);
-	// FAssert(eTargetTeam != BARBARIAN_TEAM); // K-Mod note. This is possible for legitimate reasons (although, the result is never important...)
-
-	/*int iTargetPoints = GET_TEAM(eTargetTeam).getEspionagePointsEver();
-	int iOurPoints = GET_TEAM(eOurTeam).getEspionagePointsEver();
-	int iModifier = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * (2 * iTargetPoints + iOurPoints);
-	iModifier /= std::max(1, iTargetPoints + 2 * iOurPoints);
-	return iModifier;*/ // BtS
-	// K-Mod. Scale the points modifier based on the teams' population. (Note ESPIONAGE_SPENDING_MULTIPLIER is 100 in the default xml.)
-	const CvTeam& kOurTeam = GET_TEAM(eOurTeam);
-	const CvTeam& kTargetTeam = GET_TEAM(eTargetTeam);
-
-	int iPopScale = 5 * GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
-	int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
-	int iOurPoints = 10 * kOurTeam.getEspionagePointsEver() / std::max(1, iPopScale + kOurTeam.getTotalPopulation(false));
-	static int const iESPIONAGE_SPENDING_MULTIPLIER = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER"); // advc.opt
-	return iESPIONAGE_SPENDING_MULTIPLIER *
-			std::max(1, 2 * iTargetPoints + iOurPoints) /
-			std::max(1, iTargetPoints + 2 * iOurPoints);
-	// K-Mod end
-}
-
-
 void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 {
 	pItem->m_eItemType = eItemType;
@@ -978,123 +649,27 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 }
 
 
-bool isPlotEventTrigger(EventTriggerTypes eTrigger)
-{
-	CvEventTriggerInfo& kTrigger = GC.getInfo(eTrigger);
-
-	if (kTrigger.getNumPlotsRequired() > 0)
-	{
-		if (kTrigger.getPlotType() != NO_PLOT)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumFeaturesRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumTerrainsRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumImprovementsRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumBonusesRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumRoutesRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.isUnitsOnPlot() && kTrigger.getNumUnitsRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.isPrereqEventCity() && !kTrigger.isPickCity())
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-TechTypes getDiscoveryTech(UnitTypes eUnit, PlayerTypes ePlayer)
-{
-	TechTypes eBestTech = NO_TECH;
-	int iBestValue = 0;
-
-	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-	{
-		if (GET_PLAYER(ePlayer).canResearch((TechTypes)iI))
-		{
-			int iValue = 0;
-
-			for (int iJ = 0; iJ < GC.getNumFlavorTypes(); iJ++)
-			{
-				iValue += (GC.getInfo((TechTypes) iI).getFlavorValue(iJ) * GC.getInfo(eUnit).getFlavorValue(iJ));
-			}
-
-			if (iValue > iBestValue)
-			{
-				iBestValue = iValue;
-				eBestTech = ((TechTypes)iI);
-			}
-		}
-	}
-
-	return eBestTech;
-}
-
-
 void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
-	{
 		wcscat(szBuffer, szStart);
-	}
-	else
-	{
-		wcscat(szBuffer, szSeparator);
-	}
-
+	else wcscat(szBuffer, szSeparator);
 	wcscat(szBuffer, szItem);
 }
 
 void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
-	{
 		szBuffer += szStart;
-	}
-	else
-	{
-		szBuffer += szSeparator;
-	}
-
+	else szBuffer += szSeparator;
 	szBuffer += szItem;
 }
 
 void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
-	{
 		szBuffer.append(szStart);
-	}
-	else
-	{
-		szBuffer.append(szSeparator);
-	}
-
+	else szBuffer.append(szSeparator);
 	szBuffer.append(szItem);
 }
 

@@ -1153,8 +1153,7 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 			if (!kToMember.isAlive() || kToMember.getTeam() != eToTeam)
 				continue;
 
-			TradeData item;
-			setTradeItem(&item, eItem, 1);
+			TradeData item(eItem, 1);
 			CLinkList<TradeData> ourList;
 			ourList.insertAtEnd(item);
 			CLinkList<TradeData> theirList;

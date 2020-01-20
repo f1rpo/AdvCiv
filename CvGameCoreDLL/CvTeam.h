@@ -429,6 +429,7 @@ public:
 	bool canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprovement,
 			bool bHealth) const; // </advc.901>
 
+	int getEspionageModifier(TeamTypes eTarget) const;								// Exposed to Python (though CyGameCoreUtils)
 	int getEspionagePointsAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
 	void setEspionagePointsAgainstTeam(TeamTypes eIndex, int iValue);																							// Exposed to Python
 	void changeEspionagePointsAgainstTeam(TeamTypes eIndex, int iChange);																				// Exposed to Python

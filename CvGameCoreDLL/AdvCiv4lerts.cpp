@@ -382,8 +382,7 @@ void CityTradeAlert::check()
 				FOR_EACH_CITY(pCity, kPlayer)
 				{
 					int iCity = pCity->getID();
-					TradeData item;
-					::setTradeItem(&item, TRADE_CITIES, iCity);
+					TradeData item(TRADE_CITIES, iCity);
 					if(kPlayer.canTradeItem(kAlertPlayer.getID(), item, true))
 					{
 						// When at war, check if they'd actually cede the city for peace.
@@ -391,8 +390,7 @@ void CityTradeAlert::check()
 						{
 							CLinkList<TradeData> alertPlayerGives;
 							CLinkList<TradeData> alertPlayerReceives;
-							TradeData peaceTreaty;
-							::setTradeItem(&peaceTreaty, TRADE_PEACE_TREATY);
+							TradeData peaceTreaty(TRADE_PEACE_TREATY);
 							alertPlayerGives.insertAtEnd(peaceTreaty);
 							alertPlayerReceives.insertAtEnd(peaceTreaty);
 							alertPlayerReceives.insertAtEnd(item);
@@ -412,9 +410,8 @@ void CityTradeAlert::check()
 				FOR_EACH_CITY(pCity, kAlertPlayer)
 				{
 					int iCity = pCity->getID();
-					TradeData item;
-					::setTradeItem(&item, TRADE_CITIES, iCity);
-					if(kAlertPlayer.canTradeItem(kPlayer.getID(), item, true))
+					if(kAlertPlayer.canTradeItem(kPlayer.getID(), TradeData(
+						TRADE_CITIES, iCity), true))
 					{
 						bool bLiberate = (pCity->getLiberationPlayer() == kPlayer.getID());
 						if(bLiberate)

@@ -1017,11 +1017,6 @@ int CvImprovementInfo::getImprovementPillage() const
 	return m_iImprovementPillage;
 }
 
-int CvImprovementInfo::getImprovementUpgrade() const
-{
-	return m_iImprovementUpgrade;
-}
-
 const TCHAR* CvImprovementInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
@@ -1152,6 +1147,24 @@ int CvImprovementInfo::getImprovementBonusDiscoverRand(int i) const
 	FAssertBounds(0, GC.getNumBonusInfos(), i);
 	return m_paImprovementBonus[i].m_iDiscoverRand;
 }
+
+/*ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount) {
+	if (iCount > GC.getNumImprovementInfos())
+		return NO_IMPROVEMENT;
+	if (getImprovementUpgrade() != NO_IMPROVEMENT)
+		return finalImprovementUpgrade(((ImprovementTypes)getImprovementUpgrade()), iCount + 1);
+	else return eImprovement;
+}*/ // BtS
+// K-Mod (I've removed iCount here, and in the python defs. It's a meaningless parameter.)
+ImprovementTypes CvImprovementInfo::finalUpgrade(ImprovementTypes eImprov)
+{
+	if (eImprov == NO_IMPROVEMENT)
+		return NO_IMPROVEMENT;
+	int iLoopDetector = GC.getNumImprovementInfos();
+	while (GC.getInfo(eImprov).getImprovementUpgrade() != NO_IMPROVEMENT && --iLoopDetector > 0)
+		eImprov = (ImprovementTypes)GC.getInfo(eImprov).getImprovementUpgrade();
+	return (iLoopDetector == 0 ? NO_IMPROVEMENT : eImprov);
+} // K-Mod end
 
 const TCHAR* CvImprovementInfo::getButton() const
 {

@@ -628,24 +628,22 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			}
 			else
 			{
-				TradeData item;
-				setTradeItem(&item, TRADE_RESOURCES, pPopupReturn->getButtonClicked());
-
 				CLinkList<TradeData> ourList;
 				CLinkList<TradeData> theirList;
-				theirList.insertAtEnd(item);
-
+				theirList.insertAtEnd(TradeData(
+						TRADE_RESOURCES, pPopupReturn->getButtonClicked()));
 				if (GET_PLAYER(eVassal).AI_considerOffer(g.getActivePlayer(), ourList, theirList))
 				{
 					gDLL->sendImplementDealMessage(eVassal, &ourList, &theirList);
 
-					CvWString szBuffer = gDLL->getText("TXT_KEY_VASSAL_GRANT_TRIBUTE_ACCEPTED", GET_PLAYER(eVassal).getNameKey(), GET_PLAYER(g.getActivePlayer()).getNameKey(), GC.getInfo((BonusTypes)pPopupReturn->getButtonClicked()).getTextKeyWide());
-					gDLL->getInterfaceIFace()->addMessage(g.getActivePlayer(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer);
+					CvWString szBuffer = gDLL->getText("TXT_KEY_VASSAL_GRANT_TRIBUTE_ACCEPTED",
+							GET_PLAYER(eVassal).getNameKey(),
+							GET_PLAYER(g.getActivePlayer()).getNameKey(),
+							GC.getInfo((BonusTypes)pPopupReturn->getButtonClicked()).getTextKeyWide());
+					gDLL->getInterfaceIFace()->addMessage(g.getActivePlayer(), false,
+							GC.getEVENT_MESSAGE_TIME(), szBuffer);
 				}
-				else
-				{
-					CvMessageControl::getInstance().sendChangeWar(GET_PLAYER(eVassal).getTeam(), true);
-				}
+				else CvMessageControl::getInstance().sendChangeWar(TEAMID(eVassal), true);
 			}
 		}
 		break;
@@ -662,12 +660,17 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 
 			gDLL->sendImplementDealMessage((PlayerTypes)info.getData1(), &ourList, &theirList);
 
-			CvWString szBuffer = gDLL->getText("TXT_KEY_VASSAL_GRANT_TRIBUTE_ACCEPTED", GET_PLAYER(g.getActivePlayer()).getNameKey(), GET_PLAYER((PlayerTypes)info.getData1()).getNameKey(), GC.getInfo((BonusTypes)info.getData2()).getTextKeyWide());
-			gDLL->getInterfaceIFace()->addMessage((PlayerTypes)info.getData1(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer);
+			CvWString szBuffer = gDLL->getText("TXT_KEY_VASSAL_GRANT_TRIBUTE_ACCEPTED",
+					GET_PLAYER(g.getActivePlayer()).getNameKey(),
+					GET_PLAYER((PlayerTypes)info.getData1()).getNameKey(),
+					GC.getInfo((BonusTypes)info.getData2()).getTextKeyWide());
+			gDLL->getInterfaceIFace()->addMessage((PlayerTypes)info.getData1(), false,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer);
 		}
 		else
 		{
-			CvMessageControl::getInstance().sendChangeWar(GET_PLAYER((PlayerTypes)info.getData1()).getTeam(), true);
+			CvMessageControl::getInstance().sendChangeWar(
+					TEAMID((PlayerTypes)info.getData1()), true);
 		}
 
 		break;
@@ -691,30 +694,35 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		else if (-1 != pPopupReturn->getButtonClicked())
 		{
-			CvMessageControl::getInstance().sendEventTriggered(g.getActivePlayer(), (EventTypes)pPopupReturn->getButtonClicked(), info.getData1());
+			CvMessageControl::getInstance().sendEventTriggered(g.getActivePlayer(),
+					(EventTypes)pPopupReturn->getButtonClicked(), info.getData1());
 		}
 		break;
 
 	case BUTTONPOPUP_FREE_COLONY:
 		if (pPopupReturn->getButtonClicked() > 0)
 		{
-			CvMessageControl::getInstance().sendEmpireSplit(g.getActivePlayer(), pPopupReturn->getButtonClicked());
+			CvMessageControl::getInstance().sendEmpireSplit(
+					g.getActivePlayer(), pPopupReturn->getButtonClicked());
 		}
 		else if (pPopupReturn->getButtonClicked() < 0)
 		{
-			CvMessageControl::getInstance().sendDoTask(-pPopupReturn->getButtonClicked(), TASK_LIBERATE, 0, -1, false, false, false, false);
+			CvMessageControl::getInstance().sendDoTask(-pPopupReturn->getButtonClicked(),
+					TASK_LIBERATE, 0, -1, false, false, false, false);
 		}
 		break;
 
 	case BUTTONPOPUP_LAUNCH:
 		if (pPopupReturn->getButtonClicked() == 0)
 		{
-			CvMessageControl::getInstance().sendLaunch(g.getActivePlayer(), (VictoryTypes)info.getData1());
+			CvMessageControl::getInstance().sendLaunch(
+					g.getActivePlayer(), (VictoryTypes)info.getData1());
 		}
 		break;
 
 	case BUTTONPOPUP_FOUND_RELIGION:
-		CvMessageControl::getInstance().sendFoundReligion(g.getActivePlayer(), (ReligionTypes)pPopupReturn->getButtonClicked(), (ReligionTypes)info.getData1());
+		CvMessageControl::getInstance().sendFoundReligion(g.getActivePlayer(), (ReligionTypes)
+				pPopupReturn->getButtonClicked(), (ReligionTypes)info.getData1());
 		break;
 	// <advc.706>
 	case BUTTONPOPUP_RF_CHOOSECIV:
@@ -745,7 +753,8 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 	case BUTTONPOPUP_CHOOSETECH:
 		if (info.getData1() == 0)
 		{
-			if ((GET_PLAYER(GC.getGame().getActivePlayer()).getCurrentResearch() != NO_TECH) || (GC.getGame().getGameState() == GAMESTATE_OVER))
+			if (GET_PLAYER(GC.getGame().getActivePlayer()).getCurrentResearch() != NO_TECH ||
+				GC.getGame().getGameState() == GAMESTATE_OVER)
 			{
 				gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
 			}
@@ -759,8 +768,10 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 
 	case BUTTONPOPUP_CHANGERELIGION:
 		if (!GET_PLAYER(GC.getGame().getActivePlayer()).canChangeReligion() ||
-				GC.getGame().getGameState() == GAMESTATE_OVER)
+			GC.getGame().getGameState() == GAMESTATE_OVER)
+		{
 			gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
+		}
 		break;
 
 	case BUTTONPOPUP_CHOOSEPRODUCTION:
@@ -2485,9 +2496,8 @@ bool CvDLLButtonPopup::launchVassalDemandTributePopup(CvPopup* pPopup, CvPopupIn
 		{
 			//if (kVassal.getNumTradeableBonuses((BonusTypes)iBonus) > 0 && GET_PLAYER(GC.getGame().getActivePlayer()).getNumAvailableBonuses((BonusTypes)iBonus) == 0)
 			// <advc.036> Replacing the above
-			TradeData item;
-			::setTradeItem(&item, TRADE_RESOURCES, iBonus);
-			if(kVassal.canTradeItem(g.getActivePlayer(), item, true)) // </advc.036>
+			if(kVassal.canTradeItem(g.getActivePlayer(), TradeData(
+				TRADE_RESOURCES, iBonus), true)) // </advc.036>
 			{
 				CvBonusInfo& info = GC.getInfo((BonusTypes)iBonus);
 				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,

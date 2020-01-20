@@ -389,7 +389,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	inline int getHappiness() const { return m_iHappiness; }
 	int getPillageGold() const;
 	int getImprovementPillage() const;
-	int getImprovementUpgrade() const;
+	int getImprovementUpgrade() const { return m_iImprovementUpgrade; }
 
 	inline bool isActsAsCity() const { return m_bActsAsCity; }
 	inline bool isHillsMakesValid() const { return m_bHillsMakesValid; }
@@ -439,6 +439,12 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	bool isImprovementBonusMakesValid(int i) const;
 	bool isImprovementBonusTrade(int i) const;
 	int getImprovementBonusDiscoverRand(int i) const;
+
+	/*	advc.003w: Moved from CvGameCoreUtils; still exposed to Python through CyGameCoreUtils.
+		Reanmed from "finalImprovementUpgrade".
+		Can't turn it into a non-static function b/c a CvImprovementInfo object
+		doesn't know its own ImprovementTypes id. */
+	static ImprovementTypes finalUpgrade(ImprovementTypes eImprov);
 
 	const TCHAR* getButton() const;
 	DllExport const CvArtInfoImprovement* getArtInfo() const;

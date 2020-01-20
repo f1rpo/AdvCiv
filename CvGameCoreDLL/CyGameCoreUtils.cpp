@@ -1,13 +1,15 @@
 #include "CvGameCoreDLL.h"
 #include "CyGameCoreUtils.h"
-#include "CvGameCoreUtils.h"
-/*  <advc.make> (would be nicer to move the respective functions to the
+/*  <advc.make> (Would be nicer to move the respective functions to the
 	Python interface of CvMap) */
 #include "CvMap.h"
 #include "CvCity.h" // </advc.make>
-// <advc> For functions moved from CvGameCoreUtils to CvInfos
+// <advc>
+#include "CvTeam.h" // (Would be nicer to expose getEspionageModifier through CyTeam)
+// For functions moved from CvGameCoreUtils to CvInfos
 #include "CvInfo_Unit.h"
-#include "CvInfo_Building.h" // </advc>
+#include "CvInfo_Building.h"
+#include "CvInfo_Terrain.h" // </advc>
 
 int cyIntRange(int iNum, int iLow, int iHigh)
 {
@@ -134,55 +136,42 @@ CyUnit* cyGetUnit(IDInfo unit)
 	return new CyUnit(getUnit(unit));
 }
 
-bool cyIsPromotionValid(int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader)
-{
-	return isPromotionValid((PromotionTypes) ePromotion, (UnitTypes) eUnit, bLeader);
-}
-
-int cyGetPopulationAsset(int iPopulation)
-{
+// advc: No longer exposed to Python. Tbd. (perhaps): Expose them through CyGame.
+/*int cyGetPopulationAsset(int iPopulation) {
 	return getPopulationAsset(iPopulation);
 }
-
-int cyGetLandPlotsAsset(int iLandPlots)
-{
+int cyGetLandPlotsAsset(int iLandPlots) {
 	return getLandPlotsAsset(iLandPlots);
 }
-
-int cyGetPopulationPower(int iPopulation)
-{
+int cyGetPopulationPower(int iPopulation) {
 	return getPopulationPower(iPopulation);
 }
-
-int cyGetPopulationScore(int iPopulation)
-{
+int cyGetPopulationScore(int iPopulation) {
 	return getPopulationScore(iPopulation);
 }
-
-int cyGetLandPlotsScore(int iPopulation)
-{
+int cyGetLandPlotsScore(int iPopulation) {
 	return getLandPlotsScore(iPopulation);
 }
-
-int cyGetTechScore(int /*TechTypes*/ eTech)
-{
+int cyGetTechScore(int eTech) {
 	return getTechScore((TechTypes)eTech);
 }
-
-int cyGetWonderScore(int /*BuildingClassTypes*/ eWonderClass)
-{
+int cyGetWonderScore(int eWonderClass) {
 	return getWonderScore((BuildingClassTypes)eWonderClass);
+}*/
+
+bool cyIsPromotionValid(int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader)
+{
+	return GC.getInfo((UnitTypes)eUnit).isPromotionValid((PromotionTypes)ePromotion, bLeader);
 }
 
 int /*ImprovementTypes*/ cyFinalImprovementUpgrade(int /*ImprovementTypes*/ eImprovement)
 {
-	return finalImprovementUpgrade((ImprovementTypes) eImprovement);
+	return CvImprovementInfo::finalUpgrade((ImprovementTypes)eImprovement);
 }
 
-int cyGetWorldSizeMaxConscript(int /*CivicTypes*/ eCivic)
-{
+/*int cyGetWorldSizeMaxConscript(int eCivic) {
 	return getWorldSizeMaxConscript((CivicTypes) eCivic);
-}
+}*/ // advc: No longer exposed to Python
 
 bool cyIsReligionTech(int /*TechTypes*/ eTech)
 {
@@ -267,6 +256,6 @@ int cyGetCombatOdds(CyUnit* pAttacker, CyUnit* pDefender)
 
 int cyGetEspionageModifier(int iOurTeam, int iTargetTeam)
 {
-	return getEspionageModifier((TeamTypes)iOurTeam, (TeamTypes)iTargetTeam);
+	return CvTeam::getTeam((TeamTypes)iOurTeam).getEspionageModifier((TeamTypes)iTargetTeam);
 }
 

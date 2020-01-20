@@ -75,8 +75,10 @@ public:
 	int maxMoves() const; // K-Mod
 	int movesLeft() const; // K-Mod
 	bool isWaiting() const;																																							// Exposed to Python
-	// advc.make: Cut from CvGameCoreUtils
-	inline bool isCycleGroup() const { return getNumUnits() > 0 && !isWaiting() && !isAutomated(); } // K-Mod
+	// <advc> K-Mod functions moved from CvGameCoreUtils. (Kept isCycleGroup inlined as in K-Mod.)
+	inline bool isCycleGroup() const { return getNumUnits() > 0 && !isWaiting() && !isAutomated(); }
+	bool isBeforeGroupOnPlot(CvSelectionGroup const& kOther) const;
+	int groupCycleDistance(CvSelectionGroup const& kOther) const; // </advc>
 	bool isFull() const;																																											// Exposed to Python
 	bool hasCargo() const;																																										// Exposed to Python
 	int getCargo() const;

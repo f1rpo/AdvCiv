@@ -1415,9 +1415,17 @@ bool CvPlot::canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange, // adv
 }
 
 
-bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy, int originalDX, int originalDY, bool firstPlot, bool outerRing) const  // advc: some style changes
+namespace
 {
-	CvPlot* pPlot = ::plotXY(getX(), getY(), dx, dy);
+	//sign function taken from FirePlace - JW
+	//template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); }
+	// advc: Moved from CvGameCoreUtils.h b/c it was only used here. Then replaced with:
+	inline int getSign(int x) { return (x > 0) - (x < 0); }
+}
+bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,		// advc: some style changes
+	int originalDX, int originalDY, bool firstPlot, bool outerRing) const
+{
+	CvPlot const* pPlot = ::plotXY(getX(), getY(), dx, dy);
 	if (pPlot == NULL)
 		return false;
 
@@ -1432,7 +1440,6 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy, int origina
 	// -------------
 	// | E | 1 | 3 |
 	// -------------
-
 	int displacements[3][2] = {
 		{dx - getSign(dx), dy - getSign(dy)},
 		{dx - getSign(dx), dy},
@@ -1449,20 +1456,20 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy, int origina
 	}
 
 	//iterate through all minimum plots to see if any of them are passable
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		int nextDX = displacements[i][0];
 		int nextDY = displacements[i][1];
-		if(nextDX != dx || nextDY != dy) //make sure we change plots
+		if (nextDX != dx || nextDY != dy) //make sure we change plots
 		{
-			if(allClosest[i] == closest && canSeeDisplacementPlot(
+			if (allClosest[i] == closest && canSeeDisplacementPlot(
 				eTeam, nextDX, nextDY, originalDX, originalDY, false, false))
 			{
 				int fromLevel = seeFromLevel(eTeam);
 				int throughLevel = pPlot->seeThroughLevel();
-				if(outerRing) //check strictly higher level
+				if (outerRing) //check strictly higher level
 				{
-					CvPlot* passThroughPlot = ::plotXY(getX(), getY(), nextDX, nextDY);
+					CvPlot const* passThroughPlot = ::plotXY(getX(), getY(), nextDX, nextDY);
 					int passThroughLevel = passThroughPlot->seeThroughLevel();
 					if (fromLevel >= passThroughLevel)
 					{
@@ -1473,9 +1480,9 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy, int origina
 				}
 				else
 				{
-					if(fromLevel >= throughLevel) //we can clearly see this level
+					if (fromLevel >= throughLevel) //we can clearly see this level
 						return true;
-					else if(firstPlot) //we can also see it if it is the first plot that is too tall
+					else if (firstPlot) //we can also see it if it is the first plot that is too tall
 						return true;
 				}
 			}
@@ -1874,10 +1881,11 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 			if (getImprovementType() == eImprovement)
 				return false;
 
-			ImprovementTypes eFinalImprovementType = finalImprovementUpgrade(getImprovementType());
+			ImprovementTypes eFinalImprovementType = CvImprovementInfo::
+					finalUpgrade(getImprovementType());
 			if (eFinalImprovementType != NO_IMPROVEMENT)
 			{
-				if (eFinalImprovementType == finalImprovementUpgrade(eImprovement))
+				if (eFinalImprovementType == CvImprovementInfo::finalUpgrade(eImprovement))
 					return false;
 			}
 		}
@@ -6590,22 +6598,22 @@ CvUnit* CvPlot::getUnitByIndex(int iIndex) const
 }
 
 
-void CvPlot::addUnit(CvUnit* pUnit, bool bUpdate)
+void CvPlot::addUnit(CvUnit const& kUnit, bool bUpdate) // advc: const reference param
 {
-	FAssert(pUnit->at(getX(), getY()));
+	FAssert(kUnit.at(getX(), getY()));
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (!isBeforeUnitCycle(pLoopUnit, pUnit))
+		CvUnit const& kLoopUnit = *::getUnit(pUnitNode->m_data);
+		if (!kLoopUnit.isBeforeUnitCycle(kUnit))
 			break;
 		pUnitNode = nextUnitNode(pUnitNode);
 	}
 
 	if (pUnitNode != NULL)
-		m_units.insertBefore(pUnit->getIDInfo(), pUnitNode);
-	else m_units.insertAtEnd(pUnit->getIDInfo());
+		m_units.insertBefore(kUnit.getIDInfo(), pUnitNode);
+	else m_units.insertAtEnd(kUnit.getIDInfo());
 
 	if (bUpdate)
 	{
@@ -6932,7 +6940,8 @@ void CvPlot::processArea(CvArea& kArea, int iChange)  // advc: style changes
 		return;
 
 	// XXX make sure all of this (esp. the changePower()) syncs up...
-	kArea.changePower(pCity->getOwner(), (getPopulationPower(pCity->getPopulation()) * iChange));
+	kArea.changePower(pCity->getOwner(), iChange *
+			GC.getGame().getPopulationPower(pCity->getPopulation()));
 
 	kArea.changeCitiesPerPlayer(pCity->getOwner(), iChange);
 	// <advc.030b>
@@ -7555,7 +7564,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 				eImprovement = eUpgradeImprovement;*/
 			// <k146> Replacing the above
 			// stuff that. Just use 2 levels.
-			ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eImprovement);
+			ImprovementTypes eFinalImprovement = CvImprovementInfo::finalUpgrade(eImprovement);
 			if (eFinalImprovement != NO_IMPROVEMENT)
 				eImprovement = eFinalImprovement;
 			// </k146>
@@ -7594,7 +7603,7 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 
 bool CvPlot::canTrigger(EventTriggerTypes eTrigger, PlayerTypes ePlayer) const
 {
-	FAssert(::isPlotEventTrigger(eTrigger));
+	FAssert(GC.getInfo(eTrigger).isPlotEventTrigger());
 
 	CvEventTriggerInfo& kTrigger = GC.getInfo(eTrigger);
 	if (kTrigger.isOwnPlot() && getOwner() != ePlayer)

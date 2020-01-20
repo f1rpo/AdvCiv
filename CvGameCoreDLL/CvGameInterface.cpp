@@ -2671,11 +2671,9 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 		{
 			CLinkList<TradeData> playerList;
 			CLinkList<TradeData> loopPlayerList;
-			TradeData kTradeData;
-			setTradeItem(&kTradeData, TRADE_PEACE_TREATY);
-			playerList.insertAtEnd(kTradeData);
-			loopPlayerList.insertAtEnd(kTradeData);
-
+			TradeData peaceTreaty(TRADE_PEACE_TREATY);
+			playerList.insertAtEnd(peaceTreaty);
+			loopPlayerList.insertAtEnd(peaceTreaty);
 			gDLL->sendImplementDealMessage(eOtherPlayer, &playerList, &loopPlayerList);
 		}
 	}

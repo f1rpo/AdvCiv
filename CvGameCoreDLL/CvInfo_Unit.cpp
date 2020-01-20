@@ -556,6 +556,91 @@ int CvUnitInfo::getLeaderExperience() const
 	return m_iLeaderExperience;
 }
 
+bool CvUnitInfo::isPromotionValid(PromotionTypes ePromotion, bool bLeader) const
+{
+	CvPromotionInfo& kPromotion = GC.getInfo(ePromotion);
+
+	if (getFreePromotions(ePromotion))
+		return true;
+
+	if (getUnitCombatType() == NO_UNITCOMBAT)
+		return false;
+
+	if (!bLeader && kPromotion.isLeader())
+		return false;
+
+	if (!kPromotion.getUnitCombat(getUnitCombatType()))
+		return false;
+
+	if (isOnlyDefensive())
+	{
+		if (kPromotion.getCityAttackPercent() != 0 ||
+			kPromotion.getWithdrawalChange() != 0 ||
+			kPromotion.getCollateralDamageChange() != 0 ||
+			kPromotion./*isBlitz()*/getBlitz() != 0 || // advc.164
+			kPromotion.isAmphib() ||
+			kPromotion.isRiver() ||
+			kPromotion.getHillsAttackPercent() != 0)
+		{
+			return false;
+		}
+	}
+
+	if (isIgnoreTerrainCost() && kPromotion.getMoveDiscountChange() != 0)
+		return false;
+	// advc.164: Check this in CvUnit::isPromotionValid instead
+	/*if (getMoves() == 1 && kPromotion.isBlitz())
+		return false;*/
+
+	if (getCollateralDamage() == 0 || getCollateralDamageLimit() == 0 ||
+		getCollateralDamageMaxUnits() == 0)
+	{
+		if (kPromotion.getCollateralDamageChange() != 0)
+			return false;
+	}
+
+	if (getInterceptionProbability() == 0 &&
+		kPromotion.getInterceptChange() != 0)
+	{
+		return false;
+	}
+
+	if (kPromotion.getPrereqPromotion() != NO_PROMOTION &&
+		!isPromotionValid((PromotionTypes)kPromotion.getPrereqPromotion(), bLeader))
+	{
+		return false;
+	}
+
+	PromotionTypes ePrereq1 = (PromotionTypes)kPromotion.getPrereqOrPromotion1();
+	PromotionTypes ePrereq2 = (PromotionTypes)kPromotion.getPrereqOrPromotion2();	
+	/*if (NO_PROMOTION != ePrereq1 || NO_PROMOTION != ePrereq2) {
+		bool bValid = false;
+		if (!bValid) {
+			if (NO_PROMOTION != ePrereq1 && isPromotionValid(ePrereq1, eUnit, bLeader))
+				bValid = true;
+		}
+		if (!bValid) {
+			if (NO_PROMOTION != ePrereq2 && isPromotionValid(ePrereq2, eUnit, bLeader))
+				bValid = true;
+		}*/ // BtS
+	// K-Mod, 14/jan/11: third optional preq.
+	PromotionTypes ePrereq3 = (PromotionTypes)kPromotion.getPrereqOrPromotion3();
+	if (ePrereq1 != NO_PROMOTION || ePrereq2 != NO_PROMOTION || ePrereq3 != NO_PROMOTION)
+	{
+		bool bValid = false;
+		if (ePrereq1 != NO_PROMOTION && isPromotionValid(ePrereq1, bLeader))
+			bValid = true;
+		if (ePrereq2 != NO_PROMOTION && isPromotionValid(ePrereq2, bLeader))
+			bValid = true;
+		if (ePrereq3 != NO_PROMOTION && isPromotionValid(ePrereq3, bLeader))
+			bValid = true;
+		if (!bValid)
+			return false;
+	} // K-Mod end
+
+	return true;
+}
+
 const TCHAR* CvUnitInfo::getEarlyArtDefineTag(int i, UnitArtStyleTypes eStyle) const
 {
 	FAssertBounds(0, getGroupDefinitions(), i);

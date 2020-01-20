@@ -276,7 +276,7 @@ void CvSelectionGroup::doTurn()
 	}
 	// K-Mod
 	if (!bCouldAllMove && isCycleGroup())
-		GET_PLAYER(getOwner()).updateGroupCycle(this);
+		GET_PLAYER(getOwner()).updateGroupCycle(*this);
 	// K-Mod end
 
 	doDelayedDeath();
@@ -2040,6 +2040,84 @@ bool CvSelectionGroup::isWaiting() const
 	// K-Mod end
 }
 
+/*	K-Mod: return true if the first unit in the first group
+	comes before the first unit in the second group.
+	(note: the purpose of this function is to return _false_
+	when the groupCycleDistance should include a penalty.) */
+bool CvSelectionGroup::isBeforeGroupOnPlot(CvSelectionGroup const& kOther)const
+{
+	FAssert(this != &kOther);
+	FAssert(atPlot(kOther.plot()));
+
+	//int iOtherUnits = kOther.getNumUnits();
+	CvPlot const& kPlot = getPlot();
+	for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
+		pUnitNode != NULL;// && iOtherUnits > 0
+		pUnitNode = kPlot.nextUnitNode(pUnitNode))
+	{
+		CvUnit const& kUnit = *::getUnit(pUnitNode->m_data);
+		if (kUnit.getGroup() == this)
+			return true;
+		if (kUnit.getGroup() == &kOther)
+			return false;
+			//iOtherUnits--;
+	}
+	FAssert(false);
+	return false;
+}
+
+/*	K-Mod: return the 'cost' of cycling from pFirstGroup to pSecondGroup.
+	(eg. a big jump to a different type of unit, then it should be a high cost.) */
+int CvSelectionGroup::groupCycleDistance(CvSelectionGroup const& kOther) const
+{
+	FAssert(this != &kOther);
+
+	CvUnit const& kHead = *getHeadUnit();
+	CvUnit const& kOtherHead = *kOther.getHeadUnit();
+
+	const int iBaseScale = 4;
+	int iPenalty = 0;
+	if (kHead.getUnitType() != kOtherHead.getUnitType())
+	{	/*  <advc.075> When a unit in cargo is told to skip its turn, we want
+			the ship to be selected before its cargo on the next turn.
+			(Or would it be better to do this through isBeforeGroupOnPlot?) */
+		if(kHead.isHuman() && kHead.isCargo() != kOtherHead.isCargo())
+			iPenalty += 5;
+		else // </advc.075>
+			if (kHead.canFight() != kOtherHead.canFight())
+			iPenalty += 4;
+		else
+		{
+			if (kHead.canFight())
+			{
+				if (kHead.getUnitCombatType() != kOtherHead.getUnitCombatType())
+					iPenalty += 2;
+				if (kHead.canAttack() != kOtherHead.canAttack() ||
+					// <advc.315>
+					kHead.getUnitInfo().isMostlyDefensive() !=
+					kOtherHead.getUnitInfo().isMostlyDefensive()) // </advc.315>
+				{
+					iPenalty += 1;
+				}
+			}
+			else
+				iPenalty += 2;
+		}
+	}
+
+	int iDistance = plotDistance(kHead.plot(), kOtherHead.plot());
+	iPenalty = std::min(5, iPenalty * (1+iDistance) / iBaseScale);
+
+	// For human players, use the unit order that the plot actually has, not the order it _should_ have.
+	// For AI players, use the preferred ordering, because it's slightly faster.
+	if (iDistance == 0 && !(kHead.isHuman() ?
+		isBeforeGroupOnPlot(kOther) : kHead.isBeforeUnitCycle(kOtherHead)))
+	{
+		iPenalty += iPenalty > 0 ? 1 : 5;
+	}
+	return iDistance + iPenalty;
+}
+
 
 bool CvSelectionGroup::isFull() /* advc: */ const
 {
@@ -3633,7 +3711,7 @@ void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 
 	// K-Mod
 	if (bWasWaiting && !isWaiting())
-		GET_PLAYER(getOwner()).updateGroupCycle(this);
+		GET_PLAYER(getOwner()).updateGroupCycle(*this);
 	// K-Mod end
 
 	if (getActivityType() == ACTIVITY_INTERCEPT)

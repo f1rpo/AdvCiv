@@ -22,7 +22,6 @@ class CvFlagEntity;
 typedef bool (*ConstPlotUnitFunc)(const CvUnit* pUnit, int iData1, int iData2);
 typedef bool (*PlotUnitFunc)(CvUnit* pUnit, int iData1, int iData2);
 
-
 class CvPlot
 {
 public:
@@ -681,7 +680,7 @@ public:
 
 	inline int getNumUnits() const { return m_units.getLength(); } // advc.inl												// Exposed to Python
 	CvUnit* getUnitByIndex(int iIndex) const;																													// Exposed to Python
-	void addUnit(CvUnit* pUnit, bool bUpdate = true);
+	void addUnit(CvUnit const& kUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);
 	// advc.inl: 2x inline
 	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const

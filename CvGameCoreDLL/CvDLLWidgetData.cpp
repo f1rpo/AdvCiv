@@ -1912,12 +1912,12 @@ void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, C
 	if (GET_PLAYER(pHeadSelectedCity->getOwner()).getMaxConscript() == 0)
 	{
 		bool bFirst = true;
-		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+		FOR_EACH_ENUM(Civic)
 		{
-			if (getWorldSizeMaxConscript((CivicTypes)iI) > 0)
+			if (GC.getGame().getMaxConscript(eLoopCivic) > 0)
 			{
 				CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
-				setListHelp(szBuffer, szTempBuffer, GC.getInfo((CivicTypes)iI).getDescription(),
+				setListHelp(szBuffer, szTempBuffer, GC.getInfo(eLoopCivic).getDescription(),
 						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
 				bFirst = false;
 			}
@@ -4638,13 +4638,11 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			return; // No denial info
 		}
 	} // </advc.072>
-	TradeData item;
-	setTradeItem(&item, (TradeableItems)widgetDataStruct.m_iData1,
-			widgetDataStruct.m_iData2);
 	/*  advc.104l: Can't easily move this code elsewhere b/c the cache should
 		only be used when TradeDenial is checked by this class. */
 	WarEvaluator::enableCache();
-	DenialTypes eDenial = GET_PLAYER(eWhoFrom).getTradeDenial(eWhoTo, item);
+	DenialTypes eDenial = GET_PLAYER(eWhoFrom).getTradeDenial(eWhoTo, TradeData(
+			(TradeableItems)widgetDataStruct.m_iData1, widgetDataStruct.m_iData2));
 	WarEvaluator::disableCache(); // advc.104l
 	if (eDenial == NO_DENIAL)
 		return;
@@ -5982,10 +5980,11 @@ bool CvDLLWidgetData::parseCityTradeHelp(CvWidgetDataStruct const& kWidget, CvCi
 CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePlayer) const {
 
 	CvWString r(L"\n");
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	/*  Could have ported the code in BUG TechPrefs.py, but it's unnecessarily
-		complicated for what I'm trying to do. Use ::getDiscoveryTech and,
+		complicated for what I'm trying to do. Use getDiscoveryTech and,
 		in between calls, pretend that the previous tech has already been discovered. */
-	TechTypes eCurrentDiscover = ::getDiscoveryTech(eUnit, ePlayer);
+	TechTypes eCurrentDiscover = kPlayer.getDiscoveryTech(eUnit);
 	if(eCurrentDiscover == NO_TECH || eUnit == NO_UNIT)
 		return r;
 	FlavorTypes eGPFlavor = NO_FLAVOR;
@@ -6021,13 +6020,12 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePla
 	/*  The same discovery could be enabled by multiple currently researchable techs.
 		The map lists the alt. reqs for each target tech. */
 	std::map<TechTypes,std::set<TechTypes>*> discoverMap;
-	for(int i = 0; i < GC.getNumTechInfos(); i++)
+	FOR_EACH_ENUM2(Tech, eResearchOption)
 	{
-		TechTypes eResearchOption = (TechTypes)i;
-		if(!GET_PLAYER(ePlayer).canResearch(eResearchOption))
+		if(!kPlayer.canResearch(eResearchOption))
 			continue;
 		kTeam.setHasTechTemporarily(eResearchOption, true);
-		TechTypes eNextDiscover = ::getDiscoveryTech(eUnit, ePlayer);
+		TechTypes eNextDiscover = kPlayer.getDiscoveryTech(eUnit);
 		kTeam.setHasTechTemporarily(eResearchOption, false);
 		if(eNextDiscover == eCurrentDiscover || eNextDiscover == NO_TECH)
 			continue;

@@ -705,9 +705,7 @@ bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 		members negotiate it. */
 	CvPlayerAI const& ourLeader = GET_PLAYER(GET_TEAM(agentId).getLeaderID());
 	CvTeamAI const& master = GET_TEAM(masterId);
-	TradeData item;
-	setTradeItem(&item, TRADE_SURRENDER);
-	if(!ourLeader.canTradeItem(master.getLeaderID(), item)) {
+	if(!ourLeader.canTradeItem(master.getLeaderID(), TradeData(TRADE_SURRENDER))) {
 		report->log("Capitulation to %s impossible", report->teamName(masterId));
 		return true;
 	}
@@ -752,8 +750,7 @@ bool UWAI::Team::tryFindingMaster(TeamTypes enemyId) {
 			continue;
 		// Based on code in CvPlayerAI::AI_doDiplo
 		CvPlayerAI& masterLeader = GET_PLAYER(master.getLeaderID());
-		TradeData item;
-		::setTradeItem(&item, TRADE_VASSAL);
+		TradeData item(TRADE_VASSAL);
 		/*  Test Denial separately b/c it can cause the master to evaluate war
 			against enemyId, which is costly. */
 		if(!ourLeader.canTradeItem(masterLeader.getID(), item))
@@ -2227,15 +2224,12 @@ bool UWAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId, int* r,
 
 	int totalTradeVal = 0;
 	CvPlayerAI const& human = GET_PLAYER(humanId);
-	TradeData item;
-	setTradeItem(&item, TRADE_GOLD, human.getGold());
-	if(human.canTradeItem(weId, item, true))
+	if(human.canTradeItem(weId, TradeData(TRADE_GOLD, human.getGold()), true))
 		totalTradeVal += human.getGold();
 	if(totalTradeVal >= targetTradeVal && r == NULL)
 		return true;
 	FOR_EACH_ENUM(Tech) {
-		setTradeItem(&item, TRADE_TECHNOLOGIES, eLoopTech);
-		if(human.canTradeItem(weId, item, true)) {
+		if(human.canTradeItem(weId, TradeData(TRADE_TECHNOLOGIES, eLoopTech), true)) {
 			totalTradeVal += GET_TEAM(weId).AI_techTradeVal(eLoopTech,
 					human.getTeam(), true, true);
 			if(totalTradeVal >= targetTradeVal && r == NULL)
@@ -2246,8 +2240,7 @@ bool UWAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId, int* r,
 	int cityCount = 0;
 	if(!ignoreCities) {
 		FOR_EACH_CITYAI(c, human) {
-			setTradeItem(&item, TRADE_CITIES, c->getID());
-			if(human.canTradeItem(weId, item, true)) {
+			if(human.canTradeItem(weId, TradeData(TRADE_CITIES, c->getID()), true)) {
 				if(totalTradeVal < targetTradeVal)
 					cityCount++;
 				totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(*c);

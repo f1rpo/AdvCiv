@@ -2172,10 +2172,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				// </advc>  <advc.ctr> Make sure that the ownership change is legal
 				if (bGift)
 				{
-					TradeData item;
-					::setTradeItem(&item, TRADE_CITIES, kNewCity.getID());
 					// Don't check denial though; recipient can't refuse.
-					bGift = canTradeItem(eLiberationPlayer, item);
+					bGift = canTradeItem(eLiberationPlayer, TradeData(
+						TRADE_CITIES, kNewCity.getID()));
 				} // </advc.ctr>
 				if (bRaze || bGift)
 				{
@@ -6589,6 +6588,31 @@ bool CvPlayer::canEverResearch(TechTypes eTech) const
 }
 
 
+TechTypes CvPlayer::getDiscoveryTech(UnitTypes eUnit) const
+{
+	TechTypes eBestTech = NO_TECH;
+	int iBestValue = 0;
+	FOR_EACH_ENUM(Tech)
+	{
+		if (canResearch(eLoopTech))
+		{
+			int iValue = 0;
+			FOR_EACH_ENUM(Flavor)
+			{
+				iValue += (GC.getInfo(eLoopTech).getFlavorValue(eLoopFlavor) *
+						GC.getInfo(eUnit).getFlavorValue(eLoopFlavor));
+			}
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				eBestTech = eLoopTech;
+			}
+		}
+	}
+	return eBestTech;
+}
+
+
 bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 		bool bCouldResearchAgain) const // advc.126
 {
@@ -7582,16 +7606,20 @@ int CvPlayer::getAveragePopulation() const
 
 void CvPlayer::changeTotalPopulation(int iChange)
 {
-	changeAssets(-(getPopulationAsset(getTotalPopulation())));
-	changePower(-(getPopulationPower(getTotalPopulation())));
-	changePopScore(-(getPopulationScore(getTotalPopulation())));
+	// <advc>
+	if (iChange == 0)
+		return; // <advc>
+	CvGame const& kGame = GC.getGame();
+	changeAssets(-kGame.getPopulationAsset(getTotalPopulation()));
+	changePower(-kGame.getPopulationPower(getTotalPopulation()));
+	changePopScore(-kGame.getPopulationScore(getTotalPopulation()));
 
-	m_iTotalPopulation = (m_iTotalPopulation + iChange);
+	m_iTotalPopulation += iChange;
 	FAssert(getTotalPopulation() >= 0);
 
-	changeAssets(getPopulationAsset(getTotalPopulation()));
-	changePower(getPopulationPower(getTotalPopulation()));
-	changePopScore(getPopulationScore(getTotalPopulation()));
+	changeAssets(kGame.getPopulationAsset(getTotalPopulation()));
+	changePower(kGame.getPopulationPower(getTotalPopulation()));
+	changePopScore(kGame.getPopulationScore(getTotalPopulation()));
 }
 
 
@@ -7625,17 +7653,18 @@ int CvPlayer::getTotalLandScored() const
 
 void CvPlayer::changeTotalLandScored(int iChange)
 {
-	if (iChange != 0)
-	{
-		changeAssets(-(getLandPlotsAsset(getTotalLandScored())));
-		changeLandScore(-(getLandPlotsScore(getTotalLandScored())));
+	if (iChange == 0)
+		return; // advc
 
-		m_iTotalLandScored = (m_iTotalLandScored + iChange);
-		FAssert(getTotalLandScored() >= 0);
+	CvGame const& kGame = GC.getGame();
+	changeAssets(-kGame.getLandPlotsAsset(getTotalLandScored()));
+	changeLandScore(-kGame.getLandPlotsScore(getTotalLandScored()));
 
-		changeAssets(getLandPlotsAsset(getTotalLandScored()));
-		changeLandScore(getLandPlotsScore(getTotalLandScored()));
-	}
+	m_iTotalLandScored += iChange;
+	FAssert(getTotalLandScored() >= 0);
+
+	changeAssets(kGame.getLandPlotsAsset(getTotalLandScored()));
+	changeLandScore(kGame.getLandPlotsScore(getTotalLandScored()));
 }
 
 
@@ -7650,7 +7679,6 @@ void CvPlayer::setGold(int iNewValue)
 	if (getGold() != iNewValue)
 	{
 		m_iGold = iNewValue;
-
 		if (getID() == GC.getGame().getActivePlayer())
 		{
 			gDLL->getInterfaceIFace()->setDirty(MiscButtons_DIRTY_BIT, true);
@@ -7660,15 +7688,18 @@ void CvPlayer::setGold(int iNewValue)
 	}
 }
 
+
 void CvPlayer::changeGold(int iChange)
 {
 	setGold(getGold() + iChange);
 }
 
+
 int CvPlayer::getGoldPerTurn() const
 {
 	return m_iGoldPerTurn;
 }
+
 
 int CvPlayer::getAdvancedStartPoints() const
 {
@@ -11993,73 +12024,57 @@ void CvPlayer::changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes
 
 // K-Mod. I've changed this function from using pUnit to using pGroup.
 // I've also rewritten most of the code, to give more natural ordering, and to be more robust and readable code.
-void CvPlayer::updateGroupCycle(CvSelectionGroup* pGroup)
+void CvPlayer::updateGroupCycle(CvSelectionGroup const& kGroup) // advc: const reference param
 {
 	PROFILE_FUNC();
-	FAssert(pGroup);
 
-	CvPlot* pPlot = pGroup->plot();
-
-	if (!pPlot || !pGroup->isCycleGroup())
+	CvPlot const* pPlot = kGroup.plot();
+	if (pPlot == NULL || !kGroup.isCycleGroup())
 		return;
 
-	CvUnit* pUnit = pGroup->getHeadUnit();
-	FAssert(pUnit);
+	CvUnit const& kUnit = *kGroup.getHeadUnit();
 
-	//removeGroupCycle(pGroup->getID()); // will be removed while we reposition it
+	//removeGroupCycle(kGroup.getID()); // will be removed while we reposition it
 
 	CLLNode<int>* pBestSelectionGroupNode = NULL;
 	int iBestCost = MAX_INT;
-
-	CvSelectionGroup* pPreviousGroup = NULL;
-
+	CvSelectionGroup const* pPreviousGroup = NULL;
 	CLLNode<int>* pSelectionGroupNode = headGroupCycleNode();
-
-	while (pSelectionGroupNode)
+	while (pSelectionGroupNode != NULL)
 	{
-		CvSelectionGroup* pNextGroup = getSelectionGroup(pSelectionGroupNode->m_data);
-		FAssert(pNextGroup);
+		CvSelectionGroup const& kNextGroup = *getSelectionGroup(pSelectionGroupNode->m_data);
 
 		// if we find our group in the list, remove it.
-		if (pNextGroup == pGroup)
-		{
+		if (&kNextGroup == &kGroup)
 			pSelectionGroupNode = deleteGroupCycleNode(pSelectionGroupNode);
-		}
-		else if (pNextGroup->isCycleGroup() && pNextGroup->canAllMove())
+		else if (kNextGroup.isCycleGroup() && kNextGroup.canAllMove())
 		{
-			//int iCost = groupCycleDistance(pPreviousGroup, pGroup) + groupCycleDistance(pGroup, pNextGroup) - groupCycleDistance(pPreviousGroup, pNextGroup);
-			int iCost = groupCycleDistance(pGroup, pNextGroup) + (pPreviousGroup ? groupCycleDistance(pPreviousGroup, pGroup) - groupCycleDistance(pPreviousGroup, pNextGroup) : 3);
+			//int iCost = pPreviousGroup->groupCycleDistance(pGroup) + pGroup->groupCycleDistance(pNextGroup) - pPreviousGroup->groupCycleDistance(pNextGroup);
+			int iCost = kGroup.groupCycleDistance(kNextGroup) +
+					(pPreviousGroup == NULL ? 3 :
+					pPreviousGroup->groupCycleDistance(kGroup) -
+					pPreviousGroup->groupCycleDistance(kNextGroup));
 			if (iCost < iBestCost)
 			{
 				iBestCost = iCost;
 				pBestSelectionGroupNode = pSelectionGroupNode;
 			}
-			pPreviousGroup = pNextGroup;
+			pPreviousGroup = &kNextGroup;
 			pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 		}
-		else
-		{
-			pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
-		}
+		else pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 	}
 	if (pPreviousGroup)
 	{
 		FAssert(pPreviousGroup->isCycleGroup() && pPreviousGroup->canAllMove());
-		int iCost = groupCycleDistance(pPreviousGroup, pGroup) + 3; // cost for being at the end of the list.
+		int iCost = pPreviousGroup->groupCycleDistance(kGroup) + 3; // cost for being at the end of the list.
 		if (iCost < iBestCost)
-		{
 			pBestSelectionGroupNode = 0;
-		}
 	}
 
 	if (pBestSelectionGroupNode)
-	{
-		m_groupCycle.insertBefore(pUnit->getGroupID(), pBestSelectionGroupNode);
-	}
-	else
-	{
-		m_groupCycle.insertAtEnd(pUnit->getGroupID());
-	}
+		m_groupCycle.insertBefore(kUnit.getGroupID(), pBestSelectionGroupNode);
+	else m_groupCycle.insertAtEnd(kUnit.getGroupID());
 }
 
 
@@ -12096,13 +12111,12 @@ void CvPlayer::refreshGroupCycleList()
 			update_list.push_back(pLoopGroup);
 			pNode = deleteGroupCycleNode(pNode);
 		}
-		else
-			pNode = nextGroupCycleNode(pNode);
+		else pNode = nextGroupCycleNode(pNode);
 	}
 
 	for (size_t i = 0; i < update_list.size(); i++)
 	{
-		updateGroupCycle(update_list[i]);
+		updateGroupCycle(*update_list[i]);
 	}
 }
 // K-Mod end
@@ -13993,7 +14007,7 @@ int CvPlayer::getEspionageMissionCostModifier(EspionageMissionTypes eMission, Pl
 		iModifier /= 100;
 	}*/ // BtS
 	// K-Mod. use the dedicated function that exists for this modifier, for consistency.
-	iModifier *= ::getEspionageModifier(getTeam(), kTargetTeam.getID());
+	iModifier *= GET_TEAM(getTeam()).getEspionageModifier(kTargetTeam.getID());
 	iModifier /= 100;
 	// K-Mod end
 
@@ -15912,7 +15926,7 @@ void CvPlayer::processCivics(CivicTypes eCivic, int iChange)
 	if(GC.getInfo(eCivic).getLuxuryModifier() != 0)
 		AI().AI_updateBonusValue(); // </advc.912c>
 	changeMilitaryFoodProductionCount((GC.getInfo(eCivic).isMilitaryFoodProduction()) ? iChange : 0);
-	changeMaxConscript(getWorldSizeMaxConscript(eCivic) * iChange);
+	changeMaxConscript(GC.getGame().getMaxConscript(eCivic) * iChange);
 	//changeNoUnhealthyPopulationCount((GC.getInfo(eCivic).isNoUnhealthyPopulation()) ? iChange : 0);
 	changeUnhealthyPopulationModifier(GC.getInfo(eCivic).getUnhealthyPopulationModifier() * iChange); // K-Mod
 	changeBuildingOnlyHealthyCount((GC.getInfo(eCivic).isBuildingOnlyHealthy()) ? iChange : 0);
@@ -17321,7 +17335,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 	CvUnit* pUnit = getUnit(iUnitId);
 
 	std::vector<CvPlot*> apPlots;
-	bool const bPickPlot = ::isPlotEventTrigger(eEventTrigger);
+	bool const bPickPlot = GC.getInfo(eEventTrigger).isPlotEventTrigger();
 	if (kTrigger.isPickCity())
 	{
 		if (pCity == NULL)
@@ -17874,16 +17888,12 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 	{
 		CvCity* pCity =	getCity(kTriggeredData.m_iCityId);
 		if (NULL == pCity || !pCity->canApplyEvent(eEvent, kTriggeredData))
-		{
 			return false;
-		}
 	}
 	else if (kEvent.isOtherPlayerCityEffect())
 	{
 		if (NO_PLAYER == kTriggeredData.m_eOtherPlayer)
-		{
 			return false;
-		}
 
 		CvCity* pCity = GET_PLAYER(kTriggeredData.m_eOtherPlayer).getCity(kTriggeredData.m_iOtherPlayerCityId);
 		if (NULL == pCity || !pCity->canApplyEvent(eEvent, kTriggeredData))
@@ -17892,15 +17902,13 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 		}
 	}
 
-	if (::isPlotEventTrigger(kTriggeredData.m_eTrigger))
+	if (GC.getInfo(kTriggeredData.m_eTrigger).isPlotEventTrigger())
 	{
 		CvPlot* pPlot = GC.getMap().plot(kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY);
 		if (NULL != pPlot)
 		{
 			if (!pPlot->canApplyEvent(eEvent))
-			{
 				return false;
-			}
 		}
 	}
 
@@ -17908,9 +17916,7 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 	if (NULL != pUnit)
 	{
 		if (!pUnit->canApplyEvent(eEvent))
-		{
 			return false;
-		}
 	}
 
 	if (NO_BONUS != kEvent.getBonusRevealed())
@@ -18188,9 +18194,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		{
 			CLinkList<TradeData> ourList;
 			CLinkList<TradeData> theirList;
-			TradeData kTradeData;
-			setTradeItem(&kTradeData, TRADE_RESOURCES, kEvent.getBonusGift());
-			ourList.insertAtEnd(kTradeData);
+			ourList.insertAtEnd(TradeData(TRADE_RESOURCES, kEvent.getBonusGift()));
 			GC.getGame().implementDeal(getID(), pTriggeredData->m_eOtherPlayer, ourList, theirList);
 		}
 	}
@@ -18406,7 +18410,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 	CvPlot* pPlot = GC.getMap().plot(pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY);
 	if (NULL != pPlot)
 	{
-		if (::isPlotEventTrigger(pTriggeredData->m_eTrigger))
+		if (GC.getInfo(pTriggeredData->m_eTrigger).isPlotEventTrigger())
 		{
 			FAssert(pPlot->canApplyEvent(eEvent));
 			pPlot->applyEvent(eEvent);
@@ -20624,11 +20628,9 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 	// K-Mod end
 		CLinkList<TradeData> playerList;
 		CLinkList<TradeData> loopPlayerList;
-		TradeData kTradeData;
-		setTradeItem(&kTradeData, TRADE_PEACE_TREATY);
-		playerList.insertAtEnd(kTradeData);
-		loopPlayerList.insertAtEnd(kTradeData);
-
+		TradeData peaceTreaty(TRADE_PEACE_TREATY);
+		playerList.insertAtEnd(peaceTreaty);
+		loopPlayerList.insertAtEnd(peaceTreaty);
 		GC.getGame().implementDeal(getID(), ePlayer, playerList, loopPlayerList);
 	}
 }

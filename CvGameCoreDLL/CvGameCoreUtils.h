@@ -15,7 +15,6 @@ class CvString;
 class CvRandom;
 class FAStarNode;
 class FAStar;
-class CvInfoBase;
 
 // advc.003j: Unused here and elsewhere; still defined in CvGameCoreDLL.
 //#ifndef SQR
@@ -83,8 +82,7 @@ void iota(ForwardIt first, ForwardIt last, T value)
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
 
-//sign function taken from FirePlace - JW
-template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
+// (advc: getSign move to CvPlot.cpp)
 
 inline int range(int iNum, int iLow, int iHigh)
 {
@@ -148,7 +146,10 @@ inline char intToChar(int x)
 
 // (advc.make: Distance functions moved into CvMap.h)
 
-CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python
+inline CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)	// Exposed to Python
+{
+	return (CardinalDirectionTypes)((eDir + 2) % NUM_CARDINALDIRECTION_TYPES); // advc.inl
+}
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
@@ -164,40 +165,23 @@ CvUnitAI* AI_getUnit(IDInfo unit); // </advc.003u>
 DllExport CvCity* getCity(IDInfo city);												// Exposed to Python
 DllExport CvUnit* getUnit(IDInfo unit);												// Exposed to Python
 
-// (advc.make: inlined isCycleGroup moved to CvSelectionGroup to avoid a dependency)
-bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit);
-bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
-int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
-bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader);	// Exposed to Python
+// (advc: unit cycling functions moved to CvSelectionGroup, CvUnit)
 
-int getPopulationAsset(int iPopulation);											// Exposed to Python
-int getLandPlotsAsset(int iLandPlots);												// Exposed to Python
-int getPopulationPower(int iPopulation);											// Exposed to Python
-int getPopulationScore(int iPopulation);											// Exposed to Python
-int getLandPlotsScore(int iLandPlots);												// Exposed to Python
-int getTechScore(TechTypes eTech);													// Exposed to Python
-int getWonderScore(BuildingClassTypes eWonderClass);								// Exposed to Python
-
-//ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount = 0);		// Exposed to Python
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement);			// Exposed to Python, K-Mod. (I've removed iCount here, and in the python defs. It's a meaningless parameter.)
-
-int getWorldSizeMaxConscript(CivicTypes eCivic);									// Exposed to Python
-
-/*	(advc.003w: Moved some two dozen functions to CvInfo classes;
+/*	advc: asset score functions moved to CvGame; no longer exposed to Python.
+	isPromotionValid moved to CvUnitInfo, finalImprovementUpgrade to CvImprovementInfo,
+	getEspionageModifier to CvTeam, getWorldSizeMaxConscript to CvGame (as getMaxConscript;
+	no longer exposed to Python). */
+/*	advc.003w: Moved some two dozen functions to CvInfo classes;
 	mostly functions dealing with building and unit class limitations.
-	Removed isTechRequiredForProject.) */
+	Removed isTechRequiredForProject. */
 
 __int64 getBinomialCoefficient(int iN, int iK);
 int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender);				// Exposed to Python
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam = NO_TEAM); // K-Mod
 
-int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam);							// Exposed to Python
-
+/*	advc (note): Still used in the DLL by CvPlayer::buildTradeTable, but mostly deprecated.
+	Use the TradeData constructor instead. */
 DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_ITEM_NONE, int iData = 0);
-
-bool isPlotEventTrigger(EventTriggerTypes eTrigger);
-
-TechTypes getDiscoveryTech(UnitTypes eUnit, PlayerTypes ePlayer);
 
 void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
 void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);

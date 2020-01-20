@@ -40,17 +40,17 @@ bool cyAtWar(int /*TeamTypes*/ eTeamA, int /*TeamTypes*/ eTeamB);
 CyCity* cyGetCity(IDInfo city);
 CyUnit* cyGetUnit(IDInfo unit);
 
-bool cyIsPromotionValid(int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader);
-int cyGetPopulationAsset(int iPopulation);
+/*int cyGetPopulationAsset(int iPopulation);
 int cyGetLandPlotsAsset(int iLandPlots);
 int cyGetPopulationPower(int iPopulation);
 int cyGetPopulationScore(int iPopulation);
 int cyGetLandPlotsScore(int iPopulation);
-int cyGetTechScore(int /*TechTypes*/ eTech);
-int cyGetWonderScore(int /*BuildingClassTypes*/ eWonderClass);
-int /*ImprovementTypes*/ cyFinalImprovementUpgrade(int /*ImprovementTypes*/ eImprovement);
+int cyGetTechScore(int eTech);
+int cyGetWonderScore(int eWonderClass);*/ // advc: No longer exposed to Python
 
-int cyGetWorldSizeMaxConscript(int /*CivicTypes*/ eCivic);
+bool cyIsPromotionValid(int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader);
+int /*ImprovementTypes*/ cyFinalImprovementUpgrade(int /*ImprovementTypes*/ eImprovement);
+//int cyGetWorldSizeMaxConscript(int eCivic); // advc: No longer exposed
 
 bool cyIsReligionTech(int /*TechTypes*/ eTech);
 

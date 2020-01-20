@@ -285,6 +285,33 @@ public:
 	int getInitLand() const;																			// Exposed to Python
 	int getInitTech() const;																			// Exposed to Python
 	int getInitWonders() const;																		// Exposed to Python
+	/*	<advc> Asset score functions moved from CvGameCoreUtils. Could be static -
+		but let's not commit to that. */
+	int getPopulationAsset(int iPopulation) const
+	{
+		return iPopulation * 2;
+	}
+	int getLandPlotsAsset(int iLandPlots) const
+	{
+		return iLandPlots;
+	}
+	int getPopulationPower(int iPopulation) const
+	{
+		return iPopulation / 2;
+	}
+	int getPopulationScore(int iPopulation) const
+	{
+		return iPopulation;
+	}
+	int getLandPlotsScore(int iLandPlots) const
+	{
+		return iLandPlots;
+	}
+	int getTechScore(TechTypes eTech) const
+	{
+		return GC.getInfo(eTech).getEra() + 1;
+	}
+	int getWonderScore(BuildingClassTypes eWonderClass) const; // </advc>
 	DllExport void initScoreCalculation();
 
 	int getAIAutoPlay() const; // advc: const																// Exposed to Python
@@ -465,6 +492,7 @@ public:
 	bool isForceCivic(CivicTypes eIndex) const;																	// Exposed to Python
 	bool isForceCivicOption(CivicOptionTypes eCivicOption) const;								// Exposed to Python
 	void changeForceCivicCount(CivicTypes eIndex, int iChange);
+	int getMaxConscript(CivicTypes eCivic) const;
 
 	PlayerVoteTypes getVoteOutcome(VoteTypes eIndex) const;																	// Exposed to Python
 	bool isVotePassed(VoteTypes eIndex) const;																	// Exposed to Python

@@ -913,9 +913,8 @@ void UWAICache::updateVassalScore(PlayerTypes civId) {
 
 	int techScore = 0;
 	FOR_EACH_ENUM(Tech) {
-		TradeData item;
-		setTradeItem(&item, TRADE_TECHNOLOGIES, eLoopTech);
-		if(GET_PLAYER(civId).canTradeItem(ownerId, item, false))
+		if(GET_PLAYER(civId).canTradeItem(ownerId, TradeData(
+				TRADE_TECHNOLOGIES, eLoopTech), false))
 			techScore += GET_TEAM(ownerId).AI_techTradeVal(eLoopTech, TEAMID(civId), true);
 	}
 	vassalTechScores.set(civId, techScore);

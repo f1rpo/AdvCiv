@@ -286,6 +286,8 @@ public: // All the const functions returning primitive types are exposed to Pyth
 	bool isProbabilityBuildingMultiply() const;
 	bool isPrereqEventCity() const;
 
+	bool isPlotEventTrigger() const; // advc.003w: Moved from CvGameCoreUtils
+
 	const char* getPythonCallback() const;
 	const char* getPythonCanDo() const;
 	const char* getPythonCanDoCity() const;

@@ -184,10 +184,7 @@ public:
 	bool canConstruct(const CvPlot* pPlot, BuildingTypes eBuilding, bool bTestVisible = false) const;		// Exposed to Python
 	bool construct(BuildingTypes eBuilding);
 
-	TechTypes getDiscoveryTech() const																		// Exposed to Python
-	{
-		return ::getDiscoveryTech(getUnitType(), getOwner());
-	}
+	TechTypes getDiscoveryTech() const;																		// Exposed to Python
 	int getDiscoverResearch(TechTypes eTech) const;															// Exposed to Python
 	bool canDiscover(const CvPlot* pPlot) const;															// Exposed to Python
 	bool discover();
@@ -578,6 +575,7 @@ public:
 	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); }							// Exposed to Python
 	bool isGroupHead() const;																				// Exposed to Python
 	DllExport CvSelectionGroup* getGroup() const;															// Exposed to Python
+	bool isBeforeUnitCycle(CvUnit const& kOther) const; // advc: Moved from CvGameCoreUtils
 	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const;
 	void joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected = false, bool bRejoin = true);
 
