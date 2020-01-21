@@ -172,9 +172,7 @@ bool CvPlayer::initOtherData()
 	SlotStatus eStatus = GC.getInitCore().getSlotStatus(getID());
 	if (eStatus != SS_TAKEN && eStatus != SS_COMPUTER)
 		return false;
-	// <advc.210>
-	if (getID() == GC.getGame().getActivePlayer())
-		initAlerts(); // </advc.210>
+	initAlerts(); // advc.210
 	setAlive(true);
 	LeaderHeadTypes ePersonality = NO_LEADER; // advc.104: Moved up
 	if (GC.getGame().isOption(GAMEOPTION_RANDOM_PERSONALITIES) &&
@@ -325,6 +323,11 @@ void CvPlayer::initInGame(PlayerTypes eID)
 // <advc.210>
 void CvPlayer::initAlerts(bool bSilentCheck)
 {
+	if (GC.getGame().isHotSeat() ? !isHuman() :
+		getID() != GC.getGame().getActivePlayer())
+	{
+		return;
+	}
 	if (!m_paAlerts.empty())
 	{
 		// OK if this happens when the active player is defeated during Auto Play
@@ -16534,9 +16537,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 
 	if(!isAlive())
 		return; // advc
-	// <advc.210>
-	if (getID() == GC.getGame().getActivePlayer())
-		initAlerts(); // </advc.210>
+	initAlerts(); // advc.210
 	/*  <advc.706> Loading into retirement. Can't do this in RiseFall::read b/c
 		CvPlayer::reset has to be through first. */
 	CvGame& g = GC.getGame();
