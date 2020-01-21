@@ -6,6 +6,7 @@
 #include "CoreAI.h"
 #include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
+#include "CvTalkingHeadMessage.h"
 #include "CvPopupInfo.h"
 #include "CvReplayInfo.h"
 #include "CvPlot.h"

@@ -6,8 +6,8 @@
 #define CIV4_PLAYER_H
 
 #include "CvPlotGroup.h"
-#include "CvTalkingHeadMessage.h"
 
+class CvTalkingHeadMessage;
 class CvDiploParameters;
 class CvPopupInfo;
 class CvEventTriggerInfo;
@@ -1409,9 +1409,9 @@ protected:  // <advc.210>
 
 	FFreeListTrashArray<CvPlotGroup> m_plotGroups;
 	//FFreeListTrashArray<CvCityAI> m_cities;
-	//FFreeListTrashArray<CvUnitAI>
+	//FFreeListTrashArray<CvUnitAI> m_units;
 	//FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
-	// <advc.003u> Replacing the above to avoid having to include the AI headers
+	// <advc.003u> Replacing the above
 	CvCityList* m_cities;
 	CvUnitList* m_units;
 	CvSelectionGroupList* m_selectionGroups; // </advc.003u>

@@ -5,6 +5,7 @@
 #include "CvAgents.h" // advc.agent
 #include "CoreAI.h"
 #include "CvDealList.h" // advc.003s
+#include "CvTalkingHeadMessage.h"
 #include "UWAIAgent.h" // advc.104
 #include "PlotRange.h"
 #include "CvAreaList.h" // advc.003s
