@@ -79,7 +79,7 @@ int Shelf::countBarbarians() const
 		CLLNode<IDInfo>* unitNode = plot->headUnitNode();
 		if(unitNode == NULL)
 			continue;
-		CvUnit* anyUnit = ::getUnit(unitNode->m_data);
+		CvUnit* anyUnit = CvUnit::fromIDInfo(unitNode->m_data);
 		if(anyUnit != NULL && anyUnit->isBarbarian())
 			r += plot->getNumUnits();
 	}
@@ -95,7 +95,7 @@ bool Shelf::killBarbarian()
 		CLLNode<IDInfo>* unitNode = plot->headUnitNode();
 		if(unitNode == NULL)
 			continue;
-		CvUnit* anyUnit = ::getUnit(unitNode->m_data);
+		CvUnit* anyUnit = CvUnit::fromIDInfo(unitNode->m_data);
 		if(anyUnit != NULL && anyUnit->isBarbarian() &&
 			anyUnit->getUnitCombatType() != NO_UNITCOMBAT)
 		{

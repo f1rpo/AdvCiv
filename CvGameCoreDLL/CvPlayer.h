@@ -1574,4 +1574,17 @@ private:
 	virtual void writeExternal(FDataStreamBase* pStream);
 };
 
+/*	<advc.opt> Moved from CvGameCoreUtils fo inlining.
+	NO_PLAYER checks removed (cf. IDInfo constructor). */
+DllExport inline CvCity* getCity(IDInfo city)												// Exposed to Python
+{
+	FAssertBounds(0, MAX_PLAYERS, city.eOwner);
+	return GET_PLAYER(city.eOwner).getCity(city.iID);
+}
+DllExport inline CvUnit* getUnit(IDInfo unit)												// Exposed to Python
+{
+	FAssertBounds(0, MAX_PLAYERS, unit.eOwner);
+	return GET_PLAYER(unit.eOwner).getUnit(unit.iID);
+} // </advc.opt>
+
 #endif

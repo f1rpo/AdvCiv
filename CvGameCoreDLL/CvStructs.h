@@ -28,7 +28,16 @@ struct XYCoords
 
 struct IDInfo
 {
-	IDInfo(PlayerTypes eOwner=NO_PLAYER, int iID=FFreeList::INVALID_INDEX) : eOwner(eOwner), iID(iID) {}
+	/*	advc.opt: Default owner changed from NO_PLAYER to Barbarians so that
+		the owner doesn't need to be checked before calling FFreeListTrashArray::getAt. */
+	// advc.inl: inline keyword just to make sure
+	inline IDInfo(PlayerTypes eOwner = BARBARIAN_PLAYER, int iID = FFreeList::INVALID_INDEX) :
+		eOwner(eOwner), iID(iID)
+	{
+		FAssert(iID != FFreeList::INVALID_INDEX || eOwner == BARBARIAN_PLAYER); // advc.test
+	}
+	void validateOwner(); // advc.opt
+
 	PlayerTypes eOwner;
 	int iID;
 
@@ -47,7 +56,8 @@ struct IDInfo
 
 	void reset()
 	{
-		eOwner = NO_PLAYER;
+		//eOwner = NO_PLAYER;
+		eOwner = BARBARIAN_PLAYER; // advc.opt
 		iID = FFreeList::INVALID_INDEX;
 	}
 };

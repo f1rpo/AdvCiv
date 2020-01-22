@@ -151,10 +151,12 @@ public:
 	void AI_changeWorkersHave(int iChange);
 	BuildingTypes AI_bestAdvancedStartBuilding(int iPass) const;
 
+	void AI_ClearConstructionValueCache(); // K-Mod
+
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 
-	void AI_ClearConstructionValueCache(); // K-Mod
+	static CvCityAI* fromIDInfo(IDInfo id); // advc
 
 protected:
 

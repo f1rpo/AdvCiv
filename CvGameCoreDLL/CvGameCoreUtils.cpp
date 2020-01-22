@@ -302,32 +302,6 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 	return GET_TEAM(eOurTeam).AI_mayAttack(eTheirTeam);
 }*/
 
-CvCityAI* AI_getCity(IDInfo city) // advc.003u: Return CvCityAI*
-{
-	if (city.eOwner >= 0 && city.eOwner < MAX_PLAYERS)
-		return (GET_PLAYER((PlayerTypes)city.eOwner).AI_getCity(city.iID));
-
-	return NULL;
-}
-
-CvUnitAI* AI_getUnit(IDInfo unit) // advc.003u: Return CvUnitAI*
-{
-	if (unit.eOwner >= 0 && unit.eOwner < MAX_PLAYERS)
-		return (GET_PLAYER((PlayerTypes)unit.eOwner).AI_getUnit(unit.iID));
-
-	return NULL;
-}
-// <advc.003u>
-CvCity* getCity(IDInfo city)
-{
-	return AI_getCity(city);
-}
-
-CvUnit* getUnit(IDInfo unit)
-{
-	return AI_getUnit(unit);
-} // </advc.003u>
-
 // FUNCTION: getBinomialCoefficient
 // Needed for getCombatOdds
 // Returns int value, being the possible number of combinations

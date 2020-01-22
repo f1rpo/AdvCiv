@@ -60,6 +60,8 @@ public:
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 
+	static CvUnitAI* fromIDInfo(IDInfo id); // advc
+
 protected:
 
 	void finalizeInit(); // advc.003u: override

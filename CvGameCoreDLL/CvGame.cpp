@@ -822,8 +822,10 @@ void CvGame::initFreeState()
 	initGameHandicap(); // advc.127
 	// <advc.250b>
 	if(!isOption(GAMEOPTION_ADVANCED_START) ||
-			PlayerIter<HUMAN>::count() == PlayerIter<CIV_ALIVE>::count())
+		PlayerIter<HUMAN>::count() == PlayerIter<CIV_ALIVE>::count())
+	{
 		setOption(GAMEOPTION_SPAH, false);
+	}
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
 		m_pSpah->setInitialItems(); // </advc.250b>
@@ -6036,11 +6038,8 @@ bool CvGame::isInAdvancedStart() const
 void CvGame::setVoteChosen(int iSelection, int iVoteId)
 {
 	VoteSelectionData* pVoteSelectionData = getVoteSelection(iVoteId);
-	if (NULL != pVoteSelectionData)
-	{
+	if (pVoteSelectionData != NULL)
 		addVoteTriggered(*pVoteSelectionData, iSelection);
-	}
-
 	deleteVoteSelection(iVoteId);
 }
 
@@ -8949,11 +8948,13 @@ void CvGame::read(FDataStreamBase* pStream)
 	{
 		pStream->Read((int*)&m_paHolyCity[eLoopReligion].eOwner);
 		pStream->Read(&m_paHolyCity[eLoopReligion].iID);
+		m_paHolyCity[eLoopReligion].validateOwner(); // advc.opt
 	}
 	FOR_EACH_ENUM(Corporation)
 	{
 		pStream->Read((int*)&m_paHeadquarters[eLoopCorporation].eOwner);
 		pStream->Read(&m_paHeadquarters[eLoopCorporation].iID);
+		m_paHeadquarters[eLoopCorporation].validateOwner();
 	}
 
 	{

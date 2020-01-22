@@ -294,6 +294,7 @@ public:
 
 	int getReligionCount() const;																				// Exposed to Python
 	int getCorporationCount() const;																			// Exposed to Python
+	static CvCity* fromIDInfo(IDInfo id); // advc
 	// <advc.inl>
 	DllExport inline int getID() const { return m_iID; }														// Exposed to Python
 	inline int getIndex() const { return (getID() & FLTA_INDEX_MASK); }

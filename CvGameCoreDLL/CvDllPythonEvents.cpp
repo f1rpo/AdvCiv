@@ -622,16 +622,14 @@ void CvDllPythonEvents::reportSelectionGroupPushMission(CvSelectionGroup* pSelec
 		CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
 		for (int i = 0; pUnitNode != NULL; i++)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = CvUnit::fromIDInfo(pUnitNode->m_data);
 			pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
 			aiUnitIds[i] = pLoopUnit->getID();
 			FAssert(i < iNumUnits);
 		}
 
-		if (aiUnitIds)
-		{
+		if (aiUnitIds != NULL)
 			eventData.add(aiUnitIds, iNumUnits);
-		}
 
 		postEvent(eventData);
 

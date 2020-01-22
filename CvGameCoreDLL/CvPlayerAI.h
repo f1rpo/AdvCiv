@@ -13,11 +13,11 @@
 
 class CvDeal;
 
-/*  <advc.003u> Overwrite definition in CvPlayer.h (should perhaps instead define a
+/*	<advc.003u> Overwrite definition in CvPlayer.h (should perhaps instead define a
 	new macro "PLAYERAI" - a lot of call locations to change though ...) */
 #undef GET_PLAYER
 #define GET_PLAYER(x) CvPlayerAI::AI_getPlayer(x)
-// // </advc.003u>
+// </advc.003u>
 
 class CvPlayerAI : public CvPlayer
 {
@@ -811,5 +811,17 @@ protected:
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI
 };
+
+// <advc.003u> (Counterparts to global functions in CvPlayer.h)
+inline CvCityAI* AI_getCity(IDInfo city)
+{
+	FAssertBounds(0, MAX_PLAYERS, city.eOwner);
+	return GET_PLAYER(city.eOwner).AI_getCity(city.iID);
+}
+inline CvUnitAI* AI_getUnit(IDInfo unit)
+{
+	FAssertBounds(0, MAX_PLAYERS, unit.eOwner);
+	return GET_PLAYER(unit.eOwner).AI_getUnit(unit.iID);
+} // </advc.003u>
 
 #endif

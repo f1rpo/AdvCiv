@@ -4820,6 +4820,18 @@ void CvPlot::updateCityRoute(bool bUpdatePlotGroup)  // advc: some style changes
 }
 
 
+CvCity* CvPlot::getPlotCity() const
+{
+	return ::getCity(m_plotCity);
+}
+
+// <advc.003u>
+CvCityAI* CvPlot::AI_getPlotCity() const
+{
+	return ::AI_getCity(m_plotCity);
+} // </advc.003u>
+
+
 void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 {
 	if(getPlotCity() == pNewValue)
@@ -4891,6 +4903,29 @@ const wchar* CvPlot::getRuinsName() const
 	return m_szMostRecentCityName;
 } // </advc.005c>
 
+
+CvCity* CvPlot::getWorkingCity() const																																				// Exposed to Python
+{
+	return ::getCity(m_workingCity);
+}
+
+
+CvCity* CvPlot::getWorkingCityOverride() const																															// Exposed to Python
+{
+	return ::getCity(m_workingCityOverride);
+}
+
+// <advc.003u>
+CvCityAI* CvPlot::AI_getWorkingCity() const
+{
+	return ::AI_getCity(m_workingCity);
+}
+
+
+CvCityAI* CvPlot::AI_getWorkingCityOverrideAI() const
+{
+	return ::AI_getCity(m_workingCityOverride);
+} // </advc.003u>
 
 void CvPlot::updateWorkingCity()
 {
@@ -7145,6 +7180,10 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&m_workingCity.iID);
 	pStream->Read((int*)&m_workingCityOverride.eOwner);
 	pStream->Read(&m_workingCityOverride.iID);
+	// <advc.opt>
+	m_plotCity.validateOwner();
+	m_workingCity.validateOwner();
+	m_workingCityOverride.validateOwner(); // </advc.opt>
 
 	m_aiYield.Read(pStream, false, uiFlag < 5);
 

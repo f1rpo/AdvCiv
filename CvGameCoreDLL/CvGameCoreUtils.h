@@ -159,11 +159,8 @@ DllExport float directionAngle(DirectionTypes eDirection);
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 //isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
 
-// <advc.003u>
-CvCityAI* AI_getCity(IDInfo city);
-CvUnitAI* AI_getUnit(IDInfo unit); // </advc.003u>
-DllExport CvCity* getCity(IDInfo city);												// Exposed to Python
-DllExport CvUnit* getUnit(IDInfo unit);												// Exposed to Python
+/*	(advc.opt: getCity, getUnit moved to CvPlayer.h. CvCity::fromIDInfo and
+	CvUnit::fromIDInfo as alternatives in files that don't include CvPlayer.h.)
 
 // (advc: unit cycling functions moved to CvSelectionGroup, CvUnit)
 

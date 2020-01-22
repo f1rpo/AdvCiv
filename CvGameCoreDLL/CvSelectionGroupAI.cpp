@@ -882,6 +882,7 @@ void CvSelectionGroupAI::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eMissionAIType);
 
 	pStream->Read((int*)&m_missionAIUnit.eOwner);
+	m_missionAIUnit.validateOwner(); // advc.opt
 	pStream->Read(&m_missionAIUnit.iID);
 
 	pStream->Read(&m_bGroupAttack);

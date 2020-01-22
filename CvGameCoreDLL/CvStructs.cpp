@@ -16,6 +16,17 @@
 #include "CvUnit.h"
 #include "CvPlot.h" // advc.071
 
+// advc.opt: For reading legacy savegames
+void IDInfo::validateOwner()
+{
+	if (eOwner == NO_PLAYER)
+	{
+		if (iID == FFreeList::INVALID_INDEX)
+			eOwner = BARBARIAN_PLAYER;
+		else FAssert(iID == FFreeList::INVALID_INDEX);
+	}
+}
+
 int EventTriggeredData::getID() const
 {
 	return m_iId;

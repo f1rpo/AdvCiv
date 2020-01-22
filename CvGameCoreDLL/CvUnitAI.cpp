@@ -21799,3 +21799,9 @@ void CvUnitAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_eUnitAIType);
 	pStream->Write(m_iAutomatedAbortTurn);
 }
+
+// advc:
+CvUnitAI* CvUnitAI::fromIDInfo(IDInfo id)
+{
+	return AI_getUnit(id);
+}

@@ -12767,6 +12767,12 @@ BuildingTypes CvCityAI::AI_bestAdvancedStartBuilding(int iPass) /* advc: */ cons
 	return AI_bestBuildingThreshold(iFocusFlags, 0, std::max(0, 20 - iPass * 5));
 }
 
+// K-Mod.
+void CvCityAI::AI_ClearConstructionValueCache()
+{
+	m_aiConstructionValue.assign(GC.getNumBuildingClassInfos(), -1);
+} // K-Mod end
+
 
 void CvCityAI::read(FDataStreamBase* pStream)
 {
@@ -12788,6 +12794,7 @@ void CvCityAI::read(FDataStreamBase* pStream)
 
 	pStream->Read((int*)&m_routeToCity.eOwner);
 	pStream->Read(&m_routeToCity.iID);
+	m_routeToCity.validateOwner(); // advc.opt
 
 	pStream->Read(NUM_YIELD_TYPES, m_aiEmphasizeYieldCount);
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiEmphasizeCommerceCount);
@@ -12873,8 +12880,8 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	// K-Mod end
 }
 
-// K-Mod.
-void CvCityAI::AI_ClearConstructionValueCache()
+// advc:
+CvCityAI* CvCityAI::fromIDInfo(IDInfo id)
 {
-	m_aiConstructionValue.assign(GC.getNumBuildingClassInfos(), -1);
-} // K-Mod end
+	return ::AI_getCity(id);
+}

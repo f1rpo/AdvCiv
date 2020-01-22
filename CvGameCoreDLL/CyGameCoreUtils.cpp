@@ -6,6 +6,7 @@
 #include "CvCity.h" // </advc.make>
 // <advc>
 #include "CvTeam.h" // (Would be nicer to expose getEspionageModifier through CyTeam)
+#include "CvPlayer.h" // for getCity, getUnit
 // For functions moved from CvGameCoreUtils to CvInfos
 #include "CvInfo_Unit.h"
 #include "CvInfo_Building.h"
@@ -128,12 +129,12 @@ bool cyAtWar(int /*TeamTypes*/ eTeamA, int /*TeamTypes*/ eTeamB)
 
 CyCity* cyGetCity(IDInfo city)
 {
-	return new CyCity(getCity(city));
+	return new CyCity(::getCity(city));
 }
 
 CyUnit* cyGetUnit(IDInfo unit)
 {
-	return new CyUnit(getUnit(unit));
+	return new CyUnit(::getUnit(unit));
 }
 
 // advc: No longer exposed to Python. Tbd. (perhaps): Expose them through CyGame.

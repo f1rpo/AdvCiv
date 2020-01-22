@@ -1725,7 +1725,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 							int iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal != -1)
 							{
-								int iOldVal = piList[iIndexVal]; // advc.003t
+								int const iOldVal = piList[iIndexVal]; // advc.003t
 								GetNextXmlVal(piList[iIndexVal]);
 								// <advc.003t>
 								if (iOldVal != piList[iIndexVal])

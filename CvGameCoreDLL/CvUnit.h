@@ -566,6 +566,7 @@ public:
 			CvArea const& kArea) const;
 	int getUnitAICargo(UnitAITypes eUnitAI) const;															// Exposed to Python
 
+	static CvUnit* fromIDInfo(IDInfo id); // advc
 	DllExport inline int getID() const { return m_iID; }																					// Exposed to Python
 	int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
 	DllExport IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
@@ -832,8 +833,8 @@ public:
 	void setCombatUnit(CvUnit* pUnit, bool bAttacking = false);
 	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
-	CvUnit* getTransportUnit() const { return getUnit(m_transportUnit); }									// Exposed to Python
-	// advc.103f: inlined for CvArea::canBeEntered
+	CvUnit* getTransportUnit() const;																		// Exposed to Python
+	// advc.103f: Force-inlined for CvArea::canBeEntered
 	__forceinline bool isCargo() const																		// Exposed to Python
 	{	// advc.test: (Should perhaps simply turn m_transportUnit into a CvUnit pointer.)
 		FAssert((getTransportUnit() == NULL) == (m_transportUnit.iID == NO_PLAYER));

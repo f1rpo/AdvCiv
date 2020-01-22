@@ -4275,6 +4275,12 @@ int CvCity::getCorporationCount() const
 	return iCount;
 }
 
+// advc:
+CvCity* CvCity::fromIDInfo(IDInfo id)
+{
+	return ::getCity(id);
+}
+
 
 void CvCity::setID(int iID)
 {
@@ -10997,6 +11003,7 @@ void CvCity::read(FDataStreamBase* pStream)
 	{
 		pStream->Read((int*)&m_aTradeCities[i].eOwner);
 		pStream->Read(&m_aTradeCities[i].iID);
+		m_aTradeCities[i].validateOwner(); // advc.opt
 	}
 
 	m_orderQueue.Read(pStream);

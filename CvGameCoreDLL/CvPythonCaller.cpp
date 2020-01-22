@@ -484,12 +484,12 @@ bool CvPythonCaller::doEventTrigger(PlayerTypes ePlayer, EventTriggeredData cons
 	if (lResult == 0)
 		return false;
 	// Python may have changed kTriggered
-	pCity = ::getCity(IDInfo(ePlayer, kTriggered.m_iCityId));
+	pCity = CvCity::fromIDInfo(IDInfo(ePlayer, kTriggered.m_iCityId));
 	pPlot = GC.getMap().plot(kTriggered.m_iPlotX, kTriggered.m_iPlotY);
-	pUnit = ::getUnit(IDInfo(ePlayer, kTriggered.m_iUnitId));
+	pUnit = CvUnit::fromIDInfo(IDInfo(ePlayer, kTriggered.m_iUnitId));
 	eOtherPlayer = kTriggered.m_eOtherPlayer;
 	if (eOtherPlayer != NO_PLAYER)
-		pOtherPlayerCity = ::getCity(IDInfo(eOtherPlayer, kTriggered.m_iOtherPlayerCityId));
+		pOtherPlayerCity = CvCity::fromIDInfo(IDInfo(eOtherPlayer, kTriggered.m_iOtherPlayerCityId));
 	eReligion = kTriggered.m_eReligion;
 	eCorporation = kTriggered.m_eCorporation;
 	eBuilding = kTriggered.m_eBuilding;

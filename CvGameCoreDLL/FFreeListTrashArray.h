@@ -251,10 +251,8 @@ T* FFreeListTrashArray<T>::getAt(int iID) const
 {
 	int iIndex;
 
-	if ((iID == FFreeList::INVALID_INDEX) || (m_pArray == NULL))
-	{
+	if (iID == FFreeList::INVALID_INDEX /*|| m_pArray == NULL*/) // advc.opt
 		return NULL;
-	}
 
 	iIndex = (iID & FLTA_INDEX_MASK);
 

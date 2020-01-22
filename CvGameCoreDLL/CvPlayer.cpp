@@ -7149,13 +7149,9 @@ void CvPlayer::convert(ReligionTypes eReligion, /* <advc.001v> */ bool bForce)
 
 bool CvPlayer::hasHolyCity(ReligionTypes eReligion) const
 {
-	FAssertMsg(eReligion != NO_RELIGION, "Religion is not assigned a valid value");
-
 	CvCity* pHolyCity = GC.getGame().getHolyCity(eReligion);
 	if (pHolyCity != NULL)
-	{
 		return (pHolyCity->getOwner() == getID());
-	}
 	return false;
 }
 
@@ -7163,14 +7159,11 @@ bool CvPlayer::hasHolyCity(ReligionTypes eReligion) const
 int CvPlayer::countHolyCities() const
 {
 	int iCount = 0;
-	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+	FOR_EACH_ENUM(Religion)
 	{
-		if (hasHolyCity((ReligionTypes)iI))
-		{
+		if (hasHolyCity(eLoopReligion))
 			iCount++;
-		}
 	}
-
 	return iCount;
 }
 
@@ -12532,7 +12525,7 @@ CvSelectionGroup* CvPlayer::addSelectionGroup()
 	// K-Mod. Make sure that every time we add a group, it also gets added to the group cycle list.
 	// (we can update the specific position in the cycle list later; but it's important it gets into the list.)
 	CvSelectionGroupAI* pGroup = m_selectionGroups->add();
-	if (pGroup)
+	if (pGroup != NULL)
 		m_groupCycle.insertAtEnd(pGroup->getID());
 	return pGroup;
 	// K-Mod end

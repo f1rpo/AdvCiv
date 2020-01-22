@@ -7,6 +7,7 @@
 #include "CvUnitList.h"
 #include "CvMap.h"
 #include "CvGamePlay.h"
+#include "CvPlayerAI.h"
 #include "CvInfo_Terrain.h"
 
 
@@ -766,6 +767,7 @@ void CvArea::read(FDataStreamBase* pStream)
 	{
 		pStream->Read((int*)&m_aTargetCities[i].eOwner);
 		pStream->Read(&m_aTargetCities[i].iID);
+		m_aTargetCities[i].validateOwner(); // advc.opt
 	}
 
 	m_aaiYieldRateModifier.Read(pStream, uiFlag < 2);

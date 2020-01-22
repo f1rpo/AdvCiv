@@ -7930,6 +7930,12 @@ int CvUnit::getUnitAICargo(UnitAITypes eUnitAI) const
 	return iCount;
 }
 
+// advc:
+CvUnit* CvUnit::fromIDInfo(IDInfo id)
+{
+	return ::getUnit(id);
+}
+
 
 void CvUnit::setID(int iID)
 {
@@ -9565,6 +9571,12 @@ bool CvUnit::showSiegeTower(CvUnit* pDefender) const
 } // K-Mod end
 
 
+CvUnit* CvUnit::getTransportUnit() const
+{
+	return getUnit(m_transportUnit);
+}
+
+
 void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 {
 	CvUnit* pOldTransportUnit = getTransportUnit();
@@ -10073,6 +10085,9 @@ void CvUnit::read(FDataStreamBase* pStream)
 	pStream->Read(&m_combatUnit.iID);
 	pStream->Read((int*)&m_transportUnit.eOwner);
 	pStream->Read(&m_transportUnit.iID);
+	// <advc.opt>
+	m_combatUnit.validateOwner();
+	m_transportUnit.validateOwner(); // </advc.opt>
 
 	m_aiExtraDomainModifier.Read(pStream);
 

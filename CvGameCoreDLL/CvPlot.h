@@ -445,38 +445,18 @@ public:
 	void setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroup);																															// Exposed to Python
 	void updateCityRoute(bool bUpdatePlotGroup);
 
-	DllExport inline CvCity* getPlotCity() const // advc.inl																												// Exposed to Python
-	{
-		return ::getCity(m_plotCity);
-	}
-	// <advc.003u>
-	inline CvCityAI* AI_getPlotCity() const
-	{
-		return ::AI_getCity(m_plotCity);
-	} // </advc.003u>
+	DllExport CvCity* getPlotCity() const;																												// Exposed to Python
+	CvCityAI* AI_getPlotCity() const;
 	void setPlotCity(CvCity* pNewValue);
 	void setRuinsName(const CvWString& szName); // advc.005c
 	const wchar* getRuinsName() const; // advc.005c
-	// advc.inl
-	inline CvCity* getWorkingCity() const																																				// Exposed to Python
-	{
-		return ::getCity(m_workingCity);
-	}
+	CvCity* getWorkingCity() const;																														// Exposed to Python
 	void updateWorkingCity();
-	CvCity* getWorkingCityOverride() const																															// Exposed to Python
-	{	// advc.inl:
-		return ::getCity(m_workingCityOverride);
-	}
+	CvCity* getWorkingCityOverride() const;																								// Exposed to Python
 	void setWorkingCityOverride(const CvCity* pNewValue);
 	// <advc.003u>
-	CvCityAI* AI_getWorkingCity() const
-	{
-		return ::AI_getCity(m_workingCity);
-	}
-	CvCityAI* AI_getWorkingCityOverrideAI() const
-	{
-		return ::AI_getCity(m_workingCityOverride);
-	} // </advc.003u>
+	CvCityAI* AI_getWorkingCity() const;
+	CvCityAI* AI_getWorkingCityOverrideAI() const; // </advc.003u>
 
 	int getRiverID() const;																																							// Exposed to Python
 	void setRiverID(int iNewValue);																																			// Exposed to Python
