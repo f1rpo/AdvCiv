@@ -2,7 +2,7 @@
 #include "CvMapGenerator.h"
 #include "CvGame.h"
 #include "PlotRange.h"
-#include "CvAreaList.h" // advc.003s
+#include "CvArea.h" // advc.003s
 #include "CvFractal.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"

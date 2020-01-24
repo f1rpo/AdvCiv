@@ -3,8 +3,10 @@
 #include "CvGameCoreDLL.h"
 #include "CvCityAI.h"
 #include "CoreAI.h"
+#include "CvSelectionGroupAI.h"
 #include "UWAIAgent.h" // advc.031b (for trait checks)
 #include "CityPlotIterator.h"
+#include "CvUnit.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"

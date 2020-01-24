@@ -4,6 +4,8 @@
 #include "RiseFall.h"
 #include "CvInfo_GameOption.h"
 #include "CoreAI.h"
+#include "CvCityAI.h"
+#include "CvSelectionGroup.h"
 #include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
 #include "CvTalkingHeadMessage.h"

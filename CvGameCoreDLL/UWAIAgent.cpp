@@ -9,6 +9,7 @@
 #include "CvInfo_Building.h" // Just for vote-related info
 #include "CvInfo_Unit.h" // for UWAI::Civ::militaryPower
 #include "CoreAI.h"
+#include "CvCityAI.h"
 #include "CvDiploParameters.h"
 #include "CvMap.h"
 #include "CvArea.h"

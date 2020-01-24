@@ -3,7 +3,7 @@
 #include "CvInfo_Command.h"
 #include "CvGamePlay.h"
 #include "CvCity.h"
-#include "CvUnitList.h"
+#include "CvUnit.h"
 #include "CvSelectionGroup.h"
 #include "FDataStreamBase.h"
 #include "CvDLLUtilityIFaceBase.h"

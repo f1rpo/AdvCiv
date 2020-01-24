@@ -4,8 +4,11 @@
 #include "CvPlot.h"
 #include "PlotRange.h"
 #include "CoreAI.h"
+#include "CvCityAI.h"
 #include "CitySiteEvaluator.h"
 #include "CvArea.h"
+#include "CvUnit.h"
+#include "CvSelectionGroup.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
@@ -2136,7 +2139,7 @@ CvUnit* CvPlot::getSelectedUnit() const
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
 		pUnitNode = nextUnitNode(pUnitNode))
 	{
-		CvUnit* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit->IsSelected())
 			return pLoopUnit;
 	}
@@ -3973,31 +3976,33 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_PLOT_OWNER_CHANGE, eNewValue, (char*)NULL, getX(), getY());
 
 	CvCity* pOldCity = getPlotCity();
-
-	if (pOldCity != NULL)
-	{	// <advc>
-		if(eNewValue == NO_PLAYER)
-		{
-			FAssert(eNewValue != NO_PLAYER);
-			return;
-		} // </advc>
+	if (pOldCity != NULL)  // advc: Removed some assertions and NULL/NO_... checks in this block
+	{
 		/*  advc.101: Include pre-revolt owner in messages (sometimes not easy
 			to tell once the city has flipped, and in replays). */
-		const wchar* szOldOwnerDescr = GET_PLAYER(pOldCity->getOwner()).getCivilizationDescriptionKey();
-		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_CITY_REVOLTED_JOINED", pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey(),
+		wchar const* szOldOwnerDescr = GET_PLAYER(pOldCity->getOwner()).
+				getCivilizationDescriptionKey();
+		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_CITY_REVOLTED_JOINED",
+				pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey(),
 				szOldOwnerDescr)); // advc.101
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT,  ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
-		gDLL->getInterfaceIFace()->addMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP",
+		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
+				szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT, 
+				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)
+				GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+		gDLL->getInterfaceIFace()->addMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(),
+				szBuffer, "AS2D_CULTUREFLIP",
 				MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
+				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)
+				GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
 		// <advc.101> Tell other civs about it (akin to code in CvCity::doRevolt)
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
-			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
-			if(!kObs.isAlive() || kObs.isMinorCiv() || kObs.getID() == getOwner() ||
-					kObs.getID() == eNewValue || (!isRevealed(kObs.getTeam()) &&
-					!kObs.isSpectator())) // advc.127
+			CvPlayer const& kObs = *it;
+			if (kObs.getID() == getOwner() || kObs.getID() == eNewValue ||
+				(!isRevealed(kObs.getTeam()) && /* advc.127: */ !kObs.isSpectator())) 
+			{
 				continue;
+			}
 			ColorTypes eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
 			InterfaceMessageTypes eMsgType = MESSAGE_TYPE_MAJOR_EVENT;
 			if(GET_TEAM(eNewValue).isVassal(kObs.getTeam()))
@@ -4017,52 +4022,34 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				szBuffer, getX(), getY());
 				// advc.106: Use ALT_HIGHLIGHT for research-related stuff now
 				//,(ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT")
-		FAssertMsg(pOldCity->getOwner() != eNewValue, "pOldCity->getOwner() is not expected to be equal with eNewValue");
+		FAssert(pOldCity->getOwner() != eNewValue);
 		GET_PLAYER(eNewValue).acquireCity(pOldCity, false, false, bUpdatePlotGroup); // will delete the pointer
 		pOldCity = NULL;
 		CvCity* pNewCity = getPlotCity();
-		FAssertMsg(pNewCity != NULL, "NewCity is not assigned a valid value");
-
-		if (pNewCity != NULL)
+		CLinkList<IDInfo> oldUnits;
 		{
-			CLinkList<IDInfo> oldUnits;
+			for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
+				pUnitNode = nextUnitNode(pUnitNode))
 			{
-				for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-						pUnitNode = nextUnitNode(pUnitNode))
-					oldUnits.insertAtEnd(pUnitNode->m_data);
+				oldUnits.insertAtEnd(pUnitNode->m_data);
 			}
-			CLLNode<IDInfo>* pUnitNode = oldUnits.head();
-			while (pUnitNode != NULL)
+		}
+		CLLNode<IDInfo>* pUnitNode = oldUnits.head();
+		while (pUnitNode != NULL)
+		{
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = oldUnits.next(pUnitNode);
+			if (pLoopUnit != NULL)
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = oldUnits.next(pUnitNode);
-				if (pLoopUnit != NULL)
+				if (pLoopUnit->isEnemy(pNewCity->getTeam(), *this))
 				{
-					if (pLoopUnit->isEnemy(TEAMID(eNewValue), *this))
-					{
-						FAssert(pLoopUnit->getTeam() != TEAMID(eNewValue));
-						//pLoopUnit->kill(false, eNewValue);
-						pLoopUnit->jumpToNearestValidPlot(); // advc.101: don't kill
-					}
-				}
-			}
-
-			UnitTypes eBestUnit = pNewCity->AI().AI_bestUnitAI(UNITAI_CITY_DEFENSE);
-			if (eBestUnit == NO_UNIT)
-				eBestUnit = pNewCity->AI().AI_bestUnitAI(UNITAI_ATTACK);
-
-			if (eBestUnit != NO_UNIT)
-			{
-				int iFreeUnits = (GC.getDefineINT("BASE_REVOLT_FREE_UNITS") +
-						(pNewCity->getHighestPopulation() *
-						GC.getDefineINT("REVOLT_FREE_UNITS_PERCENT")) / 100);
-
-				for (int iI = 0; iI < iFreeUnits; ++iI)
-				{
-					GET_PLAYER(eNewValue).initUnit(eBestUnit, getX(), getY(), UNITAI_CITY_DEFENSE);
+					FAssert(pLoopUnit->getTeam() != pNewCity->getTeam());
+					//pLoopUnit->kill(false, pNewCity->getTeam());
+					pLoopUnit->jumpToNearestValidPlot(); // advc.101: don't kill
 				}
 			}
 		}
+		pNewCity->addRevoltFreeUnits(); // advc: Moved into new function
 	}
 	else
 	{
@@ -4120,8 +4107,8 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 		if (isOwned())
 		{
-			changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE), true, NULL, bUpdatePlotGroup);
-
+			changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
+					true, NULL, bUpdatePlotGroup);
 			if (area() != NULL)
 				getArea().changeNumOwnedTiles(1);
 			else FAssert(area() != NULL); // advc.test
@@ -4153,10 +4140,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			}
 		}
 
-		for (int iI = 0; iI < MAX_TEAMS; ++iI)
+		for (TeamIter<ALIVE> it; it.hasNext(); ++it)
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-				updateRevealedOwner((TeamTypes)iI);
+			updateRevealedOwner(it->getID());
 		}
 
 		updateIrrigated();
@@ -4173,16 +4159,13 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			if (isGoody())
 				GET_PLAYER(getOwner()).doGoody(this, NULL);
 
-			for (int iI = 0; iI < MAX_CIV_TEAMS; ++iI)
+			for (TeamIter<CIV_ALIVE> it; it.hasNext();++it)
 			{
-				CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
-				if (kLoopTeam.isAlive())
+				CvTeam& kLoopTeam = *it;
+				if (isVisible(kLoopTeam.getID()))
 				{
-					if (isVisible(kLoopTeam.getID()))
-					{
-						FirstContactData fcData(this); // advc.071
-						kLoopTeam.meet(getTeam(), true, /* advc.071: */ &fcData);
-					}
+					FirstContactData fcData(this); // advc.071
+					kLoopTeam.meet(getTeam(), true, /* advc.071: */ &fcData);
 				}
 			}
 		}
@@ -4904,13 +4887,13 @@ const wchar* CvPlot::getRuinsName() const
 } // </advc.005c>
 
 
-CvCity* CvPlot::getWorkingCity() const																																				// Exposed to Python
+CvCity* CvPlot::getWorkingCity() const
 {
 	return ::getCity(m_workingCity);
 }
 
 
-CvCity* CvPlot::getWorkingCityOverride() const																															// Exposed to Python
+CvCity* CvPlot::getWorkingCityOverride() const
 {
 	return ::getCity(m_workingCityOverride);
 }

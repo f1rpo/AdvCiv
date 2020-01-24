@@ -6,6 +6,7 @@
 #include "UWAIAgent.h"
 #include "InvasionGraph.h"
 #include "CoreAI.h"
+#include "CvCity.h"
 #include "CvInfo_GameOption.h"
 #include <iterator>
 

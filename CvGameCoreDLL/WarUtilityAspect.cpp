@@ -8,9 +8,12 @@
 #include "UWAIAgent.h"
 #include "MilitaryAnalyst.h"
 #include "CoreAI.h"
-#include "CvDealList.h"
+#include "CvCityAI.h"
+#include "CvUnitAI.h"
+#include "CvSelectionGroupAI.h"
+#include "CvDeal.h"
 #include "CvMap.h"
-#include "CvAreaList.h"
+#include "CvArea.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Unit.h"
 #include "CvInfo_Building.h" // Just for vote-related info
@@ -3106,7 +3109,7 @@ void Revolts::evaluate() {
 		in the primary areas of theyId */
 	double revoltLoss = 0;
 	int totalAssets = 0;
-	FOR_EACH_AREA_VAR(a) {
+	FOR_EACH_AREA(a) {
 		if(!they->AI_isPrimaryArea(*a) || (we->AI_isPrimaryArea(*a) &&
 				a->getCitiesPerPlayer(theyId) <= 2)) // Almost done here
 			continue;

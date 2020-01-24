@@ -25,6 +25,7 @@ struct CombatDetails;
 class CvUnit : public CvDLLEntity
 {
 public:
+	virtual ~CvUnit();
 
 	void setupGraphical();
 	void reloadEntity();
@@ -989,9 +990,10 @@ public:
 	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
 	// Lead From Behind: END
 
-	void read(FDataStreamBase* pStream);
-	void write(FDataStreamBase* pStream);
 	// <advc.003u>
+	// virtual for FFreeListTrashArray
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 	__forceinline CvUnitAI& AI()
 	{	//return *static_cast<CvUnitAI*>(const_cast<CvUnit*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -1009,7 +1011,6 @@ public:
 protected:
 	// <advc.003u>
 	CvUnit();
-	virtual ~CvUnit();
 	/*  Subclasses need to call these two init functions; not called by base.
 		May also want to override them. */
 	virtual void init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY,

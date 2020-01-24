@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
 #include "CoreAI.h"
+#include "CvCityAI.h"
 #include "UWAIAgent.h"
 #include "CvInfo_Unit.h"
 

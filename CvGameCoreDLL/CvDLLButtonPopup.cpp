@@ -4,9 +4,12 @@
 #include "CvDLLButtonPopup.h"
 #include "CvPopupInfo.h"
 #include "CoreAI.h"
-#include "RiseFall.h" // advc.706
+#include "CvCityAI.h"
+#include "CvUnit.h"
+#include "CvSelectionGroup.h"
 #include "CvMap.h"
-#include "CvAreaList.h" // advc.003s
+#include "CvArea.h"
+#include "RiseFall.h" // advc.706
 #include "CvPopupReturn.h"
 #include "CvInfo_All.h"
 #include "CvGameTextMgr.h"

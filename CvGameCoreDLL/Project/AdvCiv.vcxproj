@@ -163,6 +163,7 @@
     <ClCompile Include="..\CyUnitInterface1.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
+    <ClCompile Include="..\FFreeListTrashArray.cpp" />
     <ClCompile Include="..\FProfiler.cpp" />
     <ClCompile Include="..\InvasionGraph.cpp" />
     <ClCompile Include="..\KmodPathFinder.cpp" />
@@ -196,18 +197,15 @@
     <ClInclude Include="..\BitUtil.h" />
     <ClInclude Include="..\CityPlotIterator.h" />
     <ClInclude Include="..\CitySiteEvaluator.h" />
+    <ClInclude Include="..\CoreAI.h" />
     <ClInclude Include="..\CvAgents.h" />
-    <ClInclude Include="..\CvAI.h" />
     <ClInclude Include="..\CvArea.h" />
-    <ClInclude Include="..\CvAreaList.h" />
     <ClInclude Include="..\CvArtFileMgr.h" />
     <ClInclude Include="..\CvBugOptions.h" />
     <ClInclude Include="..\CvCity.h" />
     <ClInclude Include="..\CvCityAI.h" />
-    <ClInclude Include="..\CvCityList.h" />
     <ClInclude Include="..\CvCivilization.h" />
     <ClInclude Include="..\CvDeal.h" />
-    <ClInclude Include="..\CvDealList.h" />
     <ClInclude Include="..\CvDefines.h" />
     <ClInclude Include="..\CvDiploParameters.h" />
     <ClInclude Include="..\CvDLLButtonPopup.h" />
@@ -277,7 +275,6 @@
     <ClInclude Include="..\CvReplayMessage.h" />
     <ClInclude Include="..\CvSelectionGroup.h" />
     <ClInclude Include="..\CvSelectionGroupAI.h" />
-    <ClInclude Include="..\CvSelectionGroupList.h" />
     <ClInclude Include="..\CvStatistics.h" />
     <ClInclude Include="..\CvString.h" />
     <ClInclude Include="..\CvStructs.h" />
@@ -286,7 +283,6 @@
     <ClInclude Include="..\CvTeamAI.h" />
     <ClInclude Include="..\CvUnit.h" />
     <ClInclude Include="..\CvUnitAI.h" />
-    <ClInclude Include="..\CvUnitList.h" />
     <ClInclude Include="..\CvXMLLoadUtility.h" />
     <ClInclude Include="..\CyArea.h" />
     <ClInclude Include="..\CyArgsList.h" />
@@ -314,12 +310,10 @@
     <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\FDataStreamBase.h" />
     <ClInclude Include="..\FDialogTemplate.h" />
-    <ClInclude Include="..\FFreeListArray.h" />
-    <ClInclude Include="..\FFreeListArrayBase.h" />
     <ClInclude Include="..\FFreeListTrashArray.h" />
     <ClInclude Include="..\FInputDevice.h" />
     <ClInclude Include="..\FProfiler.h" />
-    <ClInclude Include="..\FLTALoopCounter.h" />
+    <ClInclude Include="..\FreeListTraversal.h" />
     <ClInclude Include="..\FVariableSystem.h" />
     <ClInclude Include="..\InvasionGraph.h" />
     <ClInclude Include="..\KmodPathFinder.h" />

@@ -2,8 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvSelectionGroup.h"
-#include "CvGamePlay.h"
+#include "CvSelectionGroupAI.h"
+#include "CvUnitAI.h"
 #include "CvPlayerAI.h"
+#include "CvGamePlay.h"
+#include "CvCity.h"
 #include "CvMap.h"
 #include "BBAILog.h"
 #include "FAStarNode.h"

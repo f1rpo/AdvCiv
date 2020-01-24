@@ -1,6 +1,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
 #include "CoreAI.h"
+#include "CvUnitAI.h"
+#include "CvSelectionGroupAI.h"
 #include "CityPlotIterator.h"
 #include "FAStarNode.h"
 #include "BBAILog.h" // advc.007

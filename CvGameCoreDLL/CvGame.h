@@ -12,10 +12,8 @@ class CvReplayInfo;
 class CvArtInfoBuilding;
 class CvArea;
 class CvHallOfFameInfo; // advc.106i
-// <advc.003u>
 class CvGameAI;
-class CvDealList;
-class CvDeal; // </advc.003u>
+class CvDeal;
 class CvCivilization; // advc.003w
 class Shelf; // advc.300
 class StartPointsAsHandicap; // advc.250b
@@ -199,7 +197,10 @@ public:
 	// <advc> const
 	int getTurnYear(int iGameTurn) const;																// Exposed to Python
 	int getGameTurnYear() const; // </advc>																	// Exposed to Python
-	int getElapsedGameTurns() const;																		// Exposed to Python
+	int getElapsedGameTurns() const																		// Exposed to Python
+	{
+		return m_iElapsedGameTurns; // advc.inl
+	}
 	void incrementElapsedGameTurns();
 	int AIHandicapAdjustment() const; // advc.251
 
@@ -213,7 +214,10 @@ public:
 	int getNumAdvancedStartPoints() const;														// Exposed to Python
 	void setNumAdvancedStartPoints(int iNewValue);										// Exposed to Python
 
-	int getStartTurn() const;																			// Exposed to Python
+	int getStartTurn() const																			// Exposed to Python
+	{
+		return m_iStartTurn; // advc.inl
+	}
 	void setStartTurn(int iNewValue);
 
 	int getStartYear() const;																			// Exposed to Python
@@ -248,11 +252,17 @@ public:
 	DllExport int countNumHumanGameTurnActive() const;														// Exposed to Python
 	void changeNumGameTurnActive(int iChange);
 
-	int getNumCities() const;																						// Exposed to Python
+	int getNumCities() const																						// Exposed to Python
+	{
+		return m_iNumCities; // advc.inl
+	}
 	int getNumCivCities() const;																				// Exposed to Python
 	void changeNumCities(int iChange);
 
-	int getTotalPopulation() const;																// Exposed to Python
+	int getTotalPopulation() const																// Exposed to Python
+	{
+		return m_iTotalPopulation; // advc.inl
+	}
 	void changeTotalPopulation(int iChange);
 
 	int getTradeRoutes() const;																		// Exposed to Python
@@ -314,7 +324,10 @@ public:
 	int getWonderScore(BuildingClassTypes eWonderClass) const; // </advc>
 	DllExport void initScoreCalculation();
 
-	int getAIAutoPlay() const; // advc: const																// Exposed to Python
+	int getAIAutoPlay() const // advc: const											// Exposed to Python
+	{
+		return m_iAIAutoPlay; // advc.inl
+	}
 	DllExport void setAIAutoPlay(int iNewValue) {										// Exposed to Python
 		// <advc.127>
 		setAIAutoPlay(iNewValue, true);
@@ -375,7 +388,10 @@ public:
 	bool canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const;
 	bool isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const;
 
-	DllExport bool isDebugMode() const;																			// Exposed to Python
+	DllExport bool isDebugMode() const																			// Exposed to Python
+	{
+		return m_bDebugModeCache; // advc.inl
+	}
 	DllExport void toggleDebugMode();																				// Exposed to Python
 	DllExport void updateDebugModeCache();
 	bool isDebugToolsAllowed(bool bWB) const; // advc.135c
@@ -387,7 +403,10 @@ public:
 	DllExport bool isPitboss() const;																							// Exposed to Python
 	bool isSimultaneousTeamTurns() const; // Exposed to Python
 
-	DllExport bool isFinalInitialized() const;																		// Exposed to Python
+	DllExport bool isFinalInitialized() const																		// Exposed to Python
+	{
+		return m_bFinalInitialized; // advc.inl
+	}
 	DllExport void setFinalInitialized(bool bNewValue);
 	// <advc.004x>
 	void setDawnOfManShown(bool b);
@@ -429,11 +448,20 @@ public:
 	int getBestLandUnitCombat() const;																			// Exposed to Python
 	void setBestLandUnit(UnitTypes eNewValue);
 
-	TeamTypes getWinner() const;																			// Exposed to Python
-	VictoryTypes getVictory() const;																	// Exposed to Python
+	TeamTypes getWinner() const																			// Exposed to Python
+	{
+		return m_eWinner; // advc.inl
+	}
+	VictoryTypes getVictory() const																		// Exposed to Python
+	{
+		return m_eVictory; // advc.inl
+	}
 	void setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory);		// Exposed to Python
 
-	DllExport GameStateTypes getGameState() const;																		// Exposed to Python
+	DllExport GameStateTypes getGameState() const																		// Exposed to Python
+	{
+		return m_eGameState; // advc.inl
+	}
 	DllExport void setGameState(GameStateTypes eNewValue);
 
 	PlayerTypes getInitialActivePlayer() const; // advc.106h
@@ -551,17 +579,28 @@ public:
 	DllExport int getIndexAfterLastDeal();																								// Exposed to Python
 	int getNumDeals();																													// Exposed to Python
 
-	DllExport CvDeal* getDeal(int iID)																			// Exposed to Python
-	// <advc> Need a const version
+	// advc.inl: const version, inline
+	DllExport inline CvDeal* getDeal(int iID)																	// Exposed to Python
 	{	CvGame const& kThis = *this;
 		return const_cast<CvDeal*>(kThis.getDeal(iID));
-	} CvDeal const* getDeal(int iID) const; // </advc>
+	}
+	CvDeal const* getDeal(int iID) const
+	{
+		return m_deals.getAt(iID);
+	}
 
 	CvDeal* addDeal();
 	void deleteDeal(int iID);
 	// iteration (advc: const)
-	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const;													// Exposed to Python
-	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const;														// Exposed to Python
+	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const														// Exposed to Python
+	{	//return (!bRev ? m_deals.beginIter(pIterIdx) : m_deals.endIter(pIterIdx));
+		FAssert(!bRev);
+		return m_deals.beginIter(pIterIdx); // advc.opt
+	}
+	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const														// Exposed to Python
+	{	//return (!bRev ? m_deals.nextIter(pIterIdx) : m_deals.prevIter(pIterIdx));
+		return m_deals.nextIter(pIterIdx); // advc.opt
+	}
 	// <advc.072>
 	CvDeal* nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
 			TradeableItems eItemType, int iData = -1, bool bWidget = false);
@@ -575,13 +614,25 @@ public:
 	VoteTriggeredData* addVoteTriggered(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kOptionData);
 	void deleteVoteTriggered(int iID);
 
-	CvRandom& getMapRand();																											// Exposed to Python
-	int getMapRandNum(int iNum, const char* pszLog);
-
-	CvRandom& getSorenRand();																										// Exposed to Python
+	// advc.inl: PRNG functions inlined
+	CvRandom& getMapRand()																											// Exposed to Python
+	{
+		return m_mapRand;
+	}
+	int getMapRandNum(int iNum, const char* pszLog)
+	{
+		return m_mapRand.get(iNum, pszLog);
+	}
+	CvRandom& getSorenRand()																										// Exposed to Python
+	{
+		return m_sorenRand;
+	}
 	//  Returns a value from the half-closed interval [0,iNum)
 	int getSorenRandNum(int iNum, const char* pszLog,
-			int iData1 = MIN_INT, int iData2 = MIN_INT); // advc.007
+		int iData1 = MIN_INT, int iData2 = MIN_INT) // advc.007
+	{
+		return m_sorenRand.getInt(iNum, pszLog, /* advc.007: */ iData1, iData2);
+	}
 
 	DllExport int calculateSyncChecksum();																								// Exposed to Python
 	DllExport int calculateOptionsChecksum();																							// Exposed to Python
@@ -831,8 +882,7 @@ protected:
 
 	FFreeListTrashArray<VoteSelectionData> m_voteSelections;
 	FFreeListTrashArray<VoteTriggeredData> m_votesTriggered;
-	//FFreeListTrashArray<CvDeal> m_deals;
-	CvDealList* m_deals; // advc.003u
+	FFreeListTrashArray<CvDeal> m_deals;
 	/*  <advc.072> Not serialized. One for use by CvPlayer::getItemTradeString,
 		the other for CvDLLWidgetData::parseTradeItem. */
 	CLinkList<DealItemData> m_currentDeals;
@@ -919,6 +969,7 @@ protected:
 	void showEndGameSequence();
 	int FPChecksum() const; // advc.003g
 	void handleUpdateTimer(UpdateTimerTypes eTimerType); // advc.003r
+	bool isValidReplayIndex(uint i) const; // advc
 
 	void processVote(const VoteTriggeredData& kData, int iChange);
 	

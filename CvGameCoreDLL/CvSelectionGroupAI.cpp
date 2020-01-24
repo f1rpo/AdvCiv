@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvSelectionGroupAI.h"
+#include "CvUnitAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "AgentIterator.h"

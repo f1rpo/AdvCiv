@@ -157,6 +157,10 @@ __forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
 __forceinline float DWtoF( dword n ) { return *(float*)&n; }
 __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 
+// <advc.003s> For generating variable names. (The layer of indirection is necessary.)
+#define CONCATVARNAME_IMPL(prefix, lineNum) prefix##lineNum
+#define CONCATVARNAME(prefix, suffix) CONCATVARNAME_IMPL(prefix, suffix) // </advc.003s>
+
 void startProfilingDLL(bool longLived);
 void stopProfilingDLL(bool longLived);
 
@@ -252,9 +256,7 @@ namespace python = boost::python;
 #include "FAssert.h"
 #include "CvGameCoreDLLDefNew.h"
 #include "FDataStreamBase.h"
-#include "FFreeListArrayBase.h"
-#include "FFreeListTrashArray.h"
-#include "FFreeListArray.h"
+#include "FFreeListTrashArray.h" // advc.003s: includes FreeListTraversal.h
 #include "CvString.h"
 #include "CvEnums.h" // includes CvDefines.h, CvInfoEnum.h
 /*  advc: Smaller numbers may already crash the EXE; the DLL assumes in some places

@@ -7,8 +7,7 @@
 #include "CvUnit.h"
 // <advc.mapstat>
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvAreaList.h"
+#include "CvArea.h"
 #include "CvInfo_Terrain.h"
 #include <sstream>
 // </advc.mapstat>

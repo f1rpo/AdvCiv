@@ -9,12 +9,12 @@
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
 #include "PlotRange.h"
-#include "CvAreaList.h"
-#include "CvCityList.h"
-#include "CvSelectionGroupList.h"
+#include "CvArea.h"
 #include "CvGame.h"
 #include "CvPlayer.h"
+#include "CvCity.h"
 #include "CvUnit.h"
+#include "CvSelectionGroup.h"
 #include "CvPlotGroup.h"
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
@@ -25,7 +25,7 @@
 #include <stack> // advc.030
 
 
-CvMap::CvMap() /* advc.003u: */ : m_areas(new CvAreaList())
+CvMap::CvMap()
 {
 	CvMapInitData defaultMapData;
 	m_pMapPlots = NULL;
@@ -36,7 +36,6 @@ CvMap::CvMap() /* advc.003u: */ : m_areas(new CvAreaList())
 CvMap::~CvMap()
 {
 	uninit();
-	SAFE_DELETE(m_areas); // advc.003u
 }
 
 // Initializes the map
@@ -53,7 +52,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 	GC.getPythonCaller()->callMapFunction("beforeInit");
 
 	reset(pInitInfo); // Init serialized data
-	m_areas->init(); // Init containers
+	m_areas.init(); // Init containers
 	setup();
 	gDLL->logMemState("CvMap before init plots");
 	m_pMapPlots = new CvPlot[numPlots()];
@@ -74,7 +73,7 @@ void CvMap::uninit()
 {
 	SAFE_DELETE_ARRAY(m_pMapPlots);
 	m_replayTexture.clear(); // advc.106n
-	m_areas->uninit();
+	m_areas.uninit();
 }
 
 // Initializes data members that are serialized.
@@ -151,7 +150,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	m_aiNumBonus.reset();
 	m_aiNumBonusOnLand.reset();
 
-	m_areas->removeAll();
+	m_areas.removeAll();
 }
 
 // Initializes all data that is not serialized but needs to be initialized after loading.
@@ -757,12 +756,34 @@ float CvMap::getHeightCoords() const
 
 int CvMap::maxPlotDistance() const
 {
-	//return std::max(1, plotDistance(0, 0, ((isWrapX()) ? (getGridWidth() / 2) : (getGridWidth() - 1)), ((isWrapY()) ? (getGridHeight() / 2) : (getGridHeight() - 1))));
-	// <advc.140> Replacing the above
-	CvGame const& g = GC.getGame();
-	double civRatio = g.getRecommendedPlayers() / (double)g.getCivPlayersEverAlive();
+	return std::max(1, plotDistance(0, 0,
+			isWrapX() ? getGridWidth() / 2 : getGridWidth() - 1,
+			isWrapY() ? getGridHeight() / 2 : getGridHeight() - 1));
+}
+
+
+int CvMap::maxStepDistance() const
+{
+	return std::max(1, stepDistance(0, 0,
+			isWrapX() ? getGridWidth() / 2 : getGridWidth() - 1,
+			isWrapY() ? getGridHeight() / 2 : getGridHeight() - 1));
+}
+
+// advc.140:
+int CvMap::maxMaintenanceDistance() const
+{
+	return ::round(1 + maxTypicalDistance() * (10.0 /
+			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE)));
+}
+
+/*	advc.140: Not sure what distance this measures exactly; I'm using it as a
+	replacement (everyhwere) for maxPlotDistance with reduced impact of world wraps. */
+int CvMap::maxTypicalDistance() const
+{
+	CvGame const& kGame = GC.getGame();
+	double civRatio = kGame.getRecommendedPlayers() / (double)kGame.getCivPlayersEverAlive();
 	// Already factored into getRecommendedPlayers, but I want to give it a little extra weight.
-	double seaLvlModifier = (100 - 2.5 * g.getSeaLevelChange()) / 100.0;
+	double seaLvlModifier = (100 - 2.5 * kGame.getSeaLevelChange()) / 100.0;
 	int iWraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
 	if(isWrapX())
 		iWraps++;
@@ -771,21 +792,9 @@ int CvMap::maxPlotDistance() const
 	CvWorldInfo const& kWorld = GC.getInfo(getWorldSize());
 	double r = std::sqrt(kWorld.getGridWidth() * kWorld.getGridHeight() * civRatio *
 			seaLvlModifier) * 3.5 - 5 * iWraps;
-	return std::max(1, ::round(r)); // </advc.140>
+	return std::max(1, ::round(r));
 }
 
-
-int CvMap::maxStepDistance() const
-{
-	return std::max(1, stepDistance(0, 0, ((isWrapX()) ? (getGridWidth() / 2) : (getGridWidth() - 1)), ((isWrapY()) ? (getGridHeight() / 2) : (getGridHeight() - 1))));
-}
-
-// <advc.140>
-int CvMap::maxMaintenanceDistance() const
-{
-	return ::round(1 + maxPlotDistance() * (10.0 /
-			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE)));
-} // </advc.140>
 
 int CvMap::getGridWidthExternal() const // advc.inl
 {
@@ -955,13 +964,7 @@ CvPlot* CvMap::pointToPlot(float fX, float fY)
 
 int CvMap::getIndexAfterLastArea() const
 {
-	return m_areas->getIndexAfterLast();
-}
-
-
-int CvMap::getNumAreas() const
-{
-	return m_areas->getCount();
+	return m_areas.getIndexAfterLast();
 }
 
 
@@ -977,33 +980,15 @@ int CvMap::getNumLandAreas() const  // advc: style changes
 }
 
 
-CvArea* CvMap::getArea(int iID) const
-{
-	return m_areas->getAt(iID);
-}
-
-
 CvArea* CvMap::addArea()
 {
-	return m_areas->add();
+	return m_areas.add();
 }
 
 
 void CvMap::deleteArea(int iID)
 {
-	m_areas->removeAt(iID);
-}
-
-
-CvArea* CvMap::firstArea(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_areas->beginIter(pIterIdx) : m_areas->endIter(pIterIdx);
-}
-
-
-CvArea* CvMap::nextArea(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_areas->nextIter(pIterIdx) : m_areas->prevIter(pIterIdx);
+	m_areas.removeAt(iID);
 }
 
 
@@ -1013,7 +998,7 @@ void CvMap::recalculateAreas()
 
 	for (int iI = 0; iI < numPlots(); iI++)
 		getPlotByIndex(iI).setArea(NULL);
-	m_areas->removeAll();
+	m_areas.removeAll();
 	calculateAreas();
 }
 
@@ -1093,7 +1078,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	}
 
 	// call the read of the free list CvArea class allocations
-	ReadStreamableFFreeListTrashArray(*m_areas, pStream);
+	ReadStreamableFFreeListTrashArray(m_areas, pStream);
 	// <advc> Let the plots know that the areas have been loaded
 	for (int i = 0; i < numPlots(); i++)
 	{
@@ -1146,7 +1131,7 @@ void CvMap::write(FDataStreamBase* pStream)
 		m_pMapPlots[iI].write(pStream);
 
 	// call the read of the free list CvArea class allocations
-	WriteStreamableFFreeListTrashArray(*m_areas, pStream);
+	WriteStreamableFFreeListTrashArray(m_areas, pStream);
 	// <advc.106n>
 	pStream->Write(m_replayTexture.size());
 	pStream->Write(m_replayTexture.size(), &m_replayTexture[0]);

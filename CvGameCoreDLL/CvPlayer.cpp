@@ -4,11 +4,14 @@
 #include "CvPlayer.h"
 #include "CvAgents.h" // advc.agent
 #include "CoreAI.h"
-#include "CvDealList.h" // advc.003s
+#include "CvCityAI.h"
+#include "CvUnitAI.h"
+#include "CvSelectionGroupAI.h"
+#include "CvDeal.h"
 #include "CvTalkingHeadMessage.h"
 #include "UWAIAgent.h" // advc.104
 #include "PlotRange.h"
-#include "CvAreaList.h" // advc.003s
+#include "CvArea.h"
 #include "CvInfo_All.h"
 #include "CvDiploParameters.h"
 #include "CvPopupInfo.h"
@@ -39,9 +42,7 @@ void CvPlayer::freeStatics()
 }
 
 
-CvPlayer::CvPlayer(/* <advc.003u> */ PlayerTypes eID) :
-	m_cities(new CvCityList()), m_units(new CvUnitList()),
-	m_selectionGroups(new CvSelectionGroupList()), // </advc.003u>
+CvPlayer::CvPlayer(/* advc.003u: */ PlayerTypes eID) :
 	m_pCivilization(NULL) // advc.003w
 {
 	m_aiSeaPlotYield = new int[NUM_YIELD_TYPES];
@@ -121,10 +122,6 @@ CvPlayer::~CvPlayer()
 	SAFE_DELETE_ARRAY(m_aiEspionageSpendingWeightAgainstTeam);
 	SAFE_DELETE_ARRAY(m_abFeatAccomplished);
 	SAFE_DELETE_ARRAY(m_abOptions);
-	// <advc.003u>
-	SAFE_DELETE(m_cities);
-	SAFE_DELETE(m_units);
-	SAFE_DELETE(m_selectionGroups); // </advc.003u>
 	SAFE_DELETE(m_pCivilization); // advc.003w
 }
 
@@ -159,9 +156,9 @@ void CvPlayer::init(PlayerTypes eID)
 void CvPlayer::initContainers() {
 
 	m_plotGroups.init();
-	m_cities->init();
-	m_units->init();
-	m_selectionGroups->init();
+	m_cities.init();
+	m_units.init();
+	m_selectionGroups.init();
 	m_eventsTriggered.init();
 }
 
@@ -323,11 +320,8 @@ void CvPlayer::initInGame(PlayerTypes eID)
 // <advc.210>
 void CvPlayer::initAlerts(bool bSilentCheck)
 {
-	if (GC.getGame().isHotSeat() ? !isHuman() :
-		getID() != GC.getGame().getActivePlayer())
-	{
+	if (!isHuman()) // advc.test: Hopefully OK this way in networked multiplayer
 		return;
-	}
 	if (!m_paAlerts.empty())
 	{
 		// OK if this happens when the active player is defeated during Auto Play
@@ -437,9 +431,9 @@ void CvPlayer::uninit()
 	m_cityNames.clear();
 
 	m_plotGroups.uninit();
-	m_cities->uninit();
-	m_units->uninit();
-	m_selectionGroups->uninit();
+	m_cities.uninit();
+	m_units.uninit();
+	m_selectionGroups.uninit();
 	m_eventsTriggered.uninit();
 
 	clearMessages();
@@ -816,9 +810,9 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	}
 
 	m_plotGroups.removeAll();
-	m_cities->removeAll();
-	m_units->removeAll();
-	m_selectionGroups->removeAll();
+	m_cities.removeAll();
+	m_units.removeAll();
+	m_selectionGroups.removeAll();
 	m_eventsTriggered.removeAll();
 
 	if (!bConstructorCall)
@@ -1162,11 +1156,11 @@ void CvPlayer::setupGraphical() // graphical only setup
 	if (!GC.IsGraphicsInitialized())
 		return;
 
-	// Setup m_cities
+	// Set up m_cities
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
 		pLoopCity->setupGraphical();
 
-	// Setup m_units
+	// Set up m_units
 	FOR_EACH_UNIT_VAR(pLoopUnit, *this)
 		pLoopUnit->setupGraphical();
 }
@@ -1659,7 +1653,7 @@ CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGrou
 	int iOccupationTimer) // advc.ctr
 {
 	//PROFILE_FUNC(); // advc.003o
-	CvCityAI* pCity = m_cities->add(); // advc.003u: was = addCity()
+	CvCityAI* pCity = m_cities.AI_add(); // advc.003u: was = addCity()
 	if (pCity == NULL)
 	{
 		FAssertMsg(pCity != NULL, "FLTA failed to allocate storage");
@@ -2359,7 +2353,7 @@ CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI,
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	CvUnitAI* pUnit = m_units->add(); // advc.003u: was = addUnit()
+	CvUnitAI* pUnit = m_units.AI_add(); // advc.003u: was = addUnit()
 	if (pUnit == NULL)
 	{
 		FAssertMsg(pUnit != NULL, "FLTA failed to allocate storage");
@@ -12426,115 +12420,32 @@ CvPlotGroup* CvPlayer::addPlotGroup()
 }
 
 
-CvCity* CvPlayer::firstCity(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_cities->beginIter(pIterIdx) : m_cities->endIter(pIterIdx);
-}
-
-
-CvCity* CvPlayer::nextCity(int *pIterIdx, bool bRev) const
-{
-	return (!bRev ? m_cities->nextIter(pIterIdx) : m_cities->prevIter(pIterIdx));
-}
-
-
-int CvPlayer::getNumCities() const
-{
-	return m_cities->getCount();
-}
-
-
-CvCity* CvPlayer::getCity(int iID) const
-{
-	return m_cities->getAt(iID);
-}
-
-/*  advc.003u: Not really needed (and need pointers to AI classes in the return type,
-	but don't want those to show up in CvPlayer.h). */
-/*CvCity* CvPlayer::addCity() {
-	return m_cities.add();
-}
-CvUnit* CvPlayer::addUnit() {
-	return m_units->add();
-}*/
-
-
 void CvPlayer::deleteCity(int iID)
 {
-	m_cities->removeAt(iID);
-}
-
-
-CvUnit* CvPlayer::firstUnit(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_units->beginIter(pIterIdx) : m_units->endIter(pIterIdx);
-}
-
-
-CvUnit* CvPlayer::nextUnit(int *pIterIdx, bool bRev) const
-{
-	return !bRev ? m_units->nextIter(pIterIdx) : m_units->prevIter(pIterIdx);
-}
-
-
-int CvPlayer::getNumUnits() const
-{
-	return m_units->getCount();
-}
-
-
-CvUnit* CvPlayer::getUnit(int iID) const
-{
-	return m_units->getAt(iID);
+	m_cities.removeAt(iID);
 }
 
 
 void CvPlayer::deleteUnit(int iID)
 {
-	m_units->removeAt(iID);
-}
-
-
-CvSelectionGroup* CvPlayer::firstSelectionGroup(int *pIterIdx, bool bRev) const
-{
-	return (!bRev ? m_selectionGroups->beginIter(pIterIdx) : m_selectionGroups->endIter(pIterIdx));
-}
-
-
-CvSelectionGroup* CvPlayer::nextSelectionGroup(int *pIterIdx, bool bRev) const
-{
-	return (!bRev ? m_selectionGroups->nextIter(pIterIdx) : m_selectionGroups->prevIter(pIterIdx));
-}
-
-
-int CvPlayer::getNumSelectionGroups() const
-{
-	return m_selectionGroups->getCount();
-}
-
-
-CvSelectionGroup* CvPlayer::getSelectionGroup(int iID) const
-{
-	return m_selectionGroups->getAt(iID);
+	m_units.removeAt(iID);
 }
 
 
 CvSelectionGroup* CvPlayer::addSelectionGroup()
 {
-	//return m_selectionGroups.add();
-	// K-Mod. Make sure that every time we add a group, it also gets added to the group cycle list.
-	// (we can update the specific position in the cycle list later; but it's important it gets into the list.)
-	CvSelectionGroupAI* pGroup = m_selectionGroups->add();
-	if (pGroup != NULL)
-		m_groupCycle.insertAtEnd(pGroup->getID());
+	CvSelectionGroupAI* pGroup = m_selectionGroups.AI_add();
+	/*	K-Mod. Make sure that group gets added to the group cycle list.
+		(we can update the specific position in the cycle list later;
+		but it's important to get it into the list.) */
+	m_groupCycle.insertAtEnd(pGroup->getID());
 	return pGroup;
-	// K-Mod end
 }
 
 
 void CvPlayer::deleteSelectionGroup(int iID)
 {
-	bool bRemoved = m_selectionGroups->removeAt(iID);
+	bool bRemoved = m_selectionGroups.removeAt(iID);
 
 	FAssertMsg(bRemoved, "could not find group, delete failed");
 }
@@ -12575,9 +12486,10 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 	// <advc.706> Remove messages arriving during interlude from display immediately
 	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getActivePlayer() == getID() &&
-			g.getRiseFall().getInterludeCountdown() >= 0)
+		g.getRiseFall().getInterludeCountdown() >= 0)
+	{
 		gDLL->getInterfaceIFace()->clearEventMessages();
-	// </advc.706>
+	} // </advc.706>
 	m_listGameMessages.push_back(message);
 	// <advc.106b>
 	// Special treatment only for events in other civs' turns.
@@ -12589,8 +12501,10 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 	   verified - tbd.) */
 	InterfaceMessageTypes eMessage = message.getMessageType();
 	if(eMessage == MESSAGE_TYPE_INFO || eMessage == MESSAGE_TYPE_MINOR_EVENT ||
-			eMessage == MESSAGE_TYPE_MAJOR_EVENT || eMessage == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY)
+		eMessage == MESSAGE_TYPE_MAJOR_EVENT || eMessage == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY)
+	{
 		m_iNewMessages++; // See comment in postProcessBeginTurnEvents
+	}
 	if(eMessage == MESSAGE_TYPE_MAJOR_EVENT)
 	{
 		/*  Need to make a copy b/c, apparently, the EXE deletes the original
@@ -12691,8 +12605,10 @@ int CvPlayer::getStartOfTurnMessageLimit() const
 		return -1;
 	int r = BUGOption::getValue("MainInterface__MessageLimit", 3);
 	if(!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) &&
-			GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
+		GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
+	{
 		return -1;
+	}
 	return r;
 } // </advc.106b>
 
@@ -12705,7 +12621,7 @@ void CvPlayer::clearMessages()
 
 const CvMessageQueue& CvPlayer::getGameMessages() const
 {
-	return (m_listGameMessages);
+	return m_listGameMessages;
 }
 
 
@@ -12765,11 +12681,7 @@ void CvPlayer::clearPopups()
 	CvPopupQueue::iterator it;
 	for (it = m_listPopups.begin(); it != m_listPopups.end(); ++it)
 	{
-		CvPopupInfo* pInfo = *it;
-		if (NULL != pInfo)
-		{
-			delete pInfo;
-		}
+		SAFE_DELETE(*it);
 	}
 	m_listPopups.clear();
 }
@@ -12789,16 +12701,15 @@ CvPopupInfo* CvPlayer::popFrontPopup()
 
 const CvPopupQueue& CvPlayer::getPopups() const
 {
-	return (m_listPopups);
+	return m_listPopups;
 }
 
 
 void CvPlayer::addDiplomacy(CvDiploParameters* pDiplo)
 {
-	if (NULL != pDiplo)
-	{
+	if (pDiplo != NULL)
 		m_listDiplomacy.push_back(pDiplo);
-	}
+	else FAssert(pDiplo != NULL); // advc.test
 }
 
 
@@ -12807,11 +12718,7 @@ void CvPlayer::clearDiplomacy()
 	CvDiploQueue::iterator it;
 	for (it = m_listDiplomacy.begin(); it != m_listDiplomacy.end(); ++it)
 	{
-		CvDiploParameters* pDiplo = *it;
-		if (NULL != pDiplo)
-		{
-			delete pDiplo;
-		}
+		SAFE_DELETE(*it);
 	}
 	m_listDiplomacy.clear();
 }
@@ -12819,7 +12726,7 @@ void CvPlayer::clearDiplomacy()
 
 const CvDiploQueue& CvPlayer::getDiplomacy() const
 {
-	return (m_listDiplomacy);
+	return m_listDiplomacy;
 }
 
 
@@ -12831,7 +12738,6 @@ CvDiploParameters* CvPlayer::popFrontDiplomacy()
 		pDiplo = m_listDiplomacy.front();
 		m_listDiplomacy.pop_front();
 	}
-
 	return pDiplo;
 }
 
@@ -13048,9 +12954,7 @@ int CvPlayer::getEconomyHistory(int iTurn) const
 {
 	CvTurnScoreMap::const_iterator it = m_mapEconomyHistory.find(iTurn);
 	if (it != m_mapEconomyHistory.end())
-	{
 		return it->second;
-	}
 	return 0;
 }
 
@@ -13962,7 +13866,7 @@ int CvPlayer::getEspionageMissionCostModifier(EspionageMissionTypes eMission, Pl
 		// K-Mod end
 
 		// Distance mod
-		int const iMaxPlotDistance = GC.getMap().maxPlotDistance();
+		int const iMaxPlotDistance = GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
 		int iDistance = iMaxPlotDistance;
 
 		CvCity* pOurCapital = getCapitalCity();
@@ -16252,9 +16156,9 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	}
 
 	ReadStreamableFFreeListTrashArray(m_plotGroups, pStream);
-	ReadStreamableFFreeListTrashArray(*m_cities, pStream);
-	ReadStreamableFFreeListTrashArray(*m_units, pStream);
-	ReadStreamableFFreeListTrashArray(*m_selectionGroups, pStream);
+	ReadStreamableFFreeListTrashArray(m_cities, pStream);
+	ReadStreamableFFreeListTrashArray(m_units, pStream);
+	ReadStreamableFFreeListTrashArray(m_selectionGroups, pStream);
 	ReadStreamableFFreeListTrashArray(m_eventsTriggered, pStream);
 
 	{
@@ -16770,9 +16674,9 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	}
 
 	WriteStreamableFFreeListTrashArray(m_plotGroups, pStream);
-	WriteStreamableFFreeListTrashArray(*m_cities, pStream);
-	WriteStreamableFFreeListTrashArray(*m_units, pStream);
-	WriteStreamableFFreeListTrashArray(*m_selectionGroups, pStream);
+	WriteStreamableFFreeListTrashArray(m_cities, pStream);
+	WriteStreamableFFreeListTrashArray(m_units, pStream);
+	WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
 	WriteStreamableFFreeListTrashArray(m_eventsTriggered, pStream);
 
 	{

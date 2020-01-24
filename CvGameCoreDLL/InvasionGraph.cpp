@@ -7,6 +7,7 @@
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
 #include "CoreAI.h"
+#include "CvCity.h"
 #include "CvPlot.h"
 #include "CvArea.h"
 #include "CvInfo_Unit.h"

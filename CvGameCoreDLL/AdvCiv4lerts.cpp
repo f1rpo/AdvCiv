@@ -5,7 +5,8 @@
 #include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 #include "CoreAI.h"
-#include "CvDealList.h" // advc.003s
+#include "CvDeal.h"
+#include "CvCity.h"
 #include "RiseFall.h" // advc.706
 #include "UWAIAgent.h" // advc.ctr
 #include <iterator>

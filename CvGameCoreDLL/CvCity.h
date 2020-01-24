@@ -19,6 +19,7 @@ class CvCivilization; // advc.003w
 class CvCity : public CvDLLEntity
 {
 public:
+	virtual ~CvCity();
 
 	void setupGraphical();
 	void kill(bool bUpdatePlotGroups);																			// Exposed to Python
@@ -873,6 +874,7 @@ public:
 	void changeNumRevolts(PlayerTypes eIndex, int iChange);
 	double getRevoltTestProbability() const; // advc.101: Now between 0 and 1
 	int getRevoltProtection() const; // advc.101
+	void addRevoltFreeUnits(); // advc
 
 	bool isTradeRoute(PlayerTypes eIndex) const																		// Exposed to Python
 	{
@@ -1225,9 +1227,10 @@ public:
 	void invalidateCommerceRankCache(CommerceTypes eCommerce = NO_COMMERCE);
 	//int getBestYieldAvailable(YieldTypes eYield) const; // advc.003j: obsolete
 
-	void read(FDataStreamBase* pStream);
-	void write(FDataStreamBase* pStream);
 	// <advc.003u>
+	// virtual for FFreeListTrashArray
+	virtual void read(FDataStreamBase* pStream); 
+	virtual void write(FDataStreamBase* pStream);
 	__forceinline CvCityAI& AI()
 	{	//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -1245,7 +1248,6 @@ public:
 protected:
 	// <advc.003u>
 	CvCity();
-	virtual ~CvCity();
 	/*  Subclasses need to call this; not called by base.
 		May also want to override it. </advc.003u> */
 	virtual void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,

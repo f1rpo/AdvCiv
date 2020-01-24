@@ -14,13 +14,13 @@ class CvEventTriggerInfo;
 class CvPlayerRecord; // K-Mod
 class AdvCiv4lert; // advc.210
 class CvArea;
-// <advc.003u>
 class CvPlayerAI;
-class CvCityList;
-class CvUnitList;
-class CvSelectionGroupList;
-class CvCivilization;
+// <advc.003u> For FFreeListTrashArrays
+class CvCity; class CvCityAI;
+class CvUnit; class CvUnitAI;
+class CvSelectionGroup; class CvSelectionGroupAI;
 // </advc.003u>
+class CvCivilization; // advc.003w
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 typedef std::list<CvDiploParameters*> CvDiploQueue;
@@ -1022,27 +1022,66 @@ public:
 		m_plotGroups.removeAt(iID);
 	}
 
-	// city iteration
-	DllExport CvCity* firstCity(int *pIterIdx, bool bRev=false) const;																// Exposed to Python
-	DllExport CvCity* nextCity(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python
-	DllExport int getNumCities() const;																													// Exposed to Python
-	DllExport CvCity* getCity(int iID) const;																													// Exposed to Python
+	// city iteration (advc.inl: inlined)
+	DllExport inline CvCity* firstCity(int *pIterIdx, bool bRev=false) const										// Exposed to Python
+	{	//return (!bRev ? m_cities.beginIter(pIterIdx) : m_cities.endIter(pIterIdx));
+		FAssert(!bRev);
+		return m_cities.beginIter(pIterIdx); // advc.opt
+	}
+	DllExport inline CvCity* nextCity(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	{	//return (!bRev ? m_cities.nextIter(pIterIdx) : m_cities.prevIter(pIterIdx));
+		return m_cities.nextIter(pIterIdx); // advc.opt
+	}
+	DllExport int getNumCities() const																				// Exposed to Python
+	{
+		return m_cities.getCount();
+	}
+	DllExport inline CvCity* getCity(int iID) const																	// Exposed to Python
+	{
+		return m_cities.getAt(iID);
+	}
 	//CvCity* addCity(); // advc.003u: removed
 	void deleteCity(int iID);
 
-	// unit iteration 
-	DllExport CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const;																// Exposed to Python
-	DllExport CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const;																	// Exposed to Python
-	DllExport int getNumUnits() const;																													// Exposed to Python
-	CvUnit* getUnit(int iID) const;																													// Exposed to Python
+	// unit iteration (advc.inl: inlined)
+	DllExport inline CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const										// Exposed to Python
+	{	//return (!bRev ? m_units.beginIter(pIterIdx) : m_units.endIter(pIterIdx));
+		FAssert(!bRev);
+		return m_units.beginIter(pIterIdx); // advc.opt
+	}
+	DllExport inline CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	{	//return (!bRev ? m_units.nextIter(pIterIdx) : m_units.prevIter(pIterIdx));
+		return m_units.nextIter(pIterIdx);
+	}
+	DllExport int getNumUnits() const																				// Exposed to Python
+	{
+		return m_units.getCount();
+	}
+	inline CvUnit* getUnit(int iID) const																			// Exposed to Python
+	{
+		return m_units.getAt(iID);
+	}
 	//CvUnit* addUnit(); // advc.003u: removed
 	void deleteUnit(int iID);
 
-	// selection groups iteration
-	CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const;						// Exposed to Python
-	CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const;							// Exposed to Python
-	int getNumSelectionGroups() const;																																// Exposed to Python
-	CvSelectionGroup* getSelectionGroup(int iID) const;																								// Exposed to Python
+	// selection groups iteration (advc.inl: inlined)
+	inline CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const								// Exposed to Python
+	{	//return (!bRev ? m_selectionGroups.beginIter(pIterIdx) : m_selectionGroups.endIter(pIterIdx));
+		FAssert(!bRev);
+		return m_selectionGroups.beginIter(pIterIdx);
+	}
+	inline CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const								// Exposed to Python
+	{	//return (!bRev ? m_selectionGroups.nextIter(pIterIdx) : m_selectionGroups.prevIter(pIterIdx));
+		return m_selectionGroups.nextIter(pIterIdx);
+	}
+	int getNumSelectionGroups() const																				// Exposed to Python
+	{
+		return m_selectionGroups.getCount();
+	}
+	inline CvSelectionGroup* getSelectionGroup(int iID) const														// Exposed to Python
+	{
+		return m_selectionGroups.getAt(iID);
+	}
 	CvSelectionGroup* addSelectionGroup();
 	void deleteSelectionGroup(int iID);
 
@@ -1408,13 +1447,9 @@ protected:  // <advc.210>
 	CLinkList<CvWString> m_cityNames;
 
 	FFreeListTrashArray<CvPlotGroup> m_plotGroups;
-	//FFreeListTrashArray<CvCityAI> m_cities;
-	//FFreeListTrashArray<CvUnitAI> m_units;
-	//FFreeListTrashArray<CvSelectionGroupAI> m_selectionGroups;
-	// <advc.003u> Replacing the above
-	CvCityList* m_cities;
-	CvUnitList* m_units;
-	CvSelectionGroupList* m_selectionGroups; // </advc.003u>
+	FFreeListTrashArray<CvCity,CvCityAI> m_cities;
+	FFreeListTrashArray<CvUnit,CvUnitAI> m_units;
+	FFreeListTrashArray<CvSelectionGroup,CvSelectionGroupAI> m_selectionGroups;
 	FFreeListTrashArray<EventTriggeredData> m_eventsTriggered;
 
 	CvEventMap m_mapEventsOccured;
@@ -1574,7 +1609,7 @@ private:
 	virtual void writeExternal(FDataStreamBase* pStream);
 };
 
-/*	<advc.opt> Moved from CvGameCoreUtils fo inlining.
+/*	<advc.opt> Moved from CvGameCoreUtils for inlining.
 	NO_PLAYER checks removed (cf. IDInfo constructor). */
 DllExport inline CvCity* getCity(IDInfo city)												// Exposed to Python
 {

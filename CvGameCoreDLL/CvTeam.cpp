@@ -4,10 +4,13 @@
 #include "CvTeam.h"
 #include "CvAgents.h" // advc.agent
 #include "CoreAI.h"
-#include "CvDealList.h" // advc.003s
 #include "UWAIAgent.h" // advc.104t
+#include "CvCity.h"
+#include "CvUnit.h"
+#include "CvSelectionGroup.h"
+#include "CvDeal.h"
 #include "CvMap.h"
-#include "CvAreaList.h" // advc.003s
+#include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
@@ -1959,7 +1962,7 @@ bool CvTeam::isInContactWithBarbarians() const
 	int iUnitThresh = g.getCurrentEra();
 	CvTeam const& kBarbarianTeam = GET_TEAM(BARBARIAN_TEAM);
 	CvMap const& m = GC.getMap();
-	FOR_EACH_AREA_VAR(pArea)
+	FOR_EACH_AREA(pArea)
 	{
 		if(bCheckCity && countNumCitiesByArea(*pArea) == 0)
 			continue;

@@ -13,7 +13,7 @@
 //
 
 #include "CvPlot.h"
-class CvAreaList; // advc.003u
+class CvArea;
 // <advc.300>
 #include "Shelf.h"
 #include <map> // </advc.300>
@@ -325,6 +325,7 @@ public: // advc: made several functions const
 	int maxPlotDistance() const;																								// Exposed to Python
 	int maxStepDistance() const;																								// Exposed to Python
 	int maxMaintenanceDistance() const; // advc.140
+	int maxTypicalDistance() const; // advc.140
 
 	int getGridWidthExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
 	inline int getGridWidth() const // advc.inl: Renamed from getGridWidthINLINE
@@ -420,17 +421,30 @@ public: // advc: made several functions const
 		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
 	}
 
-	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
+	DllExport CvPlot* pointToPlot(float fX, float fY);												// Exposed to Python
 
-	int getIndexAfterLastArea() const;														// Exposed to Python
-	int getNumAreas() const;																	// Exposed to Python
+	int getIndexAfterLastArea() const;																// Exposed to Python
+	int getNumAreas() const																			// Exposed to Python
+	{
+		return m_areas.getCount();
+	}
 	int getNumLandAreas() const;
-	CvArea* getArea(int iID) const;																// Exposed to Python
+	CvArea* getArea(int iID) const																	// Exposed to Python
+	{
+		return m_areas.getAt(iID);
+	}
 	CvArea* addArea();
 	void deleteArea(int iID);
 	// iteration
-	CvArea* firstArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
-	CvArea* nextArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
+	CvArea* firstArea(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	{	//return (!bRev ? m_areas.beginIter(pIterIdx) : m_areas.endIter(pIterIdx));
+		FAssert(!bRev);
+		return m_areas.beginIter(pIterIdx); // advc.opt
+	}
+	CvArea* nextArea(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	{	//return (!bRev ? m_areas.nextIter(pIterIdx) : m_areas.prevIter(pIterIdx));
+		return m_areas.nextIter(pIterIdx); // advc.opt
+	}
 
 	void recalculateAreas();																		// Exposed to Python
 	// <advc.300>
@@ -450,8 +464,9 @@ public: // advc: made several functions const
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 
-	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude,	bool bWrapX, bool bWrapY, 			// Exposed to Python
-			WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel,
+	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude,			 			// Exposed to Python
+			bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize,
+			ClimateTypes eClimate, SeaLevelTypes eSeaLevel,
 			int iNumCustomMapOptions, CustomMapOptionTypes* eCustomMapOptions);
 	void updateReplayTexture(); // advc.106n
 	byte const* getReplayTexture() const; // advc.106n
@@ -474,9 +489,7 @@ protected:
 	// </advc.enum>
 	CvPlot* m_pMapPlots;
 	std::map<Shelf::Id,Shelf*> shelves; // advc.300
-
-	//FFreeListTrashArray<CvArea> m_areas;
-	CvAreaList* m_areas; // advc.003u
+	FFreeListTrashArray<CvArea> m_areas;
 	std::vector<byte> m_replayTexture; // advc.106n
 
 	void calculateAreas();

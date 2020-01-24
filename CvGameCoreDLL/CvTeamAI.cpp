@@ -3,8 +3,9 @@
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
 #include "CoreAI.h"
+#include "CvCityAI.h"
 #include "CityPlotIterator.h"
-#include "CvAreaList.h" // advc.003s
+#include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
@@ -317,7 +318,7 @@ bool CvTeamAI::AI_isPrimaryArea(CvArea const& kArea) const
 bool CvTeamAI::AI_hasCitiesInPrimaryArea(TeamTypes eTeam) const
 {
 	FAssert(eTeam != getID());
-	FOR_EACH_AREA_VAR(pLoopArea)
+	FOR_EACH_AREA(pLoopArea)
 	{
 		if (AI_isPrimaryArea(*pLoopArea))
 		{
@@ -334,7 +335,7 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 	FAssert(eTeam != getID());
 
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
-	FOR_EACH_AREA_VAR(pLoopArea)
+	FOR_EACH_AREA(pLoopArea)
 	{
 		if (AI_isPrimaryArea(*pLoopArea) && kTeam.AI_isPrimaryArea(*pLoopArea))
 			return true;
@@ -638,7 +639,7 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTarget,
 	if(getUWAI.isEnabled() && isMajorCiv() && kTarget.isMajorCiv())
 		return uwai().isLandTarget(eTarget);
 	// </advc.104s>
-	FOR_EACH_AREA_VAR(pLoopArea)
+	FOR_EACH_AREA(pLoopArea)
 	{
 		if (AI_isPrimaryArea(*pLoopArea) && kTarget.AI_isPrimaryArea(*pLoopArea))
 			return true;
@@ -1772,7 +1773,7 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const // XXX this should consider ar
 		iOurAttackers += it->AI_enemyTargetMissions(eTeam);
 	int iTheirAttackers = 0;
 	CvArea* pLoopArea = NULL;
-	FOR_EACH_AREA_VAR(pLoopArea)
+	FOR_EACH_AREA(pLoopArea)
 		iTheirAttackers += countEnemyDangerByArea(*pLoopArea, eTeam);
 
 	int iAttackerRatio = (100 * iOurAttackers) / std::max(1 + GC.getGame().getCurrentEra(), iTheirAttackers);
@@ -2427,7 +2428,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			int iSafePopulation = 0;
 			// Based on code in AI_endWarVal:
 			int iTheirAttackers = 0;
-			FOR_EACH_AREA_VAR(pLoopArea)
+			FOR_EACH_AREA(pLoopArea)
 			{
 				int iAreaCities = countNumCitiesByArea(*pLoopArea);
 				if(iAreaCities <= 0)
@@ -5473,7 +5474,7 @@ void CvTeamAI::AI_doWar()
 				bool bAreaValid = false;
 				bool bShareValid = false;
 
-				FOR_EACH_AREA_VAR(pLoopArea)
+				FOR_EACH_AREA(pLoopArea)
 				{
 					if (AI_isPrimaryArea(*pLoopArea))
 					{

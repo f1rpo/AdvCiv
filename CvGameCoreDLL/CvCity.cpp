@@ -2,8 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvCity.h"
+#include "CvCityAI.h"
 #include "CityPlotIterator.h"
 #include "CoreAI.h"
+#include "CvUnit.h"
+#include "CvSelectionGroup.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -7982,6 +7985,25 @@ int CvCity::getRevoltProtection() const
 	return range(iBestModifier, 0, 100);
 }
 
+// advc: Cut from CvPlot::setOwner
+void CvCity::addRevoltFreeUnits()
+{
+	UnitTypes eBestUnit = AI().AI_bestUnitAI(UNITAI_CITY_DEFENSE);
+	if (eBestUnit == NO_UNIT)
+		eBestUnit = AI().AI_bestUnitAI(UNITAI_ATTACK);
+
+	if (eBestUnit != NO_UNIT)
+	{
+		int iFreeUnits = (GC.getDefineINT("BASE_REVOLT_FREE_UNITS") +
+				(getHighestPopulation() * GC.getDefineINT("REVOLT_FREE_UNITS_PERCENT")) / 100);
+		for (int i = 0; i < iFreeUnits; i++)
+		{
+			GET_PLAYER(getOwner()).initUnit(eBestUnit, getX(), getY(), UNITAI_CITY_DEFENSE);
+		}
+	}
+}
+
+
 void CvCity::setEverOwned(PlayerTypes eIndex, bool bNewValue)
 {
 	m_abEverOwned.set(eIndex, bNewValue);
@@ -9145,8 +9167,9 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 
 		int iDistance = plotDistance(getX(), getY(), pHolyCity->getX(), pHolyCity->getY());
 		iScore += iRELIGION_INFLUENCE_DISTANCE_WEIGHT *
-				(GC.getMap().maxPlotDistance() - iDistance) /
-				GC.getMap().maxPlotDistance();
+				// <advc.140> was maxPlotDistance
+				(GC.getMap().maxTypicalDistance() - iDistance) /
+				GC.getMap().maxTypicalDistance(); // </advc.140>
 	}
 
 	int iCurrentTurn = GC.getGame().getGameTurn();
@@ -10613,7 +10636,7 @@ void CvCity::doReligion()
 					int iDivisor = std::max(1, iDivisorBase);
 					iDivisor *= 100 + 100 * iDistanceFactor *
 							plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY()) /
-							GC.getMap().maxPlotDistance();
+							GC.getMap().maxTypicalDistance();  // advc.140: was maxPlotDistance
 					iDivisor /= 100;
 
 					// now iDivisor is in the range [1, 1+iDistanceFactor] * iDivisorBase
@@ -12734,7 +12757,7 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 		iTempMaintenance *= GC.getInfo(GET_PLAYER(eOwner).getHandicapType()).getDistanceMaintenancePercent();
 		iTempMaintenance /= 100;
 
-		iTempMaintenance /= GC.getMap().maxPlotDistance();
+		iTempMaintenance /= GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
 	}
 	/*iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
 		if (pLoopCity->isGovernmentCenter())
@@ -12859,7 +12882,7 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	iMaintenanceCap *= GC.getInfo(eOwnerHandicap).getDistanceMaintenancePercent();
 	iMaintenanceCap /= 100;
 
-	iMaintenanceCap /= GC.getMap().maxPlotDistance();
+	iMaintenanceCap /= GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
 
 	iMaintenanceCap *= GC.getInfo(eOwnerHandicap).getMaxColonyMaintenance();
 	iMaintenanceCap /= 100;

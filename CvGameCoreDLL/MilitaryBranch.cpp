@@ -5,6 +5,7 @@
 #include "UWAIAgent.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvCity.h"
 #include "CvCivilization.h"
 #include "CvInfo_Unit.h"
 

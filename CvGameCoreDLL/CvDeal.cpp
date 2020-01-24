@@ -2,9 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvDeal.h"
-#include "CvDealList.h" // advc.003s
 #include "CoreAI.h"
 #include "UWAIAgent.h" // advc.104
+#include "CvCity.h"
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
 #include "CvInfo_Civics.h"

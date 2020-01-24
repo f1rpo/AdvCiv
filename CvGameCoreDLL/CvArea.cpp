@@ -2,11 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvArea.h"
-#include "CvAreaList.h" // advc.003s
-#include "CvCityList.h"
-#include "CvUnitList.h"
 #include "CvMap.h"
 #include "CvGamePlay.h"
+#include "CvCity.h"
+#include "CvUnit.h"
 #include "CvPlayerAI.h"
 #include "CvInfo_Terrain.h"
 
@@ -612,7 +611,7 @@ CvCityAI* CvArea::AI_getTargetCity(PlayerTypes eIndex) const
 }
 
 
-void CvArea::AI_setTargetCity(PlayerTypes eIndex, CvCityAI* pNewValue) // advc.003u: CvCityAI param only for consistency with getTargetCity
+void CvArea::AI_setTargetCity(PlayerTypes eIndex, CvCity* pNewValue)
 {
 	FAssertBounds(0, MAX_PLAYERS, eIndex);
 	if (pNewValue != NULL)

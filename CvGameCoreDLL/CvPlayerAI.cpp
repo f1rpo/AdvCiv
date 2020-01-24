@@ -4,11 +4,14 @@
 #include "CvPlayerAI.h"
 #include "CitySiteEvaluator.h"
 #include "CoreAI.h"
-#include "CvDealList.h" // advc.003s
+#include "CvCityAI.h"
+#include "CvUnitAI.h"
+#include "CvSelectionGroupAI.h"
+#include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
 #include "PlotRange.h"
-#include "CvAreaList.h" // advc.003s
+#include "CvArea.h"
 #include "CvDiploParameters.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -1192,7 +1195,7 @@ void CvPlayerAI::AI_unitUpdate()
 {
 	PROFILE_FUNC();
 
-	FAssert(m_groupCycle.getLength() == m_selectionGroups->getCount());
+	FAssert(m_groupCycle.getLength() == m_selectionGroups.getCount());
 
 	if (!hasBusyUnit())
 	{
@@ -1760,7 +1763,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 					iDistance -= DEFAULT_PLAYER_CLOSENESS + 2;
 					// <advc.116> World size adjustment, upper cap
 					iDistance *= 60;
-					iDistance /= GC.getMap().maxPlotDistance();
+					iDistance /= GC.getMap().maxTypicalDistance();
 					iDistance = std::min(20, iDistance); // </advc.116>
 					if (iDistance > 0)
 						iRazeValue += iDistance * (bBarbCity ? 3 : 2); // advc.116: Was 8 : 5
@@ -5512,7 +5515,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	bool bLandWar = false;
 	bool bAnyAssault = false;
 	{
-		FOR_EACH_AREA_VAR(pLoopArea)
+		FOR_EACH_AREA(pLoopArea)
 		{
 			if (AI_isPrimaryArea(*pLoopArea))
 			{
@@ -22884,7 +22887,7 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 	std::vector<std::pair<int, int> > unit_list; // { score, unitID }.
 	// note unitID is used rather than CvUnit* to ensure that the list gives the same order for players on different computers.
 
-	FOR_EACH_AREA_VAR(pLoopArea)
+	FOR_EACH_AREA(pLoopArea)
 	{
 		// Keep 1/2 of recommended floating defenders.
 		if (pLoopArea == NULL || pLoopArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT ||
@@ -25783,7 +25786,7 @@ bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes eOther) const
 {
 	FAssert(eOther != getID());
 	CvPlayerAI const& kOther = GET_PLAYER(eOther);
-	FOR_EACH_AREA_VAR(a)
+	FOR_EACH_AREA(a)
 	{
 		if (AI_isPrimaryArea(*a) && kOther.AI_isPrimaryArea(*a))
 			return true;

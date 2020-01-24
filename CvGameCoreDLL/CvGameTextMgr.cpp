@@ -1,10 +1,13 @@
 //  CvGameTextMgr.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CoreAI.h"
-#include "CitySiteEvaluator.h"
-#include "CvDealList.h" // advc.003s
 #include "CvGameTextMgr.h"
+#include "CoreAI.h"
+#include "CvUnitAI.h"
+#include "CvSelectionGroupAI.h"
+#include "CvCityAI.h"
+#include "CitySiteEvaluator.h"
+#include "CvDeal.h"
 #include "CvInfo_All.h"
 #include "CvXMLLoadUtility.h"
 #include "CityPlotIterator.h"
@@ -19818,7 +19821,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			// K-Mod end
 
 			// Distance mod
-			int iDistance = GC.getMap().maxPlotDistance();
+			int iDistance = GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
 
 			CvCity* pOurCapital = kPlayer.getCapitalCity();
 			if (NULL != pOurCapital)
@@ -19836,8 +19839,10 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 					}
 				}
 			}
-
-			iTempModifier = (iDistance + GC.getMap().maxPlotDistance()) * GC.getDefineINT("ESPIONAGE_DISTANCE_MULTIPLIER_MOD") / GC.getMap().maxPlotDistance() - 100;
+			// <advc.140> (was maxPlotDistance)
+			iTempModifier = (iDistance + GC.getMap().maxTypicalDistance()) *
+					GC.getDefineINT("ESPIONAGE_DISTANCE_MULTIPLIER_MOD") /
+					GC.getMap().maxTypicalDistance() - 100; // </advc.140>
 			if (iTempModifier != 0)
 			{
 				szBuffer.append(NEWLINE);

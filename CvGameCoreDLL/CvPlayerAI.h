@@ -4,14 +4,13 @@
 #define CIV4_PLAYER_AI_H
 
 #include "CvPlayer.h"
-// <advc.003u>
-#include "CvCityList.h"
-#include "CvUnitList.h"
-#include "CvSelectionGroupList.h" // </advc.003u>
 #include "UWAI.h" // advc.104
 #include "AIStrategies.h" // advc.enum
 
 class CvDeal;
+class CvCityAI;
+class CvUnitAI;
+class CvSelectionGroupAI;
 
 /*	<advc.003u> Overwrite definition in CvPlayer.h (should perhaps instead define a
 	new macro "PLAYERAI" - a lot of call locations to change though ...) */
@@ -44,37 +43,31 @@ public:
 		return AI_getCity(m_iCapitalCityID);
 	}
 	inline CvCityAI* AI_firstCity(int *pIterIdx) const {
-		return m_cities->beginIter(pIterIdx);
+		return m_cities.AI_beginIter(pIterIdx);
 	}
 	inline CvCityAI* AI_nextCity(int *pIterIdx) const {
-		return m_cities->nextIter(pIterIdx);
+		return m_cities.AI_nextIter(pIterIdx);
 	}
 	inline CvCityAI* AI_getCity(int iID) const {
-		return m_cities->getAt(iID);
-	}
-	inline CvCityAI* AI_addCity() {
-		return m_cities->add();
+		return m_cities.AI_getAt(iID);
 	}
 	inline CvUnitAI* AI_firstUnit(int *pIterIdx) const {
-		return m_units->beginIter(pIterIdx);
+		return m_units.AI_beginIter(pIterIdx);
 	}
 	inline CvUnitAI* AI_nextUnit(int *pIterIdx) const {
-		return m_units->nextIter(pIterIdx);
+		return m_units.AI_nextIter(pIterIdx);
 	}
 	inline CvUnitAI* AI_getUnit(int iID) const {
-		return m_units->getAt(iID);
-	}
-	inline CvUnitAI* AI_addUnit() {
-		return m_units->add();
+		return m_units.AI_getAt(iID);
 	}
 	inline CvSelectionGroupAI* AI_firstSelectionGroup(int *pIterIdx) const {
-		return m_selectionGroups->beginIter(pIterIdx);
+		return m_selectionGroups.AI_beginIter(pIterIdx);
 	}
 	inline CvSelectionGroupAI* AI_nextSelectionGroup(int *pIterIdx) const {
-		return m_selectionGroups->nextIter(pIterIdx);
+		return m_selectionGroups.AI_nextIter(pIterIdx);
 	}
 	inline CvSelectionGroupAI* AI_getSelectionGroup(int iID) const {
-		return m_selectionGroups->getAt(iID);
+		return m_selectionGroups.AI_getAt(iID);
 	}
 	// </advc.003u>
 	int AI_getFlavorValue(FlavorTypes eFlavor) const;

@@ -2,6 +2,7 @@
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvGameAI.h"
+#include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
 
 /*  advc.003u: New file for dummy/ adapter implementations of AI_... functions

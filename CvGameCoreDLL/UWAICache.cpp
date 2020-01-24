@@ -8,6 +8,7 @@
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
 #include "CoreAI.h"
+#include "CvSelectionGroupAI.h"
 #include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_Building.h"

@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CitySiteEvaluator.h"
 #include "CoreAI.h"
+#include "CvCityAI.h"
 #include "CvCivilization.h"
 #include "PlotRange.h"
 #include "CvArea.h"
@@ -2546,7 +2547,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 		int iDistPenalty = 5100 - std::min<int>(4, eEra) * 775; // (was 8000 flat)
 		// </advc.031> (no functional change below)
 		iDistPenalty *= iDistance;
-		iDistPenalty /= GC.getMap().maxPlotDistance();
+		iDistPenalty /= GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
 		iDistPenalty = std::min(500 * iDistance, iDistPenalty);
 		iValue -= iDistPenalty;
 		IFLOG logBBAI("%d from distance penalty (%d distance to %S)", iDistPenalty, iDistance, cityName(*pOurNearestCity));
