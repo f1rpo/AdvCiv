@@ -14122,31 +14122,23 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 {
 	PROFILE_FUNC();
 
-	const CvTeamAI& kTeam = GET_TEAM(getTeam()); // K-Mod
-	const CvGameAI& kGame = GC.AI_getGame(); // K-Mod
-
-	int iCities = getNumCities();
-
-	// Circumvents crash bug in simultaneous turns MP games
-	if(eCivic == NO_CIVIC) // advc.006: Moved above the assertions
+	if(eCivic == NO_CIVIC) // Circumvents crash bug in simultaneous turns MP games
 		return 1;
-
-	FAssertMsg(eCivic < GC.getNumCivicInfos(), "eCivic is expected to be within maximum bounds (invalid Index)");
-	FAssertMsg(eCivic >= 0, "eCivic is expected to be non-negative (invalid Index)");
-
 	if (isBarbarian())
 		return 1;
 
-	const CvCivicInfo& kCivic = GC.getInfo(eCivic);
-
-	int iS = isCivic(eCivic)? -1 :1;// K-Mod, sign for whether we should be considering gaining a bonus, or losing a bonus
+	CvCivicInfo const& kCivic = GC.getInfo(eCivic);
+	CvTeamAI const& kTeam = GET_TEAM(getTeam()); // K-Mod
+	CvGameAI const& kGame = GC.AI_getGame(); // K-Mod
+	int const iCities = getNumCities();
+	// K-Mod, sign for whether we should be considering gaining a bonus, or losing a bonus
+	int const iS = (isCivic(eCivic) ? -1 : 1);
 
 	bool bWarPlan = kTeam.AI_isAnyWarPlan();
 	if (bWarPlan)
 	{
 		bWarPlan = false;
 		int iEnemyWarSuccess = 0;
-
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
 		{
 			if (GET_TEAM((TeamTypes)iTeam).isAlive() && !GET_TEAM((TeamTypes)iTeam).isMinorCiv())
@@ -14159,13 +14151,11 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 						bWarPlan = true;
 						break;
 					}
-
 					if (kTeam.AI_isLandTarget((TeamTypes)iTeam))
 					{
 						bWarPlan = true;
 						break;
 					}
-
 					iEnemyWarSuccess += GET_TEAM((TeamTypes)iTeam).AI_getWarSuccess(getTeam());
 				}
 			}
@@ -14192,9 +14182,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	{
 		// Aggressive players will stick with war civics
 		if (kTeam.AI_getTotalWarOddsTimes100() > 200)
-		{
 			bWarPlan = true;
-		}
 	}
 
 	//int iConnectedForeignCities = countPotentialForeignTradeCitiesConnected();
@@ -15054,8 +15042,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		//iTempValue += ((kCivic.getSpecialistExtraCommerce(iI) * getTotalPopulation()) / 15);
 		// K-Mod
 		if (bSpecialistCommerce)
-			iTempValue += AI_averageCommerceMultiplier((CommerceTypes)iI)*(kCivic.getSpecialistExtraCommerce(iI) * std::max((getTotalPopulation()+10*iTotalBonusSpecialists) / 10, iTotalCurrentSpecialists));
-		// K-Mod end
+		{
+			iTempValue += AI_averageCommerceMultiplier((CommerceTypes)iI)*
+					(kCivic.getSpecialistExtraCommerce(iI) *
+					std::max((getTotalPopulation()+10*iTotalBonusSpecialists) / 10,
+					iTotalCurrentSpecialists));
+		} // K-Mod end
 
 		iTempValue /= 100; // (for the 3 things above)
 
@@ -15192,14 +15184,20 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	} // K-Mod end
 
-	if (GC.getInfo(getPersonalityType()).getFavoriteCivic() == eCivic)
+	if (GC.getInfo(getPersonalityType()).getFavoriteCivic() == eCivic &&
+		iValue > 0) // advc.131: Just to make sure
 	{
 		if (!kCivic.isStateReligion() || iBestReligionCities > 0)
 		{
-			iValue *= 5;
+			/*iValue *= 5;
 			iValue /= 4;
+			iValue += 20;*/
+			/*	advc.131> The +20 might encourage Monarchy too much (AI_techValue).
+				Also, early fav civics shouldn't need that much encouragement as
+				they have few alternatives. */
+			iValue *= 135;
+			iValue /= 100; // </advc.131>
 			iValue += 6 * iCities;
-			iValue += 20;
 		}
 	}
 
