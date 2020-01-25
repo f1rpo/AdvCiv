@@ -6768,7 +6768,8 @@ void CvPlot::doFeature()  // advc: some style changes
 				// UNOFFICIAL_PATCH, Gamespeed scaling, 03/04/10, jdog5000: START
 				int iOdds = (10000*GC.getInfo(GC.getGame().getGameSpeedType()).
 						getVictoryDelayPercent()) / 100;
-				if (GC.getGame().getSorenRandNum(iOdds, "Feature Growth") < iProbability)
+				if (GC.getGame().getSorenRandNum(iOdds, "Feature Growth",
+					getX(), getY()) < iProbability) // advc.007: Log coordinates
 				// UNOFFICIAL_PATCH: END
 				{
 					setFeatureType(eLoopFeature);
