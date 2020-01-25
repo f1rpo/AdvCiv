@@ -7087,7 +7087,7 @@ void CvGameTextMgr::parseLeaderTraits(CvWStringBuffer &szHelpString, LeaderHeadT
 	{
 		if (!bDawnOfMan && !bCivilopediaText)
 		{
-			szTempBuffer.Format( SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+			szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 					GC.getInfo(eLeader).getDescription());
 			szHelpString.append(szTempBuffer);
 		}
@@ -7115,7 +7115,7 @@ void CvGameTextMgr::parseLeaderTraits(CvWStringBuffer &szHelpString, LeaderHeadT
 	else
 	{
 		//	Random leader
-		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 				gDLL->getText("TXT_KEY_TRAIT_PLAYER_UNKNOWN").c_str());
 		szHelpString.append(szTempBuffer);
 	}
@@ -7153,173 +7153,161 @@ void CvGameTextMgr::parseLeaderShortTraits(CvWStringBuffer &szHelpString, Leader
 }
 
 // Build Civilization Info Help Text
-void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes eCivilization, bool bDawnOfMan, bool bLinks)
+void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes eCivilization,
+	bool bDawnOfMan, bool bLinks)
 {
 	PROFILE_FUNC();
 
-	CvWString szBuffer;
-	CvWString szTempString;
-	CvWString szText;
-	UnitTypes eDefaultUnit;
-	UnitTypes eUniqueUnit;
-	BuildingTypes eDefaultBuilding;
-	BuildingTypes eUniqueBuilding;
-
-	if (eCivilization != NO_CIVILIZATION)
+	if (eCivilization == NO_CIVILIZATION)
 	{
-		if (!bDawnOfMan)
+		// This is a random civ, let us know here...
+		szInfoText.append(gDLL->getText("TXT_KEY_CIV_UNKNOWN"));
+		return; // advc
+	}
+	CvWString szBuffer;
+	if (!bDawnOfMan)
+	{
+		// Civ Name
+		szBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+				GC.getInfo(eCivilization).getDescription());
+		szInfoText.append(szBuffer);
+
+		// Free Techs
+		szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"),
+				gDLL->getText("TXT_KEY_FREE_TECHS").GetCString());
+		szInfoText.append(szBuffer);
+
+		bool bFound = false;
+		FOR_EACH_ENUM(Tech)
 		{
-			// Civ Name
-			szBuffer.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getInfo(eCivilization).getDescription());
-			szInfoText.append(szBuffer);
-
-			// Free Techs
-			szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), gDLL->getText("TXT_KEY_FREE_TECHS").GetCString());
-			szInfoText.append(szBuffer);
-
-			bool bFound = false;
-			for (int iI = 0; iI < GC.getNumTechInfos(); ++iI)
+			if (GC.getInfo(eCivilization).isCivilizationFreeTechs(eLoopTech))
 			{
-				if (GC.getInfo(eCivilization).isCivilizationFreeTechs(iI))
-				{
-					bFound = true;
-					// Add Tech
-					szText.Format((bLinks ? L"<link=literal>%s</link>" : L"%s"), GC.getInfo((TechTypes)iI).getDescription());
-					szBuffer.Format(L"%s  %c%s", NEWLINE, gDLL->getSymbolID(BULLET_CHAR), szText.GetCString());
-					szInfoText.append(szBuffer);
-				}
-			}
-
-			if (!bFound)
-			{
-				szBuffer.Format(L"%s  %s", NEWLINE, gDLL->getText("TXT_KEY_FREE_TECHS_NO").GetCString());
+				bFound = true;
+				CvWString szText;
+				szText.Format(bLinks ? L"<link=literal>%s</link>" : L"%s",
+						GC.getInfo(eLoopTech).getDescription());
+				szBuffer.Format(L"%s  %c%s", NEWLINE, gDLL->getSymbolID(BULLET_CHAR),
+						szText.GetCString());
 				szInfoText.append(szBuffer);
 			}
 		}
-
-		// Free Units
-		szText = gDLL->getText("TXT_KEY_FREE_UNITS");
-		if (bDawnOfMan)
-		{
-			szTempString.Format(L"%s: ", szText.GetCString());
-		}
-		else
-		{
-			szTempString.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
-		}
-		szInfoText.append(szTempString);
-
-		bool bFound = false;
-		FOR_EACH_ENUM(UnitClass)
-		{	// advc: These were switched, but perhaps on purpose. So I switch them again when they're used.
-			eUniqueUnit = GC.getInfo(eCivilization).getCivilizationUnits(eLoopUnitClass);
-			eDefaultUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
-			if (eDefaultUnit != NO_UNIT && eUniqueUnit != NO_UNIT)
-			{
-				if (eDefaultUnit != eUniqueUnit)
-				{
-					// Add Unit
-					if (bDawnOfMan)
-					{
-						if (bFound)
-						{
-							szInfoText.append(L", ");
-						}
-						szBuffer.Format((bLinks ? L"<link=literal>%s</link> - (<link=literal>%s</link>)" : L"%s - (%s)"),
-							GC.getInfo(eUniqueUnit).getDescription(),
-							GC.getInfo(eDefaultUnit).getDescription());
-					}
-					else
-					{
-						szBuffer.Format(L"\n  %c%s - (%s)", gDLL->getSymbolID(BULLET_CHAR),
-							GC.getInfo(eUniqueUnit).getDescription(),
-							GC.getInfo(eDefaultUnit).getDescription());
-					}
-					szInfoText.append(szBuffer);
-					bFound = true;
-				}
-			}
-		}
-
 		if (!bFound)
 		{
-			szText = gDLL->getText("TXT_KEY_FREE_UNITS_NO");
-			if (bDawnOfMan)
-			{
-				szTempString.Format(L"%s", szText.GetCString());
-			}
-			else
-			{
-				szTempString.Format(L"%s  %s", NEWLINE, szText.GetCString());
-			}
-			szInfoText.append(szTempString);
+			szBuffer.Format(L"%s  %s", NEWLINE,
+					gDLL->getText("TXT_KEY_FREE_TECHS_NO").GetCString());
+			szInfoText.append(szBuffer);
+		}
+	}
+
+	// Free Units
+	CvWString szText = gDLL->getText("TXT_KEY_FREE_UNITS");
+	if (bDawnOfMan)
+		szBuffer.Format(L"%s: ", szText.GetCString());
+	else
+	{
+		szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR,
+				TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
+	}
+	szInfoText.append(szBuffer);
+
+	// Unique Units
+	bool bFound = false;
+	FOR_EACH_ENUM(UnitClass)
+	{	// advc: These were switched, but perhaps on purpose. So I switch them again when they're used.
+		UnitTypes eUniqueUnit = GC.getInfo(eCivilization).
+				getCivilizationUnits(eLoopUnitClass);
+		UnitTypes eDefaultUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
+		if (/*eeDefaultUnit != NO_UNIT &&*/ // advc.004: Include UU w/o a default unit
+			eUniqueUnit != NO_UNIT && eDefaultUnit != eUniqueUnit)
+		{	// advc: Moved into new function
+			appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
+					GC.getInfo(eUniqueUnit).getDescription(),
+					// advc.004:
+					eDefaultUnit == NO_UNIT ? NULL : GC.getInfo(eDefaultUnit).getDescription());
 			bFound = true;
 		}
-
-
-		// Free Buildings
-		szText = gDLL->getText("TXT_KEY_UNIQUE_BUILDINGS");
+	}
+	if (!bFound)
+	{
+		szText = gDLL->getText("TXT_KEY_FREE_UNITS_NO");
 		if (bDawnOfMan)
-		{
-			if (bFound)
-			{
-				szInfoText.append(NEWLINE);
-			}
-			szTempString.Format(L"%s: ", szText.GetCString());
-		}
-		else
-		{
-			szTempString.Format(NEWLINE SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
-		}
-		szInfoText.append(szTempString);
+			szBuffer.Format(L"%s", szText.GetCString());
+		else szBuffer.Format(L"%s  %s", NEWLINE, szText.GetCString());
+		szInfoText.append(szBuffer);
+		bFound = true;
+	}
 
-		bFound = false;
-		FOR_EACH_ENUM(BuildingClass)
-		{	// advc: These two variables were switched
-			eUniqueBuilding = GC.getInfo(eCivilization).getCivilizationBuildings(eLoopBuildingClass);
-			eDefaultBuilding = GC.getInfo(eLoopBuildingClass).getDefaultBuilding();
-			if (eDefaultBuilding != NO_BUILDING && eUniqueBuilding != NO_BUILDING)
-			{
-				if (eDefaultBuilding != eUniqueBuilding)
-				{
-					// Add Building
-					if (bDawnOfMan)
-					{
-						if (bFound)
-						{
-							szInfoText.append(L", ");
-						}
-						szBuffer.Format(!bLinks ? L"%s - (%s)":
-							L"<link=literal>%s</link> - (<link=literal>%s</link>)",
-							GC.getInfo(eUniqueBuilding).getDescription(),
-							GC.getInfo(eDefaultBuilding).getDescription());
-					}
-					else
-					{
-						szBuffer.Format(L"\n  %c%s - (%s)", gDLL->getSymbolID(BULLET_CHAR),
-							GC.getInfo(eUniqueBuilding).getDescription(),
-							GC.getInfo(eDefaultBuilding).getDescription());
-					}
-					szInfoText.append(szBuffer);
-					bFound = true;
-				}
-			}
+	// Free Buildings
+	szText = gDLL->getText("TXT_KEY_UNIQUE_BUILDINGS");
+	if (bDawnOfMan)
+	{
+		if (bFound)
+			szInfoText.append(NEWLINE);
+		szBuffer.Format(L"%s: ", szText.GetCString());
+	}
+	else
+	{
+		szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR ,
+				TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
+	}
+	szInfoText.append(szBuffer);
+
+	// Unique Buildings
+	bFound = false;
+	FOR_EACH_ENUM(BuildingClass)
+	{	// advc: These two variables were switched
+		BuildingTypes eUniqueBuilding = GC.getInfo(eCivilization).
+				getCivilizationBuildings(eLoopBuildingClass);
+		BuildingTypes eDefaultBuilding = GC.getInfo(eLoopBuildingClass).getDefaultBuilding();
+		if (/*eDefaultBuilding != NO_BUILDING &&*/ // advc.004: Include UB w/o a default building
+			eUniqueBuilding != NO_BUILDING && eDefaultBuilding != eUniqueBuilding)
+		{	// advc: Moved into new function
+			appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
+					GC.getInfo(eUniqueBuilding).getDescription(),
+					// advc.004:
+					eDefaultBuilding == NO_BUILDING ? NULL : GC.getInfo(eDefaultBuilding).getDescription());
+			bFound = true;
 		}
-		if (!bFound)
+	}
+	if (!bFound)
+	{
+		szText = gDLL->getText("TXT_KEY_UNIQUE_BUILDINGS_NO");
+		if (bDawnOfMan)
+			szBuffer.Format(L"%s", szText.GetCString());
+		else szBuffer.Format(L"%s  %s", NEWLINE, szText.GetCString());
+		szInfoText.append(szBuffer);
+	}
+}
+
+// advc: Cut from parseCivInfos
+void CvGameTextMgr::appendUniqueDesc(CvWStringBuffer& szBuffer, bool bSeparator, bool bDawnOfMan,
+	bool bLinks, wchar const* szUniqueDesc, wchar const* szDefaultDesc)
+{
+	CvWString szTmp;
+	if (bDawnOfMan)
+	{
+		if (bSeparator)
+			szBuffer.append(L", ");
+		szTmp.Format(!bLinks ? L"%s": L"<link=literal>%s</link>", szUniqueDesc);
+		szBuffer.append(szTmp);
+		if (szDefaultDesc != NULL)
 		{
-			szText = gDLL->getText("TXT_KEY_UNIQUE_BUILDINGS_NO");
-			if (bDawnOfMan)
-				szTempString.Format(L"%s", szText.GetCString());
-			else szTempString.Format(L"%s  %s", NEWLINE, szText.GetCString());
-			szInfoText.append(szTempString);
+			szTmp.Format(!bLinks ? L" - (%s)" : L" - (<link=literal>%s</link>)", szDefaultDesc);
+			szBuffer.append(szTmp);
 		}
 	}
 	else
 	{
-		//	This is a random civ, let us know here...
-		szInfoText.append(gDLL->getText("TXT_KEY_CIV_UNKNOWN"));
+		szTmp.Format(L"\n  %c%s", gDLL->getSymbolID(BULLET_CHAR), szUniqueDesc);
+		szBuffer.append(szTmp);
+		if (szDefaultDesc != NULL)
+		{
+			szTmp.Format(L" - (%s)", szDefaultDesc);
+			szBuffer.append(szTmp);
+		}
 	}
 }
+
 
 void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, SpecialistTypes eSpecialist, CvCity* pCity, bool bCivilopediaText)
 {
@@ -8645,7 +8633,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 	//	Tech Name
 	if (!bCivilopediaText && (!bTreeInfo || (NO_TECH == eFromTech)))
 	{
-		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_TECH_TEXT"),
+		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"),
 				GC.getInfo(eTech).getDescription());
 		szBuffer.append(szTempBuffer);
 	} // <advc>
@@ -8848,7 +8836,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 							{
 								szFirstBuffer.Format(L"%s%s", NEWLINE,
 										gDLL->getText("TXT_KEY_TECH_CAN_TRAIN").c_str());
-								szTempBuffer.Format( SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_UNIT_TEXT"),
+								szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT"),
 										GC.getInfo(eLoopUnit).getDescription());
 								setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", bFirst);
 								bFirst = false;
