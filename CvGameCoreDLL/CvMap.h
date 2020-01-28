@@ -385,6 +385,7 @@ public: // advc: made several functions const
 	} // <advc.inl> Faster (w/o branching)
 	__forceinline CvPlot& getPlotByIndex(int iIndex) const
 	{
+		FAssertBounds(0, numPlots(), iIndex);
 		return m_pMapPlots[iIndex];
 	} // </advc.inl>
 	CvPlot* plotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
@@ -398,7 +399,8 @@ public: // advc: made several functions const
 		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
 		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
 	}
-	__forceinline CvPlot* plotSoren(int iX, int iY) const // advc.inl: Renamed from plotSorenINLINE
+	// advc.inl: Renamed from plotSorenINLINE (was already force-inlined in BtS and that helps too)
+	__forceinline CvPlot* plotSoren(int iX, int iY) const
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 			return NULL;

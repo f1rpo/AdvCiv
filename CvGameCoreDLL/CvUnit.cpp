@@ -4083,8 +4083,7 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 		return false;
 
 	CvPlot* pTargetPlot = GC.getMap().plot(iX, iY);
-
-	if (plotDistance(pPlot->getX(), pPlot->getY(), pTargetPlot->getX(), pTargetPlot->getY()) > airRange())
+	if (plotDistance(pPlot, pTargetPlot) > airRange())
 		return false;
 
 	if (pTargetPlot->isOwned())

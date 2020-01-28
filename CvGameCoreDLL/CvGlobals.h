@@ -584,7 +584,7 @@ public:
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
 	// </advc.opt>
-	// <advc> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
+	// <advc.003t> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
 	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit = NO_UNIT) const;
 	// <advc.905b>
 	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit = NO_UNIT) const
@@ -597,7 +597,7 @@ public:
 	int getNUM_AND_TECH_PREREQS(TechTypes = NO_TECH) const;
 	int getNUM_OR_TECH_PREREQS(TechTypes = NO_TECH) const;
 	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute = NO_ROUTE) const;
-	// </advc>
+	// </advc.003t>
 	int getNUM_CORPORATION_PREREQ_BONUSES() const; // (advc: A param like above doesn't help b/c all corps require resources)
 	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
 	// advc: All inlined and constified

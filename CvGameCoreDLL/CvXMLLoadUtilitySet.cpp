@@ -579,7 +579,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	if (!CreateFXml())
 		return false;
 
-	/* advc: Replaced all GC.get...Info() calls with direct accesses; see the
+	/*	advc: Replaced all GC.get...Info() calls with direct accesses; see the
 		comment under the friend declaration in CvGlobals.h. */
 
 	LoadGlobalClassInfo(GC.m_paGameSpeedInfo, "CIV4GameSpeedInfo", "GameInfo", "Civ4GameSpeedInfo/GameSpeedInfos/GameSpeedInfo", false);

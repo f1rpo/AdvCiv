@@ -48,7 +48,8 @@ double percentileRank(std::vector<double>& distribution, double score,
 // <advc>
 /*  Hash based on the components of x. Plot index of capital factored in for
 	increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
-	Result between 0 and 1. Returns float b/c CvRandom uses float (not double). */
+	Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
+	(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
 float hash(std::vector<long> const& x, PlayerTypes ePlayer = NO_PLAYER);
 // For hashing just a single input
 float hash(long x, PlayerTypes ePlayer = NO_PLAYER);

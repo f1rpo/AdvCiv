@@ -7458,9 +7458,10 @@ int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const
 				getWarmongerRespect());
 		personalityModifier += iRespectModifier * 0.75;
 		personalityModifier += h.getAIAttitudeChangePercent() / 100.0; // advc.148
-		/*  advc.104x: Low UWAI_PERSONALITY_PERCENT makes the peace weights and
+		/*  <advc.104x> Low UWAI_PERSONALITY_PERCENT makes the peace weights and
 			respect values more similar; don't want that to increase the relations bonus. */
-		personalityModifier *= GC.getDefineINT("UWAI_PERSONALITY_PERCENT") / 100.0;
+		static int const iUWAI_PERSONALITY_PERCENT = GC.getDefineINT("UWAI_PERSONALITY_PERCENT");
+		personalityModifier *= iUWAI_PERSONALITY_PERCENT / 100.0;
 		iAttitude += ::round(personalityModifier);
 		// </advc.130b>
 	}
@@ -23042,21 +23043,11 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea const& kArea, bool bPlayer, b
 	}
 	else
 	{
-		int iCenterX = pCenter->getX();
-		int iCenterY = pCenter->getY();
 		// We set the range, not the caller - after all, this is an AI function.
-		int iRange = 13 + 2 * getCurrentEra();
-		for (int dx = -iRange; dx <= iRange; dx++)
+		for (SquareIter it(*pCenter, 13 + 2 * getCurrentEra()); it.hasNext(); ++it)
 		{
-			for (int dy = -iRange; dy <= iRange; dy++)
-			{
-				CvPlot* pLoopPlot = m.plot(iCenterX + dx, iCenterY + dy);
-				if (pLoopPlot != NULL && pLoopPlot->isArea(kArea))
-				{
-					iCount += pLoopPlot->countHostileUnits(getID(), bPlayer, bTeam,
-							bNeutral, bHostile);
-				}
-			}
+			if (it->isArea(kArea))
+				iCount += it->countHostileUnits(getID(), bPlayer, bTeam, bNeutral, bHostile);
 		}
 	} // </advc.081>
 	return iCount;

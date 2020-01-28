@@ -605,9 +605,10 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					int iNumTiles = pLoopArea->getNumTiles();
 					int iAddedTotal = kMap.getNumBonuses(eBonusType);
 					if (iAddedTotal * 3 < 2 * iTarget &&
-							iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
+						iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
+					{
 						continue;
-
+					}
 					// number of unique bonuses starting on the area, plus this one
 					int iNumUniqueBonusesOnArea = 1 + pLoopArea->countNumUniqueBonusTypes();
 					//int iValue = iNumTiles / iNumUniqueBonusesOnArea;

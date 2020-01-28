@@ -2782,7 +2782,7 @@ const wchar* CvPlayer::getNameKey() const
 {
 	if ((GC.getInitCore().getLeaderNameKey(getID()).empty() ||
 		GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive()) &&
-		/*  advc.001: Had a crash here while loading a save from within a game with
+		/*  advc.001p: Had a crash here while loading a save from within a game with
 			a higher player count than in the save. CvInitCore had already been reset.
 			Can perhaps only occur with a debugger attached that slows the DLL down. */
 		getLeaderType() != NO_LEADER)
@@ -5376,9 +5376,10 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 	}
 	// <dlph.19> (advc: simplified)
 	if (kBuilding.isCapital() && GC.getGame().getGameState() == GAMESTATE_ON &&
-			GET_TEAM(getTeam()).isAnyVictoryCountdown()) // advc.opt
-		return false; // </dlph.19>
-
+		GET_TEAM(getTeam()).isAnyVictoryCountdown()) // advc.opt
+	{
+		return false;
+	} // </dlph.19>
 	if (kOurTeam.isBuildingClassMaxedOut(eBuildingClass))
 		return false;
 

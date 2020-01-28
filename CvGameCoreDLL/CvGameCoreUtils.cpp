@@ -1696,9 +1696,9 @@ int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)  // a
 {
 	PROFILE_FUNC();
 
-	CvPlot const& kFromPlot = *GC.getMap().plotSoren(
+	CvPlot const& kFromPlot = GC.getMap().getPlot(
 			gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
-	CvPlot const& kToPlot = *GC.getMap().plotSoren(iToX, iToY);
+	CvPlot const& kToPlot = GC.getMap().getPlot(iToX, iToY);
 	if (!kFromPlot.sameArea(kToPlot))
 		return FALSE;
 
@@ -1804,11 +1804,11 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	if (parent == NULL)
 		return TRUE;
 
-	CvPlot const& kNewPlot = *GC.getMap().plotSoren(node->m_iX, node->m_iY);
+	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
 	if (kNewPlot.isImpassable())
 		return FALSE;
 
-	CvPlot const& kFromPlot = *GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
 
@@ -1840,7 +1840,7 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 	if (kNewPlot.isImpassable())
 		return FALSE;
 
-	CvPlot const& kFromPlot = *GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
 
@@ -1900,26 +1900,16 @@ int stepAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 
 int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
-	CvPlot* pNewPlot;
-	PlayerTypes ePlayer;
-
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
 
-	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
-
-	if (!(pNewPlot->isOwned()) || (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam()))
+	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
+	PlayerTypes ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
+	if (!kNewPlot.isOwned() || kNewPlot.getTeam() == TEAMID(ePlayer))
 	{
-		if (pNewPlot->getRouteType() == GET_PLAYER(ePlayer).getBestRoute(pNewPlot))
-		{
+		if (kNewPlot.getRouteType() == GET_PLAYER(ePlayer).getBestRoute(&kNewPlot))
 			return TRUE;
-		}
 	}
-
 	return FALSE;
 }
 

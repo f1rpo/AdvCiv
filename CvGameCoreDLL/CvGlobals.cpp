@@ -809,7 +809,7 @@ int CvGlobals::getMAX_CIV_PLAYERS()
 {
 	return MAX_CIV_PLAYERS;
 }
-/*  <advc.opt> Optional parameters added. The return value is only an upper bound,
+/*  <advc.003t> Optional parameters added. The return value is only an upper bound,
 	even if an argument is given. */
 int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
 {
@@ -852,7 +852,7 @@ int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
 	return (eRoute == NO_ROUTE || getInfo(eRoute).isAnyPrereqOrBonus() ?
 			getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES) : 0);
 }
-// </advc.opt>
+// </advc.003t>
 int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const
 {
 	return getDefineINT(NUM_CORPORATION_PREREQ_BONUSES);
