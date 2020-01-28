@@ -13915,21 +13915,17 @@ void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
 	}
 	int const iRange = kDefender.baseMoves() + (kDefender.getPlot().isValidRoute(
 			&kDefender, /* advc.001i: */ false) ? 1 : 0);
-	CvMap const& kMap = GC.getMap();
-	for (int dx = -iRange; dx <= iRange; dx++)
+	for (SquareIter it(kDefender, iRange); it.hasNext(); ++it)
 	{
-		for (int dy = -iRange; dy <= iRange; dy++)
+		CvPlot const& kPlot = *it;
+		if (kPlot.getOwner() == getID() && kPlot.isCity())
 		{
-			CvPlot const* pPlot = kMap.plot(kDefender.getX(), kDefender.getY());
-			if (pPlot != NULL && pPlot->getOwner() == getID() && pPlot->isCity())
+			CvCityAI& kCity = *kPlot.AI_getPlotCity();
+			if (!kCity.AI_isSafe()) // It's only going to get safer
 			{
-				CvCityAI& kCity = *pPlot->AI_getPlotCity();
-				if (!kCity.AI_isSafe()) // It's only going to get safer
-				{
-					// advc.test:
-					FAssertMsg(false, "Only to see how frequently this happens (or rather: just how rarely)");
-					kCity.AI_updateSafety();
-				}
+				// advc.test:
+				FAssertMsg(false, "Only to see how frequently this happens (or rather: just how rarely)");
+				kCity.AI_updateSafety();
 			}
 		}
 	}
