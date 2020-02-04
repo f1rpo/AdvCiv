@@ -483,12 +483,14 @@ bool CvPythonCaller::doEventTrigger(PlayerTypes ePlayer, EventTriggeredData cons
 	call(szFunctionName, argsList, lResult, PYRandomEventModule);
 	if (lResult == 0)
 		return false;
-	// Python may have changed kTriggered
-	pCity = CvCity::fromIDInfo(IDInfo(ePlayer, kTriggered.m_iCityId));
+	// Python may have changed kTriggered  // advc: Need some extra checks here now
+	pCity = (kTriggered.m_iCityId == FFreeList::INVALID_INDEX ? NULL :
+			CvCity::fromIDInfo(IDInfo(ePlayer, kTriggered.m_iCityId)));
 	pPlot = GC.getMap().plot(kTriggered.m_iPlotX, kTriggered.m_iPlotY);
-	pUnit = CvUnit::fromIDInfo(IDInfo(ePlayer, kTriggered.m_iUnitId));
+	pUnit = (kTriggered.m_iUnitId == FFreeList::INVALID_INDEX ? NULL:
+			CvUnit::fromIDInfo(IDInfo(ePlayer, kTriggered.m_iUnitId)));
 	eOtherPlayer = kTriggered.m_eOtherPlayer;
-	if (eOtherPlayer != NO_PLAYER)
+	if (eOtherPlayer != NO_PLAYER && kTriggered.m_iOtherPlayerCityId != FFreeList::INVALID_INDEX)
 		pOtherPlayerCity = CvCity::fromIDInfo(IDInfo(eOtherPlayer, kTriggered.m_iOtherPlayerCityId));
 	eReligion = kTriggered.m_eReligion;
 	eCorporation = kTriggered.m_eCorporation;
