@@ -1304,19 +1304,9 @@ int CvWorldInfo::getUnitNameModifier() const
 	return m_iUnitNameModifier;
 }
 
-int CvWorldInfo::getTargetNumCities() const
-{
-	return m_iTargetNumCities;
-}
-
 int CvWorldInfo::getNumFreeBuildingBonuses() const
 {
 	return m_iNumFreeBuildingBonuses;
-}
-
-int CvWorldInfo::getBuildingClassPrereqModifier() const
-{
-	return m_iBuildingClassPrereqModifier;
 }
 
 int CvWorldInfo::getMaxConscriptModifier() const
@@ -1347,11 +1337,6 @@ int CvWorldInfo::getTerrainGrainChange() const
 int CvWorldInfo::getFeatureGrainChange() const
 {
 	return m_iFeatureGrainChange;
-}
-
-int CvWorldInfo::getResearchPercent() const
-{
-	return m_iResearchPercent;
 }
 
 int CvWorldInfo::getTradeProfitPercent() const

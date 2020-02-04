@@ -457,16 +457,16 @@ public: // All the const functions are exposed to Python
 
 	DllExport int getDefaultPlayers() const;
 	int getUnitNameModifier() const;
-	int getTargetNumCities() const;
+	int getTargetNumCities() const { return m_iTargetNumCities; } // advc.inl
 	int getNumFreeBuildingBonuses() const;
-	int getBuildingClassPrereqModifier() const;
+	int getBuildingClassPrereqModifier() const { return m_iBuildingClassPrereqModifier; } // advc.inl
 	int getMaxConscriptModifier() const;
 	int getWarWearinessModifier() const;
 	int getGridWidth() const;
 	int getGridHeight() const;
 	int getTerrainGrainChange() const;
 	int getFeatureGrainChange() const;
-	int getResearchPercent() const;
+	int getResearchPercent() const { return m_iResearchPercent; } // advc.inl
 	int getTradeProfitPercent() const;
 	int getDistanceMaintenancePercent() const;
 	int getNumCitiesMaintenancePercent() const;
