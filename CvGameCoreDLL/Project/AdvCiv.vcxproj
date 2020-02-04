@@ -175,6 +175,7 @@
     <ClCompile Include="..\RFChapterScore.cpp" />
     <ClCompile Include="..\RFTotalScore.cpp" />
     <ClCompile Include="..\RiseFall.cpp" />
+    <ClCompile Include="..\ScaledIntTest.cpp" />
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
@@ -312,6 +313,7 @@
     <ClInclude Include="..\FDialogTemplate.h" />
     <ClInclude Include="..\FFreeListTrashArray.h" />
     <ClInclude Include="..\FInputDevice.h" />
+    <ClInclude Include="..\FixedPointPowTables.h" />
     <ClInclude Include="..\FProfiler.h" />
     <ClInclude Include="..\FreeListTraversal.h" />
     <ClInclude Include="..\FVariableSystem.h" />
@@ -322,6 +324,7 @@
     <ClInclude Include="..\MilitaryBranch.h" />
     <ClInclude Include="..\PlotRadiusIterator.h" />
     <ClInclude Include="..\PlotRange.h" />
+    <ClInclude Include="..\ScaledInt.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\UWAISets.h" />
     <ClInclude Include="resource.h" />
