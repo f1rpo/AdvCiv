@@ -21,12 +21,16 @@ class FAStar;
 //#define SQR(x) ( (x)*(x))
 //#endif*
 
-// K-Mod. Created the following function for rounded integer division
+// K-Mod: Created the following function for rounded integer division
 // advc: Moved from CvGlobals.h and static specifier removed
 inline int ROUND_DIVIDE(int a, int b)
 {
-	return (a+((a/b>0)?1:-1)*(b/2)) / b;
-} // K-Mod end
+	//return (a+((a/b>0)?1:-1)*(b/2)) / b;
+	// <advc.001> ^That'll round 2/3 to 0
+	int iSign = ((a ^ b) >= 0 ? 1 : -1);
+	return (a + iSign * b / 2) / b;
+	// </advc.001>
+}
 
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
