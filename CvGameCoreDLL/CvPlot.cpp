@@ -483,7 +483,7 @@ void CvPlot::updateSymbols()
 			for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; iYieldType++)
 			{
 				int iYield = yieldAmounts[iYieldType] - (maxYieldStack * i);
-				LIMIT_RANGE(0,iYield, maxYieldStack);
+				iYield = range(iYield, 0, maxYieldStack);
 				if(yieldAmounts[iYieldType])
 					gDLL->getSymbolIFace()->setTypeYield(pSymbol,iYieldType,iYield);
 			}

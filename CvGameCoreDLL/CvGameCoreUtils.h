@@ -16,10 +16,7 @@ class CvRandom;
 class FAStarNode;
 class FAStar;
 
-// advc.003j: Unused here and elsewhere; still defined in CvGameCoreDLL.
-//#ifndef SQR
-//#define SQR(x) ( (x)*(x))
-//#endif*
+#define SQR(x) ((x)*(x))
 
 // K-Mod: Created the following function for rounded integer division
 // advc: Moved from CvGlobals.h and static specifier removed
@@ -32,39 +29,33 @@ inline int ROUND_DIVIDE(int a, int b)
 	// </advc.001>
 }
 
-// <advc.003g> floating point utility
-inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
-int roundToMultiple(double d, int iMultiple);
-bool bernoulliSuccess(double pr, // 0 <= pr <= 1
-		char const* pszLog = "", bool bAsync = false,
-		int iData1 = MIN_INT, int iData2 = MIN_INT);
-double dMedian(std::vector<double>& distribution, bool bSorted = false);
-double dMean(std::vector<double> const& distribution);
-double dMax(std::vector<double> const& distribution);
-double dMin(std::vector<double> const& distribution);
-// see e.g. Wikipedia: "percentile rank"
-double percentileRank(std::vector<double>& distribution, double score,
-		bool bSorted = false, // Is the distribution sorted (ascending)?
-		bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
-		an element of the distribution? If yes, the percentile rank is going to be
-		positive. Either way, the caller shouldn't include 'score' in the distribution. */
-// </advc.003g>
-// <advc>
-/*  Hash based on the components of x. Plot index of capital factored in for
-	increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
-	Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
-	(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
-float hash(std::vector<long> const& x, PlayerTypes ePlayer = NO_PLAYER);
-// For hashing just a single input
-float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
-/*  'r' is an empty vector in which the 21 CvPlot* in the city radius ("fat cross")
-	around p will be placed. &p itself gets placed in r[0]; the others in
-	no particular order. If the city cross has fewer than 21 plots (edge of the map),
-	then NULL entries will be included.
-	For iterating over tiles in the radius of a CvCity, CvCity::getCityIndexPlot
-	is faster; but cityCross doesn't require a CvCity to exist in p. */
-void cityCross(CvPlot const& p, std::vector<CvPlot*>& r);
-// </advc>
+// <advc.003g>
+//namespace fmath // (For the time being, these functions are used too frequently for a namespace.)
+//{
+	inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
+	int roundToMultiple(double d, int iMultiple);
+	bool bernoulliSuccess(double pr, // 0 <= pr <= 1
+			char const* pszLog = "", bool bAsync = false,
+			int iData1 = MIN_INT, int iData2 = MIN_INT);
+	double dMedian(std::vector<double>& distribution, bool bSorted = false);
+	double dMean(std::vector<double> const& distribution);
+	double dMax(std::vector<double> const& distribution);
+	double dMin(std::vector<double> const& distribution);
+	// see e.g. Wikipedia: "percentile rank"
+	double percentileRank(std::vector<double>& distribution, double score,
+			bool bSorted = false, // Is the distribution sorted (ascending)?
+			bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
+			an element of the distribution? If yes, the percentile rank is going to be
+			positive. Either way, the caller shouldn't include 'score' in the distribution. */
+	/*  Hash based on the components of x. Plot index of capital factored in for
+		increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
+		Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
+		(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
+	float hash(std::vector<long> const& x, PlayerTypes ePlayer = NO_PLAYER);
+	// For hashing just a single input
+	float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
+//} // </advc.003g>
+
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
 // <advc.130h>
 template<typename T> void removeDuplicates(std::vector<T>& v)

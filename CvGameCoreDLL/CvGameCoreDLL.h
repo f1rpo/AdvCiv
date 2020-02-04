@@ -147,10 +147,11 @@ typedef wchar_t          wchar;
 #define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p);   (p)=NULL; } }
 #define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
 
-#define SQR(x)      ( (x) * (x) )
+//#define SQR(x) ( (x) * (x) ) // advc: Also defined in CvGameCoreUtils.h
 #define DEGTORAD(x) ( (float)( (x) * (M_PI / 180) ))
-#define LIMIT_RANGE(low, value, high) value = (value < low ? low : (value > high ? high : value));
-#define M_PI       3.14159265358979323846
+// advc: There's range (CvGameCoreUtils), which is similar enough.
+//#define LIMIT_RANGE(low, value, high) value = (value < low ? low : (value > high ? high : value));
+#define M_PI		3.14159265358979323846
 #define fM_PI		3.141592654f		//!< Pi (float)
 
 __forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }

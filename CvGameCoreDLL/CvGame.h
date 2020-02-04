@@ -623,10 +623,14 @@ public:
 	{
 		return m_mapRand.get(iNum, pszLog);
 	}
-	CvRandom& getSorenRand()																										// Exposed to Python
+	inline CvRandom& getSorenRand()																								// Exposed to Python
 	{
 		return m_sorenRand;
-	}
+	}  // <advc> Shorter. "S" could also stand for "synchronized" (or "Soren"). (Tbd.: Move to CvGlobals.)
+	CvRandom& getSRand()																										// Exposed to Python
+	{
+		return getSorenRand();
+	} // </advc>
 	//  Returns a value from the half-closed interval [0,iNum)
 	int getSorenRandNum(int iNum, const char* pszLog,
 		int iData1 = MIN_INT, int iData2 = MIN_INT) // advc.007

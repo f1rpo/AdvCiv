@@ -99,7 +99,7 @@ protected:
 		// Change direction?
 		if (m_iConsecMoves * (m_iConsecMoves + 1) >= m_iPos)
 		{
-			// Slow modulo :(
+			// Modulo by a constant power of 2: should be fast
 			m_eDir = static_cast<CardinalDirectionTypes>(
 					(m_eDir + 1) % NUM_CARDINALDIRECTION_TYPES);
 			m_iConsecMoves = 1;
