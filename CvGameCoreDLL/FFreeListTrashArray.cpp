@@ -85,8 +85,10 @@ void FFreeListTrashArray<T,AIType>::uninit()
 	if (m_pArray != NULL)
 	{
 		removeAll();
-		SAFE_DELETE_ARRAY(m_pArray);
+		delete[] m_pArray;
 	}
+	// advc: Seems necessary. Don't know why it worked w/o this before the merge w/ FFreeListArrayBase.
+	m_iNumSlots = 0;
 }
 
 
@@ -194,9 +196,7 @@ void FFreeListTrashArray<T,AIType>::removeAll()
 	for (int i = 0; i < m_iNumSlots; i++)
 	{
 		m_pArray[i].iNextFreeIndex = FFreeList::INVALID_INDEX;
-		if (m_pArray[i].pData != NULL)
-			delete m_pArray[i].pData;
-		m_pArray[i].pData = NULL;
+		SAFE_DELETE(m_pArray[i].pData);
 	}
 }
 
