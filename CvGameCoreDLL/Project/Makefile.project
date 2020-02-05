@@ -2,6 +2,8 @@ SOURCE_DIR = ..
 PROJECT_CFLAGS = /WX
 # Allow inline expansion of functions with an inline keyword even for debug builds
 PROJECT_Debug_CFLAGS = /Ob1
+# Should _not_ be set when inspecting assembly as it will disable __forceinline
+PROJECT_DebugOpt_CFLAGS = /DFASSERT_ENABLE
 # DLL-internal profiler: /DUSE_INTERNAL_PROFILER
 # Time Stamp Counter profiler: /DUSE_TSC_PROFILER
 # External profiler, e.g. Very Sleepy: /Z7 (for debugging symbols)
