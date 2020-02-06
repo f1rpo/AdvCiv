@@ -1721,8 +1721,7 @@ void UWAICache::City::updateAssetScore() {
 			slow. Instead, only increase cultureModifier for tiles in the
 			inner ring, and increase it based on the weight for the outer ring. */
 		if(::stepDistance(&p, &centerPlot) == 1) {
-			double exclMult = 1 + 0.5 * GET_PLAYER(cityOwnerId).
-					AI_exclusiveRadiusWeight(2);
+			double exclMult = (1 + GC.AI_getGame().AI_exclusiveRadiusWeight(2) / 2).getDouble();
 			cultureModifier = std::min(1.0, cultureModifier * exclMult);
 		} // </advc.099b>
 		r += baseTileScore * cultureModifier;

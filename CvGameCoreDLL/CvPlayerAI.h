@@ -108,7 +108,9 @@ public:
 	int AI_commerceWeight(CommerceTypes eCommerce, const CvCityAI* pCity = NULL) const;
 	void AI_updateCommerceWeights(); // K-Mod
 
-	double AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b
+	// <advc.035>
+	bool AI_isPlotContestedByRival(CvPlot const& kPlot,
+			PlayerTypes eRival = NO_PLAYER) const; // </advc.035>
 	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;		// Exposed to Python
 	// advc: Replaced by the CitySiteEvaluator class
 	//struct CvFoundSettings { ... } // K-Mod

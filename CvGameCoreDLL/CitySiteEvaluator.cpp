@@ -1356,14 +1356,14 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	bool bShare, bool bCityRadius, bool bSteal, bool bFlip, bool bOwnExcl,
 	int& iTakenTiles, int& iStealPercent) const
 {
-	int r = 100;
+	scaled_int r = 100;
 	/*  K-Mod note: iClaimThreshold is bigger for bEasyCulture and bAmbitious civs.
 		Also note, if the multiplier was to be properly used for unowned plots,
 		it would need to take into account the proximity of foreign cities and so on.
 		(similar to the iForeignProximity calculation) */
 	// advc.031: I'm including unowned plots, but only those in a foreign city radius.
 	if ((!bForeignOwned && (bShare || !bCityRadius)) /* advc.035: */ || bFlip)
-		return r;
+		return r.getInt();
 
 	int iOurCulture = p.getCulture(ePlayer);
 	int iOtherCulture = std::max(1,
@@ -1385,29 +1385,28 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 			iOtherCulture = (3 * iOtherCulture) / 2;
 		}
 	} // </advc.031>
-	r = 100 * (iOurCulture + kSet.getClaimThreshold());
-	r /= iOtherCulture + kSet.getClaimThreshold();
+	r.mulDiv(iOurCulture + kSet.getClaimThreshold(), iOtherCulture + kSet.getClaimThreshold());
 	if (!bOwnExcl) // advc.035: The above is OK if cities own their exclusive radius ...
 	{	// <advc.031>
 		// ... but w/o that rule, it's too optimistic when iOurCulture is small.
 		r = (r + (iOurCulture * 100) / kSet.getClaimThreshold()) / 2;
 	}
 	// Take into account at least some factors that determine each side's culture rate
-	double rateModifier = 1;
+	scaled_int rRateModifier = 1;
 	/*	Don't be _too_ optimistic against Barbarians - a civ (a rival - or us) will
 		probably conquer pForeignCity eventually and might not raze it. */
 	if (bForeignOwned && p.isBarbarian())
-		rateModifier *= 1.55;
+		rRateModifier *= fixp(1.55);
 	else if(pForeignCity != NULL &&
 		// advc.303: Barbarian borders won't expand
 		!adjacentOrSame(p, *pForeignCity->plot()))
 	{
-		rateModifier *= 1.8;
+		rRateModifier *= fixp(1.8);
 	}
 	if (!p.isArea(kArea))
-		rateModifier /= 1.3;
+		rRateModifier /= fixp(1.3);
 	else if (pForeignCity != NULL && !pForeignCity->isArea(p.getArea()))
-		rateModifier *= 1.3;
+		rRateModifier *= fixp(1.3);
 	/*  K-Mod had done *5/4 if EasyCulture; I think only free culture will really
 		swing culture wars. */
 	int iFreeForeignCulture = (bForeignOwned ? GET_PLAYER(p.getOwner()).
@@ -1429,30 +1428,30 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 					getObsoleteSafeCommerceChange(COMMERCE_CULTURE);
 		}
 	}
-	double const freeForeignCultureModifier = (iFreeForeignCulture + 7) / 7.0;
+	scaled_int const rFreeForeignCultureModifier(iFreeForeignCulture + 7, 7);
 	// Extra pessimism about tiles that another civ is able to work (borders already expanded)
 	if (bSteal)
 	{
-		rateModifier = 0.62;
+		rRateModifier = fixp(0.62);
 		if (pForeignCity != NULL && adjacentOrSame(p, *pForeignCity->plot()))
-			rateModifier /= 1.5;
+			rRateModifier /= fixp(1.5);
 		if (bForeignOwned)
-			rateModifier *= freeForeignCultureModifier;
+			rRateModifier *= rFreeForeignCultureModifier;
 	}
 	if (adjacentOrSame(p, kPlot))
-		rateModifier *= 1.5; // as in K-Mod
-	else rateModifier *= freeForeignCultureModifier;	
+		rRateModifier *= fixp(1.5); // as in K-Mod
+	else rRateModifier *= rFreeForeignCultureModifier;	
 	if (bCityRadius && !bShare)
 	{
-		r = ::round(r * rateModifier * 0.8);
-		iStealPercent += std::min(75, r);
+		r *= rRateModifier * fixp(0.8);
+		iStealPercent += scaled_int::min(75, r);
 	}
-	else r = ::round(r * rateModifier);
+	else r *= rRateModifier;
 	// </advc.031>
-	r = std::min(100, r);
+	r.decreaseTo(100);
 	// advc.031: Moved up
-	if (r < (iAreaCities > 0 ? 25 : 50)
-		&& !bSteal) // advc.031: Already counted as iTakenTiles
+	if (r < (iAreaCities > 0 ? 25 : 50) &&
+		!bSteal) // advc.031: Already counted as iTakenTiles
 	{
 		//discourage hopeless cases, especially on other continents.
 		iTakenTiles += (iAreaCities > 0 ? 1 : 2);
@@ -1460,17 +1459,18 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	// <advc.099b>
 	if (!bCityRadius && bForeignOwned)
 	{
-		double exclRadiusWeight = kPlayer.AI_exclusiveRadiusWeight(
+		scaled_int rExclRadiusWeight = GC.AI_getGame().AI_exclusiveRadiusWeight(
 				::plotDistance(&p, &kPlot));
-		r = std::min(100, ::round(r * (1 + exclRadiusWeight)));
-		// </advc.099b>
+		r *= 1 + rExclRadiusWeight;
+		r.decreaseTo(100);
+		// </advc.099b>  <advc.035>
 		if (bOwnExcl)
 		{
-			// <advc.035> (The discouragement above is still useful for avoiding revolts)
-			r = std::max(r, 65);
+			// (The discouragement above is still useful for avoiding revolts)
+			r.increaseTo(65);
 		} // </advc.035>
 	}
-	return r;
+	return r.getInt();
 }
 
 /*	An estimate of how much production an improvement might add

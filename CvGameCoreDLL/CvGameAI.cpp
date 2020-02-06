@@ -6,11 +6,13 @@
 #include "CvCityAI.h"
 #include "UWAIAgent.h"
 #include "CvInfo_Unit.h"
+#include "CvInfo_GameOption.h"
 
 
 CvGameAI::CvGameAI()
 {
-	AI_reset();
+	m_arExclusiveRadiusWeight.resize(3);
+	AI_reset(true);
 }
 
 
@@ -23,7 +25,6 @@ CvGameAI::~CvGameAI()
 void CvGameAI::AI_init()
 {
 	AI_reset();
-	AI_sortOutUWAIOptions(false); // advc.104
 }
 
 // <advc.104u>
@@ -88,11 +89,15 @@ void CvGameAI::AI_sortOutUWAIOptions(bool bFromSaveGame)
 void CvGameAI::AI_uninit() {}
 
 
-void CvGameAI::AI_reset()
+void CvGameAI::AI_reset(/* advc (as in CvGame): */ bool bConstructor)
 {
 	AI_uninit();
-
 	m_iPad = 0;
+	if (!bConstructor)
+	{
+		AI_sortOutUWAIOptions(false); // advc.104
+		AI_updateExclusiveRadiusWeight(); // advc.099b
+	}
 }
 
 
@@ -101,9 +106,7 @@ void CvGameAI::AI_makeAssignWorkDirty()
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
 			GET_PLAYER((PlayerTypes)iI).AI_makeAssignWorkDirty();
-		}
 	}
 }
 
@@ -114,9 +117,7 @@ void CvGameAI::AI_updateAssignWork()
 	{
 		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (GET_TEAM(kLoopPlayer.getTeam()).isHuman() && kLoopPlayer.isAlive())
-		{
 			kLoopPlayer.AI_updateAssignWork();
-		}
 	}
 }
 
@@ -124,21 +125,17 @@ void CvGameAI::AI_updateAssignWork()
 int CvGameAI::AI_combatValue(UnitTypes eUnit) /* K-Mod: */ const
 {
 	int iValue = 100;
-
 	if (GC.getInfo(eUnit).getDomainType() == DOMAIN_AIR)
-	{
 		iValue *= GC.getInfo(eUnit).getAirCombat();
-	}
 	else
 	{
 		iValue *= GC.getInfo(eUnit).getCombat();
 
-		iValue *= ((((GC.getInfo(eUnit).getFirstStrikes() * 2) + GC.getInfo(eUnit).getChanceFirstStrikes()) * (GC.getCOMBAT_DAMAGE() / 5)) + 100);
+		iValue *= 100 + ((GC.getInfo(eUnit).getFirstStrikes() * 2 +
+				GC.getInfo(eUnit).getChanceFirstStrikes()) * (GC.getCOMBAT_DAMAGE() / 5));
 		iValue /= 100;
 	}
-
 	iValue /= getBestLandUnitCombat();
-
 	return iValue;
 }
 
@@ -151,23 +148,53 @@ int CvGameAI::AI_turnsPercent(int iTurns, int iPercent)
 		iTurns *= (iPercent);
 		iTurns /= 100;
 	}
-
 	return std::max(1, iTurns);
 }
+
+
+/*	advc.099b: Between 0 and 1. Expresses AI confidence about winning culturally
+	contested tiles that are within the working radius of its cities exclusively.
+	Since the decay of tile culture isn't based on game speed, that confidence
+	is greater on the slower speed settings. */
+scaled_int CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
+{
+	if(iDist >= (int)m_arExclusiveRadiusWeight.size())
+		return 0;
+	FAssert(iDist >= 0);
+	return m_arExclusiveRadiusWeight[iDist];
+}
+
+// advc.00b:
+ void CvGameAI::AI_updateExclusiveRadiusWeight()
+ {
+	FAssert(m_arExclusiveRadiusWeight.size() == 3);
+	for (int iDist = 0; iDist < (int)m_arExclusiveRadiusWeight.size(); iDist++)
+	{
+		scaled_int rDistMultiplier;
+		if(iDist == 0 || iDist == 1)
+			rDistMultiplier = 2;
+		else rDistMultiplier = 1;
+		// High exponent; better use higher precision than usual.
+		ScaledInt<32*1024> rBase = 1 - rDistMultiplier *
+				per1000(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY));
+		FAssertMsg(rBase > 0, "CITY_RADIUS_DECAY too great; negative base for scaled_int::pow.");
+		m_arExclusiveRadiusWeight[iDist] = 1 - rBase.pow(
+				25 * per100(GC.getInfo(getGameSpeedType()).getGoldenAgePercent()));
+	}
+ }
 
 
 void CvGameAI::read(FDataStreamBase* pStream)
 {
 	CvGame::read(pStream);
 
-	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	uint uiFlag;
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iPad);
 	// <advc.104>
 	m_uwai.read(pStream);
-	AI_sortOutUWAIOptions(true);
-	// </advc.104>
+	AI_sortOutUWAIOptions(true); // </advc.104>
 }
 
 
@@ -176,9 +203,8 @@ void CvGameAI::write(FDataStreamBase* pStream)
 	CvGame::write(pStream);
 
 	uint uiFlag=0;
-	pStream->Write(uiFlag);		// flag for expansion
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iPad);
-
 	m_uwai.write(pStream); // advc.104
 }

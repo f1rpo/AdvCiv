@@ -20283,26 +20283,52 @@ void CvPlayerAI::AI_doSplit(/* advc.104r: */ bool bForce)  // advc: some style c
 	}
 }
 
-// <advc.099b>
-double CvPlayerAI::AI_exclusiveRadiusWeight(int iDist) const
+// advc.035:
+bool CvPlayerAI::AI_isPlotContestedByRival(CvPlot const& kPlot, PlayerTypes eRival) const
 {
-	if(iDist > 2)
-		return 0;
-	double distMultiplier = 1.5;
-	if(iDist == 0 || iDist == 1)
-		distMultiplier = 2;
-	else if(iDist == 2)
-		distMultiplier = 1;
-	double base = 1 - (distMultiplier * GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) /
-			1000.0);
-	FAssertMsg(base > 0, "CITY_RADIUS_DECAY too great; negative base for std::pow.");
-	/*  Between 0 and 1. Expresses our confidence about winning culturally
-		contested tiles that are within the working radius of our cities
-		exclusively. Since the decay of tile culture isn't based on game speed,
-		that confidence is greater on the slower speed settings. */
-	return 1 - std::pow(base, 25 * GC.getInfo(GC.getGame().
-			getGameSpeedType()).getGoldenAgePercent() / 100.0);
-} // </advc.099b>
+	if (kPlot.getOwner() != getID())
+		return false;
+	if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
+	{
+		PlayerTypes eSecondOwner = kPlot.getSecondOwner();
+		return eSecondOwner != NO_PLAYER && getID() != eSecondOwner &&
+				(eRival == NO_PLAYER || eSecondOwner == eRival || getID() == eRival) &&
+				getMasterTeam() != GET_TEAM(eSecondOwner).getMasterTeam();
+	} // <advc.099b>
+	else if(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) > 0)
+	{
+		if(getID() == eRival) // No longer contested; they own it.
+			return false;
+		int iTotalCulture = kPlot.getTotalCulture();
+		scaled_int rExclWeight = GC.AI_getGame().AI_exclusiveRadiusWeight();
+		int iOurCulture = kPlot.getCulture(getID());
+		// Just for efficiency
+		if(iOurCulture * rExclWeight * 2 >= iTotalCulture)
+			return false;
+		if(eRival != NO_PLAYER)
+		{
+			if(kPlot.getCulture(eRival) >= iOurCulture * rExclWeight &&
+				kPlot.exclusiveRadius(eRival) >= 0)
+			{
+				return true;
+			}
+			return false;
+		}
+		for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
+		{
+			if(it->getID() == getID())
+				continue;
+			int iDist = kPlot.exclusiveRadius(it->getID());
+			if(iDist >= 0 && kPlot.getCulture(it->getID()) >=
+				iOurCulture * GC.AI_getGame().AI_exclusiveRadiusWeight(iDist))
+			{
+				return true;
+			}
+		}
+		return false;
+	} // </advc.099b>
+	return false;
+} // </advc.035>
 
 
 void CvPlayerAI::AI_launch(VictoryTypes eVictory)

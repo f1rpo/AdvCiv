@@ -17223,7 +17223,7 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 		{
 			continue;
 		}
-		if (kPlot.isImproved() || /* advc.035: */ kPlot.isContestedByRival()) 
+		if (kPlot.isImproved()) 
 			continue;
 		int iValue = 0;
 		iValue += (bCanal ? kOwner.AI_getPlotCanalValue(kPlot) : 0);
@@ -20945,7 +20945,7 @@ int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild, int iMissi
 	int iDefenseValue = kImpr.getDefenseModifier();
 	// The AI isn't going to station units on an island without cities
 	if(p.getArea().getCitiesPerPlayer(getOwner()) <= 0 ||  /* <advc.035> */
-		p.isContestedByRival())
+		GET_PLAYER(getOwner()).AI_isPlotContestedByRival(p))
 	{
 		iDefenseValue = 0;
 	} // </advc.035>

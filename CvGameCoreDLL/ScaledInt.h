@@ -33,9 +33,9 @@
 
 	INT is the type of the underlying integer variable. Has to be an integral type.
 	Both parameters are mostly internal to the implementation of ScaledInt. The public
-	interface assumes that the client code works mostly with int and with types that
-	can be cast implicitly to int and double literals (see fixp macro).
-	There are no operators allowing ScaledInt instances of different SCALE types or
+	interface assumes that the client code works mostly with int, with types that
+	can be cast implicitly to int and with double literals (see fixp macro).
+	There are no operators allowing ScaledInt instances of different SCALE values or
 	different INT types to be mixed. That said, there is a non-explicit constructor
 	for conversion, so some of the existing operators will work for operands with
 	differing template parameters.
@@ -54,10 +54,11 @@ template<int SCALE, class INT = int> // (uint SCALE leads to trouble w/ signed/u
 class ScaledInt
 {
 public:
-	/*	Factory function for creating fractions (with wrapper macros).
+	/*	Factory function for creating fractions (with wrapper macros per100).
 		Numerator and denominator as template parameters ensure
 		that the conversion to SCALE happens at compile time, so that
-		floating-point math can be used for maximal accuracy. */
+		floating-point math can be used for maximal accuracy.
+		When the denominator isn't known at compile time, use ctor(int,int). */
 	template<int iNUM, int iDEN>
 	static inline ScaledInt<SCALE,INT> fromRational()
 	{
@@ -76,6 +77,11 @@ public:
 	{
 		return std::max(r1, r2);
 	}
+	__forceinline static ScaledInt<SCALE,INT> min(
+		ScaledInt<SCALE,INT> r1, ScaledInt<SCALE,INT> r2)
+	{
+		return std::min(r1, r2);
+	}
 
 	__forceinline ScaledInt() : m_i(0) {}
 	__forceinline ScaledInt(int i) : m_i(SCALE * i)
@@ -87,6 +93,10 @@ public:
 		FAssert(u <= MAX / SCALE);
 	}
 	// Conversion between scales and int types
+	__forceinline ScaledInt(int iNum, int iDen)
+	{
+		m_i = toScale(iNum, iDen);
+	}
 	template<int FROM_SCALE, class FROM_T>
 	__forceinline ScaledInt(ScaledInt<FROM_SCALE,FROM_T> rOther)
 	{
@@ -112,6 +122,10 @@ public:
 	{
 		return getInt();
 	}*/
+	bool isInt() const
+	{
+		return (m_i % SCALE == 0);
+	}
 	__forceinline int getPercent() const
 	{
 		return ScaledInt<100,INT>(*this).m_i;
@@ -127,6 +141,22 @@ public:
 	__forceinline float getFloat() const
 	{
 		return m_i / static_cast<float>(SCALE);
+	}
+	char const* str(int iDen = SCALE)
+	{
+		if (iDen == 1)
+			_snprintf(szBuf, 32, "%s%d", isInt() ? "" : "ca. ", getInt());
+		else if (iDen == 100)
+			_snprintf(szBuf, 32, "%d percent", getPercent());
+		else if (iDen == 1000)
+			_snprintf(szBuf, 32, "%d permille", getPermille());
+		else _snprintf(szBuf, 32, "%d/%d", toScale(m_i, SCALE, iDen), iDen);
+		return szBuf;
+	}
+
+	__forceinline void mulDiv(int iMultiplier, int iDivisor)
+	{
+		m_i = toScale(m_i, iDivisor, iMultiplier);
 	}
 
 	// Bernoulli trial (coin flip) with success probability equal to m_i/SCALE
@@ -144,8 +174,8 @@ public:
 	ScaledInt<SCALE,INT> pow(int iExp) const
 	{
 		if (iExp < 0)
-			return 1 / powNonNegative(static_cast<INT>(-iExp));
-		return powNonNegative(static_cast<INT>(iExp));
+			return 1 / powNonNegative(-iExp);
+		return powNonNegative(iExp);
 	}
 	ScaledInt<SCALE,INT> pow(ScaledInt<SCALE,INT> rExp) const
 	{
@@ -153,6 +183,11 @@ public:
 		if (rExp.bSIGNED && rExp.isNegative())
 			return 1 / powNonNegative(-rExp);
 		return powNonNegative(rExp);
+	}
+	__forceinline ScaledInt<SCALE,INT> sqrt() const
+	{
+		FAssert(!isNegative());
+		return powNonNegative(fromRational<1,2>());
 	}
 
 	__forceinline ScaledInt<SCALE,INT> abs() const
@@ -208,6 +243,10 @@ public:
 	{
 		return (m_i == rOther.m_i);
 	}
+	__forceinline bool operator!=(ScaledInt<SCALE,INT> rOther) const
+	{
+		return (m_i != rOther.m_i);
+	}
 	__forceinline bool operator<=(ScaledInt<SCALE,INT> rOther) const
 	{
 		return (m_i <= rOther.m_i);
@@ -230,6 +269,10 @@ public:
     __forceinline bool operator==(int i) const
 	{
 		return (m_i == scaleForComparison(i));
+	}
+	__forceinline bool operator!=(int i) const
+	{
+		return (m_i != scaleForComparison(i));
 	}
 	__forceinline bool operator<=(int i) const
 	{
@@ -272,13 +315,15 @@ public:
 		{
 			/*	According to my tests, MulDiv is slower than spelling the 32b/64b
 				conversion out. Perhaps MulDiv loses some time checking for overflow?
-				I don't even see how there could be overflow. */
+				I'll check in an assertion, but if the 64b-to-32b conversion fails,
+				that's really the caller's responsibility. */
 			/*int iNum = MulDiv(m_i, rOther.m_i, SCALE);
 			//	-1 is how MulDiv indicates overflow, but could also be the legit result
 			//	of -1/SCALE times 1/SCALE.
 			FAssert(iNum != -1 || (m_i * rOther.m_i) / SCALE == -1);
 			m_i = iNum;*/
 			long long lNum = (m_i * rOther.m_i + (bSIGNED ? 0 : SCALE / 2)) / SCALE;
+			FAssert(lNum >= MIN && lNum <= MAX);
 			m_i = static_cast<INT>(lNum);
 		}
 		else
@@ -306,6 +351,7 @@ public:
 		m_i *= SCALE;
 		if (!bSIGNED) // Round to nearest when sign doesn't need to be checked
 			m_i += rOther.m_i / 2;
+		// (For signed rounding, see ROUND_DIVIDE in CvGameCoreUtils.h)
 		m_i /= rOther.m_i;
 		return *this;
 	}
@@ -426,17 +472,30 @@ public:
 private:
 	INT m_i;
 
+	static char szBuf[32]; // for str function
+
 	template<int OTHER_SCALE,class OTHER_INT>
 	friend class ScaledInt;
 
-	ScaledInt<SCALE,INT> powNonNegative(INT uExp) const
+	__forceinline INT toScale(int iNum, int iFromScale, int iToScale = SCALE) const
+	{
+		// Akin to code in ctor(ScaledInt) and operator*=(ScaledInt)
+		long long lNum = iNum * iToScale;
+		if (!bSIGNED)
+			lNum += iFromScale / 2;
+		lNum /= iFromScale;
+		FAssert(lNum >= MIN && lNum <= MAX);
+		return static_cast<INT>(lNum);
+	}
+
+	ScaledInt<SCALE,INT> powNonNegative(int iExp) const
 	{
 		ScaledInt<SCALE,INT> rCopy(*this);
 		/*  This can be done faster in general by squaring.
 			However, I doubt that it would be faster for
 			the small exponents I'm expecting to deal with*/
 		ScaledInt<SCALE,INT> r = 1;
-		for (INT i = 0; i < uExp; i++)
+		for (int i = 0; i < iExp; i++)
 			r *= rCopy;
 		return r;
 	}
@@ -521,6 +580,9 @@ template<int SCALE, class INT>
 INT const ScaledInt<SCALE,INT>::MAX = std::numeric_limits<INT>::max();
 template<int SCALE, class INT>
 INT const ScaledInt<SCALE,INT>::MIN = std::numeric_limits<INT>::min();
+
+template<int SCALE, class INT>
+char ScaledInt<SCALE,INT>::szBuf[] = {};
 
 template<int SCALE, class INT>
 __forceinline ScaledInt<SCALE,INT> operator+(
@@ -635,6 +697,11 @@ template<int SCALE, class INT>
  __forceinline bool operator==(int i, ScaledInt<SCALE,INT> r)
 {
 	return (r == i);
+}
+ template<int SCALE, class INT>
+ __forceinline bool operator!=(int i, ScaledInt<SCALE,INT> r)
+{
+	return (r != i);
 }
 template<int SCALE, class INT>
 __forceinline bool operator<=(int i, ScaledInt<SCALE,INT> r)

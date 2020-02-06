@@ -377,9 +377,8 @@ public:
 	/*  <advc.035> The returned player becomes the owner if war/peace changes
 		between that player and the current owner */
 	PlayerTypes getSecondOwner() const;
-	void setSecondOwner(PlayerTypes eNewValue);
-	bool isContestedByRival(PlayerTypes eRival = NO_PLAYER) const;
-	// </advc.035>
+	void setSecondOwner(PlayerTypes eNewValue); // </advc.035>
+	int exclusiveRadius(PlayerTypes ePlayer) const; // advc.099b
 	// advc.inl: inline all plotType accessors
 	inline PlotTypes getPlotType() const																																			// Exposed to Python
 	{
@@ -818,10 +817,7 @@ protected:
 	void processArea(CvArea& kArea, int iChange);
 	char calculateLatitude() const; // advc.tsl
 	void doImprovementUpgrade();
-	// <advc.099b>
-	void doCultureDecay();
-	int exclusiveRadius(PlayerTypes ePlayer) const;
-	// </advc.099b>
+	void doCultureDecay(); // advc.099b
 	ColorTypes plotMinimapColor();
 
 	// added so under cheat mode we can access protected stuff

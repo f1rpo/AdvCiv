@@ -4193,53 +4193,6 @@ PlayerTypes CvPlot::getSecondOwner() const
 void CvPlot::setSecondOwner(PlayerTypes eNewValue)
 {
 	m_eSecondOwner = (char)eNewValue;
-}
-
-
-bool CvPlot::isContestedByRival(PlayerTypes eRival) const
-{
-	PlayerTypes eFirstOwner = getOwner();
-	if(eFirstOwner == NO_PLAYER)
-		return false;
-	if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
-	{
-		PlayerTypes eSecondOwner = getSecondOwner();
-		return eSecondOwner != NO_PLAYER && eFirstOwner != NO_PLAYER &&
-				eFirstOwner != eSecondOwner && (eRival == NO_PLAYER ||
-				eSecondOwner == eRival || eFirstOwner == eRival) &&
-				GET_TEAM(eFirstOwner).getMasterTeam() !=
-				GET_TEAM(eSecondOwner).getMasterTeam();
-	} // <advc.099b>
-	else if(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY) > 0)
-	{
-		if(eFirstOwner == eRival) // No longer contested; they own it.
-			return false;
-		int iTotalCulture = getTotalCulture();
-		double exclWeight = GET_PLAYER(eFirstOwner).AI_exclusiveRadiusWeight();
-		int iOurCulture = getCulture(eFirstOwner);
-		// Just for efficiency
-		if(iOurCulture * exclWeight >= 0.5 * iTotalCulture)
-			return false;
-		if(eRival != NO_PLAYER)
-		{
-			if(getCulture(eRival) >= iOurCulture * exclWeight &&
-					exclusiveRadius(eRival) >= 0)
-				return true;
-			return false;
-		}
-		for(int i = 0; i < MAX_PLAYERS; i++)
-		{
-			CvPlayerAI const& pl = GET_PLAYER((PlayerTypes)i);
-			if(!pl.isAlive() || i == getOwner())
-				continue;
-			int iDist = exclusiveRadius(pl.getID());
-			if(iDist >= 0 && getCulture(pl.getID()) >=
-					iOurCulture * pl.AI_exclusiveRadiusWeight(iDist))
-				return true;
-		}
-		return false;
-	} // </advc.099b>
-	return false;
 } // </advc.035>
 
 

@@ -5,6 +5,7 @@
 
 #include "CvGame.h"
 #include "UWAI.h" // advc.104
+#include "ScaledInt.h" // advc.tmp (Move to precompiled header eventually)
 
 
 class CvGameAI : public CvGame
@@ -17,7 +18,7 @@ public:
   void AI_init();
   void AI_initScenario(); // advc.104u
   void AI_uninit();
-  void AI_reset();
+  void AI_reset(bool bConstructor = false);
 
   void AI_makeAssignWorkDirty();
   void AI_updateAssignWork();
@@ -25,6 +26,7 @@ public:
   int AI_combatValue(UnitTypes eUnit) const;
 
   int AI_turnsPercent(int iTurns, int iPercent);
+  scaled_int AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b
 
   void read(FDataStreamBase* pStream);
   void write(FDataStreamBase* pStream);
@@ -37,6 +39,9 @@ protected:
   // <advc.104>
   void AI_sortOutUWAIOptions(bool bFromSaveGame);
   UWAI m_uwai; // </advc.104>
+  std::vector<scaled_int> m_arExclusiveRadiusWeight; // advc.099b
+
+  void AI_updateExclusiveRadiusWeight(); // advc.009b
 };
 
 #endif

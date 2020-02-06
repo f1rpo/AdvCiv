@@ -13,9 +13,9 @@
 	at compile time.) */
 void TestScaledInt()
 {
-	#ifndef SCALED_INT_TEST
+#ifndef SCALED_INT_TEST
 	return;
-	#else
+#else
 
 	// These numbers match the running example commented on in pow.
 	FAssert(fixp(5.2).pow(fixp(2.1)).getInt() == 32);
@@ -34,7 +34,7 @@ void TestScaledInt()
 	FAssertBounds(360, 440, iSuccesses);
 	FAssert(scaled_int(2).pow(10) == 1024);
 	FAssert(scaled_int(10).pow(-2) == per100(1));
-	FAssert((scaled_int(2).pow(fixp(0.5)) * 100).getInt() == 141);
+	FAssert((scaled_int(2).sqrt() * 100).getInt() == 141);
 	FAssert((fixp(0.3).pow(fixp(1.7))*100).getInt() == 13);
 	FAssert(scaled_int(24).pow(0) == 1);
 	FAssert(scaled_int(0).pow(24) == 0);
@@ -42,7 +42,7 @@ void TestScaledInt()
 	scaled_int rTest = fixp(2.4);
 	rTest.increaseTo(3);
 	FAssert(rTest == 3);
-	rTest.decreaseTo(fixp(0.5));
+	rTest.decreaseTo(scaled_int(1, 2));
 	FAssert(rTest == fixp(0.5));
 	rTest.clamp(1, 2);
 	FAssert(rTest == 1);
@@ -53,12 +53,19 @@ void TestScaledInt()
 	FAssert(rTest > fixp(0.999));
 	FAssert(rTest.approxEquals(fixp(1.01), fixp(0.05)));
 	rTest -= fixp(2.5);
-	rTest.approxEquals(fixp(1.5), fixp(0.01));
+	FAssert(rTest.approxEquals(fixp(-1.5), fixp(0.01)));
+	rTest = per100(250u);
+	rTest.mulDiv(4, 5);
+	FAssert(rTest == 2);
+	FAssert(std::strcmp(scaled_int(2).str(100), "200 percent") == 0);
+	FAssert(std::strcmp(ScaledInt<1024>(2).str(), "2048/1024") == 0);
+	FAssert(std::strcmp(scaled_int(2).str(1), "2") == 0);
+	FAssert(std::strcmp(fixp(2.2).str(1), "ca. 2") == 0);
 
 	/*	Will do something "non-const" at the end based on the value of iDummy.
 		To prevent the compiler from discarding code, results of test computations
 		can be added to iDummy. */
-	int iDummy = -1;
+	int iDummy = scaled_int(1, 2).getInt();
 
 	// Speed measurements
 	// (CPU cycles noted in comments can be out of date)
