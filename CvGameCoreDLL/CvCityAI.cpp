@@ -776,14 +776,18 @@ void CvCityAI::AI_chooseProduction()
 			if (gCityLogLevel >= 2) logBBAI("      City %S uses building value short-circuit 1 (odds: %d)", getName().GetCString(), iOdds);
 			return;
 		}
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	// So what's the right detection of defense which works in early game too?
 	int iPlotSettlerCount = (iNumSettlers == 0) ? 0 : getPlot().plotCount(
 			PUF_isUnitAIType, UNITAI_SETTLE, -1, getOwner());
-	int iPlotCityDefenderCount = getPlot().plotCount(
-			PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwner());
+	int iPlotCityDefenderCount = /* advc.107: */ std::max(
+			getPlot().plotCount(PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwner()),
+			/*	<advc.107> I guess we want non-CITY_DEFENSE units on GUARD_CITY mission to
+				switch to different missions eventually. But not counting them at all
+				sometimes leads to too much unit production before the 2nd city. */
+			getPlot().plotCount(PUF_isMissionAIType, MISSIONAI_GUARD_CITY, -1, getOwner()) /
+			iNumCitiesInArea); // </advc.107>
 	if (iOwnerEra == 0)
 	{
 		// Warriors are blocked from UNITAI_CITY_DEFENSE, in early game this confuses AI city building
@@ -971,8 +975,7 @@ void CvCityAI::AI_chooseProduction()
 		iSeaExplorersNow = kPlayer.AI_totalWaterAreaUnitAIs(*pWaterArea,
 				UNITAI_EXPLORE_SEA);
 	} // </advc.124>
-	// <advc.017>
-	if (pWaterArea != NULL && bMaybeWaterArea) // </advc.017>
+	if (pWaterArea != NULL && bMaybeWaterArea) // advc.017
 	{
 		if (!(bLandWar && iWarSuccessRating < -30) && !bDanger && !bFinancialTrouble)
 		{	/*  <advc.017> These were calls to AI_getNumTrainAIUnits, i.e. the
@@ -1096,9 +1099,9 @@ void CvCityAI::AI_chooseProduction()
 	{	// <advc.113>
 		if (iMissingWorkers > 0)
 		{	// 1 added on both sides of the inequation so that "have 1, need 2" is invalid
-			bool bValid = (3 * (AI_getWorkersHave() + 1) / 2 < AI_getWorkersNeeded() + 1  // local
+			bool bValid = (3 * (AI_getWorkersHave() + 1) / 2 < AI_getWorkersNeeded() + 1  && // local
 					// Wait for existing workers if new city
-					&& getGameTurnFounded() + 5 < g.getGameTurn());
+					getGameTurnFounded() + 5 < g.getGameTurn());
 			//|| g.getSorenRandNum(80, "choose worker 6") < iBestBuildingValue + (iBuildUnitProb + 50) / 2
 			// Replacing the alt. condition above
 			if(!bValid)
@@ -1138,9 +1141,8 @@ void CvCityAI::AI_chooseProduction()
 	int iMaxUnitSpending = kPlayer.AI_maxUnitCostPerMil(&kArea, iBuildUnitProb);
 
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS)) // K-Mod
-	{
 		iNeededFloatingDefenders = (2 * iNeededFloatingDefenders + 2)/3;
-	}
+
  	int iTotalFloatingDefenders = (isBarbarian() ? 0 :
 			kPlayer.AI_getTotalFloatingDefenders(kArea));
 
@@ -8192,10 +8194,11 @@ void CvCityAI::AI_doDraft(bool bForce)
 		// <advc.017>
 		double prDraft = AI_buildUnitProb(true) / 100.0;
 		if(::bernoulliSuccess(prDraft, "advc.017") && // </advc.017>
-				(getConscriptAngerTimer() == 0 || isNoUnhappiness()) // K-Mod
-				&& (bGoodValue ||
-				bTooMuchPop)) // advc.017  (no functional change here)
+			(getConscriptAngerTimer() == 0 || isNoUnhappiness()) && // K-Mod
+			(bGoodValue || bTooMuchPop)) // advc.017  (no functional change here)
+		{
 			bWait = false;
+		}
 	}
 
 	if (!bWait && gCityLogLevel >= 2)
@@ -10556,18 +10559,15 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 		iXPWeight /= 2;
 	iProb += iXPWeight; // </advc.017>
 	if (!isBarbarian() && GET_PLAYER(getOwner()).AI_isFinancialTrouble())
-	{
 		iProb /= 2;
-	}
 
 	if (GET_TEAM(getTeam()).getHasMetCivCount(false) == 0)
-	{
 		iProb /= 2;
-	}
 
-	if (GET_PLAYER(getOwner()).getCurrentEra() < GC.getGame().getCurrentEra())
+	int const iEraDiff = GC.getGame().getCurrentEra() - GET_PLAYER(getOwner()).getCurrentEra();
+	if (iEraDiff > 0)
 	{
-		iProb *= std::max(40, 100 - 20 * (GC.getGame().getCurrentEra() - GET_PLAYER(getOwner()).getCurrentEra()));
+		iProb *= std::max(40, 100 - 20 * iEraDiff);
 		iProb /= 100;
 	}
 	// <advc.017>
@@ -10576,22 +10576,15 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 		// Lowered multiplier from 2 to 1.5
 		iProb *= 100 + ::round(1.5 * getMilitaryProductionModifier());
 		iProb /= 100;
-	} // <advc.017>
+	}
 	if(!isBarbarian())
 	{
-		int highestRivalPow = 0;
-		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+		int iHighestRivalPow = 0;
+		for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 		{
-			CvTeam const& t = GET_TEAM((TeamTypes)i);
-			if(!t.isAlive() || t.isMinorCiv() || t.getID() == getTeam() ||
-					!t.isHasMet(getTeam()) || t.isAVassal())
-				continue;
-			int pow = t.getPower(true);
-			if(pow > highestRivalPow)
-				highestRivalPow = pow;
+			iHighestRivalPow = std::max(it->getPower(true), iHighestRivalPow);
 		}
-		double ratio = GET_TEAM(getTeam()).getPower(false) /
-				(double)highestRivalPow;
+		double ratio = GET_TEAM(getTeam()).getPower(false) / (double)iHighestRivalPow;
 		if(ratio > 1)
 		{
 			double advantage = ratio - 1;
