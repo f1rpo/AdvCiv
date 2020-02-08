@@ -1178,7 +1178,8 @@ void CvGame::assignStartingPlots()
 				int iPos = ::range((iAlive *
 						GC.getInfo(civ.getHandicapType()).
 						getStartingLocationPercent()) / 100, 0, iAlive - 1);
-				if(playerOrder[iPos] != NO_PLAYER) { // Pos already taken
+				if (playerOrder[iPos] != NO_PLAYER) // Pos already taken
+				{
 					for(int j = 1; j < std::max(iPos + 1, iAlive - iPos); j++)
 					{
 						// Alternate between better and worse positions

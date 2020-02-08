@@ -25,6 +25,7 @@ CvGameAI::~CvGameAI()
 void CvGameAI::AI_init()
 {
 	AI_reset();
+	AI_sortOutUWAIOptions(false); // advc.104
 }
 
 // <advc.104u>
@@ -94,10 +95,7 @@ void CvGameAI::AI_reset(/* advc (as in CvGame): */ bool bConstructor)
 	AI_uninit();
 	m_iPad = 0;
 	if (!bConstructor)
-	{
-		AI_sortOutUWAIOptions(false); // advc.104
 		AI_updateExclusiveRadiusWeight(); // advc.099b
-	}
 }
 
 
@@ -160,6 +158,9 @@ scaled_int CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
 {
 	if(iDist >= (int)m_arExclusiveRadiusWeight.size())
 		return 0;
+	// Position 0 of the array is for iDist==-1 (unknown distance)
+	if (iDist <= 0)
+		iDist++;
 	FAssert(iDist >= 0);
 	return m_arExclusiveRadiusWeight[iDist];
 }
@@ -168,17 +169,20 @@ scaled_int CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
  void CvGameAI::AI_updateExclusiveRadiusWeight()
  {
 	FAssert(m_arExclusiveRadiusWeight.size() == 3);
-	for (int iDist = 0; iDist < (int)m_arExclusiveRadiusWeight.size(); iDist++)
+	for (int i = 0; i < (int)m_arExclusiveRadiusWeight.size(); i++)
 	{
 		scaled_int rDistMultiplier;
-		if(iDist == 0 || iDist == 1)
-			rDistMultiplier = 2;
-		else rDistMultiplier = 1;
+		switch(i)
+		{
+		case 1: rDistMultiplier = 2; break;
+		case 2: rDistMultiplier = 1; break;
+		default: rDistMultiplier = fixp(1.5);
+		}
 		// High exponent; better use higher precision than usual.
 		ScaledInt<32*1024> rBase = 1 - rDistMultiplier *
 				per1000(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY));
 		FAssertMsg(rBase > 0, "CITY_RADIUS_DECAY too great; negative base for scaled_int::pow.");
-		m_arExclusiveRadiusWeight[iDist] = 1 - rBase.pow(
+		m_arExclusiveRadiusWeight[i] = 1 - rBase.pow(
 				25 * per100(GC.getInfo(getGameSpeedType()).getGoldenAgePercent()));
 	}
  }
