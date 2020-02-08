@@ -13817,6 +13817,9 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 					// <advc.315> See comment in AI_adjacentPotentialAttackers
 					if (kLoopUnit.getUnitInfo().isMostlyDefensive())
 						continue; // </advc.315>
+					// <advc.139> Can happen when the call comes from AI_attackMadeAgainst
+					if (kLoopUnit.isDead())
+						continue; // </advc.139>
 					if (bCheckMoves)
 					{
 						// can't use the global pathfinder here (see comment in AI_localDefenceStrength)
@@ -13907,8 +13910,9 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const
 	should still be acurate. */
 void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
 {
-	// Same checks as in AI_localAttackStrength essentially
-	if (kDefender.getDomainType() != DOMAIN_LAND || !kDefender.canAttack() ||
+	if (isBarbarian() ||
+		// Same checks as in AI_localAttackStrength essentially
+		kDefender.getDomainType() != DOMAIN_LAND || !kDefender.canAttack() ||
 		kDefender.getUnitInfo().isMostlyDefensive() || // advc.315
 		kDefender.getPlot().isCity())
 	{
@@ -13922,12 +13926,10 @@ void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
 		if (kPlot.getOwner() == getID() && kPlot.isCity())
 		{
 			CvCityAI& kCity = *kPlot.AI_getPlotCity();
-			if (!kCity.AI_isSafe()) // It's only going to get safer
-			{
-				// advc.test:
-				FAssertMsg(false, "Only to see how frequently this happens (or rather: just how rarely)");
+			/*	Unlikely that an attack from within the city will
+				tip the scales from safe to unsafe */
+			if (!kCity.AI_isSafe())
 				kCity.AI_updateSafety();
-			}
 		}
 	}
 } // </advc.139>
@@ -13950,9 +13952,10 @@ int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeM
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
 		if (pLoopSelectionGroup == pSkipSelectionGroup ||
-				pLoopSelectionGroup->AI_getMissionAIUnit() != pUnit)
+			pLoopSelectionGroup->AI_getMissionAIUnit() != pUnit)
+		{
 			continue;
-
+		}
 		MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
 		// advc.opt: Moved up b/c this ought to be cheaper than generatePath
 		bool bValid = false;
