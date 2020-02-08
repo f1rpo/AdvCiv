@@ -729,6 +729,7 @@ protected:
 	short m_iUpgradeProgress;
 	short m_iForceUnownedTimer;
 	short m_iTurnsBuildsInterrupted; // advc.011
+	// advc (note): Only the Boreal, Highlands and Rainforest map scripts use this value
 	short m_iMinOriginalStartDist;
 	short m_iReconCount;
 	char m_iLatitude; // advc.tsl

@@ -1363,7 +1363,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 		(similar to the iForeignProximity calculation) */
 	// advc.031: I'm including unowned plots, but only those in a foreign city radius.
 	if ((!bForeignOwned && (bShare || !bCityRadius)) /* advc.035: */ || bFlip)
-		return r.getInt();
+		return r.round();
 
 	int iOurCulture = p.getCulture(ePlayer);
 	int iOtherCulture = std::max(1,
@@ -1444,7 +1444,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	if (bCityRadius && !bShare)
 	{
 		r *= rRateModifier * fixp(0.8);
-		iStealPercent += scaled_int::min(75, r);
+		iStealPercent += std::min(75, r.round());
 	}
 	else r *= rRateModifier;
 	// </advc.031>
@@ -1470,7 +1470,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 			r.increaseTo(65);
 		} // </advc.035>
 	}
-	return r.getInt();
+	return r.round();
 }
 
 /*	An estimate of how much production an improvement might add

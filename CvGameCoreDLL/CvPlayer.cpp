@@ -1582,16 +1582,17 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 		(before normalization) to avoid starting on the edge of very bad terrain." */
 	int const iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
 	CvMap const& m = GC.getMap();
-	for(int iPass = 0; iPass < 2; iPass++)
+	int const iMaxPass = 1;
+	for(int iPass = 0; iPass <= iMaxPass; iPass++)
 	{
 		for(size_t iJ = 0; iJ < areas_by_value.size(); iJ++)
 		{ // </dlph.35>
 			CvPlot *pBestPlot = NULL;
-			int iBestValue = 0;
+			int iBestValue = iMaxPass - iPass; // advc: was 0 flat
 			for (int iI = 0; iI < m.numPlots(); iI++)
 			{
 				CvPlot* pLoopPlot = m.plotByIndex(iI);
-				//if ((iBestArea == -1) || (pLoopPlot->getArea() == iBestArea))
+				//if (iBestArea == -1 || pLoopPlot->getArea() == iBestArea)
 				// <dlph.35>
 				if (pLoopPlot->getArea().getID() != areas_by_value[iJ].first)
 					continue;
@@ -1618,8 +1619,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 				{	/*  advc (comment): That's a high random portion (high found values tend
 						to range between 3000 and 5000), but I'm not sure which map scripts
 						(if any) use bRandomize=true, so I'm not changing this. */
-					iValue += GC.getGame().getSorenRandNum(10000,
-							"Randomize Starting Location");
+					iValue += GC.getGame().getSorenRandNum(10000, "Randomize Starting Location");
 				}
 
 				if (iValue > iBestValue)
@@ -7375,8 +7375,7 @@ int CvPlayer::getReligionAnarchyLength(/* advc.132: */ bool ignoreGoldenAge) con
 	if(iAnarchyLength == 0)
 		return 0;
 
-	iAnarchyLength *= GC.getInfo(GC.getGame().getGameSpeedType()).
-			getAnarchyPercent();
+	iAnarchyLength *= GC.getInfo(GC.getGame().getGameSpeedType()).getAnarchyPercent();
 	iAnarchyLength /= 100;
 
 	iAnarchyLength *= GC.getInfo(GC.getGame().getStartEra()).
@@ -7446,11 +7445,11 @@ void CvPlayer::killGoldenAgeUnits(CvUnit* pUnitAlive)
 		{
 			if (!pLoopUnit->isGoldenAge())
 				continue;
-			if (!(pabUnitUsed[pLoopUnit->getUnitType()]))
+			if (!pabUnitUsed[pLoopUnit->getUnitType()])
 			{
 				int iValue = 10000;
 
-				iValue /= (plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), pUnitAlive->getX(), pUnitAlive->getY()) + 1);
+				iValue /= plotDistance(pLoopUnit->plot(), pUnitAlive->plot()) + 1;
 
 				if (iValue > iBestValue)
 				{
@@ -7564,8 +7563,11 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 		int iX = pNewValue->getX();
 		int iY = pNewValue->getY();
 		// <advc.031c>
-		if (gFoundLogLevel > 0 && !GC.getInitCore().isScenario())
-			AI().logFoundValue(iX, iY, true); // </advc.031c>
+		if (gFoundLogLevel > 0 && !GC.getInitCore().isScenario() &&
+			m_iStartingX == INVALID_PLOT_COORD)
+		{
+			AI().logFoundValue(iX, iY, true);
+		} // </advc.031c>
 		m_iStartingX = iX;
 		m_iStartingY = iY;
 
