@@ -2095,69 +2095,71 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	CvGame const& g = GC.getGame();
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
-	double cost = GC.getInfo(eTech).getResearchCost();
-	cost *= 0.01 * GC.getInfo(getHandicapType()).getResearchPercent();
+	scaled_int rCost = GC.getInfo(eTech).getResearchCost();
+	rCost *= per100(GC.getInfo(getHandicapType()).getResearchPercent());
 	// <advc.251>
 	if (!isHuman() && !isBarbarian())
 	{
 		// Important to use game handicap here (not team handicap)
-		cost *= 0.01 * (GC.getInfo(g.getHandicapType()).
+		rCost *= per100(GC.getInfo(g.getHandicapType()).
 				getAIResearchPercent() + g.AIHandicapAdjustment());
 	}
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
 	EraTypes eTechEra = (EraTypes)GC.getInfo(eTech).getEra();
-	int iModifier = 100 + GC.getInfo(eTechEra).getTechCostModifier();
+	scaled_int rModifier = 1 + per100(GC.getInfo(eTechEra).getTechCostModifier());
 	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
 	static int const iTECH_COST_MODIFIER = GC.getDefineINT("TECH_COST_MODIFIER");
-	iModifier += iTECH_COST_MODIFIER;
+	rModifier += per100(iTECH_COST_MODIFIER);
 	// </advc.910>
 	if (bGlobalModifiers) // K-Mod
 	{	// advc:
 		CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
 		if(eTechEra > 0) // advc.910
 		{
-			cost *= 0.01 * kWorld.getResearchPercent();
+			rCost *= per100(kWorld.getResearchPercent());
 			// <advc.910>
-			cost *= 0.01 * GC.getInfo(GC.getMap().getSeaLevel()).getResearchPercent();
+			rCost *= per100(GC.getInfo(GC.getMap().getSeaLevel()).getResearchPercent());
 			if (g.isOption(GAMEOPTION_ALWAYS_PEACE) &&
 				!g.isOption(GAMEOPTION_ALWAYS_WAR))
 			{
-				cost *= 1.05;
+				rCost *= per100(105);
 			}
 		}
 		else if (g.isOption(GAMEOPTION_NO_GOODY_HUTS))
-			cost /= 1.05; // </advc.910>
-		cost *= 0.01 * GC.getInfo(g.getGameSpeedType()).getResearchPercent();
-		cost *= 0.01 * GC.getInfo(g.getStartEra()).getResearchPercent();
+			rCost /= per100(105); // </advc.910>
+		rCost *= per100(GC.getInfo(g.getGameSpeedType()).getResearchPercent());
+		rCost *= per100(GC.getInfo(g.getStartEra()).getResearchPercent());
 		// <advc.308>
 		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == 0)
 		{
 			switch(eTechEra)
 			{
-			case 1: iModifier -= 14; break;
-			case 2: iModifier -= 7; break;
+			case 1: rModifier -= per100(14); break;
+			case 2: rModifier -= per100(7); break;
 			}
 		} // </advc.308>
 		// <advc.550d>
 		if (g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
 		{
 			static int const iTECH_COST_NOTRADE_MODIFIER = GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER");
-			iModifier += std::max(0, ::round((iTECH_COST_NOTRADE_MODIFIER + 5 *
-					std::pow(std::abs(eTechEra - 2.5), 1.5)) *
-					::dRange((kWorld.getDefaultPlayers() - 2) / 6.0, 0, 2)));
+			scaled_int rNoTradeAdjustment = (per100(iTECH_COST_NOTRADE_MODIFIER) + per100(5) *
+					(eTechEra - fixp(2.5)).abs().pow(fixp(1.5))) *
+					scaled_int(kWorld.getDefaultPlayers() - 2, 6).clamped(0, 2);
+			rNoTradeAdjustment.decreaseTo(0); // No Tech Trading can only lower tech costs
+			rModifier += rNoTradeAdjustment;
 		} // </advc.550d>
 	}
 
 	if (bTeamSizeModifiers) // K-Mod
 	{
-		cost *= 0.01 * std::max(0, 100 +
+		rCost *= per100(100 +
 				GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) *
-				(getNumMembers() - 1));
+				(getNumMembers() - 1)).increasedTo(0);
 	}
 	// <advc.251>
-	cost *= 0.01 * std::max(1, iModifier);
-	int iCost = ::roundToMultiple(cost, isHuman() ? 5 : 1);
+	rCost *= rModifier.increasedTo(1);
+	int iCost = rCost.roundToMultiple(isHuman() ? 5 : 1);
 	// </advc.251>
 	return std::max(1, iCost);
 }

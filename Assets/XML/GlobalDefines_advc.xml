@@ -969,9 +969,9 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.550d] This modifier is applied to tech costs when playing
+	<!-- advc.550d: This modifier is applied to tech costs when playing
 		 with the "No Tech Trading" option. The effect of the modifier is
-		 reduced in the early and late game. Recommended: 28. Use 0 for BtS
+		 reduced in the early and late game. Recommended: -28. Use 0 for BtS
 		 behavior (tech costs unaffected by the "No Tech Trading" option). -->
 	<Define>
 		<DefineName>TECH_COST_NOTRADE_MODIFIER</DefineName>
