@@ -192,7 +192,7 @@ class AIAutoPlay :
 				break
 		if preceding > disabledHuman: # If turn order wraps around
 			turnsLeftTarget = 1
-		if turnsLeft == turnsLeftTarget and iPlayer == preceding:
+		if turnsLeft <= turnsLeftTarget and iPlayer == preceding:
 			# </advc.127>
 			# About to turn off automation
 			self.checkPlayer() # advc.127: Un-commented this line.
