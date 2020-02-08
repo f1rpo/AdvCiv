@@ -61,11 +61,13 @@ void TestScaledInt()
 	FAssert(std::strcmp(ScaledInt<1024>(2).str(), "2048/1024") == 0);
 	FAssert(std::strcmp(scaled_int(2).str(1), "2") == 0);
 	FAssert(std::strcmp(fixp(2.2).str(1), "ca. 2") == 0);
+	FAssert(scaled_int(42).roundToMultiple(5) == 40);
+	FAssert(scaled_int(-43).roundToMultiple(5) == -45);
 
 	/*	Will do something "non-const" at the end based on the value of iDummy.
 		To prevent the compiler from discarding code, results of test computations
 		can be added to iDummy. */
-	int iDummy = scaled_int(1, 2).getInt();
+	int iDummy = scaled_int(1, 2).round();
 
 	// Speed measurements
 	// (CPU cycles noted in comments can be out of date)
@@ -120,7 +122,7 @@ void TestScaledInt()
 				z += x + j;
 				z -= y - j;
 			}
-			iDummy += z.getInt();
+			iDummy += z.round();
 		}
 		for (int i = 0; i < 10; i++)
 		{
@@ -192,10 +194,10 @@ void TestScaledInt()
 				rCost *= per100(GC.getInfo((EraTypes)0).getResearchPercent());
 				rCost *= per100((GC.getDefineINT(
 						CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) + 100));
-				int iCost = rCost.getInt() % 5;
+				int iCost = rCost.roundToMultiple(5);
 				rCost = std::max(10, iCost);
 			}
-			iDummy += rCost.getInt();
+			iDummy += rCost.round();
 		}
 	}
 	{
@@ -267,7 +269,7 @@ void TestScaledInt()
 	rPow *= rWeight;
 	if(rOtherWeight <= per100(99))
 		rOtherPow *= rOtherWeight;
-	iDummy += (rPow * rOtherPow + rWeight).getInt();
+	iDummy += (rPow * rOtherPow + rWeight).round();
 
 	if (iDummy == -7)
 	{

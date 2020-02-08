@@ -54,6 +54,13 @@ template<int SCALE, class INT = int> // (uint SCALE leads to trouble w/ signed/u
 class ScaledInt
 {
 public:
+	static INT const MAX;
+	static INT const MIN;
+	/*	MAX and MIN aren't compile-time constants (they would be in C++11).
+		We also don't have SIZE_MAX (cstdint) and
+		no boost::integer_traits<INT>::const_max. */
+	//BOOST_STATIC_ASSERT(SCALE*SCALE < MAX);
+
 	/*	Factory function for creating fractions (with wrapper macros per100).
 		Numerator and denominator as template parameters ensure
 		that the conversion to SCALE happens at compile time, so that
@@ -117,6 +124,10 @@ public:
 		// Assumed to be used less frequently than scale conversion. Take the time to round.
 		return (m_i + SCALE / (!bSIGNED || m_i > 0 ? 2 : -2)) / SCALE;
 	}
+	__forceinline round() const // Alias
+	{
+		return getInt();
+	}
 	// Cast operator - better require explicit calls to getInt.
 	/*__forceinline operator int() const
 	{
@@ -126,13 +137,18 @@ public:
 	{
 		return (m_i % SCALE == 0);
 	}
+
 	__forceinline int getPercent() const
 	{
-		return ScaledInt<100,INT>(*this).m_i;
+		return toScaleRound(m_i, SCALE, 100);
 	}
 	__forceinline int getPermille() const
 	{
-		return ScaledInt<1000,INT>(*this).m_i;
+		return toScaleRound(m_i, SCALE, 1000);
+	}
+	__forceinline int roundToMultiple(int iMultiple) const
+	{
+		return toScaleRound(m_i, SCALE * iMultiple, 1) * iMultiple;
 	}
 	__forceinline double getDouble() const
 	{
@@ -216,6 +232,27 @@ public:
 	{
 		if (*this > hi)
 			*this = hi;
+	}
+	template<class LoType,class HiType>
+	__forceinline ScaledInt<SCALE,INT> clamped(LoType lo, HiType hi) const
+	{
+		ScaledInt<SCALE,INT> rCopy(*this);
+		rCopy.clamp(lo, hi);
+		return rCopy;
+	}
+	template<class LoType>
+	__forceinline ScaledInt<SCALE,INT> increasedTo(LoType lo) const
+	{
+		ScaledInt<SCALE,INT> rCopy(*this);
+		rCopy.increaseTo(lo);
+		return rCopy;
+	}
+	template<class HiType>
+	__forceinline ScaledInt<SCALE,INT> decreasedTo(HiType hi) const
+	{
+		ScaledInt<SCALE,INT> rCopy(*this);
+		rCopy.decreaseTo(hi);
+		return rCopy;
 	}
 
 	template<class NumType, class Epsilon>
@@ -487,6 +524,16 @@ private:
 		FAssert(lNum >= MIN && lNum <= MAX);
 		return static_cast<INT>(lNum);
 	}
+	int toScaleRound(int iNum, int iFromScale, int iToScale = SCALE) const
+	{
+		long long lNum = iNum * iToScale;
+		if (!bSIGNED)
+			lNum += iFromScale / 2;
+		else lNum += iFromScale / (lNum >= 0 ? 2 : -2);
+		lNum /= iFromScale;
+		FAssert(lNum >= MIN && lNum <= MAX);
+		return static_cast<int>(lNum);
+	}
 
 	ScaledInt<SCALE,INT> powNonNegative(int iExp) const
 	{
@@ -507,11 +554,11 @@ private:
 	ScaledInt<SCALE,INT> powNonNegative(ScaledInt<SCALE,INT> rExp) const
 	{
 		/*	Base 0 or too close to it to make a difference given the precision of the algorithm.
-			Fixme: rExp could also be close to 0. Should somehow use z=x*y => b^z = (b^x)^y. */
+			Fixme: rExp could also be close to 0. Should somehow use x=y*z => b^x = (b^y)^z. */
 		if (m_i < SCALE / 64)
 			return 0;
-		/*	Recall that: If z=x+y, then b^z=(b^x)*(b^y).
-						 If a=b*c, then a^z=(b^z)*(c^z). */
+		/*	Recall that: If x=y+z, then b^x=(b^y)*(b^z).
+						 If b=a*c, then b^z=(a^z)*(c^z). */
 		// Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1
 		// Running example: 5.2^2.1 at SCALE 1024, i.e. (5325/1024)^(2150/1024)
 		INT expInt = rExp.m_i / SCALE; // 2 in the example
@@ -568,12 +615,6 @@ private:
 		return r;
 	}
 	static bool const bSIGNED = std::numeric_limits<INT>::is_signed;
-	static INT const MAX;
-	static INT const MIN;
-	/*	MAX and MIN aren't compile-time constants (they would be in C++11).
-		We also don't have SIZE_MAX (cstdint) and
-		no boost::integer_traits<INT>::const_max. */
-	//BOOST_STATIC_ASSERT(SCALE*SCALE < MAX);
 };
 
 template<int SCALE, class INT>
@@ -624,45 +665,47 @@ __forceinline ScaledInt<SCALE,INT> operator+(int i, ScaledInt<SCALE,INT> r)
 {
 	return r + i;
 }
-template<int SCALE, class INT>
+/*	As we don't implement an int cast operator, assignment to int
+	should be forbidden as well. (No implicit getInt.) */
+/*template<int SCALE, class INT>
 __forceinline int& operator+=(int& i, ScaledInt<SCALE,INT> r)
 {
 	i = (r + i).getInt();
 	return i;
-}
+}*/
 template<int SCALE, class INT>
 __forceinline ScaledInt<SCALE,INT> operator-(int i, ScaledInt<SCALE,INT> r)
 {
 	return ScaledInt<SCALE,INT>(i) - r;
 }
-template<int SCALE, class INT>
+/*template<int SCALE, class INT>
 __forceinline int& operator-=(int& i, ScaledInt<SCALE,INT> r)
 {
 	i = (ScaledInt<SCALE,INT>(i) - r).getInt();
 	return i;
-}
+}*/
 template<int SCALE, class INT>
 __forceinline ScaledInt<SCALE,INT> operator*(int i, ScaledInt<SCALE,INT> r)
 {
 	return r * i;
 }
-template<int SCALE, class INT>
+/*template<int SCALE, class INT>
 __forceinline int& operator*=(int& i, ScaledInt<SCALE,INT> r)
 {
 	i = (r * i).getInt();
 	return i;
-}
+}*/
 template<int SCALE, class INT>
 __forceinline ScaledInt<SCALE,INT> operator/(int i, ScaledInt<SCALE,INT> r)
 {
 	return ScaledInt<SCALE,INT>(i) / r;
 }
-template<int SCALE, class INT>
+/*template<int SCALE, class INT>
 __forceinline int& operator/=(int& i, ScaledInt<SCALE,INT> r)
 {
 	i = (ScaledInt<SCALE,INT>(i) / r).getInt();
 	return i;
-}
+}*/
 template<int SCALE, class INT>
 __forceinline ScaledInt<SCALE,INT> operator+(uint u, ScaledInt<SCALE,INT> r)
 {
