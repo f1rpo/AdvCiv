@@ -14,7 +14,6 @@
 #include "CvMap.h"
 #include "CvArea.h"
 #include "RiseFall.h" // advc.705
-#include <iterator>
 
 using std::vector;
 using std::set;

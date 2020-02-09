@@ -9,7 +9,6 @@
 #include "CvCity.h"
 #include "RiseFall.h" // advc.706
 #include "UWAIAgent.h" // advc.ctr
-#include <iterator>
 
 using std::set;
 using std::vector;

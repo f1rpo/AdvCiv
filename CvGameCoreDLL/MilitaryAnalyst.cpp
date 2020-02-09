@@ -8,7 +8,6 @@
 #include "CoreAI.h"
 #include "CvCity.h"
 #include "CvInfo_GameOption.h"
-#include <iterator>
 
 using std::ostringstream;
 

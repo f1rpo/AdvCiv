@@ -5,8 +5,6 @@
 #ifndef CIV4_TEAM_H
 #define CIV4_TEAM_H
 
-#include <queue> // dlph.26
-
 class CvArea;
 
 class CvTeam /* advc.003e: */ : private boost::noncopyable

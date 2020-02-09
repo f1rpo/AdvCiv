@@ -14,6 +14,10 @@
 #pragma warning( disable: 4530 )	// C++ exception handler used, but unwind semantics are not enabled
 
 #define WIN32_LEAN_AND_MEAN
+// <advc.fract> Otherwise, classes in the PCH can't have members named "max" and "min".
+#ifndef NOMINMAX
+	#define NOMINMAX
+#endif // </advc.fract>
 #include <windows.h>
 #include <MMSystem.h>
 #if defined _DEBUG && !defined USE_MEMMANAGER
@@ -28,10 +32,12 @@
 #include <assert.h>
 #include <map>
 #include <hash_map>
+#include <iterator> // advc
 // K-Mod
 #include <set>
 #include <utility>
 #include <algorithm>
+#include <queue> // k146
 // K-Mod end
 
 #define DllExport   __declspec( dllexport )

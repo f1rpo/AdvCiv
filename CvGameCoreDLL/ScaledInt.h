@@ -56,10 +56,6 @@ class ScaledInt
 public:
 	static INT const MAX;
 	static INT const MIN;
-	/*	MAX and MIN aren't compile-time constants (they would be in C++11).
-		We also don't have SIZE_MAX (cstdint) and
-		no boost::integer_traits<INT>::const_max. */
-	//BOOST_STATIC_ASSERT(SCALE*SCALE < MAX);
 
 	/*	Factory function for creating fractions (with wrapper macros per100).
 		Numerator and denominator as template parameters ensure
@@ -558,7 +554,7 @@ private:
 		if (m_i < SCALE / 64)
 			return 0;
 		/*	Recall that: If x=y+z, then b^x=(b^y)*(b^z).
-						 If b=a*c, then b^z=(a^z)*(c^z). */
+						 If b=a*c, then b^x=(a^x)*(c^x). */
 		// Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1
 		// Running example: 5.2^2.1 at SCALE 1024, i.e. (5325/1024)^(2150/1024)
 		INT expInt = rExp.m_i / SCALE; // 2 in the example
@@ -621,6 +617,10 @@ template<int SCALE, class INT>
 INT const ScaledInt<SCALE,INT>::MAX = std::numeric_limits<INT>::max();
 template<int SCALE, class INT>
 INT const ScaledInt<SCALE,INT>::MIN = std::numeric_limits<INT>::min();
+/*	MAX and MIN aren't compile-time constants (they would be in C++11).
+	We also don't have SIZE_MAX (cstdint) and
+	no boost::integer_traits<INT>::const_max. */
+//BOOST_STATIC_ASSERT(SCALE*SCALE < MAX);
 
 template<int SCALE, class INT>
 char ScaledInt<SCALE,INT>::szBuf[] = {};

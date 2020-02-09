@@ -28,7 +28,7 @@
 #   FINAL_RELEASE, which merely disables the OutputDebugString function from
 #   debugapi.h. That's used for all non-debug builds.]
 # CvGameCoreDLL.rc used only for final release.
-# Use /arch:SSE2 for all release builds (Erik had added it only final releases).
+# Use /arch:SSE2 for all release builds.
 
 ## User setup
 ##
