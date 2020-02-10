@@ -3208,8 +3208,8 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		iGold += iUpgradeBudget;
 	}
 	// K-Mod end
-	if (GC.getGame().getElapsedGameTurns() >= 40
-			|| getNumCities() > 3) // UNOFFICIAL_PATCH, Bugfix, 02/24/10, jdog5000
+	if (GC.getGame().getElapsedGameTurns() >= 40 ||
+		getNumCities() > 3) // UNOFFICIAL_PATCH, Bugfix, 02/24/10, jdog5000
 	{
 		/*int iMultiplier = 0;
 		iMultiplier += GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent();
@@ -3223,7 +3223,8 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		if (!AI_atVictoryStage(AI_VICTORY_CULTURE4))
 		{
 			int iStockPile = 3*std::min(8, getNumCities()) + std::min(120, getTotalPopulation())/3;
-			iStockPile += 100*GC.getGame().getElapsedGameTurns() / (2*GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent());
+			iStockPile += 100*GC.getGame().getElapsedGameTurns() /
+					(2*GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent());
 			if (AI_getFlavorValue(FLAVOR_GOLD) > 0)
 			{
 				iStockPile *= 10 + AI_getFlavorValue(FLAVOR_GOLD);
@@ -3231,8 +3232,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 			}
 			// note: currently the highest flavor_gold is 5.
 			iGold += iStockPile;
-		}
-		// K-Mod end
+		} // K-Mod end
 
 		/*iGold *= iMultiplier;
 		iGold /= 100;*/
@@ -3243,9 +3243,7 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 		} */ // BtS - K-Mod: I don't think we need this anymore.
 
 		if (AI_avoidScience())
-		{
 			iGold *= 3; // was 10
-		}
 
 		//iGold += (AI_getGoldToUpgradeAllUnits() / (bAnyWar ? 1 : 2)); // obsolete (K-Mod)
 
@@ -3266,14 +3264,14 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 
 		if (!isNoCorporations())
 		{
-			for (CorporationTypes eCorp = (CorporationTypes)0; eCorp < GC.getNumCorporationInfos(); eCorp = (CorporationTypes)(eCorp+1))
+			FOR_EACH_ENUM(Corporation)
 			{
-				if (getHasCorporationCount(eCorp) > 0)
+				if (getHasCorporationCount(eLoopCorporation) > 0)
 				{
-					int iExecs = countCorporationSpreadUnits(NULL, eCorp, true);
+					int iExecs = countCorporationSpreadUnits(NULL, eLoopCorporation, true);
 					if (iExecs > 0)
 					{
-						int iTempCost = GC.getInfo(eCorp).getSpreadCost();
+						int iTempCost = GC.getInfo(eLoopCorporation).getSpreadCost();
 						iTempCost *= iExecs + 1; // execs + 1 because actual spread cost can be higher than the base cost.
 						iSpreadCost = std::max(iSpreadCost, iTempCost);
 					}
@@ -9853,18 +9851,19 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeam
 // <advc.036>
 int CvPlayerAI::AI_adjustTradeGoldToDiplo(int iGold, PlayerTypes eTo) const
 {
-	double mult = 1;
+	scaled_int rMult = 1;
 	if(!GET_TEAM(eTo).isAtWar(getTeam()) && !GET_TEAM(getTeam()).isCapitulated())
 	{
-		AttitudeTypes att = AI_getAttitude(eTo);
-		switch(att) {
-		case ATTITUDE_FURIOUS: mult = 0.33; break;
-		case ATTITUDE_ANNOYED: mult = 0.67; break;
-		case ATTITUDE_PLEASED: mult = 1.2; break;
-		case ATTITUDE_FRIENDLY: mult = 1.4; break;
+		AttitudeTypes eAttitude = AI_getAttitude(eTo);
+		switch(eAttitude)
+		{
+		case ATTITUDE_FURIOUS: rMult = fixp(1/3.); break;
+		case ATTITUDE_ANNOYED: rMult = fixp(2/3.); break;
+		case ATTITUDE_PLEASED: rMult = fixp(1.2); break;
+		case ATTITUDE_FRIENDLY: rMult = fixp(1.4); break;
 		}
 	}
-	return ::round(iGold * mult);
+	return (iGold * rMult).round();
 }
 
 void CvPlayerAI::AI_foldDeals() const
@@ -16754,14 +16753,18 @@ void CvPlayerAI::AI_doCommerce()
 			CvPlayerAI const& kPartner = *it;
 			// Don't stockpile gold for reparations; pay gpt instead.
 			if(GET_TEAM(getTeam()).isAtWar(kPartner.getTeam()) ||
-					GET_TEAM(kPartner.getTeam()).isVassal(getTeam()))
+				GET_TEAM(kPartner.getTeam()).isVassal(getTeam()))
+			{
 				continue;
+			}
 			if(!bTechTrading && !GET_TEAM(kPartner.getTeam()).isTechTrading())
 				continue;
 			if(kPartner.getCurrentEra() < getCurrentEra() || (!kPartner.isHuman() &&
-					kPartner.AI_getAttitude(getID()) <= GC.getInfo(kPartner.
-					getPersonalityType()).getTechRefuseAttitudeThreshold()))
+				kPartner.AI_getAttitude(getID()) <= GC.getInfo(kPartner.
+				getPersonalityType()).getTechRefuseAttitudeThreshold()))
+			{
 				continue;
+			}
 			partnerScore += std::sqrt((double)kPartner.getTotalPopulation()) *
 					kPartner.getCurrentEra() * 10;
 			iPartners++;
@@ -16810,9 +16813,7 @@ void CvPlayerAI::AI_doCommerce()
 	if (isCommerceFlexible(COMMERCE_CULTURE))
 	{
 		if (AI_atVictoryStage(AI_VICTORY_CULTURE4))
-		{
 			setCommercePercent(COMMERCE_CULTURE, 100);
-		}
 		else if (getNumCities() > 0)
 		{
 			int iIdealPercent = 0;

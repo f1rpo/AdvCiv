@@ -355,7 +355,8 @@ public:
 			//	of -1/SCALE times 1/SCALE.
 			FAssert(iNum != -1 || (m_i * rOther.m_i) / SCALE == -1);
 			m_i = iNum;*/
-			long long lNum = (m_i * rOther.m_i + (bSIGNED ? 0 : SCALE / 2)) / SCALE;
+			long long lNum = m_i;
+			lNum = (lNum * rOther.m_i + (bSIGNED ? 0 : SCALE / 2)) / SCALE;
 			FAssert(lNum >= MIN && lNum <= MAX);
 			m_i = static_cast<INT>(lNum);
 		}
@@ -513,7 +514,8 @@ private:
 	__forceinline INT toScale(int iNum, int iFromScale, int iToScale = SCALE) const
 	{
 		// Akin to code in ctor(ScaledInt) and operator*=(ScaledInt)
-		long long lNum = iNum * iToScale;
+		long long lNum = iNum;
+		lNum *= iToScale;
 		if (!bSIGNED)
 			lNum += iFromScale / 2;
 		lNum /= iFromScale;
@@ -522,7 +524,8 @@ private:
 	}
 	int toScaleRound(int iNum, int iFromScale, int iToScale = SCALE) const
 	{
-		long long lNum = iNum * iToScale;
+		long long lNum = iNum;
+		lNum *= iToScale;
 		if (!bSIGNED)
 			lNum += iFromScale / 2;
 		else lNum += iFromScale / (lNum >= 0 ? 2 : -2);
@@ -601,7 +604,8 @@ private:
 	{
 		// If long long is too slow, we'd have to return an int after checking:
 		//FAssertBounds(MIN_INT / SCALE, MAX_INT / SCALE + 1, i);
-		return i * SCALE;
+		long long lNum = i;
+		return lNum * SCALE;
 	}
 
 	static __forceinline ScaledInt<SCALE,INT> fromDouble(double d)
@@ -767,7 +771,9 @@ __forceinline bool operator>(double d, ScaledInt<SCALE,INT> r)
 	return (r < d);
 }
 
-// 1024 isn't very precise at all - but at least better than the percent scale normally used by BtS.
+/*	1024 isn't very precise at all - but at least better than
+	the percent scale normally used by BtS.
+	Leads to MAX=2097151, i.e. ca. 2 mio. */
 typedef ScaledInt<1024,int> scaled_int;
 typedef ScaledInt<1024,uint> scaled_uint;
 

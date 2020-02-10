@@ -17,8 +17,9 @@ void TestScaledInt()
 	return;
 #else
 
-	// These numbers match the running example commented on in pow.
-	FAssert(fixp(5.2).pow(fixp(2.1)).getInt() == 32);
+	/*	These numbers match the running example commented on in pow.
+		(The example assumes scale 1024, hence the explicit constructor calls.) */
+	FAssert(ScaledInt<1024>(fixp(5.2)).pow(ScaledInt<1024>(fixp(2.1))).getInt() == 32);
 
 	// Spotty unit test
 	FAssert((fixp(4/3.) * 1000).getInt() == 1333);
@@ -73,6 +74,7 @@ void TestScaledInt()
 	// (CPU cycles noted in comments can be out of date)
 	// Exponentiation speed measurements
 	{
+		scaled_int rSum = 0;
 		for (int i = 0; i < 10; i++)
 		{
 			// Result (average over 10 samples): 7384 cycles on the first launch
@@ -82,18 +84,21 @@ void TestScaledInt()
 			for (int j = i; j < 10; j++)
 			{
 				scaled_int b = per100(GC.getInfo((TechTypes)0).getResearchCost() + j);
-				iDummy += b.pow(fixp(1.24));
+				rSum += b.pow(fixp(1.24));
 			}
 		}
+		iDummy += rSum.round();
+		double dSum = 0;
 		for (int i = 0; i < 10; i++)
 		{
 			//TSC_PROFILE("POW_DOUBLE"); // Results (averages): 9357, 5423, 4915, 4989 cycles
 			for (int j = i; j < 10; j++)
 			{
 				double b = (GC.getInfo((TechTypes)0).getResearchCost() + j) / 100.0;
-				iDummy = iDummy + ::round(std::pow(b, 1.24));
+				dSum += std::pow(b, 1.24);
 			}
 		}
+		iDummy += ::round(dSum);
 	}
 
 	// Addition speed measurements
@@ -168,7 +173,7 @@ void TestScaledInt()
 				iCost *= (GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) + 100);
 				iCost /= 100;
 				iCost -= iCost % 5;
-				iCost = std::max(10, iCost);
+				iCost = range(iCost, 10, 2000);
 			}
 			iDummy += iCost;
 		}
@@ -195,7 +200,7 @@ void TestScaledInt()
 				rCost *= per100((GC.getDefineINT(
 						CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) + 100));
 				int iCost = rCost.roundToMultiple(5);
-				rCost = std::max(10, iCost);
+				rCost = range(iCost, 10, 2000);
 			}
 			iDummy += rCost.round();
 		}
@@ -220,7 +225,7 @@ void TestScaledInt()
 				dCost *= (GC.getDefineINT(
 						CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) + 100) / 100.;
 				int iCost = ::round(dCost) % 5;
-				dCost = std::max(10, iCost);
+				dCost = range(iCost, 10, 2000);
 			}
 			iDummy += (int)dCost;
 		}
@@ -245,7 +250,7 @@ void TestScaledInt()
 				fCost *= (GC.getDefineINT(
 						CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) + 100) / 100.f;
 				int iCost = ::round(fCost) % 5;
-				fCost = std::max(10, iCost);
+				fCost = range(iCost, 10, 2000);
 			}
 			iDummy += (int)fCost;
 		}
@@ -269,7 +274,7 @@ void TestScaledInt()
 	rPow *= rWeight;
 	if(rOtherWeight <= per100(99))
 		rOtherPow *= rOtherWeight;
-	iDummy += (rPow * rOtherPow + rWeight).round();
+	iDummy += (rPow * (rOtherPow / 2) + rWeight).round();
 
 	if (iDummy == -7)
 	{
