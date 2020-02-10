@@ -3411,11 +3411,13 @@ int CvGame::countFreeTeamsAlive() const
 int CvGame::getRecommendedPlayers() const
 {
 	CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
-	return ::range(((-4 * getSeaLevelChange() + 100) * kWorld.getDefaultPlayers()) / 100,
-			2, MAX_CIV_PLAYERS);
+	scaled_int r = kWorld.getDefaultPlayers();
+	r *= per100(100 - 4 * getSeaLevelChange());
+	r.clamp(2, PlayerIter<>::count());
+	return r.round();
 }
 
-// <advc.140>
+// advc.140:
 int CvGame::getSeaLevelChange() const
 {
 	int r = 0;
@@ -3423,8 +3425,7 @@ int CvGame::getSeaLevelChange() const
 	if(eSeaLevel != NO_SEALEVEL)
 		r = GC.getInfo(eSeaLevel).getSeaLevelChange();
 	return r;
-}
-// </advc.140> </advc.137>
+} // </advc.137>
 
 
 int CvGame::countTotalCivPower()

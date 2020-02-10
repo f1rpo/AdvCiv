@@ -12798,18 +12798,20 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 	if(iPopulation < 0)
 		iPopulation = initialPopulation();
 
-	int iNumCitiesPercent = 100;
+	scaled_int rNumCitiesFactor = 1;
 
-	iNumCitiesPercent *= (iPopulation + 17);
-	iNumCitiesPercent /= 18;
+	rNumCitiesFactor.mulDiv(iPopulation + 17, 18);
 
 	CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
-	iNumCitiesPercent *= kWorld.getNumCitiesMaintenancePercent();
-	iNumCitiesPercent /= 100;
+	rNumCitiesFactor *= per100(kWorld.getNumCitiesMaintenancePercent());
 
 	CvPlayer const& kOwner = GET_PLAYER(eOwner);
-	iNumCitiesPercent *= GC.getInfo(kOwner.getHandicapType()).getNumCitiesMaintenancePercent();
-	iNumCitiesPercent /= 100;
+	rNumCitiesFactor *= per100(GC.getInfo(kOwner.getHandicapType()).
+			getNumCitiesMaintenancePercent());
+	// <advc.140>
+	scaled_int rCrowdednessFactor(GC.getGame().getCivPlayersEverAlive(),
+			GC.getGame().getRecommendedPlayers());
+	rNumCitiesFactor *= rCrowdednessFactor.sqrt(); // </advc.140>
 
 	int iNumVassalCities = 0;
 	for (PlayerIter<ALIVE,VASSAL_OF> it(kOwner.getTeam()); it.hasNext(); ++it)
@@ -12819,22 +12821,20 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 			// K-Mod, 04/sep/10: Reduced vassal maintenance
 			iNumVassalCities / 2;
 	// K-Mod: Removed maintenance cap  // advc.exp: I've disabled it through XML instead
-	int iMaxMaintenanceCities = GC.getInfo(GET_PLAYER(eOwner).getHandicapType()).
+	scaled_int rMaxMaintenanceCities = GC.getInfo(GET_PLAYER(eOwner).getHandicapType()).
 			getMaxNumCitiesMaintenance();
 	// <advc.exp.1> Upper bound set through GlobalDefines
 	static int const iMAX_CITY_COUNT_FOR_MAINTENANCE = GC.getDefineINT("MAX_CITY_COUNT_FOR_MAINTENANCE");
-	iMaxMaintenanceCities = std::min(iMaxMaintenanceCities,
-			(iMAX_CITY_COUNT_FOR_MAINTENANCE * 100) /
-			(100 + kWorld.getNumCitiesMaintenancePercent()));
-	iMaintenanceCities = std::min(iMaintenanceCities, iMaxMaintenanceCities);
+	rMaxMaintenanceCities.decreaseTo(scaled_int(
+			iMAX_CITY_COUNT_FOR_MAINTENANCE) /
+			(1 + per100(kWorld.getNumCitiesMaintenancePercent())));
+	iMaintenanceCities = std::min(iMaintenanceCities, rMaxMaintenanceCities.round());
 	// </advc.exp.1>
-	int iNumCitiesMaintenance = iMaintenanceCities * iNumCitiesPercent;
+	scaled_int rNumCitiesMaintenance = iMaintenanceCities * rNumCitiesFactor;
 
-	iNumCitiesMaintenance *= std::max(0, kOwner.getNumCitiesMaintenanceModifier() + 100);
-	iNumCitiesMaintenance /= 100;
-
-	FAssert(iNumCitiesMaintenance >= 0);
-	return iNumCitiesMaintenance;
+	rNumCitiesMaintenance *= per100(std::max(0, kOwner.getNumCitiesMaintenanceModifier() + 100));
+	FAssert(rNumCitiesMaintenance >= 0);
+	return rNumCitiesMaintenance.getPercent();
 }
 
 // advc.004b, advc.104: Parameters added

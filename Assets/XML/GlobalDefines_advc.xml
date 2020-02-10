@@ -1155,14 +1155,14 @@
 		 the player's city count (including half the number of vassal cities)
 		 gets capped at an upper bound equal to MAX_CITY_COUNT_FOR_MAINTENANCE
 		 divided by (100+iNumCitiesMaintenancePercent); see Civ4WorldInfo
-		 about the divisor. Recommended: 45 (not tested much; should only
-		 matter for military victories on Huge and possibly Large maps).
+		 about the divisor. Recommended: 51, which results in a cap of 42 on
+		 Huge maps. Not tested much.
 		 BtS behavior (a cap between 4 and 8) can be restored through
 		 Civ4HandicapInfos.xml and MAX_CITY_COUNT_FOR_MAINTENANCE > 7.
 		 Use a very high value, say, 1000, for K-Mod behavior (no cap). -->
 	<Define>
 		<DefineName>MAX_CITY_COUNT_FOR_MAINTENANCE</DefineName>
-		<iDefineIntVal>45</iDefineIntVal>
+		<iDefineIntVal>51</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

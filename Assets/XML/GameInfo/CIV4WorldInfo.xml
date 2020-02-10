@@ -31,8 +31,9 @@
 			<iTradeProfitPercent>70</iTradeProfitPercent>
 			<!-- advc.140: was 50 -->
 			<iDistanceMaintenancePercent>60</iDistanceMaintenancePercent>
-			<!-- advc.140: was 45 -->
-			<iNumCitiesMaintenancePercent>40</iNumCitiesMaintenancePercent>
+			<!-- advc.140: Was 45. Note (applies to all world sizes) that the DLL
+				 adjusts this factor based on the crowdedness of the map.-->
+			<iNumCitiesMaintenancePercent>42</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>67</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>400</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>11</iNumCitiesAnarchyPercent>
@@ -64,7 +65,7 @@
 			<!-- advc.140: was 60 -->
 			<iDistanceMaintenancePercent>67</iDistanceMaintenancePercent>
 			<!-- advc.140: was 40 -->
-			<iNumCitiesMaintenancePercent>37</iNumCitiesMaintenancePercent>
+			<iNumCitiesMaintenancePercent>38</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>60</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>200</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>10</iNumCitiesAnarchyPercent>
@@ -131,8 +132,7 @@
 			<iTradeProfitPercent>48</iTradeProfitPercent>
 			<!-- advc.140: was 80 -->
 			<iDistanceMaintenancePercent>82</iDistanceMaintenancePercent>
-			<!-- advc.140: was 30 -->
-			<iNumCitiesMaintenancePercent>31</iNumCitiesMaintenancePercent>
+			<iNumCitiesMaintenancePercent>30</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>45</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>100</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>8</iNumCitiesAnarchyPercent>
@@ -166,7 +166,7 @@
 			<!-- advc.140: was 90 -->
 			<iDistanceMaintenancePercent>89</iDistanceMaintenancePercent>
 			<!-- advc.140: was 25 -->
-			<iNumCitiesMaintenancePercent>28</iNumCitiesMaintenancePercent>
+			<iNumCitiesMaintenancePercent>26</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>37</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>75</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>7</iNumCitiesAnarchyPercent>
@@ -201,7 +201,7 @@
 			<!-- advc.140: was 100 -->
 			<iDistanceMaintenancePercent>97</iDistanceMaintenancePercent>
 			<!-- advc.140: was 20 -->
-			<iNumCitiesMaintenancePercent>25</iNumCitiesMaintenancePercent>
+			<iNumCitiesMaintenancePercent>22</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>30</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>50</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>6</iNumCitiesAnarchyPercent>
