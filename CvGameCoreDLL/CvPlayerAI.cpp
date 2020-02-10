@@ -3141,9 +3141,10 @@ int CvPlayerAI::AI_financialTroubleMargin() const
 	// advc: Take the era number times 1.5
 	int iEraGoldThreshold = 100 * (1 + (3 * iEra) / 2);
 	if(getGold() > iEraGoldThreshold && (iNetCommerce-iNetExpenses >= 0 ||
-			getGold() + 50 * (iNetCommerce-iNetExpenses) > iEraGoldThreshold))
+		getGold() + 50 * (iNetCommerce-iNetExpenses) > iEraGoldThreshold))
+	{
 		return 100; // Would be nicer to increase iFundedPercent based on getGold
-	// </advc.110>
+	} // </advc.110>
 
 	if(AI_avoidScience())
 		iSafePercent -= 8;
@@ -12992,34 +12993,30 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 	if (isBarbarian())
 		return 500;
 
+	CvTeamAI const& kTeam = GET_TEAM(getTeam());
+
 	//if (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE))
-	if (!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.001j
+	if (!kTeam.AI_isWarPossible()) // advc.001j
 		return 20; // ??
 
 	if (iBuildProb < 0)
 		iBuildProb = GC.getInfo(getPersonalityType()).getBuildUnitProb() + 6; // a rough estimate.
 
-	bool bTotalWar = (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) > 0);
+	bool bTotalWar = (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0);
 	// <advc.104s>
 	if (!bTotalWar && getUWAI.isEnabled())
-		bTotalWar = (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0);
+		bTotalWar = (kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0);
 	// </advc.104s>
 	bool bAggressiveAI = GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI);
 
 	int iMaxUnitSpending = (bAggressiveAI ? 30 : 20) + iBuildProb*4/3;
 
 	if (AI_atVictoryStage(AI_VICTORY_CONQUEST4))
-	{
 		iMaxUnitSpending += 30;
-	}
 	else if (AI_atVictoryStage(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION3))
-	{
 		iMaxUnitSpending += 20;
-	}
 	else if (AI_atVictoryStage(AI_VICTORY_CONQUEST1))
-	{
 		iMaxUnitSpending += 10;
-	}
 
 	if (!bTotalWar)
 	{
@@ -13029,12 +13026,12 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 	}
 
 	if (AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
-	{
 		iMaxUnitSpending += 300;
-	}
 	else
 	{
-		iMaxUnitSpending += bTotalWar ? 30 + iBuildProb*2/3 : 0;
+		if (bTotalWar)
+			iMaxUnitSpending += 30 + iBuildProb*2/3;
+
 		if (pArea != NULL)
 		{
 			switch (pArea->getAreaAIType(getTeam()))
@@ -13083,6 +13080,12 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 			}
 		}
 	}
+	// <advc.110> Anticipate a decrease in funds upon declaring war
+	if (iMaxUnitSpending > 200 &&
+		(kTeam.AI_isSneakAttackPreparing() || kTeam.AI_isSneakAttackReady()))
+	{
+		iMaxUnitSpending = 200;
+	} // </advc.110>
 	return iMaxUnitSpending;
 }
 
@@ -16662,11 +16665,13 @@ void CvPlayerAI::AI_doMilitary()
 	// K-Mod
 	PROFILE_FUNC();
 
-	if (!isAnarchy() && AI_isFinancialTrouble() && GET_TEAM(getTeam()).AI_getWarSuccessRating() > -30)
+	if (!isAnarchy() && AI_isFinancialTrouble()
+		/*&& GET_TEAM(getTeam()).AI_getWarSuccessRating() > -30*/) // advc.110: commented out
 	{
 		int iCost = AI_unitCostPerMil();
-		const int iMaxCost = AI_maxUnitCostPerMil();
-
+		int const iMaxCost = AI_maxUnitCostPerMil() -
+				// advc.110: Increase iMaxCost when war success rating negative
+				range(2 * GET_TEAM(getTeam()).AI_getWarSuccessRating(), -100, 0);
 		if (iCost > 0 && (iCost > iMaxCost || calculateGoldRate() < 0))
 		{
 			std::vector<std::pair<int, int> > unit_values; // <value, id>
@@ -16685,12 +16690,11 @@ void CvPlayerAI::AI_doMilitary()
 					break;
 
 				CvUnit* pDisbandUnit = getUnit(unit_values[iDisbandCount].second);
-				FAssert(pDisbandUnit);
 				if (gUnitLogLevel > 2)
 				{
-					CvWString aiTypeString;
-					getUnitAIString(aiTypeString, pDisbandUnit->AI_getUnitAIType());
-					logBBAI("    %S scraps '%S' %S, at (%d, %d), with value %d, due to financial trouble.", getCivilizationDescription(0), aiTypeString.GetCString(), pDisbandUnit->getName(0).GetCString(), pDisbandUnit->getX(), pDisbandUnit->getY(), unit_values[iDisbandCount].first);
+					CvWString szAITypeString;
+					getUnitAIString(szAITypeString, pDisbandUnit->AI_getUnitAIType());
+					logBBAI("    %S scraps '%S' %S, at (%d, %d), with value %d, due to financial trouble.", getCivilizationDescription(0), szAITypeString.GetCString(), pDisbandUnit->getName(0).GetCString(), pDisbandUnit->getX(), pDisbandUnit->getY(), unit_values[iDisbandCount].first);
 				}
 
 				pDisbandUnit->scrap();
@@ -16698,19 +16702,18 @@ void CvPlayerAI::AI_doMilitary()
 				iDisbandCount++;
 
 				iCost = AI_unitCostPerMil();
-			} while (iCost > 0 && (iCost > iMaxCost || calculateGoldRate() < 0) && AI_isFinancialTrouble()
-					// <advc.110> Limit the number of units disbanded per turn
-					&& ((int)iDisbandCount <= std::max(1, (int)getCurrentEra()) ||
-					isStrike())); // </advc.110>
+			} while (iCost > 0 && (iCost > iMaxCost || calculateGoldRate() < 0) && AI_isFinancialTrouble() &&
+					// advc.110: Limit the number of units disbanded per turn
+					((int)iDisbandCount < std::max(1, (int)getCurrentEra()) || isStrike()));
 		}
 	} // K-Mod end
 	// <advc>
-	CvGame& g = GC.getGame();
-	CvLeaderHeadInfo const& lh = GC.getInfo(getPersonalityType());
-	int const iAttackOddsChangeRand = lh.getAttackOddsChangeRand(); // </advc>
-	AI_setAttackOddsChange(lh.getBaseAttackOddsChange() +
-			g.getSorenRandNum(iAttackOddsChangeRand, "AI Attack Odds Change #1") +
-			g.getSorenRandNum(iAttackOddsChangeRand, "AI Attack Odds Change #2")
+	CvRandom& kRand = GC.getGame().getSorenRand();
+	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
+	int const iAttackOddsChangeRand = kPersonality.getAttackOddsChangeRand(); // </advc>
+	AI_setAttackOddsChange(kPersonality.getBaseAttackOddsChange() +
+			kRand.get(iAttackOddsChangeRand, "AI Attack Odds Change #1") +
+			kRand.get(iAttackOddsChangeRand, "AI Attack Odds Change #2")
 			/ 2); // advc.114d
 }
 
@@ -24827,7 +24830,7 @@ int CvPlayerAI::AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly) const
 		return MAX_INT;
 
 	if (kUnit.isMilitaryHappiness() && kUnit.getPlot().isCity() &&
-		kUnit.plot()->plotCount(PUF_isMissionAIType, MISSIONAI_GUARD_CITY, -1, getID()) < 2)
+		kUnit.plot()->plotCount(PUF_isMissionAIType, MISSIONAI_GUARD_CITY, -1, getID()) <= 1)
 	{
 		return MAX_INT;
 	}
@@ -24845,10 +24848,33 @@ int CvPlayerAI::AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly) const
 		if (canDefend() && getPlot().isCity())
 			iValue *= 2;
 	}*/
-
-	switch (kUnit.AI_getGroup()->AI_getMissionAIType())
+	MissionAITypes const eMissionAI = kUnit.AI_getGroup()->AI_getMissionAIType();
+	switch (eMissionAI)
 	{
+	// <advc.110>
+	case MISSIONAI_DEFEND:
+	case MISSIONAI_COUNTER_ATTACK:
 	case MISSIONAI_GUARD_CITY:
+	{
+		CvPlot const* pCityPlot = kUnit.plot();
+		CvCityAI const* pCity = pCityPlot->AI_getPlotCity();
+		if (pCity == NULL)
+		{
+			pCityPlot = kUnit.AI_getGroup()->AI_getMissionAIPlot();
+			pCity = (pCityPlot != NULL ? pCityPlot->AI_getPlotCity() : NULL);
+		}
+		if (pCity != NULL && pCity->getOwner() == getID())
+		{
+			int const iExtra = pCity->AI_countExcessDefenders();
+			if (iExtra == 0)
+				iValue *= 2;
+			else if (iExtra < 0)
+				iValue *= 3;
+			if (AI_isAnyPlotDanger(*pCityPlot, 2, false))
+				iValue = (iValue * fixp(2.5)).round();
+		}
+		break;
+	} // </advc.110>
 	case MISSIONAI_PICKUP:
 	case MISSIONAI_FOUND:
 	case MISSIONAI_SPREAD:
@@ -24857,6 +24883,20 @@ int CvPlayerAI::AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly) const
 
 	case MISSIONAI_STRANDED:
 		iValue /= 2;
+		break;
+	// <advc.110>
+	case MISSIONAI_ASSAULT:
+	{
+		CvPlot const* pMissionAIPlot = kUnit.AI_getGroup()->AI_getMissionAIPlot();
+		if (pMissionAIPlot != NULL && pMissionAIPlot->isOwned() &&
+			GET_TEAM(getTeam()).AI_mayAttack(pMissionAIPlot->getTeam()))
+		{
+			iValue *= 5;
+		}
+		break;
+	}
+	case MISSIONAI_GUARD_BONUS:
+	case MISSIONAI_CHOKE: // </advc.110>
 	case MISSIONAI_RETREAT:
 	case MISSIONAI_PATROL:
 	case NO_MISSIONAI:
@@ -24864,7 +24904,6 @@ int CvPlayerAI::AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly) const
 
 	default:
 		iValue *= 2; // medium
-		break;
 	}
 
 	// Multiplying by higher number means unit has higher priority, less likely to be disbanded

@@ -6189,12 +6189,13 @@ int CvCityAI::AI_neededSeaWorkers() /* advc: */ const
 	return iNeededSeaWorkers;
 }
 
-
-bool CvCityAI::AI_isDefended(int iExtra) /* advc: */ const
+// advc.110: Replacing AI_isDefended
+int CvCityAI::AI_countExcessDefenders() const
 {
 	PROFILE_FUNC();
-
-	return ((getPlot().plotCount(PUF_canDefendGroupHead, -1, -1, getOwner(), NO_TEAM, PUF_isCityAIType) + iExtra) >= AI_neededDefenders()); // XXX check for other team's units?
+	// XXX check for other team's units?
+	return (getPlot().plotCount(PUF_canDefendGroupHead, -1, -1, getOwner(), NO_TEAM, PUF_isCityAIType) -
+			AI_neededDefenders());
 }
 
 /*bool CvCityAI::AI_isAirDefended(int iExtra) {
