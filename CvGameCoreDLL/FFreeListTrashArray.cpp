@@ -85,7 +85,7 @@ void FFreeListTrashArray<T,AIType>::uninit()
 	if (m_pArray != NULL)
 	{
 		removeAll();
-		delete[] m_pArray;
+		SAFE_DELETE_ARRAY(m_pArray);
 	}
 	// advc: Seems necessary. Don't know why it worked w/o this before the merge w/ FFreeListArrayBase.
 	m_iNumSlots = 0;
