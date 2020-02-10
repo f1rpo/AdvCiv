@@ -24866,12 +24866,14 @@ int CvPlayerAI::AI_disbandValue(CvUnitAI const& kUnit, bool bMilitaryOnly) const
 		}
 		if (pCity != NULL && pCity->getOwner() == getID())
 		{
+			if (pCity->AI_isEvacuating())
+				break;
 			int const iExtra = pCity->AI_countExcessDefenders();
 			if (iExtra == 0)
 				iValue *= 2;
 			else if (iExtra < 0)
 				iValue *= 3;
-			if (AI_isAnyPlotDanger(*pCityPlot, 2, false))
+			if (!pCity->AI_isSafe() && AI_isAnyPlotDanger(*pCityPlot, 2, false))
 				iValue = (iValue * fixp(2.5)).round();
 		}
 		break;
