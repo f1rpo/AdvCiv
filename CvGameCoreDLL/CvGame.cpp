@@ -6425,14 +6425,11 @@ void CvGame::doDeals()
 void CvGame::doGlobalWarming()
 {
 	PROFILE_FUNC();
-	/*
-	** Calculate change in GW index
-	*/
-	int iGlobalWarmingValue = calculateGlobalPollution();
 
+	// Calculate change in GW index
+	int iGlobalWarmingValue = calculateGlobalPollution();
 	int iGlobalWarmingDefense = calculateGwSustainabilityThreshold(); // Natural global defence
 	iGlobalWarmingDefense += calculateGwLandDefence(); // defence from features (forests & jungles)
-
 	changeGlobalWarmingIndex(iGlobalWarmingValue - iGlobalWarmingDefense);
 
 	// check if GW has 'activated'.
@@ -6484,6 +6481,8 @@ void CvGame::doGlobalWarming()
 	static FeatureTypes const eTemperateFeature = ((FeatureTypes)(GC.getDefineINT("TEMPERATE_FEATURE")));
 	static FeatureTypes const eWarmFeature = ((FeatureTypes)(GC.getDefineINT("WARM_FEATURE")));
 	static FeatureTypes const eFalloutFeature = ((FeatureTypes)(GC.getDefineINT("NUKE_FEATURE")));
+	// advc.055:
+	static bool const bPROTECT_FEATURE_ON_NON_DRY_TERRAIN = GC.getDefineBOOL("PROTECT_FEATURE_ON_NON_DRY_TERRAIN");
 
 	// Global Warming
 	for (int iI = 0; iI < iGlobalWarmingRolls; iI++)
@@ -6494,69 +6493,75 @@ void CvGame::doGlobalWarming()
 		{
 			//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 			// Global warming is no longer completely random. getRandGWPlot will get a weighted random plot for us to strike
-			CvPlot* pPlot = getRandGWPlot(3);
+			// advc.055: Arg was 3. The higher the value, the greater the preference for cold terrain.
+			CvPlot* pPlot = getRandGWPlot(2);
 			if (pPlot == NULL)
 				continue; // advc
 			// <advc.055>
+			FeatureTypes const eFeature = pPlot->getFeatureType();
+			TerrainTypes const eTerrain = pPlot->getTerrainType();
 			bool bProtectFeature = false;
-			CvFeatureInfo const* pFeature = NULL;
-			if (pPlot->isImproved() && pPlot->isFeature())
+			CvFeatureInfo const* pProtectedFeature = NULL;
+			if (pPlot->isImproved() && eFeature != NO_FEATURE)
 			{
 				if (::bernoulliSuccess(GC.getInfo(pPlot->getImprovementType()).
 					get(CvImprovementInfo::GWFeatureProtection) / 100.0))
 				{
 					bProtectFeature = true;
-					pFeature = &GC.getInfo(pPlot->getFeatureType());
+					pProtectedFeature = &GC.getInfo(eFeature);
 				}
 			} // </advc.055>
 			bool bChanged = false;
 			// rewritten terrain changing code:
 			// 1) Melt frozen terrain
-			if (pPlot->getFeatureType() == eColdFeature /* advc.055: */ && !bProtectFeature)
+			if (eFeature == eColdFeature /* advc.055: */ && !bProtectFeature)
 			{
 				pPlot->setFeatureType(NO_FEATURE);
 				bChanged = true;
 			}
-			else if (pPlot->getTerrainType() == eFrozenTerrain &&
-				(!bProtectFeature || pFeature->isTerrain(eColdTerrain))) // advc.055
+			else if (eTerrain == eFrozenTerrain &&
+				(!bProtectFeature || pProtectedFeature->isTerrain(eColdTerrain))) // advc.055
 			{
 				pPlot->setTerrainType(eColdTerrain);
 				bChanged = true;
 			}
-			else if (pPlot->getTerrainType() == eColdTerrain &&
-				(!bProtectFeature || pFeature->isTerrain(eTemperateTerrain))) // advc.055
+			else if (eTerrain == eColdTerrain &&
+				(!bProtectFeature || pProtectedFeature->isTerrain(eTemperateTerrain))) // advc.055
 			{
 				pPlot->setTerrainType(eTemperateTerrain);
 				bChanged = true;
 			}
 			// 2) Forest -> Jungle
 			// advc.055: Commented out
-			/*else if (pPlot->getFeatureType() == eTemperateFeature) {
+			/*else if (eFeature == eTemperateFeature) {
 			pPlot->setFeatureType(eWarmFeature);
 			bChanged = true;
 			}*/
 			// 3) Remove other features
-			else if (pPlot->isFeature() && pPlot->getFeatureType() != eFalloutFeature &&
-				!bProtectFeature) // advc.055
+			else if (eFeature != NO_FEATURE && eFeature != eFalloutFeature &&
+				/* <advc.055> */ !bProtectFeature &&
+				(!bPROTECT_FEATURE_ON_NON_DRY_TERRAIN ||
+				(eFeature != eTemperateFeature && eFeature != eWarmFeature) ||
+				eTerrain == eDryTerrain)) // </advc.055>
 			{
 				pPlot->setFeatureType(NO_FEATURE);
 				bChanged = true;
 			}
 			// 4) Dry the terrain
-			else if (pPlot->getTerrainType() == eTemperateTerrain &&
-				(!bProtectFeature || pFeature->isTerrain(eDryTerrain))) // advc.055
+			else if (eTerrain == eTemperateTerrain &&
+				(!bProtectFeature || pProtectedFeature->isTerrain(eDryTerrain))) // advc.055
 			{
 				pPlot->setTerrainType(eDryTerrain);
 				bChanged = true;
 			}
-			else if (pPlot->getTerrainType() == eDryTerrain &&
-				(!bProtectFeature || pFeature->isTerrain(eBarrenTerrain))) // advc.055
+			else if (eTerrain == eDryTerrain &&
+				(!bProtectFeature || pProtectedFeature->isTerrain(eBarrenTerrain))) // advc.055
 			{
 				pPlot->setTerrainType(eBarrenTerrain);
 				bChanged = true;
 			}
 			/* 5) Sink coastal desert (disabled)
-			else if (pPlot->getTerrainType() == eBarrenTerrain) {
+			else if (eTerrain == eBarrenTerrain) {
 				if (isOption(GAMEOPTION_RISING_SEAS)) {
 					if (pPlot->isCoastalLand()) {
 						if (!pPlot->isHills() && !pPlot->isPeak()) {
@@ -6572,7 +6577,7 @@ void CvGame::doGlobalWarming()
 				{
 					pPlot->setImprovementType(NO_IMPROVEMENT);
 				}  // <advc.055>
-				if (!pPlot->canHaveFeature(pPlot->getFeatureType(), true))
+				if (!pPlot->canHaveFeature(eFeature, true))
 				{
 					pPlot->setFeatureType(NO_FEATURE);
 					FAssert(!bProtectFeature);
@@ -6622,7 +6627,7 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 		// I want to be able to select a water tile with ice on it; so I can't just exclude water completely...
 		//CvPlot* pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 		/*  advc (comment): Should arguably just create a new flag RANDPLOT_GLOBAL_WARMING
-			and let synRandPlot handle the randomized selection. */ 
+			and let syncRandPlot handle the randomized selection. */ 
 		CvPlot* pTestPlot = NULL;
 		/*  advc: Was < 100. If we want to be certain not to miss, then we should
 			check the whole map. But a 1% failure chance is fine with me. */

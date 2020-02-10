@@ -1630,8 +1630,9 @@
 			<iTilesPerGoody>0</iTilesPerGoody>
 			<iGoodyRange>0</iGoodyRange>
 			<iFeatureGrowth>64</iFeatureGrowth>
-			<!-- advc.055: -->
-			<iGWFeatureProtection>100</iGWFeatureProtection>
+			<!-- (advc.055: Could set this to 100 to protect preserved Forests
+				 from Global Warming.) -->
+			<iGWFeatureProtection>0</iGWFeatureProtection>
 			<iUpgradeTime>0</iUpgradeTime>
 			<iAirBombDefense>20</iAirBombDefense>
 			<iDefenseModifier>0</iDefenseModifier>

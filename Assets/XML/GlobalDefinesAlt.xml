@@ -61,6 +61,16 @@
 		<DefineName>WARM_FEATURE</DefineName>
 		<DefineTextVal>FEATURE_JUNGLE</DefineTextVal>
 	</Define>
+	<!-- advc.055: 1 prevents Global Warming from removing vegetation
+		 from dry terrain (Plains). 0 allows Global Warming to remove
+		 vegetation also from temperate terrain (Grassland).
+		 Recommended: 1 unless the GWFeatureProtection ability
+		 (Civ4ImprovementInfos.xml) is used. -->
+	<Define>
+		<DefineName>PROTECT_FEATURE_ON_NON_DRY_TERRAIN</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
 	<!-- The power health entries have not been changed
 	<Define>
 		<DefineName>POWER_HEALTH_CHANGE</DefineName>
