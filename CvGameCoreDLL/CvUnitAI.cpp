@@ -17901,8 +17901,7 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 				if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(&kPlot, MISSIONAI_BUILD, getGroup(), 1) == 0)
 				{
 					int iPathTurns;
-					if (generatePath(&kPlot, MOVE_SAFE_TERRITORY
-						| MOVE_ROUTE_TO, // advc.049
+					if (generatePath(&kPlot, MOVE_SAFE_TERRITORY /* advc.049: */ | MOVE_ROUTE_TO,
 						true, &iPathTurns))
 					{
 						int iValue = 10000;
@@ -18013,8 +18012,8 @@ bool CvUnitAI::AI_travelToUpgradeCity()
 			pThisTurnPlotForAirlift = getPathEndTurnPlot();
 
 		// is the closest city closer pathing? If so, move toward closest city
-		if (pThisTurnPlotForAirlift != NULL && (!bCanPathToUpgradeCity ||
-			iClosestCityPathTurns < iUpgradeCityPathTurns))
+		if (pThisTurnPlotForAirlift != NULL &&
+			(!bCanPathToUpgradeCity || iClosestCityPathTurns < iUpgradeCityPathTurns))
 		{
 			FAssert(!atPlot(pThisTurnPlotForAirlift));
 			getGroup()->pushMission(MISSION_MOVE_TO, pThisTurnPlotForAirlift->getX(),

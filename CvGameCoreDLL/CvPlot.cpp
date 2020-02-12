@@ -3251,9 +3251,11 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 
 	if (isRoute() /* advc.124: */ && getRevealedRouteType(eTeam) != NO_ROUTE)
 	{
-		if (kOther.isRoute()
-				&& kOther.getRevealedRouteType(eTeam) != NO_ROUTE) // advc.124
+		if (kOther.isRoute() &&
+			kOther.getRevealedRouteType(eTeam) != NO_ROUTE) // advc.124
+		{
 			return true;
+		}
 	}
 
 	if (isCity(true, eTeam))
@@ -3302,7 +3304,8 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 				return true;
 		}
 
-		if (isRiverConnection(directionXY(this, &kOther)) || kOther.isRiverConnection(directionXY(&kOther, this)))
+		if (isRiverConnection(directionXY(this, &kOther)) ||
+			kOther.isRiverConnection(directionXY(&kOther, this)))
 		{
 			if (kOther.isRiverNetwork(eTeam))
 				return true;
@@ -6284,7 +6287,8 @@ CvRoute* CvPlot::getRouteSymbol() const
 	return m_pRouteSymbol;
 }
 
-// XXX route symbols don't really exist anymore...
+/*	XXX route symbols don't really exist anymore... advc (comment): I think this just means
+	that this function and m_pRouteSymbol should be renamed. */
 void CvPlot::updateRouteSymbol(bool bForce, bool bAdjacent)
 {
 	PROFILE_FUNC();
@@ -6294,14 +6298,13 @@ void CvPlot::updateRouteSymbol(bool bForce, bool bAdjacent)
 
 	if (bAdjacent)
 	{
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		FOR_EACH_ENUM(Direction)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-			if (pAdjacentPlot != NULL)
-			{
-				pAdjacentPlot->updateRouteSymbol(bForce, false);
-				//pAdjacentPlot->setLayoutDirty(true);
-			}
+			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
+			if (pAdjacentPlot == NULL)
+				continue;
+			pAdjacentPlot->updateRouteSymbol(bForce, false);
+			//pAdjacentPlot->setLayoutDirty(true);
 		}
 	}
 
@@ -6315,13 +6318,14 @@ void CvPlot::updateRouteSymbol(bool bForce, bool bAdjacent)
 	if (bForce || m_pRouteSymbol == NULL ||
 		gDLL->getRouteIFace()->getRoute(m_pRouteSymbol) != eRoute)
 	{
+		PROFILE("updateRouteSymbol.RouteIFace::destroy/init");
 		gDLL->getRouteIFace()->destroy(m_pRouteSymbol);
 		m_pRouteSymbol = gDLL->getRouteIFace()->createRoute();
 		FAssert(m_pRouteSymbol != NULL);
 		gDLL->getRouteIFace()->init(m_pRouteSymbol, 0, 0, eRoute, this);
 		setLayoutDirty(true);
 	} //update position and contours:
-	else gDLL->getEntityIFace()->updatePosition((CvEntity *)m_pRouteSymbol);
+	else gDLL->getEntityIFace()->updatePosition((CvEntity*)m_pRouteSymbol);
 }
 
 

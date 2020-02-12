@@ -930,14 +930,14 @@ bool UWAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	TeamTypes bestAltTargetId = NO_TEAM;
 	int bestUtility = 0;
-	bool qualms = (timeRemaining > 0 && agent.AI_isAvoidWar(targetId));
+	bool qualms = (timeRemaining > 0 && agent.AI_isAvoidWar(targetId, true));
 	bool altQualms = false;
 	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
 		TeamTypes altTargetId = it->getID();
 		if(!canSchemeAgainst(altTargetId, false) ||
 				agent.turnsOfForcedPeaceRemaining(altTargetId) > timeRemaining)
 			continue;
-		bool loopQualms = agent.AI_isAvoidWar(altTargetId);
+		bool loopQualms = agent.AI_isAvoidWar(altTargetId, true);
 		if(loopQualms && !qualms)
 			continue;
 		UWAIReport silentReport(true);
@@ -1292,7 +1292,7 @@ void UWAI::Team::scheme() {
 		TeamTypes targetId = targets[i].id;
 		double drive = targets[i].drive;
 		// Conscientious hesitation
-		if(agent.AI_isAvoidWar(targetId)) {
+		if(agent.AI_isAvoidWar(targetId, true)) {
 			drive -= totalDrive / 2;
 			if(drive <= 0)
 				continue;

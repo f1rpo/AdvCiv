@@ -132,9 +132,11 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 		else if(pNode->m_data.m_eItemType == TRADE_PEACE)
 			ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
 		// </advc.130p>
-		if (bCheckAllowed && !GET_PLAYER(getFirstPlayer()).
-				canTradeItem(getSecondPlayer(), pNode->m_data))
+		if (bCheckAllowed &&
+			!GET_PLAYER(getFirstPlayer()).canTradeItem(getSecondPlayer(), pNode->m_data))
+		{
 			return;
+		}
 	}
 
 	for (CLLNode<TradeData> const* pNode = kSecondList.head(); pNode != NULL;
@@ -145,9 +147,11 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 		else if(pNode->m_data.m_eItemType == TRADE_PEACE)
 			ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
 		// </advc.130p>
-		if (bCheckAllowed && !GET_PLAYER(getSecondPlayer()).
-				canTradeItem(getFirstPlayer(), pNode->m_data))
+		if (bCheckAllowed &&
+			!GET_PLAYER(getSecondPlayer()).canTradeItem(getFirstPlayer(), pNode->m_data))
+		{
 			return;
+		}
 	}
 
 	TeamTypes eFirstTeam = GET_PLAYER(getFirstPlayer()).getTeam();
@@ -161,11 +165,15 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
 		code duplication */
 	if(recordTradeValue(kSecondList, kFirstList, getSecondPlayer(),
-			getFirstPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+		getFirstPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+	{
 		bUpdateAttitude = true;
+	}
 	if(recordTradeValue(kFirstList, kSecondList, getFirstPlayer(),
-			getSecondPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+		getSecondPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+	{
 		bUpdateAttitude = true;
+	}
 	if(bPeace)
 	{
 		bUpdateAttitude = true; // </advc.130p>
@@ -755,12 +763,14 @@ void CvDeal::read(FDataStreamBase* pStream)
 bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 	bool bPeace) // advc.ctr
 {
+	PROFILE_FUNC(); // advc
 	bool bSave = false;
 
 	switch (trade.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
-	{	// <advc.550e> Code moved into subroutine and modified there
+	{
+		// <advc.550e> Code moved into subroutine and modified there
 		bool bSignificantTech = GET_PLAYER(eToPlayer).isSignificantDiscovery(
 				(TechTypes)trade.m_iData); // </advc.550e>
 		GET_TEAM(eToPlayer).setHasTech((TechTypes)trade.m_iData, true, eToPlayer, true, true);
@@ -791,12 +801,13 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	}
 
 	case TRADE_RESOURCES:
+	{
 		GET_PLAYER(eFromPlayer).changeBonusExport((BonusTypes)trade.m_iData, 1);
 		GET_PLAYER(eToPlayer).changeBonusImport((BonusTypes)trade.m_iData, 1);
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades bonus type %S due to TRADE_RESOURCES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), GC.getInfo((BonusTypes)trade.m_iData).getDescription(), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		bSave = true;
 		break;
-
+	}
 	case TRADE_CITIES:
 	{
 		CvCity* pCity = GET_PLAYER(eFromPlayer).getCity(trade.m_iData);
@@ -831,20 +842,17 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 	case TRADE_MAPS:
 	{
+		PROFILE("CvDeal::startTrade.MAPS"); // advc
 		CvMap const& kMap = GC.getMap();
 		for (int iI = 0; iI < kMap.numPlots(); iI++)
 		{
 			CvPlot& kPlot = kMap.getPlotByIndex(iI);
 			if (kPlot.isRevealed(TEAMID(eFromPlayer)))
-			{
 				kPlot.setRevealed(TEAMID(eToPlayer), true, false, TEAMID(eFromPlayer), false);
-			}
 		}
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (MemberIter it(TEAMID(eToPlayer)); it.hasNext(); ++it)
 		{
-			CvPlayer& kToMember = GET_PLAYER((PlayerTypes)iI);
-			if (kToMember.isAlive() && kToMember.getTeam() == TEAMID(eToPlayer))
-				kToMember.updatePlotGroups();
+			it->updatePlotGroups();
 		}
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades maps due to TRADE_MAPS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		break;

@@ -63,7 +63,9 @@ void UWAIReport::deleteBuffer() {
 }
 
 char const* UWAIReport::leaderName(PlayerTypes civId, int charLimit) {
-															// default: 8
+
+	if(muted > 0)
+		return "";// default: 8
 	CvLeaderHeadInfo& leader = GC.getInfo(
 			GET_PLAYER(civId).getLeaderType());
 	return narrow(leader.getDescription(), charLimit);
@@ -71,18 +73,20 @@ char const* UWAIReport::leaderName(PlayerTypes civId, int charLimit) {
 
 char const* UWAIReport::unitName(CvInfoBase const& unitInfo, int charLimit) {
 
+	if(muted > 0)
+		return "";
 	return narrow(unitInfo.getDescription(), charLimit);
 }
 
 char const* UWAIReport::cityName(CvCity const& c, int charLimit) {
 
+	if(muted > 0)
+		return "";
 	return narrow(c.getName(), charLimit);
 }
 
 char const* UWAIReport::narrow(const wchar* ws, int charLimit) {
 
-	if(muted > 0)
-		return "";
 	CvString cvs(ws);
 	/* I'm sure the narrowing procedure is needlessly complicated,
 	   but I can't sort it out. */
@@ -127,6 +131,8 @@ char const* UWAIReport::teamName(TeamTypes teamId) {
 
 char const* UWAIReport::techName(TechTypes techId, int charLimit) {
 
+	if(muted > 0)
+		return "";
 	return narrow(GC.getInfo(techId).getDescription(), charLimit);
 }
 

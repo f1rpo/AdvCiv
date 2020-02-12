@@ -1727,9 +1727,11 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		return FALSE;
 	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
 	if(kFromPlot.isWater() && kToPlot.isWater() &&
-			!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
-			!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
+		!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
+		!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
+	{
 		return FALSE;
+	}
 	TeamTypes const ePlotTeam = kToPlot.getTeam();
 	int* const v = (int*)pointer;
 	int const iMaxPath = v[5];
@@ -1738,8 +1740,10 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		(pFromPlot) when enforcing the upper bound (iMaxPath). But it doesn't
 		hurt to check node's cost too. */
 	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
-			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
+		node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
+	{
 		return FALSE;
+	}
 	TeamTypes const eTeam = (TeamTypes)v[0]; // The team that computes the path
 	TeamTypes const eTargetTeam = (TeamTypes)v[1];
 	DomainTypes eDom = (DomainTypes)v[2];
@@ -1749,8 +1753,10 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	/*  <advc.033> Naval blockades (Barbarian eTeam) are allowed to reach a city
 		but mustn't pass through */
 	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFromPlot.isCity() &&
-			kFromPlot.getTeam() != BARBARIAN_TEAM)
-		return FALSE; // </advc.033>
+		kFromPlot.getTeam() != BARBARIAN_TEAM)
+	{
+		return FALSE;
+	} // </advc.033>
 	bool const bEnterCityFromCoast = (eDom != DOMAIN_LAND && kToPlot.isCity(true) && kToPlot.isCoastalLand());
 	bool const bDestination = kToPlot.at(v[3], v[4]);
 	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
@@ -1761,13 +1767,17 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		eDom = DOMAIN_SEA;
 	}
 	if(eDom == DOMAIN_SEA && !bEnterCityFromCoast && !kToPlot.isWater() &&
-			!bDestination) // Allow non-city land tile as cargo destination
+		!bDestination) // Allow non-city land tile as cargo destination
+	{
 		return FALSE;
+	}
 	if(!bEnterCityFromCoast && !bDestination && ePlotTeam != eTeam && bImpassableTerrain &&
-			/*  This handles only Coast and no other water terrain types that a mod-mod 
-				might make passable */
-			kToPlot.getTerrainType() != GC.getWATER_TERRAIN(true))
+		/*  This handles only Coast and no other water terrain types that a mod-mod 
+			might make passable */
+		kToPlot.getTerrainType() != GC.getWATER_TERRAIN(true))
+	{
 		return FALSE;
+	}
 	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)
 		return TRUE;
@@ -1778,11 +1788,13 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		return TRUE;
 	// A war plan isn't enough; war against eTargetTeam could supplant that plan.
 	if(kTeam.isAtWar(ePlotTeam) &&
-			/*  Units can't just move through an enemy city, but they can conquer
-				it. Even ships can when part of a naval assault. They can't really
-				conquer forts though. */
-			(eDom == DOMAIN_LAND || !bEnterCityFromCoast || kToPlot.isCity()))
+		/*  Units can't just move through an enemy city, but they can conquer
+			it. Even ships can when part of a naval assault. They can't really
+			conquer forts though. */
+		(eDom == DOMAIN_LAND || !bEnterCityFromCoast || kToPlot.isCity()))
+	{
 		return TRUE;
+	}
 	return FALSE;
 }
 // </advc.104b>
@@ -1972,10 +1984,11 @@ int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* p
 	PlayerTypes const ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
 	TeamTypes const eTeam = TEAMID(ePlayer);
 	if (kOldPlot.isSamePlotGroup(kNewPlot, ePlayer) &&
-			kNewPlot.isTradeNetwork(eTeam) &&
-			kNewPlot.isTradeNetworkConnected(kOldPlot, eTeam))
+		kNewPlot.isTradeNetwork(eTeam) &&
+		kNewPlot.isTradeNetworkConnected(kOldPlot, eTeam))
+	{
 		return TRUE;
-
+	}
 	return FALSE;
 }
 

@@ -2865,12 +2865,11 @@ bool CvTeamAI::AI_refuseWar(TeamTypes eWarTeam) const
 	if (isHuman())
 		return false;
 	// <advc.104y>
-	if (AI_isAvoidWar(eWarTeam))
+	if (AI_isAvoidWar(eWarTeam, true))
 	{
 		AttitudeTypes eAttitude = AI_getAttitude(eWarTeam); // </advc.104y>
 		// ok, so we wouldn't independently choose this war, but could we be bought into it?
 		// If any of our team would refuse, then the team refuses. (cf. AI_declareWarTrade)
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		for (MemberIter it(getID()); it.hasNext(); ++it)
 		{
 			if (eAttitude > GC.getInfo(it->getPersonalityType()).
@@ -3522,11 +3521,14 @@ int CvTeamAI::AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) c
 int CvTeamAI::AI_declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const // advc: params renamed
 {
 	// <advc.104o>
+	PROFILE_FUNC();
 	int r = -1;
 	if(getUWAI.isEnabled())
+	{
 		r = GET_TEAM(eSponsor).uwai().declareWarTradeVal(
 				// eWarTeam can be a (voluntary) vassal
 				GET_TEAM(eTarget).getMasterTeam(), getID());
+	}
 	else r = AI_declareWarTradeValLegacy(eTarget, eSponsor);
 	// Don't charge much less than for an embargo
 	CvPlayerAI const& kAllyLeader = GET_PLAYER(GET_TEAM(eSponsor).getLeaderID());
@@ -3582,7 +3584,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 			{
 				if (bLandTarget)
 					return DENIAL_POWER_THEM;
-				else return DENIAL_NO_GAIN;
+				return DENIAL_NO_GAIN;
 			}
 		}
 	}
@@ -3591,8 +3593,10 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
 		if (eTowardSponsor <= GC.getInfo(it->getPersonalityType()).
-				getDeclareWarRefuseAttitudeThreshold())
+			getDeclareWarRefuseAttitudeThreshold())
+		{
 			return DENIAL_ATTITUDE;
+		}
 	}
 
 	AttitudeTypes eAttitudeThem = AI_getAttitude(eTarget);
@@ -3638,11 +3642,13 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 			/*  If any fighting occurred or recently declared, don't treat closeness
 				as 0. (And don't be willing to attack teams with 0 closeness.) */
 			if(iHighestCloseness <= 0 && (GET_TEAM(eClosestWarEnemy).
-					AI_getWarPlan(getID()) == WARPLAN_ATTACKED_RECENT ||
-					AI_getWarPlan(eClosestWarEnemy) == WARPLAN_ATTACKED_RECENT ||
-					AI_getWarSuccess(eClosestWarEnemy) +
-					GET_TEAM(eClosestWarEnemy).AI_getWarSuccess(getID()) > 0))
+				AI_getWarPlan(getID()) == WARPLAN_ATTACKED_RECENT ||
+				AI_getWarPlan(eClosestWarEnemy) == WARPLAN_ATTACKED_RECENT ||
+				AI_getWarSuccess(eClosestWarEnemy) +
+				GET_TEAM(eClosestWarEnemy).AI_getWarSuccess(getID()) > 0))
+			{
 				iHighestCloseness = 1;
+			}
 			int iCloseness = AI_teamCloseness(eTarget, DEFAULT_PLAYER_CLOSENESS,
 					true, true);
 			if(iCloseness < iHighestCloseness)
@@ -5065,12 +5071,16 @@ int CvTeamAI::AI_noWarProbAdjusted(TeamTypes eOther) const
 	if(r < 100 || isOpenBorders(eOther) || eTowardThem == ATTITUDE_FURIOUS)
 		return r;
 	return AI_noWarAttitudeProb((AttitudeTypes)(eTowardThem - 1));
-} // </advc.104y>
+}
 
-bool CvTeamAI::AI_isAvoidWar(TeamTypes eOther) const
+bool CvTeamAI::AI_isAvoidWar(TeamTypes eOther, bool bPersonalityKnown) const
 {
-	return (!isHuman() && // advc.130u
-			AI_noWarProbAdjusted(eOther) >= 100);
+	// <advc.130u>
+	if (isHuman())
+		return false; // </advc.130u>
+	if (!bPersonalityKnown && GC.getGame().isOption(GAMEOPTION_RANDOM_PERSONALITIES))
+		return (AI_getAttitude(eOther) == ATTITUDE_FRIENDLY);
+	return (AI_noWarProbAdjusted(eOther) >= 100);
 } // </advc.104y>
 
 // <advc.130i>

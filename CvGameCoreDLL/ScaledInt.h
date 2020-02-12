@@ -346,24 +346,24 @@ public:
 	{
 		if (std::numeric_limits<INT>::digits <= 32)
 		{
-			/*	According to my tests, MulDiv is slower than spelling the 32b/64b
+			/*	According to my tests, MulDiv is slower than spelling the int32-int64
 				conversion out. Perhaps MulDiv loses some time checking for overflow?
-				I'll check in an assertion, but if the 64b-to-32b conversion fails,
+				I'll check in an assertion, but if the int64-to-int32 conversion fails,
 				that's really the caller's responsibility. */
 			/*int iNum = MulDiv(m_i, rOther.m_i, SCALE);
 			//	-1 is how MulDiv indicates overflow, but could also be the legit result
 			//	of -1/SCALE times 1/SCALE.
 			FAssert(iNum != -1 || (m_i * rOther.m_i) / SCALE == -1);
 			m_i = iNum;*/
-			long long lNum = m_i;
+			__int64 lNum = m_i;
 			lNum = (lNum * rOther.m_i + (bSIGNED ? 0 : SCALE / 2)) / SCALE;
 			FAssert(lNum >= MIN && lNum <= MAX);
 			m_i = static_cast<INT>(lNum);
 		}
 		else
 		{
-			/*	If INT has more than 32b, then this might be fine.
-				For int32_t and SCALE=1024, it would overflow already
+			/*	If INT has more than 32 bit, then this might be fine.
+				For __int32 and SCALE=1024, it would overflow already
 				when computing 46*46. */
 			FAssertBounds(MIN / rOther.m_i, MAX / rOther.m_i + 1, m_i);
 			m_i *= rOther.m_i;
@@ -514,7 +514,7 @@ private:
 	__forceinline INT toScale(int iNum, int iFromScale, int iToScale = SCALE) const
 	{
 		// Akin to code in ctor(ScaledInt) and operator*=(ScaledInt)
-		long long lNum = iNum;
+		__int64 lNum = iNum;
 		lNum *= iToScale;
 		if (!bSIGNED)
 			lNum += iFromScale / 2;
@@ -524,7 +524,7 @@ private:
 	}
 	int toScaleRound(int iNum, int iFromScale, int iToScale = SCALE) const
 	{
-		long long lNum = iNum;
+		__int64 lNum = iNum;
 		lNum *= iToScale;
 		if (!bSIGNED)
 			lNum += iFromScale / 2;
@@ -600,11 +600,11 @@ private:
 			Result: 32867/1024, which is ca. 32.097, whereas 5.2^2.1 is ca. 31.887. */
 	}
 
-	static __forceinline long long scaleForComparison(int i)
+	static __forceinline __int64 scaleForComparison(int i)
 	{
-		// If long long is too slow, we'd have to return an int after checking:
+		// If __int64 is too slow, we'd have to return an int after checking:
 		//FAssertBounds(MIN_INT / SCALE, MAX_INT / SCALE + 1, i);
-		long long lNum = i;
+		__int64 lNum = i;
 		return lNum * SCALE;
 	}
 

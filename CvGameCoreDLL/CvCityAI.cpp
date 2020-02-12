@@ -10554,57 +10554,56 @@ int CvCityAI::AI_experienceWeight()
 // BBAI / K-Mod // <advc.017> Draft param added; count XP weight only half then.
 int CvCityAI::AI_buildUnitProb(bool bDraft)
 {
-	int iProb = GC.getInfo(getPersonalityType()).getBuildUnitProb();
+	scaled_int r = per100(GC.getInfo(getPersonalityType()).getBuildUnitProb());
 	int iXPWeight = AI_experienceWeight();
-	if(bDraft)
+	if (bDraft)
 		iXPWeight /= 2;
-	iProb += iXPWeight; // </advc.017>
+	r += per100(iXPWeight); // </advc.017>
 	if (!isBarbarian() && GET_PLAYER(getOwner()).AI_isFinancialTrouble())
-		iProb /= 2;
+		r /= 2;
 
 	if (GET_TEAM(getTeam()).getHasMetCivCount(false) == 0)
-		iProb /= 2;
+		r /= 2;
 
 	int const iEraDiff = GC.getGame().getCurrentEra() - GET_PLAYER(getOwner()).getCurrentEra();
 	if (iEraDiff > 0)
-	{
-		iProb *= std::max(40, 100 - 20 * iEraDiff);
-		iProb /= 100;
-	}
+		r *= per100(std::max(40, 100 - 20 * iEraDiff));
 	// <advc.017>
-	if(!bDraft)
+	if (!bDraft)
 	{
 		// Lowered multiplier from 2 to 1.5
-		iProb *= 100 + ::round(1.5 * getMilitaryProductionModifier());
-		iProb /= 100;
+		r *= 1 + fixp(1.5) * per100(getMilitaryProductionModifier());
 	}
-	if(!isBarbarian())
+	if (!isBarbarian())
 	{
-		int iHighestRivalPow = 0;
-		for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
+		if (GC.getGame().getElapsedGameTurns() > 25)
 		{
-			iHighestRivalPow = std::max(it->getPower(true), iHighestRivalPow);
-		}
-		double ratio = GET_TEAM(getTeam()).getPower(false) / (double)iHighestRivalPow;
-		if(ratio > 1)
-		{
-			double advantage = ratio - 1;
-			if(advantage >= 1.5)
-				iProb = ::round(0.25 * iProb);
-			// No point in training more units when far behind
-			else if(advantage > -0.65)
-				iProb = ::round(iProb * (1 - advantage / 2));
+			int iHighestRivalPow = 1;
+			for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
+			{
+				iHighestRivalPow = std::max(it->getPower(true), iHighestRivalPow);
+			}
+			scaled_int rPowRatio(GET_TEAM(getTeam()).getPower(false), iHighestRivalPow);
+			if (rPowRatio > 1)
+			{
+				scaled_int rAdvantage = rPowRatio - 1;
+				if(rAdvantage >= fixp(1.5))
+					r /= 4;
+				// No point in training more units when far behind
+				else if(rAdvantage > fixp(-0.65))
+					r *= 1 - rAdvantage / 2;
+			}
 		}
 		int iCities = GET_PLAYER(getOwner()).getNumCities();
 		/*  Can't afford to specialize one city entirely on military production
 			until we've expanded a bit */
-		iProb = std::min(iProb, 20 * (1 + iCities));
+		r.decreaseTo(fixp(0.2) * (1 + iCities));
 		/*  Don't get too careless in the early game when most cities have
 			negative AI_experienceWeight */
-		iProb = std::max(iProb, 25 - 2 * iCities);
+		r.increaseTo(per100(25 - 2 * iCities));
 	} // </advc.017>
-	//return iProb;
-	return std::min(100, iProb); // experimental (K-Mod)
+	r.decreaseTo(1); // experimental (K-Mod)
+	return r.getPercent();
 }
 
 

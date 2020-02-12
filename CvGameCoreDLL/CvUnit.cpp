@@ -10110,6 +10110,8 @@ void CvUnit::read(FDataStreamBase* pStream)
 
 void CvUnit::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
+
 	uint uiFlag = 4; // advc.029
 	uiFlag = 5; // advc.164
 	pStream->Write(uiFlag);

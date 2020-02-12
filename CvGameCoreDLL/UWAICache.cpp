@@ -455,6 +455,10 @@ void UWAICache::updateWarUtility() {
 void UWAICache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 
 	CvTeamAI& agent = GET_TEAM(TEAMID(ownerId));
+	if (agent.isAVassal()) { // Not needed for vassals
+		warUtilityIgnDistraction.set(targetId, 0);
+		return;
+	}
 	UWAIReport report(true); // silent
 	// Ignoring Distraction cost
 	WarEvalParameters params(agent.getID(), targetId, report, true);

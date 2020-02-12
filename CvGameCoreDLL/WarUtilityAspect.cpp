@@ -879,7 +879,7 @@ void GreedForVassals::evaluate() {
 				continue;
 			if(civ.getCapitalCity()->isArea(ourArea) &&
 					(civ.isHuman() || !t.AI_isAvoidWar(agentId) ||
-					we->isHuman() || !agent.AI_isAvoidWar(t.getID()))) {
+					we->isHuman() || !agent.AI_isAvoidWar(t.getID(), true))) {
 				isUsefulArea = true;
 				break;
 			}
@@ -1959,7 +1959,7 @@ int KingMaking::preEvaluate() {
 			// We don't want to be the only winner if it means betraying our partners
 			(params.targetId() == NO_TEAM || agent.isAtWar(params.targetId()) ||
 			agent.AI_isChosenWar(params.targetId()) ||
-			!agent.AI_isAvoidWar(params.targetId()))) {
+			!agent.AI_isAvoidWar(params.targetId(), true))) {
 		log("We'll be the only winners");
 		return agent.getCurrentEra() * 9;
 	}
@@ -3425,7 +3425,7 @@ void TacticalSituation::evaluate() {
 
 void TacticalSituation::evalEngagement() {
 
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // (Not a big deal overall. Fwiw, AI_getPlotDanger takes up most of the time.)
 	/*  Can't move this to UWAICache (to compute it only once at the start
 		of a turn) b/c it needs to be up-to-date during the turns of other civs,
 		in particular the humans that could propose peace at any point of their

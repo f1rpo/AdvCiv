@@ -276,7 +276,8 @@ public:
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
 	// <advc.104y>
 	int AI_noWarProbAdjusted(TeamTypes eOther) const;
-	bool AI_isAvoidWar(TeamTypes eOther) const; // </advc.104y>
+	bool AI_isAvoidWar(TeamTypes eOther, bool bPersonalityKnown = false) const;
+	// </advc.104y>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	// advc.012:
 	int AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding = false,

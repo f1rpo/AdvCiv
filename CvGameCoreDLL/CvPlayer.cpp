@@ -16675,13 +16675,14 @@ void CvPlayer::write(FDataStreamBase* pStream)
 			pNode = m_cityNames.next(pNode);
 		}
 	}
-
-	WriteStreamableFFreeListTrashArray(m_plotGroups, pStream);
-	WriteStreamableFFreeListTrashArray(m_cities, pStream);
-	WriteStreamableFFreeListTrashArray(m_units, pStream);
-	WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
-	WriteStreamableFFreeListTrashArray(m_eventsTriggered, pStream);
-
+	{
+		PROFILE("CvPlayer::Write.FLTA"); // advc
+		WriteStreamableFFreeListTrashArray(m_plotGroups, pStream);
+		WriteStreamableFFreeListTrashArray(m_cities, pStream);
+		WriteStreamableFFreeListTrashArray(m_units, pStream);
+		WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
+		WriteStreamableFFreeListTrashArray(m_eventsTriggered, pStream);
+	}
 	{
 		CvMessageQueue::_Alloc::size_type iSize = m_listGameMessages.size();
 		pStream->Write(iSize);
