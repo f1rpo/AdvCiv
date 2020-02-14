@@ -148,7 +148,7 @@ void TestScaledInt()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			//TSC_PROFILE("MODIFIERS_BTS_STYLE"); // Result: 1104 cycles on average
+			//TSC_PROFILE("MODIFIERS_BTS_STYLE"); // Result: 927 cycles on average
 			int iCost = GC.getInfo((TechTypes)0).getResearchCost();
 			for (int j = i; j < 10; j++)
 			{
@@ -181,8 +181,9 @@ void TestScaledInt()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			//	Result: 950 cycles on average. 2403 with MulDiv, 910 without converting to 64b
-			//	(which would be OK here b/c overflow won't occur with 32b). */
+			//	Result: 2855 cycles on average with MulDiv. 3932 with cast to __int64.
+			//	1584 for scaled_uint, 1045 for scaled_uint w/o overflow handling.
+			//	892 if the per100 arguments are also cast to uint.
 			//TSC_PROFILE("MODIFIERS_SCALED");
 			scaled_uint rCost = GC.getInfo((TechTypes)0).getResearchCost();
 			for (int j = i; j < 10; j++)
@@ -208,7 +209,7 @@ void TestScaledInt()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			//TSC_PROFILE("MODIFIERS_DOUBLE"); // Result: 944 cycles on average
+			//TSC_PROFILE("MODIFIERS_DOUBLE"); // Result: 659 cycles on average
 			double dCost = GC.getInfo((TechTypes)0).getResearchCost();
 			for (int j = i; j < 10; j++)
 			{
@@ -233,7 +234,7 @@ void TestScaledInt()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			//TSC_PROFILE("MODIFIERS_FLOAT"); // Result: 8146 cycles on average (on AMD Athlon X4 750K)
+			//TSC_PROFILE("MODIFIERS_FLOAT"); // Result: 641 cycles on average
 			double fCost = GC.getInfo((TechTypes)0).getResearchCost();
 			for (int j = i; j < 10; j++)
 			{
@@ -244,7 +245,7 @@ void TestScaledInt()
 				fCost *= (100 + GC.getInfo(eTechEra).getTechCostModifier()) / 100.f;
 				fCost *= GC.getInfo((WorldSizeTypes)0).getResearchPercent() / 100.f;
 				fCost *= GC.getInfo((SeaLevelTypes)0).getResearchPercent() / 100.f;
-				fCost *= 1.05;
+				fCost *= 1.05f;
 				fCost *= GC.getInfo((GameSpeedTypes)0).getResearchPercent() / 100.f;
 				fCost *= GC.getInfo((EraTypes)0).getResearchPercent() / 100.f;
 				fCost *= (GC.getDefineINT(
@@ -253,6 +254,82 @@ void TestScaledInt()
 				fCost = range(iCost, 10, 2000);
 			}
 			iDummy += (int)fCost;
+		}
+	}
+
+	// More modifier measurements; mostly compile-time constants this time.
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			//TSC_PROFILE("CONST_MODIFIERS_BTS_STYLE"); // Result: 647 cycles on average
+			int iCost = GC.getInfo((TechTypes)0).getResearchCost();
+			for (int j = i; j < 10; j++)
+			{
+				iCost += j;
+				iCost *= 125;
+				iCost /= 100;
+				iCost *= GC.getInfo((HandicapTypes)0).getAIResearchPercent();
+				iCost /= 100;
+				iCost *= 75;
+				iCost /= 100;
+				iCost *= 200;
+				iCost /= 100;
+				iCost *= GC.getInfo((SeaLevelTypes)0).getResearchPercent();
+				iCost /= 100;
+				iCost *= 67;
+				iCost /= 100;
+				iCost *= GC.getInfo((GameSpeedTypes)0).getResearchPercent();
+				iCost /= 100;
+				iCost *= 80;
+				iCost /= 100;
+				iCost = range(iCost, 10, 2000);
+			}
+			iDummy += iCost;
+		}
+	}
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			//	Result: 2087 cycles on average (scaled_int w/ MulDiv).
+			//	672 for scaled_uint, 579 for scaled_uint w/o overflow handling.
+			//	394 if the per100 arguments are also cast to uint.
+			//TSC_PROFILE("CONST_MODIFIERS_SCALED");
+			scaled_int rCost = GC.getInfo((TechTypes)0).getResearchCost();
+			for (int j = i; j < 10; j++)
+			{
+				rCost += j;
+				rCost *= per100(125);
+				rCost *= per100(GC.getInfo((HandicapTypes)0).getAIResearchPercent());
+				rCost *= per100(75);
+				rCost *= per100(200);
+				rCost *= per100(GC.getInfo((SeaLevelTypes)0).getResearchPercent());
+				rCost *= fixp(2/3.);
+				rCost *= per100(GC.getInfo((GameSpeedTypes)0).getResearchPercent());
+				rCost *= per100(80);
+				rCost.clamp(10, 2000);
+			}
+			iDummy += rCost.round();
+		}
+	}
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			//TSC_PROFILE("CONST_MODIFIERS_DOUBLE"); // Result: 491 cycles on average
+			double dCost = GC.getInfo((TechTypes)0).getResearchCost();
+			for (int j = i; j < 10; j++)
+			{
+				dCost += j;
+				dCost *= 1.25;
+				dCost *= GC.getInfo((HandicapTypes)0).getAIResearchPercent() / 100.;
+				dCost *= 0.75;
+				dCost *= 2.;
+				dCost *= GC.getInfo((SeaLevelTypes)0).getResearchPercent() / 100.;
+				dCost *= 2/3.;
+				dCost *= GC.getInfo((GameSpeedTypes)0).getResearchPercent() / 100.;
+				dCost *= 0.8;
+				dCost = dRange(dCost, 10, 2000);
+			}
+			iDummy += (int)dCost;
 		}
 	}
 

@@ -8,15 +8,15 @@
 // Large lookup table, but ScaledInt.h will eventually be precompiled.
 #include "FixedPointPowTables.h"
 
-/*  class ScaledInt: Approximates a fractional number as an integer times a scale factor.
-	For fixed-point arithmetic that can't lead to network sync issues.
-	Performance: Comparable to double (see ScaledIntTest.cpp) so long as the scale factor
-	is a power of 2.
+/*  class ScaledInt: Approximates a fractional number as an integer multiplied by a
+	scale factor. For fixed-point arithmetic that can't lead to network sync issues.
+	Performance: Generally comparable to floating-point types when the scale factor is
+	a power of 2; see ScaledIntTest.cpp.
 	Overloads commonly used arithmetic operators and offers some conveniences that the
 	built-in types don't have, e.g. abs, clamp, approxEquals, bernoulliSuccess (coin flip).
 	Compile-time converter from double: macro 'fixp'
 	Conversion from percentage: macro 'per100' (also 'per1000', 'per10000')
-	scaled_int typedef for default precision.
+	scaled_int and scaled_uint typedefs for default precision.
 
 	In code that uses Hungarian notation, I propose the prefix 'r' for
 	ScaledInt variables, or more generally for any types that represent
@@ -41,11 +41,9 @@
 	differing template parameters.
 
 	For unsigned INT types, internal integer divisions are rounded to the nearest INT
-	in order to improve precision. For signed INT types, only getInt rounds to the
-	nearest int; the internal divisions round toward 0 in order to avoid a sign check
-	(branching). That extra precision is important for the pow function. If it's
-	important in client code, then the typedef scaled_uint can be used and unsigned int
-	const expressions can be passed to the per100 macro.
+	in order to improve precision. For signed INT types, this isn't guaranteed. (But
+	ScaledInt::round always rounds to the nearest integer.) Using an unsigned INT type
+	also speeds up multiplication.
 
 	Tbd.: Perhaps overload more operators for mixed signed/unsigned INT operands.
 	If exactly one operand is signed, then the return type should be signed as well.
@@ -71,6 +69,10 @@ public:
 	static inline ScaledInt<SCALE,INT> fromRational(int iNum)
 	{
 		ScaledInt<iDEN,INT> rRational;
+		if (!bSIGNED)
+		{
+			FAssert(iNum >= 0);
+		}
 		rRational.m_i = iNum;
 		return rRational;
 	}
@@ -89,6 +91,11 @@ public:
 	__forceinline ScaledInt() : m_i(0) {}
 	__forceinline ScaledInt(int i) : m_i(SCALE * i)
 	{
+		// (Not sure if these assertions should be kept permanently)
+		if (!bSIGNED)
+		{
+			FAssert(i >= 0);
+		}
 		FAssertBounds(MIN / SCALE, MAX / SCALE + 1, i);
 	}
 	__forceinline ScaledInt(uint u) : m_i(SCALE * u)
@@ -103,6 +110,10 @@ public:
 	template<int FROM_SCALE, class FROM_T>
 	__forceinline ScaledInt(ScaledInt<FROM_SCALE,FROM_T> rOther)
 	{
+		if (!bSIGNED && rOther.bSIGNED)
+		{
+			FAssert(rOther.m_i >= 0);
+		}
 		if (FROM_SCALE == SCALE)
 			m_i = static_cast<INT>(rOther.m_i);
 		else
@@ -115,14 +126,14 @@ public:
 		}
 	}
 
-	int getInt() const
+	__forceinline int getInt() const
 	{
-		// Assumed to be used less frequently than scale conversion. Take the time to round.
-		return (m_i + SCALE / (!bSIGNED || m_i > 0 ? 2 : -2)) / SCALE;
+		// Conversion to int shouldn't be extremely frequent; take the time to round.
+		return round();
 	}
-	__forceinline round() const // Alias
+	int round() const
 	{
-		return getInt();
+		return (m_i + SCALE / (!bSIGNED || m_i > 0 ? 2 : -2)) / SCALE;
 	}
 	// Cast operator - better require explicit calls to getInt.
 	/*__forceinline operator int() const
@@ -168,6 +179,10 @@ public:
 
 	__forceinline void mulDiv(int iMultiplier, int iDivisor)
 	{
+		if (!bSIGNED)
+		{
+			FAssert(iMultiplier >= 0 && iDivisor >= 0);
+		}
 		m_i = toScale(m_i, iDivisor, iMultiplier);
 	}
 
@@ -335,6 +350,7 @@ public:
 		m_i += rOther.m_i;
 		return *this;
 	}
+
 	__forceinline ScaledInt<SCALE,INT>& operator-=(ScaledInt<SCALE,INT> rOther)
 	{
 		/*FAssert(rOther >= 0 || m_i <= MAX + rOther.m_i);
@@ -342,43 +358,7 @@ public:
 		m_i -= rOther.m_i;
 		return *this;
 	}
-	__forceinline ScaledInt<SCALE,INT>& operator*=(ScaledInt<SCALE,INT> rOther)
-	{
-		if (std::numeric_limits<INT>::digits <= 32)
-		{
-			/*	According to my tests, MulDiv is slower than spelling the int32-int64
-				conversion out. Perhaps MulDiv loses some time checking for overflow?
-				I'll check in an assertion, but if the int64-to-int32 conversion fails,
-				that's really the caller's responsibility. */
-			/*int iNum = MulDiv(m_i, rOther.m_i, SCALE);
-			//	-1 is how MulDiv indicates overflow, but could also be the legit result
-			//	of -1/SCALE times 1/SCALE.
-			FAssert(iNum != -1 || (m_i * rOther.m_i) / SCALE == -1);
-			m_i = iNum;*/
-			__int64 lNum = m_i;
-			lNum = (lNum * rOther.m_i + (bSIGNED ? 0 : SCALE / 2)) / SCALE;
-			FAssert(lNum >= MIN && lNum <= MAX);
-			m_i = static_cast<INT>(lNum);
-		}
-		else
-		{
-			/*	If INT has more than 32 bit, then this might be fine.
-				For __int32 and SCALE=1024, it would overflow already
-				when computing 46*46. */
-			FAssertBounds(MIN / rOther.m_i, MAX / rOther.m_i + 1, m_i);
-			m_i *= rOther.m_i;
-			if (!bSIGNED) // Round to nearest when sign doesn't need to be checked
-				m_i += SCALE / 2;
-			m_i /= SCALE;
-		}
-		/*	Another approach (when SCALE is a power of 2) would be to look for the
-			least significant set bit in m_i and rOther.m_i in order to reduce
-			(m_i*rOther.m_i)/SCALE. See comment about _BitScan elsewhere in this file. */
-		/*	Another thought: Could add a bool template parameter to ScaledInt that
-			enables the else branch above regardless of the size of INT --
-			for client code where speed is essential and overflow impossible. */
-		return *this;
-	}
+
 	__forceinline ScaledInt<SCALE,INT>& operator/=(ScaledInt<SCALE,INT> rOther)
 	{
 		FAssertBounds(MIN / SCALE, MAX / SCALE + 1, m_i);
@@ -387,6 +367,44 @@ public:
 			m_i += rOther.m_i / 2;
 		// (For signed rounding, see ROUND_DIVIDE in CvGameCoreUtils.h)
 		m_i /= rOther.m_i;
+		return *this;
+	}
+
+	__forceinline ScaledInt<SCALE,INT>& operator*=(ScaledInt<SCALE,INT> rOther)
+	{
+		/*	For INT=int and SCALE=1024, this would overflow already when squaring 45.5.
+			Perhaps do it only when std::numeric_limits<INT>::digits is
+			greater than some number?
+			Or add a bUNSAFE_MULT template parameter for client code where speed
+			is essential and overflow impossible. */
+		/*FAssertBounds(MIN / rOther.m_i, MAX / rOther.m_i + 1, m_i);
+		m_i *= rOther.m_i;
+		if (!bSIGNED)
+			m_i += SCALE / 2;
+		m_i /= SCALE;*/
+
+		if (bSIGNED)
+		{
+			/*__int64 lNum = m_i;
+			lNum *= rOther.m_i;
+			lNum /= SCALE; // This will call _alldiv, which involves a div.
+			FAssert(lNum >= MIN && lNum <= MAX);
+			m_i = static_cast<INT>(lNum);*/
+			// For bSIGNED, MulDiv seems to be a bit faster than the above.
+			int iNum = MulDiv(m_i, rOther.m_i, SCALE);
+			// -1 indicates overflow, but could also be the legit result of -1/SCALE times 1/SCALE.
+			FAssert(iNum != -1 || (m_i * rOther.m_i) / SCALE == -1);
+			m_i = iNum;
+		}
+		else
+		{
+			unsigned __int64 lNum = m_i;
+			lNum *= rOther.m_i;
+			lNum += SCALE / 2; // Round to nearest
+			lNum /= SCALE;
+			FAssert(lNum >= MIN && lNum <= MAX);
+			m_i = static_cast<INT>(lNum);
+		}
 		return *this;
 	}
 
@@ -511,27 +529,29 @@ private:
 	template<int OTHER_SCALE,class OTHER_INT>
 	friend class ScaledInt;
 
-	__forceinline INT toScale(int iNum, int iFromScale, int iToScale = SCALE) const
+	static __forceinline INT toScale(int iNum, int iFromScale, int iToScale = SCALE)
 	{
 		// Akin to code in ctor(ScaledInt) and operator*=(ScaledInt)
-		__int64 lNum = iNum;
-		lNum *= iToScale;
-		if (!bSIGNED)
+		if (bSIGNED)
+		{
+			int i = MulDiv(iNum, iToScale, iFromScale);
+			FAssert(i != -1 || (iNum * iToScale) / SCALE == -1);
+			return static_cast<INT>(i);
+		}
+		else
+		{
+			unsigned __int64 lNum = iNum;
+			lNum *= iToScale;
 			lNum += iFromScale / 2;
-		lNum /= iFromScale;
-		FAssert(lNum >= MIN && lNum <= MAX);
-		return static_cast<INT>(lNum);
+			lNum /= iFromScale;
+			FAssert(lNum >= MIN && lNum <= MAX);
+			return static_cast<INT>(lNum);
+		}
 	}
-	int toScaleRound(int iNum, int iFromScale, int iToScale = SCALE) const
+	static inline int toScaleRound(int iNum, int iFromScale, int iToScale = SCALE)
 	{
-		__int64 lNum = iNum;
-		lNum *= iToScale;
-		if (!bSIGNED)
-			lNum += iFromScale / 2;
-		else lNum += iFromScale / (lNum >= 0 ? 2 : -2);
-		lNum /= iFromScale;
-		FAssert(lNum >= MIN && lNum <= MAX);
-		return static_cast<int>(lNum);
+		// OK so long as toScale uses MulDiv (which rounds to nearest)
+		return static_cast<int>(toScale(iNum, iFromScale, iToScale));
 	}
 
 	ScaledInt<SCALE,INT> powNonNegative(int iExp) const

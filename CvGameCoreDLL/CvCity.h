@@ -1147,7 +1147,11 @@ public:
 	CLLNode<OrderData>* nextOrderQueueNode(CLLNode<OrderData>* pNode) const
 	{
 		return m_orderQueue.next(pNode); // advc.inl
-	}
+	}  // <advc.003s>
+	CLLNode<OrderData> const* nextOrderQueueNode(CLLNode<OrderData> const* pNode) const
+	{
+		return m_orderQueue.next(pNode);
+	} // </advc.003s>
 	CLLNode<OrderData>* headOrderQueueNode() const
 	{
 		return m_orderQueue.head(); // advc.inl

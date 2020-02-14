@@ -623,11 +623,11 @@ public:
 	{
 		return m_mapRand.get(iNum, pszLog);
 	}
-	inline CvRandom& getSorenRand()																								// Exposed to Python
+	CvRandom& getSorenRand()																								// Exposed to Python
 	{
 		return m_sorenRand;
 	}  // <advc> Shorter. "S" could also stand for "synchronized" (or "Soren"). (Tbd.: Move to CvGlobals.)
-	CvRandom& getSRand()																										// Exposed to Python
+	inline CvRandom& getSRand()																										// Exposed to Python
 	{
 		return getSorenRand();
 	} // </advc>
