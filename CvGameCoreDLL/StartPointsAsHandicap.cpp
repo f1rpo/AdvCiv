@@ -43,7 +43,7 @@ void StartPointsAsHandicap::reset() {
 }
 
 
-wstring* StartPointsAsHandicap::forSettingsScreen(bool bTab) {
+wstring* StartPointsAsHandicap::forSettingsScreen(bool bTab) const {
 
 	updatePointsDisplayString(bTab);
 	return pointsDisplayString;
@@ -313,7 +313,7 @@ int StartPointsAsHandicap::minDist(CvPlot* p) {
 }
 
 
-void StartPointsAsHandicap::updatePointsDisplayString(bool bTab) {
+void StartPointsAsHandicap::updatePointsDisplayString(bool bTab) const {
 
 	if(civs[nCivs - 1]->startPoints_configured() <= 0) {
 		pointsDisplayString = new wstring();

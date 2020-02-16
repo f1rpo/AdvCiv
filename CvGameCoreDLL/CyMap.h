@@ -63,6 +63,7 @@ public:
 	int getNumCustomMapOptions();
 	CustomMapOptionTypes getCustomMapOption(int iOption);
 	std::wstring getNonDefaultCustomMapOptionDesc(int iOption); // advc.004
+	std::wstring getSettingsString(); // advc.savem
 	int getNumBonuses(int /* BonusTypes */ eIndex);
 	int getNumBonusesOnLand(int /* BonusTypes */ eIndex);
 

@@ -67,6 +67,8 @@ public:
 	DllExport const unsigned char* getMinimapPixels() const;
 	int getMinimapSize() const; // advc.106m: for expo to Python
 	static int minimapPixels(int iMinimapSize); // advc.106m
+	// advc.106h: (exposed to Python for advc.savem through CyMap::getSettingsString)
+	void appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer) const;
 
 	DllExport const char* getModName() const;
 

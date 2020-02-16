@@ -8,6 +8,8 @@
 #include "CySelectionGroup.h"
 #include "CyArea.h"
 #include "CvMapGenerator.h"
+#include "CvGame.h" // advc.savem
+#include "CvReplayInfo.h" // advc.savem
 
 
 CyMap::CyMap() : m_pMap(NULL)
@@ -186,8 +188,20 @@ CustomMapOptionTypes CyMap::getCustomMapOption(int iOption)
 // <advc.004>
 std::wstring CyMap::getNonDefaultCustomMapOptionDesc(int iOption)
 {
-	return m_pMap == NULL ? "" : m_pMap->getNonDefaultCustomMapOptionDesc(iOption);
+	return m_pMap == NULL ? L"" : m_pMap->getNonDefaultCustomMapOptionDesc(iOption);
 } // </advc.004>
+// <advc.savem>
+std::wstring CyMap::getSettingsString()
+{
+	PlayerTypes const eActivePlayer = GC.getGame().getActivePlayer();
+	if (m_pMap == NULL || eActivePlayer == NO_PLAYER)
+		return L"";
+	CvReplayInfo tmpReplay;
+	tmpReplay.createInfo(eActivePlayer);
+	CvWString szSettings;
+	tmpReplay.appendSettingsMsg(szSettings, eActivePlayer);
+	return szSettings; // by value
+} // </advc.savem>
 int CyMap::getNumBonuses(int /* BonusTypes */ eIndex)
 {
 	return m_pMap ? m_pMap->getNumBonuses((BonusTypes)eIndex) : -1;

@@ -57,6 +57,7 @@ void CyMapPythonInterface()
 		.def("getCustomMapOption", &CyMap::getCustomMapOption, "CustomMapOptionTypes () - user defined map setting at this option id")
 		// advc.004:
 		.def("getNonDefaultCustomMapOptionDesc", &CyMap::getNonDefaultCustomMapOptionDesc, "wstring (int)")
+		.def("getSettingsString", &CyMap::getSettingsString, "wstring ()") // advc.savem
 
 		.def("getNumBonuses", &CyMap::getNumBonuses, "int () - total bonuses")
 		.def("getNumBonusesOnLand", &CyMap::getNumBonusesOnLand, "int () - total bonuses on land plots")

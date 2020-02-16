@@ -672,7 +672,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_39</Description>
 		</HintInfo>
-		<!-- Skip 40 -->
+		<!-- Skip 40, 41 -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
@@ -784,6 +784,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_39</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_40</Description>
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_40</Description>

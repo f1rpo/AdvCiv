@@ -10631,7 +10631,7 @@ void CvGame::setScenario(bool b)
 } // </advc.052>
 
 // advc.250b:
-StartPointsAsHandicap& CvGame::startPointsAsHandicap()
+StartPointsAsHandicap const& CvGame::startPointsAsHandicap() const
 {
 	return *m_pSpah;
 }

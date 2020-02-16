@@ -1,19 +1,37 @@
+# advc.savem: savemap script by xyx with some changes for BUG integration
+# https://forums.civfanatics.com/threads/premade-map-to-mapscript-converter.654299/
+
 # creates a mapscript from the currently shown map.
-# this is based on the savemap script by tywiggins https://apolyton.net/forum/civilization-iv/civilization-iv-creation/165900-python-save-map
+# this is based on the savemap script by tywiggins
+# https://apolyton.net/forum/civilization-iv/civilization-iv-creation/165900-python-save-map
 from CvPythonExtensions import *
 import os
+# <advc.savem>
+import BugPath
+import BugUtil # </advc.savem>
 
 gc = CyGlobalContext()
-pathname = os.getenv("HOMEDRIVE") + os.getenv("HOMEPATH") + "\\Documents\\My Games\\Beyond The Sword\\PublicMaps\\"
+# <advc.savem>
+pathnames = []
 
-def savemap(filename = 'civ4map'):
+def savemap(argsList=None):
 
-	newfilename = str(filename)
-	if(type(filename) == type(25)):
-		newfilename = 'civ4map' + newfilename
+	# First choice: Mod folder
+	pathnames.append(str(BugPath.getModDir()) + "\\PrivateMaps\\")
+	# Under MyGames. Can't load it from there into AdvCiv w/o toggling NoCustomAssets.
+	myGamesPathFromBUG = str(BugPath.getRootDir()) + "\\PublicMaps\\"
+	pathnames.append(myGamesPathFromBUG)
+	# Try tywiggins's code as a fallback
+	pathFromOSEnv = str(os.getenv("HOMEDRIVE") + os.getenv("HOMEPATH") + "\\Documents\\My Games\\Beyond The Sword\\PublicMaps\\")
+	if pathFromOSEnv != myGamesPathFromBUG:
+		pathnames.append(pathFromOSEnv)
+	# As for the file name: Will generate that based on the map settings
+	# </advc.savem>
 
-	width = CyMap().getGridWidth()	 # returns num plots, not gridsize
-	height = CyMap().getGridHeight()
+	map = CyMap() # advc.savem
+	game = CyGame() # advc.savem
+	width = map.getGridWidth()	 # returns num plots, not gridsize
+	height = map.getGridHeight()
 	# add extra plots if plots-x or plots-y are no multiples of 4 to obtain valid gridsizes (= numplots/4)
 	extraWidth = int(width%4)
 	extraHeight = int(height%4)
@@ -22,12 +40,18 @@ def savemap(filename = 'civ4map'):
 	if(extraHeight != 0):
 		extraHeight = 4 - extraHeight
 	numPlots = (width + extraWidth) * (height + extraHeight)
-
-	wrapX = CyMap().isWrapX()
-	wrapY = CyMap().isWrapY()
-	topLat = CyMap().getTopLatitude()
-	bottomLat = CyMap().getBottomLatitude()
-	numPlayers = CyGame().countCivPlayersEverAlive()
+	# <advc.savem> Make sure not to create a huge file if the map somehow returns crazy dimensions
+	if numPlots < 0 or numPlots > 50000:
+		BugUtil.error("savemap: Invalid number of plots: '%d'", numPlots)
+		msg = "Savemap failed. Invalid number of tiles: " + str(numPlots)
+		_showOnScreenMessage(msg)
+		return
+	# </advc.savem>
+	wrapX = map.isWrapX()
+	wrapY = map.isWrapY()
+	topLat = map.getTopLatitude()
+	bottomLat = map.getBottomLatitude()
+	numPlayers = game.countCivPlayersEverAlive()
 
 	# determine starting locations
 	civs = []
@@ -38,63 +62,66 @@ def savemap(filename = 'civ4map'):
 	for i in range(numPlayers):
 		player = gc.getPlayer(i)
 		pIndex = 0
+		civInfo = gc.getCivilizationInfo(player.getCivilizationType()) # advc.savem
 		# determine starting location from first settler found, since player.getStartingPlot() is somewhat unreliable; only do this at gamestart
-		if(CyGame().getGameTurn () == 0):
+		if(game.getElapsedGameTurns() == 0 and game.getStartEra() == 0): # advc.savem: was getGameTurn==0
 			if(player.getNumUnits() > 0):
 				for j in range(player.getNumUnits()):
 					unit = player.getUnit(j)
 					if(unit.getUnitClassType() == gc.getInfoTypeForString("UNITCLASS_SETTLER")):
 						pPlot = unit.plot()
 						if(pPlot.isWater() == 0):
-							pIndex = CyMap().plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
-							print "saveMap: found settler of civ %d (%s) at plot %d (%d, %d)" % (int(player.getCivilizationType()), CyGlobalContext().getCivilizationInfo(int(player.getCivilizationType())).getType(), pIndex, CyMap().plotX(pIndex), CyMap().plotY(pIndex))
+							pIndex = map.plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
+							# advc.savem: was print
+							BugUtil.debug("savemap: Found settler of civ '%d' ('%s') at plot '%d' ('%d', '%d')", int(player.getCivilizationType()), civInfo.getShortDescription(0), pIndex, map.plotX(pIndex), map.plotY(pIndex))
 							startingPlots.append(pIndex)
 							civs.append(int(player.getCivilizationType()))
-							civsDesc.append(CyGlobalContext().getCivilizationInfo(int(player.getCivilizationType())).getType())
+							civsDesc.append(civInfo.getType())
 							break
 
 		# fallback; determine starting location from (a) stored location, (b) capital, or (c) first city
 		if(pIndex == 0):
 			pPlot = player.getStartingPlot()
-			if(CyMap().isPlot(pPlot.getX(), pPlot.getY())):
-				pIndex = CyMap().plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
+			if(map.isPlot(pPlot.getX(), pPlot.getY())):
+				pIndex = map.plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
 				startingPlots.append(pIndex)
 				civs.append(int(player.getCivilizationType()))
-				civsDesc.append(CyGlobalContext().getCivilizationInfo(int(player.getCivilizationType())).getType())
+				civsDesc.append(civInfo.getType())
 			elif(player.getCapitalCity().plot() != None):
 				pPlot = player.getCapitalCity().plot()
-				pIndex = CyMap().plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
+				pIndex = map.plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
 				startingPlots.append(pIndex)
 				civs.append(int(player.getCivilizationType()))
-				civsDesc.append(CyGlobalContext().getCivilizationInfo(int(player.getCivilizationType())).getType())
+				civsDesc.append(civInfo.getType())
 			elif((player.getCapitalCity().plot() == None) and (player.getNumCities() > 0)):
 				pPlot = player.getCity(0).plot()
-				pIndex = CyMap().plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
+				pIndex = map.plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
 				startingPlots.append(pIndex)
 				civs.append(int(player.getCivilizationType()))
-				civsDesc.append(CyGlobalContext().getCivilizationInfo(int(player.getCivilizationType())).getType())
-			print "saveMap: no settler found or gameturn > 0 for civ %d (%s); setting starting location at plot %d (%d, %d)" % (int(player.getCivilizationType()), CyGlobalContext().getCivilizationInfo(int(player.getCivilizationType())).getType(), pIndex, CyMap().plotX(pIndex), CyMap().plotY(pIndex))
+				civsDesc.append(civInfo.getType())
+			# advc.savem: was print
+			BugUtil.debug("savemap: No settler found (or not saving on the initial turn) for civ '%d' ('%s'); setting starting location at plot '%d' ('%d', '%d')", int(player.getCivilizationType()), civInfo.getShortDescription(0), pIndex, map.plotX(pIndex), map.plotY(pIndex))
 
 	# also store starting coords, not actually required, but makes debugging easier
 	for i in range(len(startingPlots)):
 		pIndex = startingPlots[i]
-		pPlotXY = [CyMap().plotX(pIndex), CyMap().plotY(pIndex)]
+		pPlotXY = [map.plotX(pIndex), map.plotY(pIndex)]
 		startingPlotsXY.append(pPlotXY)
 
 	# determine terrain etc
-	plotTypes = {}		# default 3 (PLOT_OCEAN in BTS)
-	terrainTypes = {}	 # default 6 (TERRAIN_OCEAN in BTS)
-	bonuses = {}		  # default -1
-	features = {}		 # default -1
-	featureVarieties = {} # default 0
-	improvements = {}	 # default -1
-	riverwe = {}		  # default -1
-	riverns = {}		  # default -1
+	plotTypes = {}          # default 3 (PLOT_OCEAN in BTS)
+	terrainTypes = {}       # default 6 (TERRAIN_OCEAN in BTS)
+	bonuses = {}            # default -1
+	features = {}           # default -1
+	featureVarieties = {}   # default 0
+	improvements = {}       # default -1
+	riverwe = {}            # default -1
+	riverns = {}            # default -1
 
 	for i in range(0,height):
 		for j in range(0,width):
-			pPlot = CyMap().plot(j,i)
-			pIndex = CyMap().plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
+			pPlot = map.plot(j,i)
+			pIndex = map.plotNum(pPlot.getX(), pPlot.getY()) + (extraWidth * pPlot.getY())
 
 			if(int(pPlot.getPlotType()) != 3):
 				plotTypes[pIndex] = int(pPlot.getPlotType())
@@ -114,8 +141,73 @@ def savemap(filename = 'civ4map'):
 
 
 	# write mapscript
-	string = pathname + newfilename + '.py'
-	f=open(string, 'w')
+	# <advc.savem>
+	mapScriptName = str(map.getMapScriptName())
+	dimensionsInName = True
+	wbEnding = ".CivBeyondSwordWBSave"
+	if wbEnding in mapScriptName:
+		mapScriptName = mapScriptName.replace(wbEnding, "")
+		# Scenario dimensions aren't so interesting
+		dimensionsInName = False
+	# If the script is used recursively (who would do that?) the map script name can get long
+	if len(mapScriptName) > 100:
+		mapScriptName = mapScriptNameTrunc[:100]
+	filename = mapScriptName + "_"
+	if dimensionsInName:
+		filename += str(width) + "x" + str(height) + "_"
+	filename += str(numPlayers) + "civs"
+	# A bit complicated b/c I want to make sure not to overwrite anything
+	goodPath = None
+	goodName = None
+	customAssets = False
+	for pathname in pathnames:
+		idSuffix = ""
+		attempts = 10
+		for id in range(attempts):
+			if id > 0:
+				idSuffix = "_" + str(id)
+			goodName = filename + idSuffix
+			pathStr = pathname + goodName + ".py"
+			try:
+				f = open(pathStr)
+			except:
+				# File doesn't exist yet: good (or pathname is inaccessible; we'll see about that)
+				break
+			BugUtil.debug("savemap: File '%s' already exists", pathStr)
+			if id == attempts - 1:
+				BugUtil.error("savemap: Files '%s' already exist", pathname + filename + "[0.." + str(attempts-1) + "].py")
+				msg = "Failed to save map to " + pathname + " -- file " + goodName + ".py already exists."
+				_showOnScreenMessage(msg)
+				return
+			f.close()
+		try:
+			f = open(pathStr, 'w')
+		except:
+			BugUtil.debug("savemap: Cannot open path '%s' for writing", pathStr)
+			customAssets = True
+			continue
+		goodPath = pathname
+		msg = "Saving map to " + pathStr + "\nNote:"
+		if customAssets:
+			msg += "\n"
+		else:
+			msg += " "
+		# I see no way to make CvDLLPythonIFaceBase aware of the new map script
+		msg += "Playing the saved map will require a restart of Civ 4"
+		if customAssets:
+			msg += ", and mods that disable CustomAssets cannot load maps from that location"
+		msg += "."
+		_showOnScreenMessage(msg, customAssets)
+		break
+	if goodPath is None:
+		path1 = pathnames[0]
+		path2 = pathnames[1]
+		BugUtil.error("savemap: Failed to write to '%s' and '%s'", path1, path2)
+		msg = "Unable to save map to either:\n" + path1 + " or \n" + path2
+		_showOnScreenMessage(msg)
+		return
+	# </advc.savem>
+
 	f.write('from CvPythonExtensions import *\n')
 	f.write('import CvMapGeneratorUtil\n')
 	f.write('from random import random, seed, shuffle\n')
@@ -146,7 +238,26 @@ def savemap(filename = 'civ4map'):
 	f.write(string)
 	f.write('\n')
 	f.write('def getDescription():\n')
-	string = '\treturn "Saved Map, based on ' + str(CyMap().getMapScriptName()) + ' ('+str(width)+' x '+str(height)+') with '+str(numPlayers)+' civs"\n'
+	#string = '\treturn "Saved Map, based on ' + str(map.getMapScriptName()) + ' ('+str(width)+' x '+str(height)+') with '+str(numPlayers)+' civs"\n'
+	# <advc.savem> Use the above for the file name instead
+	string = '\treturn '
+	string += "\"Originally created with the following settings by:\\n"
+	# This isn't portable; based on advc.106h.
+	settingsStr = map.getSettingsString()
+	settingsStr = settingsStr.replace('\n', '\\n')
+	string += settingsStr + "\\n"
+	string += "Original players:\\n"
+	for playerID in range(numPlayers):
+		player = gc.getPlayer(playerID)
+		civInfo = gc.getCivilizationInfo(player.getCivilizationType())
+		leaderInfo = gc.getLeaderHeadInfo(player.getLeaderType())
+		string += str(playerID) + " - " + leaderInfo.getDescription() + " of " + civInfo.getShortDescription(0)
+		if player.isHuman():
+			string += " (human)"
+		string += "\\n"
+	string += "Saved on turn " + str(game.getGameTurn()) + "\""
+	string += '\n'
+	# </advc.savem>
 	f.write(string)
 	f.write('\n')
 	f.write('def isAdvancedMap():\n')
@@ -164,8 +275,9 @@ def savemap(filename = 'civ4map'):
 	f.write('def getCustomMapOptionName(argsList):\n')
 	f.write('\t[iOption] = argsList\n')
 	f.write('\toption_names = {\n')
-	f.write('\t\t0:\t"Starting Locations",\n')
-	f.write('\t\t1:\t"Bonuses",\n')
+	# (advc.savem: Tbd.: Options "Players", "Difficulty")
+	f.write('\t\t0:\t"Starting Sites",\n') # advc.savem: was "Starting Locations"
+	f.write('\t\t1:\t"Bonus Resources",\n') # advc.savem: was "Bonuses"
 	f.write('\t\t2:\t"Goody Huts"\n')
 	f.write('\t\t}\n')
 	f.write('\ttranslated_text = unicode(CyTranslator().getText(option_names[iOption], ()))\n')
@@ -184,17 +296,22 @@ def savemap(filename = 'civ4map'):
 	f.write('\t[iOption, iSelection] = argsList\n')
 	f.write('\tselection_names = {\n')
 	f.write('\t\t0:\t{\n')
-	f.write('\t\t\t0: "Use Fixed Starting Locations",\n')
-	f.write('\t\t\t1: "Use Fixed Starting Locations, but assign Civs at Random",\n')
-	f.write('\t\t\t2: "Ignore Fixed Locations"\n')
+	# (advc.savem: Tbd.: "Players" selections: "Original Players" / "Custom [Override?] Players".
+	# Also: "Difficulty": "Custom Difficulty" / "Original Difficulty"
+	# Could shorten the selection names further; the longer names are better for the in-game Settings tab.)
+	f.write('\t\t\t0: "Original Starts",\n') # advc.savem: was "Use Fixed Starting Locations"
+	# advc.savem: was "Use Fixed Starting Locations, but assign Civs at Random".
+	f.write('\t\t\t1: "Shuffled Starts",\n')
+	# advc.savem: Was "Ignore Fixed Locations". Warn that the normalization step will be skipped?
+	f.write('\t\t\t2: "Random Starts"\n')
 	f.write('\t\t\t},\n')
 	f.write('\t\t1:\t{\n')
-	f.write('\t\t\t0: "Use fixed Bonuses",\n')
-	f.write('\t\t\t1: "Randomize Bonuses"\n')
+	f.write('\t\t\t0: "Original Bonuses",\n') # advc.savem: was "Use Fixed Bonuses"
+	f.write('\t\t\t1: "Random Bonuses"\n') # advc.savem: was "Randomize Bonuses"
 	f.write('\t\t\t},\n')
 	f.write('\t\t2:\t{\n')
-	f.write('\t\t\t0: "Use fixed Goody Huts",\n')
-	f.write('\t\t\t1: "Randomize Goody Huts"\n')
+	f.write('\t\t\t0: "Original Huts",\n') # advc.savem: was "Use fixed Goody Huts"
+	f.write('\t\t\t1: "Random Huts"\n') # advc.savem: was "Randomize Goody Huts"
 	f.write('\t\t\t}\n')
 	f.write('\t\t}\n')
 	f.write('\ttranslated_text = unicode(CyTranslator().getText(selection_names[iOption][iSelection], ()))\n')
@@ -209,15 +326,16 @@ def savemap(filename = 'civ4map'):
 	f.write('\t\t}\n')
 	f.write('\treturn option_defaults[iOption]\n')
 	f.write('\n')
-	f.write('def isRandomCustomMapOption(argsList):\n')
-	f.write('\t[iOption] = argsList\n')
-	f.write('\toption_random = {\n')
-	f.write('\t\t0:\tTrue,\n')
-	f.write('\t\t1:\tTrue,\n')
-	f.write('\t\t2:\tTrue\n')
-	f.write('\t\t}\n')
-	f.write('\treturn option_random[iOption]\n')
-	f.write('\n')
+	# advc.savem: Rather confusing together with selections like "Random Bonuses"
+	#f.write('def isRandomCustomMapOption(argsList):\n')
+	#f.write('\t[iOption] = argsList\n')
+	#f.write('\toption_random = {\n')
+	#f.write('\t\t0:\tTrue,\n')
+	#f.write('\t\t1:\tTrue,\n')
+	#f.write('\t\t2:\tTrue\n')
+	#f.write('\t\t}\n')
+	#f.write('\treturn option_random[iOption]\n')
+	#f.write('\n')
 	f.write('def getWrapX():\n')
 	string = '\treturn ' + str(wrapX) + '\n'
 	f.write(string)
@@ -315,7 +433,7 @@ def savemap(filename = 'civ4map'):
 	f.write('\tnumPlayers = CyGame().countCivPlayersEverAlive()\n')
 	f.write('\tnotinlist = []\n')
 	f.write('\tfor i in range(0, numPlayers):\n')
-	f.write('\t\tplayer = CyGlobalContext().getPlayer(i)\n')
+	f.write('\t\tplayer = gc.getPlayer(i)\n')
 	f.write('\t\t# partly random assignment to fixed locations\n')
 	f.write('\t\tif CyMap().getCustomMapOption(0) == 1:\n')
 	f.write('\t\t\tif(i < len(startingPlots)):\n')
@@ -342,7 +460,7 @@ def savemap(filename = 'civ4map'):
 	f.write('\topenstartingPlots = list(set(startingPlots) - set(usedstartingPlots))\n')
 	f.write('\tshuffle(openstartingPlots) # so that unassigned civs get different position when regenerating a map\n')
 	f.write('\tfor i in range(len(notinlist)):\n')
-	f.write('\t\tplayer = CyGlobalContext().getPlayer(notinlist[i])\n')
+	f.write('\t\tplayer = gc.getPlayer(notinlist[i])\n')
 	f.write('\t\t# try to reuse unassigned starting plots\n')
 	f.write('\t\tif len(openstartingPlots) > 0:\n')
 	f.write('\t\t\tplotindex = openstartingPlots[0]\n')
@@ -383,8 +501,16 @@ def savemap(filename = 'civ4map'):
 	f.write('def normalizeAddExtras():\n')
 	f.write('\treturn None\n')
 	f.write('\n')
-	f.write('def startHumansOnSameTile():\n')
-	f.write('\treturn True\n')
-	f.write('\n')
+	# advc.savem: I don't think we need to override this
+	#f.write('def startHumansOnSameTile():\n')
+	#f.write('\treturn True\n')
 	f.close()
-	return None
+	# <advc.savem>
+	BugUtil.debug("savemap: Done saving map to '%s'", string)
+
+def _showOnScreenMessage(msg, bExtraLong = False):
+	szMsgTime = "EVENT_MESSAGE_TIME"
+	if bExtraLong:
+		szMsgTime += "_LONG"
+	CyInterface().addMessage(CyGame().getActivePlayer(), True, gc.getDefineINT(szMsgTime), msg, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, None, ColorTypes(-1), 0, 0, False, False)
+# </advc.savem>

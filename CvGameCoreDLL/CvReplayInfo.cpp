@@ -234,10 +234,24 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 // <advc.106h>
 void CvReplayInfo::addSettingsMsg()
 {
-	CvGame& g = GC.getGame();
-	PlayerTypes ePlayer = g.getInitialActivePlayer();
+	PlayerTypes ePlayer = GC.getGame().getInitialActivePlayer();
 	if(ePlayer == NO_PLAYER)
 		return;
+	CvReplayMessage* pSettingsMsg = new CvReplayMessage(0,
+			REPLAY_MESSAGE_MAJOR_EVENT, ePlayer);
+	CvWString szSettings(gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
+			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n");
+	appendSettingsMsg(szSettings, ePlayer);
+	pSettingsMsg->setText(szSettings);
+	pSettingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
+	FAssert(m_listReplayMessages.empty());
+	m_listReplayMessages.push_back(pSettingsMsg);
+}
+
+
+void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer) const
+{
+	CvGame const& g = GC.getGame();
 	bool bScenario = false;
 	// Strip away file ending of WB scenario
 	CvWString const szWBEnding = L".CivBeyondSwordWBSave";
@@ -252,8 +266,7 @@ void CvReplayInfo::addSettingsMsg()
 		added by advc.137 (same issue in CvVictoryScreen.py) */
 	int iSeaLevelChange = GC.getInfo(getSeaLevel()).getSeaLevelChange();
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	CvWString szSettings(gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
-			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
+	szSettings += 
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
 			GC.getInfo(kPlayer.getLeaderType()).getTextKeyWide(),
 			kPlayer.getCivilizationShortDescriptionKey(), kPlayer.getReplayName()) + L"\n" +
@@ -267,7 +280,7 @@ void CvReplayInfo::addSettingsMsg()
 			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
-			GC.getInfo(getClimate()).getTextKeyWide()))));
+			GC.getInfo(getClimate()).getTextKeyWide())));
 	// <advc.004>
 	CvMap const& kMap = GC.getMap();
 	for(int i = 0; i < kMap.getNumCustomMapOptions(); i++)
@@ -345,12 +358,6 @@ void CvReplayInfo::addSettingsMsg()
 			szModName = szModName.substr(1, szModName.length() - 2);
 		szSettings += szModName + L" Mod";
 	}
-	CvReplayMessage* pSettingsMsg = new CvReplayMessage(0,
-			REPLAY_MESSAGE_MAJOR_EVENT, ePlayer);
-	pSettingsMsg->setText(szSettings);
-	pSettingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
-	FAssert(m_listReplayMessages.empty());
-	m_listReplayMessages.push_back(pSettingsMsg);
 } // </advc.106h>
 
 

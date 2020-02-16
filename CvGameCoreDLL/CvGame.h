@@ -765,7 +765,7 @@ public:
 	bool isFreeStartEraBuilding(BuildingTypes eBuilding) const; // advc
 	/*  advc.250b: Used for exposing a StartPointsAsHandicap member function
 		to Python. (Don't want to create a Python wrapper just for that one function.) */
-	StartPointsAsHandicap& startPointsAsHandicap();
+	StartPointsAsHandicap const& startPointsAsHandicap() const;
 	int getBarbarianStartTurn() const; // advc.300		(exposed to Python)
 	bool isBarbarianCreationEra() const; // advc.307
 	// <advc.703>
