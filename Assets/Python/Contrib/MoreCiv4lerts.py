@@ -59,13 +59,13 @@ class AbstractMoreCiv4lertsEvent(object):
 			if gc.getGame().isRFBlockPopups() or gc.getPlayer(self.iOwner).isHumanDisabled() or gc.getPlayer(self.iOwner).isAutoPlayJustEnded():
 				return # </advc.706>
 			# advc.106c: Reduced time from LONG to normal
-			eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
+			eventMessageTime = gc.getDefineINT("EVENT_MESSAGE_TIME")
 			# advc.135b: Ignore iPlayer. Shouldn't be necessary b/c
 			# the iActivePlayer (on the caller side) should always
 			# be iOwner. Tbd.: Remove the iPlayer attribute from all
 			# _addMessage... functions.
 			# advc.106: Set bForce to False
-			CyInterface().addMessage(self.iOwner, False, eventMessageTimeLong, szString, None, 0, szIcon, ColorTypes(iColor), iFlashX, iFlashY, bOffArrow, bOnArrow)
+			CyInterface().addMessage(self.iOwner, False, eventMessageTime, szString, None, 0, szIcon, ColorTypes(iColor), iFlashX, iFlashY, bOffArrow, bOnArrow)
 
 class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 

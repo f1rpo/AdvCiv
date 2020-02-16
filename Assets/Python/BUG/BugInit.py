@@ -71,8 +71,7 @@ def loadMod(name):
 		except Exception, e:
 			BugUtil.error("BugInit - failed to parse module %s", name)
 			timer.log(name)
-			raise e
-		#finally: # </advc.009b>
+			raise e # </advc.009b>
 		timer.log(name)
 	else:
 		BugUtil.error("BugInit - cannot find XML file for module %s", name)
