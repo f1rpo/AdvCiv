@@ -3223,7 +3223,13 @@ def canTriggerExperiencedCaptain(argsList):
 def getNumPartisanUnits(plot, iPlayer):
 	for i in range(gc.getNumCultureLevelInfos()):
 		iI = gc.getNumCultureLevelInfos() - i - 1
-		if plot.getCulture(iPlayer) >= gc.getGame().getCultureThreshold(iI):
+		# <advc.001> Bug found by SmokeyTheBear.
+		# Note that CyCity.getCultureLevel can't be used b/c iPlayer no longer owns the city.
+		if plot.isCity():
+			iCulture = plot.getPlotCity().getCulture(iPlayer)
+		else: # </advc.001>
+			iCulture = plot.getCulture(iPlayer)
+		if iCulture >= gc.getGame().getCultureThreshold(iI):
 			return iI
 	return 0
 
