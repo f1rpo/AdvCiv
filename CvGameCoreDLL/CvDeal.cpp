@@ -60,8 +60,8 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 			pNode = nextTradesNode(pNode))
 		{
 			if(isDual(pNode->m_data.m_eItemType) ||
-					(pNode->m_data.m_eItemType == TRADE_RESOURCES &&
-					!GET_PLAYER(getFirstPlayer()).canTradeNetworkWith(getSecondPlayer())))
+				(pNode->m_data.m_eItemType == TRADE_RESOURCES &&
+				!GET_PLAYER(getFirstPlayer()).canTradeNetworkWith(getSecondPlayer())))
 			{
 				bForce = true;
 				break;
@@ -859,7 +859,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	}
 	case TRADE_SURRENDER:
 	case TRADE_VASSAL:
-		if (trade.m_iData == 0)
+		if (trade.m_iData <= 0) // advc: Was ==. Important b/c I've changed the default value from 0 to -1.
 		{
 			startTeamTrade(trade.m_eItemType, TEAMID(eFromPlayer), GET_PLAYER(eToPlayer).getTeam(), false);
 			GET_TEAM(eFromPlayer).setVassal(TEAMID(eToPlayer), true, TRADE_SURRENDER == trade.m_eItemType);
@@ -956,20 +956,17 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 
 	case TRADE_OPEN_BORDERS:
-		if (trade.m_iData == 0)
+		if (trade.m_iData <= 0) // advc: was ==
 		{
 			startTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
 			GET_TEAM(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S_1) signs open borders due to TRADE_OPEN_BORDERS with player %d (%S_2)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		}
-		else
-		{
-			bSave = true;
-		}
+		else bSave = true;
 		break;
 
 	case TRADE_DEFENSIVE_PACT:
-		if (trade.m_iData == 0)
+		if (trade.m_iData <= 0) // advc: was ==
 		{
 			startTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
 			GET_TEAM(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), true);
@@ -988,7 +985,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 	// <advc.034>
 	case TRADE_DISENGAGE:
-		if(trade.m_iData == 0)
+		if(trade.m_iData <= 0)
 		{
 			startTeamTrade(TRADE_DISENGAGE, TEAMID(eFromPlayer),
 					TEAMID(eToPlayer), true);
@@ -999,7 +996,6 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	// </advc.034>
 	default:
 		FAssert(false);
-		break;
 	}
 
 	return bSave;
