@@ -1519,6 +1519,11 @@ int /*CultureLevelTypes*/ CyCity::getCultureLevel()
 {
 	return m_pCity ? m_pCity->getCultureLevel() : NO_CULTURELEVEL;
 }
+// <advc.003y>
+int CyCity::getNumPartisanUnits(int /*PlayerTypes*/ ePartisanPlayer)
+{
+	return (m_pCity ? m_pCity->getNumPartisanUnits((PlayerTypes)ePartisanPlayer) : 0);
+} // </advc.003y>
 
 int CyCity::getCultureThreshold()
 {

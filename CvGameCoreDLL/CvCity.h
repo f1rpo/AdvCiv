@@ -683,6 +683,7 @@ public:
 	void setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups);
 	void updateCultureLevel(bool bUpdatePlotGroups);
 	CultureLevelTypes calculateCultureLevel(PlayerTypes ePlayer) const; // advc.130f
+	int getNumPartisanUnits(PlayerTypes ePartisanPlayer) const; // advc.003y
 	int getCultureTurnsLeft() const; // advc.042
 
 	int getSeaPlotYield(YieldTypes eIndex) const { return m_aiSeaPlotYield.get(eIndex); }							// Exposed to Python

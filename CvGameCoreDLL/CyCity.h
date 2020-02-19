@@ -329,6 +329,7 @@ public:
 	int /*PlayerTypes*/getPreviousOwner();
 	int /*PlayerTypes*/getOriginalOwner();
 	int /*CultureLevelTypes*/ getCultureLevel();
+	int getNumPartisanUnits(int /*PlayerTypes*/ ePartisanPlayer); // advc.003y
 	int getCultureThreshold();
 	int getSeaPlotYield(int /*YieldTypes*/ eIndex);
 	int getRiverPlotYield(int /*YieldTypes*/ eIndex);

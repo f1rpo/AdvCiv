@@ -12087,6 +12087,8 @@ void CvCity::doPartisans()
 {
 	if (GC.getGame().isOption(GAMEOPTION_NO_EVENTS))
 		return;
+	/*	(advc.001: The population check in CvEventManager had had no effect b/c of a typo.
+		Note that population loss from conquest will have already occurred when razing.) */
 	if (getPopulation() <= 1 || isBarbarian())
 		return;
 	// advc: Was based on city culture instead of plot culture
@@ -12099,6 +12101,9 @@ void CvCity::doPartisans()
 		return;
 	if (!::atWar(getTeam(), kPartisanPlayer.getTeam()))
 		return;
+	// advc: Important now that getNumPartisanUnits subtracts 1 from the culture level
+	if (getNumPartisanUnits(kPartisanPlayer.getID()) <= 0)
+		return;
 
 	EventTriggerTypes eTrigger = (EventTriggerTypes)GC.getInfoTypeForString("EVENTTRIGGER_PARTISANS");
 	FAssert(eTrigger != NO_EVENTTRIGGER);
@@ -12110,6 +12115,15 @@ void CvCity::doPartisans()
 		return;
 	}
 	kPartisanPlayer.initTriggeredData(eTrigger, /*bFire=*/true, -1, getX(), getY(), getOwner(), getID());
+}
+
+/*	advc.003y: Ported from CvRandomEventInterface.py; Python code there deleted.
+	Subtracting 1 is an idea by CFC user SmokeyTheBear. It means e.g. that 0 units
+	appear when culture is "poor". */
+int CvCity::getNumPartisanUnits(PlayerTypes ePartisanPlayer) const
+{
+	// advc.001: The culture level computation in Python was erroneous
+	return std::max(0, calculateCultureLevel(ePartisanPlayer) - 1);
 }
 
 
