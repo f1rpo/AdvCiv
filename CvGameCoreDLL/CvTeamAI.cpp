@@ -4355,7 +4355,8 @@ bool CvTeamAI::AI_mayAttack(TeamTypes eDefender) const
 	// advc.opt: Avoid isAtWar and NO_TEAM check
 	if (!AI_isImminentWarPlan(AI_getWarPlan(/* advc.104j: */ eDefenderMaster)))
 		return false;
-	FAssertMsg(!isAVassal(), "Vassal shouldn't have imminent undeclared war plan");
+	// (War w/ eDefenderMaster and peace w/ eDefender can happen while resolving DoW)
+	FAssertMsg(!isAVassal() || isAtWar(eDefenderMaster), "Vassal shouldn't have imminent undeclared war plan");
 	/*	UNOFFICIAL_PATCH, Bugfix, General AI, 05/05/09, jdog5000: START
 		Fixes bug where AI would launch invasion while unable to declare war
 		which caused units to be bumped once forced peace expired */

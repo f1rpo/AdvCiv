@@ -15084,7 +15084,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			depending on whether there is another group on this plot and things like that,
 			and we can't use AI_sumStrength because that currently only works for groups.
 			What we have here is a list of cargo units rather than a group. */
-		if (!kLoopUnit.canAttack())
+		if (!kLoopUnit.canAttack() || /* advc: */ kLoopUnit.isDead())
 			continue; // advc
 		//int iUnitStr = pLoopUnit->currEffectiveStr(NULL, NULL);
 		// advc.159: Also handles first strikes and coll. damage (code here deleted)
