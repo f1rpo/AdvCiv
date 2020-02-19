@@ -7,6 +7,10 @@
 #ifdef SCALED_INT_TEST
 #include "TSCProfiler.h"
 #include "CvInfo_GameOption.h"
+
+// Can't define these in a function body (need to have linkage)
+TYPEDEF_SCALED_ENUM(int,166320,MovementPts) // Divisible by most numbers between 1 and 30
+TYPEDEF_SCALED_ENUM(int,1024,CurrCombatStr)
 #endif
 
 /*  To be called once XML data has been loaded. (Need some test data that is unknown
@@ -19,7 +23,7 @@ void TestScaledInt()
 
 	/*	These numbers match the running example commented on in pow.
 		(The example assumes scale 1024, hence the explicit constructor calls.) */
-	FAssert(ScaledInt<1024>(fixp(5.2)).pow(ScaledInt<1024>(fixp(2.1))).getInt() == 32);
+	FAssert((ScaledInt<int,1024>(fixp(5.2)).pow(ScaledInt<int,1024>(fixp(2.1))).round() == 32));
 
 	// Spotty unit test
 	FAssert((fixp(4/3.) * 1000).getInt() == 1333);
@@ -59,11 +63,18 @@ void TestScaledInt()
 	rTest.mulDiv(4, 5);
 	FAssert(rTest == 2);
 	FAssert(std::strcmp(scaled_int(2).str(100), "200 percent") == 0);
-	FAssert(std::strcmp(ScaledInt<1024>(2).str(), "2048/1024") == 0);
+	FAssert(std::strcmp(ScaledInt<int,1024>(2).str(), "2048/1024") == 0);
 	FAssert(std::strcmp(scaled_int(2).str(1), "2") == 0);
 	FAssert(std::strcmp(fixp(2.2).str(1), "ca. 2") == 0);
 	FAssert(scaled_int(42).roundToMultiple(5) == 40);
 	FAssert(scaled_int(-43).roundToMultiple(5) == -45);
+
+	MovementPts rMoves = fixp(1.5);
+	FAssert(rMoves == scaled_int(3, 2)); // Allowed: operations on ScaledInt<*,*,int>
+	FAssert(rMoves - 1 == MovementPts(1, 2));
+	CurrCombatStr rCombat = fixp(4.9);
+	// Not allowed: MovementPts and CurrCombatStr are incompatible w/ each other
+	//if (rMoves < rCombat) ;
 
 	/*	Will do something "non-const" at the end based on the value of iDummy.
 		To prevent the compiler from discarding code, results of test computations
