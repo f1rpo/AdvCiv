@@ -8570,9 +8570,9 @@ void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer)
 
 	gDLL->getInterfaceIFace()->addMessage(getActivePlayer(), true, GC.getEVENT_MESSAGE_TIME(),
 			CvWString::format(L"Your machine's FP test computation has yielded a"
-				 L" different result than that of %s. The game may frequently go"
-				 L" out of sync due to floating point calculations in the AdvCiv mod.",
-				 GET_PLAYER(ePlayer).getName()), NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL,
+			L" different result than that of %s. The game may frequently go"
+			L" out of sync due to floating point calculations in the AdvCiv mod.",
+			GET_PLAYER(ePlayer).getName()), NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL,
 			(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 } // </advc.003g
 

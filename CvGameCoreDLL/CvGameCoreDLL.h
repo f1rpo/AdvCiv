@@ -274,13 +274,13 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 
 //jason tests
 // advc.make: Removed most of these. (Don't know what the comment above means.)
+#include "CvRandom.h"
 #include "CvGameCoreUtils.h"
 #include "CvGlobals.h"
 #include "EnumMap2D.h" // advc.enum: Includes EnumMap.h, which includes BitUtil.h.
 #include "CvPythonCaller.h" // advc.003y
 #include "CvDLLLogger.h" // advc.003t
 #include "FProfiler.h"
-#include "CvRandom.h"
 // <advc.003x> Include only parts of the old CvInfos.h (caveat: the order of these matters)
 #include "CvInfo_Base.h"
 #include "CvInfo_Asset.h"

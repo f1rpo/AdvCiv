@@ -12,7 +12,7 @@ struct CvPathSettings
 {
 	CvPathSettings(const CvSelectionGroup* pGroup = 0, int iFlags = 0, int iMaxPath = -1, int iHW = -1);
 
-	CvSelectionGroup* pGroup;
+	CvSelectionGroup const* pGroup;
 	int iFlags;
 	int iMaxPath;
 	int iHeuristicWeight;

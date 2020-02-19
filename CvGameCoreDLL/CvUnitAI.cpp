@@ -12933,10 +12933,11 @@ bool CvUnitAI::AI_explore()  // advc: style changes
 		}
 
 		if (iValue <= 0 || kPlot.isVisibleEnemyUnit(this) ||
-				GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
-				&kPlot, MISSIONAI_EXPLORE, getGroup(), 3) > 0)
+			GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
+			&kPlot, MISSIONAI_EXPLORE, getGroup(), 3) > 0)
+		{
 			continue;
-
+		}
 		int iPathTurns;
 		if (at(kPlot) || !generatePath(&kPlot, MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
 			continue;
@@ -21559,7 +21560,7 @@ bool CvUnitAI::AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar)
 					{
 						CvPlot const& kPlot = GC.getMap().getPlot(pStepNode->m_pPrev->m_iX, pStepNode->m_pPrev->m_iY);
 						CvTeamAI& kTeam = GET_TEAM(getTeam());
-						if (kPlot.getTeam() != NO_TEAM && !canMoveInto(kPlot, true, true))
+						if (kPlot.isOwned() && !canMoveInto(kPlot, true, true))
 						{
 							//if (!isPotentialEnemy(kPlot.getTeam(), &kPlot))
 							if (!kTeam.AI_mayAttack(kPlot.getTeam())) // advc

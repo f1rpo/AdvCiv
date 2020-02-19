@@ -96,10 +96,10 @@ struct TradeData					// Exposed to Python
 		bool bOffering = false, bool bHidden = false) :
 		m_eItemType(eItem), m_iData(iData), m_bOffering(bOffering), m_bHidden(bHidden) {}
 	// </advc>
-	TradeableItems m_eItemType;				//	What type of item is this
-	int m_iData;											//	Any additional data?
-	bool m_bOffering;									//	Is this item up for grabs?
-	bool m_bHidden;										//	Are we hidden?
+	TradeableItems m_eItemType;	//	What type of item is this
+	int m_iData;				//	Any additional data?
+	bool m_bOffering;			//	Is this item up for grabs?
+	bool m_bHidden;				//	Are we hidden?
 };
 
 struct EventTriggeredData

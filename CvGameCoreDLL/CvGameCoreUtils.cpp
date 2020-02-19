@@ -976,7 +976,7 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 
@@ -1081,7 +1081,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 	//CvSelectionGroup* pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 
@@ -1428,22 +1428,26 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	return iWorstCost;
 }
 
-int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc: style changes
+int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup const* pSelectionGroup, // advc: const group; style changes.
+	int iFlags)
 {
 	CvMap const& kMap = GC.getMap();
 	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
 	CvPlot const& kToPlot = kMap.getPlot(node->m_iX, node->m_iY);
 	// Ship can't cross isthmus 
 	if (pSelectionGroup->getDomainType() == DOMAIN_SEA &&
-			kFromPlot.isWater() && kToPlot.isWater() &&
-			!kMap.getPlot(kFromPlot.getX(), kToPlot.getY()).isWater() &&
-			!kMap.getPlot(kToPlot.getX(), kFromPlot.getY()).isWater() &&
-			!pSelectionGroup->canMoveAllTerrain())
+		kFromPlot.isWater() && kToPlot.isWater() &&
+		!kMap.getPlot(kFromPlot.getX(), kToPlot.getY()).isWater() &&
+		!kMap.getPlot(kToPlot.getX(), kFromPlot.getY()).isWater() &&
+		!pSelectionGroup->canMoveAllTerrain())
+	{
 		return FALSE;
+	}
 	return TRUE;
 }
 
-int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags)  // advc: some style changes
+int pathValid_source(FAStarNode* parent, CvSelectionGroup const* pSelectionGroup, // advc: const group; some style changes.
+	 int iFlags)
 {
 	//PROFILE_FUNC(); // advc.003o
 	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
@@ -1568,7 +1572,7 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	CvPlot* pToPlot = ...; */
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
 			((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) :
 			((CvPathSettings*)pointer)->iFlags;
@@ -1587,7 +1591,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 	//PROFILE_FUNC(); // advc.003o
 	//CvSelectionGroup* pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 	FAssert(pSelectionGroup->getNumUnits() > 0);

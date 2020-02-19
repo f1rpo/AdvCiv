@@ -17471,7 +17471,7 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 {
 	PROFILE_FUNC(); // advc.opt
 
-	// K-Mod. getTradeDenial is not equipped to consider deal cancelation properly.
+	// K-Mod: getTradeDenial is not equipped to consider deal cancelation properly.
 	if(!AI_considerOffer(ePlayer, d.getGivesList(ePlayer), d.getGivesList(getID()), -1, d.getAge()))
 	{
 		if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"trade value");
@@ -17489,10 +17489,11 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 	{
 		DenialTypes eDenial = getTradeDenial(ePlayer, pNode->m_data);
 		if(eDenial != NO_DENIAL &&
-				// <dlph.3> Cancel DP immediately when war no longer shared
-				(((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
-				eDenial == DENIAL_JOKING)) || // </dlph.3>
-				::bernoulliSuccess(0.2, "advc.133"))) {
+			// <dlph.3> Cancel DP immediately when war no longer shared
+			(((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
+			eDenial == DENIAL_JOKING)) || // </dlph.3>
+			::bernoulliSuccess(0.2, "advc.133")))
+		{
 			if (gDealCancelLogLevel > 1) logBBAICancel(d, getID(), L"dual denial");
 			return DO_CANCEL;
 		}
@@ -17540,8 +17541,10 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		if(!pLoopDeal->isBetween(getID(), eOther) || // advc: Ensure this upfront
-				!pLoopDeal->isCancelable(getID()))
+			!pLoopDeal->isCancelable(getID()))
+		{
 			continue;
+		}
 		// if ((g.getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getPEACE_TREATY_LENGTH() * 2)) // K-Mod disabled
 		// (original bts code deleted)
 		/*  advc: Cancellation checks moved into a subfunction

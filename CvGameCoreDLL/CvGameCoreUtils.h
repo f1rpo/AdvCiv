@@ -234,8 +234,8 @@ int changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, const void* 
 int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder);
 int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY);
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
-int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags); // K-Mod
-int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags); // K-Mod
+int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup const* pSelectionGroup, int iFlags); // K-Mod
+int pathValid_source(FAStarNode* parent, CvSelectionGroup const* pSelectionGroup, int iFlags); // K-Mod
 int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder);

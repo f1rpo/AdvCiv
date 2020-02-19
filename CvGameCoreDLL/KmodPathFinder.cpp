@@ -11,9 +11,7 @@ int KmodPathFinder::admissible_scaled_weight = 1;
 int KmodPathFinder::admissible_base_weight = 1;
 
 CvPathSettings::CvPathSettings(const CvSelectionGroup* pGroup, int iFlags, int iMaxPath, int iHW)
-	: pGroup(const_cast<CvSelectionGroup*>(pGroup)), iFlags(iFlags), iMaxPath(iMaxPath), iHeuristicWeight(iHW)
-// I'm really sorry about the const_cast. I can't fix the const-correctness of all the relevant functions,
-// because some of them are dllexports. The original code essentially does the same thing anyway, with void* casts.
+	: pGroup(pGroup), iFlags(iFlags), iMaxPath(iMaxPath), iHeuristicWeight(iHW)
 {
 	// empty. (there use to be something here, but we don't need it anymore.)
 }
