@@ -12840,7 +12840,7 @@ bool CvUnitAI::AI_goody(int iRange)  // advc: style changes
 		CvPlot const& p =*it;
 		if (/*!AI_plotValid(p)*/!AI_canEnterByLand(p.getArea())) // advc.opt
 			continue;
-		if (p.isRevealedGoody(getTeam()) || p.isVisibleEnemyUnit(this))
+		if (!p.isRevealedGoody(getTeam()) || p.isVisibleEnemyUnit(this))
 			continue;
 		int iPathTurns;
 		if (!generatePath(&p, 0, true, &iPathTurns, iRange))
