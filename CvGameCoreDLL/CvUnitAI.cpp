@@ -15436,7 +15436,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 		{
 			CvPlot* pLoopPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
 			if (pLoopPlot != NULL && //isPotentialEnemy(pLoopPlot->getTeam(), pLoopPlot)
-				kOurTeam.AI_mayAttack(pLoopPlot->getTeam())) // advc
+				pLoopPlot->isOwned() && kOurTeam.AI_mayAttack(pLoopPlot->getTeam())) // advc
 			{
 				if (bCanMoveAllTerrain ||
 					(pWaterArea != NULL && pLoopPlot->isAdjacentToArea(*pWaterArea)))
