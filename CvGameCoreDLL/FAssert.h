@@ -6,7 +6,6 @@
 // Only compile in FAssert's if FASSERT_ENABLE is defined.  By default, however, let's key off of
 // _DEBUG.  Sometimes, however, it's useful to enable asserts in release builds, and you can do that
 // simply by changing the following lines to define FASSERT_ENABLE or using project settings to override
-// advc.make (comment): The Makefile and project configuration take care of this
 #ifdef _DEBUG
 #define FASSERT_ENABLE
 #endif
@@ -22,13 +21,22 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int,
 			two locations below so that __FUNCTION__ is passed. */
 		const char*, bool& );
 
+// <advc.006h>: Evaluate expr once more when debugging
+#ifdef _DEBUG
+	#define BREAK_FOR_DEBUGGER(expr) \
+			{ _asm int 3 } \
+			(expr);
+#else
+	#define BREAK_FOR_DEBUGGER(expr) { _asm int 3 }
+#endif // </advc.006h>
+
 #define FAssert(expr) \
 { \
 	static bool bIgnoreAlways = false; \
 	if (!bIgnoreAlways && !(expr)) \
 	{ \
 		if (FAssertDlg(#expr, 0, __FILE__, __LINE__, __FUNCTION__, bIgnoreAlways)) \
-		{ _asm int 3 } \
+		BREAK_FOR_DEBUGGER(expr) \
 	} \
 }
 
@@ -38,7 +46,7 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int,
 	if (!bIgnoreAlways && !(expr)) \
 	{ \
 		if (FAssertDlg(#expr, msg, __FILE__, __LINE__, __FUNCTION__, bIgnoreAlways)) \
-		{ _asm int 3 } \
+		BREAK_FOR_DEBUGGER(expr) \
 	} \
 }
 
