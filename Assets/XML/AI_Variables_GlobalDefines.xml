@@ -21,12 +21,12 @@
 		 In the descriptions below, "we" refers to the AI civ that is
 		 considering war. -->
 	<Define>
-		<!-- The cities we expect to conquer as economical assets. -->
+		<!-- The cities we expect to conquer as economic assets. -->
 		<DefineName>UWAI_WEIGHT_GREED_FOR_ASSETS</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- The economical value of accepted capitulations. 
+		<!-- The economic value of accepted capitulations. 
 			 (Not: Getting closer to a Conquest victory; that's handled under
 			  MILITARY_VICTORY.) -->
 		<DefineName>UWAI_WEIGHT_GREED_FOR_VASSALS</DefineName>
