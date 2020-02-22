@@ -151,7 +151,7 @@ def savemap(argsList=None):
 		dimensionsInName = False
 	# If the script is used recursively (who would do that?) the map script name can get long
 	if len(mapScriptName) > 100:
-		mapScriptName = mapScriptNameTrunc[:100]
+		mapScriptName = mapScriptName[:100]
 	filename = mapScriptName + "_"
 	if dimensionsInName:
 		filename += str(width) + "x" + str(height) + "_"
@@ -501,7 +501,7 @@ def savemap(argsList=None):
 	f.write('def normalizeAddExtras():\n')
 	f.write('\treturn None\n')
 	f.write('\n')
-	# advc.savem: I don't think we need to override this
+	# advc.savem: AdvCiv doesn't place free AI units in the same tile; doing it only for humans won't really help.
 	#f.write('def startHumansOnSameTile():\n')
 	#f.write('\treturn True\n')
 	f.close()
