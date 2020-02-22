@@ -2153,12 +2153,12 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 
 	if (bTeamSizeModifiers) // K-Mod
 	{
-		rCost *= per100(100 +
+		rCost *= scaled_int::max(per100(100 +
 				GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) *
-				(getNumMembers() - 1)).increasedTo(0);
+				(getNumMembers() - 1)), 0);
 	}
 	// <advc.251>
-	rCost *= rModifier.increasedTo(1);
+	rCost *= scaled_int::max(rModifier, 1);
 	int iCost = rCost.roundToMultiple(isHuman() ? 5 : 1);
 	// </advc.251>
 	return std::max(1, iCost);

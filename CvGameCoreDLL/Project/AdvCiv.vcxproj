@@ -326,6 +326,7 @@
     <ClInclude Include="..\PlotRange.h" />
     <ClInclude Include="..\ScaledInt.h" />
     <ClInclude Include="..\TSCProfiler.h" />
+    <ClInclude Include="..\TypeChoice.h" />
     <ClInclude Include="..\UWAISets.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\RFChapter.h" />
