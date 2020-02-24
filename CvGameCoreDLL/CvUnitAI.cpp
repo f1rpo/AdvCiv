@@ -20988,9 +20988,8 @@ int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild, int iMissi
 	if(iMissingWorkersInArea == 0)
 		iMultiplier = 1;
 	// Account for having to replace a Fort later
-	if(kImpr.isActsAsCity() && GET_PLAYER(getOwner()).
-		AI_isAdjacentCitySite(p, true))
-			iMultiplier++;
+	if(kImpr.isActsAsCity() && GET_PLAYER(getOwner()).AI_isAdjacentCitySite(p, true))
+		iMultiplier++;
 	iCost *= iMultiplier;
 	iCost /= 2;
 	int const iDefenseWeight = 20;

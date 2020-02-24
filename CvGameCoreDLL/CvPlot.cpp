@@ -441,10 +441,12 @@ void CvPlot::updateSymbolVisibility()
 		if (pLoopSymbol != NULL)
 		{
 			if (isRevealed(GC.getGame().getActiveTeam(), true) &&
-					(isShowCitySymbols() ||
-					(gDLL->getInterfaceIFace()->isShowYields() &&
-					!gDLL->getInterfaceIFace()->isCityScreenUp())))
+				(isShowCitySymbols() ||
+				(gDLL->getInterfaceIFace()->isShowYields() &&
+				!gDLL->getInterfaceIFace()->isCityScreenUp())))
+			{
 				gDLL->getSymbolIFace()->Hide(pLoopSymbol, false);
+			}
 			else gDLL->getSymbolIFace()->Hide(pLoopSymbol, true);
 		}
 	}
@@ -465,10 +467,8 @@ void CvPlot::updateSymbols()
 	{
 		int iYield = calculateYield(((YieldTypes)iYieldType), true);
 		yieldAmounts[iYieldType] = iYield;
-		if(iYield>maxYield)
-		{
+		if(iYield > maxYield)
 			maxYield = iYield;
-		}
 	}
 
 	if(maxYield>0)
@@ -6512,9 +6512,9 @@ void CvPlot::clearFlagSymbol()
 	m_pFlagSymbol = NULL; // So that updateFlagSymbols will update the flag
 
 	/*	It seems that the EXE maintains some sort of cache or object pool.
-		Temporarily assigning the flag of a player whose flag decal will not change
-		dynamically seems to clear that cache. Note that these calls don't change
-		the state of this CvPlot object; it's all external. */
+		Temporarily assigning the flag of a player whose flag decal will not
+		change dynamically seems to clear that cache. Note that these calls
+		don't change the state of this CvPlot object; it's all external. */
 	CvFlagEntity* pTmpFlag = kFlagEntityIFace.create(BARBARIAN_PLAYER);
 	kFlagEntityIFace.setPlot(pTmpFlag, this, false);
 	kFlagEntityIFace.destroy(pTmpFlag);

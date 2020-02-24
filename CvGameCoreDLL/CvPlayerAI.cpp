@@ -8490,8 +8490,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 						kPlayer.getTradeDenial(getID(), tdata) != NO_DENIAL)
 					return false;
 			}
-		} // </advc.036>
-		// <advc.026>
+		} // </advc.036>  <advc.026>
 		else if(bOurGoldDeal && !AI_checkMaxGold(kWeGive, ePlayer))
 			return false; // </advc.026>
 	}
@@ -8563,18 +8562,22 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		for (CLLNode<TradeData> const* pNode = kWeGive.head(); pNode != NULL;
 			pNode = kWeGive.next(pNode))
 		{
-			if (pNode->m_data.m_eItemType == TRADE_VASSAL || pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pNode->m_data.m_eItemType == TRADE_VASSAL ||
+				pNode->m_data.m_eItemType == TRADE_SURRENDER)
 			{
 				bVassalTrade = true;
 
 				// The trade denial calculation for vassal trades is actually a bit nuanced.
 				// Rather than trying to restructure it, or write new code and risk inconsistencies, I'm just going use it.
-				if (kOurTeam.AI_surrenderTrade(kPlayer.getTeam(), pNode->m_data.m_eItemType == TRADE_SURRENDER ? 125
-						/*  advc.112, advc.143: Changed iPowerMultiplier from 75
-							to 100, which is the default. Multiplier for cancellation
-							now set inside AI_surrenderTrade. */
-						: 100) != NO_DENIAL)
+				if (kOurTeam.AI_surrenderTrade(kPlayer.getTeam(),
+					pNode->m_data.m_eItemType == TRADE_SURRENDER ? 125
+					/*  advc.112, advc.143: Changed iPowerMultiplier from 75 to 100,
+						which is the default. Multiplier for cancellation now set
+						inside AI_surrenderTrade. */
+					: 100) != NO_DENIAL)
+				{
 					return false;
+				}
 				// note: AI_vassalTrade calls AI_surrenderTrade after doing a bunch of war checks and so on. So we don't need that.
 				// CvPlayer::getTradeDenial, unfortunately, will reject any vassal deal by an AI player on a human team - we don't want that here.
 				// (regarding the power multiplier, cf. values used in getTradeDenial)
@@ -8595,9 +8598,8 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 			{
 				g.getRiseFall().substituteDiploText(true);
 				return false;
-			}
-			else // </advc.705>
-				return true;
+			} // </advc.705>
+			return true;
 		}
 	}
 	// BETTER_BTS_AI_MOD: END
@@ -8620,8 +8622,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		Would be better to rule this out through denial (e.g. "must be joking"),
 		but the trade screen isn't mod-able. */
 	if(!AI_checkCivicReligionConsistency(kWeGive) ||
-			!AI_checkCivicReligionConsistency(kTheyGive))
-		return false; // </advc.132>
+		!AI_checkCivicReligionConsistency(kTheyGive))
+	{
+		return false;
+	} // </advc.132>
 	/*  advc: Renamed. Was called iOurValue. (Which, elsewhere in this class,
 		is the value that we assign to what they _give_.) */
 	int iTheyReceive = kPlayer.AI_dealVal(getID(), kWeGive, false, iChange);
@@ -8651,28 +8655,29 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 				BonusTypes eBonus = (BonusTypes)kWeGive.head()->m_data.m_iData;
 				if (kPlayer.AI_bonusVal(eBonus, -1) > AI_bonusVal(eBonus, 1))
 					return true;
-				else
-					return false;
+				return false;
 			}
-		}
-		// K-Mod end
+		} // K-Mod end
 
 		/*  <advc.133> isVassalTributeDeal can't distinguish between freebies from
 			a granted help request and those from vassal tribute. That's fine,
 			cancel gifts too. */
 		if (iChange <= 0 && kOurTeam.getMasterTeam() != TEAMID(ePlayer) &&
-				CvDeal::isVassalTributeDeal(&kWeGive))
-			return false; // </advc.133>
+			CvDeal::isVassalTributeDeal(&kWeGive))
+		{
+			return false;
+		} // </advc.133>
 		// <advc.130o>
 		bool bDemand = false;
 		bool bAccept = true;
 		bool bVassal = kOurTeam.isVassal(kPlayer.getTeam()); // </advc.130o>
 		if(bVassal && CvDeal::isVassalTributeDeal(&kWeGive))
 		{
-			if (AI_getAttitude(ePlayer, false) <= GC.getInfo(getPersonalityType()).getVassalRefuseAttitudeThreshold()
-				//&& kOurTeam.getAtWarCount(true) == 0
-				&& !AI_isFocusWar() // advc.105: Replacing the above
-				&& GET_TEAM(ePlayer).getDefensivePactCount() == 0)
+			if (AI_getAttitude(ePlayer, false) <= GC.getInfo(getPersonalityType()).
+				getVassalRefuseAttitudeThreshold() &&
+				//kOurTeam.getAtWarCount(true) == 0
+				!AI_isFocusWar() && // advc.105: Replacing the above
+				GET_TEAM(ePlayer).getDefensivePactCount() == 0)
 			{
 				iTheyReceive *= (kOurTeam.getPower(false) + 10);
 				iTheyReceive /= (GET_TEAM(ePlayer).getPower(false) + 10);
@@ -8692,7 +8697,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 			bDemand = (AI_getAttitude(ePlayer) <= eNoHelpThresh);
 			if (bDemand) // </advc.130o>
 			{
-				FAssert(bHuman);
+				FAssert(bHuman); // advc (note): This has reportedly failed recently (Feb 2020)
 				if (kOurTeam.getPower(false) > (GET_TEAM(ePlayer).getPower(false) * 4) / 3)
 				{
 					// advc.130o: Don't return just yet
@@ -8704,10 +8709,12 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 				if (AI_getAttitude(ePlayer, false) <= eNoHelpThresh)
 					return false; // </advc.130v>
 				if (!bSameTeam && // advc.155
-						!bVassal && // advc.130v
-						::hash(GC.getGame().getGameTurn(), getID()) <
-						AI_prDenyHelp())
-					return false; // </advc.144>
+					!bVassal && // advc.130v
+					::hash(GC.getGame().getGameTurn(), getID()) <
+					AI_prDenyHelp())
+				{
+					return false;
+				} // </advc.144>
 			}
 			// <advc.104m>
 			if (bAccept && bDemand && getUWAI.isEnabled() && /* advc.155: */ !bSameTeam)
@@ -8735,8 +8742,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 			iThreshold -= kPlayer.AI_getPeacetimeGrantValue(getID());
 			bAccept = (iTheyReceive < iThreshold); // advc.130o: Don't return yet
 			// <advc.144>
-			if (bAccept && !bDemand && /* advc.130v: */ !bVassal &&
-					getUWAI.isEnabled())
+			if (bAccept && !bDemand && /* advc.130v: */ !bVassal && getUWAI.isEnabled())
 				bAccept = uwai().considerGiftRequest(ePlayer, iTheyReceive);
 			// </advc.144>
 		} // <advc.130o>
@@ -8845,11 +8851,12 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		return true;
 	// <advc.036>
 	if (bHuman && iWeReceive + m_iSingleBonusTradeTolerance >= iTheyReceive &&
-			kWeGive.getLength() == 1 && kTheyGive.getLength() == 1 &&
-			kWeGive.head()->m_data.m_eItemType == TRADE_RESOURCES &&
-			kTheyGive.head()->m_data.m_eItemType == TRADE_RESOURCES)
+		kWeGive.getLength() == 1 && kTheyGive.getLength() == 1 &&
+		kWeGive.head()->m_data.m_eItemType == TRADE_RESOURCES &&
+		kTheyGive.head()->m_data.m_eItemType == TRADE_RESOURCES)
+	{
 		return true;
-	// </advc.036>
+	} // </advc.036>
 	return false;
 }
 
