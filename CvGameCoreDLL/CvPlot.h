@@ -631,6 +631,7 @@ public:
 	DllExport CvFlagEntity* getFlagSymbol() const;
 	CvFlagEntity* getFlagSymbolOffset() const;
 	DllExport void updateFlagSymbol();
+	void clearFlagSymbol(); // advc.127c
 
 	DllExport CvUnit* getCenterUnit() const { return m_pCenterUnit; } // advc.inl
 	DllExport CvUnit* getDebugCenterUnit() const;

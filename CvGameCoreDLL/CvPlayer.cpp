@@ -1073,20 +1073,19 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)  // advc: style changes
 	if (isAlive()) // if the player is alive and showing on scoreboard, etc
 	{
 		// change colors, graphics, flags, units
-		kInitCore.setFlagDecal(getID(), GC.getInfo(eNewCiv).getFlagTexture());
 		kInitCore.setArtStyle(getID(), (ArtStyleTypes)GC.getInfo(eNewCiv).getArtStyleType());
-
+		// advc.127c: The new setFlagDecal function can handle the flag update
+		setFlagDecal(GC.getInfo(eNewCiv).getFlagTexture(), true);
+		/*kInitCore.setFlagDecal(getID(), GC.getInfo(eNewCiv).getFlagTexture());
 		// Force update of units flags
-		EraTypes eEra = getCurrentEra();
 		bool bAuto = m_bDisableHuman;
 		m_bDisableHuman = true;
-		// advc.127c: bGraphicsOnly=true params added
-		setCurrentEra((EraTypes)0, true);
-		setCurrentEra((EraTypes)(GC.getNumEraInfos() - 1), true);
-		setCurrentEra(eEra, true);
-
+		EraTypes eEra = getCurrentEra();
+		setCurrentEra((EraTypes)(eEra + (eEra == 0 ? 1 : -1)));
+		setCurrentEra(eEra);
 		m_bDisableHuman = bAuto;
 		kInterface.makeInterfaceDirty();
+		kInterface.setDirty(Flag_DIRTY_BIT, true);*/
 
 		// dirty all of this player's cities...
 		FOR_EACH_CITY_VAR(pLoopCity, *this)
@@ -1096,23 +1095,9 @@ void CvPlayer::changeCiv(CivilizationTypes eNewCiv)  // advc: style changes
 		FOR_EACH_UNIT_VAR(pLoopUnit, *this)
 		{
 			pLoopUnit->reloadEntity();
-			/*CvPlot& kLoopPlot = pLoopUnit->getPlot();
-			CvFlagEntity* pFlag = kLoopPlot.getFlagSymbol();
-			if (pFlag != NULL) {
-				if (gDLL->getFlagEntityIFace()->getPlayer(pFlag) == getID()) {
-					gDLL->getFlagEntityIFace()->destroy(pFlag);
-					CvFlagEntity* pNewFlag = gDLL->getFlagEntityIFace()->create(getID());
-					if (pFlag != NULL)
-						gDLL->getFlagEntityIFace()->setPlot(pNewFlag, &kLoopPlot, false);
-					gDLL->getFlagEntityIFace()->updateGraphicEra(pNewFlag);
-				}
-			}
-			kLoopPlot.setFlagDirty(true);
-			//kLoopPlot.updateGraphicEra();*/
+			// (advc: Deleted flag update code that wasn't working and had already been commented out)
 		}
 
-		//update flag eras
-		kInterface.setDirty(Flag_DIRTY_BIT, true);
 		if (getID() == GC.getGame().getActivePlayer())
 			kInterface.setDirty(Soundtrack_DIRTY_BIT, true);
 		kInterface.makeInterfaceDirty();
@@ -2860,7 +2845,7 @@ CvWString CvPlayer::getFlagDecal() const
 {
 	if (GC.getInitCore().getFlagDecal(getID()).empty())
 		return GC.getInfo(getCivilizationType()).getFlagTexture();
-	else return GC.getInitCore().getFlagDecal(getID());
+	return GC.getInitCore().getFlagDecal(getID());
 }
 
 bool CvPlayer::isWhiteFlag() const
@@ -2868,6 +2853,29 @@ bool CvPlayer::isWhiteFlag() const
 	if (GC.getInitCore().getFlagDecal(getID()).empty())
 		return GC.getInfo(getCivilizationType()).getArtInfo()->isWhiteFlag();
 	return GC.getInitCore().getWhiteFlag(getID());
+}
+
+/*	advc.127c: Wrapper for CvInitCore::setFlagDecal that can (bUpdate=true)
+	attempt to clear all flag symbols on the map in order to update
+	the flag graphics. */
+void CvPlayer::setFlagDecal(CvWString const& szFlagDecal, bool bUpdate)
+{
+	if (&szFlagDecal == &GC.getInitCore().getFlagDecal(getID()))
+		return;
+	GC.getInitCore().setFlagDecal(getID(), szFlagDecal);
+	if (!bUpdate)
+		return;
+	gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
+	if (isBarbarian())
+	{
+		FAssertMsg(false, "CvPlot::clearFlagSymbol might not work correctly when"
+				" updating flag symbols after changing the Barbarian flag decal.");
+		return;
+	}
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	{
+		GC.getMap().plotByIndex(i)->clearFlagSymbol();
+	}
 }
 
 
@@ -10257,7 +10265,7 @@ void CvPlayer::setPersonalityType(LeaderHeadTypes eNewValue)
 }
 
 
-void CvPlayer::setCurrentEra(EraTypes eNewValue, /* advc.127c: */ bool bGraphicsOnly)
+void CvPlayer::setCurrentEra(EraTypes eNewValue)
 {
 	if (getCurrentEra() == eNewValue)
 		return; // advc
@@ -10297,14 +10305,11 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue, /* advc.127c: */ bool bGraphics
 		gDLL->getEntityIFace()->updateGraphicEra(pLoopUnit->getUnitEntity(), eOldEra);
 	}
 
-	//update flag eras
+	//update main interface flag
 	gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
 
 	if (getID() == GC.getGame().getActivePlayer())
 		gDLL->getInterfaceIFace()->setDirty(Soundtrack_DIRTY_BIT, true);
-	// <advc.127c>
-	if (bGraphicsOnly)
-		return; // </advc.127c>
 
 	if (isHuman() && getCurrentEra() != GC.getGame().getStartEra() && !GC.getGame().isNetworkMultiPlayer())
 	{

@@ -6502,6 +6502,25 @@ void CvPlot::updateFlagSymbol()
 		gDLL->getFlagEntityIFace()->updateUnitInfo(m_pFlagSymbolOffset, this, true);
 }
 
+// advc.127c: For CvPlayer::setFlagDecal
+void CvPlot::clearFlagSymbol()
+{
+	if (m_pFlagSymbol == NULL)
+		return;
+	CvDLLFlagEntityIFaceBase& kFlagEntityIFace = *gDLL->getFlagEntityIFace();
+	kFlagEntityIFace.destroy(m_pFlagSymbol);
+	m_pFlagSymbol = NULL; // So that updateFlagSymbols will update the flag
+
+	/*	It seems that the EXE maintains some sort of cache or object pool.
+		Temporarily assigning the flag of a player whose flag decal will not change
+		dynamically seems to clear that cache. Note that these calls don't change
+		the state of this CvPlot object; it's all external. */
+	CvFlagEntity* pTmpFlag = kFlagEntityIFace.create(BARBARIAN_PLAYER);
+	kFlagEntityIFace.setPlot(pTmpFlag, this, false);
+	kFlagEntityIFace.destroy(pTmpFlag);
+	setFlagDirty(true); // Will cause the EXE to call updateFlagSymbols
+}
+
 
 CvUnit* CvPlot::getDebugCenterUnit() const
 {
