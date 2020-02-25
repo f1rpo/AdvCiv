@@ -4246,10 +4246,9 @@ int CvGame::getWonderScore(BuildingClassTypes eWonderClass) const
 	return 0;
 }
 
-
+// initialize score calculation
 void CvGame::initScoreCalculation()
 {
-	// initialize score calculation
 	int iMaxFood = 0;
 	CvMap const& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)
@@ -4258,23 +4257,25 @@ void CvGame::initScoreCalculation()
 		if (!kPlot.isWater() || kPlot.isAdjacentToLand())
 			iMaxFood += kPlot.calculateBestNatureYield(YIELD_FOOD, NO_TEAM);
 	}
-	m_iMaxPopulation = getPopulationScore(iMaxFood / std::max(1, GC.getFOOD_CONSUMPTION_PER_POPULATION()));
+	m_iMaxPopulation = getPopulationScore(iMaxFood / std::max(1,
+			GC.getFOOD_CONSUMPTION_PER_POPULATION()));
 	m_iMaxLand = getLandPlotsScore(GC.getMap().getLandPlots());
 	m_iMaxTech = 0;
-	for (int i = 0; i < GC.getNumTechInfos(); i++)
+	FOR_EACH_ENUM(Tech)
 	{
-		m_iMaxTech += getTechScore((TechTypes)i);
+		m_iMaxTech += getTechScore(eLoopTech);
 	}
 	m_iMaxWonders = 0;
-	for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
+	FOR_EACH_ENUM(BuildingClass)
 	{
-		m_iMaxWonders += getWonderScore((BuildingClassTypes)i);
+		m_iMaxWonders += getWonderScore(eLoopBuildingClass);
 	}
 
-	if (NO_ERA != getStartEra())
+	if (getStartEra() != NO_ERA)
 	{
 		int iNumSettlers = GC.getInfo(getStartEra()).getStartingUnitMultiplier();
-		m_iInitPopulation = getPopulationScore(iNumSettlers * (GC.getInfo(getStartEra()).getFreePopulation() + 1));
+		m_iInitPopulation = getPopulationScore(iNumSettlers *
+				(GC.getInfo(getStartEra()).getFreePopulation() + 1));
 		m_iInitLand = getLandPlotsScore(iNumSettlers *  NUM_CITY_PLOTS);
 	}
 	else
@@ -4284,22 +4285,22 @@ void CvGame::initScoreCalculation()
 	}
 
 	m_iInitTech = 0;
-	for (int i = 0; i < GC.getNumTechInfos(); i++)
+	FOR_EACH_ENUM(Tech)
 	{
-		if (GC.getInfo((TechTypes)i).getEra() < getStartEra())
-		{
-			m_iInitTech += getTechScore((TechTypes)i);
-		}
+		if (GC.getInfo(eLoopTech).getEra() < getStartEra())
+			m_iInitTech += getTechScore(eLoopTech);
 		else
 		{
-			// count all possible free techs as initial to lower the score from immediate retirement
-			for (int iCiv = 0; iCiv < GC.getNumCivilizationInfos(); iCiv++)
+			/*	count all possible free techs as initial to lower the score
+				from immediate retirement */
+			FOR_EACH_ENUM(Civilization)
 			{
-				if (GC.getInfo((CivilizationTypes)iCiv).isPlayable())
+				if (GC.getInfo(eLoopCivilization).isPlayable())
 				{
-					if (GC.getInfo((CivilizationTypes)iCiv).isCivilizationFreeTechs(i))
+					if (GC.getInfo(eLoopCivilization).isCivilizationFreeTechs(
+						eLoopCivilization))
 					{
-						m_iInitTech += getTechScore((TechTypes)i);
+						m_iInitTech += getTechScore(eLoopTech);
 						break;
 					}
 				}
@@ -4327,15 +4328,15 @@ void CvGame::setAIAutoPlay(int iNewValue, /* <advc.127> */ bool bChangePlayerSta
 	/*  AI_AUTO_PLAY_MOD, 07/09/08, jdog5000: START
 		(Multiplayer compatibility idea from Jeckel) */
 	// <advc.127> To make sure I'm not breaking anything in singleplayer
-	if(!isGameMultiPlayer())
+	if (!isGameMultiPlayer())
 	{
 		GET_PLAYER(getActivePlayer()).setHumanDisabled((getAIAutoPlay() != 0));
 		return;
 	} // </advc.127>
-	for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if(kLoopPlayer.isHuman() || kLoopPlayer.isHumanDisabled())
+		if (kLoopPlayer.isHuman() || kLoopPlayer.isHumanDisabled())
 		{	/*  advc.127: Was GET_PLAYER(getActivePlayer()).
 				Tagging advc.001 because that was probably a bug. */
 			kLoopPlayer.setHumanDisabled((getAIAutoPlay() != 0));
@@ -7729,9 +7730,7 @@ void CvGame::updateMoves()
 {
 	int aiShuffle[MAX_PLAYERS];
 	if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
-	{
 		shuffleArray(aiShuffle, MAX_PLAYERS, getSorenRand());
-	}
 	else
 	{
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -7744,60 +7743,51 @@ void CvGame::updateMoves()
 	// </advc.001y>
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		CvPlayerAI& player = GET_PLAYER((PlayerTypes)(aiShuffle[iI]));
+		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)aiShuffle[iI]);
+		if (!kPlayer.isAlive() || !kPlayer.isTurnActive())
+			continue; // advc
 
-		if (player.isAlive())
+		if (!kPlayer.isAutoMoves())
 		{
-			if (player.isTurnActive())
+			kPlayer.AI_unitUpdate();
+			if (!kPlayer.isHuman() && !kPlayer.hasBusyUnit())
 			{
-				if (!player.isAutoMoves())
+				/*  advc.001y: Safety measure against infinite loop
+					(Complementing Vanilla Civ 4 code in CvSelectionGroupAI::AI_update.
+					The attempt counter there won't work when CvUnitAI::AI_update
+					joins a different selection group.) */
+				if (m_iUnitUpdateAttempts > iMaxUnitUpdateAttempts ||
+					!kPlayer.hasReadyUnit(true))
 				{
-					player.AI_unitUpdate();
-
-					if (!player.isHuman())
-					{
-						if (!player.hasBusyUnit())
-						{
-							/*  advc.001y: Safety measure against infinite loop
-								(Complementing Vanilla Civ 4 code in CvSelectionGroupAI::AI_update.
-								The attempt counter there won't work when CvUnitAI::AI_update
-								joins a different selection group.) */
-							if (m_iUnitUpdateAttempts > iMaxUnitUpdateAttempts ||
-									!player.hasReadyUnit(true))
-								player.setAutoMoves(true);
-							else m_iUnitUpdateAttempts++; // advc.001y
-						}
-					}
+					kPlayer.setAutoMoves(true);
 				}
-
-				if (player.isAutoMoves())
-				{
-					FOR_EACH_GROUP_VAR(pGroup, player)
-						pGroup->autoMission();
-					// K-Mod. Here's where we do the AI for automated units.
-					// Note, we can't do AI_update and autoMission in the same loop, because either one might delete the group - and thus cause the other to crash.
-					if (player.isHuman())
-					{
-						FOR_EACH_GROUPAI_VAR(pGroup, player)
-						{
-							if (pGroup->AI_update())
-							{
-								FAssert(player.hasBusyUnit());
-								break;
-							}
-						}
-						// Refresh the group cycle for human players.
-						// Non-human players can wait for their units to wake up, or regain moves - group cycle isn't very important for them anyway.
-						player.refreshGroupCycleList();
-					}
-					// K-Mod end
-
-					if (!player.hasBusyUnit())
-					{
-						player.setAutoMoves(false);
-					}
-				}
+				else m_iUnitUpdateAttempts++; // advc.001y
 			}
+		}
+		if (kPlayer.isAutoMoves())
+		{
+			FOR_EACH_GROUP_VAR(pGroup, kPlayer)
+				pGroup->autoMission();
+			/*	K-Mod. Here's where we do the AI for automated units.
+				Note, we can't do AI_update and autoMission in the same loop, because
+				either one might delete the group - and thus cause the other to crash. */
+			if (kPlayer.isHuman())
+			{
+				FOR_EACH_GROUPAI_VAR(pGroup, kPlayer)
+				{
+					if (pGroup->AI_update())
+					{
+						FAssert(kPlayer.hasBusyUnit());
+						break;
+					}
+				}
+				/*	Refresh the group cycle for human players.
+					Non-human players can wait for their units to wake up, or regain moves -
+					group cycle isn't very important for them anyway. */
+				kPlayer.refreshGroupCycleList();
+			} // K-Mod end
+			if (!kPlayer.hasBusyUnit())
+				kPlayer.setAutoMoves(false);
 		}
 	}
 }

@@ -140,17 +140,10 @@ void CvInitCore::setDefaults()
 bool CvInitCore::getHuman(PlayerTypes eID) const
 {
 	if (getSlotStatus(eID) == SS_TAKEN)
-	{
 		return true;
-	}
 	else if (getSlotStatus(eID) == SS_OPEN)
-	{
-		return ( gDLL->isGameActive() || getHotseat() || getPitboss() || getPbem());
-	}
-	else
-	{
-		return false;
-	}
+		return (gDLL->isGameActive() || getHotseat() || getPitboss() || getPbem());
+	return false;
 }
 
 int CvInitCore::getNumHumans() const

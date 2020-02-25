@@ -5,7 +5,7 @@
 #include "CvDLLXMLIFaceBase.h"
 
 
-CvCivilizationInfo::CvCivilizationInfo():
+CvCivilizationInfo::CvCivilizationInfo() :
 m_iDefaultPlayerColor(NO_PLAYERCOLOR),
 m_iArtStyleType(NO_ARTSTYLE),
 m_iUnitArtStyleType(NO_UNIT_ARTSTYLE),

@@ -548,9 +548,7 @@ void CyGame::setAIAutoPlay(int iNewValue)
 		m_pGame->setAIAutoPlay(iNewValue);
 }
 
-/*
-** K-Mod, 11/dec/10, karadoc
-*/
+// K-Mod, 11/dec/10, start
 int CyGame::getGlobalWarmingIndex() const
 {
 	return (NULL != m_pGame ? m_pGame->getGlobalWarmingIndex() : 0);
@@ -585,10 +583,7 @@ int CyGame::calculateGwSeverityRating() const
 {
 	return (NULL != m_pGame ? m_pGame->calculateGwSeverityRating() : 0);
 }
-/*
-** K-Mod end
-*/
-
+// K-Mod end
 
 bool CyGame::isScoreDirty() const
 {

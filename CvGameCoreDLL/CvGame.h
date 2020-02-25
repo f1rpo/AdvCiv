@@ -328,13 +328,12 @@ public:
 	{
 		return m_iAIAutoPlay; // advc.inl
 	}
-	DllExport void setAIAutoPlay(int iNewValue) {										// Exposed to Python
-		// <advc.127>
+	DllExport void setAIAutoPlay(int iNewValue)										// Exposed to Python
+	{	// <advc.127>
 		setAIAutoPlay(iNewValue, true);
 	}
 	void setAIAutoPlay(int iNewValue, bool bChangePlayerStatus); // </advc.127>
-	void changeAIAutoPlay(int iChange,
-			bool bChangePlayerStatus = true); // advc.127
+	void changeAIAutoPlay(int iChange, /* advc.127: */ bool bChangePlayerStatus = true);
 	// <advc.opt>
 	int getCivPlayersEverAlive() const;
 	void changeCivPlayersEverAlive(int iChange);
