@@ -7739,7 +7739,7 @@ void CvGame::updateMoves()
 			aiShuffle[iI] = iI;
 		}
 	} // <advc.001y>
-	int const iMaxUnitUpdateAttempts = 15; 
+	int const iMaxUnitUpdateAttempts = 18;
 	FAssertMsg(m_iUnitUpdateAttempts != iMaxUnitUpdateAttempts - 5, "Unit stuck in a loop");
 	// </advc.001y>
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
