@@ -2634,7 +2634,7 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 	// Not sure if this is needed:
 	bool const bActive = (g.getActivePlayer() == getID());
 	CvWString szReplayText;
-	if(bNewVal && !m_bDisableHuman)
+	if (bNewVal && !m_bDisableHuman)
 	{
 		AI().AI_setHumanDisabled(true);
 		if(bActive)
@@ -2644,7 +2644,7 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 			szReplayText = gDLL->getText("TXT_KEY_AUTO_PLAY_STARTED");
 		}
 	}
-	else if(!bNewVal && m_bDisableHuman)
+	else if (!bNewVal && m_bDisableHuman)
 	{
 		AI().AI_setHumanDisabled(false);
 		m_iNewMessages = 0; // Don't open Event Log when coming out of Auto Play
@@ -9615,8 +9615,15 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 	GET_TEAM(getTeam()).changeAliveCount(isAlive() ? 1 : -1);
 	// <advc.agent>
 	if (!isAlive())
-		GC.getAgents().playerDefeated(getID()); // </advc.agent>
-
+		GC.getAgents().playerDefeated(getID());
+	else if (bEverAlive && getParent() == NO_PLAYER) // Colonies are handled by initInGame
+	{
+		GC.getAgents().playerRevived(getID());
+		// <advc.104r> (UWAI data gets deleted upon death)
+		if(getUWAI.isEnabled())
+			getUWAI.processNewCivInGame(getID()); // </advc.104r>
+	}
+	// </advc.agent>
 	// Report event to Python
 	CvEventReporter::getInstance().setPlayerAlive(getID(), bNewValue);
 
@@ -9631,9 +9638,11 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 			setFoundedFirstCity(false);
 		updatePlotGroups();
 		if (g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
-				g.getNumGameTurnActive() == 0 ||
-				(g.isSimultaneousTeamTurns() && GET_TEAM(getTeam()).isTurnActive()))
+			g.getNumGameTurnActive() == 0 ||
+			(g.isSimultaneousTeamTurns() && GET_TEAM(getTeam()).isTurnActive()))
+		{
 			setTurnActive(true);
+		}
 		gDLL->openSlot(getID());
 		if(!isBarbarian()) // advc.003n
 		{	// K-Mod. Attitude cache
@@ -9710,47 +9719,62 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 
 void CvPlayer::verifyAlive()
 {
-	if (isAlive())
+	CvGame const& kGame = GC.getGame();
+	if (!isAlive())
 	{
-		bool bKill = false; // advc: Removed superfluous code
-		if (!isBarbarian())
+		if (getNumCities() > 0 || getNumUnits() > 0)
+			setAlive(true);
+		return; // advc
+	}
+	bool bKill = false; // advc: Removed superfluous code
+	if (!isBarbarian())
+	{
+		if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
 		{
-			if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
-			{
-				//if ((getNumUnits() == 0) || (!(GC.getGame().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity()))
-				// advc.701: COMPLETE_KILLS option removed (replacing the line above)
-				if (getNumUnits() <= 0 || isFoundedFirstCity())
-				{
-					bKill = true;
-				}
-			}
-		}
-
-		if (!bKill)
-		{
-			if (!isBarbarian())
-			{
-				if (GC.getGame().getMaxCityElimination() > 0)
-				{
-					if (getCitiesLost() >= GC.getGame().getMaxCityElimination())
-					{
-						bKill = true;
-					}
-				}
-			}
-		}
-
-		if (bKill)
-		{
-			setAlive(false);
+			//if (getNumUnits() == 0 || (!kGame.isOption(GAMEOPTION_COMPLETE_KILLS) && isFoundedFirstCity()))
+			// advc.701: COMPLETE_KILLS option removed (replacing the line above)
+			if (getNumUnits() <= 0 || isFoundedFirstCity())
+				bKill = true;
 		}
 	}
-	else
+	if (!bKill && !isBarbarian() && kGame.getMaxCityElimination() > 0 &&
+		getCitiesLost() >= kGame.getMaxCityElimination())
 	{
-		if ((getNumCities() > 0) || (getNumUnits() > 0))
+		bKill = true;
+	}
+	if (bKill)
+	{	// <advc.127> Defeat of active player during AI Auto Play
+		if (isHumanDisabled() && kGame.getActivePlayer() == getID() &&
+			!kGame.isOption(GAMEOPTION_RISE_FALL)) // advc.701
 		{
-			setAlive(true);
-		}
+			// Automatically change active player
+			PlayerTypes eNextAlive = getID();
+			for (int iPass = 0; iPass < 2; iPass++)
+			{
+				bool bAllowMinor = (iPass == 1);
+				do // Akin to RiseFall::nextCivAlive
+				{
+					eNextAlive = (PlayerTypes)((eNextAlive + 1) % MAX_CIV_PLAYERS);
+				} while(eNextAlive != getID() &&
+					(!GET_PLAYER(eNextAlive).isAlive() || GET_PLAYER(eNextAlive).isHuman() ||
+					GET_PLAYER(eNextAlive).isHumanDisabled() ||
+					(!bAllowMinor && GET_PLAYER(eNextAlive).isMinorCiv())));
+				if (eNextAlive != getID())
+					break;
+			}
+			if (eNextAlive != getID())
+			{
+				setIsHuman(false);
+				GC.getGame().changeHumanPlayer(eNextAlive);
+				GET_PLAYER(eNextAlive).setHumanDisabled(true);
+			}
+			else
+			{
+				FAssertMsg(kGame.isGameMultiPlayer(), "No other civ alive left?");
+				// (Let the original AI Auto Play code handle it)
+			}
+		} // </advc.127>
+		setAlive(false);
 	}
 }
 

@@ -35,6 +35,7 @@ public:
 	void gameStart(bool bFromSaveGame);
 	void playerDefeated(PlayerTypes ePlayer);
 	void colonyCreated(PlayerTypes eNewPlayer);
+	void playerRevived(PlayerTypes ePlayer);
 	void teamCapitulated(TeamTypes eVassal, TeamTypes eMaster)
 	{
 		updateVassal(eVassal, eMaster, true); // sufficient for now
@@ -193,6 +194,7 @@ private:
 
 	void updateAllCachedSequences();
 	void updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal);
+	void playerSetAliveInGame(PlayerTypes ePlayer, bool bRevive);
 
 	PlayerVector m_noPlayers; // empty
 	TeamVector m_noTeams; // empty

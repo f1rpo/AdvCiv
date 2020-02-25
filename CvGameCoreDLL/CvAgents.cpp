@@ -163,20 +163,35 @@ void CvAgents::playerDefeated(PlayerTypes eDeadPlayer)
 }
 
 
-void CvAgents::colonyCreated(PlayerTypes eNewPlayer)
+void CvAgents::playerSetAliveInGame(PlayerTypes ePlayer, bool bRevive)
 {
-	CvPlayerAI* pPlayer = &GET_PLAYER(eNewPlayer);
-	CvTeamAI* pTeam = &GET_TEAM(eNewPlayer);
-	insertIntoVector(teamSeqCache(CIV_EVER_ALIVE), pTeam);
+	CvPlayerAI* pPlayer = &GET_PLAYER(ePlayer);
+	CvTeamAI* pTeam = &GET_TEAM(ePlayer);
+	if (!bRevive)
+		insertIntoVector(teamSeqCache(CIV_EVER_ALIVE), pTeam, false);
 	insertIntoVector(teamSeqCache(CIV_ALIVE), pTeam);
 	insertIntoVector(teamSeqCache(MAJOR_ALIVE), pTeam);
-	insertIntoVector(playerSeqCache(CIV_EVER_ALIVE), pPlayer);
+	if (!bRevive)
+		insertIntoVector(playerSeqCache(CIV_EVER_ALIVE), pPlayer, false);
 	insertIntoVector(playerSeqCache(CIV_ALIVE), pPlayer);
 	insertIntoVector(playerSeqCache(MAJOR_ALIVE), pPlayer);
 	PlayerVector const& members = memberSeqCache(MEMBER, pTeam->getID());
 	FAssert(std::find(members.begin(), members.end(), pPlayer) != members.end());
 	PlayerVector& membersAlive = memberSeqCache(MEMBER_ALIVE, pTeam->getID());
 	insertIntoVector(membersAlive, pPlayer);
+}
+
+
+void CvAgents::colonyCreated(PlayerTypes eNewPlayer)
+{
+	// Normally, players shouldn't be reused; if reuse does occur, call should still succeed.
+	playerSetAliveInGame(eNewPlayer, false);
+}
+
+
+void CvAgents::playerRevived(PlayerTypes ePlayer)
+{
+	playerSetAliveInGame(ePlayer, true);
 }
 
 
