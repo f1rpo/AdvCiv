@@ -13,7 +13,9 @@
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
 	May want to define __forceinline as inline if FASSERT_ENABLE is defined;
-	see FAssert.h. */
+	see FAssert.h.
+	The bernoulliSuccess function assumes that CvRandom can include two integer values
+	in its log messages; see comment in bernoulliSuccess. */
 
 // For members shared by all instantiations of ScaledInt
 template<typename Dummy> // Just so that static data members can be defined in the header
@@ -80,7 +82,7 @@ CvString ScaledIntBase<Dummy>::szBuf = "";
 	forums.civfanatics.com/threads/class-for-fixed-point-arithmetic.655037/
 */
 template<int iSCALE, typename IntType = int, typename EnumType = int>
-class ScaledInt : ScaledIntBase<void>
+class ScaledInt : ScaledIntBase<void> // Rename to ScaledNum? What's being scaled isn't necessarily an integer.
 {
 	BOOST_STATIC_ASSERT(sizeof(IntType) <= 4);
 	/*	Workaround for MSVC bug with dependent template argument in friend declaration:
@@ -174,6 +176,15 @@ public:
 		FAssert(m_i >= static_cast<IntType>(INTMIN + SCALE / 2u));
 		return (m_i + SCALE / 2u) / SCALE;
 	}
+	__forceinline int floor() const
+	{
+		return static_cast<int>(m_i / SCALE);
+	}
+	int ceil() const
+	{
+		int r = floor();
+		return r + ((m_i >= 0 && m_i - r * SCALE > 0) ? 1 : 0);
+	}
 	// Cast operator - better require explicit calls to getInt.
 	/*__forceinline operator int() const
 	{
@@ -239,7 +250,11 @@ public:
 			return false;
 		if (m_i >= SCALE)
 			return true;
-		return (kRand.getInt(SCALE, szLog, iLogData1, iLogData2) < m_i);
+		BOOST_STATIC_ASSERT(iSCALE <= USHRT_MAX);
+		/*	When porting ScaledInt to another mod, you may want to use:
+			return (kRand.get(static_cast<unsigned short>(SCALE), szLog) < m_i); */
+		return (kRand.getInt(static_cast<unsigned short>(SCALE),
+				szLog, iLogData1, iLogData2) < m_i);
 	}
 
 	ScaledInt pow(int iExp) const
@@ -259,6 +274,10 @@ public:
 	{
 		FAssert(!isNegative());
 		return powNonNegative(fromRational<1,2>());
+	}
+	__forceinline ScaledInt exponentiate(ScaledInt rExp)
+	{
+		*this = pow(rExp);
 	}
 
 	__forceinline ScaledInt abs() const
@@ -933,7 +952,7 @@ __forceinline bool operator>(double d, ScaledInt_T r)
 /*	1024 isn't very precise at all - but at least better than
 	the percent scale normally used by BtS.
 	Leads to INTMAX=2097151, i.e. ca. 2 mio.
-	Use 2048 instead? */
+	Use 2048 instead? Rename to "scaled" and "uscaled"?*/
 typedef ScaledInt<1024,int> scaled_int;
 typedef ScaledInt<1024,uint> scaled_uint;
 
@@ -967,10 +986,12 @@ __forceinline scaled_int per10000(int iNum)
 {
 	return scaled_int(iNum, 10000);
 }
-/*	For double, only const expressions are allowed. Can only
-	make sure of that through a macro. The macro can't use
-	(dConstExpr) >= 0 ? scaled_uint::fromRational<...> : scaled_int::fromRational<...>
-	b/c the ternary-? operator has to have compatible and unambigious operands types. */
+/*	scaled_int construction from double. Only const expressions are allowed.
+	Can only make sure of that through a macro. Tbd.: Could return a scaled_uint
+	when the double expression is non-negative:
+	choose_type<(dConstExpr) >= 0,scaled_uint,scaled_int>::type::fromRational
+	Arithmetic operations are faster on scaled_uint, but mixing the two types
+	isn't going to be helpful. So perhaps create a separate ufixp macro instead(?). */
 #define fixp(dConstExpr) \
 		((dConstExpr) >= ((int)MAX_INT) / 10000 - 1 || \
 		(dConstExpr) <= ((int)MIN_INT) / 10000 + 1 ? \

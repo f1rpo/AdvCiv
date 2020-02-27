@@ -68,6 +68,14 @@ void TestScaledInt()
 	FAssert(std::strcmp(fixp(2.2).str(1), "ca. 2") == 0);
 	FAssert(scaled_int(42).roundToMultiple(5) == 40);
 	FAssert(scaled_int(-43).roundToMultiple(5) == -45);
+	FAssert(scaled_int().ceil() == 0);
+	FAssert(scaled_int(1).ceil() == 1);
+	FAssert(scaled_int(-2).ceil() == -2);
+	FAssert(fixp(2.001).ceil() == 3);
+	FAssert(fixp(2.5).ceil() == 3);
+	FAssert(fixp(2.75).ceil() == 3);
+	FAssert(fixp(-9.2).ceil() == -9);
+	FAssert(fixp(-9.99).ceil() == -9);
 
 	MovementPts rMoves = fixp(1.5);
 	FAssert(rMoves == scaled_int(3, 2)); // Allowed: operations on ScaledInt<*,*,int>
