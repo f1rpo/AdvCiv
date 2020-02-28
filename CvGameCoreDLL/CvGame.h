@@ -437,7 +437,7 @@ public:
 
 	inline HandicapTypes getHandicapType() const { return m_eHandicap; } // advc.inl
 	void setHandicapType(HandicapTypes eHandicap);
-	HandicapTypes getAIHandicap() const; // advc.127
+	HandicapTypes getAIHandicap() const { return m_eAIHandicap; } // advc.127
 
 	DllExport PlayerTypes getPausePlayer() const;																			// Exposed to Python
 	DllExport bool isPaused() const;																									// Exposed to Python

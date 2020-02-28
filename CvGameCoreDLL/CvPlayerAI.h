@@ -120,8 +120,8 @@ public:
 	bool AI_isAreaAlone(CvArea const& kArea) const;
 	bool AI_isCapitalAreaAlone() const;
 	bool AI_isPrimaryArea(CvArea const& kArea) const;
-
 	int AI_militaryWeight(CvArea const* pArea = NULL) const;
+	bool AI_feelsSafe() const; // advc.109
 
 	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
@@ -300,7 +300,7 @@ public:
 	// <advc.017b>
 	bool AI_isExcessSeaExplorers(CvArea const& kWaterArea, int iChange = 0) const;
 	bool AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea const* pArea = NULL) const;
-	// </advc.017>
+	// </advc.017b>
 	// <advc.042> Moved from CvPlayer and iLookAhead param added
 	int AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
 	int AI_countOwnedBonuses(BonusTypes eBonus) const;																											// Exposed to Python
@@ -767,9 +767,7 @@ protected:
 	void AI_foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>
 	double AI_bonusImportValue(PlayerTypes eFrom) const; // advc.149
 	int AI_anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
-	// <advc.109>
-	bool AI_feelsSafe() const;
-	bool AI_isThreatFromMinorCiv() const; // </advc.109>
+	bool AI_isThreatFromMinorCiv() const; // advc.109
 	void AI_updateDangerFromSubmarines(); // advc.651
 	bool AI_cheatDangerVisibility(CvPlot const& kAt) const; // advc.128
 	// <advc>

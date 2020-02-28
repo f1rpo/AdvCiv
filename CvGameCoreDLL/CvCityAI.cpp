@@ -1002,14 +1002,11 @@ void CvCityAI::AI_chooseProduction()
 					if(bLandWar && iWarSuccessRating < 0)
 						iOdds += 2 * iWarSuccessRating;
 					// </advc.017>
-					if (AI_chooseUnit(UNITAI_ATTACK_SEA), iOdds)
-					{
+					if (AI_chooseUnit(UNITAI_ATTACK_SEA, iOdds))
 						return;
-					}
 					/*  advc.017: Don't want to fall back on these when the above
 						fails due to iOdds. Shouldn't be needed either; pirate and
-						reserve units can also function as attackers (except perhaps
-						submarines? they don't have ATTACK_SEA in XML). */
+						reserve units can also function as attackers. */
 					/*if (AI_chooseUnit(UNITAI_PIRATE_SEA))
 						return;
 					if (AI_chooseUnit(UNITAI_RESERVE_SEA))
@@ -8194,12 +8191,11 @@ void CvCityAI::AI_doDraft(bool bForce)
 			bWait = false;
 	}
 
-	if(bWait)
+	if (bWait)
 	{
 		// Non-critical, only burn population if population is not worth much
-		// <advc.017>
-		double prDraft = AI_buildUnitProb(true) / 100.0;
-		if(::bernoulliSuccess(prDraft, "advc.017") && // </advc.017>
+		// advc.017:
+		if (per100(AI_buildUnitProb(true)).bernoulliSuccess(GC.getGame().getSRand(), "advc.017") &&
 			(getConscriptAngerTimer() == 0 || isNoUnhappiness()) && // K-Mod
 			(bGoodValue || bTooMuchPop)) // advc.017  (no functional change here)
 		{
@@ -8224,14 +8220,10 @@ void CvCityAI::AI_doHurry(bool bForce)
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
 
 	if (kOwner.isBarbarian())
-	{
 		return;
-	}
 
 	if (getProduction() == 0 && !bForce)
-	{
 		return;
-	}
 
 	UnitTypes eProductionUnit = getProductionUnit();
 	UnitAITypes eProductionUnitAI = getProductionUnitAI();
@@ -8278,9 +8270,11 @@ void CvCityAI::AI_doHurry(bool bForce)
 		int iPopCost = 0;
 		// <advc.101> Don't whip in cities with revolt chance
 		if(iHurryAngerLength >= 3 && (revoltProbability(false, false, true) > 0 ||
-				(getNumRevolts() >= GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS) &&
-				revoltProbability(true, true, true) > 0)))
-			continue; // </advc.101>
+			(getNumRevolts() >= GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS) &&
+			revoltProbability(true, true, true) > 0)))
+		{
+			continue;
+		} // </advc.101>
 		int iOverflow = 0; // advc.121b
 		if (iHurryPopulation > 0)
 		{
@@ -8354,8 +8348,10 @@ void CvCityAI::AI_doHurry(bool bForce)
 						/*  Growth also matters in AI_citizenSacrificeCost, but
 							not that much. */
 						if(kOwner.AI_getFlavorValue(FLAVOR_GROWTH) <= 0 &&
-								kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) > 2)
+							kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) > 2)
+						{
 							iFlavorBoost++;
+						}
 					}
 					iOverflow *= 4 + iFlavorBoost;
 					iOverflow /= 4;
@@ -8398,11 +8394,11 @@ void CvCityAI::AI_doHurry(bool bForce)
 						getArea().getNumAIUnits(getOwner(), UNITAI_SETTLE) <= 0 &&
 						// advc.121b: Check for local city sites
 						kOwner.AI_getNumAreaCitySites(getArea(), foo) > 0) ? 24 : 14) *
-					/*  <advc.064b> Second arg for getProductionTurnsLeft was 1,
-						perhaps by accident, or so that overflow and chopping production
-						are ignored, but that's not going to work anymore.
-						2 would still work, but I think we should use the actual
-						production turns here - how much earlier are we getting the unit? */
+						/*  <advc.064b> Second arg for getProductionTurnsLeft was 1,
+							perhaps by accident, or so that overflow and chopping production
+							are ignored, but that's not going to work anymore.
+							2 would still work, but I think we should use the actual
+							production turns here - how much earlier are we getting the unit? */
 						std::min(getProductionTurnsLeft(eProductionUnit, 0) - 1,
 						getProductionNeeded(eProductionUnit)); // </advc.064b>
 				break;
@@ -8426,10 +8422,12 @@ void CvCityAI::AI_doHurry(bool bForce)
 					if (AI_isDanger())
 						iValue *= 6;
 					else if (kUnitInfo.getDomainType() == DOMAIN_SEA &&
-							(getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_ASSAULT ||
-							getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_ASSAULT_ASSIST ||
-							getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_ASSAULT_MASSING))
+						(getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_ASSAULT ||
+						getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_ASSAULT_ASSIST ||
+						getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_ASSAULT_MASSING))
+					{
 						iValue *= 5;
+					}
 					else
 					{
 						if (getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_DEFENSIVE)
@@ -8449,14 +8447,16 @@ void CvCityAI::AI_doHurry(bool bForce)
 						}
 						else
 						{
-							if (getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_NEUTRAL) {
+							if (getArea().getAreaAIType(kOwner.getTeam()) == AREAAI_NEUTRAL)
+							{
 								iValue *= kOwner.AI_unitCostPerMil() >= kOwner.AI_maxUnitCostPerMil(
 										area(), AI_buildUnitProb()) ? 0 : 3;
 								iOverflow = (2 * iOverflow) / 3; // advc.021b
 							} // <advc.121b>
 							else if(!kOwner.AI_isFocusWar() &&
-									!kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1) &&
-									!kOwner.AI_isDefenseFocusOnBarbarians(getArea())) {
+								!kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1) &&
+								!kOwner.AI_isDefenseFocusOnBarbarians(getArea()))
+							{
 								iValue *= 3;
 								iOverflow = (iOverflow * 3) / 4;
 							} // </advc.121b>
@@ -8467,7 +8467,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 				break;
 			}
 			iValue /= 4 + std::max(0, -iHappyDiff)
-					+ 2; // advc.017: Whip fewer units
+					+ 2; // advc.121b: Whip fewer units
 			if (iHurryCost < iValue + /* advc.121b: */ iOverflow)
 			{
 				if (gCityLogLevel >= 2) logBBAI("      City %S (%d) hurries %S. %d pop (%d) + %d gold (%d) to save %d turns. (value %d) (hd %d)", getName().GetCString(), getPopulation(), GC.getInfo(eProductionUnit).getDescription(0), iHurryPopulation, iPopCost, iHurryGold, iGoldCost, getProductionTurnsLeft(eProductionUnit, /* advc.064b: was 1 */ 2), iValue, iHappyDiff);
@@ -11929,8 +11929,10 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 40;*/ // BtS
 		// K-Mod. Don't sacrifice lots of commerce unless we're on the defensive, or this is 'total war'.
 		// advc.018: Removed crush from the isDoStrategy call
-		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER | AI_STRATEGY_TURTLE) ? 20 : 10;
-		if (eAreaAIType != AREAAI_NEUTRAL && !kPlayer.AI_isFinancialTrouble() && !kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS | AI_STRATEGY_GET_BETTER_UNITS))
+		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += kPlayer.
+				AI_isDoStrategy(AI_STRATEGY_DAGGER | AI_STRATEGY_TURTLE) ? 20 : 10;
+		if (eAreaAIType != AREAAI_NEUTRAL && !kPlayer.AI_isFinancialTrouble() &&
+			!kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS | AI_STRATEGY_GET_BETTER_UNITS))
 		{
 			const CvTeamAI& kTeam = GET_TEAM(kPlayer.getTeam());
 			bool bSeriousWar = eAreaAIType == AREAAI_DEFENSIVE || kPlayer.isBarbarian();
@@ -12128,7 +12130,7 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc: some style 
 				search range for cities on other continents; but will have to
 				decrease the distance later on when computing the closeness value. */
 			bool const bSameArea = sameArea(*pLoopCity);
-			if(!bSameArea) // </advc.107>
+			if (!bSameArea) // </advc.107>
 			{
 				iDistance += 1;
 				iDistance /= 2;
@@ -12341,16 +12343,14 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 					// I may add a turn limit later if this produces unwanted behaviour. (getGameTurn() - getGameTurnAcquired() < 40)
 					if (getPreviousOwner() == kRival.getID())
 						iCivFactor = iCivFactor * 3/2;
-					// Don't get too comfortable if kLoopPlayer is using a conquest strategy.
-					if (kRival.AI_atVictoryStage(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
+					// Don't get too comfortable if kLoopPlayer is using a military victory strategy.
+					if (kRival.AI_atVictoryStage(AI_VICTORY_MILITARY4))
 						iCivFactor = std::max(100, iCivFactor);
 				}
 				// K-Mod end
 
 				if (bCrushStrategy)
-				{
 					iCivFactor /= 2;
-				}
 			}
 
 			// K-Mod. Amplify the threat rating for rivals which have high power.

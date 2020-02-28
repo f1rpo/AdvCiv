@@ -551,8 +551,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iScreenWidth = m_iScreenHeight = 0; // advc.061
 
 	m_eHandicap = eHandicap;
-	// advc.127: (XML not loaded when constructor called)
-	m_eAIHandicap = bConstructorCall ? NO_HANDICAP : (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP");
+	// <advc.127>
+	m_eAIHandicap = (bConstructorCall ? NO_HANDICAP :
+			// (XML not loaded when constructor called)
+			(HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP")); // </advc.127>
 	m_ePausePlayer = NO_PLAYER;
 	m_eBestLandUnit = NO_UNIT;
 	m_eWinner = NO_TEAM;
@@ -774,7 +776,7 @@ void CvGame::initDiplomacy()
 	}
 }
 
-// <advc.127>
+// advc.127:
 void CvGame::initGameHandicap()
 {
 	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
@@ -801,18 +803,17 @@ void CvGame::initGameHandicap()
 	// Set m_eAIHandicap to the average of AI handicaps
 	int iHandicapSum = 0;
 	int iDiv = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
-		CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
-		if(civ.isAlive() && !civ.isHuman() && !civ.isMinorCiv())
+		if (!it->isHuman())
 		{
-			iHandicapSum += civ.getHandicapType();
+			iHandicapSum += it->getHandicapType();
 			iDiv++;
 		}
 	}
 	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
-		m_eAIHandicap = (HandicapTypes)::round(iHandicapSum / (double)iDiv);
-} // </advc.127>
+		m_eAIHandicap = (HandicapTypes)ROUND_DIVIDE(iHandicapSum, iDiv);
+}
 
 
 void CvGame::initFreeState()
@@ -5203,12 +5204,6 @@ void CvGame::setHandicapType(HandicapTypes eHandicap)
 {
 	m_eHandicap = eHandicap;
 }
-
-// <advc.127>
-HandicapTypes CvGame::getAIHandicap() const
-{
-	return m_eAIHandicap;
-} // </advc.127>
 
 /*  <advc.250> This was originally a one-liner in CvUtils.py (getScoreComponent),
 	but gets a bit more involved with SPaH. */

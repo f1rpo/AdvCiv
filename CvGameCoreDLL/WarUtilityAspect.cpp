@@ -2010,8 +2010,8 @@ bool KingMaking::anyVictory(PlayerTypes civId, AIVictoryStage flags, int stage,
 	if(!bPredict) {
 		if(stage == 3)
 			return civ.AI_atVictoryStage3();
-		return (flags & (AI_VICTORY_SPACE4 | AI_VICTORY_CONQUEST4 |
-				AI_VICTORY_DIPLOMACY4 | AI_VICTORY_DOMINATION4 | AI_VICTORY_CULTURE4));
+		return (flags & (AI_VICTORY_SPACE4 | AI_VICTORY_MILITARY4 |
+				AI_VICTORY_DIPLOMACY4 | AI_VICTORY_CULTURE4));
 	}
 	if(m->isEliminated(civId) || m->hasCapitulated(TEAMID(civId)))
 		return false;

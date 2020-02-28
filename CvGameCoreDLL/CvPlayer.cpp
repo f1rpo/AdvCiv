@@ -10245,7 +10245,7 @@ void CvPlayer::setStrike(bool bNewValue)
 HandicapTypes CvPlayer::getHandicapType() const
 {
 	// <advc.127>
-	if(isHumanDisabled() && // <advc.706>
+	if (isHumanDisabled() && // <advc.706>
 			// With R&F, Ctrl+Shift+X still leads to Auto Play with AI handicap.
 			(!GC.getGame().isOption(GAMEOPTION_RISE_FALL) ||
 			!GC.getGame().getRiseFall().hasRetired()))

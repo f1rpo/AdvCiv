@@ -10462,10 +10462,11 @@ bool CvUnitAI::AI_guardBonus(int iMinValue)
 	PROFILE_FUNC();
 	// <advc.107> No defenders to spare for bonuses
 	if(GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_TURTLE) ||
-			(getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE &&
-			GET_TEAM(getTeam()).AI_getWarSuccessRating() < -80))
-		return false; // </advc.107>
-
+		(getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE &&
+		GET_TEAM(getTeam()).AI_getWarSuccessRating() < -80))
+	{
+		return false;
+	} // </advc.107>
 	CvPlot const* pBestPlot = NULL;
 	CvPlot const* pBestGuardPlot = NULL;
 	int iBestValue = 0;
