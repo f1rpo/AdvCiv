@@ -25783,40 +25783,40 @@ int CvPlayerAI::AI_anarchyTradeVal(CivicTypes eCivic) const
 // <advc.109> Akin to AI_getTotalAreaCityThreat, but much coarser.
 bool CvPlayerAI::AI_feelsSafe() const
 {
+	if (getNumCities() <= 1)
+		return false; // Don't mess with early-game strategy
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	if(kOurTeam.AI_countWarPlans(NUM_WARPLAN_TYPES, false) > 0)
+	if (kOurTeam.AI_countWarPlans(NUM_WARPLAN_TYPES, true, 1) > 0)
 		return false;
-	CvGame const& g = GC.getGame();
-	CvCity* pCapital = getCapitalCity();
-	EraTypes iGameEra = g.getCurrentEra();
+	CvGame const& kGame = GC.getGame();
+	CvCity const* pCapital = getCapitalCity();
+	EraTypes const iGameEra = kGame.getCurrentEra();
 	/*  >=3: Anyone could attack across the sea, and can't fully trust friends
 		anymore either as the game progresses */
-	if(pCapital == NULL || iGameEra >= 3 || AI_isThreatFromMinorCiv())
+	if (pCapital == NULL || iGameEra >= 3 || AI_isThreatFromMinorCiv())
 		return false;
-	if(!pCapital->getArea().isBorderObstacle(getTeam()) &&
+	// Akin to AI_isDefenseFocusOnBarbarians
+	if (!pCapital->getArea().isBorderObstacle(getTeam()) &&
+		!kGame.isOption(GAMEOPTION_NO_BARBARIANS) &&
 		((((iGameEra <= 2 && iGameEra > 0) ||
-		(iGameEra > 2 && iGameEra == g.getStartEra())) &&
-		g.isOption(GAMEOPTION_RAGING_BARBARIANS)) ||
-		GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(getCapitalCity()->getArea()) >
-		::round(getNumCities() / 3.0)))
+		(iGameEra > 2 && iGameEra == kGame.getStartEra())) &&
+		kGame.isOption(GAMEOPTION_RAGING_BARBARIANS)) ||
+		3 * GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pCapital->getArea()) >
+		getNumCities()))
 	{
 		return false;
 	}
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
+	for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 	{
-		if(i == getTeam())
-			continue;
-		CvTeamAI const& t = GET_TEAM((TeamTypes)i);
-		if(!t.isAlive() || !kOurTeam.isHasMet(t.getID()) || t.isMinorCiv())
-			continue;
-		if(t.isHuman())
+		CvTeamAI const& kRival = *it;
+		if(kRival.isHuman())
 			return false;
-		if(!t.AI_isAvoidWar(getTeam()) && // advc.104y
-			3 * t.getPower(true) > 2 * kOurTeam.getPower(false) &&
-			(t.getCurrentEra() >= 3 || // seafaring
-			t.AI_isPrimaryArea(getCapitalCity()->getArea())))
+		if(!kRival.AI_isAvoidWar(getTeam()) && // advc.104y
+			3 * kRival.getPower(true) > 2 * kOurTeam.getPower(false) &&
+			(kRival.getCurrentEra() >= 3 || // seafaring
+			kRival.AI_isPrimaryArea(pCapital->getArea())))
 			// Check this instead? Might be a bit slow ...
-			// kOurTeam.AI_hasCitiesInPrimaryArea(t.getID())
+			// kOurTeam.AI_hasCitiesInPrimaryArea(kRival.getID())
 		{
 			return false;
 		}
@@ -25826,13 +25826,15 @@ bool CvPlayerAI::AI_feelsSafe() const
 
 bool CvPlayerAI::AI_isThreatFromMinorCiv() const
 {
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 	{
-		CvPlayerAI const& p = GET_PLAYER((PlayerTypes)i);
-		if(p.isMinorCiv() && p.isAlive() && 2 * p.getPower() > getPower() &&
-				(getCapitalCity() == NULL ||
-				p.AI_isPrimaryArea(getCapitalCity()->getArea())))
+		CvPlayerAI const& kMinor = *it;
+		if(kMinor.isMinorCiv() && 2 * kMinor.getPower() > getPower() &&
+			(getCapitalCity() == NULL ||
+			kMinor.AI_isPrimaryArea(getCapitalCity()->getArea())))
+		{
 			return true;
+		}
 	}
 	return false;
 } // </advc.109>
