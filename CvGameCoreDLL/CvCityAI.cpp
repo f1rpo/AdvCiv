@@ -553,7 +553,8 @@ void CvCityAI::AI_chooseProduction()
 	int iWaterPercent = AI_calculateWaterWorldPercent();
 
 	int iBuildUnitProb = AI_buildUnitProb();
-	iBuildUnitProb /= kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 2 : 1; // K-Mod
+	// advc.109: Moved into AI_buildUnitProb
+	//iBuildUnitProb /= kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 2 : 1; // K-Mod
 
 	int iExistingWorkers = kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_WORKER);
 	int iNeededWorkers = kPlayer.AI_neededWorkers(kArea);
@@ -6369,15 +6370,19 @@ int CvCityAI::AI_minDefenders() /* advc: */ const
 	int iDefenders = 1;
 	int iEra = GET_PLAYER(getOwner()).getCurrentEra();
 	// <advc.107> Make the era from which on there is an extra defender configurable
-	static int const iExtraDefenderEra = GC.getDefineINT("EXTRA-DEFENDER_ERA");
-	if(iExtraDefenderEra >= 0 && iEra >= iExtraDefenderEra) // </advc.107>
+	static int const iExtraDefenderEra = (GC.getDefineINT("EXTRA-DEFENDER_ERA") < 0 ?
+			MAX_INT : GC.getDefineINT("EXTRA-DEFENDER_ERA"));
+	if (iEra >= iExtraDefenderEra) // </advc.107>
 		iDefenders++;
 
-	if (iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 && isCoastal(
-			// advc.107: A small water area doesn't justify an extra defender
-			2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN)))
+	if (//iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 &&
+		// <advc.107>
+		iEra > GC.getGame().getStartEra() && iEra >= iExtraDefenderEra &&
+		// A small water area doesn't justify an extra defender
+		isCoastal(2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN))) // </advc.107>
+	{
 		iDefenders++;
-
+	}
 	return iDefenders;
 }
 
@@ -10558,16 +10563,32 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 	int iXPWeight = AI_experienceWeight();
 	if (bDraft)
 		iXPWeight /= 2;
-	r += per100(iXPWeight); // </advc.017>
-	if (!isBarbarian() && GET_PLAYER(getOwner()).AI_isFinancialTrouble())
+	r += per100(iXPWeight);
+	bool bGreatlyReduced = false;
+	// </advc.017>
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	// BETTER_BTS_AI_MOD, 05/29/10, jdog5000: City AI, Barbarian AI
+	if (!isBarbarian() && kOwner.AI_isFinancialTrouble())
+	{
 		r /= 2;
+		bGreatlyReduced = true; // advc.017
+	}
+	//else if (GET_TEAM(getTeam()).getHasMetCivCount(false) == 0)
+	/*	<advc.109> Replacing the BBAI code above. The ECONOMY_FOCUS check is from K-Mod;
+		moved from AI_chooseProduction. */
+	else if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ||
+		kOwner.getNumCities() <= 1)
+	{
+		r /= 2; // </advc.109>
+		bGreatlyReduced = true; // advc.017
+	}
 
-	if (GET_TEAM(getTeam()).getHasMetCivCount(false) == 0)
-		r /= 2;
-
-	int const iEraDiff = GC.getGame().getCurrentEra() - GET_PLAYER(getOwner()).getCurrentEra();
-	if (iEraDiff > 0)
-		r *= per100(std::max(40, 100 - 20 * iEraDiff));
+	if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)) // advc.017: Don't always adjust to era
+	{
+		int const iEraDiff = GC.getGame().getCurrentEra() - kOwner.getCurrentEra();
+		if (iEraDiff > 0)
+			r *= per100(std::max(40, 100 - 20 * iEraDiff));
+	}
 	// <advc.017>
 	if (!bDraft)
 	{
@@ -10576,31 +10597,44 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 	}
 	if (!isBarbarian())
 	{
-		if (GC.getGame().getElapsedGameTurns() > 25)
+		int const iCities = kOwner.getNumCities();
+		if (iCities > 1)
 		{
+			CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 			int iHighestRivalPow = 1;
 			for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 			{
-				iHighestRivalPow = std::max(it->getPower(true), iHighestRivalPow);
+				CvTeamAI const& kRival = *it; // (Akin to code in CvPlayerAI::AI_feelsSafe)
+				if (kOurTeam.AI_getWarPlan(kRival.getID()) != NO_WARPLAN ||
+					!kOurTeam.AI_isAvoidWar(kRival.getID(), true) ||
+					!kRival.AI_isAvoidWar(kOurTeam.getID()) ||
+					kOurTeam.AI_anyMemberAtVictoryStage(
+					AI_VICTORY_MILITARY3 | AI_VICTORY_MILITARY4) ||
+					kRival.AI_anyMemberAtVictoryStage(
+					AI_VICTORY_MILITARY3 | AI_VICTORY_MILITARY4))
+				{
+					iHighestRivalPow = std::max(kRival.getPower(true), iHighestRivalPow);
+				}
 			}
-			scaled_int rPowRatio(GET_TEAM(getTeam()).getPower(false), iHighestRivalPow);
+			scaled_int rPowRatio(kOurTeam.getPower(false), iHighestRivalPow);
 			if (rPowRatio > 1)
 			{
 				scaled_int rAdvantage = rPowRatio - 1;
 				if(rAdvantage >= fixp(1.5))
+				{
 					r /= 4;
-				// No point in training more units when far behind
-				else if(rAdvantage > fixp(-0.65))
-					r *= 1 - rAdvantage / 2;
+					bGreatlyReduced = true;
+				}
+				else r *= 1 - rAdvantage / 2;
 			}
 		}
-		int iCities = GET_PLAYER(getOwner()).getNumCities();
 		/*  Can't afford to specialize one city entirely on military production
 			until we've expanded a bit */
 		r.decreaseTo(fixp(0.2) * (1 + iCities));
 		/*  Don't get too careless in the early game when most cities have
 			negative AI_experienceWeight */
-		r.increaseTo(per100(25 - 2 * iCities));
+		if (!bGreatlyReduced)
+			r.increaseTo(per100(25 - 2 * iCities));
 	} // </advc.017>
 	r.decreaseTo(1); // experimental (K-Mod)
 	return r.getPercent();
