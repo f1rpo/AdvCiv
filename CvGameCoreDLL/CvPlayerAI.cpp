@@ -21805,7 +21805,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			if (kTeam.AI_getEnemyPowerPercent(true) >
 				std::max(150, GC.getDefineINT("BBAI_TURTLE_ENEMY_POWER_RATIO")) &&
 				// advc.107:
-				getNumMilitaryUnits() < (5 + getCurrentEra() * fixp(1.5)) * getNumCities())
+				getNumMilitaryUnits() <= (5 + getCurrentEra() * fixp(1.5)) * getNumCities())
 			{
 				m_eStrategyHash |= AI_STRATEGY_TURTLE;
 			}
