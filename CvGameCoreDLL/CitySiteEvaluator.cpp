@@ -1356,7 +1356,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	bool bShare, bool bCityRadius, bool bSteal, bool bFlip, bool bOwnExcl,
 	int& iTakenTiles, int& iStealPercent) const
 {
-	scaled_int r = 100;
+	scaled r = 100;
 	/*  K-Mod note: iClaimThreshold is bigger for bEasyCulture and bAmbitious civs.
 		Also note, if the multiplier was to be properly used for unowned plots,
 		it would need to take into account the proximity of foreign cities and so on.
@@ -1392,7 +1392,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 		r = (r + (iOurCulture * 100) / kSet.getClaimThreshold()) / 2;
 	}
 	// Take into account at least some factors that determine each side's culture rate
-	scaled_int rRateModifier = 1;
+	scaled rRateModifier = 1;
 	/*	Don't be _too_ optimistic against Barbarians - a civ (a rival - or us) will
 		probably conquer pForeignCity eventually and might not raze it. */
 	if (bForeignOwned && p.isBarbarian())
@@ -1428,7 +1428,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 					getObsoleteSafeCommerceChange(COMMERCE_CULTURE);
 		}
 	}
-	scaled_int const rFreeForeignCultureModifier(iFreeForeignCulture + 7, 7);
+	scaled const rFreeForeignCultureModifier(iFreeForeignCulture + 7, 7);
 	// Extra pessimism about tiles that another civ is able to work (borders already expanded)
 	if (bSteal)
 	{
@@ -1459,7 +1459,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	// <advc.099b>
 	if (!bCityRadius && bForeignOwned)
 	{
-		scaled_int rExclRadiusWeight = GC.AI_getGame().AI_exclusiveRadiusWeight(
+		scaled rExclRadiusWeight = GC.AI_getGame().AI_exclusiveRadiusWeight(
 				::plotDistance(&p, &kPlot));
 		r *= 1 + rExclRadiusWeight;
 		r.decreaseTo(100);

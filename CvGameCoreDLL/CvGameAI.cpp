@@ -154,7 +154,7 @@ int CvGameAI::AI_turnsPercent(int iTurns, int iPercent)
 	contested tiles that are within the working radius of its cities exclusively.
 	Since the decay of tile culture isn't based on game speed, that confidence
 	is greater on the slower speed settings. */
-scaled_int CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
+scaled CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
 {
 	if(iDist >= (int)m_arExclusiveRadiusWeight.size())
 		return 0;
@@ -171,7 +171,7 @@ scaled_int CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
 	FAssert(m_arExclusiveRadiusWeight.size() == 3);
 	for (int i = 0; i < (int)m_arExclusiveRadiusWeight.size(); i++)
 	{
-		scaled_int rDistMultiplier;
+		scaled rDistMultiplier;
 		switch(i)
 		{
 		case 1: rDistMultiplier = 2; break;
@@ -181,7 +181,7 @@ scaled_int CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
 		// High exponent; better use higher precision than usual.
 		ScaledInt<32*1024> rBase = 1 - rDistMultiplier *
 				per1000(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY));
-		FAssertMsg(rBase > 0, "CITY_RADIUS_DECAY too great; negative base for scaled_int::pow.");
+		FAssertMsg(rBase > 0, "CITY_RADIUS_DECAY too great; negative base for scaled::pow.");
 		m_arExclusiveRadiusWeight[i] = 1 - rBase.pow(
 				25 * per100(GC.getInfo(getGameSpeedType()).getGoldenAgePercent()));
 	}

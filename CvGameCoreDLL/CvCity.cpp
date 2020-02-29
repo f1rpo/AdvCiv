@@ -1394,7 +1394,7 @@ bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 	bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
 {
-	if(eBuilding == NO_BUILDING) // advc.test: Safe to remove this check?
+	if (eBuilding == NO_BUILDING) // advc.test: Safe to remove this check?
 	{
 		FAssert(false);
 		return false;
@@ -1408,12 +1408,12 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 	if(!GET_PLAYER(getOwner()).canConstruct(eBuilding, bContinue, bTestVisible, bIgnoreCost, bIgnoreTech))
 		return false;
 
-	if(getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
+	if (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS))
 		return false;
 
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 	if (kBuilding.isPrereqReligion() && //getReligionCount() > 0
-		getReligionCount() <= 0) // K-Mod
+		getReligionCount() <= 0) // K-Mod (bugfix)
 	{
 		return false;
 	}
@@ -1449,7 +1449,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 			}
 		}
 	}
-	if(!isValidBuildingLocation(eBuilding))
+	if (!isValidBuildingLocation(eBuilding))
 		return false;
 
 	if (kBuilding.isGovernmentCenter() && isGovernmentCenter())
@@ -12812,7 +12812,7 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 	if(iPopulation < 0)
 		iPopulation = initialPopulation();
 
-	scaled_int rNumCitiesFactor = 1;
+	scaled rNumCitiesFactor = 1;
 
 	rNumCitiesFactor.mulDiv(iPopulation + 17, 18);
 
@@ -12823,7 +12823,7 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 	rNumCitiesFactor *= per100(GC.getInfo(kOwner.getHandicapType()).
 			getNumCitiesMaintenancePercent());
 	// <advc.140>
-	scaled_int rCrowdednessFactor(GC.getGame().getCivPlayersEverAlive(),
+	scaled rCrowdednessFactor(GC.getGame().getCivPlayersEverAlive(),
 			GC.getGame().getRecommendedPlayers());
 	rNumCitiesFactor *= rCrowdednessFactor.sqrt(); // </advc.140>
 
@@ -12835,16 +12835,15 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 			// K-Mod, 04/sep/10: Reduced vassal maintenance
 			iNumVassalCities / 2;
 	// K-Mod: Removed maintenance cap  // advc.exp: I've disabled it through XML instead
-	scaled_int rMaxMaintenanceCities = GC.getInfo(GET_PLAYER(eOwner).getHandicapType()).
+	scaled rMaxMaintenanceCities = GC.getInfo(GET_PLAYER(eOwner).getHandicapType()).
 			getMaxNumCitiesMaintenance();
 	// <advc.exp.1> Upper bound set through GlobalDefines
 	static int const iMAX_CITY_COUNT_FOR_MAINTENANCE = GC.getDefineINT("MAX_CITY_COUNT_FOR_MAINTENANCE");
-	rMaxMaintenanceCities.decreaseTo(scaled_int(
-			iMAX_CITY_COUNT_FOR_MAINTENANCE) /
+	rMaxMaintenanceCities.decreaseTo(scaled(iMAX_CITY_COUNT_FOR_MAINTENANCE) /
 			(1 + per100(kWorld.getNumCitiesMaintenancePercent())));
 	iMaintenanceCities = std::min(iMaintenanceCities, rMaxMaintenanceCities.round());
 	// </advc.exp.1>
-	scaled_int rNumCitiesMaintenance = iMaintenanceCities * rNumCitiesFactor;
+	scaled rNumCitiesMaintenance = iMaintenanceCities * rNumCitiesFactor;
 
 	rNumCitiesMaintenance *= per100(std::max(0, kOwner.getNumCitiesMaintenanceModifier() + 100));
 	FAssert(rNumCitiesMaintenance >= 0);

@@ -283,12 +283,11 @@ int CvCityAI::AI_specialistValue(SpecialistTypes eSpecialist, bool bRemove, bool
 	// K-Mod. To reduce code duplication, this function now uses AI_jobChangeValue. (original code deleted)
 	if (bRemove)
 	{
-		return -AI_jobChangeValue(std::make_pair(false, -1), std::make_pair(true, eSpecialist), bIgnoreFood, false, iGrowthValue);
+		return -AI_jobChangeValue(std::make_pair(false, -1), std::make_pair(true, eSpecialist),
+				bIgnoreFood, false, iGrowthValue);
 	}
-	else
-	{
-		return AI_jobChangeValue(std::make_pair(true, eSpecialist), std::make_pair(false, -1), bIgnoreFood, false, iGrowthValue);
-	}
+	return AI_jobChangeValue(std::make_pair(true, eSpecialist), std::make_pair(false, -1),
+			bIgnoreFood, false, iGrowthValue);
 }
 
 // K-Mod. The value of a long-term specialist, for use in calculating great person value, and value of free specialists from buildings.
@@ -10193,7 +10192,7 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 	}
 	iTotalValue += iImprovementsValue;
 
-	// Specialst extras
+	// Specialist extras
 	if (new_job.first || old_job.first)
 	{
 		// Raw commerce value
@@ -10559,7 +10558,7 @@ int CvCityAI::AI_experienceWeight()
 // BBAI / K-Mod // <advc.017> Draft param added; count XP weight only half then.
 int CvCityAI::AI_buildUnitProb(bool bDraft)
 {
-	scaled_int r = per100(GC.getInfo(getPersonalityType()).getBuildUnitProb());
+	scaled r = per100(GC.getInfo(getPersonalityType()).getBuildUnitProb());
 	int iXPWeight = AI_experienceWeight();
 	if (bDraft)
 		iXPWeight /= 2;
@@ -10616,10 +10615,10 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 					iHighestRivalPow = std::max(kRival.getPower(true), iHighestRivalPow);
 				}
 			}
-			scaled_int rPowRatio(kOurTeam.getPower(false), iHighestRivalPow);
+			scaled rPowRatio(kOurTeam.getPower(false), iHighestRivalPow);
 			if (rPowRatio > 1)
 			{
-				scaled_int rAdvantage = rPowRatio - 1;
+				scaled rAdvantage = rPowRatio - 1;
 				if(rAdvantage >= fixp(1.5))
 				{
 					r /= 4;

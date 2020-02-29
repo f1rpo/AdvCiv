@@ -21,13 +21,18 @@ void TestScaledInt()
 	return;
 #else
 
-	/*	These numbers match the running example commented on in pow.
-		(The example assumes scale 1024, hence the explicit constructor calls.) */
-	FAssert((ScaledInt<1024>(fixp(5.2)).pow(ScaledInt<1024>(fixp(2.1))).round() == 32));
+	// These numbers match the running example commented on in pow.
+	//FAssert(scaled(fixp(5.2)).pow(scaled(fixp(2.1))).round() == 32);
+	// The example assumes scale 1024, hence the explicit calls. */
+	FAssert(ScaledInt<1024>(
+			ScaledInt<1024>::fromRational<(int)(5.2 * 10000 + 0.5), 10000>()).
+			pow(ScaledInt<1024>(
+			ScaledInt<1024>::fromRational<(int)(2.1 * 10000 + 0.5), 10000>())).
+			round() == 32);
 
-	// Spotty unit test
+	// Spotty unit test (tbd.: improve coverage; especially: IntType short, char)
 	FAssert((fixp(4/3.) * 1000).getInt() == 1333);
-	FAssert(scaled_int(0) == per100(0));
+	FAssert(scaled(0) == per100(0));
 	FAssert(fixp(-0.3125) * 1024 == -320);
 	FAssert(per1000(2254u).getPercent() == 225);
 	FAssert(per10000(22547u).getPermille() == 2255);
@@ -37,17 +42,26 @@ void TestScaledInt()
 		if(fixp(0.4).bernoulliSuccess(kRand, ""))
 			iSuccesses++;
 	FAssertBounds(355, 445, iSuccesses);
-	FAssert(scaled_int(2).pow(10) == 1024);
-	FAssert(scaled_int(10).pow(-2) == per100(1));
-	FAssert((scaled_int(2).sqrt() * 100).getInt() == 141);
+	FAssert(scaled(2).pow(10) == 1024);
+	FAssert(scaled(10).pow(-2) == per100(1));
+	FAssert((scaled(2).sqrt() * 100).getInt() == 141);
 	FAssert((fixp(0.3).pow(fixp(1.7))*100).getInt() == 13);
-	FAssert(scaled_int(24).pow(0) == 1);
-	FAssert(scaled_int(0).pow(24) == 0);
-	FAssert(scaled_int(-2).pow(3) == -8);
-	scaled_int rTest = fixp(2.4);
+	FAssert(scaled(24).pow(0) == 1);
+	FAssert(scaled(0).pow(24) == 0);
+	FAssert(scaled(-2).pow(3) == -8);
+	scaled rTest = fixp(2.4);
 	rTest.increaseTo(3);
 	FAssert(rTest == 3);
-	rTest.decreaseTo(scaled_int(1, 2));
+	// The exact result would be 4.5/1024
+	FAssert(ScaledInt<100>(30,100) * ScaledInt<1024>(15,1024) == ScaledInt<1024>(5,1024));
+	// If multiplication was performed like this, we'd get 4/1024:
+	FAssert(ScaledInt<1024>(ScaledInt<100>(30,100)) *
+			ScaledInt<1024>(15,1024) == ScaledInt<1024>(4,1024));
+	// Now force a result on the smaller scale:
+	ScaledInt<100> rTestPerc = fixp(0.3);
+	rTestPerc *= ScaledInt<1024>(15,1024);
+	FAssert(rTestPerc == 0);
+	rTest.decreaseTo(scaled(1, 2));
 	FAssert(rTest == fixp(0.5));
 	rTest.clamp(1, 2);
 	FAssert(rTest == 1);
@@ -62,38 +76,74 @@ void TestScaledInt()
 	rTest = per100(250u);
 	rTest.mulDiv(4, 5);
 	FAssert(rTest == 2);
-	FAssert(std::strcmp(scaled_int(2).str(100), "200 percent") == 0);
+	FAssert(std::strcmp(scaled(2).str(100), "200 percent") == 0);
 	FAssert(std::strcmp(ScaledInt<1024>(2).str(), "2048/1024") == 0);
-	FAssert(std::strcmp(scaled_int(2).str(1), "2") == 0);
+	FAssert(std::strcmp(scaled(2).str(1), "2") == 0);
 	FAssert(std::strcmp(fixp(2.2).str(1), "ca. 2") == 0);
-	FAssert(scaled_int(42).roundToMultiple(5) == 40);
-	FAssert(scaled_int(-43).roundToMultiple(5) == -45);
-	FAssert(scaled_int().ceil() == 0);
-	FAssert(scaled_int(1).ceil() == 1);
-	FAssert(scaled_int(-2).ceil() == -2);
+	FAssert(scaled(42).roundToMultiple(5) == 40);
+	FAssert(scaled(-43).roundToMultiple(5) == -45);
+	FAssert(scaled().ceil() == 0);
+	FAssert(scaled(1).ceil() == 1);
+	FAssert(scaled(-2).ceil() == -2);
 	FAssert(fixp(2.001).ceil() == 3);
 	FAssert(fixp(2.5).ceil() == 3);
 	FAssert(fixp(2.75).ceil() == 3);
 	FAssert(fixp(-9.2).ceil() == -9);
 	FAssert(fixp(-9.99).ceil() == -9);
 
-	MovementPts rMoves = fixp(1.5);
-	FAssert(rMoves == scaled_int(3, 2)); // Allowed: operations on ScaledInt<*,*,int>
-	FAssert(rMoves - 1 == MovementPts(1, 2));
+	// Allowed: operations that mix the default EnumType (int) with a non-default EnumType
+	MovementPts rMoves = fixp(1.5); // Construction from other
+	FAssert(scaled(rMoves).ceil() == 2);
+	FAssert(rMoves == scaled(3, 2));  // comparisons
+	FAssert(scaled(1) < rMoves);
+	FAssert(rMoves - 1 == MovementPts(1, 2)); // global arithmetic operators
+	rTest = rMoves + 1;
+	FAssert(rTest + rMoves == 2 * rMoves + 1);
+	rMoves = MovementPts(1) + MovementPts(2);
+	rMoves *= scaled(3, 2); // arithmetic assignment operators
+	rTest /= rMoves;
 	CurrCombatStr rCombat = fixp(4.9);
-	// Not allowed: MovementPts and CurrCombatStr are incompatible w/ each other
-	//if (rMoves < rCombat) ;
+	// Will fail static assertions: Mixing different non-default EnumTypes
+	//rMoves = rCombat; // !
+	//rMoves = rCombat + scaled(1); // ! (global operators preserve EnumType)
+	//rMoves == rCombat; // !
+	//CurrCombatStr(rMoves).ceil(); // !
+	//rMoves *= rCombat; // !
+	//rCombat + rMoves; // !
+	rMoves = rCombat.convert(); // Explicit cast
+	/*	rMoves can't represent rCombat's value exactly b/c of different scales,
+		but comparisons are exact. */
+	FAssert(rMoves.approxEquals(rCombat.convert(), fixp(0.001)));
+
+	ScaledInt<128,short> rTestShort = fixp(1/3.);
+	FAssert((rTestShort * 30).round() == 10);
+	rTestShort = 1;
+	rTest = rTestShort;
+	/*	Fixme: Bizarrely, I get an "unexpected end of file" compilation error here
+		unless I insert another semicolon before the scope generated by FAssert.
+		The problem comes from the assignment above; the FAssert is fine.
+		Probably a compiler bug related to scaleForComparison; reliable workaround? */
+	;
+	FAssert(rTest == rTestShort);
+	ScaledInt<100,unsigned char> rTestUChar;
+	rTestUChar = rTestShort;
+	rTest -= rTestUChar;
+	/*	Almost works, but there really is no point in using an enum as the IntType.
+		What doesn't work is the initialization of MAXÌNT and MININT. */
+	//ScaledInt<1024,PlayerTypes> rEnum;
+	//rEnum = rTest;
+	//rEnum *= 3; // ! Failed runtime assertion due to MAXINT==0
 
 	/*	Will do something "non-const" at the end based on the value of iDummy.
 		To prevent the compiler from discarding code, results of test computations
 		can be added to iDummy. */
-	int iDummy = scaled_int(1, 2).round();
+	int iDummy = scaled(1, 2).round();
 
 	// Speed measurements
 	// (CPU cycles noted in comments can be out of date)
 	// Exponentiation speed measurements
 	{
-		scaled_int rSum = 0;
+		scaled rSum = 0;
 		for (int i = 0; i < 10; i++)
 		{
 			// Result (average over 10 samples): 7384 cycles on the first launch
@@ -102,7 +152,7 @@ void TestScaledInt()
 			//TSC_PROFILE("POW_SCALED");
 			for (int j = i; j < 10; j++)
 			{
-				scaled_int b = per100(GC.getInfo((TechTypes)0).getResearchCost() + j);
+				scaled b = per100(GC.getInfo((TechTypes)0).getResearchCost() + j);
 				rSum += b.pow(fixp(1.24));
 			}
 		}
@@ -138,9 +188,9 @@ void TestScaledInt()
 		for (int i = 0; i < 10; i++)
 		{
 			//TSC_PROFILE("ADDITION_SCALED"); // Result: 272 cycles on average
-			scaled_int x = GC.getInfo((TechTypes)0).getResearchCost();
+			scaled x = GC.getInfo((TechTypes)0).getResearchCost();
 			int y = GC.getInfo((TechTypes)1).getResearchCost(); // Mix it up a bit
-			scaled_int z = 0;
+			scaled z = 0;
 			for (int j = i; j < 10; j++)
 			{
 				z += x + j;
@@ -204,7 +254,7 @@ void TestScaledInt()
 			//	1584 for scaled_uint, 1045 for scaled_uint w/o overflow handling.
 			//	892 if the per100 arguments are also cast to uint.
 			//TSC_PROFILE("MODIFIERS_SCALED");
-			scaled_uint rCost = GC.getInfo((TechTypes)0).getResearchCost();
+			uscaled rCost = GC.getInfo((TechTypes)0).getResearchCost();
 			for (int j = i; j < 10; j++)
 			{
 				rCost += j;
@@ -313,7 +363,7 @@ void TestScaledInt()
 			//	672 for scaled_uint, 579 for scaled_uint w/o overflow handling.
 			//	394 if the per100 arguments are also cast to uint.
 			//TSC_PROFILE("CONST_MODIFIERS_SCALED");
-			scaled_int rCost = GC.getInfo((TechTypes)0).getResearchCost();
+			scaled rCost = GC.getInfo((TechTypes)0).getResearchCost();
 			for (int j = i; j < 10; j++)
 			{
 				rCost += j;
@@ -355,14 +405,14 @@ void TestScaledInt()
 	// Syntax test
 	/*	Based on some calculations in InvasionGraph::step. Out of context,
 		the excerpts used here and their names are nonsensical. */
-	scaled_int rOtherDist = 2;
-	scaled_int rMod = scaled_int::max(100 - 2 * rOtherDist, 50) / 100;
-	scaled_int rOtherPow = 1282;
+	scaled rOtherDist = 2;
+	scaled rMod = scaled::max(100 - 2 * rOtherDist, 50) / 100;
+	scaled rOtherPow = 1282;
 	rOtherPow *= rMod;
-	scaled_int rPow = 1417;
-	scaled_int rDist = 5;
-	rPow *= scaled_int::max(100 - fixp(1.55) * rDist.pow(fixp(1.15)), 50) / 100;
-	scaled_int rWeight, rOtherWeight;
+	scaled rPow = 1417;
+	scaled rDist = 5;
+	rPow *= scaled::max(100 - fixp(1.55) * rDist.pow(fixp(1.15)), 50) / 100;
+	scaled rWeight, rOtherWeight;
 	rWeight = rOtherWeight = 1;
 	rOtherWeight *= (rOtherPow > 1000 ? fixp(1.5) : fixp(4/3.));
 	rWeight += fixp(.25);

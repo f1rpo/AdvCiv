@@ -3412,7 +3412,7 @@ int CvGame::countFreeTeamsAlive() const
 int CvGame::getRecommendedPlayers() const
 {
 	CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
-	scaled_int r = kWorld.getDefaultPlayers();
+	scaled r = kWorld.getDefaultPlayers();
 	r *= per100(100 - 4 * getSeaLevelChange());
 	r.clamp(2, PlayerIter<>::count());
 	return r.round();

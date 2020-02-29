@@ -2095,7 +2095,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	CvGame const& g = GC.getGame();
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
-	scaled_int rCost = GC.getInfo(eTech).getResearchCost();
+	scaled rCost = GC.getInfo(eTech).getResearchCost();
 	rCost *= per100(GC.getInfo(getHandicapType()).getResearchPercent());
 	// <advc.251>
 	if (!isHuman() && !isBarbarian())
@@ -2106,7 +2106,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	}
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
 	EraTypes eTechEra = (EraTypes)GC.getInfo(eTech).getEra();
-	scaled_int rModifier = 1 + per100(GC.getInfo(eTechEra).getTechCostModifier());
+	scaled rModifier = 1 + per100(GC.getInfo(eTechEra).getTechCostModifier());
 	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
 	static int const iTECH_COST_MODIFIER = GC.getDefineINT("TECH_COST_MODIFIER");
@@ -2143,9 +2143,9 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 		if (g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
 		{
 			static int const iTECH_COST_NOTRADE_MODIFIER = GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER");
-			scaled_int rNoTradeAdjustment = (per100(iTECH_COST_NOTRADE_MODIFIER) + per100(5) *
+			scaled rNoTradeAdjustment = (per100(iTECH_COST_NOTRADE_MODIFIER) + per100(5) *
 					(eTechEra - fixp(2.5)).abs().pow(fixp(1.5))) *
-					scaled_int(kWorld.getDefaultPlayers() - 2, 6).clamped(0, 2);
+					scaled::clamp(scaled(kWorld.getDefaultPlayers() - 2, 6), 0, 2);
 			rNoTradeAdjustment.decreaseTo(0); // No Tech Trading can only lower tech costs
 			rModifier += rNoTradeAdjustment;
 		} // </advc.550d>
@@ -2153,12 +2153,12 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 
 	if (bTeamSizeModifiers) // K-Mod
 	{
-		rCost *= scaled_int::max(per100(100 +
+		rCost *= scaled::max(per100(100 +
 				GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) *
 				(getNumMembers() - 1)), 0);
 	}
 	// <advc.251>
-	rCost *= scaled_int::max(rModifier, 1);
+	rCost *= scaled::max(rModifier, 1);
 	int iCost = rCost.roundToMultiple(isHuman() ? 5 : 1);
 	// </advc.251>
 	return std::max(1, iCost);

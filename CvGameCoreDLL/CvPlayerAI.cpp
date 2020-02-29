@@ -9868,7 +9868,7 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeam
 // <advc.036>
 int CvPlayerAI::AI_adjustTradeGoldToDiplo(int iGold, PlayerTypes eTo) const
 {
-	scaled_int rMult = 1;
+	scaled rMult = 1;
 	if(!GET_TEAM(eTo).isAtWar(getTeam()) && !GET_TEAM(getTeam()).isCapitulated())
 	{
 		AttitudeTypes eAttitude = AI_getAttitude(eTo);
@@ -20339,7 +20339,7 @@ bool CvPlayerAI::AI_isPlotContestedByRival(CvPlot const& kPlot, PlayerTypes eRiv
 		if(getID() == eRival) // No longer contested; they own it.
 			return false;
 		int iTotalCulture = kPlot.getTotalCulture();
-		scaled_int rExclWeight = GC.AI_getGame().AI_exclusiveRadiusWeight();
+		scaled rExclWeight = GC.AI_getGame().AI_exclusiveRadiusWeight();
 		int iOurCulture = kPlot.getCulture(getID());
 		// Just for efficiency
 		if(iOurCulture * rExclWeight * 2 >= iTotalCulture)
@@ -20503,7 +20503,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 			if (iCountdown < iHighCultureMark)
 				iHighCultureCount++;
 			// <advc.115> Threshold was 50%, now 67%, 60% for human.
-			scaled_int rThresh = fixp(0.67);
+			scaled rThresh = fixp(0.67);
 			if(isHuman())
 				rThresh = fixp(0.6);
 			if (pLoopCity->getCulture(getID()) > rThresh * pLoopCity->getCultureThreshold(
@@ -20929,7 +20929,7 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 		iDoWs += kLoopPlayer.AI_getMemoryCount(getID(), MEMORY_DECLARED_WAR);
 		/*  advc.130j: DoW memory counted times 3, but there's also decay now
 			and CvTeamAI::forgiveEnemies, so let's go with 2.5. */
-		iDoWs = scaled_int(iDoWs * 2, 5).ceil();
+		iDoWs = scaled(iDoWs * 2, 5).ceil();
 
 		if (kLoopPlayer.getParent() != NO_PLAYER)
 			continue;
@@ -21950,13 +21950,13 @@ void CvPlayerAI::AI_updateStrategyHash()
 		{	// <advc.022> Replace this with something smoother
 			/*if (iCloseness == 0)
 				iTempParanoia /= 2;*/
-			scaled_int rMultiplier = 2;
+			scaled rMultiplier = 2;
 			/*  I don't think closeness is intended to be a percentage, but based on
 				some sample values (Ctrl key on the capital in debug mode; closeness
 				is shown in square brackets), it tends to be between 0 and 100. */
-			rMultiplier *= per100(iCloseness).clamped(0, 1) + fixp(0.3);
+			rMultiplier *= scaled::clamp(per100(iCloseness), 0, 1) + fixp(0.3);
 			// <advc.022> Reduced paranoia if resistance futile
-			scaled_int rPowRatioFactor(iTheirPower, iOurDefensivePower);
+			scaled rPowRatioFactor(iTheirPower, iOurDefensivePower);
 			/*  No change if ratio is 165% or less; 215% -> 50% reduced paranoia;
 				260% -> 0 paranoia */
 			rPowRatioFactor -= fixp(1.65);
@@ -23137,18 +23137,18 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea const& kArea, // advc:
 	iDefenders /= 3;
 	iDefenders += kArea.getPopulationPerPlayer(getID()) / 7;*/ // BtS
 	// K-Mod
-	scaled_int const rCityFactor = scaled_int(kArea.getCitiesPerPlayer(getID())).
+	scaled const rCityFactor = scaled(kArea.getCitiesPerPlayer(getID())).
 	// advc.107: Don't quite want floating defenders to increase linearly with the number of cities
 			pow(fixp(0.85));
-	scaled_int rDefenders = rCityFactor;
+	scaled rDefenders = rCityFactor;
 	rDefenders += (1 + AI_totalAreaUnitAIs(kArea, UNITAI_SETTLE));
 	// advc.107: was /7 (but rounding loss was much higher)
-	rDefenders += scaled_int(kArea.getPopulationPerPlayer(getID()), 8);
+	rDefenders += scaled(kArea.getPopulationPerPlayer(getID()), 8);
 	if (AI_isLandWar(kArea) /* advc.107: */ && AI_isFocusWar(&kArea))
 	{
-		scaled_int rEnemyCityFactor = GET_TEAM(getTeam()).AI_countEnemyCitiesByArea(kArea);
+		scaled rEnemyCityFactor = GET_TEAM(getTeam()).AI_countEnemyCitiesByArea(kArea);
 		// advc.107:
-		rEnemyCityFactor = scaled_int::min(rEnemyCityFactor, rCityFactor * fixp(2/3.));
+		rEnemyCityFactor = scaled::min(rEnemyCityFactor, rCityFactor * fixp(2/3.));
 		rDefenders += 1 + // (2 +
 				/*  advc.107: Want to focus on aggressive build-up while preparing.
 					Can still train some extra defenders once war is imminent. */
@@ -23222,7 +23222,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea const& kArea, // advc:
 	if (getCapitalCity() != NULL && !getCapitalCity()->isArea(kArea))
 	{
 		// Defend offshore islands only lightly.
-		scaled_int rUpperBound = rCityFactor * rCityFactor - 1;
+		scaled rUpperBound = rCityFactor * rCityFactor - 1;
 		//iDefenders = std::min(iDefenders, iUpperBound);
 		// UNOFFICIAL_PATCH, Bugfix, War tactics AI, 01/23/09, jdog5000: START
 		// Lessen defensive requirements only if not being attacked locally
@@ -23239,14 +23239,14 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea const& kArea, // advc:
 				Defending colonies may well be a lost cause. */
 			rUpperBound += fixp(0.5) * kArea.getNumCities();
 		}
-		rDefenders.clamp(0, rUpperBound); // </advc.107>
+		rDefenders.decreaseTo(scaled::max(rUpperBound, 0)); // </advc.107>
 	}
 	// <advc.099c> A little extra for quelling revolts
 	int iCultureDefendersNeeded = AI_getAreaCultureDefendersNeeded(kArea);
 	if (rDefenders < fixp(2.25) * iCultureDefendersNeeded)
 	{
 		// Proper defenders should mostly be able to double as culture defenders
-		rDefenders += scaled_int::min(rDefenders * fixp(0.25),
+		rDefenders += scaled::min(rDefenders * fixp(0.25),
 				iCultureDefendersNeeded * fixp(0.3));
 	} // </advc.099c>
 	return rDefenders.round();
@@ -25774,16 +25774,16 @@ bool CvPlayerAI::AI_feelsSafe() const
 		return false;
 	CvGame const& kGame = GC.getGame();
 	CvCity const* pCapital = getCapitalCity();
-	EraTypes const iGameEra = kGame.getCurrentEra();
+	EraTypes const eGameEra = kGame.getCurrentEra();
 	/*  >=3: Anyone could attack across the sea, and can't fully trust friends
 		anymore either as the game progresses */
-	if (pCapital == NULL || iGameEra >= 3 || AI_isThreatFromMinorCiv())
+	if (pCapital == NULL || eGameEra >= 3 || AI_isThreatFromMinorCiv())
 		return false;
 	// Akin to AI_isDefenseFocusOnBarbarians
 	if (!pCapital->getArea().isBorderObstacle(getTeam()) &&
 		!kGame.isOption(GAMEOPTION_NO_BARBARIANS) &&
-		((((iGameEra <= 2 && iGameEra > 0) ||
-		(iGameEra > 2 && iGameEra == kGame.getStartEra())) &&
+		((((eGameEra <= 2 && eGameEra > 0) ||
+		(eGameEra > 2 && eGameEra == kGame.getStartEra())) &&
 		kGame.isOption(GAMEOPTION_RAGING_BARBARIANS)) ||
 		3 * GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pCapital->getArea()) >
 		getNumCities()))
