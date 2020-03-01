@@ -10304,8 +10304,9 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 			if (new_job.second >= 0 && new_job.first)
 				iExperience += GC.getInfo((SpecialistTypes)new_job.second).getExperience();
 			if (old_job.second >= 0 && old_job.first)
-				iExperience += GC.getInfo((SpecialistTypes)old_job.second).getExperience();
-
+			{	// advc.001: was +=
+				iExperience -= GC.getInfo((SpecialistTypes)old_job.second).getExperience();
+			}
 			if (iExperience != 0)
 			{
 				int iProductionRank = findYieldRateRank(YIELD_PRODUCTION);
