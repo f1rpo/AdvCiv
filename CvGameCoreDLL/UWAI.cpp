@@ -26,14 +26,16 @@ void UWAI::setInBackground(bool b) {
 	inBackgr = b;
 }
 
-void UWAI::processNewCivInGame(PlayerTypes newCivId) {
+void UWAI::initNewCivInGame(PlayerTypes newCivId) {
 
 	WarEvaluator::clearCache();
 	GET_TEAM(newCivId).uwai().init(TEAMID(newCivId));
-	UWAI::Civ& newAI = GET_PLAYER(newCivId).uwai();
-	newAI.init(newCivId);
-	// Need to set the typical units before updating the caches of the old civs
-	newAI.getCache().updateTypicalUnits();
+	GET_PLAYER(newCivId).uwai().init(newCivId);
+}
+
+void UWAI::processNewCivInGame(PlayerTypes newCivId) {
+
+	GET_PLAYER(newCivId).uwai().getCache().updateTypicalUnits();
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		it->uwai().turnPre();
 }

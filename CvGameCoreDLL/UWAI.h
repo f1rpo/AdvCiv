@@ -30,6 +30,8 @@ public:
 	UWAI();
 	void invalidateUICache();
 	// When a colony is created
+	void initNewCivInGame(PlayerTypes newCivId);
+	// When the colony has received a capital and tech
 	void processNewCivInGame(PlayerTypes newCivId);
 	/*  true if UWAI fully enabled, making all decisions, otherwise false.
 		If inBackground is set, then true if UWAI is running only in the background,

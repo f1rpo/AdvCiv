@@ -9313,8 +9313,8 @@ bool CvGame::hasSkippedSaveChecksum() const
 
 void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, CivilizationTypes eCiv)
 {
-	// UNOFFICIAL_PATCH Start
-	// * Fixed bug with colonies who occupy recycled player slots showing the old leader or civ names.
+	/*	UNOFFICIAL_PATCH Start: Fixed bug with colonies who occupy recycled player slots
+		showing the old leader or civ names */
 	CvWString szEmptyString = L"";
 	LeaderHeadTypes eOldLeader = GET_PLAYER(eNewPlayer).getLeaderType();
 	CvInitCore& kInitCore = GC.getInitCore();

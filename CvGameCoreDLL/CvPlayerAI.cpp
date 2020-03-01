@@ -5077,10 +5077,13 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					if (!bNeighbouringReligions)
 					{
 						iReligionValue += 20;
-						if (AI_getFlavorValue(FLAVOR_RELIGION))
+						if (AI_getFlavorValue(FLAVOR_RELIGION) > 0)
 							iReligionValue += 28 + 4 * AI_getFlavorValue(FLAVOR_RELIGION);
-						if (GC.getGame().getElapsedGameTurns() >= 32 * GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent() / 100)
+						if (GC.getGame().getElapsedGameTurns() >=
+							32 * GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent() / 100)
+						{
 							iReligionValue += 60;
+						}
 						if (AI_atVictoryStage(AI_VICTORY_CULTURE1))
 							iReligionValue += 84;
 					}

@@ -270,7 +270,7 @@ void CvPlayer::initInGame(PlayerTypes eID)
 	GC.getAgents().colonyCreated(getID()); // advc.agent
 	// <advc.104r>
 	if(getUWAI.isEnabled())
-		getUWAI.processNewCivInGame(getID());
+		getUWAI.initNewCivInGame(getID());
 	// </advc.104r>
 	/*  I've kept the initialization of random event data out of initOtherData
 		b/c the BBAI code handles that part differently (cf. resetCivTypeEffects). */
@@ -1760,11 +1760,16 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	else if (bTrade &&  // CvCity::liberate handles liberation announcement and replay msg.
 		pOldCity->getLiberationPlayer() != getID())
 	{
-		CvWString szHasCeded(gDLL->getText("TXT_KEY_MISC_CITY_CEDED_TO",
-				/*	Don't obscure any names; isRevealed in the loop implies
-					isHasSeen (though not isHasMet). */
-				GET_PLAYER(pOldCity->getOwner()).getReplayName(),
-				pOldCity->getNameKey(), getReplayName()));
+		CvWString szHasCeded;
+		{	// Need to cache these locally
+			CvWString szOldOwnerReplayName = GET_PLAYER(pOldCity->getOwner()).getReplayName();
+			CvWString szNewOwnerReplayName = getReplayName();
+			szHasCeded = gDLL->getText("TXT_KEY_MISC_CITY_CEDED_TO",
+					/*	Don't obscure any names; isRevealed in the loop implies
+						isHasSeen (though not isHasMet). */
+					szOldOwnerReplayName.GetCString(), pOldCity->getNameKey(),
+					szNewOwnerReplayName.GetCString());
+		}
 		// Don't announce if there's a reparations announcement
 		if (!bPeaceDeal || !GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS))
 		{
@@ -2759,7 +2764,7 @@ const wchar* CvPlayer::getReplayName(uint uiForm) const
 	{
 		return GC.getInfo(getLeaderType()).getDescription(uiForm);
 	}
-	return GC.getInitCore().getLeaderName(getID(), uiForm);
+	return GC.getInitCore().getLeaderName(getID(), uiForm)./*advc:*/GetCString();
 } // K-Mod end
 
 
@@ -9652,7 +9657,7 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 				AI().AI_updateAttitude(i);*/
 				/*  advc.001: E.g. AI_getRankDifferenceAttitude can change between
 					any two civs. */
-				if (!GET_PLAYER(i).isMinorCiv()) // advc.003n
+				if (GET_PLAYER(i).isAlive() && /* advc.003n: */ !GET_PLAYER(i).isMinorCiv())
 					GET_PLAYER(i).AI_updateAttitude();
 			} // K-Mod end
 		}
@@ -19721,10 +19726,12 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	{
 		for(int j = 0; j < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); j++)
 			apAcquiredCities[i]->initConscriptedUnit();
-	} // </advc.104r>
+	}
+	if (getUWAI.isEnabled())
+		getUWAI.processNewCivInGame(eNewPlayer); // </advc.104r>
 	/*  <advc.127b> Cut and pasted here b/c I want the announcement to point
 		to the new capital */
-	if(!bPlayerExists && eNewPlayer != NO_PLAYER)
+	if (!bPlayerExists)
 	{
 		FAssert(!szMessage.empty());
 		CvCity* pNewCapital = GET_PLAYER(eNewPlayer).getCapitalCity();

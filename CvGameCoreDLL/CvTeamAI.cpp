@@ -2655,7 +2655,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		return DENIAL_POWER_YOUR_ENEMIES; // Denial type doesn't matter
 	} // </advc.143>  <advc.143b>
 	double nuked = 0;
-	for (TeamIter<ALIVE,ENEMY_OF> it(getID()); it.hasNext(); ++it)
+	for (TeamIter<CIV_ALIVE,ENEMY_OF> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeam const& kEnemy = *it;
 		if(kEnemy.getCurrentEra() < 5) // for performance

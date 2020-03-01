@@ -1533,7 +1533,7 @@ int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 	if(humanUtility <= 0 && aiReluct < humanUtility && aiReluct >= 2 * humanUtility)
 		return 0;
 	double reparations = 0;
-	// Only AI wants to end the more or AI wants to end it much more badly
+	// Only AI wants to end the war or AI wants to end it much more badly
 	if(aiReluct < 0 && (humanUtility >= 0 || aiReluct < 2 * humanUtility)) {
 		// Human pays nothing if AI pays
 		if(agentHuman)
@@ -1587,6 +1587,8 @@ int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 			if(aiReluct > 0)
 				greedFactor += 0.1;
 			int delta = std::min(0, aiReluct) - humanUtility;
+			if (delta == 0)
+				return 0;
 			FAssert(delta > 0);
 			// Conversion based on human's economy
 			reparations += greedFactor * human.uwai().utilityToTradeVal(delta);

@@ -3521,9 +3521,10 @@ void CvUnitAI::AI_attackCityMove()
 							(it's a pretty ugly function, so I /hope/ we don't need it.) */
 						FAssertMsg(false, "AI_attackCityMove is resorting to AI_solveBlockageProblem");
 						if (AI_solveBlockageProblem(pAreaTargetCity->plot(),
-								(GET_TEAM(getTeam()).getNumWars() <= 0)))
+							(GET_TEAM(getTeam()).getNumWars() <= 0)))
+						{
 							return;
-						// advc.006:
+						}  // advc.006:
 						FAssertMsg(false, "AI_solveBlockageProblem returned false");
 					}
 				}
