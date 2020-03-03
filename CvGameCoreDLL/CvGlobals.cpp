@@ -900,7 +900,8 @@ bool CvGlobals::isDLLProfilerEnabled() const
 // Global Types Hash Map
 //
 
-int CvGlobals::getTypesEnum(const char* szType, /* advc.006: */ bool bHideAssert) const
+int CvGlobals::getTypesEnum(const char* szType,
+	bool bHideAssert, bool bFromPython) const // advc.006
 {
 	FAssertMsg(szType, "null type string");
 	TypesMap::const_iterator it = m_typesMap.find(szType);
@@ -913,11 +914,15 @@ int CvGlobals::getTypesEnum(const char* szType, /* advc.006: */ bool bHideAssert
 	//if(!bHideAssert)
 	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "")==0 || strcmp(szType, "NONE")==0))
 	{
-		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
 		CvString szError;
-		szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
+		if (!bFromPython) // advc.006 (inspired by rheinig's mod)
+		{
+			char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
+			szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
+			gDLL->logMsg("xml.log", szError);
+		}
+		else szError.Format("type %s not found", szType); // advc.006
 		FAssertMsg(false, szError.c_str());
-		gDLL->logMsg("xml.log", szError);
 	}
 	return -1;
 }
@@ -945,7 +950,8 @@ void CvGlobals::setHoFScreenUp(bool b)
 // Global Infos Hash Map
 //
 
-int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
+int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
+	bool bFromPython) const // advc.006
 {
 	FAssertMsg(szType, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
@@ -954,7 +960,7 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
 	/*  advc.006: Fall back on getTypesEnum. (Needed for advc.003x - though I don't
 		quite understand why it worked before I split up CvInfos.h.)
 		Assertion code moved there. */
-	return getTypesEnum(szType, bHideAssert);
+	return getTypesEnum(szType, bHideAssert, bFromPython);
 }
 
 void CvGlobals::setInfoTypeFromString(const char* szType, int idx)

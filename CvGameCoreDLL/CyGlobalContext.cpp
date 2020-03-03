@@ -402,13 +402,13 @@ CvColorInfo* CyGlobalContext::getColorInfo(int i) const
 
 int CyGlobalContext::getInfoTypeForString(const char* szInfoType) const
 {
-	return GC.getInfoTypeForString(szInfoType);
+	return GC.getInfoTypeForString(szInfoType, /* advc.006: */ false, true);
 }
 
 
 int CyGlobalContext::getTypesEnum(const char* szType) const
 {
-	return GC.getTypesEnum(szType);
+	return GC.getTypesEnum(szType, /* advc.006: */ false, true);
 }
 
 

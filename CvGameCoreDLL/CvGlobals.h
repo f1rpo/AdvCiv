@@ -195,8 +195,12 @@ public:
 	//
 	// Global Infos
 	// All info type strings are upper case and are kept in this hash map for fast lookup
-	//
-	DllExport int getInfoTypeForString(const char* szType, bool bHideAssert = false) const;			// returns the infos index, use this when searching for an info type string
+	// returns the infos index, use this when searching for an info type string
+	DllExport int getInfoTypeForString(const char* szType, bool bHideAssert = false) const
+	// <advc.006> Need another param
+	{ return getInfoTypeForString(szType, bHideAssert, false); }
+	int getInfoTypeForString(const char* szType, bool bHideAssert, bool bFromPython) const;
+	// </advc.006>
 	void setInfoTypeFromString(const char* szType, int idx);
 	DllExport void infoTypeFromStringReset();
 	DllExport void infosReset();
@@ -324,9 +328,10 @@ public:
 	// The other functions are kept for convenience when enumerating, but most are not used
 	//
 	DllExport int getTypesEnum(const char* szType) const // use this when searching for a type
-	// <advc.006> Add bHideAssert param
+	// <advc.006> Add two params
 	{ return getTypesEnum(szType, false); }
-	int getTypesEnum(const char* szType, bool bHideAssert) const; // </advc.006>
+	int getTypesEnum(const char* szType, bool bHideAssert, bool bFromPython = false) const;
+	// </advc.006>
 	void setTypesEnum(const char* szType, int iEnum);
 
 	int& getNumEntityEventTypes();
