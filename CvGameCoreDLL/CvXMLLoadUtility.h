@@ -145,13 +145,10 @@ public:
 
 	// allocate and initialize a list from a tag pair in the xml
 	// advc.003x: Unused param iInfoBaseSize removed from these four
-	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-			int iInfoBaseLength, int iDefaultListVal = 0);
-	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-			int iInfoBaseLength, bool bDefaultListVal = false);
-	void SetVariableListTagPair(float **ppfList, const TCHAR* szRootTagName,
-			int iInfoBaseLength, float fDefaultListVal = 0.0f);
-	void SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
+	template<typename T> // advc: Replaced three functions with a template (inspired by rheinig's mod)
+	void SetVariableListTagPair(T** pptList, const TCHAR* szRootTagName,
+			int iInfoBaseLength, T tDefaultListVal = 0);
+	void SetVariableListTagPair(CvString** ppszList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, CvString szDefaultListVal = "");
 
 	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,

@@ -1755,12 +1755,12 @@ bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 	return true;
 }
 
-/*  advc.003t: Will set the array that ppiList points to to NULL if
-	iDefaultListVal is 0 and no pairs are found or if all (index,value) pairs
+/*  advc.003t: Will set the array that pptList points to to NULL if
+	tDefaultListVal is 0 and no pairs are found or if all (index,value) pairs
 	have the value 0. */
-// advc.003x: Unused param iInfoBaseSize removed
-void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-	int iInfoBaseLength, int iDefaultListVal)
+template<typename T>
+void CvXMLLoadUtility::SetVariableListTagPair(T** pptList, const TCHAR* szRootTagName,
+	int iInfoBaseLength, T tDefaultListVal) // (advc.003x: Unused param iInfoBaseSize removed)
 {
 	if (iInfoBaseLength <= 0)
 	{
@@ -1769,14 +1769,14 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 				GC.getCurrentXMLFile().GetCString());
 		errorMessage(szMessage);
 	}
-	InitList(ppiList, iInfoBaseLength, iDefaultListVal);
+	InitList(pptList, iInfoBaseLength, tDefaultListVal);
 	bool bListModified = false; // advc.003t
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
 	{
 		if (SkipToNextVal())
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
-			int* piList = *ppiList;
+			T* ptList = *pptList;
 			if (iNumSibs > 0)
 			{
 				if(iNumSibs > iInfoBaseLength)
@@ -1791,16 +1791,16 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 					TCHAR szTextVal[256];
 					for (int i = 0; i < iNumSibs; i++)
 					{
-						//if (GetChildXmlVal(szTextVal))
-						if (SkipToNextVal() && GetChildXmlVal(szTextVal)) // K-Mod. (without this, a comment in the xml could break this)
+						if (SkipToNextVal() && // K-Mod. (without this, a comment in the xml could break this)
+							GetChildXmlVal(szTextVal))
 						{
 							int iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal != -1)
 							{
-								int const iOldVal = piList[iIndexVal]; // advc.003t
-								GetNextXmlVal(piList[iIndexVal]);
+								T const tOldVal = ptList[iIndexVal]; // advc.003t
+								GetNextXmlVal(ptList[iIndexVal]);
 								// <advc.003t>
-								if (iOldVal != piList[iIndexVal])
+								if (tOldVal != ptList[iIndexVal])
 									bListModified = true; // </advc.003t>
 							}
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);
@@ -1815,131 +1815,14 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 	}
 	// <advc.003t>
-	if (!bListModified && iDefaultListVal == 0)
-		SAFE_DELETE_ARRAY(*ppiList); // </advc.003t>
+	if (!bListModified && tDefaultListVal == 0)
+		SAFE_DELETE_ARRAY(*pptList); // </advc.003t>
 }
-
-// advc.003t: See SetVariableListTagPair(int**,...) above
-void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-	int iInfoBaseLength, bool bDefaultListVal)
-{
-	if(iInfoBaseLength <= 0)
-	{
-		char szMessage[1024];
-		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
-				GC.getCurrentXMLFile().GetCString());
-		errorMessage(szMessage);
-	}
-	InitList(ppbList, iInfoBaseLength, bDefaultListVal);
-	bool bListModified = false; // advc.003t
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
-	{
-		if (SkipToNextVal())
-		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
-			bool* pbList = *ppbList;
-			if (iNumSibs > 0)
-			{
-				if(iNumSibs > iInfoBaseLength)
-				{
-					char szMessage[1024];
-					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
-							GC.getCurrentXMLFile().GetCString());
-					errorMessage(szMessage);
-				}
-				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
-				{
-					TCHAR szTextVal[256];
-					for (int i = 0; i < iNumSibs; i++)
-					{
-						//if (GetChildXmlVal(szTextVal))
-						if (SkipToNextVal() && GetChildXmlVal(szTextVal)) // K-Mod. (without this, a comment in the xml could break this)
-						{
-							int iIndexVal = FindInInfoClass(szTextVal);
-							if (iIndexVal != -1)
-							{
-								bool bOldVal = pbList[iIndexVal]; // advc.003t
-								GetNextXmlVal(pbList[iIndexVal]);
-								// <advc.003t>
-								if (bOldVal != pbList[iIndexVal])
-									bListModified = true; // </advc.003t>
-							}
-							gDLL->getXMLIFace()->SetToParent(m_pFXml);
-						}
-						if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-							break;
-					}
-					gDLL->getXMLIFace()->SetToParent(m_pFXml);
-				}
-			}
-		}
-		gDLL->getXMLIFace()->SetToParent(m_pFXml);
-	}
-	// <advc.003t>
-	if (!bListModified && bDefaultListVal == false)
-		SAFE_DELETE_ARRAY(*ppbList); // </advc.003t>
-}
-
-// advc.003t: See SetVariableListTagPair(int**,...) above
-void CvXMLLoadUtility::SetVariableListTagPair(float **ppfList, const TCHAR* szRootTagName,
-	int iInfoBaseLength, float fDefaultListVal)
-{
-	if(iInfoBaseLength <= 0)
-	{
-		char szMessage[1024];
-		sprintf(szMessage, "Allocating zero or less memory in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
-				GC.getCurrentXMLFile().GetCString());
-		errorMessage(szMessage);
-	}
-	InitList(ppfList, iInfoBaseLength, fDefaultListVal);
-	bool bListModified = false; // advc.003t
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
-	{
-		if (SkipToNextVal())
-		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
-			float* pfList = *ppfList;
-			if (iNumSibs > 0)
-			{
-				if(iNumSibs > iInfoBaseLength)
-				{
-					char szMessage[1024];
-					sprintf(szMessage, "There are more siblings than memory allocated for them in CvXMLLoadUtility::SetVariableListTagPair \n Current XML file is: %s",
-							GC.getCurrentXMLFile().GetCString());
-					errorMessage(szMessage);
-				}
-				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
-				{
-					TCHAR szTextVal[256];
-					for (int i = 0; i < iNumSibs; i++)
-					{
-						//if (GetChildXmlVal(szTextVal))
-						if (SkipToNextVal() && GetChildXmlVal(szTextVal)) // K-Mod. (without this, a comment in the xml could break this)
-						{
-							int iIndexVal = FindInInfoClass(szTextVal);
-							if (iIndexVal != -1)
-							{
-								float fOldVal = pfList[iIndexVal]; // advc.003t
-								GetNextXmlVal(pfList[iIndexVal]);
-								// <advc.003t>
-								if (fOldVal != pfList[iIndexVal])
-									bListModified = true; // </advc.003t>
-							}
-							gDLL->getXMLIFace()->SetToParent(m_pFXml);
-						}
-						if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-							break;
-					}
-					gDLL->getXMLIFace()->SetToParent(m_pFXml);
-				}
-			}
-		}
-		gDLL->getXMLIFace()->SetToParent(m_pFXml);
-	}
-	// <advc.003t>
-	if (!bListModified && fDefaultListVal == 0)
-		SAFE_DELETE_ARRAY(*ppfList); // </advc.003t>
-}
+// <advc> Explicit instantiations of member function template
+template void CvXMLLoadUtility::SetVariableListTagPair(int**, const TCHAR*, int, int);
+template void CvXMLLoadUtility::SetVariableListTagPair(bool**, const TCHAR*, int, bool);
+template void CvXMLLoadUtility::SetVariableListTagPair(float**, const TCHAR*, int, float);
+// </advc>
 
 // advc.003t: See SetVariableListTagPair(int**,...) above
 void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
