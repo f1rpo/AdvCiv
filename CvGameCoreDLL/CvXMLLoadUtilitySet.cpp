@@ -1199,7 +1199,8 @@ void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagNam
 	Takes the szTagName parameter and loads the ppszString with the text values
 	under the tags. This will be the hints displayed during game initialization and load. */
 template <class T>
-void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName, bool bTwoPass)
+void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName,
+	bool bPassTwo) // advc.rh: Renamed from bTwoPass
 {
 	char szLog[256];
 	sprintf(szLog, "SetGlobalClassInfo (%s)", szTagName);
@@ -1208,11 +1209,58 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 
 	// locate the tag name in the xml file
 	if (!gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
-		return;
+		return; // advc
+
+	if (bPassTwo)
+	{
+		// if we successfully locate the szTagName node
+		if (gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
+		{
+			/*	<advc.rh> Comment by rheinig: "Major bug:
+				The following maps records as currently present in the info array,
+				beginning with the first, to elements in the XML, beginning with the
+				first, one by one, and does a (<T>).readPass2() on these pairs.
+				Well, without Modular XML that may have worked most of the time...
+				With modular XML, it will write partial properties of a new record
+				over the first existing records... As this only hits Stuff loaded with
+				the 'Two-Pass' flag on, and then only properties that are delayed to
+				the second pass, this is seldomly visible - best examples:
+				Techs or Promotions and their Prerequisite trees." */
+			/*gDLL->getXMLIFace()->SetToParent(m_pFXml);
+			gDLL->getXMLIFace()->SetToChild(m_pFXml);
+			for (std::vector<T*>::iterator it = aInfos.begin(); it != aInfos.end(); ++it) {
+				SkipToNextVal(); // skip to the next non-comment node
+				(*it)->readPass2(this);
+				if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
+					break;
+			}*/
+			do
+			{
+				SkipToNextVal();
+				MapChildren();
+				CvString szType;
+				if (GetChildXmlValByName(szType, "Type"))
+				{
+					if (!szType.empty())
+					{
+						int iIndex = GC.getInfoTypeForString(szType, true);
+						if (iIndex >= 0)
+							aInfos[iIndex]->readPass2(this);
+					}
+				}
+			} while (gDLL->getXMLIFace()->NextSibling(m_pFXml));
+		}
+		/*  Comment by rheinig: "Because the mixing of pass 1 and pass 2 with
+			modular XML was a major source of insidious bugs, the passes are now
+			decoupled by the LoadGlobalClassInfo routine. I have replaced the old
+			bTwoPass parameter with bPassTwo, which chooses the pass to perform,
+			instead of enabling both passes here." */
+		return; // </advc.rh>
+	}
 
 	do // loop through each tag
 	{
-		//SkipToNextVal();	// skip to the next non-comment node
+		//SkipToNextVal(); // K-Mod: Moved into termination check
 		T* pClassInfo = new T;
 		FAssert(pClassInfo != NULL);
 		if (pClassInfo == NULL)
@@ -1244,28 +1292,7 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 			SAFE_DELETE(aInfos[iIndex]);
 			aInfos[iIndex] = pClassInfo;
 		}
-
-
-		//} while (gDLL->getXMLIFace()->NextSibling(m_pFXml));
-	} while (gDLL->getXMLIFace()->NextSibling(m_pFXml) && SkipToNextVal()); // K-Mod
-
-	if (bTwoPass)
-	{
-		// if we successfully locate the szTagName node
-		if (gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
-		{
-			gDLL->getXMLIFace()->SetToParent(m_pFXml);
-			gDLL->getXMLIFace()->SetToChild(m_pFXml);
-			// loop through each tag
-			for (std::vector<T*>::iterator it = aInfos.begin(); it != aInfos.end(); ++it)
-			{
-				SkipToNextVal(); // skip to the next non-comment node
-				(*it)->readPass2(this);
-				if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-					break;
-			}
-		}
-	}
+	} while (gDLL->getXMLIFace()->NextSibling(m_pFXml) /* K-Mod: */ && SkipToNextVal());
 }
 
 void CvXMLLoadUtility::SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szTagName)
@@ -1341,13 +1368,28 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 			errorMessage(szMessage, XML_LOAD_ERROR);
 		}
 		else
-		{
-			SetGlobalClassInfo(aInfos, szXmlPath, bTwoPass);
+		{	/*	<advc.rh> Comment by rheinig: "Because the Event tables contain
+				member arrays dimensioned to their own count, we need to delay pass 2
+				for the monolithic XML until after pass 1 has run for the modules.
+				Thus, the 'pass' parameter of SetGlobalClassInfo now indicates the
+				actual pass requested, not the need to execute both passes. */
+			SetGlobalClassInfo(aInfos, szXmlPath, /*bTwoPass*/ false);
+			std::vector<CvString> aszFiles; // (moved up) </advc.rh>
 			if (gDLL->isModularXMLLoading())
 			{
-				std::vector<CvString> aszFiles;
 				// search for the modular files
 				gDLL->enumerateFiles(aszFiles, CvString::format("modules\\*_%s.xml", szFileRoot));
+
+				/*	advc.rh: Comments by rheinig: "Ensure predictable load order
+					(anyone else working on a modular mod suddenly have unit or
+					building types swapped around after a non-xml change?)
+					DO NOT use stable_sort (mem allocator issue).
+					Repeat the loop to de-couple pass 2 (allows crossreferences
+					between different modules, which are problematic anyway,
+					but I like the XML code as clever as possible) Thus, this
+					first loop will *not* call pass 2. " */
+				std::sort(aszFiles.begin(), aszFiles.end());
+
 				for (std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
 				{
 					bLoaded = LoadCivXml(m_pFXml, *it);
@@ -1357,9 +1399,36 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 						sprintf(szMessage, "LoadXML call failed for %s.", it->GetCString());
 						errorMessage(szMessage, XML_LOAD_ERROR);
 					}
-					else SetGlobalClassInfo(aInfos, szXmlPath, bTwoPass);
+					else SetGlobalClassInfo(aInfos, szXmlPath, /*bTwoPass*/ true); // advc.rh
 				}
 			}
+			// <advc.rh>
+			if (bTwoPass)
+			{
+				if (!gDLL->isModularXMLLoading())
+				{
+					/*	"Do Pass 2 for the monolithic XML *now*
+						(no need to reload the XML, no intervening modules)" */
+					SetGlobalClassInfo(aInfos, szXmlPath, true);
+				}
+				else
+				{
+					/*	"Do Pass 2 for the monolithic XML *now*
+						(reload the XML, intervening modules)
+						For this second pass, we forgo any loading error messages -
+						they hav already been output on pass 1" */
+					bLoaded = LoadCivXml(m_pFXml, CvString::format("xml\\%s/%s.xml", szFileDirectory, szFileRoot));
+					if (bLoaded)
+						SetGlobalClassInfo(aInfos, szXmlPath, true);
+					// "... followed by pass 2 for the modules:"
+					for (std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+					{
+						bLoaded = LoadCivXml(m_pFXml, *it);
+						if (bLoaded)
+							SetGlobalClassInfo(aInfos, szXmlPath, true);
+					}
+				}
+			} // </advc.rh>
 			// advc.003i: Disabled
 			/*if (NULL != pArgFunction && bWriteCache) {
 				// write info to cache
@@ -1685,7 +1754,6 @@ bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 	}
 	return true;
 }
-
 
 /*  advc.003t: Will set the array that ppiList points to to NULL if
 	iDefaultListVal is 0 and no pairs are found or if all (index,value) pairs
