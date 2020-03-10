@@ -3,7 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "ScaledInt.h"
 
-#define SCALED_INT_TEST
+//#define SCALED_INT_TEST
 #ifdef SCALED_INT_TEST
 #include "TSCProfiler.h"
 #include "CvInfo_GameOption.h"

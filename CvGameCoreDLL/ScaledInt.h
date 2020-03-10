@@ -3,7 +3,7 @@
 #ifndef SCALED_INT_H
 #define SCALED_INT_H
 
-/*	advc.fract: Header-only classes for fixed-point fractional numbers.
+/*	advc.fract: Header-only class template for fixed-point fractional numbers.
 	Working -- but still work in progress. */
 
 #include "FixedPointPowTables.h" // Large lookup table, but ScaledInt.h gets precompiled.
@@ -97,15 +97,13 @@ CvString ScaledIntBase<Dummy>::szBuf = "";
 	instead of BOOST_STATIC_ASSERT would already help a bit - but that would fail when
 	EnumType is int and OtherEnumType isn't.
 
-	Also tbd. (in addition to "tbd." and "fixme" comments throughout this file) --
-	see the replies and "To be done" in the initial post:
-	forums.civfanatics.com/threads/class-for-fixed-point-arithmetic.655037/
-	Summary:
+	Also tbd. (in addition to "tbd." and "fixme" comments throughout this file):
 	- Move large function definitions out of the class definition; specialize.
 	- Add logarithm function.
 	- Add Natvis file.
 	- Test whether the pragma pack is a good idea.
-*/
+	For background, see the replies and "To be done" in the initial post here:
+	forums.civfanatics.com/threads/class-for-fixed-point-arithmetic.655037  */
 #pragma pack(push, 1)
 template<int iSCALE, typename IntType = int, typename EnumType = int>
 class ScaledInt : ScaledIntBase<void> // Tbd.: Rename to ScaledNum. What's being scaled isn't necessarily an integer.
@@ -161,7 +159,8 @@ public:
 	__forceinline ScaledInt(int i) : m_i(static_cast<IntType>(SCALE * i))
 	{
 		// (Tbd.: Not sure if this assertion should be kept permanently)
-		FAssertBounds(INTMIN / SCALE, INTMAX / SCALE + 1, i);
+		FAssert(static_cast<IntType>(i) >= INTMIN / SCALE);
+		FAssert(static_cast<IntType>(i) <= INTMAX / SCALE);
 	}
 	__forceinline ScaledInt(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
@@ -190,7 +189,7 @@ public:
 
 	/*	Explicit conversion to default EnumType
 		(can't overload explicit cast operator in C++03) */
-	ScaledInt<iSCALE,IntType> convert() const
+	__forceinline ScaledInt<iSCALE,IntType> convert() const
 	{
 		ScaledInt<iSCALE,IntType> r;
 		r.m_i = m_i;
@@ -952,7 +951,8 @@ operator/(
 	}
 }
 
-// Commutativity
+// Commutativity ...
+
 template<ScaledInt_PARAMS>
 __forceinline ScaledInt_T operator+(int i, ScaledInt_T r)
 {
@@ -1096,10 +1096,10 @@ __forceinline scaled per10000(int iNum)
 	return scaled(iNum, 10000);
 }
 /*	'scaled' construction from double. Only const expressions are allowed.
-	Can only make sure of that through a macro. Tbd.: Could return a scaled_uint
+	Can only make sure of that through a macro. Tbd.: Could return a uscaled
 	when the double expression is non-negative:
 	choose_type<(dConstExpr) >= 0,uscaled,scaled>::type::fromRational
-	Arithmetic operations are faster on scaled_uint, but mixing the two types
+	Arithmetic operations are faster on uscaled, but mixing the two types
 	isn't going to be helpful. So perhaps create a separate ufixp macro instead(?). */
 #define fixp(dConstExpr) \
 		((dConstExpr) >= ((int)MAX_INT) / 10000 - 1 || \
