@@ -1374,7 +1374,8 @@ void CvCityAI::AI_chooseProduction()
 			if (pCapital == NULL || kArea.getPopulationPerPlayer(getOwner()) >
 				pCapital->getArea().getPopulationPerPlayer(getOwner()))
 			{
-				if (AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, 15))
+				int iOdds = 3 * kArea.getCitiesPerPlayer(getOwner()); // advc.131: was 15 flat
+				if (AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iOdds))
 					return;
 			}
 		}
