@@ -12692,23 +12692,23 @@ void CvPlayer::addPopup(CvPopupInfo* pInfo, bool bFront)
 	{
 		SAFE_DELETE(pInfo);
 		return;
-	} // <advc.004x>
+	}  // <advc.004x>
 	ButtonPopupTypes eType = pInfo->getButtonPopupType();
-	if(eType == BUTTONPOPUP_CHANGERELIGION)
+	if (eType == BUTTONPOPUP_CHANGERELIGION)
 		killAll(BUTTONPOPUP_CHANGERELIGION);
-	else if(eType == BUTTONPOPUP_CHANGECIVIC)
+	else if (eType == BUTTONPOPUP_CHANGECIVIC)
 		killAll(BUTTONPOPUP_CHANGECIVIC);
-	else if(eType == BUTTONPOPUP_CHOOSETECH)
+	else if (eType == BUTTONPOPUP_CHOOSETECH)
 		killAll(BUTTONPOPUP_CHOOSETECH, 0);
-	else if(eType == BUTTONPOPUP_PYTHON_SCREEN)
+	else if (eType == BUTTONPOPUP_PYTHON_SCREEN)
 	{
-		CvGame& g = GC.getGame();
-		if(g.getElapsedGameTurns() <= 0 && g.getActivePlayer() != NO_PLAYER)
+		CvGame& kGame = GC.getGame();
+		if (kGame.getElapsedGameTurns() <= 0 && kGame.getActivePlayer() != NO_PLAYER)
 		{
 			// Must be DawnOfMan then
-			g.setDawnOfManShown(true);
+			kGame.setDawnOfManShown(true);
 			bFront = true;
-			GET_PLAYER(g.getActivePlayer()).doChangeCivicsPopup(NO_CIVIC);
+			GET_PLAYER(kGame.getActivePlayer()).doChangeCivicsPopup(NO_CIVIC);
 		}
 	} // </advc.004x>
 	if (bFront)
@@ -12742,6 +12742,9 @@ CvPopupInfo* CvPlayer::popFrontPopup()
 
 const CvPopupQueue& CvPlayer::getPopups() const
 {
+	// advc.test:
+	FAssertMsg(GC.getGame().getActivePlayer() == getID(),
+			"Just to see under which circumstances the EXE adds popups to AI players");
 	return m_listPopups;
 }
 
@@ -16732,34 +16735,33 @@ void CvPlayer::write(FDataStreamBase* pStream)
 			message.write(*pStream);
 		}
 	}
-
 	{
 		CvPopupQueue currentPopups;
+		// Don't save open popups in MP to avoid having different state on different machines
 		if (GC.getGame().isNetworkMultiPlayer())
-		{
-			// don't save open popups in MP to avoid having different state on different machines
 			currentPopups.clear();
-		}
-		else
+		else gDLL->getInterfaceIFace()->getDisplayedButtonPopups(currentPopups);
+		/*	<advc.001> Don't store popups for AI players. The EXE sometimes adds popups
+			to AI players through CvPlayer::getPopups; not sure when and why. Those popups
+			linger and appear when switching to an AI player through Alt+Z. */
+		if (GC.getGame().getActivePlayer() != getID())
 		{
-			gDLL->getInterfaceIFace()->getDisplayedButtonPopups(currentPopups);
-		}
+			currentPopups.clear();
+			clearPopups();
+		} // </advc.001>
 		CvPopupQueue::_Alloc::size_type iSize = m_listPopups.size() + currentPopups.size();
 		pStream->Write(iSize);
 		CvPopupQueue::iterator it;
 		for (it = currentPopups.begin(); it != currentPopups.end(); ++it)
 		{
 			CvPopupInfo* pInfo = *it;
-			if (NULL != pInfo)
-			{
+			if (pInfo != NULL)
 				pInfo->write(*pStream);
-			}
 		}
 		for (it = m_listPopups.begin(); it != m_listPopups.end(); ++it)
 		{
 			CvPopupInfo* pInfo = *it;
-			if (NULL != pInfo)
-			{
+			if (pInfo != NULL)
 				pInfo->write(*pStream);
 		}
 	}
@@ -16771,10 +16773,8 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		for (it = m_listDiplomacy.begin(); it != m_listDiplomacy.end(); ++it)
 		{
 			CvDiploParameters* pDiplo = *it;
-			if (NULL != pDiplo)
-			{
+			if (pDiplo != NULL)
 				pDiplo->write(*pStream);
-			}
 		}
 	}
 
@@ -22116,42 +22116,46 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 	return ::dMedian(samples);
 } // </advc.104>
 
-// <advc.004x>
+// advc.004x:
 void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 {
-	CvGame const& g = GC.getGame();
-	if(getID() != g.getActivePlayer() || !isHuman() ||
-			 /* (If outdated non-minimized popups are also a problem, then this
-				check could just be removed; should work alright.) */
-			!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) ||
-			/*  I can't get this to work in network games. The delays introduced by
-				net messages cause popups to appear several times. */
-			g.isNetworkMultiPlayer())
+	CvGame const& kGame = GC.getGame();
+	if(getID() != kGame.getActivePlayer() || !isHuman() ||
+		/*	(If outdated non-minimized popups are also a problem, then this
+			check could just be removed; should work alright.) */
+		!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) ||
+		/*	I can't get this to work in network games. The delays introduced by
+			net messages cause popups to appear several times. */
+		kGame.isNetworkMultiPlayer())
+	{
 		return;
+	}
 	// Preserve the popups we don't want killed in newQueue
 	std::list<CvPopupInfo*> newQueue;
-	for(int pass = 0; pass < 2; pass++)
+	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		if(pass == 1)
+		if(iPass == 1)
 		{
 			// Recall popups already launched
 			gDLL->getInterfaceIFace()->getDisplayedButtonPopups(m_listPopups);
 		}
-		for(std::list<CvPopupInfo*>::iterator it = m_listPopups.begin(); it != m_listPopups.end(); it++)
+		for (std::list<CvPopupInfo*>::iterator it = m_listPopups.begin(); it != m_listPopups.end(); it++)
 		{
 			CvPopupInfo* pPopup = *it;
 			if((pPopup->getButtonPopupType() != ePopupType &&
-					/*  Don't relaunch a found-religion popup in response to a
-						change-religion popup. The player will already have chosen
-						and founded a religion, i.e. the found-religion popup is
-						essentially already done. */
-					(ePopupType != BUTTONPOPUP_CHANGERELIGION || pass < 1 ||
-					pPopup->getButtonPopupType() != BUTTONPOPUP_FOUND_RELIGION)) ||
-					(iData1 >= 0 && pPopup->getData1() != iData1))
+				/*	Don't relaunch a found-religion popup in response to a
+					change-religion popup. The player will already have chosen
+					and founded a religion, i.e. the found-religion popup is
+					essentially already done. */
+				(ePopupType != BUTTONPOPUP_CHANGERELIGION || iPass < 1 ||
+				pPopup->getButtonPopupType() != BUTTONPOPUP_FOUND_RELIGION)) ||
+				(iData1 >= 0 && pPopup->getData1() != iData1))
+			{
 				newQueue.push_back(pPopup);
+			}
 			else
 			{
-				if(pass <= 0)
+				if (iPass <= 0)
 					SAFE_DELETE(pPopup);
 				// else it's still in the list of popups on display
 			}
@@ -22160,10 +22164,12 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 	}
 	// The EXE will relaunch these from m_listPopups
 	gDLL->getInterfaceIFace()->clearQueuedPopups();
-	for(std::list<CvPopupInfo*>::iterator it = newQueue.begin();
-			it != newQueue.end(); it++)
+	for (std::list<CvPopupInfo*>::iterator it = newQueue.begin();
+		it != newQueue.end(); it++)
+	{
 		m_listPopups.push_back(*it);
-} // </advc.004x>
+	}
+}
 
 // <advc.314>
 bool CvPlayer::isGoodyTech(TechTypes techId, bool bProgress) const
