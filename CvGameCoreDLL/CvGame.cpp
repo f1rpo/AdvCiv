@@ -9181,8 +9181,13 @@ void CvGame::onAllGameDataRead()
 		CvPlayerAI& kActive = *it;
 		if (!kActive.isTurnActive())
 			continue;
-		// So that the cache data doesn't necessarily have to be serialized
-		kActive.AI_updateCacheData();
+		/*	Bad idea (by me). The cache data has to be serialized instead.
+			It gets updated at the start of a turn, yes, but if we rely on
+			that, then it won't safe to access data from another player's
+			cache (who may not have taken a turn since a savegame was loaded).
+			Could update all caches after loading, but that would result in
+			more recent data after loading than upon saving. */
+		//kActive.AI_updateCacheData();
 		kActive.validateDiplomacy(); // advc.134a
 	}
 	// <advc.127> Save created during AI Auto Play

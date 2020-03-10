@@ -330,8 +330,6 @@ int CvPlayerAI::AI_getFlavorValue(FlavorTypes eFlavor) const
 }
 
 // K-Mod
-/*	advc (note): Now called on all active players after loading a savegame;
-	so that the data doesn't necessarily have to be serialized. */
 void CvPlayerAI::AI_updateCacheData()
 {
 	// AI_updateCloseBorderAttitude();
@@ -19468,8 +19466,10 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	// K-Mod
 	if (uiFlag >= 6)
 		pStream->Read(&m_iCityTargetTimer);
-	else AI_setCityTargetTimer(0);
-	// K-Mod end
+	else AI_setCityTargetTimer(0); // K-Mod end
+	// <advc.651>
+	if (uiFlag >= 16)
+		pStream->Read(&m_bDangerFromSubmarines); // </advc.651>
 
 	pStream->Read((int*)&m_eStrategyHash);
 	//pStream->Read(&m_iStrategyHashCacheTurn); // disabled by K-Mod
@@ -19621,12 +19621,19 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	CvPlayer::write(pStream);
-
-REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerAI(%d)", getID()));	uiFlag = 10; // advc.036
+	REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerAI(%d)", getID()));
+	uint uiFlag = 3;
+	uiFlag = 4; // K-Mod: m_aiAttitude
+	uiFlag = 5; // K-Mod: m_GreatPersonWeights
+	uiFlag = 6; // K-Mod: m_iCityTargetTimer
+	uiFlag = 8; // advc.opt
+	uiFlag = 9; // advc.148
+	uiFlag = 10; // advc.036
 	uiFlag = 11; // advc.104i
 	uiFlag = 12; // advc.079
 	uiFlag = 14; // advc.130c
 	uiFlag = 15; // advc.104: Don't save UWAI cache of dead civ
+	uiFlag = 16; // advc.651
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iPeaceWeight);
@@ -19635,7 +19642,8 @@ REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerAI(%d)", getID()));	uiFlag = 10; 
 	pStream->Write(m_iCivicTimer);
 	pStream->Write(m_iReligionTimer);
 	pStream->Write(m_iExtraGoldTarget);
-	pStream->Write(m_iCityTargetTimer); // K-Mod. uiFlag >= 6
+	pStream->Write(m_iCityTargetTimer);
+	pStream->Write(m_bDangerFromSubmarines); // advc.651
 
 	pStream->Write(m_eStrategyHash);
 	//pStream->Write(m_iStrategyHashCacheTurn); // disabled by K-Mod
@@ -19676,7 +19684,7 @@ REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerAI(%d)", getID()));	uiFlag = 10; 
 	pStream->Write(MAX_CIV_PLAYERS, m_abTheyFarAhead);
 	pStream->Write(MAX_CIV_PLAYERS, m_abTheyBarelyAhead); // </advc.130c>
 	// K-Mod. save the attitude cache. (to avoid OOS problems)
-	pStream->Write(MAX_PLAYERS, &m_aiAttitude[0]); // uiFlag >= 4
+	pStream->Write(MAX_PLAYERS, &m_aiAttitude[0]);
 	// K-Mod end
 	pStream->Write(MAX_PLAYERS, m_abFirstContact);
 
@@ -19706,7 +19714,7 @@ REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerAI(%d)", getID()));	uiFlag = 10; 
 	pStream->Write(GC.getNumBonusInfos(), m_aiBonusValueTrade); // advc.036
 	pStream->Write(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Write(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
-	// K-Mod. save great person weights. (uiFlag >= 5)
+	// K-Mod. save great person weights.
 	{
 		int iItems = m_GreatPersonWeights.size();
 		pStream->Write(iItems);

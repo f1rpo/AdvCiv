@@ -7926,26 +7926,23 @@ void CvCityAI::AI_updateBestBuild()
 
 		if (m_aeBestBuild[ePlot] != NO_BUILD)
 		{
+			short aiYields[NUM_YIELD_TYPES]; // advc: Moved into the loop; don't reuse.
 			int iValue = 0;
+			FOR_EACH_ENUM(Yield)
 			{
-				short aiYields[NUM_YIELD_TYPES]; // advc: Moved into the loop; don't reuse.
-				FOR_EACH_ENUM(Yield)
-				{
-					aiYields[eLoopYield] = kPlot.getYieldWithBuild(
-							m_aeBestBuild[ePlot], eLoopYield, true);
-				}
-				iValue += AI_yieldValue(aiYields, 0, false, false, true, true, iGrowthValue);
-				aiValues[ePlot] = iValue;
+				aiYields[eLoopYield] = kPlot.getYieldWithBuild(
+						m_aeBestBuild[ePlot], eLoopYield, true);
 			}
+			iValue += AI_yieldValue(aiYields, 0, false, false, true, true, iGrowthValue);
+			aiValues[ePlot] = iValue;
 			// K-Mod
-			// Also evaluate the _change_ in yield, so that we aren't always tinkering with our best plots
-			{
-				short aiYields[NUM_YIELD_TYPES]; // advc
-				FOR_EACH_ENUM(Yield)
-					aiYields[eLoopYield] -= kPlot.getYield(eLoopYield);
-				iValue += AI_yieldValue(aiYields, 0, false, false, true, true, iGrowthValue);
-				// Note: AI_yieldValue wasn't intended to be used with negative yields. But I think it will work; and it doesn't need to be perfectly accurate anyway.
-			}
+			/*	Also evaluate the _change_ in yield,
+				so that we aren't always tinkering with our best plots
+				Note: AI_yieldValue wasn't intended to be used with negative yields.
+				But I think it will work; and it doesn't need to be perfectly accurate anyway. */
+			FOR_EACH_ENUM(Yield)
+				aiYields[eLoopYield] -= kPlot.getYield(eLoopYield);
+			iValue += AI_yieldValue(aiYields, 0, false, false, true, true, iGrowthValue);
 			// priority increase for chopping when we want to chop
 			//if (bChop)
 			/*  <advc.117> Also increase the value a little when
@@ -12852,8 +12849,13 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iNeededFloatingDefenders);
 	pStream->Read(&m_iNeededFloatingDefendersCacheTurn);
 	// <advc.139>
-	if(uiFlag >= 3)
-		pStream->Read(&m_bEvacuate); // </advc.139>
+	if (uiFlag >= 3)
+		pStream->Read(&m_bEvacuate);
+	if (uiFlag >= 7)
+	{
+		pStream->Read(&m_bSafe);
+		pStream->Read(&m_iCityValPercent);
+	} // </advc.139>
 	pStream->Read(&m_iWorkersNeeded);
 	pStream->Read(&m_iWorkersHave);
 	// K-Mod
@@ -12871,12 +12873,14 @@ void CvCityAI::read(FDataStreamBase* pStream)
 void CvCityAI::write(FDataStreamBase* pStream)
 {
 	CvCity::write(pStream);
-
-	uint uiFlag=2;
-	uiFlag = 3; // advc.139
+	uint uiFlag = 0;
+	uiFlag = 1; // K-Mod: m_aiConstructionValue
+	uiFlag = 2; // K-Mod: m_iCultureWeight
+	uiFlag = 3; // advc.139 (m_bEvacuate)
 	uiFlag = 4; // advc.opt (m_eBestBuild)
 	uiFlag = 5; // advc.003u: Move m_bChooseProductionDirty to CvCity
 	uiFlag = 6; // advc.opt: Per-player meta data for closeness cache
+	uiFlag = 7; // advc.139 (m_bSafe, m_iCityValPercent)
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("CityAI(%d,%d)", getX(), getY()));
 	pStream->Write(m_iEmphasizeAvoidGrowthCount);
@@ -12900,13 +12904,17 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_PLAYERS, m_aiPlayerCloseness);
 	pStream->Write(m_iNeededFloatingDefenders);
 	pStream->Write(m_iNeededFloatingDefendersCacheTurn);
-	pStream->Write(m_bEvacuate); // advc.139 (No need to save m_bSafe, m_iCityValPercent)
+	// <advc.139>
+	pStream->Write(m_bEvacuate);
+	pStream->Write(m_bSafe);
+	pStream->Write(m_iCityValPercent);
+	// </advc.139>
 	//This needs to be serialized for human workers.
 	pStream->Write(m_iWorkersNeeded);
 	pStream->Write(m_iWorkersHave);
 	// K-Mod (note: cache needs to be saved, otherwise players who join mid-turn might go out of sync when the cache is used)
-	pStream->Write(GC.getNumBuildingClassInfos(), &m_aiConstructionValue[0]); // uiFlag >= 1
-	pStream->Write(m_iCultureWeight); // uiFlag >= 2
+	pStream->Write(GC.getNumBuildingClassInfos(), &m_aiConstructionValue[0]);
+	pStream->Write(m_iCultureWeight);
 	// K-Mod end
 	REPRO_TEST_END_WRITE();
 }

@@ -614,7 +614,7 @@ protected:
 	int m_iReligionTimer;
 	int m_iExtraGoldTarget;
 	int m_iCityTargetTimer; // K-Mod
-	bool m_bDangerFromSubmarines; // advc.651 (not serialized)
+	bool m_bDangerFromSubmarines; // advc.651
 	UWAI::Civ* m_pUWAI; // advc.104
 
 	/*mutable int m_iStrategyHash;
