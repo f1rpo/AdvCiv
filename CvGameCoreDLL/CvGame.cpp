@@ -4769,17 +4769,13 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			return false;
 
 		bool bValid = false;
-		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
+		// advc.178: Exclude vassals
+		for (TeamIter<FREE_MAJOR_CIV,ENEMY_OF> it(kPlayer.getTeam()); it.hasNext(); ++it)
 		{
-			if (atWar(kPlayer.getTeam(), (TeamTypes)iTeam2))
+			if (it->isVotingMember(eVoteSource))
 			{
-				CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
-
-				if (kTeam2.isVotingMember(eVoteSource))
-				{
-					bValid = true;
-					break;
-				}
+				bValid = true;
+				break;
 			}
 		}
 
