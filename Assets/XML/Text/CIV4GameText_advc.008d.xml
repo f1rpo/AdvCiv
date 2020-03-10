@@ -124,6 +124,16 @@
 	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</Spanish>
 </TEXT>
 
+<!-- Minor improvements to the wording (En, Ger) -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_61</Tag>
+	<English>Fighter aircraft can intercept multiple incoming planes per turn but become less effective at it as they get damaged. Take the time to repair your defensive planes.</English>
+	<French>Vos chasseurs peuvent intercepter plusieurs avions ennemis par tour, mais sont moins efficaces quand ils sont endommag&#233;s. Pensez donc bien &#224; r&#233;parer vos avions de d&#233;fense.</French>
+	<German>J&#228;gdflugzeuge k&#246;nnen mehrere Abfangversuche pro Zug unternehmen, ihre Schlagkraft sinkt allerdings, wenn sie besch&#228;digt werden. Geben Sie Ihren defensiven Lufteinheiten Zeit für Reparaturen.</German>
+	<Italian>I tuoi caccia possono intercettare pi&#249; aerei per turno, ma diventano meno efficaci se subiscono danni, perci&#242; premurati di riparare i tuoi velivoli difensivi.</Italian>
+	<Spanish>Tus cazas pueden interceptar varios aviones por turno, pero se vuelven menos eficaces a medida que sufren da&#241;os, por lo que debes preocuparte de reparar tus aviones defensivos.</Spanish>
+</TEXT>
+
 <!-- "Use your mouse wheel to zoom" duh -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_1</Tag>

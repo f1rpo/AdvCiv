@@ -1032,6 +1032,17 @@
 		<Spanish>Vuestras defensas en %s4_CityName han quedado reducidas al %d2_NewVal%% por [NUM1:un:una:unos:unas] %s1_UnitName %s3:1</Spanish>
 	</TEXT>
 
+	<!-- advc.004g: Remove the 2nd sentence: "You will find this to be very
+		 useful if you accidentally queue the wrong order." -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_CANCEL_HELP</Tag>
+		<English>Cancel the last order in the unit's mission queue.</English>
+		<French>Annuler le dernier ordre de la liste d'attente.</French>
+		<German>L&#246;sche den letzten Befehl in der Befehlsliste der Einheit.</German>
+		<Italian>Annulla l'ultimo ordine nella coda delle azioni dell'unit&#224;.</Italian>
+		<Spanish>Cancelar&#225; la &#250;ltima orden en la cola de &#243;rdenes de la unidad.</Spanish>
+	</TEXT>
+
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
 	<TEXT>
@@ -4186,7 +4197,7 @@
 		<Italian>%s1 con %s2</Italian>
 		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
-	
+
 	<!-- advc.004w: Based on TXT_KEY_BUILDING_OBSOLETE_WITH in
 		 CIV4GameTextInfos.xml. Color only the obsoletion tech. -->
 	<TEXT>
@@ -4239,7 +4250,7 @@
 		<Italian>(con [NUM1:il:la:gli:le] [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</Italian>
 		<Spanish>(con [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</Spanish>
 	</TEXT>
-	
+
 	<!-- advc.905b, advc.047: No spaces -->
 	<TEXT>
 		<Tag>TXT_KEY_WITH</Tag>
