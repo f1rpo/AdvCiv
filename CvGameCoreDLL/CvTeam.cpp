@@ -2112,10 +2112,11 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	static int const iTECH_COST_MODIFIER = GC.getDefineINT("TECH_COST_MODIFIER");
 	rModifier += per100(iTECH_COST_MODIFIER);
 	// </advc.910>
+	rModifier += GC.getGame().groundbreakingNormalizationModifier(eTech); // advc.groundbr
 	if (bGlobalModifiers) // K-Mod
-	{	// advc:
+	{
 		CvWorldInfo const& kWorld = GC.getInfo(GC.getMap().getWorldSize());
-		if(eTechEra > 0) // advc.910
+		if (eTechEra > 0) // advc.910
 		{
 			rCost *= per100(kWorld.getResearchPercent());
 			// <advc.910>

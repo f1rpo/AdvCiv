@@ -6375,7 +6375,7 @@ int CvPlayer::calculateInflatedCosts() const
 	return iNetGold;
 }*/
 
-int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
+int CvPlayer::calculateResearchModifier(TechTypes eTech,  // <advc.910>
 		int* piFromOtherKnown, int* piFromPaths, int* piFromTeam) const
 {
 	// So that the caller isn't required to provide the pointer params
@@ -6396,71 +6396,48 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
 	static bool const bTECH_DIFFUSION_ENABLE = GC.getDefineBOOL("TECH_DIFFUSION_ENABLE");
 	if (bTECH_DIFFUSION_ENABLE)
 	{
-		double knownExp = 0.0;
+		scaled rKnownExp; // advc: BBAI had used floating-point math
 		// Tech flows better through open borders
-		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+		for (TeamIter<CIV_ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (GET_TEAM((TeamTypes)iI).isHasTech(eTech))
-				{
-					if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iI))
-					{
-						knownExp += 0.5;
-
-						if (GET_TEAM(getTeam()).isOpenBorders((TeamTypes)iI) || GET_TEAM((TeamTypes)iI).isVassal(getTeam()))
-						{
-							knownExp += 1.5;
-						}
-						else if (GET_TEAM(getTeam()).isAtWar((TeamTypes)iI) || GET_TEAM(getTeam()).isVassal((TeamTypes)iI))
-						{
-							knownExp += 0.5;
-						}
-					}
-				}
-			}
+			CvTeam const& kTechTeam = *it;
+			if (!kTechTeam.isHasTech(eTech))
+				continue;
+			rKnownExp += fixp(0.5);
+			if (GET_TEAM(getTeam()).isFriendlyTerritory(kTechTeam.getID()))
+				rKnownExp += fixp(1.5);
+			else if (kTechTeam.isAtWar(getTeam()) || GET_TEAM(getTeam()).isVassal(kTechTeam.getID()))
+				rKnownExp += fixp(0.5);
 		}
 		static int const iTechDiffMod = GC.getDefineINT("TECH_DIFFUSION_KNOWN_TEAM_MODIFIER", 30);
-		if (knownExp > 0.0)
+		if (rKnownExp > 0)
 		{
 			*piFromOtherKnown += // advc.910
-					iTechDiffMod - (int)(iTechDiffMod * pow(0.85, knownExp) + 0.5);
+					iTechDiffMod - (iTechDiffMod * fixp(0.85).pow(rKnownExp)).round();
 		}
 		// Tech flows downhill to those who are far behind
 		int iTechScorePercent = GET_TEAM(getTeam()).getBestKnownTechScorePercent();
 		static int const iWelfareThreshold = GC.getDefineINT("TECH_DIFFUSION_WELFARE_THRESHOLD", 88);
 		if (iTechScorePercent < iWelfareThreshold)
 		{
-			if (knownExp > 0.0)
+			if (rKnownExp > 0)
 			{
 				static int const iWelfareModifier = GC.getDefineINT("TECH_DIFFUSION_WELFARE_MODIFIER", 30);
 				*piFromOtherKnown += // advc.910
 						(iWelfareModifier * GC.getGame().getCurrentEra() *
-						(iWelfareThreshold - iTechScorePercent))/200;
+						(iWelfareThreshold - iTechScorePercent)) / 200;
 			}
 		}
 	}
 	else
-	{
-		// Default BTS code
+	{	// BtS tech diffusion
 		int iKnownCount = 0;
-		int iPossibleKnownCount = 0;
-		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+		for (TeamIter<CIV_ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iI))
-				{
-					if (GET_TEAM((TeamTypes)iI).isHasTech(eTech))
-					{
-						iKnownCount++;
-					}
-				}
-
-				iPossibleKnownCount++;
-			}
+			if (it->isHasTech(eTech))
+				iKnownCount++;
 		}
-
+		int const iPossibleKnownCount = TeamIter<CIV_ALIVE>::count();
 		if (iPossibleKnownCount > 0)
 		{
 			static int iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER = GC.getDefineINT("TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER"); // advc.opt
@@ -6472,40 +6449,32 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
 
 	int iPossiblePaths = 0;
 	int iUnknownPaths = 0;
-	for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
-	{	// advc:
-		TechTypes eOrTech = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(iI);
+	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(); i++)
+	{
+		TechTypes eOrTech = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i); // advc
 		if (eOrTech != NO_TECH)
 		{
 			if (!GET_TEAM(getTeam()).isHasTech(eOrTech))
-			{
 				iUnknownPaths++;
-			}
-
 			iPossiblePaths++;
 		}
 	}
-
-	FAssertMsg(iPossiblePaths >= iUnknownPaths, "The number of possible paths is expected to match or exceed the number of unknown ones");
-
+	FAssert(iPossiblePaths >= iUnknownPaths);
 	if(iPossiblePaths > iUnknownPaths)
 	{
 		*piFromPaths += // advc.910
 				GC.getDefineINT(CvGlobals::TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER);
 		iPossiblePaths--;
-		*piFromPaths +=
-			(iPossiblePaths - iUnknownPaths) * GC.getDefineINT(CvGlobals::TECH_COST_KNOWN_PREREQ_MODIFIER);
+		*piFromPaths += (iPossiblePaths - iUnknownPaths) *
+				GC.getDefineINT(CvGlobals::TECH_COST_KNOWN_PREREQ_MODIFIER);
 	}
 	// BETTER_BTS_AI_MOD: END
 	iModifier += *piFromPaths;
 	// <advc.156>
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (MemberIter it(getTeam()); it.hasNext(); ++it)
 	{
-		if(i == getID())
-			continue;
-		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
-		if(kMember.isAlive() && kMember.getTeam() == getTeam() &&
-				kMember.getCurrentResearch() == eTech)
+		CvPlayer const& kMember = *it;
+		if (kMember.getID() != getID() && kMember.getCurrentResearch() == eTech)
 		{
 			*piFromTeam = // advc.910
 					GC.getDefineINT(CvGlobals::RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER); // advc.210
@@ -6514,6 +6483,7 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
 	}
 	iModifier += *piFromTeam; // advc.910
 	// </advc.156>
+	iModifier -= groundbreakingPenalty(eTech); // advc.groundbr
 	return iModifier;
 }
 
@@ -6524,6 +6494,40 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech, // <advc.910>
 	else eResearchTech = getCurrentResearch();
 	return (((GC.getDefineINT("BASE_RESEARCH_RATE") + getCommerceRate(COMMERCE_RESEARCH)) * calculateResearchModifier(eResearchTech)) / 100);
 } */
+
+// advc.groundbr: Loosely based on CvTeam::getSpreadResearchModifier in DoC
+int CvPlayer::groundbreakingPenalty(TechTypes eTech) const
+{
+	bool const bAIEnable = GC.getDefineBOOL(CvGlobals::AI_GROUNDBREAKING_PENALTY_ENABLE);
+	bool const bHumanEnable = GC.getDefineBOOL(CvGlobals::HUMAN_GROUNDBREAKING_PENALTY_ENABLE);
+	if (isHuman() ? !bHumanEnable : !bAIEnable)
+		return 0;
+	EraTypes const eCurrentEra = getCurrentEra();
+	EraTypes const eStartEra = GC.getGame().getStartEra();
+	if (eCurrentEra <= eStartEra)
+		return 0;
+	int iMaxPenalty = GC.getInfo(eCurrentEra).get(isHuman() ?
+			CvEraInfo::HumanMaxGroundbreakingPenalty :
+			CvEraInfo::AIMaxGroundbreakingPenalty);
+	if (iMaxPenalty == 0)
+		return 0;
+	// For comments see TechDiffusion_GlobalDefines.xml or the original code (DoC mod)
+	int iTotal = 0;
+	int iHasTech = 0;
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	{
+		CvTeam const& kLoopTeam = GET_TEAM(it->getTeam());
+		if (kLoopTeam.isCapitulated())
+			continue;
+		iTotal++;
+		if (kLoopTeam.isHasTech(eTech))
+			iHasTech++;
+	}
+	scaled const rPercentile(iTotal, 4); // quartile
+	if (iHasTech >= rPercentile)
+		return 0;
+	return (iMaxPenalty * (rPercentile - iHasTech) / rPercentile).round();
+}
 
 
 int CvPlayer::calculateGoldRate() const

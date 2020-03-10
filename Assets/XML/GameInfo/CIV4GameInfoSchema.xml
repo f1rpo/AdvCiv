@@ -17,9 +17,17 @@
 	<ElementType name="iTerrainGrainChange" content="textOnly" dt:type="int"/>
 	<ElementType name="iFeatureGrainChange" content="textOnly" dt:type="int"/>
 	<ElementType name="iResearchPercent" content="textOnly" dt:type="int"/>
-	<!-- BBAI start: effectively modify cost for all techs from an era. -->
+	<!-- BBAI: effectively modify cost for all techs from an era. -->
 	<ElementType name="iTechCostModifier" content="textOnly" dt:type="int"/>
-	<!-- BBAI end -->
+	<!-- advc.groundbr: start -->
+	<!-- Values less than 0 haven't been tested -->
+	<!-- No effect if AI_GROUNDBREAKING_PENALTY_ENABLE is set to 0 in
+		 TechDiffusion_GlobalDefines.xml -->
+	<ElementType name="iAIMaxGroundbreakingPenalty" content="textOnly" dt:type="int"/>
+	<!-- No effect if HUMAN_GROUNDBREAKING_PENALTY_ENABLE is set to 0 in
+		 TechDiffusion_GlobalDefines.xml -->
+	<ElementType name="iHumanMaxGroundbreakingPenalty" content="textOnly" dt:type="int"/>
+	<!-- advc.groundbr: end -->
 	<ElementType name="iTradeProfitPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iDistanceMaintenancePercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iNumCitiesMaintenancePercent" content="textOnly" dt:type="int"/>
@@ -1126,9 +1134,13 @@
 		<element type="iConstructPercent"/>
 		<element type="iCreatePercent"/>
 		<element type="iResearchPercent"/>
-		<!-- BBAI start: effectively modify cost for all techs from an era. -->
+		<!-- BBAI: Set to 0 by default in the DLL -->
 		<element type="iTechCostModifier" minOccurs="0"/>
-		<!-- BBAI end -->
+		<!-- advc.groundbr: start -->
+		<!-- Both optional; set to 0 by default in the DLL -->
+		<element type="iAIMaxGroundbreakingPenalty" minOccurs="0"/>
+		<element type="iHumanMaxGroundbreakingPenalty" minOccurs="0"/>
+		<!-- advc.groundbr: end -->
 		<element type="iBuildPercent"/>
 		<element type="iImprovementPercent"/>
 		<element type="iGreatPeoplePercent"/>

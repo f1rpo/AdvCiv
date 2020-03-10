@@ -3588,9 +3588,7 @@ int CvGame::victoryDelay(VictoryTypes eVictory) const
 
 int CvGame::getImprovementUpgradeTime(ImprovementTypes eImprovement) const
 {
-	int iTime;
-
-	iTime = GC.getInfo(eImprovement).getUpgradeTime();
+	int iTime = GC.getInfo(eImprovement).getUpgradeTime();
 
 	iTime *= GC.getInfo(getGameSpeedType()).getImprovementPercent();
 	iTime /= 100;
@@ -3651,14 +3649,25 @@ EraTypes CvGame::getCurrentEra() const
 	return NO_ERA;
 }
 
-// <advc>
+// advc:
 EraTypes CvGame::getHighestEra() const
 {
 	EraTypes r = NO_ERA;
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		r = (EraTypes)std::max<int>(r, it->getCurrentEra());
 	return r;
-} // </advc>
+}
+
+// advc.groundbr: Normalize tech costs when groundbreaking penalties are enabled
+scaled CvGame::groundbreakingNormalizationModifier(TechTypes eTech) const
+{
+	if (!GC.getDefineBOOL(CvGlobals::AI_GROUNDBREAKING_PENALTY_ENABLE))
+		return 0;
+	EraTypes const eTechEra = GC.getInfo(eTech).getEra();
+	if (eTechEra <= GC.getGame().getStartEra())
+		return 0;
+	return -per100(GC.getInfo(eTechEra).get(CvEraInfo::AIMaxGroundbreakingPenalty)) / 4;
+}
 
 
 TeamTypes CvGame::getActiveTeam() const
@@ -7642,7 +7651,7 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 		if (eAndTech != NO_TECH)
 			iUnitEra = GC.getInfo(eAndTech).getEra();
 		if (eAndBonusTech != NO_TECH)
-			iUnitEra = std::max(iUnitEra, GC.getInfo(eAndBonusTech).getEra());
+			iUnitEra = std::max<int>(iUnitEra, GC.getInfo(eAndBonusTech).getEra());
 		if (iUnitEra + 1 < getCurrentEra())
 			continue; // </advc.301>
 		bool bFound = false;

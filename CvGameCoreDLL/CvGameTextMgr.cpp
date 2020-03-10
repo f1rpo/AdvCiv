@@ -9155,14 +9155,17 @@ void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes
 	iFromOtherKnown = iFromPaths = iFromTeam = 0;
 	int iMod = GET_PLAYER(GC.getGame().getActivePlayer()).
 			calculateResearchModifier(eTech, &iFromOtherKnown, &iFromPaths, &iFromTeam) - 100;
+	// <advc.groundbr>
+	int iFromGroundbreaking = -GET_PLAYER(GC.getGame().getActivePlayer()).
+			groundbreakingPenalty(eTech); // </advc.groundbr>
 	int iNonZero = 0;
-	if(iFromOtherKnown != 0)
+	if (iFromOtherKnown != 0 || iFromGroundbreaking != 0)
 		iNonZero++;
-	if(iFromPaths != 0)
+	if (iFromPaths != 0)
 		iNonZero++;
-	if(iFromTeam != 0)
+	if (iFromTeam != 0)
 		iNonZero++;
-	if(iNonZero > 0)
+	if (iNonZero > 0)
 	{
 		szBuffer.append(NEWLINE);
 		char const* szPos = "COLOR_POSITIVE_TEXT";
@@ -9171,22 +9174,35 @@ void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes
 		szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER"));
 		szBuffer.append(CvWString::format(L": " SETCOLR L"%s%d%%" ENDCOLR,
 				TEXT_COLOR(iMod > 0 ? szPos : szNeg), iMod > 0 ? L"+" : L"", iMod));
-		if(iFromOtherKnown != 0)
+		// <advc.groundbr> Show only either tech diffusion or the ground-breaking penalty
+		if (iFromOtherKnown + iFromGroundbreaking != 0)
 		{
-			if(iNonZero == 1)
+			bool const bShowOtherKnown = (iFromOtherKnown + iFromGroundbreaking > 0);
+			if (iNonZero == 1)
 				szBuffer.append(L" ");
 			else
 			{
 				szBuffer.append(NEWLINE);
-				szBuffer.append(CvWString::format(L"%c" SETCOLR L"%d%% " ENDCOLR,
-					iBullet, TEXT_COLOR(iFromOtherKnown > 0 ? szPos : szNeg),
-					iFromOtherKnown));
+				if (bShowOtherKnown)
+				{
+					szBuffer.append(CvWString::format(L"%c" SETCOLR L"%d%% " ENDCOLR,
+							iBullet, TEXT_COLOR(iFromOtherKnown > 0 ? szPos : szNeg),
+							iFromOtherKnown));
+				}
+				else
+				{
+					szBuffer.append(CvWString::format(L"%c" SETCOLR L"%d%% " ENDCOLR,
+							iBullet, TEXT_COLOR(iFromGroundbreaking > 0 ? szPos : szNeg),
+							iFromGroundbreaking));
+				}
 			}
-			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_OTHER_KNOWN"));
-		}
-		if(iFromPaths != 0)
+			if (bShowOtherKnown)
+				szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_OTHER_KNOWN"));
+			else szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_GROUNDBREAKING"));
+		} // </advc.groundbr>
+		if (iFromPaths != 0)
 		{
-			if(iNonZero == 1)
+			if (iNonZero == 1)
 				szBuffer.append(L" ");
 			else
 			{
@@ -9197,9 +9213,9 @@ void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes
 			}
 			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_PATHS"));
 		}
-		if(iFromTeam != 0)
+		if (iFromTeam != 0)
 		{
-			if(iNonZero == 1)
+			if (iNonZero == 1)
 				szBuffer.append(L" ");
 			else
 			{
@@ -9209,9 +9225,9 @@ void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes
 					iFromTeam));
 			}
 			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_TEAM"));
-		}
+		} // </advc.910>
 	}
-} // </advc.910>
+}
 
 
 void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool bCivilopediaText)

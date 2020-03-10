@@ -444,6 +444,10 @@ public:
 		/* </advc.148> */ \
 		DO(MINIMAP_RENDER_SIZE) /* advc.106m */ \
 		DO(CAN_TRAIN_CHECKS_AIR_UNIT_CAP) /* advc.001b */ \
+		/* <advc.groundbr> */ \
+		DO(AI_GROUNDBREAKING_PENALTY_ENABLE) \
+		DO(HUMAN_GROUNDBREAKING_PENALTY_ENABLE) \
+		/* </advc.groundbr> */ \
 		/* <advc.opt> */ \
 		DO(DIPLOMACY_VALUE_REMAINDER) \
 		DO(PEACE_TREATY_LENGTH) \

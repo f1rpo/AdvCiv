@@ -18,7 +18,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	inline int getResearchCost() const { return m_iResearchCost; }
 	int getAdvancedStartCost() const;
 	int getAdvancedStartCostIncrease() const;
-	inline int getEra() const { return m_iEra; }
+	inline EraTypes getEra() const { return (EraTypes)m_iEra; }
 	inline int getTradeRoutes() const { return m_iTradeRoutes; }
 	inline int getFeatureProductionModifier() const { return m_iFeatureProductionModifier; }
 	inline int getWorkerSpeedModifier() const { return m_iWorkerSpeedModifier; }

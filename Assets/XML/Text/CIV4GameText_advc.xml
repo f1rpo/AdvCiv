@@ -5171,7 +5171,17 @@
 		<Italian>da membro del team con la stessa ricerca</Italian>
 		<Spanish>por miembro del equipo con misma investigación</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.groundbr -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_GROUNDBREAKING</Tag>
+		<English>from breaking new ground</English>
+		<French>from breaking new ground</French>
+		<German>durch technologisches Neuland</German>
+		<Italian>from breaking new ground</Italian>
+		<Spanish>from breaking new ground</Spanish>
+	</TEXT>
+
 	<!-- dlph.7 (advc): From CIV4GameText_BTS.xml. Was "Cannot Nuke Friendly
 		 Territory or Units" - that's still true, but units don't prevent
 		 players from firing nukes, which is what matters in this context.

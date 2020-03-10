@@ -5,7 +5,6 @@
 
 #include "CvGame.h"
 #include "UWAI.h" // advc.104
-#include "ScaledInt.h" // advc.tmp (Move to precompiled header eventually)
 
 
 class CvGameAI : public CvGame

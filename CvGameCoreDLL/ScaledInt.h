@@ -6,8 +6,7 @@
 /*	advc.fract: Header-only classes for fixed-point fractional numbers.
 	Working -- but still work in progress. */
 
-// Large lookup table, but ScaledInt.h will eventually be precompiled.
-#include "FixedPointPowTables.h"
+#include "FixedPointPowTables.h" // Large lookup table, but ScaledInt.h gets precompiled.
 #include "TypeChoice.h"
 /*	Other non-BtS dependencies: ROUND_DIVIDE and round in CvGameCoreUtils.h.
 	(Tbd.: Move those global functions here.)

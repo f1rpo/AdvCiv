@@ -47,11 +47,31 @@ private:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvEraInfo - Used to manage different types of Art Styles
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvEraInfo : public CvInfoBase
+class CvEraInfo :  /* advc.tag: */ public CvXMLInfo
 {
 public: // All the const functions are exposed to Python except those added by mods
 	CvEraInfo();
 	~CvEraInfo();
+	// <advc.tag>
+	enum IntElementTypes
+	{	// <advc.groundbr>
+		AIMaxGroundbreakingPenalty = CvXMLInfo::NUM_INT_ELEMENT_TYPES,
+		HumanMaxGroundbreakingPenalty, // </advc.groundbr>
+		NUM_INT_ELEMENT_TYPES
+	};
+	enum BoolElementTypes // unused so far
+	{
+		NUM_BOOL_ELEMENT_TYPES = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES
+	};
+	using CvXMLInfo::get; // unhide
+	__forceinline int get(IntElementTypes e) const
+	{
+		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
+	}
+	__forceinline int get(BoolElementTypes e) const
+	{
+		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
+	} // </advc.tag>
 
 	int getStartingUnitMultiplier() const;
 	int getStartingDefenseUnits() const;
@@ -125,6 +145,8 @@ protected:
 
 	int* m_paiSoundtracks;
 	int* m_paiCitySoundscapeScriptIds;
+
+	void addElements(std::vector<XMLElement*>& r) const; // advc.tag
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

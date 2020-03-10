@@ -173,6 +173,7 @@ public:
 	bool canTrainNukes() const;																		// Exposed to Python
 	EraTypes getCurrentEra() const;														// Exposed to Python
 	EraTypes getHighestEra() const; // advc
+	scaled groundbreakingNormalizationModifier(TechTypes eTech) const; // advc.groundbr
 
 	DllExport TeamTypes getActiveTeam() const;																		// Exposed to Python
 	CivilizationTypes getActiveCivilizationType() const;								// Exposed to Python

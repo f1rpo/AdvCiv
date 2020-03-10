@@ -9,7 +9,6 @@
 #include "CvInfo_All.h"
 #include "CvGameAI.h" // advc.104x
 #include "FVariableSystem.h"
-#include "ScaledInt.h" // advc.tmp: Move to precompiled header once the code has matured a bit
 // <advc> Overwrite the definition in CvGlobals.h b/c a const GC is no use here
 #undef GC
 #define GC CvGlobals::getInstance() // </advc>
