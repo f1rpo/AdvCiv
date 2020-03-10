@@ -550,10 +550,13 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 	m_kStatistics.read(pStream);
 	GC.getGame().onAllGameDataRead(); // advc
 }
+
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
+	REPRO_TEST_BEGIN_WRITE("Statistics");
 	m_kStatistics.write(pStream);
+	REPRO_TEST_FINAL_WRITE();
 }
 
 // advc.106l: Explicit constructor added, so I can initialize my booleans.

@@ -898,7 +898,7 @@ void CvSelectionGroupAI::write(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	pStream->Write(uiFlag);
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("SelGroupAI(%d,%d,%d)", getID(), getX(), getY()));
 	pStream->Write(m_iMissionAIX);
 	pStream->Write(m_iMissionAIY);
 
@@ -912,4 +912,5 @@ void CvSelectionGroupAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_bGroupAttack);
 	pStream->Write(m_iGroupAttackX);
 	pStream->Write(m_iGroupAttackY);
+	REPRO_TEST_END_WRITE();
 }

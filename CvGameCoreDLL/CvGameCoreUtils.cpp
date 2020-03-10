@@ -113,7 +113,10 @@ double percentileRank(vector<double>& distribution, double score,
 		return 1;
 	return iLEq / (double)n;
 } // </advc.003g>
-// <advc>
+/*	<advc> Akin to natGetDeterministicRandom (deleted from CvCity.cpp). For reference,
+	the implementation of that function was:
+	srand(7297 * iSeedX + 2909  * iSeedY);
+	return (rand() % (iMax - iMin)) + iMin; */
 float hash(vector<long> const& x, PlayerTypes ePlayer)
 {
 	int const iPrime = 31;
@@ -139,8 +142,8 @@ float hash(vector<long> const& x, PlayerTypes ePlayer)
 		lHashVal += iCapitalIndex;
 		lHashVal *= iPrime;
 	}
-	/*  Use ASyncRand to avoid the overhead of creating a new object? I don't think
-		it matters. */
+	/*  Use ASyncRand to avoid the overhead of creating a new object?
+		Or use stdlib's rand/sRand? I don't think it matters. */
 	/*CvRandom& rng = GC.getASyncRand();
 	rng.reset(hashVal);*/
 	CvRandom rng;

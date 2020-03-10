@@ -733,7 +733,7 @@ void CvDeal::write(FDataStreamBase* pStream)
 	PROFILE_FUNC(); // advc
 	uint uiFlag=0;
 	pStream->Write(uiFlag);
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("Deal(%d,%d,%d)", getID(), getFirstPlayer(), getSecondPlayer()));
 	pStream->Write(m_iID);
 	pStream->Write(m_iInitialGameTurn);
 
@@ -742,6 +742,7 @@ void CvDeal::write(FDataStreamBase* pStream)
 
 	m_firstTrades.Write(pStream);
 	m_secondTrades.Write(pStream);
+	REPRO_TEST_END_WRITE();
 }
 
 void CvDeal::read(FDataStreamBase* pStream)

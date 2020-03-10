@@ -16512,7 +16512,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	int iI;
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerPt1(%d)", getID()));
 	uint uiFlag = 4;
 	uiFlag = 5; // advc.908a
 	uiFlag = 7; // advc.912c (6 used up for a test version)
@@ -16716,6 +16716,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	{
 		PROFILE("CvPlayer::Write.FLTA"); // advc
 		WriteStreamableFFreeListTrashArray(m_plotGroups, pStream);
+		REPRO_TEST_END_WRITE();
 		WriteStreamableFFreeListTrashArray(m_cities, pStream);
 		WriteStreamableFFreeListTrashArray(m_units, pStream);
 		WriteStreamableFFreeListTrashArray(m_selectionGroups, pStream);
@@ -16760,10 +16761,9 @@ void CvPlayer::write(FDataStreamBase* pStream)
 			if (NULL != pInfo)
 			{
 				pInfo->write(*pStream);
-			}
 		}
 	}
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerPt2(%d)", getID())); // (skip popups, messages)
 	{
 		CvDiploQueue::_Alloc::size_type iSize = m_listDiplomacy.size();
 		pStream->Write(iSize);
@@ -16934,6 +16934,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	pStream->Write(m_iPopRushHurryCount);
 	pStream->Write(m_iGoldRushHurryCount); // advc.064b
 	pStream->Write(m_iInflationModifier);
+	REPRO_TEST_END_WRITE();
 }
 
 void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,

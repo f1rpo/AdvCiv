@@ -1862,6 +1862,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 
 void CvInitCore::write(FDataStreamBase* pStream)
 {
+	REPRO_TEST_BEGIN_WRITE("InitCore");
 	uint uiSaveFlag=1;
 	uiSaveFlag=2; // advc.912d
 	pStream->Write(uiSaveFlag);		// flag for expansion, see SaveBits)
@@ -1947,7 +1948,7 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_PLAYERS, (int*)m_aeHandicap);
 	pStream->Write(MAX_PLAYERS, (int*)m_aeColor);
 	pStream->Write(MAX_PLAYERS, (int*)m_aeArtStyle);
-
+	REPRO_TEST_END_WRITE(); // (skip slot data)
 	pStream->Write(MAX_PLAYERS, (int*)m_aeSlotStatus);
 	pStream->Write(MAX_PLAYERS, (int*)m_aeSlotClaim);
 

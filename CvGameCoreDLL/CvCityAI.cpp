@@ -979,9 +979,9 @@ void CvCityAI::AI_chooseProduction()
 	{
 		if (!(bLandWar && iWarSuccessRating < -30) && !bDanger && !bFinancialTrouble)
 		{	/*  <advc.017> These were calls to AI_getNumTrainAIUnits, i.e. the
-				BBAI code only ensured that we're not building lots of ships in
-				parallel. I suspect that AI_totalWaterAreaUnitAIs had been intended,
-				after all, the logBBAI call says "minimal naval". */
+				BBAI code ensured that we're not building lots of ships in parallel.
+				I want to make sure that we don't end up with more than a
+				minimal naval force. */
 			std::vector<UnitAITypes> aeSeaAttackTypes;
 			aeSeaAttackTypes.push_back(UNITAI_ATTACK_SEA);
 			aeSeaAttackTypes.push_back(UNITAI_PIRATE_SEA);
@@ -12878,7 +12878,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	uiFlag = 5; // advc.003u: Move m_bChooseProductionDirty to CvCity
 	uiFlag = 6; // advc.opt: Per-player meta data for closeness cache
 	pStream->Write(uiFlag);
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("CityAI(%d,%d)", getX(), getY()));
 	pStream->Write(m_iEmphasizeAvoidGrowthCount);
 	pStream->Write(m_iEmphasizeGreatPeopleCount);
 	pStream->Write(m_bAssignWorkDirty);
@@ -12908,6 +12908,7 @@ void CvCityAI::write(FDataStreamBase* pStream)
 	pStream->Write(GC.getNumBuildingClassInfos(), &m_aiConstructionValue[0]); // uiFlag >= 1
 	pStream->Write(m_iCultureWeight); // uiFlag >= 2
 	// K-Mod end
+	REPRO_TEST_END_WRITE();
 }
 
 // advc:

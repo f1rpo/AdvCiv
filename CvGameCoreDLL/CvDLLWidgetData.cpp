@@ -1138,7 +1138,11 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 	case WIDGET_LH_GLANCE: // advc.152
 	case WIDGET_LEADERHEAD:
-		doContactCiv(widgetDataStruct);
+		#ifdef ENABLE_REPRO_TEST
+			ReproTest::startTest(widgetDataStruct.m_iData1);
+		#else
+			doContactCiv(widgetDataStruct);
+		#endif
 		break;  // <advc.ctr>
 	case WIDGET_CITY_TRADE:
 		// Both left and right click close the city screen
@@ -1440,17 +1444,17 @@ void CvDLLWidgetData::doCityTab(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 {
 	if (gDLL->isDiplomacy() || gDLL->isMPDiplomacyScreenUp())
-	{
 		return;
-	}
 
 	//	Do not execute this if we are trying to contact ourselves...
 	if (GC.getGame().getActivePlayer() == widgetDataStruct.m_iData1)
 	{
-		if (!gDLL->getInterfaceIFace()->isFocusedWidget()
-				// advc.085: Never minimize the scoreboard
-				&& gDLL->getInterfaceIFace()->isScoresMinimized())
+		if (!gDLL->getInterfaceIFace()->isFocusedWidget() &&
+			// advc.085: Never minimize the scoreboard
+			gDLL->getInterfaceIFace()->isScoresMinimized())
+		{
 			gDLL->getInterfaceIFace()->toggleScoresMinimized();
+		}
 		return;
 	}
 	// BETTER_BTS_AI_MOD, Player Interface, 01/11/09, jdog5000: START

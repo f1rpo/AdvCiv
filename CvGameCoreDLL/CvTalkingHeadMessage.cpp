@@ -61,10 +61,12 @@ void CvTalkingHeadMessage::write(FDataStreamBase& stream) const
 	stream.Write(m_iFlashY);
 	stream.Write(m_bOffScreenArrows);
 	stream.Write(m_bOnScreenArrows);
+	REPRO_TEST_BEGIN_WRITE("CvTalkingHeadMessage");
 	stream.Write(m_iTurn);
 	stream.Write(m_eMessageType);
 	stream.Write(m_eFromPlayer);
 	stream.Write(m_eTarget);
+	REPRO_TEST_END_WRITE();
 	stream.Write(m_bShown);
 }
 

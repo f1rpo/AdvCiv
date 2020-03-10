@@ -4515,8 +4515,8 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 	uint uiFlag=0;
 	uiFlag = 1; // advc.011b
 	uiFlag = 2; // advc.004l
-	pStream->Write(uiFlag);		// flag for expansion
-
+	pStream->Write(uiFlag);
+	REPRO_TEST_BEGIN_WRITE(CvString::format("SelGroup(%d,%d,%d)", getID(), getX(), getY()));
 	pStream->Write(m_iID);
 	pStream->Write(m_iMissionTimer);
 
@@ -4525,10 +4525,10 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 	pStream->Write(m_eOwner);
 	pStream->Write(m_eActivityType);
 	pStream->Write(m->eAutomateType);
-
 	m_units.Write(pStream);
 	m->knownEnemies.Write(pStream); // advc.004l
 	m_missionQueue.Write(pStream);
+	REPRO_TEST_END_WRITE();
 }
 
 

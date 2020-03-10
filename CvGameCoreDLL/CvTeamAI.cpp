@@ -4579,6 +4579,7 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	PROFILE_FUNC(); // advc
 	CvTeam::write(pStream);
 
+	REPRO_TEST_BEGIN_WRITE(CvString::format("TeamAI(%d)", getID()).GetCString());
 	uint uiFlag=1;
 	uiFlag = 2; // advc.109
 	uiFlag = 3; // advc.opt: m_aiWarPlanCounts
@@ -4619,6 +4620,7 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		uwai().write(pStream); // </advc.104>
+	REPRO_TEST_END_WRITE();
 }
 
 // <advc.012>

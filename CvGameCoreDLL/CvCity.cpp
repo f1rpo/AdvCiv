@@ -11112,7 +11112,7 @@ void CvCity::read(FDataStreamBase* pStream)
 void CvCity::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("City(%d,%d)", getX(), getY()));
 	uint uiFlag = 1; // flag for expansion
 	uiFlag = 2; // advc.004x
 	uiFlag = 3; // advc.030b
@@ -11347,6 +11347,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	// <advc.004x>
 	pStream->Write(m_iMostRecentOrder);
 	pStream->Write(m_bMostRecentUnit); // </advc.004x>
+	REPRO_TEST_END_WRITE();
 }
 
 
@@ -11447,13 +11448,7 @@ bool CvCity::isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const
 			getPlot().plotCheck(NULL, -1, -1, NO_PLAYER, eTeam) > 0 != NULL);
 } // </advc.045>
 
-
-static int natGetDeterministicRandom(int iMin, int iMax, int iSeedX, int iSeedY)
-{
-	srand(7297 * iSeedX + 2909  * iSeedY);
-	return (rand() % (iMax - iMin)) + iMin;
-}
-
+// (advc: natGetDeterministicRandom deleted; should use 'hash' in CvGameCoreUtils instead.)
 
 void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom,
 	std::vector<const TCHAR*>& kEffectNames)
@@ -11478,8 +11473,9 @@ void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom,
 			kEffectNames.push_back("EFFECT_CITY_DISEASED");
 
 		if (isWeLoveTheKingDay())
-		{
-			int iSeed = natGetDeterministicRandom(0, 32767, getX(), getY());
+		{	// <advc> Cut from deleted free function natGetDeterministicRandom
+			srand(7297 * getX() + 2909  * getY());
+			int iSeed = (rand() % 32767); // </advc>
 			CvRandom kRand;
 			kRand.init(iSeed);
 

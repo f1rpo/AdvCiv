@@ -786,6 +786,7 @@ void CvArea::read(FDataStreamBase* pStream)
 void CvArea::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
+	REPRO_TEST_BEGIN_WRITE(CvString::format("Area(%d)", getID()));
 	uint uiFlag=0;
 	uiFlag = 1; // advc.030
 	uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
@@ -834,4 +835,5 @@ void CvArea::write(FDataStreamBase* pStream)
 	m_aaiNumAIUnits.Write(pStream);
 	m_aiBonuses.Write(pStream);
 	//m_aiImprovements.Write(pStream); // advc.opt
+	REPRO_TEST_END_WRITE();
 }

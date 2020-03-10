@@ -19622,10 +19622,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	PROFILE_FUNC(); // advc
 	CvPlayer::write(pStream);
 
-	uint uiFlag=7;
-	uiFlag = 8; // advc.opt
-	uiFlag = 9; // advc.148
-	uiFlag = 10; // advc.036
+REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerAI(%d)", getID()));	uiFlag = 10; // advc.036
 	uiFlag = 11; // advc.104i
 	uiFlag = 12; // advc.079
 	uiFlag = 14; // advc.130c
@@ -19731,9 +19728,14 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 		pStream->Write(it->first);
 		pStream->Write(it->second);
 	} // </advc.opt>
+	REPRO_TEST_END_WRITE();
 	// <advc.104>
 	if(isAlive() && isMajorCiv())
-		m_pUWAI->write(pStream); // </advc.104>
+	{
+		REPRO_TEST_BEGIN_WRITE(CvString::format("UWAICache(%d)", getID()));
+		m_pUWAI->write(pStream);
+		REPRO_TEST_END_WRITE();
+	} // </advc.104>
 }
 
 // (K-Mod note: this should be roughly in units of commerce.)

@@ -4490,10 +4490,10 @@ int CvGame::calculateGwSustainabilityThreshold(PlayerTypes ePlayer) const
 	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 	if (kPlayer.isAlive())
 	{
-		return iGlobalThreshold * kPlayer.getTotalLand() / std::max(1, GC.getMap().getLandPlots());
+		return iGlobalThreshold * kPlayer.getTotalLand() /
+				std::max(1, GC.getMap().getLandPlots());
 	}
-	else
-		return 0;
+	return 0;
 }
 
 int CvGame::calculateGwSeverityRating() const
@@ -4507,7 +4507,8 @@ int CvGame::calculateGwSeverityRating() const
 
 	// I recommend looking at the graph of this function to get a sense of how it works.
 
-	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() / (std::max(1,4*GC.getInfo(getGameSpeedType()).getVictoryDelayPercent()*GC.getMap().getLandPlots()));
+	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() /
+			(std::max(1,4*GC.getInfo(getGameSpeedType()).getVictoryDelayPercent()*GC.getMap().getLandPlots()));
 	const long b = 70; // shape parameter. Lower values result in the function being steeper earlier.
 	return 100L - b*100L/(b+x*x);
 }
@@ -8952,22 +8953,23 @@ void CvGame::read(FDataStreamBase* pStream)
 void CvGame::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-
 	uint uiFlag=1;
 	uiFlag = 2; // advc.701: R&F option
 	uiFlag = 3; // advc.052
-	uiFlag = 4; // advc.opt: Civs and teams EverAlive tracked
+	uiFlag = 4; // advc.opt: Players and teams ever alive
 	uiFlag = 5; // advc.004m
 	uiFlag = 6; // advc.106h
-	pStream->Write(uiFlag);		// flag for expansion
-
+	pStream->Write(uiFlag);
+	REPRO_TEST_BEGIN_WRITE("Game pt1");
 	pStream->Write(m_iElapsedGameTurns);
 	pStream->Write(m_iStartTurn);
 	pStream->Write(m_iStartYear);
 	pStream->Write(m_iEstimateEndTurn);
+	REPRO_TEST_END_WRITE(); // Skip TurnSlice
 	pStream->Write(m_iTurnSlice);
 	pStream->Write(m_iCutoffSlice);
 	pStream->Write(m_iNumGameTurnActive);
+	REPRO_TEST_BEGIN_WRITE("Game pt2");
 	pStream->Write(m_iNumCities);
 	pStream->Write(m_iTotalPopulation);
 	pStream->Write(m_iTradeRoutes);
@@ -9060,13 +9062,16 @@ void CvGame::write(FDataStreamBase* pStream)
 			pStream->WriteString(*it);
 		}
 	}
-
+	REPRO_TEST_END_WRITE();
 	WriteStreamableFFreeListTrashArray(m_deals, pStream);
+	REPRO_TEST_BEGIN_WRITE("Game pt3");
 	WriteStreamableFFreeListTrashArray(m_voteSelections, pStream);
 	WriteStreamableFFreeListTrashArray(m_votesTriggered, pStream);
-
+	REPRO_TEST_END_WRITE();
+	REPRO_TEST_BEGIN_WRITE("SyncRNGs");
 	m_mapRand.write(pStream);
 	m_sorenRand.write(pStream);
+	REPRO_TEST_END_WRITE();
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
 		m_pSpah->write(pStream); // </advc.250b>
@@ -9083,9 +9088,8 @@ void CvGame::write(FDataStreamBase* pStream)
 			pMessage->write(*pStream);
 	}
 	// m_pReplayInfo not saved
-
 	pStream->Write(m_iNumSessions);
-
+	REPRO_TEST_BEGIN_WRITE("Game pt3"); // (skip replay messages, sessions)
 	pStream->Write(m_aPlotExtraYields.size());
 	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin();
 		it != m_aPlotExtraYields.end(); ++it)
@@ -9121,6 +9125,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_iNumCultureVictoryCities);
 	pStream->Write(m_eCultureVictoryCultureLevel);
 	pStream->Write(m_bScenario); // advc.052
+	REPRO_TEST_END_WRITE();
 }
 
 void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)

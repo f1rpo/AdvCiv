@@ -5621,7 +5621,7 @@ void CvTeam::finalizeInit()
 void CvTeam::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("Team(%d)", getID()));
 	uint uiFlag = 1;
 	uiFlag = 2; // advc.opt: m_eLeader added
 	uiFlag = 3; // advc.034
@@ -5722,6 +5722,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	{
 		pStream->Write(*it);
 	}
+	REPRO_TEST_END_WRITE();
 }
 
 

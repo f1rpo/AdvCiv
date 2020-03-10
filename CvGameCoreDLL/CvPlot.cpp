@@ -7236,7 +7236,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
 	uiFlag = 6; // advc.opt: m_eTeam
 	pStream->Write(uiFlag);
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());
 	pStream->Write(m_iX);
 	pStream->Write(m_iY);
 	pStream->Write(areaID());
@@ -7273,14 +7273,21 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_eRouteType);
 	pStream->Write(m_eRiverNSDirection);
 	pStream->Write(m_eRiverWEDirection);
-	pStream->Write(m_eSecondOwner); // advc.035
+	// <advc.035>
+	/*	To be consistent with code in read that resets m_eSecondOwner in case
+		that the option was disabled in between saving and reloading. */
+	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
+		m_eSecondOwner = m_eOwner;
+	pStream->Write(m_eSecondOwner); // <advc.035>
+	// advc (tbd.): Store these owners as char
 	pStream->Write(m_plotCity.eOwner);
 	pStream->Write(m_plotCity.iID);
 	pStream->Write(m_workingCity.eOwner);
 	pStream->Write(m_workingCity.iID);
 	pStream->Write(m_workingCityOverride.eOwner);
 	pStream->Write(m_workingCityOverride.iID);
-
+	REPRO_TEST_END_WRITE();
+	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt2(%d,%d)", getX(), getY()).GetCString());
 	m_aiYield.Write(pStream, false);
 	if (!m_aiCulture.hasContent())
 		pStream->Write((char)0);
@@ -7396,6 +7403,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	}
 
 	m_units.Write(pStream);
+	REPRO_TEST_END_WRITE();
 }
 
 

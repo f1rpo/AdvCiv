@@ -70,6 +70,7 @@ struct GameTurnInfo				// Exposed to Python
 
 struct OrderData					// Exposed to Python
 {
+	INIT_STRUCT_PADDING(OrderData);
 	OrderTypes eOrderType;
 	int iData1;
 	int iData2;
@@ -78,6 +79,7 @@ struct OrderData					// Exposed to Python
 
 struct MissionData				// Exposed to Python
 {
+	INIT_STRUCT_PADDING(MissionData);
 	MissionTypes eMissionType;
 	int iData1;
 	int iData2;
@@ -93,9 +95,14 @@ struct TradeData					// Exposed to Python
 {
 	// <advc> To replace global setTradeItem (CvGameCoreUtils)
 	TradeData(TradeableItems eItem = NO_TRADE_ITEM, int iData = -1,
-		bool bOffering = false, bool bHidden = false) :
-		m_eItemType(eItem), m_iData(iData), m_bOffering(bOffering), m_bHidden(bHidden) {}
-	// </advc>
+		bool bOffering = false, bool bHidden = false)
+	{
+		INIT_STRUCT_PADDING_INL();
+		m_eItemType = eItem;
+		m_iData = iData;
+		m_bOffering = bOffering;
+		m_bHidden = bHidden;
+	} // </advc>
 	TradeableItems m_eItemType;	//	What type of item is this
 	int m_iData;				//	Any additional data?
 	bool m_bOffering;			//	Is this item up for grabs?

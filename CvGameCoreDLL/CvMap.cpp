@@ -1077,7 +1077,6 @@ void CvMap::read(FDataStreamBase* pStream)
 			m_pMapPlots[iI].read(pStream);
 	}
 
-	// call the read of the free list CvArea class allocations
 	ReadStreamableFFreeListTrashArray(m_areas, pStream);
 	// <advc> Let the plots know that the areas have been loaded
 	for (int i = 0; i < numPlots(); i++)
@@ -1108,6 +1107,7 @@ void CvMap::read(FDataStreamBase* pStream)
 // save object to a stream
 void CvMap::write(FDataStreamBase* pStream)
 {
+	REPRO_TEST_BEGIN_WRITE("Map");
 	uint uiFlag=0;
 	uiFlag = 1; // advc.106n
 	pStream->Write(uiFlag);
@@ -1126,11 +1126,10 @@ void CvMap::write(FDataStreamBase* pStream)
 	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated");
 	m_aiNumBonus.Write(pStream);
 	m_aiNumBonusOnLand.Write(pStream);
-
+	REPRO_TEST_END_WRITE();
 	for (int iI = 0; iI < numPlots(); iI++)
 		m_pMapPlots[iI].write(pStream);
 
-	// call the read of the free list CvArea class allocations
 	WriteStreamableFFreeListTrashArray(m_areas, pStream);
 	// <advc.106n>
 	pStream->Write(m_replayTexture.size());
