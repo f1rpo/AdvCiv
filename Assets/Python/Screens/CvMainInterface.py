@@ -4976,29 +4976,36 @@ class CvMainInterface:
 
 					szLeftBuffer = u""
 					szRightBuffer = u""
-					
-# BUG - Unit Movement Fraction - start
-					szLeftBuffer = localText.getText("INTERFACE_PANE_MOVEMENT", ())
-					if MainOpt.isShowUnitMovementPointsFraction():
-						szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR))
-						if (pHeadSelectedUnit.movesLeft() == 0):
-							szRightBuffer = u"0/" + szRightBuffer
-						elif (pHeadSelectedUnit.movesLeft() == pHeadSelectedUnit.baseMoves() * gc.getMOVE_DENOMINATOR()):
-							pass
+
+					# <advc.004w> Don't show "Movement" row if it can't move
+					eDomain = pHeadSelectedUnit.getDomainType()
+					if eDomain == DomainTypes.DOMAIN_AIR: # Show range instead for air units
+						szLeftBuffer = localText.getText("INTERFACE_PANE_RANGE", ())
+						szRightBuffer = u"%d" %(pHeadSelectedUnit.airRange(), )
+					elif pHeadSelectedUnit.getDomainType() != DomainTypes.DOMAIN_IMMOBILE:
+					# </advc.004w>
+	# BUG - Unit Movement Fraction - start
+						szLeftBuffer = localText.getText("INTERFACE_PANE_MOVEMENT", ())
+						if MainOpt.isShowUnitMovementPointsFraction():
+							szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR))
+							if (pHeadSelectedUnit.movesLeft() == 0):
+								szRightBuffer = u"0/" + szRightBuffer
+							elif (pHeadSelectedUnit.movesLeft() == pHeadSelectedUnit.baseMoves() * gc.getMOVE_DENOMINATOR()):
+								pass
+							else:
+								fCurrMoves = float(pHeadSelectedUnit.movesLeft()) / gc.getMOVE_DENOMINATOR()
+								szRightBuffer = (u"%.1f/" % fCurrMoves) + szRightBuffer
 						else:
-							fCurrMoves = float(pHeadSelectedUnit.movesLeft()) / gc.getMOVE_DENOMINATOR()
-							szRightBuffer = (u"%.1f/" % fCurrMoves) + szRightBuffer
-					else:
-						if ( (pHeadSelectedUnit.movesLeft() % gc.getMOVE_DENOMINATOR()) > 0 ):
-							iDenom = 1
-						else:
-							iDenom = 0
-						iCurrMoves = ((pHeadSelectedUnit.movesLeft() / gc.getMOVE_DENOMINATOR()) + iDenom )
-						if (pHeadSelectedUnit.baseMoves() == iCurrMoves):
-							szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
-						else:
-							szRightBuffer = u"%d/%d%c" %(iCurrMoves, pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
-# BUG - Unit Movement Fraction - end
+							if ( (pHeadSelectedUnit.movesLeft() % gc.getMOVE_DENOMINATOR()) > 0 ):
+								iDenom = 1
+							else:
+								iDenom = 0
+							iCurrMoves = ((pHeadSelectedUnit.movesLeft() / gc.getMOVE_DENOMINATOR()) + iDenom )
+							if pHeadSelectedUnit.baseMoves() == iCurrMoves or eDomain == DomainTypes.DOMAIN_AIR:
+								szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
+							else:
+								szRightBuffer = u"%d/%d%c" %(iCurrMoves, pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
+	# BUG - Unit Movement Fraction - end
 
 					szBuffer = szLeftBuffer + "  " + szRightBuffer
 					screen.appendTableRow( "SelectedUnitText" )
@@ -5007,8 +5014,8 @@ class CvMainInterface:
 					screen.show( "SelectedUnitText" )
 					screen.show( "SelectedUnitPanel" )
 					iRow += 1
-
-					if (pHeadSelectedUnit.getLevel() > 0):
+					# advc.004w: XP check added
+					if pHeadSelectedUnit.getLevel() > 0 and pHeadSelectedUnit.getExperience() > 0:
 					
 						szLeftBuffer = localText.getText("INTERFACE_PANE_LEVEL", ())
 						szRightBuffer = u"%d" %(pHeadSelectedUnit.getLevel())

@@ -149,12 +149,32 @@ class SevoPediaUnit:
 			iStrength = gc.getUnitInfo(self.iUnit).getAirCombat()
 		else:
 			iStrength = gc.getUnitInfo(self.iUnit).getCombat()
-		szName = self.top.getNextWidgetName()
-		szStrength = localText.getText("TXT_KEY_PEDIA_STRENGTH", (iStrength,))
-		screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szStrength.upper() + u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
-		szName = self.top.getNextWidgetName()
-		szMovement = localText.getText("TXT_KEY_PEDIA_MOVEMENT", (gc.getUnitInfo(self.iUnit).getMoves(),))
-		screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szMovement.upper() + u"%c" % CyGame().getSymbolID(FontSymbols.MOVES_CHAR) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
+		if iStrength > 0: # advc.004y: Don't show 0 strength for nukes
+			szName = self.top.getNextWidgetName()
+			szStrength = localText.getText("TXT_KEY_PEDIA_STRENGTH", (iStrength,))
+			screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szStrength.upper() + u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
+		eDomain = gc.getUnitInfo(self.iUnit).getDomainType()
+		# <advc.004y>
+		if eDomain == DomainTypes.DOMAIN_IMMOBILE: # Show "immobile" instead of 1 move
+			szName = self.top.getNextWidgetName()
+			szImmobile = localText.getText("TXT_KEY_PEDIA_IMMOBILE", ())
+			screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szImmobile.upper(), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
+		# Don't show 1 move for air units
+		elif eDomain != DomainTypes.DOMAIN_AIR: # </advc.004y>
+			szName = self.top.getNextWidgetName()
+			szMovement = localText.getText("TXT_KEY_PEDIA_MOVEMENT", (gc.getUnitInfo(self.iUnit).getMoves(),))
+			screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szMovement.upper() + u"%c" % CyGame().getSymbolID(FontSymbols.MOVES_CHAR) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
+		# advc.004y: Moved range above production cost. Condition for ICBM added.
+		if gc.getUnitInfo(self.iUnit).getAirRange() > 0 or gc.getUnitInfo(self.iUnit).getNukeRange() >= 0:
+			szName = self.top.getNextWidgetName()
+			iRange = gc.getUnitInfo(self.iUnit).getAirRange()
+			if iRange > 0: # advc.004y
+				szRange = localText.getText("TXT_KEY_PEDIA_RANGE", (iRange,))
+			# <advc.004y> Unlimited range
+			else:
+				szRange = localText.getText("TXT_KEY_PEDIA_RANGE_UNLIMITED", ())
+			# </advc.004y>
+			screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szRange.upper() + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		if (gc.getUnitInfo(self.iUnit).getProductionCost() >= 0 and not gc.getUnitInfo(self.iUnit).isFound()):
 			szName = self.top.getNextWidgetName()
 			if self.top.iActivePlayer == -1:
@@ -162,10 +182,6 @@ class SevoPediaUnit:
 			else:
 				szCost = localText.getText("TXT_KEY_PEDIA_COST", (gc.getActivePlayer().getUnitProductionNeeded(self.iUnit),))
 			screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szCost.upper() + u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar() + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
-		if (gc.getUnitInfo(self.iUnit).getAirRange() > 0):
-			szName = self.top.getNextWidgetName()
-			szRange = localText.getText("TXT_KEY_PEDIA_RANGE", (gc.getUnitInfo(self.iUnit).getAirRange(),))
-			screen.appendListBoxStringNoUpdate(panelName, u"<font=4>" + szRange.upper() + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.updateListBox(panelName)
 
 

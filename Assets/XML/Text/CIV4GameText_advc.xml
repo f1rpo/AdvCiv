@@ -4206,7 +4206,29 @@
 		<Italian>[SPACE](eccetto bonus difensivo)</Italian>
 		<Spanish>[SPACE](Excepto bonificaciones defensivas)</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.004w: Based on TXT_KEY_PEDIA_RANGE (CIV4GameTextInfos.xml). -->
+	<TEXT>
+		<Tag>INTERFACE_PANE_RANGE</Tag>
+		<English>Range:</English>
+		<French>Port&#233;e :</French>
+		<German>Reichweite:</German>
+		<Italian>Raggio d'azione:</Italian>
+		<Spanish>Alcance:</Spanish>
+	</TEXT>
+
+	<!-- advc.002b: Original in CIV4GameTextInfos.xml.
+		 Same as INTERFACE_PANE_STRENGTH now. "Air Strength" doesn't
+		 quite fit in the box. (advc.092 might solve that problem eventually.) -->
+	<TEXT>
+		<Tag>INTERFACE_PANE_AIR_STRENGTH</Tag>
+		<English>Strength:</English>
+		<French>Puissance :</French>
+		<German>St&#228;rke:</German>
+		<Italian>Forza:</Italian>
+		<Spanish>Fuerza:</Spanish>
+	</TEXT>
+
 	<!-- advc.047: Like TXT_KEY_BONUS_WITH_IMPROVEMENT in
 		 CIV4GameTextInfos.xml, but with color. -->
 	<TEXT>
@@ -4589,90 +4611,6 @@
 		<German>Runde: %d1_TurnNum</German>
 		<Italian>Turno: %d1_TurnNum</Italian>
 		<Spanish>Turno: %d1_TurnNum</Spanish>
-	</TEXT>
-
-	<!-- advc.004y: Originally in CIV4GameTextInfos.xml. Only removed the
-		 parentheses and "Total"; more comprehensible this way. -->
-	<TEXT>
-		<Tag>TXT_KEY_BUILDING_REQ_BUILDINGS_NOCITY</Tag>
-		<English>[COLOR_WARNING_TEXT]Requires %s1_Name: %d2[COLOR_REVERT]</English>
-		<French>[COLOR_WARNING_TEXT]Requiert : %s1_Name (%d2)[COLOR_REVERT]</French>
-		<German>[COLOR_WARNING_TEXT]Erfordert: %s1_Name (%d2)[COLOR_REVERT]</German>
-		<Italian>[COLOR_WARNING_TEXT]Richiede %s1_Name: %d2[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_WARNING_TEXT]Requiere %s1_Name: %d2[COLOR_REVERT]</Spanish>
-	</TEXT>
-	<!-- Same with a range. Add "depending on map size"? -->
-	<TEXT>
-		<Tag>TXT_KEY_BUILDING_REQ_BUILDINGS_NOCITY_RANGE</Tag>
-		<English>[COLOR_WARNING_TEXT]Requires %s1_Name: %d2-%d3[COLOR_REVERT]</English>
-		<French>[COLOR_WARNING_TEXT]Requiert : %s1_Name (%d2-%d3)[COLOR_REVERT]</French>
-		<German>[COLOR_WARNING_TEXT]Erfordert: %s1_Name (%d2-%d3)[COLOR_REVERT]</German>
-		<Italian>[COLOR_WARNING_TEXT]Richiede %s1_Name: %d2-%d3[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_WARNING_TEXT]Requiere %s1_Name: %d2-%d3[COLOR_REVERT]</Spanish>
-	</TEXT>
-	<!-- Based on TXT_KEY_CIVIC_CONSCRIPTION in CIV4GameTextInfos.xml -->
-	<TEXT>
-		<Tag>TXT_KEY_CIVIC_CONSCRIPTION_RANGE</Tag>
-		<English>[ICON_BULLET]Can [LINK=CONCEPT_DRAFT]Draft[\LINK] %d1_Num-%d2_Num Units per Turn</English>
-		<French>[ICON_BULLET]Peut [LINK=CONCEPT_DRAFT]enr&#244;ler[\LINK] %d1_Num-%d2_Num Unit&#233;s par tour</French>
-		<German>[ICON_BULLET]Kann %d1_Num-%d2_Num Einheiten pro Runde [LINK=CONCEPT_DRAFT]rekrutieren[\LINK]</German>
-		<Italian>[ICON_BULLET]Pu&#242; [LINK=CONCEPT_DRAFT]richiamare[\LINK] alla leva %d1_Num-%d2_Num unit&#224; per turno</Italian>
-		<Spanish>[ICON_BULLET]Puede [LINK=CONCEPT_DRAFT]reclutar[\LINK] %d1_Num-%d2_Num unidades por turno</Spanish>
-	</TEXT>
-	<!-- Based on TXT_KEY_BUILDING_PROVIDES in CIV4GameTextInfos.xml -->
-	<TEXT>
-		<Tag>TXT_KEY_BUILDING_PROVIDES_RANGE</Tag>
-		<English>[ICON_BULLET]Provides %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</English>
-		<French>[ICON_BULLET]Fournit %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</French>
-		<German>[ICON_BULLET]Liefert %d1_Num-%d2_Num des Bonusguts [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</German>
-		<Italian>[ICON_BULLET]Fornisce %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</Italian>
-		<Spanish>[ICON_BULLET]Da %d1_Num-%d2_Num de [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</Spanish>
-	</TEXT>
-	<!-- Swapped these two; one is from CIV4GameText_Misc1.xml, the other from
-		 CIV4GameText_BTS.xml. I think they're only used for Civilopedia and
-		 Sevopedia. No change in the Romance languages because both use the
-		 same term (and I can't think of a better one). -->
-	<TEXT>
-		<Tag>TXT_KEY_CIVILOPEDIA_HISTORY</Tag>
-		<English>Background</English>
-		<French>Histoire</French>
-		<German>Hintergrund</German>
-		<Italian>Storia</Italian>
-		<Spanish>Historia</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_CIVILOPEDIA_BACKGROUND</Tag>
-		<English>[BOLD]History:[\BOLD][NEWLINE]</English>
-		<French>[BOLD]Histoire :[\BOLD][NEWLINE]</French>
-		<German>[BOLD]Geschichte:[\BOLD][NEWLINE]</German>
-		<Italian>[BOLD]Storia:[\BOLD][NEWLINE]</Italian>
-		<Spanish>[BOLD]Historia:[\BOLD][NEWLINE]</Spanish>
-	</TEXT>
-	<!-- Based on TXT_KEY_PEDIA_CATEGORY_BUILDING and _PROJECT in
-		 CIV4GameTextInfos_Objects.xml -->
-	<TEXT>
-		<Tag>TXT_KEY_PEDIA_CATEGORY_BUILDING_PROJECT</Tag>
-		<English>Buildings and Projects</English>
-		<French>
-			<Text>B&#226;timents et Projets</Text>
-			<Gender>Male</Gender>
-			<Plural>1</Plural>
-		</French>
-		<German>
-			<Text>Geb&#228;ude und Projekte</Text>
-			<Gender>Male</Gender>
-			<Plural>1</Plural>
-		</German>
-		<Italian>
-			<Text>Edifici e Progetti</Text>
-			<Gender>Male</Gender>
-			<Plural>1</Plural>
-		</Italian>
-		<Spanish>
-			<Text>Edificios y Proyectos</Text>
-			<Gender>Male</Gender>
-			<Plural>1</Plural>
-		</Spanish>
 	</TEXT>
 
 	<!-- advc.106: Based on TXT_KEY_ERA_SPLASH_SCREEN in
