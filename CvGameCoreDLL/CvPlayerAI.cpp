@@ -16854,6 +16854,8 @@ void CvPlayerAI::AI_doCommerce()
 		}
 		if(iPartners > 0)
 		{
+			if (GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
+				partnerScore *= 0.77; // Inspired by a change by Fuyu (in Better BUG AI?)
 			int iScore = ::round(partnerScore / std::sqrt((double)iPartners));
 			iGoldTarget = std::max(iGoldTarget, iScore);
 		}
