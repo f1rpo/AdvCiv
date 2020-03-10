@@ -1701,8 +1701,9 @@ void HiredHand::evaluate() {
 double HiredHand::eval(PlayerTypes allyId, int originalUtility, int obligationThresh) {
 
 	// (These conditions overlap with those under Fidelity)
-	if(allyId != NO_PLAYER && (!we->canContact(allyId, true) ||
-			agent.isAtWar(TEAMID(allyId)) ||
+	if(allyId != NO_PLAYER && (agent.isAtWar(TEAMID(allyId)) ||
+			// Note: Important to check atWar first; infinite recursion possible otherwise.
+			!we->canContact(allyId, true) ||
 			agent.AI_getWorstEnemy() == TEAMID(allyId) ||
 			GET_TEAM(allyId).isAVassal())) { // Don't feel obliged to vassals
 		log("We don't feel obliged to fight for %s", report.leaderName(allyId));
