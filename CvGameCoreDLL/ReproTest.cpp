@@ -29,7 +29,7 @@ ReproTest::ReproTest(int iTurns)
 
 void ReproTest::recordData(int iBytes, byte const aBytes[])
 {
-	// aBytes can be NULL despite iBytes > 0 when it's pointer to the 0th element of a vector
+	// NULL possible despite iBytes > 0 when aBytes points to the 0th element of an empty vector
 	if (iBytes <= 0 || aBytes == NULL || GC.getGame().getAIAutoPlay() > 0)
 		return;
 	for (int i = 0; i < iBytes; i++)

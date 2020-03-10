@@ -9183,7 +9183,7 @@ void CvGame::onAllGameDataRead()
 			continue;
 		/*	Bad idea (by me). The cache data has to be serialized instead.
 			It gets updated at the start of a turn, yes, but if we rely on
-			that, then it won't safe to access data from another player's
+			that, then it won't be safe to access data from another player's
 			cache (who may not have taken a turn since a savegame was loaded).
 			Could update all caches after loading, but that would result in
 			more recent data after loading than upon saving. */

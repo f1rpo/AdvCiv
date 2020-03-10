@@ -482,7 +482,7 @@
 			<iTechCostModifier>7</iTechCostModifier>
 			<!-- advc.groundbr: start -->
 			<iAIMaxGroundbreakingPenalty>0</iAIMaxGroundbreakingPenalty>
-			<!-- 50 in DoC; perhaps that makes sense with DoC's additional;
+			<!-- 50 in DoC; perhaps that makes sense with DoC's additional
 				 late-game content. -->
 			<iHumanMaxGroundbreakingPenalty>0</iHumanMaxGroundbreakingPenalty>
 			<!-- advc.groundbr: end -->

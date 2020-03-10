@@ -7279,7 +7279,6 @@ void CvPlot::write(FDataStreamBase* pStream)
 	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		m_eSecondOwner = m_eOwner;
 	pStream->Write(m_eSecondOwner); // <advc.035>
-	// advc (tbd.): Store these owners as char
 	pStream->Write(m_plotCity.eOwner);
 	pStream->Write(m_plotCity.iID);
 	pStream->Write(m_workingCity.eOwner);
