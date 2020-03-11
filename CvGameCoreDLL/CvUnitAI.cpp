@@ -6949,7 +6949,7 @@ void CvUnitAI::AI_assaultSeaMove()
 			// split out galleys from stack of ocean capable ships
 			if (kOwner.AI_unitImpassableCount(getUnitType()) == 0 && getGroup()->getNumUnits() > 1)
 			{
-				//getGroup()->AI_separateImpassable();
+				//AI_getGroup()->AI_separateImpassable();
 				// K-Mod
 				if (AI_getGroup()->AI_separateImpassable())
 				{
@@ -9595,12 +9595,10 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 	if (!AI_canGroupWithAIType(eUnitAI))
 		return false;
 
-	if (getDomainType() == DOMAIN_LAND && !canMoveAllTerrain())
+	if (getDomainType() == DOMAIN_LAND && !canMoveAllTerrain() &&
+		getArea().getNumAIUnits(getOwner(), eUnitAI) == 0)
 	{
-		if (getArea().getNumAIUnits(getOwner(), eUnitAI) == 0)
-		{
-			return false;
-		}
+		return false;
 	}
 
 	int iOurImpassableCount = 0;
@@ -9608,7 +9606,8 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 		pUnitNode = getGroup()->nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pImpassUnit = ::getUnit(pUnitNode->m_data);
-		iOurImpassableCount = std::max(iOurImpassableCount, GET_PLAYER(getOwner()).AI_unitImpassableCount(pImpassUnit->getUnitType()));
+		iOurImpassableCount = std::max(iOurImpassableCount,
+				GET_PLAYER(getOwner()).AI_unitImpassableCount(pImpassUnit->getUnitType()));
 	}
 
 	CvUnit* pBestUnit = NULL;
@@ -21651,7 +21650,6 @@ bool CvUnitAI::AI_canGroupWithAIType(UnitAITypes eUnitAI) const
 	}
 	return true;
 }
-
 
 
 bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const // advc.003u: 1st param was CvUnit const*

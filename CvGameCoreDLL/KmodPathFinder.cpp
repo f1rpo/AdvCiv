@@ -166,8 +166,9 @@ bool KmodPathFinder::GeneratePath(const CvPlot* pToPlot)
 {
 	if (!settings.pGroup || !pToPlot)
 		return false;
-	return GeneratePath(settings.pGroup->plot()->getX(), settings.pGroup->plot()->getY(),
-		pToPlot->getX(), pToPlot->getY());
+	return GeneratePath(
+			settings.pGroup->getPlot().getX(), settings.pGroup->getPlot().getY(),
+			pToPlot->getX(), pToPlot->getY());
 }
 
 int KmodPathFinder::GetPathTurns() const
