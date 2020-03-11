@@ -672,7 +672,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_39</Description>
 		</HintInfo>
-		<!-- Skip 40, 41 -->
+		<!-- Skip 40, 41, 42 -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
@@ -789,7 +789,10 @@
 			<Description>TXT_KEY_ADVC_HINT_40</Description>
 		</HintInfo>
 		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_40</Description>
+			<Description>TXT_KEY_ADVC_HINT_41</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_42</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>
