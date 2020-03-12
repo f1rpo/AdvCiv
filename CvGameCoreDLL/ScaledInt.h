@@ -227,7 +227,6 @@ public:
 					m_i >= static_cast<IntType>(INTMIN + SCALE / 2));
 			return (m_i + SCALE / static_cast<IntType>(m_i >= 0 ? 2 : -2)) / SCALE;
 		}
-		// Tbd.: Use additional bits when a high SCALE makes overflow likely
 		FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2u));
 		FAssert(m_i >= static_cast<IntType>(INTMIN + SCALE / 2u));
 		return (m_i + SCALE / 2u) / SCALE;
@@ -715,9 +714,7 @@ private:
 					unsigned __int64, unsigned int>::type ProductType;
 			ProductType n = multiplicand;
 			n *= multiplier;
-			/*	Rounding to nearest is almost free
-				but (fixme): can overflow */
-			n += divisor / 2u;
+			n += divisor / 2u; // Rounding to nearest is almost free
 			n /= divisor;
 			return static_cast<ReturnType>(n);
 		}
@@ -907,10 +904,8 @@ private:
 
 template<ScaledInt_PARAMS>
 IntType const ScaledInt_T::INTMAX = std::numeric_limits<IntType>::max();
-		//- iSCALE / 2; // Margin for rounding? Can currently overflow unnotices; fixme.
 template<ScaledInt_PARAMS>
 IntType const ScaledInt_T::INTMIN = std::numeric_limits<IntType>::min();
-		//+ (std::numeric_limits<IntType>::is_signed  ? iSCALE / 2 : 0);
 
 #define COMMON_SCALED_INT \
 	typename choose_type<(iLEFT_SCALE >= iRIGHT_SCALE), \
