@@ -8354,7 +8354,7 @@ int CvGame::calculateSyncChecksum()
 			GetSyncOOS, but that doesn't work b/c, apparently, GetSyncOOS returns
 			the most recently computed checksum instead of calling calculateSyncChecksum. */
 		bool const bFullOOSCheck = false;
-		std::vector<long> aiMultipliers;
+		std::vector<int> aiMultipliers;
 		int const iCases = 8; // Originally 4, K-Mod added another 4.
 		for(int k = 0; k < (bFullOOSCheck ? iCases : 1); k++)
 		{

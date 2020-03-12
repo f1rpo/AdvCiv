@@ -2354,7 +2354,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	if(isAVassal() && !isCapitulated())
 	{
 		// Obscured; don't want player to aim for a very specific power ratio
-		std::vector<long> hashInput;
+		std::vector<int> hashInput;
 		hashInput.push_back(kGame.getTeamRank(getID()));
 		hashInput.push_back(kGame.getTeamRank(eMasterTeam));
 		hashInput.push_back(getNumWars());

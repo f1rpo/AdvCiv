@@ -8,7 +8,7 @@
 
 #include "FixedPointPowTables.h" // Large lookup table, but ScaledInt.h gets precompiled.
 #include "TypeChoice.h"
-/*	Other non-BtS dependencies: ROUND_DIVIDE and round in CvGameCoreUtils.h.
+/*	Other non-BtS dependencies: ROUND_DIVIDE, round and intHash in CvGameCoreUtils.h.
 	(Tbd.: Move those global functions here.)
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
@@ -164,6 +164,24 @@ public:
 	{
 		r.clamp(lo, hi);
 		return r;
+	}
+
+	/*	See intHash (CvGameCoreUtils.h) about the parameters.
+		Result in the half-open interval [0, 1). */
+	static ScaledInt hash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		CvRandom rng;
+		rng.init(::intHash(x, ePlayer));
+		ScaledInt r;
+		r.m_i = static_cast<IntType>(rng.get(static_cast<uint>(iSCALE)));
+		return r;
+	}
+	// For hashing just a single input
+	static inline ScaledInt hash(int x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		std::vector<int> v;
+		v.push_back(x);
+		return hash(v, ePlayer);
 	}
 
 	__forceinline ScaledInt() : m_i(static_cast<IntType>(0)) {}

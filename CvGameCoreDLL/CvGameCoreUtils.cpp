@@ -113,51 +113,38 @@ double percentileRank(vector<double>& distribution, double score,
 		return 1;
 	return iLEq / (double)n;
 } // </advc.003g>
-/*	<advc> Akin to natGetDeterministicRandom (deleted from CvCity.cpp). For reference,
+/*	advc: Akin to natGetDeterministicRandom (deleted from CvCity.cpp). For reference,
 	the implementation of that function was:
 	srand(7297 * iSeedX + 2909  * iSeedY);
 	return (rand() % (iMax - iMin)) + iMin; */
-float hash(vector<long> const& x, PlayerTypes ePlayer)
+int intHash(vector<int> const& x, PlayerTypes ePlayer)
 {
 	int const iPrime = 31;
-	long lHashVal = 0;
-	for(size_t i = 0; i < x.size(); i++)
+	int iHashVal = 0;
+	for (size_t i = 0; i < x.size(); i++)
 	{
-		lHashVal += x[i];
-		lHashVal *= iPrime;
+		iHashVal += x[i];
+		iHashVal *= iPrime;
 	}
 	int iCapitalIndex = -1;
-	if(ePlayer != NO_PLAYER)
+	if (ePlayer != NO_PLAYER)
 	{
 		CvCity* pCapital = GET_PLAYER(ePlayer).getCapitalCity();
-		if(pCapital != NULL)
+		if (pCapital != NULL)
 		{
 			iCapitalIndex = GC.getMap().plotNum(
 					pCapital->getPlot().getX(),
 					pCapital->getPlot().getY());
 		}
 	}
-	if(iCapitalIndex >= 0)
+	if (iCapitalIndex >= 0)
 	{
-		lHashVal += iCapitalIndex;
-		lHashVal *= iPrime;
+		iHashVal += iCapitalIndex;
+		iHashVal *= iPrime;
 	}
-	/*  Use ASyncRand to avoid the overhead of creating a new object?
-		Or use stdlib's rand/sRand? I don't think it matters. */
-	/*CvRandom& rng = GC.getASyncRand();
-	rng.reset(hashVal);*/
-	CvRandom rng;
-	rng.init(lHashVal);
-	return rng.getFloat();
+	return iHashVal;
 }
-
-float hash(long x, PlayerTypes ePlayer)
-{
-	vector<long> v;
-	v.push_back(x);
-	return hash(v, ePlayer);
-} // </advc>
-// <advc.035>
+// advc.035:
 void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
 {
 	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
@@ -200,14 +187,14 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
 			}
 		}
 	}
-} // </advc.035>
-// <advc.004w> I'm not positive that there isn't already a function like this somewhere
+} 
+// advc.004w: I'm not positive that there isn't already a function like this somewhere
 void applyColorToString(CvWString& s, char const* szColor, bool bLink)
 {
 	if(bLink)
 		s.Format(L"<link=literal>%s</link>", s.GetCString());
 	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
-} // </advc.004w>
+}
 /*  <advc> Tbd.: Take into account the locale - perhaps through
 	boost::locale::conv - and/ or check for characters that can't be narrowed.
 	So far, it's the same code that CvInitCore::refreshCustomMapOptions had

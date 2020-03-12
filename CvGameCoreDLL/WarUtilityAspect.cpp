@@ -2912,7 +2912,7 @@ void Affection::evaluate() {
 	uMinus *= linkedWarFactor * directPlanFactor * gameProgressFactor;
 	// When there's supposed to be uncertainty
 	if(!ignDistr && ((noWarPercent > 0 && noWarPercent < 100) || hiredAgainstFriend)) {
-		vector<long> hashInputs;
+		vector<int> hashInputs;
 		hashInputs.push_back(theyId);
 		hashInputs.push_back(towardsThem);
 		hashInputs.push_back(we->AI_getMemoryCount(theyId, MEMORY_DECLARED_WAR));

@@ -42,6 +42,10 @@ void TestScaledInt()
 		if(fixp(0.4).bernoulliSuccess(kRand, ""))
 			iSuccesses++;
 	FAssertBounds(355, 445, iSuccesses);
+	scaled rSum;
+	for (int i = 0; i < 20; i++)
+		rSum += scaled::hash(i);
+	FAssert(rSum.approxEquals(10, fixp(3.5)));
 	FAssert(scaled(2).pow(10) == 1024);
 	FAssert(scaled(10).pow(-2) == per100(1));
 	FAssert((scaled(2).sqrt() * 100).getInt() == 141);

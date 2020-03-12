@@ -47,13 +47,30 @@ inline int ROUND_DIVIDE(int a, int b)
 			bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
 			an element of the distribution? If yes, the percentile rank is going to be
 			positive. Either way, the caller shouldn't include 'score' in the distribution. */
+
 	/*  Hash based on the components of x. Plot index of capital factored in for
-		increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
+		increased range if ePlayer given. (ePlayer is ignored if it has no capital.) */
+	int intHash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER);
+	/*	See intHash about the parameters.
 		Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
 		(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
-	float hash(std::vector<long> const& x, PlayerTypes ePlayer = NO_PLAYER);
+	inline float hash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		/*  Use ASyncRand to avoid the overhead of creating a new object?
+			Or use stdlib's rand/sRand? I don't think it matters. */
+		/*CvRandom& rng = GC.getASyncRand();
+		rng.reset(hashVal);*/
+		CvRandom rng;
+		rng.init(intHash(x, ePlayer));
+		return rng.getFloat();
+	}
 	// For hashing just a single input
-	float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
+	inline float hash(int x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		std::vector<int> v;
+		v.push_back(x);
+		return hash(v, ePlayer);
+	}
 //} // </advc.003g>
 
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035

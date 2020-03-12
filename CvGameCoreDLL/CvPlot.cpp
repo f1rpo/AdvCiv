@@ -5438,7 +5438,7 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 	if(bRandomize && !GET_PLAYER(eIndex).isHuman() && GC.getGame().isScenario())
 	{	// Randomly change the value by +/- 1.5%
 		double const plusMinus = 0.015;
-		std::vector<long> hashInput;
+		std::vector<int> hashInput;
 		/*  Base the random multiplier on a number that is unique
 			per game, but doesn't change throughout a game. */
 		hashInput.push_back(GC.getGame().getSorenRand().

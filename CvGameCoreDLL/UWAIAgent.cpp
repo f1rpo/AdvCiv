@@ -1438,7 +1438,7 @@ int UWAI::Team::declareWarTradeVal(TeamTypes targetId,
 	/*  Adjust the price based on our attitude and obscure it so that humans
 		can't learn how willing we are exactly */
 	AttitudeTypes towardSponsor = agent.AI_getAttitude(sponsorId);
-	std::vector<long> hashInput;
+	std::vector<int> hashInput;
 	/*  Allow hash to change w/e the target's rank or our attitude toward the
 		sponsor changes */
 	hashInput.push_back(GC.getGame().getRankTeam(targetId));
@@ -2151,7 +2151,7 @@ bool UWAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) const {
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
 	double prSuccess = 0.5 - we.AI_prDenyHelp();
 	// Can't use sync'd RNG here, but don't want the outcome to change after reload.
-	std::vector<long> inputs;
+	std::vector<int> inputs;
 	inputs.push_back(GC.getGame().getGameTurn());
 	inputs.push_back(tradeVal);
 	if(::hash(inputs, weId) < prSuccess)

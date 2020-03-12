@@ -181,6 +181,8 @@ private:
 		char* m_pArrayChar;
 		unsigned int* m_pArrayBool;
 
+		/*	advc.fract (note): May want to remove this in order to allow T=scaled.
+			(C++03 allows only POD types in unions.) Use the non-native arrays instead. */
 		T m_InlineNative[NUM_NATIVE_BLOCKS];
 		char m_Inline_1_byte[NUM_1_BYTE_BLOCKS];
 		short m_Inline_2_byte[NUM_2_BYTE_BLOCKS];

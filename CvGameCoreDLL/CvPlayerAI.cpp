@@ -8011,17 +8011,21 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						prPeace = 1 - (1.0 / std::max(1, iPeaceRand));
 					// </advc.104n>
 					if(bLosingBig &&
-							//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose))
-							/*  advc.104n: The BtS code can have us randomly vote
-								against our own proposal. */
-							::hash(g.getGameTurn(), getID()) < prPeace)
+						//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose))
+						/*  advc.104n: The BtS code can have us randomly vote
+							against our own proposal. */
+						::hash(g.getGameTurn(), getID()) < prPeace)
+					{
 						bValid = true; // Non-warmongers want peace to escape loss
+					}
 					//else if (!bLosingBig && (iChosenWar > iWarsLosing))
 					else if (!bLosingBig && (iChosenWar > iWarsLosing ||
-							(AI_atVictoryStage(AI_VICTORY_CONQUEST3) // K-Mod
-							// advc.104n: Military victory is covered by war utility
-							&& !getUWAI.isEnabled())))
+						(AI_atVictoryStage(AI_VICTORY_CONQUEST3) && // K-Mod
+						// advc.104n: Military victory is covered by war utility
+						!getUWAI.isEnabled())))
+					{
 						bValid = false; // If chosen to be in most wars, keep it going
+					}
 					else bValid = (iWarsLosing > iWarsWinning); // If losing most wars, vote for peace
 
 					if (!bValid && !bLosingBig && bWinningBig)
@@ -9359,7 +9363,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 					{
 						/*  I think randomness in this function could lead to
 							OOS problems */
-						std::vector<long> hashInputs;
+						std::vector<int> hashInputs;
 						hashInputs.push_back(g.getGameTurn());
 						hashInputs.push_back(eBonus);
 						if(::hash(hashInputs, getID()) > iItemValue / 100.0)
@@ -9368,13 +9372,13 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 					vbBonusDeal[data.m_iData] = true;
 					bNonsurplus = true;
 					if ((kPlayer.getNumTradeableBonuses(eBonus) > 1 &&
-						kPlayer.AI_corporationBonusVal(eBonus, true) == 0)
+						kPlayer.AI_corporationBonusVal(eBonus, true) == 0) ||
 						/*  Prefer to give non-surplus resources over gpt in
 							AI-AI trades (i.e. no special treatment of nonsurplus
 							resources needed). If a human is involved, gpt needs to
 							be preferred b/c we don't want humans to minmax the gpt
 							through trial and error. */
-						|| (!isHuman() && !kPlayer.isHuman()))
+						(!isHuman() && !kPlayer.isHuman()))
 					{
 						bNonsurplus = false;
 					}
@@ -25741,7 +25745,7 @@ bool CvPlayerAI::AI_isDangerFromSubmarines() const
 bool CvPlayerAI::AI_cheatDangerVisibility(CvPlot const& kAt) const
 {
 	double const pr = 0.5;
-	std::vector<long> hashInputs;
+	std::vector<int> hashInputs;
 	hashInputs.push_back(kAt.getX());
 	hashInputs.push_back(kAt.getY());
 	hashInputs.push_back(GC.getGame().getGameTurn());

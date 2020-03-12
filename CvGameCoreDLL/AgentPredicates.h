@@ -39,8 +39,8 @@ enum AgentRelationPredicate // Relative to some given second agent
 	VASSAL_OF,
 	NOT_A_RIVAL_OF, // Same team or some vassal/ master relation
 	POTENTIAL_ENEMY_OF, // incl. current war enemies
-	//OPEN_BORDERS_WITH, // Or rather CAN_ENTER_BORDERS_OF
-	// The rest include minor civs and Barbarians unless ruled out AgentStatusPredicate
+	//OPEN_BORDERS_WITH, // Or rather CAN_ENTER_BORDERS_OF?
+	// The rest include minor civs and Barbarians unless ruled out by AgentStatusPredicate
 	KNOWN_TO, // Incl. the first agent's team (agents know themselves)
 	OTHER_KNOWN_TO, // Not incl. the first agent's team, but incl. its vassals
 	KNOWN_POTENTIAL_ENEMY_OF,
