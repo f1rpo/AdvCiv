@@ -69,6 +69,8 @@ template<typename IntType1, typename IntType2> struct choose_safe_int_type
 	// Need more than 32 bits when signs don't match and the unsigned type takes up 32 bit
 	BOOST_STATIC_ASSERT(sizeof(IntType1) >= 4 || sizeof(IntType2) >= 4);
 	BOOST_STATIC_ASSERT(std::numeric_limits<IntType1>::is_signed != std::numeric_limits<IntType2>::is_signed);
+	BOOST_STATIC_ASSERT(sizeof(IntType1) <= 4);
+	BOOST_STATIC_ASSERT(sizeof(IntType2) <= 4);
 	typedef __int64 type;
 };
 template<> struct choose_safe_int_type<int,            int>            { typedef int type; };
@@ -98,28 +100,33 @@ template<> struct choose_safe_int_type<char,           unsigned char>  { typedef
 template<> struct choose_safe_int_type<unsigned char,  char>           { typedef short type; };
 template<> struct choose_safe_int_type<unsigned char,  unsigned char>  { typedef unsigned char type; };
 
-// Bigger in terms of sizeof; tiebreaker: treat signed as bigger than unsigned.
-template<typename IntType1, typename IntType2> struct choose_bigger_int_type
+// Safe for storing the product of an IntType1 and an IntType2 factor
+template<typename IntType1, typename IntType2> struct product_int_type
 {
+	BOOST_STATIC_ASSERT(sizeof(IntType1) >= 4 || sizeof(IntType2) >= 4);
+	BOOST_STATIC_ASSERT(std::numeric_limits<IntType1>::is_signed || std::numeric_limits<IntType2>::is_signed);
 	BOOST_STATIC_ASSERT(sizeof(IntType1) <= 4);
 	BOOST_STATIC_ASSERT(sizeof(IntType2) <= 4);
-	typedef int type;
+	typedef __int64 type;
 };
-template<> struct choose_bigger_int_type<short,          short>          { typedef short type; };
-template<> struct choose_bigger_int_type<short,          unsigned short> { typedef short type; };
-template<> struct choose_bigger_int_type<unsigned short, short>          { typedef short type; };
-template<> struct choose_bigger_int_type<unsigned short, unsigned short> { typedef unsigned short type; };
-template<> struct choose_bigger_int_type<short,          char>           { typedef short type; };
-template<> struct choose_bigger_int_type<short,          unsigned char>  { typedef short type; };
-template<> struct choose_bigger_int_type<char,           short>          { typedef short type; };
-template<> struct choose_bigger_int_type<unsigned char,  short>          { typedef short type; };
-template<> struct choose_bigger_int_type<unsigned short, char>           { typedef unsigned short type; };
-template<> struct choose_bigger_int_type<unsigned short, unsigned char>  { typedef unsigned short type; };
-template<> struct choose_bigger_int_type<char,           unsigned short> { typedef unsigned short type; };
-template<> struct choose_bigger_int_type<unsigned char,  unsigned short> { typedef unsigned short type; };
-template<> struct choose_bigger_int_type<char,           char>           { typedef char type; };
-template<> struct choose_bigger_int_type<char,           unsigned char>  { typedef char type; };
-template<> struct choose_bigger_int_type<unsigned char,  char>           { typedef char type; };
-template<> struct choose_bigger_int_type<unsigned char,  unsigned char>  { typedef unsigned char type; };
+template<> struct product_int_type<unsigned int,   unsigned int>   { typedef unsigned __int64 type; };
+template<> struct product_int_type<unsigned int,   unsigned short> { typedef unsigned __int64 type; };
+template<> struct product_int_type<unsigned short, unsigned int>   { typedef unsigned __int64 type; };
+template<> struct product_int_type<unsigned int,   unsigned char>  { typedef unsigned __int64 type; };
+template<> struct product_int_type<unsigned char,  unsigned int>   { typedef unsigned __int64 type; };
+template<> struct product_int_type<short,          short>          { typedef int type; };
+template<> struct product_int_type<unsigned short, unsigned short> { typedef unsigned int type; };
+template<> struct product_int_type<short,          char>           { typedef int type; };
+template<> struct product_int_type<short,          unsigned char>  { typedef int type; };
+template<> struct product_int_type<char,           short>          { typedef int type; };
+template<> struct product_int_type<unsigned char,  short>          { typedef int type; };
+template<> struct product_int_type<unsigned short, char>           { typedef int type; };
+template<> struct product_int_type<unsigned short, unsigned char>  { typedef unsigned int type; };
+template<> struct product_int_type<char,           unsigned short> { typedef int type; };
+template<> struct product_int_type<unsigned char,  unsigned short> { typedef unsigned int type; };
+template<> struct product_int_type<char,           char>           { typedef short type; };
+template<> struct product_int_type<char,           unsigned char>  { typedef int type; };
+template<> struct product_int_type<unsigned char,  char>           { typedef int type; };
+template<> struct product_int_type<unsigned char,  unsigned char>  { typedef unsigned short type; };
 
 #endif

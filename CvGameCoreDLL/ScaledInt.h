@@ -861,41 +861,29 @@ private:
 			Result: 32867/1024, which is ca. 32.097, whereas 5.2^2.1 is ca. 31.887. */
 	}
 
-	#define SIZE_OF_EITHER_GEQ(T1,T2,iSize) \
-		/*(sizeof(T1) >= 4 || sizeof(T2) >= iSize)*/ \
-		/* ^Not fit for my heroic idiom. j/k -- compiler crash. Workaround: */ \
-		(sizeof(typename choose_bigger_int_type<T1,T2>::type) >= iSize)
 	template<typename OtherIntType>
 	static __forceinline
-	typename choose_type
-		< (std::numeric_limits<IntType>::is_signed || std::numeric_limits<OtherIntType>::is_signed),
-		typename choose_type
-		< SIZE_OF_EITHER_GEQ(IntType,OtherIntType,4), __int64, int >::type,
-		typename choose_type
-		< SIZE_OF_EITHER_GEQ(IntType,OtherIntType,4), unsigned __int64, uint >::type
-		>::type
+	typename product_int_type<IntType,OtherIntType>::type
 	scaleForComparison(OtherIntType n)
 	{
 		// Tbd.: Perhaps some intrinsic function could do this faster (on the caller's side)?
-		// The return type (copy-paste from above):
-		typedef typename choose_type
-			< (std::numeric_limits<OtherIntType>::is_signed),
-			typename choose_type
-			< SIZE_OF_EITHER_GEQ(IntType,OtherIntType,4), __int64, int >::type,
-			typename choose_type
-			< SIZE_OF_EITHER_GEQ(IntType,OtherIntType,4), unsigned __int64, uint >::type
-			>::type LongType;
+		typedef typename product_int_type<IntType,OtherIntType>::type LongType;
 		LongType lNum = n;
 		return lNum * SCALE;
 	}
-	#undef SIZE_OF_EITHER_GEQ
 
+	/*	Public only as a temporary measure for code bases that use floating-point numbers
+		and can't immediately replace them all with ScaledInt.
+		Converting from double to ScaledInt at runtime really defeats the
+		purpose of the ScaledInt class. */
+	public:
 	static __forceinline ScaledInt fromDouble(double d)
 	{
 		ScaledInt r;
 		r.m_i = safeCast(::round(d * SCALE));
 		return r;
 	}
+	private:
 
 	// Use specialization to avoid compiler error from calling std::abs with an unsigned arg
 	template<bool bSigned>
