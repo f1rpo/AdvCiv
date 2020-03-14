@@ -1636,7 +1636,7 @@ void CyUnit::centerCamera()
 {
 	if (m_pUnit)
 	{
-		gDLL->getInterfaceIFace()->centerCamera(m_pUnit);
+		gDLL->UI().centerCamera(m_pUnit);
 	}
 }
 

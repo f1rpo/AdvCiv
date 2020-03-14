@@ -280,7 +280,7 @@ void CvGameTextMgr::setNetStats(CvWString& szString, PlayerTypes ePlayer)  // ad
 {
 	if(ePlayer == GC.getGame().getActivePlayer()
 			// advc.004v: Moved up
-			|| !gDLL->getInterfaceIFace()->isNetStatsVisible())
+			|| !gDLL->UI().isNetStatsVisible())
 		return;
 	if(GET_PLAYER(ePlayer).isHuman())
 	{
@@ -2719,11 +2719,12 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	CvWString szDefenseOdds;
 	int iModifier;
 	// advc.048:
-	int iLengthSelectionList = gDLL->getInterfaceIFace()->getLengthSelectionList();
+	int iLengthSelectionList = gDLL->UI().getLengthSelectionList();
 	if (iLengthSelectionList == 0)
 		return false;
 	// advc.048:
-	CvSelectionGroupAI const& kSelectionList = *static_cast<CvSelectionGroupAI*>(gDLL->getInterfaceIFace()->getSelectionList());
+	CvSelectionGroupAI const& kSelectionList = *static_cast<CvSelectionGroupAI*>(
+			gDLL->UI().getSelectionList());
 	bool bValid = false;
 	switch (kSelectionList.getDomainType())
 	{
@@ -2798,7 +2799,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 	// K-Mod. If the plot's center unit isn't one of our own units, then use this defender as the plot's center unit.
 	// With this, the map will accurately show who we're up against.
-	if (gDLL->getInterfaceIFace()->getSelectionPlot() != pPlot)
+	if (gDLL->UI().getSelectionPlot() != pPlot)
 	{
 		if (pDefender->getOwner() == GC.getGame().getActivePlayer() ||
 			!pPlot->getCenterUnit() || // I don't think this is possible... but it's pretty cheap to check.
@@ -4505,7 +4506,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					eCulturalOwner != c.getOwner() && iGarrisonStr >= iCultureStr)
 				{
 					// Show it only when a local unit is selected? Eh ...
-					/*CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+					/*CvUnit* pSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 					if (pSelectedUnit != NULL && pSelectedUnit->at(*pPlot))*/
 					{
 						int iSafeToRemove = (iGarrisonStr - iCultureStr);
@@ -4575,7 +4576,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			szString.append(NEWLINE);
 		}
 	}
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit(); // advc
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit(); // advc
 	// <advc.012>
 	TeamTypes eDefTeam = (eRevealedOwner != NO_PLAYER ?
 			GET_PLAYER(eRevealedOwner).getTeam() :
@@ -5082,7 +5083,7 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 {
 	CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	bool bCanRemove = false;
 	// <advc.004b>
 	bool bFound = false;
@@ -5120,7 +5121,7 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 				kLoopPlot.getPlotCity()->isRevealed(kActiveTeam.getID(), true))))
 			{
 				bOurCity = true;
-				if (gDLL->getInterfaceIFace()->isCitySelected(kLoopPlot.getPlotCity()))
+				if (gDLL->UI().isCitySelected(kLoopPlot.getPlotCity()))
 				{
 					bNearSelectedCity = true;
 					break;
@@ -5147,7 +5148,7 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 		if (kActiveTeam.canAccessImprovement(kPlot, eImprov, true))
 			iHealthPercent += kImprov.get(CvImprovementInfo::HealthPercent); // </advc.901>
 	}
-	bool bCitySelected = (gDLL->getInterfaceIFace()->getHeadSelectedCity() != NULL);
+	bool bCitySelected = (gDLL->UI().getHeadSelectedCity() != NULL);
 	bool bAlwaysShow = (bFound || bCanRemove || bNearSelectedCity);
 	if (iHappy != 0)
 	{
@@ -7802,7 +7803,7 @@ void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes
 
 	/* <advc.004e> Show promotions that promo leads to.
 	Based on CvPediaPromotion.py and CvUnit::canAcquirePromotion. */
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	std::vector<PromotionTypes> aeReq;
 	std::vector<PromotionTypes> aeAltReq;
 	for(int i = 0; i < GC.getNumPromotionInfos(); i++)
@@ -9147,7 +9148,7 @@ void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kC
 	}
 } // </advc.ctr>
 
-// <advc.910>
+// advc.910:
 void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes eTech)
 {
 	int iFromOtherKnown, iFromPaths, iFromTeam;
@@ -9225,7 +9226,7 @@ void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes
 					iFromTeam));
 			}
 			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_TEAM"));
-		} // </advc.910>
+		}
 	}
 }
 
@@ -9261,7 +9262,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		}
 		// <advc.905b>
 		bool bAllSpeedBonusesAvailable = true;
-		CvCity* pCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+		CvCity* pCity = gDLL->UI().getHeadSelectedCity();
 		if(pCity == NULL)
 			bAllSpeedBonusesAvailable = false;
 		// "3 MOVES_CHAR (+1 with Coal)" when not all bonuses available
@@ -11671,7 +11672,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	bFirst = true;
 	/*  advc.004w: If in city screen, the player is apparently not constructing
 		the building through a Great Person. */
-	if(!gDLL->getInterfaceIFace()->isCityScreenUp())
+	if(!gDLL->UI().isCityScreenUp())
 	{
 		FOR_EACH_ENUM(Unit)
 		{
@@ -13868,10 +13869,10 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 	// gDLL->isMPDiplomacy() does sth. else, apparently.
 	bool bDiplo = (g.isGameMultiPlayer() ? gDLL->isMPDiplomacyScreenUp() :
 			gDLL->isDiplomacy());
-	CvCity* pCity = (gDLL->getInterfaceIFace()->isCityScreenUp() ?
+	CvCity* pCity = (gDLL->UI().isCityScreenUp() ?
 			/*  A city can also be selected without the city screen being up;
 				don't want that here. */
-			gDLL->getInterfaceIFace()->getHeadSelectedCity() : NULL);
+			gDLL->UI().getHeadSelectedCity() : NULL);
 
 	int iHappiness = GC.getInfo(eBonus).getHappiness();
 	int iHealth = GC.getInfo(eBonus).getHealth();
@@ -13958,7 +13959,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		}
 		// <advc.004w>
 		if(eActivePlayer == NO_PLAYER || (!bDiplo &&
-			!gDLL->getInterfaceIFace()->isCityScreenUp() &&
+			!gDLL->UI().isCityScreenUp() &&
 			eTradePlayer == NO_PLAYER)) // </advc.004w>
 		{
 			setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_BONUS_ON_PLOT"),
@@ -18444,19 +18445,19 @@ void CvGameTextMgr::getCityBillboardFoodbarColors(CvCity* pCity, std::vector<NiC
 	aColors[INFOBAR_STORED] = GC.getInfo((ColorTypes)(GC.getInfo(YIELD_FOOD).getColorType())).getColor();
 	aColors[INFOBAR_RATE] = aColors[INFOBAR_STORED];
 	aColors[INFOBAR_RATE].a = 0.5f;
-	aColors[INFOBAR_RATE_EXTRA] = GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_NEGATIVE_RATE")).getColor();
-	aColors[INFOBAR_EMPTY] = GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_EMPTY")).getColor();
+	aColors[INFOBAR_RATE_EXTRA] = GC.getInfo(GC.getColorType("NEGATIVE_RATE")).getColor();
+	aColors[INFOBAR_EMPTY] = GC.getInfo(GC.getColorType("EMPTY")).getColor();
 }
 
 void CvGameTextMgr::getCityBillboardProductionbarColors(CvCity* pCity, std::vector<NiColorA>& aColors)
 {
 	aColors.resize(NUM_INFOBAR_TYPES);
-	aColors[INFOBAR_STORED] = GC.getInfo((ColorTypes)(GC.getInfo(YIELD_PRODUCTION).getColorType())).getColor();
+	aColors[INFOBAR_STORED] = GC.getInfo((ColorTypes)GC.getInfo(YIELD_PRODUCTION).getColorType()).getColor();
 	aColors[INFOBAR_RATE] = aColors[INFOBAR_STORED];
 	aColors[INFOBAR_RATE].a = 0.5f;
-	aColors[INFOBAR_RATE_EXTRA] = GC.getInfo((ColorTypes)(GC.getInfo(YIELD_FOOD).getColorType())).getColor();
+	aColors[INFOBAR_RATE_EXTRA] = GC.getInfo((ColorTypes)GC.getInfo(YIELD_FOOD).getColorType()).getColor();
 	aColors[INFOBAR_RATE_EXTRA].a = 0.5f;
-	aColors[INFOBAR_EMPTY] = GC.getInfo((ColorTypes)GC.getInfoTypeForString("COLOR_EMPTY")).getColor();
+	aColors[INFOBAR_EMPTY] = GC.getInfo(GC.getColorType("EMPTY")).getColor();
 }
 
 
@@ -20439,12 +20440,12 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 	bool bAlt, CvWStringBuffer& strHelp)  // advc: some style changes
 {
 	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
-	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace();
-	if (kInterface.isCityScreenUp())
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
+	if (kUI.isCityScreenUp())
 	{
 		if (pMouseOverPlot != NULL)
 		{
-			CvCity* pHeadSelectedCity = kInterface.getHeadSelectedCity();
+			CvCity* pHeadSelectedCity = kUI.getHeadSelectedCity();
 			if (pHeadSelectedCity != NULL &&
 				pMouseOverPlot->getWorkingCity() == pHeadSelectedCity &&
 				pMouseOverPlot->isRevealed(eActiveTeam, true))
@@ -20462,7 +20463,7 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 
 		if (strHelp.isEmpty() && pMouseOverPlot != NULL)
 		{
-			if (pMouseOverPlot == kInterface.getGotoPlot() ||
+			if (pMouseOverPlot == kUI.getGotoPlot() ||
 				(bAlt && //gDLL->getChtLvl() == 0)) // K-Mod. (Alt does something else in cheat mode)
 				!GC.getGame().isDebugMode())) // advc.135c
 			{
@@ -20482,12 +20483,12 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 			setPlotHelp(strHelp, pMouseOverPlot);
 		}
 
-		InterfaceModeTypes eInterfaceMode = kInterface.getInterfaceMode();
+		InterfaceModeTypes eInterfaceMode = kUI.getInterfaceMode();
 		// <advc.057>
 		if (eInterfaceMode == INTERFACEMODE_GO_TO || (pMouseOverPlot != NULL &&
-			pMouseOverPlot == kInterface.getGotoPlot()))
+			pMouseOverPlot == kUI.getGotoPlot()))
 		{
-			CvUnit const* pSelectedUnit = kInterface.getHeadSelectedUnit();
+			CvUnit const* pSelectedUnit = kUI.getHeadSelectedUnit();
 			if (!bAlt && pSelectedUnit != NULL && pMouseOverPlot->isRevealed(eActiveTeam) &&
 				pMouseOverPlot->getTeam() != eActiveTeam)
 			{
@@ -20556,7 +20557,7 @@ void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)  // adv
 {
 	if (pPlot == NULL)
 		return;
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL)
 		return;
 	if (!pPlot->isFriendlyCity(*pHeadSelectedUnit, true))
@@ -20581,7 +20582,7 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 	if(pPlot == NULL)
 		return;
 
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	if(pHeadSelectedUnit == NULL)
 		return;
 
@@ -20602,7 +20603,7 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 void CvGameTextMgr::getInterfaceCenterText(CvWString& strText)
 {
 	strText.clear();
-	if (!gDLL->getInterfaceIFace()->isCityScreenUp())
+	if (!gDLL->UI().isCityScreenUp())
 	{
 		if (GC.getGame().getWinner() != NO_TEAM)
 		{
@@ -20619,7 +20620,8 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 {
 	strText.clear();
 	CvGame const& g = GC.getGame(); // advc
-	if (gDLL->getInterfaceIFace()->getShowInterface() == INTERFACE_SHOW || gDLL->getInterfaceIFace()->getShowInterface() == INTERFACE_ADVANCED_START)
+	if (gDLL->UI().getShowInterface() == INTERFACE_SHOW ||
+		gDLL->UI().getShowInterface() == INTERFACE_ADVANCED_START)
 	{
 		if (g.isMPOption(MPOPTION_TURN_TIMER))
 		{

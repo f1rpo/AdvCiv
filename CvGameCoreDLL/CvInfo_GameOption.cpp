@@ -191,11 +191,9 @@ bool CvEraInfo::isNoBarbCities() const
 int CvEraInfo::getSoundtracks(int i) const
 {
 	FAssertBounds(0, getNumSoundtracks(), i);
-	return m_paiSoundtracks ? m_paiSoundtracks[i]
-		/*  advc.003t: Was -1. CvEraInfo::read also uses -1 as the default, but,
-			since 0 is used as the default for all other audio ids, let's hope
-			that 0 will also work here. */
-		: 0;
+	/*	advc (note): For all other audio ids, the default is 0, but the -1 here
+		is consistent with CvEraInfo::read and CvGame::getNextSoundtrack. */
+	return m_paiSoundtracks ? m_paiSoundtracks[i] : -1;
 }
 
 int CvEraInfo::getCitySoundscapeScriptId(int i) const

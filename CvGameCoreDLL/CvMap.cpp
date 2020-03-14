@@ -332,8 +332,8 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 	PROFILE_FUNC();
 	int iRange = -1;
 
-	for (CLLNode<IDInfo> const* pSelectionNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-		pSelectionNode != NULL; pSelectionNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectionNode))
+	for (CLLNode<IDInfo> const* pSelectionNode = gDLL->UI().headSelectionListNode();
+		pSelectionNode != NULL; pSelectionNode = gDLL->UI().nextSelectionListNode(pSelectionNode))
 	{
 		CvUnit const& kLoopUnit = *::getUnit(pSelectionNode->m_data);
 		int iLoopRange;
@@ -362,7 +362,7 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 	else
 	{
 		// only update within the range
-		CvPlot* pCenterPlot = gDLL->getInterfaceIFace()->getHeadSelectedUnit()->plot();
+		CvPlot* pCenterPlot = gDLL->UI().getHeadSelectedUnit()->plot();
 		for (SquareIter it(*pCenterPlot, iRange); it.hasNext(); ++it)
 		{
 			it->updateCenterUnit();
@@ -1088,7 +1088,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	/*  advc.004z: Not sure if this is the ideal place for this, but it works.
 		(The problem was that goody huts weren't always highlighted by the
 		Resource layer after loading a game.) */
-	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+	gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 	// <advc.106n>
 	if (uiFlag > 0)
 	{
@@ -1156,7 +1156,7 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 // <advc.106n>
 void CvMap::updateReplayTexture()
 {
-	byte* pTexture = gDLL->getInterfaceIFace()->getMinimapBaseTexture();
+	byte* pTexture = gDLL->UI().getMinimapBaseTexture();
 	FAssert(pTexture != NULL);
 	if (pTexture == NULL)
 		return;

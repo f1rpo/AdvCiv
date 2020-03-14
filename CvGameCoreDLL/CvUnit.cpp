@@ -288,7 +288,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 	}
 
 	if (kOwner.getID() == g.getActivePlayer())
-		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
+		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
 
 	if (m_pUnitInfo->isWorldUnit())
 	{
@@ -299,36 +299,36 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 				continue; // advc
 
 			CvWString szBuffer;
-			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam())
-					|| kObs.isSpectator()) // advc.127
+			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) ||
+				kObs.isSpectator()) // advc.127
 			{
 				// <advc.127b>
-				int iFlashX = -1, iFlashY = -1;
-				if(getPlot().isRevealed(kObs.getTeam(), true)) {
-					iFlashX = getX(); iFlashY = getY();
+				int iFlashX = -1, 
+					iFlashY = -1;
+				if(getPlot().isRevealed(kObs.getTeam(), true))
+				{
+					iFlashX = getX();
+					iFlashY = getY();
 				} // </advc.127b>
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT",
 						kOwner.getNameKey(), getNameKey());
-				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+				gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
 						"AS2D_WONDER_UNIT_BUILD", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
-						iFlashX, iFlashY, true, true);
+						GC.getColorType("UNIT_TEXT"), iFlashX, iFlashY, true, true);
 			}
 			else
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_CREATED_UNIT", getNameKey());
-				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+				gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
 						"AS2D_WONDER_UNIT_BUILD", MESSAGE_TYPE_MAJOR_EVENT, getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+						GC.getColorType("UNIT_TEXT"));
 			}
 		}
 
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SOMEONE_CREATED_UNIT",
 				kOwner.getNameKey(), getNameKey()));
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, kOwner.getID(),
-				szBuffer, getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+				szBuffer, getX(), getY(), GC.getColorType("UNIT_TEXT"));
 	}
 
 	CvEventReporter::getInstance().unitCreated(this);
@@ -452,30 +452,30 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_GENERAL_KILLED", getNameKey(),
 								GET_PLAYER(ePlayer).getCivilizationShortDescription());
-					eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+					eColor = GC.getColorType("RED");
 					szSound = GC.getInfo(kObs.getCurrentEra()).getAudioUnitDefeatScript();
 				}
 				else if(kObs.getID() == ePlayer)
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED_BY_YOU", getNameKey(),
 							kOwner.getCivilizationShortDescription());
-					eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+					eColor = GC.getColorType("GREEN");
 					szSound = GC.getInfo(kObs.getCurrentEra()).getAudioUnitVictoryScript();
 				}
-				else if(GET_TEAM(kOwner.getTeam()).isHasMet(kObs.getTeam()) // advc.004u
-					|| kObs.isSpectator()) // advc.127
+				else if(GET_TEAM(kOwner.getTeam()).isHasMet(kObs.getTeam()) || // advc.004u
+					kObs.isSpectator()) // advc.127
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey(),
 							kOwner.getCivilizationShortDescription(),
 							GET_PLAYER(ePlayer).getCivilizationShortDescription());
-					eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT");
+					eColor = GC.getColorType("UNIT_TEXT");
 					// K-Mod (the other sound is not appropriate for most civs receiving the message.)
 					szSound = "AS2D_INTERCEPTED";
 				}
 				else continue;
 				bool bRev = getPlot().isRevealed(kObs.getTeam(), true);
 				// </advc.004u>
-				gDLL->getInterfaceIFace()->addMessage(i, false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+				gDLL->UI().addMessage(i, false, -1, szBuffer,
 						szSound, // advc.004u
 						MESSAGE_TYPE_MAJOR_EVENT,
 						// <advc.004u> Indicate location on map
@@ -506,22 +506,23 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 	if (IsSelected())
 	{
-		if (gDLL->getInterfaceIFace()->getLengthSelectionList() == 1)
+		if (gDLL->UI().getLengthSelectionList() == 1)
 		{
-			if (!gDLL->getInterfaceIFace()->isFocused() &&
-					!gDLL->getInterfaceIFace()->isCitySelection() &&
-					!gDLL->getInterfaceIFace()->isDiploOrPopupWaiting())
+			if (!gDLL->UI().isFocused() &&
+				!gDLL->UI().isCitySelection() &&
+				!gDLL->UI().isDiploOrPopupWaiting())
+			{
 				GC.getGame().updateSelectionList();
-
+			}
 			if (IsSelected())
 				GC.getGame().cycleSelectionGroups_delayed(1, false);
-			else gDLL->getInterfaceIFace()->setDirty(SelectionCamera_DIRTY_BIT, true);
+			else gDLL->UI().setDirty(SelectionCamera_DIRTY_BIT, true);
 		}
 		// advc.001: Expenses for units may change
-		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
+		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
 	}
 
-	gDLL->getInterfaceIFace()->removeFromSelectionList(this);
+	gDLL->UI().removeFromSelectionList(this);
 
 	// XXX this is NOT a hack, without it, the game crashes.
 	gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
@@ -582,7 +583,9 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 			{
 				CvWString szBuffer;
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_CAPTURED_UNIT", GC.getInfo(eCaptureUnitType).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addMessage(eCapturingPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_UNITCAPTURE", MESSAGE_TYPE_INFO, pkCapturedUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
+				gDLL->UI().addMessage(eCapturingPlayer, true, -1, szBuffer,
+						"AS2D_UNITCAPTURE", MESSAGE_TYPE_INFO, pkCapturedUnit->getButton(),
+						GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
 
 				// Add a captured mission
 				if (pPlot->isActiveVisible(false)) // K-Mod
@@ -914,49 +917,31 @@ void CvUnit::updateAirCombat(bool bQuick)
 	if (getCombatTimer() > 0)
 	{
 		changeCombatTimer(-1);
-
 		if (getCombatTimer() > 0)
-		{
 			return;
-		}
-		else
-		{
-			bFinish = true;
-		}
+		else bFinish = true;
 	}
 
 	CvPlot* pPlot = getAttackPlot();
 	if (pPlot == NULL)
-	{
 		return;
-	}
 
 	if (bFinish)
-	{
 		pInterceptor = getCombatUnit();
-	}
-	else
-	{
-		pInterceptor = bestInterceptor(pPlot);
-	}
-
+	else pInterceptor = bestInterceptor(pPlot);
 
 	if (pInterceptor == NULL)
 	{
 		setAttackPlot(NULL, false);
 		setCombatUnit(NULL);
-
 		getGroup()->clearMissionQueue();
-
 		return;
 	}
 
 	//check if quick combat
 	bool bVisible = false;
 	if (!bQuick)
-	{
 		bVisible = isCombatVisible(pInterceptor);
-	}
 
 	//if not finished and not fighting yet, set up combat damage and mission
 	if (!bFinish)
@@ -966,12 +951,8 @@ void CvUnit::updateAirCombat(bool bQuick)
 			//if (getPlot().isFighting() || pPlot->isFighting())
 			// K-Mod. I don't think it matters if the plot we're on is fighting already - but the interceptor needs to be available to fight!
 			if (pPlot->isFighting() || pInterceptor->isFighting())
-			{
 				return;
-			}
-
 			setMadeAttack(true);
-
 			setCombatUnit(pInterceptor, true);
 			pInterceptor->setCombatUnit(this, false);
 		}
@@ -982,13 +963,8 @@ void CvUnit::updateAirCombat(bool bQuick)
 
 		CvAirMissionDefinition kAirMission;
 		if (DOMAIN_AIR != getDomainType())
-		{
 			kAirMission.setMissionType(MISSION_PARADROP);
-		}
-		else
-		{
-			kAirMission.setMissionType(MISSION_AIRSTRIKE);
-		}
+		else kAirMission.setMissionType(MISSION_AIRSTRIKE);
 		kAirMission.setUnit(BATTLE_UNIT_ATTACKER, this);
 		kAirMission.setUnit(BATTLE_UNIT_DEFENDER, pInterceptor);
 
@@ -1019,51 +995,76 @@ void CvUnit::updateAirCombat(bool bQuick)
 
 		if (isDead())
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY", pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(pInterceptor->getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY",
+					pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(pInterceptor->getTeam()));
+			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer, *pPlot,
+					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"));
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN", getNameKey(), pInterceptor->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN",
+					getNameKey(), pInterceptor->getNameKey());
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY());
 		}
 		else if (kAirMission.getDamage(BATTLE_UNIT_ATTACKER) > 0)
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_HURT_ENEMY_AIR", pInterceptor->getNameKey(), getNameKey(),
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_HURT_ENEMY_AIR",
+					pInterceptor->getNameKey(), getNameKey(),
 					kAirMission.getDamage(BATTLE_UNIT_ATTACKER), // advc.004g
 					getVisualCivAdjective(pInterceptor->getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
+			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer, *pPlot,
+					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"));
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_AIR_UNIT_HURT", getNameKey(), pInterceptor->getNameKey(),
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_AIR_UNIT_HURT",
+					getNameKey(), pInterceptor->getNameKey(),
 					kAirMission.getDamage(BATTLE_UNIT_ATTACKER)); // advc.004g
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, pInterceptor->getButton(), GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY());
 		}
 
 		if (pInterceptor->isDead())
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY", getNameKey(), pInterceptor->getNameKey(), pInterceptor->getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY",
+					getNameKey(), pInterceptor->getNameKey(), pInterceptor->getVisualCivAdjective(getTeam()));
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, *pPlot,
+					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), GC.getColorType("GREEN"));
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN", pInterceptor->getNameKey(), getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN",
+					pInterceptor->getNameKey(), getNameKey());
+			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer,
+					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY());
 		}
 		else if (kAirMission.getDamage(BATTLE_UNIT_DEFENDER) > 0)
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_ENEMY_AIR", getNameKey(), pInterceptor->getNameKey(),
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_ENEMY_AIR",
+					getNameKey(), pInterceptor->getNameKey(),
 					kAirMission.getDamage(BATTLE_UNIT_DEFENDER), // advc.004g
 					pInterceptor->getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, *pPlot,
+					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), GC.getColorType("GREEN"));
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_DAMAGED", pInterceptor->getNameKey(), getNameKey(),
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_DAMAGED",
+					pInterceptor->getNameKey(), getNameKey(),
 					kAirMission.getDamage(BATTLE_UNIT_DEFENDER)); // advc.004g
-			gDLL->getInterfaceIFace()->addMessage(pInterceptor->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer,
+					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY());
 		}
 
 		if (kAirMission.getDamage(BATTLE_UNIT_ATTACKER) + kAirMission.getDamage(BATTLE_UNIT_DEFENDER) == 0)
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ABORTED_ENEMY_AIR", pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(pInterceptor->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY(), true, true);
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ABORTED_ENEMY_AIR",
+					pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(getTeam()));
+			gDLL->UI().addMessage(pInterceptor->getOwner(), true, -1, szBuffer, *pPlot,
+					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, pInterceptor->getButton(), GC.getColorType("GREEN"));
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_ABORTED", getNameKey(), pInterceptor->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_ABORTED",
+					getNameKey(), pInterceptor->getNameKey());
+			gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
+					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY());
 		}
 	}
 
@@ -1072,11 +1073,8 @@ void CvUnit::updateAirCombat(bool bQuick)
 		setAttackPlot(NULL, false);
 		setCombatUnit(NULL);
 		pInterceptor->setCombatUnit(NULL);
-
 		if (!isDead() && isSuicide())
-		{
 			kill(true);
-		}
 	}
 }
 
@@ -1383,7 +1381,7 @@ void CvUnit::updateCombat(bool bQuick)
 			pDefender->getGroup()->clearMissionQueue();
 
 			bool bFocused = (bVisible && isCombatFocus() &&
-					gDLL->getInterfaceIFace()->isCombatFocus());
+					gDLL->UI().isCombatFocus());
 			if (bFocused)
 			{
 				DirectionTypes directionType = directionXY(plot(), pPlot);
@@ -1397,7 +1395,7 @@ void CvUnit::updateCombat(bool bQuick)
 						getPlot().getPoint().y + plotSize / 2 * attackDirection.y,
 						(getPlot().getPoint().z + pPlot->getPoint().z) / 2);
 				attackDirection.Unitize();
-				gDLL->getInterfaceIFace()->lookAt(lookAtPoint,
+				gDLL->UI().lookAt(lookAtPoint,
 						(getOwner() != GC.getGame().getActivePlayer() ||
 						gDLL->getGraphicOption(GRAPHICOPTION_NO_COMBAT_ZOOM)) ?
 						CAMERALOOKAT_BATTLE : CAMERALOOKAT_BATTLE_ZOOM_IN,
@@ -1414,11 +1412,9 @@ void CvUnit::updateCombat(bool bQuick)
 				}
 				else szMessage = gDLL->getText("TXT_KEY_MISC_YOU_UNITS_UNDER_ATTACK_UNKNOWN");
 
-				gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), true,
-						GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_COMBAT",
-						MESSAGE_TYPE_DISPLAY_ONLY, getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-						pPlot->getX(), pPlot->getY(), true);
+				gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szMessage,
+						"AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, getButton(),
+						GC.getColorType("RED"), pPlot->getX(), pPlot->getY(), true);
 			}
 		}
 
@@ -1467,10 +1463,10 @@ void CvUnit::updateCombat(bool bQuick)
 
 	if (bVisible)
 	{
-		if (isCombatFocus() && gDLL->getInterfaceIFace()->isCombatFocus())
+		if (isCombatFocus() && gDLL->UI().isCombatFocus())
 		{
 			if (getOwner() == GC.getGame().getActivePlayer())
-				gDLL->getInterfaceIFace()->releaseLockedCamera();
+				gDLL->UI().releaseLockedCamera();
 		}
 	}
 
@@ -1530,20 +1526,19 @@ void CvUnit::updateCombat(bool bQuick)
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING",
 				getNameKeyNoGG(), // advc.004u
 				pDefender->getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(),
-				true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getInfo(
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, GC.getInfo(
 				GET_PLAYER(getOwner()) // advc.002l
 				.getCurrentEra()).getAudioUnitDefeatScript(),
-				MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+				MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"),
 				pPlot->getX(), pPlot->getY());
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_ENEMY_UNIT", pDefender->getNameKey(),
 				getNameKeyNoGG(), // advc.004u
 				getVisualCivAdjective(pDefender->getTeam()));
-		gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(),
-				true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getInfo(
+		gDLL->UI().addMessage(pDefender->getOwner(),
+				true, -1, szBuffer, GC.getInfo(
 				GET_PLAYER(pDefender->getOwner()) // advc.002l
 				.getCurrentEra()).getAudioUnitVictoryScript(),
-				MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+				MESSAGE_TYPE_INFO, NULL, GC.getColorType("GREEN"),
 				pPlot->getX(), pPlot->getY());
 		// report event to Python, along with some other key state
 		CvEventReporter::getInstance().combatResult(pDefender, this);
@@ -1588,12 +1583,10 @@ void CvUnit::updateCombat(bool bQuick)
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY", getNameKey(),
 				pDefender->getNameKeyNoGG()); // advc.004u
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getInfo(
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, GC.getInfo(
 				GET_PLAYER(getOwner()) // advc.002l
 				.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL,
-				(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
-				pPlot->getX(), pPlot->getY());
+				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
 		if (getVisualOwner(pDefender->getTeam()) != getOwner())
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN",
@@ -1606,12 +1599,10 @@ void CvUnit::updateCombat(bool bQuick)
 					pDefender->getNameKeyNoGG(), // advc.004u
 					getNameKey(), getVisualCivAdjective(pDefender->getTeam()));
 		}
-		gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), true,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getInfo(
+		gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szBuffer, GC.getInfo(
 				GET_PLAYER(pDefender->getOwner()) // advc.002l
-				.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO,
-				NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-				pPlot->getX(), pPlot->getY());
+				.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
+				GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 		// report event to Python, along with some other key state
 		CvEventReporter::getInstance().combatResult(this, pDefender);
 
@@ -1658,16 +1649,14 @@ void CvUnit::updateCombat(bool bQuick)
 	{
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW", getNameKey(),
 				pDefender->getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
-				(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
-				pPlot->getX(), pPlot->getY());
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+				"AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
+				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
 		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_UNIT_WITHDRAW", getNameKey(),
 				pDefender->getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), true,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIR_WITHDRAWL",
-				MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-				pPlot->getX(), pPlot->getY());
+		gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szBuffer,
+				"AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
+				GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 
 		changeMoves(std::max(GC.getMOVE_DENOMINATOR(), pPlot->movementCost(this, plot())));
 		checkRemoveSelectionAfterAttack();
@@ -1682,8 +1671,8 @@ void CvUnit::checkRemoveSelectionAfterAttack()
 	{
 		if (IsSelected())
 		{
-			if (gDLL->getInterfaceIFace()->getLengthSelectionList() > 1)
-				gDLL->getInterfaceIFace()->removeFromSelectionList(this);
+			if (gDLL->UI().getLengthSelectionList() > 1)
+				gDLL->UI().removeFromSelectionList(this);
 		}
 	}
 }
@@ -1722,7 +1711,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	if (GC.getPythonCaller()->isActionRecommended(*this, iAction))
 		return true;
 
-	CvPlot* pPlot = gDLL->getInterfaceIFace()->getGotoPlot();
+	CvPlot* pPlot = gDLL->UI().getGotoPlot();
 	if (pPlot == NULL && GC.shiftKey())
 		pPlot = getGroup()->lastMissionPlot();
 	if(pPlot == NULL)
@@ -1899,7 +1888,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	if(BUGOption::isEnabled("MainInterface__FoundingYields", false) && iMode == 1)
 		return; // BtS behavior
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
-	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+	gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 	if(bForceClear || iMode <= 0 || !canFound())
 		return;
 	CvSelectionGroup* gr = getGroup();
@@ -1909,7 +1898,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 		if(pUnit == NULL || (pUnit->IsSelected() && !pUnit->canFound()))
 			return;
 	}
-	CvPlot* pGoToPlot = gDLL->getInterfaceIFace()->getGotoPlot();
+	CvPlot* pGoToPlot = gDLL->UI().getGotoPlot();
 	CvPlot* pCenter;
 	if(pGoToPlot == NULL)
 		pCenter = plot();
@@ -2647,19 +2636,25 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 		setCombatUnit(pDefender, true);
 		pDefender->setCombatUnit(this, false);
 		pDefender->getGroup()->clearMissionQueue();
-		bool bFocused = (bVisible && isCombatFocus() && gDLL->getInterfaceIFace()->isCombatFocus());
+		bool bFocused = (bVisible && isCombatFocus() && gDLL->UI().isCombatFocus());
 		if (bFocused)
 		{
 			DirectionTypes directionType = directionXY(plot(), pPlot);
-			//								N			NE				E				SE					S				SW					W				NW
-			NiPoint2 directions[8] = {NiPoint2(0, 1), NiPoint2(1, 1), NiPoint2(1, 0), NiPoint2(1, -1), NiPoint2(0, -1), NiPoint2(-1, -1), NiPoint2(-1, 0), NiPoint2(-1, 1)};
+			//								N			NE				E			
+			NiPoint2 directions[8] = {NiPoint2(0, 1), NiPoint2(1, 1), NiPoint2(1, 0),
+					// SE					S				SW					W				NW
+					NiPoint2(1, -1), NiPoint2(0, -1), NiPoint2(-1, -1), NiPoint2(-1, 0), NiPoint2(-1, 1)};
 			NiPoint3 attackDirection = NiPoint3(directions[directionType].x, directions[directionType].y, 0);
 			float plotSize = GC.getPLOT_SIZE();
 			NiPoint3 lookAtPoint(getPlot().getPoint().x + plotSize / 2 * attackDirection.x,
 					getPlot().getPoint().y + plotSize / 2 * attackDirection.y,
 					(getPlot().getPoint().z + pPlot->getPoint().z) / 2);
 			attackDirection.Unitize();
-			gDLL->getInterfaceIFace()->lookAt(lookAtPoint, (((getOwner() != GC.getGame().getActivePlayer()) || gDLL->getGraphicOption(GRAPHICOPTION_NO_COMBAT_ZOOM)) ? CAMERALOOKAT_BATTLE : CAMERALOOKAT_BATTLE_ZOOM_IN), attackDirection);
+			gDLL->UI().lookAt(lookAtPoint,
+					getOwner() != GC.getGame().getActivePlayer() ||
+					gDLL->getGraphicOption(GRAPHICOPTION_NO_COMBAT_ZOOM) ?
+					CAMERALOOKAT_BATTLE : CAMERALOOKAT_BATTLE_ZOOM_IN,
+					attackDirection);
 		}
 		else
 		{
@@ -2674,12 +2669,14 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 				szMessage = gDLL->getText("TXT_KEY_MISC_YOU_UNITS_UNDER_ATTACK_UNKNOWN");
 			}
 
-			gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true);
+			gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szMessage, "AS2D_COMBAT",
+					MESSAGE_TYPE_DISPLAY_ONLY, getButton(), GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY(), true);
 		}
 	}
 
-	FAssertMsg(getPlot().isFighting(), "Current unit instance plot is not fighting as expected");
-	FAssertMsg(pPlot->isFighting(), "pPlot is not fighting as expected");
+	FAssert(getPlot().isFighting());
+	FAssert(pPlot->isFighting());
 
 	//setup battle object
 	CvBattleDefinition kBattle;
@@ -2771,7 +2768,7 @@ void CvUnit::move(CvPlot& kPlot, bool bShow, /* advc.163: */ bool bJump, bool bG
 			EffectTypes eEffect = (EffectTypes)GC.getInfoTypeForString(kFeature.getEffectType());
 			NiPoint3 pt = kPlot.getPoint();
 			gDLL->getEngineIFace()->TriggerEffect(eEffect, pt, (float)GC.getASyncRand().get(360));
-			gDLL->getInterfaceIFace()->playGeneralSound("AS3D_UN_BIRDS_SCATTER", pt);
+			gDLL->UI().playGeneralSound("AS3D_UN_BIRDS_SCATTER", pt);
 		}
 	}
 
@@ -3108,10 +3105,9 @@ void CvUnit::gift(bool bTestTransport)
 
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GIFTED_UNIT_TO_YOU",
 			GET_PLAYER(getOwner()).getNameKey(), pGiftUnit->getNameKey());
-	gDLL->getInterfaceIFace()->addMessage(pGiftUnit->getOwner(), false,
-			GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO,
-			pGiftUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-			pGiftUnit->getX(), pGiftUnit->getY(), true, true);
+	gDLL->UI().addMessage(pGiftUnit->getOwner(), false, -1, szBuffer,
+			pGiftUnit->getPlot(), "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO,
+			pGiftUnit->getButton());
 
 	// Python Event
 	CvEventReporter::getInstance().unitGifted(pGiftUnit, getOwner(), plot());
@@ -3739,18 +3735,16 @@ bool CvUnit::nuke(int iX, int iY)
 			// K-Mod. Only show the message to players who have met the teams involved!
 			const CvPlayer& kObs = GET_PLAYER((PlayerTypes)iI);
 			if(kObs.isAlive() && ((GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) &&
-				GET_TEAM(eBestTeam).isHasMet(kObs.getTeam()))
-				|| kObs.isSpectator())) // advc.127
+				GET_TEAM(eBestTeam).isHasMet(kObs.getTeam())) ||
+				kObs.isSpectator())) // advc.127
 			{
 			// K-Mod end
 				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_INTERCEPTED",
 						GET_PLAYER(getOwner()).getNameKey(), getNameKey(),
 						GET_TEAM(eBestTeam).getName().GetCString());
-				gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
-						kObs.getID() == getOwner(), GC.getEVENT_MESSAGE_TIME(),
-						szBuffer, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT,
-						getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-						pPlot->getX(), pPlot->getY(), true, true);
+				gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner(), -1,
+						szBuffer, *pPlot, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT,
+						getButton(), GC.getColorType("RED"));
 			}
 		}
 		if(pPlot->isActiveVisible(false))
@@ -3906,16 +3900,14 @@ bool CvUnit::nuke(int iX, int iY)
 		//if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		// K-Mod
 		const CvPlayer& kObs = GET_PLAYER((PlayerTypes)iI);
-		if(kObs.isAlive() && (GET_TEAM(kObs.getTeam()).isHasMet(getTeam())
-			|| kObs.isSpectator())) // advc.127
+		if(kObs.isAlive() && (GET_TEAM(kObs.getTeam()).isHasMet(getTeam()) ||
+			kObs.isSpectator())) // advc.127
 		{
 		// K-Mod end
 			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED", GET_PLAYER(getOwner()).getNameKey(), getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
-					kObs.getID() == getOwner(), GC.getEVENT_MESSAGE_TIME(),
-					szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT,
-					getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-					pPlot->getX(), pPlot->getY(), true, true);
+			gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner(), -1,
+					szBuffer, *pPlot, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT,
+					getButton(), GC.getColorType("RED"));
 		}
 	}
 	// <advc.106>
@@ -3927,7 +3919,7 @@ bool CvUnit::nuke(int iX, int iY)
 				GET_PLAYER(getOwner()).getNameKey());
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
 				getOwner(), szBuffer, getX(), getY(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				GC.getColorType("WARNING_TEXT"));
 	} // </advc.106>
 
 	if(isSuicide())
@@ -4157,11 +4149,14 @@ bool CvUnit::airBomb(int iX, int iY)
 		// Replacing this line: // </advc.004c>
 		//pCity->changeDefenseModifier(-airBombCurrRate());
 
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DEFENSES_REDUCED_TO", pCity->getNameKey(), pCity->getDefenseModifier(false), getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true);
-
-		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_DEFENSES_REDUCED_TO", getNameKey(), pCity->getNameKey(), pCity->getDefenseModifier(false));
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY());
+		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DEFENSES_REDUCED_TO",
+				pCity->getNameKey(), pCity->getDefenseModifier(false), getNameKey());
+		gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, pCity->getPlot(),
+				"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
+		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_DEFENSES_REDUCED_TO", getNameKey(),
+				pCity->getNameKey(), pCity->getDefenseModifier(false));
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, pCity->getPlot(),
+				"AS2D_BOMBARD", MESSAGE_TYPE_INFO, NULL, GC.getColorType("GREEN"));
 	}
 	else
 	{
@@ -4170,21 +4165,29 @@ bool CvUnit::airBomb(int iX, int iY)
 			if (GC.getGame().getSorenRandNum(airBombCurrRate(), "Air Bomb - Offense") >=
 				GC.getGame().getSorenRandNum(GC.getInfo(kPlot.getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
 			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(), GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), kPlot.getX(), kPlot.getY());
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(),
+						GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
+				gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_PILLAGE",
+						MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),
+						kPlot.getX(), kPlot.getY());
 				if (kPlot.isOwned())
 				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED", GC.getInfo(kPlot.getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(kPlot.getTeam()));
-					gDLL->getInterfaceIFace()->addMessage(kPlot.getOwner(),
-							true, // advc.106j
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), kPlot.getX(), kPlot.getY(), true, true);
+					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED",
+							GC.getInfo(kPlot.getImprovementType()).getTextKeyWide(), getNameKey(), 
+							getVisualCivAdjective(kPlot.getTeam()));
+					gDLL->UI().addMessage(kPlot.getOwner(), /* advc.106j: */ true, -1,
+							szBuffer, kPlot, "AS2D_PILLAGED", MESSAGE_TYPE_INFO,
+							getButton(), GC.getColorType("RED"));
 				}
 				kPlot.setImprovementType((ImprovementTypes)(GC.getInfo(kPlot.getImprovementType()).getImprovementPillage()));
 			}
 			else
 			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP", getNameKey(), GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), kPlot.getX(), kPlot.getY());
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP", getNameKey(),
+						GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
+				gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+						"AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(),
+						GC.getColorType("RED"), kPlot.getX(), kPlot.getY());
 			}
 		}
 	}
@@ -4297,19 +4300,16 @@ bool CvUnit::bombard()
 			pBombardCity->getDefenseModifier(false),
 			GET_PLAYER(getOwner())./*getNameKey()*/getCivilizationAdjectiveKey(), // advc.004g
 			pBombardCity->getNameKey());
-	gDLL->getInterfaceIFace()->addMessage(pBombardCity->getOwner(),
-			true, // advc.004g
-			GC.getEVENT_MESSAGE_TIME(), szBuffer,
+	gDLL->UI().addMessage(pBombardCity->getOwner(), /* advc.004g: */ true,
+			-1, szBuffer, pBombardCity->getPlot(),
 			!bFirstBombardment ? NULL : // advc.004g: Don't bombard the owner with sound
-			"AS2D_BOMBARDED",
-			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-			pBombardCity->getX(), pBombardCity->getY(), true, true);
+			"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
 			getNameKey(), pBombardCity->getNameKey(),
 			pBombardCity->getDefenseModifier(bIgnore)); // advc.004g: arg was false
-	gDLL->getInterfaceIFace()->addMessage(getOwner(),
-			true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD",
-			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+	gDLL->UI().addMessage(getOwner(), true,
+			-1, szBuffer, "AS2D_BOMBARD",
+			MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),
 			pBombardCity->getX(), pBombardCity->getY());
 
 	if (getPlot().isActiveVisible(false))
@@ -4442,20 +4442,17 @@ bool CvUnit::pillage()
 				GET_PLAYER(getOwner()).changeGold(iPillageGold);
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP",
 						iPillageGold, GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
-				gDLL->getInterfaceIFace()->addMessage(getOwner(), true,
-						GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGE",
-						MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_GREEN"), kPlot.getX(), kPlot.getY());
+				gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+						"AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(),
+						GC.getColorType("GREEN"), kPlot.getX(), kPlot.getY());
 				if (kPlot.isOwned())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED",
 							GC.getInfo(kPlot.getImprovementType()).getTextKeyWide(),
 							getNameKey(), getVisualCivAdjective(kPlot.getTeam()));
-					gDLL->getInterfaceIFace()->addMessage(kPlot.getOwner(), /* advc.106j: */ true,
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED",
-							MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-							GC.getInfoTypeForString("COLOR_RED"),
-							kPlot.getX(), kPlot.getY(), true, true);
+					gDLL->UI().addMessage(kPlot.getOwner(), /* advc.106j: */ true,
+							-1, szBuffer, kPlot, "AS2D_PILLAGED",
+							MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 				}
 			}
 		}
@@ -4608,17 +4605,17 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 		}
 	}
 	/*if (bChanged) {
-		gDLL->getInterfaceIFace()->setDirty(BlockadedPlots_DIRTY_BIT, true);
+		gDLL->UI().setDirty(BlockadedPlots_DIRTY_BIT, true);
 		if (bUpdatePlotGroups)
 			GC.getGame().updatePlotGroups();
 	}*/
 	// <advc.033> Replacing the above
 	CvGame& g = GC.getGame();
 	// Update colors -- unless we're about to unit-cycle
-	if(isHuman() && ((iChange == -1 && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == this)
+	if(isHuman() && ((iChange == -1 && gDLL->UI().getHeadSelectedUnit() == this)
 			|| GC.suppressCycling()))
 		g.updateColoredPlots();
-	gDLL->getInterfaceIFace()->setDirty(BlockadedPlots_DIRTY_BIT, true);
+	gDLL->UI().setDirty(BlockadedPlots_DIRTY_BIT, true);
 	if(bUpdatePlotGroups)
 	{
 		for(int i = 0; i < MAX_PLAYERS; i++)
@@ -4716,16 +4713,15 @@ bool CvUnit::sabotage()
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_SABOTAGED",
 					getNameKey(), pNearestCity->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(),
-					szBuffer, "AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-					GC.getInfoTypeForString("COLOR_GREEN"), kPlot.getX(), kPlot.getY());
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_SABOTAGE",
+					MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),
+					kPlot.getX(), kPlot.getY());
 
 			if (kPlot.isOwned())
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SABOTAGE_NEAR", pNearestCity->getNameKey());
-				gDLL->getInterfaceIFace()->addMessage(kPlot.getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-						szBuffer, "AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_RED"), kPlot.getX(), kPlot.getY(), true, true);
+				gDLL->UI().addMessage(kPlot.getOwner(), false, -1, szBuffer, kPlot,
+						"AS2D_SABOTAGE", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 			}
 		}
 		if (kPlot.isActiveVisible(false))
@@ -4737,12 +4733,10 @@ bool CvUnit::sabotage()
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_CAUGHT_AND_KILLED",
 					GET_PLAYER(getOwner()).getCivilizationAdjective(), getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(kPlot.getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-					szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO);
+			gDLL->UI().addMessage(kPlot.getOwner(), false, -1, szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO);
 		}
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_SPY_CAUGHT", getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO);
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO);
 		if (kPlot.isActiveVisible(false))
 			NotifyEntity(MISSION_SURRENDER);
 
@@ -4846,15 +4840,14 @@ bool CvUnit::destroy()
 
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SPY_DESTROYED_PRODUCTION",
 				getNameKey(), pCity->getProductionNameKey(), pCity->getNameKey()));
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY());
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_DESTROY",
+				MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),
+				pCity->getX(), pCity->getY());
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_PRODUCTION_DESTROYED",
 				pCity->getProductionNameKey(), pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true);
+		gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, pCity->getPlot(),
+				"AS2D_DESTROY", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 
 		if (getPlot().isActiveVisible(false))
 			NotifyEntity(MISSION_DESTROY);
@@ -4863,13 +4856,13 @@ bool CvUnit::destroy()
 	{
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_SPY_CAUGHT_AND_KILLED",
 				GET_PLAYER(getOwner()).getCivilizationAdjective(), getNameKey()));
-		gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(),
-				false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO,
+		gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer,
+				"AS2D_EXPOSE", MESSAGE_TYPE_INFO,
 				NULL, NO_COLOR, getX(), getY()); // advc.127b
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_SPY_CAUGHT", getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(),
-				true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO,
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+				"AS2D_EXPOSED", MESSAGE_TYPE_INFO,
 				NULL, NO_COLOR, getX(), getY()); // advc.127b
 
 		if (getPlot().isActiveVisible(false))
@@ -4968,23 +4961,25 @@ bool CvUnit::stealPlans()
 		finishMoves();
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_STOLE_PLANS", getNameKey(), pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY());
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_STEALPLANS",
+				MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),
+				pCity->getX(), pCity->getY());
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_PLANS_STOLEN", pCity->getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true);
+		gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, getPlot(),
+				"AS2D_STEALPLANS", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 
 		if (getPlot().isActiveVisible(false))
-		{
 			NotifyEntity(MISSION_STEAL_PLANS);
-		}
 	}
 	else
 	{
-		szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_CAUGHT_AND_KILLED", GET_PLAYER(getOwner()).getCivilizationAdjective(), getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO);
+		szBuffer = gDLL->getText("TXT_KEY_MISC_SPY_CAUGHT_AND_KILLED",
+				GET_PLAYER(getOwner()).getCivilizationAdjective(), getNameKey());
+		gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO);
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_SPY_CAUGHT", getNameKey());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO);
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO);
 
 		if (getPlot().isActiveVisible(false))
 			NotifyEntity(MISSION_SURRENDER);
@@ -5018,7 +5013,7 @@ bool CvUnit::found()
 	if (GC.getGame().getActivePlayer() == getOwner()
 		&& !CvPlot::isAllFog()) // advc.706
 	{
-		gDLL->getInterfaceIFace()->lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL);
+		gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL);
 	}
 	GET_PLAYER(getOwner()).found(getX(), getY());
 	if (getPlot().isActiveVisible(false))
@@ -5103,7 +5098,7 @@ bool CvUnit::spread(ReligionTypes eReligion)
 		}
 		else
 		{	/*szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD", getNameKey(), GC.getInfo(eReligion).getChar(), pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
+			gDLL->UI().addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
 			bSuccess = false;*/ // BtS
 			// K-Mod. Instead of simply failing, give some chance of removing one of the existing religions.
 			std::vector<std::pair<int, ReligionTypes> > rankedReligions;
@@ -5126,8 +5121,11 @@ bool CvUnit::spread(ReligionTypes eReligion)
 			ReligionTypes eFailedReligion = rankedReligions[0].second;
 			if (eFailedReligion == eReligion)
 			{
-				CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD", getNameKey(), GC.getInfo(eReligion).getChar(), pCity->getNameKey()));
-				gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
+				CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_RELIGION_FAILED_TO_SPREAD",
+						getNameKey(), GC.getInfo(eReligion).getChar(), pCity->getNameKey()));
+				gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_NOSPREAD",
+						MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
+						pCity->getX(), pCity->getY());
 				bSuccess = false;
 			}
 			else
@@ -5249,13 +5247,17 @@ bool CvUnit::spreadCorporation(CorporationTypes eCorporation)
 		if (pCity->getTeam() != getTeam())
 			iSpreadProb /= 2;
 
-		iSpreadProb += (((GC.getNumCorporationInfos() - pCity->getCorporationCount()) * (100 - iSpreadProb)) / GC.getNumCorporationInfos());
+		iSpreadProb += (((GC.getNumCorporationInfos() - pCity->getCorporationCount()) *
+				(100 - iSpreadProb)) / GC.getNumCorporationInfos());
 		if (GC.getGame().getSorenRandNum(100, "Unit Spread Corporation") < iSpreadProb)
 			pCity->setHasCorporation(eCorporation, true, true, false);
 		else
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_FAILED_TO_SPREAD", getNameKey(), GC.getInfo(eCorporation).getChar(), pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NOSPREAD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_FAILED_TO_SPREAD",
+					getNameKey(), GC.getInfo(eCorporation).getChar(), pCity->getNameKey());
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_NOSPREAD",
+					MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
+					pCity->getX(), pCity->getY());
 		}
 	}
 	if (getPlot().isActiveVisible(false))
@@ -5649,7 +5651,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 		FAssert(GET_PLAYER(getOwner()).isHuman());
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DOESPIONAGE);
 		if (NULL != pInfo)
-			gDLL->getInterfaceIFace()->addPopup(pInfo, getOwner(), true);
+			gDLL->UI().addPopup(pInfo, getOwner(), true);
 	}
 	else if (GC.getInfo(eMission).isTwoPhases() && -1 == iData)
 	{
@@ -5658,7 +5660,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 		if (NULL != pInfo)
 		{
 			pInfo->setData1(eMission);
-			gDLL->getInterfaceIFace()->addPopup(pInfo, getOwner(), true);
+			gDLL->UI().addPopup(pInfo, getOwner(), true);
 		}
 	}
 	else
@@ -5670,7 +5672,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 		}
 
 		if (GET_PLAYER(getOwner()).doEspionageMission(eMission, eTargetPlayer,
-				plot(), iData, this))
+			plot(), iData, this))
 		{
 			if (getPlot().isActiveVisible(false))
 				NotifyEntity(MISSION_ESPIONAGE);
@@ -5682,26 +5684,24 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 				finishMoves();
 
 				CvCity* pCapital = GET_PLAYER(getOwner()).getCapitalCity();
-				if(pCapital != NULL
-					&& kMission.isReturnToCapital()) // advc.103
+				if(pCapital != NULL &&
+					kMission.isReturnToCapital()) // advc.103
 				{
 					setXY(pCapital->getX(), pCapital->getY(), false, false, false);
 
-					CvWString szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_SPY_SUCCESS", getNameKey(), pCapital->getNameKey());
-					gDLL->getInterfaceIFace()->addMessage(getOwner(),
+					CvWString szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_SPY_SUCCESS",
+							getNameKey(), pCapital->getNameKey());
+					gDLL->UI().addMessage(getOwner(),
 							/*  advc.103: Don't show message before the
 								city screen has been exited */
 							!GC.getInfo(eMission).isInvestigateCity(),
-							GC.getEVENT_MESSAGE_TIME(), szBuffer,
-							"AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(),
-							(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-							pCapital->getX(), pCapital->getY(),
-							true, true);
+							-1, szBuffer, pCapital->getPlot(), "AS2D_POSITIVE_DINK",
+							MESSAGE_TYPE_INFO, getButton());
 				}
 			}
 			// K-Mod
 			if (getTeam() == GC.getGame().getActiveTeam())
-				gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+				gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
 			// K-Mod end
 			return true;
 		}
@@ -5746,8 +5746,11 @@ bool CvUnit::testSpyIntercepted(PlayerTypes eTargetPlayer, bool bMission, int iM
 	if (pClosestCity != NULL)
 		szCityName = pClosestCity->getName();
 
-	CvWString szBuffer = gDLL->getText(szFormatReveal.GetCString(), GET_PLAYER(getOwner()).getCivilizationAdjectiveKey(), getNameKey(), kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
-	gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+	CvWString szBuffer = gDLL->getText(szFormatReveal.GetCString(),
+			GET_PLAYER(getOwner()).getCivilizationAdjectiveKey(), getNameKey(),
+			kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
+	gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, getPlot(),
+			"AS2D_EXPOSED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 
 	static int const iESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT = GC.getDefineINT("ESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT"); // advc.opt
 	if (GC.getGame().getSorenRandNum(100, "Spy Reveal identity") < iESPIONAGE_SPY_REVEAL_IDENTITY_PERCENT)
@@ -5756,12 +5759,15 @@ bool CvUnit::testSpyIntercepted(PlayerTypes eTargetPlayer, bool bMission, int iM
 		{   // advc.130j:
 			GET_PLAYER(eTargetPlayer).AI_rememberEvent(getOwner(), MEMORY_SPY_CAUGHT);
 		}
-		gDLL->getInterfaceIFace()->addMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
+		gDLL->UI().addMessage(eTargetPlayer, true, -1, szBuffer, getPlot(),
+				"AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"));
 	}
 	else
 	{
-		szBuffer = gDLL->getText(szFormatNoReveal.GetCString(), getNameKey(), kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
-		gDLL->getInterfaceIFace()->addMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
+		szBuffer = gDLL->getText(szFormatNoReveal.GetCString(), getNameKey(),
+				kTargetPlayer.getCivilizationAdjectiveKey(), szCityName.GetCString());
+		gDLL->UI().addMessage(eTargetPlayer, true, -1, szBuffer, getPlot(),
+			"AS2D_EXPOSE", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"));
 	}
 
 	if (getPlot().isActiveVisible(false))
@@ -5965,9 +5971,9 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 
 	if (IsSelected())
 	{
-		gDLL->getInterfaceIFace()->playGeneralSound(GC.getInfo(ePromotion).getSound());
+		gDLL->UI().playGeneralSound(GC.getInfo(ePromotion).getSound());
 
-		gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
+		gDLL->UI().setDirty(UnitInfo_DIRTY_BIT, true);
 		gDLL->getFAStarIFace()->ForceReset(&GC.getInterfacePathFinder()); // K-Mod.
 	}
 	else setInfoBarDirty(true);
@@ -5995,7 +6001,7 @@ bool CvUnit::lead(int iUnitId)
 	{
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_LEADUNIT, eLeaderPromotion, getID());
 		if (pInfo)
-			gDLL->getInterfaceIFace()->addPopup(pInfo, getOwner(), true);
+			gDLL->UI().addPopup(pInfo, getOwner(), true);
 		return false;
 	}
 	else
@@ -8094,12 +8100,12 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 				pPlot->setFlagDirty(true);
 		}
 
-		if (pPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
-			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+		if (pPlot == gDLL->UI().getSelectionPlot())
+			gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 	}
 
 	if (bRemoveSelected && IsSelected())
-		gDLL->getInterfaceIFace()->removeFromSelectionList(this);
+		gDLL->UI().removeFromSelectionList(this);
 }
 
 
@@ -8128,7 +8134,7 @@ void CvUnit::setHotKeyNumber(int iNewValue)
 	m_iHotKeyNumber = iNewValue;
 
 	if (IsSelected())
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 }
 
 // <advc.inl>
@@ -8300,10 +8306,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		if (pOldPlot->isActiveVisible(true))
 			pOldPlot->updateMinimapColor();
 
-		if (pOldPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
+		if (pOldPlot == gDLL->UI().getSelectionPlot())
 		{
-			gDLL->getInterfaceIFace()->verifyPlotListColumn();
-			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+			gDLL->UI().verifyPlotListColumn();
+			gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
 	}
 
@@ -8450,10 +8456,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			else SetPosition(pNewPlot);
 		}
 
-		if (pNewPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
+		if (pNewPlot == gDLL->UI().getSelectionPlot())
 		{
-			gDLL->getInterfaceIFace()->verifyPlotListColumn();
-			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+			gDLL->UI().verifyPlotListColumn();
+			gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
 	}
 
@@ -8539,12 +8545,12 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	{
 		if (canFound()) // advc.004h: was isFound
 		{
-			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+			gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 			gDLL->getEngineIFace()->updateFoundingBorder();
 			// advc.004h (comment): No need to call CvUnit::updateFoundingBorder here
 		}
 
-		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+		gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 	}
 	//update glow
 	if (pNewPlot != NULL)
@@ -8646,10 +8652,10 @@ void CvUnit::setDamage(int iNewValue, PlayerTypes ePlayer, bool bNotifyEntity)
 		setInfoBarDirty(true);
 
 		if (IsSelected())
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+			gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 
-		if (plot() == gDLL->getInterfaceIFace()->getSelectionPlot())
-			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+		if (plot() == gDLL->UI().getSelectionPlot())
+			gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 	}
 
 	if (isDead())
@@ -8681,11 +8687,11 @@ void CvUnit::setMoves(int iNewValue)
 	if (IsSelected())
 	{
 		gDLL->getFAStarIFace()->ForceReset(&GC.getInterfacePathFinder());
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 
-	if (pPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
-		gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+	if (pPlot == gDLL->UI().getSelectionPlot())
+		gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 }
 
 
@@ -8708,7 +8714,7 @@ void CvUnit::setExperience(int iNewValue, int iMax)
 		m_iExperience = std::min(((iMax == -1) ? MAX_INT : iMax), iNewValue);
 		FAssert(getExperience() >= 0);
 		if (IsSelected())
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+			gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 }
 
@@ -8756,7 +8762,7 @@ void CvUnit::setLevel(int iNewValue)
 			GET_PLAYER(getOwner()).setHighestUnitLevel(getLevel());
 
 		if (IsSelected())
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+			gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 }
 
@@ -9211,7 +9217,7 @@ void CvUnit::setFacingDirection(DirectionTypes eFacingDirection)
 			//clear new fog
 			getPlot().changeAdjacentSight(getTeam(), visibilityRange(), true, this, true);
 
-			gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+			gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 		}
 		else m_eFacingDirection = eFacingDirection;
 
@@ -9308,7 +9314,7 @@ void CvUnit::setPromotionReady(bool bNewValue)
 		gDLL->getEntityIFace()->showPromotionGlow(getUnitEntity(), bNewValue);
 
 	if(IsSelected())
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 }
 
 
@@ -9398,16 +9404,14 @@ void CvUnit::collectBlockadeGold()
 
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_TRADE_ROUTE_PLUNDERED",
 						getNameKey(), pCity->getNameKey(), iGold);
-				gDLL->getInterfaceIFace()->addMessage(getOwner(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BUILD_BANK",
-						MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY());
+				gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
+						"AS2D_BUILD_BANK", MESSAGE_TYPE_INFO, getButton(),
+						GC.getColorType("GREEN"), getX(), getY());
 				szBuffer = gDLL->getText("TXT_KEY_MISC_TRADE_ROUTE_PLUNDER",
 						getNameKey(), pCity->getNameKey(), iGold);
-				gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(),
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BUILD_BANK",
-						MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY());
+				gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer,
+						"AS2D_BUILD_BANK", MESSAGE_TYPE_INFO, getButton(),
+						GC.getColorType("RED"), pCity->getX(), pCity->getY());
 			}
 		}
 	}
@@ -9512,7 +9516,7 @@ CvUnit* CvUnit::getCombatUnit() const
 void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 {
 	if (isCombatFocus())
-		gDLL->getInterfaceIFace()->setCombatFocus(false);
+		gDLL->UI().setCombatFocus(false);
 
 	if (pCombatUnit != NULL)
 	{
@@ -9530,7 +9534,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 
 		FAssert(getCombatUnit() == NULL);
 		FAssert(!getPlot().isFighting());
-		m_bCombatFocus = (bAttacking && !(gDLL->getInterfaceIFace()->isFocusedWidget()) && ((getOwner() == GC.getGame().getActivePlayer()) || ((pCombatUnit->getOwner() == GC.getGame().getActivePlayer()) && !(GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)))));
+		m_bCombatFocus = (bAttacking && !(gDLL->UI().isFocusedWidget()) && ((getOwner() == GC.getGame().getActivePlayer()) || ((pCombatUnit->getOwner() == GC.getGame().getActivePlayer()) && !(GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)))));
 		m_combatUnit = pCombatUnit->getIDInfo();
 		setCombatFirstStrikes((pCombatUnit->immuneToFirstStrikes()) ? 0 : (firstStrikes() + GC.getGame().getSorenRandNum(chanceFirstStrikes() + 1, "First Strike")));
 	}
@@ -9545,10 +9549,10 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 			setCombatFirstStrikes(0);
 
 			if (IsSelected())
-				gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+				gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 
-			if (plot() == gDLL->getInterfaceIFace()->getSelectionPlot())
-				gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+			if (plot() == gDLL->UI().getSelectionPlot())
+				gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 
 			CvDLLEntity::SetSiegeTower(false);
 		}
@@ -9558,7 +9562,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 	setInfoBarDirty(true);
 
 	if (isCombatFocus())
-		gDLL->getInterfaceIFace()->setCombatFocus(true);
+		gDLL->UI().setCombatFocus(true);
 }
 
 // K-Mod. Return true if the combat animation should include a siege tower
@@ -9602,7 +9606,7 @@ void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 		{
 			getGroup()->clearMissionQueue();
 			if (IsSelected())
-				gDLL->getInterfaceIFace()->removeFromSelectionList(this);
+				gDLL->UI().removeFromSelectionList(this);
 		}
 		FAssert(getGroup()->headMissionQueueNode() == 0); // we don't want them jumping off the boat to complete some unfinished mission!
 		// K-Mod end
@@ -9679,7 +9683,7 @@ void CvUnit::setName(CvWString szNewValue)
 	gDLL->stripSpecialCharacters(szNewValue);
 	m_szName = szNewValue;
 	if (IsSelected())
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 }
 
 
@@ -9952,8 +9956,8 @@ void CvUnit::setHasPromotion(PromotionTypes ePromotion, bool bNewValue)
 
 	if (IsSelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 
 	//update graphics
@@ -10309,15 +10313,14 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 	if (iDamageCount > 0)
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SUFFER_COL_DMG", iDamageCount);
-		gDLL->getInterfaceIFace()->addMessage(pSkipUnit->getOwner(),
-				pSkipUnit->getDomainType() != DOMAIN_AIR, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-				GC.getInfoTypeForString("COLOR_RED"), pSkipUnit->getX(), pSkipUnit->getY(), true, true);
+		gDLL->UI().addMessage(pSkipUnit->getOwner(), pSkipUnit->getDomainType() != DOMAIN_AIR, -1,
+				szBuffer, pSkipUnit->getPlot(), "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(),
+				GC.getColorType("RED"));
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_INFLICT_COL_DMG", getNameKey(), iDamageCount);
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_COLLATERAL", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-				GC.getInfoTypeForString("COLOR_GREEN"), pSkipUnit->getX(), pSkipUnit->getY());
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_COLLATERAL",
+				MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),
+				pSkipUnit->getX(), pSkipUnit->getY());
 	}
 }
 
@@ -10375,16 +10378,16 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_UNIT_BY_FLANKING",
 					getNameKey(), pUnit->getNameKey(), pUnit->getVisualCivAdjective(getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-					szBuffer, GC.getInfo(/* advc.002l: */ GET_PLAYER(getOwner()) 
+			gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
+				GC.getInfo(/* advc.002l: */ GET_PLAYER(getOwner())
 					.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL,
-					(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
+					GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNIT_DIED_BY_FLANKING", pUnit->getNameKey(),
 					getNameKey(), getVisualCivAdjective(pUnit->getTeam()));
-			gDLL->getInterfaceIFace()->addMessage(pUnit->getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-					szBuffer, GC.getInfo(/* advc.002l: */ GET_PLAYER(pUnit->getOwner())
+			gDLL->UI().addMessage(pUnit->getOwner(), false, -1, szBuffer,
+					GC.getInfo(/* advc.002l: */ GET_PLAYER(pUnit->getOwner())
 					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
-					(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+					GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 
 			pUnit->kill(false);
 		}
@@ -10397,18 +10400,18 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_UNITS_BY_FLANKING",
 				getNameKey(), iNumUnitsHit);
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, GC.getInfo(/* advc.002l: */ GET_PLAYER(getOwner())
+		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
+				GC.getInfo(/* advc.002l: */ GET_PLAYER(getOwner())
 				.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL,
-				(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
+				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
 		if (pSkipUnit != NULL)
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNITS_DAMAGED_BY_FLANKING",
 					getNameKey(), iNumUnitsHit);
-			gDLL->getInterfaceIFace()->addMessage(pSkipUnit->getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-					szBuffer, GC.getInfo(/* advc.002l: */ GET_PLAYER(pSkipUnit->getOwner())
+			gDLL->UI().addMessage(pSkipUnit->getOwner(), false, -1, szBuffer,
+					GC.getInfo(/* advc.002l: */ GET_PLAYER(pSkipUnit->getOwner())
 					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
-					(ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY());
+					GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 		}
 	}
 }
@@ -10487,16 +10490,15 @@ bool CvUnit::airStrike(CvPlot* pPlot)
 			pDefender->getNameKey(), getNameKey(),
 			// advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
-	gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-			szBuffer, "AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-			GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true);
+	gDLL->UI().addMessage(pDefender->getOwner(), false, -1, szBuffer, *pPlot,
+			"AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
 			// advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
-	gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(),
-			szBuffer, "AS2D_AIR_ATTACKED", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)
-			GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
+	gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_AIR_ATTACKED",
+			MESSAGE_TYPE_INFO, pDefender->getButton(), GC.getColorType("GREEN"),
+			pPlot->getX(), pPlot->getY());
 
 	collateralCombat(pPlot, pDefender);
 	pDefender->setDamage(iUnitDamage, getOwner());
@@ -10589,20 +10591,17 @@ bool CvUnit::rangeStrike(int iX, int iY)
 			// advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
 	//red icon over attacking unit
-	gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-			szBuffer, "AS2D_COMBAT", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)
-			GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+	gDLL->UI().addMessage(pDefender->getOwner(), false, -1, szBuffer, getPlot(),
+			"AS2D_COMBAT", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 	//white icon over defending unit
-	gDLL->getInterfaceIFace()->addMessage(pDefender->getOwner(), false, 0, L"", "AS2D_COMBAT",
-			MESSAGE_TYPE_DISPLAY_ONLY, pDefender->getButton(), (ColorTypes)
-			GC.getInfoTypeForString("COLOR_WHITE"), pDefender->getX(), pDefender->getY(), true, true);
+	gDLL->UI().addMessage(pDefender->getOwner(), false, 0, L"", pDefender->getPlot(),
+			"AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, pDefender->getButton());
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
 			// advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
-	gDLL->getInterfaceIFace()->addMessage(getOwner(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-			"AS2D_COMBAT", MESSAGE_TYPE_INFO, pDefender->getButton(), (ColorTypes)
-			GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY());
+	gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, *pPlot,
+			"AS2D_COMBAT", MESSAGE_TYPE_INFO, pDefender->getButton(), GC.getColorType("GREEN"));
 
 	collateralCombat(pPlot, pDefender);
 
@@ -10950,7 +10949,8 @@ bool CvUnit::isSuicide() const
 	return (m_pUnitInfo->isSuicide() || getKamikazePercent() != 0);
 }
 
-void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int iOurStrength, int iOurFirepower, int& iTheirOdds, int& iTheirStrength, int& iOurDamage, int& iTheirDamage, CombatDetails* pTheirDetails) const
+void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int iOurStrength, int iOurFirepower,
+	int& iTheirOdds, int& iTheirStrength, int& iOurDamage, int& iTheirDamage, CombatDetails* pTheirDetails) const
 {
 	iTheirStrength = kDefender.currCombatStr(pPlot, this, pTheirDetails);
 	int iTheirFirepower = kDefender.currFirepower(pPlot, this);
@@ -10984,8 +10984,10 @@ void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int
 
 	int iStrengthFactor = ((iOurFirepower + iTheirFirepower + 1) / 2);
 
-	iOurDamage = std::max(1, ((GC.getCOMBAT_DAMAGE() * (iTheirFirepower + iStrengthFactor)) / (iOurFirepower + iStrengthFactor)));
-	iTheirDamage = std::max(1, ((GC.getCOMBAT_DAMAGE() * (iOurFirepower + iStrengthFactor)) / (iTheirFirepower + iStrengthFactor)));
+	iOurDamage = std::max(1, ((GC.getCOMBAT_DAMAGE() * (iTheirFirepower + iStrengthFactor)) /
+			(iOurFirepower + iStrengthFactor)));
+	iTheirDamage = std::max(1, ((GC.getCOMBAT_DAMAGE() * (iOurFirepower + iStrengthFactor)) /
+			(iTheirFirepower + iStrengthFactor)));
 }
 
 int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, bool bCheckPlot) const
@@ -11028,7 +11030,7 @@ int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, boo
 	iValue += getDamage() * kTrigger.getUnitDamagedWeight();
 	iValue += getExperience() * kTrigger.getUnitExperienceWeight();
 
-	if (NULL != pPlot)
+	if (pPlot != NULL)
 	{
 		iValue += plotDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) *
 				kTrigger.getUnitDistanceWeight();
@@ -11055,8 +11057,8 @@ bool CvUnit::canApplyEvent(EventTypes eEvent) const
 
 	if (kEvent.getUnitImmobileTurns() > 0)
 	{
-		if (!canAttack()
-			|| m_pUnitInfo->isMostlyDefensive()) // advc.315: Farm Bandits and Toxcatl random events
+		if (!canAttack() ||
+			m_pUnitInfo->isMostlyDefensive()) // advc.315: Farm Bandits and Toxcatl random events
 		{
 			return false;
 		}
@@ -11078,16 +11080,16 @@ void CvUnit::applyEvent(EventTypes eEvent)
 		changeExperience(kEvent.getUnitExperience());
 	}
 
-	if (NO_PROMOTION != kEvent.getUnitPromotion())
-	{
+	if (kEvent.getUnitPromotion() != NO_PROMOTION)
 		setHasPromotion((PromotionTypes)kEvent.getUnitPromotion(), true);
-	}
 
 	if (kEvent.getUnitImmobileTurns() > 0)
 	{
 		changeImmobileTimer(kEvent.getUnitImmobileTurns());
-		CvWString szText = gDLL->getText("TXT_KEY_EVENT_UNIT_IMMOBILE", getNameKey(), kEvent.getUnitImmobileTurns());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szText, "AS2D_UNITGIFTED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"), getX(), getY(), true, true);
+		CvWString szText = gDLL->getText("TXT_KEY_EVENT_UNIT_IMMOBILE",
+				getNameKey(), kEvent.getUnitImmobileTurns());
+		gDLL->UI().addMessage(getOwner(), false, -1, szText, getPlot(), "AS2D_UNITGIFTED",
+				MESSAGE_TYPE_INFO, getButton(), GC.getColorType("UNIT_TEXT"));
 	}
 
 	CvWString szNameKey(kEvent.getUnitNameKey());
@@ -11101,7 +11103,8 @@ void CvUnit::applyEvent(EventTypes eEvent)
 
 const CvArtInfoUnit* CvUnit::getArtInfo(int i, EraTypes eEra) const
 {
-	return m_pUnitInfo->getArtInfo(i, eEra, (UnitArtStyleTypes) GC.getInfo(getCivilizationType()).getUnitArtStyleType());
+	return m_pUnitInfo->getArtInfo(i, eEra, (UnitArtStyleTypes)
+			GC.getInfo(getCivilizationType()).getUnitArtStyleType());
 }
 
 const TCHAR* CvUnit::getButton() const

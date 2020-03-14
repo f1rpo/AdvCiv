@@ -41,8 +41,7 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
 		return; // </advc.706>
 	bool arrows = (icon != NULL);
-	gDLL->getInterfaceIFace()->addMessage(ownerId, false,
-			GC.getEVENT_MESSAGE_TIME(), s, NULL,
+	gDLL->UI().addMessage(ownerId, false, -1, s, NULL,
 			force ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
 			icon, (ColorTypes)colorId, x, y, arrows, arrows);
 }
@@ -467,7 +466,7 @@ void CityTradeAlert::msgWilling(std::vector<CvCity const*> const& cities, Player
 	}
 	msg(szMsg, NULL, cities.size() == 1 ? cities[0]->getX() : - 1,
 			cities.size() == 1 ? cities[0]->getY() : - 1,
-			(ColorTypes)GC.getInfoTypeForString("COLOR_CITY_BLUE"));
+			GC.getColorType("CITY_BLUE"));
 }
 
 void CityTradeAlert::msgLiberate(std::vector<CvCity const*> const& cities, PlayerTypes ePlayer) const
@@ -487,6 +486,6 @@ void CityTradeAlert::msgLiberate(std::vector<CvCity const*> const& cities, Playe
 	szMsg.append(gDLL->getText("TXT_KEY_CAN_LIBERATE", szName.GetCString()));
 	msg(szMsg, NULL, cities.size() == 1 ? cities[0]->getX() : - 1,
 			cities.size() == 1 ? cities[0]->getY() : - 1,
-			(ColorTypes)GC.getInfoTypeForString("COLOR_CITY_BLUE"));
+			GC.getColorType("CITY_BLUE"));
 }
 // </advc.ctr>

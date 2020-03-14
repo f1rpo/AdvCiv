@@ -91,13 +91,18 @@ protected: virtual void addMessageExternal(PlayerTypes ePlayer, bool bForce, int
 public:
 	// K-Mod - block messages from being send to AI players. (because the game doesn't ever clear AI messages)
 	// advc.127: Renamed from "addHumanMessage"
-	void addMessage(PlayerTypes ePlayer, bool bForce, int iLength,
-			CvWString szString, LPCTSTR pszSound = NULL,
-			InterfaceMessageTypes eType = MESSAGE_TYPE_INFO,
+	void addMessage(PlayerTypes ePlayer, bool bForce, int iLength, CvWString szString,
+			LPCTSTR pszSound = NULL, InterfaceMessageTypes eType = MESSAGE_TYPE_INFO,
 			LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
-			int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false,
-			bool bShowOnScreenArrows = false);
+			int iFlashX = -1, int iFlashY = -1,
+			bool bShowOffScreenArrows = false, bool bShowOnScreenArrows = false);
 		// advc.127: Definition moved into a new file: CvDLLInterfaceIBase2.cpp
+	// advc: Wrapper for passing iFlashX, iFlashY more conveniently
+	void addMessage(PlayerTypes ePlayer, bool bForce, int iLength,
+			CvWString szString, CvPlot const& kPlot,
+			LPCTSTR pszSound = NULL, InterfaceMessageTypes eType = MESSAGE_TYPE_INFO,
+			LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
+			bool bShowOffScreenArrows = true, bool bShowOnScreenArrows = true);
 
 	virtual void addCombatMessage(PlayerTypes ePlayer, CvWString szString) = 0;
 	virtual void addQuestMessage(PlayerTypes ePlayer, CvWString szString, int iQuestId) = 0;

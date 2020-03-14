@@ -5,6 +5,7 @@
 #include "CvDLLInterfaceIFaceBase.h" // </advc.127>
 #include "CvGame.h"
 #include "CvPlayer.h"
+#include "CvPlot.h"
 #include "RiseFall.h" // advc.700
 
 void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
@@ -13,7 +14,12 @@ void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
 	int iFlashX, int iFlashY, bool bShowOffScreenArrows,
 	bool bShowOnScreenArrows)
 {
-
+	// <advc>
+	if (iLength == -1)
+		iLength = GC.getEVENT_MESSAGE_TIME();
+	// Perhaps the EXE does that anyway; let's make sure.
+	if (eFlashColor == NO_COLOR)
+		eFlashColor = GC.getColorType("WHITE"); // </advc>
 	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 	if(kPlayer.isHuman() ||
 		/*  <advc.700> Want message archive to be available when human
@@ -49,4 +55,14 @@ void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
 					false, false);
 		}
 	}
+}
+
+void CvDLLInterfaceIFaceBase::addMessage(PlayerTypes ePlayer, bool bForce,
+	int iLength, CvWString szString, CvPlot const& kPlot,
+	LPCTSTR pszSound, InterfaceMessageTypes eType, LPCSTR pszIcon,
+	ColorTypes eFlashColor, bool bShowOffScreenArrows, bool bShowOnScreenArrows)
+{
+	addMessage(ePlayer, bForce, iLength, szString, pszSound, eType, pszIcon,
+			eFlashColor, kPlot.getX(), kPlot.getY(),
+			bShowOffScreenArrows, bShowOnScreenArrows);
 }

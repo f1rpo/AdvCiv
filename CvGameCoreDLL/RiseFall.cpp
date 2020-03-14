@@ -148,7 +148,7 @@ void RiseFall::init() {
 	/*  When the EXE calls CvGameTextMgr::getTurnTimerText on turn 0,
 		RiseFall isn't initialized yet. Refresh the timer now that
 		initialization is through. */
-	gDLL->getInterfaceIFace()->setDirty(TurnTimer_DIRTY_BIT, true);
+	gDLL->UI().setDirty(TurnTimer_DIRTY_BIT, true);
 	/*  Initial auto-save. Normally happens already in CvGame::update, but
 		RiseFall isn't yet initialized then. */
 	g.autoSave(true);
@@ -353,8 +353,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 		abandonPlans(currentCh.getCiv());
 		CvWString replayText = gDLL->getText("TXT_KEY_RF_INTERLUDE_STARTED");
 		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, g.getActivePlayer(),
-				replayText, -1, -1, (ColorTypes)GC.getInfoTypeForString(
-				"COLOR_HIGHLIGHT_TEXT"));
+				replayText, -1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 	}
 }
 
@@ -414,7 +413,7 @@ void RiseFall::atActiveTurnStart() {
 			text.append(L":\n\n" +
 					*chapters[i]->computeScoreBreakdown().getString());
 			popup->setText(text);
-			gDLL->getInterfaceIFace()->addPopup(popup, activeId);
+			gDLL->UI().addPopup(popup, activeId);
 			chapters[i]->setScoreShown(true);
 		}
 	}
@@ -428,7 +427,7 @@ void RiseFall::atActiveTurnStart() {
 			text.append(gDLL->getText("TXT_KEY_RF_POPUP_AUTO_PLAY",
 					pos + 2, interludeLength));
 		popup->setText(text);
-		gDLL->getInterfaceIFace()->addPopup(popup, activeId);
+		gDLL->UI().addPopup(popup, activeId);
 	}
 	vector<PlayerTypes> eligible;
 	computeEligibleCivs(eligible, false);
@@ -444,7 +443,7 @@ void RiseFall::atActiveTurnStart() {
 			CvWString text = gDLL->getText("TXT_KEY_RF_POPUP_RECOMMEND_RETIRE",
 					active.getCivilizationShortDescription());
 			popup->setText(text);
-			gDLL->getInterfaceIFace()->addPopup(popup, activeId);
+			gDLL->UI().addPopup(popup, activeId);
 			chapters[pos]->setRetireWasRecommended(true);
 		}
 	}
@@ -458,7 +457,7 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		formerHumanCiv = NO_PLAYER;
 	CvPlayer& civ = GET_PLAYER(civId);
 	if(!b || !civ.isHuman()) // Unless human control continues
-		gDLL->getInterfaceIFace()->clearQueuedPopups();
+		gDLL->UI().clearQueuedPopups();
 	if(b) {
 		g.changeHumanPlayer(civId);
 		GC.getInitCore().setHandicap(civId, g.getHandicapType());
@@ -468,10 +467,10 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		GC.getInitCore().setHandicap(civId, g.getAIHandicap());
 		GC.getInitCore().setLeaderName(civId,
 				GC.getInfo(civ.getLeaderType()).getDescription());
-		gDLL->getInterfaceIFace()->flushTalkingHeadMessages();
-		gDLL->getInterfaceIFace()->clearEventMessages();
-		gDLL->getInterfaceIFace()->clearSelectedCities();
-		gDLL->getInterfaceIFace()->clearSelectionList();
+		gDLL->UI().flushTalkingHeadMessages();
+		gDLL->UI().clearEventMessages();
+		gDLL->UI().clearSelectedCities();
+		gDLL->UI().clearSelectionList();
 	}
 	// (Un)fog the map
 	if(b || !g.isDebugMode()) {
@@ -500,12 +499,12 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 
 void RiseFall::setUIHidden(bool b) {
 
-	if(gDLL->getInterfaceIFace()->isBareMapMode() != b)
-		gDLL->getInterfaceIFace()->toggleBareMapMode();
+	if(gDLL->UI().isBareMapMode() != b)
+		gDLL->UI().toggleBareMapMode();
 	/*  toggleScoresVisible(): Isn't actually hidden b/c CvMainInterface.py doesn't
 		update itself during interlude.
 		toggleTurnLog(): Can't check if it's open. */
-	gDLL->getInterfaceIFace()->setDiplomacyLocked(b);
+	gDLL->UI().setDiplomacyLocked(b);
 }
 
 void RiseFall::setPlayerName() {
@@ -520,8 +519,8 @@ void RiseFall::setPlayerName() {
 	if(pos >= 0) {
 		CvWString replayText = gDLL->getText("TXT_KEY_RF_REPLAY_NEXT_CHAPTER",
 				pos + 1, GET_PLAYER(activeCiv).getReplayName());
-		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, activeCiv,
-			replayText, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, activeCiv, replayText,
+				-1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 	}
 }
 
@@ -531,7 +530,7 @@ void RiseFall::welcomeToNextChapter(int pos) {
 	/*  Message about revolution from the turn before human takeover lingers
 		for some reason (and perhaps other messages too). Player will have to
 		check the Event Log anyway, so let's just clear the screen. */
-	gDLL->getInterfaceIFace()->clearEventMessages();
+	gDLL->UI().clearEventMessages();
 	RFChapter& ch = *chapters[pos];
 	setPlayerName();
 	CvPlayer& p = GET_PLAYER(ch.getCiv());
@@ -557,7 +556,7 @@ void RiseFall::centerCamera(PlayerTypes civId) {
 		/*  Apparently, this has no effect, at least not at the time that I call
 			this function. Misplaced camera is also an issue when regenerating
 			the map or using Civ Changer (Alt+Z); perhaps can't be fixed. */
-		gDLL->getInterfaceIFace()->lookAt(capitalPlot->getPoint(),
+		gDLL->UI().lookAt(capitalPlot->getPoint(),
 				CAMERALOOKAT_NORMAL);
 		// This doesn't seem to help either:
 		/*NiPoint3 p3 = capitalPlot->getPoint();
@@ -576,14 +575,10 @@ void RiseFall::showDoW() {
 		CvPlayer& enemy = GET_PLAYER((PlayerTypes)i);
 		if(!enemy.isAlive() || enemy.isMinorCiv() || !activeTeam.isAtWar(enemy.getTeam()))
 			continue;
-		gDLL->getInterfaceIFace()->addMessage(g.getActivePlayer(), true,
-				GC.getEVENT_MESSAGE_TIME(),
-				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
-				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
-				GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-				// <advc.127b>
-				enemy.getCapitalX(g.getActiveTeam(), true),
-				enemy.getCapitalY(g.getActiveTeam(), true)); // <advc.127b>
+		gDLL->UI().addMessage(g.getActivePlayer(), true, -1, gDLL->getText("TXT_KEY_YOU_AT_WAR",
+				enemy.getName()), NULL, MESSAGE_TYPE_INFO, NULL, GC.getColorType("WARNING_TEXT"),
+				// advc.127b:
+				enemy.getCapitalX(g.getActiveTeam(), true), enemy.getCapitalY(g.getActiveTeam(), true));
 	}
 }
 
@@ -595,9 +590,8 @@ void RiseFall::showQuests() {
 			it != archive.end(); it++) {
 		// CvPlayer::expireEvent should ensure that only ongoing quests are listed
 		if(it->getMessageType() == MESSAGE_TYPE_QUEST) {
-			gDLL->getInterfaceIFace()->addMessage(p.getID(), true,
-				GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_GOT_QUESTS"),
-				NULL, MESSAGE_TYPE_INFO, NULL);
+			gDLL->UI().addMessage(p.getID(), true, -1, gDLL->getText("TXT_KEY_GOT_QUESTS"),
+					NULL, MESSAGE_TYPE_INFO, NULL);
 			return;
 		}
 	}
@@ -630,10 +624,10 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		}
 		// Not really the job of this function, but while we're at it:
 		if(!unitSelected && capital != NULL && gr->atPlot(capital->plot())) {
-			gDLL->getInterfaceIFace()->selectGroup(gr->getHeadUnit(),
+			gDLL->UI().selectGroup(gr->getHeadUnit(),
 					false, false, false);
 			unitSelected = true;
-			gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+			gDLL->UI().lookAtSelectionPlot();
 		}
 		// Without this, units outside owner's borders don't appear on the main interface.
 		if(gr->plot()->getOwner() != civId)
@@ -943,18 +937,18 @@ bool RiseFall::launchDefeatPopup(CvPopup* popup, CvPopupInfo& info) {
 	CvWString text = gDLL->getText("TXT_KEY_MISC_DEFEAT") + L"\n\n";
 	text += gDLL->getText("TXT_KEY_RF_DEFEAT", startTurn, startTurn -
 			GC.getGame().getGameTurn());
-	gDLL->getInterfaceIFace()->popupSetBodyString(popup, text);
-	gDLL->getInterfaceIFace()->popupAddGenericButton(popup,
+	gDLL->UI().popupSetBodyString(popup, text);
+	gDLL->UI().popupAddGenericButton(popup,
 			gDLL->getText("TXT_KEY_POPUP_EXIT_TO_MAIN_MENU"), NULL,
 			1, WIDGET_GENERAL);
-	gDLL->getInterfaceIFace()->popupLaunch(popup);
+	gDLL->UI().popupLaunch(popup);
 	return true;
 }
 
 void RiseFall::handleDefeatPopup(int buttonClicked) {
 
 	if(buttonClicked == 1) {
-		gDLL->getInterfaceIFace()->exitingToMainMenu();
+		gDLL->UI().exitingToMainMenu();
 		return;
 	}
 	int pos = getCurrentChapter();
@@ -986,15 +980,15 @@ bool RiseFall::launchCivSelectionPopup(CvPopup* popup, CvPopupInfo& info) {
 		/*text += L" " + gDLL->getText("TXT_KEY_RF_CIV_SELECTION_EMPTY2");
 		if(pos >= 0 && !chapters[pos]->isScored())
 			text += L" " + gDLL->getText("TXT_KEY_RF_CIV_SELECTION_UNSCORED", pos);
-		gDLL->getInterfaceIFace()->popupSetBodyString(popup, text);
-		gDLL->getInterfaceIFace()->popupAddGenericButton(popup,
+		gDLL->UI().popupSetBodyString(popup, text);
+		gDLL->UI().popupAddGenericButton(popup,
 				gDLL->getText("TXT_KEY_RF_SKIP_CHAPTER", pos + 1,
 				chapters[pos]->getLength() + interludeLength), NULL,
 				1, WIDGET_GENERAL);*/
-		gDLL->getInterfaceIFace()->popupAddGenericButton(popup,
+		gDLL->UI().popupAddGenericButton(popup,
 				gDLL->getText("TXT_KEY_RF_RETIRE_ALL"), NULL,
 				2, WIDGET_GENERAL);
-		gDLL->getInterfaceIFace()->popupLaunch(popup, false, POPUPSTATE_IMMEDIATE);
+		gDLL->UI().popupLaunch(popup, false, POPUPSTATE_IMMEDIATE);
 		return true;
 	}
 	CvWString text = gDLL->getText("TXT_KEY_RF_CIV_SELECTION",
@@ -1003,14 +997,14 @@ bool RiseFall::launchCivSelectionPopup(CvPopup* popup, CvPopupInfo& info) {
 		text += L"\n" + gDLL->getText("TXT_KEY_RF_CIV_SELECTION_RETRY");
 		retryingCivSelection = false;
 	}
-	gDLL->getInterfaceIFace()->popupSetBodyString(popup, text);
+	gDLL->UI().popupSetBodyString(popup, text);
 	for(size_t i = 0; i < eligible.size(); i++) {
 		wstringstream wss;
 		wss << (eligible.size() - i) << ". " << knownName(eligible[i], false);
-		gDLL->getInterfaceIFace()->popupAddGenericButton(popup,
+		gDLL->UI().popupAddGenericButton(popup,
 				wss.str(), NULL, 0, WIDGET_RF_CIV_CHOICE, eligible[i]);
 	}
-	gDLL->getInterfaceIFace()->popupLaunch(popup, false, POPUPSTATE_IMMEDIATE);
+	gDLL->UI().popupLaunch(popup, false, POPUPSTATE_IMMEDIATE);
 	return true;
 }
 
@@ -1503,10 +1497,8 @@ void RiseFall::shutOff(CvWString errorMsg) {
 
 void RiseFall::showError(CvWString errorMsg) {
 
-	gDLL->getInterfaceIFace()->addMessage(
-			GC.getGame().getActivePlayer(), true,
-			GC.getEVENT_MESSAGE_TIME(), errorMsg, NULL, MESSAGE_TYPE_MAJOR_EVENT,
-			NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"));
+	gDLL->UI().addMessage(GC.getGame().getActivePlayer(), true, 1, errorMsg,
+			NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("RED"));
 }
 
 // </advc.700>

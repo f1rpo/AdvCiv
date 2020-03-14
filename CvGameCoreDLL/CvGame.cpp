@@ -339,7 +339,7 @@ void CvGame::regenerateMap()
 	m.setupGraphical();
 	gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
 	gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+	gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 
 	cycleSelectionGroups_delayed(1, false);
 	// <advc.004j>
@@ -364,7 +364,7 @@ void CvGame::regenerateMap()
 		CvPlot* pPlot = GET_PLAYER(getActivePlayer()).getStartingPlot();
 		if (pPlot != NULL)
 		{
-			//gDLL->getInterfaceIFace()->lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
+			//gDLL->UI().lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
 			/*  <advc.004j> ^Comment by EmperorFool (from BULL):
 				"This doesn't work until after the game has had time to update.
 				 Centering on the starting location is now done by MapFinder using
@@ -2190,7 +2190,7 @@ void CvGame::updateStartingPlotRange()
 	m_iStartingPlotRange = std::max(iRange, GC.getDefineINT("MIN_CIV_STARTING_DISTANCE"));
 }
 
-// <advc> Cut, pasted, refactored from normalizeAddExtras
+// advc: Cut, pasted, refactored from normalizeAddExtras
 bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature)
 {
@@ -2212,7 +2212,7 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 	return false;
 }
 
-
+// advc: Cut, pasted, refactored from normalizeAddExtras
 bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		CvPlot const& kPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const {
 
@@ -2221,12 +2221,15 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return false;
 
 	if (kBonus.getYieldChange(YIELD_FOOD) < 0 ||
-			kBonus.getYieldChange(YIELD_PRODUCTION) < 0)
+		kBonus.getYieldChange(YIELD_PRODUCTION) < 0)
+	{
 		return false;
-
+	}
 	if (kBonus.getTechCityTrade() != NO_TECH &&
-			GC.getInfo((TechTypes)(kBonus.getTechCityTrade())).getEra() > getStartEra())
+		GC.getInfo((TechTypes)(kBonus.getTechCityTrade())).getEra() > getStartEra())
+	{
 		return false;
+	}
 	/*  advc: BtS had checked this only for seafood; doesn't really matter though
 		b/c all of the isNormalize resources are revealed from the start. */
 	if (!GET_TEAM(eStartPlayer).isHasTech((TechTypes)kBonus.getTechReveal()))
@@ -2239,9 +2242,9 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return true;
 	}
 	return false;
-} // </advc>
+}
 
-// <advc.108>
+// advc.108:
 bool CvGame::isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const
 {
 	if(getStartEra() > 0)
@@ -2251,7 +2254,7 @@ bool CvGame::isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStar
 		return false;
 	return (GC.getInfo(eBonus).getBonusClassType() ==
 			GC.getInfoTypeForString("BONUSCLASS_PRECIOUS"));
-} // </advc.108>
+}
 
 // For each of n teams, let the closeness score for that team be the average distance of an edge between two players on that team.
 // This function calculates the closeness score for each team and returns the sum of those n scores.
@@ -2378,10 +2381,10 @@ void CvGame::update()
 		changeTurnSlice(1);
 
 		if (getActivePlayer() != NO_PLAYER && GET_PLAYER(getActivePlayer()).getAdvancedStartPoints() >= 0 &&
-			!gDLL->getInterfaceIFace()->isInAdvancedStart())
+			!gDLL->UI().isInAdvancedStart())
 		{
-			gDLL->getInterfaceIFace()->setInAdvancedStart(true);
-			gDLL->getInterfaceIFace()->setWorldBuilder(true);
+			gDLL->UI().setInAdvancedStart(true);
+			gDLL->UI().setWorldBuilder(true);
 		} // <advc.705>
 		if(isOption(GAMEOPTION_RISE_FALL))
 			m_pRiseFall->restoreDiploText(); // </advc.705>
@@ -2677,11 +2680,11 @@ void CvGame::cityPushOrder(CvCity* pCity, OrderTypes eOrder, int iData, bool bAl
 void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) const
 {
 	PROFILE_FUNC();
-	/*if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
+	/*if (gDLL->UI().getHeadSelectedUnit() == NULL)
 		bSelectGroup = true;
-	else if (gDLL->getInterfaceIFace()->getHeadSelectedUnit()->getGroup() != pUnit->getGroup())
+	else if (gDLL->UI().getHeadSelectedUnit()->getGroup() != pUnit->getGroup())
 		bSelectGroup = true;
-	else if (pUnit->IsSelected() && !(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
+	else if (pUnit->IsSelected() && !(gDLL->UI().mirrorsSelectionGroup()))
 		bSelectGroup = !bToggle;
 	else bSelectGroup = false;*/ // BtS
 	// K-Mod. Redesigned to make selection more sensible and predictable
@@ -2691,7 +2694,7 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 
 	bool bExplicitDeselect = false;
 	bool bSelectGroup = false;
-	if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
+	if (gDLL->UI().getHeadSelectedUnit() == NULL)
 		bSelectGroup = true;
 	else if (bToggle)
 	{
@@ -2702,32 +2705,32 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 		}
 		else
 		{
-			bSelectGroup = bSimpleMode ? false : gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
+			bSelectGroup = bSimpleMode ? false : gDLL->UI().mirrorsSelectionGroup();
 		}
 	}
 	else
 	{
-		bSelectGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup()
-			? gDLL->getInterfaceIFace()->getHeadSelectedUnit()->getGroup() != pUnit->getGroup()
+		bSelectGroup = gDLL->UI().mirrorsSelectionGroup()
+			? gDLL->UI().getHeadSelectedUnit()->getGroup() != pUnit->getGroup()
 			: pUnit->IsSelected();
 	} // K-Mod end
 
-	gDLL->getInterfaceIFace()->clearSelectedCities();
+	gDLL->UI().clearSelectedCities();
 	bool bGroup = false;
 	if (bClear)
 	{
-		gDLL->getInterfaceIFace()->clearSelectionList();
+		gDLL->UI().clearSelectionList();
 		bGroup = false;
 	}
 	else
-	{	//bGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
+	{	//bGroup = gDLL->UI().mirrorsSelectionGroup();
 		// K-Mod. If there is only one unit selected, and it is to be toggled, just degroup it rather than unselecting it.
-		if (bExplicitDeselect && gDLL->getInterfaceIFace()->getLengthSelectionList() == 1)
+		if (bExplicitDeselect && gDLL->UI().getLengthSelectionList() == 1)
 		{
 			CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), FFreeList::INVALID_INDEX);
 			return; // that's all.
 		}
-		bGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
+		bGroup = gDLL->UI().mirrorsSelectionGroup();
 		// Note: bGroup will not clear away unselected units of the group.
 		// so if we want to do that, we'll have to do it explicitly.
 		if (!bGroup && bSimpleMode && bToggle)
@@ -2738,7 +2741,7 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 			// because the internals of insertIntoSelectionList apparently wants to go out of its way to make our lives difficult.
 			// (stuffed if I know what it actually does. Maybe it only sends the group signal if the units aren't already grouped or something.
 			//  in any case, we have to do it explicitly or it won't work.)
-			CvUnit* pSelectionHead = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+			CvUnit* pSelectionHead = gDLL->UI().getHeadSelectedUnit();
 			if (pSelectionHead)
 				CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), pSelectionHead->getID());
 		} // K-Mod end
@@ -2747,28 +2750,28 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 	{
 		CvSelectionGroup* pSelectionGroup = pUnit->getGroup();
 
-		gDLL->getInterfaceIFace()->selectionListPreChange();
+		gDLL->UI().selectionListPreChange();
 
 		CLLNode<IDInfo>* pEntityNode = pSelectionGroup->headUnitNode();
 		while (pEntityNode != NULL)
 		{
 			FAssertMsg(::getUnit(pEntityNode->m_data), "null entity in selection group");
-			gDLL->getInterfaceIFace()->insertIntoSelectionList(::getUnit(pEntityNode->m_data),
+			gDLL->UI().insertIntoSelectionList(::getUnit(pEntityNode->m_data),
 					false, bToggle, bGroup, bSound, true);
 			pEntityNode = pSelectionGroup->nextUnitNode(pEntityNode);
 		}
-		gDLL->getInterfaceIFace()->selectionListPostChange();
+		gDLL->UI().selectionListPostChange();
 	}
 	else
 	{
-		gDLL->getInterfaceIFace()->insertIntoSelectionList(pUnit, false, bToggle, bGroup, bSound);
+		gDLL->UI().insertIntoSelectionList(pUnit, false, bToggle, bGroup, bSound);
 		// K-Mod. Unfortunately, removing units from the group is not correctly handled by the interface functions.
 		// so we need to do it explicitly.
 		if (bExplicitDeselect && bGroup)
 			CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), FFreeList::INVALID_INDEX);
 		// K-Mod end
 	}
-	gDLL->getInterfaceIFace()->makeSelectionListDirty();
+	gDLL->UI().makeSelectionListDirty();
 }
 
 
@@ -2806,14 +2809,14 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 				CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(), COMMAND_WAKE, -1, -1, false);
 			}
 		}
-		gDLL->getInterfaceIFace()->selectUnit(pUnit, true, false, true);
+		gDLL->UI().selectUnit(pUnit, true, false, true);
 		return;
 	}
 	// K-Mod end
 
 	if (bAlt || bCtrl)
 	{
-		gDLL->getInterfaceIFace()->clearSelectedCities();
+		gDLL->UI().clearSelectedCities();
 
 		CvPlot* pUnitPlot = pUnit->plot();
 		DomainTypes eDomain = pUnit->getDomainType(); // K-Mod
@@ -2823,14 +2826,14 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 		bool bGroup;
 		if (!bShift)
 		{
-			gDLL->getInterfaceIFace()->clearSelectionList();
+			gDLL->UI().clearSelectionList();
 			bGroup = true;
 		}
 		else
 		{
-			//bGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
+			//bGroup = gDLL->UI().mirrorsSelectionGroup();
 			// K-Mod. Treat shift as meaning we should always form a group
-			if (!gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
+			if (!gDLL->UI().mirrorsSelectionGroup())
 				selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
 			bGroup = true; // note: sometimes this won't work. (see comments in CvGame::selectUnit.) Unfortunately, it's too fiddly to fix.
 			// K-Mod end
@@ -5277,12 +5280,12 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 {
 	CvWString szBuffer;
 
-	if ((getWinner() != eNewWinner) || (getVictory() != eNewVictory))
+	if (getWinner() != eNewWinner || getVictory() != eNewVictory)
 	{
 		m_eWinner = eNewWinner;
 		m_eVictory = eNewVictory;
 		// advc.707: Handled by RiseFall::prepareForExtendedGame
-		if(!isOption(GAMEOPTION_RISE_FALL))
+		if (!isOption(GAMEOPTION_RISE_FALL))
 		{
 			// AI_AUTO_PLAY_MOD, 07/09/08, jdog5000:
 			CvEventReporter::getInstance().victory(eNewWinner, eNewVictory);
@@ -5291,25 +5294,24 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 		{
 			if (getWinner() != NO_TEAM)
 			{
-				szBuffer = gDLL->getText("TXT_KEY_GAME_WON", GET_TEAM(getWinner()).getReplayName().GetCString(), GC.getInfo(getVictory()).getTextKeyWide());
-				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, GET_TEAM(getWinner()).getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+				szBuffer = gDLL->getText("TXT_KEY_GAME_WON",
+						GET_TEAM(getWinner()).getReplayName().GetCString(),
+						GC.getInfo(getVictory()).getTextKeyWide());
+				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, GET_TEAM(getWinner()).getLeaderID(), szBuffer,
+						-1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 			}
-
-			if ((getAIAutoPlay() > 0 || gDLL->GetAutorun())
-					&& !isOption(GAMEOPTION_RISE_FALL)) // advc.707
+			if ((getAIAutoPlay() > 0 || gDLL->GetAutorun()) &&
+				!isOption(GAMEOPTION_RISE_FALL)) // advc.707
 			{
 				setGameState(GAMESTATE_EXTENDED);
 			}
-			else
-			{
-				setGameState(GAMESTATE_OVER);
-			}
+			else setGameState(GAMESTATE_OVER);
 		}
 
-		gDLL->getInterfaceIFace()->setDirty(Center_DIRTY_BIT, true);
+		gDLL->UI().setDirty(Center_DIRTY_BIT, true);
 		// AI_AUTO_PLAY_MOD, 07/09/08, jdog5000 (commented out)
 		//CvEventReporter::getInstance().victory(eNewWinner, eNewVictory);
-		gDLL->getInterfaceIFace()->setDirty(Soundtrack_DIRTY_BIT, true);
+		gDLL->UI().setDirty(Soundtrack_DIRTY_BIT, true);
 	}
 }
 
@@ -5341,7 +5343,7 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 			}
 		}
 	}
-	gDLL->getInterfaceIFace()->setDirty(Cursor_DIRTY_BIT, true);
+	gDLL->UI().setDirty(Cursor_DIRTY_BIT, true);
 }
 
 // <advc.106h>
@@ -5936,13 +5938,15 @@ void CvGame::makeSpecialBuildingValid(SpecialBuildingTypes eIndex, bool bAnnounc
 
 		if (bAnnounce)
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_SPECIAL_BUILDING_VALID", GC.getInfo(eIndex).getTextKeyWide());
-
+			CvWString szBuffer = gDLL->getText("TXT_KEY_SPECIAL_BUILDING_VALID",
+					GC.getInfo(eIndex).getTextKeyWide());
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
-					gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PROJECT_COMPLETED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+					gDLL->UI().addMessage((PlayerTypes)iI, false, -1, szBuffer,
+							"AS2D_PROJECT_COMPLETED", MESSAGE_TYPE_MAJOR_EVENT, NULL,
+							GC.getColorType("HIGHLIGHT_TEXT"));
 				}
 			}
 		}
@@ -6037,12 +6041,12 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 			continue;
 		bool bRevealed = (pHolyCity->isRevealed(kObs.getTeam()) ||
 				kObs.isSpectator()); // advc.127
-		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
+		gDLL->UI().addMessage(kObs.getID(), false,
+				-1, // advc.106: was MESSAGE_TIME_LONG
 				bRevealed ? szMsgRevealed : szMsgUnknown,
 				GC.getInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
 				GC.getInfo(eIndex).getButton(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+				GC.getColorType("HIGHLIGHT_TEXT"),
 				bRevealed ? pHolyCity->getX() : -1, bRevealed ? pHolyCity->getY() : -1,
 				false, bRevealed);
 	}
@@ -6099,12 +6103,12 @@ void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bA
 			continue;
 		bool bRevealed = (pHeadquarters->isRevealed(kObs.getTeam()) ||
 				kObs.isSpectator()); // advc.127
-		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-				GC.getEVENT_MESSAGE_TIME(), // advc.106: was ..._LONG
+		gDLL->UI().addMessage(kObs.getID(), false,
+				-1, // advc.106: was MESASAGE_TIME_LONG
 				bRevealed ? szMsgRevealed : szMsgUnknown,
 				GC.getInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
 				GC.getInfo(eIndex).getButton(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+				GC.getColorType("HIGHLIGHT_TEXT"),
 				bRevealed ? pHeadquarters->getX() : -1, bRevealed ? pHeadquarters->getY() : -1,
 				false, bRevealed);
 	}
@@ -6445,13 +6449,16 @@ void CvGame::doGlobalWarming()
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_ACTIVE");
 		// add the message to the replay
-		addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+		addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szBuffer,
+				-1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
-				gDLL->getInterfaceIFace()->addMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GLOBALWARMING", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+				gDLL->UI().addMessage((PlayerTypes)iI, false, -1, szBuffer,
+						"AS2D_GLOBALWARMING", MESSAGE_TYPE_MAJOR_EVENT, NULL,
+						GC.getColorType("HIGHLIGHT_TEXT"));
 			}
 
 			// Tell human players that the threshold has been reached
@@ -6593,11 +6600,8 @@ void CvGame::doGlobalWarming()
 					{
 						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
 								pCity->getNameKey());
-						gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(), false,
-								GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_SQUISH",
-								MESSAGE_TYPE_INFO, NULL, (ColorTypes)
-								GC.getInfoTypeForString("COLOR_RED"),
-								pPlot->getX(), pPlot->getY(), true, true);
+						gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, *pPlot,
+								"AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"));
 					}
 				}
 				changeGwEventTally(1);
@@ -7521,10 +7525,10 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 		if (pNewUnit && pPlot->isWater() &&
 				 !pNewUnit->getUnitInfo().isHiddenNationality()) // dlph.12
 		{	// find the "disorganized" promotion. (is there a better way to do this?)
-			PromotionTypes eDisorganized = (PromotionTypes)GC.getInfoTypeForString("PROMOTION_DISORGANIZED", true);
+			PromotionTypes eDisorganized = (PromotionTypes)
+					GC.getInfoTypeForString("PROMOTION_DISORGANIZED", true);
 			if (eDisorganized != NO_PROMOTION)
-			{
-				// sorry, barbarians. Free boats are just too dangerous for real civilizations to defend against.
+			{	// sorry, barbarians. Free boats are just too dangerous for real civilizations to defend against.
 				pNewUnit->setHasPromotion(eDisorganized, true);
 			}
 		} // K-Mod end
@@ -8559,12 +8563,12 @@ void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer)
 	if(iChecksum == FPChecksum())
 		return; // Active player is able to reproduce checksum received over the net
 
-	gDLL->getInterfaceIFace()->addMessage(getActivePlayer(), true, GC.getEVENT_MESSAGE_TIME(),
+	gDLL->UI().addMessage(getActivePlayer(), true, -1,
 			CvWString::format(L"Your machine's FP test computation has yielded a"
 			L" different result than that of %s. The game may frequently go"
 			L" out of sync due to floating point calculations in the AdvCiv mod.",
 			GET_PLAYER(ePlayer).getName()), NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL,
-			(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+			GC.getColorType("WARNING_TEXT"));
 } // </advc.003g
 
 // <advc.003r>
@@ -8613,7 +8617,7 @@ void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer,
 	pMessage->setPlot(iPlotX, iPlotY);
 	pMessage->setText(pszText);
 	if (NO_COLOR == eColor)
-		eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
+		eColor = GC.getColorType("WHITE");
 	pMessage->setColor(eColor);
 	m_listReplayMessages.push_back(pMessage);
 }
@@ -9591,7 +9595,10 @@ void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eR
 	{
 		if (NO_RELIGION != eReligion)
 		{
-			CvWString szBuffer = gDLL->getText("TXT_KEY_VOTE_SOURCE_RELIGION", GC.getInfo(eReligion).getTextKeyWide(), GC.getInfo(eReligion).getAdjectiveKey(), GC.getInfo(eVoteSource).getTextKeyWide());
+			CvWString szBuffer = gDLL->getText("TXT_KEY_VOTE_SOURCE_RELIGION",
+					GC.getInfo(eReligion).getTextKeyWide(),
+					GC.getInfo(eReligion).getAdjectiveKey(),
+					GC.getInfo(eVoteSource).getTextKeyWide());
 
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
@@ -9600,11 +9607,9 @@ void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eR
 				{	// <advc.127b>
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource,
 							TEAMID(ePlayer), true); // </advc.127>
-					gDLL->getInterfaceIFace()->addMessage(ePlayer, false,
-							GC.getEVENT_MESSAGE_TIME(), szBuffer,
-							GC.getInfo(eReligion).getSound(),
-							MESSAGE_TYPE_MAJOR_EVENT, NULL,
-							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+					gDLL->UI().addMessage(ePlayer, false, -1, szBuffer,
+							GC.getInfo(eReligion).getSound(), MESSAGE_TYPE_MAJOR_EVENT,
+							NULL, GC.getColorType("HIGHLIGHT_TEXT"),
 							xy.first, xy.second); // advc.127b
 				}
 			}
@@ -10011,10 +10016,9 @@ void CvGame::doVoteResults()
 							GC.getInfo(eVote).getDescription());
 					// advc.127b:
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource, kPlayer.getTeam());
-					gDLL->getInterfaceIFace()->addMessage(kPlayer.getID(),
-							false, GC.getEVENT_MESSAGE_TIME(), szMessage,
-							"AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL, (ColorTypes)
-							GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+					gDLL->UI().addMessage(kPlayer.getID(), false, -1, szMessage,
+							"AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL,
+							GC.getColorType("HIGHLIGHT_TEXT"),
 							xy.first, xy.second); // advc.127b
 				}
 			}
@@ -10253,7 +10257,7 @@ void CvGame::doVoteResults()
 						countPossibleVote(eVote, eVoteSource),
 						szResolution.GetCString());
 				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szMessage,
-						-1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+						-1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 			} // </advc.150b>
 			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 			{
@@ -10289,16 +10293,14 @@ void CvGame::doVoteResults()
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource,
 							kPlayer.getTeam(), true);
 					// </advc.127b>
-					gDLL->getInterfaceIFace()->addMessage(kPlayer.getID(),
-							false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA",
+					gDLL->UI().addMessage(kPlayer.getID(), false, -1, szMessage, "AS2D_NEW_ERA",
 							// <advc.127> was always MINOR
 							kVote.isSecretaryGeneral() ? MESSAGE_TYPE_MINOR_EVENT :
 							MESSAGE_TYPE_MAJOR_EVENT, // </advc.127>
 							// <advc.127b>
 							eVSBuilding == NO_BUILDING ? NULL :
-							GC.getInfo(eVSBuilding).getButton(),
-							// </advc.127b>
-							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+							GC.getInfo(eVSBuilding).getButton(), // </advc.127b>
+							GC.getColorType("HIGHLIGHT_TEXT"),
 							xy.first, xy.second); // advc.127b
 				}
 			}

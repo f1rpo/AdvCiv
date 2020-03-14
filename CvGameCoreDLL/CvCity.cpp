@@ -300,7 +300,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 	CvPlot& kPlot = *plot();
 
 	if (isCitySelected())
-		gDLL->getInterfaceIFace()->clearSelectedCities();
+		gDLL->UI().clearSelectedCities();
 
 	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
@@ -427,7 +427,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 		GC.getGame().updatePlotGroups();
 
 	if (eOwner == GC.getGame().getActivePlayer())
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 }
 
 
@@ -677,24 +677,20 @@ void CvCity::doRevolt()
 		CvPlayer const& kObs = *it;
 		bool bAffected = (kObs.getID() == eCulturalOwner ||
 				kObs.getID() == getOwner());
-		if(!bAffected && !isRevealed(kObs.getTeam()))
+		if (!bAffected && !isRevealed(kObs.getTeam()))
 			continue;
 		InterfaceMessageTypes eMsg = MESSAGE_TYPE_INFO;
 		LPCTSTR szSound = NULL;
 		// Color of both the text and the flashing icon
-		ColorTypes eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
-		if(bAffected)
+		ColorTypes eColor = NO_COLOR;
+		if (bAffected)
 		{
 			eMsg = MESSAGE_TYPE_MINOR_EVENT;
 			szSound = "AS2D_CITY_REVOLT";
-			if(kObs.getID() == getOwner())
-				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
-			else eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+			eColor = GC.getColorType(kObs.getID() == getOwner() ? "RED" : "GREEN");
 		}
-		gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound, eMsg,
-				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-				eColor, getX(), getY(), true, true);
+		gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer, getPlot(),
+				szSound, eMsg, ARTFILEMGR.getInterfaceArtPath("INTERFACE_RESISTANCE"), eColor);
 	} // </advc.101>
 }
 
@@ -726,7 +722,7 @@ void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 
 bool CvCity::isCitySelected()
 {
-	return gDLL->getInterfaceIFace()->isCitySelected(this);
+	return gDLL->UI().isCitySelected(this);
 }
 
 
@@ -926,7 +922,7 @@ void CvCity::chooseProduction(UnitTypes eTrainUnit, BuildingTypes eConstructBuil
 		pPopupInfo->setData3(NO_UNIT);
 	}
 
-	gDLL->getInterfaceIFace()->addPopup(pPopupInfo, getOwner(), false, bFront);
+	gDLL->UI().addPopup(pPopupInfo, getOwner(), false, bFront);
 }
 
 // advc: Can't inline these two b/c the plotCityXY functions are now at CvMap
@@ -2537,7 +2533,7 @@ void CvCity::hurry(HurryTypes eHurry)
 	}
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 
 	CvEventReporter::getInstance().cityHurry(this, eHurry);
 }
@@ -2783,8 +2779,8 @@ void CvCity::conscript()
 		if (GC.getGame().getActivePlayer() == getOwner() &&
 			 !CvPlot::isAllFog()) // advc.706
 		{
-			gDLL->getInterfaceIFace()->lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
-			gDLL->getInterfaceIFace()->selectUnit(pUnit, true, false, true);
+			gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
+			gDLL->UI().selectUnit(pUnit, true, false, true);
 		}
 		if (gCityLogLevel >= 2 && !isHuman()) logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 	}
@@ -2872,7 +2868,7 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 		{
 			int iHealth = healthRate();
 			if((iHealth < 0) != (iHealth + (iGoodValue - iBadValue) * iChange < 0))
-				gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+				gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
 		} // </advc.001w>
 		changeBonusGoodHealth(iGoodValue * iChange);
 		changeBonusBadHealth(iBadValue * iChange);
@@ -2894,7 +2890,7 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 		{
 			int iHappy = happyLevel() - unhappyLevel();
 			if((iHappy < 0) != (iHappy + (iGoodValue - iBadValue) * iChange < 0))
-				gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+				gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
 		} // </advc.001w>
 		changeBonusGoodHappiness(iGoodValue * iChange);
 		changeBonusBadHappiness(iBadValue * iChange);
@@ -3142,7 +3138,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 				eDirtyPlayer = kGame.getActivePlayer();
 			if (eDirtyPlayer != NO_PLAYER)
 			{
-				gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+				gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 				// advc.003p:
 				GET_PLAYER(getOwner()).setBonusHelpDirty();
 			}
@@ -4420,7 +4416,7 @@ void CvCity::setRallyPlot(CvPlot* pPlot)
 	}
 
 	if (isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+		gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 
 }
 
@@ -4488,8 +4484,8 @@ void CvCity::setPopulation(int iNewValue)
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
 	}
 
 	//updateGenericBuildings();
@@ -6363,10 +6359,9 @@ void CvCity::setWeLoveTheKingDay(bool bNewValue)
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_CITY_CELEBRATE",
 				getNameKey(), GC.getInfo(eCivic).getWeLoveTheKing());
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_WELOVEKING", MESSAGE_TYPE_MINOR_EVENT,
-				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_HAPPY_PERSON")->getPath(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
+		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(),
+				"AS2D_WELOVEKING", MESSAGE_TYPE_MINOR_EVENT,
+				ARTFILEMGR.getInterfaceArtPath("INTERFACE_HAPPY_PERSON"));
 	}
 }
 
@@ -6384,7 +6379,7 @@ void CvCity::setCitizensAutomated(bool bNewValue)
 				setForceSpecialistCount(eLoopSpecialist, 0);
 		}
 		if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
-			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+			gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 	}
 }
 
@@ -6397,7 +6392,7 @@ void CvCity::setProductionAutomated(bool bNewValue, bool bClear)
 	m_bProductionAutomated = bNewValue;
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 
 		// if automated and not network game and all 3 modifiers down, clear the queue and choose again
 		if (bNewValue && bClear)
@@ -6541,11 +6536,9 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 	if (GC.getGame().isFinalInitialized() && getCultureLevel() > eOldValue && getCultureLevel() > 1)
 	{	// advc: Some refactoring changes in this block
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_BORDERS_EXPANDED", getNameKey()));
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREEXPANDS",
-				MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_CULTURE).
-				getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-				getX(), getY(), true, true);
+		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(),
+				"AS2D_CULTUREEXPANDS", MESSAGE_TYPE_MINOR_EVENT,
+				GC.getInfo(COMMERCE_CULTURE).getButton());
 		// <advc.106>
 		// To replace hardcoded getCultureLevel()==GC.getNumCultureLevelInfos()-1
 		int iVictoryCultureLevel = NO_CULTURELEVEL;
@@ -6567,28 +6560,23 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				CvPlayer const& kObs = *it;
 				if (isRevealed(kObs.getTeam()) /* advc.127: */ || kObs.isSpectator())
 				{
-					gDLL->getInterfaceIFace()->addMessage(
-							kObs.getID(), false, GC.getEVENT_MESSAGE_TIME(),
-							szMsg, "AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
+					gDLL->UI().addMessage(kObs.getID(), false, -1, szMsg, getPlot(),
+							"AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
 							GC.getInfo(COMMERCE_CULTURE).getButton(),
-							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
-							getX(), getY(), true, true);
+							GC.getColorType("HIGHLIGHT_TEXT"));
 				}
 				else
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_CULTURE_LEVEL_UNKNOWN",
 							GC.getInfo(getCultureLevel()).getTextKeyWide());
-					gDLL->getInterfaceIFace()->addMessage(kObs.getID(),
-							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+					gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
 							"AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
 							GC.getInfo(COMMERCE_CULTURE).getButton(),
-							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+							GC.getColorType("HIGHLIGHT_TEXT"));
 				}
 			} // <advc.106>
-			GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
-					getOwner(), szMsg, getX(), getY(),
-					(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-			// </advc.106>
+			GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szMsg,
+					getX(), getY(), GC.getColorType("HIGHLIGHT_TEXT")); // </advc.106>
 		}
 		// ONEVENT - Culture growth
 		CvEventReporter::getInstance().cultureExpansion(this, getOwner());
@@ -6909,8 +6897,8 @@ void CvCity::setBaseYieldRate(YieldTypes eIndex, int iNewValue)
 		setInfoDirty(true);
 		if (isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+			gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
+			gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 		}
 	}
 }
@@ -7213,8 +7201,8 @@ void CvCity::updateCommerce(CommerceTypes eIndex)
 
 	if (isCitySelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
 	}
 }
 
@@ -8137,7 +8125,7 @@ void CvCity::setName(const wchar* szNewValue, bool bFound, /* advc.106k: */ bool
 
 			setInfoDirty(true);
 			if (isCitySelected())
-				gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
+				gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
 		}
 		if (bFound)
 			doFoundMessage();
@@ -8150,7 +8138,7 @@ void CvCity::doFoundMessage()
 	CvWString szBuffer;
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_FOUNDED", getNameKey());
-	gDLL->getInterfaceIFace()->addMessage(getOwner(), false, -1, szBuffer,
+	gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
 			ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
 			MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
 			NULL, NO_COLOR, getX(), getY());
@@ -8308,7 +8296,7 @@ void CvCity::setBuildingProduction(BuildingTypes eIndex, int iNewValue)
 		setInfoDirty(true);
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
 }
 
 
@@ -8343,7 +8331,7 @@ void CvCity::setProjectProduction(ProjectTypes eIndex, int iNewValue)
 		setInfoDirty(true);
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
 }
 
 
@@ -8365,7 +8353,7 @@ void CvCity::setUnitProduction(UnitTypes eIndex, int iNewValue)
 		setInfoDirty(true);
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
 }
 
 
@@ -8446,7 +8434,7 @@ void CvCity::setSpecialistCount(SpecialistTypes eIndex, int iNewValue)
 	processSpecialist(eIndex, (iNewValue - iOldValue));
 
 	if (isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CitizenButtons_DIRTY_BIT, true);
 }
 
 
@@ -8561,7 +8549,7 @@ void CvCity::setForceSpecialistCount(SpecialistTypes eIndex, int iNewValue)
 	m_aiForceSpecialistCount.set(eIndex, iNewValue); // </advc>
 
 	if (isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(Help_DIRTY_BIT, true);
+		gDLL->UI().setDirty(Help_DIRTY_BIT, true);
 	AI_setAssignWorkDirty(true);
 }
 
@@ -8603,7 +8591,7 @@ void CvCity::setFreeSpecialistCount(SpecialistTypes eIndex, int iNewValue)
 	processSpecialist(eIndex, (iNewValue - iOldValue));
 
 	if (isCitySelected())
-		gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CitizenButtons_DIRTY_BIT, true);
 }
 
 
@@ -8723,12 +8711,12 @@ void CvCity::setWorkingPlot(CityPlotTypes ePlot, bool bNewValue) // advc.enum: C
 	}
 	if (bSelected)
 	{
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
+		gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 		// <advc.064b>
 		if(iOldTurns >= 0 && getProductionTurnsLeft() != iOldTurns)
-			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+			gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 		// </advc.064b>
 	}
 }
@@ -8897,9 +8885,8 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 						"TXT_KEY_MISC_COMPLETES_WONDER_THE" :
 						"TXT_KEY_MISC_COMPLETES_WONDER", // </advc.008e>
 						GET_PLAYER(getOwner()).getNameKey(), kBuilding.getTextKeyWide());
-				GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(),
-						szBuffer, getX(), getY(), (ColorTypes)
-						GC.getInfoTypeForString("COLOR_BUILDING_TEXT"));
+				GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szBuffer,
+						getX(), getY(), GC.getColorType("BUILDING_TEXT"));
 				// <advc.106>
 				for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 				{
@@ -8929,12 +8916,11 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 								"TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN",
 								kBuilding.getTextKeyWide());
 					}
-					gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-							GC.getEVENT_MESSAGE_TIME(), szBuffer,
-							"AS2D_WONDER_BUILDING_BUILD",
+					gDLL->UI().addMessage(kObs.getID(), false,
+							-1, szBuffer, "AS2D_WONDER_BUILDING_BUILD",
 							MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
 							kBuilding.getArtInfo()->getButton(),
-							(ColorTypes)GC.getInfoTypeForString("COLOR_BUILDING_TEXT"),
+							GC.getColorType("BUILDING_TEXT"),
 							// Indicate location only if revealed.
 							bRevealed ? getX() : -1, bRevealed ? getY() : -1,
 							bRevealed, bRevealed);
@@ -9050,12 +9036,11 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 					{
 						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_SPREAD",
 								GC.getInfo(eReligion).getTextKeyWide(), getNameKey());
-						gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-								GC.getEVENT_MESSAGE_TIME(), // (K-Mod note: event time was originally "long".)
+						gDLL->UI().addMessage(kObs.getID(), false,
+								-1, // (K-Mod note: event time was originally "long".)
 								szBuffer, GC.getInfo(eReligion).getSound(),
 								MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-								GC.getInfo(eReligion).getButton(),
-								(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+								GC.getInfo(eReligion).getButton(), NO_COLOR,
 								getX(), getY(), bArrows, bArrows);
 					}
 				}
@@ -9066,14 +9051,14 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 				{
 					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGERELIGION);
 					pInfo->setData1(eReligion);
-					gDLL->getInterfaceIFace()->addPopup(pInfo, kOwner.getID());
+					gDLL->UI().addPopup(pInfo, kOwner.getID());
 				}
 				/*	<advc.004w> Update text of resource indicators
 					(CvGameTextMgr::setBonusExtraHelp) */
-				if(kOwner.getID() == g.getActivePlayer() &&
+				if (kOwner.getID() == g.getActivePlayer() &&
 					g.getCurrentLayer() == GLOBE_LAYER_RESOURCE)
 				{
-					gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+					gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 					// advc.003p:
 					kOwner.setBonusHelpDirty();
 				} // </advc.004w>
@@ -9087,21 +9072,20 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 			for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			{
 				CvPlayer const& kObs = *it;
-				if(!isRevealed(kObs.getTeam()))
+				if (!isRevealed(kObs.getTeam()))
 					continue;
-				if(eSpreadPlayer != kObs.getID() && iOwnerEra >= iEraThresh &&
+				if (eSpreadPlayer != kObs.getID() && iOwnerEra >= iEraThresh &&
 					kOwner.getID() != kObs.getID() && !kObs.hasHolyCity(eReligion))
 				{
 					continue;
 				} // </advc.106e>
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE",
 						GC.getInfo(eReligion).getTextKeyWide(), getNameKey());
-				gDLL->getInterfaceIFace()->addMessage(
+				gDLL->UI().addMessage(
 						kObs.getID(), // advc.106e: was getOwner() in K-Mod
-						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BLIGHT",
+						false, -1, szBuffer, "AS2D_BLIGHT",
 						MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-						GC.getInfo(eReligion).getButton(),
-						(ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+						GC.getInfo(eReligion).getButton(), GC.getColorType("RED"),
 						getX(), getY(), bArrows, bArrows);
 			}
 		}
@@ -9291,7 +9275,7 @@ void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnn
 			if(kObs.hasHeadquarters(eCorp))
 				getPlot().setRevealed(kObs.getTeam(), true, false, NO_TEAM, false);
 			//if (getOwner() == kObs.getID() || kObs.hasHeadquarters(eIndex)) // BtS
-			if(isRevealed(kObs.getTeam())) // </advc.106e>
+			if (isRevealed(kObs.getTeam())) // </advc.106e>
 			{
 				if (getOwner() == kObs.getID())
 				{
@@ -9315,11 +9299,9 @@ void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnn
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_SPREAD_BONUS",
 							kCorp.getTextKeyWide(), szBonusString.getCString(),
 							getNameKey(), szBonusList.GetCString());
-					gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, kCorp.getSound(),
-							MESSAGE_TYPE_MINOR_EVENT, kCorp.getButton(), (ColorTypes)
-							GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(),
-							bArrows, bArrows);
+					gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer, kCorp.getSound(),
+							MESSAGE_TYPE_MINOR_EVENT, kCorp.getButton(),
+							NO_COLOR, getX(), getY(), bArrows, bArrows);
 				}
 				/*	K-Mod. We don't need two announcements every time a corp spreads.
 					So I've put the general announcement inside this 'else' block. */
@@ -9327,11 +9309,10 @@ void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnn
 				{
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_SPREAD",
 							kCorp.getTextKeyWide(), getNameKey());
-					gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, kCorp.getSound(),
+					gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
+							kCorp.getSound(),
 							MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-							kCorp.getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-							getX(), getY(), bArrows, bArrows);
+							kCorp.getButton(), NO_COLOR, getX(), getY(), bArrows, bArrows);
 				} // K-Mod end
 			}
 		}
@@ -9604,10 +9585,10 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 		setInfoDirty(true);
 		if (isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+			gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
+			gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
+			gDLL->UI().setDirty(CityScreen_DIRTY_BIT, true);
+			gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
 	}
 	// <advc.004x>
@@ -9699,9 +9680,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 					CvWString szMsg(gDLL->getText("TXT_KEY_AIR_CAPACITY_EXCEEDED",
 							pUnit->getNameKey(), getNameKey(), gDLL->getText(bDead ?
 							"TXT_KEY_AIR_UNIT_SCRAPPED" : "TXT_KEY_AIR_UNIT_MOVED").GetCString()));
-					gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-							GC.getEVENT_MESSAGE_TIME(), szMsg, NULL, MESSAGE_TYPE_INFO,
-							pUnit->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+					gDLL->UI().addMessage(getOwner(), false, -1, szMsg, NULL, MESSAGE_TYPE_INFO,
+							pUnit->getButton(), NO_COLOR,
 							bDead ? getX() : pUnit->getX(), bDead ? getY() : pUnit->getY(), true, true);
 				}
 				if (bDead)
@@ -9796,7 +9776,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 						pInfo->setText(L"showSpaceShip");
 						bNeedsArtType = false;
 					}
-					gDLL->getInterfaceIFace()->addPopup(pInfo, getOwner());
+					gDLL->UI().addPopup(pInfo, getOwner());
 				}
 				else kOwner.AI_launch(eVictory);
 			}
@@ -9809,7 +9789,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 					{
 						CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
 						pInfo->setText(L"showSpaceShip");
-						gDLL->getInterfaceIFace()->addPopup(pInfo, getOwner());
+						gDLL->UI().addPopup(pInfo, getOwner());
 						bNeedsArtType = false;
 					}
 				}
@@ -9905,15 +9885,15 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		}
 	} // </advc.123f>
 
-	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace();
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 	if (getTeam() == GC.getGame().getActiveTeam() || GC.getGame().isDebugMode())
 	{
 		setInfoDirty(true);
 		if (isCitySelected())
 		{
-			kInterface.setDirty(InfoPane_DIRTY_BIT, true);
-			kInterface.setDirty(SelectionButtons_DIRTY_BIT, true);
-			kInterface.setDirty(CityScreen_DIRTY_BIT, true);
+			kUI.setDirty(InfoPane_DIRTY_BIT, true);
+			kUI.setDirty(SelectionButtons_DIRTY_BIT, true);
+			kUI.setDirty(CityScreen_DIRTY_BIT, true);
 		}
 	}
 
@@ -9986,9 +9966,9 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 					getProductionNameKey()).GetCString());
 			wcscat(szBuffer, szTempBuffer);
 		}
-		kInterface.addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound,
-				MESSAGE_TYPE_INFO, // advc.106b: was MINOR_EVENT
-				szIcon, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true);
+		kUI.addMessage(getOwner(), false, -1, szBuffer,
+				getPlot(), szSound, MESSAGE_TYPE_INFO, // advc.106b: was MINOR_EVENT
+				szIcon);
 	}
 
 	if (getTeam() == GC.getGame().getActiveTeam() || GC.getGame().isDebugMode())
@@ -9996,10 +9976,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		setInfoDirty(true);
 		if (isCitySelected())
 		{
-			kInterface.setDirty(InfoPane_DIRTY_BIT, true);
-			kInterface.setDirty(SelectionButtons_DIRTY_BIT, true);
-			kInterface.setDirty(CityScreen_DIRTY_BIT, true);
-			kInterface.setDirty(PlotListButtons_DIRTY_BIT, true);
+			kUI.setDirty(InfoPane_DIRTY_BIT, true);
+			kUI.setDirty(SelectionButtons_DIRTY_BIT, true);
+			kUI.setDirty(CityScreen_DIRTY_BIT, true);
+			kUI.setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
 	}
 }
@@ -10321,7 +10301,7 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 				if (iProductionGold > 0) {
 					kOwner.changeGold(iProductionGold);
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getInfo(eUnit).getTextKeyWide(), iProductionGold);
-					gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+					gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(), "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(), GC.getColorType("RED"));
 				}*/
 				setUnitProduction(eUnit, 0);
 			}
@@ -10340,7 +10320,7 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 				if(iProductionGold > 0) {
 					kOwner.changeGold(iProductionGold);
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getInfo(eBuilding).getTextKeyWide(), iProductionGold);
-					gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+					gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(), "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(), GC.getColorType("RED"));
 				}*/
 				setBuildingProduction(eBuilding, 0);
 			}
@@ -10358,7 +10338,7 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 				if(iProductionGold > 0) {
 					kOwner.changeGold(iProductionGold);
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getInfo(eLoopProject).getTextKeyWide(), iProductionGold);
-					gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+					gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(), "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(), GC.getColorType("RED"));
 				}*/
 				setProjectProduction(eLoopProject, 0);
 			}
@@ -10832,11 +10812,9 @@ void CvCity::doMeltdown()
 		getPlot().nukeExplosion(1, /* K-Mod: */ 0, false);
 
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN",
-				MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo(
-				"INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)
-				GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
+		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(),
+				"AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtPath(
+				"INTERFACE_UNHEALTHY_PERSON"), GC.getColorType("RED"));
 		break;
 	}
 }
@@ -11934,11 +11912,10 @@ void CvCity::applyEvent(EventTypes eEvent,
 						CvWString szBuffer = gDLL->getText(
 								"TXT_KEY_EVENT_CITY_IMPROVEMENT_DESTROYED",
 								GC.getInfo(pPlot->getImprovementType()).getTextKeyWide());
-						gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-								GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED",
-								MESSAGE_TYPE_INFO, GC.getInfo(pPlot->getImprovementType()).
-								getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-								pPlot->getX(), pPlot->getY(), true, true);
+						gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, *pPlot,
+								"AS2D_PILLAGED", MESSAGE_TYPE_INFO,
+								GC.getInfo(pPlot->getImprovementType()).getButton(),
+								GC.getColorType("RED"));
 						pPlot->setImprovementType(NO_IMPROVEMENT);
 						iNumPillaged++;
 						break;
@@ -11954,8 +11931,8 @@ void CvCity::applyEvent(EventTypes eEvent,
 			{
 				CvWString szBuffer = gDLL->getText("TXT_KEY_EVENT_NUM_CITY_IMPROVEMENTS_DESTROYED",
 						iNumPillaged, GET_PLAYER(getOwner()).getCivilizationAdjectiveKey());
-				gDLL->getInterfaceIFace()->addMessage(eOtherPlayer, false,
-						GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO);
+				gDLL->UI().addMessage(eOtherPlayer, false, -1, szBuffer,
+						"AS2D_PILLAGED", MESSAGE_TYPE_INFO);
 			}
 		}
 
@@ -12483,16 +12460,15 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 		meetNewOwner(kObs.getTeam(), TEAMID(ePlayer));
 		if (isRevealed(kObs.getTeam()) /* advc.127: */ || kObs.isSpectator())
 		{
-			gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-					GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
+			gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer, getPlot(),
+					"AS2D_REVOLTEND",
 					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
-					(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
-					getX(), getY(), true, true);
+					ARTFILEMGR.getInterfaceArtPath("WORLDBUILDER_CITY_EDIT"),
+					GC.getColorType("HIGHLIGHT_TEXT"));
 		}
 	}
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szBuffer,
-			getX(), getY(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			getX(), getY(), GC.getColorType("HIGHLIGHT_TEXT"));
 
 	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
 	if(!bPeaceDeal) // advc.ctr
@@ -12940,34 +12916,32 @@ double CvCity::defensiveGarrison(double stopCountingAt) const
 void CvCity::failProduction(int iOrderData, int iInvestedProduction, bool bProject)
 {
 	// Based on code in doCheckProduction
-	if(bProject)
+	if (bProject)
 		setProjectProduction((ProjectTypes)iOrderData, 0);
 	else setBuildingProduction((BuildingTypes)iOrderData, 0);
 	OrderTypes eOrderType = (bProject ? ORDER_CREATE : ORDER_CONSTRUCT);
-	for(int i = getOrderQueueLength() - 1; i >= 0; i--)
+	for (int i = getOrderQueueLength() - 1; i >= 0; i--)
 	{
 		OrderData* od = getOrderFromQueue(i);
-		if(od != NULL && od->eOrderType == eOrderType && od->iData1 == iOrderData)
+		if (od != NULL && od->eOrderType == eOrderType && od->iData1 == iOrderData)
 		{
 			FAssert(!canContinueProduction(*od));
 			popOrder(i, false, true);
 		}
 	}
 	int iGoldPercent = failGoldPercent(eOrderType);
-	if(iGoldPercent <= 0)
+	if (iGoldPercent <= 0)
 		return;
 	int iProductionGold = (iInvestedProduction * iGoldPercent) / 100;
 	GET_PLAYER(getOwner()).changeGold(iProductionGold);
-	CvWString msg = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED",
+	CvWString szMsg = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED",
 			getNameKey(), bProject ?
 			GC.getInfo((ProjectTypes)iOrderData).getTextKeyWide() :
 			GC.getInfo((BuildingTypes)iOrderData).getTextKeyWide(),
 			iProductionGold);
-	gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-			GC.getEVENT_MESSAGE_TIME(), msg, "AS2D_WONDERGOLD",
-			MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).
-			getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
-			getX(), getY(), true, true);
+	gDLL->UI().addMessage(getOwner(), false, -1, szMsg, getPlot(), "AS2D_WONDERGOLD",
+			MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(),
+			GC.getColorType("RED"));
 } // </advc.123f>
 
 // <advc.064b>
@@ -13010,8 +12984,7 @@ void CvCity::payOverflowGold(int iLostProduction, int iProductionGold)
 	kOwner.changeGold(iProductionGold);
 	CvWString szMsg(gDLL->getText("TXT_KEY_MISC_OVERFLOW_GOLD", iLostProduction,
 			getNameKey(), iProductionGold));
-	gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-			GC.getEVENT_MESSAGE_TIME(), szMsg, "AS2D_WONDERGOLD",
-			MESSAGE_TYPE_INFO, GC.getInfo(COMMERCE_GOLD).
+	gDLL->UI().addMessage(getOwner(), false, -1, szMsg,
+			"AS2D_WONDERGOLD", MESSAGE_TYPE_INFO, GC.getInfo(COMMERCE_GOLD).
 			getButton(), NO_COLOR, getX(), getY(), false, false);
 } // </advc.064b>

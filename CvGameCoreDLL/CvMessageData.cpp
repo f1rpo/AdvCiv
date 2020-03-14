@@ -194,7 +194,7 @@ void CvNetPushOrder::Execute()
 
 		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
-			gDLL->getInterfaceIFace()->updatePythonScreens();
+			gDLL->UI().updatePythonScreens();
 		}
 	}
 }
@@ -256,7 +256,7 @@ void CvNetPopOrder::Execute()
 
 		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
-			gDLL->getInterfaceIFace()->updatePythonScreens();
+			gDLL->UI().updatePythonScreens();
 		}
 	}
 }
@@ -414,7 +414,7 @@ void CvNetResearch::Execute()
 
 		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
-			gDLL->getInterfaceIFace()->updatePythonScreens();
+			gDLL->UI().updatePythonScreens();
 		}
 	}
 }
@@ -489,7 +489,7 @@ void CvNetAdvancedStartAction::Execute()
 {
 	if (m_ePlayer != NO_PLAYER)
 	{
-		if (!gDLL->getInterfaceIFace()->isExitingToMainMenu())
+		if (!gDLL->UI().isExitingToMainMenu())
 		{
 			GET_PLAYER(m_ePlayer).doAdvancedStartAction(m_eAction, m_iX, m_iY, m_iData, m_bAdd);
 		}
@@ -1133,7 +1133,7 @@ void CvNetPing::Execute()
 	{
 		if (GET_PLAYER(m_ePlayer).getTeam() == GC.getGame().getActiveTeam() || GET_TEAM(GC.getGame().getActiveTeam()).isVassal(GET_PLAYER(m_ePlayer).getTeam()) || GET_TEAM(GET_PLAYER(m_ePlayer).getTeam()).isVassal(GC.getGame().getActiveTeam()))
 		{
-			gDLL->getInterfaceIFace()->doPing(m_iX, m_iY, m_ePlayer);
+			gDLL->UI().doPing(m_iX, m_iY, m_ePlayer);
 		}
 	}
 }

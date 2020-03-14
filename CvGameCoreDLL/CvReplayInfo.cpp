@@ -223,7 +223,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	// </advc.106m>  <advc.106n>
 	byte const* pTexture = map.getReplayTexture();
 	if (pTexture == NULL)
-		pTexture = gDLL->getInterfaceIFace()->getMinimapBaseTexture();
+		pTexture = gDLL->UI().getMinimapBaseTexture();
 	// </advc.106n>
 	SAFE_DELETE(m_pcMinimapPixels);
 	m_pcMinimapPixels = new byte[/* advc.106m: */ minimapPixels()];
@@ -243,7 +243,7 @@ void CvReplayInfo::addSettingsMsg()
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n");
 	appendSettingsMsg(szSettings, ePlayer);
 	pSettingsMsg->setText(szSettings);
-	pSettingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
+	pSettingsMsg->setColor(GC.getColorType("WHITE"));
 	FAssert(m_listReplayMessages.empty());
 	m_listReplayMessages.push_back(pSettingsMsg);
 }

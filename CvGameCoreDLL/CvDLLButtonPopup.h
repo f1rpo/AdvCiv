@@ -12,6 +12,7 @@ class CvPopupInfo;
 class CvDLLButtonPopup
 {
 public:
+	CvDLLButtonPopup(); // advc
 	virtual ~CvDLLButtonPopup();
 	DllExport static CvDLLButtonPopup& getInstance();
 	DllExport static void freeInstance();
@@ -25,6 +26,7 @@ public:
 private:
 
 	static CvDLLButtonPopup* m_pInst;
+	CvDLLInterfaceIFaceBase& m_kUI; // advc
 
 	bool launchTextPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info);

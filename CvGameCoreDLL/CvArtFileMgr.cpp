@@ -78,6 +78,12 @@ CvArtInfo##name##* CvArtFileMgr::get##name##ArtInfo( const char *szArtDefineTag 
 	} \
 	return it->second; \
 } \
+/* <advc> */\
+TCHAR const* CvArtFileMgr::get##name##ArtPath(char const* szArtDefineTag) const \
+{ \
+	return get##name##ArtInfo(szArtDefineTag)->getPath(); \
+} \
+/* </advc> */ \
 void Cv##name##ArtInfoItem::deInit() \
 { \
 	SAFE_DELETE(ARTFILEMGR.m_map##name##ArtInfos); \

@@ -717,15 +717,15 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		break;
 
 	case WIDGET_PLOT_LIST_SHIFT:
-		gDLL->getInterfaceIFace()->changePlotListColumn(iData1 *
+		gDLL->UI().changePlotListColumn(iData1 *
 			  // <advc.004n> BtS code:
 			  //((GC.ctrlKey()) ? (GC.getDefineINT("MAX_PLOT_LIST_SIZE") - 1) : 1));
 			  std::min(GC.getDefineINT("MAX_PLOT_LIST_SIZE"),
-			  gDLL->getInterfaceIFace()->getHeadSelectedCity()->getPlot().getNumUnits())
+			  gDLL->UI().getHeadSelectedCity()->getPlot().getNumUnits())
 			  /* Don't really know how to determine the number of units shown
 				 initially. Offset divided by 9 happens to work, at least for
 				 1024x768 (offset 81, 9 units) and 1280x1024 (144, 16). */
-			  - gDLL->getInterfaceIFace()->getPlotListOffset() / 9); // </advc.004n>
+			  - gDLL->UI().getPlotListOffset() / 9); // </advc.004n>
 		break;
 
 	case WIDGET_CITY_SCROLL:
@@ -980,14 +980,14 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		PlayerTypes foo;
 		parseCityTradeHelp(widgetDataStruct, pCity, foo);
 		// Can't move the camera while Foreign Advisor is up
-		//gDLL->getInterfaceIFace()->lookAt(pCity->getPlot().getPoint(), CAMERALOOKAT_NORMAL);
+		//gDLL->UI().lookAt(pCity->getPlot().getPoint(), CAMERALOOKAT_NORMAL);
 		// Better than nothing: open city screen (while Foreign Advisor remains open too)
 		if (pCity != NULL)
 		{	// Close city screen with another click on WIDGET_CITY_TRADE
-			if (gDLL->getInterfaceIFace()->isCitySelected(pCity))
-				gDLL->getInterfaceIFace()->clearSelectedCities();
+			if (gDLL->UI().isCitySelected(pCity))
+				gDLL->UI().clearSelectedCities();
 			else if (pCity->canBeSelected()) // (Tbd.: Could we otherwise at least highlight it on the minimap?)
-				gDLL->getInterfaceIFace()->selectCity(pCity);
+				gDLL->UI().selectCity(pCity);
 		}
 		break;
 	} // </advc.ctr>
@@ -1146,7 +1146,7 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		break;  // <advc.ctr>
 	case WIDGET_CITY_TRADE:
 		// Both left and right click close the city screen
-		if (gDLL->getInterfaceIFace()->isCityScreenUp())
+		if (gDLL->UI().isCityScreenUp())
 			return executeAction(widgetDataStruct);
 		break; // </advc.ctr>
 	default:
@@ -1212,23 +1212,24 @@ void CvDLLWidgetData::doPlotList(CvWidgetDataStruct &widgetDataStruct)
 {
 	PROFILE_FUNC();
 
-	int iUnitIndex = widgetDataStruct.m_iData1 + gDLL->getInterfaceIFace()->getPlotListColumn() - gDLL->getInterfaceIFace()->getPlotListOffset();
+	int iUnitIndex = widgetDataStruct.m_iData1 + gDLL->UI().getPlotListColumn() -
+			gDLL->UI().getPlotListOffset();
 
-	CvPlot *selectionPlot = gDLL->getInterfaceIFace()->getSelectionPlot();
-	CvUnit* pUnit = gDLL->getInterfaceIFace()->getInterfacePlotUnit(selectionPlot, iUnitIndex);
+	CvPlot *selectionPlot = gDLL->UI().getSelectionPlot();
+	CvUnit* pUnit = gDLL->UI().getInterfacePlotUnit(selectionPlot, iUnitIndex);
 
 	if (pUnit != NULL)
 	{
 		if (pUnit->getOwner() == GC.getGame().getActivePlayer())
 		{
-			bool bWasCityScreenUp = gDLL->getInterfaceIFace()->isCityScreenUp();
+			bool bWasCityScreenUp = gDLL->UI().isCityScreenUp();
 
-			//gDLL->getInterfaceIFace()->selectGroup(pUnit, gDLL->shiftKey(), gDLL->ctrlKey(), gDLL->altKey());
-			gDLL->getInterfaceIFace()->selectGroup(pUnit, GC.shiftKey(), GC.ctrlKey() || GC.altKey(), GC.altKey()); // K-Mod
+			//gDLL->UI().selectGroup(pUnit, gDLL->shiftKey(), gDLL->ctrlKey(), gDLL->altKey());
+			gDLL->UI().selectGroup(pUnit, GC.shiftKey(), GC.ctrlKey() || GC.altKey(), GC.altKey()); // K-Mod
 
 			if (bWasCityScreenUp)
 			{
-				gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+				gDLL->UI().lookAtSelectionPlot();
 			}
 		}
 	}
@@ -1239,7 +1240,7 @@ void CvDLLWidgetData::doLiberateCity()
 {
 	GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_LIBERATE, 0);
 
-	gDLL->getInterfaceIFace()->clearSelectedCities();
+	gDLL->UI().clearSelectedCities();
 }
 
 
@@ -1247,7 +1248,7 @@ void CvDLLWidgetData::doRenameCity()
 {
 	CvCity* pHeadSelectedCity;
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -1263,7 +1264,7 @@ void CvDLLWidgetData::doRenameUnit()
 {
 	CvUnit* pHeadSelectedUnit;
 
-	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 
 	if (pHeadSelectedUnit != NULL)
 	{
@@ -1304,7 +1305,7 @@ void CvDLLWidgetData::doTrain(CvWidgetDataStruct &widgetDataStruct)
 				eUnit, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
-	gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_UNITS);
+	gDLL->UI().setCityTabSelectionRow(CITYTAB_UNITS);
 }
 
 
@@ -1326,8 +1327,8 @@ void CvDLLWidgetData::doConstruct(CvWidgetDataStruct &widgetDataStruct)
 	}
 
 	if (GC.getInfo(eBuildingClass).isLimited())
-		gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
-	else gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_BUILDINGS);
+		gDLL->UI().setCityTabSelectionRow(CITYTAB_WONDERS);
+	else gDLL->UI().setCityTabSelectionRow(CITYTAB_BUILDINGS);
 }
 
 
@@ -1345,7 +1346,7 @@ void CvDLLWidgetData::doCreate(CvWidgetDataStruct &widgetDataStruct)
 				widgetDataStruct.m_iData1, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
-	gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
+	gDLL->UI().setCityTabSelectionRow(CITYTAB_WONDERS);
 }
 
 
@@ -1364,7 +1365,7 @@ void CvDLLWidgetData::doMaintain(CvWidgetDataStruct &widgetDataStruct)
 				widgetDataStruct.m_iData1, -1, false, GC.altKey(), GC.shiftKey(), GC.ctrlKey());
 	}
 
-	gDLL->getInterfaceIFace()->setCityTabSelectionRow(CITYTAB_WONDERS);
+	gDLL->UI().setCityTabSelectionRow(CITYTAB_WONDERS);
 }
 
 
@@ -1406,14 +1407,12 @@ void CvDLLWidgetData::doResearch(CvWidgetDataStruct &widgetDataStruct)
 		CvPlayer& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 		if (!kPlayer.isChoosingFreeTech())
 		{
-			gDLL->getInterfaceIFace()->addMessage(GC.getGame().getActivePlayer(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_CHEATERS_NEVER_PROSPER"), NULL, MESSAGE_TYPE_MAJOR_EVENT);
+			gDLL->UI().addMessage(GC.getGame().getActivePlayer(), true, -1,
+					gDLL->getText("TXT_KEY_CHEATERS_NEVER_PROSPER"), NULL, MESSAGE_TYPE_MAJOR_EVENT);
 			FAssertMsg(false, "doResearch called for free tech when !isChoosingFreeTech()");
 			return;
 		}
-		else
-		{
-			kPlayer.changeChoosingFreeTechCount(-1);
-		}
+		else kPlayer.changeChoosingFreeTechCount(-1);
 	} // UNOFFICIAL_PATCH: END
 
 	CvMessageControl::getInstance().sendResearch(((TechTypes)widgetDataStruct.m_iData1), widgetDataStruct.m_iData2, bShift);
@@ -1430,15 +1429,15 @@ void CvDLLWidgetData::doChangePercentAlt(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvMessageControl::getInstance().sendPercentChange((CommerceTypes)widgetDataStruct.m_iData1, widgetDataStruct.m_iData2 * 100);
 	// <advc.120c>
-	gDLL->getInterfaceIFace()->setDirty(Espionage_Advisor_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
+	gDLL->UI().setDirty(Espionage_Advisor_DIRTY_BIT, true);
+	gDLL->UI().setDirty(PercentButtons_DIRTY_BIT, true);
 	// </advc.120c>
 }
 // K-Mod end
 
 void CvDLLWidgetData::doCityTab(CvWidgetDataStruct &widgetDataStruct)
 {
-	gDLL->getInterfaceIFace()->setCityTabSelectionRow((CityTabTypes)widgetDataStruct.m_iData1);
+	gDLL->UI().setCityTabSelectionRow((CityTabTypes)widgetDataStruct.m_iData1);
 }
 
 void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
@@ -1449,11 +1448,11 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 	//	Do not execute this if we are trying to contact ourselves...
 	if (GC.getGame().getActivePlayer() == widgetDataStruct.m_iData1)
 	{
-		if (!gDLL->getInterfaceIFace()->isFocusedWidget() &&
+		if (!gDLL->UI().isFocusedWidget() &&
 			// advc.085: Never minimize the scoreboard
-			gDLL->getInterfaceIFace()->isScoresMinimized())
+			gDLL->UI().isScoresMinimized())
 		{
-			gDLL->getInterfaceIFace()->toggleScoresMinimized();
+			gDLL->UI().toggleScoresMinimized();
 		}
 		return;
 	}
@@ -1464,7 +1463,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 		{
 			if (widgetDataStruct.m_iData1 != GC.getGame().getActivePlayer())
 			{
-				gDLL->getInterfaceIFace()->showTurnLog((ChatTargetTypes)widgetDataStruct.m_iData1);
+				gDLL->UI().showTurnLog((ChatTargetTypes)widgetDataStruct.m_iData1);
 			}
 		}
 		return;
@@ -1489,7 +1488,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 					{
 						GET_TEAM(GC.getGame().getActiveTeam()).AI_setWarPlan(eWidgetTeam, WARPLAN_PREPARING_TOTAL);
 					}
-					gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+					gDLL->UI().setDirty(Score_DIRTY_BIT, true);
 				}
 			}
 			// K-Mod end
@@ -1506,7 +1505,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 					pInfo->setData1(eWidgetTeam);
 					pInfo->setOption1(false); // shift key
 					pInfo->setFlags(1); // don't do the "move" part of the declare-war-move.
-					gDLL->getInterfaceIFace()->addPopup(pInfo);
+					gDLL->UI().addPopup(pInfo);
 				}
 				// K-Mod end
 			}
@@ -1515,7 +1514,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_VASSAL_DEMAND_TRIBUTE, widgetDataStruct.m_iData1);
 				if (pInfo)
 				{
-					gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGame().getActivePlayer(), true);
+					gDLL->UI().addPopup(pInfo, GC.getGame().getActivePlayer(), true);
 				}
 			}
 		}
@@ -1537,7 +1536,7 @@ void CvDLLWidgetData::doAutomateCitizens()
 {
 	CvCity* pHeadSelectedCity;
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -1549,7 +1548,7 @@ void CvDLLWidgetData::doAutomateProduction()
 {
 	CvCity* pHeadSelectedCity;
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -1559,7 +1558,7 @@ void CvDLLWidgetData::doAutomateProduction()
 
 void CvDLLWidgetData::doEmphasize(CvWidgetDataStruct &widgetDataStruct)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		GC.getGame().selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK,
@@ -1571,13 +1570,13 @@ void CvDLLWidgetData::doEmphasize(CvWidgetDataStruct &widgetDataStruct)
 
 void CvDLLWidgetData::doUnitModel()
 {
-	if (gDLL->getInterfaceIFace()->isFocused())
+	if (gDLL->UI().isFocused())
 	{
 		//	Do NOT execute if a screen is up...
 		return;
 	}
 
-	gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+	gDLL->UI().lookAtSelectionPlot();
 }
 
 
@@ -1590,7 +1589,7 @@ void CvDLLWidgetData::doSelected(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvCity* pHeadSelectedCity;
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -1615,7 +1614,7 @@ void CvDLLWidgetData::doMenu()
 	{
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_MAIN_MENU);
 		if (pInfo != NULL)
-			gDLL->getInterfaceIFace()->addPopup(pInfo, NO_PLAYER, true);
+			gDLL->UI().addPopup(pInfo, NO_PLAYER, true);
 	}
 }
 
@@ -1625,7 +1624,7 @@ void CvDLLWidgetData::doLaunch(CvWidgetDataStruct &widgetDataStruct)
 	{
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_LAUNCH, widgetDataStruct.m_iData1);
 		if (pInfo != NULL)
-			gDLL->getInterfaceIFace()->addPopup(pInfo);
+			gDLL->UI().addPopup(pInfo);
 	}
 }
 
@@ -1637,10 +1636,11 @@ void CvDLLWidgetData::parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 {
 	PROFILE_FUNC();
 
-	int iUnitIndex = widgetDataStruct.m_iData1 + gDLL->getInterfaceIFace()->getPlotListColumn() - gDLL->getInterfaceIFace()->getPlotListOffset();
+	int iUnitIndex = widgetDataStruct.m_iData1 + gDLL->UI().getPlotListColumn() -
+			gDLL->UI().getPlotListOffset();
 
-	CvPlot *selectionPlot = gDLL->getInterfaceIFace()->getSelectionPlot();
-	CvUnit* pUnit = gDLL->getInterfaceIFace()->getInterfacePlotUnit(selectionPlot, iUnitIndex);
+	CvPlot *selectionPlot = gDLL->UI().getSelectionPlot();
+	CvUnit* pUnit = gDLL->UI().getInterfacePlotUnit(selectionPlot, iUnitIndex);
 	if (pUnit == NULL)
 		return;
 
@@ -1664,7 +1664,7 @@ void CvDLLWidgetData::parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 
 void CvDLLWidgetData::parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		PlayerTypes ePlayer = pHeadSelectedCity->getLiberationPlayer();
@@ -1678,7 +1678,7 @@ void CvDLLWidgetData::parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct
 
 void CvDLLWidgetData::parseCityNameHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		szBuffer.append(pHeadSelectedCity->getName());
@@ -1701,7 +1701,7 @@ void CvDLLWidgetData::parseTrainHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	CvCity* pHeadSelectedCity;
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 		pHeadSelectedCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(widgetDataStruct.m_iData2);
-	else pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	else pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -1718,7 +1718,7 @@ void CvDLLWidgetData::parseConstructHelp(CvWidgetDataStruct &widgetDataStruct, C
 	CvCity* pHeadSelectedCity;
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 		pHeadSelectedCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(widgetDataStruct.m_iData2);
-	else pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	else pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -1737,7 +1737,7 @@ void CvDLLWidgetData::parseCreateHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 	CvCity* pHeadSelectedCity;
 	if (widgetDataStruct.m_iData2 != FFreeList::INVALID_INDEX)
 		pHeadSelectedCity = GET_PLAYER(GC.getGame().getActivePlayer()).getCity(widgetDataStruct.m_iData2);
-	else pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	else pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	GAMETEXT.setProjectHelp(szBuffer, ((ProjectTypes)widgetDataStruct.m_iData1), false, pHeadSelectedCity);
 }
@@ -1751,7 +1751,7 @@ void CvDLLWidgetData::parseMaintainHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 
 void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return;
 	CvCity const& kCity = *pHeadSelectedCity;
@@ -1871,7 +1871,7 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 
 void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL || pHeadSelectedCity->getConscriptUnit() == NO_UNIT)
 		return;
 	{
@@ -1943,9 +1943,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 	szTemp.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 			kAction.getHotKeyDescription().c_str());
 	szBuffer.assign(szTemp);
-	CvDLLInterfaceIFaceBase& kInterface = *gDLL->getInterfaceIFace(); // advc
+	CvDLLInterfaceIFaceBase& kUI = *gDLL->getInterfaceIFace(); // advc
 
-	CvUnit* pHeadSelectedUnit = kInterface.getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 	if (pHeadSelectedUnit != NULL)
 	{
 		MissionTypes eMission = (MissionTypes)kAction.getMissionType();
@@ -1985,7 +1985,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				}
 				else
 				{
-					pSelectedUnitNode = kInterface.headSelectionListNode();
+					pSelectedUnitNode = kUI.headSelectionListNode();
 					while (pSelectedUnitNode != NULL)
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -1995,7 +1995,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 							// advc.080:
 							iLostXP -= pSelectedUnit->upgradeXPChange(eTo);
 						}
-						pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode);
+						pSelectedUnitNode = kUI.nextSelectionListNode(pSelectedUnitNode);
 						// <advc.080>
 						if(pSelectedUnitNode != NULL)
 							bSingleUnit = false; // </advc.080>
@@ -2025,7 +2025,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 							GET_PLAYER(eGiftPlayer).getCivilizationShortDescription());
 					szBuffer.append(szTempBuffer);
 
-					pSelectedUnitNode = kInterface.headSelectionListNode();
+					pSelectedUnitNode = kUI.headSelectionListNode();
 					while (pSelectedUnitNode != NULL)
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2036,7 +2036,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 									GET_PLAYER(eGiftPlayer).getNameKey()));
 							break;
 						}
-						pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode);
+						pSelectedUnitNode = kUI.nextSelectionListNode(pSelectedUnitNode);
 					}
 				}
 			}
@@ -2072,11 +2072,11 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				FAssert(iCurrentExpenses == kActivePl.calculateInflatedCosts());
 				int iExtraCost = 0;
 				int iUnits = 0;
-				pSelectedUnitNode = kInterface.headSelectionListNode();
+				pSelectedUnitNode = kUI.headSelectionListNode();
 				while(pSelectedUnitNode != NULL)
 				{
 					CvUnit const& u = *::getUnit(pSelectedUnitNode->m_data);
-					pSelectedUnitNode = kInterface.nextSelectionListNode(pSelectedUnitNode);
+					pSelectedUnitNode = kUI.nextSelectionListNode(pSelectedUnitNode);
 					iExtraCost += u.getUnitInfo().getExtraCost();
 					iUnits--;
 					/*  No danger of double counting b/c it's not possible to select
@@ -2189,7 +2189,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	CvWString szFirstBuffer;
 
 	CvPlot const& kMissionPlot = (
-			(bShift && gDLL->getInterfaceIFace()->mirrorsSelectionGroup()) ?
+			(bShift && gDLL->UI().mirrorsSelectionGroup()) ?
 			*kUnit.getGroup()->lastMissionPlot() :
 			*kUnit.plot());
 	CvCity* pMissionCity = kMissionPlot.getPlotCity();
@@ -2199,13 +2199,13 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	case MISSION_HEAL:
 	{
 		int iTurns = 0;
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
 			iTurns = std::max(iTurns, pSelectedUnit->healTurns(&kMissionPlot));
 
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_TURN_OR_TURNS", iTurns));
@@ -2240,7 +2240,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	}
 	case MISSION_SABOTAGE:
 	{
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2270,13 +2270,13 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				}
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
 	case MISSION_DESTROY:
 	{
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2306,13 +2306,13 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				}
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
 	case MISSION_STEAL_PLANS:
 	{
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2342,7 +2342,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				}
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
@@ -2518,7 +2518,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 	}
 	case MISSION_DISCOVER:
 	{
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2554,7 +2554,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				break;
 			}
 
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
@@ -2568,7 +2568,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BUILDING_HURRY"));
 			break;
 		}
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2596,7 +2596,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				}
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
@@ -2610,7 +2610,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_TRADE_MISSION_FOREIGN"));
 			break;
 		}
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2622,13 +2622,13 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				szBuffer.append(szTempBuffer);
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
 	case MISSION_GREAT_WORK:
 	{
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2640,7 +2640,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				szBuffer.append(szTempBuffer);
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(
 					pSelectedUnitNode);
 		}
 		break;
@@ -2655,7 +2655,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_INFILTRATE_MISSION_FOREIGN"));
 			break;
 		}
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2667,7 +2667,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				szBuffer.append(szTempBuffer);
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(pSelectedUnitNode);
 		}
 		break;
 	}
@@ -2767,7 +2767,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 		}
 		bool bValid = false;
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
@@ -2776,7 +2776,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				bValid = true;
 				break;
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(
 					pSelectedUnitNode);
 		}
 		if (!bValid)
@@ -3061,7 +3061,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		}
 		int iNowWorkRate = 0;
 		int iThenWorkRate = 0;
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
 		int iBuildCost = kUnitOwner.getBuildCost(&kMissionPlot, eBuild);
 		if (iBuildCost > 0)
 		{
@@ -3076,7 +3076,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				iNowWorkRate += pSelectedUnit->workRate(false);
 				iThenWorkRate += pSelectedUnit->workRate(true);
 			}
-			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(
+			pSelectedUnitNode = gDLL->UI().nextSelectionListNode(
 					pSelectedUnitNode);
 		}
 		int iTurns = kMissionPlot.getBuildTurnsLeft(eBuild,
@@ -3114,7 +3114,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 
 void CvDLLWidgetData::parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL || widgetDataStruct.m_iData1 == NO_SPECIALIST)
 		return;
 
@@ -3142,7 +3142,7 @@ void CvDLLWidgetData::parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 
 void CvDLLWidgetData::parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return; // advc
 
@@ -3159,7 +3159,7 @@ void CvDLLWidgetData::parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct,
 
 void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL || widgetDataStruct.m_iData1 == NO_SPECIALIST)
 		return;
 
@@ -3201,7 +3201,7 @@ void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStr
 
 void CvDLLWidgetData::parseAngryCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		szBuffer.assign(gDLL->getText("TXT_KEY_MISC_ANGRY_CITIZEN"));
@@ -3214,7 +3214,7 @@ void CvDLLWidgetData::parseAngryCitizenHelp(CvWidgetDataStruct &widgetDataStruct
 
 void CvDLLWidgetData::parseChangeSpecialistHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return;
 
@@ -4451,7 +4451,7 @@ void CvDLLWidgetData::parseAutomateCitizensHelp(CvWidgetDataStruct &widgetDataSt
 {
 	CvCity* pHeadSelectedCity;
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -4470,7 +4470,7 @@ void CvDLLWidgetData::parseAutomateProductionHelp(CvWidgetDataStruct &widgetData
 {
 	CvCity* pHeadSelectedCity;
 
-	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -4489,7 +4489,7 @@ void CvDLLWidgetData::parseEmphasizeHelp(CvWidgetDataStruct &widgetDataStruct, C
 {
 	szBuffer.clear();
 
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		if (pHeadSelectedCity->AI().AI_isEmphasize((EmphasizeTypes)widgetDataStruct.m_iData1))
@@ -4700,7 +4700,7 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 
 void CvDLLWidgetData::parseUnitModelHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	if (pHeadSelectedUnit != NULL)
 		GAMETEXT.setUnitHelp(szBuffer, pHeadSelectedUnit);
 }
@@ -4738,7 +4738,7 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 {
 	wchar szTempBuffer[1024];
 
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return; // advc
 
@@ -4822,7 +4822,7 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 
 void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return; // advc
 
@@ -4845,7 +4845,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	wchar szTempBuffer[1024];
 
 	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_CITY_NATIONALITY"));
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if(pHeadSelectedCity == NULL)
 		return;
 	CvCity const& c = *pHeadSelectedCity;
@@ -4946,7 +4946,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 
 void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return; // advc
 
@@ -4965,7 +4965,7 @@ void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, C
 
 void CvDLLWidgetData::parsePopulationHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		szBuffer.assign(gDLL->getText("TXT_KEY_MISC_FOOD_THRESHOLD",
@@ -4976,7 +4976,7 @@ void CvDLLWidgetData::parsePopulationHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 void CvDLLWidgetData::parseProductionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL &&
 		pHeadSelectedCity->getProductionNeeded() != MAX_INT)
 	{
@@ -4996,7 +4996,7 @@ void CvDLLWidgetData::parseProductionHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 void CvDLLWidgetData::parseCultureHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return; // advc
 
@@ -5024,7 +5024,7 @@ void CvDLLWidgetData::parseCultureHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 
 void CvDLLWidgetData::parseGreatPeopleHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 		GAMETEXT.parseGreatPeopleHelp(szBuffer, *pHeadSelectedCity);
 }
@@ -5039,8 +5039,8 @@ void CvDLLWidgetData::parseGreatGeneralHelp(CvWidgetDataStruct &widgetDataStruct
 
 void CvDLLWidgetData::parseSelectedHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc: style changes
 {
-	//CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit(); // advc: unused
-	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	//CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit(); // advc: unused
+	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	if (pHeadSelectedCity == NULL)
 		return;
 
@@ -5080,13 +5080,13 @@ void CvDLLWidgetData::parseTradeRouteCityHelp(CvWidgetDataStruct &widgetDataStru
 {
 	if (widgetDataStruct.m_iData2 != 0)
 	{
-		GAMETEXT.setTradeRouteHelp(szBuffer, widgetDataStruct.m_iData1, gDLL->getInterfaceIFace()->getHeadSelectedCity());
+		GAMETEXT.setTradeRouteHelp(szBuffer, widgetDataStruct.m_iData1, gDLL->UI().getHeadSelectedCity());
 	}
 }
 
 void CvDLLWidgetData::parseEspionageCostHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvUnit* pUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	CvUnit* pUnit = gDLL->UI().getHeadSelectedUnit();
 	if (NULL != pUnit)
 	{
 		CvPlot* pPlot = pUnit->plot();
@@ -5101,7 +5101,7 @@ void CvDLLWidgetData::parseBuildingHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 {
 	if (widgetDataStruct.m_iData2 != 0)
 	{
-		GAMETEXT.setBuildingHelp(szBuffer, ((BuildingTypes)(widgetDataStruct.m_iData1)), false, false, widgetDataStruct.m_bOption, gDLL->getInterfaceIFace()->getHeadSelectedCity());
+		GAMETEXT.setBuildingHelp(szBuffer, ((BuildingTypes)(widgetDataStruct.m_iData1)), false, false, widgetDataStruct.m_bOption, gDLL->UI().getHeadSelectedCity());
 	}
 }
 
@@ -5109,7 +5109,7 @@ void CvDLLWidgetData::parseProjectHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 {
 	if (widgetDataStruct.m_iData2 != 0)
 	{
-		GAMETEXT.setProjectHelp(szBuffer, ((ProjectTypes)widgetDataStruct.m_iData1), false, gDLL->getInterfaceIFace()->getHeadSelectedCity());
+		GAMETEXT.setProjectHelp(szBuffer, ((ProjectTypes)widgetDataStruct.m_iData1), false, gDLL->UI().getHeadSelectedCity());
 	}
 }
 
@@ -5449,7 +5449,7 @@ void CvDLLWidgetData::parseUnitHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 {
 	if (widgetDataStruct.m_iData2 != 0)
 	{
-		GAMETEXT.setUnitHelp(szBuffer, (UnitTypes)widgetDataStruct.m_iData1, false, false, widgetDataStruct.m_bOption, gDLL->getInterfaceIFace()->getHeadSelectedCity());
+		GAMETEXT.setUnitHelp(szBuffer, (UnitTypes)widgetDataStruct.m_iData1, false, false, widgetDataStruct.m_bOption, gDLL->UI().getHeadSelectedCity());
 	}
 }
 
@@ -5506,12 +5506,12 @@ void CvDLLWidgetData::parseReligionHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 
 void CvDLLWidgetData::parseReligionHelpCity(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.setReligionHelpCity(szBuffer, (ReligionTypes)widgetDataStruct.m_iData1, gDLL->getInterfaceIFace()->getHeadSelectedCity(), true);
+	GAMETEXT.setReligionHelpCity(szBuffer, (ReligionTypes)widgetDataStruct.m_iData1, gDLL->UI().getHeadSelectedCity(), true);
 }
 
 void CvDLLWidgetData::parseCorporationHelpCity(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.setCorporationHelpCity(szBuffer, (CorporationTypes)widgetDataStruct.m_iData1, gDLL->getInterfaceIFace()->getHeadSelectedCity(), true);
+	GAMETEXT.setCorporationHelpCity(szBuffer, (CorporationTypes)widgetDataStruct.m_iData1, gDLL->UI().getHeadSelectedCity(), true);
 }
 
 void CvDLLWidgetData::parseCorporationHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
@@ -5772,7 +5772,7 @@ void CvDLLWidgetData::doDealKill(CvWidgetDataStruct &widgetDataStruct)
 			if (pInfo != NULL)
 			{
 				pInfo->setText(gDLL->getText("TXT_KEY_POPUP_CANNOT_CANCEL_DEAL"));
-				gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGame().getActivePlayer(), true);
+				gDLL->UI().addPopup(pInfo, GC.getGame().getActivePlayer(), true);
 			}
 		}
 		else
@@ -5782,7 +5782,7 @@ void CvDLLWidgetData::doDealKill(CvWidgetDataStruct &widgetDataStruct)
 			{
 				pInfo->setData1(pDeal->getID());
 				pInfo->setOption1(false);
-				gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGame().getActivePlayer(), true);
+				gDLL->UI().addPopup(pInfo, GC.getGame().getActivePlayer(), true);
 			}
 		}
 	}
@@ -5790,7 +5790,7 @@ void CvDLLWidgetData::doDealKill(CvWidgetDataStruct &widgetDataStruct)
 
 void CvDLLWidgetData::parseProductionModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pCity = gDLL->UI().getHeadSelectedCity();
 	if (NULL != pCity)
 	{
 		GAMETEXT.setProductionHelp(szBuffer, *pCity);
@@ -5809,7 +5809,7 @@ void CvDLLWidgetData::parseLeaderLineHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 void CvDLLWidgetData::parseCommerceModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	CvCity* pCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity* pCity = gDLL->UI().getHeadSelectedCity();
 	if (NULL != pCity)
 	{
 		GAMETEXT.setCommerceHelp(szBuffer, *pCity, (CommerceTypes)widgetDataStruct.m_iData1);
@@ -5831,7 +5831,7 @@ void CvDLLWidgetData::parseTradeRoutes(CvWidgetDataStruct& widgetDataStruct, CvW
 // BULL - Food Rate Hover - start
 void CvDLLWidgetData::parseFoodModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer) {
 
-	CvCity const* pCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+	CvCity const* pCity = gDLL->UI().getHeadSelectedCity();
 	if(pCity == NULL)
 		return;
 	GAMETEXT.setFoodHelp(szBuffer, *pCity);

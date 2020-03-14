@@ -293,11 +293,8 @@ void CvPlot::doImprovement()  // advc: some style changes
 				{
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DISCOVERED_NEW_RESOURCE",
 							kLoopBonus.getTextKeyWide(), pCity->getNameKey());
-					gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DISCOVERBONUS",
-							MESSAGE_TYPE_MINOR_EVENT, kLoopBonus.getButton(),
-							(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-							getX(), getY(), true, true);
+					gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, *this,
+							"AS2D_DISCOVERBONUS", MESSAGE_TYPE_MINOR_EVENT, kLoopBonus.getButton());
 				}
 				break;
 			}
@@ -368,13 +365,13 @@ void CvPlot::updateFog()
 
 	if (isRevealed(GC.getGame().getActiveTeam()))
 	{
-		if (gDLL->getInterfaceIFace()->isBareMapMode())
+		if (gDLL->UI().isBareMapMode())
 			gDLL->getEngineIFace()->LightenVisibility(getFOWIndex());
 		else
 		{
 			static bool const bCityScreenFogEnabled = GC.getDefineBOOL("CITY_SCREEN_FOG_ENABLED"); // advc.opt: static
-			if (bCityScreenFogEnabled && gDLL->getInterfaceIFace()->isCityScreenUp() &&
-					gDLL->getInterfaceIFace()->getHeadSelectedCity() != getWorkingCity())
+			if (bCityScreenFogEnabled && gDLL->UI().isCityScreenUp() &&
+					gDLL->UI().getHeadSelectedCity() != getWorkingCity())
 				gDLL->getEngineIFace()->DarkenVisibility(getFOWIndex());
 			else if (isActiveVisible(false))
 				gDLL->getEngineIFace()->LightenVisibility(getFOWIndex());
@@ -442,8 +439,7 @@ void CvPlot::updateSymbolVisibility()
 		{
 			if (isRevealed(GC.getGame().getActiveTeam(), true) &&
 				(isShowCitySymbols() ||
-				(gDLL->getInterfaceIFace()->isShowYields() &&
-				!gDLL->getInterfaceIFace()->isCityScreenUp())))
+				(gDLL->UI().isShowYields() && !gDLL->UI().isCityScreenUp())))
 			{
 				gDLL->getSymbolIFace()->Hide(pLoopSymbol, false);
 			}
@@ -510,7 +506,8 @@ void CvPlot::updateMinimapColor()
 	int const iMode = GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE);
 	if(iMode == 3 && isWater())
 		return; // </advc.002a>
-	gDLL->getInterfaceIFace()->setMinimapColor(MINIMAPMODE_TERRITORY, getX(), getY(), plotMinimapColor(), STANDARD_MINIMAP_ALPHA
+	gDLL->UI().setMinimapColor(MINIMAPMODE_TERRITORY, getX(), getY(),
+			plotMinimapColor(), STANDARD_MINIMAP_ALPHA
 			/ ((isWater() && iMode != 4) ? 2.3f : 1.f)); // advc.002a
 }
 
@@ -539,7 +536,7 @@ void CvPlot::updateCenterUnit()
 	if (getCenterUnit() == NULL)
 	{	// <advc.028>
 		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
-				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), true,
+				gDLL->UI().getHeadSelectedUnit(), true,
 				false, true); // advc.061
 		if(pBestDef != NULL)
 			setCenterUnit(pBestDef); // </advc.028>
@@ -549,10 +546,10 @@ void CvPlot::updateCenterUnit()
 
 	if (getCenterUnit() == NULL)
 	{
-		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGame().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit()));
+		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGame().getActivePlayer(), gDLL->UI().getHeadSelectedUnit()));
 		// <advc.028> Replacing the above
 		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
-				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), false,
+				gDLL->UI().getHeadSelectedUnit(), false,
 				false, true); // advc.061
 		if(pBestDef != NULL)
 			setCenterUnit(pBestDef); // </advc.028>
@@ -2931,7 +2928,7 @@ void CvPlot::removeGoody()
 	setImprovementType(NO_IMPROVEMENT);
 	// <advc.004z>
 	if(GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE && isVisibleToWatchingHuman())
-		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+		gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 	// </advc.004z>
 }
 
@@ -3934,7 +3931,7 @@ void CvPlot::updateShowCitySymbols()  // advc: style changes
 		CvCity* pLoopCity = it->getPlotCity();
 		if (pLoopCity == NULL)
 			continue;
-		if (pLoopCity->isCitySelected() && gDLL->getInterfaceIFace()->isCityScreenUp())
+		if (pLoopCity->isCitySelected() && gDLL->UI().isCityScreenUp())
 		{
 			if (pLoopCity->canWork(this))
 			{
@@ -3988,15 +3985,15 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_CITY_REVOLTED_JOINED",
 				pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey(),
 				szOldOwnerDescr)); // advc.101
-		gDLL->getInterfaceIFace()->addMessage(getOwner(), false, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT, 
-				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)
-				GC.getInfoTypeForString("COLOR_RED"), getX(), getY(), true, true);
-		gDLL->getInterfaceIFace()->addMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(),
-				szBuffer, "AS2D_CULTUREFLIP",
+		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, *this,
+				"AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT, 
+				ARTFILEMGR.getInterfaceArtPath("WORLDBUILDER_CITY_EDIT"),
+				GC.getColorType("RED"));
+		gDLL->UI().addMessage(eNewValue, false, -1, szBuffer, *this,
+				"AS2D_CULTUREFLIP",
 				MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)
-				GC.getInfoTypeForString("COLOR_GREEN"), getX(), getY(), true, true);
+				ARTFILEMGR.getInterfaceArtPath("WORLDBUILDER_CITY_EDIT"),
+				GC.getColorType("GREEN"));
 		// <advc.101> Tell other civs about it (akin to code in CvCity::doRevolt)
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
@@ -4006,17 +4003,16 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			{
 				continue;
 			}
-			ColorTypes eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
+			ColorTypes eColor = NO_COLOR;
 			InterfaceMessageTypes eMsgType = MESSAGE_TYPE_MAJOR_EVENT;
-			if(GET_TEAM(eNewValue).isVassal(kObs.getTeam()))
-				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
-			else if(GET_TEAM(pOldCity->getTeam()).isVassal(kObs.getTeam()))
-				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+			if (GET_TEAM(eNewValue).isVassal(kObs.getTeam()))
+				eColor = GC.getColorType("GREEN");
+			else if (GET_TEAM(pOldCity->getTeam()).isVassal(kObs.getTeam()))
+				eColor = GC.getColorType("RED");
 			else eMsgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY; // advc.106b
-			gDLL->getInterfaceIFace()->addMessage(kObs.getID(), false,
-					GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, eMsgType,
-					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
-					eColor, getX(), getY(), true, true);
+			gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer, *this,
+					0, eMsgType, ARTFILEMGR.getInterfaceArtPath("WORLDBUILDER_CITY_EDIT"),
+					eColor);
 		} // </advc.101>
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_REVOLTS_JOINS", pOldCity->getNameKey(),
 				GET_PLAYER(eNewValue).getCivilizationDescriptionKey(),
@@ -4024,7 +4020,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(),
 				szBuffer, getX(), getY());
 				// advc.106: Use ALT_HIGHLIGHT for research-related stuff now
-				//,(ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT")
+				//,GC.getColorType("ALT_HIGHLIGHT_TEXT")
 		FAssert(pOldCity->getOwner() != eNewValue);
 		GET_PLAYER(eNewValue).acquireCity(pOldCity, false, false, bUpdatePlotGroup); // will delete the pointer
 		pOldCity = NULL;
@@ -4175,7 +4171,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		if (GC.getGame().isDebugMode())
 		{
 			updateMinimapColor();
-			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+			gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 			gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
 		}
 	}
@@ -4616,7 +4612,7 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 
 	updateYield();
 	setLayoutDirty(true);
-	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+	gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 }
 
 
@@ -4699,7 +4695,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 		}
 	}
 
-	gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
+	gDLL->UI().setDirty(CitizenButtons_DIRTY_BIT, true);
 }
 
 
@@ -4929,11 +4925,11 @@ void CvPlot::updateWorkingCity()
 	{
 		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 		{
-			//if (gDLL->getInterfaceIFace()->canSelectionListFound())
+			//if (gDLL->UI().canSelectionListFound())
 			// <advc.004h>
-			CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+			CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 			if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->canFound()) // </advc.004h>
-				gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+				gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 		}
 	}
 }
@@ -5805,7 +5801,7 @@ void CvPlot::setRevealedOwner(TeamTypes eTeam, PlayerTypes eNewValue)
 		updateMinimapColor();
 		if (GC.IsGraphicsInitialized())
 		{
-			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+			gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 			gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
 		}
 	}
@@ -6002,8 +5998,8 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 			updateFog();
 			updateVisibility();
 
-			gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+			gDLL->UI().setDirty(MinimapSection_DIRTY_BIT, true);
+			gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 		}
 
 		if (isRevealed(eTeam, false))
@@ -6173,12 +6169,9 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
 			szBuffer = gDLL->getText("TXT_KEY_MISC_CLEARING_FEATURE_BONUS",
 					GC.getInfo(getFeatureType()).getTextKeyWide(),
 					iProduction, pCity->getNameKey());
-			gDLL->getInterfaceIFace()->addMessage(pCity->getOwner(),
-					false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
-					MESSAGE_TYPE_INFO, GC.getInfo(getFeatureType()).getButton(),
-					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-					getX(), getY(), true, true);
+			gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, *this,
+					ARTFILEMGR.getInterfaceArtPath("WORLDBUILDER_CITY_EDIT"),
+					MESSAGE_TYPE_INFO, GC.getInfo(getFeatureType()).getButton(), NO_COLOR);
 		}
 		// Python Event
 		CvEventReporter::getInstance().plotFeatureRemoved(this, getFeatureType(), pCity);
@@ -6451,7 +6444,7 @@ void CvPlot::updateFlagSymbol()
 		ePlayer = pCenterUnit->getVisualOwner();
 
 	//get moving unit's flag
-	if (gDLL->getInterfaceIFace()->getSingleMoveGotoPlot() == this)
+	if (gDLL->UI().getSingleMoveGotoPlot() == this)
 	{
 		if(ePlayer == NO_PLAYER)
 			ePlayer = GC.getGame().getActivePlayer();
@@ -6755,13 +6748,9 @@ void CvPlot::doFeature()  // advc: some style changes
 						// Tell the owner of this city.
 						CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_FEATURE_GROWN_NEAR_CITY",
 								GC.getInfo(eLoopFeature).getTextKeyWide(), pCity->getNameKey()));
-						gDLL->getInterfaceIFace()->addMessage(
-								/*getOwner()*/ pCity->getOwner(), // K-Mod (bugfix)
-								false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-								"AS2D_FEATUREGROWTH", MESSAGE_TYPE_INFO,
-								GC.getInfo(eLoopFeature).getButton(),
-								(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
-								getX(), getY(), true, true);
+						gDLL->UI().addMessage(/*getOwner()*/ pCity->getOwner(), // K-Mod (bugfix)
+								false, -1, szBuffer, *this, "AS2D_FEATUREGROWTH", MESSAGE_TYPE_INFO,
+								GC.getInfo(eLoopFeature).getButton());
 					}
 					break;
 				}
@@ -6999,7 +6988,7 @@ ColorTypes CvPlot::plotMinimapColor()
 		CvCity* pCity = getPlotCity();
 		TeamTypes eActiveTeam = GC.getGame().getActiveTeam(); // advc
 		if (pCity != NULL && pCity->isRevealed(eActiveTeam, true))
-			return (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
+			return GC.getColorType("WHITE");
 
 		if (isActiveVisible(true)
 			&& GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE) != 6) // advc.002a
@@ -7014,12 +7003,12 @@ ColorTypes CvPlot::plotMinimapColor()
 		// dlph.21: Removed !isRevealedBarbarian() clause
 		if (getRevealedOwner(eActiveTeam, true) != NO_PLAYER)
 		{
-			return ((ColorTypes)(GC.getInfo(GET_PLAYER(getRevealedOwner(
-					eActiveTeam, true)).getPlayerColor()).getColorTypePrimary()));
+			return (ColorTypes)GC.getInfo(GET_PLAYER(getRevealedOwner(
+					eActiveTeam, true)).getPlayerColor()).getColorTypePrimary();
 		}
 	}
 
-	return (ColorTypes)GC.getInfoTypeForString("COLOR_CLEAR");
+	return GC.getColorType("CLEAR");
 }
 
 // read object from a stream. used during load.

@@ -121,7 +121,7 @@ void CvPythonCaller::launchPythonScreenPopup(CvPopupInfo const& kPopupInfo, CvPo
 	argsList.add(kPopupInfo.getOption2());
 	call(CvString(kPopupInfo.getText()).c_str(), argsList, lResult, PYScreensModule);
 	if (lResult != 0)
-		gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
+		gDLL->UI().popupSetAsCancelled(pPopup);
 }
 
 void CvPythonCaller::callScreenFunction(char const* szFunctionName) const

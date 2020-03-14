@@ -780,8 +780,7 @@ bool UWAI::Team::tryFindingMaster(TeamTypes enemyId) {
 						ourLeader.getPersonalityType()).getContactDelay(
 						CONTACT_PERMANENT_ALLIANCE));
 				CvDiploParameters* pDiplo = new CvDiploParameters(ourLeader.getID());
-				pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-						"AI_DIPLOCOMMENT_OFFER_VASSAL"));
+				pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_VASSAL"));
 				pDiplo->setAIContact(true);
 				pDiplo->setOurOfferList(theirList);
 				pDiplo->setTheirOfferList(ourList);
@@ -1919,9 +1918,8 @@ void UWAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
 	CvWString szBuffer = gDLL->getText(txtKey,
 			GET_TEAM(agentId).getName().GetCString(),
 			GET_TEAM(targetId).getName().GetCString());
-	gDLL->getInterfaceIFace()->addMessage(activePl.getID(), false,
-			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT,
-			// <advc.127b>
+	gDLL->UI().addMessage(activePl.getID(), false, -1, szBuffer,
+			0, MESSAGE_TYPE_MAJOR_EVENT,  // <advc.127b>
 			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(activePl.getTeam(), true),
 			GET_TEAM(agentId).getCapitalY(activePl.getTeam(), true)); // </advc.127b>
 }

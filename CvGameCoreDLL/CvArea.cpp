@@ -567,7 +567,7 @@ void CvArea::changeCleanPowerCount(TeamTypes eIndex, int iChange)
 		GET_TEAM(eIndex).updateCommerce();
 		GET_TEAM(eIndex).updatePowerHealth();
 		if (eIndex == GC.getGame().getActiveTeam())
-			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+			gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
 	}
 }
 
@@ -638,7 +638,7 @@ void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, in
 		GET_PLAYER(eIndex1).updateCommerce();
 	GET_PLAYER(eIndex1).AI_makeAssignWorkDirty();
 	if (GET_PLAYER(eIndex1).getTeam() == GC.getGame().getActiveTeam())
-		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+		gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
 }
 
 

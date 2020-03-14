@@ -200,7 +200,17 @@ public:
 	// <advc.006> Need another param
 	{ return getInfoTypeForString(szType, bHideAssert, false); }
 	int getInfoTypeForString(const char* szType, bool bHideAssert, bool bFromPython) const;
-	// </advc.006>
+	// </advc.006>  // <advc>
+	inline ColorTypes getColorType(const char* szType) const
+	{
+		static CvString szPrefix = "COLOR_";
+		return (ColorTypes)getInfoTypeForString((szPrefix + szType).c_str());
+	}
+	inline DiploCommentTypes getAIDiploCommentType(const char* szType) const
+	{
+		static CvString szPrefix = "AI_DIPLOCOMMENT_";
+		return (DiploCommentTypes)getInfoTypeForString((szPrefix + szType).c_str());
+	} // </advc>
 	void setInfoTypeFromString(const char* szType, int idx);
 	DllExport void infoTypeFromStringReset();
 	DllExport void infosReset();

@@ -105,7 +105,7 @@ bool CvDllPythonEvents::reportMouseEvent(int evt, int iCursorX, int iCursorY, bo
 
 		// add list of active screens
 		std::vector<int> screens;
-		gDLL->getInterfaceIFace()->getInterfaceScreenIdsForInput(screens);
+		gDLL->UI().getInterfaceScreenIdsForInput(screens);
 		eventData.add(screens.size() ? &screens[0] : NULL, screens.size());
 
 		return postEvent(eventData);

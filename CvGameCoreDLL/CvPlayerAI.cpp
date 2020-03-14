@@ -794,7 +794,7 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 				(4 * GC.getInfo(getPersonalityType()).
 				getContactDelay(CONTACT_PEACE_TREATY)) / 3);
 		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-		pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_PEACE"));
+		pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_PEACE"));
 		pDiplo->setAIContact(true);
 		pDiplo->setOurOfferList(theyGive);
 		pDiplo->setTheirOfferList(weGive);
@@ -814,7 +814,7 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 	CvPlayerAI& kRecipient = GET_PLAYER(eRecipient);
 	CvPlayerAI& kGiver = GET_PLAYER(eGiver);
 	// <advc.104h> Pay gold if peace vals are similar. (Tbd.: gold per turn)
-	if(iDelta <= kGiver.AI_maxGoldTrade(eRecipient, true /* advc.134a */ ) &&
+	if (iDelta <= kGiver.AI_maxGoldTrade(eRecipient, true /* advc.134a */ ) &&
 		iDelta < 100 * kGiver.getCurrentEra())
 	{
 		if(kGiver.canTradeItem(eRecipient, TradeData(TRADE_GOLD, iDelta), true))
@@ -828,7 +828,7 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 		int iBestValue = MIN_INT;
 		FOR_EACH_ENUM(Tech)
 		{
-			if(kGiver.canTradeItem(eRecipient, TradeData(
+			if (kGiver.canTradeItem(eRecipient, TradeData(
 				TRADE_TECHNOLOGIES, eLoopTech), true))
 			{
 				/*  advc.104h: Pick the best fit instead of a random tech.
@@ -845,7 +845,7 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 						AI_getAtWarCounter(kGiver.getTeam()), 1.65)), "AI Peace Trading");
 				// BtS code:
 				//iValue = (1 + GC.getGame().getSorenRandNum(10000, "AI Peace Trading (Tech #1)"));
-				if(iValue > iBestValue)
+				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
 					*eBestTech = eLoopTech;
@@ -853,7 +853,7 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 			}
 		}
 	}
-	if(*eBestTech != NO_TECH)
+	if (*eBestTech != NO_TECH)
 	{
 		// advc.104h: techTradeVal reduced by passing peaceDeal=true
 		r += GET_TEAM(kRecipient.getTeam()).AI_techTradeVal(*eBestTech,
@@ -867,7 +867,7 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 	{
 		int iTradeGold = std::min(iDelta - r, kGiver.AI_maxGoldTrade(eRecipient,
 				true)); // advc.134a
-		if(iTradeGold > 0)
+		if (iTradeGold > 0)
 		{
 			if(kGiver.canTradeItem(eRecipient, TradeData(
 				TRADE_GOLD, iTradeGold), true))
@@ -878,31 +878,31 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 		}
 	}
 	// advc.104h: Don't add a city to the trade if it's already almost square
-	if(iDelta - r > 0.2 * iDelta &&
+	if (iDelta - r > 0.2 * iDelta &&
 		kGiver.canPossiblyTradeItem(eRecipient, TRADE_CITIES)) // advc.opt
 	{
 		CvCityAI const* pBestCityAI = NULL;
 		int iBestValue = 0;
 		FOR_EACH_CITYAI(pLoopCity, kGiver)
 		{
-			if(kGiver.canTradeItem(eRecipient, TradeData(
-				TRADE_CITIES, pLoopCity->getID()), true)
+			if (kGiver.canTradeItem(eRecipient, TradeData(
+				TRADE_CITIES, pLoopCity->getID()), true) &&
 				/*  <advc.104h> BtS checks this (only if we're the ones giving
 					away the city). Apply the check regardless of who owns the
 					city, but make it less strict. */
-				//&& (eRecipient == getID() || kRecipient.AI_cityTradeVal(*pLoopCity) <= iDelta - r)
-				&& kRecipient.AI_cityTradeVal(*pLoopCity) <=
+				//(eRecipient == getID() || kRecipient.AI_cityTradeVal(*pLoopCity) <= iDelta - r)
+				kRecipient.AI_cityTradeVal(*pLoopCity) <=
 				iDelta - r + 0.2 * iDelta) // </advc.104h>
 			{
 				int iValue = pLoopCity->getPlot().calculateCulturePercent(eRecipient);
-				if(iValue > iBestValue)
+				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
 					pBestCityAI = pLoopCity;
 				}
 			}
 		}
-		if(pBestCityAI != NULL)
+		if (pBestCityAI != NULL)
 		{
 			r += kRecipient.AI_cityTradeVal(*pBestCityAI);
 			*pBestCity = pBestCityAI;
@@ -927,14 +927,14 @@ void CvPlayerAI::AI_offerCapitulation(PlayerTypes eTo)
 			2 * GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_PEACE_TREATY));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-	pDiplo->setDiploComment((DiploCommentTypes)
-			GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_PEACE"));
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_PEACE"));
 	pDiplo->setAIContact(true);
 	pDiplo->setOurOfferList(theirList);
 	pDiplo->setTheirOfferList(ourList);
 	gDLL->beginDiplomacy(pDiplo, eTo);
 	//advc.test, advc.134a:
-	FAssertMsg(false, "AI sent capitulation offer; if it doesn't appear, it could be b/c of a change in circumstances, or advc.134a isn't working as intended");
+	/*FAssertMsg(false, "AI sent capitulation offer; if it doesn't appear, "
+			"it could be b/c of a change in circumstances, or advc.134a isn't working as intended");*/
 }
 // </advc.104h>
 // advc: Cut from AI_doPeace
@@ -2610,7 +2610,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	PROFILE_FUNC();
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
 
-	CvGame& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	CvPlayerAI const& kOwner = GET_PLAYER(pCity->getOwner());
 	//int iValue = 1 + pCity->getPopulation() * (50 + pCity->calculateCulturePercent(getID())) / 100;
 	int iValue = 5 + pCity->getPopulation() * (100 + pCity->calculateCulturePercent(getID())) / 150; // K-Mod (to dilute the other effects)
@@ -2667,17 +2667,19 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	bool bThwartVictory = false; // advc.104d
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
-		if (pCity->getCultureLevel() >= g.culturalVictoryCultureLevel() - 1)
+		if (pCity->getCultureLevel() >= kGame.culturalVictoryCultureLevel() - 1)
 		{
 			iValue += 10; // advc.104d: Was 15; will reduce distance penalty instead.
 			if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 			{
 				iValue += 15; // advc.104d: was 25
-				if (pCity->getCultureLevel() >= (g.culturalVictoryCultureLevel()) ||
-						// K-Mod:
-						pCity->findCommerceRateRank(COMMERCE_CULTURE) <=
-						g.culturalVictoryNumCultureCities())
+				if (pCity->getCultureLevel() >= (kGame.culturalVictoryCultureLevel()) ||
+					// <K-Mod>
+					pCity->findCommerceRateRank(COMMERCE_CULTURE) <=
+					kGame.culturalVictoryNumCultureCities()) // </K-Mod>
+				{
 					iValue += 50; // advc.104d: Was 60 in K-Mod, 10 in BBAI.
+				}
 			}
 			bThwartVictory = true; // advc.104d
 		}
@@ -2695,7 +2697,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			{
 				iValue += 10; // was 20
-				if (GET_TEAM(pCity->getTeam()).getVictoryCountdown(g.getSpaceVictory()) >= 0)
+				if (GET_TEAM(pCity->getTeam()).getVictoryCountdown(kGame.getSpaceVictory()) >= 0)
 					iValue += 100; // was 30
 				bThwartVictory = true; // advc.104d
 			}
@@ -2732,14 +2734,14 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	}
 
 	if (bRandomize)
-		iValue += g.getSorenRandNum((pCity->getPopulation() / 2) + 1, "AI Target City Value");
+		iValue += GC.getGame().getSorenRandNum(pCity->getPopulation() / 2 + 1, "AI Target City Value");
 
 	// K-Mod.
 	//if (pCity->getHighestPopulation() < 1)
 	// Usually this means the city would be auto-razed.
 	// (We can't use isAutoRaze for this, because that assumes the city is already captured.)
 	// dlph.29 (bugfix):
-	if (pCity->getHighestPopulation() == 1 && !g.isOption(GAMEOPTION_NO_CITY_RAZING))
+	if (pCity->getHighestPopulation() == 1 && !kGame.isOption(GAMEOPTION_NO_CITY_RAZING))
 		iValue = (iValue + 2) / 3;
 	// K-Mod end
 	return iValue;
@@ -6337,24 +6339,24 @@ void CvPlayerAI::AI_chooseResearch()
 
 DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 {
-	DiploCommentTypes eDefaultGreeting = (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GREETINGS");
+	DiploCommentTypes eDefaultGreeting = GC.getAIDiploCommentType("GREETINGS");
 	if (TEAMID(ePlayer) == getTeam())
 		return eDefaultGreeting; // advc
 	// <advc.079>
 	// Checks moved up
 	bool bBrag = (GET_PLAYER(ePlayer).getPower() < getPower() &&
 			AI_getAttitude(ePlayer) < ATTITUDE_PLEASED);
-	if(bBrag)
+	if (bBrag)
 	{
 		int iDemandRand = GC.getInfo(getPersonalityType()).
 				getContactRand(CONTACT_DEMAND_TRIBUTE);
-		if(iDemandRand < 400)
+		if (iDemandRand < 400)
 		{
-			if(!GET_PLAYER(ePlayer).canSeeTech(getID()) ||
+			if (!GET_PLAYER(ePlayer).canSeeTech(getID()) ||
 				!GET_PLAYER(ePlayer).canTradeNetworkWith(getID()))
 			{
 				UnitTypes eBragUnit = AI_getBestAttackUnit();
-				if(eBragUnit != NO_UNIT)
+				if (eBragUnit != NO_UNIT)
 				{
 					/*double prBrag = 0;
 					if(iDemandRand > 0) // e.g. 25 -> 73.1%; 1000 -> 16.9%
@@ -6365,10 +6367,10 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 					if(::hash(inputs, getID()) < prBrag) */
 					// ^Don't randomize this after all; instead check <400 above.
 					{	// If we haven't bragged before, do it promptly.
-						if(eBragUnit != m_aeLastBrag[ePlayer])
+						if (eBragUnit != m_aeLastBrag[ePlayer])
 						{
 							const_cast<CvPlayerAI*>(this)->m_aeLastBrag[ePlayer] = eBragUnit;
-							return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_UNIT_BRAG");
+							return GC.getAIDiploCommentType("UNIT_BRAG");
 						} // else: Use BtS code below
 					} // Never brag about this unit to ePlayer
 					//else bBrag = false;
@@ -6387,14 +6389,16 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 		const_cast<CvPlayerAI*>(this)->m_aeLastWarn[ePlayer] = eWorstEnemy;
 		// </advc.079>
 		if (GET_PLAYER(ePlayer).AI_hasTradedWithTeam(eWorstEnemy) &&
-				!atWar(TEAMID(ePlayer), eWorstEnemy))
-			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY_TRADING");
-		else return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY");
+			!atWar(TEAMID(ePlayer), eWorstEnemy))
+		{
+			return GC.getAIDiploCommentType("WORST_ENEMY_TRADING");
+		}
+		return GC.getAIDiploCommentType("WORST_ENEMY");
 	}
-	else if (getNumNukeUnits() > 0 && GC.getASyncRand().get(4) == 0)
-		return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_NUKES");
-	else if (/* <advc.079> */ bBrag && /* </advc.079> */ GC.getASyncRand().get(4) == 0)
-		return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_UNIT_BRAG");
+	if (getNumNukeUnits() > 0 && GC.getASyncRand().get(4) == 0)
+		return GC.getAIDiploCommentType("NUKES");
+	if (/* <advc.079> */ bBrag && /* </advc.079> */ GC.getASyncRand().get(4) == 0)
+		return GC.getAIDiploCommentType("UNIT_BRAG");
 	return eDefaultGreeting;
 }
 
@@ -10913,11 +10917,13 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	{
 		iValueForThem = kPlayer.AI_bonusVal(eBonus, iChange, false, true);
 	// </advc.036>
-		if (isHuman()
+		if (isHuman() &&
 				/*  advc.036: No deal if they (AI) don't need the resource, but
 					check attitude before giving the human that info. */
-				&& iValueForThem >= iTradeValThresh)
+			iValueForThem >= iTradeValThresh)
+		{
 			return NO_DENIAL;
+		}
 	}
 	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == TEAMID(eToPlayer))
 		return DENIAL_WORST_ENEMY;
@@ -11036,17 +11042,17 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	} // </advc.037>
 	// Replacing the JOKING clause further up
 	if(kPlayer.isHuman() && (iAvailThem + iChange <= 1 ? /*  Don't presume value
-			for human unless human only needs the resource for a corp */
-			(iValueForUs >= iTradeValThresh +
-			/*  bonusVal gives every city equal weight, but early on,
-				it's mostly about the capital, which can grow fast. */
-			std::min(2, (getNumCities() - 1) / 2)) :
-			(3 * iValueForUs >= 2 * iValueForThem ||
-			iValueForThem <= 0 ||
-			(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
-			iValueForUs > iTradeValThresh + 2)))
+		for human unless human only needs the resource for a corp */
+		(iValueForUs >= iTradeValThresh +
+		/*  bonusVal gives every city equal weight, but early on,
+			it's mostly about the capital, which can grow fast. */
+		std::min(2, (getNumCities() - 1) / 2)) :
+		(3 * iValueForUs >= 2 * iValueForThem || iValueForThem <= 0 ||
+		(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
+		iValueForUs > iTradeValThresh + 2)))
+	{
 		return DENIAL_NO_GAIN;
-	// </advc.036>
+	} // </advc.036>
 	return NO_DENIAL;
 }
 
@@ -17722,7 +17728,7 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 					TRADE_GOLD_PER_TURN, iHumanGaveGold - iHumanReceivedGold));
 		}
 		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-		pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_CANCEL_DEAL"));
+		pDiplo->setDiploComment(GC.getAIDiploCommentType("CANCEL_DEAL"));
 		pDiplo->setAIContact(true);
 		pDiplo->setOurOfferList(humanGave);
 		pDiplo->setTheirOfferList(humanReceived);
@@ -17857,7 +17863,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						if (!abContacted[kPlayer.getTeam()])
 						{
 							pDiplo = new CvDiploParameters(getID());
-							pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GIVE_HELP"));
+							pDiplo->setDiploComment(GC.getAIDiploCommentType("GIVE_HELP"));
 							pDiplo->setAIContact(true);
 							pDiplo->setTheirOfferList(ourList);
 							gDLL->beginDiplomacy(pDiplo, ePlayer);
@@ -17927,7 +17933,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						if (!abContacted[kPlayer.getTeam()])
 						{
 							pDiplo = new CvDiploParameters(getID());
-							pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GIVE_HELP"));
+							pDiplo->setDiploComment(GC.getAIDiploCommentType("GIVE_HELP"));
 							pDiplo->setAIContact(true);
 							pDiplo->setTheirOfferList(ourList);
 							gDLL->beginDiplomacy(pDiplo, ePlayer);
@@ -17975,10 +17981,11 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					{
 						if (!abContacted[kPlayer.getTeam()])
 						{
-							CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_VASSAL_GRANT_TRIBUTE, getID(), eBestGiveBonus);
+							CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_VASSAL_GRANT_TRIBUTE,
+									getID(), eBestGiveBonus);
 							if (pInfo)
 							{
-								gDLL->getInterfaceIFace()->addPopup(pInfo, ePlayer);
+								gDLL->UI().addPopup(pInfo, ePlayer);
 								abContacted[kPlayer.getTeam()] = true;
 							}
 						}
@@ -18019,7 +18026,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							{
 								//if (!(abContacted[GET_PLAYER((PlayerTypes)iI).getTeam()])) {
 								pDiplo = new CvDiploParameters(getID());
-								pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_CITY"));
+								pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_CITY"));
 								pDiplo->setAIContact(true);
 								pDiplo->setTheirOfferList(ourList);
 								gDLL->beginDiplomacy(pDiplo, ePlayer);
@@ -18055,7 +18062,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 								{
 									AI_changeContactTimer(ePlayer, CONTACT_PERMANENT_ALLIANCE, GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_PERMANENT_ALLIANCE));
 									pDiplo = new CvDiploParameters(getID());
-									pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
+									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 									pDiplo->setAIContact(true);
 									pDiplo->setOurOfferList(theirList);
 									pDiplo->setTheirOfferList(ourList);
@@ -18099,7 +18106,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 								{
 									AI_changeContactTimer(ePlayer, CONTACT_PERMANENT_ALLIANCE, GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_PERMANENT_ALLIANCE));
 									pDiplo = new CvDiploParameters(getID());
-									pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_VASSAL"));
+									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_VASSAL"));
 									pDiplo->setAIContact(true);
 									pDiplo->setOurOfferList(theirList);
 									pDiplo->setTheirOfferList(ourList);
@@ -18255,7 +18262,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 										{
 											AI_changeContactTimer(ePlayer, CONTACT_GIVE_HELP, GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_GIVE_HELP));
 											pDiplo = new CvDiploParameters(getID());
-											pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GIVE_HELP"));
+											pDiplo->setDiploComment(GC.getAIDiploCommentType("GIVE_HELP"));
 											pDiplo->setAIContact(true);
 											pDiplo->setTheirOfferList(ourList);
 											gDLL->beginDiplomacy(pDiplo, ePlayer);
@@ -18345,7 +18352,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									::round(speedAdjust * // advc.124
 									GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_OPEN_BORDERS)));
 							pDiplo = new CvDiploParameters(getID());
-							pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
+							pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 							pDiplo->setAIContact(true);
 							pDiplo->setOurOfferList(theirList);
 							pDiplo->setTheirOfferList(ourList);
@@ -18382,7 +18389,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 								{
 									AI_changeContactTimer(ePlayer, CONTACT_DEFENSIVE_PACT, GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_DEFENSIVE_PACT));
 									pDiplo = new CvDiploParameters(getID());
-									pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
+									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 									pDiplo->setAIContact(true);
 									pDiplo->setOurOfferList(theirList);
 									pDiplo->setTheirOfferList(ourList);
@@ -18544,7 +18551,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									{
 										AI_changeContactTimer(ePlayer, CONTACT_TRADE_TECH, GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_TRADE_TECH));
 										pDiplo = new CvDiploParameters(getID());
-										pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
+										pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 										pDiplo->setAIContact(true);
 										pDiplo->setOurOfferList(theirList);
 										pDiplo->setTheirOfferList(ourList);
@@ -18622,7 +18629,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 								{
 									AI_changeContactTimer(ePlayer, CONTACT_TRADE_MAP, GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_TRADE_MAP));
 									pDiplo = new CvDiploParameters(getID());
-									pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
+									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 									pDiplo->setAIContact(true);
 									pDiplo->setOurOfferList(theirList);
 									pDiplo->setTheirOfferList(ourList);
@@ -18966,9 +18973,8 @@ bool CvPlayerAI::AI_proposeJointWar(PlayerTypes eHuman)
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 	/*  NB: The DLL never deletes CvDiploParameters objects; presumably
 		handled by beginDiplomacy */
-	pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-			"AI_DIPLOCOMMENT_JOIN_WAR"), GET_PLAYER(GET_TEAM(eBestTarget).
-			getLeaderID()).getCivilizationAdjectiveKey());
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("JOIN_WAR"),
+			GET_PLAYER(GET_TEAM(eBestTarget).getLeaderID()).getCivilizationAdjectiveKey());
 	pDiplo->setAIContact(true);
 	pDiplo->setData(eBestTarget);
 	gDLL->beginDiplomacy(pDiplo, eHuman);
@@ -19024,8 +19030,7 @@ bool CvPlayerAI::AI_proposeEmbargo(PlayerTypes eHuman)
 			GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_STOP_TRADING));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-	pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-			"AI_DIPLOCOMMENT_STOP_TRADING"),
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("STOP_TRADING"),
 			GET_PLAYER(GET_TEAM(eBestTeam).getLeaderID()).
 			getCivilizationAdjectiveKey());
 	pDiplo->setAIContact(true);
@@ -19169,8 +19174,7 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 		AI_changeContactTimer(eTo, CONTACT_TRADE_BONUS, GC.getInfo(getPersonalityType()).
 				getContactDelay(CONTACT_TRADE_BONUS));
 		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-		pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-				"AI_DIPLOCOMMENT_OFFER_DEAL"));
+		pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 		pDiplo->setAIContact(true);
 		pDiplo->setOurOfferList(theirList);
 		pDiplo->setTheirOfferList(ourList);
@@ -19195,8 +19199,7 @@ bool CvPlayerAI::AI_contactReligion(PlayerTypes eHuman)
 			GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_RELIGION_PRESSURE));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-	pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-			"AI_DIPLOCOMMENT_RELIGION_PRESSURE"));
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("RELIGION_PRESSURE"));
 	pDiplo->setAIContact(true);
 	gDLL->beginDiplomacy(pDiplo, eHuman);
 	return true;
@@ -19219,8 +19222,7 @@ bool CvPlayerAI::AI_contactCivics(PlayerTypes eHuman)
 			GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_CIVIC_PRESSURE));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-	pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-			"AI_DIPLOCOMMENT_CIVIC_PRESSURE"),
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("CIVIC_PRESSURE"),
 			GC.getInfo(eFavoriteCivic).getTextKeyWide());
 	pDiplo->setAIContact(true);
 	gDLL->beginDiplomacy(pDiplo, eHuman);
@@ -19283,8 +19285,7 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 			GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_ASK_FOR_HELP));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-	pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-			"AI_DIPLOCOMMENT_ASK_FOR_HELP"));
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("ASK_FOR_HELP"));
 	pDiplo->setAIContact(true);
 	pDiplo->setOurOfferList(theirList);
 	gDLL->beginDiplomacy(pDiplo, eHuman);
@@ -19430,8 +19431,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 			GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_DEMAND_TRIBUTE));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
-	pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-			"AI_DIPLOCOMMENT_DEMAND_TRIBUTE"));
+	pDiplo->setDiploComment(GC.getAIDiploCommentType("DEMAND_TRIBUTE"));
 	pDiplo->setAIContact(true);
 	pDiplo->setOurOfferList(theirList);
 	gDLL->beginDiplomacy(pDiplo, eHuman);

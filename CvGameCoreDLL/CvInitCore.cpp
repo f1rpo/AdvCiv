@@ -1196,8 +1196,7 @@ void CvInitCore::setLeaderName(PlayerTypes eID, const CvWString & szLeaderName)
 		m_aszLeaderName[eID] = szName;
 	}
 	else FAssertBounds(0, MAX_PLAYERS, eID);
-	// advc.001m:
-	gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+	gDLL->UI().setDirty(Score_DIRTY_BIT, true); // advc.001m
 }
 
 const CvWString & CvInitCore::getLeaderNameKey(PlayerTypes eID) const

@@ -46,6 +46,8 @@ class CvArtInfoInterface;
 public: \
 	friend class Cv##name##ArtInfoItem; \
 	DllExport CvArtInfo##name##* get##name##ArtInfo(const char *szArtDefineTag) const; \
+	/* advc: shorthand */ \
+	TCHAR const* get##name##ArtPath(char const* szArtDefineTag) const; \
 	int getNum##name##ArtInfos() { return (int)m_pa##name##ArtInfo.size(); } \
 	std::vector<CvArtInfo##name##*>& get##name##ArtInfo() { return m_pa##name##ArtInfo; } \
 	DllExport CvArtInfo##name##& get##name##ArtInfo(int i); \

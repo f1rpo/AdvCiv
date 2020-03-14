@@ -269,10 +269,10 @@ void CvSelectionGroup::doTurn()
 			if (iBestWaitTurns > 0)
 			{
 				// Cycle selection if the current group is selected
-				CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+				CvUnit* pSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 				if (pSelectedUnit && pSelectedUnit->getGroup() == this)
 				{
-					gDLL->getInterfaceIFace()->selectGroup(pSelectedUnit, false, false, false);
+					gDLL->UI().selectGroup(pSelectedUnit, false, false, false);
 				}
 			}
 		}
@@ -514,7 +514,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 			if (isBusy() && GC.getInfo(eMission).isSound())
 				playActionSound();
 
-			gDLL->getInterfaceIFace()->setHasMovedUnit(true);
+			gDLL->UI().setHasMovedUnit(true);
 			/*  advc.001w: Prevent help text and mouse focus from lingering after
 				a command button is clicked */
 			GC.getGame().setUpdateTimer(CvGame::UPDATE_MOUSE_FOCUS, 2);
@@ -597,7 +597,7 @@ void CvSelectionGroup::updateMission()
 			{
 				if (getOwner() == GC.getGame().getActivePlayer())
 				{
-					if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
+					if (gDLL->UI().getHeadSelectedUnit() == NULL)
 						GC.getGame().cycleSelectionGroups_delayed(1, true);
 				}
 			}
@@ -3077,27 +3077,26 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 			break;
 		}
 		// advc.011c:
-		if(!bFinish && isHuman() && pPlot->getBuildTurnsLeft(eBuild, getOwner()) == 1)
+		if (!bFinish && isHuman() && pPlot->getBuildTurnsLeft(eBuild, getOwner()) == 1)
 		{
 			// <advc.011b>
 			CvWString szBuild = GC.getInfo(eBuild).getDescription();
 			// Get rid of the LINK tags b/c these result in an underscore
-			for(int i = 0; i < 2; i++)
+			for (int i = 0; i < 2; i++)
 			{
 				int posOpening = szBuild.find(L'<');
-				if(posOpening == CvWString::npos)
+				if (posOpening == CvWString::npos)
 					continue;
 				int posClosing = szBuild.find(L'>');
-				if(posClosing == CvWString::npos || posClosing < posOpening)
+				if (posClosing == CvWString::npos || posClosing < posOpening)
 					continue;
 				szBuild = (szBuild.substr(0, posOpening) +
 						szBuild.substr(posClosing + 1, szBuild.length() - posClosing - 1));
 			}
 			CvWString szBuffer = gDLL->getText("TXT_KEY_BUILD_NOT_FINISHED", szBuild.c_str());
-			gDLL->getInterfaceIFace()->addMessage(getOwner(), false,
-					GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO,
+			gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, NULL, MESSAGE_TYPE_INFO,
 					GC.getInfo(eBuild).getButton()/*getHeadUnit()->getButton()*/,
-					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"/*"COLOR_BUILDING_TEXT"*/),
+					GC.getColorType("WHITE"/*"COLOR_BUILDING_TEXT"*/),
 					getX(), getY(), true, false);
 			// </advc.011b>
 			// <advc.011c>
@@ -3748,10 +3747,10 @@ void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 		}
 	}
 
-	if (pPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
+	if (pPlot == gDLL->UI().getSelectionPlot())
 	{
-		gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 	}
 }
 
@@ -4275,9 +4274,9 @@ void CvSelectionGroup::clearMissionQueue()
 	m_missionQueue.clear();
 	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(Waypoints_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 }
 
@@ -4303,9 +4302,9 @@ void CvSelectionGroup::insertAtEndMissionQueue(MissionData mission, bool bStart)
 
 	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(Waypoints_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 }
 
@@ -4326,9 +4325,9 @@ CLLNode<MissionData>* CvSelectionGroup::deleteMissionQueueNode(CLLNode<MissionDa
 
 	if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
 	{
-		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
+		gDLL->UI().setDirty(Waypoints_DIRTY_BIT, true);
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
+		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 	}
 
 	return pNextMissionNode;

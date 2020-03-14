@@ -313,7 +313,11 @@ public:
 	bool at(CvPlot const* pPlot) const // advc: const CvPlot*													// Exposed to Python as atPlot
 	{
 		return (plot() == pPlot); // advc.inl
-	}
+	}  // <advc>
+	bool at(CvPlot const& kPlot) const
+	{
+		return (plot() == &kPlot);
+	} // </advc>
 	DllExport __forceinline CvPlot* plot() const { return m_pPlot; } // advc.opt: cached						// Exposed to Python
 	__forceinline CvPlot& getPlot() const { return *m_pPlot; } // advc
 	void updatePlot(); // advc.opt

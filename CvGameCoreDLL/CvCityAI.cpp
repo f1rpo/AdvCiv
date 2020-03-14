@@ -173,7 +173,7 @@ void CvCityAI::AI_assignWorkingPlots()
 
 		if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
 		{
-			gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
+			gDLL->UI().setDirty(CitizenButtons_DIRTY_BIT, true);
 		}
 		return;
 	}
@@ -243,9 +243,7 @@ void CvCityAI::AI_assignWorkingPlots()
 
 	// if automated, look for better choices than the current ones
 	if (!isHuman() || isCitizensAutomated())
-	{
 		AI_juggleCitizens();
-	}
 
 	// at this point, we should not be over the limit
 	FAssert((getWorkingPopulation() + getSpecialistPopulation()) <= (totalFreeSpecialists() + getPopulation()));
@@ -254,9 +252,7 @@ void CvCityAI::AI_assignWorkingPlots()
 	AI_setAssignWorkDirty(false);
 
 	if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
-	{
-		gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
-	}
+		gDLL->UI().setDirty(CitizenButtons_DIRTY_BIT, true);
 }
 
 
@@ -6781,10 +6777,8 @@ void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 
 		AI_assignWorkingPlots();
 
-		if ((getOwner() == GC.getGame().getActivePlayer()) && isCitySelected())
-		{
-			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-		}
+		if (getOwner() == GC.getGame().getActivePlayer() && isCitySelected())
+			gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
 	}
 }
 
