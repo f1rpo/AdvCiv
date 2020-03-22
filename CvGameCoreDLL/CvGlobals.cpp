@@ -809,48 +809,47 @@ int CvGlobals::getMAX_CIV_PLAYERS()
 {
 	return MAX_CIV_PLAYERS;
 }
-/*  <advc.003t> Optional parameters added. The return value is only an upper bound,
-	even if an argument is given. */
+// <advc.003t> Variants that take a parameter. The return value is still only an upper bound.
 int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
 {
-	return (eUnit == NO_UNIT || getInfo(eUnit).isAnyPrereqOrBonus() ?
-			getDefineINT(NUM_UNIT_PREREQ_OR_BONUSES) : 0);
+	return (getInfo(eUnit).isAnyPrereqOrBonus() ?
+			getNUM_UNIT_PREREQ_OR_BONUSES() : 0);
 }
 
 int CvGlobals::getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const
 {
-	return (eUnit == NO_UNIT || getInfo(eUnit).isAnyPrereqAndTech() ?
-			getDefineINT(NUM_UNIT_AND_TECH_PREREQS) : 0);
+	return (getInfo(eUnit).isAnyPrereqAndTech() ?
+			getNUM_UNIT_AND_TECH_PREREQS() : 0);
 }
 
 int CvGlobals::getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const
 {
-	return (eBuilding == NO_BUILDING || getInfo(eBuilding).isAnyPrereqOrBonus() ?
-			getDefineINT(NUM_BUILDING_PREREQ_OR_BONUSES) : 0);
+	return (getInfo(eBuilding).isAnyPrereqOrBonus() ?
+			getNUM_BUILDING_PREREQ_OR_BONUSES() : 0);
 }
 
 int CvGlobals::getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const
 {
-	return (eBuilding == NO_BUILDING || getInfo(eBuilding).isAnyPrereqAndTech() ?
-			getDefineINT(NUM_BUILDING_AND_TECH_PREREQS) : 0);
+	return (getInfo(eBuilding).isAnyPrereqAndTech() ?
+			getNUM_BUILDING_AND_TECH_PREREQS() : 0);
 }
 
 int CvGlobals::getNUM_AND_TECH_PREREQS(TechTypes eTech) const
 {
-	return (eTech == NO_TECH || getInfo(eTech).isAnyPrereqAndTech() ?
-			getDefineINT(NUM_AND_TECH_PREREQS) : 0);
+	return (getInfo(eTech).isAnyPrereqAndTech() ?
+			getNUM_AND_TECH_PREREQS() : 0);
 }
 
 int CvGlobals::getNUM_OR_TECH_PREREQS(TechTypes eTech) const
 {
-	return (eTech == NO_TECH || getInfo(eTech).isAnyPrereqOrTech() ?
-			getDefineINT(NUM_OR_TECH_PREREQS) : 0);
+	return (getInfo(eTech).isAnyPrereqOrTech() ?
+			getNUM_OR_TECH_PREREQS() : 0);
 }
 
 int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
 {
-	return (eRoute == NO_ROUTE || getInfo(eRoute).isAnyPrereqOrBonus() ?
-			getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES) : 0);
+	return (getInfo(eRoute).isAnyPrereqOrBonus() ?
+			getNUM_ROUTE_PREREQ_OR_BONUSES() : 0);
 }
 // </advc.003t>
 int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const

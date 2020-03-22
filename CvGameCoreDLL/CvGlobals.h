@@ -603,20 +603,51 @@ public:
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
 	// </advc.opt>
-	// <advc.003t> Parameters added  // The getNUM...PREREQ... functions are all exposed to Python
-	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit = NO_UNIT) const;
+	// The getNUM...PREREQ... functions are all exposed to Python
+	inline int getNUM_UNIT_PREREQ_OR_BONUSES() const
+	{
+		return getDefineINT(NUM_UNIT_PREREQ_OR_BONUSES);
+	}
+	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const; // advc.003t
 	// <advc.905b>
-	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit = NO_UNIT) const
+	inline int getNUM_UNIT_SPEED_BONUSES() const
+	{
+		return getNUM_UNIT_PREREQ_OR_BONUSES();
+	}
+	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit) const
 	{
 		return getNUM_UNIT_PREREQ_OR_BONUSES(eUnit);
 	} // </advc.905b>
-	int getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit = NO_UNIT) const;
-	int getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding = NO_BUILDING) const;
-	int getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding = NO_BUILDING) const;
-	int getNUM_AND_TECH_PREREQS(TechTypes = NO_TECH) const;
-	int getNUM_OR_TECH_PREREQS(TechTypes = NO_TECH) const;
-	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute = NO_ROUTE) const;
-	// </advc.003t>
+	inline int getNUM_UNIT_AND_TECH_PREREQS() const
+	{
+		return getDefineINT(NUM_UNIT_AND_TECH_PREREQS);
+	}
+	int getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const; // advc.003t
+	inline int getNUM_BUILDING_PREREQ_OR_BONUSES() const
+	{
+		return getDefineINT(NUM_BUILDING_PREREQ_OR_BONUSES);
+	}
+	int getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const; // advc.003t
+	inline int getNUM_BUILDING_AND_TECH_PREREQS() const
+	{
+		return getDefineINT(NUM_BUILDING_AND_TECH_PREREQS);
+	}
+	int getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const; // advc.003t
+	inline int getNUM_AND_TECH_PREREQS() const
+	{
+		return getDefineINT(NUM_AND_TECH_PREREQS);
+	}
+	int getNUM_AND_TECH_PREREQS(TechTypes) const; // advc.003t
+	inline int getNUM_OR_TECH_PREREQS() const
+	{
+		return getDefineINT(NUM_OR_TECH_PREREQS);
+	}
+	int getNUM_OR_TECH_PREREQS(TechTypes) const; // advc.003t
+	inline int getNUM_ROUTE_PREREQ_OR_BONUSES() const
+	{
+		return getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES);
+	}
+	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const; // advc.003t
 	int getNUM_CORPORATION_PREREQ_BONUSES() const; // (advc: A param like above doesn't help b/c all corps require resources)
 	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
 	// advc: All inlined and constified
