@@ -28,8 +28,8 @@
 	#undef MAXUINT
 #endif
 
-/*	Uncomment for some additional runtime assertions checking conditions
-	that are really that client's responsibility. */
+/*	Uncomment for some additional runtime assertions
+	checking conditions that are really the client's responsibility. */
 //#define SCALED_INT_EXTRA_ASSERTS
 
 // For members shared by all instantiations of ScaledInt
