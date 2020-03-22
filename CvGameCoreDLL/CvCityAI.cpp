@@ -12843,7 +12843,8 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	{
 		pStream->Read(&m_bSafe);
 		pStream->Read(&m_iCityValPercent);
-	} // </advc.139>
+	}
+	else m_bSafe = true; // </advc.139>
 	pStream->Read(&m_iWorkersNeeded);
 	pStream->Read(&m_iWorkersHave);
 	// K-Mod
