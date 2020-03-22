@@ -126,6 +126,7 @@ public:
 	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
+	scaled AI_assetVal(CvCity const& c, bool bConquest) const; // advc
 
 	// BETTER_BTS_AI_MOD, 08/20/09, jdog5000: START
 	bool isSafeRangeCacheValid() const; // K-Mod
@@ -241,7 +242,8 @@ public:
 			int iChange = 1, /* advc: was called iExtra, which didn't make sense
 								and differed from the parameter name in CvPlayerAI.cpp. */
 			bool bIgnoreDiscount = false, // advc.550a
-			bool bIgnorePeace = false) const; // advc.130p
+			bool bIgnorePeace = false, // advc.130p
+			bool bCountLiberation = false) const; // advc.ctr
 	bool AI_goldDeal(CLinkList<TradeData> const& kList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
@@ -271,8 +273,18 @@ public:
 	// advc.210e: Exposed to Python
 	int AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
 	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const; // advc.036
-
-	int AI_cityTradeVal(CvCityAI const& kCity, /* advc.ctr: */ PlayerTypes eToPlayer = NO_PLAYER) const;
+	// <advc.ctr>
+	enum LiberationWeightTypes
+	{
+		LIBERATION_WEIGHT_ZERO, // 0 trade value when eToPlayer is the liberation player
+		LIBERATION_WEIGHT_REDUCED,
+		LIBERATION_WEIGHT_FULL
+	}; // </advc.ctr>
+	int AI_cityTradeVal(CvCityAI const& kCity,  // <advc.ctr>
+			PlayerTypes eToPlayer = NO_PLAYER,
+			// (The function will ignore this in some situations)
+			LiberationWeightTypes eLibWeight = LIBERATION_WEIGHT_ZERO,
+			bool bConquest = false) const; // </advc.ctr>
 	DenialTypes AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer) const;
 
 	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
@@ -432,6 +444,7 @@ public:
 	inline void AI_setMemoryCount(PlayerTypes eAboutPlayer, MemoryTypes eMemoryType, int iValue);
 	// advc.130j: Increases memory count according to (hardcoded) granularity
 	void AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType);
+	void AI_rememberLiberation(CvCity const& kCity, bool bConquest); // advc.ctr
 	void AI_processRazeMemory(CvCity const& kCity); // advc.003n
 
 	// K-Mod
@@ -596,6 +609,7 @@ public:
 	bool AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand);
 	// </advc.104m>
 	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
+	scaled AI_targetAmortizationTurns() const; // advc.ctr
 	// advc.104r: Made public and param added
 	void AI_doSplit(bool bForce = false);
 
@@ -604,9 +618,6 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
-	// advc.ctr:
-	AttitudeTypes AI_cityTradeAttitudeThresh(CvCity const& kCity, PlayerTypes eToPlayer, bool bLiberate) const;
-
 	int m_iPeaceWeight;
 	int m_iEspionageWeight;
 	int m_iAttackOddsChange;
@@ -742,10 +753,14 @@ protected:
 			CLinkList<TradeData> const* pList,
 			double leniency, // advc.705
 			bool bGenerous,
-			// advc.036:
-			int iHappyLeft, int iHealthLeft, int iOtherListLength) const;
+			int iHappyLeft, int iHealthLeft, int iOtherListLength) const; // advc.036
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,
 			bool* bEnough = NULL) const;
+	// <advc.ctr>
+	AttitudeTypes AI_cityTradeAttitudeThresh(CvCity const& kCity, PlayerTypes eToPlayer, bool bLiberate) const;
+	static bool isLiberationTrade(PlayerTypes eFirst, PlayerTypes eSecond,
+			CLinkList<TradeData> const& kFirstGives, CLinkList<TradeData> const& kSecondGives);
+	// </advc.ctr>
 	enum CancelCode { NO_CANCEL = -1, RENEGOTIATE, DO_CANCEL };
 	CancelCode AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer);
 	bool AI_doDeals(PlayerTypes eOther);
@@ -800,6 +815,7 @@ protected:
 	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
 	void AI_setHumanDisabled(bool bDisabled); // advc.127
 	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
+	int AI_cityTradeValLegacy(CvCityAI const& kCity, /* advc.ctr: */ PlayerTypes eToPlayer) const;
 
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI

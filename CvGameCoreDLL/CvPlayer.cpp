@@ -1905,20 +1905,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		// <advc.ctr>
 		for (CityPlotIter it(kCityPlot); it.hasNext(); ++it)
 		{
-			CvPlot& kPlot = *it;
-			CvCity* pWorkingCity = kPlot.getWorkingCity();
-			/*  Always reduce eOldOwner culture in the inner circle. Outer circle:
-				Only if tiles not assigned to other cities of eOldOwner. */
-			if (!::adjacentOrSame(kPlot, kCityPlot) && pWorkingCity != NULL &&
-				pWorkingCity->plot() != &kCityPlot &&
-				pWorkingCity->getOwner() != eOldOwner)
-			{
-				continue;
-			}
-			int iConvertedCulture = std::min(kPlot.getCulture(eOldOwner) / 2,
-					2 * kPlot.getCulture(getID()));
-			kPlot.changeCulture(eOldOwner, -iConvertedCulture, false);
-			kPlot.changeCulture(getID(), iConvertedCulture, false);
+			int iConvertedCulture = cultureConvertedUponCityTrade(kCityPlot, *it, eOldOwner);
+			it->changeCulture(eOldOwner, -iConvertedCulture, false);
+			it->changeCulture(getID(), iConvertedCulture, false);
 		}
 		// BtS code replaced by the loop above // </advc.ctr>
 		/*for (int iDX = -1; iDX <= 1; iDX++) {
@@ -2216,7 +2205,28 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	   case where a dead player arranged a vassal agreement. */
 	if(eOldOwner != NO_PLAYER)
 		GET_PLAYER(eOldOwner).verifyAlive(); // </advc.001>
-	AI().AI_updateCityAttitude(kCityPlot); // advc.130w
+	// <advc.130w>
+	AI().AI_updateCityAttitude(kCityPlot);
+	GET_PLAYER(eOldOwner).AI_updateCityAttitude(kCityPlot); // </advc.130w>
+}
+
+// advc.ctr:
+int CvPlayer::cultureConvertedUponCityTrade(CvPlot const& kCityPlot, CvPlot const& kPlot,
+	PlayerTypes eOldOwner) const
+{
+	// Always convert culture in the inner radius
+	bool bConvert = ::adjacentOrSame(kPlot, kCityPlot);
+	if (!bConvert)
+	{
+		// Outer circle: Only if plot not assigned to another city of the current owner
+		CvCity const* pWorkingCity = kPlot.getWorkingCity();
+		bConvert = (pWorkingCity != NULL && !pWorkingCity->at(kCityPlot) &&
+				pWorkingCity->getOwner() == eOldOwner);
+	}
+	if (!bConvert)
+		return 0;
+	return std::min(kPlot.getCulture(eOldOwner) / 2,
+			2 * kPlot.getCulture(getID()));
 }
 
 
@@ -4008,7 +4018,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			break;
 		}
 		CvCity const& kCity = *pCity;
-		if (kCity.getLiberationPlayer(false, /* advc.ctr: */ getTeam()) == eWhoTo)
+		if (kCity.getLiberationPlayer() == eWhoTo)
 			return true;
 		// <advc.ctr>
 		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID()))

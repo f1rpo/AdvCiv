@@ -299,7 +299,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	// K-Mod end
 }
 
-/*  <advc.130p> Based on code cut from addTrades. Return values says whether
+/*  advc.130p: Based on code cut from addTrades. Return values says whether
 	attitude cache needs to be updated. */
 bool CvDeal::recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList,
 	PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
@@ -316,10 +316,10 @@ bool CvDeal::recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<
 	}
 	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
 		Hard to decide, apply half the discount for now. */
-	int iValue = ::round((GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			kFirstList, true, 1, true, true) +
+	int iValue = ROUND_DIVIDE(GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
+			kFirstList, true, 1, true, true, /* advc.ctr: */ true) +
 			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			kFirstList, true, 1, false, true) / 2.0));
+			kFirstList, true, 1, false, true, /* advc.ctr: */ true), 2);
 	if(iValue <= 0)
 		return false;
 	GET_PLAYER(eSecondPlayer).AI_processPeacetimeValue(eFirstPlayer, iValue,
@@ -814,9 +814,16 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		CvCity* pCity = GET_PLAYER(eFromPlayer).getCity(trade.m_iData);
 		if (pCity != NULL)
 		{
+			bool bLib = (pCity->getLiberationPlayer() == eToPlayer); // advc.ctr
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) gives a city due to TRADE_CITIES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 			pCity->doTask(/* advc.ctr: */ bPeace ? TASK_CEDE :
 					TASK_GIFT, eToPlayer);
+			// <advc.ctr>
+			if (!bPeace && !bLib)
+			{
+				FAssert(!GET_TEAM(eFromPlayer).isAtWar(TEAMID(eToPlayer)));
+				GET_TEAM(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
+			} // </advc.ctr>
 		}
 		break;
 	}

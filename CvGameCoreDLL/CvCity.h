@@ -1208,8 +1208,7 @@ public:
 	int getBuildingHealthChange(BuildingClassTypes eBuildingClass) const;											// Exposed to Python
 	void setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange);									// Exposed to Python
 
-	PlayerTypes getLiberationPlayer(bool bConquest /* advc: */ = false,												// Exposed to Python
-			TeamTypes eWarTeam = NO_TEAM) const; // advc.ctr
+	PlayerTypes getLiberationPlayer(bool bConquest /* advc: */ = false) const;										// Exposed to Python
 	void liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal = false);											// Exposed to Python
 	void meetNewOwner(TeamTypes eOtherTeam, TeamTypes eNewOwner) const; // advc.071
 

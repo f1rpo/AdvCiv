@@ -12469,10 +12469,10 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 	}
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szBuffer,
 			getX(), getY(), GC.getColorType("HIGHLIGHT_TEXT"));
-
+	// <advc.ctr>
+	if (!bPeaceDeal)
+		GET_PLAYER(ePlayer).AI_rememberLiberation(*this, bConquest); // </advc.ctr>
 	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
-	if(!bPeaceDeal) // advc.ctr
-		GET_PLAYER(ePlayer).AI_rememberEvent(getOwner(), MEMORY_LIBERATED_CITIES); // advc.130j
 
 	if (kLiberationTeam.isVassal(getTeam()))
 	{
@@ -12505,7 +12505,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 }
 
 // advc: style changes and renamed some variables
-PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamTypes eWarTeam) const
+PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 {
 	if (isCapital())
 		return NO_PLAYER;
@@ -12600,12 +12600,6 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest, /* advc.ctr: */ TeamType
 	{
 		if (kOwner.getID() == eBestPlayer)
 			return NO_PLAYER;
-		// advc.ctr: Now handled by denial check (CvPlayerAI::AI_cityTrade)
-		/*for (CityPlotIter it(*this); it.hasNext(); ++it) {
-			// advc.ctr: was VisibleEnemyUnit; and eWarTeam added.
-			if (it->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
-				return NO_PLAYER;
-		}*/
 	}
 
 	return eBestPlayer;

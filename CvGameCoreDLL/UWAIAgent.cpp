@@ -1349,8 +1349,7 @@ DenialTypes UWAI::Team::declareWarTrade(TeamTypes targetId,
 			if(GET_TEAM(sponsorId).isHuman()) {
 				int humanTradeVal = -1;
 				leaderUWAI().canTradeAssets(::round(utilityToTradeVal(
-						utilityThresh)), sponsorLeaderId, &humanTradeVal,
-						true); // AI doesn't accept cities as payment for war
+						utilityThresh)), sponsorLeaderId, &humanTradeVal);
 				// Don't return NO_DENIAL if human can't pay enough
 				utilityThresh = std::max(utilityThresh,
 						-::round(tradeValToUtility(humanTradeVal) +
@@ -2220,6 +2219,7 @@ bool UWAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 }
 
 bool UWAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId, int* r,
+		// (advc.ctr: Now unused b/c the AI will always accept cities as payment
 		bool ignoreCities) const {
 
 	int totalTradeVal = 0;
