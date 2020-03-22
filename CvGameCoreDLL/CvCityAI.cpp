@@ -10290,24 +10290,24 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 			iGPPValue /= (1 + iEmphasisCount);
 
 			iTotalValue += iGPPValue;
-
-			// Evaluate military experience from specialists
-			int iExperience = 0;
-			if (new_job.second >= 0 && new_job.first)
-				iExperience += GC.getInfo((SpecialistTypes)new_job.second).getExperience();
-			if (old_job.second >= 0 && old_job.first)
-			{	// advc.001: was +=
-				iExperience -= GC.getInfo((SpecialistTypes)old_job.second).getExperience();
-			}
-			if (iExperience != 0)
-			{
-				int iProductionRank = findYieldRateRank(YIELD_PRODUCTION);
-				int iExperienceValue = 100 * iExperience * 4;
-				if (iProductionRank <= kOwner.getNumCities() / 2 + 1)
-					iExperienceValue += 100 * iExperience * 4;
-				iExperienceValue += (getMilitaryProductionModifier() * iExperience * 8);
-				iTotalValue += iExperienceValue;
-			}
+		} /* advc.001: Moved the XP code out of the 'iGPPGained || iGPPLost' block.
+			 That (unused) ability shouldn't be assumed to imply a GPP rate. */
+		// Evaluate military experience from specialists
+		int iExperience = 0;
+		if (new_job.second >= 0 && new_job.first)
+			iExperience += GC.getInfo((SpecialistTypes)new_job.second).getExperience();
+		if (old_job.second >= 0 && old_job.first)
+		{	// advc.001: was +=
+			iExperience -= GC.getInfo((SpecialistTypes)old_job.second).getExperience();
+		}
+		if (iExperience != 0)
+		{
+			int iProductionRank = findYieldRateRank(YIELD_PRODUCTION);
+			int iExperienceValue = 100 * iExperience * 4;
+			if (iProductionRank <= kOwner.getNumCities() / 2 + 1)
+				iExperienceValue += 100 * iExperience * 4;
+			iExperienceValue += (getMilitaryProductionModifier() * iExperience * 8);
+			iTotalValue += iExperienceValue;
 		}
 		// Devalue generic citizens (for no specific reason). (cf. AI_specialistValue)
 		/* if (no gpp) {
