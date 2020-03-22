@@ -20697,6 +20697,28 @@ void CvPlayer::calculateTradeTotals(YieldTypes eIndex,
 // <advc.085>
 void CvPlayer::setScoreboardExpanded(bool b)
 {
+	CvGame& kGame = GC.getGame();
+	/*	During diplomacy, my code for detecting whether the cursor
+		has been moved away from the scoreboard causes the
+		hover text box to flicker. Don't think I can fix that.
+		Workaround: If the player expands the scoreboard during
+		diplomacy, it remains expanded until diplomacy ends. */
+	if (gDLL->isDiplomacy())
+	{
+		if (!BUGOption::isEnabled("Scores__ExpandOnHover", false, false))
+			return;
+		/*	Expand the scoreboard. (Note: An update timer set by
+			CvDLLWidgetData::doContactCiv prevents the scoreboard
+			from already getting stuck at expanded when the player
+			clicks on the scoreboard to initiate diplomacy.) */
+		if (b && !m_bScoreboardExpanded)
+			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+		m_bScoreboardExpanded = b;
+		// Schedule callback for collapse
+		kGame.setUpdateTimer(CvGame::UPDATE_COLLAPSE_SCORE_BOARD, 1);
+		// Ignore callback while diplomacy ongoing
+		return;
+	}
 	if (b)
 	{
 		FAssert(BUGOption::isEnabled("Scores__AlignIcons", true, false));
@@ -20705,7 +20727,6 @@ void CvPlayer::setScoreboardExpanded(bool b)
 			/*  A delay of 1 means that the scoreboard collapses after
 				two game updates (250 ms) */
 			int const iDelay = 1;
-			CvGame& kGame = GC.getGame();
 			/*  So long as the mouse hovers over a scoreboard widget,
 				setScoreboardExpanded(true) keeps getting called and
 				the collapse timer keeps getting reset. */
