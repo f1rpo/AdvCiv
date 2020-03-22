@@ -2791,6 +2791,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 	Scale: gold per turn */
 scaled CvPlayerAI::AI_assetVal(CvCity const& c, bool bConquest) const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	bool const bOwn = (c.getOwner() == getID());
 	scaled r = 2 * AI_cityWonderVal(c);	
 	r += scaled(getCurrentEra() + 2, 2) * getTradeRoutes();
@@ -11327,7 +11328,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	is more likely to give up the city.
 	Ideally the value of receiving the city and the cost of giving the city away would be
 	separate things; but that's currently not how trades are made. */
-/*  advc.ctr: Rewritten.
+/*  advc.ctr: Rewritten. Original code deleted on 23 Mar 2020.
 	Now this function computes three different things depending on the parameters:
 	1)  If eToPlayer is this player: How much this player values acquiring kCity
 		from its current owner.
@@ -11678,81 +11679,6 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 		return r.roundToMultiple(GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER));
 	}
 	return r.round();
-}
-
-// advc.tmp: Remove this once the replacement has matured
-int CvPlayerAI::AI_cityTradeValLegacy(CvCityAI const& kCity, // advc.003u: param was CvCity*
-	// <advc.ctr>
-	PlayerTypes eToPlayer) const
-{
-	PlayerTypes const eOwner = kCity.getOwner();
-	FAssert(eToPlayer != eOwner);
-	CvPlayerAI const& kToPlayer = GET_PLAYER(eToPlayer);
-	//bool bKeep = (eToPlayer != getID()); // Case 2) in the comment on top
-	// </advc.ctr>
-	CvGame const& g = GC.getGame(); // advc
-	int iValue = 300;
-
-	//iValue += (kCity.getPopulation() * 50); // advc: Call this iPopValue
-	int iPopValue = kCity.getPopulation() * 20 + kCity.getHighestPopulation() * 30; // K-Mod
-	iValue += iPopValue;
-
-	iValue += 200 * kCity.getCultureLevel();
-	iValue += (200 * kCity.getCultureLevel() * kCity.getCulture(getID())) /
-			std::max(1, kCity.getCulture(eOwner)
-			/*  advc.001: I think karadoc's intention was to add at most
-				200 * CultureLevel, namely when the city owner has 0 culture,
-				but without the addition below, the increment would actually be
-				200 * CultureLevel * this player's city culture -- way too much. */
-			+ kCity.getCulture(getID()));
-
-	//iValue += (((((kCity.getPopulation() * 50) + g.getElapsedGameTurns() + 100) * 4) * kCity.getPlot().calculateCulturePercent(eOwner)) / 100);
-	// K-Mod
-	int iCityTurns = g.getGameTurn() - (kCity.getGameTurnFounded() +
-			kCity.getGameTurnAcquired()) / 2;
-	/*	advc.001: Ratio was flipped. Owning a city for e.g. 30 turns is /less/ meaningful
-		on slower speed. */
-	iCityTurns = iCityTurns * 100 / GC.getInfo(g.getGameSpeedType()).getVictoryDelayPercent();
-	iValue += ((iPopValue + iCityTurns * 3 / 2 + 80) * 4 * (kCity.getPlot().
-			calculateCulturePercent(/*eOwner*/eToPlayer) // advc.ctr
-			+ 10)) / 110;
-	// K-Mod end
-
-	for (CityPlotIter it(kCity); it.hasNext(); ++it)
-	{
-		CvPlot const& kPlot = *it;
-		/*if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-			iValue += (AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true) * 10);*/ // BtS
-		// K-Mod. Use average of our value for gaining the bonus, and their value for losing it.
-		int iBonusValue = 0;
-		if (kPlot.getBonusType(getTeam()) != NO_BONUS)
-		{
-			iBonusValue += /* advc.ctr: */ kToPlayer.
-					AI_bonusVal(kPlot.getBonusType(getTeam()), 1, true);
-		}
-		// advc.ctr: That's (mostly) handled by the recursive call upfront now
-		/*if (pLoopPlot->getBonusType(TEAMID(eOwner)) != NO_BONUS) {
-			iBonusValue += GET_PLAYER(eOwner).AI_bonusVal(
-					pLoopPlot->getBonusType(TEAMID(eOwner)), -1, true);
-		}*/
-		iBonusValue *= plotDistance(&kPlot, kCity.plot()) <= 1 ? 5 : 4;
-		iValue += iBonusValue;
-		// K-Mod end
-	}
-
-	if (!kCity.isEverOwned(getID()))
-	{
-		iValue *= 3;
-		iValue /= 2;
-	}
-
-	/*  advc.104d: Moved the K-Mod code here into a new function
-		cityWonderVal (with some tweaks). */
-	iValue += AI_cityWonderVal(kCity) * 10;
-	// <advc.139>
-	if(kCity.AI_isEvacuating())
-		iValue = ::round(0.33 * iValue); // </advc.139>
-	return GET_TEAM(getTeam()).AI_roundTradeVal(iValue); // advc.104k
 }
 
 

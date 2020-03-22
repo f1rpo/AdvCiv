@@ -815,7 +815,6 @@ protected:
 	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
 	void AI_setHumanDisabled(bool bDisabled); // advc.127
 	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
-	int AI_cityTradeValLegacy(CvCityAI const& kCity, /* advc.ctr: */ PlayerTypes eToPlayer) const;
 
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI
