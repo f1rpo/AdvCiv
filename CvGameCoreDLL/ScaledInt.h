@@ -207,7 +207,10 @@ public:
 
 	// Scale and integer type conversion constructor
 	template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline ScaledInt(ScaledInt<iFROM_SCALE,OtherIntType,OtherEnumType> rOther)
+	/*	Take the argument by reference although this isn't technically a copy constructor.
+		Taking it by value leads to peculiar compiler errors when an assignment is followed 
+		by an opening curly brace (compiler demands a semicolon then). */
+	__forceinline ScaledInt(ScaledInt<iFROM_SCALE,OtherIntType,OtherEnumType>& rOther)
 	{
 		STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
 		static OtherIntType const FROM_SCALE = ScaledInt<iFROM_SCALE,OtherIntType,OtherEnumType>::SCALE;
@@ -348,7 +351,7 @@ public:
 		FAssert(!isNegative());
 		return powNonNegative(fromRational<1,2>());
 	}
-	__forceinline ScaledInt exponentiate(ScaledInt rExp)
+	__forceinline void exponentiate(ScaledInt rExp)
 	{
 		*this = pow(rExp);
 	}
@@ -810,7 +813,9 @@ private:
 		There is a reasonably recent paper "A Division-Free Algorithm for Fixed-Point
 		Power Exponential Function in Embedded System" [sic] based on Newton's method.
 		That's probably faster and more accurate, but an implementation isn't
-		spelled out. Perhaps tbd. */
+		spelled out. Perhaps tbd.
+		Once the current implementation is used in some frequently executed code,
+		a test should be carried out in which the implementation is replaced with std::pow. */
 	ScaledInt powNonNegative(ScaledInt rExp) const
 	{
 		/*	Base 0 or too close to it to make a difference given the precision of the algorithm.
