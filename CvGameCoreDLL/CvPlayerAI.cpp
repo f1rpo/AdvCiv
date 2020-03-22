@@ -3294,6 +3294,7 @@ bool CvPlayerAI::AI_avoidScience() const
 	funds and safety threshold. */
 int CvPlayerAI::AI_financialTroubleMargin() const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	if(isBarbarian()) // Based on BETTER_BTS_AI_MOD, 06/12/09, jdog5000 (Barbarian AI)
 		return 100;
 	/*if (getCommercePercent(COMMERCE_GOLD) > 50) {
@@ -3303,8 +3304,10 @@ int CvPlayerAI::AI_financialTroubleMargin() const
 	int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn()); // unofficial patch
 	// <advc.110> No trouble at the start of the game
 	if(iNetExpenses <= 0 && !isFoundedFirstCity())
-		return false; // </advc.110>
-	int iFundedPercent = (100 * (iNetCommerce - iNetExpenses)) / std::max(1, iNetCommerce);
+		return 100; // </advc.110>
+	int const iFundedPercent = (100 * (iNetCommerce - iNetExpenses)) /
+			std::max(1, iNetCommerce);
+	FAssert(iFundedPercent <= 100); // advc
 	int iSafePercent = 35; // was 40
 	// <advc.110> Don't want the AI to expand rapidly in the early game
 	int iEra = getCurrentEra();
@@ -3316,19 +3319,19 @@ int CvPlayerAI::AI_financialTroubleMargin() const
 		iSafePercent = 40;
 	/*	Koshling: We're never in financial trouble if we can run at current deficits
 		for more than 50 turns and stay in healthy territory (EraGoldThreshold) */
-	// advc: Take the era number times 1.5
-	int iEraGoldThreshold = 100 * (1 + (3 * iEra) / 2);
+	// advc: Take the era number times 1.5 unless human
+	int iEraGoldThreshold = 100 * (1 + (isHuman() ? (3 * iEra) / 2 : iEra));
 	if(getGold() > iEraGoldThreshold && (iNetCommerce-iNetExpenses >= 0 ||
 		getGold() + 50 * (iNetCommerce-iNetExpenses) > iEraGoldThreshold))
 	{
 		return 100; // Would be nicer to increase iFundedPercent based on getGold
 	} // </advc.110>
 
-	if(AI_avoidScience())
+	if (AI_avoidScience())
 		iSafePercent -= 8;
 
 	//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true))
-	if(AI_isFocusWar()) // advc.105
+	if (isHuman() || AI_isFocusWar()) // advc.105
 		iSafePercent -= 10; // was 12
 
 	if(isCurrentResearchRepeat())
@@ -3337,10 +3340,11 @@ int CvPlayerAI::AI_financialTroubleMargin() const
 	int iCitiesTarget = std::max(1, GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities());
 	if (getNumCities() < iCitiesTarget)
 	{
-		// note: I'd like to use (AI_getNumCitySites() > 0) as well, but that could potentially cause the site selection to oscillate.
+		/*	note: I'd like to use (AI_getNumCitySites() > 0) as well, but that
+			could potentially cause the site selection to oscillate. */
 		iSafePercent -= 14 * (iCitiesTarget - getNumCities()) / iCitiesTarget;
 	} // K-Mod end
-
+	FAssert(iSafePercent >= 0); // advc
 	return iFundedPercent - iSafePercent;
 }
 
