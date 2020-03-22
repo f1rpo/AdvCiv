@@ -28,6 +28,10 @@
 	#undef MAXUINT
 #endif
 
+/*	Uncomment for some additional runtime assertions checking conditions
+	that are really that client's responsibility. */
+//#define SCALED_INT_EXTRA_ASSERTS
+
 // For members shared by all instantiations of ScaledInt
 template<typename Dummy> // Just so that static data members can be defined in the header
 class ScaledIntBase
@@ -147,7 +151,8 @@ public:
 	template<int iNUM, int iDEN>
 	static inline ScaledInt fromRational()
 	{
-		BOOST_STATIC_ASSERT(bSIGNED || (iDEN >= 0 && iNUM >= 0));
+		BOOST_STATIC_ASSERT(iDEN != 0);
+		BOOST_STATIC_ASSERT(bSIGNED || (iDEN > 0 && iNUM >= 0));
 		return fromDouble(iNUM / static_cast<double>(iDEN));
 	}
 
@@ -550,16 +555,19 @@ public:
 	// Operand on different scale: Let ctor implicitly convert it to ScaledInt
 	__forceinline ScaledInt& operator+=(ScaledInt rOther)
 	{
-		// Maybe uncomment this for some special occasion
-		/*FAssert(rOther <= 0 || m_i <= INTMAX - rOther.m_i);
-		FAssert(rOther >= 0 || m_i >= INTMIN + rOther.m_i);*/
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssert(rOther <= 0 || m_i <= INTMAX - rOther.m_i);
+			FAssert(rOther >= 0 || m_i >= INTMIN + rOther.m_i);
+		#endif
 		m_i += rOther.m_i;
 		return *this;
 	}
 	__forceinline ScaledInt& operator-=(ScaledInt rOther)
 	{
-		/*FAssert(rOther >= 0 || m_i <= INTMAX + rOther.m_i);
-		FAssert(rOther <= 0 || m_i >= INTMIN - rOther.m_i);*/
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssert(rOther >= 0 || m_i <= INTMAX + rOther.m_i);
+			FAssert(rOther <= 0 || m_i >= INTMIN - rOther.m_i);
+		#endif
 		m_i -= rOther.m_i;
 		return *this;
 	}
@@ -706,6 +714,9 @@ private:
 				ReturnType;
 		BOOST_STATIC_ASSERT(sizeof(MultiplierType) <= 4);
 		BOOST_STATIC_ASSERT(sizeof(DivisorType) <= 4);
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssert(divisor != 0);
+		#endif
 		if (std::numeric_limits<ReturnType>::is_signed)
 		{
 			int i;
