@@ -91,7 +91,7 @@ m_iNumAnimationOperatorTypes(0),
 m_iNumFlavorTypes(0),
 m_iNumArtStyleTypes(0),
 m_iNumFootstepAudioTypes(0),
-// </advc> <advc.opt>
+// </advc>  <advc.opt>
 m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
@@ -749,9 +749,9 @@ void CvGlobals::setDEFAULT_SPECIALIST(int iValue)
 	m_iDEFAULT_SPECIALIST = iValue;
 } // </advc.opt>
 
-int CvGlobals::getDefineINT(const char * szName,
-		// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
-		const int iDefault) const
+int CvGlobals::getDefineINT(char const* szName,
+	// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
+	int iDefault) const
 {
 	int iReturn = iDefault;
 	// BETTER_BTS_AI_MOD: END
@@ -762,7 +762,7 @@ int CvGlobals::getDefineINT(const char * szName,
 }
 
 
-float CvGlobals::getDefineFLOAT(const char * szName) const
+float CvGlobals::getDefineFLOAT(char const* szName) const
 {
 	float fReturn = 0;
 	bool bSuccess = // advc.003c
@@ -773,32 +773,32 @@ float CvGlobals::getDefineFLOAT(const char * szName) const
 	return fReturn;
 }
 
-const char * CvGlobals::getDefineSTRING(const char * szName) const
+char const* CvGlobals::getDefineSTRING(char const* szName) const
 {
-	const char * szReturn = NULL;
+	char const* szReturn = NULL;
 	bool bSuccess = // advc.003c
 			getDefinesVarSystem()->GetValue(szName, szReturn);
 	FAssert(bSuccess); // advc.003c
 	return szReturn;
 }
 
-void CvGlobals::setDefineINT(const char * szName, int iValue, /* advc.opt: */ bool bUpdateCache)
+void CvGlobals::setDefineINT(char const* szName, int iValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, iValue);
 	// <advc.opt>
-	if(bUpdateCache)
+	if (bUpdateCache)
 		cacheGlobalInts(szName, iValue); // Pinpoint update </advc.opt>
 }
 
-void CvGlobals::setDefineFLOAT(const char * szName, float fValue, /* advc.opt: */ bool bUpdateCache)
+void CvGlobals::setDefineFLOAT(char const* szName, float fValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, fValue);
 	// <advc.opt>
-	if(bUpdateCache)
+	if (bUpdateCache)
 		cacheGlobalFloats(); // </advc.opt>
 }
 
-void CvGlobals::setDefineSTRING(const char * szName, const char * szValue, /* advc.opt: */ bool bUpdateCache)
+void CvGlobals::setDefineSTRING(char const* szName, char const* szValue, /* advc.opt: */ bool bUpdateCache)
 {
 	getDefinesVarSystem()->SetValue(szName, szValue);
 	//cacheGlobals();

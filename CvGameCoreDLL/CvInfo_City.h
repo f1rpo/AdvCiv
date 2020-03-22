@@ -83,6 +83,12 @@ public:
 	int getSpeedThreshold(int i) const; // Exposed to Python
 	bool read(CvXMLLoadUtility* pXML);
 
+	static CultureLevelTypes finalCultureLevel()
+	{
+		FAssert(GC.getNumCultureLevelInfos() > 0);
+		return (CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1);
+	}
+
 protected:
 	int m_iCityDefenseModifier;
 	int* m_paiSpeedThreshold;

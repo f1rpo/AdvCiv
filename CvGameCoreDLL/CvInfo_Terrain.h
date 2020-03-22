@@ -441,7 +441,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	int getImprovementBonusDiscoverRand(int i) const;
 
 	/*	advc.003w: Moved from CvGameCoreUtils; still exposed to Python through CyGameCoreUtils.
-		Reanmed from "finalImprovementUpgrade".
+		Renamed from "finalImprovementUpgrade".
 		Can't turn it into a non-static function b/c a CvImprovementInfo object
 		doesn't know its own ImprovementTypes id. */
 	static ImprovementTypes finalUpgrade(ImprovementTypes eImprov);

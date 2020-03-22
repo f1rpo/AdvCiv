@@ -307,7 +307,11 @@ public:
 	{	// advc.inl: inline, disable K-Mod assertion
 		//FAssert(!m_bCapitulated || isAVassal()); // K-Mod
 		return m_bCapitulated;
-	}
+	}  // <advc>
+	bool isCapitulated(TeamTypes eMaster)
+	{
+		return (isCapitulated() && isVassal(eMaster));
+	} // </advc>
 	int getRouteChange(RouteTypes eIndex) const																				// Exposed to Python
 	{
 		return m_aiRouteChange.get(eIndex); // advc.inl

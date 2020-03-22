@@ -68,7 +68,7 @@ public: // All the const functions are exposed to Python
 	}
 
 protected:
-	bool doneReadingXML(CvXMLLoadUtility* pXML);
+	//bool doneReadingXML(CvXMLLoadUtility* pXML); // advc.003j: Never had an implementation
 
 	bool m_bGraphicalOnly;
 

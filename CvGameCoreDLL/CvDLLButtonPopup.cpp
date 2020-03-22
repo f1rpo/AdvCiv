@@ -2744,7 +2744,7 @@ bool CvDLLButtonPopup::launchFreeColonyPopup(CvPopup* pPopup, CvPopupInfo &info)
 			m_kUI.popupAddGenericButton(pPopup, szCity, ARTFILEMGR.getInterfaceArtPath("INTERFACE_BUTTONS_CITYSELECTION"), -pLoopCity->getID(), WIDGET_GENERAL);
 		}*/ // BtS
 		// Avoid potential variable name conflict
-		PlayerTypes eLibPlayer = pLoopCity->getLiberationPlayer(false);
+		PlayerTypes eLibPlayer = pLoopCity->getLiberationPlayer();
 		if (eLibPlayer != NO_PLAYER)
 		{
 			// Don't offer liberation during war

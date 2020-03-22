@@ -2281,7 +2281,8 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 	CvGame const& g = GC.getGame();
 
 	// City culture weight.
-	int const iLegendaryCulture = g.getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
+	int const iLegendaryCulture = g.getCultureThreshold(
+			CvCultureLevelInfo::finalCultureLevel());
 	int const iVictoryCities = g.culturalVictoryNumCultureCities();
 
 	// Use culture slider to decide whether a human player is going for cultural victory
@@ -3693,14 +3694,13 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			{
 				techs_to_check.push(techs[i].second);
 			}
-			while (!techs_to_check.empty() && (int)techs_in_path.size()
-					<= iMaxPathLength)
+			while (!techs_to_check.empty() && (int)techs_in_path.size() <= iMaxPathLength)
 			{
 				bool bMissingPrereq = false;
 
 				// AndTech prereqs:
 				for (int p = 0; p < GC.getNUM_AND_TECH_PREREQS(techs_to_check.front()) &&
-						!bMissingPrereq; ++p)
+					!bMissingPrereq; ++p)
 				{
 					TechTypes ePrereq = (TechTypes)GC.getInfo(
 							techs_to_check.front()).getPrereqAndTechs(p);
@@ -6686,9 +6686,9 @@ void CvPlayerAI::AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange)
 	m_aiAttitude[ePlayer] += iChange;
 } // K-Mod end
 
-/*  <advc.130w> Gained and lost cities may change expansionist hate and perhaps other
-	modifiers too. This function should be called on the city owner. CvPlot param
-	b/c the city may have been razed. */
+/*  advc.130w: Gained and lost cities may change expansionist hate and perhaps other
+	modifiers too. This function should be called on both the old and new city owner.
+	CvPlot param b/c the city may have been razed. */
 void CvPlayerAI::AI_updateCityAttitude(CvPlot const& kCityPlot)
 {
 	if (isBarbarian())
@@ -6703,7 +6703,7 @@ void CvPlayerAI::AI_updateCityAttitude(CvPlot const& kCityPlot)
 			kOtherCiv.AI_updateAttitude(getID());
 		}
 	}
-} // </advc.130w>
+}
 
 // K-Mod note: the bulk of this function has been moved into CvPlayerAI::AI_updateAttitude.
 int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
@@ -8553,7 +8553,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		if(bHuman)
 		{
 			for (CLLNode<TradeData> const* pNode = kTheyGive.head(); pNode != NULL;
-					pNode = kTheyGive.next(pNode))
+				pNode = kTheyGive.next(pNode))
 			{
 				TradeData tdata = pNode->m_data;
 				if(tdata.m_eItemType == TRADE_RESOURCES &&
@@ -8781,16 +8781,13 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 					return false; // </advc.130v>
 				if (!bSameTeam && // advc.155
 					!bVassal && // advc.130v
-					::hash(GC.getGame().getGameTurn(), getID()) <
-					AI_prDenyHelp())
+					::hash(GC.getGame().getGameTurn(), getID()) < AI_prDenyHelp())
 				{
 					return false;
 				} // </advc.144>
-			}
-			// <advc.104m>
+			}  // <advc.104m>
 			if (bAccept && bDemand && getUWAI.isEnabled() && /* advc.155: */ !bSameTeam)
-				bAccept = uwai().considerDemand(ePlayer, iTheyReceive);
-			// </advc.104m>
+				bAccept = uwai().considerDemand(ePlayer, iTheyReceive); // </advc.104m>
 		}
 		// advc.130o: Do this only if UWAI hasn't already handled the offer
 		if (!bDemand || (!getUWAI.isEnabled() && bAccept))
@@ -8912,11 +8909,12 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	if (iWeReceive < 2 * GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER) &&
 		/*  NB: bVassalTrade is currently only true if ePlayer offers to become
 			a vassal, not when this player considers becoming a vassal. (fixme?) */
-			!bVassalTrade && !kOurTeam.isAtWar(TEAMID(ePlayer)) &&
-			!AI_goldDeal(kTheyGive) && (kTheyGive.getLength() <= 0 ||
-			!CvDeal::isDual(kTheyGive.head()->m_data.m_eItemType)))
+		!bVassalTrade && !kOurTeam.isAtWar(TEAMID(ePlayer)) &&
+		!AI_goldDeal(kTheyGive) && (kTheyGive.getLength() <= 0 ||
+		!CvDeal::isDual(kTheyGive.head()->m_data.m_eItemType)))
+	{
 		return false;
-	// </advc.136b>
+	} // </advc.136b>
 
 	if (iWeReceive >= iTheyReceive)
 		return true;
@@ -9045,8 +9043,10 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 	}
 	// <advc.132> Don't accept two civics of the same column
 	if(!AI_checkCivicReligionConsistency(*pOurList) ||
-			!AI_checkCivicReligionConsistency(*pTheirList))
-		return false; // </advc.132>
+		!AI_checkCivicReligionConsistency(*pTheirList))
+	{
+		return false;
+	} // </advc.132>
 	// <advc.036>
 	if(!AI_checkResourceLimits(*pOurList, *pTheirList, ePlayer, 1))
 		return false;
@@ -9171,7 +9171,7 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 				&& 100*iValueForThem >= GET_PLAYER(ePlayer).AI_tradeAcceptabilityThreshold(getID())*iValueForUs;
 
 		}
-	} // <advc.705>
+	}  // <advc.705>
 	CvGame const& g = GC.getGame();
 	if (g.isOption(GAMEOPTION_RISE_FALL) && GET_PLAYER(ePlayer).isHuman())
 	{
@@ -9261,8 +9261,8 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		int iMaxGold = ((isHuman() && bGenerous) ?
 				kPlayer.AI_maxGoldTradeGenerous(getID()) :
 				kPlayer.AI_maxGoldTrade(getID()));
-		if (iMaxGold >= iGoldData) // Replacing: </advc.026>
-						// if(kPlayer.AI_maxGoldTrade(getID()) >= iGoldData)
+		// if(kPlayer.AI_maxGoldTrade(getID()) >= iGoldData)
+		if (iMaxGold >= iGoldData && iGoldData > 0) // </advc.026>		
 		{
 			pGoldNode->m_data.m_iData = iGoldData;
 			iSmallerVal += (iGoldData * iGoldValuePercent) / 100;
@@ -9518,11 +9518,13 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		}
 	} // <advc.036> Special treatment for one-for-one resource trades
 	if (bSingleResource && iGreaterVal - iSmallerVal <= m_iSingleBonusTradeTolerance &&
-			((pCounter->getLength() <= 0 && iOtherListLength == 1 &&
-			pGoldPerTurnNode != NULL) ||
-			(pCounter->getLength() == 1 &&
-			pCounter->head()->m_data.m_eItemType == TRADE_RESOURCES)))
-		return true; // </advc.036>
+		((pCounter->getLength() <= 0 && iOtherListLength == 1 &&
+		pGoldPerTurnNode != NULL) ||
+		(pCounter->getLength() == 1 &&
+		pCounter->head()->m_data.m_eItemType == TRADE_RESOURCES)))
+	{
+		return true;
+	} // </advc.036>
 	// If their value is still higher, try one more time to make up the difference with gold.
 	// If we're counter-proposing an AI deal, just get as close to the right value as we can.
 	// But for humans, if they don't have enough gold then ask for one final item, to favour us.
@@ -9567,9 +9569,11 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		/*  <advc.001> If human asks for gold, then pGoldNode is NULL here,
 			and the AI won't ask e.g. for a tech in exchange */
 		else if(bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
-				(pList->getLength() <= 0 ||
-				!CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
-			bAddFinalItem = true; // </advc.001>
+			(pList->getLength() <= 0 ||
+			!CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
+		{
+			bAddFinalItem = true;
+		} // </advc.001>
 	}
 	if (iGreaterVal > iSmallerVal)
 	{
@@ -9600,9 +9604,11 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		}
 		// <advc.001> See above at if(pGoldNode)...else
 		else if (bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
-				(pList->getLength() <= 0 ||
-				CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
+			(pList->getLength() <= 0 ||
+			CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
+		{
 			bAddFinalItem = true;
+		}
 	} // When iGoldAvailable is too small but iMaxGPT isn't
 	if (iSmallerVal >= iGreaterVal)
 		bAddFinalItem = false; // </advc.001>
@@ -9619,13 +9625,13 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 				if (!bGenerous && iSmallerVal + it->second > iGreaterVal)
 					continue;
 				if ((bGenerous && it->second > value_gap &&
-						best_it->second < value_gap) ||
-						std::abs(it->second - value_gap) <
-						std::abs(best_it->second - value_gap))
+					best_it->second < value_gap) ||
+					std::abs(it->second - value_gap) < std::abs(best_it->second - value_gap))
+				{
 					best_it = it;
+				}
 			}
-			if (best_it->second <= 2 * (iGreaterVal - iSmallerVal) ||
-					bGenerous)
+			if (best_it->second <= 2 * (iGreaterVal - iSmallerVal) || bGenerous)
 			{
 				pCounter->insertAtEnd(*best_it->first);
 				iSmallerVal += best_it->second;
@@ -20551,8 +20557,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 	// K-Mod
 	// some (arbitrary) fraction of the game, after which we get more serious. (cf. old code)
 	int iEraThresholdPercent = 80 - (AI_getStrategyRand(1) % 2) * 20;
-	int iLegendaryCulture = kGame.getCultureThreshold((CultureLevelTypes)
-			(GC.getNumCultureLevelInfos() - 1));
+	int iLegendaryCulture = kGame.getCultureThreshold(
+			CvCultureLevelInfo::finalCultureLevel());
 	int iVictoryCities = kGame.culturalVictoryNumCultureCities();
 
 	int iHighCultureMark = 300; // turns
@@ -24733,7 +24739,7 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 {
 	FAssert(m_aiBonusValue != NULL);
 	/*  <advc.036> Don't just reset; recompute them all, and never update the
-		cache in AI_baseBonusVal. This should make sure we're not getting OOS. */
+		cache in AI_baseBonusVal. This should make sure we're not going OOS. */
 	if(GC.getGame().isNetworkMultiPlayer())
 	{
 		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus, false);
@@ -25952,22 +25958,22 @@ bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes eOther) const
 	return false;
 } // <advc>
 
-/*  <advc.127> Tbd.: There may well be other AI data to be updated when
-	human control is suspended or resumed. */
+/*  advc.127: (Tbd.: There may well be other AI data to be updated when
+	human control is suspended or resumed.) */
 void CvPlayerAI::AI_setHumanDisabled(bool bDisabled)
 {
 	// Some of the first-impression modifiers don't apply to human players
 	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		it->AI_updateAttitude();
-} // </advc.127>
+}
 
-// <advc.031c>
+// advc.031c:
 void CvPlayerAI::logFoundValue(int iX, int iY, bool bStartingLoc) const
 {
 	CitySiteEvaluator eval(*this, isBarbarian() ?
 			GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE") : -1, bStartingLoc);
 	eval.log(iX, iY);
-} // </advc.031c>
+}
 
 // BETTER_BTS_AI_MOD, General AI/ Efficiency (plot danger cache), 08/20/09, jdog5000: START
 

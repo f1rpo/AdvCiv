@@ -327,9 +327,10 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 	{
 		bool bBuildings = (i == 0);
 		if (!gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),
-				bBuildings ? "Buildings" : "Units"))
+			bBuildings ? "Buildings" : "Units"))
+		{
 			continue;
-
+		}
 		if (pXML->SkipToNextVal())
 		{
 			int** piUniques;

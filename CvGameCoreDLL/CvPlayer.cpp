@@ -1662,8 +1662,10 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		CLinkList<IDInfo> oldUnits; // (I doubt that it's necessary to copy the plot's unit list here)
 		{
 			for (CLLNode<IDInfo> const* pUnitNode = kCityPlot.headUnitNode(); pUnitNode != NULL;
-					pUnitNode = kCityPlot.nextUnitNode(pUnitNode))
+				pUnitNode = kCityPlot.nextUnitNode(pUnitNode))
+			{
 				oldUnits.insertAtEnd(pUnitNode->m_data);
+			}
 		}
 		CLLNode<IDInfo>* pUnitNode = oldUnits.head();
 		while (pUnitNode != NULL)
@@ -1931,8 +1933,10 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		{
 			CvTeam const& t = GET_TEAM((TeamTypes)i);
 			if(!t.isAlive() || t.isMinorCiv() || t.getID() == TEAMID(eOldOwner) ||
-					t.getID() == getTeam() || !t.isAtWar(TEAMID(eOldOwner)))
+				t.getID() == getTeam() || !t.isAtWar(TEAMID(eOldOwner)))
+			{
 				continue;
+			}
 			bool bEverOwned = false;
 			for(int j = 0; j < MAX_CIV_PLAYERS; j++)
 			{
@@ -5671,7 +5675,7 @@ int CvPlayer::getProductionNeeded(BuildingTypes eBuilding) const
 	iProductionNeeded = ::roundToMultiple(0.01 * iProductionNeeded *
 			GC.getInfo(getHandicapType()).getConstructPercent(),
 			isHuman() ? 5 : 1);
-	if(!isHuman()) // Barbarians too
+	if (!isHuman()) // Barbarians too
 	{
 		CvHandicapInfo const& h = GC.getInfo(g.getHandicapType());
 		int iAIModifier = //h.getAIPerEraModifier() * getCurrentEra()
@@ -7510,27 +7514,22 @@ int CvPlayer::greatPeopleThreshold(bool bMilitary) const
 		iThreshold = ((iGREAT_PEOPLE_THRESHOLD *
 				std::max(0, getGreatPeopleThresholdModifier() + 100)) / 100);
 	}
-	CvGame const& g = GC.getGame(); // advc
-	iThreshold *= GC.getInfo(g.getGameSpeedType()).getGreatPeoplePercent();
+	CvGame const& kGame = GC.getGame(); // advc
+	iThreshold *= GC.getInfo(kGame.getGameSpeedType()).getGreatPeoplePercent();
 	if (bMilitary)
-	{
-		iThreshold /= std::max(1, GC.getInfo(g.getGameSpeedType()).getTrainPercent());
-	}
-	else
-	{
-		iThreshold /= 100;
-	}
+		iThreshold /= std::max(1, GC.getInfo(kGame.getGameSpeedType()).getTrainPercent());
+	else iThreshold /= 100;
 
-	iThreshold *= GC.getInfo(g.getStartEra()).getGreatPeoplePercent();
+	iThreshold *= GC.getInfo(kGame.getStartEra()).getGreatPeoplePercent();
 	iThreshold /= 100;
 	// <advc.251>
 	iThreshold = ::roundToMultiple(0.01 * iThreshold * GC.getInfo(
 			getHandicapType()).getGPThresholdPercent(),
 			isHuman() ? 5 : 1);
-	if(!isHuman() && !isBarbarian())
+	if (!isHuman() && !isBarbarian())
 	{
 		iThreshold = ::round(0.01 * iThreshold * GC.getInfo(
-				g.getHandicapType()).getAIGPThresholdPercent());
+				kGame.getHandicapType()).getAIGPThresholdPercent());
 	} // </advc.251>
 
 	return std::max(1, iThreshold);

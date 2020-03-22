@@ -3739,7 +3739,8 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE3) || GC.ctrlKey())
 	{
 		szBuffer.append(CvWString::format(L"\n\nTop %c cities by weight:", GC.getInfo(COMMERCE_CULTURE).getChar()));
-		int iLegendaryCulture = GC.getGame().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
+		int iLegendaryCulture = GC.getGame().getCultureThreshold(
+				CvCultureLevelInfo::finalCultureLevel());
 		std::vector<std::pair<int,int> > city_list; // (weight, city id)
 
 		FOR_EACH_CITYAI(pLoopCity, kPlayer)

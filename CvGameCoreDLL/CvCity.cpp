@@ -10693,7 +10693,7 @@ void CvCity::doGreatPeople()
 		iTotalUnitRate += iUnitRate; // advc.051
 	}
 	FAssert(iTotalUnitRate == getBaseGreatPeopleRate()); // advc.051
-	if (getGreatPeopleProgress() >= GET_PLAYER(getOwner()).greatPeopleThreshold(false))
+	if (getGreatPeopleProgress() >= GET_PLAYER(getOwner()).greatPeopleThreshold())
 	{
 		int iTotalGreatPeopleUnitProgress = 0;
 		for (int i = 0; i < kCiv.getNumUnits(); i++)

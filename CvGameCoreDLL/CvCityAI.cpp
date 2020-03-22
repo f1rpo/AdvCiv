@@ -11686,15 +11686,9 @@ int CvCityAI::AI_getCityImportance(bool bEconomy, bool bMilitary)
 		if (iCultureRateRank <= iCulturalVictoryNumCultureCities)
 		{
 			iValue += 100;
-
-			if ((getCultureLevel() < (GC.getNumCultureLevelInfos() - 1)))
-			{
+			if (getCultureLevel() < CvCultureLevelInfo::finalCultureLevel())
 				iValue += !bMilitary ? 100 : 0;
-			}
-			else
-			{
-				iValue += bMilitary ? 100 : 0;
-			}
+			else iValue += bMilitary ? 100 : 0;
 		}
 	}
 	return iValue;
@@ -12376,9 +12370,9 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent) /* advc: */ const
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3)) {
 		iValue += 5;
 		iValue += getCommerceRateModifier(COMMERCE_CULTURE) / 20;
-		if (getCultureLevel() >= (GC.getNumCultureLevelInfos() - 2)) {
+		if (getCultureLevel() >= GC.getNumCultureLevelInfos() - 2) {
 			iValue += 20;
-			if (getCultureLevel() >= (GC.getNumCultureLevelInfos() - 1))
+			if (getCultureLevel() >= GC.getNumCultureLevelInfos() - 1)
 				iValue += 30;
 		}
 	}*/ // BtS
