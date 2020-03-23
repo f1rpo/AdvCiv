@@ -4864,7 +4864,7 @@ CvCityAI* CvPlot::AI_getWorkingCityOverrideAI() const
 
 void CvPlot::updateWorkingCity()
 {
-	CvCity* pBestCity = getPlotCity();
+	CvCity const* pBestCity = getPlotCity();
 	if (pBestCity == NULL)
 	{
 		pBestCity = getWorkingCityOverride();
@@ -4872,30 +4872,7 @@ void CvPlot::updateWorkingCity()
 	}
 
 	if (pBestCity == NULL && isOwned())
-	{
-		CityPlotTypes eBestPlot = CITY_HOME_PLOT;
-		for (CityPlotIter it(*this); it.hasNext(); ++it)
-		{
-			CvCity* pLoopCity = it->getPlotCity();
-			if (pLoopCity == NULL)
-				continue; // advc
-			CityPlotTypes const ePlot = it.currID();
-			if (pLoopCity->getOwner() == getOwner())
-			{	// XXX use getGameTurnAcquired() instead???
-				int const* pCityPriority = GC.getCityPlotPriority(); // advc
-				if (pBestCity == NULL ||
-					pCityPriority[ePlot] < pCityPriority[eBestPlot] ||
-					(pCityPriority[ePlot] == pCityPriority[eBestPlot] &&
-					(pLoopCity->getGameTurnFounded() < pBestCity->getGameTurnFounded() ||
-					(pLoopCity->getGameTurnFounded() == pBestCity->getGameTurnFounded() &&
-					pLoopCity->getID() < pBestCity->getID()))))
-				{
-					eBestPlot = ePlot;
-					pBestCity = pLoopCity;
-				}
-			}
-		}
-	}
+		pBestCity = defaultWorkingCity(); // advc: Moved into new function
 
 	CvCity* pOldWorkingCity = getWorkingCity();
 	if (pOldWorkingCity == pBestCity)
@@ -4932,6 +4909,35 @@ void CvPlot::updateWorkingCity()
 				gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 		}
 	}
+}
+
+// advc: Cut from updateWorkingCity (for advc.ctr)
+CvCity const* CvPlot::defaultWorkingCity() const
+{
+	CvCity const* pR = NULL;
+	CityPlotTypes eBestPlot = CITY_HOME_PLOT;
+	for (CityPlotIter it(*this); it.hasNext(); ++it)
+	{
+		CvCity* pLoopCity = it->getPlotCity();
+		if (pLoopCity == NULL)
+			continue;
+		CityPlotTypes const ePlot = it.currID();
+		if (pLoopCity->getOwner() == getOwner())
+		{	// XXX use getGameTurnAcquired() instead???
+			int const* pCityPriority = GC.getCityPlotPriority();
+			if (pR == NULL ||
+				pCityPriority[ePlot] < pCityPriority[eBestPlot] ||
+				(pCityPriority[ePlot] == pCityPriority[eBestPlot] &&
+				(pLoopCity->getGameTurnFounded() < pR->getGameTurnFounded() ||
+				(pLoopCity->getGameTurnFounded() == pR->getGameTurnFounded() &&
+				pLoopCity->getID() < pR->getID()))))
+			{
+				eBestPlot = ePlot;
+				pR = pLoopCity;
+			}
+		}
+	}
+	return pR;
 }
 
 

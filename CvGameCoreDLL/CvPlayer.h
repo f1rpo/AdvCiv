@@ -1492,7 +1492,8 @@ protected:  // <advc.210>
 	void showForeignPromoGlow(bool b); // advc.002e
 	// <advc.ctr>
 	int cultureConvertedUponCityTrade(CvPlot const& kCityPlot, CvPlot const& kPlot,
-			PlayerTypes eOldOwner) const; // </advc.ctr>
+			PlayerTypes eOldOwner, PlayerTypes eNewOwner,
+			bool bIgnorePriority = false) const; // </advc.ctr>
 	// <advc.314>
 	bool isGoodyTech(TechTypes techId, bool bProgress) const;
 	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);

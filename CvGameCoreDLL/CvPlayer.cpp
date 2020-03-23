@@ -1905,7 +1905,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		// <advc.ctr>
 		for (CityPlotIter it(kCityPlot); it.hasNext(); ++it)
 		{
-			int iConvertedCulture = cultureConvertedUponCityTrade(kCityPlot, *it, eOldOwner);
+			int iConvertedCulture = cultureConvertedUponCityTrade(
+					kCityPlot, *it, eOldOwner, getID());
 			it->changeCulture(eOldOwner, -iConvertedCulture, false);
 			it->changeCulture(getID(), iConvertedCulture, false);
 		}
@@ -2212,16 +2213,25 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 // advc.ctr:
 int CvPlayer::cultureConvertedUponCityTrade(CvPlot const& kCityPlot, CvPlot const& kPlot,
-	PlayerTypes eOldOwner) const
+	PlayerTypes eOldOwner, PlayerTypes eNewOwner, bool bIgnorePriority) const
 {
-	// Always convert culture in the inner radius
-	bool bConvert = ::adjacentOrSame(kPlot, kCityPlot);
-	if (!bConvert)
+	bool bConvert = false;
+	if (bIgnorePriority)
+		bConvert = (::plotDistance(&kCityPlot, &kPlot) <= 2);
+	else
 	{
-		// Outer circle: Only if plot not assigned to another city of the current owner
-		CvCity const* pWorkingCity = kPlot.getWorkingCity();
-		bConvert = (pWorkingCity != NULL && !pWorkingCity->at(kCityPlot) &&
-				pWorkingCity->getOwner() == eOldOwner);
+		// Always convert culture in the inner radius
+		bConvert = ::adjacentOrSame(kPlot, kCityPlot);
+		if (!bConvert)
+		{
+			// Outer circle: Based on plot priority when contested
+			CvCity const* pDefaultWorkingCity = kPlot.defaultWorkingCity();
+			bConvert = (pDefaultWorkingCity != NULL &&
+					/*	Plot has to be assigned to the traded city or to
+						a city of the new owner */
+					(pDefaultWorkingCity->at(kCityPlot) ||
+					pDefaultWorkingCity->getOwner() == eNewOwner));
+		}
 	}
 	if (!bConvert)
 		return 0;

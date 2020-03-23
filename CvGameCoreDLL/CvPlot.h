@@ -451,6 +451,7 @@ public:
 	const wchar* getRuinsName() const; // advc.005c
 	CvCity* getWorkingCity() const;																														// Exposed to Python
 	void updateWorkingCity();
+	CvCity const* defaultWorkingCity() const; // advc
 	CvCity* getWorkingCityOverride() const;																								// Exposed to Python
 	void setWorkingCityOverride(const CvCity* pNewValue);
 	// <advc.003u>

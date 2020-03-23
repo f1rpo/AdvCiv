@@ -2829,7 +2829,9 @@ scaled CvPlayerAI::AI_assetVal(CvCity const& c, bool bConquest) const
 		CvPlot const& p = *it;
 		bool const bHome = (it.currID() == CITY_HOME_PLOT);
 		CvCity const* pWorkingCity = p.getWorkingCity();
-		if (pWorkingCity != &c && !bHome &&
+		/*	Tile assignment may change when the owner changes, but it's too
+			complicated to anticipate that here. */
+		if (pWorkingCity != &c &&
 			pWorkingCity != NULL) // Should be able to get p by expanding borders
 		{
 			continue;
@@ -2897,7 +2899,7 @@ scaled CvPlayerAI::AI_assetVal(CvCity const& c, bool bConquest) const
 		// Fall back on city plot for plot culture if p unrevealed
 		CvPlot const& kCulturePlot = (p.isRevealed(getTeam()) ? p : c.getPlot());
 		// Allow modifier above 1 in order to encourage conquest of contested cities
-		scaled const rMaxCultureModifier = (bConquest ? fixp(1.5) : scaled(1));
+		scaled const rMaxCultureModifier = (bConquest ? fixp(4/3.) : scaled(1));
 		scaled rCultureModifier = 1;
 		CvGameAI const& kGame = GC.AI_getGame();
 		// Akin to CitySiteEvaluator::m_iClaimThreshold
@@ -2921,7 +2923,8 @@ scaled CvPlayerAI::AI_assetVal(CvCity const& c, bool bConquest) const
 					kCulturePlot.getCulture(getID()) + rCulturePadding +
 					kCulturePlot.getCulture(BARBARIAN_PLAYER) +
 					(bOwn ? 0 :
-					cultureConvertedUponCityTrade(c.getPlot(), kCulturePlot, c.getOwner()))
+					cultureConvertedUponCityTrade(
+					c.getPlot(), kCulturePlot, c.getOwner(), getID(), true))
 					) / (kCulturePlot.getTotalCulture() + rCulturePadding);
 			rCultureModifier.exponentiate(fixp(0.4)); // e.g. 50% plot culture -> 0.75
 		}
@@ -11829,7 +11832,8 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 		{
 			FAssertMsg(false, "Just to see how often DENIAL_MYSTERY comes up"); // advc.tmp
 			/*	This will give the war plan away. Should rarely happen.
-				Still, would be better to show a special city trade alert (tbd.?). */
+				Still, would be better to show a special city trade alert (tbd.?).
+				Should add some randomness (hash value) in that case for uncertainty. */
 			return DENIAL_MYSTERY;
 		}
 	}
