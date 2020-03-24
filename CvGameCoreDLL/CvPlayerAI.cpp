@@ -25516,7 +25516,8 @@ int CvPlayerAI::AI_calculateUnitAIViability(UnitAITypes eUnitAI, DomainTypes eDo
 	FOR_EACH_ENUM(UnitClass)
 	{
 		UnitTypes eLoopUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
-		const CvUnitInfo& kUnitInfo = GC.getInfo(eLoopUnit);
+		// UNOFFICIAL_PATCH, 01/15/09, jdog5000 (Bugfix): was GC.getInfo(eLoopUnitClass)
+		CvUnitInfo const& kUnitInfo = GC.getInfo(eLoopUnit);
 		if (kUnitInfo.getDomainType() == eDomain)
 		{
 			TechTypes eTech = (TechTypes)kUnitInfo.getPrereqAndTech();

@@ -1234,9 +1234,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bNoBadGoodies, "bNoBadGoodies");
 	pXML->GetChildXmlValByName(&m_bOnlyDefensive, "bOnlyDefensive");
 	// advc.315a:
-	pXML->GetChildXmlValByName(&m_bOnlyAttackAnimals, "bOnlyAttackAnimals");
+	pXML->GetChildXmlValByName(&m_bOnlyAttackAnimals, "bOnlyAttackAnimals", false);
 	// advc.315b:
-	pXML->GetChildXmlValByName(&m_bOnlyAttackBarbarians, "bOnlyAttackBarbarians");
+	pXML->GetChildXmlValByName(&m_bOnlyAttackBarbarians, "bOnlyAttackBarbarians", false);
 	pXML->GetChildXmlValByName(&m_bNoCapture, "bNoCapture");
 	pXML->GetChildXmlValByName(&m_bQuickCombat, "bQuickCombat");
 	pXML->GetChildXmlValByName(&m_bRivalTerritory, "bRivalTerritory");
@@ -1473,7 +1473,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iCityDefenseModifier, "iCityDefense");
 	pXML->GetChildXmlValByName(&m_iAnimalCombatModifier, "iAnimalCombat");
 	// advc.315c:
-	pXML->GetChildXmlValByName(&m_iBarbarianCombatModifier, "iBarbarianCombat");
+	pXML->GetChildXmlValByName(&m_iBarbarianCombatModifier, "iBarbarianCombat", 0);
 	pXML->GetChildXmlValByName(&m_iHillsAttackModifier, "iHillsAttack");
 	pXML->GetChildXmlValByName(&m_iHillsDefenseModifier, "iHillsDefense");
 

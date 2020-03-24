@@ -364,10 +364,11 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iHealthPercent, "iHealthPercent");
 	pXML->GetChildXmlValByName(&m_iDefenseModifier, "iDefense");
 	// advc.012:
-	pXML->GetChildXmlValByName(&m_iRivalDefenseModifier, "iRivalDefense");
+	pXML->GetChildXmlValByName(&m_iRivalDefenseModifier, "iRivalDefense", 0);
 	pXML->GetChildXmlValByName(&m_iAdvancedStartRemoveCost, "iAdvancedStartRemoveCost");
 	pXML->GetChildXmlValByName(&m_iTurnDamage, "iTurnDamage");
-	pXML->GetChildXmlValByName(&m_iWarmingDefense, "iWarmingDefense"); //GWMod new xml field M.A.
+	pXML->GetChildXmlValByName(&m_iWarmingDefense, "iWarmingDefense", // GWMod new xml field M.A.
+			0); // advc: Default value; now optional.
 	pXML->GetChildXmlValByName(&m_iAppearanceProbability, "iAppearance");
 	pXML->GetChildXmlValByName(&m_iDisappearanceProbability, "iDisappearance");
 	pXML->GetChildXmlValByName(&m_iGrowthProbability, "iGrowth");
@@ -377,7 +378,7 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bRequiresFlatlands, "bRequiresFlatlands");
 	pXML->GetChildXmlValByName(&m_bRequiresRiver, "bRequiresRiver");
 	// advc.129b:
-	pXML->GetChildXmlValByName(&m_bRequiresRiverSide, "bRequiresRiverSide");
+	pXML->GetChildXmlValByName(&m_bRequiresRiverSide, "bRequiresRiverSide", false);
 	pXML->GetChildXmlValByName(&m_bAddsFreshWater, "bAddsFreshWater");
 	pXML->GetChildXmlValByName(&m_bImpassable, "bImpassable");
 	pXML->GetChildXmlValByName(&m_bNoCity, "bNoCity");

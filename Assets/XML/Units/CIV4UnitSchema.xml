@@ -547,10 +547,10 @@
 		<element type="bFood"/>
 		<element type="bNoBadGoodies"/>
 		<element type="bOnlyDefensive"/>
-		<!-- advc.315a -->
-		<element type="bOnlyAttackAnimals"/>
-		<!-- advc.315b -->
-		<element type="bOnlyAttackBarbarians"/>
+		<!-- advc.315a (set to false by default in the DLL) -->
+		<element type="bOnlyAttackAnimals" minOccurs="0"/>
+		<!-- advc.315b (set to false by default in the DLL) -->
+		<element type="bOnlyAttackBarbarians" minOccurs="0"/>
 		<element type="bNoCapture"/>
 		<element type="bQuickCombat"/>
 		<element type="bRivalTerritory"/>
@@ -655,8 +655,8 @@
 		<element type="iCityAttack"/>
 		<element type="iCityDefense"/>
 		<element type="iAnimalCombat"/>
-		<!-- advc.315c -->
-		<element type="iBarbarianCombat"/>
+		<!-- advc.315c(set to 0 by default in the DLL) -->
+		<element type="iBarbarianCombat" minOccurs="0"/>
 		<element type="iHillsAttack"/>
 		<element type="iHillsDefense"/>
 		<element type="TerrainNatives"/>
@@ -677,8 +677,8 @@
 		<element type="DomainCargo"/>
 		<element type="iCargo"/>
 		<element type="iConscription"/>
-		<!-- advc.101: No longer used, except that 0 still means that a unit
-			 can't suppress revolts. -->
+		<!-- advc.101 (note): No longer used, except that 0 still means that
+			 a unit can't suppress revolts. -->
 		<element type="iCultureGarrison"/>
 		<element type="iExtraCost"/>
 		<element type="iAsset"/>
@@ -871,7 +871,7 @@
 		<element type="TechPrereq"/>
 		<element type="StateReligionPrereq"/>
 		<element type="bLeader"/>
-		<!-- advc.164 -->
+		<!-- advc.164: -->
 		<element type="iBlitz"/>
 		<element type="bAmphib"/>
 		<element type="bRiver"/>
