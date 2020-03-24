@@ -130,19 +130,16 @@ void CvPlayer::init(PlayerTypes eID)
 {
 	reset(eID); // Reset serialized data
 
-	// Init containers
 	initContainers(); // advc.003q: Moved into a subroutine for initInGame
 
 	setupGraphical();
 
-	//--------------------------------
-	// Init team data
+	// Init team data ...
 	FAssert(getTeam() != NO_TEAM);
 	GET_TEAM(getTeam()).changeNumMembers(1);
 	GET_TEAM(getTeam()).updateMinorCiv(); // advc.003m
 
-	//--------------------------------
-	// Init other player data
+	// Init other player data ...
 	// <advc.003q> Moved into a subroutine for initInGame
 	if(!initOtherData())
 		return;
@@ -153,8 +150,8 @@ void CvPlayer::init(PlayerTypes eID)
 }
 
 // advc.003q: Cut from CvPlayer::init
-void CvPlayer::initContainers() {
-
+void CvPlayer::initContainers()
+{
 	m_plotGroups.init();
 	m_cities.init();
 	m_units.init();
@@ -21400,25 +21397,18 @@ void CvPlayer::markTradeOffers(CLinkList<TradeData>& ourInventory, const CLinkLi
 
 int CvPlayer::getIntroMusicScriptId(PlayerTypes eForPlayer) const
 {
-	CvPlayer& kForPlayer = GET_PLAYER(eForPlayer);
-	EraTypes eEra = kForPlayer.getCurrentEra();
-	CvLeaderHeadInfo& kLeader = GC.getInfo(getPersonalityType());
-	if (GET_TEAM(kForPlayer.getTeam()).isAtWar(getTeam()))
-	{
+	EraTypes eEra = GET_PLAYER(eForPlayer).getCurrentEra();
+	CvLeaderHeadInfo const& kLeader = GC.getInfo(getPersonalityType());
+	if (GET_TEAM(eForPlayer).isAtWar(getTeam()))
 		return kLeader.getDiploWarIntroMusicScriptIds(eEra);
-	}
-	else
-	{
-		return kLeader.getDiploPeaceIntroMusicScriptIds(eEra);
-	}
+	return kLeader.getDiploPeaceIntroMusicScriptIds(eEra);
 }
 
 int CvPlayer::getMusicScriptId(PlayerTypes eForPlayer) const
 {
-	CvPlayer& kForPlayer = GET_PLAYER(eForPlayer);
-	EraTypes eEra = kForPlayer.getCurrentEra();
-	CvLeaderHeadInfo& kLeader = GC.getInfo(getLeaderType());
-	if (GET_TEAM(kForPlayer.getTeam()).isAtWar(getTeam()))
+	EraTypes eEra = GET_PLAYER(eForPlayer).getCurrentEra();
+	CvLeaderHeadInfo const& kLeader = GC.getInfo(getLeaderType());
+	if (GET_TEAM(eForPlayer).isAtWar(getTeam()))
 		return kLeader.getDiploWarMusicScriptIds(eEra);
 	return kLeader.getDiploPeaceMusicScriptIds(eEra);
 }
