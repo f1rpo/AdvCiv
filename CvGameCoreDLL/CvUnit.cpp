@@ -404,24 +404,20 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pPlot = plot();
-	FAssert(pPlot);
+	CvPlot const& kPlot = getPlot();
 	// <advc.004h>
 	if(canFound() && isHuman())
 		updateFoundingBorder(true); // </advc.004h>
 
-	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-	while (pUnitNode)
+	CLLNode<IDInfo>* pUnitNode = kPlot.headUnitNode();
+	while (pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
-		FAssert(pLoopUnit);
+		pUnitNode = kPlot.nextUnitNode(pUnitNode);
 		if (pLoopUnit->getTransportUnit() == this)
 		{
-			if (pPlot->isValidDomainForLocation(*pLoopUnit))
+			if (kPlot.isValidDomainForLocation(*pLoopUnit))
 				pLoopUnit->setCapturingPlayer(NO_PLAYER);
-
 			pLoopUnit->kill(false, ePlayer);
 		}
 	}
@@ -430,7 +426,6 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	if (ePlayer != NO_PLAYER)
 	{
 		CvEventReporter::getInstance().unitKilled(this, ePlayer);
-
 		if (NO_UNIT != getLeaderUnitType() ||
 			// <advc.004u> Treat unattached GP here too
 			m_pUnitInfo->getDefaultUnitAIType() == UNITAI_GENERAL ||
@@ -439,11 +434,9 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 			CvWString szBuffer;
 			// advc.004u: szBuffer now set inside the loop
 			//szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey());
-			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1)) // advc: was MAX_PLAYERS
+			for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			{
-				CvPlayer& kObs = GET_PLAYER(i);
-				if(!kObs.isAlive())
-					continue; // advc
+				CvPlayer const& kObs = *it;
 				ColorTypes eColor = NO_COLOR;
 				TCHAR const* szSound = NULL;
 				// <advc.004u>
@@ -473,16 +466,16 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 					szSound = "AS2D_INTERCEPTED";
 				}
 				else continue;
-				bool bRev = getPlot().isRevealed(kObs.getTeam(), true);
+				bool bRev = kPlot.isRevealed(kObs.getTeam(), true);
 				// </advc.004u>
-				gDLL->UI().addMessage(i, false, -1, szBuffer,
+				gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
 						szSound, // advc.004u
 						MESSAGE_TYPE_MAJOR_EVENT,
 						// <advc.004u> Indicate location on map
 						getButton(), eColor,
 						bRev ? getX() : -1, bRev ? getY() : -1, bRev, bRev);
 						// </advc.004u>
-				}
+			}
 		}
 	}
 
@@ -497,7 +490,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	if (isMadeAttack() && nukeRange() != -1)
 	{
 		CvPlot* pTarget = getAttackPlot();
-		if (pTarget)
+		if (pTarget != NULL)
 		{
 			pTarget->nukeExplosion(nukeRange(), this);
 			setAttackPlot(NULL, false);
@@ -521,14 +514,14 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 		// advc.001: Expenses for units may change
 		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
 	}
-
 	gDLL->UI().removeFromSelectionList(this);
-
 	// XXX this is NOT a hack, without it, the game crashes.
 	gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
 
 	//FAssert(!isCombat());
-	FAssert(!isFighting()); // K-Mod. With simultaneous turns, a unit can be captured while trying to execute an attack order. (eg. a bomber)
+	/*	K-Mod. With simultaneous turns, a unit can be captured while
+		trying to execute an attack order. (eg. a bomber) */
+	FAssert(!isFighting());
 	//FAssert(getAttackPlot() == NULL);
 	FAssert(getCombatUnit() == NULL); // advc: moved up
 
@@ -542,14 +535,10 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	kOwner.changeExtraUnitCost(-m_pUnitInfo->getExtraCost());
 
 	if (m_pUnitInfo->getNukeRange() != -1)
-	{
 		kOwner.changeNumNukeUnits(-1);
-	}
 
 	if (m_pUnitInfo->isMilitarySupport())
-	{
 		kOwner.changeNumMilitaryUnits(-1);
-	}
 
 	kOwner.changeAssets(-(m_pUnitInfo->getAssetValue()));
 	kOwner.changePower(-(m_pUnitInfo->getPowerValue()
@@ -561,7 +550,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	kOwner.AI_changeNumAIUnits(AI_getUnitAIType(), -1);
 
 	PlayerTypes eCapturingPlayer = getCapturingPlayer();
-	UnitTypes eCaptureUnitType = ((eCapturingPlayer != NO_PLAYER) ? getCaptureUnitType(GET_PLAYER(eCapturingPlayer).getCivilizationType()) : NO_UNIT);
+	UnitTypes eCaptureUnitType = ((eCapturingPlayer != NO_PLAYER) ?
+			getCaptureUnitType(GET_PLAYER(eCapturingPlayer).getCivilizationType()) : NO_UNIT);
 
 	setXY(INVALID_PLOT_COORD, INVALID_PLOT_COORD, true);
 
@@ -571,39 +561,39 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 	kOwner.deleteUnit(getID());
 
-	if (eCapturingPlayer != NO_PLAYER && eCaptureUnitType != NO_UNIT && !GET_PLAYER(eCapturingPlayer).isBarbarian())
+	if (eCapturingPlayer != NO_PLAYER && eCaptureUnitType != NO_UNIT &&
+		!GET_PLAYER(eCapturingPlayer).isBarbarian())
 	{
 		if (GET_PLAYER(eCapturingPlayer).isHuman() ||
-				GET_PLAYER(eCapturingPlayer).AI_captureUnit(eCaptureUnitType, pPlot) ||
-				!GC.getDefineBOOL("AI_CAN_DISBAND_UNITS"))
+			GET_PLAYER(eCapturingPlayer).AI_captureUnit(eCaptureUnitType, kPlot) ||
+			!GC.getDefineBOOL("AI_CAN_DISBAND_UNITS"))
 		{
-			CvUnit* pkCapturedUnit = GET_PLAYER(eCapturingPlayer).initUnit(eCaptureUnitType, pPlot->getX(), pPlot->getY());
-
-			if (pkCapturedUnit != NULL)
+			CvUnit* pCapturedUnit = GET_PLAYER(eCapturingPlayer).initUnit(
+					eCaptureUnitType, kPlot.getX(), kPlot.getY());
+			if (pCapturedUnit != NULL)
 			{
 				CvWString szBuffer;
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_CAPTURED_UNIT", GC.getInfo(eCaptureUnitType).getTextKeyWide());
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_CAPTURED_UNIT",
+						GC.getInfo(eCaptureUnitType).getTextKeyWide());
 				gDLL->UI().addMessage(eCapturingPlayer, true, -1, szBuffer,
-						"AS2D_UNITCAPTURE", MESSAGE_TYPE_INFO, pkCapturedUnit->getButton(),
-						GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
-
+						"AS2D_UNITCAPTURE", MESSAGE_TYPE_INFO, pCapturedUnit->getButton(),
+						GC.getColorType("GREEN"), kPlot.getX(), kPlot.getY());
 				// Add a captured mission
-				if (pPlot->isActiveVisible(false)) // K-Mod
+				if (kPlot.isActiveVisible(false)) // K-Mod
 				{
 					CvMissionDefinition kMission;
-					kMission.setMissionTime(GC.getInfo(MISSION_CAPTURED).getTime() * gDLL->getSecsPerTurn());
-					kMission.setUnit(BATTLE_UNIT_ATTACKER, pkCapturedUnit);
+					kMission.setMissionTime(GC.getInfo(MISSION_CAPTURED).getTime() *
+							gDLL->getSecsPerTurn());
+					kMission.setUnit(BATTLE_UNIT_ATTACKER, pCapturedUnit);
 					kMission.setUnit(BATTLE_UNIT_DEFENDER, NULL);
-					kMission.setPlot(pPlot);
+					kMission.setPlot(&kPlot);
 					kMission.setMissionType(MISSION_CAPTURED);
 					gDLL->getEntityIFace()->AddMission(&kMission);
 				}
-
-				pkCapturedUnit->finishMoves();
-
+				pCapturedUnit->finishMoves();
 				if (!GET_PLAYER(eCapturingPlayer).isHuman())
 				{
-					CvPlot* pCapturePlot = pkCapturedUnit->plot();
+					CvPlot const* pCapturePlot = pCapturedUnit->plot();
 					if (pCapturePlot != NULL && !pCapturePlot->isCity(false))
 					{
 						if (GET_PLAYER(eCapturingPlayer).AI_isAnyPlotDanger(*pCapturePlot) &&
@@ -611,7 +601,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 						{
 							//pkCapturedUnit->kill(false);
 							// K-Mod. roughly the same thing, but this is more appropriate.
-							pkCapturedUnit->scrap();
+							pCapturedUnit->scrap();
 						}
 					}
 				}

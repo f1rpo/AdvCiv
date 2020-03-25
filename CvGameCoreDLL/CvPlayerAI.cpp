@@ -2011,22 +2011,17 @@ bool CvPlayerAI::AI_acceptUnit(CvUnit const& kUnit) const // advc: param was CvU
 }
 
 
-bool CvPlayerAI::AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const
+bool CvPlayerAI::AI_captureUnit(UnitTypes eUnit, CvPlot const& kPlot) const // advc: was CvPlot*
 {
 	FAssert(!isHuman());
-
-	if (pPlot->getTeam() == getTeam())
+	if (kPlot.getTeam() == getTeam())
 		return true;
-
-	CvCity* pNearestCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, getTeam());
+	CvCity* pNearestCity = GC.getMap().findCity(kPlot.getX(), kPlot.getY(), NO_PLAYER, getTeam());
 	if (pNearestCity != NULL)
 	{
-		if (plotDistance(pPlot->getX(), pPlot->getY(), pNearestCity->getX(), pNearestCity->getY()) <= 4)
-		{
+		if (plotDistance(&kPlot, pNearestCity->plot()) <= /*4*/ 8) // advc.010
 			return true;
-		}
 	}
-
 	return false;
 }
 
