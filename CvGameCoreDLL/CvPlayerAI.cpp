@@ -2788,7 +2788,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 {
 	PROFILE_FUNC(); // advc.test: To be profiled
 	bool const bOwn = (c.getOwner() == getID());
-	scaled r = 2 * AI_cityWonderVal(c);	
+	scaled r = 2 * AI_cityWonderVal(c);
 	r += scaled(getCurrentEra() + 2, 2) * getTradeRoutes();
 	if (!bConquest || bOwn) // Most mundane buildings don't survive conquest
 	{
@@ -2796,7 +2796,8 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 			but using NumBuildings is a pretty coarse estimate of building utility anyway. */
 		/*if (bOwn && c.isHuman())
 			...; else */
-		r += 2 * c.getNumBuildings(); // (note: includes obsolete buildings)
+		 // (Note: Includes obsolete buildings, double counts wonders.)
+		r += fixp(2.25) * c.getNumBuildings();
 		if (bOwn &&
 			(bConquest || !c.isHuman())) // Don't compensate human for national wonders
 		{
@@ -2810,9 +2811,10 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 	scaled rPop = (c.isRevealed(getTeam()) ? c.getPopulation() :
 			// estimate
 			scaled::min(fixp(1.5) * (GET_PLAYER(c.getOwner()).getCurrentEra() + 1), 7));
+	scaled const rEraFactor = scaled::min(2, scaled(getCurrentEra(), 2));
 	if (bConquest)
-		r += fixp(6/5.) * (rPop - fixp(1.5));
-	else r += fixp(4/3.) * rPop;
+		r += ((5 + rEraFactor) / 5) * (rPop - fixp(1.5));
+	else r += ((3 + rEraFactor) / 3) * rPop;
 	if (c.isRevealed(getTeam()))
 	{
 		// A little extra from state religion (idea from AND)
@@ -2845,7 +2847,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 		{
 			continue;
 		}
-		scaled rPlotVal = fixp(2/3.);
+		scaled rPlotVal = (2 + rEraFactor) / 3;
 		BonusTypes eBonus = NO_BONUS;
 		if (p.isRevealed(getTeam()))
 		{
@@ -2900,9 +2902,9 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 			rPlotVal += fixp(0.15);
 			if (GC.getInfo(eImprov).getPillageGold() >= 18)
 			{
-				rPlotVal += fixp(0.15); // Village
+				rPlotVal += fixp(0.2); // Village
 				if (GC.getInfo(eImprov).getImprovementUpgrade() == NO_IMPROVEMENT)
-					rPlotVal += fixp(0.37); // Town
+					rPlotVal += fixp(0.5); // Town
 			}
 		}
 		// Fall back on city plot for plot culture if p unrevealed
@@ -9703,9 +9705,13 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 					continue; // (As in K-Mod. Can this happen?)
 				int iWeight = //AI_targetCityValue(pCity, false);
 						// Don't leak info about target city
-						4 * AI_cityTradeVal(*pCity, getID()) -
-						3* GET_PLAYER(ePlayer).AI_cityTradeVal(*pCity, getID());
-				if (iWeight > iBestCityWeight)
+						AI_cityTradeVal(*pCity, getID()) -
+						GET_PLAYER(ePlayer).AI_cityTradeVal(*pCity, getID());
+				if (iWeight > iBestCityWeight &&
+					/*	Avoid trading cities between AI civs that are more valuable
+						to the current owner */
+					(iWeight > 0 || isHuman() || pCity->isHuman() ||
+					::atWar(kPlayer.getTeam(), getTeam())))
 				{	// Leave it up to AI_cityTradeVal whether liberation should count
 					int iValue = AI_cityTradeVal(*pCity);
 					if (iValue > 0)
@@ -11360,9 +11366,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	if (eToPlayer == NO_PLAYER)
 	{
 		/*	Just as the trade value of gold gets counted double - once for the recipient,
-			once for the sender. Tbd.: If this makes cities too expensive, one can argue
-			that eToPlayer doesn't have to pay fully for what he gains, that it's enough
-			to compensate the owner for the loss and then some. */
+			once for the sender. */
 		int iAcquireVal = std::max(0, AI_cityTradeVal(
 				kCity, getID(), eLibWeight, bConquest));
 		int iKeepVal = std::max(0, GET_PLAYER(kCity.getOwner()).AI_cityTradeVal(
@@ -11456,7 +11460,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	}
 	// May also be integrated with eToPlayer's cities if previously owned
 	if (!bKeep && eCultureLevel > 1)
-		r *= 1 + scaled((eCultureLevel - 1), 12);
+		r *= 1 + scaled(eCultureLevel - 1, 12);
 
 	if (r < 0)
 		return r.round();
