@@ -126,7 +126,7 @@ public:
 	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
-	scaled AI_assetVal(CvCity const& c, bool bConquest) const; // advc
+	scaled AI_assetVal(CvCityAI const& c, bool bConquest) const; // advc
 
 	// BETTER_BTS_AI_MOD, 08/20/09, jdog5000: START
 	bool isSafeRangeCacheValid() const; // K-Mod

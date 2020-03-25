@@ -1650,6 +1650,6 @@ void UWAICache::City::updateAssetScore() {
 		/*  Scale: Same as CvPlayerAI::AI_cityWonderVal, i.e. approx. 50% GPT.
 			Would rather use 100% GPT, but war evaluation can't easily be
 			adjusted to that. */
-		assetScore = (GET_PLAYER(cacheOwnerId).AI_assetVal(*city(), true) / 2).round();
+		assetScore = (GET_PLAYER(cacheOwnerId).AI_assetVal(city()->AI(), true) / 2).round();
 	}
 }

@@ -2784,7 +2784,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 	Replacing parts of AI_cityTradeVal. Coexisting with similar code
 	in AI_targetCityValue (the similarities aren't that great).
 	Scale: gold per turn */
-scaled CvPlayerAI::AI_assetVal(CvCity const& c, bool bConquest) const
+scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 {
 	PROFILE_FUNC(); // advc.test: To be profiled
 	bool const bOwn = (c.getOwner() == getID());
@@ -2813,12 +2813,26 @@ scaled CvPlayerAI::AI_assetVal(CvCity const& c, bool bConquest) const
 	if (bConquest)
 		r += fixp(6/5.) * (rPop - fixp(1.5));
 	else r += fixp(4/3.) * rPop;
-	/*	A little extra from state religion (idea from AND); I'm not bothering
-		with AI_corporationValue though. Nor with corporation maintenance,
-		which I think AND doesn't take into account either. */
-	ReligionTypes eStateReligion = getStateReligion();
-	if (eStateReligion != NO_RELIGION && c.isHasReligion(eStateReligion))
-		r += fixp(0.5);
+	if (c.isRevealed(getTeam()))
+	{
+		// A little extra from state religion (idea from AND)
+		ReligionTypes eStateReligion = getStateReligion();
+		if (eStateReligion != NO_RELIGION && c.isHasReligion(eStateReligion))
+			r += fixp(0.5);
+		// Also based on AND (too slow?)
+		FOR_EACH_ENUM(Corporation)
+		{
+			if (c.isHasCorporation(eLoopCorporation))
+			{
+				/*	It's supposed to be 100*GPT, but it seems to be much more than that.
+					Even if that's accurate, it doesn't make sense to value something
+					fairly cheap so highly. */
+				scaled rCorpVal(AI_corporationValue(eLoopCorporation, bOwn ? &c : NULL), 400);
+				rCorpVal.decreaseTo(bOwn ? 4 : 8);
+				r += rCorpVal;
+			}
+		}
+	}
 	for (CityPlotIter it(c); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
@@ -11523,6 +11537,9 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	}
 
 	r *= AI_targetAmortizationTurns();
+	// To make it easier to even out city trades with gold when tech can't be traded
+	if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING))
+		r *= fixp(0.8);
 
 	if (!bKeep && !bOtherHuman)
 	{
@@ -11655,10 +11672,6 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 			}
 		}
 	}
-
-	// To make it easier to even out city trades with gold when tech can't be traded
-	if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING))
-		r *= fixp(0.8);
 
 	if (!bHuman && bOtherHuman) // Obscure and round (regardless of bKeep)
 	{
@@ -14171,7 +14184,8 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 				iBonuses += AI_countOwnedBonuses(eBonus);
 			else iBonuses += pCity->getNumBonuses(eBonus);
 			// maybe use getNumAvailableBonuses ?
-			if (!kTeam.isHasTech((TechTypes)GC.getInfo(eBonus).getTechReveal()) && !kTeam.isForceRevealedBonus(eBonus))
+			if (!kTeam.isHasTech((TechTypes)GC.getInfo(eBonus).getTechReveal()) &&
+				!kTeam.isForceRevealedBonus(eBonus))
 			{
 				iBonuses++; // expect that we'll get one of each unrevealed resource
 			}
@@ -14183,46 +14197,43 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 		iBonuses++;
 	}
 
-	for (int iI = (CommerceTypes)0; iI < NUM_COMMERCE_TYPES; ++iI)
+	FOR_EACH_ENUM(Commerce)
 	{
-		int iTempValue = kCorp.getCommerceProduced((CommerceTypes)iI) * iBonuses;
-
+		int iTempValue = kCorp.getCommerceProduced(eLoopCommerce) * iBonuses;
 		if (iTempValue != 0)
 		{
 			if (pCity == NULL)
-				iTempValue *= AI_averageCommerceMultiplier((CommerceTypes)iI);
-			else
-				iTempValue *= pCity->getTotalCommerceRateModifier((CommerceTypes)iI);
+				iTempValue *= AI_averageCommerceMultiplier(eLoopCommerce);
+			else iTempValue *= pCity->getTotalCommerceRateModifier(eLoopCommerce);
 			// I'd feel more comfortable if they named it "multiplier" when it included the base 100%.
 			iTempValue /= 100;
 
-			iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent();
+			iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).
+					getCorporationMaintenancePercent();
 			iTempValue /= 100;
 
-			iTempValue *= AI_commerceWeight((CommerceTypes)iI, pCity);
+			iTempValue *= AI_commerceWeight(eLoopCommerce, pCity);
 			iTempValue /= 100;
 
 			iValue += iTempValue;
 		}
-
-		iMaintenance += 100 * kCorp.getHeadquarterCommerce(iI);
+		iMaintenance += 100 * kCorp.getHeadquarterCommerce(eLoopCommerce);
 	}
-
-	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	FOR_EACH_ENUM(Yield)
 	{
-		int iTempValue = kCorp.getYieldProduced((YieldTypes)iI) * iBonuses;
+		int iTempValue = kCorp.getYieldProduced(eLoopYield) * iBonuses;
 		if (iTempValue != 0)
 		{
 			if (pCity == NULL)
-				iTempValue *= AI_averageYieldMultiplier((YieldTypes)iI);
-			else
-				iTempValue *= pCity->getBaseYieldRateModifier((YieldTypes)iI);
+				iTempValue *= AI_averageYieldMultiplier(eLoopYield);
+			else iTempValue *= pCity->getBaseYieldRateModifier(eLoopYield);
 
 			iTempValue /= 100;
-			iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent();
+			iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).
+					getCorporationMaintenancePercent();
 			iTempValue /= 100;
 
-			iTempValue *= AI_yieldWeight((YieldTypes)iI);
+			iTempValue *= AI_yieldWeight(eLoopYield);
 			iTempValue /= 100;
 
 			iValue += iTempValue;
@@ -14231,10 +14242,12 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 
 	// maintenance cost
 	int iTempValue = kCorp.getMaintenance() * iBonuses;
-	iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent();
+	iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).
+			getCorporationMaintenancePercent();
 	iTempValue /= 100;
 	iTempValue += iMaintenance;
-	// Inflation, population, and maintenance modifiers... lets just approximate them like this:
+	/*	Inflation, population, and maintenance modifiers... 
+		lets just approximate them like this: */
 	iTempValue *= 2;
 	iTempValue /= 3;
 
@@ -14248,10 +14261,14 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 	if (eBonusProduced != NO_BONUS)
 	{
 		//int iBonuses = getNumAvailableBonuses((BonusTypes)kCorp.getBonusProduced());
-		iBonuses = pCity ? pCity->getNumBonuses(eBonusProduced) : AI_countOwnedBonuses(eBonusProduced);
-		// pretend we have 1 bonus if it is not yet revealed. (so that we don't overvalue the corp before the resource gets revealed)
-		iBonuses += !kTeam.isHasTech((TechTypes)GC.getInfo(eBonusProduced).getTechReveal()) ? 1 : 0;
-		iValue += AI_baseBonusVal(eBonusProduced) * 25 / (1 + 2 * iBonuses * (iBonuses+3));
+		iBonuses = pCity ? pCity->getNumBonuses(eBonusProduced) :
+				AI_countOwnedBonuses(eBonusProduced);
+		/*	pretend we have 1 bonus if it is not yet revealed.
+			(so that we don't overvalue the corp before the resource gets revealed) */
+		iBonuses += (!kTeam.isHasTech((TechTypes)
+				GC.getInfo(eBonusProduced).getTechReveal()) ? 1 : 0);
+		iValue += AI_baseBonusVal(eBonusProduced) * 25 /
+				(1 + 2 * iBonuses * (iBonuses+3));
 	}
 
 	return iValue;
