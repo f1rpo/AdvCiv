@@ -336,19 +336,20 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 		pSelectionNode != NULL; pSelectionNode = gDLL->UI().nextSelectionListNode(pSelectionNode))
 	{
 		CvUnit const& kLoopUnit = *::getUnit(pSelectionNode->m_data);
-		int iLoopRange;
-		if (kLoopUnit.getDomainType() == DOMAIN_AIR)
-			iLoopRange = kLoopUnit.airRange();
-		else
+		//if (kLoopUnit.getDomainType() == DOMAIN_AIR)
+		if (kLoopUnit.airRange() > 0) // advc.rstr
+			iRange = std::max(iRange, kLoopUnit.airRange());
+		DomainTypes eLoopDomain = kLoopUnit.getDomainType();
+		if (eLoopDomain == DOMAIN_LAND || eLoopDomain == DOMAIN_SEA) // advc.rstr
 		{
-			int iStepCost = (kLoopUnit.getDomainType() == DOMAIN_LAND ?
+			int iStepCost = (eLoopDomain == DOMAIN_LAND ?
 					KmodPathFinder::MinimumStepCost(kLoopUnit.baseMoves()) :
 					GC.getMOVE_DENOMINATOR());
-			iLoopRange = kLoopUnit.maxMoves() / iStepCost +
+			int iMoveRange = kLoopUnit.maxMoves() / iStepCost +
 					(kLoopUnit.canParadrop(kLoopUnit.plot()) ?
 					kLoopUnit.getDropRange() : 0);
+			iRange = std::max(iRange, iMoveRange);
 		}
-		iRange = std::max(iRange, iLoopRange);
 		/*  Note: technically we only really need the minimum range; but I'm using the maximum range
 			because I think it will produce more intuitive and useful information for the player. */
 	}

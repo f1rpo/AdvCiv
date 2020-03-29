@@ -207,10 +207,11 @@ void CvGame::updateColoredPlots()
 			}
 		}
 	}
-	if (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR)
+	/*	advc.rstr: Merged air range with ranged strike code so that the maximal range
+		is highlighted also for range-strikers */
+	if (pHeadSelectedUnit->airRange() > 0)
 	{
 		int iMaxAirRange = 0;
-
 		for (CLLNode<IDInfo> const* pSelectedUnitNode = kUI.headSelectionListNode();
 			pSelectedUnitNode != NULL; pSelectedUnitNode = kUI.nextSelectionListNode(pSelectedUnitNode))
 		{
@@ -220,31 +221,22 @@ void CvGame::updateColoredPlots()
 		}
 		if (iMaxAirRange > 0)
 		{
+			bool const bAir = (pHeadSelectedUnit->getDomainType() == DOMAIN_AIR);
 			for (PlotCircleIter it(*pHeadSelectedUnit, iMaxAirRange); it.hasNext(); ++it)
 			{
-				CvPlot const& kLoopPlot = *it;
-				NiColorA color(GC.getInfo(GC.getColorType("YELLOW")).getColor());
-				color.a = 0.5f;
-				kEngine.fillAreaBorderPlot(kLoopPlot.getX(), kLoopPlot.getY(),
-						color, AREA_BORDER_LAYER_RANGED);
-			}
-		}
-	}
-	else if(pHeadSelectedUnit->airRange() > 0) //other ranged units
-	{
-		int const iRange = pHeadSelectedUnit->airRange();
-		for (PlotCircleIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
-		{
-			CvPlot const& kTargetPlot = *it;
-			if (kTargetPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
-				pHeadSelectedUnit->getPlot().canSeePlot(&kTargetPlot,
-				pHeadSelectedUnit->getTeam(), iRange,
-				pHeadSelectedUnit->getFacingDirection(true)))
-			{
-				NiColorA color(GC.getInfo(GC.getColorType("YELLOW")).getColor());
-				color.a = 0.5f;
-				kEngine.fillAreaBorderPlot(kTargetPlot.getX(), kTargetPlot.getY(),
-						color, AREA_BORDER_LAYER_RANGED);
+				CvPlot const& kTargetPlot = *it;
+				if (bAir ||
+					(kTargetPlot.isVisible(pHeadSelectedUnit->getTeam()) /*&&
+					// advc.rstr: See CvUnit::canRangeStrikeAt
+					pHeadSelectedUnit->getPlot().canSeePlot(
+					&kTargetPlot, pHeadSelectedUnit->getTeam(), iMaxAirRange,
+					pHeadSelectedUnit->getFacingDirection(true))*/))
+				{
+					NiColorA color(GC.getInfo(GC.getColorType("YELLOW")).getColor());
+					color.a = 0.5f;
+					kEngine.fillAreaBorderPlot(kTargetPlot.getX(), kTargetPlot.getY(),
+							color, AREA_BORDER_LAYER_RANGED);
+				}
 			}
 		}
 	}

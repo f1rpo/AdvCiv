@@ -692,9 +692,10 @@ int CvUnitAI::AI_groupSecondVal() /* advc: */ const
 	return ((getDomainType() == DOMAIN_AIR) ? airBaseCombatStr() : baseCombatStr());
 }
 
-
-// Returns attack odds out of 100 (the higher, the better...)
-// Withdrawal odds included in returned value
+/*	Returns attack odds out of 100 (the higher, the better...)
+	Withdrawal odds included in returned value
+	advc (note): Mostly obsoleted by LFBgetBetterAttacker and AI_getWeightedOdds;
+	I think only AI_paradrop still uses CvUnitAI::AI_attackOdds. */
 int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 {
 	PROFILE_FUNC();
@@ -744,6 +745,9 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 	int iDamageToThem = std::max(1, (GC.getCOMBAT_DAMAGE() *
 			(iOurFirepower + iStrengthFactor)) /
 			(iTheirFirepower + iStrengthFactor));
+	/*	advc: If this function gets used for air units, then airCombatLimit
+		should probably be used. */
+	FAssert(getDomainType() != DOMAIN_AIR);
 	int iHitLimitThem = pDefender->maxHitPoints() - combatLimit();
 
 	int iNeededRoundsUs = (std::max(0, pDefender->currHitPoints() - iHitLimitThem) +
@@ -13798,19 +13802,21 @@ bool CvUnitAI::AI_rangeAttack(int iRange)
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
-	int iSearchRange = AI_searchRange(iRange);
-	/*  advc.opt: I don't think MISSION_RANGE_ATTACK will cause the unit to move
-		toward the target. No point in searching beyond the air range then. */
-	for (SquareIter it(*this, std::min(iSearchRange, airRange()), false);
+	//int iSearchRange = AI_searchRange(iRange);
+	/*  advc.rstr: MISSION_RANGE_ATTACK doesn't currently cause the unit to
+		move toward the target. AI_searchRange and iRange are no help then. */
+	for (SquareIter it(*this, airRange(), false);
 		it.hasNext(); ++it)
 	{
 		CvPlot& kLoopPlot = *it;
-		//if (kLoopPlot.isVisibleEnemyUnit(this) || (kLoopPlot.isCity() && AI_potentialEnemy(kLoopPlot.getTeam())))
-		if (kLoopPlot.isVisibleEnemyUnit(this)) // K-Mod
+		if (kLoopPlot.isVisibleEnemyUnit(this) /*|| // K-Mod: disabled
+			(kLoopPlot.isCity() && AI_potentialEnemy(kLoopPlot.getTeam()))*/)
 		{
 			if (canRangeStrikeAt(plot(), kLoopPlot.getX(), kLoopPlot.getY()))
-			{
-				int iValue = AI_getGroup()->AI_attackOdds(&kLoopPlot, true);
+			{	//int iValue = AI_getGroup()->AI_attackOdds(&kLoopPlot, true);
+				/*	advc.rstr: A bit better? Still pretty dumb to always shoot
+					the softest target ... */
+				int iValue = AI_getGroup()->AI_getWeightedOdds(&kLoopPlot, false);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
