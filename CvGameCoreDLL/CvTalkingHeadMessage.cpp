@@ -84,8 +84,8 @@ const CvString& CvTalkingHeadMessage::getSound() const
 {
 	/*  advc.106b: A hack that relies on the EXE triggering the sound after calling
 		getSound */
-	const_cast<CvTalkingHeadMessage*>(this)->bSoundPlayed = true;
-	return (m_szSound);
+	bSoundPlayed = true;
+	return m_szSound;
 }
 
 void CvTalkingHeadMessage::setSound(LPCTSTR pszSound)

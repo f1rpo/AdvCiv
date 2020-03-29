@@ -6565,7 +6565,7 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 					{	// If we haven't bragged before, do it promptly.
 						if (eBragUnit != m_aeLastBrag[ePlayer])
 						{
-							const_cast<CvPlayerAI*>(this)->m_aeLastBrag[ePlayer] = eBragUnit;
+							m_aeLastBrag[ePlayer] = eBragUnit;
 							return GC.getAIDiploCommentType("UNIT_BRAG");
 						} // else: Use BtS code below
 					} // Never brag about this unit to ePlayer
@@ -6582,7 +6582,7 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 		0 == GC.getASyncRand().get(4 /* <advc.079> */ +
 		(m_aeLastWarn[ePlayer] != eWorstEnemy ? -2 : 2)))
 	{
-		const_cast<CvPlayerAI*>(this)->m_aeLastWarn[ePlayer] = eWorstEnemy;
+		m_aeLastWarn[ePlayer] = eWorstEnemy;
 		// </advc.079>
 		if (GET_PLAYER(ePlayer).AI_hasTradedWithTeam(eWorstEnemy) &&
 			!atWar(TEAMID(ePlayer), eWorstEnemy))

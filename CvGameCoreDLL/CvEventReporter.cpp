@@ -392,8 +392,9 @@ void CvEventReporter::playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPl
 {
 	m_kPythonEventMgr.reportPlayerGoldTrade(eFromPlayer, eToPlayer, iAmount);
 }
-// <advc.make> To get rid of the K-Mod friend declaration in the header
-CvPlayerRecord const* CvEventReporter::getPlayerRecord(PlayerTypes ePlayer) const
+/*	<advc.make> To get rid of the K-Mod friend declaration in the header.
+	Not const because CvStatistics performs lazy initialization of player records. */
+CvPlayerRecord const* CvEventReporter::getPlayerRecord(PlayerTypes ePlayer)
 {
 	return m_kStatistics.getPlayerRecord(ePlayer);
 } // </advc.make>

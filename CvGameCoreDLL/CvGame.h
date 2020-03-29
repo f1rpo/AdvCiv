@@ -581,10 +581,10 @@ public:
 
 	// advc.inl: const version, inline
 	DllExport inline CvDeal* getDeal(int iID)																	// Exposed to Python
-	{	CvGame const& kThis = *this;
-		return const_cast<CvDeal*>(kThis.getDeal(iID));
+	{
+		return m_deals.getAt(iID);
 	}
-	CvDeal const* getDeal(int iID) const
+	inline CvDeal const* getDeal(int iID) const
 	{
 		return m_deals.getAt(iID);
 	}
@@ -891,7 +891,7 @@ protected:
 		the other for CvDLLWidgetData::parseTradeItem. */
 	CLinkList<DealItemData> m_currentDeals;
 	CLinkList<DealItemData> m_currentDealsWidget;
-	bool m_bShowingCurrentDeals;
+	mutable bool m_bShowingCurrentDeals;
 	// </advc.072>
 
 	CvRandom m_mapRand;

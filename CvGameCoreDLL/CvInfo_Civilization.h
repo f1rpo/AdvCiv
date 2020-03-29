@@ -450,7 +450,9 @@ public: // advc: All the const functions are exposed to Python
 	~CvDiplomacyInfo();
 	//void uninit(); // advc: Merged into destructor
 
-	const CvDiplomacyResponse& getResponse(int iNum) const;
+	CvDiplomacyResponse const& getResponse(int iNum) const;
+	// advc.705: (underscore avoids ambiguity in Python export)
+	CvDiplomacyResponse& getResponse_(int iNum);
 	int getNumResponses() const;
 
 	bool getCivilizationTypes(int i, int j) const;

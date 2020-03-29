@@ -155,9 +155,6 @@ public:
 	void goldenAge(PlayerTypes ePlayer);
 
 	DllExport CvPlayerRecord* getPlayerRecord(int iIndex);
-	// <advc.make> Need a (double) const version of this
-	inline CvPlayerRecord const* getPlayerRecord(int iIndex) const
-	{ return const_cast<CvStatistics*>(this)->getPlayerRecord(iIndex); } // </advc.make>
 
 	const char* getMapName() const;
 	EraTypes getEra() const;

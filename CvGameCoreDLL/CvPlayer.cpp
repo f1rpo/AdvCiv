@@ -13109,7 +13109,8 @@ void CvPlayer::updateEspionageHistory(int iTurn, int iBestEspionage)
 const CvPlayerRecord* CvPlayer::getPlayerRecord() const
 {
 	return CvEventReporter::getInstance().
-			// advc.make: CvEventReporter::getPlayerRecord added
+			/*	advc.make: CvEventReporter::getPlayerRecord added.
+				We're no longer a friend of CvEventReporter. */
 			/*m_kStatistics.*/getPlayerRecord(getID());
 }
 // K-Mod end
@@ -20899,7 +20900,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 						if(eCancelPlayer == eOtherPlayer && eCancelBonus == j)
 						{
 							bValid = true;
-							const_cast<CvPlayer*>(this)->m_cancelingExport.deleteNode(pNode);
+							m_cancelingExport.deleteNode(pNode);
 							break;
 						}
 					}

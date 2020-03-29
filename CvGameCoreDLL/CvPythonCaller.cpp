@@ -876,7 +876,7 @@ bool CvPythonCaller::doGoody(CvPlot const& kPlot, CvUnit const* pUnit, PlayerTyp
 	CyPlot* pyPlot = new CyPlot(kPlot);
 	argsList.add(m_python.makePythonObject(pyPlot));
 	// Note: pUnit can be NULL, but pyUnit can still be initialized (and is expected by Python).
-	CyUnit* pyUnit = new CyUnit(const_cast<CvUnit*>(pUnit));
+	CyUnit* pyUnit = new CyUnit(*pUnit);
 	argsList.add(m_python.makePythonObject(pyUnit));
 	call("doGoody", argsList, lResult);
 	delete pyPlot;

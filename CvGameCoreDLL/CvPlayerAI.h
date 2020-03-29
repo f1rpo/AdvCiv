@@ -669,8 +669,8 @@ protected:
 	int* m_aiGoldTradedTo;
 	int* m_aiAttitudeExtra;
 	// <advc.079>
-	UnitTypes m_aeLastBrag[MAX_CIV_PLAYERS];
-	TeamTypes m_aeLastWarn[MAX_CIV_PLAYERS]; // </advc.079>
+	mutable UnitTypes m_aeLastBrag[MAX_CIV_PLAYERS];
+	mutable TeamTypes m_aeLastWarn[MAX_CIV_PLAYERS]; // </advc.079>
 	int* m_aiBonusValue;
 	int* m_aiBonusValueTrade; // advc.036
 	int* m_aiUnitClassWeights;

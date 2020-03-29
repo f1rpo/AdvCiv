@@ -2893,12 +2893,12 @@ bool CvTeam::isAtWarExternal(TeamTypes eIndex) const
 		(b/c being at war shouldn't prevent AI-to-human peace offers). */
 	if (m_iPeaceOfferStage == 2 && m_eOfferingPeace == eIndex)
 	{
-		const_cast<CvTeam*>(this)->m_iPeaceOfferStage = 0;
-		const_cast<CvTeam*>(this)->m_eOfferingPeace = NO_TEAM;
+		m_iPeaceOfferStage = 0;
+		m_eOfferingPeace = NO_TEAM;
 		return false;
-	} 
+	}
 	return isAtWar(eIndex);
-} 
+}
 
 
 void CvTeam::advancePeaceOfferStage(TeamTypes eAITeam)

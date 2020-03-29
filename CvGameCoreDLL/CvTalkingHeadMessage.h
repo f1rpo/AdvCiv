@@ -60,7 +60,7 @@ protected:
 	PlayerTypes m_eFromPlayer;
 	ChatTargetTypes m_eTarget;
 	bool m_bShown;
-	bool bSoundPlayed; // advc.106b
+	mutable bool bSoundPlayed; // advc.106b
 };
 
 #endif

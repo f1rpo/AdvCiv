@@ -2655,8 +2655,6 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 			gDLL->sendImplementDealMessage(eOtherPlayer, &playerList, &loopPlayerList);
 		}
 	}
-	// <advc.072>
-	const_cast<CvGame* const>(this)->m_bShowingCurrentDeals =
-			(eComment == GC.getAIDiploCommentType("CURRENT_DEALS"));
-	// </advc.072>
+	// advc.072:
+	m_bShowingCurrentDeals = (eComment == GC.getAIDiploCommentType("CURRENT_DEALS"));
 }

@@ -1474,8 +1474,7 @@ CvDiplomacyResponse* RiseFall::findThanks() {
 	if(thanks == NULL)
 		return NULL;
 	for(int i = 0; i < thanks->getNumResponses(); i++) {
-		CvDiplomacyResponse const* r = &thanks->getResponse(i);
-		return const_cast<CvDiplomacyResponse*>(r);
+		return &thanks->getResponse_(i);
 	}
 	return NULL;
 }

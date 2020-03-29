@@ -5550,9 +5550,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	// constructionValue cache
 	if (bUseConstructionValueCache && !bConstCache)
 	{
-		// please don't hate me for using const_cast.
+		// please don't hate me for using const cast.
 		// The const-correctness was my idea in the first place, but the original code doesn't make it easy for me.
-		const_cast<std::vector<int>&>(m_aiConstructionValue)[eBuildingClass] = iValue;
+		// advc: now mutable
+		m_aiConstructionValue[eBuildingClass] = iValue;
 	}
 	// K-Mod end
 

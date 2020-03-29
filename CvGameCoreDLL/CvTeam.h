@@ -583,8 +583,8 @@ protected:
 	std::vector<int>* m_pavProjectArtTypes; // a vector for each type of project
 	std::vector<BonusTypes> m_aeRevealedBonuses;
 	// <advc.134a>
-	TeamTypes m_eOfferingPeace;
-	int m_iPeaceOfferStage;
+	mutable TeamTypes m_eOfferingPeace;
+	mutable int m_iPeaceOfferStage;
 	// </advc.134a>
 
 	// <dlph.26>

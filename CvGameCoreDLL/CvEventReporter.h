@@ -119,7 +119,7 @@ public:
 	void setPlayerAlive(PlayerTypes ePlayerID, bool bNewValue);
 	void playerChangeStateReligion(PlayerTypes ePlayerID, ReligionTypes eNewReligion, ReligionTypes eOldReligion);
 	void playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, int iAmount);
-	CvPlayerRecord const* getPlayerRecord(PlayerTypes ePlayer) const; // advc.make
+	CvPlayerRecord const* getPlayerRecord(PlayerTypes ePlayer); // advc.make
 
 	DllExport void chat(CvWString szString);
 

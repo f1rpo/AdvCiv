@@ -3811,9 +3811,7 @@ CvPlot* CvSelectionGroup::getPathEndTurnPlot() const
 bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns, int iMaxPath) const
 {
 	// K-Mod - if I can stop the UI from messing with this pathfinder, I might be able to reduce OOS bugs.
-	// (note, the const-cast is just to get around the bad code from the original developers)
-	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled());
-	// K-Mod end
+	FAssert(AI_isControlled());
 
 	PROFILE("CvSelectionGroup::generatePath()");
 

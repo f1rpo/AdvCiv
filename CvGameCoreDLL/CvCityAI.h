@@ -195,9 +195,9 @@ protected:
 	mutable int* m_iCachePlayerClosenessTurn;
 	mutable int* m_iCachePlayerClosenessDistance;
 	mutable int m_iNeededFloatingDefenders;
-	mutable int m_iNeededFloatingDefendersCacheTurn; // </advc>
-
-	std::vector<int> m_aiConstructionValue; // K-Mod. (cache)
+	mutable int m_iNeededFloatingDefendersCacheTurn;
+	mutable std::vector<int> m_aiConstructionValue; // K-Mod. (cache)
+	// </advc>
 
 	void AI_doDraft(bool bForce = false);
 	void AI_doHurry(bool bForce = false);

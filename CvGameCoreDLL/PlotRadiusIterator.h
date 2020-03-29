@@ -28,10 +28,12 @@ class SquareIterator
 public:
 	SquareIterator(CvPlot const& kCenter, int iRadius, bool bIncludeCenter = true)
 	{
-		/*	I've written a const and non-const version (as derived classes that
+		/*	I had written a const and non-const version (as derived classes that
 			set a "PlotType" template parameter), but CityPlotIterator and
 			AgentIterator don't have const versions either, and const-correctness
-			would make it harder to add more iterator classes in the future. */
+			would make it harder to add more iterator classes in the future.
+			So I've removed those derived classes.
+			Const-casting CvPlot should generally be safe. */
 		m_pNext = const_cast<CvPlot*>(&kCenter);
 		init(iRadius, bIncludeCenter);
 	}

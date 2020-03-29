@@ -1811,10 +1811,15 @@ CvDiplomacyInfo::~CvDiplomacyInfo()
 	m_pResponses.clear();
 }
 
-const CvDiplomacyResponse& CvDiplomacyInfo::getResponse(int iNum) const
+CvDiplomacyResponse const& CvDiplomacyInfo::getResponse(int iNum) const
 {
-	return *(m_pResponses[iNum]);
+	return *m_pResponses[iNum];
 }
+// <advc.705>
+CvDiplomacyResponse& CvDiplomacyInfo::getResponse_(int iNum)
+{
+	return *m_pResponses[iNum];
+} // </advc.705>
 
 int CvDiplomacyInfo::getNumResponses() const
 {
