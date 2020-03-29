@@ -18927,7 +18927,8 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							{
 								FOR_EACH_ENUM_RAND(AIDemand, g.getSRand()) // advc.104m
 								{
-									abContacted[kPlayer.getTeam()] = AI_demandTribute(ePlayer, eLoopAIDemand);
+									abContacted[kPlayer.getTeam()] = AI_demandTribute(
+											ePlayer, eLoopAIDemand);
 									if(abContacted[kPlayer.getTeam()])
 										break;
 								}
@@ -19940,8 +19941,24 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 	}
 	CvPlayerAI& kHuman = GET_PLAYER(eHuman);
 	// <advc.104m> Don't ask for too little (unless difficulty is low)
-	scaled const rMinVal = (GC.getInfo(kHuman.getHandicapType()).getDifficulty() > 25 ?
-			50 * scaled(2).pow(getCurrentEra()) : 1); // </advc.104m>
+	scaled rMinVal = 1;
+	if (GC.getInfo(kHuman.getHandicapType()).getDifficulty() > 25)
+	{
+		if (getUWAI.isEnabled())
+		{	// If our actual war utility is lower, then it's a bluff.
+			scaled rWarUtility = std::max(20, uwai().getCache().
+					warUtilityIgnoringDistraction(kHuman.getTeam()));
+			/*	When demanding tribute, we're feeling clement, so eHuman doesn't
+				have to fully compensate us for the war not undertaken.
+				Also, we may still go to war at a later time. */
+			rWarUtility.exponentiate(fixp(0.8)); // maps e.g. 100 to 40
+			rMinVal = scaled::fromDouble(0.5 *
+					uwai().utilityToTradeVal(rWarUtility.getDouble()));
+		}
+		else rMinVal = 70 * scaled(2).pow(getCurrentEra());
+		rMinVal *= per100(GC.getInfo(GC.getGame().
+				getGameSpeedType()).getVictoryDelayPercent());
+	} // </advc.104m>
 	CLinkList<TradeData> humanGives;
 	switch(eDemand)
 	{
@@ -19956,16 +19973,6 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 			with bTestDenial, which seems pointless when the callee is human. */
 		if(kHuman.canTradeItem(getID(), item))
 			humanGives.insertAtEnd(item);
-		break;
-	}
-	case DEMAND_MAP:
-	{
-		TradeData item(TRADE_MAPS);
-		if(kHuman.canTradeItem(getID(), item)) // advc.001
-		{
-			if(GET_TEAM(getTeam()).AI_mapTradeVal(kHuman.getTeam()) > 100)
-				humanGives.insertAtEnd(item);
-		}
 		break;
 	}
 	case DEMAND_TECH:
@@ -19999,37 +20006,75 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 		}
 		if(eBestReceiveTech != NO_TECH)
 			humanGives.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
+		// <advc.104m>
+		if (GET_TEAM(getTeam()).
+			AI_techTradeVal(eBestReceiveTech, kHuman.getTeam()) >= rMinVal)
+		{
+			break;
+		} // else fall through
+		// </advc.104m>
+	}
+	case DEMAND_MAP:
+	{
+		TradeData item(TRADE_MAPS);
+		if(kHuman.canTradeItem(getID(), item)) // advc.001
+		{
+			if(GET_TEAM(getTeam()).AI_mapTradeVal(kHuman.getTeam()) > 100)
+				humanGives.insertAtEnd(item);
+		}
 		break;
 	}
 	case DEMAND_BONUS:
-	{
+	{	// <advc.104m> Won't make enough of a difference in the late game
+		if (getCurrentEra() >= 5)
+			break; // </advc.104m>
 		if (!kHuman.canPossiblyTradeItem(getID(), TRADE_RESOURCES))
 			break;
-		int iBestValue = 0;
-		BonusTypes eBestReceiveBonus = NO_BONUS;
+		// <advc.104m>
+		std::vector<std::pair<scaled,BonusTypes> > aieBonuses;
+		scaled rNonSurplusFactor = fixp(0.6);// </advc.104m>
 		FOR_EACH_ENUM(Bonus)
 		{
-			if(!kHuman.canTradeItem(getID(), TradeData(
-				TRADE_RESOURCES, eLoopBonus)))
+			if (!kHuman.canTradeItem(getID(), TradeData(
+				TRADE_RESOURCES, eLoopBonus), /* advc.104m */ true))
 			{
 				continue;
-			}
-			if(kHuman.getNumTradeableBonuses(eLoopBonus) <= 1 ||
-				AI_bonusTradeVal(eLoopBonus, eHuman, 1) <= 0)
+			}	
+			scaled rValue = AI_bonusTradeVal(eLoopBonus, eHuman, 1);
+			/*if (rValue == 0)
+				continue;*/
+			/*	<advc.104m> Skip all resources we don't need (if the trade denial
+				check hasn't already skipped them) */
+			if (getNumAvailableBonuses(eLoopBonus) > 0 &&
+				AI_corporationBonusVal(eLoopBonus, true) <= 0)
 			{
 				continue;
-			}
-			int iValue = 1 + GC.getGame().getSorenRandNum(10000,
-					"AI Demanding Tribute (Bonus)");
-			if(iValue > iBestValue)
+			} // </advc.104m>
+			if (kHuman.getNumTradeableBonuses(eLoopBonus) <= 1)
 			{
-				iBestValue = iValue;
-				eBestReceiveBonus = eLoopBonus;
+				//continue;
+				rValue *= rNonSurplusFactor; // advc.104m: Hardly our problem ...
 			}
+			// <advc.104m>
+			rValue *= 1 + scaled::rand(GC.getGame().getSRand(),
+					"AI resource demand (advc.104m)") / 4;
+			aieBonuses.push_back(std::make_pair(rValue, eLoopBonus));
 		}
-		if(eBestReceiveBonus != NO_BONUS)
-			humanGives.insertAtEnd(TradeData(TRADE_RESOURCES, eBestReceiveBonus));
-		break; // <advc.104m> New: demand gpt
+		std::sort(aieBonuses.begin(), aieBonuses.end(),
+				std::greater<std::pair<scaled,BonusTypes> >());
+		scaled rTotal = 0;
+		for (size_t i = 0; i < std::min(aieBonuses.size(),
+			(size_t)(kHuman.getCurrentEra() + 2)) && rTotal < rMinVal; i++)
+		{
+			BonusTypes eBonus = aieBonuses[i].second;
+			humanGives.insertAtEnd(TradeData(TRADE_RESOURCES, eBonus));
+			scaled rValue = aieBonuses[i].first;
+			// The non-surplus adjustment was only for sorting
+			if (kHuman.getNumTradeableBonuses(eBonus) <= 1)
+				rValue /= rNonSurplusFactor;
+			rTotal += rValue;
+		}
+		break;
 	}
 	case DEMAND_GOLD_PER_TURN:
 	{
