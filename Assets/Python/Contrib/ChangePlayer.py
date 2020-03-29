@@ -74,7 +74,8 @@ def changeCivPopup( ) :
 
 	popup = PyPopup.PyPopup(changeCivPopupNum,contextType = EventContextTypes.EVENTCONTEXT_ALL)
 	popup.setHeaderString( 'Change a civ?' )
-	popup.setBodyString( 'Which civ to change, to which civ and leader and what team?' )
+	# advc.127c: Can't change teams (see later comment)
+	popup.setBodyString( 'Which civ to change, to which civ and leader?')# and what team?' )
 	popup.addSeparator()
 	#popup.createPythonEditBox( '10', 'Number of turns to turn over to AI', 0)
 
