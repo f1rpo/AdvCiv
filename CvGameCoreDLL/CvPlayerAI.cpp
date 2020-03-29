@@ -19864,15 +19864,26 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 	// <advc.144>
 	if (!GET_PLAYER(eHuman).canTradeItem(getID(), item))
 		return false; // </advc.144>
-	CLinkList<TradeData> theirList;
-	theirList.insertAtEnd(item);
+	CLinkList<TradeData> humanGives;
+	humanGives.insertAtEnd(mainItem);
+	// <advc.104m>
+	CLinkList<TradeData> weGive;
+	// Combining a peace treaty with non-annual items seems to be fine actually
+	//if (humanGives.getLength() > 0 && CvDeal::isAnnual(mainItem.m_eItemType))
+	TradeData peaceItem(TRADE_PEACE_TREATY);
+	if (canTradeItem(eHuman, peaceItem) && kHuman.canTradeItem(getID(), peaceItem))
+	{
+		weGive.insertAtEnd(peaceItem);
+		humanGives.insertAtEnd(peaceItem);
+	} // </advc.104m>
 	AI_changeContactTimer(eHuman, CONTACT_ASK_FOR_HELP,
 			GC.getInfo(getPersonalityType()).
 			getContactDelay(CONTACT_ASK_FOR_HELP));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 	pDiplo->setDiploComment(GC.getAIDiploCommentType("ASK_FOR_HELP"));
 	pDiplo->setAIContact(true);
-	pDiplo->setOurOfferList(theirList);
+	pDiplo->setOurOfferList(humanGives);
+	pDiplo->setTheirOfferList(weGive); // advc.104m
 	gDLL->beginDiplomacy(pDiplo, eHuman);
 	return true;
 }
@@ -20004,13 +20015,17 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 	}
 	if(theirList.getLength() <= 0)
 		return false;
-	// <advc.104m> Don't ask for too little
-	// Unless difficulty is low
-	if (GC.getInfo(kHuman.getHandicapType()).getDifficulty() > 25)
+
+	// <advc.104m>
+	CLinkList<TradeData> weGive;
+	// Combining a peace treaty with non-annual items seems to be fine actually
+	/*if (humanGives.getLength() > 0 &&
+		CvDeal::isAnnual(humanGives.head()->m_data.m_eItemType))*/
+	TradeData peaceItem(TRADE_PEACE_TREATY);
+	if (canTradeItem(eHuman, peaceItem) && kHuman.canTradeItem(getID(), peaceItem))
 	{
-		int iDealVal = AI_dealVal(eHuman, theirList, false, 1, true);
-		if(iDealVal < 50 * std::pow(2.0, getCurrentEra()))
-			return false;
+		weGive.insertAtEnd(peaceItem);
+		humanGives.insertAtEnd(peaceItem);
 	} // </advc.104m>
 	AI_changeContactTimer(eHuman, CONTACT_DEMAND_TRIBUTE,
 			GC.getInfo(getPersonalityType()).
@@ -20018,7 +20033,8 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 	pDiplo->setDiploComment(GC.getAIDiploCommentType("DEMAND_TRIBUTE"));
 	pDiplo->setAIContact(true);
-	pDiplo->setOurOfferList(theirList);
+	pDiplo->setOurOfferList(humanGives);
+	pDiplo->setTheirOfferList(weGive); // advc.104m
 	gDLL->beginDiplomacy(pDiplo, eHuman);
 	return true;
 } // advc: End of functions cut from AI_doDiplo

@@ -2952,18 +2952,7 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 	FAssert(eWho != NO_PLAYER);
 	FAssert(eOtherWho != NO_PLAYER);
 	FAssert(eWho != eOtherWho);
-	// <advc.032>
-	if(GET_TEAM(eWho).isForcePeace(TEAMID(eOtherWho)))
-	{
-		for(CLLNode<TradeData> const* pNode = kOurList.head(); pNode != NULL; pNode = kOurList.next(pNode))
-		{
-			if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
-			{
-				if(GET_PLAYER(eWho).resetPeaceTreaty(eOtherWho))
-					return NULL; // advc.036
-			}
-		}
-	} // </advc.032>
+
 	CvDeal* pDeal = addDeal();
 	pDeal->init(pDeal->getID(), eWho, eOtherWho);
 	pDeal->addTrades(kOurList, kTheirList, !bForce);
@@ -8157,11 +8146,12 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 				{
 					if (kLoopPlayer.isVotingMember(kData.eVoteSource))
 					{
+						/*	advc.130v (note): Not replaced with CvTeam::signPeaceTreaty
+							because I want vassals to get their own peace treaties here. */
 						kLoopPlayer.forcePeace(kData.kVoteOption.ePlayer);
 					}
 				}
 			}
-
 			setVoteOutcome(kData, NO_PLAYER_VOTE);
 		}
 		else if (kVote.isForceNoTrade())

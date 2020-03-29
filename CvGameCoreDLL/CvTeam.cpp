@@ -1532,12 +1532,13 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 	kTeam.AI().AI_updateAttitude(getID()); // </advc.001>
 }
 
-// K-Mod
-void CvTeam::signPeaceTreaty(TeamTypes eTeam)
+// K-Mod:
+void CvTeam::signPeaceTreaty(TeamTypes eTeam, /* advc: */ bool bForce)
 {
 	TradeData item(TRADE_PEACE_TREATY);
-	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
-		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+	if (/* advc: */ bForce ||
+		(GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item)))
 	{
 		CLinkList<TradeData> ourList;
 		CLinkList<TradeData> theirList;
@@ -1545,7 +1546,7 @@ void CvTeam::signPeaceTreaty(TeamTypes eTeam)
 		theirList.insertAtEnd(item);
 		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
 	}
-} // K-Mod end
+}
 
 
 void CvTeam::signOpenBorders(TeamTypes eTeam)

@@ -3764,7 +3764,10 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 	case DIPLOEVENT_GIVE_HELP:
 		// advc.130j:
 		AI().AI_rememberEvent(ePlayer, MEMORY_GIVE_HELP);
-		forcePeace(ePlayer);
+		/*	advc.104m: Was forcePeace(ePlayer) originally. The peace treaty is
+			now part of the help deal. (Signing another one wouldn't hurt
+			because of change advc.032; it's just unnecessary.) */
+		//GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer));
 		break;
 
 	case DIPLOEVENT_REFUSED_HELP:
@@ -3780,14 +3783,10 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		GET_PLAYER(ePlayer).AI_changeMemoryCount(getID(), MEMORY_MADE_DEMAND_RECENT, 1);
 		/*  advc (comment): This event (and its counterpart REJECTED_DEMAND)
 			is only triggered when a human accepts an AI demand. When a human
-			demands sth., DIPLOEVENT_MADE_DEMAND triggers (and that one doesn't
-			trigger when the AI demands sth.). */
-		forcePeace(ePlayer);
-		/*  advc.104m (comment): Sadly, we can't reliably identify the CvDeal object
-			here that corresponds to the tribute demand. Otherwise, that deal could
-			be marked as a tribute deal and be canceled automatically after 10 turns.
-			Getting the necessary data from CvPlayerAI::AI_demandTribute to here is
-			awkward. Tbd.: Could CvGame::handleDiplomacySetAIComment help with this? */
+			demands something from the AI, DIPLOEVENT_MADE_DEMAND triggers
+			(and that one doesn't trigger when the AI makes a demand). */
+		// advc.104m: (see note under DIPLOEVENT_GIVE_HELP above)
+		//GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer));
 		break;
 
 	case DIPLOEVENT_REJECTED_DEMAND:
@@ -4250,7 +4249,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 				#endif
 				kOurTeam.getNumMembers() == 1 && kToTeam.getNumMembers() == 1);
 	case TRADE_PEACE_TREATY:
-		return true;
+		return kOurTeam.canChangeWarPeace(kToTeam.getID()); // advc.130v
 	// <advc.034>
 	case TRADE_DISENGAGE:
 		return (!kToTeam.isDisengage(getTeam()) &&
@@ -20555,18 +20554,14 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 {
 	/*if (!GET_TEAM(getTeam()).isAVassal()) {
 		FAssert(GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam()));*/ // BtS
-
-	// K-Mod. "canChangeWarPeace" can return false here if the peace team vassalates after the vote is cast.
-	if (GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam()))
-	{
-	// K-Mod end
-		CLinkList<TradeData> playerList;
-		CLinkList<TradeData> loopPlayerList;
-		TradeData peaceTreaty(TRADE_PEACE_TREATY);
-		playerList.insertAtEnd(peaceTreaty);
-		loopPlayerList.insertAtEnd(peaceTreaty);
-		GC.getGame().implementDeal(getID(), ePlayer, playerList, loopPlayerList);
-	}
+	// K-Mod: "canChangeWarPeace" can return false here if the peace team vassalates after the vote is cast.
+	//if (GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam()))
+	// ...
+	/*	advc: Redundant code deleted; CvTeam::signPeaceTreaty does the same thing
+		including, due to advc.130v, the canChangeWarPeace check.
+		To avoid making forcePeace obsolete, I'm changing its semantics so that
+		canChangeWarPeace is NOT checked. */
+	GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer), true);
 }
 
 // <advc.032>
@@ -20848,8 +20843,16 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 		if (canTradeItem(eOtherPlayer, item))
 		{
 			ourList.insertAtEnd(item);
-		}
 	}
+	/*  <advc.104m> Make peace treaties hidden items at peacetime
+		so that the trade screen (EXE) doesn't discard them from
+		tribute and help requests. */
+	else
+	{
+		setTradeItem(&item, TRADE_PEACE_TREATY);
+		item.m_bHidden = true;
+		ourList.insertAtEnd(item);
+	} // </advc.104m>
 
 	//	Initial build of the inventory lists and buttons.
 	//	Go through all the possible headings

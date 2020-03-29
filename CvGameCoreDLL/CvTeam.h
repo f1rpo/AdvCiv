@@ -61,7 +61,7 @@ public:
 			bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
 	void meet(TeamTypes eTeam, bool bNewDiplo,																			// Exposed to Python
 			FirstContactData* pData = NULL); // advc.071
-	void signPeaceTreaty(TeamTypes eTeam); // K-Mod
+	void signPeaceTreaty(TeamTypes eTeam, bool bForce = false); // K-Mod (advc: bForce)
 	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
 	void signDisengage(TeamTypes otherId); // advc.034
 	void signDefensivePact(TeamTypes eTeam);																			// Exposed to Python
