@@ -192,9 +192,11 @@ public:
 	__forceinline ScaledInt() : m_i(static_cast<IntType>(0)) {}
 	__forceinline ScaledInt(int i) : m_i(static_cast<IntType>(SCALE * i))
 	{
-		// (Tbd.: Not sure if these assertions should be kept permanently)
-		FAssert(static_cast<IntType>(i) >= INTMIN / SCALE);
-		FAssert(static_cast<IntType>(i) <= INTMAX / SCALE);
+		// Respecting the limits is really the caller's responsibility
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssert(static_cast<IntType>(i) >= INTMIN / SCALE);
+			FAssert(static_cast<IntType>(i) <= INTMAX / SCALE);
+		#endif
 	}
 	__forceinline ScaledInt(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
