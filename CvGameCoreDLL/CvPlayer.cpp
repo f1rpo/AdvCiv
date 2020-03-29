@@ -21222,7 +21222,8 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		else pCity = getCity(zTradeData.m_iData);
 		if (pCity != NULL)
 		{
-			if (pCity->getLiberationPlayer() == eOtherPlayer)
+			if (pCity->getLiberationPlayer() == //eOtherPlayer)
+				(bOffer ? getID() : eOtherPlayer)) // advc.001 (bugfix?), advc.ctr
 			{
 				szString.Format(L"%s (%s)", pCity->getName().GetCString(),
 						gDLL->getText("TXT_KEY_LIBERATE_CITY").GetCString());

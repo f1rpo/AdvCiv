@@ -121,8 +121,9 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	// <advc.130p>
 	TeamTypes eWarTradeTarget = NO_TEAM;
 	TeamTypes ePeaceTradeTarget = NO_TEAM; // </advc.130p>
+	bool bPeaceTreaty = false; // advc.ctr
 
-	for (CLLNode<TradeData> const* pNode = kFirstList.head(); pNode != NULL;
+	for (CLLNode<TradeData>* pNode = kFirstList.head(); pNode != NULL;
 		pNode = kFirstList.next(pNode))
 	{	// <advc.130p>
 		if(pNode->m_data.m_eItemType == TRADE_WAR)
@@ -142,7 +143,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 		}
 	}
 
-	for (CLLNode<TradeData> const* pNode = kSecondList.head(); pNode != NULL;
+	for (CLLNode<TradeData>* pNode = kSecondList.head(); pNode != NULL;
 		pNode = kSecondList.next(pNode))
 	{	// <advc.130p>
 		if(pNode->m_data.m_eItemType == TRADE_WAR)
@@ -168,21 +169,23 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	/*  <advc.130p> MakePeace calls moved down. Want to count trade value (partially)
 		for peace deals, and I don't think AI_dealValue will work correctly when
 		no longer at war. */
-	bool const bPeace = ::atWar(eFirstTeam, eSecondTeam);
+	bool const bMakingPeace = ::atWar(eFirstTeam, eSecondTeam);
 	bool bUpdateAttitude = false;
 	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
 		code duplication */
-	if(recordTradeValue(kSecondList, kFirstList, getSecondPlayer(),
-		getFirstPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+	if (recordTradeValue(kSecondList, kFirstList, getSecondPlayer(),
+		getFirstPlayer(), bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
+		bPeaceTreaty && !bMakingPeace)) // advc.ctr
 	{
 		bUpdateAttitude = true;
 	}
-	if(recordTradeValue(kFirstList, kSecondList, getFirstPlayer(),
-		getSecondPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+	if (recordTradeValue(kFirstList, kSecondList, getFirstPlayer(),
+		getSecondPlayer(), bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
+		bPeaceTreaty && !bMakingPeace)) // advc.ctr
 	{
 		bUpdateAttitude = true;
 	}
-	if(bPeace)
+	if (bMakingPeace)
 	{
 		bUpdateAttitude = true; // </advc.130p>
 		// free vassals of capitulating team before peace is signed
@@ -262,8 +265,8 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 						(TeamTypes)pNode->m_data.m_iData);
 			} // </advc.104>
 			bool bSave = startTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(),
-					bPeace); // advc.ctr
-			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
+					bMakingPeace); // advc.ctr
+			bBumpUnits = (bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE); // K-Mod
 			if (bSave)
 				insertAtEndFirstTrades(pNode->m_data);
 			if (pNode->m_data.m_eItemType == TRADE_PERMANENT_ALLIANCE)
@@ -285,8 +288,8 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 						(TeamTypes)pNode->m_data.m_iData);
 			} // </advc.104>
 			bool bSave = startTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(),
-					bPeace); // advc.ctr
-			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
+					bMakingPeace); // advc.ctr
+			bBumpUnits = (bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE); // K-Mod
 
 			if (bSave)
 				insertAtEndSecondTrades(pNode->m_data);
@@ -313,14 +316,17 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	attitude cache needs to be updated. */
 bool CvDeal::recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList,
 	PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
-	TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget)
+	TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget,
+	bool bAIRequest) // advc.ctr
 {
 	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
 		Hard to decide, apply half the discount for now. */
-	int iValue = ROUND_DIVIDE(GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			kFirstList, true, 1, true, true, /* advc.ctr: */ true) +
+	int iValue = ROUND_DIVIDE(
 			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			kFirstList, true, 1, false, true, /* advc.ctr: */ true), 2);
+			kFirstList, true, 1, true, true, /* advc.ctr: */ true, bAIRequest, true) +
+			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
+			kFirstList, true, 1, false, true, /* advc.ctr: */ true, bAIRequest, true),
+			2);
 	if(iValue <= 0)
 		return false;
 	FAssertMsg(kFirstList.getLength() > 0 && (kFirstList.getLength() > 1 ||

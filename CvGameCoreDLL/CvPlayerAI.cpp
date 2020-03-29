@@ -2789,7 +2789,8 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 	PROFILE_FUNC(); // advc.test: To be profiled
 	bool const bOwn = (c.getOwner() == getID());
 	scaled r = 2 * AI_cityWonderVal(c);
-	r += scaled(getCurrentEra() + 2, 2) * getTradeRoutes();
+	// That's already supposed to project 1 era into the future
+	r += scaled(getCurrentEra() + 3, 2) * getTradeRoutes();
 	if (!bConquest || bOwn) // Most mundane buildings don't survive conquest
 	{
 		/*	Due to advc.045, the AI can't really know the buildings in a human city;
@@ -2973,7 +2974,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 	// Inflation isn't applied by the calculateMaintenance... functions
 	rMaintCost *= rInflationMultiplier;
 	if (!bOwn) // Courthouse may reduce it eventually
-		rMaintCost *= fixp(0.85);
+		rMaintCost *= fixp(0.785);
 	r -= rMaintCost;
 	return r;
 }
@@ -8579,15 +8580,17 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& kList, // advc: Take the list as a reference; some style changes
 	bool bIgnoreAnnual, int iChange,
 	bool bIgnoreDiscount, // advc.550a
-	bool bIgnorePeace, // advc.130p
-	bool bCountLiberation) const // advc.ctr
+	bool bIgnorePeace, // advc.130p  <advc.ctr>
+	bool bCountLiberation,
+	bool bAIRequest, // AI asks for help or tribute
+	bool bDiploVal) const // When recording trade memory </advc.ctr>
 {
 	FAssertMsg(eFromPlayer != getID(), "shouldn't call this function on ourselves");
 
 	int iValue = 0;
 	TeamTypes eFromTeam = TEAMID(eFromPlayer);
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	if(/* <advc.130p> */ !bIgnorePeace && /* </advc.130p> */ atWar(getTeam(), eFromTeam))
+	if (/* <advc.130p> */ !bIgnorePeace && /* </advc.130p> */ kOurTeam.isAtWar(eFromTeam))
 	{	// <advc.104i>
 		if(getUWAI.isEnabled())
 		{
@@ -8643,10 +8646,11 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 			CvCityAI const* pCity = GET_PLAYER(eFromPlayer).AI_getCity(pNode->m_data.m_iData);
 			if (pCity != NULL)
 			{
-				iValue += AI_cityTradeVal(*pCity,  // <advc.ctr>
+				iValue += AI_cityTradeVal(*pCity,
+						// <advc.ctr>
 						NO_PLAYER, bCountLiberation ?
-						LIBERATION_WEIGHT_REDUCED : LIBERATION_WEIGHT_ZERO);
-						// </advc.ctr>
+						LIBERATION_WEIGHT_REDUCED : LIBERATION_WEIGHT_ZERO,
+						false, bAIRequest, bDiploVal); // </advc.ctr>
 			}
 			break;
 		}
@@ -11356,7 +11360,8 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 		balancing out trade deals - which is the main purpose of this function.
 	I'm keeping it in one function b/c all three require similar computations. */
 int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was CvCity*
-	PlayerTypes eToPlayer, LiberationWeightTypes eLibWeight, bool bConquest) const
+	PlayerTypes eToPlayer, LiberationWeightTypes eLibWeight, bool bConquest,
+	bool bAIRequest, bool bDiploVal) const
 {
 	PROFILE_FUNC(); // (to be profiled)
 	CvGame const& kGame = GC.getGame();
@@ -11368,9 +11373,9 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 		/*	Just as the trade value of gold gets counted double - once for the recipient,
 			once for the sender. */
 		int iAcquireVal = std::max(0, AI_cityTradeVal(
-				kCity, getID(), eLibWeight, bConquest));
+				kCity, getID(), eLibWeight, bConquest, bAIRequest, bDiploVal));
 		int iKeepVal = std::max(0, GET_PLAYER(kCity.getOwner()).AI_cityTradeVal(
-				kCity, getID(), eLibWeight, bConquest));
+				kCity, getID(), eLibWeight, bConquest, bAIRequest, bDiploVal));
 		if (kOwner.isHuman()) // Don't pay more to human than it's worth to the AI
 		{
 			int iUpperBound = iAcquireVal;
@@ -11380,7 +11385,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 			{
 				eLibWeight = LIBERATION_WEIGHT_FULL;
 				iUpperBound = std::max(0, AI_cityTradeVal(
-						kCity, getID(), eLibWeight, bConquest)) / 2;
+						kCity, getID(), eLibWeight, bConquest, bAIRequest, bDiploVal)) / 2;
 			}
 			iKeepVal = std::min(iKeepVal, iUpperBound);
 		}
@@ -11470,7 +11475,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 		if (!bHuman) // Bias the AI against trading for cities
 		{
 			scaled rDiv = fixp(6/5.);
-			if (bOtherHuman) // Distrust human offers unless Friendly
+			if (bOtherHuman && !bAIRequest) // Distrust human offers unless Friendly
 			{
 				switch (AI_getAttitude(kOtherPlayer.getID()))
 				{
@@ -11613,45 +11618,16 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	{
 		TeamTypes eTarget = kOtherPlayer.getTeam();
 		/*	Not actually conditional on a war plan; wouldn't want to
-			leak that information. */
-		scaled rWarPlanFactor;
-		// <advc.104>
-		if (getUWAI.isEnabled())
-		{
-			/*	Don't want human to know this value; hopefully the obscuration
-				at the end is sufficient. */
-			rWarPlanFactor = per100(uwai().getCache().
-					warUtilityIgnoringDistraction(eTarget));
-		}
-		else // </advc.104>
-		{
-			CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-			if (kOurTeam.canChangeWarPeace(eTarget) &&
-				!kOurTeam.AI_isAvoidWar(eTarget, true) &&
-				((!kOurTeam.isHuman() && kOurTeam.AI_getWarPlan(eTarget) != NO_WARPLAN) ||
-				/*	To avoid leaking info about current war plan, check also
-					the possibility of a future war plan. */
-				(!kOurTeam.AI_isAnyWarPlan() && kOurTeam.AI_isLandTarget(eTarget))))
-			{
-				rWarPlanFactor = scaled(kOurTeam.getPower(true),
-						GET_TEAM(eTarget).getDefensivePower());
-				int iTargetPowRatio = (kOurTeam.isHuman() ? 120 : std::max(1, std::max(
-						kOurTeam.AI_maxWarNearbyPowerRatio(),
-						kOurTeam.AI_limitedWarPowerRatio())));
-				rWarPlanFactor -= 1 / per100(iTargetPowRatio);
-			}
-		}
-		if (rWarPlanFactor > 0)
-		{
-			rWarPlanFactor.decreaseTo(1);
-			r *= 1 - fixp(0.3) * rWarPlanFactor;
-		}
-		/*	Using all the same info as above to evaluate the threat from eOwner
-			would be a too overt cheat I think */
+			leak that information. Still don't want human to know this value;
+			hopefully the obscuration at the end is sufficient. */
+		scaled rWarPlanFactor = AI_peaceTreatyAversion(eTarget);
+		r *= 1 - fixp(0.35) * rWarPlanFactor;
+		// AI_peaceTreatyAversion would be a too overt information cheat I think
 		rWarPlanFactor = 0;
 		eTarget = getTeam();
 		CvTeamAI const& kOwnerTeam = GET_TEAM(eOwner);
-		if (kOwnerTeam.canChangeWarPeace(eTarget) &&
+		if (!bAIRequest &&
+			kOwnerTeam.canChangeWarPeace(eTarget) &&
 			((!kOwnerTeam.AI_isAvoidWar(eTarget) && kOwnerTeam.getNumWars(true, true) <= 0) ||
 			kOwnerTeam.isHuman()) &&
 			kOwnerTeam.AI_isLandTarget(eTarget))
@@ -11668,7 +11644,6 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 						kOwnerTeam.AI_limitedWarPowerRatio()));
 			}
 			rWarPlanFactor -= 1 / per100(iTargetPowRatio);
-			// As above
 			if (rWarPlanFactor > 0)
 			{
 				rWarPlanFactor.decreaseTo(1);
@@ -11677,7 +11652,8 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 		}
 	}
 
-	if (!bHuman && bOtherHuman) // Obscure and round (regardless of bKeep)
+	if (!bHuman && bOtherHuman && // Obscure and round (regardless of bKeep)
+		!bAIRequest && !bDiploVal)
 	{
 		std::vector<int> aInputs;
 		aInputs.push_back(kCity.getID());
@@ -11693,32 +11669,68 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 			return r.round();
 		return r.roundToMultiple(GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER));
 	}
+	// Increased impact on trade memory b/c city trades tend to have strategic importance
+	if (bDiploVal)
+		r *= fixp(1.47);
 	return r.round();
 }
 
-
-DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlayer) const // advc: refactored; advc.003u: param was CvCity*
+/*	advc.ctr: Between 0 (don't mind a peace treaty) and 1 (likely want to declare war
+	in the next few turns) */
+scaled CvPlayerAI::AI_peaceTreatyAversion(TeamTypes eTarget) const
 {
-	PROFILE_FUNC(); // advc.ctr (to be profiled)
+	scaled rWarVal = 0;
+	// <advc.104>
+	if (getUWAI.isEnabled())
+		rWarVal = per100(uwai().getCache().warUtilityIgnoringDistraction(eTarget));
+	else // </advc.104>
+	{
+		CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
+		if (kOurTeam.canChangeWarPeace(eTarget) &&
+			!kOurTeam.AI_isAvoidWar(eTarget, true) &&
+			((!kOurTeam.isHuman() && kOurTeam.AI_getWarPlan(eTarget) != NO_WARPLAN) ||
+			/*	To avoid leaking info about current war plan, check also
+				the possibility of a future war plan. */
+			(!kOurTeam.AI_isAnyWarPlan() && kOurTeam.AI_isLandTarget(eTarget))))
+		{
+			rWarVal = scaled(kOurTeam.getPower(true),
+					GET_TEAM(eTarget).getDefensivePower());
+			int iTargetPowRatio = (kOurTeam.isHuman() ? 120 : std::max(1, std::max(
+					kOurTeam.AI_maxWarNearbyPowerRatio(),
+					kOurTeam.AI_limitedWarPowerRatio())));
+			rWarVal -= 1 / per100(iTargetPowRatio);
+		}
+	}
+	return scaled::clamp(rWarVal, 0, 1);
+}
+
+// advc.ctr: Almost rewritten
+DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlayer) const
+{
+	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(kCity.getOwner() == getID());
-	CvPlayerAI const& kToPlayer = GET_PLAYER(eToPlayer); // advc: Renamed from kPlayer/ ePlayer
+	CvPlayerAI const& kToPlayer = GET_PLAYER(eToPlayer);
 	CvPlot const& kCityPlot = *kCity.plot();
 	/*if(pCity->getLiberationPlayer(false) == ePlayer)
 		return NO_DENIAL;*/
-	// advc.ctr: Not so fast
+	
 	bool const bLib = (kCity.getLiberationPlayer() == eToPlayer);
+	int iAcquireVal = MIN_INT; // (need this again for DENIAL_MYSTERY)
 	if (!bLib && !kToPlayer.isHuman() && kToPlayer.getTeam() != getTeam() &&
 		!kCity.isEverOwned(eToPlayer))
-	{	// <advc.ctr>
-		if(getTeam() != kToPlayer.getTeam() &&
-			(GET_PLAYER(eToPlayer).AI_isAwfulSite(kCity) ||
-			// Tbd.: Higher threshold? Too slow?
-			GET_PLAYER(eToPlayer).AI_cityTradeVal(
-			kCity, eToPlayer, LIBERATION_WEIGHT_FULL) <= 0))
-		{	// "We don't want to trade this" seems appropriate
-			return DENIAL_UNKNOWN;
-		} // </advc.ctr>
-		// advc.ctr: Now covered by CvPlayer::canTradeItem
+	{
+		if(getTeam() != kToPlayer.getTeam())
+		{
+			if (GET_PLAYER(eToPlayer).AI_isAwfulSite(kCity))
+			{	// "We don't want to trade this" seems appropriate
+				return DENIAL_UNKNOWN;
+			}
+			iAcquireVal = GET_PLAYER(eToPlayer).AI_cityTradeVal( // tbd.: Too slow?
+					kCity, eToPlayer, LIBERATION_WEIGHT_FULL);
+			if (iAcquireVal <= 0) // Tbd.: Higher threshold?
+				return DENIAL_UNKNOWN;
+		} 
+		// Now covered by CvPlayer::canTradeItem
 		/*if(kCityPlot.calculateCulturePercent(ePlayer) <= 0 && kPlayer.getNumCities() > 3) {
 			if(kPlayer.AI_isFinancialTrouble())
 				return DENIAL_UNKNOWN;
@@ -11729,127 +11741,154 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 				return DENIAL_UNKNOWN;
 		}*/
 	}
-	if (isHuman())
-		return NO_DENIAL;
-
-	/*if(kPlayer.getTeam() == getTeam()) {
-		if(pCity->calculateCulturePercent(getID()) > 50)
-			return DENIAL_TOO_MUCH;
-		return NO_DENIAL;
-	}*/ // <advc.ctr> No special treatment for same team
-	// Vassal-related conditions
-	CvTeam const& kToTeam = GET_TEAM(kToPlayer.getTeam());
-	CvTeam const& kOurTeam = GET_TEAM(getTeam());
-	int const iFREE_VASSAL_POPULATION_PERCENT = GC.getDefineINT(CvGlobals::FREE_VASSAL_POPULATION_PERCENT);
-	if (kOurTeam.isCapitulated())
-	{
-		if (getMasterTeam() != kToPlayer.getTeam())
-			return DENIAL_VASSAL;
-		if (!bLib && iFREE_VASSAL_POPULATION_PERCENT > 0)
-		{
-			// Make sure not to ruin our chances of breaking away (don't bother checking getTotalLand)
-			int iMasterPop = (kOurTeam.isVassal(kToTeam.getID()) ?
-					kToTeam.getTotalPopulation(false) + kCity.getPopulation() :
-					GET_TEAM(getMasterTeam()).getTotalPopulation(false));
-			if ((kOurTeam.getTotalPopulation(false) - kCity.getPopulation()) * 100 < iMasterPop)
-				return DENIAL_TOO_MUCH;
-		}
-	}
-	if (kToTeam.isCapitulated() && kToTeam.getMasterTeam() == getMasterTeam() &&
-		iFREE_VASSAL_POPULATION_PERCENT > 0)
-	{	// Don't (somehow) accidentally help free a non-rival capitulated vassal
-		int iMasterPop = (kToTeam.isVassal(getTeam()) ?
-				kOurTeam.getTotalPopulation(false) - kCity.getPopulation() :
-				GET_TEAM(kToTeam.getMasterTeam()).getTotalPopulation(false));
-		if ((kToTeam.getTotalPopulation(false) + kCity.getPopulation()) * 100 >= iMasterPop)
-			return DENIAL_POWER_YOU;
-	}
-
 	bool const bWar = ::atWar(getTeam(), kToPlayer.getTeam());
+	if (isHuman())
+	{
+		if(kCity.isCapital()) // Don't accept capital. Too strange.
+			return DENIAL_JOKING;
+		if (bWar)
+			return NO_DENIAL;
+		// (Else we still need to check peacetime denial of kToPlayer)
+	}
+	else 
+	{
+		/*if(kPlayer.getTeam() == getTeam()) {
+			if(pCity->calculateCulturePercent(getID()) > 50)
+				return DENIAL_TOO_MUCH;
+			return NO_DENIAL;
+		}*/ // No special treatment for same team
+		// Vassal-related conditions
+		CvTeam const& kToTeam = GET_TEAM(kToPlayer.getTeam());
+		CvTeam const& kOurTeam = GET_TEAM(getTeam());
+		int const iFREE_VASSAL_POPULATION_PERCENT = GC.getDefineINT(CvGlobals::FREE_VASSAL_POPULATION_PERCENT);
+		if (kOurTeam.isCapitulated())
+		{
+			if (getMasterTeam() != kToPlayer.getTeam())
+				return DENIAL_VASSAL;
+			if (!bLib && iFREE_VASSAL_POPULATION_PERCENT > 0)
+			{
+				/*	Make sure not to ruin our chances of breaking away
+					(don't bother checking getTotalLand) */
+				int iMasterPop = (kOurTeam.isVassal(kToTeam.getID()) ?
+						kToTeam.getTotalPopulation(false) + kCity.getPopulation() :
+						GET_TEAM(getMasterTeam()).getTotalPopulation(false));
+				if ((kOurTeam.getTotalPopulation(false) -
+					kCity.getPopulation()) * 100 < iMasterPop)
+				{
+					return DENIAL_TOO_MUCH;
+				}
+			}
+		}
+		if (kToTeam.isCapitulated() && kToTeam.getMasterTeam() == getMasterTeam() &&
+			iFREE_VASSAL_POPULATION_PERCENT > 0)
+		{	// Don't (somehow) accidentally help free a non-rival capitulated vassal
+			int iMasterPop = (kToTeam.isVassal(getTeam()) ?
+					kOurTeam.getTotalPopulation(false) - kCity.getPopulation() :
+					GET_TEAM(kToTeam.getMasterTeam()).getTotalPopulation(false));
+			if ((kToTeam.getTotalPopulation(false) +
+				kCity.getPopulation()) * 100 >= iMasterPop)
+			{
+				return DENIAL_POWER_YOU;
+			}
+		}
 
-	// Trade value conditions
+		// Owner's trade value
+		if (!bLib)
+		{
+			// Be more polite to non-rivals
+			DenialTypes eNever = (getMasterTeam() == kToPlayer.getMasterTeam() ?
+					DENIAL_TOO_MUCH : DENIAL_NEVER);
+			int const iKeepCityVal = AI_cityTradeVal(kCity, eToPlayer);
+			// Could cache this if needs be
+			int const iReferenceVal = AI_cityTradeVal(getCapitalCity()->AI(), eToPlayer);
+			if (!bWar && 7 * iKeepCityVal > 4 * iReferenceVal)
+				return eNever;
+		}
+
+		if (bWar)
+			return NO_DENIAL;
+
+		// Don't delay victory
+		if (getTeam() != kToPlayer.getTeam())
+		{
+			if (AI_atVictoryStage(AI_VICTORY_DOMINATION3))
+				return DENIAL_VICTORY;
+			// (For diplo victory, city trades can generate goodwill; not obviously a mistake.)
+			if ((AI_atVictoryStage(AI_VICTORY_SPACE3) && kCity.isProductionProject()) ||
+				// In part, to avoid revealing all the project sites in the endgame.
+				(AI_atVictoryStage(AI_VICTORY_SPACE4) &&
+				4 * kCity.getYieldRate(YIELD_PRODUCTION) >
+				getCapitalCity()->getYieldRate(YIELD_PRODUCTION)))
+			{
+				return DENIAL_VICTORY;
+			}
+		}
+
+		// Attitude-based conditions
+		if (GET_TEAM(getTeam()).AI_getWorstEnemy() == kToPlayer.getTeam())
+			return DENIAL_WORST_ENEMY;
+		int iAttitudeThresh = AI_cityTradeAttitudeThresh(kCity, eToPlayer, bLib);
+		int iForcedAttitude = AI_getAttitude(eToPlayer);
+		/*  <advc.130v> Use the true attitude of capitulated vassals - unless its higher
+			than the forced attitude. Not sure if capitulated vassals would otherwise
+			give away cities. Not to rivals certainly - that's already addressed above. */
+		int iTrueAttitude = AI_getAttitude(eToPlayer, false);
+		int iAttitude = std::min(iTrueAttitude, iForcedAttitude);
+		// Let the player know when displayed (forced) attitude is misleading
+		if (iAttitude <= iAttitudeThresh && iForcedAttitude > iAttitudeThresh)
+			return DENIAL_TRUE_ATTITUDE; // </advc.130v>
+		else if (iAttitudeThresh >= ATTITUDE_FRIENDLY)
+		{	// Trade with non-rivals if Friendly
+			if (getMasterTeam() == kToTeam.getMasterTeam())
+				iAttitudeThresh = ATTITUDE_PLEASED;
+			else return DENIAL_NEVER;
+		}
+		if (iAttitude <= iAttitudeThresh)
+			return DENIAL_ATTITUDE;
+	}
+	if (kToPlayer.isHuman())
+		return NO_DENIAL;
+	// Temporary obstacles ...
+	// Don't accept cities with resistance from third-party culture
+	if (!bLib && kCity.isOccupation() && kCity.getPlot().findHighestCulturePlayer() != eToPlayer)
+		return DENIAL_RECENT_CANCEL;
+	/*  Should perhaps instead check if there is _any_ danger; not sure how
+		likely it is that the new owner has defensive units nearby ... */
+	int iThirdPartyAttack = kToPlayer.AI_localAttackStrength(&kCityPlot, NO_TEAM);
+	if (iThirdPartyAttack > 0)
+	{
+		int iToPlayerDefense = kToPlayer.AI_localDefenceStrength(&kCityPlot,
+				kToPlayer.getTeam(), DOMAIN_LAND, 1);
+		if (iToPlayerDefense < 2 * iThirdPartyAttack)
+			return DENIAL_POWER_THEM;
+	}
 	if (!bLib)
 	{
-		// Be more polite to non-rivals
-		DenialTypes eNever = (getMasterTeam() == kToPlayer.getMasterTeam() ?
-				DENIAL_TOO_MUCH : DENIAL_NEVER);
-		int const iKeepCityVal = AI_cityTradeVal(kCity, eToPlayer);
-		// Could cache this if needs be
-		int const iReferenceVal = AI_cityTradeVal(getCapitalCity()->AI(), eToPlayer);
-		if (!bWar && 7 * iKeepCityVal > 4 * iReferenceVal)
-			return eNever;
-	}
-
-	if (bWar)
-		return NO_DENIAL;
-
-	// Don't delay victory
-	if (getTeam() != kToPlayer.getTeam())
-	{
-		if (AI_atVictoryStage(AI_VICTORY_DOMINATION3))
-			return DENIAL_VICTORY;
-		// (For diplo victory, city trades can generate goodwill; not obviously a mistake.)
-		if ((AI_atVictoryStage(AI_VICTORY_SPACE3) && kCity.isProductionProject()) ||
-			// In part, to avoid revealing all the project sites in the endgame.
-			(AI_atVictoryStage(AI_VICTORY_SPACE4) &&
-			4 * kCity.getYieldRate(YIELD_PRODUCTION) > getCapitalCity()->getYieldRate(YIELD_PRODUCTION)))
+		// Does eToPlayer urgently want to avoid a peace treaty (see CvDeal::startTrade)?
+		scaled rPeaceTreatyAversion = kToPlayer.AI_peaceTreatyAversion(getTeam());
+		if (rPeaceTreatyAversion > fixp(0.3))
 		{
-			return DENIAL_VICTORY;
+			FAssert(iAcquireVal > 0);
+			if (GET_TEAM(eToPlayer).AI_isSneakAttackReady(getTeam()))
+			{
+				rPeaceTreatyAversion *= fixp(1.5);
+				rPeaceTreatyAversion.decreaseTo(fixp(1.25));
+			}
+			scaled rTotalYieldVal = scaled::fromDouble(
+					2 * (kToPlayer.estimateYieldRate(YIELD_FOOD) -
+					kToPlayer.getTotalPopulation() * GC.getFOOD_CONSUMPTION_PER_POPULATION()) +
+					2 * kToPlayer.estimateYieldRate(YIELD_PRODUCTION) +
+					// To account for expenses somehow (cheaply)
+					0.7 * kToPlayer.estimateYieldRate(YIELD_COMMERCE)) *
+					AI_targetAmortizationTurns();
+			if (rPeaceTreatyAversion / 17 > iAcquireVal / rTotalYieldVal)
+			{
+				/*	Tbd.(?): Special city trade alert message for this case:
+					"[LdrName] will no longer accept [CityName] for a peace treaty" */
+				return DENIAL_MYSTERY;
+			}
 		}
 	}
-
-	// Attitude-based conditions
-	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == kToPlayer.getTeam())
-		return DENIAL_WORST_ENEMY;
-	int iAttitudeThresh = AI_cityTradeAttitudeThresh(kCity, eToPlayer, bLib);
-	int iForcedAttitude = AI_getAttitude(eToPlayer);
-	/*  <advc.130v> Use the true attitude of capitulated vassals - unless its higher
-		than the forced attitude. Not sure if capitulated vassals would otherwise
-		give away cities. Not to rivals certainly - that's already addressed above.  */
-	int iTrueAttitude = AI_getAttitude(eToPlayer, false);
-	int iAttitude = std::min(iTrueAttitude, iForcedAttitude);
-	// Let the player know when displayed (forced) attitude is misleading
-	if (iAttitude <= iAttitudeThresh && iForcedAttitude > iAttitudeThresh)
-		return DENIAL_TRUE_ATTITUDE; // </advc.130v>
-	else if (iAttitudeThresh >= ATTITUDE_FRIENDLY)
-	{	// Trade with non-rivals if Friendly
-		if (getMasterTeam() == kToTeam.getMasterTeam())
-			iAttitudeThresh = ATTITUDE_PLEASED;
-		else return DENIAL_NEVER;
-	}
-	if (iAttitude <= iAttitudeThresh)
-		return DENIAL_ATTITUDE;
-
-	// Temporary obstacles
-	if (!kToPlayer.isHuman())
-	{
-		// Don't accept cities with resistance from third-party culture
-		if (!bLib && kCity.isOccupation() && kCity.getPlot().findHighestCulturePlayer() != eToPlayer)
-			return DENIAL_RECENT_CANCEL;
-		/*  Should perhaps instead check if there is _any_ danger; not sure how
-			likely it is that the new owner has defensive units nearby ... */
-		int iThirdPartyAttack = kToPlayer.AI_localAttackStrength(&kCityPlot, NO_TEAM);
-		if (iThirdPartyAttack > 0)
-		{
-			int iToPlayerDefense = kToPlayer.AI_localDefenceStrength(&kCityPlot,
-					kToPlayer.getTeam(), DOMAIN_LAND, 1);
-			if (iToPlayerDefense < 2 * iThirdPartyAttack)
-				return DENIAL_POWER_THEM;
-		}
-		// Does eToPlayer /really/ want to avoid a peace treaty (see CvDeal::startTrade)?
-		if (!bLib && GET_TEAM(eToPlayer).AI_isSneakAttackReady(getTeam()) &&
-			3 * kToPlayer.getNumCities() >= // Would an extra city be more important than the war plan?
-			4 * GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities() &&
-			100 * GET_TEAM(eToPlayer).getPower(true) > 135 * GET_TEAM(getTeam()).getDefensivePower())
-		{
-			FAssertMsg(false, "Just to see how often DENIAL_MYSTERY comes up"); // advc.tmp
-			/*	This will give the war plan away. Should rarely happen.
-				Still, would be better to show a special city trade alert (tbd.?).
-				Should add some randomness (hash value) in that case for uncertainty. */
-			return DENIAL_MYSTERY;
-		}
-	}
-	// </advc.ctr>
 	return NO_DENIAL;
 }
 
@@ -18403,12 +18442,27 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 				g.getRiseFall().isBlockPopups())
 			{
 				continue;
-			}
-			// </advc.706>
+			} // </advc.706>
 			//if (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) // disabled by K-Mod
 			abContacted[ePlayer] = AI_doDeals(ePlayer); // advc
 			if(!canContact(ePlayer, true))
 				continue;
+
+			/*	advc.ctr: Moved up and abContacted check restored
+				(had been commented out since Vanilla Civ 4) */
+			if ((!kPlayer.isHuman() || !abContacted[kPlayer.getTeam()]) &&
+				// <advc.ctr> Had to copy some checks. Teammates no longer excluded.
+				!kOurTeam.isHuman() &&
+				(kPlayer.isHuman() || !GET_TEAM(kPlayer.getTeam()).isHuman()) &&
+				!kOurTeam.isAtWar(kPlayer.getTeam()) && // </advc.ctr>
+				canPossiblyTradeItem(ePlayer, TRADE_CITIES)) // advc.opt
+			{	// <advc> Moved into new function
+				if (AI_proposeCityTrade(ePlayer) && kPlayer.isHuman())
+				{
+					abContacted[kPlayer.getTeam()] = true;
+				} // </advc>
+			}
+
 			if((kPlayer.getTeam() == getTeam() || GET_TEAM(ePlayer).isVassal(getTeam())) &&
 				canPossiblyTradeItem(ePlayer, TRADE_RESOURCES)) // advc.opt
 			{
@@ -18531,7 +18585,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 				}
 			}
 
-			if(kPlayer.getTeam() == getTeam() || kOurTeam.isHuman() ||
+			if (kPlayer.getTeam() == getTeam() || kOurTeam.isHuman() ||
 				(!kPlayer.isHuman() && GET_TEAM(ePlayer).isHuman()) ||
 				kOurTeam.isAtWar(kPlayer.getTeam()))
 			{
@@ -18548,7 +18602,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						getNumAvailableBonuses(eLoopBonus) == 0 &&
 						// <advc.001> Might have no trade network
 						kPlayer.canTradeItem(getID(), TradeData(
-						TRADE_RESOURCES, eLoopBonus), false)) // </advc.001>
+						TRADE_RESOURCES, eLoopBonus))) // </advc.001>
 					{
 						int iValue = AI_bonusTradeVal(eLoopBonus, ePlayer, 1);
 						if (iValue > iBestValue)
@@ -18578,51 +18632,6 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						}
 					}
 					else g.implementDeal(getID(), ePlayer, ourList, theirList);
-				}
-			}
-
-			if (AI_getAttitude(ePlayer) >= ATTITUDE_CAUTIOUS &&
-				canPossiblyTradeItem(ePlayer, TRADE_CITIES)) // advc.opt
-			{
-				FOR_EACH_CITY(pLoopCity, *this)
-				{
-					if (pLoopCity->getPreviousOwner() == ePlayer)
-						continue;
-
-					if (((pLoopCity->getGameTurnAcquired() + 4) % 20) != (g.getGameTurn() % 20))
-						continue;
-
-					int iCount = 0;
-					int iPossibleCount = 0;
-					for (CityPlotIter itPlot(*pLoopCity); itPlot.hasNext(); ++itPlot)
-					{
-						if (itPlot->getOwner() == ePlayer)
-							iCount++;
-						iPossibleCount++;
-					}
-
-					if (iCount >= iPossibleCount / 2)
-					{
-						TradeData item(TRADE_CITIES, pLoopCity->getID());
-						if (canTradeItem(ePlayer, item, true))
-						{
-							ourList.clear();
-							theirList.clear();
-							ourList.insertAtEnd(item);
-							if (kPlayer.isHuman())
-							{
-								//if (!(abContacted[GET_PLAYER((PlayerTypes)iI).getTeam()])) {
-								pDiplo = new CvDiploParameters(getID());
-								pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_CITY"));
-								pDiplo->setAIContact(true);
-								pDiplo->setTheirOfferList(ourList);
-								gDLL->beginDiplomacy(pDiplo, ePlayer);
-								abContacted[kPlayer.getTeam()] = true;
-							}
-							else g.implementDeal(getID(), ePlayer, ourList,
-									theirList); // advc: was NULL
-						}
-					}
 				}
 			}
 
@@ -18898,14 +18907,14 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						numReachableCities(ePlayer) > 0)) // </advc.104g>
 					{
 						if (!abContacted[kPlayer.getTeam()])
-						{	// Each type of tribute request uses the same probability
-							FOR_EACH_ENUM(AIDemand)
+						{
+							if(g.getSorenRandNum(GC.getInfo(getPersonalityType()).
+								getContactRand(CONTACT_DEMAND_TRIBUTE)
+								// advc.104m: Probability halved b/c UWAI also calls AI_demandTribute
+								* (getUWAI.isEnabled() ? 2 : 1),
+								"AI Diplo Demand Tribute") == 0)
 							{
-								if(g.getSorenRandNum(GC.getInfo(getPersonalityType()).
-									getContactRand(CONTACT_DEMAND_TRIBUTE)
-									// advc.104m: Probability halved b/c UWAI also calls AI_demandTribute
-									* (getUWAI.isEnabled() ? 2 : 1),
-									"AI Diplo Demand Tribute") == 0)
+								FOR_EACH_ENUM_RAND(AIDemand, g.getSRand()) // advc.104m
 								{
 									abContacted[kPlayer.getTeam()] = AI_demandTribute(ePlayer, eLoopAIDemand);
 									if(abContacted[kPlayer.getTeam()])
@@ -19626,7 +19635,7 @@ bool CvPlayerAI::AI_proposeEmbargo(PlayerTypes eHuman)
 	return true;
 }
 
-/*  Caller ensures isAlive, canContactAndTalk, not at war, not Minor/ Barbarian,
+/*  Caller ensures canContactAndTalk, not at war, this->isMajorCiv(),
 	!this->isHuman. If eTo is human, !abContacted is ensured, but eTo may
 	also be an AI civ.
 	eTo is the player to whom this player proposes a trade; eTo isn't necessarily
@@ -19739,16 +19748,12 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 	bool bDeal = false;
 	if(eBestGiveBonus != NO_BONUS)
 	{
-		ourList.clear();
-		theirList.clear();
 		ourList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
 		if(AI_counterPropose(eTo, theirList, ourList, true, false))
 			bDeal = true;
 	}
 	if(!bDeal && eBestReceiveBonus != NO_BONUS)
 	{
-		ourList.clear();
-		theirList.clear();
 		theirList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestReceiveBonus));
 		if(kTo.AI_counterPropose(getID(), ourList, theirList, true, false))
 			bDeal = true;
@@ -19772,8 +19777,8 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 	return false; // Only true when a human was contacted
 } // </advc.133>
 
-/*  Caller ensures isHuman/ !isHuman, isAlive, canContactAndTalk,
-	unequal teams, not at war, not Minor/ Barbarian. */
+/*  Caller ensures isHuman/ !isHuman, canContactAndTalk,
+	unequal teams, not at war, this->isMajorCiv. */
 bool CvPlayerAI::AI_contactReligion(PlayerTypes eHuman)
 {
 	if(AI_getContactTimer(eHuman, CONTACT_RELIGION_PRESSURE) > 0 ||
@@ -19820,39 +19825,39 @@ bool CvPlayerAI::AI_contactCivics(PlayerTypes eHuman)
 	but those aren't necessary for this function to work correctly.) */
 bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 {
+	CvPlayerAI const& kHuman = GET_PLAYER(eHuman);
 	// <advc.104m>
-	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(eHuman)))
+	if (GET_TEAM(getTeam()).AI_isSneakAttackReady(kHuman.getTeam()))
 		return false; // </advc.104m>
 	/*  <advc.144> Don't ask for help during a peace treaty unless human has been
 		given help (which may well be the reason for the peace treaty) */
-	if(GET_TEAM(getTeam()).turnsOfForcedPeaceRemaining(TEAMID(eHuman)) > 3 &&
-		GET_PLAYER(eHuman).AI_getMemoryCount(getID(), MEMORY_GIVE_HELP) <= 0)
+	if (GET_TEAM(getTeam()).turnsOfForcedPeaceRemaining(kHuman.getTeam()) > 3 &&
+		kHuman.AI_getMemoryCount(getID(), MEMORY_GIVE_HELP) <= 0)
 	{
 		return false;
 	} // </advc.144>
 	// <advc.705>
-	CvGame const& g = GC.getGame();
-	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().
+	CvGame& kGame = GC.getGame();
+	if (kGame.isOption(GAMEOPTION_RISE_FALL) && kGame.getRiseFall().
 		isCooperationRestricted(getID()) &&
-		::bernoulliSuccess(0.33, "advc.705"))
+		fixp(1/3.).bernoulliSuccess(kGame.getSRand(), "advc.705"))
 	{
 		return false;
 	} // </advc.705>
-	if(AI_getContactTimer(eHuman, CONTACT_ASK_FOR_HELP) > 0 ||
-		GET_TEAM(eHuman).getAssets() <=
-		(2 * GET_TEAM(getTeam()).getAssets()) / 3) // advc.131: was 1/2
-	{
+	if (AI_getContactTimer(eHuman, CONTACT_ASK_FOR_HELP) > 0)
 		return false;
-	}
+	if (4 * kHuman.getAssets() <= 3 * GET_TEAM(getTeam()).getAssets()) // advc.104m: was 2:1
+		return false;
+	CvCityAI const* pBestCity = AI_bestRequestCity(eHuman, 1, fixp(5/3.)); // advc.ctr
 	// <advc.144> Replacing the loop below
-	TechTypes eBestReceiveTech = (!GET_PLAYER(eHuman).canPossiblyTradeItem(
+	TechTypes eBestTech = (!kHuman.canPossiblyTradeItem(
 			getID(), TRADE_TECHNOLOGIES) ? NO_TECH :
 			AI_bestTech(1, false, false, NO_TECH, NO_ADVISOR, eHuman));
 	// </advc.144>
 	/*int iBestValue = 0;
-	for(FOR_EACH:ENUM(Tech)) {
+	for(FOR_EACH_ENUM(Tech)) {
 		setTradeItem(&item, TRADE_TECHNOLOGIES, eLoopTech);
-		if(!GET_PLAYER(eHuman).canTradeItem(getID(), item))
+		if(!kHuman.canTradeItem(getID(), item))
 			continue;
 		int iValue = 1 + GC.getGame().getSorenRandNum(10000, "AI Asking For Help");
 		if(iValue > iBestValue) {
@@ -19860,11 +19865,29 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 			eBestReceiveTech = eLoopTech;
 		}
 	}*/
-	if(eBestReceiveTech == NO_TECH)
+	/*	<advc.ctr> Prefer asking for a city if it isn't much more valuable
+		than the available tech */
+	int iTechVal = (eBestTech == NO_TECH ? 0 :
+			GET_TEAM(getTeam()).AI_techTradeVal(eBestTech, kHuman.getTeam(), true));
+	int iCityVal = (pBestCity == NULL ? 0 :
+			AI_cityTradeVal(*pBestCity, NO_PLAYER, LIBERATION_WEIGHT_REDUCED));
+	TradeData mainItem;
+	if (pBestCity != NULL && (iTechVal <= 0 ||
+		(3 * iCityVal < 4 * iTechVal && fixp(2/3.).bernoulliSuccess(
+		kGame.getSRand(), "advc.ctr: askHelp"))))
+	{
+		mainItem.m_eItemType = TRADE_CITIES;
+		mainItem.m_iData = pBestCity->getID();
+	}
+	else if (eBestTech != NO_TECH)
+	{
+		mainItem.m_eItemType = TRADE_TECHNOLOGIES;
+		mainItem.m_iData = eBestTech;
+	}
+	else // </advc.ctr>
 		return false;
-	TradeData item(TRADE_TECHNOLOGIES, eBestReceiveTech);
 	// <advc.144>
-	if (!GET_PLAYER(eHuman).canTradeItem(getID(), item))
+	if (!kHuman.canTradeItem(getID(), mainItem))
 		return false; // </advc.144>
 	CLinkList<TradeData> humanGives;
 	humanGives.insertAtEnd(mainItem);
@@ -19890,15 +19913,11 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes eHuman)
 	return true;
 }
 
-// Same conditions ensured by the caller as for the functions above
+/*	Same conditions ensured by the caller as for the functions above.
+	And this player's team doesn't have an imminent war plan. */
 bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 {
-	// <advc.104m>
-	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(eHuman)))
-	{
-		FAssert(false); // Callers ensure this I think
-		return false;
-	} // </advc.104m>
+	FAssert(!GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(eHuman))); // advc.104m
 	// <advc.144> Not during a peace treaty
 	if(GET_TEAM(getTeam()).turnsOfForcedPeaceRemaining(TEAMID(eHuman)) > 1)
 		return false; // </advc.144>
@@ -19909,7 +19928,10 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 		return false;
 	}
 	CvPlayerAI& kHuman = GET_PLAYER(eHuman);
-	CLinkList<TradeData> theirList;
+	// <advc.104m> Don't ask for too little (unless difficulty is low)
+	scaled const rMinVal = (GC.getInfo(kHuman.getHandicapType()).getDifficulty() > 25 ?
+			50 * scaled(2).pow(getCurrentEra()) : 1); // </advc.104m>
+	CLinkList<TradeData> humanGives;
 	switch(eDemand)
 	{
 	case DEMAND_GOLD:
@@ -19922,7 +19944,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 		/*  advc.001: BtS checks this only for some of the items, and it does so
 			with bTestDenial, which seems pointless when the callee is human. */
 		if(kHuman.canTradeItem(getID(), item))
-			theirList.insertAtEnd(item);
+			humanGives.insertAtEnd(item);
 		break;
 	}
 	case DEMAND_MAP:
@@ -19931,7 +19953,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 		if(kHuman.canTradeItem(getID(), item)) // advc.001
 		{
 			if(GET_TEAM(getTeam()).AI_mapTradeVal(kHuman.getTeam()) > 100)
-				theirList.insertAtEnd(item);
+				humanGives.insertAtEnd(item);
 		}
 		break;
 	}
@@ -19965,7 +19987,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 			}
 		}
 		if(eBestReceiveTech != NO_TECH)
-			theirList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
+			humanGives.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
 		break;
 	}
 	case DEMAND_BONUS:
@@ -19995,7 +20017,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 			}
 		}
 		if(eBestReceiveBonus != NO_BONUS)
-			theirList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestReceiveBonus));
+			humanGives.insertAtEnd(TradeData(TRADE_RESOURCES, eBestReceiveBonus));
 		break; // <advc.104m> New: demand gpt
 	}
 	case DEMAND_GOLD_PER_TURN:
@@ -20004,20 +20026,29 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 				kHuman.calculateInflatedCosts()) / 5;
 		if (iGPT >= 2 * GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER))
 		{
-			FAssertMsg(false, "Does the AI ever demand GPT? Why not?"); // advc.test
 			AI_roundTradeVal(iGPT);
 			TradeData item(TRADE_GOLD_PER_TURN, iGPT);
 			if(kHuman.canTradeItem(getID(), item))
-				theirList.insertAtEnd(item);
+				humanGives.insertAtEnd(item);
 		}
-		break; // </advc.104m>
-	} default:
+		break;
+	} // </advc.104m>  <advc.ctr>
+	case DEMAND_CITY:
+	{
+		CvCity const* pBestCity = AI_bestRequestCity(eHuman, rMinVal, fixp(0.5));
+		if (pBestCity != NULL)
+			humanGives.insertAtEnd(TradeData(TRADE_CITIES, pBestCity->getID()));
+		break;
+	} // </advc.ctr>
+	default:
 		FAssertMsg(false, "Unknown AI demand type");
 		return false;
 	}
-	if(theirList.getLength() <= 0)
+	if (humanGives.getLength() <= 0 ||
+		AI_dealVal(eHuman, humanGives, false, 1, true) < rMinVal) // advc.104m
+	{
 		return false;
-
+	}
 	// <advc.104m>
 	CLinkList<TradeData> weGive;
 	// Combining a peace treaty with non-annual items seems to be fine actually
@@ -20039,6 +20070,97 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 	pDiplo->setTheirOfferList(weGive); // advc.104m
 	gDLL->beginDiplomacy(pDiplo, eHuman);
 	return true;
+}
+
+// advc.ctr: For tribute and help requests
+CvCityAI const* CvPlayerAI::AI_bestRequestCity(PlayerTypes eOwner, scaled rMinVal,
+	scaled rMinRatio) const
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(eOwner);
+	if (!kOwner.canPossiblyTradeItem(getID(), TRADE_CITIES))
+		return NULL;
+
+	CvCityAI const* pBestCity = NULL;
+	int iBestValue = MAX_INT;
+	bool bBestLiberate = false;
+	FOR_EACH_CITYAI(pCity, kOwner)
+	{
+		bool bLiberate = (pCity->getLiberationPlayer() == getID());
+		if (bBestLiberate && !bLiberate)
+			continue; // Liberation takes precedence
+		if(!kOwner.canTradeItem(getID(), TradeData(TRADE_CITIES, pCity->getID())))
+			continue;
+		int iOurValue = AI_cityTradeVal(*pCity, getID(), LIBERATION_WEIGHT_FULL,
+				false, true);
+		if (iOurValue < rMinVal)
+			continue;
+		int iOwnerValue = kOwner.AI_cityTradeVal(*pCity, getID(), LIBERATION_WEIGHT_FULL,
+				false, true);
+		if (rMinRatio > 0 && iOwnerValue > 0 && scaled(iOurValue, iOwnerValue) < rMinRatio)
+			continue;
+		// Prioritize not making the request too painful for the current owner
+		int iValue = 3 * iOwnerValue - iOurValue;
+		if (iValue < iBestValue &&
+			// (Denial always has to be checked on the owner; handles both sides.)
+			kOwner.AI_cityTrade(*pCity, getID()) == NO_DENIAL)
+		{
+			iBestValue = iValue;
+			pBestCity = pCity;
+			bBestLiberate = bLiberate;
+		}
+	}
+	return pBestCity;
+}
+
+/*	advc.ctr: Tbd.: rewrite
+	Same conditions ensured by the caller as for the functions above
+	except that eToPlayer doesn't have to be human. Note that it
+	could be on the same team as this player. */
+bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
+{
+	if (AI_getAttitude(eToPlayer) < ATTITUDE_CAUTIOUS)
+		return false;
+	CvGame& kGame = GC.getGame();
+	CvPlayer const& kToPlayer = GET_PLAYER(eToPlayer);
+	FOR_EACH_CITY(pLoopCity, *this)
+	{
+		if (pLoopCity->getPreviousOwner() == eToPlayer)
+			continue;
+
+		if (((pLoopCity->getGameTurnAcquired() + 4) % 20) != (kGame.getGameTurn() % 20))
+			continue;
+
+		int iCount = 0;
+		int iPossibleCount = 0;
+		for (CityPlotIter itPlot(*pLoopCity); itPlot.hasNext(); ++itPlot)
+		{
+			if (itPlot->getOwner() == eToPlayer)
+				iCount++;
+			iPossibleCount++;
+		}
+
+		if (iCount >= iPossibleCount / 2)
+		{
+			TradeData item(TRADE_CITIES, pLoopCity->getID());
+			if (canTradeItem(eToPlayer, item, true))
+			{
+				CLinkList<TradeData> ourList;
+				CLinkList<TradeData> theirList;
+				ourList.insertAtEnd(item);
+				if (kToPlayer.isHuman())
+				{
+					CvDiploParameters* pDiplo = new CvDiploParameters(getID());
+					pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_CITY"));
+					pDiplo->setAIContact(true);
+					pDiplo->setTheirOfferList(ourList);
+					gDLL->beginDiplomacy(pDiplo, eToPlayer);
+					return true;
+				}
+				else kGame.implementDeal(getID(), eToPlayer, ourList, theirList);
+			}
+		}
+	}
+	return false;
 } // advc: End of functions cut from AI_doDiplo
 
 // advc.104: (also used for advc.031)
