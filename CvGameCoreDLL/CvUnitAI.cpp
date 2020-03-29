@@ -3121,13 +3121,13 @@ void CvUnitAI::AI_attackCityMove()
 				if (iComparePostBombard < GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_BASE_STACK_RATIO) && // only if we don't already have overwhelming force
 					(iComparePostBombard < iAttackRatioSkipBombard ||
 					pTargetCity->getDefenseDamage() < GC.getMAX_CITY_DEFENSE_DAMAGE()/ 2 ||
-					getPlot().isRiverCrossing(directionXY(plot(), pTargetCity->plot()))))
+					getPlot().isRiverCrossing(directionXY(getPlot(), pTargetCity->getPlot()))))
 				{
 					// Only move into attack position if we have a chance.
 					// Without this check, the AI can get stuck alternating between this, and pillage.
 					// I've tried to roughly take into account how much our ratio would improve by removing a river penalty.
 					if ((getGroup()->canBombard(getPlot()) && iBombardTurns > 2) ||
-						(getPlot().isRiverCrossing(directionXY(plot(), pTargetCity->plot())) &&
+						(getPlot().isRiverCrossing(directionXY(getPlot(), pTargetCity->getPlot())) &&
 						150 * iComparePostBombard >= (150 + GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER)) * iAttackRatio))
 					{
 						if (AI_goToTargetCity(iMoveFlags, 2, pTargetCity))
@@ -13401,8 +13401,11 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 				int iValue = std::max(0, 100 +
 						//pAdjacentPlot->defenseModifier(getTeam(), false)
 						AI_plotDefense(pAdjacentPlot)); // advc.012
-				if (!pAdjacentPlot->isRiverCrossing(directionXY(pAdjacentPlot, pTargetCity->plot())))
+				if (!pAdjacentPlot->isRiverCrossing(
+					directionXY(*pAdjacentPlot, pTargetCity->getPlot())))
+				{
 					iValue += (-12 * GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER));
+				}
 				if (!isEnemy(*pAdjacentPlot))
 					iValue += 100;
 				if (atPlot(pAdjacentPlot))
@@ -15239,7 +15242,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			{
 				pCity = pAdjacentCity;
 				// Copied from above
-				if(kPlot.isRiverCrossing(directionXY(&kPlot, pCity->plot())))
+				if(kPlot.isRiverCrossing(directionXY(kPlot, pCity->getPlot())))
 					iModifier += GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER)/10;
 			} // Also copied from above
 			iValueMultiplier *= (100 + iModifier);

@@ -1215,7 +1215,7 @@ bool CvPlot::isRiverSide() const
 		CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), (CardinalDirectionTypes)iI);
 		if (pLoopPlot != NULL)
 		{
-			if (isRiverCrossing(directionXY(this, pLoopPlot)))
+			if (isRiverCrossing(directionXY(*this, *pLoopPlot)))
 				return true;
 		}
 	}
@@ -1769,7 +1769,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 			if (pLoopPlot == NULL)
 				continue;
 
-			if (isRiverCrossing(directionXY(this, pLoopPlot)))
+			if (isRiverCrossing(directionXY(*this, *pLoopPlot)))
 			{
 				if (pLoopPlot->getImprovementType() != eImprovement)
 				{
@@ -2268,7 +2268,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	if (pFromPlot->isValidRoute(pUnit, bAssumeRevealed) &&
 		isValidRoute(pUnit, bAssumeRevealed) && // </advc.001i>
 		(GET_TEAM(pUnit->getTeam()).isBridgeBuilding() ||
-		!pFromPlot->isRiverCrossing(directionXY(pFromPlot, this))))
+		!pFromPlot->isRiverCrossing(directionXY(*pFromPlot, *this))))
 	{	// <advc.001i>
 		RouteTypes eFromRoute = (bAssumeRevealed ? pFromPlot->getRouteType() :
 				pFromPlot->getRevealedRouteType(pUnit->getTeam()));
@@ -3278,7 +3278,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 
 		if (kOther.isRiverNetwork(eTeam))
 		{
-			if (kOther.isRiverConnection(directionXY(&kOther, this)))
+			if (kOther.isRiverConnection(directionXY(kOther, *this)))
 				return true;
 		}
 		// <advc.124>
@@ -3297,12 +3297,12 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 	{
 		if (kOther.isNetworkTerrain(eTeam))
 		{
-			if (isRiverConnection(directionXY(this, &kOther)))
+			if (isRiverConnection(directionXY(*this, kOther)))
 				return true;
 		}
 
-		if (isRiverConnection(directionXY(this, &kOther)) ||
-			kOther.isRiverConnection(directionXY(&kOther, this)))
+		if (isRiverConnection(directionXY(*this, kOther)) ||
+			kOther.isRiverConnection(directionXY(kOther, *this)))
 		{
 			if (kOther.isRiverNetwork(eTeam))
 				return true;

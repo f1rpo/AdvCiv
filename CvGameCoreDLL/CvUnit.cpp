@@ -1374,7 +1374,7 @@ void CvUnit::updateCombat(bool bQuick)
 					gDLL->UI().isCombatFocus());
 			if (bFocused)
 			{
-				DirectionTypes directionType = directionXY(plot(), pPlot);
+				DirectionTypes directionType = directionXY(getPlot(), *pPlot);
 				//								N			NE				E				SE
 				NiPoint2 directions[8] = {NiPoint2(0, 1), NiPoint2(1, 1), NiPoint2(1, 0), NiPoint2(1, -1), 
 							// 		S				SW					W				NW
@@ -2629,7 +2629,7 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 		bool bFocused = (bVisible && isCombatFocus() && gDLL->UI().isCombatFocus());
 		if (bFocused)
 		{
-			DirectionTypes directionType = directionXY(plot(), pPlot);
+			DirectionTypes directionType = directionXY(getPlot(), *pPlot);
 			//								N			NE				E			
 			NiPoint2 directions[8] = {NiPoint2(0, 1), NiPoint2(1, 1), NiPoint2(1, 0),
 					// SE					S				SW					W				NW
@@ -7036,7 +7036,8 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker, CombatDet
 		}
 		if (!pAttacker->isRiver())
 		{
-			if (pAttacker->getPlot().isRiverCrossing(directionXY(pAttacker->plot(), pAttackedPlot)))
+			if (pAttacker->getPlot().isRiverCrossing(
+				directionXY(pAttacker->getPlot(), *pAttackedPlot)))
 			{
 				iExtraModifier = -GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
 				iTempModifier += iExtraModifier;

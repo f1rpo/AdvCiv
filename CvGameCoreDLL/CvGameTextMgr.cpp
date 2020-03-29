@@ -21168,8 +21168,8 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 	int iModifier = 0;
 	if (!pAttacker->isRiver())
 	{
-		if (pAttacker->getPlot().isRiverCrossing(::directionXY(pAttacker->plot(),
-				pPlot)))
+		if (pAttacker->getPlot().isRiverCrossing(
+			directionXY(pAttacker->getPlot(), *pPlot)))
 		{
 			iModifier = GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
 			if (iModifier != 0)

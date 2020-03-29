@@ -78,7 +78,7 @@ DirectionTypes cyDirectionXYFromInt(int iDX, int iDY)
 
 DirectionTypes cyDirectionXYFromPlot(CyPlot* pFromPlot, CyPlot* pToPlot)
 {
-	return directionXY(pFromPlot->getPlot(), pToPlot->getPlot());
+	return directionXY(*pFromPlot->getPlot(), *pToPlot->getPlot());
 }
 
 CyPlot* cyPlotCity(int iX, int iY, int iIndex)

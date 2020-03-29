@@ -532,8 +532,9 @@ inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) {
 inline DirectionTypes directionXY(int iDX, int iDY)	{
 	return GC.getMap().directionXY(iDX, iDY);
 }
-inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) {
-	return GC.getMap().directionXY(*pFromPlot, *pToPlot);
+inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) {
+	// advc: params changed to references
+	return GC.getMap().directionXY(kFromPlot, kToPlot);
 }
 inline CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) {
 	return GC.getMap().plotCity(iX, iY, ePlot);
