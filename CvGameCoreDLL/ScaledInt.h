@@ -171,15 +171,20 @@ public:
 		return r;
 	}
 
+	// Result in the half-open interval [0, 1)
+	static ScaledInt rand(CvRandom& kRand, TCHAR const* pszLog)
+	{
+		ScaledInt r;
+		r.m_i = static_cast<IntType>(kRand.get(static_cast<uint>(iSCALE), pszLog));
+		return r;
+	}
 	/*	See intHash (CvGameCoreUtils.h) about the parameters.
 		Result in the half-open interval [0, 1). */
 	static ScaledInt hash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER)
 	{
 		CvRandom rng;
 		rng.init(::intHash(x, ePlayer));
-		ScaledInt r;
-		r.m_i = static_cast<IntType>(rng.get(static_cast<uint>(iSCALE)));
-		return r;
+		return rand(rng, NULL);
 	}
 	// For hashing just a single input
 	static inline ScaledInt hash(int x, PlayerTypes ePlayer = NO_PLAYER)
