@@ -6,7 +6,7 @@
 /*  advc.003x: Renamed to CvInfo_Misc.h. I've moved the info classes that are
 	essential for the game core DLL into various new CvInfo_... header files;
 	only classes that no DLL implementation file needs to include separately
-	remain here. And I've made some style changes. */
+	remain here. Unused CvRiverInfo removed. And I've made some style changes. */
 
 #ifndef CV_INFO_MISC_H
 #define CV_INFO_MISC_H
@@ -68,10 +68,7 @@ protected:
 	std::vector<CvUnitEntry> m_vctSiegeUnitEntries;
 };
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//  class : CvRiverInfo
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvRiverInfo : public CvInfoBase {};
+//class CvRiverInfo : public CvInfoBase {}; // unused
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvRiverModelInfo

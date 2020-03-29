@@ -2001,9 +2001,10 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			continue;
 
 		if (isProductionMaxedBuildingClass(eBuildingClass, true) ||
-				!kNewCity.isValidBuildingLocation(eBuilding))
+			!kNewCity.isValidBuildingLocation(eBuilding))
+		{
 			continue;
-
+		}
 		// Capture roll unless recapture
 		int iOdds = kBuilding.getConquestProbability();
 		if (!bConquest || bRecapture || (iOdds > 0 &&
@@ -3888,18 +3889,18 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 	case DIPLOEVENT_MADE_DEMAND:
 		/*  <advc.130o> Moved the handling of MEMORY_MADE_DEMAND (non-recent) to
 			CvPlayerAI::AI_considerOffer */
-		if(getTeam() != TEAMID(ePlayer)) // advc.155: Handled in AI_considerOffer
+		if (getTeam() != TEAMID(ePlayer)) // advc.155: Handled in AI_considerOffer
 		{
 			// <advc.130j>
 			int iDemandRecentMem = AI().AI_getMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT);
-			if(iDemandRecentMem <= 0)
+			if (iDemandRecentMem <= 0)
 				AI().AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND_RECENT);
 			// Only remember it half if already remembered as recent, and cap at 2.
-			else if(iDemandRecentMem < 2)
+			else if (iDemandRecentMem < 2)
 				AI().AI_changeMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT, 1);
 		} // </advc.130o> </advc.130j>
 		// <advc.144>
-		if(iData1 > 0) // Let proxy AI remember when a human request is granted
+		if (iData1 > 0) // Let proxy AI remember when a human request is granted
 		{
 			GET_PLAYER(ePlayer).AI_rememberEvent(getID(), // advc.130j
 					eDiploEvent == DIPLOEVENT_ASK_HELP ?
@@ -20598,7 +20599,7 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 	GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer), true);
 }
 
-// <advc.032>
+// advc.032:
 bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
 {
 	int iGameTurn = GC.getGame().getGameTurn();
@@ -20618,7 +20619,7 @@ bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
 		}
 	}
 	return false;
-} // </advc.032>
+}
 
 bool CvPlayer::canSpiesEnterBorders(PlayerTypes ePlayer) const
 {
@@ -20817,65 +20818,42 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 	PROFILE_FUNC(); // advc.opt (not frequently called)
 	TradeData item;
 	bool const bOtherHuman = GET_PLAYER(eOtherPlayer).isHuman(); // advc.opt
-	//	Put the gold and maps into the table
+
 	setTradeItem(&item, TRADE_GOLD);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	//	Gold per turn
 	setTradeItem(&item, TRADE_GOLD_PER_TURN);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	//	Maps
 	setTradeItem(&item, TRADE_MAPS, 0);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	//	Vassal
 	setTradeItem(&item, TRADE_VASSAL, 0);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	//	Open Borders
 	setTradeItem(&item, TRADE_OPEN_BORDERS);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	//	Defensive Pact
 	setTradeItem(&item, TRADE_DEFENSIVE_PACT);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	//	Permanent Alliance
 	setTradeItem(&item, TRADE_PERMANENT_ALLIANCE);
 	if (canTradeItem(eOtherPlayer, item))
-	{
 		ourList.insertAtEnd(item);
-	}
 
-	if (::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam()))
+	if (GET_TEAM(getTeam()).isAtWar(TEAMID(eOtherPlayer)))
 	{
-		//	We are at war, allow a peace treaty option
 		setTradeItem(&item, TRADE_PEACE_TREATY);
 		ourList.insertAtEnd(item);
 
-		//	Capitulation
 		setTradeItem(&item, TRADE_SURRENDER, 0);
 		if (canTradeItem(eOtherPlayer, item))
-		{
 			ourList.insertAtEnd(item);
 	}
 	/*  <advc.104m> Make peace treaties hidden items at peacetime
@@ -21140,8 +21118,10 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 					in order to stay in-sync with the iteration done by the EXE,
 					but we're only interested in a subset here: */
 				if(!CvDeal::isDual(eItemType) && eItemType != TRADE_RESOURCES &&
-						eItemType != TRADE_GOLD_PER_TURN)
+					eItemType != TRADE_GOLD_PER_TURN)
+				{
 					pDeal = NULL;
+				}
 			}
 		}
 	} // </advc.072>
@@ -21308,7 +21288,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 }
 
 void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
-	const CLinkList<TradeData>& ourOffer, const CLinkList<TradeData>& theirOffer) const
+	CLinkList<TradeData> const& ourOffer, CLinkList<TradeData> const& theirOffer) const
 {
 	for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL;
 		pNode = ourInventory.next(pNode))
@@ -21867,7 +21847,8 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			// <advc.004z>
 			if(eLoopBonus == NO_BONUS)
 				GAMETEXT.setImprovementHelp(szBuffer, kPlot.getImprovementType());
-			else { // </advc.004z>
+			else // </advc.004z>
+			{
 				//GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
 				// <advc.003p> Replacing the above
 				if(m_aszBonusHelp[eLoopBonus] != NULL)
@@ -21945,13 +21926,9 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 			continue; // </advc.004z>
 		int iTotalCulture = kLoopPlot.getTotalCulture(); // advc.opt: was countTotalCulture
 		if (iTotalCulture > iMaxTotalCulture)
-		{
 			iMaxTotalCulture = iTotalCulture;
-		}
 		if (iTotalCulture < iMinTotalCulture && iTotalCulture > 0)
-		{
 			iMinTotalCulture = iTotalCulture;
-		}
 	}
 	iMinTotalCulture = 0;
 
@@ -21995,8 +21972,8 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 			the colored area. */
 		bool baDone[MAX_PLAYERS] = {false};
 		for(int iPass = 0; iPass < 2 &&
-				// Try to fill plot_owners up
-				plot_owners.size() < iColorsPerPlot; iPass++)
+			// Try to fill plot_owners up
+			plot_owners.size() < iColorsPerPlot; iPass++)
 		{
 			// To avoid adding to plot_owners while looping through it
 			std::vector <std::pair<int,int> > repeated_owners;
@@ -22076,9 +22053,7 @@ const CvArtInfoUnit* CvPlayer::getUnitArtInfo(UnitTypes eUnit, int iMeshGroup) c
 {
 	CivilizationTypes eCivilization = getCivilizationType();
 	if (eCivilization == NO_CIVILIZATION)
-	{
 		eCivilization = (CivilizationTypes)GC.getDefineINT("BARBARIAN_CIVILIZATION");
-	}
 	// <advc.001> Redirect the call to the city owner
 	if(gDLL->getInterfaceIFace()->isCityScreenUp())
 	{
@@ -22089,9 +22064,7 @@ const CvArtInfoUnit* CvPlayer::getUnitArtInfo(UnitTypes eUnit, int iMeshGroup) c
 	UnitArtStyleTypes eStyle = (UnitArtStyleTypes) GC.getInfo(eCivilization).getUnitArtStyleType();
 	EraTypes eEra = getCurrentEra();
 	if (eEra == NO_ERA)
-	{
-		eEra = (EraTypes) 0;
-	}
+		eEra = (EraTypes)0;
 	return GC.getInfo(eUnit).getArtInfo(iMeshGroup, eEra, eStyle);
 }
 
@@ -22262,14 +22235,16 @@ void CvPlayer::promoteFreeUnit(CvUnit& u, double pr)
 					iUnitCombat++;
 			}
 			if((kPromo.getCombatPercent() <= 0 || /* No Combat2 */ j > 0) &&
-					(eDefFeature == NO_FEATURE ||
-					kPromo.getFeatureDefensePercent(eDefFeature) <= 0) &&
-					kPromo.getHillsDefensePercent() <= 0 &&
-					/*  This is the Cover promotion. Only that one, Woodsman,
-						Guerilla and City Raider have exactly 3 eligible unit
-						combat classes. */
-					(iUnitCombat != 3 || kPromo.getCityAttackPercent() > 0))
+				(eDefFeature == NO_FEATURE ||
+				kPromo.getFeatureDefensePercent(eDefFeature) <= 0) &&
+				kPromo.getHillsDefensePercent() <= 0 &&
+				/*  This is the Cover promotion. Only that one, Woodsman,
+					Guerilla and City Raider have exactly 3 eligible unit
+					combat classes. */
+				(iUnitCombat != 3 || kPromo.getCityAttackPercent() > 0))
+			{
 				continue;
+			}
 			// Second promo needs to build on the first
 			/*if(ePrevPromo != NO_PROMOTION &&
 					promo.getPrereqPromotion() != ePrevPromo &&
@@ -22291,9 +22266,11 @@ void CvPlayer::promoteFreeUnit(CvUnit& u, double pr)
 			for(size_t k = 0; k < apSurroundings.size(); k++)
 			{
 				int iTmpVal = 0;
-				if(eDefFeature != NO_FEATURE && apSurroundings[k]->getFeatureType() ==
-						eDefFeature)
+				if(eDefFeature != NO_FEATURE &&
+					apSurroundings[k]->getFeatureType() == eDefFeature)
+				{
 					iTmpVal += kPromo.getFeatureDefensePercent(eDefFeature);
+				}
 				// Encourage non-Woodsman then
 				else iTmpVal -= kPromo.getFeatureDefensePercent(eDefFeature) / 3;
 				if(apSurroundings[k]->isHills())

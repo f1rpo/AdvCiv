@@ -29,21 +29,16 @@ class CvStatsReporter;
 class CvDLLInterfaceIFaceBase;
 class CvPlayerAI;
 class CvDiplomacyScreen;
-class CvCivicsScreen;
-class CvWBUnitEditScreen;
-class CvWBCityEditScreen;
 class CMPDiplomacyScreen;
 class FMPIManager;
 class FAStar;
 class CvInterface;
 class CMainMenu;
-class CvEngine;
 class CvArtFileMgr;
 class FVariableSystem;
 class CvMap;
 class CvPlayerAI;
 class CvTeamAI;
-class CvGameText;
 class CvWorldInfo;
 // <advc.enum>
 #define FORWARD_DECLARE_INFO_CLASS(Name, Dummy) class Cv##Name##Info;
@@ -215,10 +210,7 @@ public:
 	DllExport void infoTypeFromStringReset();
 	DllExport void infosReset();
 
-	inline int getNumGameTextXML() const
-	{
-		return (int)m_paGameTextXML.size();
-	}
+	//inline int getNumGameTextXML() const { return (int)m_paGameTextXML.size(); } // advc.003j: unused
 	DllExport inline int getActiveLandscapeID() { CvGlobals const& kThis = *this; return kThis.getActiveLandscapeID(); }
 	inline int getActiveLandscapeID() const { return m_iActiveLandscapeID; } // advc
 	DllExport void setActiveLandscapeID(int iLandscapeID);
@@ -397,12 +389,9 @@ public:
 	void loadThroneRoomInfo();
 	// </advc.003v>
 
-	DllExport FVariableSystem* getDefinesVarSystem()
-	// <advc> Need a const version
-	{	CvGlobals const& kThis = *this;
-		return const_cast<FVariableSystem*>(kThis.getDefinesVarSystem());
-	} FVariableSystem const* getDefinesVarSystem() const { return m_VarSystem; }
-	// </advc>
+	DllExport FVariableSystem* getDefinesVarSystem() { return m_VarSystem; }
+	// advc: Need a const version
+	FVariableSystem const* getDefinesVarSystem() const { return m_VarSystem; }
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
@@ -892,7 +881,6 @@ protected:
 		std::vector<Cv##Name##Info*> m_pa##Name##Info;
 	DO_FOR_EACH_INFO_TYPE(DECLARE_INFO_VECTOR) // </advc.enum>
 	std::vector<CvWorldInfo*> m_paWorldInfo;
-	std::vector<CvGameText*> m_paGameTextXML; // Game Text
 
 	//////////////////////////////////////////////////////////////////////////
 	// GLOBAL TYPES

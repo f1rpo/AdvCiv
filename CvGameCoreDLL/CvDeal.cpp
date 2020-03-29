@@ -114,7 +114,8 @@ void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
 }
 
 
-void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed) // advc: Take the lists as references
+void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, // advc: Take the lists as references
+	bool bCheckAllowed)
 {
 	if (isVassalTrade(kFirstList) && isVassalTrade(kSecondList))
 		return;
@@ -403,10 +404,12 @@ bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 			BonusTypes eBonus = (BonusTypes) pNode->m_data.m_iData;
 			// XXX embargoes?
 			if ((kGiver.getNumTradeableBonuses(eBonus) < 0) ||
-					!kGiver.canTradeNetworkWith(eRecipient) ||
-					GET_TEAM(kGiver.getTeam()).isBonusObsolete(eBonus) ||
-					GET_TEAM(eRecipient).isBonusObsolete(eBonus))
+				!kGiver.canTradeNetworkWith(eRecipient) ||
+				GET_TEAM(kGiver.getTeam()).isBonusObsolete(eBonus) ||
+				GET_TEAM(eRecipient).isBonusObsolete(eBonus))
+			{
 				return false;
+			}
 		}
 	}
 	return true;
@@ -1324,16 +1327,7 @@ bool CvDeal::hasData(TradeableItems eItem)
 		eItem != TRADE_PEACE_TREATY);
 }
 
-bool CvDeal::isGold(TradeableItems eItem)
-{
-	return (eItem == getGoldItem() || eItem == getGoldPerTurnItem());
-}
-
-bool CvDeal::isVassal(TradeableItems eItem)
-{
-	return (eItem == TRADE_VASSAL || eItem == TRADE_SURRENDER);
-}
-
+// static
 bool CvDeal::isEndWar(TradeableItems eItem)
 {
 	if (eItem == getPeaceItem())
@@ -1343,19 +1337,4 @@ bool CvDeal::isEndWar(TradeableItems eItem)
 		return true;
 
 	return false;
-}
-
-TradeableItems CvDeal::getPeaceItem()
-{
-	return TRADE_PEACE_TREATY;
-}
-
-TradeableItems CvDeal::getGoldItem()
-{
-	return TRADE_GOLD;
-}
-
-TradeableItems CvDeal::getGoldPerTurnItem()
-{
-	return TRADE_GOLD_PER_TURN;
 }

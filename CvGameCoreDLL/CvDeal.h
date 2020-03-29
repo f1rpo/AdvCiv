@@ -115,12 +115,19 @@ public:
 	static bool isAnnual(TradeableItems eItem);
 	DllExport static bool isDual(TradeableItems eItem, bool bExcludePeace = false);
 	DllExport static bool hasData(TradeableItems eItem);
-	DllExport static bool isGold(TradeableItems eItem);
 	DllExport static bool isEndWar(TradeableItems eItem);
-	static bool isVassal(TradeableItems eItem);
-	DllExport static TradeableItems getPeaceItem();
-	DllExport static TradeableItems getGoldItem();
-	DllExport static TradeableItems getGoldPerTurnItem();
+	// advc.inl: Inlined x5
+	DllExport static bool isGold(TradeableItems eItem)
+	{
+		return (eItem == getGoldItem() || eItem == getGoldPerTurnItem());
+	}
+	static bool isVassal(TradeableItems eItem)
+	{
+		return (eItem == TRADE_VASSAL || eItem == TRADE_SURRENDER);
+	}
+	DllExport static inline TradeableItems getPeaceItem() { return TRADE_PEACE_TREATY; }
+	DllExport static inline TradeableItems getGoldItem() { return TRADE_GOLD; }
+	DllExport static inline TradeableItems getGoldPerTurnItem() { return TRADE_GOLD_PER_TURN; }
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

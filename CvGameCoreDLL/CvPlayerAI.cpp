@@ -9512,14 +9512,24 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 				// bGenerous: round up or down
 				(bGenerous ? (iGoldValuePercent - 1) : 0)) /
 				iGoldValuePercent;
-		// <advc.026>
-		if (isHuman() && !bGenerous)
-			AI_roundTradeVal(iGoldData);
-		int iMaxGold = ((isHuman() && bGenerous) ?
-				kPlayer.AI_maxGoldTradeGenerous(getID()) :
-				kPlayer.AI_maxGoldTrade(getID()));
 		// if(kPlayer.AI_maxGoldTrade(getID()) >= iGoldData)
-		if (iMaxGold >= iGoldData && iGoldData > 0) // </advc.026>		
+		int iMaxGold = ((isHuman() && bGenerous) ?
+					kPlayer.AI_maxGoldTradeGenerous(getID()) :
+					kPlayer.AI_maxGoldTrade(getID()));
+		// <advc.026>
+		{
+			int iOldGoldData = iGoldData;
+			if (isHuman())
+				AI_roundTradeVal(iGoldData);
+			// If we've rounded down, are generous and can afford rounding up, then round up.
+			int const iMultiple = GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER);
+			if (isHuman() && bGenerous && iOldGoldData > iGoldData &&
+				iMaxGold >= iGoldData + iMultiple)
+			{
+				iGoldData += iMultiple;
+			}
+		} // </advc.026>
+		if (iMaxGold >= iGoldData && iGoldData > 0)
 		{
 			pGoldNode->m_data.m_iData = iGoldData;
 			iSmallerVal += (iGoldData * iGoldValuePercent) / 100;
@@ -15840,7 +15850,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	/* for (int iI = 0; iI < GC.getNumSpecialBuildingInfos(); iI++) {
 		if (kCivic.isSpecialBuildingNotRequired(iI))
 			iValue += ((iCities / 2) + 1); // XXX
-	} */ // Disabled by K-Mod. This evaluation isn't accurate enough to be useful - but it does sometimes cause civs to switch to organized religion when they don't have a religion...
+	} */ /*	Disabled by K-Mod. This evaluation isn't accurate enough to be useful -
+			but it does sometimes cause civs to switch to organized religion when they don't have a religion... */
 
 	for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
 	{
@@ -18466,7 +18477,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 			if((kPlayer.getTeam() == getTeam() || GET_TEAM(ePlayer).isVassal(getTeam())) &&
 				canPossiblyTradeItem(ePlayer, TRADE_RESOURCES)) // advc.opt
 			{
-				// XXX will it cancel this deal if it loses it's first resource???
+				// XXX will it cancel this deal if it loses its first resource???
 				int iBestValue = 0;
 				BonusTypes eBestGiveBonus = NO_BONUS;
 				FOR_EACH_ENUM(Bonus)

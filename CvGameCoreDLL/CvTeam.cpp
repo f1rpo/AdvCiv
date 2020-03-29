@@ -998,22 +998,8 @@ bool CvTeam::canChangeWarPeace(TeamTypes eTeam, bool bAllowVassal) const
 	if (isPermanentWarPeace(eTeam) || GET_TEAM(eTeam).isPermanentWarPeace(getID()))
 		return false;
 
-	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
-	{
-		CvTeam& kLoopTeam = *it;
-		if (kLoopTeam.isVassal(getID()) && kLoopTeam.isPermanentWarPeace(eTeam))
-			return false;
-		if (kLoopTeam.isVassal(eTeam) && kLoopTeam.isPermanentWarPeace(getID()))
-			return false;
-	}
-
 	if (isAVassal())
 		return false;
-
-	/*  <advc.001> Had a civ make peace with a minor civ in one game. Not sure how
-		that happened; probably through a random event. */
-	if(isMinorCiv() || GET_TEAM(eTeam).isMinorCiv())
-		return false; // </advc.001>
 	if (bAllowVassal)
 	{
 		if (GET_TEAM(eTeam).isVassal(getID()))
@@ -1024,10 +1010,28 @@ bool CvTeam::canChangeWarPeace(TeamTypes eTeam, bool bAllowVassal) const
 		if (GET_TEAM(eTeam).isAVassal())
 			return false;
 	}
+	// advc.opt: moved down
+	for (TeamIter<CIV_ALIVE,VASSAL_OF> it(getID()); it.hasNext(); ++it)
+	{
+		if (it->isPermanentWarPeace(eTeam))
+			return false;
+	}
+	for (TeamIter<CIV_ALIVE,VASSAL_OF> it(eTeam); it.hasNext(); ++it)
+	{
+		if (it->isPermanentWarPeace(getID()))
+			return false;
+	}
+	/*  <advc.001> Had a civ make peace with a minor civ in one game. Not sure how
+		that happened; probably through a random event. */
+	if(isMinorCiv() || GET_TEAM(eTeam).isMinorCiv())
+		return false; // </advc.001>
 	// <advc.104> Don't want to have to check this separately in the UWAI code
 	if(GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) && isAtWar(eTeam) &&
-			(isHuman() || GET_TEAM(eTeam).isHuman()))
-		return false; // </advc.104>
+		(isHuman() || GET_TEAM(eTeam).isHuman()))
+	{
+		return false;
+	} // </advc.104>
+
 	return true;
 }
 
@@ -3126,7 +3130,7 @@ void CvTeam::setForcePeace(TeamTypes eIndex, bool bNewValue)
 	}
 }
 
-// <advc.104>
+// advc.104:
 int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes eOther) const
 {
 	if(!canEventuallyDeclareWar(eOther))
@@ -3141,13 +3145,15 @@ int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes eOther) const
 		TeamTypes eFirstMaster = GET_PLAYER(d->getFirstPlayer()).getMasterTeam();
 		TeamTypes eSecondMaster = GET_PLAYER(d->getSecondPlayer()).getMasterTeam();
 		if (((eFirstMaster == eOurMaster && eSecondMaster == eTheirMaster) ||
-				(eFirstMaster == eTheirMaster && eSecondMaster == eOurMaster)) &&
-				d->headFirstTradesNode() != NULL &&
-				d->headFirstTradesNode()->m_data.m_eItemType == TRADE_PEACE_TREATY)
+			(eFirstMaster == eTheirMaster && eSecondMaster == eOurMaster)) &&
+			d->headFirstTradesNode() != NULL &&
+			d->headFirstTradesNode()->m_data.m_eItemType == TRADE_PEACE_TREATY)
+		{
 			r = std::max(r, d->turnsToCancel());
+		}
 	}
 	return r;
-} // </advc.104>
+}
 
 // advc: First param was called eIndex
 void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)

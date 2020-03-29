@@ -1118,7 +1118,9 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	int iCollateralDamageValue = 0;
 	if (pPlot != NULL)
 	{
-		const int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
+		const int iPossibleTargets = std::min(
+				(pPlot->getNumVisibleEnemyDefenders(this) - 1),
+				collateralDamageMaxUnits());
 		if (iPossibleTargets > 0)
 		{
 			iCollateralDamageValue = collateralDamage();
@@ -1128,7 +1130,6 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		}
 	}
 
-	//int iValue;
 	//long iValue; // K-Mod. (the int will overflow)
 	/*  Erik (BUG1): Based on his comment he probably meant to use
 		a 64 bit integer here since sizeof(int) == sizeof(long) hence a long long is needed */
@@ -1138,17 +1139,17 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	{
 		iValue = 128 * (100 + currInterceptionProbability());
 		if (getUnitInfo().getNukeRange() != -1)
-		{
 			iValue += 25000;
-		}
 		//iValue /= std::max(1, (1 + getUnitInfo().getProductionCost()));
-		iValue /= getUnitInfo().getProductionCost() > 0 ? getUnitInfo().getProductionCost() : 180; // K-Mod
+		// <K-Mod>
+		iValue /= getUnitInfo().getProductionCost() > 0 ?
+				getUnitInfo().getProductionCost() : 180; // </K-Mod>
 		iValue *= (maxHitPoints() - getDamage());
 		iValue /= 100;
 	}
 	else
 	{
-		iValue = 128 * (currEffectiveStr(pPlot, ((pPlot == NULL) ? NULL : this)));
+		iValue = 128 * currEffectiveStr(pPlot, pPlot == NULL ? NULL : this);
 		iValue *= (100 + iCollateralDamageValue);
 
 		//iValue /= (100 + cityDefenseModifier());
@@ -1161,7 +1162,7 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 			FAssert(iCityDefenseModifier > -100);
 		}
 		iValue /= std::max(1, 100 + iCityDefenseModifier); // </advc.001>
-		iValue *= (100 + withdrawalProbability());
+		iValue *= 100 + withdrawalProbability();
 		// BETTER_BTS_AI_MOD, General AI, 05/14/10, jdog5000: START
 		/*iValue /= std::max(1, (1 + getUnitInfo().getProductionCost()));
 		iValue /= (10 + getExperience());*/ // BtS code
@@ -1171,9 +1172,9 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		if (!GC.getDefineBOOL(CvGlobals::LFB_ENABLE))
 		{
 			iValue *= 10; // K-Mod
-			iValue /= (10 + getExperience()); // K-Mod - moved from out of the if.
+			iValue /= 10 + getExperience(); // K-Mod - moved from out of the if.
 			iValue *= 10;
-			iValue /= (10 + getSameTileHeal() + getAdjacentTileHeal());
+			iValue /= 10 + getSameTileHeal() + getAdjacentTileHeal();
 		}
 
 		// Value units which can't kill units later, also combat limits mean higher survival odds
@@ -1192,7 +1193,9 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		// K-Mod end
 
 		//iValue /= std::max(1, (1 + getUnitInfo().getProductionCost()));
-		iValue /= getUnitInfo().getProductionCost() > 0 ? getUnitInfo().getProductionCost() : 180; // K-Mod
+		// <K-Mod>
+		iValue /= getUnitInfo().getProductionCost() > 0 ?
+				getUnitInfo().getProductionCost() : 180; // </K-Mod>
 		// BETTER_BTS_AI_MOD: END
 	}
 
@@ -13615,8 +13618,12 @@ bool CvUnitAI::AI_bombardCity()
 	// <advc.004c>
 	if(iBombardTurns == 0)
 		return false; // </advc.004c>
-	iBase = (iBase * (GC.getMAX_CITY_DEFENSE_DAMAGE()-pBombardCity->getDefenseDamage()) + iMin * pBombardCity->getDefenseDamage())/std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
-	int iThreshold = (iBase * (100 - iAttackOdds) + (1 + iBombardTurns/2) * iMin * iAttackOdds) / (100 + (iBombardTurns/2) * iAttackOdds);
+	iBase = (iBase * (GC.getMAX_CITY_DEFENSE_DAMAGE() - pBombardCity->getDefenseDamage()) +
+			iMin * pBombardCity->getDefenseDamage()) /
+			std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
+	int iThreshold = (iBase * (100 - iAttackOdds) +
+			(1 + iBombardTurns/2) * iMin * iAttackOdds) /
+			(100 + (iBombardTurns/2) * iAttackOdds);
 	int iComparison = AI_getGroup()->AI_compareStacks(pBombardCity->plot(), true);
 
 	if (iComparison > iThreshold)
@@ -13625,8 +13632,8 @@ bool CvUnitAI::AI_bombardCity()
 		return false;
 	}
 
-	//getGroup()->pushMission(MISSION_BOMBARD);
-	getGroup()->pushMission(MISSION_BOMBARD, -1, -1, 0, false, false, MISSIONAI_ASSAULT, pBombardCity->plot()); // K-Mod
+	getGroup()->pushMission(MISSION_BOMBARD,
+			-1, -1, 0, false, false, MISSIONAI_ASSAULT, pBombardCity->plot()); // K-Mod
 	return true;
 }
 

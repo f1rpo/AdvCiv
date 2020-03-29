@@ -5076,6 +5076,7 @@ int CvTeamAI::AI_noWarProbAdjusted(TeamTypes eOther) const
 	return AI_noWarAttitudeProb((AttitudeTypes)(eTowardThem - 1));
 }
 
+
 bool CvTeamAI::AI_isAvoidWar(TeamTypes eOther, bool bPersonalityKnown) const
 {
 	// <advc.130u>
@@ -5085,6 +5086,7 @@ bool CvTeamAI::AI_isAvoidWar(TeamTypes eOther, bool bPersonalityKnown) const
 		return (AI_getAttitude(eOther) == ATTITUDE_FRIENDLY);
 	return (AI_noWarProbAdjusted(eOther) >= 100);
 } // </advc.104y>
+
 
 // <advc.130i>
 int CvTeamAI::AI_getOpenBordersAttitudeDivisor() const

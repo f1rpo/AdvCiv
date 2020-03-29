@@ -114,7 +114,7 @@ static inline T operator-(T minuend, T subtrahend)
 	DO(Advisor, ADVISOR) \
 	DO(Emphasize, EMPHASIZE) \
 	DO(BonusClass, BONUSCLASS) \
-	DO(River, RIVER) \
+	/*DO(River, RIVER)*/ /* advc.003j: unused */ \
 	DO(Goody, GOODY) \
 	DO(Trait, TRAIT) \
 	DO(Process, PROCESS) \

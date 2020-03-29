@@ -674,10 +674,10 @@ void CyEnumsPythonInterface()
 	python::enum_<RouteTypes>("RouteTypes")
 		.value("NO_ROUTE", NO_ROUTE)
 		;
-
-	python::enum_<RiverTypes>("RiverTypes")
+	// advc.003j: unused
+	/*python::enum_<RiverTypes>("RiverTypes")
 		.value("NO_RIVER", NO_RIVER)
-		;
+		;*/
 
 	python::enum_<GoodyTypes>("GoodyTypes")
 		.value("NO_GOODY", NO_GOODY)

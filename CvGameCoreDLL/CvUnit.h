@@ -389,11 +389,11 @@ public:
 	inline int baseCombatStr() const																		// Exposed to Python
 	{
 		return m_iBaseCombat;
-	}
-	int maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker,											// Exposed to Python
+	}  // advc: Default values - to make clear that these can be NULL.
+	int maxCombatStr(CvPlot const* pPlot = NULL, CvUnit const* pAttacker = NULL,							// Exposed to Python
 			CombatDetails* pCombatDetails = NULL,
 			bool bGarrisonStrength = false) const; // advc.500b
-	int currCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker,											// Exposed to Python
+	int currCombatStr(CvPlot const* pPlot = NULL, CvUnit const* pAttacker = NULL,							// Exposed to Python
 		CombatDetails* pCombatDetails = NULL) const
 	{
 		return ((maxCombatStr(pPlot, pAttacker, pCombatDetails) * currHitPoints()) / maxHitPoints());
@@ -402,7 +402,8 @@ public:
 	{
 		return ((maxCombatStr(pPlot, pAttacker) + currCombatStr(pPlot, pAttacker) + 1) / 2);
 	}
-	int currEffectiveStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDetails* pCombatDetails = NULL,
+	int currEffectiveStr(CvPlot const* pPlot = NULL, CvUnit const* pAttacker = NULL,
+			CombatDetails* pCombatDetails = NULL,
 			int iCurrentHP = -1) const; // advc.139
 	DllExport float maxCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;					// Exposed to Python
 	DllExport float currCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;					// Exposed to Python

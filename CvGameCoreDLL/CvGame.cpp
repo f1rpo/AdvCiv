@@ -1134,8 +1134,8 @@ void CvGame::assignStartingPlots()
 	else
 	{
 		int const iAlive = countCivPlayersAlive();
-		for(int i = 0; i < iAlive; i++)
-			playerOrder.push_back(NO_PLAYER);
+		FAssert(playerOrder.empty());
+		playerOrder.resize(iAlive, NO_PLAYER); // advc (replacing loop)
 		for(int iPass = 0; iPass < 2; iPass++)
 		{
 			bool bHuman = (iPass == 0);
@@ -8116,8 +8116,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 		{
 			FAssert(NO_PLAYER != kData.kVoteOption.ePlayer);
 			CvPlayer& kPlayer = GET_PLAYER(kData.kVoteOption.ePlayer);
-			if (gTeamLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-				logBBAI("  Vote for forcing peace against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0));
+			if (gTeamLogLevel >= 1) logBBAI("  Vote for forcing peace against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0)); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 			// <dlph.25> 'Cancel defensive pacts with the attackers first'
 			FOR_EACH_DEAL_VAR(pLoopDeal)
 			{
@@ -8243,7 +8242,7 @@ CvDeal* CvGame::addDeal()
 	gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
 }
 
-/*  <advc.072> All the FAssert(false) in this function mean that we're somehow
+/*  advc.072: All the FAssert(false) in this function mean that we're somehow
 	out of step with the iteration that happens in the EXE. */
 CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
 		TradeableItems eItemType, int iData, bool bWidget)
@@ -8314,7 +8313,7 @@ CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePla
 	kCurrentDeals.deleteNode(pNode);
 	FAssert(r != NULL);
 	return r;
-} // </advc.072>
+}
 
 
 int CvGame::calculateSyncChecksum()
