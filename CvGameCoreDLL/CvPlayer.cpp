@@ -3975,32 +3975,37 @@ bool CvPlayer::canReceiveTradeCity() const
 
 bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const  // advc: Style changes; assertions added.
 {
-	if (bTestDenial && getTradeDenial(eWhoTo, item) != NO_DENIAL)
-		return false;
+	PROFILE_FUNC(); // advc.test: To be profiled (also the scoped PROFILE calls below)
+
 	/*  <advc.opt> Moved the clauses that don't depend on item.m_iData into a
 		subroutine so that client code can check them upfront before e.g.
 		calling canTradeItem for every technology. */
 	if (!canPossiblyTradeItem(eWhoTo, item.m_eItemType))
 		return false; // </advc.opt>
 
+	bool bValid = false; // advc.opt: TradeDenial check moved down
 	CvTeam const& kOurTeam = GET_TEAM(getTeam());
 	CvTeam const& kToTeam = GET_TEAM(eWhoTo);
 	switch (item.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
 	{
+		PROFILE("CvPlayer::canTradeItem.TECH");
 		FAssertBounds(0, GC.getNumTechInfos(), item.m_iData);
 		TechTypes eTech = (TechTypes)item.m_iData;
 		if (GC.getInfo(eTech).isTrade() &&
-				kOurTeam.isHasTech(eTech) &&
-				!kOurTeam.isNoTradeTech(eTech) &&
-				!kToTeam.isHasTech(eTech) &&
-				GET_PLAYER(eWhoTo).canResearch(eTech, true))
-			return true;
+			kOurTeam.isHasTech(eTech) &&
+			!kOurTeam.isNoTradeTech(eTech) &&
+			!kToTeam.isHasTech(eTech) &&
+			GET_PLAYER(eWhoTo).canResearch(eTech, true))
+		{
+			bValid = true;
+		}
 		break;
 	}
 	case TRADE_RESOURCES:
 	{
+		PROFILE("CvPlayer::canTradeItem.RESOURCES");
 		FAssertBounds(0, GC.getNumBonusInfos(), item.m_iData);
 		BonusTypes eBonus = (BonusTypes)item.m_iData;
 		if (!kToTeam.isBonusObsolete(eBonus) &&
@@ -4010,13 +4015,14 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			bool const bCanTradeAll = true; // advc.036
 			if (getNumTradeableBonuses(eBonus) > (bCanTradeAll ? 0 : 1))
 			{	// if (GET_PLAYER(eWhoTo).getNumAvailableBonuses(eBonus) == 0)
-				return true;
+				bValid = true;
 			}
 		}
 		break;
 	}
 	case TRADE_CITIES:
 	{
+		PROFILE("CvPlayer::canTradeItem.CITIES");
 		CvCity const* pCity = getCity(item.m_iData);
 		if (pCity == NULL)
 		{
@@ -4024,20 +4030,24 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			break;
 		}
 		CvCity const& kCity = *pCity;
-		if (kCity.getLiberationPlayer() == eWhoTo)
-			return true;
 		// <advc.ctr>
 		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID()))
-			break;
-		// Can't trade so long as the previous owner hasn't accepted the loss (let's ignore kCity.getOriginalOwner())
+			break; // </advc.ctr>
+		if (kCity.getLiberationPlayer() == eWhoTo)
+			bValid = true;
+		// <advc.ctr>
+		/*	Can't trade so long as the previous owner hasn't accepted the loss
+			(let's ignore kCity.getOriginalOwner()) */
 		PlayerTypes ePreviousOwner = kCity.getPreviousOwner();
 		if (ePreviousOwner != NO_PLAYER)
 		{
 			TeamTypes ePreviousTeam = TEAMID(ePreviousOwner);
 			if (ePreviousTeam != kToTeam.getID() &&
-					kOurTeam.isAtWar(ePreviousTeam) &&
-					!kToTeam.isAtWar(ePreviousTeam))
+				kOurTeam.isAtWar(ePreviousTeam) &&
+				!kToTeam.isAtWar(ePreviousTeam))
+			{
 				break;
+			}
 		}
 		CvPlot const& kCityPlot = *kCity.plot();
 		if (!kToTeam.isAtWar(getTeam()) && kCityPlot.isVisibleEnemyCityAttacker(getID()))
@@ -4052,31 +4062,31 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			break;
 		}
 		if (kToTeam.isVassal(getTeam()) &&
-				kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
+			kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
+		{
 			break;
-		return true;
-		// </advc.ctr>
-		break;
+		}
+		bValid = true; // </advc.ctr>
 	}
 	case TRADE_GOLD:
 		FAssert(item.m_iData >= 0); // (advc: 0 is OK as an unspecified amount)
 		if (getGold() >= item.m_iData)
-			return true;
+			bValid = true;
 		break;
 	case TRADE_GOLD_PER_TURN:
 		FAssert(item.m_iData >= 0);
-		return true;
+		bValid = true;
 	case TRADE_MAPS:
-		return true;
+		bValid = true;
 	case TRADE_VASSAL:
 		// advc.112: Make sure that only capitulation is possible between war enemies
 		if (!kToTeam.isAtWar(getTeam()))
-			return true;
+			bValid = true;
 	case TRADE_SURRENDER:
 	{
 		bool bForce = (item.m_iData == 1); // Used by CvDeal::startTeamTrade
 		if ((kToTeam.isAtWar(getTeam()) || bForce) && item.m_eItemType == TRADE_SURRENDER)
-			return true;
+			bValid = true;
 		break;
 	}
 	case TRADE_PEACE:
@@ -4084,8 +4094,10 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (kToTeam.isHasMet(eTargetTeam) && //kOurTeam.isHasMet(eTargetTeam) && // advc: redundant
-				kOurTeam.isAtWar(eTargetTeam))
-			return true;
+			kOurTeam.isAtWar(eTargetTeam))
+		{
+			bValid = true;
+		}
 		break;
 	}
 	case TRADE_WAR:
@@ -4093,27 +4105,33 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (!GET_TEAM(eTargetTeam).isAVassal() &&
-				kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
-				kOurTeam.canDeclareWar(eTargetTeam))
-			return true;
+			kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
+			kOurTeam.canDeclareWar(eTargetTeam))
+		{
+			bValid = true;
+		}
 		break;
 	}
 	case TRADE_EMBARGO:
 	{
+		PROFILE("CvPlayer::canTradeItem.EMBARGO");
 		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (!kOurTeam.isHuman() &&
-				kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
-				canStopTradingWithTeam(eTargetTeam) &&
-				// <advc.130f>
-				(!GET_PLAYER(eWhoTo).isTradingWithTeam(eTargetTeam, true) ||
-				(kOurTeam.isCapitulated() && kOurTeam.isVassal(kToTeam.getID()))))
-				// </advc.130f>
-			return true;
+			kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
+			canStopTradingWithTeam(eTargetTeam) &&
+			// <advc.130f>
+			(!GET_PLAYER(eWhoTo).isTradingWithTeam(eTargetTeam, true) ||
+			(kOurTeam.isCapitulated() && kOurTeam.isVassal(kToTeam.getID()))))
+			// </advc.130f>
+		{
+			bValid = true;
+		}
 		break;
 	}
 	case TRADE_CIVIC:
 	{
+		PROFILE("CvPlayer::canTradeItem.CIVIC");
 		FAssertBounds(0, GC.getNumCivicInfos(), item.m_iData);
 		CivicTypes eCivic = (CivicTypes)item.m_iData;
 		if (GET_PLAYER(eWhoTo).isCivic(eCivic) /* <advc.132> */ ||
@@ -4124,12 +4142,13 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			GET_PLAYER(eWhoTo).canForceCivics(getID(), eCivic))) // </advc.132>
 		{
 			if (canDoCivics(eCivic) && !isCivic(eCivic) && canRevolution(NULL))
-				return true;
+				bValid = true;
 		}
 		break;
 	}
 	case TRADE_RELIGION:
 	{
+		PROFILE("CvPlayer::canTradeItem.RELIGION");
 		FAssertBounds(0, GC.getNumReligionInfos(), item.m_iData);
 		ReligionTypes eReligion = (ReligionTypes)item.m_iData;
 		if (GET_PLAYER(eWhoTo).getStateReligion() == eReligion /* <advc.132> */ ||
@@ -4139,7 +4158,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			GET_PLAYER(eWhoTo).canForceReligion(getID(), eReligion))) // </advc.132>
 		{
 			if (canConvert(eReligion))
-				return true;
+				bValid = true;
 		}
 		break;
 	}
@@ -4150,10 +4169,10 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_PEACE_TREATY:
 	// <advc.034>
 	case TRADE_DISENGAGE:
-		return true; // </advc.034>
+		bValid = true; // </advc.034>
 	}
-
-	return false;
+	// advc.opt: (denial check moved down)
+	return (bValid && (!bTestDenial || getTradeDenial(eWhoTo, item) == NO_DENIAL));
 }
 
 /*  advc.opt: Cut from canTradeItem.
@@ -4161,6 +4180,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	trade might be possible. */
 bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const // advc.opt
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	CvTeam const& kOurTeam = GET_TEAM(getTeam());
 	CvTeam const& kToTeam = GET_TEAM(eWhoTo);
 	switch (eItemType)
