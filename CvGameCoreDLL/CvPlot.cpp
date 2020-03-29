@@ -4177,14 +4177,16 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		}
 	}
 	// <advc.ctr> Wake up sleeping/ fortified human units
-	if (isOwned() && eOldOwner != NO_PLAYER && GET_PLAYER(eOldOwner).isHuman())
+	if (eOldOwner != NO_PLAYER && GET_PLAYER(eOldOwner).isHuman() &&
+		getOwner() != eOldOwner)
 	{
 		for (CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL;
 			pNode = nextUnitNode(pNode))
 		{
 			CvSelectionGroup& kGroup = *::getUnit(pNode->m_data)->getGroup();
 			if (kGroup.getOwner() == eOldOwner && kGroup.getLengthMissionQueue() <= 0 &&
-				kGroup.getActivityType() == ACTIVITY_SLEEP)
+				(kGroup.getActivityType() == ACTIVITY_SLEEP ||
+				kGroup.getActivityType() == ACTIVITY_SENTRY))
 			{
 				kGroup.setActivityType(ACTIVITY_AWAKE);
 			}
