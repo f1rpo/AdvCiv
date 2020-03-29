@@ -22,7 +22,7 @@ public:
 	virtual ~CvCity();
 
 	void setupGraphical();
-	void kill(bool bUpdatePlotGroups);																			// Exposed to Python
+	void kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits = true);									// Exposed to Python
 	void doTurn();
 	void doRevolt(); // advc: previously in CvPlot::doCulture
 	// K-Mod. public for the "insert culture" espionage mission. (I've also changed the functionality of it quite a bit.)

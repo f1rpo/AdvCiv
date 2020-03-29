@@ -295,7 +295,7 @@ void CvCity::setupGraphical()
 }
 
 
-void CvCity::kill(bool bUpdatePlotGroups)
+void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 {
 	CvPlot& kPlot = *plot();
 
@@ -392,7 +392,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 	CvEventReporter::getInstance().cityLost(this);
 	GET_PLAYER(getOwner()).deleteCity(getID());
 
-	kPlot.updateCulture(true, false);
+	kPlot.updateCulture(/*true*/ bBumpUnits, false); // advc.001
 	FOR_EACH_ENUM(Direction)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
