@@ -4035,7 +4035,10 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID()))
 			break; // </advc.ctr>
 		if (kCity.getLiberationPlayer() == eWhoTo)
+		{
 			bValid = true;
+			break;
+		}
 		// <advc.ctr>
 		/*	Can't trade so long as the previous owner hasn't accepted the loss
 			(let's ignore kCity.getOriginalOwner()) */
@@ -4068,6 +4071,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			break;
 		}
 		bValid = true; // </advc.ctr>
+		break;
 	}
 	case TRADE_GOLD:
 		FAssert(item.m_iData >= 0); // (advc: 0 is OK as an unspecified amount)
