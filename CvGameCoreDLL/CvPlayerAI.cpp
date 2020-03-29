@@ -18237,8 +18237,10 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 					iHumanReceivedGold += pNode->m_data.m_iData;
 				else humanReceived.insertAtEnd(pNode->m_data);
 				/*  <advc.074> Remember the canceled resources to avoid
-					excluding them in CvPlayer::buildTradeTable. */
-				if(pNode->m_data.m_eItemType == TRADE_RESOURCES)
+					excluding them in CvPlayer::buildTradeTable. I've put
+					similar code in CvPlayer::read so that m_cancelingExport
+					is also set properly after loading a savegame. */
+				if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
 				{
 					m_cancelingExport.insertAtEnd(std::make_pair(
 							eOther, (BonusTypes)pNode->m_data.m_iData));

@@ -16256,6 +16256,20 @@ void CvPlayer::read(FDataStreamBase* pStream)
 			{
 				pDiplo->read(*pStream);
 				m_listDiplomacy.push_back(pDiplo);
+				// <advc.074> (see comment in CvPlayerAI::AI_doDeals)
+				if (pDiplo->getDiploComment() == GC.getAIDiploCommentType("CANCEL_DEAL"))
+				{
+					for (CLLNode<TradeData> const* pNode = pDiplo->getOurOfferList().head();
+						pNode != NULL; pNode =  pDiplo->getOurOfferList().next(pNode))
+					{
+						if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
+						{
+							m_cancelingExport.insertAtEnd(std::make_pair(
+									pDiplo->getWhoTalkingTo(),
+									(BonusTypes)pNode->m_data.m_iData));
+						}
+					}
+				} // </advc.074>
 			}
 		}
 	}
