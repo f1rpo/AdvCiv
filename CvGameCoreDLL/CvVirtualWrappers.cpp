@@ -105,7 +105,8 @@ bool CvPlayer::AI_considerOfferExternal(PlayerTypes ePlayer, CLinkList<TradeData
 }
 // Called from the EXE ("what would make this deal work?")
 bool CvPlayer::AI_counterProposeExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pTheirList, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) {
-	return AI().AI_counterPropose(ePlayer, pTheirList, pOurList, pTheirInventory, pOurInventory, pTheirCounter, pOurCounter);
+	pTheirCounter->clear(); pOurCounter->clear(); // Moved out of the DLL-internal function
+	return AI().AI_counterPropose(ePlayer, *pTheirList, *pOurList, *pTheirInventory, *pOurInventory, *pTheirCounter, *pOurCounter);
 }
 int CvPlayer::AI_bonusValExternal(BonusTypes eBonus, int iChange) { reportCall;
 	return AI().AI_bonusVal(eBonus, iChange);

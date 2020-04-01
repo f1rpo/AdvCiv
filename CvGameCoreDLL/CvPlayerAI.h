@@ -245,8 +245,6 @@ public:
 			bool bIgnorePeace = false, // advc.130p  <advc.ctr>
 			bool bCountLiberation = false, bool bAIRequest = false,
 			bool bDiploVal = false) const; // </advc.ctr>
-	bool AI_goldDeal(CLinkList<TradeData> const& kList) const;
-	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
 			CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0,
 			// <advc.130o> May change diplo memory if true; const qualifier removed.
@@ -611,10 +609,13 @@ public:
 	bool AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand);
 	// </advc.104m>  <advc.ctr>
 	CvCityAI const* AI_bestRequestCity(PlayerTypes eOwner, scaled rMinVal = 1,
-			scaled rMinRatio = -1) const; // </advc.ctr>
+			scaled rMinRatio = -1) const;
 	bool AI_proposeCityTrade(PlayerTypes eToPlayer);
+	bool AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
+			bool bLiberateForFree = false, int* piTradeVal = NULL) const;
+	scaled AI_totalYieldVal() const;
+	scaled AI_targetAmortizationTurns() const; // </advc.ctr>
 	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
-	scaled AI_targetAmortizationTurns() const; // advc.ctr
 	// advc.104r: Made public and param added
 	void AI_doSplit(bool bForce = false);
 
@@ -707,13 +708,17 @@ protected:
 	void AI_doReligion();
 	void AI_doDiplo();
 	void AI_doCheckFinancialTrouble();
+	// <advc.026>
+	void AI_roundTradeValBounds(int& iTradeVal, bool bPreferRoundingUp = false,
+			int iLower = MIN_INT, int iUpper = MAX_INT) const; // </advc.026>
 	/*  <advc> Overlaps with CvTeamAI::roundTradeVal. Could call that function,
 		but don't want to include CvTeamAI.h here. (And want inlining.) */
 	inline void AI_roundTradeVal(int& iTradeVal) const
 	{
 		iTradeVal -= iTradeVal % GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER);
 	}
-	bool AI_proposeJointWar(PlayerTypes eHuman); // </advc>
+	bool AI_proposeJointWar(PlayerTypes eHuman);
+	void AI_proposeWarTrade(PlayerTypes eAIPlayer); // </advc>
 	// advc.130t:
 	int AI_rivalPactAttitude(PlayerTypes ePlayer, bool bVassalPacts) const;
 	double AI_expansionistHate(PlayerTypes ePlayer) const;
@@ -743,21 +748,20 @@ protected:
 	int AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver, int iDelta,
 			int* iGold, TechTypes* eBestTech, CvCity const** pBestCity); // </advc.104h>
 	bool AI_counterPropose(PlayerTypes ePlayer, // advc: was public
-			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
-			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
-			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
+			CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive,
+			CLinkList<TradeData> const& kTheirInventory, CLinkList<TradeData> const& kOurInventory,
+			CLinkList<TradeData>& kTheyAlsoGive, CLinkList<TradeData>& kWeAlsoGive,
 			double leniency = 1) const; // advc.705
 	// <advc>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
 			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore,
-			double generosity = 1) const;
-	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
-			PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
-			CLinkList<TradeData>* pCounter,
-			CLinkList<TradeData> const* pList,
+			double leniency = 1) const;
+	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kTheirInventory,
+			PlayerTypes ePlayer, int iTheyReceive, int& iWeReceive,
+			CLinkList<TradeData>& kWeWant, CLinkList<TradeData> const& kWeGive,
 			double leniency, // advc.705
-			bool bGenerous,
+			bool bTheyGenerous,
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const; // advc.036
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,
 			bool* bEnough = NULL) const;
@@ -788,6 +792,9 @@ protected:
 	void AI_foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>
 	double AI_bonusImportValue(PlayerTypes eFrom) const; // advc.149
 	int AI_anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
+	static bool AI_goldDeal(CLinkList<TradeData> const& kList); // advc: static, protected
+	static bool isAnnualDeal(CLinkList<TradeData> const& itemList); // advc.705
+
 	bool AI_isThreatFromMinorCiv() const; // advc.109
 	void AI_updateDangerFromSubmarines(); // advc.651
 	bool AI_cheatDangerVisibility(CvPlot const& kAt) const; // advc.128
