@@ -21953,7 +21953,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		if(eOwner == NO_PLAYER)
 			continue; // advc: Moved up
 		// how many people own this plot?
-		std::vector < std::pair<int,int> > plot_owners;
+		std::vector<std::pair<int,PlayerTypes> > plot_owners;
 		//int iNumNonzeroOwners = 0;
 		// K-Mod
 		int iTotalCulture = kLoopPlot.getTotalCulture(); // advc.opt: was countTotalCulture
@@ -21965,18 +21965,19 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		bool bVisible = kLoopPlot.isVisible(getTeam(), true);
 		if(bVisible)
 		{ // </advc.004z>
-			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++) // dlph.21: was MAX_CIV_PLAYERS
-			{	// <advc.004z> Owner handled above
-				if(iPlayer == eOwner)
+			// dlph.21: include Barbarians; advc.099: include defeated.
+			for (PlayerIter<EVER_ALIVE> it; it.hasNext(); ++it)
+			{
+				PlayerTypes ePlayer = it->getID();
+				// <advc.004z> Owner handled above
+				if(ePlayer == eOwner)
 					continue; // </advc.004z>
-				if(!GET_PLAYER((PlayerTypes)iPlayer).isEverAlive()) // advc.099: was isAlive
-					continue;
-				int iCurCultureAmount = kLoopPlot.getCulture((PlayerTypes)iPlayer);
+				int iCurCultureAmount = kLoopPlot.getCulture(ePlayer);
 				//if (iCurCultureAmount != 0)
 				// K-Mod (to reduce visual spam from small amounts of culture)
-				if (iCurCultureAmount * 100 / iTotalCulture >= 20)
+				if (100 * iCurCultureAmount >= 20 * iTotalCulture)
 				{	//iNumNonzeroOwners ++;
-					plot_owners.push_back(std::pair<int,int>(iCurCultureAmount, iPlayer));
+					plot_owners.push_back(std::make_pair(iCurCultureAmount, ePlayer));
 				}
 			}
 		}
@@ -21989,7 +21990,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 			plot_owners.size() < iColorsPerPlot; iPass++)
 		{
 			// To avoid adding to plot_owners while looping through it
-			std::vector <std::pair<int,int> > repeated_owners;
+			std::vector<std::pair<int,PlayerTypes> > repeated_owners;
 			for(size_t i = 0; i < plot_owners.size(); i++)
 			{
 				if(baDone[plot_owners[i].second])
@@ -21999,8 +22000,8 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 					iExtra += (plot_owners[i].first * iColorsPerPlot) / iTotalCulture;
 				else if(iPass == 1) // Round to nearest
 				{
-					iExtra += ::round((plot_owners[i].first * iColorsPerPlot) /
-							(double)iTotalCulture);
+					iExtra += ROUND_DIVIDE(plot_owners[i].first * iColorsPerPlot,
+							iTotalCulture);
 				} // Respect size limit
 				iExtra = std::min(iExtra, iColorsPerPlot - (int)
 						(plot_owners.size() + repeated_owners.size()));
@@ -22014,10 +22015,15 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 				will be set to the civ's color. */
 			for(size_t i = 0; i < repeated_owners.size(); i++)
 				plot_owners.push_back(repeated_owners[i]);
-		} // Ideally ==, but my algorithm above can't guarantee that.
-		FAssert(plot_owners.size() <= iColorsPerPlot);
+		}
+		/*	Ideally ==iColorsPerPlot, but my algorithm above can't guarantee that.
+			Can be 1 greater than iColorsPerPlot because the territorial owner is
+			always included. */
+		FAssert(plot_owners.size() <= iColorsPerPlot + 1);
 		// </advc.004z>
-		for (int i = 0; i < iColorsPerPlot; ++i)
+		for (int i = 0;
+			// adv.004z: max (see comment above)
+			i < std::max(iColorsPerPlot, (int)plot_owners.size()); i++)
 		{
 			int iCurOwnerIdx = i % plot_owners.size();
 			PlayerTypes eCurOwnerID = (PlayerTypes) plot_owners[iCurOwnerIdx].second;
