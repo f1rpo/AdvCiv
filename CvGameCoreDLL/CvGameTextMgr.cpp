@@ -9070,11 +9070,18 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 	}
 }
 
-// <advc.ctr>
+// advc.ctr:
 void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kCity,
 	PlayerTypes eWhoTo, bool bListMore)
 {
 	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
+	/*	For the debug menu on the Cities tab. Don't really know which
+		perspective to assume; eWhoTo will be correct more often than not. */
+	if (eActivePlayer != eWhoTo && eActivePlayer != kCity.getOwner())
+	{
+		FAssert(GC.getGame().isDebugMode());
+		eActivePlayer = eWhoTo;
+	}	
 	PlayerTypes eOtherPlayer = (eWhoTo == eActivePlayer ? kCity.getOwner() : eWhoTo);
 	bool bLiberate = (eWhoTo == eOtherPlayer && kCity.getLiberationPlayer() == eWhoTo);
 	DenialTypes eDenial = NO_DENIAL;
@@ -9146,7 +9153,7 @@ void CvGameTextMgr::setCityTradeHelp(CvWStringBuffer& szBuffer, CvCity const& kC
 		szBuffer.append(L":\n");
 		szBuffer.append(szReason);
 	}
-} // </advc.ctr>
+}
 
 // advc.910:
 void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes eTech)
