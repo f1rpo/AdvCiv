@@ -47,38 +47,46 @@ class CvEventManager:
 		self.EventForward=5
 		self.EventKeyDown=6
 		self.EventKeyUp=7
-	
-		self.__LOG_MOVEMENT = 0
-		self.__LOG_BUILDING = 0
-		self.__LOG_COMBAT = 0
-		self.__LOG_CONTACT = 0
-		self.__LOG_IMPROVEMENT = 0
-		self.__LOG_PLOTPICKED = 0 # advc.007
-		self.__LOG_NUKEEXPLOSION = 0 # advc.007
-		self.__LOG_CITYLOST = 0
-		self.__LOG_CITYBUILDING = 0
-		# <advc.007>
-		self.__LOG_CITY_CULTURE = 0
-		self.__LOG_CITY_GROWTH = 0
-		self.__LOG_SAVING = 0
+
+		# <advc.007> Master switch
+		self.__LOG_ALL = 0
+		b = 0
+		if self.__LOG_ALL:
+			b = 1
 		# </advc.007>
-		self.__LOG_TECH = 0
-		self.__LOG_UNITBUILD = 0
-		self.__LOG_UNITKILLED = 0 # advc.007: was 1
-		self.__LOG_UNITLOST = 0
-		self.__LOG_UNITPROMOTED = 0
-		self.__LOG_UNITSELECTED = 0
-		self.__LOG_UNITPILLAGE = 0
-		self.__LOG_GOODYRECEIVED = 0
-		self.__LOG_GREATPERSON = 0
-		self.__LOG_RELIGION = 0
-		self.__LOG_RELIGIONSPREAD = 0
-		self.__LOG_GOLDENAGE = 0
-		self.__LOG_ENDGOLDENAGE = 0
-		self.__LOG_WARPEACE = 0
-		self.__LOG_CITYBUILT = 0 # advc.007
-		self.__LOG_CITYACQUIRED = 0 # advc.007
-		self.__LOG_PUSH_MISSION = 0
+		self.__LOG_MOVEMENT = b
+		self.__LOG_BUILDING = b
+		self.__LOG_COMBAT = b
+		self.__LOG_CONTACT = b
+		self.__LOG_IMPROVEMENT = b
+		self.__LOG_PLOTPICKED = b # advc.007
+		self.__LOG_NUKEEXPLOSION = b # advc.007
+		self.__LOG_CITYLOST = b
+		self.__LOG_CITYBUILDING = b
+		# <advc.007>
+		self.__LOG_CITY_CULTURE = b
+		self.__LOG_CITY_GROWTH = b
+		self.__LOG_SAVING = b
+		# </advc.007>
+		self.__LOG_TECH = b
+		self.__LOG_UNITBUILD = b
+		self.__LOG_UNITKILLED = b
+		self.__LOG_UNITLOST = b
+		self.__LOG_UNITPROMOTED = b
+		self.__LOG_UNITSELECTED = b
+		self.__LOG_UNITPILLAGE = b
+		self.__LOG_GOODYRECEIVED = b
+		self.__LOG_GREATPERSON = b
+		self.__LOG_RELIGION = b
+		self.__LOG_RELIGIONSPREAD = b
+		self.__LOG_GOLDENAGE = b
+		self.__LOG_ENDGOLDENAGE = b
+		self.__LOG_WARPEACE = b
+		self.__LOG_CITYBUILT = b # advc.007
+		self.__LOG_CITYACQUIRED = b # advc.007
+		self.__LOG_PUSH_MISSION = b
+
+		#self.__LOG_UNITKILLED = 1 # advc.007
 		
 		## EVENTLIST
 		self.EventHandlerMap = {
