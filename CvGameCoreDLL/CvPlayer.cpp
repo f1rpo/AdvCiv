@@ -6804,14 +6804,19 @@ int CvPlayer::getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const
 
 int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const  // advc: style changes
 {
+	// <advc>
+	if (GET_TEAM(getTeam()).isHasTech(eTech))
+		return 0; // </advc>
 	int iResearchRate = 0;
 	int iOverflow = 0;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)iI);
-		if(!kMember.isAlive() || kMember.getTeam() != getTeam()
-				|| !kMember.isResearch()) // advc.004x
+		if(!kMember.isAlive() || kMember.getTeam() != getTeam() ||
+			!kMember.isResearch()) // advc.004x
+		{
 			continue;
+		}
 		if(iI == getID() || kMember.getCurrentResearch() == eTech)
 		{
 			//iResearchRate += GET_PLAYER((PlayerTypes)iI).calculateResearchRate(eTech);
@@ -13247,12 +13252,14 @@ void CvPlayer::doResearch()
 		TechTypes eCurrentTech = getCurrentResearch();
 		if (eCurrentTech == NO_TECH)
 		{
-			int iOverflow = (100 * calculateResearchRate()) / std::max(1, calculateResearchModifier(eCurrentTech));
+			int iOverflow = (100 * calculateResearchRate()) /
+					std::max(1, calculateResearchModifier(eCurrentTech));
 			changeOverflowResearch(iOverflow);
 		}
 		else
 		{
-			int iOverflowResearch = (getOverflowResearch() * calculateResearchModifier(eCurrentTech)) / 100;
+			int iOverflowResearch = (getOverflowResearch() *
+					calculateResearchModifier(eCurrentTech)) / 100;
 			setOverflowResearch(0);
 			GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech,
 					// K-Mod (replacing the minimum which used to be in calculateResearchRate)
@@ -18748,7 +18755,9 @@ bool CvPlayer::isValidEventTech(TechTypes eTech, EventTypes eEvent, PlayerTypes 
 		return false;
 	}
 
-	if (kEvent.getTechPercent() < 0 && GET_TEAM(getTeam()).getResearchProgress(eTech) <= 0)
+	if (kEvent.getTechPercent() < 0 &&
+		(GET_TEAM(getTeam()).isHasTech(eTech) || // advc: Don't rely on getResearchProgress
+		GET_TEAM(getTeam()).getResearchProgress(eTech) <= 0))
 	{
 		return false;
 	}
@@ -18764,7 +18773,7 @@ bool CvPlayer::isValidEventTech(TechTypes eTech, EventTypes eEvent, PlayerTypes 
 		return false;
 	}
 
-	if (NO_PLAYER != eOtherPlayer && !GET_TEAM(GET_PLAYER(eOtherPlayer).getTeam()).isHasTech(eTech))
+	if (NO_PLAYER != eOtherPlayer && !GET_TEAM(eOtherPlayer).isHasTech(eTech))
 	{
 		return false;
 	}

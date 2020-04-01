@@ -2156,7 +2156,10 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 
 int CvTeam::getResearchLeft(TechTypes eTech) const
 {
-	return std::max(0, (getResearchCost(eTech) - getResearchProgress(eTech)));
+	// <advc> Safer, cleaner this way
+	if (isHasTech(eTech))
+		return 0; // </advc>
+	return std::max(0, getResearchCost(eTech) - getResearchProgress(eTech));
 }
 
 
@@ -3870,7 +3873,9 @@ void CvTeam::changeObsoleteBuildingCount(BuildingTypes eIndex, int iChange)
 	}
 }
 
-
+/*	advc (note): If the tech is already known, then the research progress
+	is equal to the number of beakers that this team has put into it;
+	i.e. it's not necessarily greater than the tech cost, can even be 0. */
 int CvTeam::getResearchProgress(TechTypes eIndex) const
 {
 	if (eIndex != NO_TECH)
@@ -3895,8 +3900,9 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 			Popup_DIRTY_BIT would suffice here?) */
 		CvPlayer& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 		if(kActivePlayer.getCurrentResearch() == NO_TECH &&
-				kActivePlayer.isFoundedFirstCity() &&
-				kActivePlayer.isHuman()) { // i.e. not during Auto Play
+			kActivePlayer.isFoundedFirstCity() &&
+			kActivePlayer.isHuman()) // i.e. not during Auto Play
+		{
 			kActivePlayer.killAll(BUTTONPOPUP_CHOOSETECH);
 			kActivePlayer.chooseTech();
 		} // </advc.004x>
@@ -3907,6 +3913,9 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 		int iOverflow = (100 * (getResearchProgress(eIndex) - getResearchCost(eIndex))) /
 				std::max(1, GET_PLAYER(ePlayer).calculateResearchModifier(eIndex));
 		GET_PLAYER(ePlayer).changeOverflowResearch(iOverflow);
+		// <advc> Cleaner to subtract the overflow. Cf. comment in getResearchProgress.
+		m_aiResearchProgress.add(eIndex,
+				getResearchProgress(eIndex) - getResearchCost(eIndex)); // </advc>
 		setHasTech(eIndex, true, ePlayer, true, true);
 		/*if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
 			setNoTradeTech(eIndex, true);*/ // BtS

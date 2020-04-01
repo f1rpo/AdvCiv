@@ -2121,9 +2121,11 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 			if (bAny)
 				return &kLoopUnit; // </advc>
 			if (kLoopUnit.isBetterDefenderThan(pBestUnit, pAttacker,
-					&iBestUnitRank, // UncutDragon
-					bTestVisible)) // advc.061
+				&iBestUnitRank, // UncutDragon
+				bTestVisible)) // advc.061
+			{
 				pBestUnit = &kLoopUnit;
+			}
 		}
 	}
 	// BETTER_BTS_AI_MOD: END

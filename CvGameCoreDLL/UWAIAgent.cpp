@@ -1521,8 +1521,11 @@ int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 	CvTeamAI const& ai =  (agentHuman ? GET_TEAM(enemyId) : GET_TEAM(agentId));
 	int aiReluct = ai.uwai().reluctanceToPeace(human.getID(), false);
 	// If no payment is possible, human utility shouldn't matter.
-	if(aiReluct <= 0 && !human.isGoldTrading() && !human.isTechTrading() &&
-			!ai.isGoldTrading() && !ai.isTechTrading())
+	if(aiReluct <= 0 &&
+			!GET_PLAYER(human.getLeaderID()).
+			canPossiblyTradeItem(ai.getLeaderID(), TRADE_GOLD) &&
+			!GET_PLAYER(human.getLeaderID()).
+			canPossiblyTradeItem(ai.getLeaderID(), TRADE_TECHNOLOGIES))
 		return 0;
 	// Really just utility given how peaceThreshold is computed for humans
 	int humanUtility = human.uwai().reluctanceToPeace(ai.getID(), false);

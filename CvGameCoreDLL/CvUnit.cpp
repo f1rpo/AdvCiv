@@ -11298,7 +11298,7 @@ bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAtt
 	int iOurRanking = LFBgetDefenderRank(pAttacker);
 	int iTheirRanking = -1;
 	if (pBestDefenderRank)
-		iTheirRanking = (*pBestDefenderRank);
+		iTheirRanking = *pBestDefenderRank;
 	if (iTheirRanking == -1)
 		iTheirRanking = pDefender->LFBgetDefenderRank(pAttacker);
 
@@ -11308,15 +11308,15 @@ bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAtt
 	{
 		if (isBeforeUnitCycle(*pDefender))
 			iTheirRanking++;
-		else
-			iTheirRanking--;
+		else iTheirRanking--;
 	}
 
 	// Retain the basic rank (before value adjustment) for the best defender
 	if (pBestDefenderRank)
+	{
 		if (iOurRanking > iTheirRanking)
 			(*pBestDefenderRank) = iOurRanking;
-
+	}
 	return (iOurRanking > iTheirRanking);
 }
 
@@ -11357,7 +11357,7 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 	// Check if we have a valid attacker
 	bool bUseAttacker = false;
 	int iAttStrength = 0;
-	if (pAttacker)
+	if (pAttacker != NULL)
 		iAttStrength = pAttacker->currCombatStr(NULL, NULL);
 	if (iAttStrength > 0)
 		bUseAttacker = true;
