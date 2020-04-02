@@ -6742,53 +6742,32 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 
 TechTypes CvPlayer::getCurrentResearch() const
 {
-	CLLNode<TechTypes>* pResearchNode;
-
-	pResearchNode = headResearchQueueNode();
-
+	CLLNode<TechTypes>* pResearchNode = headResearchQueueNode();
 	if (pResearchNode != NULL)
-	{
 		return pResearchNode->m_data;
-	}
-	else
-	{
-		return NO_TECH;
-	}
+	return NO_TECH;
 }
 
 
 bool CvPlayer::isCurrentResearchRepeat() const
 {
-	TechTypes eCurrentResearch;
-
-	eCurrentResearch = getCurrentResearch();
-
+	TechTypes eCurrentResearch = getCurrentResearch();
 	if (eCurrentResearch == NO_TECH)
-	{
 		return false;
-	}
-
 	return GC.getInfo(eCurrentResearch).isRepeat();
 }
 
 
 bool CvPlayer::isNoResearchAvailable() const
 {
-	int iI;
-
 	if (getCurrentResearch() != NO_TECH)
-	{
 		return false;
-	}
 
-	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
+	FOR_EACH_ENUM(Tech)
 	{
-		if (canResearch((TechTypes)iI))
-		{
+		if (canResearch(eLoopTech))
 			return false;
-		}
 	}
-
 	return true;
 }
 

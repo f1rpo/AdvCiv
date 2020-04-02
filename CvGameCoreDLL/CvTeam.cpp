@@ -2079,7 +2079,6 @@ int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 
 int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod: params added
 {
-	FAssertMsg(eTech != NO_TECH, "Tech is not assigned a valid value");
 	CvGame const& g = GC.getGame();
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
@@ -2156,8 +2155,8 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 
 int CvTeam::getResearchLeft(TechTypes eTech) const
 {
-	// <advc> Safer, cleaner this way
-	if (isHasTech(eTech))
+	// <advc> Safer, cleaner this way. (NB: NO_TECH isn't allowed here.)
+	if (isHasTech(eTech) && !GC.getInfo(eTech).isRepeat())
 		return 0; // </advc>
 	return std::max(0, getResearchCost(eTech) - getResearchProgress(eTech));
 }

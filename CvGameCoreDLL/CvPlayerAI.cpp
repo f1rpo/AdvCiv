@@ -19570,64 +19570,62 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 	int iBestTeamPrice = -1;
 	// </advc.104o>
 	TeamTypes eBestTarget = NO_TEAM;
+	int iBestValue = 0;
+	for (TeamIter<MAJOR_CIV,ENEMY_OF> itTarget(getTeam());
+		itTarget.hasNext(); ++itTarget)
 	{
-		int iBestValue = 0;
-		for (TeamIter<MAJOR_CIV,ENEMY_OF> itTarget(getTeam());
-			itTarget.hasNext(); ++itTarget)
+		CvTeamAI const& kTarget = *itTarget;
+		if (kTarget.isAtWar(kHireling.getTeam()))
+			continue;
+		// <advc.104o>
+		if (getUWAI.isEnabled())
 		{
-			CvTeamAI const& kTarget = *itTarget;
-			if (kTarget.isAtWar(kHireling.getTeam()))
+			/*  AI_declareWarTrade checks attitude toward the target;
+				no war if the target is liked. Shouldn't matter for
+				capitulated vassals, but an unpopular voluntary vassal
+				should be a valid target even if the master would not be.
+				Attitude toward the master still factors into tradeValJointWar. */
+			if (kTarget.isCapitulated())
 				continue;
-			// <advc.104o>
-			if (getUWAI.isEnabled())
+			if (!kHireling.canTradeItem(getID(),
+				/*	(Important here for performance and UWAI log output that
+					AI denial now gets tested after the game rule checks.) */
+				TradeData(TRADE_WAR, kTarget.getID()), true))
 			{
-				/*  AI_declareWarTrade checks attitude toward the target;
-					no war if the target is liked. Shouldn't matter for
-					capitulated vassals, but an unpopular voluntary vassal
-					should be a valid target even if the master would not be.
-					Attitude toward the master still factors into tradeValJointWar. */
-				if (kTarget.isCapitulated())
-					continue;
-				if (!kHireling.canTradeItem(getID(),
-					/*	(Important here for performance and UWAI log output that
-						AI denial now gets tested after the game rule checks.) */
-					TradeData(TRADE_WAR, kTarget.getID()), true))
-				{
-					continue;
-				}
-				int iValue = kOurTeam.uwai().tradeValJointWar(
-						kTarget.getID(), kHireling.getTeam());
-				if (iValue <= iBestTargetValue)
-					continue;
-				/*  This call doesn't compute how much our team values the DoW
-					by eHireling (that's iValue), it computes how much eHireling
-					needs to be payed for the DoW. Has to work this way b/c
-					AI_declareWarTradeVal is also used for human-AI war trades. */
-				int iTheirPrice = kOurTeam.AI_declareWarTradeVal(
-						kTarget.getID(), kHireling.getTeam());
-				/*  Don't try to make the trade if the DoW by ePlayer isn't
-					nearly as valuable to us as what they'll charge */
-				if (4 * iValue >= 3 * iTheirPrice)
-				{
-					iBestTargetValue = iValue;
-					eBestTarget = kTarget.getID();
-					iBestTeamPrice = iTheirPrice;
-				}
+				continue;
 			}
-			else // </advc.104o>
-			 if (kTarget.getNumWars() < std::max(2, kGame.countCivTeamsAlive() / 2))
+			int iValue = kOurTeam.uwai().tradeValJointWar(
+					kTarget.getID(), kHireling.getTeam());
+			if (iValue <= iBestTargetValue)
+				continue;
+			/*  This call doesn't compute how much our team values the DoW
+				by eHireling (that's iValue), it computes how much eHireling
+				needs to be payed for the DoW. Has to work this way b/c
+				AI_declareWarTradeVal is also used for human-AI war trades. */
+			int iTheirPrice = kOurTeam.AI_declareWarTradeVal(
+					kTarget.getID(), kHireling.getTeam());
+			/*  Don't try to make the trade if the DoW by ePlayer isn't
+				nearly as valuable to us as what they'll charge */
+			if (4 * iValue >= 3 * iTheirPrice)
 			{
-				if (kHireling.canTradeItem(getID(),
-					TradeData(TRADE_WAR, kTarget.getID()), true))
+				iBestTargetValue = iValue;
+				eBestTarget = kTarget.getID();
+				iBestTeamPrice = iTheirPrice;
+			}
+		}
+		else // </advc.104o>
+		 if (kTarget.getNumWars() < std::max(2, kGame.countCivTeamsAlive() / 2))
+		{
+			if (kHireling.canTradeItem(getID(),
+				TradeData(TRADE_WAR, kTarget.getID()), true))
+			{
+				int iValue = 1 + kGame.getSorenRandNum(1000, "AI Declare War Trading");
+				iValue *= (101 + kTarget.AI_getAttitudeWeight(getTeam()));
+				iValue /= 100;
+				if (iValue > iBestValue)
 				{
-					int iValue = 1 + kGame.getSorenRandNum(1000, "AI Declare War Trading");
-					iValue *= (101 + kTarget.AI_getAttitudeWeight(getTeam()));
-					iValue /= 100;
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						eBestTarget = kTarget.getID();
-					}
+					iBestValue = iValue;
+					eBestTarget = kTarget.getID();
 				}
 			}
 		}
