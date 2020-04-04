@@ -3053,12 +3053,22 @@ bool CvPlot::isVisibleEnemyUnit(PlayerTypes ePlayer) const
 {
 	return (plotCheck(PUF_isEnemy, ePlayer, false, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
 }
-// <advc.ctr>
-bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace) const
+
+// advc.ctr:
+bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace,
+	int iRange) const
 {
-	return (plotCheck(PUF_isEnemyCityAttacker, eDefender, eAssumePeace,
-			NO_PLAYER, NO_TEAM, PUF_isVisible, eDefender) != NULL);
-} // </advc.ctr>
+	PROFILE_FUNC(); // advc.test: To be profiled
+	for (SquareIter it(*this, iRange, true); it.hasNext(); ++it)
+	{
+		if (it->plotCheck(PUF_isEnemyCityAttacker, eDefender, eAssumePeace,
+			NO_PLAYER, NO_TEAM, PUF_isVisible, eDefender) != NULL)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 
 int CvPlot::getNumVisibleUnits(PlayerTypes ePlayer) const

@@ -78,8 +78,9 @@ public:
 	int AI_neededCultureDefenders() const; // </advc.099c>
 	// <advc.139>
 	void AI_updateSafety();
-	inline bool AI_isEvacuating() const { return m_bEvacuate; }
-	inline bool AI_isSafe() const { return m_bSafe; }
+	inline CitySafetyTypes AI_getSafety() const { return m_eSafety; }
+	inline bool AI_isEvacuating() const { return (m_eSafety == CITYSAFETY_EVACUATING); }
+	inline bool AI_isSafe() const { return (m_eSafety >= CITYSAFETY_SAFE); }
 	void AI_setCityValPercent(int iValue);
 	inline int AI_getCityValPercent() const { return m_iCityValPercent; }
 	// </advc.139>
@@ -173,10 +174,7 @@ protected:
 	int m_iCityValPercent; // advc.139
 
 	bool m_bAssignWorkDirty;
-	// <advc.139>
-	bool m_bEvacuate;
-	bool m_bSafe;
-	// </advc.139>
+	CitySafetyTypes m_eSafety; // advc.139
 
 	IDInfo m_routeToCity;
 
