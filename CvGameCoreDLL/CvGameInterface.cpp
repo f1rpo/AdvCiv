@@ -533,19 +533,23 @@ CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUni
 	return NULL;
 }
 
+
 void CvGame::cycleCities(bool bForward, bool bAdd) const
 {
+	/*	advc: bForward is now handled a bit differently b/c I've added
+		separate functions for backward traversal (no functional change) */
+
 	CvCity* pHeadSelectedCity = gDLL->UI().getHeadSelectedCity();
 	CvCity* pSelectCity = NULL;
 	if (pHeadSelectedCity != NULL && (pHeadSelectedCity->getTeam() == getActiveTeam() || isDebugMode()))
 	{
 		int iLoop = pHeadSelectedCity->getIndex();
 		iLoop += (bForward ? 1 : -1);
-
-		CvCity* pLoopCity = GET_PLAYER(pHeadSelectedCity->getOwner()).nextCity(&iLoop, !bForward);
+		CvPlayer const& kOwner = GET_PLAYER(pHeadSelectedCity->getOwner());
+		CvCity* pLoopCity = (bForward ? kOwner.nextCity(&iLoop) : kOwner.prevCity(&iLoop));
 
 		if (pLoopCity == NULL)
-			pLoopCity = GET_PLAYER(pHeadSelectedCity->getOwner()).firstCity(&iLoop, !bForward);
+			pLoopCity = (bForward ? kOwner.firstCity(&iLoop) : kOwner.lastCity(&iLoop));
 
 		if (pLoopCity != NULL && pLoopCity != pHeadSelectedCity)
 			pSelectCity = pLoopCity;
@@ -553,7 +557,8 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 	else
 	{
 		int iLoop;
-		pSelectCity = GET_PLAYER(getActivePlayer()).firstCity(&iLoop, !bForward);
+		pSelectCity = (bForward ? GET_PLAYER(getActivePlayer()).firstCity(&iLoop) :
+				GET_PLAYER(getActivePlayer()).lastCity(&iLoop));
 	}
 
 	if (pSelectCity != NULL)
@@ -570,14 +575,12 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 // advc.003i: const removed so that updateTestEndTurn can be called
 void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 {
-	CvSelectionGroup* pNextSelectionGroup;
+	CvSelectionGroup* pNextSelectionGroup=NULL;
 	CvUnit* pCycleUnit = gDLL->UI().getHeadSelectedUnit();
 	if (pCycleUnit != NULL)
 	{
 		if (pCycleUnit->getOwner() != getActivePlayer())
-		{
 			pCycleUnit = NULL;
-		}
 		bool bWrap=false;
 		pNextSelectionGroup = GET_PLAYER(getActivePlayer()).cycleSelectionGroups(
 				pCycleUnit, bForward, bWorkers, &bWrap);
@@ -609,7 +612,7 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		gDLL->UI().selectUnit(pNextSelectionGroup->getHeadUnit(), bClear);
 	}
 	// K-Mod
-	else if (pCycleUnit)
+	else if (pCycleUnit != NULL)
 	{
 		gDLL->UI().clearSelectionList();
 		updateTestEndTurn();
