@@ -185,24 +185,25 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 
 	case BUTTONPOPUP_DECLAREWARMOVE:
 		if (pPopupReturn->getButtonClicked() == 0)
-		{
 			CvMessageControl::getInstance().sendChangeWar((TeamTypes)info.getData1(), true);
-		}
 		if (((pPopupReturn->getButtonClicked() == 0) || info.getOption2()) && info.getFlags() == 0)
 		{	// <advc.035>
 			CvUnit* pUnit = m_kUI.getHeadSelectedUnit();
 			CvPlot* pAt = (pUnit == NULL ? NULL : pUnit->plot());
 			// Don't move ahead if the tile we're on is going to flip
 			if(pAt != NULL && (!pAt->isOwned() ||
-					(GET_TEAM(pAt->getSecondOwner()).getMasterTeam() !=
-					GET_TEAM((TeamTypes)info.getData1()).getMasterTeam() &&
-					!GET_TEAM(GET_TEAM(pAt->getSecondOwner()).getMasterTeam()).
-					isDefensivePact(GET_TEAM((TeamTypes)info.getData1()).
-					getMasterTeam())))) // </advc.035>
+				(GET_TEAM(pAt->getSecondOwner()).getMasterTeam() !=
+				GET_TEAM((TeamTypes)info.getData1()).getMasterTeam() &&
+				!GET_TEAM(GET_TEAM(pAt->getSecondOwner()).getMasterTeam()).
+				isDefensivePact(GET_TEAM((TeamTypes)info.getData1()).
+				getMasterTeam())))) // </advc.035>
 			{
-				//g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());
-				g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags() | MOVE_DECLARE_WAR, false, info.getOption1()); // K-Mod
-				// (See comments in CvGame::selectionListGameNetMessage for an explanation for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.)
+				g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION,
+						MISSION_MOVE_TO, info.getData2(), info.getData3(),
+						info.getFlags() | MOVE_DECLARE_WAR, // K-Mod
+						false, info.getOption1());
+				/*	(See comments in CvGame::selectionListGameNetMessage for an explanation
+					for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.) */
 			}
 		}
 		break;
@@ -211,7 +212,9 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		if (pPopupReturn->getButtonClicked() == 0)
 		{
 			int iAction = info.getData1();
-			g.selectionListGameNetMessage(GAMEMESSAGE_DO_COMMAND, GC.getActionInfo(iAction).getCommandType(), GC.getActionInfo(iAction).getCommandData(), -1, 0, info.getOption1());
+			g.selectionListGameNetMessage(GAMEMESSAGE_DO_COMMAND,
+					GC.getActionInfo(iAction).getCommandType(),
+					GC.getActionInfo(iAction).getCommandData(), -1, 0, info.getOption1());
 		}
 		break;
 
@@ -230,13 +233,14 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
-				if (pSelectionGroup->canDoCommand(COMMAND_LOAD_UNIT, pLoopUnit->getOwner(), pLoopUnit->getID()))
+				if (pSelectionGroup->canDoCommand(COMMAND_LOAD_UNIT,
+					pLoopUnit->getOwner(), pLoopUnit->getID()))
 				{
 					iCount--;
 					if (iCount == 0)
 					{
-						g.selectionListGameNetMessage(GAMEMESSAGE_DO_COMMAND, COMMAND_LOAD_UNIT, pLoopUnit->getOwner(), pLoopUnit->getID());
+						g.selectionListGameNetMessage(GAMEMESSAGE_DO_COMMAND, COMMAND_LOAD_UNIT,
+								pLoopUnit->getOwner(), pLoopUnit->getID());
 						break;
 					}
 				}
@@ -267,7 +271,8 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 				iCount--;
 				if (iCount == 0)
 				{
-					g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_LEAD, pLoopUnit->getID());
+					g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION,
+							MISSION_LEAD, pLoopUnit->getID());
 					break;
 				}
 			}
@@ -278,14 +283,16 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 	case BUTTONPOPUP_DOESPIONAGE:
 		if (pPopupReturn->getButtonClicked() != NO_ESPIONAGEMISSION)
 		{
-			g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_ESPIONAGE, (EspionageMissionTypes) pPopupReturn->getButtonClicked());
+			g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_ESPIONAGE,
+					(EspionageMissionTypes)pPopupReturn->getButtonClicked());
 		}
 		break;
 
 	case BUTTONPOPUP_DOESPIONAGE_TARGET:
 		if (pPopupReturn->getButtonClicked() != -1)
 		{
-			g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_ESPIONAGE, (EspionageMissionTypes)info.getData1(), pPopupReturn->getButtonClicked());
+			g.selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_ESPIONAGE,
+					(EspionageMissionTypes)info.getData1(), pPopupReturn->getButtonClicked());
 		}
 		break;
 
@@ -337,7 +344,8 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 	case BUTTONPOPUP_DISBANDCITY:
 		if (pPopupReturn->getButtonClicked() == 1)
 		{
-			CvMessageControl::getInstance().sendDoTask(info.getData1(), TASK_DISBAND, -1, -1, false, false, false, false);
+			CvMessageControl::getInstance().sendDoTask(info.getData1(),
+					TASK_DISBAND, -1, -1, false, false, false, false);
 		}
 		else if (pPopupReturn->getButtonClicked() == 0)
 		{
@@ -1436,7 +1444,7 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	if (bRaze)
 	{
-		m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_CAPTURED_CITY").c_str(),
+		m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RAZE_CAPTURED_CITY"),
 				NULL, 1, WIDGET_GENERAL);
 	}
 	if (bGift)
@@ -1447,7 +1455,7 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 				GET_PLAYER(eLiberationPlayer).getCivilizationDescriptionKey());
 		m_kUI.popupAddGenericButton(pPopup, szBuffer, NULL, 2, WIDGET_GENERAL, 2, eLiberationPlayer);
 	}
-	m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_CITY_WARNING_ANSWER3").c_str(),
+	m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_CITY_WARNING_ANSWER3"),
 			NULL, 3, WIDGET_GENERAL, -1, -1);
 	m_kUI.popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 	//m_kUI.playGeneralSound("AS2D_CITYCAPTURE"); // disabled by K-Mod (I've put this somewhere else.)
@@ -1719,9 +1727,7 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 				GET_PLAYER(pPlot->getOwner()).getCivilizationAdjective());
 		eRivalPlayer = pPlot->getOwner(); // advc.130h
 		if (kActiveTeam.isOpenBordersTrading())
-		{
 			szBuffer += gDLL->getText("TXT_KEY_POPUP_ENTER_WITH_OPEN_BORDERS");
-		}
 	}
 	else
 	{
@@ -1732,45 +1738,38 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 		MilitaryAnalyst and perhaps further places.
 		Tbd.: Put (efficient) code for anticipating the effects of a DoW in a single place. */
 	std::vector<PlayerTypes> aeTargets;
-	//std::vector<PlayerTypes> aeAllies;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(kActiveTeam.getID());
+		it.hasNext(); ++it)
 	{
-		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
-		if(!kPlayer.isAlive())
-			continue;
-		/*if(kPlayer.getMasterTeam() == kActiveTeam.getMasterTeam())
-			aeAllies.push_back(kPlayer.getID());*/
-		if(!kActiveTeam.isHasMet(kPlayer.getTeam()) ||
-				kActiveTeam.getMasterTeam() == kPlayer.getMasterTeam())
-			continue;
-		if(GET_TEAM(kPlayer.getTeam()).getMasterTeam() == GET_TEAM(eRivalTeam).getMasterTeam())
-			aeTargets.push_back(kPlayer.getID());
+		if(GET_TEAM(it->getTeam()).getMasterTeam() == GET_TEAM(eRivalTeam).getMasterTeam())
+			aeTargets.push_back(it->getID());
 	}
 	std::vector<PlayerTypes> aeDP;
 	std::vector<PlayerTypes> aeDisapproving;
 	bool bReceivedTribute = false; // advc.130o
 	for(size_t i = 0; i < aeTargets.size(); i++)
 	{
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++)
+		for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(kActiveTeam.getID());
+			it.hasNext(); ++it)
 		{
-			CvPlayerAI const& kPlayer = GET_PLAYER((PlayerTypes)j);
-			if(!kPlayer.isAlive())
-				continue;
-			if(!kActiveTeam.isHasMet(kPlayer.getTeam()) ||
-					kActiveTeam.getMasterTeam() == kPlayer.getMasterTeam())
-				continue;
+			CvPlayerAI const& kPlayer = *it;
 			if(GET_TEAM(GET_PLAYER(aeTargets[i]).getMasterTeam()).isDefensivePact(
-					kPlayer.getTeam()))
+				kPlayer.getTeam()))
+			{
 				aeDP.push_back(kPlayer.getID());
+			}
 			if(!kPlayer.isHuman() && kPlayer.AI_disapprovesOfDoW(kActiveTeam.getID(),
-					TEAMID(aeTargets[i])))
+				TEAMID(aeTargets[i])))
+			{
 				aeDisapproving.push_back(kPlayer.getID());
+			}
 			// <advc.130o>
 			if(!bReceivedTribute &&
-					kActiveTeam.isHuman() && !GET_PLAYER(aeTargets[i]).isHuman() &&
-					GET_TEAM(eRivalTeam).AI_getMemoryCount(kActiveTeam.getID(),
-					MEMORY_MADE_DEMAND) > 0)
-				bReceivedTribute = true; // </advc.130o>
+				kActiveTeam.isHuman() && !GET_PLAYER(aeTargets[i]).isHuman() &&
+				GET_TEAM(eRivalTeam).AI_getMemoryCount(kActiveTeam.getID(), MEMORY_MADE_DEMAND) > 0)
+			{
+				bReceivedTribute = true;
+			} // </advc.130o>
 		}
 	}
 	::removeDuplicates(aeDP);
@@ -1788,8 +1787,10 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 		for(size_t i = 0; i < aeTargets.size(); i++)
 		{
 			if((eRivalPlayer != NO_PLAYER && aeTargets[i] == eRivalPlayer) ||
-					(eRivalPlayer == NO_PLAYER && TEAMID(aeTargets[i]) == eRivalTeam))
+				(eRivalPlayer == NO_PLAYER && TEAMID(aeTargets[i]) == eRivalTeam))
+			{
 				continue;
+			}
 			if(bFirstInner)
 				bFirstInner = false;
 			else szBuffer += L", ";

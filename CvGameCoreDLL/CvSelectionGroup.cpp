@@ -486,7 +486,6 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 	{
 		if (isBusy())
 			return;
-
 		clearMissionQueue();
 	}
 
@@ -504,8 +503,8 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 	if (canAllMove()) // K-Mod. Do not set the AI mission type if this is just a "follow" command!
 		AI().AI_setMissionAI(eMissionAI, pMissionAIPlot, pMissionAIUnit);
 
-	insertAtEndMissionQueue(mission, !bAppend
-			|| AI_isControlled()); // K-Mod (AI commands should execute immediately)
+	insertAtEndMissionQueue(mission, !bAppend ||
+			AI_isControlled()); // K-Mod (AI commands should execute immediately)
 
 	if (bManual)
 	{

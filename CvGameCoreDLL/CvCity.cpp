@@ -1314,7 +1314,7 @@ bool CvCity::isBuildingsMaxed() const
 	return (getNumBuildings() >= iMaxBuildingsPerCity);
 }
 
-// <advc.064d>
+// advc.064d:
 void CvCity::verifyProduction()
 {
 	if(isProduction()) // Only want to address invalid orders here; no production is OK.
@@ -1323,7 +1323,7 @@ void CvCity::verifyProduction()
 			throughout a (human) turn. */
 		checkCanContinueProduction();
 	}
-} // </advc.064d>
+}
 
 
 bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades,
