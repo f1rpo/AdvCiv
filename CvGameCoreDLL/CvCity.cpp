@@ -10393,7 +10393,7 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 	return checkCanContinueProduction();
 }
 
-// advc.064d:: Cut from doCheckProduction
+// advc.064d: Cut from doCheckProduction
 bool CvCity::checkCanContinueProduction()
 {
 	bool r = true;
@@ -10405,15 +10405,7 @@ bool CvCity::checkCanContinueProduction()
 			popOrder(i, false, true);
 			r = false;
 		}
-	}
-	// <advc.064d>
-	if (!isProduction() && !isDisorder())
-	{
-		if(isHuman() && !isProductionAutomated())
-			chooseProduction();
-		else AI().AI_chooseProduction();
-	} // </advc.064d>
-	// <advc.004x> Relaunch choose-production popups
+	}  // <advc.004x> Relaunch choose-production popups
 	if (!r)
 		GET_PLAYER(getOwner()).killAll(NO_BUTTONPOPUP); // </advc.004x>
 	return r;

@@ -22161,7 +22161,10 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 					and founded a religion, i.e. the found-religion popup is
 					essentially already done. */
 				(ePopupType != BUTTONPOPUP_CHANGERELIGION || iPass < 1 ||
-				pPopup->getButtonPopupType() != BUTTONPOPUP_FOUND_RELIGION)) ||
+				pPopup->getButtonPopupType() != BUTTONPOPUP_FOUND_RELIGION) &&
+				// Doesn't get minimized, never needs to be relaunched.
+				(iPass < 1 || pPopup->getButtonPopupType() != BUTTONPOPUP_DECLAREWARMOVE))
+				||
 				(iData1 >= 0 && pPopup->getData1() != iData1))
 			{
 				newQueue.push_back(pPopup);
