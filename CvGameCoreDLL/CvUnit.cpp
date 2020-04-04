@@ -8152,6 +8152,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		}
 	}*/
 
+	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(!at(iX, iY));
 	FAssert(!isFighting());
 	FAssert(iX == INVALID_PLOT_COORD || GC.getMap().plot(iX, iY)->getX() == iX);
@@ -8179,57 +8180,57 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		CvUnit* pTransportUnit = getTransportUnit();
 		if (pTransportUnit != NULL)
 		{
-			if (!(pTransportUnit->atPlot(pNewPlot)))
+			if (!pTransportUnit->atPlot(pNewPlot))
 				setTransportUnit(NULL);
 		}
 
 		if (canFight())
 		{
 			CLinkList<IDInfo> oldUnits;
+			for (CLLNode<IDInfo> const* pNode = pNewPlot->headUnitNode(); pNode != NULL;
+				pNode = pNewPlot->nextUnitNode(pNode))
 			{
-				for (CLLNode<IDInfo> const* pUnitNode = pNewPlot->headUnitNode(); pUnitNode != NULL;
-						pUnitNode = pNewPlot->nextUnitNode(pUnitNode))
-					oldUnits.insertAtEnd(pUnitNode->m_data);
+				oldUnits.insertAtEnd(pNode->m_data);
 			}
 			CLLNode<IDInfo>* pUnitNode = oldUnits.head();
 			while (pUnitNode != NULL)
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = oldUnits.next(pUnitNode);
-				if (pLoopUnit != NULL)
+				if (pLoopUnit == NULL)
+					continue; // advc
+				/*  advc.001, advc.300: Otherwise, a Barbarian city can land
+					on top of an animal and trap it. */
+				if(pLoopUnit->isAnimal())
 				{
-					/*  advc.001, advc.300: Otherwise, a barb city can land
-						on top of an animal and trap it. */
-					if(pLoopUnit->isAnimal())
+					pLoopUnit->kill(false);
+					continue;
+				}
+				CvTeamAI& kUnitTeam = GET_TEAM(pLoopUnit->getTeam()); // advc
+				if ((isEnemy(kUnitTeam.getID(), *pNewPlot) ||
+					pLoopUnit->isEnemy(getTeam())) &&
+					!pLoopUnit->canCoexistWithEnemyUnit(getTeam()))
+				{
+					if (pLoopUnit->getUnitInfo().getUnitCaptureClassType() == NO_UNITCLASS &&
+						pLoopUnit->canDefend(pNewPlot))
 					{
-						pLoopUnit->kill(false);
-						continue;
+						pLoopUnit->jumpToNearestValidPlot(); // can kill unit
 					}
-					if (isEnemy(pLoopUnit->getTeam(), *pNewPlot) || pLoopUnit->isEnemy(getTeam()))
+					else
 					{
-						if (!pLoopUnit->canCoexistWithEnemyUnit(getTeam()))
+						if (!m_pUnitInfo->isHiddenNationality() &&
+							!pLoopUnit->getUnitInfo().isHiddenNationality())
 						{
-							if (NO_UNITCLASS == pLoopUnit->getUnitInfo().getUnitCaptureClassType() &&
-								pLoopUnit->canDefend(pNewPlot))
-							{
-								pLoopUnit->jumpToNearestValidPlot(); // can kill unit
-							}
-							else
-							{
-								if (!m_pUnitInfo->isHiddenNationality() &&
-									!pLoopUnit->getUnitInfo().isHiddenNationality())
-								{
-									GET_TEAM(pLoopUnit->getTeam()).changeWarWeariness(getTeam(), *pNewPlot, GC.getDefineINT("WW_UNIT_CAPTURED"));
-									GET_TEAM(getTeam()).changeWarWeariness(pLoopUnit->getTeam(), *pNewPlot, GC.getDefineINT("WW_CAPTURED_UNIT"));
-									GET_TEAM(getTeam()).AI_changeWarSuccess(pLoopUnit->getTeam(), GC.getDefineINT("WAR_SUCCESS_UNIT_CAPTURING"));
-								}
-
-								if (!isNoUnitCapture())
-									pLoopUnit->setCapturingPlayer(getOwner());
-
-								pLoopUnit->kill(false, getOwner());
-							}
+							kUnitTeam.changeWarWeariness(getTeam(),
+									*pNewPlot, GC.getDefineINT("WW_UNIT_CAPTURED"));
+							GET_TEAM(getTeam()).changeWarWeariness(pLoopUnit->getTeam(),
+									*pNewPlot, GC.getDefineINT("WW_CAPTURED_UNIT"));
+							GET_TEAM(getTeam()).AI_changeWarSuccess(pLoopUnit->getTeam(),
+									GC.getDefineINT("WAR_SUCCESS_UNIT_CAPTURING"));
 						}
+						if (!isNoUnitCapture())
+							pLoopUnit->setCapturingPlayer(getOwner());
+						pLoopUnit->kill(false, getOwner());
 					}
 				}
 			}
@@ -8267,29 +8268,26 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			if (isMilitaryHappiness())
 				pOldCity->changeMilitaryHappinessUnits(-1);
 		}
-		CvCity* pWorkingCity = pOldPlot->getWorkingCity();
-		if (pWorkingCity != NULL)
 		{
-			if (canSiege(pWorkingCity->getTeam()))
-				pWorkingCity->AI_setAssignWorkDirty(true);
+			CvCity* pWorkingCity = pOldPlot->getWorkingCity();
+			if (pWorkingCity != NULL)
+			{
+				if (canSiege(pWorkingCity->getTeam()))
+					pWorkingCity->AI_setAssignWorkDirty(true);
+			}
 		}
-
 		if (pOldPlot->isWater())
 		{
-			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+			FOR_EACH_ENUM(Direction)
 			{
-				CvPlot* pLoopPlot = plotDirection(pOldPlot->getX(), pOldPlot->getY(), (DirectionTypes)iI);
-				if (pLoopPlot != NULL)
+				CvPlot* pLoopPlot = plotDirection(pOldPlot->getX(), pOldPlot->getY(), eLoopDirection);
+				if (pLoopPlot == NULL || !pLoopPlot->isWater())
+					continue; // advc
+				CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
+				if (pWorkingCity != NULL)
 				{
-					if (pLoopPlot->isWater())
-					{
-						pWorkingCity = pLoopPlot->getWorkingCity();
-						if (pWorkingCity != NULL)
-						{
-							if (canSiege(pWorkingCity->getTeam()))
-								pWorkingCity->AI_setAssignWorkDirty(true);
-						}
-					}
+					if (canSiege(pWorkingCity->getTeam()))
+						pWorkingCity->AI_setAssignWorkDirty(true);
 				}
 			}
 		}
@@ -8338,14 +8336,13 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						(pNewCity->isCapital() ? 3 : 2) * GC.getWAR_SUCCESS_CITY_CAPTURING()/2);
 
 				PlayerTypes eNewOwner = GET_PLAYER(getOwner()).pickConqueredCityOwner(*pNewCity);
-				if (NO_PLAYER != eNewOwner)
+				if (eNewOwner != NO_PLAYER)
 				{
-					GET_PLAYER(eNewOwner).acquireCity(pNewCity, true, false, true); // will delete the pointer
-					pNewCity = NULL;
+					GET_PLAYER(eNewOwner).acquireCity(pNewCity, true, false, true);
+					pNewCity = NULL; // (deleted by acquireCity)
 				}
 			}
 		}
-
 		//update facing direction
 		if(pOldPlot != NULL)
 		{
@@ -8353,7 +8350,6 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			if(newDirection != NO_DIRECTION)
 				m_eFacingDirection = newDirection;
 		}
-
 		//update cargo mission animations
 		/*if (isCargo()) {
 			if (eOldActivityType != ACTIVITY_MISSION)
@@ -8371,18 +8367,17 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 		if (AI_getUnitAIType() != NO_UNITAI)
 			pNewPlot->getArea().changeNumAIUnits(getOwner(), AI_getUnitAIType(), 1);
-
 		/*if (isAnimal()) // advc: No longer tracked
 			pNewPlot->getArea().changeAnimalsPerPlayer(getOwner(), 1);*/
-
 		if (pNewPlot->getTeam() != getTeam() && (pNewPlot->getTeam() == NO_TEAM ||
-				!GET_TEAM(pNewPlot->getTeam()).isVassal(getTeam())))
+			!GET_TEAM(pNewPlot->getTeam()).isVassal(getTeam())))
+		{
 			GET_PLAYER(getOwner()).changeNumOutsideUnits(1);
-
+		}
 		if (shouldLoadOnMove(pNewPlot))
 			load();
 
-		if (!alwaysInvisible() && !m_pUnitInfo->isHiddenNationality()) // K-Mod (just this condition)
+		if (!alwaysInvisible() && !m_pUnitInfo->isHiddenNationality()) // K-Mod
 		{
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
@@ -8468,7 +8463,9 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 					if (pLoopUnit->getTransportUnit() == this)
 					{
 						pLoopUnit->setXY(iX, iY, bGroup, false);
-						cargo_groups.push_back(std::make_pair(pLoopUnit->getOwner(), pLoopUnit->getGroupID())); // K-Mod
+						// <K-Mod>
+						cargo_groups.push_back(std::make_pair(
+								pLoopUnit->getOwner(), pLoopUnit->getGroupID())); // </K-Mod>
 					}
 				}
 			}
@@ -8478,7 +8475,8 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 			// first remove duplicate group numbers
 			std::sort(cargo_groups.begin(), cargo_groups.end());
-			cargo_groups.erase(std::unique(cargo_groups.begin(), cargo_groups.end()), cargo_groups.end());
+			cargo_groups.erase(std::unique(cargo_groups.begin(), cargo_groups.end()),
+					cargo_groups.end());
 
 			// now check the units in each group
 			for (size_t i = 0; i < cargo_groups.size(); i++)
@@ -8487,7 +8485,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						getSelectionGroup(cargo_groups[i].second);
 				ActivityTypes eOldActivityType = pCargoGroup->getActivityType();
 				CLLNode<IDInfo>* pUnitNode = pCargoGroup->headUnitNode();
-				while (pUnitNode)
+				while (pUnitNode != NULL)
 				{
 					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 					pUnitNode = pCargoGroup->nextUnitNode(pUnitNode);

@@ -165,7 +165,7 @@ void RevoltAlert::check()
 						//(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 			}
 		}
-#if 0 // Disabled: Message when revolt chance becomes 0
+		#if 0 // Disabled: Message when revolt chance becomes 0
 		else if(couldPreviouslyRevolt && wasOccupation == c->isOccupation() &&
 			/*  Don't report 0 revolt chance when in occupation b/c
 				revolt chance will increase a bit when occupation ends. */
@@ -176,7 +176,7 @@ void RevoltAlert::check()
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
 						c->getX(), c->getY());
 		}
-#endif
+		#endif
 		if(c->isOccupation())
 			updatedOccupation.insert(c->plotNum());
 		/*  If there's no order queued, the city will come to the player's attention

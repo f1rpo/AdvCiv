@@ -2527,7 +2527,7 @@ void CvPlayer::killUnits()
 // XXX should pUnit be a CvSelectionGroup???
 // Returns the next unit in the cycle...
 CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
-		bool bWorkers, bool* pbWrap)
+	bool bWorkers, bool* pbWrap)
 {
 	FAssert(GC.getGame().getActivePlayer() == getID() && isHuman());
 	// <advc.004h>

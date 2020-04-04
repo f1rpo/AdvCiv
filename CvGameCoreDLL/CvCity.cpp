@@ -12507,6 +12507,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 // advc: style changes and renamed some variables
 PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	if (isCapital())
 		return NO_PLAYER;
 
