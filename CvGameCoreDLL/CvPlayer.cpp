@@ -22027,7 +22027,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	}
 }
 
-// <advc.003p>
+// advc.003p:
 void CvPlayer::setBonusHelpDirty()
 {
 	if(m_aszBonusHelp == NULL)
@@ -22037,7 +22037,7 @@ void CvPlayer::setBonusHelpDirty()
 	}
 	for(int i = 0; i < GC.getNumBonusInfos(); i++)
 		SAFE_DELETE(m_aszBonusHelp[i])
-} // </advc.003p>
+}
 
 
 void CvPlayer::cheat(bool bCtrl, bool bAlt, bool bShift)
@@ -22072,7 +22072,7 @@ bool CvPlayer::hasSpaceshipArrived() const
 	return GET_TEAM(getTeam()).hasSpaceshipArrived();
 }
 
-// <advc.210>
+// advc.210:
 void CvPlayer::checkAlert(int iAlertID, bool bSilent)
 {
 	if (m_paAlerts.empty())
@@ -22086,9 +22086,9 @@ void CvPlayer::checkAlert(int iAlertID, bool bSilent)
 		return;
 	}
 	m_paAlerts[iAlertID]->check(bSilent);
-} // </advc.210>
+}
 
-// <advc.104> Inspired by CvTeamAI::AI_estimateTotalYieldRate
+// advc.104: Inspired by CvTeamAI::AI_estimateTotalYieldRate
 // (Tbd.: Move to CvPlayerAI)
 double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 {
@@ -22127,7 +22127,7 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 	if(samples.empty())
 		return 0;
 	return ::dMedian(samples);
-} // </advc.104>
+}
 
 // advc.004x:
 void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)

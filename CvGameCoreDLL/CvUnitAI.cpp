@@ -13558,7 +13558,7 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 			return false;
 		} */ // BtS - disabled by K-Mod. (also see new code at top.)
 		// K-Mod
-		FAssert(AI_getGroup()->AI_isDeclareWar(/* advc: */*pBestPillagePlot));
+		FAssert(AI_getGroup()->AI_isDeclareWar(/* advc: */ *pBestPillagePlot));
 		if (AI_considerPathDOW(*pBestPlot, iFlags))
 		{	// <advc.163>
 			if(!canMove())
@@ -13567,8 +13567,7 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 			if (!generatePath(pBestPillagePlot, iFlags, true, &iPathTurns))
 				return false;
 			pBestPlot = getPathEndTurnPlot();
-		}
-		// K-Mod end
+		} // K-Mod end
 		if (atPlot(pBestPillagePlot))
 		{
 			//if (isEnemy(pBestPillagePlot->getTeam()))

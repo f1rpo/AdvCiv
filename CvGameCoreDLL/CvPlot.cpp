@@ -2106,7 +2106,8 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
 	int iBestUnitRank = -1;
 	CvUnit* pBestUnit = NULL;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc: while loop replaced
+	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; // advc: while loop replaced
+		pUnitNode = nextUnitNode(pUnitNode))
 	{
 		CvUnit& kLoopUnit = *::getUnit(pUnitNode->m_data);
 		if (eOwner != NO_PLAYER && kLoopUnit.getOwner() != eOwner)

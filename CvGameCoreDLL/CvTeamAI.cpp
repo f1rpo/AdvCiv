@@ -3812,12 +3812,6 @@ DenialTypes CvTeamAI::AI_permanentAllianceTrade(TeamTypes eWithTeam) const  // a
 }
 
 
-TeamTypes CvTeamAI::AI_getWorstEnemy() const
-{
-	return m_eWorstEnemy;
-}
-
-
 void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
 {
 	PROFILE_FUNC();

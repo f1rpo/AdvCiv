@@ -12556,13 +12556,10 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 			iCapitalDistance *= 2;
 
 		int iCultureScore = getCultureTimes100(kLoopPlayer.getID()) /* K-Mod: */ + iBaseCulture;
-		if (bConquest)
+		if (bConquest && kLoopPlayer.getID() == getOriginalOwner())
 		{
-			if (kLoopPlayer.getID() == getOriginalOwner())
-			{
-				iCultureScore *= 3;
-				iCultureScore /= 2;
-			}
+			iCultureScore *= 3;
+			iCultureScore /= 2;
 		}
 		if (kLoopPlayer.getTeam() == getTeam() ||
 			GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()) ||

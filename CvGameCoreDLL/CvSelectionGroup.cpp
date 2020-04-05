@@ -2748,9 +2748,10 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 		return false; // advc
 
 	if(getDomainType() != DOMAIN_AIR && stepDistance(getX(), getY(),
-			pDestPlot->getX(), pDestPlot->getY()) != 1)
+		pDestPlot->getX(), pDestPlot->getY()) != 1)
+	{
 		return false; // advc
-
+	}
 	bool bAttack = false;
 	//if ((iFlags & MOVE_DIRECT_ATTACK) || (getDomainType() == DOMAIN_AIR) || (iFlags & MOVE_THROUGH_ENEMY) || (generatePath(plot(), pDestPlot, iFlags) && (getPathFirstPlot() == pDestPlot)))
 	// K-Mod.
