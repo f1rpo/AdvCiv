@@ -73,7 +73,7 @@ m_iGrowthPercent(0),
 m_iTrainPercent(0),
 m_iConstructPercent(0),
 m_iCreatePercent(0),
-m_iResearchPercent(0),
+m_iResearchPercent(/* advc: */ -1),
 m_iTechCostModifier(0), // BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000
 m_iBuildPercent(0),
 m_iImprovementPercent(0),
@@ -233,6 +233,7 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iConstructPercent, "iConstructPercent");
 	pXML->GetChildXmlValByName(&m_iCreatePercent, "iCreatePercent");
 	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
+	FAssert(m_iResearchPercent > 0); // advc
 	// BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000:
 	pXML->GetChildXmlValByName(&m_iTechCostModifier, "iTechCostModifier", 0);
 	pXML->GetChildXmlValByName(&m_iBuildPercent, "iBuildPercent");
@@ -277,7 +278,7 @@ m_iGrowthPercent(0),
 m_iTrainPercent(0),
 m_iConstructPercent(0),
 m_iCreatePercent(0),
-m_iResearchPercent(0),
+m_iResearchPercent(/* advc: */ -1),
 m_iBuildPercent(0),
 m_iImprovementPercent(0),
 m_iGreatPeoplePercent(0),
@@ -379,6 +380,7 @@ bool CvGameSpeedInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iConstructPercent, "iConstructPercent");
 	pXML->GetChildXmlValByName(&m_iCreatePercent, "iCreatePercent");
 	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
+	FAssert(m_iResearchPercent > 0); // advc
 	pXML->GetChildXmlValByName(&m_iBuildPercent, "iBuildPercent");
 	pXML->GetChildXmlValByName(&m_iImprovementPercent, "iImprovementPercent");
 	pXML->GetChildXmlValByName(&m_iGreatPeoplePercent, "iGreatPeoplePercent");
@@ -588,7 +590,7 @@ m_iBaseGrowthThresholdPercent(0),
 m_iGPThresholdPercent(0),
 m_iCultureLevelPercent(0),
 // </advc.251>
-m_iResearchPercent(0),
+m_iResearchPercent(/* advc: */ -1),
 // <advc.251>
 m_iTrainPercent(0),
 m_iConstructPercent(0),
@@ -628,14 +630,14 @@ m_iAIStartingExploreUnits(0),
 m_iBarbarianInitialDefenders(0),
 m_iAIDeclareWarProb(0),
 m_iAIWorkRateModifier(0),
-m_iAIGrowthPercent(0),
+m_iAIGrowthPercent(/* advc: */ -1),
 // <advc.251>
 m_iAIGPThresholdPercent(0),
-m_iAIResearchPercent(0),
+m_iAIResearchPercent(-1),
 // </advc.251>
-m_iAITrainPercent(0),
+m_iAITrainPercent(/* advc: */ -1),
 m_iAIWorldTrainPercent(0),
-m_iAIConstructPercent(0),
+m_iAIConstructPercent(/* advc: */ -1),
 m_iAIWorldConstructPercent(0),
 m_iAICreatePercent(0),
 m_iAIWorldCreatePercent(0),
@@ -1194,6 +1196,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iCultureLevelPercent, "iCultureLevelPercent");
 	// </advc.251>
 	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
+	FAssert(m_iResearchPercent > 0); // advc
 	// <advc.251>
 	pXML->GetChildXmlValByName(&m_iTrainPercent, "iTrainPercent");
 	pXML->GetChildXmlValByName(&m_iConstructPercent, "iConstructPercent");
@@ -1234,13 +1237,17 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIDeclareWarProb, "iAIDeclareWarProb");
 	pXML->GetChildXmlValByName(&m_iAIWorkRateModifier, "iAIWorkRateModifier");
 	pXML->GetChildXmlValByName(&m_iAIGrowthPercent, "iAIGrowthPercent");
+	FAssert(m_iAIGrowthPercent > 0); // advc
 	// <advc.251>
 	pXML->GetChildXmlValByName(&m_iAIGPThresholdPercent, "iAIGPThresholdPercent");
 	pXML->GetChildXmlValByName(&m_iAIResearchPercent, "iAIResearchPercent");
+	FAssert(m_iAIResearchPercent > 0);
 	// </advc.251>
 	pXML->GetChildXmlValByName(&m_iAITrainPercent, "iAITrainPercent");
+	FAssert(m_iAITrainPercent > 0); // advc
 	pXML->GetChildXmlValByName(&m_iAIWorldTrainPercent, "iAIWorldTrainPercent");
 	pXML->GetChildXmlValByName(&m_iAIConstructPercent, "iAIConstructPercent");
+	FAssert(m_iAIConstructPercent > 0); // advc
 	pXML->GetChildXmlValByName(&m_iAIWorldConstructPercent, "iAIWorldConstructPercent");
 	pXML->GetChildXmlValByName(&m_iAICreatePercent, "iAICreatePercent");
 	pXML->GetChildXmlValByName(&m_iAIWorldCreatePercent, "iAIWorldCreatePercent");
@@ -1291,7 +1298,7 @@ m_iGridWidth(0),
 m_iGridHeight(0),
 m_iTerrainGrainChange(0),
 m_iFeatureGrainChange(0),
-m_iResearchPercent(0),
+m_iResearchPercent(/* advc: */ -1),
 m_iTradeProfitPercent(0),
 m_iDistanceMaintenancePercent(0),
 m_iNumCitiesMaintenancePercent(0),
@@ -1398,6 +1405,7 @@ bool CvWorldInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iTerrainGrainChange, "iTerrainGrainChange");
 	pXML->GetChildXmlValByName(&m_iFeatureGrainChange, "iFeatureGrainChange");
 	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
+	FAssert(m_iResearchPercent > 0); // advc
 	pXML->GetChildXmlValByName(&m_iTradeProfitPercent, "iTradeProfitPercent");
 	pXML->GetChildXmlValByName(&m_iDistanceMaintenancePercent, "iDistanceMaintenancePercent");
 	pXML->GetChildXmlValByName(&m_iNumCitiesMaintenancePercent, "iNumCitiesMaintenancePercent");
@@ -1515,7 +1523,9 @@ bool CvSeaLevelInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 
 	pXML->GetChildXmlValByName(&m_iSeaLevelChange, "iSeaLevelChange");
-	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent"); // advc.910
+	// <advc.910>
+	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
+	FAssert(m_iResearchPercent > 0); // </advc.910>
 
 	return true;
 }

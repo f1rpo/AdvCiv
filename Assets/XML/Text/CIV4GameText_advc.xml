@@ -5848,6 +5848,14 @@
 		<Italian>No, restituisci il controllo all'%s1_CivName</Italian>
 		<Spanish>No, devolvedle el control al %s1_CivName</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_LIBERATION_NOTE</Tag>
+		<English>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</English>
+		<French>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</French>
+		<German>(Bemerkung: Falls Ihr die Stadt später befreit, wird sie an das %s1:2_CivName übergehen.)</German>
+		<Italian>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</Italian>
+		<Spanish>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</Spanish>
+	</TEXT>
 
 	<!-- advc.004g: From CIV4GameText_BTS.xml. Said "terrain", which is
 		 misleading. I've used TXT_KEY_PEDIA_CATEGORY_FEATURE

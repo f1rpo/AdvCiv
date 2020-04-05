@@ -1439,8 +1439,16 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 	else szBuffer = gDLL->getText("TXT_KEY_POPUP_CITY_CAPTURE_KEEP", pNewCity->getNameKey());
 
 	m_kUI.popupSetBodyString(pPopup, szBuffer);
-	m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_KEEP_CAPTURED_CITY").c_str(),
-			NULL, 0, WIDGET_GENERAL);
+	CvWString szKeep = gDLL->getText("TXT_KEY_POPUP_KEEP_CAPTURED_CITY");
+	// <advc.ctr> Notify player that the liberation target will change
+	PlayerTypes eFutureLiberationPlayer = pNewCity->getLiberationPlayer(false);
+	if (bGift && eLiberationPlayer != eFutureLiberationPlayer)
+	{
+		szKeep.append(L" ");
+		szKeep.append(gDLL->getText("TXT_KEY_POPUP_LIBERATION_NOTE",
+				GET_PLAYER(eFutureLiberationPlayer).getCivilizationDescriptionKey()));
+	} // </advc.ctr>
+	m_kUI.popupAddGenericButton(pPopup, szKeep, NULL, 0, WIDGET_GENERAL);
 
 	if (bRaze)
 	{

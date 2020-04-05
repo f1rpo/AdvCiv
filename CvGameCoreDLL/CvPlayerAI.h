@@ -407,11 +407,11 @@ public:
 
 	int AI_getBonusTradeCounter(PlayerTypes eIndex) const;
 	void AI_changeBonusTradeCounter(PlayerTypes eIndex, int iChange);
-	/* <advc.130p> For code shared by AI_processPeacetimeTradeValue and
+	/*	<advc.130p> For code shared by AI_processPeacetimeTradeValue and
 		AI_processPeacetimeGrantValue. The third parameter says which of the two
 		should be changed. */
-	void AI_processPeacetimeValue(PlayerTypes eIndex, int iChange, bool bGrant,
-			bool bPeace = false, TeamTypes ePeaceTradeTarget = NO_TEAM,
+	void AI_processPeacetimeValue(PlayerTypes eFromPlayer, int iChange,
+			bool bGrant, bool bPeace = false, TeamTypes ePeaceTradeTarget = NO_TEAM,
 			TeamTypes eWarTradeTarget = NO_TEAM); // </advc.130p>
 	int AI_getPeacetimeTradeValue(PlayerTypes eIndex) const;
 	// advc.130p: Renamed from changePeacetimeTradeValue
@@ -445,6 +445,12 @@ public:
 	// advc.130j: Increases memory count according to (hardcoded) granularity
 	void AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType);
 	void AI_rememberLiberation(CvCity const& kCity, bool bConquest); // advc.ctr
+	// <advc.130p>
+	bool AI_processTradeValue(CLinkList<TradeData> const& kItems,
+			PlayerTypes eFromPlayer, bool bGift, bool bPeace,
+			TeamTypes ePeaceTradeTarget = NO_TEAM,
+			TeamTypes eWarTradeTarget = NO_TEAM, // </advc.130p>
+			bool bAIRequest = false); // advc.ctr
 	void AI_processRazeMemory(CvCity const& kCity); // advc.003n
 
 	// K-Mod
@@ -725,7 +731,7 @@ protected:
 	bool AI_canBeAttackedBy(CvUnit const& u) const; // advc.315
 
 	// <advc.130p>
-	double AI_peacetimeTradeMultiplier(PlayerTypes eOtherPlayer,
+	scaled AI_peacetimeTradeMultiplier(PlayerTypes eOtherPlayer,
 			TeamTypes eOtherTeam = NO_TEAM) const;
 	int AI_peacetimeTradeValDivisor(bool bRival) const;
 	static int const PEACETIME_TRADE_RELATIONS_LIMIT = 4;

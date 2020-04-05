@@ -3875,6 +3875,50 @@ void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
 }
 
 // <advc.130p>
+/*	Conditions for enemy trade moved into a separate function b/c they're getting
+	more complicated and so that other AI code can anticipate enemy trade penalties
+	(will use this for advc.ctr). */
+scaled CvTeamAI::AI_enemyTradeResentmentFactor(TeamTypes eTo, TeamTypes eFrom,
+	TeamTypes eWarTradeTarget, TeamTypes ePeaceTradeTarget, bool bPeaceDeal) const
+{
+	bool const bToWorstEnemy = (AI_getWorstEnemy() == eTo);
+	// Special treatment for war enemies trading among each other
+	bool const bWarWithFromTeam = (isAtWar(eFrom) || eWarTradeTarget == getID());
+	bool const bWarWithToTeam = isAtWar(eTo);
+	if(!bToWorstEnemy && !(bWarWithToTeam && !bWarWithFromTeam))
+		return 0;
+	// No anger among vassal-master when they make peace
+	if (bPeaceDeal && GET_TEAM(eFrom).getMasterTeam() == getID())
+		return 0;
+	if (ePeaceTradeTarget == getMasterTeam() ||
+		/*  Don't mind if our worst enemy is paid to make peace with a team
+			that we like -- unless we're at war with our worst enemy because,
+			then, the peace deals means that we lose a war ally. */
+		(ePeaceTradeTarget != NO_TEAM && !bWarWithToTeam &&
+		AI_getAttitude(ePeaceTradeTarget) >= ATTITUDE_PLEASED &&
+		// Should be implied by attitude, but let's make sure.
+		!isAtWar(ePeaceTradeTarget)))
+	{
+		return 0;
+	}
+	/*  Avoid oscillation of worst enemy, but still punish non-war party
+		for helping a war enemy. */
+	int iAttitudeDiff = ::range(
+			AI_getAttitudeVal(eFrom) - (bWarWithFromTeam ? 2 : 0) -
+			(AI_getAttitudeVal(AI_getWorstEnemy()) - (bWarWithToTeam ? 2 : 0)),
+			0, 7);
+	scaled r(iAttitudeDiff, 5);
+	if (bPeaceDeal) // But count brokered peace in full
+		r *= fixp(0.4);
+	if (bWarWithToTeam && bToWorstEnemy && !bWarWithFromTeam)
+		r *= fixp(4/3.);
+	else if (bToWorstEnemy && !bWarWithFromTeam)
+		r *= fixp(0.9);
+	else r *= fixp(2/3.);
+	return r;
+}
+
+
 int CvTeamAI::AI_enmityValue(TeamTypes eEnemy) const
 {
 	if(eEnemy == NO_TEAM)
@@ -4142,7 +4186,7 @@ void CvTeamAI::AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue)
 
 void CvTeamAI::AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange)
 {
-	AI_setEnemyPeacetimeGrantValue(eIndex, (AI_getEnemyPeacetimeGrantValue(eIndex) + iChange));
+	AI_setEnemyPeacetimeGrantValue(eIndex, AI_getEnemyPeacetimeGrantValue(eIndex) + iChange);
 }
 
 // advc.003u: Moved from CvTeam

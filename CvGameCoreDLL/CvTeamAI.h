@@ -167,7 +167,11 @@ public:
 	// </advc.130y>
 	TeamTypes AI_getWorstEnemy() const { return m_eWorstEnemy; } // advc.inl
 	void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade = true);
-	// <advc.130p> 0 or less if eEnemy isn't an enemy at all
+	// <advc.130p>
+	scaled AI_enemyTradeResentmentFactor(TeamTypes eTo, TeamTypes eFrom,
+			TeamTypes eWarTradeTarget = NO_TEAM, TeamTypes ePeaceTradeTarget = NO_TEAM,
+			bool bPeaceDeal = false) const;
+	// 0 or less if eEnemy isn't an enemy at all
 	int AI_enmityValue(TeamTypes eEnemy) const;
 	double AI_getDiploDecay() const;
 	double AI_recentlyMetMultiplier(TeamTypes eOther) const;

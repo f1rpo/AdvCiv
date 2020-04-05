@@ -140,12 +140,7 @@ protected:
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
 	// <advc.130p>
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-			TradeableItems eItemType);
-	bool recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList,
-			PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
-			TeamTypes ePeaceTradeTarget = NO_TEAM, TeamTypes eWarTradeTarget = NO_TEAM,
-			bool bAIRequest = false); // advc.ctr
-	// </advc.130p>
+			TradeableItems eItemType); // </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
 	void announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, // advc

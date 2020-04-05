@@ -2143,10 +2143,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 						GET_TEAM(getTeam()).canPeacefullyEnter(TEAMID(eLiberationPlayer)));
 				// </advc>  <advc.ctr> Make sure that the ownership change is legal
 				if (bGift)
-				{
-					// Don't check denial though; recipient can't refuse.
-					bGift = canTradeItem(eLiberationPlayer, TradeData(
-						TRADE_CITIES, kNewCity.getID()));
+				{	// Don't check denial though; recipient can't refuse.
+					bGift = canTradeCityTo(eLiberationPlayer, kNewCity, true);
 				} // </advc.ctr>
 				if (bRaze || bGift)
 				{
@@ -4023,54 +4021,13 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_CITIES:
 	{
-		PROFILE("CvPlayer::canTradeItem.CITIES");
 		CvCity const* pCity = getCity(item.m_iData);
 		if (pCity == NULL)
 		{
 			FAssert(pCity != NULL);
 			break;
 		}
-		CvCity const& kCity = *pCity;
-		// <advc.ctr>
-		if (kCity.isCapital() || !kCity.isRevealed(kToTeam.getID()))
-			break; // </advc.ctr>
-		if (kCity.getLiberationPlayer() == eWhoTo)
-		{
-			bValid = true;
-			break;
-		}
-		// <advc.ctr>
-		/*	Can't trade so long as the previous owner hasn't accepted the loss
-			(let's ignore kCity.getOriginalOwner()) */
-		PlayerTypes ePreviousOwner = kCity.getPreviousOwner();
-		if (ePreviousOwner != NO_PLAYER)
-		{
-			TeamTypes ePreviousTeam = TEAMID(ePreviousOwner);
-			if (ePreviousTeam != kToTeam.getID() &&
-				kOurTeam.isAtWar(ePreviousTeam) &&
-				!kToTeam.isAtWar(ePreviousTeam))
-			{
-				break;
-			}
-		}
-		CvPlot const& kCityPlot = *kCity.plot();
-		if (!kToTeam.isAtWar(getTeam()) && kCityPlot.isVisibleEnemyCityAttacker(getID()))
-			break; // Can't trade an endangered city to a third party
-		if (kCityPlot.calculateCulturePercent(eWhoTo) < GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
-			break;
-		if (!kOurTeam.isAtWar(TEAMID(eWhoTo)) &&
-			// Prevent back-and-forth trades between humans
-			(kCity.isEverOwned(eWhoTo) && isHuman() && GET_PLAYER(eWhoTo).isHuman() ? 1 : 2) * 
-			kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
-		{
-			break;
-		}
-		if (kToTeam.isVassal(getTeam()) &&
-			kCityPlot.getCulture(eWhoTo) <= kCityPlot.getCulture(getID()))
-		{
-			break;
-		}
-		bValid = true; // </advc.ctr>
+		bValid = canTradeCityTo(eWhoTo, *pCity); // advc.ctr;
 		break;
 	}
 	case TRADE_GOLD:
@@ -4288,6 +4245,57 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 		FAssertMsg(false, "Unknown trade item type");
 		return false;
 	}
+}
+
+// advc.ctr:
+bool CvPlayer::canTradeCityTo(PlayerTypes eRecipient, CvCity const& kCity, bool bConquest) const
+{
+	PROFILE_FUNC(); // advc.test: To be profiled
+	CvPlayer const& kRecipient = GET_PLAYER(eRecipient);
+	/*	canTradeItem already checks this through canPossiblyTradeItem, so this
+		is redundant. However, I also need to check the city trade conditions
+		from CvPlayer::acquireCity, so this can't be helped unless I add the
+		bConquest param to canTradeItem, which I find inelegant. */
+	if (!kRecipient.canReceiveTradeCity())
+		return false;
+
+	if (kCity.isCapital() || !kCity.isRevealed(kRecipient.getTeam()))
+		return false;
+	if (kCity.getLiberationPlayer(bConquest) == eRecipient) // as in BtS
+		return true;
+	/*	Can't trade so long as the previous owner hasn't accepted the loss
+		(let's ignore kCity.getOriginalOwner()) */
+	PlayerTypes ePreviousOwner = kCity.getPreviousOwner();
+	if (ePreviousOwner != NO_PLAYER)
+	{
+		TeamTypes ePreviousTeam = TEAMID(ePreviousOwner);
+		if (ePreviousTeam != kRecipient.getTeam() &&
+			GET_TEAM(getTeam()).isAtWar(ePreviousTeam) &&
+			!GET_TEAM(eRecipient).isAtWar(ePreviousTeam))
+		{
+			return false;
+		}
+	}
+	CvPlot const& kCityPlot = *kCity.plot();
+	if (kCityPlot.calculateCulturePercent(eRecipient) <
+		GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH))
+	{
+		return false;
+	}
+	if (!GET_TEAM(eRecipient).isAtWar(getTeam()) &&
+		// Prevent back-and-forth trades between humans
+		(kCity.isEverOwned(eRecipient) && isHuman() &&
+		kRecipient.isHuman() ? 1 : 2) * kCityPlot.getCulture(eRecipient) <=
+		kCityPlot.getCulture(getID()))
+	{
+		return false;
+	}
+	if (GET_TEAM(eRecipient).isVassal(getTeam()) &&
+		kCityPlot.getCulture(eRecipient) <= kCityPlot.getCulture(getID()))
+	{
+		return false;
+	}
+	return true;
 }
 
 

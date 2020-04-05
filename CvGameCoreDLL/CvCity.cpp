@@ -12519,14 +12519,12 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 		}
 	}
 
-	/*  advc (note): Not sure if this is needed for anything. The splitEmpirePlayer
-		isn't alive, so one probably can't gift cities to it. */
-	if (kOwner.canSplitEmpire() && kOwner.canSplitArea(getArea()))
-	{
+	// advc: This is pointless b/c the splitEmpirePlayer is never alive
+	/*if (kOwner.canSplitEmpire() && kOwner.canSplitArea(getArea())) {
 		PlayerTypes eSplitPlayer = kOwner.getSplitEmpirePlayer(getArea());
 		if (eSplitPlayer != NO_PLAYER && GET_PLAYER(eSplitPlayer).isAlive())
 			return eSplitPlayer;
-	}
+	}*/
 
 	PlayerTypes eBestPlayer = NO_PLAYER;
 	int iBestValue = 0;

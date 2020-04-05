@@ -172,16 +172,16 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 		no longer at war. */
 	bool const bMakingPeace = ::atWar(eFirstTeam, eSecondTeam);
 	bool bUpdateAttitude = false;
-	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
-		code duplication */
-	if (recordTradeValue(kSecondList, kFirstList, getSecondPlayer(),
-		getFirstPlayer(), bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
+	/*  Calls to changePeacetimeTradeValue moved into a new function
+		(also for advc.ctr) */
+	if (GET_PLAYER(getSecondPlayer()).AI_processTradeValue(kFirstList, getFirstPlayer(),
+		kSecondList.getLength() <= 0, bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
 		bPeaceTreaty && !bMakingPeace)) // advc.ctr
 	{
 		bUpdateAttitude = true;
 	}
-	if (recordTradeValue(kFirstList, kSecondList, getFirstPlayer(),
-		getSecondPlayer(), bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
+	if (GET_PLAYER(getFirstPlayer()).AI_processTradeValue(kSecondList, getSecondPlayer(),
+		kFirstList.getLength() <= 0, bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
 		bPeaceTreaty && !bMakingPeace)) // advc.ctr
 	{
 		bUpdateAttitude = true;
@@ -311,30 +311,6 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 	if (bBumpUnits)
 		GC.getMap().verifyUnitValidPlot();
 	// K-Mod end
-}
-
-/*  advc.130p: Based on code cut from addTrades. Return values says whether
-	attitude cache needs to be updated. */
-bool CvDeal::recordTradeValue(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList,
-	PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
-	TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget,
-	bool bAIRequest) // advc.ctr
-{
-	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
-		Hard to decide, apply half the discount for now. */
-	int iValue = ROUND_DIVIDE(
-			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			kFirstList, true, 1, true, true, /* advc.ctr: */ true, bAIRequest, true) +
-			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			kFirstList, true, 1, false, true, /* advc.ctr: */ true, bAIRequest, true),
-			2);
-	if(iValue <= 0)
-		return false;
-	FAssertMsg(kFirstList.getLength() > 0 && (kFirstList.getLength() > 1 ||
-			kFirstList.head()->m_data.m_eItemType != TRADE_PEACE_TREATY), "iValue should've been 0");
-	GET_PLAYER(eSecondPlayer).AI_processPeacetimeValue(eFirstPlayer, iValue,
-			kSecondList.getLength() <= 0, bPeace, ePeaceTradeTarget, eWarTradeTarget);
-	return true;
 }
 
 
