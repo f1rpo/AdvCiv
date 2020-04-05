@@ -7231,25 +7231,25 @@ bool CvUnit::canBeAttackedBy(PlayerTypes eAttackingPlayer,
 	}
 	if (bTestEnemy)
 	{
-		if (pAttacker == NULL)
+		if (!isEnemy(TEAMID(eAttackingPlayer)) &&
+			/*	Need to check both if pAttacker is given, otherwise attacks
+				_against_ Privateers aren't possible (cf. in isEnemy). */
+			(pAttacker == NULL || !pAttacker->isEnemy(getTeam())))
 		{
-			if (!isEnemy(TEAMID(eAttackingPlayer)))
-				return false;
-		}
-		else if (!pAttacker->isEnemy(getTeam()))
 			return false;
+		}
 	}
 	if (bTestPotentialEnemy)
 	{
-		if (pAttacker == NULL)
+		//if (!isPotentialEnemy(TEAMID(eAttackingPlayer), plot()))
+		// <advc>
+		if (!AI().AI_isPotentialEnemyOf(TEAMID(eAttackingPlayer), getPlot()) &&
+			(pAttacker == NULL ||
+			//if (!pAttacker->isPotentialEnemy(getTeam(), plot()))
+			!pAttacker->AI().AI_isPotentialEnemyOf(getTeam(), getPlot()))) // </advc>
 		{
-			//if (!isPotentialEnemy(TEAMID(eAttackingPlayer), plot()))
-			if (!AI().AI_isPotentialEnemyOf(TEAMID(eAttackingPlayer), getPlot())) // advc
-				return false;
-		}
-		//else if (!pAttacker->isPotentialEnemy(getTeam(), plot()))
-		else if (!pAttacker->AI().AI_isPotentialEnemyOf(getTeam(), getPlot())) // advc
 			return false;
+		}
 	}
 	// <advc>
 	if (pAttacker != NULL)
@@ -10925,7 +10925,9 @@ bool CvUnit::isTargetOf(const CvUnit& attacker) const
 	return false;
 }
 
-/*	advc.opt: This needs to be faster. So pPlot==NULL and eTeam==NO_TEAM
+/*	advc (note): Says whether this unit's combat owner in kPlot
+	as viewed by eTeam is hostile to eTeam (same as in BtS).
+	advc.opt: This needs to be faster. So pPlot==NULL and eTeam==NO_TEAM
 	are no longer allowed. Too bad that it still can't be inlined. */
 bool CvUnit::isEnemy(TeamTypes eTeam, CvPlot const& kPlot) const
 {
