@@ -126,9 +126,8 @@ void CvPlayerAI::AI_init()
 	// advc: Caller should guarantee this
 	FAssert(GC.getInitCore().getSlotStatus(getID()) == SS_TAKEN || GC.getInitCore().getSlotStatus(getID()) == SS_COMPUTER);
 
-	//--------------------------------
-	// Init other game data
-	// (advc.104: Personality weight calculation now triggered by CvPlayer::setPersonalityType)
+	// Init other game data ...
+	AI_updatePersonality(); // advc.104: Moved into a subroutine
 	//AI_setCivicTimer(((getMaxAnarchyTurns() == 0) ? (GC.getDefineINT("MIN_REVOLUTION_TURNS") * 2) : CIVIC_CHANGE_DELAY) / 2);  // This was commented out by the BtS expansion
 	AI_setReligionTimer(1);
 	AI_setCivicTimer((getMaxAnarchyTurns() == 0) ? 1 : 2);
@@ -146,9 +145,9 @@ void CvPlayerAI::AI_updatePersonality()
 	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
 	AI_setPeaceWeight(kPersonality.getBasePeaceWeight() +
 			GC.getGame().getSorenRandNum(kPersonality.getPeaceWeightRand(), "AI Peace Weight"));
-	AI_setEspionageWeight(kPersonality.getEspionageWeight()
+	AI_setEspionageWeight((kPersonality.getEspionageWeight()
 			// K-Mod. (I've changed the meaning of this value)
-			*GC.getInfo(COMMERCE_ESPIONAGE).getAIWeightPercent() / 100);
+			* GC.getInfo(COMMERCE_ESPIONAGE).getAIWeightPercent()) / 100);
 }
 
 
@@ -7698,28 +7697,30 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 // BEGIN: Show Hidden Attitude Mod 01/22/2009
 int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const
 {
-	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
-	CvHandicapInfo& h = GC.getInfo(kPlayer.getHandicapType());
-	CvLeaderHeadInfo& lh = GC.getInfo(getPersonalityType());
-	int iAttitude = lh.getBaseAttitude();
-	iAttitude += h.getAttitudeChange();
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+	CvHandicapInfo const& kTheirHandicap = GC.getInfo(kPlayer.getHandicapType());
+	CvLeaderHeadInfo const& kOurPersonality = GC.getInfo(getPersonalityType());
+	int iAttitude = kOurPersonality.getBaseAttitude();
+	iAttitude += kTheirHandicap.getAttitudeChange();
 	if(!kPlayer.isHuman())
 	{	// <advc.130b>
 		// Original peace weight modifier
 		int iPeaceWeightModifier = 4 - abs(AI_getPeaceWeight() -
 				kPlayer.AI_getPeaceWeight());
-		double personalityModifier = iPeaceWeightModifier * 0.45;
+		scaled rPersonalityModifier = iPeaceWeightModifier * fixp(0.45);
 		// Original warmonger respect modifier
-		int iRespectModifier = std::min(lh.getWarmongerRespect(),
+		int iRespectModifier = std::min(kOurPersonality.getWarmongerRespect(),
 				GC.getInfo(kPlayer.getPersonalityType()).
 				getWarmongerRespect());
-		personalityModifier += iRespectModifier * 0.75;
-		personalityModifier += h.getAIAttitudeChangePercent() / 100.0; // advc.148
+		rPersonalityModifier += iRespectModifier * fixp(0.75);
+		// advc.148:
+		rPersonalityModifier += per100(kTheirHandicap.getAIAttitudeChangePercent());
 		/*  <advc.104x> Low UWAI_PERSONALITY_PERCENT makes the peace weights and
 			respect values more similar; don't want that to increase the relations bonus. */
-		static int const iUWAI_PERSONALITY_PERCENT = GC.getDefineINT("UWAI_PERSONALITY_PERCENT");
-		personalityModifier *= iUWAI_PERSONALITY_PERCENT / 100.0;
-		iAttitude += ::round(personalityModifier);
+		static scaled const rUWAI_PERSONALITY_PERCENT = per100(
+					GC.getDefineINT("UWAI_PERSONALITY_PERCENT"));
+		rPersonalityModifier *= rUWAI_PERSONALITY_PERCENT;
+		iAttitude += rPersonalityModifier.round();
 		// </advc.130b>
 	}
 	return iAttitude;

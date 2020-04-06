@@ -195,10 +195,6 @@ bool CvPlayer::initOtherData()
 			}
 		}
 	}
-	// <advc.104> Ensure that AI weights are updated
-	if (ePersonality == NO_LEADER)
-		ePersonality = getPersonalityType();
-	setPersonalityType(ePersonality); // </advc.104>
 
 	changeBaseFreeUnits(GC.getDefineINT("INITIAL_BASE_FREE_UNITS"));
 	changeBaseFreeMilitaryUnits(GC.getDefineINT("INITIAL_BASE_FREE_MILITARY_UNITS"));
@@ -917,7 +913,7 @@ void CvPlayer::changePersonalityType()
 		{
 			if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 			{
-				if (GET_PLAYER((PlayerTypes)iJ).getPersonalityType() == ((LeaderHeadTypes)iI))
+				if (GET_PLAYER((PlayerTypes)iJ).getPersonalityType() == (LeaderHeadTypes)iI)
 					iValue /= 2;
 			}
 		}
@@ -950,10 +946,12 @@ void CvPlayer::resetCivTypeEffects(/* advc.003q: */ bool bInit)  // advc: style 
 		{
 			EventTriggerTypes eEventTrigger = (EventTriggerTypes)i;
 			if(bInit || // advc.003q
-					(!GC.getInfo(eEventTrigger).isGlobal() &&
-					(!GC.getInfo(eEventTrigger).isTeam() ||
-					GET_TEAM(getTeam()).getNumMembers() == 1)))
+				(!GC.getInfo(eEventTrigger).isGlobal() &&
+				(!GC.getInfo(eEventTrigger).isTeam() ||
+				GET_TEAM(getTeam()).getNumMembers() == 1)))
+			{
 				resetTriggerFired(eEventTrigger);
+			}
 		}
 	}
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
