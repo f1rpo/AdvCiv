@@ -20638,7 +20638,7 @@ bool CvPlayerAI::AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
 			if (iKeepVal >= 0)
 			{
 				scaled rTotalResentment;
-				for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(kToPlayer.getTeam());
+				for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(kToPlayer.getTeam());
 					it.hasNext(); ++it)
 				{
 					CvTeamAI const& kThirdParty = *it;
@@ -20655,13 +20655,16 @@ bool CvPlayerAI::AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
 				}
 				rEnemyTradeFactor += (2 * rTotalResentment) /
 						scaled(TeamIter<EVER_ALIVE>::count()).sqrt();
-				rEnemyTradeFactor = (rEnemyTradeFactor + 1) / 2; // dilute
+				rEnemyTradeFactor = (rEnemyTradeFactor + fixp(5/3.)) / fixp(8/3.); // dilute
 			}
 			// City mustn't be too valuable to us
 			{
 				scaled rTotalYieldVal = AI_totalYieldVal();
-				if (iKeepVal * rEnemyTradeFactor > rTotalYieldVal / 15)
+				if (iKeepVal * rEnemyTradeFactor > rTotalYieldVal /
+					(18 - iAttitudeLevel))
+				{
 					return false;
+				}
 			}
 			// Don't help them too much (depending on relations)
 			// Same crude formula as in AI_demandTribute
