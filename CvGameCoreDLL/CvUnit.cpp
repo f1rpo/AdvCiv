@@ -4222,6 +4222,9 @@ CvCity* CvUnit::bombardTarget(CvPlot const& kPlot) const
 
 		int iValue = pLoopCity->getDefenseDamage();
 		// always prefer cities we are at war with
+		/*	advc (note): Was added in BtS. Not sure if it's correct - or necessary.
+			iValue is non-negative. We're computing an argmin. CvCity::isBombardable
+			already checks isEnemy - but only for this unit's current plot. */
 		if (isEnemy(pLoopCity->getTeam(), kPlot))
 			iValue *= 128;
 		if (iValue < iBestValue)

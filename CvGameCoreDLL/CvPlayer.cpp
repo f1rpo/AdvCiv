@@ -21894,7 +21894,7 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion, std::vect
 			{
 				if (!it->isRevealed(getTeam(), true))
 					continue; // advc
-				int iIndex = GC.getMap().plotNum(it->getX(), it->getY());
+				int iIndex = GC.getMap().plotNum(*it);
 				if (fAlpha > aColors[iIndex].a)
 				{
 					aColors[iIndex] = kBaseColor;

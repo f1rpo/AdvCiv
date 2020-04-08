@@ -3217,20 +3217,21 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	if (getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) // advc.opt: faster than ::atWar
-			/*  advc.124: War blocks trade, but blockades against the plot owner
-				override this. If these blockades also affect eTeam, trade is again
-				blocked (by the next conditional). */
-			&& getBlockadedCount(getTeam()) <= 0)
+	if (getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) && // advc.opt: faster than ::atWar
+		/*  advc.124: War blocks trade, but blockades against the plot owner
+			override this. If these blockades also affect eTeam, trade is again
+			blocked (by the next conditional). */
+		getBlockadedCount(getTeam()) <= 0)
+	{
 		return false;
-
+	}
 	if (getBlockadedCount(eTeam) > 0)
 		return false;
 
 	if (isTradeNetworkImpassable(eTeam))
 		return false;
 
-	//if (!isOwned()) { // advc.124 (commented out)
+	//if (!isOwned()) // advc.124 (disabled)
 	if (!isRevealed(eTeam))
 		return false;
 
@@ -3387,11 +3388,11 @@ void CvPlot::setLatitude(int iLatitude)
 	m_iLatitude = iLatitude;
 } // </advc.tsl>
 
-// <advc>
+// advc: (But normally better to call CvMap::plotNum directly b/c of inlining)
 int CvPlot::getMapIndex() const
 {
-	return GC.getMap().plotNum(getX(), getY());
-} // </advc>
+	return GC.getMap().plotNum(*this);
+}
 
 
 int CvPlot::getLatitude() const

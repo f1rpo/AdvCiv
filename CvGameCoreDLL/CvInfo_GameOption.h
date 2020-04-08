@@ -477,7 +477,7 @@ class CvWorldInfo : public CvInfoBase
 public: // All the const functions are exposed to Python
 	CvWorldInfo();
 
-	DllExport int getDefaultPlayers() const;
+	DllExport int getDefaultPlayers() const { return m_iDefaultPlayers; } // advc.inl
 	int getUnitNameModifier() const;
 	int getTargetNumCities() const { return m_iTargetNumCities; } // advc.inl
 	int getNumFreeBuildingBonuses() const;

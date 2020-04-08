@@ -21184,8 +21184,9 @@ bool CvUnitAI::AI_canEnterByLand(CvArea const& kArea) const
 	return (isArea(kArea) || (canMoveImpassable() && canEnterArea(kArea)));
 } // </advc.030>
 
-// A simple hash of the unit's birthmark.
-// This is to be used for getting a 'random' number which depends on the unit but which does not vary from turn to turn.
+// K-Mod. A simple hash of the unit's birthmark.
+/*	This is to be used for getting a 'random' number which depends on the unit
+	but which does not vary from turn to turn. */
 unsigned CvUnitAI::AI_unitBirthmarkHash(int iExtra) const
 {
 	unsigned iHash = AI_getBirthmark() + iExtra;
@@ -21196,7 +21197,7 @@ unsigned CvUnitAI::AI_unitBirthmarkHash(int iExtra) const
 // another 'random' hash, but which depends on a particular plot
 unsigned CvUnitAI::AI_unitPlotHash(const CvPlot* pPlot, int iExtra) const
 {
-	return AI_unitBirthmarkHash(GC.getMap().plotNum(pPlot->getX(), pPlot->getY()) + iExtra);
+	return AI_unitBirthmarkHash(GC.getMap().plotNum(*pPlot) + iExtra);
 }
 // K-Mod end
 

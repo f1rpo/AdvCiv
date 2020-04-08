@@ -4294,11 +4294,11 @@ void CvCity::setID(int iID)
 	m_iID = iID;
 }
 
-// <advc.104> getID is unique for a given player. plotNum is a globally unique id.
+// advc.104: getID is unique for a given player. plotNum is a globally unique id.
 int CvCity::plotNum() const
 {
 	return GC.getMap().plotNum(m_iX, m_iY);
-} // </advc.104>
+}
 
 // <advc.inl>
 int CvCity::getXExternal() const
@@ -10080,12 +10080,12 @@ void CvCity::addGreatWall()
 			PlayerTypes eOwner = q->getOwner();
 			if(eOwner == NO_PLAYER || eOwner == BARBARIAN_PLAYER) // Not: any civ
 			{
-				aiWallPlots.insert(kMap.plotNum(q->getX(), q->getY()));
+				aiWallPlots.insert(kMap.plotNum(*q));
 				bFound = true;
 			}
 		}
 		if(bFound)
-			aiWallPlots.insert(kMap.plotNum(p->getX(), p->getY()));
+			aiWallPlots.insert(kMap.plotNum(*p));
 	}
 	/*  Hack: Use a dummy CvArea object to prevent CvEngine from placing segments
 		along plots not in aiWallPlots. */

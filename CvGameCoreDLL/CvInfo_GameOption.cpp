@@ -1308,11 +1308,6 @@ m_iNumCitiesAnarchyPercent(0),
 m_iAdvancedStartPointsMod(0)
 {}
 
-int CvWorldInfo::getDefaultPlayers() const
-{
-	return m_iDefaultPlayers;
-}
-
 int CvWorldInfo::getUnitNameModifier() const
 {
 	return m_iUnitNameModifier;

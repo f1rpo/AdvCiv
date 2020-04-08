@@ -4954,13 +4954,13 @@ int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot) const
 {
 	//return AI_getStrengthMemory(pPlot->getX(), pPlot->getY());
 	// To make sure that it won't be slower than before
-	return m_aiStrengthMemory[GC.getMap().plotNum(pPlot->getX(), pPlot->getY())];
+	return m_aiStrengthMemory[GC.getMap().plotNum(*pPlot)];
 }
 
 void CvTeamAI::AI_setStrengthMemory(const CvPlot* pPlot, int value)
 {
 	//AI_setStrengthMemory(pPlot->getX(), pPlot->getY(), value);
-	m_aiStrengthMemory[GC.getMap().plotNum(pPlot->getX(), pPlot->getY())] = value;
+	m_aiStrengthMemory[GC.getMap().plotNum(*pPlot)] = value;
 } // </advc.make>
 
 void CvTeamAI::AI_updateStrengthMemory()

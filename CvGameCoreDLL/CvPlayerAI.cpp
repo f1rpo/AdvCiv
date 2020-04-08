@@ -14576,7 +14576,7 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeM
 	The result should only be compared with AI_localAttackStrength, AI_localDefenceStrength,
 	AI_cityTargetStrengthByPath or CvSelectionGroupAI::AI_sumStrength. */
 int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam,  // advc: some style changes in the body
-	DomainTypes eDomainType, int iRange, /* advc: renamed */ bool bMoveToTarget,
+	DomainTypes eDomainType, int iRange, /* advc: renamed from "bAtTarget" */ bool bMoveToTarget,
 	bool bCheckMoves, bool bNoCache,
 	bool bPredictPromotions) const // advc.139
 {
@@ -14809,7 +14809,7 @@ void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
 /*	Directly update city safety in response to human moves so that UWAI (advc.104)
 	has up-to-date safety info when asked for a peace proposal.
 	Pretty narrow conditions (also on the caller's side); want to make sure not
-	to introduce any delay after human moves. */
+	to introduce any delay after human moves. Doesn't have to be 100% reliable. */
 void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot const& kTo)
 {
 	if (isHuman() || !isMajorCiv())
@@ -25799,7 +25799,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		}
 		if (pBestFoundPlot != NULL)
 		{
-			m_aiAICitySites.push_back(GC.getMap().plotNum(pBestFoundPlot->getX(), pBestFoundPlot->getY()));
+			m_aiAICitySites.push_back(GC.getMap().plotNum(*pBestFoundPlot));
 			AI_recalculateFoundValues(pBestFoundPlot->getX(), pBestFoundPlot->getY(), CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		}
 		else break;
@@ -25833,7 +25833,7 @@ int CvPlayerAI::AI_getNumCitySites() const
 bool CvPlayerAI::AI_isPlotCitySite(/* advc: */ CvPlot const& kPlot) const
 {
 	std::vector<int>::const_iterator it;
-	int iPlotIndex = GC.getMap().plotNum(kPlot.getX(), kPlot.getY());
+	int iPlotIndex = GC.getMap().plotNum(kPlot);
 	for (it = m_aiAICitySites.begin(); it != m_aiAICitySites.end(); it++)
 	{
 		if ((*it) == iPlotIndex)
