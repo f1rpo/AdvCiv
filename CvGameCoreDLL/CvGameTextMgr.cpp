@@ -7934,16 +7934,20 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 
 	bool bFirst = true;
 
-	for (iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
+	FOR_EACH_ENUM(Specialist)
 	{
-		if (ci.isSpecialistValid(iI))
-		{
-			szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_UNLIMTED").c_str());
-			CvWString szSpecialist;
-			szSpecialist.Format(L"<link=literal>%s</link>", GC.getInfo((SpecialistTypes)iI).getDescription());
-			setListHelp(szHelpText, szFirstBuffer, szSpecialist, L", ", bFirst);
-			bFirst = false;
-		}
+		if (!kCivic.isSpecialistValid(eLoopSpecialist))
+			continue; // advc
+		szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_UNLIMTED").c_str());
+		CvWString szSpecialist;
+		//szSpecialist.Format(L"<link=literal>%s</link>",
+		/*	<advc.001> Link explicitly to the specialist type so that SPECIALIST_SPY
+			gets used and not UNIT_SPY. */
+		szSpecialist.Format(L"<link=%s>%s</link>",
+				CvWString(GC.getInfo(eLoopSpecialist).getType()).c_str(), // </advc.001>
+				GC.getInfo(eLoopSpecialist).getDescription());
+		setListHelp(szHelpText, szFirstBuffer, szSpecialist, L", ", bFirst);
+		bFirst = false;
 	}
 
 	//	Great People Modifier...
