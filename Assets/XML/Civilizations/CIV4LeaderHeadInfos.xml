@@ -21863,7 +21863,7 @@
 			<TechRefuseAttitudeThreshold>ATTITUDE_ANNOYED</TechRefuseAttitudeThreshold>
 			<!-- advc.ctr: start -->
 			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
-			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</NativeCityRefuseAttitudeThreshold>
 			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_FURIOUS</HappinessBonusRefuseAttitudeThreshold>
@@ -25156,7 +25156,7 @@
 			<TechRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</TechRefuseAttitudeThreshold>
 			<!-- advc.ctr: start -->
 			<CityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</CityRefuseAttitudeThreshold>
-			<NativeCityRefuseAttitudeThreshold>ATTITUDE_ANNOYED</NativeCityRefuseAttitudeThreshold>
+			<NativeCityRefuseAttitudeThreshold>ATTITUDE_PLEASED</NativeCityRefuseAttitudeThreshold>
 			<!-- advc.ctr: end -->
 			<StrategicBonusRefuseAttitudeThreshold>ATTITUDE_PLEASED</StrategicBonusRefuseAttitudeThreshold>
 			<HappinessBonusRefuseAttitudeThreshold>ATTITUDE_PLEASED</HappinessBonusRefuseAttitudeThreshold>
