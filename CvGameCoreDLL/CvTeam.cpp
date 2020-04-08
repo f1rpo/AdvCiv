@@ -2134,8 +2134,9 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 					GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER"));
 			scaled rNoTradeAdjustment =
 					(rTECH_COST_NOTRADE_MODIFIER + per100(5) *
-					(eTechEra - fixp(2.5)).abs().pow(fixp(1.5))) *
-					scaled::clamp(scaled(kWorld.getDefaultPlayers() - 2, 6), 0, 2);
+					(eTechEra - scaled(3)).abs().pow(fixp(1.5))) *
+					scaled::clamp(scaled(kWorld.getDefaultPlayers() - 2,
+					11 - eTechEra), 0, fixp(8/3.));
 			rNoTradeAdjustment.decreaseTo(0); // No Tech Trading can only lower tech costs
 			rModifier += rNoTradeAdjustment;
 		} // </advc.550d>
