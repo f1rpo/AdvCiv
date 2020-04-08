@@ -2848,7 +2848,7 @@ int CvTeamAI::AI_getRivalAirPower() const
 	return iEnemyAirPower + iRivalAirPower / std::max(1, iTeamCount);
 }
 
-// K-Mod
+// K-Mod:
 bool CvTeamAI::AI_refusePeace(TeamTypes ePeaceTeam) const
 {
 	// Refuse peace if we need the war for our conquest / domination victory.
@@ -3390,12 +3390,16 @@ DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker)
 		return DENIAL_VICTORY;
 	// <advc.004d>
 	if(isAtWar(eBroker) && !GET_TEAM(ePeaceTeam).AI_refusePeace(getID()) &&
-			GET_PLAYER(GET_TEAM(ePeaceTeam).getLeaderID()).AI_isWillingToTalk(getLeaderID()))
-		return NO_DENIAL; // </advc.004d>
-	if (!GET_PLAYER(getLeaderID()).canContact(GET_TEAM(ePeaceTeam).getLeaderID(), true) ||
-			GET_TEAM(ePeaceTeam).AI_refusePeace(getID()))
-		//return DENIAL_CONTACT_THEM;
+		GET_PLAYER(GET_TEAM(ePeaceTeam).getLeaderID()).AI_isWillingToTalk(getLeaderID()))
+	{
+		return NO_DENIAL;
+	} // </advc.004d>
+	if (!GET_PLAYER(getLeaderID()).canContact(GET_TEAM(ePeaceTeam).getLeaderID(), true))
+	{	//return DENIAL_CONTACT_THEM;
 		return DENIAL_RECENT_CANCEL; // advc.004d: Contacting them is not helpful
+	}
+	if (GET_TEAM(ePeaceTeam).AI_refusePeace(getID()))
+		return DENIAL_CONTACT_THEM;
 	// K-Mod end
 	return NO_DENIAL;
 }
