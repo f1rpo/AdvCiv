@@ -4436,8 +4436,10 @@ bool CvTeamAI::AI_isMasterPlanningLandWar(CvArea const& kArea) const
 	{
 		AreaAITypes eMasterAreaAI = kArea.getAreaAIType(kMaster.getID());
 		if (eMasterAreaAI == AREAAI_OFFENSIVE || eMasterAreaAI == AREAAI_DEFENSIVE ||
-				eMasterAreaAI == AREAAI_MASSING)
+			eMasterAreaAI == AREAAI_MASSING)
+		{
 			return true;
+		}
 		else if (eMasterAreaAI == AREAAI_NEUTRAL)
 		{
 			// Master has no presence here
@@ -4449,9 +4451,11 @@ bool CvTeamAI::AI_isMasterPlanningLandWar(CvArea const& kArea) const
 	{
 		static bool const bBBAI_HUMAN_VASSAL_WAR_BUILD = GC.getDefineBOOL("BBAI_HUMAN_VASSAL_WAR_BUILD");
 		if (bBBAI_HUMAN_VASSAL_WAR_BUILD &&
-				kArea.getNumCities() - countNumCitiesByArea(kArea) -
-				kMaster.countNumCitiesByArea(kArea) > 2)
+			kArea.getNumCities() - countNumCitiesByArea(kArea) -
+			kMaster.countNumCitiesByArea(kArea) > 2)
+		{
 			return (GC.getGame().getSorenRandNum(4, "Vassal land war") == 0);
+		}
 	}
 	return false;
 }

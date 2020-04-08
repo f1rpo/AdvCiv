@@ -8750,7 +8750,8 @@ void CvGame::read(FDataStreamBase* pStream)
 		pStream->Read((int*)&m_eInitialActivePlayer);
 	else m_eInitialActivePlayer = getActivePlayer(); // </advc.106h>
 	// <advc.004m>
-	if(uiFlag >= 5) {
+	if(uiFlag >= 5)
+	{
 		pStream->Read((int*)&m_eCurrentLayer);
 		m_bLayerFromSavegame = true;
 	} // </advc.004m>
