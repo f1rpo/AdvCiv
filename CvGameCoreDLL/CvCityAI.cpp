@@ -6563,8 +6563,11 @@ void CvCityAI::AI_updateSafety()
 	}
 	if (bSafe)
 	{	// <advc.ctr>
-		if (!getPlot().isVisibleEnemyCityAttacker(kOwner.getID(), NO_TEAM, 2))
+		if (bUpdatePerfectSafety &&
+			!getPlot().isVisibleEnemyCityAttacker(kOwner.getID(), NO_TEAM, 2))
+		{
 			m_eSafety = CITYSAFETY_PERFECT; // </advc.ctr>
+		}
 		return;
 	}
 	FAssert(iDefenders >= 0 && iDefStrength >= 0);

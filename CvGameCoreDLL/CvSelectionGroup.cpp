@@ -2840,13 +2840,14 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 	//PROFILE_FUNC();
 
 	FAssert(!isBusy()); // K-Mod
+	CvPlot const& kFrom = getPlot(); // advc.139
 
 	// K-Mod. Some variables to help us regroup appropriately if not everyone can move.
 	CvSelectionGroup* pStaticGroup = 0;
 	UnitAITypes eHeadAI = getHeadUnitAIType();
 
 	// Move the combat unit first, so that no-capture units don't get unneccarily left behind.
-	if (pCombatUnit)
+	if (pCombatUnit != NULL)
 		pCombatUnit->move(*pPlot, true);
 	// K-Mod end
 
@@ -2866,7 +2867,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
-			//if ((pLoopUnit->canMove() && ((bCombat && (!(pLoopUnit->isNoCapture()) || !(pPlot->isEnemyCity(*pLoopUnit)))) ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot))) || (pLoopUnit == pCombatUnit))
+			//if ((pLoopUnit->canMove() && ((bCombat && (!pLoopUnit->isNoCapture() || !pPlot->isEnemyCity(*pLoopUnit))) ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot))) || pLoopUnit == pCombatUnit)
 			// K-Mod
 			if (pLoopUnit == pCombatUnit)
 				continue; // this unit is moved before the loop.
@@ -2911,6 +2912,20 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 	//execute move
 	if (bEndMove || !canAllMove())
 	{
+		// <advc.139>
+		if (isHuman() && getNumUnits() > 1)
+		{
+			PlayerTypes const eGroupOwner = getOwner();
+			PlayerTypes const eFromOwner = kFrom.getOwner();
+			PlayerTypes const eToOwner = pPlot->getOwner();
+			if (eFromOwner != NO_PLAYER && GET_TEAM(eFromOwner).isAtWar(TEAMID(eGroupOwner)))
+				GET_PLAYER(eFromOwner).AI_humanEnemyStackMovedInTerritory(kFrom, *pPlot);
+			if (eToOwner != NO_PLAYER && GET_TEAM(eToOwner).isAtWar(TEAMID(eGroupOwner)) &&
+				eToOwner != eFromOwner)
+			{
+				GET_PLAYER(eToOwner).AI_humanEnemyStackMovedInTerritory(kFrom, *pPlot);
+			}
+		} // </advc.139>
 		CLLNode<IDInfo>* pUnitNode = headUnitNode();
 		while (pUnitNode != NULL)
 		{

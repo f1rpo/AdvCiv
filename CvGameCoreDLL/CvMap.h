@@ -309,7 +309,11 @@ public: // advc: made several functions const
 	inline int plotNum(int iX, int iY) const // advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
 	{
 		return ((iY * getGridWidth()) + iX);
-	}
+	}  // <advc> wrapper
+	__forceinline int plotNum(CvPlot const& kPlot) const
+	{
+		return plotNum(kPlot.getX(), kPlot.getY());
+	} // </advc>
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 

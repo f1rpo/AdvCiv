@@ -77,7 +77,7 @@ public:
 			/* <advc.099c> */ bool bIgnoreCulture = false) const;
 	int AI_neededCultureDefenders() const; // </advc.099c>
 	// <advc.139>
-	void AI_updateSafety();
+	void AI_updateSafety(bool bUpdatePerfectSafety = true);
 	inline CitySafetyTypes AI_getSafety() const { return m_eSafety; }
 	inline bool AI_isEvacuating() const { return (m_eSafety == CITYSAFETY_EVACUATING); }
 	inline bool AI_isSafe() const { return (m_eSafety >= CITYSAFETY_SAFE); }

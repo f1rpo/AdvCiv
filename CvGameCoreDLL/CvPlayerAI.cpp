@@ -14569,14 +14569,15 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeM
 	The result should only be compared with AI_localAttackStrength, AI_localDefenceStrength,
 	AI_cityTargetStrengthByPath or CvSelectionGroupAI::AI_sumStrength. */
 int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam,  // advc: some style changes in the body
-	DomainTypes eDomainType, int iRange, bool bAtTarget, bool bCheckMoves, bool bNoCache,
+	DomainTypes eDomainType, int iRange, /* advc: renamed */ bool bMoveToTarget,
+	bool bCheckMoves, bool bNoCache,
 	bool bPredictPromotions) const // advc.139
 {
 	PROFILE_FUNC();
 
 	int	iTotal = 0;
 
-	FAssert(bAtTarget || !bCheckMoves); // it doesn't make much sense to check moves if the defenders are meant to stay put.
+	FAssert(bMoveToTarget || !bCheckMoves); // it doesn't make much sense to check moves if the defenders are meant to stay put.
 	FAssert(eDomainType != DOMAIN_AIR && eDomainType != DOMAIN_IMMOBILE); // advc: Air combat strength isn't counted
 	for (SquareIter it(*pDefencePlot, iRange); it.hasNext(); ++it)
 	{
@@ -14624,14 +14625,14 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 				/*  <advc.159> Call AI_currEffectiveStr instead of currEffectiveStr.
 					Adjustments for first strikes are handled by that new function. */
 				int const iUnitStr = kLoopUnit.AI_currEffectiveStr(
-						bAtTarget ? pDefencePlot : &p, // </advc.159>
+						bMoveToTarget ? pDefencePlot : &p, // </advc.159>
 						NULL, false, 0, false, iHP, bAssumePromo); // advc.139
 				iPlotTotal += iUnitStr;
 			}
 		}
 		if (!bNoCache && !isHuman() && eDefenceTeam == NO_TEAM &&
 			eDomainType == DOMAIN_LAND && !bCheckMoves &&
-			(!bAtTarget || &p == pDefencePlot))
+			(!bMoveToTarget || &p == pDefencePlot))
 		{
 			// while since we're here, we might as well update our memory.
 			// (human players don't track strength memory)
@@ -14793,7 +14794,53 @@ void CvPlayerAI::AI_attackMadeAgainst(CvUnit const& kDefender)
 			/*	Unlikely that an attack from within the city will
 				tip the scales from safe to unsafe */
 			if (!kCity.AI_isSafe())
-				kCity.AI_updateSafety();
+				kCity.AI_updateSafety(false);
+		}
+	}
+}
+
+/*	Directly update city safety in response to human moves so that UWAI (advc.104)
+	has up-to-date safety info when asked for a peace proposal.
+	Pretty narrow conditions (also on the caller's side); want to make sure not
+	to introduce any delay after human moves. */
+void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot const& kTo)
+{
+	if (isHuman() || !isMajorCiv())
+		return;
+	std::set<int> aUpdPlots;
+	CvMap const& kMap = GC.getMap();
+	aUpdPlots.insert(kMap.plotNum(kFrom));
+	aUpdPlots.insert(kMap.plotNum(kTo));
+	if (kFrom.getOwner() == getID())
+	{
+		FOR_EACH_ENUM(Direction)
+		{
+			CvPlot const* pAdj = plotDirection(kFrom.getX(), kFrom.getY(), eLoopDirection);
+			if (pAdj != NULL)
+				aUpdPlots.insert(kMap.plotNum(*pAdj));
+		}
+	}
+	if (kTo.getOwner() == getID())
+	{
+		FOR_EACH_ENUM(Direction)
+		{
+			CvPlot const* pAdj = plotDirection(kTo.getX(), kTo.getY(), eLoopDirection);
+			if (pAdj != NULL)
+				aUpdPlots.insert(kMap.plotNum(*pAdj));
+		}
+	}
+	for (std::set<int>::const_iterator it = aUpdPlots.begin();
+		it != aUpdPlots.end(); ++it)
+	{
+		CvPlot const& kPlot = kMap.getPlotByIndex(*it);
+		if (kPlot.getOwner() == getID() && kPlot.isCity())
+		{
+			CvCityAI& kCity = *kPlot.AI_getPlotCity();
+			if ((::adjacentOrSame(kPlot, kFrom) && !kCity.AI_isSafe()) ||
+				(::adjacentOrSame(kPlot, kTo) && kCity.AI_isSafe()))
+			{
+				kCity.AI_updateSafety(false);
+			}
 		}
 	}
 } // </advc.139>
