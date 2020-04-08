@@ -6521,7 +6521,7 @@ bool CvCityAI::AI_isDanger() /* advc: */ const
 }
 
 // <advc.139>
-void CvCityAI::AI_updateSafety()
+void CvCityAI::AI_updateSafety(bool bUpdatePerfectSafety)
 {
 	PROFILE_FUNC();
 	m_eSafety = CITYSAFETY_SAFE;
@@ -6541,7 +6541,8 @@ void CvCityAI::AI_updateSafety()
 	if (iAttStrength > 0) // To save time
 	{
 		iDefStrength = kOwner.AI_localDefenceStrength(plot(), getTeam(),
-				DOMAIN_LAND, 3, true, false, false, /*bPredictPromotions*/ true);
+				DOMAIN_LAND, 3, true, /*bCheckMoves*/ true,
+				false, /*bPredictPromotions*/ true);
 		/*  Could let AI_localDefenceStrength do the counting, but I don't want
 			to rely on defenders that could possibly(!) be rallied too much. */
 		iDefenders = getPlot().getNumDefenders(getOwner());
