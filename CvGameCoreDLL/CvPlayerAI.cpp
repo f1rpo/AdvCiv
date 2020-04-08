@@ -751,9 +751,6 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 	} // </advc.039>
 	CLinkList<TradeData> weGive;
 	CLinkList<TradeData> theyGive;
-	TradeData peaceTreaty(TRADE_PEACE_TREATY);
-	weGive.insertAtEnd(peaceTreaty);
-	theyGive.insertAtEnd(peaceTreaty);
 	if(eBestGiveTech != NO_TECH)
 		weGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
 	if(eBestReceiveTech != NO_TECH)
@@ -767,7 +764,17 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 	if(pBestReceiveCity != NULL)
 		theyGive.insertAtEnd(TradeData(TRADE_CITIES, pBestReceiveCity->getID()));
 	// <advc.134a>
-	if(kOther.isHuman() && iTheirBenefit < iOurBenefit)
+	TradeData peaceTreaty(TRADE_PEACE_TREATY);
+	/*	AI_counterPropose (and the EXE) don't like peace treaties on both sides
+		(not needed by AI_dealVal either) */
+	if (weGive.getLength() <= 0)
+		theyGive.insertAtEnd(peaceTreaty);
+	else
+	{
+		FAssert(theyGive.getLength() <= 0);
+		weGive.insertAtEnd(peaceTreaty);
+	}
+	if(kOther.isHuman() && iTheirBenefit < iOurBenefit && theyGive.getLength() == 1)
 	{
 		/*  Really can't make an attractive offer w/o considering all tradeable items,
 			including map and gpt. */
@@ -9430,7 +9437,7 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 
 	/*return (iTheyReceive <= iWeReceive && (kWeGive.getLength() > 0 || kWeAlsoGive.getLength() > 0 || kTheyAlsoGive.getLength() > 0));*/ // BtS
 	// K-Mod. This function now needs to handle AI - AI deals, and human auto-counters to AI suggested deals.
-	if (kWeGive.getLength() == 0 && kWeAlsoGive.getLength() == 0 && kTheyGive.getLength() == 0)
+	if (kWeGive.getLength() == 0 && kWeAlsoGive.getLength() == 0 && kTheyAlsoGive.getLength() == 0)
 		return false;
 	// <advc.036> Don't double-check when balanceDeal says we should accept
 	if (bDeal)
@@ -14845,17 +14852,23 @@ void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot 
 	}
 } // </advc.139>
 
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const // advc: const CvUnit*
+
+int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
+	MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
 {
 	return AI_unitTargetMissionAIs(pUnit, &eMissionAI, 1, pSkipSelectionGroup, -1);
 }
 
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup) const // advc: const CvUnit*
+int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
+	MissionAITypes* aeMissionAI, int iMissionAICount,
+	CvSelectionGroup* pSkipSelectionGroup) const
 {
 	return AI_unitTargetMissionAIs(pUnit, aeMissionAI, iMissionAICount, pSkipSelectionGroup, -1);
 }
 
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const  // advc: const CvUnit*; some style changes
+int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
+	MissionAITypes* aeMissionAI, int iMissionAICount,
+	CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const  // advc: some refactoring
 {
 	PROFILE_FUNC();
 
@@ -14907,12 +14920,14 @@ int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeM
 }
 // BETTER_BTS_AI_MOD: END
 
-int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
+int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes eMissionAI,
+	CvSelectionGroup* pSkipSelectionGroup) const
 {
 	return AI_enemyTargetMissionAIs(&eMissionAI, 1, pSkipSelectionGroup);
 }
 
-int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup) const
+int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissionAICount,
+	CvSelectionGroup* pSkipSelectionGroup) const
 {
 	PROFILE_FUNC();
 
@@ -14928,7 +14943,8 @@ int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissi
 			MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
 			for (int iMissionAIIndex = 0; iMissionAIIndex < iMissionAICount; iMissionAIIndex++)
 			{
-				if (eGroupMissionAI == aeMissionAI[iMissionAIIndex] || NO_MISSIONAI == aeMissionAI[iMissionAIIndex])
+				if (eGroupMissionAI == aeMissionAI[iMissionAIIndex] ||
+					NO_MISSIONAI == aeMissionAI[iMissionAIIndex])
 				{
 					if (GET_TEAM(getTeam()).AI_isChosenWar(pMissionPlot->getTeam()))
 					{
@@ -14944,7 +14960,8 @@ int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissi
 
 
 // BETTER_BTS_AI_MOD, General AI, 05/19/10, jdog5000: START
-int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* pSkipSelectionGroup) const
+int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam,
+	CvSelectionGroup* pSkipSelectionGroup) const
 {
 	PROFILE_FUNC();
 
@@ -14973,7 +14990,8 @@ int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* 
 } // BETTER_BTS_AI_MOD: END
 
 
-int CvPlayerAI::AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
+int CvPlayerAI::AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI,
+	CvSelectionGroup* pSkipSelectionGroup) const
 {
 	PROFILE_FUNC();
 
