@@ -22626,15 +22626,17 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 
 	// Check for whether we are inclined to pursue a domination strategy
 	{
-		int iValue = GC.getInfo(getPersonalityType()).getDominationVictoryWeight();
-		iValue += (kGame.isOption(GAMEOPTION_AGGRESSIVE_AI) ?
+		scaled rValue = GC.getInfo(getPersonalityType()).getDominationVictoryWeight();
+		rValue += (kGame.isOption(GAMEOPTION_AGGRESSIVE_AI) ?
 				10 : 0); // advc.019: was ?20:0
 		//int iNonsense = AI_getStrategyRand() + 70;
-		iValue += (AI_getStrategyRand(5) % 100);
-		if (iValue >= 100)
+		rValue += (AI_getStrategyRand(5) % 100);
+		if (rValue >= 100)
 		{
-			if (getNumCities() > 3 && 2 * kGame.getPlayerRank(getID()) <
-				kGame.countCivPlayersAlive()/*+1*/) // advc.115
+			if (getNumCities() > 3 &&
+				//2 * kGame.getPlayerRank(getID()) < kGame.countCivPlayersAlive() + 1)
+				// advc.115:
+				3 * kGame.getPlayerRank(getID()) < kGame.countCivPlayersAlive())
 			{
 				return 2;
 			}
