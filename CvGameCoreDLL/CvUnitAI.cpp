@@ -10871,9 +10871,11 @@ bool CvUnitAI::AI_guardCitySite()
 				continue;
 			int iGuardValue = pAdj->defenseModifier(getTeam(), true);
 			iGuardValue += pAdj->seeFromLevel(getTeam()) * 30;
+			if(at(*pAdj))
+				iGuardValue += 3; // inertia
 			if(pAdj == pBestGuardPlot)
-				iGuardValue += 1; // Tiebreaker
-			if(iGuardValue > iBestGuardVal && canMoveInto(*pAdj))
+				iGuardValue += 1; // tie-breaker
+			if(iGuardValue > iBestGuardVal && (at(*pAdj) || canMoveInto(*pAdj)))
 			{
 				iBestGuardVal = iGuardValue;
 				pBetterGuardPlot = pAdj;
