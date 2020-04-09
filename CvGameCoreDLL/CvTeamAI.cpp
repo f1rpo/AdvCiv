@@ -3375,10 +3375,12 @@ DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker)
 
 	if (!canChangeWarPeace(ePeaceTeam))
 		return DENIAL_VASSAL;
+
 	// <advc.104>
 	if(getUWAI.isEnabled())
 		return uwai().makePeaceTrade(ePeaceTeam, eBroker);
 	// </advc.104>
+
 	if (AI_endWarVal(ePeaceTeam) > (GET_TEAM(ePeaceTeam).AI_endWarVal(getID()) * 2))
 		return DENIAL_CONTACT_THEM;
 

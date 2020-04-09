@@ -1043,6 +1043,24 @@
 		<Spanish>Cancelar&#225; la &#250;ltima orden en la cola de &#243;rdenes de la unidad.</Spanish>
 	</TEXT>
 
+	<!-- advc.004g: From CIV4GameText_Warlords.xml. Quotation marks added. -->
+	<TEXT>
+		<Tag>TXT_KEY_DENIAL_WAR_NOT_POSSIBLE_US</Tag>
+		<English>"Joining the war on your side is not possible for us."</English>
+		<French>"Nous ne pouvons pas nous battre &#224; vos c&#244;t&#233;s."</French>
+		<German>"Wir k&#246;nnen in diesem Krieg nicht auf Eurer Seite k&#228;mpfen."</German>
+		<Italian>"Non possiamo scendere in guerra al tuo fianco."</Italian>
+		<Spanish>"No nos es posible unirnos a la guerra en vuestro bando."</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DENIAL_WAR_NOT_POSSIBLE_YOU</Tag>
+		<English>"Joining the war on our side is not possible for you."</English>
+		<French>"Vous ne pouvez pas vous battre &#224; nos c&#244;t&#233;s."</French>
+		<German>"Ihr k&#246;nnt in diesem Krieg nicht auf unserer Seite k&#228;mpfen."</German>
+		<Italian>"Non puoi scendere in guerra al nostro fianco."</Italian>
+		<Spanish>"No es posible que os un&#225;is a la guerra en nuestro bando."</Spanish>
+	</TEXT>
+
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
 	<TEXT>
