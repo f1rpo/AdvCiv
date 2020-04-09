@@ -219,10 +219,11 @@ double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 	/* 1.5 per city might be more realistic, but humans tend to use especially
 	   weak units as garrisons. */
 	if(owner.isHuman())
-		number = std::min(owner.getNumCities(), numNonNavalUnits);
+		number = owner.getNumCities();
 	/*	Units with aggressive AI types can be temporarily tied down defending cities.
 		So the count based on AI types isn't reliable. */
 	else number = scaled::max(number, fixp(10/7.) * owner.getNumCities()).round();
+	number = std::min(number, numNonNavalUnits);
 	double r = 0;
 	/* Splitting nonNavyPower up based on counted units tends to overestimate
 	   the power of garrisons because these tend to be cheaper units. On the
