@@ -204,6 +204,7 @@ bool MilitaryBranch::isValidDomain(DomainTypes d) const {
 double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 		double powNonNavalUnits) {
 
+	// Akin to list in CvUnitAI::AI_isCityAIType
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	UnitAITypes guardAITypes[] = {
 		UNITAI_CITY_DEFENSE,
@@ -219,6 +220,9 @@ double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 	   weak units as garrisons. */
 	if(owner.isHuman())
 		number = std::min(owner.getNumCities(), numNonNavalUnits);
+	/*	Units with aggressive AI types can be temporarily tied down defending cities.
+		So the count based on AI types isn't reliable. */
+	else number = scaled::max(number, fixp(10/7.) * owner.getNumCities()).round();
 	double r = 0;
 	/* Splitting nonNavyPower up based on counted units tends to overestimate
 	   the power of garrisons because these tend to be cheaper units. On the

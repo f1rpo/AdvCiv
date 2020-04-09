@@ -927,7 +927,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 
 
 bool CvUnitAI::AI_isCityAIType() const
-{
+{	// advc.104 (note): There's a similar list in MilitaryBranch::HomeGuard::initUnitsTrained
 	return (AI_getUnitAIType() == UNITAI_CITY_DEFENSE ||
 		AI_getUnitAIType() == UNITAI_CITY_COUNTER ||
 		AI_getUnitAIType() == UNITAI_CITY_SPECIAL ||
