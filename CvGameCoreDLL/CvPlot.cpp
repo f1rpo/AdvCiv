@@ -5832,6 +5832,11 @@ void CvPlot::setRevealedOwner(TeamTypes eTeam, PlayerTypes eNewValue)
 	// K-Mod
 	if (eNewValue != NO_PLAYER)
 		GET_TEAM(eTeam).makeHasSeen(TEAMID(eNewValue)); // K-Mod end
+	// <advc.001> Goody can't exist on owned tile
+	ImprovementTypes eRevImprov = getRevealedImprovementType(eTeam);
+	if (eRevImprov != NO_IMPROVEMENT && GC.getInfo(eRevImprov).isGoody())
+		setRevealedImprovementType(eTeam, NO_IMPROVEMENT); // </advc.001>
+
 	if (eTeam == GC.getGame().getActiveTeam())
 	{
 		updateMinimapColor();
