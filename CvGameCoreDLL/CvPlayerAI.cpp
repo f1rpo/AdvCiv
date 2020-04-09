@@ -3236,12 +3236,12 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 				return r;
 			}
 		} 
-		// <advc.104>
-		if (((eAttackPlayer != NO_PLAYER && kUnit.getCombatOwner(
-			eTeam, kAttackerPlot) == eAttackPlayer) || // </advc.104>
+		if ( // <advc.104>
+			(eAttackPlayer == NO_PLAYER || kUnit.getCombatOwner(
+			eTeam, kAttackerPlot) == eAttackPlayer) && // </advc.104>
 			/*	advc.001: Was kUnit.getPlot(). Only matters if kUnit is alwaysHostile
 				and kDefenderPlot is a city or fort. */
-			kUnit.isEnemy(eTeam, kDefenderPlot)) &&
+			kUnit.isEnemy(eTeam, kDefenderPlot) &&
 			// advc.315: was pLoopUnit->canAttack()
 			AI_canBeAttackedBy(kUnit) &&
 			!kUnit.isInvisible(eTeam, false) &&
