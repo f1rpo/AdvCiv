@@ -971,13 +971,13 @@
 
 	<!-- advc.550d: This modifier is applied to tech costs when playing
 		 with the "No Tech Trading" option. The effect of the modifier is
-		 reduced in the early and late game. Recommended: -28, meaning that
-		 tech costs are taken times 100% - 28% = 72%. This multiplier gets
+		 reduced in the early and late game. Recommended: -30, meaning that
+		 tech costs are taken times 100% - 30% = 70%. This multiplier gets
 		 further adjusted to the tech era and map size. Use 0 for BtS
 		 behavior (tech costs unaffected by the "No Tech Trading" option). -->
 	<Define>
 		<DefineName>TECH_COST_NOTRADE_MODIFIER</DefineName>
-		<iDefineIntVal>-28</iDefineIntVal>
+		<iDefineIntVal>-30</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.034] The number of turns with Open Borders after making peace
