@@ -7,7 +7,7 @@
 
 void CyGameCoreUtilsPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyGameCoreUtilsPythonInterface\n");
+	printToConsole("Python Extension Module - CyGameCoreUtilsPythonInterface\n");
 
 	python::def("cyIntRange", cyIntRange,"int (int iNum, int iLow, int iHigh)");
 	python::def("cyFloatRange", cyFloatRange,"float (float fNum, float fLow, float fHigh)");

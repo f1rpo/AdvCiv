@@ -301,6 +301,8 @@ bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 	PROFILE(szLog);
 	OutputDebugString(szLog);
 	OutputDebugString("\n");
+	// advc.wine: (printToConsole can't handle a char[])
+	printf("LoadCivXml (%s)\n", szFilename);
 
 	CvString szPath = szFilename;
 	if (!gDLL->fileManagerEnabled())

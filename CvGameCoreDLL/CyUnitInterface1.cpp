@@ -12,7 +12,7 @@
 
 void CyUnitPythonInterface1(python::class_<CyUnit>& x)
 {
-	OutputDebugString("Python Extension Module - CyUnitPythonInterface1\n");
+	printToConsole("Python Extension Module - CyUnitPythonInterface1\n");
 
 	x
 		.def("isNone", &CyUnit::isNone, "bool () - Is this a valid unit instance?")

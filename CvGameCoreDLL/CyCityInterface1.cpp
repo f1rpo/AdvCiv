@@ -10,7 +10,7 @@
 
 void CyCityPythonInterface1(python::class_<CyCity>& x)
 {
-	OutputDebugString("Python Extension Module - CyCityPythonInterface1\n");
+	printToConsole("Python Extension Module - CyCityPythonInterface1\n");
 
 	x
 		.def("isNone", &CyCity::isNone, "void () - is the instance valid?")

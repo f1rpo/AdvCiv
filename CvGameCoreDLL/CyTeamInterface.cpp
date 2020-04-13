@@ -8,7 +8,7 @@
 
 void CyTeamPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyTeamPythonInterface\n");
+	printToConsole("Python Extension Module - CyTeamPythonInterface\n");
 
 	python::class_<CyTeam>("CyTeam")
 		.def("isNone", &CyTeam::isNone, "bool () - is this instance valid?")

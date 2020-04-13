@@ -11,7 +11,7 @@
 
 void CyMapPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyMapPythonInterface\n");
+	printToConsole("Python Extension Module - CyMapPythonInterface\n");
 
 	python::class_<CyMap>("CyMap")
 		.def("isNone", &CyMap::isNone, "bool () - valid CyMap() interface")

@@ -9,7 +9,7 @@
 
 void CyHallOfFameInterface()
 {
-	OutputDebugString("Python Extension Module - CyReplayInterface\n");
+	printToConsole("Python Extension Module - CyReplayInterface\n");
 
 	python::class_<CyReplayInfo>("CyReplayInfo")
 		.def("isNone", &CyReplayInfo::isNone, "bool () - Returns whether or not this is a valid object")

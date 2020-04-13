@@ -11,7 +11,7 @@
 
 void CyEnumsPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyEnumsPythonInterface\n");
+	printToConsole("Python Extension Module - CyEnumsPythonInterface\n");
 
 	python::enum_<GameStateTypes>("GameStateTypes")
 		.value("GAMESTATE_ON", GAMESTATE_ON)

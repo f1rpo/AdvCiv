@@ -10,7 +10,7 @@
 
 void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 {
-	OutputDebugString("Python Extension Module - CyPlotPythonInterface1\n");
+	printToConsole("Python Extension Module - CyPlotPythonInterface1\n");
 
 	x
 		.def("isNone", &CyPlot::isNone, "bool ()")

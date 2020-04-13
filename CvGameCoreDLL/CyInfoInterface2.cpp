@@ -8,7 +8,7 @@
 // advc.003e: Added template parameters 'boost::noncopyable'
 void CyInfoPythonInterface2()
 {
-	OutputDebugString("Python Extension Module - CyInfoPythonInterface2\n");
+	printToConsole("Python Extension Module - CyInfoPythonInterface2\n");
 	python::class_<CvBuildingClassInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvBuildingClassInfo")
 		.def("getMaxGlobalInstances", &CvBuildingClassInfo::getMaxGlobalInstances, "int ()")
 		.def("getMaxTeamInstances", &CvBuildingClassInfo::getMaxTeamInstances, "int ()")

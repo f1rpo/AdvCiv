@@ -12,7 +12,7 @@
 
 void CyGlobalContextPythonInterface2(python::class_<CyGlobalContext>& x)
 {
-	OutputDebugString("Python Extension Module - CyGlobalContextPythonInterface2\n");
+	printToConsole("Python Extension Module - CyGlobalContextPythonInterface2\n");
 
 	x
 		// global defines.xml

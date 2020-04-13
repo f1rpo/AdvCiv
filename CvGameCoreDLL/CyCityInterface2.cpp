@@ -4,7 +4,7 @@
 
 void CyCityPythonInterface2(python::class_<CyCity>& x)
 {
-	OutputDebugString("Python Extension Module - CyCityPythonInterface2\n");
+	printToConsole("Python Extension Module - CyCityPythonInterface2\n");
 
 	x	/*  advc: Arbitrarily moved these from CyCityInterface1.cpp so
 			that nothing breaks if a few more functions are added there. */

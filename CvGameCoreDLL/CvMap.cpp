@@ -234,7 +234,7 @@ void CvMap::setAllPlotTypes(PlotTypes ePlotType)
 	gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
 
 	//float endTime = (float) timeGetTime();
-	//OutputDebugString(CvString::format("[Jason] setAllPlotTypes: %f\n", endTime - startTime).c_str());
+	//printToConsole(CvString::format("[Jason] setAllPlotTypes: %f\n", endTime - startTime).c_str());
 }
 
 

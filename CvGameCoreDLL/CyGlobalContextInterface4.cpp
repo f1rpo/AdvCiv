@@ -13,7 +13,7 @@
 
 void CyGlobalContextPythonInterface4(python::class_<CyGlobalContext>& x)
 {
-	OutputDebugString("Python Extension Module - CyGlobalContextPythonInterface1\n");
+	printToConsole("Python Extension Module - CyGlobalContextPythonInterface1\n");
 
 	x
 		.def("getNumMissionInfos", &CyGlobalContext::getNumMissionInfos, "() - Total Mission Infos XML\\Units\\CIV4MissionInfos.xml")

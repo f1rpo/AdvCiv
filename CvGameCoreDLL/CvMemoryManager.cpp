@@ -46,7 +46,7 @@ void DumpMemUsage(const char* fn, int line)
 //
 void *__cdecl operator new(size_t size)
 {
-	if (gDLL)
+	if (gDLL != NULL)
 	{
 		void* result = NULL;
 
@@ -60,20 +60,20 @@ void *__cdecl operator new(size_t size)
 		}
 		catch(std::exception const&) // advc: Better to catch it by reference
 		{
-			OutputDebugString("Allocation failure\n");
+			printToConsole("Allocation failure\n");
 		}
 
 		return result;
 	}
 
-	//::MessageBoxA(NULL,"UNsafe alloc","CvGameCore",MB_OK); // disabled by K-Mod, for now.
-	//OutputDebugString("Alloc [unsafe]"); // advc.make: Don't need this either, do we?
+	//::MessageBoxA(NULL,"Unsafe alloc","CvGameCore",MB_OK); // disabled by K-Mod, for now.
+	//printToConsole("Alloc [unsafe]"); // advc.make: Don't need this either, do we?
 	return malloc(size);
 }
 
 void __cdecl operator delete (void *p)
 {
-	if (gDLL)
+	if (gDLL != NULL)
 	{
 		PROFILE_TRACK_DEALLOC(p);
 		gDLL->delMem(p, __FILE__, __LINE__);
@@ -83,22 +83,22 @@ void __cdecl operator delete (void *p)
 
 void* operator new[](size_t size)
 {
-	if (gDLL)
+	if (gDLL != NULL)
 	{
-		//OutputDebugString("Alloc [safe]");
+		//printToConsole("Alloc [safe]");
 		void* result = gDLL->newMemArray(size, __FILE__, __LINE__);
 		memset(result, 0xDA, size); // advc.make
 		return result;
 	}
 
-	OutputDebugString("Alloc [unsafe]");
+	printToConsole("Alloc [unsafe]");
 	::MessageBoxA(NULL,"Unsafe alloc","CvGameCore",MB_OK);
 	return malloc(size);
 }
 
 void operator delete[](void* pvMem)
 {
-	if (gDLL)
+	if (gDLL != NULL)
 		gDLL->delMemArray(pvMem, __FILE__, __LINE__);
 	else free(pvMem);
 }

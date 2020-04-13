@@ -13,7 +13,7 @@ BOOL APIENTRY DllMain(HANDLE hModule,
 	case DLL_PROCESS_ATTACH:
 		{
 		// The DLL is being loaded into the virtual address space of the current process as a result of the process starting up
-		OutputDebugString("DLL_PROCESS_ATTACH\n");
+		printToConsole("DLL_PROCESS_ATTACH\n");
 
 		// set timer precision
 		MMRESULT iTimeSet = timeBeginPeriod(1);		// set timeGetTime and sleep resolution to 1 ms, otherwise it's 10-16ms
@@ -21,14 +21,14 @@ BOOL APIENTRY DllMain(HANDLE hModule,
 		}
 		break;
 	case DLL_THREAD_ATTACH:
-		// OutputDebugString("DLL_THREAD_ATTACH\n");
+		// printToConsole("DLL_THREAD_ATTACH\n");
 		break;
 	case DLL_THREAD_DETACH:
-		// OutputDebugString("DLL_THREAD_DETACH\n");
+		// printToConsole("DLL_THREAD_DETACH\n");
 		break;
 	case DLL_PROCESS_DETACH:
 
-		OutputDebugString("DLL_PROCESS_DETACH\n");
+		printToConsole("DLL_PROCESS_DETACH\n");
 		timeEndPeriod(1);
 		break;
 	}

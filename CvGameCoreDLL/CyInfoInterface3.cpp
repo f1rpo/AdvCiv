@@ -8,7 +8,7 @@
 // advc.003e: Added template parameters 'boost::noncopyable'
 void CyInfoPythonInterface3()
 {
-	OutputDebugString("Python Extension Module - CyInfoPythonInterface3\n");
+	printToConsole("Python Extension Module - CyInfoPythonInterface3\n");
 
 	// advc: CvYieldInfo and CvTerrainInfo interface moved to CyInfoInterface2.cpp
 

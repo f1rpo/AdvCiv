@@ -8,7 +8,7 @@
 // advc.003e: Added template parameters 'boost::noncopyable'
 void CyInfoPythonInterface1()
 {
-	OutputDebugString("Python Extension Module - CyInfoPythonInterface1\n");
+	printToConsole("Python Extension Module - CyInfoPythonInterface1\n");
 
 	python::class_<CvInfoBase, boost::noncopyable>("CvInfoBase")
 

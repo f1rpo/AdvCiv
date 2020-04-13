@@ -10,7 +10,7 @@
 
 void CySelectionGroupInterface()
 {
-	OutputDebugString("Python Extension Module - CySelectionGroupInterface\n");
+	printToConsole("Python Extension Module - CySelectionGroupInterface\n");
 
 	python::class_<CySelectionGroup>("CySelectionGroup")
 		.def("isNone", &CySelectionGroup::isNone, "bool () - is this CySelectionGroup instance valid?")

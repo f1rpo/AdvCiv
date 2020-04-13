@@ -7,7 +7,7 @@
 
 void CyArtFileMgrPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyArtFileMgrPythonInterface\n");
+	printToConsole("Python Extension Module - CyArtFileMgrPythonInterface\n");
 
 	python::class_<CyArtFileMgr>("CyArtFileMgr")
 		.def("isNone", &CyArtFileMgr::isNone, "bool () - Checks to see if pointer points to a real object")

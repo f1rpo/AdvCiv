@@ -549,5 +549,16 @@ inline CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) {
 inline bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) { // advc
 	return GC.getMap().adjacentOrSame(kFirstPlot, kSecondPlot);
 }
+// (Moved from CvGameCoreUtils.h)
+#ifndef _USRDLL // use non inline functions when not in the dll
+	#define getMap	getMapExternal
+	#define getGridHeight	getGridHeightExternal
+	#define getGridWidth	getGridWidthExternal
+	#define isWrapY	isWrapYExternal
+	#define isWrapX	isWrapXExternal
+	#define plot	plotExternal
+	#define getX	getXExternal
+	#define getY	getYExternal
+#endif
 // </advc.make>
 #endif

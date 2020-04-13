@@ -9,7 +9,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(CvRandom_get_overloads, CvRandom::get, 2,
 //
 void CyRandomPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyRandomPythonInterface\n");
+	printToConsole("Python Extension Module - CyRandomPythonInterface\n");
 
 	python::class_<CvRandom>("CyRandom")
 		.def("get", &CvRandom::get, CvRandom_get_overloads( args("usNum", "pszLog"), "returns a random number"))

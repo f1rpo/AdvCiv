@@ -19,6 +19,9 @@
 	#define NOMINMAX
 #endif // </advc.fract>
 #include <windows.h>
+// advc.fract: Commented out, originally in CvGameCoreUtils.h.
+//#undef max
+//#undef min
 #include <MMSystem.h>
 #if defined _DEBUG && !defined USE_MEMMANAGER
 	#define USE_MEMMANAGER
@@ -305,26 +308,16 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CyPlot.h"
 #include "CyUnit.h"
 
-#ifdef FINAL_RELEASE
 // Undefine OutputDebugString in final release builds
-#undef OutputDebugString
-#define OutputDebugString(x)
-#endif //FINAL_RELEASE
-
-/*  <advc.make> Cut from CvGameCoreUtils.h. The undefs make more sense to me here b/c
-	this is the file that includes windows.h, which contains the bothersome min/max defines. */
-#undef max
-#undef min
-#ifndef _USRDLL
-// use non inline functions when not in the dll  advc.inl: Renamed all these
-#define getMap	getMapExternal
-#define getGridHeight	getGridHeightExternal
-#define getGridWidth	getGridWidthExternal
-#define isWrapY	isWrapYExternal
-#define isWrapX	isWrapXExternal
-#define plot	plotExternal
-#define getX	getXExternal
-#define getY	getYExternal
-#endif // </advc.make>
+#ifdef FINAL_RELEASE
+/*	<advc.wine> Wrap a macro around OutputDebugString that prints to both the VS console
+	(as before through WinBase.h) and to a regular console e.g. for Wine. */
+	#define printToConsole(szMsg)
+#else
+	// Caveat: szMsg has to be 0-terminated -- no fixed-size char buffers!
+	#define printToConsole(szMsg) \
+		OutputDebugString(szMsg); \
+		printf("OutputDebugString: %s", szMsg);
+#endif // </advc.wine>
 
 #endif	// CvGameCoreDLL_h

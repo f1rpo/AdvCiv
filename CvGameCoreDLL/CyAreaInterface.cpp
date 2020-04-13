@@ -6,7 +6,7 @@
 
 void CyAreaPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyAreaPythonInterface\n");
+	printToConsole("Python Extension Module - CyAreaPythonInterface\n");
 
 	python::class_<CyArea>("CyArea")
 		.def("isNone", &CyArea::isNone, "bool () - Returns whether the pointer points to a real Area")
