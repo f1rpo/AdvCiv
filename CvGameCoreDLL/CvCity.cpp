@@ -2369,7 +2369,8 @@ int CvCity::getProductionDifference(int iProductionNeeded, int iProduction,
 		return 0;
 
 	int iFoodProduction = (bFoodProduction ?
-			std::max(0, getYieldRate(YIELD_FOOD) - foodConsumption()) : 0);
+			std::max(0, getYieldRate(YIELD_FOOD) - foodConsumption(
+			/* advc.001 (K-Mod bug): */ true)) : 0);
 
 	int iModifier = getBaseYieldRateModifier(YIELD_PRODUCTION, iProductionModifier);
 	int iRate = /* advc.064: */ (bIgnoreYieldRate ? 0 :
