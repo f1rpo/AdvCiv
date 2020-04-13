@@ -875,8 +875,9 @@ protected:
 	int m_iActiveLandscapeID;
 	int m_iNumPlayableCivilizationInfos;
 	int m_iNumAIPlayableCivilizationInfos;
-	std::vector<std::vector<CvInfoBase *> *> m_aInfoVectors;
 	// <advc.enum>
+	// Don't need to keep track of these anymore
+	//std::vector<std::vector<CvInfoBase*>*> m_aInfoVectors;
 	#define DECLARE_INFO_VECTOR(Name, Dummy) \
 		std::vector<Cv##Name##Info*> m_pa##Name##Info;
 	DO_FOR_EACH_INFO_TYPE(DECLARE_INFO_VECTOR) // </advc.enum>
@@ -958,10 +959,10 @@ protected:
 	CvString m_szDllProfileText;
 
 private:
-	void addToInfosVectors(void *infoVector); // advc: was public
 	// <advc.opt>
 	void cacheGlobalInts(char const* szChangedDefine = NULL, int iNewValue = 0);
 	void cacheGlobalFloats(); // </advc.opt>
+	//void addToInfosVectors(void* infoVector); // advc.enum (no longer used)
 };
 
 extern CvGlobals gGlobals;	// for debugging

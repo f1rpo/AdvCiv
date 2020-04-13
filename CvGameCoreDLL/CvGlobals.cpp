@@ -287,7 +287,7 @@ void CvGlobals::uninit() // free
 	m_borderFinder=NULL; m_areaFinder=NULL; m_plotGroupFinder=NULL;
 
 	m_typesMap.clear();
-	m_aInfoVectors.clear();
+	//m_aInfoVectors.clear(); // advc.enum (no longer used)
 }
 
 void CvGlobals::clearTypesMap()
@@ -975,15 +975,14 @@ void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
 
 void CvGlobals::infoTypeFromStringReset()
 {
+	FAssertMsg(false, "Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
 	m_infosMap.clear();
 }
 
-//
-// non-inline versions
-// <advc.inl>
+// non-inline versions ...  <advc.inl>
 CvMap& CvGlobals::getMapExternal() { return getMap(); }
 CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.inl>
-CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
+CvGameAI *CvGlobals::getGamePointer() { return m_game; }
 
 int CvGlobals::getMaxCivPlayers() const
 {
@@ -1019,8 +1018,7 @@ namespace // advc
 	bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
 	{
 	#if SERIALIZE_CVINFOS
-		addToInfosVectors(&array);
-
+		//addToInfosVectors(&array); // advc.enum (no longer used)
 		int iSize;
 		pStream->Read(&iSize);
 		FAssertMsg(iSize==sizeof(T), CvString::format("class size doesn't match cache size - check info read/write functions:%s", szClassName).c_str());
@@ -1090,15 +1088,19 @@ void CvGlobals::deleteInfoArrays()
 	SAFE_DELETE_ARRAY(getFootstepAudioTags());
 
 	clearTypesMap();
-	m_aInfoVectors.clear();
+	// <advc.enum>
+	//m_aInfoVectors.clear();
 }
 
-// (advc.003i: Only used by readInfoArray, i.e. unused if XML cache disabled.)
-void CvGlobals::addToInfosVectors(void* infoVector)
+// This is piece of nastiness is no longer used
+/*void CvGlobals::addToInfosVectors(void* infoVector)
 {
+	// advc.001 (note):
+	// Was a C-style cast in BtS, but that shouldn't make a difference.
+	// Casting vector<Derived*> to vector<Base*> is unsafe.
 	std::vector<CvInfoBase*>* infoBaseVector = reinterpret_cast<std::vector<CvInfoBase*>*>(infoVector);
 	m_aInfoVectors.push_back(infoBaseVector);
-}
+}*/ // </advc.enum>
 
 bool CvGlobals::readBuildingInfoArray(FDataStreamBase* pStream)
 {
@@ -1267,12 +1269,17 @@ int CvGlobals::getNUM_LEADERANIM_TYPES() const
 
 void CvGlobals::infosReset()
 {
-	for (int i = 0; i < (int)m_aInfoVectors.size(); i++)
-	{
-		std::vector<CvInfoBase *> *infoBaseVector = m_aInfoVectors[i];
-		for (int j = 0; j < (int)infoBaseVector->size(); j++)
-			infoBaseVector->at(j)->reset();
-	}
+	FAssertMsg(false, "Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
+	// <advc.enum> Replacing a loop through m_aInfoVectors (now deleted)
+	for (size_t i = 0; i < m_paWorldInfo.size(); i++)
+		m_paWorldInfo[i]->reset();
+	#define RESET_INFO_VECTOR(Name, Dummy) \
+		for (size_t i = 0; i < m_pa##Name##Info.size(); i++) \
+			m_pa##Name##Info[i]->reset();
+	DO_FOR_EACH_INFO_TYPE(RESET_INFO_VECTOR);
+	#undef RESET_INFO_VECTOR
+	ARTFILEMGR.resetInfo();
+	// </advc.enum>
 }
 
 int CvGlobals::getNumDirections() const { return NUM_DIRECTION_TYPES; }

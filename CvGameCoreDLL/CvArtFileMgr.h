@@ -78,13 +78,14 @@ public:
 	DllExport void DeInit();
 
 	// Deletes Maps, Reloads Infos from XML, Rebuilds Maps
-	DllExport void Reset();																														// Exposed to Python
+	DllExport void Reset();																					// Exposed to Python
+	void resetInfo(); // advc.enum
 
 	// Builds Maps
-	DllExport void buildArtFileInfoMaps();																							// Exposed to Python
+	DllExport void buildArtFileInfoMaps();																	// Exposed to Python
 
 	// Adds an Art File List
-	void addArtInfoItem(CvArtFileMgr::ArtInfoItem* item) { m_artInfoItems.push_back(item);	}
+	void addArtInfoItem(CvArtFileMgr::ArtInfoItem* item) { m_artInfoItems.push_back(item); }
 private:
 	struct ltstr
 	{

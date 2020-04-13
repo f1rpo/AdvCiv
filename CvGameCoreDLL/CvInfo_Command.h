@@ -80,6 +80,7 @@ public:
 	const wchar* getStrategy() const;
 	virtual const TCHAR* getButton() const;
 	const wchar* getTextKeyWide() const;
+	void reset() {} // advc.enum: for CvGlobals::infosReset
 
 	// functions to replace the CvHotkey calls
 	int getActionInfoIndex() const;
