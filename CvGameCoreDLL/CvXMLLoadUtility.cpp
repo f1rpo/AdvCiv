@@ -55,19 +55,24 @@ void CvXMLLoadUtility::DestroyFXml()
 
 
 CvXMLLoadUtility::CvXMLLoadUtility() :
-m_iCurProgressStep(0),
-m_pCBFxn(NULL),
-m_pFXml(NULL),
-m_bEventsLoaded(false), m_bThroneRoomLoaded(false), // advc.003v
-m_bAssertMandatory(true) // advc.006b
+//m_iCurProgressStep(0), m_pCBFxn(NULL)
+m_pDummy(NULL), // advc.003k
+m_pFXml(NULL)
 {
+	m = new Data(); // advc.003k
+	m->bAssertMandatory = true; // advc.006b
+	m->bEventsLoaded = m->bThroneRoomLoaded = false; // advc.003v
 	m_pSchemaCache = gDLL->getXMLIFace()->CreateFXmlSchemaCache();
 }
 
 
-CvXMLLoadUtility::~CvXMLLoadUtility(void)
+CvXMLLoadUtility::~CvXMLLoadUtility()
 {
+	/*	advc (note): The EXE only seems to call this when exiting from the main menu.
+		But possibly deleting it twice seems worse than never, so I'm not going to
+		delete CvGlobals::m_pXMLLoadUtility in CvDLLButtonPopup::OnOkClicked . */
 	gDLL->getXMLIFace()->DestroyFXmlSchemaCache(m_pSchemaCache);
+	SAFE_DELETE(m); // advc.003k
 }
 
 // Clean up items for in-game reloading
@@ -223,7 +228,7 @@ void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
 			*puiMask += 13;
 		}
 		// if the current character in the string is a E, 14
-		else if ((szMask[i] == 'd') || (szMask[i] == 'E'))
+		else if ((szMask[i] == 'e') || (szMask[i] == 'E')) // advc.001: first one was 'd'
 		{
 			// shift the current value of the mask to the left by 4 bits
 			*puiMask <<= 4;
@@ -298,22 +303,17 @@ bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 	OutputDebugString("\n");
 
 	CvString szPath = szFilename;
-	CvString fsFilename = szFilename;
-
 	if (!gDLL->fileManagerEnabled())
 		szPath = "Assets//" + szPath;
-
 	logMsg("Loading XML file %s\n", szPath.c_str());
-
 	if (!gDLL->getXMLIFace()->LoadXml(pFXml, szPath))
 	{
 		logMsg("Load XML file %s FAILED\n", szPath.c_str());
 		return false;
 	}
-
 	logMsg("Load XML file %s SUCCEEDED\n", szPath.c_str());
 	CvGlobals::getInstance().setCurrentXMLFile(szFilename);
-	return true;	// success
+	return true; // success
 }
 
 // see KeyStringFromKBCode
@@ -506,14 +506,14 @@ CvWString CvXMLLoadUtility::KeyStringFromKBCode(const TCHAR* pszHotKey)
 // call the progress updater fxn if it exists
 void CvXMLLoadUtility::UpdateProgressCB(const char* szMessage)
 {
-	// advc: RegisterProgressCB is never called, so m_pCBFxn is alway NULL.
+	/*	advc.003k: RegisterProgressCB is never called, so m_pCBFxn is alway NULL.
+		The memory previously allocated for m_iCurProgressStep has been repurposed;
+		see comments in header. */
 	/*if (m_iCurProgressStep > GetNumProgressSteps())
 		m_iCurProgressStep = 1; // wrap
-
-	if (m_pCBFxn != NULL)
-	{
-		m_pCBFxn(++m_iCurProgressStep, GetNumProgressSteps(), CvString::format("Reading XML %s",
-			szMessage ? szMessage : "").c_str());
+	if (m_pCBFxn != NULL) {
+		m_pCBFxn(++m_iCurProgressStep, GetNumProgressSteps(), CvString::format(
+				"Reading XML %s", szMessage ? szMessage : "").c_str());
 	}*/
 }
 

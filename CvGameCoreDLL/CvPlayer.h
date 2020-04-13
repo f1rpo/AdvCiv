@@ -21,6 +21,8 @@ class CvUnit; class CvUnitAI;
 class CvSelectionGroup; class CvSelectionGroupAI;
 // </advc.003u>
 class CvCivilization; // advc.003w
+ /*	advc (note): Can't easily change this to <CvTalkingHeadMessage*>
+	b/c of DllExport getGameMessages */
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 typedef std::list<CvDiploParameters*> CvDiploQueue;

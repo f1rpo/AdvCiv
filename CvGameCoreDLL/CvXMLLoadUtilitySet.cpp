@@ -703,7 +703,6 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	/* advc: Replaced all GC.get...Info() calls with direct accesses; see the
 		comment under the friend declaration in CvGlobals.h. */
 
-	//throne room disabled
 	// advc.003v: Moved into LoadThroneRoomInfo
 	//UpdateProgressCB("Global Throne Room");
 	// ...
@@ -762,7 +761,6 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paEspionageMissionInfo, "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
 
 	DestroyFXml();
-
 	GC.setCurrentXMLFile(NULL); // advc.006e
 
 	// <advc.enum>
@@ -781,7 +779,7 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 // <advc.003v>
 bool CvXMLLoadUtility::LoadOptionalGlobals()
 {
-	if (m_bEventsLoaded || GC.getGame().isOption(GAMEOPTION_NO_EVENTS))
+	if (m->bEventsLoaded || GC.getGame().isOption(GAMEOPTION_NO_EVENTS))
 		return true;
 
 	if (!CreateFXml())
@@ -790,24 +788,26 @@ bool CvXMLLoadUtility::LoadOptionalGlobals()
 	LoadGlobalClassInfo(GC.m_paEventInfo, "CIV4EventInfos", "Events", "Civ4EventInfos/EventInfos/EventInfo", true, &CvDLLUtilityIFaceBase::createEventInfoCacheObject);
 	LoadGlobalClassInfo(GC.m_paEventTriggerInfo, "CIV4EventTriggerInfos", "Events", "Civ4EventTriggerInfos/EventTriggerInfos/EventTriggerInfo", false, &CvDLLUtilityIFaceBase::createEventTriggerInfoCacheObject);
 	DestroyFXml();
-	m_bEventsLoaded = true;
+	m->bEventsLoaded = true;
+
 	return true;
-} // </advc.003v>
+}
 
 
 bool CvXMLLoadUtility::LoadThroneRoomInfo()
 {
-	if (m_bThroneRoomLoaded)
+	if (m->bThroneRoomLoaded)
 		return true;
 
 	if (!CreateFXml())
 		return false;
-	FAssert(GC.getGame().isDebugMode());
+	FAssert(gDLL->getChtLvl() > 0); // (Ctrl+D unfortunately doesn't require DebugMode)
 	LoadGlobalClassInfo(GC.m_paThroneRoomCameraInfo, "CIV4ThroneRoomCameraInfos", "Interface", "Civ4ThroneRoomCameraInfos/ThroneRoomCameraInfos/ThroneRoomCamera", false);
 	LoadGlobalClassInfo(GC.m_paThroneRoomInfo, "CIV4ThroneRoomInfos", "Interface", "Civ4ThroneRoomInfos/ThroneRoomInfos/ThroneRoomInfo", false);
 	LoadGlobalClassInfo(GC.m_paThroneRoomStyleInfo, "CIV4ThroneRoomStyleInfos", "Interface", "Civ4ThroneRoomStyleInfos/ThroneRoomStyleInfos/ThroneRoomStyleInfo", false);
 	DestroyFXml();
-	m_bThroneRoomLoaded = true;
+	m->bThroneRoomLoaded = true;
+
 	return true;
 } // </advc.003v>
 
@@ -1336,15 +1336,15 @@ void CvXMLLoadUtility::SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfo
 
 template <class T>
 void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
-		const char* szFileRoot, const char* szFileDirectory,
-		const char* szXmlPath, bool bTwoPass,
-		CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
+	const char* szFileRoot, const char* szFileDirectory,
+	const char* szXmlPath, bool bTwoPass,
+	CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
 	pArgFunction = NULL; // advc.003i: Disable XML cache
 	bool bLoaded = false;
 	bool bWriteCache = true;
 	CvCacheObject* pCache = NULL;
-	GC.addToInfosVectors(&aInfos);
+	//GC.addToInfosVectors(aInfos); // advc.enum (no longer needed)
 
 	if (pArgFunction != NULL)
 	{
@@ -2161,10 +2161,9 @@ DllExport bool CvXMLLoadUtility::LoadPlayerOptions()
 {
 	if (!CreateFXml())
 		return false;
-
-	LoadGlobalClassInfo(GC.m_paPlayerOptionInfo, "CIV4PlayerOptionInfos", "GameInfo", "Civ4PlayerOptionInfos/PlayerOptionInfos/PlayerOptionInfo", false);
+	LoadGlobalClassInfo(GC.m_paPlayerOptionInfo, "CIV4PlayerOptionInfos", "GameInfo",
+			"Civ4PlayerOptionInfos/PlayerOptionInfos/PlayerOptionInfo", false);
 	FAssert(GC.getNumPlayerOptionInfos() == NUM_PLAYEROPTION_TYPES);
-
 	DestroyFXml();
 	return true;
 }
@@ -2173,10 +2172,9 @@ DllExport bool CvXMLLoadUtility::LoadGraphicOptions()
 {
 	if (!CreateFXml())
 		return false;
-
-	LoadGlobalClassInfo(GC.m_paGraphicOptionInfo, "CIV4GraphicOptionInfos", "GameInfo", "Civ4GraphicOptionInfos/GraphicOptionInfos/GraphicOptionInfo", false);
+	LoadGlobalClassInfo(GC.m_paGraphicOptionInfo, "CIV4GraphicOptionInfos", "GameInfo",
+			"Civ4GraphicOptionInfos/GraphicOptionInfos/GraphicOptionInfo", false);
 	FAssert(GC.getNumGraphicOptions() == NUM_GRAPHICOPTION_TYPES);
-
 	DestroyFXml();
 	return true;
 }

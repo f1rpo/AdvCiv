@@ -18,11 +18,11 @@ class CvCacheObject;
 class CvImprovementBonusInfo;
 
 
-class CvXMLLoadUtility
+class CvXMLLoadUtility /* advc.003k: */ : private boost::noncopyable
 {
 public:
 	DllExport CvXMLLoadUtility();
-	DllExport ~CvXMLLoadUtility(void);
+	DllExport ~CvXMLLoadUtility();
 
 	bool CreateFXml();
 	void DestroyFXml();
@@ -52,11 +52,10 @@ public:
 	bool SetHelpText();
 	DllExport void ResetGlobalEffectInfo();
 
-	// for progress bars
-	typedef void (*ProgressCB)(int iStepNum, int iTotalSteps, const char* szMessage);
+	// for progress bars  // advc.003k: all unused
+	/*typedef void (*ProgressCB)(int iStepNum, int iTotalSteps, const char* szMessage);
 	static int GetNumProgressSteps();
-	// advc (note): unused
-	void RegisterProgressCB(ProgressCB cbFxn);
+	void RegisterProgressCB(ProgressCB cbFxn);*/
 
 	bool SkipToNextVal();
 
@@ -172,15 +171,19 @@ private:
 	FXml* m_pFXml;
 	// keep a single schema cache, instead of loading the same schemas multiple times
 	FXmlSchemaCache* m_pSchemaCache;
-	int m_iCurProgressStep;
-	ProgressCB m_pCBFxn;
-
-	bool m_bEventsLoaded, m_bThroneRoomLoaded; // advc.003v
-	// <advc.006b>
-	bool m_bAssertMandatory;
-	static CvString szAssertMsg;
-	// </advc.006b>
-
+	static CvString szAssertMsg; // advc.006b
+	// <advc.003k>
+	class Data
+	{
+		bool bAssertMandatory; // advc.006b
+		bool bEventsLoaded, bThroneRoomLoaded; // advc.003v
+		friend CvXMLLoadUtility;
+	};
+	//int m_iCurProgressStep; // Unused, remove it to make room.
+	//ProgressCB m_pCBFxn;// Also unused, but have no other use for that memory, so:
+	void* m_pDummy; // (not sure if decreasing the class size would be a problem)
+	Data* m; // additional members
+	// Still called, still has no effect:  // </advc.003k>
 	void UpdateProgressCB(const char* szMessage=NULL);
 
 	void SetGlobalStringArray(CvString** ppszString, char* szTagName, int* iNumVals, bool bUseEnum = false);
@@ -230,6 +233,9 @@ private:
 	// </advc.006g>
 	void logMsg(char* format, ...);
 };
+
+// Size 20 also seems OK, 28 definitely not, causes Wine to crash.
+BOOST_STATIC_ASSERT(sizeof(CvXMLLoadUtility) == 16);
 
 #ifdef _USRDLL
 // inlines / templates ...

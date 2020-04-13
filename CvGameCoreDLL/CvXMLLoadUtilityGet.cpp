@@ -7,22 +7,16 @@
 #include "CvXMLLoadUtility.h"
 #include "FInputDevice.h"
 
-//
-// STATIC
-// for progress bar display
-// returns the number of steps we use
-//
-int CvXMLLoadUtility::GetNumProgressSteps()
-{
-	return 20; // the function UpdateProgressCB() is called 20 times by CvXMLLoadUtilitySet
-	//^advc: That's not true, but the UpdateProgressCB calls have no effect anyway.
-}
 
-void CvXMLLoadUtility::RegisterProgressCB(ProgressCB cbFxn)
-{
-	FAssertMsg(false, "Warning: The body of UpdateProgressCB is commented out"); // advc
-	m_pCBFxn = cbFxn;
+// For progress bar display. Returns the number of steps we use.
+// advc.003k: Commented out; was unused.
+/*int CvXMLLoadUtility::GetNumProgressSteps() {
+	return 20; // the function UpdateProgressCB() is called 20 times by CvXMLLoadUtilitySet
+	//^advc: That's not true btw
 }
+void CvXMLLoadUtility::RegisterProgressCB(ProgressCB cbFxn) {
+	m_pCBFxn = cbFxn;
+}*/
 
 // <advc>
 namespace
@@ -526,7 +520,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar
 	}*/ // <advc.006b> Replacing the asserts above (which were already commented out)
 	/*  If pszDefault was set by the caller, we assume that it's OK to fall back
 		on pszDefault. Otherwise warn. */
-	FAssertMsg(szDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006b>
 }
 
@@ -567,7 +561,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(char* r, TCHAR const* szName, char c
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(szDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
@@ -606,7 +600,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::string& r, TCHAR const* szName,
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(szDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
@@ -645,7 +639,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& r, TCHAR const* szName
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(szDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
@@ -684,7 +678,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* r, TCHAR const* szName, int iDe
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(iDefault == MIN_INT && m_bAssertMandatory)
+	if(iDefault == MIN_INT && m->bAssertMandatory)
 	{
 		FAssertMsg(false, (szAssertMsg + szName).c_str());
 		/*  Try to allow the caller to ignore the error by setting a
@@ -729,7 +723,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* r, TCHAR const* szName, float
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(fDefault == FLT_MIN && m_bAssertMandatory)
+	if(fDefault == FLT_MIN && m->bAssertMandatory)
 	{
 		FAssertMsg(false, (szAssertMsg + szName).c_str());
 		*r = 0; // See See GetChildXmlValByName(int*...)
@@ -773,14 +767,14 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(!bMandatory || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(!bMandatory || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006b>
 }
 
 // <advc.006b>
 void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b)
 {
-	m_bAssertMandatory = b;
+	m->bAssertMandatory = b;
 } // </advc.006b>
 
 /*	Returns either the integer value of the keyboard mapping for the hot key --

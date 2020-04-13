@@ -9,6 +9,7 @@ class CvReplayInfo
 {
 public:
 	DllExport CvReplayInfo();
+	CvReplayInfo(CvReplayInfo const&); // advc.003k
 	virtual ~CvReplayInfo();
 
 	void createInfo(PlayerTypes ePlayer);
@@ -116,7 +117,6 @@ protected:
 	int m_iStartYear;
 	CvWString m_szFinalDate;
 	CalendarTypes m_eCalendar;
-	int m_iNormalizedScore;
 
 	struct TurnData
 	{
@@ -145,7 +145,9 @@ protected:
 	CvString m_szModName;
 
 	// <advc.003k> Additional data members
-	class Data {
+	class Data
+	{
+		int iNormalizedScore; // (moved into Data to make room for Data* m)
 		int iFinalScore; // advc.707
 		// <advc.106i>
 		int iVersionRead;
@@ -156,6 +158,6 @@ protected:
 	};
 	Data* m;
 };
-BOOST_STATIC_ASSERT(sizeof(CvReplayInfo) == 340);
+BOOST_STATIC_ASSERT(sizeof(CvReplayInfo) == 336);
 // </advc.003k>
 #endif

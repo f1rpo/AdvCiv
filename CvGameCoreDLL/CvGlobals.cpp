@@ -617,7 +617,9 @@ CvString const& CvGlobals::getCurrentXMLFile() const
 	return m_szCurrentXMLFile;
 }
 // <advc.003v>
-// It seems that the DLL wasn't keeping a handle to the XMLLoadUtility so far
+/*	It seems that the DLL wasn't keeping a handle to the XMLLoadUtility so far.
+	(Could perhaps simply create a new instance as needed instead -
+	as it's done in CvArtFileMgr::Reset.) */
 void CvGlobals::setXMLLoadUtility(CvXMLLoadUtility* pXML)
 {
 	m_pXMLLoadUtility = pXML;
@@ -945,9 +947,6 @@ void CvGlobals::setHoFScreenUp(bool b)
 	m_bHoFScreenUp = b;
 } // </advc.106i>
 
-//
-// Global Infos Hash Map
-//
 
 int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
 	bool bFromPython) const // advc.006

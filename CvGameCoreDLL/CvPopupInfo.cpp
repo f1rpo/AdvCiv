@@ -37,7 +37,7 @@ const CvPopupInfo& CvPopupInfo::operator=(const CvPopupInfo& other)
 		m_aPythonButtons.push_back(other.m_aPythonButtons[i]);
 	}
 
-	return (*this);
+	return *this;
 }
 
 

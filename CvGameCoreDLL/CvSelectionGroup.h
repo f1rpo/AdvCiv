@@ -14,7 +14,7 @@ class FAStarNode;
 class CvSelectionGroupAI; // advc.003u
 
 
-class CvSelectionGroup
+class CvSelectionGroup /* advc.003k: */ : private boost::noncopyable
 {
 public:
 

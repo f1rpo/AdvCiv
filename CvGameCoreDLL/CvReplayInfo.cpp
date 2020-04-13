@@ -26,12 +26,13 @@ CvReplayInfo::CvReplayInfo() :
 	m_iMapWidth(0),
 	m_pcMinimapPixels(NULL),
 	m_eCalendar(NO_CALENDAR), // advc: Safer to initialize it here
-	m_iNormalizedScore(0),
 	m_bMultiplayer(false),
 	m_iStartYear(0)
 {
 	m_iMinimapSize = -1; // advc.106m: To be read from replay file
-	m = new Data(); // advc.003k
+	// <advc.003k>
+	m = new Data();
+	m->iNormalizedScore = 0, // </advc.003k>
 	m->iFinalScore = -1; // advc.707
 	// <advc.106i>
 	m->szPurportedModName = gDLL->getModName(); // Local copy; not sure if necessary.
@@ -50,6 +51,13 @@ CvReplayInfo::CvReplayInfo() :
 	// </advc.106i>
 	// advc.106m:
 	FAssert(!STORE_REPLAYS_AS_BTS || GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE) == 512);
+}
+/*	advc.003k: Needs to have a copy-constructor b/c of its Python counterpart,
+	but I don't think it'll actually get called. Copying m_pcMinimapPixels
+	would seem undesirable. */
+CvReplayInfo::CvReplayInfo(CvReplayInfo const&)
+{
+	FAssertMsg(false, "No copy-constructor implemented for CvReplayInfo");
 }
 
 CvReplayInfo::~CvReplayInfo()
@@ -120,7 +128,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 			m_eVictoryType = game.getVictory();
 		else m_eVictoryType = NO_VICTORY;
 
-		m_iNormalizedScore = player.calculateScore(true, player.getTeam() == game.getWinner());
+		m->iNormalizedScore = player.calculateScore(true, player.getTeam() == game.getWinner());
 		// <advc.707> Treat R&F games as "Score" victory (previously unused)
 		if(game.isOption(GAMEOPTION_RISE_FALL))
 		{
@@ -637,7 +645,7 @@ int CvReplayInfo::getFinalAgriculture() const
 
 int CvReplayInfo::getNormalizedScore() const
 {
-	return m_iNormalizedScore;
+	return m->iNormalizedScore;
 }
 
 int CvReplayInfo::getMapHeight() const
@@ -785,8 +793,8 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		stream.Read(&iType);
 		m_eCalendar = (CalendarTypes)iType;
 		if(!checkBounds(m_eCalendar, 0, NUM_CALENDAR_TYPES - 1)) return false; // advc.106i
-		stream.Read(&m_iNormalizedScore);
-		if(!checkBounds(m_iNormalizedScore, -10000, 1000000)) return false; // advc.106i
+		stream.Read(&m->iNormalizedScore);
+		if(!checkBounds(m->iNormalizedScore, -10000, 1000000)) return false; // advc.106i
 		stream.Read(&iNumTypes);
 		if(!checkBounds(iNumTypes, 1, 64)) return false; // advc.106i
 		for (int i = 0; i < iNumTypes; i++)
@@ -912,7 +920,7 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 	stream.Write(m_iFinalTurn);
 	stream.WriteString(m_szFinalDate);
 	stream.Write((int)m_eCalendar);
-	stream.Write(m_iNormalizedScore);
+	stream.Write(m->iNormalizedScore);
 	stream.Write((int)m_listPlayerScoreHistory.size());
 	for (uint i = 0; i < m_listPlayerScoreHistory.size(); i++)
 	{

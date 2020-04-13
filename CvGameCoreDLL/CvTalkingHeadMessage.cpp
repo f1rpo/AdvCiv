@@ -2,25 +2,28 @@
 #include "CvTalkingHeadMessage.h"
 #include "CvGame.h"
 
-CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType, LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY, bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
-	m_iTurn(iMessageTurn),
-	m_szDescription(pszDesc),
-	m_szSound(pszSound),
-	m_szIcon(pszIcon),
-	m_iLength(iLen),
-	m_eFlashColor(eColor),
-	m_iFlashX(iX),
-	m_iFlashY(iY),
-	m_bOffScreenArrows(bShowOffScreenArrows),
-	m_bOnScreenArrows(bShowOnScreenArrows),
-	m_eMessageType(eType),
-	m_eFromPlayer(NO_PLAYER),
-	m_eTarget(NO_CHATTARGET),
-	m_bShown(false),
-	bSoundPlayed(false) // advc.106b
+CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen,
+	LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType,
+	LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY,
+	bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
+m_iTurn(iMessageTurn),
+m_szDescription(pszDesc),
+m_szSound(pszSound),
+m_szIcon(pszIcon),
+m_iLength(iLen),
+m_eFlashColor(eColor),
+m_iFlashX(iX),
+m_iFlashY(iY),
+m_bOffScreenArrows(bShowOffScreenArrows),
+m_bOnScreenArrows(bShowOnScreenArrows),
+m_eMessageType(eType),
+m_eFromPlayer(NO_PLAYER),
+m_eTarget(NO_CHATTARGET),
+m_bShown(false),
+m_bSoundPlayed(false) // advc.106b
 {}
 
-CvTalkingHeadMessage::~CvTalkingHeadMessage(void) {}
+CvTalkingHeadMessage::~CvTalkingHeadMessage() {}
 
 
 void CvTalkingHeadMessage::read(FDataStreamBase& stream)
@@ -47,7 +50,7 @@ void CvTalkingHeadMessage::read(FDataStreamBase& stream)
 	stream.Read(&m_bShown);
 	/*  advc.106b: I don't think we ever want to play a sound after loading
 		a savegame */
-	bSoundPlayed = true;
+	m_bSoundPlayed = true;
 }
 
 void CvTalkingHeadMessage::write(FDataStreamBase& stream) const
@@ -84,7 +87,7 @@ const CvString& CvTalkingHeadMessage::getSound() const
 {
 	/*  advc.106b: A hack that relies on the EXE triggering the sound after calling
 		getSound */
-	bSoundPlayed = true;
+	m_bSoundPlayed = true;
 	return m_szSound;
 }
 
@@ -274,8 +277,8 @@ void CvTalkingHeadMessage::setShown(bool bShown)
 	m_bShown = bShown;
 }
 
-// <advc.106b>
+// advc.106b:
 bool CvTalkingHeadMessage::getSoundPlayed() const
 {
-	return bSoundPlayed;
-} // </advc.106b>
+	return m_bSoundPlayed;
+}
