@@ -139,8 +139,6 @@ namespace
 bool FAssertDlg( const char* szExpr, const char* szMsg, const char* szFile, unsigned int line,
 	/* <advc.006f> */ const char* szFunction, /* </advc006f> */ bool& bIgnoreAlways )
 {
-//	FILL_CONTEXT( g_AssertInfo.context );
-
 	g_AssertInfo.szExpression = szExpr;
 	g_AssertInfo.szMessage = szMsg;
 	g_AssertInfo.szFileName = szFile;
@@ -164,6 +162,11 @@ bool FAssertDlg( const char* szExpr, const char* szMsg, const char* szFile, unsi
 	case ASSERT_DLG_EXIT:
 		exit(0);
 		break;
+	/*	<advc.wine> DisplayAssertDialog goes through DialogBoxIndirect (WinUser.h).
+		Wine won't display that. */
+	default:	
+		printf("FAssertDlg: {%s} %s in %s, %s, line %d",
+				szExpr, szMsg, szFile, szFunction, line); // </advc.wine>
 	}
 
 	return true;
