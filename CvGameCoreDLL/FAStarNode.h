@@ -1,25 +1,13 @@
 #pragma once
-
-//  $Header:
-//------------------------------------------------------------------------------------------------
-//
 //  *****************   FIRAXIS GAME ENGINE   ********************
-//
 //  FILE:    FAStarNode.h
-//
 //  AUTHOR:  Casey O'Toole  --  8/21/2002
-//
 //  PURPOSE: A* Pathfinding - based off of A* Explorer from "AI Game Programming Wisdom"
-//
-//------------------------------------------------------------------------------------------------
 //  Copyright (c) 2002 Firaxis Games, Inc. All rights reserved.
-//------------------------------------------------------------------------------------------------
+#ifndef FASTARNODE_H
+#define FASTARNODE_H
 
-#ifndef		FASTARNODE_H
-#define		FASTARNODE_H
-#pragma		once
-
-#define ASNL_ADDOPEN			0
+#define ASNL_ADDOPEN		0
 #define ASNL_STARTOPEN		1
 #define ASNL_DELETEOPEN		2
 #define ASNL_ADDCLOSED		3
@@ -28,7 +16,7 @@
 #define ASNC_OPENADD_UP		1
 #define ASNC_CLOSEDADD_UP	2
 #define ASNC_PARENTADD_UP	3
-#define ASNC_NEWADD				4
+#define ASNC_NEWADD			4
 
 enum FAStarListType
 {
@@ -41,20 +29,15 @@ enum FAStarListType
 };
 
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//
-//  CLASS:      FAStarNode
-//
-//  DESC:       Used by FAStar pathfinding class
-//
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Used by FAStar pathfinding class
 class FAStarNode
 {
+	FAStarNode(); // advc: Private ctor added; see comment below.
 public:
-	FAStarNode()
+	/*	advc: Apparently, FAStarNode is only allocated through realloc currently;
+		no constructor call. So I'm commenting this out for clarity. */
+	/*FAStarNode()
 	{
-		int i;
-
 		m_iX = -1;
 		m_iY = -1;
 		m_iTotalCost = 0;
@@ -73,7 +56,7 @@ public:
 		m_pPrev = NULL;
 		m_pStack = NULL;
 
-		for (i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			m_apChildren[i] = NULL;
 		}
@@ -81,8 +64,6 @@ public:
 
 	void clear()
 	{
-		int i;
-
 		m_iTotalCost = 0;
 		m_iKnownCost = 0;
 		m_iHeuristicCost = 0;
@@ -99,15 +80,15 @@ public:
 		m_pPrev = NULL;
 		m_pStack = NULL;
 
-		for (i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
 		{
 			m_apChildren[i] = NULL;
 		}
-	}
+	}*/
 
 	int m_iX, m_iY;         // Coordinate position
-	int m_iTotalCost;				// Fitness (f)
-	int m_iKnownCost;				// Goal (g)
+	int m_iTotalCost;		// Fitness (f)
+	int m_iKnownCost;		// Goal (g)
 	int m_iHeuristicCost;   // Heuristic (h)
 	int m_iNumChildren;
 	int m_iData1;
@@ -125,5 +106,4 @@ public:
 	FAStarNode* m_apChildren[8];
 };
 
-
-#endif	//FASTARNODE_H
+#endif

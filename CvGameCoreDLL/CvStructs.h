@@ -520,7 +520,8 @@ struct DllExport CvWBData
 	CvString m_strButton;
 };
 // <advc.071>
-struct FirstContactData {
+struct FirstContactData
+{
 	FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
 			CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL);
 	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
@@ -528,7 +529,8 @@ struct FirstContactData {
 	int x1, y1, x2, y2;
 }; // </advc.071>
 // <advc.072>
-struct DealItemData {
+struct DealItemData
+{
 	DealItemData() : eGivePlayer(NO_PLAYER), eReceivePlayer(NO_PLAYER),
 			eItemType(TRADE_ITEM_NONE), iData(-1), iDeal(-1) {}
 	DealItemData(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,

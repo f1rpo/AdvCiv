@@ -19,7 +19,6 @@
 #include "CvInfo_Civics.h"
 #include "BBAILog.h"
 #include "CvPopupInfo.h"
-#include "FAStarNode.h"
 
 //#define GREATER_FOUND_RANGE			(5)
 #define CIVIC_CHANGE_DELAY			(20) // was 25

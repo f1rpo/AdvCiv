@@ -12,7 +12,6 @@
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // advc.003x: Only needed for the special buildings that GP can construct and AI_nukeValue
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-#include "FAStarNode.h"
 
 //#define FOUND_RANGE (7) // advc: unused
 

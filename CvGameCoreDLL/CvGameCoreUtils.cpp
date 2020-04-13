@@ -4,7 +4,6 @@
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
 #include "CityPlotIterator.h"
-#include "FAStarNode.h"
 #include "BBAILog.h" // advc.007
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Terrain.h"

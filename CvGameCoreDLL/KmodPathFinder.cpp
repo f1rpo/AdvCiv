@@ -46,10 +46,10 @@ bool KmodPathFinder::OpenList_sortPred::operator()(const FAStarNode* &left, cons
 
 //
 KmodPathFinder::KmodPathFinder() :
-	end_node(0),
+	end_node(NULL),
 	map_width(0),
 	map_height(0),
-	node_data(0)
+	node_data(NULL)
 {
 	// Unfortunately, the pathfinder is constructed before the map width and height are determined.
 
@@ -78,7 +78,8 @@ bool KmodPathFinder::ValidateNodeMap()
 		// <advc> According to cppcheck, the above is a "common realloc mistake".
 		FAStarNode* new_node_data = static_cast<FAStarNode*>(
 				realloc(node_data, sizeof(*node_data)*map_width*map_height));
-		if(new_node_data == NULL) {
+		if (new_node_data == NULL)
+		{
 			free(node_data);
 			FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
 		}

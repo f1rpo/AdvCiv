@@ -11,7 +11,6 @@
 #include "CvInfo_GameOption.h"
 #include "RiseFall.h" // advc.700
 #include "CvPopupInfo.h"
-#include "FAStarNode.h"
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
 #include "CvBugOptions.h"
