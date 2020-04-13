@@ -448,8 +448,8 @@ public:
 	DllExport CvCity* getPlotCity() const;																												// Exposed to Python
 	CvCityAI* AI_getPlotCity() const;
 	void setPlotCity(CvCity* pNewValue);
-	void setRuinsName(const CvWString& szName); // advc.005c
-	const wchar* getRuinsName() const; // advc.005c
+	void setRuinsName(CvWString const& szName); // advc.005c
+	const wchar* getRuinsName() const; // advc.005c (NULL if none)
 	CvCity* getWorkingCity() const;																														// Exposed to Python
 	void updateWorkingCity();
 	CvCity const* defaultWorkingCity() const; // advc
@@ -773,7 +773,7 @@ protected:
 	IDInfo m_workingCity;
 	IDInfo m_workingCityOverride;
 
-	CvWString m_szMostRecentCityName; // advc.005c
+	wchar const* m_szMostRecentCityName; // advc.005c (wstring takes up 28 byte!)
 	char const* m_szScriptData; // advc: const
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 	//bool m_bActivePlayerNoDangerCache;

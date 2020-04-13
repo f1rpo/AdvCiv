@@ -4929,8 +4929,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		bool bNamedRuin = false;
 		if(ePlotImprovement == GC.getRUINS_IMPROVEMENT())
 		{
-			const wchar* szRuinsName = pPlot->getRuinsName();
-			if(wcslen(szRuinsName) > 0)
+			wchar const* szRuinsName = pPlot->getRuinsName();
+			if(szRuinsName != NULL/*&& wcslen(szRuinsName) > 0*/)
 			{
 				szString.append(gDLL->getText("TXT_KEY_IMPROVEMENT_CITY_RUINS_NAMED",
 						szRuinsName));

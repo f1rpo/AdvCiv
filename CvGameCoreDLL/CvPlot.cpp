@@ -38,6 +38,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_pFlagSymbolOffset = NULL;
 	m_pCenterUnit = NULL;
 	m_szScriptData = NULL;
+	m_szMostRecentCityName = NULL; // advc.005c
 
 	m_iX = 0;
 	m_iY = 0;
@@ -76,7 +77,6 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_eRouteType = NO_ROUTE;
 	m_eRiverNSDirection = NO_CARDINALDIRECTION;
 	m_eRiverWEDirection = NO_CARDINALDIRECTION;
-
 	m_plotCity.reset();
 	m_workingCity.reset();
 	m_workingCityOverride.reset();
@@ -86,6 +86,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 CvPlot::~CvPlot() // advc: Merged with the deleted uninit function
 {
 	SAFE_DELETE_ARRAY(m_szScriptData);
+	SAFE_DELETE_ARRAY(m_szMostRecentCityName); // advc.005c
 
 	gDLL->getFeatureIFace()->destroy(m_pFeatureSymbol);
 	if(m_pPlotBuilder)
@@ -4856,9 +4857,15 @@ void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
 }
 
 // <advc.005c>
-void CvPlot::setRuinsName(const CvWString& szName)
+void CvPlot::setRuinsName(CvWString const& szName)
 {
-	m_szMostRecentCityName = szName;
+	SAFE_DELETE_ARRAY(m_szMostRecentCityName);
+	if (szName.empty())
+		return;
+	wchar* szBuffer = new wchar[szName.length() + 1]; // +1 for \0
+	wcsncpy(szBuffer, szName.c_str(), szName.length() + 1);
+	m_szMostRecentCityName = szBuffer;
+	FAssert(wcslen(m_szMostRecentCityName) == szName.length());
 }
 
 
@@ -7231,7 +7238,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 		m_iTurnsBuildsInterrupted = ::intToShort(iTmp);
 	}
 	else pStream->Read(&m_iTurnsBuildsInterrupted); // </advc.011>
-	pStream->ReadString(m_szMostRecentCityName); // advc.005c
+	// <advc.005c>
+	CvWString szTmp;
+	pStream->ReadString(szTmp);
+	if (!szTmp.empty())
+		setRuinsName(szTmp); // </advc.005c>
 	// <advc.opt>
 	if(uiFlag >= 2)
 		pStream->Read(&m_iTotalCulture);
@@ -7413,7 +7424,11 @@ void CvPlot::write(FDataStreamBase* pStream)
 		m_aiBuildProgress.Write(pStream, false);
 	}
 	pStream->Write(m_iTurnsBuildsInterrupted); // advc.011
-	pStream->WriteString(m_szMostRecentCityName); // advc.005c
+	// <advc.005c>
+	std::wstring szTmp;
+	if (m_szMostRecentCityName != NULL)
+		szTmp = m_szMostRecentCityName;
+	pStream->WriteString(szTmp); // </advc.005c>
 	pStream->Write(m_iTotalCulture); // advc.opt
 
 	if (!m_aaiCultureRangeCities.hasContent())
