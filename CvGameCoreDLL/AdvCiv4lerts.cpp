@@ -42,7 +42,7 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId
 		return; // </advc.706>
 	bool arrows = (icon != NULL);
 	gDLL->UI().addMessage(ownerId, false, -1, s, NULL,
-			force ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
+			force && isDebug ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
 			icon, (ColorTypes)colorId, x, y, arrows, arrows);
 }
 
