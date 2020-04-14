@@ -117,7 +117,21 @@ protected:
 	int m_iStartYear;
 	CvWString m_szFinalDate;
 	CalendarTypes m_eCalendar;
-
+	//int m_iNormalizedScore;
+	// <advc.003k> Additional data members
+	class Data
+	{
+		int iNormalizedScore; // (moved into Data to make room for Data* m)
+		int iFinalScore; // advc.707
+		// <advc.106i>
+		int iVersionRead;
+		bool bDisplayOtherMods;
+		CvString szPurportedModName;
+		// </advc.106i>
+		friend CvReplayInfo;
+	};
+	Data* m;
+	// </advc.003k>
 	struct TurnData
 	{
 		int m_iScore;
@@ -143,21 +157,7 @@ protected:
 	byte const* m_pcMinimapPixels; // advc.106n: const
 
 	CvString m_szModName;
-
-	// <advc.003k> Additional data members
-	class Data
-	{
-		int iNormalizedScore; // (moved into Data to make room for Data* m)
-		int iFinalScore; // advc.707
-		// <advc.106i>
-		int iVersionRead;
-		bool bDisplayOtherMods;
-		CvString szPurportedModName;
-		// </advc.106i>
-		friend CvReplayInfo;
-	};
-	Data* m;
 };
-BOOST_STATIC_ASSERT(sizeof(CvReplayInfo) == 336);
-// </advc.003k>
+BOOST_STATIC_ASSERT(sizeof(CvReplayInfo) == 336); // advc.003k
+
 #endif

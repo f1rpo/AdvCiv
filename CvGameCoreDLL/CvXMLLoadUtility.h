@@ -181,7 +181,7 @@ private:
 	};
 	//int m_iCurProgressStep; // Unused, remove it to make room.
 	//ProgressCB m_pCBFxn;// Also unused, but have no other use for that memory, so:
-	void* m_pDummy; // (not sure if decreasing the class size would be a problem)
+	void* m_pDummy;
 	Data* m; // additional members
 	// Still called, still has no effect:  // </advc.003k>
 	void UpdateProgressCB(const char* szMessage=NULL);

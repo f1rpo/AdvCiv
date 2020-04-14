@@ -257,22 +257,29 @@ protected:
 	// The game also crashes if I add int[30] to CvSelectionGroupAI.
 
 	// ... I see that BBAI ignored the warning. They added some stuff below.
+	// (advc: That was the BBAI StrandedCache, removed by K-Mod.)
 	// Removing the BBAI bools from below does not change the size 80. Neither does removing the BBAI virtual functions.
 	// but adding another int increases the size to 84. Which is a shame, because I really want to add one more int...
 	// Although a single int doesn't cause a startup crash, I'd rather not risk instability.
-
-	// <advc.003k> Pointer to additional data members
-	class Data;
-	CvSelectionGroup::Data* m; // dial m for members
-	// </advc.003k>
+	/*	advc.003k: I have a workaround for this. See nested class 'Data' below.
+		(Not right here b/c it's safer to keep the members in their original order.) */
 
 	int m_iID;
 	int m_iMissionTimer;
-
 	bool m_bForceUpdate;
-
 	PlayerTypes m_eOwner;
 	ActivityTypes m_eActivityType;
+	//AutomateTypes m_eAutomateType;
+	// <advc.003k> Pointer to additional data members.
+	class Data
+	{
+		AutomateTypes eAutomateType;
+		CLinkList<IDInfo> knownEnemies; // advc.004l
+		bool bInitiallyVisible; // advc.102
+		friend CvSelectionGroup;
+	};
+	Data* m; // dial m for members
+	// </advc.003k>
 
 	CLinkList<IDInfo> m_units;
 	CLinkList<MissionData> m_missionQueue;
@@ -288,16 +295,6 @@ protected:
 	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
 	// </advc.075>
 	bool sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies = false);
-
-	// <advc.003k>
-	class Data
-	{
-		CLinkList<IDInfo> knownEnemies; // advc.004l
-		bool bInitiallyVisible; // advc.102
-		// Moved here in order to bring sizeof down to 80
-		AutomateTypes eAutomateType;
-		friend CvSelectionGroup;
-	}; // </advc.003k>
 
 public:
 	static KmodPathFinder path_finder; // K-Mod! I'd rather this not be static, but I can't do that here.
