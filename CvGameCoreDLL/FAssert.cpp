@@ -163,10 +163,10 @@ bool FAssertDlg( const char* szExpr, const char* szMsg, const char* szFile, unsi
 		exit(0);
 		break;
 	/*	<advc.wine> DisplayAssertDialog goes through DialogBoxIndirect (WinUser.h).
-		Wine won't display that. */
-	default:	
+		I had assumed that Wine won't display that - but it does, so nvm.  */
+	/*default:	
 		printf("FAssertDlg: {%s} %s in %s, %s, line %d",
-				szExpr, szMsg, szFile, szFunction, line); // </advc.wine>
+				szExpr, szMsg, szFile, szFunction, line);*/ // </advc.wine>
 	}
 
 	return true;
